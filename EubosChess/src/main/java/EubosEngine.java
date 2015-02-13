@@ -1,0 +1,72 @@
+import com.fluxchess.jcpi.AbstractEngine;
+import com.fluxchess.jcpi.commands.EngineAnalyzeCommand;
+import com.fluxchess.jcpi.commands.EngineDebugCommand;
+import com.fluxchess.jcpi.commands.EngineInitializeRequestCommand;
+import com.fluxchess.jcpi.commands.EngineNewGameCommand;
+import com.fluxchess.jcpi.commands.EnginePonderHitCommand;
+import com.fluxchess.jcpi.commands.EngineReadyRequestCommand;
+import com.fluxchess.jcpi.commands.EngineSetOptionCommand;
+import com.fluxchess.jcpi.commands.EngineStartCalculatingCommand;
+import com.fluxchess.jcpi.commands.EngineStopCalculatingCommand;
+
+import com.fluxchess.jcpi.commands.ProtocolInitializeAnswerCommand;
+import com.fluxchess.jcpi.commands.ProtocolReadyAnswerCommand;
+import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
+import com.fluxchess.jcpi.models.*;
+
+public class EubosEngine extends AbstractEngine {
+
+	public void receive(EngineInitializeRequestCommand command) {
+		this.getProtocol().send( new ProtocolInitializeAnswerCommand("Eubos","Chris Bolt") );
+	}
+
+	public void receive(EngineSetOptionCommand command) {
+		//System.out.println("receive(EngineSetOptionCommand): Eubos Chess Engine.");
+	}
+
+	public void receive(EngineDebugCommand command) {
+		//System.out.println("receive(EngineDebugCommand): Eubos Chess Engine.");
+	}
+
+	public void receive(EngineReadyRequestCommand command) {
+		this.getProtocol().send( new ProtocolReadyAnswerCommand("") );
+	}
+
+	public void receive(EngineNewGameCommand command) {
+		//System.out.println("receive(EngineNewGameCommand): Eubos Chess Engine.");
+	}
+
+	public void receive(EngineAnalyzeCommand command) {
+		// Note: command contains the move list and can be interrogated to set up the engine.
+	}
+
+	public void receive(EngineStartCalculatingCommand command) {
+		// For now, respond by sending a hard coded pawn move, valid from the starting position, to the GUI
+		this.moveE7Pawn();
+	}
+
+	public void receive(EngineStopCalculatingCommand command) {
+	}
+
+	public void receive(EnginePonderHitCommand command) {
+	}
+
+	@Override
+	protected void quit() {
+	}
+
+	public static void main(String[] args) {
+		// start the Engine
+		Thread EubosThread = new Thread( new EubosEngine() );
+		EubosThread.start();
+	}
+	
+	private void moveE7Pawn() {
+		try {
+			this.getProtocol().send( new ProtocolBestMoveCommand( new GenericMove( "e7e6"), null ));
+		} catch( IllegalNotationException e ) {
+			System.out.println( "whoops:" + e.toString() );
+		}
+	}
+
+}
