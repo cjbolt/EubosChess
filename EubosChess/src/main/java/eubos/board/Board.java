@@ -1,6 +1,7 @@
 package eubos.board;
 
 import eubos.pieces.*;
+import com.fluxchess.jcpi.models.*;
 
 public class Board {
 	private Piece[][] theBoard = new Piece[8][8];
@@ -19,21 +20,23 @@ public class Board {
 	}
 	
 	private void setupBackRanks() {
-		theBoard[0][0] = new Rook();
-		theBoard[1][0] = new Knight();
-		theBoard[2][0] = new Bishop();
-		theBoard[3][0] = new Queen();
-		theBoard[4][0] = new King();
-		theBoard[5][0] = new Bishop();
-		theBoard[6][0] = new Knight();
-		theBoard[7][0] = new Rook();
-		theBoard[0][7] = new Rook();
-		theBoard[1][7] = new Knight();
-		theBoard[2][7] = new Bishop();
-		theBoard[3][7] = new Queen();
-		theBoard[4][7] = new King();
-		theBoard[5][7] = new Bishop();
-		theBoard[6][7] = new Knight();
-		theBoard[7][7] = new Rook();
+		// White
+		theBoard[IntFile.Fa][IntRank.R1] = new Rook();
+		theBoard[IntFile.Fb][IntRank.R1] = new Knight();
+		theBoard[IntFile.Fc][IntRank.R1] = new Bishop();
+		theBoard[IntFile.Fd][IntRank.R1] = new Queen();
+		theBoard[IntFile.Fe][IntRank.R1] = new King();
+		theBoard[IntFile.Ff][IntRank.R1] = new Bishop();
+		theBoard[IntFile.Fg][IntRank.R1] = new Knight();
+		theBoard[IntFile.Fh][IntRank.R1] = new Rook();
+		// Black
+		theBoard[IntFile.Fa][IntRank.R1] = new Rook();
+		theBoard[IntFile.Fb][IntRank.R1] = new Knight();
+		theBoard[IntFile.Fc][IntRank.R1] = new Bishop();
+		theBoard[IntFile.Fd][IntRank.R1] = new Queen();
+		theBoard[IntFile.Fe][IntRank.R1] = new King();
+		theBoard[IntFile.Ff][IntRank.R1] = new Bishop();
+		theBoard[IntFile.Fg][IntRank.R1] = new Knight();
+		theBoard[IntFile.Fh][IntRank.R1] = new Rook();
 	}
 }
