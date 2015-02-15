@@ -1,3 +1,4 @@
+package eubos.main;
 import com.fluxchess.jcpi.AbstractEngine;
 import com.fluxchess.jcpi.commands.EngineAnalyzeCommand;
 import com.fluxchess.jcpi.commands.EngineDebugCommand;
@@ -14,7 +15,7 @@ import com.fluxchess.jcpi.commands.ProtocolReadyAnswerCommand;
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import com.fluxchess.jcpi.models.*;
 
-public class EubosEngine extends AbstractEngine {
+public class EubosEngineMain extends AbstractEngine {
 
 	public void receive(EngineInitializeRequestCommand command) {
 		this.getProtocol().send( new ProtocolInitializeAnswerCommand("Eubos","Chris Bolt") );
@@ -57,7 +58,7 @@ public class EubosEngine extends AbstractEngine {
 
 	public static void main(String[] args) {
 		// start the Engine
-		Thread EubosThread = new Thread( new EubosEngine() );
+		Thread EubosThread = new Thread( new EubosEngineMain() );
 		EubosThread.start();
 	}
 	
