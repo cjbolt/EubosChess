@@ -1,4 +1,5 @@
 package eubos.main;
+
 import com.fluxchess.jcpi.AbstractEngine;
 import com.fluxchess.jcpi.commands.EngineAnalyzeCommand;
 import com.fluxchess.jcpi.commands.EngineDebugCommand;
@@ -15,7 +16,11 @@ import com.fluxchess.jcpi.commands.ProtocolReadyAnswerCommand;
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import com.fluxchess.jcpi.models.*;
 
+import eubos.board.*;
+
 public class EubosEngineMain extends AbstractEngine {
+	
+	private Board theChessBoard;
 
 	public void receive(EngineInitializeRequestCommand command) {
 		this.getProtocol().send( new ProtocolInitializeAnswerCommand("Eubos","Chris Bolt") );
@@ -35,6 +40,7 @@ public class EubosEngineMain extends AbstractEngine {
 
 	public void receive(EngineNewGameCommand command) {
 		//System.out.println("receive(EngineNewGameCommand): Eubos Chess Engine.");
+		theChessBoard = new Board();
 	}
 
 	public void receive(EngineAnalyzeCommand command) {
@@ -43,7 +49,13 @@ public class EubosEngineMain extends AbstractEngine {
 
 	public void receive(EngineStartCalculatingCommand command) {
 		// For now, respond by sending a hard coded pawn move, valid from the starting position, to the GUI
-		this.moveE7Pawn();
+		// this.moveE7Pawn();
+		try {
+			GenericMove selectedMove = theChessBoard.findBestMove();
+			this.getProtocol().send( new ProtocolBestMoveCommand( selectedMove, null ));
+		} catch( IllegalNotationException e ) {
+			System.out.println( "whoops:" + e.toString() );
+		}
 	}
 
 	public void receive(EngineStopCalculatingCommand command) {
