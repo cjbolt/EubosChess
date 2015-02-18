@@ -1,5 +1,7 @@
 package eubos.board;
 
+import java.util.*;
+
 import eubos.pieces.*;
 
 import com.fluxchess.jcpi.models.*;
@@ -13,7 +15,22 @@ public class Board {
 	
 	public GenericMove findBestMove() throws IllegalNotationException {
 		// for now find a random legal move for the side indicated
-		return( new GenericMove("e7e5") );
+		// first generate the entire move list
+		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();
+		for (int i: IntFile.values) {
+			for (int j: IntRank.values) {
+				Piece nextPiece = theBoard[i][j];
+				if (nextPiece != null) {
+					// append this piece's legal moves to the entire move list
+					entireMoveList.addAll(nextPiece.generateMoveList(this));
+				}
+			}
+		}
+		// secondly return a move at random
+		Random randomIndex = new Random();
+		Integer indexToGet = randomIndex.nextInt(entireMoveList.size());
+		return (entireMoveList.get(indexToGet));
+		//return( new GenericMove("e7e5") );
 	}
 	
 	private void setupNewGame() {

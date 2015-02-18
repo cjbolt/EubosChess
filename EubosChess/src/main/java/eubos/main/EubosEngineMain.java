@@ -48,8 +48,6 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 
 	public void receive(EngineStartCalculatingCommand command) {
-		// For now, respond by sending a hard coded pawn move, valid from the starting position, to the GUI
-		// this.moveE7Pawn();
 		try {
 			GenericMove selectedMove = theChessBoard.findBestMove();
 			this.getProtocol().send( new ProtocolBestMoveCommand( selectedMove, null ));
@@ -73,13 +71,4 @@ public class EubosEngineMain extends AbstractEngine {
 		Thread EubosThread = new Thread( new EubosEngineMain() );
 		EubosThread.start();
 	}
-	
-	private void moveE7Pawn() {
-		try {
-			this.getProtocol().send( new ProtocolBestMoveCommand( new GenericMove( "e7e6"), null ));
-		} catch( IllegalNotationException e ) {
-			System.out.println( "whoops:" + e.toString() );
-		}
-	}
-
 }

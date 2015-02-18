@@ -1,5 +1,11 @@
 package eubos.pieces;
 
+import java.util.LinkedList;
+
+import com.fluxchess.jcpi.models.GenericMove;
+
+import eubos.board.Board;
+
 public class Bishop extends MultisquareDirectMovePiece {
 
 	public Bishop( PieceColour Colour ) {
@@ -7,9 +13,9 @@ public class Bishop extends MultisquareDirectMovePiece {
 	}
 	
 	@Override
-	public void generateMoveList() {
-		// TODO Auto-generated method stub
-
+	public LinkedList<GenericMove> generateMoveList(Board theBoard) {
+		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
+		return moveList;	
 	}
 
 }

@@ -1,8 +1,12 @@
 package eubos.pieces;
 
+import eubos.board.*;
+import com.fluxchess.jcpi.models.*;
+import java.util.*;
+
 public abstract class Piece {
 	public enum PieceColour { white, black };
 	protected PieceColour colour = PieceColour.black;
 	protected boolean moved = false;
-	public abstract void generateMoveList(); 
+	public abstract LinkedList<GenericMove> generateMoveList( Board theBoard ); 
 }
