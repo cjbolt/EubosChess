@@ -2,14 +2,15 @@ package eubos.pieces;
 
 import java.util.LinkedList;
 
-import com.fluxchess.jcpi.models.GenericMove;
+import com.fluxchess.jcpi.models.*;
 
 import eubos.board.Board;
 
 public class Knight extends IndirectMovePiece {
 
-	public Knight( PieceColour Colour ) {
+	public Knight( PieceColour Colour, GenericPosition at ) {
 		colour = Colour;
+		onSquare = at;
 	}
 	
 	@Override
