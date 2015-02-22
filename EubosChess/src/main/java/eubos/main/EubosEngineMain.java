@@ -45,6 +45,10 @@ public class EubosEngineMain extends AbstractEngine {
 
 	public void receive(EngineAnalyzeCommand command) {
 		// Note: command contains the move list and can be interrogated to set up the engine.
+		theChessBoard = new Board();
+		for ( GenericMove nextMove : command.moves ) {
+			theChessBoard.performMove( nextMove );
+		}
 	}
 
 	public void receive(EngineStartCalculatingCommand command) {

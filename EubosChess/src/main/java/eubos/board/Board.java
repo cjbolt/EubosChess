@@ -22,6 +22,7 @@ public class Board {
 	public GenericMove findBestMove() throws IllegalNotationException {
 		// for now find a random legal move for the side indicated
 		// first generate the entire move list
+		GenericMove bestMove = null;
 		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();
 		for (int i: IntFile.values) {
 			for (int j: IntRank.values) {
@@ -32,11 +33,13 @@ public class Board {
 				}
 			}
 		}
-		// secondly return a move at random
-		Random randomIndex = new Random();
-		Integer indexToGet = randomIndex.nextInt(entireMoveList.size());
-		GenericMove bestMove = entireMoveList.get(indexToGet);
-		return (bestMove);
+		if ( !entireMoveList.isEmpty()) {
+			// secondly return a move at random
+			Random randomIndex = new Random();
+			Integer indexToGet = randomIndex.nextInt(entireMoveList.size());
+			bestMove = entireMoveList.get(indexToGet);			
+		}
+		return bestMove;
 	}
 
 	public void performMove( GenericMove move ) {
