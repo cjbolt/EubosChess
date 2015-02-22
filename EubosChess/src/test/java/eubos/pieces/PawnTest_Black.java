@@ -2,6 +2,7 @@ package eubos.pieces;
 
 import static org.junit.Assert.*;
 
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -13,36 +14,47 @@ import com.fluxchess.jcpi.models.*;
 
 public class PawnTest_Black extends PawnTest {
 
+	private LinkedList<Piece> pl;
+	private Pawn pieceUnderTest;
+	private Board testPosition;
+	private GenericMove expectedMove;
+	
+	@Before
+	public void setUp() {
+		pl = new LinkedList<Piece>();
+	}
+	
+	private Pawn addBlackPawnE7() {
+		Pawn e7Pawn = new Pawn( Piece.PieceColour.black, GenericPosition.e7 );
+		pl.add( e7Pawn );
+		return e7Pawn;
+	}
+	
 	@Test
 	public void testInitial_MoveOneSquare() {
-		LinkedList<Piece> setup = new LinkedList<Piece>();
-		Pawn pieceUnderTest = new Pawn( Piece.PieceColour.black, GenericPosition.e7 );
-		setup.add( pieceUnderTest );
-		Board testPosition = new Board( setup );
+		pieceUnderTest = addBlackPawnE7();
+		testPosition = new Board( pl );
 		LinkedList<GenericMove> ml = pieceUnderTest.generateMoveList( testPosition );
-		assertTrue( ml.contains( new GenericMove( GenericPosition.e7, GenericPosition.e6 ) ));
+		expectedMove = new GenericMove( GenericPosition.e7, GenericPosition.e6 );
+		assertTrue( ml.contains( expectedMove ));
 	}
 
 	@Test
 	public void testInitial_MoveTwoSquares() {
-		LinkedList<Piece> setup = new LinkedList<Piece>();
-		Pawn pieceUnderTest = new Pawn( Piece.PieceColour.black, GenericPosition.e7 );
-		setup.add( pieceUnderTest );
-		Board testPosition = new Board( setup );
+		pieceUnderTest = addBlackPawnE7();
+		testPosition = new Board( pl );
 		LinkedList<GenericMove> ml = pieceUnderTest.generateMoveList( testPosition );
-		assertTrue( ml.contains( new GenericMove( GenericPosition.e7, GenericPosition.e5 ) ));
+		expectedMove = new GenericMove( GenericPosition.e7, GenericPosition.e5 );
+		assertTrue( ml.contains( expectedMove ));
 	}
 	
 	@Test
 	public void testInitial_Blocked() {
-		LinkedList<Piece> setup = new LinkedList<Piece>();
-		Pawn pieceUnderTest = new Pawn( Piece.PieceColour.black, GenericPosition.e7 );
-		setup.add( pieceUnderTest );
-		setup.add( new Pawn( Piece.PieceColour.black, GenericPosition.e6 ));
-		Board testPosition = new Board( setup );
+		pieceUnderTest = addBlackPawnE7();
+		pl.add( new Pawn( Piece.PieceColour.black, GenericPosition.e6 ));
+		testPosition = new Board( pl );
 		LinkedList<GenericMove> ml = pieceUnderTest.generateMoveList( testPosition );
-		assertFalse( ml.contains( new GenericMove( GenericPosition.e7, GenericPosition.e6 ) ));
-		assertFalse( ml.contains( new GenericMove( GenericPosition.e7, GenericPosition.e5 ) ));	
+		assertTrue( ml.isEmpty() );
 	}
 
 	@Test
