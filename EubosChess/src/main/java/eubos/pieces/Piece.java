@@ -14,7 +14,6 @@ public abstract class Piece {
 	public boolean isWhite() { return ( colour == PieceColour.white ); }
 	public boolean isBlack() { return !isWhite(); }	
 	
-	public void updateSquare( GenericPosition pos) {
-		onSquare = pos;
-	}
+	public void setSquare( GenericPosition pos) { onSquare = pos; everMoved = true; }
+	public GenericPosition getSquare() { return(onSquare); }
 }

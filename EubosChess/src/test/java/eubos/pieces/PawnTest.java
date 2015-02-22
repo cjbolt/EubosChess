@@ -55,9 +55,4 @@ public abstract class PawnTest {
 	public void test_PromoteRook() {
 		fail("Not yet implemented");
 	}
-	
-	@Test
-	public void testPawn() {
-		fail("Not yet implemented");
-	}
 }

@@ -2,63 +2,86 @@ package eubos.pieces;
 
 import static org.junit.Assert.*;
 
+import org.junit.Ignore;
 import org.junit.Test;
+
+import java.util.*;
+
+import eubos.board.*;
+
+import com.fluxchess.jcpi.models.*;
 
 public class PawnTest_Black extends PawnTest {
 
 	@Test
 	public void testInitial_MoveOneSquare() {
-		fail("Not yet implemented");
+		LinkedList<Piece> setup = new LinkedList<Piece>();
+		Pawn pieceUnderTest = new Pawn( Piece.PieceColour.black, GenericPosition.e7 );
+		setup.add( pieceUnderTest );
+		Board testPosition = new Board( setup );
+		LinkedList<GenericMove> ml = pieceUnderTest.generateMoveList( testPosition );
+		assertTrue( ml.contains( new GenericMove( GenericPosition.e7, GenericPosition.e6 ) ));
 	}
 
 	@Test
 	public void testInitial_MoveTwoSquares() {
-		fail("Not yet implemented");
+		LinkedList<Piece> setup = new LinkedList<Piece>();
+		Pawn pieceUnderTest = new Pawn( Piece.PieceColour.black, GenericPosition.e7 );
+		setup.add( pieceUnderTest );
+		Board testPosition = new Board( setup );
+		LinkedList<GenericMove> ml = pieceUnderTest.generateMoveList( testPosition );
+		assertTrue( ml.contains( new GenericMove( GenericPosition.e7, GenericPosition.e5 ) ));
+	}
+	
+	@Test
+	public void testInitial_Blocked() {
+		LinkedList<Piece> setup = new LinkedList<Piece>();
+		Pawn pieceUnderTest = new Pawn( Piece.PieceColour.black, GenericPosition.e7 );
+		setup.add( pieceUnderTest );
+		setup.add( new Pawn( Piece.PieceColour.black, GenericPosition.e6 ));
+		Board testPosition = new Board( setup );
+		LinkedList<GenericMove> ml = pieceUnderTest.generateMoveList( testPosition );
+		assertFalse( ml.contains( new GenericMove( GenericPosition.e7, GenericPosition.e6 ) ));
+		assertFalse( ml.contains( new GenericMove( GenericPosition.e7, GenericPosition.e5 ) ));	
 	}
 
 	@Test
+	@Ignore
 	public void testInitial_EnPassant() {
-		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void test_MoveOneSquare() {
-		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void test_CaptureLeft() {
-		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void test_CaptureRight() {
-		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void test_PromoteQueen() {
-		fail("Not yet implemented");
 	}	
 
 	@Test
+	@Ignore
 	public void test_PromoteKnight() {
-		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void test_PromoteBishop() {
-		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void test_PromoteRook() {
-		fail("Not yet implemented");
 	}
-
-	@Test
-	public void testPawn() {
-		fail("Not yet implemented");
-	}
-
 }

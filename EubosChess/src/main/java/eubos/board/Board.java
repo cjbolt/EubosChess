@@ -8,11 +8,17 @@ import com.fluxchess.jcpi.models.*;
 
 public class Board {
 	private Piece[][] theBoard = new Piece[8][8];
-	
+
 	public Board() {
 		setupNewGame();
 	}
-	
+
+	public Board( LinkedList<Piece> pieceList ) {
+		for ( Piece nextPiece : pieceList ) {
+			setPieceAtSquare( nextPiece );
+		}
+	}
+
 	public GenericMove findBestMove() throws IllegalNotationException {
 		// for now find a random legal move for the side indicated
 		// first generate the entire move list
@@ -32,50 +38,96 @@ public class Board {
 		GenericMove bestMove = entireMoveList.get(indexToGet);
 		return (bestMove);
 	}
-	
-	public void update( GenericMove move ) {
+
+	public void performMove( GenericMove move ) {
 		// Move the piece
-		GenericPosition posFrom = move.from;
-		Piece pieceToMove = theBoard[IntFile.valueOf(posFrom.file)][IntRank.valueOf(posFrom.rank)];
-		theBoard[IntFile.valueOf(posFrom.file)][IntRank.valueOf(posFrom.rank)] = null;
-		GenericPosition posTo = move.to;
-		theBoard[IntFile.valueOf(posTo.file)][IntRank.valueOf(posTo.rank)] = pieceToMove;
+		Piece pieceToMove = pickUpPieceAtSquare( move.from );
 		// Update the piece's square.
-		pieceToMove.updateSquare(posTo);
+		pieceToMove.setSquare( move.to );
+		setPieceAtSquare( pieceToMove );
 	}
-	
+
 	private void setupNewGame() {
 		setupBackRanks();
 		setupPawns();
 	}
-	
+
 	private void setupPawns() {
-		for ( GenericFile file : GenericFile.values()) {
-			GenericPosition pos = GenericPosition.valueOf( file, GenericRank.R2);
-			theBoard[IntFile.valueOf(file)][IntRank.R2] = new Pawn( Piece.PieceColour.white, pos );
-			pos = GenericPosition.valueOf( file, GenericRank.R7);
-			theBoard[IntFile.valueOf(file)][IntRank.R7] = new Pawn( Piece.PieceColour.black, pos );
+		GenericPosition[] allFiles = new GenericPosition[] { 
+				GenericPosition.a2,
+				GenericPosition.b2,
+				GenericPosition.c2,
+				GenericPosition.d2,
+				GenericPosition.e2,
+				GenericPosition.f2,
+				GenericPosition.g2,
+				GenericPosition.h2 };
+		for ( GenericPosition startPos : allFiles ) {
+			setPieceAtSquare( new Pawn( Piece.PieceColour.white, startPos ));
+		}
+		allFiles = new GenericPosition[] { 
+				GenericPosition.a7,
+				GenericPosition.b7,
+				GenericPosition.c7,
+				GenericPosition.d7,
+				GenericPosition.e7,
+				GenericPosition.f7,
+				GenericPosition.g7,
+				GenericPosition.h7 };		
+		for ( GenericPosition startPos : allFiles ) {
+			setPieceAtSquare( new Pawn( Piece.PieceColour.black, startPos ));
 		}
 	}
-	
+
 	private void setupBackRanks() {
 		// White
-		theBoard[IntFile.Fa][IntRank.R1] = new Rook( Piece.PieceColour.white, GenericPosition.a1 );
-		theBoard[IntFile.Fb][IntRank.R1] = new Knight( Piece.PieceColour.white, GenericPosition.b1 );
-		theBoard[IntFile.Fc][IntRank.R1] = new Bishop( Piece.PieceColour.white, GenericPosition.c1 );
-		theBoard[IntFile.Fd][IntRank.R1] = new Queen( Piece.PieceColour.white, GenericPosition.d1 );
-		theBoard[IntFile.Fe][IntRank.R1] = new King( Piece.PieceColour.white, GenericPosition.e1 );
-		theBoard[IntFile.Ff][IntRank.R1] = new Bishop( Piece.PieceColour.white, GenericPosition.f1 );
-		theBoard[IntFile.Fg][IntRank.R1] = new Knight( Piece.PieceColour.white, GenericPosition.g1 );
-		theBoard[IntFile.Fh][IntRank.R1] = new Rook( Piece.PieceColour.white, GenericPosition.h1 );
+		setPieceAtSquare( new Rook  ( Piece.PieceColour.white, GenericPosition.a1 ));
+		setPieceAtSquare( new Knight( Piece.PieceColour.white, GenericPosition.b1 ));
+		setPieceAtSquare( new Bishop( Piece.PieceColour.white, GenericPosition.c1 ));
+		setPieceAtSquare( new Queen ( Piece.PieceColour.white, GenericPosition.d1 ));
+		setPieceAtSquare( new King  ( Piece.PieceColour.white, GenericPosition.e1 ));
+		setPieceAtSquare( new Bishop( Piece.PieceColour.white, GenericPosition.f1 ));
+		setPieceAtSquare( new Knight( Piece.PieceColour.white, GenericPosition.g1 ));
+		setPieceAtSquare( new Rook  ( Piece.PieceColour.white, GenericPosition.h1 ));
 		// Black
-		theBoard[IntFile.Fa][IntRank.R8] = new Rook( Piece.PieceColour.black, GenericPosition.a8 );
-		theBoard[IntFile.Fb][IntRank.R8] = new Knight( Piece.PieceColour.black, GenericPosition.b8 );
-		theBoard[IntFile.Fc][IntRank.R8] = new Bishop( Piece.PieceColour.black, GenericPosition.c8 );
-		theBoard[IntFile.Fd][IntRank.R8] = new Queen( Piece.PieceColour.black, GenericPosition.d8 );
-		theBoard[IntFile.Fe][IntRank.R8] = new King( Piece.PieceColour.black, GenericPosition.e8 );
-		theBoard[IntFile.Ff][IntRank.R8] = new Bishop( Piece.PieceColour.black, GenericPosition.f8 );
-		theBoard[IntFile.Fg][IntRank.R8] = new Knight( Piece.PieceColour.black, GenericPosition.g8 );
-		theBoard[IntFile.Fh][IntRank.R8] = new Rook( Piece.PieceColour.black, GenericPosition.h8 );
+		setPieceAtSquare( new Rook  ( Piece.PieceColour.black, GenericPosition.a8 ));
+		setPieceAtSquare( new Knight( Piece.PieceColour.black, GenericPosition.b8 ));
+		setPieceAtSquare( new Bishop( Piece.PieceColour.black, GenericPosition.c8 ));
+		setPieceAtSquare( new Queen ( Piece.PieceColour.black, GenericPosition.d8 ));
+		setPieceAtSquare( new King  ( Piece.PieceColour.black, GenericPosition.e8 ));
+		setPieceAtSquare( new Bishop( Piece.PieceColour.black, GenericPosition.f8 ));
+		setPieceAtSquare( new Knight( Piece.PieceColour.black, GenericPosition.g8 ));
+		setPieceAtSquare( new Rook  ( Piece.PieceColour.black, GenericPosition.h8 ));
+	}
+
+	private void setPieceAtSquare( Piece pieceToPlace ) {
+		GenericPosition atPos = pieceToPlace.getSquare();
+		int file, rank;
+		file = IntFile.valueOf(atPos.file);
+		rank = IntRank.valueOf(atPos.rank);
+		theBoard[file][rank] = pieceToPlace;	
+	}
+
+	public Piece getPieceAtSquare( GenericPosition atPos ) {
+		int file, rank;
+		file = IntFile.valueOf(atPos.file);
+		rank = IntRank.valueOf(atPos.rank);
+		return ( theBoard[file][rank] );
+	}
+	
+	private Piece pickUpPieceAtSquare( GenericPosition atPos ) {
+		int file, rank;
+		file = IntFile.valueOf(atPos.file);
+		rank = IntRank.valueOf(atPos.rank);
+		Piece pieceToPickUp = theBoard[file][rank];
+		theBoard[file][rank] = null;
+		return ( pieceToPickUp );
+	}	
+	
+	public boolean isSquareEmpty( GenericPosition atPos ) {
+		int file, rank;
+		file = IntFile.valueOf(atPos.file);
+		rank = IntRank.valueOf(atPos.rank);
+		return ( theBoard[file][rank] == null );		
 	}
 }
