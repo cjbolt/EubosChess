@@ -39,6 +39,7 @@ public class Board {
 			Integer indexToGet = randomIndex.nextInt(entireMoveList.size());
 			bestMove = entireMoveList.get(indexToGet);			
 		}
+		else throw new IllegalNotationException();
 		return bestMove;
 	}
 
