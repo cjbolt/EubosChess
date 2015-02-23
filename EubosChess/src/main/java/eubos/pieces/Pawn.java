@@ -2,6 +2,7 @@ package eubos.pieces;
 
 import java.util.LinkedList;
 
+import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericRank;
@@ -30,12 +31,18 @@ public class Pawn extends SinglesquareDirectMovePiece {
 	}
 	
 	private GenericPosition genLeftCaptureTarget() {
-		GenericPosition toPos = GenericPosition.valueOf( onSquare.file.prev(), onSquare.rank.prev());
+		GenericPosition toPos = null;
+		if ( onSquare.file != GenericFile.Fh ) {
+			toPos = GenericPosition.valueOf( onSquare.file.next(), onSquare.rank.prev());
+		}
 		return toPos;		
 	}
 	
 	private GenericPosition genRightCaptureTarget() {
-		GenericPosition toPos = GenericPosition.valueOf( onSquare.file.next(), onSquare.rank.prev());
+		GenericPosition toPos = null;
+		if ( onSquare.file != GenericFile.Fa ) {
+			toPos = GenericPosition.valueOf( onSquare.file.prev(), onSquare.rank.prev());
+		}
 		return toPos;		
 	}
 	
@@ -56,11 +63,11 @@ public class Pawn extends SinglesquareDirectMovePiece {
 			}
 			// Check for capture moves
 			GenericPosition captureAt = genLeftCaptureTarget();
-			if ( theBoard.isSquareWhitePiece( captureAt )) {
+			if ( captureAt != null && theBoard.isSquareWhitePiece( captureAt )) {
 				moveList.add( new GenericMove( onSquare, captureAt ) );
 			}
 			captureAt = genRightCaptureTarget();
-			if ( theBoard.isSquareWhitePiece( captureAt )) {
+			if ( captureAt != null && theBoard.isSquareWhitePiece( captureAt )) {
 				moveList.add( new GenericMove( onSquare, captureAt ) );
 			}
 			// TODO Check for en passant capture moves

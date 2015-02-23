@@ -36,7 +36,7 @@ public class PawnTest_Black extends PawnTest {
 	}
 	
 	@Test
-	public void testInitial_MoveOneSquare() {
+	public void test_InitialMoveOneSquare() {
 		classUnderTest = addBlackPawn( GenericPosition.e7 );
 		testBoard = new Board( pl );
 		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
@@ -45,7 +45,7 @@ public class PawnTest_Black extends PawnTest {
 	}
 
 	@Test
-	public void testInitial_MoveTwoSquares() {
+	public void test_InitialMoveTwoSquares() {
 		classUnderTest = addBlackPawn( GenericPosition.e7 );
 		testBoard = new Board( pl );
 		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
@@ -54,7 +54,7 @@ public class PawnTest_Black extends PawnTest {
 	}
 	
 	@Test
-	public void testInitial_Blocked() {
+	public void test_InitialBlocked() {
 		classUnderTest = addBlackPawn( GenericPosition.e7 );
 		addWhitePawn( GenericPosition.e6 );
 		testBoard = new Board( pl );
@@ -63,7 +63,7 @@ public class PawnTest_Black extends PawnTest {
 	}
 
 	@Test
-	public void testInitial_EnPassant() {
+	public void test_CaptureEnPassant() {
 		// Black is on e4, white moves f4, then black ml contains capture en passant, exf
 		classUnderTest = addBlackPawn( GenericPosition.e5 );
 		addWhitePawn( GenericPosition.f2 );
@@ -107,7 +107,42 @@ public class PawnTest_Black extends PawnTest {
 		expectedMove = new GenericMove( GenericPosition.e7, GenericPosition.d6 );
 		assertTrue( ml.contains( expectedMove ));
 	}
+	
+	@Test
+	public void test_CaptureFork() {
+		classUnderTest = addBlackPawn( GenericPosition.e7 );
+		addWhitePawn( GenericPosition.d6 );
+		addWhitePawn( GenericPosition.f6 );
+		testBoard = new Board( pl );
+		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
+		GenericMove captureLeft = new GenericMove( GenericPosition.e7, GenericPosition.d6 );
+		GenericMove captureRight = new GenericMove( GenericPosition.e7, GenericPosition.f6 );
+		assertTrue( ml.contains( captureLeft ));
+		assertTrue( ml.contains( captureRight ));
+	}	
+	
+	@Test
+	public void test_CaptureFromAFile() {
+		// Can only capture left
+		classUnderTest = addBlackPawn( GenericPosition.a7 );
+		addWhitePawn( GenericPosition.b6 );
+		testBoard = new Board( pl );
+		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
+		expectedMove = new GenericMove( GenericPosition.a7, GenericPosition.b6 );
+		assertTrue( ml.contains( expectedMove ));
+	}
 
+	@Test
+	public void test_CaptureFromHFile() {
+		// Can only capture right
+		classUnderTest = addBlackPawn( GenericPosition.h7 );
+		addWhitePawn( GenericPosition.g6 );
+		testBoard = new Board( pl );
+		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
+		expectedMove = new GenericMove( GenericPosition.h7, GenericPosition.g6 );
+		assertTrue( ml.contains( expectedMove ));
+	}	
+	
 	@Test
 	@Ignore
 	public void test_PromoteQueen() {
