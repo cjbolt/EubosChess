@@ -20,7 +20,7 @@ public class Board {
 	}
 
 	public GenericMove findBestMove() throws IllegalNotationException {
-		// for now find a random legal move for the side indicated
+		// TODO: for now find a random legal move for the side indicated
 		// first generate the entire move list
 		GenericMove bestMove = null;
 		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();
@@ -39,6 +39,8 @@ public class Board {
 			Integer indexToGet = randomIndex.nextInt(entireMoveList.size());
 			bestMove = entireMoveList.get(indexToGet);			
 		}
+		// TODO: This exception is when there is no valid move - it is temporary,
+		// when implementation is complete this case would actually mean stalemate.
 		else throw new IllegalNotationException();
 		return bestMove;
 	}
@@ -46,9 +48,13 @@ public class Board {
 	public void performMove( GenericMove move ) {
 		// Move the piece
 		Piece pieceToMove = pickUpPieceAtSquare( move.from );
-		// Update the piece's square.
-		pieceToMove.setSquare( move.to );
-		setPieceAtSquare( pieceToMove );
+		if ( pieceToMove != null ) {
+			// Update the piece's square.
+			pieceToMove.setSquare( move.to );
+			setPieceAtSquare( pieceToMove );
+		} else {
+			// TODO throw an exception in this case?
+		}
 	}
 
 	private void setupNewGame() {
@@ -133,5 +139,17 @@ public class Board {
 		file = IntFile.valueOf(atPos.file);
 		rank = IntRank.valueOf(atPos.rank);
 		return ( theBoard[file][rank] == null );		
+	}
+
+	public boolean isSquareWhitePiece(GenericPosition atPos) {
+		int file, rank;
+		file = IntFile.valueOf(atPos.file);
+		rank = IntRank.valueOf(atPos.rank);
+		boolean retVal = false;
+		Piece piece = theBoard[file][rank];
+		if (piece != null){
+			retVal = theBoard[file][rank].isWhite();
+		}
+		return retVal;
 	}
 }

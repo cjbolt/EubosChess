@@ -15,8 +15,8 @@ import com.fluxchess.jcpi.models.*;
 public class PawnTest_Black extends PawnTest {
 
 	private LinkedList<Piece> pl;
-	private Pawn pieceUnderTest;
-	private Board testPosition;
+	private Pawn classUnderTest;
+	private Board testBoard;
 	private GenericMove expectedMove;
 	
 	@Before
@@ -24,57 +24,88 @@ public class PawnTest_Black extends PawnTest {
 		pl = new LinkedList<Piece>();
 	}
 	
-	private Pawn addBlackPawnE7() {
-		Pawn e7Pawn = new Pawn( Piece.PieceColour.black, GenericPosition.e7 );
-		pl.add( e7Pawn );
-		return e7Pawn;
+	private Pawn addBlackPawn( GenericPosition square ) {
+		Pawn newPawn = new Pawn( Piece.PieceColour.black, square );
+		pl.add( newPawn );
+		return newPawn;
+	}
+	
+	private void addWhitePawn( GenericPosition square ) {
+		Pawn newPawn = new Pawn( Piece.PieceColour.white, square );
+		pl.add( newPawn );
 	}
 	
 	@Test
 	public void testInitial_MoveOneSquare() {
-		pieceUnderTest = addBlackPawnE7();
-		testPosition = new Board( pl );
-		LinkedList<GenericMove> ml = pieceUnderTest.generateMoveList( testPosition );
+		classUnderTest = addBlackPawn( GenericPosition.e7 );
+		testBoard = new Board( pl );
+		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
 		expectedMove = new GenericMove( GenericPosition.e7, GenericPosition.e6 );
 		assertTrue( ml.contains( expectedMove ));
 	}
 
 	@Test
 	public void testInitial_MoveTwoSquares() {
-		pieceUnderTest = addBlackPawnE7();
-		testPosition = new Board( pl );
-		LinkedList<GenericMove> ml = pieceUnderTest.generateMoveList( testPosition );
+		classUnderTest = addBlackPawn( GenericPosition.e7 );
+		testBoard = new Board( pl );
+		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
 		expectedMove = new GenericMove( GenericPosition.e7, GenericPosition.e5 );
 		assertTrue( ml.contains( expectedMove ));
 	}
 	
 	@Test
 	public void testInitial_Blocked() {
-		pieceUnderTest = addBlackPawnE7();
-		pl.add( new Pawn( Piece.PieceColour.black, GenericPosition.e6 ));
-		testPosition = new Board( pl );
-		LinkedList<GenericMove> ml = pieceUnderTest.generateMoveList( testPosition );
+		classUnderTest = addBlackPawn( GenericPosition.e7 );
+		addWhitePawn( GenericPosition.e6 );
+		testBoard = new Board( pl );
+		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
 		assertTrue( ml.isEmpty() );
 	}
 
 	@Test
-	@Ignore
 	public void testInitial_EnPassant() {
+		// Black is on e4, white moves f4, then black ml contains capture en passant, exf
+		classUnderTest = addBlackPawn( GenericPosition.e5 );
+		addWhitePawn( GenericPosition.f2 );
+		testBoard = new Board( pl );
+		testBoard.performMove( new GenericMove( GenericPosition.f2, GenericPosition.f4 ));
+		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
+		expectedMove = new GenericMove( GenericPosition.e4, GenericPosition.f3 );
+		assertTrue( ml.contains( expectedMove ));
 	}
 
 	@Test
-	@Ignore
 	public void test_MoveOneSquare() {
+		// After initial move, ensure that a pawn can't move 2 any longer
+		classUnderTest = addBlackPawn( GenericPosition.e7 );
+		addWhitePawn( GenericPosition.e2 );
+		testBoard = new Board( pl );
+		testBoard.performMove( new GenericMove( GenericPosition.e7, GenericPosition.e6 ));
+		testBoard.performMove( new GenericMove( GenericPosition.f2, GenericPosition.f4 ));
+		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
+		expectedMove = new GenericMove( GenericPosition.e6, GenericPosition.e5 );
+		assertTrue( ml.size() == 1 );
+		assertTrue( ml.contains( expectedMove ));		
 	}
 
 	@Test
-	@Ignore
 	public void test_CaptureLeft() {
+		classUnderTest = addBlackPawn( GenericPosition.e7 );
+		addWhitePawn( GenericPosition.f6 );
+		testBoard = new Board( pl );
+		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
+		expectedMove = new GenericMove( GenericPosition.e7, GenericPosition.f6 );
+		assertTrue( ml.contains( expectedMove ));
 	}
 
 	@Test
-	@Ignore
 	public void test_CaptureRight() {
+		classUnderTest = addBlackPawn( GenericPosition.e7 );
+		addWhitePawn( GenericPosition.d6 );
+		testBoard = new Board( pl );
+		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
+		expectedMove = new GenericMove( GenericPosition.e7, GenericPosition.d6 );
+		assertTrue( ml.contains( expectedMove ));
 	}
 
 	@Test

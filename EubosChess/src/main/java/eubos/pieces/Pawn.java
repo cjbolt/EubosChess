@@ -15,22 +15,56 @@ public class Pawn extends SinglesquareDirectMovePiece {
 		onSquare = at;
 	}
 	
+	private boolean isBlackPawnNeverMoved() {
+		return (!everMoved && onSquare.rank.equals( GenericRank.R7 ));
+	}
+
+	private GenericPosition genOneSqTarget() {
+		GenericPosition toPos = GenericPosition.valueOf( onSquare.file, onSquare.rank.prev());
+		return toPos;
+	}	
+	
+	private GenericPosition genTwoSqTarget() {
+		GenericPosition toPos = GenericPosition.valueOf( onSquare.file, onSquare.rank.prev().prev());
+		return toPos;
+	}
+	
+	private GenericPosition genLeftCaptureTarget() {
+		GenericPosition toPos = GenericPosition.valueOf( onSquare.file.prev(), onSquare.rank.prev());
+		return toPos;		
+	}
+	
+	private GenericPosition genRightCaptureTarget() {
+		GenericPosition toPos = GenericPosition.valueOf( onSquare.file.next(), onSquare.rank.prev());
+		return toPos;		
+	}
+	
 	@Override
 	public LinkedList<GenericMove> generateMoveList(Board theBoard) {
 		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
-		if (isBlack()) {
-			// Start with just moving one square
-			GenericPosition moveTo = GenericPosition.valueOf( onSquare.file, onSquare.rank.prev());
+		if ( isBlack() ) {
+			// Check for one and two square moves
+			GenericPosition moveTo = genOneSqTarget();
 			if ( theBoard.isSquareEmpty( moveTo )) {
 				moveList.add( new GenericMove( onSquare, moveTo ) );
-				// try moving two squares on a first move
-				if ( !everMoved && onSquare.rank.equals( GenericRank.R7 )) {
-					moveTo = GenericPosition.valueOf( onSquare.file, onSquare.rank.prev().prev());
+				if ( isBlackPawnNeverMoved() ) {
+					moveTo = genTwoSqTarget();
 					if ( theBoard.isSquareEmpty( moveTo )) {
 						moveList.add( new GenericMove( onSquare, moveTo ) );
 					}
 				}	
 			}
+			// Check for capture moves
+			GenericPosition captureAt = genLeftCaptureTarget();
+			if ( theBoard.isSquareWhitePiece( captureAt )) {
+				moveList.add( new GenericMove( onSquare, captureAt ) );
+			}
+			captureAt = genRightCaptureTarget();
+			if ( theBoard.isSquareWhitePiece( captureAt )) {
+				moveList.add( new GenericMove( onSquare, captureAt ) );
+			}
+			// TODO Check for en passant capture moves
+			// TODO Check for promotion moves
 		}
 		return moveList;
 	}
