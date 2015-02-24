@@ -8,6 +8,7 @@ import com.fluxchess.jcpi.models.*;
 
 public class Board {
 	private Piece[][] theBoard = new Piece[8][8];
+	private GenericMove previousMove = null;
 
 	public Board() {
 		setupNewGame();
@@ -52,6 +53,7 @@ public class Board {
 			// Update the piece's square.
 			pieceToMove.setSquare( move.to );
 			setPieceAtSquare( pieceToMove );
+			previousMove = move;
 		} else {
 			// TODO throw an exception in this case?
 		}
@@ -152,4 +154,6 @@ public class Board {
 		}
 		return retVal;
 	}
+	
+	public GenericMove getPreviousMove() { return previousMove; }
 }

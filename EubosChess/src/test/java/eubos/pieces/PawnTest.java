@@ -11,7 +11,10 @@ public abstract class PawnTest {
 	public abstract void test_InitialMoveTwoSquares();
 	
 	@Test
-	public abstract void test_CaptureEnPassant();
+	public abstract void test_CaptureEnPassantLeft();
+
+	@Test
+	public abstract void test_CaptureEnPassantRight();	
 	
 	@Test
 	public abstract void test_MoveOneSquare();

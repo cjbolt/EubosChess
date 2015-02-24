@@ -46,6 +46,30 @@ public class Pawn extends SinglesquareDirectMovePiece {
 		return toPos;		
 	}
 	
+	private boolean checkRightEnPassantCapture( Board theBoard, GenericMove lastMove ) {
+		if ( onSquare.file != GenericFile.Fh ) {
+			if (( lastMove.to.file == onSquare.file.next() )) {
+				Piece enPassantPiece = theBoard.getPieceAtSquare( lastMove.to );
+				if ( enPassantPiece instanceof Pawn ) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	private boolean checkLeftEnPassantCapture( Board theBoard, GenericMove lastMove ) {
+		if ( onSquare.file != GenericFile.Fa ) {
+			if (( lastMove.to.file == onSquare.file.prev() )) {
+				Piece enPassantPiece = theBoard.getPieceAtSquare( lastMove.to );
+				if ( enPassantPiece instanceof Pawn ) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 	@Override
 	public LinkedList<GenericMove> generateMoveList(Board theBoard) {
 		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
@@ -70,7 +94,24 @@ public class Pawn extends SinglesquareDirectMovePiece {
 			if ( captureAt != null && theBoard.isSquareWhitePiece( captureAt )) {
 				moveList.add( new GenericMove( onSquare, captureAt ) );
 			}
-			// TODO Check for en passant capture moves
+			// Check for en passant capture moves
+			if ( onSquare.rank == GenericRank.R4 ) {
+				GenericMove lastMove = theBoard.getPreviousMove();
+				if ( lastMove != null ) {
+					if ( checkRightEnPassantCapture( theBoard, lastMove )) {
+						captureAt = genLeftCaptureTarget();
+						if ( captureAt != null ) {
+							moveList.add( new GenericMove( onSquare, captureAt ) );
+						}
+					}
+					if ( checkLeftEnPassantCapture( theBoard, lastMove )) {
+						captureAt = genRightCaptureTarget();
+						if ( captureAt != null ) {
+							moveList.add( new GenericMove( onSquare, captureAt ) );
+						}
+					}
+				}
+			}
 			// TODO Check for promotion moves
 		}
 		return moveList;

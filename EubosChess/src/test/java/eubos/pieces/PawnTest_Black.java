@@ -63,9 +63,9 @@ public class PawnTest_Black extends PawnTest {
 	}
 
 	@Test
-	public void test_CaptureEnPassant() {
+	public void test_CaptureEnPassantLeft() {
 		// Black is on e4, white moves f4, then black ml contains capture en passant, exf
-		classUnderTest = addBlackPawn( GenericPosition.e5 );
+		classUnderTest = addBlackPawn( GenericPosition.e4 );
 		addWhitePawn( GenericPosition.f2 );
 		testBoard = new Board( pl );
 		testBoard.performMove( new GenericMove( GenericPosition.f2, GenericPosition.f4 ));
@@ -73,7 +73,67 @@ public class PawnTest_Black extends PawnTest {
 		expectedMove = new GenericMove( GenericPosition.e4, GenericPosition.f3 );
 		assertTrue( ml.contains( expectedMove ));
 	}
-
+	
+	@Test
+	public void test_CaptureEnPassantLeftFalse() {
+		// Black is on e4, white moves a knight to f4, check black ml doesn't contain a capture en passant, exf
+		classUnderTest = addBlackPawn( GenericPosition.e4 );
+		pl.add( new Knight( Piece.PieceColour.white, GenericPosition.f2 ));
+		testBoard = new Board( pl );
+		testBoard.performMove( new GenericMove( GenericPosition.f2, GenericPosition.f4 ));
+		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
+		expectedMove = new GenericMove( GenericPosition.e4, GenericPosition.f3 );
+		assertFalse( ml.contains( expectedMove ));
+	}
+	
+	@Test
+	public void test_CaptureEnPassantRight() {
+		// Black is on e4, white moves d4, then black ml contains capture en passant, exd
+		classUnderTest = addBlackPawn( GenericPosition.e4 );
+		addWhitePawn( GenericPosition.d2 );
+		testBoard = new Board( pl );
+		testBoard.performMove( new GenericMove( GenericPosition.d2, GenericPosition.d4 ));
+		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
+		expectedMove = new GenericMove( GenericPosition.e4, GenericPosition.d3 );
+		assertTrue( ml.contains( expectedMove ));
+	}
+	
+	@Test
+	public void test_CaptureEnPassantRightFalse() {
+		// Black is on e4, white moves a knight to d4, check black ml doesn't contain a capture en passant, exd
+		classUnderTest = addBlackPawn( GenericPosition.e4 );
+		pl.add( new Knight( Piece.PieceColour.white, GenericPosition.d2 ));
+		testBoard = new Board( pl );
+		testBoard.performMove( new GenericMove( GenericPosition.d2, GenericPosition.d4 ));
+		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
+		expectedMove = new GenericMove( GenericPosition.e4, GenericPosition.d3 );
+		assertFalse( ml.contains( expectedMove ));
+	}	
+	
+	@Test
+	public void test_CaptureEnPassantFromAFile() {
+		// Black is on a4, white moves b4, then black ml contains capture en passant, axb
+		classUnderTest = addBlackPawn( GenericPosition.a4 );
+		addWhitePawn( GenericPosition.b2 );
+		testBoard = new Board( pl );
+		testBoard.performMove( new GenericMove( GenericPosition.b2, GenericPosition.b4 ));
+		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
+		expectedMove = new GenericMove( GenericPosition.a4, GenericPosition.b3 );
+		assertTrue( ml.contains( expectedMove ));
+	}
+	
+	@Test
+	public void test_CaptureEnPassantFromHFile() {
+		// Black is on h4, white moves g4, then black ml contains capture en passant, hxg
+		classUnderTest = addBlackPawn( GenericPosition.h4 );
+		addWhitePawn( GenericPosition.g2 );
+		testBoard = new Board( pl );
+		testBoard.performMove( new GenericMove( GenericPosition.g2, GenericPosition.g4 ));
+		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
+		expectedMove = new GenericMove( GenericPosition.h4, GenericPosition.g3 );
+		assertTrue( ml.contains( expectedMove ));
+	}		
+	
 	@Test
 	public void test_MoveOneSquare() {
 		// After initial move, ensure that a pawn can't move 2 any longer
