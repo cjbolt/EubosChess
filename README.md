@@ -1,0 +1,3 @@
+# EubosChess
+A Java based, UCI compliant, chess engine. Uses jcpi from com.fluxchess.
+Currently a work in progress, my first chess engine, my first Java project, my first open source contribution...
