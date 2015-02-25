@@ -146,7 +146,7 @@ public class PawnTest_Black extends PawnTest {
 		expectedMove = new GenericMove( GenericPosition.e6, GenericPosition.e5 );
 		assertTrue( ml.size() == 1 );
 		assertTrue( ml.contains( expectedMove ));		
-	}
+	}	
 
 	@Test
 	public void test_CaptureLeft() {
@@ -201,25 +201,41 @@ public class PawnTest_Black extends PawnTest {
 		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
 		expectedMove = new GenericMove( GenericPosition.h7, GenericPosition.g6 );
 		assertTrue( ml.contains( expectedMove ));
-	}	
+	}
 	
 	@Test
-	@Ignore
 	public void test_PromoteQueen() {
+		classUnderTest = addBlackPawn( GenericPosition.e2 );
+		testBoard = new Board( pl );
+		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
+		expectedMove = new GenericMove( GenericPosition.e2, GenericPosition.e1, GenericChessman.QUEEN );
+		assertTrue( ml.contains( expectedMove ));
 	}	
 
 	@Test
-	@Ignore
 	public void test_PromoteKnight() {
+		classUnderTest = addBlackPawn( GenericPosition.e2 );
+		testBoard = new Board( pl );
+		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
+		expectedMove = new GenericMove( GenericPosition.e2, GenericPosition.e1, GenericChessman.KNIGHT );
+		assertTrue( ml.contains( expectedMove ));		
 	}
 
 	@Test
-	@Ignore
 	public void test_PromoteBishop() {
+		classUnderTest = addBlackPawn( GenericPosition.e2 );
+		testBoard = new Board( pl );
+		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
+		expectedMove = new GenericMove( GenericPosition.e2, GenericPosition.e1, GenericChessman.BISHOP );
+		assertTrue( ml.contains( expectedMove ));			
 	}
 
 	@Test
-	@Ignore
 	public void test_PromoteRook() {
+		classUnderTest = addBlackPawn( GenericPosition.e2 );
+		testBoard = new Board( pl );
+		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
+		expectedMove = new GenericMove( GenericPosition.e2, GenericPosition.e1, GenericChessman.ROOK );
+		assertTrue( ml.contains( expectedMove ));	
 	}
 }
