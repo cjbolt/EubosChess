@@ -1,7 +1,6 @@
 package eubos.pieces;
 
 import static org.junit.Assert.*;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.*;
@@ -12,11 +11,6 @@ import com.fluxchess.jcpi.models.*;
 
 public class PawnTest_Black extends PawnTest {
 
-	@Before
-	public void setUp() {
-		pl = new LinkedList<Piece>();
-	}
-		
 	@Test
 	public void test_InitialMoveOneSquare() {
 		classUnderTest = addBlackPawn( GenericPosition.e7 );
