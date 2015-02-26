@@ -1,8 +1,21 @@
 package eubos.pieces;
 
+import java.util.LinkedList;
+
+import org.junit.Before;
 import org.junit.Test;
 
+import com.fluxchess.jcpi.models.GenericMove;
+import com.fluxchess.jcpi.models.GenericPosition;
+
+import eubos.board.Board;
+
 public abstract class PawnTest {
+
+	protected LinkedList<Piece> pl;
+	protected Pawn classUnderTest;
+	protected Board testBoard;
+	protected GenericMove expectedMove;
 
 	@Test
 	public abstract void test_InitialMoveOneSquare();
@@ -36,4 +49,21 @@ public abstract class PawnTest {
 	
 	@Test
 	public abstract void test_PromoteRook();
+
+	@Before
+	public void setUp() {
+		pl = new LinkedList<Piece>();
+	}
+
+	protected Pawn addBlackPawn(GenericPosition square) {
+		Pawn newPawn = new Pawn( Piece.PieceColour.black, square );
+		pl.add( newPawn );
+		return newPawn;
+	}
+
+	protected Pawn addWhitePawn(GenericPosition square) {
+		Pawn newPawn = new Pawn( Piece.PieceColour.white, square );
+		pl.add( newPawn );
+		return newPawn;
+	}
 }

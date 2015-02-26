@@ -81,14 +81,7 @@ public class Pawn extends SinglesquareDirectMovePiece {
 			// Check for standard one and two square moves
 			GenericPosition moveTo = genOneSqTarget();
 			if ( moveTo != null && theBoard.isSquareEmpty( moveTo )) {
-				if ( moveTo.rank == GenericRank.R1 ) {
-					moveList.add( new GenericMove( onSquare, moveTo, GenericChessman.QUEEN ));
-					moveList.add( new GenericMove( onSquare, moveTo, GenericChessman.KNIGHT ));
-					moveList.add( new GenericMove( onSquare, moveTo, GenericChessman.BISHOP ));
-					moveList.add( new GenericMove( onSquare, moveTo, GenericChessman.ROOK ));
-				} else {
-					moveList.add( new GenericMove( onSquare, moveTo ) );
-				}
+				checkPromotionAddMove(moveList, moveTo);
 				if ( isBlackPawnNeverMoved() ) {
 					moveTo = genTwoSqTarget();
 					if ( theBoard.isSquareEmpty( moveTo )) {
@@ -99,28 +92,14 @@ public class Pawn extends SinglesquareDirectMovePiece {
 			// Check for capture moves
 			GenericPosition captureAt = genLeftCaptureTarget();
 			if ( captureAt != null && theBoard.isSquareWhitePiece( captureAt )) {
-				if ( captureAt.rank == GenericRank.R1 ) {
-					moveList.add( new GenericMove( onSquare, captureAt, GenericChessman.QUEEN ));
-					moveList.add( new GenericMove( onSquare, captureAt, GenericChessman.KNIGHT ));
-					moveList.add( new GenericMove( onSquare, captureAt, GenericChessman.BISHOP ));
-					moveList.add( new GenericMove( onSquare, captureAt, GenericChessman.ROOK ));
-				} else {
-					moveList.add( new GenericMove( onSquare, captureAt ) );
-				}
+				checkPromotionAddMove(moveList, captureAt);
 			}
 			captureAt = genRightCaptureTarget();
 			if ( captureAt != null && theBoard.isSquareWhitePiece( captureAt )) {
-				if ( captureAt.rank == GenericRank.R1 ) {
-					moveList.add( new GenericMove( onSquare, captureAt, GenericChessman.QUEEN ));
-					moveList.add( new GenericMove( onSquare, captureAt, GenericChessman.KNIGHT ));
-					moveList.add( new GenericMove( onSquare, captureAt, GenericChessman.BISHOP ));
-					moveList.add( new GenericMove( onSquare, captureAt, GenericChessman.ROOK ));
-				} else {
-					moveList.add( new GenericMove( onSquare, captureAt ) );
-				}
+				checkPromotionAddMove(moveList, captureAt);
 			}
 			// Check for en passant capture moves
-			if ( onSquare.rank == GenericRank.R4 ) {
+			if ( onSquare.rank.equals( GenericRank.R4 )) {
 				GenericMove lastMove = theBoard.getPreviousMove();
 				if ( lastMove != null ) {
 					if ( checkRightEnPassantCapture( theBoard, lastMove )) {
@@ -139,6 +118,18 @@ public class Pawn extends SinglesquareDirectMovePiece {
 			}
 		}
 		return moveList;
+	}
+
+	private void checkPromotionAddMove(LinkedList<GenericMove> moveList,
+			GenericPosition targetSquare) {
+		if ( targetSquare.rank == GenericRank.R1 ) {
+			moveList.add( new GenericMove( onSquare, targetSquare, GenericChessman.QUEEN ));
+			moveList.add( new GenericMove( onSquare, targetSquare, GenericChessman.KNIGHT ));
+			moveList.add( new GenericMove( onSquare, targetSquare, GenericChessman.BISHOP ));
+			moveList.add( new GenericMove( onSquare, targetSquare, GenericChessman.ROOK ));
+		} else {
+			moveList.add( new GenericMove( onSquare, targetSquare ) );
+		}
 	}
 
 }
