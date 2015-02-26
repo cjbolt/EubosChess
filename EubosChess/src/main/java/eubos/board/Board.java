@@ -154,6 +154,6 @@ public class Board {
 		}
 		return retVal;
 	}
-	
+		
 	public GenericMove getPreviousMove() { return previousMove; }
 }

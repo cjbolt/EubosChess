@@ -17,102 +17,173 @@ public class Pawn extends SinglesquareDirectMovePiece {
 		onSquare = at;
 	}
 	
-	private boolean isBlackPawnNeverMoved() {
-		return (!everMoved && onSquare.rank.equals( GenericRank.R7 ));
+	private boolean hasNeverMoved() {
+		if ( isBlack() ) {
+			return (!everMoved && onSquare.rank.equals( GenericRank.R7 ));
+		} else {
+			return (!everMoved && onSquare.rank.equals( GenericRank.R2 ));
+		}
 	}
 
 	private GenericPosition genOneSqTarget() {
 		GenericPosition toPos = null;
-		if ( onSquare.rank != GenericRank.R1 ) {
-			toPos = GenericPosition.valueOf( onSquare.file, onSquare.rank.prev());
+		if ( isBlack() ) {
+			if ( onSquare.rank != GenericRank.R1 ) {
+				toPos = GenericPosition.valueOf( onSquare.file, onSquare.rank.prev());
+			}
+		} else {
+			if ( onSquare.rank != GenericRank.R8 ) {
+				toPos = GenericPosition.valueOf( onSquare.file, onSquare.rank.next());
+			}
 		}
 		return toPos;
 	}	
 	
 	private GenericPosition genTwoSqTarget() {
-		GenericPosition toPos = GenericPosition.valueOf( onSquare.file, onSquare.rank.prev().prev());
+		// TODO need to add error protection on this double step move?
+		GenericPosition toPos = null;
+		if ( isBlack() ) {
+			toPos = GenericPosition.valueOf( onSquare.file, onSquare.rank.prev().prev());
+		} else {
+			toPos = GenericPosition.valueOf( onSquare.file, onSquare.rank.next().next());
+		}
 		return toPos;
 	}
 	
 	private GenericPosition genLeftCaptureTarget() {
 		GenericPosition toPos = null;
-		if ( onSquare.file != GenericFile.Fh ) {
-			toPos = GenericPosition.valueOf( onSquare.file.next(), onSquare.rank.prev());
+		if ( isBlack() ) {
+			if ( onSquare.file != GenericFile.Fh ) {
+				toPos = GenericPosition.valueOf( onSquare.file.next(), onSquare.rank.prev());
+			}
+		} else {
+			if ( onSquare.file != GenericFile.Fa ) {
+				toPos = GenericPosition.valueOf( onSquare.file.prev(), onSquare.rank.next());
+			}
 		}
 		return toPos;		
 	}
 	
 	private GenericPosition genRightCaptureTarget() {
 		GenericPosition toPos = null;
-		if ( onSquare.file != GenericFile.Fa ) {
-			toPos = GenericPosition.valueOf( onSquare.file.prev(), onSquare.rank.prev());
+		if ( isBlack() ) {
+			if ( onSquare.file != GenericFile.Fa ) {
+				toPos = GenericPosition.valueOf( onSquare.file.prev(), onSquare.rank.prev());
+			}
+		} else {
+			if ( onSquare.file != GenericFile.Fh ) {
+				toPos = GenericPosition.valueOf( onSquare.file.next(), onSquare.rank.next());	
+			}
 		}
 		return toPos;		
 	}
 	
 	private boolean checkRightEnPassantCapture( Board theBoard, GenericMove lastMove ) {
-		if ( onSquare.file != GenericFile.Fh ) {
-			if (( lastMove.to.file == onSquare.file.next() )) {
-				Piece enPassantPiece = theBoard.getPieceAtSquare( lastMove.to );
-				if ( enPassantPiece instanceof Pawn ) {
-					return true;
+		if ( isBlack() ) {
+			if ( onSquare.file != GenericFile.Fh ) {
+				if (( lastMove.to.file == onSquare.file.next() )) {
+					Piece enPassantPiece = theBoard.getPieceAtSquare( lastMove.to );
+					if ( enPassantPiece instanceof Pawn ) {
+						return true;
+					}
 				}
 			}
+		} else {
+			if ( onSquare.file != GenericFile.Fa ) {
+				if (( lastMove.to.file == onSquare.file.prev() )) {
+					Piece enPassantPiece = theBoard.getPieceAtSquare( lastMove.to );
+					if ( enPassantPiece instanceof Pawn ) {
+						return true;
+					}
+				}
+			}	
 		}
 		return false;
 	}
 	
 	private boolean checkLeftEnPassantCapture( Board theBoard, GenericMove lastMove ) {
-		if ( onSquare.file != GenericFile.Fa ) {
-			if (( lastMove.to.file == onSquare.file.prev() )) {
-				Piece enPassantPiece = theBoard.getPieceAtSquare( lastMove.to );
-				if ( enPassantPiece instanceof Pawn ) {
-					return true;
+		if ( isBlack() ) {
+			if ( onSquare.file != GenericFile.Fa ) {
+				if (( lastMove.to.file == onSquare.file.prev() )) {
+					Piece enPassantPiece = theBoard.getPieceAtSquare( lastMove.to );
+					if ( enPassantPiece instanceof Pawn ) {
+						return true;
+					}
+				}
+			}		
+		} else {
+			if ( onSquare.file != GenericFile.Fh ) {
+				if (( lastMove.to.file == onSquare.file.next() )) {
+					Piece enPassantPiece = theBoard.getPieceAtSquare( lastMove.to );
+					if ( enPassantPiece instanceof Pawn ) {
+						return true;
+					}
 				}
 			}
 		}
 		return false;
 	}
 	
+	private boolean isCapturable(Board theBoard, GenericPosition captureAt ) {
+		boolean isCapturable = false;
+		Piece queryPiece = theBoard.getPieceAtSquare( captureAt );
+		if ( queryPiece != null ) {
+			if ( isBlack() ) {
+				isCapturable = queryPiece.isWhite();
+			} else {
+				isCapturable = queryPiece.isBlack();
+			}
+		}
+		return isCapturable;
+	}
+	
+	private boolean checkEnPassantPossible() {
+		return (isBlack() && onSquare.rank.equals( GenericRank.R4 )) ||
+				(isWhite() && onSquare.rank.equals( GenericRank.R5 ));
+	}
+	
+	private boolean checkPromotionPossible( GenericPosition targetSquare ) {
+		return (( isBlack() && targetSquare.rank == GenericRank.R1 ) || 
+				( isWhite() && targetSquare.rank == GenericRank.R8 ));
+	}
+	
 	@Override
 	public LinkedList<GenericMove> generateMoveList(Board theBoard) {
 		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
-		if ( isBlack() ) {
-			// Check for standard one and two square moves
-			GenericPosition moveTo = genOneSqTarget();
-			if ( moveTo != null && theBoard.isSquareEmpty( moveTo )) {
-				checkPromotionAddMove(moveList, moveTo);
-				if ( isBlackPawnNeverMoved() ) {
-					moveTo = genTwoSqTarget();
-					if ( theBoard.isSquareEmpty( moveTo )) {
-						moveList.add( new GenericMove( onSquare, moveTo ) );
+		// Check for standard one and two square moves
+		GenericPosition moveTo = genOneSqTarget();
+		if ( moveTo != null && theBoard.isSquareEmpty( moveTo )) {
+			checkPromotionAddMove(moveList, moveTo);
+			if ( hasNeverMoved() ) {
+				moveTo = genTwoSqTarget();
+				if ( theBoard.isSquareEmpty( moveTo )) {
+					moveList.add( new GenericMove( onSquare, moveTo ) );
+				}
+			}	
+		}
+		// Check for capture moves
+		GenericPosition captureAt = genLeftCaptureTarget();
+		if ( captureAt != null && isCapturable(theBoard,captureAt)) {
+			checkPromotionAddMove(moveList, captureAt);
+		}
+		captureAt = genRightCaptureTarget();
+		if ( captureAt != null && isCapturable(theBoard,captureAt)) {
+			checkPromotionAddMove(moveList, captureAt);
+		}
+		// Check for en passant capture moves
+		if ( checkEnPassantPossible() ) {
+			GenericMove lastMove = theBoard.getPreviousMove();
+			if ( lastMove != null ) {
+				if ( checkRightEnPassantCapture( theBoard, lastMove )) {
+					captureAt = genLeftCaptureTarget();
+					if ( captureAt != null ) {
+						moveList.add( new GenericMove( onSquare, captureAt ) );
 					}
-				}	
-			}
-			// Check for capture moves
-			GenericPosition captureAt = genLeftCaptureTarget();
-			if ( captureAt != null && theBoard.isSquareWhitePiece( captureAt )) {
-				checkPromotionAddMove(moveList, captureAt);
-			}
-			captureAt = genRightCaptureTarget();
-			if ( captureAt != null && theBoard.isSquareWhitePiece( captureAt )) {
-				checkPromotionAddMove(moveList, captureAt);
-			}
-			// Check for en passant capture moves
-			if ( onSquare.rank.equals( GenericRank.R4 )) {
-				GenericMove lastMove = theBoard.getPreviousMove();
-				if ( lastMove != null ) {
-					if ( checkRightEnPassantCapture( theBoard, lastMove )) {
-						captureAt = genLeftCaptureTarget();
-						if ( captureAt != null ) {
-							moveList.add( new GenericMove( onSquare, captureAt ) );
-						}
-					}
-					if ( checkLeftEnPassantCapture( theBoard, lastMove )) {
-						captureAt = genRightCaptureTarget();
-						if ( captureAt != null ) {
-							moveList.add( new GenericMove( onSquare, captureAt ) );
-						}
+				}
+				if ( checkLeftEnPassantCapture( theBoard, lastMove )) {
+					captureAt = genRightCaptureTarget();
+					if ( captureAt != null ) {
+						moveList.add( new GenericMove( onSquare, captureAt ) );
 					}
 				}
 			}
@@ -122,7 +193,7 @@ public class Pawn extends SinglesquareDirectMovePiece {
 
 	private void checkPromotionAddMove(LinkedList<GenericMove> moveList,
 			GenericPosition targetSquare) {
-		if ( targetSquare.rank == GenericRank.R1 ) {
+		if ( checkPromotionPossible( targetSquare )) {
 			moveList.add( new GenericMove( onSquare, targetSquare, GenericChessman.QUEEN ));
 			moveList.add( new GenericMove( onSquare, targetSquare, GenericChessman.KNIGHT ));
 			moveList.add( new GenericMove( onSquare, targetSquare, GenericChessman.BISHOP ));

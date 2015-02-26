@@ -42,11 +42,11 @@ public class PawnTest_White extends PawnTest {
 	@Test
 	public void test_CaptureEnPassantLeft() {
 		classUnderTest = addWhitePawn( GenericPosition.e5 );
-		addBlackPawn( GenericPosition.f7 );
+		addBlackPawn( GenericPosition.d7 );
 		testBoard = new Board( pl );
-		testBoard.performMove( new GenericMove( GenericPosition.f7, GenericPosition.f5 ));
+		testBoard.performMove( new GenericMove( GenericPosition.d7, GenericPosition.d5 ));
 		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
-		expectedMove = new GenericMove( GenericPosition.e5, GenericPosition.f6 );
+		expectedMove = new GenericMove( GenericPosition.e5, GenericPosition.d6 );
 		assertTrue( ml.contains( expectedMove ));
 	}
 	
