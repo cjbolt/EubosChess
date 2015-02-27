@@ -50,6 +50,25 @@ public class Board {
 		// Move the piece
 		Piece pieceToMove = pickUpPieceAtSquare( move.from );
 		if ( pieceToMove != null ) {
+			// Handle pawn promotion moves
+			if ( move.promotion != null ) {
+				switch( move.promotion ) {
+				case QUEEN:
+					pieceToMove = new Queen(pieceToMove.getColour(), null );
+					break;
+				case KNIGHT:
+					pieceToMove = new Knight(pieceToMove.getColour(), null );
+					break;
+				case BISHOP:
+					pieceToMove = new Bishop(pieceToMove.getColour(), null );
+					break;
+				case ROOK:
+					pieceToMove = new Rook(pieceToMove.getColour(), null );
+					break;
+				default:
+					break;
+				}
+			}
 			// Update the piece's square.
 			pieceToMove.setSquare( move.to );
 			setPieceAtSquare( pieceToMove );

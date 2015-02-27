@@ -18,10 +18,14 @@ public class Pawn extends SinglesquareDirectMovePiece {
 	}
 	
 	private boolean hasNeverMoved() {
+		return ( !everMoved && isAtInitialPosition());
+	}
+
+	private boolean isAtInitialPosition() {
 		if ( isBlack() ) {
-			return (!everMoved && onSquare.rank.equals( GenericRank.R7 ));
+			return (onSquare.rank.equals( GenericRank.R7 ));
 		} else {
-			return (!everMoved && onSquare.rank.equals( GenericRank.R2 ));
+			return (onSquare.rank.equals( GenericRank.R2 ));
 		}
 	}
 
@@ -128,24 +132,32 @@ public class Pawn extends SinglesquareDirectMovePiece {
 		boolean isCapturable = false;
 		Piece queryPiece = theBoard.getPieceAtSquare( captureAt );
 		if ( queryPiece != null ) {
-			if ( isBlack() ) {
-				isCapturable = queryPiece.isWhite();
-			} else {
-				isCapturable = queryPiece.isBlack();
-			}
+			isCapturable = isOppositeColour( queryPiece );
 		}
 		return isCapturable;
 	}
 	
 	private boolean checkEnPassantPossible() {
-		return (isBlack() && onSquare.rank.equals( GenericRank.R4 )) ||
-				(isWhite() && onSquare.rank.equals( GenericRank.R5 ));
+		return ((isBlack() && onSquare.rank.equals( GenericRank.R4 )) ||
+				(isWhite() && onSquare.rank.equals( GenericRank.R5 )));
 	}
 	
 	private boolean checkPromotionPossible( GenericPosition targetSquare ) {
 		return (( isBlack() && targetSquare.rank == GenericRank.R1 ) || 
 				( isWhite() && targetSquare.rank == GenericRank.R8 ));
 	}
+	
+	private void checkPromotionAddMove(LinkedList<GenericMove> moveList,
+			GenericPosition targetSquare) {
+		if ( checkPromotionPossible( targetSquare )) {
+			moveList.add( new GenericMove( onSquare, targetSquare, GenericChessman.QUEEN ));
+			moveList.add( new GenericMove( onSquare, targetSquare, GenericChessman.KNIGHT ));
+			moveList.add( new GenericMove( onSquare, targetSquare, GenericChessman.BISHOP ));
+			moveList.add( new GenericMove( onSquare, targetSquare, GenericChessman.ROOK ));
+		} else {
+			moveList.add( new GenericMove( onSquare, targetSquare ) );
+		}
+	}	
 	
 	@Override
 	public LinkedList<GenericMove> generateMoveList(Board theBoard) {
@@ -190,17 +202,4 @@ public class Pawn extends SinglesquareDirectMovePiece {
 		}
 		return moveList;
 	}
-
-	private void checkPromotionAddMove(LinkedList<GenericMove> moveList,
-			GenericPosition targetSquare) {
-		if ( checkPromotionPossible( targetSquare )) {
-			moveList.add( new GenericMove( onSquare, targetSquare, GenericChessman.QUEEN ));
-			moveList.add( new GenericMove( onSquare, targetSquare, GenericChessman.KNIGHT ));
-			moveList.add( new GenericMove( onSquare, targetSquare, GenericChessman.BISHOP ));
-			moveList.add( new GenericMove( onSquare, targetSquare, GenericChessman.ROOK ));
-		} else {
-			moveList.add( new GenericMove( onSquare, targetSquare ) );
-		}
-	}
-
 }
