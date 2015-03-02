@@ -82,45 +82,50 @@ public class Pawn extends SinglesquareDirectMovePiece {
 		return toPos;		
 	}
 	
-	private boolean checkRightEnPassantCapture( Board theBoard, GenericMove lastMove ) {
-		if ( isBlack() ) {
-			if ( onSquare.file != GenericFile.Fh ) {
-				if (( lastMove.to.file == onSquare.file.next() )) {
-					Piece enPassantPiece = theBoard.getPieceAtSquare( lastMove.to );
-					if ( enPassantPiece instanceof Pawn ) {
-						return true;
+	private boolean checkLeftEnPassantCapture( Board theBoard, GenericMove lastMove ) {
+		if ( lastMove.to.rank == onSquare.rank ) {
+			if ( isBlack() ) {
+				if ( onSquare.file != GenericFile.Fh ) {
+					if (( lastMove.to.file == onSquare.file.next() )) {
+
+						Piece enPassantPiece = theBoard.getPieceAtSquare( lastMove.to );
+						if ( enPassantPiece instanceof Pawn ) {
+							return true;
+						}
 					}
 				}
+			} else {
+				if ( onSquare.file != GenericFile.Fa ) {
+					if (( lastMove.to.file == onSquare.file.prev() )) {
+						Piece enPassantPiece = theBoard.getPieceAtSquare( lastMove.to );
+						if ( enPassantPiece instanceof Pawn ) {
+							return true;
+						}
+					}
+				}	
 			}
-		} else {
-			if ( onSquare.file != GenericFile.Fa ) {
-				if (( lastMove.to.file == onSquare.file.prev() )) {
-					Piece enPassantPiece = theBoard.getPieceAtSquare( lastMove.to );
-					if ( enPassantPiece instanceof Pawn ) {
-						return true;
-					}
-				}
-			}	
 		}
 		return false;
 	}
 	
-	private boolean checkLeftEnPassantCapture( Board theBoard, GenericMove lastMove ) {
-		if ( isBlack() ) {
-			if ( onSquare.file != GenericFile.Fa ) {
-				if (( lastMove.to.file == onSquare.file.prev() )) {
-					Piece enPassantPiece = theBoard.getPieceAtSquare( lastMove.to );
-					if ( enPassantPiece instanceof Pawn ) {
-						return true;
+	private boolean checkRightEnPassantCapture( Board theBoard, GenericMove lastMove ) {
+		if ( lastMove.to.rank == onSquare.rank ) {
+			if ( isBlack() ) {
+				if ( onSquare.file != GenericFile.Fa ) {
+					if (( lastMove.to.file == onSquare.file.prev() )) {
+						Piece enPassantPiece = theBoard.getPieceAtSquare( lastMove.to );
+						if ( enPassantPiece instanceof Pawn ) {
+							return true;
+						}
 					}
-				}
-			}		
-		} else {
-			if ( onSquare.file != GenericFile.Fh ) {
-				if (( lastMove.to.file == onSquare.file.next() )) {
-					Piece enPassantPiece = theBoard.getPieceAtSquare( lastMove.to );
-					if ( enPassantPiece instanceof Pawn ) {
-						return true;
+				}		
+			} else {
+				if ( onSquare.file != GenericFile.Fh ) {
+					if (( lastMove.to.file == onSquare.file.next() )) {
+						Piece enPassantPiece = theBoard.getPieceAtSquare( lastMove.to );
+						if ( enPassantPiece instanceof Pawn ) {
+							return true;
+						}
 					}
 				}
 			}
@@ -186,20 +191,30 @@ public class Pawn extends SinglesquareDirectMovePiece {
 		if ( checkEnPassantPossible() ) {
 			GenericMove lastMove = theBoard.getPreviousMove();
 			if ( lastMove != null ) {
-				if ( checkRightEnPassantCapture( theBoard, lastMove )) {
-					captureAt = genLeftCaptureTarget();
-					if ( captureAt != null ) {
-						moveList.add( new GenericMove( onSquare, captureAt ) );
-					}
-				}
 				if ( checkLeftEnPassantCapture( theBoard, lastMove )) {
-					captureAt = genRightCaptureTarget();
-					if ( captureAt != null ) {
-						moveList.add( new GenericMove( onSquare, captureAt ) );
-					}
+					captureLeft(moveList);
+				}
+				if ( checkRightEnPassantCapture( theBoard, lastMove )) {
+					captureRight(moveList);
 				}
 			}
 		}
 		return moveList;
+	}
+
+	private void captureRight(LinkedList<GenericMove> moveList) {
+		GenericPosition captureAt;
+		captureAt = genRightCaptureTarget();
+		if ( captureAt != null ) {
+			moveList.add( new GenericMove( onSquare, captureAt ) );
+		}
+	}
+
+	private void captureLeft(LinkedList<GenericMove> moveList) {
+		GenericPosition captureAt;
+		captureAt = genLeftCaptureTarget();
+		if ( captureAt != null ) {
+			moveList.add( new GenericMove( onSquare, captureAt ) );
+		}
 	}
 }

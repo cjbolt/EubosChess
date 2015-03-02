@@ -99,6 +99,18 @@ public class PawnTest_Black extends PawnTest {
 	}
 	
 	@Test
+	public void test_CaptureEnPassantFromAFile_1() {
+		// Black is on a4, white moves b4, then black ml contains capture en passant, axb
+		classUnderTest = addBlackPawn( GenericPosition.a4 );
+		addWhitePawn( GenericPosition.b4 );
+		testBoard = new Board( pl );
+		testBoard.performMove( new GenericMove( GenericPosition.b4, GenericPosition.b5 ));
+		LinkedList<GenericMove> ml = classUnderTest.generateMoveList( testBoard );
+		expectedMove = new GenericMove( GenericPosition.a4, GenericPosition.b3 );
+		assertFalse( ml.contains( expectedMove ));
+	}	
+	
+	@Test
 	public void test_CaptureEnPassantFromHFile() {
 		// Black is on h4, white moves g4, then black ml contains capture en passant, hxg
 		classUnderTest = addBlackPawn( GenericPosition.h4 );
