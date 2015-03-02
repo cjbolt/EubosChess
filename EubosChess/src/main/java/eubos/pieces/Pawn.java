@@ -30,56 +30,36 @@ public class Pawn extends SinglesquareDirectMovePiece {
 	}
 
 	private GenericPosition genOneSqTarget() {
-		GenericPosition toPos = null;
 		if ( isBlack() ) {
-			if ( onSquare.rank != GenericRank.R1 ) {
-				toPos = GenericPosition.valueOf( onSquare.file, onSquare.rank.prev());
-			}
+			return down();
 		} else {
-			if ( onSquare.rank != GenericRank.R8 ) {
-				toPos = GenericPosition.valueOf( onSquare.file, onSquare.rank.next());
-			}
+			return up();
 		}
-		return toPos;
 	}	
 	
 	private GenericPosition genTwoSqTarget() {
 		// TODO need to add error protection on this double step move?
-		GenericPosition toPos = null;
 		if ( isBlack() ) {
-			toPos = GenericPosition.valueOf( onSquare.file, onSquare.rank.prev().prev());
+			return GenericPosition.valueOf( onSquare.file, onSquare.rank.prev().prev());
 		} else {
-			toPos = GenericPosition.valueOf( onSquare.file, onSquare.rank.next().next());
+			return GenericPosition.valueOf( onSquare.file, onSquare.rank.next().next());
 		}
-		return toPos;
 	}
 	
 	private GenericPosition genLeftCaptureTarget() {
-		GenericPosition toPos = null;
 		if ( isBlack() ) {
-			if ( onSquare.file != GenericFile.Fh ) {
-				toPos = GenericPosition.valueOf( onSquare.file.next(), onSquare.rank.prev());
-			}
+			return downRight();
 		} else {
-			if ( onSquare.file != GenericFile.Fa ) {
-				toPos = GenericPosition.valueOf( onSquare.file.prev(), onSquare.rank.next());
-			}
+			return upLeft();
 		}
-		return toPos;		
 	}
 	
 	private GenericPosition genRightCaptureTarget() {
-		GenericPosition toPos = null;
 		if ( isBlack() ) {
-			if ( onSquare.file != GenericFile.Fa ) {
-				toPos = GenericPosition.valueOf( onSquare.file.prev(), onSquare.rank.prev());
-			}
+			return downLeft();
 		} else {
-			if ( onSquare.file != GenericFile.Fh ) {
-				toPos = GenericPosition.valueOf( onSquare.file.next(), onSquare.rank.next());	
-			}
-		}
-		return toPos;		
+			return upRight();
+		}		
 	}
 	
 	private boolean checkLeftEnPassantCapture( Board theBoard, GenericMove lastMove ) {
@@ -87,7 +67,6 @@ public class Pawn extends SinglesquareDirectMovePiece {
 			if ( isBlack() ) {
 				if ( onSquare.file != GenericFile.Fh ) {
 					if (( lastMove.to.file == onSquare.file.next() )) {
-
 						Piece enPassantPiece = theBoard.getPieceAtSquare( lastMove.to );
 						if ( enPassantPiece instanceof Pawn ) {
 							return true;
@@ -203,16 +182,14 @@ public class Pawn extends SinglesquareDirectMovePiece {
 	}
 
 	private void captureRight(LinkedList<GenericMove> moveList) {
-		GenericPosition captureAt;
-		captureAt = genRightCaptureTarget();
+		GenericPosition captureAt = genRightCaptureTarget();
 		if ( captureAt != null ) {
 			moveList.add( new GenericMove( onSquare, captureAt ) );
 		}
 	}
 
 	private void captureLeft(LinkedList<GenericMove> moveList) {
-		GenericPosition captureAt;
-		captureAt = genLeftCaptureTarget();
+		GenericPosition captureAt = genLeftCaptureTarget();
 		if ( captureAt != null ) {
 			moveList.add( new GenericMove( onSquare, captureAt ) );
 		}

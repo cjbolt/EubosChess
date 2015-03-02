@@ -13,7 +13,7 @@ import eubos.board.Board;
 public abstract class PawnTest {
 
 	protected LinkedList<Piece> pl;
-	protected Pawn classUnderTest;
+	protected SinglesquareDirectMovePiece classUnderTest;
 	protected Board testBoard;
 	protected GenericMove expectedMove;
 
@@ -55,14 +55,14 @@ public abstract class PawnTest {
 		pl = new LinkedList<Piece>();
 	}
 
-	protected Pawn addBlackPawn(GenericPosition square) {
-		Pawn newPawn = new Pawn( Piece.PieceColour.black, square );
+	protected SinglesquareDirectMovePiece addBlackPawn(GenericPosition square) {
+		SinglesquareDirectMovePiece newPawn = new Pawn( Piece.PieceColour.black, square );
 		pl.add( newPawn );
 		return newPawn;
 	}
 
-	protected Pawn addWhitePawn(GenericPosition square) {
-		Pawn newPawn = new Pawn( Piece.PieceColour.white, square );
+	protected SinglesquareDirectMovePiece addWhitePawn(GenericPosition square) {
+		SinglesquareDirectMovePiece newPawn = new Pawn( Piece.PieceColour.white, square );
 		pl.add( newPawn );
 		return newPawn;
 	}
