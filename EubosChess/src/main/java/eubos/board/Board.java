@@ -11,21 +11,33 @@ public class Board implements Iterable<Piece> {
 	private Piece[][] theBoard = new Piece[8][8];
 	private GenericMove previousMove = null;
 	
-	public class allBlackPiecesIterator<Piece> implements Iterator<eubos.pieces.Piece> {
+	public class allPiecesOnBoardIterator implements Iterator<Piece> {
 	
-		private LinkedList<eubos.pieces.Piece> iterList = null;
+		private LinkedList<Piece> iterList = null;
 		
-		public allBlackPiecesIterator() {
-			iterList = new LinkedList<eubos.pieces.Piece>();
+		public allPiecesOnBoardIterator() {
+			iterList = new LinkedList<Piece>();
 			for (int i: IntFile.values) {
 				for (int j: IntRank.values) {
-					eubos.pieces.Piece nextPiece = theBoard[i][j];
-					if (nextPiece != null && nextPiece.isBlack() ) {
+					Piece nextPiece = theBoard[i][j];
+					if (nextPiece != null ) {
 						iterList.add(nextPiece);
 					}
 				}
 			}
 		}
+		
+		public allPiecesOnBoardIterator( Piece.PieceColour colourToIterate ) {
+			iterList = new LinkedList<Piece>();
+			for (int i: IntFile.values) {
+				for (int j: IntRank.values) {
+					Piece nextPiece = theBoard[i][j];
+					if (nextPiece != null && ( nextPiece.getColour() == colourToIterate )) {
+						iterList.add(nextPiece);
+					}
+				}
+			}
+		}		
 		
 	    public boolean hasNext() {
 	    	if (!iterList.isEmpty()) {
@@ -35,17 +47,13 @@ public class Board implements Iterable<Piece> {
 	    	}
 	    }
 
-	    public eubos.pieces.Piece next() {
+	    public Piece next() {
 	        return iterList.remove();
-	    }
-
-	    public void remove() {
-	        //implement... if supported.
 	    }
 	}
 	
     public Iterator<Piece> iterator() {
-        return new allBlackPiecesIterator<Piece>();
+        return new allPiecesOnBoardIterator( Piece.PieceColour.black );
     }
     
 	public Board() {

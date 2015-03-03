@@ -26,9 +26,9 @@ public class MoveGenerator {
 		if ( !entireMoveList.isEmpty()) {
 			// once the move list has been generated, remove any moves that would place
 			// the king in check from consideration.
-			for ( GenericMove currMove : entireMoveList) {
+			//for ( GenericMove currMove : entireMoveList) {
 				// test if places king in check...
-			}
+			//}
 			// For the time-being, return a valid move at random
 			Random randomIndex = new Random();
 			Integer indexToGet = randomIndex.nextInt(entireMoveList.size());
