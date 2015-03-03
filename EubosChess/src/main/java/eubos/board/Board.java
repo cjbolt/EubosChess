@@ -6,10 +6,48 @@ import eubos.pieces.*;
 
 import com.fluxchess.jcpi.models.*;
 
-public class Board {
+public class Board implements Iterable<Piece> {
+	
 	private Piece[][] theBoard = new Piece[8][8];
 	private GenericMove previousMove = null;
+	
+	public class allBlackPiecesIterator<Piece> implements Iterator<eubos.pieces.Piece> {
+	
+		private LinkedList<eubos.pieces.Piece> iterList = null;
+		
+		public allBlackPiecesIterator() {
+			iterList = new LinkedList<eubos.pieces.Piece>();
+			for (int i: IntFile.values) {
+				for (int j: IntRank.values) {
+					eubos.pieces.Piece nextPiece = theBoard[i][j];
+					if (nextPiece != null && nextPiece.isBlack() ) {
+						iterList.add(nextPiece);
+					}
+				}
+			}
+		}
+		
+	    public boolean hasNext() {
+	    	if (!iterList.isEmpty()) {
+	    		return true;
+	    	} else {
+	    		return false;
+	    	}
+	    }
 
+	    public eubos.pieces.Piece next() {
+	        return iterList.remove();
+	    }
+
+	    public void remove() {
+	        //implement... if supported.
+	    }
+	}
+	
+    public Iterator<Piece> iterator() {
+        return new allBlackPiecesIterator<Piece>();
+    }
+    
 	public Board() {
 		setupNewGame();
 	}
@@ -18,32 +56,6 @@ public class Board {
 		for ( Piece nextPiece : pieceList ) {
 			setPieceAtSquare( nextPiece );
 		}
-	}
-
-	public GenericMove findBestMove() throws IllegalNotationException {
-		// TODO: for now find a random legal move for the side indicated
-		// first generate the entire move list
-		GenericMove bestMove = null;
-		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();
-		for (int i: IntFile.values) {
-			for (int j: IntRank.values) {
-				Piece nextPiece = theBoard[i][j];
-				if (nextPiece != null && nextPiece.isBlack() ) {
-					// append this piece's legal moves to the entire move list
-					entireMoveList.addAll(nextPiece.generateMoveList(this));
-				}
-			}
-		}
-		if ( !entireMoveList.isEmpty()) {
-			// secondly return a move at random
-			Random randomIndex = new Random();
-			Integer indexToGet = randomIndex.nextInt(entireMoveList.size());
-			bestMove = entireMoveList.get(indexToGet);			
-		}
-		// TODO: This exception is when there is no valid move - it is temporary,
-		// when implementation is complete this case would actually mean stalemate.
-		else throw new IllegalNotationException();
-		return bestMove;
 	}
 
 	public void performMove( GenericMove move ) {

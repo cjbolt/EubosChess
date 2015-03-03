@@ -53,7 +53,8 @@ public class EubosEngineMain extends AbstractEngine {
 
 	public void receive(EngineStartCalculatingCommand command) {
 		try {
-			GenericMove selectedMove = theChessBoard.findBestMove();
+			MoveGenerator mg = new MoveGenerator( theChessBoard );
+			GenericMove selectedMove = mg.findBestMove();
 			theChessBoard.performMove(selectedMove);
 			this.getProtocol().send( new ProtocolBestMoveCommand( selectedMove, null ));
 		} catch( IllegalNotationException e ) {
