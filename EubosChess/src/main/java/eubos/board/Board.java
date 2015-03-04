@@ -10,6 +10,7 @@ public class Board implements Iterable<Piece> {
 	
 	private Piece[][] theBoard = new Piece[8][8];
 	private Stack<GenericMove> previousMoves = null;
+	private Stack<Piece> previousCaptures = null;
 	
 	public class allPiecesOnBoardIterator implements Iterator<Piece> {
 	
@@ -59,6 +60,7 @@ public class Board implements Iterable<Piece> {
 	public Board() {
 		setupNewGame();
 		previousMoves = new Stack<GenericMove>();
+		previousCaptures = new Stack<Piece>();
 	}
 
 	// This constructor is primarily used for setting up unit tests...
@@ -67,6 +69,7 @@ public class Board implements Iterable<Piece> {
 			setPieceAtSquare( nextPiece );
 		}
 		previousMoves = new Stack<GenericMove>();
+		previousCaptures = new Stack<Piece>();
 	}
 
 	public void performMove( GenericMove move ) {
@@ -93,65 +96,16 @@ public class Board implements Iterable<Piece> {
 				}
 			}
 			// Update the piece's square.
+			Piece captureTarget = getPieceAtSquare( move.to );
+			if ( captureTarget != null ) {
+				previousCaptures.push( captureTarget );
+			}
 			pieceToMove.setSquare( move.to );
 			setPieceAtSquare( pieceToMove );
 			previousMoves.push( move );
 		} else {
 			// TODO throw an exception in this case?
 		}
-	}
-
-	private void setupNewGame() {
-		setupBackRanks();
-		setupPawns();
-	}
-
-	private void setupPawns() {
-		GenericPosition[] allFiles = new GenericPosition[] { 
-				GenericPosition.a2,
-				GenericPosition.b2,
-				GenericPosition.c2,
-				GenericPosition.d2,
-				GenericPosition.e2,
-				GenericPosition.f2,
-				GenericPosition.g2,
-				GenericPosition.h2 };
-		for ( GenericPosition startPos : allFiles ) {
-			setPieceAtSquare( new Pawn( Piece.PieceColour.white, startPos ));
-		}
-		allFiles = new GenericPosition[] { 
-				GenericPosition.a7,
-				GenericPosition.b7,
-				GenericPosition.c7,
-				GenericPosition.d7,
-				GenericPosition.e7,
-				GenericPosition.f7,
-				GenericPosition.g7,
-				GenericPosition.h7 };		
-		for ( GenericPosition startPos : allFiles ) {
-			setPieceAtSquare( new Pawn( Piece.PieceColour.black, startPos ));
-		}
-	}
-
-	private void setupBackRanks() {
-		// White
-		setPieceAtSquare( new Rook  ( Piece.PieceColour.white, GenericPosition.a1 ));
-		setPieceAtSquare( new Knight( Piece.PieceColour.white, GenericPosition.b1 ));
-		setPieceAtSquare( new Bishop( Piece.PieceColour.white, GenericPosition.c1 ));
-		setPieceAtSquare( new Queen ( Piece.PieceColour.white, GenericPosition.d1 ));
-		setPieceAtSquare( new King  ( Piece.PieceColour.white, GenericPosition.e1 ));
-		setPieceAtSquare( new Bishop( Piece.PieceColour.white, GenericPosition.f1 ));
-		setPieceAtSquare( new Knight( Piece.PieceColour.white, GenericPosition.g1 ));
-		setPieceAtSquare( new Rook  ( Piece.PieceColour.white, GenericPosition.h1 ));
-		// Black
-		setPieceAtSquare( new Rook  ( Piece.PieceColour.black, GenericPosition.a8 ));
-		setPieceAtSquare( new Knight( Piece.PieceColour.black, GenericPosition.b8 ));
-		setPieceAtSquare( new Bishop( Piece.PieceColour.black, GenericPosition.c8 ));
-		setPieceAtSquare( new Queen ( Piece.PieceColour.black, GenericPosition.d8 ));
-		setPieceAtSquare( new King  ( Piece.PieceColour.black, GenericPosition.e8 ));
-		setPieceAtSquare( new Bishop( Piece.PieceColour.black, GenericPosition.f8 ));
-		setPieceAtSquare( new Knight( Piece.PieceColour.black, GenericPosition.g8 ));
-		setPieceAtSquare( new Rook  ( Piece.PieceColour.black, GenericPosition.h8 ));
 	}
 
 	private void setPieceAtSquare( Piece pieceToPlace ) {
@@ -200,11 +154,71 @@ public class Board implements Iterable<Piece> {
 	public GenericMove getPreviousMove() { return previousMoves.pop(); }
 	
 	public void undoLastMove() {
-		GenericMove reverseMove = getPreviousMove();
-		// TODO check if this really works for unding a pawn promotion move - 
-		// should be able to invent a test case for this fairly easily 
-		// (i.e. we go into check by discovered attack if we promote a pawn via a capture)
-		GenericMove undo = new GenericMove( reverseMove.to, reverseMove.from );
-		performMove( undo );
+		GenericMove moveToUndo = getPreviousMove();
+		if ( moveToUndo.promotion != null ) {
+			if ( isSquareWhitePiece(moveToUndo.to) ) {
+				setPieceAtSquare( new Pawn( Piece.PieceColour.white, moveToUndo.to ));
+			} else {
+				setPieceAtSquare( new Pawn( Piece.PieceColour.black, moveToUndo.to ));
+			}
+		}
+		performMove( new GenericMove( moveToUndo.to, moveToUndo.from ) );
+		// TODO how to handle replacing a piece that was captured?!?
+		if ( !previousCaptures.isEmpty()) {
+			setPieceAtSquare(previousCaptures.pop());
+		}
+	}
+	
+	private void setupNewGame() {
+		setupBackRanks();
+		setupPawns();
+	}
+	
+	private void setupPawns() {
+		GenericPosition[] allFiles = new GenericPosition[] { 
+				GenericPosition.a2,
+				GenericPosition.b2,
+				GenericPosition.c2,
+				GenericPosition.d2,
+				GenericPosition.e2,
+				GenericPosition.f2,
+				GenericPosition.g2,
+				GenericPosition.h2 };
+		for ( GenericPosition startPos : allFiles ) {
+			setPieceAtSquare( new Pawn( Piece.PieceColour.white, startPos ));
+		}
+		allFiles = new GenericPosition[] { 
+				GenericPosition.a7,
+				GenericPosition.b7,
+				GenericPosition.c7,
+				GenericPosition.d7,
+				GenericPosition.e7,
+				GenericPosition.f7,
+				GenericPosition.g7,
+				GenericPosition.h7 };		
+		for ( GenericPosition startPos : allFiles ) {
+			setPieceAtSquare( new Pawn( Piece.PieceColour.black, startPos ));
+		}
+	}
+
+	private void setupBackRanks() {
+		// White
+		setPieceAtSquare( new Rook  ( Piece.PieceColour.white, GenericPosition.a1 ));
+		setPieceAtSquare( new Knight( Piece.PieceColour.white, GenericPosition.b1 ));
+		setPieceAtSquare( new Bishop( Piece.PieceColour.white, GenericPosition.c1 ));
+		setPieceAtSquare( new Queen ( Piece.PieceColour.white, GenericPosition.d1 ));
+		setPieceAtSquare( new King  ( Piece.PieceColour.white, GenericPosition.e1 ));
+		setPieceAtSquare( new Bishop( Piece.PieceColour.white, GenericPosition.f1 ));
+		setPieceAtSquare( new Knight( Piece.PieceColour.white, GenericPosition.g1 ));
+		setPieceAtSquare( new Rook  ( Piece.PieceColour.white, GenericPosition.h1 ));
+		// Black
+		setPieceAtSquare( new Rook  ( Piece.PieceColour.black, GenericPosition.a8 ));
+		setPieceAtSquare( new Knight( Piece.PieceColour.black, GenericPosition.b8 ));
+		setPieceAtSquare( new Bishop( Piece.PieceColour.black, GenericPosition.c8 ));
+		setPieceAtSquare( new Queen ( Piece.PieceColour.black, GenericPosition.d8 ));
+		setPieceAtSquare( new King  ( Piece.PieceColour.black, GenericPosition.e8 ));
+		setPieceAtSquare( new Bishop( Piece.PieceColour.black, GenericPosition.f8 ));
+		setPieceAtSquare( new Knight( Piece.PieceColour.black, GenericPosition.g8 ));
+		setPieceAtSquare( new Rook  ( Piece.PieceColour.black, GenericPosition.h8 ));
 	}
 }
