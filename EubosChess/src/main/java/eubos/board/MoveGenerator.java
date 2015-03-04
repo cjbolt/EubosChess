@@ -26,9 +26,14 @@ public class MoveGenerator {
 		if ( !entireMoveList.isEmpty()) {
 			// once the move list has been generated, remove any moves that would place
 			// the king in check from consideration.
-			//for ( GenericMove currMove : entireMoveList) {
-				// test if places king in check...
-			//}
+			for ( GenericMove currMove : entireMoveList) {
+				theBoard.performMove( currMove );
+				if (inCheck()) {
+					// it represents an illegal move, reject it.
+					entireMoveList.remove( currMove );
+				}
+				theBoard.undoLastMove();
+			}
 			// For the time-being, return a valid move at random
 			Random randomIndex = new Random();
 			Integer indexToGet = randomIndex.nextInt(entireMoveList.size());
@@ -38,5 +43,9 @@ public class MoveGenerator {
 		// when implementation is complete this case would actually mean stalemate.
 		else throw new IllegalNotationException();
 		return bestMove;
+	}
+	
+	private boolean inCheck() {
+		return false;
 	}
 }

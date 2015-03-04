@@ -9,7 +9,7 @@ import com.fluxchess.jcpi.models.*;
 public class Board implements Iterable<Piece> {
 	
 	private Piece[][] theBoard = new Piece[8][8];
-	private GenericMove previousMove = null;
+	private Stack<GenericMove> previousMoves = null;
 	
 	public class allPiecesOnBoardIterator implements Iterator<Piece> {
 	
@@ -58,12 +58,15 @@ public class Board implements Iterable<Piece> {
     
 	public Board() {
 		setupNewGame();
+		previousMoves = new Stack<GenericMove>();
 	}
 
+	// This constructor is primarily used for setting up unit tests...
 	public Board( LinkedList<Piece> pieceList ) {
 		for ( Piece nextPiece : pieceList ) {
 			setPieceAtSquare( nextPiece );
 		}
+		previousMoves = new Stack<GenericMove>();
 	}
 
 	public void performMove( GenericMove move ) {
@@ -92,7 +95,7 @@ public class Board implements Iterable<Piece> {
 			// Update the piece's square.
 			pieceToMove.setSquare( move.to );
 			setPieceAtSquare( pieceToMove );
-			previousMove = move;
+			previousMoves.push( move );
 		} else {
 			// TODO throw an exception in this case?
 		}
@@ -194,5 +197,14 @@ public class Board implements Iterable<Piece> {
 		return retVal;
 	}
 		
-	public GenericMove getPreviousMove() { return previousMove; }
+	public GenericMove getPreviousMove() { return previousMoves.pop(); }
+	
+	public void undoLastMove() {
+		GenericMove reverseMove = getPreviousMove();
+		// TODO check if this really works for unding a pawn promotion move - 
+		// should be able to invent a test case for this fairly easily 
+		// (i.e. we go into check by discovered attack if we promote a pawn via a capture)
+		GenericMove undo = new GenericMove( reverseMove.to, reverseMove.from );
+		performMove( undo );
+	}
 }
