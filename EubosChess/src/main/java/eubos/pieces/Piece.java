@@ -1,19 +1,20 @@
 package eubos.pieces;
 
-import eubos.board.*;
+import eubos.board.BoardManager;
+
 import com.fluxchess.jcpi.models.*;
 import java.util.*;
 
 public abstract class Piece {
-	public enum PieceColour { white, black };
-	protected PieceColour colour = PieceColour.black;
+	public enum Colour { white, black };
+	protected Colour colour = Colour.black;
 	protected boolean everMoved = false;
-	public abstract LinkedList<GenericMove> generateMoveList( Board theBoard ); 
+	public abstract LinkedList<GenericMove> generateMoveList( BoardManager bm ); 
 	protected GenericPosition onSquare;
 	
-	public PieceColour getColour() { return colour; }
-	public boolean isWhite() { return ( colour == PieceColour.white ); }
-	public boolean isBlack() { return ( colour == PieceColour.black ); }
+	public Colour getColour() { return colour; }
+	public boolean isWhite() { return ( colour == Colour.white ); }
+	public boolean isBlack() { return ( colour == Colour.black ); }
 	public boolean isOppositeColour(Piece toCheck) { return ( colour != toCheck.getColour()); }
 	
 	public void setSquare( GenericPosition pos) { onSquare = pos; everMoved = true; }

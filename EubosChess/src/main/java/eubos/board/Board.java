@@ -9,11 +9,114 @@ import com.fluxchess.jcpi.models.*;
 public class Board implements Iterable<Piece> {
 	
 	private Piece[][] theBoard = new Piece[8][8];
-	private Stack<GenericMove> previousMoves = null;
-	private Stack<Piece> previousCaptures = null;
+	
+	public Board() { setupNewGame(); }
+
+	// This constructor is primarily used for setting up unit tests...
+	public Board( LinkedList<Piece> pieceList ) {
+		for ( Piece nextPiece : pieceList ) {
+			setPieceAtSquare( nextPiece );
+		}
+	}
+	
+	public void setPieceAtSquare( Piece pieceToPlace ) {
+		GenericPosition atPos = pieceToPlace.getSquare();
+		int file, rank;
+		file = IntFile.valueOf(atPos.file);
+		rank = IntRank.valueOf(atPos.rank);
+		theBoard[file][rank] = pieceToPlace;	
+	}
+
+	public Piece getPieceAtSquare( GenericPosition atPos ) {
+		int file, rank;
+		file = IntFile.valueOf(atPos.file);
+		rank = IntRank.valueOf(atPos.rank);
+		return ( theBoard[file][rank] );
+	}
+	
+	public Piece pickUpPieceAtSquare( GenericPosition atPos ) {
+		int file, rank;
+		file = IntFile.valueOf(atPos.file);
+		rank = IntRank.valueOf(atPos.rank);
+		Piece pieceToPickUp = theBoard[file][rank];
+		theBoard[file][rank] = null;
+		return ( pieceToPickUp );
+	}
+	
+	public boolean isSquareEmpty( GenericPosition atPos ) {
+		int file, rank;
+		file = IntFile.valueOf(atPos.file);
+		rank = IntRank.valueOf(atPos.rank);
+		return ( theBoard[file][rank] == null );		
+	}
+
+	public boolean isSquareWhitePiece(GenericPosition atPos) {
+		int file, rank;
+		file = IntFile.valueOf(atPos.file);
+		rank = IntRank.valueOf(atPos.rank);
+		boolean retVal = false;
+		Piece piece = theBoard[file][rank];
+		if (piece != null){
+			retVal = theBoard[file][rank].isWhite();
+		}
+		return retVal;
+	}
+		
+	private void setupNewGame() {
+		setupBackRanks();
+		setupPawns();
+	}
+	
+	private void setupPawns() {
+		GenericPosition[] allFiles = new GenericPosition[] { 
+				GenericPosition.a2,
+				GenericPosition.b2,
+				GenericPosition.c2,
+				GenericPosition.d2,
+				GenericPosition.e2,
+				GenericPosition.f2,
+				GenericPosition.g2,
+				GenericPosition.h2 };
+		for ( GenericPosition startPos : allFiles ) {
+			setPieceAtSquare( new Pawn( Piece.Colour.white, startPos ));
+		}
+		allFiles = new GenericPosition[] { 
+				GenericPosition.a7,
+				GenericPosition.b7,
+				GenericPosition.c7,
+				GenericPosition.d7,
+				GenericPosition.e7,
+				GenericPosition.f7,
+				GenericPosition.g7,
+				GenericPosition.h7 };		
+		for ( GenericPosition startPos : allFiles ) {
+			setPieceAtSquare( new Pawn( Piece.Colour.black, startPos ));
+		}
+	}
+
+	private void setupBackRanks() {
+		// White
+		setPieceAtSquare( new Rook  ( Piece.Colour.white, GenericPosition.a1 ));
+		setPieceAtSquare( new Knight( Piece.Colour.white, GenericPosition.b1 ));
+		setPieceAtSquare( new Bishop( Piece.Colour.white, GenericPosition.c1 ));
+		setPieceAtSquare( new Queen ( Piece.Colour.white, GenericPosition.d1 ));
+		setPieceAtSquare( new King  ( Piece.Colour.white, GenericPosition.e1 ));
+		setPieceAtSquare( new Bishop( Piece.Colour.white, GenericPosition.f1 ));
+		setPieceAtSquare( new Knight( Piece.Colour.white, GenericPosition.g1 ));
+		setPieceAtSquare( new Rook  ( Piece.Colour.white, GenericPosition.h1 ));
+		// Black
+		setPieceAtSquare( new Rook  ( Piece.Colour.black, GenericPosition.a8 ));
+		setPieceAtSquare( new Knight( Piece.Colour.black, GenericPosition.b8 ));
+		setPieceAtSquare( new Bishop( Piece.Colour.black, GenericPosition.c8 ));
+		setPieceAtSquare( new Queen ( Piece.Colour.black, GenericPosition.d8 ));
+		setPieceAtSquare( new King  ( Piece.Colour.black, GenericPosition.e8 ));
+		setPieceAtSquare( new Bishop( Piece.Colour.black, GenericPosition.f8 ));
+		setPieceAtSquare( new Knight( Piece.Colour.black, GenericPosition.g8 ));
+		setPieceAtSquare( new Rook  ( Piece.Colour.black, GenericPosition.h8 ));
+	}
 	
 	public class allPiecesOnBoardIterator implements Iterator<Piece> {
-	
+		
 		private LinkedList<Piece> iterList = null;
 		
 		public allPiecesOnBoardIterator() {
@@ -28,7 +131,7 @@ public class Board implements Iterable<Piece> {
 			}
 		}
 		
-		public allPiecesOnBoardIterator( Piece.PieceColour colourToIterate ) {
+		public allPiecesOnBoardIterator( Piece.Colour colourToIterate ) {
 			iterList = new LinkedList<Piece>();
 			for (int i: IntFile.values) {
 				for (int j: IntRank.values) {
@@ -54,171 +157,6 @@ public class Board implements Iterable<Piece> {
 	}
 	
     public Iterator<Piece> iterator() {
-        return new allPiecesOnBoardIterator( Piece.PieceColour.black );
+        return new allPiecesOnBoardIterator( Piece.Colour.black );
     }
-    
-	public Board() {
-		setupNewGame();
-		previousMoves = new Stack<GenericMove>();
-		previousCaptures = new Stack<Piece>();
-	}
-
-	// This constructor is primarily used for setting up unit tests...
-	public Board( LinkedList<Piece> pieceList ) {
-		for ( Piece nextPiece : pieceList ) {
-			setPieceAtSquare( nextPiece );
-		}
-		previousMoves = new Stack<GenericMove>();
-		previousCaptures = new Stack<Piece>();
-	}
-
-	public void performMove( GenericMove move ) {
-		// Move the piece
-		Piece pieceToMove = pickUpPieceAtSquare( move.from );
-		if ( pieceToMove != null ) {
-			// Handle pawn promotion moves
-			if ( move.promotion != null ) {
-				switch( move.promotion ) {
-				case QUEEN:
-					pieceToMove = new Queen(pieceToMove.getColour(), null );
-					break;
-				case KNIGHT:
-					pieceToMove = new Knight(pieceToMove.getColour(), null );
-					break;
-				case BISHOP:
-					pieceToMove = new Bishop(pieceToMove.getColour(), null );
-					break;
-				case ROOK:
-					pieceToMove = new Rook(pieceToMove.getColour(), null );
-					break;
-				default:
-					break;
-				}
-			}
-			// Update the piece's square.
-			Piece captureTarget = getPieceAtSquare( move.to );
-			if ( captureTarget != null ) {
-				previousCaptures.push( captureTarget );
-			}
-			pieceToMove.setSquare( move.to );
-			setPieceAtSquare( pieceToMove );
-			previousMoves.push( move );
-		} else {
-			// TODO throw an exception in this case?
-		}
-	}
-
-	private void setPieceAtSquare( Piece pieceToPlace ) {
-		GenericPosition atPos = pieceToPlace.getSquare();
-		int file, rank;
-		file = IntFile.valueOf(atPos.file);
-		rank = IntRank.valueOf(atPos.rank);
-		theBoard[file][rank] = pieceToPlace;	
-	}
-
-	public Piece getPieceAtSquare( GenericPosition atPos ) {
-		int file, rank;
-		file = IntFile.valueOf(atPos.file);
-		rank = IntRank.valueOf(atPos.rank);
-		return ( theBoard[file][rank] );
-	}
-	
-	private Piece pickUpPieceAtSquare( GenericPosition atPos ) {
-		int file, rank;
-		file = IntFile.valueOf(atPos.file);
-		rank = IntRank.valueOf(atPos.rank);
-		Piece pieceToPickUp = theBoard[file][rank];
-		theBoard[file][rank] = null;
-		return ( pieceToPickUp );
-	}	
-	
-	public boolean isSquareEmpty( GenericPosition atPos ) {
-		int file, rank;
-		file = IntFile.valueOf(atPos.file);
-		rank = IntRank.valueOf(atPos.rank);
-		return ( theBoard[file][rank] == null );		
-	}
-
-	public boolean isSquareWhitePiece(GenericPosition atPos) {
-		int file, rank;
-		file = IntFile.valueOf(atPos.file);
-		rank = IntRank.valueOf(atPos.rank);
-		boolean retVal = false;
-		Piece piece = theBoard[file][rank];
-		if (piece != null){
-			retVal = theBoard[file][rank].isWhite();
-		}
-		return retVal;
-	}
-		
-	public GenericMove getPreviousMove() { return previousMoves.pop(); }
-	
-	public void undoLastMove() {
-		GenericMove moveToUndo = getPreviousMove();
-		if ( moveToUndo.promotion != null ) {
-			if ( isSquareWhitePiece(moveToUndo.to) ) {
-				setPieceAtSquare( new Pawn( Piece.PieceColour.white, moveToUndo.to ));
-			} else {
-				setPieceAtSquare( new Pawn( Piece.PieceColour.black, moveToUndo.to ));
-			}
-		}
-		performMove( new GenericMove( moveToUndo.to, moveToUndo.from ) );
-		// TODO how to handle replacing a piece that was captured?!?
-		if ( !previousCaptures.isEmpty()) {
-			setPieceAtSquare(previousCaptures.pop());
-		}
-	}
-	
-	private void setupNewGame() {
-		setupBackRanks();
-		setupPawns();
-	}
-	
-	private void setupPawns() {
-		GenericPosition[] allFiles = new GenericPosition[] { 
-				GenericPosition.a2,
-				GenericPosition.b2,
-				GenericPosition.c2,
-				GenericPosition.d2,
-				GenericPosition.e2,
-				GenericPosition.f2,
-				GenericPosition.g2,
-				GenericPosition.h2 };
-		for ( GenericPosition startPos : allFiles ) {
-			setPieceAtSquare( new Pawn( Piece.PieceColour.white, startPos ));
-		}
-		allFiles = new GenericPosition[] { 
-				GenericPosition.a7,
-				GenericPosition.b7,
-				GenericPosition.c7,
-				GenericPosition.d7,
-				GenericPosition.e7,
-				GenericPosition.f7,
-				GenericPosition.g7,
-				GenericPosition.h7 };		
-		for ( GenericPosition startPos : allFiles ) {
-			setPieceAtSquare( new Pawn( Piece.PieceColour.black, startPos ));
-		}
-	}
-
-	private void setupBackRanks() {
-		// White
-		setPieceAtSquare( new Rook  ( Piece.PieceColour.white, GenericPosition.a1 ));
-		setPieceAtSquare( new Knight( Piece.PieceColour.white, GenericPosition.b1 ));
-		setPieceAtSquare( new Bishop( Piece.PieceColour.white, GenericPosition.c1 ));
-		setPieceAtSquare( new Queen ( Piece.PieceColour.white, GenericPosition.d1 ));
-		setPieceAtSquare( new King  ( Piece.PieceColour.white, GenericPosition.e1 ));
-		setPieceAtSquare( new Bishop( Piece.PieceColour.white, GenericPosition.f1 ));
-		setPieceAtSquare( new Knight( Piece.PieceColour.white, GenericPosition.g1 ));
-		setPieceAtSquare( new Rook  ( Piece.PieceColour.white, GenericPosition.h1 ));
-		// Black
-		setPieceAtSquare( new Rook  ( Piece.PieceColour.black, GenericPosition.a8 ));
-		setPieceAtSquare( new Knight( Piece.PieceColour.black, GenericPosition.b8 ));
-		setPieceAtSquare( new Bishop( Piece.PieceColour.black, GenericPosition.c8 ));
-		setPieceAtSquare( new Queen ( Piece.PieceColour.black, GenericPosition.d8 ));
-		setPieceAtSquare( new King  ( Piece.PieceColour.black, GenericPosition.e8 ));
-		setPieceAtSquare( new Bishop( Piece.PieceColour.black, GenericPosition.f8 ));
-		setPieceAtSquare( new Knight( Piece.PieceColour.black, GenericPosition.g8 ));
-		setPieceAtSquare( new Rook  ( Piece.PieceColour.black, GenericPosition.h8 ));
-	}
 }

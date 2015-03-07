@@ -10,29 +10,31 @@ import eubos.pieces.Piece;
 
 public class MoveGenerator {
 	
-	private Board theBoard;
+	private BoardManager bm;
 	
-	public MoveGenerator( Board inputBoard ) { theBoard = inputBoard; }
+	public MoveGenerator( BoardManager bm ) {
+		this.bm = bm;
+	}
 
 	public GenericMove findBestMove() throws IllegalNotationException {
 		// TODO: for now find a random legal move for the side indicated
 		// Generate the entire move list
 		GenericMove bestMove = null;
 		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();
-		for (Piece currentBlackPiece: theBoard) {
+		for (Piece currentBlackPiece: bm.getTheBoard()) {
 			// append this piece's legal moves to the entire move list
-			entireMoveList.addAll( currentBlackPiece.generateMoveList(theBoard));
+			entireMoveList.addAll( currentBlackPiece.generateMoveList( bm ));
 		}
 		if ( !entireMoveList.isEmpty()) {
 			// once the move list has been generated, remove any moves that would place
 			// the king in check from consideration.
 			for ( GenericMove currMove : entireMoveList) {
-				theBoard.performMove( currMove );
+				bm.performMove( currMove );
 				if (inCheck()) {
 					// it represents an illegal move, reject it.
 					entireMoveList.remove( currMove );
 				}
-				theBoard.undoLastMove();
+				bm.undoLastMove();
 			}
 			// For the time-being, return a valid move at random
 			Random randomIndex = new Random();

@@ -20,7 +20,7 @@ import eubos.board.*;
 
 public class EubosEngineMain extends AbstractEngine {
 	
-	private Board theChessBoard;
+	private BoardManager bm;
 
 	public void receive(EngineInitializeRequestCommand command) {
 		this.getProtocol().send( new ProtocolInitializeAnswerCommand("Eubos","Chris Bolt") );
@@ -40,22 +40,22 @@ public class EubosEngineMain extends AbstractEngine {
 
 	public void receive(EngineNewGameCommand command) {
 		//System.out.println("receive(EngineNewGameCommand): Eubos Chess Engine.");
-		theChessBoard = new Board();
+		bm = new BoardManager();
 	}
 
 	public void receive(EngineAnalyzeCommand command) {
 		// Note: command contains the move list and can be interrogated to set up the engine.
-		theChessBoard = new Board();
+		bm = new BoardManager();
 		for ( GenericMove nextMove : command.moves ) {
-			theChessBoard.performMove( nextMove );
+			bm.performMove( nextMove );
 		}
 	}
 
 	public void receive(EngineStartCalculatingCommand command) {
 		try {
-			MoveGenerator mg = new MoveGenerator( theChessBoard );
+			MoveGenerator mg = new MoveGenerator( bm );
 			GenericMove selectedMove = mg.findBestMove();
-			theChessBoard.performMove(selectedMove);
+			bm.performMove(selectedMove);
 			this.getProtocol().send( new ProtocolBestMoveCommand( selectedMove, null ));
 		} catch( IllegalNotationException e ) {
 			System.out.println( "whoops:" + e.toString() );

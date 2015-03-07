@@ -8,13 +8,13 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.board.Board;
+import eubos.board.BoardManager;
 
 public abstract class PawnTest {
 
 	protected LinkedList<Piece> pl;
 	protected SinglesquareDirectMovePiece classUnderTest;
-	protected Board testBoard;
+	protected BoardManager bm;
 	protected GenericMove expectedMove;
 
 	@Test
@@ -56,13 +56,13 @@ public abstract class PawnTest {
 	}
 
 	protected SinglesquareDirectMovePiece addBlackPawn(GenericPosition square) {
-		SinglesquareDirectMovePiece newPawn = new Pawn( Piece.PieceColour.black, square );
+		SinglesquareDirectMovePiece newPawn = new Pawn( Piece.Colour.black, square );
 		pl.add( newPawn );
 		return newPawn;
 	}
 
 	protected SinglesquareDirectMovePiece addWhitePawn(GenericPosition square) {
-		SinglesquareDirectMovePiece newPawn = new Pawn( Piece.PieceColour.white, square );
+		SinglesquareDirectMovePiece newPawn = new Pawn( Piece.Colour.white, square );
 		pl.add( newPawn );
 		return newPawn;
 	}

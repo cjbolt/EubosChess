@@ -9,10 +9,11 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericRank;
 
 import eubos.board.Board;
+import eubos.board.BoardManager;
 
 public class Pawn extends SinglesquareDirectMovePiece {
 
-	public Pawn( PieceColour Colour, GenericPosition at ) {
+	public Pawn( Colour Colour, GenericPosition at ) {
 		colour = Colour;
 		onSquare = at;
 	}
@@ -144,7 +145,8 @@ public class Pawn extends SinglesquareDirectMovePiece {
 	}	
 	
 	@Override
-	public LinkedList<GenericMove> generateMoveList(Board theBoard) {
+	public LinkedList<GenericMove> generateMoveList(BoardManager bm) {
+		Board theBoard = bm.getTheBoard();
 		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
 		// Check for standard one and two square moves
 		GenericPosition moveTo = genOneSqTarget();
@@ -168,7 +170,7 @@ public class Pawn extends SinglesquareDirectMovePiece {
 		}
 		// Check for en passant capture moves
 		if ( checkEnPassantPossible() ) {
-			GenericMove lastMove = theBoard.getPreviousMove();
+			GenericMove lastMove = bm.getPreviousMove();
 			if ( lastMove != null ) {
 				if ( checkLeftEnPassantCapture( theBoard, lastMove )) {
 					captureLeft(moveList);
