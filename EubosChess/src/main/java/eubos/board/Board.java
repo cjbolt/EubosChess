@@ -50,18 +50,6 @@ public class Board implements Iterable<Piece> {
 		return ( theBoard[file][rank] == null );		
 	}
 
-	public boolean isSquareWhitePiece(GenericPosition atPos) {
-		int file, rank;
-		file = IntFile.valueOf(atPos.file);
-		rank = IntRank.valueOf(atPos.rank);
-		boolean retVal = false;
-		Piece piece = theBoard[file][rank];
-		if (piece != null){
-			retVal = theBoard[file][rank].isWhite();
-		}
-		return retVal;
-	}
-		
 	private void setupNewGame() {
 		setupBackRanks();
 		setupPawns();

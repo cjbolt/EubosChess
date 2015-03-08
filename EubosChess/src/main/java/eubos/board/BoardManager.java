@@ -57,11 +57,8 @@ public class BoardManager {
 			TrackedMove tm = previousMoves.pop();
 			GenericMove moveToUndo = tm.getMove();
 			if ( moveToUndo.promotion != null ) {
-				if ( theBoard.isSquareWhitePiece(moveToUndo.to) ) {
-					theBoard.setPieceAtSquare( new Pawn( Piece.Colour.white, moveToUndo.to ));
-				} else {
-					theBoard.setPieceAtSquare( new Pawn( Piece.Colour.black, moveToUndo.to ));
-				}
+				Piece.Colour colourToCreate = theBoard.getPieceAtSquare(moveToUndo.to).getColour();
+				theBoard.setPieceAtSquare( new Pawn( colourToCreate, moveToUndo.to ));
 			}
 			performMove( new GenericMove( moveToUndo.to, moveToUndo.from ) );
 			if ( tm.isCapture()) {
@@ -102,15 +99,13 @@ public class BoardManager {
 					break;
 				}
 			}
-			// Update the piece's square.
-			TrackedMove tm = new TrackedMove( move ); 
+			// Store this move in the previous moves list
 			Piece captureTarget = theBoard.getPieceAtSquare( move.to );
-			if ( captureTarget != null ) {
-				tm.setCapturedPiece( captureTarget );
-			}
+			previousMoves.push( new TrackedMove( move, captureTarget ));
+			// Update the piece's square.
+			// TODO duplicated information here - sub optimal...
 			pieceToMove.setSquare( move.to );
 			theBoard.setPieceAtSquare( pieceToMove );
-			previousMoves.push(tm);
 		} else {
 			// TODO throw an exception in this case?
 		}
