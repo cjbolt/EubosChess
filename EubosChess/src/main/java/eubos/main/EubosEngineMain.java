@@ -10,17 +10,18 @@ import com.fluxchess.jcpi.commands.EngineReadyRequestCommand;
 import com.fluxchess.jcpi.commands.EngineSetOptionCommand;
 import com.fluxchess.jcpi.commands.EngineStartCalculatingCommand;
 import com.fluxchess.jcpi.commands.EngineStopCalculatingCommand;
-
 import com.fluxchess.jcpi.commands.ProtocolInitializeAnswerCommand;
 import com.fluxchess.jcpi.commands.ProtocolReadyAnswerCommand;
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import com.fluxchess.jcpi.models.*;
 
 import eubos.board.*;
+import eubos.pieces.Piece;
 
 public class EubosEngineMain extends AbstractEngine {
 	
 	private BoardManager bm;
+	private Piece.Colour sideToMove;
 
 	public void receive(EngineInitializeRequestCommand command) {
 		this.getProtocol().send( new ProtocolInitializeAnswerCommand("Eubos","Chris Bolt") );
@@ -41,25 +42,29 @@ public class EubosEngineMain extends AbstractEngine {
 	public void receive(EngineNewGameCommand command) {
 		//System.out.println("receive(EngineNewGameCommand): Eubos Chess Engine.");
 		bm = new BoardManager();
+		sideToMove = Piece.Colour.white;
 	}
 
 	public void receive(EngineAnalyzeCommand command) {
 		// Note: command contains the move list and can be interrogated to set up the engine.
 		bm = new BoardManager();
+		sideToMove = Piece.Colour.white;
 		for ( GenericMove nextMove : command.moves ) {
 			bm.performMove( nextMove );
+			toggleHasMove();
 		}
 	}
 
 	public void receive(EngineStartCalculatingCommand command) {
 		try {
-			MoveGenerator mg = new MoveGenerator( bm );
+			MoveGenerator mg = new MoveGenerator( bm, sideToMove );
 			GenericMove selectedMove = mg.findBestMove();
 			bm.performMove(selectedMove);
 			this.getProtocol().send( new ProtocolBestMoveCommand( selectedMove, null ));
-		} catch( IllegalNotationException e ) {
-			System.out.println( "whoops:" + e.toString() );
+		} catch( NoLegalMoveException e ) {
+			System.out.println( "eubos has run out of legal moves for side " + sideToMove.toString() );
 		}
+		toggleHasMove();
 	}
 
 	public void receive(EngineStopCalculatingCommand command) {
@@ -70,6 +75,15 @@ public class EubosEngineMain extends AbstractEngine {
 
 	@Override
 	protected void quit() {
+	}
+	
+	private void toggleHasMove() {
+		// change side to move
+		if ( sideToMove == Piece.Colour.white ) {
+			sideToMove = Piece.Colour.black;
+		} else {
+			sideToMove = Piece.Colour.white;
+		}
 	}
 
 	public static void main(String[] args) {

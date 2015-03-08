@@ -2,28 +2,32 @@ package eubos.board;
 
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.Iterator;
 
 import com.fluxchess.jcpi.models.GenericMove;
-import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.pieces.Piece;
 
 public class MoveGenerator {
 	
 	private BoardManager bm;
+	private Piece.Colour sideToMove;
 	
-	public MoveGenerator( BoardManager bm ) {
+	public MoveGenerator( BoardManager bm, Piece.Colour sideToMove ) {
 		this.bm = bm;
+		this.sideToMove = sideToMove;
 	}
 
-	public GenericMove findBestMove() throws IllegalNotationException {
-		// TODO: for now find a random legal move for the side indicated
+	// TODO: for now find a random legal move for the side indicated
+	public GenericMove findBestMove() throws NoLegalMoveException {
 		// Generate the entire move list
 		GenericMove bestMove = null;
 		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();
-		for (Piece currentBlackPiece: bm.getTheBoard()) {
-			// append this piece's legal moves to the entire move list
-			entireMoveList.addAll( currentBlackPiece.generateMoveList( bm ));
+		// For each piece of the side to move on the board...
+		Iterator<Piece> iter = bm.getTheBoard().iterateColour(sideToMove);
+		while ( iter.hasNext() ) {
+			// ...append the piece's legal moves to the entire move list
+			entireMoveList.addAll( iter.next().generateMoveList( bm ));
 		}
 		if ( !entireMoveList.isEmpty()) {
 			// once the move list has been generated, remove any moves that would place
@@ -40,14 +44,15 @@ public class MoveGenerator {
 			Random randomIndex = new Random();
 			Integer indexToGet = randomIndex.nextInt(entireMoveList.size());
 			bestMove = entireMoveList.get(indexToGet);			
+		} else {
+			throw new NoLegalMoveException();
 		}
-		// TODO: This exception is when there is no valid move - it is temporary,
-		// when implementation is complete this case would actually mean stalemate.
-		else throw new IllegalNotationException();
 		return bestMove;
 	}
 	
 	private boolean inCheck() {
-		return false;
+		// loop through all the opposite colour pieces and see if any of them are currently attacking the king.
+		boolean inCheck = false;
+		return inCheck;
 	}
 }

@@ -145,6 +145,12 @@ public class Board implements Iterable<Piece> {
 	}
 	
     public Iterator<Piece> iterator() {
-        return new allPiecesOnBoardIterator( Piece.Colour.black );
+    	// default iterator returns all the pieces on the board
+        return new allPiecesOnBoardIterator( );
     }
+    
+    public Iterator<Piece> iterateColour( Piece.Colour colourToIterate ) {
+        return new allPiecesOnBoardIterator( colourToIterate );
+    }
+    
 }
