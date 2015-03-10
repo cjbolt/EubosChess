@@ -11,11 +11,11 @@ import eubos.pieces.Piece;
 public class MoveGenerator implements IMoveGenerator {
 	
 	private BoardManager bm;
-	private Piece.Colour sideToMove;
+	private Piece.Colour onMove;
 	
 	public MoveGenerator( BoardManager bm, Piece.Colour sideToMove ) {
 		this.bm = bm;
-		this.sideToMove = sideToMove;
+		this.onMove = sideToMove;
 	}
 
 	// TODO: for now find a random legal move for the side indicated
@@ -24,7 +24,7 @@ public class MoveGenerator implements IMoveGenerator {
 		GenericMove bestMove = null;
 		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();
 		// For each piece of the side to move on the board...
-		Iterator<Piece> iter = bm.getTheBoard().iterateColour(sideToMove);
+		Iterator<Piece> iter = bm.getTheBoard().iterateColour(onMove);
 		while ( iter.hasNext() ) {
 			// ...append the piece's legal moves to the entire move list
 			entireMoveList.addAll( iter.next().generateMoves( bm ));
@@ -53,6 +53,13 @@ public class MoveGenerator implements IMoveGenerator {
 	private boolean inCheck() {
 		// loop through all the opposite colour pieces and see if any of them are currently attacking the king.
 		boolean inCheck = false;
+		Iterator<Piece> allPotentialAttackers = bm.getTheBoard().iterateColour(Piece.Colour.getOpposite(onMove));
+		while (allPotentialAttackers.hasNext()) {
+			if (allPotentialAttackers.next().checksKing()) {
+				inCheck = true;
+				break;
+			}
+		}
 		return inCheck;
 	}
 }
