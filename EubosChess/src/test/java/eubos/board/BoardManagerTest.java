@@ -29,7 +29,7 @@ public class BoardManagerTest {
 	@Ignore
 	public void test_NoLastMoveToUndo() {
 		classUnderTest = new BoardManager();
-		classUnderTest.undoLastMove();
+		classUnderTest.undoPreviousMove();
 	}
 	
 	@Test
@@ -37,7 +37,7 @@ public class BoardManagerTest {
 		pl.add( new Pawn( Piece.Colour.white, GenericPosition.e2 ));
 		classUnderTest = new BoardManager( new Board( pl ));
 		classUnderTest.performMove( new GenericMove( GenericPosition.e2, GenericPosition.e4 ));
-		classUnderTest.undoLastMove();
+		classUnderTest.undoPreviousMove();
 		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.e2 );
 		assertTrue( expectPawn instanceof Pawn );
 		assertTrue( expectPawn.isWhite());		
@@ -48,7 +48,7 @@ public class BoardManagerTest {
 		pl.add( new Pawn( Piece.Colour.black, GenericPosition.e2 ));
 		classUnderTest = new BoardManager( new Board( pl ));
 		classUnderTest.performMove( new GenericMove( GenericPosition.e2, GenericPosition.e1, GenericChessman.QUEEN ));
-		classUnderTest.undoLastMove();
+		classUnderTest.undoPreviousMove();
 		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.e2 );
 		assertTrue( expectPawn instanceof Pawn );
 		assertTrue( expectPawn.isBlack());
@@ -60,7 +60,7 @@ public class BoardManagerTest {
 		pl.add( new Pawn( Piece.Colour.white, GenericPosition.e2 ));
 		classUnderTest = new BoardManager( new Board( pl ));
 		classUnderTest.performMove( new GenericMove( GenericPosition.d3, GenericPosition.e2 ));
-		classUnderTest.undoLastMove();
+		classUnderTest.undoPreviousMove();
 		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.d3 );
 		assertTrue( expectPawn instanceof Pawn );
 		assertTrue( expectPawn.isBlack());

@@ -6,6 +6,6 @@ import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.BoardManager;
 
-public abstract class IndirectMovePiece extends Piece {
-	public abstract LinkedList<GenericMove> generateMoves(BoardManager bm);
+public interface IPiece {
+	public LinkedList<GenericMove> generateMoves( BoardManager bm );
 }

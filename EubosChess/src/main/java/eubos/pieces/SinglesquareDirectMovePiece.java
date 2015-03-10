@@ -10,7 +10,7 @@ import com.fluxchess.jcpi.models.GenericRank;
 import eubos.board.BoardManager;
 
 public abstract class SinglesquareDirectMovePiece extends DirectMovePiece {
-	public abstract LinkedList<GenericMove> generateMoveList(BoardManager bm);
+	public abstract LinkedList<GenericMove> generateMoves(BoardManager bm);
 
 	protected GenericPosition downLeft() {
 		if ( onSquare.file != GenericFile.Fa && onSquare.rank != GenericRank.R1 ) {

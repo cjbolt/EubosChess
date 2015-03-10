@@ -145,7 +145,7 @@ public class Pawn extends SinglesquareDirectMovePiece {
 	}	
 	
 	@Override
-	public LinkedList<GenericMove> generateMoveList(BoardManager bm) {
+	public LinkedList<GenericMove> generateMoves(BoardManager bm) {
 		Board theBoard = bm.getTheBoard();
 		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
 		// Check for standard one and two square moves

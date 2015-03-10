@@ -8,7 +8,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.pieces.Piece;
 
-public class MoveGenerator {
+public class MoveGenerator implements IMoveGenerator {
 	
 	private BoardManager bm;
 	private Piece.Colour sideToMove;
@@ -27,7 +27,7 @@ public class MoveGenerator {
 		Iterator<Piece> iter = bm.getTheBoard().iterateColour(sideToMove);
 		while ( iter.hasNext() ) {
 			// ...append the piece's legal moves to the entire move list
-			entireMoveList.addAll( iter.next().generateMoveList( bm ));
+			entireMoveList.addAll( iter.next().generateMoves( bm ));
 		}
 		if ( !entireMoveList.isEmpty()) {
 			// once the move list has been generated, remove any moves that would place
@@ -38,7 +38,7 @@ public class MoveGenerator {
 					// it represents an illegal move, reject it.
 					entireMoveList.remove( currMove );
 				}
-				bm.undoLastMove();
+				bm.undoPreviousMove();
 			}
 			// For the time-being, return a valid move at random
 			Random randomIndex = new Random();

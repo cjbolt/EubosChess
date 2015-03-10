@@ -15,7 +15,7 @@ public class Queen extends MultisquareDirectMovePiece {
 	}
 	
 	@Override
-	public LinkedList<GenericMove> generateMoveList(BoardManager bm) {
+	public LinkedList<GenericMove> generateMoves(BoardManager bm) {
 		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
 		return moveList;	
 	}

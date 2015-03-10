@@ -5,11 +5,11 @@ import eubos.board.BoardManager;
 import com.fluxchess.jcpi.models.*;
 import java.util.*;
 
-public abstract class Piece {
+public abstract class Piece implements IPiece {
 	public enum Colour { white, black };
 	protected Colour colour = Colour.black;
 	protected boolean everMoved = false;
-	public abstract LinkedList<GenericMove> generateMoveList( BoardManager bm ); 
+	public abstract LinkedList<GenericMove> generateMoves( BoardManager bm ); 
 	protected GenericPosition onSquare;
 	
 	public Colour getColour() { return colour; }

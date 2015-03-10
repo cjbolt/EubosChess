@@ -14,7 +14,7 @@ public class Knight extends IndirectMovePiece {
 	}
 	
 	@Override
-	public LinkedList<GenericMove> generateMoveList(BoardManager bm) {
+	public LinkedList<GenericMove> generateMoves(BoardManager bm) {
 		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
 		return moveList;		
 	}

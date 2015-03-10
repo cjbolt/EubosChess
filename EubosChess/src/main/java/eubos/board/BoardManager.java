@@ -11,7 +11,7 @@ import eubos.pieces.Piece;
 import eubos.pieces.Queen;
 import eubos.pieces.Rook;
 
-public class BoardManager {
+public class BoardManager implements IBoardManager {
 
 	public class TrackedMove {
 		private GenericMove move = null;
@@ -52,7 +52,7 @@ public class BoardManager {
 		theBoard = startingPosition;
 	}
 
-	public void undoLastMove() {
+	public void undoPreviousMove() {
 		if ( !previousMoves.isEmpty()) {
 			TrackedMove tm = previousMoves.pop();
 			GenericMove moveToUndo = tm.getMove();
