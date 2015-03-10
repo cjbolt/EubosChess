@@ -33,7 +33,8 @@ public class King extends SinglesquareDirectMovePiece {
 	private void checkAddMove(LinkedList<GenericMove> moveList, Board theBoard, GenericPosition targetSquare) {
 		if ( targetSquare != null ) {
 			Piece targetPiece = theBoard.getPieceAtSquare(targetSquare);
-			if ( targetPiece != null && (theBoard.isSquareEmpty(targetSquare) || isOppositeColour(targetPiece))) {
+			if ( theBoard.squareIsEmpty(targetSquare) || 
+					(targetPiece != null && isOppositeColour(targetPiece))) {
 				moveList.add( new GenericMove( onSquare, targetSquare ) );
 			}
 		}

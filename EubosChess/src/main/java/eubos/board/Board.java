@@ -43,7 +43,7 @@ public class Board implements Iterable<Piece> {
 		return ( pieceToPickUp );
 	}
 	
-	public boolean isSquareEmpty( GenericPosition atPos ) {
+	public boolean squareIsEmpty( GenericPosition atPos ) {
 		int file, rank;
 		file = IntFile.valueOf(atPos.file);
 		rank = IntRank.valueOf(atPos.rank);

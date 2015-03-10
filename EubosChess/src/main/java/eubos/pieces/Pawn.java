@@ -150,11 +150,11 @@ public class Pawn extends SinglesquareDirectMovePiece {
 		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
 		// Check for standard one and two square moves
 		GenericPosition moveTo = genOneSqTarget();
-		if ( moveTo != null && theBoard.isSquareEmpty( moveTo )) {
+		if ( moveTo != null && theBoard.squareIsEmpty( moveTo )) {
 			checkPromotionAddMove(moveList, moveTo);
 			if ( hasNeverMoved() ) {
 				moveTo = genTwoSqTarget();
-				if ( theBoard.isSquareEmpty( moveTo )) {
+				if ( theBoard.squareIsEmpty( moveTo )) {
 					moveList.add( new GenericMove( onSquare, moveTo ) );
 				}
 			}	
