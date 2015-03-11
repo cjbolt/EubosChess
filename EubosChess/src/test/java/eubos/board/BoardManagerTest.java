@@ -14,7 +14,6 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericChessman;
 
-
 public class BoardManagerTest {
 	
 	protected LinkedList<Piece> pl;

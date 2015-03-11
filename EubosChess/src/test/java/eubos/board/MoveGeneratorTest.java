@@ -20,43 +20,38 @@ public class MoveGeneratorTest {
 	
 	protected LinkedList<Piece> pl;
 	protected MoveGenerator classUnderTest;
+	protected GenericMove expectedMove;
 	
 	@Before
 	public void setUp() {
 		pl = new LinkedList<Piece>();
 	}
 	
+	private void performTest( boolean assertSense ) {
+		try {
+			GenericMove selectedMove = classUnderTest.findBestMove();
+			if ( assertSense )
+				assertTrue(selectedMove.equals(expectedMove));
+			else
+				assertFalse(selectedMove.equals(expectedMove));
+		}
+		catch ( NoLegalMoveException e ) {
+			assert( false );
+		}
+	}
+	
 	@Test
-	public void test_doNotMoveIntoCheck() {
+	public void test_findBestMove_DoNotMoveIntoCheck() {
 		pl.add(new King( Colour.black, GenericPosition.a8 ));
 		pl.add(new Pawn( Colour.white, GenericPosition.c6 ));
 		BoardManager bm = new BoardManager( new Board( pl ));
 		classUnderTest = new MoveGenerator( bm, Colour.black );
-		try {
-			GenericMove selectedMove = classUnderTest.findBestMove();
-			assertFalse(selectedMove.equals(new GenericMove( GenericPosition.a8, GenericPosition.b7 )));
-		}
-		catch ( NoLegalMoveException e ) {
-			assert( false );
-		}	
-	}
-	
-	@Test(expected=NoLegalMoveException.class)
-	public void test_Checkmate_1() throws NoLegalMoveException {
-		pl.add(new King( Colour.white, GenericPosition.a1 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.b1 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.a2 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.b2 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.c2 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.b3 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.c3 ));
-		BoardManager bm = new BoardManager( new Board( pl ));
-		classUnderTest = new MoveGenerator( bm, Colour.white );
-		classUnderTest.findBestMove();
+		expectedMove = new GenericMove( GenericPosition.a8, GenericPosition.b7 );
+		performTest(false);
 	}
 	
 	@Test
-	public void test_CaptureToEscapeCheck() throws NoLegalMoveException {
+	public void test_findBestMove_CaptureToEscapeCheck() throws NoLegalMoveException {
 		pl.add(new King( Colour.white, GenericPosition.a1 ));
 		pl.add(new Pawn( Colour.black, GenericPosition.b1 ));
 		pl.add(new Pawn( Colour.black, GenericPosition.a2 ));
@@ -66,18 +61,12 @@ public class MoveGeneratorTest {
 		// pawn at b2 can be captured to escape check
 		BoardManager bm = new BoardManager( new Board( pl ));
 		classUnderTest = new MoveGenerator( bm, Colour.white );
-		classUnderTest.findBestMove();
-		try {
-			GenericMove selectedMove = classUnderTest.findBestMove();
-			assertTrue(selectedMove.equals(new GenericMove( GenericPosition.a1, GenericPosition.b2 )));
-		}
-		catch ( NoLegalMoveException e ) {
-			assert( false );
-		}			
+		expectedMove = new GenericMove( GenericPosition.a1, GenericPosition.b2 );
+		performTest(true);			
 	}
 	
 	@Test
-	public void test_MoveToEscapeCheck() throws NoLegalMoveException {
+	public void test_findBestMove_MoveToEscapeCheck() throws NoLegalMoveException {
 		pl.add(new King( Colour.white, GenericPosition.a1 ));
 		pl.add(new Pawn( Colour.black, GenericPosition.b2 ));
 		pl.add(new Pawn( Colour.black, GenericPosition.b3 ));
@@ -85,13 +74,21 @@ public class MoveGeneratorTest {
 		// king can move out of check to b1
 		BoardManager bm = new BoardManager( new Board( pl ));
 		classUnderTest = new MoveGenerator( bm, Colour.white );
+		expectedMove = new GenericMove( GenericPosition.a1, GenericPosition.b1 );
+		performTest(true);
+	}
+	
+	@Test(expected=NoLegalMoveException.class)
+	public void test_findBestMove_NoLegalMove() throws NoLegalMoveException {
+		pl.add(new King( Colour.white, GenericPosition.a1 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.b1 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.a2 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.b2 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.c2 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.b3 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.c3 ));
+		BoardManager bm = new BoardManager( new Board( pl ));
+		classUnderTest = new MoveGenerator( bm, Colour.white );
 		classUnderTest.findBestMove();
-		try {
-			GenericMove selectedMove = classUnderTest.findBestMove();
-			assertTrue(selectedMove.equals(new GenericMove( GenericPosition.a1, GenericPosition.b1 )));
-		}
-		catch ( NoLegalMoveException e ) {
-			assert( false );
-		}			
-	}	
+	}
 }

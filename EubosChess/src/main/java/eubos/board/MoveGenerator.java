@@ -21,17 +21,14 @@ public class MoveGenerator implements IMoveGenerator {
 
 	// TODO: for now find a random legal move for the side indicated
 	public GenericMove findBestMove() throws NoLegalMoveException {
-		// Generate the entire move list
 		GenericMove bestMove = null;
 		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();
-		// For each piece of the side to move on the board...
+		// For each piece of the "on Move" colour, add it's legal moves to the entire move list
 		Iterator<Piece> iter_p = bm.getTheBoard().iterateColour(onMove);
 		while ( iter_p.hasNext() ) {
-			// ...append the piece's legal moves to the entire move list
 			entireMoveList.addAll( iter_p.next().generateMoves( bm ));
 		}
-		// once the move list has been generated, remove any moves that would place
-		// the king in check from consideration.
+		// Scratch any moves resulting in the king being in check
 		Iterator<GenericMove> iter_ml = entireMoveList.iterator();
 		while ( iter_ml.hasNext() ) {
 			GenericMove currMove = iter_ml.next();
@@ -42,7 +39,7 @@ public class MoveGenerator implements IMoveGenerator {
 			bm.undoPreviousMove();
 		}
 		if ( !entireMoveList.isEmpty()) {
-			// For the time-being, return a valid move at random
+			// For the time-being, return a random valid move, not the best move.
 			Random randomIndex = new Random();
 			Integer indexToGet = randomIndex.nextInt(entireMoveList.size());
 			bestMove = entireMoveList.get(indexToGet);			
@@ -53,7 +50,7 @@ public class MoveGenerator implements IMoveGenerator {
 	}
 	
 	private boolean inCheck() {
-		// loop through all the opposite colour pieces and see if any of them are currently attacking the king.
+		// For each opposite colour piece, see if it currently attacks the king.
 		boolean inCheck = false;
 		King ownKing = bm.getKing(onMove);
 		if ( ownKing != null ) {
