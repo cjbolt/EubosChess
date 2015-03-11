@@ -1,6 +1,7 @@
 package eubos.board;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.LinkedList;
 
@@ -39,4 +40,58 @@ public class MoveGeneratorTest {
 			assert( false );
 		}	
 	}
+	
+	@Test(expected=NoLegalMoveException.class)
+	public void test_Checkmate_1() throws NoLegalMoveException {
+		pl.add(new King( Colour.white, GenericPosition.a1 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.b1 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.a2 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.b2 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.c2 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.b3 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.c3 ));
+		BoardManager bm = new BoardManager( new Board( pl ));
+		classUnderTest = new MoveGenerator( bm, Colour.white );
+		classUnderTest.findBestMove();
+	}
+	
+	@Test
+	public void test_CaptureToEscapeCheck() throws NoLegalMoveException {
+		pl.add(new King( Colour.white, GenericPosition.a1 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.b1 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.a2 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.b2 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.c2 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.b3 ));
+		// pawn at b2 can be captured to escape check
+		BoardManager bm = new BoardManager( new Board( pl ));
+		classUnderTest = new MoveGenerator( bm, Colour.white );
+		classUnderTest.findBestMove();
+		try {
+			GenericMove selectedMove = classUnderTest.findBestMove();
+			assertTrue(selectedMove.equals(new GenericMove( GenericPosition.a1, GenericPosition.b2 )));
+		}
+		catch ( NoLegalMoveException e ) {
+			assert( false );
+		}			
+	}
+	
+	@Test
+	public void test_MoveToEscapeCheck() throws NoLegalMoveException {
+		pl.add(new King( Colour.white, GenericPosition.a1 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.b2 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.b3 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.c3 ));
+		// king can move out of check to b1
+		BoardManager bm = new BoardManager( new Board( pl ));
+		classUnderTest = new MoveGenerator( bm, Colour.white );
+		classUnderTest.findBestMove();
+		try {
+			GenericMove selectedMove = classUnderTest.findBestMove();
+			assertTrue(selectedMove.equals(new GenericMove( GenericPosition.a1, GenericPosition.b1 )));
+		}
+		catch ( NoLegalMoveException e ) {
+			assert( false );
+		}			
+	}	
 }

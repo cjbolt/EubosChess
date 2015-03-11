@@ -25,22 +25,23 @@ public class MoveGenerator implements IMoveGenerator {
 		GenericMove bestMove = null;
 		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();
 		// For each piece of the side to move on the board...
-		Iterator<Piece> iter = bm.getTheBoard().iterateColour(onMove);
-		while ( iter.hasNext() ) {
+		Iterator<Piece> iter_p = bm.getTheBoard().iterateColour(onMove);
+		while ( iter_p.hasNext() ) {
 			// ...append the piece's legal moves to the entire move list
-			entireMoveList.addAll( iter.next().generateMoves( bm ));
+			entireMoveList.addAll( iter_p.next().generateMoves( bm ));
+		}
+		// once the move list has been generated, remove any moves that would place
+		// the king in check from consideration.
+		Iterator<GenericMove> iter_ml = entireMoveList.iterator();
+		while ( iter_ml.hasNext() ) {
+			GenericMove currMove = iter_ml.next();
+			bm.performMove( currMove );
+			if (inCheck()) {
+				iter_ml.remove();
+			}
+			bm.undoPreviousMove();
 		}
 		if ( !entireMoveList.isEmpty()) {
-			// once the move list has been generated, remove any moves that would place
-			// the king in check from consideration.
-			for ( GenericMove currMove : entireMoveList) {
-				bm.performMove( currMove );
-				if (inCheck()) {
-					// it represents an illegal move, reject it.
-					entireMoveList.remove( currMove );
-				}
-				bm.undoPreviousMove();
-			}
 			// For the time-being, return a valid move at random
 			Random randomIndex = new Random();
 			Integer indexToGet = randomIndex.nextInt(entireMoveList.size());
