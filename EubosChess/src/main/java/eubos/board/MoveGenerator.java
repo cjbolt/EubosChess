@@ -7,6 +7,7 @@ import java.util.Iterator;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.pieces.Piece;
+import eubos.pieces.King;
 
 public class MoveGenerator implements IMoveGenerator {
 	
@@ -53,11 +54,15 @@ public class MoveGenerator implements IMoveGenerator {
 	private boolean inCheck() {
 		// loop through all the opposite colour pieces and see if any of them are currently attacking the king.
 		boolean inCheck = false;
-		Iterator<Piece> allPotentialAttackers = bm.getTheBoard().iterateColour(Piece.Colour.getOpposite(onMove));
-		while (allPotentialAttackers.hasNext()) {
-			if (allPotentialAttackers.next().checksKing()) {
-				inCheck = true;
-				break;
+		King ownKing = bm.getKing(onMove);
+		if ( ownKing != null ) {
+			Iterator<Piece> iterPotentialAttackers = bm.getTheBoard().iterateColour(Piece.Colour.getOpposite(onMove));
+			while (iterPotentialAttackers.hasNext()) {
+				Piece currPiece = iterPotentialAttackers.next();
+				if (currPiece.attacks(ownKing.getSquare())) {
+					inCheck = true;
+					break;
+				}
 			}
 		}
 		return inCheck;

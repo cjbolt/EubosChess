@@ -20,4 +20,10 @@ public class Queen extends MultisquareDirectMovePiece {
 		return moveList;	
 	}
 
+	@Override
+	public boolean attacks(GenericPosition pos) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }

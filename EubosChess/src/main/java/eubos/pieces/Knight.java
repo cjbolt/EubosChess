@@ -19,4 +19,10 @@ public class Knight extends IndirectMovePiece {
 		return moveList;		
 	}
 
+	@Override
+	public boolean attacks(GenericPosition pos) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }

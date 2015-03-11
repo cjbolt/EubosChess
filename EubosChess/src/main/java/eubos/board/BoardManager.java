@@ -1,8 +1,10 @@
 package eubos.board;
 
+import java.util.Iterator;
 import java.util.Stack;
 
 import com.fluxchess.jcpi.models.GenericMove;
+import com.fluxchess.jcpi.models.GenericPosition;
 
 import eubos.pieces.Bishop;
 import eubos.pieces.Knight;
@@ -10,6 +12,7 @@ import eubos.pieces.Pawn;
 import eubos.pieces.Piece;
 import eubos.pieces.Queen;
 import eubos.pieces.Rook;
+import eubos.pieces.King;
 
 public class BoardManager implements IBoardManager {
 
@@ -35,8 +38,10 @@ public class BoardManager implements IBoardManager {
 		}
 	}
 
-	private Stack<TrackedMove> previousMoves = null;
+	private Stack<TrackedMove> previousMoves;
 	private Board theBoard;
+	private King whiteKing;
+	private King blackKing;
 
 	public Board getTheBoard() {
 		return theBoard;
@@ -45,11 +50,31 @@ public class BoardManager implements IBoardManager {
 	public BoardManager() { 
 		previousMoves = new Stack<TrackedMove>();
 		theBoard = new Board();
+		setKing( (King) theBoard.getPieceAtSquare(GenericPosition.e1));
+		setKing( (King) theBoard.getPieceAtSquare(GenericPosition.e8));
 	}
 	
 	public BoardManager( Board startingPosition ) {
 		previousMoves = new Stack<TrackedMove>();
 		theBoard = startingPosition;
+		Iterator<Piece> iterAllPieces = theBoard.iterator();
+		while (iterAllPieces.hasNext()) {
+			Piece currPiece = iterAllPieces.next();
+			if ( currPiece instanceof King ) {
+				setKing( (King)currPiece );
+			}
+		}
+	}
+	
+	public King getKing( Piece.Colour colour ) {
+		return ((colour == Piece.Colour.white) ? whiteKing : blackKing);
+	}
+	
+	public void setKing(King king) {
+		if (king.isWhite())
+			whiteKing = king;
+		else 
+			blackKing = king;
 	}
 
 	public void undoPreviousMove() {

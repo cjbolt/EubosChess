@@ -12,7 +12,8 @@ public abstract class Piece implements IPiece {
 	};
 	protected Colour colour = Colour.black;
 	protected boolean everMoved = false;
-	public abstract LinkedList<GenericMove> generateMoves( BoardManager bm ); 
+	public abstract LinkedList<GenericMove> generateMoves( BoardManager bm );
+	public abstract boolean attacks( GenericPosition pos );
 	protected GenericPosition onSquare;
 	
 	public Colour getColour() { return colour; }

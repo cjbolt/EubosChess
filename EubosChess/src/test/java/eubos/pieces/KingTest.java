@@ -36,6 +36,22 @@ public class KingTest {
 		}
 	}
 	
+//	@Test
+//	public void test_doNotMoveIntoCheck() {
+//		classUnderTest = new King( Colour.black, GenericPosition.a8 );
+//		pl.add(classUnderTest);
+//		pl.add(new Pawn( Colour.white, GenericPosition.c6 ));
+//		bm = new BoardManager( new Board( pl ));
+//		LinkedList<GenericMove> ml = classUnderTest.generateMoves( bm );
+//		expectedMoves.add( new GenericMove( GenericPosition.a8, GenericPosition.a7 ));
+//		expectedMoves.add( new GenericMove( GenericPosition.a8, GenericPosition.b8 ));
+//		assertFalse(ml.isEmpty());
+//		assertFalse(ml.contains( new GenericMove( GenericPosition.a8, GenericPosition.b7 )));
+//		for ( GenericMove mov : expectedMoves) {
+//			assertTrue( ml.contains( mov ));
+//		}
+//	}
+	
 	@Before
 	public void setUp() {
 		pl = new LinkedList<Piece>();
