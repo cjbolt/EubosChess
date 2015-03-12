@@ -19,14 +19,14 @@ public class King extends SinglesquareDirectMovePiece {
 	public LinkedList<GenericMove> generateMoves(BoardManager bm) {
 		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
 		Board theBoard = bm.getTheBoard();
-		checkAddMove(moveList, theBoard, up());
-		checkAddMove(moveList, theBoard, upRight());
-		checkAddMove(moveList, theBoard, right());
-		checkAddMove(moveList, theBoard, downRight());
-		checkAddMove(moveList, theBoard, down());
-		checkAddMove(moveList, theBoard, downLeft());
-		checkAddMove(moveList, theBoard, left());
-		checkAddMove(moveList, theBoard, upLeft());
+		checkAddMove(moveList, theBoard, getUp());
+		checkAddMove(moveList, theBoard, getUpRight());
+		checkAddMove(moveList, theBoard, getRight());
+		checkAddMove(moveList, theBoard, getDownRight());
+		checkAddMove(moveList, theBoard, getDown());
+		checkAddMove(moveList, theBoard, getDownLeft());
+		checkAddMove(moveList, theBoard, getLeft());
+		checkAddMove(moveList, theBoard, getUpLeft());
 		return moveList;
 	}
 

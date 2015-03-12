@@ -32,9 +32,9 @@ public class Pawn extends SinglesquareDirectMovePiece {
 
 	private GenericPosition genOneSqTarget() {
 		if ( isBlack() ) {
-			return down();
+			return getDown();
 		} else {
-			return up();
+			return getUp();
 		}
 	}	
 	
@@ -49,17 +49,17 @@ public class Pawn extends SinglesquareDirectMovePiece {
 	
 	private GenericPosition genLeftCaptureTarget() {
 		if ( isBlack() ) {
-			return downRight();
+			return getDownRight();
 		} else {
-			return upLeft();
+			return getUpLeft();
 		}
 	}
 	
 	private GenericPosition genRightCaptureTarget() {
 		if ( isBlack() ) {
-			return downLeft();
+			return getDownLeft();
 		} else {
-			return upRight();
+			return getUpRight();
 		}		
 	}
 	
