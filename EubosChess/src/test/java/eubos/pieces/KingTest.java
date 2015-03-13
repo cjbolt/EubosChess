@@ -1,11 +1,7 @@
 package eubos.pieces;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-
 import java.util.LinkedList;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -15,12 +11,10 @@ import eubos.board.Board;
 import eubos.board.BoardManager;
 import eubos.pieces.Piece.Colour;
 
-public class KingTest {
-	protected LinkedList<Piece> pl;
-	protected SinglesquareDirectMovePiece classUnderTest;
-	protected BoardManager bm;
-	protected LinkedList<GenericMove> expectedMoves;
+public class KingTest extends PieceTest {
 
+	protected SinglesquareDirectMovePiece classUnderTest;
+	
 	@Test
 	public void test_CornerTopLeft() {
 		classUnderTest = new King( Colour.black, GenericPosition.a8 );
@@ -30,15 +24,7 @@ public class KingTest {
 		expectedMoves.add( new GenericMove( GenericPosition.a8, GenericPosition.a7 ));
 		expectedMoves.add( new GenericMove( GenericPosition.a8, GenericPosition.b8 ));
 		expectedMoves.add( new GenericMove( GenericPosition.a8, GenericPosition.b7 ));
-		assertFalse(ml.isEmpty());
-		for ( GenericMove mov : expectedMoves) {
-			assertTrue( ml.contains( mov ));
-		}
-	}
-	
-	@Before
-	public void setUp() {
-		pl = new LinkedList<Piece>();
-		expectedMoves = new LinkedList<GenericMove>();
+		expectedNumMoves = 3;
+		checkExpectedMoves(ml);
 	}	
 }
