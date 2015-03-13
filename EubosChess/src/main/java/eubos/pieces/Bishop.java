@@ -1,5 +1,6 @@
 package eubos.pieces;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -28,8 +29,13 @@ public class Bishop extends MultisquareDirectMovePiece {
 
 	@Override
 	public boolean attacks(GenericPosition pos) {
-		// TODO Auto-generated method stub
-		return false;
+		ArrayList<GenericPosition> targetSqs = getAllDownLeft();
+		targetSqs.addAll(getAllUpLeft());
+		targetSqs.addAll(getAllDownRight());
+		targetSqs.addAll(getAllUpRight());
+		if (targetSqs.contains(pos))
+			return true;
+		else
+			return false;
 	}
-
 }
