@@ -101,7 +101,7 @@ public class Knight extends IndirectMovePiece {
 	}
 
 	@Override
-	public boolean attacks(GenericPosition pos) {
+	public boolean attacks(GenericPosition [] pos) {
 		ArrayList<GenericPosition> targetSqs = new ArrayList<GenericPosition>();
 		targetSqs.add(getUpRight());
 		targetSqs.add(getUpLeft());
@@ -111,10 +111,7 @@ public class Knight extends IndirectMovePiece {
 		targetSqs.add(getDownLeft());
 		targetSqs.add(getLeftUp());
 		targetSqs.add(getLeftDown());
-		if (targetSqs.contains(pos))
-			return true;
-		else
-			return false;
+		return (evaluateIfAttacks( pos, targetSqs ));
 	}
 
 }

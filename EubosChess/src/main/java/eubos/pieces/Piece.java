@@ -3,6 +3,7 @@ package eubos.pieces;
 import eubos.board.BoardManager;
 
 import com.fluxchess.jcpi.models.*;
+
 import java.util.*;
 
 public abstract class Piece implements IPiece {
@@ -14,7 +15,7 @@ public abstract class Piece implements IPiece {
 	protected boolean everMoved = false;
 	public boolean hasEverMoved() {	return everMoved; }
 	public abstract LinkedList<GenericMove> generateMoves( BoardManager bm );
-	public abstract boolean attacks( GenericPosition pos );
+	public abstract boolean attacks( GenericPosition [] pos );
 	protected GenericPosition onSquare;
 	
 	public Colour getColour() { return colour; }
@@ -24,4 +25,13 @@ public abstract class Piece implements IPiece {
 	
 	public void setSquare( GenericPosition pos) { onSquare = pos; everMoved = true; }
 	public GenericPosition getSquare() { return(onSquare); }
+	
+	protected boolean evaluateIfAttacks( GenericPosition [] sqsToCheck, ArrayList<GenericPosition> targettedSqs ) {
+		boolean sqAttacked = false;
+		for ( GenericPosition currSq : sqsToCheck) {
+			if (targettedSqs.contains(currSq))
+				sqAttacked = true;
+		}
+		return sqAttacked;
+	}
 }

@@ -184,11 +184,13 @@ public class Pawn extends SinglesquareDirectMovePiece {
 	}
 	
 	@Override
-	public boolean attacks( GenericPosition pos ) {
-		if (pos.equals(genRightCaptureTarget()) || pos.equals(genLeftCaptureTarget()))
-			return true;
-		else
-			return false;
+	public boolean attacks( GenericPosition [] pos ) {
+		boolean isAnyAttacked = false;
+		for ( GenericPosition sqToCheck : pos ) {
+			if (sqToCheck.equals(genRightCaptureTarget()) || sqToCheck.equals(genLeftCaptureTarget()))
+				isAnyAttacked = true;
+		}
+		return isAnyAttacked;
 	}
 
 	private void captureRight(LinkedList<GenericMove> moveList) {

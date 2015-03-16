@@ -107,7 +107,50 @@ public class BoardManager implements IBoardManager {
 			return isBlackHasCastled();
 		}
 	}
-
+	
+	private static final GenericPosition [] kscWhiteCheckSqs = {GenericPosition.e1, GenericPosition.f1, GenericPosition.g1};
+	private static final GenericPosition [] kscBlackCheckSqs = {GenericPosition.e8, GenericPosition.f8, GenericPosition.g8};
+	
+	public GenericMove addKingSideCastle( Piece.Colour onMove ) {
+		if ( onMove == Colour.white ) {
+			// Target rook should not have moved and be on it initial square
+			Piece kscTarget = theBoard.getPieceAtSquare( GenericPosition.h1 );
+			if ( !(kscTarget instanceof Rook) || kscTarget.hasEverMoved())
+				return null;
+			// All the intervening squares between King and Rook should be empty
+			if ( !theBoard.squareIsEmpty(GenericPosition.f1) || !theBoard.squareIsEmpty(GenericPosition.g1))
+				return null;
+			Iterator<Piece> iterPotentialAttackers = theBoard.iterateColour(Piece.Colour.getOpposite(onMove));
+			while (iterPotentialAttackers.hasNext()) {
+				// None of the intervening squares between King and Rook should be attacked
+				// the king cannot be in check at the start or end of the move
+				Piece currPiece = iterPotentialAttackers.next();
+				if (currPiece.attacks(kscWhiteCheckSqs)) {
+					return null;
+				}
+			}
+			return new GenericMove(GenericPosition.e1,GenericPosition.g1);
+		} else {
+			Piece kscTarget = theBoard.getPieceAtSquare( GenericPosition.h8 );
+			if ( !(kscTarget instanceof Rook) || kscTarget.hasEverMoved())
+				return null;
+			if ( !theBoard.squareIsEmpty(GenericPosition.f8) || !theBoard.squareIsEmpty(GenericPosition.g8))
+				return null;
+			Iterator<Piece> iterPotentialAttackers = theBoard.iterateColour(Piece.Colour.getOpposite(onMove));
+			while (iterPotentialAttackers.hasNext()) {
+				Piece currPiece = iterPotentialAttackers.next();
+				if (currPiece.attacks(kscBlackCheckSqs)) {
+					return null;
+				}
+			}
+			return new GenericMove(GenericPosition.e8,GenericPosition.g8);
+		}
+	}
+		
+	public GenericMove addQueenSideCastle( Piece.Colour onMove ) {
+		return null;
+	}
+	
 	public void undoPreviousMove() {
 		if ( !previousMoves.isEmpty()) {
 			TrackedMove tm = previousMoves.pop();

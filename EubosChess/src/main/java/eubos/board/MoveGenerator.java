@@ -5,6 +5,7 @@ import java.util.Random;
 import java.util.Iterator;
 
 import com.fluxchess.jcpi.models.GenericMove;
+import com.fluxchess.jcpi.models.GenericPosition;
 
 import eubos.pieces.Piece;
 import eubos.pieces.King;
@@ -57,14 +58,17 @@ public class MoveGenerator implements IMoveGenerator {
 		// King should not have moved and be on its initial square
 		King ownKing = bm.getKing(onMove);
 		if ( ownKing != null ) {
-			if (ownKing.hasEverMoved() || ownKing.isOnInitialSquare()) {
+			if (ownKing.hasEverMoved() || !ownKing.isOnInitialSquare()) {
 				return;
 			}
 		}
-		// At this point check separately for castling king-side and queen-side
-		// Target rook should not have moved and be on it initial square
-		// All the intervening squares between King and Rook should be empty
-		// None of the intervening squares between King and Rook should be attacked
+		// Check for castling king-side and queen side
+		GenericMove ksc = bm.addKingSideCastle(onMove);
+		if ( ksc != null )
+			ml.add(ksc);
+		GenericMove qsc = bm.addQueenSideCastle(onMove);
+		if ( qsc != null )
+			ml.add(qsc);
 	}
 	
 	private boolean inCheck() {
@@ -75,7 +79,8 @@ public class MoveGenerator implements IMoveGenerator {
 			Iterator<Piece> iterPotentialAttackers = bm.getTheBoard().iterateColour(Piece.Colour.getOpposite(onMove));
 			while (iterPotentialAttackers.hasNext()) {
 				Piece currPiece = iterPotentialAttackers.next();
-				if (currPiece.attacks(ownKing.getSquare())) {
+				GenericPosition [] pos = { ownKing.getSquare() };
+				if (currPiece.attacks( pos )) {
 					inCheck = true;
 					break;
 				}

@@ -52,7 +52,7 @@ public class King extends SinglesquareDirectMovePiece {
 	}
 
 	@Override
-	public boolean attacks(GenericPosition pos) {
+	public boolean attacks(GenericPosition [] pos) {
 		// TODO Auto-generated method stub
 		return false;
 	}

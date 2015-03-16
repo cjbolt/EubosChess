@@ -28,14 +28,11 @@ public class Rook extends MultisquareDirectMovePiece {
 	}
 
 	@Override
-	public boolean attacks(GenericPosition pos) {
+	public boolean attacks(GenericPosition [] pos) {
 		ArrayList<GenericPosition> targetSqs = getAllDown();
 		targetSqs.addAll(getAllUp());
 		targetSqs.addAll(getAllLeft());
 		targetSqs.addAll(getAllRight());
-		if (targetSqs.contains(pos))
-			return true;
-		else
-			return false;
+		return (evaluateIfAttacks( pos, targetSqs ));
 	}
 }

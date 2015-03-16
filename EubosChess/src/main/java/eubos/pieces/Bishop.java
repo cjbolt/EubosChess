@@ -28,14 +28,11 @@ public class Bishop extends MultisquareDirectMovePiece {
 	}
 
 	@Override
-	public boolean attacks(GenericPosition pos) {
+	public boolean attacks(GenericPosition [] pos) {
 		ArrayList<GenericPosition> targetSqs = getAllDownLeft();
 		targetSqs.addAll(getAllUpLeft());
 		targetSqs.addAll(getAllDownRight());
 		targetSqs.addAll(getAllUpRight());
-		if (targetSqs.contains(pos))
-			return true;
-		else
-			return false;
+		return (evaluateIfAttacks( pos, targetSqs ));
 	}
 }

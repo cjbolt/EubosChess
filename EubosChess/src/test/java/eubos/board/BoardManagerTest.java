@@ -7,8 +7,11 @@ import org.junit.Test;
 import org.junit.Ignore;
 
 import static org.junit.Assert.assertTrue;
+import eubos.pieces.King;
 import eubos.pieces.Pawn;
 import eubos.pieces.Piece;
+import eubos.pieces.Rook;
+import eubos.pieces.Piece.Colour;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericMove;
@@ -66,5 +69,25 @@ public class BoardManagerTest {
 		expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.e2 );
 		assertTrue( expectPawn instanceof Pawn );
 		assertTrue( expectPawn.isWhite());
+	}
+	
+	@Test
+	public void test_WhiteKingSideCastle() {
+		// 8 ........
+		// 7 ........
+		// 6 ........
+		// 5 ........
+		// 4 ........
+		// 3 ........
+		// 2 ........
+		// 1 ....k..r
+		//   abcdefgh
+		pl.add(new King( Colour.white, GenericPosition.e1 ));
+		pl.add(new Rook( Colour.white, GenericPosition.h1 ));
+		classUnderTest = new BoardManager( new Board( pl ));
+		GenericMove kscMove = classUnderTest.addKingSideCastle( Colour.white );
+		GenericMove expectedMove = new GenericMove( GenericPosition.e1, GenericPosition.g1 );
+		assertTrue(kscMove != null);
+		assertTrue(expectedMove.equals(kscMove));
 	}
 }
