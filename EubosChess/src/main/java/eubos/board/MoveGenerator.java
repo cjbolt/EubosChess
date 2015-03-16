@@ -28,6 +28,7 @@ public class MoveGenerator implements IMoveGenerator {
 		while ( iter_p.hasNext() ) {
 			entireMoveList.addAll( iter_p.next().generateMoves( bm ));
 		}
+		addCastlingMoves(entireMoveList);
 		// Scratch any moves resulting in the king being in check
 		Iterator<GenericMove> iter_ml = entireMoveList.iterator();
 		while ( iter_ml.hasNext() ) {
@@ -47,6 +48,23 @@ public class MoveGenerator implements IMoveGenerator {
 			throw new NoLegalMoveException();
 		}
 		return bestMove;
+	}
+	
+	private void addCastlingMoves( LinkedList<GenericMove> ml ) {
+		// The side on move should not have previously castled
+		if ( bm.hasCastled(onMove))
+			return;
+		// King should not have moved and be on its initial square
+		King ownKing = bm.getKing(onMove);
+		if ( ownKing != null ) {
+			if (ownKing.hasEverMoved() || ownKing.isOnInitialSquare()) {
+				return;
+			}
+		}
+		// At this point check separately for castling king-side and queen-side
+		// Target rook should not have moved and be on it initial square
+		// All the intervening squares between King and Rook should be empty
+		// None of the intervening squares between King and Rook should be attacked
 	}
 	
 	private boolean inCheck() {

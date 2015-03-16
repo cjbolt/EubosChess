@@ -12,6 +12,7 @@ public abstract class Piece implements IPiece {
 	};
 	protected Colour colour = Colour.black;
 	protected boolean everMoved = false;
+	public boolean hasEverMoved() {	return everMoved; }
 	public abstract LinkedList<GenericMove> generateMoves( BoardManager bm );
 	public abstract boolean attacks( GenericPosition pos );
 	protected GenericPosition onSquare;
@@ -20,7 +21,6 @@ public abstract class Piece implements IPiece {
 	public boolean isWhite() { return ( colour == Colour.white ); }
 	public boolean isBlack() { return ( colour == Colour.black ); }
 	public boolean isOppositeColour(Piece toCheck) { return ( colour != toCheck.getColour()); }
-	public boolean checksKing() { return false; }
 	
 	public void setSquare( GenericPosition pos) { onSquare = pos; everMoved = true; }
 	public GenericPosition getSquare() { return(onSquare); }

@@ -15,6 +15,17 @@ public class King extends SinglesquareDirectMovePiece {
 		onSquare = at;
 	}
 	
+	public boolean isOnInitialSquare() {
+		if (colour == Colour.white) {
+			if ( onSquare == GenericPosition.e1 )
+				return true;
+		} else {
+			if ( onSquare == GenericPosition.e8 )
+				return true;			
+		}
+		return false;
+	}
+	
 	@Override
 	public LinkedList<GenericMove> generateMoves(BoardManager bm) {
 		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();

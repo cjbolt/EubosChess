@@ -10,6 +10,7 @@ import eubos.pieces.Bishop;
 import eubos.pieces.Knight;
 import eubos.pieces.Pawn;
 import eubos.pieces.Piece;
+import eubos.pieces.Piece.Colour;
 import eubos.pieces.Queen;
 import eubos.pieces.Rook;
 import eubos.pieces.King;
@@ -42,7 +43,9 @@ public class BoardManager implements IBoardManager {
 	private Board theBoard;
 	private King whiteKing;
 	private King blackKing;
-
+	private boolean whiteHasCastled;
+	private boolean blackHasCastled;
+	
 	public Board getTheBoard() {
 		return theBoard;
 	}
@@ -52,6 +55,8 @@ public class BoardManager implements IBoardManager {
 		theBoard = new Board();
 		setKing( (King) theBoard.getPieceAtSquare(GenericPosition.e1));
 		setKing( (King) theBoard.getPieceAtSquare(GenericPosition.e8));
+		whiteHasCastled = false;
+		blackHasCastled = false;
 	}
 	
 	public BoardManager( Board startingPosition ) {
@@ -64,6 +69,8 @@ public class BoardManager implements IBoardManager {
 				setKing( (King)currPiece );
 			}
 		}
+		whiteHasCastled = false;
+		blackHasCastled = false;
 	}
 	
 	public King getKing( Piece.Colour colour ) {
@@ -75,6 +82,30 @@ public class BoardManager implements IBoardManager {
 			whiteKing = king;
 		else 
 			blackKing = king;
+	}
+	
+	public boolean isWhiteHasCastled() {
+		return whiteHasCastled;
+	}
+
+	public void setWhiteHasCastled(boolean whiteHasCastled) {
+		this.whiteHasCastled = whiteHasCastled;
+	}
+
+	public boolean isBlackHasCastled() {
+		return blackHasCastled;
+	}
+
+	public void setBlackHasCastled(boolean blackHasCastled) {
+		this.blackHasCastled = blackHasCastled;
+	}	
+	
+	public boolean hasCastled( Piece.Colour onMove ) {
+		if ( onMove == Colour.white ) {
+			return isWhiteHasCastled();
+		} else {
+			return isBlackHasCastled();
+		}
 	}
 
 	public void undoPreviousMove() {
