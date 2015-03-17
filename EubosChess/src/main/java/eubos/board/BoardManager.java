@@ -110,84 +110,59 @@ public class BoardManager implements IBoardManager {
 	
 	private static final GenericPosition [] kscWhiteCheckSqs = {GenericPosition.e1, GenericPosition.f1, GenericPosition.g1};
 	private static final GenericPosition [] kscBlackCheckSqs = {GenericPosition.e8, GenericPosition.f8, GenericPosition.g8};
+	private static final GenericPosition [] kscWhiteEmptySqs = {GenericPosition.f1, GenericPosition.g1};
+	private static final GenericPosition [] kscBlackEmptySqs = {GenericPosition.f8, GenericPosition.g8};
 	
 	public GenericMove addKingSideCastle( Piece.Colour onMove ) {
 		if ( onMove == Colour.white ) {
-			// Target rook should not have moved and be on it initial square
-			Piece kscTarget = theBoard.getPieceAtSquare( GenericPosition.h1 );
-			if ( !(kscTarget instanceof Rook) || kscTarget.hasEverMoved())
-				return null;
-			// All the intervening squares between King and Rook should be empty
-			if ( !theBoard.squareIsEmpty(GenericPosition.f1) || !theBoard.squareIsEmpty(GenericPosition.g1))
-				return null;
-			Iterator<Piece> iterPotentialAttackers = theBoard.iterateColour(Piece.Colour.getOpposite(onMove));
-			while (iterPotentialAttackers.hasNext()) {
-				// None of the intervening squares between King and Rook should be attacked
-				// the king cannot be in check at the start or end of the move
-				Piece currPiece = iterPotentialAttackers.next();
-				if (currPiece.attacks(kscWhiteCheckSqs)) {
-					return null;
-				}
-			}
-			return new GenericMove(GenericPosition.e1,GenericPosition.g1);
+			if ( canCastle(onMove, GenericPosition.h1, kscWhiteCheckSqs, kscWhiteEmptySqs))
+				return new GenericMove(GenericPosition.e1,GenericPosition.g1);
 		} else {
-			Piece kscTarget = theBoard.getPieceAtSquare( GenericPosition.h8 );
-			if ( !(kscTarget instanceof Rook) || kscTarget.hasEverMoved())
-				return null;
-			if ( !theBoard.squareIsEmpty(GenericPosition.f8) || !theBoard.squareIsEmpty(GenericPosition.g8))
-				return null;
-			Iterator<Piece> iterPotentialAttackers = theBoard.iterateColour(Piece.Colour.getOpposite(onMove));
-			while (iterPotentialAttackers.hasNext()) {
-				Piece currPiece = iterPotentialAttackers.next();
-				if (currPiece.attacks(kscBlackCheckSqs)) {
-					return null;
-				}
-			}
-			return new GenericMove(GenericPosition.e8,GenericPosition.g8);
+			if ( canCastle(onMove, GenericPosition.h8, kscBlackCheckSqs, kscBlackEmptySqs))
+				return new GenericMove(GenericPosition.e8,GenericPosition.g8);	
 		}
+		return null;
 	}
 	
 	private static final GenericPosition [] qscWhiteCheckSqs = {GenericPosition.c1, GenericPosition.d1, GenericPosition.e1};
 	private static final GenericPosition [] qscBlackCheckSqs = {GenericPosition.c8, GenericPosition.d8, GenericPosition.e8};
+	private static final GenericPosition [] qscWhiteEmptySqs = {GenericPosition.c1, GenericPosition.d1, GenericPosition.b1};
+	private static final GenericPosition [] qscBlackEmptySqs = {GenericPosition.c8, GenericPosition.d8, GenericPosition.b8};
 	
 	public GenericMove addQueenSideCastle( Piece.Colour onMove ) {
 		if ( onMove == Colour.white ) {
-			// Target rook should not have moved and be on it initial square
-			Piece qscTarget = theBoard.getPieceAtSquare( GenericPosition.a1 );
-			if ( !(qscTarget instanceof Rook) || qscTarget.hasEverMoved())
-				return null;
-			// All the intervening squares between King and Rook should be empty
-			if ( !theBoard.squareIsEmpty(GenericPosition.b1) ||
-				 !theBoard.squareIsEmpty(GenericPosition.c1) ||
-				 !theBoard.squareIsEmpty(GenericPosition.d1))
-				return null;
-			Iterator<Piece> iterPotentialAttackers = theBoard.iterateColour(Piece.Colour.getOpposite(onMove));
-			while (iterPotentialAttackers.hasNext()) {
-				// None of the intervening squares between King and Rook should be attacked
-				// the king cannot be in check at the start or end of the move
-				Piece currPiece = iterPotentialAttackers.next();
-				if (currPiece.attacks(qscWhiteCheckSqs)) {
-					return null;
-				}
-			}
-			return new GenericMove(GenericPosition.e1,GenericPosition.c1);
+			if ( canCastle(onMove, GenericPosition.a1, qscWhiteCheckSqs, qscWhiteEmptySqs))
+				return new GenericMove(GenericPosition.e1,GenericPosition.c1);
 		} else {
-			Piece qscTarget = theBoard.getPieceAtSquare( GenericPosition.a8 );
-			if ( !(qscTarget instanceof Rook) || qscTarget.hasEverMoved())
-				return null;
-			if ( !theBoard.squareIsEmpty(GenericPosition.b8) ||
-			     !theBoard.squareIsEmpty(GenericPosition.c8) ||
-				 !theBoard.squareIsEmpty(GenericPosition.d8))
-				return null;
-			Iterator<Piece> iterPotentialAttackers = theBoard.iterateColour(Piece.Colour.getOpposite(onMove));
-			while (iterPotentialAttackers.hasNext()) {
-				Piece currPiece = iterPotentialAttackers.next();
-				if (currPiece.attacks(qscBlackCheckSqs)) {
-					return null;
-				}
-			}
-			return new GenericMove(GenericPosition.e8,GenericPosition.c8);
+			if ( canCastle(onMove, GenericPosition.a8, qscBlackCheckSqs, qscBlackEmptySqs))
+				return new GenericMove(GenericPosition.e8,GenericPosition.c8);	
 		}
+		return null;
+	}
+
+	private boolean canCastle(Piece.Colour onMove,
+			GenericPosition rookSq,
+			GenericPosition [] checkSqs,
+			GenericPosition [] emptySqs) {
+		// Target rook should not have moved and be on it initial square
+		Piece qscTarget = theBoard.getPieceAtSquare( rookSq );
+		if ( !(qscTarget instanceof Rook) || qscTarget.hasEverMoved())
+			return false;
+		// All the intervening squares between King and Rook should be empty
+		for ( GenericPosition emptySq : emptySqs ) {
+			if ( !theBoard.squareIsEmpty(emptySq))
+				return false;
+		}
+		Iterator<Piece> iterPotentialAttackers = theBoard.iterateColour(Piece.Colour.getOpposite(onMove));
+		while (iterPotentialAttackers.hasNext()) {
+			// None of the intervening squares between King and Rook should be attacked
+			// the king cannot be in check at the start or end of the move
+			Piece currPiece = iterPotentialAttackers.next();
+			if (currPiece.attacks(checkSqs)) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	public void undoPreviousMove() {
