@@ -146,9 +146,48 @@ public class BoardManager implements IBoardManager {
 			return new GenericMove(GenericPosition.e8,GenericPosition.g8);
 		}
 	}
-		
+	
+	private static final GenericPosition [] qscWhiteCheckSqs = {GenericPosition.c1, GenericPosition.d1, GenericPosition.e1};
+	private static final GenericPosition [] qscBlackCheckSqs = {GenericPosition.c8, GenericPosition.d8, GenericPosition.e8};
+	
 	public GenericMove addQueenSideCastle( Piece.Colour onMove ) {
-		return null;
+		if ( onMove == Colour.white ) {
+			// Target rook should not have moved and be on it initial square
+			Piece qscTarget = theBoard.getPieceAtSquare( GenericPosition.a1 );
+			if ( !(qscTarget instanceof Rook) || qscTarget.hasEverMoved())
+				return null;
+			// All the intervening squares between King and Rook should be empty
+			if ( !theBoard.squareIsEmpty(GenericPosition.b1) ||
+				 !theBoard.squareIsEmpty(GenericPosition.c1) ||
+				 !theBoard.squareIsEmpty(GenericPosition.d1))
+				return null;
+			Iterator<Piece> iterPotentialAttackers = theBoard.iterateColour(Piece.Colour.getOpposite(onMove));
+			while (iterPotentialAttackers.hasNext()) {
+				// None of the intervening squares between King and Rook should be attacked
+				// the king cannot be in check at the start or end of the move
+				Piece currPiece = iterPotentialAttackers.next();
+				if (currPiece.attacks(qscWhiteCheckSqs)) {
+					return null;
+				}
+			}
+			return new GenericMove(GenericPosition.e1,GenericPosition.c1);
+		} else {
+			Piece qscTarget = theBoard.getPieceAtSquare( GenericPosition.a8 );
+			if ( !(qscTarget instanceof Rook) || qscTarget.hasEverMoved())
+				return null;
+			if ( !theBoard.squareIsEmpty(GenericPosition.b8) ||
+			     !theBoard.squareIsEmpty(GenericPosition.c8) ||
+				 !theBoard.squareIsEmpty(GenericPosition.d8))
+				return null;
+			Iterator<Piece> iterPotentialAttackers = theBoard.iterateColour(Piece.Colour.getOpposite(onMove));
+			while (iterPotentialAttackers.hasNext()) {
+				Piece currPiece = iterPotentialAttackers.next();
+				if (currPiece.attacks(qscBlackCheckSqs)) {
+					return null;
+				}
+			}
+			return new GenericMove(GenericPosition.e8,GenericPosition.c8);
+		}
 	}
 	
 	public void undoPreviousMove() {
