@@ -19,7 +19,7 @@ import eubos.pieces.Piece.Colour;
 public class MoveGeneratorTest {
 	
 	protected LinkedList<Piece> pl;
-	protected MoveGenerator classUnderTest;
+	protected RandomMoveGenerator classUnderTest;
 	protected GenericMove expectedMove;
 	
 	@Before
@@ -29,7 +29,7 @@ public class MoveGeneratorTest {
 	
 	private void performTest( boolean assertSense ) {
 		try {
-			GenericMove selectedMove = classUnderTest.findBestMove();
+			GenericMove selectedMove = classUnderTest.findMove();
 			if ( assertSense )
 				assertTrue(selectedMove.equals(expectedMove));
 			else
@@ -54,7 +54,7 @@ public class MoveGeneratorTest {
 		pl.add(new King( Colour.black, GenericPosition.a8 ));
 		pl.add(new Pawn( Colour.white, GenericPosition.c6 ));
 		BoardManager bm = new BoardManager( new Board( pl ));
-		classUnderTest = new MoveGenerator( bm, Colour.black );
+		classUnderTest = new RandomMoveGenerator( bm, Colour.black );
 		expectedMove = new GenericMove( GenericPosition.a8, GenericPosition.b7 );
 		performTest(false);
 	}
@@ -78,7 +78,7 @@ public class MoveGeneratorTest {
 		pl.add(new Pawn( Colour.black, GenericPosition.b3 ));
 		// pawn at b2 can be captured to escape check
 		BoardManager bm = new BoardManager( new Board( pl ));
-		classUnderTest = new MoveGenerator( bm, Colour.white );
+		classUnderTest = new RandomMoveGenerator( bm, Colour.white );
 		expectedMove = new GenericMove( GenericPosition.a1, GenericPosition.b2 );
 		performTest(true);			
 	}
@@ -100,7 +100,7 @@ public class MoveGeneratorTest {
 		pl.add(new Pawn( Colour.black, GenericPosition.c3 ));
 		// king can move out of check to b1
 		BoardManager bm = new BoardManager( new Board( pl ));
-		classUnderTest = new MoveGenerator( bm, Colour.white );
+		classUnderTest = new RandomMoveGenerator( bm, Colour.white );
 		expectedMove = new GenericMove( GenericPosition.a1, GenericPosition.b1 );
 		performTest(true);
 	}
@@ -124,7 +124,7 @@ public class MoveGeneratorTest {
 		pl.add(new Pawn( Colour.black, GenericPosition.b3 ));
 		pl.add(new Pawn( Colour.black, GenericPosition.c3 ));
 		BoardManager bm = new BoardManager( new Board( pl ));
-		classUnderTest = new MoveGenerator( bm, Colour.white );
-		classUnderTest.findBestMove();
+		classUnderTest = new RandomMoveGenerator( bm, Colour.white );
+		classUnderTest.findMove();
 	}
 }

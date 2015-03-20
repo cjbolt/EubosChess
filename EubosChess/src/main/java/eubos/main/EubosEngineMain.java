@@ -57,8 +57,8 @@ public class EubosEngineMain extends AbstractEngine {
 
 	public void receive(EngineStartCalculatingCommand command) {
 		try {
-			MoveGenerator mg = new MoveGenerator( bm, onMove );
-			GenericMove selectedMove = mg.findBestMove();
+			RandomMoveGenerator mg = new RandomMoveGenerator( bm, onMove );
+			GenericMove selectedMove = mg.findMove();
 			bm.performMove(selectedMove);
 			this.getProtocol().send( new ProtocolBestMoveCommand( selectedMove, null ));
 		} catch( NoLegalMoveException e ) {

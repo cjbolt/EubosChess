@@ -10,18 +10,18 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import eubos.pieces.Piece;
 import eubos.pieces.King;
 
-public class MoveGenerator implements IMoveGenerator {
+public class RandomMoveGenerator implements IMoveGenerator {
 	
 	private BoardManager bm;
 	private Piece.Colour onMove;
 	
-	public MoveGenerator( BoardManager bm, Piece.Colour sideToMove ) {
+	public RandomMoveGenerator( BoardManager bm, Piece.Colour sideToMove ) {
 		this.bm = bm;
 		this.onMove = sideToMove;
 	}
 
 	// TODO: for now find a random legal move for the side indicated
-	public GenericMove findBestMove() throws NoLegalMoveException {
+	public GenericMove findMove() throws NoLegalMoveException {
 		GenericMove bestMove = null;
 		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();
 		// For each piece of the "on Move" colour, add it's legal moves to the entire move list
