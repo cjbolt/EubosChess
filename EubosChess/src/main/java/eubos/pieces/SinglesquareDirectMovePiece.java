@@ -4,7 +4,7 @@ import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericRank;
 
-public abstract class SinglesquareDirectMovePiece extends DirectMovePiece {
+public abstract class SinglesquareDirectMovePiece extends Piece {
 
 	protected GenericPosition getDownLeft() {
 		if ( onSquare.file != GenericFile.Fa && onSquare.rank != GenericRank.R1 ) {

@@ -11,7 +11,7 @@ import com.fluxchess.jcpi.models.GenericRank;
 
 import eubos.board.Board;
 
-public abstract class MultisquareDirectMovePiece extends DirectMovePiece {
+public abstract class MultisquareDirectMovePiece extends Piece {
 
 	protected ArrayList<GenericPosition> getAllDownLeft() {
 		ArrayList<GenericPosition> targetSquares = new ArrayList<GenericPosition>();

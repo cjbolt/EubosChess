@@ -1,5 +1,6 @@
 package eubos.pieces;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -53,7 +54,15 @@ public class King extends SinglesquareDirectMovePiece {
 
 	@Override
 	public boolean attacks(GenericPosition [] pos) {
-		// TODO Auto-generated method stub
-		return false;
+		ArrayList<GenericPosition> targetSqs = new ArrayList<GenericPosition>();
+		targetSqs.add(getUp());
+		targetSqs.add(getUpRight());
+		targetSqs.add(getUpLeft());
+		targetSqs.add(getRight());
+		targetSqs.add(getDownRight());
+		targetSqs.add(getDownLeft());
+		targetSqs.add(getLeft());
+		targetSqs.add(getDown());
+		return (evaluateIfAttacks( pos, targetSqs ));
 	}
 }

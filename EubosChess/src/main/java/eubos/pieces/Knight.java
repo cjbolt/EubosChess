@@ -8,7 +8,7 @@ import com.fluxchess.jcpi.models.*;
 import eubos.board.Board;
 import eubos.board.BoardManager;
 
-public class Knight extends IndirectMovePiece {
+public class Knight extends Piece {
 
 	public Knight( Colour Colour, GenericPosition at ) {
 		colour = Colour;
