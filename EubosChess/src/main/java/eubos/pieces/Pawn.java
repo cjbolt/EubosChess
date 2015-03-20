@@ -39,12 +39,15 @@ public class Pawn extends SinglesquareDirectMovePiece {
 	}	
 	
 	private GenericPosition genTwoSqTarget() {
-		// TODO need to add error protection on this double step move?
-		if ( isBlack() ) {
-			return GenericPosition.valueOf( onSquare.file, onSquare.rank.prev().prev());
-		} else {
-			return GenericPosition.valueOf( onSquare.file, onSquare.rank.next().next());
+		GenericPosition moveTo = null;
+		if ( hasNeverMoved() ) {
+			if ( isBlack()) {
+				moveTo = GenericPosition.valueOf( onSquare.file, onSquare.rank.prev().prev());
+			} else {
+				moveTo = GenericPosition.valueOf( onSquare.file, onSquare.rank.next().next());
+			}
 		}
+		return moveTo;
 	}
 	
 	private GenericPosition genLeftCaptureTarget() {
@@ -152,11 +155,9 @@ public class Pawn extends SinglesquareDirectMovePiece {
 		GenericPosition moveTo = genOneSqTarget();
 		if ( moveTo != null && theBoard.squareIsEmpty( moveTo )) {
 			checkPromotionAddMove(moveList, moveTo);
-			if ( hasNeverMoved() ) {
-				moveTo = genTwoSqTarget();
-				if ( theBoard.squareIsEmpty( moveTo )) {
-					moveList.add( new GenericMove( onSquare, moveTo ) );
-				}
+			moveTo = genTwoSqTarget();
+			if ( moveTo != null && theBoard.squareIsEmpty( moveTo )) {
+				moveList.add( new GenericMove( onSquare, moveTo ) );
 			}	
 		}
 		// Check for capture moves

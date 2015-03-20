@@ -20,7 +20,7 @@ public class RandomMoveGenerator implements IMoveGenerator {
 		this.onMove = sideToMove;
 	}
 
-	// TODO: for now find a random legal move for the side indicated
+	// Find a random legal move for the colour "on move"
 	public GenericMove findMove() throws NoLegalMoveException {
 		GenericMove bestMove = null;
 		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();
