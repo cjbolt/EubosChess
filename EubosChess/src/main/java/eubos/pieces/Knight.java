@@ -101,7 +101,7 @@ public class Knight extends Piece {
 	}
 
 	@Override
-	public boolean attacks(GenericPosition [] pos) {
+	public boolean attacks(BoardManager bm, GenericPosition [] pos) {
 		ArrayList<GenericPosition> targetSqs = new ArrayList<GenericPosition>();
 		targetSqs.add(getUpRight());
 		targetSqs.add(getUpLeft());

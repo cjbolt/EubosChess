@@ -13,82 +13,90 @@ import eubos.board.Board;
 
 public abstract class MultisquareDirectMovePiece extends Piece {
 
-	protected ArrayList<GenericPosition> getAllDownLeft() {
+	protected ArrayList<GenericPosition> getAllDownLeft(Board theBoard) {
 		ArrayList<GenericPosition> targetSquares = new ArrayList<GenericPosition>();
 		GenericPosition currTargetSq = onSquare;
 		while ( currTargetSq.file != GenericFile.Fa && currTargetSq.rank != GenericRank.R1 ) {
 			currTargetSq = GenericPosition.valueOf( currTargetSq.file.prev(), currTargetSq.rank.prev());
 			targetSquares.add(currTargetSq);
+			if (sqConstrainsAttack(theBoard, currTargetSq)) break;
 		}
 		return targetSquares;
 	}
 
-	protected ArrayList<GenericPosition> getAllUpRight() {
+	protected ArrayList<GenericPosition> getAllUpRight(Board theBoard) {
 		ArrayList<GenericPosition> targetSquares = new ArrayList<GenericPosition>();
 		GenericPosition currTargetSq = onSquare;
 		while ( currTargetSq.file != GenericFile.Fh && currTargetSq.rank != GenericRank.R8 ) {
 			currTargetSq = GenericPosition.valueOf( currTargetSq.file.next(), currTargetSq.rank.next());	
 			targetSquares.add(currTargetSq);
+			if (sqConstrainsAttack(theBoard, currTargetSq)) break;
 		}
 		return targetSquares;
 	}
 	
-	protected ArrayList<GenericPosition> getAllUpLeft() {
+	protected ArrayList<GenericPosition> getAllUpLeft(Board theBoard) {
 		ArrayList<GenericPosition> targetSquares = new ArrayList<GenericPosition>();
 		GenericPosition currTargetSq = onSquare;
 		while ( currTargetSq.file != GenericFile.Fa && currTargetSq.rank != GenericRank.R8 ) {
 			currTargetSq = GenericPosition.valueOf( currTargetSq.file.prev(), currTargetSq.rank.next());
 			targetSquares.add(currTargetSq);
+			if (sqConstrainsAttack(theBoard, currTargetSq)) break;
 		}
 		return targetSquares;
 	}
 	
-	protected ArrayList<GenericPosition> getAllDownRight() {
+	protected ArrayList<GenericPosition> getAllDownRight(Board theBoard) {
 		ArrayList<GenericPosition> targetSquares = new ArrayList<GenericPosition>();
 		GenericPosition currTargetSq = onSquare;
 		while ( currTargetSq.file != GenericFile.Fh && currTargetSq.rank != GenericRank.R1 ) {
 			currTargetSq = GenericPosition.valueOf( currTargetSq.file.next(), currTargetSq.rank.prev());
 			targetSquares.add(currTargetSq);
+			if (sqConstrainsAttack(theBoard, currTargetSq)) break;
 		}
 		return targetSquares;
 	}
 
-	protected ArrayList<GenericPosition> getAllDown() {
+	protected ArrayList<GenericPosition> getAllDown(Board theBoard) {
 		ArrayList<GenericPosition> targetSquares = new ArrayList<GenericPosition>();
 		GenericPosition currTargetSq = onSquare;
 		while ( currTargetSq.rank != GenericRank.R1 ) {
 			currTargetSq = GenericPosition.valueOf( currTargetSq.file, currTargetSq.rank.prev());
 			targetSquares.add(currTargetSq);
+			if (sqConstrainsAttack(theBoard, currTargetSq)) break;
 		}
 		return targetSquares;
 	}	
 	
-	protected ArrayList<GenericPosition> getAllUp() {
+	protected ArrayList<GenericPosition> getAllUp(Board theBoard) {
 		ArrayList<GenericPosition> targetSquares = new ArrayList<GenericPosition>();
 		GenericPosition currTargetSq = onSquare;
 		while ( currTargetSq.rank != GenericRank.R8 ) {
 			currTargetSq = GenericPosition.valueOf( currTargetSq.file, currTargetSq.rank.next());
 			targetSquares.add(currTargetSq);
+			if (sqConstrainsAttack(theBoard, currTargetSq)) break;
 		}
 		return targetSquares;
 	}	
 
-	protected ArrayList<GenericPosition> getAllLeft() {
+	protected ArrayList<GenericPosition> getAllLeft(Board theBoard) {
 		ArrayList<GenericPosition> targetSquares = new ArrayList<GenericPosition>();
 		GenericPosition currTargetSq = onSquare;
 		while ( currTargetSq.file != GenericFile.Fa ) {
 			currTargetSq = GenericPosition.valueOf( currTargetSq.file.prev(), currTargetSq.rank);
 			targetSquares.add(currTargetSq);
+			if (sqConstrainsAttack(theBoard, currTargetSq)) break;
 		}
 		return targetSquares;
 	}	
 	
-	protected ArrayList<GenericPosition> getAllRight() {
+	protected ArrayList<GenericPosition> getAllRight(Board theBoard) {
 		ArrayList<GenericPosition> targetSquares = new ArrayList<GenericPosition>();
 		GenericPosition currTargetSq = onSquare;
 		while ( currTargetSq.file != GenericFile.Fh ) {
 			currTargetSq = GenericPosition.valueOf( currTargetSq.file.next(), currTargetSq.rank);
 			targetSquares.add(currTargetSq);
+			if (sqConstrainsAttack(theBoard, currTargetSq)) break;
 		}
 		return targetSquares;
 	}		
@@ -109,6 +117,17 @@ public abstract class MultisquareDirectMovePiece extends Piece {
 		}
 		return continueAddingMoves;
 	}
+		
+	private boolean sqConstrainsAttack(Board theBoard, GenericPosition targetSquare) {
+		boolean constrains = false;
+		if ( targetSquare != null ) {
+			Piece targetPiece = theBoard.getPieceAtSquare(targetSquare);
+			if (targetPiece != null) {
+				constrains = true;
+			}
+		}
+		return constrains;
+	}	
 
 	protected void addMoves(LinkedList<GenericMove> moveList, Board theBoard, ArrayList<GenericPosition> targetSqs) {
 		boolean continueAddingMoves = true;

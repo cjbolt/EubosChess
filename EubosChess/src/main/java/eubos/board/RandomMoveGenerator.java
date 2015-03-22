@@ -5,19 +5,13 @@ import java.util.Random;
 import java.util.Iterator;
 
 import com.fluxchess.jcpi.models.GenericMove;
-import com.fluxchess.jcpi.models.GenericPosition;
 
 import eubos.pieces.Piece;
-import eubos.pieces.King;
 
-public class RandomMoveGenerator implements IMoveGenerator {
-	
-	private BoardManager bm;
-	private Piece.Colour onMove;
+public class RandomMoveGenerator extends MoveGenerator implements IMoveGenerator {
 	
 	public RandomMoveGenerator( BoardManager bm, Piece.Colour sideToMove ) {
-		this.bm = bm;
-		this.onMove = sideToMove;
+		super( bm, sideToMove);
 	}
 
 	// Find a random legal move for the colour "on move"
@@ -49,43 +43,5 @@ public class RandomMoveGenerator implements IMoveGenerator {
 			throw new NoLegalMoveException();
 		}
 		return bestMove;
-	}
-	
-	private void addCastlingMoves( LinkedList<GenericMove> ml ) {
-		// The side on move should not have previously castled
-		if ( bm.hasCastled(onMove))
-			return;
-		// King should not have moved and be on its initial square
-		King ownKing = bm.getKing(onMove);
-		if ( ownKing != null ) {
-			if (ownKing.hasEverMoved() || !ownKing.isOnInitialSquare()) {
-				return;
-			}
-		}
-		// Check for castling king-side and queen side
-		GenericMove ksc = bm.addKingSideCastle(onMove);
-		if ( ksc != null )
-			ml.add(ksc);
-		GenericMove qsc = bm.addQueenSideCastle(onMove);
-		if ( qsc != null )
-			ml.add(qsc);
-	}
-	
-	private boolean inCheck() {
-		// For each opposite colour piece, see if it currently attacks the king.
-		boolean inCheck = false;
-		King ownKing = bm.getKing(onMove);
-		if ( ownKing != null ) {
-			Iterator<Piece> iterPotentialAttackers = bm.getTheBoard().iterateColour(Piece.Colour.getOpposite(onMove));
-			while (iterPotentialAttackers.hasNext()) {
-				Piece currPiece = iterPotentialAttackers.next();
-				GenericPosition [] pos = { ownKing.getSquare() };
-				if (currPiece.attacks( pos )) {
-					inCheck = true;
-					break;
-				}
-			}
-		}
-		return inCheck;
 	}
 }

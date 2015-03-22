@@ -158,7 +158,7 @@ public class BoardManager implements IBoardManager {
 			// None of the intervening squares between King and Rook should be attacked
 			// the king cannot be in check at the start or end of the move
 			Piece currPiece = iterPotentialAttackers.next();
-			if (currPiece.attacks(checkSqs)) {
+			if (currPiece.attacks( this, checkSqs)) {
 				return false;
 			}
 		}

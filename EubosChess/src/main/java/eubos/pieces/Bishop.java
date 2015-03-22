@@ -20,19 +20,20 @@ public class Bishop extends MultisquareDirectMovePiece {
 	public LinkedList<GenericMove> generateMoves(BoardManager bm) {
 		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
 		Board theBoard = bm.getTheBoard();
-		addMoves(moveList, theBoard, getAllDownLeft());
-		addMoves(moveList, theBoard, getAllUpLeft());
-		addMoves(moveList, theBoard, getAllDownRight());
-		addMoves(moveList, theBoard, getAllUpRight());
+		addMoves(moveList, theBoard, getAllDownLeft(theBoard));
+		addMoves(moveList, theBoard, getAllUpLeft(theBoard));
+		addMoves(moveList, theBoard, getAllDownRight(theBoard));
+		addMoves(moveList, theBoard, getAllUpRight(theBoard));
 		return moveList;
 	}
 
 	@Override
-	public boolean attacks(GenericPosition [] pos) {
-		ArrayList<GenericPosition> targetSqs = getAllDownLeft();
-		targetSqs.addAll(getAllUpLeft());
-		targetSqs.addAll(getAllDownRight());
-		targetSqs.addAll(getAllUpRight());
+	public boolean attacks(BoardManager bm, GenericPosition [] pos) {
+		Board theBoard = bm.getTheBoard();
+		ArrayList<GenericPosition> targetSqs = getAllDownLeft(theBoard);
+		targetSqs.addAll(getAllUpLeft(theBoard));
+		targetSqs.addAll(getAllDownRight(theBoard));
+		targetSqs.addAll(getAllUpRight(theBoard));
 		return (evaluateIfAttacks( pos, targetSqs ));
 	}
 }

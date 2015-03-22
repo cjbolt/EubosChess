@@ -11,10 +11,14 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
+import eubos.pieces.Bishop;
 import eubos.pieces.King;
+import eubos.pieces.Knight;
 import eubos.pieces.Pawn;
 import eubos.pieces.Piece;
 import eubos.pieces.Piece.Colour;
+import eubos.pieces.Queen;
+import eubos.pieces.Rook;
 
 public class MoveGeneratorTest {
 	
@@ -127,4 +131,36 @@ public class MoveGeneratorTest {
 		classUnderTest = new RandomMoveGenerator( bm, Colour.white );
 		classUnderTest.findMove();
 	}
+	
+	@Test
+	public void test_findBestMove_ArenaFailKingMove() throws NoLegalMoveException {
+		// 8 ..b.q...
+		// 7 ......K.
+		// 6 ..q.....
+		// 5 p.....b.
+		// 4 ....p...
+		// 3 .p...npn
+		// 2 ........
+		// 1 ..kr...r
+		//   abcdefgh
+		pl.add(new King( Colour.black, GenericPosition.g7 ));
+		pl.add(new King( Colour.white, GenericPosition.c1 ));
+		pl.add(new Rook( Colour.white, GenericPosition.d1 ));
+		pl.add(new Rook( Colour.white, GenericPosition.h1 ));
+		pl.add(new Pawn( Colour.white, GenericPosition.b3 ));
+		pl.add(new Knight( Colour.white, GenericPosition.f3 ));
+		pl.add(new Knight( Colour.white, GenericPosition.h3 ));
+		pl.add(new Pawn( Colour.white, GenericPosition.g3 ));
+		pl.add(new Pawn( Colour.white, GenericPosition.e4 ));
+		pl.add(new Pawn( Colour.white, GenericPosition.a5 ));
+		pl.add(new Queen( Colour.white, GenericPosition.c6 ));
+		pl.add(new Queen( Colour.white, GenericPosition.e8 ));
+		pl.add(new Bishop( Colour.white, GenericPosition.c8 ));
+		pl.add(new Bishop( Colour.white, GenericPosition.g5 ));		
+		BoardManager bm = new BoardManager( new Board( pl ));
+		classUnderTest = new RandomMoveGenerator( bm, Colour.black );
+		classUnderTest.findMove();
+		expectedMove = new GenericMove( GenericPosition.g7, GenericPosition.h7 );
+		performTest(true);
+	}	
 }

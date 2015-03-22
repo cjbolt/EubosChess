@@ -53,7 +53,7 @@ public class King extends SinglesquareDirectMovePiece {
 	}
 
 	@Override
-	public boolean attacks(GenericPosition [] pos) {
+	public boolean attacks(BoardManager bm, GenericPosition [] pos) {
 		ArrayList<GenericPosition> targetSqs = new ArrayList<GenericPosition>();
 		targetSqs.add(getUp());
 		targetSqs.add(getUpRight());

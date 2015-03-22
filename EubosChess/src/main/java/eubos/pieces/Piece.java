@@ -15,7 +15,7 @@ public abstract class Piece implements IPiece {
 	protected boolean everMoved = false;
 	public boolean hasEverMoved() {	return everMoved; }
 	public abstract LinkedList<GenericMove> generateMoves( BoardManager bm );
-	public abstract boolean attacks( GenericPosition [] pos );
+	public abstract boolean attacks( BoardManager bm, GenericPosition [] pos );
 	protected GenericPosition onSquare;
 	
 	public Colour getColour() { return colour; }
