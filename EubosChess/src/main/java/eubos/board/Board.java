@@ -8,7 +8,7 @@ import com.fluxchess.jcpi.models.*;
 
 public class Board implements Iterable<Piece> {
 	
-	private Piece[][] theBoard = new Piece[8][8];
+	private Piece[][] theBoard = new Piece[8][8];	
 	
 	public Board() { setupNewGame(); }
 
@@ -17,6 +17,13 @@ public class Board implements Iterable<Piece> {
 		for ( Piece nextPiece : pieceList ) {
 			setPieceAtSquare( nextPiece );
 		}
+	}
+	
+	public static boolean moveIsOffBoard(GenericPosition currTargetSq, Direction dir ) {
+		if (currTargetSq.file != GenericFile.Fa && currTargetSq.rank != GenericRank.R1)
+			return true;
+		else
+			return false;
 	}
 	
 	public void setPieceAtSquare( Piece pieceToPlace ) {

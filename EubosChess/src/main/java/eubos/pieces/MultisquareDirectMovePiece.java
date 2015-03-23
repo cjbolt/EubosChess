@@ -10,13 +10,14 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericRank;
 
 import eubos.board.Board;
+import eubos.board.Direction;
 
 public abstract class MultisquareDirectMovePiece extends Piece {
 
-	protected ArrayList<GenericPosition> getAllDownLeft(Board theBoard) {
+	protected ArrayList<GenericPosition> getAllDownLeft(Board theBoard, Direction dir) {
 		ArrayList<GenericPosition> targetSquares = new ArrayList<GenericPosition>();
 		GenericPosition currTargetSq = onSquare;
-		while ( currTargetSq.file != GenericFile.Fa && currTargetSq.rank != GenericRank.R1 ) {
+		while ( !Board.moveIsOffBoard(currTargetSq, Direction.downLeft )) {
 			currTargetSq = GenericPosition.valueOf( currTargetSq.file.prev(), currTargetSq.rank.prev());
 			targetSquares.add(currTargetSq);
 			if (sqConstrainsAttack(theBoard, currTargetSq)) break;
