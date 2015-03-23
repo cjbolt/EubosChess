@@ -8,6 +8,7 @@ import com.fluxchess.jcpi.models.GenericPosition;
 
 import eubos.board.Board;
 import eubos.board.BoardManager;
+import eubos.board.Direction;
 
 public class Rook extends MultisquareDirectMovePiece {
 
@@ -20,20 +21,20 @@ public class Rook extends MultisquareDirectMovePiece {
 	public LinkedList<GenericMove> generateMoves(BoardManager bm) {
 		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
 		Board theBoard = bm.getTheBoard();
-		addMoves(moveList, theBoard, getAllDown(theBoard));
-		addMoves(moveList, theBoard, getAllUp(theBoard));
-		addMoves(moveList, theBoard, getAllLeft(theBoard));
-		addMoves(moveList, theBoard, getAllRight(theBoard));
+		addMoves(moveList, theBoard, getAll(Direction.down, theBoard));
+		addMoves(moveList, theBoard, getAll(Direction.up, theBoard));
+		addMoves(moveList, theBoard, getAll(Direction.left, theBoard));
+		addMoves(moveList, theBoard, getAll(Direction.right, theBoard));
 		return moveList;	
 	}
 
 	@Override
 	public boolean attacks(BoardManager bm, GenericPosition [] pos) {
 		Board theBoard = bm.getTheBoard();
-		ArrayList<GenericPosition> targetSqs = getAllDown(theBoard);
-		targetSqs.addAll(getAllUp(theBoard));
-		targetSqs.addAll(getAllLeft(theBoard));
-		targetSqs.addAll(getAllRight(theBoard));
+		ArrayList<GenericPosition> targetSqs = getAll(Direction.down, theBoard);
+		targetSqs.addAll(getAll(Direction.up, theBoard));
+		targetSqs.addAll(getAll(Direction.left, theBoard));
+		targetSqs.addAll(getAll(Direction.right, theBoard));
 		return (evaluateIfAttacks( pos, targetSqs ));
 	}
 }
