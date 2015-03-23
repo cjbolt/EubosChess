@@ -21,20 +21,20 @@ public class Rook extends MultisquareDirectMovePiece {
 	public LinkedList<GenericMove> generateMoves(BoardManager bm) {
 		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
 		Board theBoard = bm.getTheBoard();
-		addMoves(moveList, theBoard, getAll(Direction.down, theBoard));
-		addMoves(moveList, theBoard, getAll(Direction.up, theBoard));
-		addMoves(moveList, theBoard, getAll(Direction.left, theBoard));
-		addMoves(moveList, theBoard, getAll(Direction.right, theBoard));
+		addMoves(moveList, theBoard, getAllSqs(Direction.down, theBoard));
+		addMoves(moveList, theBoard, getAllSqs(Direction.up, theBoard));
+		addMoves(moveList, theBoard, getAllSqs(Direction.left, theBoard));
+		addMoves(moveList, theBoard, getAllSqs(Direction.right, theBoard));
 		return moveList;	
 	}
 
 	@Override
 	public boolean attacks(BoardManager bm, GenericPosition [] pos) {
 		Board theBoard = bm.getTheBoard();
-		ArrayList<GenericPosition> targetSqs = getAll(Direction.down, theBoard);
-		targetSqs.addAll(getAll(Direction.up, theBoard));
-		targetSqs.addAll(getAll(Direction.left, theBoard));
-		targetSqs.addAll(getAll(Direction.right, theBoard));
+		ArrayList<GenericPosition> targetSqs = getAllSqs(Direction.down, theBoard);
+		targetSqs.addAll(getAllSqs(Direction.up, theBoard));
+		targetSqs.addAll(getAllSqs(Direction.left, theBoard));
+		targetSqs.addAll(getAllSqs(Direction.right, theBoard));
 		return (evaluateIfAttacks( pos, targetSqs ));
 	}
 }

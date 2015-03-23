@@ -10,6 +10,7 @@ import com.fluxchess.jcpi.models.GenericRank;
 
 import eubos.board.Board;
 import eubos.board.BoardManager;
+import eubos.board.Direction;
 
 public class Pawn extends SinglesquareDirectMovePiece {
 
@@ -32,9 +33,9 @@ public class Pawn extends SinglesquareDirectMovePiece {
 
 	private GenericPosition genOneSqTarget() {
 		if ( isBlack() ) {
-			return getDown();
+			return getOneSq(Direction.down);
 		} else {
-			return getUp();
+			return getOneSq(Direction.up);
 		}
 	}	
 	
@@ -42,9 +43,9 @@ public class Pawn extends SinglesquareDirectMovePiece {
 		GenericPosition moveTo = null;
 		if ( hasNeverMoved() ) {
 			if ( isBlack()) {
-				moveTo = GenericPosition.valueOf( onSquare.file, onSquare.rank.prev().prev());
+				moveTo = Direction.getDirectMoveSq(Direction.down, Direction.getDirectMoveSq(Direction.down, onSquare));
 			} else {
-				moveTo = GenericPosition.valueOf( onSquare.file, onSquare.rank.next().next());
+				moveTo = Direction.getDirectMoveSq(Direction.up, Direction.getDirectMoveSq(Direction.up, onSquare));
 			}
 		}
 		return moveTo;
@@ -52,17 +53,17 @@ public class Pawn extends SinglesquareDirectMovePiece {
 	
 	private GenericPosition genLeftCaptureTarget() {
 		if ( isBlack() ) {
-			return getDownRight();
+			return getOneSq(Direction.downRight);
 		} else {
-			return getUpLeft();
+			return getOneSq(Direction.upLeft);
 		}
 	}
 	
 	private GenericPosition genRightCaptureTarget() {
 		if ( isBlack() ) {
-			return getDownLeft();
+			return getOneSq(Direction.downLeft);
 		} else {
-			return getUpRight();
+			return getOneSq(Direction.upRight);
 		}		
 	}
 	

@@ -5,9 +5,9 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericRank;
 
 public enum Direction {
-	up, upRight, right, downRight, down, downLeft, left, upLeft;
+	up, upRight, rightUp, right, rightDown, downRight, down, downLeft, leftUp, left, leftDown, upLeft;
 	
-	public static GenericPosition getSqInDirection( Direction dir, GenericPosition startSq ) {
+	public static GenericPosition getDirectMoveSq( Direction dir, GenericPosition startSq ) {
 		GenericPosition retVal = null;
 		switch( dir ) {
 		case downLeft:
@@ -47,4 +47,53 @@ public enum Direction {
 		}
 		return retVal;
 	}
+	
+	public static GenericPosition getIndirectMoveSq( Direction dir, GenericPosition onSquare ) {
+		GenericPosition retVal = null;
+		switch( dir ) {
+		case downLeft:
+			if ( onSquare.file != GenericFile.Fa && ((onSquare.rank != GenericRank.R1) && (onSquare.rank != GenericRank.R2))) {
+				retVal = GenericPosition.valueOf( onSquare.file.prev(), onSquare.rank.prev().prev());
+			}
+			break;
+		case downRight:
+			if ( onSquare.file != GenericFile.Fh && ((onSquare.rank != GenericRank.R1) && (onSquare.rank != GenericRank.R2))) {
+				retVal = GenericPosition.valueOf( onSquare.file.next(), onSquare.rank.prev().prev());
+			}
+			break;
+		case leftUp:
+			if (((onSquare.file != GenericFile.Fa) && (onSquare.file != GenericFile.Fb)) && onSquare.rank != GenericRank.R8 )  {
+				retVal = GenericPosition.valueOf( onSquare.file.prev().prev(), onSquare.rank.next());
+			}
+			break;
+		case leftDown:
+			if (((onSquare.file != GenericFile.Fa) && (onSquare.file != GenericFile.Fb)) && onSquare.rank != GenericRank.R1 )  {
+				retVal = GenericPosition.valueOf( onSquare.file.prev().prev(), onSquare.rank.prev());
+			}
+			break;
+		case rightUp:
+			if (((onSquare.file != GenericFile.Fg) && (onSquare.file != GenericFile.Fh)) && onSquare.rank != GenericRank.R8 ) {
+				retVal = GenericPosition.valueOf( onSquare.file.next().next(), onSquare.rank.next());
+			}
+			break;
+		case rightDown:
+			if (((onSquare.file != GenericFile.Fg) && (onSquare.file != GenericFile.Fh)) && onSquare.rank != GenericRank.R1  ) {
+				retVal = GenericPosition.valueOf( onSquare.file.next().next(), onSquare.rank.prev());
+			}
+			break;
+		case upLeft:
+			if ( onSquare.file != GenericFile.Fa && ((onSquare.rank != GenericRank.R8) && (onSquare.rank != GenericRank.R7))) {
+				retVal = GenericPosition.valueOf( onSquare.file.prev(), onSquare.rank.next().next());
+			}
+			break;
+		case upRight:
+			if ( onSquare.file != GenericFile.Fh && ((onSquare.rank != GenericRank.R8) && (onSquare.rank != GenericRank.R7))) {
+				retVal = GenericPosition.valueOf( onSquare.file.next(), onSquare.rank.next().next());	
+			}
+			break;
+		default:
+			break;
+		}
+		return retVal;
+	}	
 }

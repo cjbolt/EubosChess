@@ -8,6 +8,7 @@ import com.fluxchess.jcpi.models.GenericPosition;
 
 import eubos.board.BoardManager;
 import eubos.board.Board;
+import eubos.board.Direction;
 
 public class King extends SinglesquareDirectMovePiece {
 
@@ -31,14 +32,14 @@ public class King extends SinglesquareDirectMovePiece {
 	public LinkedList<GenericMove> generateMoves(BoardManager bm) {
 		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
 		Board theBoard = bm.getTheBoard();
-		checkAddMove(moveList, theBoard, getUp());
-		checkAddMove(moveList, theBoard, getUpRight());
-		checkAddMove(moveList, theBoard, getRight());
-		checkAddMove(moveList, theBoard, getDownRight());
-		checkAddMove(moveList, theBoard, getDown());
-		checkAddMove(moveList, theBoard, getDownLeft());
-		checkAddMove(moveList, theBoard, getLeft());
-		checkAddMove(moveList, theBoard, getUpLeft());
+		checkAddMove(moveList, theBoard, getOneSq(Direction.up));
+		checkAddMove(moveList, theBoard, getOneSq(Direction.upRight));
+		checkAddMove(moveList, theBoard, getOneSq(Direction.right));
+		checkAddMove(moveList, theBoard, getOneSq(Direction.downRight));
+		checkAddMove(moveList, theBoard, getOneSq(Direction.down));
+		checkAddMove(moveList, theBoard, getOneSq(Direction.downLeft));
+		checkAddMove(moveList, theBoard, getOneSq(Direction.left));
+		checkAddMove(moveList, theBoard, getOneSq(Direction.upLeft));
 		return moveList;
 	}
 
@@ -55,14 +56,14 @@ public class King extends SinglesquareDirectMovePiece {
 	@Override
 	public boolean attacks(BoardManager bm, GenericPosition [] pos) {
 		ArrayList<GenericPosition> targetSqs = new ArrayList<GenericPosition>();
-		targetSqs.add(getUp());
-		targetSqs.add(getUpRight());
-		targetSqs.add(getUpLeft());
-		targetSqs.add(getRight());
-		targetSqs.add(getDownRight());
-		targetSqs.add(getDownLeft());
-		targetSqs.add(getLeft());
-		targetSqs.add(getDown());
+		targetSqs.add(getOneSq(Direction.up));
+		targetSqs.add(getOneSq(Direction.upRight));
+		targetSqs.add(getOneSq(Direction.right));
+		targetSqs.add(getOneSq(Direction.downRight));
+		targetSqs.add(getOneSq(Direction.down));
+		targetSqs.add(getOneSq(Direction.downLeft));
+		targetSqs.add(getOneSq(Direction.left));
+		targetSqs.add(getOneSq(Direction.upLeft));
 		return (evaluateIfAttacks( pos, targetSqs ));
 	}
 }

@@ -12,10 +12,10 @@ import eubos.board.Direction;
 
 public abstract class MultisquareDirectMovePiece extends Piece {
 
-	protected ArrayList<GenericPosition> getAll(Direction dir, Board theBoard) {
+	protected ArrayList<GenericPosition> getAllSqs(Direction dir, Board theBoard) {
 		ArrayList<GenericPosition> targetSquares = new ArrayList<GenericPosition>();
 		GenericPosition currTargetSq = onSquare;
-		while ((currTargetSq = Direction.getSqInDirection(dir, currTargetSq)) != null) {
+		while ((currTargetSq = Direction.getDirectMoveSq(dir, currTargetSq)) != null) {
 			targetSquares.add(currTargetSq);
 			if (sqConstrainsAttack(theBoard, currTargetSq)) break;
 		}

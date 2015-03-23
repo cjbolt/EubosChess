@@ -7,6 +7,7 @@ import com.fluxchess.jcpi.models.*;
 
 import eubos.board.Board;
 import eubos.board.BoardManager;
+import eubos.board.Direction;
 
 public class Knight extends Piece {
 
@@ -15,62 +16,6 @@ public class Knight extends Piece {
 		onSquare = at;
 	}
 
-	private GenericPosition getUpRight() {
-		if ( onSquare.file != GenericFile.Fh && ((onSquare.rank != GenericRank.R8) && (onSquare.rank != GenericRank.R7))) {
-			return GenericPosition.valueOf( onSquare.file.next(), onSquare.rank.next().next());	
-		}
-		return null;
-	}
-	
-	private GenericPosition getUpLeft() {
-		if ( onSquare.file != GenericFile.Fa && ((onSquare.rank != GenericRank.R8) && (onSquare.rank != GenericRank.R7))) {
-			return GenericPosition.valueOf( onSquare.file.prev(), onSquare.rank.next().next());
-		}
-		return null;
-	}
-	
-	private GenericPosition getDownRight() {
-		if ( onSquare.file != GenericFile.Fh && ((onSquare.rank != GenericRank.R1) && (onSquare.rank != GenericRank.R2))) {
-			return GenericPosition.valueOf( onSquare.file.next(), onSquare.rank.prev().prev());
-		}
-		return null;
-	}
-	
-	private GenericPosition getDownLeft() {
-		if ( onSquare.file != GenericFile.Fa && ((onSquare.rank != GenericRank.R1) && (onSquare.rank != GenericRank.R2))) {
-			return GenericPosition.valueOf( onSquare.file.prev(), onSquare.rank.prev().prev());
-		}
-		return null;
-	}
-
-	private GenericPosition getRightUp() {
-		if (((onSquare.file != GenericFile.Fg) && (onSquare.file != GenericFile.Fh)) && onSquare.rank != GenericRank.R8 ) {
-			return GenericPosition.valueOf( onSquare.file.next().next(), onSquare.rank.next());
-		}
-		return null;
-	}	
-	
-	private GenericPosition getRightDown() {
-		if (((onSquare.file != GenericFile.Fg) && (onSquare.file != GenericFile.Fh)) && onSquare.rank != GenericRank.R1  ) {
-			return GenericPosition.valueOf( onSquare.file.next().next(), onSquare.rank.prev());
-		}
-		return null;
-	}	
-
-	private GenericPosition getLeftUp() {
-		if (((onSquare.file != GenericFile.Fa) && (onSquare.file != GenericFile.Fb)) && onSquare.rank != GenericRank.R8 )  {
-			return GenericPosition.valueOf( onSquare.file.prev().prev(), onSquare.rank.next());
-		}
-		return null;
-	}	
-	
-	private GenericPosition getLeftDown() {
-		if (((onSquare.file != GenericFile.Fa) && (onSquare.file != GenericFile.Fb)) && onSquare.rank != GenericRank.R1 )  {
-			return GenericPosition.valueOf( onSquare.file.prev().prev(), onSquare.rank.prev());
-		}
-		return null;
-	}
-	
 	private void checkAddMove(LinkedList<GenericMove> moveList, Board theBoard, GenericPosition targetSquare) {
 		if ( targetSquare != null ) {
 			Piece targetPiece = theBoard.getPieceAtSquare(targetSquare);
@@ -85,32 +30,36 @@ public class Knight extends Piece {
 		}
 	}
 	
+	private GenericPosition getSq( Direction dir ) {
+		return Direction.getIndirectMoveSq(dir, onSquare);
+	}
+	
 	@Override
 	public LinkedList<GenericMove> generateMoves(BoardManager bm) {
 		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
 		Board theBoard = bm.getTheBoard();
-		checkAddMove(moveList, theBoard, getUpRight());
-		checkAddMove(moveList, theBoard, getUpLeft());
-		checkAddMove(moveList, theBoard, getRightUp());
-		checkAddMove(moveList, theBoard, getRightDown());
-		checkAddMove(moveList, theBoard, getDownRight());
-		checkAddMove(moveList, theBoard, getDownLeft());
-		checkAddMove(moveList, theBoard, getLeftUp());
-		checkAddMove(moveList, theBoard, getLeftDown());
+		checkAddMove(moveList, theBoard, getSq(Direction.upRight));
+		checkAddMove(moveList, theBoard, getSq(Direction.upLeft));
+		checkAddMove(moveList, theBoard, getSq(Direction.rightUp));
+		checkAddMove(moveList, theBoard, getSq(Direction.rightDown));
+		checkAddMove(moveList, theBoard, getSq(Direction.downRight));
+		checkAddMove(moveList, theBoard, getSq(Direction.downLeft));
+		checkAddMove(moveList, theBoard, getSq(Direction.leftUp));
+		checkAddMove(moveList, theBoard, getSq(Direction.leftDown));
 		return moveList;		
 	}
 
 	@Override
 	public boolean attacks(BoardManager bm, GenericPosition [] pos) {
 		ArrayList<GenericPosition> targetSqs = new ArrayList<GenericPosition>();
-		targetSqs.add(getUpRight());
-		targetSqs.add(getUpLeft());
-		targetSqs.add(getRightUp());
-		targetSqs.add(getRightDown());
-		targetSqs.add(getDownRight());
-		targetSqs.add(getDownLeft());
-		targetSqs.add(getLeftUp());
-		targetSqs.add(getLeftDown());
+		targetSqs.add(getSq(Direction.upRight));
+		targetSqs.add(getSq(Direction.upLeft));
+		targetSqs.add(getSq(Direction.rightUp));
+		targetSqs.add(getSq(Direction.rightDown));
+		targetSqs.add(getSq(Direction.downRight));
+		targetSqs.add(getSq(Direction.downLeft));
+		targetSqs.add(getSq(Direction.leftUp));
+		targetSqs.add(getSq(Direction.leftDown));
 		return (evaluateIfAttacks( pos, targetSqs ));
 	}
 

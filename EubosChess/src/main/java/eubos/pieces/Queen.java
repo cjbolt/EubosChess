@@ -21,28 +21,28 @@ public class Queen extends MultisquareDirectMovePiece {
 	public LinkedList<GenericMove> generateMoves(BoardManager bm) {
 		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
 		Board theBoard = bm.getTheBoard();
-		addMoves(moveList, theBoard, getAll(Direction.downLeft, theBoard));
-		addMoves(moveList, theBoard, getAll(Direction.upLeft, theBoard));
-		addMoves(moveList, theBoard, getAll(Direction.downRight, theBoard));
-		addMoves(moveList, theBoard, getAll(Direction.upRight, theBoard));
-		addMoves(moveList, theBoard, getAll(Direction.down, theBoard));
-		addMoves(moveList, theBoard, getAll(Direction.up, theBoard));
-		addMoves(moveList, theBoard, getAll(Direction.left, theBoard));
-		addMoves(moveList, theBoard, getAll(Direction.right, theBoard));
+		addMoves(moveList, theBoard, getAllSqs(Direction.downLeft, theBoard));
+		addMoves(moveList, theBoard, getAllSqs(Direction.upLeft, theBoard));
+		addMoves(moveList, theBoard, getAllSqs(Direction.downRight, theBoard));
+		addMoves(moveList, theBoard, getAllSqs(Direction.upRight, theBoard));
+		addMoves(moveList, theBoard, getAllSqs(Direction.down, theBoard));
+		addMoves(moveList, theBoard, getAllSqs(Direction.up, theBoard));
+		addMoves(moveList, theBoard, getAllSqs(Direction.left, theBoard));
+		addMoves(moveList, theBoard, getAllSqs(Direction.right, theBoard));
 		return moveList;	
 	}
 
 	@Override
 	public boolean attacks(BoardManager bm, GenericPosition [] pos) {
 		Board theBoard = bm.getTheBoard();
-		ArrayList<GenericPosition> targetSqs = getAll(Direction.downLeft, theBoard);
-		targetSqs.addAll(getAll(Direction.upLeft, theBoard));
-		targetSqs.addAll(getAll(Direction.downRight, theBoard));
-		targetSqs.addAll(getAll(Direction.upRight, theBoard));
-		targetSqs.addAll(getAll(Direction.down, theBoard));
-		targetSqs.addAll(getAll(Direction.up, theBoard));
-		targetSqs.addAll(getAll(Direction.left, theBoard));
-		targetSqs.addAll(getAll(Direction.right, theBoard));
+		ArrayList<GenericPosition> targetSqs = getAllSqs(Direction.downLeft, theBoard);
+		targetSqs.addAll(getAllSqs(Direction.upLeft, theBoard));
+		targetSqs.addAll(getAllSqs(Direction.downRight, theBoard));
+		targetSqs.addAll(getAllSqs(Direction.upRight, theBoard));
+		targetSqs.addAll(getAllSqs(Direction.down, theBoard));
+		targetSqs.addAll(getAllSqs(Direction.up, theBoard));
+		targetSqs.addAll(getAllSqs(Direction.left, theBoard));
+		targetSqs.addAll(getAllSqs(Direction.right, theBoard));
 		return (evaluateIfAttacks( pos, targetSqs ));
 	}
 }
