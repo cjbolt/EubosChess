@@ -65,35 +65,58 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		// Initialise...
 		// First generate all the moves to the required search depth
 		while ( currPly < SEARCH_DEPTH_IN_PLY) {
-			moves.add(generateMovesAtPosition(toPlay));
 			mp[currPly]=0;
-			if (toPlay==Colour.black) {
-				scores[currPly] = -65536;
+			if (toPlay==Colour.white) {
+				scores[currPly] = Integer.MIN_VALUE;
 			} else {
-				scores[currPly] = 65535;
+				scores[currPly] = Integer.MAX_VALUE;
 			}
-			toPlay = Piece.Colour.getOpposite(toPlay);
 			currPly++;
 		}
 		// Now descend the plies in the search tree, to the full depth, updating the board
 		currPly = 0;
 		toPlay = onMove;
-		while( currPly < SEARCH_DEPTH_IN_PLY ) {
-			bm.performMove(moves.get(currPly).get(mp[currPly]));
-			currPly++;
-		}
-		// Iterate through all the moves for this ply
-		//while()
-		// Apply the move
-		// Score the resulting position
-		int positionScore = evaluatePosition(bm.getTheBoard());
-		// Back-up the score if appropriate
-		if (positionScore < scores[currPly]) {
-			// check the sense of the comparison
-		}
-		// update pc
-		pc[currPly][currPly]=null;
+		searchPly(currPly, toPlay);
+		bestMove = pc[0][0];
 		return bestMove;
+	}
+
+	private void searchPly(int currPly, Piece.Colour toPlay) {
+		boolean isTerminalNode = false;
+		if (currPly == (SEARCH_DEPTH_IN_PLY-1))
+			isTerminalNode = true;
+		moves.add(generateMovesAtPosition(toPlay));
+		// Iterate through all the moves for this ply
+		LinkedList<GenericMove> ml = moves.get(currPly);
+		Iterator<GenericMove> move_iter = ml.iterator();
+		while( move_iter.hasNext()) {
+			// Apply the move
+			GenericMove currMove = move_iter.next();
+			bm.performMove(currMove);
+			if ( isTerminalNode ) {
+				boolean backUpScore = false;
+				// Score the resulting position
+				int positionScore = evaluatePosition(bm.getTheBoard());
+				// Back-up the score if appropriate
+				if (toPlay == Colour.white) {
+					if (positionScore > scores[currPly-1]) {
+						backUpScore = true;
+					}
+				} else {
+					if (positionScore < scores[currPly-1]) {
+						backUpScore = true;
+					}
+				}
+				if (backUpScore) {
+					pc[currPly][currPly]=currMove;
+				}
+			} else {
+				// Recursive call to the next level of the search
+				searchPly(currPly++, Piece.Colour.getOpposite(toPlay));
+			}
+			// restore the position
+			bm.undoPreviousMove();
+		}
 	}
 
 	private LinkedList<GenericMove> generateMovesAtPosition(Piece.Colour colour) {
