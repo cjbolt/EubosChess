@@ -3,7 +3,6 @@ package eubos.board;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Random;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
@@ -12,6 +11,7 @@ import eubos.pieces.King;
 import eubos.pieces.Knight;
 import eubos.pieces.Pawn;
 import eubos.pieces.Piece;
+import eubos.pieces.Piece.Colour;
 import eubos.pieces.Queen;
 import eubos.pieces.Rook;
 
@@ -61,16 +61,38 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	public GenericMove findMove() throws NoLegalMoveException {
 		GenericMove bestMove = null;
 		int currPly = 0;
-		LinkedList<GenericMove> playMoveList = generateMovesAtPosition(onMove);
-		moves.add(playMoveList);
-		if ( !playMoveList.isEmpty()) {
-			// For each move, apply it and go to the next ply
-			Random randomIndex = new Random();
-			Integer indexToGet = randomIndex.nextInt(playMoveList.size());
-			bestMove = playMoveList.get(indexToGet);			
-		} else {
-			throw new NoLegalMoveException();
+		Piece.Colour toPlay = onMove;
+		// Initialise...
+		// First generate all the moves to the required search depth
+		while ( currPly < SEARCH_DEPTH_IN_PLY) {
+			moves.add(generateMovesAtPosition(toPlay));
+			mp[currPly]=0;
+			if (toPlay==Colour.black) {
+				scores[currPly] = -65536;
+			} else {
+				scores[currPly] = 65535;
+			}
+			toPlay = Piece.Colour.getOpposite(toPlay);
+			currPly++;
 		}
+		// Now descend the plies in the search tree, to the full depth, updating the board
+		currPly = 0;
+		toPlay = onMove;
+		while( currPly < SEARCH_DEPTH_IN_PLY ) {
+			bm.performMove(moves.get(currPly).get(mp[currPly]));
+			currPly++;
+		}
+		// Iterate through all the moves for this ply
+		//while()
+		// Apply the move
+		// Score the resulting position
+		int positionScore = evaluatePosition(bm.getTheBoard());
+		// Back-up the score if appropriate
+		if (positionScore < scores[currPly]) {
+			// check the sense of the comparison
+		}
+		// update pc
+		pc[currPly][currPly]=null;
 		return bestMove;
 	}
 
