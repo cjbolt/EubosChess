@@ -72,6 +72,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 				scores[currPly] = Integer.MAX_VALUE;
 			}
 			currPly++;
+			toPlay=Piece.Colour.getOpposite(toPlay);
 		}
 		// Now descend the plies in the search tree, to the full depth, updating the board
 		currPly = 0;
@@ -99,20 +100,22 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 				int positionScore = evaluatePosition(bm.getTheBoard());
 				// Back-up the score if appropriate
 				if (toPlay == Colour.white) {
-					if (positionScore > scores[currPly-1]) {
+					if (positionScore < scores[currPly-1]) {
 						backUpScore = true;
 					}
 				} else {
-					if (positionScore < scores[currPly-1]) {
+					if (positionScore > scores[currPly-1]) {
 						backUpScore = true;
 					}
 				}
 				if (backUpScore) {
+					scores[currPly-1]=positionScore;
 					pc[currPly][currPly]=currMove;
 				}
 			} else {
 				// Recursive call to the next level of the search
-				searchPly(currPly++, Piece.Colour.getOpposite(toPlay));
+				int nextPly = currPly+1;
+				searchPly(nextPly, Piece.Colour.getOpposite(toPlay));
 			}
 			// restore the position
 			bm.undoPreviousMove();

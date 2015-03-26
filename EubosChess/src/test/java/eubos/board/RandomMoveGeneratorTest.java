@@ -20,7 +20,7 @@ import eubos.pieces.Piece.Colour;
 import eubos.pieces.Queen;
 import eubos.pieces.Rook;
 
-public class MoveGeneratorTest {
+public class RandomMoveGeneratorTest {
 	
 	protected LinkedList<Piece> pl;
 	protected RandomMoveGenerator classUnderTest;
