@@ -42,8 +42,29 @@ public class MiniMaxMoveGeneratorTest {
 			assert( false );
 		}
 	}
+
+	@Test
+	public void test_findMove_WhitePawnCapture() {
+		// 8 ........
+		// 7 ........
+		// 6 ...P..P.
+		// 5 ..p.....
+		// 4 ........
+		// 3 ........
+		// 2 ........
+		// 1 ........
+		//   abcdefgh
+		pl.add(new Pawn( Colour.black, GenericPosition.d6 ));
+		pl.add(new Pawn( Colour.white, GenericPosition.c5 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.g6 ));
+		BoardManager bm = new BoardManager( new Board( pl ));
+		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.white );
+		expectedMove = new GenericMove( GenericPosition.c5, GenericPosition.d6 );
+		doFindMoveTest(true);
+	}	
 	
 	@Test
+	@Ignore
 	public void test_findMove_PawnCapture() {
 		// 8 ........
 		// 7 ...P....

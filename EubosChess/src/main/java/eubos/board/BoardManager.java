@@ -173,7 +173,7 @@ public class BoardManager implements IBoardManager {
 				Piece.Colour colourToCreate = theBoard.getPieceAtSquare(moveToUndo.to).getColour();
 				theBoard.setPieceAtSquare( new Pawn( colourToCreate, moveToUndo.to ));
 			}
-			performMove( new GenericMove( moveToUndo.to, moveToUndo.from ) );
+			unperformMove( new GenericMove( moveToUndo.to, moveToUndo.from ) );
 			if ( tm.isCapture()) {
 				theBoard.setPieceAtSquare(tm.getCapturedPiece());
 			}
@@ -217,6 +217,17 @@ public class BoardManager implements IBoardManager {
 			previousMoves.push( new TrackedMove( move, captureTarget ));
 			// Update the piece's square.
 			// TODO duplicated information here - sub optimal...
+			pieceToMove.setSquare( move.to );
+			theBoard.setPieceAtSquare( pieceToMove );
+		} else {
+			// TODO throw an exception in this case?
+		}
+	}
+	
+	public void unperformMove( GenericMove move ) {
+		// Move the piece
+		Piece pieceToMove = theBoard.pickUpPieceAtSquare( move.from );
+		if ( pieceToMove != null ) {
 			pieceToMove.setSquare( move.to );
 			theBoard.setPieceAtSquare( pieceToMove );
 		} else {

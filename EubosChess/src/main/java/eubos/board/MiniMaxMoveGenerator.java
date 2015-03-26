@@ -93,6 +93,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		while( move_iter.hasNext()) {
 			// Apply the move
 			GenericMove currMove = move_iter.next();
+			System.out.println("performMove("+currMove.toString()+") at Ply="+currPly);
 			bm.performMove(currMove);
 			if ( isTerminalNode ) {
 				boolean backUpScore = false;
@@ -110,14 +111,18 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 				}
 				if (backUpScore) {
 					scores[currPly-1]=positionScore;
+					System.out.println("backedUpScore:"+positionScore+" at Ply="+currPly);
+					// Update Principal Continuation
 					pc[currPly][currPly]=currMove;
 				}
 			} else {
 				// Recursive call to the next level of the search
 				int nextPly = currPly+1;
+				System.out.println("searchPly("+nextPly+", "+toPlay.toString()+")");
 				searchPly(nextPly, Piece.Colour.getOpposite(toPlay));
 			}
 			// restore the position
+			System.out.println("restorePosition()");
 			bm.undoPreviousMove();
 		}
 	}
