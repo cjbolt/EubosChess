@@ -78,7 +78,17 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		currPly = 0;
 		toPlay = onMove;
 		searchPly(currPly, toPlay);
-		bestMove = pc[0][0];
+		// Select the best move and present the principal continuation.
+		bestMove = pc[currPly][currPly];
+		if (bestMove==null) {
+			throw new NoLegalMoveException();
+		}
+		System.out.print("principal continuation found: "+bestMove);
+		currPly+=1;
+		while ( currPly < SEARCH_DEPTH_IN_PLY) {
+			System.out.print(", "+pc[0][currPly++]);
+		}
+		System.out.print("\n");
 		return bestMove;
 	}
 
@@ -129,6 +139,9 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 				pc[currPly][currPly]=currMove;
 				if (!isTerminalNode){
 					// back up the rest of the pc array...
+					for (int nextPly=currPly+1; nextPly < SEARCH_DEPTH_IN_PLY; nextPly++) {
+						pc[currPly][nextPly]=pc[nextPly][nextPly];
+					}
 				}
 			}
 		}

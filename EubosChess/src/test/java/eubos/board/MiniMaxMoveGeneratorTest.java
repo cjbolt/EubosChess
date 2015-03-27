@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import java.util.LinkedList;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -64,8 +63,7 @@ public class MiniMaxMoveGeneratorTest {
 	}	
 	
 	@Test
-	@Ignore
-	public void test_findMove_PawnCapture() {
+	public void test_findMove_BlackPawnCapture() {
 		// 8 ........
 		// 7 ...P....
 		// 6 ..p.....
@@ -85,7 +83,6 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	@Ignore
 	public void test_findMove_CaptureToEscapeCheck() throws NoLegalMoveException {
 		// 8 ........
 		// 7 ........
@@ -110,7 +107,6 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	@Ignore
 	public void test_findMove_MoveToEscapeCheck() throws NoLegalMoveException {
 		// 8 ........
 		// 7 ........
@@ -133,7 +129,6 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test(expected=NoLegalMoveException.class)
-	@Ignore
 	public void test_findMove_NoLegalMove() throws NoLegalMoveException {
 		// 8 ........
 		// 7 ........
@@ -157,7 +152,6 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	@Ignore
 	public void test_findMove_ArenaFailKingMove() throws NoLegalMoveException {
 		// 8 ..b.q...
 		// 7 ......K.
