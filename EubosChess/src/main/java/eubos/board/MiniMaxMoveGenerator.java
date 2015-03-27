@@ -1,6 +1,5 @@
 package eubos.board;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -19,13 +18,11 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		IMoveGenerator {
 	
 	private static final int SEARCH_DEPTH_IN_PLY = 2;
-	private ArrayList<LinkedList<GenericMove>> moves;
 	private int scores[];
 	private GenericMove pc[][];
 	
 	public MiniMaxMoveGenerator( BoardManager bm, Piece.Colour sideToMove ) {
 		super( bm, sideToMove);
-		moves = new ArrayList<LinkedList<GenericMove>>();
 		scores = new int[SEARCH_DEPTH_IN_PLY];
 		pc = new GenericMove[SEARCH_DEPTH_IN_PLY][SEARCH_DEPTH_IN_PLY];
 	}
@@ -84,8 +81,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			scores[currPly] = Integer.MAX_VALUE;
 		}
 		// Iterate through all the moves for this ply
-		moves.add(generateMovesAtPosition(toPlay));
-		LinkedList<GenericMove> ml = moves.get(currPly);
+		LinkedList<GenericMove> ml = generateMovesAtPosition(toPlay);
 		Iterator<GenericMove> move_iter = ml.iterator();
 		while( move_iter.hasNext()) {
 			boolean backUpScore = false;
