@@ -82,8 +82,9 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		return bestMove;
 	}
 
-	private void searchPly(int currPly, Piece.Colour toPlay) {
+	private boolean searchPly(int currPly, Piece.Colour toPlay) {
 		boolean isTerminalNode = false;
+		boolean everBackedUpScore = false;
 		if (currPly == (SEARCH_DEPTH_IN_PLY-1))
 			isTerminalNode = true;
 		moves.add(generateMovesAtPosition(toPlay));
@@ -91,40 +92,47 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		LinkedList<GenericMove> ml = moves.get(currPly);
 		Iterator<GenericMove> move_iter = ml.iterator();
 		while( move_iter.hasNext()) {
+			boolean backUpScore = false;
+			int positionScore = 0;
 			// Apply the move
 			GenericMove currMove = move_iter.next();
 			System.out.println("performMove("+currMove.toString()+") at Ply="+currPly);
 			bm.performMove(currMove);
 			if ( isTerminalNode ) {
-				boolean backUpScore = false;
 				// Score the resulting position
-				int positionScore = evaluatePosition(bm.getTheBoard());
+				positionScore = evaluatePosition(bm.getTheBoard());
 				// Back-up the score if appropriate
 				if (toPlay == Colour.white) {
-					if (positionScore < scores[currPly-1]) {
+					if (positionScore > scores[currPly]) {
 						backUpScore = true;
 					}
 				} else {
-					if (positionScore > scores[currPly-1]) {
+					if (positionScore < scores[currPly]) {
 						backUpScore = true;
 					}
-				}
-				if (backUpScore) {
-					scores[currPly-1]=positionScore;
-					System.out.println("backedUpScore:"+positionScore+" at Ply="+currPly);
-					// Update Principal Continuation
-					pc[currPly][currPly]=currMove;
 				}
 			} else {
 				// Recursive call to the next level of the search
 				int nextPly = currPly+1;
 				System.out.println("searchPly("+nextPly+", "+toPlay.toString()+")");
-				searchPly(nextPly, Piece.Colour.getOpposite(toPlay));
+				backUpScore = searchPly(nextPly, Piece.Colour.getOpposite(toPlay));
 			}
 			// restore the position
 			System.out.println("restorePosition()");
 			bm.undoPreviousMove();
+			if (backUpScore) {
+				everBackedUpScore = true;
+				if (!isTerminalNode)
+					positionScore=scores[currPly+1];
+				System.out.println("backedUpScore:"+positionScore+" at Ply="+currPly);
+				// Update Principal Continuation
+				pc[currPly][currPly]=currMove;
+				if (!isTerminalNode){
+					// back up the rest of the pc array...
+				}
+			}
 		}
+		return everBackedUpScore;
 	}
 
 	private LinkedList<GenericMove> generateMovesAtPosition(Piece.Colour colour) {
