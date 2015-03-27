@@ -20,14 +20,12 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	
 	private static final int SEARCH_DEPTH_IN_PLY = 2;
 	private ArrayList<LinkedList<GenericMove>> moves;
-	private int mp[];
 	private int scores[];
 	private GenericMove pc[][];
 	
 	public MiniMaxMoveGenerator( BoardManager bm, Piece.Colour sideToMove ) {
 		super( bm, sideToMove);
 		moves = new ArrayList<LinkedList<GenericMove>>();
-		mp = new int[SEARCH_DEPTH_IN_PLY];
 		scores = new int[SEARCH_DEPTH_IN_PLY];
 		pc = new GenericMove[SEARCH_DEPTH_IN_PLY][SEARCH_DEPTH_IN_PLY];
 	}
@@ -62,23 +60,9 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		GenericMove bestMove = null;
 		int currPly = 0;
 		Piece.Colour toPlay = onMove;
-		// Initialise...
-		// First generate all the moves to the required search depth
-		while ( currPly < SEARCH_DEPTH_IN_PLY) {
-			mp[currPly]=0;
-			if (toPlay==Colour.white) {
-				scores[currPly] = Integer.MIN_VALUE;
-			} else {
-				scores[currPly] = Integer.MAX_VALUE;
-			}
-			currPly++;
-			toPlay=Piece.Colour.getOpposite(toPlay);
-		}
-		// Now descend the plies in the search tree, to the full depth, updating the board
-		currPly = 0;
-		toPlay = onMove;
+		// Descend the plies in the search tree, to the full depth, updating the board
 		searchPly(currPly, toPlay);
-		// Select the best move and report pc
+		// Select the best move and report the principal continuation.
 		printPrincipalContinuation(currPly);
 		bestMove = pc[currPly][currPly];
 		if (bestMove==null) {
@@ -87,22 +71,20 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		return bestMove;
 	}
 
-	private void printPrincipalContinuation(int currPly) {
-		System.out.print("principal continuation found: "+pc[currPly][currPly]);
-		currPly+=1;
-		while ( currPly < SEARCH_DEPTH_IN_PLY) {
-			System.out.print(", "+pc[0][currPly++]);
-		}
-		System.out.print("\n");
-	}
-
 	private boolean searchPly(int currPly, Piece.Colour toPlay) {
-		boolean isTerminalNode = false;
 		boolean everBackedUpScore = false;
+		// Signal if this is a terminal node in the search tree
+		boolean isTerminalNode = false;
 		if (currPly == (SEARCH_DEPTH_IN_PLY-1))
 			isTerminalNode = true;
-		moves.add(generateMovesAtPosition(toPlay));
+		// Initialise score at this node
+		if (toPlay==Colour.white) {
+			scores[currPly] = Integer.MIN_VALUE;
+		} else {
+			scores[currPly] = Integer.MAX_VALUE;
+		}
 		// Iterate through all the moves for this ply
+		moves.add(generateMovesAtPosition(toPlay));
 		LinkedList<GenericMove> ml = moves.get(currPly);
 		Iterator<GenericMove> move_iter = ml.iterator();
 		while( move_iter.hasNext()) {
@@ -126,19 +108,13 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 					}
 				}
 			} else {
-				// Recursive call to the next level of the search
+				// Recurse to the next ply of the search
 				int nextPly = currPly+1;
 				Piece.Colour colourAtNextPly = Piece.Colour.getOpposite(toPlay);
-				// Initialise score at new node.
-				if (colourAtNextPly==Colour.white) {
-					scores[nextPly] = Integer.MIN_VALUE;
-				} else {
-					scores[nextPly] = Integer.MAX_VALUE;
-				}
 				System.out.println("searchPly("+nextPly+", "+colourAtNextPly.toString()+")");
 				backUpScore = searchPly(nextPly, colourAtNextPly);
 			}
-			// restore the position
+			// Restore the position
 			System.out.println("restorePosition()");
 			bm.undoPreviousMove();
 			if (backUpScore) {
@@ -182,5 +158,13 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		}
 		return entireMoveList;
 	}
-
+	
+	private void printPrincipalContinuation(int currPly) {
+		System.out.print("principal continuation found: "+pc[currPly][currPly]);
+		currPly+=1;
+		while ( currPly < SEARCH_DEPTH_IN_PLY) {
+			System.out.print(", "+pc[0][currPly++]);
+		}
+		System.out.print("\n");
+	}
 }
