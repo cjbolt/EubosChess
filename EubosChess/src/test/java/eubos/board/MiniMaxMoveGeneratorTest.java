@@ -5,8 +5,10 @@ import static org.junit.Assert.*;
 import java.util.LinkedList;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
+import com.fluxchess.jcpi.models.GenericChessman;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
@@ -180,6 +182,53 @@ public class MiniMaxMoveGeneratorTest {
 		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.black );
 		classUnderTest.findMove();
 		expectedMove = new GenericMove( GenericPosition.g7, GenericPosition.h7 );
+		doFindMoveTest(true);
+	}
+	
+	@Test
+	public void test_findMove_ChooseHighestValueCapture() throws NoLegalMoveException {
+		// 8 ........
+		// 7 .....Q..
+		// 6 ...Pp...
+		// 5 ..p.....
+		// 4 .B......
+		// 3 p.......
+		// 2 ........
+		// 1 ........
+		//   abcdefgh
+		pl.add(new Pawn( Colour.white, GenericPosition.a3 ));
+		pl.add(new Pawn( Colour.white, GenericPosition.c5 ));
+		pl.add(new Pawn( Colour.white, GenericPosition.e6 ));
+		pl.add(new Bishop( Colour.black, GenericPosition.b4 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.d6 ));
+		pl.add(new Queen( Colour.black, GenericPosition.f7 ));
+		BoardManager bm = new BoardManager( new Board( pl ));
+		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.white );
+		expectedMove = new GenericMove( GenericPosition.e6, GenericPosition.f7 );
+		doFindMoveTest(true);
+	}
+	
+	@Test
+	@Ignore
+	public void test_findMove_ChooseHighestValueCaptureAndPromotion() throws NoLegalMoveException {
+		// 8 .....Q..
+		// 7 ....p...
+		// 6 ...P....
+		// 5 ..p.....
+		// 4 .B......
+		// 3 p.......
+		// 2 ........
+		// 1 ........
+		//   abcdefgh
+		pl.add(new Pawn( Colour.white, GenericPosition.a3 ));
+		pl.add(new Pawn( Colour.white, GenericPosition.c5 ));
+		pl.add(new Pawn( Colour.white, GenericPosition.e7 ));
+		pl.add(new Bishop( Colour.black, GenericPosition.b4 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.d6 ));
+		pl.add(new Queen( Colour.black, GenericPosition.f8 ));
+		BoardManager bm = new BoardManager( new Board( pl ));
+		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.white );
+		expectedMove = new GenericMove( GenericPosition.e7, GenericPosition.f8, GenericChessman.QUEEN );
 		doFindMoveTest(true);
 	}
 }

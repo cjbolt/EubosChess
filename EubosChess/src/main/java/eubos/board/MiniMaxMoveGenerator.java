@@ -78,18 +78,22 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		currPly = 0;
 		toPlay = onMove;
 		searchPly(currPly, toPlay);
-		// Select the best move and present the principal continuation.
+		// Select the best move and report pc
+		printPrincipalContinuation(currPly);
 		bestMove = pc[currPly][currPly];
 		if (bestMove==null) {
 			throw new NoLegalMoveException();
 		}
-		System.out.print("principal continuation found: "+bestMove);
+		return bestMove;
+	}
+
+	private void printPrincipalContinuation(int currPly) {
+		System.out.print("principal continuation found: "+pc[currPly][currPly]);
 		currPly+=1;
 		while ( currPly < SEARCH_DEPTH_IN_PLY) {
 			System.out.print(", "+pc[0][currPly++]);
 		}
 		System.out.print("\n");
-		return bestMove;
 	}
 
 	private boolean searchPly(int currPly, Piece.Colour toPlay) {
@@ -124,8 +128,15 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			} else {
 				// Recursive call to the next level of the search
 				int nextPly = currPly+1;
-				System.out.println("searchPly("+nextPly+", "+toPlay.toString()+")");
-				backUpScore = searchPly(nextPly, Piece.Colour.getOpposite(toPlay));
+				Piece.Colour colourAtNextPly = Piece.Colour.getOpposite(toPlay);
+				// Initialise score at new node.
+				if (colourAtNextPly==Colour.white) {
+					scores[nextPly] = Integer.MIN_VALUE;
+				} else {
+					scores[nextPly] = Integer.MAX_VALUE;
+				}
+				System.out.println("searchPly("+nextPly+", "+colourAtNextPly.toString()+")");
+				backUpScore = searchPly(nextPly, colourAtNextPly);
 			}
 			// restore the position
 			System.out.println("restorePosition()");
@@ -134,6 +145,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 				everBackedUpScore = true;
 				if (!isTerminalNode)
 					positionScore=scores[currPly+1];
+				scores[currPly]=positionScore;
 				System.out.println("backedUpScore:"+positionScore+" at Ply="+currPly);
 				// Update Principal Continuation
 				pc[currPly][currPly]=currMove;
@@ -143,6 +155,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 						pc[currPly][nextPly]=pc[nextPly][nextPly];
 					}
 				}
+				printPrincipalContinuation(currPly);
 			}
 		}
 		return everBackedUpScore;
