@@ -54,14 +54,10 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	
 	@Override
 	public GenericMove findMove() throws NoLegalMoveException {
-		GenericMove bestMove = null;
-		int currPly = 0;
-		Piece.Colour toPlay = onMove;
-		// Descend the plies in the search tree, to the full depth, updating the board
-		searchPly(currPly, toPlay);
-		// Select the best move and report the principal continuation.
-		printPrincipalContinuation(currPly);
-		bestMove = pc[currPly][currPly];
+		// Descend the plies in the search tree, to full depth, updating board and scoring positions
+		searchPly(0, onMove);
+		// Select the best move
+		GenericMove bestMove = pc[0][0];
 		if (bestMove==null) {
 			throw new NoLegalMoveException();
 		}
@@ -70,30 +66,29 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 
 	private boolean searchPly(int currPly, Piece.Colour toPlay) {
 		boolean everBackedUpScore = false;
-		// Signal if this is a terminal node in the search tree
 		boolean isTerminalNode = false;
-		if (currPly == (SEARCH_DEPTH_IN_PLY-1))
-			isTerminalNode = true;
-		// Initialise score at this node
-		if (toPlay==Colour.white) {
-			scores[currPly] = Integer.MIN_VALUE;
-		} else {
-			scores[currPly] = Integer.MAX_VALUE;
+		String indent = "";
+		for (int i=0; i<currPly; i++) {
+			indent += "\t";
 		}
-		// Iterate through all the moves for this ply
+		if (currPly == (SEARCH_DEPTH_IN_PLY-1)) {
+			// Signal if this is a terminal node in the search tree, as different processing occurs
+			isTerminalNode = true;
+		}
+		initNodeScore(currPly, toPlay);
 		LinkedList<GenericMove> ml = generateMovesAtPosition(toPlay);
 		Iterator<GenericMove> move_iter = ml.iterator();
+		// Iterate through all the moves for this ply
 		while( move_iter.hasNext()) {
 			boolean backUpScore = false;
 			int positionScore = 0;
-			// Apply the move
+			// 1) Apply the move
 			GenericMove currMove = move_iter.next();
-			System.out.println("performMove("+currMove.toString()+") at Ply="+currPly);
+			System.out.println(indent+"performMove("+currMove.toString()+") at Ply="+currPly);
 			bm.performMove(currMove);
+			// 2) Either recurse or evaluate position and check for back-up of score
 			if ( isTerminalNode ) {
-				// Score the resulting position
 				positionScore = evaluatePosition(bm.getTheBoard());
-				// Back-up the score if appropriate
 				if (toPlay == Colour.white) {
 					if (positionScore > scores[currPly]) {
 						backUpScore = true;
@@ -104,33 +99,46 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 					}
 				}
 			} else {
-				// Recurse to the next ply of the search
 				int nextPly = currPly+1;
 				Piece.Colour colourAtNextPly = Piece.Colour.getOpposite(toPlay);
-				System.out.println("searchPly("+nextPly+", "+colourAtNextPly.toString()+")");
+				System.out.println(indent+"searchPly("+nextPly+", "+colourAtNextPly.toString()+")");
 				backUpScore = searchPly(nextPly, colourAtNextPly);
 			}
-			// Restore the position
-			System.out.println("restorePosition()");
+			// 3) Undo the move
+			System.out.println(indent+"undoMove("+currMove.toString()+") at Ply="+currPly);
 			bm.undoPreviousMove();
 			if (backUpScore) {
 				everBackedUpScore = true;
 				if (!isTerminalNode)
 					positionScore=scores[currPly+1];
 				scores[currPly]=positionScore;
-				System.out.println("backedUpScore:"+positionScore+" at Ply="+currPly);
-				// Update Principal Continuation
-				pc[currPly][currPly]=currMove;
-				if (!isTerminalNode){
-					// back up the rest of the pc array...
-					for (int nextPly=currPly+1; nextPly < SEARCH_DEPTH_IN_PLY; nextPly++) {
-						pc[currPly][nextPly]=pc[nextPly][nextPly];
-					}
-				}
+				System.out.println(indent+"backedUpScore:"+positionScore+" at Ply="+currPly);
+				updatePrincipalContinuation(currPly, isTerminalNode, currMove);
 				printPrincipalContinuation(currPly);
 			}
 		}
 		return everBackedUpScore;
+	}
+
+	private void updatePrincipalContinuation(int currPly,
+			boolean isTerminalNode, GenericMove currMove) {
+		// Update Principal Continuation
+		pc[currPly][currPly]=currMove;
+		if (!isTerminalNode){
+			// back up the rest of the pc array...
+			for (int nextPly=currPly+1; nextPly < SEARCH_DEPTH_IN_PLY; nextPly++) {
+				pc[currPly][nextPly]=pc[nextPly][nextPly];
+			}
+		}
+	}
+
+	private void initNodeScore(int currPly, Piece.Colour toPlay) {
+		// Initialise score at this node
+		if (toPlay==Colour.white) {
+			scores[currPly] = Integer.MIN_VALUE;
+		} else {
+			scores[currPly] = Integer.MAX_VALUE;
+		}
 	}
 
 	private LinkedList<GenericMove> generateMovesAtPosition(Piece.Colour colour) {
@@ -156,7 +164,11 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	}
 	
 	private void printPrincipalContinuation(int currPly) {
-		System.out.print("principal continuation found: "+pc[currPly][currPly]);
+		String indent="";
+		for (int i=0; i<currPly; i++) {
+			indent += "\t";
+		}
+		System.out.print(indent+"principal continuation found: "+pc[currPly][currPly]);
 		currPly+=1;
 		while ( currPly < SEARCH_DEPTH_IN_PLY) {
 			System.out.print(", "+pc[0][currPly++]);
