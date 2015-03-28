@@ -56,7 +56,8 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	public GenericMove findMove() throws NoLegalMoveException {
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		searchPly(0, onMove);
-		// Select the best move
+		// Report the principal continuation and select the best move
+		printPrincipalContinuation(0);
 		GenericMove bestMove = pc[0][0];
 		if (bestMove==null) {
 			throw new NoLegalMoveException();
@@ -108,13 +109,28 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			System.out.println(indent+"undoMove("+currMove.toString()+") at Ply="+currPly);
 			bm.undoPreviousMove();
 			if (backUpScore) {
+				boolean writeScore = false;
 				everBackedUpScore = true;
-				if (!isTerminalNode)
+				if (!isTerminalNode) {
 					positionScore=scores[currPly+1];
-				scores[currPly]=positionScore;
-				System.out.println(indent+"backedUpScore:"+positionScore+" at Ply="+currPly);
-				updatePrincipalContinuation(currPly, isTerminalNode, currMove);
-				printPrincipalContinuation(currPly);
+					if (toPlay == Colour.white) {
+						if (positionScore > scores[currPly]) {
+							writeScore = true;
+						}
+					} else {
+						if (positionScore < scores[currPly]) {
+							writeScore = true;
+						}
+					}
+				} else {
+					writeScore = true;
+				}
+				if (writeScore) {
+					scores[currPly]=positionScore;
+					System.out.println(indent+"backedUpScore:"+positionScore+" at Ply="+currPly);
+					updatePrincipalContinuation(currPly, isTerminalNode, currMove);
+					printPrincipalContinuation(currPly);
+				}
 			}
 		}
 		return everBackedUpScore;

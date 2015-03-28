@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import java.util.LinkedList;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericChessman;
@@ -209,7 +208,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	@Ignore
+	//@Ignore
 	public void test_findMove_ChooseHighestValueCaptureAndPromotion() throws NoLegalMoveException {
 		// 8 .....Q..
 		// 7 ....p...
