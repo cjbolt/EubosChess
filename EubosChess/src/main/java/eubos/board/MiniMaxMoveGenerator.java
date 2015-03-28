@@ -17,9 +17,53 @@ import eubos.pieces.Rook;
 public class MiniMaxMoveGenerator extends MoveGenerator implements
 		IMoveGenerator {
 	
-	private static final int SEARCH_DEPTH_IN_PLY = 2;
+	private static final int SEARCH_DEPTH_IN_PLY = 8;
 	private int scores[];
 	private GenericMove pc[][];
+	private static final boolean isDebugOn = false;
+	
+	public class moveGenDebugAgent {
+		private String indent = "";
+		private boolean isActive=false;
+	
+		public moveGenDebugAgent( int currPly, boolean active ) {
+			isActive = active;
+			for (int i=0; i<currPly; i++) {
+				indent += "\t";
+			}
+		}
+		
+		public void printPerformMove(int currPly, GenericMove currMove) {
+			if (isActive)
+				System.out.println(indent+"performMove("+currMove.toString()+") at Ply="+currPly);
+		}
+		
+		private void printSearchPly(int nextPly, Piece.Colour colourAtNextPly) {
+			if (isActive)
+				System.out.println(indent+"searchPly("+nextPly+", "+colourAtNextPly.toString()+")");
+		}
+		
+		private void printUndoMove(int currPly, GenericMove currMove) {
+			if (isActive)
+				System.out.println(indent+"undoMove("+currMove.toString()+") at Ply="+currPly);
+		}
+		
+		private void printBackUpScore(int currPly, int positionScore) {
+			if (isActive)
+				System.out.println(indent+"backedUpScore:"+positionScore+" at Ply="+currPly);
+		}
+		
+		private void printPrincipalContinuation(int currPly) {
+			if (isActive) {
+				System.out.print(indent+"principal continuation found: "+pc[currPly][currPly]);
+				currPly+=1;
+				while ( currPly < SEARCH_DEPTH_IN_PLY) {
+					System.out.print(", "+pc[0][currPly++]);
+				}
+				System.out.print("\n");
+			}
+		}
+	}
 	
 	public MiniMaxMoveGenerator( BoardManager bm, Piece.Colour sideToMove ) {
 		super( bm, sideToMove);
@@ -57,7 +101,8 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		searchPly(0, onMove);
 		// Report the principal continuation and select the best move
-		printPrincipalContinuation(0);
+		moveGenDebugAgent debug = new moveGenDebugAgent(0, true /*isDebugOn*/);
+		debug.printPrincipalContinuation(0);
 		GenericMove bestMove = pc[0][0];
 		if (bestMove==null) {
 			throw new NoLegalMoveException();
@@ -67,11 +112,8 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 
 	private boolean searchPly(int currPly, Piece.Colour toPlay) {
 		boolean everBackedUpScore = false;
+		moveGenDebugAgent debug = new moveGenDebugAgent(currPly, isDebugOn);
 		boolean isTerminalNode = false;
-		String indent = "";
-		for (int i=0; i<currPly; i++) {
-			indent += "\t";
-		}
 		if (currPly == (SEARCH_DEPTH_IN_PLY-1)) {
 			// Signal if this is a terminal node in the search tree, as different processing occurs
 			isTerminalNode = true;
@@ -85,7 +127,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			int positionScore = 0;
 			// 1) Apply the move
 			GenericMove currMove = move_iter.next();
-			System.out.println(indent+"performMove("+currMove.toString()+") at Ply="+currPly);
+			debug.printPerformMove(currPly, currMove);
 			bm.performMove(currMove);
 			// 2) Either recurse or evaluate position and check for back-up of score
 			if ( isTerminalNode ) {
@@ -102,11 +144,11 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			} else {
 				int nextPly = currPly+1;
 				Piece.Colour colourAtNextPly = Piece.Colour.getOpposite(toPlay);
-				System.out.println(indent+"searchPly("+nextPly+", "+colourAtNextPly.toString()+")");
+				debug.printSearchPly(nextPly, colourAtNextPly);
 				backUpScore = searchPly(nextPly, colourAtNextPly);
 			}
 			// 3) Undo the move
-			System.out.println(indent+"undoMove("+currMove.toString()+") at Ply="+currPly);
+			debug.printUndoMove(currPly, currMove);
 			bm.undoPreviousMove();
 			if (backUpScore) {
 				boolean writeScore = false;
@@ -127,9 +169,9 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 				}
 				if (writeScore) {
 					scores[currPly]=positionScore;
-					System.out.println(indent+"backedUpScore:"+positionScore+" at Ply="+currPly);
+					debug.printBackUpScore(currPly, positionScore);
 					updatePrincipalContinuation(currPly, isTerminalNode, currMove);
-					printPrincipalContinuation(currPly);
+					debug.printPrincipalContinuation(currPly);
 				}
 			}
 		}
@@ -178,17 +220,5 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		}
 		return entireMoveList;
 	}
-	
-	private void printPrincipalContinuation(int currPly) {
-		String indent="";
-		for (int i=0; i<currPly; i++) {
-			indent += "\t";
-		}
-		System.out.print(indent+"principal continuation found: "+pc[currPly][currPly]);
-		currPly+=1;
-		while ( currPly < SEARCH_DEPTH_IN_PLY) {
-			System.out.print(", "+pc[0][currPly++]);
-		}
-		System.out.print("\n");
-	}
+
 }

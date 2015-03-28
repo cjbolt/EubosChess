@@ -185,6 +185,41 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
+	public void test_findMove_ArenaFailKingInCheck() throws NoLegalMoveException {
+		// 8 ...NKBNR
+		// 7 ...P.PPP
+		// 6 ........
+		// 5 .b.P....
+		// 4 r..n....
+		// 3 ........
+		// 2 ......pp
+		// 1 ....r.k.
+		//   abcdefgh
+		pl.add(new King( Colour.black, GenericPosition.e8 ));
+		pl.add(new Bishop( Colour.black, GenericPosition.f8 ));
+		pl.add(new Knight( Colour.black, GenericPosition.g8 ));
+		pl.add(new Knight( Colour.black, GenericPosition.d8 ));
+		pl.add(new Rook( Colour.black, GenericPosition.h8 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.d7 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.f7 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.g7 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.h7 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.d5 ));
+		pl.add(new King( Colour.white, GenericPosition.g1 ));
+		pl.add(new Bishop( Colour.white, GenericPosition.b5 ));
+		pl.add(new Knight( Colour.white, GenericPosition.d4 ));
+		pl.add(new Rook( Colour.white, GenericPosition.e1 ));
+		pl.add(new Rook( Colour.white, GenericPosition.a4 ));
+		pl.add(new Pawn( Colour.white, GenericPosition.h2 ));
+		pl.add(new Pawn( Colour.white, GenericPosition.g2 ));
+		BoardManager bm = new BoardManager( new Board( pl ));
+		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.black );
+		classUnderTest.findMove();
+		expectedMove = new GenericMove( GenericPosition.f8, GenericPosition.e7 );
+		doFindMoveTest(true);
+	}	
+	
+	@Test
 	public void test_findMove_ChooseHighestValueCapture() throws NoLegalMoveException {
 		// 8 ........
 		// 7 .....Q..
