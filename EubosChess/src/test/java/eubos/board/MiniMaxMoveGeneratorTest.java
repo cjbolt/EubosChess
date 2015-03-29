@@ -292,4 +292,71 @@ public class MiniMaxMoveGeneratorTest {
 		expectedMove = new GenericMove( GenericPosition.e7, GenericPosition.e8, GenericChessman.QUEEN );
 		doFindMoveTest(true);
 	}
+	
+	@Test
+	public void test_findMove_pinnedPawn1()  throws NoLegalMoveException {
+		System.out.println("\ntest_findMove_pinnedPawn()");
+		// 8 ....K...
+		// 7 ........
+		// 6 ....P...
+		// 5 .....b..
+		// 4 ........
+		// 3 ........
+		// 2 ........
+		// 1 ....r...
+		//   abcdefgh
+		pl.add(new King( Colour.black, GenericPosition.e8 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.e6 ));
+		pl.add(new Rook( Colour.white, GenericPosition.e1 ));
+		pl.add(new Bishop( Colour.white, GenericPosition.f5 ));
+		BoardManager bm = new BoardManager( new Board( pl ));
+		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.black );
+		expectedMove = new GenericMove( GenericPosition.e6, GenericPosition.f5 );
+		doFindMoveTest(false);
+	}
+
+	@Test
+	public void test_findMove_pinnedPawn2()  throws NoLegalMoveException {
+		// Observed to produce an illegal move exception in Arena testing, 29th March 2015.
+		System.out.println("\ntest_findMove_pinnedPawn2()");
+		// 8 .NBQK..R
+		// 7 ...P...P
+		// 6 R.PBPN..
+		// 5 .P...b..
+		// 4 ...p....
+		// 3 pqp..n..
+		// 2 .....ppp
+		// 1 r...r.k.
+		//   abcdefgh
+		pl.add(new King( Colour.black, GenericPosition.e8 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.e6 ));
+		pl.add(new Knight( Colour.black, GenericPosition.f6 ));
+		pl.add(new Knight( Colour.black, GenericPosition.b8 ));
+		pl.add(new Bishop( Colour.black, GenericPosition.c8 ));
+		pl.add(new Bishop( Colour.black, GenericPosition.d6 ));
+		pl.add(new Queen( Colour.black, GenericPosition.d8 ));
+		pl.add(new Rook( Colour.black, GenericPosition.a6 ));
+		pl.add(new Rook( Colour.black, GenericPosition.h8 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.h7 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.d7 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.c6 ));
+		pl.add(new Pawn( Colour.black, GenericPosition.b5 ));
+		// White pieces
+		pl.add(new Rook( Colour.white, GenericPosition.e1 ));
+		pl.add(new Bishop( Colour.white, GenericPosition.f5 ));
+		pl.add(new Pawn( Colour.white, GenericPosition.f2 ));
+		pl.add(new Pawn( Colour.white, GenericPosition.g2 ));
+		pl.add(new Pawn( Colour.white, GenericPosition.h2 ));
+		pl.add(new Pawn( Colour.white, GenericPosition.a3 ));
+		pl.add(new Pawn( Colour.white, GenericPosition.c3 ));
+		pl.add(new Pawn( Colour.white, GenericPosition.d4 ));
+		pl.add(new Rook( Colour.white, GenericPosition.a1 ));
+		pl.add(new King( Colour.white, GenericPosition.g1 ));
+		pl.add(new Queen( Colour.white, GenericPosition.b3 ));
+		pl.add(new Knight( Colour.white, GenericPosition.f3 ));
+		BoardManager bm = new BoardManager( new Board( pl ));
+		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.black );
+		expectedMove = new GenericMove( GenericPosition.e6, GenericPosition.f5 );
+		doFindMoveTest(false);
+	}
 }
