@@ -17,7 +17,7 @@ import eubos.pieces.Rook;
 public class MiniMaxMoveGenerator extends MoveGenerator implements
 		IMoveGenerator {
 	
-	private static final int SEARCH_DEPTH_IN_PLY = 8;
+	private static final int SEARCH_DEPTH_IN_PLY = 6;
 	private int scores[];
 	private GenericMove pc[][];
 	private static final boolean isDebugOn = false;

@@ -45,6 +45,7 @@ public class MiniMaxMoveGeneratorTest {
 
 	@Test
 	public void test_findMove_WhitePawnCapture() {
+		System.out.println("\ntest_findMove_WhitePawnCapture()");
 		// 8 ........
 		// 7 ........
 		// 6 ...P..P.
@@ -65,6 +66,7 @@ public class MiniMaxMoveGeneratorTest {
 	
 	@Test
 	public void test_findMove_BlackPawnCapture() {
+		System.out.println("\ntest_findMove_BlackPawnCapture()");
 		// 8 ........
 		// 7 ...P....
 		// 6 ..p.....
@@ -85,6 +87,7 @@ public class MiniMaxMoveGeneratorTest {
 	
 	@Test
 	public void test_findMove_CaptureToEscapeCheck() throws NoLegalMoveException {
+		System.out.println("\ntest_findMove_CaptureToEscapeCheck()");
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -109,6 +112,7 @@ public class MiniMaxMoveGeneratorTest {
 	
 	@Test
 	public void test_findMove_MoveToEscapeCheck() throws NoLegalMoveException {
+		System.out.println("\ntest_findMove_MoveToEscapeCheck()");
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -131,6 +135,7 @@ public class MiniMaxMoveGeneratorTest {
 	
 	@Test(expected=NoLegalMoveException.class)
 	public void test_findMove_NoLegalMove() throws NoLegalMoveException {
+		System.out.println("\ntest_findMove_NoLegalMove()");
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -154,6 +159,7 @@ public class MiniMaxMoveGeneratorTest {
 	
 	@Test
 	public void test_findMove_ArenaFailKingMove() throws NoLegalMoveException {
+		System.out.println("\ntest_findMove_ArenaFailKingMove()");
 		// 8 ..b.q...
 		// 7 ......K.
 		// 6 ..q.....
@@ -179,13 +185,13 @@ public class MiniMaxMoveGeneratorTest {
 		pl.add(new Bishop( Colour.white, GenericPosition.g5 ));		
 		BoardManager bm = new BoardManager( new Board( pl ));
 		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.black );
-		classUnderTest.findMove();
 		expectedMove = new GenericMove( GenericPosition.g7, GenericPosition.h7 );
 		doFindMoveTest(true);
 	}
 	
 	@Test
 	public void test_findMove_ArenaFailKingInCheck() throws NoLegalMoveException {
+		System.out.println("\ntest_findMove_ArenaFailKingInCheck()");
 		// 8 ...NKBNR
 		// 7 ...P.PPP
 		// 6 ........
@@ -214,13 +220,13 @@ public class MiniMaxMoveGeneratorTest {
 		pl.add(new Pawn( Colour.white, GenericPosition.g2 ));
 		BoardManager bm = new BoardManager( new Board( pl ));
 		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.black );
-		classUnderTest.findMove();
 		expectedMove = new GenericMove( GenericPosition.f8, GenericPosition.e7 );
 		doFindMoveTest(true);
 	}	
 	
 	@Test
 	public void test_findMove_ChooseHighestValueCapture() throws NoLegalMoveException {
+		System.out.println("\ntest_findMove_ChooseHighestValueCapture()");
 		// 8 ........
 		// 7 .....Q..
 		// 6 ...Pp...
@@ -245,6 +251,7 @@ public class MiniMaxMoveGeneratorTest {
 	@Test
 	//@Ignore
 	public void test_findMove_ChooseHighestValueCaptureAndPromotion() throws NoLegalMoveException {
+		System.out.println("\ntest_findMove_ChooseHighestValueCaptureAndPromotion()");
 		// 8 .....Q..
 		// 7 ....p...
 		// 6 ...P....
@@ -268,6 +275,7 @@ public class MiniMaxMoveGeneratorTest {
 	
 	@Test
 	public void test_findMove_pawnPromotion()  throws NoLegalMoveException {
+		System.out.println("\ntest_findMove_pawnPromotion()");
 		// 8 ........
 		// 7 ....p...
 		// 6 ...P....
