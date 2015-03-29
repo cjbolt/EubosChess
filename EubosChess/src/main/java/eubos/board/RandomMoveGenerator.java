@@ -10,8 +10,11 @@ import eubos.pieces.Piece;
 
 public class RandomMoveGenerator extends MoveGenerator implements IMoveGenerator {
 	
+	private Piece.Colour onMove;
+	
 	public RandomMoveGenerator( BoardManager bm, Piece.Colour sideToMove ) {
-		super( bm, sideToMove);
+		super( bm );
+		onMove = sideToMove;
 	}
 
 	// Find a random legal move for the colour "on move"
@@ -23,13 +26,13 @@ public class RandomMoveGenerator extends MoveGenerator implements IMoveGenerator
 		while ( iter_p.hasNext() ) {
 			entireMoveList.addAll( iter_p.next().generateMoves( bm ));
 		}
-		addCastlingMoves(entireMoveList);
+		addCastlingMoves(entireMoveList, onMove);
 		// Scratch any moves resulting in the king being in check
 		Iterator<GenericMove> iter_ml = entireMoveList.iterator();
 		while ( iter_ml.hasNext() ) {
 			GenericMove currMove = iter_ml.next();
 			bm.performMove( currMove );
-			if (inCheck()) {
+			if (inCheck(onMove)) {
 				iter_ml.remove();
 			}
 			bm.undoPreviousMove();

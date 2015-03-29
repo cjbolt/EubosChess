@@ -39,7 +39,7 @@ public class MiniMaxMoveGeneratorTest {
 				assertFalse(selectedMove.equals(expectedMove));
 		}
 		catch ( NoLegalMoveException e ) {
-			assert( false );
+			fail();
 		}
 	}
 
@@ -220,7 +220,7 @@ public class MiniMaxMoveGeneratorTest {
 		pl.add(new Pawn( Colour.white, GenericPosition.g2 ));
 		BoardManager bm = new BoardManager( new Board( pl ));
 		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.black );
-		expectedMove = new GenericMove( GenericPosition.f8, GenericPosition.e7 );
+		expectedMove = new GenericMove( GenericPosition.g8, GenericPosition.e7 );
 		doFindMoveTest(true);
 	}	
 	
