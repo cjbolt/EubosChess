@@ -114,11 +114,6 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private boolean searchPly(int currPly, Piece.Colour toPlay) {
 		boolean everBackedUpScore = false;
 		moveGenDebugAgent debug = new moveGenDebugAgent(currPly, isDebugOn);
-		boolean isTerminalNode = false;
-		if (currPly == (SEARCH_DEPTH_IN_PLY-1)) {
-			// Signal if this is a terminal node in the search tree, as different processing occurs
-			isTerminalNode = true;
-		}
 		initNodeScore(currPly, toPlay);
 		LinkedList<GenericMove> ml = generateMovesAtPosition(toPlay);
 		Iterator<GenericMove> move_iter = ml.iterator();
@@ -131,17 +126,9 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			debug.printPerformMove(currPly, currMove);
 			bm.performMove(currMove);
 			// 2) Either recurse or evaluate position and check for back-up of score
-			if ( isTerminalNode ) {
+			if ( isTerminalNode(currPly) ) {
 				positionScore = evaluatePosition(bm.getTheBoard());
-				if (toPlay == Colour.white) {
-					if (positionScore > scores[currPly]) {
-						backUpScore = true;
-					}
-				} else {
-					if (positionScore < scores[currPly]) {
-						backUpScore = true;
-					}
-				}
+				backUpScore = isBackUpRequired(currPly, toPlay, backUpScore, positionScore);
 			} else {
 				int nextPly = currPly+1;
 				Piece.Colour colourAtNextPly = Piece.Colour.getOpposite(toPlay);
@@ -151,32 +138,58 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			// 3) Undo the move
 			debug.printUndoMove(currPly, currMove);
 			bm.undoPreviousMove();
+			// 4) Back up the position score and update the principal continuation
 			if (backUpScore) {
-				boolean writeScore = false;
 				everBackedUpScore = true;
-				if (!isTerminalNode) {
-					positionScore=scores[currPly+1];
-					if (toPlay == Colour.white) {
-						if (positionScore > scores[currPly]) {
-							writeScore = true;
-						}
-					} else {
-						if (positionScore < scores[currPly]) {
-							writeScore = true;
-						}
-					}
-				} else {
-					writeScore = true;
-				}
-				if (writeScore) {
-					scores[currPly]=positionScore;
-					debug.printBackUpScore(currPly, positionScore);
-					updatePrincipalContinuation(currPly, currMove);
-					debug.printPrincipalContinuation(currPly);
-				}
+				performScoreBackUp(currPly, toPlay, debug, positionScore, currMove);
 			}
 		}
 		return everBackedUpScore;
+	}
+
+	private boolean isBackUpRequired(int currPly, Piece.Colour toPlay,
+			boolean backUpScore, int positionScore) {
+		if (toPlay == Colour.white) {
+			if (positionScore > scores[currPly]) {
+				backUpScore = true;
+			}
+		} else {
+			if (positionScore < scores[currPly]) {
+				backUpScore = true;
+			}
+		}
+		return backUpScore;
+	}
+
+	private boolean isTerminalNode(int currPly) {
+		boolean isTerminalNode = false;
+		if (currPly == (SEARCH_DEPTH_IN_PLY-1)) {
+			isTerminalNode = true;
+		}
+		return isTerminalNode;
+	}
+
+	private void performScoreBackUp(
+			int currPly,
+			Piece.Colour toPlay,
+			moveGenDebugAgent debug,
+			int positionScore,
+			GenericMove currMove) {
+		boolean isTerminalNode = isTerminalNode(currPly);
+		boolean writeScore = false;
+		if (!isTerminalNode) {
+			positionScore=scores[currPly+1];
+			writeScore = isBackUpRequired(currPly, toPlay, writeScore,
+					positionScore);
+		} else {
+			writeScore = true;
+		}
+		if (writeScore) {
+			scores[currPly]=positionScore;
+			debug.printBackUpScore(currPly, positionScore);
+			updatePrincipalContinuation(currPly, currMove);
+			debug.printPrincipalContinuation(currPly);
+		}
 	}
 
 	private void updatePrincipalContinuation(int currPly, GenericMove currMove) {
