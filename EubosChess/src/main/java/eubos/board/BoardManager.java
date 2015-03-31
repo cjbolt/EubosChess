@@ -43,8 +43,10 @@ public class BoardManager implements IBoardManager {
 	}
 
 	public class fenParser {
+		LinkedList<Piece> pl;
+		
 		public fenParser( String fenString ) {
-			LinkedList<Piece> pl = new LinkedList<Piece>();
+			pl = new LinkedList<Piece>();
 			String[] tokens = fenString.split(" ");
 			String piecePlacement = tokens[0];
 			String onMove = tokens[1];
@@ -58,30 +60,52 @@ public class BoardManager implements IBoardManager {
 				switch(c)
 				{
 				case 'r':
+					pl.add(new Rook( Colour.black, GenericPosition.valueOf(f,r)));
+					f = advanceFile(f);
 					break;
 				case 'R':
+					pl.add(new Rook( Colour.white, GenericPosition.valueOf(f,r)));
+					f = advanceFile(f);
 					break;
 				case 'n':
+					pl.add(new Knight( Colour.black, GenericPosition.valueOf(f,r)));
+					f = advanceFile(f);
 					break;
 				case 'N':
+					pl.add(new Knight( Colour.white, GenericPosition.valueOf(f,r)));
+					f = advanceFile(f);
 					break;
 				case 'b':
 					pl.add(new Bishop( Colour.black, GenericPosition.valueOf(f,r)));
+					f = advanceFile(f);
 					break;
 				case 'B':
 					pl.add(new Bishop( Colour.white, GenericPosition.valueOf(f,r)));
+					f = advanceFile(f);
 					break;
 				case 'q':
 					pl.add(new Queen( Colour.black, GenericPosition.valueOf(f,r)));
+					f = f.next();
 					break;
 				case 'Q':
 					pl.add(new Queen( Colour.white, GenericPosition.valueOf(f,r)));
+					f = advanceFile(f);
 					break;
 				case 'k':
 					pl.add(new King( Colour.black, GenericPosition.valueOf(f,r)));
+					f = advanceFile(f);
 					break;
 				case 'K':
 					pl.add(new King( Colour.white, GenericPosition.valueOf(f,r)));
+					f = advanceFile(f);
+					break;
+				case 'p':
+					pl.add(new Pawn( Colour.black, GenericPosition.valueOf(f,r)));
+					f = advanceFile(f);
+					break;
+				case 'P':
+					pl.add(new Pawn( Colour.white, GenericPosition.valueOf(f,r)));
+					f = advanceFile(f);
 					break;
 				case '1':
 				case '2':
@@ -90,9 +114,9 @@ public class BoardManager implements IBoardManager {
 				case '5':
 				case '6':
 				case '7':
-					int loop = new Integer(c);
+					int loop = new Integer(c-'0');
 					for ( int i=0; i<loop; i++ ) {
-						f = f.next();
+						f = advanceFile(f);
 					}
 				case '8':
 					break;
@@ -102,8 +126,23 @@ public class BoardManager implements IBoardManager {
 					break;
 				}
 			}
+			Colour colourOnMove;
+			if (onMove.equals("w"))
+				colourOnMove = Colour.white;
+			else if (onMove.equals("b"))
+				colourOnMove = Colour.black;
+			// looks like may need to revisit castling class members...
+		}
+		private GenericFile advanceFile(GenericFile f) {
+			if ( f != GenericFile.Fh )
+				f = f.next();
+			return f;
+		}
+		public Board create() {
+			return new Board( pl );
 		}
 	}
+	
 	private Stack<TrackedMove> previousMoves;
 	private Board theBoard;
 	private King whiteKing;
@@ -127,6 +166,21 @@ public class BoardManager implements IBoardManager {
 	public BoardManager( Board startingPosition ) {
 		previousMoves = new Stack<TrackedMove>();
 		theBoard = startingPosition;
+		Iterator<Piece> iterAllPieces = theBoard.iterator();
+		while (iterAllPieces.hasNext()) {
+			Piece currPiece = iterAllPieces.next();
+			if ( currPiece instanceof King ) {
+				setKing( (King)currPiece );
+			}
+		}
+		whiteHasCastled = false;
+		blackHasCastled = false;
+	}
+	
+	public BoardManager( String fenString ) {
+		previousMoves = new Stack<TrackedMove>();
+		fenParser fp = new fenParser( fenString );
+		theBoard = fp.create();
 		Iterator<Piece> iterAllPieces = theBoard.iterator();
 		while (iterAllPieces.hasNext()) {
 			Piece currPiece = iterAllPieces.next();

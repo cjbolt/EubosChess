@@ -55,10 +55,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		pl.add(new Pawn( Colour.black, GenericPosition.d6 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.c5 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.g6 ));
-		BoardManager bm = new BoardManager( new Board( pl ));
+		BoardManager bm = new BoardManager( "8/8/3p2p1/2P5/8/8/8/8 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.white );
 		expectedMove = new GenericMove( GenericPosition.c5, GenericPosition.d6 );
 		doFindMoveTest(true);
@@ -76,10 +73,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 .....p..
 		// 1 ........
 		//   abcdefgh
-		pl.add(new Pawn( Colour.black, GenericPosition.d7 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.c6 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.f2 ));
-		BoardManager bm = new BoardManager( new Board( pl ));
+		BoardManager bm = new BoardManager( "8/3p4/2P5/8/8/8/5P2/8 b - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.black );
 		expectedMove = new GenericMove( GenericPosition.d7, GenericPosition.c6 );
 		doFindMoveTest(true);
@@ -97,14 +91,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 PPP.....
 		// 1 kP......
 		//   abcdefgh
-		pl.add(new King( Colour.white, GenericPosition.a1 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.b1 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.a2 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.b2 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.c2 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.b3 ));
-		// pawn at b2 can be captured to escape check
-		BoardManager bm = new BoardManager( new Board( pl ));
+		BoardManager bm = new BoardManager( "8/8/8/8/8/1p6/ppp5/Kp6 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.white );
 		expectedMove = new GenericMove( GenericPosition.a1, GenericPosition.b2 );
 		doFindMoveTest(true);			
@@ -122,12 +109,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 .P......
 		// 1 k.......
 		//   abcdefgh
-		pl.add(new King( Colour.white, GenericPosition.a1 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.b2 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.b3 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.c3 ));
-		// king can move out of check to b1
-		BoardManager bm = new BoardManager( new Board( pl ));
+		BoardManager bm = new BoardManager( "8/8/8/8/8/1pp5/1p6/K7 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.white );
 		expectedMove = new GenericMove( GenericPosition.a1, GenericPosition.b1 );
 		doFindMoveTest(true);
@@ -145,14 +127,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 PPP.....
 		// 1 kP......
 		//   abcdefgh
-		pl.add(new King( Colour.white, GenericPosition.a1 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.b1 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.a2 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.b2 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.c2 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.b3 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.c3 ));
-		BoardManager bm = new BoardManager( new Board( pl ));
+		BoardManager bm = new BoardManager( "8/8/8/8/8/1pp5/ppp5/Kp6 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.white );
 		classUnderTest.findMove();
 	}
@@ -169,21 +144,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 ........
 		// 1 ..kr...r
 		//   abcdefgh
-		pl.add(new King( Colour.black, GenericPosition.g7 ));
-		pl.add(new King( Colour.white, GenericPosition.c1 ));
-		pl.add(new Rook( Colour.white, GenericPosition.d1 ));
-		pl.add(new Rook( Colour.white, GenericPosition.h1 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.b3 ));
-		pl.add(new Knight( Colour.white, GenericPosition.f3 ));
-		pl.add(new Knight( Colour.white, GenericPosition.h3 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.g3 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.e4 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.a5 ));
-		pl.add(new Queen( Colour.white, GenericPosition.c6 ));
-		pl.add(new Queen( Colour.white, GenericPosition.e8 ));
-		pl.add(new Bishop( Colour.white, GenericPosition.c8 ));
-		pl.add(new Bishop( Colour.white, GenericPosition.g5 ));		
-		BoardManager bm = new BoardManager( new Board( pl ));
+		BoardManager bm = new BoardManager( "2B1Q3/6k1/2Q5/P5B1/4P3/1P3NPN/8/2KR3R b - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.black );
 		expectedMove = new GenericMove( GenericPosition.g7, GenericPosition.h7 );
 		doFindMoveTest(true);
@@ -201,24 +162,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 ......pp
 		// 1 ....r.k.
 		//   abcdefgh
-		pl.add(new King( Colour.black, GenericPosition.e8 ));
-		pl.add(new Bishop( Colour.black, GenericPosition.f8 ));
-		pl.add(new Knight( Colour.black, GenericPosition.g8 ));
-		pl.add(new Knight( Colour.black, GenericPosition.d8 ));
-		pl.add(new Rook( Colour.black, GenericPosition.h8 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.d7 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.f7 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.g7 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.h7 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.d5 ));
-		pl.add(new King( Colour.white, GenericPosition.g1 ));
-		pl.add(new Bishop( Colour.white, GenericPosition.b5 ));
-		pl.add(new Knight( Colour.white, GenericPosition.d4 ));
-		pl.add(new Rook( Colour.white, GenericPosition.e1 ));
-		pl.add(new Rook( Colour.white, GenericPosition.a4 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.h2 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.g2 ));
-		BoardManager bm = new BoardManager( new Board( pl ));
+		BoardManager bm = new BoardManager( "3nkbnr/3p1ppp/8/1B1p4/R2N4/8/6PP/4R1K1 b - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.black );
 		expectedMove = new GenericMove( GenericPosition.g8, GenericPosition.e7 );
 		doFindMoveTest(true);
@@ -236,13 +180,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		pl.add(new Pawn( Colour.white, GenericPosition.a3 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.c5 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.e6 ));
-		pl.add(new Bishop( Colour.black, GenericPosition.b4 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.d6 ));
-		pl.add(new Queen( Colour.black, GenericPosition.f7 ));
-		BoardManager bm = new BoardManager( new Board( pl ));
+		BoardManager bm = new BoardManager( "8/5q2/3pP3/2P5/1b6/P7/8/8 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.white );
 		expectedMove = new GenericMove( GenericPosition.e6, GenericPosition.f7 );
 		doFindMoveTest(true);
@@ -261,13 +199,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		pl.add(new Pawn( Colour.white, GenericPosition.a3 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.c5 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.e7 ));
-		pl.add(new Bishop( Colour.black, GenericPosition.b4 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.d6 ));
-		pl.add(new Queen( Colour.black, GenericPosition.f8 ));
-		BoardManager bm = new BoardManager( new Board( pl ));
+		BoardManager bm = new BoardManager( "5q2/4P3/3p4/2P5/1b6/P7/8/8 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.white );
 		expectedMove = new GenericMove( GenericPosition.e7, GenericPosition.f8, GenericChessman.QUEEN );
 		doFindMoveTest(true);
@@ -285,9 +217,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		pl.add(new Pawn( Colour.white, GenericPosition.e7 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.d6 ));
-		BoardManager bm = new BoardManager( new Board( pl ));
+		BoardManager bm = new BoardManager( "8/4P3/3p4/8/8/8/8/8 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.white );
 		expectedMove = new GenericMove( GenericPosition.e7, GenericPosition.e8, GenericChessman.QUEEN );
 		doFindMoveTest(true);
@@ -305,11 +235,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 ........
 		// 1 ....r...
 		//   abcdefgh
-		pl.add(new King( Colour.black, GenericPosition.e8 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.e6 ));
-		pl.add(new Rook( Colour.white, GenericPosition.e1 ));
-		pl.add(new Bishop( Colour.white, GenericPosition.f5 ));
-		BoardManager bm = new BoardManager( new Board( pl ));
+		BoardManager bm = new BoardManager( "4k3/8/4p3/5b2/8/8/8/4R3 b - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.black );
 		expectedMove = new GenericMove( GenericPosition.e6, GenericPosition.f5 );
 		doFindMoveTest(false);
@@ -328,33 +254,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 .....ppp
 		// 1 r...r.k.
 		//   abcdefgh
-		pl.add(new King( Colour.black, GenericPosition.e8 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.e6 ));
-		pl.add(new Knight( Colour.black, GenericPosition.f6 ));
-		pl.add(new Knight( Colour.black, GenericPosition.b8 ));
-		pl.add(new Bishop( Colour.black, GenericPosition.c8 ));
-		pl.add(new Bishop( Colour.black, GenericPosition.d6 ));
-		pl.add(new Queen( Colour.black, GenericPosition.d8 ));
-		pl.add(new Rook( Colour.black, GenericPosition.a6 ));
-		pl.add(new Rook( Colour.black, GenericPosition.h8 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.h7 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.d7 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.c6 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.b5 ));
-		// White pieces
-		pl.add(new Rook( Colour.white, GenericPosition.e1 ));
-		pl.add(new Bishop( Colour.white, GenericPosition.f5 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.f2 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.g2 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.h2 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.a3 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.c3 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.d4 ));
-		pl.add(new Rook( Colour.white, GenericPosition.a1 ));
-		pl.add(new King( Colour.white, GenericPosition.g1 ));
-		pl.add(new Queen( Colour.white, GenericPosition.b3 ));
-		pl.add(new Knight( Colour.white, GenericPosition.f3 ));
-		BoardManager bm = new BoardManager( new Board( pl ));
+		BoardManager bm = new BoardManager( "1nbqk2r/3p3p/r1pbpn2/1p3B2/3P4/PQP2N2/5PPP/R3R1K1 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm, Colour.black );
 		expectedMove = new GenericMove( GenericPosition.e6, GenericPosition.f5 );
 		doFindMoveTest(false);
