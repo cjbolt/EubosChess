@@ -1,10 +1,13 @@
 package eubos.board;
 
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Stack;
 
+import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
+import com.fluxchess.jcpi.models.GenericRank;
 
 import eubos.pieces.Bishop;
 import eubos.pieces.Knight;
@@ -39,6 +42,68 @@ public class BoardManager implements IBoardManager {
 		}
 	}
 
+	public class fenParser {
+		public fenParser( String fenString ) {
+			LinkedList<Piece> pl = new LinkedList<Piece>();
+			String[] tokens = fenString.split(" ");
+			String piecePlacement = tokens[0];
+			String onMove = tokens[1];
+			String castlingAvaillability = tokens[2];
+			String enPassanttargetSq = tokens[3];
+			String halfMoveClock = tokens[4];
+			String moveNumber = tokens[5];
+			GenericRank r = GenericRank.R8;
+			GenericFile f = GenericFile.Fa;
+			for ( char c: piecePlacement.toCharArray() ){
+				switch(c)
+				{
+				case 'r':
+					break;
+				case 'R':
+					break;
+				case 'n':
+					break;
+				case 'N':
+					break;
+				case 'b':
+					pl.add(new Bishop( Colour.black, GenericPosition.valueOf(f,r)));
+					break;
+				case 'B':
+					pl.add(new Bishop( Colour.white, GenericPosition.valueOf(f,r)));
+					break;
+				case 'q':
+					pl.add(new Queen( Colour.black, GenericPosition.valueOf(f,r)));
+					break;
+				case 'Q':
+					pl.add(new Queen( Colour.white, GenericPosition.valueOf(f,r)));
+					break;
+				case 'k':
+					pl.add(new King( Colour.black, GenericPosition.valueOf(f,r)));
+					break;
+				case 'K':
+					pl.add(new King( Colour.white, GenericPosition.valueOf(f,r)));
+					break;
+				case '1':
+				case '2':
+				case '3':
+				case '4':
+				case '5':
+				case '6':
+				case '7':
+					int loop = new Integer(c);
+					for ( int i=0; i<loop; i++ ) {
+						f = f.next();
+					}
+				case '8':
+					break;
+				case '/':
+					r = r.prev();
+					f = GenericFile.Fa;
+					break;
+				}
+			}
+		}
+	}
 	private Stack<TrackedMove> previousMoves;
 	private Board theBoard;
 	private King whiteKing;
