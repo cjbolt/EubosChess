@@ -11,13 +11,7 @@ import com.fluxchess.jcpi.models.GenericChessman;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.pieces.Bishop;
-import eubos.pieces.King;
-import eubos.pieces.Knight;
-import eubos.pieces.Pawn;
 import eubos.pieces.Piece;
-import eubos.pieces.Queen;
-import eubos.pieces.Rook;
 import eubos.pieces.Piece.Colour;
 
 public class MiniMaxMoveGeneratorTest {
