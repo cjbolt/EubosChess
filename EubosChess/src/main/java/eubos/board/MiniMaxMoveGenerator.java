@@ -127,7 +127,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			// 2) Either recurse or evaluate position and check for back-up of score
 			if ( isTerminalNode(currPly) ) {
 				positionScore = evaluatePosition(bm.getTheBoard());
-				backUpScore = isBackUpRequired1(currPly, backUpScore, positionScore);
+				backUpScore = isBackUpRequired(currPly, Piece.Colour.getOpposite(bm.onMove), backUpScore, positionScore);
 			} else {
 				backUpScore = searchPly(currPly+1);
 			}
@@ -143,10 +143,10 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		return everBackedUpScore;
 	}
 
-	private boolean isBackUpRequired1(int currPly,
+	private boolean isBackUpRequired(int currPly, Piece.Colour colour,
 			boolean backUpScore, int positionScore) {
 		// Logic is that a move has just been applied...
-		if (bm.onMove == Colour.black) {
+		if (colour == Colour.white) {
 			if (positionScore > scores[currPly]) {
 				backUpScore = true;
 			}
@@ -158,21 +158,6 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		return backUpScore;
 	}
 	
-	private boolean isBackUpRequired2(int currPly,
-			boolean backUpScore, int positionScore) {
-		// Logic is that a move has just been applied...
-		if (bm.onMove == Colour.white) {
-			if (positionScore > scores[currPly]) {
-				backUpScore = true;
-			}
-		} else {
-			if (positionScore < scores[currPly]) {
-				backUpScore = true;
-			}
-		}
-		return backUpScore;
-	}
-
 	private boolean isTerminalNode(int currPly) {
 		boolean isTerminalNode = false;
 		if (currPly == (SEARCH_DEPTH_IN_PLY-1)) {
@@ -190,7 +175,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		boolean writeScore = false;
 		if (!isTerminalNode) {
 			positionScore=scores[currPly+1];
-			writeScore = isBackUpRequired2(currPly, writeScore, positionScore);
+			writeScore = isBackUpRequired(currPly, bm.onMove, writeScore, positionScore);
 		} else {
 			writeScore = true;
 		}
@@ -218,19 +203,19 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		}
 	}
 	
-	private void initNodeScoreAlphaBeta(int currPly) {
-		// Initialise score at this node
-		if (currPly==0 || currPly==1) {
-			if (bm.onMove==Colour.white) {
-				scores[currPly] = Integer.MIN_VALUE;
-			} else {
-				scores[currPly] = Integer.MAX_VALUE;
-			}
-		} else {
-			// alpha beta algorithm: bring down score from 2 levels up tree
-			scores[currPly] = scores[currPly-2];
-		}
-	}
+//	private void initNodeScoreAlphaBeta(int currPly) {
+//		// Initialise score at this node
+//		if (currPly==0 || currPly==1) {
+//			if (bm.onMove==Colour.white) {
+//				scores[currPly] = Integer.MIN_VALUE;
+//			} else {
+//				scores[currPly] = Integer.MAX_VALUE;
+//			}
+//		} else {
+//			// alpha beta algorithm: bring down score from 2 levels up tree
+//			scores[currPly] = scores[currPly-2];
+//		}
+//	}
 
 	private LinkedList<GenericMove> generateMovesAtPosition() {
 		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();

@@ -50,10 +50,21 @@ public class BoardManager implements IBoardManager {
 			String[] tokens = fenString.split(" ");
 			String piecePlacement = tokens[0];
 			String colourOnMove = tokens[1];
-			String castlingAvaillability = tokens[2];
-			String enPassanttargetSq = tokens[3];
-			String halfMoveClock = tokens[4];
-			String moveNumber = tokens[5];
+//			String castlingAvaillability = tokens[2];
+//			String enPassanttargetSq = tokens[3];
+//			String halfMoveClock = tokens[4];
+//			String moveNumber = tokens[5];
+			parsePiecePlacement(piecePlacement);
+			parseOnMove(colourOnMove);
+			// looks like may need to revisit castling class members...
+		}
+		private void parseOnMove(String colourOnMove) {
+			if (colourOnMove.equals("w"))
+				onMove = Colour.white;
+			else if (colourOnMove.equals("b"))
+				onMove = Colour.black;
+		}
+		private void parsePiecePlacement(String piecePlacement) {
 			GenericRank r = GenericRank.R8;
 			GenericFile f = GenericFile.Fa;
 			for ( char c: piecePlacement.toCharArray() ){
@@ -126,11 +137,6 @@ public class BoardManager implements IBoardManager {
 					break;
 				}
 			}
-			if (colourOnMove.equals("w"))
-				onMove = Colour.white;
-			else if (colourOnMove.equals("b"))
-				onMove = Colour.black;
-			// looks like may need to revisit castling class members...
 		}
 		private GenericFile advanceFile(GenericFile f) {
 			if ( f != GenericFile.Fh )
