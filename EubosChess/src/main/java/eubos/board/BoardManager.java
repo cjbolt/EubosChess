@@ -164,21 +164,6 @@ public class BoardManager implements IBoardManager {
 		onMove = Colour.white;
 	}
 	
-//	public BoardManager( Board startingPosition ) {
-//		previousMoves = new Stack<TrackedMove>();
-//		theBoard = startingPosition;
-//		Iterator<Piece> iterAllPieces = theBoard.iterator();
-//		while (iterAllPieces.hasNext()) {
-//			Piece currPiece = iterAllPieces.next();
-//			if ( currPiece instanceof King ) {
-//				setKing( (King)currPiece );
-//			}
-//		}
-//		whiteHasCastled = false;
-//		blackHasCastled = false;
-//		onMove = Colour.white;
-//	}
-	
 	public BoardManager( Board startingPosition, Piece.Colour colourToMove ) {
 		previousMoves = new Stack<TrackedMove>();
 		theBoard = startingPosition;

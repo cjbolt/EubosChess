@@ -40,10 +40,11 @@ public class MoveGenerator {
 
 	protected boolean inCheck() {
 		// For each opposite colour piece, see if it currently attacks the king.
+		// N.b. the onMove colour has been advanced when the move was performed!
 		boolean inCheck = false;
-		King ownKing = bm.getKing(bm.onMove);
+		King ownKing = bm.getKing(Piece.Colour.getOpposite(bm.onMove));
 		if ( ownKing != null ) {
-			Iterator<Piece> iterPotentialAttackers = bm.getTheBoard().iterateColour(Piece.Colour.getOpposite(bm.onMove));
+			Iterator<Piece> iterPotentialAttackers = bm.getTheBoard().iterateColour(bm.onMove);
 			while (iterPotentialAttackers.hasNext()) {
 				Piece currPiece = iterPotentialAttackers.next();
 				GenericPosition [] pos = { ownKing.getSquare() };

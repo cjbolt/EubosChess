@@ -20,7 +20,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private static final int SEARCH_DEPTH_IN_PLY = 4;
 	private int scores[];
 	private GenericMove pc[][];
-	private static final boolean isDebugOn = true;
+	private static final boolean isDebugOn = false;
 	
 	public class moveGenDebugAgent {
 		private String indent = "";
@@ -127,7 +127,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			// 2) Either recurse or evaluate position and check for back-up of score
 			if ( isTerminalNode(currPly) ) {
 				positionScore = evaluatePosition(bm.getTheBoard());
-				backUpScore = isBackUpRequired(currPly, backUpScore, positionScore);
+				backUpScore = isBackUpRequired1(currPly, backUpScore, positionScore);
 			} else {
 				backUpScore = searchPly(currPly+1);
 			}
@@ -143,8 +143,24 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		return everBackedUpScore;
 	}
 
-	private boolean isBackUpRequired(int currPly,
+	private boolean isBackUpRequired1(int currPly,
 			boolean backUpScore, int positionScore) {
+		// Logic is that a move has just been applied...
+		if (bm.onMove == Colour.black) {
+			if (positionScore > scores[currPly]) {
+				backUpScore = true;
+			}
+		} else {
+			if (positionScore < scores[currPly]) {
+				backUpScore = true;
+			}
+		}
+		return backUpScore;
+	}
+	
+	private boolean isBackUpRequired2(int currPly,
+			boolean backUpScore, int positionScore) {
+		// Logic is that a move has just been applied...
 		if (bm.onMove == Colour.white) {
 			if (positionScore > scores[currPly]) {
 				backUpScore = true;
@@ -174,7 +190,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		boolean writeScore = false;
 		if (!isTerminalNode) {
 			positionScore=scores[currPly+1];
-			writeScore = isBackUpRequired(currPly, writeScore, positionScore);
+			writeScore = isBackUpRequired2(currPly, writeScore, positionScore);
 		} else {
 			writeScore = true;
 		}
