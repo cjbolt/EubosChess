@@ -19,7 +19,7 @@ public class KingTest extends PieceTest {
 	public void test_CornerTopLeft() {
 		classUnderTest = new King( Colour.black, GenericPosition.a8 );
 		pl.add(classUnderTest);
-		bm = new BoardManager( new Board( pl ));
+		bm = new BoardManager( new Board( pl ), Colour.black );
 		LinkedList<GenericMove> ml = classUnderTest.generateMoves( bm );
 		expectedMoves.add( new GenericMove( GenericPosition.a8, GenericPosition.a7 ));
 		expectedMoves.add( new GenericMove( GenericPosition.a8, GenericPosition.b8 ));

@@ -20,8 +20,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private static final int SEARCH_DEPTH_IN_PLY = 4;
 	private int scores[];
 	private GenericMove pc[][];
-	private static final boolean isDebugOn = false;
-	private Piece.Colour onMove;
+	private static final boolean isDebugOn = true;
 	
 	public class moveGenDebugAgent {
 		private String indent = "";
@@ -39,9 +38,9 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 				System.out.println(indent+"performMove("+currMove.toString()+") at Ply="+currPly);
 		}
 		
-		private void printSearchPly(int nextPly, Piece.Colour colourAtNextPly) {
+		private void printSearchPly(int currPly) {
 			if (isActive)
-				System.out.println(indent+"searchPly("+nextPly+", "+colourAtNextPly.toString()+")");
+				System.out.println(indent+"searchPly("+currPly+", "+bm.onMove.toString()+")");
 		}
 		
 		private void printUndoMove(int currPly, GenericMove currMove) {
@@ -65,11 +64,10 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		}
 	}
 	
-	public MiniMaxMoveGenerator( BoardManager bm, Piece.Colour sideToMove ) {
+	public MiniMaxMoveGenerator( BoardManager bm ) {
 		super( bm );
 		scores = new int[SEARCH_DEPTH_IN_PLY];
 		pc = new GenericMove[SEARCH_DEPTH_IN_PLY][SEARCH_DEPTH_IN_PLY];
-		onMove = sideToMove;
 	}
 	
 	private int evaluatePosition(Board theBoard ) {
@@ -100,7 +98,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	@Override
 	public GenericMove findMove() throws NoLegalMoveException {
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
-		searchPly(0, onMove);
+		searchPly(0);
 		// Report the principal continuation and select the best move
 		moveGenDebugAgent debug = new moveGenDebugAgent(0, true);
 		debug.printPrincipalContinuation(0);
@@ -111,11 +109,12 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		return bestMove;
 	}
 
-	private boolean searchPly(int currPly, Piece.Colour toPlay) {
+	private boolean searchPly(int currPly) {
 		boolean everBackedUpScore = false;
 		moveGenDebugAgent debug = new moveGenDebugAgent(currPly, isDebugOn);
-		initNodeScore(currPly, toPlay);
-		LinkedList<GenericMove> ml = generateMovesAtPosition(toPlay);
+		debug.printSearchPly(currPly);
+		initNodeScore(currPly);
+		LinkedList<GenericMove> ml = generateMovesAtPosition();
 		Iterator<GenericMove> move_iter = ml.iterator();
 		// Iterate through all the moves for this ply
 		while( move_iter.hasNext()) {
@@ -128,12 +127,9 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			// 2) Either recurse or evaluate position and check for back-up of score
 			if ( isTerminalNode(currPly) ) {
 				positionScore = evaluatePosition(bm.getTheBoard());
-				backUpScore = isBackUpRequired(currPly, toPlay, backUpScore, positionScore);
+				backUpScore = isBackUpRequired(currPly, backUpScore, positionScore);
 			} else {
-				int nextPly = currPly+1;
-				Piece.Colour colourAtNextPly = Piece.Colour.getOpposite(toPlay);
-				debug.printSearchPly(nextPly, colourAtNextPly);
-				backUpScore = searchPly(nextPly, colourAtNextPly);
+				backUpScore = searchPly(currPly+1);
 			}
 			// 3) Undo the move
 			debug.printUndoMove(currPly, currMove);
@@ -141,15 +137,15 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			// 4) Back up the position score and update the principal continuation
 			if (backUpScore) {
 				everBackedUpScore = true;
-				performScoreBackUp(currPly, toPlay, debug, positionScore, currMove);
+				performScoreBackUp(currPly, debug, positionScore, currMove);
 			}
 		}
 		return everBackedUpScore;
 	}
 
-	private boolean isBackUpRequired(int currPly, Piece.Colour toPlay,
+	private boolean isBackUpRequired(int currPly,
 			boolean backUpScore, int positionScore) {
-		if (toPlay == Colour.white) {
+		if (bm.onMove == Colour.white) {
 			if (positionScore > scores[currPly]) {
 				backUpScore = true;
 			}
@@ -171,7 +167,6 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 
 	private void performScoreBackUp(
 			int currPly,
-			Piece.Colour toPlay,
 			moveGenDebugAgent debug,
 			int positionScore,
 			GenericMove currMove) {
@@ -179,8 +174,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		boolean writeScore = false;
 		if (!isTerminalNode) {
 			positionScore=scores[currPly+1];
-			writeScore = isBackUpRequired(currPly, toPlay, writeScore,
-					positionScore);
+			writeScore = isBackUpRequired(currPly, writeScore, positionScore);
 		} else {
 			writeScore = true;
 		}
@@ -200,18 +194,18 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		}
 	}
 
-	private void initNodeScore(int currPly, Piece.Colour toPlay) {
-		if (toPlay==Colour.white) {
+	private void initNodeScore(int currPly) {
+		if (bm.onMove==Colour.white) {
 			scores[currPly] = Integer.MIN_VALUE;
 		} else {
 			scores[currPly] = Integer.MAX_VALUE;
 		}
 	}
 	
-	private void initNodeScoreAlphaBeta(int currPly, Piece.Colour toPlay) {
+	private void initNodeScoreAlphaBeta(int currPly) {
 		// Initialise score at this node
 		if (currPly==0 || currPly==1) {
-			if (toPlay==Colour.white) {
+			if (bm.onMove==Colour.white) {
 				scores[currPly] = Integer.MIN_VALUE;
 			} else {
 				scores[currPly] = Integer.MAX_VALUE;
@@ -222,21 +216,21 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		}
 	}
 
-	private LinkedList<GenericMove> generateMovesAtPosition(Piece.Colour colour) {
+	private LinkedList<GenericMove> generateMovesAtPosition() {
 		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();
 		// For each piece of the "on Move" colour, add it's legal moves to the entire move list
-		Iterator<Piece> iter_p = bm.getTheBoard().iterateColour(colour);
+		Iterator<Piece> iter_p = bm.getTheBoard().iterateColour(bm.onMove);
 		while ( iter_p.hasNext() ) {
 			Piece currPiece = iter_p.next();
 			entireMoveList.addAll( currPiece.generateMoves( bm ));
 		}
-		addCastlingMoves(entireMoveList, colour);
+		addCastlingMoves(entireMoveList);
 		// Scratch any moves resulting in the king being in check
 		Iterator<GenericMove> iter_ml = entireMoveList.iterator();
 		while ( iter_ml.hasNext() ) {
 			GenericMove currMove = iter_ml.next();
 			bm.performMove( currMove );
-			if (inCheck(colour)) {
+			if (inCheck()) {
 				iter_ml.remove();
 			}
 			bm.undoPreviousMove();

@@ -57,7 +57,7 @@ public class RandomMoveGeneratorTest {
 		//   abcdefgh
 		pl.add(new King( Colour.black, GenericPosition.a8 ));
 		pl.add(new Pawn( Colour.white, GenericPosition.c6 ));
-		BoardManager bm = new BoardManager( new Board( pl ));
+		BoardManager bm = new BoardManager( new Board( pl ), Colour.black );
 		classUnderTest = new RandomMoveGenerator( bm, Colour.black );
 		expectedMove = new GenericMove( GenericPosition.a8, GenericPosition.b7 );
 		performTest(false);
@@ -81,7 +81,7 @@ public class RandomMoveGeneratorTest {
 		pl.add(new Pawn( Colour.black, GenericPosition.c2 ));
 		pl.add(new Pawn( Colour.black, GenericPosition.b3 ));
 		// pawn at b2 can be captured to escape check
-		BoardManager bm = new BoardManager( new Board( pl ));
+		BoardManager bm = new BoardManager( new Board( pl ), Colour.white );
 		classUnderTest = new RandomMoveGenerator( bm, Colour.white );
 		expectedMove = new GenericMove( GenericPosition.a1, GenericPosition.b2 );
 		performTest(true);			
@@ -103,7 +103,7 @@ public class RandomMoveGeneratorTest {
 		pl.add(new Pawn( Colour.black, GenericPosition.b3 ));
 		pl.add(new Pawn( Colour.black, GenericPosition.c3 ));
 		// king can move out of check to b1
-		BoardManager bm = new BoardManager( new Board( pl ));
+		BoardManager bm = new BoardManager( new Board( pl ), Colour.white );
 		classUnderTest = new RandomMoveGenerator( bm, Colour.white );
 		expectedMove = new GenericMove( GenericPosition.a1, GenericPosition.b1 );
 		performTest(true);
@@ -127,7 +127,7 @@ public class RandomMoveGeneratorTest {
 		pl.add(new Pawn( Colour.black, GenericPosition.c2 ));
 		pl.add(new Pawn( Colour.black, GenericPosition.b3 ));
 		pl.add(new Pawn( Colour.black, GenericPosition.c3 ));
-		BoardManager bm = new BoardManager( new Board( pl ));
+		BoardManager bm = new BoardManager( new Board( pl ), Colour.white );
 		classUnderTest = new RandomMoveGenerator( bm, Colour.white );
 		classUnderTest.findMove();
 	}
@@ -157,7 +157,7 @@ public class RandomMoveGeneratorTest {
 		pl.add(new Queen( Colour.white, GenericPosition.e8 ));
 		pl.add(new Bishop( Colour.white, GenericPosition.c8 ));
 		pl.add(new Bishop( Colour.white, GenericPosition.g5 ));		
-		BoardManager bm = new BoardManager( new Board( pl ));
+		BoardManager bm = new BoardManager( new Board( pl ), Colour.black );
 		classUnderTest = new RandomMoveGenerator( bm, Colour.black );
 		classUnderTest.findMove();
 		expectedMove = new GenericMove( GenericPosition.g7, GenericPosition.h7 );

@@ -39,7 +39,7 @@ public class BoardManagerTest {
 	@Test
 	public void test_UndoPawnMove() {
 		pl.add( new Pawn( Piece.Colour.white, GenericPosition.e2 ));
-		classUnderTest = new BoardManager( new Board( pl ));
+		classUnderTest = new BoardManager( new Board( pl ), Colour.white );
 		classUnderTest.performMove( new GenericMove( GenericPosition.e2, GenericPosition.e4 ));
 		classUnderTest.undoPreviousMove();
 		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.e2 );
@@ -50,7 +50,7 @@ public class BoardManagerTest {
 	@Test
 	public void test_UndoPawnPromotion() {
 		pl.add( new Pawn( Piece.Colour.black, GenericPosition.e2 ));
-		classUnderTest = new BoardManager( new Board( pl ));
+		classUnderTest = new BoardManager( new Board( pl ), Colour.black );
 		classUnderTest.performMove( new GenericMove( GenericPosition.e2, GenericPosition.e1, GenericChessman.QUEEN ));
 		classUnderTest.undoPreviousMove();
 		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.e2 );
@@ -62,7 +62,7 @@ public class BoardManagerTest {
 	public void test_UndoPawnCapture() {
 		pl.add( new Pawn( Piece.Colour.black, GenericPosition.d3 ));
 		pl.add( new Pawn( Piece.Colour.white, GenericPosition.e2 ));
-		classUnderTest = new BoardManager( new Board( pl ));
+		classUnderTest = new BoardManager( new Board( pl ), Colour.white );
 		classUnderTest.performMove( new GenericMove( GenericPosition.d3, GenericPosition.e2 ));
 		classUnderTest.undoPreviousMove();
 		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.d3 );
@@ -86,8 +86,8 @@ public class BoardManagerTest {
 		//   abcdefgh
 		pl.add(new King( Colour.white, GenericPosition.e1 ));
 		pl.add(new Rook( Colour.white, GenericPosition.h1 ));
-		classUnderTest = new BoardManager( new Board( pl ));
-		GenericMove kscMove = classUnderTest.addKingSideCastle( Colour.white );
+		classUnderTest = new BoardManager( new Board( pl ), Colour.white );
+		GenericMove kscMove = classUnderTest.addKingSideCastle();
 		GenericMove expectedMove = new GenericMove( GenericPosition.e1, GenericPosition.g1 );
 		assertTrue(kscMove != null);
 		assertTrue(expectedMove.equals(kscMove));
@@ -107,8 +107,8 @@ public class BoardManagerTest {
 		pl.add(new King( Colour.white, GenericPosition.e1 ));
 		pl.add(new Rook( Colour.white, GenericPosition.h1 ));
 		pl.add(new Bishop( Colour.black, GenericPosition.c3 ));
-		classUnderTest = new BoardManager( new Board( pl ));
-		GenericMove kscMove = classUnderTest.addKingSideCastle( Colour.white );
+		classUnderTest = new BoardManager( new Board( pl ), Colour.white );
+		GenericMove kscMove = classUnderTest.addKingSideCastle();
 		assertTrue(kscMove == null);
 	}
 	
@@ -126,8 +126,8 @@ public class BoardManagerTest {
 		pl.add(new King( Colour.white, GenericPosition.e1 ));
 		pl.add(new Rook( Colour.white, GenericPosition.h1 ));
 		pl.add(new Bishop( Colour.black, GenericPosition.d3 ));
-		classUnderTest = new BoardManager( new Board( pl ));
-		GenericMove kscMove = classUnderTest.addKingSideCastle( Colour.white );
+		classUnderTest = new BoardManager( new Board( pl ), Colour.white );
+		GenericMove kscMove = classUnderTest.addKingSideCastle();
 		assertTrue(kscMove == null);
 	}
 	
@@ -145,8 +145,8 @@ public class BoardManagerTest {
 		pl.add(new King( Colour.white, GenericPosition.e1 ));
 		pl.add(new Rook( Colour.white, GenericPosition.h1 ));
 		pl.add(new Bishop( Colour.black, GenericPosition.e3 ));
-		classUnderTest = new BoardManager( new Board( pl ));
-		GenericMove kscMove = classUnderTest.addKingSideCastle( Colour.white );
+		classUnderTest = new BoardManager( new Board( pl ), Colour.white );
+		GenericMove kscMove = classUnderTest.addKingSideCastle();
 		assertTrue(kscMove == null);
 	}
 	
@@ -164,8 +164,8 @@ public class BoardManagerTest {
 		pl.add(new King( Colour.white, GenericPosition.e1 ));
 		pl.add(new Rook( Colour.white, GenericPosition.h1 ));
 		pl.add(new Bishop( Colour.white, GenericPosition.f1 ));
-		classUnderTest = new BoardManager( new Board( pl ));
-		GenericMove kscMove = classUnderTest.addKingSideCastle( Colour.white );
+		classUnderTest = new BoardManager( new Board( pl ), Colour.white );
+		GenericMove kscMove = classUnderTest.addKingSideCastle();
 		assertTrue(kscMove == null);
 	}
 	
@@ -183,8 +183,8 @@ public class BoardManagerTest {
 		pl.add(new King( Colour.white, GenericPosition.e1 ));
 		pl.add(new Rook( Colour.white, GenericPosition.h1 ));
 		pl.add(new Bishop( Colour.white, GenericPosition.g1 ));
-		classUnderTest = new BoardManager( new Board( pl ));
-		GenericMove kscMove = classUnderTest.addKingSideCastle( Colour.white );
+		classUnderTest = new BoardManager( new Board( pl ), Colour.white );
+		GenericMove kscMove = classUnderTest.addKingSideCastle();
 		assertTrue(kscMove == null);
 	}	
 	
@@ -202,8 +202,8 @@ public class BoardManagerTest {
 		pl.add(new King( Colour.white, GenericPosition.e1 ));
 		pl.add(new Rook( Colour.white, GenericPosition.h1 ));
 		pl.add(new Bishop( Colour.black, GenericPosition.f3 ));
-		classUnderTest = new BoardManager( new Board( pl ));
-		GenericMove kscMove = classUnderTest.addKingSideCastle( Colour.white );
+		classUnderTest = new BoardManager( new Board( pl ), Colour.white );
+		GenericMove kscMove = classUnderTest.addKingSideCastle();
 		GenericMove expectedMove = new GenericMove( GenericPosition.e1, GenericPosition.g1 );
 		assertTrue(kscMove != null);
 		assertTrue(expectedMove.equals(kscMove));
@@ -223,8 +223,8 @@ public class BoardManagerTest {
 		//   abcdefgh
 		pl.add(new King( Colour.black, GenericPosition.e8 ));
 		pl.add(new Rook( Colour.black, GenericPosition.a8 ));
-		classUnderTest = new BoardManager( new Board( pl ));
-		GenericMove qscMove = classUnderTest.addQueenSideCastle( Colour.black );
+		classUnderTest = new BoardManager( new Board( pl ), Colour.black );
+		GenericMove qscMove = classUnderTest.addQueenSideCastle();
 		GenericMove expectedMove = new GenericMove( GenericPosition.e8, GenericPosition.c8 );
 		assertTrue(qscMove != null);
 		assertTrue(expectedMove.equals(qscMove));
@@ -244,8 +244,8 @@ public class BoardManagerTest {
 		pl.add(new King( Colour.black, GenericPosition.e8 ));
 		pl.add(new Rook( Colour.black, GenericPosition.a8 ));
 		pl.add(new Bishop( Colour.white, GenericPosition.g6 ));
-		classUnderTest = new BoardManager( new Board( pl ));
-		GenericMove qscMove = classUnderTest.addQueenSideCastle( Colour.black );
+		classUnderTest = new BoardManager( new Board( pl ), Colour.black );
+		GenericMove qscMove = classUnderTest.addQueenSideCastle();
 		assertTrue(qscMove == null);
 	}
 	
@@ -263,8 +263,8 @@ public class BoardManagerTest {
 			pl.add(new King( Colour.black, GenericPosition.e8 ));
 			pl.add(new Rook( Colour.black, GenericPosition.a8 ));
 			pl.add(new Bishop( Colour.white, GenericPosition.f6 ));
-			classUnderTest = new BoardManager( new Board( pl ));
-			GenericMove qscMove = classUnderTest.addQueenSideCastle( Colour.black );
+			classUnderTest = new BoardManager( new Board( pl ), Colour.black );
+			GenericMove qscMove = classUnderTest.addQueenSideCastle();
 			assertTrue(qscMove == null);
 		}
 		
@@ -282,8 +282,8 @@ public class BoardManagerTest {
 		pl.add(new King( Colour.black, GenericPosition.e8 ));
 		pl.add(new Rook( Colour.black, GenericPosition.a8 ));
 		pl.add(new Bishop( Colour.white, GenericPosition.e6 ));
-		classUnderTest = new BoardManager( new Board( pl ));
-		GenericMove qscMove = classUnderTest.addQueenSideCastle( Colour.black );
+		classUnderTest = new BoardManager( new Board( pl ), Colour.black );
+		GenericMove qscMove = classUnderTest.addQueenSideCastle();
 		assertTrue(qscMove == null);
 	}
 	
@@ -301,8 +301,8 @@ public class BoardManagerTest {
 		pl.add(new King( Colour.black, GenericPosition.e8 ));
 		pl.add(new Rook( Colour.black, GenericPosition.a8 ));
 		pl.add(new Queen( Colour.black, GenericPosition.d8 ));
-		classUnderTest = new BoardManager( new Board( pl ));
-		GenericMove qscMove = classUnderTest.addQueenSideCastle( Colour.black );
+		classUnderTest = new BoardManager( new Board( pl ), Colour.black );
+		GenericMove qscMove = classUnderTest.addQueenSideCastle();
 		assertTrue(qscMove == null);
 	}
 	
@@ -320,8 +320,8 @@ public class BoardManagerTest {
 		pl.add(new King( Colour.black, GenericPosition.e8 ));
 		pl.add(new Rook( Colour.black, GenericPosition.a8 ));
 		pl.add(new Rook( Colour.white, GenericPosition.a6 ));
-		classUnderTest = new BoardManager( new Board( pl ));
-		GenericMove qscMove = classUnderTest.addQueenSideCastle( Colour.black );
+		classUnderTest = new BoardManager( new Board( pl ), Colour.black );
+		GenericMove qscMove = classUnderTest.addQueenSideCastle();
 		GenericMove expectedMove = new GenericMove( GenericPosition.e8, GenericPosition.c8 );
 		assertTrue(qscMove != null);
 		assertTrue(expectedMove.equals(qscMove));

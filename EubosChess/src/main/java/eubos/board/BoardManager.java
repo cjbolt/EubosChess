@@ -49,7 +49,7 @@ public class BoardManager implements IBoardManager {
 			pl = new LinkedList<Piece>();
 			String[] tokens = fenString.split(" ");
 			String piecePlacement = tokens[0];
-			String onMove = tokens[1];
+			String colourOnMove = tokens[1];
 			String castlingAvaillability = tokens[2];
 			String enPassanttargetSq = tokens[3];
 			String halfMoveClock = tokens[4];
@@ -126,11 +126,10 @@ public class BoardManager implements IBoardManager {
 					break;
 				}
 			}
-			Colour colourOnMove;
-			if (onMove.equals("w"))
-				colourOnMove = Colour.white;
-			else if (onMove.equals("b"))
-				colourOnMove = Colour.black;
+			if (colourOnMove.equals("w"))
+				onMove = Colour.white;
+			else if (colourOnMove.equals("b"))
+				onMove = Colour.black;
 			// looks like may need to revisit castling class members...
 		}
 		private GenericFile advanceFile(GenericFile f) {
@@ -145,6 +144,7 @@ public class BoardManager implements IBoardManager {
 	
 	private Stack<TrackedMove> previousMoves;
 	private Board theBoard;
+	public Piece.Colour onMove;
 	private King whiteKing;
 	private King blackKing;
 	private boolean whiteHasCastled;
@@ -161,9 +161,25 @@ public class BoardManager implements IBoardManager {
 		setKing( (King) theBoard.getPieceAtSquare(GenericPosition.e8));
 		whiteHasCastled = false;
 		blackHasCastled = false;
+		onMove = Colour.white;
 	}
 	
-	public BoardManager( Board startingPosition ) {
+//	public BoardManager( Board startingPosition ) {
+//		previousMoves = new Stack<TrackedMove>();
+//		theBoard = startingPosition;
+//		Iterator<Piece> iterAllPieces = theBoard.iterator();
+//		while (iterAllPieces.hasNext()) {
+//			Piece currPiece = iterAllPieces.next();
+//			if ( currPiece instanceof King ) {
+//				setKing( (King)currPiece );
+//			}
+//		}
+//		whiteHasCastled = false;
+//		blackHasCastled = false;
+//		onMove = Colour.white;
+//	}
+	
+	public BoardManager( Board startingPosition, Piece.Colour colourToMove ) {
 		previousMoves = new Stack<TrackedMove>();
 		theBoard = startingPosition;
 		Iterator<Piece> iterAllPieces = theBoard.iterator();
@@ -175,6 +191,7 @@ public class BoardManager implements IBoardManager {
 		}
 		whiteHasCastled = false;
 		blackHasCastled = false;
+		onMove = colourToMove;
 	}
 	
 	public BoardManager( String fenString ) {
@@ -219,7 +236,7 @@ public class BoardManager implements IBoardManager {
 		this.blackHasCastled = blackHasCastled;
 	}	
 	
-	public boolean hasCastled( Piece.Colour onMove ) {
+	public boolean hasCastled() {
 		if ( onMove == Colour.white ) {
 			return isWhiteHasCastled();
 		} else {
@@ -232,12 +249,12 @@ public class BoardManager implements IBoardManager {
 	private static final GenericPosition [] kscWhiteEmptySqs = {GenericPosition.f1, GenericPosition.g1};
 	private static final GenericPosition [] kscBlackEmptySqs = {GenericPosition.f8, GenericPosition.g8};
 	
-	public GenericMove addKingSideCastle( Piece.Colour onMove ) {
+	public GenericMove addKingSideCastle() {
 		if ( onMove == Colour.white ) {
-			if ( canCastle(onMove, GenericPosition.h1, kscWhiteCheckSqs, kscWhiteEmptySqs))
+			if ( canCastle(GenericPosition.h1, kscWhiteCheckSqs, kscWhiteEmptySqs))
 				return new GenericMove(GenericPosition.e1,GenericPosition.g1);
 		} else {
-			if ( canCastle(onMove, GenericPosition.h8, kscBlackCheckSqs, kscBlackEmptySqs))
+			if ( canCastle(GenericPosition.h8, kscBlackCheckSqs, kscBlackEmptySqs))
 				return new GenericMove(GenericPosition.e8,GenericPosition.g8);	
 		}
 		return null;
@@ -248,19 +265,18 @@ public class BoardManager implements IBoardManager {
 	private static final GenericPosition [] qscWhiteEmptySqs = {GenericPosition.c1, GenericPosition.d1, GenericPosition.b1};
 	private static final GenericPosition [] qscBlackEmptySqs = {GenericPosition.c8, GenericPosition.d8, GenericPosition.b8};
 	
-	public GenericMove addQueenSideCastle( Piece.Colour onMove ) {
+	public GenericMove addQueenSideCastle() {
 		if ( onMove == Colour.white ) {
-			if ( canCastle(onMove, GenericPosition.a1, qscWhiteCheckSqs, qscWhiteEmptySqs))
+			if ( canCastle(GenericPosition.a1, qscWhiteCheckSqs, qscWhiteEmptySqs))
 				return new GenericMove(GenericPosition.e1,GenericPosition.c1);
 		} else {
-			if ( canCastle(onMove, GenericPosition.a8, qscBlackCheckSqs, qscBlackEmptySqs))
+			if ( canCastle(GenericPosition.a8, qscBlackCheckSqs, qscBlackEmptySqs))
 				return new GenericMove(GenericPosition.e8,GenericPosition.c8);	
 		}
 		return null;
 	}
 
-	private boolean canCastle(Piece.Colour onMove,
-			GenericPosition rookSq,
+	private boolean canCastle(GenericPosition rookSq,
 			GenericPosition [] checkSqs,
 			GenericPosition [] emptySqs) {
 		// Target rook should not have moved and be on it initial square
@@ -296,6 +312,8 @@ public class BoardManager implements IBoardManager {
 			if ( tm.isCapture()) {
 				theBoard.setPieceAtSquare(tm.getCapturedPiece());
 			}
+			// Update onMove
+			onMove = Piece.Colour.getOpposite(onMove);
 		}
 	}
 	
@@ -338,6 +356,8 @@ public class BoardManager implements IBoardManager {
 			// TODO duplicated information here - sub optimal...
 			pieceToMove.setSquare( move.to );
 			theBoard.setPieceAtSquare( pieceToMove );
+			// Update onMove
+			onMove = Piece.Colour.getOpposite(onMove);
 		} else {
 			// TODO throw an exception in this case?
 		}

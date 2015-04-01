@@ -18,32 +18,32 @@ public class MoveGenerator {
 		this.bm = bm;
 	}
 
-	protected void addCastlingMoves(LinkedList<GenericMove> ml, Piece.Colour colourOnMove) {
+	protected void addCastlingMoves(LinkedList<GenericMove> ml) {
 		// The side on move should not have previously castled
-		if ( bm.hasCastled(colourOnMove))
+		if ( bm.hasCastled())
 			return;
 		// King should not have moved and be on its initial square
-		King ownKing = bm.getKing(colourOnMove);
+		King ownKing = bm.getKing(bm.onMove);
 		if ( ownKing != null ) {
 			if (ownKing.hasEverMoved() || !ownKing.isOnInitialSquare()) {
 				return;
 			}
 		}
 		// Check for castling king-side and queen side
-		GenericMove ksc = bm.addKingSideCastle(colourOnMove);
+		GenericMove ksc = bm.addKingSideCastle();
 		if ( ksc != null )
 			ml.add(ksc);
-		GenericMove qsc = bm.addQueenSideCastle(colourOnMove);
+		GenericMove qsc = bm.addQueenSideCastle();
 		if ( qsc != null )
 			ml.add(qsc);
 	}
 
-	protected boolean inCheck( Piece.Colour colourOnMove ) {
+	protected boolean inCheck() {
 		// For each opposite colour piece, see if it currently attacks the king.
 		boolean inCheck = false;
-		King ownKing = bm.getKing(colourOnMove);
+		King ownKing = bm.getKing(bm.onMove);
 		if ( ownKing != null ) {
-			Iterator<Piece> iterPotentialAttackers = bm.getTheBoard().iterateColour(Piece.Colour.getOpposite(colourOnMove));
+			Iterator<Piece> iterPotentialAttackers = bm.getTheBoard().iterateColour(Piece.Colour.getOpposite(bm.onMove));
 			while (iterPotentialAttackers.hasNext()) {
 				Piece currPiece = iterPotentialAttackers.next();
 				GenericPosition [] pos = { ownKing.getSquare() };
