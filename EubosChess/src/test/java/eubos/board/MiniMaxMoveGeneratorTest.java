@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.LinkedList;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericChessman;
@@ -251,5 +252,48 @@ public class MiniMaxMoveGeneratorTest {
 		classUnderTest = new MiniMaxMoveGenerator( bm );
 		expectedMove = new GenericMove( GenericPosition.e6, GenericPosition.f5 );
 		doFindMoveTest(false);
+	}
+
+	@Test
+	public void test_findMove_mateInOne1()  throws NoLegalMoveException {
+		// chess.com Problem ID: 0160818
+		System.out.println("\ntest_findMove_mateInOne1()");
+		BoardManager bm = new BoardManager( "5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - - -" );
+		classUnderTest = new MiniMaxMoveGenerator( bm );
+		expectedMove = new GenericMove( GenericPosition.d3, GenericPosition.h7 );
+		doFindMoveTest(true);
+	}
+
+	@Test
+	@Ignore
+	public void test_findMove_mateInTwo1()  throws NoLegalMoveException {
+		// chess.com Problem ID: 0022190
+		System.out.println("\ntest_findMove_mateInTwo1()");
+		BoardManager bm = new BoardManager( "k1K5/b7/R7/1P6/1n6/8/8/8 w - - - -" );
+		classUnderTest = new MiniMaxMoveGenerator( bm );
+		expectedMove = new GenericMove( GenericPosition.b5, GenericPosition.b6 );
+		doFindMoveTest(true);
+	}
+
+	@Test
+	@Ignore
+	public void test_findMove_mateInTwo2()  throws NoLegalMoveException {
+		// chess.com Problem ID: 0102832
+		System.out.println("\ntest_findMove_mateInTwo2()");
+		BoardManager bm = new BoardManager( "r1r3k1/pb1p1p2/1p2p1p1/2pPP1B1/1nP4Q/1Pq2NP1/P4PBP/b2R2K1 w - - - -" );
+		classUnderTest = new MiniMaxMoveGenerator( bm );
+		expectedMove = new GenericMove( GenericPosition.g5, GenericPosition.f6 );
+		doFindMoveTest(true);
+	}
+
+	@Test
+	@Ignore
+	public void test_findMove_mateInTwo3()  throws NoLegalMoveException {
+		// chess.com Problem ID: 0551140
+		System.out.println("\ntest_findMove_mateInTwo3()");
+		BoardManager bm = new BoardManager( "rnbq1rk1/p4ppN/4p2n/1pbp4/8/2PQP2P/PPB2PP1/RNB1K2R w - - - -" );
+		classUnderTest = new MiniMaxMoveGenerator( bm );
+		expectedMove = new GenericMove( GenericPosition.h7, GenericPosition.f6 );
+		doFindMoveTest(true);
 	}
 }
