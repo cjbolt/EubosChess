@@ -21,38 +21,40 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private int scores[];
 	private GenericMove pc[][];
 	private static final boolean isDebugOn = false;
+	private Piece.Colour initialOnMove;
+	private boolean mateFound = false;
 	
 	public class moveGenDebugAgent {
 		private String indent = "";
 		private boolean isActive=false;
-	
+
 		public moveGenDebugAgent( int currPly, boolean active ) {
 			isActive = active;
 			for (int i=0; i<currPly; i++) {
 				indent += "\t";
 			}
 		}
-		
+
 		public void printPerformMove(int currPly, GenericMove currMove) {
 			if (isActive)
 				System.out.println(indent+"performMove("+currMove.toString()+") at Ply="+currPly);
 		}
-		
+
 		private void printSearchPly(int currPly) {
 			if (isActive)
 				System.out.println(indent+"searchPly("+currPly+", "+bm.onMove.toString()+")");
 		}
-		
+
 		private void printUndoMove(int currPly, GenericMove currMove) {
 			if (isActive)
 				System.out.println(indent+"undoMove("+currMove.toString()+") at Ply="+currPly);
 		}
-		
+
 		private void printBackUpScore(int currPly, int positionScore) {
 			if (isActive)
 				System.out.println(indent+"backedUpScore:"+positionScore+" at Ply="+currPly);
 		}
-		
+
 		private void printPrincipalContinuation(int currPly) {
 			if (isActive) {
 				System.out.print(indent+"principal continuation found: "+pc[currPly][currPly]);
@@ -62,8 +64,13 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 				System.out.print("\n");
 			}
 		}
+		
+		private void printMateFound( int currPly) {
+			if (isActive)
+				System.out.println(indent+"possible Checkmate found at Ply="+currPly);	
+		}
 	}
-	
+
 	public MiniMaxMoveGenerator( BoardManager bm ) {
 		super( bm );
 		scores = new int[SEARCH_DEPTH_IN_PLY];
@@ -97,6 +104,8 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	
 	@Override
 	public GenericMove findMove() throws NoLegalMoveException {
+		// Register initialOnMove
+		initialOnMove = bm.onMove;
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		searchPly(0);
 		// Report the principal continuation and select the best move
@@ -114,33 +123,53 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		moveGenDebugAgent debug = new moveGenDebugAgent(currPly, isDebugOn);
 		debug.printSearchPly(currPly);
 		initNodeScore(currPly);
+		// Generate all moves at this position and test if the previous move in the
+		// search tree led to checkmate.
 		LinkedList<GenericMove> ml = generateMovesAtPosition();
+		if (mateFound) {
+			backupScoreForCheckmate(currPly);
+			debug.printMateFound(currPly);
+			return true;
+		}
 		Iterator<GenericMove> move_iter = ml.iterator();
-		// Iterate through all the moves for this ply
-		while( move_iter.hasNext()) {
+		// Iterate through all the moves for this ply, unless a mate has been detected,
+		// in which case back-up the score and abort searching all moves at the current depth.
+		while( move_iter.hasNext() && !mateFound ) {
 			boolean backUpScore = false;
 			int positionScore = 0;
-			// 1) Apply the move
+			// 1) Apply the next move in the list
 			GenericMove currMove = move_iter.next();
 			debug.printPerformMove(currPly, currMove);
 			bm.performMove(currMove);
 			// 2) Either recurse or evaluate position and check for back-up of score
 			if ( isTerminalNode(currPly) ) {
 				positionScore = evaluatePosition(bm.getTheBoard());
-				backUpScore = isBackUpRequired(currPly, Piece.Colour.getOpposite(bm.onMove), backUpScore, positionScore);
+				Piece.Colour prevOnMove = Piece.Colour.getOpposite(bm.onMove);
+				backUpScore = isBackUpRequired(currPly, prevOnMove, backUpScore, positionScore);
 			} else {
 				backUpScore = searchPly(currPly+1);
 			}
-			// 3) Undo the move
+			// 3) Having assessed the position, undo the move
 			debug.printUndoMove(currPly, currMove);
 			bm.undoPreviousMove();
-			// 4) Back up the position score and update the principal continuation
+			// 4) Back-up the position score and update the principal continuation
 			if (backUpScore) {
 				everBackedUpScore = true;
 				performScoreBackUp(currPly, debug, positionScore, currMove);
 			}
 		}
+		// If a mate was found at this node, clear the flag so that any mates in
+		// parent nodes of the search tree can be detected.
+		mateFound = false;
 		return everBackedUpScore;
+	}
+
+	private void backupScoreForCheckmate(int currPly) {
+		if (initialOnMove==Colour.white) {
+			scores[currPly] = Integer.MAX_VALUE;
+		} else {
+			scores[currPly] = Integer.MIN_VALUE;
+		}
 	}
 
 	private boolean isBackUpRequired(int currPly, Piece.Colour colour,
@@ -218,6 +247,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 //	}
 
 	private LinkedList<GenericMove> generateMovesAtPosition() {
+		boolean kingIsInCheck = false;
 		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();
 		// For each piece of the "on Move" colour, add it's legal moves to the entire move list
 		Iterator<Piece> iter_p = bm.getTheBoard().iterateColour(bm.onMove);
@@ -232,9 +262,20 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			GenericMove currMove = iter_ml.next();
 			bm.performMove( currMove );
 			if (inCheck()) {
+				kingIsInCheck = true;
 				iter_ml.remove();
 			}
 			bm.undoPreviousMove();
+		}
+		if (entireMoveList.isEmpty()) {
+			if (kingIsInCheck && initialOnMove==Piece.Colour.getOpposite(bm.onMove)) {
+				// Indicates checkmate! Perform an immediate backup of score and abort the 
+				// search of any moves deeper than the previous node in the search tree. 
+				// However, search the rest of the tree, as this may yield earlier forced mates.
+				mateFound = true;
+			} else {
+				// Indicates a stalemate position.
+			}
 		}
 		return entireMoveList;
 	}

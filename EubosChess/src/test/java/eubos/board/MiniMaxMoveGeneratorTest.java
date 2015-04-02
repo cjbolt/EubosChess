@@ -181,7 +181,6 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	//@Ignore
 	public void test_findMove_ChooseHighestValueCaptureAndPromotion() throws NoLegalMoveException {
 		System.out.println("\ntest_findMove_ChooseHighestValueCaptureAndPromotion()");
 		// 8 .....Q..
@@ -263,9 +262,44 @@ public class MiniMaxMoveGeneratorTest {
 		expectedMove = new GenericMove( GenericPosition.d3, GenericPosition.h7 );
 		doFindMoveTest(true);
 	}
-
+	
 	@Test
 	@Ignore
+	public void test_findMove_mateInOne2()  throws NoLegalMoveException {
+		// http://open-chess.org/viewtopic.php?f=7&t=997
+		System.out.println("\ntest_findMove_mateInOne2()");
+		BoardManager bm = new BoardManager( "2N5/4R3/2k3KQ/R7/1PB5/5N2/8/6B1 w - - 0 1" );
+		classUnderTest = new MiniMaxMoveGenerator( bm );
+		// various possible mates
+		expectedMove = new GenericMove( GenericPosition.d3, GenericPosition.h7 );
+		doFindMoveTest(true);
+	}
+	
+	@Test
+	public void test_findMove_mateInOne3()  throws NoLegalMoveException {
+		// http://open-chess.org/viewtopic.php?f=7&t=997
+		System.out.println("\ntest_findMove_mateInOne3()");
+		BoardManager bm = new BoardManager( "4N3/5P1P/5N1k/Q5p1/5PKP/B7/8/1B6 w - - 0 1" );
+		classUnderTest = new MiniMaxMoveGenerator( bm );
+		// various possible mates
+		expectedMove = new GenericMove( GenericPosition.f6, GenericPosition.g8 );
+		expectedMove = new GenericMove( GenericPosition.a3, GenericPosition.f8 );
+		doFindMoveTest(true);
+	}
+	
+	@Test
+	public void test_findMove_mateInOne4()  throws NoLegalMoveException {
+		// http://open-chess.org/viewtopic.php?f=7&t=997
+		System.out.println("\ntest_findMove_mateInOne4()");
+		BoardManager bm = new BoardManager( "8/4N3/7Q/4k3/8/4KP2/3P4/8 w - - 0 1" );
+		classUnderTest = new MiniMaxMoveGenerator( bm );
+		// Two possible pawn mates
+		expectedMove = new GenericMove( GenericPosition.d2, GenericPosition.d4 );
+		expectedMove = new GenericMove( GenericPosition.f3, GenericPosition.f4 );
+		doFindMoveTest(true);
+	}	
+
+	@Test
 	public void test_findMove_mateInTwo1()  throws NoLegalMoveException {
 		// chess.com Problem ID: 0022190
 		System.out.println("\ntest_findMove_mateInTwo1()");
@@ -276,7 +310,6 @@ public class MiniMaxMoveGeneratorTest {
 	}
 
 	@Test
-	@Ignore
 	public void test_findMove_mateInTwo2()  throws NoLegalMoveException {
 		// chess.com Problem ID: 0102832
 		System.out.println("\ntest_findMove_mateInTwo2()");
@@ -287,7 +320,6 @@ public class MiniMaxMoveGeneratorTest {
 	}
 
 	@Test
-	@Ignore
 	public void test_findMove_mateInTwo3()  throws NoLegalMoveException {
 		// chess.com Problem ID: 0551140
 		System.out.println("\ntest_findMove_mateInTwo3()");
