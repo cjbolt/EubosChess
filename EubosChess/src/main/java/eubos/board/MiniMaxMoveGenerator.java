@@ -20,7 +20,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private static final int SEARCH_DEPTH_IN_PLY = 4;
 	private int scores[];
 	private GenericMove pc[][];
-	private static final boolean isDebugOn = false;
+	private static final boolean isDebugOn = true;
 	private Piece.Colour initialOnMove;
 	private boolean mateFound = false;
 	
@@ -95,7 +95,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			else if ( currPiece instanceof Queen )
 				currValue = 900;
 			else if ( currPiece instanceof King )
-				currValue = 30000;
+				currValue = 300000;
 			if (currPiece.isBlack()) currValue = -currValue;
 			materialEvaluation += currValue;
 		}
@@ -165,11 +165,9 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	}
 
 	private void backupScoreForCheckmate(int currPly) {
-		if (initialOnMove==Colour.white) {
-			scores[currPly] = Integer.MAX_VALUE;
-		} else {
-			scores[currPly] = Integer.MIN_VALUE;
-		}
+		scores[currPly] = (SEARCH_DEPTH_IN_PLY-currPly)*300000;
+		if (initialOnMove==Colour.black)
+			scores[currPly] = -scores[currPly];
 	}
 
 	private boolean isBackUpRequired(int currPly, Piece.Colour colour,
