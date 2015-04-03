@@ -20,7 +20,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private static final int SEARCH_DEPTH_IN_PLY = 4;
 	private int scores[];
 	private GenericMove pc[][];
-	private static final boolean isDebugOn = true;
+	private static final boolean isDebugOn = false;
 	private Piece.Colour initialOnMove;
 	private boolean mateFound = false;
 	
@@ -245,8 +245,10 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 //	}
 
 	private LinkedList<GenericMove> generateMovesAtPosition() {
-		boolean kingIsInCheck = false;
 		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();
+		// Test if the King is in check at the start of the turn
+		King ownKing = bm.getKing(bm.onMove);
+		boolean kingIsInCheck = inCheck(ownKing);
 		// For each piece of the "on Move" colour, add it's legal moves to the entire move list
 		Iterator<Piece> iter_p = bm.getTheBoard().iterateColour(bm.onMove);
 		while ( iter_p.hasNext() ) {
@@ -259,8 +261,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		while ( iter_ml.hasNext() ) {
 			GenericMove currMove = iter_ml.next();
 			bm.performMove( currMove );
-			if (inCheck()) {
-				kingIsInCheck = true;
+			if (inCheck(ownKing)) {
 				iter_ml.remove();
 			}
 			bm.undoPreviousMove();

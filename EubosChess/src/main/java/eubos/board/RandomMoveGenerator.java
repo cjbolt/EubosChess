@@ -6,6 +6,7 @@ import java.util.Iterator;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
+import eubos.pieces.King;
 import eubos.pieces.Piece;
 
 public class RandomMoveGenerator extends MoveGenerator implements IMoveGenerator {
@@ -21,6 +22,8 @@ public class RandomMoveGenerator extends MoveGenerator implements IMoveGenerator
 	public GenericMove findMove() throws NoLegalMoveException {
 		GenericMove bestMove = null;
 		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();
+		// Test if the King is in check at the start of the turn
+		King ownKing = bm.getKing(bm.onMove);
 		// For each piece of the "on Move" colour, add it's legal moves to the entire move list
 		Iterator<Piece> iter_p = bm.getTheBoard().iterateColour(onMove);
 		while ( iter_p.hasNext() ) {
@@ -32,7 +35,7 @@ public class RandomMoveGenerator extends MoveGenerator implements IMoveGenerator
 		while ( iter_ml.hasNext() ) {
 			GenericMove currMove = iter_ml.next();
 			bm.performMove( currMove );
-			if (inCheck()) {
+			if (inCheck(ownKing)) {
 				iter_ml.remove();
 			}
 			bm.undoPreviousMove();

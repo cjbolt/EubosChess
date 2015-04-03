@@ -295,7 +295,7 @@ public class MiniMaxMoveGeneratorTest {
 		classUnderTest = new MiniMaxMoveGenerator( bm );
 		// Two possible pawn mates
 		expectedMove = new GenericMove( GenericPosition.d2, GenericPosition.d4 );
-		expectedMove = new GenericMove( GenericPosition.f3, GenericPosition.f4 );
+		//expectedMove = new GenericMove( GenericPosition.f3, GenericPosition.f4 );
 		doFindMoveTest(true);
 	}	
 
