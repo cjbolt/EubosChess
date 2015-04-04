@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import java.util.LinkedList;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericChessman;
@@ -264,14 +263,13 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	@Ignore
 	public void test_findMove_mateInOne2()  throws NoLegalMoveException {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		System.out.println("\ntest_findMove_mateInOne2()");
 		BoardManager bm = new BoardManager( "2N5/4R3/2k3KQ/R7/1PB5/5N2/8/6B1 w - - 0 1" );
 		classUnderTest = new MiniMaxMoveGenerator( bm );
 		// various possible mates
-		expectedMove = new GenericMove( GenericPosition.d3, GenericPosition.h7 );
+		expectedMove = new GenericMove( GenericPosition.a5, GenericPosition.a6 );
 		doFindMoveTest(true);
 	}
 	
