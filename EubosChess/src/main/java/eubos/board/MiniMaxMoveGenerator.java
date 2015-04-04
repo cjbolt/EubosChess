@@ -23,6 +23,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private static final boolean isDebugOn = false;
 	private Piece.Colour initialOnMove;
 	private boolean mateFound = false;
+	private boolean stalemateFound = false;
 	
 	public class moveGenDebugAgent {
 		private String indent = "";
@@ -118,24 +119,24 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		return bestMove;
 	}
 
-	private boolean searchPly(int currPly) {
-		boolean everBackedUpScore = false;
+	private int searchPly(int currPly) {
 		moveGenDebugAgent debug = new moveGenDebugAgent(currPly, isDebugOn);
 		debug.printSearchPly(currPly);
 		initNodeScore(currPly);
 		// Generate all moves at this position and test if the previous move in the
-		// search tree led to checkmate.
+		// search tree led to either checkmate or stalemate.
 		LinkedList<GenericMove> ml = generateMovesAtPosition();
 		if (mateFound) {
 			backupScoreForCheckmate(currPly);
 			debug.printMateFound(currPly);
-			return true;
-		}
+			mateFound = false;
+		} else if (stalemateFound) {
+			backupScoreForStalemate(currPly);
+			stalemateFound = false;
+		}		
 		Iterator<GenericMove> move_iter = ml.iterator();
-		// Iterate through all the moves for this ply, unless a mate has been detected,
-		// in which case back-up the score and abort searching all moves at the current depth.
-		while( move_iter.hasNext() && !mateFound ) {
-			boolean backUpScore = false;
+		// Iterate through all the moves for this ply; there will be none if a mate was detected...
+		while( move_iter.hasNext()) {
 			int positionScore = 0;
 			// 1) Apply the next move in the list
 			GenericMove currMove = move_iter.next();
@@ -144,43 +145,47 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			// 2) Either recurse or evaluate position and check for back-up of score
 			if ( isTerminalNode(currPly) ) {
 				positionScore = evaluatePosition(bm.getTheBoard());
-				Piece.Colour prevOnMove = Piece.Colour.getOpposite(bm.onMove);
-				backUpScore = isBackUpRequired(currPly, prevOnMove, backUpScore, positionScore);
 			} else {
-				backUpScore = searchPly(currPly+1);
+				positionScore = searchPly(currPly+1);
 			}
 			// 3) Having assessed the position, undo the move
 			debug.printUndoMove(currPly, currMove);
 			bm.undoPreviousMove();
 			// 4) Back-up the position score and update the principal continuation
-			if (backUpScore) {
-				everBackedUpScore = true;
-				performScoreBackUp(currPly, debug, positionScore, currMove);
+			if (backUpIsRequired(currPly, positionScore)) {
+				scores[currPly]=positionScore;
+				debug.printBackUpScore(currPly, positionScore);
+				updatePrincipalContinuation(currPly, currMove);
+				debug.printPrincipalContinuation(currPly);
 			}
 		}
-		// If a mate was found at this node, clear the flag so that any mates in
-		// parent nodes of the search tree can be detected.
-		mateFound = false;
-		return everBackedUpScore;
+		return scores[currPly];
+	}
+
+	private void backupScoreForStalemate(int currPly) {
+		// Avoid stalemates by giving them a large penalty score.
+		scores[currPly] = -300000;
+		if (initialOnMove==Colour.black)
+			scores[currPly] = -scores[currPly];
 	}
 
 	private void backupScoreForCheckmate(int currPly) {
+		// Favour earlier mates (i.e. Mate-in-one over mate-in-three) by giving them a larger score.
 		scores[currPly] = (SEARCH_DEPTH_IN_PLY-currPly)*300000;
 		if (initialOnMove==Colour.black)
 			scores[currPly] = -scores[currPly];
 	}
 
-	private boolean isBackUpRequired(int currPly, Piece.Colour colour,
-			boolean backUpScore, int positionScore) {
-		// Logic is that a move has just been applied...
-		if (colour == Colour.white) {
-			if (positionScore > scores[currPly]) {
+	private boolean backUpIsRequired(int currPly, int positionScore) {
+		boolean backUpScore = false;
+		if (bm.onMove == Colour.white) {
+			// if white, maximise score
+			if (positionScore > scores[currPly])
 				backUpScore = true;
-			}
 		} else {
-			if (positionScore < scores[currPly]) {
+			// if black, minimise score 
+			if (positionScore < scores[currPly])
 				backUpScore = true;
-			}
 		}
 		return backUpScore;
 	}
@@ -191,27 +196,6 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			isTerminalNode = true;
 		}
 		return isTerminalNode;
-	}
-
-	private void performScoreBackUp(
-			int currPly,
-			moveGenDebugAgent debug,
-			int positionScore,
-			GenericMove currMove) {
-		boolean isTerminalNode = isTerminalNode(currPly);
-		boolean writeScore = false;
-		if (!isTerminalNode) {
-			positionScore=scores[currPly+1];
-			writeScore = isBackUpRequired(currPly, bm.onMove, writeScore, positionScore);
-		} else {
-			writeScore = true;
-		}
-		if (writeScore) {
-			scores[currPly]=positionScore;
-			debug.printBackUpScore(currPly, positionScore);
-			updatePrincipalContinuation(currPly, currMove);
-			debug.printPrincipalContinuation(currPly);
-		}
 	}
 
 	private void updatePrincipalContinuation(int currPly, GenericMove currMove) {
@@ -274,6 +258,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 				mateFound = true;
 			} else {
 				// Indicates a stalemate position.
+				stalemateFound = true;
 			}
 		}
 		return entireMoveList;
