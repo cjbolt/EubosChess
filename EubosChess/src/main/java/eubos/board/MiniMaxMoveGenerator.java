@@ -20,7 +20,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private static final int SEARCH_DEPTH_IN_PLY = 4;
 	private int scores[];
 	private GenericMove pc[][];
-	private static final boolean isDebugOn = false;
+	private static final boolean isDebugOn = true;
 	private Piece.Colour initialOnMove;
 	private boolean mateFound = false;
 	private boolean stalemateFound = false;
@@ -69,6 +69,11 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		private void printMateFound( int currPly) {
 			if (isActive)
 				System.out.println(indent+"possible Checkmate found at Ply="+currPly);	
+		}
+		
+		private void printRefutationFound( int currPly) {
+			if (isActive)
+				System.out.println(indent+"refutation found (cut-off search) at Ply="+currPly);	
 		}
 	}
 
@@ -122,7 +127,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private int searchPly(int currPly) {
 		moveGenDebugAgent debug = new moveGenDebugAgent(currPly, isDebugOn);
 		debug.printSearchPly(currPly);
-		initNodeScoreAlphaBeta(currPly);
+		int alphaBetaCutOff = initNodeScoreAlphaBeta(currPly);
 		// Generate all moves at this position and test if the previous move in the
 		// search tree led to either checkmate or stalemate.
 		LinkedList<GenericMove> ml = generateMovesAtPosition();
@@ -157,23 +162,13 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 				debug.printBackUpScore(currPly, positionScore);
 				updatePrincipalContinuation(currPly, currMove);
 				debug.printPrincipalContinuation(currPly);
+			} else if ((alphaBetaCutOff != Integer.MAX_VALUE) && (alphaBetaCutOff != Integer.MIN_VALUE)) {
+				// Implement alpha beta cut-off, if a previously backed-up and bought down score was assigned.
+				debug.printRefutationFound(currPly);
+				break;
 			}
 		}
 		return scores[currPly];
-	}
-
-	private void backupScoreForStalemate(int currPly) {
-		// Avoid stalemates by giving them a large penalty score.
-		scores[currPly] = -300000;
-		if (initialOnMove==Colour.black)
-			scores[currPly] = -scores[currPly];
-	}
-
-	private void backupScoreForCheckmate(int currPly) {
-		// Favour earlier mates (i.e. Mate-in-one over mate-in-three) by giving them a larger score.
-		scores[currPly] = (SEARCH_DEPTH_IN_PLY-currPly)*300000;
-		if (initialOnMove==Colour.black)
-			scores[currPly] = -scores[currPly];
 	}
 
 	private boolean backUpIsRequired(int currPly, int positionScore) {
@@ -188,6 +183,20 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 				backUpScore = true;
 		}
 		return backUpScore;
+	}
+
+	private void backupScoreForStalemate(int currPly) {
+		// Avoid stalemates by giving them a large penalty score.
+		scores[currPly] = -300000;
+		if (initialOnMove==Colour.black)
+			scores[currPly] = -scores[currPly];
+	}
+
+	private void backupScoreForCheckmate(int currPly) {
+		// Favour earlier mates (i.e. Mate-in-one over mate-in-three) by giving them a larger score.
+		scores[currPly] = (SEARCH_DEPTH_IN_PLY-currPly)*300000;
+		if (initialOnMove==Colour.black)
+			scores[currPly] = -scores[currPly];
 	}
 	
 	private boolean isTerminalNode(int currPly) {
@@ -206,7 +215,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		}
 	}
 
-	private void initNodeScoreAlphaBeta(int currPly) {
+	private int initNodeScoreAlphaBeta(int currPly) {
 		// Initialise score at this node
 		if (currPly==0 || currPly==1) {
 			if (bm.onMove==Colour.white) {
@@ -218,6 +227,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			// alpha beta algorithm: bring down score from 2 levels up tree
 			scores[currPly] = scores[currPly-2];
 		}
+		return scores[currPly];
 	}
 
 	private LinkedList<GenericMove> generateMovesAtPosition() {
