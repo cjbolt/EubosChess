@@ -122,7 +122,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private int searchPly(int currPly) {
 		moveGenDebugAgent debug = new moveGenDebugAgent(currPly, isDebugOn);
 		debug.printSearchPly(currPly);
-		initNodeScore(currPly);
+		initNodeScoreAlphaBeta(currPly);
 		// Generate all moves at this position and test if the previous move in the
 		// search tree led to either checkmate or stalemate.
 		LinkedList<GenericMove> ml = generateMovesAtPosition();
@@ -206,27 +206,19 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		}
 	}
 
-	private void initNodeScore(int currPly) {
-		if (bm.onMove==Colour.white) {
-			scores[currPly] = Integer.MIN_VALUE;
+	private void initNodeScoreAlphaBeta(int currPly) {
+		// Initialise score at this node
+		if (currPly==0 || currPly==1) {
+			if (bm.onMove==Colour.white) {
+				scores[currPly] = Integer.MIN_VALUE;
+			} else {
+				scores[currPly] = Integer.MAX_VALUE;
+			}
 		} else {
-			scores[currPly] = Integer.MAX_VALUE;
+			// alpha beta algorithm: bring down score from 2 levels up tree
+			scores[currPly] = scores[currPly-2];
 		}
 	}
-	
-//	private void initNodeScoreAlphaBeta(int currPly) {
-//		// Initialise score at this node
-//		if (currPly==0 || currPly==1) {
-//			if (bm.onMove==Colour.white) {
-//				scores[currPly] = Integer.MIN_VALUE;
-//			} else {
-//				scores[currPly] = Integer.MAX_VALUE;
-//			}
-//		} else {
-//			// alpha beta algorithm: bring down score from 2 levels up tree
-//			scores[currPly] = scores[currPly-2];
-//		}
-//	}
 
 	private LinkedList<GenericMove> generateMovesAtPosition() {
 		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();
