@@ -20,7 +20,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private static final int SEARCH_DEPTH_IN_PLY = 4;
 	private int scores[];
 	private GenericMove pc[][];
-	private static final boolean isDebugOn = true;
+	private static final boolean isDebugOn = false;
 	private Piece.Colour initialOnMove;
 	private boolean mateFound = false;
 	private boolean stalemateFound = false;
@@ -167,12 +167,14 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 				debug.printBackUpScore(currPly, positionScore);
 				updatePrincipalContinuation(currPly, currMove);
 				debug.printPrincipalContinuation(currPly);
+			} else if ((alphaBetaCutOff != Integer.MAX_VALUE) && (alphaBetaCutOff != Integer.MIN_VALUE)) {
+				// Implement alpha beta cut-off, if a previously backed-up and bought down score was assigned.
+				if ((bm.onMove == Colour.white && positionScore >= scores[currPly-1]) ||
+						(bm.onMove == Colour.black && positionScore <= scores[currPly-1])) {
+					debug.printRefutationFound(currPly);
+					break;
+				}
 			}
-//			} else if ((alphaBetaCutOff != Integer.MAX_VALUE) && (alphaBetaCutOff != Integer.MIN_VALUE)) {
-//				// Implement alpha beta cut-off, if a previously backed-up and bought down score was assigned.
-//				debug.printRefutationFound(currPly);
-//				break;
-//			}
 		}
 		return scores[currPly];
 	}
