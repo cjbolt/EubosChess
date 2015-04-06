@@ -326,4 +326,16 @@ public class MiniMaxMoveGeneratorTest {
 		expectedMove = new GenericMove( GenericPosition.h7, GenericPosition.f6 );
 		doFindMoveTest(true);
 	}
+	
+	@Test
+	public void test_findMove_ArenaFailIllegalMove() {
+		// observed in arena, black tries to moves as white: 6th April 2015.
+		System.out.println("\ntest_findMove_arenaFailIllegalMove()");
+		BoardManager bm = new BoardManager( "2b1k1nr/2p2ppp/2p5/p3q3/P3Q3/P4P2/2P1B1PP/1r3R1K w k - 2 23" );
+		bm.performMove(new GenericMove(GenericPosition.f1, GenericPosition.b1));
+		classUnderTest = new MiniMaxMoveGenerator( bm );
+		expectedMove = new GenericMove( GenericPosition.e5, GenericPosition.e4 );
+		doFindMoveTest(true);
+		
+	}
 }

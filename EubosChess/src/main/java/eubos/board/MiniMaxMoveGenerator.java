@@ -161,19 +161,16 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			// 3) Having assessed the position, undo the move
 			debug.printUndoMove(currPly, currMove);
 			bm.undoPreviousMove();
-			// 4) Back-up the position score and update the principal continuation
+			// 4a) Back-up the position score and update the principal continuation...
 			if (backUpIsRequired(currPly, positionScore)) {
 				scores[currPly]=positionScore;
 				debug.printBackUpScore(currPly, positionScore);
 				updatePrincipalContinuation(currPly, currMove);
 				debug.printPrincipalContinuation(currPly);
-			} else if ((alphaBetaCutOff != Integer.MAX_VALUE) && (alphaBetaCutOff != Integer.MIN_VALUE)) {
-				// Implement alpha beta cut-off, if a previously backed-up and bought down score was assigned.
-				if ((bm.onMove == Colour.white && positionScore >= scores[currPly-1]) ||
-						(bm.onMove == Colour.black && positionScore <= scores[currPly-1])) {
-					debug.printRefutationFound(currPly);
-					break;
-				}
+			// 4b) ...or test for an Alpha Beta algorithm cut-off
+			} else if (testForAlphaBetaCutOff( alphaBetaCutOff, positionScore, currPly )) {
+				debug.printRefutationFound(currPly);
+				break;
 			}
 		}
 		return scores[currPly];
@@ -191,6 +188,16 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 				backUpScore = true;
 		}
 		return backUpScore;
+	}
+	
+	private boolean testForAlphaBetaCutOff(int cutOffValue, int positionScore, int currPly) {
+		if ((cutOffValue != Integer.MAX_VALUE) && (cutOffValue != Integer.MIN_VALUE)) {
+			if ((bm.onMove == Colour.white && positionScore >= scores[currPly-1]) ||
+					(bm.onMove == Colour.black && positionScore <= scores[currPly-1])) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private void backupScoreForStalemate(int currPly) {
