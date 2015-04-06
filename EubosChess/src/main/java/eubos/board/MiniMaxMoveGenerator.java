@@ -75,6 +75,11 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			if (isActive)
 				System.out.println(indent+"refutation found (cut-off search) at Ply="+currPly);	
 		}
+		
+		private void printAlphaBetaCutOffLimit(int currPly, int score) {
+			if (isActive)
+				System.out.println(indent+"alpha beta brought down score:"+score+" at Ply="+currPly);				
+		}
 	}
 
 	public MiniMaxMoveGenerator( BoardManager bm ) {
@@ -127,7 +132,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private int searchPly(int currPly) {
 		moveGenDebugAgent debug = new moveGenDebugAgent(currPly, isDebugOn);
 		debug.printSearchPly(currPly);
-		int alphaBetaCutOff = initNodeScoreAlphaBeta(currPly);
+		int alphaBetaCutOff = initNodeScoreAlphaBeta(debug, currPly);
 		// Generate all moves at this position and test if the previous move in the
 		// search tree led to either checkmate or stalemate.
 		LinkedList<GenericMove> ml = generateMovesAtPosition();
@@ -162,11 +167,12 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 				debug.printBackUpScore(currPly, positionScore);
 				updatePrincipalContinuation(currPly, currMove);
 				debug.printPrincipalContinuation(currPly);
-			} else if ((alphaBetaCutOff != Integer.MAX_VALUE) && (alphaBetaCutOff != Integer.MIN_VALUE)) {
-				// Implement alpha beta cut-off, if a previously backed-up and bought down score was assigned.
-				debug.printRefutationFound(currPly);
-				break;
 			}
+//			} else if ((alphaBetaCutOff != Integer.MAX_VALUE) && (alphaBetaCutOff != Integer.MIN_VALUE)) {
+//				// Implement alpha beta cut-off, if a previously backed-up and bought down score was assigned.
+//				debug.printRefutationFound(currPly);
+//				break;
+//			}
 		}
 		return scores[currPly];
 	}
@@ -215,7 +221,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		}
 	}
 
-	private int initNodeScoreAlphaBeta(int currPly) {
+	private int initNodeScoreAlphaBeta(moveGenDebugAgent debug, int currPly) {
 		// Initialise score at this node
 		if (currPly==0 || currPly==1) {
 			if (bm.onMove==Colour.white) {
@@ -225,6 +231,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			}
 		} else {
 			// alpha beta algorithm: bring down score from 2 levels up tree
+			debug.printAlphaBetaCutOffLimit(currPly, scores[currPly-2]);
 			scores[currPly] = scores[currPly-2];
 		}
 		return scores[currPly];
