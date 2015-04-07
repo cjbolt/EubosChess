@@ -295,7 +295,37 @@ public class MiniMaxMoveGeneratorTest {
 		expectedMove = new GenericMove( GenericPosition.d2, GenericPosition.d4 );
 		//expectedMove = new GenericMove( GenericPosition.f3, GenericPosition.f4 );
 		doFindMoveTest(true);
-	}	
+	}
+	
+	@Test
+	public void test_findMove_mateInOne5()  throws NoLegalMoveException {
+		// http://open-chess.org/viewtopic.php?f=7&t=997
+		System.out.println("\ntest_findMove_mateInOne5()");
+		BoardManager bm = new BoardManager( "8/8/K7/p7/k2N3R/p7/P7/8 w - - 0 1" );
+		classUnderTest = new MiniMaxMoveGenerator( bm );
+		expectedMove = new GenericMove( GenericPosition.d4, GenericPosition.e6 );
+		doFindMoveTest(true);
+	}
+
+	@Test
+	public void test_findMove_mateInOne6()  throws NoLegalMoveException {
+		// http://open-chess.org/viewtopic.php?f=7&t=997
+		System.out.println("\ntest_findMove_mateInOne6()");
+		BoardManager bm = new BoardManager( "1rk2N2/1p6/8/B1Pp4/B6Q/K7/8/2R5 w - d6 0 1" );
+		classUnderTest = new MiniMaxMoveGenerator( bm );
+		expectedMove = new GenericMove( GenericPosition.a4, GenericPosition.d7 );
+		doFindMoveTest(true);
+	}
+
+	@Test
+	public void test_findMove_mateInOne7()  throws NoLegalMoveException {
+		// http://open-chess.org/viewtopic.php?f=7&t=997
+		System.out.println("\ntest_findMove_mateInOne7()");
+		BoardManager bm = new BoardManager( "8/7B/8/3N4/8/1Q2B3/PPP5/rk2K2R w K - 0 1" );
+		classUnderTest = new MiniMaxMoveGenerator( bm );
+		expectedMove = new GenericMove( GenericPosition.c2, GenericPosition.c3 );
+		doFindMoveTest(true);
+	}
 
 	@Test
 	public void test_findMove_mateInTwo1()  throws NoLegalMoveException {

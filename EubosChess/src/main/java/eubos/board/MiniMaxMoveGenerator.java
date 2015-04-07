@@ -139,6 +139,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		if (mateFound) {
 			backupScoreForCheckmate(currPly);
 			debug.printMateFound(currPly);
+			clearPrincipalContinuationAfter(currPly-1);
 			mateFound = false;
 		} else if (stalemateFound) {
 			backupScoreForStalemate(currPly);
@@ -227,6 +228,16 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		pc[currPly][currPly]=currMove;
 		for (int nextPly=currPly+1; nextPly < SEARCH_DEPTH_IN_PLY; nextPly++) {
 			pc[currPly][nextPly]=pc[currPly+1][nextPly];
+		}
+	}
+
+	private void clearPrincipalContinuationAfter(int currPly ) {
+		// Clear the principal continuation after the indicated ply
+		while (currPly < SEARCH_DEPTH_IN_PLY-1) {
+			for (int nextPly=currPly+1; nextPly < SEARCH_DEPTH_IN_PLY; nextPly++) {
+				pc[currPly][nextPly]=null;
+			}
+			currPly++;
 		}
 	}
 
