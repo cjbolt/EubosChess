@@ -14,6 +14,8 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import eubos.pieces.Piece;
 
 public class MiniMaxMoveGeneratorTest {
+	
+	private static final int SEARCH_DEPTH_IN_PLY = 4;
 	protected LinkedList<Piece> pl;
 	protected MiniMaxMoveGenerator classUnderTest;
 	protected GenericMove expectedMove;
@@ -49,7 +51,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 1 ........
 		//   abcdefgh
 		BoardManager bm = new BoardManager( "8/8/3p2p1/2P5/8/8/8/8 w - - - -" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm, SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove( GenericPosition.c5, GenericPosition.d6 );
 		doFindMoveTest(true);
 	}	
@@ -67,7 +69,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 1 ........
 		//   abcdefgh
 		BoardManager bm = new BoardManager( "8/3p4/2P5/8/8/8/5P2/8 b - - - -" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove( GenericPosition.d7, GenericPosition.c6 );
 		doFindMoveTest(true);
 	}
@@ -85,7 +87,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 1 kP......
 		//   abcdefgh
 		BoardManager bm = new BoardManager( "8/8/8/8/8/1p6/ppp5/Kp6 w - - - -" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove( GenericPosition.a1, GenericPosition.b2 );
 		doFindMoveTest(true);			
 	}
@@ -103,7 +105,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 1 k.......
 		//   abcdefgh
 		BoardManager bm = new BoardManager( "8/8/8/8/8/1pp5/1p6/K7 w - - - -" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove( GenericPosition.a1, GenericPosition.b1 );
 		doFindMoveTest(true);
 	}
@@ -121,7 +123,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 1 kP......
 		//   abcdefgh
 		BoardManager bm = new BoardManager( "8/8/8/8/8/1pp5/ppp5/Kp6 w - - - -" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		classUnderTest.findMove();
 	}
 	
@@ -138,7 +140,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 1 ..kr...r
 		//   abcdefgh
 		BoardManager bm = new BoardManager( "2B1Q3/6k1/2Q5/P5B1/4P3/1P3NPN/8/2KR3R b - - - -" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove( GenericPosition.g7, GenericPosition.h7 );
 		doFindMoveTest(true);
 	}
@@ -156,7 +158,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 1 ....r.k.
 		//   abcdefgh
 		BoardManager bm = new BoardManager( "3nkbnr/3p1ppp/8/1B1p4/R2N4/8/6PP/4R1K1 b - - - -" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove( GenericPosition.g8, GenericPosition.e7 );
 		doFindMoveTest(true);
 	}	
@@ -174,7 +176,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 1 ........
 		//   abcdefgh
 		BoardManager bm = new BoardManager( "8/5q2/3pP3/2P5/1b6/P7/8/8 w - - - -" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove( GenericPosition.e6, GenericPosition.f7 );
 		doFindMoveTest(true);
 	}
@@ -192,7 +194,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 1 ........
 		//   abcdefgh
 		BoardManager bm = new BoardManager( "5q2/4P3/3p4/2P5/1b6/P7/8/8 w - - - -" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove( GenericPosition.e7, GenericPosition.f8, GenericChessman.QUEEN );
 		doFindMoveTest(true);
 	}
@@ -210,7 +212,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 1 ........
 		//   abcdefgh
 		BoardManager bm = new BoardManager( "8/4P3/3p4/8/8/8/8/8 w - - - -" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove( GenericPosition.e7, GenericPosition.e8, GenericChessman.QUEEN );
 		doFindMoveTest(true);
 	}
@@ -228,7 +230,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 1 ....r...
 		//   abcdefgh
 		BoardManager bm = new BoardManager( "4k3/8/4p3/5b2/8/8/8/4R3 b - - - -" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove( GenericPosition.e6, GenericPosition.f5 );
 		doFindMoveTest(false);
 	}
@@ -247,7 +249,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 1 r...r.k.
 		//   abcdefgh
 		BoardManager bm = new BoardManager( "1nbqk2r/3p3p/r1pbpn2/1p3B2/3P4/PQP2N2/5PPP/R3R1K1 w - - - -" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove( GenericPosition.e6, GenericPosition.f5 );
 		doFindMoveTest(false);
 	}
@@ -257,7 +259,7 @@ public class MiniMaxMoveGeneratorTest {
 		// chess.com Problem ID: 0160818
 		System.out.println("\ntest_findMove_mateInOne1()");
 		BoardManager bm = new BoardManager( "5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - - -" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove( GenericPosition.d3, GenericPosition.h7 );
 		doFindMoveTest(true);
 	}
@@ -267,7 +269,7 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		System.out.println("\ntest_findMove_mateInOne2()");
 		BoardManager bm = new BoardManager( "2N5/4R3/2k3KQ/R7/1PB5/5N2/8/6B1 w - - 0 1" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		// various possible mates
 		expectedMove = new GenericMove( GenericPosition.a5, GenericPosition.a6 );
 		doFindMoveTest(true);
@@ -278,7 +280,7 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		System.out.println("\ntest_findMove_mateInOne3()");
 		BoardManager bm = new BoardManager( "4N3/5P1P/5N1k/Q5p1/5PKP/B7/8/1B6 w - - 0 1" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		// various possible mates
 		expectedMove = new GenericMove( GenericPosition.f6, GenericPosition.g8 );
 		expectedMove = new GenericMove( GenericPosition.a3, GenericPosition.f8 );
@@ -290,7 +292,7 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		System.out.println("\ntest_findMove_mateInOne4()");
 		BoardManager bm = new BoardManager( "8/4N3/7Q/4k3/8/4KP2/3P4/8 w - - 0 1" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		// Two possible pawn mates
 		expectedMove = new GenericMove( GenericPosition.d2, GenericPosition.d4 );
 		//expectedMove = new GenericMove( GenericPosition.f3, GenericPosition.f4 );
@@ -302,7 +304,7 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		System.out.println("\ntest_findMove_mateInOne5()");
 		BoardManager bm = new BoardManager( "8/8/K7/p7/k2N3R/p7/P7/8 w - - 0 1" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove( GenericPosition.d4, GenericPosition.e6 );
 		doFindMoveTest(true);
 	}
@@ -312,7 +314,7 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		System.out.println("\ntest_findMove_mateInOne6()");
 		BoardManager bm = new BoardManager( "1rk2N2/1p6/8/B1Pp4/B6Q/K7/8/2R5 w - d6 0 1" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove( GenericPosition.a4, GenericPosition.d7 );
 		doFindMoveTest(true);
 	}
@@ -322,7 +324,7 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		System.out.println("\ntest_findMove_mateInOne7()");
 		BoardManager bm = new BoardManager( "8/7B/8/3N4/8/1Q2B3/PPP5/rk2K2R w K - 0 1" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove( GenericPosition.c2, GenericPosition.c3 );
 		doFindMoveTest(true);
 	}
@@ -332,7 +334,7 @@ public class MiniMaxMoveGeneratorTest {
 		// chess.com Problem ID: 0022190
 		System.out.println("\ntest_findMove_mateInTwo1()");
 		BoardManager bm = new BoardManager( "k1K5/b7/R7/1P6/1n6/8/8/8 w - - - -" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove( GenericPosition.b5, GenericPosition.b6 );
 		doFindMoveTest(true);
 	}
@@ -342,7 +344,7 @@ public class MiniMaxMoveGeneratorTest {
 		// chess.com Problem ID: 0102832
 		System.out.println("\ntest_findMove_mateInTwo2()");
 		BoardManager bm = new BoardManager( "r1r3k1/pb1p1p2/1p2p1p1/2pPP1B1/1nP4Q/1Pq2NP1/P4PBP/b2R2K1 w - - - -" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove( GenericPosition.g5, GenericPosition.f6 );
 		doFindMoveTest(true);
 	}
@@ -352,7 +354,7 @@ public class MiniMaxMoveGeneratorTest {
 		// chess.com Problem ID: 0551140
 		System.out.println("\ntest_findMove_mateInTwo3()");
 		BoardManager bm = new BoardManager( "rnbq1rk1/p4ppN/4p2n/1pbp4/8/2PQP2P/PPB2PP1/RNB1K2R w - - - -" );
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove( GenericPosition.h7, GenericPosition.f6 );
 		doFindMoveTest(true);
 	}
@@ -363,7 +365,7 @@ public class MiniMaxMoveGeneratorTest {
 		System.out.println("\ntest_findMove_arenaFailIllegalMove()");
 		BoardManager bm = new BoardManager( "2b1k1nr/2p2ppp/2p5/p3q3/P3Q3/P4P2/2P1B1PP/1r3R1K w k - 2 23" );
 		bm.performMove(new GenericMove(GenericPosition.f1, GenericPosition.b1));
-		classUnderTest = new MiniMaxMoveGenerator( bm );
+		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove( GenericPosition.e5, GenericPosition.e4 );
 		doFindMoveTest(true);
 		

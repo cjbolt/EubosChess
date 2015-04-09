@@ -17,9 +17,9 @@ import eubos.pieces.Rook;
 public class MiniMaxMoveGenerator extends MoveGenerator implements
 		IMoveGenerator {
 	
-	private static final int SEARCH_DEPTH_IN_PLY = 4;
+	private int searchDepthPly;
 	private int scores[];
-	private GenericMove pc[][];
+	private PrincipalContinuation pc;
 	private static final boolean isDebugOn = false;
 	private Piece.Colour initialOnMove;
 	private boolean mateFound = false;
@@ -58,11 +58,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 
 		private void printPrincipalContinuation(int currPly) {
 			if (isActive) {
-				System.out.print(indent+"principal continuation found: "+pc[currPly][currPly]);
-				for ( int nextPly = currPly+1; nextPly < SEARCH_DEPTH_IN_PLY; nextPly++) {
-					System.out.print(", "+pc[currPly][nextPly]);
-				}
-				System.out.print("\n");
+				System.out.println(indent+"principal continuation found: "+pc.toStringAfter(currPly));
 			}
 		}
 		
@@ -82,10 +78,11 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		}
 	}
 
-	public MiniMaxMoveGenerator( BoardManager bm ) {
+	public MiniMaxMoveGenerator( BoardManager bm, int searchDepth ) {
 		super( bm );
-		scores = new int[SEARCH_DEPTH_IN_PLY];
-		pc = new GenericMove[SEARCH_DEPTH_IN_PLY][SEARCH_DEPTH_IN_PLY];
+		scores = new int[searchDepth];
+		searchDepthPly = searchDepth;
+		pc = new PrincipalContinuation(searchDepth);
 	}
 	
 	private int evaluatePosition(Board theBoard ) {
@@ -122,7 +119,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		// Report the principal continuation and select the best move
 		moveGenDebugAgent debug = new moveGenDebugAgent(0, true);
 		debug.printPrincipalContinuation(0);
-		GenericMove bestMove = pc[0][0];
+		GenericMove bestMove = pc.getBestMove();
 		if (bestMove==null) {
 			throw new NoLegalMoveException();
 		}
@@ -139,7 +136,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		if (mateFound) {
 			backupScoreForCheckmate(currPly);
 			debug.printMateFound(currPly);
-			clearPrincipalContinuationAfter(currPly-1);
+			pc.clearAfter(currPly-1);
 			mateFound = false;
 		} else if (stalemateFound) {
 			backupScoreForStalemate(currPly);
@@ -166,7 +163,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			if (backUpIsRequired(currPly, positionScore)) {
 				scores[currPly]=positionScore;
 				debug.printBackUpScore(currPly, positionScore);
-				updatePrincipalContinuation(currPly, currMove);
+				pc.update(currPly, currMove);
 				debug.printPrincipalContinuation(currPly);
 			// 4b) ...or test for an Alpha Beta algorithm cut-off
 			} else if (testForAlphaBetaCutOff( alphaBetaCutOff, positionScore, currPly )) {
@@ -210,34 +207,17 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 
 	private void backupScoreForCheckmate(int currPly) {
 		// Favour earlier mates (i.e. Mate-in-one over mate-in-three) by giving them a larger score.
-		scores[currPly] = (SEARCH_DEPTH_IN_PLY-currPly)*300000;
+		scores[currPly] = (searchDepthPly-currPly)*300000;
 		if (initialOnMove==Colour.black)
 			scores[currPly] = -scores[currPly];
 	}
 	
 	private boolean isTerminalNode(int currPly) {
 		boolean isTerminalNode = false;
-		if (currPly == (SEARCH_DEPTH_IN_PLY-1)) {
+		if (currPly == (searchDepthPly-1)) {
 			isTerminalNode = true;
 		}
 		return isTerminalNode;
-	}
-
-	private void updatePrincipalContinuation(int currPly, GenericMove currMove) {
-		// Update Principal Continuation
-		pc[currPly][currPly]=currMove;
-		for (int nextPly=currPly+1; nextPly < SEARCH_DEPTH_IN_PLY; nextPly++) {
-			pc[currPly][nextPly]=pc[currPly+1][nextPly];
-		}
-	}
-
-	private void clearPrincipalContinuationAfter(int currPly ) {
-		// Clear the principal continuation after the indicated ply depth
-		for (int nextPly=currPly+1; nextPly < SEARCH_DEPTH_IN_PLY; nextPly++) {
-			for (int i=0; i<SEARCH_DEPTH_IN_PLY; i++)
-				// All plies need to be cleared.
-				pc[i][nextPly]=null;
-		}
 	}
 
 	private int initNodeScoreAlphaBeta(moveGenDebugAgent debug, int currPly) {

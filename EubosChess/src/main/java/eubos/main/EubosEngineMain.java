@@ -20,6 +20,8 @@ import eubos.pieces.Piece;
 
 public class EubosEngineMain extends AbstractEngine {
 	
+	private static final int SEARCH_DEPTH_IN_PLY = 4;
+	
 	private BoardManager bm;
 	private Piece.Colour onMove;
 
@@ -57,7 +59,7 @@ public class EubosEngineMain extends AbstractEngine {
 
 	public void receive(EngineStartCalculatingCommand command) {
 		try {
-			MiniMaxMoveGenerator mg = new MiniMaxMoveGenerator( bm );
+			MiniMaxMoveGenerator mg = new MiniMaxMoveGenerator( bm, SEARCH_DEPTH_IN_PLY );
 			GenericMove selectedMove = mg.findMove();
 			bm.performMove(selectedMove);
 			this.getProtocol().send( new ProtocolBestMoveCommand( selectedMove, null ));
