@@ -25,89 +25,11 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private boolean mateFound = false;
 	private boolean stalemateFound = false;
 	
-	public class moveGenDebugAgent {
-		private String indent = "";
-		private boolean isActive=false;
-
-		public moveGenDebugAgent( int currPly, boolean active ) {
-			isActive = active;
-			for (int i=0; i<currPly; i++) {
-				indent += "\t";
-			}
-		}
-
-		public void printPerformMove(int currPly, GenericMove currMove) {
-			if (isActive)
-				System.out.println(indent+"performMove("+currMove.toString()+") at Ply="+currPly);
-		}
-
-		private void printSearchPly(int currPly) {
-			if (isActive)
-				System.out.println(indent+"searchPly("+currPly+", "+bm.onMove.toString()+")");
-		}
-
-		private void printUndoMove(int currPly, GenericMove currMove) {
-			if (isActive)
-				System.out.println(indent+"undoMove("+currMove.toString()+") at Ply="+currPly);
-		}
-
-		private void printBackUpScore(int currPly, int positionScore) {
-			if (isActive)
-				System.out.println(indent+"backedUpScore:"+positionScore+" at Ply="+currPly);
-		}
-
-		private void printPrincipalContinuation(int currPly) {
-			if (isActive) {
-				System.out.println(indent+"principal continuation found: "+pc.toStringAfter(currPly));
-			}
-		}
-		
-		private void printMateFound( int currPly) {
-			if (isActive)
-				System.out.println(indent+"possible Checkmate found at Ply="+currPly);	
-		}
-		
-		private void printRefutationFound( int currPly) {
-			if (isActive)
-				System.out.println(indent+"refutation found (cut-off search) at Ply="+currPly);	
-		}
-		
-		private void printAlphaBetaCutOffLimit(int currPly, int score) {
-			if (isActive)
-				System.out.println(indent+"alpha beta brought down score:"+score+" at Ply="+currPly);				
-		}
-	}
-
 	public MiniMaxMoveGenerator( BoardManager bm, int searchDepth ) {
 		super( bm );
 		scores = new int[searchDepth];
 		searchDepthPly = searchDepth;
 		pc = new PrincipalContinuation(searchDepth);
-	}
-	
-	private int evaluatePosition(Board theBoard ) {
-		// First effort does only the most simple calculation based on material
-		Iterator<Piece> iter_p = theBoard.iterator();
-		int materialEvaluation = 0;
-		while ( iter_p.hasNext() ) {
-			Piece currPiece = iter_p.next();
-			int currValue = 0;
-			if ( currPiece instanceof Pawn ) 
-				currValue = 100;
-			else if ( currPiece instanceof Rook )
-				currValue = 500;
-			else if ( currPiece instanceof Bishop )
-				currValue = 320;
-			else if ( currPiece instanceof Knight )
-				currValue = 300;
-			else if ( currPiece instanceof Queen )
-				currValue = 900;
-			else if ( currPiece instanceof King )
-				currValue = 300000;
-			if (currPiece.isBlack()) currValue = -currValue;
-			materialEvaluation += currValue;
-		}
-		return materialEvaluation;
 	}
 	
 	@Override
@@ -117,8 +39,8 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		searchPly(0);
 		// Report the principal continuation and select the best move
-		moveGenDebugAgent debug = new moveGenDebugAgent(0, true);
-		debug.printPrincipalContinuation(0);
+		SearchDebugAgent debug = new SearchDebugAgent(0, true);
+		debug.printPrincipalContinuation(0, pc);
 		GenericMove bestMove = pc.getBestMove();
 		if (bestMove==null) {
 			throw new NoLegalMoveException();
@@ -127,8 +49,8 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	}
 
 	private int searchPly(int currPly) {
-		moveGenDebugAgent debug = new moveGenDebugAgent(currPly, isDebugOn);
-		debug.printSearchPly(currPly);
+		SearchDebugAgent debug = new SearchDebugAgent(currPly, isDebugOn);
+		debug.printSearchPly(currPly,bm.onMove);
 		int alphaBetaCutOff = initNodeScoreAlphaBeta(debug, currPly);
 		// Generate all moves at this position and test if the previous move in the
 		// search tree led to either checkmate or stalemate.
@@ -164,7 +86,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 				scores[currPly]=positionScore;
 				debug.printBackUpScore(currPly, positionScore);
 				pc.update(currPly, currMove);
-				debug.printPrincipalContinuation(currPly);
+				debug.printPrincipalContinuation(currPly,pc);
 			// 4b) ...or test for an Alpha Beta algorithm cut-off
 			} else if (testForAlphaBetaCutOff( alphaBetaCutOff, positionScore, currPly )) {
 				debug.printRefutationFound(currPly);
@@ -211,16 +133,8 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		if (initialOnMove==Colour.black)
 			scores[currPly] = -scores[currPly];
 	}
-	
-	private boolean isTerminalNode(int currPly) {
-		boolean isTerminalNode = false;
-		if (currPly == (searchDepthPly-1)) {
-			isTerminalNode = true;
-		}
-		return isTerminalNode;
-	}
 
-	private int initNodeScoreAlphaBeta(moveGenDebugAgent debug, int currPly) {
+	private int initNodeScoreAlphaBeta(SearchDebugAgent debug, int currPly) {
 		// Initialise score at this node
 		if (currPly==0 || currPly==1) {
 			if (bm.onMove==Colour.white) {
@@ -272,4 +186,36 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		return entireMoveList;
 	}
 
+	private int evaluatePosition(Board theBoard ) {
+		// First effort does only the most simple calculation based on material
+		Iterator<Piece> iter_p = theBoard.iterator();
+		int materialEvaluation = 0;
+		while ( iter_p.hasNext() ) {
+			Piece currPiece = iter_p.next();
+			int currValue = 0;
+			if ( currPiece instanceof Pawn ) 
+				currValue = 100;
+			else if ( currPiece instanceof Rook )
+				currValue = 500;
+			else if ( currPiece instanceof Bishop )
+				currValue = 320;
+			else if ( currPiece instanceof Knight )
+				currValue = 300;
+			else if ( currPiece instanceof Queen )
+				currValue = 900;
+			else if ( currPiece instanceof King )
+				currValue = 300000;
+			if (currPiece.isBlack()) currValue = -currValue;
+			materialEvaluation += currValue;
+		}
+		return materialEvaluation;
+	}
+
+	private boolean isTerminalNode(int currPly) {
+		boolean isTerminalNode = false;
+		if (currPly == (searchDepthPly-1)) {
+			isTerminalNode = true;
+		}
+		return isTerminalNode;
+	}
 }
