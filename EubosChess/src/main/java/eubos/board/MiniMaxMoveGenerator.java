@@ -35,7 +35,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	@Override
 	public GenericMove findMove() throws NoLegalMoveException {
 		// Register initialOnMove
-		initialOnMove = bm.onMove;
+		initialOnMove = bm.getOnMove();
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		searchPly(0);
 		// Report the principal continuation and select the best move
@@ -50,7 +50,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 
 	private int searchPly(int currPly) {
 		SearchDebugAgent debug = new SearchDebugAgent(currPly, isDebugOn);
-		debug.printSearchPly(currPly,bm.onMove);
+		debug.printSearchPly(currPly,bm.getOnMove());
 		int alphaBetaCutOff = initNodeScoreAlphaBeta(debug, currPly);
 		// Generate all moves at this position and test if the previous move in the
 		// search tree led to either checkmate or stalemate.
@@ -98,7 +98,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 
 	private boolean backUpIsRequired(int currPly, int positionScore) {
 		boolean backUpScore = false;
-		if (bm.onMove == Colour.white) {
+		if (bm.getOnMove() == Colour.white) {
 			// if white, maximise score
 			if (positionScore > scores[currPly])
 				backUpScore = true;
@@ -112,8 +112,8 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	
 	private boolean testForAlphaBetaCutOff(int cutOffValue, int positionScore, int currPly) {
 		if ((cutOffValue != Integer.MAX_VALUE) && (cutOffValue != Integer.MIN_VALUE)) {
-			if ((bm.onMove == Colour.white && positionScore >= scores[currPly-1]) ||
-					(bm.onMove == Colour.black && positionScore <= scores[currPly-1])) {
+			if ((bm.getOnMove() == Colour.white && positionScore >= scores[currPly-1]) ||
+					(bm.getOnMove() == Colour.black && positionScore <= scores[currPly-1])) {
 				return true;
 			}
 		}
@@ -137,7 +137,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private int initNodeScoreAlphaBeta(SearchDebugAgent debug, int currPly) {
 		// Initialise score at this node
 		if (currPly==0 || currPly==1) {
-			if (bm.onMove==Colour.white) {
+			if (bm.getOnMove()==Colour.white) {
 				scores[currPly] = Integer.MIN_VALUE;
 			} else {
 				scores[currPly] = Integer.MAX_VALUE;
@@ -153,10 +153,10 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private LinkedList<GenericMove> generateMovesAtPosition() {
 		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();
 		// Test if the King is in check at the start of the turn
-		King ownKing = bm.getKing(bm.onMove);
+		King ownKing = bm.getKing(bm.getOnMove());
 		boolean kingIsInCheck = inCheck(ownKing);
 		// For each piece of the "on Move" colour, add it's legal moves to the entire move list
-		Iterator<Piece> iter_p = bm.getTheBoard().iterateColour(bm.onMove);
+		Iterator<Piece> iter_p = bm.getTheBoard().iterateColour(bm.getOnMove());
 		while ( iter_p.hasNext() ) {
 			Piece currPiece = iter_p.next();
 			entireMoveList.addAll( currPiece.generateMoves( bm ));
@@ -173,7 +173,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			bm.undoPreviousMove();
 		}
 		if (entireMoveList.isEmpty()) {
-			if (kingIsInCheck && initialOnMove==Piece.Colour.getOpposite(bm.onMove)) {
+			if (kingIsInCheck && initialOnMove==Piece.Colour.getOpposite(bm.getOnMove())) {
 				// Indicates checkmate! Perform an immediate backup of score and abort the 
 				// search of any moves deeper than the previous node in the search tree. 
 				// However, search the rest of the tree, as this may yield earlier forced mates.

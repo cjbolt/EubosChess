@@ -23,7 +23,7 @@ public class MoveGenerator {
 		if ( bm.hasCastled())
 			return;
 		// King should not have moved and be on its initial square
-		King ownKing = bm.getKing(bm.onMove);
+		King ownKing = bm.getKing(bm.getOnMove());
 		if ( ownKing != null ) {
 			if (ownKing.hasEverMoved() || !ownKing.isOnInitialSquare()) {
 				return;

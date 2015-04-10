@@ -150,7 +150,13 @@ public class BoardManager implements IBoardManager {
 	
 	private Stack<TrackedMove> previousMoves;
 	private Board theBoard;
-	public Piece.Colour onMove;
+	
+	// No public setter, because onMove is only changed by performing a move on the board.
+	private Piece.Colour onMove;
+	public Piece.Colour getOnMove() {
+		return onMove;
+	}
+
 	private King whiteKing;
 	private King blackKing;
 	private boolean whiteHasCastled;

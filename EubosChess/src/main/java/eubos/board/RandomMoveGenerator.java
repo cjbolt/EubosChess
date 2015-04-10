@@ -23,7 +23,7 @@ public class RandomMoveGenerator extends MoveGenerator implements IMoveGenerator
 		GenericMove bestMove = null;
 		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();
 		// Test if the King is in check at the start of the turn
-		King ownKing = bm.getKing(bm.onMove);
+		King ownKing = bm.getKing(bm.getOnMove());
 		// For each piece of the "on Move" colour, add it's legal moves to the entire move list
 		Iterator<Piece> iter_p = bm.getTheBoard().iterateColour(onMove);
 		while ( iter_p.hasNext() ) {
