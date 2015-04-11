@@ -152,8 +152,8 @@ public class BoardManager implements IBoardManager {
 	private Board theBoard;
 	
 	// No public setter, because onMove is only changed by performing a move on the board.
-	private Piece.Colour onMove;
-	public Piece.Colour getOnMove() {
+	private Colour onMove;
+	public Colour getOnMove() {
 		return onMove;
 	}
 
@@ -354,13 +354,13 @@ public class BoardManager implements IBoardManager {
 			pieceToMove.setSquare( move.to );
 			theBoard.setPieceAtSquare( pieceToMove );
 			// Update onMove
-			onMove = Piece.Colour.getOpposite(onMove);
+			onMove = Colour.getOpposite(onMove);
 		} else {
 			// TODO throw an exception in this case?
 		}
 	}
 	
-	public void unperformMove( GenericMove move ) {
+	private void unperformMove( GenericMove move ) {
 		// Move the piece
 		Piece pieceToMove = theBoard.pickUpPieceAtSquare( move.from );
 		if ( pieceToMove != null ) {

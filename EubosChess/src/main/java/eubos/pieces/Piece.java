@@ -9,7 +9,7 @@ import java.util.*;
 public abstract class Piece implements IPiece {
 	public enum Colour { 
 		white, black; 
-		public static Colour getOpposite( Colour arg ) { return ((arg == Colour.white) ? Colour.black : Colour.white);}
+		public static Colour getOpposite( Colour arg ) { return ((arg == white) ? black : white);}
 	};
 	protected Colour colour = Colour.black;
 	protected boolean everMoved = false;

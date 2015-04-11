@@ -21,15 +21,17 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private int scores[];
 	private PrincipalContinuation pc;
 	private static final boolean isDebugOn = false;
-	private Piece.Colour initialOnMove;
+	private Colour initialOnMove;
 	private boolean mateFound = false;
 	private boolean stalemateFound = false;
+	public SearchMetrics sm;
 	
 	public MiniMaxMoveGenerator( BoardManager bm, int searchDepth ) {
 		super( bm );
 		scores = new int[searchDepth];
 		searchDepthPly = searchDepth;
 		pc = new PrincipalContinuation(searchDepth);
+		sm = new SearchMetrics();
 	}
 	
 	@Override
@@ -173,7 +175,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			bm.undoPreviousMove();
 		}
 		if (entireMoveList.isEmpty()) {
-			if (kingIsInCheck && initialOnMove==Piece.Colour.getOpposite(bm.getOnMove())) {
+			if (kingIsInCheck && initialOnMove==Colour.getOpposite(bm.getOnMove())) {
 				// Indicates checkmate! Perform an immediate backup of score and abort the 
 				// search of any moves deeper than the previous node in the search tree. 
 				// However, search the rest of the tree, as this may yield earlier forced mates.
