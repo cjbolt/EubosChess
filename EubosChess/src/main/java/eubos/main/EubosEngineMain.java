@@ -10,6 +10,7 @@ import com.fluxchess.jcpi.commands.EngineReadyRequestCommand;
 import com.fluxchess.jcpi.commands.EngineSetOptionCommand;
 import com.fluxchess.jcpi.commands.EngineStartCalculatingCommand;
 import com.fluxchess.jcpi.commands.EngineStopCalculatingCommand;
+import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
 import com.fluxchess.jcpi.commands.ProtocolInitializeAnswerCommand;
 import com.fluxchess.jcpi.commands.ProtocolReadyAnswerCommand;
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
@@ -59,7 +60,7 @@ public class EubosEngineMain extends AbstractEngine {
 
 	public void receive(EngineStartCalculatingCommand command) {
 		try {
-			MiniMaxMoveGenerator mg = new MiniMaxMoveGenerator( bm, SEARCH_DEPTH_IN_PLY );
+			MiniMaxMoveGenerator mg = new MiniMaxMoveGenerator( this, bm, SEARCH_DEPTH_IN_PLY );
 			GenericMove selectedMove = mg.findMove();
 			bm.performMove(selectedMove);
 			this.getProtocol().send( new ProtocolBestMoveCommand( selectedMove, null ));
@@ -73,6 +74,10 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 
 	public void receive(EnginePonderHitCommand command) {
+	}
+	
+	public void dispatchInfoMessage(ProtocolInformationCommand command) {
+		this.getProtocol().send(command);
 	}
 
 	@Override

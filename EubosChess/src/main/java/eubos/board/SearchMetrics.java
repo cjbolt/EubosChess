@@ -9,7 +9,7 @@ public class SearchMetrics {
 		time = 0;
 	}
 	
-	public synchronized void incrementNodeSearched() { nodesSearched++; }
+	public synchronized void incrementNodesSearched() { nodesSearched++; }
 	public synchronized long getNodesSearched() { return nodesSearched; }
 	public synchronized void incrementTime(int delta) { time += delta; }
 	public synchronized int getNodesPerSecond() { return (int)(nodesSearched*1000/time); }

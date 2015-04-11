@@ -5,6 +5,7 @@ import java.util.LinkedList;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
+import eubos.main.EubosEngineMain;
 import eubos.pieces.Bishop;
 import eubos.pieces.King;
 import eubos.pieces.Knight;
@@ -24,7 +25,9 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private Colour initialOnMove;
 	private boolean mateFound = false;
 	private boolean stalemateFound = false;
-	public SearchMetrics sm;
+	private SearchMetrics sm;
+	private SearchReporter sr;
+	private boolean sendInfo = false;
 	
 	public MiniMaxMoveGenerator( BoardManager bm, int searchDepth ) {
 		super( bm );
@@ -34,12 +37,27 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		sm = new SearchMetrics();
 	}
 	
+	public MiniMaxMoveGenerator( EubosEngineMain eubos, BoardManager bm, int searchDepth ) {
+		super( bm );
+		scores = new int[searchDepth];
+		searchDepthPly = searchDepth;
+		pc = new PrincipalContinuation(searchDepth);
+		sm = new SearchMetrics();
+		sr = new SearchReporter(eubos,sm);
+		sendInfo = true;
+	}	
+	
 	@Override
 	public GenericMove findMove() throws NoLegalMoveException {
 		// Register initialOnMove
 		initialOnMove = bm.getOnMove();
+		// Start the search reporter task
+		if (sendInfo)
+			sr.start();
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		searchPly(0);
+		if (sendInfo)
+			sr.end();
 		// Report the principal continuation and select the best move
 		SearchDebugAgent debug = new SearchDebugAgent(0, true);
 		debug.printPrincipalContinuation(0, pc);
@@ -83,6 +101,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			// 3) Having assessed the position, undo the move
 			debug.printUndoMove(currPly, currMove);
 			bm.undoPreviousMove();
+			sm.incrementNodesSearched();
 			// 4a) Back-up the position score and update the principal continuation...
 			if (backUpIsRequired(currPly, positionScore)) {
 				scores[currPly]=positionScore;
