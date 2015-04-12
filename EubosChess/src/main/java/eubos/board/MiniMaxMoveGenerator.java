@@ -34,7 +34,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		scores = new int[searchDepth];
 		searchDepthPly = searchDepth;
 		pc = new PrincipalContinuation(searchDepth);
-		sm = new SearchMetrics();
+		sm = new SearchMetrics(searchDepth);
 	}
 	
 	public MiniMaxMoveGenerator( EubosEngineMain eubos, BoardManager bm, int searchDepth ) {
@@ -42,7 +42,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		scores = new int[searchDepth];
 		searchDepthPly = searchDepth;
 		pc = new PrincipalContinuation(searchDepth);
-		sm = new SearchMetrics();
+		sm = new SearchMetrics(searchDepth);
 		sr = new SearchReporter(eubos,sm);
 		sendInfo = true;
 	}	
@@ -108,6 +108,8 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 				debug.printBackUpScore(currPly, positionScore);
 				pc.update(currPly, currMove);
 				debug.printPrincipalContinuation(currPly,pc);
+				sm.setPrincipalVariation(pc.toPvList());
+				sm.setCpScore(positionScore);
 			// 4b) ...or test for an Alpha Beta algorithm cut-off
 			} else if (testForAlphaBetaCutOff( alphaBetaCutOff, positionScore, currPly )) {
 				debug.printRefutationFound(currPly);

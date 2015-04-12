@@ -27,6 +27,10 @@ public class SearchReporter extends Thread {
 			sm.incrementTime(500);
 			info.setNodes(sm.getNodesSearched());
 			info.setNps(sm.getNodesPerSecond());
+			info.setMoveList(sm.getPrincipalVariation());
+			info.setTime(sm.getTime());
+			info.setCentipawns(sm.getCpScore());
+			info.setDepth(sm.getDepth());
 			eubosEngine.dispatchInfoMessage(info);
 		}
 	}

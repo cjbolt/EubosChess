@@ -1,5 +1,7 @@
 package eubos.board;
 
+import java.util.LinkedList;
+
 import com.fluxchess.jcpi.models.GenericMove;
 
 public class PrincipalContinuation {
@@ -22,6 +24,15 @@ public class PrincipalContinuation {
 			output+=(", "+pc[currPly][nextPly]);
 		}
 		return output;
+	}
+	
+	public LinkedList<GenericMove> toPvList() {
+		LinkedList<GenericMove> mv;
+		mv = new LinkedList<GenericMove>();
+		for (int currPly=0; currPly < searchDepthPly; currPly++) {
+			mv.add(pc[0][currPly]);
+		}
+		return mv;
 	}
 
 	public void update(int currPly, GenericMove currMove) {
