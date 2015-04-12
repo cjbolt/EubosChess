@@ -91,6 +91,10 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			int positionScore = 0;
 			// 1) Apply the next move in the list
 			GenericMove currMove = move_iter.next();
+			if (currPly == 0) {
+				sm.setCurrentMove(currMove);
+				sm.incrementCurrentMoveNumber();
+			}
 			debug.printPerformMove(currPly, currMove);
 			bm.performMove(currMove);
 			// 2) Either recurse or evaluate position and check for back-up of score
@@ -110,7 +114,8 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 				pc.update(currPly, currMove);
 				debug.printPrincipalContinuation(currPly,pc);
 				sm.setPrincipalVariation(pc.toPvList());
-				sm.setCpScore(positionScore);
+				if (currPly == 0)
+					sm.setCpScore(positionScore);
 			// 4b) ...or test for an Alpha Beta algorithm cut-off
 			} else if (testForAlphaBetaCutOff( alphaBetaCutOff, positionScore, currPly )) {
 				debug.printRefutationFound(currPly);

@@ -1,6 +1,5 @@
 package eubos.board;
 
-//import java.util.LinkedList;
 import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -12,6 +11,8 @@ public class SearchMetrics {
 	private boolean pvValid = false;
 	private int cpScore;
 	private int depth;
+	private GenericMove currMove;
+	private int currMoveNum;
 	
 	public SearchMetrics(int searchDepth) {
 		nodesSearched = 0;
@@ -19,6 +20,7 @@ public class SearchMetrics {
 		cpScore = 0;
 		pvValid = false;
 		depth = searchDepth;
+		currMoveNum = 0;
 	}
 	
 	public synchronized void incrementNodesSearched() { nodesSearched++; }
@@ -34,4 +36,8 @@ public class SearchMetrics {
 	public synchronized int getCpScore() { return cpScore; }
 	public synchronized void setCpScore(int cpScore) { this.cpScore = cpScore; }
 	public synchronized int getDepth() { return depth; }
+	public synchronized void setCurrentMove(GenericMove mov) { currMove = mov;}
+	public synchronized GenericMove getCurrentMove() { return currMove;	}
+	public synchronized int getCurrentMoveNumber() { return currMoveNum; }
+	public synchronized void incrementCurrentMoveNumber() { currMoveNum+=1; }
 }

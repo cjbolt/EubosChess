@@ -19,9 +19,13 @@ public class PrincipalContinuation {
 	}
 
 	public String toStringAfter(int currPly) {
-		String output = ""+pc[currPly][currPly];
+		GenericMove currMove = pc[currPly][currPly];
+		String output = ""+currMove;
 		for ( int nextPly = currPly+1; nextPly < searchDepthPly; nextPly++) {
-			output+=(", "+pc[currPly][nextPly]);
+			currMove = pc[currPly][nextPly];
+			if (currMove == null)
+				break;
+			output+=(", "+currMove);
 		}
 		return output;
 	}

@@ -20,7 +20,7 @@ import eubos.board.*;
 
 public class EubosEngineMain extends AbstractEngine {
 	
-	private static final int SEARCH_DEPTH_IN_PLY = 4;
+	private static final int SEARCH_DEPTH_IN_PLY = 6;
 	
 	private BoardManager bm;
 
