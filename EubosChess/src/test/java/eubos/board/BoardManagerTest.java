@@ -1,19 +1,13 @@
 package eubos.board;
 
-import java.util.LinkedList;
-
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import eubos.pieces.Bishop;
 import eubos.pieces.King;
 import eubos.pieces.Pawn;
 import eubos.pieces.Piece;
-import eubos.pieces.Queen;
 import eubos.pieces.Rook;
-import eubos.pieces.Piece.Colour;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericMove;
@@ -21,13 +15,7 @@ import com.fluxchess.jcpi.models.GenericChessman;
 
 public class BoardManagerTest {
 	
-	protected LinkedList<Piece> pl;
 	protected BoardManager classUnderTest;
-	
-	@Before
-	public void setUp() {
-		pl = new LinkedList<Piece>();
-	}
 	
 	@Test
 	public void test_NoLastMoveToUndo() throws InvalidPieceException {
@@ -37,8 +25,16 @@ public class BoardManagerTest {
 	
 	@Test
 	public void test_UndoPawnMove() throws InvalidPieceException {
-		pl.add( new Pawn( Piece.Colour.white, GenericPosition.e2 ));
-		classUnderTest = new BoardManager( new Board( pl ), Colour.white );
+		// 8 ........
+		// 7 ........
+		// 6 ........
+		// 5 ........
+		// 4 ........
+		// 3 ........
+		// 2 ....P...
+		// 1 ........
+		//   abcdefgh
+		classUnderTest = new BoardManager("8/8/8/8/8/8/4P3/8 w - - - -");
 		classUnderTest.performMove( new GenericMove( GenericPosition.e2, GenericPosition.e4 ));
 		classUnderTest.undoPreviousMove();
 		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.e2 );
@@ -48,8 +44,16 @@ public class BoardManagerTest {
 	
 	@Test
 	public void test_UndoPawnPromotion() throws InvalidPieceException {
-		pl.add( new Pawn( Piece.Colour.black, GenericPosition.e2 ));
-		classUnderTest = new BoardManager( new Board( pl ), Colour.black );
+		// 8 ........
+		// 7 ........
+		// 6 ........
+		// 5 ........
+		// 4 ........
+		// 3 ........
+		// 2 ....p...
+		// 1 ........
+		//   abcdefgh
+		classUnderTest = new BoardManager("8/8/8/8/8/8/4p3/8 b - - - -");
 		classUnderTest.performMove( new GenericMove( GenericPosition.e2, GenericPosition.e1, GenericChessman.QUEEN ));
 		classUnderTest.undoPreviousMove();
 		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.e2 );
@@ -59,9 +63,16 @@ public class BoardManagerTest {
 	
 	@Test
 	public void test_UndoPawnCapture() throws InvalidPieceException {
-		pl.add( new Pawn( Piece.Colour.black, GenericPosition.d3 ));
-		pl.add( new Pawn( Piece.Colour.white, GenericPosition.e2 ));
-		classUnderTest = new BoardManager( new Board( pl ), Colour.white );
+		// 8 ........
+		// 7 ........
+		// 6 ........
+		// 5 ........
+		// 4 ........
+		// 3 ...p....
+		// 2 ....P...
+		// 1 ........
+		//   abcdefgh
+		classUnderTest = new BoardManager("8/8/8/8/8/3p4/4P3/8 w - - - -");
 		classUnderTest.performMove( new GenericMove( GenericPosition.d3, GenericPosition.e2 ));
 		classUnderTest.undoPreviousMove();
 		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.d3 );
