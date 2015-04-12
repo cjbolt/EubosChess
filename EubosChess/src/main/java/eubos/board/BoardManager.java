@@ -221,17 +221,9 @@ public class BoardManager implements IBoardManager {
 		return whiteHasCastled;
 	}
 
-	public void setWhiteHasCastled(boolean whiteHasCastled) {
-		this.whiteHasCastled = whiteHasCastled;
-	}
-
 	public boolean isBlackHasCastled() {
 		return blackHasCastled;
 	}
-
-	public void setBlackHasCastled(boolean blackHasCastled) {
-		this.blackHasCastled = blackHasCastled;
-	}	
 	
 	public boolean hasCastled() {
 		if ( onMove == Colour.white ) {
@@ -346,13 +338,44 @@ public class BoardManager implements IBoardManager {
 					break;
 				}
 			}
-			// Handle castling moves...
-			// TODO: may need to add storage of the secondary rook move?
+			// Handle castling secondary rook moves...
+			if ( pieceToMove instanceof King ) {
+				if ( move.from == GenericPosition.e1 )
+				{
+					if ( move.to == GenericPosition.g1 ) {
+						// Perform secondary king side castle rook move
+						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.h1 );
+						rookToCastle.setSquare( GenericPosition.f1 );
+						theBoard.setPieceAtSquare(rookToCastle);
+					}
+					if ( move.to == GenericPosition.b1 ) {
+						// Perform secondary queen side castle rook move
+						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.a1 );
+						rookToCastle.setSquare( GenericPosition.c1 );
+						theBoard.setPieceAtSquare(rookToCastle);						
+					}
+					whiteHasCastled = true;
+				} else if ( move.from == GenericPosition.e8 ) {
+					if ( move.to == GenericPosition.g8 ) {
+						// Perform secondary king side castle rook move
+						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.h8 );
+						rookToCastle.setSquare( GenericPosition.f8 );
+						theBoard.setPieceAtSquare(rookToCastle);
+					}
+					if ( move.to == GenericPosition.b8 ) {
+						// Perform secondary queen side castle rook move
+						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.a8 );
+						rookToCastle.setSquare( GenericPosition.c8 );
+						theBoard.setPieceAtSquare(rookToCastle);						
+					}	
+					blackHasCastled = true;
+				}
+			}
 			// Store this move in the previous moves list
 			Piece captureTarget = theBoard.getPieceAtSquare( move.to );
 			previousMoves.push( new TrackedMove( move, captureTarget ));
 			// Update the piece's square.
-			// TODO duplicated information here - sub optimal...
+			// TODO duplicated information here - sub optimal... needs refactoring
 			pieceToMove.setSquare( move.to );
 			theBoard.setPieceAtSquare( pieceToMove );
 			// Update onMove
@@ -366,6 +389,40 @@ public class BoardManager implements IBoardManager {
 		// Move the piece
 		Piece pieceToMove = theBoard.pickUpPieceAtSquare( move.from );
 		if ( pieceToMove != null ) {
+			// Handle castling secondary rook moves...
+			if ( pieceToMove instanceof King ) {
+				if ( move.to == GenericPosition.e1 )
+				{
+					if ( move.from == GenericPosition.g1 ) {
+						// Perform secondary king side castle rook move
+						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.f1 );
+						rookToCastle.setSquare( GenericPosition.h1 );
+						theBoard.setPieceAtSquare(rookToCastle);
+					}
+					if ( move.from == GenericPosition.b1 ) {
+						// Perform secondary queen side castle rook move
+						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.c1 );
+						rookToCastle.setSquare( GenericPosition.a1 );
+						theBoard.setPieceAtSquare(rookToCastle);						
+					}
+					// clear flag
+					whiteHasCastled = false;
+				} else if ( move.to == GenericPosition.e8 ) {
+					if ( move.from == GenericPosition.g8 ) {
+						// Perform secondary king side castle rook move
+						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.f8 );
+						rookToCastle.setSquare( GenericPosition.h8 );
+						theBoard.setPieceAtSquare(rookToCastle);
+					}
+					if ( move.from == GenericPosition.b8 ) {
+						// Perform secondary queen side castle rook move
+						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.c8 );
+						rookToCastle.setSquare( GenericPosition.a8 );
+						theBoard.setPieceAtSquare(rookToCastle);						
+					}
+					blackHasCastled = false;
+				}
+			}
 			pieceToMove.setSquare( move.to );
 			theBoard.setPieceAtSquare( pieceToMove );
 		} else {
