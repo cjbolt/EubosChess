@@ -19,7 +19,7 @@ public class RandomMoveGenerator extends MoveGenerator implements IMoveGenerator
 	}
 
 	// Find a random legal move for the colour "on move"
-	public GenericMove findMove() throws NoLegalMoveException {
+	public GenericMove findMove() throws NoLegalMoveException, InvalidPieceException {
 		GenericMove bestMove = null;
 		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();
 		// Test if the King is in check at the start of the turn

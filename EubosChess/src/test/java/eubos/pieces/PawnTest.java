@@ -4,6 +4,8 @@ import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 
+import eubos.board.InvalidPieceException;
+
 public abstract class PawnTest extends PieceTest {
 
 	protected SinglesquareDirectMovePiece classUnderTest;
@@ -15,13 +17,13 @@ public abstract class PawnTest extends PieceTest {
 	public abstract void test_InitialMoveTwoSquares();
 	
 	@Test
-	public abstract void test_CaptureEnPassantLeft();
+	public abstract void test_CaptureEnPassantLeft() throws InvalidPieceException;
 
 	@Test
-	public abstract void test_CaptureEnPassantRight();	
+	public abstract void test_CaptureEnPassantRight() throws InvalidPieceException;	
 	
 	@Test
-	public abstract void test_MoveOneSquare();
+	public abstract void test_MoveOneSquare() throws InvalidPieceException;
 	
 	@Test
 	public abstract void test_CaptureLeft();

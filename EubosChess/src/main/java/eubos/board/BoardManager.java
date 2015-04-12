@@ -297,7 +297,7 @@ public class BoardManager implements IBoardManager {
 		return true;
 	}
 	
-	public void undoPreviousMove() {
+	public void undoPreviousMove() throws InvalidPieceException {
 		if ( !previousMoves.isEmpty()) {
 			TrackedMove tm = previousMoves.pop();
 			GenericMove moveToUndo = tm.getMove();
@@ -323,7 +323,7 @@ public class BoardManager implements IBoardManager {
 		return lastMove;
 	}
 	
-	public void performMove( GenericMove move ) {
+	public void performMove( GenericMove move ) throws InvalidPieceException {
 		// Move the piece
 		Piece pieceToMove = theBoard.pickUpPieceAtSquare( move.from );
 		if ( pieceToMove != null ) {
@@ -356,18 +356,18 @@ public class BoardManager implements IBoardManager {
 			// Update onMove
 			onMove = Colour.getOpposite(onMove);
 		} else {
-			// TODO throw an exception in this case?
+			throw new InvalidPieceException(move.from);
 		}
 	}
 	
-	private void unperformMove( GenericMove move ) {
+	private void unperformMove( GenericMove move ) throws InvalidPieceException {
 		// Move the piece
 		Piece pieceToMove = theBoard.pickUpPieceAtSquare( move.from );
 		if ( pieceToMove != null ) {
 			pieceToMove.setSquare( move.to );
 			theBoard.setPieceAtSquare( pieceToMove );
 		} else {
-			// TODO throw an exception in this case?
+			throw new InvalidPieceException(move.from);
 		}
 	}
 }

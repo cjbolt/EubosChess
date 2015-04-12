@@ -41,7 +41,7 @@ public class PawnTest_White extends PawnTest {
 	}
 
 	@Test
-	public void test_CaptureEnPassantLeft() {
+	public void test_CaptureEnPassantLeft() throws InvalidPieceException {
 		classUnderTest = addWhitePawn( GenericPosition.e5 );
 		addBlackPawn( GenericPosition.d7 );
 		bm = new BoardManager( new Board( pl ), Colour.white );
@@ -52,7 +52,7 @@ public class PawnTest_White extends PawnTest {
 	}
 	
 	@Test
-	public void test_CaptureEnPassantLeftFalse() {
+	public void test_CaptureEnPassantLeftFalse() throws InvalidPieceException {
 		classUnderTest = addWhitePawn( GenericPosition.e5 );
 		pl.add( new Rook( Piece.Colour.white, GenericPosition.f7 ));
 		bm = new BoardManager( new Board( pl ), Colour.white );
@@ -63,7 +63,7 @@ public class PawnTest_White extends PawnTest {
 	}
 	
 	@Test
-	public void test_CaptureEnPassantRight() {
+	public void test_CaptureEnPassantRight() throws InvalidPieceException {
 		classUnderTest = addWhitePawn( GenericPosition.e5 );
 		addBlackPawn( GenericPosition.d7 );
 		bm = new BoardManager( new Board( pl ), Colour.white );
@@ -74,7 +74,7 @@ public class PawnTest_White extends PawnTest {
 	}
 	
 	@Test
-	public void test_CaptureEnPassantRightFalse() {
+	public void test_CaptureEnPassantRightFalse() throws InvalidPieceException {
 		classUnderTest = addWhitePawn( GenericPosition.e5 );
 		pl.add( new Rook( Piece.Colour.white, GenericPosition.d7 ));
 		bm = new BoardManager( new Board( pl ), Colour.white );
@@ -85,7 +85,7 @@ public class PawnTest_White extends PawnTest {
 	}	
 	
 	@Test
-	public void test_CaptureEnPassantFromAFile() {
+	public void test_CaptureEnPassantFromAFile() throws InvalidPieceException {
 		// Black is on a4, white moves b4, then black ml contains capture en passant, axb
 		classUnderTest = addWhitePawn( GenericPosition.a5 );
 		addBlackPawn( GenericPosition.b7 );
@@ -97,7 +97,7 @@ public class PawnTest_White extends PawnTest {
 	}
 	
 	@Test
-	public void test_CaptureEnPassantFromHFile() {
+	public void test_CaptureEnPassantFromHFile() throws InvalidPieceException {
 		// Black is on h4, white moves g4, then black ml contains capture en passant, hxg
 		classUnderTest = addWhitePawn( GenericPosition.h5 );
 		addBlackPawn( GenericPosition.g7 );
@@ -109,7 +109,7 @@ public class PawnTest_White extends PawnTest {
 	}		
 	
 	@Test
-	public void test_MoveOneSquare() {
+	public void test_MoveOneSquare() throws InvalidPieceException {
 		// After initial move, ensure that a pawn can't move 2 any longer
 		classUnderTest = addWhitePawn( GenericPosition.e2 );
 		addBlackPawn( GenericPosition.f7 );

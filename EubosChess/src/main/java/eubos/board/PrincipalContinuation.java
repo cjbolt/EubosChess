@@ -30,7 +30,10 @@ public class PrincipalContinuation {
 		LinkedList<GenericMove> mv;
 		mv = new LinkedList<GenericMove>();
 		for (int currPly=0; currPly < searchDepthPly; currPly++) {
-			mv.add(pc[0][currPly]);
+			GenericMove currMove = pc[0][currPly]; 
+			if (currMove != null) {
+				mv.add(currMove);
+			}
 		}
 		return mv;
 	}

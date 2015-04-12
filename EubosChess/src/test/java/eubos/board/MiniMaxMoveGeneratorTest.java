@@ -32,8 +32,9 @@ public class MiniMaxMoveGeneratorTest {
 				assertTrue(selectedMove.equals(expectedMove));
 			else
 				assertFalse(selectedMove.equals(expectedMove));
-		}
-		catch ( NoLegalMoveException e ) {
+		} catch ( NoLegalMoveException e ) {
+			fail();
+		} catch ( InvalidPieceException e ) {
 			fail();
 		}
 	}
@@ -111,7 +112,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test(expected=NoLegalMoveException.class)
-	public void test_findMove_NoLegalMove() throws NoLegalMoveException {
+	public void test_findMove_NoLegalMove() throws NoLegalMoveException, InvalidPieceException {
 		System.out.println("\ntest_findMove_NoLegalMove()");
 		// 8 ........
 		// 7 ........
@@ -360,7 +361,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	public void test_findMove_ArenaFailIllegalMove() {
+	public void test_findMove_ArenaFailIllegalMove() throws InvalidPieceException {
 		// observed in arena, black tries to moves as white: 6th April 2015.
 		System.out.println("\ntest_findMove_arenaFailIllegalMove()");
 		BoardManager bm = new BoardManager( "2b1k1nr/2p2ppp/2p5/p3q3/P3Q3/P4P2/2P1B1PP/1r3R1K w k - 2 23" );

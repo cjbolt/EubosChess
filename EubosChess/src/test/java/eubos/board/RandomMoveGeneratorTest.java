@@ -38,9 +38,10 @@ public class RandomMoveGeneratorTest {
 				assertTrue(selectedMove.equals(expectedMove));
 			else
 				assertFalse(selectedMove.equals(expectedMove));
-		}
-		catch ( NoLegalMoveException e ) {
+		} catch ( NoLegalMoveException e ) {
 			assert( false );
+		} catch (InvalidPieceException e) {
+			assert(false);
 		}
 	}
 	
@@ -110,7 +111,7 @@ public class RandomMoveGeneratorTest {
 	}
 	
 	@Test(expected=NoLegalMoveException.class)
-	public void test_findBestMove_NoLegalMove() throws NoLegalMoveException {
+	public void test_findBestMove_NoLegalMove() throws NoLegalMoveException, InvalidPieceException {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -133,7 +134,7 @@ public class RandomMoveGeneratorTest {
 	}
 	
 	@Test
-	public void test_findBestMove_ArenaFailKingMove() throws NoLegalMoveException {
+	public void test_findBestMove_ArenaFailKingMove() throws NoLegalMoveException, InvalidPieceException {
 		// 8 ..b.q...
 		// 7 ......K.
 		// 6 ..q.....

@@ -43,12 +43,13 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		searchDepthPly = searchDepth;
 		pc = new PrincipalContinuation(searchDepth);
 		sm = new SearchMetrics(searchDepth);
+		sm.setPrincipalVariation(pc.toPvList());
 		sr = new SearchReporter(eubos,sm);
 		sendInfo = true;
 	}	
 	
 	@Override
-	public GenericMove findMove() throws NoLegalMoveException {
+	public GenericMove findMove() throws NoLegalMoveException, InvalidPieceException {
 		// Register initialOnMove
 		initialOnMove = bm.getOnMove();
 		// Start the search reporter task
@@ -68,7 +69,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		return bestMove;
 	}
 
-	private int searchPly(int currPly) {
+	private int searchPly(int currPly) throws InvalidPieceException {
 		SearchDebugAgent debug = new SearchDebugAgent(currPly, isDebugOn);
 		debug.printSearchPly(currPly,bm.getOnMove());
 		int alphaBetaCutOff = initNodeScoreAlphaBeta(debug, currPly);
@@ -173,7 +174,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		return scores[currPly];
 	}
 
-	private LinkedList<GenericMove> generateMovesAtPosition() {
+	private LinkedList<GenericMove> generateMovesAtPosition() throws InvalidPieceException {
 		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();
 		// Test if the King is in check at the start of the turn
 		King ownKing = bm.getKing(bm.getOnMove());

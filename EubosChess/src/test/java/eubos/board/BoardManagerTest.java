@@ -4,7 +4,6 @@ import java.util.LinkedList;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Ignore;
 
 import static org.junit.Assert.assertTrue;
 import eubos.pieces.Bishop;
@@ -29,15 +28,14 @@ public class BoardManagerTest {
 		pl = new LinkedList<Piece>();
 	}
 	
-	@Test(expected=java.util.EmptyStackException.class)
-	@Ignore
-	public void test_NoLastMoveToUndo() {
+	@Test
+	public void test_NoLastMoveToUndo() throws InvalidPieceException {
 		classUnderTest = new BoardManager();
 		classUnderTest.undoPreviousMove();
 	}
 	
 	@Test
-	public void test_UndoPawnMove() {
+	public void test_UndoPawnMove() throws InvalidPieceException {
 		pl.add( new Pawn( Piece.Colour.white, GenericPosition.e2 ));
 		classUnderTest = new BoardManager( new Board( pl ), Colour.white );
 		classUnderTest.performMove( new GenericMove( GenericPosition.e2, GenericPosition.e4 ));
@@ -48,7 +46,7 @@ public class BoardManagerTest {
 	}
 	
 	@Test
-	public void test_UndoPawnPromotion() {
+	public void test_UndoPawnPromotion() throws InvalidPieceException {
 		pl.add( new Pawn( Piece.Colour.black, GenericPosition.e2 ));
 		classUnderTest = new BoardManager( new Board( pl ), Colour.black );
 		classUnderTest.performMove( new GenericMove( GenericPosition.e2, GenericPosition.e1, GenericChessman.QUEEN ));
@@ -59,7 +57,7 @@ public class BoardManagerTest {
 	}
 	
 	@Test
-	public void test_UndoPawnCapture() {
+	public void test_UndoPawnCapture() throws InvalidPieceException {
 		pl.add( new Pawn( Piece.Colour.black, GenericPosition.d3 ));
 		pl.add( new Pawn( Piece.Colour.white, GenericPosition.e2 ));
 		classUnderTest = new BoardManager( new Board( pl ), Colour.white );
