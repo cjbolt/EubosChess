@@ -346,6 +346,8 @@ public class BoardManager implements IBoardManager {
 					break;
 				}
 			}
+			// Handle castling moves...
+			// TODO: may need to add storage of the secondary rook move?
 			// Store this move in the previous moves list
 			Piece captureTarget = theBoard.getPieceAtSquare( move.to );
 			previousMoves.push( new TrackedMove( move, captureTarget ));

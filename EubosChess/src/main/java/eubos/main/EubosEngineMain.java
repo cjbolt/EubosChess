@@ -20,7 +20,7 @@ import eubos.board.*;
 
 public class EubosEngineMain extends AbstractEngine {
 	
-	private static final int SEARCH_DEPTH_IN_PLY = 6;
+	private static final int SEARCH_DEPTH_IN_PLY = 4;
 	
 	private BoardManager bm;
 
@@ -52,7 +52,7 @@ public class EubosEngineMain extends AbstractEngine {
 				bm.performMove( nextMove );
 			}
 		} catch(InvalidPieceException e ) {
-			System.out.println( "Serious error: Eubos can't find a piece on the board" + e.getAtPosition().toString() );
+			System.out.println( "Serious error: Eubos can't find a piece on the board whilst applying previous moves, at " + e.getAtPosition().toString() );
 		} 
 	}
 
@@ -65,7 +65,7 @@ public class EubosEngineMain extends AbstractEngine {
 		} catch( NoLegalMoveException e ) {
 			System.out.println( "Eubos has run out of legal moves for side " + bm.getOnMove().toString() );
 		} catch(InvalidPieceException e ) {
-			System.out.println( "Serious error: Eubos can't find a piece on the board" + e.getAtPosition().toString() );
+			System.out.println( "Serious error: Eubos can't find a piece on the board whilst searching findMove(), at " + e.getAtPosition().toString() );
 		}
 	}
 
