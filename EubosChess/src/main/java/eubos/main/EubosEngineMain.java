@@ -16,15 +16,14 @@ import com.fluxchess.jcpi.commands.ProtocolReadyAnswerCommand;
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import com.fluxchess.jcpi.models.*;
 
-import eubos.board.*;
-import eubos.search.MiniMaxMoveGenerator;
-import eubos.search.NoLegalMoveException;
+import eubos.board.BoardManager;
+import eubos.board.InvalidPieceException;
+import eubos.search.MoveSearcher;
 
 public class EubosEngineMain extends AbstractEngine {
 	
-	private static final int SEARCH_DEPTH_IN_PLY = 6;
-	
 	private BoardManager bm;
+	private MoveSearcher ms;
 
 	public void receive(EngineInitializeRequestCommand command) {
 		this.getProtocol().send( new ProtocolInitializeAnswerCommand("Eubos","Chris Bolt") );
@@ -59,16 +58,10 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 
 	public void receive(EngineStartCalculatingCommand command) {
-		try {
-			MiniMaxMoveGenerator mg = new MiniMaxMoveGenerator( this, bm, SEARCH_DEPTH_IN_PLY );
-			GenericMove selectedMove = mg.findMove();
-			bm.performMove(selectedMove);
-			this.getProtocol().send( new ProtocolBestMoveCommand( selectedMove, null ));
-		} catch( NoLegalMoveException e ) {
-			System.out.println( "Eubos has run out of legal moves for side " + bm.getOnMove().toString() );
-		} catch(InvalidPieceException e ) {
-			System.out.println( "Serious error: Eubos can't find a piece on the board whilst searching findMove(), at " + e.getAtPosition().toString() );
-		}
+		// The move searcher will report the best move found via a callback to this object, 
+		// this will occur when the tree search is concluded and the thread completes execution.
+		ms = new MoveSearcher(this, bm);
+		ms.start();
 	}
 
 	public void receive(EngineStopCalculatingCommand command) {
@@ -77,10 +70,14 @@ public class EubosEngineMain extends AbstractEngine {
 	public void receive(EnginePonderHitCommand command) {
 	}
 	
-	public void dispatchInfoMessage(ProtocolInformationCommand command) {
+	public void sendInfoCommand(ProtocolInformationCommand command) {
 		this.getProtocol().send(command);
 	}
-
+	
+	public void sendBestMoveCommand(ProtocolBestMoveCommand protocolBestMoveCommand) {
+		this.getProtocol().send(protocolBestMoveCommand);
+	}
+	
 	@Override
 	protected void quit() {
 	}

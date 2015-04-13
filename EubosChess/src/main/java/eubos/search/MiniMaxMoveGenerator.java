@@ -29,7 +29,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private boolean mateFound = false;
 	private boolean stalemateFound = false;
 	private SearchMetrics sm;
-	private SearchReporter sr;
+	private SearchMetricsReporter sr;
 	private boolean sendInfo = false;
 	
 	public MiniMaxMoveGenerator( BoardManager bm, int searchDepth ) {
@@ -47,7 +47,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		pc = new PrincipalContinuation(searchDepth);
 		sm = new SearchMetrics(searchDepth);
 		sm.setPrincipalVariation(pc.toPvList());
-		sr = new SearchReporter(eubos,sm);
+		sr = new SearchMetricsReporter(eubos,sm);
 		sendInfo = true;
 	}	
 	

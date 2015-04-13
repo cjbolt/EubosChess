@@ -4,13 +4,13 @@ import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
 
 import eubos.main.EubosEngineMain;
 
-public class SearchReporter extends Thread {
+public class SearchMetricsReporter extends Thread {
 	private boolean reporterActive;
 	private SearchMetrics sm;
 	private EubosEngineMain eubosEngine;
 	private static final int UPDATE_RATE_MS = 500;
 	
-	public SearchReporter( EubosEngineMain eubos, SearchMetrics inputSm ) {
+	public SearchMetricsReporter( EubosEngineMain eubos, SearchMetrics inputSm ) {
 		sm = inputSm;
 		reporterActive = true;
 		eubosEngine = eubos;
@@ -34,7 +34,7 @@ public class SearchReporter extends Thread {
 			info.setTime(sm.getTime());
 			info.setCentipawns(sm.getCpScore());
 			info.setDepth(sm.getDepth());
-			eubosEngine.dispatchInfoMessage(info);
+			eubosEngine.sendInfoCommand(info);
 		}
 	}
 	
