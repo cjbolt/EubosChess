@@ -33,6 +33,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private boolean sendInfo = false;
 	private boolean terminate = false;
 	
+	// Used for unit tests
 	public MiniMaxMoveGenerator( BoardManager bm, int searchDepth ) {
 		super( bm );
 		scores = new int[searchDepth];
@@ -41,12 +42,9 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		sm = new SearchMetrics(searchDepth);
 	}
 	
+	// Used with Arena
 	public MiniMaxMoveGenerator( EubosEngineMain eubos, BoardManager bm, int searchDepth ) {
-		super( bm );
-		scores = new int[searchDepth];
-		searchDepthPly = searchDepth;
-		pc = new PrincipalContinuation(searchDepth);
-		sm = new SearchMetrics(searchDepth);
+		this(bm, searchDepth);
 		sm.setPrincipalVariation(pc.toPvList());
 		sr = new SearchMetricsReporter(eubos,sm);
 		sendInfo = true;
