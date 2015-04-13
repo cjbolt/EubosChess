@@ -10,7 +10,7 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import eubos.board.Board;
 import eubos.board.Direction;
 
-public abstract class MultisquareDirectMovePiece extends Piece {
+public abstract class PieceMultisquareDirectMove extends Piece {
 
 	protected ArrayList<GenericPosition> getAllSqs(Direction dir, Board theBoard) {
 		ArrayList<GenericPosition> targetSquares = new ArrayList<GenericPosition>();

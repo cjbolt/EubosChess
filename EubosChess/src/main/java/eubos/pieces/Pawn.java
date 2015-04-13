@@ -12,7 +12,7 @@ import eubos.board.Board;
 import eubos.board.BoardManager;
 import eubos.board.Direction;
 
-public class Pawn extends SinglesquareDirectMovePiece {
+public class Pawn extends PieceSinglesquareDirectMove {
 
 	public Pawn( Colour Colour, GenericPosition at ) {
 		colour = Colour;

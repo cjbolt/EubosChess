@@ -10,7 +10,7 @@ import eubos.board.Board;
 import eubos.board.BoardManager;
 import eubos.board.Direction;
 
-public class Rook extends MultisquareDirectMovePiece {
+public class Rook extends PieceMultisquareDirectMove {
 
 	public Rook( Colour Colour, GenericPosition at ) {
 		colour = Colour;

@@ -8,7 +8,7 @@ import eubos.board.InvalidPieceException;
 
 public abstract class PawnTest extends PieceTest {
 
-	protected SinglesquareDirectMovePiece classUnderTest;
+	protected PieceSinglesquareDirectMove classUnderTest;
 	
 	@Test
 	public abstract void test_InitialMoveOneSquare();
@@ -43,14 +43,14 @@ public abstract class PawnTest extends PieceTest {
 	@Test
 	public abstract void test_PromoteRook();
 
-	protected SinglesquareDirectMovePiece addBlackPawn(GenericPosition square) {
-		SinglesquareDirectMovePiece newPawn = new Pawn( Piece.Colour.black, square );
+	protected PieceSinglesquareDirectMove addBlackPawn(GenericPosition square) {
+		PieceSinglesquareDirectMove newPawn = new Pawn( Piece.Colour.black, square );
 		pl.add( newPawn );
 		return newPawn;
 	}
 
-	protected SinglesquareDirectMovePiece addWhitePawn(GenericPosition square) {
-		SinglesquareDirectMovePiece newPawn = new Pawn( Piece.Colour.white, square );
+	protected PieceSinglesquareDirectMove addWhitePawn(GenericPosition square) {
+		PieceSinglesquareDirectMove newPawn = new Pawn( Piece.Colour.white, square );
 		pl.add( newPawn );
 		return newPawn;
 	}

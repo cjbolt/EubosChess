@@ -17,6 +17,8 @@ import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import com.fluxchess.jcpi.models.*;
 
 import eubos.board.*;
+import eubos.search.MiniMaxMoveGenerator;
+import eubos.search.NoLegalMoveException;
 
 public class EubosEngineMain extends AbstractEngine {
 	

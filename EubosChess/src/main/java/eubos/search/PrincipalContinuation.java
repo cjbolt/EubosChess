@@ -1,4 +1,4 @@
-package eubos.board;
+package eubos.search;
 
 import java.util.LinkedList;
 

@@ -13,7 +13,7 @@ import eubos.pieces.Piece.Colour;
 
 public class KingTest extends PieceTest {
 
-	protected SinglesquareDirectMovePiece classUnderTest;
+	protected PieceSinglesquareDirectMove classUnderTest;
 	
 	@Test
 	public void test_CornerTopLeft() {

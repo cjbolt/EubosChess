@@ -1,4 +1,4 @@
-package eubos.board;
+package eubos.search;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -11,6 +11,9 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
+import eubos.board.Board;
+import eubos.board.BoardManager;
+import eubos.board.InvalidPieceException;
 import eubos.pieces.Bishop;
 import eubos.pieces.King;
 import eubos.pieces.Knight;
@@ -19,6 +22,8 @@ import eubos.pieces.Piece;
 import eubos.pieces.Piece.Colour;
 import eubos.pieces.Queen;
 import eubos.pieces.Rook;
+import eubos.search.NoLegalMoveException;
+import eubos.search.RandomMoveGenerator;
 
 public class RandomMoveGeneratorTest {
 	

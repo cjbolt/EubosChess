@@ -10,7 +10,7 @@ import eubos.board.BoardManager;
 import eubos.board.Board;
 import eubos.board.Direction;
 
-public class King extends SinglesquareDirectMovePiece {
+public class King extends PieceSinglesquareDirectMove {
 
 	public King( Colour Colour, GenericPosition at ) {
 		colour = Colour;

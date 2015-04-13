@@ -1,4 +1,4 @@
-package eubos.board;
+package eubos.search;
 
 import java.util.LinkedList;
 import java.util.Random;
@@ -6,6 +6,8 @@ import java.util.Iterator;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
+import eubos.board.BoardManager;
+import eubos.board.InvalidPieceException;
 import eubos.pieces.King;
 import eubos.pieces.Piece;
 

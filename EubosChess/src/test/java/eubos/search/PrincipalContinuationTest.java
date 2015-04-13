@@ -1,4 +1,4 @@
-package eubos.board;
+package eubos.search;
 
 import static org.junit.Assert.*;
 
@@ -9,6 +9,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
+
+import eubos.search.PrincipalContinuation;
 
 public class PrincipalContinuationTest {
 
