@@ -31,6 +31,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private SearchMetrics sm;
 	private SearchMetricsReporter sr;
 	private boolean sendInfo = false;
+	private boolean terminate = false;
 	
 	public MiniMaxMoveGenerator( BoardManager bm, int searchDepth ) {
 		super( bm );
@@ -71,6 +72,10 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		}
 		return bestMove;
 	}
+	
+	public void terminateFindMove() {
+		terminate = true;
+	}
 
 	private int searchPly(int currPly) throws InvalidPieceException {
 		SearchDebugAgent debug = new SearchDebugAgent(currPly, isDebugOn);
@@ -90,7 +95,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		}		
 		Iterator<GenericMove> move_iter = ml.iterator();
 		// Iterate through all the moves for this ply; there will be none if a mate was detected...
-		while( move_iter.hasNext()) {
+		while(move_iter.hasNext() && !terminate) {
 			int positionScore = 0;
 			// 1) Apply the next move in the list
 			GenericMove currMove = move_iter.next();

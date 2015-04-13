@@ -9,18 +9,23 @@ import eubos.main.EubosEngineMain;
 
 public class MoveSearcher extends Thread {
 	
-	private static final int SEARCH_DEPTH_IN_PLY = 6;
+	private static final int SEARCH_DEPTH_IN_PLY = 4;
 	private EubosEngineMain eubosEngine;
 	private BoardManager bm;
+	private MiniMaxMoveGenerator mg;
 	
 	public MoveSearcher( EubosEngineMain eubos, BoardManager inputBm ) {
 		eubosEngine = eubos;
 		bm = inputBm;
+		mg = new MiniMaxMoveGenerator( eubosEngine, bm, SEARCH_DEPTH_IN_PLY );
+	}
+	
+	public void halt() {
+		mg.terminateFindMove();
 	}
 	
 	public void run() {
 		try {
-			MiniMaxMoveGenerator mg = new MiniMaxMoveGenerator( eubosEngine, bm, SEARCH_DEPTH_IN_PLY );
 			GenericMove selectedMove = mg.findMove();
 			bm.performMove(selectedMove);
 			eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( selectedMove, null ));

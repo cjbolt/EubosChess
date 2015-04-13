@@ -53,7 +53,9 @@ public class EubosEngineMain extends AbstractEngine {
 				bm.performMove( nextMove );
 			}
 		} catch(InvalidPieceException e ) {
-			System.out.println( "Serious error: Eubos can't find a piece on the board whilst applying previous moves, at " + e.getAtPosition().toString() );
+			System.out.println( 
+					"Serious error: Eubos can't find a piece on the board whilst applying previous moves, at "
+							+e.getAtPosition().toString() );
 		} 
 	}
 
@@ -65,6 +67,8 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 
 	public void receive(EngineStopCalculatingCommand command) {
+		// Request an early terminate of the move searcher.
+		ms.halt();
 	}
 
 	public void receive(EnginePonderHitCommand command) {
