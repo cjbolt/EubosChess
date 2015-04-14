@@ -61,9 +61,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		searchPly(0);
 		if (sendInfo)
 			sr.end();
-		// Report the principal continuation and select the best move
-		SearchDebugAgent debug = new SearchDebugAgent(0, true);
-		debug.printPrincipalContinuation(0, pc);
+		// Select the best move
 		GenericMove bestMove = pc.getBestMove();
 		if (bestMove==null) {
 			throw new NoLegalMoveException();
