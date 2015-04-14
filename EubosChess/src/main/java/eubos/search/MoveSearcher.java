@@ -9,7 +9,7 @@ import eubos.main.EubosEngineMain;
 
 public class MoveSearcher extends Thread {
 	
-	private static final int SEARCH_DEPTH_IN_PLY = 4;
+	private static final int SEARCH_DEPTH_IN_PLY = 6;
 	private EubosEngineMain eubosEngine;
 	private BoardManager bm;
 	private MiniMaxMoveGenerator mg;

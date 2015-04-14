@@ -336,7 +336,6 @@ public class MiniMaxMoveGeneratorTest {
 	@Test
 	public void test_findMove_mateInTwo3()  throws NoLegalMoveException {
 		// chess.com Problem ID: 0551140
-		System.out.println("\ntest_findMove_mateInTwo3()");
 		BoardManager bm = new BoardManager( "rnbq1rk1/p4ppN/4p2n/1pbp4/8/2PQP2P/PPB2PP1/RNB1K2R w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove( GenericPosition.h7, GenericPosition.f6 );
