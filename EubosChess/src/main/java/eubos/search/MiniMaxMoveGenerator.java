@@ -59,8 +59,10 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			sr.start();
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		searchPly(0);
-		if (sendInfo)
+		if (sendInfo) {
 			sr.end();
+			sr.reportNodeData();
+		}
 		// Select the best move
 		GenericMove bestMove = pc.getBestMove();
 		if (bestMove==null) {
@@ -98,6 +100,8 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			if (currPly == 0) {
 				sm.setCurrentMove(currMove);
 				sm.incrementCurrentMoveNumber();
+				if (sendInfo)
+					sr.reportCurrentMove();
 			}
 			debug.printPerformMove(currPly, currMove);
 			bm.performMove(currMove);
@@ -117,9 +121,12 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 				debug.printBackUpScore(currPly, positionScore);
 				pc.update(currPly, currMove);
 				debug.printPrincipalContinuation(currPly,pc);
-				sm.setPrincipalVariation(pc.toPvList());
-				if (currPly == 0)
-					sm.setCpScore(positionScore);
+				if (currPly == 0) {
+					sm.setPrincipalVariation(pc.toPvList());
+					sm.setCpScore(-positionScore); // Negated due to UCI spec (from engine pov)
+					if (sendInfo)
+						sr.reportPrincipalVariation();
+				}
 			// 4b) ...or test for an Alpha Beta algorithm cut-off
 			} else if (testForAlphaBetaCutOff( alphaBetaCutOff, positionScore, currPly )) {
 				debug.printRefutationFound(currPly);

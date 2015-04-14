@@ -27,7 +27,13 @@ public class SearchMetrics {
 	public synchronized long getNodesSearched() { return nodesSearched; }
 	public synchronized void incrementTime(int delta) { time += delta; }
 	public synchronized long getTime() { return time; }
-	public synchronized int getNodesPerSecond() { return (int)(nodesSearched*1000/time); }
+	public synchronized int getNodesPerSecond() {
+		int nps = 0;
+		if (time != 0) {
+			nps = (int)(nodesSearched*1000/time);
+		}
+		return nps;
+	}
 	public synchronized void setPrincipalVariation(List<GenericMove> pc) { 
 		pvValid = true;
 		pv = pc;

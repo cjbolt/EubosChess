@@ -19,7 +19,10 @@ public class SearchMetricsReporter extends Thread {
 	public void run() {
 		long timestampIntoWait = 0;
 		long timestampOutOfWait = 0;
-		while (reporterActive) {
+		do {
+			int deltaTime = (int)(timestampOutOfWait - timestampIntoWait);
+			sm.incrementTime(deltaTime);
+			reportNodeData();
 			timestampIntoWait = System.currentTimeMillis();
 			try {
 				synchronized (this) {
@@ -30,19 +33,7 @@ public class SearchMetricsReporter extends Thread {
 				e.printStackTrace();
 			}
 			timestampOutOfWait = System.currentTimeMillis();
-			int deltaTime = (int)(timestampOutOfWait - timestampIntoWait);
-			ProtocolInformationCommand info = new ProtocolInformationCommand();
-			sm.incrementTime(deltaTime);
-			info.setCurrentMove(sm.getCurrentMove());
-			info.setCurrentMoveNumber(sm.getCurrentMoveNumber());
-			info.setNodes(sm.getNodesSearched());
-			info.setNps(sm.getNodesPerSecond());
-			info.setMoveList(sm.getPrincipalVariation());
-			info.setTime(sm.getTime());
-			info.setCentipawns(sm.getCpScore());
-			info.setDepth(sm.getDepth());
-			eubosEngine.sendInfoCommand(info);
-		}
+		} while (reporterActive);
 	}
 	
 	public void end() {
@@ -50,5 +41,35 @@ public class SearchMetricsReporter extends Thread {
 		synchronized (this) {
 			this.notify();
 		}
+	}
+	
+	public void reportNodeData() {
+		ProtocolInformationCommand info = new ProtocolInformationCommand();
+		info.setNodes(sm.getNodesSearched());
+		info.setNps(sm.getNodesPerSecond());
+		info.setTime(sm.getTime());
+		eubosEngine.sendInfoCommand(info);
+	}
+	
+	public void reportPrincipalVariation() {
+		ProtocolInformationCommand info = new ProtocolInformationCommand();
+		info.setMoveList(sm.getPrincipalVariation());
+		info.setTime(sm.getTime());
+		int score = sm.getCpScore();
+		if (java.lang.Math.abs(score)<300000) {
+			info.setCentipawns(score);
+		} else {
+			int mate = score/300000;
+			info.setMate(mate);
+		}
+		info.setDepth(sm.getDepth());
+		eubosEngine.sendInfoCommand(info);
+	}
+	
+	public void reportCurrentMove() {
+		ProtocolInformationCommand info = new ProtocolInformationCommand();
+		info.setCurrentMove(sm.getCurrentMove());
+		info.setCurrentMoveNumber(sm.getCurrentMoveNumber());
+		eubosEngine.sendInfoCommand(info);
 	}
 }
