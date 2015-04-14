@@ -32,7 +32,9 @@ public class MoveSearcher extends Thread {
 		} catch( NoLegalMoveException e ) {
 			System.out.println( "Eubos has run out of legal moves for side " + bm.getOnMove().toString() );
 		} catch(InvalidPieceException e ) {
-			System.out.println( "Serious error: Eubos can't find a piece on the board whilst searching findMove(), at " + e.getAtPosition().toString() );
+			System.out.println( 
+					"Serious error: Eubos can't find a piece on the board whilst searching findMove(), at "
+							+ e.getAtPosition().toString() );
 		}
 	}
 }

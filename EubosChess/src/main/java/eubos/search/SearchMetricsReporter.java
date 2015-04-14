@@ -17,15 +17,22 @@ public class SearchMetricsReporter extends Thread {
 	}
 	
 	public void run() {
+		long timestampIntoWait = 0;
+		long timestampOutOfWait = 0;
 		while (reporterActive) {
+			timestampIntoWait = System.currentTimeMillis();
 			try {
-				Thread.sleep(UPDATE_RATE_MS);
+				synchronized (this) {
+					this.wait(UPDATE_RATE_MS);
+				}
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			timestampOutOfWait = System.currentTimeMillis();
+			int deltaTime = (int)(timestampOutOfWait - timestampIntoWait);
 			ProtocolInformationCommand info = new ProtocolInformationCommand();
-			sm.incrementTime(UPDATE_RATE_MS);
+			sm.incrementTime(deltaTime);
 			info.setCurrentMove(sm.getCurrentMove());
 			info.setCurrentMoveNumber(sm.getCurrentMoveNumber());
 			info.setNodes(sm.getNodesSearched());
@@ -40,5 +47,8 @@ public class SearchMetricsReporter extends Thread {
 	
 	public void end() {
 		reporterActive = false;
+		synchronized (this) {
+			this.notify();
+		}
 	}
 }
