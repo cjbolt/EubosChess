@@ -30,11 +30,9 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 
 	public void receive(EngineSetOptionCommand command) {
-		//System.out.println("receive(EngineSetOptionCommand): Eubos Chess Engine.");
 	}
 
 	public void receive(EngineDebugCommand command) {
-		//System.out.println("receive(EngineDebugCommand): Eubos Chess Engine.");
 	}
 
 	public void receive(EngineReadyRequestCommand command) {
@@ -42,14 +40,13 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 
 	public void receive(EngineNewGameCommand command) {
-		bm = new BoardManager();
 	}
 
 	public void receive(EngineAnalyzeCommand command) {
-		// Note: command contains the move list and can be interrogated to set up the engine.
-		bm = new BoardManager();
+		// Import position received from GUI and apply any instructed moves.
+		bm = new BoardManager(command.board.toString());
 		try {
-			for ( GenericMove nextMove : command.moves ) {
+			for (GenericMove nextMove : command.moves) {
 				bm.performMove( nextMove );
 			}
 		} catch(InvalidPieceException e ) {
@@ -74,8 +71,8 @@ public class EubosEngineMain extends AbstractEngine {
 	public void receive(EnginePonderHitCommand command) {
 	}
 	
-	public void sendInfoCommand(ProtocolInformationCommand command) {
-		this.getProtocol().send(command);
+	public void sendInfoCommand(ProtocolInformationCommand infoCommand) {
+		this.getProtocol().send(infoCommand);
 	}
 	
 	public void sendBestMoveCommand(ProtocolBestMoveCommand protocolBestMoveCommand) {
