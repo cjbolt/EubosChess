@@ -118,7 +118,9 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private void reportPrincipalContinuation(int currPly, int positionScore) {
 		if (currPly == 0) {
 			sm.setPrincipalVariation(pc.toPvList());
-			sm.setCpScore(-positionScore); // Negated due to UCI spec (from engine pov)
+			if (initialOnMove.equals(Colour.black))
+				positionScore = -positionScore; // Negated due to UCI spec (from engine pov)
+			sm.setCpScore(positionScore);
 			if (sendInfo)
 				sr.reportPrincipalVariation();
 		}
@@ -178,7 +180,10 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 
 	private void backupScoreForCheckmate(int currPly) {
 		// Favour earlier mates (i.e. Mate-in-one over mate-in-three) by giving them a larger score.
-		scores[currPly] = (searchDepthPly-currPly)*300000;
+		int totalMovesSearched = searchDepthPly/2; // factor of 2 because two plies in a move.
+		int mateMoveNum = (currPly-1)/2; // currPly-1 because mate was caused by the move from the previousPly
+		int multiplier = totalMovesSearched-mateMoveNum;
+		scores[currPly] = multiplier*300000;
 		if (initialOnMove==Colour.black)
 			scores[currPly] = -scores[currPly];
 	}

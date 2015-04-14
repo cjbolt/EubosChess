@@ -56,13 +56,18 @@ public class SearchMetricsReporter extends Thread {
 		info.setMoveList(sm.getPrincipalVariation());
 		info.setTime(sm.getTime());
 		int score = sm.getCpScore();
+		int depth = sm.getDepth();
 		if (java.lang.Math.abs(score)<300000) {
 			info.setCentipawns(score);
 		} else {
-			int mate = score/300000;
-			info.setMate(mate);
+			int movesSearched = depth/2;
+			int mateOnMoveXFromEndOfSearch = (java.lang.Math.abs(score)/300000)-1;
+			int mateInX = movesSearched - mateOnMoveXFromEndOfSearch;
+			if (score < 0)
+				mateInX = -mateInX;
+			info.setMate(mateInX);
 		}
-		info.setDepth(sm.getDepth());
+		info.setDepth(depth);
 		eubosEngine.sendInfoCommand(info);
 	}
 	
