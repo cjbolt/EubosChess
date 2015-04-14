@@ -32,6 +32,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private SearchMetricsReporter sr;
 	private boolean sendInfo = false;
 	private boolean terminate = false;
+	private SearchDebugAgent debug;
 	
 	// Used for unit tests
 	public MiniMaxMoveGenerator( BoardManager bm, int searchDepth ) {
@@ -40,6 +41,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		searchDepthPly = searchDepth;
 		pc = new PrincipalContinuation(searchDepth);
 		sm = new SearchMetrics(searchDepth);
+		debug = new SearchDebugAgent(0,isDebugOn);
 	}
 	
 	// Used with Arena
@@ -70,39 +72,21 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		}
 		return bestMove;
 	}
-	
-	public void terminateFindMove() {
-		terminate = true;
-	}
 
 	private int searchPly(int currPly) throws InvalidPieceException {
-		SearchDebugAgent debug = new SearchDebugAgent(currPly, isDebugOn);
 		debug.printSearchPly(currPly,bm.getOnMove());
-		int alphaBetaCutOff = initNodeScoreAlphaBeta(debug, currPly);
+		int alphaBetaCutOff = initNodeScoreAlphaBeta(currPly);
 		// Generate all moves at this position and test if the previous move in the
 		// search tree led to either checkmate or stalemate.
 		LinkedList<GenericMove> ml = generateMovesAtPosition();
-		if (mateFound) {
-			backupScoreForCheckmate(currPly);
-			debug.printMateFound(currPly);
-			pc.clearAfter(currPly-1);
-			mateFound = false;
-		} else if (stalemateFound) {
-			backupScoreForStalemate(currPly);
-			stalemateFound = false;
-		}		
+		handleMates(currPly);
 		Iterator<GenericMove> move_iter = ml.iterator();
 		// Iterate through all the moves for this ply; there will be none if a mate was detected...
-		while(move_iter.hasNext() && !terminate) {
+		while(move_iter.hasNext() && !isTerminated()) {
 			int positionScore = 0;
 			// 1) Apply the next move in the list
 			GenericMove currMove = move_iter.next();
-			if (currPly == 0) {
-				sm.setCurrentMove(currMove);
-				sm.incrementCurrentMoveNumber();
-				if (sendInfo)
-					sr.reportCurrentMove();
-			}
+			reportNextMove(currPly, currMove);
 			debug.printPerformMove(currPly, currMove);
 			bm.performMove(currMove);
 			// 2) Either recurse or evaluate position and check for back-up of score
@@ -121,12 +105,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 				debug.printBackUpScore(currPly, positionScore);
 				pc.update(currPly, currMove);
 				debug.printPrincipalContinuation(currPly,pc);
-				if (currPly == 0) {
-					sm.setPrincipalVariation(pc.toPvList());
-					sm.setCpScore(-positionScore); // Negated due to UCI spec (from engine pov)
-					if (sendInfo)
-						sr.reportPrincipalVariation();
-				}
+				reportPrincipalContinuation(currPly, positionScore);
 			// 4b) ...or test for an Alpha Beta algorithm cut-off
 			} else if (testForAlphaBetaCutOff( alphaBetaCutOff, positionScore, currPly )) {
 				debug.printRefutationFound(currPly);
@@ -134,6 +113,36 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			}
 		}
 		return scores[currPly];
+	}
+
+	private void reportPrincipalContinuation(int currPly, int positionScore) {
+		if (currPly == 0) {
+			sm.setPrincipalVariation(pc.toPvList());
+			sm.setCpScore(-positionScore); // Negated due to UCI spec (from engine pov)
+			if (sendInfo)
+				sr.reportPrincipalVariation();
+		}
+	}
+
+	private void reportNextMove(int currPly, GenericMove currMove) {
+		if (currPly == 0) {
+			sm.setCurrentMove(currMove);
+			sm.incrementCurrentMoveNumber();
+			if (sendInfo)
+				sr.reportCurrentMove();
+		}
+	}
+
+	private void handleMates(int currPly) {
+		if (mateFound) {
+			backupScoreForCheckmate(currPly);
+			debug.printMateFound(currPly);
+			pc.clearAfter(currPly-1);
+			mateFound = false;
+		} else if (stalemateFound) {
+			backupScoreForStalemate(currPly);
+			stalemateFound = false;
+		}
 	}
 
 	private boolean backUpIsRequired(int currPly, int positionScore) {
@@ -174,7 +183,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			scores[currPly] = -scores[currPly];
 	}
 
-	private int initNodeScoreAlphaBeta(SearchDebugAgent debug, int currPly) {
+	private int initNodeScoreAlphaBeta(int currPly) {
 		// Initialise score at this node
 		if (currPly==0 || currPly==1) {
 			if (bm.getOnMove()==Colour.white) {
@@ -258,4 +267,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		}
 		return isTerminalNode;
 	}
+	
+	public synchronized void terminateFindMove() { terminate = true; }
+	private synchronized boolean isTerminated() { return terminate; }
 }
