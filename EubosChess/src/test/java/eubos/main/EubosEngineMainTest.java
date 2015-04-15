@@ -52,7 +52,11 @@ public class EubosEngineMainTest {
 		} finally {
 		    System.setIn( old );
 		}
-		assertEquals("id name Eubos\nid author Chris Bolt\nuciok\n\n", outContent.toString());
+		String outEngine = outContent.toString();
+		assertTrue(outEngine.contains("id name Eubos\r\n"));
+		assertTrue(outEngine.contains("id author Chris Bolt\r\n"));
+		assertTrue(outEngine.contains("uciok\r\n"));
+		assertEquals("id name Eubos\r\nid author Chris Bolt\r\nuciok\r\n",outContent.toString());
 	}
 	
 	@After
