@@ -14,61 +14,59 @@ import org.junit.Test;
 
 public class EubosEngineMainTest {
 
-	private EubosEngineMain eubos;
-	private Thread eubosThread;
+	private EubosEngineMain classUnderTest;
 	
-	private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+	private Thread eubosThread;
+	private final ByteArrayOutputStream testOutput = new ByteArrayOutputStream();
+	private InputStream testInput;
+	
+	private static final String CMD_TERMINATOR = "\r\n";
+	// Engine inputs
+	private static final String UCI_CMD = "uci"+CMD_TERMINATOR;
+//	private static final String ISREADY_CMD = "isready"+CMD_TERMINATOR;
+//	private static final String QUIT_CMD = "quit"+CMD_TERMINATOR;
+	// Engine outputs
+	private static final String ID_NAME_CMD = "id name Eubos"+CMD_TERMINATOR;
+	private static final String ID_AUTHOR_CMD = "id author Chris Bolt"+CMD_TERMINATOR;
+	private static final String UCI_OK_CMD = "uciok"+CMD_TERMINATOR;
+//	private static final String READY_OK_CMD = "readyok"+CMD_TERMINATOR;
 	
 	@Before
 	public void setUp() {
-//		// start the Engine
-//		eubos = new EubosEngineMain();
-//		eubosThread = new Thread( eubos );
-//		eubosThread.start();
 	}
 	
 	@Before
 	public void setUpStreams() {
-	    System.setOut(new PrintStream(outContent));
+	    System.setOut(new PrintStream(testOutput));
 	}	
 	
 	@Test
-	public void test_startEngine() throws UnsupportedEncodingException {
-		String data = "uci\n";
-		InputStream testInput = new ByteArrayInputStream( data.getBytes("UTF-8") );
+	public void test_startEngine() throws UnsupportedEncodingException, InterruptedException {
+		testInput = new ByteArrayInputStream( UCI_CMD.getBytes("UTF-8") );
 		InputStream old = System.in;
 		try {
 		    System.setIn( testInput );
-			// start the Engine
-			eubos = new EubosEngineMain();
-			eubosThread = new Thread( eubos );
+			// Start the Engine
+			classUnderTest = new EubosEngineMain();
+			eubosThread = new Thread( classUnderTest );
 			eubosThread.start();
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			// Give the engine thread some cpu time
+			Thread.sleep(50);
 		} finally {
 		    System.setIn( old );
 		}
-		String outEngine = outContent.toString();
-		assertTrue(outEngine.contains("id name Eubos\r\n"));
-		assertTrue(outEngine.contains("id author Chris Bolt\r\n"));
-		assertTrue(outEngine.contains("uciok\r\n"));
-		assertEquals("id name Eubos\r\nid author Chris Bolt\r\nuciok\r\n",outContent.toString());
+		assertEquals(ID_NAME_CMD+ID_AUTHOR_CMD+UCI_OK_CMD,testOutput.toString());
 	}
 	
 	@After
 	public void cleanUpStreams() {
-	    System.setOut(null);
+	    //System.setOut(null);
 	}
 	
 	@After
 	public void tearDown() {
-		// Stop the Engine
-		// TODO: could send quit command over stdin
-		eubos = null;
+		// Stop the Engine TODO: could send quit command over stdin
+		classUnderTest = null;
 		eubosThread = null;
 	}
 }
