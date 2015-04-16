@@ -4,9 +4,13 @@ import static org.junit.Assert.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.PipedWriter;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 import org.junit.After;
 import org.junit.Before;
@@ -64,38 +68,53 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
-	public void test_mateInOne() throws UnsupportedEncodingException, InterruptedException {
-		byte [] input1 = (
-				UCI_CMD+
-				ISREADY_CMD+
-				NEWGAME_CMD).getBytes("UTF-8");
-		testInput = new ByteArrayInputStream(input1);
-		byte [] input2 = (
-				POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - - -"+CMD_TERMINATOR+
-				GO_CMD).getBytes("UTF-8");
-		InputStream old = System.in;
-		try {
-		    System.setIn( testInput );
-			// Start the Engine
-			classUnderTest = new EubosEngineMain();
-			eubosThread = new Thread( classUnderTest );
-			eubosThread.start();
+	public void test_mateInOne() throws InterruptedException, IOException {
+		// Setup input commands
+		ArrayList<String> inputCmds = new ArrayList<String>();
+		inputCmds.add(UCI_CMD);
+		inputCmds.add(ISREADY_CMD);
+		inputCmds.add(NEWGAME_CMD);
+		inputCmds.add(ISREADY_CMD);
+		inputCmds.add(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1"+CMD_TERMINATOR);
+		inputCmds.add(GO_CMD);
+		// Setup output commands
+		ArrayList<String> outputCmds = new ArrayList<String>();
+		outputCmds.add(ID_NAME_CMD+ID_AUTHOR_CMD+UCI_OK_CMD);
+		outputCmds.add(READY_OK_CMD);
+		outputCmds.add(null);
+		outputCmds.add(READY_OK_CMD);
+		outputCmds.add(null);
+		outputCmds.add(BEST_PREFIX+"b5b6"+CMD_TERMINATOR);		
+		// Start engine
+		PipedWriter inputToEngine = new PipedWriter();
+		classUnderTest = new EubosEngineMain(inputToEngine);
+		eubosThread = new Thread( classUnderTest );
+		eubosThread.start();
+		// Apply inputs and check outputs...
+		for (String currCmd: inputCmds) {
+			// Pass command to engine
+			inputToEngine.write(currCmd);
 			// Give the engine thread some cpu time
-			Thread.sleep(100);
-			
-			testInput = new ByteArrayInputStream(input2);
-		    System.setIn( testInput );
-			// Give the engine thread some cpu time
-			Thread.sleep(1000);
-		} finally {
-		    System.setIn( old );
+			Thread.sleep(1500);
+			// Get the command to check for...
+			String expectedOutput = outputCmds.remove(0);
+			if (expectedOutput != null) {
+				// ignore any line starting with info
+				String recievedCmd = testOutput.toString();
+				String parsedCmd = "";
+				String currLine = "";
+				Scanner scan = new Scanner(recievedCmd);
+				while (scan.hasNextLine()) {
+					currLine = scan.nextLine();
+					if (!currLine.contains("info")) {
+						parsedCmd += (currLine + CMD_TERMINATOR);
+					}
+				}
+				scan.close();
+				assertEquals(expectedOutput,parsedCmd);
+				testOutput.reset();
+			}
 		}
-		String expectedOutput = ID_NAME_CMD+
-				ID_AUTHOR_CMD+
-				UCI_OK_CMD+
-				READY_OK_CMD+
-				BEST_PREFIX+"b6b7"+CMD_TERMINATOR;
-		assertEquals(expectedOutput,testOutput.toString());		
 	}
 	
 	@After

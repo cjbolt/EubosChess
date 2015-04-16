@@ -1,5 +1,10 @@
 package eubos.main;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PipedReader;
+import java.io.PipedWriter;
+
 import com.fluxchess.jcpi.AbstractEngine;
 import com.fluxchess.jcpi.commands.EngineAnalyzeCommand;
 import com.fluxchess.jcpi.commands.EngineDebugCommand;
@@ -24,6 +29,11 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	private BoardManager bm;
 	private MoveSearcher ms;
+	
+	public EubosEngineMain() { super(); }
+	public EubosEngineMain( PipedWriter out) throws IOException {
+		super(new BufferedReader(new PipedReader(out)), System.out);
+	}
 
 	public void receive(EngineInitializeRequestCommand command) {
 		this.getProtocol().send( new ProtocolInitializeAnswerCommand("Eubos","Chris Bolt") );
