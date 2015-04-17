@@ -27,6 +27,8 @@ import eubos.search.MoveSearcher;
 
 public class EubosEngineMain extends AbstractEngine {
 	
+	private static final int SEARCH_DEPTH_IN_PLY = 6;
+	
 	private BoardManager bm;
 	private MoveSearcher ms;
 	
@@ -69,7 +71,11 @@ public class EubosEngineMain extends AbstractEngine {
 	public void receive(EngineStartCalculatingCommand command) {
 		// The move searcher will report the best move found via a callback to this object, 
 		// this will occur when the tree search is concluded and the thread completes execution.
-		ms = new MoveSearcher(this, bm);
+		int searchDepth = SEARCH_DEPTH_IN_PLY;
+		if (!command.getInfinite()) {
+			searchDepth = command.getDepth();
+		}
+		ms = new MoveSearcher(this, bm, searchDepth);
 		ms.start();
 	}
 

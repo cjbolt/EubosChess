@@ -9,15 +9,14 @@ import eubos.main.EubosEngineMain;
 
 public class MoveSearcher extends Thread {
 	
-	private static final int SEARCH_DEPTH_IN_PLY = 6;
 	private EubosEngineMain eubosEngine;
 	private BoardManager bm;
 	private MiniMaxMoveGenerator mg;
 	
-	public MoveSearcher( EubosEngineMain eubos, BoardManager inputBm ) {
+	public MoveSearcher( EubosEngineMain eubos, BoardManager inputBm, int searchDepth ) {
 		eubosEngine = eubos;
 		bm = inputBm;
-		mg = new MiniMaxMoveGenerator( eubosEngine, bm, SEARCH_DEPTH_IN_PLY );
+		mg = new MiniMaxMoveGenerator( eubosEngine, bm, searchDepth );
 	}
 	
 	public void halt() {
