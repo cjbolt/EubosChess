@@ -184,7 +184,8 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		int mateMoveNum = (currPly-1)/2; // currPly-1 because mate was caused by the move from the previousPly
 		int multiplier = totalMovesSearched-mateMoveNum;
 		scores[currPly] = multiplier*300000;
-		if (initialOnMove==Colour.black)
+		// Note the check on whether own king is checkmated (2nd expression). Ensures correct score backup.
+		if (initialOnMove==Colour.black && initialOnMove!=bm.getOnMove())
 			scores[currPly] = -scores[currPly];
 	}
 
@@ -228,9 +229,12 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		}
 		if (entireMoveList.isEmpty()) {
 			if (kingIsInCheck && initialOnMove==Colour.getOpposite(bm.getOnMove())) {
-				// Indicates checkmate! Perform an immediate backup of score and abort the 
+				// Indicates checkmate of opponent! Perform an immediate backup of score and abort the 
 				// search of any moves deeper than the previous node in the search tree. 
 				// However, search the rest of the tree, as this may yield earlier forced mates.
+				mateFound = true;
+			} else if (kingIsInCheck && initialOnMove==bm.getOnMove()) {
+				// Indicates a checkmate of self!
 				mateFound = true;
 			} else {
 				// Indicates a stalemate position.

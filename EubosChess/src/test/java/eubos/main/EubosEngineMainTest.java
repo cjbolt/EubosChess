@@ -98,6 +98,15 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
+	public void test_mateInTwo_fromBlack() throws InterruptedException, IOException {
+		setupEngine();
+		// Setup Commands specific to this test
+		commands.add(new commandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1 moves b5b6"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"4"+CMD_TERMINATOR,BEST_PREFIX+"b4c6"+CMD_TERMINATOR));
+		performTest(200);
+	}	
+	
+	@Test
 //	@Ignore
 	public void test_mateInOne() throws InterruptedException, IOException {
 		setupEngine();
@@ -118,7 +127,7 @@ public class EubosEngineMainTest {
 			if (expectedOutput != null) {
 				boolean received = false;
 				int timer = 0;
-				// Recieve message or wait for timeout to expire.
+				// Receive message or wait for timeout to expire.
 				while (!received && timer<timeout) {
 					// Give the engine thread some CPU time
 					Thread.sleep(sleep_10ms);
