@@ -19,8 +19,22 @@ public class EubosEngineMainTest {
 	private Thread eubosThread;
 	
 	// Command Lists emptied in main test loop.
-	private ArrayList<String> inputCmds = new ArrayList<String>();
-	private ArrayList<String> outputCmds = new ArrayList<String>();
+	public class commandPair {
+		private String in;
+		private String out;
+		public commandPair(String input, String output) {
+			in = input;
+			out = output;
+		}
+		public String getIn() {
+			return in;
+		}
+		public String getOut() {
+			return out;
+		}
+	}
+	
+	private ArrayList<commandPair> commands = new ArrayList<commandPair>();
 	
 	// Test infrastructure to allow pushing commands into Eubos and sniffing them out.
 	private PipedWriter inputToEngine;
@@ -66,7 +80,6 @@ public class EubosEngineMainTest {
 	
 	@Test
 	public void test_startEngine() throws InterruptedException, IOException {
-		// Setup input/output commands
 		setupEngine();
 		performTest(1000);
 	}
@@ -75,35 +88,33 @@ public class EubosEngineMainTest {
 	public void test_mateInOne() throws InterruptedException, IOException {
 		setupEngine();
 		// Setup Commands specific to this test
-		inputCmds.add(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1"+CMD_TERMINATOR);
-		inputCmds.add(GO_CMD);
-		outputCmds.add(null);
-		outputCmds.add(BEST_PREFIX+"b5b6"+CMD_TERMINATOR);		
+		commands.add(new commandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_CMD,BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
 		performTest(2000);
 	}
 
 	private void performTest(int timeout) throws IOException, InterruptedException {
-		// Apply inputs and check outputs...
-		for (String currCmd: inputCmds) {
+		for (commandPair currCmdPair: commands) {
+			String inputCmd = currCmdPair.getIn();
+			String expectedOutput = currCmdPair.getOut();
 			// Pass command to engine
-			inputToEngine.write(currCmd);
+			inputToEngine.write(inputCmd);
 			inputToEngine.flush();
-			// Get the command to check for...
-			String expectedOutput = outputCmds.remove(0);
+			// Test expected command was received
 			if (expectedOutput != null) {
 				boolean received = false;
 				int timer = 0;
 				// Recieve message or wait for timeout to expire.
 				while (!received && timer<timeout) {
-					// Give the engine thread some cpu time
+					// Give the engine thread some CPU time
 					Thread.sleep(sleep_10ms);
 					timer += sleep_10ms;
-					// ignore any line starting with info
+					// Ignore any line starting with info
 					String recievedCmd = testOutput.toString();
+					testOutput.reset();
 					String parsedCmd = filterInfosOut(recievedCmd);
 					if (expectedOutput.equals(parsedCmd))
 						received = true;
-					testOutput.reset();
 				}
 				if (!received) {
 					fail();
@@ -113,16 +124,10 @@ public class EubosEngineMainTest {
 	}
 
 	private void setupEngine() {
-		// Input
-		inputCmds.add(UCI_CMD);
-		inputCmds.add(ISREADY_CMD);
-		inputCmds.add(NEWGAME_CMD);
-		inputCmds.add(ISREADY_CMD);
-		// Output
-		outputCmds.add(ID_NAME_CMD+ID_AUTHOR_CMD+UCI_OK_CMD);
-		outputCmds.add(READY_OK_CMD);
-		outputCmds.add(null);
-		outputCmds.add(READY_OK_CMD);
+		commands.add(new commandPair(UCI_CMD, ID_NAME_CMD+ID_AUTHOR_CMD+UCI_OK_CMD));
+		commands.add(new commandPair(ISREADY_CMD,READY_OK_CMD));
+		commands.add(new commandPair(NEWGAME_CMD,null));
+		commands.add(new commandPair(ISREADY_CMD,READY_OK_CMD));
 	}
 	
 	private String filterInfosOut(String recievedCmd) {
