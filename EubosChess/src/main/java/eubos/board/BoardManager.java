@@ -315,6 +315,14 @@ public class BoardManager implements IBoardManager {
 		return lastMove;
 	}
 	
+	public boolean lastMoveWasCapture() {
+		boolean wasCapture = false;
+		if ( !previousMoves.isEmpty()) {
+			wasCapture = previousMoves.peek().isCapture();
+		}
+		return wasCapture;
+	}
+	
 	public void performMove( GenericMove move ) throws InvalidPieceException {
 		// Move the piece
 		Piece pieceToMove = theBoard.pickUpPieceAtSquare( move.from );

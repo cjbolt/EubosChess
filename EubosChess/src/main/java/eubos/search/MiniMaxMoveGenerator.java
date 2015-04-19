@@ -217,16 +217,24 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			entireMoveList.addAll( currPiece.generateMoves( bm ));
 		}
 		addCastlingMoves(entireMoveList);
-		// Scratch any moves resulting in the king being in check
+		LinkedList<GenericMove> newMoveList = new LinkedList<GenericMove>();
 		Iterator<GenericMove> iter_ml = entireMoveList.iterator();
 		while ( iter_ml.hasNext() ) {
 			GenericMove currMove = iter_ml.next();
 			bm.performMove( currMove );
-			if (inCheck(ownKing)) {
+			// Scratch any moves resulting in the king being in check
+			if (inCheck(ownKing))
 				iter_ml.remove();
+			// Groom the movelist so that the moves expected to be best are searched first.
+			// This is to get max benefit form alpha beta algorithm
+			else if (bm.lastMoveWasCapture()) {
+				newMoveList.addFirst(currMove);
+			} else {
+				newMoveList.addLast(currMove);
 			}
 			bm.undoPreviousMove();
 		}
+		entireMoveList = newMoveList;
 		if (entireMoveList.isEmpty()) {
 			if (kingIsInCheck && initialOnMove==Colour.getOpposite(bm.getOnMove())) {
 				// Indicates checkmate of opponent! Perform an immediate backup of score and abort the 

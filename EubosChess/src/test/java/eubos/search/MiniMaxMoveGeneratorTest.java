@@ -272,8 +272,7 @@ public class MiniMaxMoveGeneratorTest {
 		BoardManager bm = new BoardManager( "4N3/5P1P/5N1k/Q5p1/5PKP/B7/8/1B6 w - - 0 1" );
 		classUnderTest = new MiniMaxMoveGenerator(bm,2);
 		// various possible mates
-		expectedMove = new GenericMove( GenericPosition.f6, GenericPosition.g8 );
-		expectedMove = new GenericMove( GenericPosition.a3, GenericPosition.f8 );
+		expectedMove = new GenericMove( GenericPosition.h4, GenericPosition.g5 );
 		doFindMoveTest(true);
 	}
 	
