@@ -51,11 +51,12 @@ public class BoardManager implements IBoardManager {
 			String piecePlacement = tokens[0];
 			String colourOnMove = tokens[1];
 //			String castlingAvaillability = tokens[2];
-//			String enPassanttargetSq = tokens[3];
+			String enPassanttargetSq = tokens[3];
 //			String halfMoveClock = tokens[4];
 //			String moveNumber = tokens[5];
 			parsePiecePlacement(piecePlacement);
 			parseOnMove(colourOnMove);
+			parseEnPassant(enPassanttargetSq);
 			// looks like may need to revisit castling class members...
 		}
 		private void parseOnMove(String colourOnMove) {
@@ -136,6 +137,13 @@ public class BoardManager implements IBoardManager {
 					f = GenericFile.Fa;
 					break;
 				}
+			}
+		}
+		private void parseEnPassant(String targetSq) {
+			// TODO: this could probably be done better.
+			// Extrapolate from the FEN string to create a previous Tracked Move in the stack.
+			// ...this should cause MoveGen to insert a en passant capture.
+			if (targetSq!="-") {
 			}
 		}
 		private GenericFile advanceFile(GenericFile f) {

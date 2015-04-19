@@ -9,7 +9,7 @@ import org.junit.Test;
 
 import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
 import com.fluxchess.jcpi.models.GenericMove;
-import com.fluxchess.jcpi.models.GenericPosition;
+import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.main.EubosEngineMain;
 
@@ -31,12 +31,12 @@ public class SearchMetricsReporterTest {
 	}
 	
 	@Before
-	public void setUp() {
+	public void setUp() throws IllegalNotationException {
 		eubos = new EubosMock();
 		sm = new SearchMetrics(searchDepth);
 		// Minimal setup of the Search Metrics object
 		LinkedList<GenericMove> pv = new LinkedList<GenericMove>();
-		pv.add(new GenericMove(GenericPosition.e2, GenericPosition.e4));
+		pv.add(new GenericMove("e2e4"));
 		sm.setCurrentMove(pv.getFirst());
 		sm.setPrincipalVariation(pv);
 		classUnderTest = new SearchMetricsReporter(eubos, sm);

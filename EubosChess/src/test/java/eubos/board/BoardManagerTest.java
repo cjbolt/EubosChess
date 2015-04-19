@@ -11,7 +11,7 @@ import eubos.pieces.Rook;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericMove;
-import com.fluxchess.jcpi.models.GenericChessman;
+import com.fluxchess.jcpi.models.IllegalNotationException;
 
 public class BoardManagerTest {
 	
@@ -24,7 +24,7 @@ public class BoardManagerTest {
 	}
 	
 	@Test
-	public void test_UndoPawnMove() throws InvalidPieceException {
+	public void test_UndoPawnMove() throws InvalidPieceException, IllegalNotationException {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -35,7 +35,7 @@ public class BoardManagerTest {
 		// 1 ........
 		//   abcdefgh
 		classUnderTest = new BoardManager("8/8/8/8/8/8/4P3/8 w - - - -");
-		classUnderTest.performMove( new GenericMove( GenericPosition.e2, GenericPosition.e4 ));
+		classUnderTest.performMove(new GenericMove("e2e4"));
 		classUnderTest.undoPreviousMove();
 		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.e2 );
 		assertTrue( expectPawn instanceof Pawn );
@@ -43,7 +43,7 @@ public class BoardManagerTest {
 	}
 	
 	@Test
-	public void test_UndoPawnPromotion() throws InvalidPieceException {
+	public void test_UndoPawnPromotion() throws InvalidPieceException, IllegalNotationException {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -54,7 +54,7 @@ public class BoardManagerTest {
 		// 1 ........
 		//   abcdefgh
 		classUnderTest = new BoardManager("8/8/8/8/8/8/4p3/8 b - - - -");
-		classUnderTest.performMove( new GenericMove( GenericPosition.e2, GenericPosition.e1, GenericChessman.QUEEN ));
+		classUnderTest.performMove( new GenericMove("e2e1Q"));
 		classUnderTest.undoPreviousMove();
 		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.e2 );
 		assertTrue( expectPawn instanceof Pawn );
@@ -62,7 +62,7 @@ public class BoardManagerTest {
 	}
 	
 	@Test
-	public void test_UndoPawnCapture() throws InvalidPieceException {
+	public void test_UndoPawnCapture() throws InvalidPieceException, IllegalNotationException {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -73,7 +73,7 @@ public class BoardManagerTest {
 		// 1 ........
 		//   abcdefgh
 		classUnderTest = new BoardManager("8/8/8/8/8/3p4/4P3/8 w - - - -");
-		classUnderTest.performMove( new GenericMove( GenericPosition.d3, GenericPosition.e2 ));
+		classUnderTest.performMove( new GenericMove("d3e2"));
 		classUnderTest.undoPreviousMove();
 		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.d3 );
 		assertTrue( expectPawn instanceof Pawn );
@@ -84,7 +84,7 @@ public class BoardManagerTest {
 	}
 	
 	@Test
-	public void test_WhiteKingSideCastle() {
+	public void test_WhiteKingSideCastle() throws IllegalNotationException{
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -96,13 +96,13 @@ public class BoardManagerTest {
 		//   abcdefgh
 		classUnderTest = new BoardManager("8/8/8/8/8/8/8/4K2R w - - - -");
 		GenericMove kscMove = classUnderTest.addKingSideCastle();
-		GenericMove expectedMove = new GenericMove( GenericPosition.e1, GenericPosition.g1 );
+		GenericMove expectedMove = new GenericMove("e1g1");
 		assertTrue(kscMove != null);
 		assertTrue(expectedMove.equals(kscMove));
 	}
 	
 	@Test
-	public void test_WhiteKingSideCastle_performMove() throws InvalidPieceException {
+	public void test_WhiteKingSideCastle_performMove() throws InvalidPieceException, IllegalNotationException {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -113,7 +113,7 @@ public class BoardManagerTest {
 		// 1 ....k..r
 		//   abcdefgh
 		classUnderTest = new BoardManager("8/8/8/8/8/8/8/4K2R w - - - -");
-		GenericMove expectedMove = new GenericMove( GenericPosition.e1, GenericPosition.g1 );
+		GenericMove expectedMove = new GenericMove("e1g1");
 		classUnderTest.performMove(expectedMove);
 		Piece whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.h1);
 		assertTrue(whiteRook == null);
@@ -123,7 +123,7 @@ public class BoardManagerTest {
 	}
 	
 	@Test
-	public void test_WhiteKingSideCastle_unperformMove() throws InvalidPieceException {
+	public void test_WhiteKingSideCastle_unperformMove() throws InvalidPieceException, IllegalNotationException {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -134,7 +134,7 @@ public class BoardManagerTest {
 		// 1 ....k..r
 		//   abcdefgh
 		classUnderTest = new BoardManager("8/8/8/8/8/8/8/4K2R w - - - -");
-		GenericMove expectedMove = new GenericMove( GenericPosition.e1, GenericPosition.g1 );
+		GenericMove expectedMove = new GenericMove("e1g1");
 		classUnderTest.performMove(expectedMove);
 		Piece whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.h1);
 		assertTrue(whiteRook == null);
@@ -231,7 +231,7 @@ public class BoardManagerTest {
 	}	
 	
 	@Test
-	public void test_WhiteKingSideCastle_RookIsAttackedAtH1() {
+	public void test_WhiteKingSideCastle_RookIsAttackedAtH1() throws IllegalNotationException {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -243,14 +243,14 @@ public class BoardManagerTest {
 		//   abcdefgh
 		classUnderTest = new BoardManager("8/8/8/8/8/5b2/8/4K2R w - - - -");
 		GenericMove kscMove = classUnderTest.addKingSideCastle();
-		GenericMove expectedMove = new GenericMove( GenericPosition.e1, GenericPosition.g1 );
+		GenericMove expectedMove = new GenericMove("e1g1");
 		assertTrue(kscMove != null);
 		assertTrue(expectedMove.equals(kscMove));
 	}
 	
 	
 	@Test
-	public void test_BlackQueenSideCastle() {
+	public void test_BlackQueenSideCastle() throws IllegalNotationException  {
 		// 8 R...K...
 		// 7 ........
 		// 6 ........
@@ -262,7 +262,7 @@ public class BoardManagerTest {
 		//   abcdefgh
 		classUnderTest = new BoardManager("r3k3/8/8/8/8/8/8/8 b - - - -");
 		GenericMove qscMove = classUnderTest.addQueenSideCastle();
-		GenericMove expectedMove = new GenericMove( GenericPosition.e8, GenericPosition.c8 );
+		GenericMove expectedMove = new GenericMove("e8c8");
 		assertTrue(qscMove != null);
 		assertTrue(expectedMove.equals(qscMove));
 	}
@@ -332,7 +332,7 @@ public class BoardManagerTest {
 	}
 	
 	@Test
-	public void test_BlackQueenSideCastle_RookIsAttackedAtA8() {
+	public void test_BlackQueenSideCastle_RookIsAttackedAtA8() throws IllegalNotationException  {
 		// 8 R...K...
 		// 7 ........
 		// 6 R.......
@@ -344,7 +344,7 @@ public class BoardManagerTest {
 		//   abcdefgh
 		classUnderTest = new BoardManager("r3k3/8/R7/8/8/8/8/8 b - - - -");
 		GenericMove qscMove = classUnderTest.addQueenSideCastle();
-		GenericMove expectedMove = new GenericMove( GenericPosition.e8, GenericPosition.c8 );
+		GenericMove expectedMove = new GenericMove("e8c8");
 		assertTrue(qscMove != null);
 		assertTrue(expectedMove.equals(qscMove));
 	}
