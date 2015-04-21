@@ -140,10 +140,10 @@ public class BoardManager implements IBoardManager {
 			}
 		}
 		private void parseEnPassant(String targetSq) {
-			// TODO: this could probably be done better.
-			// Extrapolate from the FEN string to create a previous Tracked Move in the stack.
-			// ...this should cause MoveGen to insert a en passant capture.
-			if (targetSq!="-") {
+			if (!targetSq.contentEquals("-")) {
+				enPassantTargetSq = GenericPosition.valueOf(targetSq);
+			} else {
+				enPassantTargetSq = null;
 			}
 		}
 		private GenericFile advanceFile(GenericFile f) {
@@ -156,6 +156,16 @@ public class BoardManager implements IBoardManager {
 		}
 	}
 	
+	private GenericPosition enPassantTargetSq;
+	
+	public GenericPosition getEnPassantTargetSq() {
+		return enPassantTargetSq;
+	}
+
+	public void setEnPassantTargetSq(GenericPosition enPassantTargetSq) {
+		this.enPassantTargetSq = enPassantTargetSq;
+	}
+
 	private Stack<TrackedMove> previousMoves;
 	private Board theBoard;
 	
@@ -385,6 +395,16 @@ public class BoardManager implements IBoardManager {
 						theBoard.setPieceAtSquare(rookToCastle);						
 					}	
 					blackHasCastled = true;
+				}
+			}
+			// handle initial pawn moves that are subject to en passant rule
+			if ( pieceToMove instanceof Pawn ) {
+				Pawn pawnPiece = (Pawn) pieceToMove;
+				if ( pawnPiece.isAtInitialPosition()) {
+					// if two square move
+					// set en passant target square
+					// remember to push en passant target square onto the move stack so it is correctly treated.
+					// remember to clear en passant target sq when a new move is performed (valid for one move only)
 				}
 			}
 			// Store this move in the previous moves list

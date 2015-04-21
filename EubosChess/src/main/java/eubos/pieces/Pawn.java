@@ -3,7 +3,6 @@ package eubos.pieces;
 import java.util.LinkedList;
 
 import com.fluxchess.jcpi.models.GenericChessman;
-import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericRank;
@@ -23,7 +22,7 @@ public class Pawn extends PieceSinglesquareDirectMove {
 		return ( !everMoved && isAtInitialPosition());
 	}
 
-	private boolean isAtInitialPosition() {
+	public boolean isAtInitialPosition() {
 		if ( isBlack() ) {
 			return (onSquare.rank.equals( GenericRank.R7 ));
 		} else {
@@ -67,68 +66,15 @@ public class Pawn extends PieceSinglesquareDirectMove {
 		}		
 	}
 	
-	private boolean checkLeftEnPassantCapture( Board theBoard, GenericMove lastMove ) {
-		if ( lastMove.to.rank == onSquare.rank ) {
-			if ( isBlack() ) {
-				if ( onSquare.file != GenericFile.Fh ) {
-					if (( lastMove.to.file == onSquare.file.next() )) {
-						Piece enPassantPiece = theBoard.getPieceAtSquare( lastMove.to );
-						if ( enPassantPiece instanceof Pawn ) {
-							return true;
-						}
-					}
-				}
-			} else {
-				if ( onSquare.file != GenericFile.Fa ) {
-					if (( lastMove.to.file == onSquare.file.prev() )) {
-						Piece enPassantPiece = theBoard.getPieceAtSquare( lastMove.to );
-						if ( enPassantPiece instanceof Pawn ) {
-							return true;
-						}
-					}
-				}	
-			}
-		}
-		return false;
-	}
-	
-	private boolean checkRightEnPassantCapture( Board theBoard, GenericMove lastMove ) {
-		if ( lastMove.to.rank == onSquare.rank ) {
-			if ( isBlack() ) {
-				if ( onSquare.file != GenericFile.Fa ) {
-					if (( lastMove.to.file == onSquare.file.prev() )) {
-						Piece enPassantPiece = theBoard.getPieceAtSquare( lastMove.to );
-						if ( enPassantPiece instanceof Pawn ) {
-							return true;
-						}
-					}
-				}		
-			} else {
-				if ( onSquare.file != GenericFile.Fh ) {
-					if (( lastMove.to.file == onSquare.file.next() )) {
-						Piece enPassantPiece = theBoard.getPieceAtSquare( lastMove.to );
-						if ( enPassantPiece instanceof Pawn ) {
-							return true;
-						}
-					}
-				}
-			}
-		}
-		return false;
-	}
-	
-	private boolean isCapturable(Board theBoard, GenericPosition captureAt ) {
+	private boolean isCapturable(BoardManager bm, GenericPosition captureAt ) {
 		boolean isCapturable = false;
-		Piece queryPiece = theBoard.getPieceAtSquare( captureAt );
+		Piece queryPiece = bm.getTheBoard().getPieceAtSquare( captureAt );
 		if ( queryPiece != null ) {
 			isCapturable = isOppositeColour( queryPiece );
+		} else if (captureAt == bm.getEnPassantTargetSq()) {
+			isCapturable = true;
 		}
 		return isCapturable;
-	}
-	
-	private boolean checkEnPassantPossible() {
-		return ((isBlack() && onSquare.rank.equals( GenericRank.R4 )) ||
-				(isWhite() && onSquare.rank.equals( GenericRank.R5 )));
 	}
 	
 	private boolean checkPromotionPossible( GenericPosition targetSquare ) {
@@ -161,26 +107,14 @@ public class Pawn extends PieceSinglesquareDirectMove {
 				moveList.add( new GenericMove( onSquare, moveTo ) );
 			}	
 		}
-		// Check for capture moves
+		// Check for capture moves, includes en passant
 		GenericPosition captureAt = genLeftCaptureTarget();
-		if ( captureAt != null && isCapturable(theBoard,captureAt)) {
+		if ( captureAt != null && isCapturable(bm,captureAt)) {
 			checkPromotionAddMove(moveList, captureAt);
 		}
 		captureAt = genRightCaptureTarget();
-		if ( captureAt != null && isCapturable(theBoard,captureAt)) {
+		if ( captureAt != null && isCapturable(bm,captureAt)) {
 			checkPromotionAddMove(moveList, captureAt);
-		}
-		// Check for en passant capture moves
-		if ( checkEnPassantPossible() ) {
-			GenericMove lastMove = bm.getPreviousMove();
-			if ( lastMove != null ) {
-				if ( checkLeftEnPassantCapture( theBoard, lastMove )) {
-					captureLeft(moveList);
-				}
-				if ( checkRightEnPassantCapture( theBoard, lastMove )) {
-					captureRight(moveList);
-				}
-			}
 		}
 		return moveList;
 	}
@@ -193,19 +127,5 @@ public class Pawn extends PieceSinglesquareDirectMove {
 				isAnyAttacked = true;
 		}
 		return isAnyAttacked;
-	}
-
-	private void captureRight(LinkedList<GenericMove> moveList) {
-		GenericPosition captureAt = genRightCaptureTarget();
-		if ( captureAt != null ) {
-			moveList.add( new GenericMove( onSquare, captureAt ) );
-		}
-	}
-
-	private void captureLeft(LinkedList<GenericMove> moveList) {
-		GenericPosition captureAt = genLeftCaptureTarget();
-		if ( captureAt != null ) {
-			moveList.add( new GenericMove( onSquare, captureAt ) );
-		}
 	}
 }
