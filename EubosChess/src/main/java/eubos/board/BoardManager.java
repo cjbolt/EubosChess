@@ -23,9 +23,14 @@ public class BoardManager implements IBoardManager {
 	public class TrackedMove {
 		private GenericMove move = null;
 		private Piece capturedPiece = null;
+		private GenericPosition enPassantTarget = null; 
 
 		public TrackedMove( GenericMove inMove ) { move = inMove; }
-		public TrackedMove( GenericMove inMove, Piece capture ) {  move = inMove; capturedPiece = capture;}
+		public TrackedMove( GenericMove inMove, Piece capture, GenericPosition enP ) {
+			move = inMove; 
+			capturedPiece = capture;
+			enPassantTarget = enP;
+		}
 		public boolean isCapture() { return ((capturedPiece != null) ? true : false); }
 
 		public GenericMove getMove() {
@@ -39,6 +44,12 @@ public class BoardManager implements IBoardManager {
 		}
 		public void setCapturedPiece(Piece capturedPiece) {
 			this.capturedPiece = capturedPiece;
+		}
+		public GenericPosition getEnPassantTarget() {
+			return enPassantTarget;
+		}
+		public void setEnPassantTarget(GenericPosition enPassantTarget) {
+			this.enPassantTarget = enPassantTarget;
 		}
 	}
 
@@ -309,6 +320,7 @@ public class BoardManager implements IBoardManager {
 	
 	public void undoPreviousMove() throws InvalidPieceException {
 		if ( !previousMoves.isEmpty()) {
+			setEnPassantTargetSq(null);
 			TrackedMove tm = previousMoves.pop();
 			GenericMove moveToUndo = tm.getMove();
 			if ( moveToUndo.promotion != null ) {
@@ -319,18 +331,10 @@ public class BoardManager implements IBoardManager {
 			if ( tm.isCapture()) {
 				theBoard.setPieceAtSquare(tm.getCapturedPiece());
 			}
+			setEnPassantTargetSq(tm.getEnPassantTarget());
 			// Update onMove
 			onMove = Piece.Colour.getOpposite(onMove);
 		}
-	}
-	
-	public GenericMove getPreviousMove() {
-		GenericMove lastMove = null;
-		if ( !previousMoves.isEmpty()) {
-			TrackedMove tm = previousMoves.peek();
-			lastMove = tm.getMove();
-		}
-		return lastMove;
 	}
 	
 	public boolean lastMoveWasCapture() {
@@ -345,6 +349,14 @@ public class BoardManager implements IBoardManager {
 		// Move the piece
 		Piece pieceToMove = theBoard.pickUpPieceAtSquare( move.from );
 		if ( pieceToMove != null ) {
+			// Handle en passant captures
+			boolean enPassantCapture = false;
+			if ( enPassantTargetSq != null && pieceToMove instanceof Pawn && move.to == enPassantTargetSq) {
+				enPassantCapture = true;
+			}
+			// TODO: There is an issue with backing up the enPassant target square when we start searching a position...
+			GenericPosition prevEnPassantTargetSq = enPassantTargetSq;
+			enPassantTargetSq=null;
 			// Handle pawn promotion moves
 			if ( move.promotion != null ) {
 				switch( move.promotion ) {
@@ -397,23 +409,37 @@ public class BoardManager implements IBoardManager {
 					blackHasCastled = true;
 				}
 			}
-			// handle initial pawn moves that are subject to en passant rule
+			// Handle initial pawn moves that are subject to en passant rule
 			if ( pieceToMove instanceof Pawn ) {
 				Pawn pawnPiece = (Pawn) pieceToMove;
 				if ( pawnPiece.isAtInitialPosition()) {
-					// if two square move
-					// set en passant target square
-					// remember to push en passant target square onto the move stack so it is correctly treated.
-					// remember to clear en passant target sq when a new move is performed (valid for one move only)
+					if ( pawnPiece.isWhite()) {
+						if (move.to.rank == GenericRank.R4) {
+							GenericPosition enPassantWhite = GenericPosition.valueOf(move.to.file,GenericRank.R3);
+							setEnPassantTargetSq(enPassantWhite);
+						}
+					} else {
+						if (move.to.rank == GenericRank.R5) {
+							GenericPosition enPassantBlack = GenericPosition.valueOf(move.to.file,GenericRank.R6);
+							setEnPassantTargetSq(enPassantBlack);
+						}						
+					}
 				}
 			}
 			// Store this move in the previous moves list
-			Piece captureTarget = theBoard.getPieceAtSquare( move.to );
-			previousMoves.push( new TrackedMove( move, captureTarget ));
+			Piece captureTarget = theBoard.getPieceAtSquare(move.to);
+			if (enPassantCapture) {
+				if (pieceToMove.isWhite()) {
+					captureTarget = theBoard.getPieceAtSquare(GenericPosition.valueOf(move.to.file,GenericRank.R5));
+				} else {
+					captureTarget = theBoard.getPieceAtSquare(GenericPosition.valueOf(move.to.file,GenericRank.R4));
+				}
+			}
+			previousMoves.push( new TrackedMove(move, captureTarget, enPassantTargetSq));
 			// Update the piece's square.
 			// TODO duplicated information here - sub optimal... needs refactoring
-			pieceToMove.setSquare( move.to );
-			theBoard.setPieceAtSquare( pieceToMove );
+			pieceToMove.setSquare(move.to);
+			theBoard.setPieceAtSquare(pieceToMove);
 			// Update onMove
 			onMove = Colour.getOpposite(onMove);
 		} else {

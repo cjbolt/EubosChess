@@ -16,6 +16,7 @@ public class SearchDebugAgent {
 	}
 	
 	private void computeIndent(int currPly) {
+		indent="";
 		for (int i=0; i<currPly; i++) {
 			indent += "\t";
 		}

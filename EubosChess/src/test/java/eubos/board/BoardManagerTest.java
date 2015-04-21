@@ -84,6 +84,17 @@ public class BoardManagerTest {
 	}
 	
 	@Test
+	public void test_enPassantCaptureAtC3() throws InvalidPieceException, IllegalNotationException {
+		classUnderTest = new BoardManager( "r3k2r/1bqpbppp/p1n1p3/3nP3/PpP1N3/3B1N2/1P2QPPP/R4RK1 b kq c3 0 1");
+		classUnderTest.performMove( new GenericMove("b4c3"));
+		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.c3 );
+		assertTrue( expectPawn instanceof Pawn );
+		assertTrue( expectPawn.isBlack());
+		Piece expectNull = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.c4 );
+		assertFalse( expectNull == null );
+	}
+	
+	@Test
 	public void test_WhiteKingSideCastle() throws IllegalNotationException{
 		// 8 ........
 		// 7 ........
