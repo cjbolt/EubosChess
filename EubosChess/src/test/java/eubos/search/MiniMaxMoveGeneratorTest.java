@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import java.util.LinkedList;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -300,7 +299,7 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		BoardManager bm = new BoardManager( "1rk2N2/1p6/8/B1Pp4/B6Q/K7/8/2R5 w - d6 0 1" );
 		classUnderTest = new MiniMaxMoveGenerator(bm,2);
-		expectedMove = new GenericMove("a4d7");
+		expectedMove = new GenericMove("c5d6"); //en passant move causes discovered checkmate
 		doFindMoveTest(true);
 	}
 
@@ -355,10 +354,9 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	@Ignore
 	// Currently fails because the status of the initial enPassant Target square is not backed up by
 	// the move generator (because the move was never executed as far as Eubos is concerned).
-	public void test_findMove_enPassantCaptureAtC3() throws InvalidPieceException, IllegalNotationException {
+	public void test_findMove_enPassantCapture() throws InvalidPieceException, IllegalNotationException {
 		BoardManager bm = new BoardManager( "8/8/8/8/1pPP4/8/8/8 b - c3 0 1");
 		classUnderTest = new MiniMaxMoveGenerator(bm,2);
 		expectedMove = new GenericMove("b4c3");

@@ -435,7 +435,7 @@ public class BoardManager implements IBoardManager {
 					captureTarget = theBoard.getPieceAtSquare(GenericPosition.valueOf(move.to.file,GenericRank.R4));
 				}
 			}
-			previousMoves.push( new TrackedMove(move, captureTarget, enPassantTargetSq));
+			previousMoves.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq));
 			// Update the piece's square.
 			// TODO duplicated information here - sub optimal... needs refactoring
 			pieceToMove.setSquare(move.to);
