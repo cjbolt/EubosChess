@@ -167,18 +167,13 @@ public class BoardManager implements IBoardManager {
 		}
 	}
 	
+	// No public setter, because enPassantTargetSq is only changed by performing a move on the board.
 	private GenericPosition enPassantTargetSq;
-	
 	public GenericPosition getEnPassantTargetSq() {
 		return enPassantTargetSq;
 	}
 
-	public void setEnPassantTargetSq(GenericPosition enPassantTargetSq) {
-		this.enPassantTargetSq = enPassantTargetSq;
-	}
-
 	private Stack<TrackedMove> previousMoves;
-	private Board theBoard;
 	
 	// No public setter, because onMove is only changed by performing a move on the board.
 	private Colour onMove;
@@ -191,6 +186,7 @@ public class BoardManager implements IBoardManager {
 	private boolean whiteHasCastled;
 	private boolean blackHasCastled;
 	
+	private Board theBoard;
 	public Board getTheBoard() {
 		return theBoard;
 	}
@@ -320,7 +316,7 @@ public class BoardManager implements IBoardManager {
 	
 	public void undoPreviousMove() throws InvalidPieceException {
 		if ( !previousMoves.isEmpty()) {
-			setEnPassantTargetSq(null);
+			enPassantTargetSq = null;
 			TrackedMove tm = previousMoves.pop();
 			GenericMove moveToUndo = tm.getMove();
 			if ( moveToUndo.promotion != null ) {
@@ -331,7 +327,7 @@ public class BoardManager implements IBoardManager {
 			if ( tm.isCapture()) {
 				theBoard.setPieceAtSquare(tm.getCapturedPiece());
 			}
-			setEnPassantTargetSq(tm.getEnPassantTarget());
+			enPassantTargetSq = tm.getEnPassantTarget();
 			// Update onMove
 			onMove = Piece.Colour.getOpposite(onMove);
 		}
@@ -349,101 +345,128 @@ public class BoardManager implements IBoardManager {
 		// Move the piece
 		Piece pieceToMove = theBoard.pickUpPieceAtSquare( move.from );
 		if ( pieceToMove != null ) {
-			// Handle en passant captures
-			boolean enPassantCapture = false;
-			if ( enPassantTargetSq != null && pieceToMove instanceof Pawn && move.to == enPassantTargetSq) {
-				enPassantCapture = true;
-			}
-			// TODO: There is an issue with backing up the enPassant target square when we start searching a position...
+			// Flag if move is an en passant capture
+			boolean enPassantCapture = isEnPassantCapture(move, pieceToMove);
+			// Save previous en passant square and initialise for this move
 			GenericPosition prevEnPassantTargetSq = enPassantTargetSq;
 			enPassantTargetSq=null;
 			// Handle pawn promotion moves
-			if ( move.promotion != null ) {
-				switch( move.promotion ) {
-				case QUEEN:
-					pieceToMove = new Queen(pieceToMove.getColour(), null );
-					break;
-				case KNIGHT:
-					pieceToMove = new Knight(pieceToMove.getColour(), null );
-					break;
-				case BISHOP:
-					pieceToMove = new Bishop(pieceToMove.getColour(), null );
-					break;
-				case ROOK:
-					pieceToMove = new Rook(pieceToMove.getColour(), null );
-					break;
-				default:
-					break;
-				}
-			}
+			pieceToMove = checkForPawnPromotions(move, pieceToMove);
 			// Handle castling secondary rook moves...
-			if ( pieceToMove instanceof King ) {
-				if ( move.from == GenericPosition.e1 )
-				{
-					if ( move.to == GenericPosition.g1 ) {
-						// Perform secondary king side castle rook move
-						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.h1 );
-						rookToCastle.setSquare( GenericPosition.f1 );
-						theBoard.setPieceAtSquare(rookToCastle);
-					}
-					if ( move.to == GenericPosition.b1 ) {
-						// Perform secondary queen side castle rook move
-						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.a1 );
-						rookToCastle.setSquare( GenericPosition.c1 );
-						theBoard.setPieceAtSquare(rookToCastle);						
-					}
-					whiteHasCastled = true;
-				} else if ( move.from == GenericPosition.e8 ) {
-					if ( move.to == GenericPosition.g8 ) {
-						// Perform secondary king side castle rook move
-						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.h8 );
-						rookToCastle.setSquare( GenericPosition.f8 );
-						theBoard.setPieceAtSquare(rookToCastle);
-					}
-					if ( move.to == GenericPosition.b8 ) {
-						// Perform secondary queen side castle rook move
-						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.a8 );
-						rookToCastle.setSquare( GenericPosition.c8 );
-						theBoard.setPieceAtSquare(rookToCastle);						
-					}	
-					blackHasCastled = true;
-				}
-			}
-			// Handle initial pawn moves that are subject to en passant rule
-			if ( pieceToMove instanceof Pawn ) {
-				Pawn pawnPiece = (Pawn) pieceToMove;
-				if ( pawnPiece.isAtInitialPosition()) {
-					if ( pawnPiece.isWhite()) {
-						if (move.to.rank == GenericRank.R4) {
-							GenericPosition enPassantWhite = GenericPosition.valueOf(move.to.file,GenericRank.R3);
-							setEnPassantTargetSq(enPassantWhite);
-						}
-					} else {
-						if (move.to.rank == GenericRank.R5) {
-							GenericPosition enPassantBlack = GenericPosition.valueOf(move.to.file,GenericRank.R6);
-							setEnPassantTargetSq(enPassantBlack);
-						}						
-					}
-				}
-			}
+			checkForSecondaryCastlingMoves(move, pieceToMove);
+			// Handle any initial 2 square pawn moves that are subject to en passant rule
+			checkToSetEnPassantTargetSq(move, pieceToMove);
 			// Store this move in the previous moves list
-			Piece captureTarget = theBoard.getPieceAtSquare(move.to);
-			if (enPassantCapture) {
-				if (pieceToMove.isWhite()) {
-					captureTarget = theBoard.getPieceAtSquare(GenericPosition.valueOf(move.to.file,GenericRank.R5));
-				} else {
-					captureTarget = theBoard.getPieceAtSquare(GenericPosition.valueOf(move.to.file,GenericRank.R4));
-				}
-			}
-			previousMoves.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq));
+			savePreviousMove(move, pieceToMove, enPassantCapture, prevEnPassantTargetSq);
 			// Update the piece's square.
-			// TODO duplicated information here - sub optimal... needs refactoring
-			pieceToMove.setSquare(move.to);
-			theBoard.setPieceAtSquare(pieceToMove);
+			updateSquarePieceOccupies(move, pieceToMove);
 			// Update onMove
 			onMove = Colour.getOpposite(onMove);
 		} else {
 			throw new InvalidPieceException(move.from);
+		}
+	}
+
+	private void savePreviousMove(GenericMove move, Piece pieceToMove,
+			boolean enPassantCapture, GenericPosition prevEnPassantTargetSq) {
+		Piece captureTarget = theBoard.getPieceAtSquare(move.to);
+		if (enPassantCapture) {
+			if (pieceToMove.isWhite()) {
+				captureTarget = theBoard.getPieceAtSquare(GenericPosition.valueOf(move.to.file,GenericRank.R5));
+			} else {
+				captureTarget = theBoard.getPieceAtSquare(GenericPosition.valueOf(move.to.file,GenericRank.R4));
+			}
+		}
+		previousMoves.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq));
+	}
+
+	private void updateSquarePieceOccupies(GenericMove move, Piece pieceToMove) {
+		pieceToMove.setSquare(move.to);
+		theBoard.setPieceAtSquare(pieceToMove);
+	}
+
+	private boolean isEnPassantCapture(GenericMove move, Piece pieceToMove) {
+		boolean enPassantCapture = false;
+		if ( enPassantTargetSq != null && pieceToMove instanceof Pawn && move.to == enPassantTargetSq) {
+			enPassantCapture = true;
+		}
+		return enPassantCapture;
+	}
+
+	private Piece checkForPawnPromotions(GenericMove move, Piece pieceToMove) {
+		if ( move.promotion != null ) {
+			switch( move.promotion ) {
+			case QUEEN:
+				pieceToMove = new Queen(pieceToMove.getColour(), null );
+				break;
+			case KNIGHT:
+				pieceToMove = new Knight(pieceToMove.getColour(), null );
+				break;
+			case BISHOP:
+				pieceToMove = new Bishop(pieceToMove.getColour(), null );
+				break;
+			case ROOK:
+				pieceToMove = new Rook(pieceToMove.getColour(), null );
+				break;
+			default:
+				break;
+			}
+		}
+		return pieceToMove;
+	}
+
+	private void checkForSecondaryCastlingMoves(GenericMove move,
+			Piece pieceToMove) {
+		if ( pieceToMove instanceof King ) {
+			if ( move.from == GenericPosition.e1 )
+			{
+				if ( move.to == GenericPosition.g1 ) {
+					// Perform secondary king side castle rook move
+					Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.h1 );
+					rookToCastle.setSquare( GenericPosition.f1 );
+					theBoard.setPieceAtSquare(rookToCastle);
+				}
+				if ( move.to == GenericPosition.b1 ) {
+					// Perform secondary queen side castle rook move
+					Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.a1 );
+					rookToCastle.setSquare( GenericPosition.c1 );
+					theBoard.setPieceAtSquare(rookToCastle);						
+				}
+				whiteHasCastled = true;
+			} else if ( move.from == GenericPosition.e8 ) {
+				if ( move.to == GenericPosition.g8 ) {
+					// Perform secondary king side castle rook move
+					Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.h8 );
+					rookToCastle.setSquare( GenericPosition.f8 );
+					theBoard.setPieceAtSquare(rookToCastle);
+				}
+				if ( move.to == GenericPosition.b8 ) {
+					// Perform secondary queen side castle rook move
+					Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.a8 );
+					rookToCastle.setSquare( GenericPosition.c8 );
+					theBoard.setPieceAtSquare(rookToCastle);						
+				}	
+				blackHasCastled = true;
+			}
+		}
+	}
+
+	private void checkToSetEnPassantTargetSq(GenericMove move, Piece pieceToMove) {
+		if ( pieceToMove instanceof Pawn ) {
+			Pawn pawnPiece = (Pawn) pieceToMove;
+			if ( pawnPiece.isAtInitialPosition()) {
+				if ( pawnPiece.isWhite()) {
+					if (move.to.rank == GenericRank.R4) {
+						GenericPosition enPassantWhite = GenericPosition.valueOf(move.to.file,GenericRank.R3);
+						enPassantTargetSq = enPassantWhite;
+					}
+				} else {
+					if (move.to.rank == GenericRank.R5) {
+						GenericPosition enPassantBlack = GenericPosition.valueOf(move.to.file,GenericRank.R6);
+						enPassantTargetSq = enPassantBlack;
+					}						
+				}
+			}
 		}
 	}
 	
@@ -485,8 +508,7 @@ public class BoardManager implements IBoardManager {
 					blackHasCastled = false;
 				}
 			}
-			pieceToMove.setSquare( move.to );
-			theBoard.setPieceAtSquare( pieceToMove );
+			updateSquarePieceOccupies(move, pieceToMove);
 		} else {
 			throw new InvalidPieceException(move.from);
 		}
