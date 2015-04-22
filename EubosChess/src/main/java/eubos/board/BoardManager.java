@@ -368,14 +368,17 @@ public class BoardManager implements IBoardManager {
 	}
 
 	private void savePreviousMove(GenericMove move, Piece pieceToMove,
-			boolean enPassantCapture, GenericPosition prevEnPassantTargetSq) {
+			boolean enPassantCapture, GenericPosition prevEnPassantTargetSq) throws InvalidPieceException {
 		Piece captureTarget = theBoard.getPieceAtSquare(move.to);
+		GenericRank rank;
 		if (enPassantCapture) {
 			if (pieceToMove.isWhite()) {
-				captureTarget = theBoard.getPieceAtSquare(GenericPosition.valueOf(move.to.file,GenericRank.R5));
+				rank = GenericRank.R5;
 			} else {
-				captureTarget = theBoard.getPieceAtSquare(GenericPosition.valueOf(move.to.file,GenericRank.R4));
+				rank = GenericRank.R4;
 			}
+			GenericPosition capturePos = GenericPosition.valueOf(move.to.file,rank);
+			captureTarget = theBoard.pickUpPieceAtSquare(capturePos);
 		}
 		previousMoves.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq));
 	}
@@ -415,8 +418,8 @@ public class BoardManager implements IBoardManager {
 		return pieceToMove;
 	}
 
-	private void checkForSecondaryCastlingMoves(GenericMove move,
-			Piece pieceToMove) {
+	private void checkForSecondaryCastlingMoves(GenericMove move, Piece pieceToMove) 
+			throws InvalidPieceException {
 		if ( pieceToMove instanceof King ) {
 			if ( move.from == GenericPosition.e1 )
 			{

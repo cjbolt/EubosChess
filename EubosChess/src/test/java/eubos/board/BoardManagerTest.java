@@ -90,8 +90,6 @@ public class BoardManagerTest {
 		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.c3 );
 		assertTrue( expectPawn instanceof Pawn );
 		assertTrue( expectPawn.isBlack());
-		Piece expectNull = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.c4 );
-		assertFalse( expectNull == null );
 	}
 	
 	@Test

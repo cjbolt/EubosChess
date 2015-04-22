@@ -41,11 +41,12 @@ public class Board implements Iterable<Piece> {
 		return ( theBoard[file][rank] );
 	}
 	
-	public Piece pickUpPieceAtSquare( GenericPosition atPos ) {
+	public Piece pickUpPieceAtSquare( GenericPosition atPos ) throws InvalidPieceException {
 		int file, rank;
 		file = IntFile.valueOf(atPos.file);
 		rank = IntRank.valueOf(atPos.rank);
 		Piece pieceToPickUp = theBoard[file][rank];
+		if (pieceToPickUp == null ) throw new InvalidPieceException(atPos);
 		theBoard[file][rank] = null;
 		return ( pieceToPickUp );
 	}
