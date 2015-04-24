@@ -62,15 +62,13 @@ public class BoardManager implements IBoardManager {
 			String[] tokens = fenString.split(" ");
 			String piecePlacement = tokens[0];
 			String colourOnMove = tokens[1];
-			String castlingAvaillability = tokens[2];
+			castling = new CastlingManager(tokens[2]);
 			String enPassanttargetSq = tokens[3];
 //			String halfMoveClock = tokens[4];
 //			String moveNumber = tokens[5];
 			parsePiecePlacement(piecePlacement);
 			parseOnMove(colourOnMove);
 			parseEnPassant(enPassanttargetSq);
-			parseCastling(castlingAvaillability);
-			// looks like may need to revisit castling class members...
 		}
 		private void parseOnMove(String colourOnMove) {
 			if (colourOnMove.equals("w"))
@@ -152,27 +150,6 @@ public class BoardManager implements IBoardManager {
 				}
 			}
 		}
-		private void parseCastling(String avail) {
-			whiteCastling = new castlingTracker(false,false);
-			blackCastling = new castlingTracker(false,false);
-			if (avail.matches("[KQkq-]")) {
-				if (avail.contains("K")) {
-					whiteCastling.setKingsideAvail(true);
-				}
-				if (avail.contains("Q")) {
-					whiteCastling.setQueensideAvail(true);
-				}
-				if (avail.contains("k")) {
-					blackCastling.setKingsideAvail(true);
-				}
-				if (avail.contains("q")) {
-					blackCastling.setQueensideAvail(true);
-				}
-			}
-			else{
-				//error
-			}
-		}
 		private void parseEnPassant(String targetSq) {
 			if (!targetSq.contentEquals("-")) {
 				enPassantTargetSq = GenericPosition.valueOf(targetSq);
@@ -206,8 +183,8 @@ public class BoardManager implements IBoardManager {
 
 	private King whiteKing;
 	private King blackKing;
-	public King getKing( Piece.Colour colour ) {
-		return ((colour == Piece.Colour.white) ? whiteKing : blackKing);
+	public King getKing( Colour colour ) {
+		return ((colour == Colour.white) ? whiteKing : blackKing);
 	}
 	public void setKing(King king) {
 		if (king.isWhite())
@@ -216,49 +193,95 @@ public class BoardManager implements IBoardManager {
 			blackKing = king;
 	}
 
-	private class castlingTracker {
-		private boolean kingsideAvail;
-		private boolean queensideAvail;
+	private class CastlingManager {
+		private boolean whiteKsAvail = true;
+		private boolean whiteQsAvail = true;
+		private boolean blackKsAvail = true;
+		private boolean blackQsAvail = true;
+		private boolean whiteCastled = false;
+		private boolean blackCastled = false;
 		
-		public castlingTracker() {
-			kingsideAvail = true;
-			queensideAvail = true;
-		}
+		public CastlingManager() {}
 		
-		public castlingTracker(boolean ks, boolean qs) {
-			kingsideAvail = ks;
-			queensideAvail = qs;
-		}
+		public CastlingManager(String fenCastle) {
+			whiteKsAvail = false;
+			whiteQsAvail = false;
+			blackKsAvail = false;
+			blackQsAvail = false;
+			if (fenCastle.matches("[KQkq-]")) {
+				if (fenCastle.contains("K"))
+					whiteKsAvail = true;
+				if (fenCastle.contains("Q"))
+					whiteQsAvail = true;
+				if (fenCastle.contains("k"))
+					blackKsAvail = true;
+				if (fenCastle.contains("q"))
+					blackQsAvail = true;				
+			}
+		}		
 		
-		public boolean canCastle() {
-			return (kingsideAvail || queensideAvail) ? true:false;
+		public boolean canCastle(Colour colour) {
+			if (colour == Colour.white && !whiteCastled) {
+				return (whiteKsAvail || whiteQsAvail) ? true:false;
+			}
+			if ((colour == Colour.black && !blackCastled)) {
+				return (blackKsAvail || blackQsAvail) ? true:false;
+			}
+			return false;
 		}
 
-		public boolean isKingsideAvail() {
-			return kingsideAvail;
+		public boolean isKingsideAvail(Colour colour) {
+			if (colour == Colour.white) {
+				return whiteKsAvail;
+			} else {
+				return blackKsAvail;
+			}
 		}
 
-		public void setKingsideAvail(boolean kingsideAvail) {
-			this.kingsideAvail = kingsideAvail;
+		public void setKingsideAvail(Colour colour, boolean kingsideAvail) {
+			if (colour == Colour.white) {
+				whiteKsAvail = kingsideAvail;
+			} else {
+				blackKsAvail = kingsideAvail;
+			}
 		}
 
-		public boolean isQueensideAvail() {
-			return queensideAvail;
+		public boolean isQueensideAvail(Colour colour) {
+			if (colour == Colour.white) {
+				return whiteQsAvail;
+			} else {
+				return blackQsAvail;
+			}
 		}
 
-		public void setQueensideAvail(boolean queensideAvail) {
-			this.queensideAvail = queensideAvail;
+		public void setQueensideAvail(Colour colour, boolean queensideAvail) {
+			if (colour == Colour.white) {
+				whiteKsAvail = queensideAvail;
+			} else {
+				blackKsAvail = queensideAvail;
+			}
 		}
 	}
-	private castlingTracker blackCastling;
-	private castlingTracker whiteCastling;
+	private CastlingManager castling;
 	
-	public boolean hasCastled() {
-		if ( onMove == Colour.white ) {
-			return whiteCastling.canCastle();
-		} else {
-			return blackCastling.canCastle();
+	public void addCastlingMoves(LinkedList<GenericMove> ml) {
+		// The side on move should not have previously castled
+		if ( !castling.canCastle(onMove))
+			return;
+		// King should not have moved and be on its initial square
+		King ownKing = getKing(onMove);
+		if ( ownKing != null ) {
+			if (ownKing.hasEverMoved() || !ownKing.isOnInitialSquare()) {
+				return;
+			}
 		}
+		// Check for castling king-side and queen side
+		GenericMove ksc = addKingSideCastle();
+		if ( ksc != null )
+			ml.add(ksc);
+		GenericMove qsc = addQueenSideCastle();
+		if ( qsc != null )
+			ml.add(qsc);
 	}
 	
 	private static final GenericPosition [] kscWhiteCheckSqs = {GenericPosition.e1, GenericPosition.f1, GenericPosition.g1};
@@ -343,8 +366,7 @@ public class BoardManager implements IBoardManager {
 		theBoard = new Board();
 		setKing( (King) theBoard.getPieceAtSquare(GenericPosition.e1));
 		setKing( (King) theBoard.getPieceAtSquare(GenericPosition.e8));
-		whiteCastling = new castlingTracker();
-		blackCastling = new castlingTracker();
+		castling = new CastlingManager();
 		onMove = Colour.white;
 	}
 	
@@ -358,8 +380,7 @@ public class BoardManager implements IBoardManager {
 				setKing( (King)currPiece );
 			}
 		}
-		whiteCastling = new castlingTracker();
-		blackCastling = new castlingTracker();
+		castling = new CastlingManager();
 		onMove = colourToMove;
 	}
 	
@@ -421,7 +442,7 @@ public class BoardManager implements IBoardManager {
 			// Store this move in the previous moves list
 			savePreviousMove(move, pieceToMove, enPassantCapture, prevEnPassantTargetSq);
 			// Update the piece's square.
-			updateSquarePieceOccupies(move, pieceToMove);
+			updateSquarePieceOccupies(move.to, pieceToMove);
 			// Update onMove
 			onMove = Colour.getOpposite(onMove);
 		} else {
@@ -445,8 +466,8 @@ public class BoardManager implements IBoardManager {
 		previousMoves.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq));
 	}
 
-	private void updateSquarePieceOccupies(GenericMove move, Piece pieceToMove) {
-		pieceToMove.setSquare(move.to);
+	private void updateSquarePieceOccupies(GenericPosition newSq, Piece pieceToMove) {
+		pieceToMove.setSquare(newSq);
 		theBoard.setPieceAtSquare(pieceToMove);
 	}
 
@@ -488,31 +509,27 @@ public class BoardManager implements IBoardManager {
 				if ( move.to == GenericPosition.g1 ) {
 					// Perform secondary king side castle rook move
 					Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.h1 );
-					rookToCastle.setSquare( GenericPosition.f1 );
-					theBoard.setPieceAtSquare(rookToCastle);
-					whiteCastling.setKingsideAvail(false);
+					updateSquarePieceOccupies( GenericPosition.f1, rookToCastle );
+					castling.setKingsideAvail(onMove, false);
 				}
 				if ( move.to == GenericPosition.b1 ) {
 					// Perform secondary queen side castle rook move
 					Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.a1 );
-					rookToCastle.setSquare( GenericPosition.c1 );
-					theBoard.setPieceAtSquare(rookToCastle);
-					whiteCastling.setQueensideAvail(false);
+					updateSquarePieceOccupies( GenericPosition.c1, rookToCastle );
+					castling.setQueensideAvail(onMove, false);
 				}
 			} else if ( move.from == GenericPosition.e8 ) {
 				if ( move.to == GenericPosition.g8 ) {
 					// Perform secondary king side castle rook move
 					Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.h8 );
-					rookToCastle.setSquare( GenericPosition.f8 );
-					theBoard.setPieceAtSquare(rookToCastle);
-					blackCastling.setKingsideAvail(false);
+					updateSquarePieceOccupies( GenericPosition.f8, rookToCastle );
+					castling.setKingsideAvail(onMove, false);
 				}
 				if ( move.to == GenericPosition.b8 ) {
 					// Perform secondary queen side castle rook move
 					Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.a8 );
-					rookToCastle.setSquare( GenericPosition.c8 );
-					theBoard.setPieceAtSquare(rookToCastle);
-					blackCastling.setQueensideAvail(false);
+					updateSquarePieceOccupies( GenericPosition.c8, rookToCastle );
+					castling.setQueensideAvail(onMove, false);
 				}	
 			}
 		}
@@ -548,35 +565,31 @@ public class BoardManager implements IBoardManager {
 					if ( move.from == GenericPosition.g1 ) {
 						// Perform secondary king side castle rook move
 						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.f1 );
-						rookToCastle.setSquare( GenericPosition.h1 );
-						theBoard.setPieceAtSquare(rookToCastle);
-						whiteCastling.setKingsideAvail(true);
+						updateSquarePieceOccupies( GenericPosition.h1, rookToCastle );
+						castling.setKingsideAvail(onMove, true);
 					}
 					if ( move.from == GenericPosition.b1 ) {
 						// Perform secondary queen side castle rook move
 						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.c1 );
-						rookToCastle.setSquare( GenericPosition.a1 );
-						theBoard.setPieceAtSquare(rookToCastle);
-						whiteCastling.setQueensideAvail(true);
+						updateSquarePieceOccupies( GenericPosition.a1, rookToCastle );
+						castling.setQueensideAvail(onMove, true);
 					}
 				} else if ( move.to == GenericPosition.e8 ) {
 					if ( move.from == GenericPosition.g8 ) {
 						// Perform secondary king side castle rook move
 						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.f8 );
-						rookToCastle.setSquare( GenericPosition.h8 );
-						theBoard.setPieceAtSquare(rookToCastle);
-						blackCastling.setKingsideAvail(true);
+						updateSquarePieceOccupies( GenericPosition.h8, rookToCastle );
+						castling.setKingsideAvail(onMove, true);
 					}
 					if ( move.from == GenericPosition.b8 ) {
 						// Perform secondary queen side castle rook move
 						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.c8 );
-						rookToCastle.setSquare( GenericPosition.a8 );
-						theBoard.setPieceAtSquare(rookToCastle);
-						blackCastling.setQueensideAvail(true);
+						updateSquarePieceOccupies( GenericPosition.a8, rookToCastle );
+						castling.setQueensideAvail(onMove, true);
 					}
 				}
 			}
-			updateSquarePieceOccupies(move, pieceToMove);
+			updateSquarePieceOccupies(move.to, pieceToMove);
 		} else {
 			throw new InvalidPieceException(move.from);
 		}

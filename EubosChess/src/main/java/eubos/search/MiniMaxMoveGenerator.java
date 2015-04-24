@@ -216,7 +216,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			Piece currPiece = iter_p.next();
 			entireMoveList.addAll( currPiece.generateMoves( bm ));
 		}
-		addCastlingMoves(entireMoveList);
+		bm.addCastlingMoves(entireMoveList);
 		LinkedList<GenericMove> newMoveList = new LinkedList<GenericMove>();
 		Iterator<GenericMove> iter_ml = entireMoveList.iterator();
 		while ( iter_ml.hasNext() ) {
