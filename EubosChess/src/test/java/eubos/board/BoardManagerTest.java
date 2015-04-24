@@ -2,7 +2,6 @@ package eubos.board;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import eubos.pieces.King;
 import eubos.pieces.Pawn;
@@ -128,7 +127,6 @@ public class BoardManagerTest {
 		assertTrue(whiteRook == null);
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.f1);
 		assertTrue(whiteRook instanceof Rook);
-		assertTrue(classUnderTest.isWhiteHasCastled());
 	}
 	
 	@Test
@@ -156,11 +154,10 @@ public class BoardManagerTest {
 		assertTrue(whiteRook instanceof Rook);
 		Piece whiteKing = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.e1);
 		assertTrue(whiteKing instanceof King);
-		assertFalse(classUnderTest.isWhiteHasCastled());
 	}	
 	
 	@Test
-	public void test_WhiteKingSideCastle_Check() {
+	public void test_WhiteKingSideCastle_Check() throws IllegalNotationException {
 		// 8 ........
 		// 7 ........
 		// 6 ........

@@ -8,6 +8,7 @@ import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericRank;
+import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.pieces.Bishop;
 import eubos.pieces.Knight;
@@ -205,6 +206,15 @@ public class BoardManager implements IBoardManager {
 
 	private King whiteKing;
 	private King blackKing;
+	public King getKing( Piece.Colour colour ) {
+		return ((colour == Piece.Colour.white) ? whiteKing : blackKing);
+	}
+	public void setKing(King king) {
+		if (king.isWhite())
+			whiteKing = king;
+		else 
+			blackKing = king;
+	}
 
 	private class castlingTracker {
 		private boolean kingsideAvail;
@@ -240,9 +250,88 @@ public class BoardManager implements IBoardManager {
 			this.queensideAvail = queensideAvail;
 		}
 	}
-	
 	private castlingTracker blackCastling;
 	private castlingTracker whiteCastling;
+	
+	public boolean hasCastled() {
+		if ( onMove == Colour.white ) {
+			return whiteCastling.canCastle();
+		} else {
+			return blackCastling.canCastle();
+		}
+	}
+	
+	private static final GenericPosition [] kscWhiteCheckSqs = {GenericPosition.e1, GenericPosition.f1, GenericPosition.g1};
+	private static final GenericPosition [] kscBlackCheckSqs = {GenericPosition.e8, GenericPosition.f8, GenericPosition.g8};
+	private static final GenericPosition [] kscWhiteEmptySqs = {GenericPosition.f1, GenericPosition.g1};
+	private static final GenericPosition [] kscBlackEmptySqs = {GenericPosition.f8, GenericPosition.g8};
+	
+	public GenericMove addKingSideCastle() {
+		if ( onMove == Colour.white ) {
+			if ( canCastle(GenericPosition.h1, kscWhiteCheckSqs, kscWhiteEmptySqs))
+				try {
+					return new GenericMove("e1g1");
+				} catch (IllegalNotationException e) {
+					e.printStackTrace();
+				}
+		} else {
+			if ( canCastle(GenericPosition.h8, kscBlackCheckSqs, kscBlackEmptySqs))
+				try {
+					return new GenericMove("e8g8");
+				} catch (IllegalNotationException e) {
+					e.printStackTrace();
+				}	
+		}
+		return null;
+	}
+	
+	private static final GenericPosition [] qscWhiteCheckSqs = {GenericPosition.c1, GenericPosition.d1, GenericPosition.e1};
+	private static final GenericPosition [] qscBlackCheckSqs = {GenericPosition.c8, GenericPosition.d8, GenericPosition.e8};
+	private static final GenericPosition [] qscWhiteEmptySqs = {GenericPosition.c1, GenericPosition.d1, GenericPosition.b1};
+	private static final GenericPosition [] qscBlackEmptySqs = {GenericPosition.c8, GenericPosition.d8, GenericPosition.b8};
+	
+	public GenericMove addQueenSideCastle() {
+		if ( onMove == Colour.white ) {
+			if ( canCastle(GenericPosition.a1, qscWhiteCheckSqs, qscWhiteEmptySqs))
+				try {
+					return new GenericMove("e1c1");
+				} catch (IllegalNotationException e) {
+					e.printStackTrace();
+				}
+		} else {
+			if ( canCastle(GenericPosition.a8, qscBlackCheckSqs, qscBlackEmptySqs))
+				try {
+					return new GenericMove("e8c8");
+				} catch (IllegalNotationException e) {
+					e.printStackTrace();
+				}	
+		}
+		return null;
+	}
+
+	private boolean canCastle(GenericPosition rookSq,
+			GenericPosition [] checkSqs,
+			GenericPosition [] emptySqs) {
+		// Target rook should not have moved and be on it initial square
+		Piece qscTarget = theBoard.getPieceAtSquare( rookSq );
+		if ( !(qscTarget instanceof Rook) || qscTarget.hasEverMoved())
+			return false;
+		// All the intervening squares between King and Rook should be empty
+		for ( GenericPosition emptySq : emptySqs ) {
+			if ( !theBoard.squareIsEmpty(emptySq))
+				return false;
+		}
+		Iterator<Piece> iterPotentialAttackers = theBoard.iterateColour(Piece.Colour.getOpposite(onMove));
+		while (iterPotentialAttackers.hasNext()) {
+			// None of the intervening squares between King and Rook should be attacked
+			// the king cannot be in check at the start or end of the move
+			Piece currPiece = iterPotentialAttackers.next();
+			if (currPiece.attacks( this, checkSqs)) {
+				return false;
+			}
+		}
+		return true;
+	}
 	
 	private Board theBoard;
 	public Board getTheBoard() {
@@ -285,81 +374,6 @@ public class BoardManager implements IBoardManager {
 				setKing( (King)currPiece );
 			}
 		}
-	}
-	
-	public King getKing( Piece.Colour colour ) {
-		return ((colour == Piece.Colour.white) ? whiteKing : blackKing);
-	}
-	
-	public void setKing(King king) {
-		if (king.isWhite())
-			whiteKing = king;
-		else 
-			blackKing = king;
-	}
-	
-	public boolean hasCastled() {
-		if ( onMove == Colour.white ) {
-			return whiteCastling.canCastle();
-		} else {
-			return blackCastling.canCastle();
-		}
-	}
-	
-	private static final GenericPosition [] kscWhiteCheckSqs = {GenericPosition.e1, GenericPosition.f1, GenericPosition.g1};
-	private static final GenericPosition [] kscBlackCheckSqs = {GenericPosition.e8, GenericPosition.f8, GenericPosition.g8};
-	private static final GenericPosition [] kscWhiteEmptySqs = {GenericPosition.f1, GenericPosition.g1};
-	private static final GenericPosition [] kscBlackEmptySqs = {GenericPosition.f8, GenericPosition.g8};
-	
-	public GenericMove addKingSideCastle() {
-		if ( onMove == Colour.white ) {
-			if ( canCastle(GenericPosition.h1, kscWhiteCheckSqs, kscWhiteEmptySqs))
-				return new GenericMove(GenericPosition.e1,GenericPosition.g1);
-		} else {
-			if ( canCastle(GenericPosition.h8, kscBlackCheckSqs, kscBlackEmptySqs))
-				return new GenericMove(GenericPosition.e8,GenericPosition.g8);	
-		}
-		return null;
-	}
-	
-	private static final GenericPosition [] qscWhiteCheckSqs = {GenericPosition.c1, GenericPosition.d1, GenericPosition.e1};
-	private static final GenericPosition [] qscBlackCheckSqs = {GenericPosition.c8, GenericPosition.d8, GenericPosition.e8};
-	private static final GenericPosition [] qscWhiteEmptySqs = {GenericPosition.c1, GenericPosition.d1, GenericPosition.b1};
-	private static final GenericPosition [] qscBlackEmptySqs = {GenericPosition.c8, GenericPosition.d8, GenericPosition.b8};
-	
-	public GenericMove addQueenSideCastle() {
-		if ( onMove == Colour.white ) {
-			if ( canCastle(GenericPosition.a1, qscWhiteCheckSqs, qscWhiteEmptySqs))
-				return new GenericMove(GenericPosition.e1,GenericPosition.c1);
-		} else {
-			if ( canCastle(GenericPosition.a8, qscBlackCheckSqs, qscBlackEmptySqs))
-				return new GenericMove(GenericPosition.e8,GenericPosition.c8);	
-		}
-		return null;
-	}
-
-	private boolean canCastle(GenericPosition rookSq,
-			GenericPosition [] checkSqs,
-			GenericPosition [] emptySqs) {
-		// Target rook should not have moved and be on it initial square
-		Piece qscTarget = theBoard.getPieceAtSquare( rookSq );
-		if ( !(qscTarget instanceof Rook) || qscTarget.hasEverMoved())
-			return false;
-		// All the intervening squares between King and Rook should be empty
-		for ( GenericPosition emptySq : emptySqs ) {
-			if ( !theBoard.squareIsEmpty(emptySq))
-				return false;
-		}
-		Iterator<Piece> iterPotentialAttackers = theBoard.iterateColour(Piece.Colour.getOpposite(onMove));
-		while (iterPotentialAttackers.hasNext()) {
-			// None of the intervening squares between King and Rook should be attacked
-			// the king cannot be in check at the start or end of the move
-			Piece currPiece = iterPotentialAttackers.next();
-			if (currPiece.attacks( this, checkSqs)) {
-				return false;
-			}
-		}
-		return true;
 	}
 	
 	public void undoPreviousMove() throws InvalidPieceException {
@@ -485,23 +499,21 @@ public class BoardManager implements IBoardManager {
 					theBoard.setPieceAtSquare(rookToCastle);
 					whiteCastling.setQueensideAvail(false);
 				}
-				whiteCastling.kingMoved();
 			} else if ( move.from == GenericPosition.e8 ) {
 				if ( move.to == GenericPosition.g8 ) {
 					// Perform secondary king side castle rook move
 					Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.h8 );
 					rookToCastle.setSquare( GenericPosition.f8 );
 					theBoard.setPieceAtSquare(rookToCastle);
-					blackCastling.castledKingside();
+					blackCastling.setKingsideAvail(false);
 				}
 				if ( move.to == GenericPosition.b8 ) {
 					// Perform secondary queen side castle rook move
 					Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.a8 );
 					rookToCastle.setSquare( GenericPosition.c8 );
 					theBoard.setPieceAtSquare(rookToCastle);
-					blackCastling.castledQueenside();
+					blackCastling.setQueensideAvail(false);
 				}	
-				blackCastling.kingMoved();
 			}
 		}
 	}
@@ -538,29 +550,30 @@ public class BoardManager implements IBoardManager {
 						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.f1 );
 						rookToCastle.setSquare( GenericPosition.h1 );
 						theBoard.setPieceAtSquare(rookToCastle);
+						whiteCastling.setKingsideAvail(true);
 					}
 					if ( move.from == GenericPosition.b1 ) {
 						// Perform secondary queen side castle rook move
 						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.c1 );
 						rookToCastle.setSquare( GenericPosition.a1 );
-						theBoard.setPieceAtSquare(rookToCastle);						
+						theBoard.setPieceAtSquare(rookToCastle);
+						whiteCastling.setQueensideAvail(true);
 					}
-					// clear flag
-					whiteHasCastled = false;
 				} else if ( move.to == GenericPosition.e8 ) {
 					if ( move.from == GenericPosition.g8 ) {
 						// Perform secondary king side castle rook move
 						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.f8 );
 						rookToCastle.setSquare( GenericPosition.h8 );
 						theBoard.setPieceAtSquare(rookToCastle);
+						blackCastling.setKingsideAvail(true);
 					}
 					if ( move.from == GenericPosition.b8 ) {
 						// Perform secondary queen side castle rook move
 						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.c8 );
 						rookToCastle.setSquare( GenericPosition.a8 );
-						theBoard.setPieceAtSquare(rookToCastle);						
+						theBoard.setPieceAtSquare(rookToCastle);
+						blackCastling.setQueensideAvail(true);
 					}
-					blackHasCastled = false;
 				}
 			}
 			updateSquarePieceOccupies(move, pieceToMove);
