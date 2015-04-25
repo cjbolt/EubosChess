@@ -48,7 +48,7 @@ public 	class CastlingManager {
 		whiteQsAvail = false;
 		blackKsAvail = false;
 		blackQsAvail = false;
-		if (fenCastle.matches("[KQkq-]")) {
+		if (fenCastle.matches("[KQkq-]+")) {
 			if (fenCastle.contains("K"))
 				whiteKsAvail = true;
 			if (fenCastle.contains("Q"))
@@ -57,6 +57,8 @@ public 	class CastlingManager {
 				blackKsAvail = true;
 			if (fenCastle.contains("q"))
 				blackQsAvail = true;
+		} else {
+			// throw an error?
 		}
 	}
 
@@ -70,7 +72,7 @@ public 	class CastlingManager {
 		} else if (move.equals(wqsc)) {
 			// Perform secondary white queen side castle rook move
 			Piece rookToCastle = bm.getTheBoard().pickUpPieceAtSquare( GenericPosition.a1 );
-			bm.updateSquarePieceOccupies( GenericPosition.c1, rookToCastle );
+			bm.updateSquarePieceOccupies( GenericPosition.d1, rookToCastle );
 			whiteQsAvail = false;
 			whiteCastled = true;
 		} else if (move.equals(bksc)) {
@@ -82,7 +84,7 @@ public 	class CastlingManager {
 		} else if (move.equals(bqsc)) {
 			// Perform secondary black queen side castle rook move
 			Piece rookToCastle = bm.getTheBoard().pickUpPieceAtSquare( GenericPosition.a8 );
-			bm.updateSquarePieceOccupies( GenericPosition.c8, rookToCastle );
+			bm.updateSquarePieceOccupies( GenericPosition.d8, rookToCastle );
 			blackQsAvail = false;
 			blackCastled = true;
 		}
@@ -97,7 +99,7 @@ public 	class CastlingManager {
 			whiteCastled = false;
 		} else	if (move.equals(undo_wqsc)) {
 			// Perform secondary queen side castle rook move
-			Piece rookToCastle = bm.getTheBoard().pickUpPieceAtSquare( GenericPosition.c1 );
+			Piece rookToCastle = bm.getTheBoard().pickUpPieceAtSquare( GenericPosition.d1 );
 			bm.updateSquarePieceOccupies( GenericPosition.a1, rookToCastle );
 			whiteQsAvail = true;
 			whiteCastled = false;
@@ -109,7 +111,7 @@ public 	class CastlingManager {
 			blackCastled = false;
 		} else if (move.equals(undo_bqsc)) {
 			// Perform secondary queen side castle rook move
-			Piece rookToCastle = bm.getTheBoard().pickUpPieceAtSquare( GenericPosition.c8 );
+			Piece rookToCastle = bm.getTheBoard().pickUpPieceAtSquare( GenericPosition.d8 );
 			bm.updateSquarePieceOccupies( GenericPosition.a8, rookToCastle );
 			blackQsAvail = true;
 			blackCastled = false;

@@ -33,10 +33,7 @@ public class CastlingManagerTest {
 		//   abcdefgh
 		classUnderTest = new BoardManager("8/8/8/8/8/8/8/4K2R w K - - -").getCastlingManager();
 		classUnderTest.addCastlingMoves(ml);
-		GenericMove expectedMove = new GenericMove("e1g1");
-		GenericMove kscMove = ml.get(0);
-		assertTrue(kscMove != null);
-		assertTrue(expectedMove.equals(kscMove));
+		expectWkscMove();
 	}
 	
 	@Test
@@ -148,13 +145,9 @@ public class CastlingManagerTest {
 		//   abcdefgh
 		classUnderTest = new BoardManager("8/8/8/8/8/5b2/8/4K2R w K - - -").getCastlingManager();
 		classUnderTest.addCastlingMoves(ml);
-		GenericMove expectedMove = new GenericMove("e1g1");
-		GenericMove kscMove = ml.get(0);
-		assertTrue(kscMove != null);
-		assertTrue(expectedMove.equals(kscMove));
+		expectWkscMove();
 	}
-	
-	
+
 	@Test
 	public void test_BlackQueenSideCastle() throws IllegalNotationException  {
 		// 8 R...K...
@@ -282,11 +275,25 @@ public class CastlingManagerTest {
 		classUnderTest.addCastlingMoves(ml);
 		expectBqscMove();
 	}
+	
+	@Test
+	public void test_WhiteKingSideCastle_fromgame() throws IllegalNotationException  {
+		classUnderTest = new BoardManager("rnb2bnr/1ppp1kpp/4pq2/8/p1BPP3/8/PPP2PPP/RNBQK2R w KQ - 1 7").getCastlingManager();
+		classUnderTest.addCastlingMoves(ml);
+		expectWkscMove();
+	}
 
 	private void expectBqscMove() throws IllegalNotationException {
 		GenericMove expectedMove = new GenericMove("e8c8");
 		GenericMove qscMove = ml.get(0);
 		assertTrue(qscMove != null);
 		assertTrue(expectedMove.equals(qscMove));
+	}
+	
+	private void expectWkscMove() throws IllegalNotationException {
+		GenericMove expectedMove = new GenericMove("e1g1");
+		GenericMove kscMove = ml.get(0);
+		assertTrue(kscMove != null);
+		assertTrue(expectedMove.equals(kscMove));
 	}
 }
