@@ -20,15 +20,20 @@ public 	class CastlingManager {
 	private boolean blackCastled = false;
 	private BoardManager bm;
 	
-	private final GenericPosition [] kscWhiteCheckSqs = {GenericPosition.e1, GenericPosition.f1, GenericPosition.g1};
-	private final GenericPosition [] kscBlackCheckSqs = {GenericPosition.e8, GenericPosition.f8, GenericPosition.g8};
-	private final GenericPosition [] kscWhiteEmptySqs = {GenericPosition.f1, GenericPosition.g1};
-	private final GenericPosition [] kscBlackEmptySqs = {GenericPosition.f8, GenericPosition.g8};
+	private static final GenericPosition [] kscWhiteCheckSqs = {GenericPosition.e1, GenericPosition.f1, GenericPosition.g1};
+	private static final GenericPosition [] kscBlackCheckSqs = {GenericPosition.e8, GenericPosition.f8, GenericPosition.g8};
+	private static final GenericPosition [] kscWhiteEmptySqs = {GenericPosition.f1, GenericPosition.g1};
+	private static final GenericPosition [] kscBlackEmptySqs = {GenericPosition.f8, GenericPosition.g8};
 	
-	private final GenericPosition [] qscWhiteCheckSqs = {GenericPosition.c1, GenericPosition.d1, GenericPosition.e1};
-	private final GenericPosition [] qscBlackCheckSqs = {GenericPosition.c8, GenericPosition.d8, GenericPosition.e8};
-	private final GenericPosition [] qscWhiteEmptySqs = {GenericPosition.c1, GenericPosition.d1, GenericPosition.b1};
-	private final GenericPosition [] qscBlackEmptySqs = {GenericPosition.c8, GenericPosition.d8, GenericPosition.b8};
+	private static final GenericPosition [] qscWhiteCheckSqs = {GenericPosition.c1, GenericPosition.d1, GenericPosition.e1};
+	private static final GenericPosition [] qscBlackCheckSqs = {GenericPosition.c8, GenericPosition.d8, GenericPosition.e8};
+	private static final GenericPosition [] qscWhiteEmptySqs = {GenericPosition.c1, GenericPosition.d1, GenericPosition.b1};
+	private static final GenericPosition [] qscBlackEmptySqs = {GenericPosition.c8, GenericPosition.d8, GenericPosition.b8};
+	
+	private static final GenericMove bksc = new GenericMove( GenericPosition.e8, GenericPosition.g8);
+	private static final GenericMove wksc = new GenericMove( GenericPosition.e1, GenericPosition.g1);
+	private static final GenericMove bqsc = new GenericMove( GenericPosition.e8, GenericPosition.c8);
+	private static final GenericMove wqsc = new GenericMove( GenericPosition.e1, GenericPosition.c1);
 	
 	public CastlingManager(BoardManager Bm) { bm = Bm; }
 	
@@ -50,14 +55,17 @@ public 	class CastlingManager {
 		}
 	}		
 	
-	public boolean canCastle(Colour colour) {
+	public boolean castlingAvaillable(Colour colour) {
+		boolean castlingAvaillable = false;
 		if (colour == Colour.white && !whiteCastled) {
-			return (whiteKsAvail || whiteQsAvail) ? true:false;
+			if (whiteKsAvail || whiteQsAvail)
+				castlingAvaillable = true;
 		}
 		if ((colour == Colour.black && !blackCastled)) {
-			return (blackKsAvail || blackQsAvail) ? true:false;
+			if (blackKsAvail || blackQsAvail)
+				castlingAvaillable = true;
 		}
-		return false;
+		return castlingAvaillable;
 	}
 
 	public boolean isKingsideAvail(Colour colour) {
@@ -92,7 +100,7 @@ public 	class CastlingManager {
 		}
 	}
 	
-	public boolean canCastle(GenericPosition rookSq,
+	private boolean castleMoveLegal(GenericPosition rookSq,
 			GenericPosition [] checkSqs,
 			GenericPosition [] emptySqs) {
 		Board theBoard = bm.getTheBoard();
@@ -117,50 +125,30 @@ public 	class CastlingManager {
 		return true;
 	}
 	
+	public boolean isCastlingMove(GenericMove move) {
+		return (move.equals(bksc) || move.equals(wksc) || move.equals(bqsc) || move.equals(wqsc)) ? true : false;
+	}
+	
 	private GenericMove getWhiteKingsideCastleMove() {
-		if ( canCastle(GenericPosition.h1, kscWhiteCheckSqs, kscWhiteEmptySqs)) {
-			return new GenericMove(GenericPosition.e1,GenericPosition.g1);
-		} else return null;
+		return (castleMoveLegal(GenericPosition.h1, kscWhiteCheckSqs, kscWhiteEmptySqs)) ? wksc : null;
 	}
 	
 	private GenericMove getBlackKingsideCastleMove() {
-		if ( canCastle(GenericPosition.h8, kscBlackCheckSqs, kscBlackEmptySqs)) {
-			return new GenericMove(GenericPosition.e8,GenericPosition.g8);
-		} else return null;
+		return (castleMoveLegal(GenericPosition.h8, kscBlackCheckSqs, kscBlackEmptySqs)) ? bksc : null;
 	}		
 	
-	public GenericMove getKingsideCastleMove() {
-		if ( bm.getOnMove() == Colour.white ) {
-			return getWhiteKingsideCastleMove();
-		} else {
-			return getBlackKingsideCastleMove();
-		}
-	}
-	
 	private GenericMove getWhiteQueensideCastleMove() {
-		if ( canCastle(GenericPosition.a1, qscWhiteCheckSqs, qscWhiteEmptySqs)) {
-			return new GenericMove(GenericPosition.e1,GenericPosition.c1);
-		} else return null;
+		return (castleMoveLegal(GenericPosition.a1, qscWhiteCheckSqs, qscWhiteEmptySqs)) ? wqsc : null;
 	}
 	
 	private GenericMove getBlackQueensideCastleMove() {
-		if ( canCastle(GenericPosition.a8, qscBlackCheckSqs, qscBlackEmptySqs)) {
-			return new GenericMove(GenericPosition.e8,GenericPosition.c8);
-		} else return null;
+		return (castleMoveLegal(GenericPosition.a8, qscBlackCheckSqs, qscBlackEmptySqs)) ? bqsc : null;
 	}		
-	
-	public GenericMove getQueensideCastleMove() {
-		if ( bm.getOnMove() == Colour.white ) {
-			return getWhiteQueensideCastleMove();
-		} else {
-			return getBlackQueensideCastleMove();
-		}
-	}
-	
+		
 	public void addCastlingMoves(LinkedList<GenericMove> ml) {
 		// The side on move should not have previously castled
 		Colour onMove = bm.getOnMove();
-		if ( !canCastle(onMove))
+		if ( !castlingAvaillable(onMove))
 			return;
 		// King should not have moved and be on its initial square
 		King ownKing = bm.getKing(onMove);
@@ -169,11 +157,22 @@ public 	class CastlingManager {
 				return;
 			}
 		}
-		// Check for castling king-side and queen side
-		GenericMove ksc = getKingsideCastleMove();
+		// Check for castling king-side
+		GenericMove ksc = null;		
+		if ( onMove == Colour.white ) {
+			ksc = getWhiteKingsideCastleMove();
+		} else {
+			ksc = getBlackKingsideCastleMove();
+		}
 		if ( ksc != null )
 			ml.add(ksc);
-		GenericMove qsc = getQueensideCastleMove();
+		// Check for castling queen side
+		GenericMove qsc = null;
+		if ( onMove == Colour.white ) {
+			qsc = getWhiteQueensideCastleMove();
+		} else {
+			qsc = getBlackQueensideCastleMove();
+		}
 		if ( qsc != null )
 			ml.add(qsc);
 	}

@@ -2,6 +2,9 @@ package eubos.board;
 
 import static org.junit.Assert.*;
 
+import java.util.LinkedList;
+
+import org.junit.Before;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -10,6 +13,12 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 public class CastlingManagerTest {
 
 	protected CastlingManager classUnderTest;
+	private LinkedList<GenericMove> ml; 
+	
+	@Before
+	public void setUp() {
+		ml = new LinkedList<GenericMove>();
+	}
 	
 	@Test
 	public void test_WhiteKingSideCastle() throws IllegalNotationException{
@@ -22,11 +31,28 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		classUnderTest = new BoardManager("8/8/8/8/8/8/8/4K2R w - - - -").getCastlingManager();
-		GenericMove kscMove = classUnderTest.getKingsideCastleMove();
+		classUnderTest = new BoardManager("8/8/8/8/8/8/8/4K2R w K - - -").getCastlingManager();
+		classUnderTest.addCastlingMoves(ml);
 		GenericMove expectedMove = new GenericMove("e1g1");
+		GenericMove kscMove = ml.get(0);
 		assertTrue(kscMove != null);
 		assertTrue(expectedMove.equals(kscMove));
+	}
+	
+	@Test
+	public void test_wksc_fen_unavaill() throws IllegalNotationException{
+		// 8 ........
+		// 7 ........
+		// 6 ........
+		// 5 ........
+		// 4 ........
+		// 3 ........
+		// 2 ........
+		// 1 ....k..r
+		//   abcdefgh
+		classUnderTest = new BoardManager("8/8/8/8/8/8/8/4K2R w k - - -").getCastlingManager();
+		classUnderTest.addCastlingMoves(ml);
+		assertTrue(ml.isEmpty());
 	}
 	
 	@Test
@@ -40,9 +66,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		classUnderTest = new BoardManager("8/8/8/8/8/2b5/8/4K2R w - - - -").getCastlingManager();
-		GenericMove kscMove = classUnderTest.getKingsideCastleMove();
-		assertTrue(kscMove == null);
+		classUnderTest = new BoardManager("8/8/8/8/8/2b5/8/4K2R w K - - -").getCastlingManager();
+		classUnderTest.addCastlingMoves(ml);
+		assertTrue(ml.isEmpty());
 	}
 	
 	@Test
@@ -56,9 +82,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		classUnderTest = new BoardManager("8/8/8/8/8/3b4/8/4K2R w - - - -").getCastlingManager();
-		GenericMove kscMove = classUnderTest.getKingsideCastleMove();
-		assertTrue(kscMove == null);
+		classUnderTest = new BoardManager("8/8/8/8/8/3b4/8/4K2R w K - - -").getCastlingManager();
+		classUnderTest.addCastlingMoves(ml);
+		assertTrue(ml.isEmpty());
 	}
 	
 	@Test
@@ -72,9 +98,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		classUnderTest = new BoardManager("8/8/8/8/8/4b3/8/4K2R w - - - -").getCastlingManager();
-		GenericMove kscMove = classUnderTest.getKingsideCastleMove();
-		assertTrue(kscMove == null);
+		classUnderTest = new BoardManager("8/8/8/8/8/4b3/8/4K2R w K - - -").getCastlingManager();
+		classUnderTest.addCastlingMoves(ml);
+		assertTrue(ml.isEmpty());
 	}
 	
 	@Test
@@ -88,9 +114,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....kb.r
 		//   abcdefgh
-		classUnderTest = new BoardManager("8/8/8/8/8/8/8/4KB1R w - - - -").getCastlingManager();
-		GenericMove kscMove = classUnderTest.getKingsideCastleMove();
-		assertTrue(kscMove == null);
+		classUnderTest = new BoardManager("8/8/8/8/8/8/8/4KB1R w K - - -").getCastlingManager();
+		classUnderTest.addCastlingMoves(ml);
+		assertTrue(ml.isEmpty());
 	}
 	
 	@Test
@@ -104,9 +130,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k.br
 		//   abcdefgh
-		classUnderTest = new BoardManager("8/8/8/8/8/8/8/4K1BR w - - - -").getCastlingManager();
-		GenericMove kscMove = classUnderTest.getKingsideCastleMove();
-		assertTrue(kscMove == null);
+		classUnderTest = new BoardManager("8/8/8/8/8/8/8/4K1BR w K - - -").getCastlingManager();
+		classUnderTest.addCastlingMoves(ml);
+		assertTrue(ml.isEmpty());
 	}	
 	
 	@Test
@@ -120,9 +146,10 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		classUnderTest = new BoardManager("8/8/8/8/8/5b2/8/4K2R w - - - -").getCastlingManager();
-		GenericMove kscMove = classUnderTest.getKingsideCastleMove();
+		classUnderTest = new BoardManager("8/8/8/8/8/5b2/8/4K2R w K - - -").getCastlingManager();
+		classUnderTest.addCastlingMoves(ml);
 		GenericMove expectedMove = new GenericMove("e1g1");
+		GenericMove kscMove = ml.get(0);
 		assertTrue(kscMove != null);
 		assertTrue(expectedMove.equals(kscMove));
 	}
@@ -139,11 +166,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new BoardManager("r3k3/8/8/8/8/8/8/8 b - - - -").getCastlingManager();
-		GenericMove qscMove = classUnderTest.getQueensideCastleMove();
-		GenericMove expectedMove = new GenericMove("e8c8");
-		assertTrue(qscMove != null);
-		assertTrue(expectedMove.equals(qscMove));
+		classUnderTest = new BoardManager("r3k3/8/8/8/8/8/8/8 b q - - -").getCastlingManager();
+		classUnderTest.addCastlingMoves(ml);
+		expectBqscMove();
 	}
 	
 	@Test
@@ -157,10 +182,42 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new BoardManager("r3k3/8/6B1/8/8/8/8/8 b - - - -").getCastlingManager();
-		GenericMove qscMove = classUnderTest.getQueensideCastleMove();
-		assertTrue(qscMove == null);
+		classUnderTest = new BoardManager("r3k3/8/6B1/8/8/8/8/8 b q - - -").getCastlingManager();
+		classUnderTest.addCastlingMoves(ml);
+		assertTrue(ml.isEmpty());
 	}
+	
+	@Test
+	public void test_bqsc_fen_unavaill() {
+		// 8 R...K...
+		// 7 ........
+		// 6 ......b.
+		// 5 ........
+		// 4 ........
+		// 3 ........
+		// 2 ........
+		// 1 ........
+		//   abcdefgh
+		classUnderTest = new BoardManager("r3k3/8/8/8/8/8/8/8 b Q - - -").getCastlingManager();
+		classUnderTest.addCastlingMoves(ml);
+		assertTrue(ml.isEmpty());
+	}
+	
+	@Test
+	public void test_bqsc_fen_availl() throws IllegalNotationException {
+		// 8 R...K...
+		// 7 ........
+		// 6 ......b.
+		// 5 ........
+		// 4 ........
+		// 3 ........
+		// 2 ........
+		// 1 ........
+		//   abcdefgh
+		classUnderTest = new BoardManager("r3k3/8/8/8/8/8/8/8 b q - - -").getCastlingManager();
+		classUnderTest.addCastlingMoves(ml);
+		expectBqscMove();
+	}	
 	
 	@Test
 	public void test_BlackQueenSideCastle_MovesThroughCheckAtD8() {
@@ -173,9 +230,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new BoardManager("r3k3/8/5B2/8/8/8/8/8 b - - - -").getCastlingManager();
-		GenericMove qscMove = classUnderTest.getQueensideCastleMove();
-		assertTrue(qscMove == null);
+		classUnderTest = new BoardManager("r3k3/8/5B2/8/8/8/8/8 b q - - -").getCastlingManager();
+		classUnderTest.addCastlingMoves(ml);
+		assertTrue(ml.isEmpty());
 	}
 		
 	@Test
@@ -189,9 +246,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new BoardManager("r3k3/8/4B3/8/8/8/8/8 b - - - -").getCastlingManager();
-		GenericMove qscMove = classUnderTest.getQueensideCastleMove();
-		assertTrue(qscMove == null);
+		classUnderTest = new BoardManager("r3k3/8/4B3/8/8/8/8/8 b q - - -").getCastlingManager();
+		classUnderTest.addCastlingMoves(ml);
+		assertTrue(ml.isEmpty());
 	}
 	
 	@Test
@@ -205,9 +262,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new BoardManager("r2qk3/8/8/8/8/8/8/8 b - - - -").getCastlingManager();
-		GenericMove qscMove = classUnderTest.getQueensideCastleMove();
-		assertTrue(qscMove == null);
+		classUnderTest = new BoardManager("r2qk3/8/8/8/8/8/8/8 b q - - -").getCastlingManager();
+		classUnderTest.addCastlingMoves(ml);
+		assertTrue(ml.isEmpty());
 	}
 	
 	@Test
@@ -221,9 +278,14 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new BoardManager("r3k3/8/R7/8/8/8/8/8 b - - - -").getCastlingManager();
-		GenericMove qscMove = classUnderTest.getQueensideCastleMove();
+		classUnderTest = new BoardManager("r3k3/8/R7/8/8/8/8/8 b q - - -").getCastlingManager();
+		classUnderTest.addCastlingMoves(ml);
+		expectBqscMove();
+	}
+
+	private void expectBqscMove() throws IllegalNotationException {
 		GenericMove expectedMove = new GenericMove("e8c8");
+		GenericMove qscMove = ml.get(0);
 		assertTrue(qscMove != null);
 		assertTrue(expectedMove.equals(qscMove));
 	}
