@@ -122,7 +122,7 @@ public class BoardManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		classUnderTest = new BoardManager("8/8/8/8/8/8/8/4K2R w - - - -");
+		classUnderTest = new BoardManager("8/8/8/8/8/8/8/4K2R w K - - -");
 		GenericMove expectedMove = new GenericMove("e1g1");
 		classUnderTest.performMove(expectedMove);
 		Piece whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.h1);

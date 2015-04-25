@@ -277,7 +277,8 @@ public class BoardManager implements IBoardManager {
 			// Handle pawn promotion moves
 			pieceToMove = checkForPawnPromotions(move, pieceToMove);
 			// Handle castling secondary rook moves...
-			checkForSecondaryCastlingMoves(move, pieceToMove);
+			if (pieceToMove instanceof King)
+				castling.performSecondaryCastlingMove(move);
 			// Handle any initial 2 square pawn moves that are subject to en passant rule
 			checkToSetEnPassantTargetSq(move, pieceToMove);
 			// Store this move in the previous moves list
@@ -307,7 +308,7 @@ public class BoardManager implements IBoardManager {
 		previousMoves.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq));
 	}
 
-	private void updateSquarePieceOccupies(GenericPosition newSq, Piece pieceToMove) {
+	void updateSquarePieceOccupies(GenericPosition newSq, Piece pieceToMove) {
 		pieceToMove.setSquare(newSq);
 		theBoard.setPieceAtSquare(pieceToMove);
 	}
@@ -342,40 +343,6 @@ public class BoardManager implements IBoardManager {
 		return pieceToMove;
 	}
 
-	private void checkForSecondaryCastlingMoves(GenericMove move, Piece pieceToMove) 
-			throws InvalidPieceException {
-		if ( pieceToMove instanceof King ) {
-			if ( move.from == GenericPosition.e1 )
-			{
-				if ( move.to == GenericPosition.g1 ) {
-					// Perform secondary king side castle rook move
-					Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.h1 );
-					updateSquarePieceOccupies( GenericPosition.f1, rookToCastle );
-					castling.setKingsideAvail(onMove, false);
-				}
-				if ( move.to == GenericPosition.b1 ) {
-					// Perform secondary queen side castle rook move
-					Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.a1 );
-					updateSquarePieceOccupies( GenericPosition.c1, rookToCastle );
-					castling.setQueensideAvail(onMove, false);
-				}
-			} else if ( move.from == GenericPosition.e8 ) {
-				if ( move.to == GenericPosition.g8 ) {
-					// Perform secondary king side castle rook move
-					Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.h8 );
-					updateSquarePieceOccupies( GenericPosition.f8, rookToCastle );
-					castling.setKingsideAvail(onMove, false);
-				}
-				if ( move.to == GenericPosition.b8 ) {
-					// Perform secondary queen side castle rook move
-					Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.a8 );
-					updateSquarePieceOccupies( GenericPosition.c8, rookToCastle );
-					castling.setQueensideAvail(onMove, false);
-				}	
-			}
-		}
-	}
-
 	private void checkToSetEnPassantTargetSq(GenericMove move, Piece pieceToMove) {
 		if ( pieceToMove instanceof Pawn ) {
 			Pawn pawnPiece = (Pawn) pieceToMove;
@@ -400,36 +367,8 @@ public class BoardManager implements IBoardManager {
 		Piece pieceToMove = theBoard.pickUpPieceAtSquare( move.from );
 		if ( pieceToMove != null ) {
 			// Handle castling secondary rook moves...
-			if ( pieceToMove instanceof King ) {
-				if ( move.to == GenericPosition.e1 )
-				{
-					if ( move.from == GenericPosition.g1 ) {
-						// Perform secondary king side castle rook move
-						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.f1 );
-						updateSquarePieceOccupies( GenericPosition.h1, rookToCastle );
-						castling.setKingsideAvail(onMove, true);
-					}
-					if ( move.from == GenericPosition.b1 ) {
-						// Perform secondary queen side castle rook move
-						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.c1 );
-						updateSquarePieceOccupies( GenericPosition.a1, rookToCastle );
-						castling.setQueensideAvail(onMove, true);
-					}
-				} else if ( move.to == GenericPosition.e8 ) {
-					if ( move.from == GenericPosition.g8 ) {
-						// Perform secondary king side castle rook move
-						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.f8 );
-						updateSquarePieceOccupies( GenericPosition.h8, rookToCastle );
-						castling.setKingsideAvail(onMove, true);
-					}
-					if ( move.from == GenericPosition.b8 ) {
-						// Perform secondary queen side castle rook move
-						Piece rookToCastle = theBoard.pickUpPieceAtSquare( GenericPosition.c8 );
-						updateSquarePieceOccupies( GenericPosition.a8, rookToCastle );
-						castling.setQueensideAvail(onMove, true);
-					}
-				}
-			}
+			if (pieceToMove instanceof King)
+				castling.unperformSecondaryCastlingMove(move);
 			updateSquarePieceOccupies(move.to, pieceToMove);
 		} else {
 			throw new InvalidPieceException(move.from);
