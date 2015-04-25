@@ -8,7 +8,6 @@ import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericRank;
-import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.pieces.Bishop;
 import eubos.pieces.Knight;
@@ -57,12 +56,12 @@ public class BoardManager implements IBoardManager {
 	public class fenParser {
 		LinkedList<Piece> pl;
 		
-		public fenParser( String fenString ) {
+		public fenParser( BoardManager bm, String fenString ) {
 			pl = new LinkedList<Piece>();
 			String[] tokens = fenString.split(" ");
 			String piecePlacement = tokens[0];
 			String colourOnMove = tokens[1];
-			castling = new CastlingManager(tokens[2]);
+			castling = new CastlingManager(bm, tokens[2]);
 			String enPassanttargetSq = tokens[3];
 //			String halfMoveClock = tokens[4];
 //			String moveNumber = tokens[5];
@@ -193,169 +192,11 @@ public class BoardManager implements IBoardManager {
 			blackKing = king;
 	}
 
-	private class CastlingManager {
-		private boolean whiteKsAvail = true;
-		private boolean whiteQsAvail = true;
-		private boolean blackKsAvail = true;
-		private boolean blackQsAvail = true;
-		private boolean whiteCastled = false;
-		private boolean blackCastled = false;
-		
-		public CastlingManager() {}
-		
-		public CastlingManager(String fenCastle) {
-			whiteKsAvail = false;
-			whiteQsAvail = false;
-			blackKsAvail = false;
-			blackQsAvail = false;
-			if (fenCastle.matches("[KQkq-]")) {
-				if (fenCastle.contains("K"))
-					whiteKsAvail = true;
-				if (fenCastle.contains("Q"))
-					whiteQsAvail = true;
-				if (fenCastle.contains("k"))
-					blackKsAvail = true;
-				if (fenCastle.contains("q"))
-					blackQsAvail = true;				
-			}
-		}		
-		
-		public boolean canCastle(Colour colour) {
-			if (colour == Colour.white && !whiteCastled) {
-				return (whiteKsAvail || whiteQsAvail) ? true:false;
-			}
-			if ((colour == Colour.black && !blackCastled)) {
-				return (blackKsAvail || blackQsAvail) ? true:false;
-			}
-			return false;
-		}
-
-		public boolean isKingsideAvail(Colour colour) {
-			if (colour == Colour.white) {
-				return whiteKsAvail;
-			} else {
-				return blackKsAvail;
-			}
-		}
-
-		public void setKingsideAvail(Colour colour, boolean kingsideAvail) {
-			if (colour == Colour.white) {
-				whiteKsAvail = kingsideAvail;
-			} else {
-				blackKsAvail = kingsideAvail;
-			}
-		}
-
-		public boolean isQueensideAvail(Colour colour) {
-			if (colour == Colour.white) {
-				return whiteQsAvail;
-			} else {
-				return blackQsAvail;
-			}
-		}
-
-		public void setQueensideAvail(Colour colour, boolean queensideAvail) {
-			if (colour == Colour.white) {
-				whiteKsAvail = queensideAvail;
-			} else {
-				blackKsAvail = queensideAvail;
-			}
-		}
-	}
 	private CastlingManager castling;
-	
-	public void addCastlingMoves(LinkedList<GenericMove> ml) {
-		// The side on move should not have previously castled
-		if ( !castling.canCastle(onMove))
-			return;
-		// King should not have moved and be on its initial square
-		King ownKing = getKing(onMove);
-		if ( ownKing != null ) {
-			if (ownKing.hasEverMoved() || !ownKing.isOnInitialSquare()) {
-				return;
-			}
-		}
-		// Check for castling king-side and queen side
-		GenericMove ksc = addKingSideCastle();
-		if ( ksc != null )
-			ml.add(ksc);
-		GenericMove qsc = addQueenSideCastle();
-		if ( qsc != null )
-			ml.add(qsc);
-	}
-	
-	private static final GenericPosition [] kscWhiteCheckSqs = {GenericPosition.e1, GenericPosition.f1, GenericPosition.g1};
-	private static final GenericPosition [] kscBlackCheckSqs = {GenericPosition.e8, GenericPosition.f8, GenericPosition.g8};
-	private static final GenericPosition [] kscWhiteEmptySqs = {GenericPosition.f1, GenericPosition.g1};
-	private static final GenericPosition [] kscBlackEmptySqs = {GenericPosition.f8, GenericPosition.g8};
-	
-	public GenericMove addKingSideCastle() {
-		if ( onMove == Colour.white ) {
-			if ( canCastle(GenericPosition.h1, kscWhiteCheckSqs, kscWhiteEmptySqs))
-				try {
-					return new GenericMove("e1g1");
-				} catch (IllegalNotationException e) {
-					e.printStackTrace();
-				}
-		} else {
-			if ( canCastle(GenericPosition.h8, kscBlackCheckSqs, kscBlackEmptySqs))
-				try {
-					return new GenericMove("e8g8");
-				} catch (IllegalNotationException e) {
-					e.printStackTrace();
-				}	
-		}
-		return null;
-	}
-	
-	private static final GenericPosition [] qscWhiteCheckSqs = {GenericPosition.c1, GenericPosition.d1, GenericPosition.e1};
-	private static final GenericPosition [] qscBlackCheckSqs = {GenericPosition.c8, GenericPosition.d8, GenericPosition.e8};
-	private static final GenericPosition [] qscWhiteEmptySqs = {GenericPosition.c1, GenericPosition.d1, GenericPosition.b1};
-	private static final GenericPosition [] qscBlackEmptySqs = {GenericPosition.c8, GenericPosition.d8, GenericPosition.b8};
-	
-	public GenericMove addQueenSideCastle() {
-		if ( onMove == Colour.white ) {
-			if ( canCastle(GenericPosition.a1, qscWhiteCheckSqs, qscWhiteEmptySqs))
-				try {
-					return new GenericMove("e1c1");
-				} catch (IllegalNotationException e) {
-					e.printStackTrace();
-				}
-		} else {
-			if ( canCastle(GenericPosition.a8, qscBlackCheckSqs, qscBlackEmptySqs))
-				try {
-					return new GenericMove("e8c8");
-				} catch (IllegalNotationException e) {
-					e.printStackTrace();
-				}	
-		}
-		return null;
+	public CastlingManager getCastlingManager() {
+		return castling;
 	}
 
-	private boolean canCastle(GenericPosition rookSq,
-			GenericPosition [] checkSqs,
-			GenericPosition [] emptySqs) {
-		// Target rook should not have moved and be on it initial square
-		Piece qscTarget = theBoard.getPieceAtSquare( rookSq );
-		if ( !(qscTarget instanceof Rook) || qscTarget.hasEverMoved())
-			return false;
-		// All the intervening squares between King and Rook should be empty
-		for ( GenericPosition emptySq : emptySqs ) {
-			if ( !theBoard.squareIsEmpty(emptySq))
-				return false;
-		}
-		Iterator<Piece> iterPotentialAttackers = theBoard.iterateColour(Piece.Colour.getOpposite(onMove));
-		while (iterPotentialAttackers.hasNext()) {
-			// None of the intervening squares between King and Rook should be attacked
-			// the king cannot be in check at the start or end of the move
-			Piece currPiece = iterPotentialAttackers.next();
-			if (currPiece.attacks( this, checkSqs)) {
-				return false;
-			}
-		}
-		return true;
-	}
-	
 	private Board theBoard;
 	public Board getTheBoard() {
 		return theBoard;
@@ -366,7 +207,7 @@ public class BoardManager implements IBoardManager {
 		theBoard = new Board();
 		setKing( (King) theBoard.getPieceAtSquare(GenericPosition.e1));
 		setKing( (King) theBoard.getPieceAtSquare(GenericPosition.e8));
-		castling = new CastlingManager();
+		castling = new CastlingManager(this);
 		onMove = Colour.white;
 	}
 	
@@ -380,13 +221,13 @@ public class BoardManager implements IBoardManager {
 				setKing( (King)currPiece );
 			}
 		}
-		castling = new CastlingManager();
+		castling = new CastlingManager(this);
 		onMove = colourToMove;
 	}
 	
 	public BoardManager( String fenString ) {
 		previousMoves = new Stack<TrackedMove>();
-		fenParser fp = new fenParser( fenString );
+		fenParser fp = new fenParser( this, fenString );
 		theBoard = fp.create();
 		Iterator<Piece> iterAllPieces = theBoard.iterator();
 		while (iterAllPieces.hasNext()) {
