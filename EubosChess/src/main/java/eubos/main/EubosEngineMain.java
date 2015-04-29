@@ -72,7 +72,11 @@ public class EubosEngineMain extends AbstractEngine {
 		// The move searcher will report the best move found via a callback to this object, 
 		// this will occur when the tree search is concluded and the thread completes execution.
 		int searchDepth = SEARCH_DEPTH_IN_PLY;
-		if (!command.getInfinite()) {
+		if (command.getMoveTime() != null) {
+			searchDepth = 4;
+		} else if (command.getInfinite()) {
+			
+		} else if (command.getDepth() != null) {
 			searchDepth = command.getDepth();
 		}
 		ms = new MoveSearcher(this, bm, searchDepth);

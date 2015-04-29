@@ -53,6 +53,7 @@ public class EubosEngineMainTest {
 	private static final String ISREADY_CMD = "isready"+CMD_TERMINATOR;
 	private static final String NEWGAME_CMD = "ucinewgame"+CMD_TERMINATOR;
 //	private static final String GO_INF_CMD = "go infinite"+CMD_TERMINATOR;
+	private static final String GO_TIME_CMD = "go movetime 180000"+CMD_TERMINATOR;
 	private static final String QUIT_CMD = "quit"+CMD_TERMINATOR;
 	// Outputs
 	private static final String ID_NAME_CMD = "id name Eubos"+CMD_TERMINATOR;
@@ -94,6 +95,15 @@ public class EubosEngineMainTest {
 		// Setup Commands specific to this test
 		commands.add(new commandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"4"+CMD_TERMINATOR,BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
+		performTest(200);
+	}
+	
+	@Test
+	public void test_mateInTwo_onTime() throws InterruptedException, IOException {
+		setupEngine();
+		// Setup Commands specific to this test
+		commands.add(new commandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_TIME_CMD,BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
 		performTest(200);
 	}
 	
