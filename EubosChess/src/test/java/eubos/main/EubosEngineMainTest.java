@@ -11,6 +11,7 @@ import java.util.Scanner;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class EubosEngineMainTest {
@@ -44,7 +45,7 @@ public class EubosEngineMainTest {
 	private static final String CMD_TERMINATOR = "\r\n";
 	private static final String POS_FEN_PREFIX = "position fen ";
 	private static final String GO_DEPTH_PREFIX = "go depth ";
-//	private static final String POS_START_PREFIX = "position startpos ";
+	private static final String POS_START_PREFIX = "position startpos ";
 	private static final String BEST_PREFIX = "bestmove ";
 	
 	// Whole Commands
@@ -107,6 +108,15 @@ public class EubosEngineMainTest {
 		performTest(200);
 	}
 	
+	@Test (expected=UnsupportedOperationException.class)
+	@Ignore
+	public void test_jcpiexception() throws InterruptedException, IOException {
+		setupEngine();
+		// Setup Commands specific to this test
+		commands.add(new commandPair(POS_START_PREFIX+"moves a2a3  e7e5  b2b4"+CMD_TERMINATOR, null));
+		performTest(200);
+	}
+	
 	@Test
 	public void test_mateInTwo_fromBlack() throws InterruptedException, IOException {
 		setupEngine();
@@ -117,7 +127,6 @@ public class EubosEngineMainTest {
 	}	
 	
 	@Test
-//	@Ignore
 	public void test_mateInOne() throws InterruptedException, IOException {
 		setupEngine();
 		// Setup Commands specific to this test
