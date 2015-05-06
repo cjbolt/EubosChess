@@ -7,9 +7,9 @@ import eubos.pieces.*;
 import com.fluxchess.jcpi.models.*;
 
 public class Board implements Iterable<Piece> {
-	
+
 	private Piece[][] theBoard = new Piece[8][8];	
-	
+
 	public Board() { setupNewGame(); }
 
 	// This constructor is primarily used for setting up unit tests...
@@ -18,14 +18,14 @@ public class Board implements Iterable<Piece> {
 			setPieceAtSquare( nextPiece );
 		}
 	}
-	
+
 	public static boolean moveIsOffBoard(GenericPosition currTargetSq, Direction dir ) {
 		if (currTargetSq.file != GenericFile.Fa && currTargetSq.rank != GenericRank.R1)
 			return true;
 		else
 			return false;
 	}
-	
+
 	public void setPieceAtSquare( Piece pieceToPlace ) {
 		GenericPosition atPos = pieceToPlace.getSquare();
 		int file, rank;
@@ -40,7 +40,7 @@ public class Board implements Iterable<Piece> {
 		rank = IntRank.valueOf(atPos.rank);
 		return ( theBoard[file][rank] );
 	}
-	
+
 	public Piece pickUpPieceAtSquare( GenericPosition atPos ) throws InvalidPieceException {
 		int file, rank;
 		file = IntFile.valueOf(atPos.file);
@@ -50,7 +50,7 @@ public class Board implements Iterable<Piece> {
 		theBoard[file][rank] = null;
 		return ( pieceToPickUp );
 	}
-	
+
 	public boolean squareIsEmpty( GenericPosition atPos ) {
 		int file, rank;
 		file = IntFile.valueOf(atPos.file);
@@ -62,7 +62,7 @@ public class Board implements Iterable<Piece> {
 		setupBackRanks();
 		setupPawns();
 	}
-	
+
 	private void setupPawns() {
 		GenericPosition[] allFiles = new GenericPosition[] { 
 				GenericPosition.a2,
@@ -110,11 +110,11 @@ public class Board implements Iterable<Piece> {
 		setPieceAtSquare( new Knight( Piece.Colour.black, GenericPosition.g8 ));
 		setPieceAtSquare( new Rook  ( Piece.Colour.black, GenericPosition.h8 ));
 	}
-	
+
 	public class allPiecesOnBoardIterator implements Iterator<Piece> {
-		
+
 		private LinkedList<Piece> iterList = null;
-		
+
 		public allPiecesOnBoardIterator() {
 			iterList = new LinkedList<Piece>();
 			for (int i: IntFile.values) {
@@ -126,7 +126,7 @@ public class Board implements Iterable<Piece> {
 				}
 			}
 		}
-		
+
 		public allPiecesOnBoardIterator( Piece.Colour colourToIterate ) {
 			iterList = new LinkedList<Piece>();
 			for (int i: IntFile.values) {
@@ -138,27 +138,32 @@ public class Board implements Iterable<Piece> {
 				}
 			}
 		}		
-		
-	    public boolean hasNext() {
-	    	if (!iterList.isEmpty()) {
-	    		return true;
-	    	} else {
-	    		return false;
-	    	}
-	    }
 
-	    public Piece next() {
-	        return iterList.remove();
-	    }
+		public boolean hasNext() {
+			if (!iterList.isEmpty()) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		public Piece next() {
+			return iterList.remove();
+		}
+
+		@Override
+		public void remove() {
+			iterList.remove();
+		}
 	}
-	
-    public Iterator<Piece> iterator() {
-    	// default iterator returns all the pieces on the board
-        return new allPiecesOnBoardIterator( );
-    }
-    
-    public Iterator<Piece> iterateColour( Piece.Colour colourToIterate ) {
-        return new allPiecesOnBoardIterator( colourToIterate );
-    }
-    
+
+	public Iterator<Piece> iterator() {
+		// default iterator returns all the pieces on the board
+		return new allPiecesOnBoardIterator( );
+	}
+
+	public Iterator<Piece> iterateColour( Piece.Colour colourToIterate ) {
+		return new allPiecesOnBoardIterator( colourToIterate );
+	}
+
 }
