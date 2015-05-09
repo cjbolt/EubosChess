@@ -7,11 +7,10 @@ import eubos.pieces.Piece;
 public class SearchDebugAgent {
 
 	private String indent = "";
-	private boolean isActive=false;
+	private static final boolean isDebugOn = false;
 	private int lastPly = 0;
 
-	public SearchDebugAgent( int currPly, boolean active ) {
-		isActive = active;
+	public SearchDebugAgent( int currPly ) {
 		computeIndent(currPly);
 	}
 	
@@ -24,7 +23,7 @@ public class SearchDebugAgent {
 	}
 
 	public void printPerformMove(int currPly, GenericMove currMove) {
-		if (isActive) {
+		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			System.out.println(indent+"performMove("+currMove.toString()+") at Ply="+currPly);
@@ -32,7 +31,7 @@ public class SearchDebugAgent {
 	}
 
 	void printSearchPly(int currPly, Piece.Colour onMove) {
-		if (isActive) {
+		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			System.out.println(indent+"searchPly("+currPly+", "+onMove.toString()+")");
@@ -40,7 +39,7 @@ public class SearchDebugAgent {
 	}
 
 	void printUndoMove(int currPly, GenericMove currMove) {
-		if (isActive) {
+		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			System.out.println(indent+"undoMove("+currMove.toString()+") at Ply="+currPly);
@@ -48,7 +47,7 @@ public class SearchDebugAgent {
 	}
 
 	void printBackUpScore(int currPly, int positionScore) {
-		if (isActive) {
+		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			System.out.println(indent+"backedUpScore:"+positionScore+" at Ply="+currPly);
@@ -56,7 +55,7 @@ public class SearchDebugAgent {
 	}
 
 	void printPrincipalContinuation(int currPly, PrincipalContinuation pc) {
-		if (isActive) {
+		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			System.out.println(indent+"principal continuation found: "+pc.toStringAfter(currPly));
@@ -64,7 +63,7 @@ public class SearchDebugAgent {
 	}
 	
 	void printMateFound( int currPly) {
-		if (isActive) {
+		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			System.out.println(indent+"possible Checkmate found at Ply="+currPly);
@@ -72,7 +71,7 @@ public class SearchDebugAgent {
 	}
 	
 	void printRefutationFound( int currPly) {
-		if (isActive) {
+		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			System.out.println(indent+"refutation found (cut-off search) at Ply="+currPly);
@@ -80,7 +79,7 @@ public class SearchDebugAgent {
 	}
 	
 	void printAlphaBetaCutOffLimit(int currPly, int score) {
-		if (isActive) {
+		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			System.out.println(indent+"alpha beta brought down score:"+score+" at Ply="+currPly);

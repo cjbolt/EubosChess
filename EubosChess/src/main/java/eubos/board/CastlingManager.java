@@ -1,7 +1,7 @@
 package eubos.board;
 
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
@@ -118,7 +118,7 @@ public 	class CastlingManager {
 		}
 	}
 
-	public void addCastlingMoves(LinkedList<GenericMove> ml) {
+	public void addCastlingMoves(List<GenericMove> ml) {
 		// The side on move should not have previously castled
 		Colour onMove = bm.getOnMove();
 		if ( !castlingAvaillable(onMove))

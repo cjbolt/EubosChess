@@ -1,7 +1,8 @@
 package eubos.search;
 
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
@@ -20,11 +21,10 @@ import eubos.pieces.Rook;
 
 public class MiniMaxMoveGenerator extends MoveGenerator implements
 		IMoveGenerator {
-	
+
 	private int searchDepthPly;
 	private int scores[];
 	private PrincipalContinuation pc;
-	private static final boolean isDebugOn = false;
 	private Colour initialOnMove;
 	private boolean mateFound = false;
 	private boolean stalemateFound = false;
@@ -33,7 +33,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 	private boolean sendInfo = false;
 	private boolean terminate = false;
 	private SearchDebugAgent debug;
-	
+
 	// Used for unit tests
 	public MiniMaxMoveGenerator( BoardManager bm, int searchDepth ) {
 		super( bm );
@@ -41,9 +41,9 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		searchDepthPly = searchDepth;
 		pc = new PrincipalContinuation(searchDepth);
 		sm = new SearchMetrics(searchDepth);
-		debug = new SearchDebugAgent(0,isDebugOn);
+		debug = new SearchDebugAgent(0);
 	}
-	
+
 	// Used with Arena
 	public MiniMaxMoveGenerator( EubosEngineMain eubos, BoardManager bm, int searchDepth ) {
 		this(bm, searchDepth);
@@ -51,7 +51,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		sr = new SearchMetricsReporter(eubos,sm);
 		sendInfo = true;
 	}	
-	
+
 	@Override
 	public GenericMove findMove() throws NoLegalMoveException, InvalidPieceException {
 		// Register initialOnMove
@@ -78,7 +78,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		int alphaBetaCutOff = initNodeScoreAlphaBeta(currPly);
 		// Generate all moves at this position and test if the previous move in the
 		// search tree led to either checkmate or stalemate.
-		LinkedList<GenericMove> ml = generateMovesAtPosition();
+		List<GenericMove> ml = generateMovesAtPosition();
 		handleMates(currPly);
 		Iterator<GenericMove> move_iter = ml.iterator();
 		// Iterate through all the moves for this ply; there will be none if a mate was detected...
@@ -205,8 +205,8 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		return scores[currPly];
 	}
 
-	private LinkedList<GenericMove> generateMovesAtPosition() throws InvalidPieceException {
-		LinkedList<GenericMove> entireMoveList = new LinkedList<GenericMove>();
+	private List<GenericMove> generateMovesAtPosition() throws InvalidPieceException {
+		List<GenericMove> entireMoveList = new ArrayList<GenericMove>();
 		// Test if the King is in check at the start of the turn
 		King ownKing = bm.getKing(bm.getOnMove());
 		boolean kingIsInCheck = inCheck(ownKing);
@@ -217,7 +217,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			entireMoveList.addAll( currPiece.generateMoves( bm ));
 		}
 		bm.getCastlingManager().addCastlingMoves(entireMoveList);
-		LinkedList<GenericMove> newMoveList = new LinkedList<GenericMove>();
+		List<GenericMove> newMoveList = new ArrayList<GenericMove>();
 		Iterator<GenericMove> iter_ml = entireMoveList.iterator();
 		while ( iter_ml.hasNext() ) {
 			GenericMove currMove = iter_ml.next();
@@ -228,9 +228,9 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			// Groom the movelist so that the moves expected to be best are searched first.
 			// This is to get max benefit form alpha beta algorithm
 			else if (bm.lastMoveWasCapture()) {
-				newMoveList.addFirst(currMove);
+				newMoveList.add(0, currMove);
 			} else {
-				newMoveList.addLast(currMove);
+				newMoveList.add(currMove);
 			}
 			bm.undoPreviousMove();
 		}
@@ -284,7 +284,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		}
 		return isTerminalNode;
 	}
-	
+
 	public synchronized void terminateFindMove() { terminate = true; }
 	private synchronized boolean isTerminated() { return terminate; }
 }
