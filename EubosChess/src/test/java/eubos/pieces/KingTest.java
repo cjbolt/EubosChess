@@ -1,6 +1,6 @@
 package eubos.pieces;
 
-import java.util.LinkedList;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -20,7 +20,7 @@ public class KingTest extends PieceTest {
 		classUnderTest = new King( Colour.black, GenericPosition.a8 );
 		pl.add(classUnderTest);
 		bm = new BoardManager( new Board( pl ), Colour.black );
-		LinkedList<GenericMove> ml = classUnderTest.generateMoves( bm );
+		List<GenericMove> ml = classUnderTest.generateMoves( bm );
 		expectedMoves.add( new GenericMove( GenericPosition.a8, GenericPosition.a7 ));
 		expectedMoves.add( new GenericMove( GenericPosition.a8, GenericPosition.b8 ));
 		expectedMoves.add( new GenericMove( GenericPosition.a8, GenericPosition.b7 ));

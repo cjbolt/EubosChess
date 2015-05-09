@@ -1,11 +1,11 @@
 package eubos.pieces;
 
-import java.util.LinkedList;
+import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.BoardManager;
 
 public interface IPiece {
-	public LinkedList<GenericMove> generateMoves( BoardManager bm );
+	public List<GenericMove> generateMoves( BoardManager bm );
 }

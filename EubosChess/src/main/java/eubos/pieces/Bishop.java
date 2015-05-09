@@ -1,7 +1,7 @@
 package eubos.pieces;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
@@ -31,7 +31,7 @@ public class Bishop extends PieceMultisquareDirectMove {
 	@Override
 	public boolean attacks(BoardManager bm, GenericPosition [] pos) {
 		Board theBoard = bm.getTheBoard();
-		ArrayList<GenericPosition> targetSqs = getAllSqs(Direction.downLeft, theBoard);
+		List<GenericPosition> targetSqs = getAllSqs(Direction.downLeft, theBoard);
 		targetSqs.addAll(getAllSqs(Direction.upLeft, theBoard));
 		targetSqs.addAll(getAllSqs(Direction.downRight, theBoard));
 		targetSqs.addAll(getAllSqs(Direction.upRight, theBoard));

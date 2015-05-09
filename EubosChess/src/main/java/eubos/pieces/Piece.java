@@ -14,7 +14,7 @@ public abstract class Piece implements IPiece {
 	protected Colour colour = Colour.black;
 	protected boolean everMoved = false;
 	public boolean hasEverMoved() {	return everMoved; }
-	public abstract LinkedList<GenericMove> generateMoves( BoardManager bm );
+	public abstract List<GenericMove> generateMoves( BoardManager bm );
 	public abstract boolean attacks( BoardManager bm, GenericPosition [] pos );
 	protected GenericPosition onSquare;
 	
@@ -26,7 +26,7 @@ public abstract class Piece implements IPiece {
 	public void setSquare( GenericPosition pos) { onSquare = pos; everMoved = true; }
 	public GenericPosition getSquare() { return(onSquare); }
 	
-	protected boolean evaluateIfAttacks( GenericPosition [] sqsToCheck, ArrayList<GenericPosition> targettedSqs ) {
+	protected boolean evaluateIfAttacks( GenericPosition [] sqsToCheck, List<GenericPosition> targettedSqs ) {
 		boolean sqAttacked = false;
 		for ( GenericPosition currSq : sqsToCheck) {
 			if (targettedSqs.contains(currSq))

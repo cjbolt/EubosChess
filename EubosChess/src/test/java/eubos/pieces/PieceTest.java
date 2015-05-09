@@ -4,6 +4,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.LinkedList;
+import java.util.List;
 
 import org.junit.Before;
 
@@ -18,7 +19,7 @@ public class PieceTest {
 	protected LinkedList<Piece> pl;
 	protected BoardManager bm;
 	protected GenericMove expectedMove;
-	protected LinkedList<GenericMove> expectedMoves;
+	protected List<GenericMove> expectedMoves;
 	protected int expectedNumMoves = 0;
 	protected Piece classUnderTest;
 
@@ -32,7 +33,7 @@ public class PieceTest {
 		expectedMoves = new LinkedList<GenericMove>();
 	}
 
-	protected void checkExpectedMoves(LinkedList<GenericMove> ml) {
+	protected void checkExpectedMoves(List<GenericMove> ml) {
 		assertFalse(ml.isEmpty());
 		assertTrue(ml.size()==expectedNumMoves);
 		for ( GenericMove mov : expectedMoves) {
@@ -40,14 +41,14 @@ public class PieceTest {
 		}
 	}
 
-	protected void checkNoMovesGenerated(LinkedList<GenericMove> ml) {
+	protected void checkNoMovesGenerated(List<GenericMove> ml) {
 		assertTrue(ml.isEmpty());
 	}
 
-	protected LinkedList<GenericMove> completeSetupAndGenerateMoves() {
+	protected List<GenericMove> completeSetupAndGenerateMoves() {
 		pl.add(classUnderTest);
 		bm = new BoardManager( new Board( pl ), Colour.white );
-		LinkedList<GenericMove> ml = classUnderTest.generateMoves( bm );
+		List<GenericMove> ml = classUnderTest.generateMoves( bm );
 		return ml;
 	}
 

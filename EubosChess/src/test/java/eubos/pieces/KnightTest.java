@@ -1,6 +1,6 @@
 package eubos.pieces;
 
-import java.util.LinkedList;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -12,12 +12,13 @@ import eubos.pieces.Piece.Colour;
 public class KnightTest extends PieceTest {
 	
 	GenericPosition startTestOnSq;
+	List<GenericMove> ml;
 	
 	@Test
 	public void test_SquareA8() {
 		startTestOnSq = GenericPosition.a8;
 		classUnderTest = new Knight( Colour.white, startTestOnSq );
-		LinkedList<GenericMove> ml = completeSetupAndGenerateMoves();
+		ml = completeSetupAndGenerateMoves();
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.c7 ));
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.b6 ));
 		expectedNumMoves = 2;
@@ -28,7 +29,7 @@ public class KnightTest extends PieceTest {
 	public void test_SquareB7() {
 		startTestOnSq = GenericPosition.b7;
 		classUnderTest = new Knight( Colour.white, startTestOnSq);
-		LinkedList<GenericMove> ml = completeSetupAndGenerateMoves();
+		ml = completeSetupAndGenerateMoves();
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.d8 ));
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.d6 ));
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.a5 ));
@@ -41,7 +42,7 @@ public class KnightTest extends PieceTest {
 	public void test_SquareC6() {
 		startTestOnSq = GenericPosition.c6;
 		classUnderTest = new Knight( Colour.white, startTestOnSq);
-		LinkedList<GenericMove> ml = completeSetupAndGenerateMoves();
+		ml = completeSetupAndGenerateMoves();
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.b8 ));
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.d8 ));
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.e7 ));
