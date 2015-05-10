@@ -12,8 +12,6 @@ import eubos.pieces.Piece.Colour;
 import com.fluxchess.jcpi.models.*;
 
 public class PawnTest_White extends PawnTest {
-	List<GenericMove> ml;
-	
 	@Test
 	public void test_InitialMoveOneSquare() {
 		classUnderTest = addWhitePawn( GenericPosition.e2 );

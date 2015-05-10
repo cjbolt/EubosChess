@@ -3,8 +3,6 @@ package eubos.pieces;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
-import java.util.List;
-
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -15,8 +13,6 @@ import eubos.board.BoardManager;
 import eubos.pieces.Piece.Colour;
 
 public class RookTest extends PieceTest {
-	
-	List<GenericMove> ml;
 	
 	@Test
 	public void test_CornerTopLeft() {

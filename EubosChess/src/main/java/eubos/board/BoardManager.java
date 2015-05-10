@@ -202,13 +202,8 @@ public class BoardManager implements IBoardManager {
 		return theBoard;
 	}
 
-	public BoardManager() { 
-		previousMoves = new Stack<TrackedMove>();
-		theBoard = new Board();
-		setKing( (King) theBoard.getPieceAtSquare(GenericPosition.e1));
-		setKing( (King) theBoard.getPieceAtSquare(GenericPosition.e8));
-		castling = new CastlingManager(this);
-		onMove = Colour.white;
+	public BoardManager() {
+		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 	}
 	
 	public BoardManager( Board startingPosition, Piece.Colour colourToMove ) {

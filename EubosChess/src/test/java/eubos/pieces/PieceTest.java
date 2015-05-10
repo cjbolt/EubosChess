@@ -16,12 +16,13 @@ import eubos.pieces.Piece.Colour;
 
 public class PieceTest {
 
-	protected LinkedList<Piece> pl;
+	protected List<Piece> pl;
 	protected BoardManager bm;
 	protected GenericMove expectedMove;
 	protected List<GenericMove> expectedMoves;
 	protected int expectedNumMoves = 0;
 	protected Piece classUnderTest;
+	protected List<GenericMove> ml;
 
 	public PieceTest() {
 		super();

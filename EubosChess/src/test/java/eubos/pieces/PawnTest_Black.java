@@ -4,17 +4,15 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import java.util.*;
-
-import eubos.board.*;
+import eubos.board.BoardManager;
+import eubos.board.Board;
+import eubos.board.InvalidPieceException;
 import eubos.pieces.Piece.Colour;
 
 import com.fluxchess.jcpi.models.*;
 
 public class PawnTest_Black extends PawnTest {
 
-	List<GenericMove> ml;
-	
 	@Test
 	public void test_InitialMoveOneSquare() {
 		classUnderTest = addBlackPawn( GenericPosition.e7 );

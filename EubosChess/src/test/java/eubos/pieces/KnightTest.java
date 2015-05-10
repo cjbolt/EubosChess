@@ -1,7 +1,5 @@
 package eubos.pieces;
 
-import java.util.List;
-
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -12,8 +10,6 @@ import eubos.pieces.Piece.Colour;
 public class KnightTest extends PieceTest {
 	
 	GenericPosition startTestOnSq;
-	List<GenericMove> ml;
-	
 	@Test
 	public void test_SquareA8() {
 		startTestOnSq = GenericPosition.a8;

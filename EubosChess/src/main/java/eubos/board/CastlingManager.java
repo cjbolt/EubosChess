@@ -11,7 +11,7 @@ import eubos.pieces.Piece;
 import eubos.pieces.Rook;
 import eubos.pieces.Piece.Colour;
 
-public 	class CastlingManager {
+public class CastlingManager {
 	private boolean whiteKsAvail = true;
 	private boolean whiteQsAvail = true;
 	private boolean blackKsAvail = true;

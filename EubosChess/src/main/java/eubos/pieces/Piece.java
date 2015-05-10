@@ -1,10 +1,8 @@
 package eubos.pieces;
 
-import eubos.board.BoardManager;
+import com.fluxchess.jcpi.models.GenericPosition;
 
-import com.fluxchess.jcpi.models.*;
-
-import java.util.*;
+import java.util.List;
 
 public abstract class Piece implements IPiece {
 	public enum Colour { 
@@ -12,16 +10,15 @@ public abstract class Piece implements IPiece {
 		public static Colour getOpposite( Colour arg ) { return ((arg == white) ? black : white);}
 	};
 	protected Colour colour = Colour.black;
-	protected boolean everMoved = false;
-	public boolean hasEverMoved() {	return everMoved; }
-	public abstract List<GenericMove> generateMoves( BoardManager bm );
-	public abstract boolean attacks( BoardManager bm, GenericPosition [] pos );
-	protected GenericPosition onSquare;
-	
 	public Colour getColour() { return colour; }
 	public boolean isWhite() { return ( colour == Colour.white ); }
 	public boolean isBlack() { return ( colour == Colour.black ); }
 	public boolean isOppositeColour(Piece toCheck) { return ( colour != toCheck.getColour()); }
+	
+	protected boolean everMoved = false;
+	public boolean hasEverMoved() {	return everMoved; }
+	
+	protected GenericPosition onSquare;
 	
 	public void setSquare( GenericPosition pos) { onSquare = pos; everMoved = true; }
 	public GenericPosition getSquare() { return(onSquare); }
@@ -29,8 +26,10 @@ public abstract class Piece implements IPiece {
 	protected boolean evaluateIfAttacks( GenericPosition [] sqsToCheck, List<GenericPosition> targettedSqs ) {
 		boolean sqAttacked = false;
 		for ( GenericPosition currSq : sqsToCheck) {
-			if (targettedSqs.contains(currSq))
+			if (targettedSqs.contains(currSq)) {
 				sqAttacked = true;
+				break;
+			}
 		}
 		return sqAttacked;
 	}
