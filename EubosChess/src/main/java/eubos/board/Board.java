@@ -82,8 +82,6 @@ public class Board implements Iterable<Piece> {
 				Piece nextPiece = theBoard[file][rank];
 				if (nextPiece != null && nextPiece.getColour() == colourToIterate) {
 					iterList.add(nextPiece);
-				} else {
-					throw new InvalidPieceException(GenericPosition.a1);
 				}
 			}
 		}	

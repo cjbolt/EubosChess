@@ -71,11 +71,11 @@ public class BitBoardTest {
 	}
 	
 	@Test
-	public void testIterator_bit55() {
+	public void testIterator_bit56() {
 		classUnderTest.set(7,0);
 		Iterator<Integer> it_setbits = classUnderTest.iterator();
 		assertTrue( it_setbits.hasNext() == true );
-		assertTrue( it_setbits.next() == 55 );
+		assertTrue( it_setbits.next() == 56 );
 	}	
 	
 	@Test
