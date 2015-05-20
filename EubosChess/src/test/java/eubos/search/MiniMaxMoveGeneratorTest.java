@@ -261,7 +261,8 @@ public class MiniMaxMoveGeneratorTest {
 		BoardManager bm = new BoardManager( "2N5/4R3/2k3KQ/R7/1PB5/5N2/8/6B1 w - - 0 1" );
 		classUnderTest = new MiniMaxMoveGenerator(bm,2);
 		// various possible mates
-		expectedMove = new GenericMove("a5a6");
+		//expectedMove = new GenericMove("a5a6");
+		expectedMove = new GenericMove("f3e5");
 		doFindMoveTest(true);
 	}
 	
@@ -271,7 +272,8 @@ public class MiniMaxMoveGeneratorTest {
 		BoardManager bm = new BoardManager( "4N3/5P1P/5N1k/Q5p1/5PKP/B7/8/1B6 w - - 0 1" );
 		classUnderTest = new MiniMaxMoveGenerator(bm,2);
 		// various possible mates
-		expectedMove = new GenericMove("h4g5");
+		//expectedMove = new GenericMove("h4g5");
+		expectedMove = new GenericMove("a5g5");
 		doFindMoveTest(true);
 	}
 	
@@ -308,7 +310,8 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		BoardManager bm = new BoardManager( "8/7B/8/3N4/8/1Q2B3/PPP5/rk2K2R w K - 0 1" );
 		classUnderTest = new MiniMaxMoveGenerator(bm,2);
-		expectedMove = new GenericMove("c2c3");
+		//expectedMove = new GenericMove("c2c3");
+		expectedMove = new GenericMove("e1e2");
 		doFindMoveTest(true);
 	}
 
