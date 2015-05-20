@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import eubos.pieces.Piece;
+import eubos.pieces.Piece.Colour;
 
 import com.fluxchess.jcpi.models.IntRank;
 import com.fluxchess.jcpi.models.IntFile;
@@ -20,7 +21,9 @@ public class Board implements Iterable<Piece> {
 		}
 	}
 	
-	private BitBoard allPieces = new BitBoard();;
+	private BitBoard allPieces = new BitBoard();
+	private BitBoard whitePieces = new BitBoard();
+	private BitBoard blackPieces = new BitBoard(); 
 
 	public void setPieceAtSquare( Piece pieceToPlace ) {
 		GenericPosition atPos = pieceToPlace.getSquare();
@@ -28,7 +31,15 @@ public class Board implements Iterable<Piece> {
 		file = IntFile.valueOf(atPos.file);
 		rank = IntRank.valueOf(atPos.rank);
 		theBoard[file][rank] = pieceToPlace;
+		// Update bit boards
 		allPieces.set(rank, file);
+		BitBoard bitBoardToIterate;
+		if (pieceToPlace.isWhite()) {
+			bitBoardToIterate = whitePieces;
+		} else {
+			bitBoardToIterate = blackPieces;
+		}
+		bitBoardToIterate.set(rank, file);
 	}
 
 	public Piece getPieceAtSquare( GenericPosition atPos ) {
@@ -45,7 +56,15 @@ public class Board implements Iterable<Piece> {
 		Piece pieceToPickUp = theBoard[file][rank];
 		if (pieceToPickUp == null ) throw new InvalidPieceException(atPos);
 		theBoard[file][rank] = null;
+		// Update bit boards
 		allPieces.clear(rank, file);
+		BitBoard bitBoardToIterate;
+		if (pieceToPickUp.isWhite()) {
+			bitBoardToIterate = whitePieces;
+		} else {
+			bitBoardToIterate = blackPieces;
+		}
+		bitBoardToIterate.clear(rank, file);
 		return ( pieceToPickUp );
 	}
 
@@ -76,11 +95,17 @@ public class Board implements Iterable<Piece> {
 
 		public allPiecesOnBoardIterator( Piece.Colour colourToIterate ) throws InvalidPieceException {
 			iterList = new LinkedList<Piece>();
-			for (Integer bit_index: allPieces) {
+			BitBoard bitBoardToIterate;
+			if (colourToIterate == Colour.white) {
+				bitBoardToIterate = whitePieces;
+			} else {
+				bitBoardToIterate = blackPieces;
+			}
+			for (Integer bit_index: bitBoardToIterate) {
 				int file = bit_index%8;
 				int rank = bit_index/8;
 				Piece nextPiece = theBoard[file][rank];
-				if (nextPiece != null && nextPiece.getColour() == colourToIterate) {
+				if (nextPiece != null) {
 					iterList.add(nextPiece);
 				}
 			}
