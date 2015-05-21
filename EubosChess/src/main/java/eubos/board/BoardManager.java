@@ -288,8 +288,9 @@ public class BoardManager implements IBoardManager {
 	}
 
 	private void savePreviousMove(GenericMove move, Piece pieceToMove,
-			boolean enPassantCapture, GenericPosition prevEnPassantTargetSq) throws InvalidPieceException {
-		Piece captureTarget = theBoard.getPieceAtSquare(move.to);
+			boolean enPassantCapture, GenericPosition prevEnPassantTargetSq) 
+					throws InvalidPieceException {
+		Piece captureTarget = theBoard.captureAtSquare(move.to);
 		GenericRank rank;
 		if (enPassantCapture) {
 			if (pieceToMove.isWhite()) {
@@ -298,7 +299,7 @@ public class BoardManager implements IBoardManager {
 				rank = GenericRank.R4;
 			}
 			GenericPosition capturePos = GenericPosition.valueOf(move.to.file,rank);
-			captureTarget = theBoard.pickUpPieceAtSquare(capturePos);
+			captureTarget = theBoard.captureAtSquare(capturePos);
 		}
 		previousMoves.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq));
 	}

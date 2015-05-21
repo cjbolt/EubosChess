@@ -74,6 +74,25 @@ public class Board implements Iterable<Piece> {
 		rank = IntRank.valueOf(atPos.rank);
 		return !allPieces.isSet(rank, file);		
 	}
+	
+	public Piece captureAtSquare( GenericPosition atPos ) {
+		int file, rank;
+		file = IntFile.valueOf(atPos.file);
+		rank = IntRank.valueOf(atPos.rank);
+		Piece capturedPiece = theBoard[file][rank];
+		// Update bit boards
+		allPieces.clear(rank, file);
+		if (capturedPiece != null) {
+			BitBoard bitBoardToIterate;
+			if (capturedPiece.isWhite()) {
+				bitBoardToIterate = whitePieces;
+			} else {
+				bitBoardToIterate = blackPieces;
+			}
+			bitBoardToIterate.clear(rank, file);
+		}
+		return ( capturedPiece );		
+	}
 
 	public class allPiecesOnBoardIterator implements Iterator<Piece> {
 
