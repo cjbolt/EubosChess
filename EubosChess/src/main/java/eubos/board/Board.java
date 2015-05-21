@@ -33,20 +33,7 @@ public class Board implements Iterable<Piece> {
 		theBoard[file][rank] = pieceToPlace;
 		// Update bit boards
 		allPieces.set(rank, file);
-		BitBoard bitBoardToIterate;
-		if (pieceToPlace.isWhite()) {
-			bitBoardToIterate = whitePieces;
-		} else {
-			bitBoardToIterate = blackPieces;
-		}
-		bitBoardToIterate.set(rank, file);
-	}
-
-	public Piece getPieceAtSquare( GenericPosition atPos ) {
-		int file, rank;
-		file = IntFile.valueOf(atPos.file);
-		rank = IntRank.valueOf(atPos.rank);
-		return ( theBoard[file][rank] );
+		getBitBoardForColour(pieceToPlace).set(rank, file);
 	}
 
 	public Piece pickUpPieceAtSquare( GenericPosition atPos ) throws InvalidPieceException {
@@ -58,14 +45,21 @@ public class Board implements Iterable<Piece> {
 		theBoard[file][rank] = null;
 		// Update bit boards
 		allPieces.clear(rank, file);
-		BitBoard bitBoardToIterate;
-		if (pieceToPickUp.isWhite()) {
-			bitBoardToIterate = whitePieces;
-		} else {
-			bitBoardToIterate = blackPieces;
-		}
-		bitBoardToIterate.clear(rank, file);
+		getBitBoardForColour(pieceToPickUp).clear(rank, file);
 		return ( pieceToPickUp );
+	}
+
+	public Piece captureAtSquare( GenericPosition atPos ) {
+		int file, rank;
+		file = IntFile.valueOf(atPos.file);
+		rank = IntRank.valueOf(atPos.rank);
+		Piece capturedPiece = theBoard[file][rank];
+		// Update bit boards
+		allPieces.clear(rank, file);
+		if (capturedPiece != null) {
+			getBitBoardForColour(capturedPiece).clear(rank, file);
+		}
+		return ( capturedPiece );		
 	}
 
 	public boolean squareIsEmpty( GenericPosition atPos ) {
@@ -75,23 +69,21 @@ public class Board implements Iterable<Piece> {
 		return !allPieces.isSet(rank, file);		
 	}
 	
-	public Piece captureAtSquare( GenericPosition atPos ) {
+	public Piece getPieceAtSquare( GenericPosition atPos ) {
 		int file, rank;
 		file = IntFile.valueOf(atPos.file);
 		rank = IntRank.valueOf(atPos.rank);
-		Piece capturedPiece = theBoard[file][rank];
-		// Update bit boards
-		allPieces.clear(rank, file);
-		if (capturedPiece != null) {
-			BitBoard bitBoardToIterate;
-			if (capturedPiece.isWhite()) {
-				bitBoardToIterate = whitePieces;
-			} else {
-				bitBoardToIterate = blackPieces;
-			}
-			bitBoardToIterate.clear(rank, file);
+		return ( theBoard[file][rank] );
+	}
+
+	private BitBoard getBitBoardForColour(Piece pieceToPickUp) {
+		BitBoard bitBoardForColour;
+		if (pieceToPickUp.isWhite()) {
+			bitBoardForColour = whitePieces;
+		} else {
+			bitBoardForColour = blackPieces;
 		}
-		return ( capturedPiece );		
+		return bitBoardForColour;
 	}
 
 	public class allPiecesOnBoardIterator implements Iterator<Piece> {
