@@ -92,16 +92,8 @@ public class Board implements Iterable<Piece> {
 
 		public allPiecesOnBoardIterator() throws InvalidPieceException {
 			iterList = new LinkedList<Piece>();
-			for (Integer bit_index: allPieces) {
-				int file = bit_index%8;
-				int rank = bit_index/8;
-				Piece nextPiece = theBoard[file][rank];
-				if (nextPiece != null ) {
-					iterList.add(nextPiece);
-				} else {
-					throw new InvalidPieceException(GenericPosition.a1);
-				}
-			}
+			BitBoard bitBoardToIterate = allPieces;
+			buildIterList(bitBoardToIterate);
 		}
 
 		public allPiecesOnBoardIterator( Piece.Colour colourToIterate ) throws InvalidPieceException {
@@ -112,13 +104,14 @@ public class Board implements Iterable<Piece> {
 			} else {
 				bitBoardToIterate = blackPieces;
 			}
+			buildIterList(bitBoardToIterate);
+		}
+
+		private void buildIterList(BitBoard bitBoardToIterate) {
 			for (Integer bit_index: bitBoardToIterate) {
 				int file = bit_index%8;
 				int rank = bit_index/8;
-				Piece nextPiece = theBoard[file][rank];
-				if (nextPiece != null) {
-					iterList.add(nextPiece);
-				}
+				iterList.add(theBoard[file][rank]);
 			}
 		}	
 
