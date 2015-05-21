@@ -117,6 +117,16 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 
 	private void reportPrincipalContinuation(int currPly, int positionScore) {
 		if (currPly == 0) {
+			if (Math.abs(positionScore) > 300000) {
+				// If the positionScore indicates a mate, truncate the pc accordingly
+				int matePly = Math.abs(positionScore)/300000;
+				matePly *= 2;
+				matePly = searchDepthPly - matePly;
+				if (initialOnMove == Colour.black) {
+					matePly += 1;
+				}
+				pc.clearAfter(matePly);
+			}
 			sm.setPrincipalVariation(pc.toPvList());
 			if (initialOnMove.equals(Colour.black))
 				positionScore = -positionScore; // Negated due to UCI spec (from engine pov)
@@ -139,7 +149,8 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		if (mateFound) {
 			backupScoreForCheckmate(currPly);
 			debug.printMateFound(currPly);
-			pc.clearAfter(currPly-1);
+//			if (initialOnMove != bm.getOnMove())
+//				pc.clearAfter(currPly-1);
 			mateFound = false;
 		} else if (stalemateFound) {
 			backupScoreForStalemate(currPly);
