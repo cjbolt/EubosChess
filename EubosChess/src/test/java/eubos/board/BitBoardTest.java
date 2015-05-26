@@ -1,6 +1,7 @@
 package eubos.board;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Iterator;
 
@@ -87,5 +88,45 @@ public class BitBoardTest {
 		assertTrue( it_setbits.next() == 0 );
 		assertTrue( it_setbits.hasNext() == true );
 		assertTrue( it_setbits.next() == 1 );
+	}
+	
+	@Test
+	public void testIterator_allOddBits() {
+		for (int i=0; i<64; i++) {
+			if ((i%2) == 1) {
+				classUnderTest.set(i);
+			}
+		}
+		Iterator<Integer> it_setbits = classUnderTest.iterator();
+		int oddBitCount = 0;
+		while(it_setbits.hasNext()) {
+			int curr = it_setbits.next();
+			if (curr%2 == 0) {
+				fail();
+			} else {
+				oddBitCount++;
+			}
+		}
+		assertTrue(oddBitCount == 32);
+	}
+	
+	@Test
+	public void testIterator_allEvenBits() {
+		for (int i=0; i<64; i++) {
+			if ((i%2) == 0) {
+				classUnderTest.set(i);
+			}
+		}
+		Iterator<Integer> it_setbits = classUnderTest.iterator();
+		int evenBitCount = 0;
+		while(it_setbits.hasNext()) {
+			int curr = it_setbits.next();
+			if (curr%2 == 1) {
+				fail();
+			} else {
+				evenBitCount++;
+			}
+		}
+		assertTrue(evenBitCount == 32);
 	}
 }
