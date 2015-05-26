@@ -151,9 +151,9 @@ public class BoardManager implements IBoardManager {
 		}
 		private void parseEnPassant(String targetSq) {
 			if (!targetSq.contentEquals("-")) {
-				enPassantTargetSq = GenericPosition.valueOf(targetSq);
+				enPassantManager = new EnPassantManager(GenericPosition.valueOf(targetSq));
 			} else {
-				enPassantTargetSq = null;
+				enPassantManager = new EnPassantManager(null);
 			}
 		}
 		private GenericFile advanceFile(GenericFile f) {
@@ -164,12 +164,6 @@ public class BoardManager implements IBoardManager {
 		public Board create() {
 			return new Board( pl );
 		}
-	}
-	
-	// No public setter, because enPassantTargetSq is only changed by performing a move on the board.
-	private GenericPosition enPassantTargetSq;
-	public GenericPosition getEnPassantTargetSq() {
-		return enPassantTargetSq;
 	}
 
 	private Stack<TrackedMove> previousMoves;
@@ -201,6 +195,11 @@ public class BoardManager implements IBoardManager {
 	public Board getTheBoard() {
 		return theBoard;
 	}
+	
+	private EnPassantManager enPassantManager = new EnPassantManager( null );
+	public EnPassantManager getEnPassantManager() {
+		return enPassantManager;
+	}
 
 	public BoardManager() {
 		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
@@ -224,6 +223,7 @@ public class BoardManager implements IBoardManager {
 		previousMoves = new Stack<TrackedMove>();
 		fenParser fp = new fenParser( this, fenString );
 		theBoard = fp.create();
+		//enPassantManager = fp.createEnPassantManager();
 		Iterator<Piece> iterAllPieces = theBoard.iterator();
 		while (iterAllPieces.hasNext()) {
 			Piece currPiece = iterAllPieces.next();
@@ -235,7 +235,7 @@ public class BoardManager implements IBoardManager {
 	
 	public void undoPreviousMove() throws InvalidPieceException {
 		if ( !previousMoves.isEmpty()) {
-			enPassantTargetSq = null;
+			enPassantManager.setEnPassantTargetSq(null);
 			TrackedMove tm = previousMoves.pop();
 			GenericMove moveToUndo = tm.getMove();
 			if ( moveToUndo.promotion != null ) {
@@ -246,7 +246,7 @@ public class BoardManager implements IBoardManager {
 			if ( tm.isCapture()) {
 				theBoard.setPieceAtSquare(tm.getCapturedPiece());
 			}
-			enPassantTargetSq = tm.getEnPassantTarget();
+			enPassantManager.setEnPassantTargetSq(tm.getEnPassantTarget());
 			// Update onMove
 			onMove = Piece.Colour.getOpposite(onMove);
 		}
@@ -265,17 +265,17 @@ public class BoardManager implements IBoardManager {
 		Piece pieceToMove = theBoard.pickUpPieceAtSquare( move.from );
 		if ( pieceToMove != null ) {
 			// Flag if move is an en passant capture
-			boolean enPassantCapture = isEnPassantCapture(move, pieceToMove);
+			boolean enPassantCapture = enPassantManager.isEnPassantCapture(move, pieceToMove);
 			// Save previous en passant square and initialise for this move
-			GenericPosition prevEnPassantTargetSq = enPassantTargetSq;
-			enPassantTargetSq=null;
+			GenericPosition prevEnPassantTargetSq = enPassantManager.getEnPassantTargetSq();
+			enPassantManager.setEnPassantTargetSq(null);
 			// Handle pawn promotion moves
 			pieceToMove = checkForPawnPromotions(move, pieceToMove);
 			// Handle castling secondary rook moves...
 			if (pieceToMove instanceof King)
 				castling.performSecondaryCastlingMove(move);
 			// Handle any initial 2 square pawn moves that are subject to en passant rule
-			checkToSetEnPassantTargetSq(move, pieceToMove);
+			enPassantManager.checkToSetEnPassantTargetSq(move, pieceToMove);
 			// Store this move in the previous moves list
 			savePreviousMove(move, pieceToMove, enPassantCapture, prevEnPassantTargetSq);
 			// Update the piece's square.
@@ -304,17 +304,22 @@ public class BoardManager implements IBoardManager {
 		previousMoves.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq));
 	}
 
+	private void unperformMove( GenericMove move ) throws InvalidPieceException {
+		// Move the piece
+		Piece pieceToMove = theBoard.pickUpPieceAtSquare( move.from );
+		if ( pieceToMove != null ) {
+			// Handle castling secondary rook moves...
+			if (pieceToMove instanceof King)
+				castling.unperformSecondaryCastlingMove(move);
+			updateSquarePieceOccupies(move.to, pieceToMove);
+		} else {
+			throw new InvalidPieceException(move.from);
+		}
+	}
+
 	void updateSquarePieceOccupies(GenericPosition newSq, Piece pieceToMove) {
 		pieceToMove.setSquare(newSq);
 		theBoard.setPieceAtSquare(pieceToMove);
-	}
-
-	private boolean isEnPassantCapture(GenericMove move, Piece pieceToMove) {
-		boolean enPassantCapture = false;
-		if ( enPassantTargetSq != null && pieceToMove instanceof Pawn && move.to == enPassantTargetSq) {
-			enPassantCapture = true;
-		}
-		return enPassantCapture;
 	}
 
 	private Piece checkForPawnPromotions(GenericMove move, Piece pieceToMove) {
@@ -337,37 +342,5 @@ public class BoardManager implements IBoardManager {
 			}
 		}
 		return pieceToMove;
-	}
-
-	private void checkToSetEnPassantTargetSq(GenericMove move, Piece pieceToMove) {
-		if ( pieceToMove instanceof Pawn ) {
-			Pawn pawnPiece = (Pawn) pieceToMove;
-			if ( pawnPiece.isAtInitialPosition()) {
-				if ( pawnPiece.isWhite()) {
-					if (move.to.rank == GenericRank.R4) {
-						GenericPosition enPassantWhite = GenericPosition.valueOf(move.to.file,GenericRank.R3);
-						enPassantTargetSq = enPassantWhite;
-					}
-				} else {
-					if (move.to.rank == GenericRank.R5) {
-						GenericPosition enPassantBlack = GenericPosition.valueOf(move.to.file,GenericRank.R6);
-						enPassantTargetSq = enPassantBlack;
-					}						
-				}
-			}
-		}
-	}
-	
-	private void unperformMove( GenericMove move ) throws InvalidPieceException {
-		// Move the piece
-		Piece pieceToMove = theBoard.pickUpPieceAtSquare( move.from );
-		if ( pieceToMove != null ) {
-			// Handle castling secondary rook moves...
-			if (pieceToMove instanceof King)
-				castling.unperformSecondaryCastlingMove(move);
-			updateSquarePieceOccupies(move.to, pieceToMove);
-		} else {
-			throw new InvalidPieceException(move.from);
-		}
 	}
 }

@@ -71,7 +71,7 @@ public class Pawn extends PieceSinglesquareDirectMove {
 		Piece queryPiece = bm.getTheBoard().getPieceAtSquare( captureAt );
 		if ( queryPiece != null ) {
 			isCapturable = isOppositeColour( queryPiece );
-		} else if (captureAt == bm.getEnPassantTargetSq()) {
+		} else if (captureAt == bm.getEnPassantManager().getEnPassantTargetSq()) {
 			isCapturable = true;
 		}
 		return isCapturable;
