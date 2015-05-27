@@ -19,7 +19,7 @@ public class BoardManagerTest {
 	@Test
 	public void test_NoLastMoveToUndo() throws InvalidPieceException {
 		classUnderTest = new BoardManager();
-		classUnderTest.undoPreviousMove();
+		classUnderTest.unperformMove();
 	}
 	
 	@Test
@@ -35,7 +35,7 @@ public class BoardManagerTest {
 		//   abcdefgh
 		classUnderTest = new BoardManager("8/8/8/8/8/8/4P3/8 w - - - -");
 		classUnderTest.performMove(new GenericMove("e2e4"));
-		classUnderTest.undoPreviousMove();
+		classUnderTest.unperformMove();
 		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.e2 );
 		assertTrue( expectPawn instanceof Pawn );
 		assertTrue( expectPawn.isWhite());		
@@ -54,7 +54,7 @@ public class BoardManagerTest {
 		//   abcdefgh
 		classUnderTest = new BoardManager("8/8/8/8/8/8/4p3/8 b - - - -");
 		classUnderTest.performMove( new GenericMove("e2e1Q"));
-		classUnderTest.undoPreviousMove();
+		classUnderTest.unperformMove();
 		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.e2 );
 		assertTrue( expectPawn instanceof Pawn );
 		assertTrue( expectPawn.isBlack());
@@ -73,7 +73,7 @@ public class BoardManagerTest {
 		//   abcdefgh
 		classUnderTest = new BoardManager("8/8/8/8/8/3p4/4P3/8 w - - - -");
 		classUnderTest.performMove( new GenericMove("d3e2"));
-		classUnderTest.undoPreviousMove();
+		classUnderTest.unperformMove();
 		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.d3 );
 		assertTrue( expectPawn instanceof Pawn );
 		assertTrue( expectPawn.isBlack());
@@ -129,7 +129,7 @@ public class BoardManagerTest {
 		assertTrue(whiteRook == null);
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.f1);
 		assertTrue(whiteRook instanceof Rook);
-		classUnderTest.undoPreviousMove();
+		classUnderTest.unperformMove();
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.f1);
 		assertTrue(whiteRook == null);
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.h1);

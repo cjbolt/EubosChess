@@ -2,7 +2,6 @@ package eubos.board;
 
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Stack;
 
 import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericMove;
@@ -33,39 +32,11 @@ public class BoardManager implements IBoardManager {
 	private EnPassantManager enPassant = new EnPassantManager( null );
 	public EnPassantManager getEnPassantManager() {
 		return enPassant;
-	}	
+	}
 	
-	public class TrackedMove {
-		private GenericMove move = null;
-		private Piece capturedPiece = null;
-		private GenericPosition enPassantTarget = null; 
-
-		public TrackedMove( GenericMove inMove ) { move = inMove; }
-		public TrackedMove( GenericMove inMove, Piece capture, GenericPosition enP ) {
-			move = inMove; 
-			capturedPiece = capture;
-			enPassantTarget = enP;
-		}
-		public boolean isCapture() { return ((capturedPiece != null) ? true : false); }
-
-		public GenericMove getMove() {
-			return move;
-		}
-		public void setMove(GenericMove move) {
-			this.move = move;
-		}
-		public Piece getCapturedPiece() {
-			return capturedPiece;
-		}
-		public void setCapturedPiece(Piece capturedPiece) {
-			this.capturedPiece = capturedPiece;
-		}
-		public GenericPosition getEnPassantTarget() {
-			return enPassantTarget;
-		}
-		public void setEnPassantTarget(GenericPosition enPassantTarget) {
-			this.enPassantTarget = enPassantTarget;
-		}
+	private MoveTracker moveTracker = new MoveTracker();
+	public MoveTracker getMoveTracker() {
+		return moveTracker;
 	}
 
 	public class fenParser {
@@ -182,8 +153,6 @@ public class BoardManager implements IBoardManager {
 		}
 	}
 
-	private Stack<TrackedMove> previousMoves;
-	
 	// No public setter, because onMove is only changed by performing a move on the board.
 	private Colour onMove;
 	public Colour getOnMove() {
@@ -208,7 +177,6 @@ public class BoardManager implements IBoardManager {
 					blackKing = king;
 			}
 		}
-
 	}
 
 	public BoardManager() {
@@ -216,7 +184,7 @@ public class BoardManager implements IBoardManager {
 	}
 	
 	public BoardManager( Board startingPosition, Piece.Colour colourToMove ) {
-		previousMoves = new Stack<TrackedMove>();
+		moveTracker = new MoveTracker();
 		theBoard = startingPosition;
 		castling = new CastlingManager(this);
 		onMove = colourToMove;
@@ -224,36 +192,9 @@ public class BoardManager implements IBoardManager {
 	}
 	
 	public BoardManager( String fenString ) {
-		previousMoves = new Stack<TrackedMove>();
+		moveTracker = new MoveTracker();
 		new fenParser( this, fenString );
 		setKing();
-	}
-	
-	public void undoPreviousMove() throws InvalidPieceException {
-		if ( !previousMoves.isEmpty()) {
-			enPassant.setEnPassantTargetSq(null);
-			TrackedMove tm = previousMoves.pop();
-			GenericMove moveToUndo = tm.getMove();
-			if ( moveToUndo.promotion != null ) {
-				Piece.Colour colourToCreate = theBoard.getPieceAtSquare(moveToUndo.to).getColour();
-				theBoard.setPieceAtSquare( new Pawn( colourToCreate, moveToUndo.to ));
-			}
-			unperformMove( new GenericMove( moveToUndo.to, moveToUndo.from ) );
-			if ( tm.isCapture()) {
-				theBoard.setPieceAtSquare(tm.getCapturedPiece());
-			}
-			enPassant.setEnPassantTargetSq(tm.getEnPassantTarget());
-			// Update onMove
-			onMove = Piece.Colour.getOpposite(onMove);
-		}
-	}
-	
-	public boolean lastMoveWasCapture() {
-		boolean wasCapture = false;
-		if ( !previousMoves.isEmpty()) {
-			wasCapture = previousMoves.peek().isCapture();
-		}
-		return wasCapture;
 	}
 	
 	public void performMove( GenericMove move ) throws InvalidPieceException {
@@ -297,19 +238,37 @@ public class BoardManager implements IBoardManager {
 			GenericPosition capturePos = GenericPosition.valueOf(move.to.file,rank);
 			captureTarget = theBoard.captureAtSquare(capturePos);
 		}
-		previousMoves.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq));
+		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq));
 	}
 
-	private void unperformMove( GenericMove move ) throws InvalidPieceException {
-		// Move the piece
-		Piece pieceToMove = theBoard.pickUpPieceAtSquare( move.from );
-		if ( pieceToMove != null ) {
-			// Handle castling secondary rook moves...
-			if (pieceToMove instanceof King)
-				castling.unperformSecondaryCastlingMove(move);
-			updateSquarePieceOccupies(move.to, pieceToMove);
-		} else {
-			throw new InvalidPieceException(move.from);
+	public void unperformMove() throws InvalidPieceException {
+		if ( !moveTracker.isEmpty()) {
+			enPassant.setEnPassantTargetSq(null);
+			TrackedMove tm = moveTracker.pop();
+			GenericMove moveToUndo = tm.getMove();
+			// Handle reversal of any pawn promotion that had been previously applied
+			if ( moveToUndo.promotion != null ) {
+				Piece.Colour colourToCreate = theBoard.getPieceAtSquare(moveToUndo.to).getColour();
+				theBoard.setPieceAtSquare( new Pawn( colourToCreate, moveToUndo.to ));
+			}
+			// Actually undo the move by reversing its direction and reapplying it.
+			GenericMove reversedMove = new GenericMove( moveToUndo.to, moveToUndo.from );
+			Piece pieceToMove = theBoard.pickUpPieceAtSquare( reversedMove.from );
+			if ( pieceToMove != null ) {
+				// Handle reversal of any castling secondary rook moves...
+				if (pieceToMove instanceof King)
+					castling.unperformSecondaryCastlingMove(reversedMove);
+				updateSquarePieceOccupies(reversedMove.to, pieceToMove);
+			} else {
+				throw new InvalidPieceException(reversedMove.from);
+			}
+			// Undo any capture that had been previously performed.
+			if ( tm.isCapture()) {
+				theBoard.setPieceAtSquare(tm.getCapturedPiece());
+			}
+			enPassant.setEnPassantTargetSq(tm.getEnPassantTarget());
+			// Update onMove flag
+			onMove = Piece.Colour.getOpposite(onMove);
 		}
 	}
 
@@ -317,7 +276,7 @@ public class BoardManager implements IBoardManager {
 		pieceToMove.setSquare(newSq);
 		theBoard.setPieceAtSquare(pieceToMove);
 	}
-
+	
 	private Piece checkForPawnPromotions(GenericMove move, Piece pieceToMove) {
 		if ( move.promotion != null ) {
 			switch( move.promotion ) {

@@ -97,7 +97,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			}
 			// 3) Having assessed the position, undo the move
 			debug.printUndoMove(currPly, currMove);
-			bm.undoPreviousMove();
+			bm.unperformMove();
 			sm.incrementNodesSearched();
 			// 4a) Back-up the position score and update the principal continuation...
 			if (backUpIsRequired(currPly, positionScore)) {
@@ -238,12 +238,12 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 				iter_ml.remove();
 			// Groom the movelist so that the moves expected to be best are searched first.
 			// This is to get max benefit form alpha beta algorithm
-			else if (bm.lastMoveWasCapture()) {
+			else if (bm.getMoveTracker().lastMoveWasCapture()) {
 				newMoveList.add(0, currMove);
 			} else {
 				newMoveList.add(currMove);
 			}
-			bm.undoPreviousMove();
+			bm.unperformMove();
 		}
 		entireMoveList = newMoveList;
 		if (entireMoveList.isEmpty()) {

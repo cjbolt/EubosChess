@@ -40,7 +40,7 @@ public class RandomMoveGenerator extends MoveGenerator implements IMoveGenerator
 			if (inCheck(ownKing)) {
 				iter_ml.remove();
 			}
-			bm.undoPreviousMove();
+			bm.unperformMove();
 		}
 		if ( !entireMoveList.isEmpty()) {
 			// For the time-being, return a random valid move, not the best move.
