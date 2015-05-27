@@ -39,7 +39,150 @@ public class BoardManager implements IBoardManager {
 		return moveTracker;
 	}
 
-	public class fenParser {
+
+	// No public setter, because onMove is only changed by performing a move on the board.
+	private Colour onMove;
+	public Colour getOnMove() {
+		return onMove;
+	}
+
+	private King whiteKing;
+	private King blackKing;
+	public King getKing( Colour colour ) {
+		return ((colour == Colour.white) ? whiteKing : blackKing);
+	}
+	private void setKing() {
+		King king = null;
+		Iterator<Piece> iterAllPieces = theBoard.iterator();
+		while (iterAllPieces.hasNext()) {
+			Piece currPiece = iterAllPieces.next();
+			if ( currPiece instanceof King ) {
+				king = (King)currPiece;
+				if (king.isWhite())
+					whiteKing = king;
+				else 
+					blackKing = king;
+			}
+		}
+	}
+
+	public BoardManager() {
+		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	}
+	
+	public BoardManager( Board startingPosition, Piece.Colour colourToMove ) {
+		moveTracker = new MoveTracker();
+		theBoard = startingPosition;
+		castling = new CastlingManager(this);
+		onMove = colourToMove;
+		setKing();
+	}
+	
+	public BoardManager( String fenString ) {
+		moveTracker = new MoveTracker();
+		new fenParser( this, fenString );
+		setKing();
+	}
+	
+	public void performMove( GenericMove move ) throws InvalidPieceException {
+		// Move the piece
+		Piece pieceToMove = theBoard.pickUpPieceAtSquare( move.from );
+		if ( pieceToMove != null ) {
+			// Flag if move is an en passant capture
+			boolean enPassantCapture = enPassant.isEnPassantCapture(move, pieceToMove);
+			// Save previous en passant square and initialise for this move
+			GenericPosition prevEnPassantTargetSq = enPassant.getEnPassantTargetSq();
+			enPassant.setEnPassantTargetSq(null);
+			// Handle pawn promotion moves
+			pieceToMove = checkForPawnPromotions(move, pieceToMove);
+			// Handle castling secondary rook moves...
+			if (pieceToMove instanceof King)
+				castling.performSecondaryCastlingMove(move);
+			// Handle any initial 2 square pawn moves that are subject to en passant rule
+			enPassant.checkToSetEnPassantTargetSq(move, pieceToMove);
+			// Apply this move to the Move Tracker
+			Piece captureTarget = null;
+			if (enPassantCapture) {
+				GenericRank rank;
+				if (pieceToMove.isWhite()) {
+					rank = GenericRank.R5;
+				} else {
+					rank = GenericRank.R4;
+				}
+				GenericPosition capturePos = GenericPosition.valueOf(move.to.file,rank);
+				captureTarget = theBoard.captureAtSquare(capturePos);
+			} else {
+				captureTarget = theBoard.captureAtSquare(move.to);
+			}
+			moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq));
+			// Update the piece's square.
+			updateSquarePieceOccupies(move.to, pieceToMove);
+			// Update onMove
+			onMove = Colour.getOpposite(onMove);
+		} else {
+			throw new InvalidPieceException(move.from);
+		}
+	}
+
+	public void unperformMove() throws InvalidPieceException {
+		if ( !moveTracker.isEmpty()) {
+			enPassant.setEnPassantTargetSq(null);
+			TrackedMove tm = moveTracker.pop();
+			GenericMove moveToUndo = tm.getMove();
+			// Handle reversal of any pawn promotion that had been previously applied
+			if ( moveToUndo.promotion != null ) {
+				Piece.Colour colourToCreate = theBoard.getPieceAtSquare(moveToUndo.to).getColour();
+				theBoard.setPieceAtSquare( new Pawn( colourToCreate, moveToUndo.to ));
+			}
+			// Actually undo the move by reversing its direction and reapplying it.
+			GenericMove reversedMove = new GenericMove( moveToUndo.to, moveToUndo.from );
+			Piece pieceToMove = theBoard.pickUpPieceAtSquare( reversedMove.from );
+			if ( pieceToMove != null ) {
+				// Handle reversal of any castling secondary rook moves...
+				if (pieceToMove instanceof King)
+					castling.unperformSecondaryCastlingMove(reversedMove);
+				updateSquarePieceOccupies(reversedMove.to, pieceToMove);
+			} else {
+				throw new InvalidPieceException(reversedMove.from);
+			}
+			// Undo any capture that had been previously performed.
+			if ( tm.isCapture()) {
+				theBoard.setPieceAtSquare(tm.getCapturedPiece());
+			}
+			enPassant.setEnPassantTargetSq(tm.getEnPassantTarget());
+			// Update onMove flag
+			onMove = Piece.Colour.getOpposite(onMove);
+		}
+	}
+
+	void updateSquarePieceOccupies(GenericPosition newSq, Piece pieceToMove) {
+		pieceToMove.setSquare(newSq);
+		theBoard.setPieceAtSquare(pieceToMove);
+	}
+	
+	private Piece checkForPawnPromotions(GenericMove move, Piece pieceToMove) {
+		if ( move.promotion != null ) {
+			switch( move.promotion ) {
+			case QUEEN:
+				pieceToMove = new Queen(pieceToMove.getColour(), null );
+				break;
+			case KNIGHT:
+				pieceToMove = new Knight(pieceToMove.getColour(), null );
+				break;
+			case BISHOP:
+				pieceToMove = new Bishop(pieceToMove.getColour(), null );
+				break;
+			case ROOK:
+				pieceToMove = new Rook(pieceToMove.getColour(), null );
+				break;
+			default:
+				break;
+			}
+		}
+		return pieceToMove;
+	}
+	
+	private class fenParser {
 		private LinkedList<Piece> pl;
 		
 		public fenParser( BoardManager bm, String fenString ) {
@@ -151,151 +294,5 @@ public class BoardManager implements IBoardManager {
 		private void create() {
 			theBoard =  new Board( pl );
 		}
-	}
-
-	// No public setter, because onMove is only changed by performing a move on the board.
-	private Colour onMove;
-	public Colour getOnMove() {
-		return onMove;
-	}
-
-	private King whiteKing;
-	private King blackKing;
-	public King getKing( Colour colour ) {
-		return ((colour == Colour.white) ? whiteKing : blackKing);
-	}
-	private void setKing() {
-		King king = null;
-		Iterator<Piece> iterAllPieces = theBoard.iterator();
-		while (iterAllPieces.hasNext()) {
-			Piece currPiece = iterAllPieces.next();
-			if ( currPiece instanceof King ) {
-				king = (King)currPiece;
-				if (king.isWhite())
-					whiteKing = king;
-				else 
-					blackKing = king;
-			}
-		}
-	}
-
-	public BoardManager() {
-		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-	}
-	
-	public BoardManager( Board startingPosition, Piece.Colour colourToMove ) {
-		moveTracker = new MoveTracker();
-		theBoard = startingPosition;
-		castling = new CastlingManager(this);
-		onMove = colourToMove;
-		setKing();
-	}
-	
-	public BoardManager( String fenString ) {
-		moveTracker = new MoveTracker();
-		new fenParser( this, fenString );
-		setKing();
-	}
-	
-	public void performMove( GenericMove move ) throws InvalidPieceException {
-		// Move the piece
-		Piece pieceToMove = theBoard.pickUpPieceAtSquare( move.from );
-		if ( pieceToMove != null ) {
-			// Flag if move is an en passant capture
-			boolean enPassantCapture = enPassant.isEnPassantCapture(move, pieceToMove);
-			// Save previous en passant square and initialise for this move
-			GenericPosition prevEnPassantTargetSq = enPassant.getEnPassantTargetSq();
-			enPassant.setEnPassantTargetSq(null);
-			// Handle pawn promotion moves
-			pieceToMove = checkForPawnPromotions(move, pieceToMove);
-			// Handle castling secondary rook moves...
-			if (pieceToMove instanceof King)
-				castling.performSecondaryCastlingMove(move);
-			// Handle any initial 2 square pawn moves that are subject to en passant rule
-			enPassant.checkToSetEnPassantTargetSq(move, pieceToMove);
-			// Store this move in the previous moves list
-			savePreviousMove(move, pieceToMove, enPassantCapture, prevEnPassantTargetSq);
-			// Update the piece's square.
-			updateSquarePieceOccupies(move.to, pieceToMove);
-			// Update onMove
-			onMove = Colour.getOpposite(onMove);
-		} else {
-			throw new InvalidPieceException(move.from);
-		}
-	}
-
-	private void savePreviousMove(GenericMove move, Piece pieceToMove,
-			boolean enPassantCapture, GenericPosition prevEnPassantTargetSq) 
-					throws InvalidPieceException {
-		Piece captureTarget = theBoard.captureAtSquare(move.to);
-		GenericRank rank;
-		if (enPassantCapture) {
-			if (pieceToMove.isWhite()) {
-				rank = GenericRank.R5;
-			} else {
-				rank = GenericRank.R4;
-			}
-			GenericPosition capturePos = GenericPosition.valueOf(move.to.file,rank);
-			captureTarget = theBoard.captureAtSquare(capturePos);
-		}
-		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq));
-	}
-
-	public void unperformMove() throws InvalidPieceException {
-		if ( !moveTracker.isEmpty()) {
-			enPassant.setEnPassantTargetSq(null);
-			TrackedMove tm = moveTracker.pop();
-			GenericMove moveToUndo = tm.getMove();
-			// Handle reversal of any pawn promotion that had been previously applied
-			if ( moveToUndo.promotion != null ) {
-				Piece.Colour colourToCreate = theBoard.getPieceAtSquare(moveToUndo.to).getColour();
-				theBoard.setPieceAtSquare( new Pawn( colourToCreate, moveToUndo.to ));
-			}
-			// Actually undo the move by reversing its direction and reapplying it.
-			GenericMove reversedMove = new GenericMove( moveToUndo.to, moveToUndo.from );
-			Piece pieceToMove = theBoard.pickUpPieceAtSquare( reversedMove.from );
-			if ( pieceToMove != null ) {
-				// Handle reversal of any castling secondary rook moves...
-				if (pieceToMove instanceof King)
-					castling.unperformSecondaryCastlingMove(reversedMove);
-				updateSquarePieceOccupies(reversedMove.to, pieceToMove);
-			} else {
-				throw new InvalidPieceException(reversedMove.from);
-			}
-			// Undo any capture that had been previously performed.
-			if ( tm.isCapture()) {
-				theBoard.setPieceAtSquare(tm.getCapturedPiece());
-			}
-			enPassant.setEnPassantTargetSq(tm.getEnPassantTarget());
-			// Update onMove flag
-			onMove = Piece.Colour.getOpposite(onMove);
-		}
-	}
-
-	void updateSquarePieceOccupies(GenericPosition newSq, Piece pieceToMove) {
-		pieceToMove.setSquare(newSq);
-		theBoard.setPieceAtSquare(pieceToMove);
-	}
-	
-	private Piece checkForPawnPromotions(GenericMove move, Piece pieceToMove) {
-		if ( move.promotion != null ) {
-			switch( move.promotion ) {
-			case QUEEN:
-				pieceToMove = new Queen(pieceToMove.getColour(), null );
-				break;
-			case KNIGHT:
-				pieceToMove = new Knight(pieceToMove.getColour(), null );
-				break;
-			case BISHOP:
-				pieceToMove = new Bishop(pieceToMove.getColour(), null );
-				break;
-			case ROOK:
-				pieceToMove = new Rook(pieceToMove.getColour(), null );
-				break;
-			default:
-				break;
-			}
-		}
-		return pieceToMove;
 	}
 }
