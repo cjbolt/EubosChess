@@ -24,6 +24,7 @@ public class BoardManager implements IBoardManager {
 	public Board getTheBoard() {
 		return theBoard;
 	}
+	
 	private CastlingManager castling;
 	CastlingManager getCastlingManager() {
 		return castling;
@@ -41,7 +42,6 @@ public class BoardManager implements IBoardManager {
 	public boolean lastMoveWasCapture() {
 		return moveTracker.lastMoveWasCapture();
 	}
-
 
 	// No public setter, because onMove is only changed by performing a move on the board.
 	private Colour onMove;
