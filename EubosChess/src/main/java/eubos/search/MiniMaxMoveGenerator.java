@@ -227,7 +227,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			Piece currPiece = iter_p.next();
 			entireMoveList.addAll( currPiece.generateMoves( bm ));
 		}
-		bm.getCastlingManager().addCastlingMoves(entireMoveList);
+		bm.addCastlingMoves(entireMoveList);
 		List<GenericMove> newMoveList = new ArrayList<GenericMove>();
 		Iterator<GenericMove> iter_ml = entireMoveList.iterator();
 		while ( iter_ml.hasNext() ) {
@@ -238,7 +238,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 				iter_ml.remove();
 			// Groom the movelist so that the moves expected to be best are searched first.
 			// This is to get max benefit form alpha beta algorithm
-			else if (bm.getMoveTracker().lastMoveWasCapture()) {
+			else if (bm.lastMoveWasCapture()) {
 				newMoveList.add(0, currMove);
 			} else {
 				newMoveList.add(currMove);

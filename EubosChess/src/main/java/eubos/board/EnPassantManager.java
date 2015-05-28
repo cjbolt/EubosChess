@@ -7,7 +7,7 @@ import com.fluxchess.jcpi.models.GenericRank;
 import eubos.pieces.Pawn;
 import eubos.pieces.Piece;
 
-public class EnPassantManager {
+class EnPassantManager {
 	
 	private GenericPosition enPassantTargetSq;
 

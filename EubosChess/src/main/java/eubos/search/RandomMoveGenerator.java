@@ -31,7 +31,7 @@ public class RandomMoveGenerator extends MoveGenerator implements IMoveGenerator
 		while ( iter_p.hasNext() ) {
 			entireMoveList.addAll( iter_p.next().generateMoves( bm ));
 		}
-		bm.getCastlingManager().addCastlingMoves(entireMoveList);
+		bm.addCastlingMoves(entireMoveList);
 		// Scratch any moves resulting in the king being in check
 		Iterator<GenericMove> iter_ml = entireMoveList.iterator();
 		while ( iter_ml.hasNext() ) {

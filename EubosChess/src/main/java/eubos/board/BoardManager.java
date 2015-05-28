@@ -2,6 +2,7 @@ package eubos.board;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericMove;
@@ -19,24 +20,26 @@ import eubos.pieces.King;
 
 public class BoardManager implements IBoardManager {
 
-	private CastlingManager castling;
-	public CastlingManager getCastlingManager() {
-		return castling;
-	}
-
 	private Board theBoard;
 	public Board getTheBoard() {
 		return theBoard;
 	}
-	
+	private CastlingManager castling;
+	CastlingManager getCastlingManager() {
+		return castling;
+	}
+	public void addCastlingMoves(List<GenericMove> ml) {
+		castling.addCastlingMoves(ml);
+	}
+
 	private EnPassantManager enPassant = new EnPassantManager( null );
-	public EnPassantManager getEnPassantManager() {
-		return enPassant;
+	public GenericPosition getEnPassantTargetSq() {
+		return enPassant.getEnPassantTargetSq();
 	}
 	
 	private MoveTracker moveTracker = new MoveTracker();
-	public MoveTracker getMoveTracker() {
-		return moveTracker;
+	public boolean lastMoveWasCapture() {
+		return moveTracker.lastMoveWasCapture();
 	}
 
 
