@@ -247,16 +247,16 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		}
 		entireMoveList = newMoveList;
 		if (entireMoveList.isEmpty()) {
-			if (kingIsInCheck && initialOnMove==Colour.getOpposite(bm.getOnMove())) {
-				// Indicates checkmate of opponent! Perform an immediate backup of score and abort the 
-				// search of any moves deeper than the previous node in the search tree. 
+			if (kingIsInCheck) {
+				// Either of:
+				// (initialOnMove!=bm.getOnMove()) indicates checkmate of opponent!
+				// (initialOnMove==bm.getOnMove()) indicates a checkmate of self!
+				// Perform an immediate backup of score and abort the  search of
+				// any moves deeper than the previous node in the search tree. 
 				// However, search the rest of the tree, as this may yield earlier forced mates.
-				mateFound = true;
-			} else if (kingIsInCheck && initialOnMove==bm.getOnMove()) {
-				// Indicates a checkmate of self!
-				mateFound = true;
+				mateFound = true;					
 			} else {
-				// Indicates a stalemate position.
+				// the position is a stalemate.
 				stalemateFound = true;
 			}
 		}

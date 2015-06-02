@@ -22,11 +22,12 @@ public class MoveGenerator {
 		// N.b. the onMove colour has been advanced when the move was performed!
 		boolean inCheck = false;
 		if ( ownKing != null ) {
-			Iterator<Piece> iterPotentialAttackers = bm.getTheBoard().iterateColour(Piece.Colour.getOpposite(ownKing.getColour()));
+			GenericPosition [] ownKingSq = { ownKing.getSquare() };
+			Piece.Colour attackingColour = Piece.Colour.getOpposite(ownKing.getColour());
+			Iterator<Piece> iterPotentialAttackers = bm.getTheBoard().iterateColour(attackingColour);
 			while (iterPotentialAttackers.hasNext()) {
 				Piece currPiece = iterPotentialAttackers.next();
-				GenericPosition [] pos = { ownKing.getSquare() };
-				if (currPiece.attacks( bm, pos )) {
+				if (currPiece.attacks( bm, ownKingSq )) {
 					inCheck = true;
 					break;
 				}
