@@ -66,4 +66,57 @@ public class King extends PieceSinglesquareDirectMove {
 		targetSqs.add(getOneSq(Direction.upLeft));
 		return (evaluateIfAttacks( pos, targetSqs ));
 	}
+	
+	public boolean attacked(BoardManager bm) {
+		boolean attacked = false;
+		Board bd = bm.getTheBoard();
+		GenericPosition atPos = null;
+		Piece currPiece = null;
+		Piece.Colour attackingColour = Colour.getOpposite(this.colour);
+		// check for pawn attacks
+		if (this.isWhite()) {
+			atPos = getOneSq(Direction.upRight);
+			if (atPos != null) {
+				currPiece = bd.getPieceAtSquare(atPos);
+				if ( currPiece != null && currPiece instanceof Pawn) {
+					Pawn currPawn = (Pawn) currPiece;
+					if (currPawn.isBlack()) {
+						attacked = true;
+					}
+				}
+			}
+			atPos = getOneSq(Direction.upLeft);
+			if (atPos != null) {
+				currPiece = bd.getPieceAtSquare(atPos);
+				if ( currPiece != null && currPiece instanceof Pawn) {
+					Pawn currPawn = (Pawn) currPiece;
+					if (currPawn.isBlack()) {
+						attacked = true;
+					}
+				}
+			}
+		} else {
+			atPos = getOneSq(Direction.downRight);
+			if (atPos != null) {
+				currPiece = bd.getPieceAtSquare(atPos);
+				if ( currPiece != null && currPiece instanceof Pawn) {
+					Pawn currPawn = (Pawn) currPiece;
+					if (currPawn.isWhite()) {
+						attacked = true;
+					}
+				}
+			}
+			atPos = getOneSq(Direction.downLeft);
+			if (atPos != null) {
+				currPiece = bd.getPieceAtSquare(atPos);
+				if ( currPiece != null && currPiece instanceof Pawn) {
+					Pawn currPawn = (Pawn) currPiece;
+					if (currPawn.isWhite()) {
+						attacked = true;
+					}
+				}
+			}
+		}
+		return attacked;
+	}
 }

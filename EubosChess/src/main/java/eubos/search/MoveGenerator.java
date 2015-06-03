@@ -22,6 +22,8 @@ public class MoveGenerator {
 		// N.b. the onMove colour has been advanced when the move was performed!
 		boolean inCheck = false;
 		if ( ownKing != null ) {
+			// TODO instead of calculating if the ownKingSq is in each pieces attacked sqs, calculate
+			// in the opposite direction, i.e. is this square attacked, by working outwards from it.
 			GenericPosition [] ownKingSq = { ownKing.getSquare() };
 			Piece.Colour attackingColour = Piece.Colour.getOpposite(ownKing.getColour());
 			Iterator<Piece> iterPotentialAttackers = bm.getTheBoard().iterateColour(attackingColour);
