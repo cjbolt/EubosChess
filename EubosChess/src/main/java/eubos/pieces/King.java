@@ -72,63 +72,74 @@ public class King extends PieceSinglesquareDirectMove {
 	public boolean attacked(BoardManager bm) {
 		boolean attacked = false;
 		Board bd = bm.getTheBoard();
-		GenericPosition atPos = null;
-		Piece currPiece = null;
-		Piece.Colour attackingColour = Colour.getOpposite(this.colour);
-		// Check for pawn attacks
-		atPos = getOneSq(Direction.upRight);
-		attacked = attackedByPawn(bd, atPos, attackingColour);
-		if (attacked) return attacked;
-		atPos = getOneSq(Direction.upLeft);
-		attacked = attackedByPawn(bd, atPos, attackingColour);
-		if (attacked) return attacked;
-		atPos = getOneSq(Direction.downRight);
-		attacked = attackedByPawn(bd, atPos, attackingColour);
-		if (attacked) return attacked;
-		atPos = getOneSq(Direction.downLeft);
-		attacked = attackedByPawn(bd, atPos, attackingColour);
-		if (attacked) return attacked;
-		// Check for king presence (to avoid moving into check by the enemy king)
-		for (Direction dir: Direction.values()) {
-			atPos = getOneSq(dir);
-			if (atPos != null) {
-				currPiece = bd.getPieceAtSquare(atPos);
-				if ( currPiece != null && currPiece instanceof King && currPiece.getColour() == attackingColour) {
-					attacked = true;
-				}
-			}
-		}
-		if (attacked) return attacked;
-		// Check for knight attacks
+		// do/while loop is to allow the function to return attacked=true at earliest possibility
+		do {
+			// Check for pawn attacks
+			attacked |= attackedByPawn(bd, getOneSq(Direction.upRight));
+			attacked |= attackedByPawn(bd, getOneSq(Direction.upLeft));
+			attacked |= attackedByPawn(bd, getOneSq(Direction.downRight));
+			attacked |= attackedByPawn(bd, getOneSq(Direction.downLeft));
+			if (attacked) break;
+			// Check for king presence (to avoid moving into check by the enemy king)
+			attacked = checkForKingPresence(bd);
+			if (attacked) break;
+			// Check for knight attacks
+			attacked = checkForKnightAttacks(bd);
+			if (attacked) break;
+			// check for diagonal attacks
+			attacked = checkForAttackerOnDiagonal(bd, getAllSqs(Direction.downLeft, bd));
+			if (attacked) break;
+			attacked = checkForAttackerOnDiagonal(bd, getAllSqs(Direction.upLeft, bd));
+			if (attacked) break;
+			attacked = checkForAttackerOnDiagonal(bd, getAllSqs(Direction.downRight, bd));
+			if (attacked) break;
+			attacked = checkForAttackerOnDiagonal(bd, getAllSqs(Direction.upRight, bd));
+			if (attacked) break;
+			// check for rank or file attacks
+			attacked = checkForAttackerOnRankFile(bd, getAllSqs(Direction.down, bd));
+			if (attacked) break;
+			attacked = checkForAttackerOnRankFile(bd, getAllSqs(Direction.up, bd));
+			if (attacked) break;
+			attacked = checkForAttackerOnRankFile(bd, getAllSqs(Direction.left, bd));
+			if (attacked) break;
+			attacked = checkForAttackerOnRankFile(bd, getAllSqs(Direction.right, bd));
+		} while (false);
+		return attacked;
+	}
+
+	private boolean checkForKnightAttacks(Board bd) {
+		boolean attacked = false;
+		GenericPosition atPos;
+		Piece currPiece;
 		for (Direction dir: Direction.values()) {
 			atPos = Direction.getIndirectMoveSq(dir, onSquare);
 			if (atPos != null) {
 				currPiece = bd.getPieceAtSquare(atPos);
-				if ( currPiece != null && currPiece instanceof Knight && currPiece.getColour() == attackingColour) {
+				if ( currPiece != null && currPiece instanceof Knight && isOppositeColour(currPiece)) {
 					attacked = true;
+					break;
 				}
 			}
 		}
-		if (attacked) return attacked;		
-		// check for diagonal attacks
-		attacked = checkForAttackerOnDiagonal(bd, getAllSqs(Direction.downLeft, bd));
-		if (attacked) return attacked;
-		attacked = checkForAttackerOnDiagonal(bd, getAllSqs(Direction.upLeft, bd));
-		if (attacked) return attacked;
-		attacked = checkForAttackerOnDiagonal(bd, getAllSqs(Direction.downRight, bd));
-		if (attacked) return attacked;
-		attacked = checkForAttackerOnDiagonal(bd, getAllSqs(Direction.upRight, bd));
-		if (attacked) return attacked;
-		// check for rank or file attacks
-		attacked = checkForAttackerOnRankFile(bd, getAllSqs(Direction.down, bd));
-		if (attacked) return attacked;
-		attacked = checkForAttackerOnRankFile(bd, getAllSqs(Direction.up, bd));
-		if (attacked) return attacked;
-		attacked = checkForAttackerOnRankFile(bd, getAllSqs(Direction.left, bd));
-		if (attacked) return attacked;
-		attacked = checkForAttackerOnRankFile(bd, getAllSqs(Direction.right, bd));
 		return attacked;
 	}
+	
+	private boolean checkForKingPresence(Board bd) {
+		boolean attacked = false;
+		GenericPosition atPos;
+		Piece currPiece;
+		for (Direction dir: Direction.values()) {
+			atPos = Direction.getDirectMoveSq(dir, onSquare);
+			if (atPos != null) {
+				currPiece = bd.getPieceAtSquare(atPos);
+				if ( currPiece != null && currPiece instanceof King && isOppositeColour(currPiece)) {
+					attacked = true;
+					break;
+				}
+			}
+		}
+		return attacked;
+	}	
 
 	private List<GenericPosition> getAllSqs(Direction dir, Board theBoard) {
 		ArrayList<GenericPosition> targetSquares = new ArrayList<GenericPosition>();
@@ -179,12 +190,12 @@ public class King extends PieceSinglesquareDirectMove {
 		return attacked;
 	}	
 	
-	private boolean attackedByPawn(Board bd, GenericPosition atPos, Piece.Colour attackingColour) {
+	private boolean attackedByPawn(Board bd, GenericPosition atPos) {
 		Piece currPiece;
 		boolean attacked = false;
 		if (atPos != null) {
 			currPiece = bd.getPieceAtSquare(atPos);
-			if ( currPiece != null && currPiece instanceof Pawn && currPiece.getColour() == attackingColour) {
+			if ( currPiece != null && currPiece instanceof Pawn && isOppositeColour(currPiece)) {
 				attacked = true;
 			}
 		}
