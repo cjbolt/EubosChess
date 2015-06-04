@@ -1,7 +1,6 @@
 package eubos.pieces;
 
 import java.util.LinkedList;
-import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
@@ -30,19 +29,5 @@ public class Queen extends PieceMultisquareDirectMove {
 		addMoves(moveList, theBoard, getAllSqs(Direction.left, theBoard));
 		addMoves(moveList, theBoard, getAllSqs(Direction.right, theBoard));
 		return moveList;	
-	}
-
-	@Override
-	public boolean attacks(BoardManager bm, GenericPosition [] pos) {
-		Board theBoard = bm.getTheBoard();
-		List<GenericPosition> targetSqs = getAllSqs(Direction.downLeft, theBoard);
-		targetSqs.addAll(getAllSqs(Direction.upLeft, theBoard));
-		targetSqs.addAll(getAllSqs(Direction.downRight, theBoard));
-		targetSqs.addAll(getAllSqs(Direction.upRight, theBoard));
-		targetSqs.addAll(getAllSqs(Direction.down, theBoard));
-		targetSqs.addAll(getAllSqs(Direction.up, theBoard));
-		targetSqs.addAll(getAllSqs(Direction.left, theBoard));
-		targetSqs.addAll(getAllSqs(Direction.right, theBoard));
-		return (evaluateIfAttacks( pos, targetSqs ));
 	}
 }

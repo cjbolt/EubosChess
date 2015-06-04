@@ -1,6 +1,5 @@
 package eubos.board;
 
-import java.util.Iterator;
 import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -176,12 +175,8 @@ class CastlingManager {
 			if ( !theBoard.squareIsEmpty(emptySq))
 				return false;
 		}
-		Iterator<Piece> iterPotentialAttackers = theBoard.iterateColour(Piece.Colour.getOpposite(bm.getOnMove()));
-		while (iterPotentialAttackers.hasNext()) {
-			// None of the intervening squares between King and Rook should be attacked
-			// the king cannot be in check at the start or end of the move
-			Piece currPiece = iterPotentialAttackers.next();
-			if (currPiece.attacks( bm, checkSqs)) {
+		for (GenericPosition sqToCheck: checkSqs) {
+			if (bm.squareIsAttacked(sqToCheck, bm.getOnMove())) {
 				return false;
 			}
 		}

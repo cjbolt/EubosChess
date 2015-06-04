@@ -118,14 +118,4 @@ public class Pawn extends PieceSinglesquareDirectMove {
 		}
 		return moveList;
 	}
-	
-	@Override
-	public boolean attacks( BoardManager bm, GenericPosition [] pos ) {
-		boolean isAnyAttacked = false;
-		for ( GenericPosition sqToCheck : pos ) {
-			if (sqToCheck.equals(genRightCaptureTarget()) || sqToCheck.equals(genLeftCaptureTarget()))
-				isAnyAttacked = true;
-		}
-		return isAnyAttacked;
-	}
 }

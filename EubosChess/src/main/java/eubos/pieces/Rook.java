@@ -27,14 +27,4 @@ public class Rook extends PieceMultisquareDirectMove {
 		addMoves(moveList, theBoard, getAllSqs(Direction.right, theBoard));
 		return moveList;	
 	}
-
-	@Override
-	public boolean attacks(BoardManager bm, GenericPosition [] pos) {
-		Board theBoard = bm.getTheBoard();
-		List<GenericPosition> targetSqs = getAllSqs(Direction.down, theBoard);
-		targetSqs.addAll(getAllSqs(Direction.up, theBoard));
-		targetSqs.addAll(getAllSqs(Direction.left, theBoard));
-		targetSqs.addAll(getAllSqs(Direction.right, theBoard));
-		return (evaluateIfAttacks( pos, targetSqs ));
-	}
 }

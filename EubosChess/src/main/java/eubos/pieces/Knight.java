@@ -1,6 +1,5 @@
 package eubos.pieces;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 
 import com.fluxchess.jcpi.models.*;
@@ -48,19 +47,4 @@ public class Knight extends Piece {
 		checkAddMove(moveList, theBoard, getSq(Direction.leftDown));
 		return moveList;		
 	}
-
-	@Override
-	public boolean attacks(BoardManager bm, GenericPosition [] pos) {
-		ArrayList<GenericPosition> targetSqs = new ArrayList<GenericPosition>();
-		targetSqs.add(getSq(Direction.upRight));
-		targetSqs.add(getSq(Direction.upLeft));
-		targetSqs.add(getSq(Direction.rightUp));
-		targetSqs.add(getSq(Direction.rightDown));
-		targetSqs.add(getSq(Direction.downRight));
-		targetSqs.add(getSq(Direction.downLeft));
-		targetSqs.add(getSq(Direction.leftUp));
-		targetSqs.add(getSq(Direction.leftDown));
-		return (evaluateIfAttacks( pos, targetSqs ));
-	}
-
 }

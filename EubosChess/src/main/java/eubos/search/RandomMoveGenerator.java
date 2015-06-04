@@ -38,7 +38,7 @@ public class RandomMoveGenerator implements IMoveGenerator {
 		while ( iter_ml.hasNext() ) {
 			GenericMove currMove = iter_ml.next();
 			bm.performMove( currMove );
-			if (ownKing.attacked(bm)) {
+			if (bm.squareIsAttacked(ownKing.getSquare(),ownKing.getColour())) {
 				iter_ml.remove();
 			}
 			bm.unperformMove();

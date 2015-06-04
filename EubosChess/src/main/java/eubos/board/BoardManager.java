@@ -1,5 +1,6 @@
 package eubos.board;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -163,6 +164,131 @@ public class BoardManager implements IBoardManager {
 		theBoard.setPieceAtSquare(pieceToMove);
 	}
 	
+	public boolean squareIsAttacked( GenericPosition atPos, Piece.Colour ownColour ) {
+		Piece.Colour attackingColour = Piece.Colour.getOpposite(ownColour);
+		boolean attacked = false;
+		// do/while loop is to allow the function to return attacked=true at earliest possibility
+		do {
+			// Check for pawn attacks
+			attacked = attackedByPawn(Direction.getDirectMoveSq(Direction.upRight,atPos),attackingColour);
+			if (attacked) break;
+			attacked = attackedByPawn(Direction.getDirectMoveSq(Direction.upLeft,atPos),attackingColour);
+			if (attacked) break;
+			attacked = attackedByPawn(Direction.getDirectMoveSq(Direction.downRight,atPos),attackingColour);
+			if (attacked) break;
+			attacked = attackedByPawn(Direction.getDirectMoveSq(Direction.downLeft,atPos),attackingColour);
+			if (attacked) break;
+			// Check for king presence (to avoid moving into check by the enemy king)
+			attacked = checkForKingPresence(atPos,attackingColour);
+			if (attacked) break;
+			// Check for knight attacks
+			attacked = checkForKnightAttacks(atPos,attackingColour);
+			if (attacked) break;
+			// check for diagonal attacks
+			attacked = checkForAttackerOnDiagonal(getAllSqs(Direction.downLeft, atPos),attackingColour);
+			if (attacked) break;
+			attacked = checkForAttackerOnDiagonal(getAllSqs(Direction.upLeft, atPos),attackingColour);
+			if (attacked) break;
+			attacked = checkForAttackerOnDiagonal(getAllSqs(Direction.downRight, atPos),attackingColour);
+			if (attacked) break;
+			attacked = checkForAttackerOnDiagonal(getAllSqs(Direction.upRight, atPos),attackingColour);
+			if (attacked) break;
+			// check for rank or file attacks
+			attacked = checkForAttackerOnRankFile(getAllSqs(Direction.down, atPos),attackingColour);
+			if (attacked) break;
+			attacked = checkForAttackerOnRankFile(getAllSqs(Direction.up, atPos),attackingColour);
+			if (attacked) break;
+			attacked = checkForAttackerOnRankFile(getAllSqs(Direction.left, atPos),attackingColour);
+			if (attacked) break;
+			attacked = checkForAttackerOnRankFile(getAllSqs(Direction.right, atPos),attackingColour);
+		} while (false);
+		return attacked;	
+	}
+
+	private boolean checkForKnightAttacks(GenericPosition onSquare, Piece.Colour attackingColour) {
+		boolean attacked = false;
+		GenericPosition atPos;
+		Piece currPiece;
+		for (Direction dir: Direction.values()) {
+			atPos = Direction.getIndirectMoveSq(dir, onSquare);
+			if (atPos != null) {
+				currPiece = theBoard.getPieceAtSquare(atPos);
+				if ( currPiece != null && currPiece instanceof Knight && currPiece.getColour()==attackingColour) {
+					attacked = true;
+					break;
+				}
+			}
+		}
+		return attacked;
+	}
+
+	private boolean checkForKingPresence(GenericPosition onSquare, Piece.Colour attackingColour) {
+		boolean attacked = false;
+		GenericPosition atPos;
+		Piece currPiece;
+		for (Direction dir: Direction.values()) {
+			atPos = Direction.getDirectMoveSq(dir, onSquare);
+			if (atPos != null) {
+				currPiece = theBoard.getPieceAtSquare(atPos);
+				if ( currPiece != null && currPiece instanceof King && currPiece.getColour()==attackingColour) {
+					attacked = true;
+					break;
+				}
+			}
+		}
+		return attacked;
+	}	
+
+	private List<GenericPosition> getAllSqs(Direction dir, GenericPosition currTargetSq) {
+		ArrayList<GenericPosition> targetSquares = new ArrayList<GenericPosition>();
+		while ((currTargetSq = Direction.getDirectMoveSq(dir, currTargetSq)) != null) {
+			targetSquares.add(currTargetSq);
+		}
+		return targetSquares;
+	}
+
+	private boolean checkForAttackerOnDiagonal(List<GenericPosition> targetSqs, Piece.Colour attackingColour) {
+		boolean attacked = false;
+		for (GenericPosition attackerSq: targetSqs) {
+			Piece currPiece = theBoard.getPieceAtSquare(attackerSq);
+			if (currPiece != null ) {
+				if (((currPiece instanceof Bishop) || (currPiece instanceof Queen)) && currPiece.getColour()==attackingColour) {
+					// Indicates attacked
+					attacked = true;
+				} // else blocked by own piece or non-attacking enemy
+				break;
+			}
+		}
+		return attacked;
+	}
+
+	private boolean checkForAttackerOnRankFile(List<GenericPosition> targetSqs, Piece.Colour attackingColour) {
+		boolean attacked = false;
+		for (GenericPosition attackerSq: targetSqs) {
+			Piece currPiece = theBoard.getPieceAtSquare(attackerSq);
+			if (currPiece != null ) {
+				if (((currPiece instanceof Rook) || (currPiece instanceof Queen)) && currPiece.getColour()==attackingColour) {
+					// Indicates attacked
+					attacked = true;
+				} // else blocked by own piece or non-attacking enemy
+				break;
+			}
+		}
+		return attacked;
+	}	
+
+	private boolean attackedByPawn(GenericPosition atPos, Piece.Colour attackingColour) {
+		Piece currPiece;
+		boolean attacked = false;
+		if (atPos != null) {
+			currPiece = theBoard.getPieceAtSquare(atPos);
+			if ( currPiece != null && currPiece instanceof Pawn && currPiece.getColour()==attackingColour) {
+				attacked = true;
+			}
+		}
+		return attacked;
+	}
+
 	private Piece checkForPawnPromotions(GenericMove move, Piece pieceToMove) {
 		if ( move.promotion != null ) {
 			switch( move.promotion ) {

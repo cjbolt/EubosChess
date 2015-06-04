@@ -14,6 +14,7 @@ public abstract class Piece implements IPiece {
 	public boolean isWhite() { return ( colour == Colour.white ); }
 	public boolean isBlack() { return ( colour == Colour.black ); }
 	public boolean isOppositeColour(Piece toCheck) { return ( colour != toCheck.getColour()); }
+	public boolean isOppositeColour(Colour colourToCheck) { return ( colour != colourToCheck); }
 	
 	protected boolean everMoved = false;
 	public boolean hasEverMoved() {	return everMoved; }
