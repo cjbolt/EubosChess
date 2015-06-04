@@ -19,9 +19,10 @@ import eubos.pieces.Piece.Colour;
 import eubos.pieces.Queen;
 import eubos.pieces.Rook;
 
-public class MiniMaxMoveGenerator extends MoveGenerator implements
+public class MiniMaxMoveGenerator implements
 		IMoveGenerator {
 
+	private BoardManager bm;
 	private int searchDepthPly;
 	private int scores[];
 	private PrincipalContinuation pc;
@@ -36,7 +37,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 
 	// Used for unit tests
 	public MiniMaxMoveGenerator( BoardManager bm, int searchDepth ) {
-		super( bm );
+		this.bm = bm;
 		scores = new int[searchDepth];
 		searchDepthPly = searchDepth;
 		pc = new PrincipalContinuation(searchDepth);
@@ -220,7 +221,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 		List<GenericMove> entireMoveList = new ArrayList<GenericMove>();
 		// Test if the King is in check at the start of the turn
 		King ownKing = bm.getKing(bm.getOnMove());
-		boolean kingIsInCheck = inCheck(ownKing);
+		boolean kingIsInCheck = (ownKing != null) ? ownKing.attacked(bm) : false;
 		// For each piece of the "on Move" colour, add it's legal moves to the entire move list
 		Iterator<Piece> iter_p = bm.getTheBoard().iterateColour(bm.getOnMove());
 		while ( iter_p.hasNext() ) {
@@ -234,7 +235,7 @@ public class MiniMaxMoveGenerator extends MoveGenerator implements
 			GenericMove currMove = iter_ml.next();
 			bm.performMove( currMove );
 			// Scratch any moves resulting in the king being in check
-			if (inCheck(ownKing))
+			if (ownKing != null && ownKing.attacked(bm))
 				iter_ml.remove();
 			// Groom the movelist so that the moves expected to be best are searched first.
 			// This is to get max benefit form alpha beta algorithm

@@ -11,12 +11,13 @@ import eubos.board.InvalidPieceException;
 import eubos.pieces.King;
 import eubos.pieces.Piece;
 
-public class RandomMoveGenerator extends MoveGenerator implements IMoveGenerator {
+public class RandomMoveGenerator implements IMoveGenerator {
 	
+	private BoardManager bm;
 	private Piece.Colour onMove;
 	
 	public RandomMoveGenerator( BoardManager bm, Piece.Colour sideToMove ) {
-		super( bm );
+		this.bm = bm;
 		onMove = sideToMove;
 	}
 
@@ -37,7 +38,7 @@ public class RandomMoveGenerator extends MoveGenerator implements IMoveGenerator
 		while ( iter_ml.hasNext() ) {
 			GenericMove currMove = iter_ml.next();
 			bm.performMove( currMove );
-			if (inCheck(ownKing)) {
+			if (ownKing.attacked(bm)) {
 				iter_ml.remove();
 			}
 			bm.unperformMove();

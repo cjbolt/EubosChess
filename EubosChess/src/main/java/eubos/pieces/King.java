@@ -1,7 +1,6 @@
 package eubos.pieces;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -75,10 +74,13 @@ public class King extends PieceSinglesquareDirectMove {
 		// do/while loop is to allow the function to return attacked=true at earliest possibility
 		do {
 			// Check for pawn attacks
-			attacked |= attackedByPawn(bd, getOneSq(Direction.upRight));
-			attacked |= attackedByPawn(bd, getOneSq(Direction.upLeft));
-			attacked |= attackedByPawn(bd, getOneSq(Direction.downRight));
-			attacked |= attackedByPawn(bd, getOneSq(Direction.downLeft));
+			attacked = attackedByPawn(bd, getOneSq(Direction.upRight));
+			if (attacked) break;
+			attacked = attackedByPawn(bd, getOneSq(Direction.upLeft));
+			if (attacked) break;
+			attacked = attackedByPawn(bd, getOneSq(Direction.downRight));
+			if (attacked) break;
+			attacked = attackedByPawn(bd, getOneSq(Direction.downLeft));
 			if (attacked) break;
 			// Check for king presence (to avoid moving into check by the enemy king)
 			attacked = checkForKingPresence(bd);
@@ -151,40 +153,30 @@ public class King extends PieceSinglesquareDirectMove {
 	}
 	
 	private boolean checkForAttackerOnDiagonal(Board theBoard, List<GenericPosition> targetSqs) {
-		boolean continueCheckingForAttacker = true;
 		boolean attacked = false;
-		Iterator<GenericPosition> it = targetSqs.iterator();
-		while ( it.hasNext() && continueCheckingForAttacker ) {
-			GenericPosition attackerSq = it.next();
-			if ( attackerSq != null ) {
-				Piece currPiece = theBoard.getPieceAtSquare(attackerSq);
-				if (currPiece != null ) {
-					if (((currPiece instanceof Bishop) || (currPiece instanceof Queen)) && isOppositeColour(currPiece)) {
-						// Indicates attacked
-						attacked = true;
-					} // else blocked by own piece or non-attacking enemy
-					continueCheckingForAttacker = false;
-				}
+		for (GenericPosition attackerSq: targetSqs) {
+			Piece currPiece = theBoard.getPieceAtSquare(attackerSq);
+			if (currPiece != null ) {
+				if (((currPiece instanceof Bishop) || (currPiece instanceof Queen)) && isOppositeColour(currPiece)) {
+					// Indicates attacked
+					attacked = true;
+				} // else blocked by own piece or non-attacking enemy
+				break;
 			}
 		}
 		return attacked;
 	}
 	
 	private boolean checkForAttackerOnRankFile(Board theBoard, List<GenericPosition> targetSqs) {
-		boolean continueCheckingForAttacker = true;
 		boolean attacked = false;
-		Iterator<GenericPosition> it = targetSqs.iterator();
-		while ( it.hasNext() && continueCheckingForAttacker ) {
-			GenericPosition attackerSq = it.next();
-			if ( attackerSq != null ) {
-				Piece currPiece = theBoard.getPieceAtSquare(attackerSq);
-				if (currPiece != null ) {
-					if (((currPiece instanceof Rook) || (currPiece instanceof Queen)) && isOppositeColour(currPiece)) {
-						// Indicates attacked
-						attacked = true;
-					} // else blocked by own piece or non-attacking enemy
-					continueCheckingForAttacker = false;
-				}
+		for (GenericPosition attackerSq: targetSqs) {
+			Piece currPiece = theBoard.getPieceAtSquare(attackerSq);
+			if (currPiece != null ) {
+				if (((currPiece instanceof Rook) || (currPiece instanceof Queen)) && isOppositeColour(currPiece)) {
+					// Indicates attacked
+					attacked = true;
+				} // else blocked by own piece or non-attacking enemy
+				break;
 			}
 		}
 		return attacked;
