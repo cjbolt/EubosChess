@@ -2,8 +2,6 @@ package eubos.pieces;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import java.util.List;
-
 public abstract class Piece implements IPiece {
 	public enum Colour { 
 		white, black; 
@@ -20,18 +18,6 @@ public abstract class Piece implements IPiece {
 	public boolean hasEverMoved() {	return everMoved; }
 	
 	protected GenericPosition onSquare;
-	
 	public void setSquare( GenericPosition pos) { onSquare = pos; everMoved = true; }
 	public GenericPosition getSquare() { return(onSquare); }
-	
-	protected boolean evaluateIfAttacks( GenericPosition [] sqsToCheck, List<GenericPosition> targettedSqs ) {
-		boolean sqAttacked = false;
-		for ( GenericPosition currSq : sqsToCheck) {
-			if (targettedSqs.contains(currSq)) {
-				sqAttacked = true;
-				break;
-			}
-		}
-		return sqAttacked;
-	}
 }
