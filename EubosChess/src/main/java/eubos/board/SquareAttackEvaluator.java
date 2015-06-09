@@ -10,6 +10,7 @@ import eubos.pieces.King;
 import eubos.pieces.Knight;
 import eubos.pieces.Pawn;
 import eubos.pieces.Piece;
+import eubos.pieces.Piece.Colour;
 import eubos.pieces.Queen;
 import eubos.pieces.Rook;
 
@@ -29,22 +30,21 @@ public class SquareAttackEvaluator {
 		boolean attacked = false;
 		// do/while loop is to allow the function to return attacked=true at earliest possibility
 		do {
-			// Check for pawn attacks
-			attacked = attackedByPawn(Direction.getDirectMoveSq(Direction.upRight,attackedSq));
-			if (attacked) break;
-			attacked = attackedByPawn(Direction.getDirectMoveSq(Direction.upLeft,attackedSq));
-			if (attacked) break;
-			attacked = attackedByPawn(Direction.getDirectMoveSq(Direction.downRight,attackedSq));
-			if (attacked) break;
-			attacked = attackedByPawn(Direction.getDirectMoveSq(Direction.downLeft,attackedSq));
-			if (attacked) break;
-			// Check for king presence (to avoid moving into check by the enemy king)
+			if (attackingColour == Colour.black) {
+				attacked = attackedByPawn(Direction.getDirectMoveSq(Direction.upRight,attackedSq));
+				if (attacked) break;
+				attacked = attackedByPawn(Direction.getDirectMoveSq(Direction.upLeft,attackedSq));
+				if (attacked) break;
+			} else {
+				attacked = attackedByPawn(Direction.getDirectMoveSq(Direction.downRight,attackedSq));
+				if (attacked) break;
+				attacked = attackedByPawn(Direction.getDirectMoveSq(Direction.downLeft,attackedSq));
+				if (attacked) break;
+			}
 			attacked = checkForKingAttacks();
 			if (attacked) break;
-			// Check for knight attacks
 			attacked = checkForKnightAttacks();
 			if (attacked) break;
-			// check for diagonal attacks
 			attacked = checkForAttackerOnDiagonal(getAllSqs(Direction.downLeft));
 			if (attacked) break;
 			attacked = checkForAttackerOnDiagonal(getAllSqs(Direction.upLeft));
@@ -53,7 +53,6 @@ public class SquareAttackEvaluator {
 			if (attacked) break;
 			attacked = checkForAttackerOnDiagonal(getAllSqs(Direction.upRight));
 			if (attacked) break;
-			// check for rank or file attacks
 			attacked = checkForAttackerOnRankFile(getAllSqs(Direction.down));
 			if (attacked) break;
 			attacked = checkForAttackerOnRankFile(getAllSqs(Direction.up));
