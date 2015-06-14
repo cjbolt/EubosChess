@@ -31,6 +31,8 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	private BoardManager bm;
 	private MoveSearcher ms;
+	private OpeningBook open = new OpeningBook();
+	private GenericMove nextBookMove = null;
 	
 	public EubosEngineMain() { super(); }
 	public EubosEngineMain( PipedWriter out) throws IOException {
@@ -65,22 +67,32 @@ public class EubosEngineMain extends AbstractEngine {
 			System.out.println( 
 					"Serious error: Eubos can't find a piece on the board whilst applying previous moves, at "
 							+e.getAtPosition().toString() );
-		} 
+		}
+		// Check Opening Book
+		if (command.moves != null && !command.moves.isEmpty()) {
+			nextBookMove = open.getMove(command.moves);
+		} else {
+			nextBookMove = null;
+		}
 	}
 
 	public void receive(EngineStartCalculatingCommand command) {
-		// The move searcher will report the best move found via a callback to this object, 
-		// this will occur when the tree search is concluded and the thread completes execution.
-		int searchDepth = SEARCH_DEPTH_IN_PLY;
-		if (command.getMoveTime() != null) {
-			searchDepth = 4;
-		} else if (command.getInfinite()) {
-			
-		} else if (command.getDepth() != null) {
-			searchDepth = command.getDepth();
+		if (nextBookMove == null) {
+			// The move searcher will report the best move found via a callback to this object, 
+			// this will occur when the tree search is concluded and the thread completes execution.
+			int searchDepth = SEARCH_DEPTH_IN_PLY;
+			if (command.getMoveTime() != null) {
+				searchDepth = 4;
+			} else if (command.getInfinite()) {
+
+			} else if (command.getDepth() != null) {
+				searchDepth = command.getDepth();
+			}
+			ms = new MoveSearcher(this, bm, searchDepth);
+			ms.start();
+		} else {
+			sendBestMoveCommand(new ProtocolBestMoveCommand(nextBookMove, null));
 		}
-		ms = new MoveSearcher(this, bm, searchDepth);
-		ms.start();
 	}
 
 	public void receive(EngineStopCalculatingCommand command) {
