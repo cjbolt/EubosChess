@@ -12,7 +12,7 @@ public class OpeningBook {
 	public OpeningBook() {
 		inBook = true;
 		try {
-			this.KGA = new GenericMove[] { new GenericMove("e2e4"), new GenericMove("e7e5"), new GenericMove("f2f4"), new GenericMove("e5f4"), new GenericMove("g1f3") };;
+			this.KGA = new GenericMove[] { new GenericMove("e2e4"), new GenericMove("e7e5"), new GenericMove("f2f4"), new GenericMove("e5f4"), new GenericMove("g1f3") };
 		} catch (IllegalNotationException e) {}
 	}
 	

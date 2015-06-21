@@ -374,5 +374,13 @@ public class MiniMaxMoveGeneratorTest {
 		classUnderTest = new MiniMaxMoveGenerator(bm,2);
 		expectedMove = new GenericMove("c7c8");
 		doFindMoveTest(true);
-	}	
+	}
+	
+//	@Test
+//	public void test_findMove_endingA() throws InvalidPieceException, IllegalNotationException {
+//		BoardManager bm = new BoardManager( "8/8/2pp3k/8/1P1P3K/8/8/8 w - - - -");
+//		classUnderTest = new MiniMaxMoveGenerator(bm,12);
+//		expectedMove = new GenericMove("d4d5");
+//		doFindMoveTest(true);
+//	}	
 }
