@@ -32,6 +32,19 @@ public class BoardManager implements IBoardManager {
 	public void addCastlingMoves(List<GenericMove> ml) {
 		castling.addCastlingMoves(ml);
 	}
+	
+	public static final int WHITE_KINGSIDE = 1<<0;
+	public static final int WHITE_QUEENSIDE = 1<<1;
+	public static final int BLACK_KINGSIDE = 1<<2;
+	public static final int BLACK_QUEENSIDE = 1<<3;
+	public int getCastlingAvaillability() {
+		int castleMask = 0;
+		castleMask |= (castling.isWhiteKsAvail() ? WHITE_KINGSIDE : 0);
+		castleMask |= (castling.isWhiteQsAvail() ? WHITE_QUEENSIDE : 0);
+		castleMask |= (castling.isBlackKsAvail() ? BLACK_KINGSIDE : 0);
+		castleMask |= (castling.isBlackQsAvail() ? BLACK_QUEENSIDE : 0);
+		return castleMask;
+	}
 
 	private EnPassantManager enPassant = new EnPassantManager( null );
 	public GenericPosition getEnPassantTargetSq() {

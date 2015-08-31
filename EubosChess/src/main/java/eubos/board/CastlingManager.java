@@ -148,6 +148,22 @@ class CastlingManager {
 		if ( qsc != null )
 			ml.add(qsc);
 	}
+	
+	public boolean isWhiteKsAvail() {
+		return whiteKsAvail;
+	}
+
+	public boolean isWhiteQsAvail() {
+		return whiteQsAvail;
+	}
+
+	public boolean isBlackKsAvail() {
+		return blackKsAvail;
+	}
+
+	public boolean isBlackQsAvail() {
+		return blackQsAvail;
+	}
 
 	private boolean castlingAvaillable(Colour colour) {
 		boolean castlingAvaillable = false;
