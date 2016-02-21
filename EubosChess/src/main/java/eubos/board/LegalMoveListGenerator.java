@@ -6,8 +6,8 @@ import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
-import eubos.pieces.King;
 import eubos.pieces.Piece;
+import eubos.pieces.Piece.Colour;
 
 public class LegalMoveListGenerator {
 	
@@ -19,7 +19,7 @@ public class LegalMoveListGenerator {
 	
 	public List<GenericMove> createMoveList() throws InvalidPieceException {
 		List<GenericMove> entireMoveList = new ArrayList<GenericMove>();
-		King ownKing = bm.getKing(bm.getOnMove());
+		Colour onMove = bm.getOnMove();
 		// For each piece of the "on Move" colour, add it's legal moves to the entire move list
 		Iterator<Piece> iter_p = bm.getTheBoard().iterateColour(bm.getOnMove());
 		while ( iter_p.hasNext() ) {
@@ -33,9 +33,7 @@ public class LegalMoveListGenerator {
 			GenericMove currMove = iter_ml.next();
 			bm.performMove( currMove );
 			// Scratch any moves resulting in the king being in check
-			// TODO: WARNING: This is too complex and subtle - it should be rewritten. we have to use own king
-			// because between the performMove/unperformMove calls the onMove colour has changed - not good!
-			if (ownKing != null && bm.squareIsAttacked(ownKing.getSquare(), ownKing.getColour()))
+			if (bm.isKingInCheck(onMove))
 				iter_ml.remove();
 			// Groom the movelist so that the moves expected to be best are searched first.
 			// This is to get max benefit form alpha beta algorithm
