@@ -25,7 +25,7 @@ public class Board implements Iterable<Piece> {
 	private BitBoard whitePieces = new BitBoard();
 	private BitBoard blackPieces = new BitBoard(); 
 
-	public void setPieceAtSquare( Piece pieceToPlace ) {
+	void setPieceAtSquare( Piece pieceToPlace ) {
 		GenericPosition atPos = pieceToPlace.getSquare();
 		int file, rank;
 		file = IntFile.valueOf(atPos.file);
@@ -36,7 +36,7 @@ public class Board implements Iterable<Piece> {
 		getBitBoardForColour(pieceToPlace).set(rank, file);
 	}
 
-	public Piece pickUpPieceAtSquare( GenericPosition atPos ) throws InvalidPieceException {
+	Piece pickUpPieceAtSquare( GenericPosition atPos ) throws InvalidPieceException {
 		int file, rank;
 		file = IntFile.valueOf(atPos.file);
 		rank = IntRank.valueOf(atPos.rank);
@@ -49,7 +49,7 @@ public class Board implements Iterable<Piece> {
 		return ( pieceToPickUp );
 	}
 
-	public Piece captureAtSquare( GenericPosition atPos ) {
+	Piece captureAtSquare( GenericPosition atPos ) {
 		int file, rank;
 		file = IntFile.valueOf(atPos.file);
 		rank = IntRank.valueOf(atPos.rank);
@@ -86,17 +86,17 @@ public class Board implements Iterable<Piece> {
 		return bitBoardForColour;
 	}
 
-	public class allPiecesOnBoardIterator implements Iterator<Piece> {
+	class allPiecesOnBoardIterator implements Iterator<Piece> {
 
 		private LinkedList<Piece> iterList = null;
 
-		public allPiecesOnBoardIterator() throws InvalidPieceException {
+		allPiecesOnBoardIterator() throws InvalidPieceException {
 			iterList = new LinkedList<Piece>();
 			BitBoard bitBoardToIterate = allPieces;
 			buildIterList(bitBoardToIterate);
 		}
 
-		public allPiecesOnBoardIterator( Piece.Colour colourToIterate ) throws InvalidPieceException {
+		allPiecesOnBoardIterator( Piece.Colour colourToIterate ) throws InvalidPieceException {
 			iterList = new LinkedList<Piece>();
 			BitBoard bitBoardToIterate;
 			if (colourToIterate == Colour.white) {
@@ -144,7 +144,7 @@ public class Board implements Iterable<Piece> {
 		}
 	}
 
-	public Iterator<Piece> iterateColour( Piece.Colour colourToIterate ) {
+	Iterator<Piece> iterateColour( Piece.Colour colourToIterate ) {
 		try {
 			return new allPiecesOnBoardIterator( colourToIterate );
 		} catch (InvalidPieceException e) {

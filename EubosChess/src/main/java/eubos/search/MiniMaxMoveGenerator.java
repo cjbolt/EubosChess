@@ -7,7 +7,6 @@ import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.Board;
 import eubos.board.BoardManager;
-import eubos.board.LegalMoveListGenerator;
 import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
 import eubos.pieces.Bishop;
@@ -83,8 +82,7 @@ public class MiniMaxMoveGenerator implements
 		debug.printSearchPly(currPly,bm.getOnMove());
 		int alphaBetaCutOff = initNodeScoreAlphaBeta(currPly);
 		// Generate all moves at this position.
-		LegalMoveListGenerator mlgen = new LegalMoveListGenerator(bm);
-		List<GenericMove> ml = mlgen.createMoveList();
+		List<GenericMove> ml = bm.getMoveList();
 		if (ml.isEmpty()) {
 			// Handle mates (indicated by no legal moves)
 			if (bm.isKingInCheck()) {

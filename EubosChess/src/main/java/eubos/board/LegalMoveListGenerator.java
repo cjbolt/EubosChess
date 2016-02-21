@@ -9,15 +9,15 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.pieces.Piece;
 import eubos.pieces.Piece.Colour;
 
-public class LegalMoveListGenerator {
+class LegalMoveListGenerator {
 	
 	private BoardManager bm;
 	
-	public LegalMoveListGenerator( BoardManager bm ) {
+	LegalMoveListGenerator( BoardManager bm ) {
 		this.bm = bm;
 	}
 	
-	public List<GenericMove> createMoveList() throws InvalidPieceException {
+	List<GenericMove> createMoveList() throws InvalidPieceException {
 		List<GenericMove> entireMoveList = new ArrayList<GenericMove>();
 		Colour onMove = bm.getOnMove();
 		// For each piece of the "on Move" colour, add it's legal moves to the entire move list

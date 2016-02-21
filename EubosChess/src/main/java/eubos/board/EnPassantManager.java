@@ -11,15 +11,15 @@ class EnPassantManager {
 	
 	private GenericPosition enPassantTargetSq;
 
-	public EnPassantManager(GenericPosition atPos) {
+	EnPassantManager(GenericPosition atPos) {
 		enPassantTargetSq = atPos;
 	}
 
-	public GenericPosition getEnPassantTargetSq() {
+	GenericPosition getEnPassantTargetSq() {
 		return enPassantTargetSq;
 	}
 
-	public void setEnPassantTargetSq(GenericPosition enPassantTargetSq) {
+	void setEnPassantTargetSq(GenericPosition enPassantTargetSq) {
 		this.enPassantTargetSq = enPassantTargetSq;
 	}
 

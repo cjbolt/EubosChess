@@ -39,9 +39,9 @@ class CastlingManager {
 	private static final GenericMove undo_bqsc = new GenericMove( GenericPosition.c8, GenericPosition.e8);
 	private static final GenericMove undo_wqsc = new GenericMove( GenericPosition.c1, GenericPosition.e1);
 
-	public CastlingManager(BoardManager Bm) { bm = Bm; }
+	CastlingManager(BoardManager Bm) { bm = Bm; }
 
-	public CastlingManager(BoardManager Bm, String fenCastle) {
+	CastlingManager(BoardManager Bm, String fenCastle) {
 		bm = Bm;
 		whiteKsAvail = false;
 		whiteQsAvail = false;
@@ -61,7 +61,7 @@ class CastlingManager {
 		}
 	}
 
-	public void performSecondaryCastlingMove(GenericMove move) throws InvalidPieceException {
+	void performSecondaryCastlingMove(GenericMove move) throws InvalidPieceException {
 		if (move.equals(wksc)) {
 			// Perform secondary white king side castle rook move
 			Piece rookToCastle = bm.getTheBoard().pickUpPieceAtSquare( GenericPosition.h1 );
@@ -89,7 +89,7 @@ class CastlingManager {
 		}
 	}
 
-	public void unperformSecondaryCastlingMove(GenericMove move) throws InvalidPieceException{
+	void unperformSecondaryCastlingMove(GenericMove move) throws InvalidPieceException{
 		if (move.equals(undo_wksc)) {
 			// Perform secondary king side castle rook move
 			Piece rookToCastle = bm.getTheBoard().pickUpPieceAtSquare( GenericPosition.f1 );
@@ -117,7 +117,7 @@ class CastlingManager {
 		}
 	}
 
-	public void addCastlingMoves(List<GenericMove> ml) {
+	void addCastlingMoves(List<GenericMove> ml) {
 		// The side on move should not have previously castled
 		Colour onMove = bm.getOnMove();
 		if ( !castlingAvaillable(onMove))
@@ -149,19 +149,19 @@ class CastlingManager {
 			ml.add(qsc);
 	}
 	
-	public boolean isWhiteKsAvail() {
+	boolean isWhiteKsAvail() {
 		return whiteKsAvail;
 	}
 
-	public boolean isWhiteQsAvail() {
+	boolean isWhiteQsAvail() {
 		return whiteQsAvail;
 	}
 
-	public boolean isBlackKsAvail() {
+	boolean isBlackKsAvail() {
 		return blackKsAvail;
 	}
 
-	public boolean isBlackQsAvail() {
+	boolean isBlackQsAvail() {
 		return blackQsAvail;
 	}
 

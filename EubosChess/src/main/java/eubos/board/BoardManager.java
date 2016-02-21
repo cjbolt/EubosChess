@@ -25,11 +25,19 @@ public class BoardManager implements IBoardManager {
 		return theBoard;
 	}
 	
+	private LegalMoveListGenerator mlgen;
+	LegalMoveListGenerator getMoveListGenerator() {
+		return mlgen;
+	}
+	public List<GenericMove> getMoveList() throws InvalidPieceException {
+		return mlgen.createMoveList();
+	}
+	
 	private CastlingManager castling;
 	CastlingManager getCastlingManager() {
 		return castling;
 	}
-	public void addCastlingMoves(List<GenericMove> ml) {
+	void addCastlingMoves(List<GenericMove> ml) {
 		castling.addCastlingMoves(ml);
 	}
 	
@@ -52,7 +60,7 @@ public class BoardManager implements IBoardManager {
 	}
 	
 	private MoveTracker moveTracker = new MoveTracker();
-	public boolean lastMoveWasCapture() {
+	boolean lastMoveWasCapture() {
 		return moveTracker.lastMoveWasCapture();
 	}
 
@@ -64,7 +72,7 @@ public class BoardManager implements IBoardManager {
 
 	private King whiteKing;
 	private King blackKing;
-	public King getKing( Colour colour ) {
+	King getKing( Colour colour ) {
 		return ((colour == Colour.white) ? whiteKing : blackKing);
 	}
 	private void setKing() {
@@ -84,7 +92,7 @@ public class BoardManager implements IBoardManager {
 	public boolean isKingInCheck() {
 		return isKingInCheck(onMove);
 	}
-	public boolean isKingInCheck( Colour colour ) {
+	boolean isKingInCheck( Colour colour ) {
 		King ownKing = getKing(colour);
 		boolean kingIsInCheck = (ownKing != null) ? squareIsAttacked(ownKing.getSquare(), colour) : false;
 		return kingIsInCheck;		
@@ -98,12 +106,14 @@ public class BoardManager implements IBoardManager {
 		moveTracker = new MoveTracker();
 		theBoard = startingPosition;
 		castling = new CastlingManager(this);
+		mlgen = new LegalMoveListGenerator(this);
 		onMove = colourToMove;
 		setKing();
 	}
 	
 	public BoardManager( String fenString ) {
 		moveTracker = new MoveTracker();
+		mlgen = new LegalMoveListGenerator(this);
 		new fenParser( this, fenString );
 		setKing();
 	}
@@ -184,7 +194,7 @@ public class BoardManager implements IBoardManager {
 		theBoard.setPieceAtSquare(pieceToMove);
 	}
 	
-	public boolean squareIsAttacked( GenericPosition atPos, Piece.Colour ownColour ) {
+	boolean squareIsAttacked( GenericPosition atPos, Piece.Colour ownColour ) {
 		SquareAttackEvaluator sqAttackEval = new SquareAttackEvaluator( theBoard, atPos, ownColour );
 		return sqAttackEval.isAttacked();
 	}

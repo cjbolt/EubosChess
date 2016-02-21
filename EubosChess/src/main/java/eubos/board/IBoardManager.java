@@ -5,7 +5,6 @@ import java.util.List;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.pieces.King;
 import eubos.pieces.Piece.Colour;
 
 public interface IBoardManager {
@@ -13,11 +12,10 @@ public interface IBoardManager {
 	public void performMove( GenericMove move ) throws InvalidPieceException;
 	public void unperformMove() throws InvalidPieceException;
 	// Secondary API
-	public void addCastlingMoves(List<GenericMove> ml);
+	public List<GenericMove> getMoveList() throws InvalidPieceException;
 	public GenericPosition getEnPassantTargetSq();
-	public boolean lastMoveWasCapture();
+	public boolean isKingInCheck();
 	// Accessor methods
 	public Board getTheBoard();
 	public Colour getOnMove();
-	public King getKing( Colour colour );
 }

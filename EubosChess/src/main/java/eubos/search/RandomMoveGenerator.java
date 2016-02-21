@@ -6,7 +6,6 @@ import java.util.Random;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.BoardManager;
-import eubos.board.LegalMoveListGenerator;
 import eubos.board.InvalidPieceException;
 import eubos.pieces.Piece;
 
@@ -21,8 +20,7 @@ public class RandomMoveGenerator implements IMoveGenerator {
 	// Find a random legal move for the colour "on move"
 	public GenericMove findMove() throws NoLegalMoveException, InvalidPieceException {
 		GenericMove bestMove = null;
-		LegalMoveListGenerator mlgen = new LegalMoveListGenerator(bm);
-		List<GenericMove> entireMoveList = mlgen.createMoveList();
+		List<GenericMove> entireMoveList = bm.getMoveList();
 		if ( !entireMoveList.isEmpty()) {
 			Random randomIndex = new Random();
 			Integer indexToGet = randomIndex.nextInt(entireMoveList.size());
