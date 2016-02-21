@@ -1,6 +1,5 @@
 package eubos.search;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -8,6 +7,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.Board;
 import eubos.board.BoardManager;
+import eubos.board.LegalMoveListGenerator;
 import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
 import eubos.pieces.Bishop;
@@ -27,13 +27,18 @@ public class MiniMaxMoveGenerator implements
 	private int scores[];
 	private PrincipalContinuation pc;
 	private Colour initialOnMove;
-	private boolean mateFound = false;
-	private boolean stalemateFound = false;
 	private SearchMetrics sm;
 	private SearchMetricsReporter sr;
 	private boolean sendInfo = false;
 	private boolean terminate = false;
 	private SearchDebugAgent debug;
+	
+	private static final int KING_VALUE = 300000;
+	private static final int QUEEN_VALUE = 900;
+	private static final int ROOK_VALUE = 500;
+	private static final int BISHOP_VALUE = 320;
+	private static final int KNIGHT_VALUE = 300;
+	private static final int PAWN_VALUE = 100;
 
 	// Used for unit tests
 	public MiniMaxMoveGenerator( BoardManager bm, int searchDepth ) {
@@ -77,50 +82,59 @@ public class MiniMaxMoveGenerator implements
 	private int searchPly(int currPly) throws InvalidPieceException {
 		debug.printSearchPly(currPly,bm.getOnMove());
 		int alphaBetaCutOff = initNodeScoreAlphaBeta(currPly);
-		// Generate all moves at this position and test if the previous move in the
-		// search tree led to either checkmate or stalemate.
-		List<GenericMove> ml = generateMovesAtPosition();
-		handleMates(currPly);
-		Iterator<GenericMove> move_iter = ml.iterator();
-		// Iterate through all the moves for this ply; there will be none if a mate was detected...
-		while(move_iter.hasNext() && !isTerminated()) {
-			int positionScore = 0;
-			// 1) Apply the next move in the list
-			GenericMove currMove = move_iter.next();
-			reportNextMove(currPly, currMove);
-			debug.printPerformMove(currPly, currMove);
-			bm.performMove(currMove);
-			// 2) Either recurse or evaluate position and check for back-up of score
-			if ( isTerminalNode(currPly) ) {
-				positionScore = evaluatePosition(bm.getTheBoard());
+		// Generate all moves at this position.
+		LegalMoveListGenerator mlgen = new LegalMoveListGenerator(bm);
+		List<GenericMove> ml = mlgen.createMoveList();
+		if (ml.isEmpty()) {
+			// Handle mates (indicated by no legal moves)
+			if (bm.isKingInCheck()) {
+				backupScoreForCheckmate(currPly);
+				debug.printMateFound(currPly);
 			} else {
-				positionScore = searchPly(currPly+1);
+				backupScoreForStalemate(currPly);
 			}
-			// 3) Having assessed the position, undo the move
-			debug.printUndoMove(currPly, currMove);
-			bm.unperformMove();
-			sm.incrementNodesSearched();
-			// 4a) Back-up the position score and update the principal continuation...
-			if (backUpIsRequired(currPly, positionScore)) {
-				scores[currPly]=positionScore;
-				debug.printBackUpScore(currPly, positionScore);
-				pc.update(currPly, currMove);
-				debug.printPrincipalContinuation(currPly,pc);
-				reportPrincipalContinuation(currPly, positionScore);
-			// 4b) ...or test for an Alpha Beta algorithm cut-off
-			} else if (testForAlphaBetaCutOff( alphaBetaCutOff, positionScore, currPly )) {
-				debug.printRefutationFound(currPly);
-				break;
+		} else {
+			// Iterate through all the moves for this ply
+			Iterator<GenericMove> move_iter = ml.iterator();
+			while(move_iter.hasNext() && !isTerminated()) {
+				int positionScore = 0;
+				// 1) Apply the next move in the list
+				GenericMove currMove = move_iter.next();
+				reportNextMove(currPly, currMove);
+				debug.printPerformMove(currPly, currMove);
+				bm.performMove(currMove);
+				// 2) Either recurse or evaluate position and check for back-up of score
+				if ( isTerminalNode(currPly) ) {
+					positionScore = evaluatePosition(bm.getTheBoard());
+				} else {
+					positionScore = searchPly(currPly+1);
+				}
+				// 3) Having assessed the position, undo the move
+				debug.printUndoMove(currPly, currMove);
+				bm.unperformMove();
+				sm.incrementNodesSearched();
+				// 4a) Back-up the position score and update the principal continuation...
+				if (backUpIsRequired(currPly, positionScore)) {
+					scores[currPly]=positionScore;
+					debug.printBackUpScore(currPly, positionScore);
+					pc.update(currPly, currMove);
+					debug.printPrincipalContinuation(currPly,pc);
+					reportPrincipalContinuation(currPly, positionScore);
+					// 4b) ...or test for an Alpha Beta algorithm cut-off
+				} else if (testForAlphaBetaCutOff( alphaBetaCutOff, positionScore, currPly )) {
+					debug.printRefutationFound(currPly);
+					break;
+				}
 			}
 		}
 		return scores[currPly];
 	}
-
+	
 	private void reportPrincipalContinuation(int currPly, int positionScore) {
 		if (currPly == 0) {
-			if (Math.abs(positionScore) > 300000) {
+			if (Math.abs(positionScore) > KING_VALUE) {
 				// If the positionScore indicates a mate, truncate the pc accordingly
-				int matePly = Math.abs(positionScore)/300000;
+				int matePly = Math.abs(positionScore)/KING_VALUE;
 				matePly *= 2;
 				matePly = searchDepthPly - matePly;
 				if (initialOnMove == Colour.black) {
@@ -143,17 +157,6 @@ public class MiniMaxMoveGenerator implements
 			sm.incrementCurrentMoveNumber();
 			if (sendInfo)
 				sr.reportCurrentMove();
-		}
-	}
-
-	private void handleMates(int currPly) {
-		if (mateFound) {
-			backupScoreForCheckmate(currPly);
-			debug.printMateFound(currPly);
-			mateFound = false;
-		} else if (stalemateFound) {
-			backupScoreForStalemate(currPly);
-			stalemateFound = false;
 		}
 	}
 
@@ -183,17 +186,21 @@ public class MiniMaxMoveGenerator implements
 
 	private void backupScoreForStalemate(int currPly) {
 		// Avoid stalemates by giving them a large penalty score.
-		scores[currPly] = -300000;
+		scores[currPly] = -KING_VALUE;
 		if (initialOnMove==Colour.black)
 			scores[currPly] = -scores[currPly];
 	}
 
 	private void backupScoreForCheckmate(int currPly) {
+		// Perform an immediate backup of score and abort the search of any moves deeper
+		// than the previous node in the search tree. However, search the rest of the tree,
+		// as this may yield earlier forced mates.
+		
 		// Favour earlier mates (i.e. Mate-in-one over mate-in-three) by giving them a larger score.
 		int totalMovesSearched = searchDepthPly/2; // factor of 2 because two plies in a move.
 		int mateMoveNum = (currPly-1)/2; // currPly-1 because mate was caused by the move from the previousPly
 		int multiplier = totalMovesSearched-mateMoveNum;
-		scores[currPly] = multiplier*300000;
+		scores[currPly] = multiplier*KING_VALUE;
 		// Note the check on whether own king is checkmated (2nd expression). Ensures correct score backup.
 		if (initialOnMove==Colour.black && initialOnMove!=bm.getOnMove())
 			scores[currPly] = -scores[currPly];
@@ -215,53 +222,6 @@ public class MiniMaxMoveGenerator implements
 		return scores[currPly];
 	}
 
-	private List<GenericMove> generateMovesAtPosition() throws InvalidPieceException {
-		List<GenericMove> entireMoveList = new ArrayList<GenericMove>();
-		// Test if the King is in check at the start of the turn
-		King ownKing = bm.getKing(bm.getOnMove());
-		boolean kingIsInCheck = (ownKing != null) ? bm.squareIsAttacked(ownKing.getSquare(), ownKing.getColour()) : false;
-		// For each piece of the "on Move" colour, add it's legal moves to the entire move list
-		Iterator<Piece> iter_p = bm.getTheBoard().iterateColour(bm.getOnMove());
-		while ( iter_p.hasNext() ) {
-			Piece currPiece = iter_p.next();
-			entireMoveList.addAll( currPiece.generateMoves( bm ));
-		}
-		bm.addCastlingMoves(entireMoveList);
-		List<GenericMove> newMoveList = new ArrayList<GenericMove>();
-		Iterator<GenericMove> iter_ml = entireMoveList.iterator();
-		while ( iter_ml.hasNext() ) {
-			GenericMove currMove = iter_ml.next();
-			bm.performMove( currMove );
-			// Scratch any moves resulting in the king being in check
-			if (ownKing != null && bm.squareIsAttacked(ownKing.getSquare(), ownKing.getColour()))
-				iter_ml.remove();
-			// Groom the movelist so that the moves expected to be best are searched first.
-			// This is to get max benefit form alpha beta algorithm
-			else if (bm.lastMoveWasCapture()) {
-				newMoveList.add(0, currMove);
-			} else {
-				newMoveList.add(currMove);
-			}
-			bm.unperformMove();
-		}
-		entireMoveList = newMoveList;
-		if (entireMoveList.isEmpty()) {
-			if (kingIsInCheck) {
-				// Either of:
-				// (initialOnMove!=bm.getOnMove()) indicates checkmate of opponent!
-				// (initialOnMove==bm.getOnMove()) indicates a checkmate of self!
-				// Perform an immediate backup of score and abort the  search of
-				// any moves deeper than the previous node in the search tree. 
-				// However, search the rest of the tree, as this may yield earlier forced mates.
-				mateFound = true;					
-			} else {
-				// the position is a stalemate.
-				stalemateFound = true;
-			}
-		}
-		return entireMoveList;
-	}
-
 	private int evaluatePosition(Board theBoard ) {
 		// First effort does only the most simple calculation based on material
 		Iterator<Piece> iter_p = theBoard.iterator();
@@ -270,17 +230,17 @@ public class MiniMaxMoveGenerator implements
 			Piece currPiece = iter_p.next();
 			int currValue = 0;
 			if ( currPiece instanceof Pawn ) 
-				currValue = 100;
+				currValue = PAWN_VALUE;
 			else if ( currPiece instanceof Rook )
-				currValue = 500;
+				currValue = ROOK_VALUE;
 			else if ( currPiece instanceof Bishop )
-				currValue = 320;
+				currValue = BISHOP_VALUE;
 			else if ( currPiece instanceof Knight )
-				currValue = 300;
+				currValue = KNIGHT_VALUE;
 			else if ( currPiece instanceof Queen )
-				currValue = 900;
+				currValue = QUEEN_VALUE;
 			else if ( currPiece instanceof King )
-				currValue = 300000;
+				currValue = KING_VALUE;
 			if (currPiece.isBlack()) currValue = -currValue;
 			materialEvaluation += currValue;
 		}
@@ -294,7 +254,6 @@ public class MiniMaxMoveGenerator implements
 		}
 		return isTerminalNode;
 	}
-
 	public synchronized void terminateFindMove() { terminate = true; }
 	private synchronized boolean isTerminated() { return terminate; }
 }

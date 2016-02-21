@@ -11,7 +11,7 @@ public class BitBoard implements Iterable<Integer> {
 		return bitBoard;
 	}
 	
-	private int getBitFromRankAndFile(int rank, int file) {
+	private static int getBitFromRankAndFile(int rank, int file) {
 		return(rank*8+file);
 	}
 

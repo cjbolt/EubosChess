@@ -81,6 +81,11 @@ public class BoardManager implements IBoardManager {
 			}
 		}
 	}
+	public boolean isKingInCheck() {
+		King ownKing = getKing(onMove);
+		boolean kingIsInCheck = (ownKing != null) ? squareIsAttacked(ownKing.getSquare(), onMove) : false;
+		return kingIsInCheck;
+	}
 
 	public BoardManager() {
 		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
