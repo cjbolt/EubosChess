@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.board.BoardManager;
 import eubos.board.Board;
 import eubos.board.Direction;
 
@@ -28,9 +27,8 @@ public class King extends PieceSinglesquareDirectMove {
 	}
 	
 	@Override
-	public LinkedList<GenericMove> generateMoves(BoardManager bm) {
+	public LinkedList<GenericMove> generateMoves(Board theBoard) {
 		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
-		Board theBoard = bm.getTheBoard();
 		checkAddMove(moveList, theBoard, getOneSq(Direction.up));
 		checkAddMove(moveList, theBoard, getOneSq(Direction.upRight));
 		checkAddMove(moveList, theBoard, getOneSq(Direction.right));

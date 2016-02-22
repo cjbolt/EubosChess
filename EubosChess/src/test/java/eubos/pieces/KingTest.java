@@ -8,7 +8,6 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
 import eubos.board.Board;
-import eubos.board.BoardManager;
 import eubos.pieces.Piece.Colour;
 
 public class KingTest extends PieceTest {
@@ -19,8 +18,7 @@ public class KingTest extends PieceTest {
 	public void test_CornerTopLeft() {
 		classUnderTest = new King( Colour.black, GenericPosition.a8 );
 		pl.add(classUnderTest);
-		bm = new BoardManager( new Board( pl ), Colour.black );
-		List<GenericMove> ml = classUnderTest.generateMoves( bm );
+		List<GenericMove> ml = classUnderTest.generateMoves(new Board( pl ));
 		expectedMoves.add( new GenericMove( GenericPosition.a8, GenericPosition.a7 ));
 		expectedMoves.add( new GenericMove( GenericPosition.a8, GenericPosition.b8 ));
 		expectedMoves.add( new GenericMove( GenericPosition.a8, GenericPosition.b7 ));

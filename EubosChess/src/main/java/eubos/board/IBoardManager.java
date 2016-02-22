@@ -14,6 +14,7 @@ public interface IBoardManager {
 	// Secondary API
 	public List<GenericMove> getMoveList() throws InvalidPieceException;
 	public GenericPosition getEnPassantTargetSq();
+	public int getCastlingAvaillability();
 	public boolean isKingInCheck();
 	// Accessor methods
 	public Board getTheBoard();

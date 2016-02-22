@@ -12,7 +12,6 @@ import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.Board;
 import eubos.board.BoardManager;
-import eubos.pieces.Piece.Colour;
 
 public class PieceTest {
 
@@ -48,8 +47,7 @@ public class PieceTest {
 
 	protected List<GenericMove> completeSetupAndGenerateMoves() {
 		pl.add(classUnderTest);
-		bm = new BoardManager( new Board( pl ), Colour.white );
-		List<GenericMove> ml = classUnderTest.generateMoves( bm );
+		List<GenericMove> ml = classUnderTest.generateMoves(new Board( pl ));
 		return ml;
 	}
 

@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import com.fluxchess.jcpi.models.*;
 
 import eubos.board.Board;
-import eubos.board.BoardManager;
 import eubos.board.Direction;
 
 public class Knight extends Piece {
@@ -34,9 +33,8 @@ public class Knight extends Piece {
 	}
 	
 	@Override
-	public LinkedList<GenericMove> generateMoves(BoardManager bm) {
+	public LinkedList<GenericMove> generateMoves(Board theBoard) {
 		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
-		Board theBoard = bm.getTheBoard();
 		checkAddMove(moveList, theBoard, getSq(Direction.upRight));
 		checkAddMove(moveList, theBoard, getSq(Direction.upLeft));
 		checkAddMove(moveList, theBoard, getSq(Direction.rightUp));

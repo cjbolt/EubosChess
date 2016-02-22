@@ -54,7 +54,7 @@ public class BoardManager implements IBoardManager {
 		return castleMask;
 	}
 
-	private EnPassantManager enPassant = new EnPassantManager( null );
+	private EnPassantManager enPassant;
 	public GenericPosition getEnPassantTargetSq() {
 		return enPassant.getEnPassantTargetSq();
 	}
@@ -105,6 +105,7 @@ public class BoardManager implements IBoardManager {
 	public BoardManager( Board startingPosition, Piece.Colour colourToMove ) {
 		moveTracker = new MoveTracker();
 		theBoard = startingPosition;
+		enPassant = new EnPassantManager( null, theBoard );
 		castling = new CastlingManager(this);
 		mlgen = new LegalMoveListGenerator(this);
 		onMove = colourToMove;
@@ -235,8 +236,8 @@ public class BoardManager implements IBoardManager {
 //			String moveNumber = tokens[5];
 			parsePiecePlacement(piecePlacement);
 			parseOnMove(colourOnMove);
-			parseEnPassant(enPassanttargetSq);
 			create();
+			parseEnPassant(enPassanttargetSq);
 		}
 		private void parseOnMove(String colourOnMove) {
 			if (colourOnMove.equals("w"))
@@ -320,9 +321,9 @@ public class BoardManager implements IBoardManager {
 		}
 		private void parseEnPassant(String targetSq) {
 			if (!targetSq.contentEquals("-")) {
-				enPassant = new EnPassantManager(GenericPosition.valueOf(targetSq));
+				enPassant = new EnPassantManager(GenericPosition.valueOf(targetSq), theBoard);
 			} else {
-				enPassant = new EnPassantManager(null);
+				enPassant = new EnPassantManager(null, theBoard);
 			}
 		}
 		private GenericFile advanceFile(GenericFile f) {

@@ -25,6 +25,14 @@ public class Board implements Iterable<Piece> {
 	private BitBoard whitePieces = new BitBoard();
 	private BitBoard blackPieces = new BitBoard(); 
 
+	private GenericPosition enPassantTargetSq = null;
+	public GenericPosition getEnPassantTargetSq() {
+		return enPassantTargetSq;
+	}
+	void setEnPassantTargetSq(GenericPosition enPassantTargetSq) {
+		this.enPassantTargetSq = enPassantTargetSq;
+	}
+	
 	void setPieceAtSquare( Piece pieceToPlace ) {
 		GenericPosition atPos = pieceToPlace.getSquare();
 		int file, rank;

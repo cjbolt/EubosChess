@@ -8,7 +8,6 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericRank;
 
 import eubos.board.Board;
-import eubos.board.BoardManager;
 import eubos.board.Direction;
 
 public class Pawn extends PieceSinglesquareDirectMove {
@@ -66,12 +65,12 @@ public class Pawn extends PieceSinglesquareDirectMove {
 		}		
 	}
 	
-	private boolean isCapturable(BoardManager bm, GenericPosition captureAt ) {
+	private boolean isCapturable(Board theBoard, GenericPosition captureAt ) {
 		boolean isCapturable = false;
-		Piece queryPiece = bm.getTheBoard().getPieceAtSquare( captureAt );
+		Piece queryPiece = theBoard.getPieceAtSquare( captureAt );
 		if ( queryPiece != null ) {
 			isCapturable = isOppositeColour( queryPiece );
-		} else if (captureAt == bm.getEnPassantTargetSq()) {
+		} else if (captureAt == theBoard.getEnPassantTargetSq()) {
 			isCapturable = true;
 		}
 		return isCapturable;
@@ -95,8 +94,7 @@ public class Pawn extends PieceSinglesquareDirectMove {
 	}	
 	
 	@Override
-	public LinkedList<GenericMove> generateMoves(BoardManager bm) {
-		Board theBoard = bm.getTheBoard();
+	public LinkedList<GenericMove> generateMoves(Board theBoard) {
 		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
 		// Check for standard one and two square moves
 		GenericPosition moveTo = genOneSqTarget();
@@ -109,11 +107,11 @@ public class Pawn extends PieceSinglesquareDirectMove {
 		}
 		// Check for capture moves, includes en passant
 		GenericPosition captureAt = genLeftCaptureTarget();
-		if ( captureAt != null && isCapturable(bm,captureAt)) {
+		if ( captureAt != null && isCapturable(theBoard,captureAt)) {
 			checkPromotionAddMove(moveList, captureAt);
 		}
 		captureAt = genRightCaptureTarget();
-		if ( captureAt != null && isCapturable(bm,captureAt)) {
+		if ( captureAt != null && isCapturable(theBoard,captureAt)) {
 			checkPromotionAddMove(moveList, captureAt);
 		}
 		return moveList;

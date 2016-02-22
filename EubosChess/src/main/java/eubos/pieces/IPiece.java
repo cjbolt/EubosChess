@@ -4,8 +4,8 @@ import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
-import eubos.board.BoardManager;
+import eubos.board.Board;
 
 public interface IPiece {
-	List<GenericMove> generateMoves( BoardManager bm );
+	List<GenericMove> generateMoves( Board theBoard );
 }

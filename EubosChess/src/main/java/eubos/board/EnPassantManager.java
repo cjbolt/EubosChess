@@ -10,9 +10,11 @@ import eubos.pieces.Piece;
 class EnPassantManager {
 	
 	private GenericPosition enPassantTargetSq;
+	private Board theBoard;
 
-	EnPassantManager(GenericPosition atPos) {
-		enPassantTargetSq = atPos;
+	EnPassantManager(GenericPosition atPos, Board board) {
+		theBoard = board;
+		setEnPassantTargetSq(atPos);
 	}
 
 	GenericPosition getEnPassantTargetSq() {
@@ -20,7 +22,9 @@ class EnPassantManager {
 	}
 
 	void setEnPassantTargetSq(GenericPosition enPassantTargetSq) {
+		// TODO: Currently data is duplicated in the Board!
 		this.enPassantTargetSq = enPassantTargetSq;
+		theBoard.setEnPassantTargetSq(enPassantTargetSq);
 	}
 
 	boolean isEnPassantCapture(GenericMove move, Piece pieceToMove) {
@@ -38,12 +42,12 @@ class EnPassantManager {
 				if ( pawnPiece.isWhite()) {
 					if (move.to.rank == GenericRank.R4) {
 						GenericPosition enPassantWhite = GenericPosition.valueOf(move.to.file,GenericRank.R3);
-						enPassantTargetSq = enPassantWhite;
+						setEnPassantTargetSq(enPassantWhite);
 					}
 				} else {
 					if (move.to.rank == GenericRank.R5) {
 						GenericPosition enPassantBlack = GenericPosition.valueOf(move.to.file,GenericRank.R6);
-						enPassantTargetSq = enPassantBlack;
+						setEnPassantTargetSq(enPassantBlack);
 					}						
 				}
 			}

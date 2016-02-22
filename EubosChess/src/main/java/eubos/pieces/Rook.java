@@ -7,7 +7,6 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
 import eubos.board.Board;
-import eubos.board.BoardManager;
 import eubos.board.Direction;
 
 public class Rook extends PieceMultisquareDirectMove {
@@ -18,9 +17,8 @@ public class Rook extends PieceMultisquareDirectMove {
 	}
 	
 	@Override
-	public List<GenericMove> generateMoves(BoardManager bm) {
+	public List<GenericMove> generateMoves(Board theBoard) {
 		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
-		Board theBoard = bm.getTheBoard();
 		addMoves(moveList, theBoard, getAllSqs(Direction.down, theBoard));
 		addMoves(moveList, theBoard, getAllSqs(Direction.up, theBoard));
 		addMoves(moveList, theBoard, getAllSqs(Direction.left, theBoard));
