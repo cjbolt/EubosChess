@@ -18,7 +18,7 @@ import eubos.pieces.Piece.Colour;
 import eubos.pieces.Queen;
 import eubos.pieces.Rook;
 
-public class MiniMaxMoveGenerator implements
+class MiniMaxMoveGenerator implements
 		IMoveGenerator {
 
 	private BoardManager bm;
@@ -40,7 +40,7 @@ public class MiniMaxMoveGenerator implements
 	private static final int PAWN_VALUE = 100;
 
 	// Used for unit tests
-	public MiniMaxMoveGenerator( BoardManager bm, int searchDepth ) {
+	MiniMaxMoveGenerator( BoardManager bm, int searchDepth ) {
 		this.bm = bm;
 		scores = new int[searchDepth];
 		searchDepthPly = searchDepth;
@@ -50,7 +50,7 @@ public class MiniMaxMoveGenerator implements
 	}
 
 	// Used with Arena
-	public MiniMaxMoveGenerator( EubosEngineMain eubos, BoardManager bm, int searchDepth ) {
+	MiniMaxMoveGenerator( EubosEngineMain eubos, BoardManager bm, int searchDepth ) {
 		this(bm, searchDepth);
 		sm.setPrincipalVariation(pc.toPvList());
 		sr = new SearchMetricsReporter(eubos,sm);
@@ -252,6 +252,6 @@ public class MiniMaxMoveGenerator implements
 		}
 		return isTerminalNode;
 	}
-	public synchronized void terminateFindMove() { terminate = true; }
+	synchronized void terminateFindMove() { terminate = true; }
 	private synchronized boolean isTerminated() { return terminate; }
 }

@@ -4,13 +4,13 @@ import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.pieces.Piece;
 
-public class SearchDebugAgent {
+class SearchDebugAgent {
 
 	private String indent = "";
 	private static final boolean isDebugOn = false;
 	private int lastPly = 0;
 
-	public SearchDebugAgent( int currPly ) {
+	SearchDebugAgent( int currPly ) {
 		computeIndent(currPly);
 	}
 	
@@ -22,7 +22,7 @@ public class SearchDebugAgent {
 		lastPly = currPly;		
 	}
 
-	public void printPerformMove(int currPly, GenericMove currMove) {
+	void printPerformMove(int currPly, GenericMove currMove) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);

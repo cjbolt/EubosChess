@@ -9,11 +9,11 @@ import eubos.board.BoardManager;
 import eubos.board.InvalidPieceException;
 import eubos.pieces.Piece;
 
-public class RandomMoveGenerator implements IMoveGenerator {
+class RandomMoveGenerator implements IMoveGenerator {
 	
 	private BoardManager bm;
 	
-	public RandomMoveGenerator( BoardManager bm, Piece.Colour sideToMove ) {
+	RandomMoveGenerator( BoardManager bm, Piece.Colour sideToMove ) {
 		this.bm = bm;
 	}
 

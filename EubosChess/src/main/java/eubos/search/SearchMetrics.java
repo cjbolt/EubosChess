@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
-public class SearchMetrics {
+class SearchMetrics {
 	private long nodesSearched;
 	private long time;
 	private List<GenericMove> pv;
@@ -14,7 +14,7 @@ public class SearchMetrics {
 	private GenericMove currMove;
 	private int currMoveNum;
 	
-	public SearchMetrics(int searchDepth) {
+	SearchMetrics(int searchDepth) {
 		nodesSearched = 0;
 		time = 0;
 		cpScore = 0;
@@ -23,27 +23,27 @@ public class SearchMetrics {
 		currMoveNum = 0;
 	}
 	
-	public synchronized void incrementNodesSearched() { nodesSearched++; }
-	public synchronized long getNodesSearched() { return nodesSearched; }
-	public synchronized void incrementTime(int delta) { time += delta; }
-	public synchronized long getTime() { return time; }
-	public synchronized int getNodesPerSecond() {
+	synchronized void incrementNodesSearched() { nodesSearched++; }
+	synchronized long getNodesSearched() { return nodesSearched; }
+	synchronized void incrementTime(int delta) { time += delta; }
+	synchronized long getTime() { return time; }
+	synchronized int getNodesPerSecond() {
 		int nps = 0;
 		if (time != 0) {
 			nps = (int)(nodesSearched*1000/time);
 		}
 		return nps;
 	}
-	public synchronized void setPrincipalVariation(List<GenericMove> pc) { 
+	synchronized void setPrincipalVariation(List<GenericMove> pc) { 
 		pvValid = true;
 		pv = pc;
 	}
-	public synchronized List<GenericMove> getPrincipalVariation() { return (pvValid ? pv : null);}
-	public synchronized int getCpScore() { return cpScore; }
-	public synchronized void setCpScore(int cpScore) { this.cpScore = cpScore; }
-	public synchronized int getDepth() { return depth; }
-	public synchronized void setCurrentMove(GenericMove mov) { currMove = mov;}
-	public synchronized GenericMove getCurrentMove() { return currMove;	}
-	public synchronized int getCurrentMoveNumber() { return currMoveNum; }
-	public synchronized void incrementCurrentMoveNumber() { currMoveNum+=1; }
+	synchronized List<GenericMove> getPrincipalVariation() { return (pvValid ? pv : null);}
+	synchronized int getCpScore() { return cpScore; }
+	synchronized void setCpScore(int cpScore) { this.cpScore = cpScore; }
+	synchronized int getDepth() { return depth; }
+	synchronized void setCurrentMove(GenericMove mov) { currMove = mov;}
+	synchronized GenericMove getCurrentMove() { return currMove;	}
+	synchronized int getCurrentMoveNumber() { return currMoveNum; }
+	synchronized void incrementCurrentMoveNumber() { currMoveNum+=1; }
 }

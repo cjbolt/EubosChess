@@ -4,13 +4,13 @@ import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
 
 import eubos.main.EubosEngineMain;
 
-public class SearchMetricsReporter extends Thread {
+class SearchMetricsReporter extends Thread {
 	private boolean reporterActive;
 	private SearchMetrics sm;
 	private EubosEngineMain eubosEngine;
 	private static final int UPDATE_RATE_MS = 500;
 	
-	public SearchMetricsReporter( EubosEngineMain eubos, SearchMetrics inputSm ) {
+	SearchMetricsReporter( EubosEngineMain eubos, SearchMetrics inputSm ) {
 		sm = inputSm;
 		reporterActive = true;
 		eubosEngine = eubos;
@@ -43,7 +43,7 @@ public class SearchMetricsReporter extends Thread {
 		}
 	}
 	
-	public void reportNodeData() {
+	void reportNodeData() {
 		ProtocolInformationCommand info = new ProtocolInformationCommand();
 		info.setNodes(sm.getNodesSearched());
 		info.setNps(sm.getNodesPerSecond());
@@ -51,7 +51,7 @@ public class SearchMetricsReporter extends Thread {
 		eubosEngine.sendInfoCommand(info);
 	}
 	
-	public void reportPrincipalVariation() {
+	void reportPrincipalVariation() {
 		ProtocolInformationCommand info = new ProtocolInformationCommand();
 		info.setMoveList(sm.getPrincipalVariation());
 		info.setTime(sm.getTime());
@@ -71,7 +71,7 @@ public class SearchMetricsReporter extends Thread {
 		eubosEngine.sendInfoCommand(info);
 	}
 	
-	public void reportCurrentMove() {
+	void reportCurrentMove() {
 		ProtocolInformationCommand info = new ProtocolInformationCommand();
 		info.setCurrentMove(sm.getCurrentMove());
 		info.setCurrentMoveNumber(sm.getCurrentMoveNumber());
