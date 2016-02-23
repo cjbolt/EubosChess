@@ -104,7 +104,7 @@ public class ZobristHashCode {
 			hashCode ^= prnLookupTable[INDEX_SIDE_TO_MOVE];
 		}
 		// add en passant
-		GenericPosition enPassant = bm.getEnPassantTargetSq();
+		GenericPosition enPassant = bm.getTheBoard().getEnPassantTargetSq();
 		if (enPassant!=null) {
 			int enPassantFile = IntFile.valueOf(enPassant.file);
 			hashCode ^= prnLookupTable[(INDEX_ENP_A+enPassantFile)];

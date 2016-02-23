@@ -53,11 +53,6 @@ public class BoardManager implements IBoardManager {
 		castleMask |= (castling.isBlackQsAvail() ? BLACK_QUEENSIDE : 0);
 		return castleMask;
 	}
-
-	private EnPassantManager enPassant;
-	public GenericPosition getEnPassantTargetSq() {
-		return enPassant.getEnPassantTargetSq();
-	}
 	
 	private MoveTracker moveTracker = new MoveTracker();
 	boolean lastMoveWasCapture() {
@@ -105,7 +100,6 @@ public class BoardManager implements IBoardManager {
 	public BoardManager( Board startingPosition, Piece.Colour colourToMove ) {
 		moveTracker = new MoveTracker();
 		theBoard = startingPosition;
-		enPassant = new EnPassantManager( null, theBoard );
 		castling = new CastlingManager(this);
 		mlgen = new LegalMoveListGenerator(this);
 		onMove = colourToMove;
@@ -124,17 +118,17 @@ public class BoardManager implements IBoardManager {
 		Piece pieceToMove = theBoard.pickUpPieceAtSquare( move.from );
 		if ( pieceToMove != null ) {
 			// Flag if move is an en passant capture
-			boolean enPassantCapture = enPassant.isEnPassantCapture(move, pieceToMove);
+			boolean enPassantCapture = isEnPassantCapture(move, pieceToMove);
 			// Save previous en passant square and initialise for this move
-			GenericPosition prevEnPassantTargetSq = enPassant.getEnPassantTargetSq();
-			enPassant.setEnPassantTargetSq(null);
+			GenericPosition prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
+			theBoard.setEnPassantTargetSq(null);
 			// Handle pawn promotion moves
 			pieceToMove = checkForPawnPromotions(move, pieceToMove);
 			// Handle castling secondary rook moves...
 			if (pieceToMove instanceof King)
 				castling.performSecondaryCastlingMove(move);
 			// Handle any initial 2 square pawn moves that are subject to en passant rule
-			enPassant.checkToSetEnPassantTargetSq(move, pieceToMove);
+			checkToSetEnPassantTargetSq(move, pieceToMove);
 			// Apply this move to the Move Tracker
 			Piece captureTarget = null;
 			if (enPassantCapture) {
@@ -161,7 +155,7 @@ public class BoardManager implements IBoardManager {
 
 	public void unperformMove() throws InvalidPieceException {
 		if ( !moveTracker.isEmpty()) {
-			enPassant.setEnPassantTargetSq(null);
+			theBoard.setEnPassantTargetSq(null);
 			TrackedMove tm = moveTracker.pop();
 			GenericMove moveToUndo = tm.getMove();
 			// Handle reversal of any pawn promotion that had been previously applied
@@ -184,7 +178,7 @@ public class BoardManager implements IBoardManager {
 			if ( tm.isCapture()) {
 				theBoard.setPieceAtSquare(tm.getCapturedPiece());
 			}
-			enPassant.setEnPassantTargetSq(tm.getEnPassantTarget());
+			theBoard.setEnPassantTargetSq(tm.getEnPassantTarget());
 			// Update onMove flag
 			onMove = Piece.Colour.getOpposite(onMove);
 		}
@@ -220,6 +214,34 @@ public class BoardManager implements IBoardManager {
 			}
 		}
 		return pieceToMove;
+	}
+	
+	private boolean isEnPassantCapture(GenericMove move, Piece pieceToMove) {
+		boolean enPassantCapture = false;
+		GenericPosition enPassantTargetSq = theBoard.getEnPassantTargetSq();
+		if ( enPassantTargetSq != null && pieceToMove instanceof Pawn && move.to == enPassantTargetSq) {
+			enPassantCapture = true;
+		}
+		return enPassantCapture;
+	}
+	
+	private void checkToSetEnPassantTargetSq(GenericMove move, Piece pieceToMove) {
+		if ( pieceToMove instanceof Pawn ) {
+			Pawn pawnPiece = (Pawn) pieceToMove;
+			if ( pawnPiece.isAtInitialPosition()) {
+				if ( pawnPiece.isWhite()) {
+					if (move.to.rank == GenericRank.R4) {
+						GenericPosition enPassantWhite = GenericPosition.valueOf(move.to.file,GenericRank.R3);
+						theBoard.setEnPassantTargetSq(enPassantWhite);
+					}
+				} else {
+					if (move.to.rank == GenericRank.R5) {
+						GenericPosition enPassantBlack = GenericPosition.valueOf(move.to.file,GenericRank.R6);
+						theBoard.setEnPassantTargetSq(enPassantBlack);
+					}						
+				}
+			}
+		}
 	}
 	
 	private class fenParser {
@@ -321,9 +343,9 @@ public class BoardManager implements IBoardManager {
 		}
 		private void parseEnPassant(String targetSq) {
 			if (!targetSq.contentEquals("-")) {
-				enPassant = new EnPassantManager(GenericPosition.valueOf(targetSq), theBoard);
+				theBoard.setEnPassantTargetSq(GenericPosition.valueOf(targetSq));
 			} else {
-				enPassant = new EnPassantManager(null, theBoard);
+				theBoard.setEnPassantTargetSq(null);
 			}
 		}
 		private GenericFile advanceFile(GenericFile f) {

@@ -21,10 +21,6 @@ public class Board implements Iterable<Piece> {
 		}
 	}
 	
-	private BitBoard allPieces = new BitBoard();
-	private BitBoard whitePieces = new BitBoard();
-	private BitBoard blackPieces = new BitBoard(); 
-
 	private GenericPosition enPassantTargetSq = null;
 	public GenericPosition getEnPassantTargetSq() {
 		return enPassantTargetSq;
@@ -32,6 +28,10 @@ public class Board implements Iterable<Piece> {
 	void setEnPassantTargetSq(GenericPosition enPassantTargetSq) {
 		this.enPassantTargetSq = enPassantTargetSq;
 	}
+	
+	private BitBoard allPieces = new BitBoard();
+	private BitBoard whitePieces = new BitBoard();
+	private BitBoard blackPieces = new BitBoard(); 
 	
 	void setPieceAtSquare( Piece pieceToPlace ) {
 		GenericPosition atPos = pieceToPlace.getSquare();
