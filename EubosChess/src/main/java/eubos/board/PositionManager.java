@@ -18,7 +18,7 @@ import eubos.board.pieces.Queen;
 import eubos.board.pieces.Rook;
 import eubos.board.pieces.Piece.Colour;
 
-public class BoardManager implements IBoardManager {
+public class PositionManager implements IPositionManager {
 
 	private Board theBoard;
 	public Board getTheBoard() {
@@ -93,11 +93,11 @@ public class BoardManager implements IBoardManager {
 		return kingIsInCheck;		
 	}
 
-	public BoardManager() {
+	public PositionManager() {
 		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 	}
 	
-	public BoardManager( Board startingPosition, Piece.Colour colourToMove ) {
+	public PositionManager( Board startingPosition, Piece.Colour colourToMove ) {
 		moveTracker = new MoveTracker();
 		theBoard = startingPosition;
 		castling = new CastlingManager(this);
@@ -106,7 +106,7 @@ public class BoardManager implements IBoardManager {
 		setKing();
 	}
 	
-	public BoardManager( String fenString ) {
+	public PositionManager( String fenString ) {
 		moveTracker = new MoveTracker();
 		mlgen = new LegalMoveListGenerator(this);
 		new fenParser( this, fenString );
@@ -247,7 +247,7 @@ public class BoardManager implements IBoardManager {
 	private class fenParser {
 		private LinkedList<Piece> pl;
 		
-		public fenParser( BoardManager bm, String fenString ) {
+		public fenParser( PositionManager bm, String fenString ) {
 			pl = new LinkedList<Piece>();
 			String[] tokens = fenString.split(" ");
 			String piecePlacement = tokens[0];

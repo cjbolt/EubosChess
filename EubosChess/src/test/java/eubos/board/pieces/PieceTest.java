@@ -11,12 +11,12 @@ import org.junit.Before;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.Board;
-import eubos.board.BoardManager;
+import eubos.board.PositionManager;
 
 public class PieceTest {
 
 	protected List<Piece> pl;
-	protected BoardManager bm;
+	protected PositionManager bm;
 	protected GenericMove expectedMove;
 	protected List<GenericMove> expectedMoves;
 	protected int expectedNumMoves = 0;

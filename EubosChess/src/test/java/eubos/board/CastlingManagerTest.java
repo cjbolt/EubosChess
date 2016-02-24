@@ -31,7 +31,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		classUnderTest = new BoardManager("8/8/8/8/8/8/8/4K2R w K - - -").getCastlingManager();
+		classUnderTest = new PositionManager("8/8/8/8/8/8/8/4K2R w K - - -").getCastlingManager();
 		classUnderTest.addCastlingMoves(ml);
 		expectWkscMove();
 	}
@@ -47,7 +47,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		classUnderTest = new BoardManager("8/8/8/8/8/8/8/4K2R w k - - -").getCastlingManager();
+		classUnderTest = new PositionManager("8/8/8/8/8/8/8/4K2R w k - - -").getCastlingManager();
 		classUnderTest.addCastlingMoves(ml);
 		assertTrue(ml.isEmpty());
 	}
@@ -63,7 +63,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		classUnderTest = new BoardManager("8/8/8/8/8/2b5/8/4K2R w K - - -").getCastlingManager();
+		classUnderTest = new PositionManager("8/8/8/8/8/2b5/8/4K2R w K - - -").getCastlingManager();
 		classUnderTest.addCastlingMoves(ml);
 		assertTrue(ml.isEmpty());
 	}
@@ -79,7 +79,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		classUnderTest = new BoardManager("8/8/8/8/8/3b4/8/4K2R w K - - -").getCastlingManager();
+		classUnderTest = new PositionManager("8/8/8/8/8/3b4/8/4K2R w K - - -").getCastlingManager();
 		classUnderTest.addCastlingMoves(ml);
 		assertTrue(ml.isEmpty());
 	}
@@ -95,7 +95,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		classUnderTest = new BoardManager("8/8/8/8/8/4b3/8/4K2R w K - - -").getCastlingManager();
+		classUnderTest = new PositionManager("8/8/8/8/8/4b3/8/4K2R w K - - -").getCastlingManager();
 		classUnderTest.addCastlingMoves(ml);
 		assertTrue(ml.isEmpty());
 	}
@@ -111,7 +111,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....kb.r
 		//   abcdefgh
-		classUnderTest = new BoardManager("8/8/8/8/8/8/8/4KB1R w K - - -").getCastlingManager();
+		classUnderTest = new PositionManager("8/8/8/8/8/8/8/4KB1R w K - - -").getCastlingManager();
 		classUnderTest.addCastlingMoves(ml);
 		assertTrue(ml.isEmpty());
 	}
@@ -127,7 +127,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k.br
 		//   abcdefgh
-		classUnderTest = new BoardManager("8/8/8/8/8/8/8/4K1BR w K - - -").getCastlingManager();
+		classUnderTest = new PositionManager("8/8/8/8/8/8/8/4K1BR w K - - -").getCastlingManager();
 		classUnderTest.addCastlingMoves(ml);
 		assertTrue(ml.isEmpty());
 	}	
@@ -143,7 +143,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		classUnderTest = new BoardManager("8/8/8/8/8/5b2/8/4K2R w K - - -").getCastlingManager();
+		classUnderTest = new PositionManager("8/8/8/8/8/5b2/8/4K2R w K - - -").getCastlingManager();
 		classUnderTest.addCastlingMoves(ml);
 		expectWkscMove();
 	}
@@ -159,7 +159,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new BoardManager("r3k3/8/8/8/8/8/8/8 b q - - -").getCastlingManager();
+		classUnderTest = new PositionManager("r3k3/8/8/8/8/8/8/8 b q - - -").getCastlingManager();
 		classUnderTest.addCastlingMoves(ml);
 		expectBqscMove();
 	}
@@ -175,7 +175,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new BoardManager("r3k3/8/6B1/8/8/8/8/8 b q - - -").getCastlingManager();
+		classUnderTest = new PositionManager("r3k3/8/6B1/8/8/8/8/8 b q - - -").getCastlingManager();
 		classUnderTest.addCastlingMoves(ml);
 		assertTrue(ml.isEmpty());
 	}
@@ -191,7 +191,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new BoardManager("r3k3/8/8/8/8/8/8/8 b Q - - -").getCastlingManager();
+		classUnderTest = new PositionManager("r3k3/8/8/8/8/8/8/8 b Q - - -").getCastlingManager();
 		classUnderTest.addCastlingMoves(ml);
 		assertTrue(ml.isEmpty());
 	}
@@ -207,7 +207,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new BoardManager("r3k3/8/8/8/8/8/8/8 b q - - -").getCastlingManager();
+		classUnderTest = new PositionManager("r3k3/8/8/8/8/8/8/8 b q - - -").getCastlingManager();
 		classUnderTest.addCastlingMoves(ml);
 		expectBqscMove();
 	}	
@@ -223,7 +223,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new BoardManager("r3k3/8/5B2/8/8/8/8/8 b q - - -").getCastlingManager();
+		classUnderTest = new PositionManager("r3k3/8/5B2/8/8/8/8/8 b q - - -").getCastlingManager();
 		classUnderTest.addCastlingMoves(ml);
 		assertTrue(ml.isEmpty());
 	}
@@ -239,7 +239,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new BoardManager("r3k3/8/4B3/8/8/8/8/8 b q - - -").getCastlingManager();
+		classUnderTest = new PositionManager("r3k3/8/4B3/8/8/8/8/8 b q - - -").getCastlingManager();
 		classUnderTest.addCastlingMoves(ml);
 		assertTrue(ml.isEmpty());
 	}
@@ -255,7 +255,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new BoardManager("r2qk3/8/8/8/8/8/8/8 b q - - -").getCastlingManager();
+		classUnderTest = new PositionManager("r2qk3/8/8/8/8/8/8/8 b q - - -").getCastlingManager();
 		classUnderTest.addCastlingMoves(ml);
 		assertTrue(ml.isEmpty());
 	}
@@ -271,14 +271,14 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new BoardManager("r3k3/8/R7/8/8/8/8/8 b q - - -").getCastlingManager();
+		classUnderTest = new PositionManager("r3k3/8/R7/8/8/8/8/8 b q - - -").getCastlingManager();
 		classUnderTest.addCastlingMoves(ml);
 		expectBqscMove();
 	}
 	
 	@Test
 	public void test_WhiteKingSideCastle_fromgame() throws IllegalNotationException  {
-		classUnderTest = new BoardManager("rnb2bnr/1ppp1kpp/4pq2/8/p1BPP3/8/PPP2PPP/RNBQK2R w KQ - 1 7").getCastlingManager();
+		classUnderTest = new PositionManager("rnb2bnr/1ppp1kpp/4pq2/8/p1BPP3/8/PPP2PPP/RNBQK2R w KQ - 1 7").getCastlingManager();
 		classUnderTest.addCastlingMoves(ml);
 		expectWkscMove();
 	}

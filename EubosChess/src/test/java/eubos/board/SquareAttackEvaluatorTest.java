@@ -41,7 +41,7 @@ public class SquareAttackEvaluatorTest {
 	}
 	
 	private void createClassUnderTest(String fenString) {
-		BoardManager bm = new BoardManager(fenString);
+		PositionManager bm = new PositionManager(fenString);
 		classUnderTest = new SquareAttackEvaluator(bm.getTheBoard(),testSq,bm.getOnMove());
 	}
 	

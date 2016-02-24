@@ -11,9 +11,9 @@ import eubos.board.pieces.Piece.Colour;
 
 class LegalMoveListGenerator {
 	
-	private BoardManager bm;
+	private PositionManager bm;
 	
-	LegalMoveListGenerator( BoardManager bm ) {
+	LegalMoveListGenerator( PositionManager bm ) {
 		this.bm = bm;
 	}
 	

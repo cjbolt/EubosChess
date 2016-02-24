@@ -21,7 +21,7 @@ import com.fluxchess.jcpi.commands.ProtocolReadyAnswerCommand;
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import com.fluxchess.jcpi.models.*;
 
-import eubos.board.BoardManager;
+import eubos.board.PositionManager;
 import eubos.board.InvalidPieceException;
 import eubos.search.MoveSearcher;
 
@@ -29,7 +29,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	private static final int SEARCH_DEPTH_IN_PLY = 6;
 	
-	private BoardManager bm;
+	private PositionManager bm;
 	private MoveSearcher ms;
 	private OpeningBook open = new OpeningBook();
 	private GenericMove nextBookMove = null;
@@ -58,7 +58,7 @@ public class EubosEngineMain extends AbstractEngine {
 
 	public void receive(EngineAnalyzeCommand command) {
 		// Import position received from GUI and apply any instructed moves.
-		bm = new BoardManager(command.board.toString());
+		bm = new PositionManager(command.board.toString());
 		try {
 			for (GenericMove nextMove : command.moves) {
 				bm.performMove( nextMove );

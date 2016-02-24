@@ -6,7 +6,7 @@ import java.util.List;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.Board;
-import eubos.board.BoardManager;
+import eubos.board.PositionManager;
 import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Bishop;
 import eubos.board.pieces.King;
@@ -21,7 +21,7 @@ import eubos.main.EubosEngineMain;
 class MiniMaxMoveGenerator implements
 		IMoveGenerator {
 
-	private BoardManager bm;
+	private PositionManager pm;
 	private int searchDepthPly;
 	private int scores[];
 	private PrincipalContinuation pc;
@@ -40,8 +40,8 @@ class MiniMaxMoveGenerator implements
 	private static final int PAWN_VALUE = 100;
 
 	// Used for unit tests
-	MiniMaxMoveGenerator( BoardManager bm, int searchDepth ) {
-		this.bm = bm;
+	MiniMaxMoveGenerator( PositionManager pm, int searchDepth ) {
+		this.pm = pm;
 		scores = new int[searchDepth];
 		searchDepthPly = searchDepth;
 		pc = new PrincipalContinuation(searchDepth);
@@ -50,8 +50,8 @@ class MiniMaxMoveGenerator implements
 	}
 
 	// Used with Arena
-	MiniMaxMoveGenerator( EubosEngineMain eubos, BoardManager bm, int searchDepth ) {
-		this(bm, searchDepth);
+	MiniMaxMoveGenerator( EubosEngineMain eubos, PositionManager pm, int searchDepth ) {
+		this(pm, searchDepth);
 		sm.setPrincipalVariation(pc.toPvList());
 		sr = new SearchMetricsReporter(eubos,sm);
 		sendInfo = true;
@@ -60,7 +60,7 @@ class MiniMaxMoveGenerator implements
 	@Override
 	public GenericMove findMove() throws NoLegalMoveException, InvalidPieceException {
 		// Register initialOnMove
-		initialOnMove = bm.getOnMove();
+		initialOnMove = pm.getOnMove();
 		// Start the search reporter task
 		if (sendInfo)
 			sr.start();
@@ -79,13 +79,13 @@ class MiniMaxMoveGenerator implements
 	}
 
 	private int searchPly(int currPly) throws InvalidPieceException {
-		debug.printSearchPly(currPly,bm.getOnMove());
+		debug.printSearchPly(currPly,pm.getOnMove());
 		int alphaBetaCutOff = initNodeScoreAlphaBeta(currPly);
 		// Generate all moves at this position.
-		List<GenericMove> ml = bm.getMoveList();
+		List<GenericMove> ml = pm.getMoveList();
 		if (ml.isEmpty()) {
 			// Handle mates (indicated by no legal moves)
-			if (bm.isKingInCheck()) {
+			if (pm.isKingInCheck()) {
 				backupScoreForCheckmate(currPly);
 				debug.printMateFound(currPly);
 			} else {
@@ -100,16 +100,16 @@ class MiniMaxMoveGenerator implements
 				GenericMove currMove = move_iter.next();
 				reportNextMove(currPly, currMove);
 				debug.printPerformMove(currPly, currMove);
-				bm.performMove(currMove);
+				pm.performMove(currMove);
 				// 2) Either recurse or evaluate position and check for back-up of score
 				if ( isTerminalNode(currPly) ) {
-					positionScore = evaluatePosition(bm.getTheBoard());
+					positionScore = evaluatePosition(pm.getTheBoard());
 				} else {
 					positionScore = searchPly(currPly+1);
 				}
 				// 3) Having assessed the position, undo the move
 				debug.printUndoMove(currPly, currMove);
-				bm.unperformMove();
+				pm.unperformMove();
 				sm.incrementNodesSearched();
 				// 4a) Back-up the position score and update the principal continuation...
 				if (backUpIsRequired(currPly, positionScore)) {
@@ -160,7 +160,7 @@ class MiniMaxMoveGenerator implements
 
 	private boolean backUpIsRequired(int currPly, int positionScore) {
 		boolean backUpScore = false;
-		if (bm.getOnMove() == Colour.white) {
+		if (pm.getOnMove() == Colour.white) {
 			// if white, maximise score
 			if (positionScore > scores[currPly])
 				backUpScore = true;
@@ -174,8 +174,8 @@ class MiniMaxMoveGenerator implements
 	
 	private boolean testForAlphaBetaCutOff(int cutOffValue, int positionScore, int currPly) {
 		if ((cutOffValue != Integer.MAX_VALUE) && (cutOffValue != Integer.MIN_VALUE)) {
-			if ((bm.getOnMove() == Colour.white && positionScore >= scores[currPly-1]) ||
-					(bm.getOnMove() == Colour.black && positionScore <= scores[currPly-1])) {
+			if ((pm.getOnMove() == Colour.white && positionScore >= scores[currPly-1]) ||
+					(pm.getOnMove() == Colour.black && positionScore <= scores[currPly-1])) {
 				return true;
 			}
 		}
@@ -200,14 +200,14 @@ class MiniMaxMoveGenerator implements
 		int multiplier = totalMovesSearched-mateMoveNum;
 		scores[currPly] = multiplier*KING_VALUE;
 		// Note the check on whether own king is checkmated (2nd expression). Ensures correct score backup.
-		if (initialOnMove==Colour.black && initialOnMove!=bm.getOnMove())
+		if (initialOnMove==Colour.black && initialOnMove!=pm.getOnMove())
 			scores[currPly] = -scores[currPly];
 	}
 
 	private int initNodeScoreAlphaBeta(int currPly) {
 		// Initialise score at this node
 		if (currPly==0 || currPly==1) {
-			if (bm.getOnMove()==Colour.white) {
+			if (pm.getOnMove()==Colour.white) {
 				scores[currPly] = Integer.MIN_VALUE;
 			} else {
 				scores[currPly] = Integer.MAX_VALUE;

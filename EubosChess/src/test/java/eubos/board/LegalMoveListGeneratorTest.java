@@ -19,7 +19,7 @@ public class LegalMoveListGeneratorTest {
 
 	@Test
 	public void testLegalMoveListGenerator() {
-		classUnderTest = new LegalMoveListGenerator(new BoardManager());
+		classUnderTest = new LegalMoveListGenerator(new PositionManager());
 	}
 
 	@Test
@@ -33,7 +33,7 @@ public class LegalMoveListGeneratorTest {
 		// 2 PPP.....
 		// 1 kP......
 		//   abcdefgh
-		BoardManager bm = new BoardManager( "8/8/8/8/8/1pp5/ppp5/Kp6 w - - - -" );
+		PositionManager bm = new PositionManager( "8/8/8/8/8/1pp5/ppp5/Kp6 w - - - -" );
 		classUnderTest = new LegalMoveListGenerator(bm);
 		List<GenericMove> ml;
 		try {

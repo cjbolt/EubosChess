@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import eubos.board.BoardManager;
+import eubos.board.PositionManager;
 import eubos.board.Board;
 import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece.Colour;
@@ -42,7 +42,7 @@ public class PawnTest_Black extends PawnTest {
 		// Black is on e4, white moves f4, then black ml contains capture en passant, exf
 		classUnderTest = addBlackPawn( GenericPosition.e4 );
 		addWhitePawn( GenericPosition.f2 );
-		bm = new BoardManager( new Board( pl ), Colour.black );
+		bm = new PositionManager( new Board( pl ), Colour.black );
 		bm.performMove( new GenericMove( GenericPosition.f2, GenericPosition.f4 ));
 		ml = classUnderTest.generateMoves( bm.getTheBoard() );
 		expectedMove = new GenericMove( GenericPosition.e4, GenericPosition.f3 );
@@ -54,7 +54,7 @@ public class PawnTest_Black extends PawnTest {
 		// Black is on e4, white moves a knight to f4, check black ml doesn't contain a capture en passant, exf
 		classUnderTest = addBlackPawn( GenericPosition.e4 );
 		pl.add( new Knight( Piece.Colour.white, GenericPosition.f2 ));
-		bm = new BoardManager( new Board( pl ), Colour.black );
+		bm = new PositionManager( new Board( pl ), Colour.black );
 		bm.performMove( new GenericMove( GenericPosition.f2, GenericPosition.f4 ));
 		ml = classUnderTest.generateMoves( bm.getTheBoard() );
 		expectedMove = new GenericMove( GenericPosition.e4, GenericPosition.f3 );
@@ -66,7 +66,7 @@ public class PawnTest_Black extends PawnTest {
 		// Black is on e4, white moves d4, then black ml contains capture en passant, exd
 		classUnderTest = addBlackPawn( GenericPosition.e4 );
 		addWhitePawn( GenericPosition.d2 );
-		bm = new BoardManager( new Board( pl ), Colour.black );
+		bm = new PositionManager( new Board( pl ), Colour.black );
 		bm.performMove( new GenericMove( GenericPosition.d2, GenericPosition.d4 ));
 		ml = classUnderTest.generateMoves( bm.getTheBoard() );
 		expectedMove = new GenericMove( GenericPosition.e4, GenericPosition.d3 );
@@ -78,7 +78,7 @@ public class PawnTest_Black extends PawnTest {
 		// Black is on e4, white moves a knight to d4, check black ml doesn't contain a capture en passant, exd
 		classUnderTest = addBlackPawn( GenericPosition.e4 );
 		pl.add( new Knight( Piece.Colour.white, GenericPosition.d2 ));
-		bm = new BoardManager( new Board( pl ), Colour.black );
+		bm = new PositionManager( new Board( pl ), Colour.black );
 		bm.performMove( new GenericMove( GenericPosition.d2, GenericPosition.d4 ));
 		ml = classUnderTest.generateMoves( bm.getTheBoard() );
 		expectedMove = new GenericMove( GenericPosition.e4, GenericPosition.d3 );
@@ -90,7 +90,7 @@ public class PawnTest_Black extends PawnTest {
 		// Black is on a4, white moves b4, then black ml contains capture en passant, axb
 		classUnderTest = addBlackPawn( GenericPosition.a4 );
 		addWhitePawn( GenericPosition.b2 );
-		bm = new BoardManager( new Board( pl ), Colour.black );
+		bm = new PositionManager( new Board( pl ), Colour.black );
 		bm.performMove( new GenericMove( GenericPosition.b2, GenericPosition.b4 ));
 		ml = classUnderTest.generateMoves( bm.getTheBoard() );
 		expectedMove = new GenericMove( GenericPosition.a4, GenericPosition.b3 );
@@ -102,7 +102,7 @@ public class PawnTest_Black extends PawnTest {
 		// Black is on a4, white moves b4, then black ml contains capture en passant, axb
 		classUnderTest = addBlackPawn( GenericPosition.a4 );
 		addWhitePawn( GenericPosition.b4 );
-		bm = new BoardManager( new Board( pl ), Colour.black );
+		bm = new PositionManager( new Board( pl ), Colour.black );
 		bm.performMove( new GenericMove( GenericPosition.b4, GenericPosition.b5 ));
 		ml = classUnderTest.generateMoves( bm.getTheBoard() );
 		expectedMove = new GenericMove( GenericPosition.a4, GenericPosition.b3 );
@@ -114,7 +114,7 @@ public class PawnTest_Black extends PawnTest {
 		// Black is on h4, white moves g4, then black ml contains capture en passant, hxg
 		classUnderTest = addBlackPawn( GenericPosition.h4 );
 		addWhitePawn( GenericPosition.g2 );
-		bm = new BoardManager( new Board( pl ), Colour.black );
+		bm = new PositionManager( new Board( pl ), Colour.black );
 		bm.performMove( new GenericMove( GenericPosition.g2, GenericPosition.g4 ));
 		ml = classUnderTest.generateMoves( bm.getTheBoard() );
 		expectedMove = new GenericMove( GenericPosition.h4, GenericPosition.g3 );
@@ -126,7 +126,7 @@ public class PawnTest_Black extends PawnTest {
 		// After initial move, ensure that a pawn can't move 2 any longer
 		classUnderTest = addBlackPawn( GenericPosition.e7 );
 		addWhitePawn( GenericPosition.e2 );
-		bm = new BoardManager( new Board( pl ), Colour.black );
+		bm = new PositionManager( new Board( pl ), Colour.black );
 		bm.performMove( new GenericMove( GenericPosition.e7, GenericPosition.e6 ));
 		bm.performMove( new GenericMove( GenericPosition.e2, GenericPosition.e4 ));
 		ml = classUnderTest.generateMoves( bm.getTheBoard() );

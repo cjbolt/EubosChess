@@ -8,7 +8,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.pieces.Piece.Colour;
 
-public interface IBoardManager {
+public interface IPositionManager {
 	// Primary API
 	public void performMove( GenericMove move ) throws InvalidPieceException;
 	public void unperformMove() throws InvalidPieceException;

@@ -7,7 +7,7 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
-import eubos.board.BoardManager;
+import eubos.board.PositionManager;
 import eubos.board.pieces.Bishop;
 import eubos.board.pieces.King;
 import eubos.board.pieces.Knight;
@@ -60,9 +60,9 @@ public class ZobristHashCode {
 				prnLookupTable[index] = randGen.nextLong();
 	}
 	
-	public void generate(BoardManager bm) throws Exception {
+	public void generate(PositionManager pm) throws Exception {
 		// add pieces
-		for (Piece currPiece : bm.getTheBoard()) {
+		for (Piece currPiece : pm.getTheBoard()) {
 			GenericPosition atSq = currPiece.getSquare();
 			if (atSq != null) {
 				// compute prnLookup index to use, based on piece type, colour and square.
@@ -96,21 +96,21 @@ public class ZobristHashCode {
 			}
 		}
 		// add castling
-		int castlingMask = bm.getCastlingAvaillability();	
-		if ((castlingMask & BoardManager.WHITE_KINGSIDE)==BoardManager.WHITE_KINGSIDE)
+		int castlingMask = pm.getCastlingAvaillability();	
+		if ((castlingMask & PositionManager.WHITE_KINGSIDE)==PositionManager.WHITE_KINGSIDE)
 			hashCode ^= prnLookupTable[INDEX_WHITE_KSC];
-		if ((castlingMask & BoardManager.WHITE_QUEENSIDE)==BoardManager.WHITE_QUEENSIDE)
+		if ((castlingMask & PositionManager.WHITE_QUEENSIDE)==PositionManager.WHITE_QUEENSIDE)
 			hashCode ^= prnLookupTable[INDEX_WHITE_QSC];
-		if ((castlingMask & BoardManager.BLACK_KINGSIDE)==BoardManager.BLACK_KINGSIDE)
+		if ((castlingMask & PositionManager.BLACK_KINGSIDE)==PositionManager.BLACK_KINGSIDE)
 			hashCode ^= prnLookupTable[INDEX_BLACK_KSC];
-		if ((castlingMask & BoardManager.BLACK_QUEENSIDE)==BoardManager.BLACK_QUEENSIDE)
+		if ((castlingMask & PositionManager.BLACK_QUEENSIDE)==PositionManager.BLACK_QUEENSIDE)
 			hashCode ^= prnLookupTable[INDEX_BLACK_QSC];
 		// add on move
-		if (bm.getOnMove()==Piece.Colour.black) {
+		if (pm.getOnMove()==Piece.Colour.black) {
 			hashCode ^= prnLookupTable[INDEX_SIDE_TO_MOVE];
 		}
 		// add en passant
-		GenericPosition enPassant = bm.getTheBoard().getEnPassantTargetSq();
+		GenericPosition enPassant = pm.getTheBoard().getEnPassantTargetSq();
 		if (enPassant!=null) {
 			int enPassantFile = IntFile.valueOf(enPassant.file);
 			hashCode ^= prnLookupTable[(INDEX_ENP_A+enPassantFile)];

@@ -10,7 +10,7 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
-import eubos.board.BoardManager;
+import eubos.board.PositionManager;
 import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece;
 import eubos.search.MiniMaxMoveGenerator;
@@ -53,7 +53,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		BoardManager bm = new BoardManager( "8/8/3p2p1/2P5/8/8/8/8 w - - - -" );
+		PositionManager bm = new PositionManager( "8/8/3p2p1/2P5/8/8/8/8 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm, SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove("c5d6");
 		doFindMoveTest(true);
@@ -70,7 +70,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 .....p..
 		// 1 ........
 		//   abcdefgh
-		BoardManager bm = new BoardManager( "8/3p4/2P5/8/8/8/5P2/8 b - - - -" );
+		PositionManager bm = new PositionManager( "8/3p4/2P5/8/8/8/5P2/8 b - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove("d7c6");
 		doFindMoveTest(true);
@@ -87,7 +87,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 PPP.....
 		// 1 kP......
 		//   abcdefgh
-		BoardManager bm = new BoardManager( "8/8/8/8/8/1p6/ppp5/Kp6 w - - - -" );
+		PositionManager bm = new PositionManager( "8/8/8/8/8/1p6/ppp5/Kp6 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove("a1b2");
 		doFindMoveTest(true);			
@@ -104,7 +104,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 .P......
 		// 1 k.......
 		//   abcdefgh
-		BoardManager bm = new BoardManager( "8/8/8/8/8/1pp5/1p6/K7 w - - - -" );
+		PositionManager bm = new PositionManager( "8/8/8/8/8/1pp5/1p6/K7 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove("a1b1");
 		doFindMoveTest(true);
@@ -121,7 +121,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 PPP.....
 		// 1 kP......
 		//   abcdefgh
-		BoardManager bm = new BoardManager( "8/8/8/8/8/1pp5/ppp5/Kp6 w - - - -" );
+		PositionManager bm = new PositionManager( "8/8/8/8/8/1pp5/ppp5/Kp6 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		classUnderTest.findMove();
 	}
@@ -137,7 +137,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 ........
 		// 1 ..kr...r
 		//   abcdefgh
-		BoardManager bm = new BoardManager( "2B1Q3/6k1/2Q5/P5B1/4P3/1P3NPN/8/2KR3R b - - - -" );
+		PositionManager bm = new PositionManager( "2B1Q3/6k1/2Q5/P5B1/4P3/1P3NPN/8/2KR3R b - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove("g7h7");
 		doFindMoveTest(true);
@@ -154,7 +154,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 ......pp
 		// 1 ....r.k.
 		//   abcdefgh
-		BoardManager bm = new BoardManager( "3nkbnr/3p1ppp/8/1B1p4/R2N4/8/6PP/4R1K1 b - - - -" );
+		PositionManager bm = new PositionManager( "3nkbnr/3p1ppp/8/1B1p4/R2N4/8/6PP/4R1K1 b - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove("g8e7");
 		doFindMoveTest(true);
@@ -171,7 +171,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		BoardManager bm = new BoardManager( "8/5q2/3pP3/2P5/1b6/P7/8/8 w - - - -" );
+		PositionManager bm = new PositionManager( "8/5q2/3pP3/2P5/1b6/P7/8/8 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove("e6f7");
 		doFindMoveTest(true);
@@ -188,7 +188,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		BoardManager bm = new BoardManager( "5q2/4P3/3p4/2P5/1b6/P7/8/8 w - - - -" );
+		PositionManager bm = new PositionManager( "5q2/4P3/3p4/2P5/1b6/P7/8/8 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove("e7f8Q");
 		doFindMoveTest(true);
@@ -205,7 +205,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		BoardManager bm = new BoardManager( "8/4P3/3p4/8/8/8/8/8 w - - - -" );
+		PositionManager bm = new PositionManager( "8/4P3/3p4/8/8/8/8/8 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove("e7e8Q");
 		doFindMoveTest(true);
@@ -222,7 +222,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 ........
 		// 1 ....r...
 		//   abcdefgh
-		BoardManager bm = new BoardManager( "4k3/8/4p3/5b2/8/8/8/4R3 b - - - -" );
+		PositionManager bm = new PositionManager( "4k3/8/4p3/5b2/8/8/8/4R3 b - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove("e6f5");
 		doFindMoveTest(false);
@@ -240,7 +240,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 .....ppp
 		// 1 r...r.k.
 		//   abcdefgh
-		BoardManager bm = new BoardManager( "1nbqk2r/3p3p/r1pbpn2/1p3B2/3P4/PQP2N2/5PPP/R3R1K1 w - - - -" );
+		PositionManager bm = new PositionManager( "1nbqk2r/3p3p/r1pbpn2/1p3B2/3P4/PQP2N2/5PPP/R3R1K1 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator(bm,2);
 		expectedMove = new GenericMove("e6f5");
 		doFindMoveTest(false);
@@ -249,7 +249,7 @@ public class MiniMaxMoveGeneratorTest {
 	@Test
 	public void test_findMove_mateInOne1()  throws NoLegalMoveException, IllegalNotationException {
 		// chess.com Problem ID: 0160818
-		BoardManager bm = new BoardManager( "5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - - -" );
+		PositionManager bm = new PositionManager( "5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator(bm,2);
 		expectedMove = new GenericMove("d3h7");
 		doFindMoveTest(true);
@@ -258,7 +258,7 @@ public class MiniMaxMoveGeneratorTest {
 	@Test
 	public void test_findMove_mateInOne2()  throws NoLegalMoveException, IllegalNotationException {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
-		BoardManager bm = new BoardManager( "2N5/4R3/2k3KQ/R7/1PB5/5N2/8/6B1 w - - 0 1" );
+		PositionManager bm = new PositionManager( "2N5/4R3/2k3KQ/R7/1PB5/5N2/8/6B1 w - - 0 1" );
 		classUnderTest = new MiniMaxMoveGenerator(bm,2);
 		// various possible mates
 		//expectedMove = new GenericMove("a5a6");
@@ -269,7 +269,7 @@ public class MiniMaxMoveGeneratorTest {
 	@Test
 	public void test_findMove_mateInOne3()  throws NoLegalMoveException, IllegalNotationException {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
-		BoardManager bm = new BoardManager( "4N3/5P1P/5N1k/Q5p1/5PKP/B7/8/1B6 w - - 0 1" );
+		PositionManager bm = new PositionManager( "4N3/5P1P/5N1k/Q5p1/5PKP/B7/8/1B6 w - - 0 1" );
 		classUnderTest = new MiniMaxMoveGenerator(bm,2);
 		// various possible mates
 		//expectedMove = new GenericMove("h4g5");
@@ -281,7 +281,7 @@ public class MiniMaxMoveGeneratorTest {
 	@Test
 	public void test_findMove_mateInOne4()  throws NoLegalMoveException, IllegalNotationException {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
-		BoardManager bm = new BoardManager( "8/4N3/7Q/4k3/8/4KP2/3P4/8 w - - 0 1" );
+		PositionManager bm = new PositionManager( "8/4N3/7Q/4k3/8/4KP2/3P4/8 w - - 0 1" );
 		classUnderTest = new MiniMaxMoveGenerator(bm,2);
 		// Two possible pawn mates
 		expectedMove = new GenericMove("d2d4");
@@ -291,7 +291,7 @@ public class MiniMaxMoveGeneratorTest {
 	@Test
 	public void test_findMove_mateInOne5()  throws NoLegalMoveException, IllegalNotationException {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
-		BoardManager bm = new BoardManager( "8/8/K7/p7/k2N3R/p7/P7/8 w - - 0 1" );
+		PositionManager bm = new PositionManager( "8/8/K7/p7/k2N3R/p7/P7/8 w - - 0 1" );
 		classUnderTest = new MiniMaxMoveGenerator(bm,2);
 		expectedMove = new GenericMove("d4e6");
 		doFindMoveTest(true);
@@ -300,7 +300,7 @@ public class MiniMaxMoveGeneratorTest {
 	@Test
 	public void test_findMove_mateInOne6()  throws NoLegalMoveException, IllegalNotationException {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
-		BoardManager bm = new BoardManager( "1rk2N2/1p6/8/B1Pp4/B6Q/K7/8/2R5 w - d6 0 1" );
+		PositionManager bm = new PositionManager( "1rk2N2/1p6/8/B1Pp4/B6Q/K7/8/2R5 w - d6 0 1" );
 		classUnderTest = new MiniMaxMoveGenerator(bm,2);
 		expectedMove = new GenericMove("c5d6"); //en passant move causes discovered checkmate
 		doFindMoveTest(true);
@@ -309,7 +309,7 @@ public class MiniMaxMoveGeneratorTest {
 	@Test
 	public void test_findMove_mateInOne7()  throws NoLegalMoveException, IllegalNotationException {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
-		BoardManager bm = new BoardManager( "8/7B/8/3N4/8/1Q2B3/PPP5/rk2K2R w K - 0 1" );
+		PositionManager bm = new PositionManager( "8/7B/8/3N4/8/1Q2B3/PPP5/rk2K2R w K - 0 1" );
 		classUnderTest = new MiniMaxMoveGenerator(bm,2);
 		//expectedMove = new GenericMove("c2c3");
 		expectedMove = new GenericMove("e1e2");
@@ -319,7 +319,7 @@ public class MiniMaxMoveGeneratorTest {
 	@Test
 	public void test_findMove_mateInTwo1()  throws NoLegalMoveException, IllegalNotationException {
 		// chess.com Problem ID: 0022190
-		BoardManager bm = new BoardManager( "k1K5/b7/R7/1P6/1n6/8/8/8 w - - - -" );
+		PositionManager bm = new PositionManager( "k1K5/b7/R7/1P6/1n6/8/8/8 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove("b5b6");
 		doFindMoveTest(true);
@@ -328,7 +328,7 @@ public class MiniMaxMoveGeneratorTest {
 	@Test
 	public void test_findMove_mateInTwo2()  throws NoLegalMoveException, IllegalNotationException {
 		// chess.com Problem ID: 0102832
-		BoardManager bm = new BoardManager( "r1r3k1/pb1p1p2/1p2p1p1/2pPP1B1/1nP4Q/1Pq2NP1/P4PBP/b2R2K1 w - - - -" );
+		PositionManager bm = new PositionManager( "r1r3k1/pb1p1p2/1p2p1p1/2pPP1B1/1nP4Q/1Pq2NP1/P4PBP/b2R2K1 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove("g5f6");
 		doFindMoveTest(true);
@@ -337,7 +337,7 @@ public class MiniMaxMoveGeneratorTest {
 	@Test
 	public void test_findMove_mateInTwo3()  throws NoLegalMoveException, IllegalNotationException {
 		// chess.com Problem ID: 0551140
-		BoardManager bm = new BoardManager( "rnbq1rk1/p4ppN/4p2n/1pbp4/8/2PQP2P/PPB2PP1/RNB1K2R w - - - -" );
+		PositionManager bm = new PositionManager( "rnbq1rk1/p4ppN/4p2n/1pbp4/8/2PQP2P/PPB2PP1/RNB1K2R w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( bm,SEARCH_DEPTH_IN_PLY );
 		expectedMove = new GenericMove("h7f6");
 		doFindMoveTest(true);
@@ -349,7 +349,7 @@ public class MiniMaxMoveGeneratorTest {
 		// N.b. this phenomenon was caused by a combination of the castle move
 		// "secondary rook move" missing implementation bug and the fact that an
 		// invalid piece exception was not previously implemented.
-		BoardManager bm = new BoardManager( "2b1k1nr/2p2ppp/2p5/p3q3/P3Q3/P4P2/2P1B1PP/1r3R1K w k - 2 23" );
+		PositionManager bm = new PositionManager( "2b1k1nr/2p2ppp/2p5/p3q3/P3Q3/P4P2/2P1B1PP/1r3R1K w k - 2 23" );
 		bm.performMove(new GenericMove("f1b1"));
 		classUnderTest = new MiniMaxMoveGenerator(bm,2);
 		expectedMove = new GenericMove("e5e4");
@@ -362,7 +362,7 @@ public class MiniMaxMoveGeneratorTest {
 	// Currently fails because the status of the initial enPassant Target square is not backed up by
 	// the move generator (because the move was never executed as far as Eubos is concerned).
 	public void test_findMove_enPassantCapture() throws InvalidPieceException, IllegalNotationException {
-		BoardManager bm = new BoardManager( "8/8/8/8/1pPP4/8/8/8 b - c3 0 1");
+		PositionManager bm = new PositionManager( "8/8/8/8/1pPP4/8/8/8 b - c3 0 1");
 		classUnderTest = new MiniMaxMoveGenerator(bm,2);
 		expectedMove = new GenericMove("b4c3");
 		doFindMoveTest(true);
@@ -370,7 +370,7 @@ public class MiniMaxMoveGeneratorTest {
 	
 	@Test
 	public void test_findMove_mateInOne8() throws InvalidPieceException, IllegalNotationException {
-		BoardManager bm = new BoardManager( "1k6/ppR5/8/8/8/8/PP6/K1Qq2r1 w - - - -");
+		PositionManager bm = new PositionManager( "1k6/ppR5/8/8/8/8/PP6/K1Qq2r1 w - - - -");
 		classUnderTest = new MiniMaxMoveGenerator(bm,2);
 		expectedMove = new GenericMove("c7c8");
 		doFindMoveTest(true);
