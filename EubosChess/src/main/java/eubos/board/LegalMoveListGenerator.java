@@ -11,38 +11,38 @@ import eubos.board.pieces.Piece.Colour;
 
 class LegalMoveListGenerator {
 	
-	private PositionManager bm;
+	private PositionManager pm;
 	
-	LegalMoveListGenerator( PositionManager bm ) {
-		this.bm = bm;
+	LegalMoveListGenerator( PositionManager pm ) {
+		this.pm = pm;
 	}
 	
 	List<GenericMove> createMoveList() throws InvalidPieceException {
 		List<GenericMove> entireMoveList = new ArrayList<GenericMove>();
-		Colour onMove = bm.getOnMove();
+		Colour onMove = pm.getOnMove();
 		// For each piece of the "on Move" colour, add it's legal moves to the entire move list
-		Iterator<Piece> iter_p = bm.getTheBoard().iterateColour(bm.getOnMove());
+		Iterator<Piece> iter_p = pm.getTheBoard().iterateColour(pm.getOnMove());
 		while ( iter_p.hasNext() ) {
 			Piece currPiece = iter_p.next();
-			entireMoveList.addAll( currPiece.generateMoves( bm.getTheBoard() ));
+			entireMoveList.addAll( currPiece.generateMoves( pm.getTheBoard() ));
 		}
-		bm.addCastlingMoves(entireMoveList);
+		pm.addCastlingMoves(entireMoveList);
 		List<GenericMove> newMoveList = new ArrayList<GenericMove>();
 		Iterator<GenericMove> iter_ml = entireMoveList.iterator();
 		while ( iter_ml.hasNext() ) {
 			GenericMove currMove = iter_ml.next();
-			bm.performMove( currMove );
+			pm.performMove( currMove );
 			// Scratch any moves resulting in the king being in check
-			if (bm.isKingInCheck(onMove))
+			if (pm.isKingInCheck(onMove))
 				iter_ml.remove();
 			// Groom the movelist so that the moves expected to be best are searched first.
 			// This is to get max benefit form alpha beta algorithm
-			else if (bm.lastMoveWasCapture()) {
+			else if (pm.lastMoveWasCapture()) {
 				newMoveList.add(0, currMove);
 			} else {
 				newMoveList.add(currMove);
 			}
-			bm.unperformMove();
+			pm.unperformMove();
 		}
 		entireMoveList = newMoveList;
 		return entireMoveList;
