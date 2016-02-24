@@ -5,10 +5,10 @@ import java.util.List;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.pieces.King;
-import eubos.pieces.Piece;
-import eubos.pieces.Rook;
-import eubos.pieces.Piece.Colour;
+import eubos.board.pieces.King;
+import eubos.board.pieces.Piece;
+import eubos.board.pieces.Rook;
+import eubos.board.pieces.Piece.Colour;
 
 class CastlingManager {
 	private boolean whiteKsAvail = true;

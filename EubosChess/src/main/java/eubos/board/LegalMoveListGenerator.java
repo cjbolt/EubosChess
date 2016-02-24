@@ -6,8 +6,8 @@ import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
-import eubos.pieces.Piece;
-import eubos.pieces.Piece.Colour;
+import eubos.board.pieces.Piece;
+import eubos.board.pieces.Piece.Colour;
 
 class LegalMoveListGenerator {
 	

@@ -5,7 +5,8 @@ import java.util.List;
 import com.fluxchess.jcpi.models.GenericMove;
 //import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.pieces.Piece.Colour;
+
+import eubos.board.pieces.Piece.Colour;
 
 public interface IBoardManager {
 	// Primary API

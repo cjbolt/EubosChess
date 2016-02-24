@@ -1,4 +1,4 @@
-package eubos.pieces;
+package eubos.board.pieces;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

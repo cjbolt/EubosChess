@@ -5,14 +5,14 @@ import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.pieces.Bishop;
-import eubos.pieces.King;
-import eubos.pieces.Knight;
-import eubos.pieces.Pawn;
-import eubos.pieces.Piece;
-import eubos.pieces.Piece.Colour;
-import eubos.pieces.Queen;
-import eubos.pieces.Rook;
+import eubos.board.pieces.Bishop;
+import eubos.board.pieces.King;
+import eubos.board.pieces.Knight;
+import eubos.board.pieces.Pawn;
+import eubos.board.pieces.Piece;
+import eubos.board.pieces.Queen;
+import eubos.board.pieces.Rook;
+import eubos.board.pieces.Piece.Colour;
 
 public class SquareAttackEvaluator {
 	

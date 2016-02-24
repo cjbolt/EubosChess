@@ -4,8 +4,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import eubos.pieces.Piece;
-import eubos.pieces.Piece.Colour;
+import eubos.board.pieces.Piece;
+import eubos.board.pieces.Piece.Colour;
 
 import com.fluxchess.jcpi.models.IntRank;
 import com.fluxchess.jcpi.models.IntFile;

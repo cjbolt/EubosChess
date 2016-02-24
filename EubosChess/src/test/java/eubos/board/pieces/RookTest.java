@@ -1,4 +1,4 @@
-package eubos.pieces;
+package eubos.board.pieces;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
@@ -9,7 +9,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
 import eubos.board.Board;
-import eubos.pieces.Piece.Colour;
+import eubos.board.pieces.Piece.Colour;
 
 public class RookTest extends PieceTest {
 	

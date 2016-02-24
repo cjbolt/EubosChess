@@ -1,7 +1,9 @@
-package eubos.pieces;
+package eubos.board.pieces;
 
 import static org.junit.Assert.assertFalse;
 //import static org.junit.Assert.assertTrue;
+
+
 
 
 import org.junit.Test;
@@ -9,7 +11,7 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.pieces.Piece.Colour;
+import eubos.board.pieces.Piece.Colour;
 
 public class BishopTest extends PieceTest {
 	

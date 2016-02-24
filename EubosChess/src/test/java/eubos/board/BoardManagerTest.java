@@ -3,10 +3,10 @@ package eubos.board;
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
-import eubos.pieces.King;
-import eubos.pieces.Pawn;
-import eubos.pieces.Piece;
-import eubos.pieces.Rook;
+import eubos.board.pieces.King;
+import eubos.board.pieces.Pawn;
+import eubos.board.pieces.Piece;
+import eubos.board.pieces.Rook;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericMove;

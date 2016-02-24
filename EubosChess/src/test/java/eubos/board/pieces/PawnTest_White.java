@@ -1,11 +1,11 @@
-package eubos.pieces;
+package eubos.board.pieces;
 
 import static org.junit.Assert.*;
 
 import org.junit.Test;
 
 import eubos.board.*;
-import eubos.pieces.Piece.Colour;
+import eubos.board.pieces.Piece.Colour;
 
 import com.fluxchess.jcpi.models.*;
 

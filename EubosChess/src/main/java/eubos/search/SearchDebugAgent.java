@@ -2,7 +2,7 @@ package eubos.search;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
-import eubos.pieces.Piece;
+import eubos.board.pieces.Piece;
 
 class SearchDebugAgent {
 

@@ -12,7 +12,7 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.BoardManager;
 import eubos.board.InvalidPieceException;
-import eubos.pieces.Piece;
+import eubos.board.pieces.Piece;
 import eubos.search.MiniMaxMoveGenerator;
 import eubos.search.NoLegalMoveException;
 

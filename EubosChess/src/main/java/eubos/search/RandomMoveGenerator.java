@@ -7,7 +7,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.BoardManager;
 import eubos.board.InvalidPieceException;
-import eubos.pieces.Piece;
+import eubos.board.pieces.Piece;
 
 class RandomMoveGenerator implements IMoveGenerator {
 	

@@ -8,15 +8,15 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.board.Board;
 import eubos.board.BoardManager;
 import eubos.board.InvalidPieceException;
+import eubos.board.pieces.Bishop;
+import eubos.board.pieces.King;
+import eubos.board.pieces.Knight;
+import eubos.board.pieces.Pawn;
+import eubos.board.pieces.Piece;
+import eubos.board.pieces.Queen;
+import eubos.board.pieces.Rook;
+import eubos.board.pieces.Piece.Colour;
 import eubos.main.EubosEngineMain;
-import eubos.pieces.Bishop;
-import eubos.pieces.King;
-import eubos.pieces.Knight;
-import eubos.pieces.Pawn;
-import eubos.pieces.Piece;
-import eubos.pieces.Piece.Colour;
-import eubos.pieces.Queen;
-import eubos.pieces.Rook;
 
 class MiniMaxMoveGenerator implements
 		IMoveGenerator {
