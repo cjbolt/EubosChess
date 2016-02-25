@@ -26,7 +26,7 @@ class LegalMoveListGenerator {
 			Piece currPiece = iter_p.next();
 			entireMoveList.addAll( currPiece.generateMoves( pm.getTheBoard() ));
 		}
-		pm.addCastlingMoves(entireMoveList);
+		pm.castling.addCastlingMoves(entireMoveList);
 		List<GenericMove> newMoveList = new ArrayList<GenericMove>();
 		Iterator<GenericMove> iter_ml = entireMoveList.iterator();
 		while ( iter_ml.hasNext() ) {

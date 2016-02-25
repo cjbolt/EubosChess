@@ -33,14 +33,7 @@ public class PositionManager implements IPositionManager {
 		return mlgen.createMoveList();
 	}
 	
-	private CastlingManager castling;
-	CastlingManager getCastlingManager() {
-		return castling;
-	}
-	void addCastlingMoves(List<GenericMove> ml) {
-		castling.addCastlingMoves(ml);
-	}
-	
+	CastlingManager castling;
 	public static final int WHITE_KINGSIDE = 1<<0;
 	public static final int WHITE_QUEENSIDE = 1<<1;
 	public static final int BLACK_KINGSIDE = 1<<2;
