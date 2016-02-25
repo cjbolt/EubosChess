@@ -26,6 +26,7 @@ public class Board implements Iterable<Piece> {
 		return enPassantTargetSq;
 	}
 	void setEnPassantTargetSq(GenericPosition enPassantTargetSq) {
+		// TODO: add bounds checking - only certain en passant squares can be legal.
 		this.enPassantTargetSq = enPassantTargetSq;
 	}
 	

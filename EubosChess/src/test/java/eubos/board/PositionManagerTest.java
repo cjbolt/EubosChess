@@ -12,7 +12,7 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
-public class BoardManagerTest {
+public class PositionManagerTest {
 	
 	protected PositionManager classUnderTest;
 	
