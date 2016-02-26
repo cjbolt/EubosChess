@@ -376,6 +376,28 @@ public class MiniMaxMoveGeneratorTest {
 		doFindMoveTest(true);
 	}
 	
+	@Test
+	public void test_findMove_mateInOne9() throws InvalidPieceException, IllegalNotationException {
+		// From a game against Eubos, 26th feb 2016 - pc reported by eubos was
+		// FEN: 5r1k/ppp4p/2n5/1BNb2q1/1P6/P7/2PP4/1R1Q3K w - - 6 32
+	    // EubosRunnableTest:
+		// 6	00:06	 2,917k	486k	-12.00	Qf3 Bxf3+ Kh2 Qe5+ Kh3 Qxc5
+		// 6	00:09	 3,664k	385k	-3.00	Kh2 Ba2 Rc1 Qe5+ Kh3 Qxc5
+		PositionManager bm = new PositionManager( "5r1k/ppp4p/2n5/1BNb2q1/1P6/P7/2PP3K/1R1Q4 b - - 7 32 ");
+		classUnderTest = new MiniMaxMoveGenerator(bm,3);
+		expectedMove = new GenericMove("g5g2");
+		doFindMoveTest(true);
+	}
+	
+	@Test
+	public void test_findMove_mateInThree10() throws InvalidPieceException, IllegalNotationException {
+		// From a game against Eubos, 26th feb 2016 - pc reported by eubos was rubbish!
+		PositionManager bm = new PositionManager( "5r1k/ppp4p/2n5/1BNb2q1/1P6/P7/2PP4/1R1Q3K w - - 6 32 ");
+		classUnderTest = new MiniMaxMoveGenerator(bm,7);
+		expectedMove = new GenericMove("c5e4");
+		doFindMoveTest(true);
+	} 
+	
 //	@Test
 //	public void test_findMove_endingA() throws InvalidPieceException, IllegalNotationException {
 //		BoardManager bm = new BoardManager( "8/8/2pp3k/8/1P1P3K/8/8/8 w - - - -");
