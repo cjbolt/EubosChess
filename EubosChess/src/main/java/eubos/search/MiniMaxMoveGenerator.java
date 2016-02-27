@@ -199,8 +199,9 @@ class MiniMaxMoveGenerator implements
 		int mateMoveNum = (currPly-1)/2; // currPly-1 because mate was caused by the move from the previousPly
 		int multiplier = totalMovesSearched-mateMoveNum;
 		scores[currPly] = multiplier*KING_VALUE;
-		// Note the check on whether own king is checkmated (2nd expression). Ensures correct score backup.
-		if (initialOnMove==Colour.black && initialOnMove!=pm.getOnMove())
+		// Note the check on whether own king is checkmated (2nd expression in each &&). Ensures correct score backup.
+		if ((initialOnMove==Colour.black && initialOnMove!=pm.getOnMove()) ||
+			(initialOnMove==Colour.white && initialOnMove==pm.getOnMove()))
 			scores[currPly] = -scores[currPly];
 	}
 
