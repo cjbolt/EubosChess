@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.LinkedList;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -383,18 +384,29 @@ public class MiniMaxMoveGeneratorTest {
 	    // EubosRunnableTest:
 		// 6	00:06	 2,917k	486k	-12.00	Qf3 Bxf3+ Kh2 Qe5+ Kh3 Qxc5
 		// 6	00:09	 3,664k	385k	-3.00	Kh2 Ba2 Rc1 Qe5+ Kh3 Qxc5
-		PositionManager bm = new PositionManager( "5r1k/ppp4p/2n5/1BNb2q1/1P6/P7/2PP3K/1R1Q4 b - - 7 32 ");
-		classUnderTest = new MiniMaxMoveGenerator(bm,3);
+		PositionManager bm = new PositionManager( "5r1k/ppp4p/2n5/1BNb2q1/1P6/P7/2PP3K/1R1Q4 b - - 7 32");
+		classUnderTest = new MiniMaxMoveGenerator(bm,2);
 		expectedMove = new GenericMove("g5g2");
 		doFindMoveTest(true);
 	}
 	
 	@Test
-	public void test_findMove_mateInThree10() throws InvalidPieceException, IllegalNotationException {
+	@Ignore
+	public void test_findMove_mateInThree_WhiteMated() throws InvalidPieceException, IllegalNotationException {
 		// From a game against Eubos, 26th feb 2016 - pc reported by eubos was rubbish!
-		PositionManager bm = new PositionManager( "5r1k/ppp4p/2n5/1BNb2q1/1P6/P7/2PP4/1R1Q3K w - - 6 32 ");
+		PositionManager bm = new PositionManager( "5r1k/ppp4p/2n5/1BNb2q1/1P6/P7/2PP4/1R1Q3K w - - 6 32");
 		classUnderTest = new MiniMaxMoveGenerator(bm,7);
 		expectedMove = new GenericMove("c5e4");
+		doFindMoveTest(true);
+	}
+	
+	@Test
+	@Ignore
+	public void test_findMove_mateInThree_BlackMated() throws InvalidPieceException, IllegalNotationException {
+		// An exact negation of the position in test_findMove_mateInThree_WhiteMated().
+		PositionManager bm = new PositionManager( "1r1q3k/2pp4/p7/1p6/1bnB2Q1/2N5/PPP4P/5R1K b - - 6 1");
+		classUnderTest = new MiniMaxMoveGenerator(bm,7);
+		expectedMove = new GenericMove("c4e5");
 		doFindMoveTest(true);
 	} 
 	
