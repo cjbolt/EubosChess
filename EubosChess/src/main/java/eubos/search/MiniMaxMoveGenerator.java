@@ -38,6 +38,8 @@ class MiniMaxMoveGenerator implements
 	private static final int BISHOP_VALUE = 320;
 	private static final int KNIGHT_VALUE = 300;
 	private static final int PAWN_VALUE = 100;
+	
+	private static final int PLIES_PER_MOVE = 2;
 
 	// Used for unit tests
 	MiniMaxMoveGenerator( PositionManager pm, int searchDepth ) {
@@ -195,8 +197,8 @@ class MiniMaxMoveGenerator implements
 		// as this may yield earlier forced mates.
 		
 		// Favour earlier mates (i.e. Mate-in-one over mate-in-three) by giving them a larger score.
-		int totalMovesSearched = searchDepthPly/2; // factor of 2 because two plies in a move.
-		int mateMoveNum = (currPly-1)/2; // currPly-1 because mate was caused by the move from the previousPly
+		int totalMovesSearched = searchDepthPly/PLIES_PER_MOVE;
+		int mateMoveNum = (currPly-1)/PLIES_PER_MOVE; // currPly-1 because mate was caused by the move from the previousPly
 		int multiplier = totalMovesSearched-mateMoveNum;
 		scores[currPly] = multiplier*KING_VALUE;
 		// Note the check on whether own king is checkmated (2nd expression in each &&). Ensures correct score backup.
