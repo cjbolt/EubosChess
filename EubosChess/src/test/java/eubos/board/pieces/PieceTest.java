@@ -16,7 +16,7 @@ import eubos.board.PositionManager;
 public class PieceTest {
 
 	protected List<Piece> pl;
-	protected PositionManager bm;
+	protected PositionManager pm;
 	protected GenericMove expectedMove;
 	protected List<GenericMove> expectedMoves;
 	protected int expectedNumMoves = 0;

@@ -11,6 +11,7 @@ public enum Direction {
 		GenericPosition retVal = null;
 		switch( dir ) {
 		case downLeft:
+		case leftDown:
 			if ( startSq.file != GenericFile.Fa && startSq.rank != GenericRank.R1 )
 				retVal = GenericPosition.valueOf( startSq.file.prev(), startSq.rank.prev());
 			break;
@@ -19,6 +20,7 @@ public enum Direction {
 				retVal = GenericPosition.valueOf( startSq.file, startSq.rank.prev());
 			break;
 		case downRight:
+		case rightDown:
 			if ( startSq.file != GenericFile.Fh && startSq.rank != GenericRank.R1 )
 				retVal = GenericPosition.valueOf( startSq.file.next(), startSq.rank.prev());
 			break;
@@ -35,10 +37,12 @@ public enum Direction {
 				retVal = GenericPosition.valueOf( startSq.file, startSq.rank.next());
 			break;
 		case upLeft:
+		case leftUp:
 			if ( startSq.file != GenericFile.Fa && startSq.rank != GenericRank.R8 )
 				retVal = GenericPosition.valueOf( startSq.file.prev(), startSq.rank.next());
 			break;
 		case upRight:
+		case rightUp:
 			if ( startSq.file != GenericFile.Fh && startSq.rank != GenericRank.R8 )
 				retVal = GenericPosition.valueOf( startSq.file.next(), startSq.rank.next());
 			break;
