@@ -46,7 +46,7 @@ public class Board implements Iterable<Piece> {
 	}
 
 	Piece pickUpPieceAtSquare( GenericPosition atPos ) throws InvalidPieceException {
-		int file, rank;
+		int file = IntFile.NOFILE, rank = IntRank.NORANK;
 		file = IntFile.valueOf(atPos.file);
 		rank = IntRank.valueOf(atPos.rank);
 		Piece pieceToPickUp = theBoard[file][rank];
@@ -58,6 +58,9 @@ public class Board implements Iterable<Piece> {
 		return ( pieceToPickUp );
 	}
 
+	// TODO: The reason for the slight difference between this method and pickUpPieceAtSquare
+	// is not clear and has serious implications. This duplication should be removed and the design improved.
+	// Consolidate behind one implementation for all purposes of removing a piece from a square.
 	Piece captureAtSquare( GenericPosition atPos ) {
 		int file, rank;
 		file = IntFile.valueOf(atPos.file);

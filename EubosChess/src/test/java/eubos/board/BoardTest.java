@@ -13,7 +13,6 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
-import eubos.search.NoLegalMoveException;
 
 public class BoardTest {
 	
