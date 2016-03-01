@@ -327,6 +327,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 
 	@Test
+	@Ignore
 	public void test_findMove_mateInTwo2()  throws NoLegalMoveException, IllegalNotationException {
 		// chess.com Problem ID: 0102832
 		PositionManager bm = new PositionManager( "r1r3k1/pb1p1p2/1p2p1p1/2pPP1B1/1nP4Q/1Pq2NP1/P4PBP/b2R2K1 w - - - -" );

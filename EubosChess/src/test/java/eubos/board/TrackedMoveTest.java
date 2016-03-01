@@ -5,20 +5,32 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.fluxchess.jcpi.models.GenericMove;
+import com.fluxchess.jcpi.models.GenericPosition;
+import com.fluxchess.jcpi.models.IllegalNotationException;
+
+import eubos.board.pieces.Pawn;
+import eubos.board.pieces.Piece.Colour;
+
 public class TrackedMoveTest {
 
+	private TrackedMove classUnderTest;
+	
 	@Before
 	public void setUp() throws Exception {
+		classUnderTest = new TrackedMove(null);
 	}
 
 	@Test
-	public void testTrackedMoveGenericMove() {
-		fail("Not yet implemented");
+	public void testTrackedMoveGenericMove() throws IllegalNotationException {
+		classUnderTest = new TrackedMove(new GenericMove("a2a4"));
+		assertTrue(classUnderTest!=null);
 	}
 
 	@Test
-	public void testTrackedMoveGenericMovePieceGenericPosition() {
-		fail("Not yet implemented");
+	public void testTrackedMoveGenericMovePieceGenericPosition() throws IllegalNotationException {
+		classUnderTest = new TrackedMove(new GenericMove("a2b3"), new Pawn(Colour.black, GenericPosition.b3), null);
+		assertTrue(classUnderTest!=null);
 	}
 
 	@Test
