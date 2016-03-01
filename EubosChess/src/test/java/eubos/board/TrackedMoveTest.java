@@ -3,6 +3,7 @@ package eubos.board;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -34,36 +35,43 @@ public class TrackedMoveTest {
 	}
 
 	@Test
+	@Ignore
 	public void testIsCapture() {
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testGetMove() {
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testSetMove() {
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testGetCapturedPiece() {
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testSetCapturedPiece() {
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testGetEnPassantTarget() {
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testSetEnPassantTarget() {
 		fail("Not yet implemented");
 	}

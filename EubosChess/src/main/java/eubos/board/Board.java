@@ -30,64 +30,58 @@ public class Board implements Iterable<Piece> {
 		this.enPassantTargetSq = enPassantTargetSq;
 	}
 	
-	private BitBoard allPieces = new BitBoard();
-	private BitBoard whitePieces = new BitBoard();
-	private BitBoard blackPieces = new BitBoard(); 
-	
-	void setPieceAtSquare( Piece pieceToPlace ) {
-		GenericPosition atPos = pieceToPlace.getSquare();
-		int file, rank;
-		file = IntFile.valueOf(atPos.file);
-		rank = IntRank.valueOf(atPos.rank);
-		theBoard[file][rank] = pieceToPlace;
-		// Update bit boards
-		allPieces.set(rank, file);
-		getBitBoardForColour(pieceToPlace).set(rank, file);
-	}
-
-	Piece pickUpPieceAtSquare( GenericPosition atPos ) throws InvalidPieceException {
-		int file = IntFile.NOFILE, rank = IntRank.NORANK;
-		file = IntFile.valueOf(atPos.file);
-		rank = IntRank.valueOf(atPos.rank);
-		Piece pieceToPickUp = theBoard[file][rank];
-		if (pieceToPickUp == null ) throw new InvalidPieceException(atPos);
-		theBoard[file][rank] = null;
-		// Update bit boards
-		allPieces.clear(rank, file);
-		getBitBoardForColour(pieceToPickUp).clear(rank, file);
-		return ( pieceToPickUp );
-	}
-
-	// TODO: The reason for the slight difference between this method and pickUpPieceAtSquare
-	// is not clear and has serious implications. This duplication should be removed and the design improved.
-	// Consolidate behind one implementation for all purposes of removing a piece from a square.
-	Piece captureAtSquare( GenericPosition atPos ) {
-		int file, rank;
-		file = IntFile.valueOf(atPos.file);
-		rank = IntRank.valueOf(atPos.rank);
-		Piece capturedPiece = theBoard[file][rank];
-		// Update bit boards
-		allPieces.clear(rank, file);
-		if (capturedPiece != null) {
-			getBitBoardForColour(capturedPiece).clear(rank, file);
-		}
-		return ( capturedPiece );		
-	}
-
 	public boolean squareIsEmpty( GenericPosition atPos ) {
-		int file, rank;
-		file = IntFile.valueOf(atPos.file);
-		rank = IntRank.valueOf(atPos.rank);
-		return !allPieces.isSet(rank, file);		
+		RankAndFile rnf = new RankAndFile(atPos);
+		return !allPieces.isSet(rnf.rank, rnf.file);		
 	}
 	
 	public Piece getPieceAtSquare( GenericPosition atPos ) {
-		int file, rank;
-		file = IntFile.valueOf(atPos.file);
-		rank = IntRank.valueOf(atPos.rank);
-		return ( theBoard[file][rank] );
+		RankAndFile rnf = new RankAndFile(atPos);
+		return ( theBoard[rnf.file][rnf.rank] );
+	}
+	
+	void setPieceAtSquare( Piece pieceToPlace ) {
+		GenericPosition atPos = pieceToPlace.getSquare();
+		RankAndFile rnf = new RankAndFile(atPos);
+		theBoard[rnf.file][rnf.rank] = pieceToPlace;
+		allPieces.set(rnf.rank, rnf.file);
+		getBitBoardForColour(pieceToPlace).set(rnf.rank, rnf.file);
 	}
 
+	Piece pickUpPieceAtSquare( GenericPosition atPos ) throws InvalidPieceException {
+		Piece pieceToPickUp = getPiece(atPos);
+		if (pieceToPickUp == null ) throw new InvalidPieceException(atPos);
+		return ( pieceToPickUp );
+	}
+	
+	Piece captureAtSquare( GenericPosition atPos ) {
+		return getPiece(atPos);	
+	}	
+	
+	private Piece getPiece( GenericPosition atPos ) {
+		RankAndFile rnf = new RankAndFile(atPos);
+		Piece pieceToGet = theBoard[rnf.file][rnf.rank];
+		if (pieceToGet != null) {
+			theBoard[rnf.file][rnf.rank] = null;
+			allPieces.clear(rnf.rank, rnf.file);
+			getBitBoardForColour(pieceToGet).clear(rnf.rank, rnf.file);
+		}
+		return ( pieceToGet );	
+	}
+	
+	private class RankAndFile {
+		public int rank = IntRank.NORANK;
+		public int file = IntFile.NOFILE;
+		
+		public RankAndFile(GenericPosition atPos) {
+			rank = IntRank.valueOf(atPos.rank);
+			file = IntFile.valueOf(atPos.file);	
+		}
+	}
+	
+	private BitBoard allPieces = new BitBoard();
+	private BitBoard whitePieces = new BitBoard();
+	private BitBoard blackPieces = new BitBoard();
 	private BitBoard getBitBoardForColour(Piece pieceToPickUp) {
 		BitBoard bitBoardForColour;
 		if (pieceToPickUp.isWhite()) {
