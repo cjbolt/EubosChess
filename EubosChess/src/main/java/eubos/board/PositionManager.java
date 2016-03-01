@@ -107,76 +107,56 @@ public class PositionManager implements IPositionManager {
 	}
 	
 	public void performMove( GenericMove move ) throws InvalidPieceException {
-		// Move the piece
+		// Get the piece to move
 		Piece pieceToMove = theBoard.pickUpPieceAtSquare( move.from );
-		if ( pieceToMove != null ) {
-			// Flag if move is an en passant capture
-			boolean enPassantCapture = isEnPassantCapture(move, pieceToMove);
-			// Save previous en passant square and initialise for this move
-			GenericPosition prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
-			theBoard.setEnPassantTargetSq(null);
-			// Handle pawn promotion moves
-			pieceToMove = checkForPawnPromotions(move, pieceToMove);
-			// Handle castling secondary rook moves...
-			if (pieceToMove instanceof King)
-				castling.performSecondaryCastlingMove(move);
-			// Handle any initial 2 square pawn moves that are subject to en passant rule
-			checkToSetEnPassantTargetSq(move, pieceToMove);
-			// Apply this move to the Move Tracker
-			Piece captureTarget = null;
-			if (enPassantCapture) {
-				GenericRank rank;
-				if (pieceToMove.isWhite()) {
-					rank = GenericRank.R5;
-				} else {
-					rank = GenericRank.R4;
-				}
-				GenericPosition capturePos = GenericPosition.valueOf(move.to.file,rank);
-				captureTarget = theBoard.captureAtSquare(capturePos);
-			} else {
-				captureTarget = theBoard.captureAtSquare(move.to);
-			}
-			moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq));
-			// Update the piece's square.
-			updateSquarePieceOccupies(move.to, pieceToMove);
-			// Update onMove
-			onMove = Colour.getOpposite(onMove);
-		} else {
-			throw new InvalidPieceException(move.from);
-		}
+		// Flag if move is an en passant capture
+		boolean isEnPassantCapture = isEnPassantCapture(move, pieceToMove);
+		// Save previous en passant square and initialise for this move
+		GenericPosition prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
+		theBoard.setEnPassantTargetSq(null);
+		// Handle pawn promotion moves
+		pieceToMove = checkForPawnPromotions(move, pieceToMove);
+		// Handle castling secondary rook moves...
+		if (pieceToMove instanceof King)
+			castling.performSecondaryCastlingMove(move);
+		// Handle any initial 2 square pawn moves that are subject to en passant rule
+		checkToSetEnPassantTargetSq(move, pieceToMove);
+		// Handle capture target (note, this will be null if the move is not a capture)
+		Piece captureTarget = getCaptureTarget(move, pieceToMove, isEnPassantCapture);
+		// Store the necessary information to undo this move on the move tracker stack
+		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq));
+		// Update the piece's square.
+		updateSquarePieceOccupies(move.to, pieceToMove);
+		// Update onMove
+		onMove = Colour.getOpposite(onMove);
 	}
-
+	
 	public void unperformMove() throws InvalidPieceException {
-		if ( !moveTracker.isEmpty()) {
-			theBoard.setEnPassantTargetSq(null);
-			TrackedMove tm = moveTracker.pop();
-			GenericMove moveToUndo = tm.getMove();
-			// Handle reversal of any pawn promotion that had been previously applied
-			if ( moveToUndo.promotion != null ) {
-				Piece.Colour colourToCreate = theBoard.getPieceAtSquare(moveToUndo.to).getColour();
-				theBoard.setPieceAtSquare( new Pawn( colourToCreate, moveToUndo.to ));
-			}
-			// Actually undo the move by reversing its direction and reapplying it.
-			GenericMove reversedMove = new GenericMove( moveToUndo.to, moveToUndo.from );
-			Piece pieceToMove = theBoard.pickUpPieceAtSquare( reversedMove.from );
-			if ( pieceToMove != null ) {
-				// Handle reversal of any castling secondary rook moves...
-				if (pieceToMove instanceof King)
-					castling.unperformSecondaryCastlingMove(reversedMove);
-				updateSquarePieceOccupies(reversedMove.to, pieceToMove);
-			} else {
-				throw new InvalidPieceException(reversedMove.from);
-			}
-			// Undo any capture that had been previously performed.
-			if ( tm.isCapture()) {
-				theBoard.setPieceAtSquare(tm.getCapturedPiece());
-			}
-			theBoard.setEnPassantTargetSq(tm.getEnPassantTarget());
-			// Update onMove flag
-			onMove = Piece.Colour.getOpposite(onMove);
+		if ( moveTracker.isEmpty())
+			return;
+		theBoard.setEnPassantTargetSq(null);
+		TrackedMove tm = moveTracker.pop();
+		GenericMove moveToUndo = tm.getMove();
+		// Check for reversal of any pawn promotion that had been previously applied
+		checkToUndoPawnPromotion(moveToUndo);
+		// Actually undo the move by reversing its direction and reapplying it.
+		GenericMove reversedMove = new GenericMove( moveToUndo.to, moveToUndo.from );
+		// Get the piece to move
+		Piece pieceToMove = theBoard.pickUpPieceAtSquare( reversedMove.from );
+		// Handle reversal of any castling secondary rook moves...
+		if (pieceToMove instanceof King)
+			castling.unperformSecondaryCastlingMove(reversedMove);
+		updateSquarePieceOccupies(reversedMove.to, pieceToMove);
+		// Undo any capture that had been previously performed.
+		if ( tm.isCapture()) {
+			theBoard.setPieceAtSquare(tm.getCapturedPiece());
 		}
+		// Restore en passant target
+		theBoard.setEnPassantTargetSq(tm.getEnPassantTarget());
+		// Update onMove flag
+		onMove = Piece.Colour.getOpposite(onMove);
 	}
-
+	
 	void updateSquarePieceOccupies(GenericPosition newSq, Piece pieceToMove) {
 		pieceToMove.setSquare(newSq);
 		theBoard.setPieceAtSquare(pieceToMove);
@@ -209,6 +189,13 @@ public class PositionManager implements IPositionManager {
 		return pieceToMove;
 	}
 	
+	private void checkToUndoPawnPromotion(GenericMove moveToUndo) {
+		if ( moveToUndo.promotion != null ) {
+			Piece.Colour colourToCreate = theBoard.getPieceAtSquare(moveToUndo.to).getColour();
+			theBoard.setPieceAtSquare( new Pawn( colourToCreate, moveToUndo.to ));
+		}
+	}
+	
 	private boolean isEnPassantCapture(GenericMove move, Piece pieceToMove) {
 		boolean enPassantCapture = false;
 		GenericPosition enPassantTargetSq = theBoard.getEnPassantTargetSq();
@@ -235,6 +222,23 @@ public class PositionManager implements IPositionManager {
 				}
 			}
 		}
+	}
+	
+	private Piece getCaptureTarget(GenericMove move, Piece pieceToMove, boolean enPassantCapture) {
+		Piece captureTarget = null;
+		if (enPassantCapture) {
+			GenericRank rank;
+			if (pieceToMove.isWhite()) {
+				rank = GenericRank.R5;
+			} else {
+				rank = GenericRank.R4;
+			}
+			GenericPosition capturePos = GenericPosition.valueOf(move.to.file,rank);
+			captureTarget = theBoard.captureAtSquare(capturePos);
+		} else {
+			captureTarget = theBoard.captureAtSquare(move.to);
+		}
+		return captureTarget;
 	}
 	
 	private class fenParser {
