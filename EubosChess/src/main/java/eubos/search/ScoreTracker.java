@@ -7,18 +7,16 @@ class ScoreTracker {
 		scores = new int[searchDepth];
 	}
 	
-	int initNodeScoreAlphaBeta(int currPly, boolean white) {
-		// Initialise score at this node
+	int initScore(int currPly, boolean white) {
 		if (currPly==0 || currPly==1) {
+			// Will get overwritten immediately...
 			if (white) {
 				scores[currPly] = Integer.MIN_VALUE;
 			} else {
 				scores[currPly] = Integer.MAX_VALUE;
 			}
 		} else {
-			// alpha beta algorithm: bring down score from 2 levels up tree
-			// TODO: debug and logging?
-			//debug.printAlphaBetaCutOffLimit(currPly, score.scores[currPly-2]);
+			// Alpha Beta algorithm: bring down score from 2 levels up tree
 			scores[currPly] = scores[currPly-2];
 		}
 		return scores[currPly];
@@ -29,7 +27,7 @@ class ScoreTracker {
 	}
 	
 	
-	int getBestScoreAtPly(int currPly) {
+	int getBackedUpScore(int currPly) {
 		return scores[currPly];
 	}
 }

@@ -66,24 +66,22 @@ class MiniMaxMoveGenerator implements
 	}
 
 	private int searchPly(int currPly) throws InvalidPieceException {
-		debug.printSearchPly(currPly,pm.getOnMove());
-		int alphaBetaCutOff = st.initNodeScoreAlphaBeta(currPly,(pm.getOnMove()==Colour.white));
+		Colour onMove = pm.getOnMove();
+		boolean isWhite = (onMove == Colour.white);
+		debug.printSearchPly(currPly,onMove);
+		int alphaBetaCutOff = st.initScore(currPly,isWhite);
 		// Generate all moves at this position.
 		List<GenericMove> ml = pm.getMoveList();
 		if (ml.isEmpty()) {
 			// Handle mates (indicated by no legal moves)
 			if (pm.isKingInCheck()) {
 				int mateScore = sg.generateScoreForCheckmate(currPly);
-				// Note the check on whether own king is checkmated (2nd expression in each &&). Ensures correct score backup.
-				if ((initialOnMove==Colour.black && initialOnMove!=pm.getOnMove()) || 
-					(initialOnMove==Colour.white && initialOnMove==pm.getOnMove()))
-					mateScore=-mateScore;
+				mateScore = negateCheckmateScoreIfRequired(mateScore);
 				st.backupScore(currPly, mateScore);
 				debug.printMateFound(currPly);
 			} else {
 				int mateScore = sg.getScoreForStalemate();
-				if (initialOnMove==Colour.black)
-					mateScore=-mateScore;
+				mateScore = negateStalemateScoreIfRequired(mateScore);
 				st.backupScore(currPly, mateScore);
 			}
 		} else {
@@ -106,29 +104,31 @@ class MiniMaxMoveGenerator implements
 				debug.printUndoMove(currPly, currMove);
 				pm.unperformMove();
 				sm.incrementNodesSearched();
-				// 4a) Back-up the position score and update the principal continuation...
-				if (backUpIsRequired(currPly, positionScore)) {
+				// 4) Evaluate the score
+				if (isBackUpRequired(currPly, positionScore)) {
+					// 4a) Back-up the position score and update the principal continuation...
 					st.backupScore(currPly, positionScore);
 					debug.printBackUpScore(currPly, positionScore);
 					pc.update(currPly, currMove);
 					debug.printPrincipalContinuation(currPly,pc);
 					reportPrincipalContinuation(currPly, positionScore);
-					// 4b) ...or test for an Alpha Beta algorithm cut-off
-				} else if (testForAlphaBetaCutOff( alphaBetaCutOff, positionScore, currPly )) {
+				} else if (isAlphaBetaCutOff( alphaBetaCutOff, positionScore, currPly )) {
+					// 4b) Perform an Alpha Beta algorithm cut-off
 					debug.printRefutationFound(currPly);
 					break;
 				}
 			}
 		}
-		return st.getBestScoreAtPly(currPly);
+		return st.getBackedUpScore(currPly);
 	}
-	
+
 	private void reportPrincipalContinuation(int currPly, int positionScore) {
 		if (currPly == 0) {
 			if (Math.abs(positionScore) > ScoreGenerator.KING_VALUE) {
 				// If the positionScore indicates a mate, truncate the pc accordingly
+				// TODO: possible bug here when considering black being mated?
 				int matePly = Math.abs(positionScore)/ScoreGenerator.KING_VALUE;
-				matePly *= 2;
+				matePly *= ScoreGenerator.PLIES_PER_MOVE;
 				matePly = searchDepthPly - matePly;
 				if (initialOnMove == Colour.black) {
 					matePly += 1;
@@ -152,25 +152,43 @@ class MiniMaxMoveGenerator implements
 				sr.reportCurrentMove();
 		}
 	}
+	
+	private int negateStalemateScoreIfRequired(int mateScore) {
+		if (initialOnMove==Colour.black)
+			mateScore=-mateScore;
+		return mateScore;
+	}
 
-	private boolean backUpIsRequired(int currPly, int positionScore) {
+	private int negateCheckmateScoreIfRequired(int mateScore) {
+		// TODO: I am sceptical about whether this is correct!
+		// Note the check on whether own king is checkmated (2nd expression in each &&). Ensures correct score backup.
+		if ((initialOnMove==Colour.black && initialOnMove!=pm.getOnMove()) || 
+			(initialOnMove==Colour.white && initialOnMove==pm.getOnMove()))
+			mateScore=-mateScore;
+		return mateScore;
+	}
+
+	private boolean isBackUpRequired(int currPly, int positionScore) {
 		boolean backUpScore = false;
 		if (pm.getOnMove() == Colour.white) {
 			// if white, maximise score
-			if (positionScore > st.getBestScoreAtPly(currPly))
+			if (positionScore > st.getBackedUpScore(currPly))
 				backUpScore = true;
 		} else {
 			// if black, minimise score 
-			if (positionScore < st.getBestScoreAtPly(currPly))
+			if (positionScore < st.getBackedUpScore(currPly))
 				backUpScore = true;
 		}
 		return backUpScore;
 	}
 	
-	private boolean testForAlphaBetaCutOff(int cutOffValue, int positionScore, int currPly) {
+	private boolean isAlphaBetaCutOff(int cutOffValue, int positionScore, int currPly) {
 		if ((cutOffValue != Integer.MAX_VALUE) && (cutOffValue != Integer.MIN_VALUE)) {
-			if ((pm.getOnMove() == Colour.white && positionScore >= st.getBestScoreAtPly(currPly-1)) ||
-					(pm.getOnMove() == Colour.black && positionScore <= st.getBestScoreAtPly(currPly-1))) {
+			int prevPlyScore = st.getBackedUpScore(currPly-1);
+			Colour onMove = pm.getOnMove();
+			if ((onMove == Colour.white && positionScore >= prevPlyScore) ||
+				(onMove == Colour.black && positionScore <= prevPlyScore)) {
+				// Indicates the search passed this node is refuted by an earlier move.
 				return true;
 			}
 		}
@@ -184,6 +202,7 @@ class MiniMaxMoveGenerator implements
 		}
 		return isTerminalNode;
 	}
+	
 	synchronized void terminateFindMove() { terminate = true; }
 	private synchronized boolean isTerminated() { return terminate; }
 }
