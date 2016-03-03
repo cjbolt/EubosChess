@@ -5,16 +5,8 @@ import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
-import eubos.board.Board;
 import eubos.board.PositionManager;
 import eubos.board.InvalidPieceException;
-import eubos.board.pieces.Bishop;
-import eubos.board.pieces.King;
-import eubos.board.pieces.Knight;
-import eubos.board.pieces.Pawn;
-import eubos.board.pieces.Piece;
-import eubos.board.pieces.Queen;
-import eubos.board.pieces.Rook;
 import eubos.board.pieces.Piece.Colour;
 import eubos.main.EubosEngineMain;
 
@@ -23,7 +15,8 @@ class MiniMaxMoveGenerator implements
 
 	private PositionManager pm;
 	private int searchDepthPly;
-	private int scores[];
+	private ScoreTracker st;
+	private ScoreGenerator sg;
 	private PrincipalContinuation pc;
 	private Colour initialOnMove;
 	private SearchMetrics sm;
@@ -31,20 +24,12 @@ class MiniMaxMoveGenerator implements
 	private boolean sendInfo = false;
 	private boolean terminate = false;
 	private SearchDebugAgent debug;
-	
-	private static final int KING_VALUE = 300000;
-	private static final int QUEEN_VALUE = 900;
-	private static final int ROOK_VALUE = 500;
-	private static final int BISHOP_VALUE = 320;
-	private static final int KNIGHT_VALUE = 300;
-	private static final int PAWN_VALUE = 100;
-	
-	private static final int PLIES_PER_MOVE = 2;
 
 	// Used for unit tests
 	MiniMaxMoveGenerator( PositionManager pm, int searchDepth ) {
 		this.pm = pm;
-		scores = new int[searchDepth];
+		st = new ScoreTracker(searchDepth);
+		sg = new ScoreGenerator(searchDepth);
 		searchDepthPly = searchDepth;
 		pc = new PrincipalContinuation(searchDepth);
 		sm = new SearchMetrics(searchDepth);
@@ -82,16 +67,24 @@ class MiniMaxMoveGenerator implements
 
 	private int searchPly(int currPly) throws InvalidPieceException {
 		debug.printSearchPly(currPly,pm.getOnMove());
-		int alphaBetaCutOff = initNodeScoreAlphaBeta(currPly);
+		int alphaBetaCutOff = st.initNodeScoreAlphaBeta(currPly,(pm.getOnMove()==Colour.white));
 		// Generate all moves at this position.
 		List<GenericMove> ml = pm.getMoveList();
 		if (ml.isEmpty()) {
 			// Handle mates (indicated by no legal moves)
 			if (pm.isKingInCheck()) {
-				backupScoreForCheckmate(currPly);
+				int mateScore = sg.generateScoreForCheckmate(currPly);
+				// Note the check on whether own king is checkmated (2nd expression in each &&). Ensures correct score backup.
+				if ((initialOnMove==Colour.black && initialOnMove!=pm.getOnMove()) || 
+					(initialOnMove==Colour.white && initialOnMove==pm.getOnMove()))
+					mateScore=-mateScore;
+				st.backupScore(currPly, mateScore);
 				debug.printMateFound(currPly);
 			} else {
-				backupScoreForStalemate(currPly);
+				int mateScore = sg.getScoreForStalemate();
+				if (initialOnMove==Colour.black)
+					mateScore=-mateScore;
+				st.backupScore(currPly, mateScore);
 			}
 		} else {
 			// Iterate through all the moves for this ply
@@ -105,7 +98,7 @@ class MiniMaxMoveGenerator implements
 				pm.performMove(currMove);
 				// 2) Either recurse or evaluate position and check for back-up of score
 				if ( isTerminalNode(currPly) ) {
-					positionScore = evaluatePosition(pm.getTheBoard());
+					positionScore = sg.generateScoreForPosition(pm.getTheBoard());
 				} else {
 					positionScore = searchPly(currPly+1);
 				}
@@ -115,7 +108,7 @@ class MiniMaxMoveGenerator implements
 				sm.incrementNodesSearched();
 				// 4a) Back-up the position score and update the principal continuation...
 				if (backUpIsRequired(currPly, positionScore)) {
-					scores[currPly]=positionScore;
+					st.backupScore(currPly, positionScore);
 					debug.printBackUpScore(currPly, positionScore);
 					pc.update(currPly, currMove);
 					debug.printPrincipalContinuation(currPly,pc);
@@ -127,14 +120,14 @@ class MiniMaxMoveGenerator implements
 				}
 			}
 		}
-		return scores[currPly];
+		return st.getBestScoreAtPly(currPly);
 	}
 	
 	private void reportPrincipalContinuation(int currPly, int positionScore) {
 		if (currPly == 0) {
-			if (Math.abs(positionScore) > KING_VALUE) {
+			if (Math.abs(positionScore) > ScoreGenerator.KING_VALUE) {
 				// If the positionScore indicates a mate, truncate the pc accordingly
-				int matePly = Math.abs(positionScore)/KING_VALUE;
+				int matePly = Math.abs(positionScore)/ScoreGenerator.KING_VALUE;
 				matePly *= 2;
 				matePly = searchDepthPly - matePly;
 				if (initialOnMove == Colour.black) {
@@ -164,11 +157,11 @@ class MiniMaxMoveGenerator implements
 		boolean backUpScore = false;
 		if (pm.getOnMove() == Colour.white) {
 			// if white, maximise score
-			if (positionScore > scores[currPly])
+			if (positionScore > st.getBestScoreAtPly(currPly))
 				backUpScore = true;
 		} else {
 			// if black, minimise score 
-			if (positionScore < scores[currPly])
+			if (positionScore < st.getBestScoreAtPly(currPly))
 				backUpScore = true;
 		}
 		return backUpScore;
@@ -176,76 +169,12 @@ class MiniMaxMoveGenerator implements
 	
 	private boolean testForAlphaBetaCutOff(int cutOffValue, int positionScore, int currPly) {
 		if ((cutOffValue != Integer.MAX_VALUE) && (cutOffValue != Integer.MIN_VALUE)) {
-			if ((pm.getOnMove() == Colour.white && positionScore >= scores[currPly-1]) ||
-					(pm.getOnMove() == Colour.black && positionScore <= scores[currPly-1])) {
+			if ((pm.getOnMove() == Colour.white && positionScore >= st.getBestScoreAtPly(currPly-1)) ||
+					(pm.getOnMove() == Colour.black && positionScore <= st.getBestScoreAtPly(currPly-1))) {
 				return true;
 			}
 		}
 		return false;
-	}
-
-	private void backupScoreForStalemate(int currPly) {
-		// Avoid stalemates by giving them a large penalty score.
-		scores[currPly] = -KING_VALUE;
-		if (initialOnMove==Colour.black)
-			scores[currPly] = -scores[currPly];
-	}
-
-	private void backupScoreForCheckmate(int currPly) {
-		// Perform an immediate backup of score and abort the search of any moves deeper
-		// than the previous node in the search tree. However, search the rest of the tree,
-		// as this may yield earlier forced mates.
-		
-		// Favour earlier mates (i.e. Mate-in-one over mate-in-three) by giving them a larger score.
-		int totalMovesSearched = searchDepthPly/PLIES_PER_MOVE;
-		int mateMoveNum = (currPly-1)/PLIES_PER_MOVE; // currPly-1 because mate was caused by the move from the previousPly
-		int multiplier = totalMovesSearched-mateMoveNum;
-		scores[currPly] = multiplier*KING_VALUE;
-		// Note the check on whether own king is checkmated (2nd expression in each &&). Ensures correct score backup.
-		if ((initialOnMove==Colour.black && initialOnMove!=pm.getOnMove()) ||
-			(initialOnMove==Colour.white && initialOnMove==pm.getOnMove()))
-			scores[currPly] = -scores[currPly];
-	}
-
-	private int initNodeScoreAlphaBeta(int currPly) {
-		// Initialise score at this node
-		if (currPly==0 || currPly==1) {
-			if (pm.getOnMove()==Colour.white) {
-				scores[currPly] = Integer.MIN_VALUE;
-			} else {
-				scores[currPly] = Integer.MAX_VALUE;
-			}
-		} else {
-			// alpha beta algorithm: bring down score from 2 levels up tree
-			debug.printAlphaBetaCutOffLimit(currPly, scores[currPly-2]);
-			scores[currPly] = scores[currPly-2];
-		}
-		return scores[currPly];
-	}
-
-	private int evaluatePosition(Board theBoard ) {
-		// First effort does only the most simple calculation based on material
-		Iterator<Piece> iter_p = theBoard.iterator();
-		int materialEvaluation = 0;
-		while ( iter_p.hasNext() ) {
-			Piece currPiece = iter_p.next();
-			int currValue = 0;
-			if ( currPiece instanceof Pawn ) 
-				currValue = PAWN_VALUE;
-			else if ( currPiece instanceof Rook )
-				currValue = ROOK_VALUE;
-			else if ( currPiece instanceof Bishop )
-				currValue = BISHOP_VALUE;
-			else if ( currPiece instanceof Knight )
-				currValue = KNIGHT_VALUE;
-			else if ( currPiece instanceof Queen )
-				currValue = QUEEN_VALUE;
-			else if ( currPiece instanceof King )
-				currValue = KING_VALUE;
-			if (currPiece.isBlack()) currValue = -currValue;
-			materialEvaluation += currValue;
-		}
-		return materialEvaluation;
 	}
 
 	private boolean isTerminalNode(int currPly) {
