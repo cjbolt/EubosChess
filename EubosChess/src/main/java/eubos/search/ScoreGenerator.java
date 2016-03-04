@@ -34,10 +34,6 @@ public class ScoreGenerator {
 	}
 	
 	int generateScoreForCheckmate(int currPly) {
-		// Perform an immediate backup of score and abort the search of any moves deeper
-		// than the previous node in the search tree. However, search the rest of the tree,
-		// as this may yield earlier forced mates.
-		
 		// Favour earlier mates (i.e. Mate-in-one over mate-in-three) by giving them a larger score.
 		int totalMovesSearched = searchDepth/PLIES_PER_MOVE;
 		int mateMoveNum = (currPly-1)/PLIES_PER_MOVE; // currPly-1 because mate was caused by the move from the previousPly
