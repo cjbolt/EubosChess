@@ -72,58 +72,71 @@ class MiniMaxMoveGenerator implements
 		int alphaBetaCutOff = st.initScore(currPly,isWhite);
 		// Generate all moves at this position.
 		List<GenericMove> ml = pm.getMoveList();
-		if (ml.isEmpty()) {
-			// Handle mates (indicated by no legal moves)
-			int mateScore = 0;
-			if (pm.isKingInCheck()) {
-				mateScore = sg.generateScoreForCheckmate(currPly);
-				// If white got mated, need to back up a large negative score (good for black)
-				if (isWhite)
-					mateScore=-mateScore;
-				debug.printMateFound(currPly);
-			} else {
-				mateScore = sg.getScoreForStalemate();
-				// TODO: introduce a more sophisticated system for handling stalemate scoring.
-				if (initialOnMove==Colour.black)
-					mateScore=-mateScore;
-			}
-			st.backupScore(currPly, mateScore);
+		if (isMateOccurred(ml)) {
+			handleMates(currPly, isWhite);
 		} else {
-			// Iterate through all the moves for this ply
-			Iterator<GenericMove> move_iter = ml.iterator();
-			while(move_iter.hasNext() && !isTerminated()) {
-				int positionScore = 0;
-				// 1) Apply the next move in the list
-				GenericMove currMove = move_iter.next();
-				reportNextMove(currPly, currMove);
-				debug.printPerformMove(currPly, currMove);
-				pm.performMove(currMove);
-				// 2) Either recurse or evaluate position and check for back-up of score
-				if ( isTerminalNode(currPly) ) {
-					positionScore = sg.generateScoreForPosition(pm.getTheBoard());
-				} else {
-					positionScore = searchPly(currPly+1);
-				}
-				// 3) Having assessed the position, undo the move
-				debug.printUndoMove(currPly, currMove);
-				pm.unperformMove();
-				sm.incrementNodesSearched();
-				// 4) Evaluate the score
-				if (isBackUpRequired(currPly, positionScore)) {
-					// 4a) Back-up the position score and update the principal continuation...
-					st.backupScore(currPly, positionScore);
-					debug.printBackUpScore(currPly, positionScore);
-					pc.update(currPly, currMove);
-					debug.printPrincipalContinuation(currPly,pc);
-					reportPrincipalContinuation(currPly, positionScore);
-				} else if (isAlphaBetaCutOff( alphaBetaCutOff, positionScore, currPly )) {
-					// 4b) Perform an Alpha Beta algorithm cut-off
-					debug.printRefutationFound(currPly);
-					break;
-				}
-			}
+			searchMoves(currPly, alphaBetaCutOff, ml);
 		}
 		return st.getBackedUpScore(currPly);
+	}
+
+	private boolean isMateOccurred(List<GenericMove> ml) {
+		return ml.isEmpty();
+	}
+
+	private void searchMoves(int currPly, int alphaBetaCutOff,
+			List<GenericMove> ml) throws InvalidPieceException {
+		// Iterate through all the moves for this ply
+		Iterator<GenericMove> move_iter = ml.iterator();
+		while(move_iter.hasNext() && !isTerminated()) {
+			int positionScore = 0;
+			// 1) Apply the next move in the list
+			GenericMove currMove = move_iter.next();
+			reportNextMove(currPly, currMove);
+			debug.printPerformMove(currPly, currMove);
+			pm.performMove(currMove);
+			// 2) Either recurse or evaluate position and check for back-up of score
+			if ( isTerminalNode(currPly) ) {
+				positionScore = sg.generateScoreForPosition(pm.getTheBoard());
+			} else {
+				positionScore = searchPly(currPly+1);
+			}
+			// 3) Having assessed the position, undo the move
+			debug.printUndoMove(currPly, currMove);
+			pm.unperformMove();
+			sm.incrementNodesSearched();
+			// 4) Evaluate the score
+			if (isBackUpRequired(currPly, positionScore)) {
+				// 4a) Back-up the position score and update the principal continuation...
+				st.backupScore(currPly, positionScore);
+				debug.printBackUpScore(currPly, positionScore);
+				pc.update(currPly, currMove);
+				debug.printPrincipalContinuation(currPly,pc);
+				reportPrincipalContinuation(currPly, positionScore);
+			} else if (isAlphaBetaCutOff( alphaBetaCutOff, positionScore, currPly )) {
+				// 4b) Perform an Alpha Beta algorithm cut-off
+				debug.printRefutationFound(currPly);
+				break;
+			}
+		}
+	}
+
+	private void handleMates(int currPly, boolean isWhite) {
+		// Handle mates (indicated by no legal moves)
+		int mateScore = 0;
+		if (pm.isKingInCheck()) {
+			mateScore = sg.generateScoreForCheckmate(currPly);
+			// If white got mated, need to back up a large negative score (good for black)
+			if (isWhite)
+				mateScore=-mateScore;
+			debug.printMateFound(currPly);
+		} else {
+			mateScore = sg.getScoreForStalemate();
+			// TODO: introduce a more sophisticated system for handling stalemate scoring.
+			if (initialOnMove==Colour.black)
+				mateScore=-mateScore;
+		}
+		st.backupScore(currPly, mateScore);
 	}
 
 	private void reportPrincipalContinuation(int currPly, int positionScore) {
