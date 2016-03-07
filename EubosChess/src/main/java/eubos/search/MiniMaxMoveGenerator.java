@@ -69,13 +69,13 @@ class MiniMaxMoveGenerator implements
 		Colour onMove = pm.getOnMove();
 		boolean isWhite = (onMove == Colour.white);
 		debug.printSearchPly(currPly,onMove);
-		int alphaBetaCutOff = st.initScore(currPly,isWhite);
-		// Generate all moves at this position.
+		// Generate the move list
 		List<GenericMove> ml = pm.getMoveList();
 		if (isMateOccurred(ml)) {
 			handleMates(currPly, isWhite);
 		} else {
-			searchMoves(currPly, alphaBetaCutOff, ml);
+			// Initialise the score for this node and analyse the move list
+			searchMoves(currPly, st.initScore(currPly,isWhite), ml);
 		}
 		return st.getBackedUpScore(currPly);
 	}
