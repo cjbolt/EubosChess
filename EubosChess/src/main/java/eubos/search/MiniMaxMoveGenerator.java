@@ -74,16 +74,20 @@ class MiniMaxMoveGenerator implements
 		List<GenericMove> ml = pm.getMoveList();
 		if (ml.isEmpty()) {
 			// Handle mates (indicated by no legal moves)
+			int mateScore = 0;
 			if (pm.isKingInCheck()) {
-				int mateScore = sg.generateScoreForCheckmate(currPly);
-				mateScore = negateCheckmateScoreIfRequired(mateScore);
-				st.backupScore(currPly, mateScore);
+				mateScore = sg.generateScoreForCheckmate(currPly);
+				// If white got mated, need to back up a large negative score (good for black)
+				if (isWhite)
+					mateScore=-mateScore;
 				debug.printMateFound(currPly);
 			} else {
-				int mateScore = sg.getScoreForStalemate();
-				mateScore = negateStalemateScoreIfRequired(mateScore);
-				st.backupScore(currPly, mateScore);
+				mateScore = sg.getScoreForStalemate();
+				// TODO: introduce a more sophisticated system for handling stalemate scoring.
+				if (initialOnMove==Colour.black)
+					mateScore=-mateScore;
 			}
+			st.backupScore(currPly, mateScore);
 		} else {
 			// Iterate through all the moves for this ply
 			Iterator<GenericMove> move_iter = ml.iterator();
@@ -151,21 +155,6 @@ class MiniMaxMoveGenerator implements
 			if (sendInfo)
 				sr.reportCurrentMove();
 		}
-	}
-	
-	private int negateStalemateScoreIfRequired(int mateScore) {
-		if (initialOnMove==Colour.black)
-			mateScore=-mateScore;
-		return mateScore;
-	}
-
-	private int negateCheckmateScoreIfRequired(int mateScore) {
-		// TODO: I am sceptical about whether this is correct!
-		// Note the check on whether own king is checkmated (2nd expression in each &&). Ensures correct score backup.
-		if ((initialOnMove==Colour.black && initialOnMove!=pm.getOnMove()) || 
-			(initialOnMove==Colour.white && initialOnMove==pm.getOnMove()))
-			mateScore=-mateScore;
-		return mateScore;
 	}
 
 	private boolean isBackUpRequired(int currPly, int positionScore) {
