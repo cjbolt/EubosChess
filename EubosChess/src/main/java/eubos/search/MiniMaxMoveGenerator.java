@@ -141,16 +141,29 @@ class MiniMaxMoveGenerator implements
 
 	private void reportPrincipalContinuation(int currPly, int positionScore) {
 		if (currPly == 0) {
-			if (Math.abs(positionScore) > ScoreGenerator.KING_VALUE) {
+			// TODO: Introduced bug?
+			if (Math.abs(positionScore) >= ScoreGenerator.KING_VALUE) {
 				// If the positionScore indicates a mate, truncate the pc accordingly
-				// TODO: possible bug here when considering black being mated?
-				int matePly = Math.abs(positionScore)/ScoreGenerator.KING_VALUE;
-				matePly *= ScoreGenerator.PLIES_PER_MOVE;
-				matePly = searchDepthPly - matePly;
-				if (initialOnMove == Colour.black) {
-					matePly += 1;
+				boolean ownMate = false;
+				if ((initialOnMove==Colour.white && positionScore<0) ||
+				    (initialOnMove==Colour.black && positionScore>0)) {
+					ownMate = true;
+				} 
+				if (ownMate) {
+					int matePly = Math.abs(positionScore)/ScoreGenerator.KING_VALUE;
+					matePly *= ScoreGenerator.PLIES_PER_MOVE;
+					matePly = searchDepthPly - matePly;
+					if ((searchDepthPly&1) != 0x1)
+						matePly += 1;
+					pc.clearAfter(matePly);	
+				} else {
+					// TODO: This clause is wrong. truncates too much!
+					int matePly = Math.abs(positionScore)/ScoreGenerator.KING_VALUE;
+					matePly *= ScoreGenerator.PLIES_PER_MOVE;
+					matePly = searchDepthPly - matePly;
+					matePly -= 1;
+					pc.clearAfter(matePly);	
 				}
-				pc.clearAfter(matePly);
 			}
 			sm.setPrincipalVariation(pc.toPvList());
 			if (initialOnMove.equals(Colour.black))
