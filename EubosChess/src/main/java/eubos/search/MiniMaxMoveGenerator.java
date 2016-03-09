@@ -141,7 +141,6 @@ class MiniMaxMoveGenerator implements
 
 	private void reportPrincipalContinuation(int currPly, int positionScore) {
 		if (currPly == 0) {
-			// TODO: Introduced bug?
 			if (Math.abs(positionScore) >= ScoreGenerator.KING_VALUE) {
 				// If the positionScore indicates a mate, truncate the pc accordingly
 				boolean ownMate = false;
@@ -149,21 +148,17 @@ class MiniMaxMoveGenerator implements
 				    (initialOnMove==Colour.black && positionScore>0)) {
 					ownMate = true;
 				} 
+				int matePly = Math.abs(positionScore)/ScoreGenerator.KING_VALUE;
+				matePly *= ScoreGenerator.PLIES_PER_MOVE;
+				matePly = searchDepthPly - matePly;
 				if (ownMate) {
-					int matePly = Math.abs(positionScore)/ScoreGenerator.KING_VALUE;
-					matePly *= ScoreGenerator.PLIES_PER_MOVE;
-					matePly = searchDepthPly - matePly;
 					if ((searchDepthPly&1) != 0x1)
 						matePly += 1;
-					pc.clearAfter(matePly);	
 				} else {
-					// TODO: This clause is wrong. truncates too much!
-					int matePly = Math.abs(positionScore)/ScoreGenerator.KING_VALUE;
-					matePly *= ScoreGenerator.PLIES_PER_MOVE;
-					matePly = searchDepthPly - matePly;
-					matePly -= 1;
-					pc.clearAfter(matePly);	
+					if ((searchDepthPly&1) == 0x1)
+						matePly -= 1;	
 				}
+				pc.clearAfter(matePly);
 			}
 			sm.setPrincipalVariation(pc.toPvList());
 			if (initialOnMove.equals(Colour.black))
