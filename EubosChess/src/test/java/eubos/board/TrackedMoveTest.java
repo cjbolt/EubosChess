@@ -3,23 +3,29 @@ package eubos.board;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
+import eubos.board.pieces.King;
 import eubos.board.pieces.Pawn;
+import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
 
 public class TrackedMoveTest {
 
 	private TrackedMove classUnderTest;
 	
+	private static final GenericMove pawnCapture = new GenericMove(GenericPosition.a2,GenericPosition.b3);
+	private static final GenericMove pawnAdvance = new GenericMove(GenericPosition.a2,GenericPosition.a4);
+	private static final Pawn capturedBlackPawn = new Pawn(Colour.black, GenericPosition.b3);
+	private static final GenericPosition targetSq = GenericPosition.b3;
+	
 	@Before
 	public void setUp() throws Exception {
-		classUnderTest = new TrackedMove(null);
+		classUnderTest = new TrackedMove(pawnCapture, capturedBlackPawn, null);
 	}
 
 	@Test
@@ -30,50 +36,49 @@ public class TrackedMoveTest {
 
 	@Test
 	public void testTrackedMoveGenericMovePieceGenericPosition() throws IllegalNotationException {
-		classUnderTest = new TrackedMove(new GenericMove("a2b3"), new Pawn(Colour.black, GenericPosition.b3), null);
 		assertTrue(classUnderTest!=null);
 	}
 
 	@Test
-	@Ignore
-	public void testIsCapture() {
-		fail("Not yet implemented");
+	public void testIsCapture() throws IllegalNotationException {
+		assertTrue(classUnderTest.isCapture());
 	}
 
 	@Test
-	@Ignore
-	public void testGetMove() {
-		fail("Not yet implemented");
+	public void testGetMove() throws IllegalNotationException {
+		assertTrue(classUnderTest.getMove().equals(pawnCapture));
 	}
 
 	@Test
-	@Ignore
 	public void testSetMove() {
-		fail("Not yet implemented");
+		classUnderTest.setMove(pawnAdvance);
+		assertTrue(classUnderTest.getMove().equals(pawnAdvance));
 	}
 
 	@Test
-	@Ignore
 	public void testGetCapturedPiece() {
-		fail("Not yet implemented");
+		assertTrue(classUnderTest.getCapturedPiece().equals(capturedBlackPawn));
 	}
 
 	@Test
-	@Ignore
 	public void testSetCapturedPiece() {
-		fail("Not yet implemented");
+		classUnderTest.setCapturedPiece(new King(Colour.white,GenericPosition.b3));
+		Piece captured = classUnderTest.getCapturedPiece();
+		assertTrue(captured.isWhite());
+		assertTrue(captured instanceof King);
+		assertTrue(captured.getSquare().equals(GenericPosition.b3));
 	}
 
 	@Test
-	@Ignore
 	public void testGetEnPassantTarget() {
-		fail("Not yet implemented");
+		classUnderTest.setEnPassantTarget(targetSq);
+		assertTrue(classUnderTest.getEnPassantTarget().equals(targetSq));
 	}
 
 	@Test
-	@Ignore
 	public void testSetEnPassantTarget() {
-		fail("Not yet implemented");
+		classUnderTest.setEnPassantTarget(targetSq);
+		assertFalse(classUnderTest.getEnPassantTarget().equals(null));
 	}
 
 }

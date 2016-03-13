@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import java.util.LinkedList;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -327,7 +326,6 @@ public class MiniMaxMoveGeneratorTest {
 	}
 
 	@Test
-	@Ignore
 	public void test_findMove_mateInTwo2()  throws NoLegalMoveException, IllegalNotationException {
 		// chess.com Problem ID: 0102832
 		PositionManager bm = new PositionManager( "r1r3k1/pb1p1p2/1p2p1p1/2pPP1B1/1nP4Q/1Pq2NP1/P4PBP/b2R2K1 w - - - -" );
@@ -361,8 +359,6 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	// Currently fails because the status of the initial enPassant Target square is not backed up by
-	// the move generator (because the move was never executed as far as Eubos is concerned).
 	public void test_findMove_enPassantCapture() throws InvalidPieceException, IllegalNotationException {
 		PositionManager bm = new PositionManager( "8/8/8/8/1pPP4/8/8/8 b - c3 0 1");
 		classUnderTest = new MiniMaxMoveGenerator(bm,2);
@@ -392,30 +388,20 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	@Ignore
 	public void test_findMove_mateInThree_WhiteMated() throws InvalidPieceException, IllegalNotationException {
 		// From a game against Eubos, 26th feb 2016 - pc reported by eubos was rubbish!
-		PositionManager bm = new PositionManager( "5r1k/ppp4p/2n5/1BNb2q1/1P6/P7/2PP4/1R1Q3K w - - 6 32");
-		classUnderTest = new MiniMaxMoveGenerator(bm,7);
-		expectedMove = new GenericMove("c5e4");
+		PositionManager bm = new PositionManager( "5r1k/ppp4p/2n5/1B1b2q1/1P6/P7/2PP4/1R1Q3K w - - 6 32");
+		classUnderTest = new MiniMaxMoveGenerator(bm,4);
+		expectedMove = new GenericMove("d1f3");
 		doFindMoveTest(true);
 	}
 	
 	@Test
-	@Ignore
 	public void test_findMove_mateInThree_BlackMated() throws InvalidPieceException, IllegalNotationException {
 		// An exact negation of the position in test_findMove_mateInThree_WhiteMated().
-		PositionManager bm = new PositionManager( "1r1q3k/2pp4/p7/1p6/1bnB2Q1/2N5/PPP4P/5R1K b - - 6 1");
-		classUnderTest = new MiniMaxMoveGenerator(bm,7);
-		expectedMove = new GenericMove("c4e5");
+		PositionManager bm = new PositionManager( "1r1q3k/2pp4/p7/1p6/1b1B2Q1/2N5/PPP4P/5R1K b - - 6 1");
+		classUnderTest = new MiniMaxMoveGenerator(bm,4);
+		expectedMove = new GenericMove("d8f6");
 		doFindMoveTest(true);
 	} 
-	
-//	@Test
-//	public void test_findMove_endingA() throws InvalidPieceException, IllegalNotationException {
-//		BoardManager bm = new BoardManager( "8/8/2pp3k/8/1P1P3K/8/8/8 w - - - -");
-//		classUnderTest = new MiniMaxMoveGenerator(bm,12);
-//		expectedMove = new GenericMove("d4d5");
-//		doFindMoveTest(true);
-//	}	
 }

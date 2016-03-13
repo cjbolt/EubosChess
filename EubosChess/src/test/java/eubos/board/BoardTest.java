@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import java.util.LinkedList;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericPosition;
@@ -84,15 +83,13 @@ public class BoardTest {
 		assertTrue(gotPiece instanceof Pawn);
 	}
 	
-	@Test (expected=InvalidPieceException.class)
-	@Ignore
-	public void testGetPieceAtSquare_DoesntExist() throws InvalidPieceException {
-		classUnderTest.getPieceAtSquare(testSq);
+	@Test
+	public void testGetPieceAtSquare_DoesntExist() {
+		assertTrue(classUnderTest.getPieceAtSquare(testSq)==null);
 	}
 	
 	@Test
-	@Ignore
 	public void testCaptureAtSquare() {
-		fail("Not yet implemented");
+		assertTrue(classUnderTest.captureAtSquare(testSq)==null);
 	}
 }

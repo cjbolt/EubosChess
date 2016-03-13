@@ -49,16 +49,16 @@ public class Board implements Iterable<Piece> {
 	}
 
 	Piece pickUpPieceAtSquare( GenericPosition atPos ) throws InvalidPieceException {
-		Piece pieceToPickUp = getPiece(atPos);
+		Piece pieceToPickUp = getPieceAndRemoveFromBoard(atPos);
 		if (pieceToPickUp == null ) throw new InvalidPieceException(atPos);
 		return ( pieceToPickUp );
 	}
 	
 	Piece captureAtSquare( GenericPosition atPos ) {
-		return getPiece(atPos);	
+		return getPieceAndRemoveFromBoard(atPos);	
 	}	
 	
-	private Piece getPiece( GenericPosition atPos ) {
+	private Piece getPieceAndRemoveFromBoard( GenericPosition atPos ) {
 		RankAndFile rnf = new RankAndFile(atPos);
 		Piece pieceToGet = theBoard[rnf.file][rnf.rank];
 		if (pieceToGet != null) {
