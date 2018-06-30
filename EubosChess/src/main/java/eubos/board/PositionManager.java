@@ -296,7 +296,7 @@ public class PositionManager implements IPositionManager {
 					break;
 				case 'q':
 					pl.add(new Queen( Colour.black, GenericPosition.valueOf(f,r)));
-					f = f.next();
+					f = advanceFile(f);
 					break;
 				case 'Q':
 					pl.add(new Queen( Colour.white, GenericPosition.valueOf(f,r)));

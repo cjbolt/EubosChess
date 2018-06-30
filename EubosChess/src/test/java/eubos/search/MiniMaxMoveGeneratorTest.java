@@ -403,5 +403,36 @@ public class MiniMaxMoveGeneratorTest {
 		classUnderTest = new MiniMaxMoveGenerator(bm,4);
 		expectedMove = new GenericMove("d8f6");
 		doFindMoveTest(true);
-	} 
+	}
+	
+	@Test
+	public void test_findMove_crashLichess_CloudFunction() throws InvalidPieceException, IllegalNotationException {
+		/*  [Site "https://lichess.org/fBSEDCCo"]
+			[Date "2018.06.29"]
+			[Round "-"]
+			[White "eubos"]
+			[Black "CloudFunction"]
+			[Result "0-1"]
+			[UTCDate "2018.06.29"]
+			[UTCTime "19:28:24"] */
+		PositionManager bm = new PositionManager( "4r1k1/p2b1ppp/1q6/2Kp4/8/R2BP3/3n3P/3N2NR w - - 6 36");
+		classUnderTest = new MiniMaxMoveGenerator(bm,5);
+		expectedMove = new GenericMove("c5d5");
+		doFindMoveTest(true);
+	}
+	@Test
+	public void test_findMove_crashLichess_General_Yummy() throws InvalidPieceException, IllegalNotationException {
+	    /*  [Site "https://lichess.org/V3MPFEkl"]
+			[Date "2018.06.29"]
+			[Round "-"]
+			[White "General_Yummy"]
+			[Black "eubos"]
+			[Result "1-0"]
+			[UTCDate "2018.06.29"]
+			[UTCTime "19:41:08"] */
+		PositionManager bm = new PositionManager( "rnb2bnr/1ppp2pp/p4k2/5PN1/3Q4/2P5/PP3P1P/R1B1K1R1 b Q - 3 14");
+		classUnderTest = new MiniMaxMoveGenerator(bm,5);
+		expectedMove = new GenericMove("f6f5");
+		doFindMoveTest(true);
+	}
 }
