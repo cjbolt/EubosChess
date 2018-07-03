@@ -31,13 +31,13 @@ public class ScoreGeneratorTest {
 		testPly = FIRST_PLY;
 		testPly++; // Mate detected on the ply after the move that caused the mate!
 		score = classUnderTest.generateScoreForCheckmate(testPly);
-		assertTrue(score==(ScoreGenerator.KING_VALUE*(SEARCH_DEPTH/ScoreGenerator.PLIES_PER_MOVE)));
+		assertTrue(score==(MaterialEvaluator.KING_VALUE*(SEARCH_DEPTH/ScoreGenerator.PLIES_PER_MOVE)));
 	}
 	
 	@Test
 	public void testGenerateScoreForCheckmate_M8() {
 		testPly = LAST_PLY;
 		score = classUnderTest.generateScoreForCheckmate(testPly);
-		assertTrue(score==(ScoreGenerator.KING_VALUE));
+		assertTrue(score==(MaterialEvaluator.KING_VALUE));
 	}
 }
