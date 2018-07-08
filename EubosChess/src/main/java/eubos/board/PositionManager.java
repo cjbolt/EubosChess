@@ -54,7 +54,11 @@ public class PositionManager implements IPositionManager {
 	
 	public boolean lastMoveWasCastle() {
 		return moveTracker.lastMoveWasCastle();
-	}	
+	}
+	
+	public boolean hasCastled(Colour colour){
+		return castling.everCastled(colour);
+	}
 
 	// No public setter, because onMove is only changed by performing a move on the board.
 	private Colour onMove;

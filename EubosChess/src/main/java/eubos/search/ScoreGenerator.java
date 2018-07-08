@@ -1,6 +1,7 @@
 package eubos.search;
 
 import eubos.board.PositionManager;
+import eubos.board.pieces.Piece.Colour;
 import eubos.search.MaterialEvaluator;
 
 public class ScoreGenerator {
@@ -36,9 +37,13 @@ public class ScoreGenerator {
 	
 	private int encourageCastling(PositionManager pm) {
 		int castleScoreBoost = 0;
-		if (pm.lastMoveWasCastle()) {
+		Colour onMoveWas = (pm.getOnMove() == Colour.black) ? Colour.white : Colour.black;
+		if (pm.hasCastled(onMoveWas)) {
 			castleScoreBoost = 50;
-		}		
+		}
+		if (onMoveWas == Colour.black) {
+			castleScoreBoost = -castleScoreBoost;
+		}
 		return castleScoreBoost;
 	}
 }

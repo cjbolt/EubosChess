@@ -177,6 +177,16 @@ class CastlingManager {
 		}
 		return castlingAvaillable;
 	}
+	
+	boolean everCastled(Colour colour){
+		boolean everCastled = false;
+		if (colour.equals(Colour.white)) {
+			everCastled = whiteCastled;
+		} else {
+			everCastled = blackCastled;
+		}
+		return everCastled;
+	}
 
 	private boolean castleMoveLegal(GenericPosition rookSq,
 			GenericPosition [] checkSqs,
