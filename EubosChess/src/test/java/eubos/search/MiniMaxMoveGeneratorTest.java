@@ -311,8 +311,7 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		PositionManager bm = new PositionManager( "8/7B/8/3N4/8/1Q2B3/PPP5/rk2K2R w K - 0 1" );
 		classUnderTest = new MiniMaxMoveGenerator(bm,2);
-		//expectedMove = new GenericMove("c2c3");
-		expectedMove = new GenericMove("e1e2");
+		expectedMove = new GenericMove("e1g1");
 		doFindMoveTest(true);
 	}
 

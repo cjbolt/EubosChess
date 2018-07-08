@@ -17,6 +17,16 @@ public class TrackedMove {
 		enPassantTarget = enP;
 	}
 	public boolean isCapture() { return ((capturedPiece != null) ? true : false); }
+	
+	public boolean isCastle() { 
+		if (move.equals(CastlingManager.bksc) || 
+			move.equals(CastlingManager.bqsc) ||
+			move.equals(CastlingManager.wksc) ||
+			move.equals(CastlingManager.wqsc)) {
+			return true;
+		}
+		return false;
+	}
 
 	public GenericMove getMove() {
 		return move;

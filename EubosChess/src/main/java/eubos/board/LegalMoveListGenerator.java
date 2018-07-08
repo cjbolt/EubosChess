@@ -37,7 +37,7 @@ class LegalMoveListGenerator {
 				iter_ml.remove();
 			// Groom the movelist so that the moves expected to be best are searched first.
 			// This is to get max benefit form alpha beta algorithm
-			else if (pm.lastMoveWasCapture()) {
+			else if (pm.lastMoveWasCaptureOrCastle()) {
 				newMoveList.add(0, currMove);
 			} else {
 				newMoveList.add(currMove);

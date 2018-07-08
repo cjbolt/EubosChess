@@ -97,7 +97,7 @@ class MiniMaxMoveGenerator implements
 			pm.performMove(currMove);
 			// 2) Either recurse or evaluate position and check for back-up of score
 			if ( isTerminalNode(currPly) ) {
-				positionScore = sg.generateScoreForPosition(pm.getTheBoard());
+				positionScore = sg.generateScoreForPosition(pm);
 			} else {
 				positionScore = searchPly(currPly+1);
 			}

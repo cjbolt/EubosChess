@@ -29,10 +29,10 @@ class CastlingManager {
 	private static final GenericPosition [] qscWhiteEmptySqs = {GenericPosition.c1, GenericPosition.d1, GenericPosition.b1};
 	private static final GenericPosition [] qscBlackEmptySqs = {GenericPosition.c8, GenericPosition.d8, GenericPosition.b8};
 
-	private static final GenericMove bksc = new GenericMove( GenericPosition.e8, GenericPosition.g8);
-	private static final GenericMove wksc = new GenericMove( GenericPosition.e1, GenericPosition.g1);
-	private static final GenericMove bqsc = new GenericMove( GenericPosition.e8, GenericPosition.c8);
-	private static final GenericMove wqsc = new GenericMove( GenericPosition.e1, GenericPosition.c1);
+	static final GenericMove bksc = new GenericMove( GenericPosition.e8, GenericPosition.g8);
+	static final GenericMove wksc = new GenericMove( GenericPosition.e1, GenericPosition.g1);
+	static final GenericMove bqsc = new GenericMove( GenericPosition.e8, GenericPosition.c8);
+	static final GenericMove wqsc = new GenericMove( GenericPosition.e1, GenericPosition.c1);
 
 	private static final GenericMove undo_bksc = new GenericMove( GenericPosition.g8, GenericPosition.e8);
 	private static final GenericMove undo_wksc = new GenericMove( GenericPosition.g1, GenericPosition.e1);

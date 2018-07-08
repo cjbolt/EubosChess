@@ -1,7 +1,6 @@
 package eubos.search;
 
-import eubos.board.Board;
-
+import eubos.board.PositionManager;
 import eubos.search.MaterialEvaluator;
 
 public class ScoreGenerator {
@@ -29,7 +28,17 @@ public class ScoreGenerator {
 		return multiplier*MaterialEvaluator.KING_VALUE;
 	}
 	
-	int generateScoreForPosition(Board theBoard) {
-		return me.evaluate(theBoard);
+	int generateScoreForPosition(PositionManager pm) {
+		int score = me.evaluate(pm.getTheBoard());
+		score += encourageCastling(pm);
+		return score;
+	}
+	
+	private int encourageCastling(PositionManager pm) {
+		int castleScoreBoost = 0;
+		if (pm.lastMoveWasCastle()) {
+			castleScoreBoost = 50;
+		}		
+		return castleScoreBoost;
 	}
 }
