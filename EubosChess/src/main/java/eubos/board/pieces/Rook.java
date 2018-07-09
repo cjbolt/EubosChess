@@ -6,8 +6,8 @@ import java.util.List;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.position.Board;
-import eubos.position.Direction;
+import eubos.board.Board;
+import eubos.board.Direction;
 
 public class Rook extends PieceMultisquareDirectMove {
 

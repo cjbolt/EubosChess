@@ -2,7 +2,7 @@ package eubos.board.pieces;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.position.Direction;
+import eubos.board.Direction;
 
 public abstract class PieceSinglesquareDirectMove extends Piece {
 

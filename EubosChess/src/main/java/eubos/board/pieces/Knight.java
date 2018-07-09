@@ -4,8 +4,8 @@ import java.util.LinkedList;
 
 import com.fluxchess.jcpi.models.*;
 
-import eubos.position.Board;
-import eubos.position.Direction;
+import eubos.board.Board;
+import eubos.board.Direction;
 
 public class Knight extends Piece {
 

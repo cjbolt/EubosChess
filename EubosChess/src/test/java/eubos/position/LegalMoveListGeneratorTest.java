@@ -9,7 +9,7 @@ import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
-import eubos.position.InvalidPieceException;
+import eubos.board.InvalidPieceException;
 import eubos.position.LegalMoveListGenerator;
 import eubos.position.PositionManager;
 

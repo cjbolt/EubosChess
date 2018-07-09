@@ -8,7 +8,7 @@ import java.util.Iterator;
 import org.junit.Before;
 import org.junit.Test;
 
-import eubos.position.BitBoard;
+import eubos.board.BitBoard;
 
 public class BitBoardTest {
 	private BitBoard classUnderTest;

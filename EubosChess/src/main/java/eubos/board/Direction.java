@@ -1,4 +1,4 @@
-package eubos.position;
+package eubos.board;
 
 import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericPosition;

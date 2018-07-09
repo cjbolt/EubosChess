@@ -6,6 +6,10 @@ import com.fluxchess.jcpi.models.GenericMove;
 //import com.fluxchess.jcpi.models.GenericPosition;
 
 
+
+
+import eubos.board.Board;
+import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece.Colour;
 
 public interface IPositionManager {

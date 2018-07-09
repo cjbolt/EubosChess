@@ -1,4 +1,4 @@
-package eubos.position;
+package eubos.board;
 
 import static org.junit.Assert.*;
 
@@ -9,11 +9,10 @@ import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 
+import eubos.board.Board;
 import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
-import eubos.position.Board;
-import eubos.position.InvalidPieceException;
 
 public class BoardTest {
 	

@@ -5,6 +5,8 @@ import java.util.List;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
+import eubos.board.Board;
+import eubos.board.InvalidPieceException;
 import eubos.board.pieces.King;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Rook;

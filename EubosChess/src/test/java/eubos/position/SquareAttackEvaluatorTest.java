@@ -13,20 +13,22 @@ import java.util.List;
 
 
 
+
+
 //import org.junit.Before;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 
+import eubos.board.Board;
+import eubos.board.SquareAttackEvaluator;
 import eubos.board.pieces.Bishop;
 import eubos.board.pieces.Knight;
 import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Queen;
 import eubos.board.pieces.Piece.Colour;
-import eubos.position.Board;
 import eubos.position.PositionManager;
-import eubos.position.SquareAttackEvaluator;
 
 public class SquareAttackEvaluatorTest {
 

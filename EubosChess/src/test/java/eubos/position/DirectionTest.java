@@ -7,7 +7,7 @@ import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.position.Direction;
+import eubos.board.Direction;
 
 public class DirectionTest {
 

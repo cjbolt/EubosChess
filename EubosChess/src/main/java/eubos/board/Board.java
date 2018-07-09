@@ -1,4 +1,4 @@
-package eubos.position;
+package eubos.board;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -25,7 +25,7 @@ public class Board implements Iterable<Piece> {
 	public GenericPosition getEnPassantTargetSq() {
 		return enPassantTargetSq;
 	}
-	void setEnPassantTargetSq(GenericPosition enPassantTargetSq) {
+	public void setEnPassantTargetSq(GenericPosition enPassantTargetSq) {
 		// TODO: add bounds checking - only certain en passant squares can be legal.
 		this.enPassantTargetSq = enPassantTargetSq;
 	}
@@ -40,7 +40,7 @@ public class Board implements Iterable<Piece> {
 		return ( theBoard[rnf.file][rnf.rank] );
 	}
 	
-	void setPieceAtSquare( Piece pieceToPlace ) {
+	public void setPieceAtSquare( Piece pieceToPlace ) {
 		GenericPosition atPos = pieceToPlace.getSquare();
 		RankAndFile rnf = new RankAndFile(atPos);
 		theBoard[rnf.file][rnf.rank] = pieceToPlace;
@@ -48,13 +48,13 @@ public class Board implements Iterable<Piece> {
 		getBitBoardForColour(pieceToPlace).set(rnf.rank, rnf.file);
 	}
 
-	Piece pickUpPieceAtSquare( GenericPosition atPos ) throws InvalidPieceException {
+	public Piece pickUpPieceAtSquare( GenericPosition atPos ) throws InvalidPieceException {
 		Piece pieceToPickUp = getPieceAndRemoveFromBoard(atPos);
 		if (pieceToPickUp == null ) throw new InvalidPieceException(atPos);
 		return ( pieceToPickUp );
 	}
 	
-	Piece captureAtSquare( GenericPosition atPos ) {
+	public Piece captureAtSquare( GenericPosition atPos ) {
 		return getPieceAndRemoveFromBoard(atPos);	
 	}	
 	
@@ -150,7 +150,7 @@ public class Board implements Iterable<Piece> {
 		}
 	}
 
-	Iterator<Piece> iterateColour( Piece.Colour colourToIterate ) {
+	public Iterator<Piece> iterateColour( Piece.Colour colourToIterate ) {
 		try {
 			return new allPiecesOnBoardIterator( colourToIterate );
 		} catch (InvalidPieceException e) {

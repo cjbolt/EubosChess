@@ -10,7 +10,7 @@ import org.junit.Before;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
-import eubos.position.Board;
+import eubos.board.Board;
 import eubos.position.PositionManager;
 
 public class PieceTest {

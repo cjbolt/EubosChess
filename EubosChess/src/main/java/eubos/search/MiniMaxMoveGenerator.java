@@ -5,9 +5,9 @@ import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
+import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece.Colour;
 import eubos.main.EubosEngineMain;
-import eubos.position.InvalidPieceException;
 import eubos.position.MateScoreGenerator;
 import eubos.position.MaterialEvaluator;
 import eubos.position.PositionManager;

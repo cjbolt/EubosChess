@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
+import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
 

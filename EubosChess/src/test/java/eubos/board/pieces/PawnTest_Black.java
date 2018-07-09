@@ -4,9 +4,9 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import eubos.board.Board;
+import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece.Colour;
-import eubos.position.Board;
-import eubos.position.InvalidPieceException;
 import eubos.position.PositionManager;
 
 import com.fluxchess.jcpi.models.*;

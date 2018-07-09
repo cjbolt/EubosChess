@@ -21,7 +21,7 @@ import com.fluxchess.jcpi.commands.ProtocolReadyAnswerCommand;
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import com.fluxchess.jcpi.models.*;
 
-import eubos.position.InvalidPieceException;
+import eubos.board.InvalidPieceException;
 import eubos.position.PositionManager;
 import eubos.search.MoveSearcher;
 

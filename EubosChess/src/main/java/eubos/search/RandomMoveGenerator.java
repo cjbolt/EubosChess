@@ -5,8 +5,8 @@ import java.util.Random;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
+import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece;
-import eubos.position.InvalidPieceException;
 import eubos.position.PositionManager;
 
 class RandomMoveGenerator implements IMoveGenerator {

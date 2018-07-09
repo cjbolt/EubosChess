@@ -3,11 +3,11 @@ package eubos.position;
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
+import eubos.board.InvalidPieceException;
 import eubos.board.pieces.King;
 import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Rook;
-import eubos.position.InvalidPieceException;
 import eubos.position.PositionManager;
 
 import com.fluxchess.jcpi.models.GenericPosition;

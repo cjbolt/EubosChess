@@ -9,6 +9,9 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericRank;
 
+import eubos.board.Board;
+import eubos.board.InvalidPieceException;
+import eubos.board.SquareAttackEvaluator;
 import eubos.board.pieces.Bishop;
 import eubos.board.pieces.King;
 import eubos.board.pieces.Knight;

@@ -1,4 +1,4 @@
-package eubos.position;
+package eubos.board;
 
 import java.util.Iterator;
 import java.util.LinkedList;
