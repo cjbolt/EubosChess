@@ -5,12 +5,9 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import eubos.position.ScoreGenerator;
-import eubos.search.MaterialEvaluator;
-
-public class ScoreGeneratorTest {
+public class MateScoreGeneratorTest {
 	
-	private ScoreGenerator classUnderTest;
+	private MateScoreGenerator classUnderTest;
 	
 	private static final int SEARCH_DEPTH = 8;
 	private static final int FIRST_PLY = 0;
@@ -20,7 +17,7 @@ public class ScoreGeneratorTest {
 	
 	@Before
 	public void setUp() {
-		classUnderTest = new ScoreGenerator(SEARCH_DEPTH);
+		classUnderTest = new MateScoreGenerator(new PositionManager(), SEARCH_DEPTH);
 		score = 0;
 	}
 	
@@ -34,7 +31,7 @@ public class ScoreGeneratorTest {
 		testPly = FIRST_PLY;
 		testPly++; // Mate detected on the ply after the move that caused the mate!
 		score = classUnderTest.generateScoreForCheckmate(testPly);
-		assertTrue(score==(MaterialEvaluator.KING_VALUE*(SEARCH_DEPTH/ScoreGenerator.PLIES_PER_MOVE)));
+		assertTrue(score==(MaterialEvaluator.KING_VALUE*(SEARCH_DEPTH/MateScoreGenerator.PLIES_PER_MOVE)));
 	}
 	
 	@Test

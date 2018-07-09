@@ -1,4 +1,4 @@
-package eubos.search;
+package eubos.position;
 
 import java.util.Collections;
 import java.util.Map;
@@ -14,7 +14,6 @@ import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Queen;
 import eubos.board.pieces.Rook;
-import eubos.position.Board;
 
 public class MaterialEvaluator {
 	

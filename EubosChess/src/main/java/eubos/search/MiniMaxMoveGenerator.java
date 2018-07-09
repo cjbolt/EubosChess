@@ -8,8 +8,10 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.board.pieces.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.InvalidPieceException;
+import eubos.position.MateScoreGenerator;
+import eubos.position.MaterialEvaluator;
 import eubos.position.PositionManager;
-import eubos.position.ScoreGenerator;
+import eubos.position.PositionEvaluator;
 
 class MiniMaxMoveGenerator implements
 		IMoveGenerator {
@@ -17,7 +19,8 @@ class MiniMaxMoveGenerator implements
 	private PositionManager pm;
 	private int searchDepthPly;
 	private ScoreTracker st;
-	private ScoreGenerator sg;
+	private PositionEvaluator pe;
+	private MateScoreGenerator sg;
 	private PrincipalContinuation pc;
 	private Colour initialOnMove;
 	private SearchMetrics sm;
@@ -30,7 +33,8 @@ class MiniMaxMoveGenerator implements
 	MiniMaxMoveGenerator( PositionManager pm, int searchDepth ) {
 		this.pm = pm;
 		st = new ScoreTracker(searchDepth);
-		sg = new ScoreGenerator(searchDepth);
+		pe = new PositionEvaluator();
+		sg = new MateScoreGenerator(pm, searchDepth);
 		searchDepthPly = searchDepth;
 		pc = new PrincipalContinuation(searchDepth);
 		sm = new SearchMetrics(searchDepth);
@@ -73,7 +77,8 @@ class MiniMaxMoveGenerator implements
 		// Generate the move list
 		List<GenericMove> ml = pm.getMoveList();
 		if (isMateOccurred(ml)) {
-			handleMates(currPly, isWhite);
+			int mateScore = sg.scoreMate(currPly, isWhite, initialOnMove);
+			st.backupScore(currPly, mateScore);
 		} else {
 			// Initialise the score for this node and analyse the move list
 			searchMoves(currPly, st.initScore(currPly,isWhite), ml);
@@ -98,7 +103,7 @@ class MiniMaxMoveGenerator implements
 			pm.performMove(currMove);
 			// 2) Either recurse or evaluate position and check for back-up of score
 			if ( isTerminalNode(currPly) ) {
-				positionScore = sg.generateScoreForPosition(pm);
+				positionScore = pe.evaluatePosition(pm);
 			} else {
 				positionScore = searchPly(currPly+1);
 			}
@@ -122,24 +127,6 @@ class MiniMaxMoveGenerator implements
 		}
 	}
 
-	private void handleMates(int currPly, boolean isWhite) {
-		// Handle mates (indicated by no legal moves)
-		int mateScore = 0;
-		if (pm.isKingInCheck()) {
-			mateScore = sg.generateScoreForCheckmate(currPly);
-			// If white got mated, need to back up a large negative score (good for black)
-			if (isWhite)
-				mateScore=-mateScore;
-			debug.printMateFound(currPly);
-		} else {
-			mateScore = sg.getScoreForStalemate();
-			// TODO: introduce a more sophisticated system for handling stalemate scoring.
-			if (initialOnMove==Colour.black)
-				mateScore=-mateScore;
-		}
-		st.backupScore(currPly, mateScore);
-	}
-
 	private void reportPrincipalContinuation(int currPly, int positionScore) {
 		if (currPly == 0) {
 			if (Math.abs(positionScore) >= MaterialEvaluator.KING_VALUE) {
@@ -150,7 +137,7 @@ class MiniMaxMoveGenerator implements
 					ownMate = true;
 				} 
 				int matePly = Math.abs(positionScore)/MaterialEvaluator.KING_VALUE;
-				matePly *= ScoreGenerator.PLIES_PER_MOVE;
+				matePly *= MateScoreGenerator.PLIES_PER_MOVE;
 				matePly = searchDepthPly - matePly;
 				if (ownMate) {
 					if ((searchDepthPly&1) != 0x1)

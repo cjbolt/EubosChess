@@ -14,7 +14,6 @@ public interface IPositionManager {
 	public void unperformMove() throws InvalidPieceException;
 	// Secondary API
 	public List<GenericMove> getMoveList() throws InvalidPieceException;
-	//public GenericPosition getEnPassantTargetSq(); // implemented in Board
 	public int getCastlingAvaillability();
 	public boolean isKingInCheck();
 	// Accessor methods
