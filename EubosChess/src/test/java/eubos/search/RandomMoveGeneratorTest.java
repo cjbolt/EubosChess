@@ -11,9 +11,6 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.board.Board;
-import eubos.board.PositionManager;
-import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Bishop;
 import eubos.board.pieces.King;
 import eubos.board.pieces.Knight;
@@ -22,6 +19,9 @@ import eubos.board.pieces.Piece;
 import eubos.board.pieces.Queen;
 import eubos.board.pieces.Rook;
 import eubos.board.pieces.Piece.Colour;
+import eubos.position.Board;
+import eubos.position.InvalidPieceException;
+import eubos.position.PositionManager;
 import eubos.search.NoLegalMoveException;
 import eubos.search.RandomMoveGenerator;
 

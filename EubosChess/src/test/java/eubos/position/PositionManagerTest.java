@@ -1,4 +1,4 @@
-package eubos.board;
+package eubos.position;
 
 import org.junit.Test;
 
@@ -7,6 +7,8 @@ import eubos.board.pieces.King;
 import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Rook;
+import eubos.position.InvalidPieceException;
+import eubos.position.PositionManager;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericMove;

@@ -10,9 +10,9 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
-import eubos.board.PositionManager;
-import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece;
+import eubos.position.InvalidPieceException;
+import eubos.position.PositionManager;
 import eubos.search.MiniMaxMoveGenerator;
 import eubos.search.NoLegalMoveException;
 

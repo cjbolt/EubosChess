@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.board.InvalidPieceException;
+import eubos.position.InvalidPieceException;
 
 public abstract class PawnTest extends PieceTest {
 

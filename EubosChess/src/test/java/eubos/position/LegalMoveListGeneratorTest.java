@@ -1,4 +1,4 @@
-package eubos.board;
+package eubos.position;
 
 import static org.junit.Assert.*;
 
@@ -8,6 +8,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
+
+import eubos.position.InvalidPieceException;
+import eubos.position.LegalMoveListGenerator;
+import eubos.position.PositionManager;
 
 public class LegalMoveListGeneratorTest {
 

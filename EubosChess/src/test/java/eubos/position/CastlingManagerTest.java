@@ -1,4 +1,4 @@
-package eubos.board;
+package eubos.position;
 
 import static org.junit.Assert.*;
 
@@ -9,6 +9,9 @@ import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
+
+import eubos.position.CastlingManager;
+import eubos.position.PositionManager;
 
 public class CastlingManagerTest {
 

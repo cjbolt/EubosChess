@@ -7,7 +7,6 @@ import java.util.Iterator;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.board.Board;
 import eubos.board.pieces.Bishop;
 import eubos.board.pieces.King;
 import eubos.board.pieces.Knight;
@@ -15,6 +14,7 @@ import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Queen;
 import eubos.board.pieces.Rook;
+import eubos.position.Board;
 
 public class MaterialEvaluator {
 	

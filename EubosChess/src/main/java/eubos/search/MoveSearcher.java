@@ -3,9 +3,9 @@ package eubos.search;
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import com.fluxchess.jcpi.models.GenericMove;
 
-import eubos.board.PositionManager;
-import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
+import eubos.position.InvalidPieceException;
+import eubos.position.PositionManager;
 
 public class MoveSearcher extends Thread {
 	

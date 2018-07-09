@@ -7,8 +7,8 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericRank;
 
-import eubos.board.Board;
-import eubos.board.Direction;
+import eubos.position.Board;
+import eubos.position.Direction;
 
 public class Pawn extends PieceSinglesquareDirectMove {
 

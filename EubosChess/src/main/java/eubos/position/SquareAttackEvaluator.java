@@ -1,4 +1,4 @@
-package eubos.board;
+package eubos.position;
 
 import java.util.ArrayList;
 import java.util.List;

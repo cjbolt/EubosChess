@@ -4,8 +4,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import eubos.board.*;
 import eubos.board.pieces.Piece.Colour;
+import eubos.position.*;
 
 import com.fluxchess.jcpi.models.*;
 

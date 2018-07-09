@@ -1,9 +1,12 @@
-package eubos.search;
+package eubos.position;
 
 import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import eubos.position.ScoreGenerator;
+import eubos.search.MaterialEvaluator;
 
 public class ScoreGeneratorTest {
 	

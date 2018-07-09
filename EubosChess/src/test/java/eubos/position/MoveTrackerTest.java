@@ -1,4 +1,4 @@
-package eubos.board;
+package eubos.position;
 
 import static org.junit.Assert.*;
 
@@ -11,6 +11,8 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece.Colour;
+import eubos.position.MoveTracker;
+import eubos.position.TrackedMove;
 
 public class MoveTrackerTest {
 	

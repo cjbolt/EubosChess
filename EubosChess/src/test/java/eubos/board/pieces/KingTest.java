@@ -7,8 +7,8 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.board.Board;
 import eubos.board.pieces.Piece.Colour;
+import eubos.position.Board;
 
 public class KingTest extends PieceTest {
 

@@ -1,4 +1,4 @@
-package eubos.board;
+package eubos.position;
 
 import static org.junit.Assert.*;
 
@@ -13,6 +13,7 @@ import eubos.board.pieces.King;
 import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
+import eubos.position.TrackedMove;
 
 public class TrackedMoveTest {
 

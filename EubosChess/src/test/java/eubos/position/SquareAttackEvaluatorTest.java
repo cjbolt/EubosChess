@@ -1,9 +1,10 @@
-package eubos.board;
+package eubos.position;
 
 import static org.junit.Assert.*;
 
 import java.util.LinkedList;
 import java.util.List;
+
 
 
 
@@ -23,6 +24,9 @@ import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Queen;
 import eubos.board.pieces.Piece.Colour;
+import eubos.position.Board;
+import eubos.position.PositionManager;
+import eubos.position.SquareAttackEvaluator;
 
 public class SquareAttackEvaluatorTest {
 

@@ -7,8 +7,8 @@ import java.util.List;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.board.Board;
-import eubos.board.Direction;
+import eubos.position.Board;
+import eubos.position.Direction;
 
 public abstract class PieceMultisquareDirectMove extends Piece {
 

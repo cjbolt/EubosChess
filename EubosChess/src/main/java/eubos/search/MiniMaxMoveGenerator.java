@@ -5,10 +5,11 @@ import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
-import eubos.board.PositionManager;
-import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece.Colour;
 import eubos.main.EubosEngineMain;
+import eubos.position.InvalidPieceException;
+import eubos.position.PositionManager;
+import eubos.position.ScoreGenerator;
 
 class MiniMaxMoveGenerator implements
 		IMoveGenerator {
