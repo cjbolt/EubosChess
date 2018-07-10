@@ -61,6 +61,14 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 	public Colour getOnMove() {
 		return onMove;
 	}
+	
+	private int moveNumber;
+	public int getMoveNumber() {
+		return moveNumber;
+	}
+	private void setMoveNumber(int move) {
+		moveNumber = move;
+	}
 
 	private King whiteKing;
 	private King blackKing;
@@ -248,15 +256,16 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 	private class fenParser {
 		private LinkedList<Piece> pl;
 		
-		public fenParser( PositionManager bm, String fenString ) {
+		public fenParser( PositionManager pm, String fenString ) {
 			pl = new LinkedList<Piece>();
 			String[] tokens = fenString.split(" ");
 			String piecePlacement = tokens[0];
 			String colourOnMove = tokens[1];
-			castling = new CastlingManager(bm, tokens[2]);
+			castling = new CastlingManager(pm, tokens[2]);
 			String enPassanttargetSq = tokens[3];
-//			String halfMoveClock = tokens[4];
-//			String moveNumber = tokens[5];
+			//String halfMoveClock = tokens[4];
+			String moveNumber = tokens[5];
+			parseMoveNumber(pm, moveNumber);
 			parsePiecePlacement(piecePlacement);
 			parseOnMove(colourOnMove);
 			create();
@@ -267,6 +276,13 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 				onMove = Colour.white;
 			else if (colourOnMove.equals("b"))
 				onMove = Colour.black;
+		}
+		private void parseMoveNumber(PositionManager pm, String moveNumber) {
+			int moveNum = 0;
+			if (!moveNumber.equals("-")) {
+				moveNum = Integer.parseInt(moveNumber);
+			}
+			pm.setMoveNumber(moveNum);
 		}
 		private void parsePiecePlacement(String piecePlacement) {
 			GenericRank r = GenericRank.R8;

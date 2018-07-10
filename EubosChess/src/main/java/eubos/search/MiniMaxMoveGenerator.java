@@ -32,31 +32,37 @@ class MiniMaxMoveGenerator implements
 	private boolean sendInfo = false;
 	private boolean terminate = false;
 	private SearchDebugAgent debug;
+	private EubosEngineMain callback;
 
 	// Used for unit tests
-	MiniMaxMoveGenerator( IChangePosition pm, IGenerateMoveList mlgen, IPositionAccessors pos, int searchDepth ) {
+	MiniMaxMoveGenerator( IChangePosition pm, IGenerateMoveList mlgen, IPositionAccessors pos) {
 		this.pm = pm;
 		this.pos = pos;
 		this.mlgen = mlgen;
-		st = new ScoreTracker(searchDepth);
 		pe = new PositionEvaluator();
+		debug = new SearchDebugAgent(0);
+	}
+
+	// Used with Arena, Lichess
+	MiniMaxMoveGenerator( EubosEngineMain eubos, IChangePosition pm, IGenerateMoveList mlgen, IPositionAccessors pos ) {
+		this(pm, mlgen, pos);
+		callback = eubos;
+		sendInfo = true;
+	}	
+	
+	private void initialiseSearchDepthDependentObjects(int searchDepth) {
+		st = new ScoreTracker(searchDepth);
 		sg = new MateScoreGenerator(pos, searchDepth);
 		searchDepthPly = searchDepth;
 		pc = new PrincipalContinuation(searchDepth);
 		sm = new SearchMetrics(searchDepth);
-		debug = new SearchDebugAgent(0);
+		sm.setPrincipalVariation(pc.toPvList());
+		sr = new SearchMetricsReporter(callback,sm);		
 	}
 
-	// Used with Arena
-	MiniMaxMoveGenerator( EubosEngineMain eubos, IChangePosition pm, IGenerateMoveList mlgen, IPositionAccessors pos, int searchDepth ) {
-		this(pm, mlgen, pos, searchDepth);
-		sm.setPrincipalVariation(pc.toPvList());
-		sr = new SearchMetricsReporter(eubos,sm);
-		sendInfo = true;
-	}	
-
 	@Override
-	public GenericMove findMove() throws NoLegalMoveException, InvalidPieceException {
+	public GenericMove findMove(int searchDepth) throws NoLegalMoveException, InvalidPieceException {
+		initialiseSearchDepthDependentObjects(searchDepth);
 		// Register initialOnMove
 		initialOnMove = pos.getOnMove();
 		// Start the search reporter task

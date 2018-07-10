@@ -9,27 +9,24 @@ import eubos.position.IChangePosition;
 import eubos.position.IGenerateMoveList;
 import eubos.position.IPositionAccessors;
 
-public class MoveSearcher extends Thread {
+public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 	
-	private EubosEngineMain eubosEngine;
-	private IChangePosition pm;
-	private IPositionAccessors pos;
-	private MiniMaxMoveGenerator mg;
+	private int searchDepth = 1;
 	
-	public MoveSearcher( EubosEngineMain eubos, IChangePosition inputPm, IGenerateMoveList mlgen, IPositionAccessors pos, int searchDepth ) {
-		eubosEngine = eubos;
-		pm = inputPm;
-		this.pos = pos;
-		mg = new MiniMaxMoveGenerator( eubosEngine, pm, mlgen, pos, searchDepth );
+	public FixedDepthMoveSearcher( EubosEngineMain eubos, IChangePosition inputPm, IGenerateMoveList mlgen, IPositionAccessors pos, int searchDepth ) {
+		super(eubos,inputPm,pos, new MiniMaxMoveGenerator( eubos, inputPm, mlgen, pos ));
+		this.searchDepth = searchDepth;
 	}
 	
+	@Override
 	public void halt() {
 		mg.terminateFindMove();
 	}
 	
+	@Override
 	public void run() {
 		try {
-			GenericMove selectedMove = mg.findMove();
+			GenericMove selectedMove = mg.findMove(searchDepth);
 			pm.performMove(selectedMove);
 			eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( selectedMove, null ));
 		} catch( NoLegalMoveException e ) {

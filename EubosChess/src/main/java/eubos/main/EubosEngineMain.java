@@ -22,15 +22,18 @@ import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import com.fluxchess.jcpi.models.*;
 
 import eubos.board.InvalidPieceException;
+import eubos.board.pieces.Piece.Colour;
 import eubos.position.PositionManager;
-import eubos.search.MoveSearcher;
+import eubos.search.IterativeMoveSearcher;
+import eubos.search.FixedDepthMoveSearcher;
+import eubos.search.AbstractMoveSearcher;
 
 public class EubosEngineMain extends AbstractEngine {
 	
 	private static final int SEARCH_DEPTH_IN_PLY = 6;
 	
 	private PositionManager pm;
-	private MoveSearcher ms;
+	private AbstractMoveSearcher ms;
 	private OpeningBook open = new OpeningBook();
 	private GenericMove nextBookMove = null;
 	
@@ -80,15 +83,26 @@ public class EubosEngineMain extends AbstractEngine {
 		if (nextBookMove == null) {
 			// The move searcher will report the best move found via a callback to this object, 
 			// this will occur when the tree search is concluded and the thread completes execution.
-			int searchDepth = SEARCH_DEPTH_IN_PLY;
 			if (command.getMoveTime() != null) {
-				searchDepth = 4;
-			} else if (command.getInfinite()) {
-
-			} else if (command.getDepth() != null) {
-				searchDepth = command.getDepth();
+				int searchDepth = 4;
+				ms = new FixedDepthMoveSearcher(this, pm, pm, pm, searchDepth);
+			} else {
+				long clockTime = command.getClock((pm.getOnMove() == Colour.white) ? GenericColor.WHITE : GenericColor.BLACK);
+				if (clockTime != 0) {
+				ms = new IterativeMoveSearcher(this, pm, pm, pm, clockTime);
+				} else {
+					int searchDepth = SEARCH_DEPTH_IN_PLY;
+					if (command.getMoveTime() != null) {
+						searchDepth = 4;
+					}
+					if (command.getInfinite()) {
+		
+					} else if (command.getDepth() != null) {
+						searchDepth = command.getDepth();
+					}
+					ms = new FixedDepthMoveSearcher(this, pm, pm, pm, searchDepth);
+				}
 			}
-			ms = new MoveSearcher(this, pm, pm, pm, searchDepth);
 			ms.start();
 		} else {
 			sendBestMoveCommand(new ProtocolBestMoveCommand(nextBookMove, null));

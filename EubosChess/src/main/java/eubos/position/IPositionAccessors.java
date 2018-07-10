@@ -8,4 +8,5 @@ public interface IPositionAccessors {
 	public Colour getOnMove();
 	public boolean hasCastled(Colour colour);
 	public boolean isKingInCheck();
+	public int getMoveNumber();
 }
