@@ -29,7 +29,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	private static final int SEARCH_DEPTH_IN_PLY = 6;
 	
-	private PositionManager bm;
+	private PositionManager pm;
 	private MoveSearcher ms;
 	private OpeningBook open = new OpeningBook();
 	private GenericMove nextBookMove = null;
@@ -58,10 +58,10 @@ public class EubosEngineMain extends AbstractEngine {
 
 	public void receive(EngineAnalyzeCommand command) {
 		// Import position received from GUI and apply any instructed moves.
-		bm = new PositionManager(command.board.toString());
+		pm = new PositionManager(command.board.toString());
 		try {
 			for (GenericMove nextMove : command.moves) {
-				bm.performMove( nextMove );
+				pm.performMove( nextMove );
 			}
 		} catch(InvalidPieceException e ) {
 			System.out.println( 
@@ -88,7 +88,7 @@ public class EubosEngineMain extends AbstractEngine {
 			} else if (command.getDepth() != null) {
 				searchDepth = command.getDepth();
 			}
-			ms = new MoveSearcher(this, bm, searchDepth);
+			ms = new MoveSearcher(this, pm, pm, pm, searchDepth);
 			ms.start();
 		} else {
 			sendBestMoveCommand(new ProtocolBestMoveCommand(nextBookMove, null));

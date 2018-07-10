@@ -10,16 +10,16 @@ public class PositionEvaluator {
 		this.me = new MaterialEvaluator();
 	}
 	
-	public int evaluatePosition(PositionManager pm) {
-		int score = me.evaluate(pm.getTheBoard());
-		score += encourageCastling(pm);
+	public int evaluatePosition(IPositionAccessors pos) {
+		int score = me.evaluate(pos.getTheBoard());
+		score += encourageCastling(pos);
 		return score;
 	}
 	
-	private int encourageCastling(PositionManager pm) {
+	private int encourageCastling(IPositionAccessors pos) {
 		int castleScoreBoost = 0;
-		Colour onMoveWas = (pm.getOnMove() == Colour.black) ? Colour.white : Colour.black;
-		if (pm.hasCastled(onMoveWas)) {
+		Colour onMoveWas = (pos.getOnMove() == Colour.black) ? Colour.white : Colour.black;
+		if (pos.hasCastled(onMoveWas)) {
 			castleScoreBoost = 50;
 		}
 		if (onMoveWas == Colour.black) {

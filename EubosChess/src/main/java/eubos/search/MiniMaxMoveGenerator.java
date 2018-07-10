@@ -10,13 +10,17 @@ import eubos.board.pieces.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.MateScoreGenerator;
 import eubos.position.MaterialEvaluator;
-import eubos.position.PositionManager;
+import eubos.position.IChangePosition;
+import eubos.position.IGenerateMoveList;
+import eubos.position.IPositionAccessors;
 import eubos.position.PositionEvaluator;
 
 class MiniMaxMoveGenerator implements
 		IMoveGenerator {
 
-	private PositionManager pm;
+	private IChangePosition pm;
+	private IGenerateMoveList mlgen;
+	private IPositionAccessors pos;
 	private int searchDepthPly;
 	private ScoreTracker st;
 	private PositionEvaluator pe;
@@ -30,11 +34,13 @@ class MiniMaxMoveGenerator implements
 	private SearchDebugAgent debug;
 
 	// Used for unit tests
-	MiniMaxMoveGenerator( PositionManager pm, int searchDepth ) {
+	MiniMaxMoveGenerator( IChangePosition pm, IGenerateMoveList mlgen, IPositionAccessors pos, int searchDepth ) {
 		this.pm = pm;
+		this.pos = pos;
+		this.mlgen = mlgen;
 		st = new ScoreTracker(searchDepth);
 		pe = new PositionEvaluator();
-		sg = new MateScoreGenerator(pm, searchDepth);
+		sg = new MateScoreGenerator(pos, searchDepth);
 		searchDepthPly = searchDepth;
 		pc = new PrincipalContinuation(searchDepth);
 		sm = new SearchMetrics(searchDepth);
@@ -42,8 +48,8 @@ class MiniMaxMoveGenerator implements
 	}
 
 	// Used with Arena
-	MiniMaxMoveGenerator( EubosEngineMain eubos, PositionManager pm, int searchDepth ) {
-		this(pm, searchDepth);
+	MiniMaxMoveGenerator( EubosEngineMain eubos, IChangePosition pm, IGenerateMoveList mlgen, IPositionAccessors pos, int searchDepth ) {
+		this(pm, mlgen, pos, searchDepth);
 		sm.setPrincipalVariation(pc.toPvList());
 		sr = new SearchMetricsReporter(eubos,sm);
 		sendInfo = true;
@@ -52,7 +58,7 @@ class MiniMaxMoveGenerator implements
 	@Override
 	public GenericMove findMove() throws NoLegalMoveException, InvalidPieceException {
 		// Register initialOnMove
-		initialOnMove = pm.getOnMove();
+		initialOnMove = pos.getOnMove();
 		// Start the search reporter task
 		if (sendInfo)
 			sr.start();
@@ -71,11 +77,11 @@ class MiniMaxMoveGenerator implements
 	}
 
 	private int searchPly(int currPly) throws InvalidPieceException {
-		Colour onMove = pm.getOnMove();
+		Colour onMove = pos.getOnMove();
 		boolean isWhite = (onMove == Colour.white);
 		debug.printSearchPly(currPly,onMove);
 		// Generate the move list
-		List<GenericMove> ml = pm.getMoveList();
+		List<GenericMove> ml = mlgen.getMoveList();
 		if (isMateOccurred(ml)) {
 			int mateScore = sg.scoreMate(currPly, isWhite, initialOnMove);
 			st.backupScore(currPly, mateScore);
@@ -103,7 +109,7 @@ class MiniMaxMoveGenerator implements
 			pm.performMove(currMove);
 			// 2) Either recurse or evaluate position and check for back-up of score
 			if ( isTerminalNode(currPly) ) {
-				positionScore = pe.evaluatePosition(pm);
+				positionScore = pe.evaluatePosition(pos);
 			} else {
 				positionScore = searchPly(currPly+1);
 			}
@@ -168,7 +174,7 @@ class MiniMaxMoveGenerator implements
 
 	private boolean isBackUpRequired(int currPly, int positionScore) {
 		boolean backUpScore = false;
-		if (pm.getOnMove() == Colour.white) {
+		if (pos.getOnMove() == Colour.white) {
 			// if white, maximise score
 			if (positionScore > st.getBackedUpScore(currPly))
 				backUpScore = true;
@@ -183,7 +189,7 @@ class MiniMaxMoveGenerator implements
 	private boolean isAlphaBetaCutOff(int cutOffValue, int positionScore, int currPly) {
 		if ((cutOffValue != Integer.MAX_VALUE) && (cutOffValue != Integer.MIN_VALUE)) {
 			int prevPlyScore = st.getBackedUpScore(currPly-1);
-			Colour onMove = pm.getOnMove();
+			Colour onMove = pos.getOnMove();
 			if ((onMove == Colour.white && positionScore >= prevPlyScore) ||
 				(onMove == Colour.black && positionScore <= prevPlyScore)) {
 				// Indicates the search passed this node is refuted by an earlier move.

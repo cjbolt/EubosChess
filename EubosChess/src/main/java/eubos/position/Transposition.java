@@ -1,4 +1,4 @@
-package eubos.search;
+package eubos.position;
 
 import com.fluxchess.jcpi.models.GenericMove;
 

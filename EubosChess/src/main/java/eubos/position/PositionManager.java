@@ -21,7 +21,7 @@ import eubos.board.pieces.Queen;
 import eubos.board.pieces.Rook;
 import eubos.board.pieces.Piece.Colour;
 
-public class PositionManager implements IPositionManager {
+public class PositionManager implements IChangePosition, IGenerateMoveList, IPositionAccessors {
 
 	private Board theBoard;
 	public Board getTheBoard() {
@@ -29,9 +29,6 @@ public class PositionManager implements IPositionManager {
 	}
 	
 	private LegalMoveListGenerator mlgen;
-	LegalMoveListGenerator getMoveListGenerator() {
-		return mlgen;
-	}
 	public List<GenericMove> getMoveList() throws InvalidPieceException {
 		return mlgen.createMoveList();
 	}
@@ -41,7 +38,7 @@ public class PositionManager implements IPositionManager {
 	public static final int WHITE_QUEENSIDE = 1<<1;
 	public static final int BLACK_KINGSIDE = 1<<2;
 	public static final int BLACK_QUEENSIDE = 1<<3;
-	public int getCastlingAvaillability() {
+	int getCastlingAvaillability() {
 		int castleMask = 0;
 		castleMask |= (castling.isWhiteKsAvail() ? WHITE_KINGSIDE : 0);
 		castleMask |= (castling.isWhiteQsAvail() ? WHITE_QUEENSIDE : 0);
@@ -53,10 +50,6 @@ public class PositionManager implements IPositionManager {
 	private MoveTracker moveTracker = new MoveTracker();
 	boolean lastMoveWasCaptureOrCastle() {
 		return (moveTracker.lastMoveWasCapture() || moveTracker.lastMoveWasCastle());
-	}
-	
-	public boolean lastMoveWasCastle() {
-		return moveTracker.lastMoveWasCastle();
 	}
 	
 	public boolean hasCastled(Colour colour){

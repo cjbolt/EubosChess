@@ -5,19 +5,19 @@ import eubos.board.pieces.Piece.Colour;
 public class MateScoreGenerator {
 	
 	private int searchDepth;
-	private PositionManager pm;
+	private IPositionAccessors pos;
 
 	public static final int PLIES_PER_MOVE = 2;
 	
-	public MateScoreGenerator(PositionManager pm, int searchDepth) {
-		this.pm = pm;
+	public MateScoreGenerator(IPositionAccessors pos, int searchDepth) {
+		this.pos = pos;
 		this.searchDepth = searchDepth;	
 	}
 	
 	public int scoreMate(int currPly, boolean isWhite, Colour initialOnMove) {
 		// Handle mates (indicated by no legal moves)
 		int mateScore = 0;
-		if (pm.isKingInCheck()) {
+		if (pos.isKingInCheck()) {
 			mateScore = generateScoreForCheckmate(currPly);
 			// If white got mated, need to back up a large negative score (good for black)
 			if (isWhite)
