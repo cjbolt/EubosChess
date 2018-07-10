@@ -32,6 +32,14 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 	public List<GenericMove> getMoveList() throws InvalidPieceException {
 		return mlgen.createMoveList();
 	}
+	public List<GenericMove> getMoveList(GenericMove prevBest) throws InvalidPieceException {
+		List<GenericMove> ml = mlgen.createMoveList();
+		if (ml.contains(prevBest)) {
+			ml.remove(prevBest);
+			ml.add(0,prevBest);
+		}
+		return ml;
+	}	
 	
 	CastlingManager castling;
 	public static final int WHITE_KINGSIDE = 1<<0;

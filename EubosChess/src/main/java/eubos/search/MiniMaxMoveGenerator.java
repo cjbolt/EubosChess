@@ -34,6 +34,7 @@ class MiniMaxMoveGenerator implements
 	private boolean terminate = false;
 	private SearchDebugAgent debug;
 	private EubosEngineMain callback;
+	private List<GenericMove> lastPc;
 
 	// Used for unit tests
 	MiniMaxMoveGenerator( IChangePosition pm, IGenerateMoveList mlgen, IPositionAccessors pos) {
@@ -42,6 +43,7 @@ class MiniMaxMoveGenerator implements
 		this.mlgen = mlgen;
 		pe = new PositionEvaluator();
 		debug = new SearchDebugAgent(0);
+		lastPc = null;
 	}
 
 	// Used with Arena, Lichess
@@ -73,6 +75,7 @@ class MiniMaxMoveGenerator implements
 	
 	@Override
 	public GenericMove findMove(int searchDepth, LinkedList<GenericMove> lastPc) throws NoLegalMoveException, InvalidPieceException {
+		this.lastPc = lastPc;
 		initialiseSearchDepthDependentObjects(searchDepth);
 		// Register initialOnMove
 		initialOnMove = pos.getOnMove();
@@ -98,7 +101,13 @@ class MiniMaxMoveGenerator implements
 		boolean isWhite = (onMove == Colour.white);
 		debug.printSearchPly(currPly,onMove);
 		// Generate the move list
-		List<GenericMove> ml = mlgen.getMoveList();
+		List<GenericMove> ml = null;
+		if ((lastPc != null) && (lastPc.size() > currPly)) {
+			// Seeded move list is possible
+			ml = mlgen.getMoveList(lastPc.get(currPly));
+		} else {
+			ml = mlgen.getMoveList();
+		}
 		if (isMateOccurred(ml)) {
 			int mateScore = sg.scoreMate(currPly, isWhite, initialOnMove);
 			st.backupScore(currPly, mateScore);
