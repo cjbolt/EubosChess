@@ -1,6 +1,7 @@
 package eubos.search;
 
 import java.sql.Timestamp;
+import java.util.LinkedList;
 
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import com.fluxchess.jcpi.models.GenericMove;
@@ -30,12 +31,13 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	@Override
 	public void run() {
 		GenericMove selectedMove = null;
+		LinkedList<GenericMove> pc = null;
 		long timeQuota = calculateSearchTimeAllocation();
 		Timestamp msTargetEndTime = new Timestamp(System.currentTimeMillis() + timeQuota);
 		for (int depth=1; depth<8; depth++) {
 			try {
 				// Need to seed the moveList so that the best moves are searched first.
-				selectedMove = mg.findMove(depth);
+				selectedMove = mg.findMove(depth, pc);
 			} catch( NoLegalMoveException e ) {
 				System.out.println( "Eubos has run out of legal moves for side " + pos.getOnMove().toString() );
 			} catch(InvalidPieceException e ) {
@@ -46,6 +48,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			Timestamp msCurrTime = new Timestamp(System.currentTimeMillis());
 			if (msCurrTime.after(msTargetEndTime))
 				break;
+			pc = mg.pc.toPvList();
 		}
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( selectedMove, null ));
 	}

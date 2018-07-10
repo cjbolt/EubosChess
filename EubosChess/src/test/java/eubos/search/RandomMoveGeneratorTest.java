@@ -38,7 +38,7 @@ public class RandomMoveGeneratorTest {
 	
 	private void performTest( boolean assertSense ) {
 		try {
-			GenericMove selectedMove = classUnderTest.findMove();
+			GenericMove selectedMove = classUnderTest.findMove(0);
 			if ( assertSense )
 				assertTrue(selectedMove.equals(expectedMove));
 			else
@@ -135,7 +135,7 @@ public class RandomMoveGeneratorTest {
 		pl.add(new Pawn( Colour.black, GenericPosition.c3 ));
 		PositionManager bm = new PositionManager( new Board( pl ), Colour.white );
 		classUnderTest = new RandomMoveGenerator( bm, Colour.white );
-		classUnderTest.findMove();
+		classUnderTest.findMove(0);
 	}
 	
 	@Test
@@ -165,7 +165,7 @@ public class RandomMoveGeneratorTest {
 		pl.add(new Bishop( Colour.white, GenericPosition.g5 ));		
 		PositionManager bm = new PositionManager( new Board( pl ), Colour.black );
 		classUnderTest = new RandomMoveGenerator( bm, Colour.black );
-		classUnderTest.findMove();
+		classUnderTest.findMove(0);
 		expectedMove = new GenericMove( GenericPosition.g7, GenericPosition.h7 );
 		performTest(true);
 	}	

@@ -43,7 +43,9 @@ public class EubosEngineMainTest {
 	// Command building blocks
 	private static final String CMD_TERMINATOR = "\r\n";
 	private static final String POS_FEN_PREFIX = "position fen ";
-	private static final String GO_DEPTH_PREFIX = "go depth ";
+	//private static final String GO_DEPTH_PREFIX = "go depth ";
+	private static final String GO_WTIME_PREFIX = "go wtime ";
+	private static final String GO_BTIME_PREFIX = "go btime ";
 	private static final String BEST_PREFIX = "bestmove ";
 	
 	// Whole Commands
@@ -51,8 +53,8 @@ public class EubosEngineMainTest {
 	private static final String UCI_CMD = "uci"+CMD_TERMINATOR;
 	private static final String ISREADY_CMD = "isready"+CMD_TERMINATOR;
 	private static final String NEWGAME_CMD = "ucinewgame"+CMD_TERMINATOR;
-//	private static final String GO_INF_CMD = "go infinite"+CMD_TERMINATOR;
-	private static final String GO_TIME_CMD = "go movetime 180000"+CMD_TERMINATOR;
+	//private static final String GO_INF_CMD = "go infinite"+CMD_TERMINATOR;
+	private static final String GO_TIME_CMD = "go movetime 5000"+CMD_TERMINATOR;
 	private static final String QUIT_CMD = "quit"+CMD_TERMINATOR;
 	// Outputs
 	private static final String ID_NAME_CMD = "id name Eubos"+CMD_TERMINATOR;
@@ -93,8 +95,8 @@ public class EubosEngineMainTest {
 		setupEngine();
 		// Setup Commands specific to this test
 		commands.add(new commandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"4"+CMD_TERMINATOR,BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
-		performTest(200);
+		commands.add(new commandPair(GO_WTIME_PREFIX+"300000"+CMD_TERMINATOR,BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
+		performTest(20000);
 	}
 	
 	@Test
@@ -103,7 +105,7 @@ public class EubosEngineMainTest {
 		// Setup Commands specific to this test
 		commands.add(new commandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_TIME_CMD,BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
-		performTest(200);
+		performTest(20000);
 	}
 	
 	@Test
@@ -111,8 +113,8 @@ public class EubosEngineMainTest {
 		setupEngine();
 		// Setup Commands specific to this test
 		commands.add(new commandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1 moves b5b6"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"4"+CMD_TERMINATOR,BEST_PREFIX+"b4a6"+CMD_TERMINATOR));
-		performTest(200);
+		commands.add(new commandPair(GO_BTIME_PREFIX+"300000"+CMD_TERMINATOR,BEST_PREFIX+"b4a6"+CMD_TERMINATOR));
+		performTest(20000);
 	}	
 	
 	@Test
@@ -120,8 +122,8 @@ public class EubosEngineMainTest {
 		setupEngine();
 		// Setup Commands specific to this test
 		commands.add(new commandPair(POS_FEN_PREFIX+"5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR,BEST_PREFIX+"d3h7"+CMD_TERMINATOR));
-		performTest(300);
+		commands.add(new commandPair(GO_WTIME_PREFIX+"300000"+CMD_TERMINATOR,BEST_PREFIX+"d3h7"+CMD_TERMINATOR));
+		performTest(30000);
 	}
 
 	private void performTest(int timeout) throws IOException, InterruptedException {

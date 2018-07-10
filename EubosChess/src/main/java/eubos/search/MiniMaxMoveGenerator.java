@@ -1,6 +1,7 @@
 package eubos.search;
 
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -25,7 +26,7 @@ class MiniMaxMoveGenerator implements
 	private ScoreTracker st;
 	private PositionEvaluator pe;
 	private MateScoreGenerator sg;
-	private PrincipalContinuation pc;
+	PrincipalContinuation pc;
 	private Colour initialOnMove;
 	private SearchMetrics sm;
 	private SearchMetricsReporter sr;
@@ -59,9 +60,19 @@ class MiniMaxMoveGenerator implements
 		sm.setPrincipalVariation(pc.toPvList());
 		sr = new SearchMetricsReporter(callback,sm);		
 	}
-
+	
+	@Override
+	public GenericMove findMove() throws NoLegalMoveException, InvalidPieceException {
+		return this.findMove(1, null);
+	}
+	
 	@Override
 	public GenericMove findMove(int searchDepth) throws NoLegalMoveException, InvalidPieceException {
+		return this.findMove(searchDepth, null);
+	}
+	
+	@Override
+	public GenericMove findMove(int searchDepth, LinkedList<GenericMove> lastPc) throws NoLegalMoveException, InvalidPieceException {
 		initialiseSearchDepthDependentObjects(searchDepth);
 		// Register initialOnMove
 		initialOnMove = pos.getOnMove();
