@@ -9,6 +9,8 @@ import eubos.board.Board;
 import eubos.board.Direction;
 
 public class Bishop extends PieceMultisquareDirectMove {
+	
+	public static final int MATERIAL_VALUE = 320;
 
 	public Bishop( Colour Colour, GenericPosition at ) {
 		colour = Colour;

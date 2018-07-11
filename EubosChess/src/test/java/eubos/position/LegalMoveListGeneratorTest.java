@@ -10,12 +10,12 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.InvalidPieceException;
-import eubos.position.LegalMoveListGenerator;
+import eubos.position.MoveListGenerator;
 import eubos.position.PositionManager;
 
 public class LegalMoveListGeneratorTest {
 
-	protected LegalMoveListGenerator classUnderTest;
+	protected MoveListGenerator classUnderTest;
 	
 	@Before
 	public void setUp() throws Exception {
@@ -23,7 +23,7 @@ public class LegalMoveListGeneratorTest {
 
 	@Test
 	public void testLegalMoveListGenerator() {
-		classUnderTest = new LegalMoveListGenerator(new PositionManager());
+		classUnderTest = new MoveListGenerator(new PositionManager());
 	}
 
 	@Test
@@ -38,7 +38,7 @@ public class LegalMoveListGeneratorTest {
 		// 1 kP......
 		//   abcdefgh
 		PositionManager bm = new PositionManager( "8/8/8/8/8/1pp5/ppp5/Kp6 w - - - -" );
-		classUnderTest = new LegalMoveListGenerator(bm);
+		classUnderTest = new MoveListGenerator(bm);
 		List<GenericMove> ml;
 		try {
 			ml = classUnderTest.createMoveList();

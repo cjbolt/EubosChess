@@ -10,6 +10,8 @@ import eubos.board.Direction;
 
 public class Queen extends PieceMultisquareDirectMove {
 	
+	public static final int MATERIAL_VALUE = 900;
+	
 	public Queen( Colour Colour, GenericPosition at ) {
 		colour = Colour;
 		onSquare = at;

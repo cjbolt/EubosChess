@@ -18,13 +18,6 @@ import eubos.board.pieces.Rook;
 
 public class MaterialEvaluator {
 	
-	public static final int KING_VALUE = 300000;
-	static final int QUEEN_VALUE = 900;
-	static final int ROOK_VALUE = 500;
-	static final int BISHOP_VALUE = 320;
-	static final int KNIGHT_VALUE = 300;
-	static final int PAWN_VALUE = 100;
-	
 	private static final Map<GenericPosition, Integer> PAWN_WEIGHTINGS;
     static {
     	Map<GenericPosition, Integer> aMap = new HashMap<GenericPosition, Integer>();
@@ -65,31 +58,32 @@ public class MaterialEvaluator {
 		cMap.put(GenericPosition.a7, 0);cMap.put(GenericPosition.b7, 5);cMap.put(GenericPosition.c7, 0);cMap.put(GenericPosition.d7, 0);cMap.put(GenericPosition.e7, 0);cMap.put(GenericPosition.f7, 0);cMap.put(GenericPosition.g7, 5);cMap.put(GenericPosition.h7, 0);
 		cMap.put(GenericPosition.a8, 5);cMap.put(GenericPosition.b8, 0);cMap.put(GenericPosition.c8, 0);cMap.put(GenericPosition.d8, 0);cMap.put(GenericPosition.e8, 0);cMap.put(GenericPosition.f8, 0);cMap.put(GenericPosition.g8, 0);cMap.put(GenericPosition.h8, 5);
         BISHOP_WEIGHTINGS = Collections.unmodifiableMap(cMap);
-    }    
-	public int evaluate(Board theBoard) {
+    }
+    
+	int evaluate(Board theBoard) {
 		Iterator<Piece> iter_p = theBoard.iterator();
 		int materialEvaluation = 0;
 		while ( iter_p.hasNext() ) {
 			Piece currPiece = iter_p.next();
 			int currValue = 0;
 			if ( currPiece instanceof Pawn ) {
-				currValue = PAWN_VALUE;
+				currValue = Pawn.MATERIAL_VALUE;
 				currValue += PAWN_WEIGHTINGS.get(currPiece.getSquare());
 			}
 			else if ( currPiece instanceof Rook )
-				currValue = ROOK_VALUE;
+				currValue = Rook.MATERIAL_VALUE;
 			else if ( currPiece instanceof Bishop ) {
-				currValue = BISHOP_VALUE;
+				currValue = Bishop.MATERIAL_VALUE;
 				currValue += BISHOP_WEIGHTINGS.get(currPiece.getSquare());
 			}
 			else if ( currPiece instanceof Knight ) {
-				currValue = KNIGHT_VALUE;
+				currValue = Knight.MATERIAL_VALUE;
 				currValue += KNIGHT_WEIGHTINGS.get(currPiece.getSquare());
 			}
 			else if ( currPiece instanceof Queen )
-				currValue = QUEEN_VALUE;
+				currValue = Queen.MATERIAL_VALUE;
 			else if ( currPiece instanceof King )
-				currValue = KING_VALUE;
+				currValue = King.MATERIAL_VALUE;
 			currValue = encourageDeployment(currPiece, currValue);
 			if (currPiece.isBlack()) currValue = -currValue;
 			materialEvaluation += currValue;

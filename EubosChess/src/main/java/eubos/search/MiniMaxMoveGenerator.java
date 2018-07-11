@@ -7,10 +7,10 @@ import java.util.List;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.InvalidPieceException;
+import eubos.board.pieces.King;
 import eubos.board.pieces.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.MateScoreGenerator;
-import eubos.position.MaterialEvaluator;
 import eubos.position.IChangePosition;
 import eubos.position.IGenerateMoveList;
 import eubos.position.IPositionAccessors;
@@ -161,14 +161,14 @@ class MiniMaxMoveGenerator implements
 
 	private void reportPrincipalContinuation(int currPly, int positionScore) {
 		if (currPly == 0) {
-			if (Math.abs(positionScore) >= MaterialEvaluator.KING_VALUE) {
+			if (Math.abs(positionScore) >= King.MATERIAL_VALUE) {
 				// If the positionScore indicates a mate, truncate the pc accordingly
 				boolean ownMate = false;
 				if ((initialOnMove==Colour.white && positionScore<0) ||
 				    (initialOnMove==Colour.black && positionScore>0)) {
 					ownMate = true;
 				} 
-				int matePly = Math.abs(positionScore)/MaterialEvaluator.KING_VALUE;
+				int matePly = Math.abs(positionScore)/King.MATERIAL_VALUE;
 				matePly *= MateScoreGenerator.PLIES_PER_MOVE;
 				matePly = searchDepthPly - matePly;
 				if (ownMate) {

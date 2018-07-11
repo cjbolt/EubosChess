@@ -1,6 +1,7 @@
 package eubos.position;
 
 import eubos.board.pieces.Piece.Colour;
+import eubos.board.pieces.King;
 
 public class MateScoreGenerator {
 	
@@ -34,14 +35,14 @@ public class MateScoreGenerator {
 	
 	private int getScoreForStalemate() {
 		// Avoid stalemates by giving them a large penalty score.
-		return -MaterialEvaluator.KING_VALUE;
+		return -King.MATERIAL_VALUE;
 	}	
 	
-	public int generateScoreForCheckmate(int currPly) {
+	int generateScoreForCheckmate(int currPly) {
 		// Favour earlier mates (i.e. Mate-in-one over mate-in-three) by giving them a larger score.
 		int totalMovesSearched = searchDepth/PLIES_PER_MOVE;
 		int mateMoveNum = (currPly-1)/PLIES_PER_MOVE; // currPly-1 because mate was caused by the move from the previousPly
 		int multiplier = totalMovesSearched-mateMoveNum;
-		return multiplier*MaterialEvaluator.KING_VALUE;
+		return multiplier*King.MATERIAL_VALUE;
 	}	
 }

@@ -6,9 +6,9 @@ class MoveTracker extends Stack<TrackedMove> {
 	
 	static final long serialVersionUID = 0x1L;
 
-	public MoveTracker() {}
+	MoveTracker() {}
 	
-	public boolean lastMoveWasCapture() {
+	boolean lastMoveWasCapture() {
 		boolean wasCapture = false;
 		if ( !this.isEmpty()) {
 			wasCapture = this.peek().isCapture();
@@ -16,7 +16,7 @@ class MoveTracker extends Stack<TrackedMove> {
 		return wasCapture;
 	}
 	
-	public boolean lastMoveWasCastle() {
+	boolean lastMoveWasCastle() {
 		boolean wasCastle = false;
 		if ( !this.isEmpty()) {
 			wasCastle = this.peek().isCastle();

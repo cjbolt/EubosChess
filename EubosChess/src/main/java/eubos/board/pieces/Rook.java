@@ -10,6 +10,8 @@ import eubos.board.Board;
 import eubos.board.Direction;
 
 public class Rook extends PieceMultisquareDirectMove {
+	
+	public static final int MATERIAL_VALUE = 500;
 
 	public Rook( Colour Colour, GenericPosition at ) {
 		colour = Colour;

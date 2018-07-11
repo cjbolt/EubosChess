@@ -11,6 +11,8 @@ import eubos.board.Board;
 import eubos.board.Direction;
 
 public class Pawn extends PieceSinglesquareDirectMove {
+	
+	public static final int MATERIAL_VALUE = 100;
 
 	public Pawn( Colour Colour, GenericPosition at ) {
 		colour = Colour;

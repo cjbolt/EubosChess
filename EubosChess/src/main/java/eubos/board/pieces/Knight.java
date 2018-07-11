@@ -8,6 +8,8 @@ import eubos.board.Board;
 import eubos.board.Direction;
 
 public class Knight extends Piece {
+	
+	public static final int MATERIAL_VALUE = 300;
 
 	public Knight( Colour Colour, GenericPosition at ) {
 		colour = Colour;

@@ -10,11 +10,11 @@ import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
 
-class LegalMoveListGenerator {
+class MoveListGenerator {
 	
 	private PositionManager pm;
 	
-	LegalMoveListGenerator( PositionManager pm ) {
+	MoveListGenerator( PositionManager pm ) {
 		this.pm = pm;
 	}
 	
