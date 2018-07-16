@@ -4,17 +4,17 @@ import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.pieces.Piece;
 
-class SearchDebugAgent {
+public class SearchDebugAgent {
 
-	private String indent = "";
+	private static String indent = "";
 	private static final boolean isDebugOn = false;
-	private int lastPly = 0;
+	private static int lastPly = 0;
 
 	SearchDebugAgent( int currPly ) {
 		computeIndent(currPly);
 	}
 	
-	private void computeIndent(int currPly) {
+	private static void computeIndent(int currPly) {
 		indent="";
 		for (int i=0; i<currPly; i++) {
 			indent += "\t";
@@ -22,7 +22,7 @@ class SearchDebugAgent {
 		lastPly = currPly;		
 	}
 
-	void printPerformMove(int currPly, GenericMove currMove) {
+	static void printPerformMove(int currPly, GenericMove currMove) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
@@ -30,7 +30,7 @@ class SearchDebugAgent {
 		}
 	}
 
-	void printSearchPly(int currPly, Piece.Colour onMove) {
+	static void printSearchPly(int currPly, Piece.Colour onMove) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
@@ -38,7 +38,7 @@ class SearchDebugAgent {
 		}
 	}
 
-	void printUndoMove(int currPly, GenericMove currMove) {
+	static void printUndoMove(int currPly, GenericMove currMove) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
@@ -46,7 +46,7 @@ class SearchDebugAgent {
 		}
 	}
 
-	void printBackUpScore(int currPly, int positionScore) {
+	static void printBackUpScore(int currPly, int positionScore) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
@@ -54,7 +54,7 @@ class SearchDebugAgent {
 		}
 	}
 
-	void printPrincipalContinuation(int currPly, PrincipalContinuation pc) {
+	static void printPrincipalContinuation(int currPly, PrincipalContinuation pc) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
@@ -62,7 +62,7 @@ class SearchDebugAgent {
 		}
 	}
 	
-	void printMateFound( int currPly) {
+	static void printMateFound( int currPly) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
@@ -70,7 +70,7 @@ class SearchDebugAgent {
 		}
 	}
 	
-	void printRefutationFound( int currPly) {
+	static void printRefutationFound( int currPly) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
@@ -78,7 +78,7 @@ class SearchDebugAgent {
 		}
 	}
 	
-	void printAlphaBetaCutOffLimit(int currPly, int score) {
+	static void printAlphaBetaCutOffLimit(int currPly, int score) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
