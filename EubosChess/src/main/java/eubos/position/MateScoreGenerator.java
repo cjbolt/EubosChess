@@ -3,7 +3,7 @@ package eubos.position;
 import eubos.board.pieces.Piece.Colour;
 import eubos.board.pieces.King;
 
-public class MateScoreGenerator {
+public class MateScoreGenerator implements IScoreMate {
 	
 	private int searchDepth;
 	private IPositionAccessors pos;

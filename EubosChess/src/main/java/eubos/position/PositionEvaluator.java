@@ -2,7 +2,7 @@ package eubos.position;
 
 import eubos.board.pieces.Piece.Colour;
 
-public class PositionEvaluator {
+public class PositionEvaluator implements IEvaluate {
 	
 	MaterialEvaluator me;
 	
