@@ -47,7 +47,9 @@ class MiniMaxMoveGenerator implements
 		pc = new PrincipalContinuation(searchDepth);
 		sm = new SearchMetrics(searchDepth);
 		sm.setPrincipalVariation(pc.toPvList());
-		sr = new SearchMetricsReporter(callback,sm);		
+		sr = new SearchMetricsReporter(callback,sm);	
+		if (sendInfo)
+			sr.setSendInfo(true);
 	}
 	
 	@Override

@@ -29,7 +29,6 @@ public class PlySearcher {
 	private SearchMetrics sm;
 	private SearchMetricsReporter sr;
 	
-	private boolean sendInfo = false;
 	private boolean terminate = false;
 	
 	private Colour initialOnMove;	
@@ -148,8 +147,7 @@ public class PlySearcher {
 	void reportPrincipalContinuation(int positionScore) {
 		assignPrincipalVariationToSearchMetrics(positionScore);
 		assignCentipawnScoreToSearchMetrics(positionScore);
-		if (sendInfo)
-			sr.reportPrincipalVariation();
+		sr.reportPrincipalVariation();
 	}
 
 	private void assignPrincipalVariationToSearchMetrics(int positionScore) {
@@ -199,8 +197,7 @@ public class PlySearcher {
 		if (currPly == 0) {
 			sm.setCurrentMove(currMove);
 			sm.incrementCurrentMoveNumber();
-			if (sendInfo)
-				sr.reportCurrentMove();
+			sr.reportCurrentMove();
 		}
 	}
 

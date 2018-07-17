@@ -83,25 +83,26 @@ public class EubosEngineMain extends AbstractEngine {
 		if (nextBookMove == null) {
 			// The move searcher will report the best move found via a callback to this object, 
 			// this will occur when the tree search is concluded and the thread completes execution.
-			if (command.getMoveTime() != null) {
+			long clockTime = 0;
+			try {
+				clockTime = command.getClock((pm.getOnMove() == Colour.white) ? GenericColor.WHITE : GenericColor.BLACK);
+			} catch (NullPointerException e) {
+				clockTime = 0;
+			}
+			if (clockTime != 0) {
+				ms = new IterativeMoveSearcher(this, pm, pm, pm, clockTime);
+			}
+			else if (command.getMoveTime() != null) {
 				int searchDepth = 4;
 				ms = new FixedDepthMoveSearcher(this, pm, pm, pm, searchDepth);
 			} else {
-				long clockTime = command.getClock((pm.getOnMove() == Colour.white) ? GenericColor.WHITE : GenericColor.BLACK);
-				if (clockTime != 0) {
-				ms = new IterativeMoveSearcher(this, pm, pm, pm, clockTime);
-				} else {
-					int searchDepth = SEARCH_DEPTH_IN_PLY;
-					if (command.getMoveTime() != null) {
-						searchDepth = 4;
-					}
-					if (command.getInfinite()) {
-		
-					} else if (command.getDepth() != null) {
-						searchDepth = command.getDepth();
-					}
-					ms = new FixedDepthMoveSearcher(this, pm, pm, pm, searchDepth);
+				int searchDepth = SEARCH_DEPTH_IN_PLY;
+				if (command.getInfinite()) {
+	
+				} else if (command.getDepth() != null) {
+					searchDepth = command.getDepth();
 				}
+				ms = new FixedDepthMoveSearcher(this, pm, pm, pm, searchDepth);
 			}
 			ms.start();
 		} else {

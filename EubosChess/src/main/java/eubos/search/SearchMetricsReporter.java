@@ -5,6 +5,8 @@ import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
 import eubos.main.EubosEngineMain;
 
 class SearchMetricsReporter extends Thread {
+	
+	private boolean sendInfo = false;
 	private boolean reporterActive;
 	private SearchMetrics sm;
 	private EubosEngineMain eubosEngine;
@@ -52,29 +54,37 @@ class SearchMetricsReporter extends Thread {
 	}
 	
 	void reportPrincipalVariation() {
-		ProtocolInformationCommand info = new ProtocolInformationCommand();
-		info.setMoveList(sm.getPrincipalVariation());
-		info.setTime(sm.getTime());
-		int score = sm.getCpScore();
-		int depth = sm.getDepth();
-		if (java.lang.Math.abs(score)<300000) {
-			info.setCentipawns(score);
-		} else {
-			int movesSearched = depth/2;
-			int mateOnMoveXFromEndOfSearch = (java.lang.Math.abs(score)/300000)-1;
-			int mateInX = movesSearched - mateOnMoveXFromEndOfSearch;
-			if (score < 0)
-				mateInX = -mateInX;
-			info.setMate(mateInX);
+		if (sendInfo) {
+			ProtocolInformationCommand info = new ProtocolInformationCommand();
+			info.setMoveList(sm.getPrincipalVariation());
+			info.setTime(sm.getTime());
+			int score = sm.getCpScore();
+			int depth = sm.getDepth();
+			if (java.lang.Math.abs(score)<300000) {
+				info.setCentipawns(score);
+			} else {
+				int movesSearched = depth/2;
+				int mateOnMoveXFromEndOfSearch = (java.lang.Math.abs(score)/300000)-1;
+				int mateInX = movesSearched - mateOnMoveXFromEndOfSearch;
+				if (score < 0)
+					mateInX = -mateInX;
+				info.setMate(mateInX);
+			}
+			info.setDepth(depth);
+			eubosEngine.sendInfoCommand(info);
 		}
-		info.setDepth(depth);
-		eubosEngine.sendInfoCommand(info);
 	}
 	
 	void reportCurrentMove() {
-		ProtocolInformationCommand info = new ProtocolInformationCommand();
-		info.setCurrentMove(sm.getCurrentMove());
-		info.setCurrentMoveNumber(sm.getCurrentMoveNumber());
-		eubosEngine.sendInfoCommand(info);
+		if (sendInfo) {
+			ProtocolInformationCommand info = new ProtocolInformationCommand();
+			info.setCurrentMove(sm.getCurrentMove());
+			info.setCurrentMoveNumber(sm.getCurrentMoveNumber());
+			eubosEngine.sendInfoCommand(info);
+		}
+	}
+
+	public void setSendInfo(boolean enable) {
+		sendInfo = enable;		
 	}
 }

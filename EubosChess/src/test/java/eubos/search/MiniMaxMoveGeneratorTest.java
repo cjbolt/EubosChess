@@ -1,6 +1,7 @@
 package eubos.search;
 
 import static org.junit.Assert.*;
+import org.junit.Ignore;
 
 import java.util.LinkedList;
 
@@ -419,4 +420,43 @@ public class MiniMaxMoveGeneratorTest {
 		expectedMove = new GenericMove("c5d5");
 		doFindMoveTest(true);
 	}
+	
+	@Test
+	@Ignore
+	public void test_findMove_bugPromotingPawn_Arena_10ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		// depth 10 and it can find the forced mate.
+		PositionManager pm = new PositionManager( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
+		classUnderTest = new MiniMaxMoveGenerator(pm,pm,pm);
+		expectedMove = new GenericMove("h8g7");
+		
+		GenericMove selectedMove = classUnderTest.findMove(10);
+		
+	    assertTrue(selectedMove.equals(expectedMove));
+	}
+	
+	@Test
+	public void test_findMove_bugPromotingPawn_Arena_4ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		// In this test, Eubos couldn't find the move to promote the 2nd pawn and just checked indefinitely with queen.
+		// It can do it with depth = 4, but not depth = 6!
+		PositionManager pm = new PositionManager( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
+		classUnderTest = new MiniMaxMoveGenerator(pm,pm,pm);
+		expectedMove = new GenericMove("h8g7");
+		
+		GenericMove selectedMove = classUnderTest.findMove(4);
+		
+	    assertTrue(selectedMove.equals(expectedMove));
+	}
+	
+	@Test
+	public void test_findMove_bugPromotingPawn_Arena_3ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		// In this test, Eubos couldn't find the move to promote the 2nd pawn and just checked indefinitely with queen.
+		// It can do it with depth = 3, but not depth = 6!
+		PositionManager pm = new PositionManager( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
+		classUnderTest = new MiniMaxMoveGenerator(pm,pm,pm);
+		expectedMove = new GenericMove("h8g7");
+		
+		GenericMove selectedMove = classUnderTest.findMove(3);
+		
+	    assertTrue(selectedMove.equals(expectedMove));
+	}	
 }
