@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.LinkedList;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -12,6 +13,7 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
 import eubos.board.pieces.King;
+import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
@@ -43,6 +45,8 @@ public class PlySearcherTest {
 	
 	@Before
 	public void setUp() throws Exception {
+		SearchDebugAgent.open();
+		
 		score = 0;
 		input_ml = new LinkedList<GenericMove>();
 		
@@ -72,7 +76,12 @@ public class PlySearcherTest {
 				mock_pos,
 				lastPc);
 	}
-
+	
+	@After
+	public void tearDown() {
+		SearchDebugAgent.close();
+	}
+	
 	@Test
 	public void testPlySearcher() {
 		assertTrue(classUnderTest != null);

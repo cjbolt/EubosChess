@@ -6,6 +6,7 @@ import org.junit.Ignore;
 import java.util.LinkedList;
 
 import org.junit.Before;
+import org.junit.After;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -26,7 +27,13 @@ public class MiniMaxMoveGeneratorTest {
 	
 	@Before
 	public void setUp() {
+		SearchDebugAgent.open();
 		pl = new LinkedList<Piece>();
+	}
+	
+	@After
+	public void tearDown() {
+		SearchDebugAgent.close();
 	}
 	
 	private void doFindMoveTest( boolean expectMove ) {
@@ -420,24 +427,9 @@ public class MiniMaxMoveGeneratorTest {
 		expectedMove = new GenericMove("c5d5");
 		doFindMoveTest(true);
 	}
-	
-	@Test
-	@Ignore
-	public void test_findMove_bugPromotingPawn_Arena_10ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		// depth 10 and it can find the forced mate.
-		PositionManager pm = new PositionManager( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
-		classUnderTest = new MiniMaxMoveGenerator(pm,pm,pm);
-		expectedMove = new GenericMove("h8g7");
 		
-		GenericMove selectedMove = classUnderTest.findMove(10);
-		
-	    assertTrue(selectedMove.equals(expectedMove));
-	}
-	
 	@Test
 	public void test_findMove_bugPromotingPawn_Arena_4ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		// In this test, Eubos couldn't find the move to promote the 2nd pawn and just checked indefinitely with queen.
-		// It can do it with depth = 4, but not depth = 6!
 		PositionManager pm = new PositionManager( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
 		classUnderTest = new MiniMaxMoveGenerator(pm,pm,pm);
 		expectedMove = new GenericMove("h8g7");
@@ -446,16 +438,48 @@ public class MiniMaxMoveGeneratorTest {
 		
 	    assertTrue(selectedMove.equals(expectedMove));
 	}
-	
+		
 	@Test
-	public void test_findMove_bugPromotingPawn_Arena_3ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		// In this test, Eubos couldn't find the move to promote the 2nd pawn and just checked indefinitely with queen.
-		// It can do it with depth = 3, but not depth = 6!
+	public void test_findMove_bugPromotingPawn_Arena_5ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		// In this test, Eubos originally couldn't find the move to promote the 2nd pawn and just checked indefinitely with queen.
+		// It can do it with depth = 3, but not 5>=depth<10 (Because move order is not considered in depth first mini max algorithm).
+		// The solution is to do an iterative search, deepening and seeding each time.
 		PositionManager pm = new PositionManager( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
 		classUnderTest = new MiniMaxMoveGenerator(pm,pm,pm);
 		expectedMove = new GenericMove("h8g7");
 		
-		GenericMove selectedMove = classUnderTest.findMove(3);
+		classUnderTest.findMove(4);
+		LinkedList<GenericMove >lastPc = classUnderTest.pc.toPvList();
+		GenericMove selectedMove = classUnderTest.findMove(5, lastPc);
+		
+	    assertTrue(selectedMove.equals(expectedMove));
+	}
+	
+	@Test
+	public void test_findMove_bugPromotingPawn_Arena_6ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		// N.b. as per test_findMove_bugPromotingPawn_Arena_5ply
+		PositionManager pm = new PositionManager( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
+		classUnderTest = new MiniMaxMoveGenerator(pm,pm,pm);
+		expectedMove = new GenericMove("h8g7");
+		
+		classUnderTest.findMove(4);
+		LinkedList<GenericMove> lastPc = classUnderTest.pc.toPvList();
+		classUnderTest.findMove(5,lastPc);
+		lastPc = classUnderTest.pc.toPvList();
+		GenericMove selectedMove = classUnderTest.findMove(6,lastPc);
+		
+	    assertTrue(selectedMove.equals(expectedMove));
+	}
+	
+	@Test
+	@Ignore
+	public void test_findMove_bugPromotingPawn_Arena_10ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		// with depth=10 Eubos can find the forced mate.
+		PositionManager pm = new PositionManager( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
+		classUnderTest = new MiniMaxMoveGenerator(pm,pm,pm);
+		expectedMove = new GenericMove("h8g7");
+		
+		GenericMove selectedMove = classUnderTest.findMove(10);
 		
 	    assertTrue(selectedMove.equals(expectedMove));
 	}	
