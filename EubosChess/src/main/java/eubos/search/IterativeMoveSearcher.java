@@ -34,7 +34,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		LinkedList<GenericMove> pc = null;
 		long timeQuota = calculateSearchTimeAllocation();
 		Timestamp msTargetEndTime = new Timestamp(System.currentTimeMillis() + timeQuota);
-		for (int depth=1; depth<8; depth++) {
+		for (int depth=1; depth<12; depth++) {
 			try {
 				// Need to seed the moveList so that the best moves are searched first.
 				selectedMove = mg.findMove(depth, pc);

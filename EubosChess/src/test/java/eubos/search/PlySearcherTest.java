@@ -13,7 +13,6 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
 import eubos.board.pieces.King;
-import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;

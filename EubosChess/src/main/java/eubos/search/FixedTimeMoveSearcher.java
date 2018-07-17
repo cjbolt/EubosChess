@@ -1,5 +1,6 @@
 package eubos.search;
 
+import java.sql.Timestamp;
 import java.util.LinkedList;
 
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
@@ -11,13 +12,15 @@ import eubos.position.IChangePosition;
 import eubos.position.IGenerateMoveList;
 import eubos.position.IPositionAccessors;
 
-public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
-	
-	private int searchDepth = 1;
-	
-	public FixedDepthMoveSearcher( EubosEngineMain eubos, IChangePosition inputPm, IGenerateMoveList mlgen, IPositionAccessors pos, int searchDepth ) {
+
+public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
+
+	long moveTime;
+
+	public FixedTimeMoveSearcher(EubosEngineMain eubos, IChangePosition inputPm, 
+			IGenerateMoveList mlgen, IPositionAccessors pos, long time ) {
 		super(eubos,inputPm,pos, new MiniMaxMoveGenerator( eubos, inputPm, mlgen, pos ));
-		this.searchDepth = searchDepth;
+		moveTime = time;
 	}
 	
 	@Override
@@ -29,7 +32,8 @@ public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 	public void run() {
 		GenericMove selectedMove = null;
 		LinkedList<GenericMove> pc = null;
-		for (int depth=1; depth<searchDepth; depth++) {
+		Timestamp msTargetEndTime = new Timestamp(System.currentTimeMillis() + moveTime);
+		for (int depth=1; depth<12; depth++) {
 			try {
 				selectedMove = mg.findMove(depth, pc);
 			} catch( NoLegalMoveException e ) {
@@ -39,8 +43,12 @@ public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 						"Serious error: Eubos can't find a piece on the board whilst searching findMove(), at "
 								+ e.getAtPosition().toString() );
 			}
+			Timestamp msCurrTime = new Timestamp(System.currentTimeMillis());
+			if (msCurrTime.after(msTargetEndTime))
+				break;
 			pc = mg.pc.toPvList();
 		}
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( selectedMove, null ));
 	}
 }
+

@@ -11,7 +11,7 @@ import eubos.board.pieces.Piece;
 public class SearchDebugAgent {
 
 	private static String indent = "";
-	private static boolean isDebugOn = true;
+	private static boolean isDebugOn = false;
 	private static int lastPly = 0;
 	private static FileWriter fw;
 

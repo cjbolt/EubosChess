@@ -54,7 +54,7 @@ public class EubosEngineMainTest {
 	private static final String ISREADY_CMD = "isready"+CMD_TERMINATOR;
 	private static final String NEWGAME_CMD = "ucinewgame"+CMD_TERMINATOR;
 	//private static final String GO_INF_CMD = "go infinite"+CMD_TERMINATOR;
-	private static final String GO_TIME_CMD = "go movetime 5000"+CMD_TERMINATOR;
+	private static final String GO_TIME_CMD = "go movetime 1000"+CMD_TERMINATOR;
 	private static final String QUIT_CMD = "quit"+CMD_TERMINATOR;
 	// Outputs
 	private static final String ID_NAME_CMD = "id name Eubos"+CMD_TERMINATOR;

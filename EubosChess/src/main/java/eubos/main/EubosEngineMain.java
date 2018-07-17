@@ -24,13 +24,15 @@ import com.fluxchess.jcpi.models.*;
 import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece.Colour;
 import eubos.position.PositionManager;
+import eubos.search.FixedTimeMoveSearcher;
 import eubos.search.IterativeMoveSearcher;
 import eubos.search.FixedDepthMoveSearcher;
 import eubos.search.AbstractMoveSearcher;
+//import eubos.search.SearchDebugAgent;
 
 public class EubosEngineMain extends AbstractEngine {
 	
-	private static final int SEARCH_DEPTH_IN_PLY = 6;
+	private static final int SEARCH_DEPTH_IN_PLY = 12;
 	
 	private PositionManager pm;
 	private AbstractMoveSearcher ms;
@@ -44,6 +46,7 @@ public class EubosEngineMain extends AbstractEngine {
 
 	public void receive(EngineInitializeRequestCommand command) {
 		this.getProtocol().send( new ProtocolInitializeAnswerCommand("Eubos","Chris Bolt") );
+		//SearchDebugAgent.open();
 	}
 
 	public void receive(EngineSetOptionCommand command) {
@@ -93,8 +96,7 @@ public class EubosEngineMain extends AbstractEngine {
 				ms = new IterativeMoveSearcher(this, pm, pm, pm, clockTime);
 			}
 			else if (command.getMoveTime() != null) {
-				int searchDepth = 4;
-				ms = new FixedDepthMoveSearcher(this, pm, pm, pm, searchDepth);
+				ms = new FixedTimeMoveSearcher(this, pm, pm, pm, command.getMoveTime());
 			} else {
 				int searchDepth = SEARCH_DEPTH_IN_PLY;
 				if (command.getInfinite()) {
@@ -128,6 +130,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	@Override
 	protected void quit() {
+		//SearchDebugAgent.close();
 	}
 
 	public static void main(String[] args) {
