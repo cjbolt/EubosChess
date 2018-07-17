@@ -94,57 +94,77 @@ public class PlySearcher {
 		return ml.isEmpty();
 	}
 
-	void searchMoves(int currPly, int alphaBetaCutOff,
-			List<GenericMove> ml) throws InvalidPieceException {
-		// Iterate through all the moves for this ply
+	void searchMoves(int currPly, int alphaBetaCutOff, List<GenericMove> ml) 
+			throws InvalidPieceException {
 		Iterator<GenericMove> move_iter = ml.iterator();
 		while(move_iter.hasNext() && !isTerminated()) {
-			int positionScore = 0;
-			// 1) Apply the next move in the list
 			GenericMove currMove = move_iter.next();
-			reportNextMove(currPly, currMove);
-			SearchDebugAgent.printPerformMove(currPly, currMove);
-			pm.performMove(currMove);
-			// 2) Either recurse or evaluate position and check for back-up of score
-			if ( isTerminalNode(currPly) ) {
-				positionScore = pe.evaluatePosition(pos);
-			} else {
-				positionScore = searchPly(currPly+1);
-			}
-			// 3) Having assessed the position, undo the move
-			SearchDebugAgent.printUndoMove(currPly, currMove);
-			pm.unperformMove();
-			sm.incrementNodesSearched();
-			// 4) Evaluate the score
-			if (isBackUpRequired(currPly, positionScore)) {
-				// 4a) Back-up the position score and update the principal continuation...
-				st.backupScore(currPly, positionScore);
-				SearchDebugAgent.printBackUpScore(currPly, positionScore);
-				pc.update(currPly, currMove);
-				SearchDebugAgent.printPrincipalContinuation(currPly,pc);
-				reportPrincipalContinuation(currPly, positionScore);
-			} else if (isAlphaBetaCutOff( alphaBetaCutOff, positionScore, currPly )) {
-				// 4b) Perform an Alpha Beta algorithm cut-off
-				SearchDebugAgent.printRefutationFound(currPly);
+			int positionScore = applyMoveAndScore(currPly, currMove);
+			if (handleBackupOfScore(currPly, alphaBetaCutOff, currMove, positionScore)) {
 				break;
 			}
 		}
 	}
 
-	void reportPrincipalContinuation(int currPly, int positionScore) {
-		if (currPly == 0) {
-			if (scoreIndicatesMate(positionScore)) {
-				// If the positionScore indicates a mate, truncate the pc accordingly
-				int matePly = calculatePlyMateOccurredOn(positionScore);
-				pc.clearAfter(matePly);
+	private boolean handleBackupOfScore(int currPly, int alphaBetaCutOff,
+			GenericMove currMove, int positionScore) {
+		boolean earlyTerminate = false;
+		// 4) Evaluate the score
+		if (isBackUpRequired(currPly, positionScore)) {
+			// 4a) Back-up the position score and update the principal continuation...
+			st.backupScore(currPly, positionScore);
+			SearchDebugAgent.printBackUpScore(currPly, positionScore);
+			pc.update(currPly, currMove);
+			SearchDebugAgent.printPrincipalContinuation(currPly,pc);
+			if (currPly == 0) {
+				reportPrincipalContinuation(positionScore);
 			}
-			sm.setPrincipalVariation(pc.toPvList());
-			if (initialOnMove.equals(Colour.black))
-				positionScore = -positionScore; // Negated due to UCI spec (from engine pov)
-			sm.setCpScore(positionScore);
-			if (sendInfo)
-				sr.reportPrincipalVariation();
+		} else if (isAlphaBetaCutOff( alphaBetaCutOff, positionScore, currPly )) {
+			// 4b) Perform an Alpha Beta algorithm cut-off
+			SearchDebugAgent.printRefutationFound(currPly);
+			earlyTerminate = true;
 		}
+		return earlyTerminate;
+	}
+
+	private int applyMoveAndScore(int currPly, GenericMove currMove)
+			throws InvalidPieceException {
+		int positionScore;
+		reportNextMove(currPly, currMove);
+		SearchDebugAgent.printPerformMove(currPly, currMove);
+		pm.performMove(currMove);
+		// Either recurse or evaluate a terminal position
+		if ( isTerminalNode(currPly) ) {
+			positionScore = pe.evaluatePosition(pos);
+		} else {
+			positionScore = searchPly(currPly+1);
+		}
+		SearchDebugAgent.printUndoMove(currPly, currMove);
+		pm.unperformMove();
+		sm.incrementNodesSearched();
+		return positionScore;
+	}
+
+	void reportPrincipalContinuation(int positionScore) {
+		assignPrincipalVariationToSearchMetrics(positionScore);
+		assignCentipawnScoreToSearchMetrics(positionScore);
+		if (sendInfo)
+			sr.reportPrincipalVariation();
+	}
+
+	private void assignPrincipalVariationToSearchMetrics(int positionScore) {
+		if (isScoreIndicatesMate(positionScore)) {
+			// If the positionScore indicates a mate, truncate the pc accordingly
+			int matePly = calculatePlyMateOccurredOn(positionScore);
+			pc.clearAfter(matePly);
+		}
+		sm.setPrincipalVariation(pc.toPvList());
+	}
+
+	private void assignCentipawnScoreToSearchMetrics(int positionScore) {
+		if (initialOnMove.equals(Colour.black))
+			positionScore = -positionScore; // Negated due to UCI spec (from engine pov)
+		sm.setCpScore(positionScore);
 	}
 
 	private int calculatePlyMateOccurredOn(int positionScore) {
@@ -162,7 +182,7 @@ public class PlySearcher {
 		return matePly;
 	}
 
-	private boolean scoreIndicatesMate(int positionScore) {
+	private boolean isScoreIndicatesMate(int positionScore) {
 		return Math.abs(positionScore) >= King.MATERIAL_VALUE;
 	}
 
