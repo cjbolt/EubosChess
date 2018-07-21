@@ -30,6 +30,8 @@ import eubos.search.FixedDepthMoveSearcher;
 import eubos.search.AbstractMoveSearcher;
 //import eubos.search.SearchDebugAgent;
 
+
+import java.text.SimpleDateFormat;
 import java.util.logging.*;
 
 public class EubosEngineMain extends AbstractEngine {
@@ -52,6 +54,7 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 
 	public void receive(EngineInitializeRequestCommand command) {
+		logger.fine("Eubos Initialising");
 		this.getProtocol().send( new ProtocolInitializeAnswerCommand("Eubos","Chris Bolt") );
 		//SearchDebugAgent.open();
 	}
@@ -67,10 +70,12 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 
 	public void receive(EngineNewGameCommand command) {
+		logger.fine("New Game");
 	}
 
 	public void receive(EngineAnalyzeCommand command) {
 		// Import position received from GUI and apply any instructed moves.
+		logAnalyse(command);
 		pm = new PositionManager(command.board.toString());
 		try {
 			for (GenericMove nextMove : command.moves) {
@@ -79,7 +84,7 @@ public class EubosEngineMain extends AbstractEngine {
 		} catch(InvalidPieceException e ) {
 			System.out.println( 
 					"Serious error: Eubos can't find a piece on the board whilst applying previous moves, at "
-							+e.getAtPosition().toString() );
+							+e.getAtPosition().toString());
 		}
 		// Check Opening Book
 		if (command.moves != null && !command.moves.isEmpty()) {
@@ -88,38 +93,52 @@ public class EubosEngineMain extends AbstractEngine {
 			nextBookMove = null;
 		}
 	}
+	
+	private void logAnalyse(EngineAnalyzeCommand command) {
+		logger.fine("Analysing position: " + command.board.toString() +
+				    " with moves " + command.moves);
+	}
 
 	public void receive(EngineStartCalculatingCommand command) {
 		if (nextBookMove == null) {
 			// The move searcher will report the best move found via a callback to this object, 
 			// this will occur when the tree search is concluded and the thread completes execution.
-			long clockTime = 0;
-			try {
-				clockTime = command.getClock((pm.getOnMove() == Colour.white) ? GenericColor.WHITE : GenericColor.BLACK);
-			} catch (NullPointerException e) {
-				clockTime = 0;
-			}
-			if (clockTime != 0) {
-				logger.info("Search move, clock time " + clockTime);
-				ms = new IterativeMoveSearcher(this, pm, pm, pm, clockTime);
-			}
-			else if (command.getMoveTime() != null) {
-				logger.info("Search move, fixed time " + command.getMoveTime());
-				ms = new FixedTimeMoveSearcher(this, pm, pm, pm, command.getMoveTime());
-			} else {
-				int searchDepth = SEARCH_DEPTH_IN_PLY;
-				if (command.getInfinite()) {
-	
-				} else if (command.getDepth() != null) {
-					searchDepth = command.getDepth();
-				}
-				logger.info("Search move, fixed depth " + searchDepth);
-				ms = new FixedDepthMoveSearcher(this, pm, pm, pm, searchDepth);
-			}
+			moveSearcherFactory(command);
 			ms.start();
 		} else {
 			sendBestMoveCommand(new ProtocolBestMoveCommand(nextBookMove, null));
 		}
+	}
+	
+	private void moveSearcherFactory(EngineStartCalculatingCommand command) {
+		long clockTime = extractClockTime(command);
+		if (clockTime != 0) {
+			logger.info("Search move, clock time " + clockTime);
+			ms = new IterativeMoveSearcher(this, pm, pm, pm, clockTime);
+		}
+		else if (command.getMoveTime() != null) {
+			logger.info("Search move, fixed time " + command.getMoveTime());
+			ms = new FixedTimeMoveSearcher(this, pm, pm, pm, command.getMoveTime());
+		} else {
+			int searchDepth = SEARCH_DEPTH_IN_PLY;
+			if (command.getInfinite()) {
+
+			} else if (command.getDepth() != null) {
+				searchDepth = command.getDepth();
+			}
+			logger.info("Search move, fixed depth " + searchDepth);
+			ms = new FixedDepthMoveSearcher(this, pm, pm, pm, searchDepth);
+		}
+	}
+	
+	private long extractClockTime(EngineStartCalculatingCommand command) {
+		long clockTime = 0;
+		try {
+			clockTime = command.getClock((pm.getOnMove() == Colour.white) ? GenericColor.WHITE : GenericColor.BLACK);
+		} catch (NullPointerException e) {
+			clockTime = 0;
+		}
+		return clockTime;
 	}
 
 	public void receive(EngineStopCalculatingCommand command) {
@@ -132,77 +151,77 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	public void sendInfoCommand(ProtocolInformationCommand infoCommand) {
 		this.getProtocol().send(infoCommand);
-		logger.info(logInfo(infoCommand));
+		logInfo(infoCommand);
 	}
 	
-	private String logInfo(ProtocolInformationCommand command){
-	    String infoCommand = "info";
+	private void logInfo(ProtocolInformationCommand command){
+	    String uciInfo = "info";
 
 	    if (command.getPvNumber() != null) {
-	      infoCommand += " multipv " + command.getPvNumber().toString();
+	      uciInfo += " multipv " + command.getPvNumber().toString();
 	    }
 	    if (command.getDepth() != null) {
-	      infoCommand += " depth " + command.getDepth().toString();
+	      uciInfo += " depth " + command.getDepth().toString();
 
 	      if (command.getMaxDepth() != null) {
-	        infoCommand += " seldepth " + command.getMaxDepth().toString();
+	        uciInfo += " seldepth " + command.getMaxDepth().toString();
 	      }
 	    }
 	    if (command.getMate() != null) {
-	      infoCommand += " score mate " + command.getMate().toString();
+	      uciInfo += " score mate " + command.getMate().toString();
 	    } else if (command.getCentipawns() != null) {
-	      infoCommand += " score cp " + command.getCentipawns().toString();
+	      uciInfo += " score cp " + command.getCentipawns().toString();
 	    }
 	    if (command.getValue() != null) {
 	      switch (command.getValue()) {
 	        case EXACT:
 	          break;
 	        case ALPHA:
-	          infoCommand += " upperbound";
+	          uciInfo += " upperbound";
 	          break;
 	        case BETA:
-	          infoCommand += " lowerbound";
+	          uciInfo += " lowerbound";
 	          break;
 	        default:
 	          assert false : command.getValue();
 	      }
 	    }
 	    if (command.getMoveList() != null) {
-	      infoCommand += " pv";
+	      uciInfo += " pv";
 	      for (GenericMove move : command.getMoveList()) {
-	        infoCommand += " ";
-	        infoCommand += move.toString();
+	        uciInfo += " ";
+	        uciInfo += move.toString();
 	      }
 	    }
 	    if (command.getRefutationList() != null) {
-	      infoCommand += " refutation";
+	      uciInfo += " refutation";
 	      for (GenericMove move : command.getRefutationList()) {
-	        infoCommand += " ";
-	        infoCommand += move.toString();
+	        uciInfo += " ";
+	        uciInfo += move.toString();
 	      }
 	    }
 	    if (command.getCurrentMove() != null) {
-	      infoCommand += " currmove " + command.getCurrentMove().toString();
+	      uciInfo += " currmove " + command.getCurrentMove().toString();
 	    }
 	    if (command.getCurrentMoveNumber() != null) {
-	      infoCommand += " currmovenumber " + command.getCurrentMoveNumber().toString();
+	      uciInfo += " currmovenumber " + command.getCurrentMoveNumber().toString();
 	    }
 	    if (command.getHash() != null) {
-	      infoCommand += " hashfull " + command.getHash().toString();
+	      uciInfo += " hashfull " + command.getHash().toString();
 	    }
 	    if (command.getNps() != null) {
-	      infoCommand += " nps " + command.getNps().toString();
+	      uciInfo += " nps " + command.getNps().toString();
 	    }
 	    if (command.getTime() != null) {
-	      infoCommand += " time " + command.getTime().toString();
+	      uciInfo += " time " + command.getTime().toString();
 	    }
 	    if (command.getNodes() != null) {
-	      infoCommand += " nodes " + command.getNodes().toString();
+	      uciInfo += " nodes " + command.getNodes().toString();
 	    }
 	    if (command.getString() != null) {
-	      infoCommand += " string " + command.getString();
+	      uciInfo += " string " + command.getString();
 	    }
-	    return infoCommand;
+	    logger.info(uciInfo);
 	}
 	
 	public void sendBestMoveCommand(ProtocolBestMoveCommand protocolBestMoveCommand) {
@@ -216,8 +235,17 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 
 	public static void main(String[] args) {
+		logStart();
+		logger.fine("Starting Eubos");
+		// start the Engine
+		Thread EubosThread = new Thread( new EubosEngineMain() );
+		EubosThread.start();
+	}
+	
+	private static void logStart() {
+		String timeStamp = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new java.util.Date());
 		try {
-			fh = new FileHandler("eubos_uci_log.txt");
+			fh = new FileHandler(timeStamp+"_eubos_uci_log.txt");
 		} catch (SecurityException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -228,9 +256,5 @@ public class EubosEngineMain extends AbstractEngine {
 		logger.addHandler(fh);
 		logger.setLevel(Level.ALL);
 		logger.setUseParentHandlers(false);
-		logger.fine("Starting Eubos");
-		// start the Engine
-		Thread EubosThread = new Thread( new EubosEngineMain() );
-		EubosThread.start();
 	}
 }
