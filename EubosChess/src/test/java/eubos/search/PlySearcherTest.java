@@ -25,7 +25,7 @@ import static org.mockito.Mockito.*;
 public class PlySearcherTest {
 	
 	private PlySearcher classUnderTest;
-	private static final int searchDepth = 4;
+	private static final int searchDepth = 2;
 	
 	private IChangePosition mock_pm;
 	private IGenerateMoveList mock_mlgen;
@@ -87,7 +87,7 @@ public class PlySearcherTest {
 	}
 	
 	@Test
-	public void testSearchPly_Mate() throws IllegalNotationException, InvalidPieceException {
+	public void whenMoveListEmpty_ScoreMate() throws IllegalNotationException, InvalidPieceException {
 		when(mock_pos.getOnMove()).thenReturn(Colour.white);
 		when(mock_mlgen.getMoveList()).thenReturn(input_ml);
 		
@@ -95,9 +95,73 @@ public class PlySearcherTest {
 		
 		verify(mock_sg).scoreMate(0, true, Colour.white);
 	}
+
+	@Test
+	public void whenMoveListNotEmpty_DontScoreMate() throws IllegalNotationException, InvalidPieceException {
+		input_ml.add(new GenericMove("e2e4"));
+		when(mock_pos.getOnMove()).thenReturn(Colour.white);
+		when(mock_mlgen.getMoveList()).thenReturn(input_ml);
+		
+		score = classUnderTest.searchPly(0);
+		
+		verify(mock_sg, never()).scoreMate(0, true, Colour.white);
+	}	
 	
 	@Test
-	public void test_scoreMateWhite() throws IllegalNotationException, InvalidPieceException {
+	public void whenMoveListNotEmptyAndSearchTerminated_dontPerformMove() throws IllegalNotationException, InvalidPieceException {
+		input_ml.add(new GenericMove("e2e4"));
+		when(mock_pos.getOnMove()).thenReturn(Colour.white);
+		when(mock_mlgen.getMoveList()).thenReturn(input_ml);
+		
+		classUnderTest.terminateFindMove();
+		score = classUnderTest.searchPly(0);
+		
+		verify(mock_pm, never()).performMove(input_ml.get(0));
+	}
+
+	@Test
+	public void whenMoveListNotEmpty_PerformMove() throws IllegalNotationException, InvalidPieceException {
+		LinkedList<GenericMove> empty_ml = new LinkedList<GenericMove>();
+		input_ml.add(new GenericMove("e2e4"));
+		
+		when(mock_pos.getOnMove()).thenReturn(Colour.white).thenReturn(Colour.black);
+		when(mock_mlgen.getMoveList()).thenReturn(input_ml).thenReturn(empty_ml);
+		
+		score = classUnderTest.searchPly(0);
+		
+		verify(mock_pm).performMove(input_ml.get(0));
+	}
+	
+	@Test
+	public void whenNotTerminalNode_DontEvaluatePosition() throws IllegalNotationException, InvalidPieceException {
+		LinkedList<GenericMove> empty_ml = new LinkedList<GenericMove>();
+		input_ml.add(new GenericMove("e2e4"));
+		
+		when(mock_pos.getOnMove()).thenReturn(Colour.white).thenReturn(Colour.black);
+		when(mock_mlgen.getMoveList()).thenReturn(input_ml).thenReturn(empty_ml);
+		
+		score = classUnderTest.searchPly(0);
+		
+		verify(mock_pe, never()).evaluatePosition(mock_pos);
+	}	
+	
+	@Test
+	public void whenTerminalNode_EvaluatePosition() throws IllegalNotationException, InvalidPieceException {
+		LinkedList<GenericMove> black_ml = new LinkedList<GenericMove>();
+		input_ml.add(new GenericMove("e2e4"));
+		black_ml.add(new GenericMove("e7e5"));
+		
+		when(mock_pos.getOnMove()).thenReturn(Colour.white).thenReturn(Colour.black);
+		when(mock_mlgen.getMoveList()).thenReturn(input_ml).thenReturn(black_ml);
+		
+		score = classUnderTest.searchPly(0);
+		
+		verify(mock_pe).evaluatePosition(mock_pos);
+	}
+
+	
+	@Test
+	public void whenWhiteNoMoves_ScoreIsMateInOneWhite() throws IllegalNotationException, InvalidPieceException {
 		when(mock_pos.getOnMove()).thenReturn(Colour.white);
 		when(mock_mlgen.getMoveList()).thenReturn(input_ml);
 		when(mock_sg.scoreMate(0, true, Colour.white)).thenReturn(King.MATERIAL_VALUE);
@@ -108,7 +172,7 @@ public class PlySearcherTest {
 	}
 	
 	@Test
-	public void test_scoreMateBlack() throws IllegalNotationException, InvalidPieceException {
+	public void whenBlackNoMoves_ScoreIsMateInOneBlack() throws IllegalNotationException, InvalidPieceException {
 		when(mock_pos.getOnMove()).thenReturn(Colour.black);
 		
 		classUnderTest = new PlySearcher(
