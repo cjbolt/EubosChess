@@ -35,6 +35,8 @@ public class PlySearcher {
 	private List<GenericMove> lastPc;
 	private int searchDepthPly;
 	
+	private int currPly = 0;
+	
 	PlySearcher(
 			IEvaluate pe,
 			IScoreMate sg,
@@ -46,6 +48,7 @@ public class PlySearcher {
 			IGenerateMoveList mlgen,
 			IPositionAccessors pos,
 			List<GenericMove> lastPc) {
+		currPly = 0;
 		this.pe = pe;
 		this.sg = sg;
 		this.pc = pc;
@@ -61,14 +64,14 @@ public class PlySearcher {
 		this.st = new ScoreTracker(searchDepthPly, initialOnMove == Colour.white);
 	}
 	
-	int searchPly(int currPly) throws InvalidPieceException {
+	int searchPly() throws InvalidPieceException {
 		Colour onMove = pos.getOnMove();
 		SearchDebugAgent.printSearchPly(currPly,onMove);
 
-		List<GenericMove> ml = getMoveList(currPly);
+		List<GenericMove> ml = getMoveList();
 		if (!isMateOccurred(ml)) {
 			st.setProvisionalScoreAtPly(currPly);
-			searchMoves(currPly, ml);
+			searchMoves(ml);
 		} else {
 			boolean isWhite = (onMove == Colour.white);
 			int mateScore = sg.scoreMate(currPly, isWhite, initialOnMove);
@@ -78,8 +81,7 @@ public class PlySearcher {
 		return st.getBackedUpScoreAtPly(currPly);
 	}
 
-	private List<GenericMove> getMoveList(int currPly)
-			throws InvalidPieceException {
+	private List<GenericMove> getMoveList() throws InvalidPieceException {
 		List<GenericMove> ml = null;
 		if ((lastPc != null) && (lastPc.size() > currPly)) {
 			// Seeded move list is possible
@@ -94,40 +96,37 @@ public class PlySearcher {
 		return ml.isEmpty();
 	}
 
-	void searchMoves(int currPly, List<GenericMove> ml) throws InvalidPieceException {
+	void searchMoves(List<GenericMove> ml) throws InvalidPieceException {
 		int alphaBetaCutOff = st.getProvisionalScoreAtPly(currPly);
 		Iterator<GenericMove> move_iter = ml.iterator();
 		while(move_iter.hasNext() && !isTerminated()) {
 			GenericMove currMove = move_iter.next();
-			int positionScore = applyMoveAndScore(currPly, currMove);
-			if (handleBackupOfScore(currPly, alphaBetaCutOff, currMove, positionScore)) {
+			int positionScore = applyMoveAndScore(currMove);
+			if (handleBackupOfScore(alphaBetaCutOff, currMove, positionScore)) {
 				break;
 			}
 		}
 	}
 
-	private boolean handleBackupOfScore(int currPly, int alphaBetaCutOff,
-			GenericMove currMove, int positionScore) {
+	private boolean handleBackupOfScore(int alphaBetaCutOff, GenericMove currMove, int positionScore) {
 		boolean earlyTerminate = false;
-
-		if (isBackUpRequired(currPly, positionScore)) {
-			doBackUpScore(currPly, positionScore);
-			doUpdatePrincipalContinuation(currPly, currMove, positionScore);
+		
+		if (isBackUpRequired(positionScore)) {
+			doBackUpScore(positionScore);
+			doUpdatePrincipalContinuation(currMove, positionScore);
 			
-		} else if (isAlphaBetaCutOff( alphaBetaCutOff, positionScore, currPly )) {
-
-			doRefutation(currPly);
+		} else if (isAlphaBetaCutOff( alphaBetaCutOff, positionScore )) {
+			doRefutation();
 			earlyTerminate = true;
 		}
 		return earlyTerminate;
 	}
 
-	private void doRefutation(int currPly) {
+	private void doRefutation() {
 		SearchDebugAgent.printRefutationFound(currPly);
 	}
 
-	private void doUpdatePrincipalContinuation(int currPly,
-			GenericMove currMove, int positionScore) {
+	private void doUpdatePrincipalContinuation(GenericMove currMove, int positionScore) {
 		pc.update(currPly, currMove);
 		SearchDebugAgent.printPrincipalContinuation(currPly,pc);
 		if (currPly == 0) {
@@ -135,27 +134,44 @@ public class PlySearcher {
 		}
 	}
 
-	private void doBackUpScore(int currPly, int positionScore) {
+	private void doBackUpScore(int positionScore) {
 		st.setBackedUpScoreAtPly(currPly, positionScore);
 		SearchDebugAgent.printBackUpScore(currPly, positionScore);
 	}
 
-	private int applyMoveAndScore(int currPly, GenericMove currMove)
-			throws InvalidPieceException {
-		int positionScore;
-		reportNextMove(currPly, currMove);
-		SearchDebugAgent.printPerformMove(currPly, currMove);
-		pm.performMove(currMove);
-		// Either recurse or evaluate a terminal position
-		if ( isTerminalNode(currPly) ) {
-			positionScore = pe.evaluatePosition(pos);
-		} else {
-			positionScore = searchPly(currPly+1);
-		}
-		SearchDebugAgent.printUndoMove(currPly, currMove);
-		pm.unperformMove();
+	private int applyMoveAndScore(GenericMove currMove) throws InvalidPieceException {
+		int positionScore = 0;
+		
+		doPerformMove(currMove);
+		positionScore = assessNewPosition();
+		doUnperformMove(currMove);
+		
 		sm.incrementNodesSearched();
 		return positionScore;
+	}
+
+	private int assessNewPosition() throws InvalidPieceException {
+		// Either recurse or evaluate a terminal position
+		int positionScore;
+		if ( isTerminalNode() ) {
+			positionScore = pe.evaluatePosition(pos);
+		} else {
+			currPly++;
+			positionScore = searchPly();
+			currPly--;
+		}
+		return positionScore;
+	}
+
+	private void doUnperformMove(GenericMove currMove) throws InvalidPieceException {
+		SearchDebugAgent.printUndoMove(currPly, currMove);
+		pm.unperformMove();
+	}
+
+	private void doPerformMove(GenericMove currMove) throws InvalidPieceException {
+		reportNextMove(currMove);
+		SearchDebugAgent.printPerformMove(currPly, currMove);
+		pm.performMove(currMove);
 	}
 
 	void reportPrincipalContinuation(int positionScore) {
@@ -207,7 +223,7 @@ public class PlySearcher {
 		return ownMate;
 	}
 
-	void reportNextMove(int currPly, GenericMove currMove) {
+	void reportNextMove(GenericMove currMove) {
 		if (currPly == 0) {
 			sm.setCurrentMove(currMove);
 			sm.incrementCurrentMoveNumber();
@@ -215,7 +231,7 @@ public class PlySearcher {
 		}
 	}
 
-	boolean isBackUpRequired(int currPly, int positionScore) {
+	boolean isBackUpRequired(int positionScore) {
 		boolean backUpScore = false;
 		if (pos.getOnMove() == Colour.white) {
 			// if white, maximise score
@@ -229,7 +245,7 @@ public class PlySearcher {
 		return backUpScore;
 	}
 	
-	boolean isAlphaBetaCutOff(int cutOffValue, int positionScore, int currPly) {
+	boolean isAlphaBetaCutOff(int cutOffValue, int positionScore) {
 		if ((cutOffValue != Integer.MAX_VALUE) && (cutOffValue != Integer.MIN_VALUE)) {
 			int prevPlyScore = st.getBackedUpScoreAtPly(currPly-1);
 			Colour onMove = pos.getOnMove();
@@ -242,7 +258,7 @@ public class PlySearcher {
 		return false;
 	}
 
-	private boolean isTerminalNode(int currPly) {
+	private boolean isTerminalNode() {
 		boolean isTerminalNode = false;
 		if (currPly == (searchDepthPly-1)) {
 			isTerminalNode = true;

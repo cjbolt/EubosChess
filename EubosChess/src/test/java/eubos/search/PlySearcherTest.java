@@ -92,7 +92,7 @@ public class PlySearcherTest {
 		when(mock_pos.getOnMove()).thenReturn(Colour.white);
 		when(mock_mlgen.getMoveList()).thenReturn(input_ml);
 		
-		score = classUnderTest.searchPly(0);
+		score = classUnderTest.searchPly();
 		
 		verify(mock_sg).scoreMate(0, true, Colour.white);
 	}
@@ -104,7 +104,7 @@ public class PlySearcherTest {
 		when(mock_pos.getOnMove()).thenReturn(Colour.white);
 		when(mock_mlgen.getMoveList()).thenReturn(input_ml);
 		
-		score = classUnderTest.searchPly(0);
+		score = classUnderTest.searchPly();
 		
 		verify(mock_sg, never()).scoreMate(0, true, Colour.white);
 	}	
@@ -116,7 +116,7 @@ public class PlySearcherTest {
 		when(mock_mlgen.getMoveList()).thenReturn(input_ml);
 		
 		classUnderTest.terminateFindMove();
-		score = classUnderTest.searchPly(0);
+		score = classUnderTest.searchPly();
 		
 		verify(mock_pm, never()).performMove(input_ml.get(0));
 	}
@@ -129,7 +129,7 @@ public class PlySearcherTest {
 		when(mock_pos.getOnMove()).thenReturn(Colour.white).thenReturn(Colour.black);
 		when(mock_mlgen.getMoveList()).thenReturn(input_ml).thenReturn(empty_ml);
 		
-		score = classUnderTest.searchPly(0);
+		score = classUnderTest.searchPly();
 		
 		verify(mock_pm).performMove(input_ml.get(0));
 	}
@@ -142,7 +142,7 @@ public class PlySearcherTest {
 		when(mock_pos.getOnMove()).thenReturn(Colour.white).thenReturn(Colour.black);
 		when(mock_mlgen.getMoveList()).thenReturn(input_ml).thenReturn(empty_ml);
 		
-		score = classUnderTest.searchPly(0);
+		score = classUnderTest.searchPly();
 		
 		verify(mock_pe, never()).evaluatePosition(mock_pos);
 	}	
@@ -156,7 +156,7 @@ public class PlySearcherTest {
 		when(mock_pos.getOnMove()).thenReturn(Colour.white).thenReturn(Colour.black);
 		when(mock_mlgen.getMoveList()).thenReturn(input_ml).thenReturn(black_ml);
 		
-		score = classUnderTest.searchPly(0);
+		score = classUnderTest.searchPly();
 		
 		verify(mock_pe).evaluatePosition(mock_pos);
 	}
@@ -168,7 +168,7 @@ public class PlySearcherTest {
 		when(mock_mlgen.getMoveList()).thenReturn(input_ml);
 		when(mock_sg.scoreMate(0, true, Colour.white)).thenReturn(King.MATERIAL_VALUE);
 		
-		score = classUnderTest.searchPly(0);
+		score = classUnderTest.searchPly();
 		
 		assertEquals(King.MATERIAL_VALUE, score);
 	}
@@ -193,7 +193,7 @@ public class PlySearcherTest {
 		when(mock_mlgen.getMoveList()).thenReturn(input_ml);
 		when(mock_sg.scoreMate(0, false, Colour.black)).thenReturn(-King.MATERIAL_VALUE);
 		
-		score = classUnderTest.searchPly(0);
+		score = classUnderTest.searchPly();
 		
 		assertEquals(-King.MATERIAL_VALUE, score);
 	}	

@@ -70,7 +70,7 @@ class MiniMaxMoveGenerator implements
 		if (sendInfo)
 			sr.start();
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
-		ps.searchPly(0);
+		ps.searchPly();
 		if (sendInfo) {
 			sr.end();
 			sr.reportNodeData();
