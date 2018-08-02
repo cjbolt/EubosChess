@@ -482,5 +482,31 @@ public class MiniMaxMoveGeneratorTest {
 		GenericMove selectedMove = classUnderTest.findMove(10);
 		
 	    assertTrue(selectedMove.equals(expectedMove));
+	}
+	
+	@Test
+	@Ignore
+	public void test_findMove_bugBlunderVsFidelityCC10_7ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		PositionManager pm = new PositionManager( "4k3/2pqbppr/8/p2p3p/3B4/3P3P/4QPP1/5K1R w - - 2 30");
+		classUnderTest = new MiniMaxMoveGenerator(pm,pm,pm);
+		// Blunder move!
+		expectedMove = new GenericMove("d4g7");
+		
+		GenericMove selectedMove = classUnderTest.findMove(7);
+		
+	    assertTrue(selectedMove.equals(expectedMove));
+	}
+	
+	@Test
+	@Ignore
+	public void test_findMove_bugBlunderVsFidelityCC10_5ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		PositionManager pm = new PositionManager( "4k3/2pqbppr/8/p2p3p/3B4/3P3P/4QPP1/5K1R w - - 2 30");
+		classUnderTest = new MiniMaxMoveGenerator(pm,pm,pm);
+		// Blunder move!
+		expectedMove = new GenericMove("d4g7");
+		
+		GenericMove selectedMove = classUnderTest.findMove(5);
+		
+	    assertTrue(selectedMove.equals(expectedMove));
 	}	
 }

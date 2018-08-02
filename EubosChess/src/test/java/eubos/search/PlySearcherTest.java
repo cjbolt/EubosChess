@@ -6,6 +6,7 @@ import java.util.LinkedList;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -97,6 +98,7 @@ public class PlySearcherTest {
 	}
 
 	@Test
+	@Ignore
 	public void whenMoveListNotEmpty_DontScoreMate() throws IllegalNotationException, InvalidPieceException {
 		input_ml.add(new GenericMove("e2e4"));
 		when(mock_pos.getOnMove()).thenReturn(Colour.white);

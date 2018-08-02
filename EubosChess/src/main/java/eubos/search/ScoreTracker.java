@@ -2,32 +2,49 @@ package eubos.search;
 
 class ScoreTracker {
 	private int[] scores;
+	private boolean initialOnMoveIsWhite = false;
+	
+	private static final int MINIMUM_PLY_FOR_ALPHA_BETA_CUT_OFF = 2;
 
-	ScoreTracker(int searchDepth) {
+	ScoreTracker(int searchDepth, boolean isWhite) {
 		scores = new int[searchDepth];
+		initialOnMoveIsWhite = isWhite;
 	}
 	
-	int initScore(int currPly, boolean white) {
-		if (currPly==0 || currPly==1) {
-			// Will get overwritten immediately...
-			if (white) {
-				scores[currPly] = Integer.MIN_VALUE;
-			} else {
-				scores[currPly] = Integer.MAX_VALUE;
-			}
+	void bringDownAlphaBetaCutOff(int currPly) {
+		scores[currPly] = scores[currPly-MINIMUM_PLY_FOR_ALPHA_BETA_CUT_OFF];
+	}
+
+	void initialiseWithWorstPossibleScore(int currPly) {
+		if (onMoveIsWhite(currPly)) {
+			scores[currPly] = Integer.MIN_VALUE;
 		} else {
-			// Alpha Beta algorithm: bring down score from 2 levels up tree
-			scores[currPly] = scores[currPly-2];
+			scores[currPly] = Integer.MAX_VALUE;
 		}
-		return scores[currPly];
 	}
 	
-	void backupScore(int currPly, int positionScore) {
+	boolean onMoveIsWhite(int currPly) {
+		return ((currPly % 2) == 0) ? initialOnMoveIsWhite : !initialOnMoveIsWhite;
+	}
+	
+	void setBackedUpScoreAtPly(int currPly, int positionScore) {
 		scores[currPly]=positionScore;
 	}
 	
 	
-	int getBackedUpScore(int currPly) {
+	int getBackedUpScoreAtPly(int currPly) {
 		return scores[currPly];
 	}
+	
+	void setProvisionalScoreAtPly(int currPly) {
+		if (currPly<MINIMUM_PLY_FOR_ALPHA_BETA_CUT_OFF) {
+			initialiseWithWorstPossibleScore(currPly);
+		} else {
+			bringDownAlphaBetaCutOff(currPly);
+		}
+	}	
+	
+	int getProvisionalScoreAtPly(int currPly) {
+		return scores[currPly];
+	}	
 }

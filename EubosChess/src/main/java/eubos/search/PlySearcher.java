@@ -46,7 +46,6 @@ public class PlySearcher {
 			IGenerateMoveList mlgen,
 			IPositionAccessors pos,
 			List<GenericMove> lastPc) {
-		this.st = new ScoreTracker(searchDepthPly);
 		this.pe = pe;
 		this.sg = sg;
 		this.pc = pc;
@@ -59,6 +58,7 @@ public class PlySearcher {
 		this.searchDepthPly = searchDepthPly;
 		// Register initialOnMove
 		initialOnMove = pos.getOnMove();
+		this.st = new ScoreTracker(searchDepthPly, initialOnMove == Colour.white);
 	}
 	
 	int searchPly(int currPly) throws InvalidPieceException {
@@ -69,12 +69,13 @@ public class PlySearcher {
 		List<GenericMove> ml = getMoveList(currPly);
 		if (isMateOccurred(ml)) {
 			int mateScore = sg.scoreMate(currPly, isWhite, initialOnMove);
-			st.backupScore(currPly, mateScore);
+			st.setBackedUpScoreAtPly(currPly, mateScore);
 		} else {
 			// Initialise the score for this node and analyse the move list
-			searchMoves(currPly, st.initScore(currPly,isWhite), ml);
+			st.setProvisionalScoreAtPly(currPly);
+			searchMoves(currPly, ml);
 		}
-		return st.getBackedUpScore(currPly);
+		return st.getBackedUpScoreAtPly(currPly);
 	}
 
 	private List<GenericMove> getMoveList(int currPly)
@@ -93,8 +94,8 @@ public class PlySearcher {
 		return ml.isEmpty();
 	}
 
-	void searchMoves(int currPly, int alphaBetaCutOff, List<GenericMove> ml) 
-			throws InvalidPieceException {
+	void searchMoves(int currPly, List<GenericMove> ml) throws InvalidPieceException {
+		int alphaBetaCutOff = st.getProvisionalScoreAtPly(currPly);
 		Iterator<GenericMove> move_iter = ml.iterator();
 		while(move_iter.hasNext() && !isTerminated()) {
 			GenericMove currMove = move_iter.next();
@@ -111,7 +112,7 @@ public class PlySearcher {
 		// 4) Evaluate the score
 		if (isBackUpRequired(currPly, positionScore)) {
 			// 4a) Back-up the position score and update the principal continuation...
-			st.backupScore(currPly, positionScore);
+			st.setBackedUpScoreAtPly(currPly, positionScore);
 			SearchDebugAgent.printBackUpScore(currPly, positionScore);
 			pc.update(currPly, currMove);
 			SearchDebugAgent.printPrincipalContinuation(currPly,pc);
@@ -205,11 +206,11 @@ public class PlySearcher {
 		boolean backUpScore = false;
 		if (pos.getOnMove() == Colour.white) {
 			// if white, maximise score
-			if (positionScore > st.getBackedUpScore(currPly))
+			if (positionScore > st.getBackedUpScoreAtPly(currPly))
 				backUpScore = true;
 		} else {
 			// if black, minimise score 
-			if (positionScore < st.getBackedUpScore(currPly))
+			if (positionScore < st.getBackedUpScoreAtPly(currPly))
 				backUpScore = true;
 		}
 		return backUpScore;
@@ -217,7 +218,7 @@ public class PlySearcher {
 	
 	boolean isAlphaBetaCutOff(int cutOffValue, int positionScore, int currPly) {
 		if ((cutOffValue != Integer.MAX_VALUE) && (cutOffValue != Integer.MIN_VALUE)) {
-			int prevPlyScore = st.getBackedUpScore(currPly-1);
+			int prevPlyScore = st.getBackedUpScoreAtPly(currPly-1);
 			Colour onMove = pos.getOnMove();
 			if ((onMove == Colour.white && positionScore >= prevPlyScore) ||
 				(onMove == Colour.black && positionScore <= prevPlyScore)) {
