@@ -63,18 +63,18 @@ public class PlySearcher {
 	
 	int searchPly(int currPly) throws InvalidPieceException {
 		Colour onMove = pos.getOnMove();
-		boolean isWhite = (onMove == Colour.white);
 		SearchDebugAgent.printSearchPly(currPly,onMove);
-		// Generate the move list
+
 		List<GenericMove> ml = getMoveList(currPly);
-		if (isMateOccurred(ml)) {
-			int mateScore = sg.scoreMate(currPly, isWhite, initialOnMove);
-			st.setBackedUpScoreAtPly(currPly, mateScore);
-		} else {
-			// Initialise the score for this node and analyse the move list
+		if (!isMateOccurred(ml)) {
 			st.setProvisionalScoreAtPly(currPly);
 			searchMoves(currPly, ml);
+		} else {
+			boolean isWhite = (onMove == Colour.white);
+			int mateScore = sg.scoreMate(currPly, isWhite, initialOnMove);
+			st.setBackedUpScoreAtPly(currPly, mateScore);			
 		}
+		
 		return st.getBackedUpScoreAtPly(currPly);
 	}
 
@@ -109,22 +109,35 @@ public class PlySearcher {
 	private boolean handleBackupOfScore(int currPly, int alphaBetaCutOff,
 			GenericMove currMove, int positionScore) {
 		boolean earlyTerminate = false;
-		// 4) Evaluate the score
+
 		if (isBackUpRequired(currPly, positionScore)) {
-			// 4a) Back-up the position score and update the principal continuation...
-			st.setBackedUpScoreAtPly(currPly, positionScore);
-			SearchDebugAgent.printBackUpScore(currPly, positionScore);
-			pc.update(currPly, currMove);
-			SearchDebugAgent.printPrincipalContinuation(currPly,pc);
-			if (currPly == 0) {
-				reportPrincipalContinuation(positionScore);
-			}
+			doBackUpScore(currPly, positionScore);
+			doUpdatePrincipalContinuation(currPly, currMove, positionScore);
+			
 		} else if (isAlphaBetaCutOff( alphaBetaCutOff, positionScore, currPly )) {
-			// 4b) Perform an Alpha Beta algorithm cut-off
-			SearchDebugAgent.printRefutationFound(currPly);
+
+			doRefutation(currPly);
 			earlyTerminate = true;
 		}
 		return earlyTerminate;
+	}
+
+	private void doRefutation(int currPly) {
+		SearchDebugAgent.printRefutationFound(currPly);
+	}
+
+	private void doUpdatePrincipalContinuation(int currPly,
+			GenericMove currMove, int positionScore) {
+		pc.update(currPly, currMove);
+		SearchDebugAgent.printPrincipalContinuation(currPly,pc);
+		if (currPly == 0) {
+			reportPrincipalContinuation(positionScore);
+		}
+	}
+
+	private void doBackUpScore(int currPly, int positionScore) {
+		st.setBackedUpScoreAtPly(currPly, positionScore);
+		SearchDebugAgent.printBackUpScore(currPly, positionScore);
 	}
 
 	private int applyMoveAndScore(int currPly, GenericMove currMove)
