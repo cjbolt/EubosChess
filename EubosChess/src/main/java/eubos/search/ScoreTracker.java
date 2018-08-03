@@ -46,5 +46,31 @@ class ScoreTracker {
 	
 	int getProvisionalScoreAtPly(int currPly) {
 		return scores[currPly];
+	}
+
+	boolean isBackUpRequired(int currPly, int positionScore) {
+		boolean backUpScore = false;
+		if (onMoveIsWhite(currPly)) {
+			// if white, maximise score
+			if (positionScore > getBackedUpScoreAtPly(currPly))
+				backUpScore = true;
+		} else {
+			// if black, minimise score 
+			if (positionScore < getBackedUpScoreAtPly(currPly))
+				backUpScore = true;
+		}
+		return backUpScore;
+	}
+
+	boolean isAlphaBetaCutOff(int currPly, int cutOffValue, int positionScore) {
+		if ((cutOffValue != Integer.MAX_VALUE) && (cutOffValue != Integer.MIN_VALUE)) {
+			int prevPlyScore = getBackedUpScoreAtPly(currPly-1);
+			if (onMoveIsWhite(currPly)) {
+				if (positionScore >= prevPlyScore) return true;
+			} else {
+				if (positionScore <= prevPlyScore) return true;
+			}
+		}
+		return false;
 	}	
 }
