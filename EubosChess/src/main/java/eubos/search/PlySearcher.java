@@ -166,9 +166,6 @@ public class PlySearcher {
 		pm.unperformMove();
 	}	
 
-	
-	
-	// Principal continuation focused, search report focused
 	private boolean handleBackupOfScore(int alphaBetaCutOff, GenericMove currMove, int positionScore) {
 		boolean earlyTerminate = false;
 		
@@ -184,8 +181,9 @@ public class PlySearcher {
 		}
 		return earlyTerminate;
 	}	
+
 	
-	
+	// Principal continuation focused, search report focused inner class
 	class PrincipalContinuationUpdateHelper
 	{
 		int positionScore;
@@ -201,8 +199,7 @@ public class PlySearcher {
 		}	
 		
 		private void assignPrincipalVariationToSearchMetrics() {
-			MatePlyHelper mateHelper = new MatePlyHelper(positionScore);
-			mateHelper.truncatePrincipalContinuation();
+			truncatePrincipalContinuation();
 			sm.setPrincipalVariation(pc.toPvList());
 		}	
 
@@ -212,45 +209,35 @@ public class PlySearcher {
 			sm.setCpScore(positionScore);
 		}
 		
+		private void truncatePrincipalContinuation() {
+			if (isScoreIndicatesMate()) {
+				// If the positionScore indicates a mate, truncate the pc accordingly
+				int matePly = calculatePlyMateOccurredOn();
+				pc.clearAfter(matePly);
+			}
+		}
 		
-		class MatePlyHelper
-		{
-			int positionScore;
-			
-			MatePlyHelper(int score) {
-				positionScore = score;
+		private boolean isScoreIndicatesMate() {
+			return Math.abs(positionScore) >= King.MATERIAL_VALUE;
+		}
+		
+		private int calculatePlyMateOccurredOn() {
+			int matePly = Math.abs(positionScore)/King.MATERIAL_VALUE;
+			matePly *= PLIES_PER_MOVE;
+			matePly = searchDepthPly - matePly;
+			if (isOwnMate()) {
+				if ((searchDepthPly&1) != 0x1)
+					matePly += 1;
+			} else {
+				if ((searchDepthPly&1) == 0x1)
+					matePly -= 1;	
 			}
-			
-			void truncatePrincipalContinuation() {
-				if (isScoreIndicatesMate()) {
-					// If the positionScore indicates a mate, truncate the pc accordingly
-					int matePly = calculatePlyMateOccurredOn();
-					pc.clearAfter(matePly);
-				}
-			}
-			
-			boolean isScoreIndicatesMate() {
-				return Math.abs(positionScore) >= King.MATERIAL_VALUE;
-			}
-			
-			int calculatePlyMateOccurredOn() {
-				int matePly = Math.abs(positionScore)/King.MATERIAL_VALUE;
-				matePly *= PLIES_PER_MOVE;
-				matePly = searchDepthPly - matePly;
-				if (isOwnMate()) {
-					if ((searchDepthPly&1) != 0x1)
-						matePly += 1;
-				} else {
-					if ((searchDepthPly&1) == 0x1)
-						matePly -= 1;	
-				}
-				return matePly;
-			}
-			
-			private boolean isOwnMate() {
-				return ((initialOnMove==Colour.white && positionScore<0) ||
-				        (initialOnMove==Colour.black && positionScore>0));
-			}
-		}	
-	}
+			return matePly;
+		}
+		
+		private boolean isOwnMate() {
+			return ((initialOnMove==Colour.white && positionScore<0) ||
+			        (initialOnMove==Colour.black && positionScore>0));
+		}
+	}	
 }
