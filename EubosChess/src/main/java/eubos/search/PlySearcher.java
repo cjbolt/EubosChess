@@ -87,14 +87,28 @@ public class PlySearcher {
 	void searchMoves(List<GenericMove> ml) throws InvalidPieceException {
 		int alphaBetaCutOff = st.getProvisionalScoreAtPly(currPly);
 		Iterator<GenericMove> move_iter = ml.iterator();
+		
 		while(move_iter.hasNext() && !isTerminated()) {
 			GenericMove currMove = move_iter.next();
+			
+			if (currPly == 0) {
+				reportMove(currMove);
+			}
+			
 			int positionScore = applyMoveAndScore(currMove);
+			sm.incrementNodesSearched();
+			
 			if (handleBackupOfScore(alphaBetaCutOff, currMove, positionScore)) {
 				break;
 			}
 		}
 	}
+	
+	void reportMove(GenericMove currMove) {
+		sm.setCurrentMove(currMove);
+		sm.incrementCurrentMoveNumber();
+		sr.reportCurrentMove();
+	}	
 	
 	private List<GenericMove> getMoveList() throws InvalidPieceException {
 		List<GenericMove> ml = null;
@@ -109,86 +123,8 @@ public class PlySearcher {
 
 	private boolean isMateOccurred(List<GenericMove> ml) {
 		return ml.isEmpty();
-	}	
-
-	private boolean handleBackupOfScore(int alphaBetaCutOff, GenericMove currMove, int positionScore) {
-		boolean earlyTerminate = false;
-		
-		if (st.isBackUpRequired(currPly, positionScore)) {
-			doBackUpScore(positionScore);
-			doUpdatePrincipalContinuation(currMove, positionScore);
-			
-		} else if (st.isAlphaBetaCutOff( currPly, alphaBetaCutOff, positionScore )) {
-			SearchDebugAgent.printRefutationFound(currPly);
-			earlyTerminate = true;
-		}
-		return earlyTerminate;
-	}
-
-	private void doBackUpScore(int positionScore) {
-		st.setBackedUpScoreAtPly(currPly, positionScore);
-		SearchDebugAgent.printBackUpScore(currPly, positionScore);
 	}
 	
-	
-	// Principal continuation focused
-	private void doUpdatePrincipalContinuation(GenericMove currMove, int positionScore) {
-		pc.update(currPly, currMove);
-		SearchDebugAgent.printPrincipalContinuation(currPly,pc);
-		if (currPly == 0) {
-			reportPrincipalContinuation(positionScore);
-		}
-	}
-	
-	void reportPrincipalContinuation(int positionScore) {
-		assignPrincipalVariationToSearchMetrics(positionScore);
-		assignCentipawnScoreToSearchMetrics(positionScore);
-		sr.reportPrincipalVariation();
-	}	
-	
-	private void assignPrincipalVariationToSearchMetrics(int positionScore) {
-		if (isScoreIndicatesMate(positionScore)) {
-			// If the positionScore indicates a mate, truncate the pc accordingly
-			int matePly = calculatePlyMateOccurredOn(positionScore);
-			pc.clearAfter(matePly);
-		}
-		sm.setPrincipalVariation(pc.toPvList());
-	}	
-
-	private void assignCentipawnScoreToSearchMetrics(int positionScore) {
-		if (initialOnMove.equals(Colour.black))
-			positionScore = -positionScore; // Negated due to UCI spec (from engine pov)
-		sm.setCpScore(positionScore);
-	}
-	
-	private boolean isScoreIndicatesMate(int positionScore) {
-		return Math.abs(positionScore) >= King.MATERIAL_VALUE;
-	}
-	
-	private int calculatePlyMateOccurredOn(int positionScore) {
-		int matePly = Math.abs(positionScore)/King.MATERIAL_VALUE;
-		matePly *= PLIES_PER_MOVE;
-		matePly = searchDepthPly - matePly;
-		if (isOwnMate(positionScore)) {
-			if ((searchDepthPly&1) != 0x1)
-				matePly += 1;
-		} else {
-			if ((searchDepthPly&1) == 0x1)
-				matePly -= 1;	
-		}
-		return matePly;
-	}
-	
-	private boolean isOwnMate(int positionScore) {
-		return ((initialOnMove==Colour.white && positionScore<0) ||
-		        (initialOnMove==Colour.black && positionScore>0));
-	}
-	
-	
-	
-	
-
-
 	private int applyMoveAndScore(GenericMove currMove) throws InvalidPieceException {
 		int positionScore = 0;
 		
@@ -196,7 +132,6 @@ public class PlySearcher {
 		positionScore = assessNewPosition();
 		doUnperformMove(currMove);
 		
-		sm.incrementNodesSearched();
 		return positionScore;
 	}
 
@@ -221,22 +156,101 @@ public class PlySearcher {
 		return isTerminalNode;
 	}	
 
-	private void doUnperformMove(GenericMove currMove) throws InvalidPieceException {
-		SearchDebugAgent.printUndoMove(currPly, currMove);
-		pm.unperformMove();
-	}
-
 	private void doPerformMove(GenericMove currMove) throws InvalidPieceException {
-		reportNextMove(currMove);
 		SearchDebugAgent.printPerformMove(currPly, currMove);
 		pm.performMove(currMove);
 	}
-
-	void reportNextMove(GenericMove currMove) {
-		if (currPly == 0) {
-			sm.setCurrentMove(currMove);
-			sm.incrementCurrentMoveNumber();
-			sr.reportCurrentMove();
-		}
+	
+	private void doUnperformMove(GenericMove currMove) throws InvalidPieceException {
+		SearchDebugAgent.printUndoMove(currPly, currMove);
+		pm.unperformMove();
 	}	
+
+	
+	
+	// Principal continuation focused, search report focused
+	private boolean handleBackupOfScore(int alphaBetaCutOff, GenericMove currMove, int positionScore) {
+		boolean earlyTerminate = false;
+		
+		if (st.isBackUpRequired(currPly, positionScore)) {
+			st.setBackedUpScoreAtPly(currPly, positionScore);
+			pc.update(currPly, currMove);
+			if (currPly == 0) {
+				new PrincipalContinuationUpdateHelper(positionScore).report();
+			}
+		} else if (st.isAlphaBetaCutOff( currPly, alphaBetaCutOff, positionScore )) {
+			SearchDebugAgent.printRefutationFound(currPly);
+			earlyTerminate = true;
+		}
+		return earlyTerminate;
+	}	
+	
+	
+	class PrincipalContinuationUpdateHelper
+	{
+		int positionScore;
+		
+		PrincipalContinuationUpdateHelper(int score) {
+			positionScore = score;
+		}
+
+		void report() {
+			assignPrincipalVariationToSearchMetrics();
+			assignCentipawnScoreToSearchMetrics();
+			sr.reportPrincipalVariation();
+		}	
+		
+		private void assignPrincipalVariationToSearchMetrics() {
+			MatePlyHelper mateHelper = new MatePlyHelper(positionScore);
+			mateHelper.truncatePrincipalContinuation();
+			sm.setPrincipalVariation(pc.toPvList());
+		}	
+
+		private void assignCentipawnScoreToSearchMetrics() {
+			if (initialOnMove.equals(Colour.black))
+				positionScore = -positionScore; // Negated due to UCI spec (from engine pov)
+			sm.setCpScore(positionScore);
+		}
+		
+		
+		class MatePlyHelper
+		{
+			int positionScore;
+			
+			MatePlyHelper(int score) {
+				positionScore = score;
+			}
+			
+			void truncatePrincipalContinuation() {
+				if (isScoreIndicatesMate()) {
+					// If the positionScore indicates a mate, truncate the pc accordingly
+					int matePly = calculatePlyMateOccurredOn();
+					pc.clearAfter(matePly);
+				}
+			}
+			
+			boolean isScoreIndicatesMate() {
+				return Math.abs(positionScore) >= King.MATERIAL_VALUE;
+			}
+			
+			int calculatePlyMateOccurredOn() {
+				int matePly = Math.abs(positionScore)/King.MATERIAL_VALUE;
+				matePly *= PLIES_PER_MOVE;
+				matePly = searchDepthPly - matePly;
+				if (isOwnMate()) {
+					if ((searchDepthPly&1) != 0x1)
+						matePly += 1;
+				} else {
+					if ((searchDepthPly&1) == 0x1)
+						matePly -= 1;	
+				}
+				return matePly;
+			}
+			
+			private boolean isOwnMate() {
+				return ((initialOnMove==Colour.white && positionScore<0) ||
+				        (initialOnMove==Colour.black && positionScore>0));
+			}
+		}	
+	}
 }

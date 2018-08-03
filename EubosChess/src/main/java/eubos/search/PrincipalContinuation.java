@@ -48,6 +48,7 @@ class PrincipalContinuation {
 		for (int nextPly=currPly+1; nextPly < searchDepthPly; nextPly++) {
 			pc[currPly][nextPly]=pc[currPly+1][nextPly];
 		}
+		SearchDebugAgent.printPrincipalContinuation(currPly,this);
 	}
 
 	void clearAfter(int currPly ) {

@@ -28,6 +28,7 @@ class ScoreTracker {
 	}
 	
 	void setBackedUpScoreAtPly(int currPly, int positionScore) {
+		SearchDebugAgent.printBackUpScore(currPly, positionScore);
 		scores[currPly]=positionScore;
 	}
 	
