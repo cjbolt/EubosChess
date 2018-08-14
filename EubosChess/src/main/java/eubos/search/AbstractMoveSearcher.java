@@ -1,5 +1,10 @@
 package eubos.search;
 
+import java.util.LinkedList;
+
+import com.fluxchess.jcpi.models.GenericMove;
+
+import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
@@ -34,6 +39,19 @@ public abstract class AbstractMoveSearcher extends Thread {
 	public abstract void run();
 
 	public abstract void halt();
+
+	protected GenericMove doFindMove(GenericMove selectedMove, LinkedList<GenericMove> pc, int depth) {
+		try {
+			selectedMove = mg.findMove(depth, pc);
+		} catch( NoLegalMoveException e ) {
+			System.out.println( "Eubos has run out of legal moves for side " + pos.getOnMove().toString() );
+		} catch(InvalidPieceException e ) {
+			System.out.println( 
+					"Serious error: Eubos can't find a piece on the board whilst searching findMove(), at "
+							+ e.getAtPosition().toString() );
+		}
+		return selectedMove;
+	}
 
 	public AbstractMoveSearcher(ThreadGroup group, String name) {
 		super(group, name);

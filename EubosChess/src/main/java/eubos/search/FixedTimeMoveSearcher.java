@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import com.fluxchess.jcpi.models.GenericMove;
 
-import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IGenerateMoveList;
@@ -16,6 +15,8 @@ import eubos.position.IPositionAccessors;
 public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 
 	long moveTime;
+	
+	private static final int MAX_SEARCH_DEPTH = 12;
 
 	public FixedTimeMoveSearcher(EubosEngineMain eubos, IChangePosition inputPm, 
 			IGenerateMoveList mlgen, IPositionAccessors pos, long time ) {
@@ -33,16 +34,8 @@ public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 		GenericMove selectedMove = null;
 		LinkedList<GenericMove> pc = null;
 		Timestamp msTargetEndTime = new Timestamp(System.currentTimeMillis() + moveTime);
-		for (int depth=1; depth<12; depth++) {
-			try {
-				selectedMove = mg.findMove(depth, pc);
-			} catch( NoLegalMoveException e ) {
-				System.out.println( "Eubos has run out of legal moves for side " + pos.getOnMove().toString() );
-			} catch(InvalidPieceException e ) {
-				System.out.println( 
-						"Serious error: Eubos can't find a piece on the board whilst searching findMove(), at "
-								+ e.getAtPosition().toString() );
-			}
+		for (int depth=1; depth<MAX_SEARCH_DEPTH; depth++) {
+			selectedMove = doFindMove(selectedMove, pc, depth);
 			Timestamp msCurrTime = new Timestamp(System.currentTimeMillis());
 			if (msCurrTime.after(msTargetEndTime))
 				break;

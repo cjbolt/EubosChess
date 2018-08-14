@@ -62,7 +62,7 @@ class ScoreTracker {
 		}
 		return backUpScore;
 	}
-
+	
 	boolean isAlphaBetaCutOff(int currPly, int cutOffValue, int positionScore) throws IllegalArgumentException {
 		if ((cutOffValue != Integer.MAX_VALUE) && (cutOffValue != Integer.MIN_VALUE)) {
 			if (currPly <= 0) throw new IllegalArgumentException();
