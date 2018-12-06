@@ -10,6 +10,7 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
+import eubos.board.InvalidPieceException;
 import eubos.position.CastlingManager;
 import eubos.position.PositionManager;
 
@@ -37,6 +38,31 @@ public class CastlingManagerTest {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/8/4K2R w K - - -").castling;
 		classUnderTest.addCastlingMoves(ml);
 		expectWkscMove();
+	}
+	
+	@Test
+	public void test_WhiteKingSideCastle_whenRookMoved() throws IllegalNotationException{
+		// 8 k.......
+		// 7 ........
+		// 6 ........
+		// 5 ........
+		// 4 ........
+		// 3 ........
+		// 2 ........
+		// 1 ....K..R
+		//   abcdefgh
+		PositionManager pm = new PositionManager("k7/8/8/8/8/8/8/4K2R w K - - -");
+		try {
+			pm.performMove(new GenericMove("h1h2"));
+			pm.performMove(new GenericMove("a8b8"));
+			pm.performMove(new GenericMove("h2h1"));
+			pm.performMove(new GenericMove("b8a8"));
+		} catch (InvalidPieceException e) {
+			e.printStackTrace();
+		}
+		classUnderTest = pm.castling;	
+		classUnderTest.addCastlingMoves(ml);
+		assertTrue(ml.isEmpty());
 	}
 	
 	@Test
