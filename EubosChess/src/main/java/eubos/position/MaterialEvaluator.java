@@ -18,19 +18,33 @@ import eubos.board.pieces.Rook;
 
 public class MaterialEvaluator {
 	
-	private static final Map<GenericPosition, Integer> PAWN_WEIGHTINGS;
+	private static final Map<GenericPosition, Integer> PAWN_WHITE_WEIGHTINGS;
     static {
     	Map<GenericPosition, Integer> aMap = new HashMap<GenericPosition, Integer>();
         aMap.put(GenericPosition.a1, 0);aMap.put(GenericPosition.b1, 0);aMap.put(GenericPosition.c1, 0);aMap.put(GenericPosition.d1, 0);aMap.put(GenericPosition.e1, 0);aMap.put(GenericPosition.f1, 0);aMap.put(GenericPosition.g1, 0);aMap.put(GenericPosition.h1, 0);
         aMap.put(GenericPosition.a2, 0);aMap.put(GenericPosition.b2, 0);aMap.put(GenericPosition.c2, 0);aMap.put(GenericPosition.d2, 0);aMap.put(GenericPosition.e2, 0);aMap.put(GenericPosition.f2, 0);aMap.put(GenericPosition.g2, 0);aMap.put(GenericPosition.h2, 0);
         aMap.put(GenericPosition.a3, 0);aMap.put(GenericPosition.b3, 0);aMap.put(GenericPosition.c3, 0);aMap.put(GenericPosition.d3, 5);aMap.put(GenericPosition.e3, 5);aMap.put(GenericPosition.f3, 0);aMap.put(GenericPosition.g3, 0);aMap.put(GenericPosition.h3, 0);
-        aMap.put(GenericPosition.a4, 0);aMap.put(GenericPosition.b4, 0);aMap.put(GenericPosition.c4, 5);aMap.put(GenericPosition.d4, 10);aMap.put(GenericPosition.e4, 10);aMap.put(GenericPosition.f4, 5);aMap.put(GenericPosition.g4, 0);aMap.put(GenericPosition.h4, 0);
-        aMap.put(GenericPosition.a5, 0);aMap.put(GenericPosition.b5, 0);aMap.put(GenericPosition.c5, 5);aMap.put(GenericPosition.d5, 10);aMap.put(GenericPosition.e5, 10);aMap.put(GenericPosition.f5, 5);aMap.put(GenericPosition.g5, 0);aMap.put(GenericPosition.h5, 0);
+        aMap.put(GenericPosition.a4, 3);aMap.put(GenericPosition.b4, 3);aMap.put(GenericPosition.c4, 5);aMap.put(GenericPosition.d4, 10);aMap.put(GenericPosition.e4, 10);aMap.put(GenericPosition.f4, 5);aMap.put(GenericPosition.g4, 3);aMap.put(GenericPosition.h4, 3);
+        aMap.put(GenericPosition.a5, 5);aMap.put(GenericPosition.b5, 5);aMap.put(GenericPosition.c5, 5);aMap.put(GenericPosition.d5, 15);aMap.put(GenericPosition.e5, 15);aMap.put(GenericPosition.f5, 5);aMap.put(GenericPosition.g5, 5);aMap.put(GenericPosition.h5, 5);
+		aMap.put(GenericPosition.a6, 20);aMap.put(GenericPosition.b6, 50);aMap.put(GenericPosition.c6, 50);aMap.put(GenericPosition.d6, 50);aMap.put(GenericPosition.e6, 50);aMap.put(GenericPosition.f6, 50);aMap.put(GenericPosition.g6, 50);aMap.put(GenericPosition.h6, 20);
+		aMap.put(GenericPosition.a7, 50);aMap.put(GenericPosition.b7, 100);aMap.put(GenericPosition.c7, 100);aMap.put(GenericPosition.d7, 100);aMap.put(GenericPosition.e7, 100);aMap.put(GenericPosition.f7, 100);aMap.put(GenericPosition.g7, 100);aMap.put(GenericPosition.h7, 50);
+		aMap.put(GenericPosition.a8, 0);aMap.put(GenericPosition.b8, 0);aMap.put(GenericPosition.c8, 0);aMap.put(GenericPosition.d8, 0);aMap.put(GenericPosition.e8, 0);aMap.put(GenericPosition.f8, 0);aMap.put(GenericPosition.g8, 0);aMap.put(GenericPosition.h8, 0);
+        PAWN_WHITE_WEIGHTINGS = Collections.unmodifiableMap(aMap);
+    }
+    
+	private static final Map<GenericPosition, Integer> PAWN_BLACK_WEIGHTINGS;
+    static {
+    	Map<GenericPosition, Integer> aMap = new HashMap<GenericPosition, Integer>();
+        aMap.put(GenericPosition.a1, 0);aMap.put(GenericPosition.b1, 0);aMap.put(GenericPosition.c1, 0);aMap.put(GenericPosition.d1, 0);aMap.put(GenericPosition.e1, 0);aMap.put(GenericPosition.f1, 0);aMap.put(GenericPosition.g1, 0);aMap.put(GenericPosition.h1, 0);
+        aMap.put(GenericPosition.a2, 50);aMap.put(GenericPosition.b2, 100);aMap.put(GenericPosition.c2, 100);aMap.put(GenericPosition.d2, 100);aMap.put(GenericPosition.e2, 100);aMap.put(GenericPosition.f2, 100);aMap.put(GenericPosition.g2, 100);aMap.put(GenericPosition.h2, 50);
+        aMap.put(GenericPosition.a3, 20);aMap.put(GenericPosition.b3, 50);aMap.put(GenericPosition.c3, 50);aMap.put(GenericPosition.d3, 50);aMap.put(GenericPosition.e3, 50);aMap.put(GenericPosition.f3, 50);aMap.put(GenericPosition.g3, 50);aMap.put(GenericPosition.h3, 20);
+        aMap.put(GenericPosition.a4, 5);aMap.put(GenericPosition.b4, 5);aMap.put(GenericPosition.c4, 5);aMap.put(GenericPosition.d4, 15);aMap.put(GenericPosition.e4, 15);aMap.put(GenericPosition.f4, 5);aMap.put(GenericPosition.g4, 5);aMap.put(GenericPosition.h4, 5);
+        aMap.put(GenericPosition.a5, 3);aMap.put(GenericPosition.b5, 3);aMap.put(GenericPosition.c5, 5);aMap.put(GenericPosition.d5, 10);aMap.put(GenericPosition.e5, 10);aMap.put(GenericPosition.f5, 5);aMap.put(GenericPosition.g5, 3);aMap.put(GenericPosition.h5, 3);
 		aMap.put(GenericPosition.a6, 0);aMap.put(GenericPosition.b6, 0);aMap.put(GenericPosition.c6, 0);aMap.put(GenericPosition.d6, 5);aMap.put(GenericPosition.e6, 5);aMap.put(GenericPosition.f6, 0);aMap.put(GenericPosition.g6, 0);aMap.put(GenericPosition.h6, 0);
 		aMap.put(GenericPosition.a7, 0);aMap.put(GenericPosition.b7, 0);aMap.put(GenericPosition.c7, 0);aMap.put(GenericPosition.d7, 0);aMap.put(GenericPosition.e7, 0);aMap.put(GenericPosition.f7, 0);aMap.put(GenericPosition.g7, 0);aMap.put(GenericPosition.h7, 0);
 		aMap.put(GenericPosition.a8, 0);aMap.put(GenericPosition.b8, 0);aMap.put(GenericPosition.c8, 0);aMap.put(GenericPosition.d8, 0);aMap.put(GenericPosition.e8, 0);aMap.put(GenericPosition.f8, 0);aMap.put(GenericPosition.g8, 0);aMap.put(GenericPosition.h8, 0);
-        PAWN_WEIGHTINGS = Collections.unmodifiableMap(aMap);
-    }
+        PAWN_BLACK_WEIGHTINGS = Collections.unmodifiableMap(aMap);
+    }    
 	
 	private static final Map<GenericPosition, Integer> KNIGHT_WEIGHTINGS;
     static {
@@ -68,7 +82,11 @@ public class MaterialEvaluator {
 			int currValue = 0;
 			if ( currPiece instanceof Pawn ) {
 				currValue = Pawn.MATERIAL_VALUE;
-				currValue += PAWN_WEIGHTINGS.get(currPiece.getSquare());
+				if (currPiece.isWhite()) {
+					currValue += PAWN_WHITE_WEIGHTINGS.get(currPiece.getSquare());
+				} else {
+					currValue += PAWN_BLACK_WEIGHTINGS.get(currPiece.getSquare());
+				}
 			}
 			else if ( currPiece instanceof Rook )
 				currValue = Rook.MATERIAL_VALUE;

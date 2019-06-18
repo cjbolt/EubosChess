@@ -6,7 +6,7 @@ public class PositionEvaluator implements IEvaluate {
 	
 	MaterialEvaluator me;
 	
-	public static int HAS_CASTLED_BOOST_CENTIPAWNS = 50;
+	public static int HAS_CASTLED_BOOST_CENTIPAWNS = 150;
 	
 	public PositionEvaluator() {	
 		this.me = new MaterialEvaluator();
