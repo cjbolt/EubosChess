@@ -14,10 +14,7 @@ public abstract class Piece implements IPiece {
 	public boolean isOppositeColour(Piece toCheck) { return ( colour != toCheck.getColour()); }
 	public boolean isOppositeColour(Colour colourToCheck) { return ( colour != colourToCheck); }
 	
-	protected boolean everMoved = false;
-	public boolean hasEverMoved() {	return everMoved; }
-	
 	protected GenericPosition onSquare;
-	public void setSquare( GenericPosition pos) { onSquare = pos; everMoved = true; }
+	public void setSquare( GenericPosition pos) { onSquare = pos; }
 	public GenericPosition getSquare() { return(onSquare); }
 }

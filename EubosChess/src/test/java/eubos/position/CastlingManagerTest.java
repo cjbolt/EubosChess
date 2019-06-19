@@ -66,6 +66,31 @@ public class CastlingManagerTest {
 	}
 	
 	@Test
+	public void test_WhiteKingSideCastle_whenKingMoved() throws IllegalNotationException{
+		// 8 k.......
+		// 7 ........
+		// 6 ........
+		// 5 ........
+		// 4 ........
+		// 3 ........
+		// 2 ........
+		// 1 ....K..R
+		//   abcdefgh
+		PositionManager pm = new PositionManager("k7/8/8/8/8/8/8/4K2R w K - - -");
+		try {
+			pm.performMove(new GenericMove("e1e2"));
+			pm.performMove(new GenericMove("a8b8"));
+			pm.performMove(new GenericMove("e2e1"));
+			pm.performMove(new GenericMove("b8a8"));
+		} catch (InvalidPieceException e) {
+			e.printStackTrace();
+		}
+		classUnderTest = pm.castling;	
+		classUnderTest.addCastlingMoves(ml);
+		assertTrue(ml.isEmpty());
+	}	
+	
+	@Test
 	public void test_wksc_fen_unavaill() throws IllegalNotationException{
 		// 8 ........
 		// 7 ........

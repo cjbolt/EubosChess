@@ -57,7 +57,7 @@ public class PositionEvaluatorTest {
 			e.printStackTrace();
 		}
 		int score = SUT.evaluatePosition(pm);
-		assertTrue(score == (Rook.MATERIAL_VALUE + PositionEvaluator.HAS_CASTLED_BOOST_CENTIPAWNS + 1));
+		assertTrue(score == (Rook.MATERIAL_VALUE + PositionEvaluator.HAS_CASTLED_BOOST_CENTIPAWNS));
 	}	
 
 	@Test
@@ -85,6 +85,6 @@ public class PositionEvaluatorTest {
 			e.printStackTrace();
 		}
 		int score = SUT.evaluatePosition(pm);
-		assertTrue(score == (Rook.MATERIAL_VALUE + PositionEvaluator.HAS_CASTLED_BOOST_CENTIPAWNS + 1));
+		assertTrue(score == (Rook.MATERIAL_VALUE + PositionEvaluator.HAS_CASTLED_BOOST_CENTIPAWNS));
 	}	
 }

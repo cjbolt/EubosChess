@@ -2,6 +2,7 @@ package eubos.position;
 
 import java.util.List;
 
+import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
@@ -49,6 +50,23 @@ class CastlingManager {
 		whiteQsAvail = false;
 		blackKsAvail = false;
 		blackQsAvail = false;
+		setFenFlags(fenCastle);
+	}
+	
+	String getFenFlags() {
+		String fenCastle = "";
+		if (whiteKsAvail)
+			fenCastle += "K";
+		if (whiteQsAvail)
+			fenCastle += "Q";
+		if (blackKsAvail)
+			fenCastle += "k";
+		if (blackQsAvail)
+			fenCastle += "q";
+		return fenCastle;
+	}
+	
+	void setFenFlags(String fenCastle) {
 		if (fenCastle.matches("[KQkq-]+")) {
 			if (fenCastle.contains("K"))
 				whiteKsAvail = true;
@@ -58,8 +76,6 @@ class CastlingManager {
 				blackKsAvail = true;
 			if (fenCastle.contains("q"))
 				blackQsAvail = true;
-		} else {
-			// throw an error?
 		}
 	}
 
@@ -91,28 +107,28 @@ class CastlingManager {
 		}
 	}
 
-	void unperformSecondaryCastlingMove(GenericMove move) throws InvalidPieceException{
+	void unperformSecondaryCastlingMove(GenericMove move) throws InvalidPieceException {
 		if (move.equals(undo_wksc)) {
 			// Perform secondary king side castle rook move
-			Piece rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.f1 );
+			Rook rookToCastle = (Rook) pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.f1 );
 			pm.updateSquarePieceOccupies( GenericPosition.h1, rookToCastle );
 			whiteKsAvail = true;
 			whiteCastled = false;
 		} else	if (move.equals(undo_wqsc)) {
 			// Perform secondary queen side castle rook move
-			Piece rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.d1 );
+			Rook rookToCastle = (Rook) pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.d1 );
 			pm.updateSquarePieceOccupies( GenericPosition.a1, rookToCastle );
 			whiteQsAvail = true;
 			whiteCastled = false;
 		} else if (move.equals(undo_bksc)) {
 			// Perform secondary king side castle rook move
-			Piece rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.f8 );
+			Rook rookToCastle = (Rook) pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.f8 );
 			pm.updateSquarePieceOccupies( GenericPosition.h8, rookToCastle );
 			blackKsAvail = true;
 			blackCastled = false;
 		} else if (move.equals(undo_bqsc)) {
 			// Perform secondary queen side castle rook move
-			Piece rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.d8 );
+			Rook rookToCastle = (Rook) pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.d8 );
 			pm.updateSquarePieceOccupies( GenericPosition.a8, rookToCastle );
 			blackQsAvail = true;
 			blackCastled = false;
@@ -127,7 +143,7 @@ class CastlingManager {
 		// King should not have moved and be on its initial square
 		King ownKing = pm.getKing(onMove);
 		if ( ownKing != null ) {
-			if (ownKing.hasEverMoved() || !ownKing.isOnInitialSquare()) {
+			if (!ownKing.isOnInitialSquare()) {
 				return;
 			}
 		}
@@ -194,9 +210,9 @@ class CastlingManager {
 			GenericPosition [] checkSqs,
 			GenericPosition [] emptySqs) {
 		Board theBoard = pm.getTheBoard();
-		// Target rook should not have moved and be on it initial square
+		// Target rook should not have moved and be on its initial square
 		Piece rook = theBoard.getPieceAtSquare( rookSq );
-		if ( !(rook instanceof Rook) || rook.hasEverMoved())
+		if ( !(rook instanceof Rook))
 			return false;
 		// All the intervening squares between King and Rook should be empty
 		for ( GenericPosition emptySq : emptySqs ) {
@@ -225,5 +241,31 @@ class CastlingManager {
 
 	private GenericMove getBlackQueensideCastleMove() {
 		return (castleMoveLegal(GenericPosition.a8, qscBlackCheckSqs, qscBlackEmptySqs) && blackQsAvail) ? bqsc : null;
+	}
+
+	public void updateFlags(Piece pieceToMove, GenericMove lastMove) {
+		if (pieceToMove instanceof King) {
+			if (pieceToMove.isWhite()) {
+				whiteKsAvail = whiteQsAvail = false;
+			} else {
+				blackKsAvail = blackQsAvail = false;
+			}
+		}
+		if 	(pieceToMove instanceof Rook) {
+			if (pieceToMove.isWhite()) {
+				if (lastMove.from.file.equals(GenericFile.Fa)) {
+					whiteQsAvail = false;
+				} else if (lastMove.from.file.equals(GenericFile.Fh)) {
+					whiteKsAvail = false;
+				}
+			} else {
+				if (lastMove.from.file.equals(GenericFile.Fa)) {
+					blackQsAvail = false;
+				} else if (lastMove.from.file.equals(GenericFile.Fh)) {
+					blackKsAvail = false;
+				}	
+			}
+		}
+		
 	}
 }

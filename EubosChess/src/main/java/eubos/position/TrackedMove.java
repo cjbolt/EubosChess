@@ -8,13 +8,15 @@ import eubos.board.pieces.Piece;
 class TrackedMove {
 	private GenericMove move = null;
 	private Piece capturedPiece = null;
-	private GenericPosition enPassantTarget = null; 
+	private GenericPosition enPassantTarget = null;
+	private String castleFenFlags = null;
 
 	TrackedMove( GenericMove inMove ) { move = inMove; }
-	TrackedMove( GenericMove inMove, Piece capture, GenericPosition enP ) {
+	TrackedMove( GenericMove inMove, Piece capture, GenericPosition enP, String castleFen) {
 		move = inMove; 
 		capturedPiece = capture;
 		enPassantTarget = enP;
+		castleFenFlags = castleFen;
 	}
 	boolean isCapture() { return ((capturedPiece != null) ? true : false); }
 	
@@ -45,5 +47,8 @@ class TrackedMove {
 	}
 	void setEnPassantTarget(GenericPosition enPassantTarget) {
 		this.enPassantTarget = enPassantTarget;
+	}
+	String getFenFlags() {
+		return castleFenFlags;
 	}
 }

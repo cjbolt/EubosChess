@@ -102,19 +102,9 @@ public class MaterialEvaluator {
 				currValue = Queen.MATERIAL_VALUE;
 			else if ( currPiece instanceof King )
 				currValue = King.MATERIAL_VALUE;
-			currValue = encourageDeployment(currPiece, currValue);
 			if (currPiece.isBlack()) currValue = -currValue;
 			materialEvaluation += currValue;
 		}
 		return materialEvaluation;
-	}
-	
-	private int encourageDeployment(Piece currPiece, int currValue) {
-		if (!(currPiece instanceof King)) {
-			if (currPiece.hasEverMoved()) {
-				currValue += 1;
-			}
-		}
-		return currValue;
 	}
 }

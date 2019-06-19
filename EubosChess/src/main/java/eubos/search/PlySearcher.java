@@ -17,6 +17,7 @@ import eubos.position.IEvaluate;
 public class PlySearcher {
 	
 	public static final int PLIES_PER_MOVE = 2;
+	public static final boolean ENABLE_SEARCH_EXTENSION_FOR_RECAPTURES = false;
 	
 	private IChangePosition pm;
 	private IGenerateMoveList mlgen;
@@ -129,21 +130,59 @@ public class PlySearcher {
 		int positionScore = 0;
 		
 		doPerformMove(currMove);
-		positionScore = assessNewPosition();
+		positionScore = assessNewPosition(currMove);
 		doUnperformMove(currMove);
 		
 		return positionScore;
 	}
 
-	private int assessNewPosition() throws InvalidPieceException {
+	private int assessNewPosition(GenericMove prevMove) throws InvalidPieceException {
 		// Either recurse or evaluate a terminal position
 		int positionScore;
 		if ( isTerminalNode() ) {
 			positionScore = pe.evaluatePosition(pos);
+			positionScore = testSearchExtensionForRecaptures(prevMove, positionScore);
 		} else {
 			currPly++;
 			positionScore = searchPly();
 			currPly--;
+		}
+		return positionScore;
+	}
+
+	protected int testSearchExtensionForRecaptures(GenericMove prevMove,
+			int positionScore) throws InvalidPieceException {
+		if (ENABLE_SEARCH_EXTENSION_FOR_RECAPTURES) {
+			if (pos.lastMoveWasCapture()) {
+				int nextPositionScore;
+				List<GenericMove> extra_ml = mlgen.getMoveList();
+				// look to see if there is a recapture possible
+				// where a recapture is a capture on target square
+				boolean recapturePossible = false;
+				GenericMove recaptureMove = null;
+				Iterator<GenericMove> move_iter = extra_ml.iterator();
+				while(move_iter.hasNext()) {
+					GenericMove nextMove = move_iter.next();
+					if (nextMove.to.equals(prevMove.to)) {
+						recaptureMove = nextMove;
+						recapturePossible = true;
+					}
+				}
+				// if so search recapture move only
+				if (recapturePossible) {
+					doPerformMove(recaptureMove);
+					nextPositionScore = pe.evaluatePosition(pos);
+					doUnperformMove(recaptureMove);
+					// be pessimistic if recapture is possible
+					if (pos.getOnMove() == Colour.white) {
+						if (nextPositionScore > positionScore) // better for black
+							positionScore = nextPositionScore;
+					} else {
+						if (nextPositionScore < positionScore)
+							positionScore = nextPositionScore;
+					}
+				}
+			}
 		}
 		return positionScore;
 	}

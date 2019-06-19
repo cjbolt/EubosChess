@@ -60,6 +60,10 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		return (moveTracker.lastMoveWasCapture() || moveTracker.lastMoveWasCastle());
 	}
 	
+	public boolean lastMoveWasCapture() {
+		return moveTracker.lastMoveWasCapture();
+	}
+	
 	public boolean hasCastled(Colour colour){
 		return castling.everCastled(colour);
 	}
@@ -144,9 +148,11 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		// Handle capture target (note, this will be null if the move is not a capture)
 		Piece captureTarget = getCaptureTarget(move, pieceToMove, isEnPassantCapture);
 		// Store the necessary information to undo this move on the move tracker stack
-		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq));
+		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq, castling.getFenFlags()));
 		// Update the piece's square.
 		updateSquarePieceOccupies(move.to, pieceToMove);
+		// update castling flags
+		castling.updateFlags(pieceToMove, move);
 		// Update onMove
 		onMove = Colour.getOpposite(onMove);
 	}
@@ -163,10 +169,12 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		GenericMove reversedMove = new GenericMove( moveToUndo.to, moveToUndo.from );
 		// Get the piece to move
 		Piece pieceToMove = theBoard.pickUpPieceAtSquare( reversedMove.from );
-		// Handle reversal of any castling secondary rook moves...
-		if (pieceToMove instanceof King)
+		// Handle reversal of any castling secondary rook moves and associated flags...
+		if (pieceToMove instanceof King) {
 			castling.unperformSecondaryCastlingMove(reversedMove);
+		}
 		updateSquarePieceOccupies(reversedMove.to, pieceToMove);
+		castling.setFenFlags(tm.getFenFlags());
 		// Undo any capture that had been previously performed.
 		if ( tm.isCapture()) {
 			theBoard.setPieceAtSquare(tm.getCapturedPiece());

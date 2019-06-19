@@ -17,6 +17,7 @@ import eubos.board.pieces.Piece;
 import eubos.position.PositionManager;
 import eubos.search.MiniMaxMoveGenerator;
 import eubos.search.NoLegalMoveException;
+import eubos.search.PlySearcher;
 
 public class MiniMaxMoveGeneratorTest {
 	
@@ -164,7 +165,10 @@ public class MiniMaxMoveGeneratorTest {
 		//   abcdefgh
 		PositionManager pm = new PositionManager( "3nkbnr/3p1ppp/8/1B1p4/R2N4/8/6PP/4R1K1 b - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( pm,pm,pm );
-		expectedMove = new GenericMove("g8e7");
+		if (PlySearcher.ENABLE_SEARCH_EXTENSION_FOR_RECAPTURES)
+			expectedMove = new GenericMove("f8e7");
+		else
+			expectedMove = new GenericMove("g8e7");
 		doFindMoveTest(true);
 	}	
 	
@@ -508,5 +512,28 @@ public class MiniMaxMoveGeneratorTest {
 		GenericMove selectedMove = classUnderTest.findMove(5);
 		
 	    assertTrue(selectedMove.equals(expectedMove));
-	}	
+	}
+	
+	@Test
+	public void test_findMove_NeedToCastle_FromLichess() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		PositionManager pm = new PositionManager( "4k2r/2Q2ppp/8/3r4/1P5P/P1p5/4PP2/R3K1N1 b Qk - - -");
+		classUnderTest = new MiniMaxMoveGenerator(pm,pm,pm);
+		expectedMove = new GenericMove("e8g8");
+		
+		GenericMove selectedMove = classUnderTest.findMove(3);
+		
+	    assertTrue(selectedMove.equals(expectedMove));
+	}
+	
+	@Test
+	
+	public void test_findMove_NeedToCastle_FromLichess1() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		PositionManager pm = new PositionManager( "rnb1kbnr/p4p1p/1qp1p1p1/3p4/8/1B2PN2/PPPP1PPP/RNBQK2R w KQkq - - -");
+		classUnderTest = new MiniMaxMoveGenerator(pm,pm,pm);
+		expectedMove = new GenericMove("e1g1");
+		
+		GenericMove selectedMove = classUnderTest.findMove(3);
+		
+	    assertTrue(selectedMove.equals(expectedMove));
+	}
 }

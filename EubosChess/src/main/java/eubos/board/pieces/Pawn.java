@@ -20,7 +20,7 @@ public class Pawn extends PieceSinglesquareDirectMove {
 	}
 	
 	private boolean hasNeverMoved() {
-		return ( !everMoved && isAtInitialPosition());
+		return (isAtInitialPosition());
 	}
 
 	public boolean isAtInitialPosition() {
