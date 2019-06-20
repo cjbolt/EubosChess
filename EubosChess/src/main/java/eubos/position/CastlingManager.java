@@ -110,25 +110,25 @@ class CastlingManager {
 	void unperformSecondaryCastlingMove(GenericMove move) throws InvalidPieceException {
 		if (move.equals(undo_wksc)) {
 			// Perform secondary king side castle rook move
-			Rook rookToCastle = (Rook) pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.f1 );
+			Piece rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.f1 );
 			pm.updateSquarePieceOccupies( GenericPosition.h1, rookToCastle );
 			whiteKsAvail = true;
 			whiteCastled = false;
 		} else	if (move.equals(undo_wqsc)) {
 			// Perform secondary queen side castle rook move
-			Rook rookToCastle = (Rook) pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.d1 );
+			Piece rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.d1 );
 			pm.updateSquarePieceOccupies( GenericPosition.a1, rookToCastle );
 			whiteQsAvail = true;
 			whiteCastled = false;
 		} else if (move.equals(undo_bksc)) {
 			// Perform secondary king side castle rook move
-			Rook rookToCastle = (Rook) pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.f8 );
+			Piece rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.f8 );
 			pm.updateSquarePieceOccupies( GenericPosition.h8, rookToCastle );
 			blackKsAvail = true;
 			blackCastled = false;
 		} else if (move.equals(undo_bqsc)) {
 			// Perform secondary queen side castle rook move
-			Rook rookToCastle = (Rook) pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.d8 );
+			Piece rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.d8 );
 			pm.updateSquarePieceOccupies( GenericPosition.a8, rookToCastle );
 			blackQsAvail = true;
 			blackCastled = false;
