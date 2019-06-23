@@ -142,19 +142,39 @@ class CastlingManager {
 			return;
 		// Check for castling king-side
 		GenericMove ksc = null;		
-		if ( onMove == Colour.white ) {
-			ksc = getWhiteKingsideCastleMove();
-		} else {
-			ksc = getBlackKingsideCastleMove();
+		if (onMove == Colour.white && whiteKsAvail) {
+			try {
+				ksc = getWhiteKingsideCastleMove();
+			} catch (Exception e) {
+				whiteKsAvail = false;				
+				e.printStackTrace();
+			}
+		} else if (onMove == Colour.black && blackKsAvail) {
+			try {
+				ksc = getBlackKingsideCastleMove();
+			} catch (Exception e) {
+				blackKsAvail = false;
+				e.printStackTrace();
+			}
 		}
 		if ( ksc != null )
 			ml.add(ksc);
 		// Check for castling queen side
 		GenericMove qsc = null;
-		if ( onMove == Colour.white ) {
-			qsc = getWhiteQueensideCastleMove();
-		} else {
-			qsc = getBlackQueensideCastleMove();
+		if (onMove == Colour.white && whiteQsAvail) {
+			try {
+				qsc = getWhiteQueensideCastleMove();
+			} catch (Exception e) {
+				whiteQsAvail = false;
+				e.printStackTrace();
+			}
+		} else if (onMove == Colour.black && blackQsAvail) {
+			try {
+				qsc = getBlackQueensideCastleMove();
+			} catch (Exception e) {
+				blackQsAvail = false;
+				e.printStackTrace();
+			}
 		}
 		if ( qsc != null )
 			ml.add(qsc);
@@ -201,8 +221,14 @@ class CastlingManager {
 
 	private boolean castleMoveLegal(GenericPosition rookSq,
 			GenericPosition [] checkSqs,
-			GenericPosition [] emptySqs) {
+			GenericPosition [] emptySqs) throws Exception {
 		Board theBoard = pm.getTheBoard();
+		// Safeguard that the piece on the rook square is a rook, n.b. this shouldn't be needed
+		Piece theRook = theBoard.getPieceAtSquare(rookSq);
+		if (!(theRook instanceof Rook))
+		{
+			throw new Exception("The piece wasn't a Rook! This means castling flags are inconsistent with the position.");
+		}
 		// All the intervening squares between King and Rook should be empty
 		for ( GenericPosition emptySq : emptySqs ) {
 			if ( !theBoard.squareIsEmpty(emptySq))
@@ -217,20 +243,20 @@ class CastlingManager {
 		return true;
 	}
 
-	private GenericMove getWhiteKingsideCastleMove() {
-		return (castleMoveLegal(GenericPosition.h1, kscWhiteCheckSqs, kscWhiteEmptySqs) && whiteKsAvail) ? wksc : null;
+	private GenericMove getWhiteKingsideCastleMove() throws Exception {
+		return (castleMoveLegal(GenericPosition.h1, kscWhiteCheckSqs, kscWhiteEmptySqs)) ? wksc : null;
 	}
 
-	private GenericMove getBlackKingsideCastleMove() {
-		return (castleMoveLegal(GenericPosition.h8, kscBlackCheckSqs, kscBlackEmptySqs) && whiteQsAvail) ? bksc : null;
+	private GenericMove getBlackKingsideCastleMove() throws Exception {
+		return (castleMoveLegal(GenericPosition.h8, kscBlackCheckSqs, kscBlackEmptySqs)) ? bksc : null;
 	}
 
-	private GenericMove getWhiteQueensideCastleMove() {
-		return (castleMoveLegal(GenericPosition.a1, qscWhiteCheckSqs, qscWhiteEmptySqs) && blackKsAvail) ? wqsc : null;
+	private GenericMove getWhiteQueensideCastleMove() throws Exception {
+		return (castleMoveLegal(GenericPosition.a1, qscWhiteCheckSqs, qscWhiteEmptySqs)) ? wqsc : null;
 	}
 
-	private GenericMove getBlackQueensideCastleMove() {
-		return (castleMoveLegal(GenericPosition.a8, qscBlackCheckSqs, qscBlackEmptySqs) && blackQsAvail) ? bqsc : null;
+	private GenericMove getBlackQueensideCastleMove() throws Exception {
+		return (castleMoveLegal(GenericPosition.a8, qscBlackCheckSqs, qscBlackEmptySqs)) ? bqsc : null;
 	}
 
 	public void updateFlags(Piece movedPiece, GenericMove lastMove) {
