@@ -7,6 +7,7 @@ import eubos.board.InvalidPieceException;
 import eubos.board.pieces.King;
 import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
+import eubos.board.pieces.Piece.Colour;
 import eubos.board.pieces.Rook;
 import eubos.position.PositionManager;
 
@@ -104,13 +105,15 @@ public class PositionManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		classUnderTest = new PositionManager("8/8/8/8/8/8/8/4K2R w - - - -");
+		classUnderTest = new PositionManager("8/8/8/8/8/8/8/4K2R w K - - -");
 		GenericMove expectedMove = new GenericMove("e1g1");
 		classUnderTest.performMove(expectedMove);
 		Piece whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.h1);
 		assertTrue(whiteRook == null);
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.f1);
 		assertTrue(whiteRook instanceof Rook);
+		assertTrue(classUnderTest.castling.everCastled(Colour.white));
+		assertTrue(classUnderTest.castling.getFenFlags().equals("-"));
 	}
 	
 	@Test
@@ -138,5 +141,7 @@ public class PositionManagerTest {
 		assertTrue(whiteRook instanceof Rook);
 		Piece whiteKing = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.e1);
 		assertTrue(whiteKing instanceof King);
+		assertTrue(!classUnderTest.castling.everCastled(Colour.white));
+		assertTrue(classUnderTest.castling.getFenFlags().equals("K"));
 	}
 }
