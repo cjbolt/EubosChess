@@ -526,7 +526,6 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	
 	public void test_findMove_NeedToCastle_FromLichess1() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
 		PositionManager pm = new PositionManager( "rnb1kbnr/p4p1p/1qp1p1p1/3p4/8/1B2PN2/PPPP1PPP/RNBQK2R w KQkq - - -");
 		classUnderTest = new MiniMaxMoveGenerator(pm,pm,pm);
@@ -535,5 +534,21 @@ public class MiniMaxMoveGeneratorTest {
 		GenericMove selectedMove = classUnderTest.findMove(3);
 		
 	    assertTrue(selectedMove.equals(expectedMove));
+	}
+	
+	@Test
+	public void test_PieceIsntARookDefect_WhilstSearching_Move() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		PositionManager pm = new PositionManager("r1bqkbnr/nppppppp/8/p3P3/3P4/2N5/PPP2PPP/R1BQKBNR b KQkq - 4 6");
+		classUnderTest = new MiniMaxMoveGenerator(pm,pm,pm);
+		pm.performMove(new GenericMove("d7d6"));
+		pm.performMove(new GenericMove("g1e2"));
+		pm.performMove(new GenericMove("d6e5"));
+		pm.performMove(new GenericMove("d4e5"));
+		pm.performMove(new GenericMove("d8d1"));
+		pm.performMove(new GenericMove("e1d1"));
+		pm.performMove(new GenericMove("a7c6"));
+		pm.performMove(new GenericMove("c3d5"));
+		GenericMove selectedMove = classUnderTest.findMove(5);
+		selectedMove = null;
 	}
 }
