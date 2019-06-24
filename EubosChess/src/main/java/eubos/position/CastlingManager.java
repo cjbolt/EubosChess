@@ -271,8 +271,18 @@ class CastlingManager {
 			blackKsAvail = blackQsAvail = false;
 			blackCastled = true;
 		} // After this, the move wasn't castling, but may have caused castling to be no longer possible
+		// A rook got captured
+		else if (blackQsAvail && lastMove.to.equals(GenericPosition.a8)) {
+			blackQsAvail = false;
+		} else if (blackKsAvail && lastMove.to.equals(GenericPosition.h8)) {
+			blackKsAvail = false;
+		} else if (whiteQsAvail && lastMove.to.equals(GenericPosition.a1)) {
+			whiteQsAvail = false;
+		} else if (whiteKsAvail && lastMove.to.equals(GenericPosition.h1)) {
+			whiteKsAvail = false;
+		}
 		// King moved
-		else if (movedPiece instanceof King) {
+		if (movedPiece instanceof King) {
 			if (movedPiece.isWhite()) {
 				whiteKsAvail = whiteQsAvail = false;
 			} else {
