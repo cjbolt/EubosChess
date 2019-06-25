@@ -4,10 +4,18 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
+import com.fluxchess.jcpi.models.GenericRank;
 
 import eubos.board.InvalidPieceException;
+import eubos.board.SquareAttackEvaluator;
+import eubos.board.pieces.Bishop;
 import eubos.board.pieces.King;
+import eubos.board.pieces.Knight;
+import eubos.board.pieces.Pawn;
+import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
+import eubos.board.pieces.Queen;
+import eubos.board.pieces.Rook;
 import eubos.position.IChangePosition;
 import eubos.position.IGenerateMoveList;
 import eubos.position.IPositionAccessors;
@@ -141,6 +149,7 @@ public class PlySearcher {
 		int positionScore;
 		if ( isTerminalNode() ) {
 			positionScore = pe.evaluatePosition(pos);
+			//positionScore = testDeweightScoreWhenRecapturePossible(prevMove, positionScore);
 			positionScore = testSearchExtensionForRecaptures(prevMove, positionScore);
 		} else {
 			currPly++;
@@ -148,6 +157,40 @@ public class PlySearcher {
 			currPly--;
 		}
 		return positionScore;
+	}
+	
+	protected int testDeweightScoreWhenRecapturePossible(GenericMove prevMove,
+			int positionScore) throws InvalidPieceException {
+		int modification = 0;
+		if (pos.lastMoveWasCapture()) {
+			// Only good for non en passant captures!
+			SquareAttackEvaluator sqAttackEval = new SquareAttackEvaluator( pos.getTheBoard(), prevMove.to, Colour.getOpposite(pos.getOnMove()));
+			if (sqAttackEval.isAttacked()) {
+				// treat the score with a pinch of salt, as the piece could be recaptured.
+				pm.unperformMove();
+				Piece capturedPiece = pos.getTheBoard().getPieceAtSquare(prevMove.to);
+				if (capturedPiece instanceof Queen) {
+					modification = Queen.MATERIAL_VALUE;
+				} else if (capturedPiece instanceof Rook) {
+					modification = Rook.MATERIAL_VALUE;
+				} else if (capturedPiece instanceof Bishop) {
+					modification = Bishop.MATERIAL_VALUE;
+				} else if (capturedPiece instanceof Knight) {
+					modification = Knight.MATERIAL_VALUE;
+				} else if (capturedPiece instanceof Pawn) {
+					modification = Pawn.MATERIAL_VALUE;
+				} else if (capturedPiece == null) {
+					// Handle en passant case				
+					modification = Pawn.MATERIAL_VALUE;
+				}
+				pm.performMove(prevMove);
+				// note this is after the event so opposite colour
+				if (pos.getOnMove() == Colour.black) {
+					modification = -modification;
+				}
+			}
+		}
+		return positionScore - modification;
 	}
 
 	protected int testSearchExtensionForRecaptures(GenericMove prevMove,
