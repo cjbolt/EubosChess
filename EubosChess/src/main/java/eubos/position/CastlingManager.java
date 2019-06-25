@@ -264,15 +264,18 @@ class CastlingManager {
 
 	public void updateFlags(Piece movedPiece, GenericMove lastMove) {
 		// First handle castling moves
-		if (lastMove.equals(wksc) || lastMove.equals(wqsc)) {
-			whiteKsAvail = whiteQsAvail = false;
-			whiteCastled = true;
-		} else if (lastMove.equals(bksc) || lastMove.equals(bqsc)) {
-			blackKsAvail = blackQsAvail = false;
-			blackCastled = true;
-		} // After this, the move wasn't castling, but may have caused castling to be no longer possible
+		if (movedPiece instanceof King) {
+			if (lastMove.equals(wksc) || lastMove.equals(wqsc)) {
+				whiteKsAvail = whiteQsAvail = false;
+				whiteCastled = true;
+			} else if (lastMove.equals(bksc) || lastMove.equals(bqsc)) {
+				blackKsAvail = blackQsAvail = false;
+				blackCastled = true;
+			} 
+		}
+		// After this, the move wasn't castling, but may have caused castling to be no longer possible
 		// A rook got captured
-		else if (blackQsAvail && lastMove.to.equals(GenericPosition.a8)) {
+		if (blackQsAvail && lastMove.to.equals(GenericPosition.a8)) {
 			blackQsAvail = false;
 		} else if (blackKsAvail && lastMove.to.equals(GenericPosition.h8)) {
 			blackKsAvail = false;

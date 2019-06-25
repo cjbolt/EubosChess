@@ -144,4 +144,20 @@ public class PositionManagerTest {
 		assertTrue(!classUnderTest.castling.everCastled(Colour.white));
 		assertTrue(classUnderTest.castling.getFenFlags().equals("K"));
 	}
+	
+	@Test
+	public void test_WhiteKingSideCastleNotAvailWhenRookCaptured_performMove() throws InvalidPieceException, IllegalNotationException {
+		// 8 .......r
+		// 7 ........
+		// 6 ........
+		// 5 ........
+		// 4 ........
+		// 3 ........
+		// 2 ........
+		// 1 ....K..R
+		//   abcdefgh
+		classUnderTest = new PositionManager("7r/8/8/8/8/8/8/4K2R b K - - -");
+		classUnderTest.performMove(new GenericMove("h8h1"));
+		assertTrue(classUnderTest.castling.getFenFlags().equals("-"));
+	}
 }
