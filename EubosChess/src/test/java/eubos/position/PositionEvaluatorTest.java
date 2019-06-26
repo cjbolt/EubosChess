@@ -87,4 +87,11 @@ public class PositionEvaluatorTest {
 		int score = SUT.evaluatePosition(pm);
 		assertTrue(score == (Rook.MATERIAL_VALUE + PositionEvaluator.HAS_CASTLED_BOOST_CENTIPAWNS));
 	}	
+	
+	@Test
+	public void testDiscourageDoubledPawns() {
+		PositionManager pm = new PositionManager("8/pppppp2/8/8/8/1P2P3/1P1P2PP/8 b - - 0 1");
+		int score = SUT.evaluatePosition(pm);
+		assertTrue(score == -PositionEvaluator.DOUBLED_PAWN_HANDICAP+5 /* position of e3 pawn gives +5 boost */);
+	}
 }
