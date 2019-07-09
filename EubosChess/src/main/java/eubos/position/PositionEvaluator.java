@@ -2,9 +2,6 @@ package eubos.position;
 
 import java.util.Iterator;
 
-import com.fluxchess.jcpi.models.GenericFile;
-import com.fluxchess.jcpi.models.GenericPosition;
-
 import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
@@ -83,11 +80,5 @@ public class PositionEvaluator implements IEvaluate {
 			pawnHandicap = -pawnHandicap;
 		}
 		return pawnHandicap;
-	}
-	
-	private void discourageWeakPawns() {
-	}
-	
-	private void encourageDirectPiecesOnOpenFiles() {
 	}
 }

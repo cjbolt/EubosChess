@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
-import com.fluxchess.jcpi.models.GenericRank;
 
 import eubos.board.InvalidPieceException;
 import eubos.board.SquareAttackEvaluator;
@@ -206,7 +205,9 @@ public class PlySearcher {
 				Iterator<GenericMove> move_iter = extra_ml.iterator();
 				while(move_iter.hasNext()) {
 					GenericMove nextMove = move_iter.next();
+					// DEFECT: this is wrong for en passant captures
 					if (nextMove.to.equals(prevMove.to)) {
+						// DEFECT: only searches last recapture move, not all possible recaptures
 						recaptureMove = nextMove;
 						recapturePossible = true;
 					}

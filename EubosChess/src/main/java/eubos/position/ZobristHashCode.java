@@ -16,7 +16,6 @@ import eubos.board.pieces.Queen;
 import eubos.board.pieces.Rook;
 
 public class ZobristHashCode {
-	private long hashCode;
 	
 	private static final int NUM_COLOURS = 2;
 	private static final int NUM_PIECES = 6;
@@ -52,6 +51,7 @@ public class ZobristHashCode {
 		
 	private long prnLookupTable[] = new long[LENGTH_TABLE];
 
+	// Set up the pseudo random number lookup table that shall be used
 	public ZobristHashCode() {
 		Random randGen = new Random();
 		for (int index = 0; index < prnLookupTable.length; index++) 
@@ -59,8 +59,10 @@ public class ZobristHashCode {
 				prnLookupTable[index] = randGen.nextLong();
 	}
 	
-	public void generate(PositionManager pm) throws Exception {
+	// Generate a hash code for a position from scratch
+	public long generate(PositionManager pm) throws Exception {
 		// add pieces
+		long hashCode = 0;
 		for (Piece currPiece : pm.getTheBoard()) {
 			GenericPosition atSq = currPiece.getSquare();
 			if (atSq != null) {
@@ -114,14 +116,20 @@ public class ZobristHashCode {
 			int enPassantFile = IntFile.valueOf(enPassant.file);
 			hashCode ^= prnLookupTable[(INDEX_ENP_A+enPassantFile)];
 		}
+		return hashCode;
 	}
 	
-	public void update(GenericMove move) {
+	// Used to update the zobrist hash code for a position when that position changes due to a move
+	public long update(long hashCode, PositionManager pm, GenericMove move) {
 		int fromFile, fromRank, toRank, toFile;
 		fromFile = IntFile.valueOf(move.from.file);
 		fromRank = IntRank.valueOf(move.from.rank);
 		toFile = IntFile.valueOf(move.to.file);
 		toRank = IntRank.valueOf(move.to.rank);
 		// Also need what piece type, colour, en passant, castling, side to move?
+		// deal with non-capture moves
+		pm.getOnMove();
+		
+		return hashCode;
 	}
 }
