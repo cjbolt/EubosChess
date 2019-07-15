@@ -17,6 +17,8 @@ import eubos.board.pieces.Rook;
 
 public class ZobristHashCode {
 	
+	public long hashCode;
+	
 	private static final int NUM_COLOURS = 2;
 	private static final int NUM_PIECES = 6;
 	private static final int NUM_SQUARES = 64;
@@ -49,20 +51,28 @@ public class ZobristHashCode {
 	private static final int INDEX_KING = 5;
 	private static final int INDEX_PIECE_ERROR = -1;
 		
-	private long prnLookupTable[] = new long[LENGTH_TABLE];
-
-	// Set up the pseudo random number lookup table that shall be used
-	public ZobristHashCode() {
+	static private final long prnLookupTable[] = new long[LENGTH_TABLE];
+	static {
 		Random randGen = new Random();
 		for (int index = 0; index < prnLookupTable.length; index++) 
 				// TODO: investigate using a better PRN generator here...
 				prnLookupTable[index] = randGen.nextLong();
+	};
+
+	// Set up the pseudo random number lookup table that shall be used
+	public ZobristHashCode(PositionManager pm) {
+		try {
+			this.generate(pm);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	// Generate a hash code for a position from scratch
 	public long generate(PositionManager pm) throws Exception {
 		// add pieces
-		long hashCode = 0;
+		hashCode = 0;
 		for (Piece currPiece : pm.getTheBoard()) {
 			hashCode ^= getPrnForPiece(currPiece.getSquare(), currPiece);
 		}
@@ -119,7 +129,7 @@ public class ZobristHashCode {
 	}
 	
 	// Used to update the Zobrist hash code for a position when that position changes due to a move
-	public long update(long hashCode, PositionManager pm, GenericMove move) throws Exception {
+	public long update(PositionManager pm, GenericMove move) throws Exception {
 		// deal with non-capture moves
 		Piece piece = pm.getTheBoard().getPieceAtSquare(move.to);
 		hashCode ^= getPrnForPiece(move.to, piece); // to
