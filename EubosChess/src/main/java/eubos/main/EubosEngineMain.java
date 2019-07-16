@@ -24,11 +24,13 @@ import com.fluxchess.jcpi.models.*;
 import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece.Colour;
 import eubos.position.PositionManager;
+import eubos.position.ZobristHashCode;
 import eubos.search.FixedTimeMoveSearcher;
 import eubos.search.IterativeMoveSearcher;
 import eubos.search.FixedDepthMoveSearcher;
 import eubos.search.AbstractMoveSearcher;
 //import eubos.search.SearchDebugAgent;
+
 
 
 import java.text.SimpleDateFormat;
@@ -79,7 +81,7 @@ public class EubosEngineMain extends AbstractEngine {
 		pm = new PositionManager(command.board.toString());
 		try {
 			for (GenericMove nextMove : command.moves) {
-				pm.performMove( null, nextMove );
+				pm.performMove( new ZobristHashCode(pm), nextMove );
 			}
 		} catch(InvalidPieceException e ) {
 			System.out.println( 

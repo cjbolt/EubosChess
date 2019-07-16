@@ -153,7 +153,8 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		updateSquarePieceOccupies(move.to, pieceToMove);
 		// Update hash code
 		try {
-			hash.update(this, move, captureTarget);
+			if (hash != null)
+				hash.update(move, captureTarget);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -188,6 +189,14 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		}
 		// Restore en passant target
 		theBoard.setEnPassantTargetSq(tm.getEnPassantTarget());
+		// Update hash code
+		try {
+			if (hash != null)
+				hash.update(reversedMove, tm.isCapture() ? tm.getCapturedPiece() : null);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		// Update onMove flag
 		onMove = Piece.Colour.getOpposite(onMove);
 	}

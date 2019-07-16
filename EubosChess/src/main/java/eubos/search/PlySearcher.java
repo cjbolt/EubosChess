@@ -20,7 +20,6 @@ import eubos.position.IGenerateMoveList;
 import eubos.position.IPositionAccessors;
 import eubos.position.IScoreMate;
 import eubos.position.IEvaluate;
-import eubos.position.PositionManager;
 import eubos.position.ZobristHashCode;
 
 public class PlySearcher {
@@ -187,7 +186,7 @@ public class PlySearcher {
 					// Handle en passant case				
 					modification = Pawn.MATERIAL_VALUE;
 				}
-				pm.performMove(new ZobristHashCode((PositionManager) pm),prevMove);
+				pm.performMove(new ZobristHashCode(pos),prevMove);
 				// note this is after the event so opposite colour
 				if (pos.getOnMove() == Colour.black) {
 					modification = -modification;
@@ -246,7 +245,7 @@ public class PlySearcher {
 
 	private void doPerformMove(GenericMove currMove) throws InvalidPieceException {
 		SearchDebugAgent.printPerformMove(currPly, currMove);
-		pm.performMove(hash,currMove);
+		pm.performMove(hash, currMove);
 	}
 	
 	private void doUnperformMove(GenericMove currMove) throws InvalidPieceException {

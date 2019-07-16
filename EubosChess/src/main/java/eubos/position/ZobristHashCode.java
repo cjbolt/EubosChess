@@ -50,19 +50,22 @@ public class ZobristHashCode {
 	private static final int INDEX_QUEEN = 4;
 	private static final int INDEX_KING = 5;
 	private static final int INDEX_PIECE_ERROR = -1;
+	
+	private IPositionAccessors pos;
 		
 	static private final long prnLookupTable[] = new long[LENGTH_TABLE];
 	static {
+		// Set up the pseudo random number lookup table that shall be used
 		Random randGen = new Random();
 		for (int index = 0; index < prnLookupTable.length; index++) 
 				// TODO: investigate using a better PRN generator here...
 				prnLookupTable[index] = randGen.nextLong();
 	};
 
-	// Set up the pseudo random number lookup table that shall be used
 	public ZobristHashCode(IPositionAccessors pm) {
+		pos = pm;
 		try {
-			this.generate(pm);
+			this.generate();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -70,14 +73,14 @@ public class ZobristHashCode {
 	}
 	
 	// Generate a hash code for a position from scratch
-	public long generate(IPositionAccessors pm) throws Exception {
+	public long generate() throws Exception {
 		// add pieces
 		hashCode = 0;
-		for (Piece currPiece : pm.getTheBoard()) {
+		for (Piece currPiece : pos.getTheBoard()) {
 			hashCode ^= getPrnForPiece(currPiece.getSquare(), currPiece);
 		}
 		// add castling
-		int castlingMask = pm.getCastlingAvaillability();	
+		int castlingMask = pos.getCastlingAvaillability();	
 		if ((castlingMask & PositionManager.WHITE_KINGSIDE)==PositionManager.WHITE_KINGSIDE)
 			hashCode ^= prnLookupTable[INDEX_WHITE_KSC];
 		if ((castlingMask & PositionManager.WHITE_QUEENSIDE)==PositionManager.WHITE_QUEENSIDE)
@@ -87,11 +90,11 @@ public class ZobristHashCode {
 		if ((castlingMask & PositionManager.BLACK_QUEENSIDE)==PositionManager.BLACK_QUEENSIDE)
 			hashCode ^= prnLookupTable[INDEX_BLACK_QSC];
 		// add on move
-		if (pm.getOnMove()==Piece.Colour.black) {
+		if (pos.getOnMove()==Piece.Colour.black) {
 			hashCode ^= prnLookupTable[INDEX_SIDE_TO_MOVE];
 		}
 		// add en passant
-		GenericPosition enPassant = pm.getTheBoard().getEnPassantTargetSq();
+		GenericPosition enPassant = pos.getTheBoard().getEnPassantTargetSq();
 		if (enPassant!=null) {
 			int enPassantFile = IntFile.valueOf(enPassant.file);
 			hashCode ^= prnLookupTable[(INDEX_ENP_A+enPassantFile)];
@@ -129,9 +132,9 @@ public class ZobristHashCode {
 	}
 	
 	// Used to update the Zobrist hash code for a position when that position changes due to a move
-	public long update(IPositionAccessors pm, GenericMove move, Piece captureTarget) throws Exception {
+	public long update(GenericMove move, Piece captureTarget) throws Exception {
 		// deal with non-capture moves
-		Piece piece = pm.getTheBoard().getPieceAtSquare(move.to);
+		Piece piece = pos.getTheBoard().getPieceAtSquare(move.to);
 		hashCode ^= getPrnForPiece(move.to, piece); // to
 		hashCode ^= getPrnForPiece(move.from, piece); // from
 		

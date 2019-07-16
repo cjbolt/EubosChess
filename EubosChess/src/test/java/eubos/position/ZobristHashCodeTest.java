@@ -25,28 +25,16 @@ public class ZobristHashCodeTest {
 	}
 	
 	@Test
-	public void test_generate_DiffPosition_GivesDiffHashCode() throws Exception {
-		GenericMove move = new GenericMove("e2e4");
-		PositionManager pm = new PositionManager("8/8/8/8/8/8/4P3/8 w - - 0 1");
-		sut = new ZobristHashCode(pm);
-		long initialHashCode = sut.hashCode;
-		pm.performMove(null, move);
-		long hashCode2 = sut.generate(pm);
-		assertNotEquals(initialHashCode, hashCode2);
-	}
-	
-	@Test
 	public void test_update_PerformUnperformMove_GivesSameHashCode() throws Exception {
 		GenericMove move = new GenericMove("e2e4");
 		PositionManager pm = new PositionManager("8/8/8/8/8/8/4P3/8 w - - 0 1");
 		sut = new ZobristHashCode(pm);
+		long initialHashCode = sut.hashCode;
 		
-		pm.performMove(null, move);
-		sut.update(pm, move, null);
-		pm.unperformMove(null);
+		pm.performMove(sut, move);
+		pm.unperformMove(sut);
 		
-		long testHashCode = sut.update(pm, new GenericMove(move.to,move.from), null);
-		assertEquals(testHashCode, sut.hashCode);
+		assertEquals(initialHashCode, sut.hashCode);
 	}
 	
 	@Test
