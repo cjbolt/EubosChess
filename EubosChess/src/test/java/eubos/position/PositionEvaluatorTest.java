@@ -50,7 +50,7 @@ public class PositionEvaluatorTest {
 		PositionManager pm = new PositionManager("k7/8/8/8/8/8/8/4K2R w K - - -");
 		
 		try {
-			pm.performMove(new GenericMove("e1g1"));
+			pm.performMove(null, new GenericMove("e1g1"));
 		} catch (InvalidPieceException e) {
 			e.printStackTrace();
 		} catch (IllegalNotationException e) {
@@ -74,11 +74,11 @@ public class PositionEvaluatorTest {
 		PositionManager pm = new PositionManager("k7/8/8/8/8/8/8/4K2R w K - - -");
 		
 		try {
-			pm.performMove(new GenericMove("e1g1"));
-			pm.performMove(new GenericMove("a8b8"));
-			pm.performMove(new GenericMove("f1d1"));
-			pm.performMove(new GenericMove("b8a8"));
-			pm.performMove(new GenericMove("d1d8"));
+			pm.performMove(null, new GenericMove("e1g1"));
+			pm.performMove(null, new GenericMove("a8b8"));
+			pm.performMove(null, new GenericMove("f1d1"));
+			pm.performMove(null, new GenericMove("b8a8"));
+			pm.performMove(null, new GenericMove("d1d8"));
 		} catch (InvalidPieceException e) {
 			e.printStackTrace();
 		} catch (IllegalNotationException e) {

@@ -46,7 +46,7 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 	public static final int WHITE_QUEENSIDE = 1<<1;
 	public static final int BLACK_KINGSIDE = 1<<2;
 	public static final int BLACK_QUEENSIDE = 1<<3;
-	int getCastlingAvaillability() {
+	public int getCastlingAvaillability() {
 		int castleMask = 0;
 		castleMask |= (castling.isWhiteKsAvail() ? WHITE_KINGSIDE : 0);
 		castleMask |= (castling.isWhiteQsAvail() ? WHITE_QUEENSIDE : 0);
@@ -130,7 +130,7 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		setKing();
 	}
 	
-	public void performMove( GenericMove move ) throws InvalidPieceException {
+	public void performMove( ZobristHashCode hash, GenericMove move ) throws InvalidPieceException {
 		// Get the piece to move
 		Piece pieceToMove = theBoard.pickUpPieceAtSquare( move.from );
 		// Flag if move is an en passant capture
@@ -151,13 +151,20 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq, castling.getFenFlags()));
 		// Update the piece's square.
 		updateSquarePieceOccupies(move.to, pieceToMove);
+		// Update hash code
+		try {
+			hash.update(this, move, captureTarget);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		// update castling flags
 		castling.updateFlags(pieceToMove, move);
 		// Update onMove
 		onMove = Colour.getOpposite(onMove);
 	}
 	
-	public void unperformMove() throws InvalidPieceException {
+	public void unperformMove( ZobristHashCode hash ) throws InvalidPieceException {
 		if ( moveTracker.isEmpty())
 			return;
 		theBoard.setEnPassantTargetSq(null);

@@ -60,7 +60,7 @@ public class ZobristHashCode {
 	};
 
 	// Set up the pseudo random number lookup table that shall be used
-	public ZobristHashCode(PositionManager pm) {
+	public ZobristHashCode(IPositionAccessors pm) {
 		try {
 			this.generate(pm);
 		} catch (Exception e) {
@@ -70,7 +70,7 @@ public class ZobristHashCode {
 	}
 	
 	// Generate a hash code for a position from scratch
-	public long generate(PositionManager pm) throws Exception {
+	public long generate(IPositionAccessors pm) throws Exception {
 		// add pieces
 		hashCode = 0;
 		for (Piece currPiece : pm.getTheBoard()) {
@@ -129,11 +129,15 @@ public class ZobristHashCode {
 	}
 	
 	// Used to update the Zobrist hash code for a position when that position changes due to a move
-	public long update(PositionManager pm, GenericMove move) throws Exception {
+	public long update(IPositionAccessors pm, GenericMove move, Piece captureTarget) throws Exception {
 		// deal with non-capture moves
 		Piece piece = pm.getTheBoard().getPieceAtSquare(move.to);
 		hashCode ^= getPrnForPiece(move.to, piece); // to
 		hashCode ^= getPrnForPiece(move.from, piece); // from
+		
+		// Remove capture Target
+		if (captureTarget != null)
+			hashCode ^= getPrnForPiece(captureTarget.getSquare(), captureTarget);
 		
 		// deal with side on move
 	    hashCode ^= prnLookupTable[INDEX_SIDE_TO_MOVE];

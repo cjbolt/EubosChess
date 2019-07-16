@@ -43,7 +43,7 @@ public class PawnTest_Black extends PawnTest {
 		classUnderTest = addBlackPawn( GenericPosition.e4 );
 		addWhitePawn( GenericPosition.f2 );
 		pm = new PositionManager( new Board( pl ), Colour.black );
-		pm.performMove( new GenericMove( GenericPosition.f2, GenericPosition.f4 ));
+		pm.performMove( null, new GenericMove( GenericPosition.f2, GenericPosition.f4 ));
 		ml = classUnderTest.generateMoves( pm.getTheBoard() );
 		expectedMove = new GenericMove( GenericPosition.e4, GenericPosition.f3 );
 		assertTrue( ml.contains( expectedMove ));
@@ -55,7 +55,7 @@ public class PawnTest_Black extends PawnTest {
 		classUnderTest = addBlackPawn( GenericPosition.e4 );
 		pl.add( new Knight( Piece.Colour.white, GenericPosition.f2 ));
 		pm = new PositionManager( new Board( pl ), Colour.black );
-		pm.performMove( new GenericMove( GenericPosition.f2, GenericPosition.f4 ));
+		pm.performMove( null, new GenericMove( GenericPosition.f2, GenericPosition.f4 ));
 		ml = classUnderTest.generateMoves( pm.getTheBoard() );
 		expectedMove = new GenericMove( GenericPosition.e4, GenericPosition.f3 );
 		assertFalse( ml.contains( expectedMove ));
@@ -67,7 +67,7 @@ public class PawnTest_Black extends PawnTest {
 		classUnderTest = addBlackPawn( GenericPosition.e4 );
 		addWhitePawn( GenericPosition.d2 );
 		pm = new PositionManager( new Board( pl ), Colour.black );
-		pm.performMove( new GenericMove( GenericPosition.d2, GenericPosition.d4 ));
+		pm.performMove( null, new GenericMove( GenericPosition.d2, GenericPosition.d4 ));
 		ml = classUnderTest.generateMoves( pm.getTheBoard() );
 		expectedMove = new GenericMove( GenericPosition.e4, GenericPosition.d3 );
 		assertTrue( ml.contains( expectedMove ));
@@ -79,7 +79,7 @@ public class PawnTest_Black extends PawnTest {
 		classUnderTest = addBlackPawn( GenericPosition.e4 );
 		pl.add( new Knight( Piece.Colour.white, GenericPosition.d2 ));
 		pm = new PositionManager( new Board( pl ), Colour.black );
-		pm.performMove( new GenericMove( GenericPosition.d2, GenericPosition.d4 ));
+		pm.performMove( null, new GenericMove( GenericPosition.d2, GenericPosition.d4 ));
 		ml = classUnderTest.generateMoves( pm.getTheBoard() );
 		expectedMove = new GenericMove( GenericPosition.e4, GenericPosition.d3 );
 		assertFalse( ml.contains( expectedMove ));
@@ -91,7 +91,7 @@ public class PawnTest_Black extends PawnTest {
 		classUnderTest = addBlackPawn( GenericPosition.a4 );
 		addWhitePawn( GenericPosition.b2 );
 		pm = new PositionManager( new Board( pl ), Colour.black );
-		pm.performMove( new GenericMove( GenericPosition.b2, GenericPosition.b4 ));
+		pm.performMove( null, new GenericMove( GenericPosition.b2, GenericPosition.b4 ));
 		ml = classUnderTest.generateMoves( pm.getTheBoard() );
 		expectedMove = new GenericMove( GenericPosition.a4, GenericPosition.b3 );
 		assertTrue( ml.contains( expectedMove ));
@@ -103,7 +103,7 @@ public class PawnTest_Black extends PawnTest {
 		classUnderTest = addBlackPawn( GenericPosition.a4 );
 		addWhitePawn( GenericPosition.b4 );
 		pm = new PositionManager( new Board( pl ), Colour.black );
-		pm.performMove( new GenericMove( GenericPosition.b4, GenericPosition.b5 ));
+		pm.performMove( null, new GenericMove( GenericPosition.b4, GenericPosition.b5 ));
 		ml = classUnderTest.generateMoves( pm.getTheBoard() );
 		expectedMove = new GenericMove( GenericPosition.a4, GenericPosition.b3 );
 		assertFalse( ml.contains( expectedMove ));
@@ -115,7 +115,7 @@ public class PawnTest_Black extends PawnTest {
 		classUnderTest = addBlackPawn( GenericPosition.h4 );
 		addWhitePawn( GenericPosition.g2 );
 		pm = new PositionManager( new Board( pl ), Colour.black );
-		pm.performMove( new GenericMove( GenericPosition.g2, GenericPosition.g4 ));
+		pm.performMove( null, new GenericMove( GenericPosition.g2, GenericPosition.g4 ));
 		ml = classUnderTest.generateMoves( pm.getTheBoard() );
 		expectedMove = new GenericMove( GenericPosition.h4, GenericPosition.g3 );
 		assertTrue( ml.contains( expectedMove ));
@@ -127,8 +127,8 @@ public class PawnTest_Black extends PawnTest {
 		classUnderTest = addBlackPawn( GenericPosition.e7 );
 		addWhitePawn( GenericPosition.e2 );
 		pm = new PositionManager( new Board( pl ), Colour.black );
-		pm.performMove( new GenericMove( GenericPosition.e7, GenericPosition.e6 ));
-		pm.performMove( new GenericMove( GenericPosition.e2, GenericPosition.e4 ));
+		pm.performMove( null, new GenericMove( GenericPosition.e7, GenericPosition.e6 ));
+		pm.performMove( null, new GenericMove( GenericPosition.e2, GenericPosition.e4 ));
 		ml = classUnderTest.generateMoves( pm.getTheBoard() );
 		expectedMove = new GenericMove( GenericPosition.e6, GenericPosition.e5 );
 		assertTrue( ml.size() == 1 );

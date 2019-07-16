@@ -10,4 +10,5 @@ public interface IPositionAccessors {
 	public boolean isKingInCheck();
 	public int getMoveNumber();
 	public boolean lastMoveWasCapture();
+	public int getCastlingAvaillability();
 }

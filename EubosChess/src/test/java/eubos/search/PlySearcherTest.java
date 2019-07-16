@@ -21,6 +21,7 @@ import eubos.position.IEvaluate;
 import eubos.position.IGenerateMoveList;
 import eubos.position.IPositionAccessors;
 import eubos.position.IScoreMate;
+import eubos.position.ZobristHashCode;
 import static org.mockito.Mockito.*;
 
 public class PlySearcherTest {
@@ -118,7 +119,7 @@ public class PlySearcherTest {
 		classUnderTest.terminateFindMove();
 		score = classUnderTest.searchPly();
 		
-		verify(mock_pm, never()).performMove(input_ml.get(0));
+		verify(mock_pm, never()).performMove(null, input_ml.get(0));
 	}
 
 	@Test
@@ -131,7 +132,7 @@ public class PlySearcherTest {
 		
 		score = classUnderTest.searchPly();
 		
-		verify(mock_pm).performMove(input_ml.get(0));
+		verify(mock_pm).performMove(isA(ZobristHashCode.class), eq(input_ml.get(0)));
 	}
 	
 	@Test

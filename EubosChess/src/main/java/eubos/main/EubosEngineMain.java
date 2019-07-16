@@ -79,7 +79,7 @@ public class EubosEngineMain extends AbstractEngine {
 		pm = new PositionManager(command.board.toString());
 		try {
 			for (GenericMove nextMove : command.moves) {
-				pm.performMove( nextMove );
+				pm.performMove( null, nextMove );
 			}
 		} catch(InvalidPieceException e ) {
 			System.out.println( 

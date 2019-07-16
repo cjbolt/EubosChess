@@ -20,6 +20,8 @@ import eubos.position.IGenerateMoveList;
 import eubos.position.IPositionAccessors;
 import eubos.position.IScoreMate;
 import eubos.position.IEvaluate;
+import eubos.position.PositionManager;
+import eubos.position.ZobristHashCode;
 
 public class PlySearcher {
 	
@@ -42,6 +44,8 @@ public class PlySearcher {
 	private Colour initialOnMove;	
 	private List<GenericMove> lastPc;
 	private int searchDepthPly;
+	
+	private ZobristHashCode hash;
 	
 	int currPly = 0;
 	
@@ -70,6 +74,7 @@ public class PlySearcher {
 		// Register initialOnMove
 		initialOnMove = pos.getOnMove();
 		this.st = new ScoreTracker(searchDepthPly, initialOnMove == Colour.white);
+		this.hash = new ZobristHashCode(pos);
 	}
 	
 	synchronized void terminateFindMove() { terminate = true; }
@@ -166,7 +171,7 @@ public class PlySearcher {
 			SquareAttackEvaluator sqAttackEval = new SquareAttackEvaluator( pos.getTheBoard(), prevMove.to, Colour.getOpposite(pos.getOnMove()));
 			if (sqAttackEval.isAttacked()) {
 				// treat the score with a pinch of salt, as the piece could be recaptured.
-				pm.unperformMove();
+				pm.unperformMove(null);
 				Piece capturedPiece = pos.getTheBoard().getPieceAtSquare(prevMove.to);
 				if (capturedPiece instanceof Queen) {
 					modification = Queen.MATERIAL_VALUE;
@@ -182,7 +187,7 @@ public class PlySearcher {
 					// Handle en passant case				
 					modification = Pawn.MATERIAL_VALUE;
 				}
-				pm.performMove(prevMove);
+				pm.performMove(new ZobristHashCode((PositionManager) pm),prevMove);
 				// note this is after the event so opposite colour
 				if (pos.getOnMove() == Colour.black) {
 					modification = -modification;
@@ -241,12 +246,12 @@ public class PlySearcher {
 
 	private void doPerformMove(GenericMove currMove) throws InvalidPieceException {
 		SearchDebugAgent.printPerformMove(currPly, currMove);
-		pm.performMove(currMove);
+		pm.performMove(hash,currMove);
 	}
 	
 	private void doUnperformMove(GenericMove currMove) throws InvalidPieceException {
 		SearchDebugAgent.printUndoMove(currPly, currMove);
-		pm.unperformMove();
+		pm.unperformMove(hash);
 	}	
 
 	private boolean handleBackupOfScore(int alphaBetaCutOff, GenericMove currMove, int positionScore) {
