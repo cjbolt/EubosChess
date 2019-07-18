@@ -2,6 +2,7 @@ package eubos.position;
 
 import java.util.Random;
 
+import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntFile;
@@ -52,6 +53,8 @@ public class ZobristHashCode {
 	private static final int INDEX_PIECE_ERROR = -1;
 	
 	private IPositionAccessors pos;
+	
+	private GenericFile prevEnPassantFile = null;
 		
 	static private final long prnLookupTable[] = new long[LENGTH_TABLE];
 	static {
@@ -96,6 +99,7 @@ public class ZobristHashCode {
 		// add en passant
 		GenericPosition enPassant = pos.getTheBoard().getEnPassantTargetSq();
 		if (enPassant!=null) {
+			prevEnPassantFile = enPassant.file;
 			int enPassantFile = IntFile.valueOf(enPassant.file);
 			hashCode ^= prnLookupTable[(INDEX_ENP_A+enPassantFile)];
 		}
@@ -131,8 +135,18 @@ public class ZobristHashCode {
 		return prnLookupTable[lookupIndex];
 	}
 	
+	private void setTargetFile(GenericFile enPasFile) {
+		prevEnPassantFile = enPasFile;
+		hashCode ^= prnLookupTable[(INDEX_ENP_A+IntFile.valueOf(enPasFile))];
+	}
+	
+	private void clearTargetFile() {
+		hashCode ^= prnLookupTable[(INDEX_ENP_A+IntFile.valueOf(prevEnPassantFile))];
+		prevEnPassantFile = null;
+	}
+	
 	// Used to update the Zobrist hash code for a position when that position changes due to a move
-	public long update(GenericMove move, Piece captureTarget) throws Exception {
+	public long update(GenericMove move, Piece captureTarget, Boolean setEnPassant) throws Exception {
 		// deal with non-capture moves
 		Piece piece = pos.getTheBoard().getPieceAtSquare(move.to);
 		hashCode ^= getPrnForPiece(move.to, piece); // to
@@ -141,6 +155,15 @@ public class ZobristHashCode {
 		// Remove capture Target
 		if (captureTarget != null)
 			hashCode ^= getPrnForPiece(captureTarget.getSquare(), captureTarget);
+		
+		// deal with en Passant moves
+		if (setEnPassant) {
+			setTargetFile(move.from.file);
+		} else if (prevEnPassantFile != null) {
+			clearTargetFile();
+		} else {
+			// no action needed
+		}
 		
 		// deal with side on move
 	    hashCode ^= prnLookupTable[INDEX_SIDE_TO_MOVE];

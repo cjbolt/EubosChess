@@ -144,7 +144,7 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		if (pieceToMove instanceof King)
 			castling.performSecondaryCastlingMove(move);
 		// Handle any initial 2 square pawn moves that are subject to en passant rule
-		checkToSetEnPassantTargetSq(move, pieceToMove);
+		Boolean isEnPassant = checkToSetEnPassantTargetSq(move, pieceToMove);
 		// Handle capture target (note, this will be null if the move is not a capture)
 		Piece captureTarget = getCaptureTarget(move, pieceToMove, isEnPassantCapture);
 		// Store the necessary information to undo this move on the move tracker stack
@@ -154,7 +154,7 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		// Update hash code
 		try {
 			if (hash != null)
-				hash.update(move, captureTarget);
+				hash.update(move, captureTarget, isEnPassant);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -188,11 +188,15 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 			theBoard.setPieceAtSquare(tm.getCapturedPiece());
 		}
 		// Restore en passant target
-		theBoard.setEnPassantTargetSq(tm.getEnPassantTarget());
+		GenericPosition enPasTargetSq = tm.getEnPassantTarget();
+		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		// Update hash code
 		try {
-			if (hash != null)
-				hash.update(reversedMove, tm.isCapture() ? tm.getCapturedPiece() : null);
+			if (hash != null) {
+				Piece capturedPiece = tm.isCapture() ? tm.getCapturedPiece() : null;
+				Boolean setEnPassant = (enPasTargetSq != null);
+				hash.update(reversedMove, capturedPiece, setEnPassant);
+			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -249,7 +253,8 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		return enPassantCapture;
 	}
 	
-	private void checkToSetEnPassantTargetSq(GenericMove move, Piece pieceToMove) {
+	private Boolean checkToSetEnPassantTargetSq(GenericMove move, Piece pieceToMove) {
+		Boolean isEnPassantMove = false;
 		if ( pieceToMove instanceof Pawn ) {
 			Pawn pawnPiece = (Pawn) pieceToMove;
 			if ( pawnPiece.isAtInitialPosition()) {
@@ -257,15 +262,18 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 					if (move.to.rank == GenericRank.R4) {
 						GenericPosition enPassantWhite = GenericPosition.valueOf(move.to.file,GenericRank.R3);
 						theBoard.setEnPassantTargetSq(enPassantWhite);
+						isEnPassantMove = true;
 					}
 				} else {
 					if (move.to.rank == GenericRank.R5) {
 						GenericPosition enPassantBlack = GenericPosition.valueOf(move.to.file,GenericRank.R6);
 						theBoard.setEnPassantTargetSq(enPassantBlack);
+						isEnPassantMove = true;
 					}						
 				}
 			}
 		}
+		return isEnPassantMove;
 	}
 	
 	private Piece getCaptureTarget(GenericMove move, Piece pieceToMove, boolean enPassantCapture) {
