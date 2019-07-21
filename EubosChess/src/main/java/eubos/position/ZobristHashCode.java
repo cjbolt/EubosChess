@@ -55,6 +55,7 @@ public class ZobristHashCode {
 	private IPositionAccessors pos;
 	
 	private GenericFile prevEnPassantFile = null;
+	private int prevCastlingMask = 0;
 		
 	static private final long prnLookupTable[] = new long[LENGTH_TABLE];
 	static {
@@ -83,14 +84,14 @@ public class ZobristHashCode {
 			hashCode ^= getPrnForPiece(currPiece.getSquare(), currPiece);
 		}
 		// add castling
-		int castlingMask = pos.getCastlingAvaillability();	
-		if ((castlingMask & PositionManager.WHITE_KINGSIDE)==PositionManager.WHITE_KINGSIDE)
+		prevCastlingMask = pos.getCastlingAvaillability();	
+		if ((prevCastlingMask & PositionManager.WHITE_KINGSIDE)==PositionManager.WHITE_KINGSIDE)
 			hashCode ^= prnLookupTable[INDEX_WHITE_KSC];
-		if ((castlingMask & PositionManager.WHITE_QUEENSIDE)==PositionManager.WHITE_QUEENSIDE)
+		if ((prevCastlingMask & PositionManager.WHITE_QUEENSIDE)==PositionManager.WHITE_QUEENSIDE)
 			hashCode ^= prnLookupTable[INDEX_WHITE_QSC];
-		if ((castlingMask & PositionManager.BLACK_KINGSIDE)==PositionManager.BLACK_KINGSIDE)
+		if ((prevCastlingMask & PositionManager.BLACK_KINGSIDE)==PositionManager.BLACK_KINGSIDE)
 			hashCode ^= prnLookupTable[INDEX_BLACK_KSC];
-		if ((castlingMask & PositionManager.BLACK_QUEENSIDE)==PositionManager.BLACK_QUEENSIDE)
+		if ((prevCastlingMask & PositionManager.BLACK_QUEENSIDE)==PositionManager.BLACK_QUEENSIDE)
 			hashCode ^= prnLookupTable[INDEX_BLACK_QSC];
 		// add on move
 		if (pos.getOnMove()==Piece.Colour.black) {
@@ -164,6 +165,22 @@ public class ZobristHashCode {
 		} else {
 			// no action needed
 		}
+		
+		// Deal with castling flags
+		int currentCastlingFlags = pos.getCastlingAvaillability();
+		int delta = currentCastlingFlags ^ this.prevCastlingMask;
+		if (delta != 0)
+		{
+			if ((delta & PositionManager.WHITE_KINGSIDE)==PositionManager.WHITE_KINGSIDE)
+				hashCode ^= prnLookupTable[INDEX_WHITE_KSC];
+			if ((delta & PositionManager.WHITE_QUEENSIDE)==PositionManager.WHITE_QUEENSIDE)
+				hashCode ^= prnLookupTable[INDEX_WHITE_QSC];
+			if ((delta & PositionManager.BLACK_KINGSIDE)==PositionManager.BLACK_KINGSIDE)
+				hashCode ^= prnLookupTable[INDEX_BLACK_KSC];
+			if ((delta & PositionManager.BLACK_QUEENSIDE)==PositionManager.BLACK_QUEENSIDE)
+				hashCode ^= prnLookupTable[INDEX_BLACK_QSC];
+		}
+		this.prevCastlingMask = currentCastlingFlags;
 		
 		// deal with side on move
 	    hashCode ^= prnLookupTable[INDEX_SIDE_TO_MOVE];
