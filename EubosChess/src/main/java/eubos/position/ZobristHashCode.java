@@ -5,6 +5,7 @@ import java.util.Random;
 import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
+import com.fluxchess.jcpi.models.IllegalNotationException;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
@@ -42,7 +43,7 @@ public class ZobristHashCode {
 	private static final int INDEX_ENP_F = INDEX_ENP_E+1;
 	private static final int INDEX_ENP_G = INDEX_ENP_F+1;
 	private static final int INDEX_ENP_H = INDEX_ENP_G+1;
-	private static final int LENGTH_TABLE = INDEX_ENP_H;
+	private static final int LENGTH_TABLE = INDEX_ENP_H+1;
 	
 	private static final int INDEX_PAWN = 0;
 	private static final int INDEX_KNIGHT = 1;
@@ -95,7 +96,7 @@ public class ZobristHashCode {
 			hashCode ^= prnLookupTable[INDEX_BLACK_QSC];
 		// add on move
 		if (pos.getOnMove()==Piece.Colour.black) {
-			hashCode ^= prnLookupTable[INDEX_SIDE_TO_MOVE];
+			doOnMove();
 		}
 		// add en passant
 		GenericPosition enPassant = pos.getTheBoard().getEnPassantTargetSq();
@@ -136,6 +137,33 @@ public class ZobristHashCode {
 		return prnLookupTable[lookupIndex];
 	}
 	
+	// Used to update the Zobrist hash code whenever a position changes due to a move being performed
+	public void update(GenericMove move, Piece captureTarget, Boolean setEnPassant) throws Exception {
+		Piece piece = doBasicMove(move);
+		
+		doCapturedPiece(captureTarget);
+		
+		doEnPassant(move, setEnPassant);
+		
+		doSecondaryMove(move, piece);
+		
+		doCastlingFlags();
+		
+		doOnMove();
+	}
+
+	protected Piece doBasicMove(GenericMove move) throws Exception {
+		Piece piece = pos.getTheBoard().getPieceAtSquare(move.to);
+		hashCode ^= getPrnForPiece(move.to, piece);
+		hashCode ^= getPrnForPiece(move.from, piece);
+		return piece;
+	}
+
+	protected void doCapturedPiece(Piece captureTarget) throws Exception {
+		if (captureTarget != null)
+			hashCode ^= getPrnForPiece(captureTarget.getSquare(), captureTarget);
+	}
+
 	private void setTargetFile(GenericFile enPasFile) {
 		prevEnPassantFile = enPasFile;
 		hashCode ^= prnLookupTable[(INDEX_ENP_A+IntFile.valueOf(enPasFile))];
@@ -146,18 +174,7 @@ public class ZobristHashCode {
 		prevEnPassantFile = null;
 	}
 	
-	// Used to update the Zobrist hash code for a position when that position changes due to a move
-	public long update(GenericMove move, Piece captureTarget, Boolean setEnPassant) throws Exception {
-		// deal with non-capture moves
-		Piece piece = pos.getTheBoard().getPieceAtSquare(move.to);
-		hashCode ^= getPrnForPiece(move.to, piece); // to
-		hashCode ^= getPrnForPiece(move.from, piece); // from
-		
-		// Remove capture Target
-		if (captureTarget != null)
-			hashCode ^= getPrnForPiece(captureTarget.getSquare(), captureTarget);
-		
-		// deal with en Passant moves
+	protected void doEnPassant(GenericMove move, Boolean setEnPassant) {
 		if (setEnPassant) {
 			setTargetFile(move.from.file);
 		} else if (prevEnPassantFile != null) {
@@ -165,26 +182,81 @@ public class ZobristHashCode {
 		} else {
 			// no action needed
 		}
-		
-		// Deal with castling flags
+	}
+
+	protected void doOnMove() {
+	    hashCode ^= prnLookupTable[INDEX_SIDE_TO_MOVE];
+	}
+
+	protected void doCastlingFlags() {
 		int currentCastlingFlags = pos.getCastlingAvaillability();
 		int delta = currentCastlingFlags ^ this.prevCastlingMask;
 		if (delta != 0)
 		{
 			if ((delta & PositionManager.WHITE_KINGSIDE)==PositionManager.WHITE_KINGSIDE)
+			{
 				hashCode ^= prnLookupTable[INDEX_WHITE_KSC];
-			if ((delta & PositionManager.WHITE_QUEENSIDE)==PositionManager.WHITE_QUEENSIDE)
+			}
+			if ((delta & PositionManager.WHITE_QUEENSIDE)==PositionManager.WHITE_QUEENSIDE) {
 				hashCode ^= prnLookupTable[INDEX_WHITE_QSC];
-			if ((delta & PositionManager.BLACK_KINGSIDE)==PositionManager.BLACK_KINGSIDE)
+			}
+			if ((delta & PositionManager.BLACK_KINGSIDE)==PositionManager.BLACK_KINGSIDE) {
 				hashCode ^= prnLookupTable[INDEX_BLACK_KSC];
-			if ((delta & PositionManager.BLACK_QUEENSIDE)==PositionManager.BLACK_QUEENSIDE)
+			}
+			if ((delta & PositionManager.BLACK_QUEENSIDE)==PositionManager.BLACK_QUEENSIDE) {
 				hashCode ^= prnLookupTable[INDEX_BLACK_QSC];
+			}
 		}
 		this.prevCastlingMask = currentCastlingFlags;
-		
-		// deal with side on move
-	    hashCode ^= prnLookupTable[INDEX_SIDE_TO_MOVE];
-		
-		return hashCode;
+	}
+
+	protected void doSecondaryMove(GenericMove move, Piece piece)
+			throws IllegalNotationException, Exception {
+		if (piece instanceof King) {
+			if (move.equals(new GenericMove("e1g1"))) {
+				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.f1);
+				hashCode ^= getPrnForPiece(GenericPosition.f1, piece); // to
+				hashCode ^= getPrnForPiece(GenericPosition.h1, piece); // from
+			}
+			else if (move.equals(new GenericMove("e1c1"))) {
+				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.d1);
+				hashCode ^= getPrnForPiece(GenericPosition.d1, piece); // to
+				hashCode ^= getPrnForPiece(GenericPosition.a1, piece); // from
+			}
+			else if (move.equals(new GenericMove("e8g8"))) {
+				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.f8);
+				hashCode ^= getPrnForPiece(GenericPosition.f8, piece); // to
+				hashCode ^= getPrnForPiece(GenericPosition.h8, piece); // from
+			}
+			else if (move.equals(new GenericMove("e8c8"))) {
+				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.d8);
+				hashCode ^= getPrnForPiece(GenericPosition.d8, piece); // to
+				hashCode ^= getPrnForPiece(GenericPosition.a8, piece); // from
+			}
+			else if (move.equals(new GenericMove("g1e1")))
+			{
+				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.h1);
+				hashCode ^= getPrnForPiece(GenericPosition.h1, piece); // to
+				hashCode ^= getPrnForPiece(GenericPosition.f1, piece); // from
+			}
+			else if (move.equals(new GenericMove("c1e1"))) {
+				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.a1);
+				hashCode ^= getPrnForPiece(GenericPosition.a1, piece); // to
+				hashCode ^= getPrnForPiece(GenericPosition.d1, piece); // from
+			}
+			else if (move.equals(new GenericMove("g8e8"))) {
+				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.h8);
+				hashCode ^= getPrnForPiece(GenericPosition.h8, piece); // to
+				hashCode ^= getPrnForPiece(GenericPosition.f8, piece); // from
+			}
+			else if (move.equals(new GenericMove("c8e8"))) {
+				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.a8);
+				hashCode ^= getPrnForPiece(GenericPosition.a8, piece); // to
+				hashCode ^= getPrnForPiece(GenericPosition.d8, piece); // from
+			}
+			else {
+				// not castle move
+			}
+		}
 	}
 }

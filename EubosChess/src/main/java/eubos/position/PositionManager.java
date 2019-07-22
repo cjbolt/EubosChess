@@ -151,6 +151,8 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq, castling.getFenFlags()));
 		// Update the piece's square.
 		updateSquarePieceOccupies(move.to, pieceToMove);
+		// update castling flags
+		castling.updateFlags(pieceToMove, move);
 		// Update hash code
 		try {
 			if (hash != null)
@@ -159,8 +161,7 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		// update castling flags
-		castling.updateFlags(pieceToMove, move);
+
 		// Update onMove
 		onMove = Colour.getOpposite(onMove);
 	}

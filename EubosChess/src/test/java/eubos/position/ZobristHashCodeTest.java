@@ -90,4 +90,108 @@ public class ZobristHashCodeTest {
 
 		assertEquals(expectedHashCode.hashCode, sut.hashCode);	
 	}
+	
+	@Test
+	public void test_update_PerformCastlingWks_GivesExpectedHashCode() throws Exception {
+		GenericMove move = new GenericMove("e1g1");
+		PositionManager pm = new PositionManager("8/8/8/8/8/8/8/R3K2R w KQ - 0 1");
+		sut = new ZobristHashCode(pm);
+		PositionManager pm_after_castle = new PositionManager("8/8/8/8/8/8/8/R4RK1 b - - 0 1");
+		ZobristHashCode expectedHashCode = new ZobristHashCode(pm_after_castle);
+		
+		pm.performMove(sut, move);
+
+		assertEquals(expectedHashCode.hashCode, sut.hashCode);	
+	}
+	
+	@Test
+	public void test_update_PerformCastlingWqs_GivesExpectedHashCode() throws Exception {
+		GenericMove move = new GenericMove("e1c1");
+		PositionManager pm = new PositionManager("8/8/8/8/8/8/8/R3K2R w KQ - 0 1");
+		sut = new ZobristHashCode(pm);
+		PositionManager pm_after_castle = new PositionManager("8/8/8/8/8/8/8/2KR3R b - - 0 1");
+		ZobristHashCode expectedHashCode = new ZobristHashCode(pm_after_castle);
+		
+		pm.performMove(sut, move);
+
+		assertEquals(expectedHashCode.hashCode, sut.hashCode);	
+	}
+	
+	@Test
+	public void test_update_PerformCastlingBqs_GivesExpectedHashCode() throws Exception {
+		GenericMove move = new GenericMove("e8c8");
+		PositionManager pm = new PositionManager("r3k2r/8/8/8/8/8/8/8 b kq - 0 1");
+		sut = new ZobristHashCode(pm);
+		PositionManager pm_after_castle = new PositionManager("2kr3r/8/8/8/8/8/8/8 w - - 0 1");
+		ZobristHashCode expectedHashCode = new ZobristHashCode(pm_after_castle);
+		
+		pm.performMove(sut, move);
+
+		assertEquals(expectedHashCode.hashCode, sut.hashCode);	
+	}
+	
+	@Test
+	public void test_update_PerformCastlingBks_GivesExpectedHashCode() throws Exception {
+		GenericMove move = new GenericMove("e8g8");
+		PositionManager pm = new PositionManager("r3k2r/8/8/8/8/8/8/8 b kq - 0 1");
+		sut = new ZobristHashCode(pm);
+		PositionManager pm_after_castle = new PositionManager("r4rk1/8/8/8/8/8/8/8 w - - 0 1");
+		ZobristHashCode expectedHashCode = new ZobristHashCode(pm_after_castle);
+		
+		pm.performMove(sut, move);
+
+		assertEquals(expectedHashCode.hashCode, sut.hashCode);	
+	}
+	
+	@Test
+	public void test_update_PerformCastlingUnperformWks_GivesExpectedHashCode() throws Exception {
+		GenericMove move = new GenericMove("e1g1");
+		PositionManager pm = new PositionManager("8/8/8/8/8/8/8/R3K2R w KQ - 0 1");
+		sut = new ZobristHashCode(pm);
+		long originalHashCode = sut.hashCode;
+		
+		pm.performMove(sut, move);
+		pm.unperformMove(sut);
+
+		assertEquals(originalHashCode, sut.hashCode);	
+	}
+	
+	@Test
+	public void test_update_PerformCastlingUnperformWqs_GivesExpectedHashCode() throws Exception {
+		GenericMove move = new GenericMove("e1c1");
+		PositionManager pm = new PositionManager("8/8/8/8/8/8/8/R3K2R w KQ - 0 1");
+		sut = new ZobristHashCode(pm);
+		long originalHashCode = sut.hashCode;
+		
+		pm.performMove(sut, move);
+		pm.unperformMove(sut);
+
+		assertEquals(originalHashCode, sut.hashCode);	
+	}
+	
+	@Test
+	public void test_update_PerformCastlingUnperformBqs_GivesExpectedHashCode() throws Exception {
+		GenericMove move = new GenericMove("e8c8");
+		PositionManager pm = new PositionManager("r3k2r/8/8/8/8/8/8/8 b kq - 0 1");
+		sut = new ZobristHashCode(pm);
+		long originalHashCode = sut.hashCode;
+		
+		pm.performMove(sut, move);
+		pm.unperformMove(sut);
+
+		assertEquals(originalHashCode, sut.hashCode);
+	}
+	
+	@Test
+	public void test_update_PerformCastlingUnperformBks_GivesExpectedHashCode() throws Exception {
+		GenericMove move = new GenericMove("e8g8");
+		PositionManager pm = new PositionManager("r3k2r/8/8/8/8/8/8/8 b kq - 0 1");
+		sut = new ZobristHashCode(pm);
+		long originalHashCode = sut.hashCode;
+		
+		pm.performMove(sut, move);
+		pm.unperformMove(sut);
+
+		assertEquals(originalHashCode, sut.hashCode);	
+	}
 }
