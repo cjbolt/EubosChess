@@ -153,7 +153,7 @@ public class PlySearcher {
 		if ( isTerminalNode() ) {
 			positionScore = pe.evaluatePosition(pos);
 			//positionScore = testDeweightScoreWhenRecapturePossible(prevMove, positionScore);
-			positionScore = testSearchExtensionForRecaptures(prevMove, positionScore);
+			//positionScore = testSearchExtensionForRecaptures(prevMove, positionScore);
 		} else {
 			currPly++;
 			positionScore = searchPly();

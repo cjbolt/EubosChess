@@ -25,11 +25,14 @@ import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece.Colour;
 import eubos.position.PositionManager;
 import eubos.position.ZobristHashCode;
+import eubos.position.Transposition;
+import eubos.search.FixedSizeTranspositionTable;
 import eubos.search.FixedTimeMoveSearcher;
 import eubos.search.IterativeMoveSearcher;
 import eubos.search.FixedDepthMoveSearcher;
 import eubos.search.AbstractMoveSearcher;
 //import eubos.search.SearchDebugAgent;
+
 
 
 
@@ -44,15 +47,18 @@ public class EubosEngineMain extends AbstractEngine {
 	private AbstractMoveSearcher ms;
 	private OpeningBook open = new OpeningBook();
 	private GenericMove nextBookMove = null;
+	private FixedSizeTranspositionTable hashMap = null;
 	
     private static Logger logger = Logger.getLogger("eubos.main");
     private static FileHandler fh; 
 	
 	public EubosEngineMain() { 
 		super();
+		hashMap = new FixedSizeTranspositionTable();
 		}
 	public EubosEngineMain( PipedWriter out) throws IOException {
 		super(new BufferedReader(new PipedReader(out)), System.out);
+		hashMap = new FixedSizeTranspositionTable();
 	}
 
 	public void receive(EngineInitializeRequestCommand command) {
