@@ -45,10 +45,12 @@ public class PlySearcher {
 	private int searchDepthPly;
 	
 	private ZobristHashCode hash;
+	private FixedSizeTranspositionTable hashMap;
 	
 	int currPly = 0;
 	
 	PlySearcher(
+			FixedSizeTranspositionTable hashMap,
 			IEvaluate pe,
 			IScoreMate sg,
 			PrincipalContinuation pc,
@@ -74,6 +76,7 @@ public class PlySearcher {
 		initialOnMove = pos.getOnMove();
 		this.st = new ScoreTracker(searchDepthPly, initialOnMove == Colour.white);
 		this.hash = new ZobristHashCode(pos);
+		this.hashMap = hashMap;
 	}
 	
 	synchronized void terminateFindMove() { terminate = true; }

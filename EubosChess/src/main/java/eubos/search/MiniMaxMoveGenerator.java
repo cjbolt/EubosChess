@@ -26,6 +26,7 @@ class MiniMaxMoveGenerator implements
 	private boolean sendInfo = false;
 	private EubosEngineMain callback;
 	private PlySearcher ps;
+	private FixedSizeTranspositionTable hashMap;
 
 	// Used for unit tests
 	MiniMaxMoveGenerator( IChangePosition pm, IGenerateMoveList mlgen, IPositionAccessors pos) {
@@ -36,10 +37,11 @@ class MiniMaxMoveGenerator implements
 	}
 
 	// Used with Arena, Lichess
-	MiniMaxMoveGenerator( EubosEngineMain eubos, IChangePosition pm, IGenerateMoveList mlgen, IPositionAccessors pos ) {
+	MiniMaxMoveGenerator( EubosEngineMain eubos, FixedSizeTranspositionTable hashMap, IChangePosition pm, IGenerateMoveList mlgen, IPositionAccessors pos ) {
 		this(pm, mlgen, pos);
 		callback = eubos;
 		sendInfo = true;
+		this.hashMap = hashMap;
 	}	
 	
 	private void initialiseSearchDepthDependentObjects(int searchDepth) {
@@ -65,7 +67,7 @@ class MiniMaxMoveGenerator implements
 	@Override
 	public GenericMove findMove(int searchDepth, LinkedList<GenericMove> lastPc) throws NoLegalMoveException, InvalidPieceException {
 		initialiseSearchDepthDependentObjects(searchDepth);
-		ps = new PlySearcher(pe,sg,pc,sm,sr,searchDepth,pm,mlgen,pos,lastPc);
+		ps = new PlySearcher(hashMap,pe,sg,pc,sm,sr,searchDepth,pm,mlgen,pos,lastPc);
 		// Start the search reporter task
 		if (sendInfo)
 			sr.start();

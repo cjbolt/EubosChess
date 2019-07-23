@@ -17,9 +17,9 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	long gameTimeRemaining;
 	private static final int AVG_MOVES_PER_GAME = 70;
 
-	public IterativeMoveSearcher(EubosEngineMain eubos, IChangePosition inputPm, 
+	public IterativeMoveSearcher(EubosEngineMain eubos, FixedSizeTranspositionTable hashMap, IChangePosition inputPm, 
 			IGenerateMoveList mlgen, IPositionAccessors pos, long time ) {
-		super(eubos,inputPm,pos, new MiniMaxMoveGenerator( eubos, inputPm, mlgen, pos ));
+		super(eubos,inputPm,pos, new MiniMaxMoveGenerator( eubos, hashMap, inputPm, mlgen, pos ));
 		gameTimeRemaining = time;
 	}
 	

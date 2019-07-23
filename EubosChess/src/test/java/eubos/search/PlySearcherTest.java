@@ -44,6 +44,8 @@ public class PlySearcherTest {
 	private LinkedList<GenericMove> input_ml;
 	LinkedList<GenericMove> lastPc;
 	
+	private FixedSizeTranspositionTable mock_hashMap;
+	
 	@Before
 	public void setUp() throws Exception {
 		SearchDebugAgent.open();
@@ -61,11 +63,13 @@ public class PlySearcherTest {
 		mock_pm = mock(IChangePosition.class);
 		mock_mlgen = mock(IGenerateMoveList.class);
 		mock_pos = mock(IPositionAccessors.class);
+		mock_hashMap = mock(FixedSizeTranspositionTable.class);
 		lastPc = null;
 		
 		when(mock_pos.getOnMove()).thenReturn(Colour.white);
 		
 		classUnderTest = new PlySearcher(
+				mock_hashMap,
 				mock_pe,
 				mock_sg,
 			    pc,
@@ -179,6 +183,7 @@ public class PlySearcherTest {
 		when(mock_pos.getOnMove()).thenReturn(Colour.black);
 		
 		classUnderTest = new PlySearcher(
+				mock_hashMap,
 				mock_pe,
 				mock_sg,
 			    pc,

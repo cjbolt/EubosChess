@@ -25,7 +25,6 @@ import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece.Colour;
 import eubos.position.PositionManager;
 import eubos.position.ZobristHashCode;
-import eubos.position.Transposition;
 import eubos.search.FixedSizeTranspositionTable;
 import eubos.search.FixedTimeMoveSearcher;
 import eubos.search.IterativeMoveSearcher;
@@ -122,11 +121,11 @@ public class EubosEngineMain extends AbstractEngine {
 		long clockTime = extractClockTime(command);
 		if (clockTime != 0) {
 			logger.info("Search move, clock time " + clockTime);
-			ms = new IterativeMoveSearcher(this, pm, pm, pm, clockTime);
+			ms = new IterativeMoveSearcher(this, hashMap, pm, pm, pm, clockTime);
 		}
 		else if (command.getMoveTime() != null) {
 			logger.info("Search move, fixed time " + command.getMoveTime());
-			ms = new FixedTimeMoveSearcher(this, pm, pm, pm, command.getMoveTime());
+			ms = new FixedTimeMoveSearcher(this, hashMap, pm, pm, pm, command.getMoveTime());
 		} else {
 			int searchDepth = SEARCH_DEPTH_IN_PLY;
 			if (command.getInfinite()) {
@@ -135,7 +134,7 @@ public class EubosEngineMain extends AbstractEngine {
 				searchDepth = command.getDepth();
 			}
 			logger.info("Search move, fixed depth " + searchDepth);
-			ms = new FixedDepthMoveSearcher(this, pm, pm, pm, searchDepth);
+			ms = new FixedDepthMoveSearcher(this, hashMap, pm, pm, pm, searchDepth);
 		}
 	}
 	

@@ -7,8 +7,28 @@ import eubos.position.Transposition;
 public class FixedSizeTranspositionTable {
 	
 	private HashMap<Long, Transposition> hashMap = null;
+	private long hashMapSize = 0;
+	
+	private static final long MAX_SIZE_OF_HASH_MAP = 2^33; 
 	
 	public FixedSizeTranspositionTable() {
 		hashMap = new HashMap<Long, Transposition>();
+		hashMapSize = 0;
+	}
+	
+	public boolean containsHash(long hashCode) {
+		return hashMap.containsKey(hashCode);
+	}
+	
+	public Transposition getTransposition(long hashCode) {
+		return hashMap.get(hashCode);
+	}
+	
+	public void putTransposition(long hashCode, Transposition trans) {
+		if (hashMapSize >= MAX_SIZE_OF_HASH_MAP)
+			return;
+		if (hashMap.put(hashCode, trans) == null) {
+			hashMapSize++;
+		};
 	}
 }
