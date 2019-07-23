@@ -9,17 +9,16 @@
   	<dependency>
   		<groupId>junit</groupId>
   		<artifactId>junit</artifactId>
-  		<version>4.12</version>
   		<scope>test</scope>
   	</dependency>
 	<dependency>
-		<groupId>com.fluxchess</groupId>
+		<groupId>com.github.jjYBdx4IL.chess</groupId>
 		<artifactId>jcpi</artifactId>
+		<version>1.4.1.1</version>
 	</dependency>
 	<dependency>
 		<groupId>org.mockito</groupId>
 		<artifactId>mockito-core</artifactId>
-		<version>2.19.1</version>
 	</dependency>
   </dependencies>
      <repositories>
@@ -38,6 +37,16 @@
      			<groupId>com.fluxchess</groupId>
      			<artifactId>jcpi</artifactId>
      			<version>1.4.0</version>
+     		</dependency>
+     		<dependency>
+     			<groupId>junit</groupId>
+     			<artifactId>junit</artifactId>
+     			<version>4.12</version>
+     		</dependency>
+     		<dependency>
+     			<groupId>org.mockito</groupId>
+     			<artifactId>mockito-core</artifactId>
+     			<version>2.19.1</version>
      		</dependency>
      	</dependencies>
      </dependencyManagement>
