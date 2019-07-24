@@ -86,26 +86,7 @@ public class PlySearcher {
 	int searchPly() throws InvalidPieceException {
 		Colour onMove = pos.getOnMove();
 		SearchDebugAgent.printSearchPly(currPly,onMove);
-		
-		boolean backupTranspositionScore = false;
-		int score = 0;
-		Transposition trans = hashMap.getTransposition(hash.hashCode);
-		if(trans != null) {
-			// evaluate transposition
-			int depth = trans.getDepthSearchedInPly();
-			score = trans.getScore();
-			int alphaBetaCutOff = st.getProvisionalScoreAtPly(currPly);
-			if (depth >= searchDepthPly) {
-				if ((onMove==Colour.white) && (score > alphaBetaCutOff)) {
-					backupTranspositionScore = true;
-				} else if ((onMove==Colour.black) && (score < alphaBetaCutOff)) {
-					backupTranspositionScore = true;
-				}
-			}
-		}
-		if (backupTranspositionScore) {
-			st.setBackedUpScoreAtPly(currPly, score);
-		} else {
+		if (!checkForTranspositionScoreThatFulfillsSearch(onMove)) {
 			// Do search as usual
 			List<GenericMove> ml = getMoveList();
 			if (!isMateOccurred(ml)) {
@@ -116,9 +97,45 @@ public class PlySearcher {
 				int mateScore = sg.scoreMate(currPly, isWhite, initialOnMove);
 				st.setBackedUpScoreAtPly(currPly, mateScore);			
 			}
+			
+			storeTranspositionScore(st.getBackedUpScoreAtPly(currPly));
 		}
 		
 		return st.getBackedUpScoreAtPly(currPly);
+	}
+
+	private boolean checkForTranspositionScoreThatFulfillsSearch(Colour onMove) {
+		boolean backupTranspositionScore = false;
+		int score = 0;
+		Transposition trans = hashMap.getTransposition(hash.hashCode);
+		if(trans != null) {
+			// evaluate transposition
+			int depth = trans.getDepthSearchedInPly();
+			score = trans.getScore();
+			int alphaBetaCutOff = st.getProvisionalScoreAtPly(currPly);
+			if (depth >= (searchDepthPly-currPly)) {
+				if ((onMove==Colour.white) && (score > alphaBetaCutOff)) {
+					backupTranspositionScore = true;
+				} else if ((onMove==Colour.black) && (score < alphaBetaCutOff)) {
+					backupTranspositionScore = true;
+				}
+			}
+		}
+		if (backupTranspositionScore) {
+			st.setBackedUpScoreAtPly(currPly, score);
+		}
+		return backupTranspositionScore;
+	}
+	
+	private void storeTranspositionScore(int score) {
+		int depthPositionSearched = (searchDepthPly - currPly);
+		Transposition trans = hashMap.getTransposition(hash.hashCode);
+		if (trans != null) {
+			 if (trans.getDepthSearchedInPly() >= depthPositionSearched)
+				 return;
+		}
+		trans = new Transposition(pc.getBestMove(currPly), depthPositionSearched, score, Transposition.ScoreType.exact);
+		hashMap.putTransposition(hash.hashCode, trans);		
 	}
 
 	void searchMoves(List<GenericMove> ml) throws InvalidPieceException {

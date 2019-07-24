@@ -17,6 +17,10 @@ class PrincipalContinuation {
 	GenericMove getBestMove() {
 		return pc[0][0];
 	}
+	
+	GenericMove getBestMove(int currPly) {
+		return pc[currPly][currPly];
+	}
 
 	String toStringAfter(int currPly) {
 		GenericMove currMove = pc[currPly][currPly];
