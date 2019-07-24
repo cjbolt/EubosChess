@@ -19,6 +19,7 @@ import eubos.position.IChangePosition;
 import eubos.position.IGenerateMoveList;
 import eubos.position.IPositionAccessors;
 import eubos.position.IScoreMate;
+import eubos.position.Transposition;
 import eubos.position.IEvaluate;
 import eubos.position.ZobristHashCode;
 
@@ -85,15 +86,36 @@ public class PlySearcher {
 	int searchPly() throws InvalidPieceException {
 		Colour onMove = pos.getOnMove();
 		SearchDebugAgent.printSearchPly(currPly,onMove);
-
-		List<GenericMove> ml = getMoveList();
-		if (!isMateOccurred(ml)) {
-			st.setProvisionalScoreAtPly(currPly);
-			searchMoves(ml);
+		
+		boolean backupTranspositionScore = false;
+		int score = 0;
+		Transposition trans = hashMap.getTransposition(hash.hashCode);
+		if(trans != null) {
+			// evaluate transposition
+			int depth = trans.getDepthSearchedInPly();
+			score = trans.getScore();
+			int alphaBetaCutOff = st.getProvisionalScoreAtPly(currPly);
+			if (depth >= searchDepthPly) {
+				if ((onMove==Colour.white) && (score > alphaBetaCutOff)) {
+					backupTranspositionScore = true;
+				} else if ((onMove==Colour.black) && (score < alphaBetaCutOff)) {
+					backupTranspositionScore = true;
+				}
+			}
+		}
+		if (backupTranspositionScore) {
+			st.setBackedUpScoreAtPly(currPly, score);
 		} else {
-			boolean isWhite = (onMove == Colour.white);
-			int mateScore = sg.scoreMate(currPly, isWhite, initialOnMove);
-			st.setBackedUpScoreAtPly(currPly, mateScore);			
+			// Do search as usual
+			List<GenericMove> ml = getMoveList();
+			if (!isMateOccurred(ml)) {
+				st.setProvisionalScoreAtPly(currPly);
+				searchMoves(ml);
+			} else {
+				boolean isWhite = (onMove == Colour.white);
+				int mateScore = sg.scoreMate(currPly, isWhite, initialOnMove);
+				st.setBackedUpScoreAtPly(currPly, mateScore);			
+			}
 		}
 		
 		return st.getBackedUpScoreAtPly(currPly);

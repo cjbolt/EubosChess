@@ -29,19 +29,19 @@ class MiniMaxMoveGenerator implements
 	private FixedSizeTranspositionTable hashMap;
 
 	// Used for unit tests
-	MiniMaxMoveGenerator( IChangePosition pm, IGenerateMoveList mlgen, IPositionAccessors pos) {
+	MiniMaxMoveGenerator( FixedSizeTranspositionTable hashMap, IChangePosition pm, IGenerateMoveList mlgen, IPositionAccessors pos) {
 		this.pm = pm;
 		this.pos = pos;
 		this.mlgen = mlgen;
+		this.hashMap = hashMap;
 		pe = new PositionEvaluator();
 	}
 
 	// Used with Arena, Lichess
 	MiniMaxMoveGenerator( EubosEngineMain eubos, FixedSizeTranspositionTable hashMap, IChangePosition pm, IGenerateMoveList mlgen, IPositionAccessors pos ) {
-		this(pm, mlgen, pos);
+		this(hashMap, pm, mlgen, pos);
 		callback = eubos;
 		sendInfo = true;
-		this.hashMap = hashMap;
 	}	
 	
 	private void initialiseSearchDepthDependentObjects(int searchDepth) {
