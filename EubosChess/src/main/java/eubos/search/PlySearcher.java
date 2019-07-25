@@ -6,15 +6,8 @@ import java.util.List;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.InvalidPieceException;
-import eubos.board.SquareAttackEvaluator;
-import eubos.board.pieces.Bishop;
 import eubos.board.pieces.King;
-import eubos.board.pieces.Knight;
-import eubos.board.pieces.Pawn;
-import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
-import eubos.board.pieces.Queen;
-import eubos.board.pieces.Rook;
 import eubos.position.IChangePosition;
 import eubos.position.IGenerateMoveList;
 import eubos.position.IPositionAccessors;
@@ -86,7 +79,8 @@ public class PlySearcher {
 	int searchPly() throws InvalidPieceException {
 		Colour onMove = pos.getOnMove();
 		SearchDebugAgent.printSearchPly(currPly,onMove);
-		if (!checkForTranspositionScoreThatFulfillsSearch(onMove)) {
+		
+		if (hashIsTranspositionMiss(onMove)) {
 			// Do search as usual
 			List<GenericMove> ml = getMoveList();
 			if (!isMateOccurred(ml)) {
@@ -97,15 +91,14 @@ public class PlySearcher {
 				int mateScore = sg.scoreMate(currPly, isWhite, initialOnMove);
 				st.setBackedUpScoreAtPly(currPly, mateScore);			
 			}
-			
 			storeTranspositionScore(st.getBackedUpScoreAtPly(currPly));
 		}
 		
 		return st.getBackedUpScoreAtPly(currPly);
 	}
 
-	private boolean checkForTranspositionScoreThatFulfillsSearch(Colour onMove) {
-		boolean backupTranspositionScore = false;
+	private boolean hashIsTranspositionMiss(Colour onMove) {
+		boolean transpositionHit = false;
 		int score = 0;
 		Transposition trans = hashMap.getTransposition(hash.hashCode);
 		if(trans != null) {
@@ -115,16 +108,16 @@ public class PlySearcher {
 			int alphaBetaCutOff = st.getProvisionalScoreAtPly(currPly);
 			if (depth >= (searchDepthPly-currPly)) {
 				if ((onMove==Colour.white) && (score > alphaBetaCutOff)) {
-					backupTranspositionScore = true;
+					transpositionHit = true;
 				} else if ((onMove==Colour.black) && (score < alphaBetaCutOff)) {
-					backupTranspositionScore = true;
+					transpositionHit = true;
 				}
 			}
 		}
-		if (backupTranspositionScore) {
+		if (transpositionHit) {
 			st.setBackedUpScoreAtPly(currPly, score);
 		}
-		return backupTranspositionScore;
+		return !transpositionHit;
 	}
 	
 	private void storeTranspositionScore(int score) {
@@ -134,7 +127,8 @@ public class PlySearcher {
 			 if (trans.getDepthSearchedInPly() >= depthPositionSearched)
 				 return;
 		}
-		trans = new Transposition(pc.getBestMove(currPly), depthPositionSearched, score, Transposition.ScoreType.exact);
+		GenericMove move = (depthPositionSearched == 0) ? null : pc.getBestMove(currPly);
+		trans = new Transposition(move, depthPositionSearched, score, Transposition.ScoreType.exact);
 		hashMap.putTransposition(hash.hashCode, trans);		
 	}
 
@@ -180,106 +174,44 @@ public class PlySearcher {
 	}
 	
 	private int applyMoveAndScore(GenericMove currMove) throws InvalidPieceException {
-		int positionScore = 0;
 		
 		doPerformMove(currMove);
-		positionScore = assessNewPosition(currMove);
+		int positionScore = assessNewPosition(currMove);
 		doUnperformMove(currMove);
 		
 		return positionScore;
 	}
 
 	private int assessNewPosition(GenericMove prevMove) throws InvalidPieceException {
-		// Either recurse or evaluate a terminal position
 		int positionScore;
+		// Either recurse or evaluate a terminal position
 		if ( isTerminalNode() ) {
-			positionScore = pe.evaluatePosition(pos);
-			//positionScore = testDeweightScoreWhenRecapturePossible(prevMove, positionScore);
-			//positionScore = testSearchExtensionForRecaptures(prevMove, positionScore);
+			positionScore = scoreTerminalNode();
 		} else {
-			currPly++;
 			positionScore = searchPly();
-			currPly--;
 		}
 		return positionScore;
 	}
-	
-	protected int testDeweightScoreWhenRecapturePossible(GenericMove prevMove,
-			int positionScore) throws InvalidPieceException {
-		int modification = 0;
-		if (pos.lastMoveWasCapture()) {
-			// Only good for non en passant captures!
-			SquareAttackEvaluator sqAttackEval = new SquareAttackEvaluator( pos.getTheBoard(), prevMove.to, Colour.getOpposite(pos.getOnMove()));
-			if (sqAttackEval.isAttacked()) {
-				// treat the score with a pinch of salt, as the piece could be recaptured.
-				pm.unperformMove(null);
-				Piece capturedPiece = pos.getTheBoard().getPieceAtSquare(prevMove.to);
-				if (capturedPiece instanceof Queen) {
-					modification = Queen.MATERIAL_VALUE;
-				} else if (capturedPiece instanceof Rook) {
-					modification = Rook.MATERIAL_VALUE;
-				} else if (capturedPiece instanceof Bishop) {
-					modification = Bishop.MATERIAL_VALUE;
-				} else if (capturedPiece instanceof Knight) {
-					modification = Knight.MATERIAL_VALUE;
-				} else if (capturedPiece instanceof Pawn) {
-					modification = Pawn.MATERIAL_VALUE;
-				} else if (capturedPiece == null) {
-					// Handle en passant case				
-					modification = Pawn.MATERIAL_VALUE;
-				}
-				pm.performMove(new ZobristHashCode(pos),prevMove);
-				// note this is after the event so opposite colour
-				if (pos.getOnMove() == Colour.black) {
-					modification = -modification;
-				}
-			}
-		}
-		return positionScore - modification;
-	}
 
-	protected int testSearchExtensionForRecaptures(GenericMove prevMove,
-			int positionScore) throws InvalidPieceException {
-		if (ENABLE_SEARCH_EXTENSION_FOR_RECAPTURES) {
-			if (pos.lastMoveWasCapture()) {
-				int nextPositionScore;
-				List<GenericMove> extra_ml = mlgen.getMoveList();
-				// look to see if there is a recapture possible
-				// where a recapture is a capture on target square
-				boolean recapturePossible = false;
-				GenericMove recaptureMove = null;
-				Iterator<GenericMove> move_iter = extra_ml.iterator();
-				while(move_iter.hasNext()) {
-					GenericMove nextMove = move_iter.next();
-					// DEFECT: this is wrong for en passant captures
-					if (nextMove.to.equals(prevMove.to)) {
-						// DEFECT: only searches last recapture move, not all possible recaptures
-						recaptureMove = nextMove;
-						recapturePossible = true;
-					}
-				}
-				// if so search recapture move only
-				if (recapturePossible) {
-					doPerformMove(recaptureMove);
-					nextPositionScore = pe.evaluatePosition(pos);
-					doUnperformMove(recaptureMove);
-					// be pessimistic if recapture is possible
-					if (pos.getOnMove() == Colour.white) {
-						if (nextPositionScore > positionScore) // better for black
-							positionScore = nextPositionScore;
-					} else {
-						if (nextPositionScore < positionScore)
-							positionScore = nextPositionScore;
-					}
-				}
-			}
+	private int scoreTerminalNode() {
+		int positionScore = pe.evaluatePosition(pos);
+		/*
+		Transposition trans = hashMap.getTransposition(hash.hashCode);
+		if ((trans != null) && (trans.getScoreType() == Transposition.ScoreType.exact)) { 
+			// don't need to score, can use previous score. 
+			positionScore = trans.getScore(); 
+		} else { 
+			positionScore = pe.evaluatePosition(pos);
+			// Store, as it could prevent having to score the position if encountered again
+		    storeTranspositionScore(positionScore); 
 		}
+		*/
 		return positionScore;
 	}
 	
 	private boolean isTerminalNode() {
 		boolean isTerminalNode = false;
-		if (currPly == (searchDepthPly-1)) {
+		if (currPly == searchDepthPly) {
 			isTerminalNode = true;
 		}
 		return isTerminalNode;
@@ -288,11 +220,13 @@ public class PlySearcher {
 	private void doPerformMove(GenericMove currMove) throws InvalidPieceException {
 		SearchDebugAgent.printPerformMove(currPly, currMove);
 		pm.performMove(hash, currMove);
+		currPly++;
 	}
 	
 	private void doUnperformMove(GenericMove currMove) throws InvalidPieceException {
 		SearchDebugAgent.printUndoMove(currPly, currMove);
 		pm.unperformMove(hash);
+		currPly--;
 	}	
 
 	private boolean handleBackupOfScore(int alphaBetaCutOff, GenericMove currMove, int positionScore) {
