@@ -234,6 +234,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public void sendBestMoveCommand(ProtocolBestMoveCommand protocolBestMoveCommand) {
 		this.getProtocol().send(protocolBestMoveCommand);
 		logger.info("Best move " + protocolBestMoveCommand.bestMove);
+		logger.info("Transposition Table Size " + hashMap.getHashMapSize());
 	}
 	
 	@Override
