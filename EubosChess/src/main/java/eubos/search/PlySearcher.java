@@ -79,19 +79,19 @@ public class PlySearcher {
 	int searchPly() throws InvalidPieceException {
 		Colour onMove = pos.getOnMove();
 		SearchDebugAgent.printSearchPly(currPly,onMove);
-		
+		st.setProvisionalScoreAtPly(currPly);
 		if (hashIsTranspositionMiss(onMove)) {
+			
 			// Do search as usual
 			List<GenericMove> ml = getMoveList();
 			if (!isMateOccurred(ml)) {
-				st.setProvisionalScoreAtPly(currPly);
 				searchMoves(ml);
 			} else {
 				boolean isWhite = (onMove == Colour.white);
 				int mateScore = sg.scoreMate(currPly, isWhite, initialOnMove);
 				st.setBackedUpScoreAtPly(currPly, mateScore);			
 			}
-			storeTranspositionScore(st.getBackedUpScoreAtPly(currPly));
+			storeTranspositionScore(st.getBackedUpScoreAtPly(currPly), Transposition.ScoreType.exact);
 		}
 		
 		return st.getBackedUpScoreAtPly(currPly);
@@ -105,6 +105,7 @@ public class PlySearcher {
 			// evaluate transposition
 			int depth = trans.getDepthSearchedInPly();
 			score = trans.getScore();
+			Transposition.ScoreType bound = trans.getScoreType();
 			int alphaBetaCutOff = st.getProvisionalScoreAtPly(currPly);
 			if (depth >= (searchDepthPly-currPly)) {
 				if ((onMove==Colour.white) && (score > alphaBetaCutOff)) {
@@ -116,19 +117,23 @@ public class PlySearcher {
 		}
 		if (transpositionHit) {
 			st.setBackedUpScoreAtPly(currPly, score);
+			pc.update(currPly, trans.getBestMove());
 		}
 		return !transpositionHit;
 	}
 	
-	private void storeTranspositionScore(int score) {
+	private void storeTranspositionScore(int score, Transposition.ScoreType bound) {
 		int depthPositionSearched = (searchDepthPly - currPly);
 		Transposition trans = hashMap.getTransposition(hash.hashCode);
 		if (trans != null) {
 			 if (trans.getDepthSearchedInPly() >= depthPositionSearched)
 				 return;
+			 if (trans.getScoreType()==Transposition.ScoreType.exact) {
+				 return;
+			 }
 		}
 		GenericMove move = (depthPositionSearched == 0) ? null : pc.getBestMove(currPly);
-		trans = new Transposition(move, depthPositionSearched, score, Transposition.ScoreType.exact);
+		trans = new Transposition(move, depthPositionSearched, score, bound);
 		hashMap.putTransposition(hash.hashCode, trans);		
 	}
 
@@ -242,9 +247,10 @@ public class PlySearcher {
 			SearchDebugAgent.printRefutationFound(currPly);
 			earlyTerminate = true;
 		}
+		Transposition.ScoreType bound = (pos.getOnMove() == Colour.white) ? Transposition.ScoreType.lowerBound : Transposition.ScoreType.upperBound;
+		storeTranspositionScore(positionScore, bound);
 		return earlyTerminate;
-	}	
-
+	}
 	
 	// Principal continuation focused, search report focused inner class
 	class PrincipalContinuationUpdateHelper
