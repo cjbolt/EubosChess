@@ -44,6 +44,13 @@ public class PlySearcher {
 	
 	int currPly = 0;
 	
+	private enum TranspositionTableStatus {
+		none,
+		sufficientTerminalNode,
+		sufficientRefutation,
+		sufficientSeedMoveList		
+	};
+	
 	PlySearcher(
 			FixedSizeTranspositionTable hashMap,
 			IEvaluate pe,
@@ -82,9 +89,12 @@ public class PlySearcher {
 		SearchDebugAgent.printSearchPly(currPly,onMove);
 		
 		st.setProvisionalScoreAtPly(currPly);
-		if (tt.hashIsTranspositionMiss(onMove)) {
-			
-			// No data about this position so perform search
+		switch (tt.evaluateTranspositionData(onMove)) {
+		case sufficientTerminalNode:
+			break;
+		case sufficientRefutation:
+			break;
+		case sufficientSeedMoveList:
 			List<GenericMove> ml = getMoveList();
 			if (!isMateOccurred(ml)) {
 				searchMoves(ml);
@@ -94,6 +104,9 @@ public class PlySearcher {
 				st.setBackedUpScoreAtPly(currPly, mateScore);			
 			}
 			tt.storeTranspositionScore(st.getBackedUpScoreAtPly(currPly), ScoreType.exact);
+			break;
+		default:
+			break;
 		}
 		
 		return st.getBackedUpScoreAtPly(currPly);
@@ -221,29 +234,46 @@ public class PlySearcher {
     		hashMap = transTable;
     	}
     	
-		boolean hashIsTranspositionMiss(Colour onMove) {
-			boolean transpositionHit = false;
-			int score = 0;
+    	TranspositionTableStatus evaluateTranspositionData(Colour onMove) {
+			TranspositionTableStatus status = TranspositionTableStatus.sufficientSeedMoveList;
+			
 			Transposition trans = hashMap.getTransposition(hash.hashCode);
-			if(trans != null) {
-				// evaluate transposition
-				int depth = trans.getDepthSearchedInPly();
-				score = trans.getScore();
-				ScoreType bound = trans.getScoreType();
-				int alphaBetaCutOff = st.getProvisionalScoreAtPly(currPly);
-				if (depth >= (searchDepthPly-currPly)) {
-					if ((onMove==Colour.white) && (score > alphaBetaCutOff)) {
-						transpositionHit = true;
-					} else if ((onMove==Colour.black) && (score < alphaBetaCutOff)) {
-						transpositionHit = true;
+			if (trans == null)
+				return status;
+			
+			int depth = trans.getDepthSearchedInPly();
+			int score = trans.getScore();
+			ScoreType bound = trans.getScoreType();
+			GenericMove move = trans.getBestMove();
+			
+			int prevScore = st.getBackedUpScoreAtPly(currPly);
+			
+			// Condition for considering Transposition score sufficient to be used as terminal node
+			if (depth >= (searchDepthPly-currPly)) {
+				if (bound == ScoreType.exact) {
+					if ((onMove==Colour.white) && (score > prevScore)) {
+						status = TranspositionTableStatus.sufficientTerminalNode;
+					} else if ((onMove==Colour.black) && (score < prevScore)) {
+						status = TranspositionTableStatus.sufficientTerminalNode;
 					}
 				}
+			    // Transposition score is a refutation of previous move
+				else if (bound == ScoreType.upperBound || bound == ScoreType.lowerBound) {
+					if (st.isAlphaBetaCutOff(currPly, prevScore, score )) {
+						status = TranspositionTableStatus.sufficientRefutation;
+			        }
+				}
+			// Transposition just sufficient to seed the MoveList for searching
+			//} else if (move != null) {
+			//	// Seed the move list for the next search with previous best move.
+			//	status = TranspositionTableStatus.sufficientSeedMoveList;
+			//	lastPc.set(currPly, move);
 			}
-			if (transpositionHit) {
+			if (status == TranspositionTableStatus.sufficientTerminalNode) {
 				st.setBackedUpScoreAtPly(currPly, score);
 				pc.update(currPly, trans.getBestMove());
 			}
-			return !transpositionHit;
+			return status;
 		}
 		
 		void storeTranspositionScore(int score, ScoreType bound) {
