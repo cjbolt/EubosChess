@@ -264,10 +264,10 @@ public class PlySearcher {
 			        }
 				}
 			// Transposition just sufficient to seed the MoveList for searching
-			//} else if (move != null) {
-			//	// Seed the move list for the next search with previous best move.
-			//	status = TranspositionTableStatus.sufficientSeedMoveList;
-			//	lastPc.set(currPly, move);
+			} else if (move != null) {
+				// Seed the move list for the next search with previous best move.
+				status = TranspositionTableStatus.sufficientSeedMoveList;
+				lastPc.set(currPly, move);
 			}
 			if (status == TranspositionTableStatus.sufficientTerminalNode) {
 				st.setBackedUpScoreAtPly(currPly, score);
@@ -277,18 +277,29 @@ public class PlySearcher {
 		}
 		
 		void storeTranspositionScore(int score, ScoreType bound) {
+			boolean updateTransposition = false;
 			int depthPositionSearched = (searchDepthPly - currPly);
+			
 			Transposition trans = hashMap.getTransposition(hash.hashCode);
 			if (trans != null) {
-				 if (trans.getDepthSearchedInPly() >= depthPositionSearched)
-					 return;
-				 if (trans.getScoreType() == ScoreType.exact) {
-					 return;
-				 }
+				int currentDepth = trans.getDepthSearchedInPly();
+				ScoreType currentBound = trans.getScoreType();
+			
+				if (currentDepth < depthPositionSearched) {
+					updateTransposition = true;
+				} else if ((currentDepth == depthPositionSearched) && 
+					       ((currentBound == ScoreType.upperBound) || (currentBound == ScoreType.lowerBound)) &&
+					        bound == ScoreType.exact) {
+				    updateTransposition = true;
+				} else {
+					 // No other condition to store
+				}
 			}
-			GenericMove move = (depthPositionSearched == 0) ? null : pc.getBestMove(currPly);
-			trans = new Transposition(move, depthPositionSearched, score, bound);
-			hashMap.putTransposition(hash.hashCode, trans);		
+			if (updateTransposition) {
+				GenericMove move = (depthPositionSearched == 0) ? null : pc.getBestMove(currPly);
+				trans = new Transposition(move, depthPositionSearched, score, bound);
+				hashMap.putTransposition(hash.hashCode, trans);	
+			}
 		}
     }
 	
