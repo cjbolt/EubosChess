@@ -267,7 +267,13 @@ public class PlySearcher {
 			} else if (move != null) {
 				// Seed the move list for the next search with previous best move.
 				status = TranspositionTableStatus.sufficientSeedMoveList;
-				lastPc.set(currPly, move);
+				try {
+					lastPc.set(currPly, move);
+				} catch (IndexOutOfBoundsException e) {
+					for (int i=lastPc.size(); i < currPly; i++) {
+						lastPc.add(i, move);
+					}
+				}
 			}
 			if (status == TranspositionTableStatus.sufficientTerminalNode) {
 				st.setBackedUpScoreAtPly(currPly, score);
@@ -294,6 +300,8 @@ public class PlySearcher {
 				} else {
 					 // No other condition to store
 				}
+			} else {
+				updateTransposition = true;
 			}
 			if (updateTransposition) {
 				GenericMove move = (depthPositionSearched == 0) ? null : pc.getBestMove(currPly);

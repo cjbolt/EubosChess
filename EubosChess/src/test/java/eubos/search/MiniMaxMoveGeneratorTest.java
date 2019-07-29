@@ -569,4 +569,24 @@ public class MiniMaxMoveGeneratorTest {
 		pm.performMove(null, new GenericMove("d4c5"));
 		classUnderTest.findMove(5);
 	}
+	
+	@Test
+	@Ignore
+	public void test_badMoveSelection() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		PositionManager pm = new PositionManager("1r5r/p1p1kp1p/2n1bn1R/1p6/4p3/1PP1P1P1/1B1PBPP1/R3K1N1 w Q - 3 17");
+		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
+		pm.performMove(null, new GenericMove("c3c4"));
+		pm.performMove(null, new GenericMove("f6g8"));
+		pm.performMove(null, new GenericMove("h6e6"));
+		pm.performMove(null, new GenericMove("e7e6"));
+		pm.performMove(null, new GenericMove("b2h8"));
+		pm.performMove(null, new GenericMove("b5b4"));
+		pm.performMove(null, new GenericMove("a1a6"));
+		pm.performMove(null, new GenericMove("b8b6"));
+		expectedMove = new GenericMove("e2g4");
+		
+		GenericMove selectedMove = classUnderTest.findMove(5);
+		
+	    assertTrue(selectedMove.equals(expectedMove));
+	}	
 }
