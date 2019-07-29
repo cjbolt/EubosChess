@@ -53,10 +53,10 @@ public class CastlingManagerTest {
 		//   abcdefgh
 		PositionManager pm = new PositionManager("k7/8/8/8/8/8/8/4K2R w K - - -");
 		try {
-			pm.performMove(null, new GenericMove("h1h2"));
-			pm.performMove(null, new GenericMove("a8b8"));
-			pm.performMove(null, new GenericMove("h2h1"));
-			pm.performMove(null, new GenericMove("b8a8"));
+			pm.performMove(new GenericMove("h1h2"));
+			pm.performMove(new GenericMove("a8b8"));
+			pm.performMove(new GenericMove("h2h1"));
+			pm.performMove(new GenericMove("b8a8"));
 		} catch (InvalidPieceException e) {
 			e.printStackTrace();
 		}
@@ -78,10 +78,10 @@ public class CastlingManagerTest {
 		//   abcdefgh
 		PositionManager pm = new PositionManager("k7/8/8/8/8/8/8/4K2R w K - - -");
 		try {
-			pm.performMove(null, new GenericMove("e1e2"));
-			pm.performMove(null, new GenericMove("a8b8"));
-			pm.performMove(null, new GenericMove("e2e1"));
-			pm.performMove(null, new GenericMove("b8a8"));
+			pm.performMove(new GenericMove("e1e2"));
+			pm.performMove(new GenericMove("a8b8"));
+			pm.performMove(new GenericMove("e2e1"));
+			pm.performMove(new GenericMove("b8a8"));
 		} catch (InvalidPieceException e) {
 			e.printStackTrace();
 		}

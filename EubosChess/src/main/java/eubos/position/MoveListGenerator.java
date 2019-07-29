@@ -32,7 +32,7 @@ class MoveListGenerator {
 		Iterator<GenericMove> iter_ml = entireMoveList.iterator();
 		while ( iter_ml.hasNext() ) {
 			GenericMove currMove = iter_ml.next();
-			pm.performMove( null, currMove );
+			pm.performMove(currMove);
 			// Scratch any moves resulting in the king being in check
 			if (pm.isKingInCheck(onMove))
 				iter_ml.remove();
@@ -43,7 +43,7 @@ class MoveListGenerator {
 			} else {
 				newMoveList.add(currMove);
 			}
-			pm.unperformMove(null);
+			pm.unperformMove();
 		}
 		entireMoveList = newMoveList;
 		return entireMoveList;

@@ -12,10 +12,8 @@ import eubos.position.IChangePosition;
 import eubos.position.IGenerateMoveList;
 import eubos.position.IPositionAccessors;
 import eubos.position.IScoreMate;
-import eubos.position.Transposition;
 import eubos.position.Transposition.ScoreType;
 import eubos.position.IEvaluate;
-import eubos.position.ZobristHashCode;
 
 public class PlySearcher {
 	
@@ -38,18 +36,9 @@ public class PlySearcher {
 	private Colour initialOnMove;	
 	private List<GenericMove> lastPc;
 	private int searchDepthPly;
-	
-	private ZobristHashCode hash;
-	private TranspositionTableHelper tt;
+	private TranspositionTableAccessor tt;
 	
 	int currPly = 0;
-	
-	private enum TranspositionTableStatus {
-		none,
-		sufficientTerminalNode,
-		sufficientRefutation,
-		sufficientSeedMoveList		
-	};
 	
 	PlySearcher(
 			FixedSizeTranspositionTable hashMap,
@@ -77,8 +66,7 @@ public class PlySearcher {
 		// Register initialOnMove
 		initialOnMove = pos.getOnMove();
 		this.st = new ScoreTracker(searchDepthPly, initialOnMove == Colour.white);
-		this.hash = new ZobristHashCode(pos);
-		this.tt = new TranspositionTableHelper(hashMap);
+		this.tt = new TranspositionTableAccessor(hashMap, pos, st, pc, lastPc);
 	}
 	
 	synchronized void terminateFindMove() { terminate = true; }
@@ -89,7 +77,7 @@ public class PlySearcher {
 		SearchDebugAgent.printSearchPly(currPly,onMove);
 		
 		st.setProvisionalScoreAtPly(currPly);
-		switch (tt.evaluateTranspositionData(onMove)) {
+		switch (tt.evaluateTranspositionData(currPly, searchDepthPly)) {
 		case sufficientTerminalNode:
 			break;
 		case sufficientRefutation:
@@ -103,7 +91,7 @@ public class PlySearcher {
 				int mateScore = sg.scoreMate(currPly, isWhite, initialOnMove);
 				st.setBackedUpScoreAtPly(currPly, mateScore);			
 			}
-			tt.storeTranspositionScore(st.getBackedUpScoreAtPly(currPly), ScoreType.exact);
+			tt.storeTranspositionScore(currPly, searchDepthPly, st.getBackedUpScoreAtPly(currPly), ScoreType.exact);
 			break;
 		default:
 			break;
@@ -127,7 +115,7 @@ public class PlySearcher {
 			
 			// Save the backed up score in the Transposition table
 			ScoreType bound = (pos.getOnMove() == Colour.white) ? ScoreType.lowerBound : ScoreType.upperBound;
-			tt.storeTranspositionScore(positionScore, bound);
+			tt.storeTranspositionScore(currPly, searchDepthPly, positionScore, bound);
 			
 			if (st.isBackUpRequired(currPly, positionScore)) {
 				// New best score found at this node, back up and update the principal continuation.
@@ -214,104 +202,16 @@ public class PlySearcher {
 
 	private void doPerformMove(GenericMove currMove) throws InvalidPieceException {
 		SearchDebugAgent.printPerformMove(currPly, currMove);
-		pm.performMove(hash, currMove);
+		pm.performMove(currMove);
 		currPly++;
 	}
 	
 	private void doUnperformMove(GenericMove currMove) throws InvalidPieceException {
 		SearchDebugAgent.printUndoMove(currPly, currMove);
-		pm.unperformMove(hash);
+		pm.unperformMove();
 		currPly--;
 	}	
-	
-	// Transposition helper
-	
-    class TranspositionTableHelper
-    {
-    	private FixedSizeTranspositionTable hashMap;
-    	
-    	TranspositionTableHelper(FixedSizeTranspositionTable transTable) {
-    		hashMap = transTable;
-    	}
-    	
-    	TranspositionTableStatus evaluateTranspositionData(Colour onMove) {
-			TranspositionTableStatus status = TranspositionTableStatus.sufficientSeedMoveList;
-			
-			Transposition trans = hashMap.getTransposition(hash.hashCode);
-			if (trans == null)
-				return status;
-			
-			int depth = trans.getDepthSearchedInPly();
-			int score = trans.getScore();
-			ScoreType bound = trans.getScoreType();
-			GenericMove move = trans.getBestMove();
-			
-			int prevScore = st.getBackedUpScoreAtPly(currPly);
-			
-			// Condition for considering Transposition score sufficient to be used as terminal node
-			if (depth >= (searchDepthPly-currPly)) {
-				if (bound == ScoreType.exact) {
-					if ((onMove==Colour.white) && (score > prevScore)) {
-						status = TranspositionTableStatus.sufficientTerminalNode;
-					} else if ((onMove==Colour.black) && (score < prevScore)) {
-						status = TranspositionTableStatus.sufficientTerminalNode;
-					}
-				}
-			    // Transposition score is a refutation of previous move
-				else if (bound == ScoreType.upperBound || bound == ScoreType.lowerBound) {
-					if (st.isAlphaBetaCutOff(currPly, prevScore, score )) {
-						status = TranspositionTableStatus.sufficientRefutation;
-			        }
-				}
-			// Transposition just sufficient to seed the MoveList for searching
-			} else if (move != null) {
-				// Seed the move list for the next search with previous best move.
-				status = TranspositionTableStatus.sufficientSeedMoveList;
-				try {
-					lastPc.set(currPly, move);
-				} catch (IndexOutOfBoundsException e) {
-					for (int i=lastPc.size(); i < currPly; i++) {
-						lastPc.add(i, move);
-					}
-				}
-			}
-			if (status == TranspositionTableStatus.sufficientTerminalNode) {
-				st.setBackedUpScoreAtPly(currPly, score);
-				pc.update(currPly, trans.getBestMove());
-			}
-			return status;
-		}
 		
-		void storeTranspositionScore(int score, ScoreType bound) {
-			boolean updateTransposition = false;
-			int depthPositionSearched = (searchDepthPly - currPly);
-			
-			Transposition trans = hashMap.getTransposition(hash.hashCode);
-			if (trans != null) {
-				int currentDepth = trans.getDepthSearchedInPly();
-				ScoreType currentBound = trans.getScoreType();
-			
-				if (currentDepth < depthPositionSearched) {
-					updateTransposition = true;
-				} else if ((currentDepth == depthPositionSearched) && 
-					       ((currentBound == ScoreType.upperBound) || (currentBound == ScoreType.lowerBound)) &&
-					        bound == ScoreType.exact) {
-				    updateTransposition = true;
-				} else {
-					 // No other condition to store
-				}
-			} else {
-				updateTransposition = true;
-			}
-			if (updateTransposition) {
-				GenericMove move = (depthPositionSearched == 0) ? null : pc.getBestMove(currPly);
-				trans = new Transposition(move, depthPositionSearched, score, bound);
-				hashMap.putTransposition(hash.hashCode, trans);	
-			}
-		}
-    }
-	
-	
 	// Principal continuation focused, search report focused inner class
 	class PrincipalContinuationUpdateHelper
 	{

@@ -24,7 +24,6 @@ import com.fluxchess.jcpi.models.*;
 import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece.Colour;
 import eubos.position.PositionManager;
-import eubos.position.ZobristHashCode;
 import eubos.search.FixedSizeTranspositionTable;
 import eubos.search.FixedTimeMoveSearcher;
 import eubos.search.IterativeMoveSearcher;
@@ -86,7 +85,7 @@ public class EubosEngineMain extends AbstractEngine {
 		pm = new PositionManager(command.board.toString());
 		try {
 			for (GenericMove nextMove : command.moves) {
-				pm.performMove( new ZobristHashCode(pm), nextMove );
+				pm.performMove(nextMove);
 			}
 		} catch(InvalidPieceException e ) {
 			System.out.println( 

@@ -363,7 +363,7 @@ public class MiniMaxMoveGeneratorTest {
 		// "secondary rook move" missing implementation bug and the fact that an
 		// invalid piece exception was not previously implemented.
 		PositionManager pm = new PositionManager( "2b1k1nr/2p2ppp/2p5/p3q3/P3Q3/P4P2/2P1B1PP/1r3R1K w k - 2 23" );
-		pm.performMove(null, new GenericMove("f1b1"));
+		pm.performMove(new GenericMove("f1b1"));
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("e5e4");
 		//expectedMove = new GenericMove("e5e6");
@@ -543,14 +543,14 @@ public class MiniMaxMoveGeneratorTest {
 	public void test_PieceIsntARookDefect_WhilstSearching_Move() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
 		PositionManager pm = new PositionManager("r1bqkbnr/nppppppp/8/p3P3/3P4/2N5/PPP2PPP/R1BQKBNR b KQkq - 4 6");
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
-		pm.performMove(null, new GenericMove("d7d6"));
-		pm.performMove(null, new GenericMove("g1e2"));
-		pm.performMove(null, new GenericMove("d6e5"));
-		pm.performMove(null, new GenericMove("d4e5"));
-		pm.performMove(null, new GenericMove("d8d1"));
-		pm.performMove(null, new GenericMove("e1d1"));
-		pm.performMove(null, new GenericMove("a7c6"));
-		pm.performMove(null, new GenericMove("c3d5"));
+		pm.performMove(new GenericMove("d7d6"));
+		pm.performMove(new GenericMove("g1e2"));
+		pm.performMove(new GenericMove("d6e5"));
+		pm.performMove(new GenericMove("d4e5"));
+		pm.performMove(new GenericMove("d8d1"));
+		pm.performMove(new GenericMove("e1d1"));
+		pm.performMove(new GenericMove("a7c6"));
+		pm.performMove(new GenericMove("c3d5"));
 		classUnderTest.findMove(5);
 	}
 	
@@ -559,14 +559,14 @@ public class MiniMaxMoveGeneratorTest {
 	public void test_PieceIsntARookDefect_WhilstSearching_Move1() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
 		PositionManager pm = new PositionManager("rnbqkbnr/p1p1pppp/8/1p6/2pPP3/8/PP3PPP/RNBQKBNR w KQkq - 0 4");
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
-		pm.performMove(null, new GenericMove("a2a4"));
-		pm.performMove(null, new GenericMove("e7e5"));
-		pm.performMove(null, new GenericMove("a4b5"));
-		pm.performMove(null, new GenericMove("f8b4"));
-		pm.performMove(null, new GenericMove("b1c3"));
-		pm.performMove(null, new GenericMove("d8d4"));
-		pm.performMove(null, new GenericMove("d1c2"));
-		pm.performMove(null, new GenericMove("d4c5"));
+		pm.performMove(new GenericMove("a2a4"));
+		pm.performMove(new GenericMove("e7e5"));
+		pm.performMove(new GenericMove("a4b5"));
+		pm.performMove(new GenericMove("f8b4"));
+		pm.performMove(new GenericMove("b1c3"));
+		pm.performMove(new GenericMove("d8d4"));
+		pm.performMove(new GenericMove("d1c2"));
+		pm.performMove(new GenericMove("d4c5"));
 		classUnderTest.findMove(5);
 	}
 	
@@ -575,14 +575,14 @@ public class MiniMaxMoveGeneratorTest {
 	public void test_badMoveSelection() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
 		PositionManager pm = new PositionManager("1r5r/p1p1kp1p/2n1bn1R/1p6/4p3/1PP1P1P1/1B1PBPP1/R3K1N1 w Q - 3 17");
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
-		pm.performMove(null, new GenericMove("c3c4"));
-		pm.performMove(null, new GenericMove("f6g8"));
-		pm.performMove(null, new GenericMove("h6e6"));
-		pm.performMove(null, new GenericMove("e7e6"));
-		pm.performMove(null, new GenericMove("b2h8"));
-		pm.performMove(null, new GenericMove("b5b4"));
-		pm.performMove(null, new GenericMove("a1a6"));
-		pm.performMove(null, new GenericMove("b8b6"));
+		pm.performMove(new GenericMove("c3c4"));
+		pm.performMove(new GenericMove("f6g8"));
+		pm.performMove(new GenericMove("h6e6"));
+		pm.performMove(new GenericMove("e7e6"));
+		pm.performMove(new GenericMove("b2h8"));
+		pm.performMove(new GenericMove("b5b4"));
+		pm.performMove(new GenericMove("a1a6"));
+		pm.performMove(new GenericMove("b8b6"));
 		expectedMove = new GenericMove("e2g4");
 		
 		GenericMove selectedMove = classUnderTest.findMove(5);

@@ -109,7 +109,12 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		boolean kingIsInCheck = (ownKing != null) ? squareIsAttacked(ownKing.getSquare(), colour) : false;
 		return kingIsInCheck;		
 	}
+	
+	private ZobristHashCode hash;
 
+	public ZobristHashCode getHash() {
+		return hash;
+	}
 	public PositionManager() {
 		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 	}
@@ -128,9 +133,10 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		mlgen = new MoveListGenerator(this);
 		new fenParser( this, fenString );
 		setKing();
+		this.hash = new ZobristHashCode(this);
 	}
 	
-	public void performMove( ZobristHashCode hash, GenericMove move ) throws InvalidPieceException {
+	public void performMove( GenericMove move ) throws InvalidPieceException {
 		// Get the piece to move
 		Piece pieceToMove = theBoard.pickUpPieceAtSquare( move.from );
 		// Flag if move is an en passant capture
@@ -166,7 +172,7 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		onMove = Colour.getOpposite(onMove);
 	}
 	
-	public void unperformMove( ZobristHashCode hash ) throws InvalidPieceException {
+	public void unperformMove() throws InvalidPieceException {
 		if ( moveTracker.isEmpty())
 			return;
 		theBoard.setEnPassantTargetSq(null);

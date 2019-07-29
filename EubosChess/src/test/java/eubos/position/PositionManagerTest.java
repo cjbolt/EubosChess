@@ -22,7 +22,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_NoLastMoveToUndo() throws InvalidPieceException {
 		classUnderTest = new PositionManager();
-		classUnderTest.unperformMove(null);
+		classUnderTest.unperformMove();
 	}
 	
 	@Test
@@ -37,8 +37,8 @@ public class PositionManagerTest {
 		// 1 ........
 		//   abcdefgh
 		classUnderTest = new PositionManager("8/8/8/8/8/8/4P3/8 w - - - -");
-		classUnderTest.performMove(null, new GenericMove("e2e4"));
-		classUnderTest.unperformMove(null);
+		classUnderTest.performMove(new GenericMove("e2e4"));
+		classUnderTest.unperformMove();
 		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.e2 );
 		assertTrue( expectPawn instanceof Pawn );
 		assertTrue( expectPawn.isWhite());		
@@ -56,8 +56,8 @@ public class PositionManagerTest {
 		// 1 ........
 		//   abcdefgh
 		classUnderTest = new PositionManager("8/8/8/8/8/8/4p3/8 b - - - -");
-		classUnderTest.performMove( null, new GenericMove("e2e1Q"));
-		classUnderTest.unperformMove(null);
+		classUnderTest.performMove( new GenericMove("e2e1Q"));
+		classUnderTest.unperformMove();
 		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.e2 );
 		assertTrue( expectPawn instanceof Pawn );
 		assertTrue( expectPawn.isBlack());
@@ -75,8 +75,8 @@ public class PositionManagerTest {
 		// 1 ........
 		//   abcdefgh
 		classUnderTest = new PositionManager("8/8/8/8/8/3p4/4P3/8 w - - - -");
-		classUnderTest.performMove( null, new GenericMove("d3e2"));
-		classUnderTest.unperformMove(null);
+		classUnderTest.performMove( new GenericMove("d3e2"));
+		classUnderTest.unperformMove();
 		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.d3 );
 		assertTrue( expectPawn instanceof Pawn );
 		assertTrue( expectPawn.isBlack());
@@ -88,7 +88,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_enPassantCaptureAtC3() throws InvalidPieceException, IllegalNotationException {
 		classUnderTest = new PositionManager( "r3k2r/1bqpbppp/p1n1p3/3nP3/PpP1N3/3B1N2/1P2QPPP/R4RK1 b kq c3 0 1");
-		classUnderTest.performMove( null, new GenericMove("b4c3"));
+		classUnderTest.performMove( new GenericMove("b4c3"));
 		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.c3 );
 		assertTrue( expectPawn instanceof Pawn );
 		assertTrue( expectPawn.isBlack());
@@ -107,7 +107,7 @@ public class PositionManagerTest {
 		//   abcdefgh
 		classUnderTest = new PositionManager("8/8/8/8/8/8/8/4K2R w K - - -");
 		GenericMove expectedMove = new GenericMove("e1g1");
-		classUnderTest.performMove(null, expectedMove);
+		classUnderTest.performMove(expectedMove);
 		Piece whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.h1);
 		assertTrue(whiteRook == null);
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.f1);
@@ -129,12 +129,12 @@ public class PositionManagerTest {
 		//   abcdefgh
 		classUnderTest = new PositionManager("8/8/8/8/8/8/8/4K2R w K - - -");
 		GenericMove expectedMove = new GenericMove("e1g1");
-		classUnderTest.performMove(null, expectedMove);
+		classUnderTest.performMove(expectedMove);
 		Piece whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.h1);
 		assertTrue(whiteRook == null);
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.f1);
 		assertTrue(whiteRook instanceof Rook);
-		classUnderTest.unperformMove(null);
+		classUnderTest.unperformMove();
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.f1);
 		assertTrue(whiteRook == null);
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.h1);
@@ -157,7 +157,7 @@ public class PositionManagerTest {
 		// 1 ....K..R
 		//   abcdefgh
 		classUnderTest = new PositionManager("7r/8/8/8/8/8/8/4K2R b K - - -");
-		classUnderTest.performMove(null, new GenericMove("h8h1"));
+		classUnderTest.performMove(new GenericMove("h8h1"));
 		assertTrue(classUnderTest.castling.getFenFlags().equals("-"));
 	}
 }
