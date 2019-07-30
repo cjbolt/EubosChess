@@ -14,11 +14,9 @@ public class TranspositionTableAccessor {
 	private FixedSizeTranspositionTable hashMap;
 	private IPositionAccessors pos;
 	private ScoreTracker st;
-	private PrincipalContinuation pc;
-	private List<GenericMove> lastPc;
 	
 	public enum TranspositionTableStatus {
-		none,
+		insufficientNoData,
 		sufficientTerminalNode,
 		sufficientRefutation,
 		sufficientSeedMoveList		
@@ -33,84 +31,88 @@ public class TranspositionTableAccessor {
 		hashMap = transTable;
 		this.pos = pos;
 		this.st = st;
-		this.pc = pc;
-		this.lastPc = lastPc;
 	}
 	
-	TranspositionTableStatus evaluateTranspositionData(int currPly, int searchDepthPly) {
-		TranspositionTableStatus status = TranspositionTableStatus.sufficientSeedMoveList;
-		Colour onMove = pos.getOnMove();
+	public class TranspositionEval {
+		public TranspositionTableStatus status;
+		public Transposition trans;
+	} 
+	
+	TranspositionEval evaluateTranspositionData(int currPly, int depthRequiredPly) {
 		
-		Transposition trans = hashMap.getTransposition(pos.getHash().hashCode);
-		if (trans == null)
-			return status;
+		TranspositionEval ret = new TranspositionEval();
+		ret.status = TranspositionTableStatus.insufficientNoData;
+		ret.trans = hashMap.getTransposition(pos.getHash().hashCode);
+		if (ret.trans == null)
+			return ret;
 		
-		int depth = trans.getDepthSearchedInPly();
-		int score = trans.getScore();
-		ScoreType bound = trans.getScoreType();
-		GenericMove move = trans.getBestMove();
+		int depth = ret.trans.getDepthSearchedInPly();
+		int score = ret.trans.getScore();
+		ScoreType bound = ret.trans.getScoreType();
+		GenericMove move = ret.trans.getBestMove();
 		
-		int prevScore = st.getBackedUpScoreAtPly(currPly);
-		
-		// Condition for considering Transposition score sufficient to be used as terminal node
-		if (depth >= (searchDepthPly-currPly)) {
+		if (depth >= depthRequiredPly) {
+
+			int prevScore = st.getBackedUpScoreAtPly(currPly);
+			Colour onMove = pos.getOnMove();
 			if (bound == ScoreType.exact) {
+				// Condition for considering Transposition score sufficient to be used as terminal node
 				if ((onMove==Colour.white) && (score > prevScore)) {
-					status = TranspositionTableStatus.sufficientTerminalNode;
+					ret.status = TranspositionTableStatus.sufficientTerminalNode;
 				} else if ((onMove==Colour.black) && (score < prevScore)) {
-					status = TranspositionTableStatus.sufficientTerminalNode;
+					ret.status = TranspositionTableStatus.sufficientTerminalNode;
 				}
-			}
-		    // Transposition score is a refutation of previous move
-			else if (bound == ScoreType.upperBound || bound == ScoreType.lowerBound) {
+			} else {
+				// must be (bound == ScoreType.upperBound || bound == ScoreType.lowerBound) 
 				if (st.isAlphaBetaCutOff(currPly, prevScore, score )) {
-					status = TranspositionTableStatus.sufficientRefutation;
+					// Transposition score is a refutation of previous move
+					ret.status = TranspositionTableStatus.sufficientRefutation;
+		        } else if (move != null) {
+		        	// Not a refutation so seed move list.
+		        	ret.status = TranspositionTableStatus.sufficientSeedMoveList;
 		        }
 			}
-		// Transposition just sufficient to seed the MoveList for searching
 		} else if (move != null) {
-			// Seed the move list for the next search with previous best move.
-			status = TranspositionTableStatus.sufficientSeedMoveList;
-			try {
-				lastPc.set(currPly, move);
-			} catch (IndexOutOfBoundsException e) {
-				for (int i=lastPc.size(); i < currPly; i++) {
-					lastPc.add(i, move);
-				}
-			}
+			// Transposition just sufficient to seed the MoveList for searching
+			ret.status = TranspositionTableStatus.sufficientSeedMoveList;
 		}
-		if (status == TranspositionTableStatus.sufficientTerminalNode) {
-			st.setBackedUpScoreAtPly(currPly, score);
-			pc.update(currPly, trans.getBestMove());
-		}
-		return status;
+		return ret;
 	}
 	
-	void storeTranspositionScore(int currPly, int searchDepthPly, int score, ScoreType bound) {
+	void storeTranspositionScore(int depthPositionSearchedPly, GenericMove bestMove, int score, ScoreType bound) {
 		boolean updateTransposition = false;
-		int depthPositionSearched = (searchDepthPly - currPly);
-		
+				
 		Transposition trans = hashMap.getTransposition(pos.getHash().hashCode);
 		if (trans != null) {
 			int currentDepth = trans.getDepthSearchedInPly();
 			ScoreType currentBound = trans.getScoreType();
 		
-			if (currentDepth < depthPositionSearched) {
+			if (currentDepth < depthPositionSearchedPly) {
 				updateTransposition = true;
-			} else if ((currentDepth == depthPositionSearched) && 
+			} else if ((currentDepth == depthPositionSearchedPly) && 
 				       ((currentBound == ScoreType.upperBound) || (currentBound == ScoreType.lowerBound)) &&
 				        bound == ScoreType.exact) {
 			    updateTransposition = true;
+			} else if ((currentDepth == depthPositionSearchedPly) && 
+					   (currentBound == ScoreType.upperBound) &&
+					   (score < trans.getScore())) {
+				updateTransposition = true;
+			} else if ((currentDepth == depthPositionSearchedPly) && 
+					   (currentBound == ScoreType.lowerBound) &&
+					   (score > trans.getScore())) {
+				updateTransposition = true;
 			} else {
-				 // No other condition to store
+				 // No other condition requires an update
 			}
 		} else {
-			updateTransposition = true;
+			hashMap.putTransposition(pos.getHash().hashCode,
+					new Transposition(bestMove, depthPositionSearchedPly, score, bound));
 		}
 		if (updateTransposition) {
-			GenericMove move = (depthPositionSearched == 0) ? null : pc.getBestMove(currPly);
-			trans = new Transposition(move, depthPositionSearched, score, bound);
-			hashMap.putTransposition(pos.getHash().hashCode, trans);	
+			trans.setScoreType(bound);
+            trans.setBestMove(bestMove);
+            trans.setDepthSearchedInPly(depthPositionSearchedPly);
+            trans.setScore(score);	
 		}
 	}
 }
