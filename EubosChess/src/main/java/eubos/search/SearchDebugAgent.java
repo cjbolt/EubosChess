@@ -11,7 +11,7 @@ import eubos.board.pieces.Piece;
 public class SearchDebugAgent {
 
 	private static String indent = "";
-	private static boolean isDebugOn = false;
+	private static boolean isDebugOn = true;
 	private static int lastPly = 0;
 	private static FileWriter fw;
 
@@ -119,6 +119,31 @@ public class SearchDebugAgent {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"alpha beta brought down score:"+score+" at Ply="+currPly);
+		}
+	}
+
+	public static void printHashIsTerminalNode(int currPly, GenericMove move, int score ) {
+		if (isDebugOn) {
+			if ( currPly != lastPly )
+				computeIndent(currPly);
+			printOutput(indent+"hash sufficient terminal node with best move:"+move.toString()+" score:"+ score +"at Ply="+currPly);
+		}
+	}
+
+	public static void printHashIsRefutation(int currPly) {
+		if (isDebugOn) {
+			if ( currPly != lastPly )
+				computeIndent(currPly);
+			printOutput(indent+"hash sufficient for refutation at Ply="+currPly);
+		}
+		
+	}
+
+	public static void printHashIsSeedMoveList(int currPly, GenericMove move) {
+		if (isDebugOn) {
+			if ( currPly != lastPly )
+				computeIndent(currPly);
+			printOutput(indent+"hash sufficient seed move list with best move:"+move.toString()+"at Ply="+currPly);
 		}
 	}
 }

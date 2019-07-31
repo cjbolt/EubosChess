@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
-import eubos.board.pieces.Piece.Colour;
 import eubos.position.IPositionAccessors;
 import eubos.position.Transposition;
 import eubos.position.Transposition.ScoreType;
@@ -52,18 +51,12 @@ public class TranspositionTableAccessor {
 		GenericMove move = ret.trans.getBestMove();
 		
 		if (depth >= depthRequiredPly) {
-
-			int prevScore = st.getBackedUpScoreAtPly(currPly);
-			Colour onMove = pos.getOnMove();
+			
 			if (bound == ScoreType.exact) {
-				// Condition for considering Transposition score sufficient to be used as terminal node
-				if ((onMove==Colour.white) && (score > prevScore)) {
-					ret.status = TranspositionTableStatus.sufficientTerminalNode;
-				} else if ((onMove==Colour.black) && (score < prevScore)) {
-					ret.status = TranspositionTableStatus.sufficientTerminalNode;
-				}
+				ret.status = TranspositionTableStatus.sufficientTerminalNode;
 			} else {
-				// must be (bound == ScoreType.upperBound || bound == ScoreType.lowerBound) 
+				// must be (bound == ScoreType.upperBound || bound == ScoreType.lowerBound)
+				int prevScore = st.getBackedUpScoreAtPly(currPly);
 				if (st.isAlphaBetaCutOff(currPly, prevScore, score )) {
 					// Transposition score is a refutation of previous move
 					ret.status = TranspositionTableStatus.sufficientRefutation;

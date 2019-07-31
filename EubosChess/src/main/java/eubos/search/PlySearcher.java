@@ -83,14 +83,17 @@ public class PlySearcher {
 		switch (ret.status) {
 		
 		case sufficientTerminalNode:
+			SearchDebugAgent.printHashIsTerminalNode(currPly,ret.trans.getBestMove(), ret.trans.getScore());
 			st.setBackedUpScoreAtPly(currPly, ret.trans.getScore());
 			pc.update(currPly, ret.trans.getBestMove());
 			break;
 			
 		case sufficientRefutation:
+			SearchDebugAgent.printHashIsRefutation(currPly);
 			break;
 			
 		case sufficientSeedMoveList:
+			SearchDebugAgent.printHashIsSeedMoveList(currPly, ret.trans.getBestMove());
 			seedMoveList(ret);
 			// Intentional drop through
 		case insufficientNoData:
