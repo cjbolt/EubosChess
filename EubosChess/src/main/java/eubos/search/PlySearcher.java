@@ -102,9 +102,9 @@ public class PlySearcher {
 				searchMoves(ml);
 				
 				// Only update transposition if it wasn't a mate!
-				int depthSearchedPly = searchDepthPly - currPly;
-			    GenericMove bestMove = (depthSearchedPly == 0) ? null : pc.getBestMove(currPly);
-				tt.storeTranspositionScore(depthSearchedPly, bestMove, st.getBackedUpScoreAtPly(currPly), ScoreType.exact);
+				//int depthSearchedPly = searchDepthPly - currPly;
+			    //GenericMove bestMove = (depthSearchedPly == 0) ? null : pc.getBestMove(currPly);
+				//tt.storeTranspositionScore(depthSearchedPly, bestMove, st.getBackedUpScoreAtPly(currPly), ScoreType.exact);
 			} else {
 				boolean isWhite = (onMove == Colour.white);
 				int mateScore = sg.scoreMate(currPly, isWhite, initialOnMove);
@@ -155,10 +155,10 @@ public class PlySearcher {
 				// Refutation of the move leading to this position was found, cut off search.
 				break;	
 			} else {
-				// move didn't merit backing up and was not refutation, continue search...
+				// move didn't merit backing up and was not refutation, continue to update Transposition...
 			}
 			
-			// Save the backed up score in the Transposition table
+			// The move was searched, so save the score that was backed up to this ply into the Transposition table
 			ScoreType bound = (pos.getOnMove() == Colour.white) ? ScoreType.lowerBound : ScoreType.upperBound;
 			int depthPositionSearchedPly = (searchDepthPly - currPly);
 		    GenericMove bestMove = (depthPositionSearchedPly == 0) ? null : pc.getBestMove(currPly);
