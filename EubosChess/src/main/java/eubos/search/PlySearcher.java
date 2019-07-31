@@ -159,10 +159,16 @@ public class PlySearcher {
 			}
 			
 			// The move was searched, so save the score that was backed up to this ply into the Transposition table
-			ScoreType bound = (pos.getOnMove() == Colour.white) ? ScoreType.lowerBound : ScoreType.upperBound;
 			int depthPositionSearchedPly = (searchDepthPly - currPly);
-		    GenericMove bestMove = (depthPositionSearchedPly == 0) ? null : pc.getBestMove(currPly);
-			tt.storeTranspositionScore(depthPositionSearchedPly, bestMove, positionScore, bound);
+			GenericMove bestMove = (depthPositionSearchedPly == 0) ? null : pc.getBestMove(currPly);
+			if (move_iter.hasNext()) {
+				// Bound score
+				ScoreType bound = (pos.getOnMove() == Colour.white) ? ScoreType.lowerBound : ScoreType.upperBound;
+				tt.storeTranspositionScore(depthPositionSearchedPly, bestMove, positionScore, bound);
+			} else {
+				// All moves have been searched so score is exact for this depth.
+				tt.storeTranspositionScore(depthPositionSearchedPly, bestMove, positionScore, ScoreType.exact);
+			}
 		}
 	}
 	
