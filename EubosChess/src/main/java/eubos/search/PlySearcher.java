@@ -141,16 +141,16 @@ public class PlySearcher {
 			int positionScore = applyMoveAndScore(currMove);
 			sm.incrementNodesSearched();
 				
-			if (st.isAlphaBetaCutOff( currPly, alphaBetaCutOff, positionScore )) {
-				SearchDebugAgent.printRefutationFound(currPly);
-				// Refutation of the move leading to this position was found, cut off search.
-				break;	
-			} else if (st.isBackUpRequired(currPly, positionScore)) {
+			if (st.isBackUpRequired(currPly, positionScore)) {
 				// New best score found at this node, back up and update the principal continuation.
 				st.setBackedUpScoreAtPly(currPly, positionScore);
 				pc.update(currPly, currMove);
 				if (currPly == 0)
 					new PrincipalContinuationUpdateHelper(positionScore).report();
+			} else if (st.isAlphaBetaCutOff( currPly, alphaBetaCutOff, positionScore )) {
+				SearchDebugAgent.printRefutationFound(currPly);
+				// Refutation of the move leading to this position was found, cut off search.
+				break;	
 			} else {
 				// move didn't merit backing up and was not refutation, continue search...
 			}
