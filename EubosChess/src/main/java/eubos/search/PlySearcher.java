@@ -12,6 +12,7 @@ import eubos.position.IChangePosition;
 import eubos.position.IGenerateMoveList;
 import eubos.position.IPositionAccessors;
 import eubos.position.IScoreMate;
+import eubos.position.Transposition;
 import eubos.position.Transposition.ScoreType;
 import eubos.search.TranspositionTableAccessor.TranspositionEval;
 import eubos.position.IEvaluate;
@@ -214,18 +215,16 @@ public class PlySearcher {
 	}
 
 	private int scoreTerminalNode() {
-		int positionScore = pe.evaluatePosition(pos);
-		/*
-		Transposition trans = hashMap.getTransposition(hash.hashCode);
-		if ((trans != null) && (trans.getScoreType() == Transposition.ScoreType.exact)) { 
+		int positionScore;// = pe.evaluatePosition(pos);
+		Transposition trans = tt.hashMap.getTransposition(pos.getHash().hashCode);
+		if ((trans != null) && (trans.getScoreType() == ScoreType.exact)) { 
 			// don't need to score, can use previous score. 
 			positionScore = trans.getScore(); 
 		} else { 
 			positionScore = pe.evaluatePosition(pos);
 			// Store, as it could prevent having to score the position if encountered again
-		    storeTranspositionScore(positionScore); 
+		    tt.storeTranspositionScore(0, null, positionScore, ScoreType.exact); 
 		}
-		*/
 		return positionScore;
 	}
 	

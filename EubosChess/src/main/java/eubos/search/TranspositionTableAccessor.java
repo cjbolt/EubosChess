@@ -10,7 +10,7 @@ import eubos.position.Transposition.ScoreType;
 
 public class TranspositionTableAccessor {
 	
-	private FixedSizeTranspositionTable hashMap;
+	public FixedSizeTranspositionTable hashMap;
 	private IPositionAccessors pos;
 	private ScoreTracker st;
 	
