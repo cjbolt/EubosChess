@@ -68,11 +68,13 @@ public class TranspositionTableAccessor {
 		return ret;
 	}
 	
-	void storeTranspositionScore(int depthPositionSearchedPly, GenericMove bestMove, int score, ScoreType bound) {
-		Transposition trans = hashMap.getTransposition(pos.getHash().hashCode);
+	void storeTranspositionScore(int depthPositionSearchedPly, GenericMove bestMove, int score, ScoreType bound, Transposition trans) {
 		if (trans == null) {
-			hashMap.putTransposition(pos.getHash().hashCode,
-					new Transposition(bestMove, depthPositionSearchedPly, score, bound));
+			trans = hashMap.getTransposition(pos.getHash().hashCode);
+		}
+		if (trans == null) {
+			trans = new Transposition(bestMove, depthPositionSearchedPly, score, bound);
+			hashMap.putTransposition(pos.getHash().hashCode, trans);
 		} else {
 			boolean updateTransposition = false;
 			int currentDepth = trans.getDepthSearchedInPly();

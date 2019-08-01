@@ -97,7 +97,7 @@ public class PlySearcher {
 			seedMoveList(eval);
 			// Intentional drop through
 		case insufficientNoData:
-			searchMoves(getMoveList());
+			searchMoves(getMoveList(), eval.trans);
 			break;
 			
 		default:
@@ -107,13 +107,13 @@ public class PlySearcher {
 		return st.getBackedUpScoreAtPly(currPly);
 	}
 
-	void searchMoves(List<GenericMove> ml) throws InvalidPieceException {
+	void searchMoves(List<GenericMove> ml, Transposition trans) throws InvalidPieceException {
 		if (isMateOccurred(ml)) {
 			int mateScore = sg.scoreMate(currPly, (pos.getOnMove() == Colour.white), initialOnMove);
 			st.setBackedUpScoreAtPly(currPly, mateScore);
-			return;
 		} else {
-			int alphaBetaCutOff = st.getProvisionalScoreAtPly(currPly);
+			boolean refutation_found = false;
+			int provisionalScoreAtPly = st.getProvisionalScoreAtPly(currPly);
 			Iterator<GenericMove> move_iter = ml.iterator();
 			
 			while(move_iter.hasNext() && !isTerminated()) {
@@ -121,36 +121,43 @@ public class PlySearcher {
 				if (currPly == 0)
 					reportMove(currMove);
 				
-				// Recurse and evaluate as required according to ply depth
 				int positionScore = applyMoveAndScore(currMove);
-				sm.incrementNodesSearched();
 					
 				if (st.isBackUpRequired(currPly, positionScore)) {
-					// New best score found at this node, back up and update the principal continuation.
-					st.setBackedUpScoreAtPly(currPly, positionScore);
-					pc.update(currPly, currMove);
-					if (currPly == 0)
-						new PrincipalContinuationUpdateHelper(positionScore).report();
-				} else if (st.isAlphaBetaCutOff( currPly, alphaBetaCutOff, positionScore )) {
-					SearchDebugAgent.printRefutationFound(currPly);
-					// Refutation of the move leading to this position was found, cut off search.
-					break;	
-				} else {
-					// move didn't merit backing up and was not refutation, continue to update Transposition...
+					doScoreBackup(currMove, positionScore);
+				} else if (st.isAlphaBetaCutOff( currPly, provisionalScoreAtPly, positionScore )) {
+					refutation_found = true;	
 				}
 				
-				// The move was searched, so save the score that was backed up to this ply into the Transposition table
-				int depthPositionSearchedPly = (searchDepthPly - currPly);
-				GenericMove bestMove = (depthPositionSearchedPly == 0) ? null : pc.getBestMove(currPly);
-				if (move_iter.hasNext()) {
-					// Bound score
-					ScoreType bound = (pos.getOnMove() == Colour.white) ? ScoreType.lowerBound : ScoreType.upperBound;
-					tt.storeTranspositionScore(depthPositionSearchedPly, bestMove, positionScore, bound);
-				} else {
-					// All moves have been searched so score is exact for this depth.
-					tt.storeTranspositionScore(depthPositionSearchedPly, bestMove, positionScore, ScoreType.exact);
+				updateTranspositionTable(move_iter, positionScore, trans);
+				
+				if (refutation_found) {
+					SearchDebugAgent.printRefutationFound(currPly);
+					break;
 				}
 			}
+		}
+	}
+
+	protected void doScoreBackup(GenericMove currMove, int positionScore) {
+		// New best score found at this node, back up and update the principal continuation.
+		st.setBackedUpScoreAtPly(currPly, positionScore);
+		pc.update(currPly, currMove);
+		if (currPly == 0)
+			new PrincipalContinuationUpdateHelper(positionScore).report();
+	}
+
+	protected void updateTranspositionTable(Iterator<GenericMove> move_iter,
+			int positionScore, Transposition trans) {
+		int depthPositionSearchedPly = (searchDepthPly - currPly);
+		GenericMove bestMove = (depthPositionSearchedPly == 0) ? null : pc.getBestMove(currPly);
+		if (move_iter.hasNext()) {
+			// We haven't searched all the moves yet so this is a bound score
+			ScoreType bound = (pos.getOnMove() == Colour.white) ? ScoreType.lowerBound : ScoreType.upperBound;
+			tt.storeTranspositionScore(depthPositionSearchedPly, bestMove, positionScore, bound, trans);
+		} else {
+			// All moves have been searched so score is exact for this depth.
+			tt.storeTranspositionScore(depthPositionSearchedPly, bestMove, positionScore, ScoreType.exact, trans);
 		}
 	}
 	
@@ -193,6 +200,8 @@ public class PlySearcher {
 		int positionScore = assessNewPosition(currMove);
 		doUnperformMove(currMove);
 		
+		sm.incrementNodesSearched();
+		
 		return positionScore;
 	}
 
@@ -208,7 +217,7 @@ public class PlySearcher {
 	}
 
 	private int scoreTerminalNode() {
-		int positionScore;// = pe.evaluatePosition(pos);
+		int positionScore = pe.evaluatePosition(pos); 
 		Transposition trans = tt.hashMap.getTransposition(pos.getHash().hashCode);
 		if ((trans != null) && (trans.getScoreType() == ScoreType.exact)) { 
 			// don't need to score, can use previous score. 
@@ -216,7 +225,7 @@ public class PlySearcher {
 		} else { 
 			positionScore = pe.evaluatePosition(pos);
 			// Store, as it could prevent having to score the position if encountered again
-		    tt.storeTranspositionScore(0, null, positionScore, ScoreType.exact); 
+		    tt.storeTranspositionScore(0, null, positionScore, ScoreType.exact, null); 
 		}
 		return positionScore;
 	}
