@@ -13,6 +13,7 @@ import eubos.position.IPositionAccessors;
 public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 	
 	private int searchDepth = 1;
+	boolean searchStopped = false;
 	
 	public FixedDepthMoveSearcher( EubosEngineMain eubos, FixedSizeTranspositionTable hashMap, IChangePosition inputPm, IGenerateMoveList mlgen, IPositionAccessors pos, int searchDepth ) {
 		super(eubos,inputPm,pos, new MiniMaxMoveGenerator( eubos, hashMap, inputPm, mlgen, pos ));
@@ -21,6 +22,7 @@ public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 	
 	@Override
 	public void halt() {
+		searchStopped = true;
 		mg.terminateFindMove();
 	}
 	
@@ -28,7 +30,7 @@ public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 	public void run() {
 		GenericMove selectedMove = null;
 		LinkedList<GenericMove> pc = null;
-		for (int depth=1; depth<searchDepth; depth++) {
+		for (int depth=1; depth<searchDepth && !searchStopped; depth++) {
 			selectedMove = doFindMove(selectedMove, pc, depth);
 			pc = mg.pc.toPvList();
 		}

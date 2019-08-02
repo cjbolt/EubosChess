@@ -23,6 +23,15 @@ class SearchMetrics {
 		currMoveNum = 0;
 	}
 	
+	SearchMetrics() {
+		nodesSearched = 0;
+		time = 0;
+		cpScore = 0;
+		pvValid = false;
+		depth = 1;
+		currMoveNum = 0;
+	}
+	
 	synchronized void incrementNodesSearched() { nodesSearched++; }
 	synchronized long getNodesSearched() { return nodesSearched; }
 	synchronized void incrementTime(int delta) { time += delta; }
@@ -42,8 +51,10 @@ class SearchMetrics {
 	synchronized int getCpScore() { return cpScore; }
 	synchronized void setCpScore(int cpScore) { this.cpScore = cpScore; }
 	synchronized int getDepth() { return depth; }
+	synchronized void setDepth(int depth) { this.depth = depth; }
 	synchronized void setCurrentMove(GenericMove mov) { currMove = mov;}
 	synchronized GenericMove getCurrentMove() { return currMove;	}
 	synchronized int getCurrentMoveNumber() { return currMoveNum; }
+	synchronized void clearCurrentMoveNumber() { currMoveNum = 0; }
 	synchronized void incrementCurrentMoveNumber() { currMoveNum+=1; }
 }

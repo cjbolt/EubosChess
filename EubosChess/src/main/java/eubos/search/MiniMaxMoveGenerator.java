@@ -34,12 +34,14 @@ class MiniMaxMoveGenerator implements
 		this.pos = pos;
 		this.mlgen = mlgen;
 		this.hashMap = hashMap;
+		sm = new SearchMetrics();
 		pe = new PositionEvaluator();
 	}
 
 	// Used with Arena, Lichess
 	MiniMaxMoveGenerator( EubosEngineMain eubos, FixedSizeTranspositionTable hashMap, IChangePosition pm, IGenerateMoveList mlgen, IPositionAccessors pos ) {
 		this(hashMap, pm, mlgen, pos);
+		sm = new SearchMetrics();
 		callback = eubos;
 		sendInfo = true;
 	}	
@@ -47,7 +49,8 @@ class MiniMaxMoveGenerator implements
 	private void initialiseSearchDepthDependentObjects(int searchDepth) {
 		sg = new MateScoreGenerator(pos, searchDepth);
 		pc = new PrincipalContinuation(searchDepth);
-		sm = new SearchMetrics(searchDepth);
+		sm.setDepth(searchDepth);
+		sm.clearCurrentMoveNumber();
 		sm.setPrincipalVariation(pc.toPvList());
 		sr = new SearchMetricsReporter(callback,sm);	
 		if (sendInfo)

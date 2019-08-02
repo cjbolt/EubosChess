@@ -71,7 +71,8 @@ public class PlySearcher {
 		this.tt = new TranspositionTableAccessor(hashMap, pos, st, pc, lastPc);
 	}
 	
-	synchronized void terminateFindMove() { terminate = true; }
+	synchronized void terminateFindMove() { 
+		terminate = true; }
 	private synchronized boolean isTerminated() { return terminate; }	
 	
 	int searchPly() throws InvalidPieceException {

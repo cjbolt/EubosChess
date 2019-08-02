@@ -16,6 +16,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	
 	long gameTimeRemaining;
 	private static final int AVG_MOVES_PER_GAME = 70;
+	boolean searchStopped = false;
 
 	public IterativeMoveSearcher(EubosEngineMain eubos, FixedSizeTranspositionTable hashMap, IChangePosition inputPm, 
 			IGenerateMoveList mlgen, IPositionAccessors pos, long time ) {
@@ -26,18 +27,20 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	@Override
 	public void halt() {
 		mg.terminateFindMove();
+		searchStopped = true; 
 	}
 	
 	@Override
 	public void run() {
+		int currentDepth = 1;
 		GenericMove selectedMove = null;
 		LinkedList<GenericMove> pc = null;
 		long timeQuota = calculateSearchTimeAllocation();
 		Timestamp msTargetEndTime = new Timestamp(System.currentTimeMillis() + timeQuota);
-		for (int depth=1; depth<12; depth++) {
+		while (!searchStopped && currentDepth <= 12) {
 			try {
 				// Need to seed the moveList so that the best moves are searched first.
-				selectedMove = mg.findMove(depth, pc);
+				selectedMove = mg.findMove(currentDepth, pc);
 			} catch( NoLegalMoveException e ) {
 				System.out.println( "Eubos has run out of legal moves for side " + pos.getOnMove().toString() );
 			} catch(InvalidPieceException e ) {
@@ -49,6 +52,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			if (msCurrTime.after(msTargetEndTime))
 				break;
 			pc = mg.pc.toPvList();
+			currentDepth++;
 		}
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( selectedMove, null ));
 	}
