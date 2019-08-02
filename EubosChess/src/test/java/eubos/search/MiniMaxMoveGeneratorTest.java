@@ -573,20 +573,47 @@ public class MiniMaxMoveGeneratorTest {
 	@Test
 	@Ignore
 	public void test_badMoveSelection() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		PositionManager pm = new PositionManager("1r5r/p1p1kp1p/2n1bn1R/1p6/4p3/1PP1P1P1/1B1PBPP1/R3K1N1 w Q - 3 17");
+		PositionManager pm = new PositionManager("r3k2r/pp2npp1/2p5/q3P2p/1N2PB1b/P5P1/1PP1NQ1P/R3K2R b KQkq - 0 16");
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
-		pm.performMove(new GenericMove("c3c4"));
-		pm.performMove(new GenericMove("f6g8"));
-		pm.performMove(new GenericMove("h6e6"));
-		pm.performMove(new GenericMove("e7e6"));
-		pm.performMove(new GenericMove("b2h8"));
-		pm.performMove(new GenericMove("b5b4"));
-		pm.performMove(new GenericMove("a1a6"));
-		pm.performMove(new GenericMove("b8b6"));
-		expectedMove = new GenericMove("e2g4");
+		pm.performMove(new GenericMove("c6c5"));
+		pm.performMove(new GenericMove("c2c3"));
+		pm.performMove(new GenericMove("c5b4"));
+		pm.performMove(new GenericMove("c3b4"));
+		pm.performMove(new GenericMove("a5b6"));
+		pm.performMove(new GenericMove("f4e3"));
+		pm.performMove(new GenericMove("b6c7"));
+		pm.performMove(new GenericMove("e3f4"));
+		// Eubos generates a wtf queen for pawn sacrifice. When run here it is ok.
+		expectedMove = new GenericMove("e7c6");
 		
-		GenericMove selectedMove = classUnderTest.findMove(5);
+		classUnderTest.findMove(1);
+		LinkedList<GenericMove> lastPc = classUnderTest.pc.toPvList();
+		classUnderTest.findMove(2,lastPc);
+		lastPc = classUnderTest.pc.toPvList();
+		classUnderTest.findMove(3,lastPc);
+		lastPc = classUnderTest.pc.toPvList();
+		GenericMove selectedMove = classUnderTest.findMove(4,lastPc);
 		
 	    assertTrue(selectedMove.equals(expectedMove));
-	}	
+	}
+	
+	@Test
+	@Ignore
+	public void test_badMoveSelectionFen() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		PositionManager pm = new PositionManager("r3k2r/ppq1npp1/8/4P2p/1P2PB1b/P5P1/1P2NQ1P/R3K2R b KQkq - 4 20");
+		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
+		// Eubos generates a wtf queen for pawn sacrifice. When run here it is ok.
+		expectedMove = new GenericMove("e7c6");
+		
+		classUnderTest.findMove(1);
+		LinkedList<GenericMove> lastPc = classUnderTest.pc.toPvList();
+		classUnderTest.findMove(2,lastPc);
+		lastPc = classUnderTest.pc.toPvList();
+		classUnderTest.findMove(3,lastPc);
+		lastPc = classUnderTest.pc.toPvList();
+		GenericMove selectedMove = classUnderTest.findMove(4,lastPc);
+		
+	    assertTrue(selectedMove.equals(expectedMove));
+	}
+	 
 }
