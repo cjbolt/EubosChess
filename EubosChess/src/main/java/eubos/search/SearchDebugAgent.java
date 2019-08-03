@@ -130,11 +130,11 @@ public class SearchDebugAgent {
 		}
 	}
 
-	public static void printHashIsRefutation(int currPly) {
+	public static void printHashIsRefutation(int currPly, GenericMove move) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"hash sufficient for refutation at Ply="+currPly);
+			printOutput(indent+"hash sufficient for refutation at Ply="+currPly+" move: "+move.toString());
 		}
 		
 	}

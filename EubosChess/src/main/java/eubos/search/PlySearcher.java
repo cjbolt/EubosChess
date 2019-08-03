@@ -90,7 +90,10 @@ public class PlySearcher {
 			break;
 			
 		case sufficientRefutation:
-			SearchDebugAgent.printHashIsRefutation(currPly);
+			SearchDebugAgent.printHashIsRefutation(currPly, eval.trans.getBestMove());
+			if (st.isBackUpRequired(currPly, eval.trans.getScore())) {
+				doScoreBackup(eval.trans.getBestMove(), eval.trans.getScore());
+			}
 			break;
 			
 		case sufficientSeedMoveList:
@@ -247,9 +250,9 @@ public class PlySearcher {
 	}
 	
 	private void doUnperformMove(GenericMove currMove) throws InvalidPieceException {
-		SearchDebugAgent.printUndoMove(currPly, currMove);
 		pm.unperformMove();
 		currPly--;
+		SearchDebugAgent.printUndoMove(currPly, currMove);
 	}	
 		
 	// Principal continuation focused, search report focused inner class
