@@ -43,9 +43,9 @@ public class EubosEngineMainTest {
 	// Command building blocks
 	private static final String CMD_TERMINATOR = "\r\n";
 	private static final String POS_FEN_PREFIX = "position fen ";
-	//private static final String GO_DEPTH_PREFIX = "go depth ";
-	private static final String GO_WTIME_PREFIX = "go wtime ";
-	private static final String GO_BTIME_PREFIX = "go btime ";
+	private static final String GO_DEPTH_PREFIX = "go depth ";
+	//private static final String GO_WTIME_PREFIX = "go wtime ";
+	//private static final String GO_BTIME_PREFIX = "go btime ";
 	private static final String BEST_PREFIX = "bestmove ";
 	
 	// Whole Commands
@@ -95,7 +95,7 @@ public class EubosEngineMainTest {
 		setupEngine();
 		// Setup Commands specific to this test
 		commands.add(new commandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_WTIME_PREFIX+"300000"+CMD_TERMINATOR,BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
 		performTest(20000);
 	}
 	
@@ -113,7 +113,7 @@ public class EubosEngineMainTest {
 		setupEngine();
 		// Setup Commands specific to this test
 		commands.add(new commandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1 moves b5b6"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_BTIME_PREFIX+"300000"+CMD_TERMINATOR,BEST_PREFIX+"b4a6"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4a6"+CMD_TERMINATOR));
 		performTest(20000);
 	}	
 	
@@ -122,8 +122,8 @@ public class EubosEngineMainTest {
 		setupEngine();
 		// Setup Commands specific to this test
 		commands.add(new commandPair(POS_FEN_PREFIX+"5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_WTIME_PREFIX+"300000"+CMD_TERMINATOR,BEST_PREFIX+"d3h7"+CMD_TERMINATOR));
-		performTest(30000);
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR,BEST_PREFIX+"d3h7"+CMD_TERMINATOR));
+		performTest(10000);
 	}
 
 	private void performTest(int timeout) throws IOException, InterruptedException {

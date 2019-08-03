@@ -40,8 +40,12 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	private void doFindMoveTest( boolean expectMove ) {
+		doFindMoveTest( SEARCH_DEPTH_IN_PLY, expectMove );
+	}
+	
+	private void doFindMoveTest( int searchDepth, boolean expectMove ) {
 		try {
-			GenericMove selectedMove = classUnderTest.findMove(SEARCH_DEPTH_IN_PLY);
+			GenericMove selectedMove = classUnderTest.findMove(searchDepth);
 			if ( expectMove )
 				assertTrue(selectedMove.equals(expectedMove));
 			else
@@ -188,7 +192,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "8/5q2/3pP3/2P5/1b6/P7/8/8 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( hashMap, pm,pm,pm );
 		expectedMove = new GenericMove("e6f7");
-		doFindMoveTest(true);
+		doFindMoveTest(2, true);
 	}
 	
 	@Test
@@ -205,7 +209,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "5q2/4P3/3p4/2P5/1b6/P7/8/8 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( hashMap, pm,pm,pm );
 		expectedMove = new GenericMove("e7f8Q");
-		doFindMoveTest(true);
+		doFindMoveTest(2, true);
 	}
 	
 	@Test
@@ -222,7 +226,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "8/4P3/3p4/8/8/8/8/8 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( hashMap, pm,pm,pm );
 		expectedMove = new GenericMove("e7e8Q");
-		doFindMoveTest(true);
+		doFindMoveTest(2, true);
 	}
 	
 	@Test
@@ -239,7 +243,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "4k3/8/4p3/5b2/8/8/8/4R3 b - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( hashMap, pm,pm,pm );
 		expectedMove = new GenericMove("e6f5");
-		doFindMoveTest(false);
+		doFindMoveTest(2, false);
 	}
 
 	@Test
@@ -257,7 +261,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "1nbqk2r/3p3p/r1pbpn2/1p3B2/3P4/PQP2N2/5PPP/R3R1K1 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("e6f5");
-		doFindMoveTest(false);
+		doFindMoveTest(2, false);
 	}
 
 	@Test
@@ -266,7 +270,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("d3h7");
-		doFindMoveTest(true);
+		doFindMoveTest(2, true);
 	}
 	
 	@Test
@@ -277,7 +281,7 @@ public class MiniMaxMoveGeneratorTest {
 		// various possible mates
 		//expectedMove = new GenericMove("a5a6");
 		expectedMove = new GenericMove("f3e5");
-		doFindMoveTest(true);
+		doFindMoveTest(2, true);
 	}
 	
 	@Test
@@ -289,7 +293,7 @@ public class MiniMaxMoveGeneratorTest {
 		//expectedMove = new GenericMove("h4g5");
 		expectedMove = new GenericMove("a5g5");
 		//expectedMove = new GenericMove("a3f8");
-		doFindMoveTest(true);
+		doFindMoveTest(2, true);
 	}
 	
 	@Test
@@ -299,7 +303,7 @@ public class MiniMaxMoveGeneratorTest {
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		// Two possible pawn mates
 		expectedMove = new GenericMove("d2d4");
-		doFindMoveTest(true);
+		doFindMoveTest(2, true);
 	}
 	
 	@Test
@@ -308,7 +312,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "8/8/K7/p7/k2N3R/p7/P7/8 w - - 0 1" );
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("d4e6");
-		doFindMoveTest(true);
+		doFindMoveTest(2, true);
 	}
 
 	@Test
@@ -317,7 +321,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "1rk2N2/1p6/8/B1Pp4/B6Q/K7/8/2R5 w - d6 0 1" );
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("c5d6"); //en passant move causes discovered checkmate
-		doFindMoveTest(true);
+		doFindMoveTest(2, true);
 	}
 
 	@Test
@@ -326,7 +330,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "8/7B/8/3N4/8/1Q2B3/PPP5/rk2K2R w K - 0 1" );
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("e1g1");
-		doFindMoveTest(true);
+		doFindMoveTest(2, true);
 	}
 
 	@Test
@@ -339,7 +343,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 
 	@Test
-	public void test_findMove_mateInTwo2()  throws NoLegalMoveException, IllegalNotationException {
+	public void test_findMove_mateInTwo2()  throws NoLegalMoveException, IllegalNotationException, InvalidPieceException {
 		// chess.com Problem ID: 0102832
 		PositionManager pm = new PositionManager( "r1r3k1/pb1p1p2/1p2p1p1/2pPP1B1/1nP4Q/1Pq2NP1/P4PBP/b2R2K1 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( hashMap, pm,pm,pm );
@@ -376,7 +380,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "8/8/8/8/1pPP4/8/8/8 b - c3 0 1");
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("b4c3");
-		doFindMoveTest(true);
+		doFindMoveTest(2, true);
 	}
 	
 	@Test
@@ -384,7 +388,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "1k6/ppR5/8/8/8/8/PP6/K1Qq2r1 w - - - -");
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("c7c8");
-		doFindMoveTest(true);
+		doFindMoveTest(2, true);
 	}
 	
 	@Test
@@ -397,7 +401,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "5r1k/ppp4p/2n5/1BNb2q1/1P6/P7/2PP3K/1R1Q4 b - - 7 32");
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("g5g2");
-		doFindMoveTest(true);
+		doFindMoveTest(2, true);
 	}
 	
 	@Test

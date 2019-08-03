@@ -84,16 +84,12 @@ public class PlySearcher {
 		
 		case sufficientTerminalNode:
 			SearchDebugAgent.printHashIsTerminalNode(currPly, eval.trans.getBestMove(), eval.trans.getScore());
-			if (st.isBackUpRequired(currPly, eval.trans.getScore())) {
-				doScoreBackup(eval.trans.getBestMove(), eval.trans.getScore());
-			}
+			doScoreBackup(eval.trans.getBestMove(), eval.trans.getScore());
 			break;
 			
 		case sufficientRefutation:
 			SearchDebugAgent.printHashIsRefutation(currPly, eval.trans.getBestMove());
-			if (st.isBackUpRequired(currPly, eval.trans.getScore())) {
-				doScoreBackup(eval.trans.getBestMove(), eval.trans.getScore());
-			}
+			doScoreBackup(eval.trans.getBestMove(), eval.trans.getScore());
 			break;
 			
 		case sufficientSeedMoveList:
@@ -116,7 +112,6 @@ public class PlySearcher {
 			int mateScore = sg.scoreMate(currPly, (pos.getOnMove() == Colour.white), initialOnMove);
 			st.setBackedUpScoreAtPly(currPly, mateScore);
 		} else {
-			boolean refutation_found = false;
 			int provisionalScoreAtPly = st.getProvisionalScoreAtPly(currPly);
 			Iterator<GenericMove> move_iter = ml.iterator();
 			
@@ -127,43 +122,36 @@ public class PlySearcher {
 				
 				int positionScore = applyMoveAndScore(currMove);
 					
-				if (st.isBackUpRequired(currPly, positionScore)) {
-					doScoreBackup(currMove, positionScore);
-				}
-				if (st.isAlphaBetaCutOff( currPly, provisionalScoreAtPly, positionScore )) {
-					refutation_found = true;	
-				}
-				
+				doScoreBackup(currMove, positionScore);
 				updateTranspositionTable(move_iter, positionScore, trans);
 				
-				if (refutation_found) {
+				if (st.isAlphaBetaCutOff( currPly, provisionalScoreAtPly, positionScore )) {
 					SearchDebugAgent.printRefutationFound(currPly);
-					break;
+					break;	
 				}
 			}
 		}
 	}
 
 	protected void doScoreBackup(GenericMove currMove, int positionScore) {
-		// New best score found at this node, back up and update the principal continuation.
-		st.setBackedUpScoreAtPly(currPly, positionScore);
-		pc.update(currPly, currMove);
-		if (currPly == 0)
-			new PrincipalContinuationUpdateHelper(positionScore).report();
+		if (st.isBackUpRequired(currPly, positionScore)) {
+			// New best score found at this node, back up and update the principal continuation.
+			st.setBackedUpScoreAtPly(currPly, positionScore);
+			pc.update(currPly, currMove);
+			if (currPly == 0)
+				new PrincipalContinuationUpdateHelper(positionScore).report();
+		}
 	}
 
-	protected void updateTranspositionTable(Iterator<GenericMove> move_iter,
-			int positionScore, Transposition trans) {
+	protected void updateTranspositionTable(Iterator<GenericMove> move_iter, int positionScore, Transposition trans) {
 		int depthPositionSearchedPly = (searchDepthPly - currPly);
 		GenericMove bestMove = (depthPositionSearchedPly == 0) ? null : pc.getBestMove(currPly);
+		ScoreType bound = ScoreType.exact;
 		if (move_iter.hasNext()) {
 			// We haven't searched all the moves yet so this is a bound score
-			ScoreType bound = (pos.getOnMove() == Colour.white) ? ScoreType.lowerBound : ScoreType.upperBound;
-			tt.storeTranspositionScore(depthPositionSearchedPly, bestMove, positionScore, bound, trans);
-		} else {
-			// All moves have been searched so score is exact for this depth.
-			tt.storeTranspositionScore(depthPositionSearchedPly, bestMove, positionScore, ScoreType.exact, trans);
+			bound = (pos.getOnMove() == Colour.white) ? ScoreType.lowerBound : ScoreType.upperBound;
 		}
+		tt.storeTranspositionScore(depthPositionSearchedPly, bestMove, positionScore, bound, trans);
 	}
 	
 	void reportMove(GenericMove currMove) {
@@ -222,17 +210,7 @@ public class PlySearcher {
 	}
 
 	private int scoreTerminalNode() {
-		int positionScore = pe.evaluatePosition(pos); 
-		Transposition trans = tt.hashMap.getTransposition(pos.getHash().hashCode);
-		if ((trans != null) && (trans.getScoreType() == ScoreType.exact)) { 
-			// don't need to score, can use previous score. 
-			positionScore = trans.getScore(); 
-		} else { 
-			positionScore = pe.evaluatePosition(pos);
-			// Store, as it could prevent having to score the position if encountered again
-		    tt.storeTranspositionScore(0, null, positionScore, ScoreType.exact, null); 
-		}
-		return positionScore;
+		return pe.evaluatePosition(pos);
 	}
 	
 	private boolean isTerminalNode() {
