@@ -11,7 +11,7 @@ import eubos.board.pieces.Piece;
 public class SearchDebugAgent {
 
 	private static String indent = "";
-	private static boolean isDebugOn = false;
+	private static boolean isDebugOn = true;
 	private static int lastPly = 0;
 	private static FileWriter fw;
 
@@ -66,11 +66,11 @@ public class SearchDebugAgent {
 		}
 	}
 
-	static void printSearchPly(int currPly, Piece.Colour onMove) {
+	static void printSearchPly(int currPly, int provScore, Piece.Colour onMove) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"searchPly("+currPly+", "+onMove.toString()+")");
+			printOutput(indent+"searchPly("+currPly+", "+onMove.toString()+") provisionalScore="+provScore);
 		}
 	}
 
@@ -82,11 +82,11 @@ public class SearchDebugAgent {
 		}
 	}
 
-	static void printBackUpScore(int currPly, int positionScore) {
+	static void printBackUpScore(int currPly, int prevScore, int positionScore) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"backedUpScore:"+positionScore+" at Ply="+currPly);
+			printOutput(indent+"backedUpScore was:"+prevScore+" now:"+positionScore+" at Ply="+currPly);
 		}
 	}
 
@@ -126,7 +126,7 @@ public class SearchDebugAgent {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"hash sufficient terminal node with best move:"+move.toString()+" score:"+ score +"at Ply="+currPly);
+			printOutput(indent+"hash sufficient terminal node with best move:"+move.toString()+" score:"+ score +" at Ply="+currPly);
 		}
 	}
 
@@ -143,7 +143,16 @@ public class SearchDebugAgent {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"hash sufficient seed move list with best move:"+move.toString()+"at Ply="+currPly);
+			printOutput(indent+"hash sufficient seed move list with best move:"+move.toString()+" at Ply="+currPly);
 		}
+	}
+
+	public static void printAlphaBetaComparison(int currPly, int prevPlyScore, int positionScore) {
+		if (isDebugOn) {
+			if ( currPly != lastPly )
+				computeIndent(currPly);
+			printOutput(indent+"alphaBeta compare prev:"+prevPlyScore+" curr:"+positionScore+" at Ply="+currPly);
+		}
+		
 	}
 }

@@ -28,7 +28,7 @@ class ScoreTracker {
 	}
 	
 	void setBackedUpScoreAtPly(int currPly, int positionScore) {
-		SearchDebugAgent.printBackUpScore(currPly, positionScore);
+		SearchDebugAgent.printBackUpScore(currPly, scores[currPly], positionScore);
 		scores[currPly]=positionScore;
 	}
 	
@@ -64,6 +64,7 @@ class ScoreTracker {
 	}
 	
 	boolean isAlphaBetaCutOff(int currPly, int nodeProvisionalScore, int positionScore) throws IllegalArgumentException {
+		boolean isAlphaBetaCutOff = false;
 		if ((nodeProvisionalScore != Integer.MAX_VALUE) && (nodeProvisionalScore != Integer.MIN_VALUE)) {
 			if (currPly <= 0) throw new IllegalArgumentException();
 			int prevPlyScore = getBackedUpScoreAtPly(currPly-1);
@@ -75,11 +76,14 @@ class ScoreTracker {
 				 *  This isn't the same as the test to back up a score. That is the reason for unexpected comparison
 				 *  (wrt. the usual backing up operation). This comparison is specific to alpha/beta pruning.
 				 */
-				if (positionScore >= prevPlyScore) return true;
+				if (positionScore >= prevPlyScore) isAlphaBetaCutOff = true;
 			} else {
-				if (positionScore <= prevPlyScore) return true;
+				if (positionScore <= prevPlyScore) isAlphaBetaCutOff = true;
+			}
+			if (isAlphaBetaCutOff) {
+				SearchDebugAgent.printAlphaBetaComparison(currPly, prevPlyScore, positionScore);
 			}
 		}
-		return false;
+		return isAlphaBetaCutOff;
 	}	
 }

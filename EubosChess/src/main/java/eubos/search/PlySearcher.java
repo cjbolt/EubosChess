@@ -75,18 +75,18 @@ public class PlySearcher {
 		terminate = true; }
 	private synchronized boolean isTerminated() { return terminate; }	
 	
-	int searchPly() throws InvalidPieceException {
-		SearchDebugAgent.printSearchPly(currPly, pos.getOnMove());
-		
+	int searchPly() throws InvalidPieceException {		
 		int depthRequiredPly = (searchDepthPly - currPly);
 		st.setProvisionalScoreAtPly(currPly);
+		SearchDebugAgent.printSearchPly(currPly, st.getProvisionalScoreAtPly(currPly), pos.getOnMove());
 		TranspositionEval eval = tt.evaluateTranspositionData(currPly, depthRequiredPly);
 		switch (eval.status) {
 		
 		case sufficientTerminalNode:
 			SearchDebugAgent.printHashIsTerminalNode(currPly, eval.trans.getBestMove(), eval.trans.getScore());
-			st.setBackedUpScoreAtPly(currPly, eval.trans.getScore());
-			pc.update(currPly, eval.trans.getBestMove());
+			if (st.isBackUpRequired(currPly, eval.trans.getScore())) {
+				doScoreBackup(eval.trans.getBestMove(), eval.trans.getScore());
+			}
 			break;
 			
 		case sufficientRefutation:
@@ -126,7 +126,8 @@ public class PlySearcher {
 					
 				if (st.isBackUpRequired(currPly, positionScore)) {
 					doScoreBackup(currMove, positionScore);
-				} else if (st.isAlphaBetaCutOff( currPly, provisionalScoreAtPly, positionScore )) {
+				}
+				if (st.isAlphaBetaCutOff( currPly, provisionalScoreAtPly, positionScore )) {
 					refutation_found = true;	
 				}
 				

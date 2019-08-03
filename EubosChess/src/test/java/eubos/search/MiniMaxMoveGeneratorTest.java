@@ -598,12 +598,11 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	@Ignore
-	public void test_badMoveSelectionFen() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		PositionManager pm = new PositionManager("r3k2r/ppq1npp1/8/4P2p/1P2PB1b/P5P1/1P2NQ1P/R3K2R b KQkq - 4 20");
+	public void test_badMoveSelectionBishop() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		PositionManager pm = new PositionManager("r1bqk1nr/1pp2ppp/p3p1n1/4P3/1b1B4/P1N2N2/1PP2PPP/R2QKB1R b KQkq - 0 10");
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		// Eubos generates a wtf queen for pawn sacrifice. When run here it is ok.
-		expectedMove = new GenericMove("e7c6");
+		expectedMove = new GenericMove("d8d5");
 		
 		classUnderTest.findMove(1);
 		LinkedList<GenericMove> lastPc = classUnderTest.pc.toPvList();
