@@ -84,11 +84,13 @@ public class PlySearcher {
 		
 		case sufficientTerminalNode:
 			SearchDebugAgent.printHashIsTerminalNode(currPly, eval.trans.getBestMove(), eval.trans.getScore());
+			initialisePcForTranspositionHit(eval);
 			doScoreBackup(eval.trans.getBestMove(), eval.trans.getScore());
 			break;
 			
 		case sufficientRefutation:
 			SearchDebugAgent.printHashIsRefutation(currPly, eval.trans.getBestMove());
+			initialisePcForTranspositionHit(eval);
 			doScoreBackup(eval.trans.getBestMove(), eval.trans.getScore());
 			break;
 			
@@ -105,6 +107,12 @@ public class PlySearcher {
 		}
 		
 		return st.getBackedUpScoreAtPly(currPly);
+	}
+
+	private void initialisePcForTranspositionHit(TranspositionEval eval) {
+		// in this case need to clear the pc after this ply and check it is initialised with best move at this ply
+		pc.clearAfter(currPly);
+		pc.update(currPly, eval.trans.getBestMove());
 	}
 
 	void searchMoves(List<GenericMove> ml, Transposition trans) throws InvalidPieceException {
