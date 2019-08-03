@@ -112,6 +112,10 @@ public class PlySearcher {
 			int mateScore = sg.scoreMate(currPly, (pos.getOnMove() == Colour.white), initialOnMove);
 			st.setBackedUpScoreAtPly(currPly, mateScore);
 		} else {
+			/* It is possible that no move will be backed up, if nothing is ever better than the provisional score.
+			 * In this scenario the pc can become nonsense. So always initialise with the first move, it will normally be overwritten by backing something up
+			 */
+			pc.update(currPly, ml.get(0));
 			int provisionalScoreAtPly = st.getProvisionalScoreAtPly(currPly);
 			Iterator<GenericMove> move_iter = ml.iterator();
 			
@@ -121,7 +125,7 @@ public class PlySearcher {
 					reportMove(currMove);
 				
 				int positionScore = applyMoveAndScore(currMove);
-					
+				
 				doScoreBackup(currMove, positionScore);
 				updateTranspositionTable(move_iter, positionScore, trans);
 				
