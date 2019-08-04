@@ -294,7 +294,7 @@ public class PlySearcher {
 				if ((searchDepthPly&1) == 0x1)
 					matePly -= 1;	
 			}
-			return matePly;
+			return (matePly > 0) ? matePly : 0;
 		}
 		
 		private boolean isOwnMate() {
