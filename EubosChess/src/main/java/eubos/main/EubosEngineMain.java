@@ -27,6 +27,7 @@ import eubos.position.PositionManager;
 import eubos.search.FixedSizeTranspositionTable;
 import eubos.search.FixedTimeMoveSearcher;
 import eubos.search.IterativeMoveSearcher;
+import eubos.search.SearchDebugAgent;
 import eubos.search.FixedDepthMoveSearcher;
 import eubos.search.AbstractMoveSearcher;
 //import eubos.search.SearchDebugAgent;
@@ -62,7 +63,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public void receive(EngineInitializeRequestCommand command) {
 		logger.fine("Eubos Initialising");
 		this.getProtocol().send( new ProtocolInitializeAnswerCommand("Eubos","Chris Bolt") );
-		//SearchDebugAgent.open();
+		SearchDebugAgent.open();
 	}
 
 	public void receive(EngineSetOptionCommand command) {
@@ -238,7 +239,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	@Override
 	protected void quit() {
-		//SearchDebugAgent.close();
+		SearchDebugAgent.close();
 	}
 
 	public static void main(String[] args) {

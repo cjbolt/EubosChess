@@ -41,6 +41,7 @@ public class PlySearcher {
 	private TranspositionTableAccessor tt;
 	
 	int currPly = 0;
+	int depthSearchedPly = 0;
 	
 	PlySearcher(
 			FixedSizeTranspositionTable hashMap,
@@ -55,6 +56,7 @@ public class PlySearcher {
 			IPositionAccessors pos,
 			List<GenericMove> lastPc) {
 		currPly = 0;
+		depthSearchedPly = 0;
 		this.pe = pe;
 		this.sg = sg;
 		this.pc = pc;
@@ -84,12 +86,14 @@ public class PlySearcher {
 		
 		case sufficientTerminalNode:
 			SearchDebugAgent.printHashIsTerminalNode(currPly, eval.trans.getBestMove(), eval.trans.getScore());
+			depthSearchedPly = eval.trans.getDepthSearchedInPly();
 			initialisePcForTranspositionHit(eval);
 			doScoreBackup(eval.trans.getBestMove(), eval.trans.getScore());
 			break;
 			
 		case sufficientRefutation:
 			SearchDebugAgent.printHashIsRefutation(currPly, eval.trans.getBestMove());
+			depthSearchedPly = eval.trans.getDepthSearchedInPly();
 			initialisePcForTranspositionHit(eval);
 			doScoreBackup(eval.trans.getBestMove(), eval.trans.getScore());
 			break;
@@ -156,14 +160,13 @@ public class PlySearcher {
 	}
 
 	protected void updateTranspositionTable(Iterator<GenericMove> move_iter, int positionScore, Transposition trans) {
-		int depthPositionSearchedPly = (searchDepthPly - currPly);
-		GenericMove bestMove = (depthPositionSearchedPly == 0) ? null : pc.getBestMove(currPly);
+		GenericMove bestMove = (depthSearchedPly == 0) ? null : pc.getBestMove(currPly);
 		ScoreType bound = ScoreType.exact;
 		if (move_iter.hasNext()) {
 			// We haven't searched all the moves yet so this is a bound score
 			bound = (pos.getOnMove() == Colour.white) ? ScoreType.lowerBound : ScoreType.upperBound;
 		}
-		tt.storeTranspositionScore(depthPositionSearchedPly, bestMove, positionScore, bound, trans);
+		tt.storeTranspositionScore(depthSearchedPly, bestMove, positionScore, bound, trans);
 	}
 	
 	void reportMove(GenericMove currMove) {
@@ -215,8 +218,10 @@ public class PlySearcher {
 		// Either recurse or evaluate a terminal position
 		if ( isTerminalNode() ) {
 			positionScore = scoreTerminalNode();
+			depthSearchedPly = 0;
 		} else {
 			positionScore = searchPly();
+			depthSearchedPly++;
 		}
 		return positionScore;
 	}

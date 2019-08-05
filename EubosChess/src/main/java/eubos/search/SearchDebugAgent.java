@@ -118,7 +118,7 @@ public class SearchDebugAgent {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"alpha beta brought down score:"+score+" at Ply="+currPly);
+			//printOutput(indent+"alpha beta brought down score:"+score+" at Ply="+currPly);
 		}
 	}
 
@@ -143,7 +143,7 @@ public class SearchDebugAgent {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"hash sufficient seed move list with best move:"+move.toString()+" at Ply="+currPly);
+			//printOutput(indent+"hash sufficient seed move list with best move:"+move.toString()+" at Ply="+currPly);
 		}
 	}
 
