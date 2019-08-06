@@ -167,7 +167,7 @@ public class PlySearcher {
 			// We haven't searched all the moves yet so this is a bound score
 			bound = (pos.getOnMove() == Colour.white) ? ScoreType.lowerBound : ScoreType.upperBound;
 		}
-		tt.storeTranspositionScore(depthSearchedPly, bestMove, positionScore, bound, trans);
+		tt.storeTranspositionScore(currPly, depthSearchedPly, bestMove, positionScore, bound, trans);
 	}
 	
 	void reportMove(GenericMove currMove) {

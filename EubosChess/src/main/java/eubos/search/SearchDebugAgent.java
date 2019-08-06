@@ -7,11 +7,12 @@ import java.io.IOException;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.pieces.Piece;
+import eubos.position.Transposition.ScoreType;
 
 public class SearchDebugAgent {
 
 	private static String indent = "";
-	private static boolean isDebugOn = true;
+	private static boolean isDebugOn = false;
 	private static int lastPly = 0;
 	private static FileWriter fw;
 
@@ -62,7 +63,7 @@ public class SearchDebugAgent {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"performMove("+currMove.toString()+") at Ply="+currPly);
+			printOutput(indent+"do("+currMove.toString()+") @"+currPly);
 		}
 	}
 
@@ -70,7 +71,7 @@ public class SearchDebugAgent {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"searchPly("+currPly+", "+onMove.toString()+") provisionalScore="+provScore);
+			printOutput(indent+"search @"+currPly+" prov="+provScore);
 		}
 	}
 
@@ -78,7 +79,7 @@ public class SearchDebugAgent {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"undoMove("+currMove.toString()+") at Ply="+currPly);
+			printOutput(indent+"undo("+currMove.toString()+") @"+currPly);
 		}
 	}
 
@@ -86,7 +87,7 @@ public class SearchDebugAgent {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"backedUpScore was:"+prevScore+" now:"+positionScore+" at Ply="+currPly);
+			printOutput(indent+"backedUp was:"+prevScore+" now:"+positionScore+" @"+currPly);
 		}
 	}
 
@@ -94,7 +95,7 @@ public class SearchDebugAgent {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"principal continuation found: "+pc.toStringAfter(currPly));
+			printOutput(indent+"pc:"+pc.toStringAfter(currPly));
 		}
 	}
 	
@@ -102,7 +103,7 @@ public class SearchDebugAgent {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"possible Checkmate found at Ply="+currPly);
+			printOutput(indent+"possible mate @"+currPly);
 		}
 	}
 	
@@ -110,7 +111,7 @@ public class SearchDebugAgent {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"refutation found (cut-off search) at Ply="+currPly);
+			printOutput(indent+"ref @"+currPly);
 		}
 	}
 	
@@ -126,7 +127,7 @@ public class SearchDebugAgent {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"hash sufficient terminal node with best move:"+move.toString()+" score:"+ score +" at Ply="+currPly);
+			printOutput(indent+"hash term best:"+move.toString()+" score:"+ score +" @"+currPly);
 		}
 	}
 
@@ -134,7 +135,7 @@ public class SearchDebugAgent {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"hash sufficient for refutation at Ply="+currPly+" move: "+move.toString());
+			printOutput(indent+"hash ref @ Ply="+currPly+" move: "+move.toString());
 		}
 		
 	}
@@ -151,7 +152,7 @@ public class SearchDebugAgent {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"alphaBeta compare prev:"+prevPlyScore+" curr:"+positionScore+" at Ply="+currPly);
+			printOutput(indent+"ab cmp prev:"+prevPlyScore+" curr:"+positionScore+" @"+currPly);
 		}
 		
 	}
@@ -162,5 +163,14 @@ public class SearchDebugAgent {
 				computeIndent(currPly);
 			printOutput(indent+"fen:"+fen);
 		}
+	}
+
+	public static void printTransUpdate(int currPly, GenericMove bestMove, int depthPositionSearchedPly, int score,
+			ScoreType bound) {
+		if (isDebugOn) {
+			if ( currPly != lastPly )
+				computeIndent(currPly);
+			printOutput(indent+"trans mv:"+bestMove.toString()+" dep:"+depthPositionSearchedPly+" sc:"+score+" type:"+bound);
+		}		
 	}
 }

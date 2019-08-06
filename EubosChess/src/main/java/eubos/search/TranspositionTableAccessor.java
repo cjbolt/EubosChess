@@ -68,7 +68,7 @@ public class TranspositionTableAccessor {
 		return ret;
 	}
 	
-	void storeTranspositionScore(int depthPositionSearchedPly, GenericMove bestMove, int score, ScoreType bound, Transposition trans) {
+	void storeTranspositionScore(int currPly, int depthPositionSearchedPly, GenericMove bestMove, int score, ScoreType bound, Transposition trans) {
 		if (trans == null) {
 			trans = hashMap.getTransposition(pos.getHash().hashCode);
 		}
@@ -100,6 +100,7 @@ public class TranspositionTableAccessor {
 	            trans.setBestMove(bestMove);
 	            trans.setDepthSearchedInPly(depthPositionSearchedPly);
 	            trans.setScore(score);
+	            SearchDebugAgent.printTransUpdate(currPly, bestMove, depthPositionSearchedPly, score, bound);
 			}
 		}
 	}
