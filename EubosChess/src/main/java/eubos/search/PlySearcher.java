@@ -218,7 +218,7 @@ public class PlySearcher {
 		// Either recurse or evaluate a terminal position
 		if ( isTerminalNode() ) {
 			positionScore = scoreTerminalNode();
-			depthSearchedPly = 0;
+			depthSearchedPly = 1;
 		} else {
 			positionScore = searchPly();
 			depthSearchedPly++;
