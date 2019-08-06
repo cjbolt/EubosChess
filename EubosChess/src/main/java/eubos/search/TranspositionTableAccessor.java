@@ -99,7 +99,7 @@ public class TranspositionTableAccessor {
 				trans.setScoreType(bound);
 	            trans.setBestMove(bestMove);
 	            trans.setDepthSearchedInPly(depthPositionSearchedPly);
-	            trans.setScore(score);	
+	            trans.setScore(score);
 			}
 		}
 	}

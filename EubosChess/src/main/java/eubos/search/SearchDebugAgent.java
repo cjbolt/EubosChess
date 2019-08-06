@@ -11,7 +11,7 @@ import eubos.board.pieces.Piece;
 public class SearchDebugAgent {
 
 	private static String indent = "";
-	private static boolean isDebugOn = false;
+	private static boolean isDebugOn = true;
 	private static int lastPly = 0;
 	private static FileWriter fw;
 
@@ -154,5 +154,13 @@ public class SearchDebugAgent {
 			printOutput(indent+"alphaBeta compare prev:"+prevPlyScore+" curr:"+positionScore+" at Ply="+currPly);
 		}
 		
+	}
+	
+	public static void printFen(int currPly, String fen) {
+		if (isDebugOn) {
+			if ( currPly != lastPly )
+				computeIndent(currPly);
+			printOutput(indent+"fen:"+fen);
+		}
 	}
 }

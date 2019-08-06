@@ -4,8 +4,14 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import eubos.board.pieces.Bishop;
+import eubos.board.pieces.King;
+import eubos.board.pieces.Knight;
+import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
+import eubos.board.pieces.Queen;
+import eubos.board.pieces.Rook;
 
 import com.fluxchess.jcpi.models.IntRank;
 import com.fluxchess.jcpi.models.IntFile;
@@ -77,6 +83,50 @@ public class Board implements Iterable<Piece> {
 			rank = IntRank.valueOf(atPos.rank);
 			file = IntFile.valueOf(atPos.file);	
 		}
+	}
+	
+	public String getAsFenString() {
+		Piece currPiece = null;
+		int spaceCounter = 0;
+		StringBuilder fen = new StringBuilder();
+		for (int rank=7; rank>=0; rank--) {
+			for (int file=0; file<8; file++) {
+				currPiece = theBoard[file][rank];
+				if (currPiece != null) {
+					if (spaceCounter != 0)
+						fen.append(spaceCounter);
+					fen.append(getFenChar(currPiece));
+					spaceCounter=0;					
+				} else {
+					spaceCounter++;
+				}
+			}
+			if (spaceCounter != 0)
+				fen.append(spaceCounter);
+			if (rank != 0)
+				fen.append('/');
+			spaceCounter=0;
+		}
+		return fen.toString();
+	}
+	
+	private char getFenChar(Piece piece) {
+		char chessman = 0;
+		if (piece instanceof Pawn)
+			chessman = 'P';
+		else if (piece instanceof Knight)
+			chessman = 'N';
+		else if (piece instanceof Bishop)
+			chessman = 'B';
+		else if (piece instanceof Rook)
+			chessman = 'R';
+		else if (piece instanceof Queen)
+			chessman = 'Q';
+		else if (piece instanceof King)
+			chessman = 'K';
+		if (piece.isBlack())
+			chessman += 32;
+		return chessman;
 	}
 	
 	private BitBoard allPieces = new BitBoard();

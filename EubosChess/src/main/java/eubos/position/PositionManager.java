@@ -300,6 +300,24 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		return captureTarget;
 	}
 	
+	public String getFen() {
+		StringBuilder fen = new StringBuilder(this.theBoard.getAsFenString());
+		fen.append(' ');
+		fen.append((this.getOnMove()==Colour.white) ? 'w' : 'b');
+		fen.append(' ');
+		fen.append(this.castling.getFenFlags());
+		fen.append(' ');
+		// en passant square
+		GenericPosition pos = this.theBoard.getEnPassantTargetSq();
+		if (pos != null) {
+			fen.append(pos.toString());
+		} else {
+			fen.append('-');
+		}
+		fen.append(" - -");
+		return fen.toString();
+	}
+	
 	private class fenParser {
 		private LinkedList<Piece> pl;
 		

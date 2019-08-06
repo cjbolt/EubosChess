@@ -2,7 +2,7 @@ package eubos.position;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import eubos.board.InvalidPieceException;
 import eubos.board.pieces.King;
 import eubos.board.pieces.Pawn;
@@ -159,5 +159,19 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("7r/8/8/8/8/8/8/4K2R b K - - -");
 		classUnderTest.performMove(new GenericMove("h8h1"));
 		assertTrue(classUnderTest.castling.getFenFlags().equals("-"));
+	}
+	
+	@Test
+	public void test_FenString() {
+		String fenString = "7r/8/8/8/8/8/8/4K2R b K - - -";
+		classUnderTest = new PositionManager(fenString);
+		assertEquals(fenString, classUnderTest.getFen());
+	}
+	
+	@Test
+	public void test_FenString1() {
+		String fenString = "7r/8/8/8/8/4P3/8/4K2R b K e3 - -";
+		classUnderTest = new PositionManager(fenString);
+		assertEquals(fenString, classUnderTest.getFen());
 	}
 }

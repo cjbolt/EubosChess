@@ -81,6 +81,7 @@ public class PlySearcher {
 		int depthRequiredPly = (searchDepthPly - currPly);
 		st.setProvisionalScoreAtPly(currPly);
 		SearchDebugAgent.printSearchPly(currPly, st.getProvisionalScoreAtPly(currPly), pos.getOnMove());
+		SearchDebugAgent.printFen(currPly, pos.getFen());
 		TranspositionEval eval = tt.evaluateTranspositionData(currPly, depthRequiredPly);
 		switch (eval.status) {
 		

@@ -10,6 +10,7 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericPosition;
 
 import eubos.board.Board;
+import eubos.board.pieces.King;
 import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
@@ -92,5 +93,48 @@ public class BoardTest {
 	@Test
 	public void testCaptureAtSquare() {
 		assertTrue(classUnderTest.captureAtSquare(testSq)==null);
+	}
+	
+	@Test
+	public void testGetAsFenString() {
+		Pawn pieceToPlace = new Pawn(Colour.white,testSq);
+		classUnderTest.setPieceAtSquare(pieceToPlace);
+		assertEquals("8/8/8/8/8/8/8/P7",classUnderTest.getAsFenString());
+	}
+	
+	@Test
+	public void testGetAsFenString1() {
+		Piece pieceToPlace = new Pawn(Colour.white,testSq);
+		classUnderTest.setPieceAtSquare(pieceToPlace);
+		pieceToPlace = new King(Colour.white, GenericPosition.c1);
+		classUnderTest.setPieceAtSquare(pieceToPlace);
+		assertEquals("8/8/8/8/8/8/8/P1K5",classUnderTest.getAsFenString());
+	}
+	
+	@Test
+	public void testGetAsFenString2() {
+		Piece pieceToPlace = new Pawn(Colour.white,GenericPosition.h1);
+		classUnderTest.setPieceAtSquare(pieceToPlace);
+		pieceToPlace = new King(Colour.white, GenericPosition.g1);
+		classUnderTest.setPieceAtSquare(pieceToPlace);
+		assertEquals("8/8/8/8/8/8/8/6KP",classUnderTest.getAsFenString());
+	}
+	
+	@Test
+	public void testGetAsFenString3() {
+		Piece pieceToPlace = new Pawn(Colour.black,GenericPosition.h1);
+		classUnderTest.setPieceAtSquare(pieceToPlace);
+		pieceToPlace = new King(Colour.black, GenericPosition.g1);
+		classUnderTest.setPieceAtSquare(pieceToPlace);
+		assertEquals("8/8/8/8/8/8/8/6kp",classUnderTest.getAsFenString());
+	}
+	
+	@Test
+	public void testGetAsFenString4() {
+		Piece pieceToPlace = new Pawn(Colour.black,GenericPosition.h8);
+		classUnderTest.setPieceAtSquare(pieceToPlace);
+		pieceToPlace = new King(Colour.black, GenericPosition.g8);
+		classUnderTest.setPieceAtSquare(pieceToPlace);
+		assertEquals("6kp/8/8/8/8/8/8/8",classUnderTest.getAsFenString());
 	}
 }

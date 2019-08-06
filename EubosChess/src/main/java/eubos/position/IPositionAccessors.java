@@ -12,4 +12,5 @@ public interface IPositionAccessors {
 	public boolean lastMoveWasCapture();
 	public int getCastlingAvaillability();
 	public ZobristHashCode getHash();
+	public String getFen();
 }
