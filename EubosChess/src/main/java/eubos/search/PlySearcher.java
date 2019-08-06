@@ -140,9 +140,9 @@ public class PlySearcher {
 				int positionScore = applyMoveAndScore(currMove);
 				
 				doScoreBackup(currMove, positionScore);
-				updateTranspositionTable(move_iter, positionScore, trans);
+				updateTranspositionTable(move_iter, st.getBackedUpScoreAtPly(currPly), trans);
 				
-				if (st.isAlphaBetaCutOff( currPly, provisionalScoreAtPly, positionScore )) {
+				if (st.isAlphaBetaCutOff( currPly, provisionalScoreAtPly, positionScore)) {
 					SearchDebugAgent.printRefutationFound(currPly);
 					break;	
 				}
