@@ -68,12 +68,12 @@ public class TranspositionTableAccessor {
 		return ret;
 	}
 	
-	void storeTranspositionScore(int currPly, int depthPositionSearchedPly, GenericMove bestMove, int score, ScoreType bound, Transposition trans) {
+	void storeTranspositionScore(int currPly, int depthPositionSearchedPly, GenericMove bestMove, int score, ScoreType bound, List<GenericMove> ml, Transposition trans) {
 		if (trans == null) {
 			trans = hashMap.getTransposition(pos.getHash().hashCode);
 		}
 		if (trans == null) {
-			trans = new Transposition(bestMove, depthPositionSearchedPly, score, bound);
+			trans = new Transposition(bestMove, depthPositionSearchedPly, score, bound, ml);
 			hashMap.putTransposition(pos.getHash().hashCode, trans);
 		} else {
 			boolean updateTransposition = false;
@@ -100,6 +100,7 @@ public class TranspositionTableAccessor {
 	            trans.setBestMove(bestMove);
 	            trans.setDepthSearchedInPly(depthPositionSearchedPly);
 	            trans.setScore(score);
+	            trans.setMoveList(ml);
 	            SearchDebugAgent.printTransUpdate(currPly, bestMove, depthPositionSearchedPly, score, bound);
 			}
 		}

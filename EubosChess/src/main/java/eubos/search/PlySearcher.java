@@ -77,12 +77,13 @@ public class PlySearcher {
 		terminate = true; }
 	private synchronized boolean isTerminated() { return terminate; }	
 	
-	int searchPly() throws InvalidPieceException {		
+	int searchPly() throws InvalidPieceException {
 		int depthRequiredPly = (searchDepthPly - currPly);
 		st.setProvisionalScoreAtPly(currPly);
 		SearchDebugAgent.printSearchPly(currPly, st.getProvisionalScoreAtPly(currPly), pos.getOnMove());
 		SearchDebugAgent.printFen(currPly, pos.getFen());
 		TranspositionEval eval = tt.evaluateTranspositionData(currPly, depthRequiredPly);
+		List<GenericMove> ml = null;
 		switch (eval.status) {
 		
 		case sufficientTerminalNode:
@@ -101,10 +102,12 @@ public class PlySearcher {
 			
 		case sufficientSeedMoveList:
 			SearchDebugAgent.printHashIsSeedMoveList(currPly, eval.trans.getBestMove());
-			seedMoveList(eval);
+			ml = eval.trans.getMoveList();
 			// Intentional drop through
 		case insufficientNoData:
-			searchMoves(getMoveList(), eval.trans);
+			if (ml == null)
+				ml = getMoveList();
+			searchMoves( ml, eval.trans);
 			break;
 			
 		default:
@@ -140,7 +143,7 @@ public class PlySearcher {
 				int positionScore = applyMoveAndScore(currMove);
 				
 				doScoreBackup(currMove, positionScore);
-				updateTranspositionTable(move_iter, st.getBackedUpScoreAtPly(currPly), trans);
+				updateTranspositionTable(move_iter, ml, st.getBackedUpScoreAtPly(currPly), trans);
 				
 				if (st.isAlphaBetaCutOff( currPly, provisionalScoreAtPly, positionScore)) {
 					SearchDebugAgent.printRefutationFound(currPly);
@@ -160,14 +163,14 @@ public class PlySearcher {
 		}
 	}
 
-	protected void updateTranspositionTable(Iterator<GenericMove> move_iter, int positionScore, Transposition trans) {
+	protected void updateTranspositionTable(Iterator<GenericMove> move_iter, List<GenericMove> ml, int positionScore, Transposition trans) {
 		GenericMove bestMove = (depthSearchedPly == 0) ? null : pc.getBestMove(currPly);
 		ScoreType bound = ScoreType.exact;
 		if (move_iter.hasNext()) {
 			// We haven't searched all the moves yet so this is a bound score
 			bound = (pos.getOnMove() == Colour.white) ? ScoreType.lowerBound : ScoreType.upperBound;
 		}
-		tt.storeTranspositionScore(currPly, depthSearchedPly, bestMove, positionScore, bound, trans);
+		tt.storeTranspositionScore(currPly, depthSearchedPly, bestMove, positionScore, bound, ml, trans);
 	}
 	
 	void reportMove(GenericMove currMove) {
@@ -175,19 +178,7 @@ public class PlySearcher {
 		sm.incrementCurrentMoveNumber();
 		sr.reportCurrentMove();
 	}
-	
-	private void seedMoveList(TranspositionEval ret) {
-		if (lastPc != null) {
-			try {
-				lastPc.set(currPly, ret.trans.getBestMove());
-			} catch (IndexOutOfBoundsException e) {
-				for (int i=lastPc.size(); i < currPly; i++) {
-					lastPc.add(i, ret.trans.getBestMove());
-				}
-			}
-		}
-	}
-	
+		
 	private List<GenericMove> getMoveList() throws InvalidPieceException {
 		List<GenericMove> ml = null;
 		if ((lastPc != null) && (lastPc.size() > currPly)) {
