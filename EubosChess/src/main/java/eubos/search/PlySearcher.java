@@ -78,12 +78,10 @@ public class PlySearcher {
 	private synchronized boolean isTerminated() { return terminate; }	
 	
 	int searchPly() throws InvalidPieceException {
-		int depthRequiredPly = (searchDepthPly - currPly);
-		st.setProvisionalScoreAtPly(currPly);
-		SearchDebugAgent.printSearchPly(currPly, st.getProvisionalScoreAtPly(currPly), pos.getOnMove());
-		SearchDebugAgent.printFen(currPly, pos.getFen());
-		TranspositionEval eval = tt.evaluateTranspositionData(currPly, depthRequiredPly);
 		List<GenericMove> ml = null;
+		int depthRequiredPly = initialiseSearchAtPly();
+		
+		TranspositionEval eval = tt.evaluateTranspositionData(currPly, depthRequiredPly);
 		switch (eval.status) {
 		
 		case sufficientTerminalNode:
@@ -117,20 +115,11 @@ public class PlySearcher {
 		return st.getBackedUpScoreAtPly(currPly);
 	}
 
-	private void initialisePcForTranspositionHit(TranspositionEval eval) {
-		// in this case need to clear the pc after this ply and check it is initialised with best move at this ply
-		pc.clearAfter(currPly);
-		pc.update(currPly, eval.trans.getBestMove());
-	}
-
 	void searchMoves(List<GenericMove> ml, Transposition trans) throws InvalidPieceException {
 		if (isMateOccurred(ml)) {
 			int mateScore = sg.scoreMate(currPly, (pos.getOnMove() == Colour.white), initialOnMove);
 			st.setBackedUpScoreAtPly(currPly, mateScore);
 		} else {
-			/* It is possible that no move will be backed up, if nothing is ever better than the provisional score.
-			 * In this scenario the pc can become nonsense. So always initialise with the first move, it will normally be overwritten by backing something up
-			 */
 			pc.update(currPly, ml.get(0));
 			int provisionalScoreAtPly = st.getProvisionalScoreAtPly(currPly);
 			Iterator<GenericMove> move_iter = ml.iterator();
@@ -151,6 +140,20 @@ public class PlySearcher {
 				}
 			}
 		}
+	}
+	
+	private int initialiseSearchAtPly() {
+		int depthRequiredPly = (searchDepthPly - currPly);
+		st.setProvisionalScoreAtPly(currPly);
+		SearchDebugAgent.printSearchPly(currPly, st.getProvisionalScoreAtPly(currPly), pos.getOnMove());
+		SearchDebugAgent.printFen(currPly, pos.getFen());
+		return depthRequiredPly;
+	}
+	
+	private void initialisePcForTranspositionHit(TranspositionEval eval) {
+		// If we ever store the pc in the Transposition this could be replaced with a copy of that.
+		pc.clearAfter(currPly);
+		pc.update(currPly, eval.trans.getBestMove());
 	}
 
 	protected void doScoreBackup(GenericMove currMove, int positionScore) {

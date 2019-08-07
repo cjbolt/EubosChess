@@ -170,6 +170,9 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 
 		// Update onMove
 		onMove = Colour.getOpposite(onMove);
+		if (onMove==Colour.white) {
+			moveNumber++;
+		}
 	}
 	
 	public void unperformMove() throws InvalidPieceException {
@@ -210,6 +213,9 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		}
 		// Update onMove flag
 		onMove = Piece.Colour.getOpposite(onMove);
+		if (onMove==Colour.black) {
+			moveNumber--;
+		}
 	}
 	
 	void updateSquarePieceOccupies(GenericPosition newSq, Piece pieceToMove) {
@@ -314,7 +320,7 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		} else {
 			fen.append('-');
 		}
-		fen.append(" - -");
+		fen.append(" - " + moveNumber);
 		return fen.toString();
 	}
 	
