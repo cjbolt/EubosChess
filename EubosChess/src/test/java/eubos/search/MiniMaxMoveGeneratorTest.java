@@ -620,5 +620,25 @@ public class MiniMaxMoveGeneratorTest {
 		
 		assertEquals(expectedMove, selectedMove);
 	}
+	
+	@Test
+	@Ignore
+	public void test_throwAwayBishop5Ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		PositionManager pm = new PositionManager("r1bqkb1r/p4ppp/2pp1n2/4p3/2P1PB2/2N5/PP3PPP/R2QKB1R w KQkq - 0 9");
+		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
+		expectedMove = new GenericMove("g4f5");
+		
+		classUnderTest.findMove(1);
+		LinkedList<GenericMove> lastPc = classUnderTest.pc.toPvList();
+		classUnderTest.findMove(2,lastPc);
+		lastPc = classUnderTest.pc.toPvList();
+		classUnderTest.findMove(3,lastPc);
+		lastPc = classUnderTest.pc.toPvList();
+		classUnderTest.findMove(4,lastPc);
+		lastPc = classUnderTest.pc.toPvList();
+		GenericMove selectedMove = classUnderTest.findMove(5,lastPc);
+		
+		assertEquals(expectedMove, selectedMove);
+	}
 	 
 }
