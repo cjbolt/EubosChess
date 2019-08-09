@@ -85,16 +85,9 @@ public class PlySearcher {
 		switch (eval.status) {
 		
 		case sufficientTerminalNode:
-			SearchDebugAgent.printHashIsTerminalNode(currPly, eval.trans.getBestMove(), eval.trans.getScore());
-			depthSearchedPly = eval.trans.getDepthSearchedInPly();
-			initialisePcForTranspositionHit(eval);
-			doScoreBackup(eval.trans.getBestMove(), eval.trans.getScore());
-			break;
-			
 		case sufficientRefutation:
-			SearchDebugAgent.printHashIsRefutation(currPly, eval.trans.getBestMove());
 			depthSearchedPly = eval.trans.getDepthSearchedInPly();
-			initialisePcForTranspositionHit(eval);
+			pc.initialiseOnTranspositionHit(currPly, eval.trans.getBestMove());
 			doScoreBackup(eval.trans.getBestMove(), eval.trans.getScore());
 			break;
 			
@@ -146,14 +139,8 @@ public class PlySearcher {
 		int depthRequiredPly = (searchDepthPly - currPly);
 		st.setProvisionalScoreAtPly(currPly);
 		SearchDebugAgent.printSearchPly(currPly, st.getProvisionalScoreAtPly(currPly), pos.getOnMove());
-		SearchDebugAgent.printFen(currPly, pos.getFen());
+		SearchDebugAgent.printFen(currPly, pos);
 		return depthRequiredPly;
-	}
-	
-	private void initialisePcForTranspositionHit(TranspositionEval eval) {
-		// If we ever store the pc in the Transposition this could be replaced with a copy of that.
-		pc.clearAfter(currPly);
-		pc.update(currPly, eval.trans.getBestMove());
 	}
 
 	protected void doScoreBackup(GenericMove currMove, int positionScore) {

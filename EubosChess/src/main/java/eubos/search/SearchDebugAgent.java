@@ -7,6 +7,7 @@ import java.io.IOException;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.pieces.Piece;
+import eubos.position.IPositionAccessors;
 import eubos.position.Transposition.ScoreType;
 
 public class SearchDebugAgent {
@@ -157,11 +158,11 @@ public class SearchDebugAgent {
 		
 	}
 	
-	public static void printFen(int currPly, String fen) {
+	public static void printFen(int currPly, IPositionAccessors pos) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"fen:"+fen);
+			printOutput(indent+"fen:"+pos.getFen());
 		}
 	}
 

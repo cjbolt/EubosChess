@@ -48,9 +48,11 @@ public class TranspositionTableAccessor {
 			
 			if (ret.trans.getScoreType() == ScoreType.exact) {
 				ret.status = TranspositionTableStatus.sufficientTerminalNode;
+				SearchDebugAgent.printHashIsTerminalNode(currPly, ret.trans.getBestMove(), ret.trans.getScore());
 			} else { // must be (bound == ScoreType.upperBound || bound == ScoreType.lowerBound)
 				int provisionalScoreAtThisPly = st.getProvisionalScoreAtPly(currPly);
 				if (st.isAlphaBetaCutOff(currPly, provisionalScoreAtThisPly, ret.trans.getScore())) {
+					SearchDebugAgent.printHashIsRefutation(currPly, ret.trans.getBestMove());
 					ret.status = TranspositionTableStatus.sufficientRefutation;
 		        } else {
 		        	ret.status = TranspositionTableStatus.sufficientSeedMoveList;

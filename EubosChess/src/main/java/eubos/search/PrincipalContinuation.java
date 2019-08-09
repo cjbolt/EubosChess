@@ -62,5 +62,11 @@ class PrincipalContinuation {
 				// All plies need to be cleared.
 				pc[i][nextPly]=null;
 		}
-	}	
+	}
+	
+	void initialiseOnTranspositionHit(int currPly, GenericMove best) {
+		// If we ever store the pc in the Transposition this could be replaced with a copy of that.
+		clearAfter(currPly);
+		update(currPly, best);
+	}
 }
