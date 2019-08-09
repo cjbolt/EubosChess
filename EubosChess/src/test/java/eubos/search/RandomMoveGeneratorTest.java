@@ -38,11 +38,11 @@ public class RandomMoveGeneratorTest {
 	
 	private void performTest( boolean assertSense ) {
 		try {
-			GenericMove selectedMove = classUnderTest.findMove(0);
+			SearchResult res = classUnderTest.findMove(0);
 			if ( assertSense )
-				assertTrue(selectedMove.equals(expectedMove));
+				assertTrue(res.bestMove.equals(expectedMove));
 			else
-				assertFalse(selectedMove.equals(expectedMove));
+				assertFalse(res.bestMove.equals(expectedMove));
 		} catch ( NoLegalMoveException e ) {
 			assert( false );
 		} catch (InvalidPieceException e) {

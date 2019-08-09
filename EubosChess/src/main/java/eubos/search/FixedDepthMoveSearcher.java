@@ -28,12 +28,12 @@ public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 	
 	@Override
 	public void run() {
-		GenericMove selectedMove = null;
+		SearchResult res = new SearchResult(null, false);
 		LinkedList<GenericMove> pc = null;
 		for (int depth=1; depth<searchDepth && !searchStopped; depth++) {
-			selectedMove = doFindMove(selectedMove, pc, depth);
+			res = doFindMove(res.bestMove, pc, depth);
 			pc = mg.pc.toPvList();
 		}
-		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( selectedMove, null ));
+		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
 	}
 }

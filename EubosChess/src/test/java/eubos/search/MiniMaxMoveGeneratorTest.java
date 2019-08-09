@@ -45,11 +45,11 @@ public class MiniMaxMoveGeneratorTest {
 	
 	private void doFindMoveTest( int searchDepth, boolean expectMove ) {
 		try {
-			GenericMove selectedMove = classUnderTest.findMove(searchDepth);
+			SearchResult res = classUnderTest.findMove(searchDepth);
 			if ( expectMove )
-				assertEquals(expectedMove, selectedMove);
+				assertEquals(expectedMove, res.bestMove);
 			else
-				assertFalse(selectedMove.equals(expectedMove));
+				assertFalse(res.bestMove.equals(expectedMove));
 		} catch ( NoLegalMoveException e ) {
 			fail();
 		} catch ( InvalidPieceException e ) {
@@ -444,9 +444,9 @@ public class MiniMaxMoveGeneratorTest {
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("h8g7");
 		
-		GenericMove selectedMove = classUnderTest.findMove(4);
+		SearchResult res = classUnderTest.findMove(4);
 		
-		assertEquals(expectedMove, selectedMove);
+		assertEquals(expectedMove, res.bestMove);
 	}
 		
 	@Test
@@ -460,9 +460,9 @@ public class MiniMaxMoveGeneratorTest {
 		
 		classUnderTest.findMove(4);
 		LinkedList<GenericMove >lastPc = classUnderTest.pc.toPvList();
-		GenericMove selectedMove = classUnderTest.findMove(5, lastPc);
+		SearchResult res = classUnderTest.findMove(5, lastPc);
 		
-		assertEquals(expectedMove, selectedMove);
+		assertEquals(expectedMove, res.bestMove);
 	}
 	
 	@Test
@@ -476,9 +476,9 @@ public class MiniMaxMoveGeneratorTest {
 		LinkedList<GenericMove> lastPc = classUnderTest.pc.toPvList();
 		classUnderTest.findMove(5,lastPc);
 		lastPc = classUnderTest.pc.toPvList();
-		GenericMove selectedMove = classUnderTest.findMove(6,lastPc);
+		SearchResult res = classUnderTest.findMove(6,lastPc);
 		
-	    assertEquals(expectedMove, selectedMove);
+	    assertEquals(expectedMove, res.bestMove);
 	}
 	
 	@Test
@@ -489,9 +489,9 @@ public class MiniMaxMoveGeneratorTest {
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("h8g7");
 		
-		GenericMove selectedMove = classUnderTest.findMove(10);
+		SearchResult res = classUnderTest.findMove(10);
 		
-		assertEquals(expectedMove, selectedMove);
+		assertEquals(expectedMove, res.bestMove);
 	}
 	
 	@Test
@@ -502,9 +502,9 @@ public class MiniMaxMoveGeneratorTest {
 		// Blunder move!
 		expectedMove = new GenericMove("d4g7");
 		
-		GenericMove selectedMove = classUnderTest.findMove(7);
+		SearchResult res = classUnderTest.findMove(7);
 		
-		assertEquals(expectedMove, selectedMove);
+		assertEquals(expectedMove, res.bestMove);
 	}
 	
 	@Test
@@ -515,9 +515,9 @@ public class MiniMaxMoveGeneratorTest {
 		// Blunder move!
 		expectedMove = new GenericMove("d4g7");
 		
-		GenericMove selectedMove = classUnderTest.findMove(5);
+		SearchResult res = classUnderTest.findMove(5);
 		
-		assertEquals(expectedMove, selectedMove);
+		assertEquals(expectedMove, res.bestMove);
 	}
 	
 	@Test
@@ -526,9 +526,9 @@ public class MiniMaxMoveGeneratorTest {
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("e8g8");
 		
-		GenericMove selectedMove = classUnderTest.findMove(3);
+		SearchResult res = classUnderTest.findMove(3);
 		
-		assertEquals(expectedMove, selectedMove);
+		assertEquals(expectedMove, res.bestMove);
 	}
 	
 	@Test
@@ -537,9 +537,9 @@ public class MiniMaxMoveGeneratorTest {
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("e1g1");
 		
-		GenericMove selectedMove = classUnderTest.findMove(3);
+		SearchResult res = classUnderTest.findMove(3);
 		
-		assertEquals(expectedMove, selectedMove);
+		assertEquals(expectedMove, res.bestMove);
 	}
 	
 	@Test
@@ -596,9 +596,9 @@ public class MiniMaxMoveGeneratorTest {
 		lastPc = classUnderTest.pc.toPvList();
 		classUnderTest.findMove(3,lastPc);
 		lastPc = classUnderTest.pc.toPvList();
-		GenericMove selectedMove = classUnderTest.findMove(4,lastPc);
+		SearchResult res = classUnderTest.findMove(4,lastPc);
 		
-		assertEquals(expectedMove, selectedMove);
+		assertEquals(expectedMove, res.bestMove);
 	}
 	
 	@Test
@@ -616,9 +616,9 @@ public class MiniMaxMoveGeneratorTest {
 		lastPc = classUnderTest.pc.toPvList();
 		classUnderTest.findMove(4,lastPc);
 		lastPc = classUnderTest.pc.toPvList();
-		GenericMove selectedMove = classUnderTest.findMove(5,lastPc);
+		SearchResult res = classUnderTest.findMove(5,lastPc);
 		
-		assertEquals(expectedMove, selectedMove);
+		assertEquals(expectedMove, res.bestMove);
 	}
 	
 	@Test
@@ -636,9 +636,9 @@ public class MiniMaxMoveGeneratorTest {
 		lastPc = classUnderTest.pc.toPvList();
 		classUnderTest.findMove(4,lastPc);
 		lastPc = classUnderTest.pc.toPvList();
-		GenericMove selectedMove = classUnderTest.findMove(5,lastPc);
+		SearchResult res = classUnderTest.findMove(5,lastPc);
 		
-		assertEquals(expectedMove, selectedMove);
+		assertEquals(expectedMove, res.bestMove);
 	}
 	 
 }

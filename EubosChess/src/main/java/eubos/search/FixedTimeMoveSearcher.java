@@ -31,17 +31,19 @@ public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 	
 	@Override
 	public void run() {
-		GenericMove selectedMove = null;
+		SearchResult res = new SearchResult(null, false);
 		LinkedList<GenericMove> pc = null;
 		Timestamp msTargetEndTime = new Timestamp(System.currentTimeMillis() + moveTime);
 		for (int depth=1; depth<MAX_SEARCH_DEPTH; depth++) {
-			selectedMove = doFindMove(selectedMove, pc, depth);
+			res = doFindMove(res.bestMove, pc, depth);
 			Timestamp msCurrTime = new Timestamp(System.currentTimeMillis());
 			if (msCurrTime.after(msTargetEndTime))
 				break;
+			if (res.foundMate)
+				break;
 			pc = mg.pc.toPvList();
 		}
-		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( selectedMove, null ));
+		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
 	}
 }
 

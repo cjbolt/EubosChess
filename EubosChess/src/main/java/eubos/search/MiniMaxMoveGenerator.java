@@ -58,24 +58,29 @@ class MiniMaxMoveGenerator implements
 	}
 	
 	@Override
-	public GenericMove findMove() throws NoLegalMoveException, InvalidPieceException {
+	public SearchResult findMove() throws NoLegalMoveException, InvalidPieceException {
 		return this.findMove(1, null);
 	}
 	
 	@Override
-	public GenericMove findMove(int searchDepth) throws NoLegalMoveException, InvalidPieceException {
+	public SearchResult findMove(int searchDepth) throws NoLegalMoveException, InvalidPieceException {
 		return this.findMove(searchDepth, null);
 	}
 	
 	@Override
-	public GenericMove findMove(int searchDepth, LinkedList<GenericMove> lastPc) throws NoLegalMoveException, InvalidPieceException {
+	public SearchResult findMove(int searchDepth, LinkedList<GenericMove> lastPc) throws NoLegalMoveException, InvalidPieceException {
+		boolean foundMate = false;
+		int eval_score = 0;
 		initialiseSearchDepthDependentObjects(searchDepth);
 		ps = new PlySearcher(hashMap,pe,sg,pc,sm,sr,searchDepth,pm,mlgen,pos,lastPc);
 		// Start the search reporter task
 		if (sendInfo)
 			sr.start();
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
-		ps.searchPly();
+		eval_score = ps.searchPly();
+		if (Math.abs(eval_score) >= eubos.board.pieces.King.MATERIAL_VALUE) {
+			foundMate = true;
+		}
 		if (sendInfo) {
 			sr.end();
 			sr.reportNodeData();
@@ -85,7 +90,7 @@ class MiniMaxMoveGenerator implements
 		if (bestMove==null) {
 			throw new NoLegalMoveException();
 		}
-		return bestMove;
+		return new SearchResult(bestMove,foundMate);
 	}
 	
 	synchronized void terminateFindMove() {

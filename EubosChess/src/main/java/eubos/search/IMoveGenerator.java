@@ -7,7 +7,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.board.InvalidPieceException;
 
 interface IMoveGenerator {
-	public GenericMove findMove() throws NoLegalMoveException, InvalidPieceException;
-	public GenericMove findMove(int searchDepth) throws NoLegalMoveException, InvalidPieceException;
-	public GenericMove findMove(int searchDepth, LinkedList<GenericMove> lastPc) throws NoLegalMoveException, InvalidPieceException;
+	public SearchResult findMove() throws NoLegalMoveException, InvalidPieceException;
+	public SearchResult findMove(int searchDepth) throws NoLegalMoveException, InvalidPieceException;
+	public SearchResult findMove(int searchDepth, LinkedList<GenericMove> lastPc) throws NoLegalMoveException, InvalidPieceException;
 }

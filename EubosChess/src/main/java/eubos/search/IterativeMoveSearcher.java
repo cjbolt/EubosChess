@@ -33,14 +33,13 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	@Override
 	public void run() {
 		int currentDepth = 1;
-		GenericMove selectedMove = null;
+		SearchResult res = null;
 		LinkedList<GenericMove> pc = null;
 		long timeQuota = calculateSearchTimeAllocation();
 		Timestamp msTargetEndTime = new Timestamp(System.currentTimeMillis() + timeQuota);
 		while (!searchStopped && currentDepth <= 8) {
 			try {
-				// Need to seed the moveList so that the best moves are searched first.
-				selectedMove = mg.findMove(currentDepth, pc);
+				res = mg.findMove(currentDepth, pc);
 			} catch( NoLegalMoveException e ) {
 				System.out.println( "Eubos has run out of legal moves for side " + pos.getOnMove().toString() );
 			} catch(InvalidPieceException e ) {
@@ -51,10 +50,12 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			Timestamp msCurrTime = new Timestamp(System.currentTimeMillis());
 			if (msCurrTime.after(msTargetEndTime))
 				break;
+			if (res.foundMate)
+				break;
 			pc = mg.pc.toPvList();
 			currentDepth++;
 		}
-		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( selectedMove, null ));
+		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
 	}
 
 	private long calculateSearchTimeAllocation() {

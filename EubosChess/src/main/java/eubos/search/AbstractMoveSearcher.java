@@ -9,6 +9,16 @@ import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 
+class SearchResult {
+	public GenericMove bestMove;
+	public boolean foundMate;
+	
+	public SearchResult(GenericMove bestMove, boolean foundMate) {
+		this.bestMove = bestMove;
+		this.foundMate = foundMate;
+	}
+}
+
 public abstract class AbstractMoveSearcher extends Thread {
 
 	protected EubosEngineMain eubosEngine;
@@ -40,9 +50,10 @@ public abstract class AbstractMoveSearcher extends Thread {
 
 	public abstract void halt();
 
-	protected GenericMove doFindMove(GenericMove selectedMove, LinkedList<GenericMove> pc, int depth) {
+	protected SearchResult doFindMove(GenericMove selectedMove, LinkedList<GenericMove> pc, int depth) {
+		SearchResult res = null;
 		try {
-			selectedMove = mg.findMove(depth, pc);
+			res = mg.findMove(depth, pc);
 		} catch( NoLegalMoveException e ) {
 			System.out.println( "Eubos has run out of legal moves for side " + pos.getOnMove().toString() );
 		} catch(InvalidPieceException e ) {
@@ -50,7 +61,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 					"Serious error: Eubos can't find a piece on the board whilst searching findMove(), at "
 							+ e.getAtPosition().toString() );
 		}
-		return selectedMove;
+		return res;
 	}
 
 	public AbstractMoveSearcher(ThreadGroup group, String name) {
