@@ -7,7 +7,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 
 public class Transposition {
 	private GenericMove bestMove;
-	private int depthSearchedInPly;
+	private byte depthSearchedInPly;
 	private int score;
 	private List<GenericMove> ml;
 	public List<GenericMove> getMoveList() {
@@ -30,7 +30,7 @@ public class Transposition {
 	};
 	private ScoreType scoreType;	
 	
-	public Transposition(GenericMove best, int depth, int score, ScoreType scoreType, List<GenericMove> ml) {
+	public Transposition(GenericMove best, byte depth, int score, ScoreType scoreType, List<GenericMove> ml) {
 		setBestMove(best);
 		this.setDepthSearchedInPly(depth);
 		this.setScore(score);
@@ -54,11 +54,11 @@ public class Transposition {
 		this.score = score;
 	}
 
-	public int getDepthSearchedInPly() {
+	public byte getDepthSearchedInPly() {
 		return depthSearchedInPly;
 	}
 
-	public void setDepthSearchedInPly(int depthSearchedInPly) {
+	public void setDepthSearchedInPly(byte depthSearchedInPly) {
 		this.depthSearchedInPly = depthSearchedInPly;
 	}
 

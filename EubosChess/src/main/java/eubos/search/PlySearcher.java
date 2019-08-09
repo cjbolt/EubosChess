@@ -41,7 +41,7 @@ public class PlySearcher {
 	private TranspositionTableAccessor tt;
 	
 	int currPly = 0;
-	int depthSearchedPly = 0;
+	byte depthSearchedPly = 0;
 	
 	PlySearcher(
 			FixedSizeTranspositionTable hashMap,

@@ -39,7 +39,7 @@ public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 			Timestamp msCurrTime = new Timestamp(System.currentTimeMillis());
 			if (msCurrTime.after(msTargetEndTime))
 				break;
-			if (res.foundMate)
+			if (res != null && res.foundMate)
 				break;
 			pc = mg.pc.toPvList();
 		}

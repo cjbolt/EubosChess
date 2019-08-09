@@ -70,7 +70,7 @@ public class TranspositionTableAccessor {
 		return ret;
 	}
 	
-	void storeTranspositionScore(int currPly, int depthPositionSearchedPly, GenericMove bestMove, int score, ScoreType bound, List<GenericMove> ml, Transposition trans) {
+	void storeTranspositionScore(int currPly, byte depthPositionSearchedPly, GenericMove bestMove, int score, ScoreType bound, List<GenericMove> ml, Transposition trans) {
 		if (trans == null) {
 			trans = hashMap.getTransposition(pos.getHash().hashCode);
 		}
