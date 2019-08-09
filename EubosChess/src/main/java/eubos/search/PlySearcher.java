@@ -89,6 +89,7 @@ public class PlySearcher {
 			depthSearchedPly = eval.trans.getDepthSearchedInPly();
 			pc.initialiseOnTranspositionHit(currPly, eval.trans.getBestMove());
 			doScoreBackup(eval.trans.getBestMove(), eval.trans.getScore());
+			sm.incrementNodesSearched();
 			break;
 			
 		case sufficientSeedMoveList:
