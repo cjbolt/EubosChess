@@ -35,7 +35,12 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		byte currentDepth = 1;
 		SearchResult res = null;
 		LinkedList<GenericMove> pc = null;
-		long timeQuota = calculateSearchTimeAllocation();
+		long timeQuota = 0;
+		if (gameTimeRemaining < 20000) {
+			timeQuota = 200;
+		} else {
+			timeQuota = calculateSearchTimeAllocation();
+		}
 		Timestamp msTargetEndTime = new Timestamp(System.currentTimeMillis() + timeQuota);
 		while (!searchStopped && currentDepth <= 8) {
 			try {
