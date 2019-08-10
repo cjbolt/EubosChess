@@ -32,7 +32,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	
 	@Override
 	public void run() {
-		int currentDepth = 1;
+		byte currentDepth = 1;
 		SearchResult res = null;
 		LinkedList<GenericMove> pc = null;
 		long timeQuota = calculateSearchTimeAllocation();

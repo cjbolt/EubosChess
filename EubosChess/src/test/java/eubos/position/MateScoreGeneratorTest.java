@@ -14,8 +14,8 @@ public class MateScoreGeneratorTest {
 	private static final int SEARCH_DEPTH = 8;
 	private static final int FIRST_PLY = 0;
 	private static final int LAST_PLY = (SEARCH_DEPTH-1);
-	private int score = 0;
-	private int testPly = FIRST_PLY;
+	private short score = 0;
+	private byte testPly = FIRST_PLY;
 	
 	@Before
 	public void setUp() {

@@ -59,16 +59,16 @@ class MiniMaxMoveGenerator implements
 	
 	@Override
 	public SearchResult findMove() throws NoLegalMoveException, InvalidPieceException {
-		return this.findMove(1, null);
+		return this.findMove((byte)1, null);
 	}
 	
 	@Override
-	public SearchResult findMove(int searchDepth) throws NoLegalMoveException, InvalidPieceException {
+	public SearchResult findMove(byte searchDepth) throws NoLegalMoveException, InvalidPieceException {
 		return this.findMove(searchDepth, null);
 	}
 	
 	@Override
-	public SearchResult findMove(int searchDepth, LinkedList<GenericMove> lastPc) throws NoLegalMoveException, InvalidPieceException {
+	public SearchResult findMove(byte searchDepth, LinkedList<GenericMove> lastPc) throws NoLegalMoveException, InvalidPieceException {
 		boolean foundMate = false;
 		int eval_score = 0;
 		initialiseSearchDepthDependentObjects(searchDepth);

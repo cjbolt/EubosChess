@@ -34,7 +34,7 @@ public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 		SearchResult res = new SearchResult(null, false);
 		LinkedList<GenericMove> pc = null;
 		Timestamp msTargetEndTime = new Timestamp(System.currentTimeMillis() + moveTime);
-		for (int depth=1; depth<MAX_SEARCH_DEPTH; depth++) {
+		for (byte depth=1; depth<MAX_SEARCH_DEPTH; depth++) {
 			res = doFindMove(res.bestMove, pc, depth);
 			Timestamp msCurrTime = new Timestamp(System.currentTimeMillis());
 			if (msCurrTime.after(msTargetEndTime))

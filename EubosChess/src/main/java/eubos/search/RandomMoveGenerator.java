@@ -20,16 +20,16 @@ class RandomMoveGenerator implements IMoveGenerator {
 
 	@Override
 	public SearchResult findMove() throws NoLegalMoveException, InvalidPieceException {
-		return this.findMove(0);
+		return this.findMove((byte)0);
 	}
 	
 	@Override
-	public SearchResult findMove(int searchDepth) throws NoLegalMoveException, InvalidPieceException {
+	public SearchResult findMove(byte searchDepth) throws NoLegalMoveException, InvalidPieceException {
 		return this.findMove(searchDepth, null);
 	}
 	
 	// Find a random legal move for the colour "on move"
-	public SearchResult findMove(int searchDepth, LinkedList<GenericMove> lastPc) throws NoLegalMoveException, InvalidPieceException {
+	public SearchResult findMove(byte searchDepth, LinkedList<GenericMove> lastPc) throws NoLegalMoveException, InvalidPieceException {
 		GenericMove bestMove = null;
 		List<GenericMove> entireMoveList = mlgen.getMoveList();
 		if ( !entireMoveList.isEmpty()) {

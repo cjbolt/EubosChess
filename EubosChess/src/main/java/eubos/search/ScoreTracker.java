@@ -1,43 +1,43 @@
 package eubos.search;
 
 class ScoreTracker {
-	private int[] scores;
+	private short[] scores;
 	private boolean initialOnMoveIsWhite = false;
 	
 	private static final int MINIMUM_PLY_FOR_ALPHA_BETA_CUT_OFF = 2;
 
 	ScoreTracker(int searchDepth, boolean isWhite) {
-		scores = new int[searchDepth];
+		scores = new short[searchDepth];
 		initialOnMoveIsWhite = isWhite;
 	}
 	
-	private void bringDownAlphaBetaCutOff(int currPly) {
+	private void bringDownAlphaBetaCutOff(byte currPly) {
 		scores[currPly] = scores[currPly-MINIMUM_PLY_FOR_ALPHA_BETA_CUT_OFF];
 	}
 
-	private void initialiseWithWorstPossibleScore(int currPly) {
+	private void initialiseWithWorstPossibleScore(byte currPly) {
 		if (onMoveIsWhite(currPly)) {
-			scores[currPly] = Integer.MIN_VALUE;
+			scores[currPly] = Short.MIN_VALUE;
 		} else {
-			scores[currPly] = Integer.MAX_VALUE;
+			scores[currPly] = Short.MAX_VALUE;
 		}
 	}
 	
-	boolean onMoveIsWhite(int currPly) {
+	boolean onMoveIsWhite(byte currPly) {
 		return ((currPly % 2) == 0) ? initialOnMoveIsWhite : !initialOnMoveIsWhite;
 	}
 	
-	void setBackedUpScoreAtPly(int currPly, int positionScore) {
+	void setBackedUpScoreAtPly(byte currPly, short positionScore) {
 		SearchDebugAgent.printBackUpScore(currPly, scores[currPly], positionScore);
 		scores[currPly]=positionScore;
 	}
 	
 	
-	int getBackedUpScoreAtPly(int currPly) {
+	short getBackedUpScoreAtPly(byte currPly) {
 		return scores[currPly];
 	}
 	
-	void setProvisionalScoreAtPly(int currPly) {
+	void setProvisionalScoreAtPly(byte currPly) {
 		if (currPly<MINIMUM_PLY_FOR_ALPHA_BETA_CUT_OFF) {
 			initialiseWithWorstPossibleScore(currPly);
 		} else {
@@ -45,11 +45,11 @@ class ScoreTracker {
 		}
 	}	
 	
-	int getProvisionalScoreAtPly(int currPly) {
+	short getProvisionalScoreAtPly(byte currPly) {
 		return scores[currPly];
 	}
 
-	boolean isBackUpRequired(int currPly, int positionScore) {
+	boolean isBackUpRequired(byte currPly, short positionScore) {
 		boolean backUpScore = false;
 		if (onMoveIsWhite(currPly)) {
 			// if white, maximise score
@@ -63,11 +63,11 @@ class ScoreTracker {
 		return backUpScore;
 	}
 	
-	boolean isAlphaBetaCutOff(int currPly, int nodeProvisionalScore, int positionScore) throws IllegalArgumentException {
+	boolean isAlphaBetaCutOff(byte currPly, short nodeProvisionalScore, short positionScore) throws IllegalArgumentException {
 		boolean isAlphaBetaCutOff = false;
-		if ((nodeProvisionalScore != Integer.MAX_VALUE) && (nodeProvisionalScore != Integer.MIN_VALUE)) {
+		if ((nodeProvisionalScore != Short.MAX_VALUE) && (nodeProvisionalScore != Short.MIN_VALUE)) {
 			if (currPly <= 0) throw new IllegalArgumentException();
-			int prevPlyScore = getBackedUpScoreAtPly(currPly-1);
+			short prevPlyScore = getBackedUpScoreAtPly((byte)(currPly-1));
 			if (onMoveIsWhite(currPly)) {
 				/* A note about these score comparisons: 
 				 * 

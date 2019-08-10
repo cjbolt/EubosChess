@@ -9,15 +9,15 @@ public class ScoreTrackerTest {
 
 	private ScoreTracker classUnderTest;
 	private static final boolean isWhite = true;
-	private static final int searchDepth = 4;
-	private static final int PLY0 = 0;
-	private static final int PLY1 = 1;
-	private static final int PLY2 = 2;
-	private static final int PLY3 = 3;
+	private static final byte searchDepth = 4;
+	private static final byte PLY0 = 0;
+	private static final byte PLY1 = 1;
+	private static final byte PLY2 = 2;
+	private static final byte PLY3 = 3;
 	
-	private static final int Score_A_C_B_D = 9;
-	private static final int Score_A_C_B_I = 4;
-	private static final int Score_A_C_E_D = 30;
+	private static final short Score_A_C_B_D = 9;
+	private static final short Score_A_C_B_I = 4;
+	private static final short Score_A_C_E_D = 30;
 	
 	private void initialiseToSearchDepth() {
 		classUnderTest.setProvisionalScoreAtPly(PLY0);
@@ -70,32 +70,32 @@ public class ScoreTrackerTest {
 	
 	@Test
 	public void testIsAlphaBetaCutOff_Max() {
-		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY1, Integer.MAX_VALUE, 20));
+		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY1, Short.MAX_VALUE, (short)20));
 	}
 	
 	@Test
 	public void testIsAlphaBetaCutOff_Min() {
-		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY1, Integer.MIN_VALUE, 20));
+		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY1, Short.MIN_VALUE, (short)20));
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testIsAlphaBetaCutOff_plyZero_Exception() {
-		classUnderTest.isAlphaBetaCutOff(PLY0, -100, 20);
+		classUnderTest.isAlphaBetaCutOff(PLY0, (short)-100, (short)20);
 	}
 	
 	@Test
 	public void testIsAlphaBetaCutOff_PlyOne() {
-		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY1, -100, 20));
+		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY1, (short)-100, (short)20));
 	}
 		
 	@Test
 	public void testIsAlphaBetaCutOff_plyTwo() {
-		assertTrue(classUnderTest.isAlphaBetaCutOff(PLY2, -100, 20));
+		assertTrue(classUnderTest.isAlphaBetaCutOff(PLY2, (short)-100, (short)20));
 	}
 	
 	@Test
 	public void testIsAlphaBetaCutOff_PlyThree() {
-		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY3, -100, 20));
+		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY3, (short)-100, (short)20));
 	}
 	
 	@Test
@@ -108,7 +108,7 @@ public class ScoreTrackerTest {
 	public void testIsBackUpRequired_ItIsnt() {
 		initialiseToSearchDepth();
 		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_B_D);
-		assertFalse(classUnderTest.isBackUpRequired(PLY3, 15));
+		assertFalse(classUnderTest.isBackUpRequired(PLY3, (short)15));
 	}
 	
 	@Test
@@ -116,7 +116,7 @@ public class ScoreTrackerTest {
 		initialiseToSearchDepth();
 		classUnderTest.isBackUpRequired(PLY3, Score_A_C_B_D);
 		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_B_D);
-		assertTrue(classUnderTest.isBackUpRequired(PLY3, 4));
+		assertTrue(classUnderTest.isBackUpRequired(PLY3, (short)4));
 	}
 	
 	@Test
@@ -127,14 +127,14 @@ public class ScoreTrackerTest {
 		classUnderTest.isBackUpRequired(PLY3, Score_A_C_B_I);
 		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_B_I);
 		assertTrue(classUnderTest.isBackUpRequired(PLY2, Score_A_C_B_I));
-		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY2, -100, Score_A_C_B_I));
+		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY2, (short)-100, Score_A_C_B_I));
 	}	
 	
 	@Test
 	public void testSetProvisionalScoreAtPly_MaxDepthBringsDown() {
 		initialiseToSearchDepth();
 		backup_SearchTree_ACBI();
-		assertTrue(classUnderTest.getProvisionalScoreAtPly(PLY3)==Integer.MAX_VALUE);
+		assertTrue(classUnderTest.getProvisionalScoreAtPly(PLY3)==Short.MAX_VALUE);
 		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_E_D);
 	}
 	
@@ -148,7 +148,7 @@ public class ScoreTrackerTest {
 		assertTrue(classUnderTest.isBackUpRequired(PLY1, Score_A_C_E_D));
 		classUnderTest.setBackedUpScoreAtPly(PLY1, Score_A_C_E_D);
 		classUnderTest.setProvisionalScoreAtPly(PLY2);
-		assertTrue(classUnderTest.getProvisionalScoreAtPly(PLY2)==Integer.MIN_VALUE);
+		assertTrue(classUnderTest.getProvisionalScoreAtPly(PLY2)==Short.MIN_VALUE);
 	}
 	
 	@Test

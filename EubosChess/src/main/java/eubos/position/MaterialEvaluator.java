@@ -74,9 +74,9 @@ public class MaterialEvaluator {
         BISHOP_WEIGHTINGS = Collections.unmodifiableMap(cMap);
     }
     
-	int evaluate(Board theBoard) {
+	short evaluate(Board theBoard) {
 		Iterator<Piece> iter_p = theBoard.iterator();
-		int materialEvaluation = 0;
+		short materialEvaluation = 0;
 		while ( iter_p.hasNext() ) {
 			Piece currPiece = iter_p.next();
 			int currValue = 0;

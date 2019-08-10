@@ -37,7 +37,7 @@ public class TranspositionTableAccessor {
 		public Transposition trans;
 	} 
 	
-	TranspositionEval evaluateTranspositionData(int currPly, int depthRequiredPly) {
+	TranspositionEval evaluateTranspositionData(byte currPly, int depthRequiredPly) {
 		TranspositionEval ret = new TranspositionEval();
 		ret.status = TranspositionTableStatus.insufficientNoData;
 		ret.trans = hashMap.getTransposition(pos.getHash().hashCode);
@@ -50,7 +50,7 @@ public class TranspositionTableAccessor {
 				ret.status = TranspositionTableStatus.sufficientTerminalNode;
 				SearchDebugAgent.printHashIsTerminalNode(currPly, ret.trans.getBestMove(), ret.trans.getScore());
 			} else { // must be (bound == ScoreType.upperBound || bound == ScoreType.lowerBound)
-				int provisionalScoreAtThisPly = st.getProvisionalScoreAtPly(currPly);
+				short provisionalScoreAtThisPly = st.getProvisionalScoreAtPly(currPly);
 				if (st.isAlphaBetaCutOff(currPly, provisionalScoreAtThisPly, ret.trans.getScore())) {
 					SearchDebugAgent.printHashIsRefutation(currPly, ret.trans.getBestMove());
 					ret.status = TranspositionTableStatus.sufficientRefutation;
@@ -70,7 +70,7 @@ public class TranspositionTableAccessor {
 		return ret;
 	}
 	
-	void storeTranspositionScore(int currPly, byte depthPositionSearchedPly, GenericMove bestMove, int score, ScoreType bound, List<GenericMove> ml, Transposition trans) {
+	void storeTranspositionScore(int currPly, byte depthPositionSearchedPly, GenericMove bestMove, short score, ScoreType bound, List<GenericMove> ml, Transposition trans) {
 		if (trans == null) {
 			trans = hashMap.getTransposition(pos.getHash().hashCode);
 		}

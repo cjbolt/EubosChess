@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 public class PlySearcherTest {
 	
 	private PlySearcher classUnderTest;
-	private static final int searchDepth = 2;
+	private static final byte searchDepth = 2;
 	
 	private IChangePosition mock_pm;
 	private IGenerateMoveList mock_mlgen;
@@ -99,7 +99,7 @@ public class PlySearcherTest {
 		
 		score = classUnderTest.searchPly();
 		
-		verify(mock_sg).scoreMate(0, true, Colour.white);
+		verify(mock_sg).scoreMate((byte)0, true, Colour.white);
 	}
 
 	@Test
@@ -111,7 +111,7 @@ public class PlySearcherTest {
 		
 		score = classUnderTest.searchPly();
 		
-		verify(mock_sg, never()).scoreMate(0, true, Colour.white);
+		verify(mock_sg, never()).scoreMate((byte)0, true, Colour.white);
 	}	
 	
 	@Test
@@ -176,7 +176,7 @@ public class PlySearcherTest {
 	public void whenWhiteNoMoves_ScoreIsMateInOneWhite() throws IllegalNotationException, InvalidPieceException {
 		when(mock_pos.getOnMove()).thenReturn(Colour.white);
 		when(mock_mlgen.getMoveList()).thenReturn(input_ml);
-		when(mock_sg.scoreMate(0, true, Colour.white)).thenReturn(King.MATERIAL_VALUE);
+		when(mock_sg.scoreMate((byte)0, true, Colour.white)).thenReturn(King.MATERIAL_VALUE);
 		
 		score = classUnderTest.searchPly();
 		
@@ -203,7 +203,7 @@ public class PlySearcherTest {
 		
 		when(mock_pos.getOnMove()).thenReturn(Colour.black);
 		when(mock_mlgen.getMoveList()).thenReturn(input_ml);
-		when(mock_sg.scoreMate(0, false, Colour.black)).thenReturn(-King.MATERIAL_VALUE);
+		when(mock_sg.scoreMate((byte)0, false, Colour.black)).thenReturn((short) -King.MATERIAL_VALUE);
 		
 		score = classUnderTest.searchPly();
 		

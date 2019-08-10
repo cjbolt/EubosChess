@@ -9,7 +9,7 @@ class SearchMetrics {
 	private long time;
 	private List<GenericMove> pv;
 	private boolean pvValid = false;
-	private int cpScore;
+	private short cpScore;
 	private int depth;
 	private GenericMove currMove;
 	private int currMoveNum;
@@ -48,8 +48,8 @@ class SearchMetrics {
 		pv = pc;
 	}
 	synchronized List<GenericMove> getPrincipalVariation() { return (pvValid ? pv : null);}
-	synchronized int getCpScore() { return cpScore; }
-	synchronized void setCpScore(int cpScore) { this.cpScore = cpScore; }
+	synchronized short getCpScore() { return cpScore; }
+	synchronized void setCpScore(short cpScore) { this.cpScore = cpScore; }
 	synchronized int getDepth() { return depth; }
 	synchronized void setDepth(int depth) { this.depth = depth; }
 	synchronized void setCurrentMove(GenericMove mov) { currMove = mov;}

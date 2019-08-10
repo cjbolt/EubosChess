@@ -37,10 +37,10 @@ public class PlySearcher {
 	
 	private Colour initialOnMove;	
 	private List<GenericMove> lastPc;
-	private int searchDepthPly;
+	private byte searchDepthPly;
 	private TranspositionTableAccessor tt;
 	
-	int currPly = 0;
+	byte currPly = 0;
 	byte depthSearchedPly = 0;
 	
 	PlySearcher(
@@ -50,7 +50,7 @@ public class PlySearcher {
 			PrincipalContinuation pc,
 			SearchMetrics sm,
 			SearchMetricsReporter sr,
-			int searchDepthPly,
+			byte searchDepthPly,
 			IChangePosition pm,
 			IGenerateMoveList mlgen,
 			IPositionAccessors pos,
@@ -77,9 +77,9 @@ public class PlySearcher {
 		terminate = true; }
 	private synchronized boolean isTerminated() { return terminate; }	
 	
-	int searchPly() throws InvalidPieceException {
+	short searchPly() throws InvalidPieceException {
 		List<GenericMove> ml = null;
-		int depthRequiredPly = initialiseSearchAtPly();
+		byte depthRequiredPly = initialiseSearchAtPly();
 		
 		TranspositionEval eval = tt.evaluateTranspositionData(currPly, depthRequiredPly);
 		switch (eval.status) {
@@ -111,11 +111,11 @@ public class PlySearcher {
 
 	void searchMoves(List<GenericMove> ml, Transposition trans) throws InvalidPieceException {
 		if (isMateOccurred(ml)) {
-			int mateScore = sg.scoreMate(currPly, (pos.getOnMove() == Colour.white), initialOnMove);
+			short mateScore = sg.scoreMate(currPly, (pos.getOnMove() == Colour.white), initialOnMove);
 			st.setBackedUpScoreAtPly(currPly, mateScore);
 		} else {
 			pc.update(currPly, ml.get(0));
-			int provisionalScoreAtPly = st.getProvisionalScoreAtPly(currPly);
+			short provisionalScoreAtPly = st.getProvisionalScoreAtPly(currPly);
 			Iterator<GenericMove> move_iter = ml.iterator();
 			
 			while(move_iter.hasNext() && !isTerminated()) {
@@ -123,7 +123,7 @@ public class PlySearcher {
 				if (currPly == 0)
 					reportMove(currMove);
 				
-				int positionScore = applyMoveAndScore(currMove);
+				short positionScore = applyMoveAndScore(currMove);
 				
 				doScoreBackup(currMove, positionScore);
 				updateTranspositionTable(move_iter, ml, st.getBackedUpScoreAtPly(currPly), trans);
@@ -136,15 +136,15 @@ public class PlySearcher {
 		}
 	}
 	
-	private int initialiseSearchAtPly() {
-		int depthRequiredPly = (searchDepthPly - currPly);
+	private byte initialiseSearchAtPly() {
+		byte depthRequiredPly = (byte)(searchDepthPly - currPly);
 		st.setProvisionalScoreAtPly(currPly);
 		SearchDebugAgent.printSearchPly(currPly, st.getProvisionalScoreAtPly(currPly), pos.getOnMove());
 		SearchDebugAgent.printFen(currPly, pos);
 		return depthRequiredPly;
 	}
 
-	protected void doScoreBackup(GenericMove currMove, int positionScore) {
+	protected void doScoreBackup(GenericMove currMove, short positionScore) {
 		if (st.isBackUpRequired(currPly, positionScore)) {
 			// New best score found at this node, back up and update the principal continuation.
 			st.setBackedUpScoreAtPly(currPly, positionScore);
@@ -154,7 +154,7 @@ public class PlySearcher {
 		}
 	}
 
-	protected void updateTranspositionTable(Iterator<GenericMove> move_iter, List<GenericMove> ml, int positionScore, Transposition trans) {
+	protected void updateTranspositionTable(Iterator<GenericMove> move_iter, List<GenericMove> ml, short positionScore, Transposition trans) {
 		GenericMove bestMove = (depthSearchedPly == 0) ? null : pc.getBestMove(currPly);
 		ScoreType bound = ScoreType.exact;
 		if (move_iter.hasNext()) {
@@ -185,10 +185,10 @@ public class PlySearcher {
 		return ml.isEmpty();
 	}
 	
-	private int applyMoveAndScore(GenericMove currMove) throws InvalidPieceException {
+	private short applyMoveAndScore(GenericMove currMove) throws InvalidPieceException {
 		
 		doPerformMove(currMove);
-		int positionScore = assessNewPosition(currMove);
+		short positionScore = assessNewPosition(currMove);
 		doUnperformMove(currMove);
 		
 		sm.incrementNodesSearched();
@@ -196,8 +196,8 @@ public class PlySearcher {
 		return positionScore;
 	}
 
-	private int assessNewPosition(GenericMove prevMove) throws InvalidPieceException {
-		int positionScore;
+	private short assessNewPosition(GenericMove prevMove) throws InvalidPieceException {
+		short positionScore;
 		// Either recurse or evaluate a terminal position
 		if ( isTerminalNode() ) {
 			positionScore = scoreTerminalNode();
@@ -209,7 +209,7 @@ public class PlySearcher {
 		return positionScore;
 	}
 
-	private int scoreTerminalNode() {
+	private short scoreTerminalNode() {
 		return pe.evaluatePosition(pos);
 	}
 	
@@ -236,9 +236,9 @@ public class PlySearcher {
 	// Principal continuation focused, search report focused inner class
 	class PrincipalContinuationUpdateHelper
 	{
-		int positionScore;
+		short positionScore;
 		
-		PrincipalContinuationUpdateHelper(int score) {
+		PrincipalContinuationUpdateHelper(short score) {
 			positionScore = score;
 		}
 
@@ -255,7 +255,7 @@ public class PlySearcher {
 
 		private void assignCentipawnScoreToSearchMetrics() {
 			if (initialOnMove.equals(Colour.black))
-				positionScore = -positionScore; // Negated due to UCI spec (from engine pov)
+				positionScore = (short) -positionScore; // Negated due to UCI spec (from engine pov)
 			sm.setCpScore(positionScore);
 		}
 		

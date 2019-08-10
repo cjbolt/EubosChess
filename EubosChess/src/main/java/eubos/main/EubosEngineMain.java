@@ -40,7 +40,7 @@ import java.util.logging.*;
 
 public class EubosEngineMain extends AbstractEngine {
 	
-	private static final int SEARCH_DEPTH_IN_PLY = 12;
+	private static final byte SEARCH_DEPTH_IN_PLY = 12;
 	
 	private PositionManager pm;
 	private AbstractMoveSearcher ms;
@@ -127,11 +127,11 @@ public class EubosEngineMain extends AbstractEngine {
 			logger.info("Search move, fixed time " + command.getMoveTime());
 			ms = new FixedTimeMoveSearcher(this, hashMap, pm, pm, pm, command.getMoveTime());
 		} else {
-			int searchDepth = SEARCH_DEPTH_IN_PLY;
+			byte searchDepth = SEARCH_DEPTH_IN_PLY;
 			if (command.getInfinite()) {
 
 			} else if (command.getDepth() != null) {
-				searchDepth = command.getDepth();
+				searchDepth = (byte)((int)command.getDepth());
 			}
 			logger.info("Search move, fixed depth " + searchDepth);
 			ms = new FixedDepthMoveSearcher(this, hashMap, pm, pm, pm, searchDepth);

@@ -21,7 +21,7 @@ import eubos.search.PlySearcher;
 
 public class MiniMaxMoveGeneratorTest {
 	
-	private static final int SEARCH_DEPTH_IN_PLY = 4;
+	private static final byte SEARCH_DEPTH_IN_PLY = 4;
 	protected LinkedList<Piece> pl;
 	protected MiniMaxMoveGenerator classUnderTest;
 	protected GenericMove expectedMove;
@@ -43,7 +43,7 @@ public class MiniMaxMoveGeneratorTest {
 		doFindMoveTest( SEARCH_DEPTH_IN_PLY, expectMove );
 	}
 	
-	private void doFindMoveTest( int searchDepth, boolean expectMove ) {
+	private void doFindMoveTest( byte searchDepth, boolean expectMove ) {
 		try {
 			SearchResult res = classUnderTest.findMove(searchDepth);
 			if ( expectMove )
@@ -192,7 +192,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "8/5q2/3pP3/2P5/1b6/P7/8/8 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( hashMap, pm,pm,pm );
 		expectedMove = new GenericMove("e6f7");
-		doFindMoveTest(2, true);
+		doFindMoveTest((byte)2, true);
 	}
 	
 	@Test
@@ -209,7 +209,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "5q2/4P3/3p4/2P5/1b6/P7/8/8 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( hashMap, pm,pm,pm );
 		expectedMove = new GenericMove("e7f8Q");
-		doFindMoveTest(2, true);
+		doFindMoveTest((byte)2, true);
 	}
 	
 	@Test
@@ -226,7 +226,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "8/4P3/3p4/8/8/8/8/8 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( hashMap, pm,pm,pm );
 		expectedMove = new GenericMove("e7e8Q");
-		doFindMoveTest(2, true);
+		doFindMoveTest((byte)2, true);
 	}
 	
 	@Test
@@ -243,7 +243,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "4k3/8/4p3/5b2/8/8/8/4R3 b - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( hashMap, pm,pm,pm );
 		expectedMove = new GenericMove("e6f5");
-		doFindMoveTest(2, false);
+		doFindMoveTest((byte)2, false);
 	}
 
 	@Test
@@ -261,7 +261,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "1nbqk2r/3p3p/r1pbpn2/1p3B2/3P4/PQP2N2/5PPP/R3R1K1 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("e6f5");
-		doFindMoveTest(2, false);
+		doFindMoveTest((byte)2, false);
 	}
 
 	@Test
@@ -270,7 +270,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("d3h7");
-		doFindMoveTest(2, true);
+		doFindMoveTest((byte)2, true);
 	}
 	
 	@Test
@@ -281,7 +281,7 @@ public class MiniMaxMoveGeneratorTest {
 		// various possible mates
 		//expectedMove = new GenericMove("a5a6");
 		expectedMove = new GenericMove("f3e5");
-		doFindMoveTest(2, true);
+		doFindMoveTest((byte)2, true);
 	}
 	
 	@Test
@@ -293,7 +293,7 @@ public class MiniMaxMoveGeneratorTest {
 		//expectedMove = new GenericMove("h4g5");
 		expectedMove = new GenericMove("a5g5");
 		//expectedMove = new GenericMove("a3f8");
-		doFindMoveTest(2, true);
+		doFindMoveTest((byte)2, true);
 	}
 	
 	@Test
@@ -303,7 +303,7 @@ public class MiniMaxMoveGeneratorTest {
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		// Two possible pawn mates
 		expectedMove = new GenericMove("d2d4");
-		doFindMoveTest(2, true);
+		doFindMoveTest((byte)2, true);
 	}
 	
 	@Test
@@ -312,7 +312,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "8/8/K7/p7/k2N3R/p7/P7/8 w - - 0 1" );
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("d4e6");
-		doFindMoveTest(2, true);
+		doFindMoveTest((byte)2, true);
 	}
 
 	@Test
@@ -321,7 +321,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "1rk2N2/1p6/8/B1Pp4/B6Q/K7/8/2R5 w - d6 0 1" );
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("c5d6"); //en passant move causes discovered checkmate
-		doFindMoveTest(2, true);
+		doFindMoveTest((byte)2, true);
 	}
 
 	@Test
@@ -330,7 +330,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "8/7B/8/3N4/8/1Q2B3/PPP5/rk2K2R w K - 0 1" );
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("e1g1");
-		doFindMoveTest(2, true);
+		doFindMoveTest((byte)2, true);
 	}
 
 	@Test
@@ -380,7 +380,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "8/8/8/8/1pPP4/8/8/8 b - c3 0 1");
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("b4c3");
-		doFindMoveTest(2, true);
+		doFindMoveTest((byte)2, true);
 	}
 	
 	@Test
@@ -388,7 +388,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "1k6/ppR5/8/8/8/8/PP6/K1Qq2r1 w - - - -");
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("c7c8");
-		doFindMoveTest(2, true);
+		doFindMoveTest((byte)2, true);
 	}
 	
 	@Test
@@ -401,7 +401,7 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "5r1k/ppp4p/2n5/1BNb2q1/1P6/P7/2PP3K/1R1Q4 b - - 7 32");
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("g5g2");
-		doFindMoveTest(2, true);
+		doFindMoveTest((byte)2, true);
 	}
 	
 	@Test
@@ -444,7 +444,7 @@ public class MiniMaxMoveGeneratorTest {
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("h8g7");
 		
-		SearchResult res = classUnderTest.findMove(4);
+		SearchResult res = classUnderTest.findMove((byte)4);
 		
 		assertEquals(expectedMove, res.bestMove);
 	}
@@ -458,9 +458,9 @@ public class MiniMaxMoveGeneratorTest {
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("h8g7");
 		
-		classUnderTest.findMove(4);
+		classUnderTest.findMove((byte)4);
 		LinkedList<GenericMove >lastPc = classUnderTest.pc.toPvList();
-		SearchResult res = classUnderTest.findMove(5, lastPc);
+		SearchResult res = classUnderTest.findMove((byte)5, lastPc);
 		
 		assertEquals(expectedMove, res.bestMove);
 	}
@@ -472,11 +472,11 @@ public class MiniMaxMoveGeneratorTest {
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("h8g7");
 		
-		classUnderTest.findMove(4);
+		classUnderTest.findMove((byte)4);
 		LinkedList<GenericMove> lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove(5,lastPc);
+		classUnderTest.findMove((byte)5,lastPc);
 		lastPc = classUnderTest.pc.toPvList();
-		SearchResult res = classUnderTest.findMove(6,lastPc);
+		SearchResult res = classUnderTest.findMove((byte)6,lastPc);
 		
 	    assertEquals(expectedMove, res.bestMove);
 	}
@@ -489,7 +489,7 @@ public class MiniMaxMoveGeneratorTest {
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("h8g7");
 		
-		SearchResult res = classUnderTest.findMove(10);
+		SearchResult res = classUnderTest.findMove((byte)10);
 		
 		assertEquals(expectedMove, res.bestMove);
 	}
@@ -502,7 +502,7 @@ public class MiniMaxMoveGeneratorTest {
 		// Blunder move!
 		expectedMove = new GenericMove("d4g7");
 		
-		SearchResult res = classUnderTest.findMove(7);
+		SearchResult res = classUnderTest.findMove((byte)7);
 		
 		assertEquals(expectedMove, res.bestMove);
 	}
@@ -515,7 +515,7 @@ public class MiniMaxMoveGeneratorTest {
 		// Blunder move!
 		expectedMove = new GenericMove("d4g7");
 		
-		SearchResult res = classUnderTest.findMove(5);
+		SearchResult res = classUnderTest.findMove((byte)5);
 		
 		assertEquals(expectedMove, res.bestMove);
 	}
@@ -526,7 +526,7 @@ public class MiniMaxMoveGeneratorTest {
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("e8g8");
 		
-		SearchResult res = classUnderTest.findMove(3);
+		SearchResult res = classUnderTest.findMove((byte)3);
 		
 		assertEquals(expectedMove, res.bestMove);
 	}
@@ -537,7 +537,7 @@ public class MiniMaxMoveGeneratorTest {
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("e1g1");
 		
-		SearchResult res = classUnderTest.findMove(3);
+		SearchResult res = classUnderTest.findMove((byte)3);
 		
 		assertEquals(expectedMove, res.bestMove);
 	}
@@ -555,7 +555,7 @@ public class MiniMaxMoveGeneratorTest {
 		pm.performMove(new GenericMove("e1d1"));
 		pm.performMove(new GenericMove("a7c6"));
 		pm.performMove(new GenericMove("c3d5"));
-		classUnderTest.findMove(5);
+		classUnderTest.findMove((byte)5);
 	}
 	
 	@Test
@@ -571,7 +571,7 @@ public class MiniMaxMoveGeneratorTest {
 		pm.performMove(new GenericMove("d8d4"));
 		pm.performMove(new GenericMove("d1c2"));
 		pm.performMove(new GenericMove("d4c5"));
-		classUnderTest.findMove(5);
+		classUnderTest.findMove((byte)5);
 	}
 	
 	@Test
@@ -590,13 +590,13 @@ public class MiniMaxMoveGeneratorTest {
 		// Eubos generates a wtf queen for pawn sacrifice. When run here it is ok.
 		expectedMove = new GenericMove("e7c6");
 		
-		classUnderTest.findMove(1);
+		classUnderTest.findMove((byte)1);
 		LinkedList<GenericMove> lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove(2,lastPc);
+		classUnderTest.findMove((byte)2,lastPc);
 		lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove(3,lastPc);
+		classUnderTest.findMove((byte)3,lastPc);
 		lastPc = classUnderTest.pc.toPvList();
-		SearchResult res = classUnderTest.findMove(4,lastPc);
+		SearchResult res = classUnderTest.findMove((byte)4,lastPc);
 		
 		assertEquals(expectedMove, res.bestMove);
 	}
@@ -608,15 +608,15 @@ public class MiniMaxMoveGeneratorTest {
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("b4c3");
 		
-		classUnderTest.findMove(1);
+		classUnderTest.findMove((byte)1);
 		LinkedList<GenericMove> lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove(2,lastPc);
+		classUnderTest.findMove((byte)2,lastPc);
 		lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove(3,lastPc);
+		classUnderTest.findMove((byte)3,lastPc);
 		lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove(4,lastPc);
+		classUnderTest.findMove((byte)4,lastPc);
 		lastPc = classUnderTest.pc.toPvList();
-		SearchResult res = classUnderTest.findMove(5,lastPc);
+		SearchResult res = classUnderTest.findMove((byte)5,lastPc);
 		
 		assertEquals(expectedMove, res.bestMove);
 	}
@@ -628,15 +628,15 @@ public class MiniMaxMoveGeneratorTest {
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		expectedMove = new GenericMove("g4f5");
 		
-		classUnderTest.findMove(1);
+		classUnderTest.findMove((byte)1);
 		LinkedList<GenericMove> lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove(2,lastPc);
+		classUnderTest.findMove((byte)2,lastPc);
 		lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove(3,lastPc);
+		classUnderTest.findMove((byte)3,lastPc);
 		lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove(4,lastPc);
+		classUnderTest.findMove((byte)4,lastPc);
 		lastPc = classUnderTest.pc.toPvList();
-		SearchResult res = classUnderTest.findMove(5,lastPc);
+		SearchResult res = classUnderTest.findMove((byte)5,lastPc);
 		
 		assertEquals(expectedMove, res.bestMove);
 	}

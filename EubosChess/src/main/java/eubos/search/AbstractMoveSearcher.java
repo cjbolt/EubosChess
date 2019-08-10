@@ -50,7 +50,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 
 	public abstract void halt();
 
-	protected SearchResult doFindMove(GenericMove selectedMove, LinkedList<GenericMove> pc, int depth) {
+	protected SearchResult doFindMove(GenericMove selectedMove, LinkedList<GenericMove> pc, byte depth) {
 		SearchResult res = null;
 		try {
 			res = mg.findMove(depth, pc);

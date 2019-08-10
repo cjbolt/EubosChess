@@ -17,8 +17,8 @@ public class PositionEvaluator implements IEvaluate {
 		this.me = new MaterialEvaluator();
 	}
 	
-	public int evaluatePosition(IPositionAccessors pos) {
-		int score = me.evaluate(pos.getTheBoard());
+	public short evaluatePosition(IPositionAccessors pos) {
+		short score = me.evaluate(pos.getTheBoard());
 		score += encourageCastling(pos);
 		score += discourageDoubledPawns(pos);
 		return score;

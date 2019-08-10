@@ -10,7 +10,7 @@ import eubos.board.Direction;
 
 public class King extends PieceSinglesquareDirectMove {
 	
-	public static final int MATERIAL_VALUE = 300000;
+	public static final short MATERIAL_VALUE = 4000;
 
 	public King( Colour Colour, GenericPosition at ) {
 		colour = Colour;
