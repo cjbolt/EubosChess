@@ -124,28 +124,28 @@ public class SearchDebugAgent {
 		}
 	}
 
-	public static void printHashIsTerminalNode(int currPly, GenericMove move, int score ) {
+	public static void printHashIsTerminalNode(int currPly, GenericMove move, int score, long hash) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"hash term best:"+move.toString()+" score:"+ score +" @"+currPly);
+			printOutput(indent+"hash "+hash+" term best:"+move.toString()+" score:"+ score +" @"+currPly);
 		}
 	}
 
-	public static void printHashIsRefutation(int currPly, GenericMove move) {
+	public static void printHashIsRefutation(int currPly, GenericMove move, long hash) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"hash ref @ Ply="+currPly+" move: "+move.toString());
+			printOutput(indent+"hash "+hash+" ref @ Ply="+currPly+" move: "+move.toString());
 		}
 		
 	}
 
-	public static void printHashIsSeedMoveList(int currPly, GenericMove move) {
+	public static void printHashIsSeedMoveList(int currPly, GenericMove move, long hash) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			//printOutput(indent+"hash sufficient seed move list with best move:"+move.toString()+" at Ply="+currPly);
+			printOutput(indent+"hash "+hash+" sufficient seed move list with best move:"+move.toString()+" at Ply="+currPly);
 		}
 	}
 
@@ -167,11 +167,42 @@ public class SearchDebugAgent {
 	}
 
 	public static void printTransUpdate(int currPly, GenericMove bestMove, int depthPositionSearchedPly, int score,
+			ScoreType bound, long hash) {
+		if (isDebugOn) {
+			if ( currPly != lastPly )
+				computeIndent(currPly);
+			printOutput(indent+"trans hash: "+hash+" mv:"+bestMove.toString()+" dep:"+depthPositionSearchedPly+" sc:"+score+" type:"+bound);
+		}		
+	}
+
+	public static void printTransUpdate(int currPly, GenericMove bestMove, int depthPositionSearchedPly, int score,
 			ScoreType bound) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"trans mv:"+bestMove.toString()+" dep:"+depthPositionSearchedPly+" sc:"+score+" type:"+bound);
+		}		
+	}
+	
+	public static void printNewIterationBanner(int depthRequested) {
+		if (isDebugOn) {
+			printOutput("\n\n\n NEW ITERATION to Depth "+depthRequested+"\n\n\n");
+		}
+	}
+
+	public static void printTransNull(int currPly, long hashCode) {
+		if (isDebugOn) {
+			if ( currPly != lastPly )
+				computeIndent(currPly);
+			printOutput(indent+"trans is null, hash: "+hashCode);
+		}		
+	}
+	
+	public static void printCreateTrans(int currPly, long hashCode) {
+		if (isDebugOn) {
+			if ( currPly != lastPly )
+				computeIndent(currPly);
+			printOutput(indent+"trans create, hash: "+hashCode);
 		}		
 	}
 }

@@ -93,7 +93,7 @@ public class PlySearcher {
 			break;
 			
 		case sufficientSeedMoveList:
-			SearchDebugAgent.printHashIsSeedMoveList(currPly, eval.trans.getBestMove());
+			SearchDebugAgent.printHashIsSeedMoveList(currPly, eval.trans.getBestMove(),pos.getHash().hashCode);
 			ml = eval.trans.getMoveList();
 			// Intentional drop through
 		case insufficientNoData:
@@ -154,14 +154,14 @@ public class PlySearcher {
 		}
 	}
 
-	protected void updateTranspositionTable(Iterator<GenericMove> move_iter, List<GenericMove> ml, short positionScore, Transposition trans) {
+	protected Transposition updateTranspositionTable(Iterator<GenericMove> move_iter, List<GenericMove> ml, short positionScore, Transposition trans) {
 		GenericMove bestMove = (depthSearchedPly == 0) ? null : pc.getBestMove(currPly);
 		ScoreType bound = ScoreType.exact;
 		if (move_iter.hasNext()) {
 			// We haven't searched all the moves yet so this is a bound score
 			bound = (pos.getOnMove() == Colour.white) ? ScoreType.lowerBound : ScoreType.upperBound;
 		}
-		tt.storeTranspositionScore(currPly, depthSearchedPly, bestMove, positionScore, bound, ml, trans);
+		return tt.storeTranspositionScore(currPly, depthSearchedPly, bestMove, positionScore, bound, ml, trans);
 	}
 	
 	void reportMove(GenericMove currMove) {

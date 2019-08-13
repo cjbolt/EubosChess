@@ -48,11 +48,11 @@ public class TranspositionTableAccessor {
 			
 			if (ret.trans.getScoreType() == ScoreType.exact) {
 				ret.status = TranspositionTableStatus.sufficientTerminalNode;
-				SearchDebugAgent.printHashIsTerminalNode(currPly, ret.trans.getBestMove(), ret.trans.getScore());
+				SearchDebugAgent.printHashIsTerminalNode(currPly, ret.trans.getBestMove(), ret.trans.getScore(),pos.getHash().hashCode);
 			} else { // must be (bound == ScoreType.upperBound || bound == ScoreType.lowerBound)
 				short provisionalScoreAtThisPly = st.getProvisionalScoreAtPly(currPly);
 				if (st.isAlphaBetaCutOff(currPly, provisionalScoreAtThisPly, ret.trans.getScore())) {
-					SearchDebugAgent.printHashIsRefutation(currPly, ret.trans.getBestMove());
+					SearchDebugAgent.printHashIsRefutation(currPly, ret.trans.getBestMove(),pos.getHash().hashCode);
 					ret.status = TranspositionTableStatus.sufficientRefutation;
 		        } else {
 		        	ret.status = TranspositionTableStatus.sufficientSeedMoveList;
@@ -70,13 +70,16 @@ public class TranspositionTableAccessor {
 		return ret;
 	}
 	
-	void storeTranspositionScore(int currPly, byte depthPositionSearchedPly, GenericMove bestMove, short score, ScoreType bound, List<GenericMove> ml, Transposition trans) {
+	Transposition storeTranspositionScore(int currPly, byte depthPositionSearchedPly, GenericMove bestMove, short score, ScoreType bound, List<GenericMove> ml, Transposition trans) {
 		if (trans == null) {
+			SearchDebugAgent.printTransNull(currPly, pos.getHash().hashCode);
 			trans = hashMap.getTransposition(pos.getHash().hashCode);
 		}
 		if (trans == null) {
+			SearchDebugAgent.printCreateTrans(currPly, pos.getHash().hashCode);
 			trans = new Transposition(bestMove, depthPositionSearchedPly, score, bound, ml);
 			hashMap.putTransposition(pos.getHash().hashCode, trans);
+			SearchDebugAgent.printTransUpdate(currPly, bestMove, depthPositionSearchedPly, score, bound, pos.getHash().hashCode);
 		} else {
 			boolean updateTransposition = false;
 			int currentDepth = trans.getDepthSearchedInPly();
@@ -103,8 +106,11 @@ public class TranspositionTableAccessor {
 	            trans.setDepthSearchedInPly(depthPositionSearchedPly);
 	            trans.setScore(score);
 	            trans.setMoveList(ml);
-	            SearchDebugAgent.printTransUpdate(currPly, bestMove, depthPositionSearchedPly, score, bound);
+	            SearchDebugAgent.printTransUpdate(currPly, bestMove, depthPositionSearchedPly, score, bound, pos.getHash().hashCode);
+	            hashMap.putTransposition(pos.getHash().hashCode, trans);
 			}
+			
 		}
+		return trans;
 	}
 }
