@@ -107,7 +107,7 @@ public class TranspositionTableAccessor {
 	            trans.setScore(score);
 	            trans.setMoveList(ml);
 	            SearchDebugAgent.printTransUpdate(currPly, bestMove, depthPositionSearchedPly, score, bound, pos.getHash().hashCode);
-	            hashMap.putTransposition(pos.getHash().hashCode, trans);
+	            //hashMap.putTransposition(pos.getHash().hashCode, trans);
 			}
 			
 		}

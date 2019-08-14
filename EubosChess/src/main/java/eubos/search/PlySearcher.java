@@ -126,19 +126,23 @@ public class PlySearcher {
 				short positionScore = applyMoveAndScore(currMove);
 				
 				doScoreBackup(currMove, positionScore);
-				updateTranspositionTable(move_iter, ml, st.getBackedUpScoreAtPly(currPly), trans);
+				trans = updateTranspositionTable(move_iter, ml, st.getBackedUpScoreAtPly(currPly), trans);
 				
 				if (st.isAlphaBetaCutOff( currPly, provisionalScoreAtPly, positionScore)) {
 					SearchDebugAgent.printRefutationFound(currPly);
 					break;	
 				}
 			}
+			depthSearchedPly++;
 		}
 	}
 	
 	private byte initialiseSearchAtPly() {
 		byte depthRequiredPly = (byte)(searchDepthPly - currPly);
 		st.setProvisionalScoreAtPly(currPly);
+		if (currPly == 0) {
+			SearchDebugAgent.printNewIterationBanner(depthRequiredPly);
+		}
 		SearchDebugAgent.printSearchPly(currPly, st.getProvisionalScoreAtPly(currPly), pos.getOnMove());
 		SearchDebugAgent.printFen(currPly, pos);
 		return depthRequiredPly;
@@ -204,7 +208,6 @@ public class PlySearcher {
 			depthSearchedPly = 1;
 		} else {
 			positionScore = searchPly();
-			depthSearchedPly++;
 		}
 		return positionScore;
 	}
