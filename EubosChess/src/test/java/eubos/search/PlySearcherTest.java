@@ -52,8 +52,6 @@ public class PlySearcherTest {
 		score = 0;
 		input_ml = new LinkedList<GenericMove>();
 		
-		mock_pe = mock(IEvaluate.class);
-		mock_sg = mock(IScoreMate.class);
 		pc = new PrincipalContinuation(searchDepth);
 		sm = new SearchMetrics(searchDepth);
 		sm.setPrincipalVariation(pc.toPvList());
@@ -69,8 +67,6 @@ public class PlySearcherTest {
 		
 		classUnderTest = new PlySearcher(
 				mock_hashMap,
-				mock_pe,
-				mock_sg,
 			    pc,
 				sm,
 				sr,
@@ -190,8 +186,6 @@ public class PlySearcherTest {
 		
 		classUnderTest = new PlySearcher(
 				mock_hashMap,
-				mock_pe,
-				mock_sg,
 			    pc,
 				sm,
 				sr,

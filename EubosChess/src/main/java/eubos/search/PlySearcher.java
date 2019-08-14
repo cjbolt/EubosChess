@@ -12,6 +12,8 @@ import eubos.position.IChangePosition;
 import eubos.position.IGenerateMoveList;
 import eubos.position.IPositionAccessors;
 import eubos.position.IScoreMate;
+import eubos.position.MateScoreGenerator;
+import eubos.position.PositionEvaluator;
 import eubos.position.Transposition;
 import eubos.position.Transposition.ScoreType;
 import eubos.search.TranspositionTableAccessor.TranspositionEval;
@@ -45,8 +47,6 @@ public class PlySearcher {
 	
 	PlySearcher(
 			FixedSizeTranspositionTable hashMap,
-			IEvaluate pe,
-			IScoreMate sg,
 			PrincipalContinuation pc,
 			SearchMetrics sm,
 			SearchMetricsReporter sr,
@@ -57,8 +57,6 @@ public class PlySearcher {
 			List<GenericMove> lastPc) {
 		currPly = 0;
 		depthSearchedPly = 0;
-		this.pe = pe;
-		this.sg = sg;
 		this.pc = pc;
 		this.sm = sm;
 		this.sr = sr;
@@ -69,8 +67,10 @@ public class PlySearcher {
 		this.searchDepthPly = searchDepthPly;
 		// Register initialOnMove
 		initialOnMove = pos.getOnMove();
+		this.pe = new PositionEvaluator();
 		this.st = new ScoreTracker(searchDepthPly, initialOnMove == Colour.white);
 		this.tt = new TranspositionTableAccessor(hashMap, pos, st, pc, lastPc);
+		this.sg = new MateScoreGenerator(pos, searchDepthPly);
 	}
 	
 	synchronized void terminateFindMove() { 
