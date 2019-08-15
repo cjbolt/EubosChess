@@ -78,6 +78,9 @@ public class PlySearcher {
 	private synchronized boolean isTerminated() { return terminate; }	
 	
 	short searchPly() throws InvalidPieceException {
+		if (isTerminated())
+			return 0;
+		
 		List<GenericMove> ml = null;
 		byte depthRequiredPly = initialiseSearchAtPly();
 		
@@ -105,7 +108,12 @@ public class PlySearcher {
 		default:
 			break;
 		}
-		
+		if (currPly == 0 && isTerminated()) {
+			// Set best move to previous iteration search result.
+			if (lastPc != null) {
+				pc.update(0, lastPc.get(0));
+			}
+		}
 		return st.getBackedUpScoreAtPly(currPly);
 	}
 

@@ -15,7 +15,7 @@ import eubos.position.IPositionAccessors;
 public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	
 	long gameTimeRemaining;
-	private static final int AVG_MOVES_PER_GAME = 70;
+	private static final int AVG_MOVES_PER_GAME = 50;
 	boolean searchStopped = false;
 
 	public IterativeMoveSearcher(EubosEngineMain eubos, FixedSizeTranspositionTable hashMap, IChangePosition inputPm, 
@@ -33,15 +33,12 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	@Override
 	public void run() {
 		byte currentDepth = 1;
-		SearchResult res = null;
+		SearchResult res = new SearchResult(null, false);
 		LinkedList<GenericMove> pc = null;
-		long timeQuota = 0;
-		if (gameTimeRemaining < 20000) {
-			timeQuota = 10;
-		} else {
-			timeQuota = calculateSearchTimeAllocation();
-		}
+		long timeQuota = calculateSearchTimeAllocation();
 		Timestamp msTargetEndTime = new Timestamp(System.currentTimeMillis() + timeQuota);
+		IterativeMoveSearchStopper stopper = new IterativeMoveSearchStopper(msTargetEndTime);
+		stopper.start();
 		while (!searchStopped && currentDepth <= 8) {
 			try {
 				res = mg.findMove(currentDepth, pc);
@@ -52,21 +49,57 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 						"Serious error: Eubos can't find a piece on the board whilst searching findMove(), at "
 								+ e.getAtPosition().toString() );
 			}
-			Timestamp msCurrTime = new Timestamp(System.currentTimeMillis());
-			if (msCurrTime.after(msTargetEndTime))
-				break;
 			if (res != null && res.foundMate)
 				break;
 			pc = mg.pc.toPvList();
 			currentDepth++;
-		}
+		}	
+		stopper.end();
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
 	}
 
 	private long calculateSearchTimeAllocation() {
 		int moveHypothesis = (AVG_MOVES_PER_GAME - pos.getMoveNumber());
-		int movesRemaining = (moveHypothesis > 0) ? moveHypothesis : 10;
+		int movesRemaining = (moveHypothesis < 10) ? moveHypothesis : 10;
 		long msPerMove = gameTimeRemaining/movesRemaining;
 		return msPerMove;
+	}
+	
+	class IterativeMoveSearchStopper extends Thread {
+		
+		private static final int CHECK_RATE_MS = 100;
+		private Timestamp msTargetEndTime;
+		private boolean stopperActive = false;
+		
+		IterativeMoveSearchStopper( Timestamp endTime ) {
+			this.msTargetEndTime = endTime;
+		}
+		
+		public void run() {
+			stopperActive = true;
+			do {
+				Timestamp msCurrTime = new Timestamp(System.currentTimeMillis());
+				if (msCurrTime.after(msTargetEndTime)) {
+					mg.terminateFindMove();
+					searchStopped = true;
+					stopperActive = false;
+				}
+				try {
+					synchronized (this) {
+						this.wait(CHECK_RATE_MS);
+					}
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} while (stopperActive);
+		}
+		
+		public void end() {
+			stopperActive = false;
+			synchronized (this) {
+				this.notify();
+			}
+		}
 	}
 }
