@@ -15,7 +15,7 @@ import eubos.position.IPositionAccessors;
 public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	
 	long gameTimeRemaining;
-	private static final int AVG_MOVES_PER_GAME = 50;
+	private static final int AVG_MOVES_PER_GAME = 40;
 	boolean searchStopped = false;
 
 	public IterativeMoveSearcher(EubosEngineMain eubos, FixedSizeTranspositionTable hashMap, IChangePosition inputPm, 
@@ -60,7 +60,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 
 	private long calculateSearchTimeAllocation() {
 		int moveHypothesis = (AVG_MOVES_PER_GAME - pos.getMoveNumber());
-		int movesRemaining = (moveHypothesis < 10) ? moveHypothesis : 10;
+		int movesRemaining = (moveHypothesis > 10) ? moveHypothesis : 10;
 		long msPerMove = gameTimeRemaining/movesRemaining;
 		return msPerMove;
 	}
