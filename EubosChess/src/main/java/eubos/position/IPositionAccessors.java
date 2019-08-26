@@ -11,6 +11,6 @@ public interface IPositionAccessors {
 	public int getMoveNumber();
 	public boolean lastMoveWasCapture();
 	public int getCastlingAvaillability();
-	public ZobristHashCode getHash();
+	public long getHash();
 	public String getFen();
 }

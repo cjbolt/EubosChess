@@ -2,6 +2,7 @@ package eubos.search;
 
 import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
 
+import eubos.board.pieces.King;
 import eubos.main.EubosEngineMain;
 
 class SearchMetricsReporter extends Thread {
@@ -60,11 +61,11 @@ class SearchMetricsReporter extends Thread {
 			info.setTime(sm.getTime());
 			int score = sm.getCpScore();
 			int depth = sm.getDepth();
-			if (java.lang.Math.abs(score)<300000) {
+			if (java.lang.Math.abs(score)<King.MATERIAL_VALUE) {
 				info.setCentipawns(score);
 			} else {
 				int movesSearched = depth/2;
-				int mateOnMoveXFromEndOfSearch = (java.lang.Math.abs(score)/300000)-1;
+				int mateOnMoveXFromEndOfSearch = (java.lang.Math.abs(score)/King.MATERIAL_VALUE)-1;
 				int mateInX = movesSearched - mateOnMoveXFromEndOfSearch;
 				if (score < 0)
 					mateInX = -mateInX;

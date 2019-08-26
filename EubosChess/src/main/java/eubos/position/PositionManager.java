@@ -112,8 +112,8 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 	
 	private ZobristHashCode hash;
 
-	public ZobristHashCode getHash() {
-		return hash;
+	public long getHash() {
+		return hash.hashCode;
 	}
 	public PositionManager() {
 		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");

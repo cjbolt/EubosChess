@@ -6,7 +6,6 @@ import java.io.IOException;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
-import eubos.board.pieces.Piece;
 import eubos.position.IPositionAccessors;
 import eubos.position.Transposition;
 import eubos.position.Transposition.ScoreType;
@@ -66,14 +65,6 @@ public class SearchDebugAgent {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"do("+currMove.toString()+") @"+currPly);
-		}
-	}
-
-	static void printSearchPly(int currPly, int provScore, Piece.Colour onMove) {
-		if (isDebugOn) {
-			if ( currPly != lastPly )
-				computeIndent(currPly);
-			printOutput(indent+"search @"+currPly+" prov="+provScore);
 		}
 	}
 
@@ -158,14 +149,6 @@ public class SearchDebugAgent {
 		}
 		
 	}
-	
-	public static void printFen(int currPly, IPositionAccessors pos) {
-		if (isDebugOn) {
-			if ( currPly != lastPly )
-				computeIndent(currPly);
-			printOutput(indent+"fen:"+pos.getFen());
-		}
-	}
 
 	public static void printTransUpdate(int currPly, GenericMove bestMove, int depthPositionSearchedPly, int score,
 			ScoreType bound, long hash) {
@@ -183,12 +166,6 @@ public class SearchDebugAgent {
 			printOutput(indent+trans.report()+", hash: "+hashCode);
 		}		
 	}
-	
-	public static void printNewIterationBanner(int depthRequested) {
-		if (isDebugOn) {
-			printOutput("\n\n\n NEW ITERATION to Depth "+depthRequested+"\n\n\n");
-		}
-	}
 
 	public static void printTransNull(int currPly, long hashCode) {
 		if (isDebugOn) {
@@ -204,5 +181,18 @@ public class SearchDebugAgent {
 				computeIndent(currPly);
 			printOutput(indent+"trans create, hash: "+hashCode);
 		}		
+	}
+
+	public static void printStartPlyInfo(byte currPly, byte depthRequiredPly, short provisionalScoreAtPly,
+			IPositionAccessors pos) {
+		if (isDebugOn) {
+			if (currPly == 0) {
+				printOutput("\n\n\n NEW ITERATION to Depth "+depthRequiredPly+"\n\n\n");
+			}
+			if ( currPly != lastPly )
+				computeIndent(currPly);
+			printOutput(indent+"search @"+currPly+" prov="+provisionalScoreAtPly);
+			printOutput(indent+"fen:"+pos.getFen());
+		}
 	}
 }

@@ -73,7 +73,7 @@ public class PlySearcher {
 		this.sg = new MateScoreGenerator(pos, searchDepthPly);
 	}
 	
-	synchronized void terminateFindMove() { 
+	public synchronized void terminateFindMove() { 
 		terminate = true; }
 	private synchronized boolean isTerminated() { return terminate; }	
 	
@@ -96,7 +96,7 @@ public class PlySearcher {
 			break;
 			
 		case sufficientSeedMoveList:
-			SearchDebugAgent.printHashIsSeedMoveList(currPly, eval.trans.getBestMove(),pos.getHash().hashCode);
+			SearchDebugAgent.printHashIsSeedMoveList(currPly, eval.trans.getBestMove(),pos.getHash());
 			ml = eval.trans.getMoveList();
 			// Intentional drop through
 		case insufficientNoData:
@@ -108,16 +108,21 @@ public class PlySearcher {
 		default:
 			break;
 		}
+		handleEarlyTermination();
+		
+		return st.getBackedUpScoreAtPly(currPly);
+	}
+
+	private void handleEarlyTermination() {
 		if (currPly == 0 && isTerminated()) {
 			// Set best move to previous iteration search result.
 			if (lastPc != null) {
 				pc.update(0, lastPc.get(0));
 			}
 		}
-		return st.getBackedUpScoreAtPly(currPly);
 	}
 
-	void searchMoves(List<GenericMove> ml, Transposition trans) throws InvalidPieceException {
+	private void searchMoves(List<GenericMove> ml, Transposition trans) throws InvalidPieceException {
 		if (isMateOccurred(ml)) {
 			short mateScore = sg.scoreMate(currPly, (pos.getOnMove() == Colour.white), initialOnMove);
 			st.setBackedUpScoreAtPly(currPly, mateScore);
@@ -148,15 +153,11 @@ public class PlySearcher {
 	private byte initialiseSearchAtPly() {
 		byte depthRequiredPly = (byte)(searchDepthPly - currPly);
 		st.setProvisionalScoreAtPly(currPly);
-		if (currPly == 0) {
-			SearchDebugAgent.printNewIterationBanner(depthRequiredPly);
-		}
-		SearchDebugAgent.printSearchPly(currPly, st.getProvisionalScoreAtPly(currPly), pos.getOnMove());
-		SearchDebugAgent.printFen(currPly, pos);
+		SearchDebugAgent.printStartPlyInfo(currPly, depthRequiredPly, st.getProvisionalScoreAtPly(currPly), pos);
 		return depthRequiredPly;
 	}
 
-	protected void doScoreBackup(GenericMove currMove, short positionScore) {
+	private void doScoreBackup(GenericMove currMove, short positionScore) {
 		if (st.isBackUpRequired(currPly, positionScore)) {
 			// New best score found at this node, back up and update the principal continuation.
 			st.setBackedUpScoreAtPly(currPly, positionScore);
@@ -166,12 +167,12 @@ public class PlySearcher {
 		}
 	}
 
-	protected Transposition updateTranspositionTable(Iterator<GenericMove> move_iter, List<GenericMove> ml, short positionScore, Transposition trans) {
+	private Transposition updateTranspositionTable(Iterator<GenericMove> move_iter, List<GenericMove> ml, short positionScore, Transposition trans) {
 		GenericMove bestMove = (depthSearchedPly == 0) ? null : pc.getBestMove(currPly);
 		ScoreType bound = ScoreType.exact;
 		if (move_iter.hasNext()) {
 			// We haven't searched all the moves yet so this is a bound score
-			bound = (pos.getOnMove() == Colour.white) ? ScoreType.lowerBound : ScoreType.upperBound;
+			bound = (pos.getOnMove().equals(Colour.white)) ? ScoreType.lowerBound : ScoreType.upperBound;
 		}
 		Transposition new_trans = new Transposition(bestMove, depthSearchedPly, positionScore, bound, ml);
 		if (trans != null) {
@@ -182,7 +183,7 @@ public class PlySearcher {
 		return trans;
 	}
 	
-	void reportMove(GenericMove currMove) {
+	private void reportMove(GenericMove currMove) {
 		sm.setCurrentMove(currMove);
 		sm.incrementCurrentMoveNumber();
 		sr.reportCurrentMove();

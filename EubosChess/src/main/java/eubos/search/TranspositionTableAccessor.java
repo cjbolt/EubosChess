@@ -40,7 +40,7 @@ public class TranspositionTableAccessor {
 	TranspositionEval evaluateTranspositionData(byte currPly, int depthRequiredPly) {
 		TranspositionEval ret = new TranspositionEval();
 		ret.status = TranspositionTableStatus.insufficientNoData;
-		ret.trans = hashMap.getTransposition(pos.getHash().hashCode);
+		ret.trans = hashMap.getTransposition(pos.getHash());
 		if (ret.trans == null)
 			return ret;
 		
@@ -48,11 +48,11 @@ public class TranspositionTableAccessor {
 			
 			if (ret.trans.getScoreType() == ScoreType.exact) {
 				ret.status = TranspositionTableStatus.sufficientTerminalNode;
-				SearchDebugAgent.printHashIsTerminalNode(currPly, ret.trans.getBestMove(), ret.trans.getScore(),pos.getHash().hashCode);
+				SearchDebugAgent.printHashIsTerminalNode(currPly, ret.trans.getBestMove(), ret.trans.getScore(),pos.getHash());
 			} else { // must be (bound == ScoreType.upperBound || bound == ScoreType.lowerBound)
 				short provisionalScoreAtThisPly = st.getProvisionalScoreAtPly(currPly);
 				if (st.isAlphaBetaCutOff(currPly, provisionalScoreAtThisPly, ret.trans.getScore())) {
-					SearchDebugAgent.printHashIsRefutation(currPly, ret.trans.getBestMove(),pos.getHash().hashCode);
+					SearchDebugAgent.printHashIsRefutation(currPly, ret.trans.getBestMove(),pos.getHash());
 					ret.status = TranspositionTableStatus.sufficientRefutation;
 		        } else {
 		        	ret.status = TranspositionTableStatus.sufficientSeedMoveList;
@@ -71,12 +71,12 @@ public class TranspositionTableAccessor {
 	}
 	
 	public Transposition getTransCreateIfNew(int currPly, Transposition new_trans) {
-		SearchDebugAgent.printTransNull(currPly, pos.getHash().hashCode);
-		Transposition trans = hashMap.getTransposition(pos.getHash().hashCode);
+		SearchDebugAgent.printTransNull(currPly, pos.getHash());
+		Transposition trans = hashMap.getTransposition(pos.getHash());
 		if (trans == null) {
-			SearchDebugAgent.printCreateTrans(currPly, pos.getHash().hashCode);
-			hashMap.putTransposition(pos.getHash().hashCode, new_trans);
-			SearchDebugAgent.printTransUpdate(currPly, new_trans, pos.getHash().hashCode);
+			SearchDebugAgent.printCreateTrans(currPly, pos.getHash());
+			hashMap.putTransposition(pos.getHash(), new_trans);
+			SearchDebugAgent.printTransUpdate(currPly, new_trans, pos.getHash());
 			trans = new_trans;
 		}
 		return trans;
@@ -108,7 +108,7 @@ public class TranspositionTableAccessor {
 		    current_trans.setDepthSearchedInPly(new_trans.getDepthSearchedInPly());
 		    current_trans.setScore(new_trans.getScore());
 		    current_trans.setMoveList(new_trans.getMoveList());
-		    SearchDebugAgent.printTransUpdate(currPly, current_trans, pos.getHash().hashCode);
+		    SearchDebugAgent.printTransUpdate(currPly, current_trans, pos.getHash());
 		}
 		return current_trans;
 	}
