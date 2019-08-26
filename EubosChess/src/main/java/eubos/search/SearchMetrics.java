@@ -7,6 +7,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 class SearchMetrics {
 	private long nodesSearched;
 	private long time;
+	private short hashFull;
 	private List<GenericMove> pv;
 	private boolean pvValid = false;
 	private short cpScore;
@@ -21,15 +22,11 @@ class SearchMetrics {
 		pvValid = false;
 		depth = searchDepth;
 		currMoveNum = 0;
+		hashFull = 0;
 	}
-	
+
 	SearchMetrics() {
-		nodesSearched = 0;
-		time = 0;
-		cpScore = 0;
-		pvValid = false;
-		depth = 1;
-		currMoveNum = 0;
+		this(1);
 	}
 	
 	synchronized void incrementNodesSearched() { nodesSearched++; }
@@ -57,4 +54,6 @@ class SearchMetrics {
 	synchronized int getCurrentMoveNumber() { return currMoveNum; }
 	synchronized void clearCurrentMoveNumber() { currMoveNum = 0; }
 	synchronized void incrementCurrentMoveNumber() { currMoveNum+=1; }
+	synchronized short getHashFull() { return hashFull;	}
+	synchronized void setHashFull(short hashFull) { this.hashFull = hashFull; }
 }

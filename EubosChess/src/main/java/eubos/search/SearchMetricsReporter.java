@@ -51,6 +51,7 @@ class SearchMetricsReporter extends Thread {
 		info.setNodes(sm.getNodesSearched());
 		info.setNps(sm.getNodesPerSecond());
 		info.setTime(sm.getTime());
+		info.setHash(sm.getHashFull());
 		eubosEngine.sendInfoCommand(info);
 	}
 	

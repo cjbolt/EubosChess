@@ -112,4 +112,8 @@ public class TranspositionTableAccessor {
 		}
 		return current_trans;
 	}
+
+	public short getHashUtilisation() {
+		return (short) (( ((long) hashMap.getHashMapSize())*(long)100*(long)1000 ) / FixedSizeTranspositionTable.MAX_SIZE_OF_HASH_MAP);
+	}
 }

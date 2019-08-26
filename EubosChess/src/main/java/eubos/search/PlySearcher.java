@@ -179,6 +179,7 @@ public class PlySearcher {
 			trans = tt.checkForUpdateTrans(currPly, new_trans, trans);
 		} else {
 			trans = tt.getTransCreateIfNew(currPly, new_trans);
+			sm.setHashFull(tt.getHashUtilisation());
 		}
 		return trans;
 	}

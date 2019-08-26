@@ -13,7 +13,7 @@ public class FixedSizeTranspositionTable {
 		return hashMapSize;
 	}
 
-	private static final long MAX_SIZE_OF_HASH_MAP = (1L << 26); 
+	public static final long MAX_SIZE_OF_HASH_MAP = (1L << 26); 
 	
 	public FixedSizeTranspositionTable() {
 		hashMap = new HashMap<Long, Transposition>((int)MAX_SIZE_OF_HASH_MAP, (float)0.75);

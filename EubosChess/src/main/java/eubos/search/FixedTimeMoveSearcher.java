@@ -16,7 +16,7 @@ public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 
 	long moveTime;
 	
-	private static final int MAX_SEARCH_DEPTH = 12;
+	private static final int MAX_SEARCH_DEPTH = 18;
 
 	public FixedTimeMoveSearcher(EubosEngineMain eubos, FixedSizeTranspositionTable hashMap, IChangePosition inputPm, 
 			IGenerateMoveList mlgen, IPositionAccessors pos, long time ) {
