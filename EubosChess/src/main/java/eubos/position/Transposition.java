@@ -70,4 +70,8 @@ public class Transposition {
 	public void setBestMove(GenericMove bestMove) {
 		this.bestMove = bestMove;
 	}
+	
+	public String report() {
+		return "trans mv:"+bestMove.toString()+" dep:"+depthSearchedInPly+" sc:"+score+" type:"+scoreType;
+	}
 }

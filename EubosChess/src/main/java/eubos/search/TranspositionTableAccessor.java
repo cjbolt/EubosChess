@@ -70,47 +70,46 @@ public class TranspositionTableAccessor {
 		return ret;
 	}
 	
-	Transposition storeTranspositionScore(int currPly, byte depthPositionSearchedPly, GenericMove bestMove, short score, ScoreType bound, List<GenericMove> ml, Transposition trans) {
-		if (trans == null) {
-			SearchDebugAgent.printTransNull(currPly, pos.getHash().hashCode);
-			trans = hashMap.getTransposition(pos.getHash().hashCode);
-		}
+	public Transposition getTransCreateIfNew(int currPly, Transposition new_trans) {
+		SearchDebugAgent.printTransNull(currPly, pos.getHash().hashCode);
+		Transposition trans = hashMap.getTransposition(pos.getHash().hashCode);
 		if (trans == null) {
 			SearchDebugAgent.printCreateTrans(currPly, pos.getHash().hashCode);
-			trans = new Transposition(bestMove, depthPositionSearchedPly, score, bound, ml);
-			hashMap.putTransposition(pos.getHash().hashCode, trans);
-			SearchDebugAgent.printTransUpdate(currPly, bestMove, depthPositionSearchedPly, score, bound, pos.getHash().hashCode);
-		} else {
-			boolean updateTransposition = false;
-			int currentDepth = trans.getDepthSearchedInPly();
-			ScoreType currentBound = trans.getScoreType();
-		
-			if (currentDepth < depthPositionSearchedPly) {
-				updateTransposition = true;
-			} 
-			if (currentDepth == depthPositionSearchedPly) {
-				if (((currentBound == ScoreType.upperBound) || (currentBound == ScoreType.lowerBound)) &&
-					  bound == ScoreType.exact) {
-				    updateTransposition = true;
-				} else if ((currentBound == ScoreType.upperBound) &&
-						   (score < trans.getScore())) {
-					updateTransposition = true;
-				} else if ((currentBound == ScoreType.lowerBound) &&
-						   (score > trans.getScore())) {
-					updateTransposition = true;
-				}
-			}
-			if (updateTransposition) {
-				trans.setScoreType(bound);
-	            trans.setBestMove(bestMove);
-	            trans.setDepthSearchedInPly(depthPositionSearchedPly);
-	            trans.setScore(score);
-	            trans.setMoveList(ml);
-	            SearchDebugAgent.printTransUpdate(currPly, bestMove, depthPositionSearchedPly, score, bound, pos.getHash().hashCode);
-	            //hashMap.putTransposition(pos.getHash().hashCode, trans);
-			}
-			
+			hashMap.putTransposition(pos.getHash().hashCode, new_trans);
+			SearchDebugAgent.printTransUpdate(currPly, new_trans, pos.getHash().hashCode);
+			trans = new_trans;
 		}
 		return trans;
+	}
+
+	public Transposition checkForUpdateTrans(int currPly, Transposition new_trans, Transposition current_trans) {
+		boolean updateTransposition = false;
+		int currentDepth = current_trans.getDepthSearchedInPly();
+		ScoreType currentBound = current_trans.getScoreType();
+
+		if (currentDepth < new_trans.getDepthSearchedInPly()) {
+			updateTransposition = true;
+		} 
+		if (currentDepth == new_trans.getDepthSearchedInPly()) {
+			if (((currentBound == ScoreType.upperBound) || (currentBound == ScoreType.lowerBound)) &&
+					new_trans.getScoreType() == ScoreType.exact) {
+			    updateTransposition = true;
+			} else if ((currentBound == ScoreType.upperBound) &&
+					   (new_trans.getScore() < current_trans.getScore())) {
+				updateTransposition = true;
+			} else if ((currentBound == ScoreType.lowerBound) &&
+					   (new_trans.getScore() > current_trans.getScore())) {
+				updateTransposition = true;
+			}
+		}
+		if (updateTransposition) {
+			current_trans.setScoreType(new_trans.getScoreType());
+		    current_trans.setBestMove(new_trans.getBestMove());
+		    current_trans.setDepthSearchedInPly(new_trans.getDepthSearchedInPly());
+		    current_trans.setScore(new_trans.getScore());
+		    current_trans.setMoveList(new_trans.getMoveList());
+		    SearchDebugAgent.printTransUpdate(currPly, current_trans, pos.getHash().hashCode);
+		}
+		return current_trans;
 	}
 }

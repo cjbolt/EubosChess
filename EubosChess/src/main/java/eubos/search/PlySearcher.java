@@ -173,7 +173,13 @@ public class PlySearcher {
 			// We haven't searched all the moves yet so this is a bound score
 			bound = (pos.getOnMove() == Colour.white) ? ScoreType.lowerBound : ScoreType.upperBound;
 		}
-		return tt.storeTranspositionScore(currPly, depthSearchedPly, bestMove, positionScore, bound, ml, trans);
+		Transposition new_trans = new Transposition(bestMove, depthSearchedPly, positionScore, bound, ml);
+		if (trans != null) {
+			trans = tt.checkForUpdateTrans(currPly, new_trans, trans);
+		} else {
+			trans = tt.getTransCreateIfNew(currPly, new_trans);
+		}
+		return trans;
 	}
 	
 	void reportMove(GenericMove currMove) {

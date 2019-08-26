@@ -8,6 +8,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.pieces.Piece;
 import eubos.position.IPositionAccessors;
+import eubos.position.Transposition;
 import eubos.position.Transposition.ScoreType;
 
 public class SearchDebugAgent {
@@ -175,12 +176,11 @@ public class SearchDebugAgent {
 		}		
 	}
 
-	public static void printTransUpdate(int currPly, GenericMove bestMove, int depthPositionSearchedPly, int score,
-			ScoreType bound) {
+	public static void printTransUpdate(int currPly, Transposition trans, long hashCode) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"trans mv:"+bestMove.toString()+" dep:"+depthPositionSearchedPly+" sc:"+score+" type:"+bound);
+			printOutput(indent+trans.report()+", hash: "+hashCode);
 		}		
 	}
 	

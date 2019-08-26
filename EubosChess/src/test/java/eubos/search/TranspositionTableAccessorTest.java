@@ -2,6 +2,7 @@ package eubos.search;
 
 import static org.junit.Assert.*;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.Before;
@@ -25,7 +26,7 @@ public class TranspositionTableAccessorTest {
 	PrincipalContinuation pc;
 	List<GenericMove> lastPc;
 	
-	private  static final int SEARCH_DEPTH_IN_PLY = 2;
+	private  static final int SEARCH_DEPTH_IN_PLY = 4;
 	
 	byte currPly; 
 	
@@ -37,6 +38,7 @@ public class TranspositionTableAccessorTest {
 		transTable = new FixedSizeTranspositionTable();
 		pc = new PrincipalContinuation(SEARCH_DEPTH_IN_PLY);
 		st = new ScoreTracker(SEARCH_DEPTH_IN_PLY, true);
+		st.setProvisionalScoreAtPly((byte) 0);
 		pm = new PositionManager();
 		lastPc = null;
 		sut = new TranspositionTableAccessor(transTable, pm, st, pc, lastPc);
@@ -51,19 +53,72 @@ public class TranspositionTableAccessorTest {
 	
 	@Test
 	public void testEval_StoreRetrieve_sufficientTerminalNode() throws InvalidPieceException, IllegalNotationException {
-		GenericMove move = new GenericMove("e2e4");		
-		byte depthPositionSearchedPly = 1;
-		GenericMove bestMove = move;
-		short score = 105;
-		ScoreType bound = ScoreType.exact;
-		List<GenericMove> ml = null;
-		Transposition trans = null;
+		List<GenericMove> ml = new LinkedList<GenericMove>();
+		ml.add(new GenericMove("e2e4"));
+		ml.add(new GenericMove("d2d4"));
+		Transposition new_trans = new Transposition(new GenericMove("e2e4"), (byte)1, (short)105, ScoreType.exact, ml);
 		
-		sut.storeTranspositionScore(currPly, depthPositionSearchedPly, bestMove, score, bound, ml, trans);
+		sut.getTransCreateIfNew(currPly, new_trans);
 		
-		int search_depth_needed = depthPositionSearchedPly;
-		eval = sut.evaluateTranspositionData(currPly, search_depth_needed);
+		eval = sut.evaluateTranspositionData(currPly, 1);
 		
 		assertEquals(TranspositionTableStatus.sufficientTerminalNode, eval.status);
+	}
+	
+	@Test
+	public void testEval_StoreRetrieve_sufficientSeedMoveList() throws InvalidPieceException, IllegalNotationException {
+		List<GenericMove> ml = new LinkedList<GenericMove>();
+		ml.add(new GenericMove("e2e4"));
+		ml.add(new GenericMove("d2d4"));
+		Transposition new_trans = new Transposition(new GenericMove("e2e4"), (byte)1, (short)105, ScoreType.exact, ml);
+		
+		sut.getTransCreateIfNew(currPly, new_trans);
+		
+		eval = sut.evaluateTranspositionData(currPly, 2);
+		
+		assertEquals(TranspositionTableStatus.sufficientSeedMoveList, eval.status);
+	}
+	
+	@Test
+	public void testEval_StoreRetrieve_whenNoMoveList_insufficientNoData() throws InvalidPieceException, IllegalNotationException {
+		Transposition new_trans = new Transposition(null, (byte)1, (short)105, ScoreType.exact, null);
+		
+		sut.getTransCreateIfNew(currPly, new_trans);
+		
+		eval = sut.evaluateTranspositionData(currPly, 2);
+		
+		assertEquals(TranspositionTableStatus.insufficientNoData, eval.status);
+	}
+	
+	@Test
+	public void testEval_StoreRetrieve_whenUpperBound_AndScoreIsLower_sufficientRefutation() throws InvalidPieceException, IllegalNotationException {
+		List<GenericMove> ml = new LinkedList<GenericMove>();
+		ml.add(new GenericMove("e2e4"));
+		ml.add(new GenericMove("d2d4"));
+		Transposition new_trans = new Transposition(new GenericMove("e2e4"), (byte)1, (short)105, ScoreType.upperBound, ml);
+
+		currPly = 2;
+		sut.getTransCreateIfNew(currPly, new_trans);
+		
+		st.setBackedUpScoreAtPly(currPly, (short)100);
+		eval = sut.evaluateTranspositionData(currPly, 1);
+		
+		assertEquals(TranspositionTableStatus.sufficientRefutation, eval.status);
+	}
+	
+	@Test
+	public void testEval_StoreRetrieve_whenLowerBound_AndScoreIsHigher_sufficientRefutation() throws InvalidPieceException, IllegalNotationException {
+		List<GenericMove> ml = new LinkedList<GenericMove>();
+		ml.add(new GenericMove("e2e4"));
+		ml.add(new GenericMove("d2d4"));
+		Transposition new_trans = new Transposition(new GenericMove("e2e4"), (byte)1, (short)105, ScoreType.upperBound, ml);
+
+		currPly = 2;
+		sut.getTransCreateIfNew(currPly, new_trans);
+		
+		st.setBackedUpScoreAtPly(currPly, (short)110);
+		eval = sut.evaluateTranspositionData(currPly, 1);
+		
+		assertEquals(TranspositionTableStatus.sufficientRefutation, eval.status);
 	}
 }
