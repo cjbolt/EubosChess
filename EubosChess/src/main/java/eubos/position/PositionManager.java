@@ -325,7 +325,7 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 	}
 	
 	private class fenParser {
-		private LinkedList<Piece> pl;
+		private List<Piece> pl;
 		
 		public fenParser( PositionManager pm, String fenString ) {
 			pl = new LinkedList<Piece>();

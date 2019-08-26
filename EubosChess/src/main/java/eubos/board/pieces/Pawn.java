@@ -1,6 +1,7 @@
 package eubos.board.pieces;
 
 import java.util.LinkedList;
+import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericChessman;
 import com.fluxchess.jcpi.models.GenericMove;
@@ -83,7 +84,7 @@ public class Pawn extends PieceSinglesquareDirectMove {
 				( isWhite() && targetSquare.rank == GenericRank.R8 ));
 	}
 	
-	private void checkPromotionAddMove(LinkedList<GenericMove> moveList,
+	private void checkPromotionAddMove(List<GenericMove> moveList,
 			GenericPosition targetSquare) {
 		if ( checkPromotionPossible( targetSquare )) {
 			moveList.add( new GenericMove( onSquare, targetSquare, GenericChessman.QUEEN ));
@@ -96,8 +97,8 @@ public class Pawn extends PieceSinglesquareDirectMove {
 	}	
 	
 	@Override
-	public LinkedList<GenericMove> generateMoves(Board theBoard) {
-		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
+	public List<GenericMove> generateMoves(Board theBoard) {
+		List<GenericMove> moveList = new LinkedList<GenericMove>();
 		// Check for standard one and two square moves
 		GenericPosition moveTo = genOneSqTarget();
 		if ( moveTo != null && theBoard.squareIsEmpty( moveTo )) {

@@ -1,6 +1,5 @@
 package eubos.search;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
@@ -29,7 +28,7 @@ class RandomMoveGenerator implements IMoveGenerator {
 	}
 	
 	// Find a random legal move for the colour "on move"
-	public SearchResult findMove(byte searchDepth, LinkedList<GenericMove> lastPc) throws NoLegalMoveException, InvalidPieceException {
+	public SearchResult findMove(byte searchDepth, List<GenericMove> lastPc) throws NoLegalMoveException, InvalidPieceException {
 		GenericMove bestMove = null;
 		List<GenericMove> entireMoveList = mlgen.getMoveList();
 		if ( !entireMoveList.isEmpty()) {

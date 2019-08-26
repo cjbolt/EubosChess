@@ -1,6 +1,7 @@
 package eubos.search;
 
 import java.util.LinkedList;
+import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
@@ -34,8 +35,8 @@ class PrincipalContinuation {
 		return output;
 	}
 	
-	LinkedList<GenericMove> toPvList() {
-		LinkedList<GenericMove> mv;
+	List<GenericMove> toPvList() {
+		List<GenericMove> mv;
 		mv = new LinkedList<GenericMove>();
 		for (int currPly=0; currPly < searchDepthPly; currPly++) {
 			GenericMove currMove = pc[0][currPly]; 

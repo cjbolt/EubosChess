@@ -2,7 +2,7 @@ package eubos.search;
 
 import static org.junit.Assert.*;
 
-import java.util.LinkedList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -41,7 +41,7 @@ public class PrincipalContinuationTest {
 
 	@Test
 	public void testToPvList_InitialState() {
-		LinkedList<GenericMove> pv = classUnderTest.toPvList();
+		List<GenericMove> pv = classUnderTest.toPvList();
 		assertTrue(pv != null);
 		assertTrue(pv.isEmpty());
 	}

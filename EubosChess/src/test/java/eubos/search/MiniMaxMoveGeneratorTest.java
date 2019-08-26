@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 import org.junit.Ignore;
 
 import java.util.LinkedList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.After;
@@ -280,7 +281,8 @@ public class MiniMaxMoveGeneratorTest {
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		// various possible mates
 		//expectedMove = new GenericMove("a5a6");
-		expectedMove = new GenericMove("f3e5");
+		//expectedMove = new GenericMove("f3e5");
+		expectedMove = new GenericMove("g6f7");
 		doFindMoveTest((byte)2, true);
 	}
 	
@@ -302,7 +304,8 @@ public class MiniMaxMoveGeneratorTest {
 		PositionManager pm = new PositionManager( "8/4N3/7Q/4k3/8/4KP2/3P4/8 w - - 0 1" );
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
 		// Two possible pawn mates
-		expectedMove = new GenericMove("d2d4");
+		//expectedMove = new GenericMove("d2d4");
+		expectedMove = new GenericMove("f3f4");
 		doFindMoveTest((byte)2, true);
 	}
 	
@@ -311,7 +314,7 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		PositionManager pm = new PositionManager( "8/8/K7/p7/k2N3R/p7/P7/8 w - - 0 1" );
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
-		expectedMove = new GenericMove("d4e6");
+		expectedMove = new GenericMove("d4b3");
 		doFindMoveTest((byte)2, true);
 	}
 
@@ -343,8 +346,9 @@ public class MiniMaxMoveGeneratorTest {
 	}
 
 	@Test
-	public void test_findMove_mateInTwo2()  throws NoLegalMoveException, IllegalNotationException, InvalidPieceException {
+	public void test_findMove_mateInThree2()  throws NoLegalMoveException, IllegalNotationException, InvalidPieceException {
 		// chess.com Problem ID: 0102832
+		// Actually it is mate in 3, but can win queen at 4ply search.
 		PositionManager pm = new PositionManager( "r1r3k1/pb1p1p2/1p2p1p1/2pPP1B1/1nP4Q/1Pq2NP1/P4PBP/b2R2K1 w - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( hashMap, pm,pm,pm );
 		expectedMove = new GenericMove("g5f6");
@@ -459,7 +463,7 @@ public class MiniMaxMoveGeneratorTest {
 		expectedMove = new GenericMove("h8g7");
 		
 		classUnderTest.findMove((byte)4);
-		LinkedList<GenericMove >lastPc = classUnderTest.pc.toPvList();
+		List<GenericMove >lastPc = classUnderTest.pc.toPvList();
 		SearchResult res = classUnderTest.findMove((byte)5, lastPc);
 		
 		assertEquals(expectedMove, res.bestMove);
@@ -473,7 +477,7 @@ public class MiniMaxMoveGeneratorTest {
 		expectedMove = new GenericMove("h8g7");
 		
 		classUnderTest.findMove((byte)4);
-		LinkedList<GenericMove> lastPc = classUnderTest.pc.toPvList();
+		List<GenericMove> lastPc = classUnderTest.pc.toPvList();
 		classUnderTest.findMove((byte)5,lastPc);
 		lastPc = classUnderTest.pc.toPvList();
 		SearchResult res = classUnderTest.findMove((byte)6,lastPc);
@@ -591,7 +595,7 @@ public class MiniMaxMoveGeneratorTest {
 		expectedMove = new GenericMove("e7c6");
 		
 		classUnderTest.findMove((byte)1);
-		LinkedList<GenericMove> lastPc = classUnderTest.pc.toPvList();
+		List<GenericMove> lastPc = classUnderTest.pc.toPvList();
 		classUnderTest.findMove((byte)2,lastPc);
 		lastPc = classUnderTest.pc.toPvList();
 		classUnderTest.findMove((byte)3,lastPc);
@@ -609,7 +613,7 @@ public class MiniMaxMoveGeneratorTest {
 		expectedMove = new GenericMove("b4c3");
 		
 		classUnderTest.findMove((byte)1);
-		LinkedList<GenericMove> lastPc = classUnderTest.pc.toPvList();
+		List<GenericMove> lastPc = classUnderTest.pc.toPvList();
 		classUnderTest.findMove((byte)2,lastPc);
 		lastPc = classUnderTest.pc.toPvList();
 		classUnderTest.findMove((byte)3,lastPc);
@@ -629,7 +633,7 @@ public class MiniMaxMoveGeneratorTest {
 		expectedMove = new GenericMove("g4f5");
 		
 		classUnderTest.findMove((byte)1);
-		LinkedList<GenericMove> lastPc = classUnderTest.pc.toPvList();
+		List<GenericMove> lastPc = classUnderTest.pc.toPvList();
 		classUnderTest.findMove((byte)2,lastPc);
 		lastPc = classUnderTest.pc.toPvList();
 		classUnderTest.findMove((byte)3,lastPc);

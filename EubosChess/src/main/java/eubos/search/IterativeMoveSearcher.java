@@ -1,7 +1,7 @@
 package eubos.search;
 
 import java.sql.Timestamp;
-import java.util.LinkedList;
+import java.util.List;
 
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import com.fluxchess.jcpi.models.GenericMove;
@@ -34,7 +34,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	public void run() {
 		byte currentDepth = 1;
 		SearchResult res = new SearchResult(null, false);
-		LinkedList<GenericMove> pc = null;
+		List<GenericMove> pc = null;
 		long timeQuota = calculateSearchTimeAllocation();
 		Timestamp msTargetEndTime = new Timestamp(System.currentTimeMillis() + timeQuota);
 		IterativeMoveSearchStopper stopper = new IterativeMoveSearchStopper(msTargetEndTime);

@@ -1,6 +1,7 @@
 package eubos.board.pieces;
 
 import java.util.LinkedList;
+import java.util.List;
 
 import com.fluxchess.jcpi.models.*;
 
@@ -16,7 +17,7 @@ public class Knight extends Piece {
 		onSquare = at;
 	}
 
-	private void checkAddMove(LinkedList<GenericMove> moveList, Board theBoard, GenericPosition targetSquare) {
+	private void checkAddMove(List<GenericMove> moveList, Board theBoard, GenericPosition targetSquare) {
 		if ( targetSquare != null ) {
 			Piece targetPiece = theBoard.getPieceAtSquare(targetSquare);
 			if (theBoard.squareIsEmpty(targetSquare)) {
@@ -35,8 +36,8 @@ public class Knight extends Piece {
 	}
 	
 	@Override
-	public LinkedList<GenericMove> generateMoves(Board theBoard) {
-		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
+	public List<GenericMove> generateMoves(Board theBoard) {
+		List<GenericMove> moveList = new LinkedList<GenericMove>();
 		checkAddMove(moveList, theBoard, getSq(Direction.upRight));
 		checkAddMove(moveList, theBoard, getSq(Direction.upLeft));
 		checkAddMove(moveList, theBoard, getSq(Direction.rightUp));
