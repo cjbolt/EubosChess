@@ -164,7 +164,7 @@ public class Board implements Iterable<Piece> {
 		}
 
 		private void buildIterList(BitBoard bitBoardToIterate) {
-			for (Integer bit_index: bitBoardToIterate) {
+			for (int bit_index: bitBoardToIterate) {
 				int file = bit_index%8;
 				int rank = bit_index/8;
 				iterList.add(theBoard[file][rank]);
