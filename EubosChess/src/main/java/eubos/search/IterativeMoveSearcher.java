@@ -22,6 +22,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			IGenerateMoveList mlgen, IPositionAccessors pos, long time ) {
 		super(eubos,inputPm,pos, new MiniMaxMoveGenerator( eubos, hashMap, inputPm, mlgen, pos ));
 		gameTimeRemaining = time;
+		this.setName("IterativeMoveSearcher");
 	}
 	
 	@Override

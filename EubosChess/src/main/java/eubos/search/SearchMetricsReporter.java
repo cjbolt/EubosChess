@@ -17,6 +17,7 @@ class SearchMetricsReporter extends Thread {
 		sm = inputSm;
 		reporterActive = true;
 		eubosEngine = eubos;
+		this.setName("SearchMetricsReporter");
 	}
 	
 	public void run() {

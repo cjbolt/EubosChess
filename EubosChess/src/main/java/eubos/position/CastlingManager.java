@@ -37,10 +37,10 @@ class CastlingManager {
 	static final GenericMove bqsc = new GenericMove( GenericPosition.e8, GenericPosition.c8);
 	static final GenericMove wqsc = new GenericMove( GenericPosition.e1, GenericPosition.c1);
 
-	private static final GenericMove undo_bksc = new GenericMove( GenericPosition.g8, GenericPosition.e8);
-	private static final GenericMove undo_wksc = new GenericMove( GenericPosition.g1, GenericPosition.e1);
-	private static final GenericMove undo_bqsc = new GenericMove( GenericPosition.c8, GenericPosition.e8);
-	private static final GenericMove undo_wqsc = new GenericMove( GenericPosition.c1, GenericPosition.e1);
+	static final GenericMove undo_bksc = new GenericMove( GenericPosition.g8, GenericPosition.e8);
+	static final GenericMove undo_wksc = new GenericMove( GenericPosition.g1, GenericPosition.e1);
+	static final GenericMove undo_bqsc = new GenericMove( GenericPosition.c8, GenericPosition.e8);
+	static final GenericMove undo_wqsc = new GenericMove( GenericPosition.c1, GenericPosition.e1);
 
 	CastlingManager(PositionManager Pm) { this( Pm, "-"); }
 

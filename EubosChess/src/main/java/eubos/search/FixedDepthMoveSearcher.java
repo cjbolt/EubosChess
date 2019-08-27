@@ -18,6 +18,7 @@ public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 	public FixedDepthMoveSearcher( EubosEngineMain eubos, FixedSizeTranspositionTable hashMap, IChangePosition inputPm, IGenerateMoveList mlgen, IPositionAccessors pos, byte searchDepth ) {
 		super(eubos,inputPm,pos, new MiniMaxMoveGenerator( eubos, hashMap, inputPm, mlgen, pos ));
 		this.searchDepth = searchDepth;
+		this.setName("FixedDepthMoveSearcher");
 	}
 	
 	@Override

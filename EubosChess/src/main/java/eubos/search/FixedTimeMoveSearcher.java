@@ -22,6 +22,7 @@ public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 			IGenerateMoveList mlgen, IPositionAccessors pos, long time ) {
 		super(eubos, inputPm, pos, new MiniMaxMoveGenerator( eubos, hashMap, inputPm, mlgen, pos ));
 		moveTime = time;
+		this.setName("FixedTimeMoveSearcher");
 	}
 	
 	@Override

@@ -213,43 +213,43 @@ public class ZobristHashCode {
 	protected void doSecondaryMove(GenericMove move, Piece piece)
 			throws IllegalNotationException, Exception {
 		if (piece instanceof King) {
-			if (move.equals(new GenericMove("e1g1"))) {
+			if (move.equals(CastlingManager.wksc)) {
 				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.f1);
 				hashCode ^= getPrnForPiece(GenericPosition.f1, piece); // to
 				hashCode ^= getPrnForPiece(GenericPosition.h1, piece); // from
 			}
-			else if (move.equals(new GenericMove("e1c1"))) {
+			else if (move.equals(CastlingManager.wqsc)) {
 				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.d1);
 				hashCode ^= getPrnForPiece(GenericPosition.d1, piece); // to
 				hashCode ^= getPrnForPiece(GenericPosition.a1, piece); // from
 			}
-			else if (move.equals(new GenericMove("e8g8"))) {
+			else if (move.equals(CastlingManager.bksc)) {
 				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.f8);
 				hashCode ^= getPrnForPiece(GenericPosition.f8, piece); // to
 				hashCode ^= getPrnForPiece(GenericPosition.h8, piece); // from
 			}
-			else if (move.equals(new GenericMove("e8c8"))) {
+			else if (move.equals(CastlingManager.bqsc)) {
 				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.d8);
 				hashCode ^= getPrnForPiece(GenericPosition.d8, piece); // to
 				hashCode ^= getPrnForPiece(GenericPosition.a8, piece); // from
 			}
-			else if (move.equals(new GenericMove("g1e1")))
+			else if (move.equals(CastlingManager.undo_wksc))
 			{
 				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.h1);
 				hashCode ^= getPrnForPiece(GenericPosition.h1, piece); // to
 				hashCode ^= getPrnForPiece(GenericPosition.f1, piece); // from
 			}
-			else if (move.equals(new GenericMove("c1e1"))) {
+			else if (move.equals(CastlingManager.undo_wqsc)) {
 				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.a1);
 				hashCode ^= getPrnForPiece(GenericPosition.a1, piece); // to
 				hashCode ^= getPrnForPiece(GenericPosition.d1, piece); // from
 			}
-			else if (move.equals(new GenericMove("g8e8"))) {
+			else if (move.equals(CastlingManager.undo_bksc)) {
 				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.h8);
 				hashCode ^= getPrnForPiece(GenericPosition.h8, piece); // to
 				hashCode ^= getPrnForPiece(GenericPosition.f8, piece); // from
 			}
-			else if (move.equals(new GenericMove("c8e8"))) {
+			else if (move.equals(CastlingManager.undo_bqsc)) {
 				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.a8);
 				hashCode ^= getPrnForPiece(GenericPosition.a8, piece); // to
 				hashCode ^= getPrnForPiece(GenericPosition.d8, piece); // from
