@@ -1,5 +1,6 @@
 package eubos.position;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class Transposition {
 			ordered_ml.addAll(ml);
 			ordered_ml.remove(bestMove);
 			ordered_ml.add(0, bestMove);
-			return ordered_ml;
+			return new ArrayList<GenericMove>(ordered_ml);
 		}
 		return ml;
 	}

@@ -1,5 +1,6 @@
 package eubos.position;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -49,7 +50,9 @@ class MoveListGenerator {
 			}
 			pm.unperformMove();
 		}
-		entireMoveList = newMoveList;
-		return entireMoveList;
+		List<GenericMove> ret_list = new ArrayList<GenericMove>(newMoveList);
+		newMoveList.clear();
+		entireMoveList.clear();
+		return ret_list;
 	}
 }

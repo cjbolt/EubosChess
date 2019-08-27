@@ -1,6 +1,7 @@
 package eubos.board;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericPosition;
@@ -28,6 +29,15 @@ public class SquareAttackEvaluator {
 	
 	public boolean isAttacked() {
 		boolean attacked = false;
+		boolean doKnightCheck = false;
+		Iterator<Piece> iter = theBoard.iterateColour(attackingColour);
+		while (iter.hasNext()) {
+			Piece curr = iter.next();
+			if (curr instanceof Knight) {
+				doKnightCheck=true;
+				break;
+			}
+		}
 		// do/while loop is to allow the function to return attacked=true at earliest possibility
 		do {
 			if (attackingColour == Colour.black) {
@@ -43,7 +53,9 @@ public class SquareAttackEvaluator {
 			}
 			attacked = checkForKingAttacks();
 			if (attacked) break;
-			attacked = checkForKnightAttacks();
+			if (doKnightCheck) {
+				attacked = checkForKnightAttacks();
+			}
 			if (attacked) break;
 			attacked = checkForAttackerOnDiagonal(getAllSqs(Direction.downLeft));
 			if (attacked) break;
