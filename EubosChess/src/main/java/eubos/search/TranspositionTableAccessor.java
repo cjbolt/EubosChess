@@ -108,6 +108,7 @@ public class TranspositionTableAccessor {
 		    current_trans.setDepthSearchedInPly(new_trans.getDepthSearchedInPly());
 		    current_trans.setScore(new_trans.getScore());
 		    current_trans.setMoveList(new_trans.getMoveList());
+		    current_trans.setPrincipalContinuation(new_trans.getPrincipalContinuation());
 		    SearchDebugAgent.printTransUpdate(currPly, current_trans, pos.getHash());
 		}
 		return current_trans;

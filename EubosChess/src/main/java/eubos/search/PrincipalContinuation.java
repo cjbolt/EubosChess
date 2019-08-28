@@ -36,10 +36,14 @@ class PrincipalContinuation {
 	}
 	
 	List<GenericMove> toPvList() {
+		return toPvList(0);
+	}
+	
+	List<GenericMove> toPvList(int startPly) {
 		List<GenericMove> mv;
 		mv = new ArrayList<GenericMove>();
-		for (int currPly=0; currPly < searchDepthPly; currPly++) {
-			GenericMove currMove = pc[0][currPly]; 
+		for (int currPly=startPly; currPly < searchDepthPly; currPly++) {
+			GenericMove currMove = pc[startPly][currPly]; 
 			if (currMove != null) {
 				mv.add(currMove);
 			}
@@ -65,9 +69,22 @@ class PrincipalContinuation {
 		}
 	}
 	
-	void initialiseOnTranspositionHit(int currPly, GenericMove best) {
-		// If we ever store the pc in the Transposition this could be replaced with a copy of that.
-		clearAfter(currPly);
+	void copyAfter(int currPly, List<GenericMove> source_pc) {
+		int index = 0;
+		for (int nextPly=currPly+1; nextPly < searchDepthPly; nextPly++, index++) {
+			for (int i=0; i<searchDepthPly; i++) {
+				try {
+					pc[i][nextPly]=source_pc.get(index);
+				} catch (IndexOutOfBoundsException e) {
+					pc[i][nextPly]=null;
+				}
+			}
+				
+		}
+	}
+	
+	void initialiseOnTranspositionHit(int currPly, GenericMove best, List<GenericMove> onward_pc) {
+		copyAfter(currPly, onward_pc);
 		update(currPly, best);
 	}
 }

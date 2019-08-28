@@ -56,7 +56,7 @@ public class TranspositionTableAccessorTest {
 		List<GenericMove> ml = new LinkedList<GenericMove>();
 		ml.add(new GenericMove("e2e4"));
 		ml.add(new GenericMove("d2d4"));
-		Transposition new_trans = new Transposition(new GenericMove("e2e4"), (byte)1, (short)105, ScoreType.exact, ml);
+		Transposition new_trans = new Transposition(new GenericMove("e2e4"), (byte)1, (short)105, ScoreType.exact, ml, null);
 		
 		sut.getTransCreateIfNew(currPly, new_trans);
 		
@@ -70,7 +70,7 @@ public class TranspositionTableAccessorTest {
 		List<GenericMove> ml = new LinkedList<GenericMove>();
 		ml.add(new GenericMove("e2e4"));
 		ml.add(new GenericMove("d2d4"));
-		Transposition new_trans = new Transposition(new GenericMove("e2e4"), (byte)1, (short)105, ScoreType.exact, ml);
+		Transposition new_trans = new Transposition(new GenericMove("e2e4"), (byte)1, (short)105, ScoreType.exact, ml, null);
 		
 		sut.getTransCreateIfNew(currPly, new_trans);
 		
@@ -81,7 +81,7 @@ public class TranspositionTableAccessorTest {
 	
 	@Test
 	public void testEval_StoreRetrieve_whenNoMoveList_insufficientNoData() throws InvalidPieceException, IllegalNotationException {
-		Transposition new_trans = new Transposition(null, (byte)1, (short)105, ScoreType.exact, null);
+		Transposition new_trans = new Transposition(null, (byte)1, (short)105, ScoreType.exact, null, null);
 		
 		sut.getTransCreateIfNew(currPly, new_trans);
 		
@@ -95,7 +95,7 @@ public class TranspositionTableAccessorTest {
 		List<GenericMove> ml = new LinkedList<GenericMove>();
 		ml.add(new GenericMove("e2e4"));
 		ml.add(new GenericMove("d2d4"));
-		Transposition new_trans = new Transposition(new GenericMove("e2e4"), (byte)1, (short)105, ScoreType.upperBound, ml);
+		Transposition new_trans = new Transposition(new GenericMove("e2e4"), (byte)1, (short)105, ScoreType.upperBound, ml, null);
 
 		currPly = 2;
 		sut.getTransCreateIfNew(currPly, new_trans);
@@ -111,7 +111,7 @@ public class TranspositionTableAccessorTest {
 		List<GenericMove> ml = new LinkedList<GenericMove>();
 		ml.add(new GenericMove("e2e4"));
 		ml.add(new GenericMove("d2d4"));
-		Transposition new_trans = new Transposition(new GenericMove("e2e4"), (byte)1, (short)105, ScoreType.upperBound, ml);
+		Transposition new_trans = new Transposition(new GenericMove("e2e4"), (byte)1, (short)105, ScoreType.upperBound, ml, null);
 
 		currPly = 2;
 		sut.getTransCreateIfNew(currPly, new_trans);

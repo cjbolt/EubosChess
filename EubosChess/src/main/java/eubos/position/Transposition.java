@@ -11,35 +11,54 @@ public class Transposition {
 	private byte depthSearchedInPly;
 	private short score;
 	private List<GenericMove> ml;
-	
-	public List<GenericMove> getMoveList() {
-		if (bestMove != null) {
-			List<GenericMove> ordered_ml = new LinkedList<GenericMove>();
-			ordered_ml.addAll(ml);
-			ordered_ml.remove(bestMove);
-			ordered_ml.add(0, bestMove);
-			return new ArrayList<GenericMove>(ordered_ml);
-		}
-		return ml;
-	}
-
-	public void setMoveList(List<GenericMove> ml) {
-		this.ml = ml;
-	}
+	private List<GenericMove> pc;
 
 	public enum ScoreType { 
 		exact, upperBound, lowerBound;
 	};
 	private ScoreType scoreType;	
 	
-	public Transposition(GenericMove best, byte depth, short score, ScoreType scoreType, List<GenericMove> ml) {
+	public Transposition(GenericMove best, byte depth, short score, ScoreType scoreType, List<GenericMove> ml, List<GenericMove> pc) {
 		setBestMove(best);
 		this.setDepthSearchedInPly(depth);
 		this.setScore(score);
 		this.setScoreType(scoreType);
 		this.ml = ml;
+		this.pc = pc;
+		this.ml = adjustMoveListForBestMove();
 	}
 
+	public List<GenericMove> getPrincipalContinuation() {
+		return pc;
+	}
+
+	public void setPrincipalContinuation(List<GenericMove> pc) {
+		this.pc = pc;
+	}
+
+	public List<GenericMove> getMoveList() {
+		if (bestMove != null) {
+			return adjustMoveListForBestMove();
+		}
+		return ml;
+	}
+
+	protected List<GenericMove> adjustMoveListForBestMove() {
+		if (ml != null) {
+			List<GenericMove> ordered_ml = new LinkedList<GenericMove>();
+			ordered_ml.addAll(ml);
+			ordered_ml.remove(bestMove);
+			ordered_ml.add(0, bestMove);
+			return new ArrayList<GenericMove>(ordered_ml);
+		} else {
+			return null;
+		}
+	}
+
+	public void setMoveList(List<GenericMove> ml) {
+		this.ml = ml;
+	}
+	
 	public ScoreType getScoreType() {
 		return scoreType;
 	}
