@@ -2,6 +2,7 @@ package eubos.search;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
@@ -9,6 +10,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
+import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.search.PrincipalContinuation;
 
@@ -47,9 +49,13 @@ public class PrincipalContinuationTest {
 	}
 
 	@Test
-	@Ignore
-	public void testUpdate() {
-		fail("Not yet implemented");
+	public void testUpdate() throws IllegalNotationException {
+		List<GenericMove> source_pc = new ArrayList<GenericMove>();
+		source_pc.add(new GenericMove("e2e4"));
+		source_pc.add(new GenericMove("e7e5"));
+		source_pc.add(new GenericMove("d2d4"));
+		source_pc.add(new GenericMove("e5d4"));
+		classUnderTest.update(3, source_pc);
 	}
 
 	@Test

@@ -52,12 +52,26 @@ class PrincipalContinuation {
 	}
 
 	void update(int currPly, GenericMove currMove) {
-		// Update Principal Continuation
+		// Update Principal Continuation, bring down from next ply
 		pc[currPly][currPly]=currMove;
 		for (int nextPly=currPly+1; nextPly < searchDepthPly; nextPly++) {
 			pc[currPly][nextPly]=pc[currPly+1][nextPly];
 		}
 		SearchDebugAgent.printPrincipalContinuation(currPly,this);
+	}
+	
+	void update(int currPly, List<GenericMove> source_pc) {
+		// Update principal continuation from Transposition hit
+		int index = 0;
+		for (int column=currPly; column < searchDepthPly; column++, index++) {
+			for (int i=0; i <= index; i++) {
+				try {
+					pc[column][currPly+i]=source_pc.get(index);
+				} catch (IndexOutOfBoundsException e) {
+					pc[column][currPly+i]=null;
+				}
+			}		
+		}
 	}
 
 	void clearAfter(int currPly ) {
@@ -68,23 +82,5 @@ class PrincipalContinuation {
 				pc[i][nextPly]=null;
 		}
 	}
-	
-	void copyAfter(int currPly, List<GenericMove> source_pc) {
-		int index = 0;
-		for (int nextPly=currPly+1; nextPly < searchDepthPly; nextPly++, index++) {
-			for (int i=0; i<searchDepthPly; i++) {
-				try {
-					pc[i][nextPly]=source_pc.get(index);
-				} catch (IndexOutOfBoundsException e) {
-					pc[i][nextPly]=null;
-				}
-			}
-				
-		}
-	}
-	
-	void initialiseOnTranspositionHit(int currPly, GenericMove best, List<GenericMove> onward_pc) {
-		copyAfter(currPly, onward_pc);
-		update(currPly, best);
-	}
+
 }

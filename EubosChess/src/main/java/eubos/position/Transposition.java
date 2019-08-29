@@ -7,7 +7,6 @@ import java.util.List;
 import com.fluxchess.jcpi.models.GenericMove;
 
 public class Transposition {
-	private GenericMove bestMove;
 	private byte depthSearchedInPly;
 	private short score;
 	private List<GenericMove> ml;
@@ -18,14 +17,14 @@ public class Transposition {
 	};
 	private ScoreType scoreType;	
 	
-	public Transposition(GenericMove best, byte depth, short score, ScoreType scoreType, List<GenericMove> ml, List<GenericMove> pc) {
-		setBestMove(best);
+	public Transposition(byte depth, short score, ScoreType scoreType, List<GenericMove> ml, List<GenericMove> pc) {
 		this.setDepthSearchedInPly(depth);
 		this.setScore(score);
 		this.setScoreType(scoreType);
 		this.ml = ml;
 		this.pc = pc;
 		this.ml = adjustMoveListForBestMove();
+		setBestMove(pc.get(0));
 	}
 
 	public List<GenericMove> getPrincipalContinuation() {
@@ -37,18 +36,18 @@ public class Transposition {
 	}
 
 	public List<GenericMove> getMoveList() {
-		if (bestMove != null) {
+		if (ml != null)
 			return adjustMoveListForBestMove();
-		}
-		return ml;
+		else return null;
 	}
 
 	protected List<GenericMove> adjustMoveListForBestMove() {
+		GenericMove best = pc.get(0);
 		if (ml != null) {
 			List<GenericMove> ordered_ml = new LinkedList<GenericMove>();
 			ordered_ml.addAll(ml);
-			ordered_ml.remove(bestMove);
-			ordered_ml.add(0, bestMove);
+			ordered_ml.remove(best);
+			ordered_ml.add(0, best);
 			return new ArrayList<GenericMove>(ordered_ml);
 		} else {
 			return null;
@@ -84,14 +83,14 @@ public class Transposition {
 	}
 
 	public GenericMove getBestMove() {
-		return bestMove;
+		return pc.get(0);
 	}
 
 	public void setBestMove(GenericMove bestMove) {
-		this.bestMove = bestMove;
+		pc.set(0, bestMove);
 	}
 	
 	public String report() {
-		return "trans mv:"+bestMove.toString()+" dep:"+depthSearchedInPly+" sc:"+score+" type:"+scoreType;
+		return "trans pc:"+pc.toString()+" dep:"+depthSearchedInPly+" sc:"+score+" type:"+scoreType;
 	}
 }

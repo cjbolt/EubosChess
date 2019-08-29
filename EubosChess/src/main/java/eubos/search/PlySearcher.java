@@ -1,6 +1,5 @@
 package eubos.search;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -91,8 +90,8 @@ public class PlySearcher {
 		case sufficientTerminalNode:
 		case sufficientRefutation:
 			depthSearchedPly = eval.trans.getDepthSearchedInPly();
-			pc.initialiseOnTranspositionHit(currPly, eval.trans.getBestMove(), eval.trans.getPrincipalContinuation());
-			doScoreBackup(eval.trans.getBestMove(), eval.trans.getScore());
+			pc.update(currPly, eval.trans.getPrincipalContinuation());
+			doScoreBackupTransHit(eval.trans.getScore());
 			sm.incrementNodesSearched();
 			break;
 			
@@ -167,16 +166,23 @@ public class PlySearcher {
 				new PrincipalContinuationUpdateHelper(positionScore).report();
 		}
 	}
+	
+	private void doScoreBackupTransHit(short positionScore) {
+		if (st.isBackUpRequired(currPly, positionScore)) {
+			// Transposition hit sufficient to update score, principal continuation already done
+			st.setBackedUpScoreAtPly(currPly, positionScore);
+			if (currPly == 0)
+				new PrincipalContinuationUpdateHelper(positionScore).report();
+		}	
+	}
 
 	private Transposition updateTranspositionTable(Iterator<GenericMove> move_iter, List<GenericMove> ml, short positionScore, Transposition trans) {
-		GenericMove bestMove = (depthSearchedPly == 0) ? null : pc.getBestMove(currPly);
 		ScoreType bound = ScoreType.exact;
 		if (move_iter.hasNext()) {
 			// We haven't searched all the moves yet so this is a bound score
 			bound = (pos.getOnMove().equals(Colour.white)) ? ScoreType.lowerBound : ScoreType.upperBound;
 		}
-		ArrayList<GenericMove> onward_pc = (ArrayList<GenericMove>) pc.toPvList(currPly+1);
-		Transposition new_trans = new Transposition(bestMove, depthSearchedPly, positionScore, bound, ml, onward_pc);
+		Transposition new_trans = new Transposition(depthSearchedPly, positionScore, bound, ml, pc.toPvList(currPly));
 		if (trans != null) {
 			trans = tt.checkForUpdateTrans(currPly, new_trans, trans);
 		} else {
