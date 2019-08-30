@@ -25,7 +25,6 @@ public class TranspositionTableAccessor {
 			FixedSizeTranspositionTable transTable,
 			IPositionAccessors pos,
 			ScoreTracker st,
-			PrincipalContinuation pc,
 			List<GenericMove> lastPc) {
 		hashMap = transTable;
 		this.pos = pos;

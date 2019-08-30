@@ -18,7 +18,6 @@ import eubos.board.pieces.Piece;
 import eubos.position.PositionManager;
 import eubos.search.MiniMaxMoveGenerator;
 import eubos.search.NoLegalMoveException;
-import eubos.search.PlySearcher;
 
 public class MiniMaxMoveGeneratorTest {
 	
@@ -172,10 +171,7 @@ public class MiniMaxMoveGeneratorTest {
 		//   abcdefgh
 		PositionManager pm = new PositionManager( "3nkbnr/3p1ppp/8/1B1p4/R2N4/8/6PP/4R1K1 b - - - -" );
 		classUnderTest = new MiniMaxMoveGenerator( hashMap, pm,pm,pm );
-		if (PlySearcher.ENABLE_SEARCH_EXTENSION_FOR_RECAPTURES)
-			expectedMove = new GenericMove("f8e7");
-		else
-			expectedMove = new GenericMove("g8e7");
+		expectedMove = new GenericMove("g8e7");
 		doFindMoveTest(true);
 	}	
 	

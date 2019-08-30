@@ -38,12 +38,11 @@ public class TranspositionTableAccessorTest {
 	@Before
 	public void setUp() throws Exception {
 		transTable = new FixedSizeTranspositionTable();
-		pc = new PrincipalContinuation(SEARCH_DEPTH_IN_PLY);
 		st = new ScoreTracker(SEARCH_DEPTH_IN_PLY, true);
 		st.setProvisionalScoreAtPly((byte) 0);
 		pm = new PositionManager();
 		lastPc = null;
-		sut = new TranspositionTableAccessor(transTable, pm, st, pc, lastPc);
+		sut = new TranspositionTableAccessor(transTable, pm, st, lastPc);
 		currPly = 0;
 	}
 

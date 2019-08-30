@@ -6,7 +6,6 @@ import java.util.List;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.InvalidPieceException;
-import eubos.board.pieces.King;
 import eubos.board.pieces.Piece.Colour;
 import eubos.position.IChangePosition;
 import eubos.position.IGenerateMoveList;
@@ -20,9 +19,6 @@ import eubos.search.TranspositionTableAccessor.TranspositionEval;
 import eubos.position.IEvaluate;
 
 public class PlySearcher {
-	
-	public static final int PLIES_PER_MOVE = 2;
-	public static final boolean ENABLE_SEARCH_EXTENSION_FOR_RECAPTURES = false;
 	
 	private IChangePosition pm;
 	private IGenerateMoveList mlgen;
@@ -41,6 +37,7 @@ public class PlySearcher {
 	private List<GenericMove> lastPc;
 	private byte searchDepthPly;
 	private TranspositionTableAccessor tt;
+	private PrincipalContinuationUpdateHelper pcUpdater;
 	
 	byte currPly = 0;
 	byte depthSearchedPly = 0;
@@ -69,8 +66,9 @@ public class PlySearcher {
 		initialOnMove = pos.getOnMove();
 		this.pe = new PositionEvaluator();
 		this.st = new ScoreTracker(searchDepthPly, initialOnMove == Colour.white);
-		this.tt = new TranspositionTableAccessor(hashMap, pos, st, pc, lastPc);
+		this.tt = new TranspositionTableAccessor(hashMap, pos, st, lastPc);
 		this.sg = new MateScoreGenerator(pos, searchDepthPly);
+		this.pcUpdater = new PrincipalContinuationUpdateHelper(initialOnMove, pc, sm, sr);
 	}
 	
 	public synchronized void terminateFindMove() { 
@@ -90,8 +88,12 @@ public class PlySearcher {
 		case sufficientTerminalNode:
 		case sufficientRefutation:
 			depthSearchedPly = eval.trans.getDepthSearchedInPly();
-			pc.update(currPly, eval.trans.getPrincipalContinuation());
-			doScoreBackupTransHit(eval.trans.getScore());
+			pc.clearTreeBeyondPly(currPly);
+			if (doScoreBackup(eval.trans.getScore())) {
+				pc.update(currPly, eval.trans.getPrincipalContinuation());
+				if (currPly == 0)
+					pcUpdater.report(eval.trans.getScore(), depthSearchedPly);
+			}
 			sm.incrementNodesSearched();
 			break;
 			
@@ -138,7 +140,11 @@ public class PlySearcher {
 				
 				short positionScore = applyMoveAndScore(currMove);
 				
-				doScoreBackup(currMove, positionScore);
+				if (doScoreBackup(positionScore)) {
+					pc.update(currPly, currMove);
+					if (currPly == 0)
+						pcUpdater.report(positionScore, searchDepthPly);
+				}
 				trans = updateTranspositionTable(move_iter, ml, st.getBackedUpScoreAtPly(currPly), trans);
 				
 				if (st.isAlphaBetaCutOff( currPly, provisionalScoreAtPly, positionScore)) {
@@ -157,23 +163,13 @@ public class PlySearcher {
 		return depthRequiredPly;
 	}
 
-	private void doScoreBackup(GenericMove currMove, short positionScore) {
+	private boolean doScoreBackup(short positionScore) {
+		boolean backupRequired = false;
 		if (st.isBackUpRequired(currPly, positionScore)) {
-			// New best score found at this node, back up and update the principal continuation.
 			st.setBackedUpScoreAtPly(currPly, positionScore);
-			pc.update(currPly, currMove);
-			if (currPly == 0)
-				new PrincipalContinuationUpdateHelper(positionScore).report();
+			backupRequired = true;
 		}
-	}
-	
-	private void doScoreBackupTransHit(short positionScore) {
-		if (st.isBackUpRequired(currPly, positionScore)) {
-			// Transposition hit sufficient to update score, principal continuation already done
-			st.setBackedUpScoreAtPly(currPly, positionScore);
-			if (currPly == 0)
-				new PrincipalContinuationUpdateHelper(positionScore).report();
-		}	
+		return backupRequired;
 	}
 
 	private Transposition updateTranspositionTable(Iterator<GenericMove> move_iter, List<GenericMove> ml, short positionScore, Transposition trans) {
@@ -258,63 +254,5 @@ public class PlySearcher {
 		pm.unperformMove();
 		currPly--;
 		SearchDebugAgent.printUndoMove(currPly, currMove);
-	}	
-		
-	// Principal continuation focused, search report focused inner class
-	class PrincipalContinuationUpdateHelper
-	{
-		short positionScore;
-		
-		PrincipalContinuationUpdateHelper(short score) {
-			positionScore = score;
-		}
-
-		void report() {
-			assignPrincipalVariationToSearchMetrics();
-			assignCentipawnScoreToSearchMetrics();
-			sr.reportPrincipalVariation();
-		}	
-		
-		private void assignPrincipalVariationToSearchMetrics() {
-			truncatePrincipalContinuation();
-			sm.setPrincipalVariation(pc.toPvList());
-		}	
-
-		private void assignCentipawnScoreToSearchMetrics() {
-			if (initialOnMove.equals(Colour.black))
-				positionScore = (short) -positionScore; // Negated due to UCI spec (from engine pov)
-			sm.setCpScore(positionScore);
-		}
-		
-		private void truncatePrincipalContinuation() {
-			if (isScoreIndicatesMate()) {
-				// If the positionScore indicates a mate, truncate the pc accordingly
-				int matePly = calculatePlyMateOccurredOn();
-				pc.clearAfter(matePly);
-			}
-		}
-		
-		private boolean isScoreIndicatesMate() {
-			return Math.abs(positionScore) >= King.MATERIAL_VALUE;
-		}
-		
-		private int calculatePlyMateOccurredOn() {
-			int matePly = Math.abs(positionScore)/King.MATERIAL_VALUE;
-			matePly *= PLIES_PER_MOVE;
-			matePly = searchDepthPly - matePly;
-			if (isOwnMate()) {
-				if ((searchDepthPly&1) != 0x1)
-					matePly += 1;
-			} else {
-				if ((searchDepthPly&1) == 0x1)
-					matePly -= 1;	
-			}
-			return (matePly > 0) ? matePly : 0;
-		}
-		
-		private boolean isOwnMate() {
-			return ((initialOnMove==Colour.white && positionScore<0) ||
-			        (initialOnMove==Colour.black && positionScore>0));
-		}
 	}	
 }

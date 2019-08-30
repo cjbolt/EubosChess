@@ -73,9 +73,19 @@ class PrincipalContinuation {
 			}		
 		}
 	}
+	
+	void clearTreeBeyondPly(int currPly) {
+		// Clear all principal continuation plies after the specified ply depth
+		int index = 0;
+		for (int column=currPly; column < searchDepthPly; column++, index++) {
+			for (int i=0; i <= index; i++) {
+			    pc[column][currPly+i] = null;
+			}		
+		}
+	}
 
-	void clearAfter(int currPly ) {
-		// Clear the principal continuation after the indicated ply depth
+	void truncateAfterPly(int currPly ) {
+		// Truncate all variations after the specified ply depth
 		for (int nextPly=currPly+1; nextPly < searchDepthPly; nextPly++) {
 			for (int i=0; i<searchDepthPly; i++)
 				// All plies need to be cleared.
