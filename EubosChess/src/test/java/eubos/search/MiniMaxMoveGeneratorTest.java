@@ -640,5 +640,34 @@ public class MiniMaxMoveGeneratorTest {
 		
 		assertEquals(expectedMove, res.bestMove);
 	}
-	 
+
+	@Test
+	public void test_EndGamePositionToCheckMoveOrder() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		PositionManager pm = new PositionManager("8/8/p6p/1p3kp1/1P6/P4PKP/5P2/8 w - - 0 1 ");
+		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
+		expectedMove = new GenericMove("f3f4");
+		
+		classUnderTest.findMove((byte)1);
+		List<GenericMove> lastPc = classUnderTest.pc.toPvList();
+		classUnderTest.findMove((byte)2,lastPc);
+		lastPc = classUnderTest.pc.toPvList();
+		classUnderTest.findMove((byte)3,lastPc);
+		lastPc = classUnderTest.pc.toPvList();
+		classUnderTest.findMove((byte)4,lastPc);
+		lastPc = classUnderTest.pc.toPvList();
+		classUnderTest.findMove((byte)5);
+		lastPc = classUnderTest.pc.toPvList();
+		classUnderTest.findMove((byte)6,lastPc);
+		lastPc = classUnderTest.pc.toPvList();
+		classUnderTest.findMove((byte)7,lastPc);
+		lastPc = classUnderTest.pc.toPvList();
+		classUnderTest.findMove((byte)8,lastPc);
+		lastPc = classUnderTest.pc.toPvList();
+		classUnderTest.findMove((byte)9,lastPc);
+		lastPc = classUnderTest.pc.toPvList();
+		SearchResult res = classUnderTest.findMove((byte)10,lastPc);
+		
+		assertEquals(expectedMove, res.bestMove);
+	}
+	
 }

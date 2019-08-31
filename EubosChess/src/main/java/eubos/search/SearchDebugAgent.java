@@ -164,7 +164,7 @@ public class SearchDebugAgent {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+trans.report()+", hash: "+hashCode);
+			printOutput(indent+trans.report()+", hash: "+hashCode + " ref" + trans.toString());
 		}		
 	}
 

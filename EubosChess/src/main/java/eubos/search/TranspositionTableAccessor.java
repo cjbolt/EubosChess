@@ -102,18 +102,19 @@ public class TranspositionTableAccessor {
 			}
 		}
 		if (updateTransposition) {
+			current_trans.setPrincipalContinuation(new_trans.getPrincipalContinuation());
 			current_trans.setScoreType(new_trans.getScoreType());
+			current_trans.setScore(new_trans.getScore());
 		    current_trans.setBestMove(new_trans.getBestMove());
 		    current_trans.setDepthSearchedInPly(new_trans.getDepthSearchedInPly());
-		    current_trans.setScore(new_trans.getScore());
 		    current_trans.setMoveList(new_trans.getMoveList());
-		    current_trans.setPrincipalContinuation(new_trans.getPrincipalContinuation());
+		    hashMap.putTransposition(pos.getHash(), current_trans);
 		    SearchDebugAgent.printTransUpdate(currPly, current_trans, pos.getHash());
 		}
 		return current_trans;
 	}
 
 	public short getHashUtilisation() {
-		return (short) (( ((long) hashMap.getHashMapSize())*(long)100*(long)1000 ) / FixedSizeTranspositionTable.MAX_SIZE_OF_HASH_MAP);
+		return (short) (( ((long) hashMap.getHashMapSize())*(long)1000) / FixedSizeTranspositionTable.MAX_SIZE_OF_HASH_MAP);
 	}
 }

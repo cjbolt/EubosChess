@@ -56,6 +56,7 @@ public class Transposition {
 
 	public void setMoveList(List<GenericMove> ml) {
 		this.ml = ml;
+		this.ml = adjustMoveListForBestMove();
 	}
 	
 	public ScoreType getScoreType() {
