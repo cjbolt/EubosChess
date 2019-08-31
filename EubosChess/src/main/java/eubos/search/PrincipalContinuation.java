@@ -62,13 +62,18 @@ class PrincipalContinuation {
 	
 	void update(int currPly, List<GenericMove> source_pc) {
 		// Update principal continuation from Transposition hit
+		int pc_len = source_pc.size();
 		int index = 0;
 		for (int column=currPly; column < searchDepthPly; column++, index++) {
 			for (int i=0; i <= index; i++) {
-				try {
-					pc[column][currPly+i]=source_pc.get(index);
-				} catch (IndexOutOfBoundsException e) {
-					pc[column][currPly+i]=null;
+				if (index < pc_len) {
+					pc[currPly+i][column]=source_pc.get(index);
+				} else {
+					/* Note: if the principal continuation ends in a mate, 
+					 * it is valid that the continuation can be shorter than
+					 * the depth searched.
+				     */
+					pc[currPly+i][column]=null;
 				}
 			}		
 		}
@@ -79,7 +84,7 @@ class PrincipalContinuation {
 		int index = 0;
 		for (int column=currPly; column < searchDepthPly; column++, index++) {
 			for (int i=0; i <= index; i++) {
-			    pc[column][currPly+i] = null;
+			    pc[currPly+i][column] = null;
 			}		
 		}
 	}
@@ -90,6 +95,14 @@ class PrincipalContinuation {
 			for (int i=0; i<searchDepthPly; i++)
 				// All plies need to be cleared.
 				pc[i][nextPly]=null;
+		}
+	}
+
+	public void clearRowsBeyondPly(int clearAfter) {
+		for (int row=clearAfter+1; row < searchDepthPly; row++) {
+			for (int column=0; column<searchDepthPly; column++) {
+				pc[row][column]=null;
+			}
 		}
 	}
 

@@ -47,6 +47,7 @@ public class SearchDebugAgent {
 		//System.out.println(output);
 		try {
 			fw.write(output+'\n');
+			fw.flush();
 		} catch (IOException e) {
 			isDebugOn = false;
 		}
