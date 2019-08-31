@@ -5,6 +5,7 @@ import java.util.Random;
 import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
+import com.fluxchess.jcpi.models.GenericChessman;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
@@ -16,6 +17,7 @@ import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Queen;
 import eubos.board.pieces.Rook;
+import eubos.board.pieces.Piece.Colour;
 
 public class ZobristHashCode {
 	
@@ -152,10 +154,44 @@ public class ZobristHashCode {
 		doOnMove();
 	}
 
+	private Piece convertChessmanToPiece(GenericChessman chessman, GenericMove move) {
+		Piece eubosPiece = null;
+		if (chessman.equals(GenericChessman.KNIGHT))
+			eubosPiece = new eubos.board.pieces.Knight(Colour.getOpposite(pos.getOnMove()), move.to);
+		else if (chessman.equals(GenericChessman.BISHOP))
+			eubosPiece = new eubos.board.pieces.Bishop(Colour.getOpposite(pos.getOnMove()), move.to);
+		else if (chessman.equals(GenericChessman.ROOK))
+			eubosPiece = new eubos.board.pieces.Rook(Colour.getOpposite(pos.getOnMove()), move.to);
+		else if (chessman.equals(GenericChessman.QUEEN))
+			eubosPiece = new eubos.board.pieces.Queen(Colour.getOpposite(pos.getOnMove()), move.to);
+		return eubosPiece;
+	}
+	
 	protected Piece doBasicMove(GenericMove move) throws Exception {
 		Piece piece = pos.getTheBoard().getPieceAtSquare(move.to);
-		hashCode ^= getPrnForPiece(move.to, piece);
-		hashCode ^= getPrnForPiece(move.from, piece);
+		GenericChessman promotedChessman = move.promotion;
+		if (promotedChessman == null) {
+			// Basic move only
+			hashCode ^= getPrnForPiece(move.to, piece);
+			hashCode ^= getPrnForPiece(move.from, piece);
+		} else {
+			// Promotion
+			if (piece instanceof Pawn) {
+				// is undoing promotion
+				Piece promotedToPiece = convertChessmanToPiece(promotedChessman, move);
+				hashCode ^= getPrnForPiece(move.to, piece);
+				hashCode ^= getPrnForPiece(move.from, promotedToPiece);
+				piece = promotedToPiece;
+			} else if (piece instanceof Knight || 
+					piece instanceof Bishop || 
+					piece instanceof Rook|| 
+					piece instanceof Queen) {
+				// is a promotion
+				Piece unpromotedPawn = new eubos.board.pieces.Pawn(pos.getOnMove(), move.from);
+				hashCode ^= getPrnForPiece(move.to, piece);
+				hashCode ^= getPrnForPiece(move.from, unpromotedPawn);
+			}
+		}
 		return piece;
 	}
 

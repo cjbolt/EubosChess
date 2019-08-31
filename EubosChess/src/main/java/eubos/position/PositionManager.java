@@ -184,7 +184,7 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		// Check for reversal of any pawn promotion that had been previously applied
 		checkToUndoPawnPromotion(moveToUndo);
 		// Actually undo the move by reversing its direction and reapplying it.
-		GenericMove reversedMove = new GenericMove( moveToUndo.to, moveToUndo.from );
+		GenericMove reversedMove = new GenericMove( moveToUndo.to, moveToUndo.from, moveToUndo.promotion );
 		// Get the piece to move
 		Piece pieceToMove = theBoard.pickUpPieceAtSquare( reversedMove.from );
 		// Handle reversal of any castling secondary rook moves and associated flags...

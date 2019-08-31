@@ -642,6 +642,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 
 	@Test
+	@Ignore
 	public void test_EndGamePositionToCheckMoveOrder() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
 		PositionManager pm = new PositionManager("8/8/p6p/1p3kp1/1P6/P4PKP/5P2/8 w - - 0 1 ");
 		classUnderTest = new MiniMaxMoveGenerator(hashMap, pm,pm,pm);
