@@ -1,4 +1,4 @@
-package eubos.position;
+package eubos.search;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

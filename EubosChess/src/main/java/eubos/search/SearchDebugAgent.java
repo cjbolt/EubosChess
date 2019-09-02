@@ -7,8 +7,7 @@ import java.io.IOException;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.position.IPositionAccessors;
-import eubos.position.Transposition;
-import eubos.position.Transposition.ScoreType;
+import eubos.search.Transposition.ScoreType;
 
 public class SearchDebugAgent {
 

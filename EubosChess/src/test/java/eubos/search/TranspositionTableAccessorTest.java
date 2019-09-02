@@ -15,8 +15,7 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
 import eubos.position.PositionManager;
-import eubos.position.Transposition;
-import eubos.position.Transposition.ScoreType;
+import eubos.search.Transposition.ScoreType;
 import eubos.search.TranspositionTableAccessor.TranspositionEval;
 import eubos.search.TranspositionTableAccessor.TranspositionTableStatus;
 

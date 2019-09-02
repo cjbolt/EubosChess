@@ -13,8 +13,7 @@ import eubos.position.IPositionAccessors;
 import eubos.position.IScoreMate;
 import eubos.position.MateScoreGenerator;
 import eubos.position.PositionEvaluator;
-import eubos.position.Transposition;
-import eubos.position.Transposition.ScoreType;
+import eubos.search.Transposition.ScoreType;
 import eubos.search.TranspositionTableAccessor.TranspositionEval;
 import eubos.position.IEvaluate;
 
