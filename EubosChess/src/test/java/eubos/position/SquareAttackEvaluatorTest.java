@@ -5,17 +5,7 @@ import static org.junit.Assert.*;
 import java.util.LinkedList;
 import java.util.List;
 
-
-
-
-
-
-
-
-
-
-
-//import org.junit.Before;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericPosition;
@@ -71,6 +61,11 @@ public class SquareAttackEvaluatorTest {
 		assertTrue(classUnderTest.isAttacked());
 	}
 
+	@Before
+	public void setUp() {
+		this.testSq = GenericPosition.d5;
+	}
+	
 	// Pawn
 	@Test
 	public void testIsAttacked_AttackedWhitePawnC4() {
@@ -184,4 +179,10 @@ public class SquareAttackEvaluatorTest {
 	@Test
 	public void testIsAttacked_Attacked_Illegal1_KingC5() {
 		assertTestSqIsAttacked("B1N5/3p1N2/2P3R1/Q1Kk4/1PpP4/8/6q1/Q2R3B b - - 0 1"); }
+	@Test
+	public void testIsAttacked_MateInOne() {
+		PositionManager pm = new PositionManager("5r1k/p2R3Q/1pp2p1p/8/5q2/5bN1/PP3P2/6K1 b - - - 0");
+		classUnderTest = new SquareAttackEvaluator(pm.getTheBoard(), GenericPosition.g8, pm.getOnMove());
+		assertTrue(classUnderTest.isAttacked());
+	}
 }

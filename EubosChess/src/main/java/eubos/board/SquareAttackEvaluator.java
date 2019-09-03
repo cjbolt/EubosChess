@@ -1,10 +1,12 @@
-package eubos.board;
+ package eubos.board;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericPosition;
+import com.fluxchess.jcpi.models.IntFile;
+import com.fluxchess.jcpi.models.IntRank;
 
 import eubos.board.pieces.Bishop;
 import eubos.board.pieces.King;
@@ -20,6 +22,37 @@ public class SquareAttackEvaluator {
 	private Piece.Colour attackingColour;
 	private GenericPosition attackedSq;
 	private Board theBoard;
+	
+	static private final GenericPosition [][][] diagonal_lut = new GenericPosition [64][][];
+	static {
+		for (GenericPosition square : GenericPosition.values()) {
+			int f = IntFile.valueOf(square.file);
+			int r = IntRank.valueOf(square.rank);
+			diagonal_lut[f+(r*8)] = createDiagonalForSq(square);
+		}
+	};
+	
+	static private GenericPosition [][] createDiagonalForSq(GenericPosition square) {
+		ArrayList<GenericPosition> squaresInDirection = new ArrayList<GenericPosition>();
+		GenericPosition [][] ret = new GenericPosition [Direction.values().length][];
+		int index = 0;
+		for (Direction dir: Direction.values()) {
+			squaresInDirection.addAll(getSqsInDirection(dir, square));
+			ret[index] = squaresInDirection.toArray(new GenericPosition [0]);
+			squaresInDirection.clear();
+			index++;
+		}
+		return ret;
+	}
+	
+	static private List<GenericPosition> getSqsInDirection(Direction dir, GenericPosition fromSq) {
+		GenericPosition newSquare = fromSq;
+		ArrayList<GenericPosition> sqsInDirection = new ArrayList<GenericPosition>();
+		while ((newSquare = Direction.getDirectMoveSq(dir, newSquare)) != null) {
+			sqsInDirection.add(newSquare);
+		}
+		return sqsInDirection;
+	}
 	
 	public SquareAttackEvaluator( Board bd, GenericPosition atPos, Piece.Colour ownColour ) {
 		attackingColour = Piece.Colour.getOpposite(ownColour);
@@ -65,24 +98,9 @@ public class SquareAttackEvaluator {
 				attacked = checkForKnightAttacks();
 				if (attacked) break;
 			}
-			if (doDiagonalCheck) {
-				attacked = checkForAttackerOnDiagonal(getAllSqs(Direction.downLeft));
+			if (doDiagonalCheck || doRankFileCheck) {
+				attacked = checkForDirectPieceAttacker(attackedSq);
 				if (attacked) break;
-				attacked = checkForAttackerOnDiagonal(getAllSqs(Direction.upLeft));
-				if (attacked) break;
-				attacked = checkForAttackerOnDiagonal(getAllSqs(Direction.downRight));
-				if (attacked) break;
-				attacked = checkForAttackerOnDiagonal(getAllSqs(Direction.upRight));
-				if (attacked) break;
-			}
-			if (doRankFileCheck) {
-				attacked = checkForAttackerOnRankFile(getAllSqs(Direction.down));
-				if (attacked) break;
-				attacked = checkForAttackerOnRankFile(getAllSqs(Direction.up));
-				if (attacked) break;
-				attacked = checkForAttackerOnRankFile(getAllSqs(Direction.left));
-				if (attacked) break;
-				attacked = checkForAttackerOnRankFile(getAllSqs(Direction.right));
 			}
 		} while (false);
 		return attacked;	
@@ -122,44 +140,36 @@ public class SquareAttackEvaluator {
 		return attacked;
 	}	
 
-	private List<GenericPosition> getAllSqs(Direction dir) {
-		GenericPosition atPos = attackedSq;
-		ArrayList<GenericPosition> targetSquares = new ArrayList<GenericPosition>();
-		while ((atPos = Direction.getDirectMoveSq(dir, atPos)) != null) {
-			targetSquares.add(atPos);
-		}
-		return targetSquares;
-	}
-
-	private boolean checkForAttackerOnDiagonal(List<GenericPosition> targetSqs) {
+	private boolean checkForDirectPieceAttacker(GenericPosition targetSq) {
 		boolean attacked = false;
-		for (GenericPosition attackerSq: targetSqs) {
-			Piece currPiece = theBoard.getPieceAtSquare(attackerSq);
-			if (currPiece != null ) {
-				if (((currPiece instanceof Bishop) || (currPiece instanceof Queen)) && currPiece.getColour()==attackingColour) {
-					// Indicates attacked
-					attacked = true;
-				} // else blocked by own piece or non-attacking enemy
-				break;
+		int f = IntFile.valueOf(targetSq.file);
+		int r = IntRank.valueOf(targetSq.rank);
+		GenericPosition [][] array = SquareAttackEvaluator.diagonal_lut[f+(r*8)];
+		int index = 0;
+		for (Direction dir: Direction.values()) { 
+			for (GenericPosition attackerSq: array[index]) {
+				Piece currPiece = theBoard.getPieceAtSquare(attackerSq);
+				if (currPiece != null ) {
+					if (dir == Direction.downLeft || dir == Direction.upLeft || dir == Direction.upRight || dir == Direction.downRight) {
+						if (((currPiece instanceof Bishop) || (currPiece instanceof Queen)) && currPiece.getColour()==attackingColour) {
+							// Indicates attacked
+							attacked = true;
+						} // else blocked by own piece or non-attacking enemy
+						break;
+					} else if (dir == Direction.left || dir == Direction.up || dir == Direction.right || dir == Direction.down) {
+						if (((currPiece instanceof Rook) || (currPiece instanceof Queen)) && currPiece.getColour()==attackingColour) {
+							// Indicates attacked
+							attacked = true;
+						} // else blocked by own piece or non-attacking enemy
+						break;
+					}
+				}
 			}
+			if (attacked) break;
+			index++;
 		}
 		return attacked;
 	}
-
-	private boolean checkForAttackerOnRankFile(List<GenericPosition> targetSqs) {
-		boolean attacked = false;
-		for (GenericPosition attackerSq: targetSqs) {
-			Piece currPiece = theBoard.getPieceAtSquare(attackerSq);
-			if (currPiece != null ) {
-				if (((currPiece instanceof Rook) || (currPiece instanceof Queen)) && currPiece.getColour()==attackingColour) {
-					// Indicates attacked
-					attacked = true;
-				} // else blocked by own piece or non-attacking enemy
-				break;
-			}
-		}
-		return attacked;
-	}	
 
 	private boolean attackedByPawn(GenericPosition attackerSq) {
 		Piece currPiece;
