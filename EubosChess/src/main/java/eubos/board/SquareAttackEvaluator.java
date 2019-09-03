@@ -30,12 +30,20 @@ public class SquareAttackEvaluator {
 	public boolean isAttacked() {
 		boolean attacked = false;
 		boolean doKnightCheck = false;
+		boolean doDiagonalCheck = false;
+		boolean doRankFileCheck = false;
 		Iterator<Piece> iter = theBoard.iterateColour(attackingColour);
 		while (iter.hasNext()) {
 			Piece curr = iter.next();
 			if (curr instanceof Knight) {
-				doKnightCheck=true;
-				break;
+				doKnightCheck = true;
+			} else {
+				if (curr instanceof Queen || curr instanceof Bishop) {
+					doDiagonalCheck = true;
+				}
+				if (curr instanceof Queen || curr instanceof Rook) {
+					doRankFileCheck = true;
+				}
 			}
 		}
 		// do/while loop is to allow the function to return attacked=true at earliest possibility
@@ -55,23 +63,27 @@ public class SquareAttackEvaluator {
 			if (attacked) break;
 			if (doKnightCheck) {
 				attacked = checkForKnightAttacks();
+				if (attacked) break;
 			}
-			if (attacked) break;
-			attacked = checkForAttackerOnDiagonal(getAllSqs(Direction.downLeft));
-			if (attacked) break;
-			attacked = checkForAttackerOnDiagonal(getAllSqs(Direction.upLeft));
-			if (attacked) break;
-			attacked = checkForAttackerOnDiagonal(getAllSqs(Direction.downRight));
-			if (attacked) break;
-			attacked = checkForAttackerOnDiagonal(getAllSqs(Direction.upRight));
-			if (attacked) break;
-			attacked = checkForAttackerOnRankFile(getAllSqs(Direction.down));
-			if (attacked) break;
-			attacked = checkForAttackerOnRankFile(getAllSqs(Direction.up));
-			if (attacked) break;
-			attacked = checkForAttackerOnRankFile(getAllSqs(Direction.left));
-			if (attacked) break;
-			attacked = checkForAttackerOnRankFile(getAllSqs(Direction.right));
+			if (doDiagonalCheck) {
+				attacked = checkForAttackerOnDiagonal(getAllSqs(Direction.downLeft));
+				if (attacked) break;
+				attacked = checkForAttackerOnDiagonal(getAllSqs(Direction.upLeft));
+				if (attacked) break;
+				attacked = checkForAttackerOnDiagonal(getAllSqs(Direction.downRight));
+				if (attacked) break;
+				attacked = checkForAttackerOnDiagonal(getAllSqs(Direction.upRight));
+				if (attacked) break;
+			}
+			if (doRankFileCheck) {
+				attacked = checkForAttackerOnRankFile(getAllSqs(Direction.down));
+				if (attacked) break;
+				attacked = checkForAttackerOnRankFile(getAllSqs(Direction.up));
+				if (attacked) break;
+				attacked = checkForAttackerOnRankFile(getAllSqs(Direction.left));
+				if (attacked) break;
+				attacked = checkForAttackerOnRankFile(getAllSqs(Direction.right));
+			}
 		} while (false);
 		return attacked;	
 	}
