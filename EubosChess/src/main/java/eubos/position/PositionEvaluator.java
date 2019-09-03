@@ -2,6 +2,10 @@ package eubos.position;
 
 import java.util.Iterator;
 
+import com.fluxchess.jcpi.models.GenericFile;
+import com.fluxchess.jcpi.models.GenericRank;
+
+import eubos.board.Board;
 import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
@@ -21,6 +25,7 @@ public class PositionEvaluator implements IEvaluate {
 		short score = me.evaluate(pos.getTheBoard());
 		score += encourageCastling(pos);
 		score += discourageDoubledPawns(pos);
+		score += encouragePassedPawns(pos);
 		return score;
 	}
 	
@@ -36,8 +41,95 @@ public class PositionEvaluator implements IEvaluate {
 		return castleScoreBoost;
 	}
 	
-	int discourageDoubledPawns(IPositionAccessors pos) {
+	int encouragePassedPawns(IPositionAccessors pos) {
+		int passedPawnBoost = 0;
+		passedPawnBoost += checkPassedPawnsForColour(pos, pos.getOnMove());
 		Colour onMoveWas = Colour.getOpposite(pos.getOnMove());
+		passedPawnBoost += checkPassedPawnsForColour(pos, onMoveWas);
+		return passedPawnBoost;
+	}
+
+	private int checkPassedPawnsForColour(IPositionAccessors pos, Colour onMoveWas) {
+		Board board = pos.getTheBoard();
+		int passedPawnBoost = 0;
+		Iterator<Piece> iter = board.iterateColour(onMoveWas);
+		while (iter.hasNext()) {
+			Piece currPiece = iter.next();
+			
+			if (currPiece instanceof Pawn) {
+				GenericRank rank = currPiece.getSquare().rank;
+				switch (currPiece.getSquare().file) {
+				case Fa:
+					if (!board.checkIfOpposingPawnInFile(GenericFile.Fa, rank, onMoveWas) &&
+						!board.checkIfOpposingPawnInFile(GenericFile.Fb, rank, onMoveWas)) {
+						passedPawnBoost += 25;
+					};
+					break;
+				case Fb:
+					if (!board.checkIfOpposingPawnInFile(GenericFile.Fa, rank, onMoveWas) &&
+					    !board.checkIfOpposingPawnInFile(GenericFile.Fb, rank, onMoveWas) &&
+					    !board.checkIfOpposingPawnInFile(GenericFile.Fc, rank, onMoveWas)) {
+						passedPawnBoost += 50;
+					}
+					break;
+				case Fc:
+					if (!board.checkIfOpposingPawnInFile(GenericFile.Fb, rank, onMoveWas) &&
+						!board.checkIfOpposingPawnInFile(GenericFile.Fc, rank, onMoveWas) &&
+					    !board.checkIfOpposingPawnInFile(GenericFile.Fd, rank, onMoveWas)) {
+					    passedPawnBoost += 50;	
+					}
+					break;
+				case Fd:
+					if (!board.checkIfOpposingPawnInFile(GenericFile.Fc, rank, onMoveWas) &&
+						!board.checkIfOpposingPawnInFile(GenericFile.Fd, rank, onMoveWas) &&
+					    !board.checkIfOpposingPawnInFile(GenericFile.Fe, rank, onMoveWas)) {
+						passedPawnBoost += 50;
+					}
+					break;
+				case Fe:
+					if (!board.checkIfOpposingPawnInFile(GenericFile.Fd, rank, onMoveWas) &&
+						!board.checkIfOpposingPawnInFile(GenericFile.Fe, rank, onMoveWas) &&
+						!board.checkIfOpposingPawnInFile(GenericFile.Ff, rank, onMoveWas)) {
+						passedPawnBoost += 50;
+					}
+					break;
+				case Ff:
+					if (!board.checkIfOpposingPawnInFile(GenericFile.Fe, rank, onMoveWas) &&
+						!board.checkIfOpposingPawnInFile(GenericFile.Ff, rank, onMoveWas) &&
+					    !board.checkIfOpposingPawnInFile(GenericFile.Fg, rank, onMoveWas)) {
+						passedPawnBoost += 50;
+					}
+					break;
+				case Fg:
+					if (!board.checkIfOpposingPawnInFile(GenericFile.Ff, rank, onMoveWas) &&
+						!board.checkIfOpposingPawnInFile(GenericFile.Fg, rank, onMoveWas) &&
+					    !board.checkIfOpposingPawnInFile(GenericFile.Fh, rank, onMoveWas)) {
+						passedPawnBoost += 50;
+					}
+					break;
+				case Fh:
+					if (!board.checkIfOpposingPawnInFile(GenericFile.Fg, currPiece.getSquare().rank, onMoveWas)) {
+						passedPawnBoost += 25;
+					}
+					break;
+				}
+			}
+		}
+		if (onMoveWas == Colour.black) {
+			passedPawnBoost = -passedPawnBoost;
+		}
+		return passedPawnBoost;
+	}
+	
+	int discourageDoubledPawns(IPositionAccessors pos) {
+		int doubledPawnScoreModifier = 0;
+		doubledPawnScoreModifier += discourageDoubledPawnsForColour(pos, pos.getOnMove());
+		Colour onMoveWas = Colour.getOpposite(pos.getOnMove());
+		doubledPawnScoreModifier += discourageDoubledPawnsForColour(pos, onMoveWas);
+		return doubledPawnScoreModifier;
+	}
+
+	private int discourageDoubledPawnsForColour(IPositionAccessors pos, Colour onMoveWas) {
 		Iterator<Piece> iter = pos.getTheBoard().iterateColour(onMoveWas);
 		int pawnHandicap = 0;
 		int pawnCount[] = {0,0,0,0,0,0,0,0};

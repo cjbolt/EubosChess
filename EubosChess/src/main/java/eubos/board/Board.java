@@ -15,7 +15,9 @@ import eubos.board.pieces.Rook;
 
 import com.fluxchess.jcpi.models.IntRank;
 import com.fluxchess.jcpi.models.IntFile;
+import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericPosition;
+import com.fluxchess.jcpi.models.GenericRank;
 
 public class Board implements Iterable<Piece> {
 
@@ -73,6 +75,27 @@ public class Board implements Iterable<Piece> {
 			getBitBoardForColour(pieceToGet).clear(rnf.rank, rnf.file);
 		}
 		return ( pieceToGet );	
+	}
+	
+	public boolean checkIfOpposingPawnInFile(GenericFile file, GenericRank rank, Colour onMoveWas) {
+		int r = IntRank.valueOf(rank);
+		int f = IntFile.valueOf(file);
+		if (onMoveWas == Colour.white) {
+			for (r=r+1; r < 7; r++) {
+				Piece p = theBoard[f][r];
+				if (p != null && p instanceof Pawn && onMoveWas != p.getColour()) {
+					return true;
+				}
+			}
+		} else {
+			for (r=r-1; r > 0; r--) {
+				Piece p = theBoard[f][r];
+				if (p != null && p instanceof Pawn && onMoveWas != p.getColour()) {
+					return true;
+				}	
+			}			
+		}
+		return false;
 	}
 	
 	private class RankAndFile {
