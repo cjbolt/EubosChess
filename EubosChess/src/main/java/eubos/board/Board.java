@@ -77,25 +77,26 @@ public class Board implements Iterable<Piece> {
 		return ( pieceToGet );	
 	}
 	
-	public boolean checkIfOpposingPawnInFile(GenericFile file, GenericRank rank, Colour onMoveWas) {
+	public boolean checkIfOpposingPawnInFile(GenericFile file, GenericRank rank, Colour side) {
+		boolean opposingPawnPresentInFile = false;
 		int r = IntRank.valueOf(rank);
 		int f = IntFile.valueOf(file);
-		if (onMoveWas == Colour.white) {
+		if (side == Colour.white) {
 			for (r=r+1; r < 7; r++) {
-				Piece p = theBoard[f][r];
-				if (p != null && p instanceof Pawn && onMoveWas != p.getColour()) {
-					return true;
-				}
+				if (isOpposingPawn(side, theBoard[f][r]))
+					opposingPawnPresentInFile = true;
 			}
 		} else {
 			for (r=r-1; r > 0; r--) {
-				Piece p = theBoard[f][r];
-				if (p != null && p instanceof Pawn && onMoveWas != p.getColour()) {
-					return true;
-				}	
+				if (isOpposingPawn(side, theBoard[f][r]))
+					opposingPawnPresentInFile = true;	
 			}			
 		}
-		return false;
+		return opposingPawnPresentInFile;
+	}
+	
+	private boolean isOpposingPawn(Colour ownSide, Piece p) {
+		return (p != null && p instanceof Pawn && ownSide != p.getColour()) ? true : false;
 	}
 	
 	private class RankAndFile {

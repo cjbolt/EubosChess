@@ -14,8 +14,10 @@ public class PositionEvaluator implements IEvaluate {
 	
 	MaterialEvaluator me;
 	
-	public static int HAS_CASTLED_BOOST_CENTIPAWNS = 150;
-	public static int DOUBLED_PAWN_HANDICAP = 50;
+	public static final int HAS_CASTLED_BOOST_CENTIPAWNS = 150;
+	public static final int DOUBLED_PAWN_HANDICAP = 50;
+	public static final int PASSED_PAWN_BOOST = 50;
+	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 25;
 	
 	public PositionEvaluator() {	
 		this.me = new MaterialEvaluator();
@@ -29,7 +31,7 @@ public class PositionEvaluator implements IEvaluate {
 		return score;
 	}
 	
-	private int encourageCastling(IPositionAccessors pos) {
+	int encourageCastling(IPositionAccessors pos) {
 		int castleScoreBoost = 0;
 		Colour onMoveWas = Colour.getOpposite(pos.getOnMove());
 		if (pos.hasCastled(onMoveWas)) {
@@ -42,10 +44,8 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	int encouragePassedPawns(IPositionAccessors pos) {
-		int passedPawnBoost = 0;
-		passedPawnBoost += checkPassedPawnsForColour(pos, pos.getOnMove());
-		Colour onMoveWas = Colour.getOpposite(pos.getOnMove());
-		passedPawnBoost += checkPassedPawnsForColour(pos, onMoveWas);
+		int passedPawnBoost = checkPassedPawnsForColour(pos, pos.getOnMove());
+		passedPawnBoost += checkPassedPawnsForColour(pos, Colour.getOpposite(pos.getOnMove()));
 		return passedPawnBoost;
 	}
 
@@ -62,54 +62,54 @@ public class PositionEvaluator implements IEvaluate {
 				case Fa:
 					if (!board.checkIfOpposingPawnInFile(GenericFile.Fa, rank, onMoveWas) &&
 						!board.checkIfOpposingPawnInFile(GenericFile.Fb, rank, onMoveWas)) {
-						passedPawnBoost += 25;
+						passedPawnBoost += ROOK_FILE_PASSED_PAWN_BOOST;
 					};
 					break;
 				case Fb:
 					if (!board.checkIfOpposingPawnInFile(GenericFile.Fa, rank, onMoveWas) &&
 					    !board.checkIfOpposingPawnInFile(GenericFile.Fb, rank, onMoveWas) &&
 					    !board.checkIfOpposingPawnInFile(GenericFile.Fc, rank, onMoveWas)) {
-						passedPawnBoost += 50;
+						passedPawnBoost += PASSED_PAWN_BOOST;
 					}
 					break;
 				case Fc:
 					if (!board.checkIfOpposingPawnInFile(GenericFile.Fb, rank, onMoveWas) &&
 						!board.checkIfOpposingPawnInFile(GenericFile.Fc, rank, onMoveWas) &&
 					    !board.checkIfOpposingPawnInFile(GenericFile.Fd, rank, onMoveWas)) {
-					    passedPawnBoost += 50;	
+					    passedPawnBoost += PASSED_PAWN_BOOST;	
 					}
 					break;
 				case Fd:
 					if (!board.checkIfOpposingPawnInFile(GenericFile.Fc, rank, onMoveWas) &&
 						!board.checkIfOpposingPawnInFile(GenericFile.Fd, rank, onMoveWas) &&
 					    !board.checkIfOpposingPawnInFile(GenericFile.Fe, rank, onMoveWas)) {
-						passedPawnBoost += 50;
+						passedPawnBoost += PASSED_PAWN_BOOST;
 					}
 					break;
 				case Fe:
 					if (!board.checkIfOpposingPawnInFile(GenericFile.Fd, rank, onMoveWas) &&
 						!board.checkIfOpposingPawnInFile(GenericFile.Fe, rank, onMoveWas) &&
 						!board.checkIfOpposingPawnInFile(GenericFile.Ff, rank, onMoveWas)) {
-						passedPawnBoost += 50;
+						passedPawnBoost += PASSED_PAWN_BOOST;
 					}
 					break;
 				case Ff:
 					if (!board.checkIfOpposingPawnInFile(GenericFile.Fe, rank, onMoveWas) &&
 						!board.checkIfOpposingPawnInFile(GenericFile.Ff, rank, onMoveWas) &&
 					    !board.checkIfOpposingPawnInFile(GenericFile.Fg, rank, onMoveWas)) {
-						passedPawnBoost += 50;
+						passedPawnBoost += PASSED_PAWN_BOOST;
 					}
 					break;
 				case Fg:
 					if (!board.checkIfOpposingPawnInFile(GenericFile.Ff, rank, onMoveWas) &&
 						!board.checkIfOpposingPawnInFile(GenericFile.Fg, rank, onMoveWas) &&
 					    !board.checkIfOpposingPawnInFile(GenericFile.Fh, rank, onMoveWas)) {
-						passedPawnBoost += 50;
+						passedPawnBoost += PASSED_PAWN_BOOST;
 					}
 					break;
 				case Fh:
 					if (!board.checkIfOpposingPawnInFile(GenericFile.Fg, currPiece.getSquare().rank, onMoveWas)) {
-						passedPawnBoost += 25;
+						passedPawnBoost += ROOK_FILE_PASSED_PAWN_BOOST;
 					}
 					break;
 				}
@@ -122,10 +122,8 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	int discourageDoubledPawns(IPositionAccessors pos) {
-		int doubledPawnScoreModifier = 0;
-		doubledPawnScoreModifier += discourageDoubledPawnsForColour(pos, pos.getOnMove());
-		Colour onMoveWas = Colour.getOpposite(pos.getOnMove());
-		doubledPawnScoreModifier += discourageDoubledPawnsForColour(pos, onMoveWas);
+		int doubledPawnScoreModifier = discourageDoubledPawnsForColour(pos, pos.getOnMove());
+		doubledPawnScoreModifier += discourageDoubledPawnsForColour(pos, Colour.getOpposite(pos.getOnMove()));
 		return doubledPawnScoreModifier;
 	}
 
