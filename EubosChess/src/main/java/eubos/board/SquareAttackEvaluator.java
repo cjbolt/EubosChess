@@ -23,12 +23,12 @@ public class SquareAttackEvaluator {
 	private GenericPosition attackedSq;
 	private Board theBoard;
 	
-	static private final GenericPosition [][][] diagonal_lut = new GenericPosition [64][][];
+	static private final GenericPosition [][][] directPieceMove_Lut = new GenericPosition [64][][];
 	static {
 		for (GenericPosition square : GenericPosition.values()) {
 			int f = IntFile.valueOf(square.file);
 			int r = IntRank.valueOf(square.rank);
-			diagonal_lut[f+(r*8)] = createDiagonalForSq(square);
+			directPieceMove_Lut[f+(r*8)] = createDiagonalForSq(square);
 		}
 	};
 	
@@ -144,7 +144,7 @@ public class SquareAttackEvaluator {
 		boolean attacked = false;
 		int f = IntFile.valueOf(targetSq.file);
 		int r = IntRank.valueOf(targetSq.rank);
-		GenericPosition [][] array = SquareAttackEvaluator.diagonal_lut[f+(r*8)];
+		GenericPosition [][] array = SquareAttackEvaluator.directPieceMove_Lut[f+(r*8)];
 		int index = 0;
 		for (Direction dir: Direction.values()) { 
 			for (GenericPosition attackerSq: array[index]) {
