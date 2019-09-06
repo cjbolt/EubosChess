@@ -12,7 +12,6 @@ import eubos.position.IGenerateMoveList;
 import eubos.position.IPositionAccessors;
 import eubos.position.IScoreMate;
 import eubos.position.MateScoreGenerator;
-import eubos.position.PositionEvaluator;
 import eubos.search.Transposition.ScoreType;
 import eubos.search.TranspositionTableAccessor.TranspositionEval;
 import eubos.position.IEvaluate;
@@ -50,7 +49,8 @@ public class PlySearcher {
 			IChangePosition pm,
 			IGenerateMoveList mlgen,
 			IPositionAccessors pos,
-			List<GenericMove> lastPc) {
+			List<GenericMove> lastPc,
+			IEvaluate pe) {
 		currPly = 0;
 		depthSearchedPly = 0;
 		this.pc = pc;
@@ -63,7 +63,7 @@ public class PlySearcher {
 		this.searchDepthPly = searchDepthPly;
 		// Register initialOnMove
 		initialOnMove = pos.getOnMove();
-		this.pe = new PositionEvaluator();
+		this.pe = pe;
 		this.st = new ScoreTracker(searchDepthPly, initialOnMove == Colour.white);
 		this.tt = new TranspositionTableAccessor(hashMap, pos, st, lastPc);
 		this.sg = new MateScoreGenerator(pos, searchDepthPly);
@@ -300,13 +300,18 @@ public class PlySearcher {
 	}
 
 	private short scoreTerminalNode() {
-		return pe.evaluatePosition(pos);
+		return pe.evaluatePosition();
 	}
 	
 	private boolean isTerminalNode() {
 		boolean isTerminalNode = false;
-		if (currPly == searchDepthPly) {
-			isTerminalNode = true;
+		if (currPly >= searchDepthPly) {
+			if (pe.isQuiescent())
+			{
+				isTerminalNode = true;
+			} else {
+				// search extension
+			}
 		}
 		return isTerminalNode;
 	}	

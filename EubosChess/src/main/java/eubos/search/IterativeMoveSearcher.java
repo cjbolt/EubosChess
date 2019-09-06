@@ -9,6 +9,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
+import eubos.position.IEvaluate;
 import eubos.position.IGenerateMoveList;
 import eubos.position.IPositionAccessors;
 
@@ -18,9 +19,14 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	private static final int AVG_MOVES_PER_GAME = 40;
 	boolean searchStopped = false;
 
-	public IterativeMoveSearcher(EubosEngineMain eubos, FixedSizeTranspositionTable hashMap, IChangePosition inputPm, 
-			IGenerateMoveList mlgen, IPositionAccessors pos, long time ) {
-		super(eubos,inputPm,pos, new MiniMaxMoveGenerator( eubos, hashMap, inputPm, mlgen, pos ));
+	public IterativeMoveSearcher(EubosEngineMain eubos, 
+			FixedSizeTranspositionTable hashMap, 
+			IChangePosition inputPm, 
+			IGenerateMoveList mlgen, 
+			IPositionAccessors pos, 
+			long time,
+			IEvaluate pe ) {
+		super(eubos,inputPm,pos, new MiniMaxMoveGenerator( eubos, hashMap, inputPm, mlgen, pos, pe ));
 		gameTimeRemaining = time;
 		this.setName("IterativeMoveSearcher");
 	}

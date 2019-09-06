@@ -13,25 +13,31 @@ import eubos.board.pieces.Piece.Colour;
 public class PositionEvaluator implements IEvaluate {
 	
 	MaterialEvaluator me;
+	PositionManager pos;
 	
 	public static final int HAS_CASTLED_BOOST_CENTIPAWNS = 150;
 	public static final int DOUBLED_PAWN_HANDICAP = 50;
 	public static final int PASSED_PAWN_BOOST = 50;
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 25;
 	
-	public PositionEvaluator() {	
+	public PositionEvaluator(PositionManager pm) {	
 		this.me = new MaterialEvaluator();
+		this.pos = pm;
 	}
 	
-	public short evaluatePosition(IPositionAccessors pos) {
+	public boolean isQuiescent() {
+		return true;
+	}
+	
+	public short evaluatePosition() {
 		short score = me.evaluate(pos.getTheBoard());
-		score += encourageCastling(pos);
-		score += discourageDoubledPawns(pos);
-		score += encouragePassedPawns(pos);
+		score += encourageCastling();
+		score += discourageDoubledPawns();
+		score += encouragePassedPawns();
 		return score;
 	}
 	
-	int encourageCastling(IPositionAccessors pos) {
+	int encourageCastling() {
 		int castleScoreBoost = 0;
 		Colour onMoveWas = Colour.getOpposite(pos.getOnMove());
 		if (pos.hasCastled(onMoveWas)) {
@@ -43,13 +49,13 @@ public class PositionEvaluator implements IEvaluate {
 		return castleScoreBoost;
 	}
 	
-	int encouragePassedPawns(IPositionAccessors pos) {
-		int passedPawnBoost = checkPassedPawnsForColour(pos, pos.getOnMove());
-		passedPawnBoost += checkPassedPawnsForColour(pos, Colour.getOpposite(pos.getOnMove()));
+	int encouragePassedPawns() {
+		int passedPawnBoost = checkPassedPawnsForColour(pos.getOnMove());
+		passedPawnBoost += checkPassedPawnsForColour(Colour.getOpposite(pos.getOnMove()));
 		return passedPawnBoost;
 	}
 
-	private int checkPassedPawnsForColour(IPositionAccessors pos, Colour onMoveWas) {
+	private int checkPassedPawnsForColour(Colour onMoveWas) {
 		Board board = pos.getTheBoard();
 		int passedPawnBoost = 0;
 		Iterator<Piece> iter = board.iterateColour(onMoveWas);
@@ -121,13 +127,13 @@ public class PositionEvaluator implements IEvaluate {
 		return passedPawnBoost;
 	}
 	
-	int discourageDoubledPawns(IPositionAccessors pos) {
-		int doubledPawnScoreModifier = discourageDoubledPawnsForColour(pos, pos.getOnMove());
-		doubledPawnScoreModifier += discourageDoubledPawnsForColour(pos, Colour.getOpposite(pos.getOnMove()));
+	int discourageDoubledPawns() {
+		int doubledPawnScoreModifier = discourageDoubledPawnsForColour(pos.getOnMove());
+		doubledPawnScoreModifier += discourageDoubledPawnsForColour(Colour.getOpposite(pos.getOnMove()));
 		return doubledPawnScoreModifier;
 	}
 
-	private int discourageDoubledPawnsForColour(IPositionAccessors pos, Colour onMoveWas) {
+	private int discourageDoubledPawnsForColour(Colour onMoveWas) {
 		Iterator<Piece> iter = pos.getTheBoard().iterateColour(onMoveWas);
 		int pawnHandicap = 0;
 		int pawnCount[] = {0,0,0,0,0,0,0,0};

@@ -119,6 +119,11 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 	}
 	
+	PositionEvaluator pe;
+	public IEvaluate getPositionEvaluator() {
+		return this.pe;
+	}
+	
 	public PositionManager( Board startingPosition, Piece.Colour colourToMove ) {
 		moveTracker = new MoveTracker();
 		theBoard = startingPosition;
@@ -126,6 +131,7 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		mlgen = new MoveListGenerator(this);
 		onMove = colourToMove;
 		setKing();
+		pe = new PositionEvaluator( this );
 	}
 	
 	public PositionManager( String fenString ) {
@@ -134,6 +140,7 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		new fenParser( this, fenString );
 		setKing();
 		this.hash = new ZobristHashCode(this);
+		pe = new PositionEvaluator( this );
 	}
 	
 	public void performMove( GenericMove move ) throws InvalidPieceException {
