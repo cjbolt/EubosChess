@@ -67,10 +67,16 @@ class SearchMetricsReporter extends Thread {
 				info.setCentipawns(score);
 			} else {
 				int movesSearched = depth/2;
-				int mateOnMoveXFromEndOfSearch = (java.lang.Math.abs(score)/King.MATERIAL_VALUE)-1;
+				int mod = depth%2;
+				int mateOnMoveXFromEndOfSearch = (java.lang.Math.abs(score)/King.MATERIAL_VALUE);
 				int mateInX = movesSearched - mateOnMoveXFromEndOfSearch;
-				if (score < 0)
+				if (score < 0) {
 					mateInX = -mateInX;
+					mateInX--;
+				} else {
+					// defect calculating score when mate occurs on the final move searched.
+					mateInX += mod;
+				}
 				info.setMate(mateInX);
 			}
 			info.setDepth(depth);
