@@ -2,6 +2,8 @@ package eubos.position;
 
 import java.util.Stack;
 
+import eubos.board.pieces.Piece;
+
 class MoveTracker extends Stack<TrackedMove> {
 	
 	static final long serialVersionUID = 0x1L;
@@ -22,5 +24,13 @@ class MoveTracker extends Stack<TrackedMove> {
 			wasCastle = this.peek().isCastle();
 		}
 		return wasCastle;
+	}
+
+	public Piece getCapturedPiece() {
+		Piece captured = null;
+		if ( !this.isEmpty()) {
+			captured = this.peek().getCapturedPiece();
+		}
+		return captured;
 	}
 }

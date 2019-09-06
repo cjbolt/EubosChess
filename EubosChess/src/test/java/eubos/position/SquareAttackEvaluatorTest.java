@@ -22,7 +22,9 @@ import eubos.position.PositionManager;
 
 public class SquareAttackEvaluatorTest {
 
-	private SquareAttackEvaluator classUnderTest = null;
+	Board bd;
+	PositionManager bm;
+	
 	// In all the following unit tests, d5 is used as the test square. i.e. each
 	// test revolves around evaluating whether or not this particular square is 
 	// attacked.
@@ -32,33 +34,31 @@ public class SquareAttackEvaluatorTest {
 	private void createClassUnderTest(Piece attacker) {
 		pieceList = new LinkedList<Piece>();
 		pieceList.add(attacker);
-		Board bd = new Board(pieceList);
-		classUnderTest = new SquareAttackEvaluator(bd,testSq,Colour.getOpposite(attacker.getColour()));
+		bd = new Board(pieceList);
 	}
 	
 	private void createClassUnderTest(String fenString) {
-		PositionManager bm = new PositionManager(fenString);
-		classUnderTest = new SquareAttackEvaluator(bm.getTheBoard(),testSq,bm.getOnMove());
+		bm = new PositionManager(fenString);
 	}
 	
 	private void assertTestSqIsNotAttacked(String fenString) {
 		createClassUnderTest(fenString);
-		assertFalse(classUnderTest.isAttacked());
+		assertFalse(SquareAttackEvaluator.isAttacked(bm.getTheBoard(),testSq,bm.getOnMove()));
 	}
 	
 	private void assertTestSqIsAttacked(String fenString) {
 		createClassUnderTest(fenString);
-		assertTrue(classUnderTest.isAttacked());
+		assertTrue(SquareAttackEvaluator.isAttacked(bm.getTheBoard(),testSq,bm.getOnMove()));
 	}
 	
 	private void assertTestSqIsNotAttacked(Piece attacker) {
 		createClassUnderTest(attacker);
-		assertFalse(classUnderTest.isAttacked());
+		assertFalse(SquareAttackEvaluator.isAttacked(bd,testSq,attacker.getColour()));
 	}
 	
 	private void assertTestSqIsAttacked(Piece attacker) {
 		createClassUnderTest(attacker);
-		assertTrue(classUnderTest.isAttacked());
+		assertTrue(SquareAttackEvaluator.isAttacked(bd,testSq,Colour.getOpposite(attacker.getColour())));
 	}
 
 	@Before
@@ -182,7 +182,6 @@ public class SquareAttackEvaluatorTest {
 	@Test
 	public void testIsAttacked_MateInOne() {
 		PositionManager pm = new PositionManager("5r1k/p2R3Q/1pp2p1p/8/5q2/5bN1/PP3P2/6K1 b - - - 0");
-		classUnderTest = new SquareAttackEvaluator(pm.getTheBoard(), GenericPosition.g8, pm.getOnMove());
-		assertTrue(classUnderTest.isAttacked());
+		assertTrue(SquareAttackEvaluator.isAttacked(pm.getTheBoard(), GenericPosition.g8, pm.getOnMove()));
 	}
 }

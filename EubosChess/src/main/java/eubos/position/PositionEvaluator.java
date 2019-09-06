@@ -6,6 +6,7 @@ import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericRank;
 
 import eubos.board.Board;
+import eubos.board.SquareAttackEvaluator;
 import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
@@ -13,7 +14,7 @@ import eubos.board.pieces.Piece.Colour;
 public class PositionEvaluator implements IEvaluate {
 	
 	MaterialEvaluator me;
-	PositionManager pos;
+	PositionManager pm;
 	
 	public static final int HAS_CASTLED_BOOST_CENTIPAWNS = 150;
 	public static final int DOUBLED_PAWN_HANDICAP = 50;
@@ -22,15 +23,28 @@ public class PositionEvaluator implements IEvaluate {
 	
 	public PositionEvaluator(PositionManager pm) {	
 		this.me = new MaterialEvaluator();
-		this.pos = pm;
+		this.pm = pm;
 	}
 	
 	public boolean isQuiescent() {
+		if (pm.lastMoveWasCapture() /* todo: or last move was check*/) {
+			// we could keep a capture list, so we know where we are in the exchange series?
+			// we can get access to the captured piece in the current codebase, but we need to know the whole capture sequence to do swap off?
+			Piece captured = pm.getCapturedPiece();
+			if (captured != null)
+			{
+				if (SquareAttackEvaluator.isAttacked(
+						pm.getTheBoard(),
+						captured.getSquare(),
+						Colour.getOpposite(pm.getOnMove())))
+					return false;
+			}
+		}
 		return true;
 	}
 	
 	public short evaluatePosition() {
-		short score = me.evaluate(pos.getTheBoard());
+		short score = me.evaluate(pm.getTheBoard());
 		score += encourageCastling();
 		score += discourageDoubledPawns();
 		score += encouragePassedPawns();
@@ -39,8 +53,8 @@ public class PositionEvaluator implements IEvaluate {
 	
 	int encourageCastling() {
 		int castleScoreBoost = 0;
-		Colour onMoveWas = Colour.getOpposite(pos.getOnMove());
-		if (pos.hasCastled(onMoveWas)) {
+		Colour onMoveWas = Colour.getOpposite(pm.getOnMove());
+		if (pm.hasCastled(onMoveWas)) {
 			castleScoreBoost = HAS_CASTLED_BOOST_CENTIPAWNS;
 		}
 		if (onMoveWas == Colour.black) {
@@ -50,13 +64,13 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	int encouragePassedPawns() {
-		int passedPawnBoost = checkPassedPawnsForColour(pos.getOnMove());
-		passedPawnBoost += checkPassedPawnsForColour(Colour.getOpposite(pos.getOnMove()));
+		int passedPawnBoost = checkPassedPawnsForColour(pm.getOnMove());
+		passedPawnBoost += checkPassedPawnsForColour(Colour.getOpposite(pm.getOnMove()));
 		return passedPawnBoost;
 	}
 
 	private int checkPassedPawnsForColour(Colour onMoveWas) {
-		Board board = pos.getTheBoard();
+		Board board = pm.getTheBoard();
 		int passedPawnBoost = 0;
 		Iterator<Piece> iter = board.iterateColour(onMoveWas);
 		while (iter.hasNext()) {
@@ -128,13 +142,13 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	int discourageDoubledPawns() {
-		int doubledPawnScoreModifier = discourageDoubledPawnsForColour(pos.getOnMove());
-		doubledPawnScoreModifier += discourageDoubledPawnsForColour(Colour.getOpposite(pos.getOnMove()));
+		int doubledPawnScoreModifier = discourageDoubledPawnsForColour(pm.getOnMove());
+		doubledPawnScoreModifier += discourageDoubledPawnsForColour(Colour.getOpposite(pm.getOnMove()));
 		return doubledPawnScoreModifier;
 	}
 
 	private int discourageDoubledPawnsForColour(Colour onMoveWas) {
-		Iterator<Piece> iter = pos.getTheBoard().iterateColour(onMoveWas);
+		Iterator<Piece> iter = pm.getTheBoard().iterateColour(onMoveWas);
 		int pawnHandicap = 0;
 		int pawnCount[] = {0,0,0,0,0,0,0,0};
 		while (iter.hasNext()) {

@@ -310,7 +310,8 @@ public class PlySearcher {
 			{
 				isTerminalNode = true;
 			} else {
-				// search extension
+				// search extension will happen here
+				isTerminalNode = true; // stub - do old behaviour 
 			}
 		}
 		return isTerminalNode;

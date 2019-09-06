@@ -141,4 +141,18 @@ public class PositionEvaluatorTest {
 		int score = SUT.encouragePassedPawns();
 		assertEquals(0 /* both pawns on the same file, passed */, score);
 	}
+	
+	@Test
+	public void test_isQuiescent_No_QueenRecapture() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("8/8/5p2/4p3/3Q4/8/8/8 w - - 0 1 ");
+		pm.performMove(new GenericMove("d4e5"));
+		assertFalse(SUT.isQuiescent());
+	}
+	
+	@Test
+	public void test_isQuiescent_Yes_QueenNoRecapture() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("8/8/8/4p3/3Q4/8/8/8 w - - 0 1 ");
+		pm.performMove(new GenericMove("d4e5"));
+		assertTrue(SUT.isQuiescent());
+	}
 }

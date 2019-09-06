@@ -19,10 +19,6 @@ import eubos.board.pieces.Piece.Colour;
 
 public class SquareAttackEvaluator {
 	
-	private Piece.Colour attackingColour;
-	private GenericPosition attackedSq;
-	private Board theBoard;
-	
 	static private final GenericPosition [][][] directPieceMove_Lut = new GenericPosition [64][][];
 	static {
 		for (GenericPosition square : GenericPosition.values()) {
@@ -54,18 +50,19 @@ public class SquareAttackEvaluator {
 		return sqsInDirection;
 	}
 	
-	public SquareAttackEvaluator( Board bd, GenericPosition atPos, Piece.Colour ownColour ) {
+	/*public SquareAttackEvaluator( Board bd, GenericPosition atPos, Piece.Colour ownColour ) {
 		attackingColour = Piece.Colour.getOpposite(ownColour);
 		attackedSq = atPos;
 		theBoard = bd;
-	}
+	}*/
 	
-	public boolean isAttacked() {
+	public static boolean isAttacked( Board bd, GenericPosition attackedSq, Piece.Colour ownColour ) {
+		Colour attackingColour = Piece.Colour.getOpposite(ownColour);
 		boolean attacked = false;
 		boolean doKnightCheck = false;
 		boolean doDiagonalCheck = false;
 		boolean doRankFileCheck = false;
-		Iterator<Piece> iter = theBoard.iterateColour(attackingColour);
+		Iterator<Piece> iter = bd.iterateColour(attackingColour);
 		while (iter.hasNext()) {
 			Piece curr = iter.next();
 			if (curr instanceof Knight) {
@@ -82,31 +79,31 @@ public class SquareAttackEvaluator {
 		// do/while loop is to allow the function to return attacked=true at earliest possibility
 		do {
 			if (attackingColour == Colour.black) {
-				attacked = attackedByPawn(Direction.getDirectMoveSq(Direction.upRight,attackedSq));
+				attacked = attackedByPawn(bd, attackingColour, Direction.getDirectMoveSq(Direction.upRight,attackedSq));
 				if (attacked) break;
-				attacked = attackedByPawn(Direction.getDirectMoveSq(Direction.upLeft,attackedSq));
+				attacked = attackedByPawn(bd, attackingColour, Direction.getDirectMoveSq(Direction.upLeft,attackedSq));
 				if (attacked) break;
 			} else {
-				attacked = attackedByPawn(Direction.getDirectMoveSq(Direction.downRight,attackedSq));
+				attacked = attackedByPawn(bd, attackingColour, Direction.getDirectMoveSq(Direction.downRight,attackedSq));
 				if (attacked) break;
-				attacked = attackedByPawn(Direction.getDirectMoveSq(Direction.downLeft,attackedSq));
+				attacked = attackedByPawn(bd, attackingColour, Direction.getDirectMoveSq(Direction.downLeft,attackedSq));
 				if (attacked) break;
 			}
-			attacked = checkForKingAttacks();
+			attacked = checkForKingAttacks(bd, attackingColour, attackedSq);
 			if (attacked) break;
 			if (doKnightCheck) {
-				attacked = checkForKnightAttacks();
+				attacked = checkForKnightAttacks(bd, attackingColour, attackedSq);
 				if (attacked) break;
 			}
 			if (doDiagonalCheck || doRankFileCheck) {
-				attacked = checkForDirectPieceAttacker(attackedSq);
+				attacked = checkForDirectPieceAttacker(bd, attackingColour, attackedSq);
 				if (attacked) break;
 			}
 		} while (false);
 		return attacked;	
 	}
 
-	private boolean checkForKnightAttacks() {
+	private static boolean checkForKnightAttacks(Board theBoard, Colour attackingColour, GenericPosition attackedSq) {
 		boolean attacked = false;
 		GenericPosition atPos;
 		Piece currPiece;
@@ -123,7 +120,7 @@ public class SquareAttackEvaluator {
 		return attacked;
 	}
 
-	private boolean checkForKingAttacks() {
+	private static boolean checkForKingAttacks(Board theBoard, Colour attackingColour, GenericPosition attackedSq) {
 		boolean attacked = false;
 		GenericPosition atPos;
 		Piece currPiece;
@@ -140,7 +137,7 @@ public class SquareAttackEvaluator {
 		return attacked;
 	}	
 
-	private boolean checkForDirectPieceAttacker(GenericPosition targetSq) {
+	private static boolean checkForDirectPieceAttacker(Board theBoard, Colour attackingColour, GenericPosition targetSq) {
 		boolean attacked = false;
 		int f = IntFile.valueOf(targetSq.file);
 		int r = IntRank.valueOf(targetSq.rank);
@@ -171,7 +168,7 @@ public class SquareAttackEvaluator {
 		return attacked;
 	}
 
-	private boolean attackedByPawn(GenericPosition attackerSq) {
+	private static boolean attackedByPawn(Board theBoard, Colour attackingColour, GenericPosition attackerSq) {
 		Piece currPiece;
 		boolean attacked = false;
 		if (attackerSq != null) {

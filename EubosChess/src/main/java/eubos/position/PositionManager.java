@@ -64,6 +64,10 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		return moveTracker.lastMoveWasCapture();
 	}
 	
+	Piece getCapturedPiece() {
+		return moveTracker.getCapturedPiece();
+	}
+	
 	public boolean hasCastled(Colour colour){
 		return castling.everCastled(colour);
 	}
@@ -231,8 +235,7 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 	}
 	
 	boolean squareIsAttacked( GenericPosition atPos, Piece.Colour ownColour ) {
-		SquareAttackEvaluator sqAttackEval = new SquareAttackEvaluator( theBoard, atPos, ownColour );
-		return sqAttackEval.isAttacked();
+		return SquareAttackEvaluator.isAttacked(theBoard, atPos, ownColour);
 	}
 
 	private Piece checkForPawnPromotions(GenericMove move, Piece pieceToMove) {
