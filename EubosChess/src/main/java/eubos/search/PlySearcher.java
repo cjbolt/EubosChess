@@ -154,7 +154,7 @@ public class PlySearcher {
 					if (currPly == 0)
 						pcUpdater.report(positionScore, searchDepthPly);
 					Transposition newTrans = new Transposition(depthSearchedPly, st.getBackedUpScoreAtPly(currPly), plyBound, ml, pc.toPvList(currPly));
-					trans = updateTranspositionTable(trans, newTrans);
+					trans = tt.updateTranspositionTable(sm, currPly, trans, newTrans);
 				} else {
 					boolean doUpdate = false;
 					if (plyBound == ScoreType.lowerBound) {
@@ -170,7 +170,7 @@ public class PlySearcher {
 						List<GenericMove> continuation = pc.toPvList(currPly);
 						continuation.add(0,currMove);
 						Transposition newTrans = new Transposition(depthSearchedPly, positionScore, plyBound, ml, continuation);
-						trans = updateTranspositionTable(trans, newTrans);
+						trans = tt.updateTranspositionTable(sm, currPly, trans, newTrans);
 					}
 				}
 				
@@ -184,7 +184,7 @@ public class PlySearcher {
 				// Needed to set exact score instead of upper/lower bound score now we finished search at this ply
 				//trans.setScoreType(ScoreType.exact);
 				Transposition newTrans = new Transposition(depthSearchedPly, st.getBackedUpScoreAtPly(currPly), ScoreType.exact, ml, pc.toPvList(currPly));
-				trans = updateTranspositionTable(trans, newTrans);
+				trans = tt.updateTranspositionTable(sm, currPly, trans, newTrans);
 			}
 			depthSearchedPly++; // backing up, increment depth searched
 		}
@@ -204,55 +204,6 @@ public class PlySearcher {
 			backupRequired = true;
 		}
 		return backupRequired;
-	}
-
-	void checkContinuationValidForPosition() {
-		System.out.println("Pc to test: "+pc.toPvList(currPly));
-		Iterator<GenericMove> move_iter = pc.toPvList(currPly).iterator();
-		System.out.println("Original position: "+pos.getFen());
-		/* Even this isn't a good enough test, because it doesn't check that the move is valid
-		 *  for the piece, just that there is a piece on the square to be moved :(
-		 *  
-		 *  To tighten it right up we would need to search the moves in each position and check
-		 *  the move list contains the move from the variation (move list moves are legal).
-		 */
-		while(move_iter.hasNext()) {
-			GenericMove move = move_iter.next();
-			try {
-				pm.performMove(move);
-				System.out.println("Test move: " + move);
-				System.out.println("Next position: " +pos.getFen());
-			} catch (InvalidPieceException e) {
-				/* The continuation provided is invalid. Probably because it is from old limbs of
-				 * the search tree, stale backed up data. If we didn't back up pc at the node
-				 * searched, then we should probably clear the pv at that row of the array,
-				 * when we return.
-				 */
-				System.out.println("Can't move: " + move);
-				System.out.println("Error position: "+pos.getFen());
-			}
-		}
-		move_iter = pc.toPvList(currPly).iterator();
-		while(move_iter.hasNext()) {
-			GenericMove move = move_iter.next();
-			try {
-				System.out.println("Undo move: " + move);
-				pm.unperformMove();
-			} catch (InvalidPieceException e) {
-				System.out.println("Can't undo move: " + move);
-				System.out.println("Error undo position: "+pos.getFen());
-			}
-		}
-	}
-	
-	private Transposition updateTranspositionTable(Transposition trans, Transposition new_trans) {
-		//checkContinuationValidForPosition();
-		if (trans == null) {
-			trans = tt.getTransCreateIfNew(currPly, new_trans);
-			sm.setHashFull(tt.getHashUtilisation());
-		}
-		trans = tt.checkForUpdateTrans(currPly, new_trans, trans);
-		return trans;
 	}
 	
 	private void reportMove(GenericMove currMove) {
@@ -328,4 +279,43 @@ public class PlySearcher {
 		currPly--;
 		SearchDebugAgent.printUndoMove(currPly, currMove);
 	}	
+	
+	void checkContinuationValidForPosition() {
+		System.out.println("Pc to test: "+pc.toPvList(currPly));
+		Iterator<GenericMove> move_iter = pc.toPvList(currPly).iterator();
+		System.out.println("Original position: "+pos.getFen());
+		/* Even this isn't a good enough test, because it doesn't check that the move is valid
+		 *  for the piece, just that there is a piece on the square to be moved :(
+		 *  
+		 *  To tighten it right up we would need to search the moves in each position and check
+		 *  the move list contains the move from the variation (move list moves are legal).
+		 */
+		while(move_iter.hasNext()) {
+			GenericMove move = move_iter.next();
+			try {
+				pm.performMove(move);
+				System.out.println("Test move: " + move);
+				System.out.println("Next position: " +pos.getFen());
+			} catch (InvalidPieceException e) {
+				/* The continuation provided is invalid. Probably because it is from old limbs of
+				 * the search tree, stale backed up data. If we didn't back up pc at the node
+				 * searched, then we should probably clear the pv at that row of the array,
+				 * when we return.
+				 */
+				System.out.println("Can't move: " + move);
+				System.out.println("Error position: "+pos.getFen());
+			}
+		}
+		move_iter = pc.toPvList(currPly).iterator();
+		while(move_iter.hasNext()) {
+			GenericMove move = move_iter.next();
+			try {
+				System.out.println("Undo move: " + move);
+				pm.unperformMove();
+			} catch (InvalidPieceException e) {
+				System.out.println("Can't undo move: " + move);
+				System.out.println("Error undo position: "+pos.getFen());
+			}
+		}
+	}
 }

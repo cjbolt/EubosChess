@@ -68,6 +68,15 @@ public class TranspositionTableAccessor {
 		return ret;
 	}
 	
+	public Transposition updateTranspositionTable(SearchMetrics sm, byte currPly, Transposition trans, Transposition new_trans) {
+		if (trans == null) {
+			trans = getTransCreateIfNew(currPly, new_trans);
+			sm.setHashFull(getHashUtilisation());
+		}
+		trans = checkForUpdateTrans(currPly, new_trans, trans);
+		return trans;
+	}
+	
 	public Transposition getTransCreateIfNew(int currPly, Transposition new_trans) {
 		SearchDebugAgent.printTransNull(currPly, pos.getHash());
 		Transposition trans = hashMap.getTransposition(pos.getHash());
@@ -107,7 +116,7 @@ public class TranspositionTableAccessor {
 		    current_trans.setBestMove(new_trans.getBestMove());
 		    current_trans.setDepthSearchedInPly(new_trans.getDepthSearchedInPly());
 		    current_trans.setMoveList(new_trans.getMoveList());
-		    hashMap.putTransposition(pos.getHash(), current_trans);
+		    //hashMap.putTransposition(pos.getHash(), current_trans);
 		    SearchDebugAgent.printTransUpdate(currPly, current_trans, pos.getHash());
 		}
 		return current_trans;

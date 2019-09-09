@@ -155,4 +155,18 @@ public class PositionEvaluatorTest {
 		pm.performMove(new GenericMove("d4e5"));
 		assertTrue(SUT.isQuiescent());
 	}
+	
+	@Test
+	public void test_isQuiescent_Yes_NoCaptures() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("8/3p4/8/8/3P4/8/8/8 w - - 0 1 ");
+		pm.performMove(new GenericMove("d4d5"));
+		assertTrue(SUT.isQuiescent());
+	}
+	
+	@Test
+	public void test_isQuiescent_Yes_LastMoveWasntCapture() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("8/8/4p3/8/3P4/8/8/8 w - - 0 1 ");
+		pm.performMove(new GenericMove("d4d5"));
+		assertTrue(SUT.isQuiescent());
+	}
 }

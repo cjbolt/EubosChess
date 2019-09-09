@@ -26,6 +26,7 @@ public class TranspositionTableAccessorTest {
 	ScoreTracker st;
 	PrincipalContinuation pc;
 	List<GenericMove> lastPc;
+	private SearchMetrics sm;
 	
 	private  static final int SEARCH_DEPTH_IN_PLY = 4;
 	
@@ -36,6 +37,7 @@ public class TranspositionTableAccessorTest {
 	
 	@Before
 	public void setUp() throws Exception {
+		sm = new SearchMetrics();
 		transTable = new FixedSizeTranspositionTable();
 		st = new ScoreTracker(SEARCH_DEPTH_IN_PLY, true);
 		st.setProvisionalScoreAtPly((byte) 0);
@@ -130,5 +132,40 @@ public class TranspositionTableAccessorTest {
 		eval = sut.evaluateTranspositionData(currPly, 1);
 		
 		assertEquals(TranspositionTableStatus.sufficientRefutation, eval.status);
+	}
+	
+	@Test
+	public void testUpdateWorks_whenNew() throws IllegalNotationException {
+		List<GenericMove> ml = new LinkedList<GenericMove>();
+		ml.add(new GenericMove("e2e4"));
+		ml.add(new GenericMove("d2d4"));
+		List<GenericMove> pc = new ArrayList<GenericMove>();
+		pc.add(new GenericMove("e2e4"));
+		Transposition new_trans = new Transposition((byte)1, (short)105, ScoreType.lowerBound, ml, pc);
+
+		currPly = 2;
+		Transposition stored_trans = sut.updateTranspositionTable(sm, currPly, null, new_trans);
+		
+		assertEquals(stored_trans, new_trans);
+	}
+	
+	@Test
+	public void testUpdateWorks_whenExistingUpdated() throws IllegalNotationException {
+		List<GenericMove> ml = new LinkedList<GenericMove>();
+		ml.add(new GenericMove("e2e4"));
+		ml.add(new GenericMove("d2d4"));
+		List<GenericMove> pc = new ArrayList<GenericMove>();
+		pc.add(new GenericMove("e2e4"));
+		Transposition upper_trans = new Transposition((byte)1, (short)105, ScoreType.lowerBound, ml, pc);
+
+		currPly = 2;
+		Transposition stored_trans = sut.updateTranspositionTable(sm, currPly, null, upper_trans);
+		
+		Transposition exact_trans = new Transposition((byte)1, (short)110, ScoreType.exact, ml, pc);
+		stored_trans = sut.updateTranspositionTable(sm, currPly, stored_trans, exact_trans);
+		
+		assertEquals(stored_trans, upper_trans);
+		assertEquals(ScoreType.exact, stored_trans.getScoreType());
+		assertEquals(110, stored_trans.getScore());
 	}
 }
