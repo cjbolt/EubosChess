@@ -54,7 +54,7 @@ class MiniMaxMoveGenerator implements
 	}	
 	
 	private void initialiseSearchDepthDependentObjects(int searchDepth) {
-		pc = new PrincipalContinuation(searchDepth);
+		pc = new PrincipalContinuation(searchDepth*3);
 		sm.setDepth(searchDepth);
 		sm.clearCurrentMoveNumber();
 		sm.setPrincipalVariation(pc.toPvList());
@@ -83,7 +83,7 @@ class MiniMaxMoveGenerator implements
 		if (sendInfo)
 			sr.start();
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
-		eval_score = ps.searchPly();
+		eval_score = ps.normalSearchPly();
 		if (Math.abs(eval_score) >= eubos.board.pieces.King.MATERIAL_VALUE) {
 			foundMate = true;
 		}

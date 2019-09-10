@@ -1,5 +1,6 @@
 package eubos.search;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -14,6 +15,7 @@ import eubos.position.IScoreMate;
 import eubos.position.MateScoreGenerator;
 import eubos.search.Transposition.ScoreType;
 import eubos.search.TranspositionTableAccessor.TranspositionEval;
+import eubos.search.TranspositionTableAccessor.TranspositionTableStatus;
 import eubos.position.IEvaluate;
 
 public class PlySearcher {
@@ -64,9 +66,9 @@ public class PlySearcher {
 		// Register initialOnMove
 		initialOnMove = pos.getOnMove();
 		this.pe = pe;
-		this.st = new ScoreTracker(searchDepthPly, initialOnMove == Colour.white);
+		this.st = new ScoreTracker(searchDepthPly*3, initialOnMove == Colour.white);
 		this.tt = new TranspositionTableAccessor(hashMap, pos, st, lastPc);
-		this.sg = new MateScoreGenerator(pos, searchDepthPly);
+		this.sg = new MateScoreGenerator(pos, searchDepthPly*3);
 		this.pcUpdater = new PrincipalContinuationUpdateHelper(initialOnMove, pc, sm, sr);
 	}
 	
@@ -74,7 +76,7 @@ public class PlySearcher {
 		terminate = true; }
 	private synchronized boolean isTerminated() { return terminate; }	
 	
-	short searchPly() throws InvalidPieceException {
+	short normalSearchPly() throws InvalidPieceException {
 		if (isTerminated())
 			return 0;
 		
@@ -89,9 +91,11 @@ public class PlySearcher {
 			depthSearchedPly = eval.trans.getDepthSearchedInPly();
 			pc.clearTreeBeyondPly(currPly);
 			if (doScoreBackup(eval.trans.getScore())) {
-				pc.update(currPly, eval.trans.getPrincipalContinuation());
-				if (currPly == 0)
+				pc.update(currPly, eval.trans.getBestMove() /*eval.trans.getPrincipalContinuation()*/);
+				if (currPly == 0) {
+					//constructPc();
 					pcUpdater.report(eval.trans.getScore(), depthSearchedPly);
+				}
 			}
 			sm.incrementNodesSearched();
 			break;
@@ -151,9 +155,11 @@ public class PlySearcher {
 					everBackedUp = true;
 					plyScore = positionScore;
 					pc.update(currPly, currMove);
-					if (currPly == 0)
+					if (currPly == 0) {
+						//constructPc();
 						pcUpdater.report(positionScore, searchDepthPly);
-					Transposition newTrans = new Transposition(depthSearchedPly, st.getBackedUpScoreAtPly(currPly), plyBound, ml, pc.toPvList(currPly));
+					}
+					Transposition newTrans = new Transposition(depthSearchedPly, st.getBackedUpScoreAtPly(currPly), plyBound, ml, pc.getBestMove(currPly)/*pc.toPvList(currPly)*/);
 					trans = tt.updateTranspositionTable(sm, currPly, trans, newTrans);
 				} else {
 					boolean doUpdate = false;
@@ -169,7 +175,7 @@ public class PlySearcher {
 						plyScore = positionScore;
 						List<GenericMove> continuation = pc.toPvList(currPly);
 						continuation.add(0,currMove);
-						Transposition newTrans = new Transposition(depthSearchedPly, positionScore, plyBound, ml, continuation);
+						Transposition newTrans = new Transposition(depthSearchedPly, positionScore, plyBound, ml, continuation.get(0));
 						trans = tt.updateTranspositionTable(sm, currPly, trans, newTrans);
 					}
 				}
@@ -183,11 +189,39 @@ public class PlySearcher {
 			if (everBackedUp && !refutationFound /*&& trans != null*/) {
 				// Needed to set exact score instead of upper/lower bound score now we finished search at this ply
 				//trans.setScoreType(ScoreType.exact);
-				Transposition newTrans = new Transposition(depthSearchedPly, st.getBackedUpScoreAtPly(currPly), ScoreType.exact, ml, pc.toPvList(currPly));
+				Transposition newTrans = new Transposition(depthSearchedPly, st.getBackedUpScoreAtPly(currPly), ScoreType.exact, ml, pc.getBestMove(currPly));
 				trans = tt.updateTranspositionTable(sm, currPly, trans, newTrans);
 			}
 			depthSearchedPly++; // backing up, increment depth searched
 		}
+	}
+	
+	void constructPc() throws InvalidPieceException {
+		byte plies = 0;
+		int numMoves = 0;
+		List<GenericMove> constructed_pc = new ArrayList<GenericMove>(searchDepthPly);
+		for (plies = 0; plies < searchDepthPly; plies++) {
+			GenericMove pcMove = pc.getBestMove(plies);
+			if (pcMove != null) {
+				// apply move from principal continuation
+				constructed_pc.add(pcMove);
+				pm.performMove(pcMove);
+				numMoves++;
+			} else {
+				/* Apply move and find best move from hash */
+				TranspositionEval eval = tt.evaluateTranspositionData(plies, 0);
+				if (eval.status != TranspositionTableStatus.insufficientNoData && eval != null && eval.trans != null) {
+					GenericMove currMove = eval.trans.getBestMove();
+					constructed_pc.add(currMove);
+					pm.performMove(currMove);
+					numMoves++;
+				}
+			}
+		}
+		for (plies = 0; plies < numMoves; plies++) {
+			pm.unperformMove();
+		}
+		pc.update(0, constructed_pc);
 	}
 	
 	private byte initialiseSearchAtPly() {
@@ -238,14 +272,34 @@ public class PlySearcher {
 		return positionScore;
 	}
 
+	enum SearchState {
+		normalSearchTerminalNode,
+		normalSearchNode,
+		extendedSearchNode,
+		extendedSearchTerminalNode
+	};
+	
 	private short assessNewPosition(GenericMove prevMove) throws InvalidPieceException {
 		short positionScore;
-		// Either recurse or evaluate a terminal position
-		if ( isTerminalNode() ) {
+		switch ( isTerminalNode() ) {
+		case normalSearchTerminalNode:
 			positionScore = scoreTerminalNode();
 			depthSearchedPly = 1; // We searched to find this score
-		} else {
-			positionScore = searchPly();
+			break;
+		case normalSearchNode:
+			positionScore = normalSearchPly();
+			break;
+		case extendedSearchNode:
+			positionScore = extendedSearchPly();
+			depthSearchedPly = 1; // Not sure this is needed
+			break;
+		case extendedSearchTerminalNode:
+			positionScore = scoreTerminalNode();
+			depthSearchedPly = 1; // Not sure this is needed
+			break;
+		default:
+			positionScore = 0;
+			break;
 		}
 		return positionScore;
 	}
@@ -254,19 +308,70 @@ public class PlySearcher {
 		return pe.evaluatePosition();
 	}
 	
-	private boolean isTerminalNode() {
-		boolean isTerminalNode = false;
-		if (currPly >= searchDepthPly) {
-			if (pe.isQuiescent())
-			{
-				isTerminalNode = true;
+	private SearchState isTerminalNode() {
+		SearchState nodeState = SearchState.normalSearchNode;
+		if (currPly < searchDepthPly) {
+			nodeState = SearchState.normalSearchNode;
+		} else if (currPly == searchDepthPly) {
+			if (pe.isQuiescent()) {
+				nodeState = SearchState.normalSearchTerminalNode;
 			} else {
-				// search extension will happen here
-				isTerminalNode = true; // stub - do old behaviour 
+				nodeState = SearchState.extendedSearchNode; 
+			}
+		} else { // if (currPly > searchDepthPly) // extended search
+			if (pe.isQuiescent() || (currPly > Math.min((searchDepthPly + 4), ((searchDepthPly*3)-1))) /* todo ARBITRARY!!!! */) {
+				nodeState = SearchState.extendedSearchTerminalNode;
+			} else {
+				nodeState = SearchState.extendedSearchNode; 
 			}
 		}
-		return isTerminalNode;
-	}	
+		return nodeState;
+	}
+	
+	private short extendedSearchPly() throws InvalidPieceException {
+		if (isTerminated())
+			return 0;
+				
+		// todo At first, don't use hash map for extended searches
+		st.setProvisionalScoreAtPly(currPly);
+		List<GenericMove> ml = mlgen.getMoveListOfChecksAndCaptures();
+		searchCheckAndCaptureMoves( ml );
+			
+		return st.getBackedUpScoreAtPly(currPly);
+	}
+	
+	private void searchCheckAndCaptureMoves(List<GenericMove> ml) throws InvalidPieceException {
+		if (isMateOccurred(ml)) {
+			// Probably wrong!
+			short mateScore = sg.scoreMate(currPly, (pos.getOnMove() == Colour.white), initialOnMove);
+			st.setBackedUpScoreAtPly(currPly, mateScore);
+		} else {
+			pc.update(currPly, ml.get(0));
+			short provisionalScoreAtPly = st.getProvisionalScoreAtPly(currPly);
+			Iterator<GenericMove> move_iter = ml.iterator();
+			
+			while(move_iter.hasNext() && !isTerminated()) {
+				GenericMove currMove = move_iter.next();
+				if (currPly == 0) {
+					pc.clearRowsBeyondPly(currPly);
+					reportMove(currMove);
+				}
+				
+				short positionScore = applyMoveAndScore(currMove);
+				
+				if (doScoreBackup(positionScore)) {
+					pc.update(currPly, currMove);
+				}
+				
+				if (st.isAlphaBetaCutOff( currPly, provisionalScoreAtPly, positionScore)) {
+					SearchDebugAgent.printRefutationFound(currPly);
+					break;	
+				}
+			}
+			// don't count extended searches in hashing....
+			//depthSearchedPly++; // backing up, increment depth searched
+		}
+	}
 
 	private void doPerformMove(GenericMove currMove) throws InvalidPieceException {
 		SearchDebugAgent.printPerformMove(currPly, currMove);

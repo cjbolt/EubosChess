@@ -170,7 +170,8 @@ public class MiniMaxMoveGeneratorTest {
 		// 1 ....r.k.
 		//   abcdefgh
 		setupPosition( "3nkbnr/3p1ppp/8/1B1p4/R2N4/8/6PP/4R1K1 b - - - -" );
-		expectedMove = new GenericMove("g8e7");
+		expectedMove = new GenericMove("f8e7");
+		//expectedMove = new GenericMove("g8e7");
 		doFindMoveTest(true);
 	}	
 	

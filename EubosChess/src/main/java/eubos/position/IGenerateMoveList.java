@@ -9,4 +9,5 @@ import eubos.board.InvalidPieceException;
 public interface IGenerateMoveList {
 	public List<GenericMove> getMoveList() throws InvalidPieceException;
 	public List<GenericMove> getMoveList(GenericMove prevBest) throws InvalidPieceException;
+	public List<GenericMove> getMoveListOfChecksAndCaptures() throws InvalidPieceException;
 }

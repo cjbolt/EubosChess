@@ -110,7 +110,7 @@ public class TranspositionTableAccessor {
 			}
 		}
 		if (updateTransposition) {
-			current_trans.setPrincipalContinuation(new_trans.getPrincipalContinuation());
+			//current_trans.setPrincipalContinuation(new_trans.getPrincipalContinuation());
 			current_trans.setScoreType(new_trans.getScoreType());
 			current_trans.setScore(new_trans.getScore());
 		    current_trans.setBestMove(new_trans.getBestMove());

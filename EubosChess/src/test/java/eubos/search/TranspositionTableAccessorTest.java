@@ -60,7 +60,7 @@ public class TranspositionTableAccessorTest {
 		ml.add(new GenericMove("d2d4"));
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
-		Transposition new_trans = new Transposition((byte)1, (short)105, ScoreType.exact, ml, pc);
+		Transposition new_trans = new Transposition((byte)1, (short)105, ScoreType.exact, ml, pc.get(0));
 		
 		sut.getTransCreateIfNew(currPly, new_trans);
 		
@@ -76,7 +76,7 @@ public class TranspositionTableAccessorTest {
 		ml.add(new GenericMove("d2d4"));
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
-		Transposition new_trans = new Transposition((byte)1, (short)105, ScoreType.exact, ml, pc);
+		Transposition new_trans = new Transposition((byte)1, (short)105, ScoreType.exact, ml, pc.get(0));
 		
 		sut.getTransCreateIfNew(currPly, new_trans);
 		
@@ -89,7 +89,7 @@ public class TranspositionTableAccessorTest {
 	@Ignore
 	public void testEval_StoreRetrieve_whenNoMoveList_insufficientNoData() throws InvalidPieceException, IllegalNotationException {
 		List<GenericMove> pc = new ArrayList<GenericMove>();
-		Transposition new_trans = new Transposition((byte)1, (short)105, ScoreType.exact, null, pc);
+		Transposition new_trans = new Transposition((byte)1, (short)105, ScoreType.exact, null, pc.get(0));
 		
 		sut.getTransCreateIfNew(currPly, new_trans);
 		
@@ -105,7 +105,7 @@ public class TranspositionTableAccessorTest {
 		ml.add(new GenericMove("d2d4"));
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
-		Transposition new_trans = new Transposition((byte)1, (short)105, ScoreType.upperBound, ml, pc);
+		Transposition new_trans = new Transposition((byte)1, (short)105, ScoreType.upperBound, ml, pc.get(0));
 
 		currPly = 2;
 		sut.getTransCreateIfNew(currPly, new_trans);
@@ -123,7 +123,7 @@ public class TranspositionTableAccessorTest {
 		ml.add(new GenericMove("d2d4"));
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
-		Transposition new_trans = new Transposition((byte)1, (short)105, ScoreType.lowerBound, ml, pc);
+		Transposition new_trans = new Transposition((byte)1, (short)105, ScoreType.lowerBound, ml, pc.get(0));
 
 		currPly = 2;
 		sut.getTransCreateIfNew(currPly, new_trans);
@@ -141,7 +141,7 @@ public class TranspositionTableAccessorTest {
 		ml.add(new GenericMove("d2d4"));
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
-		Transposition new_trans = new Transposition((byte)1, (short)105, ScoreType.lowerBound, ml, pc);
+		Transposition new_trans = new Transposition((byte)1, (short)105, ScoreType.lowerBound, ml, pc.get(0));
 
 		currPly = 2;
 		Transposition stored_trans = sut.updateTranspositionTable(sm, currPly, null, new_trans);
@@ -151,21 +151,35 @@ public class TranspositionTableAccessorTest {
 	
 	@Test
 	public void testUpdateWorks_whenExistingUpdated() throws IllegalNotationException {
+		GenericMove move1 = new GenericMove("e2e4");
+		GenericMove move2 = new GenericMove("d2d4");
 		List<GenericMove> ml = new LinkedList<GenericMove>();
-		ml.add(new GenericMove("e2e4"));
-		ml.add(new GenericMove("d2d4"));
+		ml.add(move1);
+		ml.add(move2);
 		List<GenericMove> pc = new ArrayList<GenericMove>();
-		pc.add(new GenericMove("e2e4"));
-		Transposition upper_trans = new Transposition((byte)1, (short)105, ScoreType.lowerBound, ml, pc);
+		pc.add(move1);
+		Transposition upper_trans = new Transposition((byte)1, (short)105, ScoreType.lowerBound, ml, move1);
 
 		currPly = 2;
 		Transposition stored_trans = sut.updateTranspositionTable(sm, currPly, null, upper_trans);
 		
-		Transposition exact_trans = new Transposition((byte)1, (short)110, ScoreType.exact, ml, pc);
+		Transposition exact_trans = new Transposition((byte)1, (short)110, ScoreType.exact, ml, move2);
 		stored_trans = sut.updateTranspositionTable(sm, currPly, stored_trans, exact_trans);
 		
+		// check hash data is updated, not replaced
 		assertEquals(stored_trans, upper_trans);
 		assertEquals(ScoreType.exact, stored_trans.getScoreType());
 		assertEquals(110, stored_trans.getScore());
+		
+		// check move list order is updated
+		assertEquals(move2, stored_trans.getBestMove());
+		assertEquals(move2, stored_trans.getMoveList().get(0));
+		assertEquals(move1, stored_trans.getMoveList().get(1));
+		
+		// Check eval returns expected hash data
+		eval = sut.evaluateTranspositionData(currPly, 1);
+		assertEquals(stored_trans, eval.trans);
+		assertEquals(move2, eval.trans.getBestMove());
+		
 	}
 }

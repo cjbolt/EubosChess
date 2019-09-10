@@ -10,30 +10,32 @@ public class Transposition {
 	private byte depthSearchedInPly;
 	private short score;
 	private List<GenericMove> ml;
-	private List<GenericMove> pc;
+	//private List<GenericMove> pc;
+	private GenericMove bestMove;
 
 	public enum ScoreType { 
 		exact, upperBound, lowerBound;
 	};
 	private ScoreType scoreType;	
 	
-	public Transposition(byte depth, short score, ScoreType scoreType, List<GenericMove> ml, List<GenericMove> pc) {
+	public Transposition(byte depth, short score, ScoreType scoreType, List<GenericMove> ml, GenericMove bestMove /*List<GenericMove> pc*/) {
 		this.setDepthSearchedInPly(depth);
 		this.setScore(score);
 		this.setScoreType(scoreType);
 		this.ml = ml;
-		this.pc = pc;
+		//this.pc = pc;
+		this.bestMove = bestMove;
 		this.ml = adjustMoveListForBestMove();
-		setBestMove(pc.get(0));
+		//setBestMove(pc.get(0));
 	}
 
-	public List<GenericMove> getPrincipalContinuation() {
-		return pc;
-	}
+	//public List<GenericMove> getPrincipalContinuation() {
+	//	return pc;
+	//}
 
-	public void setPrincipalContinuation(List<GenericMove> pc) {
-		this.pc = pc;
-	}
+	//public void setPrincipalContinuation(List<GenericMove> pc) {
+	//	this.pc = pc;
+	//}
 
 	public List<GenericMove> getMoveList() {
 		if (ml != null)
@@ -42,7 +44,7 @@ public class Transposition {
 	}
 
 	protected List<GenericMove> adjustMoveListForBestMove() {
-		GenericMove best = pc.get(0);
+		GenericMove best = bestMove; // pc.get(0);
 		if (ml != null) {
 			List<GenericMove> ordered_ml = new LinkedList<GenericMove>();
 			ordered_ml.addAll(ml);
@@ -84,14 +86,16 @@ public class Transposition {
 	}
 
 	public GenericMove getBestMove() {
-		return pc.get(0);
+		return bestMove; //pc.get(0);
 	}
 
 	public void setBestMove(GenericMove bestMove) {
-		pc.set(0, bestMove);
+		//pc.set(0, bestMove);
+		this.bestMove = bestMove;
 	}
 	
 	public String report() {
-		return "trans pc:"+pc.toString()+" dep:"+depthSearchedInPly+" sc:"+score+" type:"+scoreType;
+		//return "trans pc:"+pc.toString()+" dep:"+depthSearchedInPly+" sc:"+score+" type:"+scoreType;
+		return "trans best:"+bestMove+" dep:"+depthSearchedInPly+" sc:"+score+" type:"+scoreType;
 	}
 }
