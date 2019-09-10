@@ -280,9 +280,10 @@ public class PlySearcher {
 	};
 	
 	private short assessNewPosition(GenericMove prevMove) throws InvalidPieceException {
-		short positionScore;
+		short positionScore = 0;
 		switch ( isTerminalNode() ) {
 		case normalSearchTerminalNode:
+		case extendedSearchTerminalNode:
 			positionScore = scoreTerminalNode();
 			depthSearchedPly = 1; // We searched to find this score
 			break;
@@ -293,12 +294,7 @@ public class PlySearcher {
 			positionScore = extendedSearchPly();
 			depthSearchedPly = 1; // Not sure this is needed
 			break;
-		case extendedSearchTerminalNode:
-			positionScore = scoreTerminalNode();
-			depthSearchedPly = 1; // Not sure this is needed
-			break;
 		default:
-			positionScore = 0;
 			break;
 		}
 		return positionScore;
@@ -319,7 +315,7 @@ public class PlySearcher {
 				nodeState = SearchState.extendedSearchNode; 
 			}
 		} else { // if (currPly > searchDepthPly) // extended search
-			if (pe.isQuiescent() || (currPly > Math.min((searchDepthPly + 4), ((searchDepthPly*3)-1))) /* todo ARBITRARY!!!! */) {
+			if (pe.isQuiescent() || (currPly > Math.min((searchDepthPly + 6), ((searchDepthPly*3)-1))) /* todo ARBITRARY!!!! */) {
 				nodeState = SearchState.extendedSearchTerminalNode;
 			} else {
 				nodeState = SearchState.extendedSearchNode; 
@@ -332,7 +328,6 @@ public class PlySearcher {
 		if (isTerminated())
 			return 0;
 				
-		// todo At first, don't use hash map for extended searches
 		st.setProvisionalScoreAtPly(currPly);
 		List<GenericMove> ml = mlgen.getMoveListOfChecksAndCaptures();
 		searchCheckAndCaptureMoves( ml );
@@ -346,30 +341,20 @@ public class PlySearcher {
 			short mateScore = sg.scoreMate(currPly, (pos.getOnMove() == Colour.white), initialOnMove);
 			st.setBackedUpScoreAtPly(currPly, mateScore);
 		} else {
-			pc.update(currPly, ml.get(0));
 			short provisionalScoreAtPly = st.getProvisionalScoreAtPly(currPly);
 			Iterator<GenericMove> move_iter = ml.iterator();
 			
 			while(move_iter.hasNext() && !isTerminated()) {
 				GenericMove currMove = move_iter.next();
-				if (currPly == 0) {
-					pc.clearRowsBeyondPly(currPly);
-					reportMove(currMove);
-				}
-				
+			
 				short positionScore = applyMoveAndScore(currMove);
-				
-				if (doScoreBackup(positionScore)) {
-					pc.update(currPly, currMove);
-				}
+				doScoreBackup(positionScore);
 				
 				if (st.isAlphaBetaCutOff( currPly, provisionalScoreAtPly, positionScore)) {
 					SearchDebugAgent.printRefutationFound(currPly);
 					break;	
 				}
 			}
-			// don't count extended searches in hashing....
-			//depthSearchedPly++; // backing up, increment depth searched
 		}
 	}
 
