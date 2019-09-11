@@ -83,7 +83,7 @@ public class PlySearcher {
 		List<GenericMove> ml = null;
 		byte depthRequiredPly = initialiseSearchAtPly();
 		
-		TranspositionEval eval = tt.evaluateTranspositionData(currPly, depthRequiredPly);
+		TranspositionEval eval = tt.getTransposition(currPly, depthRequiredPly);
 		switch (eval.status) {
 		
 		case sufficientTerminalNode:
@@ -91,9 +91,9 @@ public class PlySearcher {
 			depthSearchedPly = eval.trans.getDepthSearchedInPly();
 			pc.clearTreeBeyondPly(currPly);
 			if (doScoreBackup(eval.trans.getScore())) {
-				pc.update(currPly, eval.trans.getBestMove() /*eval.trans.getPrincipalContinuation()*/);
+				pc.update(currPly, eval.trans.getBestMove());
 				if (currPly == 0) {
-					//constructPc();
+					constructPc();
 					pcUpdater.report(eval.trans.getScore(), depthSearchedPly);
 				}
 			}
@@ -103,7 +103,6 @@ public class PlySearcher {
 		case sufficientSeedMoveList:
 			SearchDebugAgent.printHashIsSeedMoveList(currPly, eval.trans.getBestMove(), pos.getHash());
 			ml = eval.trans.getMoveList();
-			//SearchDebugAgent.printTransUpdate(currPly, eval.trans, pos.getHash());
 			// Intentional drop through
 		case insufficientNoData:
 			if (ml == null)
@@ -156,11 +155,11 @@ public class PlySearcher {
 					plyScore = positionScore;
 					pc.update(currPly, currMove);
 					if (currPly == 0) {
-						//constructPc();
+						constructPc();
 						pcUpdater.report(positionScore, searchDepthPly);
 					}
 					Transposition newTrans = new Transposition(depthSearchedPly, st.getBackedUpScoreAtPly(currPly), plyBound, ml, pc.getBestMove(currPly)/*pc.toPvList(currPly)*/);
-					trans = tt.updateTranspositionTable(sm, currPly, trans, newTrans);
+					trans = tt.setTransposition(sm, currPly, trans, newTrans);
 				} else {
 					boolean doUpdate = false;
 					if (plyBound == ScoreType.lowerBound) {
@@ -176,7 +175,7 @@ public class PlySearcher {
 						List<GenericMove> continuation = pc.toPvList(currPly);
 						continuation.add(0,currMove);
 						Transposition newTrans = new Transposition(depthSearchedPly, positionScore, plyBound, ml, continuation.get(0));
-						trans = tt.updateTranspositionTable(sm, currPly, trans, newTrans);
+						trans = tt.setTransposition(sm, currPly, trans, newTrans);
 					}
 				}
 				
@@ -190,7 +189,7 @@ public class PlySearcher {
 				// Needed to set exact score instead of upper/lower bound score now we finished search at this ply
 				//trans.setScoreType(ScoreType.exact);
 				Transposition newTrans = new Transposition(depthSearchedPly, st.getBackedUpScoreAtPly(currPly), ScoreType.exact, ml, pc.getBestMove(currPly));
-				trans = tt.updateTranspositionTable(sm, currPly, trans, newTrans);
+				trans = tt.setTransposition(sm, currPly, trans, newTrans);
 			}
 			depthSearchedPly++; // backing up, increment depth searched
 		}
@@ -209,7 +208,7 @@ public class PlySearcher {
 				numMoves++;
 			} else {
 				/* Apply move and find best move from hash */
-				TranspositionEval eval = tt.evaluateTranspositionData(plies, 0);
+				TranspositionEval eval = tt.getTransposition(plies, 0);
 				if (eval.status != TranspositionTableStatus.insufficientNoData && eval != null && eval.trans != null) {
 					GenericMove currMove = eval.trans.getBestMove();
 					constructed_pc.add(currMove);
@@ -369,43 +368,4 @@ public class PlySearcher {
 		currPly--;
 		SearchDebugAgent.printUndoMove(currPly, currMove);
 	}	
-	
-	void checkContinuationValidForPosition() {
-		System.out.println("Pc to test: "+pc.toPvList(currPly));
-		Iterator<GenericMove> move_iter = pc.toPvList(currPly).iterator();
-		System.out.println("Original position: "+pos.getFen());
-		/* Even this isn't a good enough test, because it doesn't check that the move is valid
-		 *  for the piece, just that there is a piece on the square to be moved :(
-		 *  
-		 *  To tighten it right up we would need to search the moves in each position and check
-		 *  the move list contains the move from the variation (move list moves are legal).
-		 */
-		while(move_iter.hasNext()) {
-			GenericMove move = move_iter.next();
-			try {
-				pm.performMove(move);
-				System.out.println("Test move: " + move);
-				System.out.println("Next position: " +pos.getFen());
-			} catch (InvalidPieceException e) {
-				/* The continuation provided is invalid. Probably because it is from old limbs of
-				 * the search tree, stale backed up data. If we didn't back up pc at the node
-				 * searched, then we should probably clear the pv at that row of the array,
-				 * when we return.
-				 */
-				System.out.println("Can't move: " + move);
-				System.out.println("Error position: "+pos.getFen());
-			}
-		}
-		move_iter = pc.toPvList(currPly).iterator();
-		while(move_iter.hasNext()) {
-			GenericMove move = move_iter.next();
-			try {
-				System.out.println("Undo move: " + move);
-				pm.unperformMove();
-			} catch (InvalidPieceException e) {
-				System.out.println("Can't undo move: " + move);
-				System.out.println("Error undo position: "+pos.getFen());
-			}
-		}
-	}
 }

@@ -10,7 +10,6 @@ public class Transposition {
 	private byte depthSearchedInPly;
 	private short score;
 	private List<GenericMove> ml;
-	//private List<GenericMove> pc;
 	private GenericMove bestMove;
 
 	public enum ScoreType { 
@@ -23,19 +22,9 @@ public class Transposition {
 		this.setScore(score);
 		this.setScoreType(scoreType);
 		this.ml = ml;
-		//this.pc = pc;
 		this.bestMove = bestMove;
 		this.ml = adjustMoveListForBestMove();
-		//setBestMove(pc.get(0));
 	}
-
-	//public List<GenericMove> getPrincipalContinuation() {
-	//	return pc;
-	//}
-
-	//public void setPrincipalContinuation(List<GenericMove> pc) {
-	//	this.pc = pc;
-	//}
 
 	public List<GenericMove> getMoveList() {
 		if (ml != null)
@@ -86,16 +75,14 @@ public class Transposition {
 	}
 
 	public GenericMove getBestMove() {
-		return bestMove; //pc.get(0);
+		return bestMove;
 	}
 
 	public void setBestMove(GenericMove bestMove) {
-		//pc.set(0, bestMove);
 		this.bestMove = bestMove;
 	}
 	
 	public String report() {
-		//return "trans pc:"+pc.toString()+" dep:"+depthSearchedInPly+" sc:"+score+" type:"+scoreType;
 		return "trans best:"+bestMove+" dep:"+depthSearchedInPly+" sc:"+score+" type:"+scoreType;
 	}
 }

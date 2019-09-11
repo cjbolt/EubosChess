@@ -49,7 +49,7 @@ public class TranspositionTableAccessorTest {
 
 	@Test
 	public void testEval_WhenEmpty_insufficientNoData() {
-		eval = sut.evaluateTranspositionData(currPly, SEARCH_DEPTH_IN_PLY);
+		eval = sut.getTransposition(currPly, SEARCH_DEPTH_IN_PLY);
 		assertEquals(TranspositionTableStatus.insufficientNoData, eval.status);
 	}
 	
@@ -62,9 +62,9 @@ public class TranspositionTableAccessorTest {
 		pc.add(new GenericMove("e2e4"));
 		Transposition new_trans = new Transposition((byte)1, (short)105, ScoreType.exact, ml, pc.get(0));
 		
-		sut.getTransCreateIfNew(currPly, new_trans);
+		sut.setTransposition(sm, currPly, null, new_trans);
 		
-		eval = sut.evaluateTranspositionData(currPly, 1);
+		eval = sut.getTransposition(currPly, 1);
 		
 		assertEquals(TranspositionTableStatus.sufficientTerminalNode, eval.status);
 	}
@@ -78,9 +78,9 @@ public class TranspositionTableAccessorTest {
 		pc.add(new GenericMove("e2e4"));
 		Transposition new_trans = new Transposition((byte)1, (short)105, ScoreType.exact, ml, pc.get(0));
 		
-		sut.getTransCreateIfNew(currPly, new_trans);
+		sut.setTransposition(sm, currPly, null, new_trans);
 		
-		eval = sut.evaluateTranspositionData(currPly, 2);
+		eval = sut.getTransposition(currPly, 2);
 		
 		assertEquals(TranspositionTableStatus.sufficientSeedMoveList, eval.status);
 	}
@@ -91,9 +91,9 @@ public class TranspositionTableAccessorTest {
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		Transposition new_trans = new Transposition((byte)1, (short)105, ScoreType.exact, null, pc.get(0));
 		
-		sut.getTransCreateIfNew(currPly, new_trans);
+		sut.setTransposition(sm, currPly, null, new_trans);
 		
-		eval = sut.evaluateTranspositionData(currPly, 2);
+		eval = sut.getTransposition(currPly, 2);
 		
 		assertEquals(TranspositionTableStatus.insufficientNoData, eval.status);
 	}
@@ -108,10 +108,10 @@ public class TranspositionTableAccessorTest {
 		Transposition new_trans = new Transposition((byte)1, (short)105, ScoreType.upperBound, ml, pc.get(0));
 
 		currPly = 2;
-		sut.getTransCreateIfNew(currPly, new_trans);
+		sut.setTransposition(sm, currPly, null, new_trans);
 		
 		st.setBackedUpScoreAtPly(currPly, (short)100);
-		eval = sut.evaluateTranspositionData(currPly, 1);
+		eval = sut.getTransposition(currPly, 1);
 		
 		assertEquals(TranspositionTableStatus.sufficientRefutation, eval.status);
 	}
@@ -126,10 +126,10 @@ public class TranspositionTableAccessorTest {
 		Transposition new_trans = new Transposition((byte)1, (short)105, ScoreType.lowerBound, ml, pc.get(0));
 
 		currPly = 2;
-		sut.getTransCreateIfNew(currPly, new_trans);
+		sut.setTransposition(sm, currPly, null, new_trans);
 		
 		st.setBackedUpScoreAtPly(currPly, (short)110);
-		eval = sut.evaluateTranspositionData(currPly, 1);
+		eval = sut.getTransposition(currPly, 1);
 		
 		assertEquals(TranspositionTableStatus.sufficientRefutation, eval.status);
 	}
@@ -144,7 +144,7 @@ public class TranspositionTableAccessorTest {
 		Transposition new_trans = new Transposition((byte)1, (short)105, ScoreType.lowerBound, ml, pc.get(0));
 
 		currPly = 2;
-		Transposition stored_trans = sut.updateTranspositionTable(sm, currPly, null, new_trans);
+		Transposition stored_trans = sut.setTransposition(sm, currPly, null, new_trans);
 		
 		assertEquals(stored_trans, new_trans);
 	}
@@ -161,10 +161,10 @@ public class TranspositionTableAccessorTest {
 		Transposition upper_trans = new Transposition((byte)1, (short)105, ScoreType.lowerBound, ml, move1);
 
 		currPly = 2;
-		Transposition stored_trans = sut.updateTranspositionTable(sm, currPly, null, upper_trans);
+		Transposition stored_trans = sut.setTransposition(sm, currPly, null, upper_trans);
 		
 		Transposition exact_trans = new Transposition((byte)1, (short)110, ScoreType.exact, ml, move2);
-		stored_trans = sut.updateTranspositionTable(sm, currPly, stored_trans, exact_trans);
+		stored_trans = sut.setTransposition(sm, currPly, stored_trans, exact_trans);
 		
 		// check hash data is updated, not replaced
 		assertEquals(stored_trans, upper_trans);
@@ -177,7 +177,7 @@ public class TranspositionTableAccessorTest {
 		assertEquals(move1, stored_trans.getMoveList().get(1));
 		
 		// Check eval returns expected hash data
-		eval = sut.evaluateTranspositionData(currPly, 1);
+		eval = sut.getTransposition(currPly, 1);
 		assertEquals(stored_trans, eval.trans);
 		assertEquals(move2, eval.trans.getBestMove());
 		
