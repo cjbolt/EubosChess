@@ -183,8 +183,10 @@ public class PositionEvaluator implements IEvaluate {
 			}
 		}
 		for (int i=0; i<8; i++) {
-			if (pawnCount[i] > 1)
+			while (pawnCount[i] > 1) {
 				pawnHandicap -= DOUBLED_PAWN_HANDICAP;
+				pawnCount[i] -= 1;
+			}
 		}
 		if (onMoveWas == Colour.black) {
 			pawnHandicap = -pawnHandicap;

@@ -70,7 +70,20 @@ public class PositionEvaluatorTest {
 		int score = SUT.discourageDoubledPawns();
 		assertEquals(DOUBLED_PAWN_HANDICAP, score);
 	}
+	
+	@Test
+	public void test_DiscourageTripledPawns_w() {
+		setUpPosition("8/8/8/8/2P5/2P5/2P5/8 w - - 0 38 ");
+		int score = SUT.discourageDoubledPawns();
+		assertEquals(-2*DOUBLED_PAWN_HANDICAP, score);
+	}
 
+	@Test
+	public void test_DiscourageTripledPawns_b() {
+		setUpPosition("8/8/8/8/2p5/2p5/2p5/8 w - - 0 38 ");
+		int score = SUT.discourageDoubledPawns();
+		assertEquals(2*DOUBLED_PAWN_HANDICAP, score);
+	}
 	
 	@Test
 	public void test_encouragePassedPawns_PassedPawn() {
