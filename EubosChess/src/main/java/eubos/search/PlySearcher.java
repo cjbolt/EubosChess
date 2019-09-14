@@ -326,11 +326,39 @@ public class PlySearcher {
 	private short extendedSearchPly() throws InvalidPieceException {
 		if (isTerminated())
 			return 0;
-				
+		
 		st.setProvisionalScoreAtPly(currPly);
-		List<GenericMove> ml = mlgen.getMoveListOfChecksAndCaptures();
-		searchCheckAndCaptureMoves( ml );
+		
+		ScoreType plyBound = (pos.getOnMove().equals(Colour.white)) ? ScoreType.lowerBound : ScoreType.upperBound;
+		short plyScore = (plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE;
+		List<GenericMove> ml = null;
+		
+		TranspositionEval eval = tt.getTransposition(currPly, 100);
+		switch (eval.status) {
+		
+		case sufficientTerminalNode:
+		case sufficientRefutation:
+		case sufficientSeedMoveList:
+			SearchDebugAgent.printHashIsSeedMoveList(currPly, eval.trans.getBestMove(), pos.getHash());
+			ml = eval.trans.getMoveList();
+			searchCheckAndCaptureMoves( ml );
+			break;
+
+		case insufficientNoData:
+			ml = getMoveList();
 			
+			// To store movelist
+			if (ml.size() != 0) {
+				Transposition newTrans = new Transposition((byte)0, plyScore, plyBound, ml, ml.get(0));
+				tt.setTransposition(sm, currPly, null, newTrans);
+			}
+			
+			searchCheckAndCaptureMoves( ml );
+			break;
+			
+		default:
+			break;
+		}
 		return st.getBackedUpScoreAtPly(currPly);
 	}
 	
@@ -342,16 +370,22 @@ public class PlySearcher {
 		} else {
 			short provisionalScoreAtPly = st.getProvisionalScoreAtPly(currPly);
 			Iterator<GenericMove> move_iter = ml.iterator();
-			
+			boolean isCaptureMove = false;
 			while(move_iter.hasNext() && !isTerminated()) {
 				GenericMove currMove = move_iter.next();
 			
-				short positionScore = applyMoveAndScore(currMove);
-				doScoreBackup(positionScore);
+				pm.performMove(currMove);
+				isCaptureMove = pos.lastMoveWasCheckOrCapture();
+				pm.unperformMove();
 				
-				if (st.isAlphaBetaCutOff( currPly, provisionalScoreAtPly, positionScore)) {
-					SearchDebugAgent.printRefutationFound(currPly);
-					break;	
+				if (isCaptureMove) {
+					short positionScore = applyMoveAndScore(currMove);
+					doScoreBackup(positionScore);
+					
+					if (st.isAlphaBetaCutOff( currPly, provisionalScoreAtPly, positionScore)) {
+						SearchDebugAgent.printRefutationFound(currPly);
+						break;	
+					}
 				}
 			}
 		}
