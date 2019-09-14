@@ -53,11 +53,11 @@ class ScoreTracker {
 		boolean backUpScore = false;
 		if (onMoveIsWhite(currPly)) {
 			// if white, maximise score
-			if (positionScore > getBackedUpScoreAtPly(currPly))
+			if (positionScore > getBackedUpScoreAtPly(currPly) && positionScore != Short.MAX_VALUE)
 				backUpScore = true;
 		} else {
 			// if black, minimise score 
-			if (positionScore < getBackedUpScoreAtPly(currPly))
+			if (positionScore < getBackedUpScoreAtPly(currPly) && positionScore != Short.MIN_VALUE)
 				backUpScore = true;
 		}
 		return backUpScore;

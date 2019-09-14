@@ -10,6 +10,7 @@ public interface IPositionAccessors {
 	public boolean isKingInCheck();
 	public int getMoveNumber();
 	public boolean lastMoveWasCapture();
+	public boolean lastMoveWasCheckOrCapture();
 	public int getCastlingAvaillability();
 	public long getHash();
 	public String getFen();

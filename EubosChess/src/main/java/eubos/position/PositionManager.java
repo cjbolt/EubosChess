@@ -67,6 +67,10 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		return moveTracker.lastMoveWasCapture();
 	}
 	
+	public boolean lastMoveWasCheckOrCapture() {
+		return (isKingInCheck(getOnMove()) || lastMoveWasCapture()) ? true: false;
+	}
+	
 	Piece getCapturedPiece() {
 		return moveTracker.getCapturedPiece();
 	}

@@ -501,6 +501,37 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
+	public void test_extendedSearch_CouldBeMate() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		setupPosition("5bkr/5ppp/5P2/8/8/8/6Q1/R4KR1 w - - 0 38 ");
+		//expectedMove = new GenericMove("g2g7"); // queen sac leads to mate in 1
+		expectedMove = new GenericMove("f6g7"); // actually leads to mate in 1 as well
+		
+		SearchResult res = classUnderTest.findMove((byte)1);
+		
+		assertEquals(expectedMove, res.bestMove);
+	}
+	
+	@Test
+	public void test_extendedSearch_recaptureQueenLeadsToLossOfMaterial() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		setupPosition("8/6q1/5p2/8/8/2Q5/8/8 w - - 0 38 ");
+		expectedMove = new GenericMove("c3f6");
+		
+		SearchResult res = classUnderTest.findMove((byte)1);
+		
+		assertNotEquals(expectedMove, res.bestMove);
+	}
+	
+	@Test
+	public void test_extendedSearch_recaptureBishopLeadsToLossOfMaterial() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		setupPosition("8/6q1/5p2/8/8/2B5/8/8 w - - 0 38 ");
+		expectedMove = new GenericMove("c3f6");
+		
+		SearchResult res = classUnderTest.findMove((byte)1);
+		
+		assertNotEquals(expectedMove, res.bestMove);
+	}
+	
+	@Test
 	public void test_findMove_NeedToCastle_FromLichess1() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
 		setupPosition( "rnb1kbnr/p4p1p/1qp1p1p1/3p4/8/1B2PN2/PPPP1PPP/RNBQK2R w KQkq - - -");
 		expectedMove = new GenericMove("e1g1");
