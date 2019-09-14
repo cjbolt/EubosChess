@@ -633,4 +633,13 @@ public class MiniMaxMoveGeneratorTest {
 		assertEquals(expectedMove, res.bestMove);
 	}
 	
+	@Test
+	@Ignore
+	public void test_ExtendedSearch() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		setupPosition("rp6/1p6/np6/1P6/1p6/1p6/PP6/QP6 w - - 0 41"); 
+		expectedMove = new GenericMove("a2a3");
+		SearchResult res = classUnderTest.findMove((byte)1,null);
+		assertEquals(expectedMove, res.bestMove);
+	}
+	
 }
