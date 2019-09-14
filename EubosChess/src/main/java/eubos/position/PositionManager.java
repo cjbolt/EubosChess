@@ -40,9 +40,6 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		}
 		return ml;
 	}
-	public List<GenericMove> getMoveListOfChecksAndCaptures() throws InvalidPieceException {
-		return mlgen.getCapturesMoveList();
-	}
 	
 	CastlingManager castling;
 	public static final int WHITE_KINGSIDE = 1<<0;

@@ -45,41 +45,10 @@ class MoveListGenerator {
 				numCaptureOrCastleMoves++;
 			} else if (pm.isKingInCheck(Colour.getOpposite(onMove))) {
 				newMoveList.add(numCaptureOrCastleMoves, currMove);
+			} else if (currMove.promotion != null) {
+				newMoveList.add(numCaptureOrCastleMoves, currMove);
 			} else {
 				newMoveList.add(currMove);
-			}
-			pm.unperformMove();
-		}
-		List<GenericMove> ret_list = new ArrayList<GenericMove>(newMoveList);
-		newMoveList.clear();
-		entireMoveList.clear();
-		return ret_list;
-	}
-
-	public List<GenericMove> getCapturesMoveList() throws InvalidPieceException {
-		List<GenericMove> entireMoveList = new LinkedList<GenericMove>();
-		Colour onMove = pm.getOnMove();
-		// For each piece of the "on Move" colour, add it's legal moves to the entire move list
-		Iterator<Piece> iter_p = pm.getTheBoard().iterateColour(pm.getOnMove());
-		while ( iter_p.hasNext() ) {
-			Piece currPiece = iter_p.next();
-			entireMoveList.addAll( currPiece.generateMoves( pm.getTheBoard() ));
-		}
-		List<GenericMove> newMoveList = new LinkedList<GenericMove>();
-		Iterator<GenericMove> iter_ml = entireMoveList.iterator();
-		int numCaptureOrCastleMoves = 0;
-		while ( iter_ml.hasNext() ) {
-			GenericMove currMove = iter_ml.next();
-			pm.performMove(currMove);
-			// Scratch any moves resulting in the king being in check
-			if (pm.isKingInCheck(onMove))
-				iter_ml.remove();
-			// Only return checks and captures
-			else if (pm.lastMoveWasCaptureOrCastle() ) {
-				newMoveList.add(0, currMove);
-				numCaptureOrCastleMoves++;
-			} else if (pm.isKingInCheck(Colour.getOpposite(onMove))) {
-				newMoveList.add(numCaptureOrCastleMoves, currMove);
 			}
 			pm.unperformMove();
 		}
