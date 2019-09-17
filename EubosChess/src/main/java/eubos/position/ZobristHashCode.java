@@ -1,6 +1,7 @@
 package eubos.position;
 
 import java.util.Random;
+import java.util.Stack;
 
 import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericMove;
@@ -57,7 +58,7 @@ public class ZobristHashCode {
 	
 	private IPositionAccessors pos;
 	
-	private GenericFile prevEnPassantFile = null;
+	private Stack<GenericFile> prevEnPassantFile = null;
 	private int prevCastlingMask = 0;
 		
 	static private final long prnLookupTable[] = new long[LENGTH_TABLE];
@@ -71,6 +72,7 @@ public class ZobristHashCode {
 
 	public ZobristHashCode(IPositionAccessors pm) {
 		pos = pm;
+		prevEnPassantFile = new Stack<GenericFile>();
 		try {
 			this.generate();
 		} catch (Exception e) {
@@ -103,7 +105,7 @@ public class ZobristHashCode {
 		// add en passant
 		GenericPosition enPassant = pos.getTheBoard().getEnPassantTargetSq();
 		if (enPassant!=null) {
-			prevEnPassantFile = enPassant.file;
+			prevEnPassantFile.push(enPassant.file);
 			int enPassantFile = IntFile.valueOf(enPassant.file);
 			hashCode ^= prnLookupTable[(INDEX_ENP_A+enPassantFile)];
 		}
@@ -140,12 +142,12 @@ public class ZobristHashCode {
 	}
 	
 	// Used to update the Zobrist hash code whenever a position changes due to a move being performed
-	public void update(GenericMove move, Piece captureTarget, Boolean setEnPassant) throws Exception {
+	public void update(GenericMove move, Piece captureTarget, GenericFile enPassantFile) throws Exception {
 		Piece piece = doBasicMove(move);
 		
 		doCapturedPiece(captureTarget);
 		
-		doEnPassant(move, setEnPassant);
+		doEnPassant(move, enPassantFile);
 		
 		doSecondaryMove(move, piece);
 		
@@ -201,19 +203,21 @@ public class ZobristHashCode {
 	}
 
 	private void setTargetFile(GenericFile enPasFile) {
-		prevEnPassantFile = enPasFile;
+		if (!prevEnPassantFile.isEmpty()) {
+			clearTargetFile();
+		}
+		prevEnPassantFile.push(enPasFile);
 		hashCode ^= prnLookupTable[(INDEX_ENP_A+IntFile.valueOf(enPasFile))];
 	}
 	
 	private void clearTargetFile() {
-		hashCode ^= prnLookupTable[(INDEX_ENP_A+IntFile.valueOf(prevEnPassantFile))];
-		prevEnPassantFile = null;
+		hashCode ^= prnLookupTable[(INDEX_ENP_A+IntFile.valueOf(prevEnPassantFile.pop()))];
 	}
 	
-	protected void doEnPassant(GenericMove move, Boolean setEnPassant) {
-		if (setEnPassant) {
-			setTargetFile(move.from.file);
-		} else if (prevEnPassantFile != null) {
+	protected void doEnPassant(GenericMove move, GenericFile enPassantFile) {
+		if (enPassantFile != null) {
+			setTargetFile(enPassantFile);
+		} else if (!prevEnPassantFile.isEmpty()) {
 			clearTargetFile();
 		} else {
 			// no action needed

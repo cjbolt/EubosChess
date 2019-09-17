@@ -115,6 +115,7 @@ public class TranspositionTableAccessor {
 		    current_trans.setBestMove(new_trans.getBestMove());
 		    current_trans.setDepthSearchedInPly(new_trans.getDepthSearchedInPly());
 		    current_trans.setMoveList(new_trans.getMoveList());
+		    hashMap.putTransposition(pos.getHash(), current_trans);
 		    SearchDebugAgent.printTransUpdate(currPly, current_trans, pos.getHash());
 		}
 		return current_trans;

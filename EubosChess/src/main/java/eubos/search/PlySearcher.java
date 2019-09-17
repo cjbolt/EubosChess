@@ -148,7 +148,18 @@ public class PlySearcher {
 			ScoreType plyBound = (pos.getOnMove().equals(Colour.white)) ? ScoreType.lowerBound : ScoreType.upperBound;
 			short plyScore = (plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE;
 			
+			long currHashAtStart = pos.getHash();
+			SearchDebugAgent.printTransNull(currPly, currHashAtStart);
+			
 			while(move_iter.hasNext() && !isTerminated()) {
+				
+				// Debug bad hash bug
+				long currHashAtMoveN = pos.getHash();
+				if (currHashAtMoveN != currHashAtStart) {
+					SearchDebugAgent.printTransNull(currPly, currHashAtMoveN);
+					SearchDebugAgent.printTransNull(currPly, currHashAtStart);
+				}
+				
 				GenericMove currMove = move_iter.next();
 				if (currPly == 0) {
 					// When we start to search a move at the root node, clear the principal continuation data
@@ -372,7 +383,6 @@ public class PlySearcher {
 	
 	private void searchCheckAndCaptureMoves(List<GenericMove> ml) throws InvalidPieceException {
 		if (isMateOccurred(ml)) {
-			// Probably wrong!
 			short mateScore = sg.scoreMate(currPly, (pos.getOnMove() == Colour.white), initialOnMove);
 			st.setBackedUpScoreAtPly(currPly, mateScore);
 		} else {

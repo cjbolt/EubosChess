@@ -285,4 +285,26 @@ public class ZobristHashCodeTest {
 
 		assertEquals(originalHashCode, pm.getHash());	
 	}
+	
+	@Test
+	public void test_BadHashFound_enPassantWasPossible() throws Exception {
+		PositionManager pm = new PositionManager("1r1k1r2/6Q1/2p3p1/p7/1q1p2n1/3P2P1/P3RPP1/4RK2 w - a6 - 2");
+		long originalHashCode = pm.getHash();
+		
+		pm.performMove(new GenericMove("g7g6"));
+		pm.unperformMove();
+
+		assertEquals(originalHashCode, pm.getHash());	
+	}
+	
+	@Test
+	public void test_BadHashFound_enPassantWasPossible_andAnotherenPassantSettingMoveMade() throws Exception {
+		PositionManager pm = new PositionManager("1r1k1r2/6Q1/2p3p1/p7/1q1p2n1/3P2P1/P3RPP1/4RK2 w - a6 - 2");
+		long originalHashCode = pm.getHash();
+		
+		pm.performMove(new GenericMove("f2f4"));
+		pm.unperformMove();
+
+		assertEquals(originalHashCode, pm.getHash());	
+	}
 }
