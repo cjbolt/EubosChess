@@ -76,6 +76,17 @@ public class PlySearcher {
 		terminate = true; }
 	private synchronized boolean isTerminated() { return terminate; }	
 	
+	protected void doPrincipalContinuationupdateOnScoreBackup(
+			GenericMove currMove, short positionScore)
+			throws InvalidPieceException {
+		pc.update(currPly, currMove);
+		if (currPly == 0) {
+			// If backed up to the root node, report the principal continuation
+			constructPc();
+			pcUpdater.report(positionScore, searchDepthPly);
+		}
+	}
+	
 	short normalSearchPly() throws InvalidPieceException {
 		if (isTerminated())
 			return 0;
@@ -91,11 +102,7 @@ public class PlySearcher {
 			depthSearchedPly = eval.trans.getDepthSearchedInPly();
 			pc.clearTreeBeyondPly(currPly);
 			if (doScoreBackup(eval.trans.getScore())) {
-				pc.update(currPly, eval.trans.getBestMove());
-				if (currPly == 0) {
-					constructPc();
-					pcUpdater.report(eval.trans.getScore(), depthSearchedPly);
-				}
+				doPrincipalContinuationupdateOnScoreBackup(eval.trans.getBestMove(), eval.trans.getScore());
 			}
 			sm.incrementNodesSearched();
 			break;
@@ -144,6 +151,7 @@ public class PlySearcher {
 			while(move_iter.hasNext() && !isTerminated()) {
 				GenericMove currMove = move_iter.next();
 				if (currPly == 0) {
+					// When we start to search a move at the root node, clear the principal continuation data
 					pc.clearRowsBeyondPly(currPly);
 					reportMove(currMove);
 				}
@@ -153,28 +161,16 @@ public class PlySearcher {
 				if (doScoreBackup(positionScore)) {
 					everBackedUp = true;
 					plyScore = positionScore;
-					pc.update(currPly, currMove);
-					if (currPly == 0) {
-						constructPc();
-						pcUpdater.report(positionScore, searchDepthPly);
-					}
-					Transposition newTrans = new Transposition(depthSearchedPly, st.getBackedUpScoreAtPly(currPly), plyBound, ml, pc.getBestMove(currPly)/*pc.toPvList(currPly)*/);
+					doPrincipalContinuationupdateOnScoreBackup(currMove, positionScore);
+					Transposition newTrans = new Transposition(depthSearchedPly, positionScore, plyBound, ml, currMove);
 					trans = tt.setTransposition(sm, currPly, trans, newTrans);
 				} else {
-					boolean doUpdate = false;
-					if (plyBound == ScoreType.lowerBound) {
-						if (positionScore > plyScore)
-							doUpdate = true;
-					} else {
-						if (positionScore < plyScore)
-							doUpdate = true;
-					}
+					// Always clear the principal continuation when we didn't back up the score
 					pc.clearRowsBeyondPly(currPly);
-					if (doUpdate) {
+					// Update the position hash if the move is better than that previously stored at this position
+					if (shouldUpdatePositionBoundScoreAndBestMove(plyBound, plyScore, positionScore)) {
 						plyScore = positionScore;
-						List<GenericMove> continuation = pc.toPvList(currPly);
-						continuation.add(0,currMove);
-						Transposition newTrans = new Transposition(depthSearchedPly, positionScore, plyBound, ml, continuation.get(0));
+						Transposition newTrans = new Transposition(depthSearchedPly, plyScore, plyBound, ml, currMove);
 						trans = tt.setTransposition(sm, currPly, trans, newTrans);
 					}
 				}
@@ -185,14 +181,26 @@ public class PlySearcher {
 					break;	
 				}
 			}
-			if (everBackedUp && !refutationFound /*&& trans != null*/) {
+			if (everBackedUp && !refutationFound) {
 				// Needed to set exact score instead of upper/lower bound score now we finished search at this ply
-				//trans.setScoreType(ScoreType.exact);
 				Transposition newTrans = new Transposition(depthSearchedPly, st.getBackedUpScoreAtPly(currPly), ScoreType.exact, ml, pc.getBestMove(currPly));
 				trans = tt.setTransposition(sm, currPly, trans, newTrans);
 			}
 			depthSearchedPly++; // backing up, increment depth searched
 		}
+	}
+
+	protected boolean shouldUpdatePositionBoundScoreAndBestMove(
+			ScoreType plyBound, short plyScore, short positionScore) {
+		boolean doUpdate = false;
+		if (plyBound == ScoreType.lowerBound) {
+			if (positionScore > plyScore)
+				doUpdate = true;
+		} else {
+			if (positionScore < plyScore)
+				doUpdate = true;
+		}
+		return doUpdate;
 	}
 	
 	void constructPc() throws InvalidPieceException {

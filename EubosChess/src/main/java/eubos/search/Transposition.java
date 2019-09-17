@@ -17,7 +17,7 @@ public class Transposition {
 	};
 	private ScoreType scoreType;	
 	
-	public Transposition(byte depth, short score, ScoreType scoreType, List<GenericMove> ml, GenericMove bestMove /*List<GenericMove> pc*/) {
+	public Transposition(byte depth, short score, ScoreType scoreType, List<GenericMove> ml, GenericMove bestMove) {
 		this.setDepthSearchedInPly(depth);
 		this.setScore(score);
 		this.setScoreType(scoreType);
@@ -33,7 +33,7 @@ public class Transposition {
 	}
 
 	protected List<GenericMove> adjustMoveListForBestMove() {
-		GenericMove best = bestMove; // pc.get(0);
+		GenericMove best = bestMove;
 		if (ml != null) {
 			List<GenericMove> ordered_ml = new LinkedList<GenericMove>();
 			ordered_ml.addAll(ml);
