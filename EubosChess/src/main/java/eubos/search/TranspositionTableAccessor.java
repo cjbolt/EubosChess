@@ -68,6 +68,23 @@ public class TranspositionTableAccessor {
 		return ret;
 	}
 	
+	TranspositionEval getTransposition() {
+		TranspositionEval ret = new TranspositionEval();
+		ret.status = TranspositionTableStatus.insufficientNoData;
+		ret.trans = hashMap.getTransposition(pos.getHash());
+		if (ret.trans == null)
+			return ret;
+		
+		ret.status = TranspositionTableStatus.sufficientSeedMoveList;
+		
+		// It is possible that we don't have a move to seed the list with, guard against that.
+		if ((ret.status == TranspositionTableStatus.sufficientSeedMoveList) && 
+			 ret.trans.getBestMove() == null) {
+			ret.status = TranspositionTableStatus.insufficientNoData;
+		}
+		return ret;
+	}
+	
 	Transposition setTransposition(SearchMetrics sm, byte currPly, Transposition trans, Transposition new_trans) {
 		if (trans == null) {
 			trans = getTransCreateIfNew(currPly, new_trans);
