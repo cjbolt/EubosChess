@@ -180,6 +180,42 @@ public class TranspositionTableAccessorTest {
 		eval = sut.getTransposition(currPly, 1);
 		assertEquals(stored_trans, eval.trans);
 		assertEquals(move2, eval.trans.getBestMove());
+	}
+	
+	@Test
+	public void testUpdateWorks_whenExistingUpdated_ArenaError() throws IllegalNotationException {
+		pm = new PositionManager("8/8/p6p/1p3kp1/1P6/P4PKP/5P2/8 w - - 0 1"); //Endgame pos
+		lastPc = null;
+		sut = new TranspositionTableAccessor(transTable, pm, st, lastPc);
+		GenericMove move1 = new GenericMove("h3h4");
+		GenericMove move2 = new GenericMove("f3f4");
 		
+		List<GenericMove> ml = new LinkedList<GenericMove>();
+		ml.add(move1);
+		ml.add(move2);
+		
+		List<GenericMove> pc = new ArrayList<GenericMove>();
+		pc.add(move1);
+		
+		Transposition upper_trans = new Transposition((byte)9, (short)25, ScoreType.lowerBound, ml, move1);
+
+		currPly = 0;
+		Transposition stored_trans = sut.setTransposition(sm, currPly, null, upper_trans);
+		
+		Transposition better_trans = new Transposition((byte)9, (short)72, ScoreType.lowerBound, ml, move2);
+		stored_trans = sut.setTransposition(sm, currPly, stored_trans, better_trans);
+		
+		// check hash data is updated, not replaced
+		assertEquals(stored_trans, upper_trans);
+		assertEquals(ScoreType.lowerBound, stored_trans.getScoreType());
+		assertEquals(72, stored_trans.getScore());
+		
+		// check move list order is updated
+		assertEquals(move2, stored_trans.getBestMove());
+		
+		// Check eval returns expected hash data
+		eval = sut.getTransposition(currPly, 1);
+		assertEquals(stored_trans, eval.trans);
+		assertEquals(move2, eval.trans.getBestMove());
 	}
 }

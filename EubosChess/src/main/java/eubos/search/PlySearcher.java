@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
+import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece.Colour;
@@ -19,7 +20,7 @@ import eubos.search.TranspositionTableAccessor.TranspositionTableStatus;
 import eubos.position.IEvaluate;
 
 public class PlySearcher {
-	
+
 	private IChangePosition pm;
 	private IGenerateMoveList mlgen;
 	IPositionAccessors pos;
@@ -150,11 +151,11 @@ public class PlySearcher {
 			ScoreType plyBound = (pos.getOnMove().equals(Colour.white)) ? ScoreType.lowerBound : ScoreType.upperBound;
 			short plyScore = (plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE;
 			
-			//long currHashAtStart = debugSetInitialHashCodeAtPosition();
+			long currHashAtStart = pos.getHash();
 			
 			while(move_iter.hasNext() && !isTerminated()) {
 				
-				//debugCheckPositionHashConsistency(currHashAtStart);
+				debugCheckPositionHashConsistency(currHashAtStart);
 				
 				GenericMove currMove = move_iter.next();
 				if (atRootNode()) {
@@ -168,9 +169,20 @@ public class PlySearcher {
 				if (doScoreBackup(positionScore)) {
 					everBackedUp = true;
 					plyScore = positionScore;
-					doPrincipalContinuationUpdateOnScoreBackup(currMove, positionScore);
 					Transposition newTrans = new Transposition(depthSearchedPly, positionScore, plyBound, ml, currMove);
+					
+					try {
+						if (depthSearchedPly == 8 && currMove.equals(new GenericMove("f3f4"))) {
+							System.err.println("existing: "+trans.report() );
+							System.err.println("trans to update: "+newTrans.report() );
+						}
+					} catch (IllegalNotationException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
 					trans = tt.setTransposition(sm, currPly, trans, newTrans);
+					doPrincipalContinuationUpdateOnScoreBackup(currMove, positionScore);
 				} else {
 					// Always clear the principal continuation when we didn't back up the score
 					pc.clearRowsBeyondPly(currPly);
@@ -197,21 +209,9 @@ public class PlySearcher {
 		}
 	}
 
-	protected long debugSetInitialHashCodeAtPosition() {
-		long currHashAtStart = pos.getHash();
-		SearchDebugAgent.printTransNull(currPly, currHashAtStart);
-		return currHashAtStart;
-	}
-
 	protected void debugCheckPositionHashConsistency(long currHashAtStart) {
 		long currHashAtMoveN = pos.getHash();
-		if (currHashAtMoveN != currHashAtStart) {
-			/* Print debug if these don't match - there must have been an error updating the Zobrist hash
-			 * code for the position whilst traversing the move tree.
-			 */
-			SearchDebugAgent.printTransNull(currPly, currHashAtMoveN);
-			SearchDebugAgent.printTransNull(currPly, currHashAtStart);
-		}
+		assert currHashAtMoveN == currHashAtStart;
 	}
 
 	protected boolean shouldUpdatePositionBoundScoreAndBestMove(
@@ -232,21 +232,15 @@ public class PlySearcher {
 		int numMoves = 0;
 		List<GenericMove> constructed_pc = new ArrayList<GenericMove>(searchDepthPly);
 		for (plies = 0; plies < searchDepthPly; plies++) {
-			GenericMove pcMove = pc.getBestMove(plies);
-			if (pcMove != null) {
-				// Apply move from principal continuation
-				constructed_pc.add(pcMove);
-				doPerformMove(pcMove);
+			/* Apply move and find best move from hash */
+			GenericMove pcMove = pc.getBestMove(plies); // Check against principal continuation where it is available
+		    TranspositionEval eval = tt.getTransposition(searchDepthPly-plies);
+			if (eval.status != TranspositionTableStatus.insufficientNoData && eval.trans != null) {
+				GenericMove currMove = eval.trans.getBestMove();
+				if (pcMove != null) assert currMove == pcMove : "Error at ply=" + plies;
+				constructed_pc.add(currMove);
+				doPerformMove(currMove);
 				numMoves++;
-			} else {
-				/* Apply move and find best move from hash */
-			    TranspositionEval eval = tt.getTransposition();
-				if (eval.status != TranspositionTableStatus.insufficientNoData && eval != null && eval.trans != null) {
-					GenericMove currMove = eval.trans.getBestMove();
-					constructed_pc.add(currMove);
-					doPerformMove(currMove);
-					numMoves++;
-				}
 			}
 		}
 		for (plies = 0; plies < numMoves; plies++) {
@@ -343,7 +337,8 @@ public class PlySearcher {
 			if (pe.isQuiescent()) {
 				nodeState = SearchState.normalSearchTerminalNode;
 			} else {
-				nodeState = SearchState.extendedSearchNode; 
+				nodeState = SearchState.extendedSearchNode;
+				//nodeState = SearchState.normalSearchTerminalNode;
 			}
 		} else { // if (currPly > searchDepthPly) // extended search
 			if (pe.isQuiescent() || (currPly > Math.min((searchDepthPly + 6), ((searchDepthPly*3)-1))) /* todo ARBITRARY!!!! */) {

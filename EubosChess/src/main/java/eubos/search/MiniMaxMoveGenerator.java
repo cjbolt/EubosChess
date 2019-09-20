@@ -83,7 +83,13 @@ class MiniMaxMoveGenerator implements
 		if (sendInfo)
 			sr.start();
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
-		eval_score = ps.normalSearchPly();
+		try {
+			eval_score = ps.normalSearchPly();
+		} catch (AssertionError e) {
+			e.printStackTrace();
+			//this.terminateFindMove();
+			System.exit(0);
+		}
 		if (Math.abs(eval_score) >= eubos.board.pieces.King.MATERIAL_VALUE) {
 			foundMate = true;
 		}

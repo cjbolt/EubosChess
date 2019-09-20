@@ -1,1 +1,1 @@
-java -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044 -jar C:\Users\Chris\workspace\EubosRunnableTest.jar
+java -ea -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044 -jar C:\Users\Chris\workspace\EubosRunnableTest.jar

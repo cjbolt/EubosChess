@@ -68,19 +68,14 @@ public class TranspositionTableAccessor {
 		return ret;
 	}
 	
-	TranspositionEval getTransposition() {
+	TranspositionEval getTransposition(int depthRequiredPly) {
 		TranspositionEval ret = new TranspositionEval();
 		ret.status = TranspositionTableStatus.insufficientNoData;
 		ret.trans = hashMap.getTransposition(pos.getHash());
-		if (ret.trans == null)
-			return ret;
-		
-		ret.status = TranspositionTableStatus.sufficientSeedMoveList;
-		
-		// It is possible that we don't have a move to seed the list with, guard against that.
-		if ((ret.status == TranspositionTableStatus.sufficientSeedMoveList) && 
-			 ret.trans.getBestMove() == null) {
-			ret.status = TranspositionTableStatus.insufficientNoData;
+		if (ret.trans != null) {
+			if ((ret.trans.getDepthSearchedInPly() >=  depthRequiredPly) || ret.trans.getBestMove() != null) {
+				ret.status = TranspositionTableStatus.sufficientSeedMoveList;
+			}
 		}
 		return ret;
 	}
@@ -120,9 +115,11 @@ public class TranspositionTableAccessor {
 			    updateTransposition = true;
 			} else if ((currentBound == ScoreType.upperBound) &&
 					   (new_trans.getScore() < current_trans.getScore())) {
+				assert currentBound == new_trans.getScoreType();
 				updateTransposition = true;
 			} else if ((currentBound == ScoreType.lowerBound) &&
 					   (new_trans.getScore() > current_trans.getScore())) {
+				assert currentBound == new_trans.getScoreType();
 				updateTransposition = true;
 			}
 		}

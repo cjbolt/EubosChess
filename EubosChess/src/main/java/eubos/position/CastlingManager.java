@@ -198,11 +198,9 @@ class CastlingManager {
 
 	private boolean castlingAvaillable(Colour colour) {
 		boolean castlingAvaillable = false;
-		if (colour == Colour.white && !whiteCastled) {
-			assert(whiteKsAvail || whiteQsAvail);
+		if (colour == Colour.white && (whiteKsAvail || whiteQsAvail)) {
 			castlingAvaillable = true;
-		} else if ((colour == Colour.black && !blackCastled)) {
-			assert(blackKsAvail || blackQsAvail);
+		} else if (colour == Colour.black && (blackKsAvail || blackQsAvail)) {
 			castlingAvaillable = true;
 		}
 		return castlingAvaillable;
