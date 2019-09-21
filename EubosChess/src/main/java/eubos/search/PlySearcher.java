@@ -169,17 +169,9 @@ public class PlySearcher {
 				if (doScoreBackup(positionScore)) {
 					everBackedUp = true;
 					plyScore = positionScore;
-					Transposition newTrans = new Transposition(depthSearchedPly, positionScore, plyBound, ml, currMove);
+					Transposition newTrans = new Transposition(getTransDepth(), positionScore, plyBound, ml, currMove);
 					
-					try {
-						if (depthSearchedPly == 8 && currMove.equals(new GenericMove("f3f4"))) {
-							System.err.println("existing: "+trans.report() );
-							System.err.println("trans to update: "+newTrans.report() );
-						}
-					} catch (IllegalNotationException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					//debugEndGamePositionHashing(trans, currMove, newTrans);
 					
 					trans = tt.setTransposition(sm, currPly, trans, newTrans);
 					doPrincipalContinuationUpdateOnScoreBackup(currMove, positionScore);
@@ -189,7 +181,7 @@ public class PlySearcher {
 					// Update the position hash if the move is better than that previously stored at this position
 					if (shouldUpdatePositionBoundScoreAndBestMove(plyBound, plyScore, positionScore)) {
 						plyScore = positionScore;
-						Transposition newTrans = new Transposition(depthSearchedPly, plyScore, plyBound, ml, currMove);
+						Transposition newTrans = new Transposition(getTransDepth(), plyScore, plyBound, ml, currMove);
 						trans = tt.setTransposition(sm, currPly, trans, newTrans);
 					}
 				}
@@ -202,11 +194,30 @@ public class PlySearcher {
 			}
 			if (everBackedUp && !refutationFound) {
 				// Needed to set exact score instead of upper/lower bound score now we finished search at this ply
-				Transposition newTrans = new Transposition(depthSearchedPly, st.getBackedUpScoreAtPly(currPly), ScoreType.exact, ml, pc.getBestMove(currPly));
+				Transposition newTrans = new Transposition(getTransDepth(), st.getBackedUpScoreAtPly(currPly), ScoreType.exact, ml, pc.getBestMove(currPly));
 				trans = tt.setTransposition(sm, currPly, trans, newTrans);
 			}
 			depthSearchedPly++; // backing up, increment depth searched
 		}
+	}
+
+	private void debugEndGamePositionHashing(Transposition trans,
+			GenericMove currMove, Transposition newTrans) {
+		try {
+			if (atRootNode() && currMove.equals(new GenericMove("f3f4"))) {
+				if (trans!= null)
+					System.err.println("existing: "+trans.report() );
+				System.err.println("trans to update: "+newTrans.report() );
+				System.err.println("currMove: "+currMove );
+			}
+		} catch (IllegalNotationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private byte getTransDepth() {
+		return (byte) Math.max(depthSearchedPly,(searchDepthPly-currPly));
 	}
 
 	protected void debugCheckPositionHashConsistency(long currHashAtStart) {
@@ -243,7 +254,7 @@ public class PlySearcher {
 				numMoves++;
 			}
 		}
-		for (plies = 0; plies < numMoves; plies++) {
+		for (plies = (byte)(numMoves-1); plies >= 0; plies--) {
 			doUnperformMove(constructed_pc.get(plies));
 		}
 		pc.update(0, constructed_pc);
