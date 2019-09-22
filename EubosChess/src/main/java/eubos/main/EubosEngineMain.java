@@ -30,10 +30,6 @@ import eubos.search.IterativeMoveSearcher;
 import eubos.search.SearchDebugAgent;
 import eubos.search.FixedDepthMoveSearcher;
 import eubos.search.AbstractMoveSearcher;
-//import eubos.search.SearchDebugAgent;
-
-
-
 
 import java.text.SimpleDateFormat;
 import java.util.logging.*;

@@ -15,8 +15,8 @@ import eubos.position.IPositionAccessors;
 import eubos.position.IScoreMate;
 import eubos.position.MateScoreGenerator;
 import eubos.search.Transposition.ScoreType;
-import eubos.search.TranspositionTableAccessor.TranspositionEval;
-import eubos.search.TranspositionTableAccessor.TranspositionTableStatus;
+import eubos.search.TranspositionEvaluation;
+import eubos.search.TranspositionEvaluation.TranspositionTableStatus;
 import eubos.position.IEvaluate;
 
 public class PlySearcher {
@@ -37,14 +37,15 @@ public class PlySearcher {
 	private Colour initialOnMove;	
 	private List<GenericMove> lastPc;
 	private byte searchDepthPly;
-	private TranspositionTableAccessor tt;
+	private ITranspositionAccessor tt;
 	private PrincipalContinuationUpdateHelper pcUpdater;
 	
 	byte currPly = 0;
 	byte depthSearchedPly = 0;
 	
 	PlySearcher(
-			FixedSizeTranspositionTable hashMap,
+			ITranspositionAccessor hashMap,
+			ScoreTracker st,
 			PrincipalContinuation pc,
 			SearchMetrics sm,
 			SearchMetricsReporter sr,
@@ -68,8 +69,8 @@ public class PlySearcher {
 		this.lastPc = lastPc;
 		this.searchDepthPly = searchDepthPly;
 		
-		this.st = new ScoreTracker(searchDepthPly*3, initialOnMove == Colour.white);
-		this.tt = new TranspositionTableAccessor(hashMap, pos, st, lastPc);
+		this.st = st; //new ScoreTracker(searchDepthPly*3, initialOnMove == Colour.white);
+		this.tt = hashMap;
 		this.sg = new MateScoreGenerator(pos, searchDepthPly*3);
 		this.pcUpdater = new PrincipalContinuationUpdateHelper(initialOnMove, pc, sm, sr);
 	}
@@ -97,7 +98,7 @@ public class PlySearcher {
 		List<GenericMove> ml = null;
 		byte depthRequiredPly = initialiseSearchAtPly();
 		
-		TranspositionEval eval = tt.getTransposition(currPly, depthRequiredPly);
+		TranspositionEvaluation eval = tt.getTransposition(currPly, depthRequiredPly);
 		switch (eval.status) {
 		
 		case sufficientTerminalNode:
@@ -201,8 +202,7 @@ public class PlySearcher {
 		}
 	}
 
-	private void debugEndGamePositionHashing(Transposition trans,
-			GenericMove currMove, Transposition newTrans) {
+	private void debugEndGamePositionHashing(Transposition trans, GenericMove currMove, Transposition newTrans) {
 		try {
 			if (atRootNode() && currMove.equals(new GenericMove("f3f4"))) {
 				if (trans!= null)
@@ -245,7 +245,7 @@ public class PlySearcher {
 		for (plies = 0; plies < searchDepthPly; plies++) {
 			/* Apply move and find best move from hash */
 			GenericMove pcMove = pc.getBestMove(plies); // Check against principal continuation where it is available
-		    TranspositionEval eval = tt.getTransposition(searchDepthPly-plies);
+		    TranspositionEvaluation eval = tt.getTransposition(searchDepthPly-plies);
 			if (eval.status != TranspositionTableStatus.insufficientNoData && eval.trans != null) {
 				GenericMove currMove = eval.trans.getBestMove();
 				if (pcMove != null) assert currMove == pcMove : "Error at ply=" + plies;
@@ -371,7 +371,7 @@ public class PlySearcher {
 		short plyScore = (plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE;
 		List<GenericMove> ml = null;
 		
-		TranspositionEval eval = tt.getTransposition(currPly, 100);
+		TranspositionEvaluation eval = tt.getTransposition(currPly, 100);
 		switch (eval.status) {
 		
 		case sufficientTerminalNode:

@@ -1,42 +1,26 @@
 package eubos.search;
 
-import java.util.List;
-
-import com.fluxchess.jcpi.models.GenericMove;
-
 import eubos.position.IPositionAccessors;
 import eubos.search.Transposition.ScoreType;
+import eubos.search.TranspositionEvaluation.TranspositionTableStatus;
 
-public class TranspositionTableAccessor {
+public class TranspositionTableAccessor implements ITranspositionAccessor {
 	
 	private FixedSizeTranspositionTable hashMap;
 	private IPositionAccessors pos;
 	private ScoreTracker st;
 	
-	TranspositionTableAccessor(
+	public TranspositionTableAccessor(
 			FixedSizeTranspositionTable transTable,
 			IPositionAccessors pos,
-			ScoreTracker st,
-			List<GenericMove> lastPc) {
+			ScoreTracker st) {
 		hashMap = transTable;
 		this.pos = pos;
 		this.st = st;
 	}
 	
-	public enum TranspositionTableStatus {
-		insufficientNoData,
-		sufficientTerminalNode,
-		sufficientRefutation,
-		sufficientSeedMoveList		
-	};
-	
-	public class TranspositionEval {
-		public TranspositionTableStatus status;
-		public Transposition trans;
-	}
-	
-	TranspositionEval getTransposition(byte currPly, int depthRequiredPly) {
-		TranspositionEval ret = new TranspositionEval();
+	public TranspositionEvaluation getTransposition(byte currPly, int depthRequiredPly) {
+		TranspositionEvaluation ret = new TranspositionEvaluation();
 		ret.status = TranspositionTableStatus.insufficientNoData;
 		ret.trans = hashMap.getTransposition(pos.getHash());
 		if (ret.trans == null)
@@ -68,8 +52,8 @@ public class TranspositionTableAccessor {
 		return ret;
 	}
 	
-	TranspositionEval getTransposition(int depthRequiredPly) {
-		TranspositionEval ret = new TranspositionEval();
+	public TranspositionEvaluation getTransposition(int depthRequiredPly) {
+		TranspositionEvaluation ret = new TranspositionEvaluation();
 		ret.status = TranspositionTableStatus.insufficientNoData;
 		ret.trans = hashMap.getTransposition(pos.getHash());
 		if (ret.trans != null) {
@@ -80,7 +64,7 @@ public class TranspositionTableAccessor {
 		return ret;
 	}
 	
-	Transposition setTransposition(SearchMetrics sm, byte currPly, Transposition trans, Transposition new_trans) {
+	public Transposition setTransposition(SearchMetrics sm, byte currPly, Transposition trans, Transposition new_trans) {
 		if (trans == null) {
 			trans = getTransCreateIfNew(currPly, new_trans);
 			sm.setHashFull(getHashUtilisation());

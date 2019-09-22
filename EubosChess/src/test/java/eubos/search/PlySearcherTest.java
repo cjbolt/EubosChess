@@ -9,20 +9,27 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
+import com.fluxchess.jcpi.models.IllegalNotationException;
+
+import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece.Colour;
+import eubos.board.pieces.Queen;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IEvaluate;
 import eubos.position.IGenerateMoveList;
 import eubos.position.IPositionAccessors;
-
+import eubos.position.PositionEvaluator;
+import eubos.position.PositionManager;
+import eubos.search.ITranspositionAccessor;
 import static org.mockito.Mockito.*;
 
 public class PlySearcherTest {
 	
 	private PlySearcher classUnderTest;
-	private static final byte searchDepth = 2;
+	private static final byte searchDepth = 4;
 	
+	private PositionManager pm;
 	private IChangePosition mock_pm;
 	private IGenerateMoveList mock_mlgen;
 	private IPositionAccessors mock_pos;
@@ -35,21 +42,23 @@ public class PlySearcherTest {
 	
 	LinkedList<GenericMove> lastPc;
 	
-	private FixedSizeTranspositionTable mock_hashMap;
+	private ITranspositionAccessor mock_hashMap;
+	private ScoreTracker st;
 	
 	@Before
 	public void setUp() throws Exception {
 		SearchDebugAgent.open();
 		
-		pc = new PrincipalContinuation(searchDepth);
-		sm = new SearchMetrics(searchDepth);
+		pc = new PrincipalContinuation(searchDepth*3);
+		sm = new SearchMetrics(searchDepth*3);
 		sm.setPrincipalVariation(pc.toPvList());
 		mockEubos = new EubosEngineMain();
 		sr = new SearchMetricsReporter(mockEubos,sm);
 		mock_pm = mock(IChangePosition.class);
 		mock_mlgen = mock(IGenerateMoveList.class);
 		mock_pos = mock(IPositionAccessors.class);
-		mock_hashMap = mock(FixedSizeTranspositionTable.class);
+		mock_hashMap = mock(ITranspositionAccessor.class);
+		st = new ScoreTracker(searchDepth*3, true);
 		lastPc = null;
 		mock_pe = mock(IEvaluate.class);
 		
@@ -57,6 +66,7 @@ public class PlySearcherTest {
 		
 		classUnderTest = new PlySearcher(
 				mock_hashMap,
+				st,
 			    pc,
 				sm,
 				sr,
@@ -74,7 +84,23 @@ public class PlySearcherTest {
 	}
 	
 	@Test
-	public void testPlySearcher() {
-		assertTrue(classUnderTest != null);
+	public void test_depthSearchedUpdates() throws InvalidPieceException, IllegalNotationException {
+		pm = new PositionManager("7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
+		PositionEvaluator pe = new PositionEvaluator(pm);
+		classUnderTest = new PlySearcher(
+				mock_hashMap,
+				st,
+			    pc,
+				sm,
+				sr,
+				searchDepth,
+				pm,
+				pm,
+				pm,
+				lastPc,
+				pe);
+		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
+		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyInt());
+		assertEquals(2*Queen.MATERIAL_VALUE, classUnderTest.normalSearchPly());		
 	}
 }

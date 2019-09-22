@@ -5,6 +5,7 @@ import java.util.List;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.InvalidPieceException;
+import eubos.board.pieces.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IEvaluate;
@@ -23,7 +24,9 @@ class MiniMaxMoveGenerator implements
 	private boolean sendInfo = false;
 	private EubosEngineMain callback;
 	private PlySearcher ps;
-	private FixedSizeTranspositionTable hashMap;
+	private FixedSizeTranspositionTable tt;
+	private TranspositionTableAccessor tta;
+	private ScoreTracker st;
 	private IEvaluate pe;
 
 	// Used for unit tests
@@ -35,8 +38,8 @@ class MiniMaxMoveGenerator implements
 		this.pm = pm;
 		this.pos = pos;
 		this.mlgen = mlgen;
-		this.hashMap = hashMap;
 		this.pe = pe;
+		tt = hashMap;
 		sm = new SearchMetrics();
 	}
 
@@ -61,6 +64,8 @@ class MiniMaxMoveGenerator implements
 		sr = new SearchMetricsReporter(callback,sm);	
 		if (sendInfo)
 			sr.setSendInfo(true);
+		st = new ScoreTracker(searchDepth*3, pos.getOnMove() == Colour.white);
+		tta = new TranspositionTableAccessor(tt, pos, st);
 	}
 	
 	@Override
@@ -78,7 +83,7 @@ class MiniMaxMoveGenerator implements
 		boolean foundMate = false;
 		int eval_score = 0;
 		initialiseSearchDepthDependentObjects(searchDepth);
-		ps = new PlySearcher(hashMap,pc,sm,sr,searchDepth,pm,mlgen,pos,lastPc, pe);
+		ps = new PlySearcher(tta, st, pc,sm,sr,searchDepth,pm,mlgen,pos,lastPc, pe);
 		// Start the search reporter task
 		if (sendInfo)
 			sr.start();
