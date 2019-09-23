@@ -193,10 +193,8 @@ public class PlySearcher {
 					break;	
 				}
 			}
-			if (everBackedUp && !refutationFound) {
-				// Needed to set exact score instead of upper/lower bound score now we finished search at this ply
-				Transposition newTrans = new Transposition(getTransDepth(), st.getBackedUpScoreAtPly(currPly), ScoreType.exact, ml, pc.getBestMove(currPly));
-				trans = tt.setTransposition(sm, currPly, trans, newTrans);
+			if (everBackedUp && !refutationFound && trans != null) {
+				trans.setScoreType(ScoreType.exact);
 			}
 			depthSearchedPly++; // backing up, increment depth searched
 		}
@@ -408,6 +406,7 @@ public class PlySearcher {
 			short provisionalScoreAtPly = st.getProvisionalScoreAtPly(currPly);
 			Iterator<GenericMove> move_iter = ml.iterator();
 			boolean isCaptureMove = false;
+			boolean noCapturesFound = true;
 			while(move_iter.hasNext() && !isTerminated()) {
 				GenericMove currMove = move_iter.next();
 			
@@ -415,7 +414,8 @@ public class PlySearcher {
 				isCaptureMove = pos.lastMoveWasCheckOrCapture();
 				pm.unperformMove();
 				
-				if (isCaptureMove) {
+				if (isCaptureMove || (noCapturesFound && !move_iter.hasNext())) { // Need to back up a score, so evaluate as terminal node
+					noCapturesFound = false;
 					short positionScore = applyMoveAndScore(currMove);
 					doScoreBackup(positionScore);
 					

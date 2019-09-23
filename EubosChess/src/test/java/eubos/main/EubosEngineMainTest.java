@@ -113,7 +113,8 @@ public class EubosEngineMainTest {
 		setupEngine();
 		// Setup Commands specific to this test
 		commands.add(new commandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1 moves b5b6"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4a6"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4c6"+CMD_TERMINATOR));
+		//commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4a6"+CMD_TERMINATOR));
 		//commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4d5"+CMD_TERMINATOR));
 		performTest(20000);
 	}	
