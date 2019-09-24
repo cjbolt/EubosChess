@@ -1,5 +1,12 @@
 package eubos.search;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fluxchess.jcpi.models.GenericMove;
+
+import eubos.board.InvalidPieceException;
+import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.search.Transposition.ScoreType;
 import eubos.search.TranspositionEvaluation.TranspositionTableStatus;
@@ -71,6 +78,28 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		}
 		trans = checkForUpdateTrans(currPly, new_trans, trans);
 		return trans;
+	}
+	
+	public void createPrincipalContinuation(PrincipalContinuation pc, byte searchDepthPly, IChangePosition pm) throws InvalidPieceException {
+		byte plies = 0;
+		int numMoves = 0;
+		List<GenericMove> constructed_pc = new ArrayList<GenericMove>(searchDepthPly);
+		for (plies = 0; plies < searchDepthPly; plies++) {
+			/* Apply move and find best move from hash */
+			GenericMove pcMove = pc.getBestMove(plies); // Check against principal continuation where it is available
+		    TranspositionEvaluation eval = this.getTransposition(searchDepthPly-plies);
+			if (eval.status != TranspositionTableStatus.insufficientNoData && eval.trans != null) {
+				GenericMove currMove = eval.trans.getBestMove();
+				if (pcMove != null) assert currMove == pcMove : "Error at ply=" + plies;
+				constructed_pc.add(currMove);
+				pm.performMove(currMove);
+				numMoves++;
+			}
+		}
+		for (plies = (byte)(numMoves-1); plies >= 0; plies--) {
+			pm.unperformMove();
+		}
+		pc.update(0, constructed_pc);
 	}
 	
 	private Transposition getTransCreateIfNew(int currPly, Transposition new_trans) {

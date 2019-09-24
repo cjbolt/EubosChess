@@ -86,7 +86,7 @@ public class PlySearcher {
 		pc.update(currPly, currMove);
 		if (atRootNode()) {
 			// If backed up to the root node, report the principal continuation
-			createPrincipalContinuationFromTranspositionTable();
+			tt.createPrincipalContinuation(pc, searchDepthPly, pm);
 			pcUpdater.report(positionScore, searchDepthPly);
 		}
 	}
@@ -234,28 +234,6 @@ public class PlySearcher {
 				doUpdate = true;
 		}
 		return doUpdate;
-	}
-	
-	void createPrincipalContinuationFromTranspositionTable() throws InvalidPieceException {
-		byte plies = 0;
-		int numMoves = 0;
-		List<GenericMove> constructed_pc = new ArrayList<GenericMove>(searchDepthPly);
-		for (plies = 0; plies < searchDepthPly; plies++) {
-			/* Apply move and find best move from hash */
-			GenericMove pcMove = pc.getBestMove(plies); // Check against principal continuation where it is available
-		    TranspositionEvaluation eval = tt.getTransposition(searchDepthPly-plies);
-			if (eval.status != TranspositionTableStatus.insufficientNoData && eval.trans != null) {
-				GenericMove currMove = eval.trans.getBestMove();
-				if (pcMove != null) assert currMove == pcMove : "Error at ply=" + plies;
-				constructed_pc.add(currMove);
-				doPerformMove(currMove);
-				numMoves++;
-			}
-		}
-		for (plies = (byte)(numMoves-1); plies >= 0; plies--) {
-			doUnperformMove(constructed_pc.get(plies));
-		}
-		pc.update(0, constructed_pc);
 	}
 	
 	private byte initialiseSearchAtPly() {

@@ -21,6 +21,8 @@ import eubos.position.IPositionAccessors;
 import eubos.position.PositionEvaluator;
 import eubos.position.PositionManager;
 import eubos.search.ITranspositionAccessor;
+import eubos.search.Transposition.ScoreType;
+import eubos.search.TranspositionEvaluation.TranspositionTableStatus;
 import static org.mockito.Mockito.*;
 
 public class PlySearcherTest {
@@ -60,9 +62,8 @@ public class PlySearcherTest {
 		SearchDebugAgent.close();
 	}
 	
-	@Test
-	public void test_depthSearchedUpdates() throws InvalidPieceException, IllegalNotationException {
-		pm = new PositionManager("7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
+	private void initialisePositionAndSearch(String fen, byte depth) {
+		pm = new PositionManager(fen);
 		PositionEvaluator pe = new PositionEvaluator(pm);
 		classUnderTest = new PlySearcher(
 				mock_hashMap,
@@ -70,36 +71,27 @@ public class PlySearcherTest {
 			    pc,
 				sm,
 				sr,
-				(byte)4,
+				depth,
 				pm,
 				pm,
 				pm,
 				lastPc,
-				pe);
+				pe);		
+	}
+	
+	@Test
+	public void test_depthSearchedUpdates() throws InvalidPieceException, IllegalNotationException {
+		initialisePositionAndSearch("7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69", (byte)4);
 		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
-		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyInt());
+
 		assertEquals(2*Queen.MATERIAL_VALUE, classUnderTest.normalSearchPly());		
 	}
 	
 	@Test
 	public void test_singleLineOfPlay_depthSearchedUpdates() throws InvalidPieceException, IllegalNotationException {
-		pm = new PositionManager("8/8/1P6/8/5p2/8/8/8 w - - 0 1");
-		PositionEvaluator pe = new PositionEvaluator(pm);
-		classUnderTest = new PlySearcher(
-				mock_hashMap,
-				st,
-			    pc,
-				sm,
-				sr,
-				(byte) 4,
-				pm,
-				pm,
-				pm,
-				lastPc,
-				pe);
+		initialisePositionAndSearch("8/8/1P6/8/5p2/8/8/8 w - - 0 1", (byte)4);
 		
 		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
-		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyInt());
 		doReturn(new Transposition((byte)1, (short)0, null, null, null)).when(mock_hashMap).setTransposition(any(SearchMetrics.class), anyByte(), (Transposition)isNull(), any(Transposition.class));
 		
 		assertEquals(650, classUnderTest.normalSearchPly());
@@ -110,10 +102,10 @@ public class PlySearcherTest {
 		ArgumentCaptor<Transposition> captorOld = ArgumentCaptor.forClass(Transposition.class);
 		ArgumentCaptor<Byte> captorPly = ArgumentCaptor.forClass(Byte.class);
 		verify(mock_hashMap, times(8)).setTransposition(any(SearchMetrics.class), captorPly.capture(), captorOld.capture(), captorNew.capture());
-		
 		List<Transposition> new_trans_args = captorNew.getAllValues();
 		List<Transposition> trans_args = captorOld.getAllValues();
 		List<Byte> plies = captorPly.getAllValues();
+		
 		assertEquals(new GenericMove("f3f2"),new_trans_args.get(0).getBestMove());
 		assertNull(trans_args.get(0));
 		assertEquals(3, plies.get(0).byteValue());
@@ -146,4 +138,17 @@ public class PlySearcherTest {
 		assertNull(trans_args.get(7));
 		assertEquals(0, plies.get(7).byteValue());
 	}	 
+	
+	@Test
+	public void test_singleLineOfPlay_exactHashHit() throws InvalidPieceException, IllegalNotationException {
+		initialisePositionAndSearch("8/8/1P6/8/5p2/8/8/8 w - - 0 1", (byte)1);
+		
+		TranspositionEvaluation eval = new TranspositionEvaluation();
+		eval.status = TranspositionTableStatus.sufficientTerminalNode;
+		eval.trans = new Transposition((byte)1, (short)50, ScoreType.exact, null, new GenericMove("b6b7"));
+		
+		when(mock_hashMap.getTransposition((byte)0, 1)).thenReturn(eval);
+		
+		assertEquals(50, classUnderTest.normalSearchPly());
+	}
 }
