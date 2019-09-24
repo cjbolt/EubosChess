@@ -66,22 +66,23 @@ class ScoreTracker {
 	boolean isAlphaBetaCutOff(byte currPly, short nodeProvisionalScore, short positionScore) throws IllegalArgumentException {
 		boolean isAlphaBetaCutOff = false;
 		if ((nodeProvisionalScore != Short.MAX_VALUE) && (nodeProvisionalScore != Short.MIN_VALUE)) {
-			if (currPly <= 0) throw new IllegalArgumentException();
-			short prevPlyScore = getBackedUpScoreAtPly((byte)(currPly-1));
-			if (onMoveIsWhite(currPly)) {
-				/* A note about these score comparisons: 
-				 * 
-				 *  The prevPlyScore is for the opponent. If we have backed up a score to the current position
-				 *  which is worse for the opponent, then we have discovered a refutation of THEIR last move.
-				 *  This isn't the same as the test to back up a score. That is the reason for unexpected comparison
-				 *  (wrt. the usual backing up operation). This comparison is specific to alpha/beta pruning.
-				 */
-				if (positionScore >= prevPlyScore) isAlphaBetaCutOff = true;
-			} else {
-				if (positionScore <= prevPlyScore) isAlphaBetaCutOff = true;
-			}
-			if (isAlphaBetaCutOff) {
-				SearchDebugAgent.printAlphaBetaComparison(currPly, prevPlyScore, positionScore);
+			if (currPly > 0) {// throw new IllegalArgumentException();
+				short prevPlyScore = getBackedUpScoreAtPly((byte)(currPly-1));
+				if (onMoveIsWhite(currPly)) {
+					/* A note about these score comparisons: 
+					 * 
+					 *  The prevPlyScore is for the opponent. If we have backed up a score to the current position
+					 *  which is worse for the opponent, then we have discovered a refutation of THEIR last move.
+					 *  This isn't the same as the test to back up a score. That is the reason for unexpected comparison
+					 *  (wrt. the usual backing up operation). This comparison is specific to alpha/beta pruning.
+					 */
+					if (positionScore >= prevPlyScore) isAlphaBetaCutOff = true;
+				} else {
+					if (positionScore <= prevPlyScore) isAlphaBetaCutOff = true;
+				}
+				if (isAlphaBetaCutOff) {
+					SearchDebugAgent.printAlphaBetaComparison(currPly, prevPlyScore, positionScore);
+				}
 			}
 		}
 		return isAlphaBetaCutOff;

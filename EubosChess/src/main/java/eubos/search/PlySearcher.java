@@ -187,7 +187,7 @@ public class PlySearcher {
 					}
 				}
 				
-				if (st.isAlphaBetaCutOff( currPly, provisionalScoreAtPly, positionScore)) {
+				if (st.isAlphaBetaCutOff( currPly, st.getProvisionalScoreAtPly(currPly), positionScore)) {
 					refutationFound = true;
 					SearchDebugAgent.printRefutationFound(currPly);
 					break;	
@@ -397,7 +397,7 @@ public class PlySearcher {
 					short positionScore = applyMoveAndScore(currMove);
 					doScoreBackup(positionScore);
 					
-					if (st.isAlphaBetaCutOff( currPly, provisionalScoreAtPly, positionScore)) {
+					if (st.isAlphaBetaCutOff( currPly, st.getProvisionalScoreAtPly(currPly), positionScore)) {
 						SearchDebugAgent.printRefutationFound(currPly);
 						break;	
 					}
