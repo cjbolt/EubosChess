@@ -3,7 +3,6 @@ package eubos.search;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class ScoreTrackerTest {
@@ -71,33 +70,32 @@ public class ScoreTrackerTest {
 	
 	@Test
 	public void testIsAlphaBetaCutOff_Max() {
-		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY1, Short.MAX_VALUE, (short)20));
+		classUnderTest.setProvisionalScoreAtPly(PLY1);
+		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY1, (short)20));
 	}
 	
 	@Test
 	public void testIsAlphaBetaCutOff_Min() {
-		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY1, Short.MIN_VALUE, (short)20));
-	}
-	
-	@Test(expected = IllegalArgumentException.class)
-	@Ignore
-	public void testIsAlphaBetaCutOff_plyZero_Exception() {
-		classUnderTest.isAlphaBetaCutOff(PLY0, (short)-100, (short)20);
+		classUnderTest.setProvisionalScoreAtPly(PLY0);
+		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY0, (short)20));
 	}
 	
 	@Test
 	public void testIsAlphaBetaCutOff_PlyOne() {
-		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY1, (short)-100, (short)20));
+		classUnderTest.setBackedUpScoreAtPly(PLY1, (short)-100);
+		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY1, (short)20));
 	}
 		
 	@Test
 	public void testIsAlphaBetaCutOff_plyTwo() {
-		assertTrue(classUnderTest.isAlphaBetaCutOff(PLY2, (short)-100, (short)20));
+		classUnderTest.setBackedUpScoreAtPly(PLY2, (short)-100);
+		assertTrue(classUnderTest.isAlphaBetaCutOff(PLY2, (short)20));
 	}
 	
 	@Test
 	public void testIsAlphaBetaCutOff_PlyThree() {
-		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY3, (short)-100, (short)20));
+		classUnderTest.setBackedUpScoreAtPly(PLY3, (short)-100);
+		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY3, (short)20));
 	}
 	
 	@Test
@@ -129,14 +127,14 @@ public class ScoreTrackerTest {
 		classUnderTest.isBackUpRequired(PLY3, Score_A_C_B_I);
 		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_B_I);
 		assertTrue(classUnderTest.isBackUpRequired(PLY2, Score_A_C_B_I));
-		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY2, (short)-100, Score_A_C_B_I));
+		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY2, Score_A_C_B_I));
 	}	
 	
 	@Test
 	public void testSetProvisionalScoreAtPly_MaxDepthBringsDown() {
 		initialiseToSearchDepth();
 		backup_SearchTree_ACBI();
-		assertTrue(classUnderTest.getProvisionalScoreAtPly(PLY3)==Short.MAX_VALUE);
+		assertTrue(classUnderTest.getBackedUpScoreAtPly(PLY3)==Short.MAX_VALUE);
 		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_E_D);
 	}
 	
@@ -150,7 +148,7 @@ public class ScoreTrackerTest {
 		assertTrue(classUnderTest.isBackUpRequired(PLY1, Score_A_C_E_D));
 		classUnderTest.setBackedUpScoreAtPly(PLY1, Score_A_C_E_D);
 		classUnderTest.setProvisionalScoreAtPly(PLY2);
-		assertTrue(classUnderTest.getProvisionalScoreAtPly(PLY2)==Short.MIN_VALUE);
+		assertTrue(classUnderTest.getBackedUpScoreAtPly(PLY2)==Short.MIN_VALUE);
 	}
 	
 	@Test
@@ -160,7 +158,7 @@ public class ScoreTrackerTest {
 		backup_SearchTree_ACED();
 		classUnderTest.setProvisionalScoreAtPly(PLY2);
 		classUnderTest.setProvisionalScoreAtPly(PLY3);
-		assertTrue(classUnderTest.getProvisionalScoreAtPly(PLY3)==Score_A_C_E_D);
+		assertTrue(classUnderTest.getBackedUpScoreAtPly(PLY3)==Score_A_C_E_D);
 	}	
 
 	@Test
@@ -171,6 +169,6 @@ public class ScoreTrackerTest {
 		classUnderTest.setProvisionalScoreAtPly(PLY2);
 		classUnderTest.setProvisionalScoreAtPly(PLY3);
 		classUnderTest.setBackedUpScoreAtPly(PLY2,Score_A_C_E_D);
-		assertTrue(classUnderTest.isAlphaBetaCutOff(PLY2, Score_A_C_E_D, Score_A_C_E_D));	
+		assertTrue(classUnderTest.isAlphaBetaCutOff(PLY2, Score_A_C_E_D));	
 	}
 }

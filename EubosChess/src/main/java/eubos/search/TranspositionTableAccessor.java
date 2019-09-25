@@ -39,8 +39,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 				ret.status = TranspositionTableStatus.sufficientTerminalNode;
 				SearchDebugAgent.printHashIsTerminalNode(currPly, ret.trans.getBestMove(), ret.trans.getScore(),pos.getHash());
 			} else { // must be (bound == ScoreType.upperBound || bound == ScoreType.lowerBound)
-				short provisionalScoreAtThisPly = st.getProvisionalScoreAtPly(currPly);
-				if (st.isAlphaBetaCutOff(currPly, provisionalScoreAtThisPly, ret.trans.getScore())) {
+				if (st.isAlphaBetaCutOff(currPly, ret.trans.getScore())) {
 					SearchDebugAgent.printHashIsRefutation(currPly, ret.trans.getBestMove(),pos.getHash());
 					ret.status = TranspositionTableStatus.sufficientRefutation;
 		        } else {

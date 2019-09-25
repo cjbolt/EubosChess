@@ -1,6 +1,5 @@
 package eubos.search;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -16,7 +15,6 @@ import eubos.position.IScoreMate;
 import eubos.position.MateScoreGenerator;
 import eubos.search.Transposition.ScoreType;
 import eubos.search.TranspositionEvaluation;
-import eubos.search.TranspositionEvaluation.TranspositionTableStatus;
 import eubos.position.IEvaluate;
 
 public class PlySearcher {
@@ -144,7 +142,6 @@ public class PlySearcher {
 			st.setBackedUpScoreAtPly(currPly, mateScore);
 		} else {
 			pc.update(currPly, ml.get(0));
-			short provisionalScoreAtPly = st.getProvisionalScoreAtPly(currPly);
 			Iterator<GenericMove> move_iter = ml.iterator();
 			
 			boolean everBackedUp = false;
@@ -187,7 +184,7 @@ public class PlySearcher {
 					}
 				}
 				
-				if (st.isAlphaBetaCutOff( currPly, st.getProvisionalScoreAtPly(currPly), positionScore)) {
+				if (st.isAlphaBetaCutOff(currPly, positionScore)) {
 					refutationFound = true;
 					SearchDebugAgent.printRefutationFound(currPly);
 					break;	
@@ -200,7 +197,7 @@ public class PlySearcher {
 		}
 	}
 
-	private void debugEndGamePositionHashing(Transposition trans, GenericMove currMove, Transposition newTrans) {
+	void debugEndGamePositionHashing(Transposition trans, GenericMove currMove, Transposition newTrans) {
 		try {
 			if (atRootNode() && currMove.equals(new GenericMove("f3f4"))) {
 				if (trans!= null)
@@ -239,7 +236,7 @@ public class PlySearcher {
 	private byte initialiseSearchAtPly() {
 		byte depthRequiredPly = (byte)(searchDepthPly - currPly);
 		st.setProvisionalScoreAtPly(currPly);
-		SearchDebugAgent.printStartPlyInfo(currPly, depthRequiredPly, st.getProvisionalScoreAtPly(currPly), pos);
+		SearchDebugAgent.printStartPlyInfo(currPly, depthRequiredPly, st.getBackedUpScoreAtPly(currPly), pos);
 		return depthRequiredPly;
 	}
 
@@ -381,7 +378,6 @@ public class PlySearcher {
 			short mateScore = sg.scoreMate(currPly, (pos.getOnMove() == Colour.white), initialOnMove);
 			st.setBackedUpScoreAtPly(currPly, mateScore);
 		} else {
-			short provisionalScoreAtPly = st.getProvisionalScoreAtPly(currPly);
 			Iterator<GenericMove> move_iter = ml.iterator();
 			boolean isCaptureMove = false;
 			boolean noCapturesFound = true;
@@ -397,7 +393,7 @@ public class PlySearcher {
 					short positionScore = applyMoveAndScore(currMove);
 					doScoreBackup(positionScore);
 					
-					if (st.isAlphaBetaCutOff( currPly, st.getProvisionalScoreAtPly(currPly), positionScore)) {
+					if (st.isAlphaBetaCutOff( currPly, positionScore)) {
 						SearchDebugAgent.printRefutationFound(currPly);
 						break;	
 					}

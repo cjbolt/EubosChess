@@ -44,10 +44,6 @@ class ScoreTracker {
 			bringDownAlphaBetaCutOff(currPly);
 		}
 	}	
-	
-	short getProvisionalScoreAtPly(byte currPly) {
-		return scores[currPly];
-	}
 
 	boolean isBackUpRequired(byte currPly, short positionScore) {
 		boolean backUpScore = false;
@@ -63,11 +59,11 @@ class ScoreTracker {
 		return backUpScore;
 	}
 	
-	boolean isAlphaBetaCutOff(byte currPly, short nodeProvisionalScore, short positionScore) throws IllegalArgumentException {
+	boolean isAlphaBetaCutOff(byte currPly, short positionScore) {
 		boolean isAlphaBetaCutOff = false;
-		if ((nodeProvisionalScore != Short.MAX_VALUE) && (nodeProvisionalScore != Short.MIN_VALUE)) {
-			if (currPly > 0) {// throw new IllegalArgumentException();
-				short prevPlyScore = getBackedUpScoreAtPly((byte)(currPly-1));
+		if ((scores[currPly] != Short.MAX_VALUE) && (scores[currPly] != Short.MIN_VALUE)) {
+			if (currPly > 0) {
+				short prevPlyScore = scores[(byte)(currPly-1)];
 				if (onMoveIsWhite(currPly)) {
 					/* A note about these score comparisons: 
 					 * 
