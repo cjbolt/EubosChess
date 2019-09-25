@@ -261,7 +261,7 @@ public class MiniMaxMoveGeneratorTest {
 		// chess.com Problem ID: 0160818
 		setupPosition( "5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - - -" );
 		expectedMove = new GenericMove("d3h7");
-		doFindMoveTest((byte)2, true);
+		doFindMoveTest((byte)1, true);
 	}
 	
 	@Test
@@ -272,7 +272,7 @@ public class MiniMaxMoveGeneratorTest {
 		//expectedMove = new GenericMove("a5a6");
 		//expectedMove = new GenericMove("f3e5");
 		expectedMove = new GenericMove("g6f7");
-		doFindMoveTest((byte)2, true);
+		doFindMoveTest((byte)1, true);
 	}
 	
 	@Test
@@ -283,7 +283,7 @@ public class MiniMaxMoveGeneratorTest {
 		//expectedMove = new GenericMove("h4g5");
 		expectedMove = new GenericMove("a5g5");
 		//expectedMove = new GenericMove("a3f8");
-		doFindMoveTest((byte)2, true);
+		doFindMoveTest((byte)1, true);
 	}
 	
 	@Test
@@ -293,7 +293,7 @@ public class MiniMaxMoveGeneratorTest {
 		// Two possible pawn mates
 		//expectedMove = new GenericMove("d2d4");
 		expectedMove = new GenericMove("f3f4");
-		doFindMoveTest((byte)2, true);
+		doFindMoveTest((byte)1, true);
 	}
 	
 	@Test
@@ -301,7 +301,7 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		setupPosition( "8/8/K7/p7/k2N3R/p7/P7/8 w - - 0 1" );
 		expectedMove = new GenericMove("d4b3");
-		doFindMoveTest((byte)2, true);
+		doFindMoveTest((byte)1, true);
 	}
 
 	@Test
@@ -309,7 +309,7 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		setupPosition( "1rk2N2/1p6/8/B1Pp4/B6Q/K7/8/2R5 w - d6 0 1" );
 		expectedMove = new GenericMove("c5d6"); //en passant move causes discovered checkmate
-		doFindMoveTest((byte)2, true);
+		doFindMoveTest((byte)1, true);
 	}
 
 	@Test
@@ -317,7 +317,7 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		setupPosition( "8/7B/8/3N4/8/1Q2B3/PPP5/rk2K2R w K - 0 1" );
 		expectedMove = new GenericMove("e1g1");
-		doFindMoveTest((byte)2, true);
+		doFindMoveTest((byte)1, true);
 	}
 
 	@Test
@@ -363,14 +363,14 @@ public class MiniMaxMoveGeneratorTest {
 	public void test_findMove_enPassantCapture() throws InvalidPieceException, IllegalNotationException {
 		setupPosition( "8/8/8/8/1pPP4/8/8/8 b - c3 0 1");
 		expectedMove = new GenericMove("b4c3");
-		doFindMoveTest((byte)2, true);
+		doFindMoveTest((byte)1, true);
 	}
 	
 	@Test
 	public void test_findMove_mateInOne8() throws InvalidPieceException, IllegalNotationException {
 		setupPosition("1k6/ppR5/8/8/8/8/PP6/K1Qq2r1 w - - - -");
 		expectedMove = new GenericMove("c7c8");
-		doFindMoveTest((byte)2, true);
+		doFindMoveTest((byte)1, true);
 	}
 	
 	@Test
@@ -382,7 +382,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 6	00:09	 3,664k	385k	-3.00	Kh2 Ba2 Rc1 Qe5+ Kh3 Qxc5
 		setupPosition( "5r1k/ppp4p/2n5/1BNb2q1/1P6/P7/2PP3K/1R1Q4 b - - 7 32");
 		expectedMove = new GenericMove("g5g2");
-		doFindMoveTest((byte)2, true);
+		doFindMoveTest((byte)1, true);
 	}
 	
 	@Test

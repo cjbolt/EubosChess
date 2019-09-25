@@ -190,4 +190,18 @@ public class PositionEvaluatorTest {
 		assertTrue(SUT.isQuiescent());
 	}
 	 
+	@Test
+	public void test_isQuiescent_No_LastMoveWasCheck() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("1r1k1r2/p5Q1/2p3p1/8/1q1p2n1/3P2P1/P3RPP1/4RK2 b - - 0 1");
+		pm.performMove(new GenericMove("f8f2"));
+		assertFalse(SUT.isQuiescent());
+	}
+	
+	@Test
+	public void test_isQuiescent_No_LastMoveWasCheckMate() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - - -");
+		pm.performMove(new GenericMove("d3h7"));
+		assertFalse(SUT.isQuiescent());
+	}
+	
 }
