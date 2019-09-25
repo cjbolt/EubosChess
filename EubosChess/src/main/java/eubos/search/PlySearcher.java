@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
-import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece.Colour;
@@ -67,7 +66,7 @@ public class PlySearcher {
 		this.lastPc = lastPc;
 		this.searchDepthPly = searchDepthPly;
 		
-		this.st = st; //new ScoreTracker(searchDepthPly*3, initialOnMove == Colour.white);
+		this.st = st;
 		this.tt = hashMap;
 		this.sg = new MateScoreGenerator(pos, searchDepthPly*3);
 		this.pcUpdater = new PrincipalContinuationUpdateHelper(initialOnMove, pc, sm, sr);
@@ -77,17 +76,6 @@ public class PlySearcher {
 	
 	public synchronized void terminateFindMove() { terminate = true; }
 	private synchronized boolean isTerminated() { return terminate; }	
-	
-	protected void doPrincipalContinuationUpdateOnScoreBackup(
-			GenericMove currMove, short positionScore)
-			throws InvalidPieceException {
-		pc.update(currPly, currMove);
-		if (atRootNode()) {
-			// If backed up to the root node, report the principal continuation
-			tt.createPrincipalContinuation(pc, searchDepthPly, pm);
-			pcUpdater.report(positionScore, searchDepthPly);
-		}
-	}
 	
 	short normalSearchPly() throws InvalidPieceException {
 		if (isTerminated())
@@ -127,6 +115,17 @@ public class PlySearcher {
 		return st.getBackedUpScoreAtPly(currPly);
 	}
 
+	private void doPrincipalContinuationUpdateOnScoreBackup(
+			GenericMove currMove, short positionScore)
+			throws InvalidPieceException {
+		pc.update(currPly, currMove);
+		if (atRootNode()) {
+			// If backed up to the root node, report the principal continuation
+			tt.createPrincipalContinuation(pc, searchDepthPly, pm);
+			pcUpdater.report(positionScore, searchDepthPly);
+		}
+	}
+	
 	private void handleEarlyTermination() {
 		if (atRootNode() && isTerminated()) {
 			// Set best move to the previous iteration search result.
@@ -156,22 +155,15 @@ public class PlySearcher {
 				debugCheckPositionHashConsistency(currHashAtStart);
 				
 				GenericMove currMove = move_iter.next();
-				if (atRootNode()) {
-					// When we start to search a move at the root node, clear the principal continuation data
-					pc.clearRowsBeyondPly(currPly);
-					reportMove(currMove);
-				}
+				rootNodeInitAndReportingActions(currMove);
 				
 				short positionScore = applyMoveAndScore(currMove);
 				
 				if (doScoreBackup(positionScore)) {
 					everBackedUp = true;
-					plyScore = positionScore;
-					Transposition newTrans = new Transposition(getTransDepth(), positionScore, plyBound, ml, currMove);
-					
-					//debugEndGamePositionHashing(trans, currMove, newTrans);
-					
-					trans = tt.setTransposition(sm, currPly, trans, newTrans);
+					plyScore = positionScore;					
+					trans = tt.setTransposition(sm, currPly, trans,
+								new Transposition(getTransDepth(), positionScore, plyBound, ml, currMove));
 					doPrincipalContinuationUpdateOnScoreBackup(currMove, positionScore);
 				} else {
 					// Always clear the principal continuation when we didn't back up the score
@@ -179,8 +171,8 @@ public class PlySearcher {
 					// Update the position hash if the move is better than that previously stored at this position
 					if (shouldUpdatePositionBoundScoreAndBestMove(plyBound, plyScore, positionScore)) {
 						plyScore = positionScore;
-						Transposition newTrans = new Transposition(getTransDepth(), plyScore, plyBound, ml, currMove);
-						trans = tt.setTransposition(sm, currPly, trans, newTrans);
+						trans = tt.setTransposition(sm, currPly, trans,
+									new Transposition(getTransDepth(), plyScore, plyBound, ml, currMove));
 					}
 				}
 				
@@ -197,17 +189,11 @@ public class PlySearcher {
 		}
 	}
 
-	void debugEndGamePositionHashing(Transposition trans, GenericMove currMove, Transposition newTrans) {
-		try {
-			if (atRootNode() && currMove.equals(new GenericMove("f3f4"))) {
-				if (trans!= null)
-					System.err.println("existing: "+trans.report() );
-				System.err.println("trans to update: "+newTrans.report() );
-				System.err.println("currMove: "+currMove );
-			}
-		} catch (IllegalNotationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	private void rootNodeInitAndReportingActions(GenericMove currMove) {
+		if (atRootNode()) {
+			// When we start to search a move at the root node, clear the principal continuation data
+			pc.clearRowsBeyondPly(currPly);
+			reportMove(currMove);
 		}
 	}
 	
@@ -215,19 +201,19 @@ public class PlySearcher {
 		return (byte) Math.max(depthSearchedPly,(searchDepthPly-currPly));
 	}
 
-	protected void debugCheckPositionHashConsistency(long currHashAtStart) {
+	private void debugCheckPositionHashConsistency(long currHashAtStart) {
 		long currHashAtMoveN = pos.getHash();
 		assert currHashAtMoveN == currHashAtStart;
 	}
 
-	protected boolean shouldUpdatePositionBoundScoreAndBestMove(
+	private boolean shouldUpdatePositionBoundScoreAndBestMove(
 			ScoreType plyBound, short plyScore, short positionScore) {
 		boolean doUpdate = false;
 		if (plyBound == ScoreType.lowerBound) {
-			if (positionScore > plyScore)
+			if (positionScore > plyScore && positionScore != Short.MAX_VALUE)
 				doUpdate = true;
 		} else {
-			if (positionScore < plyScore)
+			if (positionScore < plyScore && positionScore != Short.MIN_VALUE)
 				doUpdate = true;
 		}
 		return doUpdate;
@@ -322,7 +308,6 @@ public class PlySearcher {
 				nodeState = SearchState.normalSearchTerminalNode;
 			} else {
 				nodeState = SearchState.extendedSearchNode;
-				//nodeState = SearchState.normalSearchTerminalNode;
 			}
 		} else { // if (currPly > searchDepthPly) // extended search
 			if (pe.isQuiescent() || (currPly > Math.min((searchDepthPly + 6), ((searchDepthPly*3)-1))) /* todo ARBITRARY!!!! */) {
