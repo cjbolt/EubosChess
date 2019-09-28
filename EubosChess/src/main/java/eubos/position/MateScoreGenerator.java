@@ -43,6 +43,12 @@ public class MateScoreGenerator implements IScoreMate {
 		int totalMovesSearched = searchDepth/PLIES_PER_MOVE;
 		int mateMoveNum = (currPly-1)/PLIES_PER_MOVE; // currPly-1 because mate was caused by the move from the previousPly
 		int multiplier = totalMovesSearched-mateMoveNum;
-		return (short)(multiplier*King.MATERIAL_VALUE);
+		int score = multiplier*King.MATERIAL_VALUE;
+		if (score >= Short.MAX_VALUE) {
+			score = Short.MAX_VALUE-1;
+		} else if (score <= Short.MIN_VALUE) {
+			score = Short.MIN_VALUE+1;
+		}
+		return (short)(score);
 	}	
 }

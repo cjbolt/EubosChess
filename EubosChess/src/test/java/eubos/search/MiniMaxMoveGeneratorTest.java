@@ -303,6 +303,18 @@ public class MiniMaxMoveGeneratorTest {
 		expectedMove = new GenericMove("d4b3");
 		doFindMoveTest((byte)1, true);
 	}
+	
+	@Test
+	@Ignore
+	public void test_findMove_mateInOne5_9ply()  throws NoLegalMoveException, IllegalNotationException {
+		// http://open-chess.org/viewtopic.php?f=7&t=997
+		// It was possible, due to a casting error, to miss Mates in X when the search length got too long
+		// Need to write some unit tests for mate Score Generator to guard against regression of this.
+		// This test can then be removed.
+		setupPosition( "8/8/K7/p7/k2N3R/p7/P7/8 w - - 0 1" );
+		expectedMove = new GenericMove("d4b3");
+		doFindMoveTest((byte)9, true);
+	}
 
 	@Test
 	public void test_findMove_mateInOne6()  throws NoLegalMoveException, IllegalNotationException {
