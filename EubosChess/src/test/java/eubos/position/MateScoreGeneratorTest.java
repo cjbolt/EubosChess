@@ -5,41 +5,39 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import eubos.board.pieces.King;
+import eubos.board.pieces.Piece.Colour;
 
 public class MateScoreGeneratorTest {
 	
 	private MateScoreGenerator classUnderTest;
 	
-	private static final int SEARCH_DEPTH = 8;
-	private static final int FIRST_PLY = 0;
-	private static final int LAST_PLY = (SEARCH_DEPTH-1);
-	private short score = 0;
-	private byte testPly = FIRST_PLY;
-	
 	@Before
 	public void setUp() {
-		classUnderTest = new MateScoreGenerator(new PositionManager(), SEARCH_DEPTH);
-		score = 0;
 	}
 	
-	@Test
-	public void testConstructor() {
-		assertTrue(classUnderTest!=null);
-	}
+	private byte convertPlyToMove( byte ply ) { return (byte)((ply+1)/2); }
 	
 	@Test
-	public void testGenerateScoreForCheckmate_M1() {
-		testPly = FIRST_PLY;
-		testPly++; // Mate detected on the ply after the move that caused the mate!
-		score = classUnderTest.generateScoreForCheckmate(testPly);
-		assertTrue(score==(King.MATERIAL_VALUE*(SEARCH_DEPTH/MateScoreGenerator.PLIES_PER_MOVE)));
+	public void testGenerateScoreForCheckmate_fromWhite() {
+		classUnderTest = new MateScoreGenerator(new PositionManager("4N3/5P1P/5N1k/6Q1/5PKP/B7/8/1B6 b - - 0 1"));
+		// Mate detected on the ply after the move that caused the mate!
+		for (byte testPly = 1; testPly <= 30; testPly+=2) {
+			if ((testPly % 2) == 1) {
+				assertEquals(Short.MAX_VALUE-convertPlyToMove(testPly), classUnderTest.scoreMate(testPly, Colour.white ));
+			}
+		}
 	}
-	
+		
 	@Test
-	public void testGenerateScoreForCheckmate_M8() {
-		testPly = LAST_PLY;
-		score = classUnderTest.generateScoreForCheckmate(testPly);
-		assertTrue(score==(King.MATERIAL_VALUE));
+	public void testGenerateScoreForCheckmate_fromBlack() {
+		classUnderTest = new MateScoreGenerator(new PositionManager("8/8/8/8/8/5k2/6q1/7K w - - 0 1"));
+		// Mate detected on the ply after the move that caused the mate!
+		for (byte testPly = 1; testPly <= 30; testPly+=2) {
+			if ((testPly % 2) == 1) {
+				assertEquals(Short.MIN_VALUE+convertPlyToMove(testPly), classUnderTest.scoreMate(testPly, Colour.black ));
+			} else {
+				
+			}
+		}
 	}
 }

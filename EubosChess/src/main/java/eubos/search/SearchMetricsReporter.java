@@ -66,18 +66,13 @@ class SearchMetricsReporter extends Thread {
 			if (java.lang.Math.abs(score)<King.MATERIAL_VALUE) {
 				info.setCentipawns(score);
 			} else {
-				int movesSearched = depth/2;
-				int mod = depth%2;
-				int mateOnMoveXFromEndOfSearch = (java.lang.Math.abs(score)/King.MATERIAL_VALUE);
-				int mateInX = movesSearched - mateOnMoveXFromEndOfSearch;
-				if (score < 0) {
-					mateInX = -mateInX;
-					mateInX--;
+				int mateMove = 0;
+				if (score > 0) {
+					mateMove = Short.MAX_VALUE - score;
 				} else {
-					// defect calculating score when mate occurs on the final move searched.
-					mateInX += mod;
+					mateMove = Short.MIN_VALUE - score;
 				}
-				info.setMate(mateInX);
+				info.setMate(mateMove);
 			}
 			info.setDepth(depth);
 			eubosEngine.sendInfoCommand(info);

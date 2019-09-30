@@ -68,7 +68,7 @@ public class PlySearcher {
 		
 		this.st = st;
 		this.tt = hashMap;
-		this.sg = new MateScoreGenerator(pos, searchDepthPly*3);
+		this.sg = new MateScoreGenerator(pos);
 		this.pcUpdater = new PrincipalContinuationUpdateHelper(initialOnMove, pc, sm, sr);
 	}
 	
@@ -137,7 +137,7 @@ public class PlySearcher {
 
 	private void searchMoves(List<GenericMove> ml, Transposition trans) throws InvalidPieceException {
 		if (isMateOccurred(ml)) {
-			short mateScore = sg.scoreMate(currPly, (pos.getOnMove() == Colour.white), initialOnMove);
+			short mateScore = sg.scoreMate(currPly, initialOnMove);
 			st.setBackedUpScoreAtPly(currPly, mateScore);
 		} else {
 			pc.update(currPly, ml.get(0));
@@ -360,7 +360,7 @@ public class PlySearcher {
 	
 	private void searchCheckAndCaptureMoves(List<GenericMove> ml) throws InvalidPieceException {
 		if (isMateOccurred(ml)) {
-			short mateScore = sg.scoreMate(currPly, (pos.getOnMove() == Colour.white), initialOnMove);
+			short mateScore = sg.scoreMate(currPly, initialOnMove);
 			st.setBackedUpScoreAtPly(currPly, mateScore);
 		} else {
 			Iterator<GenericMove> move_iter = ml.iterator();

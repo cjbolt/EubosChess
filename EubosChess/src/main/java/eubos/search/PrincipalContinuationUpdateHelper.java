@@ -57,15 +57,22 @@ public class PrincipalContinuationUpdateHelper
 		}
 		
 		private int calculatePlyMateOccurredOn() {
-			int matePly = Math.abs(positionScore)/King.MATERIAL_VALUE;
-			matePly *= PLIES_PER_MOVE;
-			matePly = searchDepthPly - matePly;
+			int mateMove = 0;
+			int matePly = 0;
 			if (isOwnMate()) {
-				if ((searchDepthPly&1) != 0x1)
-					matePly += 1;
+				if (positionScore > 0) {
+					mateMove = Short.MIN_VALUE + positionScore;
+				} else {
+					mateMove = Short.MAX_VALUE - positionScore;
+				}
+				matePly = mateMove * PLIES_PER_MOVE;
 			} else {
-				if ((searchDepthPly&1) == 0x1)
-					matePly -= 1;	
+				if (positionScore > 0) {
+					mateMove = Short.MAX_VALUE - positionScore;
+				} else {
+					mateMove = Short.MIN_VALUE + positionScore;
+				}
+				matePly =((mateMove-1)* PLIES_PER_MOVE)+1;
 			}
 			return (matePly > 0) ? matePly : 0;
 		}
