@@ -185,7 +185,8 @@ public class PlySearcher {
 			if (everBackedUp && !refutationFound && trans != null) {
 				trans.setScoreType(ScoreType.exact);
 			}
-			depthSearchedPly++; // backing up, increment depth searched
+			//depthSearchedPly++; // backing up, increment depth searched
+			depthSearchedPly = (byte) (searchDepthPly - currPly);
 		}
 	}
 

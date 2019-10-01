@@ -21,10 +21,12 @@ public class SearchMetricsReporterTest {
 	
 	private class EubosMock extends EubosEngineMain {
 		boolean infoCommandReceived = false;
+		ProtocolInformationCommand last_info;
 		
 		@Override
 		public void sendInfoCommand(ProtocolInformationCommand command) {
 			infoCommandReceived = true;
+			last_info = command;
 		}
 		
 		public boolean getInfoCommandReceived() { return infoCommandReceived; }
@@ -65,5 +67,23 @@ public class SearchMetricsReporterTest {
 		classUnderTest.start();
 		classUnderTest.end();
 		assertFalse(eubos.getInfoCommandReceived());
+	}
+	
+	@Test
+	public void testMateScore_gettingMatedIn3() {
+		sm.setCpScore((short) (Short.MIN_VALUE+3)); // indicates mate in 3 moves
+		classUnderTest.setSendInfo(true);
+		classUnderTest.reportPrincipalVariation();
+		
+		assertEquals(new Integer(-3), eubos.last_info.getMate());
+	}
+	
+	@Test
+	public void testMateScore_MateIn3() {
+		sm.setCpScore((short) (Short.MAX_VALUE-3)); // indicates mate in 3 moves
+		classUnderTest.setSendInfo(true);
+		classUnderTest.reportPrincipalVariation();
+		
+		assertEquals(new Integer(3), eubos.last_info.getMate());
 	}
 }

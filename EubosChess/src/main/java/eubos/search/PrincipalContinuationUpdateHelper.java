@@ -65,7 +65,8 @@ public class PrincipalContinuationUpdateHelper
 				} else {
 					mateMove = Short.MAX_VALUE - positionScore;
 				}
-				matePly = mateMove * PLIES_PER_MOVE;
+				//matePly = mateMove * PLIES_PER_MOVE;
+				matePly = Math.abs(mateMove);
 			} else {
 				if (positionScore > 0) {
 					mateMove = Short.MAX_VALUE - positionScore;
