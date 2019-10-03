@@ -281,14 +281,13 @@ public class PlySearcher {
 		case normalSearchTerminalNode:
 		case extendedSearchTerminalNode:
 			positionScore = scoreTerminalNode();
-			depthSearchedPly = 1; // We searched to find this score
+			depthSearchedPly = 1; // We applied a move in order to generate this score
 			break;
 		case normalSearchNode:
 			positionScore = normalSearchPly();
 			break;
 		case extendedSearchNode:
 			positionScore = extendedSearchPly();
-			depthSearchedPly = 1; // Not sure this is needed
 			break;
 		default:
 			break;
