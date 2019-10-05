@@ -46,7 +46,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		Timestamp msTargetEndTime = new Timestamp(System.currentTimeMillis() + timeQuota);
 		IterativeMoveSearchStopper stopper = new IterativeMoveSearchStopper(msTargetEndTime);
 		stopper.start();
-		while (!searchStopped && currentDepth <= 8) {
+		while (!searchStopped) {
 			try {
 				res = mg.findMove(currentDepth, pc);
 			} catch( NoLegalMoveException e ) {
@@ -60,7 +60,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				break;
 			pc = mg.pc.toPvList();
 			currentDepth++;
-		}	
+		}
 		stopper.end();
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
 	}
