@@ -128,8 +128,8 @@ public class PlySearcher {
 	
 	private void handleEarlyTermination() {
 		if (atRootNode() && isTerminated()) {
-			// Set best move to the previous iteration search result, if we haven't backed anything up to the root node.
-			if (pc.getBestMove() == null && lastPc != null) {
+			// Set best move to the previous iteration search result
+			if (lastPc != null) {
 				pc.update(0, lastPc.get(0));
 			}
 		}
