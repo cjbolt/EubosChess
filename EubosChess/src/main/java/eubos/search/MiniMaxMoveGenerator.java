@@ -28,6 +28,7 @@ class MiniMaxMoveGenerator implements
 	private TranspositionTableAccessor tta;
 	private ScoreTracker st;
 	private IEvaluate pe;
+	private short score;
 
 	// Used for unit tests
 	MiniMaxMoveGenerator( FixedSizeTranspositionTable hashMap,
@@ -41,6 +42,7 @@ class MiniMaxMoveGenerator implements
 		this.pe = pe;
 		tt = hashMap;
 		sm = new SearchMetrics();
+		score = 0;
 	}
 
 	// Used with Arena, Lichess
@@ -54,7 +56,10 @@ class MiniMaxMoveGenerator implements
 		sm = new SearchMetrics();
 		callback = eubos;
 		sendInfo = true;
-	}	
+		score = 0;
+	}
+	
+	public short getScore() { return score; }
 	
 	private void initialiseSearchDepthDependentObjects(int searchDepth) {
 		pc = new PrincipalContinuation(searchDepth*3);
@@ -81,7 +86,6 @@ class MiniMaxMoveGenerator implements
 	@Override
 	public SearchResult findMove(byte searchDepth, List<GenericMove> lastPc) throws NoLegalMoveException, InvalidPieceException {
 		boolean foundMate = false;
-		int eval_score = 0;
 		initialiseSearchDepthDependentObjects(searchDepth);
 		ps = new PlySearcher(tta, st, pc,sm,sr,searchDepth,pm,mlgen,pos,lastPc, pe);
 		// Start the search reporter task
@@ -89,13 +93,13 @@ class MiniMaxMoveGenerator implements
 			sr.start();
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		try {
-			eval_score = ps.normalSearchPly();
+			score = ps.normalSearchPly();
 		} catch (AssertionError e) {
 			e.printStackTrace();
 			//this.terminateFindMove();
 			System.exit(0);
 		}
-		if (Math.abs(eval_score) >= eubos.board.pieces.King.MATERIAL_VALUE) {
+		if (Math.abs(score) >= eubos.board.pieces.King.MATERIAL_VALUE) {
 			foundMate = true;
 		}
 		if (sendInfo) {

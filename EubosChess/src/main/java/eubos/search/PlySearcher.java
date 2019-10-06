@@ -128,9 +128,15 @@ public class PlySearcher {
 	
 	private void handleEarlyTermination() {
 		if (atRootNode() && isTerminated()) {
+			TranspositionEvaluation eval = tt.getTransposition(currPly, searchDepthPly);
+			if (eval != null && eval.trans != null && eval.trans.getBestMove() != null) {
+				pc.update(0, eval.trans.getBestMove());
+			}
 			// Set best move to the previous iteration search result
-			if (lastPc != null) {
+			else if (lastPc != null) {
 				pc.update(0, lastPc.get(0));
+			} else {
+				// Just return pc
 			}
 		}
 	}
@@ -158,6 +164,8 @@ public class PlySearcher {
 				rootNodeInitAndReportingActions(currMove);
 				
 				short positionScore = applyMoveAndScore(currMove);
+				if (isTerminated())
+					break;
 				
 				if (doScoreBackup(positionScore)) {
 					everBackedUp = true;
@@ -182,10 +190,12 @@ public class PlySearcher {
 					break;	
 				}
 			}
-			if (everBackedUp && !refutationFound && trans != null) {
+			if (everBackedUp && !refutationFound && trans != null && !isTerminated()) {
 				trans.setScoreType(ScoreType.exact);
 			}
-			depthSearchedPly = (byte) (searchDepthPly - currPly);
+			if (!isTerminated()) {
+				depthSearchedPly = (byte) (searchDepthPly - currPly);
+			}
 		}
 	}
 

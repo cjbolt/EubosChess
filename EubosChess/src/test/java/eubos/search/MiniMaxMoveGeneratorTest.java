@@ -685,4 +685,26 @@ public class MiniMaxMoveGeneratorTest {
 		assertEquals(expectedMove, res.bestMove);
 	}
 	
+	@Test
+	public void test_SearchEval_4ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		setupPosition("rn2k1nr/1pp2pbp/p7/3q4/6b1/2N2N2/PPPPBPP1/R1BQ1RK1 b kq - 1 10"); 
+		expectedMove = new GenericMove("g7c3");
+		SearchResult res = classUnderTest.findMove((byte)4,null);
+		assertEquals(expectedMove, res.bestMove);
+		
+		pm = new PositionManager("rn2k1nr/1pp2p1p/p7/8/6b1/2P2N2/PPP2PP1/R1BB1RK1 b kq - 0 12");
+		assertEquals(pm.getPositionEvaluator().evaluatePosition(), classUnderTest.getScore());
+	}
+	
+	@Test
+	public void test_SearchEval_1ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		setupPosition("rn2k1nr/1pp2pbp/p7/3q4/6b1/2N2N2/PPPPBPP1/R1BQ1RK1 b kq - 1 10"); 
+		expectedMove = new GenericMove("g7c3");
+		SearchResult res = classUnderTest.findMove((byte)1,null);
+		assertEquals(expectedMove, res.bestMove);
+		
+		pm = new PositionManager("rn2k1nr/1pp2p1p/p7/8/6b1/2P2N2/PPP2PP1/R1BB1RK1 b kq - 0 12");
+		assertEquals(pm.getPositionEvaluator().evaluatePosition(), classUnderTest.getScore());
+	}
+	
 }
