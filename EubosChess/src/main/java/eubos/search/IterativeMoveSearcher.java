@@ -60,6 +60,9 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				break;
 			pc = mg.pc.toPvList();
 			currentDepth++;
+			if (currentDepth == Byte.MAX_VALUE) {
+				break;
+			}
 		}
 		stopper.end();
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));

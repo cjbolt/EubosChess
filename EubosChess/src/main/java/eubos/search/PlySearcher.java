@@ -164,36 +164,35 @@ public class PlySearcher {
 				rootNodeInitAndReportingActions(currMove);
 				
 				short positionScore = applyMoveAndScore(currMove);
-				if (isTerminated())
-					break;
-				
-				if (doScoreBackup(positionScore)) {
-					everBackedUp = true;
-					plyScore = positionScore;					
-					trans = tt.setTransposition(sm, currPly, trans,
-								new Transposition(getTransDepth(), positionScore, plyBound, ml, currMove));
-					doPrincipalContinuationUpdateOnScoreBackup(currMove, positionScore);
-				} else {
-					// Always clear the principal continuation when we didn't back up the score
-					pc.clearRowsBeyondPly(currPly);
-					// Update the position hash if the move is better than that previously stored at this position
-					if (shouldUpdatePositionBoundScoreAndBestMove(plyBound, plyScore, positionScore)) {
-						plyScore = positionScore;
+				if (!isTerminated()) {
+					if (doScoreBackup(positionScore)) {
+						everBackedUp = true;
+						plyScore = positionScore;					
 						trans = tt.setTransposition(sm, currPly, trans,
-									new Transposition(getTransDepth(), plyScore, plyBound, ml, currMove));
+									new Transposition(getTransDepth(), positionScore, plyBound, ml, currMove));
+						doPrincipalContinuationUpdateOnScoreBackup(currMove, positionScore);
+					} else {
+						// Always clear the principal continuation when we didn't back up the score
+						pc.clearRowsBeyondPly(currPly);
+						// Update the position hash if the move is better than that previously stored at this position
+						if (shouldUpdatePositionBoundScoreAndBestMove(plyBound, plyScore, positionScore)) {
+							plyScore = positionScore;
+							trans = tt.setTransposition(sm, currPly, trans,
+										new Transposition(getTransDepth(), plyScore, plyBound, ml, currMove));
+						}
+					}
+				
+					if (st.isAlphaBetaCutOff(currPly, positionScore)) {
+						refutationFound = true;
+						SearchDebugAgent.printRefutationFound(currPly);
+						break;	
 					}
 				}
-				
-				if (st.isAlphaBetaCutOff(currPly, positionScore)) {
-					refutationFound = true;
-					SearchDebugAgent.printRefutationFound(currPly);
-					break;	
-				}
-			}
-			if (everBackedUp && !refutationFound && trans != null && !isTerminated()) {
-				trans.setScoreType(ScoreType.exact);
 			}
 			if (!isTerminated()) {
+				if (everBackedUp && !refutationFound && trans != null) {
+					trans.setScoreType(ScoreType.exact);
+				}
 				depthSearchedPly = (byte) (searchDepthPly - currPly);
 			}
 		}
@@ -373,17 +372,20 @@ public class PlySearcher {
 			st.setBackedUpScoreAtPly(currPly, mateScore);
 		} else {
 			Iterator<GenericMove> move_iter = ml.iterator();
-			boolean isCaptureMove = false;
-			boolean noCapturesFound = true;
+			boolean isCheckCaptureOrPromotionMove = false;
+			boolean isNoMovesSearched = true;
 			while(move_iter.hasNext() && !isTerminated()) {
 				GenericMove currMove = move_iter.next();
-			
-				pm.performMove(currMove);
-				isCaptureMove = pos.lastMoveWasCheckOrCapture();
-				pm.unperformMove();
+				if (currMove.promotion!=null) {
+					isCheckCaptureOrPromotionMove = true;
+				} else {
+					pm.performMove(currMove);
+					isCheckCaptureOrPromotionMove = pos.lastMoveWasCheckOrCapture();
+					pm.unperformMove();
+				}
 				
-				if (isCaptureMove || (noCapturesFound && !move_iter.hasNext())) { // Need to back up a score, so evaluate as terminal node
-					noCapturesFound = false;
+				if (isCheckCaptureOrPromotionMove || (isNoMovesSearched && !move_iter.hasNext())) { // Need to back up a score, so evaluate as terminal node
+					isNoMovesSearched = false;
 					short positionScore = applyMoveAndScore(currMove);
 					doScoreBackup(positionScore);
 					
