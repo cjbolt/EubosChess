@@ -10,6 +10,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
@@ -182,5 +184,23 @@ public class PlySearcherTest {
 		when(mock_hashMap.getTransposition((byte)1, 1)).thenReturn(eval1_0).thenReturn(eval1_1);
 		
 		assertEquals(0, classUnderTest.normalSearchPly());
+	}
+	
+	@Test
+	public void test_when_aborted_doesnt_update_transposition_table() throws InvalidPieceException, IllegalNotationException {
+		initialisePositionAndSearch("6k1/5pb1/6p1/r2R4/8/2q5/1B3PP1/5RK1 w - - 0 1", (byte)2);
+		
+	    setupBackUpToRootNodeTerminatesTest();
+		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
+		verify(mock_hashMap, never()).setTransposition(any(SearchMetrics.class), anyByte(), (Transposition)isNull(), any(Transposition.class));
+		classUnderTest.normalSearchPly();
+	}
+
+	private void setupBackUpToRootNodeTerminatesTest() throws InvalidPieceException {
+		doAnswer(new Answer<Void>(){
+            public Void answer(InvocationOnMock invocation) throws Throwable {
+            	classUnderTest.terminateFindMove();
+                return null;
+            }}).when(mock_hashMap).createPrincipalContinuation(any(PrincipalContinuation.class), anyByte(), any(PositionManager.class));
 	}
 }
