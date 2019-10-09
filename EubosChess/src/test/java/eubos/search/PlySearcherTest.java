@@ -87,7 +87,7 @@ public class PlySearcherTest {
 		initialisePositionAndSearch("7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69", (byte)4);
 		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
 
-		assertEquals(2*Queen.MATERIAL_VALUE, classUnderTest.normalSearchPly());		
+		assertEquals(2*Queen.MATERIAL_VALUE, classUnderTest.searchPly());		
 	}
 	
 	@Test
@@ -97,7 +97,7 @@ public class PlySearcherTest {
 		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
 		doReturn(new Transposition((byte)1, (short)0, null, null, null)).when(mock_hashMap).setTransposition(any(SearchMetrics.class), anyByte(), (Transposition)isNull(), any(Transposition.class));
 		
-		assertEquals(650, classUnderTest.normalSearchPly());
+		assertEquals(650, classUnderTest.searchPly());
 		
 		//verify(mock_hashMap, times(8)).setTransposition(any(SearchMetrics.class), anyByte(), (Transposition)isNull(), any(Transposition.class));
 		
@@ -152,7 +152,7 @@ public class PlySearcherTest {
 		
 		when(mock_hashMap.getTransposition((byte)0, 1)).thenReturn(eval);
 		
-		assertEquals(50, classUnderTest.normalSearchPly());
+		assertEquals(50, classUnderTest.searchPly());
 	}
 	
 	@Test
@@ -183,7 +183,7 @@ public class PlySearcherTest {
 		when(mock_hashMap.getTransposition((byte)0, 2)).thenReturn(eval0);
 		when(mock_hashMap.getTransposition((byte)1, 1)).thenReturn(eval1_0).thenReturn(eval1_1);
 		
-		assertEquals(0, classUnderTest.normalSearchPly());
+		assertEquals(0, classUnderTest.searchPly());
 	}
 	
 	@Test
@@ -193,7 +193,7 @@ public class PlySearcherTest {
 	    setupBackUpToRootNodeTerminatesTest();
 		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
 		verify(mock_hashMap, never()).setTransposition(any(SearchMetrics.class), anyByte(), (Transposition)isNull(), any(Transposition.class));
-		classUnderTest.normalSearchPly();
+		classUnderTest.searchPly();
 	}
 
 	private void setupBackUpToRootNodeTerminatesTest() throws InvalidPieceException {

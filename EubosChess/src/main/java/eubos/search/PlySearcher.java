@@ -39,6 +39,7 @@ public class PlySearcher {
 	
 	byte currPly = 0;
 	byte depthSearchedPly = 0;
+	private byte originalDepthRequested = 0;
 	
 	PlySearcher(
 			ITranspositionAccessor hashMap,
@@ -65,6 +66,7 @@ public class PlySearcher {
 		this.pe = pe;
 		this.lastPc = lastPc;
 		this.searchDepthPly = searchDepthPly;
+		originalDepthRequested = searchDepthPly;
 		
 		this.st = st;
 		this.tt = hashMap;
@@ -77,7 +79,7 @@ public class PlySearcher {
 	public synchronized void terminateFindMove() { terminate = true; }
 	private synchronized boolean isTerminated() { return terminate; }	
 	
-	short normalSearchPly() throws InvalidPieceException {
+	short searchPly() throws InvalidPieceException {
 		if (isTerminated())
 			return 0;
 		
@@ -111,6 +113,7 @@ public class PlySearcher {
 			break;
 		}
 		handleEarlyTermination();
+		clearUpSearchAtPly();
 		
 		return st.getBackedUpScoreAtPly(currPly);
 	}
@@ -145,7 +148,32 @@ public class PlySearcher {
 		if (isMateOccurred(ml)) {
 			short mateScore = sg.scoreMate(currPly, initialOnMove);
 			st.setBackedUpScoreAtPly(currPly, mateScore);
-		} else {
+		} else if (searchDepthPly > originalDepthRequested) {
+			Iterator<GenericMove> move_iter = ml.iterator();
+			boolean isCheckCaptureOrPromotionMove = false;
+			boolean isNoMovesSearched = true;
+			while(move_iter.hasNext() && !isTerminated()) {
+				GenericMove currMove = move_iter.next();
+				if (currMove.promotion!=null) {
+					isCheckCaptureOrPromotionMove = true;
+				} else {
+					pm.performMove(currMove);
+					isCheckCaptureOrPromotionMove = pos.lastMoveWasCheckOrCapture();
+					pm.unperformMove();
+				}
+				
+				if (isCheckCaptureOrPromotionMove || (isNoMovesSearched && !move_iter.hasNext())) { // Need to back up a score, so evaluate as terminal node
+					isNoMovesSearched = false;
+					short positionScore = applyMoveAndScore(currMove);
+					doScoreBackup(positionScore);
+					
+					if (st.isAlphaBetaCutOff( currPly, positionScore)) {
+						SearchDebugAgent.printRefutationFound(currPly);
+						break;	
+					}
+				}
+			}
+		} else { // normal search
 			pc.update(currPly, ml.get(0));
 			Iterator<GenericMove> move_iter = ml.iterator();
 			
@@ -229,10 +257,19 @@ public class PlySearcher {
 	}
 	
 	private byte initialiseSearchAtPly() {
+		if (searchDepthPly > originalDepthRequested) {
+			searchDepthPly++;
+		}
 		byte depthRequiredPly = (byte)(searchDepthPly - currPly);
 		st.setProvisionalScoreAtPly(currPly);
 		SearchDebugAgent.printStartPlyInfo(currPly, depthRequiredPly, st.getBackedUpScoreAtPly(currPly), pos);
 		return depthRequiredPly;
+	}
+	
+	private void clearUpSearchAtPly() {
+		if (searchDepthPly > originalDepthRequested) {
+			searchDepthPly--;
+		}
 	}
 
 	private boolean doScoreBackup(short positionScore) {
@@ -292,10 +329,10 @@ public class PlySearcher {
 			depthSearchedPly = 1; // We applied a move in order to generate this score
 			break;
 		case normalSearchNode:
-			positionScore = normalSearchPly();
+			positionScore = searchPly();
 			break;
 		case extendedSearchNode:
-			positionScore = extendedSearchPly();
+			positionScore = searchPly();
 			break;
 		default:
 			break;
@@ -309,15 +346,15 @@ public class PlySearcher {
 	
 	private SearchState isTerminalNode() {
 		SearchState nodeState = SearchState.normalSearchNode;
-		if (currPly < searchDepthPly) {
+		if (currPly < originalDepthRequested) {
 			nodeState = SearchState.normalSearchNode;
-		} else if (currPly == searchDepthPly) {
+		} else if (currPly == originalDepthRequested) {
 			if (pe.isQuiescent()) {
 				nodeState = SearchState.normalSearchTerminalNode;
 			} else {
 				nodeState = SearchState.extendedSearchNode;
 			}
-		} else { // if (currPly > searchDepthPly) // extended search
+		} else if (currPly > originalDepthRequested) {
 			if (pe.isQuiescent() || (currPly > Math.min((searchDepthPly + 6), ((searchDepthPly*3)-1))) /* todo ARBITRARY!!!! */) {
 				nodeState = SearchState.extendedSearchTerminalNode;
 			} else {
@@ -325,77 +362,6 @@ public class PlySearcher {
 			}
 		}
 		return nodeState;
-	}
-	
-	private short extendedSearchPly() throws InvalidPieceException {
-		if (isTerminated())
-			return 0;
-		
-		st.setProvisionalScoreAtPly(currPly);
-		
-		ScoreType plyBound = (pos.getOnMove().equals(Colour.white)) ? ScoreType.lowerBound : ScoreType.upperBound;
-		short plyScore = (plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE;
-		List<GenericMove> ml = null;
-		
-		TranspositionEvaluation eval = tt.getTransposition(currPly, 100);
-		switch (eval.status) {
-		
-		case sufficientTerminalNode:
-		case sufficientRefutation:
-		case sufficientSeedMoveList:
-			SearchDebugAgent.printHashIsSeedMoveList(currPly, eval.trans.getBestMove(), pos.getHash());
-			ml = eval.trans.getMoveList();
-			searchCheckAndCaptureMoves( ml );
-			break;
-
-		case insufficientNoData:
-			ml = getMoveList();
-			
-			// To store movelist
-			if (ml.size() != 0) {
-				Transposition newTrans = new Transposition((byte)0, plyScore, plyBound, ml, ml.get(0));
-				tt.setTransposition(sm, currPly, null, newTrans);
-			}
-			
-			searchCheckAndCaptureMoves( ml );
-			break;
-			
-		default:
-			break;
-		}
-		return st.getBackedUpScoreAtPly(currPly);
-	}
-	
-	private void searchCheckAndCaptureMoves(List<GenericMove> ml) throws InvalidPieceException {
-		if (isMateOccurred(ml)) {
-			short mateScore = sg.scoreMate(currPly, initialOnMove);
-			st.setBackedUpScoreAtPly(currPly, mateScore);
-		} else {
-			Iterator<GenericMove> move_iter = ml.iterator();
-			boolean isCheckCaptureOrPromotionMove = false;
-			boolean isNoMovesSearched = true;
-			while(move_iter.hasNext() && !isTerminated()) {
-				GenericMove currMove = move_iter.next();
-				if (currMove.promotion!=null) {
-					isCheckCaptureOrPromotionMove = true;
-				} else {
-					pm.performMove(currMove);
-					isCheckCaptureOrPromotionMove = pos.lastMoveWasCheckOrCapture();
-					pm.unperformMove();
-				}
-				
-				if (isCheckCaptureOrPromotionMove || (isNoMovesSearched && !move_iter.hasNext())) { // Need to back up a score, so evaluate as terminal node
-					isNoMovesSearched = false;
-					short positionScore = applyMoveAndScore(currMove);
-					doScoreBackup(positionScore);
-					
-					if (st.isAlphaBetaCutOff( currPly, positionScore)) {
-						SearchDebugAgent.printRefutationFound(currPly);
-						break;	
-					}
-				}
-			}
-		}
 	}
 
 	private void doPerformMove(GenericMove currMove) throws InvalidPieceException {
