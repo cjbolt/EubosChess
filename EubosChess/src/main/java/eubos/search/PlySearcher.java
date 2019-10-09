@@ -91,21 +91,33 @@ public class PlySearcher {
 		
 		case sufficientTerminalNode:
 		case sufficientRefutation:
-			depthSearchedPly = eval.trans.getDepthSearchedInPly();
-			pc.clearTreeBeyondPly(currPly);
-			if (doScoreBackup(eval.trans.getScore())) {
-				doPrincipalContinuationUpdateOnScoreBackup(eval.trans.getBestMove(), eval.trans.getScore());
+			if (searchDepthPly <= originalDepthRequested) {
+				depthSearchedPly = eval.trans.getDepthSearchedInPly();
+				pc.clearTreeBeyondPly(currPly);
+				if (doScoreBackup(eval.trans.getScore())) {
+					doPrincipalContinuationUpdateOnScoreBackup(eval.trans.getBestMove(), eval.trans.getScore());
+				}
+				sm.incrementNodesSearched();
+				break;
 			}
-			sm.incrementNodesSearched();
-			break;
 			
 		case sufficientSeedMoveList:
 			SearchDebugAgent.printHashIsSeedMoveList(currPly, eval.trans.getBestMove(), pos.getHash());
 			ml = eval.trans.getMoveList();
-			// Intentional drop through
+			searchMoves( ml, eval.trans);
+			break;
+			
 		case insufficientNoData:
-			if (ml == null)
-				ml = getMoveList();
+			ml = getMoveList();
+			if (searchDepthPly > originalDepthRequested) {
+				ScoreType plyBound = (pos.getOnMove().equals(Colour.white)) ? ScoreType.lowerBound : ScoreType.upperBound;
+				short plyScore = (plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE;	
+				// In order to store the move list in extended searches
+				if (ml.size() != 0) {
+					Transposition newTrans = new Transposition((byte)0, plyScore, plyBound, ml, ml.get(0));
+					tt.setTransposition(sm, currPly, null, newTrans);
+				}
+			}
 			searchMoves( ml, eval.trans);
 			break;
 			
@@ -257,7 +269,7 @@ public class PlySearcher {
 	}
 	
 	private byte initialiseSearchAtPly() {
-		if (searchDepthPly > originalDepthRequested) {
+		if (currPly >= originalDepthRequested) {
 			searchDepthPly++;
 		}
 		byte depthRequiredPly = (byte)(searchDepthPly - currPly);
@@ -355,7 +367,7 @@ public class PlySearcher {
 				nodeState = SearchState.extendedSearchNode;
 			}
 		} else if (currPly > originalDepthRequested) {
-			if (pe.isQuiescent() || (currPly > Math.min((searchDepthPly + 6), ((searchDepthPly*3)-1))) /* todo ARBITRARY!!!! */) {
+			if (pe.isQuiescent() || (currPly > Math.min((originalDepthRequested + 6), ((originalDepthRequested*3)-1))) /* todo ARBITRARY!!!! */) {
 				nodeState = SearchState.extendedSearchTerminalNode;
 			} else {
 				nodeState = SearchState.extendedSearchNode; 
