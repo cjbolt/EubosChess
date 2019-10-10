@@ -320,50 +320,32 @@ public class PlySearcher {
 		
 		return positionScore;
 	}
-
-	enum SearchState {
-		normalSearchTerminalNode,
-		normalSearchNode,
-		extendedSearchNode,
-		extendedSearchTerminalNode
-	};
 	
 	private short assessNewPosition(GenericMove prevMove) throws InvalidPieceException {
 		short positionScore = 0;
-		switch ( isTerminalNode() ) {
-		case normalSearchTerminalNode:
-		case extendedSearchTerminalNode:
+		if ( isTerminalNode() ) {
 			positionScore = pe.evaluatePosition();
 			depthSearchedPly = 1; // We applied a move in order to generate this score
-			break;
-		case normalSearchNode:
-		case extendedSearchNode:
+		} else {
 			positionScore = searchPly();
-			break;
-		default:
-			break;
 		}
 		return positionScore;
 	}
 	
-	private SearchState isTerminalNode() {
-		SearchState nodeState = SearchState.normalSearchNode;
-		if (currPly < originalDepthRequested) {
-			nodeState = SearchState.normalSearchNode;
-		} else if (currPly == originalDepthRequested) {
+	private boolean isTerminalNode() {
+		boolean terminalNode = false;
+		if (currPly == originalDepthRequested) {
 			if (pe.isQuiescent()) {
-				nodeState = SearchState.normalSearchTerminalNode;
-			} else {
-				nodeState = SearchState.extendedSearchNode;
+				terminalNode = true;
 			}
 		} else if (currPly > originalDepthRequested) {
 			if (pe.isQuiescent() || (currPly > (originalDepthRequested*3)-1)) {
-				nodeState = SearchState.extendedSearchTerminalNode;
-			} else {
-				nodeState = SearchState.extendedSearchNode; 
+				terminalNode = true;
 			}
+		} else {
+			// is terminal node
 		}
-		return nodeState;
+		return terminalNode;
 	}
 
 	private void doPerformMove(GenericMove currMove) throws InvalidPieceException {
