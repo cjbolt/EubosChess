@@ -143,29 +143,18 @@ public class PlySearcher {
 		        if (!isTerminated()) {
 		            if (doScoreBackup(positionScore)) {
 		                everBackedUp = true;
-		                if (isInNormalSearch()) {
-		                    plyScore = positionScore;
-		                    trans = tt.setTransposition(sm, currPly, trans,
-		                                new Transposition(getTransDepth(), positionScore, plyBound, ml, currMove));
-		                    doPrincipalContinuationUpdateOnScoreBackup(currMove, positionScore);
-		                } else {
-		                	// New transposition shall only be good for seeding movelist
-		                    trans = tt.setTransposition(sm, currPly, trans,
-	                                new Transposition((byte)0, positionScore, plyBound, ml, currMove));
-		                }
+	                    plyScore = positionScore;
+	                    trans = tt.setTransposition(sm, currPly, trans,
+	                                new Transposition(getTransDepth(), positionScore, plyBound, ml, currMove));
+	                    doPrincipalContinuationUpdateOnScoreBackup(currMove, positionScore);
 		            } else {
 		                // Always clear the principal continuation when we didn't back up the score
 		                pc.clearRowsBeyondPly(currPly);
 		                // Update the position hash if the move is better than that previously stored at this position
 		                if (shouldUpdatePositionBoundScoreAndBestMove(plyBound, plyScore, positionScore)) {
 		                    plyScore = positionScore;
-		                    if (isInNormalSearch()) {
-		                    	trans = tt.setTransposition(sm, currPly, trans,
-		                                new Transposition(getTransDepth(), plyScore, plyBound, ml, currMove));
-		                    } else {
-			                    trans = tt.setTransposition(sm, currPly, trans,
-		                                new Transposition((byte)0, plyScore, plyBound, ml, currMove));		                    	
-		                    }
+		                    trans = tt.setTransposition(sm, currPly, trans,
+		                            new Transposition(getTransDepth(), plyScore, plyBound, ml, currMove));
 		                }
 		            }
 		        
@@ -206,15 +195,6 @@ public class PlySearcher {
 		}
 		sm.incrementNodesSearched();
 	}
-
-	private void storeMoveListInTranspositionTable(List<GenericMove> ml) {
-		ScoreType plyBound = (pos.getOnMove().equals(Colour.white)) ? ScoreType.lowerBound : ScoreType.upperBound;
-		short plyScore = (plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE;	
-		if (ml.size() != 0) {
-			Transposition newTrans = new Transposition((byte)0, plyScore, plyBound, ml, ml.get(0));
-			tt.setTransposition(sm, currPly, null, newTrans);
-		}
-	}
 	
 	private void doPrincipalContinuationUpdateOnScoreBackup(
 			GenericMove currMove, short positionScore)
@@ -251,7 +231,13 @@ public class PlySearcher {
 	}
 
 	private byte getTransDepth() {
-		return (byte) Math.max(depthSearchedPly,(searchDepthPly-currPly));
+		byte depth = 0;
+		/* By design, extended searches always use depth zero; therefore ensuring partially 
+           searched transpositions can only be used for seeding move lists */
+		if (isInNormalSearch()) {
+			depth = (byte) Math.max(depthSearchedPly,(searchDepthPly-currPly));
+		}
+		return depth;
 	}
 	
 	private void rootNodeInitAndReportingActions(GenericMove currMove) {
