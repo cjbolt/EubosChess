@@ -92,18 +92,16 @@ public class PlySearcher {
 		case sufficientRefutation:
 			if (isInNormalSearch()) {
 				doTreatAsTerminalNode(eval.trans);
+				break;
 			}
-			break;	
+			// intentional drop through	
 		case sufficientSeedMoveList:
 			SearchDebugAgent.printHashIsSeedMoveList(currPly, eval.trans.getBestMove(), pos.getHash());
 			ml = eval.trans.getMoveList();
-			searchMoves( ml, eval.trans);
-			break;	
+			// intentional drop through
 		case insufficientNoData:
-			ml = getMoveList();
-			if (isInExtendedSearch()) {
-				storeMoveListInTranspositionTable(ml);
-			}
+			if (ml == null)
+				ml = getMoveList();
 			searchMoves( ml, eval.trans);
 			break;	
 		default:
@@ -120,59 +118,72 @@ public class PlySearcher {
             short mateScore = sg.scoreMate(currPly, initialOnMove);
             st.setBackedUpScoreAtPly(currPly, mateScore);
         } else {
-            pc.update(currPly, ml.get(0));
-            Iterator<GenericMove> move_iter = ml.iterator();
-
-            boolean everBackedUp = false;
-            boolean refutationFound = false;
-            ScoreType plyBound = (pos.getOnMove().equals(Colour.white)) ? ScoreType.lowerBound : ScoreType.upperBound;
-            short plyScore = (plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE;
-
-            while(move_iter.hasNext() && !isTerminated()) {
-                GenericMove currMove = move_iter.next();
-                rootNodeInitAndReportingActions(currMove);
-                
-                if ((isInExtendedSearch() && isCaptureCheckOrPromotion(currMove)) ||
-                    (isInExtendedSearch() && !everBackedUp && !move_iter.hasNext()) || // Need to back up a score, so evaluate as terminal node
-                    isInNormalSearch()) {
-
-                    short positionScore = applyMoveAndScore(currMove);
-                    if (!isTerminated()) {
-                        if (doScoreBackup(positionScore)) {
-                            everBackedUp = true;
-                            if (isInNormalSearch()) {
-	                            plyScore = positionScore;
-	                            trans = tt.setTransposition(sm, currPly, trans,
-	                                        new Transposition(getTransDepth(), positionScore, plyBound, ml, currMove));
-	                            doPrincipalContinuationUpdateOnScoreBackup(currMove, positionScore);
-                            }
-                        } else if (isInNormalSearch()) {
-                            // Always clear the principal continuation when we didn't back up the score
-                            pc.clearRowsBeyondPly(currPly);
-                            // Update the position hash if the move is better than that previously stored at this position
-                            if (shouldUpdatePositionBoundScoreAndBestMove(plyBound, plyScore, positionScore)) {
-                                plyScore = positionScore;
-                                trans = tt.setTransposition(sm, currPly, trans,
-                                            new Transposition(getTransDepth(), plyScore, plyBound, ml, currMove));
-                            }
-                        }
-                    
-                        if (st.isAlphaBetaCutOff(currPly, positionScore)) {
-                            refutationFound = true;
-                            SearchDebugAgent.printRefutationFound(currPly);
-                            break;    
-                        }
-                    }
-                }
-            }
-            if (!isTerminated() && isInNormalSearch()) {
-                if (everBackedUp && !refutationFound && trans != null) {
-                    trans.setScoreType(ScoreType.exact);
-                }
-                depthSearchedPly = (byte) (searchDepthPly - currPly);
-            }
+            actuallySearchMoves(ml, trans);
         }
     }
+
+	private void actuallySearchMoves(List<GenericMove> ml, Transposition trans) throws InvalidPieceException {
+		boolean everBackedUp = false;
+		boolean refutationFound = false;
+		ScoreType plyBound = (pos.getOnMove().equals(Colour.white)) ? ScoreType.lowerBound : ScoreType.upperBound;
+		short plyScore = (plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE;
+		
+		pc.update(currPly, ml.get(0));
+		Iterator<GenericMove> move_iter = ml.iterator();
+		
+		while(move_iter.hasNext() && !isTerminated()) {
+		    GenericMove currMove = move_iter.next();
+		    rootNodeInitAndReportingActions(currMove);
+		    
+		    if ((isInExtendedSearch() && isCaptureCheckOrPromotion(currMove)) ||
+		        (isInExtendedSearch() && !everBackedUp && !move_iter.hasNext()) || // Need to back up a score, so evaluate as terminal node
+		        isInNormalSearch()) {
+
+		        short positionScore = applyMoveAndScore(currMove);
+		        if (!isTerminated()) {
+		            if (doScoreBackup(positionScore)) {
+		                everBackedUp = true;
+		                if (isInNormalSearch()) {
+		                    plyScore = positionScore;
+		                    trans = tt.setTransposition(sm, currPly, trans,
+		                                new Transposition(getTransDepth(), positionScore, plyBound, ml, currMove));
+		                    doPrincipalContinuationUpdateOnScoreBackup(currMove, positionScore);
+		                } else {
+		                	// New transposition shall only be good for seeding movelist
+		                    trans = tt.setTransposition(sm, currPly, trans,
+	                                new Transposition((byte)0, positionScore, plyBound, ml, currMove));
+		                }
+		            } else {
+		                // Always clear the principal continuation when we didn't back up the score
+		                pc.clearRowsBeyondPly(currPly);
+		                // Update the position hash if the move is better than that previously stored at this position
+		                if (shouldUpdatePositionBoundScoreAndBestMove(plyBound, plyScore, positionScore)) {
+		                    plyScore = positionScore;
+		                    if (isInNormalSearch()) {
+		                    	trans = tt.setTransposition(sm, currPly, trans,
+		                                new Transposition(getTransDepth(), plyScore, plyBound, ml, currMove));
+		                    } else {
+			                    trans = tt.setTransposition(sm, currPly, trans,
+		                                new Transposition((byte)0, plyScore, plyBound, ml, currMove));		                    	
+		                    }
+		                }
+		            }
+		        
+		            if (st.isAlphaBetaCutOff(currPly, positionScore)) {
+		                refutationFound = true;
+		                SearchDebugAgent.printRefutationFound(currPly);
+		                break;    
+		            }
+		        }
+		    }
+		}
+		if (!isTerminated() && isInNormalSearch()) {
+		    if (everBackedUp && !refutationFound && trans != null) {
+		        trans.setScoreType(ScoreType.exact);
+		    }
+		    depthSearchedPly = (byte) (searchDepthPly - currPly);
+		}
+	}
     
     private boolean isCaptureCheckOrPromotion(GenericMove currMove) throws InvalidPieceException {
         boolean isCheckCaptureOrPromotionMove = false;
