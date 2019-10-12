@@ -13,9 +13,12 @@ import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
 
 public class MoveList implements Iterable<GenericMove> {
+	// If we have separate lists like this, then something needs to be responsible for sorting both of the lists accordingly
 	private List<GenericMove> theList;
+	private List<GenericMove> capturesChecksAndPromotions;
 
 	public MoveList(PositionManager pm) {
+		capturesChecksAndPromotions = new ArrayList<GenericMove>();
 		List<GenericMove> entireMoveList = new LinkedList<GenericMove>();
 		Colour onMove = pm.getOnMove();
 		// For each piece of the "on Move" colour, add it's legal moves to the entire move list
@@ -39,11 +42,14 @@ public class MoveList implements Iterable<GenericMove> {
 				// This is to get max benefit form alpha beta algorithm
 				else if (pm.lastMoveWasCaptureOrCastle() ) {
 					newMoveList.add(0, currMove);
+					capturesChecksAndPromotions.add(currMove);
 					numCaptureOrCastleMoves++;
 				} else if (pm.isKingInCheck(Colour.getOpposite(onMove))) {
 					newMoveList.add(numCaptureOrCastleMoves, currMove);
+					capturesChecksAndPromotions.add(currMove);
 				} else if (currMove.promotion != null) {
 					newMoveList.add(numCaptureOrCastleMoves, currMove);
+					capturesChecksAndPromotions.add(currMove);
 				} else {
 					newMoveList.add(currMove);
 				}
@@ -61,6 +67,10 @@ public class MoveList implements Iterable<GenericMove> {
 	@Override
 	public Iterator<GenericMove> iterator() {
 		return theList.iterator();
+	}
+	
+	public Iterator<GenericMove> getCapturesChecksAndPromotionsIterator() {
+		return this.capturesChecksAndPromotions.iterator();
 	}
 	
 	public void adjustForBestMove(GenericMove best) {
