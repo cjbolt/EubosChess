@@ -1,15 +1,13 @@
 package eubos.search;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
 import com.fluxchess.jcpi.models.GenericMove;
+
+import eubos.position.MoveList;
 
 public class Transposition {
 	private byte depthSearchedInPly;
 	private short score;
-	private List<GenericMove> ml;
+	private MoveList ml;
 	private GenericMove bestMove;
 
 	public enum ScoreType { 
@@ -17,37 +15,33 @@ public class Transposition {
 	};
 	private ScoreType scoreType;	
 	
-	public Transposition(byte depth, short score, ScoreType scoreType, List<GenericMove> ml, GenericMove bestMove) {
+	public Transposition(byte depth, short score, ScoreType scoreType, MoveList ml, GenericMove bestMove) {
 		this.setDepthSearchedInPly(depth);
 		this.setScore(score);
 		this.setScoreType(scoreType);
 		this.ml = ml;
 		this.bestMove = bestMove;
-		this.ml = adjustMoveListForBestMove();
+		adjustMoveListForBestMove();
 	}
 
-	public List<GenericMove> getMoveList() {
-		if (ml != null)
-			return adjustMoveListForBestMove();
-		else return null;
+	public MoveList getMoveList() {
+		if (ml != null) {
+			adjustMoveListForBestMove();
+		}
+		return ml;
 	}
 
-	protected List<GenericMove> adjustMoveListForBestMove() {
+	protected void adjustMoveListForBestMove() {
 		GenericMove best = bestMove;
 		if (ml != null) {
-			List<GenericMove> ordered_ml = new LinkedList<GenericMove>();
-			ordered_ml.addAll(ml);
-			ordered_ml.remove(best);
-			ordered_ml.add(0, best);
-			return new ArrayList<GenericMove>(ordered_ml);
+			ml.adjustForBestMove(best);
 		} else {
-			return null;
 		}
 	}
 
-	public void setMoveList(List<GenericMove> ml) {
+	public void setMoveList(MoveList ml) {
 		this.ml = ml;
-		this.ml = adjustMoveListForBestMove();
+		adjustMoveListForBestMove();
 	}
 	
 	public ScoreType getScoreType() {

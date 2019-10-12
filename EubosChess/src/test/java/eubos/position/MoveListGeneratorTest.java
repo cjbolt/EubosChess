@@ -16,7 +16,7 @@ import eubos.position.PositionManager;
 
 public class MoveListGeneratorTest {
 
-	protected MoveListGenerator classUnderTest;
+	protected MoveList classUnderTest;
 	
 	@Before
 	public void setUp() throws Exception {
@@ -24,7 +24,7 @@ public class MoveListGeneratorTest {
 
 	@Test
 	public void testLegalMoveListGenerator() {
-		classUnderTest = new MoveListGenerator(new PositionManager());
+		classUnderTest = new MoveList(new PositionManager());
 	}
 
 	@Test
@@ -39,23 +39,17 @@ public class MoveListGeneratorTest {
 		// 1 kP......
 		//   abcdefgh
 		PositionManager bm = new PositionManager( "8/8/8/8/8/1pp5/ppp5/Kp6 w - - - -" );
-		classUnderTest = new MoveListGenerator(bm);
+		classUnderTest = new MoveList(bm);
 		List<GenericMove> ml;
-		try {
-			ml = classUnderTest.createMoveList();
-			assertTrue(ml.isEmpty());
-		} catch (InvalidPieceException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			fail();
-		}		
+		ml = classUnderTest.getList();
+		assertTrue(ml.isEmpty());		
 	}
 	
 	@Test
 	public void testCreateMoveList_CapturesFirstThenChecks() throws InvalidPieceException, IllegalNotationException {
 		PositionManager pm = new PositionManager( "8/3k3B/8/1p6/2P5/8/4K3/8 w - - 0 1 " );
-		classUnderTest = new MoveListGenerator(pm);
-		List<GenericMove> ml= classUnderTest.createMoveList();
+		classUnderTest = new MoveList(pm);
+		List<GenericMove> ml= classUnderTest.getList();
 		assertEquals(new GenericMove("c4b5"), ml.get(0));
 		assertEquals(new GenericMove("h7f5"), ml.get(1));
 	}
@@ -63,8 +57,8 @@ public class MoveListGeneratorTest {
 	@Test
 	public void testCreateMoveList_ChecksFirst() throws InvalidPieceException, IllegalNotationException {
 		PositionManager pm = new PositionManager( "8/3k3B/8/8/8/8/4K3/8 w - - 0 1" );
-		classUnderTest = new MoveListGenerator(pm);
-		List<GenericMove> ml= classUnderTest.createMoveList();
+		classUnderTest = new MoveList(pm);
+		List<GenericMove> ml= classUnderTest.getList();
 		assertEquals(new GenericMove("h7f5"), ml.get(0));
 	}
 	
@@ -72,8 +66,8 @@ public class MoveListGeneratorTest {
 	@Test
 	public void testCreateMoveList_CastlesFirstThenChecks() throws InvalidPieceException, IllegalNotationException {
 		PositionManager pm = new PositionManager( "8/3k3B/8/1p6/8/8/8/4K2R w K - 0 1" );
-		classUnderTest = new MoveListGenerator(pm);
-		List<GenericMove> ml= classUnderTest.createMoveList();
+		classUnderTest = new MoveList(pm);
+		List<GenericMove> ml= classUnderTest.getList();
 		assertEquals(new GenericMove("e1g1"), ml.get(0));
 		assertEquals(new GenericMove("h7f5"), ml.get(1));
 	}

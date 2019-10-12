@@ -28,16 +28,13 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		return theBoard;
 	}
 	
-	private MoveListGenerator mlgen;
-	public List<GenericMove> getMoveList() throws InvalidPieceException {
-		return mlgen.createMoveList();
+	//private MoveListGenerator mlgen;
+	public MoveList getMoveList() throws InvalidPieceException {
+		return new MoveList(this);
 	}
-	public List<GenericMove> getMoveList(GenericMove prevBest) throws InvalidPieceException {
-		List<GenericMove> ml = getMoveList();
-		if (ml.contains(prevBest)) {
-			ml.remove(prevBest);
-			ml.add(0,prevBest);
-		}
+	public MoveList getMoveList(GenericMove prevBest) throws InvalidPieceException {
+		MoveList ml = getMoveList();
+		ml.adjustForBestAlternate(prevBest);
 		return ml;
 	}
 	
@@ -136,7 +133,6 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 		moveTracker = new MoveTracker();
 		theBoard = startingPosition;
 		castling = new CastlingManager(this);
-		mlgen = new MoveListGenerator(this);
 		onMove = colourToMove;
 		setKing();
 		pe = new PositionEvaluator( this );
@@ -144,7 +140,6 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 	
 	public PositionManager( String fenString ) {
 		moveTracker = new MoveTracker();
-		mlgen = new MoveListGenerator(this);
 		new fenParser( this, fenString );
 		setKing();
 		this.hash = new ZobristHashCode(this);

@@ -12,6 +12,7 @@ import eubos.position.IGenerateMoveList;
 import eubos.position.IPositionAccessors;
 import eubos.position.IScoreMate;
 import eubos.position.MateScoreGenerator;
+import eubos.position.MoveList;
 import eubos.search.Transposition.ScoreType;
 import eubos.search.TranspositionEvaluation;
 import eubos.position.IEvaluate;
@@ -83,7 +84,7 @@ public class PlySearcher {
 		if (isTerminated())
 			return 0;
 		
-		List<GenericMove> ml = null;
+		MoveList ml = null;
 		byte depthRequiredPly = initialiseSearchAtPly();
 		
 		TranspositionEvaluation eval = tt.getTransposition(currPly, depthRequiredPly);
@@ -113,8 +114,8 @@ public class PlySearcher {
 		return st.getBackedUpScoreAtPly(currPly);
 	}
 
-	private void searchMoves(List<GenericMove> ml, Transposition trans) throws InvalidPieceException {
-        if (isMateOccurred(ml)) {
+	private void searchMoves(MoveList ml, Transposition trans) throws InvalidPieceException {
+        if (ml.isMateOccurred()) {
             short mateScore = sg.scoreMate(currPly, initialOnMove);
             st.setBackedUpScoreAtPly(currPly, mateScore);
         } else {
@@ -122,13 +123,13 @@ public class PlySearcher {
         }
     }
 
-	private void actuallySearchMoves(List<GenericMove> ml, Transposition trans) throws InvalidPieceException {
+	private void actuallySearchMoves(MoveList ml, Transposition trans) throws InvalidPieceException {
 		boolean everBackedUp = false;
 		boolean refutationFound = false;
 		ScoreType plyBound = (pos.getOnMove().equals(Colour.white)) ? ScoreType.lowerBound : ScoreType.upperBound;
 		short plyScore = (plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE;
 		
-		pc.update(currPly, ml.get(0));
+		pc.update(currPly, ml.getFirst());
 		Iterator<GenericMove> move_iter = ml.iterator();
 		
 		while(move_iter.hasNext() && !isTerminated()) {
@@ -292,8 +293,8 @@ public class PlySearcher {
 		sr.reportCurrentMove();
 	}
 		
-	private List<GenericMove> getMoveList() throws InvalidPieceException {
-		List<GenericMove> ml = null;
+	private MoveList getMoveList() throws InvalidPieceException {
+		MoveList ml = null;
 		if ((lastPc != null) && (lastPc.size() > currPly)) {
 			// Seeded move list is possible
 			ml = mlgen.getMoveList(lastPc.get(currPly));
@@ -301,10 +302,6 @@ public class PlySearcher {
 			ml = mlgen.getMoveList();
 		}
 		return ml;
-	}
-
-	private boolean isMateOccurred(List<GenericMove> ml) {
-		return ml.isEmpty();
 	}
 	
 	private short applyMoveAndScore(GenericMove currMove) throws InvalidPieceException {

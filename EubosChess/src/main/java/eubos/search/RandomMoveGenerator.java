@@ -1,20 +1,20 @@
 package eubos.search;
 
 import java.util.List;
-import java.util.Random;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece;
 import eubos.position.IGenerateMoveList;
+import eubos.position.MoveList;
 
 class RandomMoveGenerator implements IMoveGenerator {
 	
-	private IGenerateMoveList mlgen;
+	private IGenerateMoveList pm;
 	
-	RandomMoveGenerator( IGenerateMoveList mlgen, Piece.Colour sideToMove ) {
-		this.mlgen = mlgen;
+	RandomMoveGenerator( IGenerateMoveList pm, Piece.Colour sideToMove ) {
+		this.pm = pm;
 	}
 
 	@Override
@@ -30,12 +30,9 @@ class RandomMoveGenerator implements IMoveGenerator {
 	// Find a random legal move for the colour "on move"
 	public SearchResult findMove(byte searchDepth, List<GenericMove> lastPc) throws NoLegalMoveException, InvalidPieceException {
 		GenericMove bestMove = null;
-		List<GenericMove> entireMoveList = mlgen.getMoveList();
-		if ( !entireMoveList.isEmpty()) {
-			Random randomIndex = new Random();
-			Integer indexToGet = randomIndex.nextInt(entireMoveList.size());
-			bestMove = entireMoveList.get(indexToGet);			
-		} else {
+		MoveList entireMoveList = pm.getMoveList();
+		bestMove = entireMoveList.getRandomMove();
+		if (bestMove == null) {
 			throw new NoLegalMoveException();
 		}
 		return new SearchResult(bestMove, false);
