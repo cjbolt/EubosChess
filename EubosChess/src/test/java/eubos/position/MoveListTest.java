@@ -11,10 +11,9 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
-import eubos.position.MoveListGenerator;
 import eubos.position.PositionManager;
 
-public class MoveListGeneratorTest {
+public class MoveListTest {
 
 	protected MoveList classUnderTest;
 	
