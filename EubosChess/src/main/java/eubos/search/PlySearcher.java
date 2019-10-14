@@ -132,8 +132,10 @@ public class PlySearcher {
 		pc.update(currPly, ml.getFirst());
 		Iterator<GenericMove> move_iter = isInNormalSearch() ? ml.iterator() : ml.getCapturesChecksAndPromotionsIterator();
 	    if (isInExtendedSearch() && !move_iter.hasNext()) {
-	    	// Need to back up a score, so evaluate as a terminal node and finish
-	    	short positionScore = pe.evaluatePosition();
+	    	// Need to back up a score, so get any move from the regular list, score and finish
+	    	move_iter = ml.iterator();
+	    	if (!move_iter.hasNext()) assert false;
+	    	short positionScore = applyMoveAndScore(move_iter.next());
 	    	doScoreBackup(positionScore);
 	    	return;
 	    }

@@ -70,4 +70,18 @@ public class MoveListTest {
 		assertEquals(new GenericMove("e1g1"), ml.get(0));
 		assertEquals(new GenericMove("h7f5"), ml.get(1));
 	}
+	
+	private void setup(String fen) {
+		PositionManager pm = new PositionManager( fen );
+		classUnderTest = new MoveList(pm);
+	}
+	
+	@Test
+	public void test_setBestMove() throws IllegalNotationException {
+		GenericMove expected = new GenericMove("g3f2"); 
+		setup("8/8/4n1p1/1R3p1p/3k3P/2rB2K1/2P3P1/8 w - - 15 51");
+		assertNotEquals(expected, classUnderTest.getFirst());
+		classUnderTest.adjustForBestMove(expected);
+		assertEquals(expected, classUnderTest.getFirst());
+	}
 }
