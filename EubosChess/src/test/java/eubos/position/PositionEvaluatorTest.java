@@ -210,4 +210,17 @@ public class PositionEvaluatorTest {
 		assertFalse(SUT.isQuiescent());
 	}
 	
+	@Test
+	public void test() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("4r3/7P/2k5/1P6/8/6P1/8/6K1 b - - 0 57");
+		assertFalse(SUT.isQuiescent());
+	}
+	
+	@Test
+	public void test2() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("4r3/7P/2k5/1Q5r/P7/6P1/8/6K1 b - - 10 56");
+		assertFalse(SUT.isQuiescent());
+		assertEquals(353, SUT.evaluatePosition());
+	}
+	
 }

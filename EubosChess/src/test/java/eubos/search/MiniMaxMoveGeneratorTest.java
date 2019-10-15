@@ -19,7 +19,6 @@ import eubos.board.pieces.Piece;
 import eubos.position.PositionManager;
 import eubos.search.MiniMaxMoveGenerator;
 import eubos.search.NoLegalMoveException;
-import eubos.search.Transposition.ScoreType;
 
 public class MiniMaxMoveGeneratorTest {
 	
@@ -708,57 +707,5 @@ public class MiniMaxMoveGeneratorTest {
 		
 		pm = new PositionManager("rn2k1nr/1pp2p1p/p7/8/6b1/2P2N2/PPP2PP1/R1BB1RK1 b kq - 0 12");
 		assertEquals(pm.getPositionEvaluator().evaluatePosition(), classUnderTest.getScore());
-	}
-	
-	@Test
-	@Ignore
-	public void test_blunder() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		setupPosition("8/8/4n1p1/1R3p1p/3k3P/2rB2K1/2P3P1/8 w - - 15 51"); 
-		expectedMove = new GenericMove("b5d5");
-		hashMap.putTransposition(pm.getHash(), new Transposition((byte)0, Short.MIN_VALUE, ScoreType.lowerBound, pm.getMoveList(), expectedMove));
-		
-		SearchResult res = classUnderTest.findMove((byte)1,null);
-		assertEquals(expectedMove, res.bestMove);
-	}
-
-	@Test
-	@Ignore
-	public void test_blunder2() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		// Try to build up some hashes to mimic the state when the bug happened
-		// However this doesn't use iterative deepening
-		setupPosition("2r1r3/8/8/Q6P/P7/1k4P1/8/6K1 w - - 0 50"); 
-		expectedMove = new GenericMove("h5h6");		
-		SearchResult res = classUnderTest.findMove((byte)7,null); // Partial search at 7
-		assertEquals(expectedMove, res.bestMove);
-		// Black Kb3
-		setupPosition("2r1r3/8/7P/Q7/P1k5/6P1/8/6K1 w - - 1 51"); 
-		expectedMove = new GenericMove("h6h7");		
-		res = classUnderTest.findMove((byte)7,null);
-		assertEquals(expectedMove, res.bestMove);
-		// Black Rc5
-		setupPosition("4r3/7P/8/Q1r5/P1k5/6P1/8/6K1 w - - 1 52"); 
-		expectedMove = new GenericMove("a5a6");		
-		res = classUnderTest.findMove((byte)6,null);
-		assertEquals(expectedMove, res.bestMove);
-		// black Kd5
-		setupPosition("4r3/7P/Q7/2rk4/P7/6P1/8/6K1 w - - 3 53");
-		expectedMove = new GenericMove("a6b7");
-		res = classUnderTest.findMove((byte)7,null); // partially searched to depth 7
-		assertEquals(expectedMove, res.bestMove);
-		// black Kd6
-		setupPosition("4r3/1Q5P/3k4/2r5/P7/6P1/8/6K1 w - - 5 54");
-		expectedMove = new GenericMove("b7b4");
-		res = classUnderTest.findMove((byte)6,null); // and looks like it did a full search at depth 6, aborted before first move of depth 7 searched
-		assertEquals(expectedMove, res.bestMove);
-		// black Kc6
-		setupPosition("4r3/7P/2k5/2r5/PQ6/6P1/8/6K1 w - - 7 55");
-		expectedMove = new GenericMove("b4b2");
-		res = classUnderTest.findMove((byte)6,null); // and looks like it did a full search at depth 6, aborted before first move of depth 7 searched
-		assertEquals(expectedMove, res.bestMove);
-		// black Rh5
-		setupPosition("4r3/7P/2k5/7r/P7/6P1/1Q6/6K1 w - - 9 56");
-		expectedMove = new GenericMove("b2b5");
-		res = classUnderTest.findMove((byte)7,null);
-		assertEquals(expectedMove, res.bestMove);
 	}
 }
