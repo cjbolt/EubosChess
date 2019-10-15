@@ -12,7 +12,7 @@ import eubos.search.Transposition.ScoreType;
 public class SearchDebugAgent {
 
 	private static String indent = "";
-	private static boolean isDebugOn = false;
+	public static boolean isDebugOn = false;
 	private static int lastPly = 0;
 	private static FileWriter fw;
 
