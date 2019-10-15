@@ -227,7 +227,7 @@ public class PlySearcher {
 		/* By design, extended searches always use depth zero; therefore ensuring partially 
            searched transpositions can only be used for seeding move lists */
 		if (isInNormalSearch()) {
-			depth = (byte) Math.max(depthSearchedPly,(searchDepthPly-currPly));
+			depth = (byte)(searchDepthPly-currPly);
 		}
 		return depth;
 	}
