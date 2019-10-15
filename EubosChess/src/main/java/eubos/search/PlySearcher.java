@@ -146,6 +146,10 @@ public class PlySearcher {
 
 	        short positionScore = applyMoveAndScore(currMove);
 	        if (!isTerminated()) {
+	        	if(isInNormalSearch()) {
+	        		// Rationale; this is when a score was backed up - at this instant update the depth searched
+	        		depthSearchedPly = (byte)(searchDepthPly - currPly);
+	        	}
 	            if (doScoreBackup(positionScore)) {
 	                everBackedUp = true;
                     plyScore = positionScore;
@@ -174,7 +178,6 @@ public class PlySearcher {
 		    if (everBackedUp && !refutationFound && trans != null) {
 		        trans.setScoreType(ScoreType.exact);
 		    }
-		    depthSearchedPly = (byte) (searchDepthPly - currPly);
 		}
 	}
 	
