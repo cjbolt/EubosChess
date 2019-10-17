@@ -6,7 +6,6 @@ import java.util.List;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.InvalidPieceException;
-import eubos.board.pieces.Piece.Colour;
 import eubos.position.IChangePosition;
 import eubos.position.IGenerateMoveList;
 import eubos.position.IPositionAccessors;
@@ -90,7 +89,7 @@ public class PlySearcher {
 		case sufficientTerminalNode:
 		case sufficientRefutation:
 			if (isInNormalSearch()) {
-				doTreatAsTerminalNode(eval.trans);
+				treatAsTerminalNode(eval.trans);
 				break;
 			}
 			// intentional drop through	
@@ -146,7 +145,7 @@ public class PlySearcher {
                     plyScore = positionScore;
                     trans = tt.setTransposition(sm, currPly, trans,
                                 new Transposition(getTransDepth(), positionScore, plyBound, ml, currMove));
-                    doPrincipalContinuationUpdateOnScoreBackup(currMove, positionScore);
+                    updatePrincipalContinuation(currMove, positionScore);
 	            } else {
 	                // Always clear the principal continuation when we didn't back up the score
 	                pc.clearRowsBeyondPly(currPly);
@@ -191,17 +190,17 @@ public class PlySearcher {
 		return searchIsNeeded;
 	}
 	
-	private void doTreatAsTerminalNode(Transposition trans)
+	private void treatAsTerminalNode(Transposition trans)
 			throws InvalidPieceException {
 		depthSearchedPly = trans.getDepthSearchedInPly();
 		pc.clearTreeBeyondPly(currPly);
 		if (doScoreBackup(trans.getScore())) {
-			doPrincipalContinuationUpdateOnScoreBackup(trans.getBestMove(), trans.getScore());
+			updatePrincipalContinuation(trans.getBestMove(), trans.getScore());
 		}
 		sm.incrementNodesSearched();
 	}
 	
-	private void doPrincipalContinuationUpdateOnScoreBackup(
+	private void updatePrincipalContinuation(
 			GenericMove currMove, short positionScore)
 			throws InvalidPieceException {
 		pc.update(currPly, currMove);
