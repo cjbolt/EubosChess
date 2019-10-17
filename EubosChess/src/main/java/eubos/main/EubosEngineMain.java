@@ -22,7 +22,6 @@ import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import com.fluxchess.jcpi.models.*;
 
 import eubos.board.InvalidPieceException;
-import eubos.board.pieces.Piece.Colour;
 import eubos.position.PositionManager;
 import eubos.search.FixedSizeTranspositionTable;
 import eubos.search.FixedTimeMoveSearcher;
@@ -137,7 +136,7 @@ public class EubosEngineMain extends AbstractEngine {
 	private long extractClockTime(EngineStartCalculatingCommand command) {
 		long clockTime = 0;
 		try {
-			clockTime = command.getClock((pm.getOnMove() == Colour.white) ? GenericColor.WHITE : GenericColor.BLACK);
+			clockTime = command.getClock((pm.onMoveIsWhite()) ? GenericColor.WHITE : GenericColor.BLACK);
 		} catch (NullPointerException e) {
 			clockTime = 0;
 		}

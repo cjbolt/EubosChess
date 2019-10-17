@@ -78,6 +78,9 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 	public Colour getOnMove() {
 		return onMove;
 	}
+	public boolean onMoveIsWhite() {
+		return onMove.equals(Colour.white);
+	}
 	
 	private int moveNumber;
 	public int getMoveNumber() {

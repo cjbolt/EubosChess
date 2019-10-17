@@ -22,7 +22,7 @@ public class MoveList implements Iterable<GenericMove> {
 		List<GenericMove> entireMoveList = new LinkedList<GenericMove>();
 		Colour onMove = pm.getOnMove();
 		// For each piece of the "on Move" colour, add it's legal moves to the entire move list
-		Iterator<Piece> iter_p = pm.getTheBoard().iterateColour(pm.getOnMove());
+		Iterator<Piece> iter_p = pm.getTheBoard().iterateColour(onMove);
 		while ( iter_p.hasNext() ) {
 			Piece currPiece = iter_p.next();
 			entireMoveList.addAll( currPiece.generateMoves( pm.getTheBoard() ));
@@ -64,6 +64,13 @@ public class MoveList implements Iterable<GenericMove> {
 		theList = ret_list;
 	}
 
+	public Iterator<GenericMove> getIterator(boolean getCapturesChecksAndPromotions) {
+		if (getCapturesChecksAndPromotions) {
+			return this.getCapturesChecksAndPromotionsIterator();
+		} else {
+			return this.iterator();
+		}
+	}
 	@Override
 	public Iterator<GenericMove> iterator() {
 		return theList.iterator();

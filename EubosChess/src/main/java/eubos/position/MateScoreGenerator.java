@@ -6,14 +6,16 @@ import eubos.board.pieces.King;
 public class MateScoreGenerator implements IScoreMate {
 	
 	private IPositionAccessors pos;
+	private Colour initialOnMove;
 
 	public static final int PLIES_PER_MOVE = 2;
 	
 	public MateScoreGenerator(IPositionAccessors pos) {
 		this.pos = pos;
+		initialOnMove = pos.getOnMove();
 	}
 	
-	public short scoreMate(byte currPly, Colour initialOnMove) {
+	public short scoreMate(byte currPly) {
 		// Handle mates (indicated by no legal moves)
 		short mateScore = 0;
 		if (pos.isKingInCheck()) {

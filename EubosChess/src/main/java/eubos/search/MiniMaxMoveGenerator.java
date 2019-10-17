@@ -5,7 +5,6 @@ import java.util.List;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.InvalidPieceException;
-import eubos.board.pieces.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IEvaluate;
@@ -69,7 +68,7 @@ class MiniMaxMoveGenerator implements
 		sr = new SearchMetricsReporter(callback,sm);	
 		if (sendInfo)
 			sr.setSendInfo(true);
-		st = new ScoreTracker(searchDepth*3, pos.getOnMove() == Colour.white);
+		st = new ScoreTracker(searchDepth*3, pos.onMoveIsWhite());
 		tta = new TranspositionTableAccessor(tt, pos, st);
 	}
 	

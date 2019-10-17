@@ -99,7 +99,7 @@ public class ZobristHashCode {
 		if ((prevCastlingMask & PositionManager.BLACK_QUEENSIDE)==PositionManager.BLACK_QUEENSIDE)
 			hashCode ^= prnLookupTable[INDEX_BLACK_QSC];
 		// add on move
-		if (pos.getOnMove()==Piece.Colour.black) {
+		if (!pos.onMoveIsWhite()) {
 			doOnMove();
 		}
 		// add en passant

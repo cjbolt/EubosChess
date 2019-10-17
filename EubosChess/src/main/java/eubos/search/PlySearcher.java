@@ -32,7 +32,6 @@ public class PlySearcher {
 	
 	private boolean terminate = false;
 	
-	private Colour initialOnMove;	
 	private List<GenericMove> lastPc;
 	private byte searchDepthPly;
 	private ITranspositionAccessor tt;
@@ -56,7 +55,6 @@ public class PlySearcher {
 			IEvaluate pe) {
 		currPly = 0;
 		depthSearchedPly = 0;
-		initialOnMove = pos.getOnMove();
 		
 		this.pc = pc;
 		this.sm = sm;
@@ -72,7 +70,7 @@ public class PlySearcher {
 		this.st = st;
 		this.tt = hashMap;
 		this.sg = new MateScoreGenerator(pos);
-		this.pcUpdater = new PrincipalContinuationUpdateHelper(initialOnMove, pc, sm, sr);
+		this.pcUpdater = new PrincipalContinuationUpdateHelper(pos.getOnMove(), pc, sm, sr);
 	}
 	
 	private boolean atRootNode() { return currPly == 0; }
@@ -116,29 +114,22 @@ public class PlySearcher {
 
 	private void searchMoves(MoveList ml, Transposition trans) throws InvalidPieceException {
         if (ml.isMateOccurred()) {
-            short mateScore = sg.scoreMate(currPly, initialOnMove);
+            short mateScore = sg.scoreMate(currPly);
             st.setBackedUpScoreAtPly(currPly, mateScore);
         } else {
-            actuallySearchMoves(ml, trans);
+    		Iterator<GenericMove> move_iter = ml.getIterator(isInExtendedSearch());
+    		if (isSearchRequired(ml, move_iter)) {
+    			actuallySearchMoves(ml, move_iter, trans);
+    		}
         }
     }
 
-	private void actuallySearchMoves(MoveList ml, Transposition trans) throws InvalidPieceException {
+	private void actuallySearchMoves(MoveList ml, Iterator<GenericMove> move_iter, Transposition trans) throws InvalidPieceException {
 		boolean everBackedUp = false;
 		boolean refutationFound = false;
-		ScoreType plyBound = (pos.getOnMove().equals(Colour.white)) ? ScoreType.lowerBound : ScoreType.upperBound;
+		ScoreType plyBound = (pos.onMoveIsWhite()) ? ScoreType.lowerBound : ScoreType.upperBound;
 		short plyScore = (plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE;
-		
 		pc.update(currPly, ml.getFirst());
-		Iterator<GenericMove> move_iter = isInNormalSearch() ? ml.iterator() : ml.getCapturesChecksAndPromotionsIterator();
-	    if (isInExtendedSearch() && !move_iter.hasNext()) {
-	    	// Need to back up a score, so get any move from the regular list, score and finish
-	    	move_iter = ml.iterator();
-	    	if (!move_iter.hasNext()) assert false;
-	    	short positionScore = applyMoveAndScore(move_iter.next());
-	    	doScoreBackup(positionScore);
-	    	return;
-	    }
 		
 		while(move_iter.hasNext() && !isTerminated()) {
 		    GenericMove currMove = move_iter.next();
@@ -179,6 +170,25 @@ public class PlySearcher {
 		        trans.setScoreType(ScoreType.exact);
 		    }
 		}
+	}
+
+	private boolean isSearchRequired(MoveList ml,
+			Iterator<GenericMove> move_iter) throws InvalidPieceException {
+		boolean searchIsNeeded = true;
+		if (isInExtendedSearch() && !move_iter.hasNext()) {
+	    	// Need to back up a score, so get any move from the regular list, score and finish
+	    	move_iter = ml.iterator();
+	    	short positionScore;
+	    	if (!move_iter.hasNext()) {
+	    		assert false;
+	    		positionScore = pe.evaluatePosition();
+	    	} else {
+	    		positionScore = applyMoveAndScore(move_iter.next());
+	    	}
+	    	doScoreBackup(positionScore);
+	    	searchIsNeeded = false;
+	    }
+		return searchIsNeeded;
 	}
 	
 	private void doTreatAsTerminalNode(Transposition trans)
