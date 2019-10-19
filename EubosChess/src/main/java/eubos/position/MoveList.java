@@ -13,12 +13,11 @@ import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
 
 public class MoveList implements Iterable<GenericMove> {
-	// If we have separate lists like this, then something needs to be responsible for sorting both of the lists accordingly
-	private List<GenericMove> theList;
-	private List<GenericMove> capturesChecksAndPromotions;
+	private List<GenericMove> all;
+	private List<GenericMove> partial;
 
 	public MoveList(PositionManager pm) {
-		capturesChecksAndPromotions = new ArrayList<GenericMove>();
+		partial = new ArrayList<GenericMove>();
 		List<GenericMove> entireMoveList = new LinkedList<GenericMove>();
 		Colour onMove = pm.getOnMove();
 		// For each piece of the "on Move" colour, add it's legal moves to the entire move list
@@ -42,14 +41,14 @@ public class MoveList implements Iterable<GenericMove> {
 				// This is to get max benefit form alpha beta algorithm
 				else if (pm.lastMoveWasCaptureOrCastle() ) {
 					newMoveList.add(0, currMove);
-					capturesChecksAndPromotions.add(currMove);
+					partial.add(currMove);
 					numCaptureOrCastleMoves++;
 				} else if (pm.isKingInCheck(Colour.getOpposite(onMove))) {
 					newMoveList.add(numCaptureOrCastleMoves, currMove);
-					capturesChecksAndPromotions.add(currMove);
+					partial.add(currMove);
 				} else if (currMove.promotion != null) {
 					newMoveList.add(numCaptureOrCastleMoves, currMove);
-					capturesChecksAndPromotions.add(currMove);
+					partial.add(currMove);
 				} else {
 					newMoveList.add(currMove);
 				}
@@ -58,10 +57,7 @@ public class MoveList implements Iterable<GenericMove> {
 				
 			}
 		}
-		List<GenericMove> ret_list = new ArrayList<GenericMove>(newMoveList);
-		newMoveList.clear();
-		entireMoveList.clear();
-		theList = ret_list;
+		all = new ArrayList<GenericMove>(newMoveList);
 	}
 
 	public Iterator<GenericMove> getIterator(boolean getCapturesChecksAndPromotions) {
@@ -73,47 +69,49 @@ public class MoveList implements Iterable<GenericMove> {
 	}
 	@Override
 	public Iterator<GenericMove> iterator() {
-		return theList.iterator();
+		return all.iterator();
 	}
 	
 	public Iterator<GenericMove> getCapturesChecksAndPromotionsIterator() {
-		return this.capturesChecksAndPromotions.iterator();
+		return this.partial.iterator();
 	}
 	
 	public void adjustForBestMove(GenericMove best) {
+		all = createCopyWithBestMoveAtHead(all, best);
+		if (partial.indexOf(best) != -1) {
+			partial = createCopyWithBestMoveAtHead(partial, best);
+		}
+	}
+
+	private ArrayList<GenericMove> createCopyWithBestMoveAtHead(List<GenericMove> listToReorder, GenericMove best) {
+		// It is done in this heavyweight fashion to avoid concurrent modification issues as we adjust the ml
+		// that we are currently iterating through in the ply searcher class.
 		LinkedList<GenericMove> ordered_ml = new LinkedList<GenericMove>();
-		ordered_ml.addAll(this.theList);
+		ordered_ml.addAll(listToReorder);
 		ordered_ml.remove(best);
 		ordered_ml.add(0, best);
-		this.theList = new ArrayList<GenericMove>(ordered_ml);
+		return new ArrayList<GenericMove>(ordered_ml);
 	}
 	
 	public boolean isMateOccurred() {
-		return this.theList.isEmpty();
+		return this.all.isEmpty();
 	}
 	
 	public GenericMove getFirst() {
-		return this.theList.get(0);
-	}
-	
-	public void adjustForBestAlternate(GenericMove prevBest) {
-		if (this.theList.contains(prevBest)) {
-			this.theList.remove(prevBest);
-			this.theList.add(0,prevBest);
-		}
+		return this.all.get(0);
 	}
 	
 	public GenericMove getRandomMove() {
 		GenericMove bestMove = null;
-		if ( !this.theList.isEmpty()) {
+		if ( !this.all.isEmpty()) {
 			Random randomIndex = new Random();
-			Integer indexToGet = randomIndex.nextInt(this.theList.size());
-			bestMove = this.theList.get(indexToGet);			
+			Integer indexToGet = randomIndex.nextInt(this.all.size());
+			bestMove = this.all.get(indexToGet);			
 		}
 		return bestMove;
 	}
 	
 	public List<GenericMove> getList() {
-		return this.theList;
+		return this.all;
 	}
 }

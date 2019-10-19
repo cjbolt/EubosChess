@@ -2,6 +2,7 @@ package eubos.position;
 
 import static org.junit.Assert.*;
 
+import java.util.Iterator;
 import java.util.List;
 
 import org.junit.Before;
@@ -15,7 +16,15 @@ import eubos.position.PositionManager;
 
 public class MoveListTest {
 
+	public static final boolean EXTENDED = true;
+	public static final boolean NORMAL = false;
+	
 	protected MoveList classUnderTest;
+	
+	private void setup(String fen) {
+		PositionManager pm = new PositionManager( fen );
+		classUnderTest = new MoveList(pm);
+	}
 	
 	@Before
 	public void setUp() throws Exception {
@@ -71,11 +80,6 @@ public class MoveListTest {
 		assertEquals(new GenericMove("h7f5"), ml.get(1));
 	}
 	
-	private void setup(String fen) {
-		PositionManager pm = new PositionManager( fen );
-		classUnderTest = new MoveList(pm);
-	}
-	
 	@Test
 	public void test_setBestMove() throws IllegalNotationException {
 		GenericMove expected = new GenericMove("g3f2"); 
@@ -84,4 +88,34 @@ public class MoveListTest {
 		classUnderTest.adjustForBestMove(expected);
 		assertEquals(expected, classUnderTest.getFirst());
 	}
+	
+	@Test
+	public void test_whenNoChecksCapturesOrPromotions() throws IllegalNotationException { 
+		setup("8/3p4/8/8/8/5k2/1P6/7K w - - 0 1");
+		Iterator<GenericMove> iter = classUnderTest.getIterator(EXTENDED);
+		assertFalse(iter.hasNext());
+		iter = classUnderTest.getIterator(NORMAL);
+		assertTrue(iter.hasNext());
+	}
+	
+	@Test
+	public void test_whenChangedBestCapture_BothIteratorsAreUpdated() throws IllegalNotationException {
+		setup("8/1B6/8/3q1r2/4P3/8/8/8 w - - 0 1");
+		GenericMove first = classUnderTest.getFirst();
+		GenericMove newBestCapture = new GenericMove("e4f5");
+		assertNotEquals(first, newBestCapture);
+		
+		classUnderTest.adjustForBestMove(newBestCapture);
+		
+		Iterator<GenericMove> iter = classUnderTest.getIterator(NORMAL);
+		assertTrue(iter.hasNext());
+		assertEquals(newBestCapture, iter.next());
+		
+		iter = classUnderTest.getIterator(EXTENDED);
+		assertTrue(iter.hasNext());
+		assertEquals(newBestCapture, iter.next());
+	}
+	
+	// Consider when move is check and capture
+	// Consider tests for move list order
 }
