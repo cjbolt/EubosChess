@@ -114,4 +114,11 @@ public class MoveList implements Iterable<GenericMove> {
 	public List<GenericMove> getList() {
 		return this.all;
 	}
+	
+	public void adjustForBestAlternate(GenericMove prevBest) {
+		if (this.all.contains(prevBest)) {
+			this.all.remove(prevBest);
+			this.all.add(0,prevBest);
+		}
+	}
 }

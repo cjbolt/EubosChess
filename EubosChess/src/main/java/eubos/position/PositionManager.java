@@ -34,7 +34,7 @@ public class PositionManager implements IChangePosition, IGenerateMoveList, IPos
 	}
 	public MoveList getMoveList(GenericMove prevBest) throws InvalidPieceException {
 		MoveList ml = getMoveList();
-		ml.adjustForBestMove(prevBest);
+		ml.adjustForBestAlternate(prevBest);
 		return ml;
 	}
 	
