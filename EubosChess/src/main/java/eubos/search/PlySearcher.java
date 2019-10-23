@@ -124,14 +124,17 @@ public class PlySearcher {
     }
 
 	private void actuallySearchMoves(MoveList ml, Iterator<GenericMove> move_iter, Transposition trans) throws InvalidPieceException {
+		if (!move_iter.hasNext())
+			return;
+		
 		boolean everBackedUp = false;
 		boolean refutationFound = false;
 		ScoreType plyBound = (pos.onMoveIsWhite()) ? ScoreType.lowerBound : ScoreType.upperBound;
 		short plyScore = (plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE;
-		pc.update(currPly, ml.getFirst());
+		GenericMove currMove = move_iter.next();
 		
-		while(move_iter.hasNext() && !isTerminated()) {
-		    GenericMove currMove = move_iter.next();
+		pc.update(currPly, currMove);
+		while(!isTerminated()) {
 		    rootNodeInitAndReportingActions(currMove);
 
 	        short positionScore = applyMoveAndScore(currMove);
@@ -163,6 +166,11 @@ public class PlySearcher {
 	                break;    
 	            }
 	        }
+			if (move_iter.hasNext()) {
+				currMove = move_iter.next();
+			} else {
+				break;
+			}
 		}
 		if (!isTerminated() && isInNormalSearch()) {
 		    if (everBackedUp && !refutationFound && trans != null) {

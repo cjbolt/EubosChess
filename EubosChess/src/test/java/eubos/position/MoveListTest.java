@@ -84,9 +84,9 @@ public class MoveListTest {
 	public void test_setBestMove() throws IllegalNotationException {
 		GenericMove expected = new GenericMove("g3f2"); 
 		setup("8/8/4n1p1/1R3p1p/3k3P/2rB2K1/2P3P1/8 w - - 15 51");
-		assertNotEquals(expected, classUnderTest.getFirst());
+		assertNotEquals(expected, classUnderTest.getList().get(0));
 		classUnderTest.adjustForBestMove(expected);
-		assertEquals(expected, classUnderTest.getFirst());
+		assertEquals(expected, classUnderTest.getList().get(0));
 	}
 	
 	@Test
@@ -101,7 +101,7 @@ public class MoveListTest {
 	@Test
 	public void test_whenChangedBestCapture_BothIteratorsAreUpdated() throws IllegalNotationException {
 		setup("8/1B6/8/3q1r2/4P3/8/8/8 w - - 0 1");
-		GenericMove first = classUnderTest.getFirst();
+		GenericMove first = classUnderTest.getList().get(0);
 		GenericMove newBestCapture = new GenericMove("e4f5");
 		assertNotEquals(first, newBestCapture);
 		

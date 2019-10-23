@@ -97,10 +97,6 @@ public class MoveList implements Iterable<GenericMove> {
 		return this.all.isEmpty();
 	}
 	
-	public GenericMove getFirst() {
-		return this.all.get(0);
-	}
-	
 	public GenericMove getRandomMove() {
 		GenericMove bestMove = null;
 		if ( !this.all.isEmpty()) {
