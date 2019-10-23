@@ -77,7 +77,7 @@ public class MiniMaxMoveGeneratorTest {
 
 	protected void setupPosition(String fen) {
 		pm = new PositionManager( fen );
-		classUnderTest = new MiniMaxMoveGenerator( hashMap, pm,pm,pm, pm.getPositionEvaluator() );
+		classUnderTest = new MiniMaxMoveGenerator( hashMap, pm, pm, pm.getPositionEvaluator() );
 	}	
 	
 	@Test

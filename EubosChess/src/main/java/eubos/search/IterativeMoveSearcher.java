@@ -10,7 +10,6 @@ import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IEvaluate;
-import eubos.position.IGenerateMoveList;
 import eubos.position.IPositionAccessors;
 
 public class IterativeMoveSearcher extends AbstractMoveSearcher {
@@ -21,12 +20,11 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 
 	public IterativeMoveSearcher(EubosEngineMain eubos, 
 			FixedSizeTranspositionTable hashMap, 
-			IChangePosition inputPm, 
-			IGenerateMoveList mlgen, 
+			IChangePosition inputPm,  
 			IPositionAccessors pos, 
 			long time,
 			IEvaluate pe ) {
-		super(eubos,inputPm,pos, new MiniMaxMoveGenerator( eubos, hashMap, inputPm, mlgen, pos, pe ));
+		super(eubos,inputPm,pos, new MiniMaxMoveGenerator( eubos, hashMap, inputPm, pos, pe ));
 		gameTimeRemaining = time;
 		this.setName("IterativeMoveSearcher");
 	}

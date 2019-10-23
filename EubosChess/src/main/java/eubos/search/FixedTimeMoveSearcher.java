@@ -9,7 +9,6 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IEvaluate;
-import eubos.position.IGenerateMoveList;
 import eubos.position.IPositionAccessors;
 
 
@@ -20,8 +19,8 @@ public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 	private static final int MAX_SEARCH_DEPTH = 18;
 
 	public FixedTimeMoveSearcher(EubosEngineMain eubos, FixedSizeTranspositionTable hashMap, IChangePosition inputPm, 
-			IGenerateMoveList mlgen, IPositionAccessors pos, long time, IEvaluate pe ) {
-		super(eubos, inputPm, pos, new MiniMaxMoveGenerator( eubos, hashMap, inputPm, mlgen, pos, pe ));
+			IPositionAccessors pos, long time, IEvaluate pe ) {
+		super(eubos, inputPm, pos, new MiniMaxMoveGenerator( eubos, hashMap, inputPm, pos, pe ));
 		moveTime = time;
 		this.setName("FixedTimeMoveSearcher");
 	}

@@ -8,14 +8,12 @@ import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IEvaluate;
-import eubos.position.IGenerateMoveList;
 import eubos.position.IPositionAccessors;
 
 class MiniMaxMoveGenerator implements
 		IMoveGenerator {
 
 	private IChangePosition pm;
-	private IGenerateMoveList mlgen;
 	private IPositionAccessors pos;
 	PrincipalContinuation pc;
 	private SearchMetrics sm;
@@ -32,12 +30,10 @@ class MiniMaxMoveGenerator implements
 	// Used for unit tests
 	MiniMaxMoveGenerator( FixedSizeTranspositionTable hashMap,
 			IChangePosition pm,
-			IGenerateMoveList mlgen,
 			IPositionAccessors pos,
 			IEvaluate pe) {
 		this.pm = pm;
 		this.pos = pos;
-		this.mlgen = mlgen;
 		this.pe = pe;
 		tt = hashMap;
 		sm = new SearchMetrics();
@@ -48,10 +44,9 @@ class MiniMaxMoveGenerator implements
 	MiniMaxMoveGenerator( EubosEngineMain eubos,
 			FixedSizeTranspositionTable hashMap,
 			IChangePosition pm,
-			IGenerateMoveList mlgen,
 			IPositionAccessors pos,
 			IEvaluate pe) {
-		this(hashMap, pm, mlgen, pos, pe);
+		this(hashMap, pm, pos, pe);
 		sm = new SearchMetrics();
 		callback = eubos;
 		sendInfo = true;
@@ -86,7 +81,7 @@ class MiniMaxMoveGenerator implements
 	public SearchResult findMove(byte searchDepth, List<GenericMove> lastPc) throws NoLegalMoveException, InvalidPieceException {
 		boolean foundMate = false;
 		initialiseSearchDepthDependentObjects(searchDepth);
-		ps = new PlySearcher(tta, st, pc,sm,sr,searchDepth,pm,mlgen,pos,lastPc, pe);
+		ps = new PlySearcher(tta, st, pc, sm, sr, searchDepth, pm, pos, lastPc, pe);
 		// Start the search reporter task
 		if (sendInfo)
 			sr.start();

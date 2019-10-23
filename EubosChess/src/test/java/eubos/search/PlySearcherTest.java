@@ -78,7 +78,6 @@ public class PlySearcherTest {
 				depth,
 				pm,
 				pm,
-				pm,
 				lastPc,
 				pe);		
 	}

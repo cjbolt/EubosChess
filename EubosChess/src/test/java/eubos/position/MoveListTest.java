@@ -70,7 +70,6 @@ public class MoveListTest {
 		assertEquals(new GenericMove("h7f5"), ml.get(0));
 	}
 	
-	
 	@Test
 	public void testCreateMoveList_CastlesFirstThenChecks() throws InvalidPieceException, IllegalNotationException {
 		PositionManager pm = new PositionManager( "8/3k3B/8/1p6/8/8/8/4K2R w K - 0 1" );

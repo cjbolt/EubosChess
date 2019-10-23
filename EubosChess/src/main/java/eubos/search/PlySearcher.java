@@ -7,11 +7,11 @@ import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.InvalidPieceException;
 import eubos.position.IChangePosition;
-import eubos.position.IGenerateMoveList;
 import eubos.position.IPositionAccessors;
 import eubos.position.IScoreMate;
 import eubos.position.MateScoreGenerator;
 import eubos.position.MoveList;
+import eubos.position.PositionManager;
 import eubos.search.Transposition.ScoreType;
 import eubos.search.TranspositionEvaluation;
 import eubos.position.IEvaluate;
@@ -19,7 +19,6 @@ import eubos.position.IEvaluate;
 public class PlySearcher {
 
 	private IChangePosition pm;
-	private IGenerateMoveList mlgen;
 	IPositionAccessors pos;
 	
 	ScoreTracker st;
@@ -48,7 +47,6 @@ public class PlySearcher {
 			SearchMetricsReporter sr,
 			byte searchDepthPly,
 			IChangePosition pm,
-			IGenerateMoveList mlgen,
 			IPositionAccessors pos,
 			List<GenericMove> lastPc,
 			IEvaluate pe) {
@@ -60,7 +58,6 @@ public class PlySearcher {
 		this.sr = sr;
 		this.pm = pm;
 		this.pos = pos;
-		this.mlgen = mlgen;
 		this.pe = pe;
 		this.lastPc = lastPc;
 		this.searchDepthPly = searchDepthPly;
@@ -304,9 +301,9 @@ public class PlySearcher {
 		MoveList ml = null;
 		if ((lastPc != null) && (lastPc.size() > currPly)) {
 			// Seeded move list is possible
-			ml = mlgen.getMoveList(lastPc.get(currPly));
+			ml = new MoveList((PositionManager) pm, lastPc.get(currPly));
 		} else {
-			ml = mlgen.getMoveList();
+			ml = new MoveList((PositionManager) pm);
 		}
 		return ml;
 	}

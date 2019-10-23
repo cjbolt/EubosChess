@@ -47,7 +47,7 @@ public class IterativeMoveSearcherTest {
 	
 	protected void setupPosition(String fen, long time) {
 		pm = new PositionManager( fen );
-		sut = new IterativeMoveSearcher(eubos, hashMap, pm, pm, pm, time, pm.getPositionEvaluator());
+		sut = new IterativeMoveSearcher(eubos, hashMap, pm, pm, time, pm.getPositionEvaluator());
 	}
 	
 	@Before

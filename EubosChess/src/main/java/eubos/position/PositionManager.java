@@ -21,21 +21,11 @@ import eubos.board.pieces.Queen;
 import eubos.board.pieces.Rook;
 import eubos.board.pieces.Piece.Colour;
 
-public class PositionManager implements IChangePosition, IGenerateMoveList, IPositionAccessors {
+public class PositionManager implements IChangePosition, IPositionAccessors {
 
 	private Board theBoard;
 	public Board getTheBoard() {
 		return theBoard;
-	}
-	
-	//private MoveListGenerator mlgen;
-	public MoveList getMoveList() throws InvalidPieceException {
-		return new MoveList(this);
-	}
-	public MoveList getMoveList(GenericMove prevBest) throws InvalidPieceException {
-		MoveList ml = getMoveList();
-		ml.adjustForBestAlternate(prevBest);
-		return ml;
 	}
 	
 	CastlingManager castling;

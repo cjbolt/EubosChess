@@ -59,6 +59,11 @@ public class MoveList implements Iterable<GenericMove> {
 		}
 		all = new ArrayList<GenericMove>(newMoveList);
 	}
+	
+	public MoveList(PositionManager pm, GenericMove seedMove) {
+		this(pm);
+		seedMoveListOrder(seedMove);
+	}
 
 	public Iterator<GenericMove> getIterator(boolean getCapturesChecksAndPromotions) {
 		if (getCapturesChecksAndPromotions) {
@@ -72,7 +77,7 @@ public class MoveList implements Iterable<GenericMove> {
 		return all.iterator();
 	}
 	
-	public Iterator<GenericMove> getCapturesChecksAndPromotionsIterator() {
+	private Iterator<GenericMove> getCapturesChecksAndPromotionsIterator() {
 		return this.partial.iterator();
 	}
 	
@@ -107,11 +112,11 @@ public class MoveList implements Iterable<GenericMove> {
 		return bestMove;
 	}
 	
-	public List<GenericMove> getList() {
+	List<GenericMove> getList() {
 		return this.all;
 	}
 	
-	public void adjustForBestAlternate(GenericMove prevBest) {
+	private void seedMoveListOrder(GenericMove prevBest) {
 		if (this.all.contains(prevBest)) {
 			this.all.remove(prevBest);
 			this.all.add(0,prevBest);
