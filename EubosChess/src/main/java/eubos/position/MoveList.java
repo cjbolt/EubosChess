@@ -18,17 +18,9 @@ public class MoveList implements Iterable<GenericMove> {
 
 	public MoveList(PositionManager pm) {
 		partial = new ArrayList<GenericMove>();
-		List<GenericMove> entireMoveList = new LinkedList<GenericMove>();
 		Colour onMove = pm.getOnMove();
-		// For each piece of the "on Move" colour, add it's legal moves to the entire move list
-		Iterator<Piece> iter_p = pm.getTheBoard().iterateColour(onMove);
-		while ( iter_p.hasNext() ) {
-			Piece currPiece = iter_p.next();
-			entireMoveList.addAll( currPiece.generateMoves( pm.getTheBoard() ));
-		}
-		pm.castling.addCastlingMoves(entireMoveList);
 		List<GenericMove> newMoveList = new LinkedList<GenericMove>();
-		Iterator<GenericMove> iter_ml = entireMoveList.iterator();
+		Iterator<GenericMove> iter_ml = getRawList(pm).iterator();
 		int numCaptureOrCastleMoves = 0;
 		while ( iter_ml.hasNext() ) {
 			GenericMove currMove = iter_ml.next();
@@ -57,12 +49,31 @@ public class MoveList implements Iterable<GenericMove> {
 				
 			}
 		}
+		/* Walk move list one last time re-ordering so that: 
+		 * 	promotion moves are in the correct order
+		 * 	then capture with check
+		 * 	then captures
+		 * 	then castling
+		 * 	then checks
+		 * 	the normal moves
+		 */
 		all = new ArrayList<GenericMove>(newMoveList);
 	}
 	
 	public MoveList(PositionManager pm, GenericMove seedMove) {
 		this(pm);
 		seedMoveListOrder(seedMove);
+	}
+	
+	private List<GenericMove> getRawList(PositionManager pm) {
+		ArrayList<GenericMove> entireMoveList = new ArrayList<GenericMove>();
+		Iterator<Piece> iter_p = pm.getTheBoard().iterateColour(pm.getOnMove());
+		while ( iter_p.hasNext() ) {
+			Piece currPiece = iter_p.next();
+			entireMoveList.addAll( currPiece.generateMoves( pm.getTheBoard() ));
+		}
+		pm.castling.addCastlingMoves(entireMoveList);
+		return entireMoveList;
 	}
 
 	public Iterator<GenericMove> getIterator(boolean getCapturesChecksAndPromotions) {
@@ -72,6 +83,7 @@ public class MoveList implements Iterable<GenericMove> {
 			return this.iterator();
 		}
 	}
+	
 	@Override
 	public Iterator<GenericMove> iterator() {
 		return all.iterator();
