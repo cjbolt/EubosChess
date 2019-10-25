@@ -87,10 +87,10 @@ public class Pawn extends PieceSinglesquareDirectMove {
 	private void checkPromotionAddMove(List<GenericMove> moveList,
 			GenericPosition targetSquare) {
 		if ( checkPromotionPossible( targetSquare )) {
-			moveList.add( new GenericMove( onSquare, targetSquare, GenericChessman.QUEEN ));
 			moveList.add( new GenericMove( onSquare, targetSquare, GenericChessman.KNIGHT ));
 			moveList.add( new GenericMove( onSquare, targetSquare, GenericChessman.BISHOP ));
 			moveList.add( new GenericMove( onSquare, targetSquare, GenericChessman.ROOK ));
+			moveList.add( new GenericMove( onSquare, targetSquare, GenericChessman.QUEEN ));
 		} else {
 			moveList.add( new GenericMove( onSquare, targetSquare ) );
 		}

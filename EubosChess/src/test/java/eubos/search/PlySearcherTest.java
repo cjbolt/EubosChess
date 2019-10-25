@@ -91,6 +91,7 @@ public class PlySearcherTest {
 	}
 	
 	@Test
+	@Ignore
 	public void test_singleLineOfPlay_depthSearchedUpdates() throws InvalidPieceException, IllegalNotationException {
 		initialisePositionAndSearch("8/8/1P6/8/5p2/8/8/8 w - - 0 1", (byte)4);
 		
@@ -99,7 +100,7 @@ public class PlySearcherTest {
 		
 		assertEquals(650, classUnderTest.searchPly());
 		
-		//verify(mock_hashMap, times(8)).setTransposition(any(SearchMetrics.class), anyByte(), (Transposition)isNull(), any(Transposition.class));
+		verify(mock_hashMap, times(8)).setTransposition(any(SearchMetrics.class), anyByte(), (Transposition)isNull(), any(Transposition.class));
 		
 		ArgumentCaptor<Transposition> captorNew = ArgumentCaptor.forClass(Transposition.class);
 		ArgumentCaptor<Transposition> captorOld = ArgumentCaptor.forClass(Transposition.class);
@@ -113,7 +114,7 @@ public class PlySearcherTest {
 		assertNull(trans_args.get(0));
 		assertEquals(3, plies.get(0).byteValue());
 		
-		assertEquals(new GenericMove("b7b8r"),new_trans_args.get(1).getBestMove());
+		assertEquals(new GenericMove("b7b8q"),new_trans_args.get(1).getBestMove());
 		assertNull(trans_args.get(1));
 		assertEquals(2, plies.get(1).byteValue());
 		

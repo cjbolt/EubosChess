@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
+import com.fluxchess.jcpi.models.GenericChessman;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.InvalidPieceException;
@@ -20,7 +21,8 @@ public class MoveList implements Iterable<GenericMove> {
 		all = new ArrayList<GenericMove>();
 		
 		Colour onMove = pm.getOnMove();
-		int numCaptureOrCastleMoves = 0;
+		int numCaptures = 0;
+		int numPromotionMoves = 0;
 		for (GenericMove currMove : getRawList(pm)) {
 			try {
 				pm.performMove(currMove);
@@ -29,20 +31,24 @@ public class MoveList implements Iterable<GenericMove> {
 				}
 				// Order so that the moves expected to be best are searched first, to get max benefit from alpha beta algorithm
 				else if (pm.lastMoveWasCapture() ) {
-					all.add(0, currMove);
-					partial.add(currMove);
-					numCaptureOrCastleMoves++;
+					// CAPTURES - add behind queen promotion on both lists, but add ahead of all other moves
+					all.add(numPromotionMoves, currMove);
+					partial.add(numPromotionMoves, currMove);
+					numCaptures++;
 				} else if (pm.lastMoveWasCaptureOrCastle() ) {
-					// Add castle move at start of list, but don't enter on partial list
-					all.add(0, currMove);
-					numCaptureOrCastleMoves++;
+					// CASTLING - add behind captures and promotions, but don't enter on the partial list
+					all.add(numPromotionMoves+numCaptures, currMove);
 				} else if (pm.isKingInCheck(Colour.getOpposite(onMove))) {
-					all.add(numCaptureOrCastleMoves, currMove);
+					// CHECKS - always add behind captures, promotions 
+					all.add(numPromotionMoves+numCaptures, currMove);
 					partial.add(currMove);
-				} else if (currMove.promotion != null) {
-					all.add(numCaptureOrCastleMoves, currMove);
-					partial.add(currMove);
+				} else if (currMove.promotion == GenericChessman.QUEEN) {
+					// QUEEN PROMOTION - always add to head of MoveList
+					all.add(0, currMove);
+					partial.add(0,currMove);
+					numPromotionMoves++;
 				} else {
+					// OTHER PROMOTIONS and REGULAR MOVES Always add to tail of the all move list only
 					all.add(currMove);
 				}
 				pm.unperformMove();
