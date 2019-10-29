@@ -19,7 +19,7 @@ public class FixedSizeTranspositionTable {
 		return hashMapSize;
 	}
 
-	public static final long MAX_SIZE_OF_HASH_MAP = (1L << 20); 
+	public static final long MAX_SIZE_OF_HASH_MAP = (1L << 18); 
 	
 	public FixedSizeTranspositionTable() {
 		hashMap = new HashMap<Long, Transposition>((int)MAX_SIZE_OF_HASH_MAP, (float)0.75);
@@ -62,6 +62,9 @@ public class FixedSizeTranspositionTable {
 				removed.add(pair.getKey());
 				hashMap.remove(pair.getKey());
 				hashMapSize--;
+			} else {
+				// Normalise remaining counts after every cull operation
+				pair.setValue(pair.getValue()-bottomTwentyPercentAccessThreshold);
 			}
 		}
 		for (long removedHashCode : removed) {
