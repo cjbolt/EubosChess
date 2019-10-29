@@ -35,7 +35,7 @@ public class Transposition {
 
 	protected void adjustMoveListForBestMove() {
 		if (ml != null)
-			ml.adjustForBestMove(bestMove);
+			ml.reorderWithNewBestMove(bestMove);
 	}
 	
 	public ScoreType getScoreType() {

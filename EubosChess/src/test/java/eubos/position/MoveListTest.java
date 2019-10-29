@@ -48,44 +48,44 @@ public class MoveListTest {
 		//   abcdefgh
 		PositionManager bm = new PositionManager( "8/8/8/8/8/1pp5/ppp5/Kp6 w - - - -" );
 		classUnderTest = new MoveList(bm);
-		List<GenericMove> ml;
-		ml = classUnderTest.getList();
-		assertTrue(ml.isEmpty());		
+		assertFalse(classUnderTest.iterator().hasNext());		
 	}
 	
 	@Test
 	public void testCreateMoveList_CapturesFirstThenChecks() throws InvalidPieceException, IllegalNotationException {
 		PositionManager pm = new PositionManager( "8/3k3B/8/1p6/2P5/8/4K3/8 w - - 0 1 " );
 		classUnderTest = new MoveList(pm);
-		List<GenericMove> ml= classUnderTest.getList();
-		assertEquals(new GenericMove("c4b5"), ml.get(0));
-		assertEquals(new GenericMove("h7f5"), ml.get(1));
+		Iterator<GenericMove> it = classUnderTest.iterator();
+		assertEquals(new GenericMove("c4b5"), it.next());
+		assertEquals(new GenericMove("h7f5"), it.next());
 	}
 	
 	@Test
 	public void testCreateMoveList_ChecksFirst() throws InvalidPieceException, IllegalNotationException {
 		PositionManager pm = new PositionManager( "8/3k3B/8/8/8/8/4K3/8 w - - 0 1" );
 		classUnderTest = new MoveList(pm);
-		List<GenericMove> ml= classUnderTest.getList();
-		assertEquals(new GenericMove("h7f5"), ml.get(0));
+		Iterator<GenericMove> it = classUnderTest.iterator();
+		assertEquals(new GenericMove("h7f5"), it.next());
 	}
 	
 	@Test
 	public void testCreateMoveList_CastlesFirstThenChecks() throws InvalidPieceException, IllegalNotationException {
 		PositionManager pm = new PositionManager( "8/3k3B/8/1p6/8/8/8/4K2R w K - 0 1" );
 		classUnderTest = new MoveList(pm);
-		List<GenericMove> ml= classUnderTest.getList();
-		assertEquals(new GenericMove("e1g1"), ml.get(0));
-		assertEquals(new GenericMove("h7f5"), ml.get(1));
+		Iterator<GenericMove> it = classUnderTest.iterator();
+		assertEquals(new GenericMove("e1g1"), it.next());
+		assertEquals(new GenericMove("h7f5"), it.next());
 	}
 	
 	@Test
 	public void test_setBestMove() throws IllegalNotationException {
 		GenericMove expected = new GenericMove("g3f2"); 
 		setup("8/8/4n1p1/1R3p1p/3k3P/2rB2K1/2P3P1/8 w - - 15 51");
-		assertNotEquals(expected, classUnderTest.getList().get(0));
-		classUnderTest.adjustForBestMove(expected);
-		assertEquals(expected, classUnderTest.getList().get(0));
+		Iterator<GenericMove> it = classUnderTest.iterator();
+		assertNotEquals(expected, it.next());
+		classUnderTest.reorderWithNewBestMove(expected);
+		it = classUnderTest.iterator();
+		assertEquals(expected, it.next());
 	}
 	
 	@Test
@@ -100,11 +100,13 @@ public class MoveListTest {
 	@Test
 	public void test_whenChangedBestCapture_BothIteratorsAreUpdated() throws IllegalNotationException {
 		setup("8/1B6/8/3q1r2/4P3/8/8/8 w - - 0 1");
-		GenericMove first = classUnderTest.getList().get(0);
+		Iterator<GenericMove> it = classUnderTest.getIterator(NORMAL);
+		GenericMove first = it.next();
+		
 		GenericMove newBestCapture = new GenericMove("e4f5");
 		assertNotEquals(first, newBestCapture);
 		
-		classUnderTest.adjustForBestMove(newBestCapture);
+		classUnderTest.reorderWithNewBestMove(newBestCapture);
 		
 		Iterator<GenericMove> iter = classUnderTest.getIterator(NORMAL);
 		assertTrue(iter.hasNext());
