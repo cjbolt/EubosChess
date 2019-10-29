@@ -21,7 +21,10 @@ import eubos.board.pieces.Piece.Colour;
 public class MoveList implements Iterable<GenericMove> {
 	
 	private enum MoveClassification {
+		// In order of natural priority
 		BEST,
+		PROMOTION_AND_CAPTURE_WITH_CHECK,
+		PROMOTION_AND_CAPTURE,
 		PROMOTION,
 		CAPTURE_WITH_CHECK,
 		CAPTURE,
@@ -47,33 +50,34 @@ public class MoveList implements Iterable<GenericMove> {
 				if (pm.isKingInCheck(onMove)) {
 					// Scratch any moves resulting in the king being in check
 				} else {
-					if (currMove.promotion == GenericChessman.QUEEN) {
-						if (bestMove != null && currMove.equals(bestMove)) {
-							moveMap.put(currMove, MoveClassification.BEST);
-							previousBestMoveType = MoveClassification.PROMOTION;
-						} else {
-							moveMap.put(currMove, MoveClassification.PROMOTION);
-						}
+					MoveClassification moveType = MoveClassification.REGULAR;
+					boolean isQueenPromotion = (currMove.promotion == GenericChessman.QUEEN);
+					boolean isCapture = pm.lastMoveWasCapture();
+					boolean isCheck = pm.isKingInCheck(Colour.getOpposite(onMove));
+					boolean isCastle = (!isCapture) ? pm.lastMoveWasCaptureOrCastle() : false;
+					
+					if (isQueenPromotion && isCapture && isCheck) {
+						moveType = MoveClassification.PROMOTION_AND_CAPTURE_WITH_CHECK;
+					} else if (isQueenPromotion && isCapture) {
+						moveType = MoveClassification.PROMOTION_AND_CAPTURE;
+					} else if (isQueenPromotion) {
+						moveType = MoveClassification.PROMOTION;
+					} else if (isCapture && isCheck) {
+						moveType = MoveClassification.CAPTURE_WITH_CHECK;
+					} else if (isCapture) {
+						moveType = MoveClassification.CAPTURE;
+					} else if (isCastle) {
+						moveType = MoveClassification.CASTLE;
+					} else if (isCheck) {
+						moveType = MoveClassification.CHECK;
+					}  else {
+						// MoveClassification.REGULAR;
+					}
+					if (bestMove != null && currMove.equals(bestMove)) {
+						moveMap.put(currMove, MoveClassification.BEST);
+						previousBestMoveType = moveType;
 					} else {
-						boolean isCapture = pm.lastMoveWasCapture();
-						boolean isCheck = pm.isKingInCheck(Colour.getOpposite(onMove));
-						boolean isCastle = (!isCapture) ? pm.lastMoveWasCaptureOrCastle() : false;
-						if (bestMove != null && currMove.equals(bestMove)) {
-							moveMap.put(currMove, MoveClassification.BEST);
-							previousBestMoveType = (isCapture) ?
-									((isCheck) ? MoveClassification.CAPTURE_WITH_CHECK : MoveClassification.CAPTURE) :
-								    ((isCheck) ? MoveClassification.CHECK : ((isCastle) ? MoveClassification.CASTLE : MoveClassification.REGULAR));
-						} else if (isCapture && isCheck) {
-							moveMap.put(currMove, MoveClassification.CAPTURE_WITH_CHECK);
-						} else if (isCapture) {
-							moveMap.put(currMove, MoveClassification.CAPTURE);
-						} else if (isCastle) {
-							moveMap.put(currMove, MoveClassification.CASTLE);
-						} else if (isCheck) {
-							moveMap.put(currMove, MoveClassification.CHECK);
-						}  else {
-							moveMap.put(currMove, MoveClassification.REGULAR);
-						}
+						moveMap.put(currMove, moveType);
 					}
 				}
 				pm.unperformMove();
@@ -136,8 +140,11 @@ public class MoveList implements Iterable<GenericMove> {
 			for (Map.Entry<GenericMove, MoveClassification> tuple : moves ) {
 				switch(tuple.getValue()) {
 				case BEST:
-				case CAPTURE:
 				case PROMOTION:
+				case PROMOTION_AND_CAPTURE_WITH_CHECK:
+				case PROMOTION_AND_CAPTURE:
+				case CAPTURE_WITH_CHECK:
+				case CAPTURE:
 				case CHECK:
 					moveList.add(tuple.getKey());
 					break;

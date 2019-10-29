@@ -45,15 +45,13 @@ public class MoveListTest {
 		// 2 PPP.....
 		// 1 kP......
 		//   abcdefgh
-		PositionManager bm = new PositionManager( "8/8/8/8/8/1pp5/ppp5/Kp6 w - - - -" );
-		classUnderTest = new MoveList(bm);
+		setup("8/8/8/8/8/1pp5/ppp5/Kp6 w - - - -");
 		assertFalse(classUnderTest.iterator().hasNext());		
 	}
 	
 	@Test
 	public void testCreateMoveList_CapturesFirstThenChecks() throws InvalidPieceException, IllegalNotationException {
-		PositionManager pm = new PositionManager( "8/3k3B/8/1p6/2P5/8/4K3/8 w - - 0 1 " );
-		classUnderTest = new MoveList(pm);
+		setup("8/3k3B/8/1p6/2P5/8/4K3/8 w - - 0 1 ");
 		Iterator<GenericMove> it = classUnderTest.iterator();
 		assertEquals(new GenericMove("c4b5"), it.next());
 		assertEquals(new GenericMove("h7f5"), it.next());
@@ -61,16 +59,14 @@ public class MoveListTest {
 	
 	@Test
 	public void testCreateMoveList_ChecksFirst() throws InvalidPieceException, IllegalNotationException {
-		PositionManager pm = new PositionManager( "8/3k3B/8/8/8/8/4K3/8 w - - 0 1" );
-		classUnderTest = new MoveList(pm);
+		setup( "8/3k3B/8/8/8/8/4K3/8 w - - 0 1");
 		Iterator<GenericMove> it = classUnderTest.iterator();
 		assertEquals(new GenericMove("h7f5"), it.next());
 	}
 	
 	@Test
 	public void testCreateMoveList_CastlesFirstThenChecks() throws InvalidPieceException, IllegalNotationException {
-		PositionManager pm = new PositionManager( "8/3k3B/8/1p6/8/8/8/4K2R w K - 0 1" );
-		classUnderTest = new MoveList(pm);
+		setup("8/3k3B/8/1p6/8/8/8/4K2R w K - 0 1");
 		Iterator<GenericMove> it = classUnderTest.iterator();
 		assertEquals(new GenericMove("e1g1"), it.next());
 		assertEquals(new GenericMove("h7f5"), it.next());
@@ -116,6 +112,21 @@ public class MoveListTest {
 		assertEquals(newBestCapture, iter.next());
 	}
 	
-	// Consider when move is check and capture
-	// Consider tests for move list order
+	@Test
+	public void test_whenCheckAndCapturePossible() throws IllegalNotationException {
+		setup("8/K7/8/8/4B1R1/8/6q1/7k w - - 0 1 ");
+		Iterator<GenericMove> it = classUnderTest.iterator();
+		assertEquals(new GenericMove("e4g2"), it.next()); // Check and capture
+		assertEquals(new GenericMove("g4g2"), it.next()); // capture
+		assertEquals(new GenericMove("g4h4"), it.next()); // check
+	}
+	
+	@Test
+	public void test_whenPromotionAndPromoteWithCaptureAndCheckPossible() throws IllegalNotationException {
+		setup("q1n5/1P6/8/8/8/8/1K6/7k w - - 0 1 ");
+		Iterator<GenericMove> it = classUnderTest.iterator();
+		assertEquals(new GenericMove("b7a8q"), it.next()); // Promotion with check and capture
+		assertEquals(new GenericMove("b7c8q"), it.next()); // Promotion and capture
+		assertEquals(new GenericMove("b7b8q"), it.next()); // Promotion
+	}
 }
