@@ -1,9 +1,15 @@
 package eubos.position;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import com.fluxchess.jcpi.models.GenericChessman;
 import com.fluxchess.jcpi.models.GenericMove;
@@ -13,99 +19,175 @@ import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
 
 public class MoveList implements Iterable<GenericMove> {
-	private List<GenericMove> all;
-	private List<GenericMove> partial;
+	
+	private enum MoveClassification {
+		BEST,
+		OLD_BEST,
+		PROMOTION,
+		CAPTURE,
+		CASTLE,
+		CHECK,
+		REGULAR
+	};
+	
+	private SortedSet<Map.Entry<GenericMove, MoveClassification>> moves;
 
 	public MoveList(PositionManager pm) {
-		partial = new ArrayList<GenericMove>();
-		all = new ArrayList<GenericMove>();
-		
+		this(pm, null);
+	}
+	
+	public MoveList(PositionManager pm, GenericMove bestMove) {
+		Map<GenericMove, MoveClassification> moveMap = new HashMap<GenericMove, MoveClassification>();
 		Colour onMove = pm.getOnMove();
-		int numCaptures = 0;
-		int numPromotionMoves = 0;
 		for (GenericMove currMove : getRawList(pm)) {
 			try {
 				pm.performMove(currMove);
 				if (pm.isKingInCheck(onMove)) {
 					// Scratch any moves resulting in the king being in check
-				}
-				// Order so that the moves expected to be best are searched first, to get max benefit from alpha beta algorithm
-				else if (pm.lastMoveWasCapture() ) {
-					// CAPTURES - add behind queen promotion on both lists, but add ahead of all other moves
-					all.add(numPromotionMoves, currMove);
-					partial.add(numPromotionMoves, currMove);
-					numCaptures++;
+				} else if (bestMove != null && currMove.equals(bestMove)) {
+					moveMap.put(currMove, MoveClassification.BEST);
+				} else if (pm.lastMoveWasCapture() ) {
+					moveMap.put(currMove, MoveClassification.CAPTURE);
 				} else if (pm.lastMoveWasCaptureOrCastle() ) {
-					// CASTLING - add behind captures and promotions, but don't enter on the partial list
-					all.add(numPromotionMoves+numCaptures, currMove);
+					moveMap.put(currMove, MoveClassification.CASTLE);
 				} else if (pm.isKingInCheck(Colour.getOpposite(onMove))) {
-					// CHECKS - always add behind captures, promotions 
-					all.add(numPromotionMoves+numCaptures, currMove);
-					partial.add(currMove);
+					moveMap.put(currMove, MoveClassification.CHECK);
 				} else if (currMove.promotion == GenericChessman.QUEEN) {
-					// QUEEN PROMOTION - always add to head of MoveList
-					all.add(0, currMove);
-					partial.add(0,currMove);
-					numPromotionMoves++;
+					moveMap.put(currMove, MoveClassification.PROMOTION);
 				} else {
-					// OTHER PROMOTIONS and REGULAR MOVES Always add to tail of the all move list only
-					all.add(currMove);
+					moveMap.put(currMove, MoveClassification.REGULAR);
 				}
 				pm.unperformMove();
 			} catch(InvalidPieceException e) {
 			}
 		}
-		/* Walk move list one last time re-ordering so that: 
-		 * 	promotion moves are in the correct order
-		 * 	then capture with check
-		 * 	then captures
-		 * 	then castling
-		 * 	then checks
-		 * 	the normal moves
-		 */
+		moves = entriesSortedByValues(moveMap);
 	}
 	
-	public MoveList(PositionManager pm, GenericMove seedMove) {
-		this(pm);
-		seedMoveListOrder(seedMove);
+	static <K,V extends Comparable<? super V>>
+	SortedSet<Map.Entry<K,V>> entriesSortedByValues(Map<K,V> map) {
+	    SortedSet<Map.Entry<K,V>> sortedEntries = new TreeSet<Map.Entry<K,V>>(
+	        new Comparator<Map.Entry<K,V>>() {
+	            @Override public int compare(Map.Entry<K,V> e1, Map.Entry<K,V> e2) {
+	                int res = e1.getValue().compareTo(e2.getValue());
+	                return res != 0 ? res : 1;
+	            }
+	        }
+	    );
+	    sortedEntries.addAll(map.entrySet());
+	    return sortedEntries;
 	}
 
-	public Iterator<GenericMove> getIterator(boolean getCapturesChecksAndPromotions) {
-		if (getCapturesChecksAndPromotions) {
-			return this.getCapturesChecksAndPromotionsIterator();
-		} else {
-			return this.iterator();
+	public class AllMovesIterator implements Iterator<GenericMove> {
+
+		private LinkedList<GenericMove> moveList = null;
+	
+		public AllMovesIterator() {
+			moveList = new LinkedList<GenericMove>();
+			for (Map.Entry<GenericMove, MoveClassification> tuple : moves ) {
+				moveList.add(tuple.getKey());
+			}
+		}
+
+		public boolean hasNext() {
+			if (!moveList.isEmpty()) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		public GenericMove next() {
+			return moveList.remove();
+		}
+
+		@Override
+		public void remove() {
+			moveList.remove();
 		}
 	}
 	
-	public void adjustForBestMove(GenericMove best) {
-		all = createCopyWithBestMoveAtHead(all, best);
-		if (partial.contains(best)) {
-			partial = createCopyWithBestMoveAtHead(partial, best);
+	public class ExtendedSearchIterator implements Iterator<GenericMove> {
+
+		private LinkedList<GenericMove> moveList = null;
+	
+		public ExtendedSearchIterator() {
+			moveList = new LinkedList<GenericMove>();
+			for (Map.Entry<GenericMove, MoveClassification> tuple : moves ) {
+				switch(tuple.getValue()) {
+				case BEST:
+				case OLD_BEST:
+				case CAPTURE:
+				case PROMOTION:
+				case CHECK:
+					moveList.add(tuple.getKey());
+					break;
+				default:
+					break;
+					
+				}
+			}
+		}
+
+		public boolean hasNext() {
+			if (!moveList.isEmpty()) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		public GenericMove next() {
+			return moveList.remove();
+		}
+
+		@Override
+		public void remove() {
+			moveList.remove();
+		}
+	}
+	
+	public Iterator<GenericMove> getIterator(boolean extended) {
+		if (extended) {
+			return new ExtendedSearchIterator();
+		} else {
+			return new AllMovesIterator();
 		}
 	}
 	
 	@Override
 	public Iterator<GenericMove> iterator() {
-		return all.iterator();
+		return new AllMovesIterator();
 	}
-	
+		
 	public boolean isMateOccurred() {
-		return this.all.isEmpty();
+		return moves.isEmpty();
 	}
 	
 	public GenericMove getRandomMove() {
 		GenericMove bestMove = null;
-		if ( !this.all.isEmpty()) {
+		if ( !moves.isEmpty()) {
 			Random randomIndex = new Random();
-			Integer indexToGet = randomIndex.nextInt(this.all.size());
-			bestMove = this.all.get(indexToGet);			
+			Integer indexToGet = randomIndex.nextInt(moves.size());
+			Integer i = 0;
+			for(Map.Entry<GenericMove, MoveClassification> tuple : moves)
+			{
+			    if (i == indexToGet) {
+			    	bestMove=tuple.getKey();
+			    	break;
+			    }
+			    i++;
+			}			
 		}
 		return bestMove;
 	}
 	
 	List<GenericMove> getList() {
-		return this.all;
+		List<GenericMove> moveList = new ArrayList<GenericMove>();
+		for (Map.Entry<GenericMove, MoveClassification> tuple : moves ) {
+			moveList.add(tuple.getKey());
+		}
+		return moveList;
 	}
 	
 	private List<GenericMove> getRawList(PositionManager pm) {
@@ -118,29 +200,16 @@ public class MoveList implements Iterable<GenericMove> {
 		pm.castling.addCastlingMoves(entireMoveList);
 		return entireMoveList;
 	}
-	
-	private Iterator<GenericMove> getCapturesChecksAndPromotionsIterator() {
-		return this.partial.iterator();
-	}
 
-	private ArrayList<GenericMove> createCopyWithBestMoveAtHead(List<GenericMove> listToReorder, GenericMove best) {
-		// It is done in this heavyweight fashion to avoid concurrent modification issues as we adjust the ml
-		// that we are currently iterating through in the ply searcher class.
-		ArrayList<GenericMove> ordered_ml = new ArrayList<GenericMove>(listToReorder);
-		ordered_ml.remove(best);
-		ordered_ml.add(0, best);
-		return ordered_ml;
-	}
-	
-	private void seedMoveListOrder(GenericMove prevBest) {
-		seedList(this.all, prevBest);
-		seedList(this.partial, prevBest);
-	}
-	
-	private void seedList(List<GenericMove> listToSeed, GenericMove prevBest) {
-		if (listToSeed.contains(prevBest)) {
-			listToSeed.remove(prevBest);
-			listToSeed.add(0,prevBest);
+	public void adjustForBestMove(GenericMove newBestMove) {
+		Map<GenericMove, MoveClassification> moveMap = new HashMap<GenericMove, MoveClassification>();
+		for (Map.Entry<GenericMove, MoveClassification> tuple : moves ) {
+			if (tuple.getValue() == MoveClassification.BEST)
+				tuple.setValue(MoveClassification.OLD_BEST);
+			if (tuple.getKey().equals(newBestMove))
+				tuple.setValue(MoveClassification.BEST);
+			moveMap.put(tuple.getKey(), tuple.getValue());
 		}
+		moves = entriesSortedByValues(moveMap);
 	}
 }

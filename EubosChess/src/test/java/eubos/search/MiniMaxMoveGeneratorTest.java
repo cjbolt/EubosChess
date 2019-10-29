@@ -271,9 +271,7 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		setupPosition( "2N5/4R3/2k3KQ/R7/1PB5/5N2/8/6B1 w - - 0 1" );
 		// various possible mates
-		//expectedMove = new GenericMove("a5a6");
-		//expectedMove = new GenericMove("f3e5");
-		expectedMove = new GenericMove("g6f7");
+		expectedMove = new GenericMove("b4b5");
 		doFindMoveTest((byte)1, true);
 	}
 	
@@ -283,7 +281,7 @@ public class MiniMaxMoveGeneratorTest {
 		setupPosition( "4N3/5P1P/5N1k/Q5p1/5PKP/B7/8/1B6 w - - 0 1" );
 		// various possible mates
 		//expectedMove = new GenericMove("h4g5");
-		expectedMove = new GenericMove("a5g5");
+		expectedMove = new GenericMove("f4g5");
 		//expectedMove = new GenericMove("a3f8");
 		doFindMoveTest((byte)1, true);
 	}
@@ -302,7 +300,7 @@ public class MiniMaxMoveGeneratorTest {
 	public void test_findMove_mateInOne5()  throws NoLegalMoveException, IllegalNotationException {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		setupPosition( "8/8/K7/p7/k2N3R/p7/P7/8 w - - 0 1" );
-		expectedMove = new GenericMove("d4b3");
+		expectedMove = new GenericMove("d4e2");
 		doFindMoveTest((byte)1, true);
 	}
 	
@@ -433,7 +431,7 @@ public class MiniMaxMoveGeneratorTest {
 	@Test
 	public void test_findMove_bugPromotingPawn_Arena_4ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
 		setupPosition( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
-		expectedMove = new GenericMove("h8g7");
+		expectedMove = new GenericMove("h8g8");
 		SearchResult res = classUnderTest.findMove((byte)4);
 		assertEquals(expectedMove, res.bestMove);
 	}
@@ -444,7 +442,7 @@ public class MiniMaxMoveGeneratorTest {
 		// It can do it with depth = 3, but not 5>=depth<10 (Because move order is not considered in depth first mini max algorithm).
 		// The solution is to do an iterative search, deepening and seeding each time.
 		setupPosition( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
-		expectedMove = new GenericMove("h8g7");
+		expectedMove = new GenericMove("h8g8");
 		
 		classUnderTest.findMove((byte)4);
 		List<GenericMove >lastPc = classUnderTest.pc.toPvList();
@@ -457,7 +455,7 @@ public class MiniMaxMoveGeneratorTest {
 	public void test_findMove_bugPromotingPawn_Arena_6ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
 		// N.b. as per test_findMove_bugPromotingPawn_Arena_5ply
 		setupPosition( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
-		expectedMove = new GenericMove("h8g7");
+		expectedMove = new GenericMove("h8g8");
 		
 		classUnderTest.findMove((byte)4);
 		List<GenericMove> lastPc = classUnderTest.pc.toPvList();
@@ -473,7 +471,7 @@ public class MiniMaxMoveGeneratorTest {
 	public void test_findMove_bugPromotingPawn_Arena_10ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
 		// with depth=10 Eubos can find the forced mate.
 		setupPosition( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
-		expectedMove = new GenericMove("h8g7");
+		expectedMove = new GenericMove("h8g8");
 		
 		SearchResult res = classUnderTest.findMove((byte)10);
 		
