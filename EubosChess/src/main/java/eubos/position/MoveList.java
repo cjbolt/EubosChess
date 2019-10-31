@@ -1,6 +1,7 @@
 package eubos.position;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -33,9 +34,11 @@ public class MoveList implements Iterable<GenericMove> {
 		REGULAR
 	};
 	
-	private MoveClassification previousBestMoveType = MoveClassification.REGULAR;
-	private SortedSet<Map.Entry<GenericMove, MoveClassification>> moves;
-
+	private List<GenericMove> normal_search_moves;
+	private List<GenericMove> extended_search_moves;
+	private int normalSearchBestMovePreviousIndex = -1;
+	private int extendedSearchListBestMovePreviousIndex = -1;
+	
 	public MoveList(PositionManager pm) {
 		this(pm, null);
 	}
@@ -50,7 +53,7 @@ public class MoveList implements Iterable<GenericMove> {
 				if (pm.isKingInCheck(onMove)) {
 					// Scratch any moves resulting in the king being in check
 				} else {
-					MoveClassification moveType = MoveClassification.REGULAR;
+					MoveClassification moveType;
 					boolean isQueenPromotion = (currMove.promotion == GenericChessman.QUEEN);
 					boolean isCapture = pm.lastMoveWasCapture();
 					boolean isCheck = pm.isKingInCheck(Colour.getOpposite(onMove));
@@ -71,21 +74,21 @@ public class MoveList implements Iterable<GenericMove> {
 					} else if (isCheck) {
 						moveType = MoveClassification.CHECK;
 					}  else {
-						// MoveClassification.REGULAR;
+						moveType = MoveClassification.REGULAR;
 					}
-					if (bestMove != null && currMove.equals(bestMove)) {
-						moveMap.put(currMove, MoveClassification.BEST);
-						previousBestMoveType = moveType;
-					} else {
-						moveMap.put(currMove, moveType);
-					}
+					moveMap.put(currMove, moveType);
 				}
 				pm.unperformMove();
 			} catch(InvalidPieceException e) {
 				assert false;
 			}
 		}
-		moves = entriesSortedByValues(moveMap);
+		SortedSet<Map.Entry<GenericMove, MoveClassification>> moves = entriesSortedByValues(moveMap);
+		normal_search_moves = create_normal_list(moves);
+		extended_search_moves = create_extended_list(moves);
+		if (bestMove != null) {
+			reorderWithNewBestMove(bestMove);
+		}
 	}
 	
 	static <K,V extends Comparable<? super V>> SortedSet<Map.Entry<K,V>> entriesSortedByValues(Map<K,V> map) {
@@ -100,58 +103,52 @@ public class MoveList implements Iterable<GenericMove> {
 	    sortedEntries.addAll(map.entrySet());
 	    return sortedEntries;
 	}
-
-	public class AllMovesIterator implements Iterator<GenericMove> {
-
-		private LinkedList<GenericMove> moveList = null;
 	
-		public AllMovesIterator() {
-			moveList = new LinkedList<GenericMove>();
-			for (Map.Entry<GenericMove, MoveClassification> tuple : moves ) {
-				moveList.add(tuple.getKey());
-			}
+	private List<GenericMove> getRawList(PositionManager pm) {
+		ArrayList<GenericMove> entireMoveList = new ArrayList<GenericMove>();
+		Iterator<Piece> iter_p = pm.getTheBoard().iterateColour(pm.getOnMove());
+		while ( iter_p.hasNext() ) {
+			Piece currPiece = iter_p.next();
+			entireMoveList.addAll( currPiece.generateMoves( pm.getTheBoard() ));
 		}
-
-		public boolean hasNext() {
-			if (!moveList.isEmpty()) {
-				return true;
-			} else {
-				return false;
-			}
-		}
-
-		public GenericMove next() {
-			return moveList.remove();
-		}
-
-		@Override
-		public void remove() {
-			moveList.remove();
-		}
+		pm.castling.addCastlingMoves(entireMoveList);
+		return entireMoveList;
 	}
 	
-	public class ExtendedSearchIterator implements Iterator<GenericMove> {
+	List<GenericMove> create_normal_list(SortedSet<Map.Entry<GenericMove, MoveClassification>> moves) {
+		List<GenericMove> moveList = new ArrayList<GenericMove>();
+		for (Map.Entry<GenericMove, MoveClassification> tuple : moves ) {
+			moveList.add(tuple.getKey());
+		}
+		return moveList;
+	}
+	
+	List<GenericMove> create_extended_list(SortedSet<Map.Entry<GenericMove, MoveClassification>> moves) {
+		List<GenericMove> moveList = new ArrayList<GenericMove>();
+		for (Map.Entry<GenericMove, MoveClassification> tuple : moves ) {
+			switch(tuple.getValue()) {
+			case BEST:
+			case PROMOTION:
+			case PROMOTION_AND_CAPTURE_WITH_CHECK:
+			case PROMOTION_AND_CAPTURE:
+			case CAPTURE_WITH_CHECK:
+			case CAPTURE:
+			case CHECK:
+				moveList.add(tuple.getKey());
+				break;
+			default:
+				break;
+			}
+		}
+		return moveList;
+	}
+	
+	public class MovesIterator implements Iterator<GenericMove> {
 
 		private LinkedList<GenericMove> moveList = null;
 	
-		public ExtendedSearchIterator() {
-			moveList = new LinkedList<GenericMove>();
-			for (Map.Entry<GenericMove, MoveClassification> tuple : moves ) {
-				switch(tuple.getValue()) {
-				case BEST:
-				case PROMOTION:
-				case PROMOTION_AND_CAPTURE_WITH_CHECK:
-				case PROMOTION_AND_CAPTURE:
-				case CAPTURE_WITH_CHECK:
-				case CAPTURE:
-				case CHECK:
-					moveList.add(tuple.getKey());
-					break;
-				default:
-					break;
-					
-				}
-			}
+		public MovesIterator(List<GenericMove> list) {
+			moveList = new LinkedList<GenericMove>(list);
 		}
 
 		public boolean hasNext() {
@@ -173,65 +170,45 @@ public class MoveList implements Iterable<GenericMove> {
 	}
 	
 	public Iterator<GenericMove> getIterator(boolean extended) {
-		if (extended) {
-			return new ExtendedSearchIterator();
-		} else {
-			return new AllMovesIterator();
-		}
+		return new MovesIterator(extended ? extended_search_moves : normal_search_moves);
 	}
 	
 	@Override
 	public Iterator<GenericMove> iterator() {
-		return new AllMovesIterator();
+		return new MovesIterator(normal_search_moves);
 	}
 		
 	public boolean isMateOccurred() {
-		return moves.isEmpty();
+		return normal_search_moves.isEmpty();
 	}
 	
 	public GenericMove getRandomMove() {
 		GenericMove bestMove = null;
-		if ( !moves.isEmpty()) {
+		if (!normal_search_moves.isEmpty()) {
 			Random randomIndex = new Random();
-			Integer indexToGet = randomIndex.nextInt(moves.size());
-			Integer i = 0;
-			for(Map.Entry<GenericMove, MoveClassification> tuple : moves)
-			{
-			    if (i == indexToGet) {
-			    	bestMove=tuple.getKey();
-			    	break;
-			    }
-			    i++;
-			}			
+			Integer indexToGet = randomIndex.nextInt(normal_search_moves.size());
+			bestMove = normal_search_moves.get(indexToGet);		
 		}
 		return bestMove;
 	}
-	
-	private List<GenericMove> getRawList(PositionManager pm) {
-		ArrayList<GenericMove> entireMoveList = new ArrayList<GenericMove>();
-		Iterator<Piece> iter_p = pm.getTheBoard().iterateColour(pm.getOnMove());
-		while ( iter_p.hasNext() ) {
-			Piece currPiece = iter_p.next();
-			entireMoveList.addAll( currPiece.generateMoves( pm.getTheBoard() ));
-		}
-		pm.castling.addCastlingMoves(entireMoveList);
-		return entireMoveList;
-	}
 
 	public void reorderWithNewBestMove(GenericMove newBestMove) {
-		// N.b. Need to use a linked hash map to ensure that the search order is deterministic.
-		Map<GenericMove, MoveClassification> moveMap = new LinkedHashMap<GenericMove, MoveClassification>();
-		for (Map.Entry<GenericMove, MoveClassification> tuple : moves ) {
-			// Best move is first in the sorted map, so there is no defect here updating previousBestMoveType
-			if (tuple.getValue() == MoveClassification.BEST)
-				tuple.setValue(previousBestMoveType);
-			if (tuple.getKey().equals(newBestMove)) {
-				previousBestMoveType = tuple.getValue();
-				tuple.setValue(MoveClassification.BEST);
-			}	
-			moveMap.put(tuple.getKey(), tuple.getValue());
+		reorderList(this.normal_search_moves, newBestMove, this.normalSearchBestMovePreviousIndex);
+		reorderList(this.extended_search_moves, newBestMove, this.extendedSearchListBestMovePreviousIndex);
+	}
+	
+	private void reorderList(List<GenericMove> list, GenericMove newBestMove, int prevBestOriginalIndex) {
+		assert list != null;
+
+		int index = list.indexOf(newBestMove);
+		if (index != -1) {
+			if (prevBestOriginalIndex != -1) {
+				// swap back the previous best move
+				Collections.swap(list, 0, prevBestOriginalIndex);
+			}
+			// swap in the new best move
+			Collections.swap(list, 0, index);
 		}
-		moves = entriesSortedByValues(moveMap);
-		moveMap.clear();
+		prevBestOriginalIndex = index;
 	}
 }
