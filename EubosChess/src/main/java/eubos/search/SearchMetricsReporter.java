@@ -8,7 +8,7 @@ import eubos.main.EubosEngineMain;
 class SearchMetricsReporter extends Thread {
 	
 	private boolean sendInfo = false;
-	private boolean reporterActive;
+	private volatile boolean reporterActive;
 	private SearchMetrics sm;
 	private EubosEngineMain eubosEngine;
 	private static final int UPDATE_RATE_MS = 500;
@@ -24,19 +24,16 @@ class SearchMetricsReporter extends Thread {
 		long timestampIntoWait = 0;
 		long timestampOutOfWait = 0;
 		do {
-			int deltaTime = (int)(timestampOutOfWait - timestampIntoWait);
-			sm.incrementTime(deltaTime);
-			reportNodeData();
 			timestampIntoWait = System.currentTimeMillis();
 			try {
 				synchronized (this) {
-					this.wait(UPDATE_RATE_MS);
+					wait(UPDATE_RATE_MS);
 				}
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 			timestampOutOfWait = System.currentTimeMillis();
+			sm.incrementTime((int)(timestampOutOfWait - timestampIntoWait));
+			reportNodeData();
 		} while (reporterActive);
 	}
 	
