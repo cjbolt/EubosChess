@@ -136,70 +136,70 @@ public class MoveListTest {
 		GenericMove [] reordered_moves = new GenericMove[4];
 		for (int i=0; i<reordered_moves.length; i++)
 			reordered_moves[i] = it.next();
-		assertEquals(reordered_moves[0], original_moves[3]);
-		assertEquals(reordered_moves[3], original_moves[0]);
+		assertEquals(original_moves[0], reordered_moves[3]);
+		assertEquals(original_moves[3], reordered_moves[0]);
 		
 		// Revert change
+		classUnderTest.reorderWithNewBestMove(original_moves[0]);
+		it = classUnderTest.iterator();
+		reordered_moves = new GenericMove[4];
+		for (int i=0; i<reordered_moves.length; i++)
+			reordered_moves[i] = it.next();
+		assertEquals(original_moves[0], reordered_moves[0]);
+		assertEquals(original_moves[3], reordered_moves[3]);
+		
+		// Set second move as best
+		classUnderTest.reorderWithNewBestMove(original_moves[1]);
+		it = classUnderTest.iterator();
+		reordered_moves = new GenericMove[4];
+		for (int i=0; i<reordered_moves.length; i++)
+			reordered_moves[i] = it.next();
+		assertEquals(original_moves[0], reordered_moves[1]);
+		assertEquals(original_moves[1], reordered_moves[0]);
+		
+		// Revert change
+		classUnderTest.reorderWithNewBestMove(original_moves[0]);
+		it = classUnderTest.iterator();
+		reordered_moves = new GenericMove[4];
+		for (int i=0; i<reordered_moves.length; i++)
+			reordered_moves[i] = it.next();
+		assertEquals(original_moves[0], reordered_moves[0]);
+		assertEquals(original_moves[1], reordered_moves[1]);
+		assertEquals(original_moves[2], reordered_moves[2]);
+		assertEquals(original_moves[3], reordered_moves[3]);
+		
+		// Set third move as best
+		classUnderTest.reorderWithNewBestMove(original_moves[2]);
+		it = classUnderTest.iterator();
+		reordered_moves = new GenericMove[4];
+		for (int i=0; i<reordered_moves.length; i++)
+			reordered_moves[i] = it.next();
+		assertEquals(original_moves[0], reordered_moves[2]);
+		assertEquals(original_moves[1], reordered_moves[1]);
+		assertEquals(original_moves[2], reordered_moves[0]);
+		assertEquals(original_moves[3], reordered_moves[3]);
+		
+		// Set fourth move as best
+		classUnderTest.reorderWithNewBestMove(original_moves[3]);
+		it = classUnderTest.iterator();
+		reordered_moves = new GenericMove[4];
+		for (int i=0; i<reordered_moves.length; i++)
+			reordered_moves[i] = it.next();
+		assertEquals(original_moves[0], reordered_moves[3]);
+		assertEquals(original_moves[1], reordered_moves[1]);
+		assertEquals(original_moves[2], reordered_moves[2]);
+		assertEquals(original_moves[3], reordered_moves[0]);
+		
+		// Set fourth move as best
 		classUnderTest.reorderWithNewBestMove(reordered_moves[3]);
 		it = classUnderTest.iterator();
 		reordered_moves = new GenericMove[4];
 		for (int i=0; i<reordered_moves.length; i++)
 			reordered_moves[i] = it.next();
-		assertEquals(reordered_moves[0], original_moves[0]);
-		assertEquals(reordered_moves[3], original_moves[3]);
-		
-		// Set second move as best
-		classUnderTest.reorderWithNewBestMove(reordered_moves[1]);
-		it = classUnderTest.iterator();
-		reordered_moves = new GenericMove[4];
-		for (int i=0; i<reordered_moves.length; i++)
-			reordered_moves[i] = it.next();
-		assertEquals(reordered_moves[0], original_moves[1]);
-		assertEquals(reordered_moves[1], original_moves[0]);
-		
-		// Revert change
-		classUnderTest.reorderWithNewBestMove(reordered_moves[1]);
-		it = classUnderTest.iterator();
-		reordered_moves = new GenericMove[4];
-		for (int i=0; i<reordered_moves.length; i++)
-			reordered_moves[i] = it.next();
-		assertEquals(reordered_moves[0], original_moves[0]);
-		assertEquals(reordered_moves[1], original_moves[1]);
-		assertEquals(reordered_moves[2], original_moves[2]);
-		assertEquals(reordered_moves[3], original_moves[3]);
-		
-		// Set third move as best
-		classUnderTest.reorderWithNewBestMove(reordered_moves[2]);
-		it = classUnderTest.iterator();
-		reordered_moves = new GenericMove[4];
-		for (int i=0; i<reordered_moves.length; i++)
-			reordered_moves[i] = it.next();
-		assertEquals(reordered_moves[0], original_moves[2]);
-		assertEquals(reordered_moves[1], original_moves[1]);
-		assertEquals(reordered_moves[2], original_moves[0]);
-		assertEquals(reordered_moves[3], original_moves[3]);
-		
-		// Set fourth move as best
-		classUnderTest.reorderWithNewBestMove(original_moves[3]);
-		it = classUnderTest.iterator();
-		reordered_moves = new GenericMove[4];
-		for (int i=0; i<reordered_moves.length; i++)
-			reordered_moves[i] = it.next();
-		assertEquals(reordered_moves[0], original_moves[3]);
-		assertEquals(reordered_moves[1], original_moves[1]);
-		assertEquals(reordered_moves[2], original_moves[2]);
-		assertEquals(reordered_moves[3], original_moves[0]);
-		
-		// Set fourth move as best
-		classUnderTest.reorderWithNewBestMove(original_moves[3]);
-		it = classUnderTest.iterator();
-		reordered_moves = new GenericMove[4];
-		for (int i=0; i<reordered_moves.length; i++)
-			reordered_moves[i] = it.next();
-		assertEquals(reordered_moves[0], original_moves[0]);
-		assertEquals(reordered_moves[1], original_moves[1]);
-		assertEquals(reordered_moves[2], original_moves[2]);
-		assertEquals(reordered_moves[3], original_moves[3]);
+		assertEquals(original_moves[0], reordered_moves[0]);
+		assertEquals(original_moves[1], reordered_moves[1]);
+		assertEquals(original_moves[2], reordered_moves[2]);
+		assertEquals(original_moves[3], reordered_moves[3]);
 		
 		// Set fourth move as best
 		classUnderTest.reorderWithNewBestMove(original_moves[2]);
@@ -207,10 +207,10 @@ public class MoveListTest {
 		reordered_moves = new GenericMove[4];
 		for (int i=0; i<reordered_moves.length; i++)
 			reordered_moves[i] = it.next();
-		assertEquals(reordered_moves[0], original_moves[2]);
-		assertEquals(reordered_moves[1], original_moves[1]);
-		assertEquals(reordered_moves[2], original_moves[0]);
-		assertEquals(reordered_moves[3], original_moves[3]);	
+		assertEquals(original_moves[0], reordered_moves[2]);
+		assertEquals(original_moves[1], reordered_moves[1]);
+		assertEquals(original_moves[2], reordered_moves[0]);
+		assertEquals(original_moves[3], reordered_moves[3]);	
 	}
 	
 	@Test
@@ -247,5 +247,36 @@ public class MoveListTest {
 		assertEquals(reordered_moves[0], original_moves[0]);
 		assertEquals(reordered_moves[2], original_moves[2]);
 		assertEquals(reordered_moves[3], original_moves[3]);
+	}
+	
+	@Test
+	public void test_whenMoveIsAlreadyBest_doNothing() throws IllegalNotationException {
+		setup("8/8/5P2/4P3/3P4/2P5/8/8 w - - 0 1");
+		Iterator<GenericMove> it = classUnderTest.iterator();
+		GenericMove [] original_moves = new GenericMove[4];
+		for (int i=0; i<original_moves.length; i++)
+			original_moves[i] = it.next();
+		
+		// Set last as best move
+		classUnderTest.reorderWithNewBestMove(original_moves[3]);
+		it = classUnderTest.iterator();
+		GenericMove [] reordered_moves = new GenericMove[4];
+		for (int i=0; i<reordered_moves.length; i++)
+			reordered_moves[i] = it.next();
+		assertEquals(original_moves[0], reordered_moves[3]);
+		assertEquals(original_moves[1], reordered_moves[1]);
+		assertEquals(original_moves[2], reordered_moves[2]);
+		assertEquals(original_moves[3], reordered_moves[0]);
+		
+		// Re-set last as best
+		classUnderTest.reorderWithNewBestMove(original_moves[3]);
+		it = classUnderTest.iterator();
+		reordered_moves = new GenericMove[4];
+		for (int i=0; i<reordered_moves.length; i++)
+			reordered_moves[i] = it.next();
+		assertEquals(original_moves[0], reordered_moves[3]);
+		assertEquals(original_moves[1], reordered_moves[1]);
+		assertEquals(original_moves[2], reordered_moves[2]);
+		assertEquals(original_moves[3], reordered_moves[0]);		
 	}
 }

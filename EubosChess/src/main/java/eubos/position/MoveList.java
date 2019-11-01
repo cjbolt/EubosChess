@@ -83,12 +83,22 @@ public class MoveList implements Iterable<GenericMove> {
 				assert false;
 			}
 		}
+		
 		SortedSet<Map.Entry<GenericMove, MoveClassification>> moves = entriesSortedByValues(moveMap);
 		normal_search_moves = create_normal_list(moves);
 		extended_search_moves = create_extended_list(moves);
+		
 		if (bestMove != null) {
 			seedListWithBestMove(normal_search_moves, bestMove);
 			seedListWithBestMove(extended_search_moves, bestMove);
+		}
+	}
+	
+	private void seedListWithBestMove(List<GenericMove> list, GenericMove newBestMove) {
+		assert list != null;
+		if (list.contains(newBestMove)) {
+			list.remove(newBestMove);
+			list.add(0, newBestMove);
 		}
 	}
 	
@@ -194,52 +204,37 @@ public class MoveList implements Iterable<GenericMove> {
 	}
 
 	public void reorderWithNewBestMove(GenericMove newBestMove) {
-		normalSearchBestMovePreviousIndex = reorderList(this.normal_search_moves, newBestMove, normalSearchBestMovePreviousIndex);
-		extendedSearchListBestMovePreviousIndex = reorderList(this.extended_search_moves, newBestMove, extendedSearchListBestMovePreviousIndex);
+		normalSearchBestMovePreviousIndex = reorderList(normal_search_moves, newBestMove, normalSearchBestMovePreviousIndex);
+		extendedSearchListBestMovePreviousIndex = reorderList(extended_search_moves, newBestMove, extendedSearchListBestMovePreviousIndex);
 	}
 	
 	private int reorderList(List<GenericMove> list, GenericMove newBestMove, int prevBestOriginalIndex) {
-		assert list != null;
-
 		int index = list.indexOf(newBestMove);
-		if (index != -1) {
+		if (isMovePresent(index) && !isMoveAlreadyBest(index)) {
 			
-			/* 
-			 *
-			 * The following code introduces a defect in the tests to check for promotion at 5 and 6 ply depths using move seeding
-			 * 
-			 */
-			// the move exists in the list, so need to do something
-			if (prevBestOriginalIndex != -1) {
-				// swap back the previous best move into the correct position, if it isn't a direct swap
+			if (wasPreviouslyModified(prevBestOriginalIndex)) {
+				// Swap back the previous best move into its previous position, if this isn't a direct swap
 				if (prevBestOriginalIndex == index) {
-					// if it is a direct swap, set old move -1 as the list is again in its initial state
+					// It is a direct swap back, set to -1 as the list is restored to its initial state
 					prevBestOriginalIndex = -1;
 				} else {
 					Collections.swap(list, 0, prevBestOriginalIndex);
 					prevBestOriginalIndex = index;
 				}
 			} else {
-				// initialise
+				// Initialise the previous best index the first time the best move is altered
 				prevBestOriginalIndex = index;
 			}
-			/*
-			 * 
-			 * End of problematic code
-			 * 
-			 * */
 			
-			// swap in the new best move
+			// Swap in the new best move
 			Collections.swap(list, 0, index);
 		}
 		return prevBestOriginalIndex;
 	}
 	
-	private void seedListWithBestMove(List<GenericMove> list, GenericMove newBestMove) {
-		assert list != null;
-		if (list.contains(newBestMove)) {
-			list.remove(newBestMove);
-			list.add(0, newBestMove);
-		}
-	}
+	private boolean isMovePresent(int index) { return (index != -1); }
+	
+	private boolean isMoveAlreadyBest(int index) { return (index == 0); }
+	
+	private boolean wasPreviouslyModified(int index) { return index != -1; }
 }
