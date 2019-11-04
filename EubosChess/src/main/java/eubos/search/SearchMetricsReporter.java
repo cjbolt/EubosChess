@@ -30,6 +30,7 @@ class SearchMetricsReporter extends Thread {
 					wait(UPDATE_RATE_MS);
 				}
 			} catch (InterruptedException e) {
+				reporterActive = false;
 			}
 			timestampOutOfWait = System.currentTimeMillis();
 			sm.incrementTime((int)(timestampOutOfWait - timestampIntoWait));

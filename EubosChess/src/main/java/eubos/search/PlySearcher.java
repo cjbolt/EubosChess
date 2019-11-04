@@ -82,11 +82,14 @@ public class PlySearcher {
 		byte depthRequiredPly = initialiseSearchAtPly();
 		
 		TranspositionEvaluation eval = tt.getTransposition(currPly, depthRequiredPly);
+		boolean beta = false;
 		switch (eval.status) {
+		case sufficientTerminalNodeBeta:
+			beta = true;
 		case sufficientTerminalNode:
 		case sufficientRefutation:
 			if (isInNormalSearch()) {
-				treatAsTerminalNode(eval.trans);
+				treatAsTerminalNode(eval.trans, beta);
 				break;
 			}
 			// intentional drop through	
@@ -195,12 +198,13 @@ public class PlySearcher {
 		return searchIsNeeded;
 	}
 	
-	private void treatAsTerminalNode(Transposition trans)
+	private void treatAsTerminalNode(Transposition trans, boolean useOldScore)
 			throws InvalidPieceException {
-		depthSearchedPly = trans.getDepthSearchedInPly();
+		short score = useOldScore ? trans.getPreviousExactScore() : trans.getScore();
+		depthSearchedPly = useOldScore ? trans.getPreviousExactDepth() : trans.getDepthSearchedInPly();
 		pc.clearTreeBeyondPly(currPly);
-		if (doScoreBackup(trans.getScore())) {
-			updatePrincipalContinuation(trans.getBestMove(), trans.getScore());
+		if (doScoreBackup(score)) {
+			updatePrincipalContinuation(trans.getBestMove(), score);
 		}
 		sm.incrementNodesSearched();
 	}

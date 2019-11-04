@@ -13,14 +13,19 @@ public class Transposition {
 	public enum ScoreType { 
 		exact, upperBound, lowerBound;
 	};
-	private ScoreType scoreType;	
+	private ScoreType scoreType;
 	
+	private byte previousExactDepth;
+	private short previousExactScore;
+
 	public Transposition(byte depth, short score, ScoreType scoreType, MoveList ml, GenericMove bestMove) {
 		setDepthSearchedInPly(depth);
 		setScore(score);
 		setScoreType(scoreType);
 		setBestMove(bestMove);
 		setMoveList(ml);
+		previousExactDepth = 0;
+		previousExactScore = 0;
 	}
 
 	public MoveList getMoveList() {
@@ -72,5 +77,27 @@ public class Transposition {
 	
 	public String report() {
 		return "trans best:"+bestMove+" dep:"+depthSearchedInPly+" sc:"+score+" type:"+scoreType;
+	}
+	
+	public byte getPreviousExactDepth() {
+		return previousExactDepth;
+	}
+
+	public short getPreviousExactScore() {
+		return previousExactScore;
+	}
+	
+	public void update(Transposition updateFrom) {
+		this.setBestMove(updateFrom.getBestMove());
+		if ((updateFrom.getDepthSearchedInPly() > this.depthSearchedInPly) && 
+			(this.scoreType == ScoreType.exact)) {
+			// Backup previous score to use in terminal node checks
+			this.previousExactDepth = this.depthSearchedInPly;
+			this.previousExactScore = this.score;
+		}
+	    this.setDepthSearchedInPly(updateFrom.getDepthSearchedInPly());
+	    this.setScoreType(updateFrom.getScoreType());
+	    this.setScore(updateFrom.getScore());
+	    this.setMoveList(updateFrom.getMoveList());
 	}
 }

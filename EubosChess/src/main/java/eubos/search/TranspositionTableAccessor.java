@@ -38,6 +38,9 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			if (ret.trans.getScoreType() == ScoreType.exact) {
 				ret.status = TranspositionTableStatus.sufficientTerminalNode;
 				SearchDebugAgent.printHashIsTerminalNode(currPly, ret.trans.getBestMove(), ret.trans.getScore(),pos.getHash());
+			} else if (ret.trans.getPreviousExactDepth() >= depthRequiredPly) {
+				ret.status = TranspositionTableStatus.sufficientTerminalNodeBeta;
+				SearchDebugAgent.printHashIsTerminalNode(currPly, ret.trans.getBestMove(), ret.trans.getPreviousExactScore(),pos.getHash());
 			} else { // must be (bound == ScoreType.upperBound || bound == ScoreType.lowerBound)
 				if (st.isAlphaBetaCutOff(currPly, ret.trans.getScore())) {
 					SearchDebugAgent.printHashIsRefutation(currPly, ret.trans.getBestMove(),pos.getHash());
@@ -89,7 +92,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		    TranspositionEvaluation eval = this.getTransposition(searchDepthPly-plies);
 			if (eval.status != TranspositionTableStatus.insufficientNoData && eval.trans != null) {
 				GenericMove currMove = eval.trans.getBestMove();
-				if (pcMove != null) assert currMove == pcMove : "Error at ply=" + plies;
+				if (pcMove != null) assert currMove == pcMove : "Error: "+pcMove+" != "+currMove+" @ply="+plies;
 				constructed_pc.add(currMove);
 				pm.performMove(currMove);
 				numMoves++;
@@ -136,11 +139,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			}
 		}
 		if (updateTransposition) {
-			current_trans.setScoreType(new_trans.getScoreType());
-			current_trans.setScore(new_trans.getScore());
-		    current_trans.setBestMove(new_trans.getBestMove());
-		    current_trans.setDepthSearchedInPly(new_trans.getDepthSearchedInPly());
-		    current_trans.setMoveList(new_trans.getMoveList());
+			current_trans.update(new_trans);
 		    hashMap.putTransposition(pos.getHash(), current_trans);
 		    SearchDebugAgent.printTransUpdate(currPly, current_trans, pos.getHash());
 		}
