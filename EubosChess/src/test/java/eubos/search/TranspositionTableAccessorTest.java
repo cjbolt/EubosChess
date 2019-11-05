@@ -66,7 +66,7 @@ public class TranspositionTableAccessorTest {
 		
 		eval = sut.getTransposition(currPly, 1);
 		
-		assertEquals(TranspositionTableStatus.sufficientTerminalNode, eval.status);
+		assertEquals(TranspositionTableStatus.sufficientTerminalNodeAlpha, eval.status);
 	}
 	
 	@Test

@@ -23,24 +23,16 @@ public class Transposition {
 		setScore(score);
 		setScoreType(scoreType);
 		setBestMove(bestMove);
-		setMoveList(ml);
+		this.ml = ml;
 		previousExactDepth = 0;
 		previousExactScore = 0;
 	}
 
 	public MoveList getMoveList() {
-	    adjustMoveListForBestMove();
-		return ml;
-	}
-	
-	public void setMoveList(MoveList ml) {
-		this.ml = ml;
-		adjustMoveListForBestMove();
-	}
-
-	protected void adjustMoveListForBestMove() {
-		if (ml != null)
+		if (ml != null) {
 			ml.reorderWithNewBestMove(bestMove);
+		}
+		return ml;
 	}
 	
 	public ScoreType getScoreType() {
@@ -98,6 +90,5 @@ public class Transposition {
 	    this.setDepthSearchedInPly(updateFrom.getDepthSearchedInPly());
 	    this.setScoreType(updateFrom.getScoreType());
 	    this.setScore(updateFrom.getScore());
-	    this.setMoveList(updateFrom.getMoveList());
 	}
 }

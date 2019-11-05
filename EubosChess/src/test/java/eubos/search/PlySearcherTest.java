@@ -148,7 +148,7 @@ public class PlySearcherTest {
 		initialisePositionAndSearch("8/8/1P6/8/5p2/8/8/8 w - - 0 1", (byte)1);
 		
 		TranspositionEvaluation eval = new TranspositionEvaluation();
-		eval.status = TranspositionTableStatus.sufficientTerminalNode;
+		eval.status = TranspositionTableStatus.sufficientTerminalNodeAlpha;
 		eval.trans = new Transposition((byte)1, (short)50, ScoreType.exact, null, new GenericMove("b6b7"));
 		
 		when(mock_hashMap.getTransposition((byte)0, 1)).thenReturn(eval);
@@ -170,7 +170,7 @@ public class PlySearcherTest {
 		eval0.trans = new Transposition((byte)1, (short)-5, ScoreType.lowerBound, ml_ply0, new GenericMove("b2c3"));
 		
 		TranspositionEvaluation eval1_0 = new TranspositionEvaluation();
-		eval1_0.status = TranspositionTableStatus.sufficientTerminalNode;
+		eval1_0.status = TranspositionTableStatus.sufficientTerminalNodeAlpha;
 		//ArrayList<GenericMove> ml_ply1_0 = new ArrayList<GenericMove>();
 		//ml_ply1_0.add(new GenericMove("a5d5"));
 		//ml_ply1_0.add(new GenericMove("g7c3"));

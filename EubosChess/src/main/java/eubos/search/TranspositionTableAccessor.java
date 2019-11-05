@@ -36,12 +36,13 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		if (ret.trans.getDepthSearchedInPly() >= depthRequiredPly) {
 			
 			if (ret.trans.getScoreType() == ScoreType.exact) {
-				ret.status = TranspositionTableStatus.sufficientTerminalNode;
+				ret.status = TranspositionTableStatus.sufficientTerminalNodeAlpha;
 				SearchDebugAgent.printHashIsTerminalNode(currPly, ret.trans.getBestMove(), ret.trans.getScore(),pos.getHash());
 			} else if (ret.trans.getPreviousExactDepth() >= depthRequiredPly) {
 				ret.status = TranspositionTableStatus.sufficientTerminalNodeBeta;
 				SearchDebugAgent.printHashIsTerminalNode(currPly, ret.trans.getBestMove(), ret.trans.getPreviousExactScore(),pos.getHash());
-			} else { // must be (bound == ScoreType.upperBound || bound == ScoreType.lowerBound)
+			} else {
+				// must be either (bound == ScoreType.upperBound || bound == ScoreType.lowerBound)
 				if (st.isAlphaBetaCutOff(currPly, ret.trans.getScore())) {
 					SearchDebugAgent.printHashIsRefutation(currPly, ret.trans.getBestMove(),pos.getHash());
 					ret.status = TranspositionTableStatus.sufficientRefutation;

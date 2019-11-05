@@ -87,13 +87,11 @@ public class PlySearcher {
 		switch (eval.status) {
 		case sufficientTerminalNodeBeta:
 			beta = true;
-		case sufficientTerminalNode:
+			// intentional drop through
+		case sufficientTerminalNodeAlpha:
 		case sufficientRefutation:
-			if (isInNormalSearch()) {
-				treatAsTerminalNode(eval.trans, beta);
-				break;
-			}
-			// intentional drop through	
+			treatAsTerminalNode(eval.trans, beta);
+			break;	
 		case sufficientSeedMoveList:
 			SearchDebugAgent.printHashIsSeedMoveList(currPly, eval.trans.getBestMove(), pos.getHash());
 			ml = eval.trans.getMoveList();
@@ -349,7 +347,7 @@ public class PlySearcher {
 				terminalNode = true;
 			}
 		} else {
-			// is terminal node
+			// is not a terminal node
 		}
 		return terminalNode;
 	}
