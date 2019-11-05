@@ -339,23 +339,6 @@ public class MiniMaxMoveGeneratorTest {
 	}
 
 	@Test
-	public void test_findMove_mateInThree2()  throws NoLegalMoveException, IllegalNotationException, InvalidPieceException {
-		// chess.com Problem ID: 0102832
-		// Actually it is mate in 3, but can win queen at 4ply search.
-		setupPosition( "r1r3k1/pb1p1p2/1p2p1p1/2pPP1B1/1nP4Q/1Pq2NP1/P4PBP/b2R2K1 w - - - -" );
-		expectedMove = new GenericMove("g5f6");
-		doFindMoveTest(true);
-	}
-
-	@Test
-	public void test_findMove_mateInTwo3()  throws NoLegalMoveException, IllegalNotationException {
-		// chess.com Problem ID: 0551140
-		setupPosition("rnbq1rk1/p4ppN/4p2n/1pbp4/8/2PQP2P/PPB2PP1/RNB1K2R w - - - -" );
-		expectedMove = new GenericMove("h7f6");
-		doFindMoveTest(true);
-	}
-	
-	@Test
 	public void test_findMove_ArenaFailIllegalMove() throws InvalidPieceException, IllegalNotationException {
 		// Observed in arena, black tries to moves as white: 6th April 2015.
 		// N.b. this phenomenon was caused by a combination of the castle move
@@ -683,6 +666,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
+	@Ignore // Not sure what purpose this test is fulfilling now?
 	public void test_SearchEval_4ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
 		setupPosition("rn2k1nr/1pp2pbp/p7/3q4/6b1/2N2N2/PPPPBPP1/R1BQ1RK1 b kq - 1 10"); 
 		expectedMove = new GenericMove("g7c3");
