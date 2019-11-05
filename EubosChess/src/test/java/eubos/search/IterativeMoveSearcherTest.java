@@ -70,11 +70,45 @@ public class IterativeMoveSearcherTest {
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 		}
 		assertEquals(expectedMove, eubos.last_bestMove.bestMove);
+	}
+	
+	@Test
+	public void test_endgame_a() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		setupPosition("8/8/2pp3k/8/1P1P3K/8/8/8 w - - 0 1", 1000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
+		expectedMove = new GenericMove("d4d5");
+		runSearcherAndTestBestMoveReturned();
+	}
+	
+	@Test
+	public void test_endgame_b() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		setupPosition("8/ppp5/8/PPP5/6kp/8/6KP/8 w - - 0 1", 6000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
+		expectedMove = new GenericMove("b5b6");
+		runSearcherAndTestBestMoveReturned();		
+	}
+	
+	@Test
+	@Ignore // needs to search to 20 odd plies to see a win (when mate should be seen in 19 - this is a bug!)
+	public void test_endgame_e() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		setupPosition("6k1/7p/5P1K/8/8/8/7P/8 w - - 0 1", 6000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
+		expectedMove = new GenericMove("b5b6");
+		runSearcherAndTestBestMoveReturned();		
+	}
+	
+	@Test
+	public void test_endgame_k() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		setupPosition("8/2k5/p1P5/P1K5/8/8/8/8 w - - 0 1", 100);
+		expectedMove = new GenericMove("c5d5");
+		runSearcherAndTestBestMoveReturned();
+	}
+	
+	@Test
+	public void test_endgame_o() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		setupPosition("4k3/4Pp2/5P2/4K3/8/8/8/8 w - -", 100);
+		expectedMove = new GenericMove("e5f5");
+		runSearcherAndTestBestMoveReturned();
 	}
 	
 	@Test
@@ -134,4 +168,6 @@ public class IterativeMoveSearcherTest {
 		expectedMove = new GenericMove("b2b5");
 		runSearcherAndTestBestMoveReturned();
 	}
+	
+	
 }

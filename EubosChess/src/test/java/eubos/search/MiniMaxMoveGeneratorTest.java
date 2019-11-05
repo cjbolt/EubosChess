@@ -703,14 +703,4 @@ public class MiniMaxMoveGeneratorTest {
 		pm = new PositionManager("rn2k1nr/1pp2p1p/p7/8/6b1/2P2N2/PPP2PP1/R1BB1RK1 b kq - 0 12");
 		assertEquals(pm.getPositionEvaluator().evaluatePosition(), classUnderTest.getScore());
 	}
-	
-	@Test
-	public void test_endgame_a() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		setupPosition("8/8/2pp3k/8/1P1P3K/8/8/8 w - - 0 1");
-		expectedMove = new GenericMove("d4d5");
-		SearchResult res = classUnderTest.findMove((byte)9,null);
-		System.out.println(classUnderTest.pc.toPvList());
-		assertEquals(expectedMove, res.bestMove);
-		
-	}
 }

@@ -15,7 +15,7 @@ import eubos.position.IPositionAccessors;
 public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	
 	long gameTimeRemaining;
-	private static final int AVG_MOVES_PER_GAME = 40;
+	public static final int AVG_MOVES_PER_GAME = 40;
 	boolean searchStopped = false;
 
 	public IterativeMoveSearcher(EubosEngineMain eubos, 
