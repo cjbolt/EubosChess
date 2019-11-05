@@ -38,6 +38,7 @@ public class PlySearcher {
 	byte currPly = 0;
 	byte depthSearchedPly = 0;
 	private byte originalDepthRequested = 0;
+	private byte extendedSearchDeepestPly = 0;
 	
 	PlySearcher(
 			ITranspositionAccessor hashMap,
@@ -216,7 +217,7 @@ public class PlySearcher {
 		if (atRootNode()) {
 			// If backed up to the root node, report the principal continuation
 			tt.createPrincipalContinuation(pc, searchDepthPly, pm);
-			pcUpdater.report(positionScore, searchDepthPly);
+			pcUpdater.report(positionScore, extendedSearchDeepestPly);
 		}
 	}
 	
@@ -342,6 +343,9 @@ public class PlySearcher {
 			}
 		} else if (currPly > originalDepthRequested) {
 			if (pe.isQuiescent() || (currPly > (originalDepthRequested*3)-1)) {
+				if (currPly > extendedSearchDeepestPly) {
+					extendedSearchDeepestPly = currPly;
+				}
 				terminalNode = true;
 			}
 		} else {

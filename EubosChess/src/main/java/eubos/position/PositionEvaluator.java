@@ -49,8 +49,7 @@ public class PositionEvaluator implements IEvaluate {
 	public short evaluatePosition() {
 		short score = me.evaluate(pm.getTheBoard());
 		score += encourageCastling();
-		score += discourageDoubledPawns();
-		score += encouragePassedPawns();
+		score += evaluatePawnStructure();
 		return score;
 	}
 	
@@ -66,29 +65,32 @@ public class PositionEvaluator implements IEvaluate {
 		return castleScoreBoost;
 	}
 	
-	int encouragePassedPawns() {
-		int passedPawnBoost = checkPassedPawnsForColour(pm.getOnMove());
-		passedPawnBoost += checkPassedPawnsForColour(Colour.getOpposite(pm.getOnMove()));
-		return passedPawnBoost;
+	int evaluatePawnStructure() {
+		int pawnEvaluationScore = evaluatePawnsForColour(pm.getOnMove());
+		pawnEvaluationScore += evaluatePawnsForColour(Colour.getOpposite(pm.getOnMove()));
+		return pawnEvaluationScore;
 	}
 
-	private int checkPassedPawnsForColour(Colour onMoveWas) {
+	private int evaluatePawnsForColour(Colour onMoveWas) {
 		Board board = pm.getTheBoard();
-		int passedPawnBoost = 0;
 		Iterator<Piece> iter = board.iterateColour(onMoveWas);
+		int pawnHandicap = 0;
+		int passedPawnBoost = 0;
+		int pawnCount[] = {0,0,0,0,0,0,0,0};
 		while (iter.hasNext()) {
 			Piece currPiece = iter.next();
-			
 			if (currPiece instanceof Pawn) {
 				GenericRank rank = currPiece.getSquare().rank;
 				switch (currPiece.getSquare().file) {
 				case Fa:
+					pawnCount[0] += 1;
 					if (!board.checkIfOpposingPawnInFile(GenericFile.Fa, rank, onMoveWas) &&
 						!board.checkIfOpposingPawnInFile(GenericFile.Fb, rank, onMoveWas)) {
 						passedPawnBoost += ROOK_FILE_PASSED_PAWN_BOOST;
-					};
+					}
 					break;
 				case Fb:
+					pawnCount[1] += 1;
 					if (!board.checkIfOpposingPawnInFile(GenericFile.Fa, rank, onMoveWas) &&
 					    !board.checkIfOpposingPawnInFile(GenericFile.Fb, rank, onMoveWas) &&
 					    !board.checkIfOpposingPawnInFile(GenericFile.Fc, rank, onMoveWas)) {
@@ -96,6 +98,7 @@ public class PositionEvaluator implements IEvaluate {
 					}
 					break;
 				case Fc:
+					pawnCount[2] += 1;
 					if (!board.checkIfOpposingPawnInFile(GenericFile.Fb, rank, onMoveWas) &&
 						!board.checkIfOpposingPawnInFile(GenericFile.Fc, rank, onMoveWas) &&
 					    !board.checkIfOpposingPawnInFile(GenericFile.Fd, rank, onMoveWas)) {
@@ -103,6 +106,7 @@ public class PositionEvaluator implements IEvaluate {
 					}
 					break;
 				case Fd:
+					pawnCount[3] += 1;
 					if (!board.checkIfOpposingPawnInFile(GenericFile.Fc, rank, onMoveWas) &&
 						!board.checkIfOpposingPawnInFile(GenericFile.Fd, rank, onMoveWas) &&
 					    !board.checkIfOpposingPawnInFile(GenericFile.Fe, rank, onMoveWas)) {
@@ -110,6 +114,7 @@ public class PositionEvaluator implements IEvaluate {
 					}
 					break;
 				case Fe:
+					pawnCount[4] += 1;
 					if (!board.checkIfOpposingPawnInFile(GenericFile.Fd, rank, onMoveWas) &&
 						!board.checkIfOpposingPawnInFile(GenericFile.Fe, rank, onMoveWas) &&
 						!board.checkIfOpposingPawnInFile(GenericFile.Ff, rank, onMoveWas)) {
@@ -117,6 +122,7 @@ public class PositionEvaluator implements IEvaluate {
 					}
 					break;
 				case Ff:
+					pawnCount[5] += 1;
 					if (!board.checkIfOpposingPawnInFile(GenericFile.Fe, rank, onMoveWas) &&
 						!board.checkIfOpposingPawnInFile(GenericFile.Ff, rank, onMoveWas) &&
 					    !board.checkIfOpposingPawnInFile(GenericFile.Fg, rank, onMoveWas)) {
@@ -124,6 +130,7 @@ public class PositionEvaluator implements IEvaluate {
 					}
 					break;
 				case Fg:
+					pawnCount[6] += 1;
 					if (!board.checkIfOpposingPawnInFile(GenericFile.Ff, rank, onMoveWas) &&
 						!board.checkIfOpposingPawnInFile(GenericFile.Fg, rank, onMoveWas) &&
 					    !board.checkIfOpposingPawnInFile(GenericFile.Fh, rank, onMoveWas)) {
@@ -131,56 +138,10 @@ public class PositionEvaluator implements IEvaluate {
 					}
 					break;
 				case Fh:
+					pawnCount[7] += 1;
 					if (!board.checkIfOpposingPawnInFile(GenericFile.Fg, currPiece.getSquare().rank, onMoveWas)) {
 						passedPawnBoost += ROOK_FILE_PASSED_PAWN_BOOST;
 					}
-					break;
-				}
-			}
-		}
-		if (onMoveWas == Colour.black) {
-			passedPawnBoost = -passedPawnBoost;
-		}
-		return passedPawnBoost;
-	}
-	
-	int discourageDoubledPawns() {
-		int doubledPawnScoreModifier = discourageDoubledPawnsForColour(pm.getOnMove());
-		doubledPawnScoreModifier += discourageDoubledPawnsForColour(Colour.getOpposite(pm.getOnMove()));
-		return doubledPawnScoreModifier;
-	}
-
-	private int discourageDoubledPawnsForColour(Colour onMoveWas) {
-		Iterator<Piece> iter = pm.getTheBoard().iterateColour(onMoveWas);
-		int pawnHandicap = 0;
-		int pawnCount[] = {0,0,0,0,0,0,0,0};
-		while (iter.hasNext()) {
-			Piece currPiece = iter.next();
-			if (currPiece instanceof Pawn) {
-				switch (currPiece.getSquare().file) {
-				case Fa:
-					pawnCount[0] += 1;
-					break;
-				case Fb:
-					pawnCount[1] += 1;
-					break;
-				case Fc:
-					pawnCount[2] += 1;
-					break;
-				case Fd:
-					pawnCount[3] += 1;
-					break;
-				case Fe:
-					pawnCount[4] += 1;
-					break;
-				case Ff:
-					pawnCount[5] += 1;
-					break;
-				case Fg:
-					pawnCount[6] += 1;
-					break;
-				case Fh:
-					pawnCount[7] += 1;
 					break;
 				}
 			}
@@ -193,7 +154,8 @@ public class PositionEvaluator implements IEvaluate {
 		}
 		if (onMoveWas == Colour.black) {
 			pawnHandicap = -pawnHandicap;
+			passedPawnBoost = -passedPawnBoost;
 		}
-		return pawnHandicap;
+		return pawnHandicap + passedPawnBoost;
 	}
 }

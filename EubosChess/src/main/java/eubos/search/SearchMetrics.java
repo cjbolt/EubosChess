@@ -12,6 +12,7 @@ class SearchMetrics {
 	private boolean pvValid = false;
 	private short cpScore;
 	private int depth;
+	private int partialDepth;
 	private GenericMove currMove;
 	private int currMoveNum;
 	
@@ -21,6 +22,7 @@ class SearchMetrics {
 		cpScore = 0;
 		pvValid = false;
 		depth = searchDepth;
+		partialDepth = 0;
 		currMoveNum = 0;
 		hashFull = 0;
 	}
@@ -49,6 +51,8 @@ class SearchMetrics {
 	synchronized void setCpScore(short cpScore) { this.cpScore = cpScore; }
 	synchronized int getDepth() { return depth; }
 	synchronized void setDepth(int depth) { this.depth = depth; }
+	synchronized int getPartialDepth() { return partialDepth; }
+	synchronized void setPartialDepth(int depth ) { this.partialDepth = depth; }
 	synchronized void setCurrentMove(GenericMove mov) { currMove = mov;}
 	synchronized GenericMove getCurrentMove() { return currMove;	}
 	synchronized int getCurrentMoveNumber() { return currMoveNum; }

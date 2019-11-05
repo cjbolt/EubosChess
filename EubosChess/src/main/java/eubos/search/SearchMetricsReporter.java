@@ -75,6 +75,7 @@ class SearchMetricsReporter extends Thread {
 				info.setMate(mateMove);
 			}
 			info.setDepth(depth);
+			info.setMaxDepth(sm.getPartialDepth());
 			eubosEngine.sendInfoCommand(info);
 		}
 	}

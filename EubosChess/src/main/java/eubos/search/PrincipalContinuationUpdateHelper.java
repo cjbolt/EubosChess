@@ -12,7 +12,6 @@ public class PrincipalContinuationUpdateHelper
 		private SearchMetricsReporter sr;
 		PrincipalContinuation pc;
 		Colour initialOnMove;
-		byte searchDepthPly;
 		
 		PrincipalContinuationUpdateHelper(
 				Colour initialOnMove,
@@ -25,9 +24,9 @@ public class PrincipalContinuationUpdateHelper
 			this.initialOnMove = initialOnMove;
 		}
 
-		void report(short score, byte depth) {
+		void report(short score, byte partialDepth) {
 			positionScore = score;
-			this.searchDepthPly = depth;
+			sm.setPartialDepth(partialDepth);
 			assignPrincipalVariationToSearchMetrics();
 			assignCentipawnScoreToSearchMetrics();
 			sr.reportPrincipalVariation();
