@@ -1,7 +1,7 @@
 package eubos.position;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -34,8 +34,8 @@ public class MoveList implements Iterable<GenericMove> {
 		REGULAR
 	};
 	
-	private List<GenericMove> normal_search_moves;
-	private List<GenericMove> extended_search_moves;
+	private GenericMove[] normal_search_moves;
+	private GenericMove[] extended_search_moves;
 	private int normalSearchBestMovePreviousIndex = -1;
 	private int extendedSearchListBestMovePreviousIndex = -1;
 	
@@ -94,12 +94,33 @@ public class MoveList implements Iterable<GenericMove> {
 		}
 	}
 	
-	private void seedListWithBestMove(List<GenericMove> list, GenericMove newBestMove) {
-		assert list != null;
-		if (list.contains(newBestMove)) {
-			list.remove(newBestMove);
-			list.add(0, newBestMove);
+	private int getIndex(GenericMove[] moveArray, GenericMove move) {
+		int index = 0;
+		boolean found = false;
+		for (GenericMove current : moveArray) {
+			if (move.equals(current)) {
+				found = true;
+				break;	
+			}
+			index++;
 		}
+		if (!found) {
+			index = -1;
+		}
+		return index;
+	}
+	
+	private void swapWithFirst(GenericMove[] moveArray, int index) {
+		if (isMovePresent(index) && index < moveArray.length) {
+			GenericMove temp = moveArray[0];
+			moveArray[0] = moveArray[index];
+			moveArray[index] = temp;
+		}
+	}
+	
+	private void seedListWithBestMove(GenericMove[] moveArray, GenericMove newBestMove) {
+		int index = getIndex(moveArray, newBestMove);
+	    swapWithFirst(moveArray, index);
 	}
 	
 	static <K,V extends Comparable<? super V>> SortedSet<Map.Entry<K,V>> entriesSortedByValues(Map<K,V> map) {
@@ -126,16 +147,17 @@ public class MoveList implements Iterable<GenericMove> {
 		return entireMoveList;
 	}
 	
-	List<GenericMove> create_normal_list(SortedSet<Map.Entry<GenericMove, MoveClassification>> moves) {
-		List<GenericMove> moveList = new ArrayList<GenericMove>();
+	GenericMove [] create_normal_list(SortedSet<Map.Entry<GenericMove, MoveClassification>> moves) {
+		GenericMove [] moveArray = new GenericMove[moves.size()];
+		int index = 0;
 		for (Map.Entry<GenericMove, MoveClassification> tuple : moves ) {
-			moveList.add(tuple.getKey());
+			moveArray[index++] = tuple.getKey();
 		}
-		return moveList;
+		return moveArray;
 	}
 	
-	List<GenericMove> create_extended_list(SortedSet<Map.Entry<GenericMove, MoveClassification>> moves) {
-		List<GenericMove> moveList = new ArrayList<GenericMove>();
+	GenericMove[] create_extended_list(SortedSet<Map.Entry<GenericMove, MoveClassification>> moves) {
+		List<GenericMove> list = new ArrayList<GenericMove>();
 		for (Map.Entry<GenericMove, MoveClassification> tuple : moves ) {
 			switch(tuple.getValue()) {
 			case BEST:
@@ -145,21 +167,23 @@ public class MoveList implements Iterable<GenericMove> {
 			case CAPTURE_WITH_CHECK:
 			case CAPTURE:
 			case CHECK:
-				moveList.add(tuple.getKey());
+				list.add(tuple.getKey());
 				break;
 			default:
 				break;
 			}
 		}
-		return moveList;
+		GenericMove[] array = new GenericMove[list.size()];
+        array = list.toArray(array);
+		return array;
 	}
 	
 	public class MovesIterator implements Iterator<GenericMove> {
 
 		private LinkedList<GenericMove> moveList = null;
 	
-		public MovesIterator(List<GenericMove> list) {
-			moveList = new LinkedList<GenericMove>(list);
+		public MovesIterator(GenericMove[] array) {
+			moveList = new LinkedList<GenericMove>(Arrays.asList(array));
 		}
 
 		public boolean hasNext() {
@@ -190,15 +214,15 @@ public class MoveList implements Iterable<GenericMove> {
 	}
 		
 	public boolean isMateOccurred() {
-		return normal_search_moves.isEmpty();
+		return (normal_search_moves.length == 0);
 	}
 	
 	public GenericMove getRandomMove() {
 		GenericMove bestMove = null;
-		if (!normal_search_moves.isEmpty()) {
+		if (!isMateOccurred()) {
 			Random randomIndex = new Random();
-			Integer indexToGet = randomIndex.nextInt(normal_search_moves.size());
-			bestMove = normal_search_moves.get(indexToGet);		
+			Integer indexToGet = randomIndex.nextInt(normal_search_moves.length);
+			bestMove = normal_search_moves[indexToGet];		
 		}
 		return bestMove;
 	}
@@ -208,8 +232,8 @@ public class MoveList implements Iterable<GenericMove> {
 		extendedSearchListBestMovePreviousIndex = reorderList(extended_search_moves, newBestMove, extendedSearchListBestMovePreviousIndex);
 	}
 	
-	private int reorderList(List<GenericMove> list, GenericMove newBestMove, int prevBestOriginalIndex) {
-		int index = list.indexOf(newBestMove);
+	private int reorderList(GenericMove[] moveArray, GenericMove newBestMove, int prevBestOriginalIndex) {
+		int index = getIndex(moveArray, newBestMove);
 		if (isMovePresent(index) && !isMoveAlreadyBest(index)) {
 			
 			if (wasPreviouslyModified(prevBestOriginalIndex)) {
@@ -218,7 +242,7 @@ public class MoveList implements Iterable<GenericMove> {
 					// It is a direct swap back, set to -1 as the list is restored to its initial state
 					prevBestOriginalIndex = -1;
 				} else {
-					Collections.swap(list, 0, prevBestOriginalIndex);
+					swapWithFirst(moveArray, prevBestOriginalIndex);
 					prevBestOriginalIndex = index;
 				}
 			} else {
@@ -227,7 +251,7 @@ public class MoveList implements Iterable<GenericMove> {
 			}
 			
 			// Swap in the new best move
-			Collections.swap(list, 0, index);
+			swapWithFirst(moveArray, index);
 		}
 		return prevBestOriginalIndex;
 	}

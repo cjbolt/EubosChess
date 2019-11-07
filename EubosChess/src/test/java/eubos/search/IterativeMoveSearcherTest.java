@@ -110,6 +110,14 @@ public class IterativeMoveSearcherTest {
 	}
 	
 	@Test
+	@Ignore //Eubos doesn't have a clue, even at ply==24; probably indicating a bug.
+	public void test_endgame_i() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		setupPosition("8/k7/3p4/p2P1p2/P2P1P2/8/8/K7 w - - 0 1", 100);
+		expectedMove = new GenericMove("c5d5");
+		runSearcherAndTestBestMoveReturned();
+	}
+	
+	@Test
 	public void test_endgame_k() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
 		setupPosition("8/2k5/p1P5/P1K5/8/8/8/8 w - - 0 1", 100);
 		expectedMove = new GenericMove("c5d5");
