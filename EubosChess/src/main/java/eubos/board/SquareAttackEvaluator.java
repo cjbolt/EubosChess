@@ -1,9 +1,10 @@
  package eubos.board;
 
 import java.util.ArrayList;
-import java.util.TreeMap;
+import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 
@@ -18,7 +19,7 @@ import eubos.board.pieces.Piece.Colour;
 
 public class SquareAttackEvaluator {
 	
-	static private final TreeMap<GenericPosition, GenericPosition[][]> directPieceMove_Lut = new TreeMap<GenericPosition, GenericPosition[][]>();
+	static private final Map<GenericPosition, GenericPosition[][]> directPieceMove_Lut = new EnumMap<GenericPosition, GenericPosition[][]>(GenericPosition.class);
 	static {
 		for (GenericPosition square : GenericPosition.values()) {
 			directPieceMove_Lut.put(square, createDiagonalForSq(square));
@@ -45,7 +46,7 @@ public class SquareAttackEvaluator {
 		return sqsInDirection;
 	}
 	
-	static private final TreeMap<GenericPosition, GenericPosition[]> KnightMove_Lut = new TreeMap<GenericPosition, GenericPosition[]>();
+	static private final Map<GenericPosition, GenericPosition[]> KnightMove_Lut = new EnumMap<GenericPosition, GenericPosition[]>(GenericPosition.class);
 	static {
 		for (GenericPosition square : GenericPosition.values()) {
 			KnightMove_Lut.put(square, createKnightMovesAtSq(square));
@@ -63,7 +64,7 @@ public class SquareAttackEvaluator {
 		return list.toArray(array);
 	}
 	
-	static private final TreeMap<GenericPosition, GenericPosition[]> KingMove_Lut = new TreeMap<GenericPosition, GenericPosition[]>();
+	static private final Map<GenericPosition, GenericPosition[]> KingMove_Lut = new EnumMap<GenericPosition, GenericPosition[]>(GenericPosition.class);
 	static {
 		for (GenericPosition square : GenericPosition.values()) {
 			KingMove_Lut.put(square, createKingMovesAtSq(square));
@@ -129,24 +130,19 @@ public class SquareAttackEvaluator {
 	}
 
 	private static boolean checkForKnightAttacks(Board theBoard, Colour attackingColour, GenericPosition attackedSq) {
-		boolean attacked = false;
-		GenericPosition [] array = KnightMove_Lut.get(attackedSq);
-		for (GenericPosition attackerSq: array) {
-			Piece currPiece = theBoard.getPieceAtSquare(attackerSq);
-			if (currPiece != null && currPiece instanceof Knight && currPiece.getColour()==attackingColour) {
-				attacked = true;
-				break;
-			}
-		}
-		return attacked;
+		return checkForAttacksHelper(Knight.class, KnightMove_Lut, theBoard, attackingColour, attackedSq);
 	}
 
 	private static boolean checkForKingAttacks(Board theBoard, Colour attackingColour, GenericPosition attackedSq) {
+		return checkForAttacksHelper(King.class, KingMove_Lut, theBoard, attackingColour, attackedSq);
+	}
+	
+	private static boolean checkForAttacksHelper(Class<? extends Piece> type, Map<GenericPosition, GenericPosition[]> map,Board theBoard, Colour attackingColour, GenericPosition attackedSq) {
 		boolean attacked = false;
-		GenericPosition [] array = KingMove_Lut.get(attackedSq);
+		GenericPosition [] array = map.get(attackedSq);
 		for (GenericPosition attackerSq: array) {
 			Piece currPiece = theBoard.getPieceAtSquare(attackerSq);
-			if (currPiece != null && currPiece instanceof King && currPiece.getColour()==attackingColour) {
+			if (currPiece != null && type.isInstance(currPiece) && currPiece.getColour()==attackingColour) {
 				attacked = true;
 				break;
 			}
