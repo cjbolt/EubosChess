@@ -1,12 +1,11 @@
  package eubos.board;
 
 import java.util.ArrayList;
+import java.util.TreeMap;
 import java.util.Iterator;
 import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericPosition;
-import com.fluxchess.jcpi.models.IntFile;
-import com.fluxchess.jcpi.models.IntRank;
 
 import eubos.board.pieces.Bishop;
 import eubos.board.pieces.King;
@@ -19,12 +18,10 @@ import eubos.board.pieces.Piece.Colour;
 
 public class SquareAttackEvaluator {
 	
-	static private final GenericPosition [][][] directPieceMove_Lut = new GenericPosition [64][][];
+	static private final TreeMap<GenericPosition, GenericPosition[][]> directPieceMove_Lut = new TreeMap<GenericPosition, GenericPosition[][]>();
 	static {
 		for (GenericPosition square : GenericPosition.values()) {
-			int f = IntFile.valueOf(square.file);
-			int r = IntRank.valueOf(square.rank);
-			directPieceMove_Lut[f+(r*8)] = createDiagonalForSq(square);
+			directPieceMove_Lut.put(square, createDiagonalForSq(square));
 		}
 	}
 	static private GenericPosition [][] createDiagonalForSq(GenericPosition square) {
@@ -48,18 +45,34 @@ public class SquareAttackEvaluator {
 		return sqsInDirection;
 	}
 	
-	static private final GenericPosition [][] KnightMove_Lut = new GenericPosition [64][];
+	static private final TreeMap<GenericPosition, GenericPosition[]> KnightMove_Lut = new TreeMap<GenericPosition, GenericPosition[]>();
 	static {
 		for (GenericPosition square : GenericPosition.values()) {
-			int f = IntFile.valueOf(square.file);
-			int r = IntRank.valueOf(square.rank);
-			KnightMove_Lut[f+(r*8)] = createKnightMovesAtSq(square);
+			KnightMove_Lut.put(square, createKnightMovesAtSq(square));
 		}
 	}
 	static GenericPosition [] createKnightMovesAtSq(GenericPosition atPos) {
 		ArrayList<GenericPosition> list = new ArrayList<GenericPosition>();
 		for (Direction dir: Direction.values()) {
 			GenericPosition sq = Direction.getIndirectMoveSq(dir, atPos);
+			if (sq != null) {
+				list.add(sq);
+			}
+		}
+		GenericPosition[] array = new GenericPosition[list.size()];
+		return list.toArray(array);
+	}
+	
+	static private final TreeMap<GenericPosition, GenericPosition[]> KingMove_Lut = new TreeMap<GenericPosition, GenericPosition[]>();
+	static {
+		for (GenericPosition square : GenericPosition.values()) {
+			KingMove_Lut.put(square, createKingMovesAtSq(square));
+		}
+	}
+	static GenericPosition [] createKingMovesAtSq(GenericPosition atPos) {
+		ArrayList<GenericPosition> list = new ArrayList<GenericPosition>();
+		for (Direction dir: Direction.values()) {
+			GenericPosition sq = Direction.getDirectMoveSq(dir, atPos);
 			if (sq != null) {
 				list.add(sq);
 			}
@@ -117,9 +130,7 @@ public class SquareAttackEvaluator {
 
 	private static boolean checkForKnightAttacks(Board theBoard, Colour attackingColour, GenericPosition attackedSq) {
 		boolean attacked = false;
-		int f = IntFile.valueOf(attackedSq.file);
-		int r = IntRank.valueOf(attackedSq.rank);
-		GenericPosition [] array = KnightMove_Lut[f+(r*8)];
+		GenericPosition [] array = KnightMove_Lut.get(attackedSq);
 		for (GenericPosition attackerSq: array) {
 			Piece currPiece = theBoard.getPieceAtSquare(attackerSq);
 			if (currPiece != null && currPiece instanceof Knight && currPiece.getColour()==attackingColour) {
@@ -132,16 +143,12 @@ public class SquareAttackEvaluator {
 
 	private static boolean checkForKingAttacks(Board theBoard, Colour attackingColour, GenericPosition attackedSq) {
 		boolean attacked = false;
-		GenericPosition atPos;
-		Piece currPiece;
-		for (Direction dir: Direction.values()) {
-			atPos = Direction.getDirectMoveSq(dir, attackedSq);
-			if (atPos != null) {
-				currPiece = theBoard.getPieceAtSquare(atPos);
-				if ( currPiece != null && currPiece instanceof King && currPiece.getColour()==attackingColour) {
-					attacked = true;
-					break;
-				}
+		GenericPosition [] array = KingMove_Lut.get(attackedSq);
+		for (GenericPosition attackerSq: array) {
+			Piece currPiece = theBoard.getPieceAtSquare(attackerSq);
+			if (currPiece != null && currPiece instanceof King && currPiece.getColour()==attackingColour) {
+				attacked = true;
+				break;
 			}
 		}
 		return attacked;
@@ -149,9 +156,7 @@ public class SquareAttackEvaluator {
 
 	private static boolean checkForDirectPieceAttacker(Board theBoard, Colour attackingColour, GenericPosition targetSq) {
 		boolean attacked = false;
-		int f = IntFile.valueOf(targetSq.file);
-		int r = IntRank.valueOf(targetSq.rank);
-		GenericPosition [][] array = SquareAttackEvaluator.directPieceMove_Lut[f+(r*8)];
+		GenericPosition [][] array = SquareAttackEvaluator.directPieceMove_Lut.get(targetSq);
 		int index = 0;
 		for (Direction dir: Direction.values()) { 
 			for (GenericPosition attackerSq: array[index]) {
