@@ -140,10 +140,60 @@ public class IterativeMoveSearcherTest {
 	}
 	
 	@Test
-	public void test_findMove_mateInTwo()  throws NoLegalMoveException, IllegalNotationException {
+	public void test_findMove_mateInTwo() throws NoLegalMoveException, IllegalNotationException {
 		// chess.com Problem ID: 0551140
 		setupPosition("rnbq1rk1/p4ppN/4p2n/1pbp4/8/2PQP2P/PPB2PP1/RNB1K2R w - - - -", 1000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
 		expectedMove = new GenericMove("h7f6");
+		runSearcherAndTestBestMoveReturned();
+	}
+	
+	@Test
+	public void test_findMove_mateInThree() throws NoLegalMoveException, IllegalNotationException {
+		setupPosition("2kr3r/ppp2ppp/8/8/1P5P/1K1b1P1N/P3P1P1/4qB1R b - - 3 24", 1000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
+		expectedMove = new GenericMove("e1b1");
+		runSearcherAndTestBestMoveReturned();
+	}
+	
+	@Test
+	@Ignore
+	public void test_lichess_blunder_simplify_incentive() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		/* 	[Event "Casual Blitz game"]
+			[Site "https://lichess.org/DrKTNJnv"]
+			[Date "2019.11.12"]
+			[Round "-"]
+			[White "turkjs"]
+			[Black "eubos"]
+			[Result "1-0"]
+			[UTCDate "2019.11.12"]
+			[UTCTime "16:01:59"]
+			[WhiteElo "1586"]
+			[BlackElo "1806"]
+			[WhiteTitle "BOT"]
+			[BlackTitle "BOT"]
+			[Variant "Standard"]
+			[TimeControl "300+0"]
+			[ECO "D00"]
+			[Opening "Queen's Pawn Game: Veresov Attack, Alburt Defense"]
+			[Termination "Normal"]
+			[Annotator "lichess.org"]
+			
+			1. d4 d5 2. Nc3 Bf5 { D00 Queen's Pawn Game: Veresov Attack, Alburt Defense } 3. f3 Nf6 4. Bf4 Bg6 5. Nb5 e5 6. Bxe5 Bb4+ 7. c3 Ba5 8. b4 Bb6 9. c4 dxc4 10. Na3 c3 11. Qa4+ Nc6 12. Nb5 c2 13. Bxf6 Qxf6 14. h4 Qf4 15. Qa3 Qg3+ 16. Kd2 Nxd4 17. Nxd4 Bxd4 18. Rc1 O-O-O 19. Rxc2 Bf6+ 20. Qd3 Qf2 21. Rc3 Bxc3+ 22. Kxc3 Bxd3 23. Nh3 Qe1+ 24. Kb3 Qc3+ 25. Kxc3 a6 26. exd3 a5 27. bxa5 f5 28. d4 Rd6 29. Nf4 g6 30. Bc4 Re8 31. d5 Re3+ 32. Kd4 Ra3 33. h5 Rxa5 34. hxg6 hxg6 35. Rh8+ Kd7 36. Ke5 Rc6 37. Rh7+ Kc8 38. Rh8+ Kd7 39. Bb3 g5 40. Rh7+ Kc8 41. Ne6 g4 42. Kf6 Rxe6+ 43. Kxe6 c6 44. Rh8+ Kc7 45. d6+ Kb6 46. d7 gxf3 47. d8=Q+ Kb5 48. a4+ Kb4 49. Qb6+ Ka3 50. Bd1 Ka2 51. gxf3 Ka1 52. Qxa5 f4 53. Qb6 c5 54. Rh2 c4 55. Qb2# { White wins by checkmate. } 1-0
+			*/
+		/* Try to build up hash table by running previous moves. */
+		setupPosition("2kr3r/ppp2ppp/5bb1/8/1P5P/3Q1Pq1/P1RKP1P1/5BNR b - - 2 20", 165000); 
+		expectedMove = new GenericMove("g3f2");
+		runSearcherAndTestBestMoveReturned();
+		setupPosition("2kr3r/ppp2ppp/5bb1/8/1P5P/2RQ1P2/P2KPqP1/5BNR b - - 4 21", 157000); 
+		expectedMove = new GenericMove("f6c3");
+		runSearcherAndTestBestMoveReturned();
+		setupPosition("2kr3r/ppp2ppp/6b1/8/1P5P/2KQ1P2/P3PqP1/5BNR b - - 0 22", 148000); 
+		expectedMove = new GenericMove("g6d3");
+		runSearcherAndTestBestMoveReturned();
+		setupPosition("2kr3r/ppp2ppp/8/8/1P5P/2Kb1P1N/P3PqP1/5B1R b - - 1 23", 140000); 
+		expectedMove = new GenericMove("f2e1");		
+		runSearcherAndTestBestMoveReturned();
+		setupPosition("2kr3r/ppp2ppp/8/8/1P5P/1K1b1P1N/P3P1P1/4qB1R b - - 3 24", 132000);
+		expectedMove = new GenericMove("e1b3");
 		runSearcherAndTestBestMoveReturned();
 	}
 	
