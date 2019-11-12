@@ -115,10 +115,10 @@ public class SquareAttackEvaluator {
 				attacked = attackedByPawn(bd, attackingColour, Direction.getDirectMoveSq(Direction.downLeft,attackedSq));
 				if (attacked) break;
 			}
-			attacked = checkForKingAttacks(bd, attackingColour, attackedSq);
+			attacked = checkForAttacksHelper(King.class, KingMove_Lut, bd, attackingColour, attackedSq);
 			if (attacked) break;
 			if (doKnightCheck) {
-				attacked = checkForKnightAttacks(bd, attackingColour, attackedSq);
+				attacked = checkForAttacksHelper(Knight.class, KnightMove_Lut, bd, attackingColour, attackedSq);
 				if (attacked) break;
 			}
 			if (doDiagonalCheck || doRankFileCheck) {
@@ -129,14 +129,6 @@ public class SquareAttackEvaluator {
 		return attacked;	
 	}
 
-	private static boolean checkForKnightAttacks(Board theBoard, Colour attackingColour, GenericPosition attackedSq) {
-		return checkForAttacksHelper(Knight.class, KnightMove_Lut, theBoard, attackingColour, attackedSq);
-	}
-
-	private static boolean checkForKingAttacks(Board theBoard, Colour attackingColour, GenericPosition attackedSq) {
-		return checkForAttacksHelper(King.class, KingMove_Lut, theBoard, attackingColour, attackedSq);
-	}
-	
 	private static boolean checkForAttacksHelper(Class<? extends Piece> type, Map<GenericPosition, GenericPosition[]> map,Board theBoard, Colour attackingColour, GenericPosition attackedSq) {
 		boolean attacked = false;
 		GenericPosition [] array = map.get(attackedSq);

@@ -54,7 +54,6 @@ public class ZobristHashCode {
 	private static final int INDEX_ROOK = 3;
 	private static final int INDEX_QUEEN = 4;
 	private static final int INDEX_KING = 5;
-	private static final int INDEX_PIECE_ERROR = -1;
 	
 	private IPositionAccessors pos;
 	
@@ -73,16 +72,11 @@ public class ZobristHashCode {
 	public ZobristHashCode(IPositionAccessors pm) {
 		pos = pm;
 		prevEnPassantFile = new Stack<GenericFile>();
-		try {
-			this.generate();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		generate();
 	}
 	
 	// Generate a hash code for a position from scratch
-	public long generate() throws Exception {
+	private long generate() {
 		// add pieces
 		hashCode = 0;
 		for (Piece currPiece : pos.getTheBoard()) {
@@ -112,15 +106,13 @@ public class ZobristHashCode {
 		return hashCode;
 	}
 
-	protected long getPrnForPiece(GenericPosition pos, Piece currPiece) throws Exception {
+	protected long getPrnForPiece(GenericPosition pos, Piece currPiece) {
 		// compute prnLookup index to use, based on piece type, colour and square.
 		int lookupIndex=INDEX_WHITE;
 		int atFile = IntFile.valueOf(pos.file);
 		int atRank = IntRank.valueOf(pos.rank);
-		int pieceType = INDEX_PIECE_ERROR;
-		if (currPiece instanceof Pawn) {
-			pieceType = INDEX_PAWN;
-		} else if (currPiece instanceof Knight) {
+		int pieceType = INDEX_PAWN; // Default
+		if (currPiece instanceof Knight) {
 			pieceType = INDEX_KNIGHT;
 		} else if (currPiece instanceof Bishop) {
 			pieceType = INDEX_BISHOP;
@@ -131,9 +123,6 @@ public class ZobristHashCode {
 		} else if (currPiece instanceof King) {
 			pieceType = INDEX_KING;
 		}
-		if (pieceType == INDEX_PIECE_ERROR) {
-			throw new Exception();
-		}
 		lookupIndex = atFile + atRank * 8 + pieceType * NUM_SQUARES;
 		if (currPiece.isBlack())
 			lookupIndex += INDEX_BLACK;
@@ -142,14 +131,18 @@ public class ZobristHashCode {
 	}
 	
 	// Used to update the Zobrist hash code whenever a position changes due to a move being performed
-	public void update(GenericMove move, Piece captureTarget, GenericFile enPassantFile) throws Exception {
+	public void update(GenericMove move, Piece captureTarget, GenericFile enPassantFile) {
 		Piece piece = doBasicMove(move);
 		
 		doCapturedPiece(captureTarget);
 		
 		doEnPassant(move, enPassantFile);
 		
-		doSecondaryMove(move, piece);
+		try {
+			doSecondaryMove(move, piece);
+		} catch (IllegalNotationException e) {
+			e.printStackTrace();
+		}
 		
 		doCastlingFlags();
 		
@@ -169,7 +162,7 @@ public class ZobristHashCode {
 		return eubosPiece;
 	}
 	
-	protected Piece doBasicMove(GenericMove move) throws Exception {
+	protected Piece doBasicMove(GenericMove move) {
 		Piece piece = pos.getTheBoard().getPieceAtSquare(move.to);
 		GenericChessman promotedChessman = move.promotion;
 		if (promotedChessman == null) {
@@ -197,7 +190,7 @@ public class ZobristHashCode {
 		return piece;
 	}
 
-	protected void doCapturedPiece(Piece captureTarget) throws Exception {
+	protected void doCapturedPiece(Piece captureTarget) {
 		if (captureTarget != null)
 			hashCode ^= getPrnForPiece(captureTarget.getSquare(), captureTarget);
 	}
@@ -251,7 +244,7 @@ public class ZobristHashCode {
 	}
 
 	protected void doSecondaryMove(GenericMove move, Piece piece)
-			throws IllegalNotationException, Exception {
+			throws IllegalNotationException {
 		if (piece instanceof King) {
 			if (move.equals(CastlingManager.wksc)) {
 				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.f1);

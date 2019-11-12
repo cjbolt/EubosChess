@@ -57,7 +57,7 @@ public class MoveList implements Iterable<GenericMove> {
 					boolean isQueenPromotion = (currMove.promotion == GenericChessman.QUEEN);
 					boolean isCapture = pm.lastMoveWasCapture();
 					boolean isCheck = pm.isKingInCheck(Colour.getOpposite(onMove));
-					boolean isCastle = (!isCapture) ? pm.lastMoveWasCaptureOrCastle() : false;
+					boolean isCastle = pm.lastMoveWasCastle();
 					
 					if (isQueenPromotion && isCapture && isCheck) {
 						moveType = MoveClassification.PROMOTION_AND_CAPTURE_WITH_CHECK;

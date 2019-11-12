@@ -11,7 +11,6 @@ import com.fluxchess.jcpi.models.GenericRank;
 
 import eubos.board.Board;
 import eubos.board.InvalidPieceException;
-import eubos.board.SquareAttackEvaluator;
 import eubos.board.pieces.Bishop;
 import eubos.board.pieces.King;
 import eubos.board.pieces.Knight;
@@ -23,6 +22,27 @@ import eubos.board.pieces.Piece.Colour;
 
 public class PositionManager implements IChangePosition, IPositionAccessors {
 
+	public PositionManager() {
+		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	}
+	
+	public PositionManager( Board startingPosition, Piece.Colour colourToMove ) {
+		moveTracker = new MoveTracker();
+		theBoard = startingPosition;
+		castling = new CastlingManager(this);
+		onMove = colourToMove;
+		setKing();
+		pe = new PositionEvaluator( this );
+	}
+	
+	public PositionManager( String fenString ) {
+		moveTracker = new MoveTracker();
+		new fenParser( this, fenString );
+		setKing();
+		this.hash = new ZobristHashCode(this);
+		pe = new PositionEvaluator( this );
+	}
+	
 	private Board theBoard;
 	public Board getTheBoard() {
 		return theBoard;
@@ -43,16 +63,12 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	private MoveTracker moveTracker = new MoveTracker();
-	boolean lastMoveWasCaptureOrCastle() {
-		return (moveTracker.lastMoveWasCapture() || moveTracker.lastMoveWasCastle());
+	boolean lastMoveWasCastle() {
+		return moveTracker.lastMoveWasCastle();
 	}
 	
 	public boolean lastMoveWasCapture() {
 		return moveTracker.lastMoveWasCapture();
-	}
-	
-	public boolean lastMoveWasCheckOrCapture() {
-		return (isKingInCheck(getOnMove()) || lastMoveWasCapture()) ? true: false;
 	}
 	
 	Piece getCapturedPiece() {
@@ -104,7 +120,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	boolean isKingInCheck( Colour colour ) {
 		King ownKing = getKing(colour);
-		boolean kingIsInCheck = (ownKing != null) ? squareIsAttacked(ownKing.getSquare(), colour) : false;
+		boolean kingIsInCheck = (ownKing != null) ? theBoard.squareIsAttacked(ownKing.getSquare(), colour) : false;
 		return kingIsInCheck;		
 	}
 	
@@ -113,30 +129,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public long getHash() {
 		return hash.hashCode;
 	}
-	public PositionManager() {
-		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-	}
 	
 	PositionEvaluator pe;
 	public IEvaluate getPositionEvaluator() {
 		return this.pe;
-	}
-	
-	public PositionManager( Board startingPosition, Piece.Colour colourToMove ) {
-		moveTracker = new MoveTracker();
-		theBoard = startingPosition;
-		castling = new CastlingManager(this);
-		onMove = colourToMove;
-		setKing();
-		pe = new PositionEvaluator( this );
-	}
-	
-	public PositionManager( String fenString ) {
-		moveTracker = new MoveTracker();
-		new fenParser( this, fenString );
-		setKing();
-		this.hash = new ZobristHashCode(this);
-		pe = new PositionEvaluator( this );
 	}
 	
 	public void performMove( GenericMove move ) throws InvalidPieceException {
@@ -163,14 +159,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// update castling flags
 		castling.updateFlags(pieceToMove, move);
 		// Update hash code
-		try {
-			if (hash != null)
-				hash.update(move, captureTarget, enPassantFile);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (hash != null) {
+			hash.update(move, captureTarget, enPassantFile);
 		}
-
 		// Update onMove
 		onMove = Colour.getOpposite(onMove);
 		if (onMove==Colour.white) {
@@ -204,15 +195,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		GenericPosition enPasTargetSq = tm.getEnPassantTarget();
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		// Update hash code
-		try {
-			if (hash != null) {
-				Piece capturedPiece = tm.isCapture() ? tm.getCapturedPiece() : null;
-				Boolean setEnPassant = (enPasTargetSq != null);
-				hash.update(reversedMove, capturedPiece, setEnPassant ? enPasTargetSq.file : null);
-			}
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (hash != null) {
+			Piece capturedPiece = tm.isCapture() ? tm.getCapturedPiece() : null;
+			Boolean setEnPassant = (enPasTargetSq != null);
+			hash.update(reversedMove, capturedPiece, setEnPassant ? enPasTargetSq.file : null);
 		}
 		// Update onMove flag
 		onMove = Piece.Colour.getOpposite(onMove);
@@ -224,10 +210,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	void updateSquarePieceOccupies(GenericPosition newSq, Piece pieceToMove) {
 		pieceToMove.setSquare(newSq);
 		theBoard.setPieceAtSquare(pieceToMove);
-	}
-	
-	boolean squareIsAttacked( GenericPosition atPos, Piece.Colour ownColour ) {
-		return SquareAttackEvaluator.isAttacked(theBoard, atPos, ownColour);
 	}
 
 	private Piece checkForPawnPromotions(GenericMove move, Piece pieceToMove) {

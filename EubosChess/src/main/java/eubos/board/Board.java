@@ -43,6 +43,10 @@ public class Board implements Iterable<Piece> {
 		return !allPieces.isSet(rnf.rank, rnf.file);		
 	}
 	
+	public boolean squareIsAttacked( GenericPosition atPos, Piece.Colour ownColour ) {
+		return SquareAttackEvaluator.isAttacked(this, atPos, ownColour);
+	}
+	
 	public Piece getPieceAtSquare( GenericPosition atPos ) {
 		RankAndFile rnf = new RankAndFile(atPos);
 		return ( theBoard[rnf.file][rnf.rank] );
