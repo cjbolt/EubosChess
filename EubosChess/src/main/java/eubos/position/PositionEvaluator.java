@@ -10,11 +10,12 @@ import eubos.board.SquareAttackEvaluator;
 import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
+import eubos.search.SearchContext;
 
 public class PositionEvaluator implements IEvaluate {
-	
-	MaterialEvaluator me;
+
 	PositionManager pm;
+	private SearchContext sc;
 	
 	public static final int HAS_CASTLED_BOOST_CENTIPAWNS = 150;
 	public static final int DOUBLED_PAWN_HANDICAP = 50;
@@ -22,8 +23,8 @@ public class PositionEvaluator implements IEvaluate {
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 25;
 	
 	public PositionEvaluator(PositionManager pm) {	
-		this.me = new MaterialEvaluator();
 		this.pm = pm;
+		sc = new SearchContext(pm, MaterialEvaluator.evaluate(pm.getTheBoard()));
 	}
 	
 	public boolean isQuiescent() {
@@ -47,7 +48,9 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	public short evaluatePosition() {
-		short score = me.evaluate(pm.getTheBoard());
+		MaterialEvaluation mat = MaterialEvaluator.evaluate(pm.getTheBoard());
+		short score = mat.getDelta();
+		score += sc.computeSearchGoalBonus(mat);
 		score += encourageCastling();
 		score += evaluatePawnStructure();
 		return score;

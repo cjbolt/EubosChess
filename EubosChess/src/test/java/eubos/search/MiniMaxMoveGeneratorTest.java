@@ -678,6 +678,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
+	@Ignore
 	public void test_SearchEval_1ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
 		setupPosition("rn2k1nr/1pp2pbp/p7/3q4/6b1/2N2N2/PPPPBPP1/R1BQ1RK1 b kq - 1 10"); 
 		expectedMove = new GenericMove("g7c3");

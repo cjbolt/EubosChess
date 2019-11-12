@@ -74,9 +74,9 @@ public class MaterialEvaluator {
         BISHOP_WEIGHTINGS = Collections.unmodifiableMap(cMap);
     }
     
-	short evaluate(Board theBoard) {
+	public static MaterialEvaluation evaluate(Board theBoard) {
 		Iterator<Piece> iter_p = theBoard.iterator();
-		short materialEvaluation = 0;
+		MaterialEvaluation materialEvaluation = new MaterialEvaluation();
 		while ( iter_p.hasNext() ) {
 			Piece currPiece = iter_p.next();
 			int currValue = 0;
@@ -102,8 +102,11 @@ public class MaterialEvaluator {
 				currValue = Queen.MATERIAL_VALUE;
 			else if ( currPiece instanceof King )
 				currValue = King.MATERIAL_VALUE;
-			if (currPiece.isBlack()) currValue = -currValue;
-			materialEvaluation += currValue;
+			if (currPiece.isWhite()) {
+				materialEvaluation.addWhite(currValue);
+			} else { 
+				materialEvaluation.addBlack(currValue);
+			}
 		}
 		return materialEvaluation;
 	}
