@@ -17,17 +17,24 @@ public class SearchContext {
 	static final short SIMPLIFICATION_BONUS = 75;
 	
 	private enum SearchGoal {
+		try_for_win,
 		simplify,
-		draw
+		try_for_draw
 	};
 	
 	public SearchContext(IPositionAccessors pos, MaterialEvaluation initialMaterial) {
 		this.pos = pos;
 		initial = initialMaterial;
 		initialOnMove = pos.getOnMove();
+		setGoal();
+	}
+
+	private void setGoal() {
 		if ((initialOnMove.equals(Colour.white) && initial.getDelta() > SIMPLIFY_THRESHOLD) ||
 			(initialOnMove.equals(Colour.black) && Math.abs(initial.getDelta()) > SIMPLIFY_THRESHOLD )) {
 			goal = SearchGoal.simplify;
+		} else {
+			goal = SearchGoal.try_for_win;
 		}
 	}
 	
