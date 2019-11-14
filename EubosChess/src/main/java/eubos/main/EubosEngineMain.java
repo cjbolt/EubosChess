@@ -39,8 +39,6 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	private PositionManager pm;
 	private AbstractMoveSearcher ms;
-	private OpeningBook open = new OpeningBook();
-	private GenericMove nextBookMove = null;
 	private FixedSizeTranspositionTable hashMap = null;
 	
     private static Logger logger = Logger.getLogger("eubos.main");
@@ -78,22 +76,19 @@ public class EubosEngineMain extends AbstractEngine {
 	public void receive(EngineAnalyzeCommand command) {
 		// Import position received from GUI and apply any instructed moves.
 		logAnalyse(command);
-		pm = new PositionManager(command.board.toString());
+		// This temporary pm is to ensure that the correct position is used to initialise the search context object
+		PositionManager temp_pm = new PositionManager(command.board.toString());
 		try {
 			for (GenericMove nextMove : command.moves) {
-				pm.performMove(nextMove);
+				temp_pm.performMove(nextMove);
 			}
 		} catch(InvalidPieceException e ) {
 			System.out.println( 
 					"Serious error: Eubos can't find a piece on the board whilst applying previous moves, at "
 							+e.getAtPosition().toString());
 		}
-		// Check Opening Book
-		if (command.moves != null && !command.moves.isEmpty()) {
-			nextBookMove = open.getMove(command.moves);
-		} else {
-			nextBookMove = null;
-		}
+		// Assign the actual pm
+		pm = new PositionManager(temp_pm.getFen());
 	}
 	
 	private void logAnalyse(EngineAnalyzeCommand command) {
@@ -102,14 +97,10 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 
 	public void receive(EngineStartCalculatingCommand command) {
-		if (nextBookMove == null) {
-			// The move searcher will report the best move found via a callback to this object, 
-			// this will occur when the tree search is concluded and the thread completes execution.
-			moveSearcherFactory(command);
-			ms.start();
-		} else {
-			sendBestMoveCommand(new ProtocolBestMoveCommand(nextBookMove, null));
-		}
+		// The move searcher will report the best move found via a callback to this object, 
+		// this will occur when the tree search is concluded and the thread completes execution.
+		moveSearcherFactory(command);
+		ms.start();
 	}
 	
 	private void moveSearcherFactory(EngineStartCalculatingCommand command) {
@@ -250,10 +241,8 @@ public class EubosEngineMain extends AbstractEngine {
 		try {
 			fh = new FileHandler(timeStamp+"_eubos_uci_log.txt");
 		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		logger.addHandler(fh);

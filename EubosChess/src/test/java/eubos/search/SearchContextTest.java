@@ -65,4 +65,10 @@ public class SearchContextTest {
 		assertEquals(0, sut.computeSearchGoalBonus(current));
 	}
 	
+	@Test
+	public void test_lichess_pos() throws InvalidPieceException, IllegalNotationException {
+		setupPosition("4r1k1/2p2pb1/4Q3/8/3pPB2/1p1P3p/1P3P2/R5K1 b - - 0 42");
+		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
+		assertEquals(0, sut.computeSearchGoalBonus(current));
+	}
 }

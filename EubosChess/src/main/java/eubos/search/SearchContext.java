@@ -31,7 +31,7 @@ public class SearchContext {
 
 	private void setGoal() {
 		if ((initialOnMove.equals(Colour.white) && initial.getDelta() > SIMPLIFY_THRESHOLD) ||
-			(initialOnMove.equals(Colour.black) && Math.abs(initial.getDelta()) > SIMPLIFY_THRESHOLD )) {
+			(initialOnMove.equals(Colour.black) && initial.getDelta() < -SIMPLIFY_THRESHOLD )) {
 			goal = SearchGoal.simplify;
 		} else {
 			goal = SearchGoal.try_for_win;
