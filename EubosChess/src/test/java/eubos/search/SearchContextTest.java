@@ -9,6 +9,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
+import eubos.board.pieces.King;
 import eubos.position.MaterialEvaluation;
 import eubos.position.MaterialEvaluator;
 import eubos.position.PositionManager;
@@ -17,14 +18,16 @@ public class SearchContextTest {
 	
 	private SearchContext sut;
 	private PositionManager pm;
+	private DrawChecker dc;
 
 	@Before
 	public void setUp() throws Exception {
 	}
 	
 	public void setupPosition(String fen) {
-		pm = new PositionManager(fen);
-		sut = new SearchContext(pm, MaterialEvaluator.evaluate(pm.getTheBoard()));
+		dc = new DrawChecker();
+		pm = new PositionManager(fen, dc);
+		sut = new SearchContext(pm, MaterialEvaluator.evaluate(pm.getTheBoard()), dc);
 	}
 
 	@Test
@@ -53,7 +56,7 @@ public class SearchContextTest {
 		pm.performMove(new GenericMove("e4d5"));
 		pm.performMove(new GenericMove("d8d5"));
 		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
-		assertEquals(SearchContext.SIMPLIFICATION_BONUS, sut.computeSearchGoalBonus(current));
+		assertEquals(-SearchContext.SIMPLIFICATION_BONUS, sut.computeSearchGoalBonus(current));
 	}
 	
 	@Test
@@ -68,6 +71,68 @@ public class SearchContextTest {
 	@Test
 	public void test_lichess_pos() throws InvalidPieceException, IllegalNotationException {
 		setupPosition("4r1k1/2p2pb1/4Q3/8/3pPB2/1p1P3p/1P3P2/R5K1 b - - 0 42");
+		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
+		assertEquals(0, sut.computeSearchGoalBonus(current));
+	}
+	
+	 
+	@Test
+	public void test_draw_black() throws InvalidPieceException, IllegalNotationException {
+		setupPosition("7q/1P6/8/8/8/8/2k3PQ/7K b - - 0 42");
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("h8a1"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("h2g1"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("a1h8"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("g1h2"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("h8a1"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("h2g1"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("a1h8"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("g1h2"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
+		// Good for black as black is trying to draw
+		assertEquals(-King.MATERIAL_VALUE/2, sut.computeSearchGoalBonus(current));
+	}
+	
+	@Test
+	public void test_draw_white() throws InvalidPieceException, IllegalNotationException {
+		setupPosition("7k/2K3pq/8/8/8/8/1p6/7Q w - - 0 1");
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("h1a8"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("h7g8"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("a8h1"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("g8h7"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("h1a8"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("h7g8"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("a8h1"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("g8h7"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
+		// Good for white as white is trying to draw
+		assertEquals(King.MATERIAL_VALUE/2, sut.computeSearchGoalBonus(current));
+	}
+	
+	@Test
+	public void test_is_not_a_draw() throws InvalidPieceException, IllegalNotationException {
+		setupPosition("7q/1P6/8/8/8/8/2k3PQ/7K b - - 0 42");
+		pm.performMove(new GenericMove("h8a1"));
+		pm.performMove(new GenericMove("h2g1"));
+		pm.performMove(new GenericMove("a1h8"));
+		pm.performMove(new GenericMove("g1h2"));
 		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
 		assertEquals(0, sut.computeSearchGoalBonus(current));
 	}

@@ -1,5 +1,6 @@
 package eubos.search;
 
+import eubos.board.pieces.King;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
 import eubos.position.IPositionAccessors;
@@ -10,11 +11,13 @@ public class SearchContext {
 	IPositionAccessors pos;
 	Piece.Colour initialOnMove;
 	SearchGoal goal;
+	DrawChecker dc;
 	
 	static final short SIMPLIFY_THRESHOLD = 100;
 	static final short DRAW_THRESHOLD = -200;
 	
 	static final short SIMPLIFICATION_BONUS = 75;
+	static final short AVOID_DRAW_HANDICAP = -400;
 	
 	private enum SearchGoal {
 		try_for_win,
@@ -22,8 +25,9 @@ public class SearchContext {
 		try_for_draw
 	};
 	
-	public SearchContext(IPositionAccessors pos, MaterialEvaluation initialMaterial) {
+	public SearchContext(IPositionAccessors pos, MaterialEvaluation initialMaterial, DrawChecker dc) {
 		this.pos = pos;
+		this.dc = dc;
 		initial = initialMaterial;
 		initialOnMove = pos.getOnMove();
 		setGoal();
@@ -33,6 +37,9 @@ public class SearchContext {
 		if ((initialOnMove.equals(Colour.white) && initial.getDelta() > SIMPLIFY_THRESHOLD) ||
 			(initialOnMove.equals(Colour.black) && initial.getDelta() < -SIMPLIFY_THRESHOLD )) {
 			goal = SearchGoal.simplify;
+		} else if ((initialOnMove.equals(Colour.white) && initial.getDelta() < DRAW_THRESHOLD) ||
+				(initialOnMove.equals(Colour.black) && initial.getDelta() > -DRAW_THRESHOLD )) {
+			goal = SearchGoal.try_for_draw;
 		} else {
 			goal = SearchGoal.try_for_win;
 		}
@@ -40,10 +47,29 @@ public class SearchContext {
 	
 	public short computeSearchGoalBonus(MaterialEvaluation current) {
 		short bonus = 0;
-		if (goal == SearchGoal.simplify) {
-			if (isPositionSimplified(current)) {
+		switch(goal) {
+		case simplify:
+			if (dc.isPositionDraw(pos.getHash())) {
+				bonus += AVOID_DRAW_HANDICAP;
+			} else if (isPositionSimplified(current)) {
 				bonus += SIMPLIFICATION_BONUS;
 			}
+			break;
+		case try_for_win:
+			if (dc.isPositionDraw(pos.getHash())) {
+				bonus += AVOID_DRAW_HANDICAP;
+			}
+			break;
+		case try_for_draw:
+			if (dc.isPositionDraw(pos.getHash())) {
+				bonus += King.MATERIAL_VALUE/2;
+			}
+			break;
+		default:
+			break;
+		}
+		if (initialOnMove.equals(Colour.black)) {
+			bonus = (short)-bonus;
 		}
 		return bonus;
 	}

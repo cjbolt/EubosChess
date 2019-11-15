@@ -18,12 +18,13 @@ import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Queen;
 import eubos.board.pieces.Rook;
+import eubos.search.DrawChecker;
 import eubos.board.pieces.Piece.Colour;
 
 public class PositionManager implements IChangePosition, IPositionAccessors {
-
+	
 	public PositionManager() {
-		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", new DrawChecker());
 	}
 	
 	public PositionManager( Board startingPosition, Piece.Colour colourToMove ) {
@@ -32,17 +33,25 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		castling = new CastlingManager(this);
 		onMove = colourToMove;
 		setKing();
-		pe = new PositionEvaluator( this );
+		pe = new PositionEvaluator( this, new DrawChecker() );
 	}
 	
-	public PositionManager( String fenString ) {
+	public PositionManager( String fenString, DrawChecker dc) {
 		moveTracker = new MoveTracker();
 		new fenParser( this, fenString );
 		setKing();
 		this.hash = new ZobristHashCode(this);
-		pe = new PositionEvaluator( this );
+		pe = new PositionEvaluator( this, dc );
 	}
 	
+	public PositionManager( String fenString) {
+		moveTracker = new MoveTracker();
+		new fenParser( this, fenString );
+		setKing();
+		this.hash = new ZobristHashCode(this);
+		pe = new PositionEvaluator( this, new DrawChecker() );
+	}
+
 	private Board theBoard;
 	public Board getTheBoard() {
 		return theBoard;
@@ -428,5 +437,16 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		private void create() {
 			theBoard =  new Board( pl );
 		}
+	}
+
+	public long getHashForMove(GenericMove bestMove) {
+		long hashForMove = (long) 0;
+		try {
+			performMove(bestMove);
+			hashForMove = getHash();
+			unperformMove();
+		} catch (InvalidPieceException e) {
+		}
+		return hashForMove;
 	}
 }

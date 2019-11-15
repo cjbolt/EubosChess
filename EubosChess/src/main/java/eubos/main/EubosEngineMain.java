@@ -29,6 +29,7 @@ import eubos.search.IterativeMoveSearcher;
 import eubos.search.SearchDebugAgent;
 import eubos.search.FixedDepthMoveSearcher;
 import eubos.search.AbstractMoveSearcher;
+import eubos.search.DrawChecker;
 
 import java.text.SimpleDateFormat;
 import java.util.logging.*;
@@ -40,6 +41,7 @@ public class EubosEngineMain extends AbstractEngine {
 	private PositionManager pm;
 	private AbstractMoveSearcher ms;
 	private FixedSizeTranspositionTable hashMap = null;
+	private DrawChecker dc;
 	
     private static Logger logger = Logger.getLogger("eubos.main");
     private static FileHandler fh; 
@@ -47,10 +49,12 @@ public class EubosEngineMain extends AbstractEngine {
 	public EubosEngineMain() { 
 		super();
 		hashMap = new FixedSizeTranspositionTable();
-		}
+		dc = new DrawChecker();
+	}
 	public EubosEngineMain( PipedWriter out) throws IOException {
 		super(new BufferedReader(new PipedReader(out)), System.out);
 		hashMap = new FixedSizeTranspositionTable();
+		dc = new DrawChecker();
 	}
 
 	public void receive(EngineInitializeRequestCommand command) {
@@ -77,7 +81,7 @@ public class EubosEngineMain extends AbstractEngine {
 		// Import position received from GUI and apply any instructed moves.
 		logAnalyse(command);
 		// This temporary pm is to ensure that the correct position is used to initialise the search context object
-		PositionManager temp_pm = new PositionManager(command.board.toString());
+		PositionManager temp_pm = new PositionManager(command.board.toString(), dc);
 		try {
 			for (GenericMove nextMove : command.moves) {
 				temp_pm.performMove(nextMove);
@@ -88,7 +92,7 @@ public class EubosEngineMain extends AbstractEngine {
 							+e.getAtPosition().toString());
 		}
 		// Assign the actual pm
-		pm = new PositionManager(temp_pm.getFen());
+		pm = new PositionManager(temp_pm.getFen(), dc);
 	}
 	
 	private void logAnalyse(EngineAnalyzeCommand command) {
@@ -219,6 +223,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	public void sendBestMoveCommand(ProtocolBestMoveCommand protocolBestMoveCommand) {
 		this.getProtocol().send(protocolBestMoveCommand);
+		dc.incrementPositionReachedCount(pm.getHashForMove(protocolBestMoveCommand.bestMove));
 		logger.info("Best move " + protocolBestMoveCommand.bestMove);
 		logger.info("Transposition Table Size " + hashMap.getHashMapSize());
 	}

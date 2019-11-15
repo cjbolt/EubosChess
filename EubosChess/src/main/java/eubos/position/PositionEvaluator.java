@@ -10,6 +10,7 @@ import eubos.board.SquareAttackEvaluator;
 import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
+import eubos.search.DrawChecker;
 import eubos.search.SearchContext;
 
 public class PositionEvaluator implements IEvaluate {
@@ -22,9 +23,9 @@ public class PositionEvaluator implements IEvaluate {
 	public static final int PASSED_PAWN_BOOST = 50;
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 25;
 	
-	public PositionEvaluator(PositionManager pm) {	
+	public PositionEvaluator(PositionManager pm, DrawChecker dc) {	
 		this.pm = pm;
-		sc = new SearchContext(pm, MaterialEvaluator.evaluate(pm.getTheBoard()));
+		sc = new SearchContext(pm, MaterialEvaluator.evaluate(pm.getTheBoard()), dc);
 	}
 	
 	public boolean isQuiescent() {

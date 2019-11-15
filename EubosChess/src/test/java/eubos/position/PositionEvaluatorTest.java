@@ -13,6 +13,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
+import eubos.search.DrawChecker;
 
 public class PositionEvaluatorTest {
 
@@ -24,8 +25,8 @@ public class PositionEvaluatorTest {
 	}
 
 	protected void setUpPosition(String fen) {
-		pm = new PositionManager(fen);
-		SUT = new PositionEvaluator(pm);
+		pm = new PositionManager(fen, new DrawChecker());
+		SUT = new PositionEvaluator(pm, new DrawChecker());
 	}
 	
 	@Test
