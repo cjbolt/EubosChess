@@ -136,4 +136,34 @@ public class SearchContextTest {
 		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
 		assertEquals(0, sut.computeSearchGoalBonus(current));
 	}
+	
+	@Test
+	public void test_wrongly_makes_a_draw() throws InvalidPieceException, IllegalNotationException {
+		setupPosition("8/2R3p1/7p/5k1P/P7/2BP4/1P3P2/1K6 w - - 0 46");
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("c7g7"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("f5f4"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("g7g3"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("f4f5"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("g3g7"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("f5f4"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("g7g3"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("f4f5"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("g3g7"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("f5f4"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		pm.performMove(new GenericMove("g7g3"));
+		dc.incrementPositionReachedCount(pm.getHash());
+		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
+		assertEquals(-400, sut.computeSearchGoalBonus(current));
+	}
 }

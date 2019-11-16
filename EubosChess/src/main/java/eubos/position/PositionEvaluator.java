@@ -20,8 +20,8 @@ public class PositionEvaluator implements IEvaluate {
 	
 	public static final int HAS_CASTLED_BOOST_CENTIPAWNS = 150;
 	public static final int DOUBLED_PAWN_HANDICAP = 50;
-	public static final int PASSED_PAWN_BOOST = 50;
-	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 25;
+	public static final int PASSED_PAWN_BOOST = 30;
+	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 20;
 	
 	public PositionEvaluator(PositionManager pm, DrawChecker dc) {	
 		this.pm = pm;
