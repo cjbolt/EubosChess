@@ -93,6 +93,8 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		// Assign the actual pm
 		pm = new PositionManager(temp_pm.getFen(), dc);
+		// Update the draw checker with the position after the opponents last move
+		dc.incrementPositionReachedCount(pm.getHash());
 	}
 	
 	private void logAnalyse(EngineAnalyzeCommand command) {
