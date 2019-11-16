@@ -147,6 +147,8 @@ public class SearchContextTest {
 		dc.incrementPositionReachedCount(pm.getHash());
 		pm.performMove(new GenericMove("g7g3"));
 		dc.incrementPositionReachedCount(pm.getHash());
+		// First time
+		assertFalse(dc.isPositionDraw(pm.getHash()));
 		pm.performMove(new GenericMove("f4f5"));
 		dc.incrementPositionReachedCount(pm.getHash());
 		pm.performMove(new GenericMove("g3g7"));
@@ -154,6 +156,8 @@ public class SearchContextTest {
 		pm.performMove(new GenericMove("f5f4"));
 		dc.incrementPositionReachedCount(pm.getHash());
 		pm.performMove(new GenericMove("g7g3"));
+		// Second time
+		assertFalse(dc.isPositionDraw(pm.getHash()));
 		dc.incrementPositionReachedCount(pm.getHash());
 		pm.performMove(new GenericMove("f4f5"));
 		dc.incrementPositionReachedCount(pm.getHash());
@@ -162,6 +166,7 @@ public class SearchContextTest {
 		pm.performMove(new GenericMove("f5f4"));
 		dc.incrementPositionReachedCount(pm.getHash());
 		pm.performMove(new GenericMove("g7g3"));
+		assertTrue(dc.isPositionDraw(pm.getHash()));
 		dc.incrementPositionReachedCount(pm.getHash());
 		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
 		assertEquals(-400, sut.computeSearchGoalBonus(current));
