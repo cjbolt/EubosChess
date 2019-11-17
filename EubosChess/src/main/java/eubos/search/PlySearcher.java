@@ -147,7 +147,7 @@ public class PlySearcher {
                     plyScore = positionScore;
                     trans = tt.setTransposition(sm, currPly, trans,
                                 new Transposition(getTransDepth(), positionScore, plyBound, ml, currMove));
-                    updatePrincipalContinuation(currMove, positionScore);
+                    updatePrincipalContinuation(currMove, positionScore, false);
 	            } else {
 	                // Always clear the principal continuation when we didn't back up the score
 	                pc.clearRowsBeyondPly(currPly);
@@ -203,16 +203,16 @@ public class PlySearcher {
 		depthSearchedPly = useOldScore ? trans.getPreviousExactDepth() : trans.getDepthSearchedInPly();
 		pc.clearTreeBeyondPly(currPly);
 		if (doScoreBackup(score)) {
-			updatePrincipalContinuation(trans.getBestMove(), score);
+			updatePrincipalContinuation(trans.getBestMove(), score, true);
 		}
 		sm.incrementNodesSearched();
 	}
 	
 	private void updatePrincipalContinuation(
-			GenericMove currMove, short positionScore)
+			GenericMove currMove, short positionScore, boolean treatHashHitAsTerminalNode)
 			throws InvalidPieceException {
 		pc.update(currPly, currMove);
-		if (atRootNode()) {
+		if (atRootNode() && !treatHashHitAsTerminalNode) {
 			// If backed up to the root node, report the principal continuation
 			tt.createPrincipalContinuation(pc, searchDepthPly, pm);
 			pcUpdater.report(positionScore, extendedSearchDeepestPly);

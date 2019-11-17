@@ -18,6 +18,10 @@ public class FixedSizeTranspositionTable {
 	public long getHashMapSize() {
 		return hashMapSize;
 	}
+	
+	public void remove(long hashCode) {
+		hashMap.remove(hashCode);
+	}
 
 	public static final long MAX_SIZE_OF_HASH_MAP = (1L << 20); 
 	

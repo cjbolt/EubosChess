@@ -98,7 +98,14 @@ public class EubosEngineMain extends AbstractEngine {
 		// Assign the actual pm
 		pm = new PositionManager(temp_pm.getFen(), dc);
 		// Update the draw checker with the position after the opponents last move
-		dc.incrementPositionReachedCount(pm.getHash());
+		long hashCode = pm.getHash();
+		dc.incrementPositionReachedCount(hashCode);
+		if (dc.isPositionDraw(hashCode)) {
+			// need to remove this position from transposition table, as cached score for it doesn't indicate a draw
+			if (hashMap.containsHash(hashCode)) {
+				hashMap.remove(hashCode);
+			}
+		}
 	}
 	
 	private void logAnalyse(EngineAnalyzeCommand command) {
@@ -230,7 +237,14 @@ public class EubosEngineMain extends AbstractEngine {
 	public void sendBestMoveCommand(ProtocolBestMoveCommand protocolBestMoveCommand) {
 		this.getProtocol().send(protocolBestMoveCommand);
 		if (protocolBestMoveCommand.bestMove != null) {
-			dc.incrementPositionReachedCount(pm.getHashForMove(protocolBestMoveCommand.bestMove));
+			long hashCode = pm.getHashForMove(protocolBestMoveCommand.bestMove);
+			dc.incrementPositionReachedCount(hashCode);
+			if (dc.isPositionDraw(hashCode)) {
+				// need to remove this position from transposition table, as cached score for it doesn't indicate a draw
+				if (hashMap.containsHash(hashCode)) {
+					hashMap.remove(hashCode);
+				}
+			}
 		}
 		logger.info("Best move " + protocolBestMoveCommand.bestMove);
 		logger.info("Transposition Table Size " + hashMap.getHashMapSize());

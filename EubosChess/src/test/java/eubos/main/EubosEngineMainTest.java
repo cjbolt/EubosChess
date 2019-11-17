@@ -45,7 +45,7 @@ public class EubosEngineMainTest {
 	private static final String POS_FEN_PREFIX = "position fen ";
 	private static final String GO_DEPTH_PREFIX = "go depth ";
 	//private static final String GO_WTIME_PREFIX = "go wtime ";
-	//private static final String GO_BTIME_PREFIX = "go btime ";
+	private static final String GO_BTIME_PREFIX = "go btime ";
 	private static final String BEST_PREFIX = "bestmove ";
 	
 	// Whole Commands
@@ -114,7 +114,7 @@ public class EubosEngineMainTest {
 		// Setup Commands specific to this test
 		commands.add(new commandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1 moves b5b6"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"4"+CMD_TERMINATOR,BEST_PREFIX+"b4a6"+CMD_TERMINATOR));
-performTest(1000);
+		performTest(1000);
 	}	
 	
 	@Test
@@ -125,6 +125,24 @@ performTest(1000);
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR,BEST_PREFIX+"d3h7"+CMD_TERMINATOR));
 		performTest(1000);
 	}
+	
+	@Test
+	public void test_avoidDraw_lichess_hash_table_terminal_bypasses_drawchecker() throws InterruptedException, IOException {
+		setupEngine();
+		// Setup Commands specific to this test
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/2K5/8/7k/8/8/6q1 b - - 1 60"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_BTIME_PREFIX+"2000"+CMD_TERMINATOR,BEST_PREFIX+"g1g2"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/2K5/7k/8/6q1/8 b - - 3 61"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_BTIME_PREFIX+"2000"+CMD_TERMINATOR,BEST_PREFIX+"g2g1"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/2K5/8/7k/8/8/6q1 b - - 1 62"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_BTIME_PREFIX+"2000"+CMD_TERMINATOR,BEST_PREFIX+"g1g2"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/2K5/7k/8/6q1/8 b - - 3 63"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_BTIME_PREFIX+"2000"+CMD_TERMINATOR,BEST_PREFIX+"g2g1"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/2K5/8/7k/8/8/6q1 b - - 1 64"+CMD_TERMINATOR, null));
+		// Varies move as the previous leads to draw by 3-fold repetition of position.
+		commands.add(new commandPair(GO_BTIME_PREFIX+"2000"+CMD_TERMINATOR,BEST_PREFIX+"g1g6"+CMD_TERMINATOR));
+		performTest(1500);
+	}
 
 	private void performTest(int timeout) throws IOException, InterruptedException {
 		testOutput.flush();
@@ -132,6 +150,7 @@ performTest(1000);
 		for (commandPair currCmdPair: commands) {
 			String inputCmd = currCmdPair.getIn();
 			String expectedOutput = currCmdPair.getOut();
+			String parsedCmd= "";
 			// Pass command to engine
 			inputToEngine.write(inputCmd);
 			inputToEngine.flush();
@@ -147,12 +166,12 @@ performTest(1000);
 					// Ignore any line starting with info
 					String recievedCmd = testOutput.toString();
 					testOutput.reset();
-					String parsedCmd = filterInfosOut(recievedCmd);
+					parsedCmd = filterInfosOut(recievedCmd);
 					if (expectedOutput.equals(parsedCmd))
 						received = true;
 				}
 				if (!received) {
-					fail();
+					fail(inputCmd + expectedOutput + parsedCmd);
 				}
 			}
 		}
