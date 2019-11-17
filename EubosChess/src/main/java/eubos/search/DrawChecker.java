@@ -19,7 +19,7 @@ public class DrawChecker {
 		}
 	}
 	
-	public Integer getPositionReachedCount(Long posHash) {
+	Integer getPositionReachedCount(Long posHash) {
 		return positionCount.get(posHash);
 	}
 

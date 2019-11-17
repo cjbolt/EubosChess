@@ -24,10 +24,19 @@ public class SearchContextTest {
 	public void setUp() throws Exception {
 	}
 	
-	public void setupPosition(String fen) {
+	private void setupPosition(String fen) {
 		dc = new DrawChecker();
 		pm = new PositionManager(fen, dc);
 		sut = new SearchContext(pm, MaterialEvaluator.evaluate(pm.getTheBoard()), dc);
+	}
+	
+	private void applyMoveList(GenericMove[] moveList)
+			throws InvalidPieceException {
+		for (GenericMove curr : moveList ) {
+			dc.incrementPositionReachedCount(pm.getHash());
+			pm.performMove(curr);
+		}
+		dc.incrementPositionReachedCount(pm.getHash());
 	}
 
 	@Test
@@ -64,6 +73,7 @@ public class SearchContextTest {
 		setupPosition("3r2k1/p2q2pp/1p6/2p1p1N1/1n2Q3/6P1/PP5P/5R1K b - - 0 1");
 		pm.performMove(new GenericMove("d7d5")); // forces exchange of queens on d4. simplifying
 		pm.performMove(new GenericMove("e4d5"));
+		// At this point queen recapture not completed
 		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
 		assertEquals(0, sut.computeSearchGoalBonus(current));
 	}
@@ -74,28 +84,16 @@ public class SearchContextTest {
 		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
 		assertEquals(0, sut.computeSearchGoalBonus(current));
 	}
-	
 	 
 	@Test
 	public void test_draw_black() throws InvalidPieceException, IllegalNotationException {
 		setupPosition("7q/1P6/8/8/8/8/2k3PQ/7K b - - 0 42");
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("h8a1"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("h2g1"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("a1h8"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("g1h2"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("h8a1"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("h2g1"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("a1h8"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("g1h2"));
-		dc.incrementPositionReachedCount(pm.getHash());
+		// set up a draw by repeated check
+		GenericMove [] moveList = new GenericMove[]{new GenericMove("h8a1"),new GenericMove("h2g1"),
+				                                    new GenericMove("a1h8"),new GenericMove("g1h2"),
+				                                    new GenericMove("h8a1"),new GenericMove("h2g1"),
+				                                    new GenericMove("a1h8"),new GenericMove("g1h2")};
+		applyMoveList(moveList);
 		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
 		// Good for black as black is trying to draw
 		assertEquals(-King.MATERIAL_VALUE/2, sut.computeSearchGoalBonus(current));
@@ -104,23 +102,12 @@ public class SearchContextTest {
 	@Test
 	public void test_draw_white() throws InvalidPieceException, IllegalNotationException {
 		setupPosition("7k/2K3pq/8/8/8/8/1p6/7Q w - - 0 1");
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("h1a8"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("h7g8"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("a8h1"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("g8h7"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("h1a8"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("h7g8"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("a8h1"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("g8h7"));
-		dc.incrementPositionReachedCount(pm.getHash());
+		// set up a draw by repeated check
+		GenericMove [] moveList = new GenericMove[]{new GenericMove("h1a8"),new GenericMove("h7g8"),
+									                new GenericMove("a8h1"),new GenericMove("g8h7"),
+									                new GenericMove("h1a8"),new GenericMove("h7g8"),
+									                new GenericMove("a8h1"),new GenericMove("g8h7")};
+		applyMoveList(moveList);
 		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
 		// Good for white as white is trying to draw
 		assertEquals(King.MATERIAL_VALUE/2, sut.computeSearchGoalBonus(current));
@@ -129,46 +116,27 @@ public class SearchContextTest {
 	@Test
 	public void test_is_not_a_draw() throws InvalidPieceException, IllegalNotationException {
 		setupPosition("7q/1P6/8/8/8/8/2k3PQ/7K b - - 0 42");
-		pm.performMove(new GenericMove("h8a1"));
-		pm.performMove(new GenericMove("h2g1"));
-		pm.performMove(new GenericMove("a1h8"));
-		pm.performMove(new GenericMove("g1h2"));
+		// insufficient moves for draw
+		GenericMove [] moveList = new GenericMove[]{new GenericMove("h8a1"),new GenericMove("h2g1"),
+                									new GenericMove("a1h8")};
+		applyMoveList(moveList);
 		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
 		assertEquals(0, sut.computeSearchGoalBonus(current));
 	}
 	
 	@Test
-	public void test_wrongly_makes_a_draw() throws InvalidPieceException, IllegalNotationException {
+	public void test_lichess_draw() throws InvalidPieceException, IllegalNotationException {
 		setupPosition("8/2R3p1/7p/5k1P/P7/2BP4/1P3P2/1K6 w - - 0 46");
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("c7g7"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("f5f4"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("g7g3"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		// First time
-		assertFalse(dc.isPositionDraw(pm.getHash()));
-		pm.performMove(new GenericMove("f4f5"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("g3g7"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("f5f4"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("g7g3"));
-		// Second time
-		assertFalse(dc.isPositionDraw(pm.getHash()));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("f4f5"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("g3g7"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("f5f4"));
-		dc.incrementPositionReachedCount(pm.getHash());
-		pm.performMove(new GenericMove("g7g3"));
+		// Draw from a test lichess game
+		GenericMove [] moveList = new GenericMove[]{new GenericMove("c7g7"),
+				new GenericMove("f5f4"),new GenericMove("g7g3"),
+				new GenericMove("f4f5"),new GenericMove("g3g7"),
+				new GenericMove("f5f4"),new GenericMove("g7g3"),
+				new GenericMove("f4f5"),new GenericMove("g3g7")};
+		applyMoveList(moveList);
 		assertTrue(dc.isPositionDraw(pm.getHash()));
 		dc.incrementPositionReachedCount(pm.getHash());
 		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
-		assertEquals(-400, sut.computeSearchGoalBonus(current));
+		assertEquals(SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current));
 	}
 }

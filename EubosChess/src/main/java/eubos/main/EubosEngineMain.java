@@ -78,9 +78,13 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 
 	public void receive(EngineAnalyzeCommand command) {
-		// Import position received from GUI and apply any instructed moves.
 		logAnalyse(command);
-		// This temporary pm is to ensure that the correct position is used to initialise the search context object
+		createPositionFromAnalyseCommand(command);
+	}
+	
+	private void createPositionFromAnalyseCommand(EngineAnalyzeCommand command) {
+		// This temporary pm is to ensure that the correct position is used to initialise the search 
+		// context in the position evaluator
 		PositionManager temp_pm = new PositionManager(command.board.toString(), dc);
 		try {
 			for (GenericMove nextMove : command.moves) {
