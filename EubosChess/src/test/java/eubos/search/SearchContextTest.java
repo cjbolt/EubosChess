@@ -9,7 +9,6 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
-import eubos.board.pieces.King;
 import eubos.position.MaterialEvaluation;
 import eubos.position.MaterialEvaluator;
 import eubos.position.PositionManager;
@@ -96,7 +95,7 @@ public class SearchContextTest {
 		applyMoveList(moveList);
 		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
 		// Good for black as black is trying to draw
-		assertEquals(-King.MATERIAL_VALUE/2, sut.computeSearchGoalBonus(current));
+		assertEquals(SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current));
 	}
 	
 	@Test
@@ -110,7 +109,7 @@ public class SearchContextTest {
 		applyMoveList(moveList);
 		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
 		// Good for white as white is trying to draw
-		assertEquals(King.MATERIAL_VALUE/2, sut.computeSearchGoalBonus(current));
+		assertEquals(-SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current));
 	}
 	
 	@Test

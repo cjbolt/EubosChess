@@ -47,29 +47,54 @@ public class SearchContext {
 	
 	public short computeSearchGoalBonus(MaterialEvaluation current) {
 		short bonus = 0;
-		switch(goal) {
-		case simplify:
-			if (dc.isPositionDraw(pos.getHash())) {
-				bonus += AVOID_DRAW_HANDICAP;
-			} else if (isPositionSimplified(current)) {
-				bonus += SIMPLIFICATION_BONUS;
+		// If we just moved, score as according to our game plan
+		if (pos.getOnMove().equals(Colour.getOpposite(initialOnMove))) {
+			switch(goal) {
+			case simplify:
+				if (dc.isPositionDraw(pos.getHash())) {
+					bonus += AVOID_DRAW_HANDICAP;
+				} else if (isPositionSimplified(current)) {
+					bonus += SIMPLIFICATION_BONUS;
+				}
+				break;
+			case try_for_win:
+				if (dc.isPositionDraw(pos.getHash())) {
+					bonus += AVOID_DRAW_HANDICAP;
+				}
+				break;
+			case try_for_draw:
+				if (dc.isPositionDraw(pos.getHash())) {
+					bonus += King.MATERIAL_VALUE/2;
+				}
+				break;
+			default:
+				break;
 			}
-			break;
-		case try_for_win:
-			if (dc.isPositionDraw(pos.getHash())) {
-				bonus += AVOID_DRAW_HANDICAP;
+			if (initialOnMove.equals(Colour.black)) {
+				bonus = (short)-bonus;
 			}
-			break;
-		case try_for_draw:
-			if (dc.isPositionDraw(pos.getHash())) {
-				bonus += King.MATERIAL_VALUE/2;
+		} else {
+			switch(goal) {
+			case simplify:
+			case try_for_win:
+				if (dc.isPositionDraw(pos.getHash())) {
+					// Assume oppponent wants a draw.
+					bonus += King.MATERIAL_VALUE/2;
+				}
+				break;
+			case try_for_draw:
+				// If we are trying for a draw and evaluating opponents move, score a draw as bad for them
+				if (dc.isPositionDraw(pos.getHash())) {
+					bonus += AVOID_DRAW_HANDICAP;
+				}
+				break;
+			default:
+				break;
 			}
-			break;
-		default:
-			break;
-		}
-		if (initialOnMove.equals(Colour.black)) {
-			bonus = (short)-bonus;
+			// we are evaluating after the move, so if opponent is black, invert score
+			if (pos.getOnMove().equals(Colour.white)) {
+				bonus = (short)-bonus;
+			}
 		}
 		return bonus;
 	}
