@@ -14,7 +14,9 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
+import eubos.position.MoveList;
 import eubos.position.PositionManager;
+import eubos.search.Transposition.ScoreType;
 
 public class IterativeMoveSearcherTest {
 	
@@ -29,6 +31,9 @@ public class IterativeMoveSearcherTest {
 		
 		@Override
 		public void sendInfoCommand(ProtocolInformationCommand command) {
+			// Debug the principal continuations returned during the search
+			if (command.getMoveList() != null)
+				System.out.println(command.getMoveList());
 		}
 		
 		@Override
@@ -265,5 +270,68 @@ public class IterativeMoveSearcherTest {
 		runSearcherAndTestBestMoveReturned();
 	}
 	
-	
+	@Test
+	public void test_lichess_blunder_again() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
+		/*  [Event "Rated Blitz game"]
+			[Site "https://lichess.org/fjvx9Jnn"]
+			[Date "2019.11.18"]
+			[Round "-"]
+			[White "Elmichess"]
+			[Black "eubos"]
+			[Result "1-0"]
+			[UTCDate "2019.11.18"]
+			[UTCTime "12:17:13"]
+			[WhiteElo "1704"]
+			[BlackElo "1793"]
+			[WhiteRatingDiff "+9"]
+			[BlackRatingDiff "-9"]
+			[WhiteTitle "BOT"]
+			[BlackTitle "BOT"]
+			[Variant "Standard"]
+			[TimeControl "300+0"]
+			[ECO "C07"]
+			[Opening "French Defense: Tarrasch Variation, Open System, Euwe-Keres Line"]
+			[Termination "Time forfeit"]
+			[Annotator "lichess.org"] */
+		/* Try to build up hash table by running previous moves. */
+		setupPosition("7R/1k6/3R2p1/2p2rP1/1r5P/6K1/8/8 b - - 1 45", 12500); 
+		expectedMove = new GenericMove("b4b3");
+		runSearcherAndTestBestMoveReturned();
+		setupPosition("7R/1k6/3R2p1/2p2rP1/7P/1r6/6K1/8 b - - 3 46", 11300); 
+		expectedMove = new GenericMove("b3b2");
+		runSearcherAndTestBestMoveReturned();
+		setupPosition("7R/1k6/3R2p1/2p2rP1/7P/8/1r6/6K1 b - - 5 47", 10100); 
+		expectedMove = new GenericMove("b2b1");		
+		runSearcherAndTestBestMoveReturned();
+		setupPosition("7R/1k6/3R2p1/2p2rP1/7P/8/7K/1r6 b - - 7 48", 8900);
+		expectedMove = new GenericMove("b1b2");
+		runSearcherAndTestBestMoveReturned();
+		setupPosition("7R/1k6/3R2p1/2p2rP1/7P/7K/1r6/8 b - - 9 49", 7900);
+		expectedMove = new GenericMove("b2b3");
+		runSearcherAndTestBestMoveReturned();
+		setupPosition("7R/1k6/3R2p1/2p2rP1/6KP/1r6/8/8 b - - 11 50", 7100);
+		expectedMove = new GenericMove("b3g3"); // check en prise rook is the error move
+		
+		// spike a bad move in the hash table to try and reproduce defect
+		// can't spike the pm like this because the Zobrist hash code object is created anew with different set of PRNs for each position manager.
+		//PositionManager spikedPm = new PositionManager( "7R/1k6/3R2p1/2p2rP1/6KP/1r6/8/8 b - - 0 50 " );
+		pm.performMove(new GenericMove("b3g3"));
+		pm.performMove(new GenericMove("g4g3"));
+		//pm.performMove(new GenericMove("f5g5"));
+		//pm.performMove(new GenericMove("h4g5"));
+		//pm.performMove(new GenericMove("c5c4"));
+		//pm.performMove(new GenericMove("d6g6"));
+		//Transposition spikedTrans = new Transposition((byte)8, (short) -27, ScoreType.exact, new MoveList(pm), new GenericMove("b3g3"));
+		Transposition spikedTrans = new Transposition((byte)8, (short) -200, ScoreType.exact, new MoveList(pm), new GenericMove("f5g5"));
+		hashMap.putTransposition(pm.getHash(), spikedTrans);
+		//pm.unperformMove();
+		//pm.unperformMove();
+		//pm.unperformMove();
+		//pm.unperformMove();
+		pm.unperformMove();
+		pm.unperformMove();
+		System.out.println(spikedTrans.report());
+		
+		runSearcherAndTestBestMoveReturned();
+	}
 }

@@ -78,7 +78,7 @@ public class SearchContext {
 			case simplify:
 			case try_for_win:
 				if (dc.isPositionDraw(pos.getHash())) {
-					// Assume oppponent wants a draw.
+					// Assume opponent wants a draw.
 					bonus += King.MATERIAL_VALUE/2;
 				}
 				break;
