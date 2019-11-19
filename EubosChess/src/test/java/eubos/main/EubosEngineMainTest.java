@@ -142,7 +142,7 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/2K5/8/7k/8/8/6q1 b - - 1 64"+CMD_TERMINATOR, null));
 		// Varies move as the previous leads to draw by 3-fold repetition of position.
 		commands.add(new commandPair(GO_BTIME_PREFIX+"1996"+CMD_TERMINATOR,BEST_PREFIX+"g1g6"+CMD_TERMINATOR));
-		performTest(1500);
+		performTest(500);
 	}
 	
 	@Test
@@ -196,6 +196,7 @@ public class EubosEngineMainTest {
 					timer += sleep_10ms;
 					// Ignore any line starting with info
 					String recievedCmd = testOutput.toString();
+					System.out.println(recievedCmd);
 					testOutput.reset();
 					parsedCmd = filterInfosOut(recievedCmd);
 					if (expectedOutput.equals(parsedCmd))
