@@ -182,16 +182,8 @@ public class PlySearcher {
 			Iterator<GenericMove> move_iter) throws InvalidPieceException {
 		boolean searchIsNeeded = true;
 		if (isInExtendedSearch() && !move_iter.hasNext()) {
-	    	// Need to back up a score, so get any move from the regular list, score and finish
-	    	move_iter = ml.iterator();
-	    	short positionScore;
-	    	if (!move_iter.hasNext()) {
-	    		assert false;
-	    		positionScore = pe.evaluatePosition();
-	    	} else {
-	    		positionScore = applyMoveAndScore(move_iter.next());
-	    	}
-	    	doScoreBackup(positionScore);
+			// Evaluate material to deduce score, this rules out optimistic appraisal, don't use normal move list.
+	    	doScoreBackup(pe.evaluatePosition());
 	    	searchIsNeeded = false;
 	    }
 		return searchIsNeeded;
