@@ -83,15 +83,11 @@ public class PlySearcher {
 		byte depthRequiredPly = initialiseSearchAtPly();
 		
 		TranspositionEvaluation eval = tt.getTransposition(currPly, depthRequiredPly);
-		boolean beta = false;
 		switch (eval.status) {
-		case sufficientTerminalNodeBeta:
-			beta = true;
-			// intentional drop through
-		case sufficientTerminalNodeAlpha:
+		case sufficientTerminalNode:
 		case sufficientRefutation:
-			treatAsTerminalNode(eval.trans, beta);
-			break;	
+			treatAsTerminalNode(eval.trans);
+			break;
 		case sufficientSeedMoveList:
 			SearchDebugAgent.printHashIsSeedMoveList(currPly, eval.trans.getBestMove(), pos.getHash());
 			ml = eval.trans.getMoveList();
@@ -182,25 +178,17 @@ public class PlySearcher {
 			Iterator<GenericMove> move_iter) throws InvalidPieceException {
 		boolean searchIsNeeded = true;
 		if (isInExtendedSearch() && !move_iter.hasNext()) {
-	    	// Need to back up a score, so get any move from the regular list, score and finish
-	    	move_iter = ml.iterator();
-	    	short positionScore;
-	    	if (!move_iter.hasNext()) {
-	    		assert false;
-	    		positionScore = pe.evaluatePosition();
-	    	} else {
-	    		positionScore = applyMoveAndScore(move_iter.next());
-	    	}
-	    	doScoreBackup(positionScore);
+			// Evaluate material to deduce score, this rules out optimistic appraisal, don't use normal move list.
+	    	doScoreBackup(pe.evaluatePosition());
 	    	searchIsNeeded = false;
 	    }
 		return searchIsNeeded;
 	}
 	
-	private void treatAsTerminalNode(Transposition trans, boolean useOldScore)
+	private void treatAsTerminalNode(Transposition trans)
 			throws InvalidPieceException {
-		short score = useOldScore ? trans.getPreviousExactScore() : trans.getScore();
-		depthSearchedPly = useOldScore ? trans.getPreviousExactDepth() : trans.getDepthSearchedInPly();
+		short score = trans.getScore();
+		depthSearchedPly = trans.getDepthSearchedInPly();
 		pc.clearTreeBeyondPly(currPly);
 		if (doScoreBackup(score)) {
 			updatePrincipalContinuation(trans.getBestMove(), score, true);

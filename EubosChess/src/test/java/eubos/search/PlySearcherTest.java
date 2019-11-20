@@ -148,7 +148,7 @@ public class PlySearcherTest {
 		initialisePositionAndSearch("8/8/1P6/8/5p2/8/8/8 w - - 0 1", (byte)1);
 		
 		TranspositionEvaluation eval = new TranspositionEvaluation();
-		eval.status = TranspositionTableStatus.sufficientTerminalNodeAlpha;
+		eval.status = TranspositionTableStatus.sufficientTerminalNode;
 		eval.trans = new Transposition((byte)1, (short)50, ScoreType.exact, null, new GenericMove("b6b7"));
 		
 		when(mock_hashMap.getTransposition((byte)0, 1)).thenReturn(eval);
@@ -163,25 +163,16 @@ public class PlySearcherTest {
 		
 		TranspositionEvaluation eval0 = new TranspositionEvaluation();
 		eval0.status = TranspositionTableStatus.sufficientSeedMoveList;
-		//ArrayList<GenericMove> ml_ply0 = new ArrayList<GenericMove>();
-		//ml_ply0.add(new GenericMove("b2c3"));
-		//ml_ply0.add(new GenericMove("d5a5"));
 		MoveList ml_ply0 = new MoveList(pm);
 		eval0.trans = new Transposition((byte)1, (short)-5, ScoreType.lowerBound, ml_ply0, new GenericMove("b2c3"));
 		
 		TranspositionEvaluation eval1_0 = new TranspositionEvaluation();
-		eval1_0.status = TranspositionTableStatus.sufficientTerminalNodeAlpha;
-		//ArrayList<GenericMove> ml_ply1_0 = new ArrayList<GenericMove>();
-		//ml_ply1_0.add(new GenericMove("a5d5"));
-		//ml_ply1_0.add(new GenericMove("g7c3"));
+		eval1_0.status = TranspositionTableStatus.sufficientTerminalNode;
 		MoveList ml_ply1_0 = new MoveList(pm);
 		eval1_0.trans = new Transposition((byte)1, (short)0, ScoreType.exact, ml_ply1_0, new GenericMove("a5d5"));
 
 		TranspositionEvaluation eval1_1 = new TranspositionEvaluation();
 		eval1_1.status = TranspositionTableStatus.sufficientSeedMoveList;
-		//ArrayList<GenericMove> ml_ply1_1 = new ArrayList<GenericMove>();
-		//ml_ply1_1.add(new GenericMove("c3a5"));
-		//ml_ply1_1.add(new GenericMove("g6g5"));
 		MoveList ml_ply1_1 = new MoveList(pm);
 		eval1_1.trans = new Transposition((byte)1, (short)-400, ScoreType.exact, ml_ply1_1, new GenericMove("c3a5"));
 		

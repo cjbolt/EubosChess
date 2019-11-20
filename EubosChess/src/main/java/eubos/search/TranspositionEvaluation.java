@@ -9,8 +9,7 @@ public class TranspositionEvaluation {
 	
 	public enum TranspositionTableStatus {
 		insufficientNoData,
-		sufficientTerminalNodeAlpha,
-		sufficientTerminalNodeBeta,
+		sufficientTerminalNode,
 		sufficientRefutation,
 		sufficientSeedMoveList		
 	};

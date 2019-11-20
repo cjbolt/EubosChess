@@ -54,9 +54,6 @@ public class TranspositionTableAccessorTest {
 	
 	@Test
 	public void testEval_StoreRetrieve_sufficientTerminalNode() throws InvalidPieceException, IllegalNotationException {
-		//List<GenericMove> ml = new LinkedList<GenericMove>();
-		//ml.add(new GenericMove("e2e4"));
-		//ml.add(new GenericMove("d2d4"));
 		MoveList ml = new MoveList(pm);
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
@@ -66,14 +63,11 @@ public class TranspositionTableAccessorTest {
 		
 		eval = sut.getTransposition(currPly, 1);
 		
-		assertEquals(TranspositionTableStatus.sufficientTerminalNodeAlpha, eval.status);
+		assertEquals(TranspositionTableStatus.sufficientTerminalNode, eval.status);
 	}
 	
 	@Test
 	public void testEval_StoreRetrieve_sufficientSeedMoveList() throws InvalidPieceException, IllegalNotationException {
-		//List<GenericMove> ml = new LinkedList<GenericMove>();
-		//ml.add(new GenericMove("e2e4"));
-		//ml.add(new GenericMove("d2d4"));
 		MoveList ml = new MoveList(pm);
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
@@ -101,9 +95,6 @@ public class TranspositionTableAccessorTest {
 	
 	@Test
 	public void testEval_StoreRetrieve_whenUpperBound_AndScoreIsLower_sufficientRefutation() throws InvalidPieceException, IllegalNotationException {
-		//List<GenericMove> ml = new LinkedList<GenericMove>();
-		//ml.add(new GenericMove("e2e4"));
-		//ml.add(new GenericMove("d2d4"));
 		MoveList ml = new MoveList(pm);
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
@@ -120,9 +111,6 @@ public class TranspositionTableAccessorTest {
 	
 	@Test
 	public void testEval_StoreRetrieve_whenLowerBound_AndScoreIsHigher_sufficientRefutation() throws InvalidPieceException, IllegalNotationException {
-		//List<GenericMove> ml = new LinkedList<GenericMove>();
-		//ml.add(new GenericMove("e2e4"));
-		//ml.add(new GenericMove("d2d4"));
 		MoveList ml = new MoveList(pm);
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
@@ -139,9 +127,6 @@ public class TranspositionTableAccessorTest {
 	
 	@Test
 	public void testUpdateWorks_whenNew() throws IllegalNotationException {
-		//List<GenericMove> ml = new LinkedList<GenericMove>();
-		//ml.add(new GenericMove("e2e4"));
-		//ml.add(new GenericMove("d2d4"));
 		MoveList ml = new MoveList(pm);
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
@@ -157,9 +142,6 @@ public class TranspositionTableAccessorTest {
 	public void testUpdateWorks_whenExistingUpdated() throws IllegalNotationException {
 		GenericMove move1 = new GenericMove("e2e4");
 		GenericMove move2 = new GenericMove("d2d4");
-		//List<GenericMove> ml = new LinkedList<GenericMove>();
-		//ml.add(move1);
-		//ml.add(move2);
 		MoveList ml = new MoveList(pm);
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(move1);
@@ -178,8 +160,6 @@ public class TranspositionTableAccessorTest {
 		
 		// check move list order is updated
 		assertEquals(move2, stored_trans.getBestMove());
-		//assertEquals(move2, stored_trans.getMoveList().get(0));
-		//assertEquals(move1, stored_trans.getMoveList().get(1));
 		
 		// Check eval returns expected hash data
 		eval = sut.getTransposition(currPly, 1);
@@ -194,11 +174,7 @@ public class TranspositionTableAccessorTest {
 		GenericMove move1 = new GenericMove("h3h4");
 		GenericMove move2 = new GenericMove("f3f4");
 		
-		//List<GenericMove> ml = new LinkedList<GenericMove>();
-		//ml.add(move1);
-		//ml.add(move2);
 		MoveList ml = new MoveList(pm);
-		
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(move1);
 		
