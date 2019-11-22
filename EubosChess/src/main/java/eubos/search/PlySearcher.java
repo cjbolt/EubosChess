@@ -188,7 +188,6 @@ public class PlySearcher {
 	private void treatAsTerminalNode(Transposition trans)
 			throws InvalidPieceException {
 		short score = trans.getScore();
-		depthSearchedPly = trans.getDepthSearchedInPly();
 		pc.clearTreeBeyondPly(currPly);
 		if (doScoreBackup(score)) {
 			updatePrincipalContinuation(trans.getBestMove(), score, true);
@@ -258,10 +257,15 @@ public class PlySearcher {
 	}
 	
 	private byte initialiseSearchAtPly() {
+		byte depthRequiredPly = 0;
 		if (currPly >= originalDepthRequested) {
 			searchDepthPly++;
 		}
-		byte depthRequiredPly = (byte)(searchDepthPly - currPly);
+		if (this.isInExtendedSearch()) {
+			depthRequiredPly = originalDepthRequested;
+		} else {
+			depthRequiredPly = (byte)(searchDepthPly - currPly);
+		}
 		st.setProvisionalScoreAtPly(currPly);
 		SearchDebugAgent.printStartPlyInfo(currPly, depthRequiredPly, st.getBackedUpScoreAtPly(currPly), pos);
 		return depthRequiredPly;

@@ -50,10 +50,10 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			} catch( NoLegalMoveException e ) {
 				System.err.println(
 						String.format("Eubos has run out of legal moves for side %s", pos.getOnMove()));
+				searchStopped = true;
 			} catch(InvalidPieceException e ) {
 				System.err.println(
 						String.format("Eubos can't find piece searching findMove(), at %s", e.getAtPosition()));
-			} finally {
 				searchStopped = true;
 			}
 			if (res != null && res.foundMate)
