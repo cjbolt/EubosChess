@@ -2,18 +2,18 @@ package eubos.search;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class FixedSizeTranspositionTable {
 	
-	private HashMap<Long, Transposition> hashMap = null;
+	private ConcurrentHashMap<Long, Transposition> hashMap = null;
 	private long hashMapSize = 0;
-	private HashMap<Long, Integer> accessCount = null;
+	private ConcurrentHashMap<Long, Integer> accessCount = null;
 	
 	public long getHashMapSize() {
 		return hashMapSize;
@@ -26,8 +26,8 @@ public class FixedSizeTranspositionTable {
 	public static final long MAX_SIZE_OF_HASH_MAP = (1L << 20); 
 	
 	public FixedSizeTranspositionTable() {
-		hashMap = new HashMap<Long, Transposition>((int)MAX_SIZE_OF_HASH_MAP, (float)0.75);
-		accessCount = new HashMap<Long, Integer>();
+		hashMap = new ConcurrentHashMap<Long, Transposition>((int)MAX_SIZE_OF_HASH_MAP, (float)0.75);
+		accessCount = new ConcurrentHashMap<Long, Integer>();
 		hashMapSize = 0;
 	}
 	
