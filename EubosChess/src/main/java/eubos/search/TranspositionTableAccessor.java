@@ -44,7 +44,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 					SearchDebugAgent.printHashIsRefutation(currPly, ret.trans.getBestMove(),pos.getHash());
 					ret.status = TranspositionTableStatus.sufficientRefutation;
 		        } else {
-		        	ret.status = TranspositionTableStatus.sufficientSeedMoveList;
+		        	ret.status = TranspositionTableStatus.sufficientTerminalNodeInExtendedSearch;
 		        }
 			}
 		} else {

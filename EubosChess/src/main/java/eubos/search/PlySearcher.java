@@ -88,6 +88,10 @@ public class PlySearcher {
 		case sufficientRefutation:
 			treatAsTerminalNode(eval.trans);
 			break;
+		case sufficientTerminalNodeInExtendedSearch:
+			if (isInExtendedSearch()) {
+				treatAsTerminalNode(eval.trans);
+			}
 		case sufficientSeedMoveList:
 			SearchDebugAgent.printHashIsSeedMoveList(currPly, eval.trans.getBestMove(), pos.getHash());
 			ml = eval.trans.getMoveList();
