@@ -141,15 +141,8 @@ public class PlySearcher {
 	            if (doScoreBackup(positionScore)) {
 	                everBackedUp = true;
                     plyScore = positionScore;
-                    if (atRootNode() && trans != null)
-                    		System.out.println(String.format("debug trans=%s", trans.report()));
-                    Transposition new_trans = new Transposition(getTransDepth(), positionScore, plyBound, ml, currMove);
                     trans = tt.setTransposition(sm, currPly, trans,
-                    		new_trans);
-                    if (atRootNode() && trans != null) {
-	                    System.out.println(String.format("debug trans=%s", trans.report()));
-	                    System.out.println(String.format("debug new_trans=%s", new_trans.report()));
-                    }
+                                new Transposition(getTransDepth(), positionScore, plyBound, ml, currMove));
                     updatePrincipalContinuation(currMove, positionScore, false);
 	            } else {
 	                // Always clear the principal continuation when we didn't back up the score
@@ -177,8 +170,6 @@ public class PlySearcher {
 		if (!isTerminated() && isInNormalSearch()) {
 		    if (everBackedUp && !refutationFound && trans != null) {
 		        trans.setScoreType(ScoreType.exact);
-		        if (atRootNode())
-		        	System.out.println(String.format("debug at end of ply trans=%s", trans.report()));
 		    }
 		}
 	}
@@ -210,9 +201,6 @@ public class PlySearcher {
 		pc.update(currPly, currMove);
 		if (atRootNode() && !treatHashHitAsTerminalNode) {
 			// If backed up to the root node, report the principal continuation
-			System.out.println(String.format("debug depthSearchedPly=%d", depthSearchedPly));
-			System.out.println(String.format("debug isInExtendedSearch()=%b", isInExtendedSearch()));
-			System.out.println(String.format("debug getTransDepth()=%d", getTransDepth()));
 			tt.createPrincipalContinuation(pc, searchDepthPly, pm);
 			pcUpdater.report(positionScore, extendedSearchDeepestPly);
 		}
