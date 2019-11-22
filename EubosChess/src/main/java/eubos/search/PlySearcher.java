@@ -141,8 +141,15 @@ public class PlySearcher {
 	            if (doScoreBackup(positionScore)) {
 	                everBackedUp = true;
                     plyScore = positionScore;
+                    if (atRootNode() && trans != null)
+                    		System.out.println(String.format("debug trans=%s", trans.report()));
+                    Transposition new_trans = new Transposition(getTransDepth(), positionScore, plyBound, ml, currMove);
                     trans = tt.setTransposition(sm, currPly, trans,
-                                new Transposition(getTransDepth(), positionScore, plyBound, ml, currMove));
+                    		new_trans);
+                    if (atRootNode() && trans != null) {
+	                    System.out.println(String.format("debug trans=%s", trans.report()));
+	                    System.out.println(String.format("debug new_trans=%s", new_trans.report()));
+                    }
                     updatePrincipalContinuation(currMove, positionScore, false);
 	            } else {
 	                // Always clear the principal continuation when we didn't back up the score
@@ -170,6 +177,8 @@ public class PlySearcher {
 		if (!isTerminated() && isInNormalSearch()) {
 		    if (everBackedUp && !refutationFound && trans != null) {
 		        trans.setScoreType(ScoreType.exact);
+		        if (atRootNode())
+		        	System.out.println(String.format("debug at end of ply trans=%s", trans.report()));
 		    }
 		}
 	}
@@ -188,7 +197,6 @@ public class PlySearcher {
 	private void treatAsTerminalNode(Transposition trans)
 			throws InvalidPieceException {
 		short score = trans.getScore();
-		depthSearchedPly = trans.getDepthSearchedInPly();
 		pc.clearTreeBeyondPly(currPly);
 		if (doScoreBackup(score)) {
 			updatePrincipalContinuation(trans.getBestMove(), score, true);
@@ -202,6 +210,9 @@ public class PlySearcher {
 		pc.update(currPly, currMove);
 		if (atRootNode() && !treatHashHitAsTerminalNode) {
 			// If backed up to the root node, report the principal continuation
+			System.out.println(String.format("debug depthSearchedPly=%d", depthSearchedPly));
+			System.out.println(String.format("debug isInExtendedSearch()=%b", isInExtendedSearch()));
+			System.out.println(String.format("debug getTransDepth()=%d", getTransDepth()));
 			tt.createPrincipalContinuation(pc, searchDepthPly, pm);
 			pcUpdater.report(positionScore, extendedSearchDeepestPly);
 		}
@@ -258,10 +269,15 @@ public class PlySearcher {
 	}
 	
 	private byte initialiseSearchAtPly() {
+		byte depthRequiredPly = 0;
 		if (currPly >= originalDepthRequested) {
 			searchDepthPly++;
 		}
-		byte depthRequiredPly = (byte)(searchDepthPly - currPly);
+		if (this.isInExtendedSearch()) {
+			depthRequiredPly = originalDepthRequested;
+		} else {
+			depthRequiredPly = (byte)(searchDepthPly - currPly);
+		}
 		st.setProvisionalScoreAtPly(currPly);
 		SearchDebugAgent.printStartPlyInfo(currPly, depthRequiredPly, st.getBackedUpScoreAtPly(currPly), pos);
 		return depthRequiredPly;
