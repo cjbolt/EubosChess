@@ -1,4 +1,4 @@
-package eubos.search;
+package eubos.search.generators;
 
 import java.util.List;
 
@@ -8,6 +8,8 @@ import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece;
 import eubos.position.MoveList;
 import eubos.position.PositionManager;
+import eubos.search.NoLegalMoveException;
+import eubos.search.SearchResult;
 
 class RandomMoveGenerator implements IMoveGenerator {
 	private MoveList ml;

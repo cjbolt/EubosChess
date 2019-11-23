@@ -24,12 +24,12 @@ import com.fluxchess.jcpi.models.*;
 import eubos.board.InvalidPieceException;
 import eubos.position.PositionManager;
 import eubos.search.FixedSizeTranspositionTable;
-import eubos.search.FixedTimeMoveSearcher;
-import eubos.search.IterativeMoveSearcher;
 import eubos.search.SearchDebugAgent;
-import eubos.search.FixedDepthMoveSearcher;
-import eubos.search.AbstractMoveSearcher;
 import eubos.search.DrawChecker;
+import eubos.search.searchers.AbstractMoveSearcher;
+import eubos.search.searchers.FixedDepthMoveSearcher;
+import eubos.search.searchers.FixedTimeMoveSearcher;
+import eubos.search.searchers.IterativeMoveSearcher;
 
 import java.text.SimpleDateFormat;
 import java.util.logging.*;

@@ -1,4 +1,4 @@
-package eubos.search;
+package eubos.search.generators;
 
 import static org.junit.Assert.*;
 
@@ -17,8 +17,11 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece;
 import eubos.position.PositionManager;
-import eubos.search.MiniMaxMoveGenerator;
+import eubos.search.FixedSizeTranspositionTable;
 import eubos.search.NoLegalMoveException;
+import eubos.search.SearchDebugAgent;
+import eubos.search.generators.MiniMaxMoveGenerator;
+import eubos.search.SearchResult;
 
 public class MiniMaxMoveGeneratorTest {
 	

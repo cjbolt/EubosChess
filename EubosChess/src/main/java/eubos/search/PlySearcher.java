@@ -9,7 +9,6 @@ import eubos.board.InvalidPieceException;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.position.IScoreMate;
-import eubos.position.MateScoreGenerator;
 import eubos.position.MoveList;
 import eubos.position.PositionManager;
 import eubos.search.Transposition.ScoreType;
@@ -40,7 +39,7 @@ public class PlySearcher {
 	private byte originalDepthRequested = 0;
 	private byte extendedSearchDeepestPly = 0;
 	
-	PlySearcher(
+	public PlySearcher(
 			ITranspositionAccessor hashMap,
 			ScoreTracker st,
 			PrincipalContinuation pc,
@@ -75,7 +74,7 @@ public class PlySearcher {
 	public synchronized void terminateFindMove() { terminate = true; }
 	private synchronized boolean isTerminated() { return terminate; }	
 	
-	short searchPly() throws InvalidPieceException {
+	public short searchPly() throws InvalidPieceException {
 		if (isTerminated())
 			return 0;
 		

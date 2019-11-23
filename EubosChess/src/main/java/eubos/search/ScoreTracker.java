@@ -1,12 +1,12 @@
 package eubos.search;
 
-class ScoreTracker {
+public class ScoreTracker {
 	private short[] scores;
 	private boolean initialOnMoveIsWhite = false;
 	
 	private static final int MINIMUM_PLY_FOR_ALPHA_BETA_CUT_OFF = 2;
 
-	ScoreTracker(int searchDepth, boolean isWhite) {
+	public ScoreTracker(int searchDepth, boolean isWhite) {
 		scores = new short[searchDepth];
 		initialOnMoveIsWhite = isWhite;
 	}

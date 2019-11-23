@@ -1,4 +1,4 @@
-package eubos.search;
+package eubos.search.generators;
 
 import java.util.List;
 
@@ -9,13 +9,22 @@ import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IEvaluate;
 import eubos.position.IPositionAccessors;
+import eubos.search.FixedSizeTranspositionTable;
+import eubos.search.NoLegalMoveException;
+import eubos.search.PlySearcher;
+import eubos.search.PrincipalContinuation;
+import eubos.search.ScoreTracker;
+import eubos.search.SearchMetrics;
+import eubos.search.SearchMetricsReporter;
+import eubos.search.SearchResult;
+import eubos.search.TranspositionTableAccessor;
 
-class MiniMaxMoveGenerator implements
+public class MiniMaxMoveGenerator implements
 		IMoveGenerator {
 
 	private IChangePosition pm;
 	private IPositionAccessors pos;
-	PrincipalContinuation pc;
+	public PrincipalContinuation pc;
 	private SearchMetrics sm;
 	private SearchMetricsReporter sr;
 	private boolean sendInfo = false;
@@ -41,7 +50,7 @@ class MiniMaxMoveGenerator implements
 	}
 
 	// Used with Arena, Lichess
-	MiniMaxMoveGenerator( EubosEngineMain eubos,
+	public MiniMaxMoveGenerator( EubosEngineMain eubos,
 			FixedSizeTranspositionTable hashMap,
 			IChangePosition pm,
 			IPositionAccessors pos,
@@ -108,7 +117,7 @@ class MiniMaxMoveGenerator implements
 		return new SearchResult(bestMove,foundMate);
 	}
 	
-	synchronized void terminateFindMove() {
+	public synchronized void terminateFindMove() {
 		if (ps != null)
 			ps.terminateFindMove();
 		}

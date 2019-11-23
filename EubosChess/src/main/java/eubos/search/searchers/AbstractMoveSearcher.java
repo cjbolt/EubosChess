@@ -1,4 +1,4 @@
-package eubos.search;
+package eubos.search.searchers;
 
 import java.util.List;
 
@@ -8,16 +8,9 @@ import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
-
-class SearchResult {
-	public GenericMove bestMove;
-	public boolean foundMate;
-	
-	public SearchResult(GenericMove bestMove, boolean foundMate) {
-		this.bestMove = bestMove;
-		this.foundMate = foundMate;
-	}
-}
+import eubos.search.NoLegalMoveException;
+import eubos.search.SearchResult;
+import eubos.search.generators.MiniMaxMoveGenerator;
 
 public abstract class AbstractMoveSearcher extends Thread {
 

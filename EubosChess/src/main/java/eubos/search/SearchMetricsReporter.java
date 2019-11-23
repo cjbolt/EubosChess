@@ -5,7 +5,7 @@ import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
 import eubos.board.pieces.King;
 import eubos.main.EubosEngineMain;
 
-class SearchMetricsReporter extends Thread {
+public class SearchMetricsReporter extends Thread {
 	
 	private boolean sendInfo = false;
 	private volatile boolean reporterActive;
@@ -13,7 +13,7 @@ class SearchMetricsReporter extends Thread {
 	private EubosEngineMain eubosEngine;
 	private static final int UPDATE_RATE_MS = 500;
 	
-	SearchMetricsReporter( EubosEngineMain eubos, SearchMetrics inputSm ) {
+	public SearchMetricsReporter( EubosEngineMain eubos, SearchMetrics inputSm ) {
 		sm = inputSm;
 		reporterActive = true;
 		eubosEngine = eubos;
@@ -46,7 +46,7 @@ class SearchMetricsReporter extends Thread {
 		}
 	}
 	
-	void reportNodeData() {
+	public void reportNodeData() {
 		ProtocolInformationCommand info = new ProtocolInformationCommand();
 		info.setNodes(sm.getNodesSearched());
 		info.setNps(sm.getNodesPerSecond());

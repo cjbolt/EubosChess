@@ -1,4 +1,4 @@
-package eubos.search;
+package eubos.search.generators;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -23,7 +23,8 @@ import eubos.board.pieces.Rook;
 import eubos.board.pieces.Piece.Colour;
 import eubos.position.PositionManager;
 import eubos.search.NoLegalMoveException;
-import eubos.search.RandomMoveGenerator;
+import eubos.search.generators.RandomMoveGenerator;
+import eubos.search.SearchResult;
 
 public class RandomMoveGeneratorTest {
 	

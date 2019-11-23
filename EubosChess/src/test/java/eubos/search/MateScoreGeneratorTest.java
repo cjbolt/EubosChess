@@ -1,4 +1,4 @@
-package eubos.position;
+package eubos.search;
 
 import static org.junit.Assert.*;
 
@@ -9,6 +9,8 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
+import eubos.position.PositionManager;
+import eubos.search.MateScoreGenerator;
 
 public class MateScoreGeneratorTest {
 	

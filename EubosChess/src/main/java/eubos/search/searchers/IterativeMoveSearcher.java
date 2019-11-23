@@ -1,4 +1,4 @@
-package eubos.search;
+package eubos.search.searchers;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -11,6 +11,10 @@ import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IEvaluate;
 import eubos.position.IPositionAccessors;
+import eubos.search.FixedSizeTranspositionTable;
+import eubos.search.NoLegalMoveException;
+import eubos.search.SearchResult;
+import eubos.search.generators.MiniMaxMoveGenerator;
 
 public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	

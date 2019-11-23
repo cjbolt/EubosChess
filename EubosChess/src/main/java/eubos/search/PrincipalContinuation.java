@@ -5,17 +5,17 @@ import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
-class PrincipalContinuation {
+public class PrincipalContinuation {
 
 	private GenericMove pc[][];
 	private int searchDepthPly;
 
-	PrincipalContinuation(int searchDepth) {
+	public PrincipalContinuation(int searchDepth) {
 		pc = new GenericMove[searchDepth][searchDepth];
 		searchDepthPly = searchDepth;
 	}
 	
-	GenericMove getBestMove() {
+	public GenericMove getBestMove() {
 		return pc[0][0];
 	}
 	
@@ -35,11 +35,11 @@ class PrincipalContinuation {
 		return output;
 	}
 	
-	List<GenericMove> toPvList() {
+	public List<GenericMove> toPvList() {
 		return toPvList(0);
 	}
 	
-	List<GenericMove> toPvList(int startPly) {
+	public List<GenericMove> toPvList(int startPly) {
 		List<GenericMove> mv;
 		mv = new ArrayList<GenericMove>();
 		for (int currPly=startPly; currPly < searchDepthPly; currPly++) {
