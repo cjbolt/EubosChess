@@ -1,4 +1,4 @@
-package eubos.search;
+package eubos.search.transposition;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,8 +8,12 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.board.InvalidPieceException;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
-import eubos.search.Transposition.ScoreType;
-import eubos.search.TranspositionEvaluation.TranspositionTableStatus;
+import eubos.search.PrincipalContinuation;
+import eubos.search.ScoreTracker;
+import eubos.search.SearchDebugAgent;
+import eubos.search.SearchMetrics;
+import eubos.search.transposition.Transposition.*;
+import eubos.search.transposition.TranspositionEvaluation.*;
 
 public class TranspositionTableAccessor implements ITranspositionAccessor {
 	

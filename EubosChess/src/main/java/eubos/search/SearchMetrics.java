@@ -68,5 +68,5 @@ public class SearchMetrics {
 	synchronized void incrementCurrentMoveNumber() { currMoveNum+=1; }
 	
 	synchronized short getHashFull() { return hashFull;	}
-	synchronized void setHashFull(short hashFull) { this.hashFull = hashFull; }
+	public synchronized void setHashFull(short hashFull) { this.hashFull = hashFull; }
 }

@@ -19,7 +19,7 @@ public class PrincipalContinuation {
 		return pc[0][0];
 	}
 	
-	GenericMove getBestMove(int currPly) {
+	public GenericMove getBestMove(int currPly) {
 		return pc[currPly][currPly];
 	}
 
@@ -60,7 +60,7 @@ public class PrincipalContinuation {
 		SearchDebugAgent.printPrincipalContinuation(currPly,this);
 	}
 	
-	void update(int currPly, List<GenericMove> source_pc) {
+	public void update(int currPly, List<GenericMove> source_pc) {
 		// Update principal continuation from Transposition hit
 		int pc_len = source_pc.size();
 		int index = 0;

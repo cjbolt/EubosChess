@@ -59,7 +59,7 @@ public class ScoreTracker {
 		return backUpScore;
 	}
 	
-	boolean isAlphaBetaCutOff(byte currPly, short positionScore) {
+	public boolean isAlphaBetaCutOff(byte currPly, short positionScore) {
 		boolean isAlphaBetaCutOff = false;
 		if ((scores[currPly] != Short.MAX_VALUE) && (scores[currPly] != Short.MIN_VALUE)) {
 			if (currPly > 0) {

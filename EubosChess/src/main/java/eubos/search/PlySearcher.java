@@ -11,8 +11,10 @@ import eubos.position.IPositionAccessors;
 import eubos.position.IScoreMate;
 import eubos.position.MoveList;
 import eubos.position.PositionManager;
-import eubos.search.Transposition.ScoreType;
-import eubos.search.TranspositionEvaluation;
+import eubos.search.transposition.ITranspositionAccessor;
+import eubos.search.transposition.Transposition;
+import eubos.search.transposition.TranspositionEvaluation;
+import eubos.search.transposition.Transposition.ScoreType;
 import eubos.position.IEvaluate;
 
 public class PlySearcher {

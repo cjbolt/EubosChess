@@ -1,9 +1,11 @@
-package eubos.search;
+package eubos.search.transposition;
 
 import eubos.board.InvalidPieceException;
 import eubos.position.IChangePosition;
+import eubos.search.PrincipalContinuation;
+import eubos.search.SearchMetrics;
 
-interface ITranspositionAccessor {
+public interface ITranspositionAccessor {
 	TranspositionEvaluation getTransposition(byte currPly, int depthRequiredPly);
 	TranspositionEvaluation getTransposition(int depthRequiredPly);
 	Transposition setTransposition(SearchMetrics sm, byte currPly, Transposition trans, Transposition new_trans);

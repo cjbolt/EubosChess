@@ -9,7 +9,6 @@ import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IEvaluate;
 import eubos.position.IPositionAccessors;
-import eubos.search.FixedSizeTranspositionTable;
 import eubos.search.NoLegalMoveException;
 import eubos.search.PlySearcher;
 import eubos.search.PrincipalContinuation;
@@ -17,7 +16,8 @@ import eubos.search.ScoreTracker;
 import eubos.search.SearchMetrics;
 import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
-import eubos.search.TranspositionTableAccessor;
+import eubos.search.transposition.FixedSizeTranspositionTable;
+import eubos.search.transposition.TranspositionTableAccessor;
 
 public class MiniMaxMoveGenerator implements
 		IMoveGenerator {

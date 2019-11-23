@@ -1,4 +1,4 @@
-package eubos.search;
+package eubos.search.transposition;
 
 import java.util.Collection;
 import java.util.Collections;
