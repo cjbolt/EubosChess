@@ -17,10 +17,10 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece;
 import eubos.position.PositionManager;
-import eubos.search.FixedSizeTranspositionTable;
 import eubos.search.NoLegalMoveException;
 import eubos.search.SearchDebugAgent;
 import eubos.search.generators.MiniMaxMoveGenerator;
+import eubos.search.transposition.FixedSizeTranspositionTable;
 import eubos.search.SearchResult;
 
 public class MiniMaxMoveGeneratorTest {

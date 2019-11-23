@@ -24,9 +24,11 @@ import eubos.position.IPositionAccessors;
 import eubos.position.MoveList;
 import eubos.position.PositionEvaluator;
 import eubos.position.PositionManager;
-import eubos.search.ITranspositionAccessor;
-import eubos.search.Transposition.ScoreType;
-import eubos.search.TranspositionEvaluation.TranspositionTableStatus;
+import eubos.search.transposition.ITranspositionAccessor;
+import eubos.search.transposition.Transposition;
+import eubos.search.transposition.TranspositionEvaluation;
+import eubos.search.transposition.Transposition.ScoreType;
+import eubos.search.transposition.TranspositionEvaluation.TranspositionTableStatus;
 import static org.mockito.Mockito.*;
 
 public class PlySearcherTest {

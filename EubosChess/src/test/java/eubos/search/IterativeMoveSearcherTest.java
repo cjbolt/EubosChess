@@ -16,6 +16,7 @@ import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
 import eubos.position.PositionManager;
 import eubos.search.searchers.IterativeMoveSearcher;
+import eubos.search.transposition.FixedSizeTranspositionTable;
 
 public class IterativeMoveSearcherTest {
 	
