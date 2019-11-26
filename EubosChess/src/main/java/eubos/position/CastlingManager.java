@@ -8,10 +8,10 @@ import com.fluxchess.jcpi.models.GenericPosition;
 
 import eubos.board.Board;
 import eubos.board.InvalidPieceException;
-import eubos.board.pieces.King;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Rook;
 import eubos.board.pieces.Piece.Colour;
+import eubos.board.pieces.Piece.PieceType;
 
 class CastlingManager {
 	private boolean whiteKsAvail = true;
@@ -96,41 +96,43 @@ class CastlingManager {
 	}
 
 	void performSecondaryCastlingMove(GenericMove move) throws InvalidPieceException {
+		PieceType rookToCastle = PieceType.NONE;
 		if (move.equals(wksc)) {
 			// Perform secondary white king side castle rook move
-			Piece rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.h1 );
+			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.h1 );
 			pm.updateSquarePieceOccupies( GenericPosition.f1, rookToCastle );
 		} else if (move.equals(wqsc)) {
 			// Perform secondary white queen side castle rook move
-			Piece rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.a1 );
+			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.a1 );
 			pm.updateSquarePieceOccupies( GenericPosition.d1, rookToCastle );
 		} else if (move.equals(bksc)) {
 			// Perform secondary black king side castle rook move
-			Piece rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.h8 );
+			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.h8 );
 			pm.updateSquarePieceOccupies( GenericPosition.f8, rookToCastle );
 		} else if (move.equals(bqsc)) {
 			// Perform secondary black queen side castle rook move
-			Piece rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.a8 );
+			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.a8 );
 			pm.updateSquarePieceOccupies( GenericPosition.d8, rookToCastle );
 		}
 	}
 
 	void unperformSecondaryCastlingMove(GenericMove move) throws InvalidPieceException {
+		PieceType rookToCastle = PieceType.NONE;
 		if (move.equals(undo_wksc)) {
 			// Perform secondary king side castle rook move
-			Piece rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.f1 );
+			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.f1 );
 			pm.updateSquarePieceOccupies( GenericPosition.h1, rookToCastle );
 		} else	if (move.equals(undo_wqsc)) {
 			// Perform secondary queen side castle rook move
-			Piece rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.d1 );
+			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.d1 );
 			pm.updateSquarePieceOccupies( GenericPosition.a1, rookToCastle );
 		} else if (move.equals(undo_bksc)) {
 			// Perform secondary king side castle rook move
-			Piece rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.f8 );
+			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.f8 );
 			pm.updateSquarePieceOccupies( GenericPosition.h8, rookToCastle );
 		} else if (move.equals(undo_bqsc)) {
 			// Perform secondary queen side castle rook move
-			Piece rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.d8 );
+			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.d8 );
 			pm.updateSquarePieceOccupies( GenericPosition.a8, rookToCastle );
 		}
 	}
@@ -260,9 +262,9 @@ class CastlingManager {
 		return (castleMoveLegal(GenericPosition.a8, qscBlackCheckSqs, qscBlackEmptySqs)) ? bqsc : null;
 	}
 
-	public void updateFlags(Piece movedPiece, GenericMove lastMove) {
+	public void updateFlags(PieceType movedPiece, GenericMove lastMove) {
 		// First handle castling moves
-		if (movedPiece instanceof King) {
+		if (movedPiece.equals(PieceType.WhiteKing) || movedPiece.equals(PieceType.BlackKing)) {
 			if (lastMove.equals(wksc) || lastMove.equals(wqsc)) {
 				whiteKsAvail = whiteQsAvail = false;
 				whiteCastled = true;
@@ -283,27 +285,24 @@ class CastlingManager {
 			whiteKsAvail = false;
 		}
 		// King moved
-		if (movedPiece instanceof King) {
-			if (movedPiece.isWhite()) {
-				whiteKsAvail = whiteQsAvail = false;
-			} else {
-				blackKsAvail = blackQsAvail = false;
+		if (movedPiece.equals(PieceType.WhiteKing)) {
+			whiteKsAvail = whiteQsAvail = false;
+		} else if (movedPiece.equals(PieceType.BlackKing)) {
+			blackKsAvail = blackQsAvail = false;
+		// Rook moved	
+		} else if (movedPiece.equals(PieceType.WhiteRook)) { 
+			if (lastMove.from.file.equals(GenericFile.Fa)) {
+				whiteQsAvail = false;
+			} 
+			if (lastMove.from.file.equals(GenericFile.Fh)) {
+				whiteKsAvail = false;
 			}
-		} // Rook moved
-		else if (movedPiece instanceof Rook) {
-			if (movedPiece.isWhite()) {
-				if (lastMove.from.file.equals(GenericFile.Fa)) {
-					whiteQsAvail = false;
-				} else if (lastMove.from.file.equals(GenericFile.Fh)) {
-					whiteKsAvail = false;
-				}
-			} else {
-				if (lastMove.from.file.equals(GenericFile.Fa)) {
-					blackQsAvail = false;
-				} else if (lastMove.from.file.equals(GenericFile.Fh)) {
-					blackKsAvail = false;
-				}	
-			}
+		} else if (movedPiece.equals(PieceType.BlackRook)) {
+			if (lastMove.from.file.equals(GenericFile.Fa)) {
+				blackQsAvail = false;
+			} else if (lastMove.from.file.equals(GenericFile.Fh)) {
+				blackKsAvail = false;
+			}	
 		}
 	}
 }

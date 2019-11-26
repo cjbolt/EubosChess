@@ -3,6 +3,10 @@ package eubos.board;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import com.fluxchess.jcpi.models.GenericPosition;
+import com.fluxchess.jcpi.models.IntFile;
+import com.fluxchess.jcpi.models.IntRank;
+
 public class BitBoard implements Iterable<Integer> {
 	
 	private long bitBoard = 0x0L;
@@ -46,7 +50,18 @@ public class BitBoard implements Iterable<Integer> {
 	}
 	
 	public boolean isSet(int bit) {
-		return ((bitBoard & (1L<<bit)) != 0) ? true : false;
+		return (bitBoard & (1L<<bit)) != 0;
+	}
+	
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		for (int bit_index: this) {
+			int file = bit_index%8;
+			int rank = bit_index/8;
+			sb.append(GenericPosition.valueOf(IntFile.toGenericFile(file),IntRank.toGenericRank(rank)));
+			sb.append(", ");
+		}
+		return sb.toString();
 	}
 
 	public class SetBitsIterator implements Iterator<Integer> {

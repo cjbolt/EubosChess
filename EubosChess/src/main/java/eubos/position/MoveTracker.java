@@ -2,7 +2,7 @@ package eubos.position;
 
 import java.util.Stack;
 
-import eubos.board.pieces.Piece;
+import eubos.position.CaptureData;
 
 class MoveTracker extends Stack<TrackedMove> {
 	
@@ -26,10 +26,10 @@ class MoveTracker extends Stack<TrackedMove> {
 		return wasCastle;
 	}
 
-	public Piece getCapturedPiece() {
-		Piece captured = null;
+	public CaptureData getCapturedPiece() {
+		CaptureData captured = null;
 		if ( !this.isEmpty()) {
-			captured = this.peek().getCapturedPiece();
+			captured = this.peek().getCaptureData();
 		}
 		return captured;
 	}

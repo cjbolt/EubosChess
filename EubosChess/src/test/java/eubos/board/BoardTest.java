@@ -14,6 +14,7 @@ import eubos.board.pieces.King;
 import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
+import eubos.board.pieces.Piece.PieceType;
 
 public class BoardTest {
 	
@@ -64,14 +65,14 @@ public class BoardTest {
 		assertTrue(classUnderTest.squareIsEmpty(testSq));
 		classUnderTest.setPieceAtSquare(pieceToPlace);
 		assertFalse(classUnderTest.squareIsEmpty(testSq));
-		Piece pickedUpPiece = classUnderTest.pickUpPieceAtSquare(testSq);
+		PieceType pickedUpPiece = classUnderTest.pickUpPieceAtSquare(testSq);
 		assertTrue(classUnderTest.squareIsEmpty(testSq));
-		assertTrue(pickedUpPiece instanceof Pawn);
+		assertEquals(PieceType.WhitePawn, pickedUpPiece);
 	}
 	
-	@Test (expected=InvalidPieceException.class)
+	@Test
 	public void testPickUpPieceAtSquare_DoesntExist() throws InvalidPieceException {
-		classUnderTest.pickUpPieceAtSquare(testSq);
+		assertEquals(PieceType.NONE, classUnderTest.pickUpPieceAtSquare(testSq));
 	}	
 
 	@Test
@@ -92,7 +93,7 @@ public class BoardTest {
 	
 	@Test
 	public void testCaptureAtSquare() {
-		assertTrue(classUnderTest.captureAtSquare(testSq)==null);
+		assertTrue(classUnderTest.captureAtSquare(testSq)==PieceType.NONE);
 	}
 	
 	@Test

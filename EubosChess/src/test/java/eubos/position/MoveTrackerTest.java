@@ -9,9 +9,9 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
-import eubos.board.pieces.Pawn;
-import eubos.board.pieces.Piece.Colour;
+import eubos.board.pieces.Piece.PieceType;
 import eubos.position.MoveTracker;
+import eubos.position.CaptureData;
 import eubos.position.TrackedMove;
 
 public class MoveTrackerTest {
@@ -42,7 +42,8 @@ public class MoveTrackerTest {
 
 	@Test
 	public void testLastMoveWasCapture_WasACapture() throws IllegalNotationException {
-		TrackedMove tm = new TrackedMove(new GenericMove("a2b3"), new Pawn(Colour.black, GenericPosition.b3), null, "K");
+		CaptureData cap = new CaptureData(PieceType.BlackPawn, GenericPosition.b3);
+		TrackedMove tm = new TrackedMove(new GenericMove("a2b3"), cap, null, "K");
 		classUnderTest.add(tm);		
 		assertTrue(classUnderTest.lastMoveWasCapture());
 	}

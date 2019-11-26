@@ -82,10 +82,10 @@ public class PawnTest_White extends PawnTest {
 	
 	@Test
 	public void test_CaptureEnPassantFromAFile() throws InvalidPieceException {
-		// Black is on a4, white moves b4, then black ml contains capture en passant, axb
+		// white is on a5, black moves b5, then black ml contains capture en passant, axb
 		classUnderTest = addWhitePawn( GenericPosition.a5 );
 		addBlackPawn( GenericPosition.b7 );
-		pm = new PositionManager( new Board( pl ), Colour.white );
+		pm = new PositionManager( new Board( pl ), Colour.black );
 		pm.performMove( new GenericMove( GenericPosition.b7, GenericPosition.b5 ));
 		ml = classUnderTest.generateMoves( pm.getTheBoard() );
 		expectedMove = new GenericMove( GenericPosition.a5, GenericPosition.b6 );

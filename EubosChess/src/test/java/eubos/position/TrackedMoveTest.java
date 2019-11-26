@@ -9,10 +9,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
-import eubos.board.pieces.King;
-import eubos.board.pieces.Pawn;
-import eubos.board.pieces.Piece;
-import eubos.board.pieces.Piece.Colour;
+import eubos.board.pieces.Piece.PieceType;
 import eubos.position.TrackedMove;
 
 public class TrackedMoveTest {
@@ -21,7 +18,7 @@ public class TrackedMoveTest {
 	
 	private static final GenericMove pawnCapture = new GenericMove(GenericPosition.a2,GenericPosition.b3);
 	private static final GenericMove pawnAdvance = new GenericMove(GenericPosition.a2,GenericPosition.a4);
-	private static final Pawn capturedBlackPawn = new Pawn(Colour.black, GenericPosition.b3);
+	private static final CaptureData capturedBlackPawn = new CaptureData(PieceType.BlackPawn, GenericPosition.b3);
 	private static final GenericPosition targetSq = GenericPosition.b3;
 	
 	@Before
@@ -58,16 +55,15 @@ public class TrackedMoveTest {
 
 	@Test
 	public void testGetCapturedPiece() {
-		assertTrue(classUnderTest.getCapturedPiece().equals(capturedBlackPawn));
+		assertTrue(classUnderTest.getCaptureData().equals(capturedBlackPawn));
 	}
 
 	@Test
 	public void testSetCapturedPiece() {
-		classUnderTest.setCapturedPiece(new King(Colour.white,GenericPosition.b3));
-		Piece captured = classUnderTest.getCapturedPiece();
-		assertTrue(captured.isWhite());
-		assertTrue(captured instanceof King);
-		assertTrue(captured.getSquare().equals(GenericPosition.b3));
+		classUnderTest.setCaptureData(new CaptureData(PieceType.WhiteKing,GenericPosition.b3));
+		CaptureData captured = classUnderTest.getCaptureData();
+		assertTrue(captured.target.equals(PieceType.WhiteKing));
+		assertTrue(captured.square.equals(GenericPosition.b3));
 	}
 
 	@Test

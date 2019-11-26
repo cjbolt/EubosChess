@@ -3,22 +3,23 @@ package eubos.position;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.board.pieces.Piece;
+import eubos.board.pieces.Piece.PieceType;
+import eubos.position.CaptureData;
 
 class TrackedMove {
 	private GenericMove move = null;
-	private Piece capturedPiece = null;
+	private CaptureData capture = null;
 	private GenericPosition enPassantTarget = null;
 	private String castleFenFlags = null;
 
-	TrackedMove( GenericMove inMove ) { move = inMove; }
-	TrackedMove( GenericMove inMove, Piece capture, GenericPosition enP, String castleFen) {
+	TrackedMove( GenericMove inMove ) { move = inMove; capture = new CaptureData(PieceType.NONE, null); }
+	TrackedMove( GenericMove inMove, CaptureData capture, GenericPosition enP, String castleFen) {
 		move = inMove; 
-		capturedPiece = capture;
+		this.capture = capture;
 		enPassantTarget = enP;
 		castleFenFlags = castleFen;
 	}
-	boolean isCapture() { return ((capturedPiece != null) ? true : false); }
+	boolean isCapture() { return (capture.target != PieceType.NONE); }
 	
 	boolean isCastle() { 
 		if (move.equals(CastlingManager.bksc) || 
@@ -36,11 +37,11 @@ class TrackedMove {
 	void setMove(GenericMove move) {
 		this.move = move;
 	}
-	Piece getCapturedPiece() {
-		return capturedPiece;
+	CaptureData getCaptureData() {
+		return capture;
 	}
-	void setCapturedPiece(Piece capturedPiece) {
-		this.capturedPiece = capturedPiece;
+	void setCaptureData(CaptureData capturedPiece) {
+		this.capture = capturedPiece;
 	}
 	GenericPosition getEnPassantTarget() {
 		return enPassantTarget;

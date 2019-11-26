@@ -10,6 +10,7 @@ import eubos.board.SquareAttackEvaluator;
 import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
+import eubos.position.CaptureData;
 import eubos.search.DrawChecker;
 import eubos.search.SearchContext;
 
@@ -35,12 +36,12 @@ public class PositionEvaluator implements IEvaluate {
 		} else if (pm.lastMoveWasCapture()) {
 			// we could keep a capture list, so we know where we are in the exchange series?
 			// we can get access to the captured piece in the current codebase, but we need to know the whole capture sequence to do swap off?
-			Piece captured = pm.getCapturedPiece();
+			CaptureData captured = pm.getCapturedPiece();
 			if (captured != null)
 			{
 				if (SquareAttackEvaluator.isAttacked(
 						pm.getTheBoard(),
-						captured.getSquare(),
+						captured.square,
 						Colour.getOpposite(pm.getOnMove())))
 					return false;
 			}

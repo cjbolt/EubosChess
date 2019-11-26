@@ -7,6 +7,23 @@ public abstract class Piece implements IPiece {
 		white, black; 
 		public static Colour getOpposite( Colour arg ) { return ((arg == white) ? black : white);}
 	};
+	
+	public enum PieceType {
+		WhiteKing,
+		WhiteQueen,
+		WhiteRook,
+		WhiteBishop,
+		WhiteKnight,
+		WhitePawn,
+		BlackKing,
+		BlackQueen,
+		BlackRook,
+		BlackBishop,
+		BlackKnight,
+		BlackPawn,
+		NONE
+	};
+	
 	protected Colour colour = Colour.black;
 	public Colour getColour() { return colour; }
 	public boolean isWhite() { return ( colour == Colour.white ); }

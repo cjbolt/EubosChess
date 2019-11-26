@@ -16,9 +16,11 @@ import eubos.board.pieces.King;
 import eubos.board.pieces.Knight;
 import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
+import eubos.board.pieces.Piece.PieceType;
 import eubos.board.pieces.Queen;
 import eubos.board.pieces.Rook;
 import eubos.board.pieces.Piece.Colour;
+import eubos.position.CaptureData;
 
 public class ZobristHashCode {
 	
@@ -130,8 +132,33 @@ public class ZobristHashCode {
 		return prnLookupTable[lookupIndex];
 	}
 	
+	protected long getPrnForPieceAlt(GenericPosition pos, PieceType currPiece) {
+		// compute prnLookup index to use, based on piece type, colour and square.
+		int lookupIndex=INDEX_WHITE;
+		int atFile = IntFile.valueOf(pos.file);
+		int atRank = IntRank.valueOf(pos.rank);
+		int pieceType = INDEX_PAWN; // Default
+		if (currPiece.equals(PieceType.WhiteKnight) || currPiece.equals(PieceType.BlackKnight)) {
+			pieceType = INDEX_KNIGHT;
+		} else if (currPiece.equals(PieceType.WhiteBishop) || currPiece.equals(PieceType.BlackBishop)) {
+			pieceType = INDEX_BISHOP;
+		} else if (currPiece.equals(PieceType.WhiteRook) || currPiece.equals(PieceType.BlackRook)) {
+			pieceType = INDEX_ROOK;
+		} else if (currPiece.equals(PieceType.WhiteQueen) || currPiece.equals(PieceType.BlackQueen)) {
+			pieceType = INDEX_QUEEN;
+		} else if (currPiece.equals(PieceType.WhiteKing) || currPiece.equals(PieceType.BlackKing)) {
+			pieceType = INDEX_KING;
+		}
+		lookupIndex = atFile + atRank * 8 + pieceType * NUM_SQUARES;
+		if (currPiece.equals(PieceType.BlackKnight) || currPiece.equals(PieceType.BlackBishop) || currPiece.equals(PieceType.BlackRook) ||
+			currPiece.equals(PieceType.BlackQueen) || currPiece.equals(PieceType.BlackKing) || currPiece.equals(PieceType.BlackPawn))
+			lookupIndex += INDEX_BLACK;
+		
+		return prnLookupTable[lookupIndex];
+	}
+	
 	// Used to update the Zobrist hash code whenever a position changes due to a move being performed
-	public void update(GenericMove move, Piece captureTarget, GenericFile enPassantFile) {
+	public void update(GenericMove move, CaptureData captureTarget, GenericFile enPassantFile) {
 		Piece piece = doBasicMove(move);
 		
 		doCapturedPiece(captureTarget);
@@ -190,9 +217,9 @@ public class ZobristHashCode {
 		return piece;
 	}
 
-	protected void doCapturedPiece(Piece captureTarget) {
-		if (captureTarget != null)
-			hashCode ^= getPrnForPiece(captureTarget.getSquare(), captureTarget);
+	protected void doCapturedPiece(CaptureData captureTarget) {
+		if (captureTarget.target != PieceType.NONE)
+			hashCode ^= getPrnForPieceAlt(captureTarget.square, captureTarget.target);
 	}
 
 	private void setTargetFile(GenericFile enPasFile) {

@@ -176,7 +176,7 @@ public class ZobristHashCodeTest {
 	}
 	
 	@Test
-	public void test_EndGame_RegenerateSamePositio() throws Exception {
+	public void test_EndGame_RegenerateSamePositionAlternate() throws Exception {
 		//GenericMove move = new GenericMove("g3g2");
 		PositionManager pm = new PositionManager("8/8/p6p/1p3kp1/1P6/P4PKP/5P2/8 w - - 0 1");
 		long originalHashCode = pm.getHash();

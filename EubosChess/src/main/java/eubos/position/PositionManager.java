@@ -15,6 +15,7 @@ import eubos.board.pieces.King;
 import eubos.board.pieces.Knight;
 import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
+import eubos.board.pieces.Piece.PieceType;
 import eubos.board.pieces.Queen;
 import eubos.board.pieces.Rook;
 import eubos.search.DrawChecker;
@@ -76,7 +77,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return moveTracker.lastMoveWasCapture();
 	}
 	
-	Piece getCapturedPiece() {
+	CaptureData getCapturedPiece() {
 		return moveTracker.getCapturedPiece();
 	}
 	
@@ -123,7 +124,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public void performMove( GenericMove move ) throws InvalidPieceException {
 		// Get the piece to move
-		Piece pieceToMove = theBoard.pickUpPieceAtSquare( move.from );
+		PieceType pieceToMove = theBoard.pickUpPieceAtSquare( move.from );
 		// Flag if move is an en passant capture
 		boolean isEnPassantCapture = isEnPassantCapture(move, pieceToMove);
 		// Save previous en passant square and initialise for this move
@@ -132,12 +133,12 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Handle pawn promotion moves
 		pieceToMove = checkForPawnPromotions(move, pieceToMove);
 		// Handle castling secondary rook moves...
-		if (pieceToMove instanceof King)
+		if (pieceToMove.equals(PieceType.BlackKing) || pieceToMove.equals(PieceType.WhiteKing))
 			castling.performSecondaryCastlingMove(move);
 		// Handle any initial 2 square pawn moves that are subject to en passant rule
 		GenericFile enPassantFile = checkToSetEnPassantTargetSq(move, pieceToMove);
 		// Handle capture target (note, this will be null if the move is not a capture)
-		Piece captureTarget = getCaptureTarget(move, pieceToMove, isEnPassantCapture);
+		CaptureData captureTarget = getCaptureTarget(move, pieceToMove, isEnPassantCapture);
 		// Store the necessary information to undo this move on the move tracker stack
 		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq, castling.getFenFlags()));
 		// Update the piece's square.
@@ -166,23 +167,23 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Actually undo the move by reversing its direction and reapplying it.
 		GenericMove reversedMove = new GenericMove( moveToUndo.to, moveToUndo.from, moveToUndo.promotion );
 		// Get the piece to move
-		Piece pieceToMove = theBoard.pickUpPieceAtSquare( reversedMove.from );
+		PieceType pieceToMove = theBoard.pickUpPieceAtSquare( reversedMove.from );
 		// Handle reversal of any castling secondary rook moves and associated flags...
-		if (pieceToMove instanceof King) {
+		if (pieceToMove.equals(PieceType.WhiteKing) || pieceToMove.equals(PieceType.BlackKing)) {
 			castling.unperformSecondaryCastlingMove(reversedMove);
 		}
 		updateSquarePieceOccupies(reversedMove.to, pieceToMove);
 		castling.setFenFlags(tm.getFenFlags());
 		// Undo any capture that had been previously performed.
 		if ( tm.isCapture()) {
-			theBoard.setPieceAtSquare(tm.getCapturedPiece());
+			theBoard.setPieceAtSquareAlt(tm.getCaptureData().square, tm.getCaptureData().target);
 		}
 		// Restore en passant target
 		GenericPosition enPasTargetSq = tm.getEnPassantTarget();
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		// Update hash code
 		if (hash != null) {
-			Piece capturedPiece = tm.isCapture() ? tm.getCapturedPiece() : null;
+			CaptureData capturedPiece = tm.isCapture() ? tm.getCaptureData() : new CaptureData(PieceType.NONE, null);
 			Boolean setEnPassant = (enPasTargetSq != null);
 			hash.update(reversedMove, capturedPiece, setEnPassant ? enPasTargetSq.file : null);
 		}
@@ -193,93 +194,97 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		}
 	}
 	
-	void updateSquarePieceOccupies(GenericPosition newSq, Piece pieceToMove) {
-		pieceToMove.setSquare(newSq);
-		theBoard.setPieceAtSquare(pieceToMove);
+	void updateSquarePieceOccupies(GenericPosition newSq, PieceType pieceToMove) {
+		theBoard.setPieceAtSquareAlt(newSq, pieceToMove);
 	}
-
-	private Piece checkForPawnPromotions(GenericMove move, Piece pieceToMove) {
+	
+	private PieceType checkForPawnPromotions(GenericMove move, PieceType pawn) {
+		boolean isWhite = pawn.equals(PieceType.WhitePawn);
+		PieceType type = pawn;
 		if ( move.promotion != null ) {
 			switch( move.promotion ) {
 			case QUEEN:
-				pieceToMove = new Queen(pieceToMove.getColour(), null );
+				type = isWhite ? PieceType.WhiteQueen : PieceType.BlackQueen;
 				break;
 			case KNIGHT:
-				pieceToMove = new Knight(pieceToMove.getColour(), null );
+				type = isWhite ? PieceType.WhiteKnight : PieceType.BlackKnight;
 				break;
 			case BISHOP:
-				pieceToMove = new Bishop(pieceToMove.getColour(), null );
+				type = isWhite ? PieceType.WhiteBishop : PieceType.BlackBishop;
 				break;
 			case ROOK:
-				pieceToMove = new Rook(pieceToMove.getColour(), null );
+				type = isWhite ? PieceType.WhiteRook : PieceType.BlackRook;
 				break;
 			default:
 				break;
 			}
 		}
-		return pieceToMove;
+		return type;
 	}
 	
 	private void checkToUndoPawnPromotion(GenericMove moveToUndo) {
 		if ( moveToUndo.promotion != null ) {
-			Piece.Colour colourToCreate;
-			try {
-				colourToCreate = theBoard.pickUpPieceAtSquare(moveToUndo.to).getColour();
-				theBoard.setPieceAtSquare( new Pawn( colourToCreate, moveToUndo.to ));
-			} catch (InvalidPieceException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			PieceType type = theBoard.pickUpPieceAtSquare(moveToUndo.to);
+			if (type.equals(PieceType.BlackKnight) || type.equals(PieceType.BlackBishop) || type.equals(PieceType.BlackRook) ||
+			    type.equals(PieceType.BlackQueen)) {
+				type = PieceType.BlackPawn;
+			} else {
+				type = PieceType.WhitePawn;
 			}
+			theBoard.setPieceAtSquareAlt(moveToUndo.to, type);
 		}
 	}
 	
-	private boolean isEnPassantCapture(GenericMove move, Piece pieceToMove) {
+	private boolean isEnPassantCapture(GenericMove move, PieceType pieceToMove) {
 		boolean enPassantCapture = false;
 		GenericPosition enPassantTargetSq = theBoard.getEnPassantTargetSq();
-		if ( enPassantTargetSq != null && pieceToMove instanceof Pawn && move.to == enPassantTargetSq) {
+		if ( enPassantTargetSq != null && (pieceToMove.equals(PieceType.BlackPawn) || pieceToMove.equals(PieceType.WhitePawn)) && move.to == enPassantTargetSq) {
 			enPassantCapture = true;
 		}
 		return enPassantCapture;
 	}
 	
-	private GenericFile checkToSetEnPassantTargetSq(GenericMove move, Piece pieceToMove) {
+	private GenericFile checkToSetEnPassantTargetSq(GenericMove move, PieceType pieceToMove) {
 		GenericFile enPassantFile = null;
-		if ( pieceToMove instanceof Pawn ) {
-			Pawn pawnPiece = (Pawn) pieceToMove;
-			if ( pawnPiece.isAtInitialPosition()) {
-				if ( pawnPiece.isWhite()) {
-					if (move.to.rank == GenericRank.R4) {
-						GenericPosition enPassantWhite = GenericPosition.valueOf(move.to.file,GenericRank.R3);
-						theBoard.setEnPassantTargetSq(enPassantWhite);
-						enPassantFile = enPassantWhite.file;
-					}
-				} else {
-					if (move.to.rank == GenericRank.R5) {
-						GenericPosition enPassantBlack = GenericPosition.valueOf(move.to.file,GenericRank.R6);
-						theBoard.setEnPassantTargetSq(enPassantBlack);
-						enPassantFile = enPassantBlack.file;
-					}						
+		if ( pieceToMove.equals(PieceType.WhitePawn)) {
+			if ( move.from.rank == GenericRank.R2) {
+				if (move.to.rank == GenericRank.R4) {
+					GenericPosition enPassantWhite = GenericPosition.valueOf(move.to.file,GenericRank.R3);
+					theBoard.setEnPassantTargetSq(enPassantWhite);
+					enPassantFile = enPassantWhite.file;
+				}
+			}
+		} else if (pieceToMove.equals(PieceType.BlackPawn)) {
+			if (move.from.rank == GenericRank.R7) {
+				if (move.to.rank == GenericRank.R5) {
+					GenericPosition enPassantBlack = GenericPosition.valueOf(move.to.file,GenericRank.R6);
+					theBoard.setEnPassantTargetSq(enPassantBlack);
+					enPassantFile = enPassantBlack.file;
 				}
 			}
 		}
 		return enPassantFile;
 	}
 	
-	private Piece getCaptureTarget(GenericMove move, Piece pieceToMove, boolean enPassantCapture) {
-		Piece captureTarget = null;
+	private CaptureData getCaptureTarget(GenericMove move, PieceType pieceToMove, boolean enPassantCapture) {
+		CaptureData cap = new CaptureData(PieceType.NONE, null);
 		if (enPassantCapture) {
-			GenericRank rank;
-			if (pieceToMove.isWhite()) {
+			GenericRank rank = GenericRank.R1;
+			if (pieceToMove.equals(PieceType.WhitePawn)) {
 				rank = GenericRank.R5;
-			} else {
+			} else if (pieceToMove.equals(PieceType.BlackPawn)){
 				rank = GenericRank.R4;
+			} else {
+				assert false;
 			}
 			GenericPosition capturePos = GenericPosition.valueOf(move.to.file,rank);
-			captureTarget = theBoard.captureAtSquare(capturePos);
+			cap.target = theBoard.captureAtSquare(capturePos);
+			cap.square = capturePos;
 		} else {
-			captureTarget = theBoard.captureAtSquare(move.to);
+			cap.target = theBoard.captureAtSquare(move.to);
+			cap.square = move.to;
 		}
-		return captureTarget;
+		return cap;
 	}
 	
 	public String getFen() {

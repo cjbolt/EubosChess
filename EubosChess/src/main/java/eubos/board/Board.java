@@ -10,6 +10,7 @@ import eubos.board.pieces.Knight;
 import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
+import eubos.board.pieces.Piece.PieceType;
 import eubos.board.pieces.Queen;
 import eubos.board.pieces.Rook;
 
@@ -117,6 +118,53 @@ public class Board implements Iterable<Piece> {
 		return piece;
 	}
 	
+	public void setPieceAtSquareAlt( GenericPosition atPos, PieceType pieceToPlace ) {
+		int rank = IntRank.valueOf(atPos.rank);
+		int file = IntFile.valueOf(atPos.file);
+		int bit_index = rank*8 +file;
+		// assert nothing there already
+		if (pieceToPlace.equals(PieceType.WhiteKing)) {
+			pieces[INDEX_KING].set(bit_index);
+			whitePieces.set(bit_index);
+		} else if (pieceToPlace.equals(PieceType.WhiteQueen)) {
+			pieces[INDEX_QUEEN].set(bit_index);
+			whitePieces.set(bit_index);
+		} else if (pieceToPlace.equals(PieceType.WhiteRook)) {
+			pieces[INDEX_ROOK].set(bit_index);
+			whitePieces.set(bit_index);
+		} else if (pieceToPlace.equals(PieceType.WhiteBishop)) {
+			pieces[INDEX_BISHOP].set(bit_index);
+			whitePieces.set(bit_index);
+		} else if (pieceToPlace.equals(PieceType.WhiteKnight)) {
+			pieces[INDEX_KNIGHT].set(bit_index);
+			whitePieces.set(bit_index);
+		} else if (pieceToPlace.equals(PieceType.WhitePawn)) {
+			pieces[INDEX_PAWN].set(bit_index);
+			whitePieces.set(bit_index);
+		} else if (pieceToPlace.equals(PieceType.BlackKing)) {
+			pieces[INDEX_KING].set(bit_index);
+			blackPieces.set(bit_index);
+		} else if (pieceToPlace.equals(PieceType.BlackQueen)) {
+			pieces[INDEX_QUEEN].set(bit_index);
+			blackPieces.set(bit_index);
+		} else if (pieceToPlace.equals(PieceType.BlackRook)) {
+			pieces[INDEX_ROOK].set(bit_index);
+			blackPieces.set(bit_index);
+		} else if (pieceToPlace.equals(PieceType.BlackBishop)) {
+			pieces[INDEX_BISHOP].set(bit_index);
+			blackPieces.set(bit_index);
+		} else if (pieceToPlace.equals(PieceType.BlackKnight)) {
+			pieces[INDEX_KNIGHT].set(bit_index);
+			blackPieces.set(bit_index);
+		} else if (pieceToPlace.equals(PieceType.BlackPawn)) {
+			pieces[INDEX_PAWN].set(bit_index);
+			blackPieces.set(bit_index);
+		} else {
+			assert false;
+		}
+		allPieces.set(bit_index);
+	}
+	
 	public void setPieceAtSquare( Piece pieceToPlace ) {
 		GenericPosition atPos = pieceToPlace.getSquare();
 		RankAndFile rnf = new RankAndFile(atPos);
@@ -156,19 +204,63 @@ public class Board implements Iterable<Piece> {
 		return king;
 	}
 
-	public Piece pickUpPieceAtSquare( GenericPosition atPos ) throws InvalidPieceException {
-		Piece pieceToPickUp = getPieceAndRemoveFromBoard(atPos);
-		if (pieceToPickUp == null ) throw new InvalidPieceException(atPos);
-		return pieceToPickUp;
+	public PieceType pickUpPieceAtSquare( GenericPosition atPos ) {
+		// Calculate bit index
+		PieceType type = PieceType.NONE;
+		int rank = IntRank.valueOf(atPos.rank);
+		int file = IntFile.valueOf(atPos.file);
+		int bit_index = rank*8 +file;
+		BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
+		if (blackPieces.and(pieceToPickUp).getSquareOccupied() != 0) {
+			if (pieces[INDEX_KING].isSet(bit_index)) {
+				pieces[INDEX_KING].clear(bit_index);
+				type = PieceType.BlackKing;
+			} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
+				pieces[INDEX_QUEEN].clear(bit_index);
+				type = PieceType.BlackQueen;
+			} else if (pieces[INDEX_ROOK].isSet(bit_index)) {
+				pieces[INDEX_ROOK].clear(bit_index);
+				type = PieceType.BlackRook;
+			} else if (pieces[INDEX_BISHOP].isSet(bit_index)) {
+				pieces[INDEX_BISHOP].clear(bit_index);
+				type = PieceType.BlackBishop;
+			} else if (pieces[INDEX_KNIGHT].isSet(bit_index)) {
+				pieces[INDEX_KNIGHT].clear(bit_index);
+				type = PieceType.BlackKnight;
+			} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
+				pieces[INDEX_PAWN].clear(bit_index);
+				type = PieceType.BlackPawn;
+			}
+			blackPieces.clear(bit_index);
+		} else {
+			if (pieces[INDEX_KING].isSet(bit_index)) {
+				pieces[INDEX_KING].clear(bit_index);
+				type = PieceType.WhiteKing;
+			} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
+				pieces[INDEX_QUEEN].clear(bit_index);
+				type = PieceType.WhiteQueen;
+			} else if (pieces[INDEX_ROOK].isSet(bit_index)) {
+				pieces[INDEX_ROOK].clear(bit_index);
+				type = PieceType.WhiteRook;
+			} else if (pieces[INDEX_BISHOP].isSet(bit_index)) {
+				pieces[INDEX_BISHOP].clear(bit_index);
+				type = PieceType.WhiteBishop;
+			} else if (pieces[INDEX_KNIGHT].isSet(bit_index)) {
+				pieces[INDEX_KNIGHT].clear(bit_index);
+				type = PieceType.WhiteKnight;
+			} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
+				pieces[INDEX_PAWN].clear(bit_index);
+				type = PieceType.WhitePawn;
+			}
+			whitePieces.clear(bit_index);
+		}
+		allPieces.clear(bit_index);
+		return type;
 	}
 	
-	public Piece captureAtSquare( GenericPosition atPos ) {
-		return getPieceAndRemoveFromBoard(atPos);	
+	public PieceType captureAtSquare( GenericPosition atPos ) {
+		return pickUpPieceAtSquare(atPos);	
 	}	
-	
-	private Piece getPieceAndRemoveFromBoard( GenericPosition atPos ) {
-		return createPiece(atPos, true);	
-	}
 	
 	public boolean checkIfOpposingPawnInFile(GenericFile file, GenericRank rank, Colour side) {
 		boolean opposingPawnPresentInFile = false;
@@ -206,7 +298,7 @@ public class Board implements Iterable<Piece> {
 		return false;
 	}
 	
-	private class RankAndFile {
+	public class RankAndFile {
 		public int rank = IntRank.NORANK;
 		public int file = IntFile.NOFILE;
 		
