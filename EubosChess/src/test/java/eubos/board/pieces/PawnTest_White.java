@@ -107,11 +107,13 @@ public class PawnTest_White extends PawnTest {
 	@Test
 	public void test_MoveOneSquare() throws InvalidPieceException {
 		// After initial move, ensure that a pawn can't move 2 any longer
-		classUnderTest = addWhitePawn( GenericPosition.e2 );
+		addWhitePawn( GenericPosition.e2 );
 		addBlackPawn( GenericPosition.f7 );
 		pm = new PositionManager( new Board( pl ), Colour.white );
 		pm.performMove( new GenericMove( GenericPosition.e2, GenericPosition.e4 ));
 		pm.performMove( new GenericMove( GenericPosition.f7, GenericPosition.f6 ));
+		
+		classUnderTest = (Pawn)pm.getTheBoard().getPieceAtSquare(GenericPosition.e4);
 		ml = classUnderTest.generateMoves( pm.getTheBoard() );
 		expectedMove = new GenericMove( GenericPosition.e4, GenericPosition.e5 );
 		assertTrue( ml.size() == 1 );

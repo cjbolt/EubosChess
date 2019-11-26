@@ -1,6 +1,5 @@
 package eubos.position;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -32,14 +31,12 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		theBoard = startingPosition;
 		castling = new CastlingManager(this);
 		onMove = colourToMove;
-		setKing();
 		pe = new PositionEvaluator( this, new DrawChecker() );
 	}
 	
 	public PositionManager( String fenString, DrawChecker dc) {
 		moveTracker = new MoveTracker();
 		new fenParser( this, fenString );
-		setKing();
 		this.hash = new ZobristHashCode(this);
 		pe = new PositionEvaluator( this, dc );
 	}
@@ -47,7 +44,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public PositionManager( String fenString) {
 		moveTracker = new MoveTracker();
 		new fenParser( this, fenString );
-		setKing();
 		this.hash = new ZobristHashCode(this);
 		pe = new PositionEvaluator( this, new DrawChecker() );
 	}
@@ -105,30 +101,11 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		moveNumber = move;
 	}
 
-	private King whiteKing;
-	private King blackKing;
-	King getKing( Colour colour ) {
-		return ((colour == Colour.white) ? whiteKing : blackKing);
-	}
-	private void setKing() {
-		King king = null;
-		Iterator<Piece> iterAllPieces = theBoard.iterator();
-		while (iterAllPieces.hasNext()) {
-			Piece currPiece = iterAllPieces.next();
-			if ( currPiece instanceof King ) {
-				king = (King)currPiece;
-				if (king.isWhite())
-					whiteKing = king;
-				else 
-					blackKing = king;
-			}
-		}
-	}
 	public boolean isKingInCheck() {
 		return isKingInCheck(onMove);
 	}
 	boolean isKingInCheck( Colour colour ) {
-		King ownKing = getKing(colour);
+		King ownKing = theBoard.getKing(colour);
 		boolean kingIsInCheck = (ownKing != null) ? theBoard.squareIsAttacked(ownKing.getSquare(), colour) : false;
 		return kingIsInCheck;		
 	}
@@ -245,8 +222,14 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	private void checkToUndoPawnPromotion(GenericMove moveToUndo) {
 		if ( moveToUndo.promotion != null ) {
-			Piece.Colour colourToCreate = theBoard.getPieceAtSquare(moveToUndo.to).getColour();
-			theBoard.setPieceAtSquare( new Pawn( colourToCreate, moveToUndo.to ));
+			Piece.Colour colourToCreate;
+			try {
+				colourToCreate = theBoard.pickUpPieceAtSquare(moveToUndo.to).getColour();
+				theBoard.setPieceAtSquare( new Pawn( colourToCreate, moveToUndo.to ));
+			} catch (InvalidPieceException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	

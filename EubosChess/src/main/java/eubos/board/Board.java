@@ -21,9 +21,25 @@ import com.fluxchess.jcpi.models.GenericRank;
 
 public class Board implements Iterable<Piece> {
 
-	private Piece[][] theBoard = new Piece[8][8];
-
+	private static final int INDEX_PAWN = 0;
+	private static final int INDEX_KNIGHT = 1;
+	private static final int INDEX_BISHOP = 2;
+	private static final int INDEX_ROOK = 3;
+	private static final int INDEX_QUEEN = 4;
+	private static final int INDEX_KING = 5;
+	
+	private BitBoard allPieces = null;
+	private BitBoard whitePieces = null;
+	private BitBoard blackPieces = null;
+	private BitBoard[] pieces = new BitBoard[6];
+	
 	public Board( List<Piece> pieceList ) {
+		allPieces = new BitBoard();
+		whitePieces = new BitBoard();
+		blackPieces = new BitBoard();
+		for (int i=0; i<=INDEX_KING; i++) {
+			pieces[i] = new BitBoard();
+		}
 		for ( Piece nextPiece : pieceList ) {
 			setPieceAtSquare( nextPiece );
 		}
@@ -49,21 +65,99 @@ public class Board implements Iterable<Piece> {
 	
 	public Piece getPieceAtSquare( GenericPosition atPos ) {
 		RankAndFile rnf = new RankAndFile(atPos);
-		return ( theBoard[rnf.file][rnf.rank] );
+		assert allPieces.isSet(rnf.rank, rnf.file);
+		return createPiece(atPos, false);
+	}
+	private Piece createPiece(GenericPosition atPos, boolean remove) {
+		RankAndFile rnf = new RankAndFile(atPos);
+		Piece.Colour col = Colour.white;
+		if (blackPieces.isSet(rnf.rank, rnf.file)) {
+			col = Colour.black;
+		}
+		Piece piece = null;
+		if (pieces[INDEX_KING].isSet(rnf.rank, rnf.file)) {
+			if (remove) {
+				pieces[INDEX_KING].clear(rnf.rank, rnf.file);
+			}
+			piece = new King(col, atPos);
+		} else if (pieces[INDEX_QUEEN].isSet(rnf.rank, rnf.file)) {
+			if (remove) {
+				pieces[INDEX_QUEEN].clear(rnf.rank, rnf.file);
+			}
+			piece = new Queen(col, atPos);
+		} else if (pieces[INDEX_ROOK].isSet(rnf.rank, rnf.file)) {
+			if (remove) {
+				pieces[INDEX_ROOK].clear(rnf.rank, rnf.file);
+			}
+			piece = new Rook(col, atPos);
+		} else if (pieces[INDEX_BISHOP].isSet(rnf.rank, rnf.file)) {
+			if (remove) {
+				pieces[INDEX_BISHOP].clear(rnf.rank, rnf.file);
+			}
+			piece = new Bishop(col, atPos);
+		} else if (pieces[INDEX_KNIGHT].isSet(rnf.rank, rnf.file)) {
+			if (remove) {
+				pieces[INDEX_KNIGHT].clear(rnf.rank, rnf.file);
+			}
+			piece = new Knight(col, atPos);
+		} else if (pieces[INDEX_PAWN].isSet(rnf.rank, rnf.file)) {
+			if (remove) {
+				pieces[INDEX_PAWN].clear(rnf.rank, rnf.file);
+			}
+			piece = new Pawn(col, atPos);
+		}
+		if (piece != null && remove) {
+			allPieces.clear(rnf.rank, rnf.file);
+			getBitBoardForColour(piece).clear(rnf.rank, rnf.file);
+		}
+		return piece;
 	}
 	
 	public void setPieceAtSquare( Piece pieceToPlace ) {
 		GenericPosition atPos = pieceToPlace.getSquare();
 		RankAndFile rnf = new RankAndFile(atPos);
-		theBoard[rnf.file][rnf.rank] = pieceToPlace;
+		if (pieceToPlace instanceof King) {
+			pieces[INDEX_KING].set(rnf.rank, rnf.file);
+		} else if (pieceToPlace instanceof Queen) {
+			pieces[INDEX_QUEEN].set(rnf.rank, rnf.file);
+		} else if (pieceToPlace instanceof Rook) {
+			pieces[INDEX_ROOK].set(rnf.rank, rnf.file);
+		} else if (pieceToPlace instanceof Bishop) {
+			pieces[INDEX_BISHOP].set(rnf.rank, rnf.file);
+		} else if (pieceToPlace instanceof Knight) {
+			pieces[INDEX_KNIGHT].set(rnf.rank, rnf.file);
+		} else if (pieceToPlace instanceof Pawn) {
+			pieces[INDEX_PAWN].set(rnf.rank, rnf.file);
+		} else {
+			assert false;
+		}
 		allPieces.set(rnf.rank, rnf.file);
 		getBitBoardForColour(pieceToPlace).set(rnf.rank, rnf.file);
+	}
+	
+	public King getKing(Piece.Colour kingToGet) {
+		King king = null;
+		/*BitBoard getFromBoard = null;
+		if (kingToGet.equals(Colour.white)) {
+			getFromBoard = whitePieces;
+		} else {
+			getFromBoard = blackPieces;
+		}*/
+		Iterator<Piece> iterAllPieces = this.iterateColour(kingToGet);
+		while (iterAllPieces.hasNext()) {
+			Piece currPiece = iterAllPieces.next();
+			if ( currPiece instanceof King ) {
+				king = (King)currPiece;
+				break;
+			}
+		}
+		return king;
 	}
 
 	public Piece pickUpPieceAtSquare( GenericPosition atPos ) throws InvalidPieceException {
 		Piece pieceToPickUp = getPieceAndRemoveFromBoard(atPos);
 		if (pieceToPickUp == null ) throw new InvalidPieceException(atPos);
-		return ( pieceToPickUp );
+		return pieceToPickUp;
 	}
 	
 	public Piece captureAtSquare( GenericPosition atPos ) {
@@ -71,14 +165,7 @@ public class Board implements Iterable<Piece> {
 	}	
 	
 	private Piece getPieceAndRemoveFromBoard( GenericPosition atPos ) {
-		RankAndFile rnf = new RankAndFile(atPos);
-		Piece pieceToGet = theBoard[rnf.file][rnf.rank];
-		if (pieceToGet != null) {
-			theBoard[rnf.file][rnf.rank] = null;
-			allPieces.clear(rnf.rank, rnf.file);
-			getBitBoardForColour(pieceToGet).clear(rnf.rank, rnf.file);
-		}
-		return ( pieceToGet );	
+		return createPiece(atPos, true);	
 	}
 	
 	public boolean checkIfOpposingPawnInFile(GenericFile file, GenericRank rank, Colour side) {
@@ -87,20 +174,34 @@ public class Board implements Iterable<Piece> {
 		int f = IntFile.valueOf(file);
 		if (side == Colour.white) {
 			for (r=r+1; r < 7; r++) {
-				if (isOpposingPawn(side, theBoard[f][r]))
+				if (isOpposingPawn(side, r, f))
 					opposingPawnPresentInFile = true;
 			}
 		} else {
 			for (r=r-1; r > 0; r--) {
-				if (isOpposingPawn(side, theBoard[f][r]))
+				if (isOpposingPawn(side, r, f))
 					opposingPawnPresentInFile = true;	
 			}			
 		}
 		return opposingPawnPresentInFile;
 	}
 	
-	private boolean isOpposingPawn(Colour ownSide, Piece p) {
-		return (p != null && p instanceof Pawn && ownSide != p.getColour()) ? true : false;
+	private boolean isOpposingPawn(Colour ownSide, int rank, int file) {
+		boolean isPawn = pieces[INDEX_PAWN].isSet(rank, file);
+		if (isPawn) {
+			boolean enemyPawn = false;
+			if (ownSide.equals(Colour.white)) {
+				if (blackPieces.isSet(rank, file)) {
+					enemyPawn = true;
+				}
+			} else {
+				if (whitePieces.isSet(rank, file)) {
+					enemyPawn = true;
+				}
+			}
+			return enemyPawn;
+		}
+		return false;
 	}
 	
 	private class RankAndFile {
@@ -119,7 +220,7 @@ public class Board implements Iterable<Piece> {
 		StringBuilder fen = new StringBuilder();
 		for (int rank=7; rank>=0; rank--) {
 			for (int file=0; file<8; file++) {
-				currPiece = theBoard[file][rank];
+				currPiece = createPiece(GenericPosition.valueOf(IntFile.toGenericFile(file),IntRank.toGenericRank(rank)), false);
 				if (currPiece != null) {
 					if (spaceCounter != 0)
 						fen.append(spaceCounter);
@@ -157,9 +258,6 @@ public class Board implements Iterable<Piece> {
 		return chessman;
 	}
 	
-	private BitBoard allPieces = new BitBoard();
-	private BitBoard whitePieces = new BitBoard();
-	private BitBoard blackPieces = new BitBoard();
 	private BitBoard getBitBoardForColour(Piece pieceToPickUp) {
 		BitBoard bitBoardForColour;
 		if (pieceToPickUp.isWhite()) {
@@ -195,7 +293,7 @@ public class Board implements Iterable<Piece> {
 			for (int bit_index: bitBoardToIterate) {
 				int file = bit_index%8;
 				int rank = bit_index/8;
-				iterList.add(theBoard[file][rank]);
+				iterList.add(createPiece(GenericPosition.valueOf(IntFile.toGenericFile(file),IntRank.toGenericRank(rank)), false));
 			}
 		}	
 
