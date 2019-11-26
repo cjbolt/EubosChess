@@ -64,10 +64,14 @@ public class Board implements Iterable<Piece> {
 	}
 	
 	public Piece getPieceAtSquare( GenericPosition atPos ) {
+		Piece piece = null;
 		RankAndFile rnf = new RankAndFile(atPos);
-		assert allPieces.isSet(rnf.rank, rnf.file);
-		return createPiece(atPos, false);
+		if (allPieces.isSet(rnf.rank, rnf.file)) {
+			piece = createPiece(atPos, false);
+		}
+		return piece;
 	}
+	
 	private Piece createPiece(GenericPosition atPos, boolean remove) {
 		RankAndFile rnf = new RankAndFile(atPos);
 		Piece.Colour col = Colour.white;
