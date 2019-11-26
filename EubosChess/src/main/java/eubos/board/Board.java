@@ -137,19 +137,17 @@ public class Board implements Iterable<Piece> {
 	
 	public King getKing(Piece.Colour kingToGet) {
 		King king = null;
-		/*BitBoard getFromBoard = null;
+		BitBoard getFromBoard = null;
 		if (kingToGet.equals(Colour.white)) {
 			getFromBoard = whitePieces;
 		} else {
 			getFromBoard = blackPieces;
-		}*/
-		Iterator<Piece> iterAllPieces = this.iterateColour(kingToGet);
-		while (iterAllPieces.hasNext()) {
-			Piece currPiece = iterAllPieces.next();
-			if ( currPiece instanceof King ) {
-				king = (King)currPiece;
-				break;
-			}
+		}
+		BitBoard temp = getFromBoard.and(pieces[INDEX_KING]);
+		for (int bit_index: temp) {
+			int file = bit_index%8;
+			int rank = bit_index/8;
+			king = new King(kingToGet, GenericPosition.valueOf(IntFile.toGenericFile(file),IntRank.toGenericRank(rank)));
 		}
 		return king;
 	}

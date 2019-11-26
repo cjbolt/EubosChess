@@ -7,12 +7,22 @@ public class BitBoard implements Iterable<Integer> {
 	
 	private long bitBoard = 0x0L;
 	
+	public BitBoard(long board) {
+		bitBoard = board;
+	}
+	
+	public BitBoard() { this(0); }
+	
 	public long getSquareOccupied() {
 		return bitBoard;
 	}
 	
 	private static int getBitFromRankAndFile(int rank, int file) {
 		return(rank*8+file);
+	}
+	
+	public BitBoard and(BitBoard other) {
+		return new BitBoard(this.bitBoard & other.bitBoard);
 	}
 
 	public void set(int rank, int file) {
