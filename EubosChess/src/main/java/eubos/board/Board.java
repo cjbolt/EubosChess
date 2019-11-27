@@ -2,7 +2,8 @@ package eubos.board;
 
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import eubos.board.pieces.Bishop;
 import eubos.board.pieces.King;
@@ -34,15 +35,15 @@ public class Board implements Iterable<Piece> {
 	private BitBoard blackPieces = null;
 	private BitBoard[] pieces = new BitBoard[6];
 	
-	public Board( List<Piece> pieceList ) {
+	public Board( Map<GenericPosition, PieceType> pieceMap ) {
 		allPieces = new BitBoard();
 		whitePieces = new BitBoard();
 		blackPieces = new BitBoard();
 		for (int i=0; i<=INDEX_KING; i++) {
 			pieces[i] = new BitBoard();
 		}
-		for ( Piece nextPiece : pieceList ) {
-			setPieceAtSquare( nextPiece );
+		for ( Entry<GenericPosition, PieceType> nextPiece : pieceMap.entrySet() ) {
+			setPieceAtSquare( nextPiece.getKey(), nextPiece.getValue() );
 		}
 	}
 	
@@ -118,7 +119,7 @@ public class Board implements Iterable<Piece> {
 		return piece;
 	}
 	
-	public void setPieceAtSquareAlt( GenericPosition atPos, PieceType pieceToPlace ) {
+	public void setPieceAtSquare( GenericPosition atPos, PieceType pieceToPlace ) {
 		int rank = IntRank.valueOf(atPos.rank);
 		int file = IntFile.valueOf(atPos.file);
 		int bit_index = rank*8 +file;
@@ -163,28 +164,6 @@ public class Board implements Iterable<Piece> {
 			assert false;
 		}
 		allPieces.set(bit_index);
-	}
-	
-	public void setPieceAtSquare( Piece pieceToPlace ) {
-		GenericPosition atPos = pieceToPlace.getSquare();
-		RankAndFile rnf = new RankAndFile(atPos);
-		if (pieceToPlace instanceof King) {
-			pieces[INDEX_KING].set(rnf.rank, rnf.file);
-		} else if (pieceToPlace instanceof Queen) {
-			pieces[INDEX_QUEEN].set(rnf.rank, rnf.file);
-		} else if (pieceToPlace instanceof Rook) {
-			pieces[INDEX_ROOK].set(rnf.rank, rnf.file);
-		} else if (pieceToPlace instanceof Bishop) {
-			pieces[INDEX_BISHOP].set(rnf.rank, rnf.file);
-		} else if (pieceToPlace instanceof Knight) {
-			pieces[INDEX_KNIGHT].set(rnf.rank, rnf.file);
-		} else if (pieceToPlace instanceof Pawn) {
-			pieces[INDEX_PAWN].set(rnf.rank, rnf.file);
-		} else {
-			assert false;
-		}
-		allPieces.set(rnf.rank, rnf.file);
-		getBitBoardForColour(pieceToPlace).set(rnf.rank, rnf.file);
 	}
 	
 	public King getKing(Piece.Colour kingToGet) {

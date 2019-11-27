@@ -14,25 +14,27 @@ import com.fluxchess.jcpi.models.*;
 public class PawnTest_White extends PawnTest {
 	@Test
 	public void test_InitialMoveOneSquare() {
-		classUnderTest = addWhitePawn( GenericPosition.e2 );
-		ml = classUnderTest.generateMoves(new Board( pl ));
+		theBoard = new PositionManager("8/8/8/8/8/8/4P3/8 w - - 0 1").getTheBoard();
+		classUnderTest = (Pawn)theBoard.getPieceAtSquare( GenericPosition.e2 );
+		ml = classUnderTest.generateMoves(theBoard);
 		expectedMove = new GenericMove( GenericPosition.e2, GenericPosition.e4 );
 		assertTrue( ml.contains( expectedMove ));
 	}
 
 	@Test
 	public void test_InitialMoveTwoSquares() {
-		classUnderTest = addWhitePawn( GenericPosition.e2 );
-		ml = classUnderTest.generateMoves(new Board( pl ));
+		theBoard = new PositionManager("8/8/8/8/8/8/4P3/8 w - - 0 1").getTheBoard();
+		classUnderTest = (Pawn)theBoard.getPieceAtSquare( GenericPosition.e2 );
+		ml = classUnderTest.generateMoves(theBoard);
 		expectedMove = new GenericMove( GenericPosition.e2, GenericPosition.e3 );
 		assertTrue( ml.contains( expectedMove ));
 	}
 	
 	@Test
 	public void test_InitialBlocked() {
-		classUnderTest = addWhitePawn( GenericPosition.e2 );
-		addBlackPawn( GenericPosition.e3 );
-		ml = classUnderTest.generateMoves(new Board( pl ));
+		theBoard = new PositionManager("8/8/8/8/8/4p3/4P3/8 w - - 0 1").getTheBoard();
+		classUnderTest = (Pawn)theBoard.getPieceAtSquare( GenericPosition.e2 );
+		ml = classUnderTest.generateMoves(theBoard);
 		assertTrue( ml.isEmpty() );
 	}
 
@@ -172,32 +174,36 @@ public class PawnTest_White extends PawnTest {
 	
 	@Test
 	public void test_PromoteQueen() {
-		classUnderTest = addWhitePawn( GenericPosition.e7 );
-		ml = classUnderTest.generateMoves(new Board( pl ));
+		pm = new PositionManager("8/4P3/8/8/8/8/8/8 b - - 0 1 ");
+		classUnderTest = (Pawn)pm.getTheBoard().getPieceAtSquare(GenericPosition.e7);
+		ml = classUnderTest.generateMoves( pm.getTheBoard() );
 		expectedMove = new GenericMove( GenericPosition.e7, GenericPosition.e8, GenericChessman.QUEEN );
 		assertTrue( ml.contains( expectedMove ));
 	}	
 
 	@Test
 	public void test_PromoteKnight() {
-		classUnderTest = addWhitePawn( GenericPosition.e7 );
-		ml = classUnderTest.generateMoves(new Board( pl ));
+		pm = new PositionManager("8/4P3/8/8/8/8/8/8 b - - 0 1 ");
+		classUnderTest = (Pawn)pm.getTheBoard().getPieceAtSquare(GenericPosition.e7);
+		ml = classUnderTest.generateMoves( pm.getTheBoard() );
 		expectedMove = new GenericMove( GenericPosition.e7, GenericPosition.e8, GenericChessman.KNIGHT );
 		assertTrue( ml.contains( expectedMove ));		
 	}
 
 	@Test
 	public void test_PromoteBishop() {
-		classUnderTest = addWhitePawn( GenericPosition.e7 );
-		ml = classUnderTest.generateMoves(new Board( pl ));
+		pm = new PositionManager("8/4P3/8/8/8/8/8/8 b - - 0 1 ");
+		classUnderTest = (Pawn)pm.getTheBoard().getPieceAtSquare(GenericPosition.e7);
+		ml = classUnderTest.generateMoves( pm.getTheBoard() );
 		expectedMove = new GenericMove( GenericPosition.e7, GenericPosition.e8, GenericChessman.BISHOP );
 		assertTrue( ml.contains( expectedMove ));			
 	}
 
 	@Test
 	public void test_PromoteRook() {
-		classUnderTest = addWhitePawn( GenericPosition.e7 );
-		ml = classUnderTest.generateMoves(new Board( pl ));
+		pm = new PositionManager("8/4P3/8/8/8/8/8/8 b - - 0 1 ");
+		classUnderTest = (Pawn)pm.getTheBoard().getPieceAtSquare(GenericPosition.e7);
+		ml = classUnderTest.generateMoves( pm.getTheBoard() );
 		expectedMove = new GenericMove( GenericPosition.e7, GenericPosition.e8, GenericChessman.ROOK );
 		assertTrue( ml.contains( expectedMove ));	
 	}

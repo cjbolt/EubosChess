@@ -2,7 +2,8 @@ package eubos.board;
 
 import static org.junit.Assert.*;
 
-import java.util.LinkedList;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -10,21 +11,19 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericPosition;
 
 import eubos.board.Board;
-import eubos.board.pieces.King;
 import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
-import eubos.board.pieces.Piece.Colour;
 import eubos.board.pieces.Piece.PieceType;
 
 public class BoardTest {
 	
 	private Board classUnderTest;
-	private LinkedList<Piece> pl;
+	private Map<GenericPosition, PieceType> pl;
 	private static final GenericPosition testSq = GenericPosition.a1;
 	
 	@Before
 	public void setUp() throws Exception {
-		pl = new LinkedList<Piece>();
+		pl = new HashMap<GenericPosition, PieceType>();
 		classUnderTest = new Board(pl);
 	}
 
@@ -53,17 +52,15 @@ public class BoardTest {
 
 	@Test
 	public void testSetPieceAtSquare_and_squareIsEmpty() {
-		Pawn pieceToPlace = new Pawn(Colour.white,testSq);
 		assertTrue(classUnderTest.squareIsEmpty(testSq));
-		classUnderTest.setPieceAtSquare(pieceToPlace);
+		classUnderTest.setPieceAtSquare(testSq, PieceType.WhitePawn);
 		assertFalse(classUnderTest.squareIsEmpty(testSq));
 	}
 
 	@Test
 	public void testPickUpPieceAtSquare_Exists() throws InvalidPieceException {
-		Pawn pieceToPlace = new Pawn(Colour.white,testSq);
 		assertTrue(classUnderTest.squareIsEmpty(testSq));
-		classUnderTest.setPieceAtSquare(pieceToPlace);
+		classUnderTest.setPieceAtSquare(testSq, PieceType.WhitePawn);
 		assertFalse(classUnderTest.squareIsEmpty(testSq));
 		PieceType pickedUpPiece = classUnderTest.pickUpPieceAtSquare(testSq);
 		assertTrue(classUnderTest.squareIsEmpty(testSq));
@@ -77,9 +74,8 @@ public class BoardTest {
 
 	@Test
 	public void testGetPieceAtSquare_Exists() {
-		Pawn pieceToPlace = new Pawn(Colour.white,testSq);
 		assertTrue(classUnderTest.squareIsEmpty(testSq));
-		classUnderTest.setPieceAtSquare(pieceToPlace);
+		classUnderTest.setPieceAtSquare(testSq, PieceType.WhitePawn);
 		assertFalse(classUnderTest.squareIsEmpty(testSq));
 		Piece gotPiece = classUnderTest.getPieceAtSquare(testSq);
 		assertFalse(classUnderTest.squareIsEmpty(testSq));
@@ -98,44 +94,35 @@ public class BoardTest {
 	
 	@Test
 	public void testGetAsFenString() {
-		Pawn pieceToPlace = new Pawn(Colour.white,testSq);
-		classUnderTest.setPieceAtSquare(pieceToPlace);
+		classUnderTest.setPieceAtSquare(testSq, PieceType.WhitePawn);
 		assertEquals("8/8/8/8/8/8/8/P7",classUnderTest.getAsFenString());
 	}
 	
 	@Test
 	public void testGetAsFenString1() {
-		Piece pieceToPlace = new Pawn(Colour.white,testSq);
-		classUnderTest.setPieceAtSquare(pieceToPlace);
-		pieceToPlace = new King(Colour.white, GenericPosition.c1);
-		classUnderTest.setPieceAtSquare(pieceToPlace);
+		classUnderTest.setPieceAtSquare(testSq, PieceType.WhitePawn);
+		classUnderTest.setPieceAtSquare(GenericPosition.c1, PieceType.WhiteKing);
 		assertEquals("8/8/8/8/8/8/8/P1K5",classUnderTest.getAsFenString());
 	}
 	
 	@Test
 	public void testGetAsFenString2() {
-		Piece pieceToPlace = new Pawn(Colour.white,GenericPosition.h1);
-		classUnderTest.setPieceAtSquare(pieceToPlace);
-		pieceToPlace = new King(Colour.white, GenericPosition.g1);
-		classUnderTest.setPieceAtSquare(pieceToPlace);
+		classUnderTest.setPieceAtSquare(GenericPosition.h1, PieceType.WhitePawn);
+		classUnderTest.setPieceAtSquare(GenericPosition.g1, PieceType.WhiteKing);
 		assertEquals("8/8/8/8/8/8/8/6KP",classUnderTest.getAsFenString());
 	}
 	
 	@Test
 	public void testGetAsFenString3() {
-		Piece pieceToPlace = new Pawn(Colour.black,GenericPosition.h1);
-		classUnderTest.setPieceAtSquare(pieceToPlace);
-		pieceToPlace = new King(Colour.black, GenericPosition.g1);
-		classUnderTest.setPieceAtSquare(pieceToPlace);
+		classUnderTest.setPieceAtSquare(GenericPosition.h1, PieceType.BlackPawn);
+		classUnderTest.setPieceAtSquare(GenericPosition.g1, PieceType.BlackKing);
 		assertEquals("8/8/8/8/8/8/8/6kp",classUnderTest.getAsFenString());
 	}
 	
 	@Test
 	public void testGetAsFenString4() {
-		Piece pieceToPlace = new Pawn(Colour.black,GenericPosition.h8);
-		classUnderTest.setPieceAtSquare(pieceToPlace);
-		pieceToPlace = new King(Colour.black, GenericPosition.g8);
-		classUnderTest.setPieceAtSquare(pieceToPlace);
+		classUnderTest.setPieceAtSquare(GenericPosition.h8, PieceType.BlackPawn);
+		classUnderTest.setPieceAtSquare(GenericPosition.g8, PieceType.BlackKing);
 		assertEquals("6kp/8/8/8/8/8/8/8",classUnderTest.getAsFenString());
 	}
 }

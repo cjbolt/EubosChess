@@ -11,15 +11,8 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.board.Board;
 import eubos.board.InvalidPieceException;
-import eubos.board.pieces.Bishop;
-import eubos.board.pieces.King;
-import eubos.board.pieces.Knight;
-import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
-import eubos.board.pieces.Queen;
-import eubos.board.pieces.Rook;
 import eubos.board.pieces.Piece.Colour;
 import eubos.position.PositionManager;
 import eubos.search.NoLegalMoveException;
@@ -62,9 +55,7 @@ public class RandomMoveGeneratorTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		pl.add(new King( Colour.black, GenericPosition.a8 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.c6 ));
-		PositionManager bm = new PositionManager( new Board( pl ), Colour.black );
+		PositionManager bm = new PositionManager( "k7/8/2P5/8/8/8/8/8 b - - 0 1" );
 		classUnderTest = new RandomMoveGenerator( bm, Colour.black );
 		expectedMove = new GenericMove( GenericPosition.a8, GenericPosition.b7 );
 		performTest(false);
@@ -81,14 +72,8 @@ public class RandomMoveGeneratorTest {
 		// 2 PPP.....
 		// 1 kP......
 		//   abcdefgh
-		pl.add(new King( Colour.white, GenericPosition.a1 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.b1 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.a2 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.b2 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.c2 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.b3 ));
 		// pawn at b2 can be captured to escape check
-		PositionManager bm = new PositionManager( new Board( pl ), Colour.white );
+		PositionManager bm = new PositionManager("8/8/8/8/8/1p6/ppp5/Kp6 w - - 0 1");
 		classUnderTest = new RandomMoveGenerator( bm, Colour.white );
 		expectedMove = new GenericMove( GenericPosition.a1, GenericPosition.b2 );
 		performTest(true);			
@@ -105,12 +90,8 @@ public class RandomMoveGeneratorTest {
 		// 2 .P......
 		// 1 k.......
 		//   abcdefgh
-		pl.add(new King( Colour.white, GenericPosition.a1 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.b2 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.b3 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.c3 ));
 		// king can move out of check to b1
-		PositionManager bm = new PositionManager( new Board( pl ), Colour.white );
+		PositionManager bm = new PositionManager("8/8/8/8/8/1pp5/1p6/K7 w - - 0 1 ");
 		classUnderTest = new RandomMoveGenerator( bm, Colour.white );
 		expectedMove = new GenericMove( GenericPosition.a1, GenericPosition.b1 );
 		performTest(true);
@@ -127,47 +108,8 @@ public class RandomMoveGeneratorTest {
 		// 2 PPP.....
 		// 1 kP......
 		//   abcdefgh
-		pl.add(new King( Colour.white, GenericPosition.a1 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.b1 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.a2 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.b2 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.c2 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.b3 ));
-		pl.add(new Pawn( Colour.black, GenericPosition.c3 ));
-		PositionManager bm = new PositionManager( new Board( pl ), Colour.white );
+		PositionManager bm = new PositionManager("8/8/8/8/8/1pp5/ppp5/Kp6 w - - 0 1");
 		classUnderTest = new RandomMoveGenerator( bm, Colour.white );
 		classUnderTest.findMove((byte)0);
 	}
-	
-	@Test
-	public void test_findBestMove_ArenaFailKingMove() throws NoLegalMoveException, InvalidPieceException {
-		// 8 ..b.q...
-		// 7 ......K.
-		// 6 ..q.....
-		// 5 p.....b.
-		// 4 ....p...
-		// 3 .p...npn
-		// 2 ........
-		// 1 ..kr...r
-		//   abcdefgh
-		pl.add(new King( Colour.black, GenericPosition.g7 ));
-		pl.add(new King( Colour.white, GenericPosition.c1 ));
-		pl.add(new Rook( Colour.white, GenericPosition.d1 ));
-		pl.add(new Rook( Colour.white, GenericPosition.h1 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.b3 ));
-		pl.add(new Knight( Colour.white, GenericPosition.f3 ));
-		pl.add(new Knight( Colour.white, GenericPosition.h3 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.g3 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.e4 ));
-		pl.add(new Pawn( Colour.white, GenericPosition.a5 ));
-		pl.add(new Queen( Colour.white, GenericPosition.c6 ));
-		pl.add(new Queen( Colour.white, GenericPosition.e8 ));
-		pl.add(new Bishop( Colour.white, GenericPosition.c8 ));
-		pl.add(new Bishop( Colour.white, GenericPosition.g5 ));		
-		PositionManager bm = new PositionManager( new Board( pl ), Colour.black );
-		classUnderTest = new RandomMoveGenerator( bm, Colour.black );
-		classUnderTest.findMove((byte)0);
-		expectedMove = new GenericMove( GenericPosition.g7, GenericPosition.h7 );
-		performTest(true);
-	}	
 }

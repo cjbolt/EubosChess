@@ -1,7 +1,7 @@
 package eubos.position;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericMove;
@@ -10,14 +10,9 @@ import com.fluxchess.jcpi.models.GenericRank;
 
 import eubos.board.Board;
 import eubos.board.InvalidPieceException;
-import eubos.board.pieces.Bishop;
 import eubos.board.pieces.King;
-import eubos.board.pieces.Knight;
-import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.PieceType;
-import eubos.board.pieces.Queen;
-import eubos.board.pieces.Rook;
 import eubos.search.DrawChecker;
 import eubos.board.pieces.Piece.Colour;
 
@@ -176,7 +171,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		castling.setFenFlags(tm.getFenFlags());
 		// Undo any capture that had been previously performed.
 		if ( tm.isCapture()) {
-			theBoard.setPieceAtSquareAlt(tm.getCaptureData().square, tm.getCaptureData().target);
+			theBoard.setPieceAtSquare(tm.getCaptureData().square, tm.getCaptureData().target);
 		}
 		// Restore en passant target
 		GenericPosition enPasTargetSq = tm.getEnPassantTarget();
@@ -195,7 +190,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	void updateSquarePieceOccupies(GenericPosition newSq, PieceType pieceToMove) {
-		theBoard.setPieceAtSquareAlt(newSq, pieceToMove);
+		theBoard.setPieceAtSquare(newSq, pieceToMove);
 	}
 	
 	private PieceType checkForPawnPromotions(GenericMove move, PieceType pawn) {
@@ -231,7 +226,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			} else {
 				type = PieceType.WhitePawn;
 			}
-			theBoard.setPieceAtSquareAlt(moveToUndo.to, type);
+			theBoard.setPieceAtSquare(moveToUndo.to, type);
 		}
 	}
 	
@@ -306,10 +301,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	private class fenParser {
-		private List<Piece> pl;
+		private Map<GenericPosition, PieceType> pl;
 		
 		public fenParser( PositionManager pm, String fenString ) {
-			pl = new LinkedList<Piece>();
+			pl = new HashMap<GenericPosition, PieceType>();
 			String[] tokens = fenString.split(" ");
 			String piecePlacement = tokens[0];
 			String colourOnMove = tokens[1];
@@ -343,51 +338,51 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 				switch(c)
 				{
 				case 'r':
-					pl.add(new Rook( Colour.black, GenericPosition.valueOf(f,r)));
+					pl.put(GenericPosition.valueOf(f,r), PieceType.BlackRook);
 					f = advanceFile(f);
 					break;
 				case 'R':
-					pl.add(new Rook( Colour.white, GenericPosition.valueOf(f,r)));
+					pl.put(GenericPosition.valueOf(f,r), PieceType.WhiteRook);
 					f = advanceFile(f);
 					break;
 				case 'n':
-					pl.add(new Knight( Colour.black, GenericPosition.valueOf(f,r)));
+					pl.put(GenericPosition.valueOf(f,r), PieceType.BlackKnight);
 					f = advanceFile(f);
 					break;
 				case 'N':
-					pl.add(new Knight( Colour.white, GenericPosition.valueOf(f,r)));
+					pl.put(GenericPosition.valueOf(f,r), PieceType.WhiteKnight);
 					f = advanceFile(f);
 					break;
 				case 'b':
-					pl.add(new Bishop( Colour.black, GenericPosition.valueOf(f,r)));
+					pl.put(GenericPosition.valueOf(f,r), PieceType.BlackBishop);
 					f = advanceFile(f);
 					break;
 				case 'B':
-					pl.add(new Bishop( Colour.white, GenericPosition.valueOf(f,r)));
+					pl.put(GenericPosition.valueOf(f,r), PieceType.WhiteBishop);
 					f = advanceFile(f);
 					break;
 				case 'q':
-					pl.add(new Queen( Colour.black, GenericPosition.valueOf(f,r)));
+					pl.put(GenericPosition.valueOf(f,r), PieceType.BlackQueen);
 					f = advanceFile(f);
 					break;
 				case 'Q':
-					pl.add(new Queen( Colour.white, GenericPosition.valueOf(f,r)));
+					pl.put(GenericPosition.valueOf(f,r), PieceType.WhiteQueen);
 					f = advanceFile(f);
 					break;
 				case 'k':
-					pl.add(new King( Colour.black, GenericPosition.valueOf(f,r)));
+					pl.put(GenericPosition.valueOf(f,r), PieceType.BlackKing);
 					f = advanceFile(f);
 					break;
 				case 'K':
-					pl.add(new King( Colour.white, GenericPosition.valueOf(f,r)));
+					pl.put(GenericPosition.valueOf(f,r), PieceType.WhiteKing);
 					f = advanceFile(f);
 					break;
 				case 'p':
-					pl.add(new Pawn( Colour.black, GenericPosition.valueOf(f,r)));
+					pl.put(GenericPosition.valueOf(f,r), PieceType.BlackPawn);
 					f = advanceFile(f);
 					break;
 				case 'P':
-					pl.add(new Pawn( Colour.white, GenericPosition.valueOf(f,r)));
+					pl.put(GenericPosition.valueOf(f,r), PieceType.WhitePawn);
 					f = advanceFile(f);
 					break;
 				case '1':
