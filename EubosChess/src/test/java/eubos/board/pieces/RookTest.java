@@ -3,13 +3,11 @@ package eubos.board.pieces;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.board.pieces.Piece.Colour;
 import eubos.position.PositionManager;
 
 public class RookTest extends PieceTest {
@@ -111,14 +109,10 @@ public class RookTest extends PieceTest {
 	}
 	
 	@Test
-	@Ignore //Fix construction
 	public void test_Middle_Unobstructed() {
-		classUnderTest = new Rook( Colour.black, GenericPosition.e4 );
-		pl.add(new Pawn( Colour.white, GenericPosition.d3));
-		pl.add(new Pawn( Colour.white, GenericPosition.d5));
-		pl.add(new Pawn( Colour.white, GenericPosition.f3));
-		pl.add(new Pawn( Colour.white, GenericPosition.f5));
-		ml = completeSetupAndGenerateMoves();
+		pm = new PositionManager("8/8/8/3P1P2/4r3/3P1P2/8/8 b - - 0 1 ");
+		classUnderTest = (Rook)pm.getTheBoard().getPieceAtSquare( GenericPosition.e4 );
+		ml = classUnderTest.generateMoves(pm.getTheBoard());
 		expectedMoves.add( new GenericMove( GenericPosition.e4, GenericPosition.f4 ));
 		expectedMoves.add( new GenericMove( GenericPosition.e4, GenericPosition.d4 ));
 		expectedMoves.add( new GenericMove( GenericPosition.e4, GenericPosition.e5 ));

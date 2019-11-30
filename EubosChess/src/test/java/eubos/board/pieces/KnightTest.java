@@ -5,7 +5,7 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.board.pieces.Piece.Colour;
+import eubos.position.PositionManager;
 
 public class KnightTest extends PieceTest {
 	
@@ -13,8 +13,9 @@ public class KnightTest extends PieceTest {
 	@Test
 	public void test_SquareA8() {
 		startTestOnSq = GenericPosition.a8;
-		classUnderTest = new Knight( Colour.white, startTestOnSq );
-		ml = completeSetupAndGenerateMoves();
+		pm = new PositionManager("N7/8/8/8/8/8/8/8 w - - 0 1");
+		classUnderTest = (Knight)pm.getTheBoard().getPieceAtSquare( startTestOnSq );
+		ml = classUnderTest.generateMoves(pm.getTheBoard());
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.c7 ));
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.b6 ));
 		expectedNumMoves = 2;
@@ -24,8 +25,9 @@ public class KnightTest extends PieceTest {
 	@Test
 	public void test_SquareB7() {
 		startTestOnSq = GenericPosition.b7;
-		classUnderTest = new Knight( Colour.white, startTestOnSq);
-		ml = completeSetupAndGenerateMoves();
+		pm = new PositionManager("8/1N6/8/8/8/8/8/8 w - - 0 1");
+		classUnderTest = (Knight)pm.getTheBoard().getPieceAtSquare( startTestOnSq );
+		ml = classUnderTest.generateMoves(pm.getTheBoard());
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.d8 ));
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.d6 ));
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.a5 ));
@@ -37,8 +39,9 @@ public class KnightTest extends PieceTest {
 	@Test
 	public void test_SquareC6() {
 		startTestOnSq = GenericPosition.c6;
-		classUnderTest = new Knight( Colour.white, startTestOnSq);
-		ml = completeSetupAndGenerateMoves();
+		pm = new PositionManager("8/8/2N5/8/8/8/8/8 w - - 0 1");
+		classUnderTest = (Knight)pm.getTheBoard().getPieceAtSquare( startTestOnSq );
+		ml = classUnderTest.generateMoves(pm.getTheBoard());
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.b8 ));
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.d8 ));
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.e7 ));
