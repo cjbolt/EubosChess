@@ -98,19 +98,19 @@ class CastlingManager {
 		if (move.equals(wksc)) {
 			// Perform secondary white king side castle rook move
 			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.h1 );
-			pm.updateSquarePieceOccupies( GenericPosition.f1, rookToCastle );
+			pm.getTheBoard().setPieceAtSquare( GenericPosition.f1, rookToCastle );
 		} else if (move.equals(wqsc)) {
 			// Perform secondary white queen side castle rook move
 			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.a1 );
-			pm.updateSquarePieceOccupies( GenericPosition.d1, rookToCastle );
+			pm.getTheBoard().setPieceAtSquare( GenericPosition.d1, rookToCastle );
 		} else if (move.equals(bksc)) {
 			// Perform secondary black king side castle rook move
 			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.h8 );
-			pm.updateSquarePieceOccupies( GenericPosition.f8, rookToCastle );
+			pm.getTheBoard().setPieceAtSquare( GenericPosition.f8, rookToCastle );
 		} else if (move.equals(bqsc)) {
 			// Perform secondary black queen side castle rook move
 			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.a8 );
-			pm.updateSquarePieceOccupies( GenericPosition.d8, rookToCastle );
+			pm.getTheBoard().setPieceAtSquare( GenericPosition.d8, rookToCastle );
 		}
 	}
 
@@ -119,19 +119,19 @@ class CastlingManager {
 		if (move.equals(undo_wksc)) {
 			// Perform secondary king side castle rook move
 			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.f1 );
-			pm.updateSquarePieceOccupies( GenericPosition.h1, rookToCastle );
+			pm.getTheBoard().setPieceAtSquare( GenericPosition.h1, rookToCastle );
 		} else	if (move.equals(undo_wqsc)) {
 			// Perform secondary queen side castle rook move
 			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.d1 );
-			pm.updateSquarePieceOccupies( GenericPosition.a1, rookToCastle );
+			pm.getTheBoard().setPieceAtSquare( GenericPosition.a1, rookToCastle );
 		} else if (move.equals(undo_bksc)) {
 			// Perform secondary king side castle rook move
 			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.f8 );
-			pm.updateSquarePieceOccupies( GenericPosition.h8, rookToCastle );
+			pm.getTheBoard().setPieceAtSquare( GenericPosition.h8, rookToCastle );
 		} else if (move.equals(undo_bqsc)) {
 			// Perform secondary queen side castle rook move
 			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.d8 );
-			pm.updateSquarePieceOccupies( GenericPosition.a8, rookToCastle );
+			pm.getTheBoard().setPieceAtSquare( GenericPosition.a8, rookToCastle );
 		}
 	}
 

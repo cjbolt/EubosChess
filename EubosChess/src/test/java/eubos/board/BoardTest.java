@@ -87,7 +87,7 @@ public class BoardTest {
 	
 	@Test
 	public void testCaptureAtSquare() {
-		assertTrue(classUnderTest.captureAtSquare(testSq)==PieceType.NONE);
+		assertTrue(classUnderTest.pickUpPieceAtSquare(testSq)==PieceType.NONE);
 	}
 	
 	@Test

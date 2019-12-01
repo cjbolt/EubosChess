@@ -11,13 +11,7 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
-import eubos.board.pieces.Bishop;
-import eubos.board.pieces.King;
-import eubos.board.pieces.Knight;
-import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.PieceType;
-import eubos.board.pieces.Queen;
-import eubos.board.pieces.Rook;
 import eubos.board.pieces.Piece.Colour;
 import eubos.position.CaptureData;
 
@@ -107,30 +101,6 @@ public class ZobristHashCode {
 		return hashCode;
 	}
 
-	protected long getPrnForPiece(GenericPosition pos, Piece currPiece) {
-		// compute prnLookup index to use, based on piece type, colour and square.
-		int lookupIndex=INDEX_WHITE;
-		int atFile = IntFile.valueOf(pos.file);
-		int atRank = IntRank.valueOf(pos.rank);
-		int pieceType = INDEX_PAWN; // Default
-		if (currPiece instanceof Knight) {
-			pieceType = INDEX_KNIGHT;
-		} else if (currPiece instanceof Bishop) {
-			pieceType = INDEX_BISHOP;
-		} else if (currPiece instanceof Rook) {
-			pieceType = INDEX_ROOK;
-		} else if (currPiece instanceof Queen) {
-			pieceType = INDEX_QUEEN;
-		} else if (currPiece instanceof King) {
-			pieceType = INDEX_KING;
-		}
-		lookupIndex = atFile + atRank * 8 + pieceType * NUM_SQUARES;
-		if (currPiece.isBlack())
-			lookupIndex += INDEX_BLACK;
-		
-		return prnLookupTable[lookupIndex];
-	}
-	
 	protected long getPrnForPieceAlt(GenericPosition pos, PieceType currPiece) {
 		// compute prnLookup index to use, based on piece type, colour and square.
 		int lookupIndex=INDEX_WHITE;

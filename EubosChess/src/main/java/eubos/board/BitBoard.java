@@ -1,5 +1,6 @@
 package eubos.board;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -8,6 +9,23 @@ import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
 public class BitBoard implements Iterable<Integer> {
+	
+	static GenericPosition[] bitToPosition_Lut = new GenericPosition[64];
+	static {
+		Integer bit_index = 0;
+		for (GenericPosition square : GenericPosition.values()) {
+			bitToPosition_Lut[bit_index++] = square;
+		}
+	}
+	
+	static HashMap<GenericPosition, Integer> positionToBit_Lut = new HashMap<GenericPosition, Integer>();
+	static {
+		Integer bit_index = 0;
+		for (GenericPosition square : GenericPosition.values()) {
+			positionToBit_Lut.put(square, bit_index);
+			bit_index++;
+		}
+	}
 	
 	private long bitBoard = 0x0L;
 	
@@ -20,29 +38,21 @@ public class BitBoard implements Iterable<Integer> {
 	public long getSquareOccupied() {
 		return bitBoard;
 	}
-	
-	private static int getBitFromRankAndFile(int rank, int file) {
-		return(rank*8+file);
-	}
-	
+		
 	public BitBoard and(BitBoard other) {
 		return new BitBoard(this.bitBoard & other.bitBoard);
 	}
 
-	public void set(int rank, int file) {
-		this.set(getBitFromRankAndFile(rank,file));
-	}
-	
 	public void set(int bit) {
 		bitBoard |= (1L << bit);
 	}
 	
-	public void clear(int rank, int file) {
-		this.clear(getBitFromRankAndFile(rank,file));
-	}
-	
 	public void clear(int bit) {
 		bitBoard &= ~(1L << bit);
+	}
+	
+	private static int getBitFromRankAndFile(int rank, int file) {
+		return(rank*8+file);
 	}
 	
 	public boolean isSet(int rank, int file) {

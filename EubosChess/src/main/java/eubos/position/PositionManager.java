@@ -18,30 +18,19 @@ import eubos.board.pieces.Piece.Colour;
 
 public class PositionManager implements IChangePosition, IPositionAccessors {
 	
-	public PositionManager() {
-		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", new DrawChecker());
-	}
-	
-	public PositionManager( Board startingPosition, Piece.Colour colourToMove ) {
-		moveTracker = new MoveTracker();
-		theBoard = startingPosition;
-		castling = new CastlingManager(this);
-		onMove = colourToMove;
-		pe = new PositionEvaluator( this, new DrawChecker() );
-	}
-	
 	public PositionManager( String fenString, DrawChecker dc) {
 		moveTracker = new MoveTracker();
 		new fenParser( this, fenString );
-		this.hash = new ZobristHashCode(this);
-		pe = new PositionEvaluator( this, dc );
+		hash = new ZobristHashCode(this);
+		pe = new PositionEvaluator(this, dc);
 	}
 	
 	public PositionManager( String fenString) {
-		moveTracker = new MoveTracker();
-		new fenParser( this, fenString );
-		this.hash = new ZobristHashCode(this);
-		pe = new PositionEvaluator( this, new DrawChecker() );
+		this(fenString, new DrawChecker());
+	}
+	
+	public PositionManager() {
+		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", new DrawChecker());
 	}
 
 	private Board theBoard;
@@ -141,7 +130,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Store the necessary information to undo this move on the move tracker stack
 		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq, castling.getFenFlags()));
 		// Update the piece's square.
-		updateSquarePieceOccupies(move.to, pieceToMove);
+		theBoard.setPieceAtSquare(move.to, pieceToMove);
 		// update castling flags
 		castling.updateFlags(pieceToMove, move);
 		// Update hash code
@@ -171,7 +160,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		if (pieceToMove.equals(PieceType.WhiteKing) || pieceToMove.equals(PieceType.BlackKing)) {
 			castling.unperformSecondaryCastlingMove(reversedMove);
 		}
-		updateSquarePieceOccupies(reversedMove.to, pieceToMove);
+		theBoard.setPieceAtSquare(reversedMove.to, pieceToMove);
 		castling.setFenFlags(tm.getFenFlags());
 		// Undo any capture that had been previously performed.
 		if ( tm.isCapture()) {
@@ -191,10 +180,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		if (onMove==Colour.black) {
 			moveNumber--;
 		}
-	}
-	
-	void updateSquarePieceOccupies(GenericPosition newSq, PieceType pieceToMove) {
-		theBoard.setPieceAtSquare(newSq, pieceToMove);
 	}
 	
 	private PieceType checkForPawnPromotions(GenericMove move, PieceType pawn) {
@@ -277,10 +262,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 				assert false;
 			}
 			GenericPosition capturePos = GenericPosition.valueOf(move.to.file,rank);
-			cap.target = theBoard.captureAtSquare(capturePos);
+			cap.target = theBoard.pickUpPieceAtSquare(capturePos);
 			cap.square = capturePos;
 		} else {
-			cap.target = theBoard.captureAtSquare(move.to);
+			cap.target = theBoard.pickUpPieceAtSquare(move.to);
 			cap.square = move.to;
 		}
 		return cap;

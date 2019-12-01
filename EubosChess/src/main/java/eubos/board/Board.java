@@ -46,43 +46,41 @@ public class Board implements Iterable<GenericPosition> {
 	}
 	
 	public List<GenericMove> getRegularPieceMoves(Piece.Colour side) {
-		BitBoard bitBoardToIterate = null;
+		BitBoard bitBoardToIterate = (side == Colour.white) ? whitePieces : blackPieces;
 		ArrayList<GenericMove> movesList = new ArrayList<GenericMove>();
-		if (side == Colour.white) {
-			bitBoardToIterate = whitePieces;
-		} else {
-			bitBoardToIterate = blackPieces;
-		}
 		for (int bit_index: bitBoardToIterate) {
-			int file = bit_index%8;
-			int rank = bit_index/8;
-			GenericPosition atSquare = GenericPosition.valueOf(IntFile.toGenericFile(file),IntRank.toGenericRank(rank));
-			PieceType currPiece = getPieceAtSquare(atSquare);
-			// Create moves for that piece type from that square
-			if (currPiece==PieceType.WhiteKing) {
-				movesList.addAll(king_generateMoves(this, atSquare, Colour.white));
-			} else if (currPiece==PieceType.BlackKing) {
-				movesList.addAll(king_generateMoves(this, atSquare, Colour.black));
-			} else if (currPiece==PieceType.WhiteKnight) {
-				movesList.addAll(knight_generateMoves(this, atSquare, Colour.white));
-			} else if (currPiece==PieceType.BlackKnight) {
-				movesList.addAll(knight_generateMoves(this, atSquare, Colour.black));
-			} else if (currPiece==PieceType.WhiteRook) {
-				movesList.addAll(rook_generateMoves(this, atSquare, Colour.white));
-			} else if (currPiece==PieceType.BlackRook) {
-				movesList.addAll(rook_generateMoves(this, atSquare, Colour.black));
-			} else if (currPiece==PieceType.WhiteQueen) {
-				movesList.addAll(queen_generateMoves(this, atSquare, Colour.white));
-			} else if (currPiece==PieceType.BlackQueen) {
-				movesList.addAll(queen_generateMoves(this, atSquare, Colour.black));
-			} else if (currPiece==PieceType.WhiteBishop) {
-				movesList.addAll(bishop_generateMoves(this, atSquare, Colour.white));
-			} else if (currPiece==PieceType.BlackBishop) {
-				movesList.addAll(bishop_generateMoves(this, atSquare, Colour.black));
-			} else if (currPiece==PieceType.WhitePawn) {
-				movesList.addAll(pawn_generateMoves(this, atSquare, Colour.white));
-			} else if (currPiece==PieceType.BlackPawn) {
-				movesList.addAll(pawn_generateMoves(this, atSquare, Colour.black));
+			GenericPosition atSquare = BitBoard.bitToPosition_Lut[bit_index];
+			BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
+			if (blackPieces.and(pieceToPickUp).getSquareOccupied() != 0) {
+				if (pieces[INDEX_KING].isSet(bit_index)) {
+					movesList.addAll(king_generateMoves(this, atSquare, Colour.black));
+				} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
+					movesList.addAll(queen_generateMoves(this, atSquare, Colour.black));
+				} else if (pieces[INDEX_ROOK].isSet(bit_index)) {
+					movesList.addAll(rook_generateMoves(this, atSquare, Colour.black));
+				} else if (pieces[INDEX_BISHOP].isSet(bit_index)) {
+					movesList.addAll(bishop_generateMoves(this, atSquare, Colour.black));
+				} else if (pieces[INDEX_KNIGHT].isSet(bit_index)) {
+					movesList.addAll(knight_generateMoves(this, atSquare, Colour.black));
+				} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
+					movesList.addAll(pawn_generateMoves(this, atSquare, Colour.black));
+				}
+			} else if (whitePieces.and(pieceToPickUp).getSquareOccupied() != 0) {
+				if (pieces[INDEX_KING].isSet(bit_index)) {
+					movesList.addAll(king_generateMoves(this, atSquare, Colour.white));
+				} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
+					movesList.addAll(queen_generateMoves(this, atSquare, Colour.white));
+				} else if (pieces[INDEX_ROOK].isSet(bit_index)) {
+					movesList.addAll(rook_generateMoves(this, atSquare, Colour.white));
+				} else if (pieces[INDEX_BISHOP].isSet(bit_index)) {
+					movesList.addAll(bishop_generateMoves(this, atSquare, Colour.white));
+				} else if (pieces[INDEX_KNIGHT].isSet(bit_index)) {
+					movesList.addAll(knight_generateMoves(this, atSquare, Colour.white));
+				} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
+					movesList.addAll(pawn_generateMoves(this, atSquare, Colour.white));
+				}
+			} else {
+				assert false;
 			}
 		}
 		return movesList;
@@ -346,8 +344,7 @@ public class Board implements Iterable<GenericPosition> {
 	}
 	
 	public boolean squareIsEmpty( GenericPosition atPos ) {
-		RankAndFile rnf = new RankAndFile(atPos);
-		return !allPieces.isSet(rnf.rank, rnf.file);		
+		return !allPieces.isSet(BitBoard.positionToBit_Lut.get(atPos));		
 	}
 	
 	public boolean squareIsAttacked( GenericPosition atPos, Piece.Colour ownColour ) {
@@ -357,9 +354,7 @@ public class Board implements Iterable<GenericPosition> {
 	public PieceType getPieceAtSquare( GenericPosition atPos ) {
 		// Calculate bit index
 		PieceType type = PieceType.NONE;
-		int rank = IntRank.valueOf(atPos.rank);
-		int file = IntFile.valueOf(atPos.file);
-		int bit_index = rank*8 +file;
+		int bit_index = BitBoard.positionToBit_Lut.get(atPos);
 		BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
 		if (blackPieces.and(pieceToPickUp).getSquareOccupied() != 0) {
 			if (pieces[INDEX_KING].isSet(bit_index)) {
@@ -396,9 +391,7 @@ public class Board implements Iterable<GenericPosition> {
 	}
 	
 	public void setPieceAtSquare( GenericPosition atPos, PieceType pieceToPlace ) {
-		int rank = IntRank.valueOf(atPos.rank);
-		int file = IntFile.valueOf(atPos.file);
-		int bit_index = rank*8 +file;
+		int bit_index = BitBoard.positionToBit_Lut.get(atPos);
 		// assert nothing there already
 		if (pieceToPlace.equals(PieceType.WhiteKing)) {
 			pieces[INDEX_KING].set(bit_index);
@@ -446,12 +439,9 @@ public class Board implements Iterable<GenericPosition> {
 		boolean inCheck = false;
 		BitBoard getFromBoard = side.equals(Colour.white) ? whitePieces : blackPieces;
 		BitBoard temp = getFromBoard.and(pieces[INDEX_KING]);
-		GenericPosition kingAtSquare = null;
 		for (int bit_index: temp) {
-			int file = bit_index%8;
-			int rank = bit_index/8;
-			kingAtSquare = GenericPosition.valueOf(IntFile.toGenericFile(file),IntRank.toGenericRank(rank));
-			inCheck = squareIsAttacked(kingAtSquare, side);
+			GenericPosition atSquare = BitBoard.bitToPosition_Lut[bit_index];
+			inCheck = squareIsAttacked(atSquare, side);
 		}
 		return inCheck;
 	}
@@ -459,9 +449,7 @@ public class Board implements Iterable<GenericPosition> {
 	public PieceType pickUpPieceAtSquare( GenericPosition atPos ) {
 		// Calculate bit index
 		PieceType type = PieceType.NONE;
-		int rank = IntRank.valueOf(atPos.rank);
-		int file = IntFile.valueOf(atPos.file);
-		int bit_index = rank*8 +file;
+		int bit_index = BitBoard.positionToBit_Lut.get(atPos);
 		BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
 		if (blackPieces.and(pieceToPickUp).getSquareOccupied() != 0) {
 			if (pieces[INDEX_KING].isSet(bit_index)) {
@@ -508,10 +496,6 @@ public class Board implements Iterable<GenericPosition> {
 		}
 		allPieces.clear(bit_index);
 		return type;
-	}
-	
-	public PieceType captureAtSquare( GenericPosition atPos ) {
-		return pickUpPieceAtSquare(atPos);	
 	}	
 	
 	public boolean checkIfOpposingPawnInFile(GenericFile file, GenericRank rank, Colour side) {
