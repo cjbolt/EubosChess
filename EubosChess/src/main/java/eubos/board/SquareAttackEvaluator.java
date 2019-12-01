@@ -8,12 +8,8 @@ import java.util.Map;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.board.pieces.Bishop;
-import eubos.board.pieces.Knight;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.PieceType;
-import eubos.board.pieces.Queen;
-import eubos.board.pieces.Rook;
 import eubos.board.pieces.Piece.Colour;
 
 public class SquareAttackEvaluator {
@@ -87,16 +83,16 @@ public class SquareAttackEvaluator {
 		boolean doKnightCheck = false;
 		boolean doDiagonalCheck = false;
 		boolean doRankFileCheck = false;
-		Iterator<Piece> iter = bd.iterateColour(attackingColour);
+		Iterator<GenericPosition> iter = bd.iterateColour(attackingColour);
 		while (iter.hasNext()) {
-			Piece curr = iter.next();
-			if (curr instanceof Knight) {
+			PieceType curr = bd.getPieceAtSquare(iter.next());
+			if (curr == PieceType.WhiteKnight || curr == PieceType.BlackKnight) {
 				doKnightCheck = true;
 			} else {
-				if (curr instanceof Queen || curr instanceof Bishop) {
+				if (curr == PieceType.WhiteQueen || curr == PieceType.BlackQueen || curr == PieceType.WhiteBishop || curr == PieceType.BlackBishop) {
 					doDiagonalCheck = true;
 				}
-				if (curr instanceof Queen || curr instanceof Rook) {
+				if (curr == PieceType.WhiteQueen || curr == PieceType.BlackQueen || curr == PieceType.WhiteRook || curr == PieceType.BlackRook) {
 					doRankFileCheck = true;
 				}
 			}

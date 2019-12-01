@@ -3,13 +3,13 @@ package eubos.position;
 import java.util.Iterator;
 
 import com.fluxchess.jcpi.models.GenericFile;
+import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericRank;
 
 import eubos.board.Board;
 import eubos.board.SquareAttackEvaluator;
-import eubos.board.pieces.Pawn;
-import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
+import eubos.board.pieces.Piece.PieceType;
 import eubos.position.CaptureData;
 import eubos.search.DrawChecker;
 import eubos.search.SearchContext;
@@ -78,15 +78,17 @@ public class PositionEvaluator implements IEvaluate {
 
 	private int evaluatePawnsForColour(Colour onMoveWas) {
 		Board board = pm.getTheBoard();
-		Iterator<Piece> iter = board.iterateColour(onMoveWas);
+		Iterator<GenericPosition> iter = board.iterateColour(onMoveWas);
 		int pawnHandicap = 0;
 		int passedPawnBoost = 0;
 		int pawnCount[] = {0,0,0,0,0,0,0,0};
 		while (iter.hasNext()) {
-			Piece currPiece = iter.next();
-			if (currPiece instanceof Pawn) {
-				GenericRank rank = currPiece.getSquare().rank;
-				switch (currPiece.getSquare().file) {
+			GenericPosition atPos = iter.next();
+			PieceType currPiece = board.getPieceAtSquare(atPos);
+			if ((onMoveWas==Colour.white &&currPiece==PieceType.WhitePawn) ||
+				(onMoveWas==Colour.black &&currPiece==PieceType.BlackPawn)) {
+				GenericRank rank = atPos.rank;
+				switch (atPos.file) {
 				case Fa:
 					pawnCount[0] += 1;
 					if (!board.checkIfOpposingPawnInFile(GenericFile.Fa, rank, onMoveWas) &&
@@ -144,7 +146,7 @@ public class PositionEvaluator implements IEvaluate {
 					break;
 				case Fh:
 					pawnCount[7] += 1;
-					if (!board.checkIfOpposingPawnInFile(GenericFile.Fg, currPiece.getSquare().rank, onMoveWas)) {
+					if (!board.checkIfOpposingPawnInFile(GenericFile.Fg, rank, onMoveWas)) {
 						passedPawnBoost += ROOK_FILE_PASSED_PAWN_BOOST;
 					}
 					break;

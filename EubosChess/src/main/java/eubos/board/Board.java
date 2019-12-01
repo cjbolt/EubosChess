@@ -7,15 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import eubos.board.pieces.Bishop;
-import eubos.board.pieces.King;
-import eubos.board.pieces.Knight;
-import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
 import eubos.board.pieces.Piece.PieceType;
-import eubos.board.pieces.Queen;
-import eubos.board.pieces.Rook;
 
 import com.fluxchess.jcpi.models.GenericChessman;
 import com.fluxchess.jcpi.models.GenericMove;
@@ -25,7 +19,7 @@ import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericRank;
 
-public class Board implements Iterable<Piece> {
+public class Board implements Iterable<GenericPosition> {
 
 	private static final int INDEX_PAWN = 0;
 	private static final int INDEX_KNIGHT = 1;
@@ -401,51 +395,6 @@ public class Board implements Iterable<Piece> {
 		return type;
 	}
 	
-	private Piece createPiece(GenericPosition atPos, boolean remove) {
-		RankAndFile rnf = new RankAndFile(atPos);
-		Piece.Colour col = Colour.white;
-		if (blackPieces.isSet(rnf.rank, rnf.file)) {
-			col = Colour.black;
-		}
-		Piece piece = null;
-		if (pieces[INDEX_KING].isSet(rnf.rank, rnf.file)) {
-			if (remove) {
-				pieces[INDEX_KING].clear(rnf.rank, rnf.file);
-			}
-			piece = new King(col, atPos);
-		} else if (pieces[INDEX_QUEEN].isSet(rnf.rank, rnf.file)) {
-			if (remove) {
-				pieces[INDEX_QUEEN].clear(rnf.rank, rnf.file);
-			}
-			piece = new Queen(col, atPos);
-		} else if (pieces[INDEX_ROOK].isSet(rnf.rank, rnf.file)) {
-			if (remove) {
-				pieces[INDEX_ROOK].clear(rnf.rank, rnf.file);
-			}
-			piece = new Rook(col, atPos);
-		} else if (pieces[INDEX_BISHOP].isSet(rnf.rank, rnf.file)) {
-			if (remove) {
-				pieces[INDEX_BISHOP].clear(rnf.rank, rnf.file);
-			}
-			piece = new Bishop(col, atPos);
-		} else if (pieces[INDEX_KNIGHT].isSet(rnf.rank, rnf.file)) {
-			if (remove) {
-				pieces[INDEX_KNIGHT].clear(rnf.rank, rnf.file);
-			}
-			piece = new Knight(col, atPos);
-		} else if (pieces[INDEX_PAWN].isSet(rnf.rank, rnf.file)) {
-			if (remove) {
-				pieces[INDEX_PAWN].clear(rnf.rank, rnf.file);
-			}
-			piece = new Pawn(col, atPos);
-		}
-		if (piece != null && remove) {
-			allPieces.clear(rnf.rank, rnf.file);
-			getBitBoardForColour(piece).clear(rnf.rank, rnf.file);
-		}
-		return piece;
-	}
-	
 	public void setPieceAtSquare( GenericPosition atPos, PieceType pieceToPlace ) {
 		int rank = IntRank.valueOf(atPos.rank);
 		int file = IntFile.valueOf(atPos.file);
@@ -665,28 +614,18 @@ public class Board implements Iterable<Piece> {
 		return chessman;
 	}
 	
-	private BitBoard getBitBoardForColour(Piece pieceToPickUp) {
-		BitBoard bitBoardForColour;
-		if (pieceToPickUp.isWhite()) {
-			bitBoardForColour = whitePieces;
-		} else {
-			bitBoardForColour = blackPieces;
-		}
-		return bitBoardForColour;
-	}
+	class allPiecesOnBoardIterator implements Iterator<GenericPosition> {
 
-	class allPiecesOnBoardIterator implements Iterator<Piece> {
-
-		private LinkedList<Piece> iterList = null;
+		private LinkedList<GenericPosition> iterList = null;
 
 		allPiecesOnBoardIterator() throws InvalidPieceException {
-			iterList = new LinkedList<Piece>();
+			iterList = new LinkedList<GenericPosition>();
 			BitBoard bitBoardToIterate = allPieces;
 			buildIterList(bitBoardToIterate);
 		}
 
 		allPiecesOnBoardIterator( Piece.Colour colourToIterate ) throws InvalidPieceException {
-			iterList = new LinkedList<Piece>();
+			iterList = new LinkedList<GenericPosition>();
 			BitBoard bitBoardToIterate;
 			if (colourToIterate == Colour.white) {
 				bitBoardToIterate = whitePieces;
@@ -700,7 +639,7 @@ public class Board implements Iterable<Piece> {
 			for (int bit_index: bitBoardToIterate) {
 				int file = bit_index%8;
 				int rank = bit_index/8;
-				iterList.add(createPiece(GenericPosition.valueOf(IntFile.toGenericFile(file),IntRank.toGenericRank(rank)), false));
+				iterList.add(GenericPosition.valueOf(IntFile.toGenericFile(file),IntRank.toGenericRank(rank)));
 			}
 		}	
 
@@ -712,7 +651,7 @@ public class Board implements Iterable<Piece> {
 			}
 		}
 
-		public Piece next() {
+		public GenericPosition next() {
 			return iterList.remove();
 		}
 
@@ -722,7 +661,7 @@ public class Board implements Iterable<Piece> {
 		}
 	}
 
-	public Iterator<Piece> iterator() {
+	public Iterator<GenericPosition> iterator() {
 		// default iterator returns all the pieces on the board
 		try {
 			return new allPiecesOnBoardIterator( );
@@ -733,7 +672,7 @@ public class Board implements Iterable<Piece> {
 		}
 	}
 
-	public Iterator<Piece> iterateColour( Piece.Colour colourToIterate ) {
+	public Iterator<GenericPosition> iterateColour( Piece.Colour colourToIterate ) {
 		try {
 			return new allPiecesOnBoardIterator( colourToIterate );
 		} catch (InvalidPieceException e) {

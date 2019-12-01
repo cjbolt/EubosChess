@@ -12,7 +12,7 @@ import eubos.board.pieces.Bishop;
 import eubos.board.pieces.King;
 import eubos.board.pieces.Knight;
 import eubos.board.pieces.Pawn;
-import eubos.board.pieces.Piece;
+import eubos.board.pieces.Piece.PieceType;
 import eubos.board.pieces.Queen;
 import eubos.board.pieces.Rook;
 
@@ -61,33 +61,35 @@ public class MaterialEvaluator {
     }	
  
 	public static MaterialEvaluation evaluate(Board theBoard) {
-		Iterator<Piece> iter_p = theBoard.iterator();
+		Iterator<GenericPosition> iter_p = theBoard.iterator();
 		MaterialEvaluation materialEvaluation = new MaterialEvaluation();
 		while ( iter_p.hasNext() ) {
-			Piece currPiece = iter_p.next();
+			GenericPosition atPos = iter_p.next();
+			PieceType currPiece = theBoard.getPieceAtSquare(atPos);
 			int currValue = 0;
-			if ( currPiece instanceof Pawn ) {
+			if ( currPiece==PieceType.WhitePawn ) {
 				currValue = Pawn.MATERIAL_VALUE;
-				if (currPiece.isWhite()) {
-					currValue += PAWN_WHITE_WEIGHTINGS.get(currPiece.getSquare());
-				} else {
-					currValue += PAWN_BLACK_WEIGHTINGS.get(currPiece.getSquare());
-				}
+				currValue += PAWN_WHITE_WEIGHTINGS.get(atPos);
+			} else if ( currPiece==PieceType.BlackPawn ) {
+				currValue = Pawn.MATERIAL_VALUE;
+				currValue += PAWN_BLACK_WEIGHTINGS.get(atPos);
 			}
-			else if ( currPiece instanceof Rook )
+			else if ( currPiece==PieceType.WhiteRook || currPiece==PieceType.BlackRook )
 				currValue = Rook.MATERIAL_VALUE;
-			else if ( currPiece instanceof Bishop ) {
+			else if ( currPiece==PieceType.WhiteBishop || currPiece==PieceType.BlackBishop ) {
 				currValue = Bishop.MATERIAL_VALUE;
 			}
-			else if ( currPiece instanceof Knight ) {
+			else if ( currPiece==PieceType.WhiteKnight || currPiece==PieceType.BlackKnight ) {
 				currValue = Knight.MATERIAL_VALUE;
-				currValue += KNIGHT_WEIGHTINGS.get(currPiece.getSquare());
+				currValue += KNIGHT_WEIGHTINGS.get(atPos);
 			}
-			else if ( currPiece instanceof Queen )
+			else if ( currPiece==PieceType.WhiteQueen || currPiece==PieceType.BlackQueen )
 				currValue = Queen.MATERIAL_VALUE;
-			else if ( currPiece instanceof King )
+			else if ( currPiece==PieceType.WhiteKing || currPiece==PieceType.BlackKing )
 				currValue = King.MATERIAL_VALUE;
-			if (currPiece.isWhite()) {
+			if (currPiece==PieceType.WhiteQueen || currPiece==PieceType.WhiteKnight ||
+					currPiece==PieceType.WhiteBishop || currPiece==PieceType.WhiteKing ||
+					currPiece==PieceType.WhiteRook || currPiece==PieceType.WhitePawn) {
 				materialEvaluation.addWhite(currValue);
 			} else { 
 				materialEvaluation.addBlack(currValue);

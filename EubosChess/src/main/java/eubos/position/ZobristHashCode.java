@@ -80,8 +80,8 @@ public class ZobristHashCode {
 	private long generate() {
 		// add pieces
 		hashCode = 0;
-		for (Piece currPiece : pos.getTheBoard()) {
-			hashCode ^= getPrnForPiece(currPiece.getSquare(), currPiece);
+		for (GenericPosition pieceSq : pos.getTheBoard()) {
+			hashCode ^= getPrnForPieceAlt(pieceSq, pos.getTheBoard().getPieceAtSquare(pieceSq));
 		}
 		// add castling
 		prevCastlingMask = pos.getCastlingAvaillability();	
