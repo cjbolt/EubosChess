@@ -493,21 +493,18 @@ public class Board implements Iterable<Piece> {
 		allPieces.set(bit_index);
 	}
 	
-	public King getKing(Piece.Colour kingToGet) {
-		King king = null;
-		BitBoard getFromBoard = null;
-		if (kingToGet.equals(Colour.white)) {
-			getFromBoard = whitePieces;
-		} else {
-			getFromBoard = blackPieces;
-		}
+	public boolean isKingInCheck(Piece.Colour side) {
+		boolean inCheck = false;
+		BitBoard getFromBoard = side.equals(Colour.white) ? whitePieces : blackPieces;
 		BitBoard temp = getFromBoard.and(pieces[INDEX_KING]);
+		GenericPosition kingAtSquare = null;
 		for (int bit_index: temp) {
 			int file = bit_index%8;
 			int rank = bit_index/8;
-			king = new King(kingToGet, GenericPosition.valueOf(IntFile.toGenericFile(file),IntRank.toGenericRank(rank)));
+			kingAtSquare = GenericPosition.valueOf(IntFile.toGenericFile(file),IntRank.toGenericRank(rank));
+			inCheck = squareIsAttacked(kingAtSquare, side);
 		}
-		return king;
+		return inCheck;
 	}
 
 	public PieceType pickUpPieceAtSquare( GenericPosition atPos ) {

@@ -11,7 +11,6 @@ import com.fluxchess.jcpi.models.GenericRank;
 
 import eubos.board.Board;
 import eubos.board.InvalidPieceException;
-import eubos.board.pieces.King;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.PieceType;
 import eubos.search.DrawChecker;
@@ -108,9 +107,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return isKingInCheck(onMove);
 	}
 	boolean isKingInCheck( Colour colour ) {
-		King ownKing = theBoard.getKing(colour);
-		boolean kingIsInCheck = (ownKing != null) ? theBoard.squareIsAttacked(ownKing.getSquare(), colour) : false;
-		return kingIsInCheck;		
+		return theBoard.isKingInCheck(colour);		
 	}
 	
 	private ZobristHashCode hash;

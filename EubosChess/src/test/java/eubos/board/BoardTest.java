@@ -11,8 +11,6 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericPosition;
 
 import eubos.board.Board;
-import eubos.board.pieces.Pawn;
-import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.PieceType;
 
 public class BoardTest {
