@@ -636,9 +636,7 @@ public class Board implements Iterable<GenericPosition> {
 
 		private void buildIterList(BitBoard bitBoardToIterate) {
 			for (int bit_index: bitBoardToIterate) {
-				int file = bit_index%8;
-				int rank = bit_index/8;
-				iterList.add(GenericPosition.valueOf(IntFile.toGenericFile(file),IntRank.toGenericRank(rank)));
+				iterList.add(BitBoard.bitToPosition_Lut[bit_index]);
 			}
 		}	
 
