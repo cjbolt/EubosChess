@@ -35,8 +35,12 @@ public class BitBoard implements Iterable<Integer> {
 	
 	public BitBoard() { this(0); }
 	
-	public long getSquareOccupied() {
+	public long getValue() {
 		return bitBoard;
+	}
+	
+	public boolean isNonZero() {
+		return bitBoard != 0;
 	}
 		
 	public BitBoard and(BitBoard other) {

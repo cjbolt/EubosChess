@@ -18,9 +18,9 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
 import eubos.board.pieces.Piece.Colour;
-import eubos.board.pieces.Queen;
 import eubos.main.EubosEngineMain;
 import eubos.position.IPositionAccessors;
+import eubos.position.MaterialEvaluator;
 import eubos.position.MoveList;
 import eubos.position.PositionEvaluator;
 import eubos.position.PositionManager;
@@ -89,7 +89,7 @@ public class PlySearcherTest {
 		initialisePositionAndSearch("7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69", (byte)4);
 		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
 
-		assertEquals(2*Queen.MATERIAL_VALUE, classUnderTest.searchPly());		
+		assertEquals(2*MaterialEvaluator.MATERIAL_VALUE_QUEEN, classUnderTest.searchPly());		
 	}
 	
 	@Test

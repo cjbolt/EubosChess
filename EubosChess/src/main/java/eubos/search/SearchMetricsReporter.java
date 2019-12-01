@@ -2,8 +2,8 @@ package eubos.search;
 
 import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
 
-import eubos.board.pieces.King;
 import eubos.main.EubosEngineMain;
+import eubos.position.MaterialEvaluator;
 
 public class SearchMetricsReporter extends Thread {
 	
@@ -64,7 +64,7 @@ public class SearchMetricsReporter extends Thread {
 			info.setTime(sm.getTime());
 			int score = sm.getCpScore();
 			int depth = sm.getDepth();
-			if (java.lang.Math.abs(score)<King.MATERIAL_VALUE) {
+			if (java.lang.Math.abs(score)<MaterialEvaluator.MATERIAL_VALUE_KING) {
 				info.setCentipawns(score);
 			} else {
 				int mateMove = 0;

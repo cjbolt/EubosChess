@@ -1,10 +1,10 @@
 package eubos.search;
 
-import eubos.board.pieces.King;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
 import eubos.position.IPositionAccessors;
 import eubos.position.MaterialEvaluation;
+import eubos.position.MaterialEvaluator;
 
 public class SearchContext {
 	MaterialEvaluation initial;
@@ -64,7 +64,7 @@ public class SearchContext {
 				break;
 			case try_for_draw:
 				if (dc.isPositionDraw(pos.getHash())) {
-					bonus += King.MATERIAL_VALUE/2;
+					bonus += MaterialEvaluator.MATERIAL_VALUE_KING/2;
 				}
 				break;
 			default:
@@ -79,7 +79,7 @@ public class SearchContext {
 			case try_for_win:
 				if (dc.isPositionDraw(pos.getHash())) {
 					// Assume opponent wants a draw.
-					bonus += King.MATERIAL_VALUE/2;
+					bonus += MaterialEvaluator.MATERIAL_VALUE_KING/2;
 				}
 				break;
 			case try_for_draw:

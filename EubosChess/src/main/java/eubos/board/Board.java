@@ -51,7 +51,7 @@ public class Board implements Iterable<GenericPosition> {
 		for (int bit_index: bitBoardToIterate) {
 			GenericPosition atSquare = BitBoard.bitToPosition_Lut[bit_index];
 			BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
-			if (blackPieces.and(pieceToPickUp).getSquareOccupied() != 0) {
+			if (blackPieces.and(pieceToPickUp).getValue() != 0) {
 				if (pieces[INDEX_KING].isSet(bit_index)) {
 					movesList.addAll(king_generateMoves(this, atSquare, Colour.black));
 				} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
@@ -65,7 +65,7 @@ public class Board implements Iterable<GenericPosition> {
 				} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
 					movesList.addAll(pawn_generateMoves(this, atSquare, Colour.black));
 				}
-			} else if (whitePieces.and(pieceToPickUp).getSquareOccupied() != 0) {
+			} else if (whitePieces.and(pieceToPickUp).getValue() != 0) {
 				if (pieces[INDEX_KING].isSet(bit_index)) {
 					movesList.addAll(king_generateMoves(this, atSquare, Colour.white));
 				} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
@@ -356,7 +356,7 @@ public class Board implements Iterable<GenericPosition> {
 		PieceType type = PieceType.NONE;
 		int bit_index = BitBoard.positionToBit_Lut.get(atPos);
 		BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
-		if (blackPieces.and(pieceToPickUp).getSquareOccupied() != 0) {
+		if (blackPieces.and(pieceToPickUp).isNonZero()) {
 			if (pieces[INDEX_KING].isSet(bit_index)) {
 				type = PieceType.BlackKing;
 			} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
@@ -370,7 +370,7 @@ public class Board implements Iterable<GenericPosition> {
 			} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
 				type = PieceType.BlackPawn;
 			}
-		} else if (whitePieces.and(pieceToPickUp).getSquareOccupied() != 0) {
+		} else if (whitePieces.and(pieceToPickUp).isNonZero()) {
 			if (pieces[INDEX_KING].isSet(bit_index)) {
 				type = PieceType.WhiteKing;
 			} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
@@ -451,7 +451,7 @@ public class Board implements Iterable<GenericPosition> {
 		PieceType type = PieceType.NONE;
 		int bit_index = BitBoard.positionToBit_Lut.get(atPos);
 		BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
-		if (blackPieces.and(pieceToPickUp).getSquareOccupied() != 0) {
+		if (blackPieces.and(pieceToPickUp).isNonZero()) {
 			if (pieces[INDEX_KING].isSet(bit_index)) {
 				pieces[INDEX_KING].clear(bit_index);
 				type = PieceType.BlackKing;

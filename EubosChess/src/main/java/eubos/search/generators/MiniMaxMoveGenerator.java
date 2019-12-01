@@ -9,6 +9,7 @@ import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IEvaluate;
 import eubos.position.IPositionAccessors;
+import eubos.position.MaterialEvaluator;
 import eubos.search.NoLegalMoveException;
 import eubos.search.PlySearcher;
 import eubos.search.PrincipalContinuation;
@@ -102,7 +103,7 @@ public class MiniMaxMoveGenerator implements
 			//this.terminateFindMove();
 			System.exit(0);
 		}
-		if (Math.abs(score) >= eubos.board.pieces.King.MATERIAL_VALUE) {
+		if (Math.abs(score) >= MaterialEvaluator.MATERIAL_VALUE_KING) {
 			foundMate = true;
 		}
 		if (sendInfo) {

@@ -8,15 +8,16 @@ import java.util.Iterator;
 import com.fluxchess.jcpi.models.GenericPosition;
 
 import eubos.board.Board;
-import eubos.board.pieces.Bishop;
-import eubos.board.pieces.King;
-import eubos.board.pieces.Knight;
-import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece.PieceType;
-import eubos.board.pieces.Queen;
-import eubos.board.pieces.Rook;
 
 public class MaterialEvaluator {
+	
+	public static final short MATERIAL_VALUE_KING = 4000;
+	public static final short MATERIAL_VALUE_QUEEN = 900;
+	public static final short MATERIAL_VALUE_ROOK = 500;
+	public static final short MATERIAL_VALUE_BISHOP = 320;
+	public static final short MATERIAL_VALUE_KNIGHT = 300;
+	public static final short MATERIAL_VALUE_PAWN = 100;
 	
 	private static final Map<GenericPosition, Integer> PAWN_WHITE_WEIGHTINGS;
     static {
@@ -68,25 +69,25 @@ public class MaterialEvaluator {
 			PieceType currPiece = theBoard.getPieceAtSquare(atPos);
 			int currValue = 0;
 			if ( currPiece==PieceType.WhitePawn ) {
-				currValue = Pawn.MATERIAL_VALUE;
+				currValue = MATERIAL_VALUE_PAWN;
 				currValue += PAWN_WHITE_WEIGHTINGS.get(atPos);
 			} else if ( currPiece==PieceType.BlackPawn ) {
-				currValue = Pawn.MATERIAL_VALUE;
+				currValue = MATERIAL_VALUE_PAWN;
 				currValue += PAWN_BLACK_WEIGHTINGS.get(atPos);
 			}
 			else if ( currPiece==PieceType.WhiteRook || currPiece==PieceType.BlackRook )
-				currValue = Rook.MATERIAL_VALUE;
+				currValue = MATERIAL_VALUE_ROOK;
 			else if ( currPiece==PieceType.WhiteBishop || currPiece==PieceType.BlackBishop ) {
-				currValue = Bishop.MATERIAL_VALUE;
+				currValue = MATERIAL_VALUE_BISHOP;
 			}
 			else if ( currPiece==PieceType.WhiteKnight || currPiece==PieceType.BlackKnight ) {
-				currValue = Knight.MATERIAL_VALUE;
+				currValue = MATERIAL_VALUE_KNIGHT;
 				currValue += KNIGHT_WEIGHTINGS.get(atPos);
 			}
 			else if ( currPiece==PieceType.WhiteQueen || currPiece==PieceType.BlackQueen )
-				currValue = Queen.MATERIAL_VALUE;
+				currValue = MATERIAL_VALUE_QUEEN;
 			else if ( currPiece==PieceType.WhiteKing || currPiece==PieceType.BlackKing )
-				currValue = King.MATERIAL_VALUE;
+				currValue = MATERIAL_VALUE_KING;
 			if (currPiece==PieceType.WhiteQueen || currPiece==PieceType.WhiteKnight ||
 					currPiece==PieceType.WhiteBishop || currPiece==PieceType.WhiteKing ||
 					currPiece==PieceType.WhiteRook || currPiece==PieceType.WhitePawn) {

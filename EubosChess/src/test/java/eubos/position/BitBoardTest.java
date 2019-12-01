@@ -26,13 +26,13 @@ public class BitBoardTest {
 	@Test
 	public void testSet_bit0() {
 		classUnderTest.set(0);
-		assertTrue(classUnderTest.getSquareOccupied() == 0x1L);
+		assertTrue(classUnderTest.getValue() == 0x1L);
 	}
 	
 	@Test
 	public void testSet_bit63() {
 		classUnderTest.set(63);
-		assertTrue(classUnderTest.getSquareOccupied() == 0x8000000000000000L);
+		assertTrue(classUnderTest.getValue() == 0x8000000000000000L);
 	}	
 
 	@Test
@@ -40,7 +40,7 @@ public class BitBoardTest {
 		classUnderTest.set(0);
 		classUnderTest.set(63);
 		classUnderTest.clear(63);
-		assertTrue(classUnderTest.getSquareOccupied() == 0x1L);
+		assertTrue(classUnderTest.getValue() == 0x1L);
 	}
 
 	@Test

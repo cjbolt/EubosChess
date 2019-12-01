@@ -1,9 +1,9 @@
 package eubos.search;
 
 import eubos.board.pieces.Piece.Colour;
-import eubos.board.pieces.King;
 import eubos.position.IPositionAccessors;
 import eubos.position.IScoreMate;
+import eubos.position.MaterialEvaluator;
 
 public class MateScoreGenerator implements IScoreMate {
 	
@@ -47,6 +47,6 @@ public class MateScoreGenerator implements IScoreMate {
 	
 	private short getScoreForStalemate() {
 		// Avoid stalemates by giving them a large penalty score.
-		return -King.MATERIAL_VALUE;
+		return -MaterialEvaluator.MATERIAL_VALUE_KING;
 	}	
 }

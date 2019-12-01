@@ -1,7 +1,7 @@
 package eubos.search;
 
-import eubos.board.pieces.King;
 import eubos.board.pieces.Piece.Colour;
+import eubos.position.MaterialEvaluator;
 
 public class PrincipalContinuationUpdateHelper
 	{
@@ -52,7 +52,7 @@ public class PrincipalContinuationUpdateHelper
 		}
 		
 		private boolean isScoreIndicatesMate() {
-			return Math.abs(positionScore) >= King.MATERIAL_VALUE;
+			return Math.abs(positionScore) >= MaterialEvaluator.MATERIAL_VALUE_KING;
 		}
 		
 		private int calculatePlyMateOccurredOn() {
