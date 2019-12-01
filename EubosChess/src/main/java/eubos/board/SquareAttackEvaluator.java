@@ -80,23 +80,6 @@ public class SquareAttackEvaluator {
 	public static boolean isAttacked( Board bd, GenericPosition attackedSq, Piece.Colour ownColour ) {
 		Colour attackingColour = Piece.Colour.getOpposite(ownColour);
 		boolean attacked = false;
-		boolean doKnightCheck = false;
-		boolean doDiagonalCheck = false;
-		boolean doRankFileCheck = false;
-		Iterator<GenericPosition> iter = bd.iterateColour(attackingColour);
-		while (iter.hasNext()) {
-			PieceType curr = bd.getPieceAtSquare(iter.next());
-			if (curr == PieceType.WhiteKnight || curr == PieceType.BlackKnight) {
-				doKnightCheck = true;
-			} else {
-				if (curr == PieceType.WhiteQueen || curr == PieceType.BlackQueen || curr == PieceType.WhiteBishop || curr == PieceType.BlackBishop) {
-					doDiagonalCheck = true;
-				}
-				if (curr == PieceType.WhiteQueen || curr == PieceType.BlackQueen || curr == PieceType.WhiteRook || curr == PieceType.BlackRook) {
-					doRankFileCheck = true;
-				}
-			}
-		}
 		// do/while loop is to allow the function to return attacked=true at earliest possibility
 		do {
 			if (attackingColour == Colour.black) {
@@ -106,10 +89,8 @@ public class SquareAttackEvaluator {
 				if (attacked) break;
 				attacked = checkForAttacksHelper(PieceType.BlackKing, KingMove_Lut, bd, attackedSq);
 				if (attacked) break;
-				if (doKnightCheck) {
-					attacked = checkForAttacksHelper(PieceType.BlackKnight, KnightMove_Lut, bd, attackedSq);
-					if (attacked) break;
-				}
+				attacked = checkForAttacksHelper(PieceType.BlackKnight, KnightMove_Lut, bd, attackedSq);
+				if (attacked) break;
 			} else {
 				attacked = attackedByPawn(bd, PieceType.WhitePawn, Direction.getDirectMoveSq(Direction.downRight,attackedSq));
 				if (attacked) break;
@@ -117,16 +98,11 @@ public class SquareAttackEvaluator {
 				if (attacked) break;
 				attacked = checkForAttacksHelper(PieceType.WhiteKing, KingMove_Lut, bd, attackedSq);
 				if (attacked) break;
-				if (doKnightCheck) {
-					attacked = checkForAttacksHelper(PieceType.WhiteKnight, KnightMove_Lut, bd, attackedSq);
-					if (attacked) break;
-				}
-			}
-
-			if (doDiagonalCheck || doRankFileCheck) {
-				attacked = checkForDirectPieceAttacker(bd, attackingColour, attackedSq);
+				attacked = checkForAttacksHelper(PieceType.WhiteKnight, KnightMove_Lut, bd, attackedSq);
 				if (attacked) break;
 			}
+			attacked = checkForDirectPieceAttacker(bd, attackingColour, attackedSq);
+			if (attacked) break;
 		} while (false);
 		return attacked;	
 	}
