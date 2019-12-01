@@ -1,6 +1,7 @@
 package eubos.position;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.fluxchess.jcpi.models.GenericFile;
@@ -47,6 +48,12 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	private Board theBoard;
 	public Board getTheBoard() {
 		return theBoard;
+	}
+	
+	public List<GenericMove> generateMoves() {
+		List<GenericMove> entireMoveList = theBoard.getRegularPieceMoves( onMove );
+		castling.addCastlingMoves(entireMoveList);
+		return entireMoveList;
 	}
 	
 	CastlingManager castling;

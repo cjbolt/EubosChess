@@ -77,14 +77,14 @@ public class BoardTest {
 		assertTrue(classUnderTest.squareIsEmpty(testSq));
 		classUnderTest.setPieceAtSquare(testSq, PieceType.WhitePawn);
 		assertFalse(classUnderTest.squareIsEmpty(testSq));
-		Piece gotPiece = classUnderTest.getPieceAtSquare(testSq);
+		PieceType gotPiece = classUnderTest.getPieceAtSquare(testSq);
 		assertFalse(classUnderTest.squareIsEmpty(testSq));
-		assertTrue(gotPiece instanceof Pawn);
+		assertTrue(gotPiece.equals(PieceType.BlackPawn) || gotPiece.equals(PieceType.WhitePawn));
 	}
 	
 	@Test
 	public void testGetPieceAtSquare_DoesntExist() {
-		assertTrue(classUnderTest.getPieceAtSquare(testSq)==null);
+		assertTrue(classUnderTest.getPieceAtSquare(testSq)==PieceType.NONE);
 	}
 	
 	@Test

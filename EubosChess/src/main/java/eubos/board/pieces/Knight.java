@@ -19,11 +19,11 @@ public class Knight extends Piece {
 
 	private void checkAddMove(List<GenericMove> moveList, Board theBoard, GenericPosition targetSquare) {
 		if ( targetSquare != null ) {
-			Piece targetPiece = theBoard.getPieceAtSquare(targetSquare);
+			PieceType targetPiece = theBoard.getPieceAtSquare(targetSquare);
 			if (theBoard.squareIsEmpty(targetSquare)) {
 				moveList.add( new GenericMove( onSquare, targetSquare ));
 			}
-			else if (targetPiece != null && isOppositeColour(targetPiece)) {
+			else if (targetPiece != PieceType.NONE && isOppositeColour(targetPiece)) {
 				// Indicates a capture
 				moveList.add( new GenericMove( onSquare, targetSquare ));
 			}

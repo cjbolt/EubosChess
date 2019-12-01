@@ -28,7 +28,21 @@ public abstract class Piece implements IPiece {
 	public Colour getColour() { return colour; }
 	public boolean isWhite() { return ( colour == Colour.white ); }
 	public boolean isBlack() { return ( colour == Colour.black ); }
-	public boolean isOppositeColour(Piece toCheck) { return ( colour != toCheck.getColour()); }
+	public boolean isOppositeColour(PieceType toCheck) {
+		return ( isWhite() ?
+				(toCheck==PieceType.BlackKing || 
+				toCheck==PieceType.BlackQueen ||
+				toCheck==PieceType.BlackRook ||
+				toCheck==PieceType.BlackBishop ||
+				toCheck==PieceType.BlackKnight ||
+				toCheck==PieceType.BlackPawn) :
+				(toCheck==PieceType.WhiteKing || 
+				toCheck==PieceType.WhiteQueen ||
+				toCheck==PieceType.WhiteRook ||
+				toCheck==PieceType.WhiteBishop ||
+				toCheck==PieceType.WhiteKnight ||
+				toCheck==PieceType.WhitePawn)); 
+				}
 	public boolean isOppositeColour(Colour colourToCheck) { return ( colour != colourToCheck); }
 	
 	protected GenericPosition onSquare;

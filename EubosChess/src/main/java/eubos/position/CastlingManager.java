@@ -8,8 +8,6 @@ import com.fluxchess.jcpi.models.GenericPosition;
 
 import eubos.board.Board;
 import eubos.board.InvalidPieceException;
-import eubos.board.pieces.Piece;
-import eubos.board.pieces.Rook;
 import eubos.board.pieces.Piece.Colour;
 import eubos.board.pieces.Piece.PieceType;
 
@@ -223,12 +221,12 @@ class CastlingManager {
 			GenericPosition [] emptySqs) throws Exception {
 		Board theBoard = pm.getTheBoard();
 		// Safeguard that the piece on the rook square is a rook, n.b. this shouldn't be needed
-		Piece theRook = theBoard.getPieceAtSquare(rookSq);
-		if (theRook==null)
+		PieceType theRook = theBoard.getPieceAtSquare(rookSq);
+		if (theRook==PieceType.NONE)
 		{
 			throw new Exception("There was no piece on the castle rook square! This means castling flags are inconsistent with the position.");
 		}
-		if (!(theRook instanceof Rook))
+		if (!(theRook==PieceType.WhiteRook || theRook==PieceType.BlackRook))
 		{
 			throw new Exception("The piece wasn't a Rook! This means castling flags are inconsistent with the position.");
 		}

@@ -9,10 +9,9 @@ import java.util.Map;
 import com.fluxchess.jcpi.models.GenericPosition;
 
 import eubos.board.pieces.Bishop;
-import eubos.board.pieces.King;
 import eubos.board.pieces.Knight;
-import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
+import eubos.board.pieces.Piece.PieceType;
 import eubos.board.pieces.Queen;
 import eubos.board.pieces.Rook;
 import eubos.board.pieces.Piece.Colour;
@@ -105,22 +104,29 @@ public class SquareAttackEvaluator {
 		// do/while loop is to allow the function to return attacked=true at earliest possibility
 		do {
 			if (attackingColour == Colour.black) {
-				attacked = attackedByPawn(bd, attackingColour, Direction.getDirectMoveSq(Direction.upRight,attackedSq));
+				attacked = attackedByPawn(bd, PieceType.BlackPawn, Direction.getDirectMoveSq(Direction.upRight,attackedSq));
 				if (attacked) break;
-				attacked = attackedByPawn(bd, attackingColour, Direction.getDirectMoveSq(Direction.upLeft,attackedSq));
+				attacked = attackedByPawn(bd, PieceType.BlackPawn, Direction.getDirectMoveSq(Direction.upLeft,attackedSq));
 				if (attacked) break;
+				attacked = checkForAttacksHelper(PieceType.BlackKing, KingMove_Lut, bd, attackedSq);
+				if (attacked) break;
+				if (doKnightCheck) {
+					attacked = checkForAttacksHelper(PieceType.BlackKnight, KnightMove_Lut, bd, attackedSq);
+					if (attacked) break;
+				}
 			} else {
-				attacked = attackedByPawn(bd, attackingColour, Direction.getDirectMoveSq(Direction.downRight,attackedSq));
+				attacked = attackedByPawn(bd, PieceType.WhitePawn, Direction.getDirectMoveSq(Direction.downRight,attackedSq));
 				if (attacked) break;
-				attacked = attackedByPawn(bd, attackingColour, Direction.getDirectMoveSq(Direction.downLeft,attackedSq));
+				attacked = attackedByPawn(bd, PieceType.WhitePawn, Direction.getDirectMoveSq(Direction.downLeft,attackedSq));
 				if (attacked) break;
+				attacked = checkForAttacksHelper(PieceType.WhiteKing, KingMove_Lut, bd, attackedSq);
+				if (attacked) break;
+				if (doKnightCheck) {
+					attacked = checkForAttacksHelper(PieceType.WhiteKnight, KnightMove_Lut, bd, attackedSq);
+					if (attacked) break;
+				}
 			}
-			attacked = checkForAttacksHelper(King.class, KingMove_Lut, bd, attackingColour, attackedSq);
-			if (attacked) break;
-			if (doKnightCheck) {
-				attacked = checkForAttacksHelper(Knight.class, KnightMove_Lut, bd, attackingColour, attackedSq);
-				if (attacked) break;
-			}
+
 			if (doDiagonalCheck || doRankFileCheck) {
 				attacked = checkForDirectPieceAttacker(bd, attackingColour, attackedSq);
 				if (attacked) break;
@@ -129,12 +135,12 @@ public class SquareAttackEvaluator {
 		return attacked;	
 	}
 
-	private static boolean checkForAttacksHelper(Class<? extends Piece> type, Map<GenericPosition, GenericPosition[]> map,Board theBoard, Colour attackingColour, GenericPosition attackedSq) {
+	private static boolean checkForAttacksHelper(PieceType AttackerToCheckFor, Map<GenericPosition, GenericPosition[]> map, Board theBoard, GenericPosition attackedSq) {
 		boolean attacked = false;
 		GenericPosition [] array = map.get(attackedSq);
 		for (GenericPosition attackerSq: array) {
-			Piece currPiece = theBoard.getPieceAtSquare(attackerSq);
-			if (currPiece != null && type.isInstance(currPiece) && currPiece.getColour()==attackingColour) {
+			PieceType type = theBoard.getPieceAtSquare(attackerSq);
+			if (type == AttackerToCheckFor) {
 				attacked = true;
 				break;
 			}
@@ -148,18 +154,28 @@ public class SquareAttackEvaluator {
 		int index = 0;
 		for (Direction dir: Direction.values()) { 
 			for (GenericPosition attackerSq: array[index]) {
-				Piece currPiece = theBoard.getPieceAtSquare(attackerSq);
-				if (currPiece != null ) {
+				PieceType currPiece = theBoard.getPieceAtSquare(attackerSq);
+				if (currPiece != PieceType.NONE ) {
 					if (dir == Direction.downLeft || dir == Direction.upLeft || dir == Direction.upRight || dir == Direction.downRight) {
-						if (((currPiece instanceof Bishop) || (currPiece instanceof Queen)) && currPiece.getColour()==attackingColour) {
-							// Indicates attacked
-							attacked = true;
+						if (attackingColour == Colour.white) {
+							if (currPiece == PieceType.WhiteQueen || currPiece == PieceType.WhiteBishop) {
+								attacked = true;
+							}
+						} else {
+							if (currPiece == PieceType.BlackQueen || currPiece == PieceType.BlackBishop) {
+								attacked = true;
+							}
 						} // else blocked by own piece or non-attacking enemy
 						break;
 					} else if (dir == Direction.left || dir == Direction.up || dir == Direction.right || dir == Direction.down) {
-						if (((currPiece instanceof Rook) || (currPiece instanceof Queen)) && currPiece.getColour()==attackingColour) {
-							// Indicates attacked
-							attacked = true;
+						if (attackingColour == Colour.white) {
+							if (currPiece == PieceType.WhiteQueen || currPiece == PieceType.WhiteRook) {
+								attacked = true;
+							}
+						} else {
+							if (currPiece == PieceType.BlackQueen || currPiece == PieceType.BlackRook) {
+								attacked = true;
+							}
 						} // else blocked by own piece or non-attacking enemy
 						break;
 					}
@@ -171,12 +187,12 @@ public class SquareAttackEvaluator {
 		return attacked;
 	}
 
-	private static boolean attackedByPawn(Board theBoard, Colour attackingColour, GenericPosition attackerSq) {
-		Piece currPiece;
+	private static boolean attackedByPawn(Board theBoard, PieceType AttackerToCheckFor, GenericPosition attackerSq) {
+		PieceType currPiece;
 		boolean attacked = false;
 		if (attackerSq != null) {
 			currPiece = theBoard.getPieceAtSquare(attackerSq);
-			if ( currPiece != null && currPiece instanceof Pawn && currPiece.getColour()==attackingColour) {
+			if (currPiece == AttackerToCheckFor) {
 				attacked = true;
 			}
 		}

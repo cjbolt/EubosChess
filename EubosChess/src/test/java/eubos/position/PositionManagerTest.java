@@ -8,6 +8,7 @@ import eubos.board.pieces.King;
 import eubos.board.pieces.Pawn;
 import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
+import eubos.board.pieces.Piece.PieceType;
 import eubos.board.pieces.Rook;
 import eubos.position.PositionManager;
 
@@ -39,9 +40,8 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/4P3/8 w - - - -");
 		classUnderTest.performMove(new GenericMove("e2e4"));
 		classUnderTest.unperformMove();
-		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.e2 );
-		assertTrue( expectPawn instanceof Pawn );
-		assertTrue( expectPawn.isWhite());		
+		PieceType expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.e2 );
+		assertTrue( expectPawn==PieceType.WhitePawn );		
 	}
 	
 	@Test
@@ -58,9 +58,8 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/4p3/8 b - - - -");
 		classUnderTest.performMove( new GenericMove("e2e1Q"));
 		classUnderTest.unperformMove();
-		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.e2 );
-		assertTrue( expectPawn instanceof Pawn );
-		assertTrue( expectPawn.isBlack());
+		PieceType expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.e2 );
+		assertTrue( expectPawn==PieceType.BlackPawn );
 	}
 	
 	@Test
@@ -77,21 +76,18 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/8/8/8/8/3p4/4P3/8 w - - - -");
 		classUnderTest.performMove( new GenericMove("d3e2"));
 		classUnderTest.unperformMove();
-		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.d3 );
-		assertTrue( expectPawn instanceof Pawn );
-		assertTrue( expectPawn.isBlack());
+		PieceType expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.d3 );
+		assertTrue( expectPawn==PieceType.BlackPawn );
 		expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.e2 );
-		assertTrue( expectPawn instanceof Pawn );
-		assertTrue( expectPawn.isWhite());
+		assertTrue( expectPawn==PieceType.WhitePawn );
 	}
 	
 	@Test
 	public void test_enPassantCaptureAtC3() throws InvalidPieceException, IllegalNotationException {
 		classUnderTest = new PositionManager( "r3k2r/1bqpbppp/p1n1p3/3nP3/PpP1N3/3B1N2/1P2QPPP/R4RK1 b kq c3 0 1");
 		classUnderTest.performMove( new GenericMove("b4c3"));
-		Piece expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.c3 );
-		assertTrue( expectPawn instanceof Pawn );
-		assertTrue( expectPawn.isBlack());
+		PieceType expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( GenericPosition.c3 );
+		assertTrue( expectPawn==PieceType.BlackPawn );
 	}
 	
 	@Test
@@ -108,10 +104,10 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/8/4K2R w K - - -");
 		GenericMove expectedMove = new GenericMove("e1g1");
 		classUnderTest.performMove(expectedMove);
-		Piece whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.h1);
-		assertTrue(whiteRook == null);
+		PieceType whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.h1);
+		assertTrue(whiteRook == PieceType.NONE);
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.f1);
-		assertTrue(whiteRook instanceof Rook);
+		assertTrue( whiteRook==PieceType.WhiteRook );
 		assertTrue(classUnderTest.castling.everCastled(Colour.white));
 		assertTrue(classUnderTest.castling.getFenFlags().equals("-"));
 	}
@@ -130,17 +126,17 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/8/4K2R w K - - -");
 		GenericMove expectedMove = new GenericMove("e1g1");
 		classUnderTest.performMove(expectedMove);
-		Piece whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.h1);
-		assertTrue(whiteRook == null);
+		PieceType whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.h1);
+		assertTrue(whiteRook == PieceType.NONE);
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.f1);
-		assertTrue(whiteRook instanceof Rook);
+		assertTrue( whiteRook==PieceType.WhiteRook );
 		classUnderTest.unperformMove();
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.f1);
-		assertTrue(whiteRook == null);
+		assertTrue(whiteRook == PieceType.NONE);
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.h1);
-		assertTrue(whiteRook instanceof Rook);
-		Piece whiteKing = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.e1);
-		assertTrue(whiteKing instanceof King);
+		assertTrue( whiteRook==PieceType.WhiteRook );
+		PieceType whiteKing = classUnderTest.getTheBoard().getPieceAtSquare(GenericPosition.e1);
+		assertTrue( whiteKing==PieceType.WhiteKing );
 		assertTrue(!classUnderTest.castling.everCastled(Colour.white));
 		assertTrue(classUnderTest.castling.getFenFlags().equals("K"));
 	}

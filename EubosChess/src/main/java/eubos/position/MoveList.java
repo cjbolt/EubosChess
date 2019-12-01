@@ -16,7 +16,6 @@ import com.fluxchess.jcpi.models.GenericChessman;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.InvalidPieceException;
-import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
 
 public class MoveList implements Iterable<GenericMove> {
@@ -137,13 +136,7 @@ public class MoveList implements Iterable<GenericMove> {
 	}
 	
 	private List<GenericMove> getRawList(PositionManager pm) {
-		ArrayList<GenericMove> entireMoveList = new ArrayList<GenericMove>();
-		Iterator<Piece> iter_p = pm.getTheBoard().iterateColour(pm.getOnMove());
-		while ( iter_p.hasNext() ) {
-			Piece currPiece = iter_p.next();
-			entireMoveList.addAll( currPiece.generateMoves( pm.getTheBoard() ));
-		}
-		pm.castling.addCastlingMoves(entireMoveList);
+		List<GenericMove> entireMoveList = pm.generateMoves();
 		return entireMoveList;
 	}
 	

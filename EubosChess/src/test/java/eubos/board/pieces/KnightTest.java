@@ -14,8 +14,7 @@ public class KnightTest extends PieceTest {
 	public void test_SquareA8() {
 		startTestOnSq = GenericPosition.a8;
 		pm = new PositionManager("N7/8/8/8/8/8/8/8 w - - 0 1");
-		classUnderTest = (Knight)pm.getTheBoard().getPieceAtSquare( startTestOnSq );
-		ml = classUnderTest.generateMoves(pm.getTheBoard());
+		ml = pm.generateMoves();
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.c7 ));
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.b6 ));
 		expectedNumMoves = 2;
@@ -26,8 +25,7 @@ public class KnightTest extends PieceTest {
 	public void test_SquareB7() {
 		startTestOnSq = GenericPosition.b7;
 		pm = new PositionManager("8/1N6/8/8/8/8/8/8 w - - 0 1");
-		classUnderTest = (Knight)pm.getTheBoard().getPieceAtSquare( startTestOnSq );
-		ml = classUnderTest.generateMoves(pm.getTheBoard());
+		ml = pm.generateMoves();
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.d8 ));
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.d6 ));
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.a5 ));
@@ -40,8 +38,7 @@ public class KnightTest extends PieceTest {
 	public void test_SquareC6() {
 		startTestOnSq = GenericPosition.c6;
 		pm = new PositionManager("8/8/2N5/8/8/8/8/8 w - - 0 1");
-		classUnderTest = (Knight)pm.getTheBoard().getPieceAtSquare( startTestOnSq );
-		ml = classUnderTest.generateMoves(pm.getTheBoard());
+		ml = pm.generateMoves();
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.b8 ));
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.d8 ));
 		expectedMoves.add( new GenericMove( startTestOnSq, GenericPosition.e7 ));

@@ -2,6 +2,7 @@ package eubos.board.pieces;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -34,7 +35,7 @@ public class PieceTest {
 
 	protected void checkExpectedMoves(List<GenericMove> ml) {
 		assertFalse(ml.isEmpty());
-		assertTrue(ml.size()==expectedNumMoves);
+		assertEquals(expectedNumMoves, ml.size());
 		for ( GenericMove mov : expectedMoves) {
 			assertTrue( ml.contains( mov ));
 		}

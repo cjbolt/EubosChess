@@ -25,12 +25,12 @@ public abstract class PieceMultisquareDirectMove extends Piece {
 	private boolean checkAddMove(List<GenericMove> moveList, Board theBoard, GenericPosition targetSquare) {
 		boolean continueAddingMoves = false;
 		if ( targetSquare != null ) {
-			Piece targetPiece = theBoard.getPieceAtSquare(targetSquare);
+			PieceType targetPiece = theBoard.getPieceAtSquare(targetSquare);
 			if (theBoard.squareIsEmpty(targetSquare)) {
 				moveList.add( new GenericMove( onSquare, targetSquare ));
 				continueAddingMoves = true;
 			}
-			else if (targetPiece != null && isOppositeColour(targetPiece)) {
+			else if (targetPiece != PieceType.NONE && isOppositeColour(targetPiece)) {
 				// Indicates a capture
 				moveList.add( new GenericMove( onSquare, targetSquare ));
 			}
@@ -42,8 +42,8 @@ public abstract class PieceMultisquareDirectMove extends Piece {
 	private boolean sqConstrainsAttack(Board theBoard, GenericPosition targetSquare) {
 		boolean constrains = false;
 		if ( targetSquare != null ) {
-			Piece targetPiece = theBoard.getPieceAtSquare(targetSquare);
-			if (targetPiece != null) {
+			PieceType targetPiece = theBoard.getPieceAtSquare(targetSquare);
+			if (targetPiece != PieceType.NONE) {
 				constrains = true;
 			}
 		}

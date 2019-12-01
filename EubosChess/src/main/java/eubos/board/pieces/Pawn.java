@@ -70,8 +70,8 @@ public class Pawn extends PieceSinglesquareDirectMove {
 	
 	private boolean isCapturable(Board theBoard, GenericPosition captureAt ) {
 		boolean isCapturable = false;
-		Piece queryPiece = theBoard.getPieceAtSquare( captureAt );
-		if ( queryPiece != null ) {
+		PieceType queryPiece = theBoard.getPieceAtSquare( captureAt );
+		if ( queryPiece != PieceType.NONE ) {
 			isCapturable = isOppositeColour( queryPiece );
 		} else if (captureAt == theBoard.getEnPassantTargetSq()) {
 			isCapturable = true;
