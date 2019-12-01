@@ -8,7 +8,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 import eubos.board.InvalidPieceException;
-import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
 import eubos.board.pieces.Piece.PieceType;
 import eubos.position.PositionManager;

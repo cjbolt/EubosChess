@@ -51,7 +51,7 @@ public class Board implements Iterable<GenericPosition> {
 		for (int bit_index: bitBoardToIterate) {
 			GenericPosition atSquare = BitBoard.bitToPosition_Lut[bit_index];
 			BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
-			if (blackPieces.and(pieceToPickUp).getValue() != 0) {
+			if (blackPieces.and(pieceToPickUp).isNonZero()) {
 				if (pieces[INDEX_KING].isSet(bit_index)) {
 					movesList.addAll(king_generateMoves(this, atSquare, Colour.black));
 				} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
@@ -65,7 +65,7 @@ public class Board implements Iterable<GenericPosition> {
 				} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
 					movesList.addAll(pawn_generateMoves(this, atSquare, Colour.black));
 				}
-			} else if (whitePieces.and(pieceToPickUp).getValue() != 0) {
+			} else if (whitePieces.and(pieceToPickUp).isNonZero()) {
 				if (pieces[INDEX_KING].isSet(bit_index)) {
 					movesList.addAll(king_generateMoves(this, atSquare, Colour.white));
 				} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
@@ -87,20 +87,15 @@ public class Board implements Iterable<GenericPosition> {
 	}
 	
 	private boolean isOppositeColour(Piece.Colour ownColour, PieceType toCheck) {
-		return ( ownColour.equals(Colour.white) ?
-				(toCheck==PieceType.BlackKing || 
-				toCheck==PieceType.BlackQueen ||
-				toCheck==PieceType.BlackRook ||
-				toCheck==PieceType.BlackBishop ||
-				toCheck==PieceType.BlackKnight ||
-				toCheck==PieceType.BlackPawn) :
-				(toCheck==PieceType.WhiteKing || 
-				toCheck==PieceType.WhiteQueen ||
-				toCheck==PieceType.WhiteRook ||
-				toCheck==PieceType.WhiteBishop ||
-				toCheck==PieceType.WhiteKnight ||
-				toCheck==PieceType.WhitePawn)); 
-				}
+		boolean isOpposite = false;
+		assert toCheck != PieceType.NONE;
+		if (ownColour.equals(Colour.white)) {
+			isOpposite = toCheck.ordinal() >= PieceType.BlackKing.ordinal();
+		} else {
+			isOpposite = toCheck.ordinal() < PieceType.BlackKing.ordinal();
+		}
+		return isOpposite;
+	}
 	
 	private List<GenericMove> king_generateMoves(Board theBoard, GenericPosition atSquare, Piece.Colour ownSide) {
 		List<GenericMove> moveList = new LinkedList<GenericMove>();
@@ -356,81 +351,99 @@ public class Board implements Iterable<GenericPosition> {
 		PieceType type = PieceType.NONE;
 		int bit_index = BitBoard.positionToBit_Lut.get(atPos);
 		BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
-		if (blackPieces.and(pieceToPickUp).isNonZero()) {
-			if (pieces[INDEX_KING].isSet(bit_index)) {
-				type = PieceType.BlackKing;
-			} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
-				type = PieceType.BlackQueen;
-			} else if (pieces[INDEX_ROOK].isSet(bit_index)) {
-				type = PieceType.BlackRook;
-			} else if (pieces[INDEX_BISHOP].isSet(bit_index)) {
-				type = PieceType.BlackBishop;
-			} else if (pieces[INDEX_KNIGHT].isSet(bit_index)) {
-				type = PieceType.BlackKnight;
-			} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
-				type = PieceType.BlackPawn;
+		if (allPieces.and(pieceToPickUp).isNonZero()) {	
+			if (blackPieces.and(pieceToPickUp).isNonZero()) {
+				if (pieces[INDEX_KING].isSet(bit_index)) {
+					type = PieceType.BlackKing;
+				} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
+					type = PieceType.BlackQueen;
+				} else if (pieces[INDEX_ROOK].isSet(bit_index)) {
+					type = PieceType.BlackRook;
+				} else if (pieces[INDEX_BISHOP].isSet(bit_index)) {
+					type = PieceType.BlackBishop;
+				} else if (pieces[INDEX_KNIGHT].isSet(bit_index)) {
+					type = PieceType.BlackKnight;
+				} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
+					type = PieceType.BlackPawn;
+				}
+			} else if (whitePieces.and(pieceToPickUp).isNonZero()) {
+				if (pieces[INDEX_KING].isSet(bit_index)) {
+					type = PieceType.WhiteKing;
+				} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
+					type = PieceType.WhiteQueen;
+				} else if (pieces[INDEX_ROOK].isSet(bit_index)) {
+					type = PieceType.WhiteRook;
+				} else if (pieces[INDEX_BISHOP].isSet(bit_index)) {
+					type = PieceType.WhiteBishop;
+				} else if (pieces[INDEX_KNIGHT].isSet(bit_index)) {
+					type = PieceType.WhiteKnight;
+				} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
+					type = PieceType.WhitePawn;
+				}
+			} else {
+				// can't get here
+				assert false;
 			}
-		} else if (whitePieces.and(pieceToPickUp).isNonZero()) {
-			if (pieces[INDEX_KING].isSet(bit_index)) {
-				type = PieceType.WhiteKing;
-			} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
-				type = PieceType.WhiteQueen;
-			} else if (pieces[INDEX_ROOK].isSet(bit_index)) {
-				type = PieceType.WhiteRook;
-			} else if (pieces[INDEX_BISHOP].isSet(bit_index)) {
-				type = PieceType.WhiteBishop;
-			} else if (pieces[INDEX_KNIGHT].isSet(bit_index)) {
-				type = PieceType.WhiteKnight;
-			} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
-				type = PieceType.WhitePawn;
-			}
-		} else {
-			assert false;
 		}
 		return type;
 	}
 	
 	public void setPieceAtSquare( GenericPosition atPos, PieceType pieceToPlace ) {
+		assert pieceToPlace != PieceType.NONE;
 		int bit_index = BitBoard.positionToBit_Lut.get(atPos);
-		// assert nothing there already
-		if (pieceToPlace.equals(PieceType.WhiteKing)) {
+		switch (pieceToPlace) {
+		case WhiteKing:
 			pieces[INDEX_KING].set(bit_index);
 			whitePieces.set(bit_index);
-		} else if (pieceToPlace.equals(PieceType.WhiteQueen)) {
+			break;
+		case WhiteQueen:
 			pieces[INDEX_QUEEN].set(bit_index);
 			whitePieces.set(bit_index);
-		} else if (pieceToPlace.equals(PieceType.WhiteRook)) {
+			break;
+		case WhiteRook:
 			pieces[INDEX_ROOK].set(bit_index);
 			whitePieces.set(bit_index);
-		} else if (pieceToPlace.equals(PieceType.WhiteBishop)) {
+			break;
+		case WhiteBishop:
 			pieces[INDEX_BISHOP].set(bit_index);
 			whitePieces.set(bit_index);
-		} else if (pieceToPlace.equals(PieceType.WhiteKnight)) {
+			break;
+		case WhiteKnight:
 			pieces[INDEX_KNIGHT].set(bit_index);
 			whitePieces.set(bit_index);
-		} else if (pieceToPlace.equals(PieceType.WhitePawn)) {
+			break;
+		case WhitePawn:
 			pieces[INDEX_PAWN].set(bit_index);
 			whitePieces.set(bit_index);
-		} else if (pieceToPlace.equals(PieceType.BlackKing)) {
+			break;
+		case BlackKing:
 			pieces[INDEX_KING].set(bit_index);
 			blackPieces.set(bit_index);
-		} else if (pieceToPlace.equals(PieceType.BlackQueen)) {
+			break;
+		case BlackQueen:
 			pieces[INDEX_QUEEN].set(bit_index);
 			blackPieces.set(bit_index);
-		} else if (pieceToPlace.equals(PieceType.BlackRook)) {
+			break;
+		case BlackRook:
 			pieces[INDEX_ROOK].set(bit_index);
 			blackPieces.set(bit_index);
-		} else if (pieceToPlace.equals(PieceType.BlackBishop)) {
+			break;
+		case BlackBishop:
 			pieces[INDEX_BISHOP].set(bit_index);
 			blackPieces.set(bit_index);
-		} else if (pieceToPlace.equals(PieceType.BlackKnight)) {
+			break;
+		case BlackKnight:
 			pieces[INDEX_KNIGHT].set(bit_index);
 			blackPieces.set(bit_index);
-		} else if (pieceToPlace.equals(PieceType.BlackPawn)) {
+			break;
+		case BlackPawn:
 			pieces[INDEX_PAWN].set(bit_index);
 			blackPieces.set(bit_index);
-		} else {
+			break;
+		case NONE:
+		default:
 			assert false;
+			break;
 		}
 		allPieces.set(bit_index);
 	}
@@ -451,50 +464,52 @@ public class Board implements Iterable<GenericPosition> {
 		PieceType type = PieceType.NONE;
 		int bit_index = BitBoard.positionToBit_Lut.get(atPos);
 		BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
-		if (blackPieces.and(pieceToPickUp).isNonZero()) {
-			if (pieces[INDEX_KING].isSet(bit_index)) {
-				pieces[INDEX_KING].clear(bit_index);
-				type = PieceType.BlackKing;
-			} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
-				pieces[INDEX_QUEEN].clear(bit_index);
-				type = PieceType.BlackQueen;
-			} else if (pieces[INDEX_ROOK].isSet(bit_index)) {
-				pieces[INDEX_ROOK].clear(bit_index);
-				type = PieceType.BlackRook;
-			} else if (pieces[INDEX_BISHOP].isSet(bit_index)) {
-				pieces[INDEX_BISHOP].clear(bit_index);
-				type = PieceType.BlackBishop;
-			} else if (pieces[INDEX_KNIGHT].isSet(bit_index)) {
-				pieces[INDEX_KNIGHT].clear(bit_index);
-				type = PieceType.BlackKnight;
-			} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
-				pieces[INDEX_PAWN].clear(bit_index);
-				type = PieceType.BlackPawn;
+		if (allPieces.and(pieceToPickUp).isNonZero()) {
+			if (blackPieces.and(pieceToPickUp).isNonZero()) {
+				if (pieces[INDEX_KING].isSet(bit_index)) {
+					pieces[INDEX_KING].clear(bit_index);
+					type = PieceType.BlackKing;
+				} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
+					pieces[INDEX_QUEEN].clear(bit_index);
+					type = PieceType.BlackQueen;
+				} else if (pieces[INDEX_ROOK].isSet(bit_index)) {
+					pieces[INDEX_ROOK].clear(bit_index);
+					type = PieceType.BlackRook;
+				} else if (pieces[INDEX_BISHOP].isSet(bit_index)) {
+					pieces[INDEX_BISHOP].clear(bit_index);
+					type = PieceType.BlackBishop;
+				} else if (pieces[INDEX_KNIGHT].isSet(bit_index)) {
+					pieces[INDEX_KNIGHT].clear(bit_index);
+					type = PieceType.BlackKnight;
+				} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
+					pieces[INDEX_PAWN].clear(bit_index);
+					type = PieceType.BlackPawn;
+				}
+				blackPieces.clear(bit_index);
+			} else {
+				if (pieces[INDEX_KING].isSet(bit_index)) {
+					pieces[INDEX_KING].clear(bit_index);
+					type = PieceType.WhiteKing;
+				} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
+					pieces[INDEX_QUEEN].clear(bit_index);
+					type = PieceType.WhiteQueen;
+				} else if (pieces[INDEX_ROOK].isSet(bit_index)) {
+					pieces[INDEX_ROOK].clear(bit_index);
+					type = PieceType.WhiteRook;
+				} else if (pieces[INDEX_BISHOP].isSet(bit_index)) {
+					pieces[INDEX_BISHOP].clear(bit_index);
+					type = PieceType.WhiteBishop;
+				} else if (pieces[INDEX_KNIGHT].isSet(bit_index)) {
+					pieces[INDEX_KNIGHT].clear(bit_index);
+					type = PieceType.WhiteKnight;
+				} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
+					pieces[INDEX_PAWN].clear(bit_index);
+					type = PieceType.WhitePawn;
+				}
+				whitePieces.clear(bit_index);
 			}
-			blackPieces.clear(bit_index);
-		} else {
-			if (pieces[INDEX_KING].isSet(bit_index)) {
-				pieces[INDEX_KING].clear(bit_index);
-				type = PieceType.WhiteKing;
-			} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
-				pieces[INDEX_QUEEN].clear(bit_index);
-				type = PieceType.WhiteQueen;
-			} else if (pieces[INDEX_ROOK].isSet(bit_index)) {
-				pieces[INDEX_ROOK].clear(bit_index);
-				type = PieceType.WhiteRook;
-			} else if (pieces[INDEX_BISHOP].isSet(bit_index)) {
-				pieces[INDEX_BISHOP].clear(bit_index);
-				type = PieceType.WhiteBishop;
-			} else if (pieces[INDEX_KNIGHT].isSet(bit_index)) {
-				pieces[INDEX_KNIGHT].clear(bit_index);
-				type = PieceType.WhiteKnight;
-			} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
-				pieces[INDEX_PAWN].clear(bit_index);
-				type = PieceType.WhitePawn;
-			}
-			whitePieces.clear(bit_index);
+			allPieces.clear(bit_index);
 		}
-		allPieces.clear(bit_index);
 		return type;
 	}	
 	

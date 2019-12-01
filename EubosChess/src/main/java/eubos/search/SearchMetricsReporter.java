@@ -67,12 +67,7 @@ public class SearchMetricsReporter extends Thread {
 			if (java.lang.Math.abs(score)<MaterialEvaluator.MATERIAL_VALUE_KING) {
 				info.setCentipawns(score);
 			} else {
-				int mateMove = 0;
-				if (score > 0) {
-					mateMove = Short.MAX_VALUE - score;
-				} else {
-					mateMove = Short.MIN_VALUE - score;
-				}
+				int mateMove = (score > 0) ? Short.MAX_VALUE - score : Short.MIN_VALUE - score;
 				info.setMate(mateMove);
 			}
 			info.setDepth(depth);
