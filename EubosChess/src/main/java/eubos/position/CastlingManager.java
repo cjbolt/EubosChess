@@ -142,14 +142,14 @@ class CastlingManager {
 			return;
 		// Check for castling king-side
 		GenericMove ksc = null;		
-		if (onMove == Colour.white && whiteKsAvail) {
+		if (Colour.isWhite(onMove) && whiteKsAvail) {
 			try {
 				ksc = getWhiteKingsideCastleMove();
 			} catch (Exception e) {
 				whiteKsAvail = false;				
 				e.printStackTrace();
 			}
-		} else if (onMove == Colour.black && blackKsAvail) {
+		} else if (Colour.isBlack(onMove) && blackKsAvail) {
 			try {
 				ksc = getBlackKingsideCastleMove();
 			} catch (Exception e) {
@@ -161,14 +161,14 @@ class CastlingManager {
 			ml.add(ksc);
 		// Check for castling queen side
 		GenericMove qsc = null;
-		if (onMove == Colour.white && whiteQsAvail) {
+		if (Colour.isWhite(onMove) && whiteQsAvail) {
 			try {
 				qsc = getWhiteQueensideCastleMove();
 			} catch (Exception e) {
 				whiteQsAvail = false;
 				e.printStackTrace();
 			}
-		} else if (onMove == Colour.black && blackQsAvail) {
+		} else if (Colour.isBlack(onMove) && blackQsAvail) {
 			try {
 				qsc = getBlackQueensideCastleMove();
 			} catch (Exception e) {
@@ -198,22 +198,16 @@ class CastlingManager {
 
 	private boolean castlingAvaillable(Colour colour) {
 		boolean castlingAvaillable = false;
-		if (colour == Colour.white && (whiteKsAvail || whiteQsAvail)) {
+		if (Colour.isWhite(colour) && (whiteKsAvail || whiteQsAvail)) {
 			castlingAvaillable = true;
-		} else if (colour == Colour.black && (blackKsAvail || blackQsAvail)) {
+		} else if (Colour.isBlack(colour) && (blackKsAvail || blackQsAvail)) {
 			castlingAvaillable = true;
 		}
 		return castlingAvaillable;
 	}
 	
 	boolean everCastled(Colour colour){
-		boolean everCastled = false;
-		if (colour.equals(Colour.white)) {
-			everCastled = whiteCastled;
-		} else {
-			everCastled = blackCastled;
-		}
-		return everCastled;
+		return Colour.isWhite(colour) ? whiteCastled : blackCastled;
 	}
 
 	private boolean castleMoveLegal(GenericPosition rookSq,

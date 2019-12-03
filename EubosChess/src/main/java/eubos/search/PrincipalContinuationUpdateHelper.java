@@ -38,7 +38,7 @@ public class PrincipalContinuationUpdateHelper
 		}	
 
 		private void assignCentipawnScoreToSearchMetrics() {
-			if (initialOnMove.equals(Colour.black))
+			if (Colour.isBlack(initialOnMove))
 				positionScore = (short) -positionScore; // Negated due to UCI spec (from engine pov)
 			sm.setCpScore(positionScore);
 		}
@@ -78,7 +78,7 @@ public class PrincipalContinuationUpdateHelper
 		}
 		
 		private boolean isOwnMate() {
-			return ((initialOnMove==Colour.white && positionScore<0) ||
-			        (initialOnMove==Colour.black && positionScore>0));
+			return ((Colour.isWhite(initialOnMove) && positionScore<0) ||
+			        (Colour.isBlack(initialOnMove) && positionScore>0));
 		}
 }

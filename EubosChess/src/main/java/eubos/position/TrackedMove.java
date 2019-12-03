@@ -12,7 +12,7 @@ class TrackedMove {
 	private GenericPosition enPassantTarget = null;
 	private String castleFenFlags = null;
 
-	TrackedMove( GenericMove inMove ) { move = inMove; capture = new CaptureData(PieceType.NONE, null); }
+	TrackedMove( GenericMove inMove ) { move = inMove; capture = new CaptureData(); }
 	TrackedMove( GenericMove inMove, CaptureData capture, GenericPosition enP, String castleFen) {
 		move = inMove; 
 		this.capture = capture;

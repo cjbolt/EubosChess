@@ -47,7 +47,7 @@ public class Board implements Iterable<GenericPosition> {
 	}
 	
 	public List<GenericMove> getRegularPieceMoves(Piece.Colour side) {
-		BitBoard bitBoardToIterate = (side == Colour.white) ? whitePieces : blackPieces;
+		BitBoard bitBoardToIterate = Colour.isWhite(side) ? whitePieces : blackPieces;
 		ArrayList<GenericMove> movesList = new ArrayList<GenericMove>();
 		for (int bit_index: bitBoardToIterate) {
 			GenericPosition atSquare = BitBoard.bitToPosition_Lut[bit_index];
@@ -87,16 +87,7 @@ public class Board implements Iterable<GenericPosition> {
 		return movesList;
 	}
 	
-	private boolean isOppositeColour(Piece.Colour ownColour, PieceType toCheck) {
-		boolean isOpposite = false;
-		assert toCheck != PieceType.NONE;
-		if (ownColour.equals(Colour.white)) {
-			isOpposite = toCheck.ordinal() >= PieceType.BlackKing.ordinal();
-		} else {
-			isOpposite = toCheck.ordinal() < PieceType.BlackKing.ordinal();
-		}
-		return isOpposite;
-	}
+
 	
 	private List<GenericMove> king_generateMoves(Board theBoard, GenericPosition atSquare, Piece.Colour ownSide) {
 		List<GenericMove> moveList = new LinkedList<GenericMove>();
@@ -115,7 +106,7 @@ public class Board implements Iterable<GenericPosition> {
 		if ( targetSquare != null ) {
 			PieceType targetPiece = theBoard.getPieceAtSquare(targetSquare);
 			if ( theBoard.squareIsEmpty(targetSquare) || 
-					(targetPiece != PieceType.NONE && isOppositeColour(ownSide, targetPiece))) {
+					(targetPiece != PieceType.NONE && PieceType.isOppositeColour(ownSide, targetPiece))) {
 				moveList.add( new GenericMove( atSquare, targetSquare ) );
 			}
 		}
@@ -131,7 +122,7 @@ public class Board implements Iterable<GenericPosition> {
 			if (theBoard.squareIsEmpty(targetSquare)) {
 				moveList.add( new GenericMove( atSquare, targetSquare ));
 			}
-			else if (targetPiece != PieceType.NONE && isOppositeColour(ownSide, targetPiece)) {
+			else if (targetPiece != PieceType.NONE && PieceType.isOppositeColour(ownSide, targetPiece)) {
 				// Indicates a capture
 				moveList.add( new GenericMove( atSquare, targetSquare ));
 			}
@@ -203,7 +194,7 @@ public class Board implements Iterable<GenericPosition> {
 				moveList.add( new GenericMove( atSquare, targetSquare ));
 				continueAddingMoves = true;
 			}
-			else if (targetPiece != PieceType.NONE && isOppositeColour(ownSide, targetPiece)) {
+			else if (targetPiece != PieceType.NONE && PieceType.isOppositeColour(ownSide, targetPiece)) {
 				// Indicates a capture
 				moveList.add( new GenericMove( atSquare, targetSquare ));
 			}
@@ -233,7 +224,7 @@ public class Board implements Iterable<GenericPosition> {
 	
 	
 	public boolean pawn_isAtInitialPosition(GenericPosition atSquare, Piece.Colour ownSide) {
-		if ( ownSide.equals(Colour.black)) {
+		if (Colour.isBlack(ownSide)) {
 			return (atSquare.rank.equals( GenericRank.R7 ));
 		} else {
 			return (atSquare.rank.equals( GenericRank.R2 ));
@@ -241,7 +232,7 @@ public class Board implements Iterable<GenericPosition> {
 	}
 
 	private GenericPosition pawn_genOneSqTarget(GenericPosition atSquare, Piece.Colour ownSide) {
-		if ( ownSide.equals(Colour.black) ) {
+		if (Colour.isBlack(ownSide)) {
 			return king_getOneSq(Direction.down, atSquare);
 		} else {
 			return king_getOneSq(Direction.up, atSquare);
@@ -251,7 +242,7 @@ public class Board implements Iterable<GenericPosition> {
 	private GenericPosition pawn_genTwoSqTarget(GenericPosition atSquare, Piece.Colour ownSide) {
 		GenericPosition moveTo = null;
 		if ( pawn_isAtInitialPosition(atSquare, ownSide) ) {
-			if ( ownSide.equals(Colour.black)) {
+			if (Colour.isBlack(ownSide)) {
 				moveTo = Direction.getDirectMoveSq(Direction.down, Direction.getDirectMoveSq(Direction.down, atSquare));
 			} else {
 				moveTo = Direction.getDirectMoveSq(Direction.up, Direction.getDirectMoveSq(Direction.up, atSquare));
@@ -261,7 +252,7 @@ public class Board implements Iterable<GenericPosition> {
 	}
 	
 	private GenericPosition pawn_genLeftCaptureTarget(GenericPosition atSquare, Piece.Colour ownSide) {
-		if (ownSide.equals(Colour.black)) {
+		if (Colour.isBlack(ownSide)) {
 			return king_getOneSq(Direction.downRight, atSquare);
 		} else {
 			return king_getOneSq(Direction.upLeft, atSquare);
@@ -269,7 +260,7 @@ public class Board implements Iterable<GenericPosition> {
 	}
 	
 	private GenericPosition pawn_genRightCaptureTarget(GenericPosition atSquare, Piece.Colour ownSide) {
-		if (ownSide.equals(Colour.black)) {
+		if (Colour.isBlack(ownSide)) {
 			return king_getOneSq(Direction.downLeft, atSquare);
 		} else {
 			return king_getOneSq(Direction.upRight, atSquare);
@@ -280,7 +271,7 @@ public class Board implements Iterable<GenericPosition> {
 		boolean isCapturable = false;
 		PieceType queryPiece = theBoard.getPieceAtSquare( captureAt );
 		if ( queryPiece != PieceType.NONE ) {
-			isCapturable = isOppositeColour( ownSide, queryPiece );
+			isCapturable = PieceType.isOppositeColour( ownSide, queryPiece );
 		} else if (captureAt == theBoard.getEnPassantTargetSq()) {
 			isCapturable = true;
 		}
@@ -288,8 +279,8 @@ public class Board implements Iterable<GenericPosition> {
 	}
 	
 	private boolean pawn_checkPromotionPossible(Piece.Colour ownSide, GenericPosition targetSquare ) {
-		return (( ownSide.equals(Colour.black) && targetSquare.rank == GenericRank.R1 ) || 
-				( ownSide.equals(Colour.white) && targetSquare.rank == GenericRank.R8 ));
+		return (( Colour.isBlack(ownSide) && targetSquare.rank == GenericRank.R1 ) || 
+				( Colour.isWhite(ownSide) && targetSquare.rank == GenericRank.R8 ));
 	}
 	
 	private void pawn_checkPromotionAddMove(GenericPosition atSquare, Piece.Colour ownSide, List<GenericMove> moveList,
@@ -451,17 +442,17 @@ public class Board implements Iterable<GenericPosition> {
 	
 	public boolean isKingInCheck(Piece.Colour side) {
 		boolean inCheck = false;
-		BitBoard getFromBoard = side.equals(Colour.white) ? whitePieces : blackPieces;
-		BitBoard temp = getFromBoard.and(pieces[INDEX_KING]);
-		for (int bit_index: temp) {
-			GenericPosition atSquare = BitBoard.bitToPosition_Lut[bit_index];
-			inCheck = squareIsAttacked(atSquare, side);
+		BitBoard getFromBoard = Colour.isWhite(side) ? whitePieces : blackPieces;
+		BitBoard kingMask = getFromBoard.and(pieces[INDEX_KING]);
+		if (kingMask.isNonZero()) {
+			// The conditional is needed because some unit test positions don't have a king...
+			GenericPosition kingSquare = BitBoard.maskToPosition_Lut.get(kingMask.getValue());
+			inCheck = squareIsAttacked(kingSquare, side);
 		}
 		return inCheck;
 	}
 
 	public PieceType pickUpPieceAtSquare( GenericPosition atPos ) {
-		// Calculate bit index
 		PieceType type = PieceType.NONE;
 		int bit_index = BitBoard.positionToBit_Lut.get(atPos);
 		BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
@@ -528,7 +519,7 @@ public class Board implements Iterable<GenericPosition> {
 	
 	public int countDoubledPawnsForSide(Colour side) {
 		int doubledCount = 0;
-		BitBoard pawns = (side==Colour.white) ? getWhitePawns() : getBlackPawns();
+		BitBoard pawns = Colour.isWhite(side) ? getWhitePawns() : getBlackPawns();
 		for (GenericFile file : GenericFile.values()) {
 			BitBoard mask = DoubledPawn_Lut.get(file);
 			long fileMask = pawns.and(mask).getValue();
@@ -543,7 +534,7 @@ public class Board implements Iterable<GenericPosition> {
 	public boolean isPassedPawn(GenericPosition atPos, Colour side) {
 		boolean isPassed = true;
 		BitBoard mask = PassedPawn_Lut.get(side.ordinal()).get(atPos);
-		BitBoard otherSidePawns = (side==Colour.white) ? getBlackPawns() : getWhitePawns();
+		BitBoard otherSidePawns = Colour.isWhite(side) ? getBlackPawns() : getWhitePawns();
 		if (mask.and(otherSidePawns).isNonZero()) {
 			isPassed  = false;
 		}
@@ -563,7 +554,7 @@ public class Board implements Iterable<GenericPosition> {
 			black_map.put(atPos, buildPassedPawnFileMask(atPos.file, atPos.rank, false));
 		}
 	}
-	static BitBoard buildPassedPawnFileMask(GenericFile file, GenericRank rank, boolean isWhite) {
+	private static BitBoard buildPassedPawnFileMask(GenericFile file, GenericRank rank, boolean isWhite) {
 		long mask = 0;
 		int r = IntRank.valueOf(rank);
 		int f = IntFile.valueOf(file);
@@ -571,38 +562,27 @@ public class Board implements Iterable<GenericPosition> {
 		boolean hasNextFile = file.hasNext();
 		if (isWhite) {
 			for (r=r+1; r < 7; r++) {
-				if (hasPrevFile) {
-					mask |= 1L << r*8+(f-1);
-				}
-				mask |= 1L << r*8+f;
-				if (hasNextFile) {
-					mask |= 1L << r*8+(f+1);
-				}
+				mask = addRankForPassedPawnMask(mask, r, f, hasPrevFile,
+						hasNextFile);
 			}
 		} else {
 			for (r=r-1; r > 0; r--) {
-				if (hasPrevFile) {
-					mask |= 1L << r*8+(f-1);
-				}
-				mask |= 1L << r*8+f;
-				if (hasNextFile) {
-					mask |= 1L << r*8+(f+1);
-				}	
+				mask = addRankForPassedPawnMask(mask, r, f, hasPrevFile,
+						hasNextFile);	
 			}
 		}
 		return new BitBoard(mask);
 	}
-	
-	
-	
-	public class RankAndFile {
-		public int rank = IntRank.NORANK;
-		public int file = IntFile.NOFILE;
-		
-		public RankAndFile(GenericPosition atPos) {
-			rank = IntRank.valueOf(atPos.rank);
-			file = IntFile.valueOf(atPos.file);	
+	private static long addRankForPassedPawnMask(long mask, int r, int f,
+			boolean hasPrevFile, boolean hasNextFile) {
+		if (hasPrevFile) {
+			mask |= 1L << r*8+(f-1);
 		}
+		mask |= 1L << r*8+f;
+		if (hasNextFile) {
+			mask |= 1L << r*8+(f+1);
+		}
+		return mask;
 	}
 	
 	public String getAsFenString() {
@@ -665,27 +645,20 @@ public class Board implements Iterable<GenericPosition> {
 
 		allPiecesOnBoardIterator() throws InvalidPieceException {
 			iterList = new LinkedList<GenericPosition>();
-			BitBoard bitBoardToIterate = allPieces;
-			buildIterList(bitBoardToIterate);
+			buildIterList(allPieces);
 		}
 
 		allPiecesOnBoardIterator( Piece.Colour colourToIterate ) throws InvalidPieceException {
 			iterList = new LinkedList<GenericPosition>();
-			BitBoard bitBoardToIterate;
-			if (colourToIterate == Colour.white) {
-				bitBoardToIterate = whitePieces;
-			} else {
-				bitBoardToIterate = blackPieces;
-			}
-			buildIterList(bitBoardToIterate);
+			buildIterList(Colour.isWhite(colourToIterate) ? whitePieces : blackPieces);
 		}
 		
-		allPiecesOnBoardIterator( PieceType colourToIterate ) throws InvalidPieceException {
+		allPiecesOnBoardIterator( PieceType typeToIterate ) throws InvalidPieceException {
 			iterList = new LinkedList<GenericPosition>();
 			BitBoard bitBoardToIterate;
-			if (colourToIterate == PieceType.WhitePawn) {
+			if (typeToIterate == PieceType.WhitePawn) {
 				bitBoardToIterate = getWhitePawns();
-			} else if (colourToIterate == PieceType.BlackPawn) {
+			} else if (typeToIterate == PieceType.BlackPawn) {
 				bitBoardToIterate = getBlackPawns();
 			} else {
 				bitBoardToIterate = new BitBoard();

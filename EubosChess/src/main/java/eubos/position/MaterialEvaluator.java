@@ -63,6 +63,7 @@ public class MaterialEvaluator {
  
 	public static MaterialEvaluation evaluate(Board theBoard) {
 		Iterator<GenericPosition> iter_p = theBoard.iterator();
+		// TODO this needn't be done with an iterator. We could just go through all the BitBoards, it might be faster.
 		MaterialEvaluation materialEvaluation = new MaterialEvaluation();
 		while ( iter_p.hasNext() ) {
 			GenericPosition atPos = iter_p.next();
@@ -88,9 +89,7 @@ public class MaterialEvaluator {
 				currValue = MATERIAL_VALUE_QUEEN;
 			else if ( currPiece==PieceType.WhiteKing || currPiece==PieceType.BlackKing )
 				currValue = MATERIAL_VALUE_KING;
-			if (currPiece==PieceType.WhiteQueen || currPiece==PieceType.WhiteKnight ||
-					currPiece==PieceType.WhiteBishop || currPiece==PieceType.WhiteKing ||
-					currPiece==PieceType.WhiteRook || currPiece==PieceType.WhitePawn) {
+			if (PieceType.isWhite(currPiece)) {
 				materialEvaluation.addWhite(currValue);
 			} else { 
 				materialEvaluation.addBlack(currValue);

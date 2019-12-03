@@ -23,7 +23,7 @@ public class MateScoreGenerator implements IScoreMate {
 		if (pos.isKingInCheck()) {
 			short mateMoveNum = (short)(((currPly-1)/PLIES_PER_MOVE)+1); // currPly-1 because mate was caused by the move from the previousPly
 			// If white got mated, need to back up a large negative score (good for black)
-			if (initialOnMove == Colour.white) {
+			if (Colour.isWhite(initialOnMove)) {
 				if ((currPly%2) == 0) {
 					mateScore = (short) (Short.MIN_VALUE + mateMoveNum);
 				} else {
@@ -39,7 +39,7 @@ public class MateScoreGenerator implements IScoreMate {
 		} else {
 			mateScore = getScoreForStalemate();
 			// TODO: introduce a more sophisticated system for handling stalemate scoring.
-			if (initialOnMove==Colour.black)
+			if (Colour.isBlack(initialOnMove))
 				mateScore=(short) -mateScore;
 		}
 		return mateScore;

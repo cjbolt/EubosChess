@@ -63,7 +63,7 @@ public class PositionEvaluator implements IEvaluate {
 		if (pm.hasCastled(onMoveWas)) {
 			castleScoreBoost = HAS_CASTLED_BOOST_CENTIPAWNS;
 		}
-		if (onMoveWas == Colour.black) {
+		if (Colour.isBlack(onMoveWas)) {
 			castleScoreBoost = -castleScoreBoost;
 		}
 		return castleScoreBoost;
@@ -79,7 +79,7 @@ public class PositionEvaluator implements IEvaluate {
 		Board board = pm.getTheBoard();
 		int passedPawnBoost = 0;
 		int pawnHandicap = -board.countDoubledPawnsForSide(onMoveWas)*DOUBLED_PAWN_HANDICAP;
-		PieceType ownPawns = (onMoveWas==Colour.white) ? PieceType.WhitePawn : PieceType.BlackPawn;
+		PieceType ownPawns = Colour.isWhite(onMoveWas) ? PieceType.WhitePawn : PieceType.BlackPawn;
 		Iterator<GenericPosition> iter = board.iterateType(ownPawns);
 		while (iter.hasNext()) {
 			GenericPosition pawn = iter.next();
@@ -91,7 +91,7 @@ public class PositionEvaluator implements IEvaluate {
 				}
 			}
 		}
-		if (onMoveWas == Colour.black) {
+		if (Colour.isBlack(onMoveWas)) {
 			pawnHandicap = -pawnHandicap;
 			passedPawnBoost = -passedPawnBoost;
 		}

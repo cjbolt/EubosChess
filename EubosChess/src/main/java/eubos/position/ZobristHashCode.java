@@ -119,8 +119,7 @@ public class ZobristHashCode {
 			pieceType = INDEX_KING;
 		}
 		lookupIndex = atFile + atRank * 8 + pieceType * NUM_SQUARES;
-		if (currPiece.equals(PieceType.BlackKnight) || currPiece.equals(PieceType.BlackBishop) || currPiece.equals(PieceType.BlackRook) ||
-			currPiece.equals(PieceType.BlackQueen) || currPiece.equals(PieceType.BlackKing) || currPiece.equals(PieceType.BlackPawn))
+		if (PieceType.isBlack(currPiece))
 			lookupIndex += INDEX_BLACK;
 		
 		return prnLookupTable[lookupIndex];
@@ -148,13 +147,13 @@ public class ZobristHashCode {
 	private PieceType convertChessmanToPiece(GenericChessman chessman, GenericMove move) {
 		PieceType eubosPiece = null;
 		if (chessman.equals(GenericChessman.KNIGHT))
-			eubosPiece = (pos.getOnMove().equals(Colour.black)) ? PieceType.WhiteKnight : PieceType.BlackKnight;
+			eubosPiece = (Colour.isBlack(pos.getOnMove())) ? PieceType.WhiteKnight : PieceType.BlackKnight;
 		else if (chessman.equals(GenericChessman.BISHOP))
-			eubosPiece = (pos.getOnMove().equals(Colour.black)) ? PieceType.WhiteBishop : PieceType.BlackBishop;
+			eubosPiece = (Colour.isBlack(pos.getOnMove())) ? PieceType.WhiteBishop : PieceType.BlackBishop;
 		else if (chessman.equals(GenericChessman.ROOK))
-			eubosPiece = (pos.getOnMove().equals(Colour.black)) ? PieceType.WhiteRook : PieceType.BlackRook;
+			eubosPiece = (Colour.isBlack(pos.getOnMove())) ? PieceType.WhiteRook : PieceType.BlackRook;
 		else if (chessman.equals(GenericChessman.QUEEN))
-			eubosPiece = (pos.getOnMove().equals(Colour.black)) ? PieceType.WhiteQueen : PieceType.BlackQueen;
+			eubosPiece = (Colour.isBlack(pos.getOnMove())) ? PieceType.WhiteQueen : PieceType.BlackQueen;
 		return eubosPiece;
 	}
 	
@@ -178,7 +177,7 @@ public class ZobristHashCode {
 				    piece==PieceType.WhiteRook || piece==PieceType.BlackRook || 
 				    piece==PieceType.WhiteQueen || piece==PieceType.BlackQueen ) {
 				// is a promotion
-				PieceType unpromotedPawn = (pos.getOnMove().equals(Colour.white)) ? PieceType.WhitePawn : PieceType.BlackPawn;
+				PieceType unpromotedPawn = Colour.isWhite(pos.getOnMove()) ? PieceType.WhitePawn : PieceType.BlackPawn;
 				hashCode ^= getPrnForPieceAlt(move.to, piece);
 				hashCode ^= getPrnForPieceAlt(move.from, unpromotedPawn);
 			}

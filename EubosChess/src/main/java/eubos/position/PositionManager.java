@@ -81,7 +81,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return onMove;
 	}
 	public boolean onMoveIsWhite() {
-		return onMove.equals(Colour.white);
+		return Colour.isWhite(onMove);
 	}
 	
 	private int moveNumber;
@@ -139,7 +139,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		}
 		// Update onMove
 		onMove = Colour.getOpposite(onMove);
-		if (onMove==Colour.white) {
+		if (Colour.isWhite(onMove)) {
 			moveNumber++;
 		}
 	}
@@ -177,7 +177,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		}
 		// Update onMove flag
 		onMove = Piece.Colour.getOpposite(onMove);
-		if (onMove==Colour.black) {
+		if (Colour.isBlack(onMove)) {
 			moveNumber--;
 		}
 	}
@@ -209,8 +209,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	private void checkToUndoPawnPromotion(GenericMove moveToUndo) {
 		if ( moveToUndo.promotion != null ) {
 			PieceType type = theBoard.pickUpPieceAtSquare(moveToUndo.to);
-			if (type.equals(PieceType.BlackKnight) || type.equals(PieceType.BlackBishop) || type.equals(PieceType.BlackRook) ||
-			    type.equals(PieceType.BlackQueen)) {
+			if (PieceType.isBlack(type)) {
 				type = PieceType.BlackPawn;
 			} else {
 				type = PieceType.WhitePawn;
@@ -272,14 +271,14 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	public String getFen() {
-		StringBuilder fen = new StringBuilder(this.theBoard.getAsFenString());
+		StringBuilder fen = new StringBuilder(theBoard.getAsFenString());
 		fen.append(' ');
-		fen.append((this.getOnMove()==Colour.white) ? 'w' : 'b');
+		fen.append(Colour.isWhite(getOnMove()) ? 'w' : 'b');
 		fen.append(' ');
-		fen.append(this.castling.getFenFlags());
+		fen.append(castling.getFenFlags());
 		fen.append(' ');
 		// en passant square
-		GenericPosition pos = this.theBoard.getEnPassantTargetSq();
+		GenericPosition pos = theBoard.getEnPassantTargetSq();
 		if (pos != null) {
 			fen.append(pos.toString());
 		} else {

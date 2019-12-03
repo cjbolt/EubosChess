@@ -34,11 +34,11 @@ public class SearchContext {
 	}
 
 	private void setGoal() {
-		if ((initialOnMove.equals(Colour.white) && initial.getDelta() > SIMPLIFY_THRESHOLD) ||
-			(initialOnMove.equals(Colour.black) && initial.getDelta() < -SIMPLIFY_THRESHOLD )) {
+		if ((Colour.isWhite(initialOnMove) && initial.getDelta() > SIMPLIFY_THRESHOLD) ||
+			(Colour.isBlack(initialOnMove) && initial.getDelta() < -SIMPLIFY_THRESHOLD )) {
 			goal = SearchGoal.simplify;
-		} else if ((initialOnMove.equals(Colour.white) && initial.getDelta() < DRAW_THRESHOLD) ||
-				(initialOnMove.equals(Colour.black) && initial.getDelta() > -DRAW_THRESHOLD )) {
+		} else if ((Colour.isWhite(initialOnMove) && initial.getDelta() < DRAW_THRESHOLD) ||
+				(Colour.isBlack(initialOnMove) && initial.getDelta() > -DRAW_THRESHOLD )) {
 			goal = SearchGoal.try_for_draw;
 		} else {
 			goal = SearchGoal.try_for_win;
@@ -70,7 +70,7 @@ public class SearchContext {
 			default:
 				break;
 			}
-			if (initialOnMove.equals(Colour.black)) {
+			if (Colour.isBlack(initialOnMove)) {
 				bonus = (short)-bonus;
 			}
 		} else {
@@ -92,7 +92,7 @@ public class SearchContext {
 				break;
 			}
 			// we are evaluating after the move, so if opponent is black, invert score
-			if (pos.getOnMove().equals(Colour.white)) {
+			if (Colour.isWhite(pos.getOnMove())) {
 				bonus = (short)-bonus;
 			}
 		}
@@ -101,7 +101,7 @@ public class SearchContext {
 	
 	private boolean isPositionSimplified(MaterialEvaluation current) {
 		boolean isSimplification = false;
-		if (initialOnMove.equals(Colour.white)) {
+		if (Colour.isWhite(initialOnMove)) {
 			if ((initial.getDelta() <= current.getDelta()) && initial.getWhite() > current.getWhite()) {
 				isSimplification = true;
 			}

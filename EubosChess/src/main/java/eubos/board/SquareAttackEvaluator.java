@@ -76,11 +76,11 @@ public class SquareAttackEvaluator {
 	
 	public static boolean isAttacked( Board bd, GenericPosition attackedSq, Piece.Colour ownColour ) {
 		Colour attackingColour = Piece.Colour.getOpposite(ownColour);
-		BitBoard attackingPawnsMask = (attackingColour==Colour.black) ? bd.getBlackPawns() : bd.getWhitePawns();
+		BitBoard attackingPawnsMask = Colour.isBlack(attackingColour) ? bd.getBlackPawns() : bd.getWhitePawns();
 		boolean attacked = false;
 		// do/while loop is to allow the function to return attacked=true at earliest possibility
 		do {
-			if (attackingColour == Colour.black) {
+			if (Colour.isBlack(attackingColour)) {
 				if (attackingPawnsMask.isNonZero()) {
 					// TODO could have a mask LUT of pawnAttacker masks for each position and colour
 					attacked = attackedByPawn(bd, attackingPawnsMask, Direction.getDirectMoveSq(Direction.upRight,attackedSq));
@@ -127,7 +127,7 @@ public class SquareAttackEvaluator {
 				PieceType currPiece = theBoard.getPieceAtSquare(attackerSq);
 				if (currPiece != PieceType.NONE ) {
 					if (dir == Direction.downLeft || dir == Direction.upLeft || dir == Direction.upRight || dir == Direction.downRight) {
-						if (attackingColour == Colour.white) {
+						if (Colour.isWhite(attackingColour)) {
 							if (currPiece == PieceType.WhiteQueen || currPiece == PieceType.WhiteBishop) {
 								attacked = true;
 							}
@@ -138,7 +138,7 @@ public class SquareAttackEvaluator {
 						} // else blocked by own piece or non-attacking enemy
 						break;
 					} else if (dir == Direction.left || dir == Direction.up || dir == Direction.right || dir == Direction.down) {
-						if (attackingColour == Colour.white) {
+						if (Colour.isWhite(attackingColour)) {
 							if (currPiece == PieceType.WhiteQueen || currPiece == PieceType.WhiteRook) {
 								attacked = true;
 							}
