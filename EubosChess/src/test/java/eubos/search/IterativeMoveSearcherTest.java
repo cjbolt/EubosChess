@@ -84,7 +84,7 @@ public class IterativeMoveSearcherTest {
 	
 	@Test
 	public void test_endgame_b() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		setupPosition("8/ppp5/8/PPP5/6kp/8/6KP/8 w - - 0 1", 6000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
+		setupPosition("8/ppp5/8/PPP5/6kp/8/6KP/8 w - - 0 1", 5000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
 		expectedMove = new GenericMove("b5b6"); // Levy
 		runSearcherAndTestBestMoveReturned();		
 	}
