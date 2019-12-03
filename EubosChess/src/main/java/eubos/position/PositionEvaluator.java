@@ -4,7 +4,6 @@ import java.util.Iterator;
 
 import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericPosition;
-import com.fluxchess.jcpi.models.GenericRank;
 
 import eubos.board.Board;
 import eubos.board.SquareAttackEvaluator;
@@ -78,85 +77,18 @@ public class PositionEvaluator implements IEvaluate {
 
 	private int evaluatePawnsForColour(Colour onMoveWas) {
 		Board board = pm.getTheBoard();
-		Iterator<GenericPosition> iter = board.iterateColour(onMoveWas);
-		int pawnHandicap = 0;
 		int passedPawnBoost = 0;
-		int pawnCount[] = {0,0,0,0,0,0,0,0};
+		int pawnHandicap = -board.countDoubledPawnsForSide(onMoveWas)*DOUBLED_PAWN_HANDICAP;
+		PieceType ownPawns = (onMoveWas==Colour.white) ? PieceType.WhitePawn : PieceType.BlackPawn;
+		Iterator<GenericPosition> iter = board.iterateType(ownPawns);
 		while (iter.hasNext()) {
-			GenericPosition atPos = iter.next();
-			PieceType currPiece = board.getPieceAtSquare(atPos);
-			if ((onMoveWas==Colour.white &&currPiece==PieceType.WhitePawn) ||
-				(onMoveWas==Colour.black &&currPiece==PieceType.BlackPawn)) {
-				GenericRank rank = atPos.rank;
-				switch (atPos.file) {
-				case Fa:
-					pawnCount[0] += 1;
-					if (!board.checkIfOpposingPawnInFile(GenericFile.Fa, rank, onMoveWas) &&
-						!board.checkIfOpposingPawnInFile(GenericFile.Fb, rank, onMoveWas)) {
-						passedPawnBoost += ROOK_FILE_PASSED_PAWN_BOOST;
-					}
-					break;
-				case Fb:
-					pawnCount[1] += 1;
-					if (!board.checkIfOpposingPawnInFile(GenericFile.Fa, rank, onMoveWas) &&
-					    !board.checkIfOpposingPawnInFile(GenericFile.Fb, rank, onMoveWas) &&
-					    !board.checkIfOpposingPawnInFile(GenericFile.Fc, rank, onMoveWas)) {
-						passedPawnBoost += PASSED_PAWN_BOOST;
-					}
-					break;
-				case Fc:
-					pawnCount[2] += 1;
-					if (!board.checkIfOpposingPawnInFile(GenericFile.Fb, rank, onMoveWas) &&
-						!board.checkIfOpposingPawnInFile(GenericFile.Fc, rank, onMoveWas) &&
-					    !board.checkIfOpposingPawnInFile(GenericFile.Fd, rank, onMoveWas)) {
-					    passedPawnBoost += PASSED_PAWN_BOOST;	
-					}
-					break;
-				case Fd:
-					pawnCount[3] += 1;
-					if (!board.checkIfOpposingPawnInFile(GenericFile.Fc, rank, onMoveWas) &&
-						!board.checkIfOpposingPawnInFile(GenericFile.Fd, rank, onMoveWas) &&
-					    !board.checkIfOpposingPawnInFile(GenericFile.Fe, rank, onMoveWas)) {
-						passedPawnBoost += PASSED_PAWN_BOOST;
-					}
-					break;
-				case Fe:
-					pawnCount[4] += 1;
-					if (!board.checkIfOpposingPawnInFile(GenericFile.Fd, rank, onMoveWas) &&
-						!board.checkIfOpposingPawnInFile(GenericFile.Fe, rank, onMoveWas) &&
-						!board.checkIfOpposingPawnInFile(GenericFile.Ff, rank, onMoveWas)) {
-						passedPawnBoost += PASSED_PAWN_BOOST;
-					}
-					break;
-				case Ff:
-					pawnCount[5] += 1;
-					if (!board.checkIfOpposingPawnInFile(GenericFile.Fe, rank, onMoveWas) &&
-						!board.checkIfOpposingPawnInFile(GenericFile.Ff, rank, onMoveWas) &&
-					    !board.checkIfOpposingPawnInFile(GenericFile.Fg, rank, onMoveWas)) {
-						passedPawnBoost += PASSED_PAWN_BOOST;
-					}
-					break;
-				case Fg:
-					pawnCount[6] += 1;
-					if (!board.checkIfOpposingPawnInFile(GenericFile.Ff, rank, onMoveWas) &&
-						!board.checkIfOpposingPawnInFile(GenericFile.Fg, rank, onMoveWas) &&
-					    !board.checkIfOpposingPawnInFile(GenericFile.Fh, rank, onMoveWas)) {
-						passedPawnBoost += PASSED_PAWN_BOOST;
-					}
-					break;
-				case Fh:
-					pawnCount[7] += 1;
-					if (!board.checkIfOpposingPawnInFile(GenericFile.Fg, rank, onMoveWas)) {
-						passedPawnBoost += ROOK_FILE_PASSED_PAWN_BOOST;
-					}
-					break;
+			GenericPosition pawn = iter.next();
+			if (board.isPassedPawn(pawn, onMoveWas)) {
+				if (pawn.file == GenericFile.Fa || pawn.file == GenericFile.Fh) {
+					passedPawnBoost += ROOK_FILE_PASSED_PAWN_BOOST;
+				} else {
+					passedPawnBoost += PASSED_PAWN_BOOST;
 				}
-			}
-		}
-		for (int i=0; i<8; i++) {
-			while (pawnCount[i] > 1) {
-				pawnHandicap -= DOUBLED_PAWN_HANDICAP;
-				pawnCount[i] -= 1;
 			}
 		}
 		if (onMoveWas == Colour.black) {

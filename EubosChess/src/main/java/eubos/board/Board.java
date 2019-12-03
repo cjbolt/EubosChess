@@ -1,6 +1,7 @@
 package eubos.board;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -511,43 +512,88 @@ public class Board implements Iterable<GenericPosition> {
 			allPieces.clear(bit_index);
 		}
 		return type;
-	}	
+	}
 	
-	public boolean checkIfOpposingPawnInFile(GenericFile file, GenericRank rank, Colour side) {
-		boolean opposingPawnPresentInFile = false;
+	private static final Map<GenericFile, BitBoard> DoubledPawn_Lut = new EnumMap<GenericFile, BitBoard>(GenericFile.class);
+	static {
+		for (GenericFile file : GenericFile.values()) {
+			long mask = 0;
+			int f=IntFile.valueOf(file);
+			for (int r = 0; r<8; r++) {
+				mask  |= 1L << r*8+f;
+			}
+			DoubledPawn_Lut.put(file, new BitBoard(mask));
+		}
+	}
+	
+	public int countDoubledPawnsForSide(Colour side) {
+		int doubledCount = 0;
+		BitBoard pawns = (side==Colour.white) ? getWhitePawns() : getBlackPawns();
+		for (GenericFile file : GenericFile.values()) {
+			BitBoard mask = DoubledPawn_Lut.get(file);
+			long fileMask = pawns.and(mask).getValue();
+			int numPawnsInFile = Long.bitCount(fileMask);
+			if (numPawnsInFile > 1) {
+				doubledCount += numPawnsInFile-1;
+			}
+		}
+		return doubledCount;
+	}
+	
+	public boolean isPassedPawn(GenericPosition atPos, Colour side) {
+		boolean isPassed = true;
+		BitBoard mask = PassedPawn_Lut.get(side.ordinal()).get(atPos);
+		BitBoard otherSidePawns = (side==Colour.white) ? getBlackPawns() : getWhitePawns();
+		if (mask.and(otherSidePawns).isNonZero()) {
+			isPassed  = false;
+		}
+		return isPassed;
+	}
+	
+	private static final List<Map<GenericPosition, BitBoard>> PassedPawn_Lut = new ArrayList<Map<GenericPosition, BitBoard>>(2); 
+	static {
+		Map<GenericPosition, BitBoard> white_map = new EnumMap<GenericPosition, BitBoard>(GenericPosition.class);
+		PassedPawn_Lut.add(Colour.white.ordinal(), white_map);
+		for (GenericPosition atPos : GenericPosition.values()) {
+			white_map.put(atPos, buildPassedPawnFileMask(atPos.file, atPos.rank, true));
+		}
+		Map<GenericPosition, BitBoard> black_map = new EnumMap<GenericPosition, BitBoard>(GenericPosition.class);
+		PassedPawn_Lut.add(Colour.black.ordinal(), black_map);
+		for (GenericPosition atPos : GenericPosition.values()) {
+			black_map.put(atPos, buildPassedPawnFileMask(atPos.file, atPos.rank, false));
+		}
+	}
+	static BitBoard buildPassedPawnFileMask(GenericFile file, GenericRank rank, boolean isWhite) {
+		long mask = 0;
 		int r = IntRank.valueOf(rank);
 		int f = IntFile.valueOf(file);
-		if (side == Colour.white) {
+		boolean hasPrevFile = file.hasPrev();
+		boolean hasNextFile = file.hasNext();
+		if (isWhite) {
 			for (r=r+1; r < 7; r++) {
-				if (isOpposingPawn(side, r, f))
-					opposingPawnPresentInFile = true;
+				if (hasPrevFile) {
+					mask |= 1L << r*8+(f-1);
+				}
+				mask |= 1L << r*8+f;
+				if (hasNextFile) {
+					mask |= 1L << r*8+(f+1);
+				}
 			}
 		} else {
 			for (r=r-1; r > 0; r--) {
-				if (isOpposingPawn(side, r, f))
-					opposingPawnPresentInFile = true;	
-			}			
+				if (hasPrevFile) {
+					mask |= 1L << r*8+(f-1);
+				}
+				mask |= 1L << r*8+f;
+				if (hasNextFile) {
+					mask |= 1L << r*8+(f+1);
+				}	
+			}
 		}
-		return opposingPawnPresentInFile;
+		return new BitBoard(mask);
 	}
 	
-	private boolean isOpposingPawn(Colour ownSide, int rank, int file) {
-		boolean isPawn = pieces[INDEX_PAWN].isSet(rank, file);
-		if (isPawn) {
-			boolean enemyPawn = false;
-			if (ownSide.equals(Colour.white)) {
-				if (blackPieces.isSet(rank, file)) {
-					enemyPawn = true;
-				}
-			} else {
-				if (whitePieces.isSet(rank, file)) {
-					enemyPawn = true;
-				}
-			}
-			return enemyPawn;
-		}
-		return false;
-	}
+	
 	
 	public class RankAndFile {
 		public int rank = IntRank.NORANK;
@@ -633,6 +679,19 @@ public class Board implements Iterable<GenericPosition> {
 			}
 			buildIterList(bitBoardToIterate);
 		}
+		
+		allPiecesOnBoardIterator( PieceType colourToIterate ) throws InvalidPieceException {
+			iterList = new LinkedList<GenericPosition>();
+			BitBoard bitBoardToIterate;
+			if (colourToIterate == PieceType.WhitePawn) {
+				bitBoardToIterate = getWhitePawns();
+			} else if (colourToIterate == PieceType.BlackPawn) {
+				bitBoardToIterate = getBlackPawns();
+			} else {
+				bitBoardToIterate = new BitBoard();
+			}
+			buildIterList(bitBoardToIterate);
+		}
 
 		private void buildIterList(BitBoard bitBoardToIterate) {
 			for (int bit_index: bitBoardToIterate) {
@@ -663,8 +722,6 @@ public class Board implements Iterable<GenericPosition> {
 		try {
 			return new allPiecesOnBoardIterator( );
 		} catch (InvalidPieceException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 			return null;
 		}
 	}
@@ -673,8 +730,22 @@ public class Board implements Iterable<GenericPosition> {
 		try {
 			return new allPiecesOnBoardIterator( colourToIterate );
 		} catch (InvalidPieceException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public BitBoard getBlackPawns() {
+		return blackPieces.and(pieces[INDEX_PAWN]);
+	}
+	
+	public BitBoard getWhitePawns() {
+		return whitePieces.and(pieces[INDEX_PAWN]);
+	}
+	
+	public Iterator<GenericPosition> iterateType( PieceType typeToIterate ) {
+		try {
+			return new allPiecesOnBoardIterator( typeToIterate );
+		} catch (InvalidPieceException e) {
 			return null;
 		}
 	}
