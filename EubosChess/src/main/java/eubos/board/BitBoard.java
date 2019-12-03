@@ -1,8 +1,9 @@
 package eubos.board;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntFile;
@@ -18,11 +19,22 @@ public class BitBoard implements Iterable<Integer> {
 		}
 	}
 	
-	static HashMap<GenericPosition, Integer> positionToBit_Lut = new HashMap<GenericPosition, Integer>();
+	static Map<GenericPosition, Integer> positionToBit_Lut = new EnumMap<GenericPosition, Integer>(GenericPosition.class);
 	static {
 		Integer bit_index = 0;
 		for (GenericPosition square : GenericPosition.values()) {
 			positionToBit_Lut.put(square, bit_index);
+			bit_index++;
+		}
+	}
+	
+	static Map<GenericPosition, BitBoard> positionToMask_Lut = new EnumMap<GenericPosition, BitBoard>(GenericPosition.class);
+	static {
+		Integer bit_index = 0;
+		for (GenericPosition square : GenericPosition.values()) {
+			BitBoard atPosMask = new BitBoard(1L << bit_index);
+			assert atPosMask != null;
+			positionToMask_Lut.put(square, atPosMask);
 			bit_index++;
 		}
 	}

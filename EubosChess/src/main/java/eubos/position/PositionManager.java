@@ -171,7 +171,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		// Update hash code
 		if (hash != null) {
-			CaptureData capturedPiece = tm.isCapture() ? tm.getCaptureData() : new CaptureData(PieceType.NONE, null);
+			CaptureData capturedPiece = tm.isCapture() ? tm.getCaptureData() : new CaptureData();
 			Boolean setEnPassant = (enPasTargetSq != null);
 			hash.update(reversedMove, capturedPiece, setEnPassant ? enPasTargetSq.file : null);
 		}

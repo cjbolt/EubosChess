@@ -734,12 +734,69 @@ public class Board implements Iterable<GenericPosition> {
 		}
 	}
 	
+	public BitBoard getMaskForType(PieceType type) {
+		BitBoard mask = null;
+		switch(type) {
+		case WhiteKing:
+			mask = getWhiteKing();
+			break;
+		case WhiteQueen:
+			break;
+		case WhiteRook:
+			break;
+		case WhiteBishop:
+			break;
+		case WhiteKnight:
+			mask = getWhiteKnights();
+			break;
+		case WhitePawn:
+			mask = getWhitePawns();
+			break;
+		case BlackKing:
+			mask = getBlackKing();
+			break;
+		case BlackQueen:
+			break;
+		case BlackRook:
+			break;
+		case BlackBishop:
+			break;
+		case BlackKnight:
+			mask = getBlackKnights();
+			break;
+		case BlackPawn:
+			mask = getBlackPawns();
+			break;
+		case NONE:
+		default:
+			assert false;
+			break;
+		}
+		return mask;
+	}
+	
 	public BitBoard getBlackPawns() {
 		return blackPieces.and(pieces[INDEX_PAWN]);
 	}
 	
+	public BitBoard getBlackKnights() {
+		return blackPieces.and(pieces[INDEX_KNIGHT]);
+	}
+	
+	public BitBoard getBlackKing() {
+		return blackPieces.and(pieces[INDEX_KING]);
+	}
+	
 	public BitBoard getWhitePawns() {
 		return whitePieces.and(pieces[INDEX_PAWN]);
+	}
+	
+	public BitBoard getWhiteKnights() {
+		return whitePieces.and(pieces[INDEX_KNIGHT]);
+	}
+	
+	public BitBoard getWhiteKing() {
+		return whitePieces.and(pieces[INDEX_KING]);
 	}
 	
 	public Iterator<GenericPosition> iterateType( PieceType typeToIterate ) {
