@@ -75,20 +75,18 @@ public class MaterialEvaluator {
 			} else if ( currPiece==PieceType.BlackPawn ) {
 				currValue = MATERIAL_VALUE_PAWN;
 				currValue += PAWN_BLACK_WEIGHTINGS.get(atPos);
-			}
-			else if ( currPiece==PieceType.WhiteRook || currPiece==PieceType.BlackRook )
+			} else if (PieceType.isRook(currPiece)) {
 				currValue = MATERIAL_VALUE_ROOK;
-			else if ( currPiece==PieceType.WhiteBishop || currPiece==PieceType.BlackBishop ) {
+			} else if (PieceType.isBishop(currPiece)) {
 				currValue = MATERIAL_VALUE_BISHOP;
-			}
-			else if ( currPiece==PieceType.WhiteKnight || currPiece==PieceType.BlackKnight ) {
+			} else if (PieceType.isKnight(currPiece)) {
 				currValue = MATERIAL_VALUE_KNIGHT;
 				currValue += KNIGHT_WEIGHTINGS.get(atPos);
-			}
-			else if ( currPiece==PieceType.WhiteQueen || currPiece==PieceType.BlackQueen )
+			} else if (PieceType.isQueen(currPiece)) {
 				currValue = MATERIAL_VALUE_QUEEN;
-			else if ( currPiece==PieceType.WhiteKing || currPiece==PieceType.BlackKing )
+			} else if (PieceType.isKing(currPiece)) {
 				currValue = MATERIAL_VALUE_KING;
+			}
 			if (PieceType.isWhite(currPiece)) {
 				materialEvaluation.addWhite(currValue);
 			} else { 

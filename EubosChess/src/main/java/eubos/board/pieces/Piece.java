@@ -24,6 +24,13 @@ public abstract class Piece {
 		BlackPawn,
 		NONE;
 		
+		public static boolean isPawn(PieceType arg) { return arg==WhitePawn || arg==BlackPawn; }
+		public static boolean isKing(PieceType arg) { return arg==WhiteKing || arg==BlackKing; }
+		public static boolean isQueen(PieceType arg) { return arg==WhiteQueen || arg==BlackQueen; }
+		public static boolean isRook(PieceType arg) { return arg==WhiteRook || arg==BlackRook; }
+		public static boolean isBishop(PieceType arg) { return arg==WhiteBishop || arg==BlackBishop; }
+		public static boolean isKnight(PieceType arg) { return arg==WhiteKnight || arg==BlackKnight; }
+		
 		public static boolean isOppositeColour(Colour ownColour, PieceType toCheck) {
 			boolean isOpposite = false;
 			assert toCheck != PieceType.NONE;

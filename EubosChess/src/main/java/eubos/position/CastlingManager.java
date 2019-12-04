@@ -220,7 +220,7 @@ class CastlingManager {
 		{
 			throw new Exception("There was no piece on the castle rook square! This means castling flags are inconsistent with the position.");
 		}
-		if (!(theRook==PieceType.WhiteRook || theRook==PieceType.BlackRook))
+		if (!(PieceType.isRook(theRook)))
 		{
 			throw new Exception("The piece wasn't a Rook! This means castling flags are inconsistent with the position.");
 		}
@@ -256,7 +256,7 @@ class CastlingManager {
 
 	public void updateFlags(PieceType movedPiece, GenericMove lastMove) {
 		// First handle castling moves
-		if (movedPiece.equals(PieceType.WhiteKing) || movedPiece.equals(PieceType.BlackKing)) {
+		if (PieceType.isKing(movedPiece)) {
 			if (lastMove.equals(wksc) || lastMove.equals(wqsc)) {
 				whiteKsAvail = whiteQsAvail = false;
 				whiteCastled = true;

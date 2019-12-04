@@ -76,11 +76,29 @@ public class SquareAttackEvaluator {
 	
 	public static boolean isAttacked( Board bd, GenericPosition attackedSq, Piece.Colour ownColour ) {
 		Colour attackingColour = Piece.Colour.getOpposite(ownColour);
-		BitBoard attackingPawnsMask = Colour.isBlack(attackingColour) ? bd.getBlackPawns() : bd.getWhitePawns();
+		boolean isBlackAttacking = Colour.isBlack(attackingColour);
+		BitBoard attackingPawnsMask = isBlackAttacking ? bd.getBlackPawns() : bd.getWhitePawns();
+		// direct piece check is computationally heavy, so just do what is necessary
+		boolean doDiagonalCheck = false;
+		boolean doRankFileCheck = false;
+		boolean attackingQueenPresent = isBlackAttacking ? bd.getBlackQueens().isNonZero() : bd.getWhiteQueens().isNonZero();
+		if (attackingQueenPresent) {
+			doDiagonalCheck = true;
+			doRankFileCheck = true;
+		} else {
+			boolean attackingRookPresent = isBlackAttacking ? bd.getBlackRooks().isNonZero() : bd.getWhiteRooks().isNonZero();
+			if (attackingRookPresent) {
+				doRankFileCheck = true;
+			}
+			boolean attackingBishopPresent = isBlackAttacking ? bd.getBlackBishops().isNonZero() : bd.getWhiteBishops().isNonZero();
+			if (attackingBishopPresent) {
+				doDiagonalCheck = true;
+			}
+		}
 		boolean attacked = false;
 		// do/while loop is to allow the function to return attacked=true at earliest possibility
 		do {
-			if (Colour.isBlack(attackingColour)) {
+			if (isBlackAttacking) {
 				if (attackingPawnsMask.isNonZero()) {
 					// TODO could have a mask LUT of pawnAttacker masks for each position and colour
 					attacked = attackedByPawn(bd, attackingPawnsMask, Direction.getDirectMoveSq(Direction.upRight,attackedSq));
@@ -104,7 +122,7 @@ public class SquareAttackEvaluator {
 				attacked = checkForAttacksHelper(PieceType.WhiteKnight, KnightMove_Lut, bd, attackedSq);
 				if (attacked) break;
 			}
-			attacked = checkForDirectPieceAttacker(bd, attackingColour, attackedSq);
+			attacked = checkForDirectPieceAttacker(bd, attackingColour, attackedSq, doDiagonalCheck, doRankFileCheck);
 			if (attacked) break;
 		} while (false);
 		return attacked;	
@@ -116,52 +134,73 @@ public class SquareAttackEvaluator {
 		BitBoard attackedBySqs = map.get(attackedSq);
 		attacked = attackersToCheckForMask.and(attackedBySqs).isNonZero();
 		return attacked;
-	}	
-
-	private static boolean checkForDirectPieceAttacker(Board theBoard, Colour attackingColour, GenericPosition targetSq) {
-		boolean attacked = false;
-		GenericPosition [][] array = SquareAttackEvaluator.directPieceMove_Lut.get(targetSq);
-		int index = 0;
-		for (Direction dir: Direction.values()) { 
-			for (GenericPosition attackerSq: array[index]) {
-				PieceType currPiece = theBoard.getPieceAtSquare(attackerSq);
-				if (currPiece != PieceType.NONE ) {
-					if (dir == Direction.downLeft || dir == Direction.upLeft || dir == Direction.upRight || dir == Direction.downRight) {
-						if (Colour.isWhite(attackingColour)) {
-							if (currPiece == PieceType.WhiteQueen || currPiece == PieceType.WhiteBishop) {
-								attacked = true;
-							}
-						} else {
-							if (currPiece == PieceType.BlackQueen || currPiece == PieceType.BlackBishop) {
-								attacked = true;
-							}
-						} // else blocked by own piece or non-attacking enemy
-						break;
-					} else if (dir == Direction.left || dir == Direction.up || dir == Direction.right || dir == Direction.down) {
-						if (Colour.isWhite(attackingColour)) {
-							if (currPiece == PieceType.WhiteQueen || currPiece == PieceType.WhiteRook) {
-								attacked = true;
-							}
-						} else {
-							if (currPiece == PieceType.BlackQueen || currPiece == PieceType.BlackRook) {
-								attacked = true;
-							}
-						} // else blocked by own piece or non-attacking enemy
-						break;
-					}
-				}
-			}
-			if (attacked) break;
-			index++;
-		}
-		return attacked;
 	}
-
+	
 	private static boolean attackedByPawn(Board theBoard, BitBoard attackingPawns, GenericPosition attackerSq) {
 		boolean attacked = false;
 		if (attackerSq != null) {
 			BitBoard atPosMask = BitBoard.positionToMask_Lut.get(attackerSq);
 			attacked = attackingPawns.and(atPosMask).isNonZero();
+		}
+		return attacked;
+	}
+
+	private static boolean checkForDirectPieceAttacker(Board theBoard, Colour attackingColour,
+			GenericPosition targetSq, boolean doDiagonalCheck, boolean doRankFileCheck) {
+		boolean attacked = false;
+		GenericPosition [][] array = SquareAttackEvaluator.directPieceMove_Lut.get(targetSq);
+		int index = 0;
+		for (Direction dir: Direction.values()) { 
+			switch(dir) {
+			case downLeft:
+			case upLeft:
+			case upRight:
+			case downRight:
+				if (doDiagonalCheck) {
+					for (GenericPosition attackerSq: array[index]) {
+						PieceType currPiece = theBoard.getPieceAtSquare(attackerSq);
+						if (currPiece != PieceType.NONE ) {
+							if (Colour.isWhite(attackingColour)) {
+								if (currPiece == PieceType.WhiteQueen || currPiece == PieceType.WhiteBishop) {
+									attacked = true;
+								}
+							} else {
+								if (currPiece == PieceType.BlackQueen || currPiece == PieceType.BlackBishop) {
+									attacked = true;
+								}
+							} // else blocked by own piece or non-attacking enemy
+							break; // break out of this direction search, i.e. get next direction
+						}
+					}
+				}
+				break;
+			case left:
+			case up:
+			case right:
+			case down:
+				if (doRankFileCheck) {
+					for (GenericPosition attackerSq: array[index]) {
+						PieceType currPiece = theBoard.getPieceAtSquare(attackerSq);
+						if (currPiece != PieceType.NONE ) {
+							if (Colour.isWhite(attackingColour)) {
+								if (currPiece == PieceType.WhiteQueen || currPiece == PieceType.WhiteRook) {
+									attacked = true;
+								}
+							} else {
+								if (currPiece == PieceType.BlackQueen || currPiece == PieceType.BlackRook) {
+									attacked = true;
+								}
+							} // else blocked by own piece or non-attacking enemy
+							break; // break out of this direction search, i.e. get next direction
+						} 
+					}
+				}
+				break;
+			default:
+				break; // indirect move?
+			}
+			if (attacked) break;
+			index++;
 		}
 		return attacked;
 	}

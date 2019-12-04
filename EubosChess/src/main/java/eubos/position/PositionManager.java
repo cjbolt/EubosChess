@@ -121,8 +121,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Handle pawn promotion moves
 		pieceToMove = checkForPawnPromotions(move, pieceToMove);
 		// Handle castling secondary rook moves...
-		if (pieceToMove.equals(PieceType.BlackKing) || pieceToMove.equals(PieceType.WhiteKing))
+		if (PieceType.isKing(pieceToMove)) {
 			castling.performSecondaryCastlingMove(move);
+		}
 		// Handle any initial 2 square pawn moves that are subject to en passant rule
 		GenericFile enPassantFile = checkToSetEnPassantTargetSq(move, pieceToMove);
 		// Handle capture target (note, this will be null if the move is not a capture)
@@ -157,7 +158,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Get the piece to move
 		PieceType pieceToMove = theBoard.pickUpPieceAtSquare( reversedMove.from );
 		// Handle reversal of any castling secondary rook moves and associated flags...
-		if (pieceToMove.equals(PieceType.WhiteKing) || pieceToMove.equals(PieceType.BlackKing)) {
+		if (PieceType.isKing(pieceToMove)) {
 			castling.unperformSecondaryCastlingMove(reversedMove);
 		}
 		theBoard.setPieceAtSquare(reversedMove.to, pieceToMove);

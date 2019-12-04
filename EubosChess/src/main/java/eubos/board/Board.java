@@ -714,10 +714,13 @@ public class Board implements Iterable<GenericPosition> {
 			mask = getWhiteKing();
 			break;
 		case WhiteQueen:
+			mask = getWhiteQueens();
 			break;
 		case WhiteRook:
+			mask = getWhiteRooks();
 			break;
 		case WhiteBishop:
+			mask = getWhiteBishops();
 			break;
 		case WhiteKnight:
 			mask = getWhiteKnights();
@@ -729,10 +732,13 @@ public class Board implements Iterable<GenericPosition> {
 			mask = getBlackKing();
 			break;
 		case BlackQueen:
+			mask = getBlackQueens();
 			break;
 		case BlackRook:
+			mask = getBlackRooks();
 			break;
 		case BlackBishop:
+			mask = getBlackBishops();
 			break;
 		case BlackKnight:
 			mask = getBlackKnights();
@@ -747,7 +753,7 @@ public class Board implements Iterable<GenericPosition> {
 		}
 		return mask;
 	}
-	
+		
 	public BitBoard getBlackPawns() {
 		return blackPieces.and(pieces[INDEX_PAWN]);
 	}
@@ -756,12 +762,36 @@ public class Board implements Iterable<GenericPosition> {
 		return blackPieces.and(pieces[INDEX_KNIGHT]);
 	}
 	
+	public BitBoard getBlackBishops() {
+		return blackPieces.and(pieces[INDEX_BISHOP]);
+	}
+	
+	public BitBoard getBlackRooks() {
+		return blackPieces.and(pieces[INDEX_ROOK]);
+	}
+	
+	public BitBoard getBlackQueens() {
+		return blackPieces.and(pieces[INDEX_QUEEN]);
+	}
+	
 	public BitBoard getBlackKing() {
 		return blackPieces.and(pieces[INDEX_KING]);
 	}
 	
 	public BitBoard getWhitePawns() {
 		return whitePieces.and(pieces[INDEX_PAWN]);
+	}
+	
+	public BitBoard getWhiteBishops() {
+		return whitePieces.and(pieces[INDEX_BISHOP]);
+	}
+	
+	public BitBoard getWhiteRooks() {
+		return whitePieces.and(pieces[INDEX_ROOK]);
+	}
+	
+	public BitBoard getWhiteQueens() {
+		return whitePieces.and(pieces[INDEX_QUEEN]);
 	}
 	
 	public BitBoard getWhiteKnights() {
