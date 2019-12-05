@@ -575,7 +575,7 @@ public class Board implements Iterable<GenericPosition> {
 	}
 
 	public boolean isOnOpenFile(GenericPosition atPos) {
-		BitBoard fileMask = FileMask_Lut.get(atPos.file);
+		BitBoard fileMask = new BitBoard(FileMask_Lut.get(atPos.file).getValue());
 		fileMask.clear(BitBoard.positionToBit_Lut.get(atPos));
 		return allPieces.and(fileMask).getValue() == 0;
 	}
