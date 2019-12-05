@@ -269,7 +269,7 @@ public class Board implements Iterable<GenericPosition> {
 		return type;
 	}
 	
-	private static final Map<GenericFile, BitBoard> DoubledPawn_Lut = new EnumMap<GenericFile, BitBoard>(GenericFile.class);
+	private static final Map<GenericFile, BitBoard> FileMask_Lut = new EnumMap<GenericFile, BitBoard>(GenericFile.class);
 	static {
 		for (GenericFile file : GenericFile.values()) {
 			long mask = 0;
@@ -277,7 +277,7 @@ public class Board implements Iterable<GenericPosition> {
 			for (int r = 0; r<8; r++) {
 				mask  |= 1L << r*8+f;
 			}
-			DoubledPawn_Lut.put(file, new BitBoard(mask));
+			FileMask_Lut.put(file, new BitBoard(mask));
 		}
 	}
 	
@@ -285,7 +285,7 @@ public class Board implements Iterable<GenericPosition> {
 		int doubledCount = 0;
 		BitBoard pawns = Colour.isWhite(side) ? getWhitePawns() : getBlackPawns();
 		for (GenericFile file : GenericFile.values()) {
-			BitBoard mask = DoubledPawn_Lut.get(file);
+			BitBoard mask = FileMask_Lut.get(file);
 			long fileMask = pawns.and(mask).getValue();
 			int numPawnsInFile = Long.bitCount(fileMask);
 			if (numPawnsInFile > 1) {
@@ -572,5 +572,11 @@ public class Board implements Iterable<GenericPosition> {
 		} catch (InvalidPieceException e) {
 			return null;
 		}
+	}
+
+	public boolean isOnOpenFile(GenericPosition atPos) {
+		BitBoard fileMask = FileMask_Lut.get(atPos.file);
+		fileMask.clear(BitBoard.positionToBit_Lut.get(atPos));
+		return allPieces.and(fileMask).getValue() == 0;
 	}
 }

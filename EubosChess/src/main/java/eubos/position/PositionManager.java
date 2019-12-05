@@ -1,6 +1,6 @@
 package eubos.position;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -295,7 +295,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		private Map<GenericPosition, PieceType> pl;
 		
 		public fenParser( PositionManager pm, String fenString ) {
-			pl = new HashMap<GenericPosition, PieceType>();
+			pl = new EnumMap<GenericPosition, PieceType>(GenericPosition.class);
 			String[] tokens = fenString.split(" ");
 			String piecePlacement = tokens[0];
 			String colourOnMove = tokens[1];

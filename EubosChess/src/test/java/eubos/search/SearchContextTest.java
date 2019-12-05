@@ -11,13 +11,14 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 import eubos.board.InvalidPieceException;
 import eubos.position.PositionManager;
 import eubos.score.MaterialEvaluation;
-import eubos.score.MaterialEvaluator;
+import eubos.score.PositionEvaluator;
 
 public class SearchContextTest {
 	
 	private SearchContext sut;
 	private PositionManager pm;
 	private DrawChecker dc;
+	private PositionEvaluator pe;
 
 	@Before
 	public void setUp() throws Exception {
@@ -26,7 +27,8 @@ public class SearchContextTest {
 	private void setupPosition(String fen) {
 		dc = new DrawChecker();
 		pm = new PositionManager(fen, dc);
-		sut = new SearchContext(pm, MaterialEvaluator.evaluate(pm.getTheBoard()), dc);
+		pe = new PositionEvaluator(pm ,dc);
+		sut = new SearchContext(pm, pe.getMaterialEvaluation(), dc);
 	}
 	
 	private void applyMoveList(GenericMove[] moveList)
@@ -44,7 +46,7 @@ public class SearchContextTest {
 		pm.performMove(new GenericMove("d2d4")); // forces exchange of queens on d4. simplifying
 		pm.performMove(new GenericMove("e5d4"));
 		pm.performMove(new GenericMove("d1d4"));
-		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
+		MaterialEvaluation current = pe.getMaterialEvaluation();
 		assertEquals(SearchContext.SIMPLIFICATION_BONUS, sut.computeSearchGoalBonus(current));
 	}
 	
@@ -53,7 +55,7 @@ public class SearchContextTest {
 		setupPosition("5r1k/pp5p/6p1/1N2q3/2P1P1n1/1P6/P2Q2PP/3R2K1 w - - 0 1");
 		pm.performMove(new GenericMove("d2d4")); // forces exchange of queens on d4. simplifying
 		pm.performMove(new GenericMove("e5d4"));
-		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
+		MaterialEvaluation current = pe.getMaterialEvaluation();
 		assertEquals(0, sut.computeSearchGoalBonus(current));
 	}
 
@@ -63,7 +65,7 @@ public class SearchContextTest {
 		pm.performMove(new GenericMove("d7d5")); // forces exchange of queens on d4. simplifying
 		pm.performMove(new GenericMove("e4d5"));
 		pm.performMove(new GenericMove("d8d5"));
-		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
+		MaterialEvaluation current = pe.getMaterialEvaluation();
 		assertEquals(-SearchContext.SIMPLIFICATION_BONUS, sut.computeSearchGoalBonus(current));
 	}
 	
@@ -73,14 +75,14 @@ public class SearchContextTest {
 		pm.performMove(new GenericMove("d7d5")); // forces exchange of queens on d4. simplifying
 		pm.performMove(new GenericMove("e4d5"));
 		// At this point queen recapture not completed
-		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
+		MaterialEvaluation current = pe.getMaterialEvaluation();
 		assertEquals(0, sut.computeSearchGoalBonus(current));
 	}
 	
 	@Test
 	public void test_lichess_pos() throws InvalidPieceException, IllegalNotationException {
 		setupPosition("4r1k1/2p2pb1/4Q3/8/3pPB2/1p1P3p/1P3P2/R5K1 b - - 0 42");
-		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
+		MaterialEvaluation current = pe.getMaterialEvaluation();
 		assertEquals(0, sut.computeSearchGoalBonus(current));
 	}
 	 
@@ -93,7 +95,7 @@ public class SearchContextTest {
 				                                    new GenericMove("h8a1"),new GenericMove("h2g1"),
 				                                    new GenericMove("a1h8"),new GenericMove("g1h2")};
 		applyMoveList(moveList);
-		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
+		MaterialEvaluation current = pe.getMaterialEvaluation();
 		// Good for black as black is trying to draw
 		assertEquals(SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current));
 	}
@@ -107,7 +109,7 @@ public class SearchContextTest {
 									                new GenericMove("h1a8"),new GenericMove("h7g8"),
 									                new GenericMove("a8h1"),new GenericMove("g8h7")};
 		applyMoveList(moveList);
-		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
+		MaterialEvaluation current = pe.getMaterialEvaluation();
 		// Good for white as white is trying to draw
 		assertEquals(-SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current));
 	}
@@ -119,7 +121,7 @@ public class SearchContextTest {
 		GenericMove [] moveList = new GenericMove[]{new GenericMove("h8a1"),new GenericMove("h2g1"),
                 									new GenericMove("a1h8")};
 		applyMoveList(moveList);
-		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
+		MaterialEvaluation current = pe.getMaterialEvaluation();
 		assertEquals(0, sut.computeSearchGoalBonus(current));
 	}
 	
@@ -135,7 +137,7 @@ public class SearchContextTest {
 		applyMoveList(moveList);
 		assertTrue(dc.isPositionDraw(pm.getHash()));
 		dc.incrementPositionReachedCount(pm.getHash());
-		MaterialEvaluation current = MaterialEvaluator.evaluate(pm.getTheBoard());
+		MaterialEvaluation current = pe.getMaterialEvaluation();
 		assertEquals(SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current));
 	}
 }

@@ -98,4 +98,8 @@ public class PositionEvaluator implements IEvaluate {
 		}
 		return pawnHandicap + passedPawnBoost;
 	}
+
+	public MaterialEvaluation getMaterialEvaluation() {
+		return MaterialEvaluator.evaluate(pm.getTheBoard());
+	}
 }

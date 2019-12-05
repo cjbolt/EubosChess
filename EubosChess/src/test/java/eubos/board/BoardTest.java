@@ -2,7 +2,7 @@ package eubos.board;
 
 import static org.junit.Assert.*;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 import org.junit.Before;
@@ -16,13 +16,13 @@ import eubos.board.Piece.PieceType;
 public class BoardTest {
 	
 	private Board classUnderTest;
-	private Map<GenericPosition, PieceType> pl;
+	private Map<GenericPosition, PieceType> pieceMap;
 	private static final GenericPosition testSq = GenericPosition.a1;
 	
 	@Before
 	public void setUp() throws Exception {
-		pl = new HashMap<GenericPosition, PieceType>();
-		classUnderTest = new Board(pl);
+		pieceMap = new EnumMap<GenericPosition, PieceType>(GenericPosition.class);
+		classUnderTest = new Board(pieceMap);
 	}
 
 	@Test

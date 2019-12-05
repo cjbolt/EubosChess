@@ -1,8 +1,8 @@
 package eubos.score;
 
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Iterator;
 
 import com.fluxchess.jcpi.models.GenericPosition;
@@ -19,9 +19,11 @@ public class MaterialEvaluator {
 	public static final short MATERIAL_VALUE_KNIGHT = 300;
 	public static final short MATERIAL_VALUE_PAWN = 100;
 	
+	public static final short ROOK_OPEN_FILE_BOOST = 25;
+	
 	private static final Map<GenericPosition, Integer> PAWN_WHITE_WEIGHTINGS;
     static {
-    	Map<GenericPosition, Integer> aMap = new HashMap<GenericPosition, Integer>();
+    	Map<GenericPosition, Integer> aMap = new EnumMap<GenericPosition, Integer>(GenericPosition.class);
         aMap.put(GenericPosition.a1, 0);aMap.put(GenericPosition.b1, 0);aMap.put(GenericPosition.c1, 0);aMap.put(GenericPosition.d1, 0);aMap.put(GenericPosition.e1, 0);aMap.put(GenericPosition.f1, 0);aMap.put(GenericPosition.g1, 0);aMap.put(GenericPosition.h1, 0);
         aMap.put(GenericPosition.a2, 0);aMap.put(GenericPosition.b2, 0);aMap.put(GenericPosition.c2, 0);aMap.put(GenericPosition.d2, 0);aMap.put(GenericPosition.e2, 0);aMap.put(GenericPosition.f2, 0);aMap.put(GenericPosition.g2, 0);aMap.put(GenericPosition.h2, 0);
         aMap.put(GenericPosition.a3, 0);aMap.put(GenericPosition.b3, 0);aMap.put(GenericPosition.c3, 0);aMap.put(GenericPosition.d3, 5);aMap.put(GenericPosition.e3, 5);aMap.put(GenericPosition.f3, 0);aMap.put(GenericPosition.g3, 0);aMap.put(GenericPosition.h3, 0);
@@ -35,7 +37,7 @@ public class MaterialEvaluator {
     
 	private static final Map<GenericPosition, Integer> PAWN_BLACK_WEIGHTINGS;
     static {
-    	Map<GenericPosition, Integer> aMap = new HashMap<GenericPosition, Integer>();
+    	Map<GenericPosition, Integer> aMap = new EnumMap<GenericPosition, Integer>(GenericPosition.class);
         aMap.put(GenericPosition.a1, 0);aMap.put(GenericPosition.b1, 0);aMap.put(GenericPosition.c1, 0);aMap.put(GenericPosition.d1, 0);aMap.put(GenericPosition.e1, 0);aMap.put(GenericPosition.f1, 0);aMap.put(GenericPosition.g1, 0);aMap.put(GenericPosition.h1, 0);
         aMap.put(GenericPosition.a2, 25);aMap.put(GenericPosition.b2, 50);aMap.put(GenericPosition.c2, 50);aMap.put(GenericPosition.d2, 50);aMap.put(GenericPosition.e2, 50);aMap.put(GenericPosition.f2, 50);aMap.put(GenericPosition.g2, 50);aMap.put(GenericPosition.h2, 25);
         aMap.put(GenericPosition.a3, 10);aMap.put(GenericPosition.b3, 25);aMap.put(GenericPosition.c3, 25);aMap.put(GenericPosition.d3, 25);aMap.put(GenericPosition.e3, 25);aMap.put(GenericPosition.f3, 25);aMap.put(GenericPosition.g3, 25);aMap.put(GenericPosition.h3, 10);
@@ -49,7 +51,7 @@ public class MaterialEvaluator {
 	
 	private static final Map<GenericPosition, Integer> KNIGHT_WEIGHTINGS;
     static {
-    	Map<GenericPosition, Integer> bMap = new HashMap<GenericPosition, Integer>();
+    	Map<GenericPosition, Integer> bMap = new EnumMap<GenericPosition, Integer>(GenericPosition.class);
         bMap.put(GenericPosition.a1, 0);bMap.put(GenericPosition.b1, 0);bMap.put(GenericPosition.c1, 0);bMap.put(GenericPosition.d1, 0);bMap.put(GenericPosition.e1, 0);bMap.put(GenericPosition.f1, 0);bMap.put(GenericPosition.g1, 0);bMap.put(GenericPosition.h1, 0);
 		bMap.put(GenericPosition.a2, 0);bMap.put(GenericPosition.b2, 0);bMap.put(GenericPosition.c2, 0);bMap.put(GenericPosition.d2, 0);bMap.put(GenericPosition.e2, 0);bMap.put(GenericPosition.f2, 0);bMap.put(GenericPosition.g2, 0);bMap.put(GenericPosition.h2, 0);
 		bMap.put(GenericPosition.a3, 0);bMap.put(GenericPosition.b3, 0);bMap.put(GenericPosition.c3, 10);bMap.put(GenericPosition.d3, 10);bMap.put(GenericPosition.e3, 10);bMap.put(GenericPosition.f3, 10);bMap.put(GenericPosition.g3, 0);bMap.put(GenericPosition.h3, 0);
@@ -61,7 +63,7 @@ public class MaterialEvaluator {
         KNIGHT_WEIGHTINGS = Collections.unmodifiableMap(bMap);
     }	
  
-	public static MaterialEvaluation evaluate(Board theBoard) {
+	static MaterialEvaluation evaluate(Board theBoard) {
 		Iterator<GenericPosition> iter_p = theBoard.iterator();
 		// TODO this needn't be done with an iterator. We could just go through all the BitBoards, it might be faster.
 		MaterialEvaluation materialEvaluation = new MaterialEvaluation();
@@ -77,6 +79,7 @@ public class MaterialEvaluator {
 				currValue += PAWN_BLACK_WEIGHTINGS.get(atPos);
 			} else if (PieceType.isRook(currPiece)) {
 				currValue = MATERIAL_VALUE_ROOK;
+				currValue += theBoard.isOnOpenFile(atPos) ? ROOK_OPEN_FILE_BOOST : 0;
 			} else if (PieceType.isBishop(currPiece)) {
 				currValue = MATERIAL_VALUE_BISHOP;
 			} else if (PieceType.isKnight(currPiece)) {
