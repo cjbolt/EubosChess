@@ -2,7 +2,7 @@ package eubos.position;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.board.pieces.Piece.PieceType;
+import eubos.board.Piece.PieceType;
 
 public class CaptureData {
 	PieceType target;

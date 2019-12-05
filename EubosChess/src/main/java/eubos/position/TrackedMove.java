@@ -3,7 +3,7 @@ package eubos.position;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.board.pieces.Piece.PieceType;
+import eubos.board.Piece.PieceType;
 import eubos.position.CaptureData;
 
 class TrackedMove {

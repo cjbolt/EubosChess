@@ -7,9 +7,8 @@ import java.util.Map;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.board.pieces.Piece;
-import eubos.board.pieces.Piece.PieceType;
-import eubos.board.pieces.Piece.Colour;
+import eubos.board.Piece.Colour;
+import eubos.board.Piece.PieceType;
 
 public class SquareAttackEvaluator {
 	

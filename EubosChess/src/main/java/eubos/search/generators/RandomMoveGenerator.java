@@ -5,7 +5,7 @@ import java.util.List;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.InvalidPieceException;
-import eubos.board.pieces.Piece;
+import eubos.board.Piece;
 import eubos.position.MoveList;
 import eubos.position.PositionManager;
 import eubos.search.NoLegalMoveException;

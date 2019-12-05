@@ -8,9 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import eubos.board.pieces.Piece;
-import eubos.board.pieces.Piece.Colour;
-import eubos.board.pieces.Piece.PieceType;
+import eubos.board.Piece.Colour;
+import eubos.board.Piece.PieceType;
 
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IntRank;

@@ -1,4 +1,4 @@
-package eubos.board.pieces;
+package eubos.board;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -9,9 +9,6 @@ import com.fluxchess.jcpi.models.GenericChessman;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericRank;
-
-import eubos.board.Board;
-import eubos.board.Direction;
 
 public abstract class Piece {
 	public enum Colour { 
@@ -56,7 +53,7 @@ public abstract class Piece {
 		} 
 	};
 	
-	public static List<GenericMove> king_generateMoves(Board theBoard, GenericPosition atSquare, Piece.Colour ownSide) {
+	static List<GenericMove> king_generateMoves(Board theBoard, GenericPosition atSquare, Piece.Colour ownSide) {
 		List<GenericMove> moveList = new LinkedList<GenericMove>();
 		king_checkAddMove(ownSide, atSquare, moveList, theBoard, king_getOneSq(Direction.up, atSquare));
 		king_checkAddMove(ownSide, atSquare, moveList, theBoard, king_getOneSq(Direction.upRight, atSquare));
@@ -97,7 +94,7 @@ public abstract class Piece {
 		}
 	}
 	
-	public static List<GenericMove> knight_generateMoves(Board theBoard, GenericPosition atSquare, Piece.Colour ownSide) {
+	static List<GenericMove> knight_generateMoves(Board theBoard, GenericPosition atSquare, Piece.Colour ownSide) {
 		List<GenericMove> moveList = new LinkedList<GenericMove>();
 		knight_checkAddMove(ownSide, atSquare, moveList, theBoard, Direction.getIndirectMoveSq(Direction.upRight, atSquare));
 		knight_checkAddMove(ownSide, atSquare, moveList, theBoard, Direction.getIndirectMoveSq(Direction.upLeft, atSquare));
@@ -111,7 +108,7 @@ public abstract class Piece {
 	}
 	
 	
-	public static List<GenericMove> rook_generateMoves(Board theBoard, GenericPosition atSquare, Piece.Colour ownSide) {
+	static List<GenericMove> rook_generateMoves(Board theBoard, GenericPosition atSquare, Piece.Colour ownSide) {
 		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
 		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.down, theBoard));
 		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.up, theBoard));
@@ -120,7 +117,7 @@ public abstract class Piece {
 		return moveList;	
 	}
 	
-	public static List<GenericMove> queen_generateMoves(Board theBoard, GenericPosition atSquare, Piece.Colour ownSide) {
+	static List<GenericMove> queen_generateMoves(Board theBoard, GenericPosition atSquare, Piece.Colour ownSide) {
 		List<GenericMove> moveList = new LinkedList<GenericMove>();
 		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.downLeft, theBoard));
 		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.upLeft, theBoard));
@@ -133,7 +130,7 @@ public abstract class Piece {
 		return moveList;	
 	}
 	
-	public static List<GenericMove> bishop_generateMoves(Board theBoard, GenericPosition atSquare, Piece.Colour ownSide) {
+	static List<GenericMove> bishop_generateMoves(Board theBoard, GenericPosition atSquare, Piece.Colour ownSide) {
 		List<GenericMove> moveList = new LinkedList<GenericMove>();
 		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.downLeft, theBoard));
 		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.upLeft, theBoard));
@@ -190,7 +187,7 @@ public abstract class Piece {
 	}
 	
 	
-	public static boolean pawn_isAtInitialPosition(GenericPosition atSquare, Piece.Colour ownSide) {
+	private static boolean pawn_isAtInitialPosition(GenericPosition atSquare, Piece.Colour ownSide) {
 		if (Colour.isBlack(ownSide)) {
 			return (atSquare.rank.equals( GenericRank.R7 ));
 		} else {
@@ -262,7 +259,7 @@ public abstract class Piece {
 		}
 	}	
 	
-	public static List<GenericMove> pawn_generateMoves(Board theBoard, GenericPosition atSquare, Piece.Colour ownSide) {
+	static List<GenericMove> pawn_generateMoves(Board theBoard, GenericPosition atSquare, Piece.Colour ownSide) {
 		List<GenericMove> moveList = new LinkedList<GenericMove>();
 		// Check for standard one and two square moves
 		GenericPosition moveTo = pawn_genOneSqTarget(atSquare, ownSide);

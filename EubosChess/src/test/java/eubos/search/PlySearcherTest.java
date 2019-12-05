@@ -17,7 +17,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
-import eubos.board.pieces.Piece.Colour;
+import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.IPositionAccessors;
 import eubos.position.MaterialEvaluator;

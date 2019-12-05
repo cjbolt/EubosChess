@@ -1,7 +1,7 @@
 package eubos.search;
 
-import eubos.board.pieces.Piece;
-import eubos.board.pieces.Piece.Colour;
+import eubos.board.Piece;
+import eubos.board.Piece.Colour;
 import eubos.position.IPositionAccessors;
 import eubos.position.MaterialEvaluation;
 import eubos.position.MaterialEvaluator;

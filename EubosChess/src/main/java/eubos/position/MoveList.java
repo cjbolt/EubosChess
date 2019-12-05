@@ -16,7 +16,7 @@ import com.fluxchess.jcpi.models.GenericChessman;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.InvalidPieceException;
-import eubos.board.pieces.Piece.Colour;
+import eubos.board.Piece.Colour;
 
 public class MoveList implements Iterable<GenericMove> {
 	

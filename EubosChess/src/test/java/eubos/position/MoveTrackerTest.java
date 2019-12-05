@@ -9,7 +9,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
-import eubos.board.pieces.Piece.PieceType;
+import eubos.board.Piece.PieceType;
 import eubos.position.MoveTracker;
 import eubos.position.CaptureData;
 import eubos.position.TrackedMove;

@@ -7,8 +7,8 @@ import com.fluxchess.jcpi.models.GenericPosition;
 
 import eubos.board.Board;
 import eubos.board.SquareAttackEvaluator;
-import eubos.board.pieces.Piece.Colour;
-import eubos.board.pieces.Piece.PieceType;
+import eubos.board.Piece.Colour;
+import eubos.board.Piece.PieceType;
 import eubos.position.CaptureData;
 import eubos.search.DrawChecker;
 import eubos.search.SearchContext;

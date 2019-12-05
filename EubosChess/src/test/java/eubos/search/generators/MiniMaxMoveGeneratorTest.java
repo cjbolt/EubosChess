@@ -15,7 +15,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
-import eubos.board.pieces.Piece;
+import eubos.board.Piece;
 import eubos.position.PositionManager;
 import eubos.search.NoLegalMoveException;
 import eubos.search.SearchDebugAgent;

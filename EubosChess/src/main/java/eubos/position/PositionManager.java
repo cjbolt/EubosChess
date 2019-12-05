@@ -11,10 +11,10 @@ import com.fluxchess.jcpi.models.GenericRank;
 
 import eubos.board.Board;
 import eubos.board.InvalidPieceException;
-import eubos.board.pieces.Piece;
-import eubos.board.pieces.Piece.PieceType;
+import eubos.board.Piece;
+import eubos.board.Piece.Colour;
+import eubos.board.Piece.PieceType;
 import eubos.search.DrawChecker;
-import eubos.board.pieces.Piece.Colour;
 
 public class PositionManager implements IChangePosition, IPositionAccessors {
 	

@@ -12,8 +12,8 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
 import eubos.board.InvalidPieceException;
-import eubos.board.pieces.Piece;
-import eubos.board.pieces.Piece.Colour;
+import eubos.board.Piece;
+import eubos.board.Piece.Colour;
 import eubos.position.PositionManager;
 import eubos.search.NoLegalMoveException;
 import eubos.search.generators.RandomMoveGenerator;

@@ -1,7 +1,7 @@
 package eubos.position;
 
 import eubos.board.Board;
-import eubos.board.pieces.Piece.Colour;
+import eubos.board.Piece.Colour;
 
 public interface IPositionAccessors {
 	public Board getTheBoard();

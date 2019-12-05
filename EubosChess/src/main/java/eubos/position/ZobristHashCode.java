@@ -10,8 +10,8 @@ import com.fluxchess.jcpi.models.GenericChessman;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
-import eubos.board.pieces.Piece.PieceType;
-import eubos.board.pieces.Piece.Colour;
+import eubos.board.Piece.Colour;
+import eubos.board.Piece.PieceType;
 import eubos.position.CaptureData;
 
 public class ZobristHashCode {

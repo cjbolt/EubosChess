@@ -8,8 +8,8 @@ import com.fluxchess.jcpi.models.GenericPosition;
 
 import eubos.board.Board;
 import eubos.board.InvalidPieceException;
-import eubos.board.pieces.Piece.Colour;
-import eubos.board.pieces.Piece.PieceType;
+import eubos.board.Piece.Colour;
+import eubos.board.Piece.PieceType;
 
 class CastlingManager {
 	private boolean whiteKsAvail = true;
