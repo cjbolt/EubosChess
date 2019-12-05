@@ -12,7 +12,6 @@ import eubos.board.pieces.Piece;
 import eubos.board.pieces.Piece.Colour;
 import eubos.board.pieces.Piece.PieceType;
 
-import com.fluxchess.jcpi.models.GenericChessman;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IntRank;
 import com.fluxchess.jcpi.models.IntFile;
@@ -54,31 +53,31 @@ public class Board implements Iterable<GenericPosition> {
 			BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
 			if (blackPieces.and(pieceToPickUp).isNonZero()) {
 				if (pieces[INDEX_KING].isSet(bit_index)) {
-					movesList.addAll(king_generateMoves(this, atSquare, Colour.black));
+					movesList.addAll(Piece.king_generateMoves(this, atSquare, Colour.black));
 				} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
-					movesList.addAll(queen_generateMoves(this, atSquare, Colour.black));
+					movesList.addAll(Piece.queen_generateMoves(this, atSquare, Colour.black));
 				} else if (pieces[INDEX_ROOK].isSet(bit_index)) {
-					movesList.addAll(rook_generateMoves(this, atSquare, Colour.black));
+					movesList.addAll(Piece.rook_generateMoves(this, atSquare, Colour.black));
 				} else if (pieces[INDEX_BISHOP].isSet(bit_index)) {
-					movesList.addAll(bishop_generateMoves(this, atSquare, Colour.black));
+					movesList.addAll(Piece.bishop_generateMoves(this, atSquare, Colour.black));
 				} else if (pieces[INDEX_KNIGHT].isSet(bit_index)) {
-					movesList.addAll(knight_generateMoves(this, atSquare, Colour.black));
+					movesList.addAll(Piece.knight_generateMoves(this, atSquare, Colour.black));
 				} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
-					movesList.addAll(pawn_generateMoves(this, atSquare, Colour.black));
+					movesList.addAll(Piece.pawn_generateMoves(this, atSquare, Colour.black));
 				}
 			} else if (whitePieces.and(pieceToPickUp).isNonZero()) {
 				if (pieces[INDEX_KING].isSet(bit_index)) {
-					movesList.addAll(king_generateMoves(this, atSquare, Colour.white));
+					movesList.addAll(Piece.king_generateMoves(this, atSquare, Colour.white));
 				} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
-					movesList.addAll(queen_generateMoves(this, atSquare, Colour.white));
+					movesList.addAll(Piece.queen_generateMoves(this, atSquare, Colour.white));
 				} else if (pieces[INDEX_ROOK].isSet(bit_index)) {
-					movesList.addAll(rook_generateMoves(this, atSquare, Colour.white));
+					movesList.addAll(Piece.rook_generateMoves(this, atSquare, Colour.white));
 				} else if (pieces[INDEX_BISHOP].isSet(bit_index)) {
-					movesList.addAll(bishop_generateMoves(this, atSquare, Colour.white));
+					movesList.addAll(Piece.bishop_generateMoves(this, atSquare, Colour.white));
 				} else if (pieces[INDEX_KNIGHT].isSet(bit_index)) {
-					movesList.addAll(knight_generateMoves(this, atSquare, Colour.white));
+					movesList.addAll(Piece.knight_generateMoves(this, atSquare, Colour.white));
 				} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
-					movesList.addAll(pawn_generateMoves(this, atSquare, Colour.white));
+					movesList.addAll(Piece.pawn_generateMoves(this, atSquare, Colour.white));
 				}
 			} else {
 				assert false;
@@ -86,241 +85,7 @@ public class Board implements Iterable<GenericPosition> {
 		}
 		return movesList;
 	}
-	
-
-	
-	private List<GenericMove> king_generateMoves(Board theBoard, GenericPosition atSquare, Piece.Colour ownSide) {
-		List<GenericMove> moveList = new LinkedList<GenericMove>();
-		king_checkAddMove(ownSide, atSquare, moveList, theBoard, king_getOneSq(Direction.up, atSquare));
-		king_checkAddMove(ownSide, atSquare, moveList, theBoard, king_getOneSq(Direction.upRight, atSquare));
-		king_checkAddMove(ownSide, atSquare, moveList, theBoard, king_getOneSq(Direction.right, atSquare));
-		king_checkAddMove(ownSide, atSquare, moveList, theBoard, king_getOneSq(Direction.downRight, atSquare));
-		king_checkAddMove(ownSide, atSquare, moveList, theBoard, king_getOneSq(Direction.down, atSquare));
-		king_checkAddMove(ownSide, atSquare, moveList, theBoard, king_getOneSq(Direction.downLeft, atSquare));
-		king_checkAddMove(ownSide, atSquare, moveList, theBoard, king_getOneSq(Direction.left, atSquare));
-		king_checkAddMove(ownSide, atSquare, moveList, theBoard, king_getOneSq(Direction.upLeft, atSquare));
-		return moveList;
-	}
-
-	private void king_checkAddMove(Piece.Colour ownSide, GenericPosition atSquare, List<GenericMove> moveList, Board theBoard, GenericPosition targetSquare) {
-		if ( targetSquare != null ) {
-			PieceType targetPiece = theBoard.getPieceAtSquare(targetSquare);
-			if ( theBoard.squareIsEmpty(targetSquare) || 
-					(targetPiece != PieceType.NONE && PieceType.isOppositeColour(ownSide, targetPiece))) {
-				moveList.add( new GenericMove( atSquare, targetSquare ) );
-			}
-		}
-	}	
-	
-	private GenericPosition king_getOneSq( Direction dir, GenericPosition atSquare ) {
-		return Direction.getDirectMoveSq(dir, atSquare);
-	}
-	
-	private void knight_checkAddMove(Piece.Colour ownSide, GenericPosition atSquare, List<GenericMove> moveList, Board theBoard, GenericPosition targetSquare) {
-		if ( targetSquare != null ) {
-			PieceType targetPiece = theBoard.getPieceAtSquare(targetSquare);
-			if (theBoard.squareIsEmpty(targetSquare)) {
-				moveList.add( new GenericMove( atSquare, targetSquare ));
-			}
-			else if (targetPiece != PieceType.NONE && PieceType.isOppositeColour(ownSide, targetPiece)) {
-				// Indicates a capture
-				moveList.add( new GenericMove( atSquare, targetSquare ));
-			}
-			// Indicates blocked by own piece.
-		}
-	}
-	
-	public List<GenericMove> knight_generateMoves(Board theBoard, GenericPosition atSquare, Piece.Colour ownSide) {
-		List<GenericMove> moveList = new LinkedList<GenericMove>();
-		knight_checkAddMove(ownSide, atSquare, moveList, theBoard, Direction.getIndirectMoveSq(Direction.upRight, atSquare));
-		knight_checkAddMove(ownSide, atSquare, moveList, theBoard, Direction.getIndirectMoveSq(Direction.upLeft, atSquare));
-		knight_checkAddMove(ownSide, atSquare, moveList, theBoard, Direction.getIndirectMoveSq(Direction.rightUp, atSquare));
-		knight_checkAddMove(ownSide, atSquare, moveList, theBoard, Direction.getIndirectMoveSq(Direction.rightDown, atSquare));
-		knight_checkAddMove(ownSide, atSquare, moveList, theBoard, Direction.getIndirectMoveSq(Direction.downRight, atSquare));
-		knight_checkAddMove(ownSide, atSquare, moveList, theBoard, Direction.getIndirectMoveSq(Direction.downLeft, atSquare));
-		knight_checkAddMove(ownSide, atSquare, moveList, theBoard, Direction.getIndirectMoveSq(Direction.leftUp, atSquare));
-		knight_checkAddMove(ownSide, atSquare, moveList, theBoard, Direction.getIndirectMoveSq(Direction.leftDown, atSquare));
-		return moveList;		
-	}
-	
-	
-	public List<GenericMove> rook_generateMoves(Board theBoard, GenericPosition atSquare, Piece.Colour ownSide) {
-		LinkedList<GenericMove> moveList = new LinkedList<GenericMove>();
-		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.down, theBoard));
-		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.up, theBoard));
-		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.left, theBoard));
-		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.right, theBoard));
-		return moveList;	
-	}
-	
-	public List<GenericMove> queen_generateMoves(Board theBoard, GenericPosition atSquare, Piece.Colour ownSide) {
-		List<GenericMove> moveList = new LinkedList<GenericMove>();
-		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.downLeft, theBoard));
-		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.upLeft, theBoard));
-		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.downRight, theBoard));
-		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.upRight, theBoard));
-		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.down, theBoard));
-		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.up, theBoard));
-		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.left, theBoard));
-		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.right, theBoard));
-		return moveList;	
-	}
-	
-	public List<GenericMove> bishop_generateMoves(Board theBoard, GenericPosition atSquare, Piece.Colour ownSide) {
-		List<GenericMove> moveList = new LinkedList<GenericMove>();
-		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.downLeft, theBoard));
-		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.upLeft, theBoard));
-		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.downRight, theBoard));
-		multidirect_addMoves(atSquare, ownSide, moveList, theBoard, multidirect_getAllSqs(atSquare, Direction.upRight, theBoard));
-		return moveList;	
-	}
-	
-	
-	private List<GenericPosition> multidirect_getAllSqs(GenericPosition atSquare, Direction dir, Board theBoard) {
-		ArrayList<GenericPosition> targetSquares = new ArrayList<GenericPosition>();
-		GenericPosition currTargetSq = atSquare;
-		while ((currTargetSq = Direction.getDirectMoveSq(dir, currTargetSq)) != null) {
-			targetSquares.add(currTargetSq);
-			if (multidirect_sqConstrainsAttack(theBoard, currTargetSq)) break;
-		}
-		return targetSquares;
-	}
-	
-	private boolean multidirect_checkAddMove(Piece.Colour ownSide, GenericPosition atSquare, List<GenericMove> moveList, Board theBoard, GenericPosition targetSquare) {
-		boolean continueAddingMoves = false;
-		if ( targetSquare != null ) {
-			PieceType targetPiece = theBoard.getPieceAtSquare(targetSquare);
-			if (theBoard.squareIsEmpty(targetSquare)) {
-				moveList.add( new GenericMove( atSquare, targetSquare ));
-				continueAddingMoves = true;
-			}
-			else if (targetPiece != PieceType.NONE && PieceType.isOppositeColour(ownSide, targetPiece)) {
-				// Indicates a capture
-				moveList.add( new GenericMove( atSquare, targetSquare ));
-			}
-			// Indicates blocked by own piece.
-		}
-		return continueAddingMoves;
-	}
 		
-	private boolean multidirect_sqConstrainsAttack(Board theBoard, GenericPosition targetSquare) {
-		boolean constrains = false;
-		if ( targetSquare != null ) {
-			PieceType targetPiece = theBoard.getPieceAtSquare(targetSquare);
-			if (targetPiece != PieceType.NONE) {
-				constrains = true;
-			}
-		}
-		return constrains;
-	}	
-
-	private void multidirect_addMoves(GenericPosition atSquare, Piece.Colour ownSide, List<GenericMove> moveList, Board theBoard, List<GenericPosition> targetSqs) {
-		boolean continueAddingMoves = true;
-		Iterator<GenericPosition> it = targetSqs.iterator();
-		while ( it.hasNext() && continueAddingMoves ) {
-			continueAddingMoves = multidirect_checkAddMove(ownSide, atSquare, moveList, theBoard, it.next());
-		}
-	}
-	
-	
-	public boolean pawn_isAtInitialPosition(GenericPosition atSquare, Piece.Colour ownSide) {
-		if (Colour.isBlack(ownSide)) {
-			return (atSquare.rank.equals( GenericRank.R7 ));
-		} else {
-			return (atSquare.rank.equals( GenericRank.R2 ));
-		}
-	}
-
-	private GenericPosition pawn_genOneSqTarget(GenericPosition atSquare, Piece.Colour ownSide) {
-		if (Colour.isBlack(ownSide)) {
-			return king_getOneSq(Direction.down, atSquare);
-		} else {
-			return king_getOneSq(Direction.up, atSquare);
-		}
-	}	
-	
-	private GenericPosition pawn_genTwoSqTarget(GenericPosition atSquare, Piece.Colour ownSide) {
-		GenericPosition moveTo = null;
-		if ( pawn_isAtInitialPosition(atSquare, ownSide) ) {
-			if (Colour.isBlack(ownSide)) {
-				moveTo = Direction.getDirectMoveSq(Direction.down, Direction.getDirectMoveSq(Direction.down, atSquare));
-			} else {
-				moveTo = Direction.getDirectMoveSq(Direction.up, Direction.getDirectMoveSq(Direction.up, atSquare));
-			}
-		}
-		return moveTo;
-	}
-	
-	private GenericPosition pawn_genLeftCaptureTarget(GenericPosition atSquare, Piece.Colour ownSide) {
-		if (Colour.isBlack(ownSide)) {
-			return king_getOneSq(Direction.downRight, atSquare);
-		} else {
-			return king_getOneSq(Direction.upLeft, atSquare);
-		}
-	}
-	
-	private GenericPosition pawn_genRightCaptureTarget(GenericPosition atSquare, Piece.Colour ownSide) {
-		if (Colour.isBlack(ownSide)) {
-			return king_getOneSq(Direction.downLeft, atSquare);
-		} else {
-			return king_getOneSq(Direction.upRight, atSquare);
-		}		
-	}
-	
-	private boolean pawn_isCapturable(Piece.Colour ownSide, Board theBoard, GenericPosition captureAt ) {
-		boolean isCapturable = false;
-		PieceType queryPiece = theBoard.getPieceAtSquare( captureAt );
-		if ( queryPiece != PieceType.NONE ) {
-			isCapturable = PieceType.isOppositeColour( ownSide, queryPiece );
-		} else if (captureAt == theBoard.getEnPassantTargetSq()) {
-			isCapturable = true;
-		}
-		return isCapturable;
-	}
-	
-	private boolean pawn_checkPromotionPossible(Piece.Colour ownSide, GenericPosition targetSquare ) {
-		return (( Colour.isBlack(ownSide) && targetSquare.rank == GenericRank.R1 ) || 
-				( Colour.isWhite(ownSide) && targetSquare.rank == GenericRank.R8 ));
-	}
-	
-	private void pawn_checkPromotionAddMove(GenericPosition atSquare, Piece.Colour ownSide, List<GenericMove> moveList,
-			GenericPosition targetSquare) {
-		if ( pawn_checkPromotionPossible( ownSide, targetSquare )) {
-			moveList.add( new GenericMove( atSquare, targetSquare, GenericChessman.KNIGHT ));
-			moveList.add( new GenericMove( atSquare, targetSquare, GenericChessman.BISHOP ));
-			moveList.add( new GenericMove( atSquare, targetSquare, GenericChessman.ROOK ));
-			moveList.add( new GenericMove( atSquare, targetSquare, GenericChessman.QUEEN ));
-		} else {
-			moveList.add( new GenericMove( atSquare, targetSquare ) );
-		}
-	}	
-	
-	public List<GenericMove> pawn_generateMoves(Board theBoard, GenericPosition atSquare, Piece.Colour ownSide) {
-		List<GenericMove> moveList = new LinkedList<GenericMove>();
-		// Check for standard one and two square moves
-		GenericPosition moveTo = pawn_genOneSqTarget(atSquare, ownSide);
-		if ( moveTo != null && theBoard.squareIsEmpty( moveTo )) {
-			pawn_checkPromotionAddMove(atSquare, ownSide, moveList, moveTo);
-			moveTo = pawn_genTwoSqTarget(atSquare, ownSide);
-			if ( moveTo != null && theBoard.squareIsEmpty( moveTo )) {
-				moveList.add( new GenericMove( atSquare, moveTo ) );
-			}	
-		}
-		// Check for capture moves, includes en passant
-		GenericPosition captureAt = pawn_genLeftCaptureTarget(atSquare, ownSide);
-		if ( captureAt != null && pawn_isCapturable(ownSide, theBoard,captureAt)) {
-			pawn_checkPromotionAddMove(atSquare, ownSide, moveList, captureAt);
-		}
-		captureAt = pawn_genRightCaptureTarget(atSquare, ownSide);
-		if ( captureAt != null && pawn_isCapturable(ownSide, theBoard,captureAt)) {
-			pawn_checkPromotionAddMove(atSquare, ownSide, moveList, captureAt);
-		}
-		return moveList;
-	}	
-	
-	
-		
-	
 	private GenericPosition enPassantTargetSq = null;
 	public GenericPosition getEnPassantTargetSq() {
 		return enPassantTargetSq;

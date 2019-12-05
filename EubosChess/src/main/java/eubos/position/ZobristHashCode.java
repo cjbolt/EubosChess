@@ -7,7 +7,6 @@ import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericChessman;
-import com.fluxchess.jcpi.models.IllegalNotationException;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
@@ -128,19 +127,10 @@ public class ZobristHashCode {
 	// Used to update the Zobrist hash code whenever a position changes due to a move being performed
 	public void update(GenericMove move, CaptureData captureTarget, GenericFile enPassantFile) {
 		PieceType piece = doBasicMove(move);
-		
 		doCapturedPiece(captureTarget);
-		
 		doEnPassant(move, enPassantFile);
-		
-		try {
-			doSecondaryMove(move, piece);
-		} catch (IllegalNotationException e) {
-			e.printStackTrace();
-		}
-		
+     	doSecondaryMove(move, piece);
 		doCastlingFlags();
-		
 		doOnMove();
 	}
 
@@ -238,8 +228,7 @@ public class ZobristHashCode {
 		this.prevCastlingMask = currentCastlingFlags;
 	}
 
-	protected void doSecondaryMove(GenericMove move, PieceType piece)
-			throws IllegalNotationException {
+	protected void doSecondaryMove(GenericMove move, PieceType piece) {
 		if ( piece==PieceType.WhiteKing ) {
 			if (move.equals(CastlingManager.wksc)) {
 				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.f1);
