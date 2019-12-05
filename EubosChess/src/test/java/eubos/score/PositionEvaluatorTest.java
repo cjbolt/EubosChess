@@ -1,9 +1,9 @@
-package eubos.position;
+package eubos.score;
 
-import static eubos.position.PositionEvaluator.DOUBLED_PAWN_HANDICAP;
-import static eubos.position.PositionEvaluator.HAS_CASTLED_BOOST_CENTIPAWNS;
-import static eubos.position.PositionEvaluator.PASSED_PAWN_BOOST;
-import static eubos.position.PositionEvaluator.ROOK_FILE_PASSED_PAWN_BOOST;
+import static eubos.score.PositionEvaluator.DOUBLED_PAWN_HANDICAP;
+import static eubos.score.PositionEvaluator.HAS_CASTLED_BOOST_CENTIPAWNS;
+import static eubos.score.PositionEvaluator.PASSED_PAWN_BOOST;
+import static eubos.score.PositionEvaluator.ROOK_FILE_PASSED_PAWN_BOOST;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
@@ -13,6 +13,8 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
+import eubos.position.PositionManager;
+import eubos.score.PositionEvaluator;
 import eubos.search.DrawChecker;
 
 public class PositionEvaluatorTest {

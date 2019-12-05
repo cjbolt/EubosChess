@@ -8,8 +8,8 @@ import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
-import eubos.position.IEvaluate;
 import eubos.position.IPositionAccessors;
+import eubos.score.IEvaluate;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.FixedSizeTranspositionTable;

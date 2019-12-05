@@ -1,4 +1,4 @@
-package eubos.position;
+package eubos.score;
 
 public interface IEvaluate {
 	short evaluatePosition();

@@ -3,7 +3,7 @@ package eubos.search;
 import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
 
 import eubos.main.EubosEngineMain;
-import eubos.position.MaterialEvaluator;
+import eubos.score.MaterialEvaluator;
 
 public class SearchMetricsReporter extends Thread {
 	

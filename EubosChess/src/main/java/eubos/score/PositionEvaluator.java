@@ -1,4 +1,4 @@
-package eubos.position;
+package eubos.score;
 
 import java.util.Iterator;
 
@@ -10,6 +10,7 @@ import eubos.board.SquareAttackEvaluator;
 import eubos.board.Piece.Colour;
 import eubos.board.Piece.PieceType;
 import eubos.position.CaptureData;
+import eubos.position.PositionManager;
 import eubos.search.DrawChecker;
 import eubos.search.SearchContext;
 
@@ -40,7 +41,7 @@ public class PositionEvaluator implements IEvaluate {
 			{
 				if (SquareAttackEvaluator.isAttacked(
 						pm.getTheBoard(),
-						captured.square,
+						captured.getSquare(),
 						Colour.getOpposite(pm.getOnMove())))
 					return false;
 			}

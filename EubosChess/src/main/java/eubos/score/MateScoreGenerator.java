@@ -1,9 +1,7 @@
-package eubos.search;
+package eubos.score;
 
 import eubos.board.Piece.Colour;
 import eubos.position.IPositionAccessors;
-import eubos.position.IScoreMate;
-import eubos.position.MaterialEvaluator;
 
 public class MateScoreGenerator implements IScoreMate {
 	

@@ -1,4 +1,4 @@
-package eubos.position;
+package eubos.board;
 
 import static org.junit.Assert.*;
 

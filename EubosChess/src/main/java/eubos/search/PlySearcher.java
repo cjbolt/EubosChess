@@ -8,14 +8,15 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.board.InvalidPieceException;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
-import eubos.position.IScoreMate;
 import eubos.position.MoveList;
 import eubos.position.PositionManager;
+import eubos.score.IEvaluate;
+import eubos.score.IScoreMate;
+import eubos.score.MateScoreGenerator;
 import eubos.search.transposition.ITranspositionAccessor;
 import eubos.search.transposition.Transposition;
 import eubos.search.transposition.TranspositionEvaluation;
 import eubos.search.transposition.Transposition.ScoreType;
-import eubos.position.IEvaluate;
 
 public class PlySearcher {
 

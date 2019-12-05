@@ -16,4 +16,6 @@ public class CaptureData {
 		this.target = type;
 		this.square = atPos;
 	}
+	
+	public GenericPosition getSquare() { return square; }
 };

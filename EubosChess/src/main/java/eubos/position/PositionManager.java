@@ -14,6 +14,8 @@ import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.board.Piece.PieceType;
+import eubos.score.IEvaluate;
+import eubos.score.PositionEvaluator;
 import eubos.search.DrawChecker;
 
 public class PositionManager implements IChangePosition, IPositionAccessors {
@@ -67,7 +69,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return moveTracker.lastMoveWasCapture();
 	}
 	
-	CaptureData getCapturedPiece() {
+	public CaptureData getCapturedPiece() {
 		return moveTracker.getCapturedPiece();
 	}
 	
@@ -95,7 +97,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public boolean isKingInCheck() {
 		return isKingInCheck(onMove);
 	}
-	boolean isKingInCheck( Colour colour ) {
+	public boolean isKingInCheck( Colour colour ) {
 		return theBoard.isKingInCheck(colour);		
 	}
 	

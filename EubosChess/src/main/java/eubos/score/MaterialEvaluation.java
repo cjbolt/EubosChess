@@ -1,4 +1,4 @@
-package eubos.position;
+package eubos.score;
 
 public class MaterialEvaluation {
 	short black = 0;

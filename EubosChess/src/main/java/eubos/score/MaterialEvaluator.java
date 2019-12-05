@@ -1,4 +1,4 @@
-package eubos.position;
+package eubos.score;
 
 import java.util.Collections;
 import java.util.Map;

@@ -9,9 +9,9 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
-import eubos.position.MaterialEvaluation;
-import eubos.position.MaterialEvaluator;
 import eubos.position.PositionManager;
+import eubos.score.MaterialEvaluation;
+import eubos.score.MaterialEvaluator;
 
 public class SearchContextTest {
 	

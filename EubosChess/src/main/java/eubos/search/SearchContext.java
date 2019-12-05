@@ -3,8 +3,8 @@ package eubos.search;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.position.IPositionAccessors;
-import eubos.position.MaterialEvaluation;
-import eubos.position.MaterialEvaluator;
+import eubos.score.MaterialEvaluation;
+import eubos.score.MaterialEvaluator;
 
 public class SearchContext {
 	MaterialEvaluation initial;

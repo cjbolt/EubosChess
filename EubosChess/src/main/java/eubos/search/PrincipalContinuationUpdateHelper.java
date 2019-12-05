@@ -1,7 +1,7 @@
 package eubos.search;
 
 import eubos.board.Piece.Colour;
-import eubos.position.MaterialEvaluator;
+import eubos.score.MaterialEvaluator;
 
 public class PrincipalContinuationUpdateHelper
 	{
