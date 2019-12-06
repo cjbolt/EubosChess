@@ -50,6 +50,9 @@ public abstract class Piece {
 		}
 		public static boolean isBlack(PieceType arg) {
 			return arg.ordinal() >= PieceType.BlackKing.ordinal();
+		}
+		public static Colour getOpposite(PieceType arg) {
+			return PieceType.isWhite(arg) ? Colour.black : Colour.white;
 		} 
 	};
 	

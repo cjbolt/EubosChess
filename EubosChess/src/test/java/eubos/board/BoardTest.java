@@ -6,6 +6,7 @@ import java.util.EnumMap;
 import java.util.Map;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericPosition;
@@ -122,5 +123,49 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(GenericPosition.h8, PieceType.BlackPawn);
 		classUnderTest.setPieceAtSquare(GenericPosition.g8, PieceType.BlackKing);
 		assertEquals("6kp/8/8/8/8/8/8/8",classUnderTest.getAsFenString());
+	}
+	
+	@Test
+	public void testOpenFile_isOpen() {
+		classUnderTest.setPieceAtSquare(GenericPosition.h8, PieceType.BlackPawn);
+		assertTrue(classUnderTest.isOnOpenFile(GenericPosition.h8));
+	}
+	
+	@Test
+	public void testOpenFile_isClosed() {
+		classUnderTest.setPieceAtSquare(GenericPosition.h7, PieceType.BlackPawn);
+		classUnderTest.setPieceAtSquare(GenericPosition.h2, PieceType.WhiteRook);
+		assertFalse(classUnderTest.isOnOpenFile(GenericPosition.h2));
+	}
+	
+	@Test
+	public void testOpenFile_isOpen1() {
+		classUnderTest.setPieceAtSquare(GenericPosition.d7, PieceType.BlackPawn);
+		classUnderTest.setPieceAtSquare(GenericPosition.e2, PieceType.WhiteRook);
+		assertTrue(classUnderTest.isOnOpenFile(GenericPosition.e2));
+	}
+	
+	@Test
+	public void testisHalfOpenFile_isHalfOpen() {
+		classUnderTest.setPieceAtSquare(GenericPosition.e7, PieceType.BlackPawn);
+		classUnderTest.setPieceAtSquare(GenericPosition.e2, PieceType.WhiteRook);
+		assertTrue(classUnderTest.isOnHalfOpenFile(GenericPosition.e2, PieceType.WhiteRook));
+	}
+	
+	@Test
+	public void testisHalfOpenFile_isNotHalfOpen() {
+		classUnderTest.setPieceAtSquare(GenericPosition.e7, PieceType.BlackPawn);
+		classUnderTest.setPieceAtSquare(GenericPosition.e2, PieceType.WhitePawn);
+		classUnderTest.setPieceAtSquare(GenericPosition.e1, PieceType.WhiteRook);
+		assertFalse(classUnderTest.isOnHalfOpenFile(GenericPosition.e1, PieceType.WhiteRook));
+	}
+	
+	@Test
+	@Ignore
+	public void testisHalfOpenFile_isNotHalfOpen1() {
+		classUnderTest.setPieceAtSquare(GenericPosition.e7, PieceType.WhitePawn);
+		classUnderTest.setPieceAtSquare(GenericPosition.e2, PieceType.BlackPawn);
+		classUnderTest.setPieceAtSquare(GenericPosition.e1, PieceType.WhiteRook);
+		assertTrue(classUnderTest.isOnHalfOpenFile(GenericPosition.e1, PieceType.WhiteRook));
 	}
 }

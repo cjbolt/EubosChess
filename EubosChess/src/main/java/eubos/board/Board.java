@@ -579,4 +579,19 @@ public class Board implements Iterable<GenericPosition> {
 		fileMask.clear(BitBoard.positionToBit_Lut.get(atPos));
 		return allPieces.and(fileMask).getValue() == 0;
 	}
+	
+	public boolean isOnHalfOpenFile(GenericPosition atPos, PieceType type) {
+		boolean isHalfOpen = false;
+		BitBoard fileMask = new BitBoard(FileMask_Lut.get(atPos.file).getValue());
+		BitBoard otherSide = PieceType.getOpposite(type) == Colour.white ? whitePieces : blackPieces;
+		BitBoard pawnMask = otherSide.and(pieces[INDEX_PAWN]);
+		boolean opponentPawnOnFile = pawnMask.and(fileMask).isNonZero();
+		if (opponentPawnOnFile) {
+			BitBoard ownSide = PieceType.isWhite(type) ? whitePieces : blackPieces;
+			pawnMask = ownSide.and(pieces[INDEX_PAWN]);
+			// and no pawns of own side
+			isHalfOpen = !pawnMask.and(fileMask).isNonZero();
+		}
+		return isHalfOpen;
+	}
 }
