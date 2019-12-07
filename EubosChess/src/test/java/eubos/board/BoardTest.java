@@ -173,14 +173,14 @@ public class BoardTest {
 	public void testisOnOpenDiagonal_Yes() {
 		classUnderTest.setPieceAtSquare(GenericPosition.d5, PieceType.BlackBishop);
 		classUnderTest.setPieceAtSquare(GenericPosition.e5, PieceType.WhitePawn);
-		assertEquals(4,classUnderTest.isOnOpenDiagonal(GenericPosition.d5));
+		assertEquals(13,classUnderTest.getNumSquaresOpen(GenericPosition.d5));
 	}
 	
 	@Test
 	public void testisOnOpenDiagonal_No() {
 		classUnderTest.setPieceAtSquare(GenericPosition.d5, PieceType.BlackBishop);
 		classUnderTest.setPieceAtSquare(GenericPosition.e6, PieceType.WhitePawn);
-		assertEquals(0,classUnderTest.isOnOpenDiagonal(GenericPosition.d5));
+		assertEquals(0,classUnderTest.getNumSquaresOpen(GenericPosition.d5));
 	}
 	
 	@Test
@@ -190,20 +190,20 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(GenericPosition.d6, PieceType.WhitePawn);
 		classUnderTest.setPieceAtSquare(GenericPosition.d4, PieceType.WhitePawn);
 		classUnderTest.setPieceAtSquare(GenericPosition.c5, PieceType.WhitePawn);
-		assertEquals(4,classUnderTest.isOnOpenDiagonal(GenericPosition.d5));
+		assertEquals(13,classUnderTest.getNumSquaresOpen(GenericPosition.d5));
 	}
 	
 	@Test
 	public void testisOnOpenDiagonal_No1() {
 		classUnderTest.setPieceAtSquare(GenericPosition.a1, PieceType.BlackBishop);
 		classUnderTest.setPieceAtSquare(GenericPosition.h8, PieceType.WhitePawn);
-		assertEquals(6,classUnderTest.isOnOpenDiagonal(GenericPosition.a1));
+		assertEquals(6,classUnderTest.getNumSquaresOpen(GenericPosition.a1));
 	}
 	
 	@Test
 	public void testisOnOpenDiagonal_Yes2() {
 		classUnderTest.setPieceAtSquare(GenericPosition.a1, PieceType.BlackBishop);
 		classUnderTest.setPieceAtSquare(GenericPosition.a8, PieceType.WhitePawn);
-		assertEquals(7,classUnderTest.isOnOpenDiagonal(GenericPosition.a1));
+		assertEquals(7,classUnderTest.getNumSquaresOpen(GenericPosition.a1));
 	}
 }

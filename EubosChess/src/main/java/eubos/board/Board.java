@@ -286,11 +286,13 @@ public class Board implements Iterable<GenericPosition> {
 			currMask = setAllInDirection(dir, square, currMask, index);
 		}
 		// Only add the mask if it isn't the same as previous (i.e. no more squares to add)
+		BitBoard toAdd = new BitBoard(currMask);
+		toAdd.setNumBits();
 		if (array.size()-1 >= 0) {
 			if (currMask != array.get(array.size()-1).getValue())
-				array.add(new BitBoard(currMask));
+				array.add(toAdd);
 		} else {
-			array.add(new BitBoard(currMask));
+			array.add(toAdd);
 		}
 	}
 	static private Long setAllInDirection(Direction dir, GenericPosition fromSq, Long currMask, int index) {
@@ -616,13 +618,13 @@ public class Board implements Iterable<GenericPosition> {
 		return allPieces.and(fileMask).getValue() == 0;
 	}
 	
-	public int isOnOpenDiagonal(GenericPosition atPos) {
+	public int getNumSquaresOpen(GenericPosition atPos) {
 		int levelCount = 0;
 		int bit = BitBoard.positionToBit_Lut.get(atPos);
 		List<BitBoard> list = DiagonalMask_Lut.get(atPos);
 		for (BitBoard levelMask : list) {
 			if (checkSingleMask(bit, levelMask))
-				levelCount++;
+				levelCount = levelMask.getNumBits();
 		}
 		return levelCount;
 	}

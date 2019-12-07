@@ -53,6 +53,7 @@ public class BitBoard implements Iterable<Integer> {
 		}
 	}
 	
+	private int numBitsSet = 0;
 	private long bitBoard = 0x0L;
 	
 	public BitBoard(long board) {
@@ -68,7 +69,15 @@ public class BitBoard implements Iterable<Integer> {
 	public boolean isNonZero() {
 		return bitBoard != 0;
 	}
-		
+	
+	public void setNumBits() {
+		numBitsSet = Long.bitCount(this.bitBoard);
+	}
+	
+	public int getNumBits() {
+		return numBitsSet;
+	}
+	
 	public BitBoard and(BitBoard other) {
 		return new BitBoard(this.bitBoard & other.bitBoard);
 	}
