@@ -269,6 +269,29 @@ public class Board implements Iterable<GenericPosition> {
 		return type;
 	}
 	
+	private static final Map<GenericPosition, BitBoard> DiagonalMask_Lut = new EnumMap<GenericPosition, BitBoard>(GenericPosition.class);
+	static {
+		for (GenericPosition square : GenericPosition.values()) {
+			DiagonalMask_Lut.put(square, new BitBoard(createDiagonalMask(square)));
+		}
+	}
+	static private Long createDiagonalMask(GenericPosition square) {
+		Long currMask = 0L;
+		Direction [] diagonals = { Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downLeft };
+		for (Direction dir: diagonals) {
+			currMask |= setAllInDirection(dir, square, currMask);
+		}
+		return currMask;
+	}
+	static private Long setAllInDirection(Direction dir, GenericPosition fromSq, Long currMask) {
+		GenericPosition newSquare = fromSq;
+		while ((newSquare = Direction.getDirectMoveSq(dir, newSquare)) != null) {
+			currMask |= BitBoard.positionToMask_Lut.get(newSquare).getValue();
+		}
+		return currMask;
+	}
+	
+	
 	private static final Map<GenericFile, BitBoard> FileMask_Lut = new EnumMap<GenericFile, BitBoard>(GenericFile.class);
 	static {
 		for (GenericFile file : GenericFile.values()) {
@@ -576,6 +599,12 @@ public class Board implements Iterable<GenericPosition> {
 
 	public boolean isOnOpenFile(GenericPosition atPos) {
 		BitBoard fileMask = new BitBoard(FileMask_Lut.get(atPos.file).getValue());
+		fileMask.clear(BitBoard.positionToBit_Lut.get(atPos));
+		return allPieces.and(fileMask).getValue() == 0;
+	}
+	
+	public boolean isOnOpenDiagonal(GenericPosition atPos) {
+		BitBoard fileMask = new BitBoard(DiagonalMask_Lut.get(atPos).getValue());
 		fileMask.clear(BitBoard.positionToBit_Lut.get(atPos));
 		return allPieces.and(fileMask).getValue() == 0;
 	}

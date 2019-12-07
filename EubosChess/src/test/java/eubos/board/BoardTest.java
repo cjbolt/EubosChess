@@ -168,4 +168,42 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(GenericPosition.e1, PieceType.WhiteRook);
 		assertTrue(classUnderTest.isOnHalfOpenFile(GenericPosition.e1, PieceType.WhiteRook));
 	}
+	
+	@Test
+	public void testisOnOpenDiagonal_Yes() {
+		classUnderTest.setPieceAtSquare(GenericPosition.d5, PieceType.BlackBishop);
+		classUnderTest.setPieceAtSquare(GenericPosition.e5, PieceType.WhitePawn);
+		assertTrue(classUnderTest.isOnOpenDiagonal(GenericPosition.d5));
+	}
+	
+	@Test
+	public void testisOnOpenDiagonal_No() {
+		classUnderTest.setPieceAtSquare(GenericPosition.d5, PieceType.BlackBishop);
+		classUnderTest.setPieceAtSquare(GenericPosition.e6, PieceType.WhitePawn);
+		assertFalse(classUnderTest.isOnOpenDiagonal(GenericPosition.d5));
+	}
+	
+	@Test
+	public void testisOnOpenDiagonal_Yes1() {
+		classUnderTest.setPieceAtSquare(GenericPosition.d5, PieceType.BlackBishop);
+		classUnderTest.setPieceAtSquare(GenericPosition.e5, PieceType.WhitePawn);
+		classUnderTest.setPieceAtSquare(GenericPosition.d6, PieceType.WhitePawn);
+		classUnderTest.setPieceAtSquare(GenericPosition.d4, PieceType.WhitePawn);
+		classUnderTest.setPieceAtSquare(GenericPosition.c5, PieceType.WhitePawn);
+		assertTrue(classUnderTest.isOnOpenDiagonal(GenericPosition.d5));
+	}
+	
+	@Test
+	public void testisOnOpenDiagonal_No1() {
+		classUnderTest.setPieceAtSquare(GenericPosition.a1, PieceType.BlackBishop);
+		classUnderTest.setPieceAtSquare(GenericPosition.h8, PieceType.WhitePawn);
+		assertFalse(classUnderTest.isOnOpenDiagonal(GenericPosition.a1));
+	}
+	
+	@Test
+	public void testisOnOpenDiagonal_Yes2() {
+		classUnderTest.setPieceAtSquare(GenericPosition.a1, PieceType.BlackBishop);
+		classUnderTest.setPieceAtSquare(GenericPosition.a8, PieceType.WhitePawn);
+		assertTrue(classUnderTest.isOnOpenDiagonal(GenericPosition.a1));
+	}
 }
