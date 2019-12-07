@@ -82,7 +82,7 @@ public class MaterialEvaluator {
 				currValue += theBoard.isOnOpenFile(atPos) ? ROOK_OPEN_FILE_BOOST : 0;
 			} else if (PieceType.isBishop(currPiece)) {
 				currValue = MATERIAL_VALUE_BISHOP;
-				currValue += theBoard.isOnOpenDiagonal(atPos) ? ROOK_OPEN_FILE_BOOST : 0;
+				currValue += theBoard.isOnOpenDiagonal(atPos)*3;
 			} else if (PieceType.isKnight(currPiece)) {
 				currValue = MATERIAL_VALUE_KNIGHT;
 				currValue += KNIGHT_WEIGHTINGS.get(atPos);

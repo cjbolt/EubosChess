@@ -269,24 +269,37 @@ public class Board implements Iterable<GenericPosition> {
 		return type;
 	}
 	
-	private static final Map<GenericPosition, BitBoard> DiagonalMask_Lut = new EnumMap<GenericPosition, BitBoard>(GenericPosition.class);
+	private static final Map<GenericPosition, List<BitBoard>> DiagonalMask_Lut = new EnumMap<GenericPosition, List<BitBoard>>(GenericPosition.class);
 	static {
 		for (GenericPosition square : GenericPosition.values()) {
-			DiagonalMask_Lut.put(square, new BitBoard(createDiagonalMask(square)));
+			List<BitBoard> array = new ArrayList<BitBoard>();
+			for (int index=1; index<8; index++) {
+				createDiagonalMask(square, array, index);
+			}
+			DiagonalMask_Lut.put(square, array);
 		}
 	}
-	static private Long createDiagonalMask(GenericPosition square) {
+	static private void createDiagonalMask(GenericPosition square, List<BitBoard> array, int index) {
 		Long currMask = 0L;
-		Direction [] diagonals = { Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downLeft };
+		Direction [] diagonals = { Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
 		for (Direction dir: diagonals) {
-			currMask |= setAllInDirection(dir, square, currMask);
+			currMask = setAllInDirection(dir, square, currMask, index);
 		}
-		return currMask;
+		// Only add the mask if it isn't the same as previous (i.e. no more squares to add)
+		if (array.size()-1 >= 0) {
+			if (currMask != array.get(array.size()-1).getValue())
+				array.add(new BitBoard(currMask));
+		} else {
+			array.add(new BitBoard(currMask));
+		}
 	}
-	static private Long setAllInDirection(Direction dir, GenericPosition fromSq, Long currMask) {
+	static private Long setAllInDirection(Direction dir, GenericPosition fromSq, Long currMask, int index) {
 		GenericPosition newSquare = fromSq;
-		while ((newSquare = Direction.getDirectMoveSq(dir, newSquare)) != null) {
-			currMask |= BitBoard.positionToMask_Lut.get(newSquare).getValue();
+		for (int i=0; i < index; i++) {
+			if (newSquare != null)
+				newSquare = Direction.getDirectMoveSq(dir, newSquare);
+			if (newSquare != null)
+				currMask |= BitBoard.positionToMask_Lut.get(newSquare).getValue();
 		}
 		return currMask;
 	}
@@ -603,10 +616,20 @@ public class Board implements Iterable<GenericPosition> {
 		return allPieces.and(fileMask).getValue() == 0;
 	}
 	
-	public boolean isOnOpenDiagonal(GenericPosition atPos) {
-		BitBoard fileMask = new BitBoard(DiagonalMask_Lut.get(atPos).getValue());
-		fileMask.clear(BitBoard.positionToBit_Lut.get(atPos));
-		return allPieces.and(fileMask).getValue() == 0;
+	public int isOnOpenDiagonal(GenericPosition atPos) {
+		int levelCount = 0;
+		int bit = BitBoard.positionToBit_Lut.get(atPos);
+		List<BitBoard> list = DiagonalMask_Lut.get(atPos);
+		for (BitBoard levelMask : list) {
+			if (checkSingleMask(bit, levelMask))
+				levelCount++;
+		}
+		return levelCount;
+	}
+
+	private boolean checkSingleMask(int bit, BitBoard levelMask) {
+		levelMask.clear(bit);
+		return allPieces.and(levelMask).getValue() == 0;
 	}
 	
 	public boolean isOnHalfOpenFile(GenericPosition atPos, PieceType type) {
