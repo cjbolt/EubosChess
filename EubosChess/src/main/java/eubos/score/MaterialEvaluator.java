@@ -52,14 +52,14 @@ public class MaterialEvaluator {
 	private static final Map<GenericPosition, Integer> KNIGHT_WEIGHTINGS;
     static {
     	Map<GenericPosition, Integer> bMap = new EnumMap<GenericPosition, Integer>(GenericPosition.class);
-        bMap.put(GenericPosition.a1, 0);bMap.put(GenericPosition.b1, 0);bMap.put(GenericPosition.c1, 0);bMap.put(GenericPosition.d1, 0);bMap.put(GenericPosition.e1, 0);bMap.put(GenericPosition.f1, 0);bMap.put(GenericPosition.g1, 0);bMap.put(GenericPosition.h1, 0);
-		bMap.put(GenericPosition.a2, 0);bMap.put(GenericPosition.b2, 0);bMap.put(GenericPosition.c2, 0);bMap.put(GenericPosition.d2, 0);bMap.put(GenericPosition.e2, 0);bMap.put(GenericPosition.f2, 0);bMap.put(GenericPosition.g2, 0);bMap.put(GenericPosition.h2, 0);
-		bMap.put(GenericPosition.a3, 0);bMap.put(GenericPosition.b3, 0);bMap.put(GenericPosition.c3, 10);bMap.put(GenericPosition.d3, 10);bMap.put(GenericPosition.e3, 10);bMap.put(GenericPosition.f3, 10);bMap.put(GenericPosition.g3, 0);bMap.put(GenericPosition.h3, 0);
-		bMap.put(GenericPosition.a4, 0);bMap.put(GenericPosition.b4, 0);bMap.put(GenericPosition.c4, 10);bMap.put(GenericPosition.d4, 20);bMap.put(GenericPosition.e4, 20);bMap.put(GenericPosition.f4, 10);bMap.put(GenericPosition.g4, 0);bMap.put(GenericPosition.h4, 0);
-		bMap.put(GenericPosition.a5, 0);bMap.put(GenericPosition.b5, 0);bMap.put(GenericPosition.c5, 10);bMap.put(GenericPosition.d5, 20);bMap.put(GenericPosition.e5, 20);bMap.put(GenericPosition.f5, 10);bMap.put(GenericPosition.g5, 0);bMap.put(GenericPosition.h5, 0);
-		bMap.put(GenericPosition.a6, 0);bMap.put(GenericPosition.b6, 0);bMap.put(GenericPosition.c6, 10);bMap.put(GenericPosition.d6, 10);bMap.put(GenericPosition.e6, 10);bMap.put(GenericPosition.f6, 10);bMap.put(GenericPosition.g6, 0);bMap.put(GenericPosition.h6, 0);
-		bMap.put(GenericPosition.a7, 0);bMap.put(GenericPosition.b7, 0);bMap.put(GenericPosition.c7, 0);bMap.put(GenericPosition.d7, 0);bMap.put(GenericPosition.e7, 0);bMap.put(GenericPosition.f7, 0);bMap.put(GenericPosition.g7, 0);bMap.put(GenericPosition.h7, 0);
-		bMap.put(GenericPosition.a8, 0);bMap.put(GenericPosition.b8, 0);bMap.put(GenericPosition.c8, 0);bMap.put(GenericPosition.d8, 0);bMap.put(GenericPosition.e8, 0);bMap.put(GenericPosition.f8, 0);bMap.put(GenericPosition.g8, 0);bMap.put(GenericPosition.h8, 0);
+        bMap.put(GenericPosition.a1, -20);bMap.put(GenericPosition.b1, -10);bMap.put(GenericPosition.c1, -10);bMap.put(GenericPosition.d1, -10);bMap.put(GenericPosition.e1, -10);bMap.put(GenericPosition.f1, -10);bMap.put(GenericPosition.g1, -10);bMap.put(GenericPosition.h1, -20);
+		bMap.put(GenericPosition.a2, -10);bMap.put(GenericPosition.b2, 0);bMap.put(GenericPosition.c2, 0);bMap.put(GenericPosition.d2, 0);bMap.put(GenericPosition.e2, 0);bMap.put(GenericPosition.f2, 0);bMap.put(GenericPosition.g2, 0);bMap.put(GenericPosition.h2, -10);
+		bMap.put(GenericPosition.a3, -10);bMap.put(GenericPosition.b3, 0);bMap.put(GenericPosition.c3, 10);bMap.put(GenericPosition.d3, 10);bMap.put(GenericPosition.e3, 10);bMap.put(GenericPosition.f3, 10);bMap.put(GenericPosition.g3, 0);bMap.put(GenericPosition.h3, -10);
+		bMap.put(GenericPosition.a4, -10);bMap.put(GenericPosition.b4, 0);bMap.put(GenericPosition.c4, 10);bMap.put(GenericPosition.d4, 20);bMap.put(GenericPosition.e4, 20);bMap.put(GenericPosition.f4, 10);bMap.put(GenericPosition.g4, 0);bMap.put(GenericPosition.h4, -10);
+		bMap.put(GenericPosition.a5, -10);bMap.put(GenericPosition.b5, 0);bMap.put(GenericPosition.c5, 10);bMap.put(GenericPosition.d5, 20);bMap.put(GenericPosition.e5, 20);bMap.put(GenericPosition.f5, 10);bMap.put(GenericPosition.g5, 0);bMap.put(GenericPosition.h5, -10);
+		bMap.put(GenericPosition.a6, -10);bMap.put(GenericPosition.b6, 0);bMap.put(GenericPosition.c6, 10);bMap.put(GenericPosition.d6, 10);bMap.put(GenericPosition.e6, 10);bMap.put(GenericPosition.f6, 10);bMap.put(GenericPosition.g6, 0);bMap.put(GenericPosition.h6, -10);
+		bMap.put(GenericPosition.a7, -10);bMap.put(GenericPosition.b7, 0);bMap.put(GenericPosition.c7, 0);bMap.put(GenericPosition.d7, 0);bMap.put(GenericPosition.e7, 0);bMap.put(GenericPosition.f7, 0);bMap.put(GenericPosition.g7, 0);bMap.put(GenericPosition.h7, -10);
+		bMap.put(GenericPosition.a8, -20);bMap.put(GenericPosition.b8, -10);bMap.put(GenericPosition.c8, -10);bMap.put(GenericPosition.d8, -10);bMap.put(GenericPosition.e8, -10);bMap.put(GenericPosition.f8, -10);bMap.put(GenericPosition.g8, -10);bMap.put(GenericPosition.h8, -20);
         KNIGHT_WEIGHTINGS = Collections.unmodifiableMap(bMap);
     }	
  
