@@ -32,6 +32,69 @@ public class Board implements Iterable<GenericPosition> {
 	private BitBoard blackPieces = null;
 	private BitBoard[] pieces = new BitBoard[6];
 	
+	
+	
+	private static final Map<GenericPosition, List<BitBoard>> RankFileMask_Lut = new EnumMap<GenericPosition, List<BitBoard>>(GenericPosition.class);
+	static {
+		Direction [] rankFile = { Direction.left, Direction.up, Direction.right, Direction.down };
+		for (GenericPosition square : GenericPosition.values()) {
+			List<BitBoard> array = new ArrayList<BitBoard>();
+			for (int index=1; index<8; index++) {
+				createMask(square, array, index, rankFile);
+			}
+			RankFileMask_Lut.put(square, array);
+		}
+	}
+	static private void createMask(GenericPosition square, List<BitBoard> array, int index, Direction [] directions) {
+		Long currMask = 0L;
+		for (Direction dir: directions) {
+			currMask = setAllInDirection(dir, square, currMask, index);
+		}
+		// Only add the mask if it isn't the same as previous (i.e. no more squares to add)
+		BitBoard toAdd = new BitBoard(currMask);
+		toAdd.setNumBits();
+		if (array.size()-1 >= 0) {
+			if (currMask != array.get(array.size()-1).getValue())
+				array.add(toAdd);
+		} else {
+			array.add(toAdd);
+		}
+	}
+	static private Long setAllInDirection(Direction dir, GenericPosition fromSq, Long currMask, int index) {
+		GenericPosition newSquare = fromSq;
+		for (int i=0; i < index; i++) {
+			if (newSquare != null)
+				newSquare = Direction.getDirectMoveSq(dir, newSquare);
+			if (newSquare != null)
+				currMask |= BitBoard.positionToMask_Lut.get(newSquare).getValue();
+		}
+		return currMask;
+	}
+	
+	private static final Map<GenericPosition, List<BitBoard>> DiagonalMask_Lut = new EnumMap<GenericPosition, List<BitBoard>>(GenericPosition.class);
+	static {
+		Direction [] diagonals = { Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
+		for (GenericPosition square : GenericPosition.values()) {
+			List<BitBoard> array = new ArrayList<BitBoard>();
+			for (int index=1; index<8; index++) {
+				createMask(square, array, index, diagonals);
+			}
+			DiagonalMask_Lut.put(square, array);
+		}
+	}
+	
+	private static final Map<GenericFile, BitBoard> FileMask_Lut = new EnumMap<GenericFile, BitBoard>(GenericFile.class);
+	static {
+		for (GenericFile file : GenericFile.values()) {
+			long mask = 0;
+			int f=IntFile.valueOf(file);
+			for (int r = 0; r<8; r++) {
+				mask  |= 1L << r*8+f;
+			}
+			FileMask_Lut.put(file, new BitBoard(mask));
+		}
+	}
+	
 	public Board( Map<GenericPosition, PieceType> pieceMap ) {
 		allPieces = new BitBoard();
 		whitePieces = new BitBoard();
@@ -267,56 +330,6 @@ public class Board implements Iterable<GenericPosition> {
 			allPieces.clear(bit_index);
 		}
 		return type;
-	}
-	
-	private static final Map<GenericPosition, List<BitBoard>> DiagonalMask_Lut = new EnumMap<GenericPosition, List<BitBoard>>(GenericPosition.class);
-	static {
-		for (GenericPosition square : GenericPosition.values()) {
-			List<BitBoard> array = new ArrayList<BitBoard>();
-			for (int index=1; index<8; index++) {
-				createDiagonalMask(square, array, index);
-			}
-			DiagonalMask_Lut.put(square, array);
-		}
-	}
-	static private void createDiagonalMask(GenericPosition square, List<BitBoard> array, int index) {
-		Long currMask = 0L;
-		Direction [] diagonals = { Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
-		for (Direction dir: diagonals) {
-			currMask = setAllInDirection(dir, square, currMask, index);
-		}
-		// Only add the mask if it isn't the same as previous (i.e. no more squares to add)
-		BitBoard toAdd = new BitBoard(currMask);
-		toAdd.setNumBits();
-		if (array.size()-1 >= 0) {
-			if (currMask != array.get(array.size()-1).getValue())
-				array.add(toAdd);
-		} else {
-			array.add(toAdd);
-		}
-	}
-	static private Long setAllInDirection(Direction dir, GenericPosition fromSq, Long currMask, int index) {
-		GenericPosition newSquare = fromSq;
-		for (int i=0; i < index; i++) {
-			if (newSquare != null)
-				newSquare = Direction.getDirectMoveSq(dir, newSquare);
-			if (newSquare != null)
-				currMask |= BitBoard.positionToMask_Lut.get(newSquare).getValue();
-		}
-		return currMask;
-	}
-	
-	
-	private static final Map<GenericFile, BitBoard> FileMask_Lut = new EnumMap<GenericFile, BitBoard>(GenericFile.class);
-	static {
-		for (GenericFile file : GenericFile.values()) {
-			long mask = 0;
-			int f=IntFile.valueOf(file);
-			for (int r = 0; r<8; r++) {
-				mask  |= 1L << r*8+f;
-			}
-			FileMask_Lut.put(file, new BitBoard(mask));
-		}
 	}
 	
 	public int countDoubledPawnsForSide(Colour side) {
@@ -612,21 +625,23 @@ public class Board implements Iterable<GenericPosition> {
 		}
 	}
 
-	public boolean isOnOpenFile(GenericPosition atPos) {
-		BitBoard fileMask = new BitBoard(FileMask_Lut.get(atPos.file).getValue());
-		fileMask.clear(BitBoard.positionToBit_Lut.get(atPos));
-		return allPieces.and(fileMask).getValue() == 0;
+	public int getNumRankFileSquaresAvailable(GenericPosition atPos) {
+		return getSquaresAvaillableFromPosition(atPos, RankFileMask_Lut);
 	}
 	
-	public int getNumSquaresOpen(GenericPosition atPos) {
-		int levelCount = 0;
+	public int getNumDiagonalSquaresAvailable(GenericPosition atPos) {
+		return getSquaresAvaillableFromPosition(atPos, DiagonalMask_Lut);
+	}
+	
+	private int getSquaresAvaillableFromPosition(GenericPosition atPos, Map<GenericPosition, List<BitBoard>> maskMap ) {
+		int squaresCount = 0;
 		int bit = BitBoard.positionToBit_Lut.get(atPos);
-		List<BitBoard> list = DiagonalMask_Lut.get(atPos);
+		List<BitBoard> list = maskMap.get(atPos);
 		for (BitBoard levelMask : list) {
 			if (checkSingleMask(bit, levelMask))
-				levelCount = levelMask.getNumBits();
+				squaresCount = levelMask.getNumBits();
 		}
-		return levelCount;
+		return squaresCount;
 	}
 
 	private boolean checkSingleMask(int bit, BitBoard levelMask) {

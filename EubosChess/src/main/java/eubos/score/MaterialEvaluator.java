@@ -79,10 +79,10 @@ public class MaterialEvaluator {
 				currValue += PAWN_BLACK_WEIGHTINGS.get(atPos);
 			} else if (PieceType.isRook(currPiece)) {
 				currValue = MATERIAL_VALUE_ROOK;
-				currValue += theBoard.isOnOpenFile(atPos) ? ROOK_OPEN_FILE_BOOST : 0;
+				currValue += theBoard.getNumRankFileSquaresAvailable(atPos)*2;
 			} else if (PieceType.isBishop(currPiece)) {
 				currValue = MATERIAL_VALUE_BISHOP;
-				currValue += theBoard.getNumSquaresOpen(atPos)*2;
+				currValue += theBoard.getNumDiagonalSquaresAvailable(atPos)*2;
 			} else if (PieceType.isKnight(currPiece)) {
 				currValue = MATERIAL_VALUE_KNIGHT;
 				currValue += KNIGHT_WEIGHTINGS.get(atPos);
