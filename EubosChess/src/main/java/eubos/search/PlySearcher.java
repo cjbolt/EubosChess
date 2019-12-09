@@ -340,7 +340,7 @@ public class PlySearcher {
 				terminalNode = true;
 			}
 		} else if (currPly > originalDepthRequested) {
-			if (pe.isQuiescent() || (currPly > (originalDepthRequested*3)-1)) {
+			if (pe.isQuiescent() || isExtendedSearchLimitReached()) {
 				if (currPly > extendedSearchDeepestPly) {
 					extendedSearchDeepestPly = currPly;
 				}
@@ -350,6 +350,18 @@ public class PlySearcher {
 			// is not a terminal node
 		}
 		return terminalNode;
+	}
+
+	private boolean isExtendedSearchLimitReached() {
+		boolean limitReached = false;
+		if (currPly%2 == 0) {
+			// means that initial onMove side is back on move
+			if (currPly > (originalDepthRequested*3)-2) {
+				// -2 always leaves room for one more move for each side without overflowing array...
+				limitReached = true;
+			}
+		}
+		return limitReached;
 	}
 
 	private void doPerformMove(GenericMove currMove) throws InvalidPieceException {
