@@ -13,6 +13,7 @@ import eubos.position.PositionManager;
 import eubos.score.IEvaluate;
 import eubos.score.IScoreMate;
 import eubos.score.MateScoreGenerator;
+import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.ITranspositionAccessor;
 import eubos.search.transposition.Transposition;
 import eubos.search.transposition.TranspositionEvaluation;
@@ -356,7 +357,7 @@ public class PlySearcher {
 		boolean limitReached = false;
 		if (currPly%2 == 0) {
 			// means that initial onMove side is back on move
-			if (currPly > (originalDepthRequested*3)-2) {
+			if (currPly > (originalDepthRequested*MiniMaxMoveGenerator.SEARCH_PLY_MULTIPLIER)-2) {
 				// -2 always leaves room for one more move for each side without overflowing array...
 				limitReached = true;
 			}

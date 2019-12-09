@@ -36,6 +36,8 @@ public class MiniMaxMoveGenerator implements
 	private ScoreTracker st;
 	private IEvaluate pe;
 	private short score;
+	
+	public static final int SEARCH_PLY_MULTIPLIER = 4;
 
 	// Used for unit tests
 	MiniMaxMoveGenerator( FixedSizeTranspositionTable hashMap,
@@ -66,14 +68,14 @@ public class MiniMaxMoveGenerator implements
 	public short getScore() { return score; }
 	
 	private void initialiseSearchDepthDependentObjects(int searchDepth) {
-		pc = new PrincipalContinuation(searchDepth*3);
+		pc = new PrincipalContinuation(searchDepth*SEARCH_PLY_MULTIPLIER);
 		sm.setDepth(searchDepth);
 		sm.clearCurrentMoveNumber();
 		sm.setPrincipalVariation(pc.toPvList());
 		sr = new SearchMetricsReporter(callback,sm);	
 		if (sendInfo)
 			sr.setSendInfo(true);
-		st = new ScoreTracker(searchDepth*3, pos.onMoveIsWhite());
+		st = new ScoreTracker(searchDepth*SEARCH_PLY_MULTIPLIER, pos.onMoveIsWhite());
 		tta = new TranspositionTableAccessor(tt, pos, st);
 	}
 	
