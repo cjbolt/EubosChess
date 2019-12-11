@@ -34,13 +34,13 @@ public class PlySearcher {
 	private boolean terminate = false;
 	
 	private List<GenericMove> lastPc;
-	private byte searchDepthPly;
+	private byte dynamicSearchLevelInPly;
 	private ITranspositionAccessor tt;
 	private PrincipalContinuationUpdateHelper pcUpdater;
 	
 	byte currPly = 0;
-	byte depthSearchedPly = 0;
-	private byte originalDepthRequested = 0;
+	byte currDepthSearchedInPly = 0;
+	private byte originalSearchDepthRequiredInPly = 0;
 	private byte extendedSearchDeepestPly = 0;
 	
 	public PlySearcher(
@@ -55,7 +55,7 @@ public class PlySearcher {
 			List<GenericMove> lastPc,
 			IEvaluate pe) {
 		currPly = 0;
-		depthSearchedPly = 0;
+		currDepthSearchedInPly = 0;
 		
 		this.pc = pc;
 		this.sm = sm;
@@ -64,13 +64,13 @@ public class PlySearcher {
 		this.pos = pos;
 		this.pe = pe;
 		this.lastPc = lastPc;
-		this.searchDepthPly = searchDepthPly;
-		originalDepthRequested = searchDepthPly;
+		dynamicSearchLevelInPly = searchDepthPly;
+		originalSearchDepthRequiredInPly = searchDepthPly;
 		
 		this.st = st;
-		this.tt = hashMap;
-		this.sg = new MateScoreGenerator(pos);
-		this.pcUpdater = new PrincipalContinuationUpdateHelper(pos.getOnMove(), pc, sm, sr);
+		tt = hashMap;
+		sg = new MateScoreGenerator(pos);
+		pcUpdater = new PrincipalContinuationUpdateHelper(pos.getOnMove(), pc, sm, sr);
 	}
 	
 	private boolean atRootNode() { return currPly == 0; }
@@ -83,9 +83,9 @@ public class PlySearcher {
 			return 0;
 		
 		MoveList ml = null;
-		byte depthRequiredPly = initialiseSearchAtPly();
+		byte depthRequiredForTerminalNode = initialiseSearchAtPly();
 		
-		TranspositionEvaluation eval = tt.getTransposition(currPly, depthRequiredPly);
+		TranspositionEvaluation eval = tt.getTransposition(currPly, depthRequiredForTerminalNode);
 		switch (eval.status) {
 		case sufficientTerminalNode:
 		case sufficientRefutation:
@@ -114,11 +114,34 @@ public class PlySearcher {
 		
 		return st.getBackedUpScoreAtPly(currPly);
 	}
-
+	
+	private byte initialiseSearchAtPly() {
+		byte transDepthRequiredForTerminalNode = 0;
+		if (currPly >= originalSearchDepthRequiredInPly) {
+			dynamicSearchLevelInPly++;
+		}
+		if (this.isInExtendedSearch()) {
+			transDepthRequiredForTerminalNode = (byte)Math.max(MiniMaxMoveGenerator.SEARCH_PLY_MULTIPLIER, originalSearchDepthRequiredInPly);
+		} else {
+			transDepthRequiredForTerminalNode = (byte)(originalSearchDepthRequiredInPly - currPly);
+		}
+		st.setProvisionalScoreAtPly(currPly);
+		SearchDebugAgent.printStartPlyInfo(currPly, transDepthRequiredForTerminalNode, st.getBackedUpScoreAtPly(currPly), pos);
+		return transDepthRequiredForTerminalNode;
+	}
+	
+	private void clearUpSearchAtPly() {
+		if (dynamicSearchLevelInPly > originalSearchDepthRequiredInPly) {
+			dynamicSearchLevelInPly--;
+		}
+	}
+	
 	private void searchMoves(MoveList ml, Transposition trans) throws InvalidPieceException {
         if (ml.isMateOccurred()) {
             short mateScore = sg.scoreMate(currPly);
             st.setBackedUpScoreAtPly(currPly, mateScore);
+            // We will now de-recurse, so should make sure the depth searched is correct
+            setDepthSearchedInPly();
         } else {
     		Iterator<GenericMove> move_iter = ml.getIterator(isInExtendedSearch());
     		if (isSearchRequired(ml, move_iter)) {
@@ -143,10 +166,8 @@ public class PlySearcher {
 
 	        short positionScore = applyMoveAndScore(currMove);
 	        if (!isTerminated()) {
-	        	if(isInNormalSearch()) {
-	        		// Rationale; this is when a score was backed up - at this instant update the depth searched
-	        		depthSearchedPly = (byte)(searchDepthPly - currPly);
-	        	}
+	        	// Rationale: this is when a score was backed up - at this instant update the depth searched
+	        	setDepthSearchedInPly();
 	            if (doScoreBackup(positionScore)) {
 	                everBackedUp = true;
                     plyScore = positionScore;
@@ -183,6 +204,14 @@ public class PlySearcher {
 		}
 	}
 
+	private void setDepthSearchedInPly() {
+		if(isInNormalSearch()) {
+			currDepthSearchedInPly = (byte)(originalSearchDepthRequiredInPly - currPly);
+		} else {
+			currDepthSearchedInPly = 1; // it is always 1 in extended search?
+		}
+	}
+
 	private boolean isSearchRequired(MoveList ml,
 			Iterator<GenericMove> move_iter) throws InvalidPieceException {
 		boolean searchIsNeeded = true;
@@ -205,19 +234,19 @@ public class PlySearcher {
 	}
 	
 	private void updatePrincipalContinuation(
-			GenericMove currMove, short positionScore, boolean treatHashHitAsTerminalNode)
+			GenericMove currMove, short positionScore, boolean isATerminalNodeHashHit)
 			throws InvalidPieceException {
 		pc.update(currPly, currMove);
-		if (atRootNode() && !treatHashHitAsTerminalNode) {
+		if (atRootNode() && !isATerminalNodeHashHit) {
 			// If backed up to the root node, report the principal continuation
-			tt.createPrincipalContinuation(pc, searchDepthPly, pm);
+			tt.createPrincipalContinuation(pc, originalSearchDepthRequiredInPly, pm);
 			pcUpdater.report(positionScore, extendedSearchDeepestPly);
 		}
 	}
 	
 	private void handleEarlyTermination() {
 		if (atRootNode() && isTerminated()) {
-			TranspositionEvaluation eval = tt.getTransposition(currPly, searchDepthPly);
+			TranspositionEvaluation eval = tt.getTransposition(currPly, dynamicSearchLevelInPly);
 			if (eval != null && eval.trans != null && eval.trans.getBestMove() != null) {
 				pc.update(0, eval.trans.getBestMove());
 			}
@@ -231,17 +260,18 @@ public class PlySearcher {
 	}
 	
 	private boolean isInExtendedSearch() {
-		return searchDepthPly > originalDepthRequested;
+		return dynamicSearchLevelInPly > originalSearchDepthRequiredInPly;
 	}
 	
 	private boolean isInNormalSearch() {
-		return searchDepthPly <= originalDepthRequested;
+		assert dynamicSearchLevelInPly >= originalSearchDepthRequiredInPly;
+		return dynamicSearchLevelInPly == originalSearchDepthRequiredInPly;
 	}
 
 	private byte getTransDepth() {
 		/* By design, extended searches always use depth zero; therefore ensuring partially 
            searched transpositions can only be used for seeding move lists */
-		return isInNormalSearch() ? depthSearchedPly: 0;
+		return isInNormalSearch() ? currDepthSearchedInPly: 0;
 	}
 	
 	private void rootNodeInitAndReportingActions(GenericMove currMove) {
@@ -263,27 +293,6 @@ public class PlySearcher {
 				doUpdate = true;
 		}
 		return doUpdate;
-	}
-	
-	private byte initialiseSearchAtPly() {
-		byte depthRequiredPly = 0;
-		if (currPly >= originalDepthRequested) {
-			searchDepthPly++;
-		}
-		if (this.isInExtendedSearch()) {
-			depthRequiredPly = originalDepthRequested;
-		} else {
-			depthRequiredPly = (byte)(searchDepthPly - currPly);
-		}
-		st.setProvisionalScoreAtPly(currPly);
-		SearchDebugAgent.printStartPlyInfo(currPly, depthRequiredPly, st.getBackedUpScoreAtPly(currPly), pos);
-		return depthRequiredPly;
-	}
-	
-	private void clearUpSearchAtPly() {
-		if (searchDepthPly > originalDepthRequested) {
-			searchDepthPly--;
-		}
 	}
 
 	private boolean doScoreBackup(short positionScore) {
@@ -327,7 +336,7 @@ public class PlySearcher {
 		short positionScore = 0;
 		if ( isTerminalNode() ) {
 			positionScore = pe.evaluatePosition();
-			depthSearchedPly = 1; // We applied a move in order to generate this score
+			currDepthSearchedInPly = 1; // We applied a move in order to generate this score
 		} else {
 			positionScore = searchPly();
 		}
@@ -336,11 +345,11 @@ public class PlySearcher {
 	
 	private boolean isTerminalNode() {
 		boolean terminalNode = false;
-		if (currPly == originalDepthRequested) {
+		if (currPly == originalSearchDepthRequiredInPly) {
 			if (pe.isQuiescent()) {
 				terminalNode = true;
 			}
-		} else if (currPly > originalDepthRequested) {
+		} else if (currPly > originalSearchDepthRequiredInPly) {
 			if (pe.isQuiescent() || isExtendedSearchLimitReached()) {
 				if (currPly > extendedSearchDeepestPly) {
 					extendedSearchDeepestPly = currPly;
@@ -357,7 +366,7 @@ public class PlySearcher {
 		boolean limitReached = false;
 		if (currPly%2 == 0) {
 			// means that initial onMove side is back on move
-			if (currPly > (originalDepthRequested*MiniMaxMoveGenerator.SEARCH_PLY_MULTIPLIER)-2) {
+			if (currPly > (originalSearchDepthRequiredInPly*MiniMaxMoveGenerator.SEARCH_PLY_MULTIPLIER)-2) {
 				// -2 always leaves room for one more move for each side without overflowing array...
 				limitReached = true;
 			}

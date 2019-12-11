@@ -71,5 +71,6 @@ public class Transposition {
 	    this.setDepthSearchedInPly(updateFrom.getDepthSearchedInPly());
 	    this.setScoreType(updateFrom.getScoreType());
 	    this.setScore(updateFrom.getScore());
+	    this.ml = updateFrom.ml;
 	}
 }
