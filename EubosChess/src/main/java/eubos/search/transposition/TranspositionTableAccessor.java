@@ -95,10 +95,12 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		    TranspositionEvaluation eval = this.getTransposition(searchDepthPly-plies);
 			if (eval.status != TranspositionTableStatus.insufficientNoData && eval.trans != null) {
 				GenericMove currMove = eval.trans.getBestMove();
-				if (pcMove != null) assert currMove == pcMove : "Error: "+pcMove+" != "+currMove+" @ply="+plies;
-				constructed_pc.add(currMove);
-				pm.performMove(currMove);
-				numMoves++;
+				if (currMove != null) {
+					if (pcMove != null) assert currMove == pcMove : "Error: "+pcMove+" != "+currMove+" @ply="+plies;
+					constructed_pc.add(currMove);
+					pm.performMove(currMove);
+					numMoves++;
+				}
 			}
 		}
 		for (plies = (byte)(numMoves-1); plies >= 0; plies--) {

@@ -142,10 +142,17 @@ public class PlySearcher {
             st.setBackedUpScoreAtPly(currPly, mateScore);
             // We will now de-recurse, so should make sure the depth searched is correct
             setDepthSearchedInPly();
+			trans = tt.setTransposition(sm, currPly, trans,
+                    new Transposition(getTransDepth(), mateScore, ScoreType.exact, ml, null));            
         } else {
     		Iterator<GenericMove> move_iter = ml.getIterator(isInExtendedSearch());
     		if (isSearchRequired(ml, move_iter)) {
     			actuallySearchMoves(ml, move_iter, trans);
+    		} else {
+    			// It is effectively a terminal node in extended search, so update the trans with null best move
+    			ScoreType plyBound = (pos.onMoveIsWhite()) ? ScoreType.lowerBound : ScoreType.upperBound;
+    			trans = tt.setTransposition(sm, currPly, trans,
+                        new Transposition((byte)0, st.getBackedUpScoreAtPly(currPly), plyBound, ml, null));
     		}
         }
     }
