@@ -14,6 +14,7 @@ import eubos.search.NoLegalMoveException;
 import eubos.search.PlySearcher;
 import eubos.search.PrincipalContinuation;
 import eubos.search.ScoreTracker;
+import eubos.search.SearchDebugAgent;
 import eubos.search.SearchMetrics;
 import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
@@ -63,6 +64,7 @@ public class MiniMaxMoveGenerator implements
 		callback = eubos;
 		sendInfo = true;
 		score = 0;
+		SearchDebugAgent.open(pos.getMoveNumber());
 	}
 	
 	public short getScore() { return score; }
@@ -123,5 +125,5 @@ public class MiniMaxMoveGenerator implements
 	public synchronized void terminateFindMove() {
 		if (ps != null)
 			ps.terminateFindMove();
-		}
+	}
 }

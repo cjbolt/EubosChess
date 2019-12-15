@@ -32,6 +32,8 @@ import eubos.search.searchers.IterativeMoveSearcher;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.logging.*;
 
 public class EubosEngineMain extends AbstractEngine {
@@ -60,7 +62,9 @@ public class EubosEngineMain extends AbstractEngine {
 	public void receive(EngineInitializeRequestCommand command) {
 		logger.fine("Eubos Initialising");
 		this.getProtocol().send( new ProtocolInitializeAnswerCommand("Eubos","Chris Bolt") );
-		SearchDebugAgent.open();
+		LocalDateTime dateTime = LocalDateTime.now();
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy-HH-mm-ss");
+		SearchDebugAgent.setFileNameBaseString(dateTime.format(formatter));
 	}
 
 	public void receive(EngineSetOptionCommand command) {

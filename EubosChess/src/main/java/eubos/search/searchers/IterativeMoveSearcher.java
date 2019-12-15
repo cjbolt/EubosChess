@@ -12,6 +12,7 @@ import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.score.IEvaluate;
 import eubos.search.NoLegalMoveException;
+import eubos.search.SearchDebugAgent;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.FixedSizeTranspositionTable;
@@ -70,6 +71,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		}
 		stopper.end();
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
+		SearchDebugAgent.close();
 	}
 
 	private long calculateSearchTimeAllocation() {

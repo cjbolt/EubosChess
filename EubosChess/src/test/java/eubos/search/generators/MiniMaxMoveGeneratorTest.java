@@ -34,7 +34,7 @@ public class MiniMaxMoveGeneratorTest {
 	
 	@Before
 	public void setUp() {
-		SearchDebugAgent.open();
+		SearchDebugAgent.open(0);
 		pl = new LinkedList<Piece>();
 		hashMap = new FixedSizeTranspositionTable();
 		pm = null;

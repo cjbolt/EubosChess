@@ -13,23 +13,14 @@ import eubos.search.transposition.Transposition.ScoreType;
 public class SearchDebugAgent {
 
 	private static String indent = "";
-	public static boolean isDebugOn = false;
+	public static boolean isDebugOn = true;
 	private static int lastPly = 0;
 	private static FileWriter fw;
-
-	SearchDebugAgent( int currPly ) {
-		try {
-			fw = new FileWriter(new File("unit_test_log.txt"));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
- 		computeIndent(currPly);
-	}
+	private static String filenameBase = "";
 	
-	public static void open() {
+	public static void open(int moveNumber) {
 		try {
-			fw = new FileWriter(new File("unit_test_log.txt"));
+			fw = new FileWriter(new File(filenameBase+"_move"+moveNumber+".txt"));
 		} catch (IOException e) {
 			isDebugOn = false;
 		}		
@@ -121,7 +112,7 @@ public class SearchDebugAgent {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"hash "+hash+" term best:"+move.toString()+" score:"+ score +" @"+currPly);
+			printOutput(indent+"hash "+hash+" term best:"+((move!=null)?move.toString():"")+" score:"+ score +" @"+currPly);
 		}
 	}
 
@@ -129,7 +120,7 @@ public class SearchDebugAgent {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"hash "+hash+" ref @ Ply="+currPly+" move: "+move.toString());
+			printOutput(indent+"hash "+hash+" ref @ Ply="+currPly+" move: "+((move!=null)?move.toString():""));
 		}
 		
 	}
@@ -138,7 +129,7 @@ public class SearchDebugAgent {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"hash "+hash+" sufficient seed move list with best move:"+move.toString()+" at Ply="+currPly);
+			printOutput(indent+"hash "+hash+" sufficient seed move list with best move:"+((move!=null)?move.toString():"")+" at Ply="+currPly);
 		}
 	}
 
@@ -156,7 +147,7 @@ public class SearchDebugAgent {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"trans hash: "+hash+" mv:"+bestMove.toString()+" dep:"+depthPositionSearchedPly+" sc:"+score+" type:"+bound);
+			printOutput(indent+"trans hash: "+hash+" mv:"+((bestMove!=null)?bestMove.toString():"")+" dep:"+depthPositionSearchedPly+" sc:"+score+" type:"+bound);
 		}		
 	}
 
@@ -195,5 +186,9 @@ public class SearchDebugAgent {
 			printOutput(indent+"search @"+currPly+" prov="+provisionalScoreAtPly);
 			printOutput(indent+"fen:"+pos.getFen());
 		}
+	}
+
+	public static void setFileNameBaseString(String dateTime) {
+		filenameBase = dateTime;
 	}
 }

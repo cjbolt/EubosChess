@@ -10,6 +10,7 @@ import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.score.IEvaluate;
+import eubos.search.SearchDebugAgent;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.FixedSizeTranspositionTable;
@@ -48,6 +49,7 @@ public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 			pc = mg.pc.toPvList();
 		}
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
+		SearchDebugAgent.close();
 	}
 }
 
