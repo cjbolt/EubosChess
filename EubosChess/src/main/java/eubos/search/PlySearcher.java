@@ -175,7 +175,8 @@ public class PlySearcher {
 	        if (!isTerminated()) {
 	        	// Rationale: this is when a score was backed up - at this instant update the depth searched
 	        	setDepthSearchedInPly();
-	            if (doScoreBackup(positionScore)) {
+	        	if (doScoreBackup(positionScore) || 
+	        	    (!everBackedUp && currPly >= (this.originalSearchDepthRequiredInPly-1))) {
 	                everBackedUp = true;
                     plyScore = positionScore;
                     trans = tt.setTransposition(sm, currPly, trans,
