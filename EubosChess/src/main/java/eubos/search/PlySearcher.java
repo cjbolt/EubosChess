@@ -194,6 +194,7 @@ public class PlySearcher {
 	        
 	            if (st.isAlphaBetaCutOff(currPly, positionScore)) {
 	                refutationFound = true;
+	                st.setBackedUpScoreAtPly(currPly, plyScore);
 	                SearchDebugAgent.printRefutationFound(currPly);
 	                break;    
 	            }

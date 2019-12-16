@@ -128,6 +128,7 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
+	@Ignore
 	public void test_avoidDraw_lichess_hash_table_terminal_bypasses_drawchecker() throws InterruptedException, IOException {
 		setupEngine();
 		// Setup Commands specific to this test
