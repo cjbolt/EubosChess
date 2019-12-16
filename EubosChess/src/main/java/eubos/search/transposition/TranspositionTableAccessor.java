@@ -96,7 +96,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			if (eval.status != TranspositionTableStatus.insufficientNoData && eval.trans != null) {
 				GenericMove currMove = eval.trans.getBestMove();
 				if (currMove != null) {
-					//if (pcMove != null) assert currMove == pcMove : "Error: "+pcMove+" != "+currMove+" @ply="+plies;
+					if (pcMove != null) assert currMove == pcMove : "Error: "+pcMove+" != "+currMove+" @ply="+plies;
 					constructed_pc.add(currMove);
 					pm.performMove(currMove);
 					numMoves++;

@@ -19,16 +19,19 @@ public class SearchDebugAgent {
 	private static String filenameBase = "";
 	
 	public static void open(int moveNumber) {
-		try {
-			fw = new FileWriter(new File(filenameBase+"_move"+moveNumber+".txt"));
-		} catch (IOException e) {
-			isDebugOn = false;
-		}		
+		if (isDebugOn) {
+			try {
+				fw = new FileWriter(new File(filenameBase+"_move"+moveNumber+".txt"));
+			} catch (IOException e) {
+				isDebugOn = false;
+			}
+		}
 	}
 	
 	public static void close() {
 		try {
-			fw.close();
+			if (fw != null)
+				fw.close();
 		} catch (IOException e) {
 			isDebugOn = false;
 		}
