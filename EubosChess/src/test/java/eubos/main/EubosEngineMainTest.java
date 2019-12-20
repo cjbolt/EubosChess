@@ -11,7 +11,6 @@ import java.util.Scanner;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class EubosEngineMainTest {
@@ -45,7 +44,7 @@ public class EubosEngineMainTest {
 	private static final String CMD_TERMINATOR = "\r\n";
 	private static final String POS_FEN_PREFIX = "position fen ";
 	private static final String GO_DEPTH_PREFIX = "go depth ";
-	private static final String GO_WTIME_PREFIX = "go wtime ";
+	//private static final String GO_WTIME_PREFIX = "go wtime ";
 	private static final String GO_BTIME_PREFIX = "go btime ";
 	private static final String BEST_PREFIX = "bestmove ";
 	
@@ -128,7 +127,6 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
-	@Ignore
 	public void test_avoidDraw_lichess_hash_table_terminal_bypasses_drawchecker() throws InterruptedException, IOException {
 		setupEngine();
 		// Setup Commands specific to this test
@@ -144,35 +142,6 @@ public class EubosEngineMainTest {
 		// Varies move as the previous leads to draw by 3-fold repetition of position.
 		commands.add(new commandPair(GO_BTIME_PREFIX+"1996"+CMD_TERMINATOR,BEST_PREFIX+"g1g6"+CMD_TERMINATOR));
 		performTest(500);
-	}
-	
-	@Test
-	@Ignore
-	public void test_avoidDraw_lichess_hash_table_terminal_bypasses_drawchecker_1() throws InterruptedException, IOException {
-		/*[Event "Rated Blitz game"]
-			[Site "https://lichess.org/9loh1Lxx"]
-			[Date "2019.11.17"]
-			[White "eubos"]
-			[Black "turkjs"]
-			[Result "1/2-1/2"]
-			[UTCDate "2019.11.17"]
-			[UTCTime "18:41:20"]			
-			1. c4 e5 2. Nc3 Nc6 3. Nf3 { A27 English Opening: King's English Variation, Three Knights System } Nge7 4. e3 d6 5. Bd3 Be6 6. O-O a5 7. Qb3 b6 8. Be4 Bf5 9. d3 g6 10. Bxf5 Nxf5 11. g4 Nh4 12. Nd2 Qg5 13. h3 f5 14. Nd5 Qd8 15. Qa4 Kd7 16. f4 exf4 17. Rxf4 Bh6 18. Rf2 Re8 19. Nf3 fxg4 20. Nxh4 Bxe3 21. Bxe3 Rxe3 22. Nf6+ Ke7 23. Nd5+ Kd7 24. Nf6+ Ke7 25. Nd5+ Kd7 { The game is a draw. } 1/2-1/2
-			*/
-		setupEngine();
-		// Setup Commands specific to this test
-		commands.add(new commandPair(POS_FEN_PREFIX+"r2q4/2pk3p/1pnp2p1/p2N4/Q1P3pN/3Pr2P/PP3R2/R5K1 w - - 0 22"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_WTIME_PREFIX+"14800"+CMD_TERMINATOR,BEST_PREFIX+"d5f6"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"r2q4/2p1k2p/1pnp1Np1/p7/Q1P3pN/3Pr2P/PP3R2/R5K1 w - - 2 23"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_WTIME_PREFIX+"14000"+CMD_TERMINATOR,BEST_PREFIX+"f6d5"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"r2q4/2pk3p/1pnp2p1/p2N4/Q1P3pN/3Pr2P/PP3R2/R5K1 w - - 4 24"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_WTIME_PREFIX+"13100"+CMD_TERMINATOR,BEST_PREFIX+"d5f6"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"r2q4/2p1k2p/1pnp1Np1/p7/Q1P3pN/3Pr2P/PP3R2/R5K1 w - - 6 25"+CMD_TERMINATOR, null));
-		// This move allows the opponent to draw. It puts the onus onto the opponent to take a draw by 3-fold repetition...
-		commands.add(new commandPair(GO_WTIME_PREFIX+"12300"+CMD_TERMINATOR,BEST_PREFIX+"f6d5"+CMD_TERMINATOR));
-		// Opponent selects following and is draw...
-		//commands.add(new commandPair(POS_FEN_PREFIX+"r2q4/2pk3p/1pnp2p1/p2N4/Q1P3pN/3Pr2P/PP3R2/R5K1 w - - 8 26"+CMD_TERMINATOR, null));
-		performTest(1500);
 	}
 
 	private void performTest(int timeout) throws IOException, InterruptedException {
