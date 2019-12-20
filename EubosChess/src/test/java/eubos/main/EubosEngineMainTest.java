@@ -137,10 +137,9 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/2K5/8/7k/8/8/6q1 b - - 1 62"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_BTIME_PREFIX+"1998"+CMD_TERMINATOR,BEST_PREFIX+"g1g2"+CMD_TERMINATOR));
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/2K5/7k/8/6q1/8 b - - 3 63"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_BTIME_PREFIX+"1997"+CMD_TERMINATOR,BEST_PREFIX+"g2g1"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/2K5/8/7k/8/8/6q1 b - - 1 64"+CMD_TERMINATOR, null));
-		// Varies move as the previous leads to draw by 3-fold repetition of position.
-		commands.add(new commandPair(GO_BTIME_PREFIX+"1996"+CMD_TERMINATOR,BEST_PREFIX+"g1g6"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_BTIME_PREFIX+"1997"+CMD_TERMINATOR,BEST_PREFIX+"g2g5"+CMD_TERMINATOR));
+		// results in new position and avoids the draw by 3-fold!
+		// white could move Kc6, which would result in this again: "8/8/2K5/8/7k/8/8/6q1 b - - 9 64" 
 		performTest(500);
 	}
 

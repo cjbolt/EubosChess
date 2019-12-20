@@ -1,12 +1,12 @@
 package eubos.search;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DrawChecker {
-	private HashMap<Long,Integer> positionCount;
+	private ConcurrentHashMap<Long,Integer> positionCount;
 	
 	public DrawChecker() {
-		positionCount = new HashMap<Long,Integer>();
+		positionCount = new ConcurrentHashMap<Long,Integer>();
 	}
 	
 	public void incrementPositionReachedCount(Long posHash) {
