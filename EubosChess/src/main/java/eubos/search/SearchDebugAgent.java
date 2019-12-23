@@ -8,7 +8,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.position.IPositionAccessors;
 import eubos.search.transposition.Transposition;
-import eubos.search.transposition.Transposition.ScoreType;
+import eubos.search.Score.ScoreType;
 
 public class SearchDebugAgent {
 
@@ -175,6 +175,14 @@ public class SearchDebugAgent {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"trans create, hash: "+hashCode);
+		}		
+	}
+	
+	public static void printExactTrans(int currPly, long hashCode) {
+		if (isDebugOn) {
+			if ( currPly != lastPly )
+				computeIndent(currPly);
+			printOutput(indent+"trans now exact, hash: "+hashCode);
 		}		
 	}
 

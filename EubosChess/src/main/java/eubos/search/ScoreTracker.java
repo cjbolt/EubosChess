@@ -1,25 +1,32 @@
 package eubos.search;
 
+import eubos.search.Score.ScoreType;
+
 public class ScoreTracker {
 	private short[] scores;
+	private ScoreType[] type;
 	private boolean initialOnMoveIsWhite = false;
 	
 	private static final int MINIMUM_PLY_FOR_ALPHA_BETA_CUT_OFF = 2;
 
 	public ScoreTracker(int searchDepth, boolean isWhite) {
 		scores = new short[searchDepth];
+		type = new ScoreType[searchDepth];
 		initialOnMoveIsWhite = isWhite;
 	}
 	
 	private void bringDownAlphaBetaCutOff(byte currPly) {
 		scores[currPly] = scores[currPly-MINIMUM_PLY_FOR_ALPHA_BETA_CUT_OFF];
+		type[currPly] = onMoveIsWhite(currPly) ? ScoreType.lowerBound : ScoreType.upperBound;
 	}
 
 	private void initialiseWithWorstPossibleScore(byte currPly) {
 		if (onMoveIsWhite(currPly)) {
 			scores[currPly] = Short.MIN_VALUE;
+			type[currPly] = ScoreType.lowerBound;
 		} else {
 			scores[currPly] = Short.MAX_VALUE;
+			type[currPly] = ScoreType.upperBound;
 		}
 	}
 	
@@ -27,14 +34,15 @@ public class ScoreTracker {
 		return ((currPly % 2) == 0) ? initialOnMoveIsWhite : !initialOnMoveIsWhite;
 	}
 	
-	void setBackedUpScoreAtPly(byte currPly, short positionScore) {
+	void setBackedUpScoreAtPly(byte currPly, short positionScore, ScoreType scoreType) {
 		SearchDebugAgent.printBackUpScore(currPly, scores[currPly], positionScore);
 		scores[currPly]=positionScore;
+		type[currPly]=scoreType;
 	}
 	
 	
-	short getBackedUpScoreAtPly(byte currPly) {
-		return scores[currPly];
+	Score getBackedUpScoreAtPly(byte currPly) {
+		return new Score(scores[currPly],type[currPly]);
 	}
 	
 	void setProvisionalScoreAtPly(byte currPly) {
@@ -49,11 +57,11 @@ public class ScoreTracker {
 		boolean backUpScore = false;
 		if (onMoveIsWhite(currPly)) {
 			// if white, maximise score
-			if (positionScore > getBackedUpScoreAtPly(currPly) && positionScore != Short.MAX_VALUE)
+			if (positionScore > getBackedUpScoreAtPly(currPly).getScore() && positionScore != Short.MAX_VALUE)
 				backUpScore = true;
 		} else {
 			// if black, minimise score 
-			if (positionScore < getBackedUpScoreAtPly(currPly) && positionScore != Short.MIN_VALUE)
+			if (positionScore < getBackedUpScoreAtPly(currPly).getScore() && positionScore != Short.MIN_VALUE)
 				backUpScore = true;
 		}
 		return backUpScore;
@@ -82,5 +90,10 @@ public class ScoreTracker {
 			}
 		}
 		return isAlphaBetaCutOff;
+	}
+
+	public Object getBackedUpScoreType() {
+		// TODO Auto-generated method stub
+		return null;
 	}	
 }

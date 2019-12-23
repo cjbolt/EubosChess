@@ -12,8 +12,8 @@ import eubos.search.PrincipalContinuation;
 import eubos.search.ScoreTracker;
 import eubos.search.SearchDebugAgent;
 import eubos.search.SearchMetrics;
-import eubos.search.transposition.Transposition.*;
 import eubos.search.transposition.TranspositionEvaluation.*;
+import eubos.search.Score.ScoreType;
 
 public class TranspositionTableAccessor implements ITranspositionAccessor {
 	

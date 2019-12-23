@@ -5,6 +5,8 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
+import eubos.search.Score.ScoreType;
+
 public class ScoreTrackerTest {
 
 	private ScoreTracker classUnderTest;
@@ -27,15 +29,15 @@ public class ScoreTrackerTest {
 	}
 	
 	private void backup_SearchTree_ACBI() {
-		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_B_I);
-		classUnderTest.setBackedUpScoreAtPly(PLY2, Score_A_C_B_I);
+		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_B_I, ScoreType.exact);
+		classUnderTest.setBackedUpScoreAtPly(PLY2, Score_A_C_B_I, ScoreType.exact);
 		classUnderTest.setProvisionalScoreAtPly(PLY3);
 	}
 	
 	private void backup_SearchTree_ACED() {
-		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_E_D);
-		classUnderTest.setBackedUpScoreAtPly(PLY2, Score_A_C_E_D);
-		classUnderTest.setBackedUpScoreAtPly(PLY1, Score_A_C_E_D);
+		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_E_D, ScoreType.exact);
+		classUnderTest.setBackedUpScoreAtPly(PLY2, Score_A_C_E_D, ScoreType.exact);
+		classUnderTest.setBackedUpScoreAtPly(PLY1, Score_A_C_E_D, ScoreType.exact);
 	}
 	
 	@Before
@@ -82,19 +84,19 @@ public class ScoreTrackerTest {
 	
 	@Test
 	public void testIsAlphaBetaCutOff_PlyOne() {
-		classUnderTest.setBackedUpScoreAtPly(PLY1, (short)-100);
+		classUnderTest.setBackedUpScoreAtPly(PLY1, (short)-100, ScoreType.exact);
 		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY1, (short)20));
 	}
 		
 	@Test
 	public void testIsAlphaBetaCutOff_plyTwo() {
-		classUnderTest.setBackedUpScoreAtPly(PLY2, (short)-100);
+		classUnderTest.setBackedUpScoreAtPly(PLY2, (short)-100, ScoreType.exact);
 		assertTrue(classUnderTest.isAlphaBetaCutOff(PLY2, (short)20));
 	}
 	
 	@Test
 	public void testIsAlphaBetaCutOff_PlyThree() {
-		classUnderTest.setBackedUpScoreAtPly(PLY3, (short)-100);
+		classUnderTest.setBackedUpScoreAtPly(PLY3, (short)-100, ScoreType.exact);
 		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY3, (short)20));
 	}
 	
@@ -107,7 +109,7 @@ public class ScoreTrackerTest {
 	@Test
 	public void testIsBackUpRequired_ItIsnt() {
 		initialiseToSearchDepth();
-		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_B_D);
+		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_B_D, ScoreType.exact);
 		assertFalse(classUnderTest.isBackUpRequired(PLY3, (short)15));
 	}
 	
@@ -115,7 +117,7 @@ public class ScoreTrackerTest {
 	public void testIsBackUpRequired_ItIsAgainAtThisNode() {
 		initialiseToSearchDepth();
 		classUnderTest.isBackUpRequired(PLY3, Score_A_C_B_D);
-		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_B_D);
+		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_B_D, ScoreType.exact);
 		assertTrue(classUnderTest.isBackUpRequired(PLY3, (short)4));
 	}
 	
@@ -123,9 +125,9 @@ public class ScoreTrackerTest {
 	public void testIsBackUpRequired_Case1() {
 		initialiseToSearchDepth();
 		classUnderTest.isBackUpRequired(PLY3, Score_A_C_B_D);
-		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_B_D);
+		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_B_D, ScoreType.exact);
 		classUnderTest.isBackUpRequired(PLY3, Score_A_C_B_I);
-		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_B_I);
+		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_B_I, ScoreType.exact);
 		assertTrue(classUnderTest.isBackUpRequired(PLY2, Score_A_C_B_I));
 		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY2, Score_A_C_B_I));
 	}	
@@ -134,21 +136,21 @@ public class ScoreTrackerTest {
 	public void testSetProvisionalScoreAtPly_MaxDepthBringsDown() {
 		initialiseToSearchDepth();
 		backup_SearchTree_ACBI();
-		assertTrue(classUnderTest.getBackedUpScoreAtPly(PLY3)==Short.MAX_VALUE);
-		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_E_D);
+		assertTrue(classUnderTest.getBackedUpScoreAtPly(PLY3).getScore()==Short.MAX_VALUE);
+		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_E_D, ScoreType.exact);
 	}
 	
 	@Test
 	public void testSetProvisionalScoreAtPly_Ply2BringsDown() {
 		initialiseToSearchDepth();
 		backup_SearchTree_ACBI();
-		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_E_D);
+		classUnderTest.setBackedUpScoreAtPly(PLY3, Score_A_C_E_D, ScoreType.exact);
 		assertTrue(classUnderTest.isBackUpRequired(PLY2, Score_A_C_E_D));
-		classUnderTest.setBackedUpScoreAtPly(PLY2, Score_A_C_E_D);
+		classUnderTest.setBackedUpScoreAtPly(PLY2, Score_A_C_E_D, ScoreType.exact);
 		assertTrue(classUnderTest.isBackUpRequired(PLY1, Score_A_C_E_D));
-		classUnderTest.setBackedUpScoreAtPly(PLY1, Score_A_C_E_D);
+		classUnderTest.setBackedUpScoreAtPly(PLY1, Score_A_C_E_D, ScoreType.exact);
 		classUnderTest.setProvisionalScoreAtPly(PLY2);
-		assertTrue(classUnderTest.getBackedUpScoreAtPly(PLY2)==Short.MIN_VALUE);
+		assertTrue(classUnderTest.getBackedUpScoreAtPly(PLY2).getScore()==Short.MIN_VALUE);
 	}
 	
 	@Test
@@ -158,7 +160,7 @@ public class ScoreTrackerTest {
 		backup_SearchTree_ACED();
 		classUnderTest.setProvisionalScoreAtPly(PLY2);
 		classUnderTest.setProvisionalScoreAtPly(PLY3);
-		assertTrue(classUnderTest.getBackedUpScoreAtPly(PLY3)==Score_A_C_E_D);
+		assertTrue(classUnderTest.getBackedUpScoreAtPly(PLY3).getScore()==Score_A_C_E_D);
 	}	
 
 	@Test
@@ -168,7 +170,7 @@ public class ScoreTrackerTest {
 		backup_SearchTree_ACED();
 		classUnderTest.setProvisionalScoreAtPly(PLY2);
 		classUnderTest.setProvisionalScoreAtPly(PLY3);
-		classUnderTest.setBackedUpScoreAtPly(PLY2,Score_A_C_E_D);
+		classUnderTest.setBackedUpScoreAtPly(PLY2,Score_A_C_E_D, ScoreType.exact);
 		assertTrue(classUnderTest.isAlphaBetaCutOff(PLY2, Score_A_C_E_D));	
 	}
 }

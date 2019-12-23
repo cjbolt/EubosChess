@@ -27,7 +27,7 @@ import eubos.score.PositionEvaluator;
 import eubos.search.transposition.ITranspositionAccessor;
 import eubos.search.transposition.Transposition;
 import eubos.search.transposition.TranspositionEvaluation;
-import eubos.search.transposition.Transposition.ScoreType;
+import eubos.search.Score.ScoreType;
 import eubos.search.transposition.TranspositionEvaluation.TranspositionTableStatus;
 import static org.mockito.Mockito.*;
 
@@ -89,7 +89,7 @@ public class PlySearcherTest {
 		initialisePositionAndSearch("7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69", (byte)4);
 		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
 
-		assertEquals(2*MaterialEvaluator.MATERIAL_VALUE_QUEEN, classUnderTest.searchPly());		
+		assertEquals(2*MaterialEvaluator.MATERIAL_VALUE_QUEEN, classUnderTest.searchPly().getScore());		
 	}
 	
 	@Test
@@ -155,7 +155,7 @@ public class PlySearcherTest {
 		
 		when(mock_hashMap.getTransposition((byte)0, 1)).thenReturn(eval);
 		
-		assertEquals(50, classUnderTest.searchPly());
+		assertEquals(50, classUnderTest.searchPly().getScore());
 	}
 	
 	@Test

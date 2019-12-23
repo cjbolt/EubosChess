@@ -19,7 +19,7 @@ import eubos.search.transposition.FixedSizeTranspositionTable;
 import eubos.search.transposition.Transposition;
 import eubos.search.transposition.TranspositionEvaluation;
 import eubos.search.transposition.TranspositionTableAccessor;
-import eubos.search.transposition.Transposition.ScoreType;
+import eubos.search.Score.ScoreType;
 import eubos.search.transposition.TranspositionEvaluation.TranspositionTableStatus;
 
 public class TranspositionTableAccessorTest {
@@ -106,7 +106,7 @@ public class TranspositionTableAccessorTest {
 		currPly = 2;
 		sut.setTransposition(sm, currPly, null, new_trans);
 		
-		st.setBackedUpScoreAtPly(currPly, (short)100);
+		st.setBackedUpScoreAtPly(currPly, (short)100, ScoreType.exact);
 		eval = sut.getTransposition(currPly, 1);
 		
 		assertEquals(TranspositionTableStatus.sufficientRefutation, eval.status);
@@ -122,7 +122,7 @@ public class TranspositionTableAccessorTest {
 		currPly = 2;
 		sut.setTransposition(sm, currPly, null, new_trans);
 		
-		st.setBackedUpScoreAtPly(currPly, (short)110);
+		st.setBackedUpScoreAtPly(currPly, (short)110, ScoreType.exact);
 		eval = sut.getTransposition(currPly, 1);
 		
 		assertEquals(TranspositionTableStatus.sufficientRefutation, eval.status);
