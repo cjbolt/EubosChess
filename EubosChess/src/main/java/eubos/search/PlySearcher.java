@@ -79,8 +79,9 @@ public class PlySearcher {
 	private synchronized boolean isTerminated() { return terminate; }	
 	
 	public Score searchPly() throws InvalidPieceException {
+		Score theScore = new Score();
 		if (isTerminated())
-			return new Score();
+			return theScore;
 		
 		MoveList ml = null;
 		byte depthRequiredForTerminalNode = initialiseSearchAtPly();
@@ -88,8 +89,16 @@ public class PlySearcher {
 		TranspositionEvaluation eval = tt.getTransposition(currPly, depthRequiredForTerminalNode);
 		switch (eval.status) {
 		case sufficientTerminalNode:
-		case sufficientRefutation:
 			treatAsTerminalNode(eval.trans);
+			theScore = st.getBackedUpScoreAtPly(currPly);
+			break;
+		case sufficientRefutation:
+			theScore = new Score(eval.trans.getScore(), (pos.onMoveIsWhite()) ? ScoreType.lowerBound : ScoreType.upperBound);
+			pc.clearTreeBeyondPly(currPly);
+			if (doScoreBackup(theScore)) {
+				updatePrincipalContinuation(eval.trans.getBestMove(), theScore.getScore(), true);
+			}
+			sm.incrementNodesSearched();
 			break;
 		case sufficientTerminalNodeInExtendedSearch:
 			if (isInExtendedSearch()) {
@@ -104,7 +113,7 @@ public class PlySearcher {
 		case insufficientNoData:
 			if (ml == null)
 				ml = getMoveList();
-			searchMoves( ml, eval.trans);
+			theScore = searchMoves( ml, eval.trans);
 			break;	
 		default:
 			break;
@@ -112,7 +121,7 @@ public class PlySearcher {
 		handleEarlyTermination();
 		clearUpSearchAtPly();
 		
-		return st.getBackedUpScoreAtPly(currPly);
+		return theScore;
 	}
 	
 	private byte initialiseSearchAtPly() {
@@ -136,25 +145,29 @@ public class PlySearcher {
 		}
 	}
 	
-	private void searchMoves(MoveList ml, Transposition trans) throws InvalidPieceException {
+	private Score searchMoves(MoveList ml, Transposition trans) throws InvalidPieceException {
+		Score theScore = null;
         if (ml.isMateOccurred()) {
             short mateScore = sg.scoreMate(currPly);
             st.setBackedUpScoreAtPly(currPly, mateScore, ScoreType.exact);
             // We will now de-recurse, so should make sure the depth searched is correct
             setDepthSearchedInPly();
 			trans = tt.setTransposition(sm, currPly, trans,
-                    new Transposition(getTransDepth(), mateScore, ScoreType.exact, ml, null));            
+                    new Transposition(getTransDepth(), mateScore, ScoreType.exact, ml, null));
+			theScore = st.getBackedUpScoreAtPly(currPly);
         } else {
     		Iterator<GenericMove> move_iter = ml.getIterator(isInExtendedSearch());
     		if (isSearchRequired(ml, move_iter)) {
-    			actuallySearchMoves(ml, move_iter, trans);
+    			theScore = actuallySearchMoves(ml, move_iter, trans);
     		} else {
     			// It is effectively a terminal node in extended search, so update the trans with null best move
     			ScoreType plyBound = (pos.onMoveIsWhite()) ? ScoreType.lowerBound : ScoreType.upperBound;
     			trans = tt.setTransposition(sm, currPly, trans,
                         new Transposition((byte)0, st.getBackedUpScoreAtPly(currPly).getScore(), plyBound, ml, null));
+    			theScore = new Score(st.getBackedUpScoreAtPly(currPly).getScore(), plyBound);
     		}
         }
+        return theScore;
     }
 
 	private Score actuallySearchMoves(MoveList ml, Iterator<GenericMove> move_iter, Transposition trans) throws InvalidPieceException {
