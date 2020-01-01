@@ -3,6 +3,7 @@ package eubos.search.transposition;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.position.MoveList;
+import eubos.search.Score;
 import eubos.search.Score.ScoreType;
 
 public class Transposition {
@@ -18,6 +19,10 @@ public class Transposition {
 		setScoreType(scoreType);
 		setBestMove(bestMove);
 		this.ml = ml;
+	}
+	
+	public Transposition(byte depth, Score score, MoveList ml, GenericMove bestMove) {
+		this(depth, score.getScore(), score.getType(), ml, bestMove);
 	}
 
 	public MoveList getMoveList() {

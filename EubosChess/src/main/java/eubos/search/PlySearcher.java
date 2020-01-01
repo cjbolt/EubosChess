@@ -79,9 +79,9 @@ public class PlySearcher {
 	private synchronized boolean isTerminated() { return terminate; }	
 	
 	public Score searchPly() throws InvalidPieceException {
-		Score theScore = new Score();
+		Score theScore = null;
 		if (isTerminated())
-			return theScore;
+			return new Score();
 		
 		MoveList ml = null;
 		byte depthRequiredForTerminalNode = initialiseSearchAtPly();
@@ -143,13 +143,12 @@ public class PlySearcher {
 	private Score searchMoves(MoveList ml, Transposition trans) throws InvalidPieceException {
 		Score theScore = null;
         if (ml.isMateOccurred()) {
-            short mateScore = sg.scoreMate(currPly);
-            st.setBackedUpScoreAtPly(currPly, new Score(mateScore, ScoreType.exact));
+            theScore = new Score(sg.scoreMate(currPly), ScoreType.exact);
+            st.setBackedUpScoreAtPly(currPly, theScore);
             // We will now de-recurse, so should make sure the depth searched is correct
             setDepthSearchedInPly();
 			trans = tt.setTransposition(sm, currPly, trans,
-                    new Transposition(getTransDepth(), mateScore, ScoreType.exact, ml, null));
-			theScore = st.getBackedUpScoreAtPly(currPly);
+                    new Transposition(getTransDepth(), theScore, ml, null));
         } else {
     		Iterator<GenericMove> move_iter = ml.getIterator(isInExtendedSearch());
     		if (isSearchRequired(ml, move_iter)) {
@@ -157,9 +156,10 @@ public class PlySearcher {
     		} else {
     			// It is effectively a terminal node in extended search, so update the trans with null best move
     			ScoreType plyBound = (pos.onMoveIsWhite()) ? ScoreType.lowerBound : ScoreType.upperBound;
-    			trans = tt.setTransposition(sm, currPly, trans,
-                        new Transposition((byte)0, st.getBackedUpScoreAtPly(currPly).getScore(), plyBound, ml, null));
     			theScore = new Score(st.getBackedUpScoreAtPly(currPly).getScore(), plyBound);
+    			trans = tt.setTransposition(sm, currPly, trans,
+                        new Transposition((byte)0, theScore, ml, null));
+    			
     		}
         }
         return theScore;
