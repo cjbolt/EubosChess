@@ -91,6 +91,9 @@ public class PlySearcher {
 		case sufficientTerminalNode:
 			theScore = new Score(eval.trans.getScore(), eval.trans.getScoreType());
 			pc.clearTreeBeyondPly(currPly);
+			if (doScoreBackup(theScore)) {
+				updatePrincipalContinuation(eval.trans.getBestMove(), theScore.getScore(), true);
+			}
 			sm.incrementNodesSearched();
 			break;
 		case sufficientRefutation:
