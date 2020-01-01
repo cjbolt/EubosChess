@@ -9,6 +9,7 @@ import eubos.board.InvalidPieceException;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.search.PrincipalContinuation;
+import eubos.search.Score;
 import eubos.search.ScoreTracker;
 import eubos.search.SearchDebugAgent;
 import eubos.search.SearchMetrics;
@@ -44,7 +45,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 				SearchDebugAgent.printHashIsTerminalNode(currPly, ret.trans.getBestMove(), ret.trans.getScore(),pos.getHash());
 			} else {
 				// must be either (bound == ScoreType.upperBound || bound == ScoreType.lowerBound)
-				if (st.isAlphaBetaCutOff(currPly, ret.trans.getScore())) {
+				if (st.isAlphaBetaCutOff(currPly, new Score(ret.trans.getScore(), ret.trans.getScoreType()))) {
 					SearchDebugAgent.printHashIsRefutation(currPly, ret.trans.getBestMove(),pos.getHash());
 					ret.status = TranspositionTableStatus.sufficientRefutation;
 		        } else {

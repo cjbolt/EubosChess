@@ -17,6 +17,7 @@ public class ScoreTrackerTest {
 	private static final byte PLY2 = 2;
 	private static final byte PLY3 = 3;
 	
+	/* scores with reference to figure 9.12, pg.171  How Computers Play Chess, Newborn and Levy */
 	private static final short Score_A_C_B_D = 9;
 	private static final short Score_A_C_B_I = 4;
 	private static final short Score_A_C_E_D = 30;
@@ -29,6 +30,7 @@ public class ScoreTrackerTest {
 	}
 	
 	private void backup_SearchTree_ACBI() {
+		initialiseToSearchDepth();
 		Score positionScore_A_C_B_I = new Score(Score_A_C_B_I, ScoreType.exact);
 		classUnderTest.setBackedUpScoreAtPly(PLY3, positionScore_A_C_B_I);
 		classUnderTest.setBackedUpScoreAtPly(PLY2, positionScore_A_C_B_I);
@@ -36,10 +38,12 @@ public class ScoreTrackerTest {
 	}
 	
 	private void backup_SearchTree_ACED() {
+		initialiseToSearchDepth();
 		Score positionScore_A_C_E_D = new Score(Score_A_C_E_D, ScoreType.exact);
 		classUnderTest.setBackedUpScoreAtPly(PLY3, positionScore_A_C_E_D);
 		classUnderTest.setBackedUpScoreAtPly(PLY2, positionScore_A_C_E_D);
 		classUnderTest.setBackedUpScoreAtPly(PLY1, positionScore_A_C_E_D);
+		classUnderTest.setBackedUpScoreAtPly(PLY0, positionScore_A_C_E_D);
 	}
 	
 	@Before
@@ -73,33 +77,47 @@ public class ScoreTrackerTest {
 	}
 	
 	@Test
-	public void testIsAlphaBetaCutOff_Max() {
+	public void testIsAlphaBetaCutOff_Max_cantBeCutOffBecauseNotDeepEnough() {
 		classUnderTest.setProvisionalScoreAtPly(PLY1);
-		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY1, (short)20));
+		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY1, new Score((short)20, ScoreType.exact)));
 	}
 	
 	@Test
-	public void testIsAlphaBetaCutOff_Min() {
+	public void testIsAlphaBetaCutOff_Min_cantBeCutOffBecauseNotDeepEnough() {
 		classUnderTest.setProvisionalScoreAtPly(PLY0);
-		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY0, (short)20));
+		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY0, new Score((short)20, ScoreType.exact)));
 	}
 	
 	@Test
-	public void testIsAlphaBetaCutOff_PlyOne() {
+	public void testIsAlphaBetaCutOff_PlyOne_cantBeCutOffBecauseIsProvisional() {
+		classUnderTest.setProvisionalScoreAtPly(PLY0);
 		classUnderTest.setBackedUpScoreAtPly(PLY1, new Score((short)-100, ScoreType.exact));
-		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY1, (short)20));
+		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY1, new Score((short)20, ScoreType.exact)));
 	}
 		
 	@Test
 	public void testIsAlphaBetaCutOff_plyTwo() {
-		classUnderTest.setBackedUpScoreAtPly(PLY2, new Score((short)-100, ScoreType.exact));
-		assertTrue(classUnderTest.isAlphaBetaCutOff(PLY2, (short)20));
+		initialiseToSearchDepth();
+		Score positionScore_A_C_E_D = new Score(Score_A_C_E_D, ScoreType.exact);
+		classUnderTest.setBackedUpScoreAtPly(PLY3, positionScore_A_C_E_D);
+		classUnderTest.setBackedUpScoreAtPly(PLY2, positionScore_A_C_E_D);
+		classUnderTest.setBackedUpScoreAtPly(PLY1, positionScore_A_C_E_D);
+		// now start new limb of tree branching at ply 1
+		classUnderTest.setProvisionalScoreAtPly(PLY2);
+		// nothing is backed up because all the exact scores are worse than what we already have
+		classUnderTest.setProvisionalScoreAtPly(PLY3);
+		assertTrue(classUnderTest.isAlphaBetaCutOff(PLY2, positionScore_A_C_E_D));
 	}
 	
 	@Test
-	public void testIsAlphaBetaCutOff_PlyThree() {
-		classUnderTest.setBackedUpScoreAtPly(PLY3, new Score((short)-100, ScoreType.exact));
-		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY3, (short)20));
+	public void testIsAlphaBetaCutOff_PlyThree_IsCutOff() {
+		backup_SearchTree_ACED();
+		// bring down to ply 3
+		classUnderTest.setProvisionalScoreAtPly(PLY1);
+		classUnderTest.setProvisionalScoreAtPly(PLY2);
+		classUnderTest.setProvisionalScoreAtPly(PLY3);
+		// test for refutation, it is one
+		assertTrue(classUnderTest.isAlphaBetaCutOff(PLY3, new Score((short)9, ScoreType.exact)));
 	}
 	
 	@Test
@@ -140,7 +158,7 @@ public class ScoreTrackerTest {
 		classUnderTest.setBackedUpScoreAtPly(PLY3, positionScore_A_C_B_I);
 		
 		assertTrue(classUnderTest.isBackUpRequired(PLY2, positionScore_A_C_B_I));
-		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY2, positionScore_A_C_B_I.getScore()));
+		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY2, positionScore_A_C_B_I));
 	}	
 	
 	@Test
@@ -186,6 +204,6 @@ public class ScoreTrackerTest {
 		classUnderTest.setProvisionalScoreAtPly(PLY3);
 		Score positionScore_A_C_E_D = new Score(Score_A_C_E_D, ScoreType.exact);
 		classUnderTest.setBackedUpScoreAtPly(PLY2, positionScore_A_C_E_D);
-		assertTrue(classUnderTest.isAlphaBetaCutOff(PLY2, Score_A_C_E_D));	
+		assertTrue(classUnderTest.isAlphaBetaCutOff(PLY2, positionScore_A_C_E_D));	
 	}
 }

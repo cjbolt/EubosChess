@@ -199,7 +199,7 @@ public class PlySearcher {
 	                }
 	            }
 	        
-	            if (st.isAlphaBetaCutOff(currPly, positionScore.getScore())) {
+	            if (st.isAlphaBetaCutOff(currPly, positionScore)) {
 	                refutationFound = true;
 	                plyScore = new Score(plyScore.getScore(), plyBound);
 	                SearchDebugAgent.printRefutationFound(currPly);

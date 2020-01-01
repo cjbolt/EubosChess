@@ -97,32 +97,44 @@ public class TranspositionTableAccessorTest {
 	}
 	
 	@Test
-	public void testEval_StoreRetrieve_whenUpperBound_AndScoreIsLower_sufficientRefutation() throws InvalidPieceException, IllegalNotationException {
+	public void testEval_StoreRetrieve_whenUpperBound_AndScoreIsLower_inSufficientRefutation() throws InvalidPieceException, IllegalNotationException {
 		MoveList ml = new MoveList(pm);
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
-		Transposition new_trans = new Transposition((byte)1, (short)105, ScoreType.upperBound, ml, pc.get(0));
+		Transposition new_trans = new Transposition((byte)1, (short)18, ScoreType.upperBound, ml, pc.get(0));
 
-		currPly = 2;
+		currPly = 3;
 		sut.setTransposition(sm, currPly, null, new_trans);
 		
-		st.setBackedUpScoreAtPly(currPly, new Score((short)100, ScoreType.exact));
+		// Set up score tracker according to diagram
+		st.setBackedUpScoreAtPly((byte)0, new Score((short)12, ScoreType.upperBound));
+		st.setProvisionalScoreAtPly((byte)1);
+		st.setProvisionalScoreAtPly((byte)2);
+		st.setProvisionalScoreAtPly((byte)3);
 		eval = sut.getTransposition(currPly, 1);
 		
-		assertEquals(TranspositionTableStatus.sufficientRefutation, eval.status);
+		assertEquals(TranspositionTableStatus.sufficientSeedMoveList, eval.status);
 	}
 	
 	@Test
 	public void testEval_StoreRetrieve_whenLowerBound_AndScoreIsHigher_sufficientRefutation() throws InvalidPieceException, IllegalNotationException {
+		/* Example from second limb of search tree, fig9.15, pg.178, How Computers Play Chess, Newborn and Levy */
 		MoveList ml = new MoveList(pm);
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
-		Transposition new_trans = new Transposition((byte)1, (short)105, ScoreType.lowerBound, ml, pc.get(0));
+		Transposition new_trans = new Transposition((byte)1, (short)18, ScoreType.upperBound, ml, pc.get(0));
 
-		currPly = 2;
+		currPly = 3;
 		sut.setTransposition(sm, currPly, null, new_trans);
 		
-		st.setBackedUpScoreAtPly(currPly, new Score((short)110, ScoreType.exact));
+		// Set up score tracker according to diagram
+		st.setBackedUpScoreAtPly((byte)0, new Score((short)12, ScoreType.upperBound));
+		st.setProvisionalScoreAtPly((byte)1);
+		st.setProvisionalScoreAtPly((byte)2);
+		st.setProvisionalScoreAtPly((byte)3);
+		st.setBackedUpScoreAtPly((byte)3, new Score((short)40, ScoreType.exact));
+		st.setBackedUpScoreAtPly((byte)2, new Score((short)40, ScoreType.exact));
+		st.setProvisionalScoreAtPly((byte)3);
 		eval = sut.getTransposition(currPly, 1);
 		
 		assertEquals(TranspositionTableStatus.sufficientRefutation, eval.status);
