@@ -89,23 +89,15 @@ public class PlySearcher {
 		TranspositionEvaluation eval = tt.getTransposition(currPly, depthRequiredForTerminalNode);
 		switch (eval.status) {
 		case sufficientTerminalNode:
-			treatAsTerminalNode(eval.trans);
-			theScore = st.getBackedUpScoreAtPly(currPly);
+			theScore = new Score(eval.trans.getScore(), eval.trans.getScoreType());
+			pc.clearTreeBeyondPly(currPly);
+			sm.incrementNodesSearched();
 			break;
 		case sufficientRefutation:
 			theScore = new Score(eval.trans.getScore(), (pos.onMoveIsWhite()) ? ScoreType.lowerBound : ScoreType.upperBound);
 			pc.clearTreeBeyondPly(currPly);
-			if (doScoreBackup(theScore)) {
-				updatePrincipalContinuation(eval.trans.getBestMove(), theScore.getScore(), true);
-			}
 			sm.incrementNodesSearched();
 			break;
-		case sufficientTerminalNodeInExtendedSearch:
-			if (isInExtendedSearch()) {
-				  treatAsTerminalNode(eval.trans);
-				  break;
-			}
-			// else intentional drop through
 		case sufficientSeedMoveList:
 			SearchDebugAgent.printHashIsSeedMoveList(currPly, eval.trans.getBestMove(), pos.getHash());
 			ml = eval.trans.getMoveList();
@@ -149,7 +141,7 @@ public class PlySearcher {
 		Score theScore = null;
         if (ml.isMateOccurred()) {
             short mateScore = sg.scoreMate(currPly);
-            st.setBackedUpScoreAtPly(currPly, mateScore, ScoreType.exact);
+            st.setBackedUpScoreAtPly(currPly, new Score(mateScore, ScoreType.exact));
             // We will now de-recurse, so should make sure the depth searched is correct
             setDepthSearchedInPly();
 			trans = tt.setTransposition(sm, currPly, trans,
@@ -244,20 +236,10 @@ public class PlySearcher {
 		boolean searchIsNeeded = true;
 		if (isInExtendedSearch() && !move_iter.hasNext()) {
 			// Evaluate material to deduce score, this rules out optimistic appraisal, don't use normal move list.
-	    	doScoreBackup(new Score(pe.evaluatePosition(),ScoreType.exact));
+	    	doScoreBackup(new Score(pe.evaluatePosition(), ScoreType.exact));
 	    	searchIsNeeded = false;
 	    }
 		return searchIsNeeded;
-	}
-	
-	private void treatAsTerminalNode(Transposition trans)
-			throws InvalidPieceException {
-		Score score = new Score(trans.getScore(), trans.getScoreType());
-		pc.clearTreeBeyondPly(currPly);
-		if (doScoreBackup(score)) {
-			updatePrincipalContinuation(trans.getBestMove(), score.getScore(), true);
-		}
-		sm.incrementNodesSearched();
 	}
 	
 	private void updatePrincipalContinuation(
@@ -324,8 +306,8 @@ public class PlySearcher {
 
 	private boolean doScoreBackup(Score positionScore) {
 		boolean backupRequired = false;
-		if (st.isBackUpRequired(currPly, positionScore.getScore())) {
-			st.setBackedUpScoreAtPly(currPly, positionScore.getScore(), positionScore.getType());
+		if (st.isBackUpRequired(currPly, positionScore)) {
+			st.setBackedUpScoreAtPly(currPly, positionScore);
 			backupRequired = true;
 		}
 		return backupRequired;

@@ -106,7 +106,7 @@ public class TranspositionTableAccessorTest {
 		currPly = 2;
 		sut.setTransposition(sm, currPly, null, new_trans);
 		
-		st.setBackedUpScoreAtPly(currPly, (short)100, ScoreType.exact);
+		st.setBackedUpScoreAtPly(currPly, new Score((short)100, ScoreType.exact));
 		eval = sut.getTransposition(currPly, 1);
 		
 		assertEquals(TranspositionTableStatus.sufficientRefutation, eval.status);
@@ -122,7 +122,7 @@ public class TranspositionTableAccessorTest {
 		currPly = 2;
 		sut.setTransposition(sm, currPly, null, new_trans);
 		
-		st.setBackedUpScoreAtPly(currPly, (short)110, ScoreType.exact);
+		st.setBackedUpScoreAtPly(currPly, new Score((short)110, ScoreType.exact));
 		eval = sut.getTransposition(currPly, 1);
 		
 		assertEquals(TranspositionTableStatus.sufficientRefutation, eval.status);

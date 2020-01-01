@@ -34,10 +34,10 @@ public class ScoreTracker {
 		return ((currPly % 2) == 0) ? initialOnMoveIsWhite : !initialOnMoveIsWhite;
 	}
 	
-	void setBackedUpScoreAtPly(byte currPly, short positionScore, ScoreType scoreType) {
-		SearchDebugAgent.printBackUpScore(currPly, scores[currPly], positionScore);
-		scores[currPly]=positionScore;
-		type[currPly]=scoreType;
+	void setBackedUpScoreAtPly(byte currPly, Score positionScore) {
+		SearchDebugAgent.printBackUpScore(currPly, scores[currPly], positionScore.getScore());
+		scores[currPly]=positionScore.getScore();
+		type[currPly]=positionScore.getType();
 	}
 	
 	
@@ -53,15 +53,15 @@ public class ScoreTracker {
 		}
 	}	
 
-	boolean isBackUpRequired(byte currPly, short positionScore) {
+	boolean isBackUpRequired(byte currPly, Score positionScore) {
 		boolean backUpScore = false;
 		if (onMoveIsWhite(currPly)) {
 			// if white, maximise score
-			if (positionScore > getBackedUpScoreAtPly(currPly).getScore() && positionScore != Short.MAX_VALUE)
+			if (positionScore.getScore() > getBackedUpScoreAtPly(currPly).getScore() && positionScore.getScore() != Short.MAX_VALUE)
 				backUpScore = true;
 		} else {
 			// if black, minimise score 
-			if (positionScore < getBackedUpScoreAtPly(currPly).getScore() && positionScore != Short.MIN_VALUE)
+			if (positionScore.getScore() < getBackedUpScoreAtPly(currPly).getScore() && positionScore.getScore() != Short.MIN_VALUE)
 				backUpScore = true;
 		}
 		return backUpScore;
@@ -90,10 +90,5 @@ public class ScoreTracker {
 			}
 		}
 		return isAlphaBetaCutOff;
-	}
-
-	public Object getBackedUpScoreType() {
-		// TODO Auto-generated method stub
-		return null;
 	}	
 }
