@@ -14,9 +14,9 @@ public class ScoreTracker {
 	}
 	
 	private void bringDownAlphaBetaCutOff(byte currPly) {
-		scores[currPly] = new Score(scores[currPly-MINIMUM_PLY_FOR_ALPHA_BETA_CUT_OFF].getScore(), onMoveIsWhite(currPly) ? ScoreType.lowerBound : ScoreType.upperBound);
-		//scores[currPly] = scores[currPly-MINIMUM_PLY_FOR_ALPHA_BETA_CUT_OFF];
-		//type[currPly] = onMoveIsWhite(currPly) ? ScoreType.lowerBound : ScoreType.upperBound;
+		scores[currPly] = new Score(
+				scores[currPly-MINIMUM_PLY_FOR_ALPHA_BETA_CUT_OFF].getScore(), 
+				onMoveIsWhite(currPly) ? ScoreType.lowerBound : ScoreType.upperBound);
 	}
 
 	private void initialiseWithWorstPossibleScore(byte currPly) {
@@ -36,12 +36,10 @@ public class ScoreTracker {
 			SearchDebugAgent.printBackUpScore(currPly, scores[currPly].getScore(), positionScore.getScore());
 		}
 		scores[currPly]=new Score(positionScore.getScore(), positionScore.getType());
-		//type[currPly]=positionScore.getType();
 	}
 	
 	
 	Score getBackedUpScoreAtPly(byte currPly) {
-		//return new Score(scores[currPly],type[currPly]);
 		return scores[currPly];
 	}
 	
