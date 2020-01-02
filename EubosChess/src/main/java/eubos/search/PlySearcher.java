@@ -155,8 +155,9 @@ public class PlySearcher {
     			theScore = actuallySearchMoves(ml, move_iter, trans);
     		} else {
     			// It is effectively a terminal node in extended search, so update the trans with null best move
-    			ScoreType plyBound = (pos.onMoveIsWhite()) ? ScoreType.lowerBound : ScoreType.upperBound;
-    			theScore = new Score(st.getBackedUpScoreAtPly(currPly).getScore(), plyBound);
+    			// and return the position score back down the tree. We always back-up, because it is terminal,
+    			// and we need to overwrite any alpha/beta provisional score that was brought down.
+    			theScore = st.getBackedUpScoreAtPly(currPly);
     			trans = tt.setTransposition(sm, currPly, trans,
                         new Transposition((byte)0, theScore, ml, null));
     			
@@ -239,7 +240,7 @@ public class PlySearcher {
 		boolean searchIsNeeded = true;
 		if (isInExtendedSearch() && !move_iter.hasNext()) {
 			// Evaluate material to deduce score, this rules out optimistic appraisal, don't use normal move list.
-	    	doScoreBackup(new Score(pe.evaluatePosition(), ScoreType.exact));
+			st.setBackedUpScoreAtPly(currPly, new Score(pe.evaluatePosition(), ScoreType.exact));
 	    	searchIsNeeded = false;
 	    }
 		return searchIsNeeded;
