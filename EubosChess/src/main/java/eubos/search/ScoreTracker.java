@@ -67,7 +67,7 @@ public class ScoreTracker {
 	
 	public boolean isAlphaBetaCutOff(byte currPly, Score positionScore) {
 		boolean isAlphaBetaCutOff = false;
-		if (currPly > 1) {
+		if (currPly > 0) {
 			Score prevPlyScore = scores[(byte)(currPly-1)];
 			assert prevPlyScore != null;
 			if (onMoveIsWhite(currPly)) {
