@@ -38,7 +38,7 @@ import java.util.logging.*;
 
 public class EubosEngineMain extends AbstractEngine {
 	
-	private static final byte SEARCH_DEPTH_IN_PLY = 25;
+	private static final byte SEARCH_DEPTH_IN_PLY = 35;
 	
 	private PositionManager pm;
 	private AbstractMoveSearcher ms;
