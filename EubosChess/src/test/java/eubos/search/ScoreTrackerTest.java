@@ -78,8 +78,9 @@ public class ScoreTrackerTest {
 	
 	@Test
 	public void testIsAlphaBetaCutOff_Max_cantBeCutOffBecauseNotDeepEnough() {
+		classUnderTest.setBackedUpScoreAtPly(PLY0, new Score((short)200, ScoreType.exact));
 		classUnderTest.setProvisionalScoreAtPly(PLY1);
-		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY1, new Score((short)20, ScoreType.exact)));
+		assertTrue(classUnderTest.isAlphaBetaCutOff(PLY1, new Score((short)20, ScoreType.exact)));
 	}
 	
 	@Test
