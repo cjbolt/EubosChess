@@ -79,6 +79,29 @@ public class PlySearcher {
 	public synchronized void terminateFindMove() { terminate = true; }
 	private synchronized boolean isTerminated() { return terminate; }	
 	
+	private Score checkForDraw(TranspositionEvaluation eval) throws InvalidPieceException {
+		Score theScore = null;
+		if (eval.status != TranspositionTableStatus.insufficientNoData &&
+			eval.trans != null && eval.trans.getBestMove() != null) {
+			
+			pm.performMove(eval.trans.getBestMove());
+			if (pe.isThreeFoldRepetition(pos.getHash())) {
+				/* The best move in this position would result in a draw, score as a terminal node,
+	        	 *  in line with current search context, 
+	        	 *  TODO note this should only be terminal if we are trying to avoid draws... */
+				System.err.println("searchPly() possible draw: "+pos.getFen());
+				
+	        	theScore = new Score((short)pe.evaluatePosition(), ScoreType.exact);
+	        	st.setBackedUpScoreAtPly(currPly, theScore);
+	            setDepthSearchedInPly();
+				eval.trans = tt.setTransposition(sm, currPly, eval.trans,
+	                    new Transposition(getTransDepth(), theScore, eval.trans.getMoveList(), eval.trans.getBestMove()));
+	        }
+			pm.unperformMove();
+		}
+		return theScore;
+	}
+	
 	public Score searchPly() throws InvalidPieceException {
 		Score theScore = null;
 		if (isTerminated())
@@ -89,25 +112,9 @@ public class PlySearcher {
 		
 		TranspositionEvaluation eval = tt.getTransposition(currPly, depthRequiredForTerminalNode);
 		
-		if (eval.status != TranspositionTableStatus.insufficientNoData && eval.trans != null && eval.trans.getBestMove() != null) {
-			pm.performMove(eval.trans.getBestMove());
-			if (pe.isThreeFoldRepetition(pos.getHash())) {
-
-	        	/* The best move in this position would result in a draw, score as a terminal node,
-	        	 *  in line with current search context, 
-	        	 *  TODO note this should only be terminal if we are avoiding draws */
-	        	theScore = new Score((short)pe.evaluatePosition(), ScoreType.exact);
-	        	
-	        	st.setBackedUpScoreAtPly(currPly, theScore);
-	            // We will now de-recurse, so should make sure the depth searched is correct
-	            setDepthSearchedInPly();
-				eval.trans = tt.setTransposition(sm, currPly, eval.trans,
-	                    new Transposition(getTransDepth(), theScore, ml, null/*trans.getBestMove()*/));
-				pm.unperformMove();
-				return theScore;
-	        }
-			pm.unperformMove();
-		}
+		theScore = checkForDraw(eval);
+		if (theScore != null)
+			return theScore;
 		
 		switch (eval.status) {
 		case sufficientTerminalNode:
@@ -169,16 +176,7 @@ public class PlySearcher {
             st.setBackedUpScoreAtPly(currPly, theScore);
             // We will now de-recurse, so should make sure the depth searched is correct
             setDepthSearchedInPly();
-			trans = tt.setTransposition(sm, currPly, trans,
-                    new Transposition(getTransDepth(), theScore, ml, null));
-        } else if (currPly != 0 && pe.isThreeFoldRepetition(pos.getHash())) {
-        	/* Position would result in a draw, score as a terminal node, in line with current search context */
-        	theScore = new Score(pe.evaluatePosition(), ScoreType.exact); 
-        	st.setBackedUpScoreAtPly(currPly, theScore);
-            // We will now de-recurse, so should make sure the depth searched is correct
-            setDepthSearchedInPly();
-			trans = tt.setTransposition(sm, currPly, trans,
-                    new Transposition(getTransDepth(), theScore, ml, null/*trans.getBestMove()*/));
+			trans = tt.setTransposition(sm, currPly, trans, new Transposition(getTransDepth(), theScore, ml, null));
         } else {
     		Iterator<GenericMove> move_iter = ml.getIterator(isInExtendedSearch());
     		if (isSearchRequired(ml, move_iter)) {
@@ -188,9 +186,7 @@ public class PlySearcher {
     			// and return the position score back down the tree. We always back-up, because it is terminal,
     			// and we need to overwrite any alpha/beta provisional score that was brought down.
     			theScore = st.getBackedUpScoreAtPly(currPly);
-    			trans = tt.setTransposition(sm, currPly, trans,
-                        new Transposition((byte)0, theScore, ml, null));
-    			
+    			trans = tt.setTransposition(sm, currPly, trans, new Transposition((byte)0, theScore, ml, null));
     		}
         }
         return theScore;
