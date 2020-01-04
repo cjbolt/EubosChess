@@ -45,7 +45,7 @@ public class EubosEngineMainTest {
 	private static final String POS_FEN_PREFIX = "position fen ";
 	private static final String GO_DEPTH_PREFIX = "go depth ";
 	//private static final String GO_WTIME_PREFIX = "go wtime ";
-	private static final String GO_BTIME_PREFIX = "go btime ";
+	//private static final String GO_BTIME_PREFIX = "go btime ";
 	private static final String BEST_PREFIX = "bestmove ";
 	
 	// Whole Commands
@@ -130,14 +130,14 @@ public class EubosEngineMainTest {
 	public void test_avoidDraw_lichess_hash_table_terminal_bypasses_drawchecker() throws InterruptedException, IOException {
 		setupEngine();
 		// Setup Commands specific to this test
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/2K5/8/7k/8/8/6q1 b - - 1 60"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_BTIME_PREFIX+"2000"+CMD_TERMINATOR,BEST_PREFIX+"g1g2"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/2K5/7k/8/6q1/8 b - - 3 61"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_BTIME_PREFIX+"1999"+CMD_TERMINATOR,BEST_PREFIX+"g2g1"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/2K5/8/7k/8/8/6q1 b - - 1 62"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_BTIME_PREFIX+"1998"+CMD_TERMINATOR,BEST_PREFIX+"g1g2"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/2K5/7k/8/6q1/8 b - - 3 63"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_BTIME_PREFIX+"1997"+CMD_TERMINATOR,BEST_PREFIX+"g2g5"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/2K5/8/7k/8/8/6q1 b - - 0 60"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR,BEST_PREFIX+"g1g2"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/2K5/7k/8/6q1/8 b - - 0 61"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR,BEST_PREFIX+"g2g1"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/2K5/8/7k/8/8/6q1 b - - 0 62"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR,BEST_PREFIX+"g1g2"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/2K5/7k/8/6q1/8 b - - 0 63"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR,BEST_PREFIX+"g2g5"+CMD_TERMINATOR));
 		// results in new position and avoids the draw by 3-fold!
 		// white could move Kc6, which would result in this again: "8/8/2K5/8/7k/8/8/6q1 b - - 9 64" 
 		performTest(500);

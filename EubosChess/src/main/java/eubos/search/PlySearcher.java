@@ -17,6 +17,7 @@ import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.ITranspositionAccessor;
 import eubos.search.transposition.Transposition;
 import eubos.search.transposition.TranspositionEvaluation;
+import eubos.search.transposition.TranspositionEvaluation.TranspositionTableStatus;
 import eubos.search.Score.ScoreType;
 
 public class PlySearcher {
@@ -87,6 +88,27 @@ public class PlySearcher {
 		byte depthRequiredForTerminalNode = initialiseSearchAtPly();
 		
 		TranspositionEvaluation eval = tt.getTransposition(currPly, depthRequiredForTerminalNode);
+		
+		if (eval.status != TranspositionTableStatus.insufficientNoData && eval.trans != null && eval.trans.getBestMove() != null) {
+			pm.performMove(eval.trans.getBestMove());
+			if (pe.isThreeFoldRepetition(pos.getHash())) {
+
+	        	/* The best move in this position would result in a draw, score as a terminal node,
+	        	 *  in line with current search context, 
+	        	 *  TODO note this should only be terminal if we are avoiding draws */
+	        	theScore = new Score((short)pe.evaluatePosition(), ScoreType.exact);
+	        	
+	        	st.setBackedUpScoreAtPly(currPly, theScore);
+	            // We will now de-recurse, so should make sure the depth searched is correct
+	            setDepthSearchedInPly();
+				eval.trans = tt.setTransposition(sm, currPly, eval.trans,
+	                    new Transposition(getTransDepth(), theScore, ml, null/*trans.getBestMove()*/));
+				pm.unperformMove();
+				return theScore;
+	        }
+			pm.unperformMove();
+		}
+		
 		switch (eval.status) {
 		case sufficientTerminalNode:
 			theScore = new Score(eval.trans.getScore(), eval.trans.getScoreType());
@@ -149,6 +171,14 @@ public class PlySearcher {
             setDepthSearchedInPly();
 			trans = tt.setTransposition(sm, currPly, trans,
                     new Transposition(getTransDepth(), theScore, ml, null));
+        } else if (currPly != 0 && pe.isThreeFoldRepetition(pos.getHash())) {
+        	/* Position would result in a draw, score as a terminal node, in line with current search context */
+        	theScore = new Score(pe.evaluatePosition(), ScoreType.exact); 
+        	st.setBackedUpScoreAtPly(currPly, theScore);
+            // We will now de-recurse, so should make sure the depth searched is correct
+            setDepthSearchedInPly();
+			trans = tt.setTransposition(sm, currPly, trans,
+                    new Transposition(getTransDepth(), theScore, ml, null/*trans.getBestMove()*/));
         } else {
     		Iterator<GenericMove> move_iter = ml.getIterator(isInExtendedSearch());
     		if (isSearchRequired(ml, move_iter)) {

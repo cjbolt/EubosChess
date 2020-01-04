@@ -18,6 +18,7 @@ public class PositionEvaluator implements IEvaluate {
 
 	PositionManager pm;
 	private SearchContext sc;
+	private DrawChecker dc;
 	
 	public static final int HAS_CASTLED_BOOST_CENTIPAWNS = 150;
 	public static final int DOUBLED_PAWN_HANDICAP = 50;
@@ -27,6 +28,7 @@ public class PositionEvaluator implements IEvaluate {
 	public PositionEvaluator(PositionManager pm, DrawChecker dc) {	
 		this.pm = pm;
 		sc = new SearchContext(pm, MaterialEvaluator.evaluate(pm.getTheBoard()), dc);
+		this.dc = dc;
 	}
 	
 	public boolean isQuiescent() {
@@ -101,5 +103,10 @@ public class PositionEvaluator implements IEvaluate {
 
 	public MaterialEvaluation getMaterialEvaluation() {
 		return MaterialEvaluator.evaluate(pm.getTheBoard());
+	}
+
+	@Override
+	public boolean isThreeFoldRepetition(Long hashCode) {
+		return dc.isPositionDraw(hashCode);
 	}
 }

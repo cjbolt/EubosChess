@@ -140,4 +140,22 @@ public class SearchContextTest {
 		MaterialEvaluation current = pe.getMaterialEvaluation();
 		assertEquals(SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current));
 	}
+	
+	@Test
+	public void test_eubos_main_drawchecker() throws InvalidPieceException, IllegalNotationException {
+		setupPosition("8/8/2K5/8/7k/8/8/6q1 b - - 0 60");
+		/* Same position and moves as in test_avoidDraw_lichess_hash_table_terminal_bypasses_drawchecker
+		   from EubosEngineMainTest */
+		GenericMove [] moveList = new GenericMove[] {
+										new GenericMove("g1g2"),
+				new GenericMove("c6c5"),new GenericMove("g2g1"),
+				new GenericMove("c5c6"),new GenericMove("g1g2"),
+				new GenericMove("c6c5"),new GenericMove("g2g1")};
+		
+		applyMoveList(moveList);
+		assertTrue(dc.isPositionDraw(pm.getHash()));
+		MaterialEvaluation current = pe.getMaterialEvaluation();
+		/* - because bad for black, good for white */
+		assertEquals(-SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current));
+	}
 }

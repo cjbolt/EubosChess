@@ -18,6 +18,7 @@ public class SearchContext {
 	
 	static final short SIMPLIFICATION_BONUS = 75;
 	static final short AVOID_DRAW_HANDICAP = -400;
+	static final short ACHIEVES_DRAW_BONUS = MaterialEvaluator.MATERIAL_VALUE_KING/2;
 	
 	private enum SearchGoal {
 		try_for_win,
@@ -64,7 +65,7 @@ public class SearchContext {
 				break;
 			case try_for_draw:
 				if (dc.isPositionDraw(pos.getHash())) {
-					bonus += MaterialEvaluator.MATERIAL_VALUE_KING/2;
+					bonus += ACHIEVES_DRAW_BONUS;
 				}
 				break;
 			default:
@@ -79,7 +80,7 @@ public class SearchContext {
 			case try_for_win:
 				if (dc.isPositionDraw(pos.getHash())) {
 					// Assume opponent wants a draw.
-					bonus += MaterialEvaluator.MATERIAL_VALUE_KING/2;
+					bonus += ACHIEVES_DRAW_BONUS;
 				}
 				break;
 			case try_for_draw:

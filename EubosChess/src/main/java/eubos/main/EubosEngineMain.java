@@ -57,6 +57,7 @@ public class EubosEngineMain extends AbstractEngine {
 		super(new BufferedReader(new PipedReader(out)), System.out);
 		hashMap = new FixedSizeTranspositionTable();
 		dc = new DrawChecker();
+		logger.setLevel(Level.INFO);
 	}
 
 	public void receive(EngineInitializeRequestCommand command) {
@@ -89,20 +90,28 @@ public class EubosEngineMain extends AbstractEngine {
 	private void createPositionFromAnalyseCommand(EngineAnalyzeCommand command) {
 		// This temporary pm is to ensure that the correct position is used to initialise the search 
 		// context in the position evaluator
-		PositionManager temp_pm = new PositionManager(command.board.toString(), dc);
-		try {
-			for (GenericMove nextMove : command.moves) {
-				temp_pm.performMove(nextMove);
+		String uci_fen_string = command.board.toString();
+		String fen_to_use = null;
+		if (!command.moves.isEmpty()) {
+			PositionManager temp_pm = new PositionManager(uci_fen_string, dc);
+			try {
+				for (GenericMove nextMove : command.moves) {
+					temp_pm.performMove(nextMove);
+				}
+			} catch(InvalidPieceException e ) {
+				System.out.println( 
+						"Serious error: Eubos can't find a piece on the board whilst applying previous moves, at "
+								+e.getAtPosition().toString());
 			}
-		} catch(InvalidPieceException e ) {
-			System.out.println( 
-					"Serious error: Eubos can't find a piece on the board whilst applying previous moves, at "
-							+e.getAtPosition().toString());
+			// Assign the actual pm
+			fen_to_use = temp_pm.getFen();
+		} else {
+			fen_to_use = uci_fen_string;
 		}
-		// Assign the actual pm
-		pm = new PositionManager(temp_pm.getFen(), dc);
+		pm = new PositionManager(fen_to_use, dc);
 		// Update the draw checker with the position after the opponents last move
 		long hashCode = pm.getHash();
+		logger.info("Position Received, hash = "+hashCode);
 		dc.incrementPositionReachedCount(hashCode);
 		if (dc.isPositionDraw(hashCode)) {
 			// need to remove this position from transposition table, as cached score for it doesn't indicate a draw
@@ -235,7 +244,7 @@ public class EubosEngineMain extends AbstractEngine {
 	    if (command.getString() != null) {
 	      uciInfo += " string " + command.getString();
 	    }
-	    logger.info(uciInfo);
+	    logger.fine(uciInfo);
 	}
 	
 	public void sendBestMoveCommand(ProtocolBestMoveCommand protocolBestMoveCommand) {
@@ -251,7 +260,7 @@ public class EubosEngineMain extends AbstractEngine {
 			}
 		}
 		logger.info("Best move " + protocolBestMoveCommand.bestMove);
-		logger.info("Transposition Table Size " + hashMap.getHashMapSize());
+		logger.finer("Transposition Table Size " + hashMap.getHashMapSize());
 	}
 	
 	@Override
