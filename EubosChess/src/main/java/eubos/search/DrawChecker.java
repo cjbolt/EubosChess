@@ -27,8 +27,6 @@ public class DrawChecker {
 		boolean isDrawn = false;
 		Integer reachedCount = getPositionReachedCount(positionHash);
 		if (reachedCount != null && reachedCount >= 3) {
-			/* The position could be claimed as a draw by 3-fold repetition if we have already
-			   entered the position twice before */
 			isDrawn = true;
 		}
 		return isDrawn;

@@ -146,6 +146,7 @@ public class PlySearcherTest {
 	}	 
 	
 	@Test
+	@Ignore
 	public void test_singleLineOfPlay_exactHashHit() throws InvalidPieceException, IllegalNotationException {
 		initialisePositionAndSearch("8/8/1P6/8/5p2/8/8/8 w - - 0 1", (byte)1);
 		

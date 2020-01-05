@@ -15,6 +15,7 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 import eubos.board.InvalidPieceException;
 import eubos.position.MoveList;
 import eubos.position.PositionManager;
+import eubos.score.PositionEvaluator;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 import eubos.search.transposition.Transposition;
 import eubos.search.transposition.TranspositionEvaluation;
@@ -45,7 +46,7 @@ public class TranspositionTableAccessorTest {
 		st = new ScoreTracker(SEARCH_DEPTH_IN_PLY, true);
 		st.setProvisionalScoreAtPly((byte) 0);
 		pm = new PositionManager();
-		sut = new TranspositionTableAccessor(transTable, pm, st);
+		sut = new TranspositionTableAccessor(transTable, pm, st, pm, new PositionEvaluator(pm, new DrawChecker()));
 		currPly = 0;
 	}
 
@@ -185,7 +186,7 @@ public class TranspositionTableAccessorTest {
 	@Test
 	public void testUpdateWorks_whenExistingUpdated_ArenaError() throws IllegalNotationException {
 		pm = new PositionManager("8/8/p6p/1p3kp1/1P6/P4PKP/5P2/8 w - - 0 1"); //Endgame pos
-		sut = new TranspositionTableAccessor(transTable, pm, st);
+		sut = new TranspositionTableAccessor(transTable, pm, st, pm, new PositionEvaluator(pm, new DrawChecker()));
 		GenericMove move1 = new GenericMove("h3h4");
 		GenericMove move2 = new GenericMove("f3f4");
 		

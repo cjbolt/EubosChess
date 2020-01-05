@@ -113,11 +113,10 @@ public class EubosEngineMain extends AbstractEngine {
 		long hashCode = pm.getHash();
 		logger.info("Position Received, hash = "+hashCode);
 		dc.incrementPositionReachedCount(hashCode);
-		if (dc.isPositionDraw(hashCode)) {
-			// need to remove this position from transposition table, as cached score for it doesn't indicate a draw
-			if (hashMap.containsHash(hashCode)) {
-				hashMap.remove(hashCode);
-			}
+		// need to remove this position from transposition table, as cached score for it doesn't factor for draws
+		if (hashMap.containsHash(hashCode)) {
+			System.err.println("Removing hash "+hashCode+" FEN "+pm.getFen());
+			hashMap.remove(hashCode);
 		}
 	}
 	

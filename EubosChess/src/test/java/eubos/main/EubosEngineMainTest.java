@@ -128,8 +128,7 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
-	@Ignore
-	public void test_avoidDraw_lichess_hash_table_drawchecker1() throws InterruptedException, IOException {
+	public void test_avoidDraw_lichess_hash_table_drawchecker() throws InterruptedException, IOException {
 		setupEngine();
 		// Setup Commands specific to this test
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/2K5/8/7k/8/8/6q1 b - - 0 60"+CMD_TERMINATOR, null));
@@ -140,24 +139,6 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR,BEST_PREFIX+"g1g2"+CMD_TERMINATOR));
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/2K5/7k/8/6q1/8 b - - 0 63"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR,BEST_PREFIX+"g2g5"+CMD_TERMINATOR));
-		// results in new position and avoids the draw by 3-fold!
-		// white could move Kc6, which would result in this again: "8/8/2K5/8/7k/8/8/6q1 b - - 9 64" 
-		performTest(500);
-	}
-	
-	@Test
-	public void test_avoidDraw_lichess_hash_table_drawchecker2() throws InterruptedException, IOException {
-		setupEngine();
-		// Setup Commands specific to this test
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/2K5/8/7k/8/8/6q1 b - - 0 60"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR,BEST_PREFIX+"g1g2"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/2K5/7k/8/6q1/8 b - - 0 61"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR,BEST_PREFIX+"g2g1"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/2K5/8/7k/8/8/6q1 b - - 0 62"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"4"+CMD_TERMINATOR,BEST_PREFIX+"g1g2"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/2K5/7k/8/6q1/8 b - - 0 63"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"4"+CMD_TERMINATOR,BEST_PREFIX+"g2g5"+CMD_TERMINATOR));
-		// can make it fail by playing with the search depths - indicating an error...
 		// results in new position and avoids the draw by 3-fold!
 		// white could move Kc6, which would result in this again: "8/8/2K5/8/7k/8/8/6q1 b - - 9 64" 
 		performTest(500);
@@ -193,10 +174,6 @@ public class EubosEngineMainTest {
 	public void test_avoidDraw_lichess_hash_table_draw_error() throws InterruptedException, IOException {
 		setupEngine();
 		// Setup Commands specific to this test
-		//commands.add(new commandPair(POS_FEN_PREFIX+"7k/1R6/p7/P5pp/2B1rP1P/2P2R1K/3r4/4b3 w - - 2 46"+CMD_TERMINATOR, null));
-		//commands.add(new commandPair(GO_WTIME_PREFIX+"72000"+CMD_TERMINATOR,BEST_PREFIX+"h4g5"+CMD_TERMINATOR));
-		//commands.add(new commandPair(POS_FEN_PREFIX+"7k/1R6/p7/P5Pp/2r2P2/2P2R1K/3r4/4b3 w - - 0 47"+CMD_TERMINATOR, null));
-		//commands.add(new commandPair(GO_WTIME_PREFIX+"67000"+CMD_TERMINATOR,BEST_PREFIX+"b7b8"+CMD_TERMINATOR));
 		commands.add(new commandPair(POS_FEN_PREFIX+"1R6/7k/p7/P5Pp/2r2P2/2P2R1K/3r4/4b3 w - - 2 48"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_WTIME_PREFIX+"62000"+CMD_TERMINATOR,BEST_PREFIX+"f3e3"+CMD_TERMINATOR));
 		commands.add(new commandPair(POS_FEN_PREFIX+"1R6/8/p5k1/P5Pp/2r2P2/2P1R2K/3r4/4b3 w - - 4 49"+CMD_TERMINATOR, null));
@@ -207,7 +184,7 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(GO_WTIME_PREFIX+"46700"+CMD_TERMINATOR,BEST_PREFIX+"e3e6"+CMD_TERMINATOR));
 		// Got an exception whilst searching final move, because the hashed move no longer existed on the board
 		// this occurred when building the principal continuation, because the store of transposition happened in the wrong ply...
-		performTest(30000);
+		performTest(3000);
 	}
 	
 	@Test
@@ -216,17 +193,17 @@ public class EubosEngineMainTest {
 		setupEngine();
 		// Setup Commands specific to this test
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(/*GO_BTIME_PREFIX+"15300"*/GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b3b4"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b3b4"+CMD_TERMINATOR));
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/1k6/p7/8/1K6 b - - 7 63"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(/*GO_BTIME_PREFIX+"13800"*/GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4b5"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4b3"+CMD_TERMINATOR));
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/1k6/8/p7/K7/8 b - - 9 64"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(/*GO_BTIME_PREFIX+"12500"*/GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b5b4"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b5b4"+CMD_TERMINATOR));
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/1k6/p7/8/1K6 b - - 11 65"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(/*GO_BTIME_PREFIX+"11200"*/GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4b5"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4b5"+CMD_TERMINATOR));
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/1k6/8/p7/K7/8 b - - 13 66"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(/*GO_BTIME_PREFIX+"10000"*/GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b5a4"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b5b4"+CMD_TERMINATOR));
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/k7/p7/8/1K6 b - - 15 67"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(/*GO_BTIME_PREFIX+"8800"*/GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"a4a5"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4b5"+CMD_TERMINATOR));
 		performTest(500);
 	}	
 

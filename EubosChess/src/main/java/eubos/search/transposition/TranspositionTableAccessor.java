@@ -8,6 +8,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.board.InvalidPieceException;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
+import eubos.score.IEvaluate;
 import eubos.search.PrincipalContinuation;
 import eubos.search.Score;
 import eubos.search.ScoreTracker;
@@ -20,15 +21,21 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 	
 	private FixedSizeTranspositionTable hashMap;
 	private IPositionAccessors pos;
+	private IChangePosition pm;
 	private ScoreTracker st;
+	private IEvaluate pe;
 	
 	public TranspositionTableAccessor(
 			FixedSizeTranspositionTable transTable,
 			IPositionAccessors pos,
-			ScoreTracker st) {
+			ScoreTracker st,
+			IChangePosition pm,
+			IEvaluate pe) {
 		hashMap = transTable;
 		this.pos = pos;
+		this.pm = pm;
 		this.st = st;
+		this.pe = pe;
 	}
 	
 	public TranspositionEvaluation getTransposition(byte currPly, int depthRequiredPly) {
@@ -62,6 +69,25 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			 ret.trans.getBestMove() == null) {
 			ret.status = TranspositionTableStatus.insufficientNoData;
 		}
+
+		if (ret.trans.getBestMove() != null && (ret.status == TranspositionTableStatus.sufficientTerminalNode || ret.status == TranspositionTableStatus.sufficientRefutation)) {
+			try {
+				pm.performMove(ret.trans.getBestMove());
+			} catch (InvalidPieceException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if (pe.isThreeFoldRepetition(pos.getHash())) {
+				removeTransposition(pos.getHash());
+				ret.status = TranspositionTableStatus.sufficientSeedMoveList;
+			}
+			try {
+				pm.unperformMove();
+			} catch (InvalidPieceException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		return ret;
 	}
 	
@@ -84,6 +110,10 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		}
 		trans = checkForUpdateTrans(currPly, new_trans, trans);
 		return trans;
+	}
+	
+	public void removeTransposition(long hashCode) {
+		hashMap.remove(hashCode);
 	}
 	
 	public void createPrincipalContinuation(PrincipalContinuation pc, byte searchDepthPly, IChangePosition pm) throws InvalidPieceException {

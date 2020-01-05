@@ -69,7 +69,7 @@ public class MiniMaxMoveGenerator implements
 	
 	public short getScore() { return score; }
 	
-	private void initialiseSearchDepthDependentObjects(int searchDepth) {
+	private void initialiseSearchDepthDependentObjects(int searchDepth, IChangePosition pm, IEvaluate pe) {
 		pc = new PrincipalContinuation(searchDepth*SEARCH_PLY_MULTIPLIER);
 		sm.setDepth(searchDepth);
 		sm.clearCurrentMoveNumber();
@@ -78,7 +78,7 @@ public class MiniMaxMoveGenerator implements
 		if (sendInfo)
 			sr.setSendInfo(true);
 		st = new ScoreTracker(searchDepth*SEARCH_PLY_MULTIPLIER, pos.onMoveIsWhite());
-		tta = new TranspositionTableAccessor(tt, pos, st);
+		tta = new TranspositionTableAccessor(tt, pos, st, pm, pe);
 	}
 	
 	@Override
@@ -94,7 +94,7 @@ public class MiniMaxMoveGenerator implements
 	@Override
 	public SearchResult findMove(byte searchDepth, List<GenericMove> lastPc) throws NoLegalMoveException, InvalidPieceException {
 		boolean foundMate = false;
-		initialiseSearchDepthDependentObjects(searchDepth);
+		initialiseSearchDepthDependentObjects(searchDepth, pm, pe);
 		ps = new PlySearcher(tta, st, pc, sm, sr, searchDepth, pm, pos, lastPc, pe);
 		// Start the search reporter task
 		if (sendInfo)

@@ -86,7 +86,7 @@ public class PlySearcher {
 		MoveList ml = null;
 		byte depthRequiredForTerminalNode = initialiseSearchAtPly();
 		
-		TranspositionEvaluation eval = tt.getTransposition(currPly, depthRequiredForTerminalNode);
+		TranspositionEvaluation eval = tt.getTransposition(currPly, depthRequiredForTerminalNode);		
 		switch (eval.status) {
 		case sufficientTerminalNode:
 			theScore = new Score(eval.trans.getScore(), eval.trans.getScoreType());
@@ -356,18 +356,7 @@ public class PlySearcher {
 	private boolean isTerminalNode() {
 		boolean terminalNode = false;
 		if (pe.isThreeFoldRepetition(pos.getHash())) {
-			//System.err.println("isTerminalNode() draw possible: "+pos.getFen());
 			terminalNode = true;
-        	/* 
-        	 * These actions should be done as part of the normal handling of a backed up score, no special case needed :)
-        	 * 
-        	 * Position would result in a draw, score as a terminal node, as it is good/bad for somebody!, in line with current search context /
-        	theScore = new Score(pe.evaluatePosition(), ScoreType.exact); 
-        	st.setBackedUpScoreAtPly(currPly, theScore);
-            // We will now de-recurse, so should make sure the depth searched is correct
-            setDepthSearchedInPly();
-			trans = tt.setTransposition(sm, currPly, trans,
-                    new Transposition(getTransDepth(), theScore, ml, (trans != null) ? trans.getBestMove() : null)); */
 		} else if (currPly == originalSearchDepthRequiredInPly) {
 			if (pe.isQuiescent()) {
 				terminalNode = true;
