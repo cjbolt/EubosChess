@@ -26,10 +26,25 @@ public class DrawChecker {
 	public boolean isPositionDraw(long positionHash) {
 		boolean isDrawn = false;
 		Integer reachedCount = getPositionReachedCount(positionHash);
-		if (reachedCount != null && reachedCount >= 2) {
-			// it will be a draw by 3-fold repetition if we have entered the position twice before
+		if (reachedCount != null && reachedCount >= 3) {
+			/* The position could be claimed as a draw by 3-fold repetition if we have already
+			   entered the position twice before */
 			isDrawn = true;
 		}
 		return isDrawn;
+	}
+
+	public void decrementPositionReachedCount(long posHash) {
+		Integer count = positionCount.get(posHash);
+		if (count == null) {
+			assert false;
+		} else {
+			count-=1;
+			if (count == 0) {
+				positionCount.remove(posHash);
+			} else {
+				positionCount.put(posHash, count);
+			}
+		}
 	}
 }

@@ -25,6 +25,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		new fenParser( this, fenString );
 		hash = new ZobristHashCode(this);
 		pe = new PositionEvaluator(this, dc);
+		this.dc = dc; 
 	}
 	
 	public PositionManager( String fenString) {
@@ -112,6 +113,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return this.pe;
 	}
 	
+	DrawChecker dc;
+	
 	public void performMove( GenericMove move ) throws InvalidPieceException {
 		// Get the piece to move
 		PieceType pieceToMove = theBoard.pickUpPieceAtSquare( move.from );
@@ -145,11 +148,16 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		if (Colour.isWhite(onMove)) {
 			moveNumber++;
 		}
+		// Update the draw checker
+		dc.incrementPositionReachedCount(getHash());
 	}
 	
 	public void unperformMove() throws InvalidPieceException {
 		if ( moveTracker.isEmpty())
 			return;
+		// Update the draw checker
+		dc.decrementPositionReachedCount(getHash());
+		
 		theBoard.setEnPassantTargetSq(null);
 		TrackedMove tm = moveTracker.pop();
 		GenericMove moveToUndo = tm.getMove();

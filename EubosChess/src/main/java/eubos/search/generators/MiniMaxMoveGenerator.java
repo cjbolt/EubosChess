@@ -117,7 +117,15 @@ public class MiniMaxMoveGenerator implements
 		// Select the best move
 		GenericMove bestMove = pc.getBestMove();
 		if (bestMove==null) {
-			throw new NoLegalMoveException();
+			// TODO workaround for draw checker issue, where sometimes we can return null best move...
+			if (lastPc != null && !lastPc.isEmpty()) {
+				bestMove=lastPc.get(0);
+				if (bestMove==null) {
+					throw new NoLegalMoveException();
+				}
+			} else {
+				throw new NoLegalMoveException();
+			}
 		}
 		return new SearchResult(bestMove,foundMate);
 	}

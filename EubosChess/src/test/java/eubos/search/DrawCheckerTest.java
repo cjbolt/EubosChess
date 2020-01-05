@@ -37,6 +37,7 @@ public class DrawCheckerTest {
 		Long hashCode = pm.getHash();
 		sut.incrementPositionReachedCount(hashCode);
 		sut.incrementPositionReachedCount(hashCode);
+		sut.incrementPositionReachedCount(hashCode);
 		assertTrue(sut.isPositionDraw(hashCode));
 	}
 	

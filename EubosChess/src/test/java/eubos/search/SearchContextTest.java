@@ -29,15 +29,14 @@ public class SearchContextTest {
 		pm = new PositionManager(fen, dc);
 		pe = new PositionEvaluator(pm ,dc);
 		sut = new SearchContext(pm, pe.getMaterialEvaluation(), dc);
+		dc.incrementPositionReachedCount(pm.getHash());
 	}
 	
 	private void applyMoveList(GenericMove[] moveList)
 			throws InvalidPieceException {
 		for (GenericMove curr : moveList ) {
-			dc.incrementPositionReachedCount(pm.getHash());
 			pm.performMove(curr);
 		}
-		dc.incrementPositionReachedCount(pm.getHash());
 	}
 
 	@Test
@@ -90,10 +89,11 @@ public class SearchContextTest {
 	public void test_draw_black() throws InvalidPieceException, IllegalNotationException {
 		setupPosition("7q/1P6/8/8/8/8/2k3PQ/7K b - - 0 42");
 		// set up a draw by repeated check
-		GenericMove [] moveList = new GenericMove[]{new GenericMove("h8a1"),new GenericMove("h2g1"),
-				                                    new GenericMove("a1h8"),new GenericMove("g1h2"),
-				                                    new GenericMove("h8a1"),new GenericMove("h2g1"),
-				                                    new GenericMove("a1h8"),new GenericMove("g1h2")};
+		GenericMove [] moveList = new GenericMove[]{						new GenericMove("h8a1"),
+													new GenericMove("h2g1"),new GenericMove("a1h8"),
+													new GenericMove("g1h2"),new GenericMove("h8a1"),
+													new GenericMove("h2g1"),new GenericMove("a1h8"),
+													new GenericMove("g1h2")};
 		applyMoveList(moveList);
 		MaterialEvaluation current = pe.getMaterialEvaluation();
 		// Good for black as black is trying to draw
@@ -150,12 +150,13 @@ public class SearchContextTest {
 										new GenericMove("g1g2"),
 				new GenericMove("c6c5"),new GenericMove("g2g1"),
 				new GenericMove("c5c6"),new GenericMove("g1g2"),
-				new GenericMove("c6c5"),new GenericMove("g2g1")};
+				new GenericMove("c6c5"),new GenericMove("g2g1"),
+				new GenericMove("c5c6")};
 		
 		applyMoveList(moveList);
 		assertTrue(dc.isPositionDraw(pm.getHash()));
 		MaterialEvaluation current = pe.getMaterialEvaluation();
 		/* - because bad for black, good for white */
-		assertEquals(-SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current));
+		assertEquals(SearchContext.ACHIEVES_DRAW_BONUS, sut.computeSearchGoalBonus(current));
 	}
 }
