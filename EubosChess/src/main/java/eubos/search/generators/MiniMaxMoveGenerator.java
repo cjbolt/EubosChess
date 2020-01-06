@@ -5,6 +5,7 @@ import java.util.List;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.InvalidPieceException;
+import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
@@ -64,7 +65,7 @@ public class MiniMaxMoveGenerator implements
 		callback = eubos;
 		sendInfo = true;
 		score = 0;
-		SearchDebugAgent.open(pos.getMoveNumber());
+		SearchDebugAgent.open(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
 	}
 	
 	public short getScore() { return score; }

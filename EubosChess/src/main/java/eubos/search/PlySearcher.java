@@ -332,13 +332,15 @@ public class PlySearcher {
 	}
 	
 	private Score applyMoveAndScore(GenericMove currMove) throws InvalidPieceException {
-		
-		doPerformMove(currMove);
+		SearchDebugAgent.printPerformMove(currPly, currMove);
+		pm.performMove(currMove);
+		currPly++;
 		Score positionScore = assessNewPosition(currMove);
-		doUnperformMove(currMove);
+		pm.unperformMove();
+		currPly--;
+		SearchDebugAgent.printUndoMove(currPly, currMove);
 		
 		sm.incrementNodesSearched();
-		
 		return positionScore;
 	}
 	
@@ -356,6 +358,7 @@ public class PlySearcher {
 	private boolean isTerminalNode() {
 		boolean terminalNode = false;
 		if (pe.isThreeFoldRepetition(pos.getHash())) {
+			SearchDebugAgent.printRepeatedPositionHash(currPly, pos.getHash());
 			terminalNode = true;
 		} else if (currPly == originalSearchDepthRequiredInPly) {
 			if (pe.isQuiescent()) {
@@ -385,16 +388,4 @@ public class PlySearcher {
 		}
 		return limitReached;
 	}
-
-	private void doPerformMove(GenericMove currMove) throws InvalidPieceException {
-		SearchDebugAgent.printPerformMove(currPly, currMove);
-		pm.performMove(currMove);
-		currPly++;
-	}
-	
-	private void doUnperformMove(GenericMove currMove) throws InvalidPieceException {
-		pm.unperformMove();
-		currPly--;
-		SearchDebugAgent.printUndoMove(currPly, currMove);
-	}	
 }

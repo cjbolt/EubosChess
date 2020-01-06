@@ -18,10 +18,10 @@ public class SearchDebugAgent {
 	private static FileWriter fw;
 	private static String filenameBase = "";
 	
-	public static void open(int moveNumber) {
+	public static void open(int moveNumber, boolean isWhite) {
 		if (isDebugOn) {
 			try {
-				fw = new FileWriter(new File(filenameBase+"_move"+moveNumber+".txt"));
+				fw = new FileWriter(new File(filenameBase+"_move"+moveNumber+"_"+(isWhite?"w":"b")+".txt"));
 			} catch (IOException e) {
 				isDebugOn = false;
 			}
@@ -201,5 +201,13 @@ public class SearchDebugAgent {
 
 	public static void setFileNameBaseString(String dateTime) {
 		filenameBase = dateTime;
+	}
+
+	public static void printRepeatedPositionHash(byte currPly, long hash) {
+		if (isDebugOn) {
+			if ( currPly != lastPly )
+				computeIndent(currPly);
+			printOutput(indent+"3-fold rep @"+currPly+", hash: "+hash);
+		}
 	}
 }

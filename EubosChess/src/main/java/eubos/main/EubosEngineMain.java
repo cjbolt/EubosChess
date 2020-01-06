@@ -105,6 +105,14 @@ public class EubosEngineMain extends AbstractEngine {
 			}
 			// Assign the actual pm
 			fen_to_use = temp_pm.getFen();
+			// unwind the moves made to get the fen so that the draw checker position count is correct
+			for (int i=0; i<command.moves.size(); i++) {
+				try {
+					temp_pm.unperformMove();
+				} catch (InvalidPieceException e) {
+					e.printStackTrace();
+				}
+			}
 		} else {
 			fen_to_use = uci_fen_string;
 		}
@@ -249,7 +257,8 @@ public class EubosEngineMain extends AbstractEngine {
 		this.getProtocol().send(protocolBestMoveCommand);
 		if (protocolBestMoveCommand.bestMove != null) {
 			long hashCode = pm.getHashForMove(protocolBestMoveCommand.bestMove);
-			dc.incrementPositionReachedCount(hashCode);
+			// To do - understand why this increment is not needed
+			//dc.incrementPositionReachedCount(hashCode);
 			if (dc.isPositionDraw(hashCode)) {
 				// need to remove this position from transposition table, as cached score for it doesn't indicate a draw
 				if (hashMap.containsHash(hashCode)) {

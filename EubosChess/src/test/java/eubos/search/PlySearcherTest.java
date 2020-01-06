@@ -48,7 +48,7 @@ public class PlySearcherTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		SearchDebugAgent.open(0);
+		SearchDebugAgent.open(0, true);
 		
 		pc = new PrincipalContinuation(searchDepth*3);
 		sm = new SearchMetrics(searchDepth*3);

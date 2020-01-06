@@ -165,7 +165,7 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"a4a5"+CMD_TERMINATOR));
 		// Got an exception whilst searching final move, because the hashed move no longer existed on the board
 		// this occurred when building the principal continuation, because the store of transposition happened in the wrong ply...
-		performTest(500);
+		performTest(700);
 	}
 	
 	

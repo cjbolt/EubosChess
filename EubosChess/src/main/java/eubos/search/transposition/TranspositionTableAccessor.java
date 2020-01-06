@@ -74,8 +74,11 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			try {
 				pm.performMove(ret.trans.getBestMove());
 				if (pe.isThreeFoldRepetition(pos.getHash())) {
+					currPly+=1;
+					SearchDebugAgent.printRepeatedPositionHash(currPly, pos.getHash());
 					removeTransposition(pos.getHash());
 					ret.status = TranspositionTableStatus.sufficientSeedMoveList;
+					currPly-=1;
 				}
 				pm.unperformMove();
 			} catch (InvalidPieceException e) {

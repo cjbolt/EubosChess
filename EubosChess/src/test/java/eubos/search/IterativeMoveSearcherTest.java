@@ -52,7 +52,7 @@ public class IterativeMoveSearcherTest {
 	@Before
 	public void setUp() throws Exception {
 		eubos = new EubosMock();
-		SearchDebugAgent.open(0);
+		SearchDebugAgent.open(0, true);
 		hashMap = new FixedSizeTranspositionTable();
 	}
 	
