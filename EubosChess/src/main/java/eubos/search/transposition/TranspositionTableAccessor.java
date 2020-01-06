@@ -56,7 +56,6 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 					SearchDebugAgent.printHashIsRefutation(currPly, ret.trans.getBestMove(),pos.getHash());
 					ret.status = TranspositionTableStatus.sufficientRefutation;
 		        } else {
-		        	//ret.status = TranspositionTableStatus.sufficientTerminalNodeInExtendedSearch;
 		        	ret.status = TranspositionTableStatus.sufficientSeedMoveList;
 		        }
 			}
@@ -64,30 +63,26 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			ret.status = TranspositionTableStatus.sufficientSeedMoveList;
 		}
 		
-		// It is possible that we don't have a move to seed the list with, guard against that.
-		if ((ret.status == TranspositionTableStatus.sufficientSeedMoveList) && 
-			 ret.trans.getBestMove() == null) {
-			ret.status = TranspositionTableStatus.insufficientNoData;
-		}
-
-		if (ret.trans.getBestMove() != null && (ret.status == TranspositionTableStatus.sufficientTerminalNode || ret.status == TranspositionTableStatus.sufficientRefutation)) {
+		if (ret.trans.getBestMove() == null) {
+			// It is possible that we don't have a move to seed the list with, guard against that.
+			if (ret.status == TranspositionTableStatus.sufficientSeedMoveList) {
+				ret.status = TranspositionTableStatus.insufficientNoData;
+			}
+		} else if (ret.status == TranspositionTableStatus.sufficientTerminalNode || 
+				   ret.status == TranspositionTableStatus.sufficientRefutation) {
+			// Check hashed position causing a search cut off is still valid (i.e. not a draw)
 			try {
 				pm.performMove(ret.trans.getBestMove());
-			} catch (InvalidPieceException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			if (pe.isThreeFoldRepetition(pos.getHash())) {
-				removeTransposition(pos.getHash());
-				ret.status = TranspositionTableStatus.sufficientSeedMoveList;
-			}
-			try {
+				if (pe.isThreeFoldRepetition(pos.getHash())) {
+					removeTransposition(pos.getHash());
+					ret.status = TranspositionTableStatus.sufficientSeedMoveList;
+				}
 				pm.unperformMove();
 			} catch (InvalidPieceException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
+
 		return ret;
 	}
 	
@@ -112,7 +107,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return trans;
 	}
 	
-	public void removeTransposition(long hashCode) {
+	private void removeTransposition(long hashCode) {
 		hashMap.remove(hashCode);
 	}
 	

@@ -115,7 +115,6 @@ public class EubosEngineMain extends AbstractEngine {
 		dc.incrementPositionReachedCount(hashCode);
 		// need to remove this position from transposition table, as cached score for it doesn't factor for draws
 		if (hashMap.containsHash(hashCode)) {
-			System.err.println("Removing hash "+hashCode+" FEN "+pm.getFen());
 			hashMap.remove(hashCode);
 		}
 	}
