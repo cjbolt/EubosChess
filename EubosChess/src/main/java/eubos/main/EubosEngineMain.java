@@ -20,8 +20,10 @@ import com.fluxchess.jcpi.commands.ProtocolInitializeAnswerCommand;
 import com.fluxchess.jcpi.commands.ProtocolReadyAnswerCommand;
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import com.fluxchess.jcpi.models.*;
+import com.fluxchess.jcpi.protocols.NoProtocolException;
 
 import eubos.board.InvalidPieceException;
+import eubos.board.Piece;
 import eubos.position.PositionManager;
 import eubos.search.SearchDebugAgent;
 import eubos.search.DrawChecker;
@@ -40,13 +42,14 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	private static final byte SEARCH_DEPTH_IN_PLY = 35;
 	
-	private PositionManager pm;
+	PositionManager pm;
 	private AbstractMoveSearcher ms;
 	private FixedSizeTranspositionTable hashMap = null;
-	private DrawChecker dc;
+	DrawChecker dc;
 	
     private static Logger logger = Logger.getLogger("eubos.main");
     private static FileHandler fh; 
+    Piece.Colour lastOnMove = null;
 	
 	public EubosEngineMain() { 
 		super();
@@ -66,6 +69,7 @@ public class EubosEngineMain extends AbstractEngine {
 		LocalDateTime dateTime = LocalDateTime.now();
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy-HH-mm-ss");
 		SearchDebugAgent.setFileNameBaseString(dateTime.format(formatter));
+		lastOnMove = null;
 	}
 
 	public void receive(EngineSetOptionCommand command) {
@@ -87,7 +91,7 @@ public class EubosEngineMain extends AbstractEngine {
 		createPositionFromAnalyseCommand(command);
 	}
 	
-	private void createPositionFromAnalyseCommand(EngineAnalyzeCommand command) {
+	void createPositionFromAnalyseCommand(EngineAnalyzeCommand command) {
 		// This temporary pm is to ensure that the correct position is used to initialise the search 
 		// context in the position evaluator
 		String uci_fen_string = command.board.toString();
@@ -117,10 +121,19 @@ public class EubosEngineMain extends AbstractEngine {
 			fen_to_use = uci_fen_string;
 		}
 		pm = new PositionManager(fen_to_use, dc);
-		// Update the draw checker with the position after the opponents last move
 		long hashCode = pm.getHash();
+		Piece.Colour nowOnMove = pm.getOnMove();
+		if (lastOnMove != null && lastOnMove != nowOnMove) {
+			lastOnMove = nowOnMove;
+			/* Don't increment the position reached count, because it will have already been incremented 
+			 * in the previous send move command */
+		} else {
+			lastOnMove = nowOnMove;
+			// Update the draw checker with the position at the opponents last move
+			hashCode = pm.getHash();
+			dc.incrementPositionReachedCount(hashCode);
+		}
 		logger.info("Position Received, hash = "+hashCode);
-		dc.incrementPositionReachedCount(hashCode);
 		// need to remove this position from transposition table, as cached score for it doesn't factor for draws
 		if (hashMap.containsHash(hashCode)) {
 			hashMap.remove(hashCode);
@@ -254,11 +267,14 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	public void sendBestMoveCommand(ProtocolBestMoveCommand protocolBestMoveCommand) {
-		this.getProtocol().send(protocolBestMoveCommand);
+		try {
+			this.getProtocol().send(protocolBestMoveCommand);
+		} catch (NoProtocolException e) {
+			// In unit tests carry on without the protocol being connected
+		}
 		if (protocolBestMoveCommand.bestMove != null) {
 			long hashCode = pm.getHashForMove(protocolBestMoveCommand.bestMove);
-			// To do - understand why this increment is not needed
-			//dc.incrementPositionReachedCount(hashCode);
+			dc.incrementPositionReachedCount(hashCode);
 			if (dc.isPositionDraw(hashCode)) {
 				// need to remove this position from transposition table, as cached score for it doesn't indicate a draw
 				if (hashMap.containsHash(hashCode)) {

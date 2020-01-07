@@ -14,6 +14,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.Ignore;
 
+import com.fluxchess.jcpi.commands.EngineAnalyzeCommand;
+import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
+import com.fluxchess.jcpi.models.GenericBoard;
+import com.fluxchess.jcpi.models.GenericMove;
+import com.fluxchess.jcpi.models.IllegalNotationException;
+
 public class EubosEngineMainTest {
 
 	private EubosEngineMain classUnderTest;
@@ -205,7 +211,53 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/k7/p7/8/1K6 b - - 15 67"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4b5"+CMD_TERMINATOR));
 		performTest(500);
-	}	
+	}
+	
+	@Test
+	public void test_createPositionFromAnalyseCommand() throws IllegalNotationException {
+		// Black move 62
+		ArrayList<GenericMove> applyMoveList = new ArrayList<GenericMove>();
+		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
+		assertEquals(new Integer(1), classUnderTest.dc.getNumEntries());
+		classUnderTest.sendBestMoveCommand(new ProtocolBestMoveCommand(new GenericMove("b3b4"), null));
+		// White move 63
+		applyMoveList = new ArrayList<GenericMove>();
+		applyMoveList.add(new GenericMove("b3b4"));
+		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
+		assertEquals(new Integer(2), classUnderTest.dc.getNumEntries());
+		classUnderTest.sendBestMoveCommand(new ProtocolBestMoveCommand(new GenericMove("a1a2"), null));
+		// Black move 63
+		applyMoveList = new ArrayList<GenericMove>();
+		applyMoveList.add(new GenericMove("b3b4"));
+		applyMoveList.add(new GenericMove("a1a2"));
+		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
+		assertEquals(new Integer(3), classUnderTest.dc.getNumEntries());
+		classUnderTest.sendBestMoveCommand(new ProtocolBestMoveCommand(new GenericMove("b4a4"), null));
+		// White move 64
+		applyMoveList = new ArrayList<GenericMove>();
+		applyMoveList.add(new GenericMove("b3b4"));
+		applyMoveList.add(new GenericMove("a1a2"));
+		applyMoveList.add(new GenericMove("b4a4"));
+		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
+		assertEquals(new Integer(4), classUnderTest.dc.getNumEntries());
+		classUnderTest.sendBestMoveCommand(new ProtocolBestMoveCommand(new GenericMove("a2b1"), null));
+		//  Black move 64
+		applyMoveList = new ArrayList<GenericMove>();
+		applyMoveList.add(new GenericMove("b3b4"));
+		applyMoveList.add(new GenericMove("a1a2"));
+		applyMoveList.add(new GenericMove("b4a4"));
+		applyMoveList.add(new GenericMove("a2b1"));
+		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
+		assertEquals(new Integer(5), classUnderTest.dc.getNumEntries());
+		classUnderTest.sendBestMoveCommand(new ProtocolBestMoveCommand(new GenericMove("a4a5"), null));
+		System.err.println(classUnderTest.dc.toString());
+		assertEquals(new Integer(6), classUnderTest.dc.getNumEntries());
+		/* The positions are getting double incremented in test_avoidDraw_lichess_hash_table_draw_kpK_rook_pawn_alt
+		 * because Eubos is calculating moves for both black and white. Therefore we double count, once when the 
+		 * bestmove is sent, the again on the next ply when the analyse is received!
+		 */
+		
+	}
 
 	private void performTest(int timeout) throws IOException, InterruptedException {
 		testOutput.flush();

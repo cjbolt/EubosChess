@@ -45,4 +45,12 @@ public class DrawChecker {
 			}
 		}
 	}
+	
+	public Integer getNumEntries() {
+		return positionCount.size();
+	}
+	
+	public String toString() {
+		return positionCount.toString();
+	}
 }
