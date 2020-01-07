@@ -20,7 +20,7 @@ public class PositionEvaluator implements IEvaluate {
 	private SearchContext sc;
 	private DrawChecker dc;
 	
-	public static final int HAS_CASTLED_BOOST_CENTIPAWNS = 150;
+	public static final int HAS_CASTLED_BOOST_CENTIPAWNS = 50;
 	public static final int DOUBLED_PAWN_HANDICAP = 50;
 	public static final int PASSED_PAWN_BOOST = 30;
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 20;

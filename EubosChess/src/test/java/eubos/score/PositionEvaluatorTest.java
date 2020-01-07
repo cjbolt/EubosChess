@@ -34,7 +34,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_evalPosA() {
 		setUpPosition("rn2k1nr/1pp2p1p/p7/8/6b1/2P2N2/PPP2PP1/R1BB1RK1 b kq - 0 12");
-		assertEquals(100, SUT.evaluatePosition()); // Knight good pos, doubled pawns, pawn up
+		assertEquals(110, SUT.evaluatePosition()); // Knight good pos, doubled pawns, pawn up
 	}
 	
 	@Test
@@ -223,7 +223,7 @@ public class PositionEvaluatorTest {
 	public void test2() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("4r3/7P/2k5/1Q5r/P7/6P1/8/6K1 b - - 10 56");
 		assertFalse(SUT.isQuiescent());
-		assertEquals(264, SUT.evaluatePosition());
+		assertEquals(331, SUT.evaluatePosition());
 	}
 	
 	@Test
