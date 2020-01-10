@@ -51,7 +51,7 @@ public class SearchMetrics {
 	}
 	synchronized List<GenericMove> getPrincipalVariation() { return (pvValid ? pv : null);}
 	
-	synchronized short getCpScore() { return cpScore; }
+	public synchronized short getCpScore() { return cpScore; }
 	synchronized void setCpScore(short cpScore) { this.cpScore = cpScore; }
 	
 	synchronized int getDepth() { return depth; }

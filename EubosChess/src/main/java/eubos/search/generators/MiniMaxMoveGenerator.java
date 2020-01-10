@@ -28,7 +28,7 @@ public class MiniMaxMoveGenerator implements
 	private IChangePosition pm;
 	private IPositionAccessors pos;
 	public PrincipalContinuation pc;
-	private SearchMetrics sm;
+	public SearchMetrics sm;
 	private SearchMetricsReporter sr;
 	private boolean sendInfo = false;
 	private EubosEngineMain callback;
