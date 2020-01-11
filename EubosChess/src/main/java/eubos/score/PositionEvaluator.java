@@ -109,4 +109,8 @@ public class PositionEvaluator implements IEvaluate {
 	public boolean isThreeFoldRepetition(Long hashCode) {
 		return dc.isPositionDraw(hashCode);
 	}
+	
+	public SearchContext getSearchContext() {
+		return this.sc;
+	}
 }

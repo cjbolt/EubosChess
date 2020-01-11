@@ -69,7 +69,7 @@ public class PlySearcher {
 		
 		this.st = st;
 		tt = hashMap;
-		sg = new MateScoreGenerator(pos);
+		sg = new MateScoreGenerator(pos, pe.getSearchContext());
 		pcUpdater = new PrincipalContinuationUpdateHelper(pos.getOnMove(), pc, sm, sr);
 	}
 	

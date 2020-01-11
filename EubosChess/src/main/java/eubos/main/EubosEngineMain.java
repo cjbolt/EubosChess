@@ -65,7 +65,7 @@ public class EubosEngineMain extends AbstractEngine {
 
 	public void receive(EngineInitializeRequestCommand command) {
 		logger.fine("Eubos Initialising");
-		this.getProtocol().send( new ProtocolInitializeAnswerCommand("Eubos","Chris Bolt") );
+		this.getProtocol().send( new ProtocolInitializeAnswerCommand("Eubos 1.0.0","Chris Bolt") );
 		LocalDateTime dateTime = LocalDateTime.now();
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy-HH-mm-ss");
 		SearchDebugAgent.setFileNameBaseString(dateTime.format(formatter));

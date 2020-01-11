@@ -64,7 +64,7 @@ public class EubosEngineMainTest {
 	private static final String GO_TIME_CMD = "go movetime 1000"+CMD_TERMINATOR;
 	private static final String QUIT_CMD = "quit"+CMD_TERMINATOR;
 	// Outputs
-	private static final String ID_NAME_CMD = "id name Eubos"+CMD_TERMINATOR;
+	private static final String ID_NAME_CMD = "id name Eubos 1.0.0"+CMD_TERMINATOR;
 	private static final String ID_AUTHOR_CMD = "id author Chris Bolt"+CMD_TERMINATOR;
 	private static final String UCI_OK_CMD = "uciok"+CMD_TERMINATOR;
 	private static final String READY_OK_CMD = "readyok"+CMD_TERMINATOR;

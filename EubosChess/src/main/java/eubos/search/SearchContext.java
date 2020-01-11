@@ -46,6 +46,10 @@ public class SearchContext {
 		}
 	}
 	
+	public boolean isTryForDraw() {
+		return goal == SearchGoal.try_for_draw; 
+	}
+	
 	public short computeSearchGoalBonus(MaterialEvaluation current) {
 		short bonus = 0;
 		// If we just moved, score as according to our game plan

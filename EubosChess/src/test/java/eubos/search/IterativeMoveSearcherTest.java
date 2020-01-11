@@ -155,7 +155,7 @@ public class IterativeMoveSearcherTest {
 	
 	@Test
 	public void test_findMove_mateInThree() throws NoLegalMoveException, IllegalNotationException {
-		setupPosition("2kr3r/ppp2ppp/8/8/1P5P/1K1b1P1N/P3P1P1/4qB1R b - - 3 24", 1000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
+		setupPosition("2kr3r/ppp2ppp/8/8/1P5P/1K1b1P1N/P3P1P1/4qB1R b - - 3 24", 1500*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
 		expectedMove = new GenericMove("e1b1");
 		runSearcherAndTestBestMoveReturned();
 	}

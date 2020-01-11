@@ -2,17 +2,20 @@ package eubos.score;
 
 import eubos.board.Piece.Colour;
 import eubos.position.IPositionAccessors;
+import eubos.search.SearchContext;
 
 public class MateScoreGenerator implements IScoreMate {
 	
 	private IPositionAccessors pos;
 	private Colour initialOnMove;
+	private SearchContext sc;
 
 	public static final int PLIES_PER_MOVE = 2;
 	
-	public MateScoreGenerator(IPositionAccessors pos) {
+	public MateScoreGenerator(IPositionAccessors pos, SearchContext sc) {
 		this.pos = pos;
 		initialOnMove = pos.getOnMove();
+		this.sc = sc;
 	}
 	
 	public short scoreMate(byte currPly) {
@@ -44,7 +47,6 @@ public class MateScoreGenerator implements IScoreMate {
 	}	
 	
 	private short getScoreForStalemate() {
-		// Avoid stalemates by giving them a large penalty score.
-		return -MaterialEvaluator.MATERIAL_VALUE_KING;
+		return sc.isTryForDraw() ? MaterialEvaluator.MATERIAL_VALUE_KING : -MaterialEvaluator.MATERIAL_VALUE_KING;
 	}	
 }
