@@ -19,9 +19,9 @@ import eubos.search.transposition.FixedSizeTranspositionTable;
 
 public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	
+	public static final int AVG_MOVES_PER_GAME = 60;
 	long gameTimeRemaining;
 	short initialScore;
-	public static final int AVG_MOVES_PER_GAME = 60;
 	boolean searchStopped = false;
 
 	public IterativeMoveSearcher(EubosEngineMain eubos, 
@@ -47,9 +47,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		byte currentDepth = 1;
 		SearchResult res = new SearchResult(null, false);
 		List<GenericMove> pc = null;
-		long timeQuota = calculateSearchTimeAllocation();
-		Timestamp msTargetEndTime = new Timestamp(System.currentTimeMillis() + timeQuota);
-		IterativeMoveSearchStopper stopper = new IterativeMoveSearchStopper(msTargetEndTime, initialScore);
+		IterativeMoveSearchStopper stopper = new IterativeMoveSearchStopper(initialScore);
 		stopper.start();
 		while (!searchStopped) {
 			try {
@@ -76,23 +74,16 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		SearchDebugAgent.close();
 	}
 
-	private long calculateSearchTimeAllocation() {
-		int moveHypothesis = (AVG_MOVES_PER_GAME - pos.getMoveNumber());
-		int movesRemaining = (moveHypothesis > 10) ? moveHypothesis : 10;
-		long msPerMove = gameTimeRemaining/movesRemaining;
-		return msPerMove/2;
-	}
-	
 	class IterativeMoveSearchStopper extends Thread {
 		
-		private static final int CHECK_RATE_MS = 100;
-		private Timestamp msTargetEndTime;
+		private static final int CHECK_RATE_MS = 50;
+		private Timestamp nextCheckPointTime;
 		private boolean stopperActive = false;
 		private int checkPoint = 0;
 		private short lastScore = 0;
 		
-		IterativeMoveSearchStopper( Timestamp endTime, short initialScore ) {
-			this.msTargetEndTime = endTime;
+		IterativeMoveSearchStopper(short initialScore) {
+			nextCheckPointTime = new Timestamp(System.currentTimeMillis() + calculateSearchTimeQuanta());
 			lastScore = initialScore;
 		}
 		
@@ -101,7 +92,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			boolean terminateNow = false;
 			do {
 				Timestamp msCurrTime = new Timestamp(System.currentTimeMillis());
-				if (msCurrTime.after(msTargetEndTime)) {
+				if (msCurrTime.after(nextCheckPointTime)) {
 					/* Consider extending time for Search according to following... */
 					short currentScore = mg.sm.getCpScore();
 					switch (checkPoint) {
@@ -129,9 +120,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 					} else {
 						lastScore = currentScore;
 						checkPoint++;
-						// update the target time
-						long timeQuota = calculateSearchTimeAllocation();
-						msTargetEndTime = new Timestamp(System.currentTimeMillis() + timeQuota);
+						nextCheckPointTime = new Timestamp(System.currentTimeMillis() + calculateSearchTimeQuanta());
 					}
 				}
 				try {
@@ -150,6 +139,14 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			synchronized (this) {
 				this.notify();
 			}
+		}
+		
+		private long calculateSearchTimeQuanta() {
+			int moveHypothesis = (AVG_MOVES_PER_GAME - pos.getMoveNumber());
+			int movesRemaining = (moveHypothesis > 10) ? moveHypothesis : 10;
+			long msPerMove = gameTimeRemaining/movesRemaining;
+			long timeQuanta = msPerMove/2;
+			return timeQuanta;
 		}
 	}
 }
