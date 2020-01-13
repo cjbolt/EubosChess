@@ -66,10 +66,11 @@ public class EubosEngineMainTest {
 	// Outputs
 	private static final String ID_NAME_CMD = "id name Eubos 1.0.0"+CMD_TERMINATOR;
 	private static final String ID_AUTHOR_CMD = "id author Chris Bolt"+CMD_TERMINATOR;
+	private static final String OPTION_HASH = "option name Hash type spin default 65 min 32 max 2000"+CMD_TERMINATOR;
 	private static final String UCI_OK_CMD = "uciok"+CMD_TERMINATOR;
 	private static final String READY_OK_CMD = "readyok"+CMD_TERMINATOR;
 	
-	private static final int sleep_10ms = 10;
+	private static final int sleep_50ms = 50;
 	
 	@Before
 	public void setUp() throws IOException {
@@ -86,7 +87,7 @@ public class EubosEngineMainTest {
 		// Stop the Engine TODO: could send quit command over stdin
 		inputToEngine.write(QUIT_CMD);
 		inputToEngine.flush();
-		Thread.sleep(sleep_10ms);
+		Thread.sleep(10);
 		classUnderTest = null;
 		eubosThread = null;
 	}
@@ -268,8 +269,10 @@ public class EubosEngineMainTest {
 			String expectedOutput = currCmdPair.getOut();
 			String parsedCmd= "";
 			// Pass command to engine
-			inputToEngine.write(inputCmd);
-			inputToEngine.flush();
+			if (inputCmd != null) {
+				inputToEngine.write(inputCmd);
+				inputToEngine.flush();
+			}
 			// Test expected command was received
 			if (expectedOutput != null) {
 				boolean received = false;
@@ -277,15 +280,18 @@ public class EubosEngineMainTest {
 				// Receive message or wait for timeout to expire.
 				while (!received && timer<timeout) {
 					// Give the engine thread some CPU time
-					Thread.sleep(sleep_10ms);
-					timer += sleep_10ms;
-					// Ignore any line starting with info
+					Thread.sleep(sleep_50ms);
+					timer += sleep_50ms;
+					testOutput.flush();
 					String recievedCmd = testOutput.toString();
-					System.out.println(recievedCmd);
-					testOutput.reset();
-					parsedCmd = filterInfosOut(recievedCmd);
-					if (expectedOutput.equals(parsedCmd))
-						received = true;
+					if (recievedCmd != null && !recievedCmd.isEmpty()) {
+						System.err.println(recievedCmd);
+						testOutput.reset();
+						// Ignore any line starting with info
+						parsedCmd = filterInfosOut(recievedCmd);
+						if (expectedOutput.equals(parsedCmd))
+							received = true;
+					}
 				}
 				if (!received) {
 					fail(inputCmd + expectedOutput + "command that failed " + (commandNumber-3));
@@ -296,7 +302,7 @@ public class EubosEngineMainTest {
 	}
 
 	private void setupEngine() {
-		commands.add(new commandPair(UCI_CMD, ID_NAME_CMD+ID_AUTHOR_CMD+UCI_OK_CMD));
+		commands.add(new commandPair(UCI_CMD, ID_NAME_CMD+ID_AUTHOR_CMD+OPTION_HASH+UCI_OK_CMD));
 		commands.add(new commandPair(ISREADY_CMD,READY_OK_CMD));
 		commands.add(new commandPair(NEWGAME_CMD,null));
 		commands.add(new commandPair(ISREADY_CMD,READY_OK_CMD));

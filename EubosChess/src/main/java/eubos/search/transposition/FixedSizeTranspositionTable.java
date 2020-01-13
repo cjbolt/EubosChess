@@ -11,24 +11,43 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class FixedSizeTranspositionTable {
 	
+	public static final long ELEMENTS_DEFAULT_HASH_SIZE = (1L << 20);
+	public static final long BYTES_TRANSPOSTION_ELEMENT = (8+32+24);
+	public static final long BYTES_PER_MEGABYTE = (1024L*1000L);
+	public static final long MBYTES_DEFAULT_HASH_SIZE = (ELEMENTS_DEFAULT_HASH_SIZE*BYTES_TRANSPOSTION_ELEMENT)/BYTES_PER_MEGABYTE;
+	
 	private ConcurrentHashMap<Long, Transposition> hashMap = null;
 	private long hashMapSize = 0;
+	private long maxHashMapSize = ELEMENTS_DEFAULT_HASH_SIZE;
 	private ConcurrentHashMap<Long, Integer> accessCount = null;
 	
 	public long getHashMapSize() {
 		return hashMapSize;
 	}
 	
+	public long getHashMapMaxSize() {
+		return maxHashMapSize;
+	}
+	
 	public void remove(long hashCode) {
 		hashMap.remove(hashCode);
 	}
-
-	public static final long MAX_SIZE_OF_HASH_MAP = (1L << 20); 
 	
 	public FixedSizeTranspositionTable() {
-		hashMap = new ConcurrentHashMap<Long, Transposition>((int)MAX_SIZE_OF_HASH_MAP, (float)0.75);
+		this(MBYTES_DEFAULT_HASH_SIZE);
+	}
+	
+	public FixedSizeTranspositionTable(long hashSizeMBytes) {
+		/* Capping hash table - 
+		 * size of hash code 8 bytes
+		 * size of transposition 32 bytes
+		 * generic move 24 bytes
+		 * average move list */
+		long hashSizeElements = (hashSizeMBytes * BYTES_PER_MEGABYTE) / BYTES_TRANSPOSTION_ELEMENT;
+		hashMap = new ConcurrentHashMap<Long, Transposition>((int)hashSizeElements, (float)0.75);
 		accessCount = new ConcurrentHashMap<Long, Integer>();
 		hashMapSize = 0;
+		maxHashMapSize = hashSizeElements;
 	}
 	
 	public boolean containsHash(long hashCode) {
@@ -56,7 +75,7 @@ public class FixedSizeTranspositionTable {
 		Collection<Integer> theAccessCounts = accessCount.values();
 		LinkedList<Integer> list = new LinkedList<Integer>(theAccessCounts);
 		Collections.sort(list);
-		int twentyPercentIndex = (int) (MAX_SIZE_OF_HASH_MAP/5);
+		int twentyPercentIndex = (int) (maxHashMapSize/5);
 		Integer bottomTwentyPercentAccessThreshold = list.get(twentyPercentIndex);
 		LinkedList<Long> removed = new LinkedList<Long>();
 		Iterator<Entry<Long, Integer>> it = accessCount.entrySet().iterator();
@@ -79,7 +98,7 @@ public class FixedSizeTranspositionTable {
 	}
 	
 	public void putTransposition(long hashCode, Transposition trans) {
-		if (hashMapSize >= MAX_SIZE_OF_HASH_MAP) {
+		if (hashMapSize >= maxHashMapSize) {
 			// Remove the oldest 20% of hashes to make way for this one
 			removeLeastUsed();
 		}

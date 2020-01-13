@@ -20,6 +20,7 @@ import com.fluxchess.jcpi.commands.ProtocolInitializeAnswerCommand;
 import com.fluxchess.jcpi.commands.ProtocolReadyAnswerCommand;
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import com.fluxchess.jcpi.models.*;
+import com.fluxchess.jcpi.options.Options;
 import com.fluxchess.jcpi.protocols.NoProtocolException;
 
 import eubos.board.InvalidPieceException;
@@ -65,7 +66,11 @@ public class EubosEngineMain extends AbstractEngine {
 
 	public void receive(EngineInitializeRequestCommand command) {
 		logger.fine("Eubos Initialising");
-		this.getProtocol().send( new ProtocolInitializeAnswerCommand("Eubos 1.0.0","Chris Bolt") );
+		
+		ProtocolInitializeAnswerCommand reply = new ProtocolInitializeAnswerCommand("Eubos 1.0.0","Chris Bolt");
+		reply.addOption(Options.newHashOption((int)FixedSizeTranspositionTable.MBYTES_DEFAULT_HASH_SIZE, 32, 2*1000));
+		this.getProtocol().send( reply );
+		
 		LocalDateTime dateTime = LocalDateTime.now();
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy-HH-mm-ss");
 		SearchDebugAgent.setFileNameBaseString(dateTime.format(formatter));
@@ -73,6 +78,10 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 
 	public void receive(EngineSetOptionCommand command) {
+		// If the GUI has configured the hash table size, reinitialise it at the correct size
+		if (command.name == "Hash") {
+			hashMap = new FixedSizeTranspositionTable(Long.parseLong(command.value));
+		}
 	}
 
 	public void receive(EngineDebugCommand command) {
