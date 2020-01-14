@@ -1,7 +1,6 @@
 package eubos.position;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -14,15 +13,15 @@ import java.util.TreeSet;
 
 import com.fluxchess.jcpi.models.GenericChessman;
 import com.fluxchess.jcpi.models.GenericMove;
+import com.fluxchess.jcpi.models.IntChessman;
 
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece.Colour;
 
 public class MoveList implements Iterable<GenericMove> {
 	
-	private enum MoveClassification {
+	public enum MoveClassification {
 		// In order of natural priority
-		BEST,
 		PROMOTION_AND_CAPTURE_WITH_CHECK,
 		PROMOTION_AND_CAPTURE,
 		PROMOTION,
@@ -33,8 +32,8 @@ public class MoveList implements Iterable<GenericMove> {
 		REGULAR
 	};
 	
-	private GenericMove[] normal_search_moves;
-	private GenericMove[] extended_search_moves;
+	private int[] normal_search_moves;
+	private int[] extended_search_moves;
 	private int normalSearchBestMovePreviousIndex = -1;
 	private int extendedSearchListBestMovePreviousIndex = -1;
 	
@@ -87,17 +86,25 @@ public class MoveList implements Iterable<GenericMove> {
 		normal_search_moves = create_normal_list(moves);
 		extended_search_moves = create_extended_list(moves);
 		
+		int intBestMove = 0;
 		if (bestMove != null) {
-			seedListWithBestMove(normal_search_moves, bestMove);
-			seedListWithBestMove(extended_search_moves, bestMove);
+			for (Map.Entry<GenericMove, MoveClassification> tuple : moves ) {
+				GenericMove currMove = tuple.getKey();
+				if (currMove.equals(bestMove)) {
+					intBestMove = convertGenericMoveToIntMove(bestMove, tuple.getValue());
+					break;
+				}
+			}
+			seedListWithBestMove(normal_search_moves, intBestMove);
+			seedListWithBestMove(extended_search_moves, intBestMove);
 		}
 	}
 	
-	private int getIndex(GenericMove[] moveArray, GenericMove move) {
+	private int getIndex(int[] moveArray, int move) {
 		int index = 0;
 		boolean found = false;
-		for (GenericMove current : moveArray) {
-			if (move.equals(current)) {
+		for (int current : moveArray) {
+			if (move == current) {
 				found = true;
 				break;	
 			}
@@ -109,15 +116,15 @@ public class MoveList implements Iterable<GenericMove> {
 		return index;
 	}
 	
-	private void swapWithFirst(GenericMove[] moveArray, int index) {
+	private void swapWithFirst(int[] moveArray, int index) {
 		if (isMovePresent(index) && index < moveArray.length) {
-			GenericMove temp = moveArray[0];
+			int temp = moveArray[0];
 			moveArray[0] = moveArray[index];
 			moveArray[index] = temp;
 		}
 	}
 	
-	private void seedListWithBestMove(GenericMove[] moveArray, GenericMove newBestMove) {
+	private void seedListWithBestMove(int[] moveArray, int newBestMove) {
 		int index = getIndex(moveArray, newBestMove);
 	    swapWithFirst(moveArray, index);
 	}
@@ -140,34 +147,44 @@ public class MoveList implements Iterable<GenericMove> {
 		return entireMoveList;
 	}
 	
-	GenericMove [] create_normal_list(SortedSet<Map.Entry<GenericMove, MoveClassification>> moves) {
-		GenericMove [] moveArray = new GenericMove[moves.size()];
+	private int convertGenericMoveToIntMove(GenericMove currMove, MoveClassification type) {
+		int targetPosition = Position.valueOf(currMove.to);
+		int originPosition = Position.valueOf(currMove.from);
+		int promotion = (currMove.promotion != null) ? IntChessman.valueOf(currMove.promotion) : IntChessman.NOCHESSMAN;
+		return Move.valueOf(type.ordinal(), originPosition, targetPosition, 0, 0, promotion);
+	}
+	
+	int [] create_normal_list(SortedSet<Map.Entry<GenericMove, MoveClassification>> moves) {
+		int [] moveArray = new int[moves.size()];
 		int index = 0;
 		for (Map.Entry<GenericMove, MoveClassification> tuple : moves ) {
-			moveArray[index++] = tuple.getKey();
+			GenericMove currMove = tuple.getKey();
+			MoveClassification type = tuple.getValue();
+			moveArray[index++] = convertGenericMoveToIntMove(currMove, type);
 		}
 		return moveArray;
 	}
 	
-	GenericMove[] create_extended_list(SortedSet<Map.Entry<GenericMove, MoveClassification>> moves) {
-		List<GenericMove> list = new ArrayList<GenericMove>();
+	int[] create_extended_list(SortedSet<Map.Entry<GenericMove, MoveClassification>> moves) {
+		List<Integer> list = new ArrayList<Integer>();
 		for (Map.Entry<GenericMove, MoveClassification> tuple : moves ) {
 			switch(tuple.getValue()) {
-			case BEST:
 			case PROMOTION:
 			case PROMOTION_AND_CAPTURE_WITH_CHECK:
 			case PROMOTION_AND_CAPTURE:
 			case CAPTURE_WITH_CHECK:
 			case CAPTURE:
 			case CHECK:
-				list.add(tuple.getKey());
+				list.add(convertGenericMoveToIntMove(tuple.getKey(), tuple.getValue()));
 				break;
 			default:
 				break;
 			}
 		}
-		GenericMove[] array = new GenericMove[list.size()];
-        array = list.toArray(array);
+		int[] array = new int[list.size()];
+		for (int i=0; i<array.length; i++) {
+			array[i] = list.get(i);
+		}
 		return array;
 	}
 	
@@ -175,8 +192,11 @@ public class MoveList implements Iterable<GenericMove> {
 
 		private LinkedList<GenericMove> moveList = null;
 	
-		public MovesIterator(GenericMove[] array) {
-			moveList = new LinkedList<GenericMove>(Arrays.asList(array));
+		public MovesIterator(int[] array) {
+			moveList = new LinkedList<GenericMove>();
+			for (int i=0; i<array.length; i++) {
+				moveList.add(Move.toGenericMove(array[i]));
+			}
 		}
 
 		public boolean hasNext() {
@@ -215,17 +235,40 @@ public class MoveList implements Iterable<GenericMove> {
 		if (!isMateOccurred()) {
 			Random randomIndex = new Random();
 			Integer indexToGet = randomIndex.nextInt(normal_search_moves.length);
-			bestMove = normal_search_moves[indexToGet];		
+			bestMove = Move.toGenericMove(normal_search_moves[indexToGet]);		
 		}
 		return bestMove;
 	}
-
+	
 	public void reorderWithNewBestMove(GenericMove newBestMove) {
+		MoveClassification type = MoveClassification.REGULAR;
+		boolean found = false;
+		for (int move : normal_search_moves) {
+			if (Move.getOriginPosition(move) == Position.valueOf(newBestMove.from)
+				&& Move.getTargetPosition(move) == Position.valueOf(newBestMove.to)) {
+				if (newBestMove.promotion != null) {
+					if (IntChessman.valueOf(newBestMove.promotion) == Move.getPromotion(move)) {
+						type = MoveClassification.values()[Move.getType(move)];
+						found = true;
+					}
+				} else {
+					type = MoveClassification.values()[Move.getType(move)];
+					found = true;
+				}
+				break;
+			}
+		}
+		assert found;
+		int newIntBestMove = convertGenericMoveToIntMove(newBestMove, type);
+		reorderWithNewBestMove(newIntBestMove);
+	}
+
+	public void reorderWithNewBestMove(int newBestMove) {
 		normalSearchBestMovePreviousIndex = reorderList(normal_search_moves, newBestMove, normalSearchBestMovePreviousIndex);
 		extendedSearchListBestMovePreviousIndex = reorderList(extended_search_moves, newBestMove, extendedSearchListBestMovePreviousIndex);
 	}
 	
-	private int reorderList(GenericMove[] moveArray, GenericMove newBestMove, int prevBestOriginalIndex) {
+	private int reorderList(int[] moveArray, int newBestMove, int prevBestOriginalIndex) {
 		int index = getIndex(moveArray, newBestMove);
 		if (isMovePresent(index) && !isMoveAlreadyBest(index)) {
 			
