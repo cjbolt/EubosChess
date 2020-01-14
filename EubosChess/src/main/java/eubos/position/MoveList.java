@@ -25,6 +25,7 @@ public class MoveList implements Iterable<GenericMove> {
 		PROMOTION_AND_CAPTURE_WITH_CHECK,
 		PROMOTION_AND_CAPTURE,
 		PROMOTION,
+		OTHER_PROMOTION,
 		CAPTURE_WITH_CHECK,
 		CAPTURE,
 		CASTLE,
@@ -53,6 +54,9 @@ public class MoveList implements Iterable<GenericMove> {
 				} else {
 					MoveClassification moveType;
 					boolean isQueenPromotion = (currMove.promotion == GenericChessman.QUEEN);
+					boolean isPromotion = (currMove.promotion == GenericChessman.BISHOP
+							|| currMove.promotion == GenericChessman.ROOK
+							|| currMove.promotion == GenericChessman.KNIGHT);
 					boolean isCapture = pm.lastMoveWasCapture();
 					boolean isCheck = pm.isKingInCheck(Colour.getOpposite(onMove));
 					boolean isCastle = pm.lastMoveWasCastle();
@@ -63,6 +67,8 @@ public class MoveList implements Iterable<GenericMove> {
 						moveType = MoveClassification.PROMOTION_AND_CAPTURE;
 					} else if (isQueenPromotion) {
 						moveType = MoveClassification.PROMOTION;
+					} else if (isPromotion) {
+						moveType = MoveClassification.OTHER_PROMOTION;
 					} else if (isCapture && isCheck) {
 						moveType = MoveClassification.CAPTURE_WITH_CHECK;
 					} else if (isCapture) {
@@ -165,6 +171,7 @@ public class MoveList implements Iterable<GenericMove> {
 			case PROMOTION:
 			case PROMOTION_AND_CAPTURE_WITH_CHECK:
 			case PROMOTION_AND_CAPTURE:
+			case OTHER_PROMOTION:
 			case CAPTURE_WITH_CHECK:
 			case CAPTURE:
 			case CHECK:
@@ -233,34 +240,35 @@ public class MoveList implements Iterable<GenericMove> {
 		return bestMove;
 	}
 	
-	private int getMoveTypeFromNormalList(GenericMove genericMove) {
-		MoveClassification type = MoveClassification.REGULAR;
+	public MoveClassification getMoveTypeFromNormalList(GenericMove genericMove) {
+		MoveClassification type = MoveClassification.OTHER_PROMOTION;
 		boolean found = false;
 		for (int move : normal_search_moves) {
 			if (Move.getOriginPosition(move) == Position.valueOf(genericMove.from)
 				&& Move.getTargetPosition(move) == Position.valueOf(genericMove.to)) {
-				if (genericMove.promotion != null) {
-					if (IntChessman.valueOf(genericMove.promotion) == Move.getPromotion(move)) {
+				if (genericMove.promotion != null && genericMove.promotion.isLegalPromotion()) {
+					if (IntChessman.valueOfPromotion(genericMove.promotion) == Move.getPromotion(move)) {
 						type = MoveClassification.values()[Move.getType(move)];
 						found = true;
+						break;
 					}
 				} else {
 					type = MoveClassification.values()[Move.getType(move)];
 					found = true;
+					break;
 				}
-				break;
 			}
 		}
-		assert found;
-		return Move.toMove(genericMove, type);
+		assert found : genericMove;
+		return type;
 	}
 	
 	public void reorderWithNewBestMove(GenericMove newBestMove) {
-		int move = getMoveTypeFromNormalList(newBestMove);
+		int move = Move.toMove(newBestMove, getMoveTypeFromNormalList(newBestMove));
 		reorderWithNewBestMove(move);
 	}
 
-	private void reorderWithNewBestMove(int newBestMove) {
+	public void reorderWithNewBestMove(int newBestMove) {
 		normalSearchBestMovePreviousIndex = reorderList(normal_search_moves, newBestMove, normalSearchBestMovePreviousIndex);
 		extendedSearchListBestMovePreviousIndex = reorderList(extended_search_moves, newBestMove, extendedSearchListBestMovePreviousIndex);
 	}

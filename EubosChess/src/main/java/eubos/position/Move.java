@@ -18,19 +18,19 @@ import eubos.position.MoveList.MoveClassification;
  * 22 - 26: the target piece (optional)
  * 27 - 29: the promotion chessman (optional)
  */
-final class Move {
+public final class Move {
 	
 	private static final int TYPE_SHIFT = 0;
-	private static final int TYPE_MASK = /*Type.MASK*/0x7 << TYPE_SHIFT;
-	private static final int ORIGINPOSITION_SHIFT = 3;
+	private static final int TYPE_MASK = /*Type.MASK*/0xF << TYPE_SHIFT;
+	private static final int ORIGINPOSITION_SHIFT = 4;
 	private static final int ORIGINPOSITION_MASK = Position.MASK << ORIGINPOSITION_SHIFT;
-	private static final int TARGETPOSITION_SHIFT = 10;
+	private static final int TARGETPOSITION_SHIFT = 11;
 	private static final int TARGETPOSITION_MASK = Position.MASK << TARGETPOSITION_SHIFT;
-	private static final int ORIGINPIECE_SHIFT = 17;
+	private static final int ORIGINPIECE_SHIFT = 18;
 	private static final int ORIGINPIECE_MASK = IntPiece.MASK << ORIGINPIECE_SHIFT;
-	private static final int TARGETPIECE_SHIFT = 22;
+	private static final int TARGETPIECE_SHIFT = 23;
 	private static final int TARGETPIECE_MASK = IntPiece.MASK << TARGETPIECE_SHIFT;
-	private static final int PROMOTION_SHIFT = 27;
+	private static final int PROMOTION_SHIFT = 28;
 	private static final int PROMOTION_MASK = IntChessman.MASK << PROMOTION_SHIFT;
 
 	private Move() {
@@ -42,7 +42,8 @@ final class Move {
 		// Encode move classification
 		assert     type == MoveClassification.PROMOTION_AND_CAPTURE_WITH_CHECK.ordinal()	
 				|| type == MoveClassification.PROMOTION_AND_CAPTURE.ordinal()
-				|| type == MoveClassification.PROMOTION.ordinal()	
+				|| type == MoveClassification.PROMOTION.ordinal()
+				|| type == MoveClassification.OTHER_PROMOTION.ordinal()
 				|| type == MoveClassification.CAPTURE_WITH_CHECK.ordinal()
 				|| type == MoveClassification.CAPTURE.ordinal()	
 				|| type == MoveClassification.CASTLE.ordinal()
@@ -97,7 +98,7 @@ final class Move {
 		int originPosition = getOriginPosition(move);
 		int targetPosition = getTargetPosition(move);
 
-		if (type > MoveClassification.PROMOTION.ordinal()) {
+		if (type > MoveClassification.OTHER_PROMOTION.ordinal()) {
 			return new GenericMove(Position.toGenericPosition(originPosition), Position.toGenericPosition(targetPosition));
 		} else {
 			return new GenericMove(Position.toGenericPosition(originPosition), Position.toGenericPosition(targetPosition), IntChessman.toGenericChessman(getPromotion(move)));

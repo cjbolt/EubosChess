@@ -3,6 +3,7 @@ package eubos.search.transposition;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.position.MoveList;
+import eubos.position.Move;
 import eubos.search.Score;
 import eubos.search.Score.ScoreType;
 
@@ -10,15 +11,15 @@ public class Transposition {
 	private byte depthSearchedInPly;
 	private short score;
 	private MoveList ml;
-	private GenericMove bestMove;
+	private int bestMove;
 	private ScoreType scoreType;
 
 	public Transposition(byte depth, short score, ScoreType scoreType, MoveList ml, GenericMove bestMove) {
+		this.ml = ml;
 		setDepthSearchedInPly(depth);
 		setScore(score);
 		setScoreType(scoreType);
 		setBestMove(bestMove);
-		this.ml = ml;
 	}
 	
 	public Transposition(byte depth, Score score, MoveList ml, GenericMove bestMove) {
@@ -57,10 +58,25 @@ public class Transposition {
 	}
 
 	public GenericMove getBestMove() {
-		return bestMove;
+		if (bestMove == 0)
+			return null;
+		else 
+			return Move.toGenericMove(bestMove);
 	}
 
 	public void setBestMove(GenericMove bestMove) {
+		if (bestMove != null) {
+			this.bestMove = Move.toMove(bestMove, ml.getMoveTypeFromNormalList(bestMove));
+		} else {
+			this.bestMove = 0;
+		}
+	}
+	
+	private int getBestMoveAsInt() {
+		return bestMove;
+	}
+	
+	public void setBestMoveFromInt(int bestMove) {
 		this.bestMove = bestMove;
 	}
 	
@@ -69,7 +85,7 @@ public class Transposition {
 	}
 	
 	public void update(Transposition updateFrom) {
-		this.setBestMove(updateFrom.getBestMove());
+		this.setBestMoveFromInt(updateFrom.getBestMoveAsInt());
 	    this.setDepthSearchedInPly(updateFrom.getDepthSearchedInPly());
 	    this.setScoreType(updateFrom.getScoreType());
 	    this.setScore(updateFrom.getScore());
