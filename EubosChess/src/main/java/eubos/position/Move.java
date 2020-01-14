@@ -84,6 +84,13 @@ final class Move {
 
 		return move;
 	}
+	
+	public static int toMove(GenericMove move, MoveClassification type) {
+		int targetPosition = Position.valueOf(move.to);
+		int originPosition = Position.valueOf(move.from);
+		int promotion = (move.promotion != null) ? IntChessman.valueOf(move.promotion) : IntChessman.NOCHESSMAN;
+		return Move.valueOf(type.ordinal(), originPosition, targetPosition, 0, 0, promotion);
+	}
 
 	public static GenericMove toGenericMove(int move) {
 		int type = getType(move);
