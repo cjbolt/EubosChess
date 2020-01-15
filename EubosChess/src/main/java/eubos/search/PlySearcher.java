@@ -2,12 +2,14 @@ package eubos.search;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.PrimitiveIterator;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.InvalidPieceException;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
+import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.PositionManager;
 import eubos.score.IEvaluate;
@@ -149,7 +151,7 @@ public class PlySearcher {
             setDepthSearchedInPly();
 			trans = tt.setTransposition(sm, currPly, trans, new Transposition(getTransDepth(), theScore, ml, null));
         } else {
-    		Iterator<GenericMove> move_iter = ml.getIterator(isInExtendedSearch());
+    		PrimitiveIterator.OfInt move_iter = ml.getIterator(isInExtendedSearch());
     		if (isSearchRequired(ml, move_iter)) {
     			theScore = actuallySearchMoves(ml, move_iter, trans);
     		} else {
@@ -163,7 +165,7 @@ public class PlySearcher {
         return theScore;
     }
 
-	private Score actuallySearchMoves(MoveList ml, Iterator<GenericMove> move_iter, Transposition trans) throws InvalidPieceException {
+	private Score actuallySearchMoves(MoveList ml, PrimitiveIterator.OfInt move_iter, Transposition trans) throws InvalidPieceException {
 		if (!move_iter.hasNext())
 			return new Score();
 		
@@ -172,7 +174,7 @@ public class PlySearcher {
 		boolean refutationFound = false;
 		ScoreType plyBound = (pos.onMoveIsWhite()) ? ScoreType.lowerBound : ScoreType.upperBound;
 		Score plyScore = new Score((plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE, plyBound);
-		GenericMove currMove = move_iter.next();
+		GenericMove currMove = Move.toGenericMove(move_iter.nextInt());
 		
 		pc.update(currPly, currMove);
 		while(!isTerminated()) {
@@ -208,7 +210,7 @@ public class PlySearcher {
 	            }
 	        }
 			if (move_iter.hasNext()) {
-				currMove = move_iter.next();
+				currMove = Move.toGenericMove(move_iter.nextInt());
 			} else {
 				break;
 			}
@@ -233,7 +235,7 @@ public class PlySearcher {
 	}
 
 	private boolean isSearchRequired(MoveList ml,
-			Iterator<GenericMove> move_iter) throws InvalidPieceException {
+			PrimitiveIterator.OfInt move_iter) throws InvalidPieceException {
 		boolean searchIsNeeded = true;
 		if (isInExtendedSearch() && !move_iter.hasNext()) {
 			// Evaluate material to deduce score, this rules out optimistic appraisal, don't use normal move list.

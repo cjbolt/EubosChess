@@ -2,14 +2,14 @@ package eubos.position;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.PrimitiveIterator;
 import java.util.Random;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.IntConsumer;
 
 import com.fluxchess.jcpi.models.GenericChessman;
 import com.fluxchess.jcpi.models.GenericMove;
@@ -18,7 +18,7 @@ import com.fluxchess.jcpi.models.IntChessman;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece.Colour;
 
-public class MoveList implements Iterable<GenericMove> {
+public class MoveList implements Iterable<Integer> {
 	
 	public enum MoveClassification {
 		// In order of natural priority
@@ -188,41 +188,45 @@ public class MoveList implements Iterable<GenericMove> {
 		return array;
 	}
 	
-	public class MovesIterator implements Iterator<GenericMove> {
+	public class MovesIterator implements PrimitiveIterator.OfInt {
 
-		private LinkedList<GenericMove> moveList = null;
+		private int[] moveList = null;
+		private int next = 0;
 	
 		public MovesIterator(int[] array) {
-			moveList = new LinkedList<GenericMove>();
-			for (int i=0; i<array.length; i++) {
-				moveList.add(Move.toGenericMove(array[i]));
-			}
+			moveList = array.clone();
+			next = 0;
 		}
 
 		public boolean hasNext() {
-			if (!moveList.isEmpty()) {
-				return true;
-			} else {
-				return false;
-			}
+			return next != moveList.length;
 		}
 
-		public GenericMove next() {
-			return moveList.remove();
+		public Integer next() {
+			return moveList[next++];
 		}
 
 		@Override
 		public void remove() {
-			moveList.remove();
+		}
+
+		@Override
+		public void forEachRemaining(IntConsumer action) {
+			
+		}
+
+		@Override
+		public int nextInt() {
+			return moveList[next++];
 		}
 	}
 	
-	public Iterator<GenericMove> getIterator(boolean extended) {
+	public PrimitiveIterator.OfInt getIterator(boolean extended) {
 		return new MovesIterator(extended ? extended_search_moves : normal_search_moves);
 	}
 	
 	@Override
-	public Iterator<GenericMove> iterator() {
+	public PrimitiveIterator.OfInt iterator() {
 		return new MovesIterator(normal_search_moves);
 	}
 		
