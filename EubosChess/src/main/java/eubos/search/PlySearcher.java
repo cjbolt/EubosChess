@@ -1,6 +1,5 @@
 package eubos.search;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.PrimitiveIterator;
 
@@ -11,6 +10,7 @@ import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.position.MoveList;
+import eubos.position.MoveList.MoveClassification;
 import eubos.position.PositionManager;
 import eubos.score.IEvaluate;
 import eubos.score.IScoreMate;
@@ -94,7 +94,7 @@ public class PlySearcher {
 			theScore = new Score(eval.trans.getScore(), eval.trans.getScoreType());
 			pc.clearTreeBeyondPly(currPly);
 			if (doScoreBackup(theScore)) {
-				updatePrincipalContinuation(eval.trans.getBestMove(), theScore.getScore(), true);
+				updatePrincipalContinuation(eval.trans.getBestMoveAsInt(), theScore.getScore(), true);
 			}
 			sm.incrementNodesSearched();
 			break;
@@ -149,7 +149,7 @@ public class PlySearcher {
             st.setBackedUpScoreAtPly(currPly, theScore);
             // We will now de-recurse, so should make sure the depth searched is correct
             setDepthSearchedInPly();
-			trans = tt.setTransposition(sm, currPly, trans, new Transposition(getTransDepth(), theScore, ml, null));
+			trans = tt.setTransposition(sm, currPly, trans, new Transposition(getTransDepth(), theScore, ml, 0));
         } else {
     		PrimitiveIterator.OfInt move_iter = ml.getIterator(isInExtendedSearch());
     		if (isSearchRequired(ml, move_iter)) {
@@ -159,7 +159,7 @@ public class PlySearcher {
     			// and return the position score back down the tree. We always back-up, because it is terminal,
     			// and we need to overwrite any alpha/beta provisional score that was brought down.
     			theScore = st.getBackedUpScoreAtPly(currPly);
-    			trans = tt.setTransposition(sm, currPly, trans, new Transposition((byte)0, theScore, ml, null));
+    			trans = tt.setTransposition(sm, currPly, trans, new Transposition((byte)0, theScore, ml, 0));
     		}
         }
         return theScore;
@@ -174,7 +174,7 @@ public class PlySearcher {
 		boolean refutationFound = false;
 		ScoreType plyBound = (pos.onMoveIsWhite()) ? ScoreType.lowerBound : ScoreType.upperBound;
 		Score plyScore = new Score((plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE, plyBound);
-		GenericMove currMove = Move.toGenericMove(move_iter.nextInt());
+		int currMove = move_iter.nextInt();
 		
 		pc.update(currPly, currMove);
 		while(!isTerminated()) {
@@ -210,7 +210,7 @@ public class PlySearcher {
 	            }
 	        }
 			if (move_iter.hasNext()) {
-				currMove = Move.toGenericMove(move_iter.nextInt());
+				currMove = move_iter.nextInt();
 			} else {
 				break;
 			}
@@ -246,7 +246,7 @@ public class PlySearcher {
 	}
 	
 	private void updatePrincipalContinuation(
-			GenericMove currMove, short positionScore, boolean isATerminalNodeHashHit)
+			int currMove, short positionScore, boolean isATerminalNodeHashHit)
 			throws InvalidPieceException {
 		pc.update(currPly, currMove);
 		if (atRootNode() && !isATerminalNodeHashHit) {
@@ -260,11 +260,14 @@ public class PlySearcher {
 		if (atRootNode() && isTerminated()) {
 			TranspositionEvaluation eval = tt.getTransposition(currPly, dynamicSearchLevelInPly);
 			if (eval != null && eval.trans != null && eval.trans.getBestMove() != null) {
-				pc.update(0, eval.trans.getBestMove());
+				pc.update(0, eval.trans.getBestMoveAsInt());
 			}
 			// Set best move to the previous iteration search result
 			else if (lastPc != null) {
-				pc.update(0, lastPc.get(0));
+				GenericMove lastMove = lastPc.get(0);
+				MoveClassification type = (lastMove.promotion != null) ?  
+						MoveClassification.PROMOTION : MoveClassification.REGULAR;
+				pc.update(0, Move.toMove(lastMove, type));
 			} else {
 				// Just return pc
 			}
@@ -286,11 +289,11 @@ public class PlySearcher {
 		return isInNormalSearch() ? currDepthSearchedInPly: 0;
 	}
 	
-	private void rootNodeInitAndReportingActions(GenericMove currMove) {
+	private void rootNodeInitAndReportingActions(int currMove) {
 		if (atRootNode()) {
 			// When we start to search a move at the root node, clear the principal continuation data
 			pc.clearRowsBeyondPly(currPly);
-			reportMove(currMove);
+			reportMove(Move.toGenericMove(currMove));
 		}
 	}
 
@@ -333,11 +336,11 @@ public class PlySearcher {
 		return ml;
 	}
 	
-	private Score applyMoveAndScore(GenericMove currMove) throws InvalidPieceException {
+	private Score applyMoveAndScore(int currMove) throws InvalidPieceException {
 		SearchDebugAgent.printPerformMove(currPly, currMove);
-		pm.performMove(currMove);
+		pm.performMove(Move.toGenericMove(currMove));
 		currPly++;
-		Score positionScore = assessNewPosition(currMove);
+		Score positionScore = assessNewPosition();
 		pm.unperformMove();
 		currPly--;
 		SearchDebugAgent.printUndoMove(currPly, currMove);
@@ -346,7 +349,7 @@ public class PlySearcher {
 		return positionScore;
 	}
 	
-	private Score assessNewPosition(GenericMove prevMove) throws InvalidPieceException {
+	private Score assessNewPosition() throws InvalidPieceException {
 		Score positionScore = null;
 		if ( isTerminalNode() ) {
 			positionScore = new Score(pe.evaluatePosition(), ScoreType.exact);

@@ -94,14 +94,22 @@ public final class Move {
 	}
 
 	public static GenericMove toGenericMove(int move) {
+		if (move == 0)
+			return null;
+		
 		int type = getType(move);
 		int originPosition = getOriginPosition(move);
 		int targetPosition = getTargetPosition(move);
 
 		if (type > MoveClassification.OTHER_PROMOTION.ordinal()) {
-			return new GenericMove(Position.toGenericPosition(originPosition), Position.toGenericPosition(targetPosition));
+			return new GenericMove(
+					Position.toGenericPosition(originPosition),
+					Position.toGenericPosition(targetPosition));
 		} else {
-			return new GenericMove(Position.toGenericPosition(originPosition), Position.toGenericPosition(targetPosition), IntChessman.toGenericChessman(getPromotion(move)));
+			return new GenericMove(
+					Position.toGenericPosition(originPosition),
+					Position.toGenericPosition(targetPosition),
+					IntChessman.toGenericChessman(getPromotion(move)));
 		}
 	}
 

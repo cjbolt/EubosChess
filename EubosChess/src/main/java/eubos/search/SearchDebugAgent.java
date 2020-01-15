@@ -7,6 +7,7 @@ import java.io.IOException;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.position.IPositionAccessors;
+import eubos.position.Move;
 import eubos.search.transposition.Transposition;
 import eubos.search.Score.ScoreType;
 
@@ -55,19 +56,19 @@ public class SearchDebugAgent {
 		lastPly = currPly;		
 	}
 
-	static void printPerformMove(int currPly, GenericMove currMove) {
+	static void printPerformMove(int currPly, int currMove) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"do("+currMove.toString()+") @"+currPly);
+			printOutput(indent+"do("+Move.toString(currMove)+") @"+currPly);
 		}
 	}
 
-	static void printUndoMove(int currPly, GenericMove currMove) {
+	static void printUndoMove(int currPly, int currMove) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"undo("+currMove.toString()+") @"+currPly);
+			printOutput(indent+"undo("+Move.toString(currMove)+") @"+currPly);
 		}
 	}
 
