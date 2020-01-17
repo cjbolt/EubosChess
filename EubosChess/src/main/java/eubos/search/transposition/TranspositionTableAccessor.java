@@ -120,12 +120,12 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		List<GenericMove> constructed_pc = new ArrayList<GenericMove>(searchDepthPly);
 		for (plies = 0; plies < searchDepthPly; plies++) {
 			/* Apply move and find best move from hash */
-			//GenericMove pcMove = pc.getBestMove(plies); // Check against principal continuation where it is available
+			GenericMove pcMove = pc.getBestMove(plies); // Check against principal continuation where it is available
 		    TranspositionEvaluation eval = this.getTransposition(searchDepthPly-plies);
 			if (eval.status != TranspositionTableStatus.insufficientNoData && eval.trans != null) {
 				GenericMove currMove = eval.trans.getBestMove();
 				if (currMove != null) {
-					//if (pcMove != null) assert currMove == pcMove : "Error: "+pcMove+" != "+currMove+" @ply="+plies;
+					if (pcMove != null) assert currMove.equals(pcMove) : "Error: "+pcMove+" != "+currMove+" @ply="+plies;
 					constructed_pc.add(currMove);
 					pm.performMove(currMove);
 					numMoves++;

@@ -24,7 +24,7 @@ public class Transposition {
 		setDepthSearchedInPly(depth);
 		setScore(score);
 		setScoreType(scoreType);
-		setBestMoveFromInt(bestMove);
+		setBestMove(bestMove);
 	}
 	
 	public Transposition(byte depth, Score score, MoveList ml, int bestMove) {
@@ -32,9 +32,6 @@ public class Transposition {
 	}
 
 	public MoveList getMoveList() {
-		if (ml != null) {
-			ml.reorderWithNewBestMove(bestMove);
-		}
 		return ml;
 	}
 	
@@ -69,31 +66,27 @@ public class Transposition {
 			return Move.toGenericMove(bestMove);
 	}
 
-	public void setBestMove(GenericMove bestMove) {
-		if (bestMove != null) {
-			this.bestMove = Move.toMove(bestMove, ml.getMoveTypeFromNormalList(bestMove));
-		} else {
-			this.bestMove = 0;
-		}
-	}
-	
 	public int getBestMoveAsInt() {
 		return bestMove;
 	}
 	
-	public void setBestMoveFromInt(int bestMove) {
+	public void setBestMove(int bestMove) {
 		this.bestMove = bestMove;
+		if (bestMove != 0) {
+			this.ml.reorderWithNewBestMove(bestMove);
+		}
 	}
 	
 	public String report() {
-		return "trans best:"+bestMove+" dep:"+depthSearchedInPly+" sc:"+score+" type:"+scoreType;
+		return "trans best: "+Move.toString(bestMove)+" dep:"+depthSearchedInPly+" sc:"+score+" type:"+scoreType;
 	}
 	
 	public void update(Transposition updateFrom) {
-		this.setBestMoveFromInt(updateFrom.getBestMoveAsInt());
+		// order is important because setBestMove uses ml
+		this.ml = updateFrom.ml;
 	    this.setDepthSearchedInPly(updateFrom.getDepthSearchedInPly());
 	    this.setScoreType(updateFrom.getScoreType());
 	    this.setScore(updateFrom.getScore());
-	    this.ml = updateFrom.ml;
+	    this.setBestMove(updateFrom.getBestMoveAsInt());
 	}
 }

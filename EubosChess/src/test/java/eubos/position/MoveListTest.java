@@ -279,4 +279,45 @@ public class MoveListTest {
 		assertEquals(original_moves[2], reordered_moves[2]);
 		assertEquals(original_moves[3], reordered_moves[0]);		
 	}
+	
+	@Test
+	public void test_from_lichess_game_after_int_move_change() {
+		setup("6r1/7p/4Pk1P/1p3p2/p1pN4/P1P2KPR/2P5/6r1 b - - 12 44");
+		PrimitiveIterator.OfInt it = classUnderTest.getIterator(NORMAL);
+		int [] original_moves = new int[27];
+		int i=0;
+		String ml = "";
+		while(it.hasNext()) {
+			original_moves[i] = it.nextInt();
+			ml += Move.toGenericMove(original_moves[i]);
+			ml += " ";
+			i+=1;
+		}
+		System.out.println(ml);
+		// ply 1
+		classUnderTest.reorderWithNewBestMove(original_moves[1]); //g8g3
+		classUnderTest.reorderWithNewBestMove(original_moves[1]); //g8g3
+		classUnderTest.reorderWithNewBestMove(original_moves[2]); //g1f1
+		classUnderTest.reorderWithNewBestMove(original_moves[4]); //g1e1
+		// ply 2
+		classUnderTest.reorderWithNewBestMove(original_moves[2]); //g1f1
+		classUnderTest.reorderWithNewBestMove(original_moves[14]); //f6e5
+		classUnderTest.reorderWithNewBestMove(original_moves[22]); //g8d8
+		// ply 3
+		// ply 4
+		// ply 5
+		// ply 6
+		// ply 7
+		// ply 8
+		classUnderTest.reorderWithNewBestMove(original_moves[2]); //??? pv was null
+		classUnderTest.reorderWithNewBestMove(original_moves[6]); //f3f2
+		
+		it = classUnderTest.getIterator(NORMAL);
+		ml = "";
+		while(it.hasNext()) {
+			ml += Move.toGenericMove(it.nextInt());
+			ml += " ";
+		}
+		System.out.println(ml);
+	}
 }

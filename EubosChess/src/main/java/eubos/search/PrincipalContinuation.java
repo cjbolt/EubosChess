@@ -49,6 +49,8 @@ public class PrincipalContinuation {
 			GenericMove currMove = Move.toGenericMove(pc[startPly][currPly]); 
 			if (currMove != null) {
 				mv.add(currMove);
+			} else {
+				break;
 			}
 		}
 		return mv;
