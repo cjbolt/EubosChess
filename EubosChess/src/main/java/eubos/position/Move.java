@@ -197,25 +197,14 @@ public final class Move {
 
 	public static String toString(int move) {
 		String string = "";
-		string += String.format("%d", getType(move));
+		if (move != 0) {
+			string += toGenericMove(move).toString();
 
-		assert getOriginPiece(move) != IntPiece.NOPIECE;
-		string += ":";
-		string += IntPiece.toGenericPiece(getOriginPiece(move));
-
-		string += ":";
-		string += toGenericMove(move).toString();
-
-		if (getTargetPiece(move) != IntPiece.NOPIECE) {
-			string += ":";
-			string += IntPiece.toGenericPiece(getTargetPiece(move));
+			if (getType(move) <= MoveClassification.PROMOTION.ordinal()) {
+				string += ":";
+				string += IntChessman.toGenericChessman(getPromotion(move));
+			}
 		}
-
-		if (getType(move) <= MoveClassification.PROMOTION.ordinal()) {
-			string += ":";
-			string += IntChessman.toGenericChessman(getPromotion(move));
-		}
-
 		return string;
 	}
 

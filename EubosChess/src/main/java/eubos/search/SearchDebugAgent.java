@@ -211,4 +211,20 @@ public class SearchDebugAgent {
 			printOutput(indent+"3-fold rep @"+currPly+", hash: "+hash);
 		}
 	}
+
+	public static void printTransDepthCheck(int currPly, int currentDepth, int newDepth) {
+		if (isDebugOn) {
+			if ( currPly != lastPly )
+				computeIndent(currPly);
+			printOutput(indent+"trans set @"+currPly+", depth curr: "+currentDepth+", depth new: "+newDepth);
+		}		
+	}
+
+	public static void printTransBoundScoreCheck(int currPly, ScoreType currentBound, short score, short score2) {
+		if (isDebugOn) {
+			if ( currPly != lastPly )
+				computeIndent(currPly);
+			printOutput(indent+"trans set @"+currPly+", bound:"+currentBound+", curr score: "+score+", new score: "+score2);
+		}	
+	}
 }

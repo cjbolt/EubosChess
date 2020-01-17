@@ -63,6 +63,10 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			}
 			if (res != null && res.foundMate)
 				break;
+			if (stopper.extraTime) {
+				// don't start a new iteration, we just allow time to complete the current ply
+				searchStopped = true;
+			}
 			pc = mg.pc.toPvList();
 			currentDepth++;
 			if (currentDepth == Byte.MAX_VALUE) {
@@ -79,6 +83,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		private static final int CHECK_RATE_MS = 50;
 		private Timestamp nextCheckPointTime;
 		private boolean stopperActive = false;
+		boolean extraTime = false;
 		private int checkPoint = 0;
 		private short lastScore = 0;
 		
@@ -101,14 +106,16 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 							terminateNow = true;
 						break;
 					case 1:
-						if (currentScore >= (lastScore - 25))
+						if (currentScore >= (initialScore - 25)) {
 							terminateNow = true;
+						}
+						extraTime = true;
 						break;
 					case 3:
 						if (currentScore >= (initialScore - 300))
 							terminateNow = true;
 						break;
-					case 6:
+					case 7:
 						terminateNow = true;
 					default:
 						break;

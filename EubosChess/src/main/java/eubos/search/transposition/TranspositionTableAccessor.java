@@ -154,11 +154,18 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		boolean updateTransposition = false;
 		int currentDepth = current_trans.getDepthSearchedInPly();
 		ScoreType currentBound = current_trans.getScoreType();
-
+		
+		SearchDebugAgent.printTransDepthCheck(currPly, currentDepth, new_trans.getDepthSearchedInPly());
+		
 		if (currentDepth < new_trans.getDepthSearchedInPly()) {
 			updateTransposition = true;
 		} 
 		if (currentDepth == new_trans.getDepthSearchedInPly()) {
+			SearchDebugAgent.printTransBoundScoreCheck(
+					currPly,
+					currentBound,
+					current_trans.getScore(),
+					new_trans.getScore());
 			if (((currentBound == ScoreType.upperBound) || (currentBound == ScoreType.lowerBound)) &&
 					new_trans.getScoreType() == ScoreType.exact) {
 			    updateTransposition = true;

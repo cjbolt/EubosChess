@@ -218,9 +218,12 @@ public class PlySearcher {
 		if (!isTerminated() && isInNormalSearch()) {
 		    if (everBackedUp && backedUpScoreWasExact && !refutationFound && trans != null) {
 		    	// This is the only way a hash and score can be exact.
-		        trans.setScoreType(ScoreType.exact);
-		        plyScore.setExact();
-		        SearchDebugAgent.printExactTrans(currPly, pos.getHash());
+		    	if (trans.getDepthSearchedInPly() == getTransDepth()) {
+		    		// however we need to be careful that the depth is appropriate, we don.t et exact for wrong depth...
+			        trans.setScoreType(ScoreType.exact);
+			        SearchDebugAgent.printExactTrans(currPly, pos.getHash());
+		    	}
+		    	plyScore.setExact();
 		    }
 		}
 		return plyScore;
