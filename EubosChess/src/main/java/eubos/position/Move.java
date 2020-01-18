@@ -2,35 +2,27 @@ package eubos.position;
 
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IntChessman;
-import com.fluxchess.jcpi.models.IntPiece;
 
-import eubos.board.Piece.PieceType;
 import eubos.position.MoveList.MoveClassification;
 
 /**
  * This class represents a move as a int value. The fields are represented by
  * the following bits.
  * <p/>
- *  0 -  2: the type (required)
- *  3 -  9: the origin position (required)
- * 10 - 16: the target position (required)
- * 17 - 21: the origin piece (required)
- * 22 - 26: the target piece (optional)
- * 27 - 29: the promotion chessman (optional)
+ *  0 -  3: the type (required)
+ *  4 - 10: the origin position (required)
+ * 11 - 17: the target position (required)
+ * 18 - 20: the promotion chessman (optional)
  */
 public final class Move {
 	
 	private static final int TYPE_SHIFT = 0;
-	private static final int TYPE_MASK = /*Type.MASK*/0xF << TYPE_SHIFT;
+	private static final int TYPE_MASK = /*MoveClassification.REGULAR.ordinal()-*/0xF << TYPE_SHIFT;
 	private static final int ORIGINPOSITION_SHIFT = 4;
 	private static final int ORIGINPOSITION_MASK = Position.MASK << ORIGINPOSITION_SHIFT;
 	private static final int TARGETPOSITION_SHIFT = 11;
 	private static final int TARGETPOSITION_MASK = Position.MASK << TARGETPOSITION_SHIFT;
-	private static final int ORIGINPIECE_SHIFT = 18;
-	private static final int ORIGINPIECE_MASK = IntPiece.MASK << ORIGINPIECE_SHIFT;
-	private static final int TARGETPIECE_SHIFT = 23;
-	private static final int TARGETPIECE_MASK = IntPiece.MASK << TARGETPIECE_SHIFT;
-	private static final int PROMOTION_SHIFT = 28;
+	private static final int PROMOTION_SHIFT = 18;
 	private static final int PROMOTION_MASK = IntChessman.MASK << PROMOTION_SHIFT;
 
 	private Move() {
@@ -58,25 +50,6 @@ public final class Move {
 		// Encode target position
 		assert (targetPosition & 0x88) == 0;
 		move |= targetPosition << TARGETPOSITION_SHIFT;
-
-		// Encode origin piece
-		assert originPiece == PieceType.WhiteKing.ordinal()
-				|| originPiece == PieceType.WhiteQueen.ordinal()
-				|| originPiece == PieceType.WhiteRook.ordinal()
-				|| originPiece == PieceType.WhiteBishop.ordinal()
-				|| originPiece == PieceType.WhiteKnight.ordinal()
-				|| originPiece == PieceType.WhitePawn.ordinal()
-				|| originPiece == PieceType.BlackKing.ordinal()
-				|| originPiece == PieceType.BlackQueen.ordinal()
-				|| originPiece == PieceType.BlackRook.ordinal()
-				|| originPiece == PieceType.BlackBishop.ordinal()
-				|| originPiece == PieceType.BlackKnight.ordinal()
-				|| originPiece == PieceType.BlackPawn.ordinal();
-		move |= originPiece << ORIGINPIECE_SHIFT;
-
-		// Encode target piece
-		//assert IntPiece.isValid(targetPiece) || targetPiece == IntPiece.NOPIECE;
-		//move |= targetPiece << TARGETPIECE_SHIFT;
 
 		// Encode promotion
 		assert (IntChessman.isValid(promotion) && IntChessman.isValidPromotion(promotion))
@@ -143,36 +116,6 @@ public final class Move {
 		move |= targetPosition << TARGETPOSITION_SHIFT;
 
 		return move;
-	}
-
-	public static int setTargetPositionAndPiece(int move, int targetPosition, int targetPiece) {
-		// Zero out target position and target piece
-		move &= ~TARGETPOSITION_MASK;
-		move &= ~TARGETPIECE_MASK;
-
-		// Encode target position
-		assert (targetPosition & 0x88) == 0;
-		move |= targetPosition << TARGETPOSITION_SHIFT;
-
-		// Encode target piece
-		assert IntPiece.isValid(targetPiece) || targetPiece == IntPiece.NOPIECE;
-		move |= targetPiece << TARGETPIECE_SHIFT;
-
-		return move;
-	}
-
-	public static int getOriginPiece(int move) {
-		int originPiece = (move & ORIGINPIECE_MASK) >>> ORIGINPIECE_SHIFT;
-		assert IntPiece.isValid(originPiece);
-
-		return originPiece;
-	}
-
-	public static int getTargetPiece(int move) {
-		int targetPiece = (move & TARGETPIECE_MASK) >>> TARGETPIECE_SHIFT;
-		assert IntPiece.isValid(targetPiece) || targetPiece == IntPiece.NOPIECE;
-
-		return targetPiece;
 	}
 
 	public static int getPromotion(int move) {
