@@ -277,6 +277,21 @@ public class MoveList implements Iterable<Integer> {
 		extendedSearchListBestMovePreviousIndex = reorderList(extended_search_moves, newBestMove, extendedSearchListBestMovePreviousIndex);
 	}
 	
+	int[] reorderListShuffle(int[] moveArray, int newBestMove) {
+		int index = getIndex(moveArray, newBestMove);
+		if (isMovePresent(index) && !isMoveAlreadyBest(index)) {
+			int [] newMoveArray = moveArray.clone();
+			newMoveArray[0] = moveArray[index];
+			for(int i=0; i < (moveArray.length-1); i++) {
+				if (i != index) {
+					newMoveArray[i+1] = moveArray[i];
+				}
+			}
+			return newMoveArray;
+		}
+		return moveArray;
+	}
+	
 	private int reorderList(int[] moveArray, int newBestMove, int prevBestOriginalIndex) {
 		int index = getIndex(moveArray, newBestMove);
 		if (isMovePresent(index) && !isMoveAlreadyBest(index)) {
