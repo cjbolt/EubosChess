@@ -77,9 +77,12 @@ public final class Position {
   }
 
   public static int valueOf(GenericPosition genericPosition) {
-    assert genericPosition != null;
-
-    return IntRank.valueOf(genericPosition.rank) * 16 + IntFile.valueOf(genericPosition.file);
+    //assert genericPosition != null;
+	int position = Position.NOPOSITION; 
+	if (genericPosition != null) {
+		position = IntRank.valueOf(genericPosition.rank) * 16 + IntFile.valueOf(genericPosition.file);
+	}
+    return position;
   }
 
   public static GenericPosition toGenericPosition(int position) {

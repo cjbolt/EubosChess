@@ -30,12 +30,12 @@ public final class Move {
 	
 	public static int valueOf(int originPosition, int targetPosition)
 	{
-		return Move.valueOf(MoveClassification.NONE.ordinal(),targetPosition,IntChessman.NOCHESSMAN);
+		return Move.valueOf(MoveClassification.NONE.ordinal(), originPosition, targetPosition, IntChessman.NOCHESSMAN);
 	}
 	
 	public static int valueOf(int originPosition, int targetPosition, int promotion)
 	{
-		return Move.valueOf(MoveClassification.NONE.ordinal(),targetPosition,promotion);
+		return Move.valueOf(MoveClassification.NONE.ordinal(), originPosition, targetPosition, promotion);
 	}
 
 	public static int valueOf(int type, int originPosition, int targetPosition, int promotion) {
@@ -50,7 +50,8 @@ public final class Move {
 				|| type == MoveClassification.CAPTURE.ordinal()	
 				|| type == MoveClassification.CASTLE.ordinal()
 				|| type == MoveClassification.CHECK.ordinal()	
-				|| type == MoveClassification.REGULAR.ordinal();
+				|| type == MoveClassification.REGULAR.ordinal()
+				|| type == MoveClassification.NONE.ordinal();
 		move |= type << TYPE_SHIFT;
 
 		// Encode origin position
@@ -175,7 +176,8 @@ public final class Move {
 				|| type == MoveClassification.CAPTURE	
 				|| type == MoveClassification.CASTLE
 				|| type == MoveClassification.CHECK	
-				|| type == MoveClassification.REGULAR;
+				|| type == MoveClassification.REGULAR
+				|| type == MoveClassification.NONE;
 		return move |= type.ordinal() << TYPE_SHIFT;
 	}
 

@@ -5,10 +5,9 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.fluxchess.jcpi.models.GenericPosition;
-
 import eubos.board.Board;
 import eubos.board.SquareAttackEvaluator;
+import eubos.position.Position;
 import eubos.position.PositionManager;
 
 public class SquareAttackEvaluatorTest {
@@ -19,7 +18,7 @@ public class SquareAttackEvaluatorTest {
 	// In all the following unit tests, d5 is used as the test square. i.e. each
 	// test revolves around evaluating whether or not this particular square is 
 	// attacked.
-	private GenericPosition testSq = GenericPosition.d5;
+	private int testSq = Position.d5;
 	
 	private void createClassUnderTest(String fenString) {
 		bm = new PositionManager(fenString);
@@ -37,7 +36,7 @@ public class SquareAttackEvaluatorTest {
 	
 	@Before
 	public void setUp() {
-		this.testSq = GenericPosition.d5;
+		this.testSq = Position.d5;
 	}
 	
 	// Pawn
@@ -156,6 +155,6 @@ public class SquareAttackEvaluatorTest {
 	@Test
 	public void testIsAttacked_MateInOne() {
 		PositionManager pm = new PositionManager("5r1k/p2R3Q/1pp2p1p/8/5q2/5bN1/PP3P2/6K1 b - - - 0");
-		assertTrue(SquareAttackEvaluator.isAttacked(pm.getTheBoard(), GenericPosition.g8, pm.getOnMove()));
+		assertTrue(SquareAttackEvaluator.isAttacked(pm.getTheBoard(), Position.g8, pm.getOnMove()));
 	}
 }

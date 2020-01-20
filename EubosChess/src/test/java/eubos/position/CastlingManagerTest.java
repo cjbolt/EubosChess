@@ -17,11 +17,11 @@ import eubos.position.PositionManager;
 public class CastlingManagerTest {
 
 	protected CastlingManager classUnderTest;
-	private LinkedList<GenericMove> ml; 
+	private LinkedList<Integer> ml; 
 	
 	@Before
 	public void setUp() {
-		ml = new LinkedList<GenericMove>();
+		ml = new LinkedList<Integer>();
 	}
 	
 	@Test
@@ -53,10 +53,10 @@ public class CastlingManagerTest {
 		//   abcdefgh
 		PositionManager pm = new PositionManager("k7/8/8/8/8/8/8/4K2R w K - - -");
 		try {
-			pm.performMove(new GenericMove("h1h2"));
-			pm.performMove(new GenericMove("a8b8"));
-			pm.performMove(new GenericMove("h2h1"));
-			pm.performMove(new GenericMove("b8a8"));
+			pm.performMove(Move.toMove(new GenericMove("h1h2")));
+			pm.performMove(Move.toMove(new GenericMove("a8b8")));
+			pm.performMove(Move.toMove(new GenericMove("h2h1")));
+			pm.performMove(Move.toMove(new GenericMove("b8a8")));
 		} catch (InvalidPieceException e) {
 			e.printStackTrace();
 		}
@@ -78,10 +78,10 @@ public class CastlingManagerTest {
 		//   abcdefgh
 		PositionManager pm = new PositionManager("k7/8/8/8/8/8/8/4K2R w K - - -");
 		try {
-			pm.performMove(new GenericMove("e1e2"));
-			pm.performMove(new GenericMove("a8b8"));
-			pm.performMove(new GenericMove("e2e1"));
-			pm.performMove(new GenericMove("b8a8"));
+			pm.performMove(Move.toMove(new GenericMove("e1e2")));
+			pm.performMove(Move.toMove(new GenericMove("a8b8")));
+			pm.performMove(Move.toMove(new GenericMove("e2e1")));
+			pm.performMove(Move.toMove(new GenericMove("b8a8")));
 		} catch (InvalidPieceException e) {
 			e.printStackTrace();
 		}
@@ -339,14 +339,14 @@ public class CastlingManagerTest {
 
 	private void expectBqscMove() throws IllegalNotationException {
 		GenericMove expectedMove = new GenericMove("e8c8");
-		GenericMove qscMove = ml.get(0);
+		GenericMove qscMove = Move.toGenericMove(ml.get(0));
 		assertTrue(qscMove != null);
 		assertTrue(expectedMove.equals(qscMove));
 	}
 	
 	private void expectWkscMove() throws IllegalNotationException {
 		GenericMove expectedMove = new GenericMove("e1g1");
-		GenericMove kscMove = ml.get(0);
+		GenericMove kscMove = Move.toGenericMove(ml.get(0));
 		assertTrue(kscMove != null);
 		assertTrue(expectedMove.equals(kscMove));
 	}
