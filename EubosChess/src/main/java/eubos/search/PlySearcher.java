@@ -341,7 +341,7 @@ public class PlySearcher {
 	
 	private Score applyMoveAndScore(int currMove) throws InvalidPieceException {
 		SearchDebugAgent.printPerformMove(currPly, currMove);
-		pm.performMove(Move.toGenericMove(currMove));
+		pm.performMove(currMove);
 		currPly++;
 		Score positionScore = assessNewPosition();
 		pm.unperformMove();

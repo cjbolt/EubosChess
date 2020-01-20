@@ -25,6 +25,7 @@ import com.fluxchess.jcpi.protocols.NoProtocolException;
 
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
+import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.search.SearchDebugAgent;
 import eubos.search.DrawChecker;
@@ -109,7 +110,7 @@ public class EubosEngineMain extends AbstractEngine {
 			PositionManager temp_pm = new PositionManager(uci_fen_string, dc);
 			try {
 				for (GenericMove nextMove : command.moves) {
-					temp_pm.performMove(nextMove);
+					temp_pm.performMove(Move.toMove(nextMove));
 				}
 			} catch(InvalidPieceException e ) {
 				System.out.println( 

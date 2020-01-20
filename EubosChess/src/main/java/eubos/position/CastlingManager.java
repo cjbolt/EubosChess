@@ -97,20 +97,20 @@ class CastlingManager {
 		PieceType rookToCastle = PieceType.NONE;
 		if (move.equals(wksc)) {
 			// Perform secondary white king side castle rook move
-			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.h1 );
-			pm.getTheBoard().setPieceAtSquare( GenericPosition.f1, rookToCastle );
+			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.h1 );
+			pm.getTheBoard().setPieceAtSquare( Position.f1, rookToCastle );
 		} else if (move.equals(wqsc)) {
 			// Perform secondary white queen side castle rook move
-			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.a1 );
-			pm.getTheBoard().setPieceAtSquare( GenericPosition.d1, rookToCastle );
+			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.a1 );
+			pm.getTheBoard().setPieceAtSquare( Position.d1, rookToCastle );
 		} else if (move.equals(bksc)) {
 			// Perform secondary black king side castle rook move
-			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.h8 );
-			pm.getTheBoard().setPieceAtSquare( GenericPosition.f8, rookToCastle );
+			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.h8 );
+			pm.getTheBoard().setPieceAtSquare( Position.f8, rookToCastle );
 		} else if (move.equals(bqsc)) {
 			// Perform secondary black queen side castle rook move
-			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.a8 );
-			pm.getTheBoard().setPieceAtSquare( GenericPosition.d8, rookToCastle );
+			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.a8 );
+			pm.getTheBoard().setPieceAtSquare( Position.d8, rookToCastle );
 		}
 	}
 
@@ -118,24 +118,24 @@ class CastlingManager {
 		PieceType rookToCastle = PieceType.NONE;
 		if (move.equals(undo_wksc)) {
 			// Perform secondary king side castle rook move
-			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.f1 );
-			pm.getTheBoard().setPieceAtSquare( GenericPosition.h1, rookToCastle );
+			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.f1 );
+			pm.getTheBoard().setPieceAtSquare( Position.h1, rookToCastle );
 		} else	if (move.equals(undo_wqsc)) {
 			// Perform secondary queen side castle rook move
-			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.d1 );
-			pm.getTheBoard().setPieceAtSquare( GenericPosition.a1, rookToCastle );
+			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.d1 );
+			pm.getTheBoard().setPieceAtSquare( Position.a1, rookToCastle );
 		} else if (move.equals(undo_bksc)) {
 			// Perform secondary king side castle rook move
-			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.f8 );
-			pm.getTheBoard().setPieceAtSquare( GenericPosition.h8, rookToCastle );
+			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.f8 );
+			pm.getTheBoard().setPieceAtSquare( Position.h8, rookToCastle );
 		} else if (move.equals(undo_bqsc)) {
 			// Perform secondary queen side castle rook move
-			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( GenericPosition.d8 );
-			pm.getTheBoard().setPieceAtSquare( GenericPosition.a8, rookToCastle );
+			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.d8 );
+			pm.getTheBoard().setPieceAtSquare( Position.a8, rookToCastle );
 		}
 	}
 
-	void addCastlingMoves(List<GenericMove> ml) {
+	void addCastlingMoves(List<Integer> ml) {
 		// The side on move should not have previously castled
 		Colour onMove = pm.getOnMove();
 		if ( !castlingAvaillable(onMove))
@@ -158,7 +158,7 @@ class CastlingManager {
 			}
 		}
 		if ( ksc != null )
-			ml.add(ksc);
+			ml.add(Move.toMove(ksc));
 		// Check for castling queen side
 		GenericMove qsc = null;
 		if (Colour.isWhite(onMove) && whiteQsAvail) {
@@ -177,7 +177,7 @@ class CastlingManager {
 			}
 		}
 		if ( qsc != null )
-			ml.add(qsc);
+			ml.add(Move.toMove(qsc));
 	}
 	
 	boolean isWhiteKsAvail() {
@@ -215,7 +215,7 @@ class CastlingManager {
 			GenericPosition [] emptySqs) throws Exception {
 		Board theBoard = pm.getTheBoard();
 		// Safeguard that the piece on the rook square is a rook, n.b. this shouldn't be needed
-		PieceType theRook = theBoard.getPieceAtSquare(rookSq);
+		PieceType theRook = theBoard.getPieceAtSquare(Position.valueOf(rookSq));
 		if (theRook==PieceType.NONE)
 		{
 			throw new Exception("There was no piece on the castle rook square! This means castling flags are inconsistent with the position.");
@@ -226,12 +226,12 @@ class CastlingManager {
 		}
 		// All the intervening squares between King and Rook should be empty
 		for ( GenericPosition emptySq : emptySqs ) {
-			if ( !theBoard.squareIsEmpty(emptySq))
+			if ( !theBoard.squareIsEmpty(Position.valueOf(emptySq)))
 				return false;
 		}
 		// King cannot move through an attacked square
 		for (GenericPosition sqToCheck: checkSqs) {
-			if (theBoard.squareIsAttacked(sqToCheck, pm.getOnMove())) {
+			if (theBoard.squareIsAttacked(Position.valueOf(sqToCheck), pm.getOnMove())) {
 				return false;
 			}
 		}

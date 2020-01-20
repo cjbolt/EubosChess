@@ -11,7 +11,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.IntConsumer;
 
-import com.fluxchess.jcpi.models.GenericChessman;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IntChessman;
 
@@ -45,19 +44,19 @@ public class MoveList implements Iterable<Integer> {
 	
 	public MoveList(PositionManager pm, GenericMove bestMove) {
 		// N.b. Need to use a linked hash map to ensure that the search order is deterministic.
-		Map<GenericMove, MoveClassification> moveMap = new LinkedHashMap<GenericMove, MoveClassification>();
+		Map<Integer, MoveClassification> moveMap = new LinkedHashMap<Integer, MoveClassification>();
 		Colour onMove = pm.getOnMove();
-		for (GenericMove currMove : getRawList(pm)) {
+		for (Integer currMove : getRawList(pm)) {
 			try {
 				pm.performMove(currMove);
 				if (pm.isKingInCheck(onMove)) {
 					// Scratch any moves resulting in the king being in check
 				} else {
 					MoveClassification moveType;
-					boolean isQueenPromotion = (currMove.promotion == GenericChessman.QUEEN);
-					boolean isPromotion = (currMove.promotion == GenericChessman.BISHOP
-							|| currMove.promotion == GenericChessman.ROOK
-							|| currMove.promotion == GenericChessman.KNIGHT);
+					boolean isQueenPromotion = (Move.getPromotion(currMove) == IntChessman.QUEEN);
+					boolean isPromotion = (Move.getPromotion(currMove) == IntChessman.BISHOP
+							|| Move.getPromotion(currMove) == IntChessman.ROOK
+							|| Move.getPromotion(currMove) == IntChessman.KNIGHT);
 					boolean isCapture = pm.lastMoveWasCapture();
 					boolean isCheck = pm.isKingInCheck(Colour.getOpposite(onMove));
 					boolean isCastle = pm.lastMoveWasCastle();
@@ -89,16 +88,16 @@ public class MoveList implements Iterable<Integer> {
 			}
 		}
 		
-		SortedSet<Map.Entry<GenericMove, MoveClassification>> moves = entriesSortedByValues(moveMap);
+		SortedSet<Map.Entry<Integer, MoveClassification>> moves = entriesSortedByValues(moveMap);
 		normal_search_moves = create_normal_list(moves);
 		extended_search_moves = create_extended_list(moves);
 		
 		int intBestMove = 0;
 		if (bestMove != null) {
-			for (Map.Entry<GenericMove, MoveClassification> tuple : moves ) {
-				GenericMove currMove = tuple.getKey();
-				if (currMove.equals(bestMove)) {
-					intBestMove = Move.toMove(bestMove, tuple.getValue());
+			for (Map.Entry<Integer, MoveClassification> tuple : moves ) {
+				int currMove = tuple.getKey();
+				if (currMove == Move.toMove(bestMove)) {
+					intBestMove = Move.setType(Move.toMove(bestMove), tuple.getValue());
 					break;
 				}
 			}
@@ -149,25 +148,25 @@ public class MoveList implements Iterable<Integer> {
 	    return sortedEntries;
 	}
 	
-	private List<GenericMove> getRawList(PositionManager pm) {
-		List<GenericMove> entireMoveList = pm.generateMoves();
+	private List<Integer> getRawList(PositionManager pm) {
+		List<Integer> entireMoveList = pm.generateMoves();
 		return entireMoveList;
 	}
 	
-	int [] create_normal_list(SortedSet<Map.Entry<GenericMove, MoveClassification>> moves) {
+	int [] create_normal_list(SortedSet<Map.Entry<Integer, MoveClassification>> moves) {
 		int [] moveArray = new int[moves.size()];
 		int index = 0;
-		for (Map.Entry<GenericMove, MoveClassification> tuple : moves ) {
-			GenericMove currMove = tuple.getKey();
+		for (Map.Entry<Integer, MoveClassification> tuple : moves ) {
+			int currMove = tuple.getKey();
 			MoveClassification type = tuple.getValue();
-			moveArray[index++] = Move.toMove(currMove, type);
+			moveArray[index++] = Move.setType(currMove, type);
 		}
 		return moveArray;
 	}
 	
-	int[] create_extended_list(SortedSet<Map.Entry<GenericMove, MoveClassification>> moves) {
+	int[] create_extended_list(SortedSet<Map.Entry<Integer, MoveClassification>> moves) {
 		List<Integer> list = new ArrayList<Integer>();
-		for (Map.Entry<GenericMove, MoveClassification> tuple : moves ) {
+		for (Map.Entry<Integer, MoveClassification> tuple : moves ) {
 			switch(tuple.getValue()) {
 			case PROMOTION:
 			case PROMOTION_AND_CAPTURE_WITH_CHECK:
@@ -176,7 +175,7 @@ public class MoveList implements Iterable<Integer> {
 			case CAPTURE_WITH_CHECK:
 			case CAPTURE:
 			case CHECK:
-				list.add(Move.toMove(tuple.getKey(), tuple.getValue()));
+				list.add(Move.setType(tuple.getKey(), tuple.getValue()));
 				break;
 			default:
 				break;

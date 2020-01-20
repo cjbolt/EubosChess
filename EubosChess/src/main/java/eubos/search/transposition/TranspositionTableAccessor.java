@@ -8,6 +8,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.board.InvalidPieceException;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
+import eubos.position.Move;
 import eubos.score.IEvaluate;
 import eubos.search.PrincipalContinuation;
 import eubos.search.Score;
@@ -72,7 +73,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 				   ret.status == TranspositionTableStatus.sufficientRefutation) {
 			// Check hashed position causing a search cut off is still valid (i.e. not a draw)
 			try {
-				pm.performMove(ret.trans.getBestMove());
+				pm.performMove(ret.trans.getBestMoveAsInt());
 				if (pe.isThreeFoldRepetition(pos.getHash())) {
 					currPly+=1;
 					SearchDebugAgent.printRepeatedPositionHash(currPly, pos.getHash());
@@ -127,7 +128,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 				if (currMove != null) {
 					if (pcMove != null && (eval.trans.getDepthSearchedInPly() <= (searchDepthPly-plies))) assert currMove.equals(pcMove) : "Error: "+pcMove+" != "+currMove+" @ply="+plies;
 					constructed_pc.add(currMove);
-					pm.performMove(currMove);
+					pm.performMove(Move.toMove(currMove));
 					numMoves++;
 				}
 			}

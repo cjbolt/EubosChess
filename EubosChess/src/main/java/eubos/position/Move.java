@@ -161,4 +161,22 @@ public final class Move {
 		return string;
 	}
 
+	public static int toMove(GenericMove move) {
+		return Move.toMove(move, MoveClassification.NONE);
+	}
+
+	public static int setType(int move, MoveClassification type) {
+
+		assert type == MoveClassification.PROMOTION_AND_CAPTURE_WITH_CHECK	
+				|| type == MoveClassification.PROMOTION_AND_CAPTURE
+				|| type == MoveClassification.PROMOTION
+				|| type == MoveClassification.OTHER_PROMOTION
+				|| type == MoveClassification.CAPTURE_WITH_CHECK
+				|| type == MoveClassification.CAPTURE	
+				|| type == MoveClassification.CASTLE
+				|| type == MoveClassification.CHECK	
+				|| type == MoveClassification.REGULAR;
+		return move |= type.ordinal() << TYPE_SHIFT;
+	}
+
 }

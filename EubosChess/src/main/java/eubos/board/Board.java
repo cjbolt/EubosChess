@@ -2,6 +2,7 @@ package eubos.board;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,7 +13,6 @@ import eubos.board.Piece.Colour;
 import eubos.board.Piece.PieceType;
 import eubos.position.Position;
 
-import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IntRank;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.GenericFile;
@@ -35,10 +35,10 @@ public class Board implements Iterable<Integer> {
 	
 	
 	
-	private static final Map<GenericPosition, List<BitBoard>> RankFileMask_Lut = new EnumMap<GenericPosition, List<BitBoard>>(GenericPosition.class);
+	private static final Map<Integer, List<BitBoard>> RankFileMask_Lut = new HashMap<Integer, List<BitBoard>>();
 	static {
 		Direction [] rankFile = { Direction.left, Direction.up, Direction.right, Direction.down };
-		for (GenericPosition square : GenericPosition.values()) {
+		for (int square : Position.values) {
 			List<BitBoard> array = new ArrayList<BitBoard>();
 			for (int index=1; index<8; index++) {
 				createMask(square, array, index, rankFile);
@@ -46,7 +46,7 @@ public class Board implements Iterable<Integer> {
 			RankFileMask_Lut.put(square, array);
 		}
 	}
-	static private void createMask(GenericPosition square, List<BitBoard> array, int index, Direction [] directions) {
+	static private void createMask(int square, List<BitBoard> array, int index, Direction [] directions) {
 		Long currMask = 0L;
 		for (Direction dir: directions) {
 			currMask = setAllInDirection(dir, square, currMask, index);
@@ -61,21 +61,21 @@ public class Board implements Iterable<Integer> {
 			array.add(toAdd);
 		}
 	}
-	static private Long setAllInDirection(Direction dir, GenericPosition fromSq, Long currMask, int index) {
-		int newSquare = Position.valueOf(fromSq);
+	static private Long setAllInDirection(Direction dir, int fromSq, Long currMask, int index) {
+		int newSquare = fromSq;
 		for (int i=0; i < index; i++) {
 			if (newSquare != Position.NOPOSITION)
 				newSquare = Direction.getDirectMoveSq(dir, newSquare);
 			if (newSquare != Position.NOPOSITION)
-				currMask |= BitBoard.positionToMask_Lut[newSquare];
+				currMask |= BitBoard.positionToMask_Lut[newSquare].getValue();
 		}
 		return currMask;
 	}
 	
-	private static final Map<GenericPosition, List<BitBoard>> DiagonalMask_Lut = new EnumMap<GenericPosition, List<BitBoard>>(GenericPosition.class);
+	private static final Map<Integer, List<BitBoard>> DiagonalMask_Lut = new HashMap<Integer, List<BitBoard>>();
 	static {
 		Direction [] diagonals = { Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
-		for (GenericPosition square : GenericPosition.values()) {
+		for (int square : Position.values) {
 			List<BitBoard> array = new ArrayList<BitBoard>();
 			for (int index=1; index<8; index++) {
 				createMask(square, array, index, diagonals);
@@ -104,11 +104,11 @@ public class Board implements Iterable<Integer> {
 			pieces[i] = new BitBoard();
 		}
 		for ( Entry<GenericPosition, PieceType> nextPiece : pieceMap.entrySet() ) {
-			setPieceAtSquare( nextPiece.getKey(), nextPiece.getValue() );
+			setPieceAtSquare( Position.valueOf(nextPiece.getKey()), nextPiece.getValue() );
 		}
 	}
 	
-	public List<GenericMove> getRegularPieceMoves(Piece.Colour side) {
+	public List<Integer> getRegularPieceMoves(Piece.Colour side) {
 		BitBoard bitBoardToIterate = Colour.isWhite(side) ? whitePieces : blackPieces;
 		ArrayList<Integer> movesList = new ArrayList<Integer>();
 		for (int bit_index: bitBoardToIterate) {
@@ -162,14 +162,14 @@ public class Board implements Iterable<Integer> {
 		return !allPieces.isSet(BitBoard.positionToBit_Lut[atPos]);		
 	}
 	
-	public boolean squareIsAttacked( GenericPosition atPos, Piece.Colour ownColour ) {
+	public boolean squareIsAttacked( int atPos, Piece.Colour ownColour ) {
 		return SquareAttackEvaluator.isAttacked(this, atPos, ownColour);
 	}
 	
 	public PieceType getPieceAtSquare( int atPos ) {
 		// Calculate bit index
 		PieceType type = PieceType.NONE;
-		int bit_index = BitBoard.positionToBit_Lut.get(atPos);
+		int bit_index = BitBoard.positionToBit_Lut[atPos];
 		BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
 		if (allPieces.and(pieceToPickUp).isNonZero()) {	
 			if (blackPieces.and(pieceToPickUp).isNonZero()) {
@@ -208,9 +208,9 @@ public class Board implements Iterable<Integer> {
 		return type;
 	}
 	
-	public void setPieceAtSquare( GenericPosition atPos, PieceType pieceToPlace ) {
+	public void setPieceAtSquare( int atPos, PieceType pieceToPlace ) {
 		assert pieceToPlace != PieceType.NONE;
-		int bit_index = BitBoard.positionToBit_Lut.get(atPos);
+		int bit_index = BitBoard.positionToBit_Lut[atPos];
 		switch (pieceToPlace) {
 		case WhiteKing:
 			pieces[INDEX_KING].set(bit_index);
@@ -274,15 +274,15 @@ public class Board implements Iterable<Integer> {
 		BitBoard kingMask = getFromBoard.and(pieces[INDEX_KING]);
 		if (kingMask.isNonZero()) {
 			// The conditional is needed because some unit test positions don't have a king...
-			GenericPosition kingSquare = BitBoard.maskToPosition_Lut.get(kingMask.getValue());
+			int kingSquare = BitBoard.maskToPosition_Lut.get(kingMask.getValue());
 			inCheck = squareIsAttacked(kingSquare, side);
 		}
 		return inCheck;
 	}
 
-	public PieceType pickUpPieceAtSquare( GenericPosition atPos ) {
+	public PieceType pickUpPieceAtSquare( int atPos ) {
 		PieceType type = PieceType.NONE;
-		int bit_index = BitBoard.positionToBit_Lut.get(atPos);
+		int bit_index = BitBoard.positionToBit_Lut[atPos];
 		BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
 		if (allPieces.and(pieceToPickUp).isNonZero()) {
 			if (blackPieces.and(pieceToPickUp).isNonZero()) {
@@ -347,7 +347,7 @@ public class Board implements Iterable<Integer> {
 		return doubledCount;
 	}
 	
-	public boolean isPassedPawn(GenericPosition atPos, Colour side) {
+	public boolean isPassedPawn(int atPos, Colour side) {
 		boolean isPassed = true;
 		BitBoard mask = PassedPawn_Lut.get(side.ordinal()).get(atPos);
 		BitBoard otherSidePawns = Colour.isWhite(side) ? getBlackPawns() : getWhitePawns();
@@ -407,7 +407,7 @@ public class Board implements Iterable<Integer> {
 		StringBuilder fen = new StringBuilder();
 		for (int rank=7; rank>=0; rank--) {
 			for (int file=0; file<8; file++) {
-				currPiece = this.getPieceAtSquare(GenericPosition.valueOf(IntFile.toGenericFile(file),IntRank.toGenericRank(rank)));
+				currPiece = this.getPieceAtSquare(Position.valueOf(file,rank));
 				if (currPiece != PieceType.NONE) {
 					if (spaceCounter != 0)
 						fen.append(spaceCounter);
@@ -618,7 +618,7 @@ public class Board implements Iterable<Integer> {
 		return whitePieces.and(pieces[INDEX_KING]);
 	}
 	
-	public Iterator<GenericPosition> iterateType( PieceType typeToIterate ) {
+	public Iterator<Integer> iterateType( PieceType typeToIterate ) {
 		try {
 			return new allPiecesOnBoardIterator( typeToIterate );
 		} catch (InvalidPieceException e) {
@@ -626,17 +626,17 @@ public class Board implements Iterable<Integer> {
 		}
 	}
 
-	public int getNumRankFileSquaresAvailable(GenericPosition atPos) {
+	public int getNumRankFileSquaresAvailable(int atPos) {
 		return getSquaresAvaillableFromPosition(atPos, RankFileMask_Lut);
 	}
 	
-	public int getNumDiagonalSquaresAvailable(GenericPosition atPos) {
+	public int getNumDiagonalSquaresAvailable(int atPos) {
 		return getSquaresAvaillableFromPosition(atPos, DiagonalMask_Lut);
 	}
 	
-	private int getSquaresAvaillableFromPosition(GenericPosition atPos, Map<GenericPosition, List<BitBoard>> maskMap ) {
+	private int getSquaresAvaillableFromPosition(int atPos, Map<Integer, List<BitBoard>> maskMap ) {
 		int squaresCount = 0;
-		int bit = BitBoard.positionToBit_Lut.get(atPos);
+		int bit = BitBoard.positionToBit_Lut[atPos];
 		List<BitBoard> list = maskMap.get(atPos);
 		for (BitBoard levelMask : list) {
 			if (checkSingleMask(bit, levelMask))

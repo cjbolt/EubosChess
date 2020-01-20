@@ -2,14 +2,14 @@ package eubos.score;
 
 import java.util.Iterator;
 
-import com.fluxchess.jcpi.models.GenericFile;
-import com.fluxchess.jcpi.models.GenericPosition;
+import com.fluxchess.jcpi.models.IntFile;
 
 import eubos.board.Board;
 import eubos.board.SquareAttackEvaluator;
 import eubos.board.Piece.Colour;
 import eubos.board.Piece.PieceType;
 import eubos.position.CaptureData;
+import eubos.position.Position;
 import eubos.position.PositionManager;
 import eubos.search.DrawChecker;
 import eubos.search.SearchContext;
@@ -43,7 +43,7 @@ public class PositionEvaluator implements IEvaluate {
 			{
 				if (SquareAttackEvaluator.isAttacked(
 						pm.getTheBoard(),
-						captured.getSquare(),
+						Position.valueOf(captured.getSquare()),
 						Colour.getOpposite(pm.getOnMove())))
 					return false;
 			}
@@ -83,11 +83,11 @@ public class PositionEvaluator implements IEvaluate {
 		int passedPawnBoost = 0;
 		int pawnHandicap = -board.countDoubledPawnsForSide(onMoveWas)*DOUBLED_PAWN_HANDICAP;
 		PieceType ownPawns = Colour.isWhite(onMoveWas) ? PieceType.WhitePawn : PieceType.BlackPawn;
-		Iterator<GenericPosition> iter = board.iterateType(ownPawns);
+		Iterator<Integer> iter = board.iterateType(ownPawns);
 		while (iter.hasNext()) {
-			GenericPosition pawn = iter.next();
+			int pawn = iter.next();
 			if (board.isPassedPawn(pawn, onMoveWas)) {
-				if (pawn.file == GenericFile.Fa || pawn.file == GenericFile.Fh) {
+				if (Position.getFile(pawn) == IntFile.Fa || Position.getFile(pawn) == IntFile.Fh) {
 					passedPawnBoost += ROOK_FILE_PASSED_PAWN_BOOST;
 				} else {
 					passedPawnBoost += PASSED_PAWN_BOOST;

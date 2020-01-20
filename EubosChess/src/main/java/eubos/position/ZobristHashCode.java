@@ -8,11 +8,11 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericChessman;
 import com.fluxchess.jcpi.models.IntFile;
-import com.fluxchess.jcpi.models.IntRank;
 
 import eubos.board.Piece.Colour;
 import eubos.board.Piece.PieceType;
 import eubos.position.CaptureData;
+import eubos.position.MoveList.MoveClassification;
 
 public class ZobristHashCode {
 	
@@ -73,7 +73,7 @@ public class ZobristHashCode {
 	private long generate() {
 		// add pieces
 		hashCode = 0;
-		for (GenericPosition pieceSq : pos.getTheBoard()) {
+		for (int pieceSq : pos.getTheBoard()) {
 			hashCode ^= getPrnForPiece(pieceSq, pos.getTheBoard().getPieceAtSquare(pieceSq));
 		}
 		// add castling
@@ -100,11 +100,11 @@ public class ZobristHashCode {
 		return hashCode;
 	}
 
-	protected long getPrnForPiece(GenericPosition pos, PieceType currPiece) {
+	protected long getPrnForPiece(int pos, PieceType currPiece) {
 		// compute prnLookup index to use, based on piece type, colour and square.
 		int lookupIndex = INDEX_WHITE;
-		int atFile = IntFile.valueOf(pos.file);
-		int atRank = IntRank.valueOf(pos.rank);
+		int atFile = Position.getFile(pos);
+		int atRank = Position.getRank(pos);
 		int pieceType = INDEX_PAWN; // Default
 		if (PieceType.isKnight(currPiece)) {
 			pieceType = INDEX_KNIGHT;
@@ -148,19 +148,20 @@ public class ZobristHashCode {
 	}
 	
 	protected PieceType doBasicMove(GenericMove move) {
-		PieceType piece = pos.getTheBoard().getPieceAtSquare(move.to);
+		int intMove = Move.toMove(move, MoveClassification.NONE);
+		PieceType piece = pos.getTheBoard().getPieceAtSquare(Move.getTargetPosition(intMove));
 		GenericChessman promotedChessman = move.promotion;
 		if (promotedChessman == null) {
 			// Basic move only
-			hashCode ^= getPrnForPiece(move.to, piece);
-			hashCode ^= getPrnForPiece(move.from, piece);
+			hashCode ^= getPrnForPiece(Move.getTargetPosition(intMove), piece);
+			hashCode ^= getPrnForPiece(Move.getOriginPosition(intMove), piece);
 		} else {
 			// Promotion
 			if (PieceType.isPawn(piece)) {
 				// is undoing promotion
 				PieceType promotedToPiece = convertChessmanToPiece(promotedChessman, move);
-				hashCode ^= getPrnForPiece(move.to, piece);
-				hashCode ^= getPrnForPiece(move.from, promotedToPiece);
+				hashCode ^= getPrnForPiece(Move.getTargetPosition(intMove), piece);
+				hashCode ^= getPrnForPiece(Move.getOriginPosition(intMove), promotedToPiece);
 				piece = promotedToPiece;
 			} else if (PieceType.isKnight(piece) ||
 					   PieceType.isBishop(piece) || 
@@ -168,8 +169,8 @@ public class ZobristHashCode {
 					   PieceType.isQueen(piece)) {
 				// is doing a promotion
 				PieceType unpromotedPawn = Colour.isWhite(pos.getOnMove()) ? PieceType.WhitePawn : PieceType.BlackPawn;
-				hashCode ^= getPrnForPiece(move.to, piece);
-				hashCode ^= getPrnForPiece(move.from, unpromotedPawn);
+				hashCode ^= getPrnForPiece(Move.getTargetPosition(intMove), piece);
+				hashCode ^= getPrnForPiece(Move.getOriginPosition(intMove), unpromotedPawn);
 			}
 		}
 		return piece;
@@ -177,7 +178,7 @@ public class ZobristHashCode {
 
 	protected void doCapturedPiece(CaptureData captureTarget) {
 		if (captureTarget.target != PieceType.NONE)
-			hashCode ^= getPrnForPiece(captureTarget.square, captureTarget.target);
+			hashCode ^= getPrnForPiece(Position.valueOf(captureTarget.square), captureTarget.target);
 	}
 
 	private void setTargetFile(GenericFile enPasFile) {
@@ -231,46 +232,46 @@ public class ZobristHashCode {
 	protected void doSecondaryMove(GenericMove move, PieceType piece) {
 		if ( piece==PieceType.WhiteKing ) {
 			if (move.equals(CastlingManager.wksc)) {
-				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.f1);
-				hashCode ^= getPrnForPiece(GenericPosition.f1, piece); // to
-				hashCode ^= getPrnForPiece(GenericPosition.h1, piece); // from
+				piece = pos.getTheBoard().getPieceAtSquare(Position.f1);
+				hashCode ^= getPrnForPiece(Position.f1, piece); // to
+				hashCode ^= getPrnForPiece(Position.h1, piece); // from
 			}
 			else if (move.equals(CastlingManager.wqsc)) {
-				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.d1);
-				hashCode ^= getPrnForPiece(GenericPosition.d1, piece); // to
-				hashCode ^= getPrnForPiece(GenericPosition.a1, piece); // from
+				piece = pos.getTheBoard().getPieceAtSquare(Position.d1);
+				hashCode ^= getPrnForPiece(Position.d1, piece); // to
+				hashCode ^= getPrnForPiece(Position.a1, piece); // from
 			}
 			else if (move.equals(CastlingManager.undo_wksc))
 			{
-				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.h1);
-				hashCode ^= getPrnForPiece(GenericPosition.h1, piece); // to
-				hashCode ^= getPrnForPiece(GenericPosition.f1, piece); // from
+				piece = pos.getTheBoard().getPieceAtSquare(Position.h1);
+				hashCode ^= getPrnForPiece(Position.h1, piece); // to
+				hashCode ^= getPrnForPiece(Position.f1, piece); // from
 			}
 			else if (move.equals(CastlingManager.undo_wqsc)) {
-				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.a1);
-				hashCode ^= getPrnForPiece(GenericPosition.a1, piece); // to
-				hashCode ^= getPrnForPiece(GenericPosition.d1, piece); // from
+				piece = pos.getTheBoard().getPieceAtSquare(Position.a1);
+				hashCode ^= getPrnForPiece(Position.a1, piece); // to
+				hashCode ^= getPrnForPiece(Position.d1, piece); // from
 			}
 		} else if (piece==PieceType.BlackKing) {
 			if (move.equals(CastlingManager.bksc)) {
-				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.f8);
-				hashCode ^= getPrnForPiece(GenericPosition.f8, piece); // to
-				hashCode ^= getPrnForPiece(GenericPosition.h8, piece); // from
+				piece = pos.getTheBoard().getPieceAtSquare(Position.f8);
+				hashCode ^= getPrnForPiece(Position.f8, piece); // to
+				hashCode ^= getPrnForPiece(Position.h8, piece); // from
 			}
 			else if (move.equals(CastlingManager.bqsc)) {
-				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.d8);
-				hashCode ^= getPrnForPiece(GenericPosition.d8, piece); // to
-				hashCode ^= getPrnForPiece(GenericPosition.a8, piece); // from
+				piece = pos.getTheBoard().getPieceAtSquare(Position.d8);
+				hashCode ^= getPrnForPiece(Position.d8, piece); // to
+				hashCode ^= getPrnForPiece(Position.a8, piece); // from
 			}
 			else if (move.equals(CastlingManager.undo_bksc)) {
-				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.h8);
-				hashCode ^= getPrnForPiece(GenericPosition.h8, piece); // to
-				hashCode ^= getPrnForPiece(GenericPosition.f8, piece); // from
+				piece = pos.getTheBoard().getPieceAtSquare(Position.h8);
+				hashCode ^= getPrnForPiece(Position.h8, piece); // to
+				hashCode ^= getPrnForPiece(Position.f8, piece); // from
 			}
 			else if (move.equals(CastlingManager.undo_bqsc)) {
-				piece = pos.getTheBoard().getPieceAtSquare(GenericPosition.a8);
-				hashCode ^= getPrnForPiece(GenericPosition.a8, piece); // to
-				hashCode ^= getPrnForPiece(GenericPosition.d8, piece); // from
+				piece = pos.getTheBoard().getPieceAtSquare(Position.a8);
+				hashCode ^= getPrnForPiece(Position.a8, piece); // to
+				hashCode ^= getPrnForPiece(Position.d8, piece); // from
 			}
 		} else {
 			// not actually a castle move
