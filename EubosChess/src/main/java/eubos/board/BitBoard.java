@@ -1,12 +1,11 @@
 package eubos.board;
 
-import java.util.Arrays;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
+
+import eubos.position.Position;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntFile;
@@ -14,40 +13,39 @@ import com.fluxchess.jcpi.models.IntRank;
 
 public class BitBoard implements Iterable<Integer> {
 	
-	static GenericPosition[] bitToPosition_Lut = new GenericPosition[64];
+	static int[] bitToPosition_Lut = new int[64];
 	static {
-		Integer bit_index = 0;
-		for (GenericPosition square : GenericPosition.values()) {
+		int bit_index = 0;
+		for (int square : Position.values) {
 			bitToPosition_Lut[bit_index++] = square;
 		}
 	}
 	
-	static Map<GenericPosition, Integer> positionToBit_Lut = new EnumMap<GenericPosition, Integer>(GenericPosition.class);
+	static int[] positionToBit_Lut = new int[256];
 	static {
 		Integer bit_index = 0;
-		for (GenericPosition square : GenericPosition.values()) {
-			positionToBit_Lut.put(square, bit_index);
+		for (int x88_square : Position.values) {
+			positionToBit_Lut[x88_square] = bit_index;
 			bit_index++;
 		}
 	}
 	
-	static Map<GenericPosition, BitBoard> positionToMask_Lut = new EnumMap<GenericPosition, BitBoard>(GenericPosition.class);
+	static BitBoard[] positionToMask_Lut = new BitBoard[256];
 	static {
 		Integer bit_index = 0;
-		for (GenericPosition square : GenericPosition.values()) {
+		for (int x88_square : Position.values) {
 			BitBoard atPosMask = new BitBoard(1L << bit_index);
 			assert atPosMask != null;
-			positionToMask_Lut.put(square, atPosMask);
+			positionToMask_Lut[x88_square] = atPosMask;
 			bit_index++;
 		}
 	}
 	
-	static Map<Long, GenericPosition> maskToPosition_Lut = new HashMap<Long, GenericPosition>();
+	static Map<Long, Integer> maskToPosition_Lut = new HashMap<Long, Integer>();
 	static {
-		List<GenericPosition> positions = Arrays.asList(GenericPosition.values());
-		GenericPosition atPos = null;
+		int atPos = 0;
 		for (int bit_index=0; bit_index<64; bit_index++) {
-			atPos = positions.get(bit_index);
+			atPos = Position.values[bit_index];
 			BitBoard atPosMask = new BitBoard(1L << bit_index);
 			maskToPosition_Lut.put(atPosMask.getValue(), atPos);
 		}

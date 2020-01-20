@@ -9,6 +9,9 @@ import com.fluxchess.jcpi.models.GenericChessman;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericRank;
+import com.fluxchess.jcpi.models.IntChessman;
+
+import eubos.position.Move;
 
 public abstract class Piece {
 	public enum Colour { 
@@ -56,8 +59,8 @@ public abstract class Piece {
 		} 
 	};
 	
-	static List<GenericMove> king_generateMoves(Board theBoard, GenericPosition atSquare, Piece.Colour ownSide) {
-		List<GenericMove> moveList = new LinkedList<GenericMove>();
+	static List<Integer> king_generateMoves(Board theBoard, int atSquare, Piece.Colour ownSide) {
+		List<Integer> moveList = new LinkedList<Integer>();
 		king_checkAddMove(ownSide, atSquare, moveList, theBoard, king_getOneSq(Direction.up, atSquare));
 		king_checkAddMove(ownSide, atSquare, moveList, theBoard, king_getOneSq(Direction.upRight, atSquare));
 		king_checkAddMove(ownSide, atSquare, moveList, theBoard, king_getOneSq(Direction.right, atSquare));
@@ -69,17 +72,17 @@ public abstract class Piece {
 		return moveList;
 	}
 
-	private static void king_checkAddMove(Piece.Colour ownSide, GenericPosition atSquare, List<GenericMove> moveList, Board theBoard, GenericPosition targetSquare) {
-		if ( targetSquare != null ) {
+	private static void king_checkAddMove(Piece.Colour ownSide, int atSquare, List<Integer> moveList, Board theBoard, int targetSquare) {
+		if ( targetSquare != 0xFF ) {
 			PieceType targetPiece = theBoard.getPieceAtSquare(targetSquare);
 			if ( theBoard.squareIsEmpty(targetSquare) || 
 					(targetPiece != PieceType.NONE && PieceType.isOppositeColour(ownSide, targetPiece))) {
-				moveList.add( new GenericMove( atSquare, targetSquare ) );
+				moveList.add(Move.valueOf(0, atSquare, targetSquare, IntChessman.NOCHESSMAN));
 			}
 		}
 	}	
 	
-	private static GenericPosition king_getOneSq( Direction dir, GenericPosition atSquare ) {
+	private static int king_getOneSq( Direction dir, int atSquare ) {
 		return Direction.getDirectMoveSq(dir, atSquare);
 	}
 	

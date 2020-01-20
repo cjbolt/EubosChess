@@ -20,7 +20,7 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
-final class Position {
+public final class Position {
 
   public static final int MASK = 0x7F;
 

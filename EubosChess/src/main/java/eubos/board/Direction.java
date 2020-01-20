@@ -3,48 +3,52 @@ package eubos.board;
 import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericRank;
+import com.fluxchess.jcpi.models.IntFile;
+import com.fluxchess.jcpi.models.IntRank;
+
+import eubos.position.Position;
 
 public enum Direction {
 	up, upRight, rightUp, right, rightDown, downRight, down, downLeft, leftUp, left, leftDown, upLeft;
 	
-	public static GenericPosition getDirectMoveSq( Direction dir, GenericPosition startSq ) {
-		GenericPosition retVal = null;
+	public static int getDirectMoveSq( Direction dir, int startSq ) {
+		int retVal = 0xFF;
 		switch( dir ) {
 		case downLeft:
 		case leftDown:
-			if ( startSq.file != GenericFile.Fa && startSq.rank != GenericRank.R1 )
-				retVal = GenericPosition.valueOf( startSq.file.prev(), startSq.rank.prev());
+			if ( Position.getFile(startSq) != IntFile.Fa && Position.getRank(startSq) != IntRank.R1 )
+				retVal = startSq-17;
 			break;
 		case down:
-			if ( startSq.rank != GenericRank.R1 )
-				retVal = GenericPosition.valueOf( startSq.file, startSq.rank.prev());
+			if ( Position.getRank(startSq) != IntRank.R1 )
+				retVal = startSq-16;
 			break;
 		case downRight:
 		case rightDown:
-			if ( startSq.file != GenericFile.Fh && startSq.rank != GenericRank.R1 )
-				retVal = GenericPosition.valueOf( startSq.file.next(), startSq.rank.prev());
+			if ( Position.getFile(startSq) != IntFile.Fh && Position.getRank(startSq) != IntRank.R1 )
+				retVal = startSq-15;
 			break;
 		case left:
-			if ( startSq.file != GenericFile.Fa )
-				retVal = GenericPosition.valueOf( startSq.file.prev(), startSq.rank);
+			if ( Position.getFile(startSq) != IntFile.Fa )
+				retVal = startSq-1;
 			break;
 		case right:
-			if ( startSq.file != GenericFile.Fh )
-				retVal = GenericPosition.valueOf( startSq.file.next(), startSq.rank);
+			if ( Position.getFile(startSq) != IntFile.Fh )
+				retVal = startSq+1;
 			break;
 		case up:
-			if ( startSq.rank != GenericRank.R8 )
-				retVal = GenericPosition.valueOf( startSq.file, startSq.rank.next());
+			if ( Position.getRank(startSq) != IntRank.R8 )
+				retVal = startSq+16;
 			break;
 		case upLeft:
 		case leftUp:
-			if ( startSq.file != GenericFile.Fa && startSq.rank != GenericRank.R8 )
-				retVal = GenericPosition.valueOf( startSq.file.prev(), startSq.rank.next());
+			if ( Position.getFile(startSq) != IntFile.Fa && Position.getRank(startSq) != IntRank.R8 )
+				retVal = startSq+15;
 			break;
 		case upRight:
 		case rightUp:
-			if ( startSq.file != GenericFile.Fh && startSq.rank != GenericRank.R8 )
-				retVal = GenericPosition.valueOf( startSq.file.next(), startSq.rank.next());
+			if ( Position.getFile(startSq) != IntFile.Fh && Position.getRank(startSq) != IntRank.R8 )
+				retVal = startSq+17;
 			break;
 		default:
 			break;

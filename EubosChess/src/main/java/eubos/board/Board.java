@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 
 import eubos.board.Piece.Colour;
 import eubos.board.Piece.PieceType;
+import eubos.position.Position;
 
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IntRank;
@@ -61,12 +62,12 @@ public class Board implements Iterable<GenericPosition> {
 		}
 	}
 	static private Long setAllInDirection(Direction dir, GenericPosition fromSq, Long currMask, int index) {
-		GenericPosition newSquare = fromSq;
+		int newSquare = Position.valueOf(fromSq);
 		for (int i=0; i < index; i++) {
 			if (newSquare != null)
 				newSquare = Direction.getDirectMoveSq(dir, newSquare);
 			if (newSquare != null)
-				currMask |= BitBoard.positionToMask_Lut.get(newSquare).getValue();
+				currMask |= BitBoard.positionToMask_Lut[newSquare];
 		}
 		return currMask;
 	}
@@ -109,7 +110,7 @@ public class Board implements Iterable<GenericPosition> {
 	
 	public List<GenericMove> getRegularPieceMoves(Piece.Colour side) {
 		BitBoard bitBoardToIterate = Colour.isWhite(side) ? whitePieces : blackPieces;
-		ArrayList<GenericMove> movesList = new ArrayList<GenericMove>();
+		ArrayList<int> movesList = new ArrayList<int>();
 		for (int bit_index: bitBoardToIterate) {
 			GenericPosition atSquare = BitBoard.bitToPosition_Lut[bit_index];
 			BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
@@ -157,15 +158,15 @@ public class Board implements Iterable<GenericPosition> {
 		this.enPassantTargetSq = enPassantTargetSq;
 	}
 	
-	public boolean squareIsEmpty( GenericPosition atPos ) {
-		return !allPieces.isSet(BitBoard.positionToBit_Lut.get(atPos));		
+	public boolean squareIsEmpty( int atPos ) {
+		return !allPieces.isSet(BitBoard.positionToBit_Lut[atPos]);		
 	}
 	
 	public boolean squareIsAttacked( GenericPosition atPos, Piece.Colour ownColour ) {
 		return SquareAttackEvaluator.isAttacked(this, atPos, ownColour);
 	}
 	
-	public PieceType getPieceAtSquare( GenericPosition atPos ) {
+	public PieceType getPieceAtSquare( int atPos ) {
 		// Calculate bit index
 		PieceType type = PieceType.NONE;
 		int bit_index = BitBoard.positionToBit_Lut.get(atPos);

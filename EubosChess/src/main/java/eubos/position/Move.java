@@ -28,7 +28,7 @@ public final class Move {
 	private Move() {
 	}
 
-	public static int valueOf(int type, int originPosition, int targetPosition, int originPiece, int targetPiece, int promotion) {
+	public static int valueOf(int type, int originPosition, int targetPosition, int promotion) {
 		int move = 0;
 
 		// Encode move classification
