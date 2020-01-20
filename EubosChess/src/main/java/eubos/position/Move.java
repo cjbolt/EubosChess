@@ -27,6 +27,16 @@ public final class Move {
 
 	private Move() {
 	}
+	
+	public static int valueOf(int originPosition, int targetPosition)
+	{
+		return Move.valueOf(MoveClassification.NONE.ordinal(),targetPosition,IntChessman.NOCHESSMAN);
+	}
+	
+	public static int valueOf(int originPosition, int targetPosition, int promotion)
+	{
+		return Move.valueOf(MoveClassification.NONE.ordinal(),targetPosition,promotion);
+	}
 
 	public static int valueOf(int type, int originPosition, int targetPosition, int promotion) {
 		int move = 0;
@@ -63,7 +73,7 @@ public final class Move {
 		int targetPosition = Position.valueOf(move.to);
 		int originPosition = Position.valueOf(move.from);
 		int promotion = (move.promotion != null) ? IntChessman.valueOf(move.promotion) : IntChessman.NOCHESSMAN;
-		return Move.valueOf(type.ordinal(), originPosition, targetPosition, 0, 0, promotion);
+		return Move.valueOf(type.ordinal(), originPosition, targetPosition, promotion);
 	}
 
 	public static GenericMove toGenericMove(int move) {

@@ -30,7 +30,8 @@ public class MoveList implements Iterable<Integer> {
 		CAPTURE,
 		CASTLE,
 		CHECK,
-		REGULAR
+		REGULAR,
+		NONE
 	};
 	
 	private int[] normal_search_moves;

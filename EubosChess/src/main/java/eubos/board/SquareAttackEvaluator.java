@@ -1,79 +1,78 @@
  package eubos.board;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.fluxchess.jcpi.models.GenericPosition;
-
 import eubos.board.Piece.Colour;
 import eubos.board.Piece.PieceType;
+import eubos.position.Position;
 
 public class SquareAttackEvaluator {
 	
-	static private final Map<GenericPosition, GenericPosition[][]> directPieceMove_Lut = new EnumMap<GenericPosition, GenericPosition[][]>(GenericPosition.class);
+	static private final Map<Integer, Integer[][]> directPieceMove_Lut = new HashMap<Integer, Integer[][]>();
 	static {
-		for (GenericPosition square : GenericPosition.values()) {
+		for (int square : Position.values) {
 			directPieceMove_Lut.put(square, createDiagonalForSq(square));
 		}
 	}
-	static private GenericPosition [][] createDiagonalForSq(GenericPosition square) {
-		ArrayList<GenericPosition> squaresInDirection = new ArrayList<GenericPosition>();
-		GenericPosition [][] ret = new GenericPosition [Direction.values().length][];
+	static private Integer [][] createDiagonalForSq(int square) {
+		ArrayList<Integer> squaresInDirection = new ArrayList<Integer>();
+		Integer [][] ret = new Integer [Direction.values().length][];
 		int index = 0;
 		for (Direction dir: Direction.values()) {
 			squaresInDirection.addAll(getSqsInDirection(dir, square));
-			ret[index] = squaresInDirection.toArray(new GenericPosition [0]);
+			ret[index] = squaresInDirection.toArray(new Integer [0]);
 			squaresInDirection.clear();
 			index++;
 		}
 		return ret;
 	}
-	static private List<GenericPosition> getSqsInDirection(Direction dir, GenericPosition fromSq) {
-		GenericPosition newSquare = fromSq;
-		ArrayList<GenericPosition> sqsInDirection = new ArrayList<GenericPosition>();
-		while ((newSquare = Direction.getDirectMoveSq(dir, newSquare)) != null) {
+	static private List<Integer> getSqsInDirection(Direction dir, int fromSq) {
+		int newSquare = fromSq;
+		ArrayList<Integer> sqsInDirection = new ArrayList<Integer>();
+		while ((newSquare = Direction.getDirectMoveSq(dir, newSquare)) != Position.NOPOSITION) {
 			sqsInDirection.add(newSquare);
 		}
 		return sqsInDirection;
 	}
 	
-	static private final Map<GenericPosition, BitBoard> KnightMove_Lut = new EnumMap<GenericPosition, BitBoard>(GenericPosition.class);
+	static private final Map<Integer, BitBoard> KnightMove_Lut = new HashMap<Integer, BitBoard>();
 	static {
-		for (GenericPosition square : GenericPosition.values()) {
+		for (int square : Position.values) {
 			KnightMove_Lut.put(square, createKnightMovesAtSq(square));
 		}
 	}
-	static BitBoard createKnightMovesAtSq(GenericPosition atPos) {
+	static BitBoard createKnightMovesAtSq(int atPos) {
 		long mask = 0;
 		for (Direction dir: Direction.values()) {
-			GenericPosition sq = Direction.getIndirectMoveSq(dir, atPos);
-			if (sq != null) {
-				mask |= 1L << BitBoard.positionToBit_Lut.get(sq);
+			int sq = Direction.getIndirectMoveSq(dir, atPos);
+			if (sq != Position.NOPOSITION) {
+				mask |= 1L << BitBoard.positionToBit_Lut[sq];
 			}
 		}
 		return new BitBoard(mask);
 	}
 	
-	static private final Map<GenericPosition, BitBoard> KingMove_Lut = new EnumMap<GenericPosition, BitBoard>(GenericPosition.class);
+	static private final Map<Integer, BitBoard> KingMove_Lut = new HashMap<Integer, BitBoard>();
 	static {
-		for (GenericPosition square : GenericPosition.values()) {
+		for (int square : Position.values) {
 			KingMove_Lut.put(square, createKingMovesAtSq(square));
 		}
 	}
-	static BitBoard createKingMovesAtSq(GenericPosition atPos) {
+	static BitBoard createKingMovesAtSq(int atPos) {
 		long mask = 0;
 		for (Direction dir: Direction.values()) {
-			GenericPosition sq = Direction.getDirectMoveSq(dir, atPos);
-			if (sq != null) {
-				mask |= 1L << BitBoard.positionToBit_Lut.get(sq);
+			int sq = Direction.getDirectMoveSq(dir, atPos);
+			if (sq != Position.NOPOSITION) {
+				mask |= 1L << BitBoard.positionToBit_Lut[sq];
 			}
 		}
 		return new BitBoard(mask);
 	}
 	
-	public static boolean isAttacked( Board bd, GenericPosition attackedSq, Piece.Colour ownColour ) {
+	public static boolean isAttacked( Board bd, int attackedSq, Piece.Colour ownColour ) {
 		Colour attackingColour = Piece.Colour.getOpposite(ownColour);
 		boolean isBlackAttacking = Colour.isBlack(attackingColour);
 		BitBoard attackingPawnsMask = isBlackAttacking ? bd.getBlackPawns() : bd.getWhitePawns();
@@ -127,7 +126,7 @@ public class SquareAttackEvaluator {
 		return attacked;	
 	}
 
-	private static boolean checkForAttacksHelper(PieceType AttackerToCheckFor, Map<GenericPosition, BitBoard> map, Board theBoard, GenericPosition attackedSq) {
+	private static boolean checkForAttacksHelper(PieceType AttackerToCheckFor, Map<Integer, BitBoard> map, Board theBoard, int attackedSq) {
 		boolean attacked = false;
 		BitBoard attackersToCheckForMask = theBoard.getMaskForType(AttackerToCheckFor);
 		BitBoard attackedBySqs = map.get(attackedSq);
@@ -135,19 +134,19 @@ public class SquareAttackEvaluator {
 		return attacked;
 	}
 	
-	private static boolean attackedByPawn(Board theBoard, BitBoard attackingPawns, GenericPosition attackerSq) {
+	private static boolean attackedByPawn(Board theBoard, BitBoard attackingPawns, int attackerSq) {
 		boolean attacked = false;
-		if (attackerSq != null) {
-			BitBoard atPosMask = BitBoard.positionToMask_Lut.get(attackerSq);
+		if (attackerSq != Position.NOPOSITION) {
+			BitBoard atPosMask = BitBoard.positionToMask_Lut[attackerSq];
 			attacked = attackingPawns.and(atPosMask).isNonZero();
 		}
 		return attacked;
 	}
 
 	private static boolean checkForDirectPieceAttacker(Board theBoard, Colour attackingColour,
-			GenericPosition targetSq, boolean doDiagonalCheck, boolean doRankFileCheck) {
+			int targetSq, boolean doDiagonalCheck, boolean doRankFileCheck) {
 		boolean attacked = false;
-		GenericPosition [][] array = SquareAttackEvaluator.directPieceMove_Lut.get(targetSq);
+		Integer [][] array = SquareAttackEvaluator.directPieceMove_Lut.get(targetSq);
 		int index = 0;
 		for (Direction dir: Direction.values()) { 
 			switch(dir) {
@@ -156,7 +155,7 @@ public class SquareAttackEvaluator {
 			case upRight:
 			case downRight:
 				if (doDiagonalCheck) {
-					for (GenericPosition attackerSq: array[index]) {
+					for (int attackerSq: array[index]) {
 						PieceType currPiece = theBoard.getPieceAtSquare(attackerSq);
 						if (currPiece != PieceType.NONE ) {
 							if (Colour.isWhite(attackingColour)) {
@@ -178,7 +177,7 @@ public class SquareAttackEvaluator {
 			case right:
 			case down:
 				if (doRankFileCheck) {
-					for (GenericPosition attackerSq: array[index]) {
+					for (int attackerSq: array[index]) {
 						PieceType currPiece = theBoard.getPieceAtSquare(attackerSq);
 						if (currPiece != PieceType.NONE ) {
 							if (Colour.isWhite(attackingColour)) {

@@ -19,7 +19,7 @@ import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericRank;
 
-public class Board implements Iterable<GenericPosition> {
+public class Board implements Iterable<Integer> {
 
 	private static final int INDEX_PAWN = 0;
 	private static final int INDEX_KNIGHT = 1;
@@ -64,9 +64,9 @@ public class Board implements Iterable<GenericPosition> {
 	static private Long setAllInDirection(Direction dir, GenericPosition fromSq, Long currMask, int index) {
 		int newSquare = Position.valueOf(fromSq);
 		for (int i=0; i < index; i++) {
-			if (newSquare != null)
+			if (newSquare != Position.NOPOSITION)
 				newSquare = Direction.getDirectMoveSq(dir, newSquare);
-			if (newSquare != null)
+			if (newSquare != Position.NOPOSITION)
 				currMask |= BitBoard.positionToMask_Lut[newSquare];
 		}
 		return currMask;
@@ -110,9 +110,9 @@ public class Board implements Iterable<GenericPosition> {
 	
 	public List<GenericMove> getRegularPieceMoves(Piece.Colour side) {
 		BitBoard bitBoardToIterate = Colour.isWhite(side) ? whitePieces : blackPieces;
-		ArrayList<int> movesList = new ArrayList<int>();
+		ArrayList<Integer> movesList = new ArrayList<Integer>();
 		for (int bit_index: bitBoardToIterate) {
-			GenericPosition atSquare = BitBoard.bitToPosition_Lut[bit_index];
+			int atSquare = BitBoard.bitToPosition_Lut[bit_index];
 			BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
 			if (blackPieces.and(pieceToPickUp).isNonZero()) {
 				if (pieces[INDEX_KING].isSet(bit_index)) {
@@ -455,22 +455,22 @@ public class Board implements Iterable<GenericPosition> {
 		return chessman;
 	}
 	
-	class allPiecesOnBoardIterator implements Iterator<GenericPosition> {
+	class allPiecesOnBoardIterator implements Iterator<Integer> {
 
-		private LinkedList<GenericPosition> iterList = null;
+		private LinkedList<Integer> iterList = null;
 
 		allPiecesOnBoardIterator() throws InvalidPieceException {
-			iterList = new LinkedList<GenericPosition>();
+			iterList = new LinkedList<Integer>();
 			buildIterList(allPieces);
 		}
 
 		allPiecesOnBoardIterator( Piece.Colour colourToIterate ) throws InvalidPieceException {
-			iterList = new LinkedList<GenericPosition>();
+			iterList = new LinkedList<Integer>();
 			buildIterList(Colour.isWhite(colourToIterate) ? whitePieces : blackPieces);
 		}
 		
 		allPiecesOnBoardIterator( PieceType typeToIterate ) throws InvalidPieceException {
-			iterList = new LinkedList<GenericPosition>();
+			iterList = new LinkedList<Integer>();
 			BitBoard bitBoardToIterate;
 			if (typeToIterate == PieceType.WhitePawn) {
 				bitBoardToIterate = getWhitePawns();
@@ -496,7 +496,7 @@ public class Board implements Iterable<GenericPosition> {
 			}
 		}
 
-		public GenericPosition next() {
+		public Integer next() {
 			return iterList.remove();
 		}
 
@@ -506,7 +506,7 @@ public class Board implements Iterable<GenericPosition> {
 		}
 	}
 
-	public Iterator<GenericPosition> iterator() {
+	public Iterator<Integer> iterator() {
 		// default iterator returns all the pieces on the board
 		try {
 			return new allPiecesOnBoardIterator( );
@@ -515,7 +515,7 @@ public class Board implements Iterable<GenericPosition> {
 		}
 	}
 
-	public Iterator<GenericPosition> iterateColour( Piece.Colour colourToIterate ) {
+	public Iterator<Integer> iterateColour( Piece.Colour colourToIterate ) {
 		try {
 			return new allPiecesOnBoardIterator( colourToIterate );
 		} catch (InvalidPieceException e) {

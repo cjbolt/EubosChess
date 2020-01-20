@@ -1,8 +1,5 @@
 package eubos.board;
 
-import com.fluxchess.jcpi.models.GenericFile;
-import com.fluxchess.jcpi.models.GenericPosition;
-import com.fluxchess.jcpi.models.GenericRank;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
@@ -12,7 +9,7 @@ public enum Direction {
 	up, upRight, rightUp, right, rightDown, downRight, down, downLeft, leftUp, left, leftDown, upLeft;
 	
 	public static int getDirectMoveSq( Direction dir, int startSq ) {
-		int retVal = 0xFF;
+		int retVal = Position.NOPOSITION;
 		switch( dir ) {
 		case downLeft:
 		case leftDown:
@@ -56,47 +53,63 @@ public enum Direction {
 		return retVal;
 	}
 	
-	public static GenericPosition getIndirectMoveSq( Direction dir, GenericPosition onSquare ) {
-		GenericPosition retVal = null;
+	public static int getIndirectMoveSq( Direction dir, int onSquare ) {
+		int retVal = Position.NOPOSITION;
 		switch( dir ) {
 		case downLeft:
-			if ( onSquare.file != GenericFile.Fa && ((onSquare.rank != GenericRank.R1) && (onSquare.rank != GenericRank.R2))) {
-				retVal = GenericPosition.valueOf( onSquare.file.prev(), onSquare.rank.prev().prev());
+			if ( Position.getFile(onSquare) != IntFile.Fa && 
+			     Position.getRank(onSquare) != IntRank.R1 &&
+			     Position.getRank(onSquare) != IntRank.R2) {
+				retVal = onSquare-33;
 			}
 			break;
 		case downRight:
-			if ( onSquare.file != GenericFile.Fh && ((onSquare.rank != GenericRank.R1) && (onSquare.rank != GenericRank.R2))) {
-				retVal = GenericPosition.valueOf( onSquare.file.next(), onSquare.rank.prev().prev());
+			if ( Position.getFile(onSquare) != IntFile.Fh && 
+			     Position.getRank(onSquare) != IntRank.R1 &&
+		         Position.getRank(onSquare) != IntRank.R2) {
+				retVal = onSquare-31;
 			}
 			break;
 		case leftUp:
-			if (((onSquare.file != GenericFile.Fa) && (onSquare.file != GenericFile.Fb)) && onSquare.rank != GenericRank.R8 )  {
-				retVal = GenericPosition.valueOf( onSquare.file.prev().prev(), onSquare.rank.next());
+			if (Position.getFile(onSquare) != IntFile.Fa && 
+				Position.getFile(onSquare) != IntFile.Fb && 
+				Position.getRank(onSquare) != IntRank.R8 )  {
+				retVal = onSquare+14;
 			}
 			break;
 		case leftDown:
-			if (((onSquare.file != GenericFile.Fa) && (onSquare.file != GenericFile.Fb)) && onSquare.rank != GenericRank.R1 )  {
-				retVal = GenericPosition.valueOf( onSquare.file.prev().prev(), onSquare.rank.prev());
+			if (Position.getFile(onSquare) != IntFile.Fa && 
+				Position.getFile(onSquare) != IntFile.Fb && 
+				Position.getRank(onSquare) != IntRank.R1 )  {
+				retVal = onSquare-18;
 			}
 			break;
 		case rightUp:
-			if (((onSquare.file != GenericFile.Fg) && (onSquare.file != GenericFile.Fh)) && onSquare.rank != GenericRank.R8 ) {
-				retVal = GenericPosition.valueOf( onSquare.file.next().next(), onSquare.rank.next());
+			if (Position.getFile(onSquare) != IntFile.Fg && 
+				Position.getFile(onSquare) != IntFile.Fh && 
+				Position.getRank(onSquare) != IntRank.R8 ) {
+				retVal = onSquare+18;
 			}
 			break;
 		case rightDown:
-			if (((onSquare.file != GenericFile.Fg) && (onSquare.file != GenericFile.Fh)) && onSquare.rank != GenericRank.R1  ) {
-				retVal = GenericPosition.valueOf( onSquare.file.next().next(), onSquare.rank.prev());
+			if (Position.getFile(onSquare) != IntFile.Fg && 
+				Position.getFile(onSquare) != IntFile.Fh && 
+				Position.getRank(onSquare) != IntRank.R1 ) {
+				retVal = onSquare+14;
 			}
 			break;
 		case upLeft:
-			if ( onSquare.file != GenericFile.Fa && ((onSquare.rank != GenericRank.R8) && (onSquare.rank != GenericRank.R7))) {
-				retVal = GenericPosition.valueOf( onSquare.file.prev(), onSquare.rank.next().next());
+			if (Position.getFile(onSquare) != IntFile.Fa && 
+				Position.getRank(onSquare) != IntRank.R8 &&
+			    Position.getRank(onSquare) != IntRank.R7) {
+				retVal = onSquare+31;
 			}
 			break;
 		case upRight:
-			if ( onSquare.file != GenericFile.Fh && ((onSquare.rank != GenericRank.R8) && (onSquare.rank != GenericRank.R7))) {
-				retVal = GenericPosition.valueOf( onSquare.file.next(), onSquare.rank.next().next());	
+			if (Position.getFile(onSquare) != IntFile.Fh && 
+				Position.getRank(onSquare) != IntRank.R8 &&
+				Position.getRank(onSquare) != IntRank.R7) {
+				retVal = onSquare+33;	
 			}
 			break;
 		default:
