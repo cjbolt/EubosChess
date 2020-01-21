@@ -241,7 +241,7 @@ public abstract class Piece {
 		PieceType queryPiece = theBoard.getPieceAtSquare( captureAt );
 		if ( queryPiece != PieceType.NONE ) {
 			isCapturable = PieceType.isOppositeColour( ownSide, queryPiece );
-		} else if (captureAt == Position.valueOf(theBoard.getEnPassantTargetSq())) {
+		} else if (captureAt == theBoard.getEnPassantTargetSq()) {
 			isCapturable = true;
 		}
 		return isCapturable;

@@ -16,19 +16,19 @@ public class TrackedMoveTest {
 
 	private TrackedMove classUnderTest;
 	
-	private static final GenericMove pawnCapture = new GenericMove(GenericPosition.a2,GenericPosition.b3);
-	private static final GenericMove pawnAdvance = new GenericMove(GenericPosition.a2,GenericPosition.a4);
-	private static final CaptureData capturedBlackPawn = new CaptureData(PieceType.BlackPawn, GenericPosition.b3);
+	private static final int pawnCapture = Move.toMove(new GenericMove(GenericPosition.a2,GenericPosition.b3));
+	private static final int pawnAdvance = Move.toMove(new GenericMove(GenericPosition.a2,GenericPosition.a4));
+	private static final CaptureData capturedBlackPawn = new CaptureData(PieceType.BlackPawn, Position.b3);
 	private static final GenericPosition targetSq = GenericPosition.b3;
 	
 	@Before
 	public void setUp() throws Exception {
-		classUnderTest = new TrackedMove(pawnCapture, capturedBlackPawn, null, "KkQq");
+		classUnderTest = new TrackedMove(pawnCapture, capturedBlackPawn, Position.NOPOSITION, "KkQq");
 	}
 
 	@Test
 	public void testTrackedMoveGenericMove() throws IllegalNotationException {
-		classUnderTest = new TrackedMove(new GenericMove("a2a4"));
+		classUnderTest = new TrackedMove(Move.toMove(new GenericMove("a2a4")));
 		assertTrue(classUnderTest!=null);
 	}
 
@@ -44,13 +44,13 @@ public class TrackedMoveTest {
 
 	@Test
 	public void testGetMove() throws IllegalNotationException {
-		assertTrue(classUnderTest.getMove().equals(pawnCapture));
+		assertTrue(classUnderTest.getMove() == pawnCapture);
 	}
 
 	@Test
 	public void testSetMove() {
 		classUnderTest.setMove(pawnAdvance);
-		assertTrue(classUnderTest.getMove().equals(pawnAdvance));
+		assertTrue(classUnderTest.getMove()==pawnAdvance);
 	}
 
 	@Test
@@ -60,22 +60,22 @@ public class TrackedMoveTest {
 
 	@Test
 	public void testSetCapturedPiece() {
-		classUnderTest.setCaptureData(new CaptureData(PieceType.WhiteKing,GenericPosition.b3));
+		classUnderTest.setCaptureData(new CaptureData(PieceType.WhiteKing,Position.b3));
 		CaptureData captured = classUnderTest.getCaptureData();
 		assertTrue(captured.target.equals(PieceType.WhiteKing));
-		assertTrue(captured.square.equals(GenericPosition.b3));
+		assertTrue(captured.square==Position.b3);
 	}
 
 	@Test
 	public void testGetEnPassantTarget() {
-		classUnderTest.setEnPassantTarget(targetSq);
-		assertTrue(classUnderTest.getEnPassantTarget().equals(targetSq));
+		classUnderTest.setEnPassantTarget(Position.valueOf(targetSq));
+		assertTrue(Position.toGenericPosition(classUnderTest.getEnPassantTarget()).equals(targetSq));
 	}
 
 	@Test
 	public void testSetEnPassantTarget() {
-		classUnderTest.setEnPassantTarget(targetSq);
-		assertFalse(classUnderTest.getEnPassantTarget().equals(null));
+		classUnderTest.setEnPassantTarget(Position.valueOf(targetSq));
+		assertFalse(Position.toGenericPosition(classUnderTest.getEnPassantTarget()).equals(null));
 	}
 
 }

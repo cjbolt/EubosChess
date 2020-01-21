@@ -1,21 +1,19 @@
 package eubos.position;
 
-import com.fluxchess.jcpi.models.GenericPosition;
-
 import eubos.board.Piece.PieceType;
 
 public class CaptureData {
 	PieceType target;
-	GenericPosition square;
+	int square;
 	
 	public CaptureData() {
-		this(PieceType.NONE, null);
+		this(PieceType.NONE, Position.NOPOSITION);
 	}
 	
-	public CaptureData(PieceType type, GenericPosition atPos) {
+	public CaptureData(PieceType type, int atPos) {
 		this.target = type;
 		this.square = atPos;
 	}
 	
-	public GenericPosition getSquare() { return square; }
+	public int getSquare() { return square; }
 };

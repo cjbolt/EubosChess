@@ -8,6 +8,7 @@ import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericRank;
+import com.fluxchess.jcpi.models.IntChessman;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
@@ -121,29 +122,29 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Get the piece to move
 		PieceType pieceToMove = theBoard.pickUpPieceAtSquare( Move.getOriginPosition(move));
 		// Flag if move is an en passant capture
-		boolean isEnPassantCapture = isEnPassantCapture(Move.toGenericMove(move), pieceToMove);
+		boolean isEnPassantCapture = isEnPassantCapture(move, pieceToMove);
 		// Save previous en passant square and initialise for this move
-		GenericPosition prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
-		theBoard.setEnPassantTargetSq(null);
+		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
+		theBoard.setEnPassantTargetSq(Position.NOPOSITION);
 		// Handle pawn promotion moves
-		pieceToMove = checkForPawnPromotions(Move.toGenericMove(move), pieceToMove);
+		pieceToMove = checkForPawnPromotions(move, pieceToMove);
 		// Handle castling secondary rook moves...
 		if (PieceType.isKing(pieceToMove)) {
-			castling.performSecondaryCastlingMove(Move.toGenericMove(move));
+			castling.performSecondaryCastlingMove(move);
 		}
 		// Handle any initial 2 square pawn moves that are subject to en passant rule
-		GenericFile enPassantFile = checkToSetEnPassantTargetSq(Move.toGenericMove(move), pieceToMove);
+		int enPassantFile = checkToSetEnPassantTargetSq(Move.toGenericMove(move), pieceToMove);
 		// Handle capture target (note, this will be null if the move is not a capture)
-		CaptureData captureTarget = getCaptureTarget(Move.toGenericMove(move), pieceToMove, isEnPassantCapture);
+		CaptureData captureTarget = getCaptureTarget(move, pieceToMove, isEnPassantCapture);
 		// Store the necessary information to undo this move on the move tracker stack
-		moveTracker.push( new TrackedMove(Move.toGenericMove(move), captureTarget, prevEnPassantTargetSq, castling.getFenFlags()));
+		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq, castling.getFenFlags()));
 		// Update the piece's square.
 		theBoard.setPieceAtSquare(Move.getTargetPosition(move), pieceToMove);
 		// update castling flags
-		castling.updateFlags(pieceToMove, Move.toGenericMove(move));
+		castling.updateFlags(pieceToMove, move);
 		// Update hash code
 		if (hash != null) {
-			hash.update(Move.toGenericMove(move), captureTarget, enPassantFile);
+			hash.update(move, captureTarget, enPassantFile);
 		}
 		// Update onMove
 		onMove = Colour.getOpposite(onMove);
@@ -160,33 +161,37 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Update the draw checker
 		dc.decrementPositionReachedCount(getHash());
 		
-		theBoard.setEnPassantTargetSq(null);
+		theBoard.setEnPassantTargetSq(Position.NOPOSITION);
 		TrackedMove tm = moveTracker.pop();
-		GenericMove moveToUndo = tm.getMove();
+		int moveToUndo = tm.getMove();
 		// Check for reversal of any pawn promotion that had been previously applied
 		checkToUndoPawnPromotion(moveToUndo);
 		// Actually undo the move by reversing its direction and reapplying it.
-		GenericMove reversedMove = new GenericMove( moveToUndo.to, moveToUndo.from, moveToUndo.promotion );
+		int reversedMove = Move.valueOf(
+				Move.getType(moveToUndo),
+				Move.getTargetPosition(moveToUndo), // flipped!
+				Move.getOriginPosition(moveToUndo),
+				Move.getPromotion(moveToUndo));
 		// Get the piece to move
-		PieceType pieceToMove = theBoard.pickUpPieceAtSquare( Move.getOriginPosition(Move.toMove(reversedMove)));
+		PieceType pieceToMove = theBoard.pickUpPieceAtSquare( Move.getOriginPosition(reversedMove));
 		// Handle reversal of any castling secondary rook moves and associated flags...
 		if (PieceType.isKing(pieceToMove)) {
 			castling.unperformSecondaryCastlingMove(reversedMove);
 		}
-		theBoard.setPieceAtSquare(Move.getTargetPosition(Move.toMove(reversedMove)), pieceToMove);
+		theBoard.setPieceAtSquare(Move.getTargetPosition(reversedMove), pieceToMove);
 		castling.setFenFlags(tm.getFenFlags());
 		// Undo any capture that had been previously performed.
 		if ( tm.isCapture()) {
-			theBoard.setPieceAtSquare(Position.valueOf(tm.getCaptureData().square), tm.getCaptureData().target);
+			theBoard.setPieceAtSquare(tm.getCaptureData().square, tm.getCaptureData().target);
 		}
 		// Restore en passant target
-		GenericPosition enPasTargetSq = tm.getEnPassantTarget();
+		int enPasTargetSq = tm.getEnPassantTarget();
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		// Update hash code
 		if (hash != null) {
 			CaptureData capturedPiece = tm.isCapture() ? tm.getCaptureData() : new CaptureData();
-			Boolean setEnPassant = (enPasTargetSq != null);
-			hash.update(reversedMove, capturedPiece, setEnPassant ? enPasTargetSq.file : null);
+			Boolean setEnPassant = (enPasTargetSq != Position.NOPOSITION);
+			hash.update(reversedMove, capturedPiece, setEnPassant ? Position.getFile(enPasTargetSq) : IntFile.NOFILE);
 		}
 		// Update onMove flag
 		onMove = Piece.Colour.getOpposite(onMove);
@@ -195,21 +200,21 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		}
 	}
 	
-	private PieceType checkForPawnPromotions(GenericMove move, PieceType pawn) {
+	private PieceType checkForPawnPromotions(int move, PieceType pawn) {
 		boolean isWhite = pawn.equals(PieceType.WhitePawn);
 		PieceType type = pawn;
-		if ( move.promotion != null ) {
-			switch( move.promotion ) {
-			case QUEEN:
+		if ( Move.getPromotion(move) != IntChessman.NOCHESSMAN ) {
+			switch( Move.getPromotion(move) ) {
+			case IntChessman.QUEEN:
 				type = isWhite ? PieceType.WhiteQueen : PieceType.BlackQueen;
 				break;
-			case KNIGHT:
+			case IntChessman.KNIGHT:
 				type = isWhite ? PieceType.WhiteKnight : PieceType.BlackKnight;
 				break;
-			case BISHOP:
+			case IntChessman.BISHOP:
 				type = isWhite ? PieceType.WhiteBishop : PieceType.BlackBishop;
 				break;
-			case ROOK:
+			case IntChessman.ROOK:
 				type = isWhite ? PieceType.WhiteRook : PieceType.BlackRook;
 				break;
 			default:
@@ -219,34 +224,34 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return type;
 	}
 	
-	private void checkToUndoPawnPromotion(GenericMove moveToUndo) {
-		if ( moveToUndo.promotion != null ) {
-			PieceType type = theBoard.pickUpPieceAtSquare(Position.valueOf(moveToUndo.to));
+	private void checkToUndoPawnPromotion(int moveToUndo) {
+		if ( Move.getPromotion(moveToUndo) != IntChessman.NOCHESSMAN ) {
+			PieceType type = theBoard.pickUpPieceAtSquare(Move.getTargetPosition(moveToUndo));
 			if (PieceType.isBlack(type)) {
 				type = PieceType.BlackPawn;
 			} else {
 				type = PieceType.WhitePawn;
 			}
-			theBoard.setPieceAtSquare(Position.valueOf(moveToUndo.to), type);
+			theBoard.setPieceAtSquare(Move.getTargetPosition(moveToUndo), type);
 		}
 	}
 	
-	private boolean isEnPassantCapture(GenericMove move, PieceType pieceToMove) {
+	private boolean isEnPassantCapture(int move, PieceType pieceToMove) {
 		boolean enPassantCapture = false;
-		GenericPosition enPassantTargetSq = theBoard.getEnPassantTargetSq();
-		if ( enPassantTargetSq != null && (pieceToMove.equals(PieceType.BlackPawn) || pieceToMove.equals(PieceType.WhitePawn)) && move.to == enPassantTargetSq) {
+		int enPassantTargetSq = theBoard.getEnPassantTargetSq();
+		if ( enPassantTargetSq != Position.NOPOSITION && (pieceToMove.equals(PieceType.BlackPawn) || pieceToMove.equals(PieceType.WhitePawn)) && Move.getTargetPosition(move) == enPassantTargetSq) {
 			enPassantCapture = true;
 		}
 		return enPassantCapture;
 	}
 	
-	private GenericFile checkToSetEnPassantTargetSq(GenericMove move, PieceType pieceToMove) {
+	private int checkToSetEnPassantTargetSq(GenericMove move, PieceType pieceToMove) {
 		GenericFile enPassantFile = null;
 		if ( pieceToMove.equals(PieceType.WhitePawn)) {
 			if ( move.from.rank == GenericRank.R2) {
 				if (move.to.rank == GenericRank.R4) {
 					GenericPosition enPassantWhite = GenericPosition.valueOf(move.to.file,GenericRank.R3);
-					theBoard.setEnPassantTargetSq(enPassantWhite);
+					theBoard.setEnPassantTargetSq(Position.valueOf(enPassantWhite));
 					enPassantFile = enPassantWhite.file;
 				}
 			}
@@ -254,31 +259,36 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			if (move.from.rank == GenericRank.R7) {
 				if (move.to.rank == GenericRank.R5) {
 					GenericPosition enPassantBlack = GenericPosition.valueOf(move.to.file,GenericRank.R6);
-					theBoard.setEnPassantTargetSq(enPassantBlack);
+					theBoard.setEnPassantTargetSq(Position.valueOf(enPassantBlack));
 					enPassantFile = enPassantBlack.file;
 				}
 			}
 		}
-		return enPassantFile;
+		if (enPassantFile != null) {
+			return IntFile.valueOf(enPassantFile);
+		} else {
+			return IntFile.NOFILE;
+		}
 	}
 	
-	private CaptureData getCaptureTarget(GenericMove move, PieceType pieceToMove, boolean enPassantCapture) {
-		CaptureData cap = new CaptureData(PieceType.NONE, null);
+	private CaptureData getCaptureTarget(int move, PieceType pieceToMove, boolean enPassantCapture) {
+		CaptureData cap = new CaptureData(PieceType.NONE, Position.NOPOSITION);
 		if (enPassantCapture) {
-			GenericRank rank = GenericRank.R1;
+			int rank = IntRank.R1;
 			if (pieceToMove.equals(PieceType.WhitePawn)) {
-				rank = GenericRank.R5;
+				rank = IntRank.R5;
 			} else if (pieceToMove.equals(PieceType.BlackPawn)){
-				rank = GenericRank.R4;
+				rank = IntRank.R4;
 			} else {
 				assert false;
 			}
-			GenericPosition capturePos = GenericPosition.valueOf(move.to.file,rank);
-			cap.target = theBoard.pickUpPieceAtSquare(Position.valueOf(capturePos));
+			int capturePos = Position.valueOf(Position.getFile(Move.getTargetPosition(move)), rank);
+			cap.target = theBoard.pickUpPieceAtSquare(capturePos);
 			cap.square = capturePos;
 		} else {
-			cap.target = theBoard.pickUpPieceAtSquare(Position.valueOf(move.to));
-			cap.square = move.to;
+			int capturePos = Move.getTargetPosition(move);
+			cap.target = theBoard.pickUpPieceAtSquare(capturePos);
+			cap.square = capturePos;
 		}
 		return cap;
 	}
@@ -291,7 +301,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		fen.append(castling.getFenFlags());
 		fen.append(' ');
 		// en passant square
-		GenericPosition pos = theBoard.getEnPassantTargetSq();
+		GenericPosition pos = (theBoard.getEnPassantTargetSq() == Position.NOPOSITION) ? null : Position.toGenericPosition(theBoard.getEnPassantTargetSq());
 		if (pos != null) {
 			fen.append(pos.toString());
 		} else {
@@ -408,9 +418,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		}
 		private void parseEnPassant(String targetSq) {
 			if (!targetSq.contentEquals("-")) {
-				theBoard.setEnPassantTargetSq(GenericPosition.valueOf(targetSq));
+				theBoard.setEnPassantTargetSq(Position.valueOf(GenericPosition.valueOf(targetSq)));
 			} else {
-				theBoard.setEnPassantTargetSq(null);
+				theBoard.setEnPassantTargetSq(Position.NOPOSITION);
 			}
 		}
 		private int advanceFile(int f) {

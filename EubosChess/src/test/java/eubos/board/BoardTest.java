@@ -35,19 +35,19 @@ public class BoardTest {
 
 	@Test
 	public void testSetEnPassantTargetSq() {
-		classUnderTest.setEnPassantTargetSq( Position.toGenericPosition(testSq) );
+		classUnderTest.setEnPassantTargetSq( testSq );
 	}
 	
 	@Test
 	public void testGetEnPassantTargetSq_uninitialised() {
-		int square = Position.valueOf(classUnderTest.getEnPassantTargetSq());
+		int square = classUnderTest.getEnPassantTargetSq();
 		assertTrue(square == Position.NOPOSITION);
 	}
 
 	@Test
 	public void testGetEnPassantTargetSq_initialised() {
-		classUnderTest.setEnPassantTargetSq( Position.toGenericPosition(testSq));
-		int square = Position.valueOf(classUnderTest.getEnPassantTargetSq());
+		classUnderTest.setEnPassantTargetSq(testSq);
+		int square = classUnderTest.getEnPassantTargetSq();
 		assertTrue(square == Position.a1);
 	}	
 

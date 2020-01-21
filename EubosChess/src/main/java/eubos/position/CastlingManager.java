@@ -10,6 +10,7 @@ import eubos.board.Board;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece.Colour;
 import eubos.board.Piece.PieceType;
+import eubos.position.MoveList.MoveClassification;
 
 class CastlingManager {
 	private boolean whiteKsAvail = true;
@@ -30,15 +31,15 @@ class CastlingManager {
 	private static final GenericPosition [] qscWhiteEmptySqs = {GenericPosition.c1, GenericPosition.d1, GenericPosition.b1};
 	private static final GenericPosition [] qscBlackEmptySqs = {GenericPosition.c8, GenericPosition.d8, GenericPosition.b8};
 
-	static final GenericMove bksc = new GenericMove( GenericPosition.e8, GenericPosition.g8);
-	static final GenericMove wksc = new GenericMove( GenericPosition.e1, GenericPosition.g1);
-	static final GenericMove bqsc = new GenericMove( GenericPosition.e8, GenericPosition.c8);
-	static final GenericMove wqsc = new GenericMove( GenericPosition.e1, GenericPosition.c1);
+	static final int bksc = Move.toMove(new GenericMove( GenericPosition.e8, GenericPosition.g8), MoveClassification.CASTLE);
+	static final int wksc = Move.toMove(new GenericMove( GenericPosition.e1, GenericPosition.g1), MoveClassification.CASTLE);
+	static final int bqsc = Move.toMove(new GenericMove( GenericPosition.e8, GenericPosition.c8), MoveClassification.CASTLE);
+	static final int wqsc = Move.toMove(new GenericMove( GenericPosition.e1, GenericPosition.c1), MoveClassification.CASTLE);
 
-	static final GenericMove undo_bksc = new GenericMove( GenericPosition.g8, GenericPosition.e8);
-	static final GenericMove undo_wksc = new GenericMove( GenericPosition.g1, GenericPosition.e1);
-	static final GenericMove undo_bqsc = new GenericMove( GenericPosition.c8, GenericPosition.e8);
-	static final GenericMove undo_wqsc = new GenericMove( GenericPosition.c1, GenericPosition.e1);
+	static final int undo_bksc = Move.toMove(new GenericMove( GenericPosition.g8, GenericPosition.e8), MoveClassification.CASTLE);
+	static final int undo_wksc = Move.toMove(new GenericMove( GenericPosition.g1, GenericPosition.e1), MoveClassification.CASTLE);
+	static final int undo_bqsc = Move.toMove(new GenericMove( GenericPosition.c8, GenericPosition.e8), MoveClassification.CASTLE);
+	static final int undo_wqsc = Move.toMove(new GenericMove( GenericPosition.c1, GenericPosition.e1), MoveClassification.CASTLE);
 
 	CastlingManager(PositionManager Pm) { this( Pm, "-"); }
 
@@ -93,42 +94,42 @@ class CastlingManager {
 		}
 	}
 
-	void performSecondaryCastlingMove(GenericMove move) throws InvalidPieceException {
+	void performSecondaryCastlingMove(int move) throws InvalidPieceException {
 		PieceType rookToCastle = PieceType.NONE;
-		if (move.equals(wksc)) {
+		if (move == wksc) {
 			// Perform secondary white king side castle rook move
 			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.h1 );
 			pm.getTheBoard().setPieceAtSquare( Position.f1, rookToCastle );
-		} else if (move.equals(wqsc)) {
+		} else if (move == wqsc) {
 			// Perform secondary white queen side castle rook move
 			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.a1 );
 			pm.getTheBoard().setPieceAtSquare( Position.d1, rookToCastle );
-		} else if (move.equals(bksc)) {
+		} else if (move == bksc) {
 			// Perform secondary black king side castle rook move
 			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.h8 );
 			pm.getTheBoard().setPieceAtSquare( Position.f8, rookToCastle );
-		} else if (move.equals(bqsc)) {
+		} else if (move == bqsc) {
 			// Perform secondary black queen side castle rook move
 			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.a8 );
 			pm.getTheBoard().setPieceAtSquare( Position.d8, rookToCastle );
 		}
 	}
 
-	void unperformSecondaryCastlingMove(GenericMove move) throws InvalidPieceException {
+	void unperformSecondaryCastlingMove(int move) throws InvalidPieceException {
 		PieceType rookToCastle = PieceType.NONE;
-		if (move.equals(undo_wksc)) {
+		if (move==undo_wksc) {
 			// Perform secondary king side castle rook move
 			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.f1 );
 			pm.getTheBoard().setPieceAtSquare( Position.h1, rookToCastle );
-		} else	if (move.equals(undo_wqsc)) {
+		} else	if (move==undo_wqsc) {
 			// Perform secondary queen side castle rook move
 			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.d1 );
 			pm.getTheBoard().setPieceAtSquare( Position.a1, rookToCastle );
-		} else if (move.equals(undo_bksc)) {
+		} else if (move==undo_bksc) {
 			// Perform secondary king side castle rook move
 			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.f8 );
 			pm.getTheBoard().setPieceAtSquare( Position.h8, rookToCastle );
-		} else if (move.equals(undo_bqsc)) {
+		} else if (move==undo_bqsc) {
 			// Perform secondary queen side castle rook move
 			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.d8 );
 			pm.getTheBoard().setPieceAtSquare( Position.a8, rookToCastle );
@@ -141,7 +142,7 @@ class CastlingManager {
 		if ( !castlingAvaillable(onMove))
 			return;
 		// Check for castling king-side
-		GenericMove ksc = null;		
+		int ksc = 0;		
 		if (Colour.isWhite(onMove) && whiteKsAvail) {
 			try {
 				ksc = getWhiteKingsideCastleMove();
@@ -157,10 +158,10 @@ class CastlingManager {
 				e.printStackTrace();
 			}
 		}
-		if ( ksc != null )
-			ml.add(Move.toMove(ksc));
+		if ( ksc != 0 )
+			ml.add(ksc);
 		// Check for castling queen side
-		GenericMove qsc = null;
+		int qsc = 0;
 		if (Colour.isWhite(onMove) && whiteQsAvail) {
 			try {
 				qsc = getWhiteQueensideCastleMove();
@@ -176,8 +177,8 @@ class CastlingManager {
 				e.printStackTrace();
 			}
 		}
-		if ( qsc != null )
-			ml.add(Move.toMove(qsc));
+		if ( qsc != 0 )
+			ml.add(qsc);
 	}
 	
 	boolean isWhiteKsAvail() {
@@ -238,42 +239,42 @@ class CastlingManager {
 		return true;
 	}
 
-	private GenericMove getWhiteKingsideCastleMove() throws Exception {
-		return (castleMoveLegal(GenericPosition.h1, kscWhiteCheckSqs, kscWhiteEmptySqs)) ? wksc : null;
+	private int getWhiteKingsideCastleMove() throws Exception {
+		return (castleMoveLegal(GenericPosition.h1, kscWhiteCheckSqs, kscWhiteEmptySqs)) ? wksc : 0;
 	}
 
-	private GenericMove getBlackKingsideCastleMove() throws Exception {
-		return (castleMoveLegal(GenericPosition.h8, kscBlackCheckSqs, kscBlackEmptySqs)) ? bksc : null;
+	private int getBlackKingsideCastleMove() throws Exception {
+		return (castleMoveLegal(GenericPosition.h8, kscBlackCheckSqs, kscBlackEmptySqs)) ? bksc : 0;
 	}
 
-	private GenericMove getWhiteQueensideCastleMove() throws Exception {
-		return (castleMoveLegal(GenericPosition.a1, qscWhiteCheckSqs, qscWhiteEmptySqs)) ? wqsc : null;
+	private int getWhiteQueensideCastleMove() throws Exception {
+		return (castleMoveLegal(GenericPosition.a1, qscWhiteCheckSqs, qscWhiteEmptySqs)) ? wqsc : 0;
 	}
 
-	private GenericMove getBlackQueensideCastleMove() throws Exception {
-		return (castleMoveLegal(GenericPosition.a8, qscBlackCheckSqs, qscBlackEmptySqs)) ? bqsc : null;
+	private int getBlackQueensideCastleMove() throws Exception {
+		return (castleMoveLegal(GenericPosition.a8, qscBlackCheckSqs, qscBlackEmptySqs)) ? bqsc : 0;
 	}
 
-	public void updateFlags(PieceType movedPiece, GenericMove lastMove) {
+	public void updateFlags(PieceType movedPiece, int lastMove) {
 		// First handle castling moves
 		if (PieceType.isKing(movedPiece)) {
-			if (lastMove.equals(wksc) || lastMove.equals(wqsc)) {
+			if (lastMove == wksc || lastMove == wqsc) {
 				whiteKsAvail = whiteQsAvail = false;
 				whiteCastled = true;
-			} else if (lastMove.equals(bksc) || lastMove.equals(bqsc)) {
+			} else if (lastMove==bksc || lastMove==bqsc) {
 				blackKsAvail = blackQsAvail = false;
 				blackCastled = true;
 			} 
 		}
 		// After this, the move wasn't castling, but may have caused castling to be no longer possible
 		// A rook got captured
-		if (blackQsAvail && lastMove.to.equals(GenericPosition.a8)) {
+		if (blackQsAvail && (Move.getTargetPosition(lastMove) == Position.a8)) {
 			blackQsAvail = false;
-		} else if (blackKsAvail && lastMove.to.equals(GenericPosition.h8)) {
+		} else if (blackKsAvail && (Move.getTargetPosition(lastMove) == Position.h8)) {
 			blackKsAvail = false;
-		} else if (whiteQsAvail && lastMove.to.equals(GenericPosition.a1)) {
+		} else if (whiteQsAvail && (Move.getTargetPosition(lastMove) == Position.a1)) {
 			whiteQsAvail = false;
-		} else if (whiteKsAvail && lastMove.to.equals(GenericPosition.h1)) {
+		} else if (whiteKsAvail && (Move.getTargetPosition(lastMove) == Position.h1)) {
 			whiteKsAvail = false;
 		}
 		// King moved
@@ -283,16 +284,16 @@ class CastlingManager {
 			blackKsAvail = blackQsAvail = false;
 		// Rook moved	
 		} else if (movedPiece.equals(PieceType.WhiteRook)) { 
-			if (lastMove.from.file.equals(GenericFile.Fa)) {
+			if (Move.toGenericMove(lastMove).from.file.equals(GenericFile.Fa)) {
 				whiteQsAvail = false;
 			} 
-			if (lastMove.from.file.equals(GenericFile.Fh)) {
+			if (Move.toGenericMove(lastMove).from.file.equals(GenericFile.Fh)) {
 				whiteKsAvail = false;
 			}
 		} else if (movedPiece.equals(PieceType.BlackRook)) {
-			if (lastMove.from.file.equals(GenericFile.Fa)) {
+			if (Move.toGenericMove(lastMove).from.file.equals(GenericFile.Fa)) {
 				blackQsAvail = false;
-			} else if (lastMove.from.file.equals(GenericFile.Fh)) {
+			} else if (Move.toGenericMove(lastMove).from.file.equals(GenericFile.Fh)) {
 				blackKsAvail = false;
 			}	
 		}

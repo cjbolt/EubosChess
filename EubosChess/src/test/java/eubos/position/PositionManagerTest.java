@@ -127,7 +127,7 @@ public class PositionManagerTest {
 		//   abcdefgh
 		classUnderTest = new PositionManager("8/8/8/8/8/8/8/4K2R w K - - -");
 		GenericMove expectedMove = new GenericMove("e1g1");
-		classUnderTest.performMove(Move.toMove(expectedMove));
+		classUnderTest.performMove(Move.toMove(expectedMove, MoveClassification.CASTLE));
 		PieceType whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.h1);
 		assertTrue(whiteRook == PieceType.NONE);
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.f1);
@@ -149,7 +149,7 @@ public class PositionManagerTest {
 		//   abcdefgh
 		classUnderTest = new PositionManager("8/8/8/8/8/8/8/4K2R w K - - -");
 		GenericMove expectedMove = new GenericMove("e1g1");
-		classUnderTest.performMove(Move.toMove(expectedMove));
+		classUnderTest.performMove(Move.toMove(expectedMove, MoveClassification.CASTLE));
 		PieceType whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.h1);
 		assertTrue(whiteRook == PieceType.NONE);
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.f1);

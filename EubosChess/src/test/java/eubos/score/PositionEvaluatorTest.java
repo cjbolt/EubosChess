@@ -14,6 +14,7 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
 import eubos.position.Move;
+import eubos.position.MoveList.MoveClassification;
 import eubos.position.PositionManager;
 import eubos.score.PositionEvaluator;
 import eubos.search.DrawChecker;
@@ -48,7 +49,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_encourageCastling_castled() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("k7/8/8/8/8/8/8/4K2R w K - - -");
-	    pm.performMove(Move.toMove(new GenericMove("e1g1")));
+	    pm.performMove(Move.toMove(new GenericMove("e1g1"), MoveClassification.CASTLE));
 		int score = SUT.encourageCastling();
 		assertEquals(HAS_CASTLED_BOOST_CENTIPAWNS, score);
 	}
@@ -58,7 +59,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_encourageCastling_castled_fewMoveLater() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("k7/8/8/8/8/8/8/4K2R w K - - -");
-		pm.performMove(Move.toMove(new GenericMove("e1g1")));
+		pm.performMove(Move.toMove(new GenericMove("e1g1"), MoveClassification.CASTLE));
 		pm.performMove(Move.toMove(new GenericMove("a8b8")));
 		pm.performMove(Move.toMove(new GenericMove("f1d1")));
 		pm.performMove(Move.toMove(new GenericMove("b8a8")));

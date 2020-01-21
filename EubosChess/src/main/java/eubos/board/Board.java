@@ -147,11 +147,11 @@ public class Board implements Iterable<Integer> {
 		return movesList;
 	}
 		
-	private GenericPosition enPassantTargetSq = null;
-	public GenericPosition getEnPassantTargetSq() {
+	private int enPassantTargetSq = Position.NOPOSITION;
+	public int getEnPassantTargetSq() {
 		return enPassantTargetSq;
 	}
-	public void setEnPassantTargetSq(GenericPosition enPassantTargetSq) {
+	public void setEnPassantTargetSq(int enPassantTargetSq) {
 		// TODO: add bounds checking - only certain en passant squares can be legal.
 		this.enPassantTargetSq = enPassantTargetSq;
 	}
