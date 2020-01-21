@@ -26,12 +26,12 @@ public class SquareAttackEvaluatorTest {
 	
 	private void assertTestSqIsNotAttacked(String fenString) {
 		createClassUnderTest(fenString);
-		assertFalse(SquareAttackEvaluator.isAttacked(bm.getTheBoard(),testSq,bm.getOnMove()));
+		assertFalse(SquareAttackEvaluator.isAttacked(bm.getTheBoard(), testSq, bm.getOnMove()));
 	}
 	
 	private void assertTestSqIsAttacked(String fenString) {
 		createClassUnderTest(fenString);
-		assertTrue(SquareAttackEvaluator.isAttacked(bm.getTheBoard(),testSq,bm.getOnMove()));
+		assertTrue(SquareAttackEvaluator.isAttacked(bm.getTheBoard(), testSq, bm.getOnMove()));
 	}
 	
 	@Before

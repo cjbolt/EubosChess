@@ -104,7 +104,7 @@ public final class Position {
   }
 
 public static int valueOf(int file, int rank) {
-	return (file << 4) | (rank & 0xF);
+	return (rank << 4) | (file & 0xF);
 }
 
 }
