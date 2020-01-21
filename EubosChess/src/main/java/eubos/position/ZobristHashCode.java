@@ -3,15 +3,12 @@ package eubos.position;
 import java.util.Random;
 import java.util.Stack;
 
-import com.fluxchess.jcpi.models.GenericMove;
-import com.fluxchess.jcpi.models.GenericChessman;
 import com.fluxchess.jcpi.models.IntChessman;
 import com.fluxchess.jcpi.models.IntFile;
 
 import eubos.board.Piece.Colour;
 import eubos.board.Piece.PieceType;
 import eubos.position.CaptureData;
-import eubos.position.MoveList.MoveClassification;
 
 public class ZobristHashCode {
 	
