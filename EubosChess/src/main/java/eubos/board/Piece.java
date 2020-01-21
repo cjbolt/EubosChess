@@ -71,11 +71,11 @@ public abstract class Piece {
 	}
 
 	private static void king_checkAddMove(Piece.Colour ownSide, int atSquare, List<Integer> moveList, Board theBoard, int targetSquare) {
-		if ( targetSquare != 0xFF ) {
+		if ( targetSquare != Position.NOPOSITION ) {
 			PieceType targetPiece = theBoard.getPieceAtSquare(targetSquare);
 			if ( theBoard.squareIsEmpty(targetSquare) || 
 					(targetPiece != PieceType.NONE && PieceType.isOppositeColour(ownSide, targetPiece))) {
-				moveList.add(Move.valueOf(0, atSquare, targetSquare, IntChessman.NOCHESSMAN));
+				moveList.add(Move.valueOf(atSquare, targetSquare));
 			}
 		}
 	}	
@@ -208,7 +208,7 @@ public abstract class Piece {
 	}	
 	
 	private static int pawn_genTwoSqTarget(int atSquare, Piece.Colour ownSide) {
-		int moveTo = 0;
+		int moveTo = Position.NOPOSITION;
 		if ( pawn_isAtInitialPosition(atSquare, ownSide) ) {
 			if (Colour.isBlack(ownSide)) {
 				moveTo = Direction.getDirectMoveSq(Direction.down, Direction.getDirectMoveSq(Direction.down, atSquare));

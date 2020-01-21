@@ -13,6 +13,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
+import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.score.PositionEvaluator;
 import eubos.search.DrawChecker;
@@ -47,7 +48,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_encourageCastling_castled() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("k7/8/8/8/8/8/8/4K2R w K - - -");
-	    pm.performMove(new GenericMove("e1g1"));
+	    pm.performMove(Move.toMove(new GenericMove("e1g1")));
 		int score = SUT.encourageCastling();
 		assertEquals(HAS_CASTLED_BOOST_CENTIPAWNS, score);
 	}
@@ -57,11 +58,11 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_encourageCastling_castled_fewMoveLater() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("k7/8/8/8/8/8/8/4K2R w K - - -");
-		pm.performMove(new GenericMove("e1g1"));
-		pm.performMove(new GenericMove("a8b8"));
-		pm.performMove(new GenericMove("f1d1"));
-		pm.performMove(new GenericMove("b8a8"));
-		pm.performMove(new GenericMove("d1d8"));
+		pm.performMove(Move.toMove(new GenericMove("e1g1")));
+		pm.performMove(Move.toMove(new GenericMove("a8b8")));
+		pm.performMove(Move.toMove(new GenericMove("f1d1")));
+		pm.performMove(Move.toMove(new GenericMove("b8a8")));
+		pm.performMove(Move.toMove(new GenericMove("d1d8")));
 		int score = SUT.encourageCastling();
 		assertEquals(HAS_CASTLED_BOOST_CENTIPAWNS, score);
 	}	
@@ -167,49 +168,49 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_isQuiescent_No_QueenRecapture() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/8/5p2/4p3/3Q4/8/8/8 w - - 0 1 ");
-		pm.performMove(new GenericMove("d4e5"));
+		pm.performMove(Move.toMove(new GenericMove("d4e5")));
 		assertFalse(SUT.isQuiescent());
 	}
 	
 	@Test
 	public void test_isQuiescent_Yes_QueenNoRecapture() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/8/8/4p3/3Q4/8/8/8 w - - 0 1 ");
-		pm.performMove(new GenericMove("d4e5"));
+		pm.performMove(Move.toMove(new GenericMove("d4e5")));
 		assertTrue(SUT.isQuiescent());
 	}
 	
 	@Test
 	public void test_isQuiescent_Yes_NoCaptures() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/3p4/8/8/3P4/8/8/8 w - - 0 1 ");
-		pm.performMove(new GenericMove("d4d5"));
+		pm.performMove(Move.toMove(new GenericMove("d4d5")));
 		assertTrue(SUT.isQuiescent());
 	}
 	
 	@Test
 	public void test_isQuiescent_Yes_LastMoveWasntCapture() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/8/4p3/8/3P4/8/8/8 w - - 0 1 ");
-		pm.performMove(new GenericMove("d4d5"));
+		pm.performMove(Move.toMove(new GenericMove("d4d5")));
 		assertTrue(SUT.isQuiescent());
 	}
 	
 	@Test
 	public void test_isQuiescent_Yes_LastMoveWasCapture_NoRecapturesPossible_Alt() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("rp6/1p6/Pp6/8/1p6/1p6/PP6/QP6 b - - 0 41");
-		pm.performMove(new GenericMove("a8a6"));
+		pm.performMove(Move.toMove(new GenericMove("a8a6")));
 		assertTrue(SUT.isQuiescent());
 	}
 	 
 	@Test
 	public void test_isQuiescent_No_LastMoveWasCheck() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("1r1k1r2/p5Q1/2p3p1/8/1q1p2n1/3P2P1/P3RPP1/4RK2 b - - 0 1");
-		pm.performMove(new GenericMove("f8f2"));
+		pm.performMove(Move.toMove(new GenericMove("f8f2")));
 		assertFalse(SUT.isQuiescent());
 	}
 	
 	@Test
 	public void test_isQuiescent_No_LastMoveWasCheckMate() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - - -");
-		pm.performMove(new GenericMove("d3h7"));
+		pm.performMove(Move.toMove(new GenericMove("d3h7")));
 		assertFalse(SUT.isQuiescent());
 	}
 	

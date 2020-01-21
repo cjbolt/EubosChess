@@ -16,6 +16,7 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
+import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.search.NoLegalMoveException;
 import eubos.search.SearchDebugAgent;
@@ -348,7 +349,7 @@ public class MiniMaxMoveGeneratorTest {
 		// "secondary rook move" missing implementation bug and the fact that an
 		// invalid piece exception was not previously implemented.
 		setupPosition( "2b1k1nr/2p2ppp/2p5/p3q3/P3Q3/P4P2/2P1B1PP/1r3R1K w k - 2 23" );
-		pm.performMove(new GenericMove("f1b1"));
+		pm.performMove(Move.toMove(new GenericMove("f1b1")));
 		expectedMove = new GenericMove("e5e4");
 		//expectedMove = new GenericMove("e5e6");
 		doFindMoveTest(true);
@@ -534,161 +535,5 @@ public class MiniMaxMoveGeneratorTest {
 		SearchResult res = classUnderTest.findMove((byte)3);
 		
 		assertEquals(expectedMove, res.bestMove);
-	}
-	
-	@Test
-	@Ignore
-	public void test_PieceIsntARookDefect_WhilstSearching_Move() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		setupPosition("r1bqkbnr/nppppppp/8/p3P3/3P4/2N5/PPP2PPP/R1BQKBNR b KQkq - 4 6");
-		pm.performMove(new GenericMove("d7d6"));
-		pm.performMove(new GenericMove("g1e2"));
-		pm.performMove(new GenericMove("d6e5"));
-		pm.performMove(new GenericMove("d4e5"));
-		pm.performMove(new GenericMove("d8d1"));
-		pm.performMove(new GenericMove("e1d1"));
-		pm.performMove(new GenericMove("a7c6"));
-		pm.performMove(new GenericMove("c3d5"));
-		classUnderTest.findMove((byte)5);
-	}
-	
-	@Test
-	@Ignore
-	public void test_PieceIsntARookDefect_WhilstSearching_Move1() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		setupPosition("rnbqkbnr/p1p1pppp/8/1p6/2pPP3/8/PP3PPP/RNBQKBNR w KQkq - 0 4");
-		pm.performMove(new GenericMove("a2a4"));
-		pm.performMove(new GenericMove("e7e5"));
-		pm.performMove(new GenericMove("a4b5"));
-		pm.performMove(new GenericMove("f8b4"));
-		pm.performMove(new GenericMove("b1c3"));
-		pm.performMove(new GenericMove("d8d4"));
-		pm.performMove(new GenericMove("d1c2"));
-		pm.performMove(new GenericMove("d4c5"));
-		classUnderTest.findMove((byte)5);
-	}
-	
-	@Test
-	@Ignore
-	public void test_badMoveSelection() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		setupPosition("r3k2r/pp2npp1/2p5/q3P2p/1N2PB1b/P5P1/1PP1NQ1P/R3K2R b KQkq - 0 16");
-		pm.performMove(new GenericMove("c6c5"));
-		pm.performMove(new GenericMove("c2c3"));
-		pm.performMove(new GenericMove("c5b4"));
-		pm.performMove(new GenericMove("c3b4"));
-		pm.performMove(new GenericMove("a5b6"));
-		pm.performMove(new GenericMove("f4e3"));
-		pm.performMove(new GenericMove("b6c7"));
-		pm.performMove(new GenericMove("e3f4"));
-		// Eubos generates a wtf queen for pawn sacrifice. When run here it is ok.
-		expectedMove = new GenericMove("e7c6");
-		
-		classUnderTest.findMove((byte)1);
-		List<GenericMove> lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove((byte)2,lastPc);
-		lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove((byte)3,lastPc);
-		lastPc = classUnderTest.pc.toPvList();
-		SearchResult res = classUnderTest.findMove((byte)4,lastPc);
-		
-		assertEquals(expectedMove, res.bestMove);
-	}
-	
-	@Test
-	@Ignore
-	public void test_badMoveSelectionBishop() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		setupPosition("r1bqk1nr/1pp2ppp/p3p1n1/4P3/1b1B4/P1N2N2/1PP2PPP/R2QKB1R b KQkq - 0 10");
-		expectedMove = new GenericMove("b4c3");
-		
-		classUnderTest.findMove((byte)1);
-		List<GenericMove> lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove((byte)2,lastPc);
-		lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove((byte)3,lastPc);
-		lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove((byte)4,lastPc);
-		lastPc = classUnderTest.pc.toPvList();
-		SearchResult res = classUnderTest.findMove((byte)5,lastPc);
-		
-		assertEquals(expectedMove, res.bestMove);
-	}
-	
-	@Test
-	@Ignore
-	public void test_throwAwayBishop5Ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		setupPosition("r1bqkb1r/p4ppp/2pp1n2/4p3/2P1PB2/2N5/PP3PPP/R2QKB1R w KQkq - 0 9");
-		expectedMove = new GenericMove("g4f5");
-		
-		classUnderTest.findMove((byte)1);
-		List<GenericMove> lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove((byte)2,lastPc);
-		lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove((byte)3,lastPc);
-		lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove((byte)4,lastPc);
-		lastPc = classUnderTest.pc.toPvList();
-		SearchResult res = classUnderTest.findMove((byte)5,lastPc);
-		
-		assertEquals(expectedMove, res.bestMove);
-	}
-
-	@Test
-	@Ignore
-	public void test_EndGamePositionToCheckMoveOrder() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		setupPosition("8/8/p6p/1p3kp1/1P6/P4PKP/5P2/8 w - - 0 1 ");
-		expectedMove = new GenericMove("f3f4");
-		
-		classUnderTest.findMove((byte)1);
-		List<GenericMove> lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove((byte)2,lastPc);
-		lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove((byte)3,lastPc);
-		lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove((byte)4,lastPc);
-		lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove((byte)5);
-		lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove((byte)6,lastPc);
-		lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove((byte)7,lastPc);
-		lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove((byte)8,lastPc);
-		lastPc = classUnderTest.pc.toPvList();
-		classUnderTest.findMove((byte)9,lastPc);
-		lastPc = classUnderTest.pc.toPvList();
-		SearchResult res = classUnderTest.findMove((byte)10,lastPc);
-		
-		assertEquals(expectedMove, res.bestMove);
-	}
-	
-	@Test
-	@Ignore
-	public void test_ExtendedSearch() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		setupPosition("rp6/1p6/np6/1P6/1p6/1p6/PP6/QP6 w - - 0 41"); 
-		expectedMove = new GenericMove("a2a3");
-		SearchResult res = classUnderTest.findMove((byte)1,null);
-		assertEquals(expectedMove, res.bestMove);
-	}
-	
-	@Test
-	@Ignore // Not sure what purpose this test is fulfilling now?
-	public void test_SearchEval_4ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		setupPosition("rn2k1nr/1pp2pbp/p7/3q4/6b1/2N2N2/PPPPBPP1/R1BQ1RK1 b kq - 1 10"); 
-		expectedMove = new GenericMove("g7c3");
-		SearchResult res = classUnderTest.findMove((byte)4,null);
-		assertEquals(expectedMove, res.bestMove);
-		
-		pm = new PositionManager("rn2k1nr/1pp2p1p/p7/8/6b1/2P2N2/PPP2PP1/R1BB1RK1 b kq - 0 12");
-		assertEquals(pm.getPositionEvaluator().evaluatePosition(), classUnderTest.getScore());
-	}
-	
-	@Test
-	@Ignore
-	public void test_SearchEval_1ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		setupPosition("rn2k1nr/1pp2pbp/p7/3q4/6b1/2N2N2/PPPPBPP1/R1BQ1RK1 b kq - 1 10"); 
-		expectedMove = new GenericMove("g7c3");
-		SearchResult res = classUnderTest.findMove((byte)1,null);
-		assertEquals(expectedMove, res.bestMove);
-		
-		pm = new PositionManager("rn2k1nr/1pp2p1p/p7/8/6b1/2P2N2/PPP2PP1/R1BB1RK1 b kq - 0 12");
-		assertEquals(pm.getPositionEvaluator().evaluatePosition(), classUnderTest.getScore());
 	}
 }

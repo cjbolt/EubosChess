@@ -95,7 +95,7 @@ public enum Direction {
 			if (Position.getFile(onSquare) != IntFile.Fg && 
 				Position.getFile(onSquare) != IntFile.Fh && 
 				Position.getRank(onSquare) != IntRank.R1 ) {
-				retVal = onSquare+14;
+				retVal = onSquare-14;
 			}
 			break;
 		case upLeft:
