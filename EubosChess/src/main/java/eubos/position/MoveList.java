@@ -96,7 +96,8 @@ public class MoveList implements Iterable<Integer> {
 		if (bestMove != null) {
 			for (Map.Entry<Integer, MoveClassification> tuple : moves ) {
 				int currMove = tuple.getKey();
-				if (currMove == Move.toMove(bestMove)) {
+				if (Move.toGenericMove(currMove).equals(bestMove)) {
+					// the moves are the same, so set the type of the best move from the existing move
 					intBestMove = Move.setType(Move.toMove(bestMove), tuple.getValue());
 					break;
 				}

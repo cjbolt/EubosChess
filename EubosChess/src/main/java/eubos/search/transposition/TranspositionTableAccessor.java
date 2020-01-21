@@ -124,11 +124,11 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			GenericMove pcMove = pc.getBestMove(plies); // Check against principal continuation where it is available
 		    TranspositionEvaluation eval = this.getTransposition(searchDepthPly-plies);
 			if (eval.status != TranspositionTableStatus.insufficientNoData && eval.trans != null) {
-				GenericMove currMove = eval.trans.getBestMove();
-				if (currMove != null) {
-					if (pcMove != null && (eval.trans.getDepthSearchedInPly() <= (searchDepthPly-plies))) assert currMove.equals(pcMove) : "Error: "+pcMove+" != "+currMove+" @ply="+plies;
-					constructed_pc.add(currMove);
-					pm.performMove(Move.toMove(currMove));
+				int currMove = eval.trans.getBestMoveAsInt();
+				if (currMove != 0) {
+					if (pcMove != null && (eval.trans.getDepthSearchedInPly() <= (searchDepthPly-plies))) assert Move.toGenericMove(currMove).equals(pcMove) : "Error: "+pcMove+" != "+currMove+" @ply="+plies;
+					constructed_pc.add(Move.toGenericMove(currMove));
+					pm.performMove(currMove);
 					numMoves++;
 				}
 			}
