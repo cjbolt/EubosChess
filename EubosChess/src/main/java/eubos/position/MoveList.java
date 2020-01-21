@@ -80,7 +80,7 @@ public class MoveList implements Iterable<Integer> {
 					}  else {
 						moveType = MoveClassification.REGULAR;
 					}
-					moveMap.put(currMove, moveType);
+					moveMap.put(Move.setType(currMove, moveType), moveType);
 				}
 				pm.unperformMove();
 			} catch(InvalidPieceException e) {
@@ -158,8 +158,7 @@ public class MoveList implements Iterable<Integer> {
 		int index = 0;
 		for (Map.Entry<Integer, MoveClassification> tuple : moves ) {
 			int currMove = tuple.getKey();
-			MoveClassification type = tuple.getValue();
-			moveArray[index++] = Move.setType(currMove, type);
+			moveArray[index++] = currMove;
 		}
 		return moveArray;
 	}
@@ -175,7 +174,7 @@ public class MoveList implements Iterable<Integer> {
 			case CAPTURE_WITH_CHECK:
 			case CAPTURE:
 			case CHECK:
-				list.add(Move.setType(tuple.getKey(), tuple.getValue()));
+				list.add(tuple.getKey());
 				break;
 			default:
 				break;

@@ -50,6 +50,14 @@ public class MoveListTest {
 	}
 	
 	@Test
+	public void testCreateMoveList_typePromotionIsSet() throws InvalidPieceException, IllegalNotationException {
+		setup("8/4P3/8/8/8/8/8/8 w - - - -");
+		PrimitiveIterator.OfInt it = classUnderTest.iterator();
+		assertEquals(new GenericMove("e7e8q"), Move.toGenericMove(it.next()));
+		assertEquals(new GenericMove("e7e8n"), Move.toGenericMove(it.next()));
+	}
+	
+	@Test
 	public void testCreateMoveList_ChecksFirst() throws InvalidPieceException, IllegalNotationException {
 		setup( "8/3k3B/8/8/8/8/4K3/8 w - - 0 1");
 		PrimitiveIterator.OfInt it = classUnderTest.iterator();

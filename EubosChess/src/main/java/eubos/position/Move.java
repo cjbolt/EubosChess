@@ -71,10 +71,18 @@ public final class Move {
 	}
 	
 	public static int toMove(GenericMove move, MoveClassification type) {
+		int intMove = 0;
 		int targetPosition = Position.valueOf(move.to);
 		int originPosition = Position.valueOf(move.from);
-		int promotion = (move.promotion != null) ? IntChessman.valueOf(move.promotion) : IntChessman.NOCHESSMAN;
-		return Move.valueOf(type.ordinal(), originPosition, targetPosition, promotion);
+		int promotion = 0;
+		if (move.promotion != null) {
+			promotion = IntChessman.valueOf(move.promotion);
+			intMove = Move.valueOf(MoveClassification.OTHER_PROMOTION.ordinal(), originPosition, targetPosition, promotion);
+		} else {
+			promotion = IntChessman.NOCHESSMAN;
+			intMove =  Move.valueOf(type.ordinal(), originPosition, targetPosition, promotion);
+		}
+		return intMove;
 	}
 
 	public static GenericMove toGenericMove(int move) {
@@ -99,7 +107,17 @@ public final class Move {
 
 	public static int getType(int move) {
 		int type = (move & TYPE_MASK) >>> TYPE_SHIFT;
-		/*assert type == Type.CASTLING;*/
+
+		assert     type == MoveClassification.PROMOTION_AND_CAPTURE_WITH_CHECK.ordinal()	
+				|| type == MoveClassification.PROMOTION_AND_CAPTURE.ordinal()
+				|| type == MoveClassification.PROMOTION.ordinal()
+				|| type == MoveClassification.OTHER_PROMOTION.ordinal()
+				|| type == MoveClassification.CAPTURE_WITH_CHECK.ordinal()
+				|| type == MoveClassification.CAPTURE.ordinal()	
+				|| type == MoveClassification.CASTLE.ordinal()
+				|| type == MoveClassification.CHECK.ordinal()	
+				|| type == MoveClassification.REGULAR.ordinal()
+				|| type == MoveClassification.NONE.ordinal();
 
 		return type;
 	}
@@ -167,7 +185,9 @@ public final class Move {
 	}
 
 	public static int setType(int move, MoveClassification type) {
-
+		// Zero out type
+		move &= ~TYPE_MASK;
+		
 		assert type == MoveClassification.PROMOTION_AND_CAPTURE_WITH_CHECK	
 				|| type == MoveClassification.PROMOTION_AND_CAPTURE
 				|| type == MoveClassification.PROMOTION
@@ -178,6 +198,7 @@ public final class Move {
 				|| type == MoveClassification.CHECK	
 				|| type == MoveClassification.REGULAR
 				|| type == MoveClassification.NONE;
+		
 		return move |= type.ordinal() << TYPE_SHIFT;
 	}
 

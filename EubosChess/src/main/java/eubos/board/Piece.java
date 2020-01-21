@@ -9,6 +9,7 @@ import com.fluxchess.jcpi.models.IntChessman;
 import com.fluxchess.jcpi.models.IntRank;
 
 import eubos.position.Move;
+import eubos.position.MoveList.MoveClassification;
 import eubos.position.Position;
 
 public abstract class Piece {
@@ -254,10 +255,10 @@ public abstract class Piece {
 	private static void pawn_checkPromotionAddMove(int atSquare, Piece.Colour ownSide, List<Integer> moveList,
 			int targetSquare) {
 		if ( pawn_checkPromotionPossible( ownSide, targetSquare )) {
-			moveList.add( Move.valueOf( atSquare, targetSquare, IntChessman.KNIGHT ));
-			moveList.add( Move.valueOf( atSquare, targetSquare, IntChessman.BISHOP ));
-			moveList.add( Move.valueOf( atSquare, targetSquare, IntChessman.ROOK ));
-			moveList.add( Move.valueOf( atSquare, targetSquare, IntChessman.QUEEN ));
+			moveList.add( Move.valueOf( MoveClassification.OTHER_PROMOTION.ordinal(), atSquare, targetSquare, IntChessman.KNIGHT ));
+			moveList.add( Move.valueOf( MoveClassification.OTHER_PROMOTION.ordinal(), atSquare, targetSquare, IntChessman.BISHOP ));
+			moveList.add( Move.valueOf( MoveClassification.OTHER_PROMOTION.ordinal(), atSquare, targetSquare, IntChessman.ROOK ));
+			moveList.add( Move.valueOf( MoveClassification.PROMOTION.ordinal(), atSquare, targetSquare, IntChessman.QUEEN ));
 		} else {
 			moveList.add( Move.valueOf( atSquare, targetSquare ) );
 		}
