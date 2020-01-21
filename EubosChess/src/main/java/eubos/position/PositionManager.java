@@ -1,6 +1,6 @@
 package eubos.position;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -8,6 +8,8 @@ import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericRank;
+import com.fluxchess.jcpi.models.IntFile;
+import com.fluxchess.jcpi.models.IntRank;
 
 import eubos.board.Board;
 import eubos.board.InvalidPieceException;
@@ -300,10 +302,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	private class fenParser {
-		private Map<GenericPosition, PieceType> pl;
+		private Map<Integer, PieceType> pl;
 		
 		public fenParser( PositionManager pm, String fenString ) {
-			pl = new EnumMap<GenericPosition, PieceType>(GenericPosition.class);
+			pl = new HashMap<Integer, PieceType>();
 			String[] tokens = fenString.split(" ");
 			String piecePlacement = tokens[0];
 			String colourOnMove = tokens[1];
@@ -331,57 +333,57 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			pm.setMoveNumber(moveNum);
 		}
 		private void parsePiecePlacement(String piecePlacement) {
-			GenericRank r = GenericRank.R8;
-			GenericFile f = GenericFile.Fa;
+			int r = IntRank.R8;
+			int f = IntFile.Fa;
 			for ( char c: piecePlacement.toCharArray() ){
 				switch(c)
 				{
 				case 'r':
-					pl.put(GenericPosition.valueOf(f,r), PieceType.BlackRook);
+					pl.put(Position.valueOf(f,r), PieceType.BlackRook);
 					f = advanceFile(f);
 					break;
 				case 'R':
-					pl.put(GenericPosition.valueOf(f,r), PieceType.WhiteRook);
+					pl.put(Position.valueOf(f,r), PieceType.WhiteRook);
 					f = advanceFile(f);
 					break;
 				case 'n':
-					pl.put(GenericPosition.valueOf(f,r), PieceType.BlackKnight);
+					pl.put(Position.valueOf(f,r), PieceType.BlackKnight);
 					f = advanceFile(f);
 					break;
 				case 'N':
-					pl.put(GenericPosition.valueOf(f,r), PieceType.WhiteKnight);
+					pl.put(Position.valueOf(f,r), PieceType.WhiteKnight);
 					f = advanceFile(f);
 					break;
 				case 'b':
-					pl.put(GenericPosition.valueOf(f,r), PieceType.BlackBishop);
+					pl.put(Position.valueOf(f,r), PieceType.BlackBishop);
 					f = advanceFile(f);
 					break;
 				case 'B':
-					pl.put(GenericPosition.valueOf(f,r), PieceType.WhiteBishop);
+					pl.put(Position.valueOf(f,r), PieceType.WhiteBishop);
 					f = advanceFile(f);
 					break;
 				case 'q':
-					pl.put(GenericPosition.valueOf(f,r), PieceType.BlackQueen);
+					pl.put(Position.valueOf(f,r), PieceType.BlackQueen);
 					f = advanceFile(f);
 					break;
 				case 'Q':
-					pl.put(GenericPosition.valueOf(f,r), PieceType.WhiteQueen);
+					pl.put(Position.valueOf(f,r), PieceType.WhiteQueen);
 					f = advanceFile(f);
 					break;
 				case 'k':
-					pl.put(GenericPosition.valueOf(f,r), PieceType.BlackKing);
+					pl.put(Position.valueOf(f,r), PieceType.BlackKing);
 					f = advanceFile(f);
 					break;
 				case 'K':
-					pl.put(GenericPosition.valueOf(f,r), PieceType.WhiteKing);
+					pl.put(Position.valueOf(f,r), PieceType.WhiteKing);
 					f = advanceFile(f);
 					break;
 				case 'p':
-					pl.put(GenericPosition.valueOf(f,r), PieceType.BlackPawn);
+					pl.put(Position.valueOf(f,r), PieceType.BlackPawn);
 					f = advanceFile(f);
 					break;
 				case 'P':
-					pl.put(GenericPosition.valueOf(f,r), PieceType.WhitePawn);
+					pl.put(Position.valueOf(f,r), PieceType.WhitePawn);
 					f = advanceFile(f);
 					break;
 				case '1':
@@ -398,8 +400,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 				case '8':
 					break;
 				case '/':
-					r = r.prev();
-					f = GenericFile.Fa;
+					r -= 1;
+					f = IntFile.Fa;
 					break;
 				}
 			}
@@ -411,9 +413,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 				theBoard.setEnPassantTargetSq(null);
 			}
 		}
-		private GenericFile advanceFile(GenericFile f) {
-			if ( f != GenericFile.Fh )
-				f = f.next();
+		private int advanceFile(int f) {
+			if ( f != IntFile.Fh )
+				f += 1;
 			return f;
 		}
 		private void create() {
