@@ -21,7 +21,7 @@ public class BitBoard implements Iterable<Integer> {
 		}
 	}
 	
-	static int[] positionToBit_Lut = new int[256];
+	static int[] positionToBit_Lut = new int[127];
 	static {
 		Integer bit_index = 0;
 		for (int x88_square : Position.values) {
@@ -30,7 +30,7 @@ public class BitBoard implements Iterable<Integer> {
 		}
 	}
 	
-	static BitBoard[] positionToMask_Lut = new BitBoard[256];
+	static BitBoard[] positionToMask_Lut = new BitBoard[127];
 	static {
 		Integer bit_index = 0;
 		for (int x88_square : Position.values) {

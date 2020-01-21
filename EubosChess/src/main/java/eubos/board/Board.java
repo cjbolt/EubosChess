@@ -13,11 +13,9 @@ import eubos.board.Piece.Colour;
 import eubos.board.Piece.PieceType;
 import eubos.position.Position;
 
-import com.fluxchess.jcpi.models.IntRank;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericPosition;
-import com.fluxchess.jcpi.models.GenericRank;
 
 public class Board implements Iterable<Integer> {
 

@@ -2,7 +2,6 @@ package eubos.board;
 
 import static org.junit.Assert.*;
 
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,7 +11,6 @@ import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.position.Move;
 import eubos.position.Position;
 
 import eubos.board.Board;
