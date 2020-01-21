@@ -19,7 +19,7 @@ import eubos.search.transposition.FixedSizeTranspositionTable;
 
 public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	
-	public static final int AVG_MOVES_PER_GAME = 60;
+	public static final int AVG_MOVES_PER_GAME = 80;
 	long gameTimeRemaining;
 	short initialScore;
 	boolean searchStopped = false;
@@ -102,11 +102,11 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 					short currentScore = mg.sm.getCpScore();
 					switch (checkPoint) {
 					case 0:
-						if (currentScore > (lastScore + 600))
+						if (currentScore > (lastScore + 500))
 							terminateNow = true;
 						break;
 					case 1:
-						if (currentScore >= (initialScore - 25)) {
+						if (currentScore >= (initialScore - 50)) {
 							terminateNow = true;
 						}
 						extraTime = true;
