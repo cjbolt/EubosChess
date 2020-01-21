@@ -3,6 +3,7 @@ package eubos.board;
 import static org.junit.Assert.*;
 
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Before;
@@ -11,18 +12,21 @@ import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 
+import eubos.position.Move;
+import eubos.position.Position;
+
 import eubos.board.Board;
 import eubos.board.Piece.PieceType;
 
 public class BoardTest {
 	
 	private Board classUnderTest;
-	private Map<GenericPosition, PieceType> pieceMap;
-	private static final GenericPosition testSq = GenericPosition.a1;
+	private Map<Integer, PieceType> pieceMap;
+	private static final int testSq = Position.a1;
 	
 	@Before
 	public void setUp() throws Exception {
-		pieceMap = new EnumMap<GenericPosition, PieceType>(GenericPosition.class);
+		pieceMap = new HashMap<Integer, PieceType>();
 		classUnderTest = new Board(pieceMap);
 	}
 
@@ -33,20 +37,20 @@ public class BoardTest {
 
 	@Test
 	public void testSetEnPassantTargetSq() {
-		classUnderTest.setEnPassantTargetSq( testSq );
+		classUnderTest.setEnPassantTargetSq( Position.toGenericPosition(testSq) );
 	}
 	
 	@Test
 	public void testGetEnPassantTargetSq_uninitialised() {
-		GenericPosition square = classUnderTest.getEnPassantTargetSq();
-		assertTrue(square == null);
+		int square = Position.valueOf(classUnderTest.getEnPassantTargetSq());
+		assertTrue(square == Position.NOPOSITION);
 	}
 
 	@Test
 	public void testGetEnPassantTargetSq_initialised() {
-		classUnderTest.setEnPassantTargetSq( testSq );
-		GenericPosition square = classUnderTest.getEnPassantTargetSq();
-		assertTrue(square == GenericPosition.a1);
+		classUnderTest.setEnPassantTargetSq( Position.toGenericPosition(testSq));
+		int square = Position.valueOf(classUnderTest.getEnPassantTargetSq());
+		assertTrue(square == Position.a1);
 	}	
 
 	@Test
@@ -100,110 +104,110 @@ public class BoardTest {
 	@Test
 	public void testGetAsFenString1() {
 		classUnderTest.setPieceAtSquare(testSq, PieceType.WhitePawn);
-		classUnderTest.setPieceAtSquare(GenericPosition.c1, PieceType.WhiteKing);
+		classUnderTest.setPieceAtSquare(Position.c1, PieceType.WhiteKing);
 		assertEquals("8/8/8/8/8/8/8/P1K5",classUnderTest.getAsFenString());
 	}
 	
 	@Test
 	public void testGetAsFenString2() {
-		classUnderTest.setPieceAtSquare(GenericPosition.h1, PieceType.WhitePawn);
-		classUnderTest.setPieceAtSquare(GenericPosition.g1, PieceType.WhiteKing);
+		classUnderTest.setPieceAtSquare(Position.h1, PieceType.WhitePawn);
+		classUnderTest.setPieceAtSquare(Position.g1, PieceType.WhiteKing);
 		assertEquals("8/8/8/8/8/8/8/6KP",classUnderTest.getAsFenString());
 	}
 	
 	@Test
 	public void testGetAsFenString3() {
-		classUnderTest.setPieceAtSquare(GenericPosition.h1, PieceType.BlackPawn);
-		classUnderTest.setPieceAtSquare(GenericPosition.g1, PieceType.BlackKing);
+		classUnderTest.setPieceAtSquare(Position.h1, PieceType.BlackPawn);
+		classUnderTest.setPieceAtSquare(Position.g1, PieceType.BlackKing);
 		assertEquals("8/8/8/8/8/8/8/6kp",classUnderTest.getAsFenString());
 	}
 	
 	@Test
 	public void testGetAsFenString4() {
-		classUnderTest.setPieceAtSquare(GenericPosition.h8, PieceType.BlackPawn);
-		classUnderTest.setPieceAtSquare(GenericPosition.g8, PieceType.BlackKing);
+		classUnderTest.setPieceAtSquare(Position.h8, PieceType.BlackPawn);
+		classUnderTest.setPieceAtSquare(Position.g8, PieceType.BlackKing);
 		assertEquals("6kp/8/8/8/8/8/8/8",classUnderTest.getAsFenString());
 	}
 	
 	@Test
 	public void testOpenFile_isOpen() {
-		classUnderTest.setPieceAtSquare(GenericPosition.h8, PieceType.BlackPawn);
-		assertEquals(14, classUnderTest.getNumRankFileSquaresAvailable(GenericPosition.h8));
+		classUnderTest.setPieceAtSquare(Position.h8, PieceType.BlackPawn);
+		assertEquals(14, classUnderTest.getNumRankFileSquaresAvailable(Position.h8));
 	}
 	
 	@Test
 	public void testOpenFile_isClosed() {
-		classUnderTest.setPieceAtSquare(GenericPosition.h7, PieceType.BlackPawn);
-		classUnderTest.setPieceAtSquare(GenericPosition.h2, PieceType.WhiteRook);
-		assertEquals(9, classUnderTest.getNumRankFileSquaresAvailable(GenericPosition.h2));
+		classUnderTest.setPieceAtSquare(Position.h7, PieceType.BlackPawn);
+		classUnderTest.setPieceAtSquare(Position.h2, PieceType.WhiteRook);
+		assertEquals(9, classUnderTest.getNumRankFileSquaresAvailable(Position.h2));
 	}
 	
 	@Test
 	public void testOpenFile_isOpen1() {
-		classUnderTest.setPieceAtSquare(GenericPosition.d7, PieceType.BlackPawn);
-		classUnderTest.setPieceAtSquare(GenericPosition.e2, PieceType.WhiteRook);
-		assertEquals(14, classUnderTest.getNumRankFileSquaresAvailable(GenericPosition.e2));
+		classUnderTest.setPieceAtSquare(Position.d7, PieceType.BlackPawn);
+		classUnderTest.setPieceAtSquare(Position.e2, PieceType.WhiteRook);
+		assertEquals(14, classUnderTest.getNumRankFileSquaresAvailable(Position.e2));
 	}
 	
 	@Test
 	public void testisHalfOpenFile_isHalfOpen() {
-		classUnderTest.setPieceAtSquare(GenericPosition.e7, PieceType.BlackPawn);
-		classUnderTest.setPieceAtSquare(GenericPosition.e2, PieceType.WhiteRook);
+		classUnderTest.setPieceAtSquare(Position.e7, PieceType.BlackPawn);
+		classUnderTest.setPieceAtSquare(Position.e2, PieceType.WhiteRook);
 		assertTrue(classUnderTest.isOnHalfOpenFile(GenericPosition.e2, PieceType.WhiteRook));
 	}
 	
 	@Test
 	public void testisHalfOpenFile_isNotHalfOpen() {
-		classUnderTest.setPieceAtSquare(GenericPosition.e7, PieceType.BlackPawn);
-		classUnderTest.setPieceAtSquare(GenericPosition.e2, PieceType.WhitePawn);
-		classUnderTest.setPieceAtSquare(GenericPosition.e1, PieceType.WhiteRook);
+		classUnderTest.setPieceAtSquare(Position.e7, PieceType.BlackPawn);
+		classUnderTest.setPieceAtSquare(Position.e2, PieceType.WhitePawn);
+		classUnderTest.setPieceAtSquare(Position.e1, PieceType.WhiteRook);
 		assertFalse(classUnderTest.isOnHalfOpenFile(GenericPosition.e1, PieceType.WhiteRook));
 	}
 	
 	@Test
 	@Ignore
 	public void testisHalfOpenFile_isNotHalfOpen1() {
-		classUnderTest.setPieceAtSquare(GenericPosition.e7, PieceType.WhitePawn);
-		classUnderTest.setPieceAtSquare(GenericPosition.e2, PieceType.BlackPawn);
-		classUnderTest.setPieceAtSquare(GenericPosition.e1, PieceType.WhiteRook);
+		classUnderTest.setPieceAtSquare(Position.e7, PieceType.WhitePawn);
+		classUnderTest.setPieceAtSquare(Position.e2, PieceType.BlackPawn);
+		classUnderTest.setPieceAtSquare(Position.e1, PieceType.WhiteRook);
 		assertTrue(classUnderTest.isOnHalfOpenFile(GenericPosition.e1, PieceType.WhiteRook));
 	}
 	
 	@Test
 	public void testisOnOpenDiagonal_Yes() {
-		classUnderTest.setPieceAtSquare(GenericPosition.d5, PieceType.BlackBishop);
-		classUnderTest.setPieceAtSquare(GenericPosition.e5, PieceType.WhitePawn);
-		assertEquals(13,classUnderTest.getNumDiagonalSquaresAvailable(GenericPosition.d5));
+		classUnderTest.setPieceAtSquare(Position.d5, PieceType.BlackBishop);
+		classUnderTest.setPieceAtSquare(Position.e5, PieceType.WhitePawn);
+		assertEquals(13,classUnderTest.getNumDiagonalSquaresAvailable(Position.d5));
 	}
 	
 	@Test
 	public void testisOnOpenDiagonal_No() {
-		classUnderTest.setPieceAtSquare(GenericPosition.d5, PieceType.BlackBishop);
-		classUnderTest.setPieceAtSquare(GenericPosition.e6, PieceType.WhitePawn);
-		assertEquals(0,classUnderTest.getNumDiagonalSquaresAvailable(GenericPosition.d5));
+		classUnderTest.setPieceAtSquare(Position.d5, PieceType.BlackBishop);
+		classUnderTest.setPieceAtSquare(Position.e6, PieceType.WhitePawn);
+		assertEquals(0,classUnderTest.getNumDiagonalSquaresAvailable(Position.d5));
 	}
 	
 	@Test
 	public void testisOnOpenDiagonal_Yes1() {
-		classUnderTest.setPieceAtSquare(GenericPosition.d5, PieceType.BlackBishop);
-		classUnderTest.setPieceAtSquare(GenericPosition.e5, PieceType.WhitePawn);
-		classUnderTest.setPieceAtSquare(GenericPosition.d6, PieceType.WhitePawn);
-		classUnderTest.setPieceAtSquare(GenericPosition.d4, PieceType.WhitePawn);
-		classUnderTest.setPieceAtSquare(GenericPosition.c5, PieceType.WhitePawn);
-		assertEquals(13,classUnderTest.getNumDiagonalSquaresAvailable(GenericPosition.d5));
+		classUnderTest.setPieceAtSquare(Position.d5, PieceType.BlackBishop);
+		classUnderTest.setPieceAtSquare(Position.e5, PieceType.WhitePawn);
+		classUnderTest.setPieceAtSquare(Position.d6, PieceType.WhitePawn);
+		classUnderTest.setPieceAtSquare(Position.d4, PieceType.WhitePawn);
+		classUnderTest.setPieceAtSquare(Position.c5, PieceType.WhitePawn);
+		assertEquals(13,classUnderTest.getNumDiagonalSquaresAvailable(Position.d5));
 	}
 	
 	@Test
 	public void testisOnOpenDiagonal_No1() {
-		classUnderTest.setPieceAtSquare(GenericPosition.a1, PieceType.BlackBishop);
-		classUnderTest.setPieceAtSquare(GenericPosition.h8, PieceType.WhitePawn);
-		assertEquals(6,classUnderTest.getNumDiagonalSquaresAvailable(GenericPosition.a1));
+		classUnderTest.setPieceAtSquare(Position.a1, PieceType.BlackBishop);
+		classUnderTest.setPieceAtSquare(Position.h8, PieceType.WhitePawn);
+		assertEquals(6,classUnderTest.getNumDiagonalSquaresAvailable(Position.a1));
 	}
 	
 	@Test
 	public void testisOnOpenDiagonal_Yes2() {
-		classUnderTest.setPieceAtSquare(GenericPosition.a1, PieceType.BlackBishop);
-		classUnderTest.setPieceAtSquare(GenericPosition.a8, PieceType.WhitePawn);
-		assertEquals(7,classUnderTest.getNumDiagonalSquaresAvailable(GenericPosition.a1));
+		classUnderTest.setPieceAtSquare(Position.a1, PieceType.BlackBishop);
+		classUnderTest.setPieceAtSquare(Position.a8, PieceType.WhitePawn);
+		assertEquals(7,classUnderTest.getNumDiagonalSquaresAvailable(Position.a1));
 	}
 }

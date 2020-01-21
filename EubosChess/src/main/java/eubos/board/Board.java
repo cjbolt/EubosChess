@@ -96,15 +96,15 @@ public class Board implements Iterable<Integer> {
 		}
 	}
 	
-	public Board( Map<GenericPosition, PieceType> pieceMap ) {
+	public Board( Map<Integer, PieceType> pieceMap ) {
 		allPieces = new BitBoard();
 		whitePieces = new BitBoard();
 		blackPieces = new BitBoard();
 		for (int i=0; i<=INDEX_KING; i++) {
 			pieces[i] = new BitBoard();
 		}
-		for ( Entry<GenericPosition, PieceType> nextPiece : pieceMap.entrySet() ) {
-			setPieceAtSquare( Position.valueOf(nextPiece.getKey()), nextPiece.getValue() );
+		for ( Entry<Integer, PieceType> nextPiece : pieceMap.entrySet() ) {
+			setPieceAtSquare( nextPiece.getKey(), nextPiece.getValue() );
 		}
 	}
 	
@@ -357,25 +357,23 @@ public class Board implements Iterable<Integer> {
 		return isPassed;
 	}
 	
-	private static final List<Map<GenericPosition, BitBoard>> PassedPawn_Lut = new ArrayList<Map<GenericPosition, BitBoard>>(2); 
+	private static final List<Map<Integer, BitBoard>> PassedPawn_Lut = new ArrayList<Map<Integer, BitBoard>>(2); 
 	static {
-		Map<GenericPosition, BitBoard> white_map = new EnumMap<GenericPosition, BitBoard>(GenericPosition.class);
+		Map<Integer, BitBoard> white_map = new HashMap<Integer, BitBoard>();
 		PassedPawn_Lut.add(Colour.white.ordinal(), white_map);
-		for (GenericPosition atPos : GenericPosition.values()) {
-			white_map.put(atPos, buildPassedPawnFileMask(atPos.file, atPos.rank, true));
+		for (int atPos : Position.values) {
+			white_map.put(atPos, buildPassedPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), true));
 		}
-		Map<GenericPosition, BitBoard> black_map = new EnumMap<GenericPosition, BitBoard>(GenericPosition.class);
+		Map<Integer, BitBoard> black_map = new HashMap<Integer, BitBoard>();
 		PassedPawn_Lut.add(Colour.black.ordinal(), black_map);
-		for (GenericPosition atPos : GenericPosition.values()) {
-			black_map.put(atPos, buildPassedPawnFileMask(atPos.file, atPos.rank, false));
+		for (int atPos : Position.values) {
+			black_map.put(atPos, buildPassedPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), false));
 		}
 	}
-	private static BitBoard buildPassedPawnFileMask(GenericFile file, GenericRank rank, boolean isWhite) {
+	private static BitBoard buildPassedPawnFileMask(int f, int r, boolean isWhite) {
 		long mask = 0;
-		int r = IntRank.valueOf(rank);
-		int f = IntFile.valueOf(file);
-		boolean hasPrevFile = file.hasPrev();
-		boolean hasNextFile = file.hasNext();
+		boolean hasPrevFile = IntFile.toGenericFile(f).hasPrev();
+		boolean hasNextFile = IntFile.toGenericFile(f).hasNext();
 		if (isWhite) {
 			for (r=r+1; r < 7; r++) {
 				mask = addRankForPassedPawnMask(mask, r, f, hasPrevFile,
