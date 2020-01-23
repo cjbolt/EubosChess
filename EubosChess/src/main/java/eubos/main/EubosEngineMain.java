@@ -26,8 +26,6 @@ import com.fluxchess.jcpi.protocols.NoProtocolException;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.position.Move;
-import eubos.position.MoveList.MoveClassification;
-import eubos.position.Position;
 import eubos.position.PositionManager;
 import eubos.search.SearchDebugAgent;
 import eubos.search.DrawChecker;
@@ -112,18 +110,7 @@ public class EubosEngineMain extends AbstractEngine {
 			PositionManager temp_pm = new PositionManager(uci_fen_string, dc);
 			try {
 				for (GenericMove nextMove : command.moves) {
-					if (((nextMove.equals(new GenericMove( GenericPosition.e8, GenericPosition.g8)) ||
-						  nextMove.equals(new GenericMove( GenericPosition.e8, GenericPosition.c8))) &&
-						    temp_pm.getTheBoard().getPieceAtSquare(Position.e8) == Piece.PieceType.BlackKing) 
-					||  ((nextMove.equals(new GenericMove( GenericPosition.e1, GenericPosition.g1)) ||
-						  nextMove.equals(new GenericMove( GenericPosition.e1, GenericPosition.c1))) && 
-						  temp_pm.getTheBoard().getPieceAtSquare(Position.e1) == Piece.PieceType.WhiteKing)) {
-						// need to cause castling flags to be properly updated
-						temp_pm.performMove(Move.toMove(nextMove, MoveClassification.CASTLE));
-					} else {
-						// otherwise the move class doesn't really matter at this point
-						temp_pm.performMove(Move.toMove(nextMove));
-					}
+					temp_pm.performMove(Move.toMove(nextMove));
 				}
 			} catch(InvalidPieceException e ) {
 				System.out.println( 
@@ -296,7 +283,7 @@ public class EubosEngineMain extends AbstractEngine {
 			// In unit tests carry on without the protocol being connected
 		}
 		if (protocolBestMoveCommand.bestMove != null) {
-			long hashCode = pm.getHashForMove(protocolBestMoveCommand.bestMove);
+			long hashCode = pm.getHashForMove(Move.toMove(protocolBestMoveCommand.bestMove));
 			dc.incrementPositionReachedCount(hashCode);
 			if (dc.isPositionDraw(hashCode)) {
 				// need to remove this position from transposition table, as cached score for it doesn't indicate a draw

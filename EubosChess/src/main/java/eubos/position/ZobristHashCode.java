@@ -226,44 +226,44 @@ public class ZobristHashCode {
 
 	protected void doSecondaryMove(int move, PieceType piece) {
 		if ( piece==PieceType.WhiteKing ) {
-			if (move==CastlingManager.wksc) {
+			if (Move.areEqual(move,CastlingManager.wksc)) {
 				piece = pos.getTheBoard().getPieceAtSquare(Position.f1);
 				hashCode ^= getPrnForPiece(Position.f1, piece); // to
 				hashCode ^= getPrnForPiece(Position.h1, piece); // from
 			}
-			else if (move==CastlingManager.wqsc) {
+			else if (Move.areEqual(move,CastlingManager.wqsc)) {
 				piece = pos.getTheBoard().getPieceAtSquare(Position.d1);
 				hashCode ^= getPrnForPiece(Position.d1, piece); // to
 				hashCode ^= getPrnForPiece(Position.a1, piece); // from
 			}
-			else if (move==CastlingManager.undo_wksc)
+			else if (Move.areEqual(move,CastlingManager.undo_wksc))
 			{
 				piece = pos.getTheBoard().getPieceAtSquare(Position.h1);
 				hashCode ^= getPrnForPiece(Position.h1, piece); // to
 				hashCode ^= getPrnForPiece(Position.f1, piece); // from
 			}
-			else if (move==CastlingManager.undo_wqsc) {
+			else if (Move.areEqual(move,CastlingManager.undo_wqsc)) {
 				piece = pos.getTheBoard().getPieceAtSquare(Position.a1);
 				hashCode ^= getPrnForPiece(Position.a1, piece); // to
 				hashCode ^= getPrnForPiece(Position.d1, piece); // from
 			}
 		} else if (piece==PieceType.BlackKing) {
-			if (move==CastlingManager.bksc) {
+			if (Move.areEqual(move,CastlingManager.bksc)) {
 				piece = pos.getTheBoard().getPieceAtSquare(Position.f8);
 				hashCode ^= getPrnForPiece(Position.f8, piece); // to
 				hashCode ^= getPrnForPiece(Position.h8, piece); // from
 			}
-			else if (move==CastlingManager.bqsc) {
+			else if (Move.areEqual(move,CastlingManager.bqsc)) {
 				piece = pos.getTheBoard().getPieceAtSquare(Position.d8);
 				hashCode ^= getPrnForPiece(Position.d8, piece); // to
 				hashCode ^= getPrnForPiece(Position.a8, piece); // from
 			}
-			else if (move==CastlingManager.undo_bksc) {
+			else if (Move.areEqual(move,CastlingManager.undo_bksc)) {
 				piece = pos.getTheBoard().getPieceAtSquare(Position.h8);
 				hashCode ^= getPrnForPiece(Position.h8, piece); // to
 				hashCode ^= getPrnForPiece(Position.f8, piece); // from
 			}
-			else if (move==CastlingManager.undo_bqsc) {
+			else if (Move.areEqual(move,CastlingManager.undo_bqsc)) {
 				piece = pos.getTheBoard().getPieceAtSquare(Position.a8);
 				hashCode ^= getPrnForPiece(Position.a8, piece); // to
 				hashCode ^= getPrnForPiece(Position.d8, piece); // from

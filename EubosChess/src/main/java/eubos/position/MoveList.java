@@ -111,7 +111,7 @@ public class MoveList implements Iterable<Integer> {
 		int index = 0;
 		boolean found = false;
 		for (int current : moveArray) {
-			if (move == current) {
+			if (Move.areEqual(move,current)) {
 				found = true;
 				break;	
 			}

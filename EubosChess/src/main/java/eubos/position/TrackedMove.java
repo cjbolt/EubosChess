@@ -19,10 +19,10 @@ class TrackedMove {
 	boolean isCapture() { return (capture.target != PieceType.NONE); }
 	
 	boolean isCastle() { 
-		if (move==CastlingManager.bksc || 
-			move==CastlingManager.bqsc ||
-			move==CastlingManager.wksc ||
-			move==CastlingManager.wqsc) {
+		if (Move.areEqual(move, CastlingManager.bksc) || 
+			Move.areEqual(move, CastlingManager.bqsc) ||
+			Move.areEqual(move, CastlingManager.wksc) ||
+			Move.areEqual(move, CastlingManager.wqsc)) {
 			return true;
 		}
 		return false;

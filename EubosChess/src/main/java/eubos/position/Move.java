@@ -80,7 +80,7 @@ public final class Move {
 			intMove = Move.valueOf(MoveClassification.OTHER_PROMOTION.ordinal(), originPosition, targetPosition, promotion);
 		} else {
 			promotion = IntChessman.NOCHESSMAN;
-			intMove =  Move.valueOf(type.ordinal(), originPosition, targetPosition, promotion);
+			intMove = Move.valueOf(type.ordinal(), originPosition, targetPosition, promotion);
 		}
 		return intMove;
 	}
@@ -103,6 +103,21 @@ public final class Move {
 					Position.toGenericPosition(targetPosition),
 					IntChessman.toGenericChessman(getPromotion(move)));
 		}
+	}
+	
+	public static boolean areEqual(int move1, int move2) {
+		boolean areEqual = false;
+		//if (Move.getOriginPosition(move1)==Move.getOriginPosition(move2) &&
+		//	Move.getTargetPosition(move1)==Move.getTargetPosition(move2) &&
+		//	Move.getPromotion(move1)==Move.getPromotion(move2)) {
+		//	areEqual = true;
+		//}
+		move1 &= ~TYPE_MASK;
+		move2 &= ~TYPE_MASK;
+		if (move1==move2) {
+			areEqual = true;
+		}
+		return areEqual;
 	}
 
 	public static int getType(int move) {

@@ -4,10 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.fluxchess.jcpi.models.GenericFile;
-import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
-import com.fluxchess.jcpi.models.GenericRank;
 import com.fluxchess.jcpi.models.IntChessman;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
@@ -133,7 +130,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			castling.performSecondaryCastlingMove(move);
 		}
 		// Handle any initial 2 square pawn moves that are subject to en passant rule
-		int enPassantFile = checkToSetEnPassantTargetSq(Move.toGenericMove(move), pieceToMove);
+		int enPassantFile = checkToSetEnPassantTargetSq(move, pieceToMove);
 		// Handle capture target (note, this will be null if the move is not a capture)
 		CaptureData captureTarget = getCaptureTarget(move, pieceToMove, isEnPassantCapture);
 		// Store the necessary information to undo this move on the move tracker stack
@@ -245,30 +242,28 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return enPassantCapture;
 	}
 	
-	private int checkToSetEnPassantTargetSq(GenericMove move, PieceType pieceToMove) {
-		GenericFile enPassantFile = null;
+	private int checkToSetEnPassantTargetSq(int move, PieceType pieceToMove) {
+		int enPassantFile = IntFile.NOFILE;
 		if ( pieceToMove.equals(PieceType.WhitePawn)) {
-			if ( move.from.rank == GenericRank.R2) {
-				if (move.to.rank == GenericRank.R4) {
-					GenericPosition enPassantWhite = GenericPosition.valueOf(move.to.file,GenericRank.R3);
-					theBoard.setEnPassantTargetSq(Position.valueOf(enPassantWhite));
-					enPassantFile = enPassantWhite.file;
+			int potentialEnPassantFile = Position.getFile(Move.getOriginPosition(move));
+			if ( Position.getRank(Move.getOriginPosition(move)) == IntRank.R2) {
+				if (Position.getRank(Move.getTargetPosition(move)) == IntRank.R4) {
+					enPassantFile = potentialEnPassantFile;
+					int enPassantWhite = Position.valueOf(enPassantFile,IntRank.R3);
+					theBoard.setEnPassantTargetSq(enPassantWhite);
 				}
 			}
 		} else if (pieceToMove.equals(PieceType.BlackPawn)) {
-			if (move.from.rank == GenericRank.R7) {
-				if (move.to.rank == GenericRank.R5) {
-					GenericPosition enPassantBlack = GenericPosition.valueOf(move.to.file,GenericRank.R6);
-					theBoard.setEnPassantTargetSq(Position.valueOf(enPassantBlack));
-					enPassantFile = enPassantBlack.file;
+			int potentialEnPassantFile = Position.getFile(Move.getOriginPosition(move));
+			if (Position.getRank(Move.getOriginPosition(move)) == IntRank.R7) {
+				if (Position.getRank(Move.getTargetPosition(move)) == IntRank.R5) {
+					enPassantFile = potentialEnPassantFile;
+					int enPassantBlack = Position.valueOf(enPassantFile,IntRank.R6);
+					theBoard.setEnPassantTargetSq(enPassantBlack);
 				}
 			}
 		}
-		if (enPassantFile != null) {
-			return IntFile.valueOf(enPassantFile);
-		} else {
-			return IntFile.NOFILE;
-		}
+		return enPassantFile;
 	}
 	
 	private CaptureData getCaptureTarget(int move, PieceType pieceToMove, boolean enPassantCapture) {
@@ -433,10 +428,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		}
 	}
 
-	public long getHashForMove(GenericMove bestMove) {
+	public long getHashForMove(int bestMove) {
 		long hashForMove = (long) 0;
 		try {
-			performMove(Move.toMove(bestMove));
+			performMove(bestMove);
 			hashForMove = getHash();
 			unperformMove();
 		} catch (InvalidPieceException e) {
