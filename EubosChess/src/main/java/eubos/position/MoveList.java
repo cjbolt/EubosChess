@@ -16,6 +16,7 @@ import com.fluxchess.jcpi.models.IntChessman;
 
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece.Colour;
+import eubos.board.Piece.PieceType;
 
 public class MoveList implements Iterable<Integer> {
 	
@@ -48,6 +49,7 @@ public class MoveList implements Iterable<Integer> {
 		Colour onMove = pm.getOnMove();
 		for (Integer currMove : getRawList(pm)) {
 			try {
+				PieceType piece = pm.getTheBoard().getPieceAtSquare(Move.getOriginPosition(currMove));
 				pm.performMove(currMove);
 				if (pm.isKingInCheck(onMove)) {
 					// Scratch any moves resulting in the king being in check
@@ -59,7 +61,7 @@ public class MoveList implements Iterable<Integer> {
 							|| Move.getPromotion(currMove) == IntChessman.KNIGHT);
 					boolean isCapture = pm.lastMoveWasCapture();
 					boolean isCheck = pm.isKingInCheck(Colour.getOpposite(onMove));
-					boolean isCastle = pm.lastMoveWasCastle();
+					boolean isCastle = (PieceType.isKing(piece)) ? pm.lastMoveWasCastle() : false;
 					
 					if (isQueenPromotion && isCapture && isCheck) {
 						moveType = MoveClassification.PROMOTION_AND_CAPTURE_WITH_CHECK;
