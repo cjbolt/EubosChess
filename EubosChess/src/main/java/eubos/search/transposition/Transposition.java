@@ -4,7 +4,6 @@ import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.position.MoveList;
 import eubos.position.Move;
-import eubos.position.MoveList.MoveClassification;
 import eubos.search.Score;
 import eubos.search.Score.ScoreType;
 
@@ -16,7 +15,7 @@ public class Transposition {
 	private ScoreType scoreType;
 
 	public Transposition(byte depth, short score, ScoreType scoreType, MoveList ml, GenericMove bestMove) {
-		this(depth, score, scoreType, ml, Move.toMove(bestMove, MoveClassification.REGULAR));
+		this(depth, score, scoreType, ml, Move.toMove(bestMove, Move.TYPE_REGULAR));
 	}
 	
 	public Transposition(byte depth, short score, ScoreType scoreType, MoveList ml, int bestMove) {

@@ -20,20 +20,6 @@ import eubos.board.Piece.PieceType;
 
 public class MoveList implements Iterable<Integer> {
 	
-	public enum MoveClassification {
-		// In order of natural priority
-		PROMOTION_AND_CAPTURE_WITH_CHECK,
-		PROMOTION_AND_CAPTURE,
-		PROMOTION,
-		OTHER_PROMOTION,
-		CAPTURE_WITH_CHECK,
-		CAPTURE,
-		CASTLE,
-		CHECK,
-		REGULAR,
-		NONE
-	};
-	
 	private int[] normal_search_moves;
 	private int[] extended_search_moves;
 	private int normalSearchBestMovePreviousIndex = -1;
@@ -45,7 +31,7 @@ public class MoveList implements Iterable<Integer> {
 	
 	public MoveList(PositionManager pm, GenericMove bestMove) {
 		// N.b. Need to use a linked hash map to ensure that the search order is deterministic.
-		Map<Integer, MoveClassification> moveMap = new LinkedHashMap<Integer, MoveClassification>();
+		Map<Integer, Integer> moveMap = new LinkedHashMap<Integer, Integer>();
 		Colour onMove = pm.getOnMove();
 		for (Integer currMove : getRawList(pm)) {
 			try {
@@ -54,7 +40,7 @@ public class MoveList implements Iterable<Integer> {
 				if (pm.isKingInCheck(onMove)) {
 					// Scratch any moves resulting in the king being in check
 				} else {
-					MoveClassification moveType;
+					int moveType;
 					boolean isQueenPromotion = (Move.getPromotion(currMove) == IntChessman.QUEEN);
 					boolean isPromotion = (Move.getPromotion(currMove) == IntChessman.BISHOP
 							|| Move.getPromotion(currMove) == IntChessman.ROOK
@@ -64,23 +50,23 @@ public class MoveList implements Iterable<Integer> {
 					boolean isCastle = (PieceType.isKing(piece)) ? pm.lastMoveWasCastle() : false;
 					
 					if (isQueenPromotion && isCapture && isCheck) {
-						moveType = MoveClassification.PROMOTION_AND_CAPTURE_WITH_CHECK;
+						moveType = Move.TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK;
 					} else if (isQueenPromotion && isCapture) {
-						moveType = MoveClassification.PROMOTION_AND_CAPTURE;
+						moveType = Move.TYPE_PROMOTION_AND_CAPTURE;
 					} else if (isQueenPromotion) {
-						moveType = MoveClassification.PROMOTION;
+						moveType = Move.TYPE_PROMOTION;
 					} else if (isPromotion) {
-						moveType = MoveClassification.OTHER_PROMOTION;
+						moveType = Move.TYPE_KBR_PROMOTION;
 					} else if (isCapture && isCheck) {
-						moveType = MoveClassification.CAPTURE_WITH_CHECK;
+						moveType = Move.TYPE_CAPTURE_WITH_CHECK;
 					} else if (isCapture) {
-						moveType = MoveClassification.CAPTURE;
+						moveType = Move.TYPE_CAPTURE;
 					} else if (isCastle) {
-						moveType = MoveClassification.CASTLE;
+						moveType = Move.TYPE_CASTLE;
 					} else if (isCheck) {
-						moveType = MoveClassification.CHECK;
+						moveType = Move.TYPE_CHECK;
 					}  else {
-						moveType = MoveClassification.REGULAR;
+						moveType = Move.TYPE_REGULAR;
 					}
 					moveMap.put(Move.setType(currMove, moveType), moveType);
 				}
@@ -90,13 +76,13 @@ public class MoveList implements Iterable<Integer> {
 			}
 		}
 		
-		SortedSet<Map.Entry<Integer, MoveClassification>> moves = entriesSortedByValues(moveMap);
+		SortedSet<Map.Entry<Integer, Integer>> moves = entriesSortedByValues(moveMap);
 		normal_search_moves = create_normal_list(moves);
 		extended_search_moves = create_extended_list(moves);
 		
 		int intBestMove = 0;
 		if (bestMove != null) {
-			for (Map.Entry<Integer, MoveClassification> tuple : moves ) {
+			for (Map.Entry<Integer, Integer> tuple : moves ) {
 				int currMove = tuple.getKey();
 				if (Move.toGenericMove(currMove).equals(bestMove)) {
 					// the moves are the same, so set the type of the best move from the existing move
@@ -156,31 +142,29 @@ public class MoveList implements Iterable<Integer> {
 		return entireMoveList;
 	}
 	
-	int [] create_normal_list(SortedSet<Map.Entry<Integer, MoveClassification>> moves) {
+	int [] create_normal_list(SortedSet<Map.Entry<Integer, Integer>> moves) {
 		int [] moveArray = new int[moves.size()];
 		int index = 0;
-		for (Map.Entry<Integer, MoveClassification> tuple : moves ) {
+		for (Map.Entry<Integer, Integer> tuple : moves ) {
 			int currMove = tuple.getKey();
 			moveArray[index++] = currMove;
 		}
 		return moveArray;
 	}
 	
-	int[] create_extended_list(SortedSet<Map.Entry<Integer, MoveClassification>> moves) {
+	// Key of Map.Entry is the move
+	// Value of Map.Entry is the move type
+	int[] create_extended_list(SortedSet<Map.Entry<Integer, Integer>> moves) {
 		List<Integer> list = new ArrayList<Integer>();
-		for (Map.Entry<Integer, MoveClassification> tuple : moves ) {
-			switch(tuple.getValue()) {
-			case PROMOTION:
-			case PROMOTION_AND_CAPTURE_WITH_CHECK:
-			case PROMOTION_AND_CAPTURE:
-			case OTHER_PROMOTION:
-			case CAPTURE_WITH_CHECK:
-			case CAPTURE:
-			case CHECK:
+		for (Map.Entry<Integer, Integer> tuple : moves ) {
+			if ((tuple.getValue() == Move.TYPE_PROMOTION) ||
+				(tuple.getValue() == Move.TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK) ||
+				(tuple.getValue() == Move.TYPE_PROMOTION_AND_CAPTURE) ||
+				(tuple.getValue() == Move.TYPE_KBR_PROMOTION) ||
+				(tuple.getValue() == Move.TYPE_CAPTURE_WITH_CHECK) ||
+				(tuple.getValue() == Move.TYPE_CAPTURE) ||
+				(tuple.getValue() == Move.TYPE_CHECK)) {
 				list.add(tuple.getKey());
-				break;
-			default:
-				break;
 			}
 		}
 		int[] array = new int[list.size()];
@@ -246,20 +230,20 @@ public class MoveList implements Iterable<Integer> {
 		return bestMove;
 	}
 	
-	public MoveClassification getMoveTypeFromNormalList(GenericMove genericMove) {
-		MoveClassification type = MoveClassification.OTHER_PROMOTION;
+	public int getMoveTypeFromNormalList(GenericMove genericMove) {
+		int type = Move.TYPE_KBR_PROMOTION;
 		boolean found = false;
 		for (int move : normal_search_moves) {
 			if (Move.getOriginPosition(move) == Position.valueOf(genericMove.from)
 				&& Move.getTargetPosition(move) == Position.valueOf(genericMove.to)) {
 				if (genericMove.promotion != null && genericMove.promotion.isLegalPromotion()) {
 					if (IntChessman.valueOfPromotion(genericMove.promotion) == Move.getPromotion(move)) {
-						type = MoveClassification.values()[Move.getType(move)];
+						type = Move.getType(move);
 						found = true;
 						break;
 					}
 				} else {
-					type = MoveClassification.values()[Move.getType(move)];
+					type = Move.getType(move);
 					found = true;
 					break;
 				}

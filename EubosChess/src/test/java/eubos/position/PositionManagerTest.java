@@ -10,7 +10,7 @@ import static org.junit.Assert.*;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece.Colour;
 import eubos.board.Piece.PieceType;
-import eubos.position.MoveList.MoveClassification;
+import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.position.Position;
 
@@ -127,7 +127,7 @@ public class PositionManagerTest {
 		//   abcdefgh
 		classUnderTest = new PositionManager("8/8/8/8/8/8/8/4K2R w K - - -");
 		GenericMove expectedMove = new GenericMove("e1g1");
-		classUnderTest.performMove(Move.toMove(expectedMove, MoveClassification.CASTLE));
+		classUnderTest.performMove(Move.toMove(expectedMove, Move.TYPE_CASTLE));
 		PieceType whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.h1);
 		assertTrue(whiteRook == PieceType.NONE);
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.f1);
@@ -149,7 +149,7 @@ public class PositionManagerTest {
 		//   abcdefgh
 		classUnderTest = new PositionManager("8/8/8/8/8/8/8/4K2R w K - - -");
 		GenericMove expectedMove = new GenericMove("e1g1");
-		classUnderTest.performMove(Move.toMove(expectedMove, MoveClassification.CASTLE));
+		classUnderTest.performMove(Move.toMove(expectedMove, Move.TYPE_CASTLE));
 		PieceType whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.h1);
 		assertTrue(whiteRook == PieceType.NONE);
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.f1);
@@ -362,7 +362,7 @@ public class PositionManagerTest {
 	public void test_BlackPawn_MoveGen_PromoteQueen() {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/4p3/8 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( MoveClassification.PROMOTION.ordinal(), Position.e2, Position.e1, IntChessman.QUEEN );
+		expectedMove = Move.valueOf( Move.TYPE_PROMOTION, Position.e2, Position.e1, IntChessman.QUEEN );
 		assertTrue( ml.contains( expectedMove ));
 	}	
 
@@ -370,7 +370,7 @@ public class PositionManagerTest {
 	public void test_BlackPawn_MoveGen_PromoteKnight() {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/4p3/8 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( MoveClassification.OTHER_PROMOTION.ordinal(), Position.e2, Position.e1, IntChessman.KNIGHT );
+		expectedMove = Move.valueOf( Move.TYPE_KBR_PROMOTION, Position.e2, Position.e1, IntChessman.KNIGHT );
 		assertTrue( ml.contains( expectedMove ));		
 	}
 
@@ -378,7 +378,7 @@ public class PositionManagerTest {
 	public void test_BlackPawn_MoveGen_PromoteBishop() {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/4p3/8 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( MoveClassification.OTHER_PROMOTION.ordinal(), Position.e2, Position.e1, IntChessman.BISHOP );
+		expectedMove = Move.valueOf( Move.TYPE_KBR_PROMOTION, Position.e2, Position.e1, IntChessman.BISHOP );
 		assertTrue( ml.contains( expectedMove ));			
 	}
 
@@ -386,7 +386,7 @@ public class PositionManagerTest {
 	public void test_BlackPawn_MoveGen_PromoteRook() {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/4p3/8 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( MoveClassification.OTHER_PROMOTION.ordinal(), Position.e2, Position.e1, IntChessman.ROOK );
+		expectedMove = Move.valueOf( Move.TYPE_KBR_PROMOTION, Position.e2, Position.e1, IntChessman.ROOK );
 		assertTrue( ml.contains( expectedMove ));	
 	}
 	
@@ -530,7 +530,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_PromoteQueen() {
 		classUnderTest = new PositionManager("8/4P3/8/8/8/8/8/8 w - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( MoveClassification.PROMOTION.ordinal(), Position.e7, Position.e8, IntChessman.QUEEN );
+		expectedMove = Move.valueOf( Move.TYPE_PROMOTION, Position.e7, Position.e8, IntChessman.QUEEN );
 		assertTrue( ml.contains( expectedMove ));
 	}	
 
@@ -538,7 +538,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_PromoteKnight() {
 		classUnderTest = new PositionManager("8/4P3/8/8/8/8/8/8 w - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( MoveClassification.OTHER_PROMOTION.ordinal(), Position.e7, Position.e8, IntChessman.KNIGHT );
+		expectedMove = Move.valueOf( Move.TYPE_KBR_PROMOTION, Position.e7, Position.e8, IntChessman.KNIGHT );
 		assertTrue( ml.contains( expectedMove ));		
 	}
 
@@ -546,7 +546,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_PromoteBishop() {
 		classUnderTest = new PositionManager("8/4P3/8/8/8/8/8/8 w - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( MoveClassification.OTHER_PROMOTION.ordinal(), Position.e7, Position.e8, IntChessman.BISHOP );
+		expectedMove = Move.valueOf( Move.TYPE_KBR_PROMOTION, Position.e7, Position.e8, IntChessman.BISHOP );
 		assertTrue( ml.contains( expectedMove ));			
 	}
 
@@ -554,7 +554,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_PromoteRook() {
 		classUnderTest = new PositionManager("8/4P3/8/8/8/8/8/8 w - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( MoveClassification.OTHER_PROMOTION.ordinal(), Position.e7, Position.e8, IntChessman.ROOK );
+		expectedMove = Move.valueOf( Move.TYPE_KBR_PROMOTION, Position.e7, Position.e8, IntChessman.ROOK );
 		assertTrue( ml.contains( expectedMove ));	
 	}
 	

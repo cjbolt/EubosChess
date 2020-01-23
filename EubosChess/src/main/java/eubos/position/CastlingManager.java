@@ -9,7 +9,7 @@ import eubos.board.Board;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece.Colour;
 import eubos.board.Piece.PieceType;
-import eubos.position.MoveList.MoveClassification;
+import eubos.position.Move;
 
 class CastlingManager {
 	private boolean whiteKsAvail = true;
@@ -30,15 +30,15 @@ class CastlingManager {
 	private static final int [] qscWhiteEmptySqs = {Position.c1, Position.d1, Position.b1};
 	private static final int [] qscBlackEmptySqs = {Position.c8, Position.d8, Position.b8};
 
-	static final int bksc = Move.valueOf(MoveClassification.CASTLE.ordinal(), Position.e8, Position.g8, IntChessman.NOCHESSMAN);
-	static final int wksc = Move.valueOf(MoveClassification.CASTLE.ordinal(), Position.e1, Position.g1, IntChessman.NOCHESSMAN);
-	static final int bqsc = Move.valueOf(MoveClassification.CASTLE.ordinal(), Position.e8, Position.c8, IntChessman.NOCHESSMAN);
-	static final int wqsc = Move.valueOf(MoveClassification.CASTLE.ordinal(), Position.e1, Position.c1, IntChessman.NOCHESSMAN);
+	static final int bksc = Move.valueOf(Move.TYPE_CASTLE, Position.e8, Position.g8, IntChessman.NOCHESSMAN);
+	static final int wksc = Move.valueOf(Move.TYPE_CASTLE, Position.e1, Position.g1, IntChessman.NOCHESSMAN);
+	static final int bqsc = Move.valueOf(Move.TYPE_CASTLE, Position.e8, Position.c8, IntChessman.NOCHESSMAN);
+	static final int wqsc = Move.valueOf(Move.TYPE_CASTLE, Position.e1, Position.c1, IntChessman.NOCHESSMAN);
 
-	static final int undo_bksc = Move.valueOf(MoveClassification.CASTLE.ordinal(), Position.g8, Position.e8, IntChessman.NOCHESSMAN);
-	static final int undo_wksc = Move.valueOf(MoveClassification.CASTLE.ordinal(), Position.g1, Position.e1, IntChessman.NOCHESSMAN);
-	static final int undo_bqsc = Move.valueOf(MoveClassification.CASTLE.ordinal(), Position.c8, Position.e8, IntChessman.NOCHESSMAN);
-	static final int undo_wqsc = Move.valueOf(MoveClassification.CASTLE.ordinal(), Position.c1, Position.e1, IntChessman.NOCHESSMAN);
+	static final int undo_bksc = Move.valueOf(Move.TYPE_CASTLE, Position.g8, Position.e8, IntChessman.NOCHESSMAN);
+	static final int undo_wksc = Move.valueOf(Move.TYPE_CASTLE, Position.g1, Position.e1, IntChessman.NOCHESSMAN);
+	static final int undo_bqsc = Move.valueOf(Move.TYPE_CASTLE, Position.c8, Position.e8, IntChessman.NOCHESSMAN);
+	static final int undo_wqsc = Move.valueOf(Move.TYPE_CASTLE, Position.c1, Position.e1, IntChessman.NOCHESSMAN);
 
 	CastlingManager(PositionManager Pm) { this( Pm, "-"); }
 

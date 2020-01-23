@@ -10,7 +10,6 @@ import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.position.MoveList;
-import eubos.position.MoveList.MoveClassification;
 import eubos.position.PositionManager;
 import eubos.score.IEvaluate;
 import eubos.score.IScoreMate;
@@ -268,8 +267,7 @@ public class PlySearcher {
 			// Set best move to the previous iteration search result
 			else if (lastPc != null) {
 				GenericMove lastMove = lastPc.get(0);
-				MoveClassification type = (lastMove.promotion != null) ?  
-						MoveClassification.PROMOTION : MoveClassification.REGULAR;
+				int type = (lastMove.promotion != null) ?  Move.TYPE_PROMOTION : Move.TYPE_REGULAR;
 				pc.update(0, Move.toMove(lastMove, type));
 			} else {
 				// Just return pc

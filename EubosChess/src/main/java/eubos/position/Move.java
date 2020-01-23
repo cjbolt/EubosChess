@@ -3,8 +3,6 @@ package eubos.position;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IntChessman;
 
-import eubos.position.MoveList.MoveClassification;
-
 /**
  * This class represents a move as a int value. The fields are represented by
  * the following bits.
@@ -16,8 +14,20 @@ import eubos.position.MoveList.MoveClassification;
  */
 public final class Move {
 	
+	public static final int TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK = 0;
+	public static final int TYPE_PROMOTION_AND_CAPTURE = 1;
+	public static final int TYPE_PROMOTION = 2;
+	public static final int TYPE_KBR_PROMOTION = 3;
+	public static final int TYPE_CAPTURE_WITH_CHECK = 4;
+	public static final int TYPE_CAPTURE = 5;
+	public static final int TYPE_CASTLE = 6;
+	public static final int TYPE_CHECK = 7;
+	public static final int TYPE_REGULAR = 8;
+	public static final int TYPE_NONE = 9;
+	
 	private static final int TYPE_SHIFT = 0;
-	private static final int TYPE_MASK = /*MoveClassification.REGULAR.ordinal()-*/0xF << TYPE_SHIFT;
+	private static final int TYPE_MASK = 0xF << TYPE_SHIFT;
+	
 	private static final int ORIGINPOSITION_SHIFT = 4;
 	private static final int ORIGINPOSITION_MASK = Position.MASK << ORIGINPOSITION_SHIFT;
 	private static final int TARGETPOSITION_SHIFT = 11;
@@ -30,28 +40,28 @@ public final class Move {
 	
 	public static int valueOf(int originPosition, int targetPosition)
 	{
-		return Move.valueOf(MoveClassification.NONE.ordinal(), originPosition, targetPosition, IntChessman.NOCHESSMAN);
+		return Move.valueOf(Move.TYPE_NONE, originPosition, targetPosition, IntChessman.NOCHESSMAN);
 	}
 	
 	public static int valueOf(int originPosition, int targetPosition, int promotion)
 	{
-		return Move.valueOf(MoveClassification.NONE.ordinal(), originPosition, targetPosition, promotion);
+		return Move.valueOf(Move.TYPE_NONE, originPosition, targetPosition, promotion);
 	}
 
 	public static int valueOf(int type, int originPosition, int targetPosition, int promotion) {
 		int move = 0;
 
 		// Encode move classification
-		assert     type == MoveClassification.PROMOTION_AND_CAPTURE_WITH_CHECK.ordinal()	
-				|| type == MoveClassification.PROMOTION_AND_CAPTURE.ordinal()
-				|| type == MoveClassification.PROMOTION.ordinal()
-				|| type == MoveClassification.OTHER_PROMOTION.ordinal()
-				|| type == MoveClassification.CAPTURE_WITH_CHECK.ordinal()
-				|| type == MoveClassification.CAPTURE.ordinal()	
-				|| type == MoveClassification.CASTLE.ordinal()
-				|| type == MoveClassification.CHECK.ordinal()	
-				|| type == MoveClassification.REGULAR.ordinal()
-				|| type == MoveClassification.NONE.ordinal();
+		assert     type == Move.TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK	
+				|| type == Move.TYPE_PROMOTION_AND_CAPTURE
+				|| type == Move.TYPE_PROMOTION
+				|| type == Move.TYPE_KBR_PROMOTION
+				|| type == Move.TYPE_CAPTURE_WITH_CHECK
+				|| type == Move.TYPE_CAPTURE	
+				|| type == Move.TYPE_CASTLE
+				|| type == Move.TYPE_CHECK	
+				|| type == Move.TYPE_REGULAR
+				|| type == Move.TYPE_NONE;
 		move |= type << TYPE_SHIFT;
 
 		// Encode origin position
@@ -70,17 +80,17 @@ public final class Move {
 		return move;
 	}
 	
-	public static int toMove(GenericMove move, MoveClassification type) {
+	public static int toMove(GenericMove move, int type) {
 		int intMove = 0;
 		int targetPosition = Position.valueOf(move.to);
 		int originPosition = Position.valueOf(move.from);
 		int promotion = 0;
 		if (move.promotion != null) {
 			promotion = IntChessman.valueOf(move.promotion);
-			intMove = Move.valueOf(MoveClassification.OTHER_PROMOTION.ordinal(), originPosition, targetPosition, promotion);
+			intMove = Move.valueOf(Move.TYPE_KBR_PROMOTION, originPosition, targetPosition, promotion);
 		} else {
 			promotion = IntChessman.NOCHESSMAN;
-			intMove = Move.valueOf(type.ordinal(), originPosition, targetPosition, promotion);
+			intMove = Move.valueOf(type, originPosition, targetPosition, promotion);
 		}
 		return intMove;
 	}
@@ -93,7 +103,7 @@ public final class Move {
 		int originPosition = getOriginPosition(move);
 		int targetPosition = getTargetPosition(move);
 
-		if (type > MoveClassification.OTHER_PROMOTION.ordinal()) {
+		if (type > Move.TYPE_KBR_PROMOTION) {
 			return new GenericMove(
 					Position.toGenericPosition(originPosition),
 					Position.toGenericPosition(targetPosition));
@@ -123,16 +133,16 @@ public final class Move {
 	public static int getType(int move) {
 		int type = (move & TYPE_MASK) >>> TYPE_SHIFT;
 
-		assert     type == MoveClassification.PROMOTION_AND_CAPTURE_WITH_CHECK.ordinal()	
-				|| type == MoveClassification.PROMOTION_AND_CAPTURE.ordinal()
-				|| type == MoveClassification.PROMOTION.ordinal()
-				|| type == MoveClassification.OTHER_PROMOTION.ordinal()
-				|| type == MoveClassification.CAPTURE_WITH_CHECK.ordinal()
-				|| type == MoveClassification.CAPTURE.ordinal()	
-				|| type == MoveClassification.CASTLE.ordinal()
-				|| type == MoveClassification.CHECK.ordinal()	
-				|| type == MoveClassification.REGULAR.ordinal()
-				|| type == MoveClassification.NONE.ordinal();
+		assert     type == Move.TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK	
+				|| type == Move.TYPE_PROMOTION_AND_CAPTURE
+				|| type == Move.TYPE_PROMOTION
+				|| type == Move.TYPE_KBR_PROMOTION
+				|| type == Move.TYPE_CAPTURE_WITH_CHECK
+				|| type == Move.TYPE_CAPTURE	
+				|| type == Move.TYPE_CASTLE
+				|| type == Move.TYPE_CHECK	
+				|| type == Move.TYPE_REGULAR
+				|| type == Move.TYPE_NONE;
 
 		return type;
 	}
@@ -187,7 +197,7 @@ public final class Move {
 		if (move != 0) {
 			string += toGenericMove(move).toString();
 
-			if (getType(move) <= MoveClassification.PROMOTION.ordinal()) {
+			if (getType(move) <= Move.TYPE_PROMOTION) {
 				string += ":";
 				string += IntChessman.toGenericChessman(getPromotion(move));
 			}
@@ -196,25 +206,25 @@ public final class Move {
 	}
 
 	public static int toMove(GenericMove move) {
-		return Move.toMove(move, MoveClassification.NONE);
+		return Move.toMove(move, Move.TYPE_NONE);
 	}
 
-	public static int setType(int move, MoveClassification type) {
+	public static int setType(int move, int type) {
 		// Zero out type
 		move &= ~TYPE_MASK;
 		
-		assert type == MoveClassification.PROMOTION_AND_CAPTURE_WITH_CHECK	
-				|| type == MoveClassification.PROMOTION_AND_CAPTURE
-				|| type == MoveClassification.PROMOTION
-				|| type == MoveClassification.OTHER_PROMOTION
-				|| type == MoveClassification.CAPTURE_WITH_CHECK
-				|| type == MoveClassification.CAPTURE	
-				|| type == MoveClassification.CASTLE
-				|| type == MoveClassification.CHECK	
-				|| type == MoveClassification.REGULAR
-				|| type == MoveClassification.NONE;
+		assert type == TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK	
+				|| type == TYPE_PROMOTION_AND_CAPTURE
+				|| type == TYPE_PROMOTION
+				|| type == TYPE_KBR_PROMOTION
+				|| type == TYPE_CAPTURE_WITH_CHECK
+				|| type == TYPE_CAPTURE	
+				|| type == TYPE_CASTLE
+				|| type == TYPE_CHECK	
+				|| type == TYPE_REGULAR
+				|| type == TYPE_NONE;
 		
-		return move |= type.ordinal() << TYPE_SHIFT;
+		return move |= type << TYPE_SHIFT;
 	}
 
 }

@@ -9,7 +9,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.position.PositionManager;
 import eubos.position.ZobristHashCode;
-import eubos.position.MoveList.MoveClassification;
+import eubos.position.Move;
 
 public class ZobristHashCodeTest {
 	
@@ -90,7 +90,7 @@ public class ZobristHashCodeTest {
 		PositionManager pm = new PositionManager("8/8/8/8/8/8/8/R3K2R w KQ - 0 1");
 		PositionManager pm_after_castle = new PositionManager("8/8/8/8/8/8/8/R4RK1 b - - 0 1");
 		
-		pm.performMove(Move.toMove(move, MoveClassification.CASTLE));
+		pm.performMove(Move.toMove(move, Move.TYPE_CASTLE));
 
 		assertEquals(pm_after_castle.getHash(), pm.getHash());	
 	}
@@ -101,7 +101,7 @@ public class ZobristHashCodeTest {
 		PositionManager pm = new PositionManager("8/8/8/8/8/8/8/R3K2R w KQ - 0 1");
 		PositionManager pm_after_castle = new PositionManager("8/8/8/8/8/8/8/2KR3R b - - 0 1");
 		
-		pm.performMove(Move.toMove(move, MoveClassification.CASTLE));
+		pm.performMove(Move.toMove(move, Move.TYPE_CASTLE));
 
 		assertEquals(pm_after_castle.getHash(), pm.getHash());	
 	}
@@ -112,7 +112,7 @@ public class ZobristHashCodeTest {
 		PositionManager pm = new PositionManager("r3k2r/8/8/8/8/8/8/8 b kq - 0 1");
 		PositionManager pm_after_castle = new PositionManager("2kr3r/8/8/8/8/8/8/8 w - - 0 1");
 		
-		pm.performMove(Move.toMove(move, MoveClassification.CASTLE));
+		pm.performMove(Move.toMove(move, Move.TYPE_CASTLE));
 
 		assertEquals(pm_after_castle.getHash(), pm.getHash());	
 	}
@@ -123,7 +123,7 @@ public class ZobristHashCodeTest {
 		PositionManager pm = new PositionManager("r3k2r/8/8/8/8/8/8/8 b kq - 0 1");
 		PositionManager pm_after_castle = new PositionManager("r4rk1/8/8/8/8/8/8/8 w - - 0 1");
 		
-		pm.performMove(Move.toMove(move, MoveClassification.CASTLE));
+		pm.performMove(Move.toMove(move, Move.TYPE_CASTLE));
 
 		assertEquals(pm_after_castle.getHash(), pm.getHash());	
 	}
@@ -134,7 +134,7 @@ public class ZobristHashCodeTest {
 		PositionManager pm = new PositionManager("8/8/8/8/8/8/8/R3K2R w KQ - 0 1");
 		long originalHashCode = pm.getHash();
 		
-		pm.performMove(Move.toMove(move, MoveClassification.CASTLE));
+		pm.performMove(Move.toMove(move, Move.TYPE_CASTLE));
 		pm.unperformMove();
 
 		assertEquals(originalHashCode, pm.getHash());	
@@ -146,7 +146,7 @@ public class ZobristHashCodeTest {
 		PositionManager pm = new PositionManager("8/8/8/8/8/8/8/R3K2R w KQ - 0 1");
 		long originalHashCode = pm.getHash();
 		
-		pm.performMove(Move.toMove(move, MoveClassification.CASTLE));
+		pm.performMove(Move.toMove(move, Move.TYPE_CASTLE));
 		pm.unperformMove();
 
 		assertEquals(originalHashCode, pm.getHash());	
@@ -158,7 +158,7 @@ public class ZobristHashCodeTest {
 		PositionManager pm = new PositionManager("r3k2r/8/8/8/8/8/8/8 b kq - 0 1");
 		long originalHashCode = pm.getHash();
 		
-		pm.performMove(Move.toMove(move, MoveClassification.CASTLE));
+		pm.performMove(Move.toMove(move, Move.TYPE_CASTLE));
 		pm.unperformMove();
 
 		assertEquals(originalHashCode, pm.getHash());

@@ -6,7 +6,6 @@ import java.util.List;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.position.Move;
-import eubos.position.MoveList.MoveClassification;
 
 public class PrincipalContinuation {
 
@@ -73,8 +72,7 @@ public class PrincipalContinuation {
 			for (int i=0; i <= index; i++) {
 				if (index < pc_len) {
 					GenericMove currMove = source_pc.get(index);
-					MoveClassification type = (currMove.promotion != null) ?  
-							MoveClassification.PROMOTION : MoveClassification.REGULAR;
+					int type = (currMove.promotion != null) ? Move.TYPE_PROMOTION : Move.TYPE_REGULAR;
 					pc[currPly+i][column]=Move.toMove(currMove, type);
 				} else {
 					/* Note: if the principal continuation ends in a mate, 
