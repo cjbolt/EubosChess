@@ -66,7 +66,7 @@ public class EubosEngineMainTest {
 	// Outputs
 	private static final String ID_NAME_CMD = "id name Eubos 1.0.0"+CMD_TERMINATOR;
 	private static final String ID_AUTHOR_CMD = "id author Chris Bolt"+CMD_TERMINATOR;
-	private static final String OPTION_HASH = "option name Hash type spin default 65 min 32 max 2000"+CMD_TERMINATOR;
+	private static final String OPTION_HASH = "option name Hash type spin default 1032 min 32 max 2000"+CMD_TERMINATOR;
 	private static final String UCI_OK_CMD = "uciok"+CMD_TERMINATOR;
 	private static final String READY_OK_CMD = "readyok"+CMD_TERMINATOR;
 	
