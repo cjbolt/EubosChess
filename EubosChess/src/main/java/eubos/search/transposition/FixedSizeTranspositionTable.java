@@ -11,8 +11,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class FixedSizeTranspositionTable {
 	
-	public static final long ELEMENTS_DEFAULT_HASH_SIZE = (1L << 20);
-	public static final long BYTES_TRANSPOSTION_ELEMENT = (8+32+24);
+	public static final long ELEMENTS_DEFAULT_HASH_SIZE = (1L << 22);
+	public static final long BYTES_TRANSPOSTION_ELEMENT = (8+4+30*4*2);
 	public static final long BYTES_PER_MEGABYTE = (1024L*1000L);
 	public static final long MBYTES_DEFAULT_HASH_SIZE = (ELEMENTS_DEFAULT_HASH_SIZE*BYTES_TRANSPOSTION_ELEMENT)/BYTES_PER_MEGABYTE;
 	

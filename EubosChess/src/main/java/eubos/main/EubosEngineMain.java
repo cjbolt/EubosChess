@@ -79,9 +79,11 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 
 	public void receive(EngineSetOptionCommand command) {
+		logger.fine("SetOptionCommand is " +command.name);
 		// If the GUI has configured the hash table size, reinitialise it at the correct size
-		if (command.name == "Hash") {
+		if (command.name.startsWith("Hash")) {
 			hashMap = new FixedSizeTranspositionTable(Long.parseLong(command.value));
+			logger.fine("MaxHashSizeInElements=" +hashMap.getHashMapMaxSize());
 		}
 	}
 
