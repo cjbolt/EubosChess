@@ -15,7 +15,8 @@ public class Transposition {
 	private ScoreType scoreType;
 
 	public Transposition(byte depth, short score, ScoreType scoreType, MoveList ml, GenericMove bestMove) {
-		this(depth, score, scoreType, ml, Move.toMove(bestMove, Move.TYPE_REGULAR));
+		// Only used by tests
+		this(depth, score, scoreType, ml, Move.toMove(bestMove, Move.TYPE_NONE));
 	}
 	
 	public Transposition(byte depth, short score, ScoreType scoreType, MoveList ml, int bestMove) {
@@ -31,6 +32,9 @@ public class Transposition {
 	}
 
 	public MoveList getMoveList() {
+		if (bestMove != 0) {
+			ml.reorderWithNewBestMove(bestMove);
+		}
 		return ml;
 	}
 	
@@ -73,6 +77,7 @@ public class Transposition {
 		this.bestMove = bestMove;
 		if (bestMove != 0) {
 			this.ml.reorderWithNewBestMove(bestMove);
+			assert Move.areEqual(bestMove,ml.iterator().next()) : "Failed to set best as first move";
 		}
 	}
 	

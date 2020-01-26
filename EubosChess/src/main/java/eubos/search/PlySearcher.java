@@ -105,6 +105,12 @@ public class PlySearcher {
 		case sufficientSeedMoveList:
 			SearchDebugAgent.printHashIsSeedMoveList(currPly, eval.trans.getBestMove(), pos.getHash());
 			ml = eval.trans.getMoveList();
+			if (!isInExtendedSearch()) {
+				int mlFirstMove = ml.iterator().next();
+				int bestMove = eval.trans.getBestMoveAsInt();
+				assert Move.areEqual(bestMove, mlFirstMove) :
+					"move list[0] "+Move.toGenericMove(mlFirstMove)+" not best move: " +Move.toGenericMove(bestMove);
+			}
 			// intentional drop through
 		case insufficientNoData:
 			if (ml == null)

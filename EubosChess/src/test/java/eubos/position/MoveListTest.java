@@ -84,6 +84,23 @@ public class MoveListTest {
 	}
 	
 	@Test
+	public void test_bestMove_ChangedAgain() throws IllegalNotationException {
+		GenericMove expected = new GenericMove("b7b6"); 
+		setup("r1bqkb1r/ppp1pppp/2n5/3p4/3PN3/4PN2/PPP2PPP/R1BQKB1R b KQkq - - 5");
+		
+		PrimitiveIterator.OfInt it = classUnderTest.iterator();
+		assertNotEquals(expected, Move.toGenericMove(it.next()));
+		
+		classUnderTest.reorderWithNewBestMove(Move.toMove(new GenericMove("a7a6")));
+		it = classUnderTest.iterator();
+		assertEquals(new GenericMove("a7a6"), Move.toGenericMove(it.next()));
+		
+		classUnderTest.reorderWithNewBestMove(Move.toMove(expected));
+		it = classUnderTest.iterator();
+		assertEquals(expected, Move.toGenericMove(it.next()));
+	}
+	
+	@Test
 	public void test_whenNoChecksCapturesOrPromotions() throws IllegalNotationException { 
 		setup("8/3p4/8/8/8/5k2/1P6/7K w - - 0 1");
 		PrimitiveIterator.OfInt iter = classUnderTest.getIterator(EXTENDED);

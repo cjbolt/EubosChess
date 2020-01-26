@@ -126,7 +126,11 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			if (eval.status != TranspositionTableStatus.insufficientNoData && eval.trans != null) {
 				int currMove = eval.trans.getBestMoveAsInt();
 				if (currMove != 0) {
-					if (pcMove != null && (eval.trans.getDepthSearchedInPly() <= (searchDepthPly-plies))) assert Move.toGenericMove(currMove).equals(pcMove) : "Error: "+pcMove+" != "+currMove+" @ply="+plies;
+					// Note, if the depth searched is more (from prev searches), it can be different to the pc for this search
+					if (pcMove != null && (eval.trans.getDepthSearchedInPly() <= (searchDepthPly-plies))) {
+						assert Move.areEqual(currMove,Move.toMove(pcMove)) : 
+							"Error: "+pcMove+" != "+Move.toGenericMove(currMove)+" @ply="+plies;
+					}
 					constructed_pc.add(Move.toGenericMove(currMove));
 					pm.performMove(currMove);
 					numMoves++;

@@ -185,7 +185,7 @@ public class MoveList implements Iterable<Integer> {
 		}
 
 		public boolean hasNext() {
-			return next != moveList.length;
+			return next < moveList.length;
 		}
 
 		public Integer next() {
