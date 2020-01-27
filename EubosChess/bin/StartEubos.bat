@@ -1,0 +1,1 @@
+java -Xshare:off -jar .\Eubos.jar
