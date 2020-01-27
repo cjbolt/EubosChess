@@ -20,6 +20,7 @@ import eubos.board.InvalidPieceException;
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.IPositionAccessors;
+import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.PositionManager;
 import eubos.score.MaterialEvaluator;
@@ -98,49 +99,49 @@ public class PlySearcherTest {
 		initialisePositionAndSearch("8/8/1P6/8/5p2/8/8/8 w - - 0 1", (byte)4);
 		
 		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
-		doReturn(new Transposition((byte)1, (short)0, null, null, null)).when(mock_hashMap).setTransposition(any(SearchMetrics.class), anyByte(), (Transposition)isNull(), any(Transposition.class));
+		doReturn(new Transposition((byte)1, (short)0, null, null, null)).when(mock_hashMap).setTransposition(any(SearchMetrics.class), anyByte(), (Transposition)isNull(), anyByte(), anyShort(), any(ScoreType.class), any(MoveList.class), anyInt());
 		
 		assertEquals(650, classUnderTest.searchPly());
 		
-		verify(mock_hashMap, times(8)).setTransposition(any(SearchMetrics.class), anyByte(), (Transposition)isNull(), any(Transposition.class));
+		verify(mock_hashMap, times(8)).setTransposition(any(SearchMetrics.class), anyByte(), (Transposition)isNull(), anyByte(), anyShort(), any(ScoreType.class), any(MoveList.class), anyInt());
 		
-		ArgumentCaptor<Transposition> captorNew = ArgumentCaptor.forClass(Transposition.class);
+		ArgumentCaptor<Integer> captorNew = ArgumentCaptor.forClass(Integer.class);
 		ArgumentCaptor<Transposition> captorOld = ArgumentCaptor.forClass(Transposition.class);
 		ArgumentCaptor<Byte> captorPly = ArgumentCaptor.forClass(Byte.class);
-		verify(mock_hashMap, times(8)).setTransposition(any(SearchMetrics.class), captorPly.capture(), captorOld.capture(), captorNew.capture());
-		List<Transposition> new_trans_args = captorNew.getAllValues();
+		verify(mock_hashMap, times(8)).setTransposition(any(SearchMetrics.class), captorPly.capture(), captorOld.capture(), anyByte(), anyShort(), any(ScoreType.class), any(MoveList.class), captorNew.capture());
+		List<Integer> new_trans_args = captorNew.getAllValues();
 		List<Transposition> trans_args = captorOld.getAllValues();
 		List<Byte> plies = captorPly.getAllValues();
 		
-		assertEquals(new GenericMove("f3f2"),new_trans_args.get(0).getBestMove());
+		assertEquals(new GenericMove("f3f2"),Move.toGenericMove(new_trans_args.get(0)));
 		assertNull(trans_args.get(0));
 		assertEquals(3, plies.get(0).byteValue());
 		
-		assertEquals(new GenericMove("b7b8q"),new_trans_args.get(1).getBestMove());
+		assertEquals(new GenericMove("b7b8q"),Move.toGenericMove(new_trans_args.get(1)));
 		assertNull(trans_args.get(1));
 		assertEquals(2, plies.get(1).byteValue());
 		
-		assertEquals(new GenericMove("f3f2"),new_trans_args.get(2).getBestMove());
+		assertEquals(new GenericMove("f3f2"),Move.toGenericMove(new_trans_args.get(2)));
 		assertNull(trans_args.get(2));
 		assertEquals(3, plies.get(2).byteValue());
 		
-		assertEquals(new GenericMove("f3f2"),new_trans_args.get(3).getBestMove());
+		assertEquals(new GenericMove("f3f2"),Move.toGenericMove(new_trans_args.get(3)));
 		assertNull(trans_args.get(3));
 		assertEquals(3, plies.get(3).byteValue());
 		
-		assertEquals(new GenericMove("f3f2"),new_trans_args.get(4).getBestMove());
+		assertEquals(new GenericMove("f3f2"),Move.toGenericMove(new_trans_args.get(4)));
 		assertNull(trans_args.get(4));
 		assertEquals(3, plies.get(4).byteValue());
 		
-		assertEquals(new GenericMove("b7b8q"),new_trans_args.get(5).getBestMove());
+		assertEquals(new GenericMove("b7b8q"),Move.toGenericMove(new_trans_args.get(5)));
 		assertNotNull(trans_args.get(5));
 		assertEquals(2, plies.get(5).byteValue());
 		
-		assertEquals(new GenericMove("f4f3"),new_trans_args.get(6).getBestMove());
+		assertEquals(new GenericMove("f4f3"),Move.toGenericMove(new_trans_args.get(6)));
 		assertNull(trans_args.get(6));
 		assertEquals(1, plies.get(6).byteValue());
 		
-		assertEquals(new GenericMove("b6b7"),new_trans_args.get(7).getBestMove());
+		assertEquals(new GenericMove("b6b7"),Move.toGenericMove(new_trans_args.get(7)));
 		assertNull(trans_args.get(7));
 		assertEquals(0, plies.get(7).byteValue());
 	}	 
@@ -191,7 +192,7 @@ public class PlySearcherTest {
 		
 	    setupBackUpToRootNodeTerminatesTest();
 		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
-		verify(mock_hashMap, never()).setTransposition(any(SearchMetrics.class), anyByte(), (Transposition)isNull(), any(Transposition.class));
+		verify(mock_hashMap, never()).setTransposition(any(SearchMetrics.class), anyByte(), (Transposition)isNull(), anyByte(), anyShort(), any(ScoreType.class), any(MoveList.class), anyInt());
 		classUnderTest.searchPly();
 	}
 

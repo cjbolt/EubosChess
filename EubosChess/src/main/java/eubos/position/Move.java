@@ -197,7 +197,7 @@ public final class Move {
 		if (move != 0) {
 			string += toGenericMove(move).toString();
 
-			if (getType(move) <= Move.TYPE_PROMOTION) {
+			if (getType(move) <= Move.TYPE_KBR_PROMOTION) {
 				string += ":";
 				string += IntChessman.toGenericChessman(getPromotion(move));
 			}

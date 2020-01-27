@@ -112,4 +112,8 @@ public class PrincipalContinuation {
 		}
 	}
 
+	public int getBestMoveAsInt(byte currPly) {
+		return pc[currPly][currPly];
+	}
+
 }

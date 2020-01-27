@@ -142,7 +142,7 @@ public class MoveList implements Iterable<Integer> {
 		return entireMoveList;
 	}
 	
-	int [] create_normal_list(SortedSet<Map.Entry<Integer, Integer>> moves) {
+	private int [] create_normal_list(SortedSet<Map.Entry<Integer, Integer>> moves) {
 		int [] moveArray = new int[moves.size()];
 		int index = 0;
 		for (Map.Entry<Integer, Integer> tuple : moves ) {
@@ -154,7 +154,7 @@ public class MoveList implements Iterable<Integer> {
 	
 	// Key of Map.Entry is the move
 	// Value of Map.Entry is the move type
-	int[] create_extended_list(SortedSet<Map.Entry<Integer, Integer>> moves) {
+	private int[] create_extended_list(SortedSet<Map.Entry<Integer, Integer>> moves) {
 		List<Integer> list = new ArrayList<Integer>();
 		for (Map.Entry<Integer, Integer> tuple : moves ) {
 			if ((tuple.getValue() == Move.TYPE_PROMOTION) ||
@@ -254,6 +254,7 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	public void reorderWithNewBestMove(GenericMove newBestMove) {
+		// Only used by tests
 		int move = Move.toMove(newBestMove, getMoveTypeFromNormalList(newBestMove));
 		reorderWithNewBestMove(move);
 	}
@@ -307,4 +308,14 @@ public class MoveList implements Iterable<Integer> {
 	private boolean isMoveAlreadyBest(int index) { return (index == 0); }
 	
 	private boolean wasPreviouslyModified(int index) { return index != -1; }
+	
+	@Override
+	public String toString() {
+		String retVal = "";
+		for (int move : this.normal_search_moves) {
+			retVal += Move.toString(move);
+			retVal += ", ";
+		}
+		return retVal;
+	}
 }

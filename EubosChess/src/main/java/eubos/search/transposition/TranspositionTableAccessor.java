@@ -9,6 +9,7 @@ import eubos.board.InvalidPieceException;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
+import eubos.position.MoveList;
 import eubos.score.IEvaluate;
 import eubos.search.PrincipalContinuation;
 import eubos.search.Score;
@@ -102,12 +103,12 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return ret;
 	}
 	
-	public Transposition setTransposition(SearchMetrics sm, byte currPly, Transposition trans, Transposition new_trans) {
+	public Transposition setTransposition(SearchMetrics sm, byte currPly, Transposition trans, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove) {
 		if (trans == null) {
-			trans = getTransCreateIfNew(currPly, new_trans);
+			trans = getTransCreateIfNew(currPly, new_Depth, new_score, new_bound, new_ml, new_bestMove);
 			sm.setHashFull(getHashUtilisation());
 		}
-		trans = checkForUpdateTrans(currPly, new_trans, trans);
+		trans = checkForUpdateTrans(currPly, trans, new_Depth, new_score, new_bound, new_ml, new_bestMove);
 		return trans;
 	}
 	
@@ -143,10 +144,11 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		pc.update(0, constructed_pc);
 	}
 	
-	private Transposition getTransCreateIfNew(int currPly, Transposition new_trans) {
+	private Transposition getTransCreateIfNew(int currPly, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove) {
 		SearchDebugAgent.printTransNull(currPly, pos.getHash());
 		Transposition trans = hashMap.getTransposition(pos.getHash());
 		if (trans == null) {
+			Transposition new_trans = new Transposition(new_Depth, new_score, new_bound, new_ml, new_bestMove);
 			SearchDebugAgent.printCreateTrans(currPly, pos.getHash());
 			hashMap.putTransposition(pos.getHash(), new_trans);
 			SearchDebugAgent.printTransUpdate(currPly, new_trans, pos.getHash());
@@ -155,37 +157,43 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return trans;
 	}
 	
-	private Transposition checkForUpdateTrans(int currPly, Transposition new_trans, Transposition current_trans) {
+	private Transposition checkForUpdateTrans(int currPly, Transposition current_trans, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove) {
 		boolean updateTransposition = false;
 		int currentDepth = current_trans.getDepthSearchedInPly();
 		ScoreType currentBound = current_trans.getScoreType();
 		
-		SearchDebugAgent.printTransDepthCheck(currPly, currentDepth, new_trans.getDepthSearchedInPly());
+		SearchDebugAgent.printTransDepthCheck(currPly, currentDepth, new_Depth);
 		
-		if (currentDepth < new_trans.getDepthSearchedInPly()) {
+		if (currentDepth < new_Depth) {
 			updateTransposition = true;
 		} 
-		if (currentDepth == new_trans.getDepthSearchedInPly()) {
+		if (currentDepth == new_Depth) {
 			SearchDebugAgent.printTransBoundScoreCheck(
 					currPly,
 					currentBound,
 					current_trans.getScore(),
-					new_trans.getScore());
+					new_score);
 			if (((currentBound == ScoreType.upperBound) || (currentBound == ScoreType.lowerBound)) &&
-					new_trans.getScoreType() == ScoreType.exact) {
+					new_bound == ScoreType.exact) {
 			    updateTransposition = true;
 			} else if ((currentBound == ScoreType.upperBound) &&
-					   (new_trans.getScore() < current_trans.getScore())) {
-				assert currentBound == new_trans.getScoreType();
+					   (new_score < current_trans.getScore())) {
+				assert currentBound == new_bound;
 				updateTransposition = true;
 			} else if ((currentBound == ScoreType.lowerBound) &&
-					   (new_trans.getScore() > current_trans.getScore())) {
-				assert currentBound == new_trans.getScoreType();
+					   (new_score > current_trans.getScore())) {
+				assert currentBound == new_bound;
 				updateTransposition = true;
 			}
 		}
 		if (updateTransposition) {
-			current_trans.update(new_trans);
+			// order is important because setBestMove uses ml
+			current_trans.setMoveList(new_ml);
+			current_trans.setDepthSearchedInPly(new_Depth);
+			current_trans.setScoreType(new_bound);
+			current_trans.setScore(new_score);
+			current_trans.setBestMove(new_bestMove);
+			
 		    hashMap.putTransposition(pos.getHash(), current_trans);
 		    SearchDebugAgent.printTransUpdate(currPly, current_trans, pos.getHash());
 		}

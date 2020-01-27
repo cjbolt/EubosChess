@@ -32,9 +32,6 @@ public class Transposition {
 	}
 
 	public MoveList getMoveList() {
-		if (bestMove != 0) {
-			ml.reorderWithNewBestMove(bestMove);
-		}
 		return ml;
 	}
 	
@@ -74,15 +71,16 @@ public class Transposition {
 	}
 	
 	public void setBestMove(int bestMove) {
-		this.bestMove = bestMove;
-		if (bestMove != 0) {
-			this.ml.reorderWithNewBestMove(bestMove);
-			assert Move.areEqual(bestMove,ml.iterator().next()) : "Failed to set best as first move";
+		if (!Move.areEqual(this.bestMove, bestMove)) {
+			this.bestMove = bestMove;
+			if (bestMove != 0) {
+				this.ml.reorderWithNewBestMove(bestMove);
+			}
 		}
 	}
 	
 	public String report() {
-		return "trans best: "+Move.toString(bestMove)+" dep:"+depthSearchedInPly+" sc:"+score+" type:"+scoreType;
+		return "trans best: "+Move.toString(bestMove)+" dep:"+depthSearchedInPly+" sc:"+score+" type:"+scoreType +" ml: " + ml + " ref:" + Integer.toHexString(System.identityHashCode(ml));
 	}
 	
 	public void update(Transposition updateFrom) {
@@ -92,5 +90,9 @@ public class Transposition {
 	    this.setScoreType(updateFrom.getScoreType());
 	    this.setScore(updateFrom.getScore());
 	    this.setBestMove(updateFrom.getBestMoveAsInt());
+	}
+
+	public void setMoveList(MoveList new_ml) {
+		this.ml = new_ml;		
 	}
 }
