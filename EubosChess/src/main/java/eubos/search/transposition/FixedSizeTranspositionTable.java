@@ -12,9 +12,18 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FixedSizeTranspositionTable {
 	
 	public static final long ELEMENTS_DEFAULT_HASH_SIZE = (1L << 22);
-	public static final long BYTES_TRANSPOSTION_ELEMENT = (8+4+30*4*2);
+	public static final long MOVELIST_NORMAL_WORST_SIZE = 40L;
+	public static final long MOVELIST_EXTENDED_AVERAGE_SIZE = 5L;
+	public static final long MOVELIST_AVERAGE_SIZE = (MOVELIST_NORMAL_WORST_SIZE+MOVELIST_EXTENDED_AVERAGE_SIZE);
+	public static final long BYTES_MOVELIST_AVERAGE = (MOVELIST_AVERAGE_SIZE*Integer.BYTES+2*Byte.BYTES);
+	public static final long BYTES_TRANSPOSTION_ELEMENT = (Long.BYTES/*Zobrist*/+Short.BYTES/*score*/+Byte.BYTES/*depth*/+Integer.BYTES/*best*/+Integer.BYTES/*bound*/+4/*MoveList reference size?*/);
+	public static final long BYTES_ACCESS_COUNT = (Integer.BYTES+Long.BYTES);
+	public static final long BYTES_DRAW_CHECKER = (Long.BYTES+Byte.BYTES);
+	
+	public static final long BYTES_PER_TRANSPOSITION = (BYTES_TRANSPOSTION_ELEMENT + BYTES_MOVELIST_AVERAGE + BYTES_ACCESS_COUNT+BYTES_DRAW_CHECKER);
 	public static final long BYTES_PER_MEGABYTE = (1024L*1000L);
-	public static final long MBYTES_DEFAULT_HASH_SIZE = (ELEMENTS_DEFAULT_HASH_SIZE*BYTES_TRANSPOSTION_ELEMENT)/BYTES_PER_MEGABYTE;
+	
+	public static final long MBYTES_DEFAULT_HASH_SIZE = (ELEMENTS_DEFAULT_HASH_SIZE*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE;
 	
 	private ConcurrentHashMap<Long, Transposition> hashMap = null;
 	private long hashMapSize = 0;

@@ -3,29 +3,29 @@ package eubos.search;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DrawChecker {
-	private ConcurrentHashMap<Long,Integer> positionCount;
+	private ConcurrentHashMap<Long,Byte> positionCount;
 	
 	public DrawChecker() {
-		positionCount = new ConcurrentHashMap<Long,Integer>();
+		positionCount = new ConcurrentHashMap<Long,Byte>();
 	}
 	
 	public void incrementPositionReachedCount(Long posHash) {
-		Integer count = positionCount.get(posHash);
+		Byte count = positionCount.get(posHash);
 		if (count == null) {
-			positionCount.put(posHash, 1);
+			positionCount.put(posHash, (byte)1);
 		} else {
-			count+=1;
+			count++;
 			positionCount.put(posHash, count);
 		}
 	}
 	
-	Integer getPositionReachedCount(Long posHash) {
+	Byte getPositionReachedCount(Long posHash) {
 		return positionCount.get(posHash);
 	}
 
 	public boolean isPositionDraw(long positionHash) {
 		boolean isDrawn = false;
-		Integer reachedCount = getPositionReachedCount(positionHash);
+		Byte reachedCount = getPositionReachedCount(positionHash);
 		if (reachedCount != null && reachedCount >= 3) {
 			isDrawn = true;
 		}
@@ -33,11 +33,11 @@ public class DrawChecker {
 	}
 
 	public void decrementPositionReachedCount(long posHash) {
-		Integer count = positionCount.get(posHash);
+		Byte count = positionCount.get(posHash);
 		if (count == null) {
 			assert false;
 		} else {
-			count-=1;
+			count--;
 			if (count == 0) {
 				positionCount.remove(posHash);
 			} else {
