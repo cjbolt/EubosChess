@@ -1,7 +1,7 @@
 # EubosChess
 A basic Java chess engine, written for kicks. Uses jcpi for the UCI protocol parts. Kind of weak, doesn't evaluate for king safety, for example. Now uses transpostion hashing, but because it runs in the Java VM on a bog standard PC, doesn't search very deeply (around 100K Nodes/s, though this is actually quite hard to evaluate due to the hashing). This is my first chess engine, my first full Java project, my first open source contribution...
 
-Current release version 1.0.1
+Current release version 1.0.2
 
 You can get a binary from the bin folder, alongside a batch file for running Eubos from Arena.
 
