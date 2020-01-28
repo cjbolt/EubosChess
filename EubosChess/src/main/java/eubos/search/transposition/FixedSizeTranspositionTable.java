@@ -47,12 +47,8 @@ public class FixedSizeTranspositionTable {
 	}
 	
 	public FixedSizeTranspositionTable(long hashSizeMBytes) {
-		/* Capping hash table - 
-		 * size of hash code 8 bytes
-		 * size of transposition 32 bytes
-		 * generic move 24 bytes
-		 * average move list */
-		long hashSizeElements = (hashSizeMBytes * BYTES_PER_MEGABYTE) / BYTES_TRANSPOSTION_ELEMENT;
+		long hashSizeElements = (hashSizeMBytes * BYTES_PER_MEGABYTE) / BYTES_PER_TRANSPOSITION;
+		hashSizeElements = (hashSizeElements*4)/10;
 		hashMap = new ConcurrentHashMap<Long, Transposition>((int)hashSizeElements, (float)0.75);
 		accessCount = new ConcurrentHashMap<Long, Integer>();
 		hashMapSize = 0;
