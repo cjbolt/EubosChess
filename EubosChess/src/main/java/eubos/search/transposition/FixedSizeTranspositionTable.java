@@ -48,7 +48,12 @@ public class FixedSizeTranspositionTable {
 	
 	public FixedSizeTranspositionTable(long hashSizeMBytes) {
 		long hashSizeElements = (hashSizeMBytes * BYTES_PER_MEGABYTE) / BYTES_PER_TRANSPOSITION;
-		hashSizeElements = (hashSizeElements*4)/10;
+		long maxHeapSize = Runtime.getRuntime().maxMemory();
+		if ((hashSizeMBytes * BYTES_PER_MEGABYTE) > ((maxHeapSize*4)/10)) {
+			/*If the configured hash size is greater than 40% of the heap, then reduce the hash size
+			 * as we are resource constrained and garbage collection will kill speed of the engine. */
+			hashSizeElements = (hashSizeElements*4)/10;
+		}
 		hashMap = new ConcurrentHashMap<Long, Transposition>((int)hashSizeElements, (float)0.75);
 		accessCount = new ConcurrentHashMap<Long, Integer>();
 		hashMapSize = 0;
