@@ -22,8 +22,8 @@ public class MoveList implements Iterable<Integer> {
 	
 	private int[] normal_search_moves;
 	private int[] extended_search_moves;
-	private int normalSearchBestMovePreviousIndex = -1;
-	private int extendedSearchListBestMovePreviousIndex = -1;
+	private byte normalSearchBestMovePreviousIndex = -1;
+	private byte extendedSearchListBestMovePreviousIndex = -1;
 	
 	public MoveList(PositionManager pm) {
 		this(pm, null);
@@ -95,8 +95,8 @@ public class MoveList implements Iterable<Integer> {
 		}
 	}
 	
-	private int getIndex(int[] moveArray, int move) {
-		int index = 0;
+	private byte getIndex(int[] moveArray, int move) {
+		byte index = 0;
 		boolean found = false;
 		for (int current : moveArray) {
 			if (Move.areEqual(move,current)) {
@@ -279,8 +279,8 @@ public class MoveList implements Iterable<Integer> {
 		return moveArray;
 	}
 	
-	private int reorderList(int[] moveArray, int newBestMove, int prevBestOriginalIndex) {
-		int index = getIndex(moveArray, newBestMove);
+	private byte reorderList(int[] moveArray, int newBestMove, byte prevBestOriginalIndex) {
+		byte index = getIndex(moveArray, newBestMove);
 		if (isMovePresent(index) && !isMoveAlreadyBest(index)) {
 			
 			if (wasPreviouslyModified(prevBestOriginalIndex)) {
