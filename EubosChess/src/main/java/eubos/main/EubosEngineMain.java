@@ -307,6 +307,9 @@ public class EubosEngineMain extends AbstractEngine {
 	public static void main(String[] args) {
 		if (LOGGING_ENABLED) {
 			logStart();
+		} else {
+			logger.setLevel(Level.OFF);
+			logger.setUseParentHandlers(false);
 		}
 		logger.fine("Starting Eubos");
 		// start the Engine
