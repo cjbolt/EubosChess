@@ -132,6 +132,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 						assert Move.areEqual(currMove,Move.toMove(pcMove)) : 
 							"Error: "+pcMove+" != "+Move.toGenericMove(currMove)+" @ply="+plies;
 					}
+					hashMap.protectHash(pos.getHash());
 					constructed_pc.add(Move.toGenericMove(currMove));
 					pm.performMove(currMove);
 					numMoves++;
