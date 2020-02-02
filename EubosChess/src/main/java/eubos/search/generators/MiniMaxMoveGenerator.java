@@ -61,10 +61,8 @@ public class MiniMaxMoveGenerator implements
 			IPositionAccessors pos,
 			IEvaluate pe) {
 		this(hashMap, pm, pos, pe);
-		sm = new SearchMetrics();
 		callback = eubos;
 		sendInfo = true;
-		score = 0;
 		SearchDebugAgent.open(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
 	}
 	
@@ -118,15 +116,7 @@ public class MiniMaxMoveGenerator implements
 		// Select the best move
 		GenericMove bestMove = pc.getBestMove();
 		if (bestMove==null) {
-			//// TODO workaround for draw checker issue, where sometimes we can return null best move...
-			//if (lastPc != null && !lastPc.isEmpty()) {
-			//	bestMove=lastPc.get(0);
-			//	if (bestMove==null) {
-					throw new NoLegalMoveException();
-			//	}
-			//} else {
-			//	throw new NoLegalMoveException();
-			//}
+			throw new NoLegalMoveException();
 		}
 		return new SearchResult(bestMove,foundMate);
 	}

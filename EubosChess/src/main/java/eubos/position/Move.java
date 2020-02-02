@@ -19,11 +19,14 @@ public final class Move {
 	public static final int TYPE_PROMOTION = 2;
 	public static final int TYPE_KBR_PROMOTION = 3;
 	public static final int TYPE_CAPTURE_WITH_CHECK = 4;
-	public static final int TYPE_CAPTURE = 5;
-	public static final int TYPE_CASTLE = 6;
-	public static final int TYPE_CHECK = 7;
-	public static final int TYPE_REGULAR = 8;
-	public static final int TYPE_NONE = 9;
+	public static final int TYPE_CAPTURE_QUEEN = 5;
+	public static final int TYPE_CAPTURE_ROOK = 6;
+	public static final int TYPE_CAPTURE_PIECE = 7;
+	public static final int TYPE_CAPTURE_PAWN = 8;
+	public static final int TYPE_CASTLE = 9;
+	public static final int TYPE_CHECK = 10;
+	public static final int TYPE_REGULAR = 11;
+	public static final int TYPE_NONE = 12;
 	
 	private static final int TYPE_SHIFT = 0;
 	private static final int TYPE_MASK = 0xF << TYPE_SHIFT;
@@ -52,16 +55,7 @@ public final class Move {
 		int move = 0;
 
 		// Encode move classification
-		assert     type == Move.TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK	
-				|| type == Move.TYPE_PROMOTION_AND_CAPTURE
-				|| type == Move.TYPE_PROMOTION
-				|| type == Move.TYPE_KBR_PROMOTION
-				|| type == Move.TYPE_CAPTURE_WITH_CHECK
-				|| type == Move.TYPE_CAPTURE	
-				|| type == Move.TYPE_CASTLE
-				|| type == Move.TYPE_CHECK	
-				|| type == Move.TYPE_REGULAR
-				|| type == Move.TYPE_NONE;
+		assert (type >= Move.TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK || type <= Move.TYPE_NONE);
 		move |= type << TYPE_SHIFT;
 
 		// Encode origin position
@@ -133,16 +127,7 @@ public final class Move {
 	public static int getType(int move) {
 		int type = (move & TYPE_MASK) >>> TYPE_SHIFT;
 
-		assert     type == Move.TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK	
-				|| type == Move.TYPE_PROMOTION_AND_CAPTURE
-				|| type == Move.TYPE_PROMOTION
-				|| type == Move.TYPE_KBR_PROMOTION
-				|| type == Move.TYPE_CAPTURE_WITH_CHECK
-				|| type == Move.TYPE_CAPTURE	
-				|| type == Move.TYPE_CASTLE
-				|| type == Move.TYPE_CHECK	
-				|| type == Move.TYPE_REGULAR
-				|| type == Move.TYPE_NONE;
+		assert (type >= Move.TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK || type <= Move.TYPE_NONE);
 
 		return type;
 	}
@@ -213,16 +198,7 @@ public final class Move {
 		// Zero out type
 		move &= ~TYPE_MASK;
 		
-		assert type == TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK	
-				|| type == TYPE_PROMOTION_AND_CAPTURE
-				|| type == TYPE_PROMOTION
-				|| type == TYPE_KBR_PROMOTION
-				|| type == TYPE_CAPTURE_WITH_CHECK
-				|| type == TYPE_CAPTURE	
-				|| type == TYPE_CASTLE
-				|| type == TYPE_CHECK	
-				|| type == TYPE_REGULAR
-				|| type == TYPE_NONE;
+		assert (type >= Move.TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK || type <= Move.TYPE_NONE);
 		
 		return move |= type << TYPE_SHIFT;
 	}

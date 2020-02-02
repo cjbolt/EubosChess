@@ -45,7 +45,8 @@ public class MoveList implements Iterable<Integer> {
 					boolean isPromotion = (Move.getPromotion(currMove) == IntChessman.BISHOP
 							|| Move.getPromotion(currMove) == IntChessman.ROOK
 							|| Move.getPromotion(currMove) == IntChessman.KNIGHT);
-					boolean isCapture = pm.lastMoveWasCapture();
+					CaptureData cap = pm.getCapturedPiece();
+					boolean isCapture = (cap != null && cap.target != PieceType.NONE);
 					boolean isCheck = pm.isKingInCheck(Colour.getOpposite(onMove));
 					boolean isCastle = (PieceType.isKing(piece)) ? pm.lastMoveWasCastle() : false;
 					
@@ -59,8 +60,14 @@ public class MoveList implements Iterable<Integer> {
 						moveType = Move.TYPE_KBR_PROMOTION;
 					} else if (isCapture && isCheck) {
 						moveType = Move.TYPE_CAPTURE_WITH_CHECK;
-					} else if (isCapture) {
-						moveType = Move.TYPE_CAPTURE;
+					} else if (isCapture && PieceType.isQueen(cap.target)) {
+						moveType = Move.TYPE_CAPTURE_QUEEN;
+					} else if (isCapture && PieceType.isRook(cap.target)) {
+						moveType = Move.TYPE_CAPTURE_ROOK;
+					} else if (isCapture && (PieceType.isKnight(cap.target) || PieceType.isBishop(cap.target))) {
+						moveType = Move.TYPE_CAPTURE_PIECE;
+					} else if (isCapture && PieceType.isPawn(cap.target)) {
+						moveType = Move.TYPE_CAPTURE_PAWN;
 					} else if (isCastle) {
 						moveType = Move.TYPE_CASTLE;
 					} else if (isCheck) {
@@ -162,7 +169,10 @@ public class MoveList implements Iterable<Integer> {
 				(tuple.getValue() == Move.TYPE_PROMOTION_AND_CAPTURE) ||
 				(tuple.getValue() == Move.TYPE_KBR_PROMOTION) ||
 				(tuple.getValue() == Move.TYPE_CAPTURE_WITH_CHECK) ||
-				(tuple.getValue() == Move.TYPE_CAPTURE) ||
+				(tuple.getValue() == Move.TYPE_CAPTURE_QUEEN) ||
+				(tuple.getValue() == Move.TYPE_CAPTURE_ROOK) ||
+				(tuple.getValue() == Move.TYPE_CAPTURE_PIECE) ||
+				(tuple.getValue() == Move.TYPE_CAPTURE_PAWN) ||
 				(tuple.getValue() == Move.TYPE_CHECK)) {
 				list.add(tuple.getKey());
 			}
