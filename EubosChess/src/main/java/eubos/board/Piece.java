@@ -20,6 +20,40 @@ public abstract class Piece {
 		public static boolean isBlack( Colour arg ) { return arg == black; }
 	};
 	
+	public static final int PIECE_NONE = 0x0;
+	public static final int PIECE_KING = 0x1;
+	public static final int PIECE_QUEEN = 0x2;
+	public static final int PIECE_ROOK = 0x3;
+	public static final int PIECE_BISHOP = 0x4;
+	public static final int PIECE_KNIGHT = 0x5;
+	public static final int PIECE_PAWN = 0x6;
+	
+	public static final int PIECE_BLACK = 0x8;
+	
+	public static final int PIECE_NO_COLOUR_MASK = 0x7;
+	public static final int PIECE_WHOLE_MASK = 0xf;
+	
+	public static boolean isPawn(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == PIECE_PAWN; }
+	public static boolean isKing(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == PIECE_KING; }
+	public static boolean isQueen(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == PIECE_QUEEN; }
+	public static boolean isRook(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == PIECE_ROOK; }
+	public static boolean isBishop(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == PIECE_BISHOP; }
+	public static boolean isKnight(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == PIECE_KNIGHT; }
+	
+	public static boolean isOppositeColour(Colour ownColour, int toCheck) {
+		assert (toCheck & PIECE_NO_COLOUR_MASK) != PIECE_NONE;
+		return Colour.isWhite(ownColour) ? isBlack(toCheck) : isWhite(toCheck);
+	}
+	public static boolean isWhite(int arg) {
+		return (arg&PIECE_BLACK) == 0;
+	}
+	public static boolean isBlack(int arg) {
+		return (arg&PIECE_BLACK) == PIECE_BLACK;
+	}
+	public static Colour getOpposite(int arg) {
+		return isWhite(arg) ? Colour.black : Colour.white;
+	} 
+	
 	public enum PieceType {
 		WhiteKing,
 		WhiteQueen,

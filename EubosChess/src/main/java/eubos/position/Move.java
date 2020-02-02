@@ -3,6 +3,8 @@ package eubos.position;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IntChessman;
 
+import eubos.board.Piece;
+
 /**
  * This class represents a move as a int value. The fields are represented by
  * the following bits.
@@ -37,7 +39,11 @@ public final class Move {
 	private static final int TARGETPOSITION_MASK = Position.MASK << TARGETPOSITION_SHIFT;
 	private static final int PROMOTION_SHIFT = 18;
 	private static final int PROMOTION_MASK = IntChessman.MASK << PROMOTION_SHIFT;
-
+	private static final int ORIGIN_PIECE_SHIFT = 21;
+	private static final int ORIGIN_PIECE_MASK = Piece.PIECE_WHOLE_MASK << ORIGIN_PIECE_SHIFT;
+	private static final int TARGET_PIECE_SHIFT = 25;
+	private static final int TARGET_PIECE_MASK = Piece.PIECE_WHOLE_MASK << ORIGIN_PIECE_SHIFT;
+	
 	private Move() {
 	}
 	
@@ -50,8 +56,13 @@ public final class Move {
 	{
 		return Move.valueOf(Move.TYPE_NONE, originPosition, targetPosition, promotion);
 	}
+	
+	public static int valueOf(int type, int originPosition, int targetPosition, int promotion)
+	{
+		return Move.valueOf(type, originPosition, Piece.PIECE_NONE, targetPosition, Piece.PIECE_NONE, promotion);
+	}
 
-	public static int valueOf(int type, int originPosition, int targetPosition, int promotion) {
+	public static int valueOf(int type, int originPosition, int originPiece, int targetPosition, int targetPiece, int promotion) {
 		int move = 0;
 
 		// Encode move classification
@@ -61,11 +72,19 @@ public final class Move {
 		// Encode origin position
 		assert (originPosition & 0x88) == 0;
 		move |= originPosition << ORIGINPOSITION_SHIFT;
+		
+		// Encode Origin Piece
+		assert (originPiece & Piece.PIECE_WHOLE_MASK) == 0;
+		move |= originPiece << ORIGIN_PIECE_SHIFT;
 
 		// Encode target position
 		assert (targetPosition & 0x88) == 0;
 		move |= targetPosition << TARGETPOSITION_SHIFT;
 
+		// Encode Target Piece
+		assert (targetPiece & Piece.PIECE_WHOLE_MASK) == 0;
+		move |= targetPiece << TARGET_PIECE_SHIFT;
+		
 		// Encode promotion
 		assert (IntChessman.isValid(promotion) && IntChessman.isValidPromotion(promotion))
 		|| promotion == IntChessman.NOCHESSMAN;
@@ -138,6 +157,17 @@ public final class Move {
 
 		return originPosition;
 	}
+	
+	private static int setOriginPosition(int move, int originPosition) {
+		// Zero out origin position
+		move &= ~ORIGINPOSITION_MASK;
+
+		// Encode origin position
+		assert (originPosition & 0x88) == 0;
+		move |= originPosition << ORIGINPOSITION_SHIFT;
+
+		return move;
+	}
 
 	public static int getTargetPosition(int move) {
 		int targetPosition = (move & TARGETPOSITION_MASK) >>> TARGETPOSITION_SHIFT;
@@ -176,6 +206,36 @@ public final class Move {
 
 		return move;
 	}
+	
+	public static int getOriginPiece(int move) {
+		int piece = (move & ORIGIN_PIECE_MASK) >>> ORIGIN_PIECE_SHIFT;
+		//assert (piece & Piece.PIECE_NO_COLOUR_MASK) != Piece.PIECE_NONE;
+		
+		return piece;
+	}
+
+	public static int setOriginPiece(int move, int piece) {
+		//assert (piece & Piece.PIECE_NO_COLOUR_MASK) != Piece.PIECE_NONE;
+		
+		move &= ~ORIGIN_PIECE_MASK;
+		move |= piece << ORIGIN_PIECE_SHIFT;
+		return move;
+	}
+	
+	public static int getTargetPiece(int move) {
+		int piece = (move & TARGET_PIECE_MASK) >>> TARGET_PIECE_SHIFT;
+		//assert (piece & Piece.PIECE_NO_COLOUR_MASK) != Piece.PIECE_NONE;
+		
+		return piece;
+	}
+
+	public static int setTargetPiece(int move, int piece) {
+		//assert (piece & Piece.PIECE_NO_COLOUR_MASK) != Piece.PIECE_NONE;
+		
+		move &= ~TARGET_PIECE_MASK;
+		move |= piece << TARGET_PIECE_SHIFT;
+		return move;
+	}
 
 	public static String toString(int move) {
 		String string = "";
@@ -201,6 +261,13 @@ public final class Move {
 		assert (type >= Move.TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK || type <= Move.TYPE_NONE);
 		
 		return move |= type << TYPE_SHIFT;
+	}
+	
+	public static int reverse(int move) {
+		int reversedMove = move;
+		reversedMove = Move.setTargetPosition(reversedMove, Move.getOriginPosition(move));
+		reversedMove = Move.setOriginPosition(reversedMove, Move.getTargetPosition(move));
+		return reversedMove;
 	}
 
 }

@@ -33,7 +33,7 @@ public class MoveList implements Iterable<Integer> {
 		// N.b. Need to use a linked hash map to ensure that the search order is deterministic.
 		Map<Integer, Integer> moveMap = new LinkedHashMap<Integer, Integer>();
 		Colour onMove = pm.getOnMove();
-		for (Integer currMove : getRawList(pm)) {
+		for (Integer currMove : pm.generateMoves()) {
 			try {
 				PieceType piece = pm.getTheBoard().getPieceAtSquare(Move.getOriginPosition(currMove));
 				pm.performMove(currMove);
@@ -142,11 +142,6 @@ public class MoveList implements Iterable<Integer> {
 	    );
 	    sortedEntries.addAll(map.entrySet());
 	    return sortedEntries;
-	}
-	
-	private List<Integer> getRawList(PositionManager pm) {
-		List<Integer> entireMoveList = pm.generateMoves();
-		return entireMoveList;
 	}
 	
 	private int [] create_normal_list(SortedSet<Map.Entry<Integer, Integer>> moves) {
