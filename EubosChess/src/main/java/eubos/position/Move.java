@@ -4,6 +4,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IntChessman;
 
 import eubos.board.Piece;
+import eubos.board.Piece.PieceType;
 
 /**
  * This class represents a move as a int value. The fields are represented by
@@ -52,14 +53,16 @@ public final class Move {
 		return Move.valueOf(Move.TYPE_NONE, originPosition, targetPosition, IntChessman.NOCHESSMAN);
 	}
 	
-	public static int valueOf(int originPosition, int targetPosition, int promotion)
-	{
-		return Move.valueOf(Move.TYPE_NONE, originPosition, targetPosition, promotion);
-	}
-	
 	public static int valueOf(int type, int originPosition, int targetPosition, int promotion)
 	{
 		return Move.valueOf(type, originPosition, Piece.PIECE_NONE, targetPosition, Piece.PIECE_NONE, promotion);
+	}
+	
+	public static int valueOf(int originPosition, PieceType originPiece, int targetPosition, PieceType targetPiece) {
+		int move = Move.valueOf(Move.TYPE_NONE, originPosition, targetPosition, IntChessman.NOCHESSMAN);
+		move = Move.setOriginPieceType(move, originPiece);
+		move = Move.setTargetPieceType(move, targetPiece);
+		return move;
 	}
 
 	public static int valueOf(int type, int originPosition, int originPiece, int targetPosition, int targetPiece, int promotion) {
@@ -130,16 +133,16 @@ public final class Move {
 	
 	public static boolean areEqual(int move1, int move2) {
 		boolean areEqual = false;
-		//if (Move.getOriginPosition(move1)==Move.getOriginPosition(move2) &&
-		//	Move.getTargetPosition(move1)==Move.getTargetPosition(move2) &&
-		//	Move.getPromotion(move1)==Move.getPromotion(move2)) {
-		//	areEqual = true;
-		//}
-		move1 &= ~TYPE_MASK;
-		move2 &= ~TYPE_MASK;
-		if (move1==move2) {
+		if (Move.getOriginPosition(move1)==Move.getOriginPosition(move2) &&
+			Move.getTargetPosition(move1)==Move.getTargetPosition(move2) &&
+			Move.getPromotion(move1)==Move.getPromotion(move2)) {
 			areEqual = true;
 		}
+		//move1 &= ~TYPE_MASK;
+		//move2 &= ~TYPE_MASK;
+		//if (move1==move2) {
+		//	areEqual = true;
+		//}
 		return areEqual;
 	}
 
@@ -222,6 +225,14 @@ public final class Move {
 		return move;
 	}
 	
+	public static PieceType getOriginPieceType(int move) {
+		return Piece.PIECE_TABLE[getOriginPiece(move)];
+	}
+	
+	public static int setOriginPieceType(int move, PieceType type) {
+		return setOriginPiece(move, PieceType.getPiece(type));
+	}
+	
 	public static int getTargetPiece(int move) {
 		int piece = (move & TARGET_PIECE_MASK) >>> TARGET_PIECE_SHIFT;
 		//assert (piece & Piece.PIECE_NO_COLOUR_MASK) != Piece.PIECE_NONE;
@@ -235,6 +246,14 @@ public final class Move {
 		move &= ~TARGET_PIECE_MASK;
 		move |= piece << TARGET_PIECE_SHIFT;
 		return move;
+	}
+	
+	public static PieceType getTargetPieceType(int move) {
+		return Piece.PIECE_TABLE[getTargetPiece(move)];
+	}
+	
+	public static int setTargetPieceType(int move, PieceType type) {
+		return setTargetPiece(move, PieceType.getPiece(type));
 	}
 
 	public static String toString(int move) {

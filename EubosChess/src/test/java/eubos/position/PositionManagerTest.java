@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 import eubos.board.InvalidPieceException;
+import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.board.Piece.PieceType;
 import eubos.position.Move;
@@ -318,7 +319,7 @@ public class PositionManagerTest {
 	public void test_BlackPawn_MoveGen_CaptureLeft() {
 		classUnderTest = new PositionManager("8/4p3/5P2/8/8/8/8/8 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( Position.e7, Position.f6 );
+		expectedMove = Move.valueOf( Position.e7, PieceType.BlackPawn, Position.f6, PieceType.WhitePawn );
 		assertTrue( ml.contains( expectedMove ));
 	}
 
@@ -326,7 +327,7 @@ public class PositionManagerTest {
 	public void test_BlackPawn_MoveGen_CaptureRight() {
 		classUnderTest = new PositionManager("8/4p3/3P4/8/8/8/8/8 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( Position.e7, Position.d6 );
+		expectedMove = Move.valueOf( Position.e7, PieceType.BlackPawn, Position.d6, PieceType.WhitePawn );
 		assertTrue( ml.contains( expectedMove ));
 	}
 	
@@ -334,8 +335,8 @@ public class PositionManagerTest {
 	public void test_BlackPawn_MoveGen_CaptureFork() {
 		classUnderTest = new PositionManager("8/4p3/3P1P2/8/8/8/8/8 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		int captureLeft = Move.valueOf( Position.e7, Position.d6 );
-		int captureRight = Move.valueOf( Position.e7, Position.f6 );
+		int captureLeft = Move.valueOf( Position.e7, PieceType.BlackPawn, Position.d6, PieceType.WhitePawn );
+		int captureRight = Move.valueOf( Position.e7, PieceType.BlackPawn, Position.f6, PieceType.WhitePawn );
 		assertTrue( ml.contains( captureLeft ));
 		assertTrue( ml.contains( captureRight ));
 	}	
@@ -345,7 +346,7 @@ public class PositionManagerTest {
 		// Can only capture left
 		classUnderTest = new PositionManager("8/p7/1P6/8/8/8/8/8 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();;
-		expectedMove = Move.valueOf( Position.a7, Position.b6 );
+		expectedMove = Move.valueOf( Position.a7, PieceType.BlackPawn, Position.b6, PieceType.WhitePawn );
 		assertTrue( ml.contains( expectedMove ));
 	}
 
@@ -354,7 +355,7 @@ public class PositionManagerTest {
 		// Can only capture right
 		classUnderTest = new PositionManager("8/7p/6P1/8/8/8/8/8 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( Position.h7, Position.g6 );
+		expectedMove = Move.valueOf( Position.h7, PieceType.BlackPawn, Position.g6, PieceType.WhitePawn );
 		assertTrue( ml.contains( expectedMove ));
 	}
 	
@@ -362,7 +363,7 @@ public class PositionManagerTest {
 	public void test_BlackPawn_MoveGen_PromoteQueen() {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/4p3/8 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( Move.TYPE_PROMOTION, Position.e2, Position.e1, IntChessman.QUEEN );
+		expectedMove = Move.valueOf( Move.TYPE_PROMOTION, Position.e2, Piece.PIECE_BLACK|Piece.PIECE_PAWN, Position.e1, Piece.PIECE_NONE,  IntChessman.QUEEN );
 		assertTrue( ml.contains( expectedMove ));
 	}	
 
@@ -370,7 +371,7 @@ public class PositionManagerTest {
 	public void test_BlackPawn_MoveGen_PromoteKnight() {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/4p3/8 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( Move.TYPE_KBR_PROMOTION, Position.e2, Position.e1, IntChessman.KNIGHT );
+		expectedMove = Move.valueOf( Move.TYPE_KBR_PROMOTION, Position.e2, Piece.PIECE_BLACK|Piece.PIECE_PAWN, Position.e1, Piece.PIECE_NONE, IntChessman.KNIGHT );
 		assertTrue( ml.contains( expectedMove ));		
 	}
 
@@ -378,7 +379,7 @@ public class PositionManagerTest {
 	public void test_BlackPawn_MoveGen_PromoteBishop() {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/4p3/8 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( Move.TYPE_KBR_PROMOTION, Position.e2, Position.e1, IntChessman.BISHOP );
+		expectedMove = Move.valueOf( Move.TYPE_KBR_PROMOTION, Position.e2, Piece.PIECE_BLACK|Piece.PIECE_PAWN, Position.e1, Piece.PIECE_NONE, IntChessman.BISHOP );
 		assertTrue( ml.contains( expectedMove ));			
 	}
 
@@ -386,7 +387,7 @@ public class PositionManagerTest {
 	public void test_BlackPawn_MoveGen_PromoteRook() {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/4p3/8 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( Move.TYPE_KBR_PROMOTION, Position.e2, Position.e1, IntChessman.ROOK );
+		expectedMove = Move.valueOf( Move.TYPE_KBR_PROMOTION, Position.e2, PieceType.getPiece(PieceType.BlackPawn), Position.e1, PieceType.getPiece(PieceType.NONE), IntChessman.ROOK );
 		assertTrue( ml.contains( expectedMove ));	
 	}
 	
@@ -394,7 +395,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_InitialMoveOneSquare() {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/4P3/8 w - - 0 1");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( Position.e2, Position.e4 );
+		expectedMove = Move.valueOf( Position.e2, PieceType.WhitePawn, Position.e4, PieceType.NONE  );
 		assertTrue( ml.contains( expectedMove ));
 	}
 
@@ -402,7 +403,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_InitialMoveTwoSquares() {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/4P3/8 w - - 0 1");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( Position.e2, Position.e3 );
+		expectedMove = Move.valueOf( Position.e2, PieceType.WhitePawn, Position.e3, PieceType.NONE );
 		assertTrue( ml.contains( expectedMove ));
 	}
 	
@@ -486,7 +487,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_CaptureLeft() {
 		classUnderTest = new PositionManager("8/8/8/8/8/5p2/4P3/8 w - - 0 1");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( Position.e2, Position.f3 );
+		expectedMove = Move.valueOf( Position.e2, PieceType.WhitePawn, Position.f3, PieceType.BlackPawn );
 		assertTrue( ml.contains( expectedMove ));
 	}
 
@@ -494,7 +495,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_CaptureRight() {
 		classUnderTest = new PositionManager("8/8/8/8/8/3p4/4P3/8 w - - 0 1");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( Position.e2, Position.d3 );
+		expectedMove = Move.valueOf( Position.e2, PieceType.WhitePawn, Position.d3, PieceType.BlackPawn );
 		assertTrue( ml.contains( expectedMove ));
 	}
 	
@@ -502,8 +503,8 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_CaptureFork() {
 		classUnderTest = new PositionManager("8/8/8/8/8/3p1p2/4P3/8 w - - 0 1");
 		ml = classUnderTest.generateMoves();
-		int captureLeft = Move.valueOf( Position.e2, Position.d3 );
-		int captureRight = Move.valueOf( Position.e2, Position.f3 );
+		int captureLeft = Move.valueOf( Position.e2, PieceType.WhitePawn, Position.d3, PieceType.BlackPawn );
+		int captureRight = Move.valueOf( Position.e2, PieceType.WhitePawn, Position.f3, PieceType.BlackPawn );
 		assertTrue( ml.contains( captureLeft ));
 		assertTrue( ml.contains( captureRight ));
 	}	
@@ -513,7 +514,7 @@ public class PositionManagerTest {
 		// Can only capture left
 		classUnderTest = new PositionManager("8/8/8/8/8/1p6/P7/8 w - - 0 1");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( Position.a2, Position.b3 );
+		expectedMove = Move.valueOf( Position.a2, PieceType.WhitePawn, Position.b3, PieceType.BlackPawn );
 		assertTrue( ml.contains( expectedMove ));
 	}
 
@@ -522,7 +523,7 @@ public class PositionManagerTest {
 		// Can only capture right
 		classUnderTest = new PositionManager("8/8/8/8/8/6p1/7P/8 w - - 0 1");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( Position.h2, Position.g3 );
+		expectedMove = Move.valueOf( Position.h2, PieceType.WhitePawn, Position.g3, PieceType.BlackPawn );
 		assertTrue( ml.contains( expectedMove ));
 	}
 	
@@ -530,7 +531,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_PromoteQueen() {
 		classUnderTest = new PositionManager("8/4P3/8/8/8/8/8/8 w - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( Move.TYPE_PROMOTION, Position.e7, Position.e8, IntChessman.QUEEN );
+		expectedMove = Move.valueOf( Move.TYPE_PROMOTION, Position.e7, Piece.PIECE_PAWN, Position.e8, Piece.PIECE_NONE, IntChessman.QUEEN );
 		assertTrue( ml.contains( expectedMove ));
 	}	
 
@@ -538,7 +539,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_PromoteKnight() {
 		classUnderTest = new PositionManager("8/4P3/8/8/8/8/8/8 w - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( Move.TYPE_KBR_PROMOTION, Position.e7, Position.e8, IntChessman.KNIGHT );
+		expectedMove = Move.valueOf( Move.TYPE_KBR_PROMOTION, Position.e7, Piece.PIECE_PAWN, Position.e8, Piece.PIECE_NONE, IntChessman.KNIGHT );
 		assertTrue( ml.contains( expectedMove ));		
 	}
 
@@ -546,7 +547,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_PromoteBishop() {
 		classUnderTest = new PositionManager("8/4P3/8/8/8/8/8/8 w - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( Move.TYPE_KBR_PROMOTION, Position.e7, Position.e8, IntChessman.BISHOP );
+		expectedMove = Move.valueOf( Move.TYPE_KBR_PROMOTION, Position.e7, Piece.PIECE_PAWN, Position.e8, Piece.PIECE_NONE, IntChessman.BISHOP );
 		assertTrue( ml.contains( expectedMove ));			
 	}
 
@@ -554,7 +555,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_PromoteRook() {
 		classUnderTest = new PositionManager("8/4P3/8/8/8/8/8/8 w - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( Move.TYPE_KBR_PROMOTION, Position.e7, Position.e8, IntChessman.ROOK );
+		expectedMove = Move.valueOf( Move.TYPE_KBR_PROMOTION, Position.e7, Piece.PIECE_PAWN, Position.e8, Piece.PIECE_NONE, IntChessman.ROOK );
 		assertTrue( ml.contains( expectedMove ));	
 	}
 	
@@ -621,9 +622,9 @@ public class PositionManagerTest {
 	public void test_Bishop_MoveGen_LeftEdge_PartiallyObstructedCapturablePiece() {
 		classUnderTest = new PositionManager("8/8/8/8/b7/1P6/8/8 b - - 0 1");
 		ml = classUnderTest.generateMoves();
-		expectedMoves.add( Move.valueOf( Position.a4, Position.b5 ));
-		expectedMoves.add( Move.valueOf( Position.a4, Position.e8 ));
-		expectedMoves.add( Move.valueOf( Position.a4, Position.b3 ));
+		expectedMoves.add( Move.valueOf( Position.a4, PieceType.BlackBishop, Position.b5, PieceType.NONE ));
+		expectedMoves.add( Move.valueOf( Position.a4, PieceType.BlackBishop, Position.e8, PieceType.NONE ));
+		expectedMoves.add( Move.valueOf( Position.a4, PieceType.BlackBishop, Position.b3, PieceType.WhitePawn ));
 		expectedNumMoves = 5;
 		checkExpectedMoves(ml);	
 	}
@@ -632,10 +633,10 @@ public class PositionManagerTest {
 	public void test_Bishop_MoveGen_Middle_ObstructedCapturablePieces() {
 		classUnderTest = new PositionManager("8/8/8/3P1P2/4b3/3P1P2/8/8 b - - 0 1");
 		ml = classUnderTest.generateMoves();
-		expectedMoves.add( Move.valueOf( Position.e4, Position.d3 ));
-		expectedMoves.add( Move.valueOf( Position.e4, Position.d5 ));
-		expectedMoves.add( Move.valueOf( Position.e4, Position.f3 ));
-		expectedMoves.add( Move.valueOf( Position.e4, Position.f5 ));
+		expectedMoves.add( Move.valueOf( Position.e4, PieceType.BlackBishop, Position.d3, PieceType.WhitePawn ));
+		expectedMoves.add( Move.valueOf( Position.e4, PieceType.BlackBishop, Position.d5, PieceType.WhitePawn ));
+		expectedMoves.add( Move.valueOf( Position.e4, PieceType.BlackBishop, Position.f3, PieceType.WhitePawn ));
+		expectedMoves.add( Move.valueOf( Position.e4, PieceType.BlackBishop, Position.f5, PieceType.WhitePawn ));
 		expectedNumMoves = 4;
 		checkExpectedMoves(ml);
 	}
@@ -644,8 +645,8 @@ public class PositionManagerTest {
 	public void test_Bishop_MoveGen_Middle_ObstructedMixturePieces() {
 		classUnderTest = new PositionManager("8/8/8/3P1p2/4b3/3P1p2/8/8 b - - 0 1");
 		ml = classUnderTest.generateMoves();
-		expectedMoves.add( Move.valueOf( Position.e4, Position.d3 ));
-		expectedMoves.add( Move.valueOf( Position.e4, Position.d5 ));
+		expectedMoves.add( Move.valueOf( Position.e4, PieceType.BlackBishop, Position.d3, PieceType.WhitePawn ));
+		expectedMoves.add( Move.valueOf( Position.e4, PieceType.BlackBishop, Position.d5, PieceType.WhitePawn ));
 		expectedNumMoves = 4;
 		checkExpectedMoves(ml);
 	}
@@ -654,10 +655,10 @@ public class PositionManagerTest {
 	public void test_Bishop_MoveGen_Middle_Unobstructed() {
 		classUnderTest = new PositionManager("8/8/8/4P3/3PbP2/4P3/8/8 b - - 0 1");
 		ml = classUnderTest.generateMoves();
-		expectedMoves.add( Move.valueOf( Position.e4, Position.d3 ));
-		expectedMoves.add( Move.valueOf( Position.e4, Position.d5 ));
-		expectedMoves.add( Move.valueOf( Position.e4, Position.f3 ));
-		expectedMoves.add( Move.valueOf( Position.e4, Position.f5 ));
+		expectedMoves.add( Move.valueOf( Position.e4, PieceType.BlackBishop, Position.d3, PieceType.NONE ));
+		expectedMoves.add( Move.valueOf( Position.e4, PieceType.BlackBishop, Position.d5, PieceType.NONE ));
+		expectedMoves.add( Move.valueOf( Position.e4, PieceType.BlackBishop, Position.f3, PieceType.NONE ));
+		expectedMoves.add( Move.valueOf( Position.e4, PieceType.BlackBishop, Position.f5, PieceType.NONE ));
 		expectedNumMoves = 13;
 		checkExpectedMoves(ml);
 	}
@@ -666,10 +667,10 @@ public class PositionManagerTest {
 	public void test_Bishop_MoveGen_CapturesOnlySinglePiece() {
 		classUnderTest = new PositionManager("8/8/8/8/8/2P5/1P6/b7 b - - 0 1");
 		ml = classUnderTest.generateMoves();
-		expectedMoves.add( Move.valueOf( Position.a1, Position.b2 ));
+		expectedMoves.add( Move.valueOf( Position.a1, PieceType.BlackBishop, Position.b2, PieceType.WhitePawn ));
 		expectedNumMoves = 1;
 		checkExpectedMoves(ml);
-		assertFalse(ml.contains( Move.valueOf( Position.a1, Position.c3 )));
+		assertFalse(ml.contains( Move.valueOf( Position.a1, PieceType.BlackBishop, Position.c3, PieceType.WhitePawn )));
 	}
 	
 	/* Knight Moves */
@@ -776,8 +777,8 @@ public class PositionManagerTest {
 	public void test_Rook_MoveGen_CornerBottomLeft_PartiallyObstructedCapturablePiece() {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/p7/R7 w - - 0 1");
 		ml = classUnderTest.generateMoves();
-		expectedMoves.add( Move.valueOf( Position.a1, Position.a2 ));
-		expectedMoves.add( Move.valueOf( Position.a1, Position.b1 ));		
+		expectedMoves.add( Move.valueOf( Position.a1, PieceType.WhiteRook, Position.a2, PieceType.BlackPawn ));
+		expectedMoves.add( Move.valueOf( Position.a1, PieceType.WhiteRook, Position.b1, PieceType.NONE ));		
 		expectedNumMoves = 8;
 		checkExpectedMoves(ml);
 	}
@@ -786,10 +787,10 @@ public class PositionManagerTest {
 	public void test_Rook_MoveGen_Middle_ObstructedCapturablePieces() {
 		classUnderTest = new PositionManager("8/8/8/4P3/3PrP2/4P3/8/8 b - - 0 1");
 		ml = classUnderTest.generateMoves();
-		expectedMoves.add( Move.valueOf( Position.e4, Position.f4 ));
-		expectedMoves.add( Move.valueOf( Position.e4, Position.d4 ));
-		expectedMoves.add( Move.valueOf( Position.e4, Position.e5 ));
-		expectedMoves.add( Move.valueOf( Position.e4, Position.e3 ));
+		expectedMoves.add( Move.valueOf( Position.e4, PieceType.BlackRook, Position.f4, PieceType.WhitePawn ));
+		expectedMoves.add( Move.valueOf( Position.e4, PieceType.BlackRook, Position.d4, PieceType.WhitePawn ));
+		expectedMoves.add( Move.valueOf( Position.e4, PieceType.BlackRook, Position.e5, PieceType.WhitePawn ));
+		expectedMoves.add( Move.valueOf( Position.e4, PieceType.BlackRook, Position.e3, PieceType.WhitePawn ));
 		expectedNumMoves = 4;
 		checkExpectedMoves(ml);
 	}
@@ -798,8 +799,8 @@ public class PositionManagerTest {
 	public void test_Rook_MoveGen_Middle_ObstructedMixturePieces() {
 		classUnderTest = new PositionManager("8/8/8/4P3/3prp2/4P3/8/8 b - - 0 1");
 		ml = classUnderTest.generateMoves();
-		expectedMoves.add( Move.valueOf( Position.e4, Position.e5 ));
-		expectedMoves.add( Move.valueOf( Position.e4, Position.e3 ));
+		expectedMoves.add( Move.valueOf( Position.e4, PieceType.BlackRook, Position.e5, PieceType.WhitePawn ));
+		expectedMoves.add( Move.valueOf( Position.e4, PieceType.BlackRook, Position.e3, PieceType.WhitePawn ));
 		expectedNumMoves = 6;
 		checkExpectedMoves(ml);
 	}
@@ -808,10 +809,10 @@ public class PositionManagerTest {
 	public void test_Rook_MoveGen_Middle_Unobstructed() {
 		classUnderTest = new PositionManager("8/8/8/3P1P2/4r3/3P1P2/8/8 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		expectedMoves.add( Move.valueOf( Position.e4, Position.f4 ));
-		expectedMoves.add( Move.valueOf( Position.e4, Position.d4 ));
-		expectedMoves.add( Move.valueOf( Position.e4, Position.e5 ));
-		expectedMoves.add( Move.valueOf( Position.e4, Position.e3 ));
+		expectedMoves.add( Move.valueOf( Position.e4, PieceType.BlackRook, Position.f4, PieceType.NONE ));
+		expectedMoves.add( Move.valueOf( Position.e4, PieceType.BlackRook, Position.d4, PieceType.NONE ));
+		expectedMoves.add( Move.valueOf( Position.e4, PieceType.BlackRook, Position.e5, PieceType.NONE ));
+		expectedMoves.add( Move.valueOf( Position.e4, PieceType.BlackRook, Position.e3, PieceType.NONE ));
 		expectedNumMoves = 14;
 		checkExpectedMoves(ml);
 	}
@@ -821,7 +822,7 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/8/8/8/8/P7/P7/r7 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
 		assertFalse(ml.isEmpty());
-		assertTrue( ml.contains( Move.valueOf( Position.a1, Position.a2 )));
-		assertFalse(ml.contains( Move.valueOf( Position.a1, Position.a3 )));
+		assertTrue( ml.contains( Move.valueOf( Position.a1, PieceType.BlackRook, Position.a2, PieceType.WhitePawn )));
+		assertFalse(ml.contains( Move.valueOf( Position.a1, PieceType.BlackRook, Position.a3, PieceType.WhitePawn )));
 	}
 }

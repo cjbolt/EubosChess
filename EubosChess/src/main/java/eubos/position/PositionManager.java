@@ -165,6 +165,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		checkToUndoPawnPromotion(moveToUndo);
 		// Actually undo the move by reversing its direction and reapplying it.
 		int reversedMove = Move.reverse(moveToUndo);
+
 		// Get the piece to move
 		PieceType pieceToMove = theBoard.pickUpPieceAtSquare( Move.getOriginPosition(reversedMove));
 		// Handle reversal of any castling secondary rook moves and associated flags...
