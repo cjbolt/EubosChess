@@ -120,7 +120,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		PieceType pieceToMove = theBoard.pickUpPieceAtSquare(Move.getOriginPosition(move));
 		assert pieceToMove == Move.getOriginPieceType(move);
 		// Flag if move is an en passant capture
-		boolean isEnPassantCapture = isEnPassantCapture(move, pieceToMove);
+		boolean isEnPassantCapture = isEnPassantCapture(move);
 		// Save previous en passant square and initialise for this move
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		theBoard.setEnPassantTargetSq(Position.NOPOSITION);
@@ -233,10 +233,12 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		}
 	}
 	
-	private boolean isEnPassantCapture(int move, PieceType pieceToMove) {
+	private boolean isEnPassantCapture(int move) {
 		boolean enPassantCapture = false;
 		int enPassantTargetSq = theBoard.getEnPassantTargetSq();
-		if ( enPassantTargetSq != Position.NOPOSITION && (pieceToMove.equals(PieceType.BlackPawn) || pieceToMove.equals(PieceType.WhitePawn)) && Move.getTargetPosition(move) == enPassantTargetSq) {
+		if ( enPassantTargetSq != Position.NOPOSITION &&
+			 Piece.isPawn(Move.getOriginPiece(move)) && 
+			 Move.getTargetPosition(move) == enPassantTargetSq) {
 			enPassantCapture = true;
 		}
 		return enPassantCapture;
