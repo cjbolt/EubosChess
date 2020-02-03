@@ -43,7 +43,7 @@ public final class Move {
 	private static final int ORIGIN_PIECE_SHIFT = 21;
 	private static final int ORIGIN_PIECE_MASK = Piece.PIECE_WHOLE_MASK << ORIGIN_PIECE_SHIFT;
 	private static final int TARGET_PIECE_SHIFT = 25;
-	private static final int TARGET_PIECE_MASK = Piece.PIECE_WHOLE_MASK << ORIGIN_PIECE_SHIFT;
+	private static final int TARGET_PIECE_MASK = Piece.PIECE_WHOLE_MASK << TARGET_PIECE_SHIFT;
 	
 	private Move() {
 	}
@@ -77,7 +77,7 @@ public final class Move {
 		move |= originPosition << ORIGINPOSITION_SHIFT;
 		
 		// Encode Origin Piece
-		assert (originPiece & Piece.PIECE_WHOLE_MASK) == 0;
+		assert (originPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
 		move |= originPiece << ORIGIN_PIECE_SHIFT;
 
 		// Encode target position
@@ -85,7 +85,7 @@ public final class Move {
 		move |= targetPosition << TARGETPOSITION_SHIFT;
 
 		// Encode Target Piece
-		assert (targetPiece & Piece.PIECE_WHOLE_MASK) == 0;
+		assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
 		move |= targetPiece << TARGET_PIECE_SHIFT;
 		
 		// Encode promotion

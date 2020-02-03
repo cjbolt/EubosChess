@@ -117,7 +117,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public void performMove( int move ) throws InvalidPieceException {
 		// Get the piece to move
-		PieceType pieceToMove = theBoard.pickUpPieceAtSquare( Move.getOriginPosition(move));
+		PieceType pieceToMove = theBoard.pickUpPieceAtSquare(Move.getOriginPosition(move));
+		assert pieceToMove == Move.getOriginPieceType(move);
 		// Flag if move is an en passant capture
 		boolean isEnPassantCapture = isEnPassantCapture(move, pieceToMove);
 		// Save previous en passant square and initialise for this move
@@ -167,7 +168,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int reversedMove = Move.reverse(moveToUndo);
 
 		// Get the piece to move
-		PieceType pieceToMove = theBoard.pickUpPieceAtSquare( Move.getOriginPosition(reversedMove));
+		PieceType pieceToMove = Move.getOriginPieceType(reversedMove);
+		PieceType checkPiece = theBoard.pickUpPieceAtSquare(Move.getOriginPosition(reversedMove));
+		assert pieceToMove == checkPiece;
 		// Handle reversal of any castling secondary rook moves and associated flags...
 		if (PieceType.isKing(pieceToMove)) {
 			castling.unperformSecondaryCastlingMove(reversedMove);
