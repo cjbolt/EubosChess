@@ -135,6 +135,7 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
+	@Ignore // because now Eubos tries to centralise the Kings in this scenario
 	public void test_avoidDraw_lichess_hash_table_drawchecker() throws InterruptedException, IOException {
 		setupEngine();
 		// Setup Commands specific to this test
@@ -152,6 +153,7 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
+	@Ignore // because now Eubos tries to centralise the Kings in this scenario
 	public void test_avoidDraw_lichess_hash_table_draw_kpK_rook_pawn_alt() throws InterruptedException, IOException {
 		setupEngine();
 		// Setup Commands specific to this test

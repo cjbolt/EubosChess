@@ -12,6 +12,7 @@ public class SearchContext {
 	Piece.Colour initialOnMove;
 	SearchGoal goal;
 	DrawChecker dc;
+	boolean isEndgame;
 	
 	static final short SIMPLIFY_THRESHOLD = 100;
 	static final short DRAW_THRESHOLD = -200;
@@ -31,6 +32,12 @@ public class SearchContext {
 		this.dc = dc;
 		initial = initialMaterial;
 		initialOnMove = pos.getOnMove();
+		//boolean queensOffBoard = (!pos.getTheBoard().getWhiteQueens().isNonZero() && !pos.getTheBoard().getBlackQueens().isNonZero());
+		if (//queensOffBoard && 
+			(initialMaterial.getWhite() <= 5200) &&
+			(initialMaterial.getBlack() <= 5200)) {
+			isEndgame = true;
+		}
 		setGoal();
 	}
 
@@ -116,5 +123,10 @@ public class SearchContext {
 			}			
 		}
 		return isSimplification;
+	}
+
+	public boolean isEndgame() {
+		// Could make this update for when we enter endgame during search.
+		return isEndgame;
 	}
 }

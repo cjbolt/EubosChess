@@ -27,7 +27,7 @@ public class PositionEvaluator implements IEvaluate {
 	
 	public PositionEvaluator(PositionManager pm, DrawChecker dc) {	
 		this.pm = pm;
-		sc = new SearchContext(pm, MaterialEvaluator.evaluate(pm.getTheBoard()), dc);
+		sc = new SearchContext(pm, MaterialEvaluator.evaluate(pm.getTheBoard(), false), dc);
 		this.dc = dc;
 	}
 	
@@ -52,7 +52,7 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	public short evaluatePosition() {
-		MaterialEvaluation mat = MaterialEvaluator.evaluate(pm.getTheBoard());
+		MaterialEvaluation mat = MaterialEvaluator.evaluate(pm.getTheBoard(), sc.isEndgame());
 		short score = mat.getDelta();
 		score += sc.computeSearchGoalBonus(mat);
 		score += encourageCastling();
@@ -102,7 +102,7 @@ public class PositionEvaluator implements IEvaluate {
 	}
 
 	public MaterialEvaluation getMaterialEvaluation() {
-		return MaterialEvaluator.evaluate(pm.getTheBoard());
+		return MaterialEvaluator.evaluate(pm.getTheBoard(), sc.isEndgame());
 	}
 
 	@Override
