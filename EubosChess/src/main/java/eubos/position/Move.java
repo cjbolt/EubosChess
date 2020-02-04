@@ -235,10 +235,6 @@ public final class Move {
 		return move;
 	}
 	
-	public static PieceType getOriginPieceType(int move) {
-		return Piece.PIECE_TABLE[getOriginPiece(move)];
-	}
-	
 	public static int setOriginPieceType(int move, PieceType type) {
 		return setOriginPiece(move, PieceType.getPiece(type));
 	}
@@ -256,10 +252,6 @@ public final class Move {
 		move &= ~TARGET_PIECE_MASK;
 		move |= piece << TARGET_PIECE_SHIFT;
 		return move;
-	}
-	
-	public static PieceType getTargetPieceType(int move) {
-		return Piece.PIECE_TABLE[getTargetPiece(move)];
 	}
 	
 	public static int setTargetPieceType(int move, PieceType type) {

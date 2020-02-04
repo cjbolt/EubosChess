@@ -1,6 +1,6 @@
 package eubos.position;
 
-import eubos.board.Piece.PieceType;
+import eubos.board.Piece;
 import eubos.position.CaptureData;
 
 class TrackedMove {
@@ -16,7 +16,7 @@ class TrackedMove {
 		enPassantTarget = enP;
 		castleFenFlags = castleFen;
 	}
-	boolean isCapture() { return (capture.target != PieceType.NONE); }
+	boolean isCapture() { return (capture.target != Piece.PIECE_NONE); }
 	
 	boolean isCastle() { 
 		if (Move.areEqual(move, CastlingManager.bksc) || 

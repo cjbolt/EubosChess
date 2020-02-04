@@ -397,12 +397,12 @@ public class Board implements Iterable<Integer> {
 			buildIterList(Colour.isWhite(colourToIterate) ? whitePieces : blackPieces);
 		}
 		
-		allPiecesOnBoardIterator( PieceType typeToIterate ) throws InvalidPieceException {
+		allPiecesOnBoardIterator( int typeToIterate ) throws InvalidPieceException {
 			iterList = new LinkedList<Integer>();
 			BitBoard bitBoardToIterate;
-			if (typeToIterate == PieceType.WhitePawn) {
+			if (typeToIterate == Piece.WHITE_PAWN) {
 				bitBoardToIterate = getWhitePawns();
-			} else if (typeToIterate == PieceType.BlackPawn) {
+			} else if (typeToIterate == Piece.BLACK_PAWN) {
 				bitBoardToIterate = getBlackPawns();
 			} else {
 				bitBoardToIterate = new BitBoard();
@@ -451,46 +451,46 @@ public class Board implements Iterable<Integer> {
 		}
 	}
 	
-	public BitBoard getMaskForType(PieceType type) {
+	public BitBoard getMaskForType(int type) {
 		BitBoard mask = null;
 		switch(type) {
-		case WhiteKing:
+		case Piece.WHITE_KING:
 			mask = getWhiteKing();
 			break;
-		case WhiteQueen:
+		case Piece.WHITE_QUEEN:
 			mask = getWhiteQueens();
 			break;
-		case WhiteRook:
+		case Piece.WHITE_ROOK:
 			mask = getWhiteRooks();
 			break;
-		case WhiteBishop:
+		case Piece.WHITE_BISHOP:
 			mask = getWhiteBishops();
 			break;
-		case WhiteKnight:
+		case Piece.WHITE_KNIGHT:
 			mask = getWhiteKnights();
 			break;
-		case WhitePawn:
+		case Piece.WHITE_PAWN:
 			mask = getWhitePawns();
 			break;
-		case BlackKing:
+		case Piece.BLACK_KING:
 			mask = getBlackKing();
 			break;
-		case BlackQueen:
+		case Piece.BLACK_QUEEN:
 			mask = getBlackQueens();
 			break;
-		case BlackRook:
+		case Piece.BLACK_ROOK:
 			mask = getBlackRooks();
 			break;
-		case BlackBishop:
+		case Piece.BLACK_BISHOP:
 			mask = getBlackBishops();
 			break;
-		case BlackKnight:
+		case Piece.BLACK_KNIGHT:
 			mask = getBlackKnights();
 			break;
-		case BlackPawn:
+		case Piece.BLACK_PAWN:
 			mask = getBlackPawns();
 			break;
-		case NONE:
+		case Piece.PIECE_NONE:
 		default:
 			assert false;
 			break;
@@ -546,7 +546,7 @@ public class Board implements Iterable<Integer> {
 		return whitePieces.and(pieces[INDEX_KING]);
 	}
 	
-	public Iterator<Integer> iterateType( PieceType typeToIterate ) {
+	public Iterator<Integer> iterateType( int typeToIterate ) {
 		try {
 			return new allPiecesOnBoardIterator( typeToIterate );
 		} catch (InvalidPieceException e) {
@@ -578,14 +578,14 @@ public class Board implements Iterable<Integer> {
 		return allPieces.and(levelMask).getValue() == 0;
 	}
 	
-	public boolean isOnHalfOpenFile(GenericPosition atPos, PieceType type) {
+	public boolean isOnHalfOpenFile(GenericPosition atPos, int type) {
 		boolean isHalfOpen = false;
 		BitBoard fileMask = new BitBoard(FileMask_Lut.get(atPos.file).getValue());
-		BitBoard otherSide = PieceType.getOpposite(type) == Colour.white ? whitePieces : blackPieces;
+		BitBoard otherSide = Piece.getOpposite(type) == Colour.white ? whitePieces : blackPieces;
 		BitBoard pawnMask = otherSide.and(pieces[INDEX_PAWN]);
 		boolean opponentPawnOnFile = pawnMask.and(fileMask).isNonZero();
 		if (opponentPawnOnFile) {
-			BitBoard ownSide = PieceType.isWhite(type) ? whitePieces : blackPieces;
+			BitBoard ownSide = Piece.isWhite(type) ? whitePieces : blackPieces;
 			pawnMask = ownSide.and(pieces[INDEX_PAWN]);
 			// and no pawns of own side
 			isHalfOpen = !pawnMask.and(fileMask).isNonZero();

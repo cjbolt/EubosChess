@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import eubos.board.Piece.Colour;
-import eubos.board.Piece.PieceType;
 import eubos.position.Position;
 
 public class SquareAttackEvaluator {
@@ -104,9 +103,9 @@ public class SquareAttackEvaluator {
 					attacked = attackedByPawn(bd, attackingPawnsMask, Direction.getDirectMoveSq(Direction.upLeft,attackedSq));
 					if (attacked) break;
 				}
-				attacked = checkForAttacksHelper(PieceType.BlackKing, KingMove_Lut, bd, attackedSq);
+				attacked = checkForAttacksHelper(Piece.BLACK_KING, KingMove_Lut, bd, attackedSq);
 				if (attacked) break;
-				attacked = checkForAttacksHelper(PieceType.BlackKnight, KnightMove_Lut, bd, attackedSq);
+				attacked = checkForAttacksHelper(Piece.BLACK_KNIGHT, KnightMove_Lut, bd, attackedSq);
 				if (attacked) break;
 			} else {
 				if (attackingPawnsMask.isNonZero()) {
@@ -115,9 +114,9 @@ public class SquareAttackEvaluator {
 					attacked = attackedByPawn(bd, attackingPawnsMask, Direction.getDirectMoveSq(Direction.downLeft,attackedSq));
 					if (attacked) break;
 				}
-				attacked = checkForAttacksHelper(PieceType.WhiteKing, KingMove_Lut, bd, attackedSq);
+				attacked = checkForAttacksHelper(Piece.WHITE_KING, KingMove_Lut, bd, attackedSq);
 				if (attacked) break;
-				attacked = checkForAttacksHelper(PieceType.WhiteKnight, KnightMove_Lut, bd, attackedSq);
+				attacked = checkForAttacksHelper(Piece.WHITE_KNIGHT, KnightMove_Lut, bd, attackedSq);
 				if (attacked) break;
 			}
 			attacked = checkForDirectPieceAttacker(bd, attackingColour, attackedSq, doDiagonalCheck, doRankFileCheck);
@@ -126,7 +125,7 @@ public class SquareAttackEvaluator {
 		return attacked;	
 	}
 
-	private static boolean checkForAttacksHelper(PieceType AttackerToCheckFor, Map<Integer, BitBoard> map, Board theBoard, int attackedSq) {
+	private static boolean checkForAttacksHelper(int AttackerToCheckFor, Map<Integer, BitBoard> map, Board theBoard, int attackedSq) {
 		boolean attacked = false;
 		BitBoard attackersToCheckForMask = theBoard.getMaskForType(AttackerToCheckFor);
 		BitBoard attackedBySqs = map.get(attackedSq);

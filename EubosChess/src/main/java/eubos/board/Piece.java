@@ -151,10 +151,10 @@ public abstract class Piece {
 
 	private static void king_checkAddMove(Piece.Colour ownSide, int atSquare, List<Integer> moveList, Board theBoard, int targetSquare) {
 		if ( targetSquare != Position.NOPOSITION ) {
-			PieceType targetPiece = Piece.PIECE_TABLE[theBoard.getPieceAtSquare(targetSquare)];
-			if ( theBoard.squareIsEmpty(targetSquare) || 
-					(targetPiece != PieceType.NONE && PieceType.isOppositeColour(ownSide, targetPiece))) {
-				moveList.add(Move.valueOf(atSquare, Piece.PIECE_TABLE[theBoard.getPieceAtSquare(atSquare)], targetSquare, targetPiece));
+			int targetPiece = theBoard.getPieceAtSquare(targetSquare);
+			if ( targetPiece == Piece.PIECE_NONE || 
+				(targetPiece != Piece.PIECE_NONE && Piece.isOppositeColour(ownSide, targetPiece))) {
+				moveList.add(Move.valueOf(Move.TYPE_NONE, atSquare, theBoard.getPieceAtSquare(atSquare), targetSquare, targetPiece, IntChessman.NOCHESSMAN));
 			}
 		}
 	}	
@@ -319,15 +319,15 @@ public abstract class Piece {
 		}		
 	}
 	
-	private static PieceType pawn_isCapturable(Piece.Colour ownSide, Board theBoard, int captureAt ) {
-		PieceType capturePiece = PieceType.NONE;
-		PieceType queryPiece = Piece.PIECE_TABLE[theBoard.getPieceAtSquare(captureAt)];
-		if ( queryPiece != PieceType.NONE ) {
-			if (PieceType.isOppositeColour( ownSide, queryPiece )) {
+	private static int pawn_isCapturable(Piece.Colour ownSide, Board theBoard, int captureAt ) {
+		int capturePiece = Piece.PIECE_NONE;
+		int queryPiece = theBoard.getPieceAtSquare(captureAt);
+		if ( queryPiece != Piece.PIECE_NONE ) {
+			if (Piece.isOppositeColour( ownSide, queryPiece )) {
 				capturePiece = queryPiece;
 			}
 		} else if (captureAt == theBoard.getEnPassantTargetSq()) {
-			capturePiece = Colour.isBlack(ownSide) ? PieceType.WhitePawn : PieceType.BlackPawn;
+			capturePiece = Colour.isBlack(ownSide) ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
 		}
 		return capturePiece;
 	}
@@ -338,41 +338,45 @@ public abstract class Piece {
 	}
 	
 	private static void pawn_checkPromotionAddMove(Board theBoard, int atSquare, Piece.Colour ownSide, List<Integer> moveList,
-			int targetSquare, PieceType targetPiece) {
+			int targetSquare, int targetPiece) {
+		int ownPiece = Piece.PIECE_PAWN;
+		if (Colour.isBlack(ownSide)) {
+			ownPiece |= Piece.PIECE_BLACK;
+		}
 		if ( pawn_checkPromotionPossible( ownSide, targetSquare )) {
-			moveList.add( Move.valueOf( Move.TYPE_KBR_PROMOTION, atSquare, theBoard.getPieceAtSquare(atSquare), targetSquare, PieceType.getPiece(targetPiece), IntChessman.KNIGHT ));
-			moveList.add( Move.valueOf( Move.TYPE_KBR_PROMOTION, atSquare, theBoard.getPieceAtSquare(atSquare), targetSquare, PieceType.getPiece(targetPiece), IntChessman.BISHOP ));
-			moveList.add( Move.valueOf( Move.TYPE_KBR_PROMOTION, atSquare, theBoard.getPieceAtSquare(atSquare), targetSquare, PieceType.getPiece(targetPiece), IntChessman.ROOK ));
-			moveList.add( Move.valueOf( Move.TYPE_PROMOTION, atSquare, theBoard.getPieceAtSquare(atSquare), targetSquare, PieceType.getPiece(targetPiece), IntChessman.QUEEN ));
+			moveList.add( Move.valueOf( Move.TYPE_KBR_PROMOTION, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.KNIGHT ));
+			moveList.add( Move.valueOf( Move.TYPE_KBR_PROMOTION, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.BISHOP ));
+			moveList.add( Move.valueOf( Move.TYPE_KBR_PROMOTION, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.ROOK ));
+			moveList.add( Move.valueOf( Move.TYPE_PROMOTION, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.QUEEN ));
 		} else {
-			moveList.add( Move.valueOf( atSquare, Piece.PIECE_TABLE[theBoard.getPieceAtSquare(atSquare)], targetSquare, targetPiece ) );
+			moveList.add( Move.valueOf( Move.TYPE_NONE, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.NOCHESSMAN ) );
 		}
 	}	
 	
 	static List<Integer> pawn_generateMoves(Board theBoard, int atSquare, Piece.Colour ownSide) {
 		List<Integer> moveList = new LinkedList<Integer>();
-		PieceType capturePiece = PieceType.NONE;
+		int capturePiece = Piece.PIECE_NONE;
 		// Check for standard one and two square moves
 		int moveTo = pawn_genOneSqTarget(atSquare, ownSide);
 		if ( moveTo != Position.NOPOSITION && theBoard.squareIsEmpty( moveTo )) {
-			pawn_checkPromotionAddMove(theBoard, atSquare, ownSide, moveList, moveTo, PieceType.NONE);
+			pawn_checkPromotionAddMove(theBoard, atSquare, ownSide, moveList, moveTo, Piece.PIECE_NONE);
 			moveTo = pawn_genTwoSqTarget(atSquare, ownSide);
 			if ( moveTo != Position.NOPOSITION && theBoard.squareIsEmpty( moveTo )) {
-				moveList.add( Move.valueOf( atSquare, Piece.PIECE_TABLE[theBoard.getPieceAtSquare(atSquare)], moveTo , PieceType.NONE) );
+				moveList.add( Move.valueOf( Move.TYPE_NONE, atSquare, theBoard.getPieceAtSquare(atSquare), moveTo , Piece.PIECE_NONE, IntChessman.NOCHESSMAN));
 			}	
 		}
 		// Check for capture moves, includes en passant
 		int captureAt = pawn_genLeftCaptureTarget(atSquare, ownSide);
 		if ( captureAt != Position.NOPOSITION ) {
 			capturePiece = pawn_isCapturable(ownSide, theBoard, captureAt);
-			if (capturePiece != PieceType.NONE) {
+			if (capturePiece != Piece.PIECE_NONE) {
 				pawn_checkPromotionAddMove(theBoard, atSquare, ownSide, moveList, captureAt, capturePiece);
 			}
 		}
 		captureAt = pawn_genRightCaptureTarget(atSquare, ownSide);
 		if ( captureAt != Position.NOPOSITION ) {
 			capturePiece = pawn_isCapturable(ownSide, theBoard, captureAt);
-			if (capturePiece != PieceType.NONE) {
+			if (capturePiece != Piece.PIECE_NONE) {
 				pawn_checkPromotionAddMove(theBoard, atSquare, ownSide, moveList, captureAt, capturePiece);
 			}
 		}

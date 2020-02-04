@@ -5,9 +5,9 @@ import java.util.Iterator;
 import com.fluxchess.jcpi.models.IntFile;
 
 import eubos.board.Board;
+import eubos.board.Piece;
 import eubos.board.SquareAttackEvaluator;
 import eubos.board.Piece.Colour;
-import eubos.board.Piece.PieceType;
 import eubos.position.CaptureData;
 import eubos.position.Position;
 import eubos.position.PositionManager;
@@ -82,7 +82,7 @@ public class PositionEvaluator implements IEvaluate {
 		Board board = pm.getTheBoard();
 		int passedPawnBoost = 0;
 		int pawnHandicap = -board.countDoubledPawnsForSide(onMoveWas)*DOUBLED_PAWN_HANDICAP;
-		PieceType ownPawns = Colour.isWhite(onMoveWas) ? PieceType.WhitePawn : PieceType.BlackPawn;
+		int ownPawns = Colour.isWhite(onMoveWas) ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
 		Iterator<Integer> iter = board.iterateType(ownPawns);
 		while (iter.hasNext()) {
 			int pawn = iter.next();

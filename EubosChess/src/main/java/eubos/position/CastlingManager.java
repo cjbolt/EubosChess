@@ -9,7 +9,6 @@ import eubos.board.Board;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
-import eubos.board.Piece.PieceType;
 import eubos.position.Move;
 
 class CastlingManager {
@@ -227,9 +226,9 @@ class CastlingManager {
 		return (castleMoveLegal(Position.a8, qscBlackCheckSqs, qscBlackEmptySqs)) ? bqsc : 0;
 	}
 
-	public void updateFlags(PieceType movedPiece, int lastMove) {
+	public void updateFlags(int movedPiece, int lastMove) {
 		// First handle castling moves
-		if (PieceType.isKing(movedPiece)) {
+		if (Piece.isKing(movedPiece)) {
 			if (Move.areEqual(lastMove,wksc) || Move.areEqual(lastMove,wqsc)) {
 				whiteKsAvail = whiteQsAvail = false;
 				whiteCastled = true;
@@ -250,19 +249,19 @@ class CastlingManager {
 			whiteKsAvail = false;
 		}
 		// King moved
-		if (movedPiece.equals(PieceType.WhiteKing)) {
+		if (movedPiece == Piece.WHITE_KING) {
 			whiteKsAvail = whiteQsAvail = false;
-		} else if (movedPiece.equals(PieceType.BlackKing)) {
+		} else if (movedPiece == Piece.BLACK_KING) {
 			blackKsAvail = blackQsAvail = false;
 		// Rook moved	
-		} else if (movedPiece.equals(PieceType.WhiteRook)) { 
+		} else if (movedPiece == Piece.WHITE_ROOK) { 
 			if (Position.getFile(Move.getOriginPosition(lastMove))==IntFile.Fa) {
 				whiteQsAvail = false;
 			} 
 			if (Position.getFile(Move.getOriginPosition(lastMove))==IntFile.Fh) {
 				whiteKsAvail = false;
 			}
-		} else if (movedPiece.equals(PieceType.BlackRook)) {
+		} else if (movedPiece == Piece.BLACK_ROOK) {
 			if (Position.getFile(Move.getOriginPosition(lastMove))==IntFile.Fa) {
 				blackQsAvail = false;
 			} else if (Position.getFile(Move.getOriginPosition(lastMove))==IntFile.Fh) {

@@ -1,16 +1,16 @@
 package eubos.position;
 
-import eubos.board.Piece.PieceType;
+import eubos.board.Piece;
 
 public class CaptureData {
-	PieceType target;
+	int target;
 	int square;
 	
 	public CaptureData() {
-		this(PieceType.NONE, Position.NOPOSITION);
+		this(Piece.PIECE_NONE, Position.NOPOSITION);
 	}
 	
-	public CaptureData(PieceType type, int atPos) {
+	public CaptureData(int type, int atPos) {
 		this.target = type;
 		this.square = atPos;
 	}

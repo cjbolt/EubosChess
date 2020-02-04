@@ -8,7 +8,6 @@ import com.fluxchess.jcpi.models.IntFile;
 
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
-import eubos.board.Piece.PieceType;
 import eubos.position.CaptureData;
 
 public class ZobristHashCode {
@@ -173,8 +172,8 @@ public class ZobristHashCode {
 	}
 
 	protected void doCapturedPiece(CaptureData captureTarget) {
-		if (captureTarget.target != PieceType.NONE)
-			hashCode ^= getPrnForPiece(captureTarget.square, PieceType.getPiece(captureTarget.target));
+		if (captureTarget.target != Piece.PIECE_NONE)
+			hashCode ^= getPrnForPiece(captureTarget.square, captureTarget.target);
 	}
 
 	private void setTargetFile(int enPasFile) {

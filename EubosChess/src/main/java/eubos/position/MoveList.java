@@ -17,7 +17,6 @@ import com.fluxchess.jcpi.models.IntChessman;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
-import eubos.board.Piece.PieceType;
 
 public class MoveList implements Iterable<Integer> {
 	
@@ -47,7 +46,7 @@ public class MoveList implements Iterable<Integer> {
 							|| Move.getPromotion(currMove) == IntChessman.ROOK
 							|| Move.getPromotion(currMove) == IntChessman.KNIGHT);
 					CaptureData cap = pm.getCapturedPiece();
-					boolean isCapture = (cap != null && cap.target != PieceType.NONE);
+					boolean isCapture = (cap != null && cap.target != Piece.PIECE_NONE);
 					boolean isCheck = pm.isKingInCheck(Colour.getOpposite(onMove));
 					boolean isCastle = (Piece.isKing(piece)) ? pm.lastMoveWasCastle() : false;
 					
@@ -61,13 +60,13 @@ public class MoveList implements Iterable<Integer> {
 						moveType = Move.TYPE_KBR_PROMOTION;
 					} else if (isCapture && isCheck) {
 						moveType = Move.TYPE_CAPTURE_WITH_CHECK;
-					} else if (isCapture && PieceType.isQueen(cap.target)) {
+					} else if (isCapture && Piece.isQueen(cap.target)) {
 						moveType = Move.TYPE_CAPTURE_QUEEN;
-					} else if (isCapture && PieceType.isRook(cap.target)) {
+					} else if (isCapture && Piece.isRook(cap.target)) {
 						moveType = Move.TYPE_CAPTURE_ROOK;
-					} else if (isCapture && (PieceType.isKnight(cap.target) || PieceType.isBishop(cap.target))) {
+					} else if (isCapture && (Piece.isKnight(cap.target) || Piece.isBishop(cap.target))) {
 						moveType = Move.TYPE_CAPTURE_PIECE;
-					} else if (isCapture && PieceType.isPawn(cap.target)) {
+					} else if (isCapture && Piece.isPawn(cap.target)) {
 						moveType = Move.TYPE_CAPTURE_PAWN;
 					} else if (isCastle) {
 						moveType = Move.TYPE_CASTLE;

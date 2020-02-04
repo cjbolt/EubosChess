@@ -133,13 +133,13 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Handle any initial 2 square pawn moves that are subject to en passant rule
 		int enPassantFile = checkToSetEnPassantTargetSq(move);
 		// Handle capture target (note, this will be null if the move is not a capture)
-		CaptureData captureTarget = getCaptureTarget(move, Move.getOriginPieceType(move), isEnPassantCapture);
+		CaptureData captureTarget = getCaptureTarget(move, Move.getOriginPiece(move), isEnPassantCapture);
 		// Store the necessary information to undo this move on the move tracker stack
 		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq, castling.getFenFlags()));
 		// Update the piece's square.
 		theBoard.setPieceAtSquare(Move.getTargetPosition(move), Move.getOriginPiece(move));
 		// update castling flags
-		castling.updateFlags(Move.getOriginPieceType(move), move);
+		castling.updateFlags(Move.getOriginPiece(move), move);
 		// Update hash code
 		if (hash != null) {
 			hash.update(move, captureTarget, enPassantFile);
@@ -179,7 +179,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		castling.setFenFlags(tm.getFenFlags());
 		// Undo any capture that had been previously performed.
 		if ( tm.isCapture()) {
-			theBoard.setPieceAtSquare(tm.getCaptureData().square, PieceType.getPiece(tm.getCaptureData().target));
+			theBoard.setPieceAtSquare(tm.getCaptureData().square, tm.getCaptureData().target);
 		}
 		// Restore en passant target
 		int enPasTargetSq = tm.getEnPassantTarget();
@@ -272,23 +272,23 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return enPassantFile;
 	}
 	
-	private CaptureData getCaptureTarget(int move, PieceType pieceToMove, boolean enPassantCapture) {
-		CaptureData cap = new CaptureData(PieceType.NONE, Position.NOPOSITION);
+	private CaptureData getCaptureTarget(int move, int pieceToMove, boolean enPassantCapture) {
+		CaptureData cap = new CaptureData(Piece.PIECE_NONE, Position.NOPOSITION);
 		if (enPassantCapture) {
 			int rank = IntRank.R1;
-			if (pieceToMove.equals(PieceType.WhitePawn)) {
+			if (pieceToMove == Piece.WHITE_PAWN) {
 				rank = IntRank.R5;
-			} else if (pieceToMove.equals(PieceType.BlackPawn)){
+			} else if (pieceToMove == Piece.BLACK_PAWN){
 				rank = IntRank.R4;
 			} else {
 				assert false;
 			}
 			int capturePos = Position.valueOf(Position.getFile(Move.getTargetPosition(move)), rank);
-			cap.target = Piece.PIECE_TABLE[theBoard.pickUpPieceAtSquare(capturePos)];
+			cap.target = theBoard.pickUpPieceAtSquare(capturePos);
 			cap.square = capturePos;
 		} else {
 			int capturePos = Move.getTargetPosition(move);
-			cap.target = Piece.PIECE_TABLE[theBoard.pickUpPieceAtSquare(capturePos)];
+			cap.target = theBoard.pickUpPieceAtSquare(capturePos);
 			cap.square = capturePos;
 		}
 		return cap;

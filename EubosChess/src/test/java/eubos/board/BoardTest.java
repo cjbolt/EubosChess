@@ -151,7 +151,7 @@ public class BoardTest {
 	public void testisHalfOpenFile_isHalfOpen() {
 		classUnderTest.setPieceAtSquare(Position.e7, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(Position.e2, Piece.WHITE_ROOK);
-		assertTrue(classUnderTest.isOnHalfOpenFile(GenericPosition.e2, Piece.PIECE_TABLE[Piece.WHITE_ROOK]));
+		assertTrue(classUnderTest.isOnHalfOpenFile(GenericPosition.e2, Piece.WHITE_ROOK));
 	}
 	
 	@Test
@@ -159,7 +159,7 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.e7, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(Position.e2, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.e1, Piece.WHITE_ROOK);
-		assertFalse(classUnderTest.isOnHalfOpenFile(GenericPosition.e1, Piece.PIECE_TABLE[Piece.WHITE_ROOK]));
+		assertFalse(classUnderTest.isOnHalfOpenFile(GenericPosition.e1, Piece.WHITE_ROOK));
 	}
 	
 	@Test
@@ -168,7 +168,7 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.e7, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.e2, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(Position.e1, Piece.WHITE_ROOK);
-		assertTrue(classUnderTest.isOnHalfOpenFile(GenericPosition.e1, Piece.PIECE_TABLE[Piece.WHITE_ROOK]));
+		assertTrue(classUnderTest.isOnHalfOpenFile(GenericPosition.e1, Piece.WHITE_ROOK));
 	}
 	
 	@Test
