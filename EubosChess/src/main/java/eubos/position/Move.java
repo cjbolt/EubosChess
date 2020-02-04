@@ -105,8 +105,8 @@ public final class Move {
 		int originPiece = Piece.PIECE_NONE;
 		int targetPiece = Piece.PIECE_NONE;
 		if (theBoard != null) {
-			originPiece = PieceType.getPiece(theBoard.getPieceAtSquare(originPosition));
-			targetPiece = PieceType.getPiece(theBoard.getPieceAtSquare(targetPosition));
+			originPiece = theBoard.getPieceAtSquare(originPosition);
+			targetPiece = theBoard.getPieceAtSquare(targetPosition);
 		}
 		if (move.promotion != null) {
 			promotion = IntChessman.valueOf(move.promotion);

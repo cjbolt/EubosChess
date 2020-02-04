@@ -156,14 +156,14 @@ public class SquareAttackEvaluator {
 			case downRight:
 				if (doDiagonalCheck) {
 					for (int attackerSq: array[index]) {
-						PieceType currPiece = theBoard.getPieceAtSquare(attackerSq);
-						if (currPiece != PieceType.NONE ) {
+						int currPiece = theBoard.getPieceAtSquare(attackerSq);
+						if (currPiece != Piece.PIECE_NONE ) {
 							if (Colour.isWhite(attackingColour)) {
-								if (currPiece == PieceType.WhiteQueen || currPiece == PieceType.WhiteBishop) {
+								if (currPiece == Piece.WHITE_QUEEN || currPiece == Piece.WHITE_BISHOP) {
 									attacked = true;
 								}
 							} else {
-								if (currPiece == PieceType.BlackQueen || currPiece == PieceType.BlackBishop) {
+								if (currPiece == Piece.BLACK_QUEEN || currPiece == Piece.BLACK_BISHOP) {
 									attacked = true;
 								}
 							} // else blocked by own piece or non-attacking enemy
@@ -178,14 +178,14 @@ public class SquareAttackEvaluator {
 			case down:
 				if (doRankFileCheck) {
 					for (int attackerSq: array[index]) {
-						PieceType currPiece = theBoard.getPieceAtSquare(attackerSq);
-						if (currPiece != PieceType.NONE ) {
+						int currPiece = theBoard.getPieceAtSquare(attackerSq);
+						if (currPiece != Piece.PIECE_NONE ) {
 							if (Colour.isWhite(attackingColour)) {
-								if (currPiece == PieceType.WhiteQueen || currPiece == PieceType.WhiteRook) {
+								if (currPiece == Piece.WHITE_QUEEN || currPiece == Piece.WHITE_ROOK) {
 									attacked = true;
 								}
 							} else {
-								if (currPiece == PieceType.BlackQueen || currPiece == PieceType.BlackRook) {
+								if (currPiece == Piece.BLACK_QUEEN || currPiece == Piece.BLACK_ROOK) {
 									attacked = true;
 								}
 							} // else blocked by own piece or non-attacking enemy

@@ -95,7 +95,7 @@ class CastlingManager {
 	}
 
 	void performSecondaryCastlingMove(int move) throws InvalidPieceException {
-		PieceType rookToCastle = PieceType.NONE;
+		int rookToCastle = Piece.PIECE_NONE;
 		if (Move.areEqual(move, wksc)) {
 			// Perform secondary white king side castle rook move
 			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.h1 );
@@ -116,7 +116,7 @@ class CastlingManager {
 	}
 
 	void unperformSecondaryCastlingMove(int move) throws InvalidPieceException {
-		PieceType rookToCastle = PieceType.NONE;
+		int rookToCastle = Piece.PIECE_NONE;
 		if (Move.areEqual(move, undo_wksc)) {
 			// Perform secondary king side castle rook move
 			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.f1 );
@@ -195,7 +195,7 @@ class CastlingManager {
 			int [] checkSqs,
 			int [] emptySqs) {
 		Board theBoard = pm.getTheBoard();
-		assert PieceType.isRook(theBoard.getPieceAtSquare(rookSq));
+		assert Piece.isRook(theBoard.getPieceAtSquare(rookSq));
 		
 		// All the intervening squares between King and Rook should be empty
 		for ( int emptySq : emptySqs ) {

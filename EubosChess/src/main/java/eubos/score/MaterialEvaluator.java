@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Iterator;
 
 import eubos.board.Board;
-import eubos.board.Piece.PieceType;
+import eubos.board.Piece;
 import eubos.position.Position;
 
 public class MaterialEvaluator {
@@ -68,29 +68,29 @@ public class MaterialEvaluator {
 		MaterialEvaluation materialEvaluation = new MaterialEvaluation();
 		while ( iter_p.hasNext() ) {
 			int atPos = iter_p.next();
-			PieceType currPiece = theBoard.getPieceAtSquare(atPos);
+			int currPiece = theBoard.getPieceAtSquare(atPos);
 			int currValue = 0;
-			if ( currPiece==PieceType.WhitePawn ) {
+			if ( currPiece==Piece.WHITE_PAWN ) {
 				currValue = MATERIAL_VALUE_PAWN;
 				currValue += PAWN_WHITE_WEIGHTINGS.get(atPos);
-			} else if ( currPiece==PieceType.BlackPawn ) {
+			} else if ( currPiece==Piece.BLACK_PAWN ) {
 				currValue = MATERIAL_VALUE_PAWN;
 				currValue += PAWN_BLACK_WEIGHTINGS.get(atPos);
-			} else if (PieceType.isRook(currPiece)) {
+			} else if (Piece.isRook(currPiece)) {
 				currValue = MATERIAL_VALUE_ROOK;
 				currValue += theBoard.getNumRankFileSquaresAvailable(atPos)*2;
-			} else if (PieceType.isBishop(currPiece)) {
+			} else if (Piece.isBishop(currPiece)) {
 				currValue = MATERIAL_VALUE_BISHOP;
 				currValue += theBoard.getNumDiagonalSquaresAvailable(atPos)*2;
-			} else if (PieceType.isKnight(currPiece)) {
+			} else if (Piece.isKnight(currPiece)) {
 				currValue = MATERIAL_VALUE_KNIGHT;
 				currValue += KNIGHT_WEIGHTINGS.get(atPos);
-			} else if (PieceType.isQueen(currPiece)) {
+			} else if (Piece.isQueen(currPiece)) {
 				currValue = MATERIAL_VALUE_QUEEN;
-			} else if (PieceType.isKing(currPiece)) {
+			} else if (Piece.isKing(currPiece)) {
 				currValue = MATERIAL_VALUE_KING;
 			}
-			if (PieceType.isWhite(currPiece)) {
+			if (Piece.isWhite(currPiece)) {
 				materialEvaluation.addWhite(currValue);
 			} else { 
 				materialEvaluation.addBlack(currValue);

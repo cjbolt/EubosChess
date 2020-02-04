@@ -15,6 +15,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IntChessman;
 
 import eubos.board.InvalidPieceException;
+import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.board.Piece.PieceType;
 
@@ -35,7 +36,7 @@ public class MoveList implements Iterable<Integer> {
 		Colour onMove = pm.getOnMove();
 		for (Integer currMove : pm.generateMoves()) {
 			try {
-				PieceType piece = pm.getTheBoard().getPieceAtSquare(Move.getOriginPosition(currMove));
+				int piece = pm.getTheBoard().getPieceAtSquare(Move.getOriginPosition(currMove));
 				pm.performMove(currMove);
 				if (pm.isKingInCheck(onMove)) {
 					// Scratch any moves resulting in the king being in check
@@ -48,7 +49,7 @@ public class MoveList implements Iterable<Integer> {
 					CaptureData cap = pm.getCapturedPiece();
 					boolean isCapture = (cap != null && cap.target != PieceType.NONE);
 					boolean isCheck = pm.isKingInCheck(Colour.getOpposite(onMove));
-					boolean isCastle = (PieceType.isKing(piece)) ? pm.lastMoveWasCastle() : false;
+					boolean isCastle = (Piece.isKing(piece)) ? pm.lastMoveWasCastle() : false;
 					
 					if (isQueenPromotion && isCapture && isCheck) {
 						moveType = Move.TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK;

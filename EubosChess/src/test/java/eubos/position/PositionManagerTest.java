@@ -65,8 +65,8 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/4P3/8 w - - - -");
 		classUnderTest.performMove(Move.valueOf( Position.e2, PieceType.WhitePawn, Position.e4, PieceType.NONE ));
 		classUnderTest.unperformMove();
-		PieceType expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( Position.e2 );
-		assertTrue( expectPawn==PieceType.WhitePawn );		
+		int expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( Position.e2 );
+		assertTrue( expectPawn==Piece.WHITE_PAWN );		
 	}
 	
 	@Test
@@ -83,8 +83,8 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/4p3/8 b - - - -");
 		classUnderTest.performMove( Move.valueOf(Move.TYPE_PROMOTION, Position.e2, Piece.PIECE_BLACK|Piece.PIECE_PAWN, Position.e1, Piece.PIECE_NONE, IntChessman.QUEEN));
 		classUnderTest.unperformMove();
-		PieceType expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( Position.e2 );
-		assertTrue( expectPawn==PieceType.BlackPawn );
+		int expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( Position.e2 );
+		assertTrue( expectPawn==Piece.BLACK_PAWN );
 	}
 	
 	@Test
@@ -101,18 +101,18 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/8/8/8/8/3p4/4P3/8 w - - - -");
 		classUnderTest.performMove( Move.valueOf( Position.e2, PieceType.WhitePawn, Position.d3, PieceType.BlackPawn ));
 		classUnderTest.unperformMove();
-		PieceType expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( Position.d3 );
-		assertTrue( expectPawn==PieceType.BlackPawn );
+		int expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( Position.d3 );
+		assertTrue( expectPawn==Piece.BLACK_PAWN );
 		expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( Position.e2 );
-		assertTrue( expectPawn==PieceType.WhitePawn );
+		assertTrue( expectPawn==Piece.WHITE_PAWN );
 	}
 	
 	@Test
 	public void test_enPassantCaptureAtC3() throws InvalidPieceException, IllegalNotationException {
 		classUnderTest = new PositionManager( "r3k2r/1bqpbppp/p1n1p3/3nP3/PpP1N3/3B1N2/1P2QPPP/R4RK1 b kq c3 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.b4, PieceType.BlackPawn, Position.c3, PieceType.WhitePawn ));
-		PieceType expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( Position.c3 );
-		assertTrue( expectPawn==PieceType.BlackPawn );
+		int expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( Position.c3 );
+		assertTrue( expectPawn==Piece.BLACK_PAWN );
 	}
 	
 	@Test
@@ -128,10 +128,10 @@ public class PositionManagerTest {
 		//   abcdefgh
 		classUnderTest = new PositionManager("8/8/8/8/8/8/8/4K2R w K - - -");
 		classUnderTest.performMove( Move.valueOf(Move.TYPE_CASTLE, Position.e1, Piece.PIECE_KING, Position.g1, Piece.PIECE_NONE, IntChessman.NOCHESSMAN));
-		PieceType whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.h1);
-		assertTrue(whiteRook == PieceType.NONE);
+		int whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.h1);
+		assertTrue(whiteRook == Piece.PIECE_NONE);
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.f1);
-		assertTrue( whiteRook==PieceType.WhiteRook );
+		assertTrue( whiteRook==Piece.WHITE_ROOK );
 		assertTrue(classUnderTest.castling.everCastled(Colour.white));
 		assertTrue(classUnderTest.castling.getFenFlags().equals("-"));
 	}
@@ -150,17 +150,17 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/8/4K2R w K - - -");
 		int expectedMove = Move.valueOf( Move.TYPE_CASTLE, Position.e1, PieceType.getPiece(PieceType.WhiteKing), Position.g1, PieceType.getPiece(PieceType.NONE), IntChessman.NOCHESSMAN );
 		classUnderTest.performMove(expectedMove);
-		PieceType whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.h1);
-		assertTrue(whiteRook == PieceType.NONE);
+		int whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.h1);
+		assertTrue(whiteRook == Piece.PIECE_NONE);
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.f1);
-		assertTrue( whiteRook==PieceType.WhiteRook );
+		assertTrue( whiteRook==Piece.WHITE_ROOK );
 		classUnderTest.unperformMove();
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.f1);
-		assertTrue(whiteRook == PieceType.NONE);
+		assertTrue(whiteRook == Piece.PIECE_NONE);
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.h1);
-		assertTrue( whiteRook==PieceType.WhiteRook );
-		PieceType whiteKing = classUnderTest.getTheBoard().getPieceAtSquare(Position.e1);
-		assertTrue( whiteKing==PieceType.WhiteKing );
+		assertTrue( whiteRook==Piece.WHITE_ROOK );
+		int whiteKing = classUnderTest.getTheBoard().getPieceAtSquare(Position.e1);
+		assertTrue( whiteKing==Piece.WHITE_KING );
 		assertTrue(!classUnderTest.castling.everCastled(Colour.white));
 		assertTrue(classUnderTest.castling.getFenFlags().equals("K"));
 	}
@@ -378,7 +378,7 @@ public class PositionManagerTest {
 	public void test_BlackPawn_MoveGen_PromoteBishop() {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/4p3/8 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		expectedMove = Move.valueOf( Move.TYPE_KBR_PROMOTION, Position.e2, Piece.PIECE_BLACK|Piece.PIECE_PAWN, Position.e1, Piece.PIECE_NONE, IntChessman.BISHOP );
+		expectedMove = Move.valueOf( Move.TYPE_KBR_PROMOTION, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.PIECE_NONE, IntChessman.BISHOP );
 		assertTrue( ml.contains( expectedMove ));			
 	}
 

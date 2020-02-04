@@ -41,6 +41,20 @@ public abstract class Piece {
 	
 	public static final int PIECE_NO_COLOUR_MASK = 0x7;
 	public static final int PIECE_WHOLE_MASK = 0xf;
+
+	public static final int WHITE_QUEEN = PIECE_QUEEN;
+	public static final int WHITE_BISHOP = PIECE_BISHOP;
+	public static final int WHITE_KING = PIECE_KING;
+	public static final int WHITE_KNIGHT = PIECE_KNIGHT;
+	public static final int WHITE_ROOK = PIECE_ROOK;
+	public static final int WHITE_PAWN = PIECE_PAWN;
+	
+	public static final int BLACK_QUEEN = (PIECE_BLACK|PIECE_QUEEN);
+	public static final int BLACK_BISHOP = (PIECE_BLACK|PIECE_BISHOP);
+	public static final int BLACK_KING = (PIECE_BLACK|PIECE_KING);
+	public static final int BLACK_KNIGHT = (PIECE_BLACK|PIECE_KNIGHT);
+	public static final int BLACK_ROOK = (PIECE_BLACK|PIECE_ROOK);
+	public static final int BLACK_PAWN = (PIECE_BLACK|PIECE_PAWN);
 	
 	public static boolean isPawn(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == PIECE_PAWN; }
 	public static boolean isKing(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == PIECE_KING; }
@@ -137,10 +151,10 @@ public abstract class Piece {
 
 	private static void king_checkAddMove(Piece.Colour ownSide, int atSquare, List<Integer> moveList, Board theBoard, int targetSquare) {
 		if ( targetSquare != Position.NOPOSITION ) {
-			PieceType targetPiece = theBoard.getPieceAtSquare(targetSquare);
+			PieceType targetPiece = Piece.PIECE_TABLE[theBoard.getPieceAtSquare(targetSquare)];
 			if ( theBoard.squareIsEmpty(targetSquare) || 
 					(targetPiece != PieceType.NONE && PieceType.isOppositeColour(ownSide, targetPiece))) {
-				moveList.add(Move.valueOf(atSquare, theBoard.getPieceAtSquare(atSquare), targetSquare, targetPiece));
+				moveList.add(Move.valueOf(atSquare, Piece.PIECE_TABLE[theBoard.getPieceAtSquare(atSquare)], targetSquare, targetPiece));
 			}
 		}
 	}	
@@ -151,15 +165,20 @@ public abstract class Piece {
 	
 	private static void knight_checkAddMove(Piece.Colour ownSide, int atSquare, List<Integer> moveList, Board theBoard, int targetSquare) {
 		if ( targetSquare != Position.NOPOSITION ) {
-			PieceType targetPiece = theBoard.getPieceAtSquare(targetSquare);
-			if (theBoard.squareIsEmpty(targetSquare)) {
-				moveList.add( Move.valueOf(atSquare, theBoard.getPieceAtSquare(atSquare), targetSquare, targetPiece));
+			int ownPiece = Piece.PIECE_KNIGHT;
+			if (Colour.isBlack(ownSide)) {
+				ownPiece |= Piece.PIECE_BLACK;
 			}
-			else if (targetPiece != PieceType.NONE && PieceType.isOppositeColour(ownSide, targetPiece)) {
+			int targetPiece = theBoard.getPieceAtSquare(targetSquare);
+			if (targetPiece == Piece.PIECE_NONE) {
+				moveList.add( Move.valueOf(Move.TYPE_NONE, atSquare, ownPiece, targetSquare, Piece.PIECE_NONE, IntChessman.NOCHESSMAN));
+			}
+			else if (targetPiece != Piece.PIECE_NONE && Piece.isOppositeColour(ownSide, targetPiece)) {
 				// Indicates a capture
-				moveList.add( Move.valueOf(atSquare, theBoard.getPieceAtSquare(atSquare), targetSquare, targetPiece));
+				moveList.add( Move.valueOf(Move.TYPE_NONE, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.NOCHESSMAN));
+			} else {
+				// Indicates blocked by own piece.
 			}
-			// Indicates blocked by own piece.
 		}
 	}
 	
@@ -222,14 +241,14 @@ public abstract class Piece {
 	private static boolean multidirect_checkAddMove(Piece.Colour ownSide, int atSquare, List<Integer> moveList, Board theBoard, int targetSquare) {
 		boolean continueAddingMoves = false;
 		if ( targetSquare != Position.NOPOSITION ) {
-			PieceType targetPiece = theBoard.getPieceAtSquare(targetSquare);
+			int targetPiece = theBoard.getPieceAtSquare(targetSquare);
 			if (theBoard.squareIsEmpty(targetSquare)) {
-				moveList.add( Move.valueOf(atSquare, theBoard.getPieceAtSquare(atSquare), targetSquare, targetPiece));
+				moveList.add( Move.valueOf(Move.TYPE_NONE, atSquare, theBoard.getPieceAtSquare(atSquare), targetSquare, targetPiece, IntChessman.NOCHESSMAN));
 				continueAddingMoves = true;
 			}
-			else if (targetPiece != PieceType.NONE && PieceType.isOppositeColour(ownSide, targetPiece)) {
+			else if (targetPiece != Piece.PIECE_NONE && Piece.isOppositeColour(ownSide, targetPiece)) {
 				// Indicates a capture
-				moveList.add( Move.valueOf(atSquare, theBoard.getPieceAtSquare(atSquare), targetSquare, targetPiece));
+				moveList.add( Move.valueOf(Move.TYPE_NONE, atSquare, theBoard.getPieceAtSquare(atSquare), targetSquare, targetPiece, IntChessman.NOCHESSMAN));
 			}
 			// Indicates blocked by own piece.
 		}
@@ -239,8 +258,8 @@ public abstract class Piece {
 	private static boolean multidirect_sqConstrainsAttack(Board theBoard, int targetSquare) {
 		boolean constrains = false;
 		if ( targetSquare != Position.NOPOSITION ) {
-			PieceType targetPiece = theBoard.getPieceAtSquare(targetSquare);
-			if (targetPiece != PieceType.NONE) {
+			int targetPiece = theBoard.getPieceAtSquare(targetSquare);
+			if (targetPiece != Piece.PIECE_NONE) {
 				constrains = true;
 			}
 		}
@@ -302,7 +321,7 @@ public abstract class Piece {
 	
 	private static PieceType pawn_isCapturable(Piece.Colour ownSide, Board theBoard, int captureAt ) {
 		PieceType capturePiece = PieceType.NONE;
-		PieceType queryPiece = theBoard.getPieceAtSquare( captureAt );
+		PieceType queryPiece = Piece.PIECE_TABLE[theBoard.getPieceAtSquare(captureAt)];
 		if ( queryPiece != PieceType.NONE ) {
 			if (PieceType.isOppositeColour( ownSide, queryPiece )) {
 				capturePiece = queryPiece;
@@ -321,12 +340,12 @@ public abstract class Piece {
 	private static void pawn_checkPromotionAddMove(Board theBoard, int atSquare, Piece.Colour ownSide, List<Integer> moveList,
 			int targetSquare, PieceType targetPiece) {
 		if ( pawn_checkPromotionPossible( ownSide, targetSquare )) {
-			moveList.add( Move.valueOf( Move.TYPE_KBR_PROMOTION, atSquare, PieceType.getPiece(theBoard.getPieceAtSquare(atSquare)), targetSquare, PieceType.getPiece(targetPiece), IntChessman.KNIGHT ));
-			moveList.add( Move.valueOf( Move.TYPE_KBR_PROMOTION, atSquare, PieceType.getPiece(theBoard.getPieceAtSquare(atSquare)), targetSquare, PieceType.getPiece(targetPiece), IntChessman.BISHOP ));
-			moveList.add( Move.valueOf( Move.TYPE_KBR_PROMOTION, atSquare, PieceType.getPiece(theBoard.getPieceAtSquare(atSquare)), targetSquare, PieceType.getPiece(targetPiece), IntChessman.ROOK ));
-			moveList.add( Move.valueOf( Move.TYPE_PROMOTION, atSquare, PieceType.getPiece(theBoard.getPieceAtSquare(atSquare)), targetSquare, PieceType.getPiece(targetPiece), IntChessman.QUEEN ));
+			moveList.add( Move.valueOf( Move.TYPE_KBR_PROMOTION, atSquare, theBoard.getPieceAtSquare(atSquare), targetSquare, PieceType.getPiece(targetPiece), IntChessman.KNIGHT ));
+			moveList.add( Move.valueOf( Move.TYPE_KBR_PROMOTION, atSquare, theBoard.getPieceAtSquare(atSquare), targetSquare, PieceType.getPiece(targetPiece), IntChessman.BISHOP ));
+			moveList.add( Move.valueOf( Move.TYPE_KBR_PROMOTION, atSquare, theBoard.getPieceAtSquare(atSquare), targetSquare, PieceType.getPiece(targetPiece), IntChessman.ROOK ));
+			moveList.add( Move.valueOf( Move.TYPE_PROMOTION, atSquare, theBoard.getPieceAtSquare(atSquare), targetSquare, PieceType.getPiece(targetPiece), IntChessman.QUEEN ));
 		} else {
-			moveList.add( Move.valueOf( atSquare, theBoard.getPieceAtSquare(atSquare), targetSquare, targetPiece ) );
+			moveList.add( Move.valueOf( atSquare, Piece.PIECE_TABLE[theBoard.getPieceAtSquare(atSquare)], targetSquare, targetPiece ) );
 		}
 	}	
 	
@@ -339,7 +358,7 @@ public abstract class Piece {
 			pawn_checkPromotionAddMove(theBoard, atSquare, ownSide, moveList, moveTo, PieceType.NONE);
 			moveTo = pawn_genTwoSqTarget(atSquare, ownSide);
 			if ( moveTo != Position.NOPOSITION && theBoard.squareIsEmpty( moveTo )) {
-				moveList.add( Move.valueOf( atSquare, theBoard.getPieceAtSquare(atSquare), moveTo , PieceType.NONE) );
+				moveList.add( Move.valueOf( atSquare, Piece.PIECE_TABLE[theBoard.getPieceAtSquare(atSquare)], moveTo , PieceType.NONE) );
 			}	
 		}
 		// Check for capture moves, includes en passant
