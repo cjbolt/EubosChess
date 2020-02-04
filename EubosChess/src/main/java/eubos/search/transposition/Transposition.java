@@ -16,7 +16,7 @@ public class Transposition {
 
 	public Transposition(byte depth, short score, ScoreType scoreType, MoveList ml, GenericMove bestMove) {
 		// Only used by tests
-		this(depth, score, scoreType, ml, Move.toMove(bestMove, Move.TYPE_NONE));
+		this(depth, score, scoreType, ml, Move.toMove(bestMove, null, Move.TYPE_NONE));
 	}
 	
 	public Transposition(byte depth, short score, ScoreType scoreType, MoveList ml, int bestMove) {

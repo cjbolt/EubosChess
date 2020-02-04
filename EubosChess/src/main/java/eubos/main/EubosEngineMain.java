@@ -113,7 +113,7 @@ public class EubosEngineMain extends AbstractEngine {
 			PositionManager temp_pm = new PositionManager(uci_fen_string, dc);
 			try {
 				for (GenericMove nextMove : command.moves) {
-					temp_pm.performMove(Move.toMove(nextMove));
+					temp_pm.performMove(Move.toMove(nextMove, temp_pm.getTheBoard()));
 				}
 			} catch(InvalidPieceException e ) {
 				System.out.println( 
@@ -286,7 +286,7 @@ public class EubosEngineMain extends AbstractEngine {
 			// In unit tests carry on without the protocol being connected
 		}
 		if (protocolBestMoveCommand.bestMove != null) {
-			long hashCode = pm.getHashForMove(Move.toMove(protocolBestMoveCommand.bestMove));
+			long hashCode = pm.getHashForMove(Move.toMove(protocolBestMoveCommand.bestMove, pm.getTheBoard(), Move.TYPE_NONE));
 			dc.incrementPositionReachedCount(hashCode);
 			if (dc.isPositionDraw(hashCode)) {
 				// need to remove this position from transposition table, as cached score for it doesn't indicate a draw

@@ -93,7 +93,7 @@ public class MoveList implements Iterable<Integer> {
 				int currMove = tuple.getKey();
 				if (Move.toGenericMove(currMove).equals(bestMove)) {
 					// the moves are the same, so set the type of the best move from the existing move
-					intBestMove = Move.setType(Move.toMove(bestMove), tuple.getValue());
+					intBestMove = Move.toMove(bestMove, pm.getTheBoard(), tuple.getValue());
 					break;
 				}
 			}
@@ -260,7 +260,7 @@ public class MoveList implements Iterable<Integer> {
 	
 	public void reorderWithNewBestMove(GenericMove newBestMove) {
 		// Only used by tests
-		int move = Move.toMove(newBestMove, getMoveTypeFromNormalList(newBestMove));
+		int move = Move.toMove(newBestMove, null, getMoveTypeFromNormalList(newBestMove));
 		reorderWithNewBestMove(move);
 	}
 

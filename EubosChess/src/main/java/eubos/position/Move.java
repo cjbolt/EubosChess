@@ -3,6 +3,7 @@ package eubos.position;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IntChessman;
 
+import eubos.board.Board;
 import eubos.board.Piece;
 import eubos.board.Piece.PieceType;
 
@@ -96,19 +97,32 @@ public final class Move {
 		return move;
 	}
 	
-	public static int toMove(GenericMove move, int type) {
+	public static int toMove(GenericMove move, Board theBoard, int type) {
 		int intMove = 0;
 		int targetPosition = Position.valueOf(move.to);
 		int originPosition = Position.valueOf(move.from);
-		int promotion = 0;
+		int promotion = IntChessman.NOCHESSMAN;
+		int originPiece = Piece.PIECE_NONE;
+		int targetPiece = Piece.PIECE_NONE;
+		if (theBoard != null) {
+			originPiece = PieceType.getPiece(theBoard.getPieceAtSquare(originPosition));
+			targetPiece = PieceType.getPiece(theBoard.getPieceAtSquare(targetPosition));
+		}
 		if (move.promotion != null) {
 			promotion = IntChessman.valueOf(move.promotion);
-			intMove = Move.valueOf(Move.TYPE_KBR_PROMOTION, originPosition, targetPosition, promotion);
+			intMove = Move.valueOf(Move.TYPE_KBR_PROMOTION, originPosition, originPiece, targetPosition, targetPiece, promotion);
 		} else {
-			promotion = IntChessman.NOCHESSMAN;
-			intMove = Move.valueOf(type, originPosition, targetPosition, promotion);
+			intMove = Move.valueOf(type, originPosition, originPiece, targetPosition, targetPiece, promotion);
 		}
 		return intMove;
+	}
+	
+	public static int toMove(GenericMove move, Board theBoard) {
+		return Move.toMove(move, theBoard, Move.TYPE_NONE);
+	}
+	
+	public static int toMove(GenericMove move) {
+		return Move.toMove(move, null, Move.TYPE_NONE);
 	}
 
 	public static GenericMove toGenericMove(int move) {
@@ -138,11 +152,6 @@ public final class Move {
 			Move.getPromotion(move1)==Move.getPromotion(move2)) {
 			areEqual = true;
 		}
-		//move1 &= ~TYPE_MASK;
-		//move2 &= ~TYPE_MASK;
-		//if (move1==move2) {
-		//	areEqual = true;
-		//}
 		return areEqual;
 	}
 
@@ -192,9 +201,10 @@ public final class Move {
 
 	public static int getPromotion(int move) {
 		int promotion = (move & PROMOTION_MASK) >>> PROMOTION_SHIFT;
-		assert (IntChessman.isValid(promotion) && IntChessman.isValidPromotion(promotion))
-		|| promotion == IntChessman.NOCHESSMAN;
-
+		if (move != 0) {
+			assert (IntChessman.isValid(promotion) && IntChessman.isValidPromotion(promotion))
+			|| promotion == IntChessman.NOCHESSMAN;
+		}
 		return promotion;
 	}
 
@@ -267,10 +277,6 @@ public final class Move {
 			}
 		}
 		return string;
-	}
-
-	public static int toMove(GenericMove move) {
-		return Move.toMove(move, Move.TYPE_NONE);
 	}
 
 	public static int setType(int move, int type) {

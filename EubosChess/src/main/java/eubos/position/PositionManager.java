@@ -125,21 +125,21 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		theBoard.setEnPassantTargetSq(Position.NOPOSITION);
 		// Handle pawn promotion moves
-		pieceToMove = checkForPawnPromotions(move, pieceToMove);
+		move = checkForPawnPromotions(move);
 		// Handle castling secondary rook moves...
-		if (PieceType.isKing(pieceToMove)) {
+		if (PieceType.isKing(Move.getOriginPieceType(move))) {
 			castling.performSecondaryCastlingMove(move);
 		}
 		// Handle any initial 2 square pawn moves that are subject to en passant rule
-		int enPassantFile = checkToSetEnPassantTargetSq(move, pieceToMove);
+		int enPassantFile = checkToSetEnPassantTargetSq(move);
 		// Handle capture target (note, this will be null if the move is not a capture)
-		CaptureData captureTarget = getCaptureTarget(move, pieceToMove, isEnPassantCapture);
+		CaptureData captureTarget = getCaptureTarget(move, Move.getOriginPieceType(move), isEnPassantCapture);
 		// Store the necessary information to undo this move on the move tracker stack
 		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq, castling.getFenFlags()));
 		// Update the piece's square.
-		theBoard.setPieceAtSquare(Move.getTargetPosition(move), pieceToMove);
+		theBoard.setPieceAtSquare(Move.getTargetPosition(move), Move.getOriginPieceType(move));
 		// update castling flags
-		castling.updateFlags(pieceToMove, move);
+		castling.updateFlags(Move.getOriginPieceType(move), move);
 		// Update hash code
 		if (hash != null) {
 			hash.update(move, captureTarget, enPassantFile);
@@ -163,7 +163,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		TrackedMove tm = moveTracker.pop();
 		int moveToUndo = tm.getMove();
 		// Check for reversal of any pawn promotion that had been previously applied
-		checkToUndoPawnPromotion(moveToUndo);
+		moveToUndo = checkToUndoPawnPromotion(moveToUndo);
 		// Actually undo the move by reversing its direction and reapplying it.
 		int reversedMove = Move.reverse(moveToUndo);
 
@@ -197,31 +197,33 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		}
 	}
 	
-	private PieceType checkForPawnPromotions(int move, PieceType pawn) {
-		boolean isWhite = pawn.equals(PieceType.WhitePawn);
-		PieceType type = pawn;
+	private int checkForPawnPromotions(int move) {
+		int piece = Move.getOriginPiece(move);
 		if ( Move.getPromotion(move) != IntChessman.NOCHESSMAN ) {
+			piece &= Piece.PIECE_BLACK; // preserve colour
 			switch( Move.getPromotion(move) ) {
 			case IntChessman.QUEEN:
-				type = isWhite ? PieceType.WhiteQueen : PieceType.BlackQueen;
+				piece |= Piece.PIECE_QUEEN;
 				break;
 			case IntChessman.KNIGHT:
-				type = isWhite ? PieceType.WhiteKnight : PieceType.BlackKnight;
+				piece |= Piece.PIECE_KNIGHT;
 				break;
 			case IntChessman.BISHOP:
-				type = isWhite ? PieceType.WhiteBishop : PieceType.BlackBishop;
+				piece |= Piece.PIECE_BISHOP;
 				break;
 			case IntChessman.ROOK:
-				type = isWhite ? PieceType.WhiteRook : PieceType.BlackRook;
+				piece |= Piece.PIECE_ROOK;
 				break;
 			default:
+				assert false;
 				break;
 			}
+			move = Move.setOriginPiece(move, piece);
 		}
-		return type;
+		return move;
 	}
 	
-	private void checkToUndoPawnPromotion(int moveToUndo) {
+	private int checkToUndoPawnPromotion(int moveToUndo) {
 		if ( Move.getPromotion(moveToUndo) != IntChessman.NOCHESSMAN ) {
 			PieceType type = theBoard.pickUpPieceAtSquare(Move.getTargetPosition(moveToUndo));
 			if (PieceType.isBlack(type)) {
@@ -230,7 +232,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 				type = PieceType.WhitePawn;
 			}
 			theBoard.setPieceAtSquare(Move.getTargetPosition(moveToUndo), type);
+			moveToUndo = Move.setOriginPieceType(moveToUndo, type);
 		}
+		return moveToUndo;
 	}
 	
 	private boolean isEnPassantCapture(int move) {
@@ -244,9 +248,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return enPassantCapture;
 	}
 	
-	private int checkToSetEnPassantTargetSq(int move, PieceType pieceToMove) {
+	private int checkToSetEnPassantTargetSq(int move) {
 		int enPassantFile = IntFile.NOFILE;
-		if ( pieceToMove.equals(PieceType.WhitePawn)) {
+		if (Move.getOriginPiece(move) == Piece.PIECE_PAWN) {
 			int potentialEnPassantFile = Position.getFile(Move.getOriginPosition(move));
 			if ( Position.getRank(Move.getOriginPosition(move)) == IntRank.R2) {
 				if (Position.getRank(Move.getTargetPosition(move)) == IntRank.R4) {
@@ -255,7 +259,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 					theBoard.setEnPassantTargetSq(enPassantWhite);
 				}
 			}
-		} else if (pieceToMove.equals(PieceType.BlackPawn)) {
+		} else if (Move.getOriginPiece(move) == (Piece.PIECE_BLACK|Piece.PIECE_PAWN)) {
 			int potentialEnPassantFile = Position.getFile(Move.getOriginPosition(move));
 			if (Position.getRank(Move.getOriginPosition(move)) == IntRank.R7) {
 				if (Position.getRank(Move.getTargetPosition(move)) == IntRank.R5) {

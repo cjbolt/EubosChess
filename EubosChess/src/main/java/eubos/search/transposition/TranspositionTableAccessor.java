@@ -129,7 +129,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 				if (currMove != 0) {
 					// Note, if the depth searched is more (from prev searches), it can be different to the pc for this search
 					if (pcMove != null && (eval.trans.getDepthSearchedInPly() <= (searchDepthPly-plies))) {
-						assert Move.areEqual(currMove,Move.toMove(pcMove)) : 
+						assert Move.areEqual(currMove, Move.toMove(pcMove)) : 
 							"Error: "+pcMove+" != "+Move.toGenericMove(currMove)+" @ply="+plies;
 					}
 					hashMap.protectHash(pos.getHash());

@@ -11,6 +11,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
+import eubos.board.Piece.PieceType;
 import eubos.position.CastlingManager;
 import eubos.position.PositionManager;
 
@@ -53,10 +54,10 @@ public class CastlingManagerTest {
 		//   abcdefgh
 		PositionManager pm = new PositionManager("k7/8/8/8/8/8/8/4K2R w K - - -");
 		try {
-			pm.performMove(Move.toMove(new GenericMove("h1h2")));
-			pm.performMove(Move.toMove(new GenericMove("a8b8")));
-			pm.performMove(Move.toMove(new GenericMove("h2h1")));
-			pm.performMove(Move.toMove(new GenericMove("b8a8")));
+			pm.performMove(Move.toMove(new GenericMove("h1h2"), pm.getTheBoard()));
+			pm.performMove(Move.toMove(new GenericMove("a8b8"), pm.getTheBoard()));
+			pm.performMove(Move.toMove(new GenericMove("h2h1"), pm.getTheBoard()));
+			pm.performMove(Move.toMove(new GenericMove("b8a8"), pm.getTheBoard()));
 		} catch (InvalidPieceException e) {
 			e.printStackTrace();
 		}
@@ -78,10 +79,10 @@ public class CastlingManagerTest {
 		//   abcdefgh
 		PositionManager pm = new PositionManager("k7/8/8/8/8/8/8/4K2R w K - - -");
 		try {
-			pm.performMove(Move.toMove(new GenericMove("e1e2")));
-			pm.performMove(Move.toMove(new GenericMove("a8b8")));
-			pm.performMove(Move.toMove(new GenericMove("e2e1")));
-			pm.performMove(Move.toMove(new GenericMove("b8a8")));
+			pm.performMove(Move.valueOf(Position.e1, PieceType.WhiteKing, Position.e2, PieceType.NONE));
+			pm.performMove(Move.valueOf(Position.a8, PieceType.BlackKing, Position.b8, PieceType.NONE));
+			pm.performMove(Move.valueOf(Position.e2, PieceType.WhiteKing, Position.e1, PieceType.NONE));
+			pm.performMove(Move.valueOf(Position.b8, PieceType.BlackKing, Position.a8, PieceType.NONE));
 		} catch (InvalidPieceException e) {
 			e.printStackTrace();
 		}

@@ -73,7 +73,7 @@ public class PrincipalContinuation {
 				if (index < pc_len) {
 					GenericMove currMove = source_pc.get(index);
 					int type = (currMove.promotion != null) ? Move.TYPE_PROMOTION : Move.TYPE_REGULAR;
-					pc[currPly+i][column]=Move.toMove(currMove, type);
+					pc[currPly+i][column]=Move.toMove(currMove, null, type);
 				} else {
 					/* Note: if the principal continuation ends in a mate, 
 					 * it is valid that the continuation can be shorter than

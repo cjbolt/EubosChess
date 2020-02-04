@@ -37,7 +37,6 @@ public enum Direction {
 			retVal = startSq+17;
 			break;
 		default:
-			assert false;
 			break;
 		}
 		if ((retVal & 0x88) != 0)
@@ -73,7 +72,6 @@ public enum Direction {
 			retVal = onSquare+33;	
 			break;
 		default:
-			assert false;
 			break;
 		}
 		if ((retVal & 0x88) != 0)

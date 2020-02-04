@@ -34,7 +34,7 @@ public class ZobristHashCodeTest {
 		PositionManager pm = new PositionManager("8/8/8/8/8/5p2/4P3/8 w - - 0 1");
 		PositionManager pm_after_capture = new PositionManager("8/8/8/8/8/5P2/8/8 b - - 0 2");
 		
-		pm.performMove(Move.toMove(move));
+		pm.performMove(Move.toMove(move, pm.getTheBoard(), Move.TYPE_NONE));
 		
 		assertEquals(pm_after_capture.getHash(), pm.getHash());
 	}
@@ -66,7 +66,7 @@ public class ZobristHashCodeTest {
 		PositionManager pm = new PositionManager("8/8/8/8/4Pp2/8/8/8 b - e3 0 1");
 		long initialHashCode = pm.getHash();
 		
-		pm.performMove(Move.toMove(move));
+		pm.performMove(Move.toMove(move, pm.getTheBoard()));
 		pm.unperformMove();
 
 		assertEquals(initialHashCode, pm.getHash());	
@@ -78,51 +78,47 @@ public class ZobristHashCodeTest {
 		PositionManager pm = new PositionManager("8/8/8/8/8/8/4P3/8 w - - 0 1");
 		PositionManager pm_after_enP = new PositionManager("8/8/8/8/4P3/8/8/8 b - e3 0 2");
 		
-		pm.performMove(Move.toMove(move));
+		pm.performMove(Move.toMove(move, pm.getTheBoard()));
 
 		assertEquals(pm_after_enP.getHash(), pm.getHash());	
 	}
 	
 	@Test
 	public void test_update_PerformCastlingWks_GivesExpectedHashCode() throws Exception {
-		GenericMove move = new GenericMove("e1g1");
 		PositionManager pm = new PositionManager("8/8/8/8/8/8/8/R3K2R w KQ - 0 1");
 		PositionManager pm_after_castle = new PositionManager("8/8/8/8/8/8/8/R4RK1 b - - 0 1");
 		
-		pm.performMove(Move.toMove(move, Move.TYPE_CASTLE));
+		pm.performMove(CastlingManager.wksc);
 
 		assertEquals(pm_after_castle.getHash(), pm.getHash());	
 	}
 	
 	@Test
 	public void test_update_PerformCastlingWqs_GivesExpectedHashCode() throws Exception {
-		GenericMove move = new GenericMove("e1c1");
 		PositionManager pm = new PositionManager("8/8/8/8/8/8/8/R3K2R w KQ - 0 1");
 		PositionManager pm_after_castle = new PositionManager("8/8/8/8/8/8/8/2KR3R b - - 0 1");
 		
-		pm.performMove(Move.toMove(move, Move.TYPE_CASTLE));
+		pm.performMove(CastlingManager.wqsc);
 
 		assertEquals(pm_after_castle.getHash(), pm.getHash());	
 	}
 	
 	@Test
 	public void test_update_PerformCastlingBqs_GivesExpectedHashCode() throws Exception {
-		GenericMove move = new GenericMove("e8c8");
 		PositionManager pm = new PositionManager("r3k2r/8/8/8/8/8/8/8 b kq - 0 1");
 		PositionManager pm_after_castle = new PositionManager("2kr3r/8/8/8/8/8/8/8 w - - 0 1");
 		
-		pm.performMove(Move.toMove(move, Move.TYPE_CASTLE));
+		pm.performMove(CastlingManager.bqsc);
 
 		assertEquals(pm_after_castle.getHash(), pm.getHash());	
 	}
 	
 	@Test
 	public void test_update_PerformCastlingBks_GivesExpectedHashCode() throws Exception {
-		GenericMove move = new GenericMove("e8g8");
 		PositionManager pm = new PositionManager("r3k2r/8/8/8/8/8/8/8 b kq - 0 1");
 		PositionManager pm_after_castle = new PositionManager("r4rk1/8/8/8/8/8/8/8 w - - 0 1");
 		
-		pm.performMove(Move.toMove(move, Move.TYPE_CASTLE));
+		pm.performMove(CastlingManager.bksc);
 
 		assertEquals(pm_after_castle.getHash(), pm.getHash());	
 	}
@@ -177,10 +173,10 @@ public class ZobristHashCodeTest {
 		PositionManager pm = new PositionManager("8/8/p6p/1p3kp1/1P6/P4PKP/5P2/8 w - - 0 1");
 		long originalHashCode = pm.getHash();
 		
-		pm.performMove(Move.toMove(new GenericMove("g3g2")));
-		pm.performMove(Move.toMove(new GenericMove("f5f6")));
-		pm.performMove(Move.toMove(new GenericMove("g2g3")));
-		pm.performMove(Move.toMove(new GenericMove("f6f5")));
+		pm.performMove(Move.toMove(new GenericMove("g3g2"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("f5f6"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("g2g3"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("f6f5"), pm.getTheBoard()));
 
 		assertEquals(originalHashCode, pm.getHash());	
 	}
@@ -191,10 +187,10 @@ public class ZobristHashCodeTest {
 		PositionManager pm = new PositionManager("8/8/p6p/1p3kp1/1P6/P4PKP/5P2/8 w - - 0 1");
 		long originalHashCode = pm.getHash();
 		
-		pm.performMove(Move.toMove(new GenericMove("g3g2")));
-		pm.performMove(Move.toMove(new GenericMove("f5f6")));
-		pm.performMove(Move.toMove(new GenericMove("g2g3")));
-		pm.performMove(Move.toMove(new GenericMove("f6f5")));
+		pm.performMove(Move.toMove(new GenericMove("g3g2"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("f5f6"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("g2g3"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("f6f5"), pm.getTheBoard()));
 
 		assertEquals(originalHashCode, pm.getHash());	
 	}
@@ -255,7 +251,7 @@ public class ZobristHashCodeTest {
 		PositionManager after_pm = new PositionManager("8/8/p6p/5kp1/1P6/5P1P/5PK1/q7 w - - 0 7 ");
 		long afterHashCode = after_pm.getHash();
 		
-		pm.performMove(Move.toMove(new GenericMove("a2a1Q")));
+		pm.performMove(Move.toMove(new GenericMove("a2a1Q"), pm.getTheBoard(), Move.TYPE_PROMOTION));
 
 		assertEquals(afterHashCode, pm.getHash());	
 	}

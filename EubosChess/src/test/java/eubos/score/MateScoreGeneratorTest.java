@@ -30,7 +30,7 @@ public class MateScoreGeneratorTest {
 	public void testGenerateScoreForCheckmate_fromWhite() throws InvalidPieceException, IllegalNotationException {
 		pm = new PositionManager("7k/8/5K2/8/8/8/8/6Q1 w - - 0 1");
 		classUnderTest = new MateScoreGenerator(pm, null);
-		pm.performMove(Move.toMove(new GenericMove("g1g7")));
+		pm.performMove(Move.toMove(new GenericMove("g1g7"), pm.getTheBoard()));
 		// Mate detected on the ply after the move that caused the mate!
 		for (byte testPly = 1; testPly <= 30; testPly+=2) {
 			if ((testPly % 2) == 1) {
@@ -43,7 +43,7 @@ public class MateScoreGeneratorTest {
 	public void testGenerateScoreForCheckmate_fromBlack() throws InvalidPieceException, IllegalNotationException {
 		pm = new PositionManager("6q1/8/8/8/8/5k2/8/7K b - - 0 1");
 		classUnderTest = new MateScoreGenerator(pm, null);
-		pm.performMove(Move.toMove(new GenericMove("g8g2")));
+		pm.performMove(Move.toMove(new GenericMove("g8g2"), pm.getTheBoard()));
 		// Mate detected on the ply after the move that caused the mate!
 		for (byte testPly = 1; testPly <= 30; testPly+=2) {
 			if ((testPly % 2) == 1) {

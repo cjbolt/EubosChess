@@ -349,7 +349,7 @@ public class MiniMaxMoveGeneratorTest {
 		// "secondary rook move" missing implementation bug and the fact that an
 		// invalid piece exception was not previously implemented.
 		setupPosition( "2b1k1nr/2p2ppp/2p5/p3q3/P3Q3/P4P2/2P1B1PP/1r3R1K w k - 2 23" );
-		pm.performMove(Move.toMove(new GenericMove("f1b1")));
+		pm.performMove(Move.toMove(new GenericMove("f1b1"), pm.getTheBoard()));
 		expectedMove = new GenericMove("e5e4");
 		//expectedMove = new GenericMove("e5e6");
 		doFindMoveTest(true);

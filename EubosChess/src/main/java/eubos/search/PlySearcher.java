@@ -271,7 +271,7 @@ public class PlySearcher {
 			else if (lastPc != null) {
 				GenericMove lastMove = lastPc.get(0);
 				int type = (lastMove.promotion != null) ?  Move.TYPE_PROMOTION : Move.TYPE_REGULAR;
-				pc.update(0, Move.toMove(lastMove, type));
+				pc.update(0, Move.toMove(lastMove, pos.getTheBoard(), type));
 			} else {
 				// Just return pc
 			}
