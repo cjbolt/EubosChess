@@ -42,8 +42,8 @@ public final class Move {
 	private static final int PROMOTION_MASK = IntChessman.MASK << PROMOTION_SHIFT;
 	private static final int ORIGIN_PIECE_SHIFT = 21;
 	private static final int ORIGIN_PIECE_MASK = Piece.PIECE_WHOLE_MASK << ORIGIN_PIECE_SHIFT;
-	private static final int TARGET_PIECE_SHIFT = 25;
-	private static final int TARGET_PIECE_MASK = Piece.PIECE_WHOLE_MASK << TARGET_PIECE_SHIFT;
+	//private static final int TARGET_PIECE_SHIFT = 25;
+	//private static final int TARGET_PIECE_MASK = Piece.PIECE_WHOLE_MASK << TARGET_PIECE_SHIFT;
 	
 	private Move() {
 	}
@@ -72,8 +72,10 @@ public final class Move {
 		move |= targetPosition << TARGETPOSITION_SHIFT;
 
 		// Encode Target Piece
+		/*
 		assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
 		move |= targetPiece << TARGET_PIECE_SHIFT;
+		*/
 		
 		// Encode promotion
 		assert (IntChessman.isValid(promotion) && IntChessman.isValidPromotion(promotion))
@@ -221,7 +223,7 @@ public final class Move {
 		return move;
 	}
 	
-	public static int getTargetPiece(int move) {
+	/*public static int getTargetPiece(int move) {
 		int piece = (move & TARGET_PIECE_MASK) >>> TARGET_PIECE_SHIFT;
 		//assert (piece & Piece.PIECE_NO_COLOUR_MASK) != Piece.PIECE_NONE;
 		
@@ -234,19 +236,24 @@ public final class Move {
 		move &= ~TARGET_PIECE_MASK;
 		move |= piece << TARGET_PIECE_SHIFT;
 		return move;
-	}
+	}*/
 	
 	public static String toString(int move) {
-		String string = "";
+		StringBuilder string = new StringBuilder();
 		if (move != 0) {
-			string += toGenericMove(move).toString();
+			string.append(toGenericMove(move).toString());
 
 			if (getType(move) <= Move.TYPE_KBR_PROMOTION) {
-				string += ":";
-				string += IntChessman.toGenericChessman(getPromotion(move));
+				string.append(":");
+				string.append(IntChessman.toGenericChessman(getPromotion(move)));
+			}
+			
+			if (getOriginPiece(move) != Piece.PIECE_NONE) {
+				string.append(":");
+				string.append(Piece.toFenChar(getOriginPiece(move)));
 			}
 		}
-		return string;
+		return string.toString();
 	}
 
 	public static int setType(int move, int type) {

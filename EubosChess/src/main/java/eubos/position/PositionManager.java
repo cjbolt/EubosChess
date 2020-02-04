@@ -249,7 +249,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	private int checkToSetEnPassantTargetSq(int move) {
 		int enPassantFile = IntFile.NOFILE;
-		if (Move.getOriginPiece(move) == Piece.PIECE_PAWN) {
+		if (Move.getOriginPiece(move) == Piece.WHITE_PAWN) {
 			int potentialEnPassantFile = Position.getFile(Move.getOriginPosition(move));
 			if ( Position.getRank(Move.getOriginPosition(move)) == IntRank.R2) {
 				if (Position.getRank(Move.getTargetPosition(move)) == IntRank.R4) {
@@ -258,7 +258,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 					theBoard.setEnPassantTargetSq(enPassantWhite);
 				}
 			}
-		} else if (Move.getOriginPiece(move) == (Piece.PIECE_BLACK|Piece.PIECE_PAWN)) {
+		} else if (Move.getOriginPiece(move) == Piece.BLACK_PAWN) {
 			int potentialEnPassantFile = Position.getFile(Move.getOriginPosition(move));
 			if (Position.getRank(Move.getOriginPosition(move)) == IntRank.R7) {
 				if (Position.getRank(Move.getTargetPosition(move)) == IntRank.R5) {

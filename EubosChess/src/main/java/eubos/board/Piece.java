@@ -67,6 +67,35 @@ public abstract class Piece {
 	public static Colour getOpposite(int arg) {
 		return isWhite(arg) ? Colour.black : Colour.white;
 	} 
+	
+	public static char toFenChar(int piece) {
+		char chessman = 0;
+		if (piece==Piece.WHITE_PAWN)
+			chessman = 'P';
+		else if (piece==Piece.WHITE_KNIGHT)
+			chessman = 'N';
+		else if (piece==Piece.WHITE_BISHOP)
+			chessman = 'B';
+		else if (piece==Piece.WHITE_ROOK)
+			chessman = 'R';
+		else if (piece==Piece.WHITE_QUEEN)
+			chessman = 'Q';
+		else if (piece==Piece.WHITE_KING)
+			chessman = 'K';
+		else if (piece==Piece.BLACK_PAWN)
+			chessman = 'p';
+		else if (piece==Piece.BLACK_KNIGHT)
+			chessman = 'n';
+		else if (piece==Piece.BLACK_BISHOP)
+			chessman = 'b';
+		else if (piece==Piece.BLACK_ROOK)
+			chessman = 'r';
+		else if (piece==Piece.BLACK_QUEEN)
+			chessman = 'q';
+		else if (piece==Piece.BLACK_KING)
+			chessman = 'k';
+		return chessman;
+	}
 		
 	static List<Integer> king_generateMoves(Board theBoard, int atSquare, Piece.Colour ownSide) {
 		List<Integer> moveList = new LinkedList<Integer>();

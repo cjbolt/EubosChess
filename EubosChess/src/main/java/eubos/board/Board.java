@@ -338,7 +338,7 @@ public class Board implements Iterable<Integer> {
 				if (currPiece != Piece.PIECE_NONE) {
 					if (spaceCounter != 0)
 						fen.append(spaceCounter);
-					fen.append(getFenChar(currPiece));
+					fen.append(Piece.toFenChar(currPiece));
 					spaceCounter=0;					
 				} else {
 					spaceCounter++;
@@ -351,35 +351,6 @@ public class Board implements Iterable<Integer> {
 			spaceCounter=0;
 		}
 		return fen.toString();
-	}
-	
-	private char getFenChar(int piece) {
-		char chessman = 0;
-		if (piece==Piece.WHITE_PAWN)
-			chessman = 'P';
-		else if (piece==Piece.WHITE_KNIGHT)
-			chessman = 'N';
-		else if (piece==Piece.WHITE_BISHOP)
-			chessman = 'B';
-		else if (piece==Piece.WHITE_ROOK)
-			chessman = 'R';
-		else if (piece==Piece.WHITE_QUEEN)
-			chessman = 'Q';
-		else if (piece==Piece.WHITE_KING)
-			chessman = 'K';
-		else if (piece==Piece.BLACK_PAWN)
-			chessman = 'p';
-		else if (piece==Piece.BLACK_KNIGHT)
-			chessman = 'n';
-		else if (piece==Piece.BLACK_BISHOP)
-			chessman = 'b';
-		else if (piece==Piece.BLACK_ROOK)
-			chessman = 'r';
-		else if (piece==Piece.BLACK_QUEEN)
-			chessman = 'q';
-		else if (piece==Piece.BLACK_KING)
-			chessman = 'k';
-		return chessman;
 	}
 	
 	class allPiecesOnBoardIterator implements Iterator<Integer> {
