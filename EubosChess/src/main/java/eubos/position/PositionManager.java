@@ -127,7 +127,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Handle pawn promotion moves
 		move = checkForPawnPromotions(move);
 		// Handle castling secondary rook moves...
-		if (PieceType.isKing(Move.getOriginPieceType(move))) {
+		if (Piece.isKing(Move.getOriginPiece(move))) {
 			castling.performSecondaryCastlingMove(move);
 		}
 		// Handle any initial 2 square pawn moves that are subject to en passant rule
@@ -168,14 +168,14 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int reversedMove = Move.reverse(moveToUndo);
 
 		// Get the piece to move
-		PieceType pieceToMove = Move.getOriginPieceType(reversedMove);
-		PieceType checkPiece = theBoard.pickUpPieceAtSquare(Move.getOriginPosition(reversedMove));
+		int pieceToMove = Move.getOriginPiece(reversedMove);
+		int checkPiece = PieceType.getPiece(theBoard.pickUpPieceAtSquare(Move.getOriginPosition(reversedMove)));
 		assert pieceToMove == checkPiece;
 		// Handle reversal of any castling secondary rook moves and associated flags...
-		if (PieceType.isKing(pieceToMove)) {
+		if (Piece.isKing(pieceToMove)) {
 			castling.unperformSecondaryCastlingMove(reversedMove);
 		}
-		theBoard.setPieceAtSquare(Move.getTargetPosition(reversedMove), pieceToMove);
+		theBoard.setPieceAtSquare(Move.getTargetPosition(reversedMove), Piece.PIECE_TABLE[pieceToMove]);
 		castling.setFenFlags(tm.getFenFlags());
 		// Undo any capture that had been previously performed.
 		if ( tm.isCapture()) {
