@@ -11,7 +11,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
-import eubos.board.Piece.PieceType;
+import eubos.board.Piece;
 import eubos.position.CastlingManager;
 import eubos.position.PositionManager;
 
@@ -79,10 +79,10 @@ public class CastlingManagerTest {
 		//   abcdefgh
 		PositionManager pm = new PositionManager("k7/8/8/8/8/8/8/4K2R w K - - -");
 		try {
-			pm.performMove(Move.valueOf(Position.e1, PieceType.WhiteKing, Position.e2, PieceType.NONE));
-			pm.performMove(Move.valueOf(Position.a8, PieceType.BlackKing, Position.b8, PieceType.NONE));
-			pm.performMove(Move.valueOf(Position.e2, PieceType.WhiteKing, Position.e1, PieceType.NONE));
-			pm.performMove(Move.valueOf(Position.b8, PieceType.BlackKing, Position.a8, PieceType.NONE));
+			pm.performMove(Move.valueOf(Position.e1, Piece.WHITE_KING, Position.e2, Piece.PIECE_NONE));
+			pm.performMove(Move.valueOf(Position.a8, Piece.BLACK_KING, Position.b8, Piece.PIECE_NONE));
+			pm.performMove(Move.valueOf(Position.e2, Piece.WHITE_KING, Position.e1, Piece.PIECE_NONE));
+			pm.performMove(Move.valueOf(Position.b8, Piece.BLACK_KING, Position.a8, Piece.PIECE_NONE));
 		} catch (InvalidPieceException e) {
 			e.printStackTrace();
 		}

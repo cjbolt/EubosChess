@@ -13,7 +13,6 @@ import eubos.board.Board;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
-import eubos.board.Piece.PieceType;
 import eubos.score.IEvaluate;
 import eubos.score.PositionEvaluator;
 import eubos.search.DrawChecker;
@@ -313,10 +312,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	private class fenParser {
-		private Map<Integer, PieceType> pl;
+		private Map<Integer, Integer> pl;
 		
 		public fenParser( PositionManager pm, String fenString ) {
-			pl = new HashMap<Integer, PieceType>();
+			pl = new HashMap<Integer, Integer>();
 			String[] tokens = fenString.split(" ");
 			String piecePlacement = tokens[0];
 			String colourOnMove = tokens[1];
@@ -350,51 +349,51 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 				switch(c)
 				{
 				case 'r':
-					pl.put(Position.valueOf(f,r), PieceType.BlackRook);
+					pl.put(Position.valueOf(f,r), Piece.BLACK_ROOK);
 					f = advanceFile(f);
 					break;
 				case 'R':
-					pl.put(Position.valueOf(f,r), PieceType.WhiteRook);
+					pl.put(Position.valueOf(f,r), Piece.WHITE_ROOK);
 					f = advanceFile(f);
 					break;
 				case 'n':
-					pl.put(Position.valueOf(f,r), PieceType.BlackKnight);
+					pl.put(Position.valueOf(f,r), Piece.BLACK_KNIGHT);
 					f = advanceFile(f);
 					break;
 				case 'N':
-					pl.put(Position.valueOf(f,r), PieceType.WhiteKnight);
+					pl.put(Position.valueOf(f,r), Piece.WHITE_KNIGHT);
 					f = advanceFile(f);
 					break;
 				case 'b':
-					pl.put(Position.valueOf(f,r), PieceType.BlackBishop);
+					pl.put(Position.valueOf(f,r), Piece.BLACK_BISHOP);
 					f = advanceFile(f);
 					break;
 				case 'B':
-					pl.put(Position.valueOf(f,r), PieceType.WhiteBishop);
+					pl.put(Position.valueOf(f,r), Piece.WHITE_BISHOP);
 					f = advanceFile(f);
 					break;
 				case 'q':
-					pl.put(Position.valueOf(f,r), PieceType.BlackQueen);
+					pl.put(Position.valueOf(f,r), Piece.BLACK_QUEEN);
 					f = advanceFile(f);
 					break;
 				case 'Q':
-					pl.put(Position.valueOf(f,r), PieceType.WhiteQueen);
+					pl.put(Position.valueOf(f,r), Piece.WHITE_QUEEN);
 					f = advanceFile(f);
 					break;
 				case 'k':
-					pl.put(Position.valueOf(f,r), PieceType.BlackKing);
+					pl.put(Position.valueOf(f,r), Piece.BLACK_KING);
 					f = advanceFile(f);
 					break;
 				case 'K':
-					pl.put(Position.valueOf(f,r), PieceType.WhiteKing);
+					pl.put(Position.valueOf(f,r), Piece.WHITE_KING);
 					f = advanceFile(f);
 					break;
 				case 'p':
-					pl.put(Position.valueOf(f,r), PieceType.BlackPawn);
+					pl.put(Position.valueOf(f,r), Piece.BLACK_PAWN);
 					f = advanceFile(f);
 					break;
 				case 'P':
-					pl.put(Position.valueOf(f,r), PieceType.WhitePawn);
+					pl.put(Position.valueOf(f,r), Piece.WHITE_PAWN);
 					f = advanceFile(f);
 					break;
 				case '1':

@@ -14,17 +14,16 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import eubos.position.Position;
 
 import eubos.board.Board;
-import eubos.board.Piece.PieceType;
 
 public class BoardTest {
 	
 	private Board classUnderTest;
-	private Map<Integer, PieceType> pieceMap;
+	private Map<Integer, Integer> pieceMap;
 	private static final int testSq = Position.a1;
 	
 	@Before
 	public void setUp() throws Exception {
-		pieceMap = new HashMap<Integer, PieceType>();
+		pieceMap = new HashMap<Integer, Integer>();
 		classUnderTest = new Board(pieceMap);
 	}
 

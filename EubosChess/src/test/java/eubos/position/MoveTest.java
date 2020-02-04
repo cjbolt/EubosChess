@@ -9,6 +9,7 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 import com.fluxchess.jcpi.models.IntChessman;
 import com.fluxchess.jcpi.models.GenericMove;
 
+import eubos.board.Piece;
 import eubos.position.Move;
 
 public class MoveTest {
@@ -19,28 +20,28 @@ public class MoveTest {
 
 	@Test
 	public void test_good() throws IllegalNotationException {
-		int move1 = Move.valueOf(Move.TYPE_CASTLE, Position.e1, Position.g1, IntChessman.NOCHESSMAN);
+		int move1 = Move.valueOf(Move.TYPE_CASTLE, Position.e1, Piece.WHITE_KING, Position.g1, Piece.PIECE_NONE, IntChessman.NOCHESSMAN);
 		int move2 = Move.toMove(new GenericMove("e1g1"));
 		assertTrue(Move.areEqual(move1, move2));
 	}
 	
 	@Test
 	public void test_good1() throws IllegalNotationException {
-		int move1 = Move.valueOf(Move.TYPE_NONE, Position.e1, Position.g1, IntChessman.NOCHESSMAN);
+		int move1 = Move.valueOf(Move.TYPE_NONE, Position.e1, Piece.WHITE_KING, Position.g1, Piece.PIECE_NONE, IntChessman.NOCHESSMAN);
 		int move2 = Move.toMove(new GenericMove("e1g1"));
 		assertTrue(Move.areEqual(move1, move2));
 	}
 	
 	@Test
 	public void testbad() throws IllegalNotationException {
-		int move1 = Move.valueOf(Move.TYPE_CASTLE, Position.e1, Position.g1, IntChessman.KNIGHT);
+		int move1 = Move.valueOf(Move.TYPE_CASTLE, Position.e1, Piece.WHITE_KING, Position.g1, Piece.PIECE_NONE, IntChessman.KNIGHT);
 		int move2 = Move.toMove(new GenericMove("e1g1"));
 		assertFalse(Move.areEqual(move1, move2));
 	}
 	
 	@Test
 	public void testbad1() throws IllegalNotationException {
-		int move1 = Move.valueOf(Move.TYPE_CASTLE, Position.g1, Position.e1, IntChessman.NOCHESSMAN);
+		int move1 = Move.valueOf(Move.TYPE_CASTLE, Position.g1, Piece.WHITE_KING, Position.e1, Piece.PIECE_NONE, IntChessman.NOCHESSMAN);
 		int move2 = Move.toMove(new GenericMove("e1g1"));
 		assertFalse(Move.areEqual(move1, move2));
 	}

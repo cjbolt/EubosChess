@@ -5,7 +5,6 @@ import com.fluxchess.jcpi.models.IntChessman;
 
 import eubos.board.Board;
 import eubos.board.Piece;
-import eubos.board.Piece.PieceType;
 
 /**
  * This class represents a move as a int value. The fields are represented by
@@ -49,21 +48,8 @@ public final class Move {
 	private Move() {
 	}
 	
-	public static int valueOf(int originPosition, int targetPosition)
-	{
-		return Move.valueOf(Move.TYPE_NONE, originPosition, targetPosition, IntChessman.NOCHESSMAN);
-	}
-	
-	public static int valueOf(int type, int originPosition, int targetPosition, int promotion)
-	{
-		return Move.valueOf(type, originPosition, Piece.PIECE_NONE, targetPosition, Piece.PIECE_NONE, promotion);
-	}
-	
-	public static int valueOf(int originPosition, PieceType originPiece, int targetPosition, PieceType targetPiece) {
-		int move = Move.valueOf(Move.TYPE_NONE, originPosition, targetPosition, IntChessman.NOCHESSMAN);
-		move = Move.setOriginPieceType(move, originPiece);
-		move = Move.setTargetPieceType(move, targetPiece);
-		return move;
+	public static int valueOf(int originPosition, int originPiece, int targetPosition, int targetPiece) {
+		return Move.valueOf(Move.TYPE_NONE, originPosition, originPiece, targetPosition, targetPiece, IntChessman.NOCHESSMAN);
 	}
 
 	public static int valueOf(int type, int originPosition, int originPiece, int targetPosition, int targetPiece, int promotion) {
@@ -235,10 +221,6 @@ public final class Move {
 		return move;
 	}
 	
-	public static int setOriginPieceType(int move, PieceType type) {
-		return setOriginPiece(move, PieceType.getPiece(type));
-	}
-	
 	public static int getTargetPiece(int move) {
 		int piece = (move & TARGET_PIECE_MASK) >>> TARGET_PIECE_SHIFT;
 		//assert (piece & Piece.PIECE_NO_COLOUR_MASK) != Piece.PIECE_NONE;
@@ -254,10 +236,6 @@ public final class Move {
 		return move;
 	}
 	
-	public static int setTargetPieceType(int move, PieceType type) {
-		return setTargetPiece(move, PieceType.getPiece(type));
-	}
-
 	public static String toString(int move) {
 		String string = "";
 		if (move != 0) {

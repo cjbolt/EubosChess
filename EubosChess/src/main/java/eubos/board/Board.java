@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import eubos.board.Piece.Colour;
-import eubos.board.Piece.PieceType;
 import eubos.position.Position;
 
 import com.fluxchess.jcpi.models.IntFile;
@@ -94,15 +93,15 @@ public class Board implements Iterable<Integer> {
 		}
 	}
 	
-	public Board( Map<Integer, PieceType> pieceMap ) {
+	public Board( Map<Integer, Integer> pieceMap ) {
 		allPieces = new BitBoard();
 		whitePieces = new BitBoard();
 		blackPieces = new BitBoard();
 		for (int i=0; i<=INDEX_KING; i++) {
 			pieces[i] = new BitBoard();
 		}
-		for ( Entry<Integer, PieceType> nextPiece : pieceMap.entrySet() ) {
-			setPieceAtSquare( nextPiece.getKey(), PieceType.getPiece(nextPiece.getValue()));
+		for ( Entry<Integer, Integer> nextPiece : pieceMap.entrySet() ) {
+			setPieceAtSquare( nextPiece.getKey(), nextPiece.getValue() );
 		}
 	}
 	
@@ -330,13 +329,13 @@ public class Board implements Iterable<Integer> {
 	}
 	
 	public String getAsFenString() {
-		PieceType currPiece = null;
+		int currPiece = Piece.PIECE_NONE;
 		int spaceCounter = 0;
 		StringBuilder fen = new StringBuilder();
 		for (int rank=7; rank>=0; rank--) {
 			for (int file=0; file<8; file++) {
-				currPiece = Piece.PIECE_TABLE[this.getPieceAtSquare(Position.valueOf(file,rank))];
-				if (currPiece != PieceType.NONE) {
+				currPiece = this.getPieceAtSquare(Position.valueOf(file,rank));
+				if (currPiece != Piece.PIECE_NONE) {
 					if (spaceCounter != 0)
 						fen.append(spaceCounter);
 					fen.append(getFenChar(currPiece));
@@ -354,31 +353,31 @@ public class Board implements Iterable<Integer> {
 		return fen.toString();
 	}
 	
-	private char getFenChar(PieceType piece) {
+	private char getFenChar(int piece) {
 		char chessman = 0;
-		if (piece==PieceType.WhitePawn)
+		if (piece==Piece.WHITE_PAWN)
 			chessman = 'P';
-		else if (piece==PieceType.WhiteKnight)
+		else if (piece==Piece.WHITE_KNIGHT)
 			chessman = 'N';
-		else if (piece==PieceType.WhiteBishop)
+		else if (piece==Piece.WHITE_BISHOP)
 			chessman = 'B';
-		else if (piece==PieceType.WhiteRook)
+		else if (piece==Piece.WHITE_ROOK)
 			chessman = 'R';
-		else if (piece==PieceType.WhiteQueen)
+		else if (piece==Piece.WHITE_QUEEN)
 			chessman = 'Q';
-		else if (piece==PieceType.WhiteKing)
+		else if (piece==Piece.WHITE_KING)
 			chessman = 'K';
-		else if (piece==PieceType.BlackPawn)
+		else if (piece==Piece.BLACK_PAWN)
 			chessman = 'p';
-		else if (piece==PieceType.BlackKnight)
+		else if (piece==Piece.BLACK_KNIGHT)
 			chessman = 'n';
-		else if (piece==PieceType.BlackBishop)
+		else if (piece==Piece.BLACK_BISHOP)
 			chessman = 'b';
-		else if (piece==PieceType.BlackRook)
+		else if (piece==Piece.BLACK_ROOK)
 			chessman = 'r';
-		else if (piece==PieceType.BlackQueen)
+		else if (piece==Piece.BLACK_QUEEN)
 			chessman = 'q';
-		else if (piece==PieceType.BlackKing)
+		else if (piece==Piece.BLACK_KING)
 			chessman = 'k';
 		return chessman;
 	}

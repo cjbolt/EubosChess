@@ -20,15 +20,6 @@ public abstract class Piece {
 		public static boolean isBlack( Colour arg ) { return arg == black; }
 	};
 	
-	public static final PieceType PIECE_TABLE[] = {
-		PieceType.NONE,
-		PieceType.WhiteKing, PieceType.WhiteQueen, PieceType.WhiteRook, PieceType.WhiteBishop, PieceType.WhiteKnight, PieceType.WhitePawn,
-		PieceType.NONE,
-		PieceType.NONE,
-		PieceType.BlackKing, PieceType.BlackQueen, PieceType.BlackRook, PieceType.BlackBishop, PieceType.BlackKnight, PieceType.BlackPawn,
-		PieceType.NONE,
-	};
-	
 	public static final int PIECE_NONE = 0x0;
 	public static final int PIECE_KING = 0x1;
 	public static final int PIECE_QUEEN = 0x2;
@@ -76,66 +67,7 @@ public abstract class Piece {
 	public static Colour getOpposite(int arg) {
 		return isWhite(arg) ? Colour.black : Colour.white;
 	} 
-	
-	public enum PieceType {
-		WhiteKing,
-		WhiteQueen,
-		WhiteRook,
-		WhiteBishop,
-		WhiteKnight,
-		WhitePawn,
-		BlackKing,
-		BlackQueen,
-		BlackRook,
-		BlackBishop,
-		BlackKnight,
-		BlackPawn,
-		NONE;
 		
-		public static boolean isPawn(PieceType arg) { return arg==WhitePawn || arg==BlackPawn; }
-		public static boolean isKing(PieceType arg) { return arg==WhiteKing || arg==BlackKing; }
-		public static boolean isQueen(PieceType arg) { return arg==WhiteQueen || arg==BlackQueen; }
-		public static boolean isRook(PieceType arg) { return arg==WhiteRook || arg==BlackRook; }
-		public static boolean isBishop(PieceType arg) { return arg==WhiteBishop || arg==BlackBishop; }
-		public static boolean isKnight(PieceType arg) { return arg==WhiteKnight || arg==BlackKnight; }
-		
-		public static boolean isOppositeColour(Colour ownColour, PieceType toCheck) {
-			assert toCheck != PieceType.NONE;
-			return Colour.isWhite(ownColour) ? isBlack(toCheck) : isWhite(toCheck);
-		}
-		public static boolean isWhite(PieceType arg) {
-			return arg.ordinal() < PieceType.BlackKing.ordinal();
-		}
-		public static boolean isBlack(PieceType arg) {
-			return arg.ordinal() >= PieceType.BlackKing.ordinal();
-		}
-		public static Colour getOpposite(PieceType arg) {
-			return PieceType.isWhite(arg) ? Colour.black : Colour.white;
-		} 
-		
-		public static int getPiece(PieceType arg) {
-			int piece = Piece.PIECE_NONE;
-
-			if (isKing(arg)) {
-				piece = Piece.PIECE_KING;
-			} else if (isQueen(arg)) {
-				piece = Piece.PIECE_QUEEN;
-			} else if (isRook(arg)) {
-				piece = Piece.PIECE_ROOK;
-			} else if (isBishop(arg)) {
-				piece = Piece.PIECE_BISHOP;
-			} else if (isKnight(arg)) {
-				piece = Piece.PIECE_KNIGHT;
-			} else if (isPawn(arg)) {
-				piece = Piece.PIECE_PAWN;
-			}
-			if (piece != Piece.PIECE_NONE && isBlack(arg)) {
-				piece |= Piece.PIECE_BLACK;
-			}
-			return piece;
-		}
-	};
-	
 	static List<Integer> king_generateMoves(Board theBoard, int atSquare, Piece.Colour ownSide) {
 		List<Integer> moveList = new LinkedList<Integer>();
 		king_checkAddMove(ownSide, atSquare, moveList, theBoard, king_getOneSq(Direction.up, atSquare));
