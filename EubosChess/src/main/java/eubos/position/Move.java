@@ -45,6 +45,9 @@ public final class Move {
 	//private static final int TARGET_PIECE_SHIFT = 25;
 	//private static final int TARGET_PIECE_MASK = Piece.PIECE_WHOLE_MASK << TARGET_PIECE_SHIFT;
 	
+	public static final int NULL_MOVE =
+			valueOf(TYPE_NONE, Position.a1, Piece.PIECE_NONE, Position.a1, Piece.PIECE_NONE, IntChessman.NOCHESSMAN);
+	
 	private Move() {
 	}
 	

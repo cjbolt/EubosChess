@@ -74,15 +74,18 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 				   ret.status == TranspositionTableStatus.sufficientRefutation) {
 			// Check hashed position causing a search cut off is still valid (i.e. not a draw)
 			try {
-				pm.performMove(ret.trans.getBestMoveAsInt());
-				if (pe.isThreeFoldRepetition(pos.getHash())) {
-					currPly+=1;
-					SearchDebugAgent.printRepeatedPositionHash(currPly, pos.getHash());
-					removeTransposition(pos.getHash());
-					ret.status = TranspositionTableStatus.sufficientSeedMoveList;
-					currPly-=1;
+				int move = ret.trans.getBestMoveAsInt();
+				if (move != Move.NULL_MOVE) {
+					pm.performMove(move);
+					if (pe.isThreeFoldRepetition(pos.getHash())) {
+						currPly+=1;
+						SearchDebugAgent.printRepeatedPositionHash(currPly, pos.getHash());
+						removeTransposition(pos.getHash());
+						ret.status = TranspositionTableStatus.sufficientSeedMoveList;
+						currPly-=1;
+					}
+					pm.unperformMove();
 				}
-				pm.unperformMove();
 			} catch (InvalidPieceException e) {
 				e.printStackTrace();
 			}
@@ -126,7 +129,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		    TranspositionEvaluation eval = this.getTransposition(searchDepthPly-plies);
 			if (eval.status != TranspositionTableStatus.insufficientNoData && eval.trans != null) {
 				int currMove = eval.trans.getBestMoveAsInt();
-				if (currMove != 0) {
+				if (currMove != Move.NULL_MOVE) {
 					// Note, if the depth searched is more (from prev searches), it can be different to the pc for this search
 					if (pcMove != null && (eval.trans.getDepthSearchedInPly() <= (searchDepthPly-plies))) {
 						assert Move.areEqual(currMove, Move.toMove(pcMove)) : 
