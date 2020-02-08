@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import eubos.board.Piece.Colour;
+import eubos.position.Move;
 import eubos.position.Position;
 
 import com.fluxchess.jcpi.models.IntFile;
@@ -67,6 +68,18 @@ public class Board implements Iterable<Integer> {
 				currMask |= BitBoard.positionToMask_Lut[newSquare].getValue();
 		}
 		return currMask;
+	}
+	
+	private static final Map<Integer, BitBoard> directAttacksOnPosition_Lut = new HashMap<Integer, BitBoard>();
+	static {
+		Direction [] allDirect = { Direction.left, Direction.up, Direction.right, Direction.down, Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
+		for (int square : Position.values) {
+			Long allAttacksMask = 0L;
+			for (Direction dir: allDirect) {
+				allAttacksMask = setAllInDirection(dir, square, allAttacksMask, 8);
+			}
+			directAttacksOnPosition_Lut.put(square, new BitBoard(allAttacksMask));
+		}
 	}
 	
 	private static final Map<Integer, List<BitBoard>> DiagonalMask_Lut = new HashMap<Integer, List<BitBoard>>();
@@ -164,32 +177,32 @@ public class Board implements Iterable<Integer> {
 	}
 	
 	public int getPieceAtSquare( int atPos ) {
-		int type = Piece.PIECE_NONE;
+		int type = Piece.NONE;
 		int bit_index = BitBoard.positionToBit_Lut[atPos];
 		BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
 		if (allPieces.and(pieceToPickUp).isNonZero()) {	
 			if (blackPieces.and(pieceToPickUp).isNonZero()) {
-				type |= Piece.PIECE_BLACK;
+				type |= Piece.BLACK;
 			} else assert whitePieces.and(pieceToPickUp).isNonZero();
 			if (pieces[INDEX_KING].isSet(bit_index)) {
-				type |= Piece.PIECE_KING;
+				type |= Piece.KING;
 			} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
-				type |= Piece.PIECE_QUEEN;
+				type |= Piece.QUEEN;
 			} else if (pieces[INDEX_ROOK].isSet(bit_index)) {
-				type |= Piece.PIECE_ROOK;
+				type |= Piece.ROOK;
 			} else if (pieces[INDEX_BISHOP].isSet(bit_index)) {
-				type |= Piece.PIECE_BISHOP;
+				type |= Piece.BISHOP;
 			} else if (pieces[INDEX_KNIGHT].isSet(bit_index)) {
-				type |= Piece.PIECE_KNIGHT;
+				type |= Piece.KNIGHT;
 			} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
-				type |= Piece.PIECE_PAWN;
+				type |= Piece.PAWN;
 			}
 		}
 		return type;
 	}
 	
 	public void setPieceAtSquare( int atPos, int pieceToPlace ) {
-		assert pieceToPlace != Piece.PIECE_NONE;
+		assert pieceToPlace != Piece.NONE;
 		int bit_index = BitBoard.positionToBit_Lut[atPos];
 		if (Piece.isKing(pieceToPlace)) {
 			pieces[INDEX_KING].set(bit_index);
@@ -227,35 +240,35 @@ public class Board implements Iterable<Integer> {
 	}
 	
 	public int pickUpPieceAtSquare( int atPos ) {
-		int type = Piece.PIECE_NONE;
+		int type = Piece.NONE;
 		int bit_index = BitBoard.positionToBit_Lut[atPos];
 		BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
 		if (allPieces.and(pieceToPickUp).isNonZero()) {	
 			if (blackPieces.and(pieceToPickUp).isNonZero()) {
 				blackPieces.clear(bit_index);
-				type |= Piece.PIECE_BLACK;
+				type |= Piece.BLACK;
 			} else {
 				assert whitePieces.and(pieceToPickUp).isNonZero();
 				whitePieces.clear(bit_index);
 			}
 			if (pieces[INDEX_KING].isSet(bit_index)) {
 				pieces[INDEX_KING].clear(bit_index);
-				type |= Piece.PIECE_KING;
+				type |= Piece.KING;
 			} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
 				pieces[INDEX_QUEEN].clear(bit_index);
-				type |= Piece.PIECE_QUEEN;
+				type |= Piece.QUEEN;
 			} else if (pieces[INDEX_ROOK].isSet(bit_index)) {
 				pieces[INDEX_ROOK].clear(bit_index);
-				type |= Piece.PIECE_ROOK;
+				type |= Piece.ROOK;
 			} else if (pieces[INDEX_BISHOP].isSet(bit_index)) {
 				pieces[INDEX_BISHOP].clear(bit_index);
-				type |= Piece.PIECE_BISHOP;
+				type |= Piece.BISHOP;
 			} else if (pieces[INDEX_KNIGHT].isSet(bit_index)) {
 				pieces[INDEX_KNIGHT].clear(bit_index);
-				type |= Piece.PIECE_KNIGHT;
+				type |= Piece.KNIGHT;
 			} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
 				pieces[INDEX_PAWN].clear(bit_index);
-				type |= Piece.PIECE_PAWN;
+				type |= Piece.PAWN;
 			}
 			allPieces.clear(bit_index);
 		}
@@ -329,13 +342,13 @@ public class Board implements Iterable<Integer> {
 	}
 	
 	public String getAsFenString() {
-		int currPiece = Piece.PIECE_NONE;
+		int currPiece = Piece.NONE;
 		int spaceCounter = 0;
 		StringBuilder fen = new StringBuilder();
 		for (int rank=7; rank>=0; rank--) {
 			for (int file=0; file<8; file++) {
 				currPiece = this.getPieceAtSquare(Position.valueOf(file,rank));
-				if (currPiece != Piece.PIECE_NONE) {
+				if (currPiece != Piece.NONE) {
 					if (spaceCounter != 0)
 						fen.append(spaceCounter);
 					fen.append(Piece.toFenChar(currPiece));
@@ -460,7 +473,7 @@ public class Board implements Iterable<Integer> {
 		case Piece.BLACK_PAWN:
 			mask = getBlackPawns();
 			break;
-		case Piece.PIECE_NONE:
+		case Piece.NONE:
 		default:
 			assert false;
 			break;
@@ -561,5 +574,19 @@ public class Board implements Iterable<Integer> {
 			isHalfOpen = !pawnMask.and(fileMask).isNonZero();
 		}
 		return isHalfOpen;
+	}
+	
+	public boolean moveCouldLeadToDiscoveredCheck(Integer move) {
+		int piece = Move.getOriginPiece(move);
+		BitBoard king = (Piece.isWhite(piece)) ? getWhiteKing() : getBlackKing();
+		
+		if (king == null || king.getValue() == 0)  return false;
+		
+		int atSquare = Move.getOriginPosition(move);
+		// establish if the square is on a multisquare slider mask from the king position
+		BitBoard square = BitBoard.positionToMask_Lut[atSquare];
+		int kingPosition = BitBoard.maskToPosition_Lut.get(king.getValue());
+		BitBoard attackingSquares = directAttacksOnPosition_Lut.get(kingPosition);
+		return square.and(attackingSquares).isNonZero();
 	}
 }

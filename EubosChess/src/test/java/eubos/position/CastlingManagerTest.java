@@ -79,10 +79,10 @@ public class CastlingManagerTest {
 		//   abcdefgh
 		PositionManager pm = new PositionManager("k7/8/8/8/8/8/8/4K2R w K - - -");
 		try {
-			pm.performMove(Move.valueOf(Position.e1, Piece.WHITE_KING, Position.e2, Piece.PIECE_NONE));
-			pm.performMove(Move.valueOf(Position.a8, Piece.BLACK_KING, Position.b8, Piece.PIECE_NONE));
-			pm.performMove(Move.valueOf(Position.e2, Piece.WHITE_KING, Position.e1, Piece.PIECE_NONE));
-			pm.performMove(Move.valueOf(Position.b8, Piece.BLACK_KING, Position.a8, Piece.PIECE_NONE));
+			pm.performMove(Move.valueOf(Position.e1, Piece.WHITE_KING, Position.e2, Piece.NONE));
+			pm.performMove(Move.valueOf(Position.a8, Piece.BLACK_KING, Position.b8, Piece.NONE));
+			pm.performMove(Move.valueOf(Position.e2, Piece.WHITE_KING, Position.e1, Piece.NONE));
+			pm.performMove(Move.valueOf(Position.b8, Piece.BLACK_KING, Position.a8, Piece.NONE));
 		} catch (InvalidPieceException e) {
 			e.printStackTrace();
 		}

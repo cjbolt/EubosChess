@@ -22,7 +22,7 @@ public class ZobristHashCodeTest {
 		PositionManager pm = new PositionManager("8/8/8/8/8/8/4P3/8 w - - 0 1");
 		long initialHashCode = pm.getHash();
 		
-		pm.performMove(Move.valueOf(Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.PIECE_NONE));
+		pm.performMove(Move.valueOf(Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE));
 		pm.unperformMove();
 		
 		assertEquals(initialHashCode, pm.getHash());
@@ -273,7 +273,7 @@ public class ZobristHashCodeTest {
 		PositionManager pm = new PositionManager("8/8/p6p/5kp1/1P6/5P1P/p4PK1/8 b - - 1 6 ");
 		long originalHashCode = pm.getHash();
 		
-		pm.performMove(Move.valueOf(Move.TYPE_PROMOTION, Position.a2, Piece.BLACK_PAWN, Position.a1, Piece.PIECE_NONE, IntChessman.QUEEN));
+		pm.performMove(Move.valueOf(Move.TYPE_PROMOTION, Position.a2, Piece.BLACK_PAWN, Position.a1, Piece.NONE, IntChessman.QUEEN));
 		pm.unperformMove();
 
 		assertEquals(originalHashCode, pm.getHash());	
@@ -295,7 +295,7 @@ public class ZobristHashCodeTest {
 		PositionManager pm = new PositionManager("1r1k1r2/6Q1/2p3p1/p7/1q1p2n1/3P2P1/P3RPP1/4RK2 w - a6 - 2");
 		long originalHashCode = pm.getHash();
 		
-		pm.performMove(Move.valueOf(Position.f2, Piece.WHITE_PAWN, Position.f4, Piece.PIECE_NONE));
+		pm.performMove(Move.valueOf(Position.f2, Piece.WHITE_PAWN, Position.f4, Piece.NONE));
 		pm.unperformMove();
 
 		assertEquals(originalHashCode, pm.getHash());	

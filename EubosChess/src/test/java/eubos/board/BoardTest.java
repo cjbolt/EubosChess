@@ -11,8 +11,8 @@ import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericPosition;
 
+import eubos.position.Move;
 import eubos.position.Position;
-
 import eubos.board.Board;
 
 public class BoardTest {
@@ -69,7 +69,7 @@ public class BoardTest {
 	
 	@Test
 	public void testPickUpPieceAtSquare_DoesntExist() throws InvalidPieceException {
-		assertEquals(Piece.PIECE_NONE, classUnderTest.pickUpPieceAtSquare(testSq));
+		assertEquals(Piece.NONE, classUnderTest.pickUpPieceAtSquare(testSq));
 	}	
 
 	@Test
@@ -84,12 +84,12 @@ public class BoardTest {
 	
 	@Test
 	public void testGetPieceAtSquare_DoesntExist() {
-		assertTrue(classUnderTest.getPieceAtSquare(testSq)==Piece.PIECE_NONE);
+		assertTrue(classUnderTest.getPieceAtSquare(testSq)==Piece.NONE);
 	}
 	
 	@Test
 	public void testCaptureAtSquare() {
-		assertTrue(classUnderTest.pickUpPieceAtSquare(testSq)==Piece.PIECE_NONE);
+		assertTrue(classUnderTest.pickUpPieceAtSquare(testSq)==Piece.NONE);
 	}
 	
 	@Test
@@ -206,5 +206,37 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.a1, Piece.BLACK_BISHOP);
 		classUnderTest.setPieceAtSquare(Position.a8, Piece.WHITE_PAWN);
 		assertEquals(7,classUnderTest.getNumDiagonalSquaresAvailable(Position.a1));
+	}
+	
+	@Test
+	public void testCouldLeadToCheck_Yes() {
+		classUnderTest.setPieceAtSquare(Position.d2, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KING);
+		int move = Move.valueOf(Position.d2, Piece.WHITE_PAWN, Position.d4, Piece.NONE);
+		assertTrue(classUnderTest.moveCouldLeadToDiscoveredCheck(move));
+	}
+	
+	@Test
+	public void testCouldLeadToCheck_Yes1() {
+		classUnderTest.setPieceAtSquare(Position.e2, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KING);
+		int move = Move.valueOf(Position.e2, Piece.WHITE_PAWN, Position.d3, Piece.NONE);
+		assertTrue(classUnderTest.moveCouldLeadToDiscoveredCheck(move));
+	}
+	
+	@Test
+	public void testCouldLeadToCheck_No() {
+		classUnderTest.setPieceAtSquare(Position.e3, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KING);
+		int move = Move.valueOf(Position.e3, Piece.WHITE_PAWN, Position.e4, Piece.NONE);
+		assertFalse(classUnderTest.moveCouldLeadToDiscoveredCheck(move));
+	}
+	
+	@Test
+	public void testCouldLeadToCheck_No1() {
+		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KNIGHT);
+		classUnderTest.setPieceAtSquare(Position.e4, Piece.WHITE_KING);
+		int move = Move.valueOf(Position.d1, Piece.WHITE_KNIGHT, Position.c3, Piece.NONE);
+		assertFalse(classUnderTest.moveCouldLeadToDiscoveredCheck(move));
 	}
 }

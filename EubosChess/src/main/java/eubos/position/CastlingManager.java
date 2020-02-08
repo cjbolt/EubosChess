@@ -30,15 +30,15 @@ class CastlingManager {
 	private static final int [] qscWhiteEmptySqs = {Position.c1, Position.d1, Position.b1};
 	private static final int [] qscBlackEmptySqs = {Position.c8, Position.d8, Position.b8};
 
-	static final int bksc = Move.valueOf(Move.TYPE_CASTLE, Position.e8, (Piece.PIECE_BLACK | Piece.PIECE_KING), Position.g8, Piece.PIECE_NONE, IntChessman.NOCHESSMAN);
-	static final int wksc = Move.valueOf(Move.TYPE_CASTLE, Position.e1, Piece.PIECE_KING, Position.g1, Piece.PIECE_NONE, IntChessman.NOCHESSMAN);
-	static final int bqsc = Move.valueOf(Move.TYPE_CASTLE, Position.e8, (Piece.PIECE_BLACK | Piece.PIECE_KING), Position.c8, Piece.PIECE_NONE, IntChessman.NOCHESSMAN);
-	static final int wqsc = Move.valueOf(Move.TYPE_CASTLE, Position.e1, Piece.PIECE_KING, Position.c1, Piece.PIECE_NONE, IntChessman.NOCHESSMAN);
+	static final int bksc = Move.valueOf(Move.TYPE_CASTLE, Position.e8, (Piece.BLACK | Piece.KING), Position.g8, Piece.NONE, IntChessman.NOCHESSMAN);
+	static final int wksc = Move.valueOf(Move.TYPE_CASTLE, Position.e1, Piece.KING, Position.g1, Piece.NONE, IntChessman.NOCHESSMAN);
+	static final int bqsc = Move.valueOf(Move.TYPE_CASTLE, Position.e8, (Piece.BLACK | Piece.KING), Position.c8, Piece.NONE, IntChessman.NOCHESSMAN);
+	static final int wqsc = Move.valueOf(Move.TYPE_CASTLE, Position.e1, Piece.KING, Position.c1, Piece.NONE, IntChessman.NOCHESSMAN);
 
-	static final int undo_bksc = Move.valueOf(Move.TYPE_CASTLE, Position.g8, (Piece.PIECE_BLACK | Piece.PIECE_KING), Position.e8, Piece.PIECE_NONE, IntChessman.NOCHESSMAN);
-	static final int undo_wksc = Move.valueOf(Move.TYPE_CASTLE, Position.g1, Piece.PIECE_KING, Position.e1, Piece.PIECE_NONE, IntChessman.NOCHESSMAN);
-	static final int undo_bqsc = Move.valueOf(Move.TYPE_CASTLE, Position.c8, (Piece.PIECE_BLACK | Piece.PIECE_KING), Position.e8, Piece.PIECE_NONE, IntChessman.NOCHESSMAN);
-	static final int undo_wqsc = Move.valueOf(Move.TYPE_CASTLE, Position.c1, Piece.PIECE_KING, Position.e1, Piece.PIECE_NONE, IntChessman.NOCHESSMAN);
+	static final int undo_bksc = Move.valueOf(Move.TYPE_CASTLE, Position.g8, (Piece.BLACK | Piece.KING), Position.e8, Piece.NONE, IntChessman.NOCHESSMAN);
+	static final int undo_wksc = Move.valueOf(Move.TYPE_CASTLE, Position.g1, Piece.KING, Position.e1, Piece.NONE, IntChessman.NOCHESSMAN);
+	static final int undo_bqsc = Move.valueOf(Move.TYPE_CASTLE, Position.c8, (Piece.BLACK | Piece.KING), Position.e8, Piece.NONE, IntChessman.NOCHESSMAN);
+	static final int undo_wqsc = Move.valueOf(Move.TYPE_CASTLE, Position.c1, Piece.KING, Position.e1, Piece.NONE, IntChessman.NOCHESSMAN);
 
 	CastlingManager(PositionManager Pm) { this( Pm, "-"); }
 
@@ -94,7 +94,7 @@ class CastlingManager {
 	}
 
 	void performSecondaryCastlingMove(int move) throws InvalidPieceException {
-		int rookToCastle = Piece.PIECE_NONE;
+		int rookToCastle = Piece.NONE;
 		if (Move.areEqual(move, wksc)) {
 			// Perform secondary white king side castle rook move
 			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.h1 );
@@ -115,7 +115,7 @@ class CastlingManager {
 	}
 
 	void unperformSecondaryCastlingMove(int move) throws InvalidPieceException {
-		int rookToCastle = Piece.PIECE_NONE;
+		int rookToCastle = Piece.NONE;
 		if (Move.areEqual(move, undo_wksc)) {
 			// Perform secondary king side castle rook move
 			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.f1 );

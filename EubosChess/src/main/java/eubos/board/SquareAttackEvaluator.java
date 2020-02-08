@@ -156,7 +156,7 @@ public class SquareAttackEvaluator {
 				if (doDiagonalCheck) {
 					for (int attackerSq: array[index]) {
 						int currPiece = theBoard.getPieceAtSquare(attackerSq);
-						if (currPiece != Piece.PIECE_NONE ) {
+						if (currPiece != Piece.NONE ) {
 							if (Colour.isWhite(attackingColour)) {
 								if (currPiece == Piece.WHITE_QUEEN || currPiece == Piece.WHITE_BISHOP) {
 									attacked = true;
@@ -178,7 +178,7 @@ public class SquareAttackEvaluator {
 				if (doRankFileCheck) {
 					for (int attackerSq: array[index]) {
 						int currPiece = theBoard.getPieceAtSquare(attackerSq);
-						if (currPiece != Piece.PIECE_NONE ) {
+						if (currPiece != Piece.NONE ) {
 							if (Colour.isWhite(attackingColour)) {
 								if (currPiece == Piece.WHITE_QUEEN || currPiece == Piece.WHITE_ROOK) {
 									attacked = true;

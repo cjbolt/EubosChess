@@ -50,7 +50,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_encourageCastling_castled() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("k7/8/8/8/8/8/8/4K2R w K - - -");
-	    pm.performMove(Move.valueOf(Position.e1, Piece.WHITE_KING, Position.g1, Piece.PIECE_NONE));
+	    pm.performMove(Move.valueOf(Position.e1, Piece.WHITE_KING, Position.g1, Piece.NONE));
 		int score = SUT.encourageCastling();
 		assertEquals(HAS_CASTLED_BOOST_CENTIPAWNS, score);
 	}
@@ -60,7 +60,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_encourageCastling_castled_fewMoveLater() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("k7/8/8/8/8/8/8/4K2R w K - - -");
-		pm.performMove(Move.valueOf(Position.e1, Piece.WHITE_KING, Position.g1, Piece.PIECE_NONE));
+		pm.performMove(Move.valueOf(Position.e1, Piece.WHITE_KING, Position.g1, Piece.NONE));
 		pm.performMove(Move.toMove(new GenericMove("a8b8"), pm.getTheBoard()));
 		pm.performMove(Move.toMove(new GenericMove("f1d1"), pm.getTheBoard()));
 		pm.performMove(Move.toMove(new GenericMove("b8a8"), pm.getTheBoard()));
@@ -212,7 +212,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_isQuiescent_No_LastMoveWasCheckMate() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - - -");
-		pm.performMove(Move.valueOf(Position.d3, Piece.WHITE_QUEEN, Position.h7, Piece.PIECE_NONE));
+		pm.performMove(Move.valueOf(Position.d3, Piece.WHITE_QUEEN, Position.h7, Piece.NONE));
 		assertFalse(SUT.isQuiescent());
 	}
 	

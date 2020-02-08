@@ -18,56 +18,56 @@ public abstract class Piece {
 		public static boolean isBlack( Colour arg ) { return arg == black; }
 	};
 	
-	public static final int PIECE_NONE = 0x0;
-	public static final int PIECE_KING = 0x1;
-	public static final int PIECE_QUEEN = 0x2;
-	public static final int PIECE_ROOK = 0x3;
-	public static final int PIECE_BISHOP = 0x4;
-	public static final int PIECE_KNIGHT = 0x5;
-	public static final int PIECE_PAWN = 0x6;
+	public static final int NONE = 0x0;
+	public static final int KING = 0x1;
+	public static final int QUEEN = 0x2;
+	public static final int ROOK = 0x3;
+	public static final int BISHOP = 0x4;
+	public static final int KNIGHT = 0x5;
+	public static final int PAWN = 0x6;
 	
-	public static final int PIECE_BLACK = 0x8;
+	public static final int BLACK = 0x8;
 	
 	public static final int PIECE_NO_COLOUR_MASK = 0x7;
 	public static final int PIECE_WHOLE_MASK = 0xf;
 
-	public static final int WHITE_QUEEN = PIECE_QUEEN;
-	public static final int WHITE_BISHOP = PIECE_BISHOP;
-	public static final int WHITE_KING = PIECE_KING;
-	public static final int WHITE_KNIGHT = PIECE_KNIGHT;
-	public static final int WHITE_ROOK = PIECE_ROOK;
-	public static final int WHITE_PAWN = PIECE_PAWN;
+	public static final int WHITE_QUEEN = QUEEN;
+	public static final int WHITE_BISHOP = BISHOP;
+	public static final int WHITE_KING = KING;
+	public static final int WHITE_KNIGHT = KNIGHT;
+	public static final int WHITE_ROOK = ROOK;
+	public static final int WHITE_PAWN = PAWN;
 	
-	public static final int BLACK_QUEEN = (PIECE_BLACK|PIECE_QUEEN);
-	public static final int BLACK_BISHOP = (PIECE_BLACK|PIECE_BISHOP);
-	public static final int BLACK_KING = (PIECE_BLACK|PIECE_KING);
-	public static final int BLACK_KNIGHT = (PIECE_BLACK|PIECE_KNIGHT);
-	public static final int BLACK_ROOK = (PIECE_BLACK|PIECE_ROOK);
-	public static final int BLACK_PAWN = (PIECE_BLACK|PIECE_PAWN);
+	public static final int BLACK_QUEEN = (BLACK|QUEEN);
+	public static final int BLACK_BISHOP = (BLACK|BISHOP);
+	public static final int BLACK_KING = (BLACK|KING);
+	public static final int BLACK_KNIGHT = (BLACK|KNIGHT);
+	public static final int BLACK_ROOK = (BLACK|ROOK);
+	public static final int BLACK_PAWN = (BLACK|PAWN);
 	
-	public static boolean isPawn(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == PIECE_PAWN; }
-	public static boolean isKing(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == PIECE_KING; }
-	public static boolean isQueen(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == PIECE_QUEEN; }
-	public static boolean isRook(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == PIECE_ROOK; }
-	public static boolean isBishop(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == PIECE_BISHOP; }
-	public static boolean isKnight(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == PIECE_KNIGHT; }
+	public static boolean isPawn(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == PAWN; }
+	public static boolean isKing(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == KING; }
+	public static boolean isQueen(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == QUEEN; }
+	public static boolean isRook(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == ROOK; }
+	public static boolean isBishop(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == BISHOP; }
+	public static boolean isKnight(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == KNIGHT; }
 	
 	public static boolean isOppositeColour(Colour ownColour, int toCheck) {
-		assert (toCheck & PIECE_NO_COLOUR_MASK) != PIECE_NONE;
+		assert (toCheck & PIECE_NO_COLOUR_MASK) != NONE;
 		return Colour.isWhite(ownColour) ? isBlack(toCheck) : isWhite(toCheck);
 	}
 	public static boolean isOppositeColourOrNone(Colour ownColour, int toCheck) {
 		boolean retVal = true;
-		if (toCheck != Piece.PIECE_NONE) {
+		if (toCheck != Piece.NONE) {
 			retVal = Colour.isWhite(ownColour) ? isBlack(toCheck) : isWhite(toCheck);
 		}
 		return retVal;
 	}
 	public static boolean isWhite(int arg) {
-		return (arg&PIECE_BLACK) == 0;
+		return (arg&BLACK) == 0;
 	}
 	public static boolean isBlack(int arg) {
-		return (arg&PIECE_BLACK) == PIECE_BLACK;
+		return (arg&BLACK) == BLACK;
 	}
 	public static Colour getOpposite(int arg) {
 		return isWhite(arg) ? Colour.black : Colour.white;
@@ -137,9 +137,9 @@ public abstract class Piece {
 	
 	static List<Integer> knight_generateMoves(Board theBoard, int atSquare, Piece.Colour ownSide) {
 		List<Integer> moveList = new LinkedList<Integer>();
-		int ownPiece = Piece.PIECE_KNIGHT;
+		int ownPiece = Piece.KNIGHT;
 		if (Colour.isBlack(ownSide)) {
-			ownPiece |= Piece.PIECE_BLACK;
+			ownPiece |= Piece.BLACK;
 		}
 		knight_checkAddMove(ownPiece, ownSide, atSquare, moveList, theBoard, Direction.getIndirectMoveSq(Direction.upRight, atSquare));
 		knight_checkAddMove(ownPiece, ownSide, atSquare, moveList, theBoard, Direction.getIndirectMoveSq(Direction.upLeft, atSquare));
@@ -155,9 +155,9 @@ public abstract class Piece {
 	
 	static List<Integer> rook_generateMoves(Board theBoard, int atSquare, Piece.Colour ownSide) {
 		LinkedList<Integer> moveList = new LinkedList<Integer>();
-		int ownPiece = Piece.PIECE_ROOK;
+		int ownPiece = Piece.ROOK;
 		if (Colour.isBlack(ownSide)) {
-			ownPiece |= Piece.PIECE_BLACK;
+			ownPiece |= Piece.BLACK;
 		}
 		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.down);
 		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.up);
@@ -168,9 +168,9 @@ public abstract class Piece {
 	
 	static List<Integer> queen_generateMoves(Board theBoard, int atSquare, Piece.Colour ownSide) {
 		List<Integer> moveList = new LinkedList<Integer>();
-		int ownPiece = Piece.PIECE_QUEEN;
+		int ownPiece = Piece.QUEEN;
 		if (Colour.isBlack(ownSide)) {
-			ownPiece |= Piece.PIECE_BLACK;
+			ownPiece |= Piece.BLACK;
 		}
 		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.downLeft);
 		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.upLeft);
@@ -185,9 +185,9 @@ public abstract class Piece {
 	
 	static List<Integer> bishop_generateMoves(Board theBoard, int atSquare, Piece.Colour ownSide) {
 		List<Integer> moveList = new LinkedList<Integer>();
-		int ownPiece = Piece.PIECE_BISHOP;
+		int ownPiece = Piece.BISHOP;
 		if (Colour.isBlack(ownSide)) {
-			ownPiece |= Piece.PIECE_BLACK;
+			ownPiece |= Piece.BLACK;
 		}
 		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.downLeft);
 		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.upLeft);
@@ -203,13 +203,13 @@ public abstract class Piece {
 			targetSquare = Direction.getDirectMoveSq(dir, targetSquare);
 			if ( targetSquare != Position.NOPOSITION ) {
 				int targetPiece = theBoard.getPieceAtSquare(targetSquare);
-				if (targetPiece == Piece.PIECE_NONE) {
+				if (targetPiece == Piece.NONE) {
 					// Slider move
 					moveList.add( Move.valueOf(Move.TYPE_NONE, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.NOCHESSMAN));
 					continueAddingMoves = true;
 					continue;
 				}
-				else if (targetPiece != Piece.PIECE_NONE && Piece.isOppositeColour(ownSide, targetPiece)) {
+				else if (targetPiece != Piece.NONE && Piece.isOppositeColour(ownSide, targetPiece)) {
 					// Indicates a capture
 					moveList.add( Move.valueOf(Move.TYPE_NONE, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.NOCHESSMAN));
 				} else {
@@ -266,9 +266,9 @@ public abstract class Piece {
 	}
 	
 	private static int pawn_isCapturable(Piece.Colour ownSide, Board theBoard, int captureAt ) {
-		int capturePiece = Piece.PIECE_NONE;
+		int capturePiece = Piece.NONE;
 		int queryPiece = theBoard.getPieceAtSquare(captureAt);
-		if ( queryPiece != Piece.PIECE_NONE ) {
+		if ( queryPiece != Piece.NONE ) {
 			if (Piece.isOppositeColour( ownSide, queryPiece )) {
 				capturePiece = queryPiece;
 			}
@@ -297,32 +297,32 @@ public abstract class Piece {
 	
 	static List<Integer> pawn_generateMoves(Board theBoard, int atSquare, Piece.Colour ownSide) {
 		List<Integer> moveList = new LinkedList<Integer>();
-		int ownPiece = Piece.PIECE_PAWN;
+		int ownPiece = Piece.PAWN;
 		if (Colour.isBlack(ownSide)) {
-			ownPiece |= Piece.PIECE_BLACK;
+			ownPiece |= Piece.BLACK;
 		}
-		int capturePiece = Piece.PIECE_NONE;
+		int capturePiece = Piece.NONE;
 		// Check for standard one and two square moves
 		int moveTo = pawn_genOneSqTarget(atSquare, ownSide);
 		if ( moveTo != Position.NOPOSITION && theBoard.squareIsEmpty( moveTo )) {
-			pawn_checkPromotionAddMove(ownPiece, theBoard, atSquare, ownSide, moveList, moveTo, Piece.PIECE_NONE);
+			pawn_checkPromotionAddMove(ownPiece, theBoard, atSquare, ownSide, moveList, moveTo, Piece.NONE);
 			moveTo = pawn_genTwoSqTarget(atSquare, ownSide);
 			if ( moveTo != Position.NOPOSITION && theBoard.squareIsEmpty( moveTo )) {
-				moveList.add( Move.valueOf( Move.TYPE_NONE, atSquare, ownPiece, moveTo , Piece.PIECE_NONE, IntChessman.NOCHESSMAN));
+				moveList.add( Move.valueOf( Move.TYPE_NONE, atSquare, ownPiece, moveTo , Piece.NONE, IntChessman.NOCHESSMAN));
 			}	
 		}
 		// Check for capture moves, includes en passant
 		int captureAt = pawn_genLeftCaptureTarget(atSquare, ownSide);
 		if ( captureAt != Position.NOPOSITION ) {
 			capturePiece = pawn_isCapturable(ownSide, theBoard, captureAt);
-			if (capturePiece != Piece.PIECE_NONE) {
+			if (capturePiece != Piece.NONE) {
 				pawn_checkPromotionAddMove(ownPiece, theBoard, atSquare, ownSide, moveList, captureAt, capturePiece);
 			}
 		}
 		captureAt = pawn_genRightCaptureTarget(atSquare, ownSide);
 		if ( captureAt != Position.NOPOSITION ) {
 			capturePiece = pawn_isCapturable(ownSide, theBoard, captureAt);
-			if (capturePiece != Piece.PIECE_NONE) {
+			if (capturePiece != Piece.NONE) {
 				pawn_checkPromotionAddMove(ownPiece, theBoard, atSquare, ownSide, moveList, captureAt, capturePiece);
 			}
 		}

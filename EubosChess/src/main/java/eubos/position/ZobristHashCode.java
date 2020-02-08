@@ -131,7 +131,7 @@ public class ZobristHashCode {
 	}
 
 	private int convertChessmanToPiece(int chessman) {
-		int eubosPiece = Piece.PIECE_NONE;
+		int eubosPiece = Piece.NONE;
 		if (chessman==IntChessman.KNIGHT)
 			eubosPiece = (Colour.isBlack(pos.getOnMove())) ? Piece.WHITE_KNIGHT : Piece.BLACK_KNIGHT;
 		else if (chessman==IntChessman.BISHOP)
@@ -172,7 +172,7 @@ public class ZobristHashCode {
 	}
 
 	protected void doCapturedPiece(CaptureData captureTarget) {
-		if (captureTarget.target != Piece.PIECE_NONE)
+		if (captureTarget.target != Piece.NONE)
 			hashCode ^= getPrnForPiece(captureTarget.square, captureTarget.target);
 	}
 

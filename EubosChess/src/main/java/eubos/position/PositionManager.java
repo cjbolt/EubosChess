@@ -199,19 +199,19 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	private int checkForPawnPromotions(int move) {
 		int piece = Move.getOriginPiece(move);
 		if ( Move.getPromotion(move) != IntChessman.NOCHESSMAN ) {
-			piece &= Piece.PIECE_BLACK; // preserve colour
+			piece &= Piece.BLACK; // preserve colour
 			switch( Move.getPromotion(move) ) {
 			case IntChessman.QUEEN:
-				piece |= Piece.PIECE_QUEEN;
+				piece |= Piece.QUEEN;
 				break;
 			case IntChessman.KNIGHT:
-				piece |= Piece.PIECE_KNIGHT;
+				piece |= Piece.KNIGHT;
 				break;
 			case IntChessman.BISHOP:
-				piece |= Piece.PIECE_BISHOP;
+				piece |= Piece.BISHOP;
 				break;
 			case IntChessman.ROOK:
-				piece |= Piece.PIECE_ROOK;
+				piece |= Piece.ROOK;
 				break;
 			default:
 				assert false;
@@ -272,7 +272,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	private CaptureData getCaptureTarget(int move, int pieceToMove, boolean enPassantCapture) {
-		CaptureData cap = new CaptureData(Piece.PIECE_NONE, Position.NOPOSITION);
+		CaptureData cap = new CaptureData(Piece.NONE, Position.NOPOSITION);
 		if (enPassantCapture) {
 			int rank = IntRank.R1;
 			if (pieceToMove == Piece.WHITE_PAWN) {

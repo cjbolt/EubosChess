@@ -7,7 +7,7 @@ public class CaptureData {
 	int square;
 	
 	public CaptureData() {
-		this(Piece.PIECE_NONE, Position.NOPOSITION);
+		this(Piece.NONE, Position.NOPOSITION);
 	}
 	
 	public CaptureData(int type, int atPos) {

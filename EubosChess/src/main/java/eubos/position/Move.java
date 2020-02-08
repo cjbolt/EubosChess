@@ -46,7 +46,7 @@ public final class Move {
 	//private static final int TARGET_PIECE_MASK = Piece.PIECE_WHOLE_MASK << TARGET_PIECE_SHIFT;
 	
 	public static final int NULL_MOVE =
-			valueOf(TYPE_NONE, Position.a1, Piece.PIECE_NONE, Position.a1, Piece.PIECE_NONE, IntChessman.NOCHESSMAN);
+			valueOf(TYPE_NONE, Position.a1, Piece.NONE, Position.a1, Piece.NONE, IntChessman.NOCHESSMAN);
 	
 	private Move() {
 	}
@@ -93,8 +93,8 @@ public final class Move {
 		int targetPosition = Position.valueOf(move.to);
 		int originPosition = Position.valueOf(move.from);
 		int promotion = IntChessman.NOCHESSMAN;
-		int originPiece = Piece.PIECE_NONE;
-		int targetPiece = Piece.PIECE_NONE;
+		int originPiece = Piece.NONE;
+		int targetPiece = Piece.NONE;
 		if (theBoard != null) {
 			originPiece = theBoard.getPieceAtSquare(originPosition);
 			targetPiece = theBoard.getPieceAtSquare(targetPosition);
@@ -251,7 +251,7 @@ public final class Move {
 				string.append(IntChessman.toGenericChessman(getPromotion(move)));
 			}
 			
-			if (getOriginPiece(move) != Piece.PIECE_NONE) {
+			if (getOriginPiece(move) != Piece.NONE) {
 				string.append(":");
 				string.append(Piece.toFenChar(getOriginPiece(move)));
 			}

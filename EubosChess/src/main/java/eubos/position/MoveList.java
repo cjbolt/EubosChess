@@ -33,12 +33,20 @@ public class MoveList implements Iterable<Integer> {
 		// N.b. Need to use a linked hash map to ensure that the search order is deterministic.
 		Map<Integer, Integer> moveMap = new LinkedHashMap<Integer, Integer>();
 		Colour onMove = pm.getOnMove();
+		boolean needToEscapeMate = false;
+		if (pm.isKingInCheck(onMove)) {
+			needToEscapeMate = true;
+		}
 		for (Integer currMove : pm.generateMoves()) {
 			try {
+				boolean possibleDiscoveredOrMoveIntoCheck = false;
 				int piece = pm.getTheBoard().getPieceAtSquare(Move.getOriginPosition(currMove));
+				if (pm.getTheBoard().moveCouldLeadToDiscoveredCheck(currMove) || Piece.isKing(piece)) {
+					possibleDiscoveredOrMoveIntoCheck = true;
+				}
 				pm.performMove(currMove);
-				if (pm.isKingInCheck(onMove)) {
-					// Scratch any moves resulting in the king being in check
+				if ((possibleDiscoveredOrMoveIntoCheck || needToEscapeMate) && pm.isKingInCheck(onMove)) {
+					// Scratch any moves resulting in the king being in check, includes no escape moves!
 				} else {
 					int moveType;
 					boolean isQueenPromotion = (Move.getPromotion(currMove) == IntChessman.QUEEN);
@@ -46,7 +54,7 @@ public class MoveList implements Iterable<Integer> {
 							|| Move.getPromotion(currMove) == IntChessman.ROOK
 							|| Move.getPromotion(currMove) == IntChessman.KNIGHT);
 					CaptureData cap = pm.getCapturedPiece();
-					boolean isCapture = (cap != null && cap.target != Piece.PIECE_NONE);
+					boolean isCapture = (cap != null && cap.target != Piece.NONE);
 					boolean isCheck = pm.isKingInCheck(Colour.getOpposite(onMove));
 					boolean isCastle = (Piece.isKing(piece)) ? pm.lastMoveWasCastle() : false;
 					
