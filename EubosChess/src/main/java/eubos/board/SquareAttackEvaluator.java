@@ -1,19 +1,16 @@
  package eubos.board;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import eubos.board.Piece.Colour;
 import eubos.position.Position;
 
 public class SquareAttackEvaluator {
-	
-	static private final Map<Integer, Integer[][]> directPieceMove_Lut = new HashMap<Integer, Integer[][]>();
+	static private final Integer[][][] directPieceMove_Lut = new Integer[256][8][8];
 	static {
 		for (int square : Position.values) {
-			directPieceMove_Lut.put(square, createDiagonalForSq(square));
+			directPieceMove_Lut[square] = createDiagonalForSq(square);
 		}
 	}
 	static private Integer [][] createDiagonalForSq(int square) {
@@ -48,10 +45,10 @@ public class SquareAttackEvaluator {
 		return currMask;
 	}
 	
-	static private final Map<Integer, BitBoard> KnightMove_Lut = new HashMap<Integer, BitBoard>();
+	static final BitBoard[] KnightMove_Lut = new BitBoard[256];
 	static {
 		for (int square : Position.values) {
-			KnightMove_Lut.put(square, createKnightMovesAtSq(square));
+			KnightMove_Lut[square] = createKnightMovesAtSq(square);
 		}
 	}
 	static BitBoard createKnightMovesAtSq(int atPos) {
@@ -64,8 +61,7 @@ public class SquareAttackEvaluator {
 		}
 		return new BitBoard(mask);
 	}
-	
-	private static final Map<Integer, BitBoard> allAttacksOnPosition_Lut = new HashMap<Integer, BitBoard>();
+	static final BitBoard[] allAttacksOnPosition_Lut = new BitBoard[256];
 	static {
 		Direction [] allDirect = { Direction.left, Direction.up, Direction.right, Direction.down, Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
 		for (int square : Position.values) {
@@ -75,15 +71,15 @@ public class SquareAttackEvaluator {
 				allAttacksMask = setAllInDirection(dir, square, allAttacksMask, 8);
 			}
 			// Add indirect attacks
-			allAttacksMask |= KnightMove_Lut.get(square).getValue();
-			allAttacksOnPosition_Lut.put(square, new BitBoard(allAttacksMask));
+			allAttacksMask |= KnightMove_Lut[square].getValue();
+			allAttacksOnPosition_Lut[square] =  new BitBoard(allAttacksMask);
 		}
 	}
 	
-	static private final Map<Integer, BitBoard> KingMove_Lut = new HashMap<Integer, BitBoard>();
+	static final BitBoard[] KingMove_Lut = new BitBoard[256];
 	static {
 		for (int square : Position.values) {
-			KingMove_Lut.put(square, createKingMovesAtSq(square));
+			KingMove_Lut[square] = createKingMovesAtSq(square);
 		}
 	}
 	static BitBoard createKingMovesAtSq(int atPos) {
@@ -103,7 +99,7 @@ public class SquareAttackEvaluator {
 		
 		// Early terminate, if no potential attackers
 		BitBoard attackers = isBlackAttacking ? bd.getBlackPieces() : bd.getWhitePieces();
-		if (allAttacksOnPosition_Lut.get(attackedSq).and(attackers).isZero())
+		if (allAttacksOnPosition_Lut[attackedSq].and(attackers).isZero())
 			return false;
 		
 		BitBoard attackingPawnsMask = isBlackAttacking ? bd.getBlackPawns() : bd.getWhitePawns();
@@ -157,10 +153,10 @@ public class SquareAttackEvaluator {
 		return attacked;	
 	}
 
-	private static boolean checkForAttacksHelper(int AttackerToCheckFor, Map<Integer, BitBoard> map, Board theBoard, int attackedSq) {
+	private static boolean checkForAttacksHelper(int AttackerToCheckFor, BitBoard[] attackingSquaresMask, Board theBoard, int attackedSq) {
 		boolean attacked = false;
 		BitBoard attackersToCheckForMask = theBoard.getMaskForType(AttackerToCheckFor);
-		BitBoard attackedBySqs = map.get(attackedSq);
+		BitBoard attackedBySqs = attackingSquaresMask[attackedSq];
 		attacked = attackersToCheckForMask.and(attackedBySqs).isNonZero();
 		return attacked;
 	}
@@ -177,7 +173,7 @@ public class SquareAttackEvaluator {
 	private static boolean checkForDirectPieceAttacker(Board theBoard, Colour attackingColour,
 			int targetSq, boolean doDiagonalCheck, boolean doRankFileCheck) {
 		boolean attacked = false;
-		Integer [][] array = SquareAttackEvaluator.directPieceMove_Lut.get(targetSq);
+		Integer [][] array = SquareAttackEvaluator.directPieceMove_Lut[targetSq];
 		int index = 0;
 		for (Direction dir: Direction.values()) { 
 			switch(dir) {

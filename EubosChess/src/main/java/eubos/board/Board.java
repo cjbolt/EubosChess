@@ -39,7 +39,8 @@ public class Board implements Iterable<Integer> {
 
 	private BitBoard[] pieces = new BitBoard[6];
 	
-	private static final Map<Integer, List<BitBoard>> RankFileMask_Lut = new HashMap<Integer, List<BitBoard>>();
+	@SuppressWarnings("unchecked")
+	private static final List<BitBoard>[] RankFileMask_Lut = (List<BitBoard>[]) new List[256];
 	static {
 		Direction [] rankFile = { Direction.left, Direction.up, Direction.right, Direction.down };
 		for (int square : Position.values) {
@@ -47,7 +48,7 @@ public class Board implements Iterable<Integer> {
 			for (int index=1; index<8; index++) {
 				createMask(square, array, index, rankFile);
 			}
-			RankFileMask_Lut.put(square, array);
+			RankFileMask_Lut[square] = array;
 		}
 	}
 	static private void createMask(int square, List<BitBoard> array, int index, Direction [] directions) {
@@ -76,7 +77,7 @@ public class Board implements Iterable<Integer> {
 		return currMask;
 	}
 	
-	private static final Map<Integer, BitBoard> directAttacksOnPosition_Lut = new HashMap<Integer, BitBoard>();
+	private static final BitBoard[] directAttacksOnPosition_Lut = new BitBoard[256];
 	static {
 		Direction [] allDirect = { Direction.left, Direction.up, Direction.right, Direction.down, Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
 		for (int square : Position.values) {
@@ -84,11 +85,12 @@ public class Board implements Iterable<Integer> {
 			for (Direction dir: allDirect) {
 				allAttacksMask = setAllInDirection(dir, square, allAttacksMask, 8);
 			}
-			directAttacksOnPosition_Lut.put(square, new BitBoard(allAttacksMask));
+			directAttacksOnPosition_Lut[square] = new BitBoard(allAttacksMask);
 		}
 	}
 	
-	private static final Map<Integer, List<BitBoard>> DiagonalMask_Lut = new HashMap<Integer, List<BitBoard>>();
+	@SuppressWarnings("unchecked")
+	private static final List<BitBoard>[] DiagonalMask_Lut = (List<BitBoard>[]) new List[256];
 	static {
 		Direction [] diagonals = { Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
 		for (int square : Position.values) {
@@ -96,7 +98,7 @@ public class Board implements Iterable<Integer> {
 			for (int index=1; index<8; index++) {
 				createMask(square, array, index, diagonals);
 			}
-			DiagonalMask_Lut.put(square, array);
+			DiagonalMask_Lut[square] = array;
 		}
 	}
 	
@@ -551,10 +553,10 @@ public class Board implements Iterable<Integer> {
 		return getSquaresAvaillableFromPosition(atPos, DiagonalMask_Lut);
 	}
 	
-	private int getSquaresAvaillableFromPosition(int atPos, Map<Integer, List<BitBoard>> maskMap ) {
+	private int getSquaresAvaillableFromPosition(int atPos, List<BitBoard>[] maskMap ) {
 		int squaresCount = 0;
 		int bit = BitBoard.positionToBit_Lut[atPos];
-		List<BitBoard> list = maskMap.get(atPos);
+		List<BitBoard> list = maskMap[atPos];
 		for (BitBoard levelMask : list) {
 			if (checkSingleMask(bit, levelMask))
 				squaresCount = levelMask.getNumBits();
@@ -592,7 +594,7 @@ public class Board implements Iterable<Integer> {
 		// establish if the square is on a multisquare slider mask from the king position
 		BitBoard square = BitBoard.positionToMask_Lut[atSquare];
 		int kingPosition = BitBoard.maskToPosition_Lut.get(king.getValue());
-		BitBoard attackingSquares = directAttacksOnPosition_Lut.get(kingPosition);
+		BitBoard attackingSquares = directAttacksOnPosition_Lut[kingPosition];
 		return square.and(attackingSquares).isNonZero();
 	}
 }
