@@ -146,4 +146,8 @@ public class BitBoard implements Iterable<Integer> {
 	public Iterator<Integer> iterator() {
 		return new SetBitsIterator();
 	}
+
+	public boolean isZero() {
+		return !isNonZero();
+	}
 }

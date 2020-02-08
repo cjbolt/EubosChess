@@ -37,6 +37,17 @@ public class SquareAttackEvaluator {
 		return sqsInDirection;
 	}
 	
+	static private Long setAllInDirection(Direction dir, int fromSq, Long currMask, int index) {
+		int newSquare = fromSq;
+		for (int i=0; i < index; i++) {
+			if (newSquare != Position.NOPOSITION)
+				newSquare = Direction.getDirectMoveSq(dir, newSquare);
+			if (newSquare != Position.NOPOSITION)
+				currMask |= BitBoard.positionToMask_Lut[newSquare].getValue();
+		}
+		return currMask;
+	}
+	
 	static private final Map<Integer, BitBoard> KnightMove_Lut = new HashMap<Integer, BitBoard>();
 	static {
 		for (int square : Position.values) {
@@ -52,6 +63,21 @@ public class SquareAttackEvaluator {
 			}
 		}
 		return new BitBoard(mask);
+	}
+	
+	private static final Map<Integer, BitBoard> allAttacksOnPosition_Lut = new HashMap<Integer, BitBoard>();
+	static {
+		Direction [] allDirect = { Direction.left, Direction.up, Direction.right, Direction.down, Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
+		for (int square : Position.values) {
+			Long allAttacksMask = 0L;
+			// Add direct attacks
+			for (Direction dir: allDirect) {
+				allAttacksMask = setAllInDirection(dir, square, allAttacksMask, 8);
+			}
+			// Add indirect attacks
+			allAttacksMask |= KnightMove_Lut.get(square).getValue();
+			allAttacksOnPosition_Lut.put(square, new BitBoard(allAttacksMask));
+		}
 	}
 	
 	static private final Map<Integer, BitBoard> KingMove_Lut = new HashMap<Integer, BitBoard>();
@@ -74,6 +100,12 @@ public class SquareAttackEvaluator {
 	public static boolean isAttacked( Board bd, int attackedSq, Piece.Colour ownColour ) {
 		Colour attackingColour = Piece.Colour.getOpposite(ownColour);
 		boolean isBlackAttacking = Colour.isBlack(attackingColour);
+		
+		// Early terminate, if no potential attackers
+		BitBoard attackers = isBlackAttacking ? bd.getBlackPieces() : bd.getWhitePieces();
+		if (allAttacksOnPosition_Lut.get(attackedSq).and(attackers).isZero())
+			return false;
+		
 		BitBoard attackingPawnsMask = isBlackAttacking ? bd.getBlackPawns() : bd.getWhitePawns();
 		// direct piece check is computationally heavy, so just do what is necessary
 		boolean doDiagonalCheck = false;

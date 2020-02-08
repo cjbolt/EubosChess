@@ -29,9 +29,15 @@ public class Board implements Iterable<Integer> {
 	private BitBoard allPieces = null;
 	private BitBoard whitePieces = null;
 	private BitBoard blackPieces = null;
+	
+	public BitBoard getWhitePieces() {
+		return whitePieces;
+	}
+	public BitBoard getBlackPieces() {
+		return blackPieces;
+	}
+
 	private BitBoard[] pieces = new BitBoard[6];
-	
-	
 	
 	private static final Map<Integer, List<BitBoard>> RankFileMask_Lut = new HashMap<Integer, List<BitBoard>>();
 	static {
