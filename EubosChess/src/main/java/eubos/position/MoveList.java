@@ -1,14 +1,11 @@
 package eubos.position;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.PrimitiveIterator;
 import java.util.Random;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.function.IntConsumer;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -25,13 +22,21 @@ public class MoveList implements Iterable<Integer> {
 	private byte normalSearchBestMovePreviousIndex = -1;
 	private byte extendedSearchListBestMovePreviousIndex = -1;
 	
+    class MoveTypeComparator implements Comparator<Integer> {
+        @Override public int compare(Integer move1, Integer move2) {
+            boolean gt = Move.getType(move1) > Move.getType(move2);
+            boolean eq = Move.getType(move1) == Move.getType(move2);
+            return gt ? 1 : (eq ? 0 : -1);
+        }
+    }
+	
 	public MoveList(PositionManager pm) {
 		this(pm, null);
 	}
 	
 	public MoveList(PositionManager pm, GenericMove bestMove) {
 		// N.b. Need to use a linked hash map to ensure that the search order is deterministic.
-		Map<Integer, Integer> moveMap = new LinkedHashMap<Integer, Integer>();
+		List<Integer> moveList = new LinkedList<Integer>();
 		Colour onMove = pm.getOnMove();
 		boolean needToEscapeMate = false;
 		if (pm.isKingInCheck(onMove)) {
@@ -83,7 +88,7 @@ public class MoveList implements Iterable<Integer> {
 					}  else {
 						moveType = Move.TYPE_REGULAR;
 					}
-					moveMap.put(Move.setType(currMove, moveType), moveType);
+					moveList.add(Move.setType(currMove, moveType));
 				}
 				pm.unperformMove();
 			} catch(InvalidPieceException e) {
@@ -91,17 +96,17 @@ public class MoveList implements Iterable<Integer> {
 			}
 		}
 		
-		SortedSet<Map.Entry<Integer, Integer>> moves = entriesSortedByValues(moveMap);
-		normal_search_moves = create_normal_list(moves);
-		extended_search_moves = create_extended_list(moves);
+		// Sort the list
+		Collections.sort(moveList, new MoveTypeComparator());
+		normal_search_moves = create_normal_list(moveList);
+		extended_search_moves = create_extended_list(moveList);
 		
 		int intBestMove = 0;
 		if (bestMove != null) {
-			for (Map.Entry<Integer, Integer> tuple : moves ) {
-				int currMove = tuple.getKey();
-				if (Move.toGenericMove(currMove).equals(bestMove)) {
+			for (Integer move : moveList ) {
+				if (Move.toGenericMove(move).equals(bestMove)) {
 					// the moves are the same, so set the type of the best move from the existing move
-					intBestMove = Move.toMove(bestMove, pm.getTheBoard(), tuple.getValue());
+					intBestMove = Move.toMove(bestMove, pm.getTheBoard(), Move.getType(move));
 					break;
 				}
 			}
@@ -139,45 +144,29 @@ public class MoveList implements Iterable<Integer> {
 	    swapWithFirst(moveArray, index);
 	}
 	
-	static <K,V extends Comparable<? super V>> SortedSet<Map.Entry<K,V>> entriesSortedByValues(Map<K,V> map) {
-	    SortedSet<Map.Entry<K,V>> sortedEntries = new TreeSet<Map.Entry<K,V>>(
-	        new Comparator<Map.Entry<K,V>>() {
-	            @Override public int compare(Map.Entry<K,V> e1, Map.Entry<K,V> e2) {
-	                int res = e1.getValue().compareTo(e2.getValue());
-	                return res != 0 ? res : 1;
-	            }
-	        }
-	    );
-	    sortedEntries.addAll(map.entrySet());
-	    return sortedEntries;
-	}
-	
-	private int [] create_normal_list(SortedSet<Map.Entry<Integer, Integer>> moves) {
+	private int [] create_normal_list(List<Integer> moves) {
 		int [] moveArray = new int[moves.size()];
 		int index = 0;
-		for (Map.Entry<Integer, Integer> tuple : moves ) {
-			int currMove = tuple.getKey();
-			moveArray[index++] = currMove;
+		for (Integer move : moves ) {
+			moveArray[index++] = move;
 		}
 		return moveArray;
 	}
 	
-	// Key of Map.Entry is the move
-	// Value of Map.Entry is the move type
-	private int[] create_extended_list(SortedSet<Map.Entry<Integer, Integer>> moves) {
-		List<Integer> list = new ArrayList<Integer>();
-		for (Map.Entry<Integer, Integer> tuple : moves ) {
-			if ((tuple.getValue() == Move.TYPE_PROMOTION) ||
-				(tuple.getValue() == Move.TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK) ||
-				(tuple.getValue() == Move.TYPE_PROMOTION_AND_CAPTURE) ||
-				(tuple.getValue() == Move.TYPE_KBR_PROMOTION) ||
-				(tuple.getValue() == Move.TYPE_CAPTURE_WITH_CHECK) ||
-				(tuple.getValue() == Move.TYPE_CAPTURE_QUEEN) ||
-				(tuple.getValue() == Move.TYPE_CAPTURE_ROOK) ||
-				(tuple.getValue() == Move.TYPE_CAPTURE_PIECE) ||
-				(tuple.getValue() == Move.TYPE_CAPTURE_PAWN) ||
-				(tuple.getValue() == Move.TYPE_CHECK)) {
-				list.add(tuple.getKey());
+	private int[] create_extended_list(List<Integer> moves) {
+		List<Integer> list = new LinkedList<Integer>();
+		for (Integer move : moves ) {
+			if ((Move.getType(move) == Move.TYPE_PROMOTION) ||
+				(Move.getType(move) == Move.TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK) ||
+				(Move.getType(move) == Move.TYPE_PROMOTION_AND_CAPTURE) ||
+				(Move.getType(move) == Move.TYPE_KBR_PROMOTION) ||
+				(Move.getType(move) == Move.TYPE_CAPTURE_WITH_CHECK) ||
+				(Move.getType(move) == Move.TYPE_CAPTURE_QUEEN) ||
+				(Move.getType(move) == Move.TYPE_CAPTURE_ROOK) ||
+				(Move.getType(move) == Move.TYPE_CAPTURE_PIECE) ||
+				(Move.getType(move) == Move.TYPE_CAPTURE_PAWN) ||
+				(Move.getType(move) == Move.TYPE_CHECK)) {
+				list.add(move);
 			}
 		}
 		int[] array = new int[list.size()];
