@@ -11,7 +11,7 @@ public class SearchMetricsReporter extends Thread {
 	private volatile boolean reporterActive;
 	private SearchMetrics sm;
 	private EubosEngineMain eubosEngine;
-	private static final int UPDATE_RATE_MS = 500;
+	private static final int UPDATE_RATE_MS = 250;
 	
 	public SearchMetricsReporter( EubosEngineMain eubos, SearchMetrics inputSm ) {
 		sm = inputSm;

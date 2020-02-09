@@ -1,37 +1,34 @@
  package eubos.board;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
 import eubos.board.Piece.Colour;
 import eubos.position.Position;
 
 public class SquareAttackEvaluator {
-	static private final Integer[][][] directPieceMove_Lut = new Integer[256][8][8];
+	static private final int[][][] directPieceMove_Lut = new int[256][8][];
 	static {
 		for (int square : Position.values) {
 			directPieceMove_Lut[square] = createDiagonalForSq(square);
 		}
 	}
-	static private Integer [][] createDiagonalForSq(int square) {
-		ArrayList<Integer> squaresInDirection = new ArrayList<Integer>();
-		Integer [][] ret = new Integer [Direction.values().length][];
+	static private int [][] createDiagonalForSq(int square) {
+		int [][] ret = new int [Direction.values().length][];
 		int index = 0;
 		for (Direction dir: Direction.values()) {
-			squaresInDirection.addAll(getSqsInDirection(dir, square));
-			ret[index] = squaresInDirection.toArray(new Integer [0]);
-			squaresInDirection.clear();
+			ret[index] = getSqsInDirection(dir, square);
 			index++;
 		}
 		return ret;
 	}
-	static private List<Integer> getSqsInDirection(Direction dir, int fromSq) {
+	static private int[] getSqsInDirection(Direction dir, int fromSq) {
 		int newSquare = fromSq;
-		ArrayList<Integer> sqsInDirection = new ArrayList<Integer>();
+		int[] sqsInDirection = new int[8];
+		int numSquares=0;
 		while ((newSquare = Direction.getDirectMoveSq(dir, newSquare)) != Position.NOPOSITION) {
-			sqsInDirection.add(newSquare);
+			sqsInDirection[numSquares++] = newSquare;
 		}
-		return sqsInDirection;
+		return Arrays.copyOf(sqsInDirection, numSquares);
 	}
 	
 	static private Long setAllInDirection(Direction dir, int fromSq, Long currMask, int index) {
@@ -131,9 +128,9 @@ public class SquareAttackEvaluator {
 					attacked = attackedByPawn(bd, attackingPawnsMask, Direction.getDirectMoveSq(Direction.upLeft,attackedSq));
 					if (attacked) break;
 				}
-				attacked = checkForAttacksHelper(Piece.BLACK_KING, KingMove_Lut, bd, attackedSq);
+				attacked = checkForAttacksHelper(bd, Piece.BLACK_KING, KingMove_Lut[attackedSq]);
 				if (attacked) break;
-				attacked = checkForAttacksHelper(Piece.BLACK_KNIGHT, KnightMove_Lut, bd, attackedSq);
+				attacked = checkForAttacksHelper(bd, Piece.BLACK_KNIGHT, KnightMove_Lut[attackedSq]);
 				if (attacked) break;
 			} else {
 				if (attackingPawnsMask.isNonZero()) {
@@ -142,9 +139,9 @@ public class SquareAttackEvaluator {
 					attacked = attackedByPawn(bd, attackingPawnsMask, Direction.getDirectMoveSq(Direction.downLeft,attackedSq));
 					if (attacked) break;
 				}
-				attacked = checkForAttacksHelper(Piece.WHITE_KING, KingMove_Lut, bd, attackedSq);
+				attacked = checkForAttacksHelper(bd, Piece.WHITE_KING, KingMove_Lut[attackedSq]);
 				if (attacked) break;
-				attacked = checkForAttacksHelper(Piece.WHITE_KNIGHT, KnightMove_Lut, bd, attackedSq);
+				attacked = checkForAttacksHelper(bd, Piece.WHITE_KNIGHT, KnightMove_Lut[attackedSq]);
 				if (attacked) break;
 			}
 			attacked = checkForDirectPieceAttacker(bd, attackingColour, attackedSq, doDiagonalCheck, doRankFileCheck);
@@ -153,12 +150,8 @@ public class SquareAttackEvaluator {
 		return attacked;	
 	}
 
-	private static boolean checkForAttacksHelper(int AttackerToCheckFor, BitBoard[] attackingSquaresMask, Board theBoard, int attackedSq) {
-		boolean attacked = false;
-		BitBoard attackersToCheckForMask = theBoard.getMaskForType(AttackerToCheckFor);
-		BitBoard attackedBySqs = attackingSquaresMask[attackedSq];
-		attacked = attackersToCheckForMask.and(attackedBySqs).isNonZero();
-		return attacked;
+	private static boolean checkForAttacksHelper(Board theBoard, int attackingPieceType, BitBoard attackingSquaresMask) {
+		return theBoard.getMaskForType(attackingPieceType).and(attackingSquaresMask).isNonZero();
 	}
 	
 	private static boolean attackedByPawn(Board theBoard, BitBoard attackingPawns, int attackerSq) {
@@ -173,7 +166,8 @@ public class SquareAttackEvaluator {
 	private static boolean checkForDirectPieceAttacker(Board theBoard, Colour attackingColour,
 			int targetSq, boolean doDiagonalCheck, boolean doRankFileCheck) {
 		boolean attacked = false;
-		Integer [][] array = SquareAttackEvaluator.directPieceMove_Lut[targetSq];
+		// one dimension for each direction, other dimension is array of squares in that direction
+		int [][] array = SquareAttackEvaluator.directPieceMove_Lut[targetSq];
 		int index = 0;
 		for (Direction dir: Direction.values()) { 
 			switch(dir) {
