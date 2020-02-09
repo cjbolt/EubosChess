@@ -383,11 +383,6 @@ public class Board implements Iterable<Integer> {
 			buildIterList(allPieces);
 		}
 
-		allPiecesOnBoardIterator( Piece.Colour colourToIterate ) throws InvalidPieceException {
-			iterList = new LinkedList<Integer>();
-			buildIterList(Colour.isWhite(colourToIterate) ? whitePieces : blackPieces);
-		}
-		
 		allPiecesOnBoardIterator( int typeToIterate ) throws InvalidPieceException {
 			iterList = new LinkedList<Integer>();
 			BitBoard bitBoardToIterate;
@@ -426,17 +421,9 @@ public class Board implements Iterable<Integer> {
 	}
 
 	public Iterator<Integer> iterator() {
-		// default iterator returns all the pieces on the board
+		// default iterator returns all the pieces on the board, not all positions
 		try {
 			return new allPiecesOnBoardIterator( );
-		} catch (InvalidPieceException e) {
-			return null;
-		}
-	}
-
-	public Iterator<Integer> iterateColour( Piece.Colour colourToIterate ) {
-		try {
-			return new allPiecesOnBoardIterator( colourToIterate );
 		} catch (InvalidPieceException e) {
 			return null;
 		}
