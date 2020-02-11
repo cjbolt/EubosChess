@@ -117,7 +117,7 @@ public final class Move {
 	}
 
 	public static GenericMove toGenericMove(int move) {
-		if (move == 0)
+		if (move == Move.NULL_MOVE)
 			return null;
 		
 		int type = getType(move);

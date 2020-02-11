@@ -46,8 +46,8 @@ public class PrincipalContinuationUpdateHelper
 		private void truncatePrincipalContinuation() {
 			if (isScoreIndicatesMate()) {
 				// If the positionScore indicates a mate, truncate the pc accordingly
-				int matePly = calculatePlyMateOccurredOn();
-				pc.truncateAfterPly(matePly);
+				//int matePly = calculatePlyMateOccurredOn();
+				//pc.truncateAfterPly(matePly);
 			}
 		}
 		
@@ -55,7 +55,7 @@ public class PrincipalContinuationUpdateHelper
 			return Math.abs(positionScore) >= MaterialEvaluator.MATERIAL_VALUE_KING;
 		}
 		
-		private int calculatePlyMateOccurredOn() {
+		int calculatePlyMateOccurredOn() {
 			int mateMove = 0;
 			int matePly = 0;
 			if (isOwnMate()) {

@@ -123,7 +123,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		List<Integer> constructed_pc = new ArrayList<Integer>(searchDepthPly);
 		for (plies = 0; plies < searchDepthPly; plies++) {
 			/* Apply move and find best move from hash */
-			int pcMove = pc.getBestMoveAsInt(plies); // Check against principal continuation where it is available
+			int pcMove = pc.getBestMove(plies); // Check against principal continuation where it is available
 		    TranspositionEvaluation eval = this.getTransposition(searchDepthPly-plies);
 			if (eval.status != TranspositionTableStatus.insufficientNoData && eval.trans != null) {
 				int currMove = eval.trans.getBestMoveAsInt();

@@ -9,6 +9,7 @@ import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
+import eubos.position.Move;
 import eubos.score.IEvaluate;
 import eubos.score.MaterialEvaluator;
 import eubos.search.NoLegalMoveException;
@@ -114,7 +115,7 @@ public class MiniMaxMoveGenerator implements
 			sr.reportNodeData();
 		}
 		// Select the best move
-		GenericMove bestMove = pc.getBestMove();
+		GenericMove bestMove = Move.toGenericMove(pc.getBestMove((byte)0));
 		if (bestMove==null) {
 			throw new NoLegalMoveException();
 		}

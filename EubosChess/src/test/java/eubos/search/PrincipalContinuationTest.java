@@ -47,12 +47,12 @@ public class PrincipalContinuationTest {
 
 	@Test
 	@Ignore
-	public void testTruncate() throws IllegalNotationException {
+	public void test_clearContinuationBeyondPly() throws IllegalNotationException {
 		classUnderTest.update(3, Move.valueOf(Position.e5, Piece.BLACK_PAWN, Position.d4, Piece.WHITE_PAWN ));
 		classUnderTest.update(2, Move.valueOf(Position.d2, Piece.WHITE_PAWN, Position.d4, Piece.NONE ));
 		classUnderTest.update(1, Move.valueOf(Position.e7, Piece.BLACK_PAWN, Position.e5, Piece.NONE ));
 		classUnderTest.update(0, Move.valueOf(Position.a2, Piece.WHITE_PAWN, Position.a3, Piece.NONE ));
-		classUnderTest.truncateAfterPly(1);
+		classUnderTest.clearContinuationsBeyondPly(1);
 		List<GenericMove> pv = classUnderTest.toPvList();
 		assertEquals(new GenericMove("a2a3"), pv.get(0));
 		assertEquals(new GenericMove("e7e5"), pv.get(1));

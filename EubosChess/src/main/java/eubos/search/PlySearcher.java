@@ -91,7 +91,7 @@ public class PlySearcher {
 		switch (eval.status) {
 		case sufficientTerminalNode:
 			theScore = new Score(eval.trans.getScore(), eval.trans.getScoreType());
-			pc.clearTreeBeyondPly(currPly);
+			pc.clearContinuationsBeyondPly(currPly);
 			if (doScoreBackup(theScore)) {
 				updatePrincipalContinuation(eval.trans.getBestMoveAsInt(), theScore.getScore(), true);
 			}
@@ -99,7 +99,7 @@ public class PlySearcher {
 			break;
 		case sufficientRefutation:
 			theScore = new Score(eval.trans.getScore(), (pos.onMoveIsWhite()) ? ScoreType.lowerBound : ScoreType.upperBound);
-			pc.clearTreeBeyondPly(currPly);
+			pc.clearContinuationsBeyondPly(currPly);
 			sm.incrementNodesSearched();
 			break;
 		case sufficientSeedMoveList:
@@ -191,7 +191,7 @@ public class PlySearcher {
                     updatePrincipalContinuation(currMove, positionScore.getScore(), false);
 	            } else {
 	                // Always clear the principal continuation when we didn't back up the score
-	                pc.clearRowsBeyondPly(currPly);
+	                pc.clearContinuationsBeyondPly(currPly);
 	                // Update the position hash if the move is better than that previously stored at this position
 	                if (shouldUpdatePositionBoundScoreAndBestMove(plyBound, plyScore.getScore(), positionScore.getScore())) {
 	                    plyScore = positionScore;
@@ -220,7 +220,7 @@ public class PlySearcher {
 		    		trans.setScoreType(ScoreType.exact);
 		    		
 			        // found to be needed due to score discrepancies caused by refutations coming out of extedned search...
-			        trans.setBestMove(pc.getBestMoveAsInt(currPly));
+			        trans.setBestMove(pc.getBestMove(currPly));
 			        trans.setScore(plyScore.getScore());
 			        
 			        SearchDebugAgent.printExactTrans(currPly, pos.getHash());
@@ -296,7 +296,7 @@ public class PlySearcher {
 	private void rootNodeInitAndReportingActions(int currMove) {
 		if (atRootNode()) {
 			// When we start to search a move at the root node, clear the principal continuation data
-			pc.clearRowsBeyondPly(currPly);
+			pc.clearContinuationsBeyondPly(currPly);
 			reportMove(Move.toGenericMove(currMove));
 		}
 	}

@@ -84,7 +84,7 @@ public class SearchDebugAgent {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"pc:"+pc.toStringAfter(currPly));
+			printOutput(indent+"pc:"+pc.toStringAt(currPly));
 		}
 	}
 	
