@@ -63,7 +63,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			ret.status = TranspositionTableStatus.sufficientSeedMoveList;
 		}
 		
-		if (ret.trans.getBestMove() == null) {
+		if (ret.trans.getBestMove() == Move.NULL_MOVE) {
 			// It is possible that we don't have a move to seed the list with, guard against that.
 			if (ret.status == TranspositionTableStatus.sufficientSeedMoveList) {
 				ret.status = TranspositionTableStatus.insufficientNoData;
@@ -72,7 +72,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 				   ret.status == TranspositionTableStatus.sufficientRefutation) {
 			// Check hashed position causing a search cut off is still valid (i.e. not a draw)
 			try {
-				int move = ret.trans.getBestMoveAsInt();
+				int move = ret.trans.getBestMove();
 				if (move != Move.NULL_MOVE) {
 					pm.performMove(move);
 					if (pe.isThreeFoldRepetition(pos.getHash())) {
@@ -97,7 +97,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		ret.status = TranspositionTableStatus.insufficientNoData;
 		ret.trans = hashMap.getTransposition(pos.getHash());
 		if (ret.trans != null) {
-			if ((ret.trans.getDepthSearchedInPly() >=  depthRequiredPly) || ret.trans.getBestMove() != null) {
+			if ((ret.trans.getDepthSearchedInPly() >=  depthRequiredPly) || ret.trans.getBestMove() != Move.NULL_MOVE) {
 				ret.status = TranspositionTableStatus.sufficientSeedMoveList;
 			}
 		}
@@ -126,7 +126,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			int pcMove = pc.getBestMove(plies); // Check against principal continuation where it is available
 		    TranspositionEvaluation eval = this.getTransposition(searchDepthPly-plies);
 			if (eval.status != TranspositionTableStatus.insufficientNoData && eval.trans != null) {
-				int currMove = eval.trans.getBestMoveAsInt();
+				int currMove = eval.trans.getBestMove();
 				if (currMove != Move.NULL_MOVE) {
 					// Note, if the depth searched is more (from prev searches), it can be different to the pc for this search
 					if (pcMove != Move.NULL_MOVE && (eval.trans.getDepthSearchedInPly() <= (searchDepthPly-plies))) {

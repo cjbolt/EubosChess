@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import com.fluxchess.jcpi.models.GenericMove;
-
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.search.transposition.Transposition;
@@ -112,28 +110,28 @@ public class SearchDebugAgent {
 		}
 	}
 
-	public static void printHashIsTerminalNode(int currPly, GenericMove move, int score, long hash) {
+	public static void printHashIsTerminalNode(int currPly, int move, int score, long hash) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"hash "+hash+" term best:"+((move!=null)?move.toString():"")+" score:"+ score +" @"+currPly);
+			printOutput(indent+"hash "+hash+" term best:"+Move.toString(move)+" score:"+ score +" @"+currPly);
 		}
 	}
 
-	public static void printHashIsRefutation(int currPly, GenericMove move, long hash) {
+	public static void printHashIsRefutation(int currPly, int move, long hash) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"hash "+hash+" ref @ Ply="+currPly+" move: "+((move!=null)?move.toString():""));
+			printOutput(indent+"hash "+hash+" ref @ Ply="+currPly+" move: "+Move.toString(move));
 		}
 		
 	}
 
-	public static void printHashIsSeedMoveList(int currPly, GenericMove move, long hash) {
+	public static void printHashIsSeedMoveList(int currPly, int move, long hash) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"hash "+hash+" sufficient seed move list with best move:"+((move!=null)?move.toString():"")+" at Ply="+currPly);
+			printOutput(indent+"hash "+hash+" sufficient seed move list with best move:"+Move.toString(move)+" at Ply="+currPly);
 		}
 	}
 
@@ -146,12 +144,12 @@ public class SearchDebugAgent {
 		
 	}
 
-	public static void printTransUpdate(int currPly, GenericMove bestMove, int depthPositionSearchedPly, int score,
+	public static void printTransUpdate(int currPly, int move, int depthPositionSearchedPly, int score,
 			ScoreType bound, long hash) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"trans hash: "+hash+" mv:"+((bestMove!=null)?bestMove.toString():"")+" dep:"+depthPositionSearchedPly+" sc:"+score+" type:"+bound);
+			printOutput(indent+"trans hash: "+hash+" mv:"+Move.toString(move)+" dep:"+depthPositionSearchedPly+" sc:"+score+" type:"+bound);
 		}		
 	}
 

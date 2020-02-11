@@ -59,14 +59,7 @@ public class Transposition {
 		this.depthSearchedInPly = depthSearchedInPly;
 	}
 
-	public GenericMove getBestMove() {
-		if (bestMove == 0)
-			return null;
-		else 
-			return Move.toGenericMove(bestMove);
-	}
-
-	public int getBestMoveAsInt() {
+	public int getBestMove() {
 		return bestMove;
 	}
 	
@@ -89,7 +82,7 @@ public class Transposition {
 	    this.setDepthSearchedInPly(updateFrom.getDepthSearchedInPly());
 	    this.setScoreType(updateFrom.getScoreType());
 	    this.setScore(updateFrom.getScore());
-	    this.setBestMove(updateFrom.getBestMoveAsInt());
+	    this.setBestMove(updateFrom.getBestMove());
 	}
 
 	public void setMoveList(MoveList new_ml) {

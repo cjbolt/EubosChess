@@ -164,12 +164,12 @@ public class TranspositionTableAccessorTest {
 		assertEquals(110, stored_trans.getScore());
 		
 		// check move list order is updated
-		assertEquals(move2, stored_trans.getBestMove());
+		assertTrue(Move.areEqual(Move.toMove(move2), stored_trans.getBestMove()));
 		
 		// Check eval returns expected hash data
 		eval = sut.getTransposition(currPly, 1);
 		assertEquals(stored_trans, eval.trans);
-		assertEquals(move2, eval.trans.getBestMove());
+		assertTrue(Move.areEqual(Move.toMove(move2), eval.trans.getBestMove()));
 	}
 	
 	@Test
@@ -192,11 +192,11 @@ public class TranspositionTableAccessorTest {
 		assertEquals(72, stored_trans.getScore());
 		
 		// check move list order is updated
-		assertEquals(move2, stored_trans.getBestMove());
+		assertTrue(Move.areEqual(Move.toMove(move2), stored_trans.getBestMove()));
 		
 		// Check eval returns expected hash data
 		eval = sut.getTransposition(currPly, 1);
 		assertEquals(stored_trans, eval.trans);
-		assertEquals(move2, eval.trans.getBestMove());
+		assertTrue(Move.areEqual(Move.toMove(move2), eval.trans.getBestMove()));
 	}
 }

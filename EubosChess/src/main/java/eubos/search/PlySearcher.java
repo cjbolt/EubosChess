@@ -93,7 +93,7 @@ public class PlySearcher {
 			theScore = new Score(eval.trans.getScore(), eval.trans.getScoreType());
 			pc.clearContinuationsBeyondPly(currPly);
 			if (doScoreBackup(theScore)) {
-				updatePrincipalContinuation(eval.trans.getBestMoveAsInt(), theScore.getScore(), true);
+				updatePrincipalContinuation(eval.trans.getBestMove(), theScore.getScore(), true);
 			}
 			sm.incrementNodesSearched();
 			break;
@@ -264,8 +264,8 @@ public class PlySearcher {
 	private void handleEarlyTermination() {
 		if (atRootNode() && isTerminated()) {
 			TranspositionEvaluation eval = tt.getTransposition(currPly, dynamicSearchLevelInPly);
-			if (eval != null && eval.trans != null && eval.trans.getBestMove() != null) {
-				pc.update(0, eval.trans.getBestMoveAsInt());
+			if (eval != null && eval.trans != null && eval.trans.getBestMove() != Move.NULL_MOVE) {
+				pc.update(0, eval.trans.getBestMove());
 			}
 			// Set best move to the previous iteration search result
 			else if (lastPc != null) {

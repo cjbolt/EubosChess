@@ -243,7 +243,7 @@ public final class Move {
 	
 	public static String toString(int move) {
 		StringBuilder string = new StringBuilder();
-		if (move != 0) {
+		if (move != Move.NULL_MOVE) {
 			string.append(toGenericMove(move).toString());
 
 			if (getType(move) <= Move.TYPE_KBR_PROMOTION) {
