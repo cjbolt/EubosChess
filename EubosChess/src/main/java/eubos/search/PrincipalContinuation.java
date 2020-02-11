@@ -57,6 +57,14 @@ public class PrincipalContinuation {
 		return mv;
 	}
 	
+	void initialise(int currPly, int currMove) {
+		if (currPly < pc.size()) {
+			List<Integer> plyToUpdatePc = pc.get(currPly);
+			plyToUpdatePc.clear();
+			plyToUpdatePc.add(currMove);
+		}
+	}
+	
 	void update(int currPly, int currMove) {
 		if (currPly < pc.size()) {
 			List<Integer> plyToUpdatePc = pc.get(currPly);

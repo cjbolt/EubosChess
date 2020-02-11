@@ -175,7 +175,8 @@ public class PlySearcher {
 		Score plyScore = new Score((plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE, plyBound);
 		int currMove = move_iter.nextInt();
 		
-		pc.update(currPly, currMove);
+		//pc.update(currPly, currMove);
+		pc.initialise(currPly, currMove);
 		while(!isTerminated()) {
 		    rootNodeInitAndReportingActions(currMove);
 

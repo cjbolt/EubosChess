@@ -45,9 +45,11 @@ public class SearchMetrics {
 		return nps;
 	}
 	
-	public synchronized void setPrincipalVariation(List<GenericMove> pc) { 
-		pvValid = true;
-		pv = pc;
+	public synchronized void setPrincipalVariation(List<GenericMove> pc) {
+		if (!pc.isEmpty()) {
+			pvValid = true;
+			pv = pc;
+		}
 	}
 	synchronized List<GenericMove> getPrincipalVariation() { return (pvValid ? pv : null);}
 	

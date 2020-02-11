@@ -1,8 +1,5 @@
 package eubos.search.transposition;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import eubos.board.InvalidPieceException;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
@@ -118,11 +115,16 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 	}
 	
 	public void createPrincipalContinuation(PrincipalContinuation pc, byte searchDepthPly, IChangePosition pm) throws InvalidPieceException {
+		/*
+		 * This function is very problematic, it is just not ok to try and use the current best move for a hashed position as the PV.
+		 * There is simply no alternative to storing it in the transposition if we want a proper PV reported. 
+		 */
+		/*
 		byte plies = 0;
 		int numMoves = 0;
 		List<Integer> constructed_pc = new ArrayList<Integer>(searchDepthPly);
 		for (plies = 0; plies < searchDepthPly; plies++) {
-			/* Apply move and find best move from hash */
+			// Apply move and find best move from hash
 			int pcMove = pc.getBestMove(plies); // Check against principal continuation where it is available
 		    TranspositionEvaluation eval = this.getTransposition(searchDepthPly-plies);
 			if (eval.status != TranspositionTableStatus.insufficientNoData && eval.trans != null) {
@@ -144,6 +146,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			pm.unperformMove();
 		}
 		pc.update(0, constructed_pc);
+		*/
 	}
 	
 	private Transposition getTransCreateIfNew(int currPly, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove) {
