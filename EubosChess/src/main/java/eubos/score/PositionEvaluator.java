@@ -25,6 +25,8 @@ public class PositionEvaluator implements IEvaluate {
 	public static final int PASSED_PAWN_BOOST = 30;
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 20;
 	
+	public static final boolean DISABLE_QUIESCENCE_CHECK = false; 
+	
 	public PositionEvaluator(PositionManager pm, DrawChecker dc) {	
 		this.pm = pm;
 		sc = new SearchContext(pm, MaterialEvaluator.evaluate(pm.getTheBoard(), false), dc);
@@ -32,6 +34,8 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	public boolean isQuiescent() {
+		if (DISABLE_QUIESCENCE_CHECK)
+			return true;
 		if (pm.isKingInCheck(pm.getOnMove())) {
 			// In order to check for mates
 			return false;

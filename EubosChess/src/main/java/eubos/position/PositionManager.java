@@ -46,6 +46,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return entireMoveList;
 	}
 	
+	public String toString() {
+		return this.theBoard.getAsFenString();
+	}
+	
 	CastlingManager castling;
 	public static final int WHITE_KINGSIDE = 1<<0;
 	public static final int WHITE_QUEENSIDE = 1<<1;
@@ -117,7 +121,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public void performMove( int move ) throws InvalidPieceException {
 		// Get the piece to move
 		int pieceToMove = theBoard.pickUpPieceAtSquare(Move.getOriginPosition(move));
-		assert pieceToMove == Move.getOriginPiece(move);
+		assert pieceToMove == Move.getOriginPiece(move): "AtBoard: " + pieceToMove + " inMove: " + Move.getOriginPiece(move);
 		// Flag if move is an en passant capture
 		boolean isEnPassantCapture = isEnPassantCapture(move);
 		// Save previous en passant square and initialise for this move

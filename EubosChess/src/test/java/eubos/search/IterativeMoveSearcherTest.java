@@ -33,7 +33,7 @@ public class IterativeMoveSearcherTest {
 		public void sendInfoCommand(ProtocolInformationCommand command) {
 			// Debug the principal continuations returned during the search
 			if (command.getMoveList() != null)
-				System.out.println(command.getMoveList());
+				System.out.println("Info moves: "+command.getMoveList());
 		}
 		
 		@Override

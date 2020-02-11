@@ -9,111 +9,112 @@ import eubos.position.Move;
 
 public class PrincipalContinuation {
 
-	private int pc[][];
-	private int searchDepthPly;
+	private List<List<Integer>> pc;
 
 	public PrincipalContinuation(int searchDepth) {
-		pc = new int[searchDepth][searchDepth];
-		searchDepthPly = searchDepth;
+		pc = new ArrayList<List<Integer>>(searchDepth);
+		for (int i=0; i<searchDepth; i++) {
+			pc.add(new ArrayList<Integer>());
+		}
 	}
 	
 	public GenericMove getBestMove() {
-		return Move.toGenericMove(pc[0][0]);
+		List<Integer> plyList = pc.get(0);
+		return (!plyList.isEmpty()) ? Move.toGenericMove(plyList.get(0)) : null;
 	}
 	
 	public GenericMove getBestMove(int currPly) {
-		return Move.toGenericMove(pc[currPly][currPly]);
+		if (currPly < pc.size()) {
+			List<Integer> plyList = pc.get(currPly);
+			return (!plyList.isEmpty()) ? Move.toGenericMove(plyList.get(0)) : null;
+		}
+		return null;
+	}
+	
+	public int getBestMoveAsInt(byte currPly) {
+		if (currPly < pc.size()) {
+			List<Integer> plyList = pc.get(currPly);
+			return (!plyList.isEmpty()) ? plyList.get(0) : Move.NULL_MOVE;
+		}
+		return Move.NULL_MOVE;
+	}
+	
+	public String toString() {
+		String output = "";
+		for (int currPly = 0; currPly < pc.size(); currPly++) {
+			output += String.format("Ply %d (%s) ,", currPly, toStringAfter(currPly));
+		}
+		return output;
 	}
 
 	String toStringAfter(int currPly) {
-		int currMove = pc[currPly][currPly];
-		String output = ""+Move.toString(currMove);
-		for ( int nextPly = currPly+1; nextPly < searchDepthPly; nextPly++) {
-			currMove = pc[currPly][nextPly];
-			if (currMove == 0)
-				break;
-			output+=(", "+Move.toString(currMove));
+		String output = "";
+		List<Integer> plyList = pc.get(currPly);
+		if (!plyList.isEmpty()) {
+			for (int currMove : plyList) {
+				assert currMove != Move.NULL_MOVE;
+				output+=(Move.toString(currMove)+" ");
+			}
 		}
 		return output;
 	}
 	
-	public List<GenericMove> toPvList() {
-		return toPvList(0);
-	}
-	
-	public List<GenericMove> toPvList(int startPly) {
-		List<GenericMove> mv;
-		mv = new ArrayList<GenericMove>();
-		for (int currPly=startPly; currPly < searchDepthPly; currPly++) {
-			GenericMove currMove = Move.toGenericMove(pc[startPly][currPly]); 
-			if (currMove != null) {
-				mv.add(currMove);
-			} else {
-				break;
-			}
+	public List<GenericMove> toPvList() { 
+		List<GenericMove> mv = new ArrayList<GenericMove>();
+		for (int currMove : pc.get(0)) {
+			mv.add(Move.toGenericMove(currMove));
 		}
 		return mv;
 	}
-
+	
 	void update(int currPly, int currMove) {
-		// Update Principal Continuation, bring down from next ply
-		pc[currPly][currPly]=currMove;
-		for (int nextPly=currPly+1; nextPly < searchDepthPly; nextPly++) {
-			pc[currPly][nextPly]=pc[currPly+1][nextPly];
+		// Update Principal Continuation, bring down from the next ply
+		List<Integer> plyToUpdatePc = pc.get(currPly);
+		plyToUpdatePc.clear();
+		plyToUpdatePc.add(currMove);
+		if (currPly+1 < pc.size()) {
+			// Bring down if possible
+			plyToUpdatePc.addAll(pc.get(currPly+1));
 		}
-		SearchDebugAgent.printPrincipalContinuation(currPly,this);
+		SearchDebugAgent.printPrincipalContinuation(currPly, this);
 	}
 	
-	public void update(int currPly, List<GenericMove> source_pc) {
+	public void update(int currPly, List<Integer> source_pc) {
 		// Update principal continuation from Transposition hit
-		int pc_len = source_pc.size();
-		int index = 0;
-		for (int column=currPly; column < searchDepthPly; column++, index++) {
-			for (int i=0; i <= index; i++) {
-				if (index < pc_len) {
-					GenericMove currMove = source_pc.get(index);
-					int type = (currMove.promotion != null) ? Move.TYPE_PROMOTION : Move.TYPE_REGULAR;
-					pc[currPly+i][column]=Move.toMove(currMove, null, type);
-				} else {
-					/* Note: if the principal continuation ends in a mate, 
-					 * it is valid that the continuation can be shorter than
-					 * the depth searched.
-				     */
-					pc[currPly+i][column]=0;
-				}
-			}		
-		}
+		List<Integer> plyToUpdatePc = pc.get(currPly);
+		plyToUpdatePc.clear();
+		plyToUpdatePc.addAll(source_pc);
+		clearTreeBeyondPly(currPly);
+		// question set up plies beyond this one?
 	}
 	
 	void clearTreeBeyondPly(int currPly) {
-		// Clear all principal continuation plies after the specified ply depth
-		int index = 0;
-		for (int column=currPly; column < searchDepthPly; column++, index++) {
-			for (int i=0; i <= index; i++) {
-			    pc[currPly+i][column] = 0;
-			}		
+		// Clear all principal continuations beyond the specified depth
+		for (List<Integer> plyList : pc.subList(currPly+1, pc.size())) {
+			plyList.clear();
 		}
 	}
 
 	void truncateAfterPly(int currPly ) {
+		/*
 		// Truncate all variations after the specified ply depth
-		for (int nextPly=currPly+1; nextPly < searchDepthPly; nextPly++) {
-			for (int i=0; i<searchDepthPly; i++)
-				// All plies need to be cleared.
-				pc[i][nextPly] = 0;
+		int truncateFrom = currPly+1;
+		clearTreeBeyondPly(currPly);
+		for (List<Integer> plyList : pc) {
+			if (truncateFrom < plyList.size())
+				plyList.subList(truncateFrom, plyList.size()).clear();
 		}
+		*/
+		// this is not sensible with lists
 	}
 
 	public void clearRowsBeyondPly(int clearAfter) {
-		for (int row=clearAfter+1; row < searchDepthPly; row++) {
-			for (int column=0; column<searchDepthPly; column++) {
-				pc[row][column] = 0;
+		clearTreeBeyondPly(clearAfter);
+		/*int firstPlyToClear = clearAfter+1;
+		if (firstPlyToClear < pc.size()) {
+			for (int ply=firstPlyToClear; ply < searchDepthPly; ply++) {
+				pc.get(ply).clear();
 			}
-		}
+		}*/
 	}
-
-	public int getBestMoveAsInt(byte currPly) {
-		return pc[currPly][currPly];
-	}
-
 }

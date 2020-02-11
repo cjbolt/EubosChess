@@ -12,6 +12,9 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
+import eubos.board.Piece;
+import eubos.position.Move;
+import eubos.position.Position;
 import eubos.search.PrincipalContinuation;
 
 public class PrincipalContinuationTest {
@@ -30,15 +33,30 @@ public class PrincipalContinuationTest {
 	}
 
 	@Test
-	@Ignore
-	public void testGetBestMove() {
-		fail("Not yet implemented");
+	public void test_update()  throws IllegalNotationException {
+		classUnderTest.update(3, Move.valueOf(Position.e5, Piece.BLACK_PAWN, Position.d4, Piece.WHITE_PAWN ));
+		classUnderTest.update(2, Move.valueOf(Position.d2, Piece.WHITE_PAWN, Position.d4, Piece.NONE ));
+		classUnderTest.update(1, Move.valueOf(Position.e7, Piece.BLACK_PAWN, Position.e5, Piece.NONE ));
+		classUnderTest.update(0, Move.valueOf(Position.a2, Piece.WHITE_PAWN, Position.a3, Piece.NONE ));
+		List<GenericMove> pv = classUnderTest.toPvList();
+		assertEquals(new GenericMove("a2a3"), pv.get(0));
+		assertEquals(new GenericMove("e7e5"), pv.get(1));
+		assertEquals(new GenericMove("d2d4"), pv.get(2));
+		assertEquals(new GenericMove("e5d4"), pv.get(3));		
 	}
 
 	@Test
 	@Ignore
-	public void testToStringAfter() {
-		fail("Not yet implemented");
+	public void testTruncate() throws IllegalNotationException {
+		classUnderTest.update(3, Move.valueOf(Position.e5, Piece.BLACK_PAWN, Position.d4, Piece.WHITE_PAWN ));
+		classUnderTest.update(2, Move.valueOf(Position.d2, Piece.WHITE_PAWN, Position.d4, Piece.NONE ));
+		classUnderTest.update(1, Move.valueOf(Position.e7, Piece.BLACK_PAWN, Position.e5, Piece.NONE ));
+		classUnderTest.update(0, Move.valueOf(Position.a2, Piece.WHITE_PAWN, Position.a3, Piece.NONE ));
+		classUnderTest.truncateAfterPly(1);
+		List<GenericMove> pv = classUnderTest.toPvList();
+		assertEquals(new GenericMove("a2a3"), pv.get(0));
+		assertEquals(new GenericMove("e7e5"), pv.get(1));
+		assertEquals(2, pv.size());		
 	}
 
 	@Test
@@ -49,12 +67,12 @@ public class PrincipalContinuationTest {
 	}
 
 	@Test
-	public void testUpdate() throws IllegalNotationException {
-		List<GenericMove> source_pc = new ArrayList<GenericMove>();
-		source_pc.add(new GenericMove("e2e4"));
-		source_pc.add(new GenericMove("e7e5"));
-		source_pc.add(new GenericMove("d2d4"));
-		source_pc.add(new GenericMove("e5d4"));
+	public void testUpdate(){
+		List<Integer> source_pc = new ArrayList<Integer>();
+		source_pc.add(Move.valueOf(Position.e2, Piece.NONE, Position.e4, Piece.NONE ));
+		source_pc.add(Move.valueOf(Position.e7, Piece.NONE, Position.e5, Piece.NONE ));
+		source_pc.add(Move.valueOf(Position.d2, Piece.NONE, Position.d4, Piece.NONE ));
+		source_pc.add(Move.valueOf(Position.e5, Piece.NONE, Position.d4, Piece.NONE ));
 		classUnderTest.update(3, source_pc);
 	}
 

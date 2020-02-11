@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import eubos.position.PositionManager;
 
+@Ignore
 public class PerformanceTestTest {
 
 	PerformanceTest sut;

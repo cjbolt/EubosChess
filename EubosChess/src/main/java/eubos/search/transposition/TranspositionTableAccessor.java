@@ -3,8 +3,6 @@ package eubos.search.transposition;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fluxchess.jcpi.models.GenericMove;
-
 import eubos.board.InvalidPieceException;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
@@ -122,21 +120,21 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 	public void createPrincipalContinuation(PrincipalContinuation pc, byte searchDepthPly, IChangePosition pm) throws InvalidPieceException {
 		byte plies = 0;
 		int numMoves = 0;
-		List<GenericMove> constructed_pc = new ArrayList<GenericMove>(searchDepthPly);
+		List<Integer> constructed_pc = new ArrayList<Integer>(searchDepthPly);
 		for (plies = 0; plies < searchDepthPly; plies++) {
 			/* Apply move and find best move from hash */
-			GenericMove pcMove = pc.getBestMove(plies); // Check against principal continuation where it is available
+			int pcMove = pc.getBestMoveAsInt(plies); // Check against principal continuation where it is available
 		    TranspositionEvaluation eval = this.getTransposition(searchDepthPly-plies);
 			if (eval.status != TranspositionTableStatus.insufficientNoData && eval.trans != null) {
 				int currMove = eval.trans.getBestMoveAsInt();
 				if (currMove != Move.NULL_MOVE) {
 					// Note, if the depth searched is more (from prev searches), it can be different to the pc for this search
-					if (pcMove != null && (eval.trans.getDepthSearchedInPly() <= (searchDepthPly-plies))) {
-						assert Move.areEqual(currMove, Move.toMove(pcMove)) : 
-							"Error: "+pcMove+" != "+Move.toGenericMove(currMove)+" @ply="+plies;
+					if (pcMove != Move.NULL_MOVE && (eval.trans.getDepthSearchedInPly() <= (searchDepthPly-plies))) {
+						assert Move.areEqual(currMove, pcMove) : 
+							"Error: "+pcMove+" != "+currMove+" @ply="+plies;
 					}
 					hashMap.protectHash(pos.getHash());
-					constructed_pc.add(Move.toGenericMove(currMove));
+					constructed_pc.add(currMove);
 					pm.performMove(currMove);
 					numMoves++;
 				}

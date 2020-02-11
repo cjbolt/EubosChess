@@ -74,6 +74,7 @@ public class PrincipalContinuationUpdateHelper
 				}
 				matePly =((mateMove-1)* PLIES_PER_MOVE)+1;
 			}
+			//assert matePly < 40;
 			return (matePly > 0) ? matePly : 0;
 		}
 		
