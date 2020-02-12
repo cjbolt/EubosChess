@@ -67,13 +67,17 @@ public class PrincipalContinuationTest {
 	}
 
 	@Test
-	public void testUpdate(){
+	public void testUpdateFromHashHit(){
 		List<Integer> source_pc = new ArrayList<Integer>();
 		source_pc.add(Move.valueOf(Position.e2, Piece.NONE, Position.e4, Piece.NONE ));
 		source_pc.add(Move.valueOf(Position.e7, Piece.NONE, Position.e5, Piece.NONE ));
 		source_pc.add(Move.valueOf(Position.d2, Piece.NONE, Position.d4, Piece.NONE ));
 		source_pc.add(Move.valueOf(Position.e5, Piece.NONE, Position.d4, Piece.NONE ));
 		classUnderTest.update(3, source_pc);
+		classUnderTest.update(2, Move.valueOf(Position.a7, Piece.NONE, Position.a6, Piece.NONE ));
+		List<Integer> updated_pc = classUnderTest.toPvList(2);
+		assertEquals(source_pc, updated_pc.subList(1, updated_pc.size()));
+		assertEquals((int)Move.valueOf(Position.a7, Piece.NONE, Position.a6, Piece.NONE ), (int)updated_pc.get(0));
 	}
 
 	@Test

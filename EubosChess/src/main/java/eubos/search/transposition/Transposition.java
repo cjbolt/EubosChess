@@ -1,5 +1,7 @@
 package eubos.search.transposition;
 
+import java.util.List;
+
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.position.MoveList;
@@ -13,22 +15,24 @@ public class Transposition {
 	private MoveList ml;
 	private int bestMove;
 	private ScoreType scoreType;
+	private List<Integer> pv;
 
 	public Transposition(byte depth, short score, ScoreType scoreType, MoveList ml, GenericMove bestMove) {
 		// Only used by tests
-		this(depth, score, scoreType, ml, Move.toMove(bestMove, null, Move.TYPE_NONE));
+		this(depth, score, scoreType, ml, Move.toMove(bestMove, null, Move.TYPE_NONE), null);
 	}
 	
-	public Transposition(byte depth, short score, ScoreType scoreType, MoveList ml, int bestMove) {
+	public Transposition(byte depth, short score, ScoreType scoreType, MoveList ml, int bestMove, List<Integer> pv) {
 		this.ml = ml;
 		setDepthSearchedInPly(depth);
 		setScore(score);
 		setScoreType(scoreType);
 		setBestMove(bestMove);
+		setPv(pv);
 	}
 	
-	public Transposition(byte depth, Score score, MoveList ml, int bestMove) {
-		this(depth, score.getScore(), score.getType(), ml, bestMove);
+	public Transposition(byte depth, Score score, MoveList ml, int bestMove, List<Integer> pv) {
+		this(depth, score.getScore(), score.getType(), ml, bestMove, pv);
 	}
 
 	public MoveList getMoveList() {
@@ -72,8 +76,26 @@ public class Transposition {
 		}
 	}
 	
+	public List<Integer> getPv() {
+		return pv;
+	}
+
+	public void setPv(List<Integer> pv) {
+		this.pv = pv;
+	}
+	
 	public String report() {
-		return "trans best: "+Move.toString(bestMove)+" dep:"+depthSearchedInPly+" sc:"+score+" type:"+scoreType +" ml: " + ml + " ref:" + Integer.toHexString(System.identityHashCode(ml));
+		String onward_pv = "";
+		for (int move : pv) {
+			onward_pv += String.format("%s, ", Move.toString(move));
+		}
+		String output = String.format("trans best=%s, dep=%d, sc=%d, type=%s, pv=%s", 
+				Move.toString(bestMove),
+				depthSearchedInPly,
+				score,
+				scoreType,
+				onward_pv);
+		return output; //ml: " + ml + " ref:" + Integer.toHexString(System.identityHashCode(ml));
 	}
 	
 	public void update(Transposition updateFrom) {
@@ -83,6 +105,7 @@ public class Transposition {
 	    this.setScoreType(updateFrom.getScoreType());
 	    this.setScore(updateFrom.getScore());
 	    this.setBestMove(updateFrom.getBestMove());
+	    this.setPv(updateFrom.getPv());
 	}
 
 	public void setMoveList(MoveList new_ml) {

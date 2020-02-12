@@ -57,6 +57,16 @@ public class PrincipalContinuation {
 		return mv;
 	}
 	
+	public List<Integer> toPvList(int currPly) { 
+		List<Integer> mv = new ArrayList<Integer>();
+		if (currPly < pc.size()) {
+			for (int currMove : pc.get(currPly)) {
+				mv.add(currMove);
+			}
+		}
+		return mv;
+	}
+	
 	void initialise(int currPly, int currMove) {
 		if (currPly < pc.size()) {
 			List<Integer> plyToUpdatePc = pc.get(currPly);
@@ -79,14 +89,12 @@ public class PrincipalContinuation {
 		}
 	}
 	
-	public void update(int currPly, List<Integer> source_pc) {
+	public void update(int currPly, List<Integer> onwards_pv) {
 		if (currPly < pc.size()) {
-			// Update principal continuation from Transposition hit
+			// Update a principal continuation from a Transposition hit
 			List<Integer> plyToUpdatePc = pc.get(currPly);
-			plyToUpdatePc.clear();
-			plyToUpdatePc.addAll(source_pc);
+			plyToUpdatePc.addAll(onwards_pv);
 			clearContinuationsBeyondPly(currPly);
-			// question set up plies beyond this one?
 		}
 	}
 	

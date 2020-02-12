@@ -91,10 +91,7 @@ public class PlySearcher {
 		switch (eval.status) {
 		case sufficientTerminalNode:
 			theScore = new Score(eval.trans.getScore(), eval.trans.getScoreType());
-			pc.clearContinuationsBeyondPly(currPly);
-			if (doScoreBackup(theScore)) {
-				updatePrincipalContinuation(eval.trans.getBestMove(), theScore.getScore(), true);
-			}
+			pc.update(currPly, eval.trans.getPv());
 			sm.incrementNodesSearched();
 			break;
 		case sufficientRefutation:
@@ -148,7 +145,7 @@ public class PlySearcher {
             st.setBackedUpScoreAtPly(currPly, theScore);
             // We will now de-recurse, so should make sure the depth searched is correct
             setDepthSearchedInPly();
-			trans = tt.setTransposition(sm, currPly, trans, getTransDepth(), theScore.getScore(), theScore.getType(), ml, Move.NULL_MOVE);
+			trans = tt.setTransposition(sm, currPly, trans, getTransDepth(), theScore.getScore(), theScore.getType(), ml, Move.NULL_MOVE, pc);
         } else {
     		PrimitiveIterator.OfInt move_iter = ml.getIterator(isInExtendedSearch());
     		if (isSearchRequired(ml, move_iter)) {
@@ -158,7 +155,7 @@ public class PlySearcher {
     			// and return the position score back down the tree. We always back-up, because it is terminal,
     			// and we need to overwrite any alpha/beta provisional score that was brought down.
     			theScore = st.getBackedUpScoreAtPly(currPly);
-    			trans = tt.setTransposition(sm, currPly, trans, (byte)0, theScore.getScore(), theScore.getType(), ml, Move.NULL_MOVE);
+    			trans = tt.setTransposition(sm, currPly, trans, (byte)0, theScore.getScore(), theScore.getType(), ml, Move.NULL_MOVE, pc);
     		}
         }
         return theScore;
@@ -188,15 +185,15 @@ public class PlySearcher {
 	                everBackedUp = true;
 	                backedUpScoreWasExact = (positionScore.getType()==ScoreType.exact);
                     plyScore = positionScore;
-                    trans = tt.setTransposition(sm, currPly, trans, getTransDepth(), positionScore.getScore(), plyBound, ml, currMove);
-                    updatePrincipalContinuation(currMove, positionScore.getScore(), false);
+                    updatePrincipalContinuation(currMove, positionScore.getScore());
+                    trans = tt.setTransposition(sm, currPly, trans, getTransDepth(), positionScore.getScore(), plyBound, ml, currMove, pc);
 	            } else {
 	                // Always clear the principal continuation when we didn't back up the score
 	                pc.clearContinuationsBeyondPly(currPly);
 	                // Update the position hash if the move is better than that previously stored at this position
 	                if (shouldUpdatePositionBoundScoreAndBestMove(plyBound, plyScore.getScore(), positionScore.getScore())) {
 	                    plyScore = positionScore;
-	                    trans = tt.setTransposition(sm, currPly, trans, getTransDepth(), plyScore.getScore(), plyBound, ml, currMove);
+	                    trans = tt.setTransposition(sm, currPly, trans, getTransDepth(), plyScore.getScore(), plyBound, ml, currMove, pc);
 	                }
 	            }
 	        
@@ -251,13 +248,10 @@ public class PlySearcher {
 		return searchIsNeeded;
 	}
 	
-	private void updatePrincipalContinuation(
-			int currMove, short positionScore, boolean isATerminalNodeHashHit)
+	private void updatePrincipalContinuation(int currMove, short positionScore)
 			throws InvalidPieceException {
 		pc.update(currPly, currMove);
-		if (atRootNode() && !isATerminalNodeHashHit) {
-			// If backed up to the root node, report the principal continuation
-			tt.createPrincipalContinuation(pc, originalSearchDepthRequiredInPly, pm);
+		if (atRootNode()) {
 			pcUpdater.report(positionScore, extendedSearchDeepestPly);
 		}
 	}

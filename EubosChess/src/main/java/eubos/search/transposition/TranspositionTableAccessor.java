@@ -46,7 +46,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			
 			if (ret.trans.getScoreType() == ScoreType.exact) {
 				ret.status = TranspositionTableStatus.sufficientTerminalNode;
-				SearchDebugAgent.printHashIsTerminalNode(currPly, ret.trans.getBestMove(), ret.trans.getScore(),pos.getHash());
+				SearchDebugAgent.printHashIsTerminalNode(currPly, ret.trans, pos.getHash());
 			} else {
 				// must be either (bound == ScoreType.upperBound || bound == ScoreType.lowerBound)
 				if (st.isAlphaBetaCutOff(currPly, new Score(ret.trans.getScore(), ret.trans.getScoreType()))) {
@@ -101,12 +101,12 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return ret;
 	}
 	
-	public Transposition setTransposition(SearchMetrics sm, byte currPly, Transposition trans, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove) {
+	public Transposition setTransposition(SearchMetrics sm, byte currPly, Transposition trans, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove, PrincipalContinuation pc) {
 		if (trans == null) {
-			trans = getTransCreateIfNew(currPly, new_Depth, new_score, new_bound, new_ml, new_bestMove);
+			trans = getTransCreateIfNew(currPly, new_Depth, new_score, new_bound, new_ml, new_bestMove, pc);
 			sm.setHashFull(getHashUtilisation());
 		}
-		trans = checkForUpdateTrans(currPly, trans, new_Depth, new_score, new_bound, new_ml, new_bestMove);
+		trans = checkForUpdateTrans(currPly, trans, new_Depth, new_score, new_bound, new_ml, new_bestMove, pc);
 		return trans;
 	}
 	
@@ -114,46 +114,11 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		hashMap.remove(hashCode);
 	}
 	
-	public void createPrincipalContinuation(PrincipalContinuation pc, byte searchDepthPly, IChangePosition pm) throws InvalidPieceException {
-		/*
-		 * This function is very problematic, it is just not ok to try and use the current best move for a hashed position as the PV.
-		 * There is simply no alternative to storing it in the transposition if we want a proper PV reported. 
-		 */
-		/*
-		byte plies = 0;
-		int numMoves = 0;
-		List<Integer> constructed_pc = new ArrayList<Integer>(searchDepthPly);
-		for (plies = 0; plies < searchDepthPly; plies++) {
-			// Apply move and find best move from hash
-			int pcMove = pc.getBestMove(plies); // Check against principal continuation where it is available
-		    TranspositionEvaluation eval = this.getTransposition(searchDepthPly-plies);
-			if (eval.status != TranspositionTableStatus.insufficientNoData && eval.trans != null) {
-				int currMove = eval.trans.getBestMove();
-				if (currMove != Move.NULL_MOVE) {
-					// Note, if the depth searched is more (from prev searches), it can be different to the pc for this search
-					if (pcMove != Move.NULL_MOVE && (eval.trans.getDepthSearchedInPly() <= (searchDepthPly-plies))) {
-						assert Move.areEqual(currMove, pcMove) : 
-							"Error: "+pcMove+" != "+currMove+" @ply="+plies;
-					}
-					hashMap.protectHash(pos.getHash());
-					constructed_pc.add(currMove);
-					pm.performMove(currMove);
-					numMoves++;
-				}
-			}
-		}
-		for (plies = (byte)(numMoves-1); plies >= 0; plies--) {
-			pm.unperformMove();
-		}
-		pc.update(0, constructed_pc);
-		*/
-	}
-	
-	private Transposition getTransCreateIfNew(int currPly, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove) {
+	private Transposition getTransCreateIfNew(int currPly, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove, PrincipalContinuation pc) {
 		SearchDebugAgent.printTransNull(currPly, pos.getHash());
 		Transposition trans = hashMap.getTransposition(pos.getHash());
 		if (trans == null) {
-			Transposition new_trans = new Transposition(new_Depth, new_score, new_bound, new_ml, new_bestMove);
+			Transposition new_trans = new Transposition(new_Depth, new_score, new_bound, new_ml, new_bestMove, (pc != null) ? pc.toPvList(currPly) : null);
 			SearchDebugAgent.printCreateTrans(currPly, pos.getHash());
 			hashMap.putTransposition(pos.getHash(), new_trans);
 			SearchDebugAgent.printTransUpdate(currPly, new_trans, pos.getHash());
@@ -162,7 +127,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return trans;
 	}
 	
-	private Transposition checkForUpdateTrans(int currPly, Transposition current_trans, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove) {
+	private Transposition checkForUpdateTrans(int currPly, Transposition current_trans, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove, PrincipalContinuation pc) {
 		boolean updateTransposition = false;
 		int currentDepth = current_trans.getDepthSearchedInPly();
 		ScoreType currentBound = current_trans.getScoreType();
@@ -198,6 +163,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			current_trans.setScoreType(new_bound);
 			current_trans.setScore(new_score);
 			current_trans.setBestMove(new_bestMove);
+			current_trans.setPv(pc.toPvList(currPly));
 			
 		    hashMap.putTransposition(pos.getHash(), current_trans);
 		    SearchDebugAgent.printTransUpdate(currPly, current_trans, pos.getHash());

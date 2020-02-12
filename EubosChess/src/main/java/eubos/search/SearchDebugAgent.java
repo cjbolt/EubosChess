@@ -110,11 +110,11 @@ public class SearchDebugAgent {
 		}
 	}
 
-	public static void printHashIsTerminalNode(int currPly, int move, int score, long hash) {
+	public static void printHashIsTerminalNode(int currPly, Transposition trans, long hash) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"hash "+hash+" term best:"+Move.toString(move)+" score:"+ score +" @"+currPly);
+			printOutput(indent+"hash "+hash+" term "+trans.report()+" @"+currPly);
 		}
 	}
 
@@ -142,15 +142,6 @@ public class SearchDebugAgent {
 			printOutput(indent+"ab cmp prev:"+prevPlyScore+" curr:"+positionScore+" @"+currPly);
 		}
 		
-	}
-
-	public static void printTransUpdate(int currPly, int move, int depthPositionSearchedPly, int score,
-			ScoreType bound, long hash) {
-		if (isDebugOn) {
-			if ( currPly != lastPly )
-				computeIndent(currPly);
-			printOutput(indent+"trans hash: "+hash+" mv:"+Move.toString(move)+" dep:"+depthPositionSearchedPly+" sc:"+score+" type:"+bound);
-		}		
 	}
 
 	public static void printTransUpdate(int currPly, Transposition trans, long hashCode) {
