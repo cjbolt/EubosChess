@@ -86,8 +86,10 @@ public class Transposition {
 	
 	public String report() {
 		String onward_pv = "";
-		for (int move : pv) {
-			onward_pv += String.format("%s, ", Move.toString(move));
+		if (pv != null) {
+			for (int move : pv) {
+				onward_pv += String.format("%s, ", Move.toString(move));
+			}
 		}
 		String output = String.format("trans best=%s, dep=%d, sc=%d, type=%s, pv=%s", 
 				Move.toString(bestMove),

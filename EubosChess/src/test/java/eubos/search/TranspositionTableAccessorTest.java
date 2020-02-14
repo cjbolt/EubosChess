@@ -153,7 +153,7 @@ public class TranspositionTableAccessorTest {
 		GenericMove move2 = new GenericMove("d2d4");
 		MoveList ml = new MoveList(pm);
 		List<GenericMove> pc = new ArrayList<GenericMove>();
-		PrincipalContinuation the_pc = new PrincipalContinuation(0);
+		List<Integer> the_pc = new ArrayList<Integer>(0);
 		pc.add(move1);
 
 		currPly = 2;
@@ -179,7 +179,7 @@ public class TranspositionTableAccessorTest {
 		sut = new TranspositionTableAccessor(transTable, pm, st, pm, new PositionEvaluator(pm, new DrawChecker()));
 		GenericMove move1 = new GenericMove("h3h4");
 		GenericMove move2 = new GenericMove("f3f4");
-		PrincipalContinuation the_pc = new PrincipalContinuation(0);
+		List<Integer> the_pc = new ArrayList<Integer>(0);
 		
 		MoveList ml = new MoveList(pm);
 		List<GenericMove> pc = new ArrayList<GenericMove>();

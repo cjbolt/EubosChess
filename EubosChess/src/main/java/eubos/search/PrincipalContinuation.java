@@ -93,7 +93,10 @@ public class PrincipalContinuation {
 		if (currPly < pc.size()) {
 			// Update a principal continuation from a Transposition hit
 			List<Integer> plyToUpdatePc = pc.get(currPly);
-			plyToUpdatePc.addAll(onwards_pv);
+			plyToUpdatePc.clear();
+			if (onwards_pv != null) {
+				plyToUpdatePc.addAll(onwards_pv);
+			}
 			clearContinuationsBeyondPly(currPly);
 		}
 	}

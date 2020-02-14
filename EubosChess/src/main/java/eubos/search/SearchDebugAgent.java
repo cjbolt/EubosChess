@@ -12,7 +12,7 @@ import eubos.search.Score.ScoreType;
 public class SearchDebugAgent {
 
 	private static String indent = "";
-	public static boolean isDebugOn = true;
+	public static boolean isDebugOn = false;
 	private static int lastPly = 0;
 	private static FileWriter fw;
 	private static String filenameBase = "";
@@ -118,11 +118,11 @@ public class SearchDebugAgent {
 		}
 	}
 
-	public static void printHashIsRefutation(int currPly, int move, long hash) {
+	public static void printHashIsRefutation(int currPly, long hash, Transposition trans) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"hash "+hash+" ref @ Ply="+currPly+" move: "+Move.toString(move));
+			printOutput(indent+"hash "+hash+" ref "+trans.report()+" @ Ply="+currPly);
 		}
 		
 	}
@@ -168,11 +168,11 @@ public class SearchDebugAgent {
 		}		
 	}
 	
-	public static void printExactTrans(int currPly, long hashCode) {
+	public static void printExactTrans(int currPly, long hashCode, Transposition trans) {
 		if (isDebugOn) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"trans now exact, hash: "+hashCode);
+			printOutput(indent+"trans now exact, hash: "+hashCode+" trans:"+trans.report());
 		}		
 	}
 

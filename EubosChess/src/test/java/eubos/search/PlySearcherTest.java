@@ -2,6 +2,7 @@ package eubos.search;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -98,16 +99,16 @@ public class PlySearcherTest {
 		initialisePositionAndSearch("8/8/1P6/8/5p2/8/8/8 w - - 0 1", (byte)4);
 		
 		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
-		doReturn(new Transposition((byte)1, (short)0, null, null, null)).when(mock_hashMap).setTransposition(any(SearchMetrics.class), anyByte(), (Transposition)isNull(), anyByte(), anyShort(), any(ScoreType.class), any(MoveList.class), anyInt(), any(PrincipalContinuation.class));
+		doReturn(new Transposition((byte)1, (short)0, null, null, null)).when(mock_hashMap).setTransposition(any(SearchMetrics.class), anyByte(), (Transposition)isNull(), anyByte(), anyShort(), any(ScoreType.class), any(MoveList.class), anyInt(), any(List.class));
 		
 		assertEquals(650, classUnderTest.searchPly());
 		
-		verify(mock_hashMap, times(8)).setTransposition(any(SearchMetrics.class), anyByte(), (Transposition)isNull(), anyByte(), anyShort(), any(ScoreType.class), any(MoveList.class), anyInt(), any(PrincipalContinuation.class));
+		verify(mock_hashMap, times(8)).setTransposition(any(SearchMetrics.class), anyByte(), (Transposition)isNull(), anyByte(), anyShort(), any(ScoreType.class), any(MoveList.class), anyInt(), any(List.class));
 		
 		ArgumentCaptor<Integer> captorNew = ArgumentCaptor.forClass(Integer.class);
 		ArgumentCaptor<Transposition> captorOld = ArgumentCaptor.forClass(Transposition.class);
 		ArgumentCaptor<Byte> captorPly = ArgumentCaptor.forClass(Byte.class);
-		verify(mock_hashMap, times(8)).setTransposition(any(SearchMetrics.class), captorPly.capture(), captorOld.capture(), anyByte(), anyShort(), any(ScoreType.class), any(MoveList.class), captorNew.capture(), any(PrincipalContinuation.class));
+		verify(mock_hashMap, times(8)).setTransposition(any(SearchMetrics.class), captorPly.capture(), captorOld.capture(), anyByte(), anyShort(), any(ScoreType.class), any(MoveList.class), captorNew.capture(), any(List.class));
 		List<Integer> new_trans_args = captorNew.getAllValues();
 		List<Transposition> trans_args = captorOld.getAllValues();
 		List<Byte> plies = captorPly.getAllValues();
@@ -192,7 +193,7 @@ public class PlySearcherTest {
 		
 	    //setupBackUpToRootNodeTerminatesTest();
 		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
-		verify(mock_hashMap, never()).setTransposition(any(SearchMetrics.class), anyByte(), (Transposition)isNull(), anyByte(), anyShort(), any(ScoreType.class), any(MoveList.class), anyInt(), any(PrincipalContinuation.class));
+		verify(mock_hashMap, never()).setTransposition(any(SearchMetrics.class), anyByte(), (Transposition)isNull(), anyByte(), anyShort(), any(ScoreType.class), any(MoveList.class), anyInt(), any(List.class));
 		classUnderTest.searchPly();
 	}
 

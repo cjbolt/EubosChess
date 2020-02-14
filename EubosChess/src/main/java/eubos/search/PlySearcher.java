@@ -96,7 +96,7 @@ public class PlySearcher {
 			break;
 		case sufficientRefutation:
 			theScore = new Score(eval.trans.getScore(), (pos.onMoveIsWhite()) ? ScoreType.lowerBound : ScoreType.upperBound);
-			pc.clearContinuationsBeyondPly(currPly);
+			pc.update(currPly, eval.trans.getPv());
 			sm.incrementNodesSearched();
 			break;
 		case sufficientSeedMoveList:
@@ -145,7 +145,7 @@ public class PlySearcher {
             st.setBackedUpScoreAtPly(currPly, theScore);
             // We will now de-recurse, so should make sure the depth searched is correct
             setDepthSearchedInPly();
-			trans = tt.setTransposition(sm, currPly, trans, getTransDepth(), theScore.getScore(), theScore.getType(), ml, Move.NULL_MOVE, pc);
+			trans = tt.setTransposition(sm, currPly, trans, getTransDepth(), theScore.getScore(), theScore.getType(), ml, Move.NULL_MOVE, pc.toPvList(currPly));
         } else {
     		PrimitiveIterator.OfInt move_iter = ml.getIterator(isInExtendedSearch());
     		if (isSearchRequired(ml, move_iter)) {
@@ -155,7 +155,7 @@ public class PlySearcher {
     			// and return the position score back down the tree. We always back-up, because it is terminal,
     			// and we need to overwrite any alpha/beta provisional score that was brought down.
     			theScore = st.getBackedUpScoreAtPly(currPly);
-    			trans = tt.setTransposition(sm, currPly, trans, (byte)0, theScore.getScore(), theScore.getType(), ml, Move.NULL_MOVE, pc);
+    			trans = tt.setTransposition(sm, currPly, trans, (byte)0, theScore.getScore(), theScore.getType(), ml, Move.NULL_MOVE, pc.toPvList(currPly));
     		}
         }
         return theScore;
@@ -186,14 +186,16 @@ public class PlySearcher {
 	                backedUpScoreWasExact = (positionScore.getType()==ScoreType.exact);
                     plyScore = positionScore;
                     updatePrincipalContinuation(currMove, positionScore.getScore());
-                    trans = tt.setTransposition(sm, currPly, trans, getTransDepth(), positionScore.getScore(), plyBound, ml, currMove, pc);
+                    trans = tt.setTransposition(sm, currPly, trans, getTransDepth(), positionScore.getScore(), plyBound, ml, currMove, pc.toPvList(currPly));
 	            } else {
+                    List<Integer> last_pv = pc.toPvList(currPly+1);
+                    last_pv.add(0, currMove);
 	                // Always clear the principal continuation when we didn't back up the score
 	                pc.clearContinuationsBeyondPly(currPly);
 	                // Update the position hash if the move is better than that previously stored at this position
 	                if (shouldUpdatePositionBoundScoreAndBestMove(plyBound, plyScore.getScore(), positionScore.getScore())) {
 	                    plyScore = positionScore;
-	                    trans = tt.setTransposition(sm, currPly, trans, getTransDepth(), plyScore.getScore(), plyBound, ml, currMove, pc);
+	                    trans = tt.setTransposition(sm, currPly, trans, getTransDepth(), plyScore.getScore(), plyBound, ml, currMove, last_pv/*(trans != null) ? trans.getPv() : null*/);
 	                }
 	            }
 	        
@@ -213,15 +215,16 @@ public class PlySearcher {
 		if (!isTerminated() && isInNormalSearch()) {
 		    if (everBackedUp && backedUpScoreWasExact && !refutationFound && trans != null) {
 		    	// This is the only way a hash and score can be exact.
-		    	if (trans.getDepthSearchedInPly() == getTransDepth()) {
+		    	if (trans.getDepthSearchedInPly() <= getTransDepth()) {
 		    		// however we need to be careful that the depth is appropriate, we don't set exact for wrong depth...
 		    		trans.setScoreType(ScoreType.exact);
 		    		
 			        // found to be needed due to score discrepancies caused by refutations coming out of extedned search...
 			        trans.setBestMove(pc.getBestMove(currPly));
+			        trans.setPv(pc.toPvList(currPly));
 			        trans.setScore(plyScore.getScore());
 			        
-			        SearchDebugAgent.printExactTrans(currPly, pos.getHash());
+			        SearchDebugAgent.printExactTrans(currPly, pos.getHash(), trans);
 		    	}
 		    	plyScore.setExact();
 		    }
