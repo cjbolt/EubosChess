@@ -16,6 +16,7 @@ import eubos.position.Position;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericPosition;
+import com.fluxchess.jcpi.models.IntRank;
 
 public class Board implements Iterable<Integer> {
 
@@ -111,6 +112,17 @@ public class Board implements Iterable<Integer> {
 				mask  |= 1L << r*8+f;
 			}
 			FileMask_Lut.put(file, new BitBoard(mask));
+		}
+	}
+	
+	private static final BitBoard[] RankMask_Lut = new BitBoard[8];
+	static {
+		for (int r : IntRank.values) {
+			long mask = 0;
+			for (int f = 0; f<8; f++) {
+				mask  |= 1L << r*8+f;
+			}
+			RankMask_Lut[r] = new BitBoard(mask);
 		}
 	}
 	
@@ -583,5 +595,16 @@ public class Board implements Iterable<Integer> {
 		int kingPosition = BitBoard.maskToPosition_Lut.get(king.getValue());
 		BitBoard attackingSquares = directAttacksOnPosition_Lut[kingPosition];
 		return square.and(attackingSquares).isNonZero();
+	}
+	
+	public boolean isPromotionPossible(Colour onMove) {
+		// At the moment this doesn't consider if the pawn is blocked or pinned...
+		boolean potentialPromotion = false;
+		if (Piece.Colour.isWhite(onMove)) {
+			potentialPromotion = getWhitePawns().and(RankMask_Lut[IntRank.R7]).isNonZero();
+		} else {
+			potentialPromotion = getBlackPawns().and(RankMask_Lut[IntRank.R2]).isNonZero();
+		}
+		return potentialPromotion;
 	}
 }

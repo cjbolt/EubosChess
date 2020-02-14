@@ -39,6 +39,8 @@ public class PositionEvaluator implements IEvaluate {
 		if (pm.isKingInCheck(pm.getOnMove())) {
 			// In order to check for mates
 			return false;
+		} else if (pm.lastMoveWasPromotion() || pm.isPromotionPossible()) {
+			return false;
 		} else if (pm.lastMoveWasCapture()) {
 			// we could keep a capture list, so we know where we are in the exchange series?
 			// we can get access to the captured piece in the current codebase, but we need to know the whole capture sequence to do swap off?

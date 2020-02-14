@@ -33,4 +33,14 @@ class MoveTracker extends Stack<TrackedMove> {
 		}
 		return captured;
 	}
+
+	public boolean lastMoveWasPromotion() {
+		boolean wasPromotion = false;
+		if ( !this.isEmpty()) {
+			int moveType = Move.getType(this.peek().getMove());
+			wasPromotion = (moveType >= Move.TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK) && 
+					       (moveType <= Move.TYPE_KBR_PROMOTION);
+		}
+		return wasPromotion;
+	}
 }

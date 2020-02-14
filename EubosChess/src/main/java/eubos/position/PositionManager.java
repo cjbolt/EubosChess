@@ -73,6 +73,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return moveTracker.lastMoveWasCapture();
 	}
 	
+	public boolean lastMoveWasPromotion() {
+		return moveTracker.lastMoveWasPromotion();
+	}
+	
 	public CaptureData getCapturedPiece() {
 		return moveTracker.getCapturedPiece();
 	}
@@ -446,5 +450,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		} catch (InvalidPieceException e) {
 		}
 		return hashForMove;
+	}
+
+	public boolean isPromotionPossible() {
+		return theBoard.isPromotionPossible(onMove);
 	}
 }
