@@ -47,15 +47,15 @@ public class PositionEvaluator implements IEvaluate {
 			CaptureData captured = pm.getCapturedPiece();
 			if (captured != null)
 			{
-				if ((Piece.Colour.isWhite(pm.getOnMove()) && pm.getTheBoard().getWhitePieces().isNonZero()) ||
+				/*if ((Piece.Colour.isWhite(pm.getOnMove()) && pm.getTheBoard().getWhitePieces().isNonZero()) ||
 					(Piece.Colour.isBlack(pm.getOnMove()) && pm.getTheBoard().getBlackPieces().isNonZero())) {
 					return false;
-				}
-				/*if (SquareAttackEvaluator.isAttacked(
+				}*/
+				if (SquareAttackEvaluator.isAttacked(
 						pm.getTheBoard(),
 						captured.getSquare(),
 						Colour.getOpposite(pm.getOnMove())))
-					return false;*/
+					return false;
 			}
 		}
 		return true;

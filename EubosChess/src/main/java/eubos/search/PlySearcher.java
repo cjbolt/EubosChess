@@ -68,7 +68,7 @@ public class PlySearcher {
 		this.lastPc = lastPc;
 		dynamicSearchLevelInPly = searchDepthPly;
 		originalSearchDepthRequiredInPly = searchDepthPly;
-		extendedSearchLimitInPly = (byte)(originalSearchDepthRequiredInPly+Math.min(MiniMaxMoveGenerator.EXTENDED_SEARCH_PLY_LIMIT, originalSearchDepthRequiredInPly*3));
+		extendedSearchLimitInPly = setExtSearchDepth();
 		
 		this.st = st;
 		tt = hashMap;
@@ -76,6 +76,12 @@ public class PlySearcher {
 		pcUpdater = new PrincipalContinuationUpdateHelper(pos.getOnMove(), pc, sm, sr);
 	}
 	
+	private byte setExtSearchDepth() {
+		int variableDepthPly = originalSearchDepthRequiredInPly * 4;
+		byte extDepthLimitPly = (byte)Math.min(MiniMaxMoveGenerator.EXTENDED_SEARCH_PLY_LIMIT, variableDepthPly);
+		extDepthLimitPly += originalSearchDepthRequiredInPly;
+		return extDepthLimitPly;
+	}
 	private boolean atRootNode() { return currPly == 0; }
 	
 	public synchronized void terminateFindMove() { terminate = true; }
@@ -177,7 +183,9 @@ public class PlySearcher {
 		if (this.isInExtendedSearch() && ml.hasRegularMoves()) {
 			/*
 			 * The idea is that if we are in an extended search, if there are normal moves available 
-			 * and only a singular capture, we shouldn't be forced into making that capture. 
+			 * and only a single "forced" capture, we shouldn't necessarily be forced into making that capture.
+			 * The capture needs to improve the position score to get searched, otherwise can treat as terminal.
+			 * Note if the King is in check, and there are regular moves, it can escape check, so that is ok. 
 			 */
 			plyScore.score = pe.evaluatePosition();
 			st.setBackedUpScoreAtPly(currPly, plyScore);
@@ -230,7 +238,7 @@ public class PlySearcher {
 		    		// however we need to be careful that the depth is appropriate, we don't set exact for wrong depth...
 		    		trans.setScoreType(ScoreType.exact);
 		    		
-			        // found to be needed due to score discrepancies caused by refutations coming out of extedned search...
+			        // found to be needed due to score discrepancies caused by refutations coming out of extended search...
 			        trans.setBestMove(pc.getBestMove(currPly));
 			        trans.setPv(pc.toPvList(currPly));
 			        trans.setScore(plyScore.getScore());
