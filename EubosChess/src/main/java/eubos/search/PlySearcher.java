@@ -123,7 +123,7 @@ public class PlySearcher {
 			dynamicSearchLevelInPly++;
 		}
 		if (this.isInExtendedSearch()) {
-			transDepthRequiredForTerminalNode = (byte)Math.max(MiniMaxMoveGenerator.SEARCH_PLY_MULTIPLIER, originalSearchDepthRequiredInPly);
+			transDepthRequiredForTerminalNode = (byte)Math.max(originalSearchDepthRequiredInPly+MiniMaxMoveGenerator.EXTENDED_SEARCH_PLY_LIMIT, originalSearchDepthRequiredInPly);
 		} else {
 			transDepthRequiredForTerminalNode = (byte)(originalSearchDepthRequiredInPly - currPly);
 		}
@@ -172,7 +172,16 @@ public class PlySearcher {
 		Score plyScore = new Score((plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE, plyBound);
 		int currMove = move_iter.nextInt();
 		
-		//pc.update(currPly, currMove);
+		if (this.isInExtendedSearch() && ml.hasRegularMoves()) {
+			/*
+			 * The idea is that if we are in an extended search, if there are normal moves available 
+			 * and only a singular capture, we shouldn't be forced into making that capture. 
+			 */
+			plyScore.score = pe.evaluatePosition();
+			st.setBackedUpScoreAtPly(currPly, plyScore);
+			SearchDebugAgent.inExtendedSearchAlternatives(currPly, currMove, plyScore.score);
+		}
+		
 		pc.initialise(currPly, currMove);
 		while(!isTerminated()) {
 		    rootNodeInitAndReportingActions(currMove);
@@ -388,7 +397,7 @@ public class PlySearcher {
 		boolean limitReached = false;
 		if (currPly%2 == 0) {
 			// means that initial onMove side is back on move
-			if (currPly > (originalSearchDepthRequiredInPly*MiniMaxMoveGenerator.SEARCH_PLY_MULTIPLIER)-2) {
+			if (currPly > (originalSearchDepthRequiredInPly+MiniMaxMoveGenerator.EXTENDED_SEARCH_PLY_LIMIT)-2) {
 				// -2 always leaves room for one more move for each side without overflowing array...
 				limitReached = true;
 			}

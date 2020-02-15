@@ -142,7 +142,7 @@ public class IterativeMoveSearcherTest {
 	@Test
 	public void test_mateInFour() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
 		// chess.com Problem ID: 0102832
-		setupPosition( "r1r3k1/pb1p1p2/1p2p1p1/2pPP1B1/1nP4Q/1Pq2NP1/P4PBP/b2R2K1 w - - - -", 6000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
+		setupPosition( "r1r3k1/pb1p1p2/1p2p1p1/2pPP1B1/1nP4Q/1Pq2NP1/P4PBP/b2R2K1 w - - - -", 12000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
 		expectedMove = new GenericMove("g5f6");
 		runSearcherAndTestBestMoveReturned();
 	}
@@ -157,7 +157,7 @@ public class IterativeMoveSearcherTest {
 	
 	@Test
 	public void test_findMove_mateInThree() throws NoLegalMoveException, IllegalNotationException {
-		setupPosition("2kr3r/ppp2ppp/8/8/1P5P/1K1b1P1N/P3P1P1/4qB1R b - - 3 24", 1500*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
+		setupPosition("2kr3r/ppp2ppp/8/8/1P5P/1K1b1P1N/P3P1P1/4qB1R b - - 3 24", 4500*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
 		expectedMove = new GenericMove("e1b1");
 		runSearcherAndTestBestMoveReturned();
 	}

@@ -216,4 +216,12 @@ public class SearchDebugAgent {
 			printOutput(indent+"trans set @"+currPly+", bound:"+currentBound+", curr score: "+score+", new score: "+score2);
 		}	
 	}
+
+	public static void inExtendedSearchAlternatives(int currPly, int currMove, short score) {
+		if (isDebugOn) {
+			if ( currPly != lastPly )
+				computeIndent(currPly);
+			printOutput(indent+"extSearch @"+currPly+", move:"+Move.toString(currMove)+", alt score: "+score);
+		}
+	}
 }

@@ -320,4 +320,12 @@ public class MoveList implements Iterable<Integer> {
 		}
 		return retVal;
 	}
+
+	public boolean hasRegularMoves() {
+		for (int move : normal_search_moves) {
+			if (Move.getType(move) == Move.TYPE_REGULAR)
+				return true;
+		}
+		return false;
+	}
 }
