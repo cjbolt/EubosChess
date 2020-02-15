@@ -43,6 +43,7 @@ public class PlySearcher {
 	byte currDepthSearchedInPly = 0;
 	private byte originalSearchDepthRequiredInPly = 0;
 	private byte extendedSearchDeepestPly = 0;
+	private byte extendedSearchLimitInPly = 0;
 	
 	public PlySearcher(
 			ITranspositionAccessor hashMap,
@@ -67,6 +68,7 @@ public class PlySearcher {
 		this.lastPc = lastPc;
 		dynamicSearchLevelInPly = searchDepthPly;
 		originalSearchDepthRequiredInPly = searchDepthPly;
+		extendedSearchLimitInPly = (byte)(originalSearchDepthRequiredInPly+Math.min(MiniMaxMoveGenerator.EXTENDED_SEARCH_PLY_LIMIT, originalSearchDepthRequiredInPly*3));
 		
 		this.st = st;
 		tt = hashMap;
@@ -123,7 +125,7 @@ public class PlySearcher {
 			dynamicSearchLevelInPly++;
 		}
 		if (this.isInExtendedSearch()) {
-			transDepthRequiredForTerminalNode = (byte)Math.max(originalSearchDepthRequiredInPly+MiniMaxMoveGenerator.EXTENDED_SEARCH_PLY_LIMIT, originalSearchDepthRequiredInPly);
+			transDepthRequiredForTerminalNode = extendedSearchLimitInPly;
 		} else {
 			transDepthRequiredForTerminalNode = (byte)(originalSearchDepthRequiredInPly - currPly);
 		}
@@ -397,7 +399,7 @@ public class PlySearcher {
 		boolean limitReached = false;
 		if (currPly%2 == 0) {
 			// means that initial onMove side is back on move
-			if (currPly > (originalSearchDepthRequiredInPly+MiniMaxMoveGenerator.EXTENDED_SEARCH_PLY_LIMIT)-2) {
+			if (currPly > extendedSearchLimitInPly-2) {
 				// -2 always leaves room for one more move for each side without overflowing array...
 				limitReached = true;
 			}
