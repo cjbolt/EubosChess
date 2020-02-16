@@ -24,7 +24,7 @@ public class MoveList implements Iterable<Integer> {
 	
     class MoveTypeComparator implements Comparator<Integer> {
         @Override public int compare(Integer move1, Integer move2) {
-            boolean gt = Move.getType(move1) > Move.getType(move2);
+            boolean gt = Move.getType(move1) < Move.getType(move2);
             boolean eq = Move.getType(move1) == Move.getType(move2);
             return gt ? 1 : (eq ? 0 : -1);
         }
@@ -32,6 +32,50 @@ public class MoveList implements Iterable<Integer> {
 	
 	public MoveList(PositionManager pm) {
 		this(pm, null);
+	}
+	
+	int computeMoveType(PositionManager pm, int currMove, int piece) {
+		int moveType = Move.TYPE_NONE;
+		CaptureData cap = pm.getCapturedPiece();
+		boolean isCapture = (cap != null && cap.target != Piece.NONE);
+		boolean isCheck = pm.isKingInCheck(pm.getOnMove());
+		boolean isCastle = (Piece.isKing(piece)) ? pm.lastMoveWasCastle() : false;
+		
+		// Promotions
+		int promotion = Move.getPromotion(currMove);
+		if (promotion == IntChessman.QUEEN)
+			moveType |= Move.TYPE_PROMOTION_QUEEN_MASK;
+		if (promotion == IntChessman.ROOK)
+			moveType |= Move.TYPE_PROMOTION_ROOK_MASK;
+		if (promotion == IntChessman.BISHOP || promotion == IntChessman.KNIGHT)
+			moveType |= Move.TYPE_PROMOTION_PIECE_MASK;
+
+		// Captures
+		if (isCapture) {
+			if (Piece.isQueen(cap.target)) {
+				moveType |= Move.TYPE_CAPTURE_QUEEN_MASK;
+			} else if (Piece.isRook(cap.target)) {
+				moveType |= Move.TYPE_CAPTURE_ROOK_MASK;
+			} else if (Piece.isKnight(cap.target) || Piece.isBishop(cap.target)) {
+				moveType |= Move.TYPE_CAPTURE_PIECE_MASK;
+			} else if (Piece.isPawn(cap.target)) {
+				moveType |= Move.TYPE_CAPTURE_PAWN_MASK;
+			}
+		}
+		
+		// Check
+		if (isCheck)
+			moveType |= Move.TYPE_CHECK_MASK;
+		
+		// Castle
+		if (isCastle)
+			moveType |= Move.TYPE_CASTLE_MASK;
+		
+		// Regular
+		if (moveType == Move.TYPE_NONE)
+			moveType |= Move.TYPE_REGULAR_MASK;
+		
+		return moveType;		
 	}
 	
 	public MoveList(PositionManager pm, GenericMove bestMove) {
@@ -53,45 +97,7 @@ public class MoveList implements Iterable<Integer> {
 				if ((possibleDiscoveredOrMoveIntoCheck || needToEscapeMate) && pm.isKingInCheck(onMove)) {
 					// Scratch any moves resulting in the king being in check, includes no escape moves!
 				} else {
-					int moveType;
-					boolean isQueenPromotion = (Move.getPromotion(currMove) == IntChessman.QUEEN);
-					boolean isPromotion = (Move.getPromotion(currMove) == IntChessman.BISHOP
-							|| Move.getPromotion(currMove) == IntChessman.ROOK
-							|| Move.getPromotion(currMove) == IntChessman.KNIGHT);
-					CaptureData cap = pm.getCapturedPiece();
-					boolean isCapture = (cap != null && cap.target != Piece.NONE);
-					boolean isCheck = pm.isKingInCheck(Colour.getOpposite(onMove));
-					boolean isCastle = (Piece.isKing(piece)) ? pm.lastMoveWasCastle() : false;
-					
-					if (isQueenPromotion && isCapture && isCheck) {
-						moveType = Move.TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK;
-					} else if (isQueenPromotion && isCapture) {
-						moveType = Move.TYPE_PROMOTION_AND_CAPTURE;
-					} else if (isQueenPromotion && isCheck) {
-						moveType = Move.TYPE_PROMOTION_WITH_CHECK;
-					}  else if (isQueenPromotion) {
-						moveType = Move.TYPE_PROMOTION;
-					} else if (isPromotion) {
-						moveType = Move.TYPE_KBR_PROMOTION;
-					} else if (isCapture && isCheck) {
-						moveType = Move.TYPE_CAPTURE_WITH_CHECK;
-					} else if (isCapture && Piece.isQueen(cap.target)) {
-						moveType = Move.TYPE_CAPTURE_QUEEN;
-					} else if (isCapture && Piece.isRook(cap.target)) {
-						moveType = Move.TYPE_CAPTURE_ROOK;
-					} else if (isCapture && (Piece.isKnight(cap.target) || Piece.isBishop(cap.target))) {
-						moveType = Move.TYPE_CAPTURE_PIECE;
-					} else if (isCapture && Piece.isPawn(cap.target)) {
-						moveType = Move.TYPE_CAPTURE_PAWN;
-					} else if (isCastle && isCheck) {
-						moveType = Move.TYPE_CASTLE_WITH_CHECK;
-					} else if (isCastle) {
-						moveType = Move.TYPE_CASTLE;
-					} else if (isCheck) {
-						moveType = Move.TYPE_CHECK;
-					}  else {
-						moveType = Move.TYPE_REGULAR;
-					}
+					int moveType = computeMoveType(pm, currMove, piece);
 					moveList.add(Move.setType(currMove, moveType));
 				}
 				pm.unperformMove();
@@ -160,16 +166,7 @@ public class MoveList implements Iterable<Integer> {
 	private int[] create_extended_list(List<Integer> moves) {
 		List<Integer> list = new LinkedList<Integer>();
 		for (Integer move : moves ) {
-			if ((Move.getType(move) == Move.TYPE_PROMOTION) ||
-				(Move.getType(move) == Move.TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK) ||
-				(Move.getType(move) == Move.TYPE_PROMOTION_AND_CAPTURE) ||
-				(Move.getType(move) == Move.TYPE_KBR_PROMOTION) ||
-				(Move.getType(move) == Move.TYPE_CAPTURE_WITH_CHECK) ||
-				(Move.getType(move) == Move.TYPE_CAPTURE_QUEEN) ||
-				(Move.getType(move) == Move.TYPE_CAPTURE_ROOK) ||
-				(Move.getType(move) == Move.TYPE_CAPTURE_PIECE) ||
-				(Move.getType(move) == Move.TYPE_CAPTURE_PAWN) ||
-				(Move.getType(move) == Move.TYPE_CHECK)) {
+			if (Move.isPromotion(move) || Move.isCapture(move) || Move.isCheck(move)) {
 				list.add(move);
 			}
 		}
@@ -237,7 +234,7 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	public int getMoveTypeFromNormalList(GenericMove genericMove) {
-		int type = Move.TYPE_KBR_PROMOTION;
+		int type = Move.TYPE_NONE;
 		boolean found = false;
 		for (int move : normal_search_moves) {
 			if (Move.getOriginPosition(move) == Position.valueOf(genericMove.from)
@@ -327,7 +324,15 @@ public class MoveList implements Iterable<Integer> {
 
 	public boolean hasRegularMoves() {
 		for (int move : normal_search_moves) {
-			if (Move.getType(move) == Move.TYPE_REGULAR)
+			if (Move.isRegular(move))
+				return true;
+		}
+		return false;
+	}
+	
+	public boolean contains(int move) {
+		for (int reg_move : normal_search_moves) {
+			if (move == reg_move)
 				return true;
 		}
 		return false;

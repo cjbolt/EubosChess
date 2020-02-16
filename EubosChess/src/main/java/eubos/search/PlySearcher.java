@@ -287,7 +287,7 @@ public class PlySearcher {
 			// Set best move to the previous iteration search result
 			else if (lastPc != null) {
 				GenericMove lastMove = lastPc.get(0);
-				int type = (lastMove.promotion != null) ?  Move.TYPE_PROMOTION : Move.TYPE_REGULAR;
+				int type = (lastMove.promotion != null) ?  Move.TYPE_PROMOTION_QUEEN_MASK : Move.TYPE_REGULAR_MASK;
 				pc.update(0, Move.toMove(lastMove, pos.getTheBoard(), type));
 			} else {
 				// Just return pc

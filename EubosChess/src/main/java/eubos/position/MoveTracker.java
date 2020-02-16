@@ -37,9 +37,7 @@ class MoveTracker extends Stack<TrackedMove> {
 	public boolean lastMoveWasPromotion() {
 		boolean wasPromotion = false;
 		if ( !this.isEmpty()) {
-			int moveType = Move.getType(this.peek().getMove());
-			wasPromotion = (moveType >= Move.TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK) && 
-					       (moveType <= Move.TYPE_KBR_PROMOTION);
+			wasPromotion = Move.isPromotion(this.peek().getMove());
 		}
 		return wasPromotion;
 	}
@@ -47,12 +45,7 @@ class MoveTracker extends Stack<TrackedMove> {
 	public boolean lastMoveWasCheck() {
 		boolean wasCheck = false;
 		if ( !this.isEmpty()) {
-			int moveType = Move.getType(this.peek().getMove());
-			wasCheck = (moveType == Move.TYPE_CHECK) || 
-					(moveType == Move.TYPE_CAPTURE_WITH_CHECK) ||
-					(moveType == Move.TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK) ||
-					(moveType == Move.TYPE_PROMOTION_WITH_CHECK) ||
-					(moveType == Move.TYPE_CASTLE_WITH_CHECK);
+			wasCheck = Move.isCheck(this.peek().getMove());
 		}
 		return wasCheck;
 	}

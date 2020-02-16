@@ -214,7 +214,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_isQuiescent_No_LastMoveWasCheckMate() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - - -");
-		pm.performMove(Move.valueOf(Move.TYPE_CHECK, Position.d3, Piece.WHITE_QUEEN, Position.h7, Piece.NONE, IntChessman.NOCHESSMAN));
+		pm.performMove(Move.valueOf(Move.TYPE_CHECK_MASK, Position.d3, Piece.WHITE_QUEEN, Position.h7, Piece.NONE, IntChessman.NOCHESSMAN));
 		assertFalse(SUT.isQuiescent());
 	}
 	
@@ -276,28 +276,28 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_isQuiescent_No_LastMoveWasPromotionBishop() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/4P3/8/8/8/8/8/8 w - - 0 1");
-		pm.performMove(Move.valueOf(Move.TYPE_KBR_PROMOTION, Position.e7, Piece.WHITE_PAWN, Position.f8, Piece.NONE, IntChessman.BISHOP));
+		pm.performMove(Move.valueOf(Move.TYPE_PROMOTION_PIECE_MASK, Position.e7, Piece.WHITE_PAWN, Position.f8, Piece.NONE, IntChessman.BISHOP));
 		assertFalse(SUT.isQuiescent());
 	}
 	
 	@Test
 	public void test_isQuiescent_No_LastMoveWasPromotionQueenWithCheckAndCapture() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("5q2/4P3/7k/8/8/8/8/8 w - - 0 1");
-		pm.performMove(Move.valueOf(Move.TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK, Position.e7, Piece.WHITE_PAWN, Position.f8, Piece.BLACK_QUEEN, IntChessman.QUEEN));
+		pm.performMove(Move.valueOf(Move.TYPE_PROMOTION_QUEEN_MASK | Move.TYPE_CAPTURE_QUEEN_MASK | Move.TYPE_CHECK_MASK, Position.e7, Piece.WHITE_PAWN, Position.f8, Piece.BLACK_QUEEN, IntChessman.QUEEN));
 		assertFalse(SUT.isQuiescent());
 	}
 	
 	@Test
 	public void test_isQuiescent_Yes_LastMoveWasntPromotion() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/4P3/8/8/8/8/8/B7 w - - 0 1");
-		pm.performMove(Move.valueOf(Move.TYPE_REGULAR, Position.a1, Piece.WHITE_BISHOP, Position.b2, Piece.NONE, IntChessman.NOCHESSMAN));
+		pm.performMove(Move.valueOf(Move.TYPE_REGULAR_MASK, Position.a1, Piece.WHITE_BISHOP, Position.b2, Piece.NONE, IntChessman.NOCHESSMAN));
 		assertTrue(SUT.isQuiescent());
 	}
 	
 	@Test
 	public void test_isQuiescent_No_LastMoveWasCheck_alt() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/4P3/7k/8/8/8/1B6/8 w - - 0 1");
-		pm.performMove(Move.valueOf(Move.TYPE_CHECK, Position.b2, Piece.WHITE_BISHOP, Position.c1, Piece.NONE, IntChessman.NOCHESSMAN));
+		pm.performMove(Move.valueOf(Move.TYPE_CHECK_MASK, Position.b2, Piece.WHITE_BISHOP, Position.c1, Piece.NONE, IntChessman.NOCHESSMAN));
 		assertFalse(SUT.isQuiescent());
 	}
 }

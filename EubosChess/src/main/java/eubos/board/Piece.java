@@ -286,10 +286,10 @@ public abstract class Piece {
 	private static void pawn_checkPromotionAddMove(int ownPiece, Board theBoard, int atSquare, Piece.Colour ownSide, List<Integer> moveList,
 			int targetSquare, int targetPiece) {
 		if ( pawn_checkPromotionPossible( ownSide, targetSquare )) {
-			moveList.add( Move.valueOf( Move.TYPE_KBR_PROMOTION, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.KNIGHT ));
-			moveList.add( Move.valueOf( Move.TYPE_KBR_PROMOTION, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.BISHOP ));
-			moveList.add( Move.valueOf( Move.TYPE_KBR_PROMOTION, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.ROOK ));
-			moveList.add( Move.valueOf( Move.TYPE_PROMOTION, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.QUEEN ));
+			moveList.add( Move.valueOf( Move.TYPE_NONE, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.KNIGHT ));
+			moveList.add( Move.valueOf( Move.TYPE_NONE, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.BISHOP ));
+			moveList.add( Move.valueOf( Move.TYPE_NONE, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.ROOK ));
+			moveList.add( Move.valueOf( Move.TYPE_NONE, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.QUEEN ));
 		} else {
 			moveList.add( Move.valueOf( Move.TYPE_NONE, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.NOCHESSMAN ) );
 		}

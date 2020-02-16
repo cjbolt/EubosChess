@@ -54,7 +54,7 @@ public class MoveListTest {
 		setup("8/4P3/8/8/8/8/8/8 w - - - -");
 		PrimitiveIterator.OfInt it = classUnderTest.iterator();
 		assertEquals(new GenericMove("e7e8q"), Move.toGenericMove(it.next()));
-		assertEquals(new GenericMove("e7e8n"), Move.toGenericMove(it.next()));
+		assertEquals(new GenericMove("e7e8r"), Move.toGenericMove(it.next()));
 	}
 	
 	@Test
@@ -65,11 +65,11 @@ public class MoveListTest {
 	}
 	
 	@Test
-	public void testCreateMoveList_CastlesFirstThenChecks() throws InvalidPieceException, IllegalNotationException {
+	public void testCreateMoveList_ChecksFirstThenCastles() throws InvalidPieceException, IllegalNotationException {
 		setup("8/3k3B/8/1p6/8/8/8/4K2R w K - 0 1");
 		PrimitiveIterator.OfInt it = classUnderTest.iterator();
-		assertEquals(new GenericMove("e1g1"), Move.toGenericMove(it.next()));
 		assertEquals(new GenericMove("h7f5"), Move.toGenericMove(it.next()));
+		assertEquals(new GenericMove("e1g1"), Move.toGenericMove(it.next()));
 	}
 	
 	@Test
