@@ -597,13 +597,27 @@ public class Board implements Iterable<Integer> {
 		return square.and(attackingSquares).isNonZero();
 	}
 	
+	private boolean isPromotionPawnBlocked(BitBoard pawns, Direction dir) {
+		boolean potentialPromotion = false;
+		for (int pawn_bit : pawns) {
+			int pos = BitBoard.bitToPosition_Lut[pawn_bit];
+			if (squareIsEmpty(Direction.getDirectMoveSq(dir, pos))) {
+				potentialPromotion = true;
+				break;
+			}
+		}
+		return potentialPromotion;
+	}
+	
 	public boolean isPromotionPossible(Colour onMove) {
-		// At the moment this doesn't consider if the pawn is blocked or pinned...
+		// TODO At the moment this doesn't consider if the pawn is pinned.
 		boolean potentialPromotion = false;
 		if (Piece.Colour.isWhite(onMove)) {
-			potentialPromotion = getWhitePawns().and(RankMask_Lut[IntRank.R7]).isNonZero();
+			BitBoard pawns = getWhitePawns().and(RankMask_Lut[IntRank.R7]);
+			potentialPromotion = isPromotionPawnBlocked(pawns, Direction.up);
 		} else {
-			potentialPromotion = getBlackPawns().and(RankMask_Lut[IntRank.R2]).isNonZero();
+			BitBoard pawns = getBlackPawns().and(RankMask_Lut[IntRank.R2]);
+			potentialPromotion = isPromotionPawnBlocked(pawns, Direction.down);
 		}
 		return potentialPromotion;
 	}
