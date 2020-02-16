@@ -1,8 +1,6 @@
 package eubos.board;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PrimitiveIterator;
@@ -14,7 +12,6 @@ import eubos.position.Move;
 import eubos.position.Position;
 
 import com.fluxchess.jcpi.models.IntFile;
-import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntRank;
 
@@ -41,7 +38,7 @@ public class Board {
 	private BitBoard[] pieces = new BitBoard[6];
 	
 	@SuppressWarnings("unchecked")
-	private static final List<BitBoard>[] RankFileMask_Lut = (List<BitBoard>[]) new List[256];
+	private static final List<BitBoard>[] RankFileMask_Lut = (List<BitBoard>[]) new List[128];
 	static {
 		Direction [] rankFile = { Direction.left, Direction.up, Direction.right, Direction.down };
 		for (int square : Position.values) {
@@ -78,7 +75,7 @@ public class Board {
 		return currMask;
 	}
 	
-	private static final BitBoard[] directAttacksOnPosition_Lut = new BitBoard[256];
+	private static final BitBoard[] directAttacksOnPosition_Lut = new BitBoard[128];
 	static {
 		Direction [] allDirect = { Direction.left, Direction.up, Direction.right, Direction.down, Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
 		for (int square : Position.values) {
@@ -91,7 +88,7 @@ public class Board {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private static final List<BitBoard>[] DiagonalMask_Lut = (List<BitBoard>[]) new List[256];
+	private static final List<BitBoard>[] DiagonalMask_Lut = (List<BitBoard>[]) new List[128];
 	static {
 		Direction [] diagonals = { Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
 		for (int square : Position.values) {
@@ -103,15 +100,15 @@ public class Board {
 		}
 	}
 	
-	private static final Map<GenericFile, BitBoard> FileMask_Lut = new EnumMap<GenericFile, BitBoard>(GenericFile.class);
+	private static final BitBoard[] FileMask_Lut = new BitBoard[8];
 	static {
-		for (GenericFile file : GenericFile.values()) {
+		for (int file : IntFile.values) {
 			long mask = 0;
-			int f=IntFile.valueOf(file);
+			int f=file;
 			for (int r = 0; r<8; r++) {
 				mask  |= 1L << r*8+f;
 			}
-			FileMask_Lut.put(file, new BitBoard(mask));
+			FileMask_Lut[file]= new BitBoard(mask);
 		}
 	}
 	
@@ -301,8 +298,8 @@ public class Board {
 	public int countDoubledPawnsForSide(Colour side) {
 		int doubledCount = 0;
 		BitBoard pawns = Colour.isWhite(side) ? getWhitePawns() : getBlackPawns();
-		for (GenericFile file : GenericFile.values()) {
-			BitBoard mask = FileMask_Lut.get(file);
+		for (int file : IntFile.values) {
+			BitBoard mask = FileMask_Lut[file];
 			long fileMask = pawns.and(mask).getValue();
 			int numPawnsInFile = Long.bitCount(fileMask);
 			if (numPawnsInFile > 1) {
@@ -314,7 +311,7 @@ public class Board {
 	
 	public boolean isPassedPawn(int atPos, Colour side) {
 		boolean isPassed = true;
-		BitBoard mask = PassedPawn_Lut.get(side.ordinal()).get(atPos);
+		BitBoard mask = PassedPawn_Lut[side.ordinal()][atPos];
 		BitBoard otherSidePawns = Colour.isWhite(side) ? getBlackPawns() : getWhitePawns();
 		if (mask.and(otherSidePawns).isNonZero()) {
 			isPassed  = false;
@@ -322,17 +319,17 @@ public class Board {
 		return isPassed;
 	}
 	
-	private static final List<Map<Integer, BitBoard>> PassedPawn_Lut = new ArrayList<Map<Integer, BitBoard>>(2); 
+	private static final BitBoard[][] PassedPawn_Lut = new BitBoard[2][]; 
 	static {
-		Map<Integer, BitBoard> white_map = new HashMap<Integer, BitBoard>();
-		PassedPawn_Lut.add(Colour.white.ordinal(), white_map);
+		BitBoard[] white_map = new BitBoard[128];
+		PassedPawn_Lut[Colour.white.ordinal()] = white_map;
 		for (int atPos : Position.values) {
-			white_map.put(atPos, buildPassedPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), true));
+			white_map[atPos] = buildPassedPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), true);
 		}
-		Map<Integer, BitBoard> black_map = new HashMap<Integer, BitBoard>();
-		PassedPawn_Lut.add(Colour.black.ordinal(), black_map);
+		BitBoard[] black_map = new BitBoard[128];
+		PassedPawn_Lut[Colour.black.ordinal()] = black_map;
 		for (int atPos : Position.values) {
-			black_map.put(atPos, buildPassedPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), false));
+			black_map[atPos] = buildPassedPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), false);
 		}
 	}
 	private static BitBoard buildPassedPawnFileMask(int f, int r, boolean isWhite) {
@@ -581,7 +578,7 @@ public class Board {
 	
 	public boolean isOnHalfOpenFile(GenericPosition atPos, int type) {
 		boolean isHalfOpen = false;
-		BitBoard fileMask = new BitBoard(FileMask_Lut.get(atPos.file).getValue());
+		BitBoard fileMask = new BitBoard(FileMask_Lut[IntFile.valueOf(atPos.file)].getValue());
 		BitBoard otherSide = Piece.getOpposite(type) == Colour.white ? whitePieces : blackPieces;
 		BitBoard pawnMask = otherSide.and(pieces[INDEX_PAWN]);
 		boolean opponentPawnOnFile = pawnMask.and(fileMask).isNonZero();

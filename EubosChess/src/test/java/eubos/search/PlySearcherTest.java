@@ -94,10 +94,12 @@ public class PlySearcherTest {
 	
 	@Test
 	@Ignore
+	@SuppressWarnings("unchecked")
 	public void test_singleLineOfPlay_depthSearchedUpdates() throws InvalidPieceException, IllegalNotationException {
 		initialisePositionAndSearch("8/8/1P6/8/5p2/8/8/8 w - - 0 1", (byte)4);
 		
 		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
+		
 		doReturn(new Transposition((byte)1, (short)0, null, null, null)).when(mock_hashMap).setTransposition(any(SearchMetrics.class), anyByte(), (Transposition)isNull(), anyByte(), anyShort(), any(ScoreType.class), any(MoveList.class), anyInt(), any(List.class));
 		
 		assertEquals(650, classUnderTest.searchPly());
@@ -187,6 +189,7 @@ public class PlySearcherTest {
 	
 	@Test
 	@Ignore
+	@SuppressWarnings("unchecked")
 	public void test_when_aborted_doesnt_update_transposition_table() throws InvalidPieceException, IllegalNotationException {
 		initialisePositionAndSearch("6k1/5pb1/6p1/r2R4/8/2q5/1B3PP1/5RK1 w - - 0 1", (byte)2);
 		
