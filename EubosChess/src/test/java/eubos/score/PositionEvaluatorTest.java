@@ -7,6 +7,7 @@ import static eubos.score.PositionEvaluator.ROOK_FILE_PASSED_PAWN_BOOST;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -213,17 +214,23 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_isQuiescent_No_LastMoveWasCheckMate() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - - -");
-		pm.performMove(Move.valueOf(Position.d3, Piece.WHITE_QUEEN, Position.h7, Piece.NONE));
+		pm.performMove(Move.valueOf(Move.TYPE_CHECK, Position.d3, Piece.WHITE_QUEEN, Position.h7, Piece.NONE, IntChessman.NOCHESSMAN));
 		assertFalse(SUT.isQuiescent());
 	}
 	
 	@Test
+	@Ignore 
+	/* not needed as we will only extend searches by having applied moves, and whether they are in check is 
+	 * now determined by checking the previous move type. */
 	public void test() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("4r3/7P/2k5/1P6/8/6P1/8/6K1 b - - 0 57");
 		assertFalse(SUT.isQuiescent());
 	}
 	
 	@Test
+	@Ignore 
+	/* not needed as we will only extend searches by having applied moves, and whether they are in check is 
+	 * now determined by checking the previous move type. */
 	public void test2() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("4r3/7P/2k5/1Q5r/P7/6P1/8/6K1 b - - 10 56");
 		assertFalse(SUT.isQuiescent());
@@ -285,5 +292,12 @@ public class PositionEvaluatorTest {
 		setUpPosition("8/4P3/8/8/8/8/8/B7 w - - 0 1");
 		pm.performMove(Move.valueOf(Move.TYPE_REGULAR, Position.a1, Piece.WHITE_BISHOP, Position.b2, Piece.NONE, IntChessman.NOCHESSMAN));
 		assertTrue(SUT.isQuiescent());
+	}
+	
+	@Test
+	public void test_isQuiescent_No_LastMoveWasCheck_alt() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("8/4P3/7k/8/8/8/1B6/8 w - - 0 1");
+		pm.performMove(Move.valueOf(Move.TYPE_CHECK, Position.b2, Piece.WHITE_BISHOP, Position.c1, Piece.NONE, IntChessman.NOCHESSMAN));
+		assertFalse(SUT.isQuiescent());
 	}
 }

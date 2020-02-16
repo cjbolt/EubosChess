@@ -46,7 +46,7 @@ public class MoveList implements Iterable<Integer> {
 			try {
 				boolean possibleDiscoveredOrMoveIntoCheck = false;
 				int piece = pm.getTheBoard().getPieceAtSquare(Move.getOriginPosition(currMove));
-				if (pm.getTheBoard().moveCouldLeadToDiscoveredCheck(currMove) || Piece.isKing(piece)) {
+				if (pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove) || Piece.isKing(piece)) {
 					possibleDiscoveredOrMoveIntoCheck = true;
 				}
 				pm.performMove(currMove);
@@ -67,7 +67,9 @@ public class MoveList implements Iterable<Integer> {
 						moveType = Move.TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK;
 					} else if (isQueenPromotion && isCapture) {
 						moveType = Move.TYPE_PROMOTION_AND_CAPTURE;
-					} else if (isQueenPromotion) {
+					} else if (isQueenPromotion && isCheck) {
+						moveType = Move.TYPE_PROMOTION_WITH_CHECK;
+					}  else if (isQueenPromotion) {
 						moveType = Move.TYPE_PROMOTION;
 					} else if (isPromotion) {
 						moveType = Move.TYPE_KBR_PROMOTION;
@@ -81,6 +83,8 @@ public class MoveList implements Iterable<Integer> {
 						moveType = Move.TYPE_CAPTURE_PIECE;
 					} else if (isCapture && Piece.isPawn(cap.target)) {
 						moveType = Move.TYPE_CAPTURE_PAWN;
+					} else if (isCastle && isCheck) {
+						moveType = Move.TYPE_CASTLE_WITH_CHECK;
 					} else if (isCastle) {
 						moveType = Move.TYPE_CASTLE;
 					} else if (isCheck) {

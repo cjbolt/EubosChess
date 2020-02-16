@@ -17,19 +17,22 @@ import eubos.board.Piece;
  */
 public final class Move {
 	
+	// priority order, highest priority is 0
 	public static final int TYPE_PROMOTION_AND_CAPTURE_WITH_CHECK = 0;
 	public static final int TYPE_PROMOTION_AND_CAPTURE = 1;
-	public static final int TYPE_PROMOTION = 2;
-	public static final int TYPE_KBR_PROMOTION = 3;
-	public static final int TYPE_CAPTURE_WITH_CHECK = 4;
-	public static final int TYPE_CAPTURE_QUEEN = 5;
-	public static final int TYPE_CAPTURE_ROOK = 6;
-	public static final int TYPE_CAPTURE_PIECE = 7;
-	public static final int TYPE_CAPTURE_PAWN = 8;
-	public static final int TYPE_CASTLE = 9;
-	public static final int TYPE_CHECK = 10;
-	public static final int TYPE_REGULAR = 11;
-	public static final int TYPE_NONE = 12;
+	public static final int TYPE_PROMOTION_WITH_CHECK = 2;
+	public static final int TYPE_PROMOTION = 3;
+	public static final int TYPE_KBR_PROMOTION = 4;
+	public static final int TYPE_CAPTURE_WITH_CHECK = 5;
+	public static final int TYPE_CAPTURE_QUEEN = 6;
+	public static final int TYPE_CAPTURE_ROOK = 7;
+	public static final int TYPE_CAPTURE_PIECE = 8;
+	public static final int TYPE_CAPTURE_PAWN = 9;
+	public static final int TYPE_CASTLE_WITH_CHECK = 10;
+	public static final int TYPE_CASTLE = 11;
+	public static final int TYPE_CHECK = 12;
+	public static final int TYPE_REGULAR = 13;
+	public static final int TYPE_NONE = 14;
 	
 	private static final int TYPE_SHIFT = 0;
 	private static final int TYPE_MASK = 0xF << TYPE_SHIFT;

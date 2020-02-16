@@ -583,7 +583,7 @@ public class Board implements Iterable<Integer> {
 		return isHalfOpen;
 	}
 	
-	public boolean moveCouldLeadToDiscoveredCheck(Integer move) {
+	public boolean moveCouldLeadToOwnKingDiscoveredCheck(Integer move) {
 		int piece = Move.getOriginPiece(move);
 		BitBoard king = (Piece.isWhite(piece)) ? getWhiteKing() : getBlackKing();
 		

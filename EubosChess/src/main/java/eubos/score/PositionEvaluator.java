@@ -36,8 +36,7 @@ public class PositionEvaluator implements IEvaluate {
 	public boolean isQuiescent() {
 		if (DISABLE_QUIESCENCE_CHECK)
 			return true;
-		if (pm.isKingInCheck(pm.getOnMove())) {
-			// In order to check for mates
+		if (pm.lastMoveWasCheck()) {
 			return false;
 		} else if (pm.lastMoveWasPromotion() || pm.isPromotionPossible()) {
 			return false;

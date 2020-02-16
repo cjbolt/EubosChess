@@ -213,7 +213,7 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.d2, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KING);
 		int move = Move.valueOf(Position.d2, Piece.WHITE_PAWN, Position.d4, Piece.NONE);
-		assertTrue(classUnderTest.moveCouldLeadToDiscoveredCheck(move));
+		assertTrue(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move));
 	}
 	
 	@Test
@@ -221,7 +221,7 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.e2, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KING);
 		int move = Move.valueOf(Position.e2, Piece.WHITE_PAWN, Position.d3, Piece.NONE);
-		assertTrue(classUnderTest.moveCouldLeadToDiscoveredCheck(move));
+		assertTrue(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move));
 	}
 	
 	@Test
@@ -229,7 +229,7 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.e3, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KING);
 		int move = Move.valueOf(Position.e3, Piece.WHITE_PAWN, Position.e4, Piece.NONE);
-		assertFalse(classUnderTest.moveCouldLeadToDiscoveredCheck(move));
+		assertFalse(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move));
 	}
 	
 	@Test
@@ -237,6 +237,6 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KNIGHT);
 		classUnderTest.setPieceAtSquare(Position.e4, Piece.WHITE_KING);
 		int move = Move.valueOf(Position.d1, Piece.WHITE_KNIGHT, Position.c3, Piece.NONE);
-		assertFalse(classUnderTest.moveCouldLeadToDiscoveredCheck(move));
+		assertFalse(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move));
 	}
 }

@@ -180,7 +180,7 @@ public class PlySearcher {
 		Score plyScore = new Score((plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE, plyBound);
 		int currMove = move_iter.nextInt();
 		
-		if (this.isInExtendedSearch() && ml.hasRegularMoves()) {
+		if (isInExtendedSearch() && ml.hasRegularMoves()) {
 			/*
 			 * The idea is that if we are in an extended search, if there are normal moves available 
 			 * and only a single "forced" capture, we shouldn't necessarily be forced into making that capture.

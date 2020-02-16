@@ -77,6 +77,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return moveTracker.lastMoveWasPromotion();
 	}
 	
+	public boolean lastMoveWasCheck() {
+		return moveTracker.lastMoveWasCheck();
+	}
+	
 	public CaptureData getCapturedPiece() {
 		return moveTracker.getCapturedPiece();
 	}
