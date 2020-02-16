@@ -1,6 +1,6 @@
 package eubos.score;
 
-import java.util.Iterator;
+import java.util.PrimitiveIterator;
 
 import eubos.board.Board;
 import eubos.board.Piece;
@@ -83,11 +83,11 @@ public class MaterialEvaluator {
     }
  
 	static MaterialEvaluation evaluate(Board theBoard, boolean isEndgame) {
-		Iterator<Integer> iter_p = theBoard.iterator();
+		PrimitiveIterator.OfInt iter_p = theBoard.iterator();
 		// TODO this needn't be done with an iterator. We could just go through all the BitBoards, it might be faster.
 		MaterialEvaluation materialEvaluation = new MaterialEvaluation();
 		while ( iter_p.hasNext() ) {
-			int atPos = iter_p.next();
+			int atPos = iter_p.nextInt();
 			int currPiece = theBoard.getPieceAtSquare(atPos);
 			int currValue = 0;
 			if ( currPiece==Piece.WHITE_PAWN ) {

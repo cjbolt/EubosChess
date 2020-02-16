@@ -3,11 +3,11 @@ package eubos.board;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.PrimitiveIterator;
 import java.util.Map.Entry;
+import java.util.function.IntConsumer;
 
 import eubos.board.Piece.Colour;
 import eubos.position.Move;
@@ -386,17 +386,18 @@ public class Board implements Iterable<Integer> {
 		return fen.toString();
 	}
 	
-	class allPiecesOnBoardIterator implements Iterator<Integer> {
-
-		private LinkedList<Integer> iterList = null;
+	class allPiecesOnBoardIterator implements PrimitiveIterator.OfInt {	
+		private int[] pieces = null;
+		private int count = 0;
+		private int next = 0;
 
 		allPiecesOnBoardIterator() throws InvalidPieceException {
-			iterList = new LinkedList<Integer>();
+			pieces = new int[64];
 			buildIterList(allPieces);
 		}
 
 		allPiecesOnBoardIterator( int typeToIterate ) throws InvalidPieceException {
-			iterList = new LinkedList<Integer>();
+			pieces = new int[64];
 			BitBoard bitBoardToIterate;
 			if (typeToIterate == Piece.WHITE_PAWN) {
 				bitBoardToIterate = getWhitePawns();
@@ -410,29 +411,33 @@ public class Board implements Iterable<Integer> {
 
 		private void buildIterList(BitBoard bitBoardToIterate) {
 			for (int bit_index: bitBoardToIterate) {
-				iterList.add(BitBoard.bitToPosition_Lut[bit_index]);
+				pieces[count++] = BitBoard.bitToPosition_Lut[bit_index];
 			}
 		}	
 
 		public boolean hasNext() {
-			if (!iterList.isEmpty()) {
-				return true;
-			} else {
-				return false;
-			}
+			return next < pieces.length && next < count;
 		}
 
 		public Integer next() {
-			return iterList.remove();
+			return pieces[next++];
 		}
 
 		@Override
 		public void remove() {
-			iterList.remove();
+		}
+
+		@Override
+		public void forEachRemaining(IntConsumer action) {
+		}
+
+		@Override
+		public int nextInt() {
+			return pieces[next++];
 		}
 	}
 
-	public Iterator<Integer> iterator() {
+	public PrimitiveIterator.OfInt iterator() {
 		// default iterator returns all the pieces on the board, not all positions
 		try {
 			return new allPiecesOnBoardIterator( );
@@ -536,7 +541,7 @@ public class Board implements Iterable<Integer> {
 		return whitePieces.and(pieces[INDEX_KING]);
 	}
 	
-	public Iterator<Integer> iterateType( int typeToIterate ) {
+	public PrimitiveIterator.OfInt iterateType( int typeToIterate ) {
 		try {
 			return new allPiecesOnBoardIterator( typeToIterate );
 		} catch (InvalidPieceException e) {

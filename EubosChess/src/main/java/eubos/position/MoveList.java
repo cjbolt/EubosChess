@@ -108,7 +108,7 @@ public class MoveList implements Iterable<Integer> {
 		
 		// Sort the list
 		Collections.sort(moveList, new MoveTypeComparator());
-		normal_search_moves = create_normal_list(moveList);
+		normal_search_moves = moveList.stream().mapToInt(i->i).toArray();
 		extended_search_moves = create_extended_list(moveList);
 		
 		int intBestMove = 0;
@@ -153,16 +153,7 @@ public class MoveList implements Iterable<Integer> {
 		int index = getIndex(moveArray, newBestMove);
 	    swapWithFirst(moveArray, index);
 	}
-	
-	private int [] create_normal_list(List<Integer> moves) {
-		int [] moveArray = new int[moves.size()];
-		int index = 0;
-		for (Integer move : moves ) {
-			moveArray[index++] = move;
-		}
-		return moveArray;
-	}
-	
+		
 	private int[] create_extended_list(List<Integer> moves) {
 		List<Integer> list = new LinkedList<Integer>();
 		for (Integer move : moves ) {
@@ -232,54 +223,10 @@ public class MoveList implements Iterable<Integer> {
 		}
 		return bestMove;
 	}
-	
-	public int getMoveTypeFromNormalList(GenericMove genericMove) {
-		int type = Move.TYPE_NONE;
-		boolean found = false;
-		for (int move : normal_search_moves) {
-			if (Move.getOriginPosition(move) == Position.valueOf(genericMove.from)
-				&& Move.getTargetPosition(move) == Position.valueOf(genericMove.to)) {
-				if (genericMove.promotion != null && genericMove.promotion.isLegalPromotion()) {
-					if (IntChessman.valueOfPromotion(genericMove.promotion) == Move.getPromotion(move)) {
-						type = Move.getType(move);
-						found = true;
-						break;
-					}
-				} else {
-					type = Move.getType(move);
-					found = true;
-					break;
-				}
-			}
-		}
-		assert found : genericMove;
-		return type;
-	}
-	
-	public void reorderWithNewBestMove(GenericMove newBestMove) {
-		// Only used by tests
-		int move = Move.toMove(newBestMove, null, getMoveTypeFromNormalList(newBestMove));
-		reorderWithNewBestMove(move);
-	}
 
 	public void reorderWithNewBestMove(int newBestMove) {
 		normalSearchBestMovePreviousIndex = reorderList(normal_search_moves, newBestMove, normalSearchBestMovePreviousIndex);
 		extendedSearchListBestMovePreviousIndex = reorderList(extended_search_moves, newBestMove, extendedSearchListBestMovePreviousIndex);
-	}
-	
-	int[] reorderListShuffle(int[] moveArray, int newBestMove) {
-		int index = getIndex(moveArray, newBestMove);
-		if (isMovePresent(index) && !isMoveAlreadyBest(index)) {
-			int [] newMoveArray = moveArray.clone();
-			newMoveArray[0] = moveArray[index];
-			for(int i=0; i < (moveArray.length-1); i++) {
-				if (i != index) {
-					newMoveArray[i+1] = moveArray[i];
-				}
-			}
-			return newMoveArray;
-		}
-		return moveArray;
 	}
 	
 	private byte reorderList(int[] moveArray, int newBestMove, byte prevBestOriginalIndex) {

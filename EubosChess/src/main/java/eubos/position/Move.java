@@ -9,6 +9,18 @@ import eubos.board.Piece;
 /* This class represents a move as a integer primitive value. */
 public final class Move {
 	
+	private static final int ORIGINPOSITION_SHIFT = 0;
+	private static final int ORIGINPOSITION_MASK = Position.MASK << ORIGINPOSITION_SHIFT;
+	
+	private static final int TARGETPOSITION_SHIFT = ORIGINPOSITION_SHIFT+7;
+	private static final int TARGETPOSITION_MASK = Position.MASK << TARGETPOSITION_SHIFT;
+	
+	private static final int PROMOTION_SHIFT = TARGETPOSITION_SHIFT+7;
+	private static final int PROMOTION_MASK = IntChessman.MASK << PROMOTION_SHIFT;
+	
+	private static final int ORIGIN_PIECE_SHIFT = PROMOTION_SHIFT+3;
+	private static final int ORIGIN_PIECE_MASK = Piece.PIECE_WHOLE_MASK << ORIGIN_PIECE_SHIFT;
+	
 	public static final int TYPE_NONE = 0;
 	
 	public static final int TYPE_REGULAR_BIT = 0;
@@ -34,17 +46,9 @@ public final class Move {
 	public static final int TYPE_CASTLE_MASK = (0x1 << TYPE_CASTLE_BIT);
 	public static final int TYPE_REGULAR_MASK = (0x1 << TYPE_REGULAR_BIT);
 	
-	private static final int TYPE_SHIFT = 0;
+	private static final int TYPE_SHIFT = ORIGIN_PIECE_SHIFT+4;
 	private static final int TYPE_MASK = ((1<<TYPE_WIDTH)-1) << TYPE_SHIFT;
 	
-	private static final int ORIGINPOSITION_SHIFT = TYPE_WIDTH;
-	private static final int ORIGINPOSITION_MASK = Position.MASK << ORIGINPOSITION_SHIFT;
-	private static final int TARGETPOSITION_SHIFT = ORIGINPOSITION_SHIFT+7;
-	private static final int TARGETPOSITION_MASK = Position.MASK << TARGETPOSITION_SHIFT;
-	private static final int PROMOTION_SHIFT = TARGETPOSITION_SHIFT+7;
-	private static final int PROMOTION_MASK = IntChessman.MASK << PROMOTION_SHIFT;
-	private static final int ORIGIN_PIECE_SHIFT = PROMOTION_SHIFT+3;
-	private static final int ORIGIN_PIECE_MASK = Piece.PIECE_WHOLE_MASK << ORIGIN_PIECE_SHIFT;
 	//private static final int TARGET_PIECE_SHIFT = 25;
 	//private static final int TARGET_PIECE_MASK = Piece.PIECE_WHOLE_MASK << TARGET_PIECE_SHIFT;
 	
@@ -62,7 +66,7 @@ public final class Move {
 		int move = 0;
 
 		// Encode move classification
-		assert (type & ~Move.TYPE_MASK) == 0;
+		assert (type & ~(Move.TYPE_MASK>>> TYPE_SHIFT)) == 0;
 		move |= type << TYPE_SHIFT;
 
 		// Encode origin position
@@ -167,7 +171,7 @@ public final class Move {
 	public static int getType(int move) {
 		int type = (move & TYPE_MASK) >>> TYPE_SHIFT;
 
-		assert (type & ~Move.TYPE_MASK) == 0;
+		assert (type & ~(Move.TYPE_MASK >>> TYPE_SHIFT)) == 0;
 
 		return type;
 	}
@@ -281,7 +285,7 @@ public final class Move {
 		// Zero out type
 		move &= ~TYPE_MASK;
 		
-		assert (type & ~Move.TYPE_MASK) == 0;
+		assert ((type<<TYPE_SHIFT) & ~Move.TYPE_MASK) == 0;
 		
 		return move |= type << TYPE_SHIFT;
 	}

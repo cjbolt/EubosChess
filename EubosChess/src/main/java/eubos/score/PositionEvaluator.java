@@ -1,6 +1,6 @@
 package eubos.score;
 
-import java.util.Iterator;
+import java.util.PrimitiveIterator;
 
 import com.fluxchess.jcpi.models.IntFile;
 
@@ -92,9 +92,9 @@ public class PositionEvaluator implements IEvaluate {
 		int passedPawnBoost = 0;
 		int pawnHandicap = -board.countDoubledPawnsForSide(onMoveWas)*DOUBLED_PAWN_HANDICAP;
 		int ownPawns = Colour.isWhite(onMoveWas) ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
-		Iterator<Integer> iter = board.iterateType(ownPawns);
+		PrimitiveIterator.OfInt iter = board.iterateType(ownPawns);
 		while (iter.hasNext()) {
-			int pawn = iter.next();
+			int pawn = iter.nextInt();
 			if (board.isPassedPawn(pawn, onMoveWas)) {
 				if (Position.getFile(pawn) == IntFile.Fa || Position.getFile(pawn) == IntFile.Fh) {
 					passedPawnBoost += ROOK_FILE_PASSED_PAWN_BOOST;

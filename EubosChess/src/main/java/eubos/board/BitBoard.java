@@ -1,9 +1,9 @@
 package eubos.board;
 
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Map;
+import java.util.PrimitiveIterator;
+import java.util.function.IntConsumer;
 
 import eubos.position.Position;
 
@@ -111,39 +111,45 @@ public class BitBoard implements Iterable<Integer> {
 		return sb.toString();
 	}
 
-	public class SetBitsIterator implements Iterator<Integer> {
+	public class SetBitsIterator implements PrimitiveIterator.OfInt {
 
-		private LinkedList<Integer> setBitsIndexes = null;
+		private int [] setBitsIndexes = null;
+		private int count = 0;
+		private int next = 0;
 	
 		public SetBitsIterator() {
-			setBitsIndexes = new LinkedList<Integer>();
+			setBitsIndexes = new int[64];
 			long scratchBitBoard = bitBoard;
 			while ( scratchBitBoard != 0x0L ) {
-				setBitsIndexes.add(Long.numberOfTrailingZeros(scratchBitBoard));
+				setBitsIndexes[count++] = Long.numberOfTrailingZeros(scratchBitBoard);
 				// clear the lssb
 				scratchBitBoard &= scratchBitBoard-1;
 			}
 		}
 
 		public boolean hasNext() {
-			if (!setBitsIndexes.isEmpty()) {
-				return true;
-			} else {
-				return false;
-			}
+			return next < setBitsIndexes.length && next < count;
 		}
 
 		public Integer next() {
-			return setBitsIndexes.remove();
+			return setBitsIndexes[next++];
 		}
 
 		@Override
 		public void remove() {
-			setBitsIndexes.remove();
+		}
+
+		@Override
+		public void forEachRemaining(IntConsumer action) {
+		}
+
+		@Override
+		public int nextInt() {
+			return setBitsIndexes[next++];
 		}
 	}
 	
-	public Iterator<Integer> iterator() {
+	public PrimitiveIterator.OfInt iterator() {
 		return new SetBitsIterator();
 	}
 
