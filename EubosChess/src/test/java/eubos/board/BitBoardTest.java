@@ -4,6 +4,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Iterator;
+import java.util.PrimitiveIterator;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -52,44 +53,44 @@ public class BitBoardTest {
 	@Test
 	public void testIterator_bit0() {
 		classUnderTest.set(0);
-		Iterator<Integer> it_setbits = classUnderTest.iterator();
+		PrimitiveIterator.OfInt it_setbits = classUnderTest.iterator();
 		assertTrue( it_setbits.hasNext() == true );
-		assertTrue( it_setbits.next() == 0 );
+		assertTrue( it_setbits.nextInt() == 0 );
 	}
 	
 	@Test
 	public void testIterator_bit63() {
 		classUnderTest.set(63);
-		Iterator<Integer> it_setbits = classUnderTest.iterator();
+		PrimitiveIterator.OfInt it_setbits = classUnderTest.iterator();
 		assertTrue( it_setbits.hasNext() == true );
-		assertTrue( it_setbits.next() == 63 );
+		assertTrue( it_setbits.nextInt() == 63 );
 	}
 	
 	@Test
 	public void testIterator_bit62() {
 		classUnderTest.set(62);
-		Iterator<Integer> it_setbits = classUnderTest.iterator();
+		PrimitiveIterator.OfInt it_setbits = classUnderTest.iterator();
 		assertTrue( it_setbits.hasNext() == true );
-		assertTrue( it_setbits.next() == 62 );
+		assertTrue( it_setbits.nextInt() == 62 );
 	}
 	
 	@Test
 	public void testIterator_bit56() {
 		classUnderTest.set(56);
-		Iterator<Integer> it_setbits = classUnderTest.iterator();
+		PrimitiveIterator.OfInt it_setbits = classUnderTest.iterator();
 		assertTrue( it_setbits.hasNext() == true );
-		assertTrue( it_setbits.next() == 56 );
+		assertTrue( it_setbits.nextInt() == 56 );
 	}	
 	
 	@Test
 	public void testIterator_bits0and1() {
 		classUnderTest.set(0);
 		classUnderTest.set(1);
-		Iterator<Integer> it_setbits = classUnderTest.iterator();
+		PrimitiveIterator.OfInt it_setbits = classUnderTest.iterator();
 		assertTrue( it_setbits.hasNext() == true );
-		assertTrue( it_setbits.next() == 0 );
+		assertTrue( it_setbits.nextInt() == 0 );
 		assertTrue( it_setbits.hasNext() == true );
-		assertTrue( it_setbits.next() == 1 );
+		assertTrue( it_setbits.nextInt() == 1 );
 	}
 	
 	@Test
@@ -99,10 +100,10 @@ public class BitBoardTest {
 				classUnderTest.set(i);
 			}
 		}
-		Iterator<Integer> it_setbits = classUnderTest.iterator();
+		PrimitiveIterator.OfInt it_setbits = classUnderTest.iterator();
 		int oddBitCount = 0;
 		while(it_setbits.hasNext()) {
-			int curr = it_setbits.next();
+			int curr = it_setbits.nextInt();
 			if (curr%2 == 0) {
 				fail();
 			} else {
@@ -119,10 +120,10 @@ public class BitBoardTest {
 				classUnderTest.set(i);
 			}
 		}
-		Iterator<Integer> it_setbits = classUnderTest.iterator();
+		PrimitiveIterator.OfInt it_setbits = classUnderTest.iterator();
 		int evenBitCount = 0;
 		while(it_setbits.hasNext()) {
-			int curr = it_setbits.next();
+			int curr = it_setbits.nextInt();
 			if (curr%2 == 1) {
 				fail();
 			} else {

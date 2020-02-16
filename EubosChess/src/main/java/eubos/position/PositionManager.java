@@ -40,10 +40,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return theBoard;
 	}
 	
-	public List<Integer> generateMoves() {
+	public int[] generateMoves() {
 		List<Integer> entireMoveList = theBoard.getRegularPieceMoves( onMove );
 		castling.addCastlingMoves(entireMoveList);
-		return entireMoveList;
+		return entireMoveList.stream().mapToInt(i->i).toArray();
 	}
 	
 	public String toString() {

@@ -11,7 +11,7 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
-public class BitBoard implements Iterable<Integer> {
+public class BitBoard {
 	
 	static int[] bitToPosition_Lut = new int[64];
 	static {
@@ -102,7 +102,9 @@ public class BitBoard implements Iterable<Integer> {
 	
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		for (int bit_index: this) {
+		PrimitiveIterator.OfInt iter = this.iterator();
+		while (iter.hasNext()) {
+			int bit_index = iter.nextInt();
 			int file = bit_index%8;
 			int rank = bit_index/8;
 			sb.append(GenericPosition.valueOf(IntFile.toGenericFile(file),IntRank.toGenericRank(rank)));
@@ -132,6 +134,7 @@ public class BitBoard implements Iterable<Integer> {
 		}
 
 		public Integer next() {
+			assert false; // use nextInt()
 			return setBitsIndexes[next++];
 		}
 

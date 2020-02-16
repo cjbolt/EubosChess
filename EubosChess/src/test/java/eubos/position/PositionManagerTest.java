@@ -25,7 +25,7 @@ public class PositionManagerTest {
 	protected int expectedMove;
 	protected List<Integer> expectedMoves;
 	protected int expectedNumMoves = 0;
-	protected List<Integer> ml;
+	protected int[] ml;
 	protected MoveList theMl;
 	
 	@Before
@@ -33,11 +33,26 @@ public class PositionManagerTest {
 		expectedMoves = new LinkedList<Integer>();
 	}
 	
-	protected void checkExpectedMoves(List<Integer> ml) {
-		assertFalse(ml.isEmpty());
-		assertEquals(expectedNumMoves, ml.size());
+	private void contains(int move) {
+		for (int i=0; i<ml.length; i++) {
+			if (ml[i] == move)
+				return;
+		}
+		fail();
+	}
+	
+	private void doesntContain(int move) {
+		for (int i=0; i<ml.length; i++) {
+			if (ml[i] == move)
+				fail();
+		}
+	}
+	
+	protected void checkExpectedMoves(int[] ml) {
+		assertFalse(ml.length == 0);
+		assertEquals(expectedNumMoves, ml.length);
 		for ( int mov : expectedMoves) {
-			assertTrue( ml.contains( mov ));
+			contains(mov);
 		}
 	}
 	
@@ -200,7 +215,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_King_MoveGen_CornerTopLeft() throws IllegalNotationException {
 		PositionManager classUnderTest = new PositionManager("k7/8/8/8/8/8/8/8 b - - 0 1");
-		List<Integer> ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves();
 		expectedMoves.add( Move.valueOf( Position.a8, Piece.BLACK_KING, Position.b8, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( Position.a8, Piece.BLACK_KING, Position.b7, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( Position.a8, Piece.BLACK_KING, Position.a7, Piece.NONE ));
@@ -214,7 +229,7 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/4p3/8/8/8/8/8/8 b - - 0 1");
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.e7, Piece.BLACK_PAWN, Position.e6, Piece.NONE );
-		assertTrue( ml.contains( expectedMove ));
+		contains( expectedMove );
 	}
 
 	@Test
@@ -222,14 +237,14 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/4p3/8/8/8/8/8/8 b - - 0 1");
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.e7, Piece.BLACK_PAWN, Position.e5, Piece.NONE );
-		assertTrue( ml.contains( expectedMove ));
+		contains( expectedMove );
 	}
 	
 	@Test
 	public void test_BlackPawn_MoveGen_InitialBlocked() {
 		classUnderTest = new PositionManager("8/4p3/4P3/8/8/8/8/8 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		assertTrue( ml.isEmpty() );
+		assertTrue( ml.length == 0 );
 	}
 
 	@Test
@@ -239,7 +254,7 @@ public class PositionManagerTest {
 		classUnderTest.performMove( Move.valueOf( Position.f2, Piece.WHITE_PAWN, Position.f4, Piece.NONE ));
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.e4, Piece.BLACK_PAWN, Position.f3, Piece.WHITE_PAWN );
-		assertTrue( ml.contains( expectedMove ));
+		contains( expectedMove );
 	}
 	
 	@Test
@@ -249,7 +264,7 @@ public class PositionManagerTest {
 		classUnderTest.performMove( Move.valueOf( Position.f2, Piece.WHITE_KNIGHT, Position.f4, Piece.NONE ));
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.e4, Piece.BLACK_PAWN, Position.f3, Piece.WHITE_PAWN );
-		assertFalse( ml.contains( expectedMove ));
+		doesntContain( expectedMove );
 	}
 	
 	@Test
@@ -259,7 +274,7 @@ public class PositionManagerTest {
 		classUnderTest.performMove( Move.valueOf( Position.d2, Piece.WHITE_PAWN, Position.d4, Piece.NONE ));
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.e4, Piece.BLACK_PAWN, Position.d3, Piece.WHITE_PAWN );
-		assertTrue( ml.contains( expectedMove ));
+		contains( expectedMove );
 	}
 	
 	@Test
@@ -269,7 +284,7 @@ public class PositionManagerTest {
 		classUnderTest.performMove( Move.valueOf( Position.d2, Piece.WHITE_KNIGHT, Position.d4, Piece.NONE ));
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.e4, Piece.BLACK_PAWN, Position.d3, Piece.WHITE_PAWN );
-		assertFalse( ml.contains( expectedMove ));
+		doesntContain( expectedMove );
 	}	
 	
 	@Test
@@ -279,7 +294,7 @@ public class PositionManagerTest {
 		classUnderTest.performMove( Move.valueOf( Position.b2, Piece.WHITE_PAWN, Position.b4, Piece.NONE ));
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.a4, Piece.BLACK_PAWN, Position.b3, Piece.WHITE_PAWN );
-		assertTrue( ml.contains( expectedMove ));
+		contains( expectedMove );
 	}
 	
 	@Test
@@ -289,7 +304,7 @@ public class PositionManagerTest {
 		classUnderTest.performMove( Move.valueOf( Position.b4, Piece.WHITE_PAWN, Position.b5, Piece.NONE ));
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.a4, Piece.BLACK_PAWN, Position.b3, Piece.WHITE_PAWN );
-		assertFalse( ml.contains( expectedMove ));
+		doesntContain( expectedMove );
 	}	
 	
 	@Test
@@ -299,7 +314,7 @@ public class PositionManagerTest {
 		classUnderTest.performMove( Move.valueOf( Position.g2, Piece.WHITE_PAWN, Position.g4, Piece.NONE ));
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.h4, Piece.BLACK_PAWN, Position.g3, Piece.WHITE_PAWN );
-		assertTrue( ml.contains( expectedMove ));
+		contains( expectedMove );
 	}		
 	
 	@Test
@@ -310,8 +325,8 @@ public class PositionManagerTest {
 		classUnderTest.performMove( Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE ));
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.e6, Piece.BLACK_PAWN, Position.e5, Piece.NONE );
-		assertTrue( ml.size() == 1 );
-		assertTrue( ml.contains( expectedMove ));		
+		assertTrue( ml.length == 1 );
+		contains( expectedMove );		
 	}	
 
 	@Test
@@ -319,7 +334,7 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/4p3/5P2/8/8/8/8/8 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.e7, Piece.BLACK_PAWN, Position.f6, Piece.WHITE_PAWN );
-		assertTrue( ml.contains( expectedMove ));
+		contains( expectedMove );
 	}
 
 	@Test
@@ -327,7 +342,7 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/4p3/3P4/8/8/8/8/8 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.e7, Piece.BLACK_PAWN, Position.d6, Piece.WHITE_PAWN );
-		assertTrue( ml.contains( expectedMove ));
+		contains( expectedMove );
 	}
 	
 	@Test
@@ -336,8 +351,8 @@ public class PositionManagerTest {
 		ml = classUnderTest.generateMoves();
 		int captureLeft = Move.valueOf( Position.e7, Piece.BLACK_PAWN, Position.d6, Piece.WHITE_PAWN );
 		int captureRight = Move.valueOf( Position.e7, Piece.BLACK_PAWN, Position.f6, Piece.WHITE_PAWN );
-		assertTrue( ml.contains( captureLeft ));
-		assertTrue( ml.contains( captureRight ));
+		contains( captureLeft );
+		contains( captureRight );
 	}	
 	
 	@Test
@@ -346,7 +361,7 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/p7/1P6/8/8/8/8/8 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();;
 		expectedMove = Move.valueOf( Position.a7, Piece.BLACK_PAWN, Position.b6, Piece.WHITE_PAWN );
-		assertTrue( ml.contains( expectedMove ));
+		contains( expectedMove );
 	}
 
 	@Test
@@ -355,7 +370,7 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/7p/6P1/8/8/8/8/8 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.h7, Piece.BLACK_PAWN, Position.g6, Piece.WHITE_PAWN );
-		assertTrue( ml.contains( expectedMove ));
+		contains( expectedMove );
 	}
 	
 	@Test
@@ -395,7 +410,7 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/4P3/8 w - - 0 1");
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE  );
-		assertTrue( ml.contains( expectedMove ));
+		contains( expectedMove );
 	}
 
 	@Test
@@ -403,14 +418,14 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/4P3/8 w - - 0 1");
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.e3, Piece.NONE );
-		assertTrue( ml.contains( expectedMove ));
+		contains( expectedMove );
 	}
 	
 	@Test
 	public void test_WhitePawn_MoveGen_InitialBlocked() {
 		classUnderTest = new PositionManager("8/8/8/8/8/4p3/4P3/8 w - - 0 1");
 		ml = classUnderTest.generateMoves();
-		assertTrue( ml.isEmpty() );
+		assertTrue( ml.length == 0 );
 	}
 
 	@Test
@@ -419,7 +434,7 @@ public class PositionManagerTest {
 		classUnderTest.performMove( Move.valueOf( Position.d7, Piece.BLACK_PAWN, Position.d5, Piece.NONE ));
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.e5, Piece.WHITE_PAWN, Position.d6, Piece.BLACK_PAWN );
-		assertTrue( ml.contains( expectedMove ));
+		contains( expectedMove );
 	}
 	
 	@Test
@@ -428,7 +443,7 @@ public class PositionManagerTest {
 		classUnderTest.performMove( Move.valueOf( Position.f7, Piece.BLACK_ROOK, Position.f5, Piece.NONE ));
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.e5, Piece.WHITE_PAWN, Position.f6, Piece.BLACK_PAWN );
-		assertFalse( ml.contains( expectedMove ));
+		doesntContain( expectedMove );
 	}
 	
 	@Test
@@ -437,7 +452,7 @@ public class PositionManagerTest {
 		classUnderTest.performMove( Move.valueOf( Position.f7, Piece.BLACK_PAWN, Position.f5, Piece.NONE ));
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.e5, Piece.WHITE_PAWN, Position.f6, Piece.BLACK_PAWN );
-		assertTrue( ml.contains( expectedMove ));
+		contains( expectedMove );
 	}
 	
 	@Test
@@ -446,7 +461,7 @@ public class PositionManagerTest {
 		classUnderTest.performMove( Move.valueOf( Position.f7, Piece.BLACK_ROOK, Position.f5, Piece.NONE ));
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.e5, Piece.WHITE_PAWN, Position.f6, Piece.BLACK_PAWN );
-		assertFalse( ml.contains( expectedMove ));
+		doesntContain( expectedMove );
 	}	
 	
 	@Test
@@ -456,7 +471,7 @@ public class PositionManagerTest {
 		classUnderTest.performMove( Move.valueOf( Position.b7, Piece.BLACK_PAWN, Position.b5, Piece.NONE ));
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.a5, Piece.WHITE_PAWN, Position.b6, Piece.BLACK_PAWN );
-		assertTrue( ml.contains( expectedMove ));
+		contains( expectedMove );
 	}
 	
 	@Test
@@ -466,7 +481,7 @@ public class PositionManagerTest {
 		classUnderTest.performMove( Move.valueOf( Position.g7, Piece.BLACK_PAWN, Position.g5, Piece.NONE ));
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.h5, Piece.WHITE_PAWN, Position.g6, Piece.BLACK_PAWN );
-		assertTrue( ml.contains( expectedMove ));
+		contains( expectedMove );
 	}		
 	
 	@Test
@@ -478,8 +493,8 @@ public class PositionManagerTest {
 		
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.e4, Piece.WHITE_PAWN, Position.e5, Piece.NONE );
-		assertTrue( ml.size() == 1 );
-		assertTrue( ml.contains( expectedMove ));		
+		assertTrue( ml.length == 1 );
+		contains( expectedMove );		
 	}	
 
 	@Test
@@ -487,7 +502,7 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/8/8/8/8/5p2/4P3/8 w - - 0 1");
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.f3, Piece.BLACK_PAWN );
-		assertTrue( ml.contains( expectedMove ));
+		contains( expectedMove );
 	}
 
 	@Test
@@ -495,7 +510,7 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/8/8/8/8/3p4/4P3/8 w - - 0 1");
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.d3, Piece.BLACK_PAWN );
-		assertTrue( ml.contains( expectedMove ));
+		contains( expectedMove );
 	}
 	
 	@Test
@@ -504,8 +519,8 @@ public class PositionManagerTest {
 		ml = classUnderTest.generateMoves();
 		int captureLeft = Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.d3, Piece.BLACK_PAWN );
 		int captureRight = Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.f3, Piece.BLACK_PAWN );
-		assertTrue( ml.contains( captureLeft ));
-		assertTrue( ml.contains( captureRight ));
+		contains( captureLeft );
+		contains( captureRight );
 	}	
 	
 	@Test
@@ -514,7 +529,7 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/8/8/8/8/1p6/P7/8 w - - 0 1");
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.a2, Piece.WHITE_PAWN, Position.b3, Piece.BLACK_PAWN );
-		assertTrue( ml.contains( expectedMove ));
+		contains( expectedMove );
 	}
 
 	@Test
@@ -523,7 +538,7 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager("8/8/8/8/8/6p1/7P/8 w - - 0 1");
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.h2, Piece.WHITE_PAWN, Position.g3, Piece.BLACK_PAWN );
-		assertTrue( ml.contains( expectedMove ));
+		contains( expectedMove );
 	}
 	
 	@Test
@@ -669,7 +684,7 @@ public class PositionManagerTest {
 		expectedMoves.add( Move.valueOf( Position.a1, Piece.BLACK_BISHOP, Position.b2, Piece.WHITE_PAWN ));
 		expectedNumMoves = 1;
 		checkExpectedMoves(ml);
-		assertFalse(ml.contains( Move.valueOf( Position.a1, Piece.BLACK_BISHOP, Position.c3, Piece.WHITE_PAWN )));
+		doesntContain( Move.valueOf( Position.a1, Piece.BLACK_BISHOP, Position.c3, Piece.WHITE_PAWN ));
 	}
 	
 	/* Knight Moves */
@@ -820,8 +835,8 @@ public class PositionManagerTest {
 	public void test_Rook_MoveGen_CapturesOnlySinglePiece() {
 		classUnderTest = new PositionManager("8/8/8/8/8/P7/P7/r7 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		assertFalse(ml.isEmpty());
-		assertTrue( ml.contains( Move.valueOf( Position.a1, Piece.BLACK_ROOK, Position.a2, Piece.WHITE_PAWN )));
-		assertFalse(ml.contains( Move.valueOf( Position.a1, Piece.BLACK_ROOK, Position.a3, Piece.WHITE_PAWN )));
+		assertFalse(ml.length == 0);
+		contains( Move.valueOf( Position.a1, Piece.BLACK_ROOK, Position.a2, Piece.WHITE_PAWN ));
+		doesntContain( Move.valueOf( Position.a1, Piece.BLACK_ROOK, Position.a3, Piece.WHITE_PAWN ));
 	}
 }

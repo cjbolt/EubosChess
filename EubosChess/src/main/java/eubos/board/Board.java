@@ -18,7 +18,7 @@ import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntRank;
 
-public class Board implements Iterable<Integer> {
+public class Board {
 
 	private static final int INDEX_PAWN = 0;
 	private static final int INDEX_KNIGHT = 1;
@@ -141,7 +141,10 @@ public class Board implements Iterable<Integer> {
 	public List<Integer> getRegularPieceMoves(Piece.Colour side) {
 		BitBoard bitBoardToIterate = Colour.isWhite(side) ? whitePieces : blackPieces;
 		ArrayList<Integer> movesList = new ArrayList<Integer>();
-		for (int bit_index: bitBoardToIterate) {
+		
+		PrimitiveIterator.OfInt iter = bitBoardToIterate.iterator();
+		while (iter.hasNext()) {
+			int bit_index = iter.nextInt();
 			int atSquare = BitBoard.bitToPosition_Lut[bit_index];
 			BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
 			if (blackPieces.and(pieceToPickUp).isNonZero()) {
@@ -410,7 +413,9 @@ public class Board implements Iterable<Integer> {
 		}
 
 		private void buildIterList(BitBoard bitBoardToIterate) {
-			for (int bit_index: bitBoardToIterate) {
+			PrimitiveIterator.OfInt iter = bitBoardToIterate.iterator();
+			while (iter.hasNext()) {
+				int bit_index = iter.nextInt();
 				pieces[count++] = BitBoard.bitToPosition_Lut[bit_index];
 			}
 		}	
@@ -420,6 +425,7 @@ public class Board implements Iterable<Integer> {
 		}
 
 		public Integer next() {
+			assert false; // should always use nextInt()
 			return pieces[next++];
 		}
 
@@ -604,7 +610,9 @@ public class Board implements Iterable<Integer> {
 	
 	private boolean isPromotionPawnBlocked(BitBoard pawns, Direction dir) {
 		boolean potentialPromotion = false;
-		for (int pawn_bit : pawns) {
+		PrimitiveIterator.OfInt iter = pawns.iterator();
+		while (iter.hasNext()) {
+			int pawn_bit = iter.nextInt();
 			int pos = BitBoard.bitToPosition_Lut[pawn_bit];
 			if (squareIsEmpty(Direction.getDirectMoveSq(dir, pos))) {
 				potentialPromotion = true;

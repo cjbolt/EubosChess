@@ -1,5 +1,6 @@
 package eubos.position;
 
+import java.util.PrimitiveIterator;
 import java.util.Random;
 import java.util.Stack;
 
@@ -69,7 +70,9 @@ public class ZobristHashCode {
 	private long generate() {
 		// add pieces
 		hashCode = 0;
-		for (int pieceSq : pos.getTheBoard()) {
+		PrimitiveIterator.OfInt iter = pos.getTheBoard().iterator();
+		while (iter.hasNext()) {
+			int pieceSq = iter.nextInt();
 			hashCode ^= getPrnForPiece(pieceSq, pos.getTheBoard().getPieceAtSquare(pieceSq));
 		}
 		// add castling

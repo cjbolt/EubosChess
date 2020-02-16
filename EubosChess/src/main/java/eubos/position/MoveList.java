@@ -1,9 +1,7 @@
 package eubos.position;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.PrimitiveIterator;
 import java.util.Random;
 import java.util.function.IntConsumer;
@@ -79,14 +77,15 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	public MoveList(PositionManager pm, GenericMove bestMove) {
-		// N.b. Need to use a linked hash map to ensure that the search order is deterministic.
-		List<Integer> moveList = new LinkedList<Integer>();
 		Colour onMove = pm.getOnMove();
 		boolean needToEscapeMate = false;
 		if (pm.isKingInCheck(onMove)) {
 			needToEscapeMate = true;
 		}
-		for (Integer currMove : pm.generateMoves()) {
+		int [] allMoves = pm.generateMoves();
+		int [] outputMove = new int [allMoves.length];
+		int count = 0;
+		for (int currMove : allMoves) {
 			try {
 				boolean possibleDiscoveredOrMoveIntoCheck = false;
 				int piece = pm.getTheBoard().getPieceAtSquare(Move.getOriginPosition(currMove));
@@ -98,22 +97,28 @@ public class MoveList implements Iterable<Integer> {
 					// Scratch any moves resulting in the king being in check, includes no escape moves!
 				} else {
 					int moveType = computeMoveType(pm, currMove, piece);
-					moveList.add(Move.setType(currMove, moveType));
+					outputMove[count++] = Move.setType(currMove, moveType);
 				}
 				pm.unperformMove();
 			} catch(InvalidPieceException e) {
 				assert false;
 			}
 		}
-		
 		// Sort the list
-		Collections.sort(moveList, new MoveTypeComparator());
-		normal_search_moves = moveList.stream().mapToInt(i->i).toArray();
-		extended_search_moves = create_extended_list(moveList);
+		Arrays.sort(outputMove);
+		
+		// copy and flip order
+		int [] moves = new int[count];
+		for (int i=0; i < count; i++) {
+			moves[i] = outputMove[outputMove.length-1-i];
+		}
+		
+		normal_search_moves = moves;
+		extended_search_moves = create_extended_list(moves);
 		
 		int intBestMove = 0;
 		if (bestMove != null) {
-			for (Integer move : moveList ) {
+			for (Integer move : normal_search_moves ) {
 				if (Move.toGenericMove(move).equals(bestMove)) {
 					// the moves are the same, so set the type of the best move from the existing move
 					intBestMove = Move.toMove(bestMove, pm.getTheBoard(), Move.getType(move));
@@ -154,16 +159,18 @@ public class MoveList implements Iterable<Integer> {
 	    swapWithFirst(moveArray, index);
 	}
 		
-	private int[] create_extended_list(List<Integer> moves) {
-		List<Integer> list = new LinkedList<Integer>();
-		for (Integer move : moves ) {
+	private int[] create_extended_list(int[] moves) {
+		int[] countList = new int[moves.length];
+		int count = 0;
+		for (int move : moves ) {
 			if (Move.isPromotion(move) || Move.isCapture(move) || Move.isCheck(move)) {
-				list.add(move);
+				countList[count++] = move;
 			}
 		}
-		int[] array = new int[list.size()];
-		for (int i=0; i<array.length; i++) {
-			array[i] = list.get(i);
+		// copy
+		int[] array = new int[count];
+		for (int i=0; i<count; i++) {
+			array[i] = countList[i];
 		}
 		return array;
 	}
@@ -183,6 +190,7 @@ public class MoveList implements Iterable<Integer> {
 		}
 
 		public Integer next() {
+			assert false; // should always use nextInt()
 			return moveList[next++];
 		}
 

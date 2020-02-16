@@ -66,7 +66,7 @@ public final class Move {
 		int move = 0;
 
 		// Encode move classification
-		assert (type & ~(Move.TYPE_MASK>>> TYPE_SHIFT)) == 0;
+		assert (type & ~(Move.TYPE_MASK >>> TYPE_SHIFT)) == 0;
 		move |= type << TYPE_SHIFT;
 
 		// Encode origin position
