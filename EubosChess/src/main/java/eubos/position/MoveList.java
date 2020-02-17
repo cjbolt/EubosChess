@@ -163,7 +163,7 @@ public class MoveList implements Iterable<Integer> {
 		int[] countList = new int[moves.length];
 		int count = 0;
 		for (int move : moves ) {
-			if (Move.isPromotion(move) || Move.isCapture(move) || Move.isCheck(move)) {
+			if (Move.isPromotion(move) || Move.isCapture(move) /*|| Move.isCheck(move)*/) {
 				countList[count++] = move;
 			}
 		}
