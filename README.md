@@ -7,7 +7,7 @@ You can get a binary from the bin folder, alongside a batch file for running Eub
 
 You must have installed Java version 8 on the PC to use Eubos (get it from java.com)
 
-To install Eubos as an engine in Area:
+To install Eubos as an engine in Arena:
 
 1. Select Engines > Install New Engine
 2. In the file browser dialog that appears, change the drop down to *.bat
