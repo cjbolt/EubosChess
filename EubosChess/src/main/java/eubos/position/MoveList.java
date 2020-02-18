@@ -29,7 +29,7 @@ public class MoveList implements Iterable<Integer> {
     }
 	
 	public MoveList(PositionManager pm) {
-		this(pm, null);
+		this(pm, Move.NULL_MOVE);
 	}
 	
 	int computeMoveType(PositionManager pm, int currMove, int piece) {
@@ -76,10 +76,10 @@ public class MoveList implements Iterable<Integer> {
 		return moveType;		
 	}
 	
-	public MoveList(PositionManager pm, GenericMove bestMove) {
+	public MoveList(PositionManager pm, int bestMove) {
 		Colour onMove = pm.getOnMove();
 		boolean needToEscapeMate = false;
-		if (pm.isKingInCheck(onMove)) {
+		if (pm.lastMoveWasCheck() || (pm.noLastMove() && pm.isKingInCheck(onMove))) {
 			needToEscapeMate = true;
 		}
 		int [] allMoves = pm.generateMoves();
@@ -116,17 +116,9 @@ public class MoveList implements Iterable<Integer> {
 		normal_search_moves = moves;
 		extended_search_moves = create_extended_list(moves);
 		
-		int intBestMove = 0;
-		if (bestMove != null) {
-			for (Integer move : normal_search_moves ) {
-				if (Move.toGenericMove(move).equals(bestMove)) {
-					// the moves are the same, so set the type of the best move from the existing move
-					intBestMove = Move.toMove(bestMove, pm.getTheBoard(), Move.getType(move));
-					break;
-				}
-			}
-			seedListWithBestMove(normal_search_moves, intBestMove);
-			seedListWithBestMove(extended_search_moves, intBestMove);
+		if (bestMove != Move.NULL_MOVE) {
+			seedListWithBestMove(normal_search_moves, bestMove);
+			seedListWithBestMove(extended_search_moves, bestMove);
 		}
 	}
 	
@@ -163,7 +155,7 @@ public class MoveList implements Iterable<Integer> {
 		int[] countList = new int[moves.length];
 		int count = 0;
 		for (int move : moves ) {
-			if (Move.isPromotion(move) || Move.isCapture(move) /*|| Move.isCheck(move)*/) {
+			if (Move.isPromotion(move) || Move.isCapture(move) || Move.isCheck(move)) {
 				countList[count++] = move;
 			}
 		}
@@ -277,10 +269,14 @@ public class MoveList implements Iterable<Integer> {
 		return retVal;
 	}
 
-	public boolean hasRegularMoves() {
+	public boolean hasMultipleRegularMoves() {
+		int count = 0;
 		for (int move : normal_search_moves) {
-			if (Move.isRegular(move))
-				return true;
+			if (Move.isRegular(move)) {
+				count++;
+				if (count == 2 )
+					return true;
+			}
 		}
 		return false;
 	}

@@ -29,7 +29,7 @@ class RandomMoveGenerator implements IMoveGenerator {
 	}
 	
 	// Find a random legal move for the colour "on move"
-	public SearchResult findMove(byte searchDepth, List<GenericMove> lastPc) throws NoLegalMoveException, InvalidPieceException {
+	public SearchResult findMove(byte searchDepth, List<Integer> lastPc) throws NoLegalMoveException, InvalidPieceException {
 		GenericMove bestMove = ml.getRandomMove();
 		if (bestMove == null) {
 			throw new NoLegalMoveException();

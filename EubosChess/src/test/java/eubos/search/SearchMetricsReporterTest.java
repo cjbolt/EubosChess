@@ -2,17 +2,20 @@ package eubos.search;
 
 import static org.junit.Assert.*;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
-import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
+import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
+import eubos.position.Move;
+import eubos.position.Position;
 
 public class SearchMetricsReporterTest {
 	SearchMetricsReporter classUnderTest;
@@ -38,9 +41,9 @@ public class SearchMetricsReporterTest {
 		eubos = new EubosMock();
 		sm = new SearchMetrics(searchDepth);
 		// Minimal setup of the Search Metrics object
-		LinkedList<GenericMove> pv = new LinkedList<GenericMove>();
-		pv.add(new GenericMove("e2e4"));
-		sm.setCurrentMove(pv.getFirst());
+		List<Integer> pv = new ArrayList<Integer>();
+		pv.add(Move.valueOf(Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE));
+		sm.setCurrentMove(pv.get(0));
 		sm.setPrincipalVariation(pv);
 		classUnderTest = new SearchMetricsReporter(eubos, sm);
 	}

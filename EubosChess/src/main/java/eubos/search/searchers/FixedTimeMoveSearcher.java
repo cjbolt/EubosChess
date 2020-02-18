@@ -4,7 +4,6 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
-import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
@@ -37,7 +36,7 @@ public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 	@Override
 	public void run() {
 		SearchResult res = new SearchResult(null, false);
-		List<GenericMove> pc = null;
+		List<Integer> pc = null;
 		Timestamp msTargetEndTime = new Timestamp(System.currentTimeMillis() + moveTime);
 		for (byte depth=1; depth<MAX_SEARCH_DEPTH; depth++) {
 			res = doFindMove(res.bestMove, pc, depth);
@@ -46,7 +45,7 @@ public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 				break;
 			if (res != null && res.foundMate)
 				break;
-			pc = mg.pc.toPvList();
+			pc = mg.pc.toPvList(0);
 		}
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
 		SearchDebugAgent.close();

@@ -1,19 +1,22 @@
 package eubos.search;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
+
+import eubos.position.Move;
 
 public class SearchMetrics {
 	private long nodesSearched;
 	private long time;
 	private short hashFull;
-	private List<GenericMove> pv;
+	private List<Integer> pv;
 	private boolean pvValid = false;
 	private short cpScore;
 	private int depth;
 	private int partialDepth;
-	private GenericMove currMove;
+	private int currMove;
 	private int currMoveNum;
 	
 	public SearchMetrics(int searchDepth) {
@@ -45,13 +48,22 @@ public class SearchMetrics {
 		return nps;
 	}
 	
-	public synchronized void setPrincipalVariation(List<GenericMove> pc) {
+	public synchronized void setPrincipalVariation(List<Integer> pc) {
 		if (!pc.isEmpty()) {
 			pvValid = true;
 			pv = pc;
 		}
 	}
-	synchronized List<GenericMove> getPrincipalVariation() { return (pvValid ? pv : null);}
+	synchronized List<GenericMove> getPrincipalVariation() {
+		List<GenericMove> thePv = null;
+		if (pvValid) {
+			thePv = new ArrayList<GenericMove>();
+			for (int move : this.pv) {
+				thePv.add(Move.toGenericMove(move));
+			}
+		}
+		return thePv;
+	}
 	
 	public synchronized short getCpScore() { return cpScore; }
 	synchronized void setCpScore(short cpScore) { this.cpScore = cpScore; }
@@ -62,8 +74,8 @@ public class SearchMetrics {
 	synchronized int getPartialDepth() { return partialDepth; }
 	synchronized void setPartialDepth(int depth ) { this.partialDepth = depth; }
 	
-	synchronized void setCurrentMove(GenericMove mov) { currMove = mov;}
-	synchronized GenericMove getCurrentMove() { return currMove; }
+	synchronized void setCurrentMove(int mov) { currMove = mov;}
+	synchronized GenericMove getCurrentMove() { return Move.toGenericMove(currMove); }
 	
 	synchronized int getCurrentMoveNumber() { return currMoveNum; }
 	public synchronized void clearCurrentMoveNumber() { currMoveNum = 0; }

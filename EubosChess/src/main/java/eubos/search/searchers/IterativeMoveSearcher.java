@@ -4,7 +4,6 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
-import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
@@ -46,7 +45,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	public void run() {
 		byte currentDepth = 1;
 		SearchResult res = new SearchResult(null, false);
-		List<GenericMove> pc = null;
+		List<Integer> pc = null;
 		IterativeMoveSearchStopper stopper = new IterativeMoveSearchStopper(initialScore);
 		stopper.start();
 		while (!searchStopped) {
@@ -67,7 +66,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				// don't start a new iteration, we just allow time to complete the current ply
 				searchStopped = true;
 			}
-			pc = mg.pc.toPvList();
+			pc = mg.pc.toPvList(0);
 			currentDepth++;
 			if (currentDepth == Byte.MAX_VALUE) {
 				break;

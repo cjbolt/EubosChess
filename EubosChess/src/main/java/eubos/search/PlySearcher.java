@@ -3,8 +3,6 @@ package eubos.search;
 import java.util.List;
 import java.util.PrimitiveIterator;
 
-import com.fluxchess.jcpi.models.GenericMove;
-
 import eubos.board.InvalidPieceException;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
@@ -34,7 +32,7 @@ public class PlySearcher {
 	
 	private boolean terminate = false;
 	
-	private List<GenericMove> lastPc;
+	private List<Integer> lastPc;
 	private byte dynamicSearchLevelInPly;
 	private ITranspositionAccessor tt;
 	private PrincipalContinuationUpdateHelper pcUpdater;
@@ -54,7 +52,7 @@ public class PlySearcher {
 			byte searchDepthPly,
 			IChangePosition pm,
 			IPositionAccessors pos,
-			List<GenericMove> lastPc,
+			List<Integer> lastPc,
 			IEvaluate pe) {
 		currPly = 0;
 		currDepthSearchedInPly = 0;
@@ -156,13 +154,17 @@ public class PlySearcher {
 			trans = tt.setTransposition(sm, currPly, trans, getTransDepth(), theScore.getScore(), theScore.getType(), ml, Move.NULL_MOVE, pc.toPvList(currPly));
         } else {
     		PrimitiveIterator.OfInt move_iter = ml.getIterator(isInExtendedSearch());
-    		if (isSearchRequired(ml, move_iter)) {
+    		boolean doSearch = isInNormalSearch() ? true : (move_iter.hasNext() || pos.lastMoveWasCheck());
+    		if (doSearch) {
     			theScore = actuallySearchMoves(ml, move_iter, trans);
     		} else {
     			// It is effectively a terminal node in extended search, so update the trans with null best move
     			// and return the position score back down the tree. We always back-up, because it is terminal,
     			// and we need to overwrite any alpha/beta provisional score that was brought down.
-    			theScore = st.getBackedUpScoreAtPly(currPly);
+    			// Evaluate material to deduce score, this rules out optimistic appraisal, don't use normal move list.
+    			theScore = new Score(pe.evaluatePosition(), ScoreType.exact);
+    			st.setBackedUpScoreAtPly(currPly, theScore);    			
+    			SearchDebugAgent.printExtSearchNoMoves(currPly, theScore);
     			trans = tt.setTransposition(sm, currPly, trans, (byte)0, theScore.getScore(), theScore.getType(), ml, Move.NULL_MOVE, pc.toPvList(currPly));
     		}
         }
@@ -170,8 +172,10 @@ public class PlySearcher {
     }
 
 	private Score actuallySearchMoves(MoveList ml, PrimitiveIterator.OfInt move_iter, Transposition trans) throws InvalidPieceException {
-		if (!move_iter.hasNext())
-			return new Score();
+		if (!move_iter.hasNext() && pos.lastMoveWasCheck()) {
+			// need to escape check search just the best move from the normal moves, if there is one?
+			move_iter = ml.getIterator(false);
+		}	
 		
 		boolean everBackedUp = false;
 		boolean backedUpScoreWasExact = false;
@@ -180,7 +184,7 @@ public class PlySearcher {
 		Score plyScore = new Score((plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE, plyBound);
 		int currMove = move_iter.nextInt();
 		
-		if (isInExtendedSearch() && ml.hasRegularMoves()) {
+		if (isInExtendedSearch() && ml.hasMultipleRegularMoves()) {
 			/*
 			 * The idea is that if we are in an extended search, if there are normal moves available 
 			 * and only a single "forced" capture, we shouldn't necessarily be forced into making that capture.
@@ -258,17 +262,6 @@ public class PlySearcher {
 			currDepthSearchedInPly = 1; // it is always 1 in extended search?
 		}
 	}
-
-	private boolean isSearchRequired(MoveList ml,
-			PrimitiveIterator.OfInt move_iter) throws InvalidPieceException {
-		boolean searchIsNeeded = true;
-		if (isInExtendedSearch() && !move_iter.hasNext()) {
-			// Evaluate material to deduce score, this rules out optimistic appraisal, don't use normal move list.
-			st.setBackedUpScoreAtPly(currPly, new Score(pe.evaluatePosition(), ScoreType.exact));
-	    	searchIsNeeded = false;
-	    }
-		return searchIsNeeded;
-	}
 	
 	private void updatePrincipalContinuation(int currMove, short positionScore)
 			throws InvalidPieceException {
@@ -286,9 +279,7 @@ public class PlySearcher {
 			}
 			// Set best move to the previous iteration search result
 			else if (lastPc != null) {
-				GenericMove lastMove = lastPc.get(0);
-				int type = (lastMove.promotion != null) ?  Move.TYPE_PROMOTION_QUEEN_MASK : Move.TYPE_REGULAR_MASK;
-				pc.update(0, Move.toMove(lastMove, pos.getTheBoard(), type));
+				pc.update(0, lastPc.get(0));
 			} else {
 				// Just return pc
 			}
@@ -314,7 +305,7 @@ public class PlySearcher {
 		if (atRootNode()) {
 			// When we start to search a move at the root node, clear the principal continuation data
 			pc.clearContinuationsBeyondPly(currPly);
-			reportMove(Move.toGenericMove(currMove));
+			reportMove(currMove);
 		}
 	}
 
@@ -340,7 +331,7 @@ public class PlySearcher {
 		return backupRequired;
 	}
 	
-	private void reportMove(GenericMove currMove) {
+	private void reportMove(int currMove) {
 		sm.setCurrentMove(currMove);
 		sm.incrementCurrentMoveNumber();
 		sr.reportCurrentMove();

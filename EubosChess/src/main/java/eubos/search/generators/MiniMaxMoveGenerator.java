@@ -73,7 +73,7 @@ public class MiniMaxMoveGenerator implements
 		pc = new PrincipalContinuation(searchDepth+EXTENDED_SEARCH_PLY_LIMIT);
 		sm.setDepth(searchDepth);
 		sm.clearCurrentMoveNumber();
-		sm.setPrincipalVariation(pc.toPvList());
+		sm.setPrincipalVariation(pc.toPvList(0));
 		sr = new SearchMetricsReporter(callback,sm);	
 		if (sendInfo)
 			sr.setSendInfo(true);
@@ -92,7 +92,7 @@ public class MiniMaxMoveGenerator implements
 	}
 	
 	@Override
-	public SearchResult findMove(byte searchDepth, List<GenericMove> lastPc) throws NoLegalMoveException, InvalidPieceException {
+	public SearchResult findMove(byte searchDepth, List<Integer> lastPc) throws NoLegalMoveException, InvalidPieceException {
 		boolean foundMate = false;
 		initialiseSearchDepthDependentObjects(searchDepth, pm, pe);
 		ps = new PlySearcher(tta, st, pc, sm, sr, searchDepth, pm, pos, lastPc, pe);

@@ -2,7 +2,6 @@ package eubos.search;
 
 import static org.junit.Assert.*;
 
-import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.After;
@@ -41,7 +40,7 @@ public class PlySearcherTest {
 	private SearchMetrics sm;
 	private SearchMetricsReporter sr;
 	private EubosEngineMain mockEubos;
-	LinkedList<GenericMove> lastPc;
+	List<Integer> lastPc;
 	private ITranspositionAccessor mock_hashMap;
 	private ScoreTracker st;
 	
@@ -51,7 +50,7 @@ public class PlySearcherTest {
 		
 		pc = new PrincipalContinuation(searchDepth*3);
 		sm = new SearchMetrics(searchDepth*3);
-		sm.setPrincipalVariation(pc.toPvList());
+		sm.setPrincipalVariation(pc.toPvList(0));
 		mockEubos = new EubosEngineMain();
 		sr = new SearchMetricsReporter(mockEubos,sm);
 		mock_pos = mock(IPositionAccessors.class);

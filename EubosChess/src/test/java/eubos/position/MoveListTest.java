@@ -242,7 +242,7 @@ public class MoveListTest {
 	@Test
 	public void test_ChangingBestMove_WhenSeeded() throws IllegalNotationException {
 		PositionManager pm = new PositionManager( "8/8/5P2/4P3/3P4/2P5/8/8 w - - 0 1" );
-		classUnderTest = new MoveList(pm, new GenericMove("f6f7")); // seed with last move as best
+		classUnderTest = new MoveList(pm, Move.valueOf(Position.f6, Piece.WHITE_PAWN, Position.f7, Piece.NONE)); // seed with last move as best
 		PrimitiveIterator.OfInt it = classUnderTest.iterator();
 		int [] original_moves = new int[4];
 		for (int i=0; i<original_moves.length; i++)

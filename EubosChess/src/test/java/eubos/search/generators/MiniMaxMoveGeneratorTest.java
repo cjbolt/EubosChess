@@ -431,7 +431,7 @@ public class MiniMaxMoveGeneratorTest {
 		
 		SearchResult res = classUnderTest.findMove((byte)4);
 		assertEquals(expectedMove, res.bestMove);
-		List<GenericMove >lastPc = classUnderTest.pc.toPvList();
+		List<Integer> lastPc = classUnderTest.pc.toPvList(0);
 		res = classUnderTest.findMove((byte)5, lastPc);
 		
 		assertEquals(expectedMove, res.bestMove);
@@ -444,9 +444,9 @@ public class MiniMaxMoveGeneratorTest {
 		expectedMove = new GenericMove("h8g7");
 		
 		classUnderTest.findMove((byte)4);
-		List<GenericMove> lastPc = classUnderTest.pc.toPvList();
+		List<Integer> lastPc = classUnderTest.pc.toPvList(0);
 		classUnderTest.findMove((byte)5,lastPc);
-		lastPc = classUnderTest.pc.toPvList();
+		lastPc = classUnderTest.pc.toPvList(0);
 		SearchResult res = classUnderTest.findMove((byte)6,lastPc);
 		
 	    assertEquals(expectedMove, res.bestMove);
@@ -502,7 +502,7 @@ public class MiniMaxMoveGeneratorTest {
 	public void test_extendedSearch_CouldBeMate() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
 		setupPosition("5bkr/5ppp/5P2/8/8/8/6Q1/R4KR1 w - - 0 38 ");
 		expectedMove = new GenericMove("g2g7"); // queen sac leads to mate in 1
-		SearchResult res = classUnderTest.findMove((byte)2);
+		SearchResult res = classUnderTest.findMove((byte)2); // extended search including checks finds mate with 2 ply search
 		
 		assertEquals(expectedMove, res.bestMove);
 	}

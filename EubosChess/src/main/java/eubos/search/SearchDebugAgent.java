@@ -224,4 +224,12 @@ public class SearchDebugAgent {
 			printOutput(indent+"extSearch @"+currPly+", move:"+Move.toString(currMove)+", alt score: "+score);
 		}
 	}
+
+	public static void printExtSearchNoMoves(byte currPly, Score theScore) {
+		if (isDebugOn) {
+			if ( currPly != lastPly )
+				computeIndent(currPly);
+			printOutput(indent+"extSearch NoMoves term @"+currPly+", score: "+theScore.getScore());
+		}
+	}
 }

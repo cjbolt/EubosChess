@@ -3,8 +3,6 @@ package eubos.search;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fluxchess.jcpi.models.GenericMove;
-
 import eubos.position.Move;
 
 public class PrincipalContinuation {
@@ -47,14 +45,6 @@ public class PrincipalContinuation {
 			}
 		}
 		return output;
-	}
-	
-	public List<GenericMove> toPvList() { 
-		List<GenericMove> mv = new ArrayList<GenericMove>();
-		for (int currMove : pc.get(0)) {
-			mv.add(Move.toGenericMove(currMove));
-		}
-		return mv;
 	}
 	
 	public List<Integer> toPvList(int currPly) { 

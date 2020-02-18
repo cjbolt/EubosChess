@@ -1,7 +1,6 @@
 package eubos.search;
 
 import eubos.board.Piece.Colour;
-import eubos.score.MaterialEvaluator;
 
 public class PrincipalContinuationUpdateHelper
 	{
@@ -27,34 +26,17 @@ public class PrincipalContinuationUpdateHelper
 		void report(short score, byte partialDepth) {
 			positionScore = score;
 			sm.setPartialDepth(partialDepth);
-			assignPrincipalVariationToSearchMetrics();
+			sm.setPrincipalVariation(pc.toPvList(0));
 			assignCentipawnScoreToSearchMetrics();
 			sr.reportPrincipalVariation();
 		}	
 		
-		private void assignPrincipalVariationToSearchMetrics() {
-			truncatePrincipalContinuation();
-			sm.setPrincipalVariation(pc.toPvList());
-		}	
-
 		private void assignCentipawnScoreToSearchMetrics() {
 			if (Colour.isBlack(initialOnMove))
 				positionScore = (short) -positionScore; // Negated due to UCI spec (from engine pov)
 			sm.setCpScore(positionScore);
 		}
-		
-		private void truncatePrincipalContinuation() {
-			if (isScoreIndicatesMate()) {
-				// If the positionScore indicates a mate, truncate the pc accordingly
-				//int matePly = calculatePlyMateOccurredOn();
-				//pc.truncateAfterPly(matePly);
-			}
-		}
-		
-		private boolean isScoreIndicatesMate() {
-			return Math.abs(positionScore) >= MaterialEvaluator.MATERIAL_VALUE_KING;
-		}
-		
+				
 		int calculatePlyMateOccurredOn() {
 			int mateMove = 0;
 			int matePly = 0;

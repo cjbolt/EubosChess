@@ -9,7 +9,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.Piece;
@@ -38,11 +37,11 @@ public class PrincipalContinuationTest {
 		classUnderTest.update(2, Move.valueOf(Position.d2, Piece.WHITE_PAWN, Position.d4, Piece.NONE ));
 		classUnderTest.update(1, Move.valueOf(Position.e7, Piece.BLACK_PAWN, Position.e5, Piece.NONE ));
 		classUnderTest.update(0, Move.valueOf(Position.a2, Piece.WHITE_PAWN, Position.a3, Piece.NONE ));
-		List<GenericMove> pv = classUnderTest.toPvList();
-		assertEquals(new GenericMove("a2a3"), pv.get(0));
-		assertEquals(new GenericMove("e7e5"), pv.get(1));
-		assertEquals(new GenericMove("d2d4"), pv.get(2));
-		assertEquals(new GenericMove("e5d4"), pv.get(3));		
+		List<Integer> pv = classUnderTest.toPvList(0);
+		assertEquals(Move.valueOf(Position.a2, Piece.WHITE_PAWN, Position.a3, Piece.NONE ),(int) pv.get(0));
+		assertEquals(Move.valueOf(Position.e7, Piece.BLACK_PAWN, Position.e5, Piece.NONE ),(int) pv.get(1));
+		assertEquals(Move.valueOf(Position.d2, Piece.WHITE_PAWN, Position.d4, Piece.NONE ), (int)pv.get(2));
+		assertEquals(Move.valueOf(Position.e5, Piece.BLACK_PAWN, Position.d4, Piece.WHITE_PAWN ), (int)pv.get(3));		
 	}
 
 	@Test
@@ -53,15 +52,15 @@ public class PrincipalContinuationTest {
 		classUnderTest.update(1, Move.valueOf(Position.e7, Piece.BLACK_PAWN, Position.e5, Piece.NONE ));
 		classUnderTest.update(0, Move.valueOf(Position.a2, Piece.WHITE_PAWN, Position.a3, Piece.NONE ));
 		classUnderTest.clearContinuationsBeyondPly(1);
-		List<GenericMove> pv = classUnderTest.toPvList();
-		assertEquals(new GenericMove("a2a3"), pv.get(0));
-		assertEquals(new GenericMove("e7e5"), pv.get(1));
+		List<Integer> pv = classUnderTest.toPvList(0);
+		assertEquals(Move.valueOf(Position.a2, Piece.WHITE_PAWN, Position.a3, Piece.NONE ),(int) pv.get(0));
+		assertEquals(Move.valueOf(Position.e7, Piece.BLACK_PAWN, Position.e5, Piece.NONE ),(int) pv.get(1));
 		assertEquals(2, pv.size());		
 	}
 
 	@Test
 	public void testToPvList_InitialState() {
-		List<GenericMove> pv = classUnderTest.toPvList();
+		List<Integer> pv = classUnderTest.toPvList(0);
 		assertTrue(pv != null);
 		assertTrue(pv.isEmpty());
 	}
