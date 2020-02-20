@@ -154,16 +154,12 @@ public class PlySearcher {
 			trans = tt.setTransposition(sm, currPly, trans, getTransDepth(), theScore.getScore(), theScore.getType(), ml, Move.NULL_MOVE, pc.toPvList(currPly));
         } else {
     		PrimitiveIterator.OfInt move_iter = ml.getIterator(isInExtendedSearch());
-    		boolean doSearch = isInNormalSearch() ? true : (move_iter.hasNext() || pos.lastMoveWasCheck());
-    		if (doSearch) {
+    		if (move_iter.hasNext()) {
     			theScore = actuallySearchMoves(ml, move_iter, trans);
     		} else {
     			// It is effectively a terminal node in extended search, so update the trans with null best move
-    			// and return the position score back down the tree. We always back-up, because it is terminal,
-    			// and we need to overwrite any alpha/beta provisional score that was brought down.
-    			// Evaluate material to deduce score, this rules out optimistic appraisal, don't use normal move list.
-    			theScore = new Score(pe.evaluatePosition(), ScoreType.exact);
-    			st.setBackedUpScoreAtPly(currPly, theScore);    			
+    			// and return an exact position score back down the tree.			
+    			theScore = applyBestNormalMoveAndScore(ml);
     			SearchDebugAgent.printExtSearchNoMoves(currPly, theScore);
     			trans = tt.setTransposition(sm, currPly, trans, (byte)0, theScore.getScore(), theScore.getType(), ml, Move.NULL_MOVE, pc.toPvList(currPly));
     		}
@@ -172,31 +168,32 @@ public class PlySearcher {
     }
 
 	private Score actuallySearchMoves(MoveList ml, PrimitiveIterator.OfInt move_iter, Transposition trans) throws InvalidPieceException {
-		if (!move_iter.hasNext() && pos.lastMoveWasCheck()) {
-			// need to escape check search just the best move from the normal moves, if there is one?
-			move_iter = ml.getIterator(false);
-		}	
-		
 		boolean everBackedUp = false;
 		boolean backedUpScoreWasExact = false;
 		boolean refutationFound = false;
 		ScoreType plyBound = (pos.onMoveIsWhite()) ? ScoreType.lowerBound : ScoreType.upperBound;
 		Score plyScore = new Score((plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE, plyBound);
-		int currMove = move_iter.nextInt();
 		
-		if (isInExtendedSearch() && ml.hasMultipleRegularMoves()) {
+		int currMove = move_iter.nextInt();
+		pc.initialise(currPly, currMove);
+		
+		if (isInExtendedSearch() && !move_iter.hasNext()) {
 			/*
 			 * The idea is that if we are in an extended search, if there are normal moves available 
 			 * and only a single "forced" capture, we shouldn't necessarily be forced into making that capture.
-			 * The capture needs to improve the position score to get searched, otherwise can treat as terminal.
-			 * Note if the King is in check, and there are regular moves, it can escape check, so that is ok. 
+			 * The capture needs to improve the position score to get searched, otherwise it can be treated as terminal.
+			 * Note: This is only a problem for the PV search, all others will bring down alpha/beta score and won't 
+			 * back up if worse.
 			 */
-			plyScore.score = pe.evaluatePosition();
-			st.setBackedUpScoreAtPly(currPly, plyScore);
-			SearchDebugAgent.inExtendedSearchAlternatives(currPly, currMove, plyScore.score);
+			Score provScore = st.getBackedUpScoreAtPly(currPly);
+			boolean isProvisional = (provScore.getScore() == Short.MIN_VALUE || provScore.getScore() == Short.MAX_VALUE);
+			if (isProvisional && ml.hasMultipleRegularMoves()) {
+				plyScore = applyBestNormalMoveAndScore(ml);
+				plyScore.type = plyBound;
+				st.setBackedUpScoreAtPly(currPly, plyScore);
+			}
 		}
 		
-		pc.initialise(currPly, currMove);
 		while(!isTerminated()) {
 		    rootNodeInitAndReportingActions(currMove);
 
@@ -357,6 +354,24 @@ public class PlySearcher {
 		currPly--;
 		SearchDebugAgent.printUndoMove(currPly, currMove);
 		
+		sm.incrementNodesSearched();
+		return positionScore;
+	}
+	
+	private Score applyBestNormalMoveAndScore(MoveList ml) throws InvalidPieceException {
+		int currMove = ml.getBestMove();
+		assert currMove != Move.NULL_MOVE;
+		SearchDebugAgent.printPerformMove(currPly, currMove);
+		pm.performMove(currMove);
+		currPly++;
+		// exact because it is a terminal node
+		Score positionScore = new Score(pe.evaluatePosition(), ScoreType.exact);
+		
+		pm.unperformMove();
+		currPly--;
+		SearchDebugAgent.printUndoMove(currPly, currMove);
+		
+		pc.update(currPly, currMove);
 		sm.incrementNodesSearched();
 		return positionScore;
 	}

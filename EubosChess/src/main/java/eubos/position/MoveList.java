@@ -155,7 +155,7 @@ public class MoveList implements Iterable<Integer> {
 		int[] countList = new int[moves.length];
 		int count = 0;
 		for (int move : moves ) {
-			if (Move.isPromotion(move) || Move.isCapture(move) || Move.isCheck(move)) {
+			if (Move.isQueenPromotion(move) || Move.isCapture(move) || Move.isCheck(move)) {
 				countList[count++] = move;
 			}
 		}
@@ -287,5 +287,13 @@ public class MoveList implements Iterable<Integer> {
 				return true;
 		}
 		return false;
+	}
+
+	public int getBestMove() {
+		if (normal_search_moves.length != 0) {
+			return normal_search_moves[0];
+		} else {
+			return Move.NULL_MOVE;
+		}
 	}
 }

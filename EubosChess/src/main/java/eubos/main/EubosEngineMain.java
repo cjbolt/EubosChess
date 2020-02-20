@@ -69,7 +69,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public void receive(EngineInitializeRequestCommand command) {
 		logger.fine("Eubos Initialising");
 		
-		ProtocolInitializeAnswerCommand reply = new ProtocolInitializeAnswerCommand("Eubos 1.0.3","Chris Bolt");
+		ProtocolInitializeAnswerCommand reply = new ProtocolInitializeAnswerCommand("Eubos 1.0.4","Chris Bolt");
 		reply.addOption(Options.newHashOption((int)FixedSizeTranspositionTable.MBYTES_DEFAULT_HASH_SIZE, 32, 4*1000));
 		this.getProtocol().send( reply );
 		

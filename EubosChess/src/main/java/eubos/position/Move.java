@@ -297,4 +297,8 @@ public final class Move {
 		return reversedMove;
 	}
 
+	public static boolean isQueenPromotion(int move) {
+		return ((getType(move) & Move.TYPE_PROMOTION_QUEEN_MASK) != 0);
+	}
+
 }

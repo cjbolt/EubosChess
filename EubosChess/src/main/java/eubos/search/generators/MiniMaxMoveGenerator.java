@@ -40,7 +40,7 @@ public class MiniMaxMoveGenerator implements
 	private IEvaluate pe;
 	private short score;
 	
-	public static final int EXTENDED_SEARCH_PLY_LIMIT = 12;
+	public static final int EXTENDED_SEARCH_PLY_LIMIT = 8;
 
 	// Used for unit tests
 	MiniMaxMoveGenerator( FixedSizeTranspositionTable hashMap,
