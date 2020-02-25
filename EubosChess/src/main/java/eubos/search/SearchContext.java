@@ -21,6 +21,8 @@ public class SearchContext {
 	static final short AVOID_DRAW_HANDICAP = -400;
 	static final short ACHIEVES_DRAW_BONUS = MaterialEvaluator.MATERIAL_VALUE_KING/2;
 	
+	static final boolean ALWAYS_TRY_FOR_WIN = false;
+	
 	private enum SearchGoal {
 		try_for_win,
 		simplify,
@@ -32,17 +34,18 @@ public class SearchContext {
 		this.dc = dc;
 		initial = initialMaterial;
 		initialOnMove = pos.getOnMove();
-		//boolean queensOffBoard = (!pos.getTheBoard().getWhiteQueens().isNonZero() && !pos.getTheBoard().getBlackQueens().isNonZero());
-		if (//queensOffBoard && 
-			(initialMaterial.getWhite() <= 5200) &&
-			(initialMaterial.getBlack() <= 5200)) {
+		boolean queensOffBoard = pos.getTheBoard().getWhiteQueens().isZero() && pos.getTheBoard().getBlackQueens().isZero();
+		boolean materialQuantityThreshholdReached = initialMaterial.getWhite() <= 5200 && initialMaterial.getBlack() <= 5200;
+		if (queensOffBoard || materialQuantityThreshholdReached) {
 			isEndgame = true;
 		}
 		setGoal();
 	}
 
 	private void setGoal() {
-		if ((Colour.isWhite(initialOnMove) && initial.getDelta() > SIMPLIFY_THRESHOLD) ||
+		if (ALWAYS_TRY_FOR_WIN) {
+			goal = SearchGoal.try_for_win;
+		} else if ((Colour.isWhite(initialOnMove) && initial.getDelta() > SIMPLIFY_THRESHOLD) ||
 			(Colour.isBlack(initialOnMove) && initial.getDelta() < -SIMPLIFY_THRESHOLD )) {
 			goal = SearchGoal.simplify;
 		} else if ((Colour.isWhite(initialOnMove) && initial.getDelta() < DRAW_THRESHOLD) ||
@@ -126,7 +129,7 @@ public class SearchContext {
 	}
 
 	public boolean isEndgame() {
-		// Could make this update for when we enter endgame during search.
+		// Could make this update for when we enter endgame as a consequence of moves applied during the search.
 		return isEndgame;
 	}
 }
