@@ -1,5 +1,7 @@
 package eubos.search;
 
+import eubos.search.Score.ScoreType;
+
 public class Score {
 	short score;
 	public enum ScoreType { 
@@ -15,6 +17,11 @@ public class Score {
 	public Score(short theScore, ScoreType theType) {
 		score = theScore;
 		type = theType;
+	}
+
+	public Score(ScoreType plyBound) {
+		score = (plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE;
+		type = plyBound;
 	}
 
 	public short getScore() {

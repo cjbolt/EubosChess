@@ -96,12 +96,8 @@ public class PlySearcher {
 		TranspositionEvaluation eval = tt.getTransposition(currPly, depthRequiredForTerminalNode);		
 		switch (eval.status) {
 		case sufficientTerminalNode:
-			theScore = new Score(eval.trans.getScore(), eval.trans.getScoreType());
-			pc.update(currPly, eval.trans.getPv());
-			sm.incrementNodesSearched();
-			break;
 		case sufficientRefutation:
-			theScore = new Score(eval.trans.getScore(), (pos.onMoveIsWhite()) ? ScoreType.lowerBound : ScoreType.upperBound);
+			theScore = new Score(eval.trans.getScore(), eval.trans.getScoreType());
 			pc.update(currPly, eval.trans.getPv());
 			sm.incrementNodesSearched();
 			break;
@@ -172,7 +168,7 @@ public class PlySearcher {
 		boolean backedUpScoreWasExact = false;
 		boolean refutationFound = false;
 		ScoreType plyBound = (pos.onMoveIsWhite()) ? ScoreType.lowerBound : ScoreType.upperBound;
-		Score plyScore = new Score((plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE, plyBound);
+		Score plyScore = new Score(plyBound);
 		
 		int currMove = move_iter.nextInt();
 		pc.initialise(currPly, currMove);
@@ -221,7 +217,7 @@ public class PlySearcher {
 	        
 	            if (st.isAlphaBetaCutOff(currPly, positionScore)) {
 	                refutationFound = true;
-	                plyScore = new Score(plyScore.getScore(), plyBound);
+	                //plyScore = new Score(plyScore.getScore(), plyBound);
 	                SearchDebugAgent.printRefutationFound(currPly);
 	                break;    
 	            }

@@ -38,7 +38,6 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 	
 	public TranspositionEvaluation getTransposition(byte currPly, int depthRequiredPly) {
 		TranspositionEvaluation ret = new TranspositionEvaluation();
-		ret.status = TranspositionTableStatus.insufficientNoData;
 		ret.trans = hashMap.getTransposition(pos.getHash());
 		if (ret.trans == null)
 			return ret;
@@ -76,7 +75,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 					if (pe.isThreeFoldRepetition(pos.getHash())) {
 						currPly+=1;
 						SearchDebugAgent.printRepeatedPositionHash(currPly, pos.getHash());
-						removeTransposition(pos.getHash());
+						hashMap.remove(pos.getHash());
 						ret.status = TranspositionTableStatus.sufficientSeedMoveList;
 						currPly-=1;
 					}
@@ -90,18 +89,6 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return ret;
 	}
 	
-	public TranspositionEvaluation getTransposition(int depthRequiredPly) {
-		TranspositionEvaluation ret = new TranspositionEvaluation();
-		ret.status = TranspositionTableStatus.insufficientNoData;
-		ret.trans = hashMap.getTransposition(pos.getHash());
-		if (ret.trans != null) {
-			if ((ret.trans.getDepthSearchedInPly() >=  depthRequiredPly) || ret.trans.getBestMove() != Move.NULL_MOVE) {
-				ret.status = TranspositionTableStatus.sufficientSeedMoveList;
-			}
-		}
-		return ret;
-	}
-	
 	public Transposition setTransposition(SearchMetrics sm, byte currPly, Transposition trans, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove, List<Integer> pv) {
 		if (trans == null) {
 			trans = getTransCreateIfNew(currPly, new_Depth, new_score, new_bound, new_ml, new_bestMove, pv);
@@ -109,10 +96,6 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		}
 		trans = checkForUpdateTrans(currPly, trans, new_Depth, new_score, new_bound, new_ml, new_bestMove, pv);
 		return trans;
-	}
-	
-	private void removeTransposition(long hashCode) {
-		hashMap.remove(hashCode);
 	}
 	
 	private Transposition getTransCreateIfNew(int currPly, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove, List<Integer> pv) {
