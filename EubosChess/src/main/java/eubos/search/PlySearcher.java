@@ -28,7 +28,6 @@ public class PlySearcher {
 	private IScoreMate sg;
 	PrincipalContinuation pc;
 	private SearchMetrics sm;
-	private SearchMetricsReporter sr;
 	
 	private boolean terminate = false;
 	
@@ -59,7 +58,6 @@ public class PlySearcher {
 		
 		this.pc = pc;
 		this.sm = sm;
-		this.sr = sr;
 		this.pm = pm;
 		this.pos = pos;
 		this.pe = pe;
@@ -191,8 +189,6 @@ public class PlySearcher {
 		}
 		
 		while(!isTerminated()) {
-		    rootNodeInitAndReportingActions(currMove);
-
 	        Score positionScore = applyMoveAndScore(currMove);
 	        if (!isTerminated()) {
 	        	// Rationale: this is when a score was backed up - at this instant update the depth searched
@@ -217,7 +213,6 @@ public class PlySearcher {
 	        
 	            if (st.isAlphaBetaCutOff(currPly, positionScore)) {
 	                refutationFound = true;
-	                //plyScore = new Score(plyScore.getScore(), plyBound);
 	                SearchDebugAgent.printRefutationFound(currPly);
 	                break;    
 	            }
@@ -293,14 +288,6 @@ public class PlySearcher {
            searched transpositions can only be used for seeding move lists */
 		return isInNormalSearch() ? currDepthSearchedInPly: 0;
 	}
-	
-	private void rootNodeInitAndReportingActions(int currMove) {
-		if (atRootNode()) {
-			// When we start to search a move at the root node, clear the principal continuation data
-			pc.clearContinuationsBeyondPly(currPly);
-			reportMove(currMove);
-		}
-	}
 
 	private boolean shouldUpdatePositionBoundScoreAndBestMove(
 			ScoreType plyBound, short plyScore, short positionScore) {
@@ -322,12 +309,6 @@ public class PlySearcher {
 			backupRequired = true;
 		}
 		return backupRequired;
-	}
-	
-	private void reportMove(int currMove) {
-		sm.setCurrentMove(currMove);
-		sm.incrementCurrentMoveNumber();
-		sr.reportCurrentMove();
 	}
 		
 	private MoveList getMoveList() throws InvalidPieceException {

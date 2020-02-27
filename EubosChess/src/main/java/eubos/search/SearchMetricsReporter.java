@@ -33,9 +33,10 @@ public class SearchMetricsReporter extends Thread {
 				reporterActive = false;
 				break;
 			}
-			timestampOutOfWait = System.currentTimeMillis();
-			sm.incrementTime((int)(timestampOutOfWait - timestampIntoWait));
-			reportNodeData();
+			if (reporterActive) {
+				timestampOutOfWait = System.currentTimeMillis();
+				reportNodeData((int)(timestampOutOfWait - timestampIntoWait));
+			}
 		} while (reporterActive);
 	}
 	
@@ -46,12 +47,9 @@ public class SearchMetricsReporter extends Thread {
 		}
 	}
 	
-	public void reportNodeData() {
+	public void reportNodeData(int deltaTime) {
 		ProtocolInformationCommand info = new ProtocolInformationCommand();
-		info.setNodes(sm.getNodesSearched());
-		info.setNps(sm.getNodesPerSecond());
-		info.setTime(sm.getTime());
-		info.setHash(sm.getHashFull());
+		sm.setPeriodicInfoCommand(info, deltaTime);
 		if (info.getTime() > 10) { 
 			eubosEngine.sendInfoCommand(info);
 		}
@@ -74,15 +72,6 @@ public class SearchMetricsReporter extends Thread {
 			info.setMaxDepth(sm.getPartialDepth());
 			eubosEngine.sendInfoCommand(info);
 		}
-	}
-	
-	void reportCurrentMove() {
-		/*if (sendInfo) {
-			ProtocolInformationCommand info = new ProtocolInformationCommand();
-			info.setCurrentMove(sm.getCurrentMove());
-			info.setCurrentMoveNumber(sm.getCurrentMoveNumber());
-			eubosEngine.sendInfoCommand(info);
-		}*/
 	}
 
 	public void setSendInfo(boolean enable) {

@@ -1,7 +1,5 @@
 package eubos.search;
 
-import eubos.search.Score.ScoreType;
-
 public class Score {
 	short score;
 	public enum ScoreType { 

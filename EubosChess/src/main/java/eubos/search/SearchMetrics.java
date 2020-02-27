@@ -3,6 +3,7 @@ package eubos.search;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.position.Move;
@@ -34,13 +35,21 @@ public class SearchMetrics {
 		this(1);
 	}
 	
+	public synchronized void setPeriodicInfoCommand(ProtocolInformationCommand info, int deltaTime) {
+		incrementTime(deltaTime);
+		info.setNodes(getNodesSearched());
+		info.setNps(getNodesPerSecond());
+		info.setTime(getTime());
+		info.setHash(getHashFull());
+	}
+	
 	synchronized void incrementNodesSearched() { nodesSearched++; }
-	synchronized long getNodesSearched() { return nodesSearched; }
+	long getNodesSearched() { return nodesSearched; }
 	
-	synchronized void incrementTime(int delta) { time += delta; }
-	synchronized long getTime() { return time; }
+	void incrementTime(int delta) { time += delta; }
+	long getTime() { return time; }
 	
-	synchronized int getNodesPerSecond() {
+	int getNodesPerSecond() {
 		int nps = 0;
 		if (time != 0) {
 			nps = (int)(nodesSearched*1000/time);
@@ -81,6 +90,6 @@ public class SearchMetrics {
 	public synchronized void clearCurrentMoveNumber() { currMoveNum = 0; }
 	synchronized void incrementCurrentMoveNumber() { currMoveNum+=1; }
 	
-	synchronized short getHashFull() { return hashFull;	}
+	short getHashFull() { return hashFull;	}
 	public synchronized void setHashFull(short hashFull) { this.hashFull = hashFull; }
 }

@@ -112,7 +112,6 @@ public class MiniMaxMoveGenerator implements
 		}
 		if (sendInfo) {
 			sr.end();
-			sr.reportNodeData();
 		}
 		// Select the best move
 		GenericMove bestMove = Move.toGenericMove(pc.getBestMove((byte)0));
