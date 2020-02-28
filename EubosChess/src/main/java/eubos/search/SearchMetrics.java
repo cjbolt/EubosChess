@@ -7,6 +7,7 @@ import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.position.Move;
+import eubos.score.MaterialEvaluator;
 
 public class SearchMetrics {
 	private long nodesSearched;
@@ -19,6 +20,7 @@ public class SearchMetrics {
 	private int partialDepth;
 	private int currMove;
 	private int currMoveNum;
+	private long initialTimestamp;
 	
 	public SearchMetrics(int searchDepth) {
 		nodesSearched = 0;
@@ -29,24 +31,47 @@ public class SearchMetrics {
 		partialDepth = 0;
 		currMoveNum = 0;
 		hashFull = 0;
+		initialTimestamp = System.currentTimeMillis();
 	}
 
 	public SearchMetrics() {
 		this(1);
 	}
 	
-	public synchronized void setPeriodicInfoCommand(ProtocolInformationCommand info, int deltaTime) {
-		incrementTime(deltaTime);
+	public synchronized void setPeriodicInfoCommand(ProtocolInformationCommand info) {
+		incrementTime();
 		info.setNodes(getNodesSearched());
 		info.setNps(getNodesPerSecond());
 		info.setTime(getTime());
 		info.setHash(getHashFull());
 	}
 	
+	public synchronized void setPvInfoCommand(ProtocolInformationCommand info) {
+		incrementTime();
+		info.setNodes(getNodesSearched());
+		info.setNps(getNodesPerSecond());
+		info.setHash(getHashFull());
+		info.setMoveList(getPrincipalVariation());
+		info.setTime(getTime());
+		int score = getCpScore();
+		int depth = getDepth();
+		if (java.lang.Math.abs(score)<MaterialEvaluator.MATERIAL_VALUE_KING) {
+			info.setCentipawns(score);
+		} else {
+			int mateMove = (score > 0) ? Short.MAX_VALUE - score : Short.MIN_VALUE - score;
+			info.setMate(mateMove);
+		}
+		info.setDepth(depth);
+		info.setMaxDepth(getPartialDepth());
+	}
+	
 	synchronized void incrementNodesSearched() { nodesSearched++; }
 	long getNodesSearched() { return nodesSearched; }
 	
-	void incrementTime(int delta) { time += delta; }
+	void incrementTime() {
+		long currentTimestamp = System.currentTimeMillis();
+		time = currentTimestamp - initialTimestamp;
+	}
 	long getTime() { return time; }
 	
 	int getNodesPerSecond() {

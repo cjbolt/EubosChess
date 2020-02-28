@@ -3,7 +3,6 @@ package eubos.search;
 import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
 
 import eubos.main.EubosEngineMain;
-import eubos.score.MaterialEvaluator;
 
 public class SearchMetricsReporter extends Thread {
 	
@@ -21,10 +20,7 @@ public class SearchMetricsReporter extends Thread {
 	}
 	
 	public void run() {
-		long timestampIntoWait = 0;
-		long timestampOutOfWait = 0;
 		do {
-			timestampIntoWait = System.currentTimeMillis();
 			try {
 				synchronized (this) {
 					wait(UPDATE_RATE_MS);
@@ -34,8 +30,7 @@ public class SearchMetricsReporter extends Thread {
 				break;
 			}
 			if (reporterActive) {
-				timestampOutOfWait = System.currentTimeMillis();
-				reportNodeData((int)(timestampOutOfWait - timestampIntoWait));
+				reportNodeData();
 			}
 		} while (reporterActive);
 	}
@@ -47,10 +42,10 @@ public class SearchMetricsReporter extends Thread {
 		}
 	}
 	
-	public void reportNodeData(int deltaTime) {
+	public void reportNodeData() {
 		ProtocolInformationCommand info = new ProtocolInformationCommand();
-		sm.setPeriodicInfoCommand(info, deltaTime);
-		if (info.getTime() > 10) { 
+		sm.setPeriodicInfoCommand(info);
+		if (info.getTime() > UPDATE_RATE_MS-100) { 
 			eubosEngine.sendInfoCommand(info);
 		}
 	}
@@ -58,18 +53,7 @@ public class SearchMetricsReporter extends Thread {
 	void reportPrincipalVariation() {
 		if (sendInfo) {
 			ProtocolInformationCommand info = new ProtocolInformationCommand();
-			info.setMoveList(sm.getPrincipalVariation());
-			info.setTime(sm.getTime());
-			int score = sm.getCpScore();
-			int depth = sm.getDepth();
-			if (java.lang.Math.abs(score)<MaterialEvaluator.MATERIAL_VALUE_KING) {
-				info.setCentipawns(score);
-			} else {
-				int mateMove = (score > 0) ? Short.MAX_VALUE - score : Short.MIN_VALUE - score;
-				info.setMate(mateMove);
-			}
-			info.setDepth(depth);
-			info.setMaxDepth(sm.getPartialDepth());
+			sm.setPvInfoCommand(info);
 			eubosEngine.sendInfoCommand(info);
 		}
 	}
