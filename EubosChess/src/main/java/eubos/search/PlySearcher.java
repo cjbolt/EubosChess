@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.PrimitiveIterator;
 
 import eubos.board.InvalidPieceException;
+import eubos.board.Piece.Colour;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
@@ -34,7 +35,7 @@ public class PlySearcher {
 	private List<Integer> lastPc;
 	private byte dynamicSearchLevelInPly;
 	private ITranspositionAccessor tt;
-	private PrincipalContinuationUpdateHelper pcUpdater;
+	private SearchMetricsReporter sr;
 	
 	byte currPly = 0;
 	byte currDepthSearchedInPly = 0;
@@ -61,6 +62,7 @@ public class PlySearcher {
 		this.pm = pm;
 		this.pos = pos;
 		this.pe = pe;
+		this.sr = sr;
 		this.lastPc = lastPc;
 		dynamicSearchLevelInPly = searchDepthPly;
 		originalSearchDepthRequiredInPly = searchDepthPly;
@@ -69,7 +71,6 @@ public class PlySearcher {
 		this.st = st;
 		tt = hashMap;
 		sg = new MateScoreGenerator(pos, pe.getSearchContext());
-		pcUpdater = new PrincipalContinuationUpdateHelper(pos.getOnMove(), pc, sm, sr);
 	}
 	
 	private byte setExtSearchDepth() {
@@ -255,7 +256,12 @@ public class PlySearcher {
 			throws InvalidPieceException {
 		pc.update(currPly, currMove);
 		if (atRootNode()) {
-			pcUpdater.report(positionScore, extendedSearchDeepestPly);
+			sm.setPartialDepth(extendedSearchDeepestPly);
+			sm.setPrincipalVariation(pc.toPvList(0));
+			if (Colour.isBlack(pos.getOnMove()))
+				positionScore = (short) -positionScore; // Negated due to UCI spec (from engine pov)
+			sm.setCpScore(positionScore);
+			sr.reportPrincipalVariation();
 		}
 	}
 	
