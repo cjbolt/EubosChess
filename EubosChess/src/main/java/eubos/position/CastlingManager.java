@@ -52,22 +52,27 @@ class CastlingManager {
 	}
 	
 	String getFenFlags() {
-		String fenCastle = "";
+		StringBuilder fenCastle = new StringBuilder();
 		if (whiteKsAvail && !whiteCastled)
-			fenCastle += "K";
+			fenCastle.append("K");
 		if (whiteQsAvail && !whiteCastled)
-			fenCastle += "Q";
+			fenCastle.append("Q");
 		if (blackKsAvail && !blackCastled)
-			fenCastle += "k";
+			fenCastle.append("k");
 		if (blackQsAvail && !blackCastled)
-			fenCastle += "q";
-		if (fenCastle.isEmpty())
-			fenCastle = "-";
-		return fenCastle;
+			fenCastle.append("q");
+		if (fenCastle.length() == 0)
+			fenCastle.append("-");
+		return fenCastle.toString();
 	}
 	
 	void setFenFlags(String fenCastle) {
-		if (fenCastle.matches("[KQkq-]+")) {
+		if (fenCastle.contains("-")) {
+			whiteKsAvail = false;
+			whiteQsAvail = false;
+			blackKsAvail = false;
+			blackQsAvail = false;
+		} else {
 			if (fenCastle.contains("K")) {
 				whiteKsAvail = true;
 				whiteCastled = false;
@@ -83,12 +88,6 @@ class CastlingManager {
 			if (fenCastle.contains("q")) {
 				blackQsAvail = true;
 				blackCastled = false;
-			}
-			if (fenCastle.contains("-")) {
-				whiteKsAvail = false;
-				whiteQsAvail = false;
-				blackKsAvail = false;
-				blackQsAvail = false;
 			}
 		}
 	}

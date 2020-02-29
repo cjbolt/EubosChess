@@ -74,6 +74,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		}
 		stopper.end();
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
+		mg.terminateSearchMetricsReporter();
 		SearchDebugAgent.close();
 	}
 

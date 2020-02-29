@@ -51,8 +51,8 @@ public class MiniMaxMoveGenerator implements
 		this.pos = pos;
 		this.pe = pe;
 		tt = hashMap;
-		sm = new SearchMetrics();
 		score = 0;
+		sm = new SearchMetrics();	
 	}
 
 	// Used with Arena, Lichess
@@ -61,9 +61,19 @@ public class MiniMaxMoveGenerator implements
 			IChangePosition pm,
 			IPositionAccessors pos,
 			IEvaluate pe) {
-		this(hashMap, pm, pos, pe);
 		callback = eubos;
 		sendInfo = true;
+		this.pm = pm;
+		this.pos = pos;
+		this.pe = pe;
+		tt = hashMap;
+		score = 0;
+		sm = new SearchMetrics();
+		sr = new SearchMetricsReporter(callback, sm);	
+		if (sendInfo) {
+			sr.setSendInfo(true);
+			sr.start();
+		}
 		SearchDebugAgent.open(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
 	}
 	
@@ -74,9 +84,6 @@ public class MiniMaxMoveGenerator implements
 		sm.setDepth(searchDepth);
 		sm.clearCurrentMoveNumber();
 		sm.setPrincipalVariation(pc.toPvList(0));
-		sr = new SearchMetricsReporter(callback,sm);	
-		if (sendInfo)
-			sr.setSendInfo(true);
 		st = new ScoreTracker(searchDepth+EXTENDED_SEARCH_PLY_LIMIT, pos.onMoveIsWhite());
 		tta = new TranspositionTableAccessor(tt, pos, st, pm, pe);
 	}
@@ -96,9 +103,9 @@ public class MiniMaxMoveGenerator implements
 		boolean foundMate = false;
 		initialiseSearchDepthDependentObjects(searchDepth, pm, pe);
 		ps = new PlySearcher(tta, st, pc, sm, sr, searchDepth, pm, pos, lastPc, pe);
-		// Start the search reporter task
-		if (sendInfo)
-			sr.start();
+		if (sendInfo) {
+			sr.setSendInfo(true);
+		}
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		try {
 			score = ps.searchPly().getScore();
@@ -111,7 +118,7 @@ public class MiniMaxMoveGenerator implements
 			foundMate = true;
 		}
 		if (sendInfo) {
-			sr.end();
+			sr.setSendInfo(false);
 		}
 		// Select the best move
 		GenericMove bestMove = Move.toGenericMove(pc.getBestMove((byte)0));
@@ -124,5 +131,9 @@ public class MiniMaxMoveGenerator implements
 	public synchronized void terminateFindMove() {
 		if (ps != null)
 			ps.terminateFindMove();
+	}
+	
+	public void terminateSearchMetricsReporter() {
+		sr.end();
 	}
 }

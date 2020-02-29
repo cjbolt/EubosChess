@@ -44,6 +44,7 @@ public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 			pc = mg.pc.toPvList(0);
 		}
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
+		mg.terminateSearchMetricsReporter();
 		SearchDebugAgent.close();
 	}
 }

@@ -261,7 +261,9 @@ public class PlySearcher {
 			if (Colour.isBlack(pos.getOnMove()))
 				positionScore = (short) -positionScore; // Negated due to UCI spec (from engine pov)
 			sm.setCpScore(positionScore);
-			sr.reportPrincipalVariation();
+			if (sr != null) {
+				sr.reportPrincipalVariation();
+			}
 		}
 	}
 	

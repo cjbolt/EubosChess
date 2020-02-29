@@ -43,9 +43,9 @@ public class SearchMetricsReporter extends Thread {
 	}
 	
 	public void reportNodeData() {
-		ProtocolInformationCommand info = new ProtocolInformationCommand();
-		sm.setPeriodicInfoCommand(info);
-		if (info.getTime() > UPDATE_RATE_MS-100) { 
+		if (sendInfo) {
+			ProtocolInformationCommand info = new ProtocolInformationCommand();
+			sm.setPeriodicInfoCommand(info); 
 			eubosEngine.sendInfoCommand(info);
 		}
 	}
