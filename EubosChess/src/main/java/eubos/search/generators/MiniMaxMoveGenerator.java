@@ -82,7 +82,6 @@ public class MiniMaxMoveGenerator implements
 	private void initialiseSearchDepthDependentObjects(int searchDepth, IChangePosition pm, IEvaluate pe) {
 		pc = new PrincipalContinuation(searchDepth+EXTENDED_SEARCH_PLY_LIMIT);
 		sm.setDepth(searchDepth);
-		sm.clearCurrentMoveNumber();
 		sm.setPrincipalVariation(pc.toPvList(0));
 		st = new ScoreTracker(searchDepth+EXTENDED_SEARCH_PLY_LIMIT, pos.onMoveIsWhite());
 		tta = new TranspositionTableAccessor(tt, pos, st, pm, pe);

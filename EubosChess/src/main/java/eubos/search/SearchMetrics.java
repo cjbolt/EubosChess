@@ -2,6 +2,7 @@ package eubos.search;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
 import com.fluxchess.jcpi.models.GenericMove;
@@ -10,7 +11,7 @@ import eubos.position.Move;
 import eubos.score.MaterialEvaluator;
 
 public class SearchMetrics {
-	private long nodesSearched;
+	private AtomicLong nodesSearched;
 	private long time;
 	private short hashFull;
 	private List<Integer> pv;
@@ -18,18 +19,15 @@ public class SearchMetrics {
 	private short cpScore;
 	private int depth;
 	private int partialDepth;
-	private int currMove;
-	private int currMoveNum;
 	private long initialTimestamp;
 	
 	public SearchMetrics(int searchDepth) {
-		nodesSearched = 0;
+		nodesSearched = new AtomicLong(0);
 		time = 0;
 		cpScore = 0;
 		pvValid = false;
 		depth = searchDepth;
 		partialDepth = 0;
-		currMoveNum = 0;
 		hashFull = 0;
 		initialTimestamp = System.currentTimeMillis();
 	}
@@ -65,8 +63,8 @@ public class SearchMetrics {
 		info.setMaxDepth(getPartialDepth());
 	}
 	
-	synchronized void incrementNodesSearched() { nodesSearched++; }
-	long getNodesSearched() { return nodesSearched; }
+	void incrementNodesSearched() { nodesSearched.incrementAndGet(); }
+	long getNodesSearched() { return nodesSearched.get(); }
 	
 	void incrementTime() {
 		long currentTimestamp = System.currentTimeMillis();
@@ -77,7 +75,7 @@ public class SearchMetrics {
 	int getNodesPerSecond() {
 		int nps = 0;
 		if (time != 0) {
-			nps = (int)(nodesSearched*1000/time);
+			nps = (int)(nodesSearched.get()*1000/time);
 		}
 		return nps;
 	}
@@ -108,13 +106,6 @@ public class SearchMetrics {
 	synchronized int getPartialDepth() { return partialDepth; }
 	synchronized void setPartialDepth(int depth ) { this.partialDepth = depth; }
 	
-	synchronized void setCurrentMove(int mov) { currMove = mov;}
-	synchronized GenericMove getCurrentMove() { return Move.toGenericMove(currMove); }
-	
-	synchronized int getCurrentMoveNumber() { return currMoveNum; }
-	public synchronized void clearCurrentMoveNumber() { currMoveNum = 0; }
-	synchronized void incrementCurrentMoveNumber() { currMoveNum+=1; }
-	
 	short getHashFull() { return hashFull;	}
-	public synchronized void setHashFull(short hashFull) { this.hashFull = hashFull; }
+	public void setHashFull(short hashFull) { this.hashFull = hashFull; }
 }

@@ -43,7 +43,6 @@ public class SearchMetricsReporterTest {
 		// Minimal setup of the Search Metrics object
 		List<Integer> pv = new ArrayList<Integer>();
 		pv.add(Move.valueOf(Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE));
-		sm.setCurrentMove(pv.get(0));
 		sm.setPrincipalVariation(pv);
 		classUnderTest = new SearchMetricsReporter(eubos, sm);
 	}
