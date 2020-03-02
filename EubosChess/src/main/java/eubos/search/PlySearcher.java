@@ -86,12 +86,9 @@ public class PlySearcher {
 	
 	public Score searchPly() throws InvalidPieceException {
 		Score theScore = null;
-		if (isTerminated())
-			return new Score();
-		
 		MoveList ml = null;
-		byte depthRequiredForTerminalNode = initialiseSearchAtPly();
 		
+		byte depthRequiredForTerminalNode = initialiseSearchAtPly();
 		TranspositionEvaluation eval = tt.getTransposition(currPly, depthRequiredForTerminalNode);		
 		switch (eval.status) {
 		case sufficientTerminalNode:
@@ -128,8 +125,6 @@ public class PlySearcher {
 		} else {
 			transDepthRequiredForTerminalNode = (byte)(originalSearchDepthRequiredInPly - currPly);
 		}
-		st.setProvisionalScoreAtPly(currPly);
-		SearchDebugAgent.printStartPlyInfo(currPly, transDepthRequiredForTerminalNode, st.getBackedUpScoreAtPly(currPly).getScore(), pos);
 		return transDepthRequiredForTerminalNode;
 	}
 	
@@ -140,7 +135,7 @@ public class PlySearcher {
 	}
 	
 	private Score searchMoves(MoveList ml, Transposition trans) throws InvalidPieceException {
-		Score theScore = null;
+		Score theScore = null;		
         if (ml.isMateOccurred()) {
             theScore = new Score(sg.scoreMate(currPly), ScoreType.exact);
             st.setBackedUpScoreAtPly(currPly, theScore);
@@ -166,8 +161,12 @@ public class PlySearcher {
 		boolean everBackedUp = false;
 		boolean backedUpScoreWasExact = false;
 		boolean refutationFound = false;
+		
 		ScoreType plyBound = (pos.onMoveIsWhite()) ? ScoreType.lowerBound : ScoreType.upperBound;
 		Score plyScore = new Score(plyBound);
+		
+		st.setProvisionalScoreAtPly(currPly);
+		SearchDebugAgent.printStartPlyInfo(currPly, st, pos);
 		
 		int currMove = move_iter.nextInt();
 		pc.initialise(currPly, currMove);

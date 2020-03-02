@@ -12,7 +12,7 @@ public interface IPositionAccessors {
 	public int getMoveNumber();
 	public boolean lastMoveWasCapture();
 	public boolean lastMoveWasCheck();
-	public int getCastlingAvaillability();
+	public int getCastlingFlags();
 	public long getHash();
 	public String getFen();
 }

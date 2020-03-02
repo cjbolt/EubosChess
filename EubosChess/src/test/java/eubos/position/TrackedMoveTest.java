@@ -23,7 +23,7 @@ public class TrackedMoveTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		classUnderTest = new TrackedMove(pawnCapture, capturedBlackPawn, Position.NOPOSITION, "KkQq");
+		classUnderTest = new TrackedMove(pawnCapture, capturedBlackPawn, Position.NOPOSITION, 0xF);
 	}
 
 	@Test

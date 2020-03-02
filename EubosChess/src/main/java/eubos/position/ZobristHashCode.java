@@ -76,7 +76,7 @@ public class ZobristHashCode {
 			hashCode ^= getPrnForPiece(pieceSq, pos.getTheBoard().getPieceAtSquare(pieceSq));
 		}
 		// add castling
-		prevCastlingMask = pos.getCastlingAvaillability();	
+		prevCastlingMask = pos.getCastlingFlags();	
 		if ((prevCastlingMask & PositionManager.WHITE_KINGSIDE)==PositionManager.WHITE_KINGSIDE)
 			hashCode ^= prnLookupTable[INDEX_WHITE_KSC];
 		if ((prevCastlingMask & PositionManager.WHITE_QUEENSIDE)==PositionManager.WHITE_QUEENSIDE)
@@ -206,7 +206,7 @@ public class ZobristHashCode {
 	}
 
 	protected void doCastlingFlags() {
-		int currentCastlingFlags = pos.getCastlingAvaillability();
+		int currentCastlingFlags = pos.getCastlingFlags();
 		int delta = currentCastlingFlags ^ this.prevCastlingMask;
 		if (delta != 0)
 		{

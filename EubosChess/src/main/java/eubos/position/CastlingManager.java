@@ -92,6 +92,41 @@ class CastlingManager {
 		}
 	}
 
+	int getFlags() {
+		int castleMask = 0;
+		castleMask |= (whiteKsAvail ? PositionManager.WHITE_KINGSIDE : 0);
+		castleMask |= (whiteQsAvail ? PositionManager.WHITE_QUEENSIDE : 0);
+		castleMask |= (blackKsAvail ? PositionManager.BLACK_KINGSIDE : 0);
+		castleMask |= (blackQsAvail ? PositionManager.BLACK_QUEENSIDE : 0);
+		return castleMask;
+	}
+	
+	void setFlags(int flags) {
+		if (flags == 0) {
+			whiteKsAvail = false;
+			whiteQsAvail = false;
+			blackKsAvail = false;
+			blackQsAvail = false;
+		} else {
+			if ((flags & PositionManager.WHITE_KINGSIDE)==PositionManager.WHITE_KINGSIDE) {
+				whiteKsAvail = true;
+				whiteCastled = false;
+			}
+			if ((flags & PositionManager.WHITE_QUEENSIDE)==PositionManager.WHITE_QUEENSIDE) {
+				whiteQsAvail = true;
+				whiteCastled = false;
+			}
+			if ((flags & PositionManager.BLACK_KINGSIDE)==PositionManager.BLACK_KINGSIDE) {
+				blackKsAvail = true;
+				blackCastled = false;
+			}
+			if ((flags & PositionManager.BLACK_QUEENSIDE)==PositionManager.BLACK_QUEENSIDE) {
+				blackQsAvail = true;
+				blackCastled = false;
+			}
+		}
+	}
+
 	void performSecondaryCastlingMove(int move) throws InvalidPieceException {
 		int rookToCastle = Piece.NONE;
 		if (Move.areEqual(move, wksc)) {
@@ -157,22 +192,6 @@ class CastlingManager {
 		}
 		if ( qsc != 0 )
 			ml.add(qsc);
-	}
-	
-	boolean isWhiteKsAvail() {
-		return whiteKsAvail;
-	}
-
-	boolean isWhiteQsAvail() {
-		return whiteQsAvail;
-	}
-
-	boolean isBlackKsAvail() {
-		return blackKsAvail;
-	}
-
-	boolean isBlackQsAvail() {
-		return blackQsAvail;
 	}
 
 	private boolean castlingAvaillable(Colour colour) {

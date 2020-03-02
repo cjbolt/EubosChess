@@ -7,14 +7,14 @@ class TrackedMove {
 	private int move = 0;
 	private CaptureData capture = null;
 	private int enPassantTarget = Position.NOPOSITION;
-	private String castleFenFlags = null;
+	private int castlingFlags = 0;
 
 	TrackedMove( int inMove ) { move = inMove; capture = new CaptureData(); }
-	TrackedMove( int inMove, CaptureData capture, int enP, String castleFen) {
+	TrackedMove( int inMove, CaptureData capture, int enP, int castling) {
 		move = inMove; 
 		this.capture = capture;
 		enPassantTarget = enP;
-		castleFenFlags = castleFen;
+		castlingFlags = castling;
 	}
 	boolean isCapture() { return (capture.target != Piece.NONE); }
 	
@@ -46,7 +46,7 @@ class TrackedMove {
 	void setEnPassantTarget(int enPassantTarget) {
 		this.enPassantTarget = enPassantTarget;
 	}
-	String getFenFlags() {
-		return castleFenFlags;
+	int getCastlingFlags() {
+		return castlingFlags;
 	}
 }

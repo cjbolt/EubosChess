@@ -55,13 +55,11 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public static final int WHITE_QUEENSIDE = 1<<1;
 	public static final int BLACK_KINGSIDE = 1<<2;
 	public static final int BLACK_QUEENSIDE = 1<<3;
-	public int getCastlingAvaillability() {
-		int castleMask = 0;
-		castleMask |= (castling.isWhiteKsAvail() ? WHITE_KINGSIDE : 0);
-		castleMask |= (castling.isWhiteQsAvail() ? WHITE_QUEENSIDE : 0);
-		castleMask |= (castling.isBlackKsAvail() ? BLACK_KINGSIDE : 0);
-		castleMask |= (castling.isBlackQsAvail() ? BLACK_QUEENSIDE : 0);
-		return castleMask;
+	public int getCastlingFlags() {
+		return castling.getFlags();
+	}
+	public void setCastlingFlags(int castlingFlags) {
+		castling.setFlags(castlingFlags);
 	}
 	
 	private MoveTracker moveTracker = new MoveTracker();
@@ -146,7 +144,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Handle capture target (note, this will be null if the move is not a capture)
 		CaptureData captureTarget = getCaptureTarget(move, Move.getOriginPiece(move), isEnPassantCapture);
 		// Store the necessary information to undo this move on the move tracker stack
-		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq, castling.getFenFlags()));
+		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq, getCastlingFlags()));
 		// Update the piece's square.
 		theBoard.setPieceAtSquare(Move.getTargetPosition(move), Move.getOriginPiece(move));
 		// update castling flags
@@ -187,7 +185,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			castling.unperformSecondaryCastlingMove(reversedMove);
 		}
 		theBoard.setPieceAtSquare(Move.getTargetPosition(reversedMove), pieceToMove);
-		castling.setFenFlags(tm.getFenFlags());
+		castling.setFlags(tm.getCastlingFlags());
 		// Undo any capture that had been previously performed.
 		if ( tm.isCapture()) {
 			theBoard.setPieceAtSquare(tm.getCaptureData().square, tm.getCaptureData().target);

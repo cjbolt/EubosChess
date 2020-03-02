@@ -176,15 +176,14 @@ public class SearchDebugAgent {
 		}		
 	}
 
-	public static void printStartPlyInfo(byte currPly, byte depthRequiredPly, short provisionalScoreAtPly,
-			IPositionAccessors pos) {
+	public static void printStartPlyInfo(byte currPly, ScoreTracker st, IPositionAccessors pos) {
 		if (isDebugOn) {
 			if (currPly == 0) {
-				printOutput("\n\n\n NEW ITERATION to Depth "+depthRequiredPly+"\n\n\n");
+				printOutput("\n\n\n NEW ITERATION \n\n\n");
 			}
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"search @"+currPly+" prov="+provisionalScoreAtPly);
+			printOutput(indent+"search @"+currPly+" prov="+st.getBackedUpScoreAtPly(currPly).getScore());
 			printOutput(indent+"fen:"+pos.getFen());
 		}
 	}
