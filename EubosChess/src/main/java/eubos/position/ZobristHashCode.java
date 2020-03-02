@@ -125,7 +125,8 @@ public class ZobristHashCode {
 	
 	// Used to update the Zobrist hash code whenever a position changes due to a move being performed
 	public void update(int move, CaptureData captureTarget, int enPassantFile) {
-		int piece = doBasicMove(move);
+		int piece = Move.getOriginPiece(move);
+		doBasicMove(move, piece);
 		doCapturedPiece(captureTarget);
 		doEnPassant(enPassantFile);
      	doSecondaryMove(move, piece);
@@ -146,8 +147,7 @@ public class ZobristHashCode {
 		return eubosPiece;
 	}
 	
-	protected int doBasicMove(int move) {
-		int piece = pos.getTheBoard().getPieceAtSquare(Move.getTargetPosition(move));
+	protected int doBasicMove(int move, int piece) {
 		int promotedChessman = Move.getPromotion(move);
 		if (promotedChessman == IntChessman.NOCHESSMAN) {
 			// Basic move only
