@@ -20,6 +20,7 @@ public class MoveList implements Iterable<Integer> {
 	private byte normalSearchBestMovePreviousIndex = -1;
 	private byte extendedSearchListBestMovePreviousIndex = -1;
 	
+	/* Not currently used because we sort by ascending numerical order using Arrays.sort() */
     class MoveTypeComparator implements Comparator<Integer> {
         @Override public int compare(Integer move1, Integer move2) {
             boolean gt = Move.getType(move1) < Move.getType(move2);

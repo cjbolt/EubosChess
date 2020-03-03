@@ -331,10 +331,10 @@ public class PlySearcher {
 	
 	private Score applyMoveAndScore(int currMove) throws InvalidPieceException {
 		SearchDebugAgent.printPerformMove(currPly, currMove);
-		pm.performMove(currMove);
+		pm.performMoveWithType(currMove);
 		currPly++;
 		Score positionScore = assessNewPosition();
-		pm.unperformMove();
+		pm.unperformMoveWithType();
 		currPly--;
 		SearchDebugAgent.printUndoMove(currPly, currMove);
 		
@@ -346,12 +346,12 @@ public class PlySearcher {
 		int currMove = ml.getBestMove();
 		assert currMove != Move.NULL_MOVE;
 		SearchDebugAgent.printPerformMove(currPly, currMove);
-		pm.performMove(currMove);
+		pm.performMoveWithType(currMove);
 		currPly++;
 		// exact because it is a terminal node
 		Score positionScore = new Score(pe.evaluatePosition(), ScoreType.exact);
 		
-		pm.unperformMove();
+		pm.unperformMoveWithType();
 		currPly--;
 		SearchDebugAgent.printUndoMove(currPly, currMove);
 		

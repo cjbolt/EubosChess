@@ -138,6 +138,10 @@ public final class Move {
 	public static boolean isRegular(int move) {
 		return (getType(move) & (Move.TYPE_REGULAR_MASK | Move.TYPE_CASTLE_MASK)) != 0;
 	}
+	
+	public static boolean isCastle(int move) {
+		return (getType(move) & Move.TYPE_CASTLE_MASK)==Move.TYPE_CASTLE_MASK;
+	}
 
 	public static GenericMove toGenericMove(int move) {
 		if (move == Move.NULL_MOVE)
@@ -300,5 +304,4 @@ public final class Move {
 	public static boolean isQueenPromotion(int move) {
 		return ((getType(move) & Move.TYPE_PROMOTION_QUEEN_MASK) != 0);
 	}
-
 }

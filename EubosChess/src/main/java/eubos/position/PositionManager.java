@@ -19,6 +19,8 @@ import eubos.search.DrawChecker;
 
 public class PositionManager implements IChangePosition, IPositionAccessors {
 	
+	public static final CaptureData NULL_CAPTURE = new CaptureData(Piece.NONE, Position.NOPOSITION);
+	
 	public PositionManager( String fenString, DrawChecker dc) {
 		moveTracker = new MoveTracker();
 		new fenParser( this, fenString );
@@ -125,24 +127,31 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	DrawChecker dc;
 	
 	public void performMove( int move ) throws InvalidPieceException {
-		// Get the piece to move
-		int pieceToMove = theBoard.pickUpPieceAtSquare(Move.getOriginPosition(move));
-		assert pieceToMove == Move.getOriginPiece(move): "AtBoard: " + pieceToMove + " inMove: " + Move.getOriginPiece(move);
-		// Flag if move is an en passant capture
-		boolean isEnPassantCapture = isEnPassantCapture(move);
+		CaptureData captureTarget = NULL_CAPTURE;
 		// Save previous en passant square and initialise for this move
+		int enPassantFile = IntFile.NOFILE;
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		theBoard.setEnPassantTargetSq(Position.NOPOSITION);
-		// Handle pawn promotion moves
-		move = checkForPawnPromotions(move);
-		// Handle castling secondary rook moves...
-		if (Piece.isKing(Move.getOriginPiece(move))) {
-			castling.performSecondaryCastlingMove(move);
+		
+		// Remove the piece to move from the board
+		theBoard.pickUpPieceAtSquare(Move.getOriginPosition(move));
+		
+		if (isEnPassantCapture(move, prevEnPassantTargetSq)) {
+			// Handle en passant captures, don't need to do other checks in this case
+			captureTarget = getEnPassantCaptureTarget(move, Move.getOriginPiece(move));
+		} else {
+			// handle promotions, castling, setting en passant etc
+			enPassantFile = checkToSetEnPassantTargetSq(move);
+			if (enPassantFile == IntFile.NOFILE) {
+				// Handle pawn promotion moves
+				move = checkForPawnPromotions(move);
+				// Handle castling secondary rook moves...
+				if (Piece.isKing(Move.getOriginPiece(move))) {
+					castling.performSecondaryCastlingMove(move);
+				}
+				captureTarget = getCaptureTarget(move, Move.getOriginPiece(move));
+			}			
 		}
-		// Handle any initial 2 square pawn moves that are subject to en passant rule
-		int enPassantFile = checkToSetEnPassantTargetSq(move);
-		// Handle capture target (note, this will be null if the move is not a capture)
-		CaptureData captureTarget = getCaptureTarget(move, Move.getOriginPiece(move), isEnPassantCapture);
 		// Store the necessary information to undo this move on the move tracker stack
 		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq, getCastlingFlags()));
 		// Update the piece's square.
@@ -162,7 +171,99 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		dc.incrementPositionReachedCount(getHash());
 	}
 	
+	public void performMoveWithType( int move ) throws InvalidPieceException {
+		CaptureData captureTarget = NULL_CAPTURE;
+		// Save previous en passant square and initialise for this move
+		int enPassantFile = IntFile.NOFILE;
+		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq(); 
+		theBoard.setEnPassantTargetSq(Position.NOPOSITION);
+		
+		// Remove the piece to move from the board
+		theBoard.pickUpPieceAtSquare(Move.getOriginPosition(move));
+		
+		// Handle pawn promotion moves
+		move = checkForPawnPromotions(move);
+		int piece = Move.getOriginPiece(move);
+		if (Move.isCapture(move)) {
+			if (isEnPassantCapture(move, prevEnPassantTargetSq)) {
+				// Handle en passant captures, don't need to do other checks in this case
+				captureTarget = getEnPassantCaptureTarget(move, piece);
+			} else {
+				captureTarget = getCaptureTarget(move, piece);
+			}
+		} else {
+			// handle promotions, setting en passant etc
+			enPassantFile = checkToSetEnPassantTargetSq(move);
+			if (enPassantFile == IntFile.NOFILE) {
+				if (Piece.isKing(Move.getOriginPiece(move))) {
+					castling.performSecondaryCastlingMove(move);
+				}
+			}			
+		}
+		// Store the necessary information to undo this move on the move tracker stack
+		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq, getCastlingFlags()));
+		// Update the piece's square.
+		theBoard.setPieceAtSquare(Move.getTargetPosition(move), piece);
+		// update castling flags
+		castling.updateFlags(piece, move);
+		// Update hash code
+		if (hash != null) {
+			hash.update(move, captureTarget, enPassantFile);
+		}
+		// Update onMove
+		onMove = Colour.getOpposite(onMove);
+		if (Colour.isWhite(onMove)) {
+			moveNumber++;
+		}
+		// Update the draw checker
+		dc.incrementPositionReachedCount(getHash());
+	}
+	
 	public void unperformMove() throws InvalidPieceException {
+		if ( moveTracker.isEmpty())
+			return;
+		// Update the draw checker
+		dc.decrementPositionReachedCount(getHash());
+		
+		theBoard.setEnPassantTargetSq(Position.NOPOSITION);
+		TrackedMove tm = moveTracker.pop();
+		int moveToUndo = tm.getMove();
+		// Check for reversal of any pawn promotion that had been previously applied
+		moveToUndo = checkToUndoPawnPromotion(moveToUndo);
+		// Actually undo the move by reversing its direction and reapplying it.
+		int reversedMove = Move.reverse(moveToUndo);
+
+		// Get the piece to move
+		int pieceToMove = Move.getOriginPiece(reversedMove);
+		int checkPiece = theBoard.pickUpPieceAtSquare(Move.getOriginPosition(reversedMove));
+		assert pieceToMove == checkPiece;
+		// Handle reversal of any castling secondary rook moves and associated flags...
+		if (Piece.isKing(pieceToMove)) {
+			castling.unperformSecondaryCastlingMove(reversedMove);
+		}
+		theBoard.setPieceAtSquare(Move.getTargetPosition(reversedMove), pieceToMove);
+		castling.setFlags(tm.getCastlingFlags());
+		// Undo any capture that had been previously performed.
+		if ( tm.isCapture()) {
+			theBoard.setPieceAtSquare(tm.getCaptureData().square, tm.getCaptureData().target);
+		}
+		// Restore en passant target
+		int enPasTargetSq = tm.getEnPassantTarget();
+		theBoard.setEnPassantTargetSq(enPasTargetSq);
+		// Update hash code
+		if (hash != null) {
+			CaptureData capturedPiece = tm.isCapture() ? tm.getCaptureData() : new CaptureData();
+			Boolean setEnPassant = (enPasTargetSq != Position.NOPOSITION);
+			hash.update(reversedMove, capturedPiece, setEnPassant ? Position.getFile(enPasTargetSq) : IntFile.NOFILE);
+		}
+		// Update onMove flag
+		onMove = Piece.Colour.getOpposite(onMove);
+		if (Colour.isBlack(onMove)) {
+			moveNumber--;
+		}
+	}
+	
+	public void unperformMoveWithType() throws InvalidPieceException {
 		if ( moveTracker.isEmpty())
 			return;
 		// Update the draw checker
@@ -246,12 +347,11 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return moveToUndo;
 	}
 	
-	private boolean isEnPassantCapture(int move) {
+	private boolean isEnPassantCapture(int move, int prevEnPassantTargetSq) {
 		boolean enPassantCapture = false;
-		int enPassantTargetSq = theBoard.getEnPassantTargetSq();
-		if ( enPassantTargetSq != Position.NOPOSITION &&
+		if ( prevEnPassantTargetSq != Position.NOPOSITION &&
 			 Piece.isPawn(Move.getOriginPiece(move)) && 
-			 Move.getTargetPosition(move) == enPassantTargetSq) {
+			 Move.getTargetPosition(move) == prevEnPassantTargetSq) {
 			enPassantCapture = true;
 		}
 		return enPassantCapture;
@@ -281,26 +381,22 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return enPassantFile;
 	}
 	
-	private CaptureData getCaptureTarget(int move, int pieceToMove, boolean enPassantCapture) {
-		CaptureData cap = new CaptureData(Piece.NONE, Position.NOPOSITION);
-		if (enPassantCapture) {
-			int rank = IntRank.R1;
-			if (pieceToMove == Piece.WHITE_PAWN) {
-				rank = IntRank.R5;
-			} else if (pieceToMove == Piece.BLACK_PAWN){
-				rank = IntRank.R4;
-			} else {
-				assert false;
-			}
-			int capturePos = Position.valueOf(Position.getFile(Move.getTargetPosition(move)), rank);
-			cap.target = theBoard.pickUpPieceAtSquare(capturePos);
-			cap.square = capturePos;
+	private CaptureData getCaptureTarget(int move, int pieceToMove) {
+		int capturePos = Move.getTargetPosition(move);
+		return new CaptureData(theBoard.pickUpPieceAtSquare(capturePos), capturePos);
+	}
+	
+	private CaptureData getEnPassantCaptureTarget(int move, int pieceToMove) {
+		int rank = IntRank.NORANK;
+		if (pieceToMove == Piece.WHITE_PAWN) {
+			rank = IntRank.R5;
+		} else if (pieceToMove == Piece.BLACK_PAWN){
+			rank = IntRank.R4;
 		} else {
-			int capturePos = Move.getTargetPosition(move);
-			cap.target = theBoard.pickUpPieceAtSquare(capturePos);
-			cap.square = capturePos;
+			assert false;
 		}
-		return cap;
+		int capturePos = Position.valueOf(Position.getFile(Move.getTargetPosition(move)), rank);
+		return new CaptureData(theBoard.pickUpPieceAtSquare(capturePos), capturePos);
 	}
 	
 	public String getFen() {
