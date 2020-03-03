@@ -23,7 +23,7 @@ public class Transposition {
 	}
 	
 	public Transposition(byte depth, short score, ScoreType scoreType, MoveList ml, int bestMove, List<Integer> pv) {
-		this.ml = ml;
+		setMoveList(ml);
 		setDepthSearchedInPly(depth);
 		setScore(score);
 		setScoreType(scoreType);
@@ -76,11 +76,18 @@ public class Transposition {
 		}
 	}
 	
+	void setMoveList(MoveList new_ml) {
+		this.ml = new_ml;		
+	}
+	
 	public List<Integer> getPv() {
 		return pv;
 	}
 
 	public void setPv(List<Integer> pv) {
+		if (pv != null && pv.size() > depthSearchedInPly) {
+			pv.subList(depthSearchedInPly, pv.size()).clear();
+		}
 		this.pv = pv;
 	}
 	
@@ -100,17 +107,19 @@ public class Transposition {
 		return output; //ml: " + ml + " ref:" + Integer.toHexString(System.identityHashCode(ml));
 	}
 	
-	public void update(Transposition updateFrom) {
-		// order is important because setBestMove uses ml
-		this.ml = updateFrom.ml;
-	    this.setDepthSearchedInPly(updateFrom.getDepthSearchedInPly());
-	    this.setScoreType(updateFrom.getScoreType());
-	    this.setScore(updateFrom.getScore());
-	    this.setBestMove(updateFrom.getBestMove());
-	    this.setPv(updateFrom.getPv());
-	}
-
-	public void setMoveList(MoveList new_ml) {
-		this.ml = new_ml;		
+	public void update(
+			byte new_Depth, 
+			short new_score, 
+			ScoreType new_bound, 
+			MoveList new_ml, 
+			int new_bestMove, 
+			List<Integer> pv) {
+		// order is important because setBestMove uses ml, also setPv uses depth
+		setMoveList(new_ml);
+		setDepthSearchedInPly(new_Depth);
+		setScoreType(new_bound);
+		setScore(new_score);
+		setBestMove(new_bestMove);
+		setPv(pv);
 	}
 }

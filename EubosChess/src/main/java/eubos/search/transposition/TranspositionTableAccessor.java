@@ -141,14 +141,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			}
 		}
 		if (updateTransposition) {
-			// order is important because setBestMove uses ml
-			current_trans.setMoveList(new_ml);
-			current_trans.setDepthSearchedInPly(new_Depth);
-			current_trans.setScoreType(new_bound);
-			current_trans.setScore(new_score);
-			current_trans.setBestMove(new_bestMove);
-			current_trans.setPv(pv);
-			
+			current_trans.update(new_Depth, new_score, new_bound, new_ml, new_bestMove, pv );
 		    hashMap.putTransposition(pos.getHash(), current_trans);
 		    SearchDebugAgent.printTransUpdate(currPly, current_trans, pos.getHash());
 		}
