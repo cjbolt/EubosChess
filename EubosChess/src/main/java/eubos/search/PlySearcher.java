@@ -88,6 +88,9 @@ public class PlySearcher {
 		Score theScore = null;
 		MoveList ml = null;
 		
+		st.setProvisionalScoreAtPly(currPly);
+		SearchDebugAgent.printStartPlyInfo(currPly, st, pos);
+		
 		byte depthRequiredForTerminalNode = initialiseSearchAtPly();
 		TranspositionEvaluation eval = tt.getTransposition(currPly, depthRequiredForTerminalNode);		
 		switch (eval.status) {
@@ -164,9 +167,6 @@ public class PlySearcher {
 		
 		ScoreType plyBound = (pos.onMoveIsWhite()) ? ScoreType.lowerBound : ScoreType.upperBound;
 		Score plyScore = new Score(plyBound);
-		
-		st.setProvisionalScoreAtPly(currPly);
-		SearchDebugAgent.printStartPlyInfo(currPly, st, pos);
 		
 		int currMove = move_iter.nextInt();
 		pc.initialise(currPly, currMove);
