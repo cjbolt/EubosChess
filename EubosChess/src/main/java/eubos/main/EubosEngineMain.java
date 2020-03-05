@@ -50,8 +50,9 @@ public class EubosEngineMain extends AbstractEngine {
 	private FixedSizeTranspositionTable hashMap = null;
 	DrawChecker dc;
 	
-    private static Logger logger = Logger.getLogger("eubos.main");
-    private static FileHandler fh; 
+    public static Logger logger = Logger.getLogger("eubos.main");
+
+	private static FileHandler fh; 
     Piece.Colour lastOnMove = null;
 	
 	public EubosEngineMain() { 

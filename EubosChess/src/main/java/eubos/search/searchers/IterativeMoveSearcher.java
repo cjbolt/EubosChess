@@ -6,6 +6,7 @@ import java.util.List;
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 
 import eubos.board.InvalidPieceException;
+import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
@@ -18,7 +19,7 @@ import eubos.search.transposition.FixedSizeTranspositionTable;
 
 public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	
-	public static final int AVG_MOVES_PER_GAME = 80;
+	public static final int AVG_MOVES_PER_GAME = 50;
 	long gameTimeRemaining;
 	short initialScore;
 	boolean searchStopped = false;
@@ -31,6 +32,10 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			IEvaluate pe ) {
 		super(eubos,inputPm,pos, new MiniMaxMoveGenerator( eubos, hashMap, inputPm, pos, pe ));
 		initialScore = pe.evaluatePosition();
+		if (Colour.isBlack(pos.getOnMove())) {
+			initialScore = (short)-initialScore;
+		}
+		EubosEngineMain.logger.info("IterativeMoveSearcher initialScore="+initialScore);
 		gameTimeRemaining = time;
 		this.setName("IterativeMoveSearcher");
 	}
@@ -85,11 +90,9 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		private boolean stopperActive = false;
 		boolean extraTime = false;
 		private int checkPoint = 0;
-		private short lastScore = 0;
 		
 		IterativeMoveSearchStopper(short initialScore) {
 			nextCheckPointTime = new Timestamp(System.currentTimeMillis() + calculateSearchTimeQuanta());
-			lastScore = initialScore;
 		}
 		
 		public void run() {
@@ -102,11 +105,11 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 					short currentScore = mg.sm.getCpScore();
 					switch (checkPoint) {
 					case 0:
-						if (currentScore > (lastScore + 500))
+						if (currentScore > (initialScore + 500))
 							terminateNow = true;
 						break;
 					case 1:
-						if (currentScore >= (initialScore - 50)) {
+						if (currentScore >= (initialScore - 25)) {
 							terminateNow = true;
 						}
 						extraTime = true;
@@ -125,7 +128,6 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 						searchStopped = true;
 						stopperActive = false;
 					} else {
-						lastScore = currentScore;
 						checkPoint++;
 						nextCheckPointTime = new Timestamp(System.currentTimeMillis() + calculateSearchTimeQuanta());
 					}
@@ -135,7 +137,6 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 						this.wait(CHECK_RATE_MS);
 					}
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			} while (stopperActive);
