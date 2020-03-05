@@ -255,59 +255,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		}
 		return moveToUndo;
 	}
-	
-	private boolean isEnPassantCapture(int move, int prevEnPassantTargetSq) {
-		boolean enPassantCapture = false;
-		if ( prevEnPassantTargetSq != Position.NOPOSITION &&
-			 Piece.isPawn(Move.getOriginPiece(move)) && 
-			 Move.getTargetPosition(move) == prevEnPassantTargetSq) {
-			enPassantCapture = true;
-		}
-		return enPassantCapture;
-	}
-	
-	private int checkToSetEnPassantTargetSq(int move) {
-		int enPassantFile = IntFile.NOFILE;
-		if (Move.getOriginPiece(move) == Piece.WHITE_PAWN) {
-			int potentialEnPassantFile = Position.getFile(Move.getOriginPosition(move));
-			if ( Position.getRank(Move.getOriginPosition(move)) == IntRank.R2) {
-				if (Position.getRank(Move.getTargetPosition(move)) == IntRank.R4) {
-					enPassantFile = potentialEnPassantFile;
-					int enPassantWhite = Position.valueOf(enPassantFile,IntRank.R3);
-					theBoard.setEnPassantTargetSq(enPassantWhite);
-				}
-			}
-		} else if (Move.getOriginPiece(move) == Piece.BLACK_PAWN) {
-			int potentialEnPassantFile = Position.getFile(Move.getOriginPosition(move));
-			if (Position.getRank(Move.getOriginPosition(move)) == IntRank.R7) {
-				if (Position.getRank(Move.getTargetPosition(move)) == IntRank.R5) {
-					enPassantFile = potentialEnPassantFile;
-					int enPassantBlack = Position.valueOf(enPassantFile,IntRank.R6);
-					theBoard.setEnPassantTargetSq(enPassantBlack);
-				}
-			}
-		}
-		return enPassantFile;
-	}
-	
-	private CaptureData getCaptureTarget(int move, int pieceToMove) {
-		int capturePos = Move.getTargetPosition(move);
-		return new CaptureData(theBoard.pickUpPieceAtSquare(capturePos), capturePos);
-	}
-	
-	private CaptureData getEnPassantCaptureTarget(int move, int pieceToMove) {
-		int rank = IntRank.NORANK;
-		if (pieceToMove == Piece.WHITE_PAWN) {
-			rank = IntRank.R5;
-		} else if (pieceToMove == Piece.BLACK_PAWN){
-			rank = IntRank.R4;
-		} else {
-			assert false;
-		}
-		int capturePos = Position.valueOf(Position.getFile(Move.getTargetPosition(move)), rank);
-		return new CaptureData(theBoard.pickUpPieceAtSquare(capturePos), capturePos);
-	}
-	
+		
 	public String getFen() {
 		StringBuilder fen = new StringBuilder(theBoard.getAsFenString());
 		fen.append(' ');
