@@ -93,14 +93,14 @@ public class MoveList implements Iterable<Integer> {
 				if (pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove) || Piece.isKing(piece)) {
 					possibleDiscoveredOrMoveIntoCheck = true;
 				}
-				pm.performMove(currMove);
+				pm.performMove(currMove, false);
 				if ((possibleDiscoveredOrMoveIntoCheck || needToEscapeMate) && pm.isKingInCheck(onMove)) {
 					// Scratch any moves resulting in the king being in check, includes no escape moves!
 				} else {
 					int moveType = computeMoveType(pm, currMove, piece);
 					outputMove[count++] = Move.setType(currMove, moveType);
 				}
-				pm.unperformMove();
+				pm.unperformMove(false);
 			} catch(InvalidPieceException e) {
 				assert false;
 			}

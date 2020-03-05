@@ -26,11 +26,11 @@ public class PerformanceTest {
 	            MoveList ml = new MoveList(pm);
 	            for (int move : ml) {
 	                try {
-						pm.performMove(move);
+						pm.performMove(move, false);
 		                currPly+=1;
 		                perft();
 		                currPly-=1;
-		                pm.unperformMove();
+		                pm.unperformMove(false);
 					} catch (InvalidPieceException e) {
 						e.printStackTrace();
 					}

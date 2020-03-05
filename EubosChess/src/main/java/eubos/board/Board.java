@@ -8,6 +8,8 @@ import java.util.Map.Entry;
 import java.util.function.IntConsumer;
 
 import eubos.board.Piece.Colour;
+import eubos.position.CaptureData;
+import eubos.position.CastlingManager;
 import eubos.position.Move;
 import eubos.position.Position;
 
@@ -16,6 +18,7 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntRank;
 
 public class Board {
+	public static final CaptureData NULL_CAPTURE = new CaptureData(Piece.NONE, Position.NOPOSITION);
 
 	private static final int INDEX_PAWN = 0;
 	private static final int INDEX_KNIGHT = 1;
@@ -133,6 +136,91 @@ public class Board {
 		for ( Entry<Integer, Integer> nextPiece : pieceMap.entrySet() ) {
 			setPieceAtSquare( nextPiece.getKey(), nextPiece.getValue() );
 		}
+	}
+	
+	public CaptureData updateWithMove(int move) throws InvalidPieceException {
+		CaptureData captureTarget = NULL_CAPTURE;
+		// Remove the piece to move from the board
+		pickUpPieceAtSquare(Move.getOriginPosition(move));
+		if (isEnPassantCapture(move)) {
+			// Handle en passant captures, don't need to do other checks in this case
+			int pieceToMove = Move.getOriginPiece(move);
+			int rank = IntRank.NORANK;
+			if (pieceToMove == Piece.WHITE_PAWN) {
+				rank = IntRank.R5;
+			} else if (pieceToMove == Piece.BLACK_PAWN){
+				rank = IntRank.R4;
+			} else {
+				assert false;
+			}
+			int capturePos = Position.valueOf(Position.getFile(Move.getTargetPosition(move)), rank);
+			captureTarget = new CaptureData(pickUpPieceAtSquare(capturePos), capturePos);
+		} else {
+			// handle promotions, castling, setting en passant etc
+			if (checkToSetEnPassantTargetSq(move) == IntFile.NOFILE) {
+				// Handle castling secondary rook moves...
+				if (Piece.isKing(Move.getOriginPiece(move))) {
+					int rookToCastle = Piece.NONE;
+					if (Move.areEqual(move, CastlingManager.wksc)) {
+						// Perform secondary white king side castle rook move
+						rookToCastle = pickUpPieceAtSquare( Position.h1 );
+						setPieceAtSquare( Position.f1, rookToCastle );
+					} else if (Move.areEqual(move, CastlingManager.wqsc)) {
+						// Perform secondary white queen side castle rook move
+						rookToCastle = pickUpPieceAtSquare( Position.a1 );
+						setPieceAtSquare( Position.d1, rookToCastle );
+					} else if (Move.areEqual(move, CastlingManager.bksc)) {
+						// Perform secondary black king side castle rook move
+						rookToCastle = pickUpPieceAtSquare( Position.h8 );
+						setPieceAtSquare( Position.f8, rookToCastle );
+					} else if (Move.areEqual(move, CastlingManager.bqsc)) {
+						// Perform secondary black queen side castle rook move
+						rookToCastle = pickUpPieceAtSquare( Position.a8 );
+						setPieceAtSquare( Position.d8, rookToCastle );
+					}
+				}
+				int capturePos = Move.getTargetPosition(move);
+				captureTarget =  new CaptureData(pickUpPieceAtSquare(capturePos), capturePos);
+			}			
+		}
+		// Update the piece's square.
+		setPieceAtSquare(Move.getTargetPosition(move), Move.getOriginPiece(move));
+		return captureTarget;
+	}
+	
+	private boolean isEnPassantCapture(int move) {
+		boolean enPassantCapture = false;
+		if ( getEnPassantTargetSq() != Position.NOPOSITION &&
+			 Piece.isPawn(Move.getOriginPiece(move)) && 
+			 Move.getTargetPosition(move) == getEnPassantTargetSq()) {
+			enPassantCapture = true;
+		}
+		setEnPassantTargetSq(Position.NOPOSITION);
+		return enPassantCapture;
+	}
+	
+	private int checkToSetEnPassantTargetSq(int move) {
+		int enPassantFile = IntFile.NOFILE;
+		if (Move.getOriginPiece(move) == Piece.WHITE_PAWN) {
+			int potentialEnPassantFile = Position.getFile(Move.getOriginPosition(move));
+			if ( Position.getRank(Move.getOriginPosition(move)) == IntRank.R2) {
+				if (Position.getRank(Move.getTargetPosition(move)) == IntRank.R4) {
+					enPassantFile = potentialEnPassantFile;
+					int enPassantWhite = Position.valueOf(enPassantFile,IntRank.R3);
+					setEnPassantTargetSq(enPassantWhite);
+				}
+			}
+		} else if (Move.getOriginPiece(move) == Piece.BLACK_PAWN) {
+			int potentialEnPassantFile = Position.getFile(Move.getOriginPosition(move));
+			if (Position.getRank(Move.getOriginPosition(move)) == IntRank.R7) {
+				if (Position.getRank(Move.getTargetPosition(move)) == IntRank.R5) {
+					enPassantFile = potentialEnPassantFile;
+					int enPassantBlack = Position.valueOf(enPassantFile,IntRank.R6);
+					setEnPassantTargetSq(enPassantBlack);
+				}
+			}
+		}
+		return enPassantFile;
 	}
 	
 	public List<Integer> getRegularPieceMoves(Piece.Colour side) {
