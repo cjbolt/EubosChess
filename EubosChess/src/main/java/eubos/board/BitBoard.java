@@ -79,6 +79,14 @@ public class BitBoard {
 	public BitBoard and(BitBoard other) {
 		return new BitBoard(this.bitBoard & other.bitBoard);
 	}
+	
+	public BitBoard xor(BitBoard other) {
+		return new BitBoard(this.bitBoard ^ other.bitBoard);
+	}
+	
+	public BitBoard or(BitBoard other) {
+		return new BitBoard(this.bitBoard | other.bitBoard);
+	}
 
 	public void set(int bit) {
 		bitBoard |= (1L << bit);

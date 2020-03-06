@@ -206,35 +206,37 @@ public class Board {
 		return enPassantFile;
 	}
 	
+	private static final BitBoard wksc_mask = BitBoard.positionToMask_Lut[Position.h1].or(BitBoard.positionToMask_Lut[Position.f1]);
+	private static final BitBoard wqsc_mask = BitBoard.positionToMask_Lut[Position.a1].or(BitBoard.positionToMask_Lut[Position.d1]);
+	private static final BitBoard bksc_mask = BitBoard.positionToMask_Lut[Position.h8].or(BitBoard.positionToMask_Lut[Position.f8]);
+	private static final BitBoard bqsc_mask = BitBoard.positionToMask_Lut[Position.a8].or(BitBoard.positionToMask_Lut[Position.d8]);
+	
 	private void performSecondaryCastlingMove(int move) throws InvalidPieceException {
-		int rookToCastle = Piece.NONE;
 		if (Move.areEqual(move, CastlingManager.wksc)) {
-			// Perform secondary white king side castle rook move
-			rookToCastle = pickUpPieceAtSquare( Position.h1 );
-			setPieceAtSquare( Position.f1, rookToCastle );
-			//pieces[INDEX_ROOK].clear(mask);
+			pieces[INDEX_ROOK] = pieces[INDEX_ROOK].xor(wksc_mask);
+			whitePieces = whitePieces.xor(wksc_mask);
+			allPieces = allPieces.xor(wksc_mask);
 		} else if (Move.areEqual(move, CastlingManager.wqsc)) {
-			// Perform secondary white queen side castle rook move
-			rookToCastle = pickUpPieceAtSquare( Position.a1 );
-			setPieceAtSquare( Position.d1, rookToCastle );
+			pieces[INDEX_ROOK] = pieces[INDEX_ROOK].xor(wqsc_mask);
+			whitePieces = whitePieces.xor(wqsc_mask);
+			allPieces = allPieces.xor(wqsc_mask);
 		} else if (Move.areEqual(move, CastlingManager.bksc)) {
-			// Perform secondary black king side castle rook move
-			rookToCastle = pickUpPieceAtSquare( Position.h8 );
-			setPieceAtSquare( Position.f8, rookToCastle );
+			pieces[INDEX_ROOK] = pieces[INDEX_ROOK].xor(bksc_mask);
+			blackPieces = blackPieces.xor(bksc_mask);
+			allPieces = allPieces.xor(bksc_mask);
 		} else if (Move.areEqual(move, CastlingManager.bqsc)) {
-			// Perform secondary black queen side castle rook move
-			rookToCastle = pickUpPieceAtSquare( Position.a8 );
-			setPieceAtSquare( Position.d8, rookToCastle );
+			pieces[INDEX_ROOK] = pieces[INDEX_ROOK].xor(bqsc_mask);
+			blackPieces = blackPieces.xor(bqsc_mask);
+			allPieces = allPieces.xor(bqsc_mask);
 		}
 	}
 	
 	public void undoMove(int reversedMove, CaptureData cap) throws InvalidPieceException {
-		setEnPassantTargetSq(Position.NOPOSITION);
 		// Get the piece to move
 		int pieceToMove = Move.getOriginPiece(reversedMove);
 		int checkPiece = pickUpPieceAtSquare(Move.getOriginPosition(reversedMove));
 		assert pieceToMove == checkPiece;
-		// Handle reversal of any castling secondary rook moves and associated flags...
+		// Handle reversal of any castling secondary rook moves
 		if (Piece.isKing(pieceToMove)) {
 			unperformSecondaryCastlingMove(reversedMove);
 		}
@@ -246,23 +248,22 @@ public class Board {
 	}
 	
 	private void unperformSecondaryCastlingMove(int move) throws InvalidPieceException {
-		int rookToCastle = Piece.NONE;
 		if (Move.areEqual(move, CastlingManager.undo_wksc)) {
-			// Perform secondary king side castle rook move
-			rookToCastle = pickUpPieceAtSquare( Position.f1 );
-			setPieceAtSquare( Position.h1, rookToCastle );
+			pieces[INDEX_ROOK] = pieces[INDEX_ROOK].xor(wksc_mask);
+			whitePieces = whitePieces.xor(wksc_mask);
+			allPieces = allPieces.xor(wksc_mask);
 		} else	if (Move.areEqual(move, CastlingManager.undo_wqsc)) {
-			// Perform secondary queen side castle rook move
-			rookToCastle = pickUpPieceAtSquare( Position.d1 );
-			setPieceAtSquare( Position.a1, rookToCastle );
+			pieces[INDEX_ROOK] = pieces[INDEX_ROOK].xor(wqsc_mask);
+			whitePieces = whitePieces.xor(wqsc_mask);
+			allPieces = allPieces.xor(wqsc_mask);
 		} else if (Move.areEqual(move, CastlingManager.undo_bksc)) {
-			// Perform secondary king side castle rook move
-			rookToCastle = pickUpPieceAtSquare( Position.f8 );
-			setPieceAtSquare( Position.h8, rookToCastle );
+			pieces[INDEX_ROOK] = pieces[INDEX_ROOK].xor(bksc_mask);
+			blackPieces = blackPieces.xor(bksc_mask);
+			allPieces = allPieces.xor(bksc_mask);
 		} else if (Move.areEqual(move, CastlingManager.undo_bqsc)) {
-			// Perform secondary queen side castle rook move
-			rookToCastle = pickUpPieceAtSquare( Position.d8 );
-			setPieceAtSquare( Position.a8, rookToCastle );
+			pieces[INDEX_ROOK] = pieces[INDEX_ROOK].xor(bqsc_mask);
+			blackPieces = blackPieces.xor(bqsc_mask);
+			allPieces = allPieces.xor(bqsc_mask);
 		}
 	}
 	
