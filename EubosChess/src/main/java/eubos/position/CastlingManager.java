@@ -6,7 +6,6 @@ import com.fluxchess.jcpi.models.IntChessman;
 import com.fluxchess.jcpi.models.IntFile;
 
 import eubos.board.Board;
-import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.position.Move;
@@ -35,10 +34,10 @@ public class CastlingManager {
 	public static final int bqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e8, (Piece.BLACK | Piece.KING), Position.c8, Piece.NONE, IntChessman.NOCHESSMAN);
 	public static final int wqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e1, Piece.KING, Position.c1, Piece.NONE, IntChessman.NOCHESSMAN);
 
-	static final int undo_bksc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.g8, (Piece.BLACK | Piece.KING), Position.e8, Piece.NONE, IntChessman.NOCHESSMAN);
-	static final int undo_wksc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.g1, Piece.KING, Position.e1, Piece.NONE, IntChessman.NOCHESSMAN);
-	static final int undo_bqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.c8, (Piece.BLACK | Piece.KING), Position.e8, Piece.NONE, IntChessman.NOCHESSMAN);
-	static final int undo_wqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.c1, Piece.KING, Position.e1, Piece.NONE, IntChessman.NOCHESSMAN);
+	public static final int undo_bksc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.g8, (Piece.BLACK | Piece.KING), Position.e8, Piece.NONE, IntChessman.NOCHESSMAN);
+	public static final int undo_wksc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.g1, Piece.KING, Position.e1, Piece.NONE, IntChessman.NOCHESSMAN);
+	public static final int undo_bqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.c8, (Piece.BLACK | Piece.KING), Position.e8, Piece.NONE, IntChessman.NOCHESSMAN);
+	public static final int undo_wqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.c1, Piece.KING, Position.e1, Piece.NONE, IntChessman.NOCHESSMAN);
 
 	CastlingManager(PositionManager Pm) { this( Pm, "-"); }
 
@@ -124,48 +123,6 @@ public class CastlingManager {
 				blackQsAvail = true;
 				blackCastled = false;
 			}
-		}
-	}
-
-	void performSecondaryCastlingMove(int move) throws InvalidPieceException {
-		int rookToCastle = Piece.NONE;
-		if (Move.areEqual(move, wksc)) {
-			// Perform secondary white king side castle rook move
-			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.h1 );
-			pm.getTheBoard().setPieceAtSquare( Position.f1, rookToCastle );
-		} else if (Move.areEqual(move, wqsc)) {
-			// Perform secondary white queen side castle rook move
-			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.a1 );
-			pm.getTheBoard().setPieceAtSquare( Position.d1, rookToCastle );
-		} else if (Move.areEqual(move, bksc)) {
-			// Perform secondary black king side castle rook move
-			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.h8 );
-			pm.getTheBoard().setPieceAtSquare( Position.f8, rookToCastle );
-		} else if (Move.areEqual(move, bqsc)) {
-			// Perform secondary black queen side castle rook move
-			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.a8 );
-			pm.getTheBoard().setPieceAtSquare( Position.d8, rookToCastle );
-		}
-	}
-
-	void unperformSecondaryCastlingMove(int move) throws InvalidPieceException {
-		int rookToCastle = Piece.NONE;
-		if (Move.areEqual(move, undo_wksc)) {
-			// Perform secondary king side castle rook move
-			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.f1 );
-			pm.getTheBoard().setPieceAtSquare( Position.h1, rookToCastle );
-		} else	if (Move.areEqual(move, undo_wqsc)) {
-			// Perform secondary queen side castle rook move
-			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.d1 );
-			pm.getTheBoard().setPieceAtSquare( Position.a1, rookToCastle );
-		} else if (Move.areEqual(move, undo_bksc)) {
-			// Perform secondary king side castle rook move
-			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.f8 );
-			pm.getTheBoard().setPieceAtSquare( Position.h8, rookToCastle );
-		} else if (Move.areEqual(move, undo_bqsc)) {
-			// Perform secondary queen side castle rook move
-			rookToCastle = pm.getTheBoard().pickUpPieceAtSquare( Position.d8 );
-			pm.getTheBoard().setPieceAtSquare( Position.a8, rookToCastle );
 		}
 	}
 

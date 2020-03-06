@@ -52,7 +52,7 @@ public class MiniMaxMoveGenerator implements
 		this.pe = pe;
 		tt = hashMap;
 		score = 0;
-		sm = new SearchMetrics();	
+		sm = new SearchMetrics(pos);	
 	}
 
 	// Used with Arena, Lichess
@@ -68,7 +68,7 @@ public class MiniMaxMoveGenerator implements
 		this.pe = pe;
 		tt = hashMap;
 		score = 0;
-		sm = new SearchMetrics();
+		sm = new SearchMetrics(pos);
 		sr = new SearchMetricsReporter(callback, sm);	
 		if (sendInfo) {
 			sr.setSendInfo(true);

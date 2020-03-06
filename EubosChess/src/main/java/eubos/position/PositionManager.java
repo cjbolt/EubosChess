@@ -128,23 +128,20 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		performMove(move, true);
 	}
 	
-	public void performMove( int move, boolean full ) throws InvalidPieceException {
+	public void performMove( int move, boolean computeHash ) throws InvalidPieceException {
 		
 		// Save previous en passant square and initialise for this move
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		
-		// Handle pawn promotion moves
+		// Handle pawn promotion moves - remains in position manager because it updates the move
 		move = checkForPawnPromotions(move);
-		
-		CaptureData captureTarget = theBoard.updateWithMove(move);
-		
-		// Store the necessary information to undo this move on the move tracker stack
+		CaptureData captureTarget = theBoard.doMove(move);
 		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq, getCastlingFlags()));
 		
 		// update castling flags
 		castling.updateFlags(Move.getOriginPiece(move), move);
 		
-		if (full) {
+		if (computeHash) {
 			// Update hash code
 			if (hash != null) {
 				int enPasTargetSq = theBoard.getEnPassantTargetSq();
@@ -166,50 +163,32 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		unperformMove(true);
 	}
 	
-	public void unperformMove(boolean full) throws InvalidPieceException {
-		if ( moveTracker.isEmpty())
-			return;
-		if (full) {
-			// Update the draw checker
-			dc.decrementPositionReachedCount(getHash());
-		}
-		
-		theBoard.setEnPassantTargetSq(Position.NOPOSITION);
+	public void unperformMove(boolean computeHash) throws InvalidPieceException {
 		TrackedMove tm = moveTracker.pop();
+		CaptureData cap = tm.getCaptureData();
 		int moveToUndo = tm.getMove();
+		
 		// Check for reversal of any pawn promotion that had been previously applied
 		moveToUndo = checkToUndoPawnPromotion(moveToUndo);
-		// Actually undo the move by reversing its direction and reapplying it.
+		
+		// Actually undo the move.
 		int reversedMove = Move.reverse(moveToUndo);
-
-		// Get the piece to move
-		int pieceToMove = Move.getOriginPiece(reversedMove);
-		int checkPiece = theBoard.pickUpPieceAtSquare(Move.getOriginPosition(reversedMove));
-		assert pieceToMove == checkPiece;
-		// Handle reversal of any castling secondary rook moves and associated flags...
-		if (Piece.isKing(pieceToMove)) {
-			castling.unperformSecondaryCastlingMove(reversedMove);
-		}
-		theBoard.setPieceAtSquare(Move.getTargetPosition(reversedMove), pieceToMove);
+		theBoard.undoMove(reversedMove, cap);
+		
+		// Restore castling
 		castling.setFlags(tm.getCastlingFlags());
-		// Undo any capture that had been previously performed.
-		if ( tm.isCapture()) {
-			theBoard.setPieceAtSquare(tm.getCaptureData().square, tm.getCaptureData().target);
-		}
 		// Restore en passant target
 		int enPasTargetSq = tm.getEnPassantTarget();
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		
-		if (full) {
-			// Update hash code
-			if (hash != null) {
-				CaptureData capturedPiece = tm.isCapture() ? tm.getCaptureData() : new CaptureData();
-				Boolean setEnPassant = (enPasTargetSq != Position.NOPOSITION);
-				hash.update(reversedMove, capturedPiece, setEnPassant ? Position.getFile(enPasTargetSq) : IntFile.NOFILE);
-			}
+		if (computeHash) {
+			dc.decrementPositionReachedCount(getHash());
+
+			int enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? Position.getFile(enPasTargetSq) : IntFile.NOFILE;
+			hash.update(reversedMove, cap, enPassantFile);
 		}
-		// Update onMove flag
 		
+		// Update onMove flag
 		onMove = Piece.Colour.getOpposite(onMove);
 		if (Colour.isBlack(onMove)) {
 			moveNumber--;

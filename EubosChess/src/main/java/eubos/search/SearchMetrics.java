@@ -7,10 +7,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
 import com.fluxchess.jcpi.models.GenericMove;
 
+import eubos.board.Piece.Colour;
+import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.score.MaterialEvaluator;
 
 public class SearchMetrics {
+	private IPositionAccessors pos;
 	private AtomicLong nodesSearched;
 	private long time;
 	private short hashFull;
@@ -21,7 +24,7 @@ public class SearchMetrics {
 	private int partialDepth;
 	private long initialTimestamp;
 	
-	public SearchMetrics(int searchDepth) {
+	public SearchMetrics(int searchDepth, IPositionAccessors pos) {
 		nodesSearched = new AtomicLong(0);
 		time = 0;
 		cpScore = 0;
@@ -30,10 +33,11 @@ public class SearchMetrics {
 		partialDepth = 0;
 		hashFull = 0;
 		initialTimestamp = System.currentTimeMillis();
+		this.pos = pos;
 	}
 
-	public SearchMetrics() {
-		this(1);
+	public SearchMetrics(IPositionAccessors pos) {
+		this(1, pos);
 	}
 	
 	public synchronized void setPeriodicInfoCommand(ProtocolInformationCommand info) {
@@ -97,8 +101,18 @@ public class SearchMetrics {
 		return thePv;
 	}
 	
+	synchronized void setPrincipalVariationData(int extendedSearchDeepestPly, List<Integer> pc, short positionScore) {
+		setPartialDepth(extendedSearchDeepestPly);
+		setPrincipalVariation(pc);
+		setCpScore(positionScore);
+	}
+	
 	public synchronized short getCpScore() { return cpScore; }
-	synchronized void setCpScore(short cpScore) { this.cpScore = cpScore; }
+	synchronized void setCpScore(short positionScore) { 
+		if (Colour.isBlack(pos.getOnMove()))
+			positionScore = (short) -positionScore; // Negated due to UCI spec (from engine pov)
+		this.cpScore = positionScore;
+	}
 	
 	synchronized int getDepth() { return depth; }
 	public synchronized void setDepth(int depth) { this.depth = depth; }

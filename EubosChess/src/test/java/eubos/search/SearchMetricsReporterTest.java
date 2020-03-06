@@ -16,6 +16,7 @@ import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.Position;
+import eubos.position.PositionManager;
 
 public class SearchMetricsReporterTest {
 	SearchMetricsReporter classUnderTest;
@@ -39,7 +40,8 @@ public class SearchMetricsReporterTest {
 	@Before
 	public void setUp() throws IllegalNotationException {
 		eubos = new EubosMock();
-		sm = new SearchMetrics(searchDepth);
+		PositionManager pm = new PositionManager();
+		sm = new SearchMetrics(searchDepth, pm);
 		// Minimal setup of the Search Metrics object
 		List<Integer> pv = new ArrayList<Integer>();
 		pv.add(Move.valueOf(Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE));

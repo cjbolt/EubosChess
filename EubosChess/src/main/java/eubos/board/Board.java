@@ -138,13 +138,14 @@ public class Board {
 		}
 	}
 	
-	public CaptureData updateWithMove(int move) throws InvalidPieceException {
+	public CaptureData doMove(int move) throws InvalidPieceException {
 		CaptureData captureTarget = NULL_CAPTURE;
+		int pieceToMove = Move.getOriginPiece(move);
+		int targetSquare = Move.getTargetPosition(move);
 		// Remove the piece to move from the board
 		pickUpPieceAtSquare(Move.getOriginPosition(move));
-		if (isEnPassantCapture(move)) {
+		if (isEnPassantCapture(pieceToMove, targetSquare)) {
 			// Handle en passant captures, don't need to do other checks in this case
-			int pieceToMove = Move.getOriginPiece(move);
 			int rank = IntRank.NORANK;
 			if (pieceToMove == Piece.WHITE_PAWN) {
 				rank = IntRank.R5;
@@ -153,46 +154,28 @@ public class Board {
 			} else {
 				assert false;
 			}
-			int capturePos = Position.valueOf(Position.getFile(Move.getTargetPosition(move)), rank);
+			int capturePos = Position.valueOf(Position.getFile(targetSquare), rank);
 			captureTarget = new CaptureData(pickUpPieceAtSquare(capturePos), capturePos);
 		} else {
-			// handle promotions, castling, setting en passant etc
+			// handle castling, setting en passant etc
 			if (checkToSetEnPassantTargetSq(move) == IntFile.NOFILE) {
 				// Handle castling secondary rook moves...
-				if (Piece.isKing(Move.getOriginPiece(move))) {
-					int rookToCastle = Piece.NONE;
-					if (Move.areEqual(move, CastlingManager.wksc)) {
-						// Perform secondary white king side castle rook move
-						rookToCastle = pickUpPieceAtSquare( Position.h1 );
-						setPieceAtSquare( Position.f1, rookToCastle );
-					} else if (Move.areEqual(move, CastlingManager.wqsc)) {
-						// Perform secondary white queen side castle rook move
-						rookToCastle = pickUpPieceAtSquare( Position.a1 );
-						setPieceAtSquare( Position.d1, rookToCastle );
-					} else if (Move.areEqual(move, CastlingManager.bksc)) {
-						// Perform secondary black king side castle rook move
-						rookToCastle = pickUpPieceAtSquare( Position.h8 );
-						setPieceAtSquare( Position.f8, rookToCastle );
-					} else if (Move.areEqual(move, CastlingManager.bqsc)) {
-						// Perform secondary black queen side castle rook move
-						rookToCastle = pickUpPieceAtSquare( Position.a8 );
-						setPieceAtSquare( Position.d8, rookToCastle );
-					}
+				if (Piece.isKing(pieceToMove)) {
+					performSecondaryCastlingMove(move);
 				}
-				int capturePos = Move.getTargetPosition(move);
-				captureTarget =  new CaptureData(pickUpPieceAtSquare(capturePos), capturePos);
+				captureTarget = new CaptureData(pickUpPieceAtSquare(targetSquare), targetSquare);
 			}			
 		}
 		// Update the piece's square.
-		setPieceAtSquare(Move.getTargetPosition(move), Move.getOriginPiece(move));
+		setPieceAtSquare(targetSquare, pieceToMove);
 		return captureTarget;
 	}
 	
-	private boolean isEnPassantCapture(int move) {
+	private boolean isEnPassantCapture(int pieceToMove, int targetSquare) {
 		boolean enPassantCapture = false;
 		if ( getEnPassantTargetSq() != Position.NOPOSITION &&
-			 Piece.isPawn(Move.getOriginPiece(move)) && 
-			 Move.getTargetPosition(move) == getEnPassantTargetSq()) {
+			 Piece.isPawn(pieceToMove) && 
+			 targetSquare == getEnPassantTargetSq()) {
 			enPassantCapture = true;
 		}
 		setEnPassantTargetSq(Position.NOPOSITION);
@@ -223,6 +206,66 @@ public class Board {
 		return enPassantFile;
 	}
 	
+	private void performSecondaryCastlingMove(int move) throws InvalidPieceException {
+		int rookToCastle = Piece.NONE;
+		if (Move.areEqual(move, CastlingManager.wksc)) {
+			// Perform secondary white king side castle rook move
+			rookToCastle = pickUpPieceAtSquare( Position.h1 );
+			setPieceAtSquare( Position.f1, rookToCastle );
+			//pieces[INDEX_ROOK].clear(mask);
+		} else if (Move.areEqual(move, CastlingManager.wqsc)) {
+			// Perform secondary white queen side castle rook move
+			rookToCastle = pickUpPieceAtSquare( Position.a1 );
+			setPieceAtSquare( Position.d1, rookToCastle );
+		} else if (Move.areEqual(move, CastlingManager.bksc)) {
+			// Perform secondary black king side castle rook move
+			rookToCastle = pickUpPieceAtSquare( Position.h8 );
+			setPieceAtSquare( Position.f8, rookToCastle );
+		} else if (Move.areEqual(move, CastlingManager.bqsc)) {
+			// Perform secondary black queen side castle rook move
+			rookToCastle = pickUpPieceAtSquare( Position.a8 );
+			setPieceAtSquare( Position.d8, rookToCastle );
+		}
+	}
+	
+	public void undoMove(int reversedMove, CaptureData cap) throws InvalidPieceException {
+		setEnPassantTargetSq(Position.NOPOSITION);
+		// Get the piece to move
+		int pieceToMove = Move.getOriginPiece(reversedMove);
+		int checkPiece = pickUpPieceAtSquare(Move.getOriginPosition(reversedMove));
+		assert pieceToMove == checkPiece;
+		// Handle reversal of any castling secondary rook moves and associated flags...
+		if (Piece.isKing(pieceToMove)) {
+			unperformSecondaryCastlingMove(reversedMove);
+		}
+		setPieceAtSquare(Move.getTargetPosition(reversedMove), pieceToMove);
+		// Undo any capture that had been previously performed.
+		if (cap.getPiece() != Piece.NONE) {
+			setPieceAtSquare(cap.getSquare(), cap.getPiece());
+		}
+	}
+	
+	private void unperformSecondaryCastlingMove(int move) throws InvalidPieceException {
+		int rookToCastle = Piece.NONE;
+		if (Move.areEqual(move, CastlingManager.undo_wksc)) {
+			// Perform secondary king side castle rook move
+			rookToCastle = pickUpPieceAtSquare( Position.f1 );
+			setPieceAtSquare( Position.h1, rookToCastle );
+		} else	if (Move.areEqual(move, CastlingManager.undo_wqsc)) {
+			// Perform secondary queen side castle rook move
+			rookToCastle = pickUpPieceAtSquare( Position.d1 );
+			setPieceAtSquare( Position.a1, rookToCastle );
+		} else if (Move.areEqual(move, CastlingManager.undo_bksc)) {
+			// Perform secondary king side castle rook move
+			rookToCastle = pickUpPieceAtSquare( Position.f8 );
+			setPieceAtSquare( Position.h8, rookToCastle );
+		} else if (Move.areEqual(move, CastlingManager.undo_bqsc)) {
+			// Perform secondary queen side castle rook move
+			rookToCastle = pickUpPieceAtSquare( Position.d8 );
+			setPieceAtSquare( Position.a8, rookToCastle );
+		}
+	}
+	
 	public List<Integer> getRegularPieceMoves(Piece.Colour side) {
 		BitBoard bitBoardToIterate = Colour.isWhite(side) ? whitePieces : blackPieces;
 		ArrayList<Integer> movesList = new ArrayList<Integer>();
@@ -231,33 +274,34 @@ public class Board {
 		while (iter.hasNext()) {
 			int bit_index = iter.nextInt();
 			int atSquare = BitBoard.bitToPosition_Lut[bit_index];
-			BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
+			long mask = 1L<<bit_index;
+			BitBoard pieceToPickUp = new BitBoard(mask);
 			if (blackPieces.and(pieceToPickUp).isNonZero()) {
-				if (pieces[INDEX_KING].isSet(bit_index)) {
+				if (pieces[INDEX_KING].isSet(mask)) {
 					movesList.addAll(Piece.king_generateMoves(this, atSquare, Colour.black));
-				} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
+				} else if (pieces[INDEX_QUEEN].isSet(mask)) {
 					movesList.addAll(Piece.queen_generateMoves(this, atSquare, Colour.black));
-				} else if (pieces[INDEX_ROOK].isSet(bit_index)) {
+				} else if (pieces[INDEX_ROOK].isSet(mask)) {
 					movesList.addAll(Piece.rook_generateMoves(this, atSquare, Colour.black));
-				} else if (pieces[INDEX_BISHOP].isSet(bit_index)) {
+				} else if (pieces[INDEX_BISHOP].isSet(mask)) {
 					movesList.addAll(Piece.bishop_generateMoves(this, atSquare, Colour.black));
-				} else if (pieces[INDEX_KNIGHT].isSet(bit_index)) {
+				} else if (pieces[INDEX_KNIGHT].isSet(mask)) {
 					movesList.addAll(Piece.knight_generateMoves(this, atSquare, Colour.black));
-				} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
+				} else if (pieces[INDEX_PAWN].isSet(mask)) {
 					movesList.addAll(Piece.pawn_generateMoves(this, atSquare, Colour.black));
 				}
 			} else if (whitePieces.and(pieceToPickUp).isNonZero()) {
-				if (pieces[INDEX_KING].isSet(bit_index)) {
+				if (pieces[INDEX_KING].isSet(mask)) {
 					movesList.addAll(Piece.king_generateMoves(this, atSquare, Colour.white));
-				} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
+				} else if (pieces[INDEX_QUEEN].isSet(mask)) {
 					movesList.addAll(Piece.queen_generateMoves(this, atSquare, Colour.white));
-				} else if (pieces[INDEX_ROOK].isSet(bit_index)) {
+				} else if (pieces[INDEX_ROOK].isSet(mask)) {
 					movesList.addAll(Piece.rook_generateMoves(this, atSquare, Colour.white));
-				} else if (pieces[INDEX_BISHOP].isSet(bit_index)) {
+				} else if (pieces[INDEX_BISHOP].isSet(mask)) {
 					movesList.addAll(Piece.bishop_generateMoves(this, atSquare, Colour.white));
-				} else if (pieces[INDEX_KNIGHT].isSet(bit_index)) {
+				} else if (pieces[INDEX_KNIGHT].isSet(mask)) {
 					movesList.addAll(Piece.knight_generateMoves(this, atSquare, Colour.white));
-				} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
+				} else if (pieces[INDEX_PAWN].isSet(mask)) {
 					movesList.addAll(Piece.pawn_generateMoves(this, atSquare, Colour.white));
 				}
 			} else {
@@ -287,22 +331,23 @@ public class Board {
 	public int getPieceAtSquare( int atPos ) {
 		int type = Piece.NONE;
 		int bit_index = BitBoard.positionToBit_Lut[atPos];
-		BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
+		long mask = 1L<<bit_index;
+		BitBoard pieceToPickUp = new BitBoard(mask);
 		if (allPieces.and(pieceToPickUp).isNonZero()) {	
 			if (blackPieces.and(pieceToPickUp).isNonZero()) {
 				type |= Piece.BLACK;
 			} else assert whitePieces.and(pieceToPickUp).isNonZero();
-			if (pieces[INDEX_KING].isSet(bit_index)) {
+			if (pieces[INDEX_KING].isSet(mask)) {
 				type |= Piece.KING;
-			} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
+			} else if (pieces[INDEX_QUEEN].isSet(mask)) {
 				type |= Piece.QUEEN;
-			} else if (pieces[INDEX_ROOK].isSet(bit_index)) {
+			} else if (pieces[INDEX_ROOK].isSet(mask)) {
 				type |= Piece.ROOK;
-			} else if (pieces[INDEX_BISHOP].isSet(bit_index)) {
+			} else if (pieces[INDEX_BISHOP].isSet(mask)) {
 				type |= Piece.BISHOP;
-			} else if (pieces[INDEX_KNIGHT].isSet(bit_index)) {
+			} else if (pieces[INDEX_KNIGHT].isSet(mask)) {
 				type |= Piece.KNIGHT;
-			} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
+			} else if (pieces[INDEX_PAWN].isSet(mask)) {
 				type |= Piece.PAWN;
 			}
 		}
@@ -350,35 +395,36 @@ public class Board {
 	public int pickUpPieceAtSquare( int atPos ) {
 		int type = Piece.NONE;
 		int bit_index = BitBoard.positionToBit_Lut[atPos];
-		BitBoard pieceToPickUp = new BitBoard(1L<<bit_index);
+		long mask = 1L<<bit_index;
+		BitBoard pieceToPickUp = new BitBoard(mask);
 		if (allPieces.and(pieceToPickUp).isNonZero()) {	
 			if (blackPieces.and(pieceToPickUp).isNonZero()) {
-				blackPieces.clear(bit_index);
+				blackPieces.clear(mask);
 				type |= Piece.BLACK;
 			} else {
 				assert whitePieces.and(pieceToPickUp).isNonZero();
-				whitePieces.clear(bit_index);
+				whitePieces.clear(mask);
 			}
-			if (pieces[INDEX_KING].isSet(bit_index)) {
-				pieces[INDEX_KING].clear(bit_index);
+			if (pieces[INDEX_KING].isSet(mask)) {
+				pieces[INDEX_KING].clear(mask);
 				type |= Piece.KING;
-			} else if (pieces[INDEX_QUEEN].isSet(bit_index)) {
-				pieces[INDEX_QUEEN].clear(bit_index);
+			} else if (pieces[INDEX_QUEEN].isSet(mask)) {
+				pieces[INDEX_QUEEN].clear(mask);
 				type |= Piece.QUEEN;
-			} else if (pieces[INDEX_ROOK].isSet(bit_index)) {
-				pieces[INDEX_ROOK].clear(bit_index);
+			} else if (pieces[INDEX_ROOK].isSet(mask)) {
+				pieces[INDEX_ROOK].clear(mask);
 				type |= Piece.ROOK;
-			} else if (pieces[INDEX_BISHOP].isSet(bit_index)) {
-				pieces[INDEX_BISHOP].clear(bit_index);
+			} else if (pieces[INDEX_BISHOP].isSet(mask)) {
+				pieces[INDEX_BISHOP].clear(mask);
 				type |= Piece.BISHOP;
-			} else if (pieces[INDEX_KNIGHT].isSet(bit_index)) {
-				pieces[INDEX_KNIGHT].clear(bit_index);
+			} else if (pieces[INDEX_KNIGHT].isSet(mask)) {
+				pieces[INDEX_KNIGHT].clear(mask);
 				type |= Piece.KNIGHT;
-			} else if (pieces[INDEX_PAWN].isSet(bit_index)) {
-				pieces[INDEX_PAWN].clear(bit_index);
+			} else if (pieces[INDEX_PAWN].isSet(mask)) {
+				pieces[INDEX_PAWN].clear(mask);
 				type |= Piece.PAWN;
 			}
-			allPieces.clear(bit_index);
+			allPieces.clear(mask);
 		}
 		return type;
 	}

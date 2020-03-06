@@ -49,7 +49,7 @@ public class PlySearcherTest {
 		SearchDebugAgent.open(0, true);
 		
 		pc = new PrincipalContinuation(searchDepth*3);
-		sm = new SearchMetrics(searchDepth*3);
+		sm = new SearchMetrics(searchDepth*3, new PositionManager());
 		sm.setPrincipalVariation(pc.toPvList(0));
 		mockEubos = new EubosEngineMain();
 		sr = new SearchMetricsReporter(mockEubos,sm);

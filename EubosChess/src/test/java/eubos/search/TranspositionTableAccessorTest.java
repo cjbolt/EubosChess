@@ -42,11 +42,11 @@ public class TranspositionTableAccessorTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		sm = new SearchMetrics();
 		transTable = new FixedSizeTranspositionTable();
 		st = new ScoreTracker(SEARCH_DEPTH_IN_PLY, true);
 		st.setProvisionalScoreAtPly((byte) 0);
 		pm = new PositionManager();
+		sm = new SearchMetrics(pm);
 		sut = new TranspositionTableAccessor(transTable, pm, st, pm, new PositionEvaluator(pm, new DrawChecker()));
 		currPly = 0;
 	}

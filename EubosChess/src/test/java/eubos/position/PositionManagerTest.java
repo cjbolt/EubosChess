@@ -61,12 +61,6 @@ public class PositionManagerTest {
 	}
 	
 	@Test
-	public void test_NoLastMoveToUndo() throws InvalidPieceException {
-		classUnderTest = new PositionManager();
-		classUnderTest.unperformMove();
-	}
-	
-	@Test
 	public void test_UndoPawnMove() throws InvalidPieceException, IllegalNotationException {
 		// 8 ........
 		// 7 ........

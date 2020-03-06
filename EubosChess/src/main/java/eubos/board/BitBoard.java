@@ -84,8 +84,16 @@ public class BitBoard {
 		bitBoard |= (1L << bit);
 	}
 	
+	public void set(long mask) {
+		bitBoard |= mask;
+	}
+	
 	public void clear(int bit) {
 		bitBoard &= ~(1L << bit);
+	}
+	
+	public void clear(long mask) {
+		bitBoard &= ~mask;
 	}
 	
 	private static int getBitFromRankAndFile(int rank, int file) {
@@ -98,6 +106,10 @@ public class BitBoard {
 	
 	public boolean isSet(int bit) {
 		return (bitBoard & (1L<<bit)) != 0;
+	}
+	
+	public boolean isSet(long mask) {
+		return (bitBoard & mask) != 0;
 	}
 	
 	public String toString() {

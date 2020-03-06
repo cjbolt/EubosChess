@@ -16,4 +16,6 @@ public class CaptureData {
 	}
 	
 	public int getSquare() { return square; }
+	
+	public int getPiece() { return target; }
 };

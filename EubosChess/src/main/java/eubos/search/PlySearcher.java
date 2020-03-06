@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.PrimitiveIterator;
 
 import eubos.board.InvalidPieceException;
-import eubos.board.Piece.Colour;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
@@ -255,11 +254,7 @@ public class PlySearcher {
 			throws InvalidPieceException {
 		pc.update(currPly, currMove);
 		if (atRootNode()) {
-			sm.setPartialDepth(extendedSearchDeepestPly);
-			sm.setPrincipalVariation(pc.toPvList(0));
-			if (Colour.isBlack(pos.getOnMove()))
-				positionScore = (short) -positionScore; // Negated due to UCI spec (from engine pov)
-			sm.setCpScore(positionScore);
+			sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), positionScore);
 			if (sr != null) {
 				sr.reportPrincipalVariation();
 			}
