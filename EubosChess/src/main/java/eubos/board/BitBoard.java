@@ -80,8 +80,8 @@ public class BitBoard {
 		return new BitBoard(this.bitBoard & other.bitBoard);
 	}
 	
-	public BitBoard xor(BitBoard other) {
-		return new BitBoard(this.bitBoard ^ other.bitBoard);
+	public void xor(BitBoard other) {
+		this.bitBoard ^= other.bitBoard;
 	}
 	
 	public BitBoard or(BitBoard other) {

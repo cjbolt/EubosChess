@@ -13,19 +13,13 @@ import eubos.position.CastlingManager;
 import eubos.position.Move;
 import eubos.position.Position;
 
+import com.fluxchess.jcpi.models.IntChessman;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntRank;
 
 public class Board {
 	public static final CaptureData NULL_CAPTURE = new CaptureData(Piece.NONE, Position.NOPOSITION);
-
-	private static final int INDEX_PAWN = 0;
-	private static final int INDEX_KNIGHT = 1;
-	private static final int INDEX_BISHOP = 2;
-	private static final int INDEX_ROOK = 3;
-	private static final int INDEX_QUEEN = 4;
-	private static final int INDEX_KING = 5;
 	
 	private BitBoard allPieces = null;
 	private BitBoard whitePieces = null;
@@ -38,7 +32,15 @@ public class Board {
 		return blackPieces;
 	}
 
-	private BitBoard[] pieces = new BitBoard[6];
+	private static final int INDEX_PAWN = Piece.PAWN;
+	private static final int INDEX_KNIGHT = Piece.KNIGHT;
+	private static final int INDEX_BISHOP = Piece.BISHOP;
+	private static final int INDEX_ROOK = Piece.ROOK;
+	private static final int INDEX_QUEEN = Piece.QUEEN;
+	private static final int INDEX_KING = Piece.KING;
+	//private static final int INDEX_NONE = Piece.NONE;
+	
+	private BitBoard[] pieces = new BitBoard[7]; // N.b. INDEX_NONE is an empty BitBoard at index 0.
 	
 	@SuppressWarnings("unchecked")
 	private static final List<BitBoard>[] RankFileMask_Lut = (List<BitBoard>[]) new List[128];
@@ -130,7 +132,7 @@ public class Board {
 		allPieces = new BitBoard();
 		whitePieces = new BitBoard();
 		blackPieces = new BitBoard();
-		for (int i=0; i<=INDEX_KING; i++) {
+		for (int i=0; i<=INDEX_PAWN; i++) {
 			pieces[i] = new BitBoard();
 		}
 		for ( Entry<Integer, Integer> nextPiece : pieceMap.entrySet() ) {
@@ -142,8 +144,6 @@ public class Board {
 		CaptureData captureTarget = NULL_CAPTURE;
 		int pieceToMove = Move.getOriginPiece(move);
 		int targetSquare = Move.getTargetPosition(move);
-		// Remove the piece to move from the board
-		pickUpPieceAtSquare(Move.getOriginPosition(move));
 		if (isEnPassantCapture(pieceToMove, targetSquare)) {
 			// Handle en passant captures, don't need to do other checks in this case
 			int rank = IntRank.NORANK;
@@ -166,9 +166,30 @@ public class Board {
 				captureTarget = new CaptureData(pickUpPieceAtSquare(targetSquare), targetSquare);
 			}			
 		}
-		// Update the piece's square.
-		setPieceAtSquare(targetSquare, pieceToMove);
+		movePiece(move);
 		return captureTarget;
+	}
+	
+	
+	private void movePiece(int move) {
+		int pieceToMove = Move.getOriginPiece(move);
+		int initialSquare = Move.getOriginPosition(move);
+		int targetSquare = Move.getTargetPosition(move);
+		if (Move.getPromotion(move) != IntChessman.NOCHESSMAN) {
+			pickUpPieceAtSquare(initialSquare);
+			setPieceAtSquare(targetSquare, pieceToMove);
+		} else {
+			// TODO Doesn't work for promotions because we don't know the BitBoard index - this can be resolved 
+			int type = Move.getOriginPiece(move);
+			BitBoard positionsMask = BitBoard.positionToMask_Lut[initialSquare].or(BitBoard.positionToMask_Lut[targetSquare]);
+			allPieces.xor(positionsMask);
+			pieces[Piece.PIECE_NO_COLOUR_MASK & type].xor(positionsMask);
+			if (Piece.isWhite(type)) {
+				whitePieces.xor(positionsMask);
+			} else {
+				blackPieces.xor(positionsMask);
+			}
+		}
 	}
 	
 	private boolean isEnPassantCapture(int pieceToMove, int targetSquare) {
@@ -213,34 +234,30 @@ public class Board {
 	
 	private void performSecondaryCastlingMove(int move) throws InvalidPieceException {
 		if (Move.areEqual(move, CastlingManager.wksc)) {
-			pieces[INDEX_ROOK] = pieces[INDEX_ROOK].xor(wksc_mask);
-			whitePieces = whitePieces.xor(wksc_mask);
-			allPieces = allPieces.xor(wksc_mask);
+			pieces[INDEX_ROOK].xor(wksc_mask);
+			whitePieces.xor(wksc_mask);
+			allPieces.xor(wksc_mask);
 		} else if (Move.areEqual(move, CastlingManager.wqsc)) {
-			pieces[INDEX_ROOK] = pieces[INDEX_ROOK].xor(wqsc_mask);
-			whitePieces = whitePieces.xor(wqsc_mask);
-			allPieces = allPieces.xor(wqsc_mask);
+			pieces[INDEX_ROOK].xor(wqsc_mask);
+			whitePieces.xor(wqsc_mask);
+			allPieces.xor(wqsc_mask);
 		} else if (Move.areEqual(move, CastlingManager.bksc)) {
-			pieces[INDEX_ROOK] = pieces[INDEX_ROOK].xor(bksc_mask);
-			blackPieces = blackPieces.xor(bksc_mask);
-			allPieces = allPieces.xor(bksc_mask);
+			pieces[INDEX_ROOK].xor(bksc_mask);
+			blackPieces.xor(bksc_mask);
+			allPieces.xor(bksc_mask);
 		} else if (Move.areEqual(move, CastlingManager.bqsc)) {
-			pieces[INDEX_ROOK] = pieces[INDEX_ROOK].xor(bqsc_mask);
-			blackPieces = blackPieces.xor(bqsc_mask);
-			allPieces = allPieces.xor(bqsc_mask);
+			pieces[INDEX_ROOK].xor(bqsc_mask);
+			blackPieces.xor(bqsc_mask);
+			allPieces.xor(bqsc_mask);
 		}
 	}
 	
 	public void undoMove(int reversedMove, CaptureData cap) throws InvalidPieceException {
-		// Get the piece to move
-		int pieceToMove = Move.getOriginPiece(reversedMove);
-		int checkPiece = pickUpPieceAtSquare(Move.getOriginPosition(reversedMove));
-		assert pieceToMove == checkPiece;
 		// Handle reversal of any castling secondary rook moves
-		if (Piece.isKing(pieceToMove)) {
+		if (Piece.isKing(Move.getOriginPiece(reversedMove))) {
 			unperformSecondaryCastlingMove(reversedMove);
 		}
-		setPieceAtSquare(Move.getTargetPosition(reversedMove), pieceToMove);
+		movePiece(reversedMove);
 		// Undo any capture that had been previously performed.
 		if (cap.getPiece() != Piece.NONE) {
 			setPieceAtSquare(cap.getSquare(), cap.getPiece());
@@ -249,21 +266,21 @@ public class Board {
 	
 	private void unperformSecondaryCastlingMove(int move) throws InvalidPieceException {
 		if (Move.areEqual(move, CastlingManager.undo_wksc)) {
-			pieces[INDEX_ROOK] = pieces[INDEX_ROOK].xor(wksc_mask);
-			whitePieces = whitePieces.xor(wksc_mask);
-			allPieces = allPieces.xor(wksc_mask);
+			pieces[INDEX_ROOK].xor(wksc_mask);
+			whitePieces.xor(wksc_mask);
+			allPieces.xor(wksc_mask);
 		} else	if (Move.areEqual(move, CastlingManager.undo_wqsc)) {
-			pieces[INDEX_ROOK] = pieces[INDEX_ROOK].xor(wqsc_mask);
-			whitePieces = whitePieces.xor(wqsc_mask);
-			allPieces = allPieces.xor(wqsc_mask);
+			pieces[INDEX_ROOK].xor(wqsc_mask);
+			whitePieces.xor(wqsc_mask);
+			allPieces.xor(wqsc_mask);
 		} else if (Move.areEqual(move, CastlingManager.undo_bksc)) {
-			pieces[INDEX_ROOK] = pieces[INDEX_ROOK].xor(bksc_mask);
-			blackPieces = blackPieces.xor(bksc_mask);
-			allPieces = allPieces.xor(bksc_mask);
+			pieces[INDEX_ROOK].xor(bksc_mask);
+			blackPieces.xor(bksc_mask);
+			allPieces.xor(bksc_mask);
 		} else if (Move.areEqual(move, CastlingManager.undo_bqsc)) {
-			pieces[INDEX_ROOK] = pieces[INDEX_ROOK].xor(bqsc_mask);
-			blackPieces = blackPieces.xor(bqsc_mask);
-			allPieces = allPieces.xor(bqsc_mask);
+			pieces[INDEX_ROOK].xor(bqsc_mask);
+			blackPieces.xor(bqsc_mask);
+			allPieces.xor(bqsc_mask);
 		}
 	}
 	
@@ -276,8 +293,8 @@ public class Board {
 			int bit_index = iter.nextInt();
 			int atSquare = BitBoard.bitToPosition_Lut[bit_index];
 			long mask = 1L<<bit_index;
-			BitBoard pieceToPickUp = new BitBoard(mask);
-			if (blackPieces.and(pieceToPickUp).isNonZero()) {
+			BitBoard currPieceMask = new BitBoard(mask);
+			if (blackPieces.and(currPieceMask).isNonZero()) {
 				if (pieces[INDEX_KING].isSet(mask)) {
 					movesList.addAll(Piece.king_generateMoves(this, atSquare, Colour.black));
 				} else if (pieces[INDEX_QUEEN].isSet(mask)) {
@@ -291,7 +308,7 @@ public class Board {
 				} else if (pieces[INDEX_PAWN].isSet(mask)) {
 					movesList.addAll(Piece.pawn_generateMoves(this, atSquare, Colour.black));
 				}
-			} else if (whitePieces.and(pieceToPickUp).isNonZero()) {
+			} else if (whitePieces.and(currPieceMask).isNonZero()) {
 				if (pieces[INDEX_KING].isSet(mask)) {
 					movesList.addAll(Piece.king_generateMoves(this, atSquare, Colour.white));
 				} else if (pieces[INDEX_QUEEN].isSet(mask)) {

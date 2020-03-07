@@ -93,7 +93,7 @@ public class PositionManagerTest {
 		classUnderTest.performMove( Move.valueOf(Move.TYPE_PROMOTION_QUEEN_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, IntChessman.QUEEN));
 		classUnderTest.unperformMove();
 		int expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( Position.e2 );
-		assertTrue( expectPawn==Piece.BLACK_PAWN );
+		assertEquals( Piece.BLACK_PAWN, expectPawn );
 	}
 	
 	@Test
@@ -121,7 +121,7 @@ public class PositionManagerTest {
 		classUnderTest = new PositionManager( "r3k2r/1bqpbppp/p1n1p3/3nP3/PpP1N3/3B1N2/1P2QPPP/R4RK1 b kq c3 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.b4, Piece.BLACK_PAWN, Position.c3, Piece.WHITE_PAWN ));
 		int expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( Position.c3 );
-		assertTrue( expectPawn==Piece.BLACK_PAWN );
+		assertEquals( Piece.BLACK_PAWN, expectPawn );
 	}
 	
 	@Test
