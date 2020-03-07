@@ -180,11 +180,11 @@ public class Board {
 			setPieceAtSquare(targetSquare, pieceToMove);
 		} else {
 			// TODO Doesn't work for promotions because we don't know the BitBoard index - this can be resolved 
-			int type = Move.getOriginPiece(move);
+			int pieceType = Move.getOriginPiece(move);
 			BitBoard positionsMask = BitBoard.positionToMask_Lut[initialSquare].or(BitBoard.positionToMask_Lut[targetSquare]);
 			allPieces.xor(positionsMask);
-			pieces[Piece.PIECE_NO_COLOUR_MASK & type].xor(positionsMask);
-			if (Piece.isWhite(type)) {
+			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceType].xor(positionsMask);
+			if (Piece.isWhite(pieceType)) {
 				whitePieces.xor(positionsMask);
 			} else {
 				blackPieces.xor(positionsMask);
@@ -293,37 +293,18 @@ public class Board {
 			int bit_index = iter.nextInt();
 			int atSquare = BitBoard.bitToPosition_Lut[bit_index];
 			long mask = 1L<<bit_index;
-			BitBoard currPieceMask = new BitBoard(mask);
-			if (blackPieces.and(currPieceMask).isNonZero()) {
-				if (pieces[INDEX_KING].isSet(mask)) {
-					movesList.addAll(Piece.king_generateMoves(this, atSquare, Colour.black));
-				} else if (pieces[INDEX_QUEEN].isSet(mask)) {
-					movesList.addAll(Piece.queen_generateMoves(this, atSquare, Colour.black));
-				} else if (pieces[INDEX_ROOK].isSet(mask)) {
-					movesList.addAll(Piece.rook_generateMoves(this, atSquare, Colour.black));
-				} else if (pieces[INDEX_BISHOP].isSet(mask)) {
-					movesList.addAll(Piece.bishop_generateMoves(this, atSquare, Colour.black));
-				} else if (pieces[INDEX_KNIGHT].isSet(mask)) {
-					movesList.addAll(Piece.knight_generateMoves(this, atSquare, Colour.black));
-				} else if (pieces[INDEX_PAWN].isSet(mask)) {
-					movesList.addAll(Piece.pawn_generateMoves(this, atSquare, Colour.black));
-				}
-			} else if (whitePieces.and(currPieceMask).isNonZero()) {
-				if (pieces[INDEX_KING].isSet(mask)) {
-					movesList.addAll(Piece.king_generateMoves(this, atSquare, Colour.white));
-				} else if (pieces[INDEX_QUEEN].isSet(mask)) {
-					movesList.addAll(Piece.queen_generateMoves(this, atSquare, Colour.white));
-				} else if (pieces[INDEX_ROOK].isSet(mask)) {
-					movesList.addAll(Piece.rook_generateMoves(this, atSquare, Colour.white));
-				} else if (pieces[INDEX_BISHOP].isSet(mask)) {
-					movesList.addAll(Piece.bishop_generateMoves(this, atSquare, Colour.white));
-				} else if (pieces[INDEX_KNIGHT].isSet(mask)) {
-					movesList.addAll(Piece.knight_generateMoves(this, atSquare, Colour.white));
-				} else if (pieces[INDEX_PAWN].isSet(mask)) {
-					movesList.addAll(Piece.pawn_generateMoves(this, atSquare, Colour.white));
-				}
-			} else {
-				assert false;
+			if (pieces[INDEX_KING].isSet(mask)) {
+				movesList.addAll(Piece.king_generateMoves(this, atSquare, side));
+			} else if (pieces[INDEX_QUEEN].isSet(mask)) {
+				movesList.addAll(Piece.queen_generateMoves(this, atSquare, side));
+			} else if (pieces[INDEX_ROOK].isSet(mask)) {
+				movesList.addAll(Piece.rook_generateMoves(this, atSquare, side));
+			} else if (pieces[INDEX_BISHOP].isSet(mask)) {
+				movesList.addAll(Piece.bishop_generateMoves(this, atSquare, side));
+			} else if (pieces[INDEX_KNIGHT].isSet(mask)) {
+				movesList.addAll(Piece.knight_generateMoves(this, atSquare, side));
+			} else if (pieces[INDEX_PAWN].isSet(mask)) {
+				movesList.addAll(Piece.pawn_generateMoves(this, atSquare, side));
 			}
 		}
 		return movesList;

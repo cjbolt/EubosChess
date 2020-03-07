@@ -1,7 +1,8 @@
 package eubos.search;
 
-import eubos.board.InvalidPieceException;
+import java.util.PrimitiveIterator;
 
+import eubos.board.InvalidPieceException;
 import eubos.position.PositionManager;
 import eubos.position.MoveList;
 
@@ -24,7 +25,9 @@ public class PerformanceTest {
 	    public long perft() {
 	        if (currPly < requestedDepthPly) {        
 	            MoveList ml = new MoveList(pm);
-	            for (int move : ml) {
+	            PrimitiveIterator.OfInt iter = ml.getIterator(false);
+	            while (iter.hasNext()) {
+	            	int move = iter.nextInt();
 	                try {
 						pm.performMove(move, false);
 		                currPly+=1;
