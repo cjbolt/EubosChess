@@ -88,7 +88,7 @@ public class PlySearcher {
 		MoveList ml = null;
 		
 		st.setProvisionalScoreAtPly(currPly);
-		SearchDebugAgent.printStartPlyInfo(currPly, st, pos);
+		SearchDebugAgent.printStartPlyInfo(currPly, st, pos, originalSearchDepthRequiredInPly);
 		
 		byte depthRequiredForTerminalNode = initialiseSearchAtPly();
 		TranspositionEvaluation eval = tt.getTransposition(currPly, depthRequiredForTerminalNode);		

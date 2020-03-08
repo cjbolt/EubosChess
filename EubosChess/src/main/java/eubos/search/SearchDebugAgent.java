@@ -176,10 +176,10 @@ public class SearchDebugAgent {
 		}		
 	}
 
-	public static void printStartPlyInfo(byte currPly, ScoreTracker st, IPositionAccessors pos) {
+	public static void printStartPlyInfo(byte currPly, ScoreTracker st, IPositionAccessors pos, byte originalSearchDepthRequiredInPly) {
 		if (isDebugOn) {
 			if (currPly == 0) {
-				printOutput("\n\n\n NEW ITERATION \n\n\n");
+				printOutput(String.format("\n\n\n NEW ITERATION %d\n\n\n", originalSearchDepthRequiredInPly));
 			}
 			if ( currPly != lastPly )
 				computeIndent(currPly);
