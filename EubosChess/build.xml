@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project EubosChess with Jar-in-Jar Loader">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <target name="create_run_jar">
+        <jar destfile="C:/Users/Chris/lichess-bot-master/engines/Eubos.jar">
+            <manifest>
+                <attribute name="Main-Class" value="Eubos"/>
+                <attribute name="Rsrc-Main-Class" value="eubos.main.EubosEngineMain"/>
+                <attribute name="Class-Path" value="."/>
+                <attribute name="Rsrc-Class-Path" value="./ jcpi-1.4.1.1.jar mockito-core-2.19.1.jar byte-buddy-1.8.13.jar byte-buddy-agent-1.8.13.jar objenesis-2.6.jar"/>
+            </manifest>
+            <zipfileset src="jar-in-jar-loader.zip"/>
+            <fileset dir="C:/Users/Chris/ChessEngine_Git/EubosChess/target/classes"/>
+            <zipfileset dir="C:\Users\Chris\.m2\repository\com\github\jjYBdx4IL\chess\jcpi\1.4.1.1" includes="jcpi-1.4.1.1.jar"/>
+            <zipfileset dir="C:\Users\Chris\.m2\repository\org\mockito\mockito-core\2.19.1" includes="mockito-core-2.19.1.jar"/>
+            <zipfileset dir="C:\Users\Chris\.m2\repository\net\bytebuddy\byte-buddy\1.8.13" includes="byte-buddy-1.8.13.jar"/>
+            <zipfileset dir="C:\Users\Chris\.m2\repository\net\bytebuddy\byte-buddy-agent\1.8.13" includes="byte-buddy-agent-1.8.13.jar"/>
+            <zipfileset dir="C:\Users\Chris\.m2\repository\org\objenesis\objenesis\2.6" includes="objenesis-2.6.jar"/>
+        </jar>
+    </target>
+</project>
