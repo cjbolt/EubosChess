@@ -385,7 +385,7 @@ public class Board {
 		BitBoard kingMask = getFromBoard.and(pieces[INDEX_KING]);
 		if (kingMask.isNonZero()) {
 			// The conditional is needed because some unit test positions don't have a king...
-			int kingSquare = BitBoard.maskToPosition_Lut.get(kingMask.getValue());
+			int kingSquare = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(kingMask.getValue())];
 			inCheck = squareIsAttacked(kingSquare, side);
 		}
 		return inCheck;
@@ -733,7 +733,7 @@ public class Board {
 		int atSquare = Move.getOriginPosition(move);
 		// establish if the square is on a multisquare slider mask from the king position
 		BitBoard square = BitBoard.positionToMask_Lut[atSquare];
-		int kingPosition = BitBoard.maskToPosition_Lut.get(king.getValue());
+		int kingPosition = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(king.getValue())];
 		BitBoard attackingSquares = directAttacksOnPosition_Lut[kingPosition];
 		return square.and(attackingSquares).isNonZero();
 	}
