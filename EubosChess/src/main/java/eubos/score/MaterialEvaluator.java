@@ -96,9 +96,11 @@ public class MaterialEvaluator {
 				currValue += PAWN_BLACK_WEIGHTINGS[atPos];
 			} else if (Piece.isRook(currPiece)) {
 				currValue = MATERIAL_VALUE_ROOK;
+				// TODO This is quite costly, the numSetBits is calculated since making BitBoard static
 				currValue += theBoard.getNumRankFileSquaresAvailable(atPos)*2;
 			} else if (Piece.isBishop(currPiece)) {
 				currValue = MATERIAL_VALUE_BISHOP;
+				// TODO This is quite costly, the numSetBits is calculated since making BitBoard static
 				currValue += theBoard.getNumDiagonalSquaresAvailable(atPos)*2;
 			} else if (Piece.isKnight(currPiece)) {
 				currValue = MATERIAL_VALUE_KNIGHT;

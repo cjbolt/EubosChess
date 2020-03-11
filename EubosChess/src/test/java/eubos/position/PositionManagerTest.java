@@ -419,7 +419,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_InitialBlocked() {
 		classUnderTest = new PositionManager("8/8/8/8/8/4p3/4P3/8 w - - 0 1");
 		ml = classUnderTest.generateMoves();
-		assertTrue( ml.length == 0 );
+		assertEquals( 0, ml.length );
 	}
 
 	@Test

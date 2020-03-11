@@ -21,14 +21,14 @@ import com.fluxchess.jcpi.models.IntRank;
 public class Board {
 	public static final CaptureData NULL_CAPTURE = new CaptureData(Piece.NONE, Position.NOPOSITION);
 	
-	private BitBoard allPieces = null;
-	private BitBoard whitePieces = null;
-	private BitBoard blackPieces = null;
+	private long allPieces = 0x0;
+	private long whitePieces = 0x0;
+	private long blackPieces = 0x0;
 	
-	public BitBoard getWhitePieces() {
+	public long getWhitePieces() {
 		return whitePieces;
 	}
-	public BitBoard getBlackPieces() {
+	public long getBlackPieces() {
 		return blackPieces;
 	}
 
@@ -40,30 +40,30 @@ public class Board {
 	private static final int INDEX_KING = Piece.KING;
 	//private static final int INDEX_NONE = Piece.NONE;
 	
-	private BitBoard[] pieces = new BitBoard[7]; // N.b. INDEX_NONE is an empty BitBoard at index 0.
+	private long[] pieces = new long[7]; // N.b. INDEX_NONE is an empty long at index 0.
 	
 	@SuppressWarnings("unchecked")
-	private static final List<BitBoard>[] RankFileMask_Lut = (List<BitBoard>[]) new List[128];
+	private static final List<Long>[] RankFileMask_Lut = (List<Long>[]) new List[128];
 	static {
 		Direction [] rankFile = { Direction.left, Direction.up, Direction.right, Direction.down };
 		for (int square : Position.values) {
-			List<BitBoard> array = new ArrayList<BitBoard>();
+			List<Long> array = new ArrayList<Long>();
 			for (int index=1; index<8; index++) {
 				createMask(square, array, index, rankFile);
 			}
 			RankFileMask_Lut[square] = array;
 		}
 	}
-	static private void createMask(int square, List<BitBoard> array, int index, Direction [] directions) {
+	static private void createMask(int square, List<Long> array, int index, Direction [] directions) {
 		Long currMask = 0L;
 		for (Direction dir: directions) {
 			currMask = setAllInDirection(dir, square, currMask, index);
 		}
 		// Only add the mask if it isn't the same as previous (i.e. no more squares to add)
-		BitBoard toAdd = new BitBoard(currMask);
-		toAdd.setNumBits();
+		Long toAdd = new Long(currMask);
+		// TODO this will need to be done some other way - toAdd |= NumBits();
 		if (array.size()-1 >= 0) {
-			if (currMask != array.get(array.size()-1).getValue())
+			if (currMask != array.get(array.size()-1))
 				array.add(toAdd);
 		} else {
 			array.add(toAdd);
@@ -75,29 +75,29 @@ public class Board {
 			if (newSquare != Position.NOPOSITION)
 				newSquare = Direction.getDirectMoveSq(dir, newSquare);
 			if (newSquare != Position.NOPOSITION)
-				currMask |= BitBoard.positionToMask_Lut[newSquare].getValue();
+				currMask |= BitBoard.positionToMask_Lut[newSquare];
 		}
 		return currMask;
 	}
 	
-	private static final BitBoard[] directAttacksOnPosition_Lut = new BitBoard[128];
+	private static final long[] directAttacksOnPosition_Lut = new long[128];
 	static {
 		Direction [] allDirect = { Direction.left, Direction.up, Direction.right, Direction.down, Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
 		for (int square : Position.values) {
-			Long allAttacksMask = 0L;
+			long allAttacksMask = 0L;
 			for (Direction dir: allDirect) {
 				allAttacksMask = setAllInDirection(dir, square, allAttacksMask, 8);
 			}
-			directAttacksOnPosition_Lut[square] = new BitBoard(allAttacksMask);
+			directAttacksOnPosition_Lut[square] = allAttacksMask;
 		}
 	}
 	
 	@SuppressWarnings("unchecked")
-	private static final List<BitBoard>[] DiagonalMask_Lut = (List<BitBoard>[]) new List[128];
+	private static final List<Long>[] DiagonalMask_Lut = (List<Long>[]) new List[128];
 	static {
 		Direction [] diagonals = { Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
 		for (int square : Position.values) {
-			List<BitBoard> array = new ArrayList<BitBoard>();
+			List<Long> array = new ArrayList<Long>();
 			for (int index=1; index<8; index++) {
 				createMask(square, array, index, diagonals);
 			}
@@ -105,7 +105,7 @@ public class Board {
 		}
 	}
 	
-	private static final BitBoard[] FileMask_Lut = new BitBoard[8];
+	private static final long[] FileMask_Lut = new long[8];
 	static {
 		for (int file : IntFile.values) {
 			long mask = 0;
@@ -113,27 +113,27 @@ public class Board {
 			for (int r = 0; r<8; r++) {
 				mask  |= 1L << r*8+f;
 			}
-			FileMask_Lut[file]= new BitBoard(mask);
+			FileMask_Lut[file]= mask;
 		}
 	}
 	
-	private static final BitBoard[] RankMask_Lut = new BitBoard[8];
+	private static final long[] RankMask_Lut = new long[8];
 	static {
 		for (int r : IntRank.values) {
 			long mask = 0;
 			for (int f = 0; f<8; f++) {
 				mask  |= 1L << r*8+f;
 			}
-			RankMask_Lut[r] = new BitBoard(mask);
+			RankMask_Lut[r] = mask;
 		}
 	}
 	
 	public Board( Map<Integer, Integer> pieceMap ) {
-		allPieces = new BitBoard();
-		whitePieces = new BitBoard();
-		blackPieces = new BitBoard();
+		allPieces = 0x0;
+		whitePieces = 0x0;
+		blackPieces = 0x0;
 		for (int i=0; i<=INDEX_PAWN; i++) {
-			pieces[i] = new BitBoard();
+			pieces[i] = 0x0;
 		}
 		for ( Entry<Integer, Integer> nextPiece : pieceMap.entrySet() ) {
 			setPieceAtSquare( nextPiece.getKey(), nextPiece.getValue() );
@@ -179,15 +179,15 @@ public class Board {
 			pickUpPieceAtSquare(initialSquare);
 			setPieceAtSquare(targetSquare, pieceToMove);
 		} else {
-			// TODO Doesn't work for promotions because we don't know the BitBoard index - this can be resolved 
+			// TODO Doesn't work for promotions because we don't know the long index - this can be resolved 
 			int pieceType = Move.getOriginPiece(move);
-			BitBoard positionsMask = BitBoard.positionToMask_Lut[initialSquare].or(BitBoard.positionToMask_Lut[targetSquare]);
-			allPieces.xor(positionsMask);
-			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceType].xor(positionsMask);
+			long positionsMask = BitBoard.positionToMask_Lut[initialSquare] | BitBoard.positionToMask_Lut[targetSquare];
+			allPieces ^= positionsMask;
+			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceType] ^= positionsMask;
 			if (Piece.isWhite(pieceType)) {
-				whitePieces.xor(positionsMask);
+				whitePieces ^= positionsMask;
 			} else {
-				blackPieces.xor(positionsMask);
+				blackPieces ^= positionsMask;
 			}
 		}
 	}
@@ -227,28 +227,28 @@ public class Board {
 		return enPassantFile;
 	}
 	
-	private static final BitBoard wksc_mask = BitBoard.positionToMask_Lut[Position.h1].or(BitBoard.positionToMask_Lut[Position.f1]);
-	private static final BitBoard wqsc_mask = BitBoard.positionToMask_Lut[Position.a1].or(BitBoard.positionToMask_Lut[Position.d1]);
-	private static final BitBoard bksc_mask = BitBoard.positionToMask_Lut[Position.h8].or(BitBoard.positionToMask_Lut[Position.f8]);
-	private static final BitBoard bqsc_mask = BitBoard.positionToMask_Lut[Position.a8].or(BitBoard.positionToMask_Lut[Position.d8]);
+	private static final long wksc_mask = BitBoard.positionToMask_Lut[Position.h1] | BitBoard.positionToMask_Lut[Position.f1];
+	private static final long wqsc_mask = BitBoard.positionToMask_Lut[Position.a1] | BitBoard.positionToMask_Lut[Position.d1];
+	private static final long bksc_mask = BitBoard.positionToMask_Lut[Position.h8] | BitBoard.positionToMask_Lut[Position.f8];
+	private static final long bqsc_mask = BitBoard.positionToMask_Lut[Position.a8] | BitBoard.positionToMask_Lut[Position.d8];
 	
 	private void performSecondaryCastlingMove(int move) throws InvalidPieceException {
 		if (Move.areEqual(move, CastlingManager.wksc)) {
-			pieces[INDEX_ROOK].xor(wksc_mask);
-			whitePieces.xor(wksc_mask);
-			allPieces.xor(wksc_mask);
+			pieces[INDEX_ROOK] ^= (wksc_mask);
+			whitePieces ^= (wksc_mask);
+			allPieces ^= (wksc_mask);
 		} else if (Move.areEqual(move, CastlingManager.wqsc)) {
-			pieces[INDEX_ROOK].xor(wqsc_mask);
-			whitePieces.xor(wqsc_mask);
-			allPieces.xor(wqsc_mask);
+			pieces[INDEX_ROOK] ^= (wqsc_mask);
+			whitePieces ^= (wqsc_mask);
+			allPieces ^= (wqsc_mask);
 		} else if (Move.areEqual(move, CastlingManager.bksc)) {
-			pieces[INDEX_ROOK].xor(bksc_mask);
-			blackPieces.xor(bksc_mask);
-			allPieces.xor(bksc_mask);
+			pieces[INDEX_ROOK] ^= (bksc_mask);
+			blackPieces ^= (bksc_mask);
+			allPieces ^= (bksc_mask);
 		} else if (Move.areEqual(move, CastlingManager.bqsc)) {
-			pieces[INDEX_ROOK].xor(bqsc_mask);
-			blackPieces.xor(bqsc_mask);
-			allPieces.xor(bqsc_mask);
+			pieces[INDEX_ROOK] ^= (bqsc_mask);
+			blackPieces ^= (bqsc_mask);
+			allPieces ^= (bqsc_mask);
 		}
 	}
 	
@@ -266,44 +266,44 @@ public class Board {
 	
 	private void unperformSecondaryCastlingMove(int move) throws InvalidPieceException {
 		if (Move.areEqual(move, CastlingManager.undo_wksc)) {
-			pieces[INDEX_ROOK].xor(wksc_mask);
-			whitePieces.xor(wksc_mask);
-			allPieces.xor(wksc_mask);
+			pieces[INDEX_ROOK] ^= (wksc_mask);
+			whitePieces ^= (wksc_mask);
+			allPieces ^= (wksc_mask);
 		} else	if (Move.areEqual(move, CastlingManager.undo_wqsc)) {
-			pieces[INDEX_ROOK].xor(wqsc_mask);
-			whitePieces.xor(wqsc_mask);
-			allPieces.xor(wqsc_mask);
+			pieces[INDEX_ROOK] ^= (wqsc_mask);
+			whitePieces ^= (wqsc_mask);
+			allPieces ^= (wqsc_mask);
 		} else if (Move.areEqual(move, CastlingManager.undo_bksc)) {
-			pieces[INDEX_ROOK].xor(bksc_mask);
-			blackPieces.xor(bksc_mask);
-			allPieces.xor(bksc_mask);
+			pieces[INDEX_ROOK] ^= (bksc_mask);
+			blackPieces ^= (bksc_mask);
+			allPieces ^= (bksc_mask);
 		} else if (Move.areEqual(move, CastlingManager.undo_bqsc)) {
-			pieces[INDEX_ROOK].xor(bqsc_mask);
-			blackPieces.xor(bqsc_mask);
-			allPieces.xor(bqsc_mask);
+			pieces[INDEX_ROOK] ^= (bqsc_mask);
+			blackPieces ^= (bqsc_mask);
+			allPieces ^= (bqsc_mask);
 		}
 	}
 	
 	public List<Integer> getRegularPieceMoves(Piece.Colour side) {
-		BitBoard bitBoardToIterate = Colour.isWhite(side) ? whitePieces : blackPieces;
+		long bitBoardToIterate = Colour.isWhite(side) ? whitePieces : blackPieces;
 		ArrayList<Integer> movesList = new ArrayList<Integer>();
 		
-		PrimitiveIterator.OfInt iter = bitBoardToIterate.iterator();
+		PrimitiveIterator.OfInt iter = BitBoard.iterator(bitBoardToIterate);
 		while (iter.hasNext()) {
 			int bit_index = iter.nextInt();
 			int atSquare = BitBoard.bitToPosition_Lut[bit_index];
 			long mask = 1L<<bit_index;
-			if (pieces[INDEX_KING].isSet(mask)) {
+			if ((pieces[INDEX_KING] & mask) == mask) {
 				movesList.addAll(Piece.king_generateMoves(this, atSquare, side));
-			} else if (pieces[INDEX_QUEEN].isSet(mask)) {
+			} else if ((pieces[INDEX_QUEEN] & mask) == mask) {
 				movesList.addAll(Piece.queen_generateMoves(this, atSquare, side));
-			} else if (pieces[INDEX_ROOK].isSet(mask)) {
+			} else if ((pieces[INDEX_ROOK] & mask) == mask) {
 				movesList.addAll(Piece.rook_generateMoves(this, atSquare, side));
-			} else if (pieces[INDEX_BISHOP].isSet(mask)) {
+			} else if ((pieces[INDEX_BISHOP] & mask) == mask) {
 				movesList.addAll(Piece.bishop_generateMoves(this, atSquare, side));
-			} else if (pieces[INDEX_KNIGHT].isSet(mask)) {
+			} else if ((pieces[INDEX_KNIGHT] & mask) == mask) {
 				movesList.addAll(Piece.knight_generateMoves(this, atSquare, side));
-			} else if (pieces[INDEX_PAWN].isSet(mask)) {
+			} else if ((pieces[INDEX_PAWN] & mask) == mask) {
 				movesList.addAll(Piece.pawn_generateMoves(this, atSquare, side));
 			}
 		}
@@ -320,7 +320,7 @@ public class Board {
 	}
 	
 	public boolean squareIsEmpty( int atPos ) {
-		return !allPieces.isSet(BitBoard.positionToBit_Lut[atPos]);		
+		return (allPieces & BitBoard.positionToMask_Lut[atPos]) == 0;		
 	}
 	
 	public boolean squareIsAttacked( int atPos, Piece.Colour ownColour ) {
@@ -331,22 +331,22 @@ public class Board {
 		int type = Piece.NONE;
 		int bit_index = BitBoard.positionToBit_Lut[atPos];
 		long mask = 1L<<bit_index;
-		BitBoard pieceToPickUp = new BitBoard(mask);
-		if (allPieces.and(pieceToPickUp).isNonZero()) {	
-			if (blackPieces.and(pieceToPickUp).isNonZero()) {
+		long pieceToPickUp = mask;
+		if ((allPieces & pieceToPickUp) != 0) {	
+			if ((blackPieces & pieceToPickUp) != 0) {
 				type |= Piece.BLACK;
-			} else assert whitePieces.and(pieceToPickUp).isNonZero();
-			if (pieces[INDEX_KING].isSet(mask)) {
+			} else assert (whitePieces & pieceToPickUp) != 0;
+			if ((pieces[INDEX_KING] & mask) == mask) {
 				type |= Piece.KING;
-			} else if (pieces[INDEX_QUEEN].isSet(mask)) {
+			} else if ((pieces[INDEX_QUEEN] & mask) == mask) {
 				type |= Piece.QUEEN;
-			} else if (pieces[INDEX_ROOK].isSet(mask)) {
+			} else if ((pieces[INDEX_ROOK] & mask) == mask) {
 				type |= Piece.ROOK;
-			} else if (pieces[INDEX_BISHOP].isSet(mask)) {
+			} else if ((pieces[INDEX_BISHOP] & mask) == mask) {
 				type |= Piece.BISHOP;
-			} else if (pieces[INDEX_KNIGHT].isSet(mask)) {
+			} else if ((pieces[INDEX_KNIGHT] & mask) == mask) {
 				type |= Piece.KNIGHT;
-			} else if (pieces[INDEX_PAWN].isSet(mask)) {
+			} else if ((pieces[INDEX_PAWN] & mask) == mask) {
 				type |= Piece.PAWN;
 			}
 		}
@@ -355,37 +355,37 @@ public class Board {
 	
 	public void setPieceAtSquare( int atPos, int pieceToPlace ) {
 		assert pieceToPlace != Piece.NONE;
-		int bit_index = BitBoard.positionToBit_Lut[atPos];
+		long mask = BitBoard.positionToMask_Lut[atPos];
 		if (Piece.isKing(pieceToPlace)) {
-			pieces[INDEX_KING].set(bit_index);
+			pieces[INDEX_KING] |= mask;
 		} else if (Piece.isQueen(pieceToPlace)) {
-			pieces[INDEX_QUEEN].set(bit_index);
+			pieces[INDEX_QUEEN] |= (mask);
 		} else if (Piece.isRook(pieceToPlace)) {
-			pieces[INDEX_ROOK].set(bit_index);
+			pieces[INDEX_ROOK] |= (mask);
 		} else if (Piece.isBishop(pieceToPlace)) {
-			pieces[INDEX_BISHOP].set(bit_index);
+			pieces[INDEX_BISHOP] |= (mask);
 		} else if (Piece.isKnight(pieceToPlace)) {
-			pieces[INDEX_KNIGHT].set(bit_index);
+			pieces[INDEX_KNIGHT] |= (mask);
 		} else if (Piece.isPawn(pieceToPlace)) {
-			pieces[INDEX_PAWN].set(bit_index);
+			pieces[INDEX_PAWN] |= (mask);
 		} else {
 			assert false;
 		}
 		if (Piece.isBlack(pieceToPlace)) {
-			blackPieces.set(bit_index);
+			blackPieces |= (mask);
 		} else {
-			whitePieces.set(bit_index);
+			whitePieces |= (mask);
 		}
-		allPieces.set(bit_index);
+		allPieces |= (mask);
 	}
 	
 	public boolean isKingInCheck(Piece.Colour side) {
 		boolean inCheck = false;
-		BitBoard getFromBoard = Colour.isWhite(side) ? whitePieces : blackPieces;
-		BitBoard kingMask = getFromBoard.and(pieces[INDEX_KING]);
-		if (kingMask.isNonZero()) {
+		long getFromBoard = Colour.isWhite(side) ? whitePieces : blackPieces;
+		long kingMask = getFromBoard & pieces[INDEX_KING];
+		if (kingMask != 0) {
 			// The conditional is needed because some unit test positions don't have a king...
-			int kingSquare = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(kingMask.getValue())];
+			int kingSquare = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(kingMask)];
 			inCheck = squareIsAttacked(kingSquare, side);
 		}
 		return inCheck;
@@ -395,45 +395,45 @@ public class Board {
 		int type = Piece.NONE;
 		int bit_index = BitBoard.positionToBit_Lut[atPos];
 		long mask = 1L<<bit_index;
-		BitBoard pieceToPickUp = new BitBoard(mask);
-		if (allPieces.and(pieceToPickUp).isNonZero()) {	
-			if (blackPieces.and(pieceToPickUp).isNonZero()) {
-				blackPieces.clear(mask);
+		long pieceToPickUp = mask;
+		if ((allPieces & pieceToPickUp) != 0) {	
+			if ((blackPieces & pieceToPickUp) != 0) {
+				blackPieces &= ~mask;
 				type |= Piece.BLACK;
 			} else {
-				assert whitePieces.and(pieceToPickUp).isNonZero();
-				whitePieces.clear(mask);
+				assert (whitePieces & pieceToPickUp) != 0;
+				whitePieces &= ~mask;
 			}
-			if (pieces[INDEX_KING].isSet(mask)) {
-				pieces[INDEX_KING].clear(mask);
+			if ((pieces[INDEX_KING] & mask) == mask) {
+				pieces[INDEX_KING] &= ~mask;
 				type |= Piece.KING;
-			} else if (pieces[INDEX_QUEEN].isSet(mask)) {
-				pieces[INDEX_QUEEN].clear(mask);
+			} else if ((pieces[INDEX_QUEEN] & mask) == mask) {
+				pieces[INDEX_QUEEN] &= ~mask;
 				type |= Piece.QUEEN;
-			} else if (pieces[INDEX_ROOK].isSet(mask)) {
-				pieces[INDEX_ROOK].clear(mask);
+			} else if ((pieces[INDEX_ROOK] & mask) == mask) {
+				pieces[INDEX_ROOK] &= ~mask;
 				type |= Piece.ROOK;
-			} else if (pieces[INDEX_BISHOP].isSet(mask)) {
-				pieces[INDEX_BISHOP].clear(mask);
+			} else if ((pieces[INDEX_BISHOP] & mask) == mask) {
+				pieces[INDEX_BISHOP] &= ~mask;
 				type |= Piece.BISHOP;
-			} else if (pieces[INDEX_KNIGHT].isSet(mask)) {
-				pieces[INDEX_KNIGHT].clear(mask);
+			} else if ((pieces[INDEX_KNIGHT] & mask) == mask) {
+				pieces[INDEX_KNIGHT] &= ~mask;
 				type |= Piece.KNIGHT;
-			} else if (pieces[INDEX_PAWN].isSet(mask)) {
-				pieces[INDEX_PAWN].clear(mask);
+			} else if ((pieces[INDEX_PAWN] & mask) == mask) {
+				pieces[INDEX_PAWN] &= ~mask;
 				type |= Piece.PAWN;
 			}
-			allPieces.clear(mask);
+			allPieces &= ~mask;
 		}
 		return type;
 	}
 	
 	public int countDoubledPawnsForSide(Colour side) {
 		int doubledCount = 0;
-		BitBoard pawns = Colour.isWhite(side) ? getWhitePawns() : getBlackPawns();
+		long pawns = Colour.isWhite(side) ? getWhitePawns() : getBlackPawns();
 		for (int file : IntFile.values) {
-			BitBoard mask = FileMask_Lut[file];
-			long fileMask = pawns.and(mask).getValue();
+			long mask = FileMask_Lut[file];
+			long fileMask = pawns & mask;
 			int numPawnsInFile = Long.bitCount(fileMask);
 			if (numPawnsInFile > 1) {
 				doubledCount += numPawnsInFile-1;
@@ -444,28 +444,28 @@ public class Board {
 	
 	public boolean isPassedPawn(int atPos, Colour side) {
 		boolean isPassed = true;
-		BitBoard mask = PassedPawn_Lut[side.ordinal()][atPos];
-		BitBoard otherSidePawns = Colour.isWhite(side) ? getBlackPawns() : getWhitePawns();
-		if (mask.and(otherSidePawns).isNonZero()) {
+		long mask = PassedPawn_Lut[side.ordinal()][atPos];
+		long otherSidePawns = Colour.isWhite(side) ? getBlackPawns() : getWhitePawns();
+		if ((mask & otherSidePawns) != 0) {
 			isPassed  = false;
 		}
 		return isPassed;
 	}
 	
-	private static final BitBoard[][] PassedPawn_Lut = new BitBoard[2][]; 
+	private static final long[][] PassedPawn_Lut = new long[2][]; 
 	static {
-		BitBoard[] white_map = new BitBoard[128];
+		long[] white_map = new long[128];
 		PassedPawn_Lut[Colour.white.ordinal()] = white_map;
 		for (int atPos : Position.values) {
 			white_map[atPos] = buildPassedPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), true);
 		}
-		BitBoard[] black_map = new BitBoard[128];
+		long[] black_map = new long[128];
 		PassedPawn_Lut[Colour.black.ordinal()] = black_map;
 		for (int atPos : Position.values) {
 			black_map[atPos] = buildPassedPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), false);
 		}
 	}
-	private static BitBoard buildPassedPawnFileMask(int f, int r, boolean isWhite) {
+	private static long buildPassedPawnFileMask(int f, int r, boolean isWhite) {
 		long mask = 0;
 		boolean hasPrevFile = IntFile.toGenericFile(f).hasPrev();
 		boolean hasNextFile = IntFile.toGenericFile(f).hasNext();
@@ -480,7 +480,7 @@ public class Board {
 						hasNextFile);	
 			}
 		}
-		return new BitBoard(mask);
+		return mask;
 	}
 	private static long addRankForPassedPawnMask(long mask, int r, int f,
 			boolean hasPrevFile, boolean hasNextFile) {
@@ -531,19 +531,19 @@ public class Board {
 
 		allPiecesOnBoardIterator( int typeToIterate ) throws InvalidPieceException {
 			pieces = new int[64];
-			BitBoard bitBoardToIterate;
+			long bitBoardToIterate;
 			if (typeToIterate == Piece.WHITE_PAWN) {
 				bitBoardToIterate = getWhitePawns();
 			} else if (typeToIterate == Piece.BLACK_PAWN) {
 				bitBoardToIterate = getBlackPawns();
 			} else {
-				bitBoardToIterate = new BitBoard();
+				bitBoardToIterate = 0x0;
 			}
 			buildIterList(bitBoardToIterate);
 		}
 
-		private void buildIterList(BitBoard bitBoardToIterate) {
-			PrimitiveIterator.OfInt iter = bitBoardToIterate.iterator();
+		private void buildIterList(long bitBoardToIterate) {
+			PrimitiveIterator.OfInt iter = BitBoard.iterator(bitBoardToIterate);
 			while (iter.hasNext()) {
 				int bit_index = iter.nextInt();
 				pieces[count++] = BitBoard.bitToPosition_Lut[bit_index];
@@ -582,8 +582,8 @@ public class Board {
 		}
 	}
 	
-	public BitBoard getMaskForType(int type) {
-		BitBoard mask = null;
+	public long getMaskForType(int type) {
+		long mask = 0x0;
 		switch(type) {
 		case Piece.WHITE_KING:
 			mask = getWhiteKing();
@@ -629,52 +629,52 @@ public class Board {
 		return mask;
 	}
 		
-	public BitBoard getBlackPawns() {
-		return blackPieces.and(pieces[INDEX_PAWN]);
+	public long getBlackPawns() {
+		return blackPieces & (pieces[INDEX_PAWN]);
 	}
 	
-	public BitBoard getBlackKnights() {
-		return blackPieces.and(pieces[INDEX_KNIGHT]);
+	public long getBlackKnights() {
+		return blackPieces & (pieces[INDEX_KNIGHT]);
 	}
 	
-	public BitBoard getBlackBishops() {
-		return blackPieces.and(pieces[INDEX_BISHOP]);
+	public long getBlackBishops() {
+		return blackPieces & (pieces[INDEX_BISHOP]);
 	}
 	
-	public BitBoard getBlackRooks() {
-		return blackPieces.and(pieces[INDEX_ROOK]);
+	public long getBlackRooks() {
+		return blackPieces & (pieces[INDEX_ROOK]);
 	}
 	
-	public BitBoard getBlackQueens() {
-		return blackPieces.and(pieces[INDEX_QUEEN]);
+	public long getBlackQueens() {
+		return blackPieces & (pieces[INDEX_QUEEN]);
 	}
 	
-	public BitBoard getBlackKing() {
-		return blackPieces.and(pieces[INDEX_KING]);
+	public long getBlackKing() {
+		return blackPieces & (pieces[INDEX_KING]);
 	}
 	
-	public BitBoard getWhitePawns() {
-		return whitePieces.and(pieces[INDEX_PAWN]);
+	public long getWhitePawns() {
+		return whitePieces & (pieces[INDEX_PAWN]);
 	}
 	
-	public BitBoard getWhiteBishops() {
-		return whitePieces.and(pieces[INDEX_BISHOP]);
+	public long getWhiteBishops() {
+		return whitePieces & (pieces[INDEX_BISHOP]);
 	}
 	
-	public BitBoard getWhiteRooks() {
-		return whitePieces.and(pieces[INDEX_ROOK]);
+	public long getWhiteRooks() {
+		return whitePieces & (pieces[INDEX_ROOK]);
 	}
 	
-	public BitBoard getWhiteQueens() {
-		return whitePieces.and(pieces[INDEX_QUEEN]);
+	public long getWhiteQueens() {
+		return whitePieces & (pieces[INDEX_QUEEN]);
 	}
 	
-	public BitBoard getWhiteKnights() {
-		return whitePieces.and(pieces[INDEX_KNIGHT]);
+	public long getWhiteKnights() {
+		return whitePieces & (pieces[INDEX_KNIGHT]);
 	}
 	
-	public BitBoard getWhiteKing() {
-		return whitePieces.and(pieces[INDEX_KING]);
+	public long getWhiteKing() {
+		return whitePieces & (pieces[INDEX_KING]);
 	}
 	
 	public PrimitiveIterator.OfInt iterateType( int typeToIterate ) {
@@ -686,61 +686,61 @@ public class Board {
 	}
 
 	public int getNumRankFileSquaresAvailable(int atPos) {
-		return getSquaresAvaillableFromPosition(atPos, RankFileMask_Lut);
+		return getSquaresAvailableFromPosition(atPos, RankFileMask_Lut);
 	}
 	
 	public int getNumDiagonalSquaresAvailable(int atPos) {
-		return getSquaresAvaillableFromPosition(atPos, DiagonalMask_Lut);
+		return getSquaresAvailableFromPosition(atPos, DiagonalMask_Lut);
 	}
 	
-	private int getSquaresAvaillableFromPosition(int atPos, List<BitBoard>[] maskMap ) {
+	private int getSquaresAvailableFromPosition(int atPos, List<Long>[] maskMap ) {
 		int squaresCount = 0;
 		int bit = BitBoard.positionToBit_Lut[atPos];
-		List<BitBoard> list = maskMap[atPos];
-		for (BitBoard levelMask : list) {
+		List<Long> list = maskMap[atPos];
+		for (long levelMask : list) {
 			if (checkSingleMask(bit, levelMask))
-				squaresCount = levelMask.getNumBits();
+				squaresCount = BitBoard.getNumBits(levelMask);
 		}
 		return squaresCount;
 	}
 
-	private boolean checkSingleMask(int bit, BitBoard levelMask) {
-		levelMask.clear(bit);
-		return allPieces.and(levelMask).getValue() == 0;
+	private boolean checkSingleMask(int bit, long levelMask) {
+		levelMask &= ~bit;
+		return (allPieces & levelMask) == 0;
 	}
 	
 	public boolean isOnHalfOpenFile(GenericPosition atPos, int type) {
 		boolean isHalfOpen = false;
-		BitBoard fileMask = new BitBoard(FileMask_Lut[IntFile.valueOf(atPos.file)].getValue());
-		BitBoard otherSide = Piece.getOpposite(type) == Colour.white ? whitePieces : blackPieces;
-		BitBoard pawnMask = otherSide.and(pieces[INDEX_PAWN]);
-		boolean opponentPawnOnFile = pawnMask.and(fileMask).isNonZero();
+		long fileMask = FileMask_Lut[IntFile.valueOf(atPos.file)];
+		long otherSide = Piece.getOpposite(type) == Colour.white ? whitePieces : blackPieces;
+		long pawnMask = otherSide & (pieces[INDEX_PAWN]);
+		boolean opponentPawnOnFile = (pawnMask & fileMask) != 0;
 		if (opponentPawnOnFile) {
-			BitBoard ownSide = Piece.isWhite(type) ? whitePieces : blackPieces;
-			pawnMask = ownSide.and(pieces[INDEX_PAWN]);
+			long ownSide = Piece.isWhite(type) ? whitePieces : blackPieces;
+			pawnMask = ownSide & (pieces[INDEX_PAWN]);
 			// and no pawns of own side
-			isHalfOpen = !pawnMask.and(fileMask).isNonZero();
+			isHalfOpen = !((pawnMask & fileMask) != 0);
 		}
 		return isHalfOpen;
 	}
 	
 	public boolean moveCouldLeadToOwnKingDiscoveredCheck(Integer move) {
 		int piece = Move.getOriginPiece(move);
-		BitBoard king = (Piece.isWhite(piece)) ? getWhiteKing() : getBlackKing();
+		long king = (Piece.isWhite(piece)) ? getWhiteKing() : getBlackKing();
 		
-		if (king == null || king.getValue() == 0)  return false;
+		if (king == 0)  return false;
 		
 		int atSquare = Move.getOriginPosition(move);
-		// establish if the square is on a multisquare slider mask from the king position
-		BitBoard square = BitBoard.positionToMask_Lut[atSquare];
-		int kingPosition = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(king.getValue())];
-		BitBoard attackingSquares = directAttacksOnPosition_Lut[kingPosition];
-		return square.and(attackingSquares).isNonZero();
+		// establish if the square is on a multiple square slider mask from the king position
+		long square = BitBoard.positionToMask_Lut[atSquare];
+		int kingPosition = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(king)];
+		long attackingSquares = directAttacksOnPosition_Lut[kingPosition];
+		return ((square & attackingSquares) != 0);
 	}
 	
-	private boolean isPromotionPawnBlocked(BitBoard pawns, Direction dir) {
+	private boolean isPromotionPawnBlocked(long pawns, Direction dir) {
 		boolean potentialPromotion = false;
-		PrimitiveIterator.OfInt iter = pawns.iterator();
+		PrimitiveIterator.OfInt iter = BitBoard.iterator(pawns);
 		while (iter.hasNext()) {
 			int pawn_bit = iter.nextInt();
 			int pos = BitBoard.bitToPosition_Lut[pawn_bit];
@@ -756,10 +756,10 @@ public class Board {
 		// TODO At the moment this doesn't consider if the pawn is pinned.
 		boolean potentialPromotion = false;
 		if (Piece.Colour.isWhite(onMove)) {
-			BitBoard pawns = getWhitePawns().and(RankMask_Lut[IntRank.R7]);
+			long pawns = getWhitePawns() & (RankMask_Lut[IntRank.R7]);
 			potentialPromotion = isPromotionPawnBlocked(pawns, Direction.up);
 		} else {
-			BitBoard pawns = getBlackPawns().and(RankMask_Lut[IntRank.R2]);
+			long pawns = getBlackPawns() & (RankMask_Lut[IntRank.R2]);
 			potentialPromotion = isPromotionPawnBlocked(pawns, Direction.down);
 		}
 		return potentialPromotion;

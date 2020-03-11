@@ -1,5 +1,5 @@
 package eubos.board;
-
+/*
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import eubos.board.BitBoard;
 
+@Ignore
 public class BitBoardTest {
 	private BitBoard classUnderTest;
 	
@@ -132,3 +133,4 @@ public class BitBoardTest {
 		assertTrue(evenBitCount == 32);
 	}
 }
+*/

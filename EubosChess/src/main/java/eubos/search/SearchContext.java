@@ -34,7 +34,7 @@ public class SearchContext {
 		this.dc = dc;
 		initial = initialMaterial;
 		initialOnMove = pos.getOnMove();
-		boolean queensOffBoard = pos.getTheBoard().getWhiteQueens().isZero() && pos.getTheBoard().getBlackQueens().isZero();
+		boolean queensOffBoard = (pos.getTheBoard().getWhiteQueens() == 0) && (pos.getTheBoard().getBlackQueens() ==0);
 		boolean materialQuantityThreshholdReached = initialMaterial.getWhite() <= 5200 && initialMaterial.getBlack() <= 5200;
 		if (queensOffBoard || materialQuantityThreshholdReached) {
 			isEndgame = true;
