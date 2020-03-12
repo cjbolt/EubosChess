@@ -333,22 +333,22 @@ public class Board {
 	
 	public int getPieceAtSquare( int atPos ) {
 		int type = Piece.NONE;
-		long pieceToPickUp = BitBoard.positionToMask_Lut[atPos];;
-		if ((allPieces & pieceToPickUp) != 0) {	
-			if ((blackPieces & pieceToPickUp) != 0) {
+		long pieceToGet = BitBoard.positionToMask_Lut[atPos];;
+		if ((allPieces & pieceToGet) != 0) {	
+			if ((blackPieces & pieceToGet) != 0) {
 				type |= Piece.BLACK;
-			} else assert (whitePieces & pieceToPickUp) != 0;
-			if ((pieces[INDEX_KING] & pieceToPickUp) == pieceToPickUp) {
+			} else assert (whitePieces & pieceToGet) != 0;
+			if ((pieces[INDEX_KING] & pieceToGet) == pieceToGet) {
 				type |= Piece.KING;
-			} else if ((pieces[INDEX_QUEEN] & pieceToPickUp) == pieceToPickUp) {
+			} else if ((pieces[INDEX_QUEEN] & pieceToGet) == pieceToGet) {
 				type |= Piece.QUEEN;
-			} else if ((pieces[INDEX_ROOK] & pieceToPickUp) == pieceToPickUp) {
+			} else if ((pieces[INDEX_ROOK] & pieceToGet) == pieceToGet) {
 				type |= Piece.ROOK;
-			} else if ((pieces[INDEX_BISHOP] & pieceToPickUp) == pieceToPickUp) {
+			} else if ((pieces[INDEX_BISHOP] & pieceToGet) == pieceToGet) {
 				type |= Piece.BISHOP;
-			} else if ((pieces[INDEX_KNIGHT] & pieceToPickUp) == pieceToPickUp) {
+			} else if ((pieces[INDEX_KNIGHT] & pieceToGet) == pieceToGet) {
 				type |= Piece.KNIGHT;
-			} else if ((pieces[INDEX_PAWN] & pieceToPickUp) == pieceToPickUp) {
+			} else if ((pieces[INDEX_PAWN] & pieceToGet) == pieceToGet) {
 				type |= Piece.PAWN;
 			}
 		}
