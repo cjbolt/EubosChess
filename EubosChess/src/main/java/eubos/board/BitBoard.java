@@ -18,15 +18,6 @@ public class BitBoard {
 		}
 	}
 	
-	static int[] positionToBit_Lut = new int[128];
-	static {
-		int bit_index = 0;
-		for (int x88_square : Position.values) {
-			positionToBit_Lut[x88_square] = bit_index;
-			bit_index++;
-		}
-	}
-	
 	static long[] positionToMask_Lut = new long[128];
 	static {
 		int bit_index = 0;
@@ -36,36 +27,7 @@ public class BitBoard {
 			bit_index++;
 		}
 	}
-	
-	static public int getNumBits(long bitBoard) {
-		return Long.bitCount(bitBoard);
-	}
-		
-
-	static public long set(long bitBoard, int bit) {
-		return bitBoard |= (1L << bit);
-	}
-	
-	static public long set(long bitBoard, long mask) {
-		return bitBoard |= mask;
-	}
-	
-	public static long clear(long bitBoard, int bit) {
-		return bitBoard &= ~(1L << bit);
-	}
-	
-	public static long clear(long bitBoard, long mask) {
-		return bitBoard &= ~mask;
-	}
-	
-	public static boolean isSet(long bitBoard, int bit) {
-		return (bitBoard & (1L<<bit)) != 0;
-	}
-	
-	public static boolean isSet(long bitBoard, long mask) {
-		return (bitBoard & mask) != 0;
-	}
-	
+			
 	public static String toString(long bitBoard) {
 		StringBuilder sb = new StringBuilder();
 		PrimitiveIterator.OfInt iter = iterator(bitBoard);

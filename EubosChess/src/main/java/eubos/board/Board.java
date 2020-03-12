@@ -18,6 +18,11 @@ import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntRank;
 
+class MobilityMask {
+	public long mask = 0;
+	public int squares = 0;
+}
+
 public class Board {
 	public static final CaptureData NULL_CAPTURE = new CaptureData(Piece.NONE, Position.NOPOSITION);
 	
@@ -43,61 +48,61 @@ public class Board {
 	private long[] pieces = new long[7]; // N.b. INDEX_NONE is an empty long at index 0.
 	
 	@SuppressWarnings("unchecked")
-	private static final List<Long>[] RankFileMask_Lut = (List<Long>[]) new List[128];
+	private static final List<MobilityMask>[] RankFileMask_Lut = (List<MobilityMask>[]) new List[128];
 	static {
 		Direction [] rankFile = { Direction.left, Direction.up, Direction.right, Direction.down };
 		for (int square : Position.values) {
-			List<Long> array = new ArrayList<Long>();
+			List<MobilityMask> array = new ArrayList<MobilityMask>();
 			for (int index=1; index<8; index++) {
 				createMask(square, array, index, rankFile);
 			}
 			RankFileMask_Lut[square] = array;
 		}
 	}
-	static private void createMask(int square, List<Long> array, int index, Direction [] directions) {
-		Long currMask = 0L;
+	static private void createMask(int square, List<MobilityMask> array, int index, Direction [] directions) {
+		MobilityMask currMask = new MobilityMask();
 		for (Direction dir: directions) {
-			currMask = setAllInDirection(dir, square, currMask, index);
+			setAllInDirection(dir, square, currMask, index);
 		}
+		// Clear the central bit
+		currMask.mask &= ~BitBoard.positionToMask_Lut[square];
+		currMask.squares = Long.bitCount(currMask.mask);
 		// Only add the mask if it isn't the same as previous (i.e. no more squares to add)
-		Long toAdd = new Long(currMask);
-		// TODO this will need to be done some other way - toAdd |= NumBits();
 		if (array.size()-1 >= 0) {
-			if (currMask != array.get(array.size()-1))
-				array.add(toAdd);
+			if (currMask.mask != array.get(array.size()-1).mask)
+				array.add(currMask);
 		} else {
-			array.add(toAdd);
+			array.add(currMask);
 		}
 	}
-	static private Long setAllInDirection(Direction dir, int fromSq, Long currMask, int index) {
+	static private void setAllInDirection(Direction dir, int fromSq, MobilityMask currMask, int index) {
 		int newSquare = fromSq;
 		for (int i=0; i < index; i++) {
 			if (newSquare != Position.NOPOSITION)
 				newSquare = Direction.getDirectMoveSq(dir, newSquare);
 			if (newSquare != Position.NOPOSITION)
-				currMask |= BitBoard.positionToMask_Lut[newSquare];
+				currMask.mask |= BitBoard.positionToMask_Lut[newSquare];
 		}
-		return currMask;
 	}
 	
 	private static final long[] directAttacksOnPosition_Lut = new long[128];
 	static {
 		Direction [] allDirect = { Direction.left, Direction.up, Direction.right, Direction.down, Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
 		for (int square : Position.values) {
-			long allAttacksMask = 0L;
+			MobilityMask allAttacksMask = new MobilityMask();
 			for (Direction dir: allDirect) {
-				allAttacksMask = setAllInDirection(dir, square, allAttacksMask, 8);
+				setAllInDirection(dir, square, allAttacksMask, 8);
 			}
-			directAttacksOnPosition_Lut[square] = allAttacksMask;
+			directAttacksOnPosition_Lut[square] = allAttacksMask.mask;
 		}
 	}
 	
 	@SuppressWarnings("unchecked")
-	private static final List<Long>[] DiagonalMask_Lut = (List<Long>[]) new List[128];
+	private static final List<MobilityMask>[] DiagonalMask_Lut = (List<MobilityMask>[]) new List[128];
 	static {
 		Direction [] diagonals = { Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
 		for (int square : Position.values) {
-			List<Long> array = new ArrayList<Long>();
+			List<MobilityMask> array = new ArrayList<MobilityMask>();
 			for (int index=1; index<8; index++) {
 				createMask(square, array, index, diagonals);
 			}
@@ -169,7 +174,6 @@ public class Board {
 		movePiece(move);
 		return captureTarget;
 	}
-	
 	
 	private void movePiece(int move) {
 		int pieceToMove = Move.getOriginPiece(move);
@@ -329,24 +333,22 @@ public class Board {
 	
 	public int getPieceAtSquare( int atPos ) {
 		int type = Piece.NONE;
-		int bit_index = BitBoard.positionToBit_Lut[atPos];
-		long mask = 1L<<bit_index;
-		long pieceToPickUp = mask;
+		long pieceToPickUp = BitBoard.positionToMask_Lut[atPos];;
 		if ((allPieces & pieceToPickUp) != 0) {	
 			if ((blackPieces & pieceToPickUp) != 0) {
 				type |= Piece.BLACK;
 			} else assert (whitePieces & pieceToPickUp) != 0;
-			if ((pieces[INDEX_KING] & mask) == mask) {
+			if ((pieces[INDEX_KING] & pieceToPickUp) == pieceToPickUp) {
 				type |= Piece.KING;
-			} else if ((pieces[INDEX_QUEEN] & mask) == mask) {
+			} else if ((pieces[INDEX_QUEEN] & pieceToPickUp) == pieceToPickUp) {
 				type |= Piece.QUEEN;
-			} else if ((pieces[INDEX_ROOK] & mask) == mask) {
+			} else if ((pieces[INDEX_ROOK] & pieceToPickUp) == pieceToPickUp) {
 				type |= Piece.ROOK;
-			} else if ((pieces[INDEX_BISHOP] & mask) == mask) {
+			} else if ((pieces[INDEX_BISHOP] & pieceToPickUp) == pieceToPickUp) {
 				type |= Piece.BISHOP;
-			} else if ((pieces[INDEX_KNIGHT] & mask) == mask) {
+			} else if ((pieces[INDEX_KNIGHT] & pieceToPickUp) == pieceToPickUp) {
 				type |= Piece.KNIGHT;
-			} else if ((pieces[INDEX_PAWN] & mask) == mask) {
+			} else if ((pieces[INDEX_PAWN] & pieceToPickUp) == pieceToPickUp) {
 				type |= Piece.PAWN;
 			}
 		}
@@ -393,37 +395,35 @@ public class Board {
 	
 	public int pickUpPieceAtSquare( int atPos ) {
 		int type = Piece.NONE;
-		int bit_index = BitBoard.positionToBit_Lut[atPos];
-		long mask = 1L<<bit_index;
-		long pieceToPickUp = mask;
+		long pieceToPickUp = BitBoard.positionToMask_Lut[atPos];
 		if ((allPieces & pieceToPickUp) != 0) {	
 			if ((blackPieces & pieceToPickUp) != 0) {
-				blackPieces &= ~mask;
+				blackPieces &= ~pieceToPickUp;
 				type |= Piece.BLACK;
 			} else {
 				assert (whitePieces & pieceToPickUp) != 0;
-				whitePieces &= ~mask;
+				whitePieces &= ~pieceToPickUp;
 			}
-			if ((pieces[INDEX_KING] & mask) == mask) {
-				pieces[INDEX_KING] &= ~mask;
+			if ((pieces[INDEX_KING] & pieceToPickUp) == pieceToPickUp) {
+				pieces[INDEX_KING] &= ~pieceToPickUp;
 				type |= Piece.KING;
-			} else if ((pieces[INDEX_QUEEN] & mask) == mask) {
-				pieces[INDEX_QUEEN] &= ~mask;
+			} else if ((pieces[INDEX_QUEEN] & pieceToPickUp) == pieceToPickUp) {
+				pieces[INDEX_QUEEN] &= ~pieceToPickUp;
 				type |= Piece.QUEEN;
-			} else if ((pieces[INDEX_ROOK] & mask) == mask) {
-				pieces[INDEX_ROOK] &= ~mask;
+			} else if ((pieces[INDEX_ROOK] & pieceToPickUp) == pieceToPickUp) {
+				pieces[INDEX_ROOK] &= ~pieceToPickUp;
 				type |= Piece.ROOK;
-			} else if ((pieces[INDEX_BISHOP] & mask) == mask) {
-				pieces[INDEX_BISHOP] &= ~mask;
+			} else if ((pieces[INDEX_BISHOP] & pieceToPickUp) == pieceToPickUp) {
+				pieces[INDEX_BISHOP] &= ~pieceToPickUp;
 				type |= Piece.BISHOP;
-			} else if ((pieces[INDEX_KNIGHT] & mask) == mask) {
-				pieces[INDEX_KNIGHT] &= ~mask;
+			} else if ((pieces[INDEX_KNIGHT] & pieceToPickUp) == pieceToPickUp) {
+				pieces[INDEX_KNIGHT] &= ~pieceToPickUp;
 				type |= Piece.KNIGHT;
-			} else if ((pieces[INDEX_PAWN] & mask) == mask) {
-				pieces[INDEX_PAWN] &= ~mask;
+			} else if ((pieces[INDEX_PAWN] & pieceToPickUp) == pieceToPickUp) {
+				pieces[INDEX_PAWN] &= ~pieceToPickUp;
 				type |= Piece.PAWN;
 			}
-			allPieces &= ~mask;
+			allPieces &= ~pieceToPickUp;
 		}
 		return type;
 	}
@@ -693,20 +693,14 @@ public class Board {
 		return getSquaresAvailableFromPosition(atPos, DiagonalMask_Lut);
 	}
 	
-	private int getSquaresAvailableFromPosition(int atPos, List<Long>[] maskMap ) {
+	private int getSquaresAvailableFromPosition(int atPos, List<MobilityMask>[] maskMap ) {
 		int squaresCount = 0;
-		int bit = BitBoard.positionToBit_Lut[atPos];
-		List<Long> list = maskMap[atPos];
-		for (long levelMask : list) {
-			if (checkSingleMask(bit, levelMask))
-				squaresCount = BitBoard.getNumBits(levelMask);
+		List<MobilityMask> list = maskMap[atPos];
+		for (MobilityMask levelMask : list) {
+			if ((allPieces & levelMask.mask) == 0)
+				squaresCount = levelMask.squares;
 		}
 		return squaresCount;
-	}
-
-	private boolean checkSingleMask(int bit, long levelMask) {
-		levelMask &= ~bit;
-		return (allPieces & levelMask) == 0;
 	}
 	
 	public boolean isOnHalfOpenFile(GenericPosition atPos, int type) {

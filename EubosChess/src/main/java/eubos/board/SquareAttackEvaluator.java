@@ -53,7 +53,7 @@ public class SquareAttackEvaluator {
 		for (Direction dir: Direction.values()) {
 			int sq = Direction.getIndirectMoveSq(dir, atPos);
 			if (sq != Position.NOPOSITION) {
-				mask |= 1L << BitBoard.positionToBit_Lut[sq];
+				mask |= BitBoard.positionToMask_Lut[sq];
 			}
 		}
 		return mask;
@@ -84,7 +84,7 @@ public class SquareAttackEvaluator {
 		for (Direction dir: Direction.values()) {
 			int sq = Direction.getDirectMoveSq(dir, atPos);
 			if (sq != Position.NOPOSITION) {
-				mask |= 1L << BitBoard.positionToBit_Lut[sq];
+				mask |= BitBoard.positionToMask_Lut[sq];
 			}
 		}
 		return mask;
