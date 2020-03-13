@@ -57,16 +57,18 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			try {
 				res = mg.findMove(currentDepth, pc);
 			} catch( NoLegalMoveException e ) {
-				System.err.println(
-						String.format("Eubos has run out of legal moves for side %s", pos.getOnMove()));
+				EubosEngineMain.logger.info(
+						String.format("IterativeMoveSearcher out of legal moves for %s", pos.getOnMove()));
 				searchStopped = true;
 			} catch(InvalidPieceException e ) {
-				System.err.println(
-						String.format("Eubos can't find piece searching findMove(), at %s", e.getAtPosition()));
+				EubosEngineMain.logger.info(
+						String.format("IterativeMoveSearcher can't find piece at %s", e.getAtPosition()));
 				searchStopped = true;
 			}
-			if (res != null && res.foundMate)
+			if (res != null && res.foundMate) {
+				EubosEngineMain.logger.info("IterativeMoveSearcher found mate");
 				break;
+			}				
 			if (stopper.extraTime) {
 				// don't start a new iteration, we just allow time to complete the current ply
 				searchStopped = true;
@@ -77,6 +79,8 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				break;
 			}
 		}
+		EubosEngineMain.logger.info(
+			String.format("IterativeMoveSearcher ended best=%s, %s", res.bestMove, mg.pc.toStringAt(0)));
 		stopper.end();
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
 		mg.terminateSearchMetricsReporter();

@@ -26,25 +26,26 @@ public class PrincipalContinuation {
 	}
 	
 	public String toString() {
-		String output = "";
+		StringBuilder output = new StringBuilder();
 		for (int currPly = 0; currPly < pc.size(); currPly++) {
-			output += String.format("Ply %d (%s) ,", currPly, toStringAt(currPly));
+			output.append(String.format("Ply %d (%s) ,", currPly, toStringAt(currPly)));
 		}
-		return output;
+		return output.toString();
 	}
 
-	String toStringAt(int currPly) {
-		String output = "";
+	public String toStringAt(int currPly) {
+		StringBuilder output = new StringBuilder();
 		if (currPly < pc.size()) {
 			List<Integer> plyList = pc.get(currPly);
 			if (!plyList.isEmpty()) {
 				for (int currMove : plyList) {
 					assert currMove != Move.NULL_MOVE;
-					output+=(Move.toString(currMove)+" ");
+					output.append((Move.toString(currMove)));
+					output.append(' ');
 				}
 			}
 		}
-		return output;
+		return output.toString();
 	}
 	
 	public List<Integer> toPvList(int currPly) { 

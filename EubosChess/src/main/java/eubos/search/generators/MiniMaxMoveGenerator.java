@@ -113,7 +113,8 @@ public class MiniMaxMoveGenerator implements
 			//this.terminateFindMove();
 			System.exit(0);
 		}
-		if (Math.abs(score) >= MaterialEvaluator.MATERIAL_VALUE_KING) {
+		if (score != Short.MIN_VALUE && score != Short.MAX_VALUE &&
+			Math.abs(score) >= (MaterialEvaluator.MATERIAL_VALUE_KING*2)) {
 			foundMate = true;
 		}
 		if (sendInfo) {
