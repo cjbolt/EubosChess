@@ -43,7 +43,7 @@ import java.util.logging.*;
 public class EubosEngineMain extends AbstractEngine {
 	
 	private static final byte SEARCH_DEPTH_IN_PLY = 35;
-	public static final boolean LOGGING_ENABLED = true;
+	public static final boolean LOGGING_ENABLED = false;
 	
 	PositionManager pm;
 	private AbstractMoveSearcher ms;
@@ -70,7 +70,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public void receive(EngineInitializeRequestCommand command) {
 		logger.fine("Eubos Initialising");
 		
-		ProtocolInitializeAnswerCommand reply = new ProtocolInitializeAnswerCommand("Eubos 1.0.6","Chris Bolt");
+		ProtocolInitializeAnswerCommand reply = new ProtocolInitializeAnswerCommand("Eubos 1.0.7","Chris Bolt");
 		reply.addOption(Options.newHashOption((int)FixedSizeTranspositionTable.MBYTES_DEFAULT_HASH_SIZE, 32, 4*1000));
 		this.getProtocol().send( reply );
 		
