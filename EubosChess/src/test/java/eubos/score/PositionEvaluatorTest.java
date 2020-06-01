@@ -19,7 +19,6 @@ import eubos.board.Piece;
 import eubos.position.Move;
 import eubos.position.Position;
 import eubos.position.PositionManager;
-import eubos.score.PositionEvaluator;
 import eubos.search.DrawChecker;
 
 public class PositionEvaluatorTest {

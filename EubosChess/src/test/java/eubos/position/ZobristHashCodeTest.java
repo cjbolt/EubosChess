@@ -9,9 +9,6 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IntChessman;
 
 import eubos.board.Piece;
-import eubos.position.PositionManager;
-import eubos.position.ZobristHashCode;
-import eubos.position.Move;
 
 public class ZobristHashCodeTest {
 	

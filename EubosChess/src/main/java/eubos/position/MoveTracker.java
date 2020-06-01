@@ -2,8 +2,6 @@ package eubos.position;
 
 import java.util.Stack;
 
-import eubos.position.CaptureData;
-
 class MoveTracker extends Stack<TrackedMove> {
 	
 	static final long serialVersionUID = 0x1L;

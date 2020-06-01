@@ -11,7 +11,6 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 import eubos.board.InvalidPieceException;
 import eubos.position.Move;
 import eubos.position.PositionManager;
-import eubos.score.MateScoreGenerator;
 import eubos.search.DrawChecker;
 import eubos.search.SearchContext;
 

@@ -20,7 +20,6 @@ import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.search.NoLegalMoveException;
 import eubos.search.SearchDebugAgent;
-import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 import eubos.search.SearchResult;
 

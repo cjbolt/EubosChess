@@ -10,7 +10,6 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.Piece;
-import eubos.position.TrackedMove;
 
 public class TrackedMoveTest {
 

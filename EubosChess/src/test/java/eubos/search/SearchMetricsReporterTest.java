@@ -81,7 +81,7 @@ public class SearchMetricsReporterTest {
 		classUnderTest.setSendInfo(true);
 		classUnderTest.reportPrincipalVariation();
 		
-		assertEquals(new Integer(-3), eubos.last_info.getMate());
+		assertEquals(Integer.valueOf(-3), eubos.last_info.getMate());
 	}
 	
 	@Test
@@ -90,6 +90,6 @@ public class SearchMetricsReporterTest {
 		classUnderTest.setSendInfo(true);
 		classUnderTest.reportPrincipalVariation();
 		
-		assertEquals(new Integer(3), eubos.last_info.getMate());
+		assertEquals(Integer.valueOf(3), eubos.last_info.getMate());
 	}
 }

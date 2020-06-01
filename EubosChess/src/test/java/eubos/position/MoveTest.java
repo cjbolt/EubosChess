@@ -10,7 +10,6 @@ import com.fluxchess.jcpi.models.IntChessman;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.Piece;
-import eubos.position.Move;
 
 public class MoveTest {
 

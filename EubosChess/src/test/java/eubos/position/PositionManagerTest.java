@@ -10,9 +10,6 @@ import static org.junit.Assert.*;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
-import eubos.position.Move;
-import eubos.position.PositionManager;
-import eubos.position.Position;
 
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;

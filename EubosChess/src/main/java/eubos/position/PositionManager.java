@@ -345,7 +345,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 				case '5':
 				case '6':
 				case '7':
-					int loop = new Integer(c-'0');
+					int loop =  Integer.valueOf(c-'0');
 					for ( int i=0; i<loop; i++ ) {
 						f = advanceFile(f);
 					}

@@ -5,8 +5,6 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import eubos.board.Board;
-import eubos.board.SquareAttackEvaluator;
 import eubos.position.Position;
 import eubos.position.PositionManager;
 

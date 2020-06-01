@@ -14,7 +14,6 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 import eubos.board.Piece;
 import eubos.position.Move;
 import eubos.position.Position;
-import eubos.search.PrincipalContinuation;
 
 public class PrincipalContinuationTest {
 

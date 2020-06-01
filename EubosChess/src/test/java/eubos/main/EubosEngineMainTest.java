@@ -221,20 +221,20 @@ public class EubosEngineMainTest {
 		// Black move 62
 		ArrayList<GenericMove> applyMoveList = new ArrayList<GenericMove>();
 		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
-		assertEquals(new Integer(1), classUnderTest.dc.getNumEntries());
+		assertEquals(Integer.valueOf(1), classUnderTest.dc.getNumEntries());
 		classUnderTest.sendBestMoveCommand(new ProtocolBestMoveCommand(new GenericMove("b3b4"), null));
 		// White move 63
 		applyMoveList = new ArrayList<GenericMove>();
 		applyMoveList.add(new GenericMove("b3b4"));
 		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
-		assertEquals(new Integer(2), classUnderTest.dc.getNumEntries());
+		assertEquals(Integer.valueOf(2), classUnderTest.dc.getNumEntries());
 		classUnderTest.sendBestMoveCommand(new ProtocolBestMoveCommand(new GenericMove("a1a2"), null));
 		// Black move 63
 		applyMoveList = new ArrayList<GenericMove>();
 		applyMoveList.add(new GenericMove("b3b4"));
 		applyMoveList.add(new GenericMove("a1a2"));
 		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
-		assertEquals(new Integer(3), classUnderTest.dc.getNumEntries());
+		assertEquals(Integer.valueOf(3), classUnderTest.dc.getNumEntries());
 		classUnderTest.sendBestMoveCommand(new ProtocolBestMoveCommand(new GenericMove("b4a4"), null));
 		// White move 64
 		applyMoveList = new ArrayList<GenericMove>();
@@ -242,7 +242,7 @@ public class EubosEngineMainTest {
 		applyMoveList.add(new GenericMove("a1a2"));
 		applyMoveList.add(new GenericMove("b4a4"));
 		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
-		assertEquals(new Integer(4), classUnderTest.dc.getNumEntries());
+		assertEquals(Integer.valueOf(4), classUnderTest.dc.getNumEntries());
 		classUnderTest.sendBestMoveCommand(new ProtocolBestMoveCommand(new GenericMove("a2b1"), null));
 		//  Black move 64
 		applyMoveList = new ArrayList<GenericMove>();
@@ -251,10 +251,10 @@ public class EubosEngineMainTest {
 		applyMoveList.add(new GenericMove("b4a4"));
 		applyMoveList.add(new GenericMove("a2b1"));
 		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
-		assertEquals(new Integer(5), classUnderTest.dc.getNumEntries());
+		assertEquals(Integer.valueOf(5), classUnderTest.dc.getNumEntries());
 		classUnderTest.sendBestMoveCommand(new ProtocolBestMoveCommand(new GenericMove("a4a5"), null));
 		System.err.println(classUnderTest.dc.toString());
-		assertEquals(new Integer(6), classUnderTest.dc.getNumEntries());
+		assertEquals(Integer.valueOf(6), classUnderTest.dc.getNumEntries());
 		/* The positions are getting double incremented in test_avoidDraw_lichess_hash_table_draw_kpK_rook_pawn_alt
 		 * because Eubos is calculating moves for both black and white. Therefore we double count, once when the 
 		 * bestmove is sent, the again on the next ply when the analyse is received!

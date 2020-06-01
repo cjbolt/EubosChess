@@ -16,7 +16,6 @@ import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.position.PositionManager;
 import eubos.search.NoLegalMoveException;
-import eubos.search.generators.RandomMoveGenerator;
 import eubos.search.SearchResult;
 
 public class RandomMoveGeneratorTest {

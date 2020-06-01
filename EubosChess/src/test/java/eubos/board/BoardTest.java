@@ -13,7 +13,6 @@ import com.fluxchess.jcpi.models.GenericPosition;
 
 import eubos.position.Move;
 import eubos.position.Position;
-import eubos.board.Board;
 
 public class BoardTest {
 	

@@ -8,7 +8,6 @@ import com.fluxchess.jcpi.models.IntFile;
 import eubos.board.Board;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
-import eubos.position.Move;
 
 public class CastlingManager {
 	private boolean whiteKsAvail = true;

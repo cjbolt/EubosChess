@@ -12,8 +12,6 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
-import eubos.position.CastlingManager;
-import eubos.position.PositionManager;
 
 public class CastlingManagerTest {
 
