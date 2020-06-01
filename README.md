@@ -1,5 +1,5 @@
 # EubosChess
-A basic Java chess engine, written for kicks. Uses jcpi for the UCI protocol parts. Weak, it's slow and doesn't evaluate for king safety, for example. Currently rated at 1214 ELO on the CCRL (for Blitz 2+1 time control). Uses transpostion hashing and quiescence search extension, but doesn't search very deeply (averaging around 200K Nodes/s in a typical blitz game). This is my first chess engine, my first full Java project, my first open source contribution...
+A basic Java chess engine, written for kicks. Uses jcpi for the UCI protocol parts. Weak, it's slow and doesn't evaluate for king safety, for example. Currently rated at 1422 ELO on the CCRL (for Blitz 2+1 time control). Uses transpostion hashing and quiescence search extension, but doesn't search very deeply (averaging around 200K Nodes/s in a typical blitz game). This is my first chess engine, my first full Java project, my first open source contribution...
 
 Current release version 1.0.7
 
