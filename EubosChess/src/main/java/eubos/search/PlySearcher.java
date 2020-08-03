@@ -188,6 +188,7 @@ public class PlySearcher {
 		}
 		
 		while(!isTerminated()) {
+			pc.clearContinuationsBeyondPly(currPly);
 	        Score positionScore = applyMoveAndScore(currMove);
 	        if (!isTerminated()) {
 	        	// Rationale: this is when a score was backed up - at this instant update the depth searched

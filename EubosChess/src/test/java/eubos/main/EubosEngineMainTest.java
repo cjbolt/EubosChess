@@ -64,7 +64,7 @@ public class EubosEngineMainTest {
 	private static final String GO_TIME_CMD = "go movetime 1000"+CMD_TERMINATOR;
 	private static final String QUIT_CMD = "quit"+CMD_TERMINATOR;
 	// Outputs
-	private static final String ID_NAME_CMD = "id name Eubos 1.0.8"+CMD_TERMINATOR;
+	private static final String ID_NAME_CMD = "id name Eubos 1.0.9"+CMD_TERMINATOR;
 	private static final String ID_AUTHOR_CMD = "id author Chris Bolt"+CMD_TERMINATOR;
 	private static final String OPTION_HASH = "option name Hash type spin default 917 min 32 max 4000"+CMD_TERMINATOR;
 	private static final String UCI_OK_CMD = "uciok"+CMD_TERMINATOR;
@@ -132,6 +132,22 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(POS_FEN_PREFIX+"5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR,BEST_PREFIX+"d3h7"+CMD_TERMINATOR));
 		performTest(1000);
+	}
+	
+	@Test
+	public void test_infoMessageSending() throws InterruptedException, IOException {
+		setupEngine();
+		// Setup Commands specific to this test
+		commands.add(new commandPair(POS_FEN_PREFIX+"r1b1kb1r/ppqnpppp/8/3pP3/3Q4/5N2/PPP2PPP/RNB1K2R b KQkq - 2 8"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR, "info depth 1 seldepth 4 score cp -490 pv c7e5 f3e5 d7e5 hashfull 0 nodes 9"+CMD_TERMINATOR+
+				                                                         "info depth 1 seldepth 4 score cp -30 pv d7e5 f3e5 c7c2 hashfull 0 nodes 28"+CMD_TERMINATOR+
+				                                                         "info depth 1 seldepth 4 score cp 155 pv c7c2 hashfull 0 nodes 29"+CMD_TERMINATOR
+				                                                         +BEST_PREFIX+"c7c2"+CMD_TERMINATOR));
+		/* causes a bad info message to be generated, f3e5 and c7c2 are not cleared from the first PV in the ext search...
+		info depth 1 seldepth 4 score cp -490 pv c7e5 f3e5 d7e5 hashfull 0 nps 214 time 42 nodes 9
+		info depth 1 seldepth 4 score cp -30 pv d7e5 f3e5 c7c2 hashfull 0 nps 538 time 52 nodes 28
+		info depth 1 seldepth 4 score cp 155 pv c7c2 f3e5 c7c2 hashfull 0 nps 547 time 53 nodes 29 */
+		performTest(1000, true); // check infos
 	}
 	
 	@Test
@@ -261,8 +277,12 @@ public class EubosEngineMainTest {
 		 */
 		
 	}
-
+	
 	private void performTest(int timeout) throws IOException, InterruptedException {
+		performTest(timeout, false);
+	}
+
+	private void performTest(int timeout, boolean checkInfoMsgs) throws IOException, InterruptedException {
 		testOutput.flush();
 		inputToEngine.flush();
 		int commandNumber = 1;
@@ -281,18 +301,21 @@ public class EubosEngineMainTest {
 				int timer = 0;
 				// Receive message or wait for timeout to expire.
 				while (!received && timer<timeout) {
+					String recievedCmd = "";
 					// Give the engine thread some CPU time
 					Thread.sleep(sleep_50ms);
 					timer += sleep_50ms;
 					testOutput.flush();
-					String recievedCmd = testOutput.toString();
+					recievedCmd = testOutput.toString();
 					if (recievedCmd != null && !recievedCmd.isEmpty()) {
 						System.err.println(recievedCmd);
 						testOutput.reset();
-						// Ignore any line starting with info
-						parsedCmd = filterInfosOut(recievedCmd);
-						if (expectedOutput.equals(parsedCmd))
+						// Ignore any line starting with info, if not checking infos
+					    parsedCmd = filterInfosOut(recievedCmd, checkInfoMsgs);
+						System.err.println("Ps:"+parsedCmd+"End");
+						if (parsedCmd.equals(expectedOutput)) {
 							received = true;
+						}	
 					}
 				}
 				if (!received) {
@@ -310,13 +333,13 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(ISREADY_CMD,READY_OK_CMD));
 	}
 	
-	private String filterInfosOut(String recievedCmd) {
+	private String filterInfosOut(String recievedCmd, boolean check) {
 		String parsedCmd = "";
 		String currLine = "";
 		Scanner scan = new Scanner(recievedCmd);
 		while (scan.hasNextLine()) {
 			currLine = scan.nextLine();
-			if (!currLine.contains("info")) {
+			if (check || !check && !currLine.contains("info")) {
 				parsedCmd += (currLine + CMD_TERMINATOR);
 			}
 		}
