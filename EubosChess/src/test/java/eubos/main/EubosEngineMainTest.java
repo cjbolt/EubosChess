@@ -136,18 +136,20 @@ public class EubosEngineMainTest {
 	
 	@Test
 	public void test_infoMessageSending() throws InterruptedException, IOException {
-		setupEngine();
-		// Setup Commands specific to this test
-		commands.add(new commandPair(POS_FEN_PREFIX+"r1b1kb1r/ppqnpppp/8/3pP3/3Q4/5N2/PPP2PPP/RNB1K2R b KQkq - 2 8"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR, "info depth 1 seldepth 4 score cp -490 pv c7e5 f3e5 d7e5 hashfull 0 nodes 9"+CMD_TERMINATOR+
-				                                                         "info depth 1 seldepth 4 score cp -30 pv d7e5 f3e5 c7c2 hashfull 0 nodes 28"+CMD_TERMINATOR+
-				                                                         "info depth 1 seldepth 4 score cp 155 pv c7c2 hashfull 0 nodes 29"+CMD_TERMINATOR
-				                                                         +BEST_PREFIX+"c7c2"+CMD_TERMINATOR));
-		/* causes a bad info message to be generated, f3e5 and c7c2 are not cleared from the first PV in the ext search...
-		info depth 1 seldepth 4 score cp -490 pv c7e5 f3e5 d7e5 hashfull 0 nps 214 time 42 nodes 9
-		info depth 1 seldepth 4 score cp -30 pv d7e5 f3e5 c7c2 hashfull 0 nps 538 time 52 nodes 28
-		info depth 1 seldepth 4 score cp 155 pv c7c2 f3e5 c7c2 hashfull 0 nps 547 time 53 nodes 29 */
-		performTest(1000, true); // check infos
+		if (EubosEngineMain.UCI_INFO_ENABLED) {
+			setupEngine();
+			// Setup Commands specific to this test
+			commands.add(new commandPair(POS_FEN_PREFIX+"r1b1kb1r/ppqnpppp/8/3pP3/3Q4/5N2/PPP2PPP/RNB1K2R b KQkq - 2 8"+CMD_TERMINATOR, null));
+			commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR, "info depth 1 seldepth 4 score cp -490 pv c7e5 f3e5 d7e5 hashfull 0 nodes 9"+CMD_TERMINATOR+
+					                                                         "info depth 1 seldepth 4 score cp -30 pv d7e5 f3e5 c7c2 hashfull 0 nodes 28"+CMD_TERMINATOR+
+					                                                         "info depth 1 seldepth 4 score cp 155 pv c7c2 hashfull 0 nodes 29"+CMD_TERMINATOR
+					                                                         +BEST_PREFIX+"c7c2"+CMD_TERMINATOR));
+			/* causes a bad info message to be generated, f3e5 and c7c2 are not cleared from the first PV in the ext search...
+			info depth 1 seldepth 4 score cp -490 pv c7e5 f3e5 d7e5 hashfull 0 nps 214 time 42 nodes 9
+			info depth 1 seldepth 4 score cp -30 pv d7e5 f3e5 c7c2 hashfull 0 nps 538 time 52 nodes 28
+			info depth 1 seldepth 4 score cp 155 pv c7c2 f3e5 c7c2 hashfull 0 nps 547 time 53 nodes 29 */
+			performTest(1000, true); // check infos
+		}
 	}
 	
 	@Test
@@ -311,8 +313,7 @@ public class EubosEngineMainTest {
 						System.err.println(recievedCmd);
 						testOutput.reset();
 						// Ignore any line starting with info, if not checking infos
-					    parsedCmd = filterInfosOut(recievedCmd, checkInfoMsgs);
-						System.err.println("Ps:"+parsedCmd+"End");
+					    parsedCmd = parseReceivedCommandString(recievedCmd, checkInfoMsgs);
 						if (parsedCmd.equals(expectedOutput)) {
 							received = true;
 						}	
@@ -333,13 +334,13 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(ISREADY_CMD,READY_OK_CMD));
 	}
 	
-	private String filterInfosOut(String recievedCmd, boolean check) {
+	private String parseReceivedCommandString(String recievedCmd, boolean checkInfoMessages) {
 		String parsedCmd = "";
 		String currLine = "";
 		Scanner scan = new Scanner(recievedCmd);
 		while (scan.hasNextLine()) {
 			currLine = scan.nextLine();
-			if (check || !check && !currLine.contains("info")) {
+			if (checkInfoMessages || !currLine.contains("info")) {
 				parsedCmd += (currLine + CMD_TERMINATOR);
 			}
 		}

@@ -12,37 +12,35 @@ import eubos.search.Score.ScoreType;
 public class SearchDebugAgent {
 
 	private static String indent = "";
-	public static boolean isDebugOn = false;
+	public static final boolean DEBUG_ENABLED = false;
 	private static int lastPly = 0;
 	private static FileWriter fw;
 	private static String filenameBase = "";
 	
 	public static void open(int moveNumber, boolean isWhite) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			try {
 				fw = new FileWriter(new File(filenameBase+"_move"+moveNumber+"_"+(isWhite?"w":"b")+".txt"));
 			} catch (IOException e) {
-				isDebugOn = false;
 			}
 		}
 	}
 	
 	public static void close() {
-		try {
-			if (fw != null)
-				fw.close();
-		} catch (IOException e) {
-			isDebugOn = false;
+		if (DEBUG_ENABLED) {
+			try {
+				if (fw != null)
+					fw.close();
+			} catch (IOException e) {
+			}
 		}
 	}
 	
 	private static void printOutput(String output) {
-		//System.out.println(output);
 		try {
 			fw.write(output+'\n');
 			fw.flush();
 		} catch (IOException e) {
-			isDebugOn = false;
 		}
 	}
 	
@@ -55,7 +53,7 @@ public class SearchDebugAgent {
 	}
 
 	static void printPerformMove(int currPly, int currMove) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"do("+Move.toString(currMove)+") @"+currPly);
@@ -63,7 +61,7 @@ public class SearchDebugAgent {
 	}
 
 	static void printUndoMove(int currPly, int currMove) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"undo("+Move.toString(currMove)+") @"+currPly);
@@ -71,7 +69,7 @@ public class SearchDebugAgent {
 	}
 
 	static void printBackUpScore(int currPly, int prevScore, int positionScore) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"backedUp was:"+prevScore+" now:"+positionScore+" @"+currPly);
@@ -79,7 +77,7 @@ public class SearchDebugAgent {
 	}
 
 	static void printPrincipalContinuation(int currPly, PrincipalContinuation pc) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"pc:"+pc.toStringAt(currPly));
@@ -87,7 +85,7 @@ public class SearchDebugAgent {
 	}
 	
 	static void printMateFound( int currPly) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"possible mate @"+currPly);
@@ -95,7 +93,7 @@ public class SearchDebugAgent {
 	}
 	
 	static void printRefutationFound( int currPly) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"ref @"+currPly);
@@ -103,15 +101,14 @@ public class SearchDebugAgent {
 	}
 	
 	static void printAlphaBetaCutOffLimit(int currPly, int score) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			//printOutput(indent+"alpha beta brought down score:"+score+" at Ply="+currPly);
 		}
 	}
 
 	public static void printHashIsTerminalNode(int currPly, Transposition trans, long hash) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"hash "+hash+" term "+trans.report()+" @"+currPly);
@@ -119,7 +116,7 @@ public class SearchDebugAgent {
 	}
 
 	public static void printHashIsRefutation(int currPly, long hash, Transposition trans) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"hash "+hash+" ref "+trans.report()+" @ Ply="+currPly);
@@ -128,7 +125,7 @@ public class SearchDebugAgent {
 	}
 
 	public static void printHashIsSeedMoveList(int currPly, int move, long hash) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"hash "+hash+" sufficient seed move list with best move:"+Move.toString(move)+" at Ply="+currPly);
@@ -136,7 +133,7 @@ public class SearchDebugAgent {
 	}
 
 	public static void printAlphaBetaComparison(int currPly, int prevPlyScore, int positionScore) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"ab cmp prev:"+prevPlyScore+" curr:"+positionScore+" @"+currPly);
@@ -145,7 +142,7 @@ public class SearchDebugAgent {
 	}
 
 	public static void printTransUpdate(int currPly, Transposition trans, long hashCode) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+trans.report()+", hash: "+hashCode + " ref" + trans.toString());
@@ -153,7 +150,7 @@ public class SearchDebugAgent {
 	}
 
 	public static void printTransNull(int currPly, long hashCode) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"trans is null, hash: "+hashCode);
@@ -161,7 +158,7 @@ public class SearchDebugAgent {
 	}
 	
 	public static void printCreateTrans(int currPly, long hashCode) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"trans create, hash: "+hashCode);
@@ -169,7 +166,7 @@ public class SearchDebugAgent {
 	}
 	
 	public static void printExactTrans(int currPly, long hashCode, Transposition trans) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"trans now exact, hash: "+hashCode+" trans:"+trans.report());
@@ -177,7 +174,7 @@ public class SearchDebugAgent {
 	}
 
 	public static void printStartPlyInfo(byte currPly, ScoreTracker st, IPositionAccessors pos, byte originalSearchDepthRequiredInPly) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			if (currPly == 0) {
 				printOutput(String.format("\n\n\n NEW ITERATION %d\n\n\n", originalSearchDepthRequiredInPly));
 			}
@@ -193,7 +190,7 @@ public class SearchDebugAgent {
 	}
 
 	public static void printRepeatedPositionHash(byte currPly, long hash) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"3-fold rep @"+currPly+", hash: "+hash);
@@ -201,7 +198,7 @@ public class SearchDebugAgent {
 	}
 
 	public static void printTransDepthCheck(int currPly, int currentDepth, int newDepth) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"trans set @"+currPly+", depth curr: "+currentDepth+", depth new: "+newDepth);
@@ -209,7 +206,7 @@ public class SearchDebugAgent {
 	}
 
 	public static void printTransBoundScoreCheck(int currPly, ScoreType currentBound, short score, short score2) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"trans set @"+currPly+", bound:"+currentBound+", curr score: "+score+", new score: "+score2);
@@ -217,7 +214,7 @@ public class SearchDebugAgent {
 	}
 
 	public static void inExtendedSearchAlternatives(int currPly, int currMove, short score) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"extSearch @"+currPly+", move:"+Move.toString(currMove)+", alt score: "+score);
@@ -225,7 +222,7 @@ public class SearchDebugAgent {
 	}
 
 	public static void printExtSearchNoMoves(byte currPly, Score theScore) {
-		if (isDebugOn) {
+		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
 			printOutput(indent+"extSearch NoMoves term @"+currPly+", score: "+theScore.getScore());

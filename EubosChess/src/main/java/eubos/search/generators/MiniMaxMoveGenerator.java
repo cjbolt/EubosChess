@@ -31,7 +31,6 @@ public class MiniMaxMoveGenerator implements
 	public PrincipalContinuation pc;
 	public SearchMetrics sm;
 	private SearchMetricsReporter sr;
-	private boolean sendInfo = false;
 	private EubosEngineMain callback;
 	private PlySearcher ps;
 	private FixedSizeTranspositionTable tt;
@@ -62,7 +61,6 @@ public class MiniMaxMoveGenerator implements
 			IPositionAccessors pos,
 			IEvaluate pe) {
 		callback = eubos;
-		sendInfo = true;
 		this.pm = pm;
 		this.pos = pos;
 		this.pe = pe;
@@ -70,7 +68,7 @@ public class MiniMaxMoveGenerator implements
 		score = 0;
 		sm = new SearchMetrics(pos);
 		sr = new SearchMetricsReporter(callback, sm);	
-		if (sendInfo) {
+		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			sr.setSendInfo(true);
 			sr.start();
 		}
@@ -102,7 +100,7 @@ public class MiniMaxMoveGenerator implements
 		boolean foundMate = false;
 		initialiseSearchDepthDependentObjects(searchDepth, pm, pe);
 		ps = new PlySearcher(tta, st, pc, sm, sr, searchDepth, pm, pos, lastPc, pe);
-		if (sendInfo) {
+		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			sr.setSendInfo(true);
 		}
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
@@ -117,7 +115,7 @@ public class MiniMaxMoveGenerator implements
 			Math.abs(score) >= (MaterialEvaluator.MATERIAL_VALUE_KING*2)) {
 			foundMate = true;
 		}
-		if (sendInfo) {
+		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			sr.setSendInfo(false);
 		}
 		// Select the best move

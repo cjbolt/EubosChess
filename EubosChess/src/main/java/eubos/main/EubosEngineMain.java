@@ -44,6 +44,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	private static final byte SEARCH_DEPTH_IN_PLY = 35;
 	public static final boolean LOGGING_ENABLED = false;
+	public static final boolean UCI_INFO_ENABLED = false;
 	
 	PositionManager pm;
 	private AbstractMoveSearcher ms;
@@ -206,8 +207,10 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	public void sendInfoCommand(ProtocolInformationCommand infoCommand) {
-		this.getProtocol().send(infoCommand);
-		logInfo(infoCommand);
+		if (UCI_INFO_ENABLED) {
+			this.getProtocol().send(infoCommand);
+			logInfo(infoCommand);
+		}
 	}
 	
 	private void logInfo(ProtocolInformationCommand command){

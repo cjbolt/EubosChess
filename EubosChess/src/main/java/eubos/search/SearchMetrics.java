@@ -51,10 +51,8 @@ public class SearchMetrics {
 	public synchronized void setPvInfoCommand(ProtocolInformationCommand info) {
 		incrementTime();
 		info.setNodes(getNodesSearched());
-		//info.setNps(getNodesPerSecond());
 		info.setHash(getHashFull());
 		info.setMoveList(getPrincipalVariation());
-		//info.setTime(getTime());
 		int score = getCpScore();
 		int depth = getDepth();
 		if (java.lang.Math.abs(score)<MaterialEvaluator.MATERIAL_VALUE_KING) {
