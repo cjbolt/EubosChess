@@ -168,8 +168,14 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	private void moveSearcherFactory(EngineStartCalculatingCommand command) {
-		long clockTime = extractClockTime(command);
-		if (clockTime != 0) {
+		boolean clockTimeValid = true;
+		long clockTime = 0;
+		try {
+			clockTime = command.getClock((pm.onMoveIsWhite()) ? GenericColor.WHITE : GenericColor.BLACK);
+		} catch (NullPointerException e) {
+			clockTimeValid = false;
+		}
+		if (clockTimeValid) {
 			logger.info("Search move, clock time " + clockTime);
 			ms = new IterativeMoveSearcher(this, hashMap, pm, pm, clockTime, pm.getPositionEvaluator());
 		}
@@ -186,16 +192,6 @@ public class EubosEngineMain extends AbstractEngine {
 			logger.info("Search move, fixed depth " + searchDepth);
 			ms = new FixedDepthMoveSearcher(this, hashMap, pm, pm, searchDepth, pm.getPositionEvaluator());
 		}
-	}
-	
-	private long extractClockTime(EngineStartCalculatingCommand command) {
-		long clockTime = 0;
-		try {
-			clockTime = command.getClock((pm.onMoveIsWhite()) ? GenericColor.WHITE : GenericColor.BLACK);
-		} catch (NullPointerException e) {
-			clockTime = 0;
-		}
-		return clockTime;
 	}
 
 	public void receive(EngineStopCalculatingCommand command) {
