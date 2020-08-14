@@ -2,6 +2,8 @@ package eubos.search;
 
 import static org.junit.Assert.*;
 
+import java.util.logging.Level;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -54,6 +56,8 @@ public class IterativeMoveSearcherTest {
 		eubos = new EubosMock();
 		SearchDebugAgent.open(0, true);
 		hashMap = new FixedSizeTranspositionTable();
+		EubosEngineMain.logger.setLevel(Level.OFF);
+		EubosEngineMain.logger.setUseParentHandlers(false);
 	}
 	
 	@After

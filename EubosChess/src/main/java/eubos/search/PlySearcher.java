@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.PrimitiveIterator;
 
 import eubos.board.InvalidPieceException;
+import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
@@ -97,7 +98,8 @@ public class PlySearcher {
 		case sufficientRefutation:
 			theScore = new Score(eval.trans.getScore(), eval.trans.getScoreType());
 			pc.update(currPly, eval.trans.getPv());
-			sm.incrementNodesSearched();
+			if (EubosEngineMain.UCI_INFO_ENABLED)
+				sm.incrementNodesSearched();
 			break;
 		case sufficientSeedMoveList:
 			SearchDebugAgent.printHashIsSeedMoveList(currPly, eval.trans.getBestMove(), pos.getHash());
@@ -143,7 +145,7 @@ public class PlySearcher {
             st.setBackedUpScoreAtPly(currPly, theScore);
             // We will now de-recurse, so should make sure the depth searched is correct
             setDepthSearchedInPly();
-			trans = tt.setTransposition(sm, currPly, trans, getTransDepth(), theScore.getScore(), theScore.getType(), ml, Move.NULL_MOVE, pc.toPvList(currPly));
+			trans = tt.setTransposition(currPly, trans, getTransDepth(), theScore.getScore(), theScore.getType(), ml, Move.NULL_MOVE, pc.toPvList(currPly));
         } else {
     		PrimitiveIterator.OfInt move_iter = ml.getIterator(isInExtendedSearch());
     		if (move_iter.hasNext()) {
@@ -153,7 +155,7 @@ public class PlySearcher {
     			// and return an exact position score back down the tree.			
     			theScore = applyBestNormalMoveAndScore(ml);
     			SearchDebugAgent.printExtSearchNoMoves(currPly, theScore);
-    			trans = tt.setTransposition(sm, currPly, trans, (byte)0, theScore.getScore(), theScore.getType(), ml, Move.NULL_MOVE, pc.toPvList(currPly));
+    			trans = tt.setTransposition(currPly, trans, (byte)0, theScore.getScore(), theScore.getType(), ml, Move.NULL_MOVE, pc.toPvList(currPly));
     		}
         }
         return theScore;
@@ -188,7 +190,8 @@ public class PlySearcher {
 		}
 		
 		while(!isTerminated()) {
-			pc.clearContinuationsBeyondPly(currPly);
+			if (EubosEngineMain.UCI_INFO_ENABLED)
+				pc.clearContinuationsBeyondPly(currPly);
 	        Score positionScore = applyMoveAndScore(currMove);
 	        if (!isTerminated()) {
 	        	// Rationale: this is when a score was backed up - at this instant update the depth searched
@@ -198,7 +201,7 @@ public class PlySearcher {
 	                backedUpScoreWasExact = (positionScore.getType()==ScoreType.exact);
                     plyScore = positionScore;
                     updatePrincipalContinuation(currMove, positionScore.getScore());
-                    trans = tt.setTransposition(sm, currPly, trans, getTransDepth(), positionScore.getScore(), plyBound, ml, currMove, pc.toPvList(currPly));
+                    trans = tt.setTransposition(currPly, trans, getTransDepth(), positionScore.getScore(), plyBound, ml, currMove, pc.toPvList(currPly));
 	            } else {
                     List<Integer> last_pv = pc.toPvList(currPly+1);
                     last_pv.add(0, currMove);
@@ -207,7 +210,7 @@ public class PlySearcher {
 	                // Update the position hash if the move is better than that previously stored at this position
 	                if (shouldUpdatePositionBoundScoreAndBestMove(plyBound, plyScore.getScore(), positionScore.getScore())) {
 	                    plyScore = positionScore;
-	                    trans = tt.setTransposition(sm, currPly, trans, getTransDepth(), plyScore.getScore(), plyBound, ml, currMove, last_pv/*(trans != null) ? trans.getPv() : null*/);
+	                    trans = tt.setTransposition(currPly, trans, getTransDepth(), plyScore.getScore(), plyBound, ml, currMove, last_pv/*(trans != null) ? trans.getPv() : null*/);
 	                }
 	            }
 	        
@@ -254,10 +257,12 @@ public class PlySearcher {
 	private void updatePrincipalContinuation(int currMove, short positionScore)
 			throws InvalidPieceException {
 		pc.update(currPly, currMove);
-		if (atRootNode()) {
-			sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), positionScore);
-			if (sr != null) {
-				sr.reportPrincipalVariation();
+		if (EubosEngineMain.UCI_INFO_ENABLED) {
+			if (atRootNode()) {
+				if (sr != null) {
+					sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), positionScore);
+					sr.reportPrincipalVariation();
+				}
 			}
 		}
 	}
@@ -334,7 +339,8 @@ public class PlySearcher {
 		currPly--;
 		SearchDebugAgent.printUndoMove(currPly, currMove);
 		
-		sm.incrementNodesSearched();
+		if (EubosEngineMain.UCI_INFO_ENABLED)
+			sm.incrementNodesSearched();
 		return positionScore;
 	}
 	
@@ -352,7 +358,9 @@ public class PlySearcher {
 		SearchDebugAgent.printUndoMove(currPly, currMove);
 		
 		pc.update(currPly, currMove);
-		sm.incrementNodesSearched();
+		
+		if (EubosEngineMain.UCI_INFO_ENABLED)
+			sm.incrementNodesSearched();
 		return positionScore;
 	}
 	

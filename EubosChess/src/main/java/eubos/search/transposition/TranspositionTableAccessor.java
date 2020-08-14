@@ -3,6 +3,7 @@ package eubos.search.transposition;
 import java.util.List;
 
 import eubos.board.InvalidPieceException;
+import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
@@ -22,18 +23,21 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 	private IChangePosition pm;
 	private ScoreTracker st;
 	private IEvaluate pe;
+	private SearchMetrics sm;
 	
 	public TranspositionTableAccessor(
 			FixedSizeTranspositionTable transTable,
 			IPositionAccessors pos,
 			ScoreTracker st,
 			IChangePosition pm,
-			IEvaluate pe) {
+			IEvaluate pe,
+			SearchMetrics sm) {
 		hashMap = transTable;
 		this.pos = pos;
 		this.pm = pm;
 		this.st = st;
 		this.pe = pe;
+		this.sm = sm;
 	}
 	
 	public TranspositionEvaluation getTransposition(byte currPly, int depthRequiredPly) {
@@ -89,10 +93,11 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return ret;
 	}
 	
-	public Transposition setTransposition(SearchMetrics sm, byte currPly, Transposition trans, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove, List<Integer> pv) {
+	public Transposition setTransposition(byte currPly, Transposition trans, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove, List<Integer> pv) {
 		if (trans == null) {
 			trans = getTransCreateIfNew(currPly, new_Depth, new_score, new_bound, new_ml, new_bestMove, pv);
-			sm.setHashFull(getHashUtilisation());
+			if (EubosEngineMain.UCI_INFO_ENABLED)
+				sm.setHashFull(getHashUtilisation());
 		}
 		trans = checkForUpdateTrans(currPly, trans, new_Depth, new_score, new_bound, new_ml, new_bestMove, pv);
 		return trans;

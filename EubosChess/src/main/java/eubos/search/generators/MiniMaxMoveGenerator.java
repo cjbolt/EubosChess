@@ -67,8 +67,8 @@ public class MiniMaxMoveGenerator implements
 		tt = hashMap;
 		score = 0;
 		sm = new SearchMetrics(pos);
-		sr = new SearchMetricsReporter(callback, sm);	
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
+			sr = new SearchMetricsReporter(callback, sm);	
 			sr.setSendInfo(true);
 			sr.start();
 		}
@@ -82,7 +82,7 @@ public class MiniMaxMoveGenerator implements
 		sm.setDepth(searchDepth);
 		sm.setPrincipalVariation(pc.toPvList(0));
 		st = new ScoreTracker(searchDepth+EXTENDED_SEARCH_PLY_LIMIT, pos.onMoveIsWhite());
-		tta = new TranspositionTableAccessor(tt, pos, st, pm, pe);
+		tta = new TranspositionTableAccessor(tt, pos, st, pm, pe, sm);
 	}
 	
 	@Override
@@ -132,6 +132,7 @@ public class MiniMaxMoveGenerator implements
 	}
 	
 	public void terminateSearchMetricsReporter() {
-		sr.end();
+		if (EubosEngineMain.UCI_INFO_ENABLED)
+			sr.end();
 	}
 }
