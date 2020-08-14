@@ -89,22 +89,21 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 
 	class IterativeMoveSearchStopper extends Thread {
 		
-		private static final int CHECK_RATE_MS = 50;
-		private Timestamp nextCheckPointTime;
 		private boolean stopperActive = false;
 		boolean extraTime = false;
 		private int checkPoint = 0;
 		
 		IterativeMoveSearchStopper(short initialScore) {
-			nextCheckPointTime = new Timestamp(System.currentTimeMillis() + calculateSearchTimeQuanta());
 		}
 		
 		public void run() {
+			long timeQuanta = 0;
 			stopperActive = true;
+			boolean hasWaitedOnce = false;
 			boolean terminateNow = false;
 			do {
-				Timestamp msCurrTime = new Timestamp(System.currentTimeMillis());
-				if (msCurrTime.after(nextCheckPointTime)) {
+				timeQuanta = calculateSearchTimeQuanta();
+				if (hasWaitedOnce) {
 					/* Consider extending time for Search according to following... */
 					short currentScore = mg.sm.getCpScore();
 					switch (checkPoint) {
@@ -133,16 +132,16 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 						stopperActive = false;
 					} else {
 						checkPoint++;
-						nextCheckPointTime = new Timestamp(System.currentTimeMillis() + calculateSearchTimeQuanta());
 					}
 				}
 				try {
 					synchronized (this) {
-						this.wait(CHECK_RATE_MS);
+						this.wait(timeQuanta);
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
+				hasWaitedOnce = true;
 			} while (stopperActive);
 		}
 		
