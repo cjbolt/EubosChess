@@ -1,6 +1,5 @@
 package eubos.search.searchers;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
@@ -136,7 +135,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				}
 				try {
 					synchronized (this) {
-						this.wait(timeQuanta);
+						this.wait(Math.max(timeQuanta, 1));
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
