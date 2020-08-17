@@ -14,7 +14,6 @@ import eubos.search.ScoreTracker;
 import eubos.search.SearchDebugAgent;
 import eubos.search.SearchMetrics;
 import eubos.search.transposition.TranspositionEvaluation.*;
-import eubos.search.Score.ScoreType;
 
 public class TranspositionTableAccessor implements ITranspositionAccessor {
 	
@@ -48,12 +47,12 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		
 		if (ret.trans.getDepthSearchedInPly() >= depthRequiredPly) {
 			
-			if (ret.trans.getScoreType() == ScoreType.exact) {
+			if (ret.trans.getType() == Score.exact) {
 				ret.status = TranspositionTableStatus.sufficientTerminalNode;
 				SearchDebugAgent.printHashIsTerminalNode(currPly, ret.trans, pos.getHash());
 			} else {
-				// must be either (bound == ScoreType.upperBound || bound == ScoreType.lowerBound)
-				if (st.isAlphaBetaCutOff(currPly, new Score(ret.trans.getScore(), ret.trans.getScoreType()))) {
+				// must be either (bound == Score.upperBound || bound == Score.lowerBound)
+				if (st.isAlphaBetaCutOff(currPly, new Score(ret.trans.getScore(), ret.trans.getType()))) {
 					SearchDebugAgent.printHashIsRefutation(currPly, pos.getHash(), ret.trans);
 					ret.status = TranspositionTableStatus.sufficientRefutation;
 		        } else {
@@ -93,7 +92,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return ret;
 	}
 	
-	public ITransposition setTransposition(byte currPly, ITransposition trans, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove, List<Integer> pv) {
+	public ITransposition setTransposition(byte currPly, ITransposition trans, byte new_Depth, short new_score, byte new_bound, MoveList new_ml, int new_bestMove, List<Integer> pv) {
 		if (trans == null) {
 			trans = getTransCreateIfNew(currPly, new_Depth, new_score, new_bound, new_ml, new_bestMove, pv);
 			if (EubosEngineMain.UCI_INFO_ENABLED)
@@ -103,7 +102,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return trans;
 	}
 	
-	private ITransposition getTransCreateIfNew(int currPly, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove, List<Integer> pv) {
+	private ITransposition getTransCreateIfNew(int currPly, byte new_Depth, short new_score, byte new_bound, MoveList new_ml, int new_bestMove, List<Integer> pv) {
 		SearchDebugAgent.printTransNull(currPly, pos.getHash());
 		ITransposition trans = hashMap.getTransposition(pos.getHash());
 		if (trans == null) {
@@ -116,10 +115,10 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return trans;
 	}
 	
-	private ITransposition checkForUpdateTrans(int currPly, ITransposition current_trans, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove, List<Integer> pv) {
+	private ITransposition checkForUpdateTrans(int currPly, ITransposition current_trans, byte new_Depth, short new_score, byte new_bound, MoveList new_ml, int new_bestMove, List<Integer> pv) {
 		boolean updateTransposition = false;
 		int currentDepth = current_trans.getDepthSearchedInPly();
-		ScoreType currentBound = current_trans.getScoreType();
+		byte currentBound = current_trans.getType();
 		
 		SearchDebugAgent.printTransDepthCheck(currPly, currentDepth, new_Depth);
 		
@@ -132,14 +131,14 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 					currentBound,
 					current_trans.getScore(),
 					new_score);
-			if (((currentBound == ScoreType.upperBound) || (currentBound == ScoreType.lowerBound)) &&
-					new_bound == ScoreType.exact) {
+			if (((currentBound == Score.upperBound) || (currentBound == Score.lowerBound)) &&
+					new_bound == Score.exact) {
 			    updateTransposition = true;
-			} else if ((currentBound == ScoreType.upperBound) &&
+			} else if ((currentBound == Score.upperBound) &&
 					   (new_score < current_trans.getScore())) {
 				assert currentBound == new_bound;
 				updateTransposition = true;
-			} else if ((currentBound == ScoreType.lowerBound) &&
+			} else if ((currentBound == Score.lowerBound) &&
 					   (new_score > current_trans.getScore())) {
 				assert currentBound == new_bound;
 				updateTransposition = true;

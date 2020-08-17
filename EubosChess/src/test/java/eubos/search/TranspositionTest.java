@@ -15,7 +15,6 @@ import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.PositionManager;
-import eubos.search.Score.ScoreType;
 import eubos.search.transposition.PrincipalVariationTransposition;
 
 public class TranspositionTest {
@@ -31,7 +30,7 @@ public class TranspositionTest {
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			byte depth = 1;
 			short score = 0;
-			ScoreType scoreType = ScoreType.lowerBound;
+			byte scoreType = Score.lowerBound;
 			MoveList ml = new MoveList(new PositionManager());
 			GenericMove bestMove = new GenericMove("e2e4");
 			sut = new PrincipalVariationTransposition(depth, score, scoreType, ml, bestMove);
@@ -50,7 +49,7 @@ public class TranspositionTest {
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			byte depth = 1;
 			short score = 0;
-			ScoreType scoreType = ScoreType.lowerBound;
+			byte scoreType = Score.lowerBound;
 			MoveList ml = new MoveList(new PositionManager());
 			GenericMove bestMove = new GenericMove("e2e4");
 			sut = new PrincipalVariationTransposition(depth, score, scoreType, ml, bestMove);
@@ -71,7 +70,7 @@ public class TranspositionTest {
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			byte depth = 1;
 			short score = 0;
-			ScoreType scoreType = ScoreType.lowerBound;
+			byte scoreType = Score.lowerBound;
 			MoveList ml = new MoveList(new PositionManager());
 			GenericMove bestMove = new GenericMove("e2e4");
 			sut = new PrincipalVariationTransposition(depth, score, scoreType, ml, bestMove);

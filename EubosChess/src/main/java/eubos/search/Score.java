@@ -1,24 +1,25 @@
 package eubos.search;
 
 public class Score {
+	public static final byte exact = 1;
+	public static final byte upperBound = 2;
+	public static final byte lowerBound = 3;
+	
 	short score;
-	public enum ScoreType { 
-		exact, upperBound, lowerBound;
-	};
-	ScoreType type;
+	byte type;
 	
 	public Score() {
 		score = 0;
-		type = ScoreType.exact;
+		type = Score.exact;
 	}
 	
-	public Score(short theScore, ScoreType theType) {
+	public Score(short theScore, byte theType) {
 		score = theScore;
 		type = theType;
 	}
 
-	public Score(ScoreType plyBound) {
-		score = (plyBound == ScoreType.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE;
+	public Score(byte plyBound) {
+		score = (plyBound == Score.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE;
 		type = plyBound;
 	}
 
@@ -26,11 +27,11 @@ public class Score {
 		return score;
 	}
 
-	public ScoreType getType() {
+	public byte getType() {
 		return type;
 	}
 
 	public void setExact() {
-		type = ScoreType.exact;		
+		type = Score.exact;		
 	}
 }

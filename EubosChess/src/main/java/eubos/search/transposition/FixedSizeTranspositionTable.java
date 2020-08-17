@@ -16,7 +16,7 @@ public class FixedSizeTranspositionTable {
 	public static final long MOVELIST_EXTENDED_AVERAGE_SIZE = 5L;
 	public static final long MOVELIST_AVERAGE_SIZE = (MOVELIST_NORMAL_WORST_SIZE+MOVELIST_EXTENDED_AVERAGE_SIZE);
 	public static final long BYTES_MOVELIST_AVERAGE = (MOVELIST_AVERAGE_SIZE*Integer.BYTES+2*Byte.BYTES);
-	public static final long BYTES_TRANSPOSTION_ELEMENT = (Long.BYTES/*Zobrist*/+Short.BYTES/*score*/+Byte.BYTES/*depth*/+Integer.BYTES/*best*/+Integer.BYTES/*bound*/+4/*MoveList reference size?*/);
+	public static final long BYTES_TRANSPOSTION_ELEMENT = (Long.BYTES/*Zobrist*/+Short.BYTES/*score*/+Byte.BYTES/*depth*/+Integer.BYTES/*best*/+Byte.BYTES/*bound*/+4/*MoveList reference size?*/);
 	public static final long BYTES_ACCESS_COUNT = (Short.BYTES+Long.BYTES);
 	public static final long BYTES_DRAW_CHECKER = (Long.BYTES+Byte.BYTES);
 	

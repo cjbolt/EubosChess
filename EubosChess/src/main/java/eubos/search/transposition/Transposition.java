@@ -7,25 +7,24 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.position.MoveList;
 import eubos.position.Move;
 import eubos.search.Score;
-import eubos.search.Score.ScoreType;
 
 public class Transposition implements ITransposition {
 	private byte depthSearchedInPly;
 	private short score;
 	private MoveList ml;
 	private int bestMove;
-	private ScoreType scoreType;
+	private byte scoreType;
 
-	public Transposition(byte depth, short score, ScoreType scoreType, MoveList ml, GenericMove bestMove) {
+	public Transposition(byte depth, short score, byte scoreType, MoveList ml, GenericMove bestMove) {
 		// Only used by tests
 		this(depth, score, scoreType, ml, Move.toMove(bestMove, null, Move.TYPE_NONE), null);
 	}
 	
-	public Transposition(byte depth, short score, ScoreType scoreType, MoveList ml, int bestMove, List<Integer> pv) {
+	public Transposition(byte depth, short score, byte scoreType, MoveList ml, int bestMove, List<Integer> pv) {
 		setMoveList(ml);
 		setDepthSearchedInPly(depth);
 		setScore(score);
-		setScoreType(scoreType);
+		setType(scoreType);
 		setBestMove(bestMove);
 	}
 	
@@ -39,13 +38,13 @@ public class Transposition implements ITransposition {
 	}
 	
 	@Override
-	public ScoreType getScoreType() {
+	public byte getType() {
 		return scoreType;
 	}
 
 	@Override
-	public void setScoreType(ScoreType scoreType) {
-		this.scoreType = scoreType;
+	public void setType(byte type) {
+		this.scoreType = type;
 	}
 
 	@Override
@@ -112,14 +111,14 @@ public class Transposition implements ITransposition {
 	public void update(
 			byte new_Depth, 
 			short new_score, 
-			ScoreType new_bound, 
+			byte new_bound, 
 			MoveList new_ml, 
 			int new_bestMove, 
 			List<Integer> pv) {
 		// order is important because setBestMove uses ml
 		setMoveList(new_ml);
 		setDepthSearchedInPly(new_Depth);
-		setScoreType(new_bound);
+		setType(new_bound);
 		setScore(new_score);
 		setBestMove(new_bestMove);
 	}

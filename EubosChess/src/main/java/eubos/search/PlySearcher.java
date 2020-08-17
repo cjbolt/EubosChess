@@ -17,7 +17,6 @@ import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.ITranspositionAccessor;
 import eubos.search.transposition.ITransposition;
 import eubos.search.transposition.TranspositionEvaluation;
-import eubos.search.Score.ScoreType;
 
 public class PlySearcher {
 
@@ -96,7 +95,7 @@ public class PlySearcher {
 		switch (eval.status) {
 		case sufficientTerminalNode:
 		case sufficientRefutation:
-			theScore = new Score(eval.trans.getScore(), eval.trans.getScoreType());
+			theScore = new Score(eval.trans.getScore(), eval.trans.getType());
 			pc.update(currPly, eval.trans.getPv());
 			if (EubosEngineMain.UCI_INFO_ENABLED)
 				sm.incrementNodesSearched();
@@ -141,7 +140,7 @@ public class PlySearcher {
 	private Score searchMoves(MoveList ml, ITransposition trans) throws InvalidPieceException {
 		Score theScore = null;		
         if (ml.isMateOccurred()) {
-            theScore = new Score(sg.scoreMate(currPly), ScoreType.exact);
+            theScore = new Score(sg.scoreMate(currPly), Score.exact);
             st.setBackedUpScoreAtPly(currPly, theScore);
             // We will now de-recurse, so should make sure the depth searched is correct
             setDepthSearchedInPly();
@@ -166,7 +165,7 @@ public class PlySearcher {
 		boolean backedUpScoreWasExact = false;
 		boolean refutationFound = false;
 		
-		ScoreType plyBound = (pos.onMoveIsWhite()) ? ScoreType.lowerBound : ScoreType.upperBound;
+		byte plyBound = (pos.onMoveIsWhite()) ? Score.lowerBound : Score.upperBound;
 		Score plyScore = new Score(plyBound);
 		
 		int currMove = move_iter.nextInt();
@@ -198,7 +197,7 @@ public class PlySearcher {
 	        	setDepthSearchedInPly();
 	        	if (doScoreBackup(positionScore)) {
 	                everBackedUp = true;
-	                backedUpScoreWasExact = (positionScore.getType()==ScoreType.exact);
+	                backedUpScoreWasExact = (positionScore.getType()==Score.exact);
                     plyScore = positionScore;
                     updatePrincipalContinuation(currMove, positionScore.getScore());
                     trans = tt.setTransposition(currPly, trans, getTransDepth(), positionScore.getScore(), plyBound, ml, currMove, pc.toPvList(currPly));
@@ -231,7 +230,7 @@ public class PlySearcher {
 		    	// This is the only way a hash and score can be exact.
 		    	if (trans.getDepthSearchedInPly() <= getTransDepth()) {
 		    		// however we need to be careful that the depth is appropriate, we don't set exact for wrong depth...
-		    		trans.setScoreType(ScoreType.exact);
+		    		trans.setType(Score.exact);
 		    		
 			        // found to be needed due to score discrepancies caused by refutations coming out of extended search...
 			        trans.setBestMove(pc.getBestMove(currPly));
@@ -298,9 +297,9 @@ public class PlySearcher {
 	}
 
 	private boolean shouldUpdatePositionBoundScoreAndBestMove(
-			ScoreType plyBound, short plyScore, short positionScore) {
+			byte plyBound, short plyScore, short positionScore) {
 		boolean doUpdate = false;
-		if (plyBound == ScoreType.lowerBound) {
+		if (plyBound == Score.lowerBound) {
 			if (positionScore > plyScore && positionScore != Short.MAX_VALUE)
 				doUpdate = true;
 		} else {
@@ -351,7 +350,7 @@ public class PlySearcher {
 		pm.performMove(currMove, false);
 		currPly++;
 		// exact because it is a terminal node
-		Score positionScore = new Score(pe.evaluatePosition(), ScoreType.exact);
+		Score positionScore = new Score(pe.evaluatePosition(), Score.exact);
 		
 		pm.unperformMove(false);
 		currPly--;
@@ -367,7 +366,7 @@ public class PlySearcher {
 	private Score assessNewPosition() throws InvalidPieceException {
 		Score positionScore = null;
 		if ( isTerminalNode() ) {
-			positionScore = new Score(pe.evaluatePosition(), ScoreType.exact);
+			positionScore = new Score(pe.evaluatePosition(), Score.exact);
 			currDepthSearchedInPly = 1; // We applied a move in order to generate this score
 		} else {
 			positionScore = searchPly();

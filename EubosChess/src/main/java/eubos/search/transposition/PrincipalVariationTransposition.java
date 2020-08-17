@@ -8,7 +8,6 @@ import eubos.position.MoveList;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.search.Score;
-import eubos.search.Score.ScoreType;
 
 public class PrincipalVariationTransposition implements ITransposition {
 
@@ -16,19 +15,19 @@ public class PrincipalVariationTransposition implements ITransposition {
 	private short score;
 	private MoveList ml;
 	private int bestMove;
-	private ScoreType scoreType;
+	private byte scoreType;
 	private List<Integer> pv;
 
-	public PrincipalVariationTransposition(byte depth, short score, ScoreType scoreType, MoveList ml, GenericMove bestMove) {
+	public PrincipalVariationTransposition(byte depth, short score, byte scoreType, MoveList ml, GenericMove bestMove) {
 		// Only used by tests
 		this(depth, score, scoreType, ml, Move.toMove(bestMove, null, Move.TYPE_NONE), null);
 	}
 	
-	public PrincipalVariationTransposition(byte depth, short score, ScoreType scoreType, MoveList ml, int bestMove, List<Integer> pv) {
+	public PrincipalVariationTransposition(byte depth, short score, byte scoreType, MoveList ml, int bestMove, List<Integer> pv) {
 		setMoveList(ml);
 		setDepthSearchedInPly(depth);
 		setScore(score);
-		setScoreType(scoreType);
+		setType(scoreType);
 		setBestMove(bestMove);
 		setPv(pv);
 	}
@@ -43,12 +42,12 @@ public class PrincipalVariationTransposition implements ITransposition {
 	}
 	
 	@Override
-	public ScoreType getScoreType() {
+	public byte getType() {
 		return scoreType;
 	}
 
 	@Override
-	public void setScoreType(ScoreType scoreType) {
+	public void setType(byte scoreType) {
 		this.scoreType = scoreType;
 	}
 
@@ -129,14 +128,14 @@ public class PrincipalVariationTransposition implements ITransposition {
 	public void update(
 			byte new_Depth, 
 			short new_score, 
-			ScoreType new_bound, 
+			byte new_bound, 
 			MoveList new_ml, 
 			int new_bestMove, 
 			List<Integer> pv) {
 		// order is important because setBestMove uses ml, also setPv uses depth
 		setMoveList(new_ml);
 		setDepthSearchedInPly(new_Depth);
-		setScoreType(new_bound);
+		setType(new_bound);
 		setScore(new_score);
 		setBestMove(new_bestMove);
 		setPv(pv);

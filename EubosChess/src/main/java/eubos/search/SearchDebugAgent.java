@@ -6,7 +6,6 @@ import java.io.IOException;
 
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
-import eubos.search.Score.ScoreType;
 import eubos.search.transposition.ITransposition;
 
 public class SearchDebugAgent {
@@ -205,7 +204,7 @@ public class SearchDebugAgent {
 		}		
 	}
 
-	public static void printTransBoundScoreCheck(int currPly, ScoreType currentBound, short score, short score2) {
+	public static void printTransBoundScoreCheck(int currPly, byte currentBound, short score, short score2) {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);

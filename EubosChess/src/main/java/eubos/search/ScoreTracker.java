@@ -1,7 +1,5 @@
 package eubos.search;
 
-import eubos.search.Score.ScoreType;
-
 public class ScoreTracker {
 	private Score[] scores;
 	private boolean initialOnMoveIsWhite = false;
@@ -16,14 +14,14 @@ public class ScoreTracker {
 	private void bringDownAlphaBetaCutOff(byte currPly) {
 		scores[currPly] = new Score(
 				scores[currPly-MINIMUM_PLY_FOR_ALPHA_BETA_CUT_OFF].getScore(), 
-				onMoveIsWhite(currPly) ? ScoreType.lowerBound : ScoreType.upperBound);
+				onMoveIsWhite(currPly) ? Score.lowerBound : Score.upperBound);
 	}
 
 	private void initialiseWithWorstPossibleScore(byte currPly) {
 		if (onMoveIsWhite(currPly)) {
-			scores[currPly] = new Score(Short.MIN_VALUE, ScoreType.lowerBound);
+			scores[currPly] = new Score(Short.MIN_VALUE, Score.lowerBound);
 		} else {
-			scores[currPly] = new Score(Short.MAX_VALUE, ScoreType.upperBound);
+			scores[currPly] = new Score(Short.MAX_VALUE, Score.upperBound);
 		}
 	}
 	
