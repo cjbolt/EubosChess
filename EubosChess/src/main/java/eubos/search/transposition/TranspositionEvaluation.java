@@ -16,5 +16,5 @@ public class TranspositionEvaluation {
 	};
 	
 	public TranspositionTableStatus status;
-	public Transposition trans;
+	public ITransposition trans;
 }

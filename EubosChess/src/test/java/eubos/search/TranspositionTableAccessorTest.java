@@ -18,7 +18,7 @@ import eubos.position.MoveList;
 import eubos.position.PositionManager;
 import eubos.score.PositionEvaluator;
 import eubos.search.transposition.FixedSizeTranspositionTable;
-import eubos.search.transposition.Transposition;
+import eubos.search.transposition.ITransposition;
 import eubos.search.transposition.TranspositionEvaluation;
 import eubos.search.transposition.TranspositionTableAccessor;
 import eubos.search.Score.ScoreType;
@@ -157,7 +157,7 @@ public class TranspositionTableAccessorTest {
 		pc.add(move1);
 
 		currPly = 2;
-		Transposition stored_trans = sut.setTransposition(currPly, null, (byte)1, (short)105, ScoreType.lowerBound, ml, Move.toMove(move1, pm.getTheBoard()), the_pc);
+		ITransposition stored_trans = sut.setTransposition(currPly, null, (byte)1, (short)105, ScoreType.lowerBound, ml, Move.toMove(move1, pm.getTheBoard()), the_pc);
 		
 		stored_trans = sut.setTransposition(currPly, stored_trans, (byte)1, (short)110, ScoreType.exact, ml, Move.toMove(move2, pm.getTheBoard()), the_pc);
 		
@@ -186,7 +186,7 @@ public class TranspositionTableAccessorTest {
 		pc.add(move1);
 		
 		currPly = 0;
-		Transposition stored_trans = sut.setTransposition(currPly, null, (byte)9, (short)25, ScoreType.lowerBound, ml, Move.toMove(move1), the_pc);
+		ITransposition stored_trans = sut.setTransposition(currPly, null, (byte)9, (short)25, ScoreType.lowerBound, ml, Move.toMove(move1), the_pc);
 		
 		stored_trans = sut.setTransposition(currPly, stored_trans, (byte)9, (short)72, ScoreType.lowerBound, ml, Move.toMove(move2), the_pc);
 		

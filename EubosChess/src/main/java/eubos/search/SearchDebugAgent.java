@@ -6,8 +6,8 @@ import java.io.IOException;
 
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
-import eubos.search.transposition.Transposition;
 import eubos.search.Score.ScoreType;
+import eubos.search.transposition.ITransposition;
 
 public class SearchDebugAgent {
 
@@ -107,7 +107,7 @@ public class SearchDebugAgent {
 		}
 	}
 
-	public static void printHashIsTerminalNode(int currPly, Transposition trans, long hash) {
+	public static void printHashIsTerminalNode(int currPly, ITransposition trans, long hash) {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
@@ -115,7 +115,7 @@ public class SearchDebugAgent {
 		}
 	}
 
-	public static void printHashIsRefutation(int currPly, long hash, Transposition trans) {
+	public static void printHashIsRefutation(int currPly, long hash, ITransposition trans) {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
@@ -141,7 +141,7 @@ public class SearchDebugAgent {
 		
 	}
 
-	public static void printTransUpdate(int currPly, Transposition trans, long hashCode) {
+	public static void printTransUpdate(int currPly, ITransposition trans, long hashCode) {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
@@ -165,7 +165,7 @@ public class SearchDebugAgent {
 		}		
 	}
 	
-	public static void printExactTrans(int currPly, long hashCode, Transposition trans) {
+	public static void printExactTrans(int currPly, long hashCode, ITransposition trans) {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);

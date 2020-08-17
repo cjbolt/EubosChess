@@ -25,7 +25,7 @@ public class FixedSizeTranspositionTable {
 	
 	public static final long MBYTES_DEFAULT_HASH_SIZE = (ELEMENTS_DEFAULT_HASH_SIZE*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE;
 	
-	private ConcurrentHashMap<Long, Transposition> hashMap = null;
+	private ConcurrentHashMap<Long, ITransposition> hashMap = null;
 	private long hashMapSize = 0;
 	private long maxHashMapSize = ELEMENTS_DEFAULT_HASH_SIZE;
 	private ConcurrentHashMap<Long, Short> accessCount = null;
@@ -54,7 +54,7 @@ public class FixedSizeTranspositionTable {
 			 * as we are resource constrained and garbage collection will kill speed of the engine. */
 			hashSizeElements = (hashSizeElements*4)/10;
 		}
-		hashMap = new ConcurrentHashMap<Long, Transposition>((int)hashSizeElements, (float)0.75);
+		hashMap = new ConcurrentHashMap<Long, ITransposition>((int)hashSizeElements, (float)0.75);
 		accessCount = new ConcurrentHashMap<Long, Short>();
 		hashMapSize = 0;
 		maxHashMapSize = hashSizeElements;
@@ -75,8 +75,8 @@ public class FixedSizeTranspositionTable {
 		}
 	}
 	
-	public Transposition getTransposition(long hashCode) {
-		Transposition retrievedTrans = hashMap.get(hashCode);
+	public ITransposition getTransposition(long hashCode) {
+		ITransposition retrievedTrans = hashMap.get(hashCode);
 		if (retrievedTrans != null) {
 			incrementAccessCount(hashCode);
 		}
@@ -109,7 +109,7 @@ public class FixedSizeTranspositionTable {
 		removed.clear();
 	}
 	
-	public void putTransposition(long hashCode, Transposition trans) {
+	public void putTransposition(long hashCode, ITransposition trans) {
 		if (hashMapSize >= maxHashMapSize) {
 			// Remove the oldest 20% of hashes to make way for this one
 			removeLeastUsed();

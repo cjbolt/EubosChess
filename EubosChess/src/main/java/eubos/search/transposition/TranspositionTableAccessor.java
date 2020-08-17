@@ -93,7 +93,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return ret;
 	}
 	
-	public Transposition setTransposition(byte currPly, Transposition trans, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove, List<Integer> pv) {
+	public ITransposition setTransposition(byte currPly, ITransposition trans, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove, List<Integer> pv) {
 		if (trans == null) {
 			trans = getTransCreateIfNew(currPly, new_Depth, new_score, new_bound, new_ml, new_bestMove, pv);
 			if (EubosEngineMain.UCI_INFO_ENABLED)
@@ -103,11 +103,11 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return trans;
 	}
 	
-	private Transposition getTransCreateIfNew(int currPly, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove, List<Integer> pv) {
+	private ITransposition getTransCreateIfNew(int currPly, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove, List<Integer> pv) {
 		SearchDebugAgent.printTransNull(currPly, pos.getHash());
-		Transposition trans = hashMap.getTransposition(pos.getHash());
+		ITransposition trans = hashMap.getTransposition(pos.getHash());
 		if (trans == null) {
-			Transposition new_trans = new Transposition(new_Depth, new_score, new_bound, new_ml, new_bestMove, pv);
+			ITransposition new_trans = new Transposition(new_Depth, new_score, new_bound, new_ml, new_bestMove, pv);
 			SearchDebugAgent.printCreateTrans(currPly, pos.getHash());
 			hashMap.putTransposition(pos.getHash(), new_trans);
 			SearchDebugAgent.printTransUpdate(currPly, new_trans, pos.getHash());
@@ -116,7 +116,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return trans;
 	}
 	
-	private Transposition checkForUpdateTrans(int currPly, Transposition current_trans, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove, List<Integer> pv) {
+	private ITransposition checkForUpdateTrans(int currPly, ITransposition current_trans, byte new_Depth, short new_score, ScoreType new_bound, MoveList new_ml, int new_bestMove, List<Integer> pv) {
 		boolean updateTransposition = false;
 		int currentDepth = current_trans.getDepthSearchedInPly();
 		ScoreType currentBound = current_trans.getScoreType();

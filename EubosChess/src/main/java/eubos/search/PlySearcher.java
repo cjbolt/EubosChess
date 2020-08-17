@@ -15,7 +15,7 @@ import eubos.score.IScoreMate;
 import eubos.score.MateScoreGenerator;
 import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.ITranspositionAccessor;
-import eubos.search.transposition.Transposition;
+import eubos.search.transposition.ITransposition;
 import eubos.search.transposition.TranspositionEvaluation;
 import eubos.search.Score.ScoreType;
 
@@ -138,7 +138,7 @@ public class PlySearcher {
 		}
 	}
 	
-	private Score searchMoves(MoveList ml, Transposition trans) throws InvalidPieceException {
+	private Score searchMoves(MoveList ml, ITransposition trans) throws InvalidPieceException {
 		Score theScore = null;		
         if (ml.isMateOccurred()) {
             theScore = new Score(sg.scoreMate(currPly), ScoreType.exact);
@@ -161,7 +161,7 @@ public class PlySearcher {
         return theScore;
     }
 
-	private Score actuallySearchMoves(MoveList ml, PrimitiveIterator.OfInt move_iter, Transposition trans) throws InvalidPieceException {
+	private Score actuallySearchMoves(MoveList ml, PrimitiveIterator.OfInt move_iter, ITransposition trans) throws InvalidPieceException {
 		boolean everBackedUp = false;
 		boolean backedUpScoreWasExact = false;
 		boolean refutationFound = false;
