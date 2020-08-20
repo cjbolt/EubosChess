@@ -270,13 +270,19 @@ public class PlySearcher {
 		if (atRootNode() && isTerminated()) {
 			TranspositionEvaluation eval = tt.getTransposition(currPly, dynamicSearchLevelInPly);
 			if (eval != null && eval.trans != null && eval.trans.getBestMove() != Move.NULL_MOVE) {
+				EubosEngineMain.logger.severe(
+						String.format("handleEarlyTermination best is trans=%s", Move.toGenericMove(eval.trans.getBestMove())));
 				pc.update(0, eval.trans.getBestMove());
 			}
 			// Set best move to the previous iteration search result
 			else if (lastPc != null) {
+				EubosEngineMain.logger.severe(
+						String.format("handleEarlyTermination best is lastPc=%s", Move.toGenericMove(lastPc.get(0))));
 				pc.update(0, lastPc.get(0));
 			} else {
 				// Just return pc
+				EubosEngineMain.logger.severe(
+						String.format("handleEarlyTermination best is pc=%s", Move.toGenericMove(pc.getBestMove((byte)0))));
 			}
 		}
 	}

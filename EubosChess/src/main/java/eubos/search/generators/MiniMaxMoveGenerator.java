@@ -38,6 +38,7 @@ public class MiniMaxMoveGenerator implements
 	private ScoreTracker st;
 	private IEvaluate pe;
 	private short score;
+	private boolean sendInfo = false;
 	
 	public static final int EXTENDED_SEARCH_PLY_LIMIT = 8;
 
@@ -51,7 +52,7 @@ public class MiniMaxMoveGenerator implements
 		this.pe = pe;
 		tt = hashMap;
 		score = 0;
-		sm = new SearchMetrics(pos);	
+		sm = new SearchMetrics(pos);
 	}
 
 	// Used with Arena, Lichess
@@ -68,6 +69,7 @@ public class MiniMaxMoveGenerator implements
 		score = 0;
 		sm = new SearchMetrics(pos);
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
+			sendInfo = true;
 			sr = new SearchMetricsReporter(callback, sm);	
 			sr.setSendInfo(true);
 			sr.start();
@@ -100,7 +102,7 @@ public class MiniMaxMoveGenerator implements
 		boolean foundMate = false;
 		initialiseSearchDepthDependentObjects(searchDepth, pm, pe);
 		ps = new PlySearcher(tta, st, pc, sm, sr, searchDepth, pm, pos, lastPc, pe);
-		if (EubosEngineMain.UCI_INFO_ENABLED) {
+		if (EubosEngineMain.UCI_INFO_ENABLED && sendInfo) {
 			sr.setSendInfo(true);
 		}
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
@@ -115,7 +117,7 @@ public class MiniMaxMoveGenerator implements
 			Math.abs(score) >= (MaterialEvaluator.MATERIAL_VALUE_KING*2)) {
 			foundMate = true;
 		}
-		if (EubosEngineMain.UCI_INFO_ENABLED) {
+		if (EubosEngineMain.UCI_INFO_ENABLED && sendInfo) {
 			sr.setSendInfo(false);
 		}
 		// Select the best move
@@ -132,7 +134,7 @@ public class MiniMaxMoveGenerator implements
 	}
 	
 	public void terminateSearchMetricsReporter() {
-		if (EubosEngineMain.UCI_INFO_ENABLED)
+		if (EubosEngineMain.UCI_INFO_ENABLED && sendInfo)
 			sr.end();
 	}
 }
