@@ -66,6 +66,16 @@ public class PrincipalContinuation {
 		}
 	}
 	
+	void set(int currPly, int currMove) {
+		if (currPly < pc.size()) {
+			List<Integer> plyToUpdatePc = pc.get(currPly);
+			plyToUpdatePc.clear();
+			plyToUpdatePc.add(currMove);
+			clearContinuationsBeyondPly(currPly);
+			SearchDebugAgent.printPrincipalContinuation(currPly, this);
+		}
+	}
+	
 	void update(int currPly, int currMove) {
 		if (currPly < pc.size()) {
 			List<Integer> plyToUpdatePc = pc.get(currPly);
