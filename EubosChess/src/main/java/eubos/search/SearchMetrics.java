@@ -98,9 +98,6 @@ public class SearchMetrics {
 		}
 		return thePv;
 	}
-	public synchronized List<Integer> refreshPrincipalVariation() {
-		return this.pv;
-	}
 	
 	synchronized void setPrincipalVariationData(int extendedSearchDeepestPly, List<Integer> pc, short positionScore) {
 		setPartialDepth(extendedSearchDeepestPly);

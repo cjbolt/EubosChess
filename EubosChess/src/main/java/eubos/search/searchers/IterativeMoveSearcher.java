@@ -9,7 +9,6 @@ import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
-import eubos.position.Move;
 import eubos.score.IEvaluate;
 import eubos.search.NoLegalMoveException;
 import eubos.search.SearchDebugAgent;
@@ -73,31 +72,18 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				// don't start a new iteration, we just allow time to complete the current ply
 				searchStopped = true;
 			}
-			//pc = mg.pc.toPvList(0);
-			pc = mg.sm.refreshPrincipalVariation();
+			pc = mg.pc.toPvList(0);
 			currentDepth++;
 			if (currentDepth == Byte.MAX_VALUE) {
 				break;
 			}
 		}
 		EubosEngineMain.logger.info(
-			String.format("IterativeMoveSearcher ended best=%s, %s", res.bestMove, toString(pc)));
+			String.format("IterativeMoveSearcher ended best=%s, %s", res.bestMove, mg.pc.toStringAt(0)));
 		stopper.end();
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
 		mg.terminateSearchMetricsReporter();
 		SearchDebugAgent.close();
-	}
-	
-	private String toString(List<Integer> plyList) {
-		StringBuilder output = new StringBuilder();
-		if (!plyList.isEmpty()) {
-			for (int currMove : plyList) {
-				assert currMove != Move.NULL_MOVE;
-				output.append((Move.toString(currMove)));
-				output.append(' ');
-			}
-		}
-		return output.toString();
 	}
 
 	class IterativeMoveSearchStopper extends Thread {
