@@ -55,7 +55,7 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"do("+Move.toString(currMove)+") @"+currPly);
+			printOutput(String.format("%sdo(%s) @%d", indent, Move.toString(currMove), currPly));
 		}
 	}
 
@@ -63,7 +63,7 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"undo("+Move.toString(currMove)+") @"+currPly);
+			printOutput(String.format("%sundo(%s) @%d", indent, Move.toString(currMove), currPly));
 		}
 	}
 
@@ -71,7 +71,7 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"backedUp was:"+prevScore+" now:"+positionScore+" @"+currPly);
+			printOutput(String.format("%sbackedUp was:%d now:%d @%d", indent, prevScore, positionScore, currPly));
 		}
 	}
 
@@ -79,7 +79,7 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"pc:"+pc.toStringAt(currPly));
+			printOutput(String.format("%spc:%s", indent, pc.toStringAt(currPly)));
 		}
 	}
 	
@@ -87,7 +87,7 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"possible mate @"+currPly);
+			printOutput(String.format("%spossible mate @%d", indent, +currPly));
 		}
 	}
 	
@@ -95,7 +95,7 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"ref @"+currPly);
+			printOutput(String.format("%sref @%d", indent, currPly));
 		}
 	}
 	
@@ -110,7 +110,7 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"hash "+hash+" term "+trans.report()+" @"+currPly);
+			printOutput(String.format("%shash:%d term:%s @%d", indent, hash, trans.report(), currPly));
 		}
 	}
 
@@ -118,7 +118,7 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"hash "+hash+" ref "+trans.report()+" @ Ply="+currPly);
+			printOutput(String.format("%shash:%d ref:%s @%d", indent, hash, trans.report(), currPly));
 		}
 		
 	}
@@ -127,7 +127,7 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"hash "+hash+" sufficient seed move list with best move:"+Move.toString(move)+" at Ply="+currPly);
+			printOutput(String.format("%shash:%d sufficient seed ml with best:%s @%d", indent, hash, Move.toString(move), currPly));
 		}
 	}
 
@@ -135,7 +135,7 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"ab cmp prev:"+prevPlyScore+" curr:"+positionScore+" @"+currPly);
+			printOutput(String.format("%sab cmp prev:%d curr:%d @%d", indent, prevPlyScore, positionScore, currPly));
 		}
 		
 	}
@@ -144,7 +144,7 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+trans.report()+", hash: "+hashCode + " ref" + trans.toString());
+			printOutput(String.format("%s%s hash:%d object:%s", indent, trans.report(), hashCode, trans.toString()));
 		}		
 	}
 
@@ -152,7 +152,7 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"trans is null, hash: "+hashCode);
+			printOutput(String.format("%strans is null, hash:%d", indent, hashCode));
 		}		
 	}
 	
@@ -160,7 +160,7 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"trans create, hash: "+hashCode);
+			printOutput(String.format("%strans create, hash:%d", indent, hashCode));
 		}		
 	}
 	
@@ -168,7 +168,7 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"trans now exact, hash: "+hashCode+" trans:"+trans.report());
+			printOutput(String.format("%strans now exact, hash:%d trans:%d", indent, hashCode, trans.report()));
 		}		
 	}
 
@@ -179,8 +179,8 @@ public class SearchDebugAgent {
 			}
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"search @"+currPly+" prov="+st.getBackedUpScoreAtPly(currPly).getScore());
-			printOutput(indent+"fen:"+pos.getFen());
+			printOutput(String.format("%ssearch @:%d prov:%d", indent, currPly, st.getBackedUpScoreAtPly(currPly).getScore()));
+			printOutput(String.format("%sfen:%s", indent, pos.getFen()));
 		}
 	}
 
@@ -192,7 +192,7 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"3-fold rep @"+currPly+", hash: "+hash);
+			printOutput(String.format("%s3-fold rep @%d hash:%d", indent, currPly, hash));
 		}
 	}
 
@@ -200,7 +200,7 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"trans set @"+currPly+", depth curr: "+currentDepth+", depth new: "+newDepth);
+			printOutput(String.format("%strans set @%d depth curr:%d depth new:%d", indent, currPly, currentDepth, newDepth));
 		}		
 	}
 
@@ -208,7 +208,7 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"trans set @"+currPly+", bound:"+currentBound+", curr score: "+score+", new score: "+score2);
+			printOutput(String.format("%strans set @%d bound:%d curr score:%d new score:%d", indent, currPly, currentBound, score, score2));
 		}	
 	}
 
@@ -216,7 +216,7 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"extSearch @"+currPly+", move:"+Move.toString(currMove)+", alt score: "+score);
+			printOutput(String.format("%sextSearch @%d move:%s alt score:%d", indent, currPly, Move.toString(currMove), score));
 		}
 	}
 
@@ -224,7 +224,7 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(indent+"extSearch NoMoves term @"+currPly+", score: "+theScore.getScore());
+			printOutput(String.format("%sextSearch NoMoves term @%d score:%s", indent, currPly, theScore.getScore()));
 		}
 	}
 }

@@ -430,6 +430,9 @@ public class MiniMaxMoveGeneratorTest {
 		
 		SearchResult res = classUnderTest.findMove((byte)4);
 		assertEquals(expectedMove, res.bestMove);
+		
+		// changed to safest move in extended search changed the move used here 21st August 2020
+		expectedMove = new GenericMove("h8g8");
 		List<Integer> lastPc = classUnderTest.pc.toPvList(0);
 		res = classUnderTest.findMove((byte)5, lastPc);
 		

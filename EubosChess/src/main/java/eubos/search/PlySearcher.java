@@ -151,8 +151,8 @@ public class PlySearcher {
     			theScore = actuallySearchMoves(ml, move_iter, trans);
     		} else {
     			// It is effectively a terminal node in extended search, so update the trans with null best move
-    			// and return an exact position score back down the tree.			
-    			theScore = applyBestNormalMoveAndScore(ml);
+    			// and return a *safe* exact position score back down the tree. (i.e. not a check).			
+    			theScore = applySafestNormalMoveAndScore(ml);
     			SearchDebugAgent.printExtSearchNoMoves(currPly, theScore);
     			trans = tt.setTransposition(currPly, trans, (byte)0, theScore.getScore(), theScore.getType(), ml, Move.NULL_MOVE, pc.toPvList(currPly));
     		}
@@ -182,7 +182,7 @@ public class PlySearcher {
 			Score provScore = st.getBackedUpScoreAtPly(currPly);
 			boolean isProvisional = (provScore.getScore() == Short.MIN_VALUE || provScore.getScore() == Short.MAX_VALUE);
 			if (isProvisional && ml.hasMultipleRegularMoves()) {
-				plyScore = applyBestNormalMoveAndScore(ml);
+				plyScore = applySafestNormalMoveAndScore(ml);
 				plyScore.type = plyBound;
 				st.setBackedUpScoreAtPly(currPly, plyScore);
 			}
@@ -270,19 +270,20 @@ public class PlySearcher {
 		if (atRootNode() && isTerminated()) {
 			TranspositionEvaluation eval = tt.getTransposition(currPly, dynamicSearchLevelInPly);
 			if (eval != null && eval.trans != null && eval.trans.getBestMove() != Move.NULL_MOVE) {
-				EubosEngineMain.logger.severe(
-						String.format("handleEarlyTermination best is trans=%s", Move.toGenericMove(eval.trans.getBestMove())));
+				// Use current best knowledge about the position from the transposition table
+				EubosEngineMain.logger.info(
+						String.format("best is trans=%s", eval.trans.report()));
 				pc.update(0, eval.trans.getBestMove());
 			}
-			// Set best move to the previous iteration search result
 			else if (lastPc != null) {
-				EubosEngineMain.logger.severe(
-						String.format("handleEarlyTermination best is lastPc=%s", Move.toGenericMove(lastPc.get(0))));
+				// Set best move to the previous iteration search result
+				EubosEngineMain.logger.info(
+						String.format("best is lastPc=%s", Move.toString(lastPc.get(0))));
 				pc.update(0, lastPc.get(0));
 			} else {
-				// Just return pc
-				EubosEngineMain.logger.severe(
-						String.format("handleEarlyTermination best is pc=%s", Move.toGenericMove(pc.getBestMove((byte)0))));
+				// Just return the current pc
+				EubosEngineMain.logger.info(
+						String.format("best is pc=%s", Move.toString(pc.getBestMove((byte)0))));
 			}
 		}
 	}
@@ -349,8 +350,8 @@ public class PlySearcher {
 		return positionScore;
 	}
 	
-	private Score applyBestNormalMoveAndScore(MoveList ml) throws InvalidPieceException {
-		int currMove = ml.getBestMove();
+	private Score applySafestNormalMoveAndScore(MoveList ml) throws InvalidPieceException {
+		int currMove = ml.getSafestMove();
 		assert currMove != Move.NULL_MOVE;
 		SearchDebugAgent.printPerformMove(currPly, currMove);
 		pm.performMove(currMove, false);

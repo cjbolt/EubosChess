@@ -297,4 +297,13 @@ public class MoveList implements Iterable<Integer> {
 			return Move.NULL_MOVE;
 		}
 	}
+	
+	public int getSafestMove() {
+		if (normal_search_moves.length != 0) {
+			/* The logic is to avoid checks, which will be in the highest prio indexes of the ml */
+			return normal_search_moves[normal_search_moves.length-1];
+		} else {
+			return Move.NULL_MOVE;
+		}
+	}
 }

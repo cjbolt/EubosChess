@@ -48,11 +48,11 @@ public abstract class AbstractMoveSearcher extends Thread {
 		try {
 			res = mg.findMove(depth, pc);
 		} catch( NoLegalMoveException e ) {
-			System.out.println( "Eubos has run out of legal moves for side " + pos.getOnMove().toString() );
+			EubosEngineMain.logger.info(
+					String.format("AbstractMoveSearcher out of legal moves for %s", pos.getOnMove()));
 		} catch(InvalidPieceException e ) {
-			System.out.println( 
-					"Serious error: Eubos can't find a piece on the board whilst searching findMove(), at "
-							+ e.getAtPosition().toString() );
+			EubosEngineMain.logger.info(
+					String.format("AbstractMoveSearcher can't find piece at %s", e.getAtPosition()));
 		}
 		return res;
 	}
