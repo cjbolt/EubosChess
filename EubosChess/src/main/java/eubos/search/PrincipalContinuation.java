@@ -80,6 +80,16 @@ public class PrincipalContinuation {
 		}
 	}
 	
+	void set(int currPly, int currMove) {
+		if (currPly < pc.size()) {
+			List<Integer> plyToUpdatePc = pc.get(currPly);
+			plyToUpdatePc.clear();
+			plyToUpdatePc.add(currMove);
+			clearContinuationsBeyondPly(currPly);
+			SearchDebugAgent.printPrincipalContinuation(currPly, this);
+		}
+	}
+	
 	public void update(int currPly, List<Integer> onwards_pv) {
 		if (currPly < pc.size()) {
 			// Update a principal continuation from a Transposition hit

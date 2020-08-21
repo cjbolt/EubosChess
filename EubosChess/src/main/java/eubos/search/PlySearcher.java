@@ -96,7 +96,12 @@ public class PlySearcher {
 		case sufficientTerminalNode:
 		case sufficientRefutation:
 			theScore = new Score(eval.trans.getScore(), eval.trans.getType());
-			pc.update(currPly, eval.trans.getPv());
+			if (eval.trans.getPv() != null) {
+				// when using a PrincipalVariationTransposition...
+				pc.update(currPly, eval.trans.getPv());
+			} else {
+				pc.set(currPly, eval.trans.getBestMove());
+			}
 			if (EubosEngineMain.UCI_INFO_ENABLED)
 				sm.incrementNodesSearched();
 			break;
@@ -268,12 +273,21 @@ public class PlySearcher {
 	
 	private void handleEarlyTermination() {
 		if (atRootNode() && isTerminated()) {
+			int pcBestMove = pc.getBestMove((byte)0);
 			TranspositionEvaluation eval = tt.getTransposition(currPly, dynamicSearchLevelInPly);
 			if (eval != null && eval.trans != null && eval.trans.getBestMove() != Move.NULL_MOVE) {
+				int transBestMove = eval.trans.getBestMove();
 				// Use current best knowledge about the position from the transposition table
 				EubosEngineMain.logger.info(
 						String.format("best is trans=%s", eval.trans.report()));
-				pc.update(0, eval.trans.getBestMove());
+				if (!Move.areEqual(pcBestMove, transBestMove)) {
+					/* This should be an assert mitigation, it should never occur and could be removed. */
+					EubosEngineMain.logger.info(
+							String.format("early term problem - trans and pc moves not equal: %s != %s", 
+									Move.toString(transBestMove),
+									Move.toString(pcBestMove)));
+					pc.set(0, transBestMove);
+				}
 			}
 			else if (lastPc != null) {
 				// Set best move to the previous iteration search result
@@ -283,7 +297,7 @@ public class PlySearcher {
 			} else {
 				// Just return the current pc
 				EubosEngineMain.logger.info(
-						String.format("best is pc=%s", Move.toString(pc.getBestMove((byte)0))));
+						String.format("best is pc=%s", Move.toString(pcBestMove)));
 			}
 		}
 	}
