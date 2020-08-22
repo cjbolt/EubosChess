@@ -52,7 +52,9 @@ public class SearchMetrics {
 		incrementTime();
 		info.setNodes(getNodesSearched());
 		info.setHash(getHashFull());
-		info.setMoveList(getPrincipalVariation());
+		if (pvValid) {
+			info.setMoveList(getPrincipalVariation());
+		}
 		int score = getCpScore();
 		int depth = getDepth();
 		if (java.lang.Math.abs(score)<MaterialEvaluator.MATERIAL_VALUE_KING) {
@@ -85,9 +87,12 @@ public class SearchMetrics {
 	public synchronized void setPrincipalVariation(List<Integer> pc) {
 		if (!pc.isEmpty()) {
 			pvValid = true;
-			pv = pc;
+			pv = new ArrayList<Integer>(pc);
+		} else {
+			pvValid = false;
 		}
 	}
+	
 	synchronized List<GenericMove> getPrincipalVariation() {
 		List<GenericMove> thePv = null;
 		if (pvValid) {
