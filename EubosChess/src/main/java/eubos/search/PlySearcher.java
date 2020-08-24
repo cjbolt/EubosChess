@@ -149,7 +149,7 @@ public class PlySearcher {
             st.setBackedUpScoreAtPly(currPly, theScore);
             // We will now de-recurse, so should make sure the depth searched is correct
             setDepthSearchedInPly();
-			trans = tt.setTransposition(currPly, trans, getTransDepth(), theScore.getScore(), theScore.getType(), ml, Move.NULL_MOVE, pc.toPvList(currPly));
+			trans = tt.setTransposition(currPly, trans, getTransDepth(), theScore.getScore(), theScore.getType(), ml, Move.NULL_MOVE, pc.toPvList(currPly+1));
         } else {
     		PrimitiveIterator.OfInt move_iter = ml.getIterator(isInExtendedSearch());
     		if (move_iter.hasNext()) {
@@ -159,7 +159,7 @@ public class PlySearcher {
     			// and return a *safe* exact position score back down the tree. (i.e. not a check).			
     			theScore = applySafestNormalMoveAndScore(ml);
     			SearchDebugAgent.printExtSearchNoMoves(currPly, theScore);
-    			trans = tt.setTransposition(currPly, trans, (byte)0, theScore.getScore(), theScore.getType(), ml, Move.NULL_MOVE, pc.toPvList(currPly));
+    			trans = tt.setTransposition(currPly, trans, (byte)0, theScore.getScore(), theScore.getType(), ml, Move.NULL_MOVE, pc.toPvList(currPly+1));
     		}
         }
         return theScore;
@@ -205,16 +205,15 @@ public class PlySearcher {
 	                backedUpScoreWasExact = (positionScore.getType()==Score.exact);
                     plyScore = positionScore;
                     updatePrincipalContinuation(currMove, positionScore.getScore());
-                    trans = tt.setTransposition(currPly, trans, getTransDepth(), positionScore.getScore(), plyBound, ml, currMove, pc.toPvList(currPly));
+                    trans = tt.setTransposition(currPly, trans, getTransDepth(), positionScore.getScore(), plyBound, ml, currMove, pc.toPvList(currPly+1));
 	            } else {
                     List<Integer> last_pv = pc.toPvList(currPly+1);
-                    last_pv.add(0, currMove);
 	                // Always clear the principal continuation when we didn't back up the score
 	                pc.clearContinuationsBeyondPly(currPly);
 	                // Update the position hash if the move is better than that previously stored at this position
 	                if (shouldUpdatePositionBoundScoreAndBestMove(plyBound, plyScore.getScore(), positionScore.getScore())) {
 	                    plyScore = positionScore;
-	                    trans = tt.setTransposition(currPly, trans, getTransDepth(), plyScore.getScore(), plyBound, ml, currMove, last_pv/*(trans != null) ? trans.getPv() : null*/);
+	                    trans = tt.setTransposition(currPly, trans, getTransDepth(), plyScore.getScore(), plyBound, ml, currMove, last_pv);
 	                }
 	            }
 	        
@@ -239,7 +238,7 @@ public class PlySearcher {
 		    		
 			        // found to be needed due to score discrepancies caused by refutations coming out of extended search...
 			        trans.setBestMove(pc.getBestMove(currPly));
-			        trans.setPv(pc.toPvList(currPly));
+			        trans.setPv(pc.toPvList(currPly+1));
 			        trans.setScore(plyScore.getScore());
 			        
 			        SearchDebugAgent.printExactTrans(currPly, pos.getHash(), trans);
@@ -264,8 +263,10 @@ public class PlySearcher {
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			if (atRootNode()) {
 				if (sr != null) {
-					sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), positionScore);
-					sr.reportPrincipalVariation();
+					if (!pc.toPvList(currPly).isEmpty()) {
+						sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(currPly), positionScore);
+						sr.reportPrincipalVariation();
+					}
 				}
 			}
 		}

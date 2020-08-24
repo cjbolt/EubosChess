@@ -94,13 +94,17 @@ public class PrincipalVariationTransposition implements ITransposition {
 	public List<Integer> getPv() {
 		return pv;
 	}
+	
+	private void truncateOnwardPvToSearchDepth(List<Integer> pv) {
+		if (pv != null && pv.size() > depthSearchedInPly) {
+			pv.subList(depthSearchedInPly, pv.size()).clear();
+		}
+	}
 
 	@Override
 	public void setPv(List<Integer> pv) {
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
-			if (pv != null && pv.size() > depthSearchedInPly) {
-				pv.subList(depthSearchedInPly, pv.size()).clear();
-			}
+			truncateOnwardPvToSearchDepth(pv);
 			this.pv = pv;
 		}
 	}

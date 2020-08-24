@@ -83,5 +83,12 @@ public class PrincipalContinuationTest {
 	public void testClearAfter() {
 		fail("Not yet implemented");
 	}
-
+	
+	@Test
+	public void testUpdateAtPly0WhenEnpty() {
+		classUnderTest.update(0, Move.valueOf(Position.e2, Piece.NONE, Position.e4, Piece.NONE ));
+		List<Integer> updated_pc = classUnderTest.toPvList(0);
+		assertFalse(updated_pc.isEmpty());
+		assertEquals((int)Move.valueOf(Position.e2, Piece.NONE, Position.e4, Piece.NONE ), (int)updated_pc.get(0));
+	}
 }
