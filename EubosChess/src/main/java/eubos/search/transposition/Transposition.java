@@ -14,6 +14,7 @@ public class Transposition implements ITransposition {
 	private MoveList ml;
 	private int bestMove;
 	private byte scoreType;
+	private short accessCount;
 
 	public Transposition(byte depth, short score, byte scoreType, MoveList ml, GenericMove bestMove) {
 		// Only used by tests
@@ -26,6 +27,7 @@ public class Transposition implements ITransposition {
 		setScore(score);
 		setType(scoreType);
 		setBestMove(bestMove);
+		setAccessCount((short)0);
 	}
 	
 	public Transposition(byte depth, Score score, MoveList ml, int bestMove, List<Integer> pv) {
@@ -121,5 +123,13 @@ public class Transposition implements ITransposition {
 		setType(new_bound);
 		setScore(new_score);
 		setBestMove(new_bestMove);
+	}
+	
+	public short getAccessCount() {
+		return accessCount;
+	}
+	
+	public void setAccessCount(short accessCount) {
+		this.accessCount = accessCount;
 	}
 }

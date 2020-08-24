@@ -17,6 +17,7 @@ public class PrincipalVariationTransposition implements ITransposition {
 	private int bestMove;
 	private byte scoreType;
 	private List<Integer> pv;
+	private short accessCount;
 
 	public PrincipalVariationTransposition(byte depth, short score, byte scoreType, MoveList ml, GenericMove bestMove) {
 		// Only used by tests
@@ -29,7 +30,7 @@ public class PrincipalVariationTransposition implements ITransposition {
 		setScore(score);
 		setType(scoreType);
 		setBestMove(bestMove);
-		setPv(pv);
+		setAccessCount((short)0);
 	}
 	
 	public PrincipalVariationTransposition(byte depth, Score score, MoveList ml, int bestMove, List<Integer> pv) {
@@ -143,5 +144,13 @@ public class PrincipalVariationTransposition implements ITransposition {
 		setScore(new_score);
 		setBestMove(new_bestMove);
 		setPv(pv);
+	}
+	
+	public short getAccessCount() {
+		return accessCount;
+	}
+	
+	public void setAccessCount(short accessCount) {
+		this.accessCount = accessCount;
 	}
 }

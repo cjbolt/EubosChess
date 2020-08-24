@@ -1,6 +1,5 @@
 package eubos.search.transposition;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -8,7 +7,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.openjdk.jol.info.ClassLayout;
+
 import eubos.main.EubosEngineMain;
+import eubos.position.MoveList;
 
 
 public class FixedSizeTranspositionTable {
@@ -16,37 +18,43 @@ public class FixedSizeTranspositionTable {
 	public static final long ELEMENTS_DEFAULT_HASH_SIZE = (1L << 22);
 	
 	public static final long MOVELIST_NORMAL_WORST_SIZE = 40L;
+	public static final long MOVELIST_NORMAL_AVERAGE_SIZE = 20L;
 	public static final long MOVELIST_EXTENDED_AVERAGE_SIZE = 5L;
 	
 	public static final long MOVELIST_AVERAGE_SIZE = (
-			MOVELIST_NORMAL_WORST_SIZE +
+			//MOVELIST_NORMAL_WORST_SIZE +
+			MOVELIST_NORMAL_AVERAGE_SIZE +
 			MOVELIST_EXTENDED_AVERAGE_SIZE);
 	
-	public static final long BYTES_MOVELIST_AVERAGE = (
-			MOVELIST_AVERAGE_SIZE*Integer.BYTES +
-			2*Byte.BYTES);
+	//	public static final long BYTES_MOVELIST_AVERAGE = (
+	//			MOVELIST_AVERAGE_SIZE*Integer.BYTES +
+	//			2*Byte.BYTES);
 	
-	public static final long BYTES_TRANSPOSTION_ELEMENT = (
-			Long.BYTES /*Zobrist*/ +
-			Short.BYTES /*score*/ +
-			Byte.BYTES /*depth*/ +
-			Integer.BYTES /*best*/ +
-			Byte.BYTES /*bound*/ +
-			4 /*MoveList reference size?*/);
+	public static final long BYTES_MOVELIST_AVERAGE;
+	static {
+		BYTES_MOVELIST_AVERAGE = ClassLayout.parseClass(MoveList.class).instanceSize() +
+				MOVELIST_AVERAGE_SIZE*Integer.BYTES;
+	}
 	
-	public static final long BYTES_ACCESS_COUNT = (
-			Short.BYTES +
-			Long.BYTES);
+	//	public static final long BYTES_TRANSPOSTION_ELEMENT = (
+	//			Long.BYTES /* Zobrist */ +
+	//			Short.BYTES /* score */ +
+	//			Byte.BYTES /* depth */ +
+	//			Integer.BYTES /* best move */ +
+	//			Byte.BYTES /* bound score */ +
+	//			4 /* MoveList reference size */ +
+	//			Short.BYTES /* access count */ +
+	//			12 /* instance header, found by JOL */ +
+	//			6 /* padding, found by JOL */ );
 	
-	public static final long BYTES_DRAW_CHECKER = (
-			Long.BYTES +
-			Byte.BYTES);
+	public static final long BYTES_TRANSPOSTION_ELEMENT;
+	static {
+		BYTES_TRANSPOSTION_ELEMENT = ClassLayout.parseClass(Transposition.class).instanceSize();
+	}
 	
 	public static final long BYTES_PER_TRANSPOSITION = (
 			BYTES_TRANSPOSTION_ELEMENT + 
-			BYTES_MOVELIST_AVERAGE + 
-			BYTES_ACCESS_COUNT +
-			BYTES_DRAW_CHECKER);
+			BYTES_MOVELIST_AVERAGE);
 	
 	public static final long BYTES_PER_MEGABYTE = (1024L * 1000L);
 	
@@ -55,7 +63,6 @@ public class FixedSizeTranspositionTable {
 	private ConcurrentHashMap<Long, ITransposition> hashMap = null;
 	private long hashMapSize = 0;
 	private long maxHashMapSize = ELEMENTS_DEFAULT_HASH_SIZE;
-	private ConcurrentHashMap<Long, Short> accessCount = null;
 	
 	public long getHashMapSize() {
 		return hashMapSize;
@@ -88,7 +95,6 @@ public class FixedSizeTranspositionTable {
 				(hashSizeElements*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE));
 		
 		hashMap = new ConcurrentHashMap<Long, ITransposition>((int)hashSizeElements, (float)0.75);
-		accessCount = new ConcurrentHashMap<Long, Short>();
 		hashMapSize = 0;
 		maxHashMapSize = hashSizeElements;
 	}
@@ -98,13 +104,12 @@ public class FixedSizeTranspositionTable {
 	}
 	
 	private void incrementAccessCount(long hashCode) {
-		if (accessCount.containsKey(hashCode)) {
-			short count = accessCount.get(hashCode);
+		if (hashMap.containsKey(hashCode)) {
+			ITransposition trans = hashMap.get(hashCode);
+			short count = trans.getAccessCount();
 			if (count != Short.MAX_VALUE) {
-				accessCount.put(hashCode, (short)(count+1));
+				trans.setAccessCount((short)(count+1));
 			}
-		} else {
-			accessCount.put(hashCode,(short)1);
 		}
 	}
 	
@@ -116,30 +121,36 @@ public class FixedSizeTranspositionTable {
 		return retrievedTrans;
 	}
 	
+	private LinkedList<Short> getAccessCountList() {
+		LinkedList<Short> theAccessCounts = new LinkedList<Short>(); 
+		for (ITransposition trans : hashMap.values()) {
+			theAccessCounts.add(trans.getAccessCount());
+		}
+		return theAccessCounts;
+	}
+	
 	private void removeLeastUsed() {
-		Collection<Short> theAccessCounts = accessCount.values();
-		LinkedList<Short> list = new LinkedList<Short>(theAccessCounts);
+		LinkedList<Short> list = getAccessCountList();
 		Collections.sort(list);
 		int twentyPercentIndex = (int) (maxHashMapSize/5);
 		Short bottomTwentyPercentAccessThreshold = list.get(twentyPercentIndex);
-		LinkedList<Long> removed = new LinkedList<Long>();
-		Iterator<Entry<Long, Short>> it = accessCount.entrySet().iterator();
-		while (it.hasNext()) {
-			Map.Entry<Long, Short> pair = (Map.Entry<Long, Short>)it.next();
-			if (pair.getValue() <= bottomTwentyPercentAccessThreshold) {
-				removed.add(pair.getKey());
-				hashMap.remove(pair.getKey());
+		
+		Iterator<Entry<Long, ITransposition>> it = hashMap.entrySet().iterator();
+		ConcurrentHashMap<Long, ITransposition> hashMapCopy = new ConcurrentHashMap<Long, ITransposition>(hashMap);
+		while (it.hasNext()){
+			Map.Entry<Long, ITransposition> pair = (Map.Entry<Long, ITransposition>)it.next();
+			short count = pair.getValue().getAccessCount();
+			if (count <= bottomTwentyPercentAccessThreshold) {
+				hashMapCopy.remove(pair.getKey());
 				hashMapSize--;
 			} else {
 				// Normalise remaining counts after every cull operation
-				pair.setValue((short)(pair.getValue()-bottomTwentyPercentAccessThreshold));
+				pair.getValue().setAccessCount((short)(count-bottomTwentyPercentAccessThreshold));
 			}
 		}
-		for (long removedHashCode : removed) {
-			accessCount.remove(removedHashCode);
-		}
 		list.clear();
-		removed.clear();
+		hashMap.clear();
+		hashMap = hashMapCopy;
 	}
 	
 	public void putTransposition(long hashCode, ITransposition trans) {
@@ -155,6 +166,9 @@ public class FixedSizeTranspositionTable {
 	}
 
 	public void protectHash(long hashCode) {
-		accessCount.put(hashCode, Short.MAX_VALUE);
+		if (hashMap.containsKey(hashCode)) {
+			ITransposition trans = hashMap.get(hashCode);
+			trans.setAccessCount(Short.MAX_VALUE);
+		}
 	}
 }

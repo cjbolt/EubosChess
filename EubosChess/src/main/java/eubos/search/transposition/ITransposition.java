@@ -32,5 +32,8 @@ public interface ITransposition {
 
 	void update(byte new_Depth, short new_score, byte new_bound, MoveList new_ml, int new_bestMove,
 			List<Integer> pv);
-
+	
+	short getAccessCount();
+	
+	void setAccessCount(short accessCount);
 }

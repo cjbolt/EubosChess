@@ -98,7 +98,9 @@ public class SearchMetrics {
 		if (pvValid) {
 			thePv = new ArrayList<GenericMove>();
 			for (int move : this.pv) {
-				thePv.add(Move.toGenericMove(move));
+				if (move != Move.NULL_MOVE) {
+					thePv.add(Move.toGenericMove(move));
+				}
 			}
 		}
 		return thePv;
