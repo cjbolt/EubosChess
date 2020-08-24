@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import eubos.main.EubosEngineMain;
+
 
 public class FixedSizeTranspositionTable {
 	
@@ -79,6 +81,12 @@ public class FixedSizeTranspositionTable {
 			 * as we are resource constrained and garbage collection will kill speed of the engine. */
 			hashSizeElements = (hashSizeElements*4)/10;
 		}
+		
+		EubosEngineMain.logger.info(String.format(
+				"Hash dimensions requestedSizeMBytes=%d maxHeapSizeMBytes=%d, maxSizeElements=%d, maxSizeMBytes=%d", 
+				hashSizeMBytes, maxHeapSize/BYTES_PER_MEGABYTE, hashSizeElements,
+				(hashSizeElements*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE));
+		
 		hashMap = new ConcurrentHashMap<Long, ITransposition>((int)hashSizeElements, (float)0.75);
 		accessCount = new ConcurrentHashMap<Long, Short>();
 		hashMapSize = 0;
