@@ -263,10 +263,8 @@ public class PlySearcher {
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			if (atRootNode()) {
 				if (sr != null) {
-					if (!pc.toPvList(currPly).isEmpty()) {
-						sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(currPly), positionScore);
-						sr.reportPrincipalVariation();
-					}
+					sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), positionScore);
+					sr.reportPrincipalVariation();
 				}
 			}
 		}

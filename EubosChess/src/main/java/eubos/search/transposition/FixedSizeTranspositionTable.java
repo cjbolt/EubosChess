@@ -18,7 +18,7 @@ public class FixedSizeTranspositionTable {
 	public static final long ELEMENTS_DEFAULT_HASH_SIZE = (1L << 22);
 	
 	public static final long MOVELIST_NORMAL_WORST_SIZE = 40L;
-	public static final long MOVELIST_NORMAL_AVERAGE_SIZE = 20L;
+	public static final long MOVELIST_NORMAL_AVERAGE_SIZE = 26L;
 	public static final long MOVELIST_EXTENDED_AVERAGE_SIZE = 5L;
 	
 	public static final long MOVELIST_AVERAGE_SIZE = (
@@ -84,9 +84,9 @@ public class FixedSizeTranspositionTable {
 		long hashSizeElements = (hashSizeMBytes * BYTES_PER_MEGABYTE) / BYTES_PER_TRANSPOSITION;
 		long maxHeapSize = Runtime.getRuntime().maxMemory();
 		if ((hashSizeMBytes * BYTES_PER_MEGABYTE) > ((maxHeapSize*4)/10)) {
-			/*If the configured hash size is greater than 40% of the heap, then reduce the hash size
+			/* If the configured hash size is greater than 40% of the heap, then reduce the hash size
 			 * as we are resource constrained and garbage collection will kill speed of the engine. */
-			hashSizeElements = (hashSizeElements*4)/10;
+			hashSizeElements = ((maxHeapSize*4)/10) / BYTES_PER_TRANSPOSITION;
 		}
 		
 		EubosEngineMain.logger.info(String.format(
