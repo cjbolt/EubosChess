@@ -22,8 +22,8 @@ public class FixedSizeTranspositionTable {
 	public static final long MOVELIST_EXTENDED_AVERAGE_SIZE = 5L;
 	
 	public static final long MOVELIST_AVERAGE_SIZE = (
-			//MOVELIST_NORMAL_WORST_SIZE +
-			MOVELIST_NORMAL_AVERAGE_SIZE +
+			MOVELIST_NORMAL_WORST_SIZE +
+			//MOVELIST_NORMAL_AVERAGE_SIZE +
 			MOVELIST_EXTENDED_AVERAGE_SIZE);
 	
 	//	public static final long BYTES_MOVELIST_AVERAGE = (
