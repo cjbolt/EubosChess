@@ -65,6 +65,8 @@ public class SearchMetrics {
 		}
 		info.setDepth(depth);
 		info.setMaxDepth(getPartialDepth());
+		info.setNps(getNodesPerSecond());
+		info.setTime(getTime());
 	}
 	
 	void incrementNodesSearched() { nodesSearched.incrementAndGet(); }

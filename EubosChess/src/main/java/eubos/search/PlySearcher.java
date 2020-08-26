@@ -343,11 +343,8 @@ public class PlySearcher {
 	private MoveList getMoveList(int transBestMove) throws InvalidPieceException {
 		MoveList ml = null;
 		if (transBestMove != Move.NULL_MOVE) {
-			// Use trans for seeding move list
+			// Use transposition best move or last principal continuation for seeding move list
 			ml = new MoveList((PositionManager) pm, transBestMove);
-		} else if ((lastPc != null) && (lastPc.size() > currPly)) {
-			// Seeded move list is possible from last pc
-			ml = new MoveList((PositionManager) pm, lastPc.get(currPly));
 		} else {
 			ml = new MoveList((PositionManager) pm);
 		}

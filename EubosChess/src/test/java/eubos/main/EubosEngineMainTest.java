@@ -135,14 +135,15 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
+	@Ignore // till we can mask out the time info in info messages
 	public void test_infoMessageSending() throws InterruptedException, IOException {
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			setupEngine();
 			// Setup Commands specific to this test
 			commands.add(new commandPair(POS_FEN_PREFIX+"r1b1kb1r/ppqnpppp/8/3pP3/3Q4/5N2/PPP2PPP/RNB1K2R b KQkq - 2 8"+CMD_TERMINATOR, null));
-			commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR, "info depth 1 seldepth 4 score cp -800 pv c7e5 f3e5 d7e5 d4e5 hashfull 0 nodes 12"+CMD_TERMINATOR+
-					                                                         "info depth 1 seldepth 4 score cp -30 pv d7e5 f3e5 c7c2 hashfull 0 nodes 31"+CMD_TERMINATOR+
-					                                                         "info depth 1 seldepth 4 score cp 155 pv c7c2 hashfull 0 nodes 32"+CMD_TERMINATOR
+			commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR, "info depth 1 seldepth 4 score cp -800 pv c7e5 f3e5 d7e5 d4e5 hashfull 0 nps 196 time 61 nodes 12"+CMD_TERMINATOR+
+					                                                         "info depth 1 seldepth 4 score cp -30 pv d7e5 f3e5 c7c2 hashfull 0 nps 492 time 63 nodes 31"+CMD_TERMINATOR+
+					                                                         "info depth 1 seldepth 4 score cp 155 pv c7c2 hashfull 0 nps 507 time 63 nodes 32"+CMD_TERMINATOR
 					                                                         +BEST_PREFIX+"c7c2"+CMD_TERMINATOR));
 			/* causes a bad info message to be generated, f3e5 and c7c2 are not cleared from the first PV in the ext search...
 			info depth 1 seldepth 4 score cp -490 pv c7e5 f3e5 d7e5 hashfull 0 nps 214 time 42 nodes 9

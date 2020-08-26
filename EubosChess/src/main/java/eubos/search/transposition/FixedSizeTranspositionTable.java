@@ -125,20 +125,18 @@ public class FixedSizeTranspositionTable {
 		return retrievedTrans;
 	}
 	
-	private LinkedList<Short> getAccessCountList() {
+	private Short getBottomTwentyPercentAccessThreshold() {
 		LinkedList<Short> theAccessCounts = new LinkedList<Short>(); 
 		for (ITransposition trans : hashMap.values()) {
 			theAccessCounts.add(trans.getAccessCount());
 		}
-		return theAccessCounts;
+		Collections.sort(theAccessCounts);
+		int twentyPercentIndex = (int) (maxHashMapSize/5);
+		return theAccessCounts.get(twentyPercentIndex);
 	}
 	
 	private void removeLeastUsed() {
-		LinkedList<Short> list = getAccessCountList();
-		Collections.sort(list);
-		int twentyPercentIndex = (int) (maxHashMapSize/5);
-		Short bottomTwentyPercentAccessThreshold = list.get(twentyPercentIndex);
-		
+		Short bottomTwentyPercentAccessThreshold = getBottomTwentyPercentAccessThreshold();
 		Iterator<Entry<Long, ITransposition>> it = hashMap.entrySet().iterator();
 		ConcurrentHashMap<Long, ITransposition> hashMapCopy = new ConcurrentHashMap<Long, ITransposition>(hashMap);
 		while (it.hasNext()){
@@ -152,8 +150,6 @@ public class FixedSizeTranspositionTable {
 				pair.getValue().setAccessCount((short)(count-bottomTwentyPercentAccessThreshold));
 			}
 		}
-		list.clear();
-		hashMap.clear();
 		hashMap = hashMapCopy;
 	}
 	

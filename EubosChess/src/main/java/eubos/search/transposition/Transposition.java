@@ -11,7 +11,6 @@ import eubos.search.Score;
 public class Transposition implements ITransposition {
 	private byte depthSearchedInPly;
 	private short score;
-	//private MoveList ml;
 	private int bestMove;
 	private byte scoreType;
 	private short accessCount;
@@ -78,14 +77,10 @@ public class Transposition implements ITransposition {
 	public void setBestMove(int bestMove) {
 		if (!Move.areEqual(this.bestMove, bestMove)) {
 			this.bestMove = bestMove;
-//			if (bestMove != 0) {
-//				this.ml.reorderWithNewBestMove(bestMove);
-//			}
 		}
 	}
 	
-	void setMoveList(MoveList new_ml) {
-		//this.ml = new_ml;		
+	void setMoveList(MoveList new_ml) {		
 	}
 	
 	@Override
