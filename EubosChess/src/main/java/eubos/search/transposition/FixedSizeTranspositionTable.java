@@ -90,6 +90,10 @@ public class FixedSizeTranspositionTable {
 		}
 		
 		EubosEngineMain.logger.info(String.format(
+				"BYTES_TRANSPOSTION_ELEMENT=%d BYTES_MOVELIST_AVERAGE=%d, BYTES_PER_TRANSPOSITION=%d", 
+				BYTES_TRANSPOSTION_ELEMENT, BYTES_MOVELIST_AVERAGE,	BYTES_PER_TRANSPOSITION));
+		
+		EubosEngineMain.logger.info(String.format(
 				"Hash dimensions requestedSizeMBytes=%d maxHeapSizeMBytes=%d, maxSizeElements=%d, maxSizeMBytes=%d", 
 				hashSizeMBytes, maxHeapSize/BYTES_PER_MEGABYTE, hashSizeElements,
 				(hashSizeElements*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE));
