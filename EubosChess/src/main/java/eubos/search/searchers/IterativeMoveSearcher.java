@@ -84,6 +84,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
 		mg.terminateSearchMetricsReporter();
 		SearchDebugAgent.close();
+		//System.gc();
 	}
 
 	class IterativeMoveSearchStopper extends Thread {
@@ -127,6 +128,8 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 					}
 					if (terminateNow) {
 						mg.terminateFindMove();
+						
+						EubosEngineMain.logger.info("Terminating findMove");
 						searchStopped = true;
 						stopperActive = false;
 					} else {
