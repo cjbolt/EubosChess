@@ -86,6 +86,7 @@ public class PlySearcher {
 	public Score searchPly() throws InvalidPieceException {
 		Score theScore = null;
 		MoveList ml = null;
+		int prevBestMove = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
 		
 		st.setProvisionalScoreAtPly(currPly);
 		SearchDebugAgent.printStartPlyInfo(currPly, st, pos, originalSearchDepthRequiredInPly);
@@ -108,10 +109,11 @@ public class PlySearcher {
 		case sufficientSeedMoveList:
 			SearchDebugAgent.printHashIsSeedMoveList(currPly, eval.trans.getBestMove(), pos.getHash());
 			ml = eval.trans.getMoveList();
+			prevBestMove = eval.trans.getBestMove();
 			// intentional drop through
 		case insufficientNoData:
 			if (ml == null)
-				ml = getMoveList();
+				ml = getMoveList(prevBestMove);
 			theScore = searchMoves( ml, eval.trans);
 			break;	
 		default:
@@ -338,10 +340,13 @@ public class PlySearcher {
 		return backupRequired;
 	}
 		
-	private MoveList getMoveList() throws InvalidPieceException {
+	private MoveList getMoveList(int transBestMove) throws InvalidPieceException {
 		MoveList ml = null;
-		if ((lastPc != null) && (lastPc.size() > currPly)) {
-			// Seeded move list is possible
+		if (transBestMove != Move.NULL_MOVE) {
+			// Use trans for seeding move list
+			ml = new MoveList((PositionManager) pm, transBestMove);
+		} else if ((lastPc != null) && (lastPc.size() > currPly)) {
+			// Seeded move list is possible from last pc
 			ml = new MoveList((PositionManager) pm, lastPc.get(currPly));
 		} else {
 			ml = new MoveList((PositionManager) pm);

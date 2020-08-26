@@ -15,7 +15,7 @@ import eubos.position.MoveList;
 
 public class FixedSizeTranspositionTable {
 	
-	public static final long ELEMENTS_DEFAULT_HASH_SIZE = (1L << 22);
+	public static final long ELEMENTS_DEFAULT_HASH_SIZE = (1L << 25);
 	
 	public static final long MOVELIST_NORMAL_WORST_SIZE = 40L;
 	public static final long MOVELIST_NORMAL_AVERAGE_SIZE = 26L;
@@ -53,8 +53,8 @@ public class FixedSizeTranspositionTable {
 	}
 	
 	public static final long BYTES_PER_TRANSPOSITION = (
-			BYTES_TRANSPOSTION_ELEMENT + 
-			BYTES_MOVELIST_AVERAGE);
+			BYTES_TRANSPOSTION_ELEMENT /*+ 
+			BYTES_MOVELIST_AVERAGE*/);
 	
 	public static final long BYTES_PER_MEGABYTE = (1024L * 1000L);
 	
