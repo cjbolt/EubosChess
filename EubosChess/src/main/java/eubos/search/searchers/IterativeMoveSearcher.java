@@ -34,7 +34,8 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		if (Colour.isBlack(pos.getOnMove())) {
 			initialScore = (short)-initialScore;
 		}
-		EubosEngineMain.logger.info("IterativeMoveSearcher initialScore="+initialScore);
+		EubosEngineMain.logger.info(
+				String.format("Starting initialScore=%d gameTimeRemaining=%d", initialScore, time));
 		gameTimeRemaining = time;
 		this.setName("IterativeMoveSearcher");
 	}
@@ -71,6 +72,8 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			if (stopper.extraTime) {
 				// don't start a new iteration, we just allow time to complete the current ply
 				searchStopped = true;
+				EubosEngineMain.logger.info(
+						String.format("findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
 			}
 			pc = mg.pc.toPvList(0);
 			currentDepth++;
@@ -79,7 +82,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			}
 		}
 		EubosEngineMain.logger.info(
-			String.format("IterativeMoveSearcher ended best=%s", res.bestMove));
+			String.format("IterativeMoveSearcher ended best=%s gameTimeRemaining=%d", res.bestMove, gameTimeRemaining));
 		stopper.end();
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
 		mg.terminateSearchMetricsReporter();
@@ -92,6 +95,9 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		private boolean stopperActive = false;
 		boolean extraTime = false;
 		private int checkPoint = 0;
+		long timeRanFor = 0;
+		long timeIntoWait = 0;
+		long timeOutOfWait = 0;
 		
 		IterativeMoveSearchStopper(short initialScore) {
 		}
@@ -129,13 +135,17 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 					if (terminateNow) {
 						mg.terminateFindMove();
 						
-						EubosEngineMain.logger.info("Terminating findMove");
+						EubosEngineMain.logger.info(
+								String.format("Terminating findMove, ran for %d ms", timeRanFor));
+						
 						searchStopped = true;
 						stopperActive = false;
 					} else {
 						checkPoint++;
 					}
 				}
+				
+				timeIntoWait = System.currentTimeMillis();
 				try {
 					synchronized (this) {
 						this.wait(Math.max(timeQuanta, 1));
@@ -143,7 +153,12 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
+				timeOutOfWait = System.currentTimeMillis();
+				long duration = Math.max((timeOutOfWait - timeIntoWait), 1);
+				gameTimeRemaining -= duration;
+				timeRanFor += duration;
 				hasWaitedOnce = true;
+				
 			} while (stopperActive);
 		}
 		
@@ -156,7 +171,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		
 		private long calculateSearchTimeQuanta() {
 			int moveHypothesis = (AVG_MOVES_PER_GAME - pos.getMoveNumber());
-			int movesRemaining = (moveHypothesis > 10) ? moveHypothesis : 10;
+			int movesRemaining = Math.max(moveHypothesis, 10);
 			long msPerMove = gameTimeRemaining/movesRemaining;
 			long timeQuanta = msPerMove/2;
 			return timeQuanta;
