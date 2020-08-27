@@ -172,7 +172,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		public void end() {
 			stopperActive = false;
 			synchronized (this) {
-				this.notify();
+				this.interrupt();
 			}
 		}
 		
