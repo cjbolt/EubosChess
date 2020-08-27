@@ -87,7 +87,8 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
 		mg.terminateSearchMetricsReporter();
 		SearchDebugAgent.close();
-		//System.gc();
+		if (gameTimeRemaining > 60000)
+			System.gc();
 	}
 
 	class IterativeMoveSearchStopper extends Thread {
@@ -151,19 +152,28 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 					EubosEngineMain.logger.info(String.format(
 							"IterativeMoveSearchStopper checkPoint=%d searchStopped=%s ranFor=%d ", checkPoint, searchStopped, timeRanFor));
 				}
-				
-				timeIntoWait = System.currentTimeMillis();
-				try {
-					if (timeQuanta > 0)
+				long duration = 0;
+				if (timeQuanta > 0) {
+					timeIntoWait = System.currentTimeMillis();
+					try {
 						Thread.sleep(timeQuanta);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-					Thread.currentThread().interrupt();
+					} catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
+					timeOutOfWait = System.currentTimeMillis();
+					duration = timeOutOfWait - timeIntoWait;
 				}
-				timeOutOfWait = System.currentTimeMillis();
-				long duration = Math.max((timeOutOfWait - timeIntoWait), 1);
 				gameTimeRemaining -= duration;
 				timeRanFor += duration;
+				if (duration > 3*timeQuanta) {
+					EubosEngineMain.logger.info(String.format(
+							"Problem with waking stopper, quitting! checkPoint=%d ranFor=%d timeQuanta=%d duration=%d",
+							checkPoint, timeRanFor, timeQuanta, duration));
+					
+					mg.terminateFindMove();
+					searchStopped = true;
+					stopperActive = false;
+				}
 				hasWaitedOnce = true;
 				
 			} while (stopperActive);
@@ -179,7 +189,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		private long calculateSearchTimeQuanta() {
 			int moveHypothesis = (AVG_MOVES_PER_GAME - pos.getMoveNumber());
 			int movesRemaining = Math.max(moveHypothesis, 10);
-			long msPerMove = gameTimeRemaining/movesRemaining;
+			long msPerMove = Math.max((gameTimeRemaining/movesRemaining), 0);
 			long timeQuanta = msPerMove/2;
 			return timeQuanta;
 		}

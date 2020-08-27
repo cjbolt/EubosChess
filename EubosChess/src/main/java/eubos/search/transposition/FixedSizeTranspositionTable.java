@@ -1,8 +1,8 @@
 package eubos.search.transposition;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -126,7 +126,7 @@ public class FixedSizeTranspositionTable {
 	}
 	
 	private Short getBottomTwentyPercentAccessThreshold() {
-		LinkedList<Short> theAccessCounts = new LinkedList<Short>(); 
+		ArrayList<Short> theAccessCounts = new ArrayList<Short>(hashMap.size()); 
 		for (ITransposition trans : hashMap.values()) {
 			theAccessCounts.add(trans.getAccessCount());
 		}
