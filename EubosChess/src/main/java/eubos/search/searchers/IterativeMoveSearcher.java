@@ -123,26 +123,32 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 						}
 						extraTime = true;
 						break;
+					case 2:
+						break;
 					case 3:
 						if (currentScore >= (initialScore - 300))
 							terminateNow = true;
 						break;
+					case 4:
+					case 5:
+					case 6:
+						break;
 					case 7:
-						terminateNow = true;
 					default:
+						terminateNow = true;
+					
 						break;
 					}
 					if (terminateNow) {
 						mg.terminateFindMove();
-						
-						EubosEngineMain.logger.info(
-								String.format("Terminating findMove, ran for %d ms", timeRanFor));
-						
 						searchStopped = true;
 						stopperActive = false;
 					} else {
 						checkPoint++;
 					}
+					
+					EubosEngineMain.logger.info(String.format(
+							"IterativeMoveSearchStopper checkPoint=%d searchStopped=%s ranFor=%d ", checkPoint, searchStopped, timeRanFor));
 				}
 				
 				timeIntoWait = System.currentTimeMillis();
