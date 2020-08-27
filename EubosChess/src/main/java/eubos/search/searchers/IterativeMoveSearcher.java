@@ -18,7 +18,7 @@ import eubos.search.transposition.FixedSizeTranspositionTable;
 
 public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	
-	public static final int AVG_MOVES_PER_GAME = 50;
+	public static final int AVG_MOVES_PER_GAME = 60;
 	long gameTimeRemaining;
 	short initialScore;
 	boolean searchStopped = false;
@@ -51,7 +51,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		byte currentDepth = 1;
 		SearchResult res = new SearchResult(null, false);
 		List<Integer> pc = null;
-		IterativeMoveSearchStopper stopper = new IterativeMoveSearchStopper(initialScore);
+		IterativeMoveSearchStopper stopper = new IterativeMoveSearchStopper();
 		stopper.start();
 		while (!searchStopped) {
 			try {
@@ -69,8 +69,8 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				EubosEngineMain.logger.info("IterativeMoveSearcher found mate");
 				break;
 			}				
-			if (stopper.extraTime) {
-				// don't start a new iteration, we just allow time to complete the current ply
+			if (stopper.extraTime && !searchStopped) {
+				// don't start a new iteration, we only allow time to complete the current ply
 				searchStopped = true;
 				EubosEngineMain.logger.info(
 						String.format("findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
@@ -100,90 +100,36 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		long timeIntoWait = 0;
 		long timeOutOfWait = 0;
 		
-		IterativeMoveSearchStopper(short initialScore) {
-		}
-		
 		public void run() {
-			long timeQuanta = 0;
 			stopperActive = true;
 			boolean hasWaitedOnce = false;
-			boolean terminateNow = false;
+			Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 			do {
-				timeQuanta = calculateSearchTimeQuanta();
+				long timeQuantaForCheckPoint = calculateSearchTimeQuanta();
 				if (hasWaitedOnce) {
-					
-					/* Consider extending time for Search according to following... */
-					short currentScore = mg.sm.getCpScore();
-					switch (checkPoint) {
-					case 0:
-						if (currentScore > (initialScore + 500))
-							terminateNow = true;
-						break;
-					case 1:
-						if (currentScore >= (initialScore - 25)) {
-							terminateNow = true;
-						}
-						extraTime = true;
-						break;
-					case 2:
-						break;
-					case 3:
-						if (currentScore >= (initialScore - 300))
-							terminateNow = true;
-						break;
-					case 4:
-					case 5:
-					case 6:
-						break;
-					case 7:
-					default:
-						terminateNow = true;
-					
-						break;
-					}
-					if (terminateNow) {
-						mg.terminateFindMove();
-						searchStopped = true;
-						stopperActive = false;
-					} else {
-						checkPoint++;
-					}
-					
+					evaluateSearchProgressAtCheckpoint();
 					EubosEngineMain.logger.info(String.format(
-							"IterativeMoveSearchStopper checkPoint=%d searchStopped=%s ranFor=%d ", checkPoint, searchStopped, timeRanFor));
+							"checkPoint=%d searchStopped=%s ranFor=%d ", checkPoint, searchStopped, timeRanFor));
 				}
-				long duration = 0;
-				if (timeQuanta > 0) {
-					timeIntoWait = System.currentTimeMillis();
-					try {
-						Thread.sleep(timeQuanta);
-					} catch (InterruptedException e) {
-						Thread.currentThread().interrupt();
+				if (timeQuantaForCheckPoint > 0) {
+					// Handle sleeping and account for failure to wake up in a timely fashion
+					long duration = sleepAndReportDuration(timeQuantaForCheckPoint);
+					gameTimeRemaining -= duration;
+					timeRanFor += duration;
+					if (duration > 3*timeQuantaForCheckPoint) {
+						EubosEngineMain.logger.info(String.format(
+								"Problem with waking stopper, quitting! checkPoint=%d ranFor=%d timeQuanta=%d duration=%d",
+								checkPoint, timeRanFor, timeQuantaForCheckPoint, duration));
+						stopMoveSearcher();
 					}
-					timeOutOfWait = System.currentTimeMillis();
-					duration = timeOutOfWait - timeIntoWait;
-				}
-				gameTimeRemaining -= duration;
-				timeRanFor += duration;
-				if (duration > 3*timeQuanta) {
-					EubosEngineMain.logger.info(String.format(
-							"Problem with waking stopper, quitting! checkPoint=%d ranFor=%d timeQuanta=%d duration=%d",
-							checkPoint, timeRanFor, timeQuanta, duration));
-					
-					mg.terminateFindMove();
-					searchStopped = true;
-					stopperActive = false;
 				}
 				hasWaitedOnce = true;
-				
 			} while (stopperActive);
 		}
 		
 		public void end() {
 			stopperActive = false;
-			synchronized (this) {
-				this.interrupt();
-			}
+			this.interrupt();
 		}
 		
 		private long calculateSearchTimeQuanta() {
@@ -192,6 +138,56 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			long msPerMove = Math.max((gameTimeRemaining/movesRemaining), 0);
 			long timeQuanta = msPerMove/2;
 			return timeQuanta;
+		}
+		
+		private void evaluateSearchProgressAtCheckpoint() {
+			boolean terminateNow = false;
+			
+			/* Consider extending time for Search according to following... */
+			short currentScore = mg.sm.getCpScore();
+			switch (checkPoint) {
+			case 0:
+				if (currentScore > (initialScore + 500))
+					terminateNow = true;
+				break;
+			case 1:
+				if (currentScore >= (initialScore - 25)) {
+					terminateNow = true;
+				}
+				extraTime = true;
+				break;
+			case 3:
+				if (currentScore >= (initialScore - 300))
+					terminateNow = true;
+				break;
+			case 2:
+			case 4:
+			case 5:
+			case 6:
+				break;
+			case 7:
+			default:
+				terminateNow = true;
+				break;
+			}
+			
+			if (terminateNow) { stopMoveSearcher(); } else { checkPoint++; };
+		}
+		
+		private long sleepAndReportDuration(long timeQuanta) {
+			timeIntoWait = System.currentTimeMillis();
+			try {
+				Thread.sleep(timeQuanta);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			timeOutOfWait = System.currentTimeMillis();
+			return timeOutOfWait - timeIntoWait;
+		}
+		
+		private void stopMoveSearcher() {
+			halt();
+			stopperActive = false;
 		}
 	}
 }
