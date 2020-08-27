@@ -110,6 +110,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			do {
 				timeQuanta = calculateSearchTimeQuanta();
 				if (hasWaitedOnce) {
+					
 					/* Consider extending time for Search according to following... */
 					short currentScore = mg.sm.getCpScore();
 					switch (checkPoint) {
@@ -153,11 +154,11 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				
 				timeIntoWait = System.currentTimeMillis();
 				try {
-					synchronized (this) {
-						this.wait(Math.max(timeQuanta, 1));
-					}
+					if (timeQuanta > 0)
+						Thread.sleep(timeQuanta);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
+					Thread.currentThread().interrupt();
 				}
 				timeOutOfWait = System.currentTimeMillis();
 				long duration = Math.max((timeOutOfWait - timeIntoWait), 1);
