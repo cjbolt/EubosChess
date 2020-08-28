@@ -110,7 +110,6 @@ public class MiniMaxMoveGenerator implements
 			score = ps.searchPly().getScore();
 		} catch (AssertionError e) {
 			e.printStackTrace();
-			//this.terminateFindMove();
 			System.exit(0);
 		}
 		if (score != Short.MIN_VALUE && score != Short.MAX_VALUE &&

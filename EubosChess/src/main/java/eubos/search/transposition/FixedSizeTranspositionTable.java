@@ -15,6 +15,8 @@ import eubos.position.MoveList;
 
 public class FixedSizeTranspositionTable {
 	
+	public static final boolean DEBUG_LOGGING = false;
+	
 	public static final long ELEMENTS_DEFAULT_HASH_SIZE = (1L << 25);
 	
 	public static final long MOVELIST_NORMAL_WORST_SIZE = 40L;
@@ -23,12 +25,7 @@ public class FixedSizeTranspositionTable {
 	
 	public static final long MOVELIST_AVERAGE_SIZE = (
 			MOVELIST_NORMAL_WORST_SIZE +
-			//MOVELIST_NORMAL_AVERAGE_SIZE +
 			MOVELIST_EXTENDED_AVERAGE_SIZE);
-	
-	//	public static final long BYTES_MOVELIST_AVERAGE = (
-	//			MOVELIST_AVERAGE_SIZE*Integer.BYTES +
-	//			2*Byte.BYTES);
 	
 	public static final long BYTES_MOVELIST_AVERAGE;
 	static {
@@ -36,25 +33,12 @@ public class FixedSizeTranspositionTable {
 				MOVELIST_AVERAGE_SIZE*Integer.BYTES;
 	}
 	
-	//	public static final long BYTES_TRANSPOSTION_ELEMENT = (
-	//			Long.BYTES /* Zobrist */ +
-	//			Short.BYTES /* score */ +
-	//			Byte.BYTES /* depth */ +
-	//			Integer.BYTES /* best move */ +
-	//			Byte.BYTES /* bound score */ +
-	//			4 /* MoveList reference size */ +
-	//			Short.BYTES /* access count */ +
-	//			12 /* instance header, found by JOL */ +
-	//			6 /* padding, found by JOL */ );
-	
 	public static final long BYTES_TRANSPOSTION_ELEMENT;
 	static {
 		BYTES_TRANSPOSTION_ELEMENT = ClassLayout.parseClass(Transposition.class).instanceSize();
 	}
 	
-	public static final long BYTES_PER_TRANSPOSITION = (
-			BYTES_TRANSPOSTION_ELEMENT /*+ 
-			BYTES_MOVELIST_AVERAGE*/);
+	public static final long BYTES_PER_TRANSPOSITION =  BYTES_TRANSPOSTION_ELEMENT;
 	
 	public static final long BYTES_PER_MEGABYTE = (1024L * 1000L);
 	
@@ -89,14 +73,16 @@ public class FixedSizeTranspositionTable {
 			hashSizeElements = ((maxHeapSize*4)/10) / BYTES_PER_TRANSPOSITION;
 		}
 		
-		EubosEngineMain.logger.info(String.format(
-				"BYTES_TRANSPOSTION_ELEMENT=%d BYTES_MOVELIST_AVERAGE=%d, BYTES_PER_TRANSPOSITION=%d", 
-				BYTES_TRANSPOSTION_ELEMENT, BYTES_MOVELIST_AVERAGE,	BYTES_PER_TRANSPOSITION));
-		
-		EubosEngineMain.logger.info(String.format(
-				"Hash dimensions requestedSizeMBytes=%d maxHeapSizeMBytes=%d, maxSizeElements=%d, maxSizeMBytes=%d", 
-				hashSizeMBytes, maxHeapSize/BYTES_PER_MEGABYTE, hashSizeElements,
-				(hashSizeElements*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE));
+		if (DEBUG_LOGGING) {
+			EubosEngineMain.logger.info(String.format(
+					"BYTES_TRANSPOSTION_ELEMENT=%d BYTES_MOVELIST_AVERAGE=%d, BYTES_PER_TRANSPOSITION=%d", 
+					BYTES_TRANSPOSTION_ELEMENT, BYTES_MOVELIST_AVERAGE,	BYTES_PER_TRANSPOSITION));
+			
+			EubosEngineMain.logger.info(String.format(
+					"Hash dimensions requestedSizeMBytes=%d maxHeapSizeMBytes=%d, maxSizeElements=%d, maxSizeMBytes=%d", 
+					hashSizeMBytes, maxHeapSize/BYTES_PER_MEGABYTE, hashSizeElements,
+					(hashSizeElements*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE));
+		}
 		
 		hashMap = new ConcurrentHashMap<Long, ITransposition>((int)hashSizeElements, (float)0.75);
 		hashMapSize = 0;

@@ -22,6 +22,8 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	long gameTimeRemaining;
 	short initialScore;
 	boolean searchStopped = false;
+	public static final boolean DEBUG_LOGGING = false;
+	public static final boolean EXPLICIT_GARBAGE_COLLECTION = false;
 
 	public IterativeMoveSearcher(EubosEngineMain eubos, 
 			FixedSizeTranspositionTable hashMap, 
@@ -72,8 +74,10 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			if (stopper.extraTime && !searchStopped) {
 				// don't start a new iteration, we only allow time to complete the current ply
 				searchStopped = true;
-				EubosEngineMain.logger.info(
-						String.format("findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
+				if (DEBUG_LOGGING) {
+					EubosEngineMain.logger.info(String.format(
+							"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
+				}
 			}
 			pc = mg.pc.toPvList(0);
 			currentDepth++;
@@ -87,8 +91,10 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
 		mg.terminateSearchMetricsReporter();
 		SearchDebugAgent.close();
-		if (gameTimeRemaining > 60000)
-			System.gc();
+		if (EXPLICIT_GARBAGE_COLLECTION) {
+			if (gameTimeRemaining > 60000)
+				System.gc();
+		}
 	}
 
 	class IterativeMoveSearchStopper extends Thread {
@@ -100,28 +106,36 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		long timeIntoWait = 0;
 		long timeOutOfWait = 0;
 		
+		public IterativeMoveSearchStopper() {
+			this.setName("IterativeMoveSearchStopper");
+			Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+		}
+		
 		public void run() {
 			stopperActive = true;
 			boolean hasWaitedOnce = false;
-			this.setName("IterativeMoveSearchStopper");
-			Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 			do {
 				long timeQuantaForCheckPoint = calculateSearchTimeQuanta();
 				if (hasWaitedOnce) {
 					evaluateSearchProgressAtCheckpoint();
-					EubosEngineMain.logger.info(String.format(
-							"checkPoint=%d searchStopped=%s ranFor=%d ", checkPoint, searchStopped, timeRanFor));
+					if (DEBUG_LOGGING) {
+						EubosEngineMain.logger.info(String.format(
+								"checkPoint=%d searchStopped=%s ranFor=%d ", checkPoint, searchStopped, timeRanFor));
+					}
 				}
-				if (timeQuantaForCheckPoint > 0 && stopperActive) {
+				if (stopperActive) {
 					// Handle sleeping and account for failure to wake up in a timely fashion
 					long duration = sleepAndReportDuration(timeQuantaForCheckPoint);
 					gameTimeRemaining -= duration;
 					timeRanFor += duration;
-					if (duration > 3*timeQuantaForCheckPoint) {
-						EubosEngineMain.logger.info(String.format(
-								"Problem with waking stopper, quitting! checkPoint=%d ranFor=%d timeQuanta=%d duration=%d",
-								checkPoint, timeRanFor, timeQuantaForCheckPoint, duration));
-						stopMoveSearcher();
+					
+					if (DEBUG_LOGGING) {
+						if (duration > 3*timeQuantaForCheckPoint) {
+							EubosEngineMain.logger.info(String.format(
+									"Problem with waking stopper, quitting! checkPoint=%d ranFor=%d timeQuanta=%d duration=%d",
+									checkPoint, timeRanFor, timeQuantaForCheckPoint, duration));
+							stopMoveSearcher();
+						}
 					}
 				}
 				hasWaitedOnce = true;
@@ -136,7 +150,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		private long calculateSearchTimeQuanta() {
 			int moveHypothesis = (AVG_MOVES_PER_GAME - pos.getMoveNumber());
 			int movesRemaining = Math.max(moveHypothesis, 10);
-			long msPerMove = Math.max((gameTimeRemaining/movesRemaining), 0);
+			long msPerMove = Math.max((gameTimeRemaining/movesRemaining), 2);
 			long timeQuanta = msPerMove/2;
 			return timeQuanta;
 		}
@@ -152,7 +166,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 					terminateNow = true;
 				break;
 			case 1:
-				if (currentScore >= (initialScore - 25)) {
+				if (currentScore >= (initialScore - 33)) {
 					terminateNow = true;
 				}
 				extraTime = true;
@@ -161,13 +175,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				if (currentScore >= (initialScore - 300))
 					terminateNow = true;
 				break;
-			case 2:
-			case 4:
-			case 5:
-			case 6:
-				break;
 			case 7:
-			default:
 				terminateNow = true;
 				break;
 			}
