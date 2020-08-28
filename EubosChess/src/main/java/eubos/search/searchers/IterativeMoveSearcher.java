@@ -18,12 +18,12 @@ import eubos.search.transposition.FixedSizeTranspositionTable;
 
 public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	
-	public static final int AVG_MOVES_PER_GAME = 60;
+	public static final int AVG_MOVES_PER_GAME = 90;
 	long gameTimeRemaining;
 	short initialScore;
 	boolean searchStopped = false;
 	public static final boolean DEBUG_LOGGING = true;
-	public static final boolean EXPLICIT_GARBAGE_COLLECTION = true;
+	public static final boolean EXPLICIT_GARBAGE_COLLECTION = false;
 
 	public IterativeMoveSearcher(EubosEngineMain eubos, 
 			FixedSizeTranspositionTable hashMap, 
@@ -128,14 +128,11 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 					long duration = sleepAndReportDuration(timeQuantaForCheckPoint);
 					gameTimeRemaining -= duration;
 					timeRanFor += duration;
-					
-					if (DEBUG_LOGGING) {
-						if (duration > 3*timeQuantaForCheckPoint) {
-							EubosEngineMain.logger.info(String.format(
-									"Problem with waking stopper, quitting! checkPoint=%d ranFor=%d timeQuanta=%d duration=%d",
-									checkPoint, timeRanFor, timeQuantaForCheckPoint, duration));
-							stopMoveSearcher();
-						}
+					if (duration > 3*timeQuantaForCheckPoint) {
+						EubosEngineMain.logger.info(String.format(
+								"Problem with waking stopper, quitting! checkPoint=%d ranFor=%d timeQuanta=%d duration=%d",
+								checkPoint, timeRanFor, timeQuantaForCheckPoint, duration));
+						stopMoveSearcher();
 					}
 				}
 				hasWaitedOnce = true;
@@ -166,7 +163,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 					terminateNow = true;
 				break;
 			case 1:
-				if (currentScore >= (initialScore - 33)) {
+				if (currentScore >= (initialScore - 25)) {
 					terminateNow = true;
 				}
 				extraTime = true;

@@ -88,6 +88,8 @@ public class PlySearcher {
 		MoveList ml = null;
 		int prevBestMove = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
 		
+		Thread.yield();
+		
 		st.setProvisionalScoreAtPly(currPly);
 		SearchDebugAgent.printStartPlyInfo(currPly, st, pos, originalSearchDepthRequiredInPly);
 		
