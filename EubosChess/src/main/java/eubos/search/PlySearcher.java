@@ -231,6 +231,7 @@ public class PlySearcher {
 				break;
 			}
 		}
+		Thread.yield();
 		if (!isTerminated() && isInNormalSearch()) {
 		    if (everBackedUp && backedUpScoreWasExact && !refutationFound && trans != null) {
 		    	// This is the only way a hash and score can be exact.

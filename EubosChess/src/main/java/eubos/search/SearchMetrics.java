@@ -72,13 +72,13 @@ public class SearchMetrics {
 	void incrementNodesSearched() { nodesSearched.incrementAndGet(); }
 	long getNodesSearched() { return nodesSearched.get(); }
 	
-	void incrementTime() {
+	private void incrementTime() {
 		long currentTimestamp = System.currentTimeMillis();
 		time = currentTimestamp - initialTimestamp;
 	}
-	long getTime() { return time; }
+	private long getTime() { return time; }
 	
-	int getNodesPerSecond() {
+	private int getNodesPerSecond() {
 		int nps = 0;
 		if (time != 0) {
 			nps = (int)(nodesSearched.get()*1000/time);
@@ -95,7 +95,7 @@ public class SearchMetrics {
 		}
 	}
 	
-	synchronized List<GenericMove> getPrincipalVariation() {
+	private List<GenericMove> getPrincipalVariation() {
 		List<GenericMove> thePv = null;
 		if (pvValid) {
 			thePv = new ArrayList<GenericMove>();
@@ -127,6 +127,6 @@ public class SearchMetrics {
 	synchronized int getPartialDepth() { return partialDepth; }
 	synchronized void setPartialDepth(int depth ) { this.partialDepth = depth; }
 	
-	short getHashFull() { return hashFull;	}
-	public void setHashFull(short hashFull) { this.hashFull = hashFull; }
+	private short getHashFull() { return hashFull;	}
+	public synchronized void setHashFull(short hashFull) { this.hashFull = hashFull; }
 }

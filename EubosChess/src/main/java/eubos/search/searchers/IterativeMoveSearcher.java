@@ -103,6 +103,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		public void run() {
 			stopperActive = true;
 			boolean hasWaitedOnce = false;
+			this.setName("IterativeMoveSearchStopper");
 			Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 			do {
 				long timeQuantaForCheckPoint = calculateSearchTimeQuanta();
@@ -111,7 +112,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 					EubosEngineMain.logger.info(String.format(
 							"checkPoint=%d searchStopped=%s ranFor=%d ", checkPoint, searchStopped, timeRanFor));
 				}
-				if (timeQuantaForCheckPoint > 0) {
+				if (timeQuantaForCheckPoint > 0 && stopperActive) {
 					// Handle sleeping and account for failure to wake up in a timely fashion
 					long duration = sleepAndReportDuration(timeQuantaForCheckPoint);
 					gameTimeRemaining -= duration;
