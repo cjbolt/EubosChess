@@ -22,8 +22,8 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	long gameTimeRemaining;
 	short initialScore;
 	boolean searchStopped = false;
-	public static final boolean DEBUG_LOGGING = false;
-	public static final boolean EXPLICIT_GARBAGE_COLLECTION = false;
+	public static final boolean DEBUG_LOGGING = true;
+	public static final boolean EXPLICIT_GARBAGE_COLLECTION = true;
 
 	public IterativeMoveSearcher(EubosEngineMain eubos, 
 			FixedSizeTranspositionTable hashMap, 
