@@ -1,9 +1,11 @@
 # EubosChess
-A basic Java chess engine, written for kicks. Uses jcpi for the UCI protocol parts. Weak, it's slow and doesn't evaluate for king safety, for example. Currently rated at 1454 ELO on the CCRL (for Blitz 2+1 time control, http://ccrl.chessdom.com/ccrl/404/). Uses transpostion hashing and quiescence search extension, but doesn't search very deeply (averaging around 200K Nodes/s in a typical blitz game). This is my first chess engine, my first full Java project, my first open source contribution...
+A basic Java chess engine self-built and playable on lichess (it is hosted on Heroku). Eubos is rated around 1450 ELO (against other engines, not humans, at blitz 2+1, see  http://ccrl.chessdom.com/ccrl/404/).
 
-Current release version 1.0.8
+Eubos uses transpostion hashing and quiescence search extension, but doesn't search very deeply (averaging in the region of 100 KNodes/s in a typical blitz game). It uses the UCI protocol.
 
-You can get a binary from the bin folder, alongside a batch file for running Eubos from Arena.
+Current release version 1.0.9
+
+You can get a binary from the bin folder, alongside a batch file for running the Eubos engine in a GUI such as Arena.
 
 You must have installed either Java 8 or a later version of the JRE on the PC in order to run Eubos. I am currently running Eubos with Java 14 from https://adoptopenjdk.net/
 
