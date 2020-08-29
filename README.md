@@ -3,7 +3,7 @@ A basic Java chess engine self-built and playable on lichess (it is hosted on He
 
 Eubos uses transpostion hashing and quiescence search extension, but doesn't search very deeply (averaging in the region of 100 KNodes/s in a typical blitz game). It uses the UCI protocol.
 
-Current release version 1.0.9
+Current release version 1.1.0
 
 You can get a binary from the bin folder, alongside a batch file for running the Eubos engine in a GUI such as Arena.
 
