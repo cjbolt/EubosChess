@@ -70,26 +70,32 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			}
 		} else if (ret.status == TranspositionTableStatus.sufficientTerminalNode || 
 				   ret.status == TranspositionTableStatus.sufficientRefutation) {
-			// Check hashed position causing a search cut off is still valid (i.e. not a draw)
-			try {
-				int move = ret.trans.getBestMove();
-				if (move != Move.NULL_MOVE) {
-					pm.performMove(move);
-					if (pe.isThreeFoldRepetition(pos.getHash())) {
-						currPly+=1;
-						SearchDebugAgent.printRepeatedPositionHash(currPly, pos.getHash());
-						hashMap.remove(pos.getHash());
-						ret.status = TranspositionTableStatus.sufficientSeedMoveList;
-						currPly-=1;
-					}
-					pm.unperformMove();
-				}
-			} catch (InvalidPieceException e) {
-				e.printStackTrace();
-			}
+			checkHashPositionIsNotDrawn(currPly, ret);
 		}
 
 		return ret;
+	}
+
+	private void checkHashPositionIsNotDrawn(byte currPly, TranspositionEvaluation ret) {
+		// Check hashed position causing a search cut off is still valid (i.e. not a draw)
+		try {
+			int move = ret.trans.getBestMove();
+			if (move != Move.NULL_MOVE) {
+				pm.performMove(move);
+				// we have to apply the move the score is for to detect whether this hash is encountered for a third time
+				if (pe.isThreeFoldRepetition(pos.getHash())) {
+					currPly+=1;
+					SearchDebugAgent.printRepeatedPositionHash(currPly, pos.getHash());
+					hashMap.remove(pos.getHash());
+					// this will cause it to be re-scored.
+					ret.status = TranspositionTableStatus.sufficientSeedMoveList;
+					currPly-=1;
+				}
+				pm.unperformMove();
+			}
+		} catch (InvalidPieceException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public ITransposition setTransposition(byte currPly, ITransposition trans, byte new_Depth, short new_score, byte new_bound, MoveList new_ml, int new_bestMove, List<Integer> pv) {
