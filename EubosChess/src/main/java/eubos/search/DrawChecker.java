@@ -19,14 +19,14 @@ public class DrawChecker {
 		}
 	}
 	
-	Byte getPositionReachedCount(Long posHash) {
+	public Byte getPositionReachedCount(Long posHash) {
 		return positionCount.get(posHash);
 	}
 
 	public boolean isPositionDraw(long positionHash) {
 		boolean isDrawn = false;
 		Byte reachedCount = getPositionReachedCount(positionHash);
-		if (reachedCount != null && reachedCount >= 3) {
+		if (reachedCount != null && reachedCount >= 2) {
 			isDrawn = true;
 		}
 		return isDrawn;

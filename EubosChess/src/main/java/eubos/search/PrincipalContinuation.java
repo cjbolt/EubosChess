@@ -39,7 +39,7 @@ public class PrincipalContinuation {
 			List<Integer> plyList = pc.get(currPly);
 			if (!plyList.isEmpty()) {
 				for (int currMove : plyList) {
-					assert currMove != Move.NULL_MOVE;
+					//assert currMove != Move.NULL_MOVE;
 					output.append((Move.toString(currMove)));
 					output.append(' ');
 				}

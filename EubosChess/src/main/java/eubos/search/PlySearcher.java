@@ -402,7 +402,7 @@ public class PlySearcher {
 	private boolean isTerminalNode() {
 		boolean terminalNode = false;
 		if (pe.isThreeFoldRepetition(pos.getHash())) {
-			SearchDebugAgent.printRepeatedPositionHash(currPly, pos.getHash());
+			SearchDebugAgent.printRepeatedPositionHash(currPly, pos.getHash(), pos.getFen());
 			terminalNode = true;
 		} else if (currPly == originalSearchDepthRequiredInPly) {
 			if (pe.isQuiescent()) {

@@ -13,6 +13,7 @@ import eubos.board.Board;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
+import eubos.main.EubosEngineMain;
 import eubos.score.IEvaluate;
 import eubos.score.PositionEvaluator;
 import eubos.search.DrawChecker;
@@ -380,6 +381,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		try {
 			performMove(bestMove);
 			hashForMove = getHash();
+			EubosEngineMain.logger.info(String.format("positionManager fen=%s", this.getFen()));
 			unperformMove();
 		} catch (InvalidPieceException e) {
 		}

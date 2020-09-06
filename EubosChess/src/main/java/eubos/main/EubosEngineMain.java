@@ -148,7 +148,9 @@ public class EubosEngineMain extends AbstractEngine {
 			hashCode = pm.getHash();
 			dc.incrementPositionReachedCount(hashCode);
 		}
-		logger.info("Position Received, hash = "+hashCode);
+		logger.info(String.format("positionReceived fen=%s hashCode=%d reachedCount=%d",
+				fen_to_use, hashCode, dc.getPositionReachedCount(hashCode)));
+		logger.info(String.format("positionManager fen=%s", pm.getFen()));
 		// need to remove this position from transposition table, as cached score for it doesn't factor for draws
 		if (hashMap.containsHash(hashCode)) {
 			hashMap.remove(hashCode);
@@ -288,6 +290,8 @@ public class EubosEngineMain extends AbstractEngine {
 		if (protocolBestMoveCommand.bestMove != null) {
 			long hashCode = pm.getHashForMove(Move.toMove(protocolBestMoveCommand.bestMove, pm.getTheBoard(), Move.TYPE_NONE));
 			dc.incrementPositionReachedCount(hashCode);
+			logger.info(String.format("bestMove=%s positionHashAfterMove=%d reachedCount=%d",
+					protocolBestMoveCommand.bestMove, hashCode, dc.getPositionReachedCount(hashCode)));
 			if (dc.isPositionDraw(hashCode)) {
 				// need to remove this position from transposition table, as cached score for it doesn't indicate a draw
 				if (hashMap.containsHash(hashCode)) {

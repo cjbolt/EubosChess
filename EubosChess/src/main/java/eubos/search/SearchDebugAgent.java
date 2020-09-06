@@ -168,7 +168,7 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(String.format("%strans now exact, hash:%d trans:%d", indent, hashCode, trans.report()));
+			printOutput(String.format("%strans now exact, hash:%d trans:%s", indent, hashCode, trans.report()));
 		}		
 	}
 
@@ -188,11 +188,11 @@ public class SearchDebugAgent {
 		filenameBase = dateTime;
 	}
 
-	public static void printRepeatedPositionHash(byte currPly, long hash) {
+	public static void printRepeatedPositionHash(byte currPly, long hash, String fen) {
 		if (DEBUG_ENABLED) {
 			if ( currPly != lastPly )
 				computeIndent(currPly);
-			printOutput(String.format("%s3-fold rep @%d hash:%d", indent, currPly, hash));
+			printOutput(String.format("%s3-fold rep @%d hash:%d fen:%s", indent, currPly, hash, fen));
 		}
 	}
 

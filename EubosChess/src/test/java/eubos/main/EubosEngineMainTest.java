@@ -226,12 +226,12 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/1k6/p7/8/K7 b - - 9 64"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4b3"+CMD_TERMINATOR));
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/1K6 b - - 11 65"+CMD_TERMINATOR, null));
+		// To escape draw by 3-fold repetition
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"a3a2"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/1k6/p7/K7 b - - 1 66"+CMD_TERMINATOR, null));
+		// to escape stalemate
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b3c4"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/2k5/p7/K7/8 b - - 13 66"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c4b4"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/1k6/p7/8/K7 b - - 15 67"+CMD_TERMINATOR, null));
-		// Eubos currently fails to detect that this is a draw by three-fold repetition...
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4a4"+CMD_TERMINATOR));
+		// ...draws on insufficient material, which Eubos doesn't recognise
 		performTest(500);
 	}
 	
