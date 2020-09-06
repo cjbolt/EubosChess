@@ -108,7 +108,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	void createPositionFromAnalyseCommand(EngineAnalyzeCommand command) {
 		// This temporary pm is to ensure that the correct position is used to initialise the search 
-		// context in the position evaluator
+		// context in the position evaluator, required when we get a position and move list to apply.
 		String uci_fen_string = command.board.toString();
 		String fen_to_use = null;
 		if (!command.moves.isEmpty()) {
@@ -143,17 +143,12 @@ public class EubosEngineMain extends AbstractEngine {
 			dc.incrementPositionReachedCount(hashCode);
 		} else {
 			/* Don't increment the position reached count, because it will have already been incremented 
-			 * in the previous send move command */
+			 * in the previous send move command (when Eubos is analysing both sides positions). */
 			logger.fine("Not incrementing drawchecker reached count for initial position");
 		}
 		lastOnMove = nowOnMove;
 		logger.info(String.format("positionReceived fen=%s hashCode=%d reachedCount=%d",
 				fen_to_use, hashCode, dc.getPositionReachedCount(hashCode)));
-		logger.info(String.format("positionManager fen=%s", pm.getFen()));
-		// need to remove this position from transposition table, as cached score for it doesn't factor for draws
-		if (hashMap.containsHash(hashCode)) {
-			hashMap.remove(hashCode);
-		}
 	}
 	
 	private void logAnalyse(EngineAnalyzeCommand command) {
@@ -288,16 +283,10 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		if (protocolBestMoveCommand.bestMove != null) {
 			try {
+				// Apply the best move to update the DrawChecker state
 				pm.performMove(Move.toMove(protocolBestMoveCommand.bestMove, pm.getTheBoard(), Move.TYPE_NONE));
-				long hashCode = pm.getHash();
-				if (dc.isPositionDraw(hashCode)) {
-					// need to remove this position from transposition table, as cached score for it doesn't indicate a draw
-					if (hashMap.containsHash(hashCode)) {
-						hashMap.remove(hashCode);
-					}
-				}
 				logger.info(String.format("BestMove=%s hashCode=%d positionReachedCount=%d",
-						protocolBestMoveCommand.bestMove, hashCode, dc.getPositionReachedCount(hashCode)));
+						protocolBestMoveCommand.bestMove, pm.getHash(), dc.getPositionReachedCount(pm.getHash())));
 			} catch (InvalidPieceException e) {
 				logger.severe("Error in sendBestMoveCommand!");
 			}

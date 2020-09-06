@@ -51,7 +51,7 @@ public class EubosEngineMainTest {
 	private static final String CMD_TERMINATOR = "\r\n";
 	private static final String POS_FEN_PREFIX = "position fen ";
 	private static final String GO_DEPTH_PREFIX = "go depth ";
-	private static final String GO_WTIME_PREFIX = "go wtime ";
+	//private static final String GO_WTIME_PREFIX = "go wtime ";
 	//private static final String GO_BTIME_PREFIX = "go btime ";
 	private static final String BEST_PREFIX = "bestmove ";
 	
@@ -154,68 +154,6 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
-	@Ignore // because now Eubos tries to centralise the Kings in this scenario
-	public void test_avoidDraw_lichess_hash_table_drawchecker() throws InterruptedException, IOException {
-		setupEngine();
-		// Setup Commands specific to this test
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/2K5/8/7k/8/8/6q1 b - - 0 60"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR,BEST_PREFIX+"g1g2"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/2K5/7k/8/6q1/8 b - - 0 61"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR,BEST_PREFIX+"g2g1"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/2K5/8/7k/8/8/6q1 b - - 0 62"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR,BEST_PREFIX+"g1g2"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/2K5/7k/8/6q1/8 b - - 0 63"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR,BEST_PREFIX+"g2g5"+CMD_TERMINATOR));
-		// results in new position and avoids the draw by 3-fold!
-		// white could move Kc6, which would result in this again: "8/8/2K5/8/7k/8/8/6q1 b - - 9 64" 
-		performTest(500);
-	}
-	
-	@Test
-	@Ignore // because now Eubos tries to centralise the Kings in this scenario
-	public void test_avoidDraw_lichess_hash_table_draw_kpK_rook_pawn_alt() throws InterruptedException, IOException {
-		setupEngine();
-		// Setup Commands specific to this test
-		// black
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b3b4"+CMD_TERMINATOR));
-		// white
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3b4"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"a1a2"+CMD_TERMINATOR));
-		// black
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3b4 a1a2"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4a4"+CMD_TERMINATOR));
-		// white
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3b4 a1a2 b4a4"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"a2b1"+CMD_TERMINATOR));
-		// black
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3b4 a1a2 b4a4 a2b1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"a4a5"+CMD_TERMINATOR));
-		// Got an exception whilst searching final move, because the hashed move no longer existed on the board
-		// this occurred when building the principal continuation, because the store of transposition happened in the wrong ply...
-		performTest(700);
-	}
-	
-	
-	@Test
-	@Ignore
-	public void test_avoidDraw_lichess_hash_table_draw_error() throws InterruptedException, IOException {
-		setupEngine();
-		// Setup Commands specific to this test
-		commands.add(new commandPair(POS_FEN_PREFIX+"1R6/7k/p7/P5Pp/2r2P2/2P2R1K/3r4/4b3 w - - 2 48"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_WTIME_PREFIX+"62000"+CMD_TERMINATOR,BEST_PREFIX+"f3e3"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"1R6/8/p5k1/P5Pp/2r2P2/2P1R2K/3r4/4b3 w - - 4 49"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_WTIME_PREFIX+"57100"+CMD_TERMINATOR,BEST_PREFIX+"b8b6"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/6k1/pR6/P5Pp/2r2P2/2P1R2K/3r4/4b3 w - - 6 50"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_WTIME_PREFIX+"51900"+CMD_TERMINATOR,BEST_PREFIX+"b6b7"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/1R6/p5k1/P5Pp/2r2P2/2P1R2K/3r4/4b3 w - - 8 51"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_WTIME_PREFIX+"46700"+CMD_TERMINATOR,BEST_PREFIX+"e3e6"+CMD_TERMINATOR));
-		// Got an exception whilst searching final move, because the hashed move no longer existed on the board
-		// this occurred when building the principal continuation, because the store of transposition happened in the wrong ply...
-		performTest(3000);
-	}
-	
-	@Test
 	public void test_avoidDraw_lichess_hash_table_draw_kpK_rook_pawn() throws InterruptedException, IOException {
 		setupEngine();
 		// Setup Commands specific to this test
@@ -232,11 +170,11 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/1k6/p7/8/K7 b - - 10 67"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4b3"+CMD_TERMINATOR));
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/1K6 b - - 12 68"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b3c3"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/p1k5/K7/8 b - - 14 69"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c3d4"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"a3a2"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/1k6/p7/K7 b - - 1 69"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b3c4"+CMD_TERMINATOR));
 		// King takes pawn leads to draw by insufficient material, of which Eubos is not yet aware!
-		//commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/2k5/K7/8/8 b - - 0 70"+CMD_TERMINATOR, null));
+		//commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/2k5/8/K7/8 b - - 0 70"+CMD_TERMINATOR, null));
 		performTest(500);
 	}
 	
@@ -257,9 +195,9 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2 c4b4 a2a1 b4b3 a1b1 b3c4 b1a2 c4b4 a2a1"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4b3"+CMD_TERMINATOR));
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2 c4b4 a2a1 b4b3 a1b1 b3c4 b1a2 c4b4 a2a1 b4b3 a1b1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b3c3"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2 c4b4 a2a1 b4b3 a1b1 b3c4 b1a2 c4b4 a2a1 b4b3 a1b1 b3c3 b1a2"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c3d4"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"a3a2"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2 c4b4 a2a1 b4b3 a1b1 b3c4 b1a2 c4b4 a2a1 b4b3 a1b1 a3a2 b1a1"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b3c4"+CMD_TERMINATOR));
 		// Again, king takes pawn leads to draw by insufficient material, of which Eubos is not yet aware!
 		performTest(500);
 	}

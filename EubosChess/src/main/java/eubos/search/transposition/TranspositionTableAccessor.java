@@ -70,32 +70,32 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			}
 		} else if (ret.status == TranspositionTableStatus.sufficientTerminalNode || 
 				   ret.status == TranspositionTableStatus.sufficientRefutation) {
-			checkHashPositionIsNotDrawn(currPly, ret);
+			// Check hashed position causing a search cut off is still valid (i.e. not a potential draw)
+			if (isHashedPositionCouldLeadToDraw(currPly, ret.trans.getBestMove())) {
+				// This will cause the position to be re-searched and re-scored in line with the current search context.
+				ret.status = TranspositionTableStatus.sufficientSeedMoveList;
+			}
 		}
-
 		return ret;
 	}
 
-	private void checkHashPositionIsNotDrawn(byte currPly, TranspositionEvaluation ret) {
-		// Check hashed position causing a search cut off is still valid (i.e. not a draw)
+	private boolean isHashedPositionCouldLeadToDraw(byte currPly, int move) {
+		boolean retVal = false;
 		try {
-			int move = ret.trans.getBestMove();
 			if (move != Move.NULL_MOVE) {
 				pm.performMove(move);
-				// we have to apply the move the score is for to detect whether this hash is encountered for a third time
+				// we have to apply the move the hashed score is for to detect whether this hash is encountered for a second time
 				if (pe.couldLeadToThreeFoldRepetiton(pos.getHash())) {
-					currPly+=1;
-					SearchDebugAgent.printRepeatedPositionHash(currPly, pos.getHash(), pos.getFen());
+					SearchDebugAgent.printRepeatedPositionHash((byte)(currPly+1), pos.getHash(), pos.getFen());
 					hashMap.remove(pos.getHash());
-					// this will cause it to be re-scored.
-					ret.status = TranspositionTableStatus.sufficientSeedMoveList;
-					currPly-=1;
+					retVal = true;
 				}
 				pm.unperformMove();
 			}
 		} catch (InvalidPieceException e) {
 			e.printStackTrace();
 		}
+		return retVal;
 	}
 	
 	public ITransposition setTransposition(byte currPly, ITransposition trans, byte new_Depth, short new_score, byte new_bound, MoveList new_ml, int new_bestMove, List<Integer> pv) {
