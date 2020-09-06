@@ -2,8 +2,6 @@ package eubos.search.generators;
 
 import static org.junit.Assert.*;
 
-import org.junit.Ignore;
-
 import java.util.LinkedList;
 import java.util.List;
 
@@ -304,18 +302,6 @@ public class MiniMaxMoveGeneratorTest {
 		expectedMove = new GenericMove("d4e6");
 		doFindMoveTest((byte)1, true);
 	}
-	
-	@Test
-	@Ignore
-	public void test_findMove_mateInOne5_9ply()  throws NoLegalMoveException, IllegalNotationException {
-		// http://open-chess.org/viewtopic.php?f=7&t=997
-		// It was possible, due to a casting error, to miss Mates in X when the search length got too long
-		// Need to write some unit tests for mate Score Generator to guard against regression of this.
-		// This test can then be removed.
-		setupPosition( "8/8/K7/p7/k2N3R/p7/P7/8 w - - 0 1" );
-		expectedMove = new GenericMove("d4b3");
-		doFindMoveTest((byte)9, true);
-	}
 
 	@Test
 	public void test_findMove_mateInOne6()  throws NoLegalMoveException, IllegalNotationException {
@@ -452,42 +438,6 @@ public class MiniMaxMoveGeneratorTest {
 		SearchResult res = classUnderTest.findMove((byte)6,lastPc);
 		
 	    assertEquals(expectedMove, res.bestMove);
-	}
-	
-	@Test
-	@Ignore
-	public void test_findMove_bugPromotingPawn_Arena_10ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		// with depth=10 Eubos can find the forced mate.
-		setupPosition( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
-		expectedMove = new GenericMove("h8g8");
-		
-		SearchResult res = classUnderTest.findMove((byte)10);
-		
-		assertEquals(expectedMove, res.bestMove);
-	}
-	
-	@Test
-	@Ignore
-	public void test_findMove_bugBlunderVsFidelityCC10_7ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		setupPosition("4k3/2pqbppr/8/p2p3p/3B4/3P3P/4QPP1/5K1R w - - 2 30");
-		// Blunder move!
-		expectedMove = new GenericMove("d4g7");
-		
-		SearchResult res = classUnderTest.findMove((byte)7);
-		
-		assertEquals(expectedMove, res.bestMove);
-	}
-	
-	@Test
-	@Ignore
-	public void test_findMove_bugBlunderVsFidelityCC10_5ply() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		setupPosition( "4k3/2pqbppr/8/p2p3p/3B4/3P3P/4QPP1/5K1R w - - 2 30");
-		// Blunder move!
-		expectedMove = new GenericMove("d4g7");
-		
-		SearchResult res = classUnderTest.findMove((byte)5);
-		
-		assertEquals(expectedMove, res.bestMove);
 	}
 	
 	@Test

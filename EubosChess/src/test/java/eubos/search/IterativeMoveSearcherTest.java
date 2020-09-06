@@ -79,41 +79,28 @@ public class IterativeMoveSearcherTest {
 	}
 	
 	@Test
-	@Ignore // The problem with this test is that the best move is rejected after ply 10.
 	public void test_endgame_a() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		setupPosition("8/8/2pp3k/8/1P1P3K/8/8/8 w - - 0 1", 1000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
+		setupPosition("8/8/2pp3k/8/1P1P3K/8/8/8 w - - 0 1", 9000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
 		expectedMove = new GenericMove("d4d5"); //Levy
 		runSearcherAndTestBestMoveReturned();
 	}
 	
 	@Test
-	@Ignore // because now Eubos tries to centralise the Kings in this scenario
 	public void test_endgame_b() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
 		setupPosition("8/ppp5/8/PPP5/6kp/8/6KP/8 w - - 0 1", 4000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
 		expectedMove = new GenericMove("b5b6"); // Levy
 		runSearcherAndTestBestMoveReturned();		
 	}
-	
-	@Test
-	@Ignore // Eubos doesn't get close :(
-	// According to Stockfish this position is a dead draw, so I guess Levy is wrong.
-	public void test_endgame_c() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		setupPosition("8/p7/1p1k1p2/1P2pp1p/1P1P3P/4KPP1/8/8 w - - 1 10", 6000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
-		expectedMove = new GenericMove("g3g4"); // Levy
-		runSearcherAndTestBestMoveReturned();		
-	}
 	 
 	@Test
-	@Ignore // Eubos needs 2mins to reliably find the correct move
+	@Ignore // Eubos v1.1.0 needs 4mins to reliably find a reasonable continuation!
 	public void test_endgame_d() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		setupPosition("8/pp5p/8/PP2k3/2P2pp1/3K4/6PP/8 w - - 1 10", 6000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
+		setupPosition("8/pp5p/8/PP2k3/2P2pp1/3K4/6PP/8 w - - 1 10", 4000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
 		expectedMove = new GenericMove("c4c5"); // Levy
 		runSearcherAndTestBestMoveReturned();		
 	}
 	
 	@Test
-	@Ignore // needs to search to 20 odd plies to see a win (when mate should be seen in 19 - this is a bug!)
-	// Doesn't reliably pass
 	public void test_endgame_e() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
 		setupPosition("6k1/7p/5P1K/8/8/8/7P/8 w - - 0 1", 950*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
 		expectedMove = new GenericMove("h6g5"); // Stockfish
@@ -121,10 +108,10 @@ public class IterativeMoveSearcherTest {
 	}
 	
 	@Test
-	@Ignore //Eubos doesn't have a clue, even at ply==24; probably indicating a bug.
+	//Eubos finds capture at about 19ply search
 	public void test_endgame_i() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		setupPosition("8/k7/3p4/p2P1p2/P2P1P2/8/8/K7 w - - 0 1", 100);
-		expectedMove = new GenericMove("c5d5");
+		setupPosition("8/k7/3p4/p2P1p2/P2P1P2/8/8/K7 w - - 0 1", 1000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
+		expectedMove = new GenericMove("a1b2");
 		runSearcherAndTestBestMoveReturned();
 	}
 	
@@ -136,10 +123,9 @@ public class IterativeMoveSearcherTest {
 	}
 	
 	@Test
-	@Ignore // because now Eubos tries to centralise the Kings in this scenario
 	public void test_endgame_o() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		setupPosition("4k3/4Pp2/5P2/4K3/8/8/8/8 w - - 0 1", 100);
-		expectedMove = new GenericMove("e5f5"); // Stockfish
+		setupPosition("4k3/4Pp2/5P2/4K3/8/8/8/8 w - - 0 1",  1000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
+		expectedMove = new GenericMove("e5f5"); // in accordance with Stockfish
 		runSearcherAndTestBestMoveReturned();
 	}
 	

@@ -87,7 +87,6 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 				// we have to apply the move the hashed score is for to detect whether this hash is encountered for a second time
 				if (pe.couldLeadToThreeFoldRepetiton(pos.getHash())) {
 					SearchDebugAgent.printRepeatedPositionHash((byte)(currPly+1), pos.getHash(), pos.getFen());
-					hashMap.remove(pos.getHash());
 					retVal = true;
 				}
 				pm.unperformMove();
