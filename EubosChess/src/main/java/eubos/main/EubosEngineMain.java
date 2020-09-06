@@ -122,9 +122,9 @@ public class EubosEngineMain extends AbstractEngine {
 						"Serious error: Eubos can't find a piece on the board whilst applying previous moves, at "
 								+e.getAtPosition().toString());
 			}
-			// Assign the actual pm
+			// Assign the actual pm fen to use
 			fen_to_use = temp_pm.getFen();
-			// unwind the moves made to get the fen so that the draw checker position count is correct
+			// unwind the moves made to get the fen so that the draw checker position count is correct; we don't double count
 			for (int i=0; i<command.moves.size(); i++) {
 				try {
 					temp_pm.unperformMove();
@@ -138,16 +138,15 @@ public class EubosEngineMain extends AbstractEngine {
 		pm = new PositionManager(fen_to_use, dc);
 		long hashCode = pm.getHash();
 		Piece.Colour nowOnMove = pm.getOnMove();
-		if (lastOnMove != null && lastOnMove != nowOnMove) {
-			lastOnMove = nowOnMove;
+		if (lastOnMove == null || lastOnMove == nowOnMove) {
+			// Update the draw checker with the position at the opponents last move
+			dc.incrementPositionReachedCount(hashCode);
+		} else {
 			/* Don't increment the position reached count, because it will have already been incremented 
 			 * in the previous send move command */
-		} else {
-			lastOnMove = nowOnMove;
-			// Update the draw checker with the position at the opponents last move
-			hashCode = pm.getHash();
-			dc.incrementPositionReachedCount(hashCode);
+			logger.fine("Not incrementing drawchecker reached count for initial position");
 		}
+		lastOnMove = nowOnMove;
 		logger.info(String.format("positionReceived fen=%s hashCode=%d reachedCount=%d",
 				fen_to_use, hashCode, dc.getPositionReachedCount(hashCode)));
 		logger.info(String.format("positionManager fen=%s", pm.getFen()));
@@ -288,19 +287,23 @@ public class EubosEngineMain extends AbstractEngine {
 			// In unit tests carry on without the protocol being connected
 		}
 		if (protocolBestMoveCommand.bestMove != null) {
-			long hashCode = pm.getHashForMove(Move.toMove(protocolBestMoveCommand.bestMove, pm.getTheBoard(), Move.TYPE_NONE));
-			dc.incrementPositionReachedCount(hashCode);
-			logger.info(String.format("bestMove=%s positionHashAfterMove=%d reachedCount=%d",
-					protocolBestMoveCommand.bestMove, hashCode, dc.getPositionReachedCount(hashCode)));
-			if (dc.isPositionDraw(hashCode)) {
-				// need to remove this position from transposition table, as cached score for it doesn't indicate a draw
-				if (hashMap.containsHash(hashCode)) {
-					hashMap.remove(hashCode);
+			try {
+				pm.performMove(Move.toMove(protocolBestMoveCommand.bestMove, pm.getTheBoard(), Move.TYPE_NONE));
+				long hashCode = pm.getHash();
+				if (dc.isPositionDraw(hashCode)) {
+					// need to remove this position from transposition table, as cached score for it doesn't indicate a draw
+					if (hashMap.containsHash(hashCode)) {
+						hashMap.remove(hashCode);
+					}
 				}
+				logger.info(String.format("BestMove=%s hashCode=%d positionReachedCount=%d",
+						protocolBestMoveCommand.bestMove, hashCode, dc.getPositionReachedCount(hashCode)));
+			} catch (InvalidPieceException e) {
+				logger.severe("Error in sendBestMoveCommand!");
 			}
+		} else {
+			logger.severe("Best move is null!");
 		}
-		logger.info("Best move " + protocolBestMoveCommand.bestMove);
-		logger.finer("Transposition Table Size " + hashMap.getHashMapSize());
 	}
 	
 	@Override

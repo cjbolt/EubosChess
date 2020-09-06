@@ -226,12 +226,41 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/1k6/p7/8/K7 b - - 9 64"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4b3"+CMD_TERMINATOR));
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/1K6 b - - 11 65"+CMD_TERMINATOR, null));
-		// To escape draw by 3-fold repetition
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"a3a2"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/1k6/p7/K7 b - - 1 66"+CMD_TERMINATOR, null));
-		// to escape stalemate
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b3c4"+CMD_TERMINATOR));
-		// ...draws on insufficient material, which Eubos doesn't recognise
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/2k5/p7/K7/8 b - - 8 66"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c4b4"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/1k6/p7/8/K7 b - - 10 67"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4b3"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/1K6 b - - 12 68"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b3c3"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/p1k5/K7/8 b - - 14 69"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c3d4"+CMD_TERMINATOR));
+		// King takes pawn leads to draw by insufficient material, of which Eubos is not yet aware!
+		//commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/2k5/K7/8/8 b - - 0 70"+CMD_TERMINATOR, null));
+		performTest(500);
+	}
+	
+	@Test
+	public void test_avoidDraw_lichess_hash_table_draw_kpK_rook_pawn_with_moves() throws InterruptedException, IOException {
+		setupEngine();
+		// Setup Commands specific to this test
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b3c4"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c4b4"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2 c4b4 a2a1"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4b3"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2 c4b4 a2a1 b4b3 a1b1"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b3c4"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2 c4b4 a2a1 b4b3 a1b1 b3c4 b1a2"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c4b4"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2 c4b4 a2a1 b4b3 a1b1 b3c4 b1a2 c4b4 a2a1"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4b3"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2 c4b4 a2a1 b4b3 a1b1 b3c4 b1a2 c4b4 a2a1 b4b3 a1b1"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b3c3"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2 c4b4 a2a1 b4b3 a1b1 b3c4 b1a2 c4b4 a2a1 b4b3 a1b1 b3c3 b1a2"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c3d4"+CMD_TERMINATOR));
+		// Again, king takes pawn leads to draw by insufficient material, of which Eubos is not yet aware!
 		performTest(500);
 	}
 	

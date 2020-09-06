@@ -9,7 +9,6 @@ import com.fluxchess.jcpi.models.IntFile;
 
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
-import eubos.position.CaptureData;
 
 public class ZobristHashCode {
 	

@@ -23,10 +23,19 @@ public class DrawChecker {
 		return positionCount.get(posHash);
 	}
 
+	public boolean isPositionOpponentCouldClaimDraw(long positionHash) {
+		boolean opponentCouldClaimDraw = false;
+		Byte reachedCount = getPositionReachedCount(positionHash);
+		if (reachedCount != null && reachedCount >= 2) {
+			opponentCouldClaimDraw = true;
+		}
+		return opponentCouldClaimDraw;
+	}
+	
 	public boolean isPositionDraw(long positionHash) {
 		boolean isDrawn = false;
 		Byte reachedCount = getPositionReachedCount(positionHash);
-		if (reachedCount != null && reachedCount >= 2) {
+		if (reachedCount != null && reachedCount >= 3) {
 			isDrawn = true;
 		}
 		return isDrawn;

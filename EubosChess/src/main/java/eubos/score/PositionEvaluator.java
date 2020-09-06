@@ -115,6 +115,11 @@ public class PositionEvaluator implements IEvaluate {
 		return dc.isPositionDraw(hashCode);
 	}
 	
+	@Override
+	public boolean couldLeadToThreeFoldRepetiton(Long hashCode) {
+		return dc.isPositionOpponentCouldClaimDraw(hashCode);
+	}
+	
 	public SearchContext getSearchContext() {
 		return this.sc;
 	}
