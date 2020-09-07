@@ -168,7 +168,10 @@ public class Board {
 				if (Piece.isKing(pieceToMove)) {
 					performSecondaryCastlingMove(move);
 				}
-				captureTarget = new CaptureData(pickUpPieceAtSquare(targetSquare), targetSquare);
+				if (!Move.isRegular(move)) {
+					// If could be a capture or a promotion, then may not be a null capture, do construction
+					captureTarget = new CaptureData(pickUpPieceAtSquare(targetSquare), targetSquare);
+				}
 			}			
 		}
 		movePiece(move);
