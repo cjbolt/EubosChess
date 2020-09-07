@@ -177,23 +177,48 @@ public class Board {
 	
 	private void movePiece(int move) {
 		int pieceToMove = Move.getOriginPiece(move);
-		int initialSquare = Move.getOriginPosition(move);
-		int targetSquare = Move.getTargetPosition(move);
+		long initialSquareMask = BitBoard.positionToMask_Lut[Move.getOriginPosition(move)];
+		long targetSquareMask = BitBoard.positionToMask_Lut[Move.getTargetPosition(move)];
+		long positionsMask = initialSquareMask | targetSquareMask;
+		// Switch piece-specific bitboards
 		if (Move.getPromotion(move) != IntChessman.NOCHESSMAN) {
-			pickUpPieceAtSquare(initialSquare);
-			setPieceAtSquare(targetSquare, pieceToMove);
-		} else {
-			// TODO Doesn't work for promotions because we don't know the long index - this can be resolved 
-			int pieceType = Move.getOriginPiece(move);
-			long positionsMask = BitBoard.positionToMask_Lut[initialSquare] | BitBoard.positionToMask_Lut[targetSquare];
-			allPieces ^= positionsMask;
-			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceType] ^= positionsMask;
-			if (Piece.isWhite(pieceType)) {
-				whitePieces ^= positionsMask;
+			// For a promotion, need to resolve piece-specific across multiple bitboards; can't be a king, sorted in order of likeliness.
+			if ((pieces[INDEX_PAWN] & initialSquareMask) == initialSquareMask) {
+				pieces[INDEX_PAWN] &= ~initialSquareMask;
+			} else if ((pieces[INDEX_QUEEN] & initialSquareMask) == initialSquareMask) {
+				pieces[INDEX_QUEEN] &= ~initialSquareMask;
+			} else if ((pieces[INDEX_ROOK] & initialSquareMask) == initialSquareMask) {
+				pieces[INDEX_ROOK] &= ~initialSquareMask;
+			} else if ((pieces[INDEX_BISHOP] & initialSquareMask) == initialSquareMask) {
+				pieces[INDEX_BISHOP] &= ~initialSquareMask;
+			} else if ((pieces[INDEX_KNIGHT] & initialSquareMask) == initialSquareMask) {
+				pieces[INDEX_KNIGHT] &= ~initialSquareMask;
+			} 
+			if (Piece.isPawn(pieceToMove)) {
+				pieces[INDEX_PAWN] |= targetSquareMask;
+			} else if (Piece.isQueen(pieceToMove)) {
+				pieces[INDEX_QUEEN] |= targetSquareMask;
+			} else if (Piece.isRook(pieceToMove)) {
+				pieces[INDEX_ROOK] |= targetSquareMask;
+			} else if (Piece.isBishop(pieceToMove)) {
+				pieces[INDEX_BISHOP] |= targetSquareMask;
+			} else if (Piece.isKnight(pieceToMove)) {
+				pieces[INDEX_KNIGHT] |= targetSquareMask;
 			} else {
-				blackPieces ^= positionsMask;
+				assert false;
 			}
+		} else {
+			// Piece type doesn't change across boards
+			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
 		}
+		// Switch colour bitboard
+		if (Piece.isWhite(pieceToMove)) {
+			whitePieces ^= positionsMask;
+		} else {
+			blackPieces ^= positionsMask;
+		}
+		// Switch all pieces bitboard
+		allPieces ^= positionsMask;
 	}
 	
 	private boolean isEnPassantCapture(int pieceToMove, int targetSquare) {
@@ -358,6 +383,7 @@ public class Board {
 	public void setPieceAtSquare( int atPos, int pieceToPlace ) {
 		assert pieceToPlace != Piece.NONE;
 		long mask = BitBoard.positionToMask_Lut[atPos];
+		// Set on piece-specific bitboard
 		if (Piece.isKing(pieceToPlace)) {
 			pieces[INDEX_KING] |= mask;
 		} else if (Piece.isQueen(pieceToPlace)) {
@@ -373,11 +399,13 @@ public class Board {
 		} else {
 			assert false;
 		}
+		// Set on colour bitboard
 		if (Piece.isBlack(pieceToPlace)) {
 			blackPieces |= (mask);
 		} else {
 			whitePieces |= (mask);
 		}
+		// Set on all pieces bitboard
 		allPieces |= (mask);
 	}
 	
@@ -397,6 +425,7 @@ public class Board {
 		int type = Piece.NONE;
 		long pieceToPickUp = BitBoard.positionToMask_Lut[atPos];
 		if ((allPieces & pieceToPickUp) != 0) {	
+			// Remove from relevant colour bitboard
 			if ((blackPieces & pieceToPickUp) != 0) {
 				blackPieces &= ~pieceToPickUp;
 				type |= Piece.BLACK;
@@ -404,6 +433,7 @@ public class Board {
 				assert (whitePieces & pieceToPickUp) != 0;
 				whitePieces &= ~pieceToPickUp;
 			}
+			// Remove from specific-piece bitboard
 			if ((pieces[INDEX_KING] & pieceToPickUp) == pieceToPickUp) {
 				pieces[INDEX_KING] &= ~pieceToPickUp;
 				type |= Piece.KING;
@@ -423,6 +453,7 @@ public class Board {
 				pieces[INDEX_PAWN] &= ~pieceToPickUp;
 				type |= Piece.PAWN;
 			}
+			// Remove from all pieces bitboard
 			allPieces &= ~pieceToPickUp;
 		}
 		return type;

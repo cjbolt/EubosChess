@@ -196,8 +196,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	private int checkForPawnPromotions(int move) {
-		int piece = Move.getOriginPiece(move);
 		if ( Move.getPromotion(move) != IntChessman.NOCHESSMAN ) {
+			int piece = Move.getOriginPiece(move);
 			piece &= Piece.BLACK; // preserve colour
 			switch( Move.getPromotion(move) ) {
 			case IntChessman.QUEEN:
