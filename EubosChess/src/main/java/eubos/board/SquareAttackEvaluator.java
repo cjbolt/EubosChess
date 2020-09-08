@@ -6,16 +6,19 @@ import eubos.board.Piece.Colour;
 import eubos.position.Position;
 
 public class SquareAttackEvaluator {
-	static private final int[][][] directPieceMove_Lut = new int[256][8][];
+	
+	static final Direction [] allDirect = { Direction.left, Direction.up, Direction.right, Direction.down, Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
+	
+	static private final int[][][] directPieceMove_Lut = new int[256][allDirect.length][];
 	static {
 		for (int square : Position.values) {
 			directPieceMove_Lut[square] = createDiagonalForSq(square);
 		}
 	}
 	static private int [][] createDiagonalForSq(int square) {
-		int [][] ret = new int [Direction.values().length][];
+		int [][] ret = new int [allDirect.length][];
 		int index = 0;
-		for (Direction dir: Direction.values()) {
+		for (Direction dir: allDirect) {
 			ret[index] = getSqsInDirection(dir, square);
 			index++;
 		}
@@ -170,7 +173,7 @@ public class SquareAttackEvaluator {
 		// one dimension for each direction, other dimension is array of squares in that direction
 		int [][] array = SquareAttackEvaluator.directPieceMove_Lut[targetSq];
 		int index = 0;
-		for (Direction dir: Direction.values()) { 
+		for (Direction dir: allDirect) { 
 			switch(dir) {
 			case downLeft:
 			case upLeft:
