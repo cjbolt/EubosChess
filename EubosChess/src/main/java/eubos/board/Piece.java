@@ -1,6 +1,6 @@
 package eubos.board;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fluxchess.jcpi.models.IntChessman;
@@ -103,7 +103,7 @@ public abstract class Piece {
 	}
 		
 	static List<Integer> king_generateMoves(Board theBoard, int atSquare, Piece.Colour ownSide) {
-		List<Integer> moveList = new LinkedList<Integer>();
+		List<Integer> moveList = new ArrayList<Integer>(9);
 		king_checkAddMove(ownSide, atSquare, moveList, theBoard, Direction.getDirectMoveSq(Direction.up, atSquare));
 		king_checkAddMove(ownSide, atSquare, moveList, theBoard, Direction.getDirectMoveSq(Direction.upRight, atSquare));
 		king_checkAddMove(ownSide, atSquare, moveList, theBoard, Direction.getDirectMoveSq(Direction.right, atSquare));
@@ -136,7 +136,7 @@ public abstract class Piece {
 	}
 	
 	static List<Integer> knight_generateMoves(Board theBoard, int atSquare, Piece.Colour ownSide) {
-		List<Integer> moveList = new LinkedList<Integer>();
+		List<Integer> moveList = new ArrayList<Integer>(8);
 		int ownPiece = Piece.KNIGHT;
 		if (Colour.isBlack(ownSide)) {
 			ownPiece |= Piece.BLACK;
@@ -154,7 +154,7 @@ public abstract class Piece {
 	
 	
 	static List<Integer> rook_generateMoves(Board theBoard, int atSquare, Piece.Colour ownSide) {
-		LinkedList<Integer> moveList = new LinkedList<Integer>();
+		List<Integer> moveList = new ArrayList<Integer>(14);
 		int ownPiece = Piece.ROOK;
 		if (Colour.isBlack(ownSide)) {
 			ownPiece |= Piece.BLACK;
@@ -167,7 +167,7 @@ public abstract class Piece {
 	}
 	
 	static List<Integer> queen_generateMoves(Board theBoard, int atSquare, Piece.Colour ownSide) {
-		List<Integer> moveList = new LinkedList<Integer>();
+		List<Integer> moveList = new ArrayList<Integer>(27);
 		int ownPiece = Piece.QUEEN;
 		if (Colour.isBlack(ownSide)) {
 			ownPiece |= Piece.BLACK;
@@ -184,7 +184,7 @@ public abstract class Piece {
 	}
 	
 	static List<Integer> bishop_generateMoves(Board theBoard, int atSquare, Piece.Colour ownSide) {
-		List<Integer> moveList = new LinkedList<Integer>();
+		List<Integer> moveList = new ArrayList<Integer>(13);
 		int ownPiece = Piece.BISHOP;
 		if (Colour.isBlack(ownSide)) {
 			ownPiece |= Piece.BLACK;
@@ -296,7 +296,7 @@ public abstract class Piece {
 	}	
 	
 	static List<Integer> pawn_generateMoves(Board theBoard, int atSquare, Piece.Colour ownSide) {
-		List<Integer> moveList = new LinkedList<Integer>();
+		List<Integer> moveList = new ArrayList<Integer>(8);
 		int ownPiece = Piece.PAWN;
 		if (Colour.isBlack(ownSide)) {
 			ownPiece |= Piece.BLACK;

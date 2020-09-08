@@ -44,4 +44,8 @@ public class BitBoard {
 	public static PrimitiveIterator.OfInt iterator(Long bitBoard) {
 		return new SetBitsIterator(bitBoard);
 	}
+	
+	public static PrimitiveIterator.OfLong maskIterator(Long bitBoard) {
+		return new MaskIterator(bitBoard);
+	}
 }

@@ -98,7 +98,7 @@ public class SearchMetrics {
 	private List<GenericMove> getPrincipalVariation() {
 		List<GenericMove> thePv = null;
 		if (pvValid) {
-			thePv = new ArrayList<GenericMove>();
+			thePv = new ArrayList<GenericMove>(pv.size());
 			for (int move : this.pv) {
 				if (move != Move.NULL_MOVE) {
 					thePv.add(Move.toGenericMove(move));

@@ -318,25 +318,26 @@ public class Board {
 	
 	public List<Integer> getRegularPieceMoves(Piece.Colour side) {
 		long bitBoardToIterate = Colour.isWhite(side) ? whitePieces : blackPieces;
-		ArrayList<Integer> movesList = new ArrayList<Integer>();
+		ArrayList<Integer> movesList = new ArrayList<Integer>(60);
 		
 		PrimitiveIterator.OfInt iter = BitBoard.iterator(bitBoardToIterate);
 		while (iter.hasNext()) {
 			int bit_index = iter.nextInt();
 			int atSquare = BitBoard.bitToPosition_Lut[bit_index];
 			long mask = 1L<<bit_index;
-			if ((pieces[INDEX_KING] & mask) == mask) {
-				movesList.addAll(Piece.king_generateMoves(this, atSquare, side));
-			} else if ((pieces[INDEX_QUEEN] & mask) == mask) {
-				movesList.addAll(Piece.queen_generateMoves(this, atSquare, side));
+			// for efficiency sorted in order of frequency on the board
+			if ((pieces[INDEX_PAWN] & mask) == mask) {
+				movesList.addAll(Piece.pawn_generateMoves(this, atSquare, side));
 			} else if ((pieces[INDEX_ROOK] & mask) == mask) {
 				movesList.addAll(Piece.rook_generateMoves(this, atSquare, side));
 			} else if ((pieces[INDEX_BISHOP] & mask) == mask) {
 				movesList.addAll(Piece.bishop_generateMoves(this, atSquare, side));
 			} else if ((pieces[INDEX_KNIGHT] & mask) == mask) {
 				movesList.addAll(Piece.knight_generateMoves(this, atSquare, side));
-			} else if ((pieces[INDEX_PAWN] & mask) == mask) {
-				movesList.addAll(Piece.pawn_generateMoves(this, atSquare, side));
+			} else if ((pieces[INDEX_KING] & mask) == mask) {
+				movesList.addAll(Piece.king_generateMoves(this, atSquare, side));
+			} else if ((pieces[INDEX_QUEEN] & mask) == mask) {
+				movesList.addAll(Piece.queen_generateMoves(this, atSquare, side));
 			}
 		}
 		return movesList;
@@ -366,18 +367,19 @@ public class Board {
 			if ((blackPieces & pieceToGet) != 0) {
 				type |= Piece.BLACK;
 			} else assert (whitePieces & pieceToGet) != 0;
-			if ((pieces[INDEX_KING] & pieceToGet) == pieceToGet) {
-				type |= Piece.KING;
-			} else if ((pieces[INDEX_QUEEN] & pieceToGet) == pieceToGet) {
-				type |= Piece.QUEEN;
+			// Sorted in order of frequency of piece on the chess board, for efficiency
+			if ((pieces[INDEX_PAWN] & pieceToGet) == pieceToGet) {
+				type |= Piece.PAWN;
 			} else if ((pieces[INDEX_ROOK] & pieceToGet) == pieceToGet) {
 				type |= Piece.ROOK;
 			} else if ((pieces[INDEX_BISHOP] & pieceToGet) == pieceToGet) {
 				type |= Piece.BISHOP;
 			} else if ((pieces[INDEX_KNIGHT] & pieceToGet) == pieceToGet) {
 				type |= Piece.KNIGHT;
-			} else if ((pieces[INDEX_PAWN] & pieceToGet) == pieceToGet) {
-				type |= Piece.PAWN;
+			} else if ((pieces[INDEX_KING] & pieceToGet) == pieceToGet) {
+				type |= Piece.KING;
+			} else if ((pieces[INDEX_QUEEN] & pieceToGet) == pieceToGet) {
+				type |= Piece.QUEEN;
 			}
 		}
 		return type;
@@ -386,19 +388,19 @@ public class Board {
 	public void setPieceAtSquare( int atPos, int pieceToPlace ) {
 		assert pieceToPlace != Piece.NONE;
 		long mask = BitBoard.positionToMask_Lut[atPos];
-		// Set on piece-specific bitboard
-		if (Piece.isKing(pieceToPlace)) {
-			pieces[INDEX_KING] |= mask;
-		} else if (Piece.isQueen(pieceToPlace)) {
-			pieces[INDEX_QUEEN] |= (mask);
+		// Set on piece-specific bitboard, sorted in order of frequency, for efficiency
+		if (Piece.isPawn(pieceToPlace)) {
+			pieces[INDEX_PAWN] |= (mask);
 		} else if (Piece.isRook(pieceToPlace)) {
 			pieces[INDEX_ROOK] |= (mask);
 		} else if (Piece.isBishop(pieceToPlace)) {
 			pieces[INDEX_BISHOP] |= (mask);
 		} else if (Piece.isKnight(pieceToPlace)) {
 			pieces[INDEX_KNIGHT] |= (mask);
-		} else if (Piece.isPawn(pieceToPlace)) {
-			pieces[INDEX_PAWN] |= (mask);
+		} else if (Piece.isKing(pieceToPlace)) {
+			pieces[INDEX_KING] |= mask;
+		} else if (Piece.isQueen(pieceToPlace)) {
+			pieces[INDEX_QUEEN] |= (mask);
 		} else {
 			assert false;
 		}

@@ -166,6 +166,7 @@ public class SquareAttackEvaluator {
 	private static boolean checkForDirectPieceAttacker(Board theBoard, Colour attackingColour,
 			int targetSq, boolean doDiagonalCheck, boolean doRankFileCheck) {
 		boolean attacked = false;
+		boolean attackerIsWhite = Colour.isWhite(attackingColour);
 		// one dimension for each direction, other dimension is array of squares in that direction
 		int [][] array = SquareAttackEvaluator.directPieceMove_Lut[targetSq];
 		int index = 0;
@@ -179,7 +180,7 @@ public class SquareAttackEvaluator {
 					for (int attackerSq: array[index]) {
 						int currPiece = theBoard.getPieceAtSquare(attackerSq);
 						if (currPiece != Piece.NONE ) {
-							if (Colour.isWhite(attackingColour)) {
+							if (attackerIsWhite) {
 								if (currPiece == Piece.WHITE_QUEEN || currPiece == Piece.WHITE_BISHOP) {
 									attacked = true;
 								}
@@ -201,7 +202,7 @@ public class SquareAttackEvaluator {
 					for (int attackerSq: array[index]) {
 						int currPiece = theBoard.getPieceAtSquare(attackerSq);
 						if (currPiece != Piece.NONE ) {
-							if (Colour.isWhite(attackingColour)) {
+							if (attackerIsWhite) {
 								if (currPiece == Piece.WHITE_QUEEN || currPiece == Piece.WHITE_ROOK) {
 									attacked = true;
 								}

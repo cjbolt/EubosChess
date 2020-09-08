@@ -12,7 +12,7 @@ public class PrincipalContinuation {
 	public PrincipalContinuation(int searchDepth) {
 		pc = new ArrayList<List<Integer>>(searchDepth);
 		for (int i=0; i<searchDepth; i++) {
-			pc.add(new ArrayList<Integer>());
+			pc.add(new ArrayList<Integer>(searchDepth));
 		}
 	}
 	
@@ -49,7 +49,7 @@ public class PrincipalContinuation {
 	}
 	
 	public List<Integer> toPvList(int currPly) { 
-		List<Integer> mv = new ArrayList<Integer>();
+		List<Integer> mv = new ArrayList<Integer>(pc.size());
 		if (currPly < pc.size()) {
 			for (int currMove : pc.get(currPly)) {
 				mv.add(currMove);
