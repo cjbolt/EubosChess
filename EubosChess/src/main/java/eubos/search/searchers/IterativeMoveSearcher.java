@@ -40,7 +40,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		EubosEngineMain.logger.info(
 				String.format("Starting initialScore=%d gameTimeRemaining=%d", initialScore, time));
 		// We use the lichess hypothesis about increments and game time
-		gameTimeRemaining = time + (increment * AVG_MOVES_PER_GAME);
+		gameTimeRemaining = time + (increment * Math.max((AVG_MOVES_PER_GAME - pos.getMoveNumber()), 0));
 		this.setName("IterativeMoveSearcher");
 	}
 	
