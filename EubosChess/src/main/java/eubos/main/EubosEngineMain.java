@@ -166,14 +166,17 @@ public class EubosEngineMain extends AbstractEngine {
 	private void moveSearcherFactory(EngineStartCalculatingCommand command) {
 		boolean clockTimeValid = true;
 		long clockTime = 0;
+		long clockInc = 0;
 		try {
-			clockTime = command.getClock((pm.onMoveIsWhite()) ? GenericColor.WHITE : GenericColor.BLACK);
+			GenericColor side = pm.onMoveIsWhite() ? GenericColor.WHITE : GenericColor.BLACK;
+			clockTime = command.getClock(side);
+			clockInc = command.getClockIncrement(side);
 		} catch (NullPointerException e) {
 			clockTimeValid = false;
 		}
 		if (clockTimeValid) {
 			logger.info("Search move, clock time " + clockTime);
-			ms = new IterativeMoveSearcher(this, hashMap, pm, pm, clockTime, pm.getPositionEvaluator());
+			ms = new IterativeMoveSearcher(this, hashMap, pm, pm, clockTime, clockInc, pm.getPositionEvaluator());
 		}
 		else if (command.getMoveTime() != null) {
 			logger.info("Search move, fixed time " + command.getMoveTime());

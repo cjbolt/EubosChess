@@ -15,11 +15,24 @@ public class SearchContext {
 	boolean isEndgame;
 	
 	static final short SIMPLIFY_THRESHOLD = 100;
-	static final short DRAW_THRESHOLD = -200;
+	static final short DRAW_THRESHOLD = -150;
 	
 	static final short SIMPLIFICATION_BONUS = 75;
-	static final short AVOID_DRAW_HANDICAP = -400;
+	static final short AVOID_DRAW_HANDICAP = -250;
 	static final short ACHIEVES_DRAW_BONUS = MaterialEvaluator.MATERIAL_VALUE_KING/2;
+	
+	static final int ENDGAME_MATERIAL_THRESHOLD = 
+			MaterialEvaluator.MATERIAL_VALUE_KING + 
+			MaterialEvaluator.MATERIAL_VALUE_ROOK + 
+			MaterialEvaluator.MATERIAL_VALUE_KNIGHT + 
+			(4 * MaterialEvaluator.MATERIAL_VALUE_PAWN);
+	
+	static final int ENDGAME_MATERIAL_THRESHOLD_WITHOUT_QUEENS =
+			MaterialEvaluator.MATERIAL_VALUE_KING + 
+			MaterialEvaluator.MATERIAL_VALUE_ROOK + 
+			MaterialEvaluator.MATERIAL_VALUE_KNIGHT +
+			MaterialEvaluator.MATERIAL_VALUE_BISHOP +
+			(4 * MaterialEvaluator.MATERIAL_VALUE_PAWN);
 	
 	static final boolean ALWAYS_TRY_FOR_WIN = false;
 	
@@ -35,8 +48,10 @@ public class SearchContext {
 		initial = initialMaterial;
 		initialOnMove = pos.getOnMove();
 		boolean queensOffBoard = (pos.getTheBoard().getWhiteQueens() == 0) && (pos.getTheBoard().getBlackQueens() ==0);
-		boolean materialQuantityThreshholdReached = initialMaterial.getWhite() <= 5200 && initialMaterial.getBlack() <= 5200;
-		if (queensOffBoard || materialQuantityThreshholdReached) {
+		int opponentMaterial = Piece.Colour.isWhite(initialOnMove) ? initialMaterial.getBlack() : initialMaterial.getWhite();
+		boolean queensOffMaterialThresholdReached = opponentMaterial <= ENDGAME_MATERIAL_THRESHOLD_WITHOUT_QUEENS;
+		boolean materialQuantityThreshholdReached = initialMaterial.getWhite() <= ENDGAME_MATERIAL_THRESHOLD && initialMaterial.getBlack() <= ENDGAME_MATERIAL_THRESHOLD;
+		if ((queensOffBoard && queensOffMaterialThresholdReached) || materialQuantityThreshholdReached) {
 			isEndgame = true;
 		}
 		setGoal();

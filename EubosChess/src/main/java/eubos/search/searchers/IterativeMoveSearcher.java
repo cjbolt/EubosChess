@@ -18,7 +18,7 @@ import eubos.search.transposition.FixedSizeTranspositionTable;
 
 public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	
-	public static final int AVG_MOVES_PER_GAME = 90;
+	public static final int AVG_MOVES_PER_GAME = 60;
 	long gameTimeRemaining;
 	short initialScore;
 	boolean searchStopped = false;
@@ -30,6 +30,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			IChangePosition inputPm,  
 			IPositionAccessors pos, 
 			long time,
+			long increment,
 			IEvaluate pe ) {
 		super(eubos,inputPm,pos, new MiniMaxMoveGenerator( eubos, hashMap, inputPm, pos, pe ));
 		initialScore = pe.evaluatePosition();
@@ -38,7 +39,8 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		}
 		EubosEngineMain.logger.info(
 				String.format("Starting initialScore=%d gameTimeRemaining=%d", initialScore, time));
-		gameTimeRemaining = time;
+		// We use the lichess hypothesis about increments and game time
+		gameTimeRemaining = time + (increment * AVG_MOVES_PER_GAME);
 		this.setName("IterativeMoveSearcher");
 	}
 	

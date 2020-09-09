@@ -48,7 +48,7 @@ public class IterativeMoveSearcherTest {
 	
 	protected void setupPosition(String fen, long time) {
 		pm = new PositionManager( fen );
-		sut = new IterativeMoveSearcher(eubos, hashMap, pm, pm, time, pm.getPositionEvaluator());
+		sut = new IterativeMoveSearcher(eubos, hashMap, pm, pm, time, 0, pm.getPositionEvaluator());
 	}
 	
 	@Before
@@ -80,7 +80,7 @@ public class IterativeMoveSearcherTest {
 	
 	@Test
 	public void test_endgame_a() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		setupPosition("8/8/2pp3k/8/1P1P3K/8/8/8 w - - 0 1", 9000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
+		setupPosition("8/8/2pp3k/8/1P1P3K/8/8/8 w - - 0 1", 8000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
 		expectedMove = new GenericMove("d4d5"); //Levy
 		runSearcherAndTestBestMoveReturned();
 	}
