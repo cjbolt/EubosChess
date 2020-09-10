@@ -61,6 +61,7 @@ public class SquareAttackEvaluator {
 		}
 		return mask;
 	}
+	
 	static final long[] allAttacksOnPosition_Lut = new long[128];
 	static {
 		Direction [] allDirect = { Direction.left, Direction.up, Direction.right, Direction.down, Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
@@ -73,6 +74,30 @@ public class SquareAttackEvaluator {
 			// Add indirect attacks
 			allAttacksMask |= KnightMove_Lut[square];
 			allAttacksOnPosition_Lut[square] = allAttacksMask;
+		}
+	}
+	
+	static final long[] diagonalAttacksOnPosition_Lut = new long[128];
+	static {
+		Direction [] diagDirect = { Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
+		for (int square : Position.values) {
+			Long diagAttacksMask = 0L;
+			for (Direction dir: diagDirect) {
+				diagAttacksMask = setAllInDirection(dir, square, diagAttacksMask, 8);
+			}
+			diagonalAttacksOnPosition_Lut[square] = diagAttacksMask;
+		}
+	}
+	
+	static final long[] rankFileAttacksOnPosition_Lut = new long[128];
+	static {
+		Direction [] rfDirect = { Direction.left, Direction.up, Direction.right, Direction.down };
+		for (int square : Position.values) {
+			Long rfAttacksMask = 0L;
+			for (Direction dir: rfDirect) {
+				rfAttacksMask = setAllInDirection(dir, square, rfAttacksMask, 8);
+			}
+			rankFileAttacksOnPosition_Lut[square] = rfAttacksMask;
 		}
 	}
 	
@@ -103,23 +128,6 @@ public class SquareAttackEvaluator {
 			return false;
 		
 		long attackingPawnsMask = isBlackAttacking ? bd.getBlackPawns() : bd.getWhitePawns();
-		// direct piece check is computationally heavy, so just do what is necessary
-		boolean doDiagonalCheck = false;
-		boolean doRankFileCheck = false;
-		boolean attackingQueenPresent = isBlackAttacking ? (bd.getBlackQueens()!=0) : (bd.getWhiteQueens()!=0);
-		if (attackingQueenPresent) {
-			doDiagonalCheck = true;
-			doRankFileCheck = true;
-		} else {
-			boolean attackingRookPresent = isBlackAttacking ? bd.getBlackRooks() != 0 : bd.getWhiteRooks() != 0;
-			if (attackingRookPresent) {
-				doRankFileCheck = true;
-			}
-			boolean attackingBishopPresent = isBlackAttacking ? bd.getBlackBishops() != 0 : bd.getWhiteBishops() != 0;
-			if (attackingBishopPresent) {
-				doDiagonalCheck = true;
-			}
-		}
 		boolean attacked = false;
 		// do/while loop is to allow the function to return attacked=true at earliest possibility
 		do {
@@ -146,6 +154,27 @@ public class SquareAttackEvaluator {
 				if (attacked) break;
 				attacked = checkForAttacksHelper(bd, Piece.WHITE_KNIGHT, KnightMove_Lut[attackedSq]);
 				if (attacked) break;
+			}
+			// direct piece check is computationally heavy, so just do what is necessary
+			// TODO this would be better done by checking for pieces on the diagonals/rankfiles from the targetsquare using bitmasks
+			boolean doDiagonalCheck = false;
+			boolean doRankFileCheck = false;
+			long attackingQueensMask = isBlackAttacking ? bd.getBlackQueens() : bd.getWhiteQueens();
+			boolean attackingQueenPresent = ((rankFileAttacksOnPosition_Lut[attackedSq] | diagonalAttacksOnPosition_Lut[attackedSq]) & attackingQueensMask) != 0;
+			if (attackingQueenPresent) {
+				doDiagonalCheck = true;
+				doRankFileCheck = true;
+			} else {
+				long attackingRooksMask = isBlackAttacking ? bd.getBlackRooks() : bd.getWhiteRooks();
+				boolean attackingRookPresent = (rankFileAttacksOnPosition_Lut[attackedSq] & attackingRooksMask) != 0;
+				if (attackingRookPresent) {
+					doRankFileCheck = true;
+				}
+				long attackingBishopsMask = isBlackAttacking ? bd.getBlackBishops() : bd.getWhiteBishops();
+				boolean attackingBishopPresent = (diagonalAttacksOnPosition_Lut[attackedSq] & attackingBishopsMask) != 0;
+				if (attackingBishopPresent) {
+					doDiagonalCheck = true;
+				}
 			}
 			attacked = checkForDirectPieceAttacker(bd, attackingColour, attackedSq, doDiagonalCheck, doRankFileCheck);
 			if (attacked) break;
