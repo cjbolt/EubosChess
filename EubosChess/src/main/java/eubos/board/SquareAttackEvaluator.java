@@ -1,6 +1,8 @@
  package eubos.board;
 
 import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.Map;
 
 import eubos.board.Piece.Colour;
 import eubos.position.Position;
@@ -8,6 +10,19 @@ import eubos.position.Position;
 public class SquareAttackEvaluator {
 	
 	static final Direction [] allDirect = { Direction.left, Direction.up, Direction.right, Direction.down, Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
+	
+	private static final Map<Direction, Integer> directionIndex_Lut = new EnumMap<Direction, Integer>(Direction.class);
+	static {
+		// Indexes as specified by the order of the array SquareAttackEvaluator.allDirect
+		directionIndex_Lut.put(Direction.left, 0);
+		directionIndex_Lut.put(Direction.up, 1);
+		directionIndex_Lut.put(Direction.right, 2);
+		directionIndex_Lut.put(Direction.down, 3);
+		directionIndex_Lut.put(Direction.downLeft, 4);
+		directionIndex_Lut.put(Direction.upLeft, 5);
+		directionIndex_Lut.put(Direction.upRight, 6);
+		directionIndex_Lut.put(Direction.downRight, 7);
+	}
 	
 	static private final int[][][] directPieceMove_Lut = new int[256][allDirect.length][];
 	static {
@@ -101,6 +116,78 @@ public class SquareAttackEvaluator {
 		}
 	}
 	
+	static final long[] directAttacksOnPositionUp_Lut = new long[128];
+	static {
+		for (int square : Position.values) {
+			long mask = 0L;
+			Long finalMask = setAllInDirection(Direction.up, square, mask, 8);
+			directAttacksOnPositionUp_Lut[square] = finalMask;
+		}
+	}
+	
+	static final long[] directAttacksOnPositionUpLeft_Lut = new long[128];
+	static {
+		for (int square : Position.values) {
+			long mask = 0L;
+			Long finalMask = setAllInDirection(Direction.upLeft, square, mask, 8);
+			directAttacksOnPositionUpLeft_Lut[square] = finalMask;
+		}
+	}
+	
+	static final long[] directAttacksOnPositionLeft_Lut = new long[128];
+	static {
+		for (int square : Position.values) {
+			long mask = 0L;
+			Long finalMask = setAllInDirection(Direction.left, square, mask, 8);
+			directAttacksOnPositionLeft_Lut[square] = finalMask;
+		}
+	}
+	
+	static final long[] directAttacksOnPositionDownLeft_Lut = new long[128];
+	static {
+		for (int square : Position.values) {
+			long mask = 0L;
+			Long finalMask = setAllInDirection(Direction.downLeft, square, mask, 8);
+			directAttacksOnPositionDownLeft_Lut[square] = finalMask;
+		}
+	}
+	
+	static final long[] directAttacksOnPositionDown_Lut = new long[128];
+	static {
+		for (int square : Position.values) {
+			long mask = 0L;
+			Long finalMask = setAllInDirection(Direction.down, square, mask, 8);
+			directAttacksOnPositionDown_Lut[square] = finalMask;
+		}
+	}
+	
+	static final long[] directAttacksOnPositionDownRight_Lut = new long[128];
+	static {
+		for (int square : Position.values) {
+			long mask = 0L;
+			Long finalMask = setAllInDirection(Direction.downRight, square, mask, 8);
+			directAttacksOnPositionDownRight_Lut[square] = finalMask;
+		}
+	}
+	
+	static final long[] directAttacksOnPositionRight_Lut = new long[128];
+	static {
+		for (int square : Position.values) {
+			long mask = 0L;
+			Long finalMask = setAllInDirection(Direction.right, square, mask, 8);
+			directAttacksOnPositionRight_Lut[square] = finalMask;
+		}
+	}
+	
+	static final long[] directAttacksOnPositionUpRight_Lut = new long[128];
+	static {
+		for (int square : Position.values) {
+			long mask = 0L;
+			Long finalMask = setAllInDirection(Direction.upRight, square, mask, 8);
+			directAttacksOnPositionUpRight_Lut[square] = finalMask;
+		}
+	}
+	
 	static final long[] KingMove_Lut = new long[128];
 	static {
 		for (int square : Position.values) {
@@ -155,28 +242,7 @@ public class SquareAttackEvaluator {
 				attacked = checkForAttacksHelper(bd, Piece.WHITE_KNIGHT, KnightMove_Lut[attackedSq]);
 				if (attacked) break;
 			}
-			// direct piece check is computationally heavy, so just do what is necessary
-			// TODO this would be better done by checking for pieces on the diagonals/rankfiles from the targetsquare using bitmasks
-			boolean doDiagonalCheck = false;
-			boolean doRankFileCheck = false;
-			long attackingQueensMask = isBlackAttacking ? bd.getBlackQueens() : bd.getWhiteQueens();
-			boolean attackingQueenPresent = ((rankFileAttacksOnPosition_Lut[attackedSq] | diagonalAttacksOnPosition_Lut[attackedSq]) & attackingQueensMask) != 0;
-			if (attackingQueenPresent) {
-				doDiagonalCheck = true;
-				doRankFileCheck = true;
-			} else {
-				long attackingRooksMask = isBlackAttacking ? bd.getBlackRooks() : bd.getWhiteRooks();
-				boolean attackingRookPresent = (rankFileAttacksOnPosition_Lut[attackedSq] & attackingRooksMask) != 0;
-				if (attackingRookPresent) {
-					doRankFileCheck = true;
-				}
-				long attackingBishopsMask = isBlackAttacking ? bd.getBlackBishops() : bd.getWhiteBishops();
-				boolean attackingBishopPresent = (diagonalAttacksOnPosition_Lut[attackedSq] & attackingBishopsMask) != 0;
-				if (attackingBishopPresent) {
-					doDiagonalCheck = true;
-				}
-			}
-			attacked = checkForDirectPieceAttacker(bd, attackingColour, attackedSq, doDiagonalCheck, doRankFileCheck);
+			attacked = checkForDirectPieceAttacker(bd, attackingColour, attackedSq, isBlackAttacking);
 			if (attacked) break;
 		} while (false);
 		return attacked;	
@@ -194,65 +260,107 @@ public class SquareAttackEvaluator {
 		}
 		return attacked;
 	}
-
-	private static boolean checkForDirectPieceAttacker(Board theBoard, Colour attackingColour,
-			int targetSq, boolean doDiagonalCheck, boolean doRankFileCheck) {
+	
+	private static boolean checkForDirectPieceAttacker(Board bd, Colour attackingColour, int attackedSq, boolean isBlackAttacking) {
 		boolean attacked = false;
-		boolean attackerIsWhite = Colour.isWhite(attackingColour);
-		// one dimension for each direction, other dimension is array of squares in that direction
-		int [][] array = SquareAttackEvaluator.directPieceMove_Lut[targetSq];
-		int index = 0;
+		// direct piece check is computationally heavy, so just do what is necessary
+		long attackingQueensMask = isBlackAttacking ? bd.getBlackQueens() : bd.getWhiteQueens();
+		long attackingRooksMask = isBlackAttacking ? bd.getBlackRooks() : bd.getWhiteRooks();
+		long attackingBishopsMask = isBlackAttacking ? bd.getBlackBishops() : bd.getWhiteBishops();
+		// create masks of attackers
+		long diagonalAttackersMask = attackingQueensMask | attackingBishopsMask;
+		long rankFileAttackersMask = attackingQueensMask | attackingRooksMask;	
 		for (Direction dir: allDirect) { 
 			switch(dir) {
 			case downLeft:
+				if ((diagonalAttackersMask & directAttacksOnPositionDownLeft_Lut[attackedSq]) != 0)
+					attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
+				break;
 			case upLeft:
+				if ((diagonalAttackersMask & directAttacksOnPositionUpLeft_Lut[attackedSq]) != 0)
+					attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
+				break;
 			case upRight:
+				if ((diagonalAttackersMask & directAttacksOnPositionUpRight_Lut[attackedSq]) != 0)
+					attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
+				break;
 			case downRight:
-				if (doDiagonalCheck) {
-					for (int attackerSq: array[index]) {
-						int currPiece = theBoard.getPieceAtSquare(attackerSq);
-						if (currPiece != Piece.NONE ) {
-							if (attackerIsWhite) {
-								if (currPiece == Piece.WHITE_QUEEN || currPiece == Piece.WHITE_BISHOP) {
-									attacked = true;
-								}
-							} else {
-								if (currPiece == Piece.BLACK_QUEEN || currPiece == Piece.BLACK_BISHOP) {
-									attacked = true;
-								}
-							} // else blocked by own piece or non-attacking enemy
-							break; // break out of this direction search, i.e. get next direction
-						}
-					}
-				}
+				if ((diagonalAttackersMask & directAttacksOnPositionDownRight_Lut[attackedSq]) != 0)
+					attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
 				break;
 			case left:
+				if ((rankFileAttackersMask & directAttacksOnPositionLeft_Lut[attackedSq]) != 0)
+					attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
+				break;
 			case up:
+				if ((rankFileAttackersMask & directAttacksOnPositionUp_Lut[attackedSq]) != 0)
+					attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
+				break;
 			case right:
+				if ((rankFileAttackersMask & directAttacksOnPositionRight_Lut[attackedSq]) != 0)
+					attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
+				break;
 			case down:
-				if (doRankFileCheck) {
-					for (int attackerSq: array[index]) {
-						int currPiece = theBoard.getPieceAtSquare(attackerSq);
-						if (currPiece != Piece.NONE ) {
-							if (attackerIsWhite) {
-								if (currPiece == Piece.WHITE_QUEEN || currPiece == Piece.WHITE_ROOK) {
-									attacked = true;
-								}
-							} else {
-								if (currPiece == Piece.BLACK_QUEEN || currPiece == Piece.BLACK_ROOK) {
-									attacked = true;
-								}
-							} // else blocked by own piece or non-attacking enemy
-							break; // break out of this direction search, i.e. get next direction
-						} 
-					}
-				}
+				if ((rankFileAttackersMask & directAttacksOnPositionDown_Lut[attackedSq]) != 0)
+					attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
 				break;
 			default:
-				break; // indirect move?
+				assert false; // should not receive indirect moves here!
+				break;
 			}
 			if (attacked) break;
-			index++;
+		}
+		return attacked;
+	}
+
+	private static boolean checkDirectionForDirectPieceAttacker(Board theBoard, boolean attackerIsBlack, int targetSq, Direction dir) {
+		boolean attacked = false;
+		// one dimension for each direction, other dimension is array of squares in that direction
+		int [][] array = SquareAttackEvaluator.directPieceMove_Lut[targetSq]; 
+		switch(dir) {
+		case downLeft:
+		case upLeft:
+		case upRight:
+		case downRight:
+			for (int attackerSq: array[directionIndex_Lut.get(dir)]) {
+				int currPiece = theBoard.getPieceAtSquare(attackerSq);
+				if (currPiece != Piece.NONE ) {
+					if (attackerIsBlack) {
+						if (currPiece == Piece.BLACK_QUEEN || currPiece == Piece.BLACK_BISHOP) {
+							attacked = true;
+						}
+					} else {
+						if (currPiece == Piece.WHITE_QUEEN || currPiece == Piece.WHITE_BISHOP) {
+							attacked = true;
+						}
+					} // else blocked by own piece or non-attacking enemy
+					break;
+				}
+			}
+			break;
+		case left:
+		case up:
+		case right:
+		case down:
+			for (int attackerSq: array[directionIndex_Lut.get(dir)]) {
+				int currPiece = theBoard.getPieceAtSquare(attackerSq);
+				if (currPiece != Piece.NONE ) {
+					if (attackerIsBlack) {
+						if (currPiece == Piece.BLACK_QUEEN || currPiece == Piece.BLACK_ROOK) {
+							attacked = true;
+						}
+					} else {
+						if (currPiece == Piece.WHITE_QUEEN || currPiece == Piece.WHITE_ROOK) {
+							attacked = true;
+						}
+					} // else blocked by own piece or non-attacking enemy
+					break;
+				} 
+			}
+			break;
+		default:
+			assert false; // should not receive indirect moves here!
+			break;
 		}
 		return attacked;
 	}

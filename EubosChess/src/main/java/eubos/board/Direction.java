@@ -3,7 +3,7 @@ package eubos.board;
 import eubos.position.Position;
 
 public enum Direction {
-	up, upRight, rightUp, right, rightDown, downRight, down, downLeft, leftUp, left, leftDown, upLeft;
+	up, upRight, right, downRight, down, downLeft, left, upLeft, rightUp, rightDown, leftDown, leftUp;
 	
 	public static int getDirectMoveSq( Direction dir, int startSq ) {
 		int retVal = Position.NOPOSITION;
