@@ -2,10 +2,8 @@ package eubos.search.transposition;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.openjdk.jol.info.ClassLayout;
 
@@ -44,7 +42,7 @@ public class FixedSizeTranspositionTable {
 	
 	public static final long MBYTES_DEFAULT_HASH_SIZE = (ELEMENTS_DEFAULT_HASH_SIZE*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE;
 	
-	private ConcurrentHashMap<Long, ITransposition> hashMap = null;
+	private HashMap<Long, ITransposition> hashMap = null;
 	private long hashMapSize = 0;
 	private long maxHashMapSize = ELEMENTS_DEFAULT_HASH_SIZE;
 	
@@ -84,7 +82,7 @@ public class FixedSizeTranspositionTable {
 					(hashSizeElements*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE));
 		}
 		
-		hashMap = new ConcurrentHashMap<Long, ITransposition>((int)hashSizeElements, (float)0.75);
+		hashMap = new HashMap<Long, ITransposition>((int)hashSizeElements, (float)0.75);
 		hashMapSize = 0;
 		maxHashMapSize = hashSizeElements;
 	}
@@ -123,20 +121,18 @@ public class FixedSizeTranspositionTable {
 	
 	private void removeLeastUsed() {
 		Short bottomTwentyPercentAccessThreshold = getBottomTwentyPercentAccessThreshold();
-		Iterator<Entry<Long, ITransposition>> it = hashMap.entrySet().iterator();
-		ConcurrentHashMap<Long, ITransposition> hashMapCopy = new ConcurrentHashMap<Long, ITransposition>(hashMap);
+		Iterator<Long> it = hashMap.keySet().iterator();
 		while (it.hasNext()){
-			Map.Entry<Long, ITransposition> pair = (Map.Entry<Long, ITransposition>)it.next();
-			short count = pair.getValue().getAccessCount();
+			ITransposition trans = hashMap.get(it.next());
+			short count = trans.getAccessCount();
 			if (count <= bottomTwentyPercentAccessThreshold) {
-				hashMapCopy.remove(pair.getKey());
+				it.remove();
 				hashMapSize--;
 			} else {
 				// Normalise remaining counts after every cull operation
-				pair.getValue().setAccessCount((short)(count-bottomTwentyPercentAccessThreshold));
+				trans.setAccessCount((short)(count-bottomTwentyPercentAccessThreshold));
 			}
 		}
-		hashMap = hashMapCopy;
 	}
 	
 	public void putTransposition(long hashCode, ITransposition trans) {
