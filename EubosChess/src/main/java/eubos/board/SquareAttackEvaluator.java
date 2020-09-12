@@ -24,7 +24,7 @@ public class SquareAttackEvaluator {
 		directionIndex_Lut.put(Direction.downRight, 7);
 	}
 	
-	static private final int[][][] directPieceMove_Lut = new int[256][allDirect.length][];
+	static private final int[][][] directPieceMove_Lut = new int[128][allDirect.length][];
 	static {
 		for (int square : Position.values) {
 			directPieceMove_Lut[square] = createDiagonalForSq(square);
@@ -60,7 +60,7 @@ public class SquareAttackEvaluator {
 		return currMask;
 	}
 	
-	static final long[] KnightMove_Lut = new long[256];
+	static final long[] KnightMove_Lut = new long[128];
 	static {
 		for (int square : Position.values) {
 			KnightMove_Lut[square] = createKnightMovesAtSq(square);
@@ -79,7 +79,6 @@ public class SquareAttackEvaluator {
 	
 	static final long[] allAttacksOnPosition_Lut = new long[128];
 	static {
-		Direction [] allDirect = { Direction.left, Direction.up, Direction.right, Direction.down, Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
 		for (int square : Position.values) {
 			Long allAttacksMask = 0L;
 			// Add direct attacks
@@ -89,30 +88,6 @@ public class SquareAttackEvaluator {
 			// Add indirect attacks
 			allAttacksMask |= KnightMove_Lut[square];
 			allAttacksOnPosition_Lut[square] = allAttacksMask;
-		}
-	}
-	
-	static final long[] diagonalAttacksOnPosition_Lut = new long[128];
-	static {
-		Direction [] diagDirect = { Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
-		for (int square : Position.values) {
-			Long diagAttacksMask = 0L;
-			for (Direction dir: diagDirect) {
-				diagAttacksMask = setAllInDirection(dir, square, diagAttacksMask, 8);
-			}
-			diagonalAttacksOnPosition_Lut[square] = diagAttacksMask;
-		}
-	}
-	
-	static final long[] rankFileAttacksOnPosition_Lut = new long[128];
-	static {
-		Direction [] rfDirect = { Direction.left, Direction.up, Direction.right, Direction.down };
-		for (int square : Position.values) {
-			Long rfAttacksMask = 0L;
-			for (Direction dir: rfDirect) {
-				rfAttacksMask = setAllInDirection(dir, square, rfAttacksMask, 8);
-			}
-			rankFileAttacksOnPosition_Lut[square] = rfAttacksMask;
 		}
 	}
 	
