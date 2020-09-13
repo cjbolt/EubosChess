@@ -1,9 +1,9 @@
 # EubosChess
-A basic Java chess engine self-built and playable on lichess (it is hosted on Heroku). Eubos is rated around 1450 ELO (against other engines, not humans, at blitz 2+1, see  http://ccrl.chessdom.com/ccrl/404/).
+A basic Java chess engine self-built and playable on lichess (it is hosted on Heroku). Eubos is rated around 1400 ELO (against other engines, not humans, at blitz 2+1, see  http://ccrl.chessdom.com/ccrl/404/).
 
-Eubos uses transpostion hashing and quiescence search extension, but doesn't search very deeply (averaging in the region of 100 KNodes/s in a typical blitz game). It uses the UCI protocol.
+Eubos uses transpostion hashing and quiescence search extension, but doesn't search very deeply (averaging in the region of 180 KNodes/s in a typical blitz game on an i5 PC). It uses the UCI protocol.
 
-Current release version 1.1.0
+Current release version 1.1.1
 
 You can get a binary from the bin folder, alongside a batch file for running the Eubos engine in a GUI such as Arena.
 
