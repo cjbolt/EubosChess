@@ -36,7 +36,12 @@ public class FixedSizeTranspositionTable {
 		BYTES_TRANSPOSTION_ELEMENT = ClassLayout.parseClass(Transposition.class).instanceSize();
 	}
 	
-	public static final long BYTES_PER_TRANSPOSITION =  BYTES_TRANSPOSTION_ELEMENT;
+	public static final long BYTES_HASHMAP_ENTRY;
+	static {
+		BYTES_HASHMAP_ENTRY = ClassLayout.parseClass(HashMap.Entry.class).instanceSize();
+	}
+	
+	public static final long BYTES_PER_TRANSPOSITION =  BYTES_TRANSPOSTION_ELEMENT + BYTES_HASHMAP_ENTRY;
 	
 	public static final long BYTES_PER_MEGABYTE = (1024L * 1000L);
 	
