@@ -41,8 +41,8 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				String.format("Starting initialScore=%d gameTimeRemaining=%d", initialScore, time));
 		// We use the lichess hypothesis about increments and game time
 		long incrementTime = increment * Math.max((AVG_MOVES_PER_GAME - pos.getMoveNumber()), 0);
-		// If game time is critically low, just use half a single increment
-		gameTimeRemaining = time + ((time <= 1500) ? increment/2: incrementTime);
+		incrementTime = Math.min(Math.max(time-5000, 0), incrementTime); // Cater for short on time
+		gameTimeRemaining = time + incrementTime;
 		this.setName("IterativeMoveSearcher");
 	}
 	
