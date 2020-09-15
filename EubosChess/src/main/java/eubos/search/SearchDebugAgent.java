@@ -51,13 +51,17 @@ public class SearchDebugAgent {
 	}
 	
 	public static void nextPly() {
-		currPly++;
-		computeIndent();
+		if (DEBUG_ENABLED) {
+			currPly++;
+			computeIndent();
+		}
 	}
 	
 	public static void prevPly() {
-		currPly--;
-		computeIndent();
+		if (DEBUG_ENABLED) {
+			currPly--;
+			computeIndent();
+		}
 	}
 
 	static void printPerformMove(int currMove) {

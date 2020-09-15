@@ -258,6 +258,8 @@ public class PlySearcher {
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			if (atRootNode()) {
 				if (sr != null) {
+					if (EubosEngineMain.UCI_INFO_ENABLED)
+						sm.setHashFull(tt.getHashUtilisation());
 					sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), positionScore);
 					sr.reportPrincipalVariation();
 				}

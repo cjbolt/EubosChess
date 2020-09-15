@@ -3,7 +3,6 @@ package eubos.search.transposition;
 import java.util.List;
 
 import eubos.board.InvalidPieceException;
-import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
@@ -11,7 +10,6 @@ import eubos.score.IEvaluate;
 import eubos.search.Score;
 import eubos.search.ScoreTracker;
 import eubos.search.SearchDebugAgent;
-import eubos.search.SearchMetrics;
 import eubos.search.transposition.TranspositionEvaluation.*;
 
 public class TranspositionTableAccessor implements ITranspositionAccessor {
@@ -21,21 +19,18 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 	private IChangePosition pm;
 	private ScoreTracker st;
 	private IEvaluate pe;
-	private SearchMetrics sm;
 	
 	public TranspositionTableAccessor(
 			FixedSizeTranspositionTable transTable,
 			IPositionAccessors pos,
 			ScoreTracker st,
 			IChangePosition pm,
-			IEvaluate pe,
-			SearchMetrics sm) {
+			IEvaluate pe) {
 		hashMap = transTable;
 		this.pos = pos;
 		this.pm = pm;
 		this.st = st;
 		this.pe = pe;
-		this.sm = sm;
 	}
 	
 	public TranspositionEvaluation getTransposition(byte currPly, int depthRequiredPly) {
@@ -101,8 +96,6 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 	public ITransposition setTransposition(ITransposition trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove) {
 		if (trans == null) {
 			trans = getTransCreateIfNew(new_Depth, new_score, new_bound, new_bestMove);
-			if (EubosEngineMain.UCI_INFO_ENABLED)
-				sm.setHashFull(getHashUtilisation());
 		}
 		trans = checkForUpdateTrans(trans, new_Depth, new_score, new_bound, new_bestMove, null);
 		return trans;
@@ -154,7 +147,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return current_trans;
 	}
 	
-	private short getHashUtilisation() {
+	public short getHashUtilisation() {
 		return (short) (( ((long) hashMap.getHashMapSize())*(long)1000) / hashMap.getHashMapMaxSize());
 	}
 }

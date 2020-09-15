@@ -84,7 +84,7 @@ public class MiniMaxMoveGenerator implements
 		sm.setDepth(searchDepth);
 		sm.setPrincipalVariation(pc.toPvList(0));
 		st = new ScoreTracker(searchDepth+EXTENDED_SEARCH_PLY_LIMIT, pos.onMoveIsWhite());
-		tta = new TranspositionTableAccessor(tt, pos, st, pm, pe, sm);
+		tta = new TranspositionTableAccessor(tt, pos, st, pm, pe);
 	}
 	
 	@Override
