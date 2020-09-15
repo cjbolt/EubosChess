@@ -81,7 +81,7 @@ public class ScoreTracker {
 				if (positionScore.getScore() <= prevPlyScore.getScore()) isAlphaBetaCutOff = true;
 			}
 			if (isAlphaBetaCutOff) {
-				SearchDebugAgent.printAlphaBetaComparison(currPly, prevPlyScore.getScore(), positionScore.getScore());
+				SearchDebugAgent.printAlphaBetaComparison(prevPlyScore.getScore(), positionScore.getScore());
 			}
 		}
 		return isAlphaBetaCutOff;

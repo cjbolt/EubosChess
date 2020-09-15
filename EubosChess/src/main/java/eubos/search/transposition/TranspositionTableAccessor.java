@@ -48,11 +48,11 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			
 			if (ret.trans.getType() == Score.exact) {
 				ret.status = TranspositionTableStatus.sufficientTerminalNode;
-				SearchDebugAgent.printHashIsTerminalNode(currPly, ret.trans, pos.getHash());
+				SearchDebugAgent.printHashIsTerminalNode(ret.trans, pos.getHash());
 			} else {
 				// must be either (bound == Score.upperBound || bound == Score.lowerBound)
 				if (st.isAlphaBetaCutOff(currPly, new Score(ret.trans.getScore(), ret.trans.getType()))) {
-					SearchDebugAgent.printHashIsRefutation(currPly, pos.getHash(), ret.trans);
+					SearchDebugAgent.printHashIsRefutation(pos.getHash(), ret.trans);
 					ret.status = TranspositionTableStatus.sufficientRefutation;
 		        } else {
 		        	ret.status = TranspositionTableStatus.sufficientSeedMoveList;
@@ -70,7 +70,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		} else if (ret.status == TranspositionTableStatus.sufficientTerminalNode || 
 				   ret.status == TranspositionTableStatus.sufficientRefutation) {
 			// Check hashed position causing a search cut off is still valid (i.e. not a potential draw)
-			if (isHashedPositionCouldLeadToDraw(currPly, ret.trans.getBestMove())) {
+			if (isHashedPositionCouldLeadToDraw(ret.trans.getBestMove())) {
 				// This will cause the position to be re-searched and re-scored in line with the current search context.
 				ret.status = TranspositionTableStatus.sufficientSeedMoveList;
 			}
@@ -78,17 +78,19 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return ret;
 	}
 
-	private boolean isHashedPositionCouldLeadToDraw(byte currPly, int move) {
+	private boolean isHashedPositionCouldLeadToDraw(int move) {
 		boolean retVal = false;
 		try {
 			if (move != Move.NULL_MOVE) {
 				pm.performMove(move);
+				SearchDebugAgent.nextPly();
 				// we have to apply the move the hashed score is for to detect whether this hash is encountered for a second time
 				if (pe.couldLeadToThreeFoldRepetiton(pos.getHash())) {
-					SearchDebugAgent.printRepeatedPositionHash((byte)(currPly+1), pos.getHash(), pos.getFen());
+					SearchDebugAgent.printRepeatedPositionHash(pos.getHash(), pos.getFen());
 					retVal = true;
 				}
 				pm.unperformMove();
+				SearchDebugAgent.prevPly();
 			}
 		} catch (InvalidPieceException e) {
 			e.printStackTrace();
@@ -96,45 +98,41 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return retVal;
 	}
 	
-	public ITransposition setTransposition(byte currPly, ITransposition trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove) {
+	public ITransposition setTransposition(ITransposition trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove) {
 		if (trans == null) {
-			trans = getTransCreateIfNew(currPly, new_Depth, new_score, new_bound, new_bestMove);
+			trans = getTransCreateIfNew(new_Depth, new_score, new_bound, new_bestMove);
 			if (EubosEngineMain.UCI_INFO_ENABLED)
 				sm.setHashFull(getHashUtilisation());
 		}
-		trans = checkForUpdateTrans(currPly, trans, new_Depth, new_score, new_bound, new_bestMove, null);
+		trans = checkForUpdateTrans(trans, new_Depth, new_score, new_bound, new_bestMove, null);
 		return trans;
 	}
 	
-	private ITransposition getTransCreateIfNew(int currPly, byte new_Depth, short new_score, byte new_bound, int new_bestMove) {
-		SearchDebugAgent.printTransNull(currPly, pos.getHash());
+	private ITransposition getTransCreateIfNew(byte new_Depth, short new_score, byte new_bound, int new_bestMove) {
+		SearchDebugAgent.printTransNull(pos.getHash());
 		ITransposition trans = hashMap.getTransposition(pos.getHash());
 		if (trans == null) {
 			ITransposition new_trans = new Transposition(new_Depth, new_score, new_bound, new_bestMove, null);
-			SearchDebugAgent.printCreateTrans(currPly, pos.getHash());
+			SearchDebugAgent.printCreateTrans(pos.getHash());
 			hashMap.putTransposition(pos.getHash(), new_trans);
-			SearchDebugAgent.printTransUpdate(currPly, new_trans, pos.getHash());
+			SearchDebugAgent.printTransUpdate(new_trans, pos.getHash());
 			trans = new_trans;
 		}
 		return trans;
 	}
 	
-	private ITransposition checkForUpdateTrans(int currPly, ITransposition current_trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv) {
+	private ITransposition checkForUpdateTrans(ITransposition current_trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv) {
 		boolean updateTransposition = false;
 		int currentDepth = current_trans.getDepthSearchedInPly();
 		byte currentBound = current_trans.getType();
 		
-		SearchDebugAgent.printTransDepthCheck(currPly, currentDepth, new_Depth);
+		SearchDebugAgent.printTransDepthCheck(currentDepth, new_Depth);
 		
 		if (currentDepth < new_Depth) {
 			updateTransposition = true;
 		} 
 		if (currentDepth == new_Depth) {
-			SearchDebugAgent.printTransBoundScoreCheck(
-					currPly,
-					currentBound,
-					current_trans.getScore(),
-					new_score);
+			SearchDebugAgent.printTransBoundScoreCheck(currentBound, current_trans.getScore(), new_score);
 			if (((currentBound == Score.upperBound) || (currentBound == Score.lowerBound)) &&
 					new_bound == Score.exact) {
 			    updateTransposition = true;
@@ -151,7 +149,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		if (updateTransposition) {
 			current_trans.update(new_Depth, new_score, new_bound, new_bestMove, pv );
 		    hashMap.putTransposition(pos.getHash(), current_trans);
-		    SearchDebugAgent.printTransUpdate(currPly, current_trans, pos.getHash());
+		    SearchDebugAgent.printTransUpdate(current_trans, pos.getHash());
 		}
 		return current_trans;
 	}

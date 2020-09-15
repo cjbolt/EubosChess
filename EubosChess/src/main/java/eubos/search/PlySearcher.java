@@ -90,7 +90,7 @@ public class PlySearcher {
 		Thread.yield();
 		
 		st.setProvisionalScoreAtPly(currPly);
-		SearchDebugAgent.printStartPlyInfo(currPly, st, pos, originalSearchDepthRequiredInPly);
+		SearchDebugAgent.printStartPlyInfo(st, pos, originalSearchDepthRequiredInPly);
 		
 		byte depthRequiredForTerminalNode = initialiseSearchAtPly();
 		TranspositionEvaluation eval = tt.getTransposition(currPly, depthRequiredForTerminalNode);		
@@ -103,7 +103,7 @@ public class PlySearcher {
 				sm.incrementNodesSearched();
 			break;
 		case sufficientSeedMoveList:
-			SearchDebugAgent.printHashIsSeedMoveList(currPly, eval.trans.getBestMove(), pos.getHash());
+			SearchDebugAgent.printHashIsSeedMoveList(eval.trans.getBestMove(), pos.getHash());
 			prevBestMove = eval.trans.getBestMove();
 			// intentional drop through
 		case insufficientNoData:
@@ -145,7 +145,7 @@ public class PlySearcher {
             st.setBackedUpScoreAtPly(currPly, theScore);
             // We will now de-recurse, so should make sure the depth searched is correct
             setDepthSearchedInPly();
-			trans = tt.setTransposition(currPly, trans, getTransDepth(), theScore.getScore(), theScore.getType(), Move.NULL_MOVE);
+			trans = tt.setTransposition(trans, getTransDepth(), theScore.getScore(), theScore.getType(), Move.NULL_MOVE);
         } else {
     		PrimitiveIterator.OfInt move_iter = ml.getIterator(isInExtendedSearch());
     		if (move_iter.hasNext()) {
@@ -154,8 +154,8 @@ public class PlySearcher {
     			// It is effectively a terminal node in extended search, so update the trans with null best move
     			// and return a *safe* exact position score back down the tree. (i.e. not a check).			
     			theScore = applySafestNormalMoveAndScore(ml);
-    			SearchDebugAgent.printExtSearchNoMoves(currPly, theScore);
-    			trans = tt.setTransposition(currPly, trans, (byte)0, theScore.getScore(), theScore.getType(), Move.NULL_MOVE);
+    			SearchDebugAgent.printExtSearchNoMoves(theScore);
+    			trans = tt.setTransposition(trans, (byte)0, theScore.getScore(), theScore.getType(), Move.NULL_MOVE);
     		}
         }
         return theScore;
@@ -201,20 +201,20 @@ public class PlySearcher {
 	                backedUpScoreWasExact = (positionScore.getType()==Score.exact);
                     plyScore = positionScore;
                     updatePrincipalContinuation(currMove, positionScore.getScore());
-                    trans = tt.setTransposition(currPly, trans, getTransDepth(), positionScore.getScore(), plyBound, currMove);
+                    trans = tt.setTransposition(trans, getTransDepth(), positionScore.getScore(), plyBound, currMove);
 	            } else {
 	                // Always clear the principal continuation when we didn't back up the score
 	                pc.clearContinuationsBeyondPly(currPly);
 	                // Update the position hash if the move is better than that previously stored at this position
 	                if (shouldUpdatePositionBoundScoreAndBestMove(plyBound, plyScore.getScore(), positionScore.getScore())) {
 	                    plyScore = positionScore;
-	                    trans = tt.setTransposition(currPly, trans, getTransDepth(), plyScore.getScore(), plyBound, currMove);
+	                    trans = tt.setTransposition(trans, getTransDepth(), plyScore.getScore(), plyBound, currMove);
 	                }
 	            }
 	        
 	            if (st.isAlphaBetaCutOff(currPly, positionScore)) {
 	                refutationFound = true;
-	                SearchDebugAgent.printRefutationFound(currPly);
+	                SearchDebugAgent.printRefutationFound();
 	                break;    
 	            }
 	        }
@@ -236,7 +236,7 @@ public class PlySearcher {
 			        trans.setBestMove(pc.getBestMove(currPly));
 			        trans.setScore(plyScore.getScore());
 			        
-			        SearchDebugAgent.printExactTrans(currPly, pos.getHash(), trans);
+			        SearchDebugAgent.printExactTrans(pos.getHash(), trans);
 		    	}
 		    	plyScore.setExact();
 		    }
@@ -345,13 +345,15 @@ public class PlySearcher {
 	}
 	
 	private Score applyMoveAndScore(int currMove) throws InvalidPieceException {
-		SearchDebugAgent.printPerformMove(currPly, currMove);
+		SearchDebugAgent.printPerformMove(currMove);
 		pm.performMove(currMove, true);
 		currPly++;
+		SearchDebugAgent.nextPly();
 		Score positionScore = assessNewPosition();
 		pm.unperformMove(true);
 		currPly--;
-		SearchDebugAgent.printUndoMove(currPly, currMove);
+		SearchDebugAgent.prevPly();
+		SearchDebugAgent.printUndoMove(currMove);
 		
 		if (EubosEngineMain.UCI_INFO_ENABLED)
 			sm.incrementNodesSearched();
@@ -361,15 +363,17 @@ public class PlySearcher {
 	private Score applySafestNormalMoveAndScore(MoveList ml) throws InvalidPieceException {
 		int currMove = ml.getSafestMove();
 		assert currMove != Move.NULL_MOVE;
-		SearchDebugAgent.printPerformMove(currPly, currMove);
+		SearchDebugAgent.printPerformMove(currMove);
 		pm.performMove(currMove, false);
 		currPly++;
+		SearchDebugAgent.nextPly();
 		// exact because it is a terminal node
 		Score positionScore = new Score(pe.evaluatePosition(), Score.exact);
 		
 		pm.unperformMove(false);
 		currPly--;
-		SearchDebugAgent.printUndoMove(currPly, currMove);
+		SearchDebugAgent.prevPly();
+		SearchDebugAgent.printUndoMove(currMove);
 		
 		pc.update(currPly, currMove);
 		
@@ -392,7 +396,7 @@ public class PlySearcher {
 	private boolean isTerminalNode() {
 		boolean terminalNode = false;
 		if (pe.isThreeFoldRepetition(pos.getHash())) {
-			SearchDebugAgent.printRepeatedPositionHash(currPly, pos.getHash(), pos.getFen());
+			SearchDebugAgent.printRepeatedPositionHash(pos.getHash(), pos.getFen());
 			terminalNode = true;
 		} else if (currPly == originalSearchDepthRequiredInPly) {
 			if (pe.isQuiescent()) {

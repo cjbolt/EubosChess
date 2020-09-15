@@ -60,7 +60,7 @@ public class TranspositionTableAccessorTest {
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
 		
-		sut.setTransposition(currPly, null, (byte)1, (short)105, Score.exact, Move.toMove(pc.get(0), pm.getTheBoard()));
+		sut.setTransposition(null, (byte)1, (short)105, Score.exact, Move.toMove(pc.get(0), pm.getTheBoard()));
 		
 		eval = sut.getTransposition(currPly, 1);
 		
@@ -72,7 +72,7 @@ public class TranspositionTableAccessorTest {
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
 		
-		sut.setTransposition(currPly, null, (byte)1, (short)105, Score.exact, Move.toMove(pc.get(0)));
+		sut.setTransposition(null, (byte)1, (short)105, Score.exact, Move.toMove(pc.get(0)));
 		
 		eval = sut.getTransposition(currPly, 2);
 		
@@ -84,7 +84,7 @@ public class TranspositionTableAccessorTest {
 	public void testEval_StoreRetrieve_whenNoMoveList_insufficientNoData() throws InvalidPieceException, IllegalNotationException {
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		
-		sut.setTransposition(currPly, null, (byte)1, (short)105, Score.exact, Move.toMove(pc.get(0)));
+		sut.setTransposition(null, (byte)1, (short)105, Score.exact, Move.toMove(pc.get(0)));
 		
 		eval = sut.getTransposition(currPly, 2);
 		
@@ -97,7 +97,7 @@ public class TranspositionTableAccessorTest {
 		pc.add(new GenericMove("e2e4"));
 
 		currPly = 3;
-		sut.setTransposition(currPly, null, (byte)1, (short)18, Score.upperBound, Move.toMove(pc.get(0)));
+		sut.setTransposition(null, (byte)1, (short)18, Score.upperBound, Move.toMove(pc.get(0)));
 		
 		// Set up score tracker according to diagram
 		st.setBackedUpScoreAtPly((byte)0, new Score((short)12, Score.upperBound));
@@ -116,7 +116,7 @@ public class TranspositionTableAccessorTest {
 		pc.add(new GenericMove("e2e4"));
 
 		currPly = 3;
-		sut.setTransposition(currPly, null, (byte)1, (short)18, Score.upperBound, Move.toMove(pc.get(0), pm.getTheBoard()));
+		sut.setTransposition(null, (byte)1, (short)18, Score.upperBound, Move.toMove(pc.get(0), pm.getTheBoard()));
 		
 		// Set up score tracker according to diagram
 		st.setBackedUpScoreAtPly((byte)0, new Score((short)12, Score.upperBound));
@@ -137,7 +137,7 @@ public class TranspositionTableAccessorTest {
 		pc.add(new GenericMove("e2e4"));
 
 		currPly = 2;
-		sut.setTransposition(currPly, null, (byte)1, (short)105, Score.lowerBound, Move.toMove(pc.get(0)));
+		sut.setTransposition(null, (byte)1, (short)105, Score.lowerBound, Move.toMove(pc.get(0)));
 	}
 	
 	@Test
@@ -148,9 +148,9 @@ public class TranspositionTableAccessorTest {
 		pc.add(move1);
 
 		currPly = 2;
-		ITransposition stored_trans = sut.setTransposition(currPly, null, (byte)1, (short)105, Score.lowerBound, Move.toMove(move1, pm.getTheBoard()));
+		ITransposition stored_trans = sut.setTransposition(null, (byte)1, (short)105, Score.lowerBound, Move.toMove(move1, pm.getTheBoard()));
 		
-		stored_trans = sut.setTransposition(currPly, stored_trans, (byte)1, (short)110, Score.exact, Move.toMove(move2, pm.getTheBoard()));
+		stored_trans = sut.setTransposition(stored_trans, (byte)1, (short)110, Score.exact, Move.toMove(move2, pm.getTheBoard()));
 		
 		assertEquals(Score.exact, stored_trans.getType());
 		assertEquals(110, stored_trans.getScore());
@@ -175,9 +175,9 @@ public class TranspositionTableAccessorTest {
 		pc.add(move1);
 		
 		currPly = 0;
-		ITransposition stored_trans = sut.setTransposition(currPly, null, (byte)9, (short)25, Score.lowerBound, Move.toMove(move1));
+		ITransposition stored_trans = sut.setTransposition(null, (byte)9, (short)25, Score.lowerBound, Move.toMove(move1));
 		
-		stored_trans = sut.setTransposition(currPly, stored_trans, (byte)9, (short)72, Score.lowerBound, Move.toMove(move2));
+		stored_trans = sut.setTransposition(stored_trans, (byte)9, (short)72, Score.lowerBound, Move.toMove(move2));
 		
 		assertEquals(Score.lowerBound, stored_trans.getType());
 		assertEquals(72, stored_trans.getScore());

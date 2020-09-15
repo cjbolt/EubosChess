@@ -76,7 +76,7 @@ public class PrincipalContinuation {
 				// Bring down, if possible
 				plyToUpdatePc.addAll(pc.get(nextPly));
 			}
-			SearchDebugAgent.printPrincipalContinuation(currPly, this);
+			SearchDebugAgent.printPrincipalContinuation(this);
 		}
 	}
 	
@@ -86,7 +86,7 @@ public class PrincipalContinuation {
 			plyToUpdatePc.clear();
 			plyToUpdatePc.add(currMove);
 			clearContinuationsBeyondPly(currPly);
-			SearchDebugAgent.printPrincipalContinuation(currPly, this);
+			SearchDebugAgent.printPrincipalContinuation(this);
 		}
 	}
 	

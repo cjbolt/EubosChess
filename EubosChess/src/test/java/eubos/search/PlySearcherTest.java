@@ -96,51 +96,41 @@ public class PlySearcherTest {
 		
 		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
 		
-		doReturn(new Transposition((byte)1, (short)0, (byte) 1, null)).when(mock_hashMap).setTransposition(anyByte(), (Transposition)isNull(), anyByte(), anyShort(), any(byte.class), anyInt());
+		doReturn(new Transposition((byte)1, (short)0, (byte) 1, null)).when(mock_hashMap).setTransposition((Transposition)isNull(), anyByte(), anyShort(), any(byte.class), anyInt());
 		
 		assertEquals(650, classUnderTest.searchPly());
 		
-		verify(mock_hashMap, times(8)).setTransposition(anyByte(), (Transposition)isNull(), anyByte(), anyShort(), any(byte.class), anyInt());
+		verify(mock_hashMap, times(8)).setTransposition((Transposition)isNull(), anyByte(), anyShort(), any(byte.class), anyInt());
 		
 		ArgumentCaptor<Integer> captorNew = ArgumentCaptor.forClass(Integer.class);
 		ArgumentCaptor<Transposition> captorOld = ArgumentCaptor.forClass(Transposition.class);
-		ArgumentCaptor<Byte> captorPly = ArgumentCaptor.forClass(Byte.class);
-		verify(mock_hashMap, times(8)).setTransposition(captorPly.capture(), captorOld.capture(), anyByte(), anyShort(), any(byte.class), captorNew.capture());
+		verify(mock_hashMap, times(8)).setTransposition(captorOld.capture(), anyByte(), anyShort(), any(byte.class), captorNew.capture());
 		List<Integer> new_trans_args = captorNew.getAllValues();
 		List<Transposition> trans_args = captorOld.getAllValues();
-		List<Byte> plies = captorPly.getAllValues();
-		
+			
 		assertEquals(new GenericMove("f3f2"),Move.toGenericMove(new_trans_args.get(0)));
 		assertNull(trans_args.get(0));
-		assertEquals(3, plies.get(0).byteValue());
 		
 		assertEquals(new GenericMove("b7b8q"),Move.toGenericMove(new_trans_args.get(1)));
 		assertNull(trans_args.get(1));
-		assertEquals(2, plies.get(1).byteValue());
 		
 		assertEquals(new GenericMove("f3f2"),Move.toGenericMove(new_trans_args.get(2)));
 		assertNull(trans_args.get(2));
-		assertEquals(3, plies.get(2).byteValue());
 		
 		assertEquals(new GenericMove("f3f2"),Move.toGenericMove(new_trans_args.get(3)));
 		assertNull(trans_args.get(3));
-		assertEquals(3, plies.get(3).byteValue());
 		
 		assertEquals(new GenericMove("f3f2"),Move.toGenericMove(new_trans_args.get(4)));
 		assertNull(trans_args.get(4));
-		assertEquals(3, plies.get(4).byteValue());
 		
 		assertEquals(new GenericMove("b7b8q"),Move.toGenericMove(new_trans_args.get(5)));
 		assertNotNull(trans_args.get(5));
-		assertEquals(2, plies.get(5).byteValue());
 		
 		assertEquals(new GenericMove("f4f3"),Move.toGenericMove(new_trans_args.get(6)));
 		assertNull(trans_args.get(6));
-		assertEquals(1, plies.get(6).byteValue());
 		
 		assertEquals(new GenericMove("b6b7"),Move.toGenericMove(new_trans_args.get(7)));
 		assertNull(trans_args.get(7));
-		assertEquals(0, plies.get(7).byteValue());
 	}	 
 	
 	@Test
@@ -187,7 +177,7 @@ public class PlySearcherTest {
 		
 	    //setupBackUpToRootNodeTerminatesTest();
 		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
-		verify(mock_hashMap, never()).setTransposition(anyByte(), (Transposition)isNull(), anyByte(), anyShort(), any(byte.class), anyInt());
+		verify(mock_hashMap, never()).setTransposition((Transposition)isNull(), anyByte(), anyShort(), any(byte.class), anyInt());
 		classUnderTest.searchPly();
 	}
 
