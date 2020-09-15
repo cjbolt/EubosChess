@@ -13,7 +13,6 @@ public class PrincipalVariationTransposition implements ITransposition {
 
 	private byte depthSearchedInPly;
 	private short score;
-	private MoveList ml;
 	private int bestMove;
 	private byte scoreType;
 	private List<Integer> pv;
@@ -25,7 +24,6 @@ public class PrincipalVariationTransposition implements ITransposition {
 	}
 	
 	public PrincipalVariationTransposition(byte depth, short score, byte scoreType, MoveList ml, int bestMove, List<Integer> pv) {
-		setMoveList(ml);
 		setDepthSearchedInPly(depth);
 		setScore(score);
 		setType(scoreType);
@@ -37,11 +35,6 @@ public class PrincipalVariationTransposition implements ITransposition {
 		this(depth, score.getScore(), score.getType(), ml, bestMove, pv);
 	}
 
-	@Override
-	public MoveList getMoveList() {
-		return ml;
-	}
-	
 	@Override
 	public byte getType() {
 		return scoreType;
@@ -81,17 +74,9 @@ public class PrincipalVariationTransposition implements ITransposition {
 	public void setBestMove(int bestMove) {
 		if (!Move.areEqual(this.bestMove, bestMove)) {
 			this.bestMove = bestMove;
-			if (bestMove != 0) {
-				this.ml.reorderWithNewBestMove(bestMove);
-			}
 		}
 	}
 	
-	void setMoveList(MoveList new_ml) {
-		this.ml = new_ml;		
-	}
-	
-	@Override
 	public List<Integer> getPv() {
 		return pv;
 	}
@@ -102,7 +87,6 @@ public class PrincipalVariationTransposition implements ITransposition {
 		}
 	}
 
-	@Override
 	public void setPv(List<Integer> pv) {
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			truncateOnwardPvToSearchDepth(pv);
@@ -134,11 +118,9 @@ public class PrincipalVariationTransposition implements ITransposition {
 			byte new_Depth, 
 			short new_score, 
 			byte new_bound, 
-			MoveList new_ml, 
 			int new_bestMove, 
 			List<Integer> pv) {
-		// order is important because setBestMove uses ml, also setPv uses depth
-		setMoveList(new_ml);
+		// order is important because setPv uses depth
 		setDepthSearchedInPly(new_Depth);
 		setType(new_bound);
 		setScore(new_score);

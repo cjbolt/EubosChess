@@ -60,7 +60,6 @@ public class PositionEvaluator implements IEvaluate {
 		MaterialEvaluation mat = MaterialEvaluator.evaluate(pm.getTheBoard(), sc.isEndgame());
 		short score = mat.getDelta();
 		score += sc.computeSearchGoalBonus(mat);
-		score += encourageCastling();
 		score += evaluatePawnStructure();
 		return score;
 	}

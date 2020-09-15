@@ -7,7 +7,6 @@ import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
-import eubos.position.MoveList;
 import eubos.score.IEvaluate;
 import eubos.search.Score;
 import eubos.search.ScoreTracker;
@@ -97,21 +96,21 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return retVal;
 	}
 	
-	public ITransposition setTransposition(byte currPly, ITransposition trans, byte new_Depth, short new_score, byte new_bound, MoveList new_ml, int new_bestMove, List<Integer> pv) {
+	public ITransposition setTransposition(byte currPly, ITransposition trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove) {
 		if (trans == null) {
-			trans = getTransCreateIfNew(currPly, new_Depth, new_score, new_bound, new_ml, new_bestMove, pv);
+			trans = getTransCreateIfNew(currPly, new_Depth, new_score, new_bound, new_bestMove);
 			if (EubosEngineMain.UCI_INFO_ENABLED)
 				sm.setHashFull(getHashUtilisation());
 		}
-		trans = checkForUpdateTrans(currPly, trans, new_Depth, new_score, new_bound, new_ml, new_bestMove, pv);
+		trans = checkForUpdateTrans(currPly, trans, new_Depth, new_score, new_bound, new_bestMove, null);
 		return trans;
 	}
 	
-	private ITransposition getTransCreateIfNew(int currPly, byte new_Depth, short new_score, byte new_bound, MoveList new_ml, int new_bestMove, List<Integer> pv) {
+	private ITransposition getTransCreateIfNew(int currPly, byte new_Depth, short new_score, byte new_bound, int new_bestMove) {
 		SearchDebugAgent.printTransNull(currPly, pos.getHash());
 		ITransposition trans = hashMap.getTransposition(pos.getHash());
 		if (trans == null) {
-			ITransposition new_trans = new Transposition(new_Depth, new_score, new_bound, new_ml, new_bestMove, pv);
+			ITransposition new_trans = new Transposition(new_Depth, new_score, new_bound, new_bestMove, null);
 			SearchDebugAgent.printCreateTrans(currPly, pos.getHash());
 			hashMap.putTransposition(pos.getHash(), new_trans);
 			SearchDebugAgent.printTransUpdate(currPly, new_trans, pos.getHash());
@@ -120,7 +119,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return trans;
 	}
 	
-	private ITransposition checkForUpdateTrans(int currPly, ITransposition current_trans, byte new_Depth, short new_score, byte new_bound, MoveList new_ml, int new_bestMove, List<Integer> pv) {
+	private ITransposition checkForUpdateTrans(int currPly, ITransposition current_trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv) {
 		boolean updateTransposition = false;
 		int currentDepth = current_trans.getDepthSearchedInPly();
 		byte currentBound = current_trans.getType();
@@ -150,7 +149,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			}
 		}
 		if (updateTransposition) {
-			current_trans.update(new_Depth, new_score, new_bound, new_ml, new_bestMove, pv );
+			current_trans.update(new_Depth, new_score, new_bound, new_bestMove, pv );
 		    hashMap.putTransposition(pos.getHash(), current_trans);
 		    SearchDebugAgent.printTransUpdate(currPly, current_trans, pos.getHash());
 		}

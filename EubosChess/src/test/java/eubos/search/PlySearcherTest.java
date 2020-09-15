@@ -18,7 +18,6 @@ import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
-import eubos.position.MoveList;
 import eubos.position.PositionManager;
 import eubos.score.MaterialEvaluator;
 import eubos.score.PositionEvaluator;
@@ -92,22 +91,21 @@ public class PlySearcherTest {
 	
 	@Test
 	@Ignore
-	@SuppressWarnings("unchecked")
 	public void test_singleLineOfPlay_depthSearchedUpdates() throws InvalidPieceException, IllegalNotationException {
 		initialisePositionAndSearch("8/8/1P6/8/5p2/8/8/8 w - - 0 1", (byte)4);
 		
 		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
 		
-		doReturn(new Transposition((byte)1, (short)0, (byte) 1, null, null)).when(mock_hashMap).setTransposition(anyByte(), (Transposition)isNull(), anyByte(), anyShort(), any(byte.class), any(MoveList.class), anyInt(), any(List.class));
+		doReturn(new Transposition((byte)1, (short)0, (byte) 1, null)).when(mock_hashMap).setTransposition(anyByte(), (Transposition)isNull(), anyByte(), anyShort(), any(byte.class), anyInt());
 		
 		assertEquals(650, classUnderTest.searchPly());
 		
-		verify(mock_hashMap, times(8)).setTransposition(anyByte(), (Transposition)isNull(), anyByte(), anyShort(), any(byte.class), any(MoveList.class), anyInt(), any(List.class));
+		verify(mock_hashMap, times(8)).setTransposition(anyByte(), (Transposition)isNull(), anyByte(), anyShort(), any(byte.class), anyInt());
 		
 		ArgumentCaptor<Integer> captorNew = ArgumentCaptor.forClass(Integer.class);
 		ArgumentCaptor<Transposition> captorOld = ArgumentCaptor.forClass(Transposition.class);
 		ArgumentCaptor<Byte> captorPly = ArgumentCaptor.forClass(Byte.class);
-		verify(mock_hashMap, times(8)).setTransposition(captorPly.capture(), captorOld.capture(), anyByte(), anyShort(), any(byte.class), any(MoveList.class), captorNew.capture(), any(List.class));
+		verify(mock_hashMap, times(8)).setTransposition(captorPly.capture(), captorOld.capture(), anyByte(), anyShort(), any(byte.class), captorNew.capture());
 		List<Integer> new_trans_args = captorNew.getAllValues();
 		List<Transposition> trans_args = captorOld.getAllValues();
 		List<Byte> plies = captorPly.getAllValues();
@@ -152,7 +150,7 @@ public class PlySearcherTest {
 		
 		TranspositionEvaluation eval = new TranspositionEvaluation();
 		eval.status = TranspositionTableStatus.sufficientTerminalNode;
-		eval.trans = new Transposition((byte)1, (short)50, Score.exact, null, new GenericMove("b6b7"));
+		eval.trans = new Transposition((byte)1, (short)50, Score.exact, new GenericMove("b6b7"));
 		
 		when(mock_hashMap.getTransposition((byte)0, 1)).thenReturn(eval);
 		
@@ -166,18 +164,15 @@ public class PlySearcherTest {
 		
 		TranspositionEvaluation eval0 = new TranspositionEvaluation();
 		eval0.status = TranspositionTableStatus.sufficientSeedMoveList;
-		MoveList ml_ply0 = new MoveList(pm);
-		eval0.trans = new Transposition((byte)1, (short)-5, Score.lowerBound, ml_ply0, new GenericMove("b2c3"));
+		eval0.trans = new Transposition((byte)1, (short)-5, Score.lowerBound, new GenericMove("b2c3"));
 		
 		TranspositionEvaluation eval1_0 = new TranspositionEvaluation();
 		eval1_0.status = TranspositionTableStatus.sufficientTerminalNode;
-		MoveList ml_ply1_0 = new MoveList(pm);
-		eval1_0.trans = new Transposition((byte)1, (short)0, Score.exact, ml_ply1_0, new GenericMove("a5d5"));
+		eval1_0.trans = new Transposition((byte)1, (short)0, Score.exact, new GenericMove("a5d5"));
 
 		TranspositionEvaluation eval1_1 = new TranspositionEvaluation();
 		eval1_1.status = TranspositionTableStatus.sufficientSeedMoveList;
-		MoveList ml_ply1_1 = new MoveList(pm);
-		eval1_1.trans = new Transposition((byte)1, (short)-400, Score.exact, ml_ply1_1, new GenericMove("c3a5"));
+		eval1_1.trans = new Transposition((byte)1, (short)-400, Score.exact, new GenericMove("c3a5"));
 		
 		when(mock_hashMap.getTransposition((byte)0, 2)).thenReturn(eval0);
 		when(mock_hashMap.getTransposition((byte)1, 1)).thenReturn(eval1_0).thenReturn(eval1_1);
@@ -187,13 +182,12 @@ public class PlySearcherTest {
 	
 	@Test
 	@Ignore
-	@SuppressWarnings("unchecked")
 	public void test_when_aborted_doesnt_update_transposition_table() throws InvalidPieceException, IllegalNotationException {
 		initialisePositionAndSearch("6k1/5pb1/6p1/r2R4/8/2q5/1B3PP1/5RK1 w - - 0 1", (byte)2);
 		
 	    //setupBackUpToRootNodeTerminatesTest();
 		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
-		verify(mock_hashMap, never()).setTransposition(anyByte(), (Transposition)isNull(), anyByte(), anyShort(), any(byte.class), any(MoveList.class), anyInt(), any(List.class));
+		verify(mock_hashMap, never()).setTransposition(anyByte(), (Transposition)isNull(), anyByte(), anyShort(), any(byte.class), anyInt());
 		classUnderTest.searchPly();
 	}
 

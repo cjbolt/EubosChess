@@ -2,11 +2,7 @@ package eubos.search.transposition;
 
 import java.util.List;
 
-import eubos.position.MoveList;
-
 public interface ITransposition {
-
-	MoveList getMoveList();
 
 	byte getType();
 
@@ -24,13 +20,9 @@ public interface ITransposition {
 
 	void setBestMove(int bestMove);
 
-	List<Integer> getPv();
-
-	void setPv(List<Integer> pv);
-
 	String report();
 
-	void update(byte new_Depth, short new_score, byte new_bound, MoveList new_ml, int new_bestMove,
+	void update(byte new_Depth, short new_score, byte new_bound, int new_bestMove,
 			List<Integer> pv);
 	
 	short getAccessCount();
