@@ -400,6 +400,8 @@ public class PlySearcher {
 		if (pe.isThreeFoldRepetition(pos.getHash())) {
 			SearchDebugAgent.printRepeatedPositionHash(pos.getHash(), pos.getFen());
 			terminalNode = true;
+		}  else if (pe.isInsufficientMaterial()) {
+			terminalNode = true;
 		} else if (currPly == originalSearchDepthRequiredInPly) {
 			if (pe.isQuiescent()) {
 				terminalNode = true;

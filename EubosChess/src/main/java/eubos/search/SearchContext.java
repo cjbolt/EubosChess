@@ -60,6 +60,8 @@ public class SearchContext {
 	private void setGoal() {
 		if (ALWAYS_TRY_FOR_WIN) {
 			goal = SearchGoal.try_for_win;
+		} else if (pos.getTheBoard().isInsufficientMaterial(initialOnMove)) {
+			goal = SearchGoal.try_for_draw;
 		} else if ((Colour.isWhite(initialOnMove) && initial.getDelta() > SIMPLIFY_THRESHOLD) ||
 			(Colour.isBlack(initialOnMove) && initial.getDelta() < -SIMPLIFY_THRESHOLD )) {
 			goal = SearchGoal.simplify;
@@ -75,25 +77,33 @@ public class SearchContext {
 		return goal == SearchGoal.try_for_draw; 
 	}
 	
+	private boolean isPositionDrawn() {
+		return dc.isPositionDraw(pos.getHash()) || pos.getTheBoard().isInsufficientMaterial();
+	}
+	
 	public short computeSearchGoalBonus(MaterialEvaluation current) {
+		Piece.Colour opponent = Colour.getOpposite(initialOnMove);
 		short bonus = 0;
-		// If we just moved, score as according to our game plan
-		if (pos.getOnMove().equals(Colour.getOpposite(initialOnMove))) {
+		// If we just moved, score as according to our goal
+		if (pos.getOnMove().equals(opponent)) {
 			switch(goal) {
 			case simplify:
-				if (dc.isPositionDraw(pos.getHash())) {
+				if (isPositionDrawn()) {
 					bonus += AVOID_DRAW_HANDICAP;
 				} else if (isPositionSimplified(current)) {
 					bonus += SIMPLIFICATION_BONUS;
 				}
 				break;
 			case try_for_win:
-				if (dc.isPositionDraw(pos.getHash())) {
+				if (isPositionDrawn()) {
 					bonus += AVOID_DRAW_HANDICAP;
 				}
 				break;
 			case try_for_draw:
-				if (dc.isPositionDraw(pos.getHash())) {
+				if (isPositionDrawn()) {
+					bonus += ACHIEVES_DRAW_BONUS;
+				} else if (pos.getTheBoard().isInsufficientMaterial(opponent)) {
+					// opponent can no longer mate
 					bonus += ACHIEVES_DRAW_BONUS;
 				}
 				break;
@@ -107,14 +117,14 @@ public class SearchContext {
 			switch(goal) {
 			case simplify:
 			case try_for_win:
-				if (dc.isPositionDraw(pos.getHash())) {
+				if (isPositionDrawn()) {
 					// Assume opponent wants a draw.
 					bonus += ACHIEVES_DRAW_BONUS;
 				}
 				break;
 			case try_for_draw:
 				// If we are trying for a draw and evaluating opponents move, score a draw as bad for them
-				if (dc.isPositionDraw(pos.getHash())) {
+				if (isPositionDrawn()) {
 					bonus += AVOID_DRAW_HANDICAP;
 				}
 				break;

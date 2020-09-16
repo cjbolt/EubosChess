@@ -8,4 +8,5 @@ public interface IEvaluate {
 	boolean isThreeFoldRepetition(Long hashCode);
 	boolean couldLeadToThreeFoldRepetiton(Long hashCode);
 	SearchContext getSearchContext();
+	boolean isInsufficientMaterial();
 }

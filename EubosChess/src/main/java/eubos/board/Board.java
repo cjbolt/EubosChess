@@ -47,6 +47,62 @@ public class Board {
 	
 	private long[] pieces = new long[7]; // N.b. INDEX_NONE is an empty long at index 0.
 	
+	public boolean isInsufficientMaterial() {
+		// Major pieces
+		if (pieces[Piece.QUEEN] != 0)
+			return false;
+		if (pieces[Piece.ROOK] != 0)
+			return false;
+		// Possible promotions
+		if (pieces[Piece.PAWN] != 0)
+			return false;
+		
+		// Minor pieces
+		int numWhiteBishops = Long.bitCount(getWhiteBishops());
+		int numWhiteKnights = Long.bitCount(getWhiteKnights());
+		int numBlackBishops = Long.bitCount(getBlackBishops());
+		int numBlackKnights = Long.bitCount(getBlackKnights());
+		
+		if (numWhiteBishops >= 2 || numBlackBishops >= 2) {
+			// One side has at least two bishops
+			return false;
+		}
+		if ((numWhiteBishops == 1 && numWhiteKnights >= 1) ||
+		    (numBlackBishops == 1 && numBlackKnights >= 1))
+			// One side has Knight and Bishop
+			return false;
+		
+		// else insufficient
+		return true;
+	}
+	
+	public boolean isInsufficientMaterial(Piece.Colour side) {
+		long ownBitBoard =  Colour.isWhite(side) ? whitePieces : blackPieces;
+		// Major pieces
+		if ((pieces[Piece.QUEEN] & ownBitBoard) != 0)
+			return false;
+		if ((pieces[Piece.ROOK] & ownBitBoard) != 0)
+			return false;
+		// Possible promotions
+		if ((pieces[Piece.PAWN] & ownBitBoard) != 0)
+			return false;
+		
+		// Minor pieces
+		int numBishops = Long.bitCount((pieces[Piece.BISHOP] & ownBitBoard));
+		int numKnights = Long.bitCount((pieces[Piece.KNIGHT] & ownBitBoard));
+		
+		if (numBishops >= 2) {
+			// side has at least two bishops
+			return false;
+		}
+		if (numBishops == 1 && numKnights >= 1)
+			// side has Knight and Bishop
+			return false;
+		
+		// else insufficient
+		return true;
+	}
+	
 	@SuppressWarnings("unchecked")
 	private static final List<MobilityMask>[] RankFileMask_Lut = (List<MobilityMask>[]) new List[128];
 	static {

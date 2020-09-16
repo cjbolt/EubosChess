@@ -122,4 +122,9 @@ public class PositionEvaluator implements IEvaluate {
 	public SearchContext getSearchContext() {
 		return this.sc;
 	}
+	
+	public boolean isInsufficientMaterial() {
+		Board board = pm.getTheBoard();
+		return board.isInsufficientMaterial();			
+	}
 }

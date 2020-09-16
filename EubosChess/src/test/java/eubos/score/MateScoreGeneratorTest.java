@@ -63,7 +63,7 @@ public class MateScoreGeneratorTest {
 	public void testStaleMate_whenTryForStaleMate_white() {
 		PositionManager pm = new PositionManager("8/8/8/8/8/1k6/p7/K7 w - - 5 62");
 		MaterialEvaluation me = new MaterialEvaluation();
-		me.black = 4250;
+		me.black = MaterialEvaluator.MATERIAL_VALUE_KING + 250;
 		me.white = MaterialEvaluator.MATERIAL_VALUE_KING;
 		SearchContext sc = new SearchContext(pm, me, new DrawChecker());
 		classUnderTest = new MateScoreGenerator(pm, sc);
@@ -75,11 +75,11 @@ public class MateScoreGeneratorTest {
 	public void testStaleMate_whenTryForStaleMate_black() {
 		PositionManager pm = new PositionManager("k7/P7/1K6/8/8/8/8/8 b - - 5 1");
 		MaterialEvaluation me = new MaterialEvaluation();
-		me.black = 4250;
-		me.white = MaterialEvaluator.MATERIAL_VALUE_KING;
+		me.black = MaterialEvaluator.MATERIAL_VALUE_KING;
+		me.white = MaterialEvaluator.MATERIAL_VALUE_KING + 250;
 		SearchContext sc = new SearchContext(pm, me, new DrawChecker());
 		classUnderTest = new MateScoreGenerator(pm, sc);
 		// Black wants stalemate
-		assertEquals(MaterialEvaluator.MATERIAL_VALUE_KING, classUnderTest.scoreMate((byte)0));
+		assertEquals(-MaterialEvaluator.MATERIAL_VALUE_KING, classUnderTest.scoreMate((byte)0));
 	}
 }
