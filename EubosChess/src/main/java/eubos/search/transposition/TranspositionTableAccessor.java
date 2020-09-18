@@ -87,8 +87,6 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 				}
 				pm.unperformMove();
 				SearchDebugAgent.prevPly();
-				// remove the hash to not hit it again...
-				hashMap.remove(pos.getHash());
 			}
 		} catch (InvalidPieceException e) {
 			e.printStackTrace();
