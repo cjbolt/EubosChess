@@ -2,6 +2,7 @@ package eubos.search;
 
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
+import eubos.main.EubosEngineMain;
 import eubos.position.IPositionAccessors;
 import eubos.score.MaterialEvaluation;
 import eubos.score.MaterialEvaluator;
@@ -71,6 +72,7 @@ public class SearchContext {
 		} else {
 			goal = SearchGoal.try_for_win;
 		}
+		EubosEngineMain.logger.info(String.format("SearchContext is %s", goal));
 	}
 	
 	public boolean isTryForDraw() {
@@ -90,12 +92,18 @@ public class SearchContext {
 			case simplify:
 				if (isPositionDrawn()) {
 					bonus += AVOID_DRAW_HANDICAP;
+				} else if (pos.getTheBoard().isInsufficientMaterial(initialOnMove)) {
+					// Can no longer get a win
+					bonus += AVOID_DRAW_HANDICAP;
 				} else if (isPositionSimplified(current)) {
 					bonus += SIMPLIFICATION_BONUS;
 				}
 				break;
 			case try_for_win:
 				if (isPositionDrawn()) {
+					bonus += AVOID_DRAW_HANDICAP;
+				} else if (pos.getTheBoard().isInsufficientMaterial(initialOnMove)) {
+					// Can no longer get a win
 					bonus += AVOID_DRAW_HANDICAP;
 				}
 				break;
@@ -119,6 +127,9 @@ public class SearchContext {
 			case try_for_win:
 				if (isPositionDrawn()) {
 					// Assume opponent wants a draw.
+					bonus += ACHIEVES_DRAW_BONUS;
+				} else if (pos.getTheBoard().isInsufficientMaterial(initialOnMove)) {
+					// Can no longer get a win
 					bonus += ACHIEVES_DRAW_BONUS;
 				}
 				break;

@@ -2,9 +2,12 @@ package eubos.search;
 
 import static org.junit.Assert.*;
 
+import java.util.logging.*;
+
 import org.junit.Before;
 import org.junit.Test;
 
+import eubos.main.EubosEngineMain;
 import eubos.position.PositionManager;
 
 public class DrawCheckerTest {
@@ -17,6 +20,7 @@ public class DrawCheckerTest {
 	
 	@Before
 	public void setUp() {
+		EubosEngineMain.logger.setLevel(Level.OFF);
 		sut = new DrawChecker();
 	}
 	

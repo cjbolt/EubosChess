@@ -139,7 +139,7 @@ public class EubosEngineMain extends AbstractEngine {
 		long hashCode = pm.getHash();
 		Piece.Colour nowOnMove = pm.getOnMove();
 		if (lastOnMove == null || lastOnMove == nowOnMove) {
-			// Update the draw checker with the position at the opponents last move
+			// Update the draw checker with the position following the opponents last move
 			dc.incrementPositionReachedCount(hashCode);
 		} else {
 			/* Don't increment the position reached count, because it will have already been incremented 

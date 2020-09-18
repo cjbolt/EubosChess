@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.junit.Before;
 import org.junit.After;
@@ -14,6 +15,7 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
+import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.search.NoLegalMoveException;
@@ -32,6 +34,7 @@ public class MiniMaxMoveGeneratorTest {
 	
 	@Before
 	public void setUp() {
+		EubosEngineMain.logger.setLevel(Level.OFF);
 		SearchDebugAgent.open(0, true);
 		pl = new LinkedList<Piece>();
 		hashMap = new FixedSizeTranspositionTable();

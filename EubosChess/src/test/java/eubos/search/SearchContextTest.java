@@ -2,6 +2,8 @@ package eubos.search;
 
 import static org.junit.Assert.*;
 
+import java.util.logging.Level;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -9,6 +11,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
+import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.score.MaterialEvaluation;
@@ -23,6 +26,7 @@ public class SearchContextTest {
 
 	@Before
 	public void setUp() throws Exception {
+		EubosEngineMain.logger.setLevel(Level.OFF);
 	}
 	
 	private void setupPosition(String fen) {
