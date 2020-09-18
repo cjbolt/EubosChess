@@ -67,8 +67,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			// Check hashed position causing a search cut off is still valid (i.e. not a potential draw)
 			if (isHashedPositionCouldLeadToDraw(ret.trans.getBestMove())) {
 				// This will cause the position to be re-searched and re-scored in line with the current search context.
-				ret.status = TranspositionTableStatus.insufficientNoData;
-				ret.trans = null;
+				ret.status = TranspositionTableStatus.sufficientSeedMoveList;
 			}
 		}
 		return ret;
