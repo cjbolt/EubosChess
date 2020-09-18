@@ -108,11 +108,6 @@ public class PositionEvaluator implements IEvaluate {
 	public MaterialEvaluation getMaterialEvaluation() {
 		return MaterialEvaluator.evaluate(pm.getTheBoard(), sc.isEndgame());
 	}
-
-	@Override
-	public boolean isThreeFoldRepetition(Long hashCode) {
-		return dc.isPositionDraw(hashCode);
-	}
 	
 	@Override
 	public boolean couldLeadToThreeFoldRepetiton(Long hashCode) {

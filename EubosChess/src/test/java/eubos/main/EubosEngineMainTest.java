@@ -156,104 +156,76 @@ public class EubosEngineMainTest {
 	@Test
 	public void test_avoidDraw_lichess_hash_table_draw_kpK_rook_pawn() throws InterruptedException, IOException {
 		setupEngine();
-		// Setup Commands specific to this test
+		// 62 #1
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b3c4"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/2k5/p7/K7/8 b - - 7 63"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c4b4"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/1k6/p7/8/K7 b - - 9 64"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4b3"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/1K6 b - - 11 65"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b3c4"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/2k5/p7/K7/8 b - - 8 66"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c4b4"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/1k6/p7/8/K7 b - - 10 67"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4b3"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/1K6 b - - 12 68"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b3c4"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/2k5/p7/K7/8 b - - 1 69"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c4b4"+CMD_TERMINATOR));
-		performTest(500);
-	}
-	
-	@Test
-	public void test_avoidDraw_lichess_hash_table_draw_kpK_rook_pawn_with_moves() throws InterruptedException, IOException {
-		setupEngine();
-		// Setup Commands specific to this test
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b3c4"+CMD_TERMINATOR));
+		// 63 #2
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c4b4"+CMD_TERMINATOR));
+		// 64 #3
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2 c4b4 a2a1"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4b3"+CMD_TERMINATOR));
+		// 65 #4
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2 c4b4 a2a1 b4b3 a1b1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b3c4"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2 c4b4 a2a1 b4b3 a1b1 b3c4 b1a2"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c4b4"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2 c4b4 a2a1 b4b3 a1b1 b3c4 b1a2 c4b4 a2a1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4b3"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2 c4b4 a2a1 b4b3 a1b1 b3c4 b1a2 c4b4 a2a1 b4b3 a1b1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b3c4"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2 c4b4 a2a1 b4b3 a1b1 b3c4 b1a2 c4b4 a2a1 b4b3 a1b1 b3c4 b1a2"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c4b4"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b3a4"+CMD_TERMINATOR));
+		// 66 #5
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2 c4b4 a2a1 b4b3 a1b1 b3a4 b1a2"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"a4b4"+CMD_TERMINATOR));
+		// 67 #6
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2 c4b4 a2a1 b4b3 a1b1 b3a4 b1a2 a4b4 a2a1"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4b5"+CMD_TERMINATOR));
+		// 68 #7
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2 c4b4 a2a1 b4b3 a1b1 b3a4 b1a2 a4b4 a2a1 b4b5 a1a2"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b5a4"+CMD_TERMINATOR));
+		// 69 #8
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2 c4b4 a2a1 b4b3 a1b1 b3a4 b1a2 a4b4 a2a1 b4b5 a1a2 b5a4 a2a1"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"a4b5"+CMD_TERMINATOR));
+		// 70 #9
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/8/8/pk6/8/K7 b - - 5 62 moves b3c4 a1a2 c4b4 a2a1 b4b3 a1b1 b3a4 b1a2 a4b4 a2a1 b4b5 a1a2 b5a4 a2a1 a4b5 a1a2"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b5b4"+CMD_TERMINATOR));
+		
+		// This is correct, it is the last move available that doesn't lose the pawn
+		
 		performTest(500);
 	}
 	
 	@Test
-	@Ignore
 	public void test_avoidDraw_lichess_hash_table_draw_kpK_rook_pawn_with_moves_as_white() throws InterruptedException, IOException {
 		setupEngine();
-		// Setup Commands specific to this test
-//		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1"+CMD_TERMINATOR, null));
-//		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b6c5"+CMD_TERMINATOR));
-//		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7"+CMD_TERMINATOR, null));
-//		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c5b5"+CMD_TERMINATOR));
-//		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8"+CMD_TERMINATOR, null));
-//		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b5c4"+CMD_TERMINATOR));
-//		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5c4 a8a7"+CMD_TERMINATOR, null));
-//		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c4b5"+CMD_TERMINATOR));
-//		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5c4 a8a7 c4b5 a7a8"+CMD_TERMINATOR, null));
-//		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c4b4"+CMD_TERMINATOR));
-//		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5c4 a8a7 c4b5 a7a8 c4b4 a8a7"+CMD_TERMINATOR, null));
-//		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4a5"+CMD_TERMINATOR));
-//		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5c4 a8a7 c4b5 a7a8 c4b4 a8a7 b4a5 a7a8"+CMD_TERMINATOR, null));
-//		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"a5b5"+CMD_TERMINATOR));
-//		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5c4 a8a7 c4b5 a7a8 c4b4 a8a7 b4a5 a7a8 a5b5 a8a7"+CMD_TERMINATOR, null));
-//		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b5a5"+CMD_TERMINATOR));
-//		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5c4 a8a7 c4b5 a7a8 c4b4 a8a7 b4a5 a7a8 a5b5 a8a7 b5a5 a7a8"+CMD_TERMINATOR, null));
-//		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"a5b6"+CMD_TERMINATOR));
-//		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5c4 a8a7 c4b5 a7a8 c4b4 a8a7 b4a5 a7a8 a5b5 a8a7 b5a5 a7a8 a5b6 a8b8"+CMD_TERMINATOR, null));
-//		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b6c6"+CMD_TERMINATOR));
-//		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5c4 a8a7 c4b5 a7a8 c4b4 a8a7 b4a5 a7a8 a5b5 a8a7 b5a5 a7a8 a5b6 a8b8 b6c6 b8a7"+CMD_TERMINATOR, null));
-//		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c6b5"+CMD_TERMINATOR));
-		
+		// 1
 		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b6c5"+CMD_TERMINATOR));
-		
+		// 2
 		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c5b5"+CMD_TERMINATOR));
-		
+		// 3
 		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
-		
+		// 4
 		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5b6 a8b8"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c4b5"+CMD_TERMINATOR));
-		
-		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5c4 a8a7 c4b5 a7a8"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c4b4"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5c4 a8a7 c4b5 a7a8 c4b4 a8a7"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4a5"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5c4 a8a7 c4b5 a7a8 c4b4 a8a7 b4a5 a7a8"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"a5b5"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5c4 a8a7 c4b5 a7a8 c4b4 a8a7 b4a5 a7a8 a5b5 a8a7"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b5a5"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5c4 a8a7 c4b5 a7a8 c4b4 a8a7 b4a5 a7a8 a5b5 a8a7 b5a5 a7a8"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"a5b6"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5c4 a8a7 c4b5 a7a8 c4b4 a8a7 b4a5 a7a8 a5b5 a8a7 b5a5 a7a8 a5b6 a8b8"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b6c6"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5c4 a8a7 c4b5 a7a8 c4b4 a8a7 b4a5 a7a8 a5b5 a8a7 b5a5 a7a8 a5b6 a8b8 b6c6 b8a7"+CMD_TERMINATOR, null));
+		// 5
+		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5b6 a8b8 b6c6 b8a7"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c6b5"+CMD_TERMINATOR));
-		// This results in a draw by 3-fold repetition - needs debugging
+		// 6
+		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5b6 a8b8 b6c6 b8a7 c6b5 a7a8"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b5b4"+CMD_TERMINATOR));
+		// 7
+		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5b6 a8b8 b6c6 b8a7 c6b5 a7a8 b5b4 a8a7"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b4a5"+CMD_TERMINATOR));
+		// 8
+		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5b6 a8b8 b6c5 b8a7 c5b5 a7a8 b5b4 a8a7 b4a5 a7a8"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"a5b6"+CMD_TERMINATOR));
+		// 9
+		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5b6 a8b8 b6c5 b8a7 c5b5 a7a8 b5b4 a8a7 b4a5 a7a8 a5b6 a8b8"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b6c6"+CMD_TERMINATOR));
+		// 10
+		commands.add(new commandPair(POS_FEN_PREFIX+"k7/8/PK6/8/8/8/8/8 w - - 5 1 moves b6c5 a8a7 c5b5 a7a8 b5b6 a8b8 b6c5 b8a7 c5b5 a7a8 b5b4 a8a7 b4a5 a7a8 a5b6 a8b8 b6c6 b8a7"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"c6b5"+CMD_TERMINATOR));
+		
+		// c6b5 is now a 3-fold in this game history :( also Eubos knows this: reachedCount == 3. There are no non-drawing alternatives, Eubos is programmed to take a -250 draw handicap as preferential to
+		// black achieving insufficient material draw.
+		
 		performTest(500);
 	}
 	

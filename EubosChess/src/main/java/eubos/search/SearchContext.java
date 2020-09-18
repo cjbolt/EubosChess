@@ -80,7 +80,7 @@ public class SearchContext {
 	}
 	
 	private boolean isPositionDrawn() {
-		return dc.isPositionDraw(pos.getHash()) || pos.getTheBoard().isInsufficientMaterial();
+		return dc.isPositionOpponentCouldClaimDraw(pos.getHash()) || pos.getTheBoard().isInsufficientMaterial();
 	}
 	
 	public short computeSearchGoalBonus(MaterialEvaluation current) {

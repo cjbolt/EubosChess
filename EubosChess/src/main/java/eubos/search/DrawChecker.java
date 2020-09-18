@@ -31,15 +31,6 @@ public class DrawChecker {
 		}
 		return opponentCouldClaimDraw;
 	}
-	
-	public boolean isPositionDraw(long positionHash) {
-		boolean isDrawn = false;
-		Byte reachedCount = getPositionReachedCount(positionHash);
-		if (reachedCount != null && reachedCount >= 3) {
-			isDrawn = true;
-		}
-		return isDrawn;
-	}
 
 	public void decrementPositionReachedCount(long posHash) {
 		Byte count = positionCount.get(posHash);

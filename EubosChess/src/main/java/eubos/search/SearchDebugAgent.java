@@ -171,7 +171,7 @@ public class SearchDebugAgent {
 
 	public static void printRepeatedPositionHash(long hash, String fen) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%s3-fold rep @%d hash:%d fen:%s", indent, currPly, hash, fen));
+			printOutput(String.format("%s3-fold in hash hit rep @%d hash:%d fen:%s", indent, currPly, hash, fen));
 		}
 	}
 
@@ -196,6 +196,12 @@ public class SearchDebugAgent {
 	public static void printExtSearchNoMoves(Score theScore) {
 		if (DEBUG_ENABLED) {
 			printOutput(String.format("%sextSearch NoMoves term @%d score:%s", indent, currPly, theScore.getScore()));
+		}
+	}
+
+	public static void printRepeatedPositionSearch(long hash, String fen) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%s3-fold in search rep @%d hash:%d fen:%s", indent, currPly, hash, fen));
 		}
 	}
 }

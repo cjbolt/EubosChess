@@ -397,8 +397,8 @@ public class PlySearcher {
 	
 	private boolean isTerminalNode() {
 		boolean terminalNode = false;
-		if (pe.isThreeFoldRepetition(pos.getHash())) {
-			SearchDebugAgent.printRepeatedPositionHash(pos.getHash(), pos.getFen());
+		if (pe.couldLeadToThreeFoldRepetiton(pos.getHash())) {
+			SearchDebugAgent.printRepeatedPositionSearch(pos.getHash(), pos.getFen());
 			terminalNode = true;
 		}  else if (pe.isInsufficientMaterial()) {
 			terminalNode = true;

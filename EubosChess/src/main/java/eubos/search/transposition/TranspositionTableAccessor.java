@@ -62,14 +62,15 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			if (ret.status == TranspositionTableStatus.sufficientSeedMoveList) {
 				ret.status = TranspositionTableStatus.insufficientNoData;
 			}
-		} //else if (ret.status == TranspositionTableStatus.sufficientTerminalNode || 
-	      //         ret.status == TranspositionTableStatus.sufficientRefutation) {
+		} else if (ret.status == TranspositionTableStatus.sufficientTerminalNode || 
+	               ret.status == TranspositionTableStatus.sufficientRefutation) {
 			// Check hashed position causing a search cut off is still valid (i.e. not a potential draw)
-			//if (isHashedPositionCouldLeadToDraw(ret.trans.getBestMove())) {
+			if (isHashedPositionCouldLeadToDraw(ret.trans.getBestMove())) {
 				// This will cause the position to be re-searched and re-scored in line with the current search context.
-				//ret.status = TranspositionTableStatus.sufficientSeedMoveList;
-			//}
-		//}
+				ret.status = TranspositionTableStatus.insufficientNoData;
+				ret.trans = null;
+			}
+		}
 		return ret;
 	}
 
@@ -86,6 +87,8 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 				}
 				pm.unperformMove();
 				SearchDebugAgent.prevPly();
+				// remove the hash to not hit it again...
+				hashMap.remove(pos.getHash());
 			}
 		} catch (InvalidPieceException e) {
 			e.printStackTrace();

@@ -146,7 +146,7 @@ public class SearchContextTest {
 						new GenericMove("f5f4"),new GenericMove("g7g3"),
 						new GenericMove("f4f5"),new GenericMove("g3g7")};
 		applyMoveList(moveList);
-		assertTrue(dc.isPositionDraw(pm.getHash()));
+		assertTrue(dc.isPositionOpponentCouldClaimDraw(pm.getHash()));
 		dc.incrementPositionReachedCount(pm.getHash());
 		MaterialEvaluation current = pe.getMaterialEvaluation();
 		assertEquals(SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current));
@@ -163,7 +163,7 @@ public class SearchContextTest {
 						new GenericMove("c5c6")};
 		
 		applyMoveList(moveList);
-		assertTrue(dc.isPositionDraw(pm.getHash()));
+		assertTrue(dc.isPositionOpponentCouldClaimDraw(pm.getHash()));
 		MaterialEvaluation current = pe.getMaterialEvaluation();
 		assertEquals(SearchContext.ACHIEVES_DRAW_BONUS, sut.computeSearchGoalBonus(current));
 	}
