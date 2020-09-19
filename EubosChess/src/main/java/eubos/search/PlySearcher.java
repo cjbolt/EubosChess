@@ -97,7 +97,19 @@ public class PlySearcher {
 		switch (eval.status) {
 		case sufficientTerminalNode:
 		case sufficientRefutation:
-			theScore = new Score(eval.trans.getScore(), eval.trans.getType());
+			// Check score for hashed position causing a search cut-off is still valid (i.e. not a potential draw)
+			if (isHashedPositionCouldLeadToDraw(eval.trans.getBestMove())) {	
+				/* This is meant to be a search, but the problem is it backs up scores which then go into the hash table and theoretically
+				 *  pollute it with draw scores which are based on search context and are not accurate in all circumstance 
+				 *  (e.g. for a different move order)
+				 */
+				// also I am not sure the depth calculation is correct!
+				SearchDebugAgent.printHashIsSeedMoveList(eval.trans.getBestMove(), pos.getHash());
+				theScore = searchMoves( eval.trans.getBestMove(), eval.trans);
+				break;
+			} else {
+				theScore = new Score(eval.trans.getScore(), eval.trans.getType());
+			}
 			pc.set(currPly, eval.trans.getBestMove());
 			if (EubosEngineMain.UCI_INFO_ENABLED)
 				sm.incrementNodesSearched();
@@ -116,6 +128,26 @@ public class PlySearcher {
 		clearUpSearchAtPly();
 		
 		return theScore;
+	}
+	
+	private boolean isHashedPositionCouldLeadToDraw(int move) {
+		boolean retVal = false;
+		try {
+			if (move != Move.NULL_MOVE) {
+				pm.performMove(move);
+				SearchDebugAgent.nextPly();
+				// we have to apply the move the hashed score is for to detect whether this hash is encountered for a second time
+				if (pe.couldLeadToThreeFoldRepetiton(pos.getHash())) {
+					SearchDebugAgent.printRepeatedPositionHash(pos.getHash(), pos.getFen());
+					retVal = true;
+				}
+				pm.unperformMove();
+				SearchDebugAgent.prevPly();
+			}
+		} catch (InvalidPieceException e) {
+			e.printStackTrace();
+		}
+		return retVal;
 	}
 	
 	private byte initialiseSearchAtPly() {

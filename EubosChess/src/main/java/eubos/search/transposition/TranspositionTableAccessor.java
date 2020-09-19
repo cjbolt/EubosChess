@@ -2,11 +2,8 @@ package eubos.search.transposition;
 
 import java.util.List;
 
-import eubos.board.InvalidPieceException;
-import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
-import eubos.score.IEvaluate;
 import eubos.search.Score;
 import eubos.search.ScoreTracker;
 import eubos.search.SearchDebugAgent;
@@ -16,21 +13,15 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 	
 	private FixedSizeTranspositionTable hashMap;
 	private IPositionAccessors pos;
-	private IChangePosition pm;
 	private ScoreTracker st;
-	private IEvaluate pe;
 	
 	public TranspositionTableAccessor(
 			FixedSizeTranspositionTable transTable,
 			IPositionAccessors pos,
-			ScoreTracker st,
-			IChangePosition pm,
-			IEvaluate pe) {
+			ScoreTracker st) {
 		hashMap = transTable;
 		this.pos = pos;
-		this.pm = pm;
 		this.st = st;
-		this.pe = pe;
 	}
 	
 	public TranspositionEvaluation getTransposition(byte currPly, int depthRequiredPly) {
@@ -62,35 +53,8 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			if (ret.status == TranspositionTableStatus.sufficientSeedMoveList) {
 				ret.status = TranspositionTableStatus.insufficientNoData;
 			}
-		} else if (ret.status == TranspositionTableStatus.sufficientTerminalNode || 
-	               ret.status == TranspositionTableStatus.sufficientRefutation) {
-			// Check hashed position causing a search cut off is still valid (i.e. not a potential draw)
-			if (isHashedPositionCouldLeadToDraw(ret.trans.getBestMove())) {
-				// This will cause the position to be re-searched and re-scored in line with the current search context.
-				ret.status = TranspositionTableStatus.sufficientSeedMoveList;
-			}
 		}
 		return ret;
-	}
-
-	private boolean isHashedPositionCouldLeadToDraw(int move) {
-		boolean retVal = false;
-		try {
-			if (move != Move.NULL_MOVE) {
-				pm.performMove(move);
-				SearchDebugAgent.nextPly();
-				// we have to apply the move the hashed score is for to detect whether this hash is encountered for a second time
-				if (pe.couldLeadToThreeFoldRepetiton(pos.getHash())) {
-					SearchDebugAgent.printRepeatedPositionHash(pos.getHash(), pos.getFen());
-					retVal = true;
-				}
-				pm.unperformMove();
-				SearchDebugAgent.prevPly();
-			}
-		} catch (InvalidPieceException e) {
-			e.printStackTrace();
-		}
-		return retVal;
 	}
 	
 	public ITransposition setTransposition(ITransposition trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove) {

@@ -115,7 +115,13 @@ public class EubosEngineMain extends AbstractEngine {
 			PositionManager temp_pm = new PositionManager(uci_fen_string, dc);
 			try {
 				for (GenericMove nextMove : command.moves) {
-					temp_pm.performMove(Move.toMove(nextMove, temp_pm.getTheBoard()));
+					int move = Move.toMove(nextMove, temp_pm.getTheBoard());
+					temp_pm.performMove(move);
+					if (temp_pm.getCapturedPiece().getPiece() != Piece.NONE ||
+						Piece.isPawn(Move.getOriginPiece(move))) {
+						// Pawn moves and captures are irreversible, annul the draw checker
+						dc.reset();
+					}
 				}
 			} catch(InvalidPieceException e ) {
 				System.out.println( 

@@ -89,6 +89,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 
 	// No public setter, because onMove is only changed by performing a move on the board.
 	private Colour onMove;
+	private Colour initialOnMove;
 	public Colour getOnMove() {
 		return onMove;
 	}
@@ -273,9 +274,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		}
 		private void parseOnMove(String colourOnMove) {
 			if (colourOnMove.equals("w"))
-				onMove = Colour.white;
+				initialOnMove = onMove = Colour.white;
 			else if (colourOnMove.equals("b"))
-				onMove = Colour.black;
+				initialOnMove = onMove = Colour.black;
 		}
 		private void parseMoveNumber(PositionManager pm, String moveNumber) {
 			int moveNum = 0;

@@ -9,6 +9,10 @@ public class DrawChecker {
 		positionCount = new ConcurrentHashMap<Long,Byte>();
 	}
 	
+	public void reset() {
+		positionCount.clear();
+	}
+	
 	public void incrementPositionReachedCount(Long posHash) {
 		Byte count = positionCount.get(posHash);
 		if (count == null) {
@@ -35,7 +39,8 @@ public class DrawChecker {
 	public void decrementPositionReachedCount(long posHash) {
 		Byte count = positionCount.get(posHash);
 		if (count == null) {
-			assert false;
+			// Now we clear the drawchecker in some circumstances this isn't a failure
+			//assert false;
 		} else {
 			count--;
 			if (count == 0) {
