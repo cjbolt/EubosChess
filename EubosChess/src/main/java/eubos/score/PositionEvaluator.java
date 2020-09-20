@@ -57,6 +57,12 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	public short evaluatePosition() {
+		if (isInsufficientMaterial() && sc.isTryForDraw()) {
+			return sc.achievedDraw();
+		}
+		if (sc.isPositionDrawn()) {
+			return 0;
+		}
 		MaterialEvaluation mat = MaterialEvaluator.evaluate(pm.getTheBoard(), sc.isEndgame());
 		short score = mat.getDelta();
 		score += sc.computeSearchGoalBonus(mat);

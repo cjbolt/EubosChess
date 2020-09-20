@@ -120,7 +120,7 @@ public class EubosEngineMain extends AbstractEngine {
 					if (temp_pm.getCapturedPiece().getPiece() != Piece.NONE ||
 						Piece.isPawn(Move.getOriginPiece(move))) {
 						// Pawn moves and captures are irreversible, annul the draw checker
-						dc.reset();
+						//dc.reset(); // the logic of this needs checking - for example when Arena sends all the moves! each time
 					}
 				}
 			} catch(InvalidPieceException e ) {

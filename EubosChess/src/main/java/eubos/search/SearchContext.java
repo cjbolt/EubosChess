@@ -19,7 +19,7 @@ public class SearchContext {
 	static final short DRAW_THRESHOLD = -150;
 	
 	static final short SIMPLIFICATION_BONUS = 75;
-	static final short AVOID_DRAW_HANDICAP = -250;
+	static final short AVOID_DRAW_HANDICAP = -150;
 	static final short ACHIEVES_DRAW_BONUS = MaterialEvaluator.MATERIAL_VALUE_KING/2;
 	
 	static final int ENDGAME_MATERIAL_THRESHOLD = 
@@ -79,7 +79,7 @@ public class SearchContext {
 		return goal == SearchGoal.try_for_draw; 
 	}
 	
-	private boolean isPositionDrawn() {
+	public boolean isPositionDrawn() {
 		return dc.isPositionOpponentCouldClaimDraw(pos.getHash()) || pos.getTheBoard().isInsufficientMaterial();
 	}
 	
@@ -89,29 +89,15 @@ public class SearchContext {
 		// If we just moved, score as according to our goal
 		if (pos.getOnMove().equals(opponent)) {
 			switch(goal) {
-			case simplify:
-				if (isPositionDrawn()) {
-					bonus += AVOID_DRAW_HANDICAP;
-				} else if (pos.getTheBoard().isInsufficientMaterial(initialOnMove)) {
-					// Can no longer get a win
-					bonus += AVOID_DRAW_HANDICAP;
-				} else if (isPositionSimplified(current)) {
+			case simplify: 
+			    if (isPositionSimplified(current)) {
 					bonus += SIMPLIFICATION_BONUS;
 				}
 				break;
 			case try_for_win:
-				if (isPositionDrawn()) {
-					bonus += AVOID_DRAW_HANDICAP;
-				} else if (pos.getTheBoard().isInsufficientMaterial(initialOnMove)) {
-					// Can no longer get a win
-					bonus += AVOID_DRAW_HANDICAP;
-				}
 				break;
 			case try_for_draw:
-				if (isPositionDrawn()) {
-					bonus += ACHIEVES_DRAW_BONUS;
-				} else if (pos.getTheBoard().isInsufficientMaterial(opponent)) {
-					// opponent can no longer mate
+				if (pos.getTheBoard().isInsufficientMaterial()) {
 					bonus += ACHIEVES_DRAW_BONUS;
 				}
 				break;
@@ -119,31 +105,6 @@ public class SearchContext {
 				break;
 			}
 			if (Colour.isBlack(initialOnMove)) {
-				bonus = (short)-bonus;
-			}
-		} else {
-			switch(goal) {
-			case simplify:
-			case try_for_win:
-				if (isPositionDrawn()) {
-					// Assume opponent wants a draw.
-					bonus += ACHIEVES_DRAW_BONUS;
-				} else if (pos.getTheBoard().isInsufficientMaterial(initialOnMove)) {
-					// Can no longer get a win
-					bonus += ACHIEVES_DRAW_BONUS;
-				}
-				break;
-			case try_for_draw:
-				// If we are trying for a draw and evaluating opponents move, score a draw as bad for them
-				if (isPositionDrawn()) {
-					bonus += AVOID_DRAW_HANDICAP;
-				}
-				break;
-			default:
-				break;
-			}
-			// we are evaluating after the move, so if opponent is black, invert score
-			if (Colour.isWhite(pos.getOnMove())) {
 				bonus = (short)-bonus;
 			}
 		}
@@ -167,5 +128,13 @@ public class SearchContext {
 	public boolean isEndgame() {
 		// Could make this update for when we enter endgame as a consequence of moves applied during the search.
 		return isEndgame;
+	}
+
+	public short achievedDraw() {
+		short bonus = ACHIEVES_DRAW_BONUS;
+		if (Colour.isBlack(initialOnMove)) {
+			bonus = (short)-bonus;
+		}
+		return bonus;
 	}
 }
