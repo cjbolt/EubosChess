@@ -38,15 +38,8 @@ public class MateScoreGenerator implements IScoreMate {
 				}
 			}
 		} else {
-			mateScore = getScoreForStalemate();
-			// TODO: introduce a more sophisticated system for handling stalemate scoring.
-			if (Colour.isBlack(initialOnMove))
-				mateScore=(short) -mateScore;
+			mateScore = sc.getScoreForStalemate();
 		}
 		return mateScore;
-	}	
-	
-	private short getScoreForStalemate() {
-		return sc.isTryForDraw() ? MaterialEvaluator.MATERIAL_VALUE_KING : -MaterialEvaluator.MATERIAL_VALUE_KING;
 	}	
 }

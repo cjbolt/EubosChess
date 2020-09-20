@@ -15,4 +15,5 @@ public interface IPositionAccessors {
 	public int getCastlingFlags();
 	public long getHash();
 	public String getFen();
+	public boolean isThreefoldRepetitionPossible();
 }

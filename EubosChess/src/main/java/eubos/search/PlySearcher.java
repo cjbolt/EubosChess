@@ -97,13 +97,9 @@ public class PlySearcher {
 		switch (eval.status) {
 		case sufficientTerminalNode:
 		case sufficientRefutation:
-			// Check score for hashed position causing a search cut-off is still valid (i.e. not a potential draw)
-			if (isHashedPositionCouldLeadToDraw(eval.trans.getBestMove())) {	
-				/* This is meant to be a search, but the problem is it backs up scores which then go into the hash table and theoretically
-				 *  pollute it with draw scores which are based on search context and are not accurate in all circumstance 
-				 *  (e.g. for a different move order)
-				 */
-				// also I am not sure the depth calculation is correct!
+			// Check score for hashed position causing a search cut-off is still valid (i.e. best move doesn't lead to a draw)
+			if (isHashedPositionCouldLeadToDraw(eval.trans.getBestMove())) {
+				// Assume it is now a draw, so re-search
 				SearchDebugAgent.printHashIsSeedMoveList(eval.trans.getBestMove(), pos.getHash());
 				theScore = searchMoves( eval.trans.getBestMove(), eval.trans);
 				break;
@@ -137,7 +133,7 @@ public class PlySearcher {
 				pm.performMove(move);
 				SearchDebugAgent.nextPly();
 				// we have to apply the move the hashed score is for to detect whether this hash is encountered for a second time
-				if (pe.couldLeadToThreeFoldRepetiton(pos.getHash())) {
+				if (pos.isThreefoldRepetitionPossible()) {
 					SearchDebugAgent.printRepeatedPositionHash(pos.getHash(), pos.getFen());
 					retVal = true;
 				}
@@ -429,7 +425,7 @@ public class PlySearcher {
 	
 	private boolean isTerminalNode() {
 		boolean terminalNode = false;
-		if (pe.couldLeadToThreeFoldRepetiton(pos.getHash())) {
+		if (pos.isThreefoldRepetitionPossible()) {
 			SearchDebugAgent.printRepeatedPositionSearch(pos.getHash(), pos.getFen());
 			terminalNode = true;
 		}  else if (pe.isInsufficientMaterial()) {

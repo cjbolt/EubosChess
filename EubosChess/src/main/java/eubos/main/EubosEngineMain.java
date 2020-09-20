@@ -111,17 +111,14 @@ public class EubosEngineMain extends AbstractEngine {
 		// context in the position evaluator, required when we get a position and move list to apply.
 		String uci_fen_string = command.board.toString();
 		String fen_to_use = null;
+		boolean lastMoveWasCaptureOrPawnMove = false;
 		if (!command.moves.isEmpty()) {
 			PositionManager temp_pm = new PositionManager(uci_fen_string, dc);
 			try {
 				for (GenericMove nextMove : command.moves) {
 					int move = Move.toMove(nextMove, temp_pm.getTheBoard());
 					temp_pm.performMove(move);
-					if (temp_pm.getCapturedPiece().getPiece() != Piece.NONE ||
-						Piece.isPawn(Move.getOriginPiece(move))) {
-						// Pawn moves and captures are irreversible, annul the draw checker
-						//dc.reset(); // the logic of this needs checking - for example when Arena sends all the moves! each time
-					}
+					lastMoveWasCaptureOrPawnMove = temp_pm.getCapturedPiece().getPiece() != Piece.NONE || Piece.isPawn(Move.getOriginPiece(move));
 				}
 			} catch(InvalidPieceException e ) {
 				System.out.println( 
@@ -142,6 +139,10 @@ public class EubosEngineMain extends AbstractEngine {
 			fen_to_use = uci_fen_string;
 		}
 		pm = new PositionManager(fen_to_use, dc);
+		if (lastMoveWasCaptureOrPawnMove) {
+			// Pawn moves and captures are irreversible, clear the draw checker
+			dc.reset();
+		}
 		long hashCode = pm.getHash();
 		Piece.Colour nowOnMove = pm.getOnMove();
 		if (lastOnMove == null || lastOnMove == nowOnMove) {

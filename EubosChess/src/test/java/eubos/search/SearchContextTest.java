@@ -33,8 +33,8 @@ public class SearchContextTest {
 	private void setupPosition(String fen) {
 		dc = new DrawChecker();
 		pm = new PositionManager(fen, dc);
-		pe = new PositionEvaluator(pm ,dc);
-		sut = new SearchContext(pm, pe.getMaterialEvaluation(), dc);
+		pe = new PositionEvaluator(pm);
+		sut = new SearchContext(pm, pe.getMaterialEvaluation());
 		/* This next line emulates the position being received in EubosEngineMain from the analyse
 		 * UCI command, then we set the position reached count for the received FEN string, as the
 		 * move is not applied in performMove. */

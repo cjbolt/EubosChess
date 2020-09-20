@@ -13,14 +13,19 @@ public class DrawChecker {
 		positionCount.clear();
 	}
 	
-	public void incrementPositionReachedCount(Long posHash) {
+	public boolean incrementPositionReachedCount(Long posHash) {
+		boolean repetitionPossible = false;
 		Byte count = positionCount.get(posHash);
 		if (count == null) {
 			positionCount.put(posHash, (byte)1);
 		} else {
 			count++;
 			positionCount.put(posHash, count);
+			if (count >= 2) {
+				repetitionPossible = true;
+			}
 		}
+		return repetitionPossible;
 	}
 	
 	public Byte getPositionReachedCount(Long posHash) {

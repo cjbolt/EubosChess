@@ -11,14 +11,13 @@ import eubos.board.Piece.Colour;
 import eubos.position.CaptureData;
 import eubos.position.Position;
 import eubos.position.PositionManager;
-import eubos.search.DrawChecker;
 import eubos.search.SearchContext;
+import eubos.search.SearchContext.SearchContextEvaluation;
 
 public class PositionEvaluator implements IEvaluate {
 
 	PositionManager pm;
 	private SearchContext sc;
-	private DrawChecker dc;
 	
 	public static final int HAS_CASTLED_BOOST_CENTIPAWNS = 50;
 	public static final int DOUBLED_PAWN_HANDICAP = 50;
@@ -27,10 +26,9 @@ public class PositionEvaluator implements IEvaluate {
 	
 	public static final boolean DISABLE_QUIESCENCE_CHECK = false; 
 	
-	public PositionEvaluator(PositionManager pm, DrawChecker dc) {	
+	public PositionEvaluator(PositionManager pm) {	
 		this.pm = pm;
-		sc = new SearchContext(pm, MaterialEvaluator.evaluate(pm.getTheBoard(), false), dc);
-		this.dc = dc;
+		sc = new SearchContext(pm, MaterialEvaluator.evaluate(pm.getTheBoard(), false));
 	}
 	
 	public boolean isQuiescent() {
@@ -56,18 +54,14 @@ public class PositionEvaluator implements IEvaluate {
 		return true;
 	}
 	
-	public short evaluatePosition() {
-		if (isInsufficientMaterial() && sc.isTryForDraw()) {
-			return sc.achievedDraw();
-		}
-		if (sc.isPositionDrawn()) {
-			return 0;
-		}
+	public short evaluatePosition() { 
 		MaterialEvaluation mat = MaterialEvaluator.evaluate(pm.getTheBoard(), sc.isEndgame());
-		short score = mat.getDelta();
-		score += sc.computeSearchGoalBonus(mat);
-		score += evaluatePawnStructure();
-		return score;
+		SearchContextEvaluation eval = sc.computeSearchGoalBonus(mat);
+		if (!eval.isDraw) {
+			eval.score += mat.getDelta();
+			eval.score += evaluatePawnStructure();
+		}
+		return eval.score;
 	}
 	
 	int encourageCastling() {
@@ -113,11 +107,6 @@ public class PositionEvaluator implements IEvaluate {
 
 	public MaterialEvaluation getMaterialEvaluation() {
 		return MaterialEvaluator.evaluate(pm.getTheBoard(), sc.isEndgame());
-	}
-	
-	@Override
-	public boolean couldLeadToThreeFoldRepetiton(Long hashCode) {
-		return dc.isPositionOpponentCouldClaimDraw(hashCode);
 	}
 	
 	public SearchContext getSearchContext() {

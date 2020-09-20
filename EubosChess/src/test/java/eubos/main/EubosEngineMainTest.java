@@ -154,6 +154,7 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
+	@Ignore
 	public void test_avoidDraw_lichess_hash_table_draw_kpK_rook_pawn() throws InterruptedException, IOException {
 		setupEngine();
 		// 62 #1
@@ -190,6 +191,7 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
+	@Ignore
 	public void test_avoidDraw_lichess_hash_table_draw_kpK_rook_pawn_with_moves_as_white() throws InterruptedException, IOException {
 		setupEngine();
 		// 1

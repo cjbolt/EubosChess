@@ -23,7 +23,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		moveTracker = new MoveTracker();
 		new fenParser( this, fenString );
 		hash = new ZobristHashCode(this);
-		pe = new PositionEvaluator(this, dc);
+		pe = new PositionEvaluator(this);
 		this.dc = dc; 
 	}
 	
@@ -89,7 +89,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 
 	// No public setter, because onMove is only changed by performing a move on the board.
 	private Colour onMove;
-	private Colour initialOnMove;
 	public Colour getOnMove() {
 		return onMove;
 	}
@@ -123,6 +122,11 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return this.pe;
 	}
 	
+	boolean repetitionPossible = false;
+	public boolean isThreefoldRepetitionPossible() {
+		return repetitionPossible;
+	}
+	
 	DrawChecker dc;
 	
 	public void performMove( int move ) throws InvalidPieceException {
@@ -150,7 +154,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 				hash.update(move, captureTarget, setEnPassant ? Position.getFile(enPasTargetSq) : IntFile.NOFILE);
 			}
 			// Update the draw checker
-			dc.incrementPositionReachedCount(getHash());
+			repetitionPossible = dc.incrementPositionReachedCount(getHash());
 		}
 		
 		// Update onMove
@@ -187,6 +191,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 
 			int enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? Position.getFile(enPasTargetSq) : IntFile.NOFILE;
 			hash.update(reversedMove, cap, enPassantFile);
+			
+			repetitionPossible = dc.isPositionOpponentCouldClaimDraw(getHash());
 		}
 		
 		// Update onMove flag
@@ -274,9 +280,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		}
 		private void parseOnMove(String colourOnMove) {
 			if (colourOnMove.equals("w"))
-				initialOnMove = onMove = Colour.white;
+				onMove = Colour.white;
 			else if (colourOnMove.equals("b"))
-				initialOnMove = onMove = Colour.black;
+				onMove = Colour.black;
 		}
 		private void parseMoveNumber(PositionManager pm, String moveNumber) {
 			int moveNum = 0;

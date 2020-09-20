@@ -12,7 +12,6 @@ public class SearchContext {
 	IPositionAccessors pos;
 	Piece.Colour initialOnMove;
 	SearchGoal goal;
-	DrawChecker dc;
 	boolean isEndgame;
 	
 	static final short SIMPLIFY_THRESHOLD = 100;
@@ -43,9 +42,8 @@ public class SearchContext {
 		try_for_draw
 	};
 	
-	public SearchContext(IPositionAccessors pos, MaterialEvaluation initialMaterial, DrawChecker dc) {
+	public SearchContext(IPositionAccessors pos, MaterialEvaluation initialMaterial) {
 		this.pos = pos;
-		this.dc = dc;
 		initial = initialMaterial;
 		initialOnMove = pos.getOnMove();
 		boolean queensOffBoard = (pos.getTheBoard().getWhiteQueens() == 0) && (pos.getTheBoard().getBlackQueens() ==0);
@@ -78,37 +76,47 @@ public class SearchContext {
 	public boolean isTryForDraw() {
 		return goal == SearchGoal.try_for_draw; 
 	}
-	
-	public boolean isPositionDrawn() {
-		return dc.isPositionOpponentCouldClaimDraw(pos.getHash()) || pos.getTheBoard().isInsufficientMaterial();
+		
+	public class SearchContextEvaluation {
+		public boolean isDraw;
+		public short score;
+		
+		public SearchContextEvaluation() {
+			isDraw = false;
+			score = 0;
+		}
 	}
 	
-	public short computeSearchGoalBonus(MaterialEvaluation current) {
+	public SearchContextEvaluation computeSearchGoalBonus(MaterialEvaluation current) {
 		Piece.Colour opponent = Colour.getOpposite(initialOnMove);
-		short bonus = 0;
+		SearchContextEvaluation eval = new SearchContextEvaluation();
+		
+		boolean threeFold = pos.isThreefoldRepetitionPossible();
+		boolean insufficient = pos.getTheBoard().isInsufficientMaterial();
+		if (threeFold || insufficient) {
+			eval.isDraw  = true;
+		}
+		
 		// If we just moved, score as according to our goal
 		if (pos.getOnMove().equals(opponent)) {
 			switch(goal) {
 			case simplify: 
 			    if (isPositionSimplified(current)) {
-					bonus += SIMPLIFICATION_BONUS;
+			    	eval.score = SIMPLIFICATION_BONUS;
+				} 
+				break;
+			case try_for_draw:
+				if (insufficient) {
+					eval.score = ACHIEVES_DRAW_BONUS;
 				}
 				break;
 			case try_for_win:
-				break;
-			case try_for_draw:
-				if (pos.getTheBoard().isInsufficientMaterial()) {
-					bonus += ACHIEVES_DRAW_BONUS;
-				}
-				break;
 			default:
 				break;
 			}
-			if (Colour.isBlack(initialOnMove)) {
-				bonus = (short)-bonus;
-			}
+			eval.score = adjustScoreIfBlack(eval.score);
 		}
-		return bonus;
+		return eval;
 	}
 	
 	private boolean isPositionSimplified(MaterialEvaluation current) {
@@ -129,12 +137,16 @@ public class SearchContext {
 		// Could make this update for when we enter endgame as a consequence of moves applied during the search.
 		return isEndgame;
 	}
-
-	public short achievedDraw() {
-		short bonus = ACHIEVES_DRAW_BONUS;
+	
+	public short getScoreForStalemate() {
+		short mateScore = isTryForDraw() ? ACHIEVES_DRAW_BONUS : -ACHIEVES_DRAW_BONUS;
+		return adjustScoreIfBlack(mateScore);	
+	}
+	
+	private short adjustScoreIfBlack(short score) {
 		if (Colour.isBlack(initialOnMove)) {
-			bonus = (short)-bonus;
+			score = (short) -score;
 		}
-		return bonus;
+		return score;
 	}
 }

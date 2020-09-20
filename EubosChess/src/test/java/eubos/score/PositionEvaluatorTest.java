@@ -32,7 +32,7 @@ public class PositionEvaluatorTest {
 
 	protected void setUpPosition(String fen) {
 		pm = new PositionManager(fen, new DrawChecker());
-		SUT = new PositionEvaluator(pm, new DrawChecker());
+		SUT = new PositionEvaluator(pm);
 	}
 	
 	@Test

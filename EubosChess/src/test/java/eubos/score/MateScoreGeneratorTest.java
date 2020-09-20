@@ -65,10 +65,10 @@ public class MateScoreGeneratorTest {
 		MaterialEvaluation me = new MaterialEvaluation();
 		me.black = MaterialEvaluator.MATERIAL_VALUE_KING + 250;
 		me.white = MaterialEvaluator.MATERIAL_VALUE_KING;
-		SearchContext sc = new SearchContext(pm, me, new DrawChecker());
+		SearchContext sc = new SearchContext(pm, me);
 		classUnderTest = new MateScoreGenerator(pm, sc);
 		// White wants stalemate
-		assertEquals(MaterialEvaluator.MATERIAL_VALUE_KING, classUnderTest.scoreMate((byte)0));
+		assertEquals(MaterialEvaluator.MATERIAL_VALUE_KING/2, classUnderTest.scoreMate((byte)0));
 	}
 	
 	@Test
@@ -77,9 +77,9 @@ public class MateScoreGeneratorTest {
 		MaterialEvaluation me = new MaterialEvaluation();
 		me.black = MaterialEvaluator.MATERIAL_VALUE_KING;
 		me.white = MaterialEvaluator.MATERIAL_VALUE_KING + 250;
-		SearchContext sc = new SearchContext(pm, me, new DrawChecker());
+		SearchContext sc = new SearchContext(pm, me);
 		classUnderTest = new MateScoreGenerator(pm, sc);
 		// Black wants stalemate
-		assertEquals(-MaterialEvaluator.MATERIAL_VALUE_KING, classUnderTest.scoreMate((byte)0));
+		assertEquals(-MaterialEvaluator.MATERIAL_VALUE_KING/2, classUnderTest.scoreMate((byte)0));
 	}
 }
