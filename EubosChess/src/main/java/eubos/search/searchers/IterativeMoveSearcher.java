@@ -5,22 +5,19 @@ import java.util.List;
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 
 import eubos.board.InvalidPieceException;
-import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
-import eubos.score.IEvaluate;
 import eubos.search.NoLegalMoveException;
 import eubos.search.SearchDebugAgent;
 import eubos.search.SearchResult;
-import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 
 public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	
 	public static final int AVG_MOVES_PER_GAME = 60;
 	long gameTimeRemaining;
-	short initialScore;
+	
 	boolean searchStopped = false;
 	public static final boolean DEBUG_LOGGING = true;
 	public static final boolean EXPLICIT_GARBAGE_COLLECTION = false;
@@ -30,13 +27,8 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			IChangePosition inputPm,  
 			IPositionAccessors pos, 
 			long time,
-			long increment,
-			IEvaluate pe ) {
-		super(eubos,inputPm,pos, new MiniMaxMoveGenerator( eubos, hashMap, inputPm, pos, pe ));
-		initialScore = pe.evaluatePosition();
-		if (Colour.isBlack(pos.getOnMove())) {
-			initialScore = (short)-initialScore;
-		}
+			long increment) {
+		super(eubos,inputPm,pos,hashMap);
 		EubosEngineMain.logger.info(
 				String.format("Starting initialScore=%d gameTimeRemaining=%d", initialScore, time));
 		// We use the lichess hypothesis about increments and game time

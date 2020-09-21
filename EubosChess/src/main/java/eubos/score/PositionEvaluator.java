@@ -9,14 +9,14 @@ import eubos.board.Piece;
 import eubos.board.SquareAttackEvaluator;
 import eubos.board.Piece.Colour;
 import eubos.position.CaptureData;
+import eubos.position.IPositionAccessors;
 import eubos.position.Position;
-import eubos.position.PositionManager;
 import eubos.search.SearchContext;
 import eubos.search.SearchContext.SearchContextEvaluation;
 
 public class PositionEvaluator implements IEvaluate {
 
-	PositionManager pm;
+	IPositionAccessors pm;
 	private SearchContext sc;
 	
 	public static final int HAS_CASTLED_BOOST_CENTIPAWNS = 50;
@@ -26,7 +26,7 @@ public class PositionEvaluator implements IEvaluate {
 	
 	public static final boolean DISABLE_QUIESCENCE_CHECK = false; 
 	
-	public PositionEvaluator(PositionManager pm) {	
+	public PositionEvaluator(IPositionAccessors pm) {	
 		this.pm = pm;
 		sc = new SearchContext(pm, MaterialEvaluator.evaluate(pm.getTheBoard(), false));
 	}
@@ -112,9 +112,9 @@ public class PositionEvaluator implements IEvaluate {
 	public SearchContext getSearchContext() {
 		return this.sc;
 	}
-	
-	public boolean isInsufficientMaterial() {
-		Board board = pm.getTheBoard();
-		return board.isInsufficientMaterial();			
+
+	@Override
+	public short getScoreForStalemate() {
+		return sc.getScoreForStalemate();
 	}
 }

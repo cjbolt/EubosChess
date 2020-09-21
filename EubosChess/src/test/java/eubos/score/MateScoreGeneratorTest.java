@@ -11,8 +11,6 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 import eubos.board.InvalidPieceException;
 import eubos.position.Move;
 import eubos.position.PositionManager;
-import eubos.search.DrawChecker;
-import eubos.search.SearchContext;
 
 public class MateScoreGeneratorTest {
 	
@@ -65,8 +63,8 @@ public class MateScoreGeneratorTest {
 		MaterialEvaluation me = new MaterialEvaluation();
 		me.black = MaterialEvaluator.MATERIAL_VALUE_KING + 250;
 		me.white = MaterialEvaluator.MATERIAL_VALUE_KING;
-		SearchContext sc = new SearchContext(pm, me);
-		classUnderTest = new MateScoreGenerator(pm, sc);
+		PositionEvaluator pe = new PositionEvaluator(pm);
+		classUnderTest = new MateScoreGenerator(pm, pe);
 		// White wants stalemate
 		assertEquals(MaterialEvaluator.MATERIAL_VALUE_KING/2, classUnderTest.scoreMate((byte)0));
 	}
@@ -77,8 +75,8 @@ public class MateScoreGeneratorTest {
 		MaterialEvaluation me = new MaterialEvaluation();
 		me.black = MaterialEvaluator.MATERIAL_VALUE_KING;
 		me.white = MaterialEvaluator.MATERIAL_VALUE_KING + 250;
-		SearchContext sc = new SearchContext(pm, me);
-		classUnderTest = new MateScoreGenerator(pm, sc);
+		PositionEvaluator pe = new PositionEvaluator(pm);
+		classUnderTest = new MateScoreGenerator(pm, pe);
 		// Black wants stalemate
 		assertEquals(-MaterialEvaluator.MATERIAL_VALUE_KING/2, classUnderTest.scoreMate((byte)0));
 	}

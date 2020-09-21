@@ -1,12 +1,12 @@
 package eubos.search;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
 
 public class DrawChecker {
-	private ConcurrentHashMap<Long,Byte> positionCount;
+	private HashMap<Integer,Byte> positionCount;
 	
 	public DrawChecker() {
-		positionCount = new ConcurrentHashMap<Long,Byte>();
+		positionCount = new HashMap<Integer,Byte>();
 	}
 	
 	public void reset() {
@@ -15,12 +15,13 @@ public class DrawChecker {
 	
 	public boolean incrementPositionReachedCount(Long posHash) {
 		boolean repetitionPossible = false;
-		Byte count = positionCount.get(posHash);
+		Integer truncatedHash = (int) (posHash >> 32);
+		Byte count = positionCount.get(truncatedHash);
 		if (count == null) {
-			positionCount.put(posHash, (byte)1);
+			positionCount.put(truncatedHash, (byte)1);
 		} else {
 			count++;
-			positionCount.put(posHash, count);
+			positionCount.put(truncatedHash, count);
 			if (count >= 2) {
 				repetitionPossible = true;
 			}
@@ -29,7 +30,8 @@ public class DrawChecker {
 	}
 	
 	public Byte getPositionReachedCount(Long posHash) {
-		return positionCount.get(posHash);
+		Integer truncatedHash = (int) (posHash >> 32);
+		return positionCount.get(truncatedHash);
 	}
 
 	public boolean isPositionOpponentCouldClaimDraw(long positionHash) {
@@ -42,16 +44,17 @@ public class DrawChecker {
 	}
 
 	public void decrementPositionReachedCount(long posHash) {
-		Byte count = positionCount.get(posHash);
+		Integer truncatedHash = (int) (posHash >> 32);
+		Byte count = positionCount.get(truncatedHash);
 		if (count == null) {
 			// Now we clear the drawchecker in some circumstances this isn't a failure
 			//assert false;
 		} else {
 			count--;
 			if (count == 0) {
-				positionCount.remove(posHash);
+				positionCount.remove(truncatedHash);
 			} else {
-				positionCount.put(posHash, count);
+				positionCount.put(truncatedHash, count);
 			}
 		}
 	}

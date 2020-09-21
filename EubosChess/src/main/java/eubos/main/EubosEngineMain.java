@@ -71,7 +71,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public void receive(EngineInitializeRequestCommand command) {
 		logger.fine("Eubos Initialising");
 		
-		ProtocolInitializeAnswerCommand reply = new ProtocolInitializeAnswerCommand("Eubos 1.1.1","Chris Bolt");
+		ProtocolInitializeAnswerCommand reply = new ProtocolInitializeAnswerCommand("Eubos 1.1.2","Chris Bolt");
 		reply.addOption(Options.newHashOption((int)FixedSizeTranspositionTable.MBYTES_DEFAULT_HASH_SIZE, 32, 4*1000));
 		this.getProtocol().send( reply );
 		
@@ -183,11 +183,11 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		if (clockTimeValid) {
 			logger.info("Search move, clock time " + clockTime);
-			ms = new IterativeMoveSearcher(this, hashMap, pm, pm, clockTime, clockInc, pm.getPositionEvaluator());
+			ms = new IterativeMoveSearcher(this, hashMap, pm, pm, clockTime, clockInc);
 		}
 		else if (command.getMoveTime() != null) {
 			logger.info("Search move, fixed time " + command.getMoveTime());
-			ms = new FixedTimeMoveSearcher(this, hashMap, pm, pm, command.getMoveTime(), pm.getPositionEvaluator());
+			ms = new FixedTimeMoveSearcher(this, hashMap, pm, pm, command.getMoveTime());
 		} else {
 			byte searchDepth = SEARCH_DEPTH_IN_PLY;
 			if (command.getInfinite()) {
@@ -196,7 +196,7 @@ public class EubosEngineMain extends AbstractEngine {
 				searchDepth = (byte)((int)command.getDepth());
 			}
 			logger.info("Search move, fixed depth " + searchDepth);
-			ms = new FixedDepthMoveSearcher(this, hashMap, pm, pm, searchDepth, pm.getPositionEvaluator());
+			ms = new FixedDepthMoveSearcher(this, hashMap, pm, pm, searchDepth);
 		}
 	}
 

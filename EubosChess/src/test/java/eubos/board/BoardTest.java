@@ -10,9 +10,12 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericPosition;
+import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.position.Move;
 import eubos.position.Position;
+import eubos.position.PositionManager;
+import eubos.search.DrawChecker;
 
 public class BoardTest {
 	
@@ -237,5 +240,70 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.e4, Piece.WHITE_KING);
 		int move = Move.valueOf(Position.d1, Piece.WHITE_KNIGHT, Position.c3, Piece.NONE);
 		assertFalse(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move));
+	}
+	
+	protected void setUpPosition(String fen) {
+		PositionManager pm = new PositionManager(fen, new DrawChecker());
+		classUnderTest = pm.getTheBoard();
+	}
+	
+	@Test
+	public void test_isInsufficientMaterial_JustKings() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("8/8/8/8/8/8/k/7K w - - 0 1");
+		assertTrue(classUnderTest.isInsufficientMaterial());
+	}
+	
+	@Test
+	public void test_isInsufficientMaterial_RookOnBoard() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("8/R7/8/8/8/8/k/7K w - - 0 1");
+		assertFalse(classUnderTest.isInsufficientMaterial());
+	}
+	
+	@Test
+	public void test_isInsufficientMaterial_QueenOnBoard() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("8/Q7/8/8/8/8/k/7K w - - 0 1");
+		assertFalse(classUnderTest.isInsufficientMaterial());
+	}
+	
+	@Test
+	public void test_isInsufficientMaterial_TwoKnights() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("8/K7/8/K7/8/8/k/7K w - - 0 1");
+		assertTrue(classUnderTest.isInsufficientMaterial());
+	}
+	
+	@Test
+	public void test_isInsufficientMaterial_BishopKnight() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("8/B7/8/4N3/8/8/k/7K w - - 0 1");
+		assertFalse(classUnderTest.isInsufficientMaterial());
+	}
+	
+	@Test
+	public void test_isInsufficientMaterial_BishopKnightDifferentSides() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("8/B7/8/4n3/8/8/k/7K w - - 0 1");
+		assertTrue(classUnderTest.isInsufficientMaterial());
+	}
+	
+	@Test
+	public void test_isInsufficientMaterial_TwoBishops() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("BB6/8/8/8/8/8/k/7K w - - 0 1");
+		assertFalse(classUnderTest.isInsufficientMaterial());
+	}
+	
+	@Test
+	public void test_isInsufficientMaterial_TwoBishopsDifferentSides() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("Bb6/8/8/8/8/8/k/7K w - - 0 1");
+		assertTrue(classUnderTest.isInsufficientMaterial());
+	}
+	
+	@Test
+	public void test_isInsufficientMaterial_SingleBishop() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("B7/8/8/8/8/8/k/7K w - - 0 1");
+		assertTrue(classUnderTest.isInsufficientMaterial());
+	}
+	
+	@Test
+	public void test_isInsufficientMaterial_PawnOnBoard() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("8/P/8/8/8/8/k/7K w - - 0 1");
+		assertFalse(classUnderTest.isInsufficientMaterial());
 	}
 }

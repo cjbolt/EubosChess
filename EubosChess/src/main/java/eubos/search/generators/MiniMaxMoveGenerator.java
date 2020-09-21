@@ -33,10 +33,10 @@ public class MiniMaxMoveGenerator implements
 	private SearchMetricsReporter sr;
 	private EubosEngineMain callback;
 	private PlySearcher ps;
+	private IEvaluate pe;
 	private FixedSizeTranspositionTable tt;
 	private TranspositionTableAccessor tta;
 	private ScoreTracker st;
-	private IEvaluate pe;
 	private short score;
 	private boolean sendInfo = false;
 	
@@ -79,7 +79,7 @@ public class MiniMaxMoveGenerator implements
 	
 	public short getScore() { return score; }
 	
-	private void initialiseSearchDepthDependentObjects(int searchDepth, IChangePosition pm, IEvaluate pe) {
+	private void initialiseSearchDepthDependentObjects(int searchDepth, IChangePosition pm) {
 		pc = new PrincipalContinuation(searchDepth+EXTENDED_SEARCH_PLY_LIMIT);
 		sm.setDepth(searchDepth);
 		sm.setPrincipalVariation(pc.toPvList(0));
@@ -100,7 +100,7 @@ public class MiniMaxMoveGenerator implements
 	@Override
 	public SearchResult findMove(byte searchDepth, List<Integer> lastPc) throws NoLegalMoveException, InvalidPieceException {
 		boolean foundMate = false;
-		initialiseSearchDepthDependentObjects(searchDepth, pm, pe);
+		initialiseSearchDepthDependentObjects(searchDepth, pm);
 		ps = new PlySearcher(tta, st, pc, sm, sr, searchDepth, pm, pos, lastPc, pe);
 		if (EubosEngineMain.UCI_INFO_ENABLED && sendInfo) {
 			sr.setSendInfo(true);

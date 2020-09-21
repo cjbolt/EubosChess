@@ -13,8 +13,6 @@ import eubos.board.Board;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
-import eubos.score.IEvaluate;
-import eubos.score.PositionEvaluator;
 import eubos.search.DrawChecker;
 
 public class PositionManager implements IChangePosition, IPositionAccessors {
@@ -23,7 +21,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		moveTracker = new MoveTracker();
 		new fenParser( this, fenString );
 		hash = new ZobristHashCode(this);
-		pe = new PositionEvaluator(this);
+		//pe = new PositionEvaluator(this);
 		this.dc = dc; 
 	}
 	
@@ -115,11 +113,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 
 	public long getHash() {
 		return hash.hashCode;
-	}
-	
-	PositionEvaluator pe;
-	public IEvaluate getPositionEvaluator() {
-		return this.pe;
 	}
 	
 	boolean repetitionPossible = false;

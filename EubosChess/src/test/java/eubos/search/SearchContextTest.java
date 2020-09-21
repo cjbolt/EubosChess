@@ -55,7 +55,7 @@ public class SearchContextTest {
 		pm.performMove(Move.toMove(new GenericMove("e5d4"), pm.getTheBoard()));
 		pm.performMove(Move.toMove(new GenericMove("d1d4"), pm.getTheBoard()));
 		MaterialEvaluation current = pe.getMaterialEvaluation();
-		assertEquals(SearchContext.SIMPLIFICATION_BONUS, sut.computeSearchGoalBonus(current));
+		assertEquals(SearchContext.SIMPLIFICATION_BONUS, sut.computeSearchGoalBonus(current).score);
 	}
 	
 	@Test
@@ -64,7 +64,7 @@ public class SearchContextTest {
 		pm.performMove(Move.toMove(new GenericMove("d2d4"), pm.getTheBoard())); // forces exchange of queens on d4. simplifying
 		pm.performMove(Move.toMove(new GenericMove("e5d4"), pm.getTheBoard()));
 		MaterialEvaluation current = pe.getMaterialEvaluation();
-		assertEquals(0, sut.computeSearchGoalBonus(current));
+		assertEquals(0, sut.computeSearchGoalBonus(current).score);
 	}
 
 	@Test
@@ -74,7 +74,7 @@ public class SearchContextTest {
 		pm.performMove(Move.toMove(new GenericMove("e4d5"), pm.getTheBoard()));
 		pm.performMove(Move.toMove(new GenericMove("d8d5"), pm.getTheBoard()));
 		MaterialEvaluation current = pe.getMaterialEvaluation();
-		assertEquals(-SearchContext.SIMPLIFICATION_BONUS, sut.computeSearchGoalBonus(current));
+		assertEquals(-SearchContext.SIMPLIFICATION_BONUS, sut.computeSearchGoalBonus(current).score);
 	}
 	
 	@Test
@@ -84,14 +84,14 @@ public class SearchContextTest {
 		pm.performMove(Move.toMove(new GenericMove("e4d5"), pm.getTheBoard()));
 		// At this point queen recapture not completed
 		MaterialEvaluation current = pe.getMaterialEvaluation();
-		assertEquals(0, sut.computeSearchGoalBonus(current));
+		assertEquals(0, sut.computeSearchGoalBonus(current).score);
 	}
 	
 	@Test
 	public void test_lichess_pos() throws InvalidPieceException, IllegalNotationException {
 		setupPosition("4r1k1/2p2pb1/4Q3/8/3pPB2/1p1P3p/1P3P2/R5K1 b - - 0 42");
 		MaterialEvaluation current = pe.getMaterialEvaluation();
-		assertEquals(0, sut.computeSearchGoalBonus(current));
+		assertEquals(0, sut.computeSearchGoalBonus(current).score);
 	}
 	 
 	@Test
@@ -108,7 +108,7 @@ public class SearchContextTest {
 		applyMoveList(moveList);
 		MaterialEvaluation current = pe.getMaterialEvaluation();
 		// Good for black as black is trying to draw
-		assertEquals(SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current));
+		assertEquals(SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current).score);
 	}
 	
 	@Test
@@ -124,7 +124,7 @@ public class SearchContextTest {
 		applyMoveList(moveList);
 		MaterialEvaluation current = pe.getMaterialEvaluation();
 		// Good for white as white is trying to draw
-		assertEquals(-SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current));
+		assertEquals(-SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current).score);
 	}
 	
 	@Test
@@ -135,7 +135,7 @@ public class SearchContextTest {
                 									new GenericMove("a1h8")};
 		applyMoveList(moveList);
 		MaterialEvaluation current = pe.getMaterialEvaluation();
-		assertEquals(0, sut.computeSearchGoalBonus(current));
+		assertEquals(0, sut.computeSearchGoalBonus(current).score);
 	}
 	
 	@Test
@@ -153,7 +153,7 @@ public class SearchContextTest {
 		assertTrue(dc.isPositionOpponentCouldClaimDraw(pm.getHash()));
 		dc.incrementPositionReachedCount(pm.getHash());
 		MaterialEvaluation current = pe.getMaterialEvaluation();
-		assertEquals(SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current));
+		assertEquals(SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current).score);
 	}
 	
 	@Test
@@ -170,6 +170,6 @@ public class SearchContextTest {
 		applyMoveList(moveList);
 		assertTrue(dc.isPositionOpponentCouldClaimDraw(pm.getHash()));
 		MaterialEvaluation current = pe.getMaterialEvaluation();
-		assertEquals(SearchContext.ACHIEVES_DRAW_BONUS, sut.computeSearchGoalBonus(current));
+		assertEquals(SearchContext.ACHIEVES_DRAW_BONUS, sut.computeSearchGoalBonus(current).score);
 	}
 }

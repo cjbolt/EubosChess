@@ -12,6 +12,9 @@ public interface IPositionAccessors {
 	public int getMoveNumber();
 	public boolean lastMoveWasCapture();
 	public boolean lastMoveWasCheck();
+	public boolean lastMoveWasPromotion();
+	public boolean isPromotionPossible();
+	public CaptureData getCapturedPiece();
 	public int getCastlingFlags();
 	public long getHash();
 	public String getFen();

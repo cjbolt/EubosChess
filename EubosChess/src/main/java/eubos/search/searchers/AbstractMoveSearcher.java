@@ -5,12 +5,15 @@ import java.util.List;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.InvalidPieceException;
+import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
+import eubos.score.PositionEvaluator;
 import eubos.search.NoLegalMoveException;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;
+import eubos.search.transposition.FixedSizeTranspositionTable;
 
 public abstract class AbstractMoveSearcher extends Thread {
 
@@ -18,13 +21,19 @@ public abstract class AbstractMoveSearcher extends Thread {
 	protected IChangePosition pm;
 	protected IPositionAccessors pos;
 	protected MiniMaxMoveGenerator mg;
+	protected short initialScore;
 
-	public AbstractMoveSearcher(EubosEngineMain eng, IChangePosition pm, IPositionAccessors pos, MiniMaxMoveGenerator mg) {
+	public AbstractMoveSearcher(EubosEngineMain eng, IChangePosition pm, IPositionAccessors pos, FixedSizeTranspositionTable hashMap) {
 		super();
 		this.eubosEngine = eng;
 		this.pm = pm;
 		this.pos = pos;
-		this.mg = mg;
+		PositionEvaluator pe = new PositionEvaluator(pos);
+		initialScore = pe.evaluatePosition();
+		if (Colour.isBlack(pos.getOnMove())) {
+			initialScore = (short)-initialScore;
+		}
+		this.mg = new MiniMaxMoveGenerator( eng, hashMap, pm, pos , pe);
 	}
 
 	public AbstractMoveSearcher(Runnable target) {

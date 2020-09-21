@@ -69,7 +69,7 @@ public class PlySearcher {
 		
 		this.st = st;
 		tt = hashMap;
-		sg = new MateScoreGenerator(pos, pe.getSearchContext());
+		sg = new MateScoreGenerator(pos, pe);
 	}
 	
 	private byte setExtSearchDepth() {
@@ -428,7 +428,7 @@ public class PlySearcher {
 		if (pos.isThreefoldRepetitionPossible()) {
 			SearchDebugAgent.printRepeatedPositionSearch(pos.getHash(), pos.getFen());
 			terminalNode = true;
-		}  else if (pe.isInsufficientMaterial()) {
+		}  else if (pos.getTheBoard().isInsufficientMaterial()) {
 			terminalNode = true;
 		} else if (currPly == originalSearchDepthRequiredInPly) {
 			if (pe.isQuiescent()) {
