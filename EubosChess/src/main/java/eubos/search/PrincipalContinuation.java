@@ -85,7 +85,7 @@ public class PrincipalContinuation {
 			List<Integer> plyToUpdatePc = pc.get(currPly);
 			plyToUpdatePc.clear();
 			plyToUpdatePc.add(currMove);
-			clearContinuationsBeyondPly(currPly);
+			clearContinuationBeyondPly(currPly);
 			SearchDebugAgent.printPrincipalContinuation(this);
 		}
 	}
@@ -98,16 +98,14 @@ public class PrincipalContinuation {
 			if (onwards_pv != null) {
 				plyToUpdatePc.addAll(onwards_pv);
 			}
-			clearContinuationsBeyondPly(currPly);
+			clearContinuationBeyondPly(currPly);
 		}
 	}
 	
-	void clearContinuationsBeyondPly(int currPly) {
+	void clearContinuationBeyondPly(int currPly) {
 		int nextPly = currPly+1;
 		if (nextPly < pc.size()) {
-			for (List<Integer> plyList : pc.subList(nextPly, pc.size())) {
-				plyList.clear();
-			}
+			pc.get(nextPly).clear();
 		}
 	}
 }

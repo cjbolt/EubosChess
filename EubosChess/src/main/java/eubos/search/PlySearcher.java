@@ -87,8 +87,6 @@ public class PlySearcher {
 		Score theScore = null;
 		int prevBestMove = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
 		
-		Thread.yield();
-		
 		st.setProvisionalScoreAtPly(currPly);
 		SearchDebugAgent.printStartPlyInfo(st, pos, originalSearchDepthRequiredInPly);
 		
@@ -98,7 +96,7 @@ public class PlySearcher {
 		case sufficientTerminalNode:
 		case sufficientRefutation:
 			// Check score for hashed position causing a search cut-off is still valid (i.e. best move doesn't lead to a draw)
-			if (isHashedPositionCouldLeadToDraw(eval.trans.getBestMove())) {
+			if (checkForRepetitionDueToPositionInSearchTree(eval.trans.getBestMove())) {
 				// Assume it is now a draw, so re-search
 				SearchDebugAgent.printHashIsSeedMoveList(eval.trans.getBestMove(), pos.getHash());
 				theScore = searchMoves( eval.trans.getBestMove(), eval.trans);
@@ -126,22 +124,17 @@ public class PlySearcher {
 		return theScore;
 	}
 	
-	private boolean isHashedPositionCouldLeadToDraw(int move) {
+	private boolean checkForRepetitionDueToPositionInSearchTree(int move) throws InvalidPieceException {
 		boolean retVal = false;
-		try {
-			if (move != Move.NULL_MOVE) {
-				pm.performMove(move);
-				SearchDebugAgent.nextPly();
-				// we have to apply the move the hashed score is for to detect whether this hash is encountered for a second time
-				if (pos.isThreefoldRepetitionPossible()) {
-					SearchDebugAgent.printRepeatedPositionHash(pos.getHash(), pos.getFen());
-					retVal = true;
-				}
-				pm.unperformMove();
-				SearchDebugAgent.prevPly();
+		if (move != Move.NULL_MOVE) {
+			pm.performMove(move);
+			SearchDebugAgent.nextPly();
+			if (pos.isThreefoldRepetitionPossible()) {
+				SearchDebugAgent.printRepeatedPositionHash(pos.getHash(), pos.getFen());
+				retVal = true;
 			}
-		} catch (InvalidPieceException e) {
-			e.printStackTrace();
+			pm.unperformMove();
+			SearchDebugAgent.prevPly();
 		}
 		return retVal;
 	}
@@ -193,20 +186,80 @@ public class PlySearcher {
 		boolean everBackedUp = false;
 		boolean backedUpScoreWasExact = false;
 		boolean refutationFound = false;
-		
+
 		byte plyBound = (pos.onMoveIsWhite()) ? Score.lowerBound : Score.upperBound;
 		Score plyScore = new Score(plyBound);
-		
 		int currMove = move_iter.nextInt();
 		pc.initialise(currPly, currMove);
+
+		plyScore = initialiseScoreForSingularCaptureInExtendedSearch(ml, move_iter, plyBound, plyScore);
+
+		while(!isTerminated()) {
+			if (EubosEngineMain.UCI_INFO_ENABLED)
+				pc.clearContinuationBeyondPly(currPly);
+			Score positionScore = applyMoveAndScore(currMove);
+			if (!isTerminated()) {
+				// Rationale: this is when a score was backed up - at this instant update the depth searched
+				setDepthSearchedInPly();
+				if (doScoreBackup(positionScore)) {
+					everBackedUp = true;
+					backedUpScoreWasExact = positionScore.getType() == Score.exact;
+					plyScore = positionScore;
+					updatePrincipalContinuation(currMove, positionScore.getScore());
+					trans = tt.setTransposition(trans, getTransDepth(), positionScore.getScore(), plyBound, currMove);
+				} else {
+					// Always clear the principal continuation when we didn't back up the score
+					pc.clearContinuationBeyondPly(currPly);
+					// Update the position hash if the move is better than that previously stored at this position
+					if (shouldUpdatePositionBoundScoreAndBestMove(plyBound, plyScore.getScore(), positionScore.getScore())) {
+						plyScore = positionScore;
+						trans = tt.setTransposition(trans, getTransDepth(), plyScore.getScore(), plyBound, currMove);
+					}
+				}
+
+				if (st.isAlphaBetaCutOff(currPly, positionScore)) {
+					refutationFound = true;
+					SearchDebugAgent.printRefutationFound();
+					break;    
+				}
+			}
+			if (move_iter.hasNext()) {
+				currMove = move_iter.nextInt();
+			} else {
+				break;
+			}
+		}
 		
+		Thread.yield();
+		
+		if (!isTerminated() && isInNormalSearch()) {
+			if (everBackedUp && backedUpScoreWasExact && !refutationFound && trans != null) {
+				// This is the only way a hash and score can be exact.
+				if (trans.getDepthSearchedInPly() <= getTransDepth()) {
+					// however we need to be careful that the depth is appropriate, we don't set exact for wrong depth...
+					trans.setType(Score.exact);
+
+					// found to be needed due to score discrepancies caused by refutations coming out of extended search...
+					trans.setBestMove(pc.getBestMove(currPly));
+					trans.setScore(plyScore.getScore());
+
+					SearchDebugAgent.printExactTrans(pos.getHash(), trans);
+				}
+				plyScore.setExact();
+			}
+		}
+		return plyScore;
+	}
+
+	private Score initialiseScoreForSingularCaptureInExtendedSearch(MoveList ml, PrimitiveIterator.OfInt move_iter,
+			byte plyBound, Score plyScore) throws InvalidPieceException {
 		if (isInExtendedSearch() && !move_iter.hasNext()) {
 			/*
 			 * The idea is that if we are in an extended search, if there are normal moves available 
 			 * and only a single "forced" capture, we shouldn't necessarily be forced into making that capture.
-			 * The capture needs to improve the position score to get searched, otherwise it can be treated as terminal.
+			 * The capture needs to improve the position score to get searched, otherwise this position can be treated as terminal.
 			 * Note: This is only a problem for the PV search, all others will bring down alpha/beta score and won't 
-			 * back up if worse.
+			 * back up if the score for the capture is worse than that.
 			 */
 			Score provScore = st.getBackedUpScoreAtPly(currPly);
 			boolean isProvisional = (provScore.getScore() == Short.MIN_VALUE || provScore.getScore() == Short.MAX_VALUE);
@@ -215,59 +268,6 @@ public class PlySearcher {
 				plyScore.type = plyBound;
 				st.setBackedUpScoreAtPly(currPly, plyScore);
 			}
-		}
-		
-		while(!isTerminated()) {
-			if (EubosEngineMain.UCI_INFO_ENABLED)
-				pc.clearContinuationsBeyondPly(currPly);
-	        Score positionScore = applyMoveAndScore(currMove);
-	        if (!isTerminated()) {
-	        	// Rationale: this is when a score was backed up - at this instant update the depth searched
-	        	setDepthSearchedInPly();
-	        	if (doScoreBackup(positionScore)) {
-	                everBackedUp = true;
-	                backedUpScoreWasExact = (positionScore.getType()==Score.exact);
-                    plyScore = positionScore;
-                    updatePrincipalContinuation(currMove, positionScore.getScore());
-                    trans = tt.setTransposition(trans, getTransDepth(), positionScore.getScore(), plyBound, currMove);
-	            } else {
-	                // Always clear the principal continuation when we didn't back up the score
-	                pc.clearContinuationsBeyondPly(currPly);
-	                // Update the position hash if the move is better than that previously stored at this position
-	                if (shouldUpdatePositionBoundScoreAndBestMove(plyBound, plyScore.getScore(), positionScore.getScore())) {
-	                    plyScore = positionScore;
-	                    trans = tt.setTransposition(trans, getTransDepth(), plyScore.getScore(), plyBound, currMove);
-	                }
-	            }
-	        
-	            if (st.isAlphaBetaCutOff(currPly, positionScore)) {
-	                refutationFound = true;
-	                SearchDebugAgent.printRefutationFound();
-	                break;    
-	            }
-	        }
-			if (move_iter.hasNext()) {
-				currMove = move_iter.nextInt();
-			} else {
-				break;
-			}
-		}
-		Thread.yield();
-		if (!isTerminated() && isInNormalSearch()) {
-		    if (everBackedUp && backedUpScoreWasExact && !refutationFound && trans != null) {
-		    	// This is the only way a hash and score can be exact.
-		    	if (trans.getDepthSearchedInPly() <= getTransDepth()) {
-		    		// however we need to be careful that the depth is appropriate, we don't set exact for wrong depth...
-		    		trans.setType(Score.exact);
-		    		
-			        // found to be needed due to score discrepancies caused by refutations coming out of extended search...
-			        trans.setBestMove(pc.getBestMove(currPly));
-			        trans.setScore(plyScore.getScore());
-			        
-			        SearchDebugAgent.printExactTrans(pos.getHash(), trans);
-		    	}
-		    	plyScore.setExact();
-		    }
 		}
 		return plyScore;
 	}
@@ -286,8 +286,7 @@ public class PlySearcher {
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			if (atRootNode()) {
 				if (sr != null) {
-					if (EubosEngineMain.UCI_INFO_ENABLED)
-						sm.setHashFull(tt.getHashUtilisation());
+					sm.setHashFull(tt.getHashUtilisation());
 					sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), positionScore);
 					sr.reportPrincipalVariation();
 				}

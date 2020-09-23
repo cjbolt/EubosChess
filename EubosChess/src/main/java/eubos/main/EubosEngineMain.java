@@ -43,29 +43,37 @@ import java.util.logging.*;
 public class EubosEngineMain extends AbstractEngine {
 	
 	private static final byte SEARCH_DEPTH_IN_PLY = 35;
-	public static final boolean LOGGING_ENABLED = false;
+	
+	public static final boolean LOGGING_ENABLED = true;
 	public static final boolean UCI_INFO_ENABLED = true;
 	
-	PositionManager pm;
-	private AbstractMoveSearcher ms;
+	// Permanent data structures - static for duration of engine execution
 	private FixedSizeTranspositionTable hashMap = null;
 	DrawChecker dc;
+	
+	// Temporary data structures - created and deleted at each analyse/find move instance
+	private PositionManager pm;
+	private AbstractMoveSearcher ms;
+	private Piece.Colour lastOnMove = null;
 	
     public static Logger logger = Logger.getLogger("eubos.main");
 
 	private static FileHandler fh; 
-    Piece.Colour lastOnMove = null;
-	
+    
 	public EubosEngineMain() { 
 		super();
-		hashMap = new FixedSizeTranspositionTable();
-		dc = new DrawChecker();
+		createEnginePermanentDataStructures();
 	}
+	
 	public EubosEngineMain( PipedWriter out) throws IOException {
 		super(new BufferedReader(new PipedReader(out)), System.out);
+		createEnginePermanentDataStructures();
+		logger.setLevel(Level.INFO);
+	}
+	
+	private void createEnginePermanentDataStructures() {
 		hashMap = new FixedSizeTranspositionTable();
 		dc = new DrawChecker();
-		logger.setLevel(Level.INFO);
 	}
 
 	public void receive(EngineInitializeRequestCommand command) {
@@ -107,23 +115,22 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	void createPositionFromAnalyseCommand(EngineAnalyzeCommand command) {
-		// This temporary pm is to ensure that the correct position is used to initialise the search 
-		// context in the position evaluator, required when we get a position and move list to apply.
 		String uci_fen_string = command.board.toString();
 		String fen_to_use = null;
 		boolean lastMoveWasCaptureOrPawnMove = false;
 		if (!command.moves.isEmpty()) {
+			// This temporary pm is to ensure that the correct position is used to initialise the search 
+			// context of the position evaluator, required when we get a position and move list to apply to it.
 			PositionManager temp_pm = new PositionManager(uci_fen_string, dc);
 			try {
 				for (GenericMove nextMove : command.moves) {
 					int move = Move.toMove(nextMove, temp_pm.getTheBoard());
 					temp_pm.performMove(move);
-					lastMoveWasCaptureOrPawnMove = temp_pm.getCapturedPiece().getPiece() != Piece.NONE || Piece.isPawn(Move.getOriginPiece(move));
+					lastMoveWasCaptureOrPawnMove = temp_pm.lastMoveWasCapture() || Move.isPawnMove(move);
 				}
 			} catch(InvalidPieceException e ) {
-				System.out.println( 
-						"Serious error: Eubos can't find a piece on the board whilst applying previous moves, at "
-								+e.getAtPosition().toString());
+				System.err.println(String.format(
+				    "Serious error: Eubos can't find a piece on the board whilst applying previous moves, at %s", e.getAtPosition()));
 			}
 			// Assign the actual pm fen to use
 			fen_to_use = temp_pm.getFen();
@@ -216,73 +223,73 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	private void logInfo(ProtocolInformationCommand command){
-	    String uciInfo = "info";
+		String uciInfo = "info";
 
-	    if (command.getPvNumber() != null) {
-	      uciInfo += " multipv " + command.getPvNumber().toString();
-	    }
-	    if (command.getDepth() != null) {
-	      uciInfo += " depth " + command.getDepth().toString();
+		if (command.getPvNumber() != null) {
+			uciInfo += " multipv " + command.getPvNumber().toString();
+		}
+		if (command.getDepth() != null) {
+			uciInfo += " depth " + command.getDepth().toString();
 
-	      if (command.getMaxDepth() != null) {
-	        uciInfo += " seldepth " + command.getMaxDepth().toString();
-	      }
-	    }
-	    if (command.getMate() != null) {
-	      uciInfo += " score mate " + command.getMate().toString();
-	    } else if (command.getCentipawns() != null) {
-	      uciInfo += " score cp " + command.getCentipawns().toString();
-	    }
-	    if (command.getValue() != null) {
-	      switch (command.getValue()) {
-	        case EXACT:
-	          break;
-	        case ALPHA:
-	          uciInfo += " upperbound";
-	          break;
-	        case BETA:
-	          uciInfo += " lowerbound";
-	          break;
-	        default:
-	          assert false : command.getValue();
-	      }
-	    }
-	    if (command.getMoveList() != null) {
-	      uciInfo += " pv";
-	      for (GenericMove move : command.getMoveList()) {
-	        uciInfo += " ";
-	        uciInfo += move.toString();
-	      }
-	    }
-	    if (command.getRefutationList() != null) {
-	      uciInfo += " refutation";
-	      for (GenericMove move : command.getRefutationList()) {
-	        uciInfo += " ";
-	        uciInfo += move.toString();
-	      }
-	    }
-	    if (command.getCurrentMove() != null) {
-	      uciInfo += " currmove " + command.getCurrentMove().toString();
-	    }
-	    if (command.getCurrentMoveNumber() != null) {
-	      uciInfo += " currmovenumber " + command.getCurrentMoveNumber().toString();
-	    }
-	    if (command.getHash() != null) {
-	      uciInfo += " hashfull " + command.getHash().toString();
-	    }
-	    if (command.getNps() != null) {
-	      uciInfo += " nps " + command.getNps().toString();
-	    }
-	    if (command.getTime() != null) {
-	      uciInfo += " time " + command.getTime().toString();
-	    }
-	    if (command.getNodes() != null) {
-	      uciInfo += " nodes " + command.getNodes().toString();
-	    }
-	    if (command.getString() != null) {
-	      uciInfo += " string " + command.getString();
-	    }
-	    logger.fine(uciInfo);
+			if (command.getMaxDepth() != null) {
+				uciInfo += " seldepth " + command.getMaxDepth().toString();
+			}
+		}
+		if (command.getMate() != null) {
+			uciInfo += " score mate " + command.getMate().toString();
+		} else if (command.getCentipawns() != null) {
+			uciInfo += " score cp " + command.getCentipawns().toString();
+		}
+		if (command.getValue() != null) {
+			switch (command.getValue()) {
+			case EXACT:
+				break;
+			case ALPHA:
+				uciInfo += " upperbound";
+				break;
+			case BETA:
+				uciInfo += " lowerbound";
+				break;
+			default:
+				assert false : command.getValue();
+			}
+		}
+		if (command.getMoveList() != null) {
+			uciInfo += " pv";
+			for (GenericMove move : command.getMoveList()) {
+				uciInfo += " ";
+				uciInfo += move.toString();
+			}
+		}
+		if (command.getRefutationList() != null) {
+			uciInfo += " refutation";
+			for (GenericMove move : command.getRefutationList()) {
+				uciInfo += " ";
+				uciInfo += move.toString();
+			}
+		}
+		if (command.getCurrentMove() != null) {
+			uciInfo += " currmove " + command.getCurrentMove().toString();
+		}
+		if (command.getCurrentMoveNumber() != null) {
+			uciInfo += " currmovenumber " + command.getCurrentMoveNumber().toString();
+		}
+		if (command.getHash() != null) {
+			uciInfo += " hashfull " + command.getHash().toString();
+		}
+		if (command.getNps() != null) {
+			uciInfo += " nps " + command.getNps().toString();
+		}
+		if (command.getTime() != null) {
+			uciInfo += " time " + command.getTime().toString();
+		}
+		if (command.getNodes() != null) {
+			uciInfo += " nodes " + command.getNodes().toString();
+		}
+		if (command.getString() != null) {
+			uciInfo += " string " + command.getString();
+		}
+		logger.fine(uciInfo);
 	}
 	
 	public void sendBestMoveCommand(ProtocolBestMoveCommand protocolBestMoveCommand) {

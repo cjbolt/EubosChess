@@ -142,6 +142,10 @@ public final class Move {
 	public static boolean isCastle(int move) {
 		return (getType(move) & Move.TYPE_CASTLE_MASK)==Move.TYPE_CASTLE_MASK;
 	}
+	
+	public static boolean isPawnMove(int move) {
+		return Piece.isPawn(getOriginPiece(move));
+	}
 
 	public static GenericMove toGenericMove(int move) {
 		if (move == Move.NULL_MOVE)

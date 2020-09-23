@@ -50,7 +50,7 @@ public class PrincipalContinuationTest {
 		classUnderTest.update(2, Move.valueOf(Position.d2, Piece.WHITE_PAWN, Position.d4, Piece.NONE ));
 		classUnderTest.update(1, Move.valueOf(Position.e7, Piece.BLACK_PAWN, Position.e5, Piece.NONE ));
 		classUnderTest.update(0, Move.valueOf(Position.a2, Piece.WHITE_PAWN, Position.a3, Piece.NONE ));
-		classUnderTest.clearContinuationsBeyondPly(1);
+		classUnderTest.clearContinuationBeyondPly(1);
 		List<Integer> pv = classUnderTest.toPvList(0);
 		assertEquals(Move.valueOf(Position.a2, Piece.WHITE_PAWN, Position.a3, Piece.NONE ),(int) pv.get(0));
 		assertEquals(Move.valueOf(Position.e7, Piece.BLACK_PAWN, Position.e5, Piece.NONE ),(int) pv.get(1));
