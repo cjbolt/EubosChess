@@ -88,11 +88,6 @@ public class MiniMaxMoveGenerator implements
 	}
 	
 	@Override
-	public SearchResult findMove() throws NoLegalMoveException, InvalidPieceException {
-		return this.findMove((byte)1, null);
-	}
-	
-	@Override
 	public SearchResult findMove(byte searchDepth) throws NoLegalMoveException, InvalidPieceException {
 		return this.findMove(searchDepth, null);
 	}

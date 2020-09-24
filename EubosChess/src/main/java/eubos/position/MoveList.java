@@ -2,6 +2,7 @@ package eubos.position;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.PrimitiveIterator;
 import java.util.Random;
 import java.util.function.IntConsumer;
@@ -87,8 +88,8 @@ public class MoveList implements Iterable<Integer> {
 		if (pm.lastMoveWasCheck() || (pm.noLastMove() && pm.isKingInCheck(onMove))) {
 			needToEscapeMate = true;
 		}
-		int [] allMoves = pm.generateMoves();
-		int [] outputMove = new int [allMoves.length];
+		List<Integer> allMoves = pm.generateMoves();
+		int [] outputMove = new int [allMoves.size()];
 		int count = 0;
 		for (int currMove : allMoves) {
 			try {

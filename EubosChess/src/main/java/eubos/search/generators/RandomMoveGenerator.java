@@ -18,7 +18,6 @@ class RandomMoveGenerator implements IMoveGenerator {
 		ml = new MoveList(pm);
 	}
 
-	@Override
 	public SearchResult findMove() throws NoLegalMoveException, InvalidPieceException {
 		return this.findMove((byte)0);
 	}

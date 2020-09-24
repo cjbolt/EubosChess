@@ -22,7 +22,7 @@ public class PositionManagerTest {
 	protected int expectedMove;
 	protected List<Integer> expectedMoves;
 	protected int expectedNumMoves = 0;
-	protected int[] ml;
+	protected List<Integer> ml;
 	protected MoveList theMl;
 	
 	@Before
@@ -31,23 +31,23 @@ public class PositionManagerTest {
 	}
 	
 	private void contains(int move) {
-		for (int i=0; i<ml.length; i++) {
-			if (ml[i] == move)
+		for (int i=0; i<ml.size(); i++) {
+			if (ml.get(i) == move)
 				return;
 		}
 		fail();
 	}
 	
 	private void doesntContain(int move) {
-		for (int i=0; i<ml.length; i++) {
-			if (ml[i] == move)
+		for (int i=0; i<ml.size(); i++) {
+			if (ml.get(i) == move)
 				fail();
 		}
 	}
 	
-	protected void checkExpectedMoves(int[] ml) {
-		assertFalse(ml.length == 0);
-		assertEquals(expectedNumMoves, ml.length);
+	protected void checkExpectedMoves(List<Integer> ml) {
+		assertFalse(ml.size() == 0);
+		assertEquals(expectedNumMoves, ml.size());
 		for ( int mov : expectedMoves) {
 			contains(mov);
 		}
@@ -235,7 +235,7 @@ public class PositionManagerTest {
 	public void test_BlackPawn_MoveGen_InitialBlocked() {
 		classUnderTest = new PositionManager("8/4p3/4P3/8/8/8/8/8 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		assertTrue( ml.length == 0 );
+		assertTrue( ml.size() == 0 );
 	}
 
 	@Test
@@ -316,7 +316,7 @@ public class PositionManagerTest {
 		classUnderTest.performMove( Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE ));
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.e6, Piece.BLACK_PAWN, Position.e5, Piece.NONE );
-		assertTrue( ml.length == 1 );
+		assertTrue( ml.size() == 1 );
 		contains( expectedMove );		
 	}	
 
@@ -416,7 +416,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_InitialBlocked() {
 		classUnderTest = new PositionManager("8/8/8/8/8/4p3/4P3/8 w - - 0 1");
 		ml = classUnderTest.generateMoves();
-		assertEquals( 0, ml.length );
+		assertEquals( 0, ml.size() );
 	}
 
 	@Test
@@ -484,7 +484,7 @@ public class PositionManagerTest {
 		
 		ml = classUnderTest.generateMoves();
 		expectedMove = Move.valueOf( Position.e4, Piece.WHITE_PAWN, Position.e5, Piece.NONE );
-		assertTrue( ml.length == 1 );
+		assertTrue( ml.size() == 1 );
 		contains( expectedMove );		
 	}	
 
@@ -826,7 +826,7 @@ public class PositionManagerTest {
 	public void test_Rook_MoveGen_CapturesOnlySinglePiece() {
 		classUnderTest = new PositionManager("8/8/8/8/8/P7/P7/r7 b - - 0 1 ");
 		ml = classUnderTest.generateMoves();
-		assertFalse(ml.length == 0);
+		assertFalse(ml.size() == 0);
 		contains( Move.valueOf( Position.a1, Piece.BLACK_ROOK, Position.a2, Piece.WHITE_PAWN ));
 		doesntContain( Move.valueOf( Position.a1, Piece.BLACK_ROOK, Position.a3, Piece.WHITE_PAWN ));
 	}

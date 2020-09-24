@@ -21,7 +21,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		moveTracker = new MoveTracker();
 		new fenParser( this, fenString );
 		hash = new ZobristHashCode(this);
-		//pe = new PositionEvaluator(this);
 		this.dc = dc; 
 	}
 	
@@ -38,10 +37,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return theBoard;
 	}
 	
-	public int[] generateMoves() {
+	public List<Integer> generateMoves() {
 		List<Integer> entireMoveList = theBoard.getRegularPieceMoves( onMove );
 		castling.addCastlingMoves(entireMoveList);
-		return entireMoveList.stream().mapToInt(i->i).toArray();
+		return entireMoveList;
 	}
 	
 	public String toString() {
