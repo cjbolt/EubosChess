@@ -294,7 +294,7 @@ public class PlySearcher {
 		}
 	}
 	
-	private void handleEarlyTermination() {
+	private void handleEarlyTermination() throws InvalidPieceException {
 		if (atRootNode() && isTerminated()) {
 			int pcBestMove = pc.getBestMove((byte)0);
 			TranspositionEvaluation eval = tt.getTransposition(currPly, dynamicSearchLevelInPly);
@@ -309,7 +309,10 @@ public class PlySearcher {
 							String.format("early term problem - trans and pc moves not equal: %s != %s", 
 									Move.toString(transBestMove),
 									Move.toString(pcBestMove)));
-					pc.set(0, transBestMove);
+					if (!checkForRepetitionDueToPositionInSearchTree(transBestMove)) {
+						// Check we don't return a drawing move!
+						pc.set(0, transBestMove);
+					}
 				}
 			}
 			else if (lastPc != null) {
