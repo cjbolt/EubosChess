@@ -300,8 +300,14 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		if (protocolBestMoveCommand.bestMove != null) {
 			try {
+				int bestMove = Move.toMove(protocolBestMoveCommand.bestMove, pm.getTheBoard(), Move.TYPE_NONE);
 				// Apply the best move to update the DrawChecker state
-				pm.performMove(Move.toMove(protocolBestMoveCommand.bestMove, pm.getTheBoard(), Move.TYPE_NONE));
+				pm.performMove(bestMove);
+				boolean bestMoveWasCaptureOrPawnMove = pm.lastMoveWasCapture() || Move.isPawnMove(bestMove);
+				if (bestMoveWasCaptureOrPawnMove) {
+					dc.reset();
+					dc.incrementPositionReachedCount(pm.getHash());
+				}
 				logger.info(String.format("BestMove=%s hashCode=%d positionReachedCount=%d",
 						protocolBestMoveCommand.bestMove, pm.getHash(), dc.getPositionReachedCount(pm.getHash())));
 			} catch (InvalidPieceException e) {

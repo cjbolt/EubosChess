@@ -36,7 +36,7 @@ public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 	public void run() {
 		SearchResult res = new SearchResult(null, false);
 		List<Integer> pc = null;
-		for (byte depth=1; depth<searchDepth && !searchStopped; depth++) {
+		for (byte depth=1; depth<=searchDepth && !searchStopped; depth++) {
 			res = doFindMove(res.bestMove, pc, depth);
 			pc = mg.pc.toPvList(0);
 		}

@@ -240,6 +240,27 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
+	public void test_capture_clears_draw_checker() throws InterruptedException, IOException {
+		setupEngine();
+		commands.add(new commandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"1"+CMD_TERMINATOR,BEST_PREFIX+"g1f3"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves g1f3 e7e5"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"1"+CMD_TERMINATOR,BEST_PREFIX+"f3e5"+CMD_TERMINATOR));
+		performTest(100);
+		assertEquals(1, (int)classUnderTest.dc.getNumEntries()); // Capture clears the draw checker, so we just have the position after the capture
+	}
+	
+	@Test
+	public void test_pawn_move_clears_draw_checker() throws InterruptedException, IOException {
+		setupEngine();
+		commands.add(new commandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"1"+CMD_TERMINATOR,BEST_PREFIX+"g1f3"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves g1f3 e7e5"+CMD_TERMINATOR, null));
+		performTest(100);
+		assertEquals(1, (int)classUnderTest.dc.getNumEntries()); // Pawn moves clear DrawChecker history, so we just get the position after the pawn move
+	}
+	
+	@Test
 	public void test_achieves_draw_black_repeated_check() throws InterruptedException, IOException {
 		setupEngine();
 		// Setup Commands specific to this test
@@ -254,6 +275,8 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(POS_FEN_PREFIX+"7q/1P6/8/8/8/8/2k3PQ/7K b - - 0 42 moves h8a1 h2g1 a1h8 g1h2 h8a1 h2g1 a1h8 g1h2"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"h8a1"+CMD_TERMINATOR));
 		performTest(500);
+		/* There are only four positions in this test. */
+		assertEquals(4, (int)classUnderTest.dc.getNumEntries());
 	}
 	
 	@Test
@@ -271,6 +294,8 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(POS_FEN_PREFIX+"7k/2K3pq/8/8/8/8/1p6/7Q w - - 0 1 moves h1a8 h7g8 a8h1 g8h7 h1a8 h7g8 a8h1 g8h7"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"h1a8"+CMD_TERMINATOR));
 		performTest(500);
+		/* There are only four positions in this test. */
+		assertEquals(4, (int)classUnderTest.dc.getNumEntries());
 	}
 	
 	@Test
@@ -362,6 +387,8 @@ public class EubosEngineMainTest {
 					fail(inputCmd + expectedOutput + "command that failed " + (commandNumber-3));
 				}
 				commandNumber++;
+			} else {
+				Thread.sleep(sleep_50ms);
 			}
 		}
 	}
