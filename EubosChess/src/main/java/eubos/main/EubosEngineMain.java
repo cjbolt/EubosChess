@@ -153,7 +153,7 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		long hashCode = pm.getHash();
 		Piece.Colour nowOnMove = pm.getOnMove();
-		if (lastOnMove == null || (lastOnMove == nowOnMove && fen_to_use != lastFen)) {
+		if (lastOnMove == null || (lastOnMove == nowOnMove && !fen_to_use.equals(lastFen))) {
 			// Update the draw checker with the position following the opponents last move
 			dc.incrementPositionReachedCount(hashCode);
 		} else {
