@@ -55,6 +55,7 @@ public class EubosEngineMain extends AbstractEngine {
 	private PositionManager pm;
 	private AbstractMoveSearcher ms;
 	private Piece.Colour lastOnMove = null;
+	private String lastFen = null;
 	
     public static Logger logger = Logger.getLogger("eubos.main");
 
@@ -152,7 +153,7 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		long hashCode = pm.getHash();
 		Piece.Colour nowOnMove = pm.getOnMove();
-		if (lastOnMove == null || lastOnMove == nowOnMove) {
+		if (lastOnMove == null || (lastOnMove == nowOnMove && fen_to_use != lastFen)) {
 			// Update the draw checker with the position following the opponents last move
 			dc.incrementPositionReachedCount(hashCode);
 		} else {
@@ -161,6 +162,7 @@ public class EubosEngineMain extends AbstractEngine {
 			logger.fine("Not incrementing drawchecker reached count for initial position");
 		}
 		lastOnMove = nowOnMove;
+		lastFen = fen_to_use;
 		logger.info(String.format("positionReceived fen=%s hashCode=%d reachedCount=%d",
 				fen_to_use, hashCode, dc.getPositionReachedCount(hashCode)));
 	}

@@ -3,6 +3,9 @@ package eubos.search;
 import java.util.HashMap;
 
 public class DrawChecker {
+	
+	public static final boolean ENABLE_THREEFOLD_POSITION_DRAW_CHECK = true;
+	
 	private HashMap<Integer,Byte> positionCount;
 	
 	public DrawChecker() {
@@ -22,7 +25,7 @@ public class DrawChecker {
 		} else {
 			count++;
 			positionCount.put(truncatedHash, count);
-			if (count >= 2) {
+			if (count >= 3) {
 				repetitionPossible = true;
 			}
 		}
@@ -36,9 +39,11 @@ public class DrawChecker {
 
 	public boolean isPositionOpponentCouldClaimDraw(long positionHash) {
 		boolean opponentCouldClaimDraw = false;
-		Byte reachedCount = getPositionReachedCount(positionHash);
-		if (reachedCount != null && reachedCount >= 2) {
-			opponentCouldClaimDraw = true;
+		if (ENABLE_THREEFOLD_POSITION_DRAW_CHECK) {
+			Byte reachedCount = getPositionReachedCount(positionHash);
+			if (reachedCount != null && reachedCount >= 3) {
+				opponentCouldClaimDraw = true;
+			}
 		}
 		return opponentCouldClaimDraw;
 	}
