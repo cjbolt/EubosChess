@@ -327,6 +327,45 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
+	public void test_KRk_mate_in_11() throws InterruptedException, IOException {
+		setupEngine();
+		// 1
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h1d1"+CMD_TERMINATOR));
+		
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111 moves h1d1 d5c4"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"f5e5"+CMD_TERMINATOR));
+		
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111 moves h1d1 d5c4 f5e5 c4c3"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"e5e4"+CMD_TERMINATOR));
+		
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111 moves h1d1 d5c4 f5e5 c4c3 e5e4 c3c4"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"d1c1"+CMD_TERMINATOR));
+		
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111 moves h1d1 d5c4 f5e5 c4c3 e5e4 c3c4 d1c1 c4b5"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"e4d4"+CMD_TERMINATOR));
+		
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111 moves h1d1 d5c4 f5e5 c4c3 e5e4 c3c4 d1c1 c4b5 e4d4 b5b6"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"d4d5"+CMD_TERMINATOR));
+		
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111 moves h1d1 d5c4 f5e5 c4c3 e5e4 c3c4 d1c1 c4b5 e4d4 b5b6 d4d5 b6b5"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"c1b1"+CMD_TERMINATOR));
+		
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111 moves h1d1 d5c4 f5e5 c4c3 e5e4 c3c4 d1c1 c4b5 e4d4 b5b6 d4d5 b6b5 c1b1 b5a6"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"d5c5"+CMD_TERMINATOR));
+		
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111 moves h1d1 d5c4 f5e5 c4c3 e5e4 c3c4 d1c1 c4b5 e4d4 b5b6 d4d5 b6b5 c1b1 b5a6 d5c5 a6a7"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"c5c6"+CMD_TERMINATOR));
+		
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111 moves h1d1 d5c4 f5e5 c4c3 e5e4 c3c4 d1c1 c4b5 e4d4 b5b6 d4d5 b6b5 c1b1 b5a6 d5c5 a6a7 c5c6 a7a8"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"c6c7"+CMD_TERMINATOR));
+		
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111 moves h1d1 d5c4 f5e5 c4c3 e5e4 c3c4 d1c1 c4b5 e4d4 b5b6 d4d5 b6b5 c1b1 b5a6 d5c5 a6a7 c5c6 a7a8 c6c7 a8a7"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"b1a1"+CMD_TERMINATOR));
+		performTest(4000);
+	}
+	
+	@Test
 	public void test_createPositionFromAnalyseCommand() throws IllegalNotationException {
 		// Black move 62
 		ArrayList<GenericMove> applyMoveList = new ArrayList<GenericMove>();

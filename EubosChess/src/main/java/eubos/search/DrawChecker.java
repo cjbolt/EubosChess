@@ -5,6 +5,7 @@ import java.util.HashMap;
 public class DrawChecker {
 	
 	public static final boolean ENABLE_THREEFOLD_POSITION_DRAW_CHECK = true;
+	public static final int THREEFOLD_THRESHOLD = 3;
 	
 	private HashMap<Integer,Byte> positionCount;
 	
@@ -25,8 +26,10 @@ public class DrawChecker {
 		} else {
 			count++;
 			positionCount.put(truncatedHash, count);
-			if (count >= 3) {
-				repetitionPossible = true;
+			if (ENABLE_THREEFOLD_POSITION_DRAW_CHECK) {
+				if (count >= THREEFOLD_THRESHOLD) {
+					repetitionPossible = true;
+				}
 			}
 		}
 		return repetitionPossible;
@@ -41,7 +44,7 @@ public class DrawChecker {
 		boolean opponentCouldClaimDraw = false;
 		if (ENABLE_THREEFOLD_POSITION_DRAW_CHECK) {
 			Byte reachedCount = getPositionReachedCount(positionHash);
-			if (reachedCount != null && reachedCount >= 3) {
+			if (reachedCount != null && reachedCount >= THREEFOLD_THRESHOLD) {
 				opponentCouldClaimDraw = true;
 			}
 		}
