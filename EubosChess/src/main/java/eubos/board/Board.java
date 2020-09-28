@@ -205,6 +205,7 @@ public class Board {
 		CaptureData captureTarget = NULL_CAPTURE;
 		int pieceToMove = Move.getOriginPiece(move);
 		int targetSquare = Move.getTargetPosition(move);
+		int targetPiece = Move.getTargetPiece(move);
 		if (isEnPassantCapture(pieceToMove, targetSquare)) {
 			// Handle en passant captures, don't need to do other checks in this case
 			int rank = IntRank.NORANK;
@@ -224,7 +225,9 @@ public class Board {
 				if (Piece.isKing(pieceToMove)) {
 					performSecondaryCastlingMove(move);
 				}
-				captureTarget = new CaptureData(pickUpPieceAtSquare(targetSquare), targetSquare);
+				if (targetPiece != Piece.NONE) {
+					captureTarget = new CaptureData(pickUpPieceAtSquare(targetSquare, targetPiece), targetSquare);
+				}
 			}			
 		}
 		movePiece(move);
@@ -237,31 +240,49 @@ public class Board {
 		long targetSquareMask = BitBoard.positionToMask_Lut[Move.getTargetPosition(move)];
 		long positionsMask = initialSquareMask | targetSquareMask;
 		// Switch piece-specific bitboards
-		if (Move.getPromotion(move) != IntChessman.NOCHESSMAN) {
+		int promotedChessman = Move.getPromotion(move);
+		if (promotedChessman != IntChessman.NOCHESSMAN) {
 			// For a promotion, need to resolve piece-specific across multiple bitboards; can't be a king, sorted in order of likeliness.
 			if ((pieces[INDEX_PAWN] & initialSquareMask) == initialSquareMask) {
 				pieces[INDEX_PAWN] &= ~initialSquareMask;
-			} else if ((pieces[INDEX_QUEEN] & initialSquareMask) == initialSquareMask) {
-				pieces[INDEX_QUEEN] &= ~initialSquareMask;
-			} else if ((pieces[INDEX_ROOK] & initialSquareMask) == initialSquareMask) {
-				pieces[INDEX_ROOK] &= ~initialSquareMask;
-			} else if ((pieces[INDEX_BISHOP] & initialSquareMask) == initialSquareMask) {
-				pieces[INDEX_BISHOP] &= ~initialSquareMask;
-			} else if ((pieces[INDEX_KNIGHT] & initialSquareMask) == initialSquareMask) {
-				pieces[INDEX_KNIGHT] &= ~initialSquareMask;
-			} 
-			if (Piece.isPawn(pieceToMove)) {
-				pieces[INDEX_PAWN] |= targetSquareMask;
-			} else if (Piece.isQueen(pieceToMove)) {
-				pieces[INDEX_QUEEN] |= targetSquareMask;
-			} else if (Piece.isRook(pieceToMove)) {
-				pieces[INDEX_ROOK] |= targetSquareMask;
-			} else if (Piece.isBishop(pieceToMove)) {
-				pieces[INDEX_BISHOP] |= targetSquareMask;
-			} else if (Piece.isKnight(pieceToMove)) {
-				pieces[INDEX_KNIGHT] |= targetSquareMask;
 			} else {
+				switch(promotedChessman) {
+				case IntChessman.KNIGHT:
+					pieces[INDEX_KNIGHT] &= ~initialSquareMask;
+					break;
+				case IntChessman.BISHOP:
+					pieces[INDEX_BISHOP] &= ~initialSquareMask;
+					break;
+				case IntChessman.ROOK:
+					pieces[INDEX_ROOK] &= ~initialSquareMask;
+					break;
+				case IntChessman.QUEEN:
+					pieces[INDEX_QUEEN] &= ~initialSquareMask;
+					break;
+				default:
+					assert false;
+					break;			
+				}
+			}
+			switch(pieceToMove & Piece.PIECE_NO_COLOUR_MASK) {
+			case Piece.PAWN:
+				pieces[INDEX_PAWN] |= targetSquareMask;
+				break;
+			case Piece.KNIGHT:
+				pieces[INDEX_KNIGHT] |= targetSquareMask;
+				break;
+			case Piece.BISHOP:
+				pieces[INDEX_BISHOP] |= targetSquareMask;
+				break;
+			case Piece.ROOK:
+				pieces[INDEX_ROOK] |= targetSquareMask;
+				break;
+			case Piece.QUEEN:
+				pieces[INDEX_QUEEN] |= targetSquareMask;
+				break;
+			default:
 				assert false;
+				break;			
 			}
 		} else {
 			// Piece type doesn't change across boards
@@ -442,20 +463,28 @@ public class Board {
 		assert pieceToPlace != Piece.NONE;
 		long mask = BitBoard.positionToMask_Lut[atPos];
 		// Set on piece-specific bitboard, sorted in order of frequency, for efficiency
-		if (Piece.isPawn(pieceToPlace)) {
-			pieces[INDEX_PAWN] |= (mask);
-		} else if (Piece.isRook(pieceToPlace)) {
-			pieces[INDEX_ROOK] |= (mask);
-		} else if (Piece.isBishop(pieceToPlace)) {
-			pieces[INDEX_BISHOP] |= (mask);
-		} else if (Piece.isKnight(pieceToPlace)) {
-			pieces[INDEX_KNIGHT] |= (mask);
-		} else if (Piece.isKing(pieceToPlace)) {
+		switch(pieceToPlace & Piece.PIECE_NO_COLOUR_MASK) {
+		case Piece.PAWN:
+			pieces[INDEX_PAWN] |= mask;
+			break;
+		case Piece.KNIGHT:
+			pieces[INDEX_KNIGHT] |= mask;
+			break;
+		case Piece.BISHOP:
+			pieces[INDEX_BISHOP] |= mask;
+			break;
+		case Piece.ROOK:
+			pieces[INDEX_ROOK] |= mask;
+			break;
+		case Piece.QUEEN:
+			pieces[INDEX_QUEEN] |= mask;
+			break;
+		case Piece.KING:
 			pieces[INDEX_KING] |= mask;
-		} else if (Piece.isQueen(pieceToPlace)) {
-			pieces[INDEX_QUEEN] |= (mask);
-		} else {
+			break;
+		default:
 			assert false;
+			break;			
 		}
 		// Set on colour bitboard
 		if (Piece.isBlack(pieceToPlace)) {
@@ -515,6 +544,47 @@ public class Board {
 			allPieces &= ~pieceToPickUp;
 		}
 		return type;
+	}
+	
+	public int pickUpPieceAtSquare( int atPos, int piece ) {
+		long pieceToPickUp = BitBoard.positionToMask_Lut[atPos];
+		if ((allPieces & pieceToPickUp) != 0) {	
+			// Remove from relevant colour bitboard
+			if (Piece.isBlack(piece)) {
+				blackPieces &= ~pieceToPickUp;
+			} else {
+				whitePieces &= ~pieceToPickUp;
+			}
+			// remove from specific bitboard
+			switch(piece & Piece.PIECE_NO_COLOUR_MASK) {
+			case Piece.PAWN:
+				pieces[INDEX_PAWN] &= ~pieceToPickUp;
+				break;
+			case Piece.KNIGHT:
+				pieces[INDEX_KNIGHT] &= ~pieceToPickUp;
+				break;
+			case Piece.BISHOP:
+				pieces[INDEX_BISHOP] &= ~pieceToPickUp;
+				break;
+			case Piece.ROOK:
+				pieces[INDEX_ROOK] &= ~pieceToPickUp;
+				break;
+			case Piece.QUEEN:
+				pieces[INDEX_QUEEN] &= ~pieceToPickUp;
+				break;
+			case Piece.KING:
+				pieces[INDEX_KING] &= ~pieceToPickUp;
+				break;
+			default:
+				assert false;
+				break;			
+			}
+			// Remove from all pieces bitboard
+			allPieces &= ~pieceToPickUp;
+		} else {
+			piece = Piece.NONE;
+		}
+		return piece;
 	}
 	
 	public int countDoubledPawnsForSide(Colour side) {

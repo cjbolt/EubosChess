@@ -36,7 +36,6 @@ public class MoveList implements Iterable<Integer> {
 	
 	int computeMoveType(PositionManager pm, int currMove, int piece) {
 		int moveType = Move.TYPE_REGULAR_NONE;
-		CaptureData cap = pm.getCapturedPiece();
 		
 		boolean isCastle = (Piece.isKing(piece)) ? pm.lastMoveWasCastle() : false;
 		boolean isCheck = pm.isKingInCheck(pm.getOnMove());
@@ -50,7 +49,7 @@ public class MoveList implements Iterable<Integer> {
 			moveType |= Move.TYPE_CASTLE_MASK;
 			
 		} else {
-			boolean isCapture = (cap != null && cap.target != Piece.NONE);
+			int targetPiece = Move.getTargetPiece(currMove);
 			
 			// Promotions
 			int promotion = Move.getPromotion(currMove);
@@ -60,14 +59,20 @@ public class MoveList implements Iterable<Integer> {
 				moveType |= Move.TYPE_PROMOTION_PIECE_MASK;
 			
 			// Captures
-			if (isCapture) {
-				if (Piece.isQueen(cap.target)) {
-					moveType |= Move.TYPE_CAPTURE_QUEEN_MASK;
-				} else if (Piece.isKnight(cap.target) || Piece.isBishop(cap.target) || Piece.isRook(cap.target)) {
-					moveType |= Move.TYPE_CAPTURE_PIECE_MASK;
-				} else if (Piece.isPawn(cap.target)) {
-					moveType |= Move.TYPE_CAPTURE_PAWN_MASK;
-				}
+			switch (targetPiece & Piece.PIECE_NO_COLOUR_MASK) {
+			case Piece.QUEEN:
+				moveType |= Move.TYPE_CAPTURE_QUEEN_MASK;
+				break;
+			case Piece.BISHOP:
+			case Piece.KNIGHT:
+			case Piece.ROOK:
+				moveType |= Move.TYPE_CAPTURE_PIECE_MASK;
+				break;
+			case Piece.PAWN:
+				moveType |= Move.TYPE_CAPTURE_PAWN_MASK;
+				break;
+			default:
+				break;
 			}
 		}		
 		

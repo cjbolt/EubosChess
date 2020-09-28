@@ -30,7 +30,6 @@ public final class Move {
 	public static final int TYPE_CHECK_BIT = 1;
 	public static final int TYPE_CAPTURE_PAWN_BIT = 2;
 	public static final int TYPE_CAPTURE_PIECE_BIT = 3;
-	//public static final int TYPE_CAPTURE_ROOK_BIT = 4;
 	public static final int TYPE_CAPTURE_QUEEN_BIT = 4;
 	public static final int TYPE_PROMOTION_PIECE_BIT = 5;
 	public static final int TYPE_PROMOTION_QUEEN_BIT = 6;
@@ -39,7 +38,6 @@ public final class Move {
 	public static final int TYPE_PROMOTION_QUEEN_MASK = (0x1 << TYPE_PROMOTION_QUEEN_BIT);
 	public static final int TYPE_PROMOTION_PIECE_MASK = (0x1 << TYPE_PROMOTION_PIECE_BIT);
 	public static final int TYPE_CAPTURE_QUEEN_MASK = (0x1 << TYPE_CAPTURE_QUEEN_BIT);
-	//public static final int TYPE_CAPTURE_ROOK_MASK = (0x1 << TYPE_CAPTURE_ROOK_BIT);
 	public static final int TYPE_CAPTURE_PIECE_MASK = (0x1 << TYPE_CAPTURE_PIECE_BIT);
 	public static final int TYPE_CAPTURE_PAWN_MASK = (0x1 << TYPE_CAPTURE_PAWN_BIT);
 	public static final int TYPE_CHECK_MASK = (0x1 << TYPE_CHECK_BIT);

@@ -221,8 +221,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	private int checkToUndoPawnPromotion(int moveToUndo) {
-		if ( Move.getPromotion(moveToUndo) != IntChessman.NOCHESSMAN ) {
-			int type = theBoard.pickUpPieceAtSquare(Move.getTargetPosition(moveToUndo));
+		int promotedChessman = Move.getPromotion(moveToUndo);
+		if ( promotedChessman != IntChessman.NOCHESSMAN ) {
+			int piece = Move.getOriginPiece(moveToUndo);
+			int type = theBoard.pickUpPieceAtSquare(Move.getTargetPosition(moveToUndo), piece);
 			if (Piece.isBlack(type)) {
 				type = Piece.BLACK_PAWN;
 			} else {
