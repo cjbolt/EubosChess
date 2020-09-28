@@ -302,7 +302,7 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		if (protocolBestMoveCommand.bestMove != null) {
 			try {
-				int bestMove = Move.toMove(protocolBestMoveCommand.bestMove, pm.getTheBoard(), Move.TYPE_NONE);
+				int bestMove = Move.toMove(protocolBestMoveCommand.bestMove, pm.getTheBoard(), Move.TYPE_REGULAR_NONE);
 				// Apply the best move to update the DrawChecker state
 				pm.performMove(bestMove);
 				boolean bestMoveWasCaptureOrPawnMove = pm.lastMoveWasCapture() || Move.isPawnMove(bestMove);

@@ -26,7 +26,7 @@ public class MoveTest {
 	
 	@Test
 	public void test_good1() throws IllegalNotationException {
-		int move1 = Move.valueOf(Move.TYPE_NONE, Position.e1, Piece.WHITE_KING, Position.g1, Piece.NONE, IntChessman.NOCHESSMAN);
+		int move1 = Move.valueOf(Move.TYPE_REGULAR_NONE, Position.e1, Piece.WHITE_KING, Position.g1, Piece.NONE, IntChessman.NOCHESSMAN);
 		int move2 = Move.toMove(new GenericMove("e1g1"));
 		assertTrue(Move.areEqual(move1, move2));
 	}

@@ -224,10 +224,7 @@ public class Board {
 				if (Piece.isKing(pieceToMove)) {
 					performSecondaryCastlingMove(move);
 				}
-				if (!Move.isRegular(move)) {
-					// If could be a capture or a promotion, then may not be a null capture, do construction
-					captureTarget = new CaptureData(pickUpPieceAtSquare(targetSquare), targetSquare);
-				}
+				captureTarget = new CaptureData(pickUpPieceAtSquare(targetSquare), targetSquare);
 			}			
 		}
 		movePiece(move);

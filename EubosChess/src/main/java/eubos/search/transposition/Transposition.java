@@ -16,7 +16,7 @@ public class Transposition implements ITransposition {
 
 	public Transposition(byte depth, short score, byte scoreType, GenericMove bestMove) {
 		// Only used by tests
-		this(depth, score, scoreType, Move.toMove(bestMove, null, Move.TYPE_NONE), null);
+		this(depth, score, scoreType, Move.toMove(bestMove, null, Move.TYPE_REGULAR_NONE), null);
 	}
 	
 	public Transposition(byte depth, short score, byte scoreType, int bestMove, List<Integer> pv) {

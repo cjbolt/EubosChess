@@ -289,7 +289,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_isQuiescent_Yes_LastMoveWasntPromotion() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/4P3/8/8/8/8/8/B7 w - - 0 1");
-		pm.performMove(Move.valueOf(Move.TYPE_REGULAR_MASK, Position.a1, Piece.WHITE_BISHOP, Position.b2, Piece.NONE, IntChessman.NOCHESSMAN));
+		pm.performMove(Move.valueOf(Move.TYPE_REGULAR_NONE, Position.a1, Piece.WHITE_BISHOP, Position.b2, Piece.NONE, IntChessman.NOCHESSMAN));
 		assertTrue(SUT.isQuiescent());
 	}
 	

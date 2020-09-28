@@ -20,7 +20,7 @@ public class PrincipalVariationTransposition implements ITransposition {
 
 	public PrincipalVariationTransposition(byte depth, short score, byte scoreType, MoveList ml, GenericMove bestMove) {
 		// Only used by tests
-		this(depth, score, scoreType, ml, Move.toMove(bestMove, null, Move.TYPE_NONE), null);
+		this(depth, score, scoreType, ml, Move.toMove(bestMove, null, Move.TYPE_REGULAR_NONE), null);
 	}
 	
 	public PrincipalVariationTransposition(byte depth, short score, byte scoreType, MoveList ml, int bestMove, List<Integer> pv) {

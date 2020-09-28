@@ -12,54 +12,50 @@ public final class Move {
 	private static final int ORIGINPOSITION_SHIFT = 0;
 	private static final int ORIGINPOSITION_MASK = Position.MASK << ORIGINPOSITION_SHIFT;
 	
-	private static final int TARGETPOSITION_SHIFT = ORIGINPOSITION_SHIFT+7;
+	private static final int TARGETPOSITION_SHIFT = ORIGINPOSITION_SHIFT+Long.bitCount(Position.MASK);
 	private static final int TARGETPOSITION_MASK = Position.MASK << TARGETPOSITION_SHIFT;
 	
-	private static final int PROMOTION_SHIFT = TARGETPOSITION_SHIFT+7;
+	private static final int PROMOTION_SHIFT = TARGETPOSITION_SHIFT+Long.bitCount(Position.MASK);
 	private static final int PROMOTION_MASK = IntChessman.MASK << PROMOTION_SHIFT;
 	
-	private static final int ORIGIN_PIECE_SHIFT = PROMOTION_SHIFT+3;
+	private static final int ORIGIN_PIECE_SHIFT = PROMOTION_SHIFT+Long.bitCount(IntChessman.MASK);
 	private static final int ORIGIN_PIECE_MASK = Piece.PIECE_WHOLE_MASK << ORIGIN_PIECE_SHIFT;
 	
-	public static final int TYPE_NONE = 0;
+	private static final int TARGET_PIECE_SHIFT = ORIGIN_PIECE_SHIFT+Long.bitCount(Piece.PIECE_WHOLE_MASK);
+	private static final int TARGET_PIECE_MASK = Piece.PIECE_NO_COLOUR_MASK << TARGET_PIECE_SHIFT;
 	
-	public static final int TYPE_REGULAR_BIT = 0;
-	public static final int TYPE_CASTLE_BIT = 1;
-	public static final int TYPE_CHECK_BIT = 2;
-	public static final int TYPE_CAPTURE_PAWN_BIT = 3;
-	public static final int TYPE_CAPTURE_PIECE_BIT = 4;
-	public static final int TYPE_CAPTURE_ROOK_BIT = 5;
-	public static final int TYPE_CAPTURE_QUEEN_BIT = 6;
-	public static final int TYPE_PROMOTION_PIECE_BIT = 7;
-	public static final int TYPE_PROMOTION_ROOK_BIT = 8;
-	public static final int TYPE_PROMOTION_QUEEN_BIT = 9;
+	public static final int TYPE_REGULAR_NONE = 0;
+	
+	public static final int TYPE_CASTLE_BIT = 0;
+	public static final int TYPE_CHECK_BIT = 1;
+	public static final int TYPE_CAPTURE_PAWN_BIT = 2;
+	public static final int TYPE_CAPTURE_PIECE_BIT = 3;
+	//public static final int TYPE_CAPTURE_ROOK_BIT = 4;
+	public static final int TYPE_CAPTURE_QUEEN_BIT = 4;
+	public static final int TYPE_PROMOTION_PIECE_BIT = 5;
+	public static final int TYPE_PROMOTION_QUEEN_BIT = 6;
 	public static final int TYPE_WIDTH = TYPE_PROMOTION_QUEEN_BIT + 1;
 	
 	public static final int TYPE_PROMOTION_QUEEN_MASK = (0x1 << TYPE_PROMOTION_QUEEN_BIT);
-	public static final int TYPE_PROMOTION_ROOK_MASK = (0x1 << TYPE_PROMOTION_ROOK_BIT);
 	public static final int TYPE_PROMOTION_PIECE_MASK = (0x1 << TYPE_PROMOTION_PIECE_BIT);
 	public static final int TYPE_CAPTURE_QUEEN_MASK = (0x1 << TYPE_CAPTURE_QUEEN_BIT);
-	public static final int TYPE_CAPTURE_ROOK_MASK = (0x1 << TYPE_CAPTURE_ROOK_BIT);
+	//public static final int TYPE_CAPTURE_ROOK_MASK = (0x1 << TYPE_CAPTURE_ROOK_BIT);
 	public static final int TYPE_CAPTURE_PIECE_MASK = (0x1 << TYPE_CAPTURE_PIECE_BIT);
 	public static final int TYPE_CAPTURE_PAWN_MASK = (0x1 << TYPE_CAPTURE_PAWN_BIT);
 	public static final int TYPE_CHECK_MASK = (0x1 << TYPE_CHECK_BIT);
 	public static final int TYPE_CASTLE_MASK = (0x1 << TYPE_CASTLE_BIT);
-	public static final int TYPE_REGULAR_MASK = (0x1 << TYPE_REGULAR_BIT);
 	
-	private static final int TYPE_SHIFT = ORIGIN_PIECE_SHIFT+4;
+	private static final int TYPE_SHIFT = TARGET_PIECE_SHIFT + Long.bitCount(Piece.PIECE_NO_COLOUR_MASK);
 	private static final int TYPE_MASK = ((1<<TYPE_WIDTH)-1) << TYPE_SHIFT;
 	
-	//private static final int TARGET_PIECE_SHIFT = 25;
-	//private static final int TARGET_PIECE_MASK = Piece.PIECE_WHOLE_MASK << TARGET_PIECE_SHIFT;
-	
 	public static final int NULL_MOVE =
-			valueOf(TYPE_NONE, Position.a1, Piece.NONE, Position.a1, Piece.NONE, IntChessman.NOCHESSMAN);
+			valueOf(TYPE_REGULAR_NONE, Position.a1, Piece.NONE, Position.a1, Piece.NONE, IntChessman.NOCHESSMAN);
 	
 	private Move() {
 	}
 	
 	public static int valueOf(int originPosition, int originPiece, int targetPosition, int targetPiece) {
-		return Move.valueOf(Move.TYPE_NONE, originPosition, originPiece, targetPosition, targetPiece, IntChessman.NOCHESSMAN);
+		return Move.valueOf(Move.TYPE_REGULAR_NONE, originPosition, originPiece, targetPosition, targetPiece, IntChessman.NOCHESSMAN);
 	}
 
 	public static int valueOf(int type, int originPosition, int originPiece, int targetPosition, int targetPiece, int promotion) {
@@ -80,16 +76,14 @@ public final class Move {
 		// Encode target position
 		assert (targetPosition & 0x88) == 0;
 		move |= targetPosition << TARGETPOSITION_SHIFT;
-
+		
 		// Encode Target Piece
-		/*
 		assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
-		move |= targetPiece << TARGET_PIECE_SHIFT;
-		*/
+		int target = targetPiece & Piece.PIECE_NO_COLOUR_MASK;
+		move |= target << TARGET_PIECE_SHIFT;
 		
 		// Encode promotion
-		assert (IntChessman.isValid(promotion) && IntChessman.isValidPromotion(promotion))
-		|| promotion == IntChessman.NOCHESSMAN;
+		assert (IntChessman.isValid(promotion) && IntChessman.isValidPromotion(promotion)) || promotion == IntChessman.NOCHESSMAN;
 		move |= promotion << PROMOTION_SHIFT;
 
 		return move;
@@ -116,27 +110,27 @@ public final class Move {
 	}
 	
 	public static int toMove(GenericMove move, Board theBoard) {
-		return Move.toMove(move, theBoard, Move.TYPE_NONE);
+		return Move.toMove(move, theBoard, Move.TYPE_REGULAR_NONE);
 	}
 	
 	public static int toMove(GenericMove move) {
-		return Move.toMove(move, null, Move.TYPE_NONE);
+		return Move.toMove(move, null, Move.TYPE_REGULAR_NONE);
 	}
 	
 	public static boolean isPromotion(int move) {
-		return (getType(move) & (Move.TYPE_PROMOTION_QUEEN_MASK | Move.TYPE_PROMOTION_ROOK_MASK | Move.TYPE_PROMOTION_PIECE_MASK)) != 0;			
+		return (getType(move) & (Move.TYPE_PROMOTION_QUEEN_MASK | Move.TYPE_PROMOTION_PIECE_MASK)) != 0;			
 	}
 	
 	public static boolean isCapture(int move) {
-		return (getType(move) & (Move.TYPE_CAPTURE_QUEEN_MASK | Move.TYPE_CAPTURE_ROOK_MASK | Move.TYPE_CAPTURE_PIECE_MASK | Move.TYPE_CAPTURE_PAWN_MASK)) != 0;			
+		return (getType(move) & (Move.TYPE_CAPTURE_QUEEN_MASK | Move.TYPE_CAPTURE_PIECE_MASK | Move.TYPE_CAPTURE_PAWN_MASK)) != 0;			
 	}
 	
 	public static boolean isCheck(int move) {
 		return (getType(move) & Move.TYPE_CHECK_MASK) != 0;
 	}
 	
-	public static boolean isRegular(int move) {
-		return (getType(move) & (Move.TYPE_REGULAR_MASK | Move.TYPE_CASTLE_MASK)) != 0;
+	public static boolean isRegular(int move) { 
+		return ((getType(move) == 0) || ((getType(move) & Move.TYPE_CASTLE_MASK) != 0));
 	}
 	
 	public static boolean isCastle(int move) {
@@ -223,8 +217,7 @@ public final class Move {
 	public static int getPromotion(int move) {
 		int promotion = (move & PROMOTION_MASK) >>> PROMOTION_SHIFT;
 		if (move != 0) {
-			assert (IntChessman.isValid(promotion) && IntChessman.isValidPromotion(promotion))
-			|| promotion == IntChessman.NOCHESSMAN;
+			assert (IntChessman.isValid(promotion) && IntChessman.isValidPromotion(promotion)) || promotion == IntChessman.NOCHESSMAN;
 		}
 		return promotion;
 	}
@@ -234,8 +227,7 @@ public final class Move {
 		move &= ~PROMOTION_MASK;
 
 		// Encode promotion
-		assert (IntChessman.isValid(promotion) && IntChessman.isValidPromotion(promotion))
-		|| promotion == IntChessman.NOCHESSMAN;
+		assert (IntChessman.isValid(promotion) && IntChessman.isValidPromotion(promotion)) || promotion == IntChessman.NOCHESSMAN;
 		move |= promotion << PROMOTION_SHIFT;
 
 		return move;
@@ -256,8 +248,12 @@ public final class Move {
 		return move;
 	}
 	
-	/*public static int getTargetPiece(int move) {
+	public static int getTargetPiece(int move) {
 		int piece = (move & TARGET_PIECE_MASK) >>> TARGET_PIECE_SHIFT;
+		if (piece != Piece.NONE && Piece.isWhite(Move.getOriginPiece(move))) {
+			// If origin is white, target must be black
+			piece |= Piece.BLACK;
+		}
 		//assert (piece & Piece.PIECE_NO_COLOUR_MASK) != Piece.PIECE_NONE;
 		
 		return piece;
@@ -267,9 +263,9 @@ public final class Move {
 		//assert (piece & Piece.PIECE_NO_COLOUR_MASK) != Piece.PIECE_NONE;
 		
 		move &= ~TARGET_PIECE_MASK;
-		move |= piece << TARGET_PIECE_SHIFT;
+		move |= (piece & Piece.PIECE_NO_COLOUR_MASK) << TARGET_PIECE_SHIFT;
 		return move;
-	}*/
+	}
 	
 	public static String toString(int move) {
 		StringBuilder string = new StringBuilder();
