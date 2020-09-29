@@ -820,36 +820,41 @@ public class Board {
 		
 		if (king == 0)  return false;
 		
-		int atSquare = Move.getOriginPosition(move);
-		// establish if the square is on a multiple square slider mask from the king position
-		long square = BitBoard.positionToMask_Lut[atSquare];
 		int kingPosition = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(king)];
-		long attackingSquares = directAttacksOnPosition_Lut[kingPosition];
-		return ((square & attackingSquares) != 0);
+		
+		return moveCouldLeadToDiscoveredCheck(move, kingPosition);
 	}
 	
-	public boolean moveCouldLeadToOtherKingDiscoveredCheck(Integer move) {
+	public boolean moveCouldPotentiallyCheckOtherKing(Integer move) {
+		boolean isPotentialCheck = false;
 		int piece = Move.getOriginPiece(move);
 		long king = (Piece.isBlack(piece)) ? getWhiteKing() : getBlackKing();
 		
 		if (king == 0)  return false;
 		
-		int atSquare = Move.getOriginPosition(move);
-		// establish if the square is on a multiple square slider mask from the king position
-		long square = BitBoard.positionToMask_Lut[atSquare];
 		int kingPosition = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(king)];
-		long attackingSquares = directAttacksOnPosition_Lut[kingPosition];
-		if ((square & attackingSquares) != 0) {
-			return true;
+		if (moveCouldLeadToDiscoveredCheck(move, kingPosition)) {
+			// Could be a discovered check, so search further
+			isPotentialCheck = true;
 		} else {
 			int targetSquare = Move.getTargetPosition(move);
 			long targetMask = BitBoard.positionToMask_Lut[targetSquare];
+			
+			// Establish if target square puts attacker onto a king attack square
 			if ((targetMask & SquareAttackEvaluator.allAttacksOnPosition_Lut[kingPosition]) != 0) {
-				// establish if target square puts attacker onto an attack square
-				return true;
+				// Could be either a direct or indirect attack on the King, so search further
+				isPotentialCheck = true;
 			}
 		}
-		return false;
+		return isPotentialCheck;
+	}
+	
+	private boolean moveCouldLeadToDiscoveredCheck(Integer move, int kingPosition) {
+		int atSquare = Move.getOriginPosition(move);
+		// Establish if the initial square is on a multiple square slider mask from the king position
+		long square = BitBoard.positionToMask_Lut[atSquare];
+		long attackingSquares = directAttacksOnPosition_Lut[kingPosition];
+		return ((square & attackingSquares) != 0);
 	}
 	
 	private boolean isPromotionPawnBlocked(long pawns, Direction dir) {

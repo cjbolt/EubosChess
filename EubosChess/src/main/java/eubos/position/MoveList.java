@@ -36,7 +36,9 @@ public class MoveList implements Iterable<Integer> {
 		int moveType = Move.TYPE_REGULAR_NONE;
 		
 		boolean isCastle = (Piece.isKing(piece)) ? pm.lastMoveWasCastle() : false;
-		boolean isCheck = pm.getTheBoard().moveCouldLeadToOtherKingDiscoveredCheck(currMove) && pm.isKingInCheck(pm.getOnMove());
+		
+		// Only test for check if the move could potentially cause a check
+		boolean isCheck = pm.getTheBoard().moveCouldPotentiallyCheckOtherKing(currMove) && pm.isKingInCheck(pm.getOnMove());
 		
 		// Check
 		if (isCheck)
@@ -83,8 +85,10 @@ public class MoveList implements Iterable<Integer> {
 		if (pm.lastMoveWasCheck() || (pm.noLastMove() && pm.isKingInCheck(onMove))) {
 			needToEscapeMate = true;
 		}
-		List<Integer> allMoves = pm.generateMoves();
-		ListIterator<Integer> it = allMoves.listIterator();
+		normal_search_moves = pm.generateMoves();
+		extended_search_moves = new ArrayList<Integer>(normal_search_moves.size());
+		
+		ListIterator<Integer> it = normal_search_moves.listIterator();
 		while (it.hasNext()) {
 			int currMove = it.next();
 			try {
@@ -95,11 +99,17 @@ public class MoveList implements Iterable<Integer> {
 				}
 				pm.performMove(currMove, false);
 				if ((possibleDiscoveredOrMoveIntoCheck || needToEscapeMate) && pm.isKingInCheck(onMove)) {
-					// Scratch any moves resulting in the king being in check, includes no escape moves!
+					// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
 					it.remove();
 				} else {
 					int moveType = computeMoveType(pm, currMove, piece);
-					it.set(Move.setType(currMove, moveType));
+					currMove = Move.setType(currMove, moveType);
+					// Update with type
+					it.set(currMove);
+					// Add to extended list
+					if (Move.isQueenPromotion(currMove) || Move.isCapture(currMove) || Move.isCheck(currMove)) {
+						extended_search_moves.add(currMove);
+					}
 				}
 				pm.unperformMove(false);
 			} catch(InvalidPieceException e) {
@@ -107,23 +117,12 @@ public class MoveList implements Iterable<Integer> {
 			}
 		}
 		// Sort the list
-		Collections.sort(allMoves, new MoveTypeComparator());
-		
-		normal_search_moves = allMoves;
+		Collections.sort(normal_search_moves, new MoveTypeComparator());
 		
 		if (bestMove != Move.NULL_MOVE) {
 			seedListWithBestMove(normal_search_moves, bestMove);
+			seedListWithBestMove(extended_search_moves, bestMove);
 		}
-	}
-		
-	private void create_extended_list(List<Integer> moves) {
-		extended_search_moves = new ArrayList<Integer>(moves.size());
-		for (int move : moves ) {
-			if (Move.isQueenPromotion(move) || Move.isCapture(move) || Move.isCheck(move)) {
-				extended_search_moves.add(move);
-			}
-		}
-		seedListWithBestMove(extended_search_moves, normal_search_moves.get(0));
 	}
 	
 	@Override
@@ -134,7 +133,6 @@ public class MoveList implements Iterable<Integer> {
 	public Iterator<Integer> getStandardIterator(boolean extended) {
 		Iterator<Integer> it;
 		if (extended) {
-			create_extended_list(normal_search_moves);
 			it = extended_search_moves.iterator();
 		} else {
 			it = normal_search_moves.iterator();

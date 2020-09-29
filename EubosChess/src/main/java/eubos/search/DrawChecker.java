@@ -56,7 +56,7 @@ public class DrawChecker {
 		Byte count = positionCount.get(truncatedHash);
 		if (count == null) {
 			// Now we clear the drawchecker in some circumstances this isn't a failure
-			//assert false;
+			assert false;
 		} else {
 			count--;
 			if (count == 0) {

@@ -232,15 +232,11 @@ public final class Move {
 	}
 	
 	public static int getOriginPiece(int move) {
-		int piece = (move & ORIGIN_PIECE_MASK) >>> ORIGIN_PIECE_SHIFT;
-		//assert (piece & Piece.PIECE_NO_COLOUR_MASK) != Piece.PIECE_NONE;
-		
+		int piece = (move & ORIGIN_PIECE_MASK) >>> ORIGIN_PIECE_SHIFT;		
 		return piece;
 	}
 
 	public static int setOriginPiece(int move, int piece) {
-		//assert (piece & Piece.PIECE_NO_COLOUR_MASK) != Piece.PIECE_NONE;
-		
 		move &= ~ORIGIN_PIECE_MASK;
 		move |= piece << ORIGIN_PIECE_SHIFT;
 		return move;
@@ -251,15 +247,11 @@ public final class Move {
 		if (piece != Piece.NONE && Piece.isWhite(Move.getOriginPiece(move))) {
 			// If origin is white, target must be black
 			piece |= Piece.BLACK;
-		}
-		//assert (piece & Piece.PIECE_NO_COLOUR_MASK) != Piece.PIECE_NONE;
-		
+		}		
 		return piece;
 	}
 
 	public static int setTargetPiece(int move, int piece) {
-		//assert (piece & Piece.PIECE_NO_COLOUR_MASK) != Piece.PIECE_NONE;
-		
 		move &= ~TARGET_PIECE_MASK;
 		move |= (piece & Piece.PIECE_NO_COLOUR_MASK) << TARGET_PIECE_SHIFT;
 		return move;
@@ -279,16 +271,18 @@ public final class Move {
 				string.append(":");
 				string.append(Piece.toFenChar(getOriginPiece(move)));
 			}
+			
+			if (getTargetPiece(move) != Piece.NONE) {
+				string.append(":");
+				string.append(Piece.toFenChar(getTargetPiece(move)));
+			}
 		}
 		return string.toString();
 	}
 
 	public static int setType(int move, int type) {
-		// Zero out type
 		move &= ~TYPE_MASK;
-		
 		assert ((type<<TYPE_SHIFT) & ~Move.TYPE_MASK) == 0;
-		
 		return move |= type << TYPE_SHIFT;
 	}
 	
