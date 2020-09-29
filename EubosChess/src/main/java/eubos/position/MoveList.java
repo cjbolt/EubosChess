@@ -1,11 +1,12 @@
 package eubos.position;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
-import java.util.PrimitiveIterator;
+import java.util.ListIterator;
 import java.util.Random;
-import java.util.function.IntConsumer;
 
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IntChessman;
@@ -16,10 +17,10 @@ import eubos.board.Piece.Colour;
 
 public class MoveList implements Iterable<Integer> {
 	
-	private int[] normal_search_moves;
-	private int[] extended_search_moves;
-	private byte normalSearchBestMovePreviousIndex = -1;
-	private byte extendedSearchListBestMovePreviousIndex = -1;
+	private List<Integer> normal_search_moves;
+	private List<Integer> extended_search_moves;
+
+	private int normalSearchBestMovePreviousIndex = -1;
 	
 	/* Not currently used because we sort by ascending numerical order using Arrays.sort() */
     class MoveTypeComparator implements Comparator<Integer> {
@@ -86,9 +87,9 @@ public class MoveList implements Iterable<Integer> {
 			needToEscapeMate = true;
 		}
 		List<Integer> allMoves = pm.generateMoves();
-		int [] outputMove = new int [allMoves.size()];
-		int count = 0;
-		for (int currMove : allMoves) {
+		ListIterator<Integer> it = allMoves.listIterator();
+		while (it.hasNext()) {
+			int currMove = it.next();
 			try {
 				boolean possibleDiscoveredOrMoveIntoCheck = false;
 				int piece = pm.getTheBoard().getPieceAtSquare(Move.getOriginPosition(currMove));
@@ -98,9 +99,10 @@ public class MoveList implements Iterable<Integer> {
 				pm.performMove(currMove, false);
 				if ((possibleDiscoveredOrMoveIntoCheck || needToEscapeMate) && pm.isKingInCheck(onMove)) {
 					// Scratch any moves resulting in the king being in check, includes no escape moves!
+					it.remove();
 				} else {
 					int moveType = computeMoveType(pm, currMove, piece);
-					outputMove[count++] = Move.setType(currMove, moveType);
+					it.set(Move.setType(currMove, moveType));
 				}
 				pm.unperformMove(false);
 			} catch(InvalidPieceException e) {
@@ -108,132 +110,132 @@ public class MoveList implements Iterable<Integer> {
 			}
 		}
 		// Sort the list
-		Arrays.sort(outputMove);
+		Collections.sort(allMoves, new MoveTypeComparator());
 		
-		// copy and flip order
-		int [] moves = new int[count];
-		for (int i=0; i < count; i++) {
-			moves[i] = outputMove[outputMove.length-1-i];
-		}
-		
-		normal_search_moves = moves;
-		extended_search_moves = create_extended_list(moves);
+		normal_search_moves = allMoves;
 		
 		if (bestMove != Move.NULL_MOVE) {
 			seedListWithBestMove(normal_search_moves, bestMove);
-			seedListWithBestMove(extended_search_moves, bestMove);
 		}
-	}
-	
-	private byte getIndex(int[] moveArray, int move) {
-		byte index = 0;
-		boolean found = false;
-		for (int current : moveArray) {
-			if (Move.areEqual(move,current)) {
-				found = true;
-				break;	
-			}
-			index++;
-		}
-		if (!found) {
-			index = -1;
-		}
-		return index;
-	}
-	
-	private void swapWithFirst(int[] moveArray, int index) {
-		if (isMovePresent(index) && index < moveArray.length) {
-			int temp = moveArray[0];
-			moveArray[0] = moveArray[index];
-			moveArray[index] = temp;
-		}
-	}
-	
-	private void seedListWithBestMove(int[] moveArray, int newBestMove) {
-		int index = getIndex(moveArray, newBestMove);
-	    swapWithFirst(moveArray, index);
 	}
 		
-	private int[] create_extended_list(int[] moves) {
-		int[] countList = new int[moves.length];
-		int count = 0;
+	private List<Integer> create_extended_list(List<Integer> moves) {
+		List<Integer> extendedMoves = new ArrayList<Integer>(moves.size());
 		for (int move : moves ) {
 			if (Move.isQueenPromotion(move) || Move.isCapture(move) || Move.isCheck(move)) {
-				countList[count++] = move;
+				extendedMoves.add(move);
 			}
 		}
-		// copy
-		int[] array = new int[count];
-		for (int i=0; i<count; i++) {
-			array[i] = countList[i];
-		}
-		return array;
-	}
-	
-	public class MovesIterator implements PrimitiveIterator.OfInt {
-
-		private int[] moveList = null;
-		private int next = 0;
-	
-		public MovesIterator(int[] array) {
-			moveList = array.clone();
-			next = 0;
-		}
-
-		public boolean hasNext() {
-			return next < moveList.length;
-		}
-
-		public Integer next() {
-			assert false; // should always use nextInt()
-			return moveList[next++];
-		}
-
-		@Override
-		public void remove() {
-		}
-
-		@Override
-		public void forEachRemaining(IntConsumer action) {
-			
-		}
-
-		@Override
-		public int nextInt() {
-			return moveList[next++];
-		}
-	}
-	
-	public PrimitiveIterator.OfInt getIterator(boolean extended) {
-		return new MovesIterator(extended ? extended_search_moves : normal_search_moves);
+		return extendedMoves;
 	}
 	
 	@Override
-	public PrimitiveIterator.OfInt iterator() {
-		return new MovesIterator(normal_search_moves);
+	public Iterator<Integer> iterator() {
+		return normal_search_moves.iterator();
+	}
+	
+	public Iterator<Integer> getStandardIterator(boolean extended) {
+		Iterator<Integer> it;
+		if (extended) {
+			extended_search_moves = create_extended_list(normal_search_moves);
+			seedListWithBestMove(extended_search_moves, normal_search_moves.get(0));
+			it = extended_search_moves.iterator();
+		} else {
+			it = normal_search_moves.iterator();
+		}
+		return it; 
 	}
 		
 	public boolean isMateOccurred() {
-		return (normal_search_moves.length == 0);
+		return (normal_search_moves.size() == 0);
 	}
 	
 	public GenericMove getRandomMove() {
 		GenericMove bestMove = null;
 		if (!isMateOccurred()) {
 			Random randomIndex = new Random();
-			Integer indexToGet = randomIndex.nextInt(normal_search_moves.length);
-			bestMove = Move.toGenericMove(normal_search_moves[indexToGet]);		
+			Integer indexToGet = randomIndex.nextInt(normal_search_moves.size());
+			bestMove = Move.toGenericMove(normal_search_moves.get(indexToGet));		
 		}
 		return bestMove;
 	}
+	
+	@Override
+	public String toString() {
+		String retVal = "";
+		for (int move : this.normal_search_moves) {
+			retVal += Move.toString(move);
+			retVal += ", ";
+		}
+		return retVal;
+	}
 
-	public void reorderWithNewBestMove(int newBestMove) {
-		normalSearchBestMovePreviousIndex = reorderList(normal_search_moves, newBestMove, normalSearchBestMovePreviousIndex);
-		extendedSearchListBestMovePreviousIndex = reorderList(extended_search_moves, newBestMove, extendedSearchListBestMovePreviousIndex);
+	public boolean hasMultipleRegularMoves() {
+		int count = 0;
+		for (int move : normal_search_moves) {
+			if (Move.isRegular(move)) {
+				count++;
+				if (count == 2 )
+					return true;
+			}
+		}
+		return false;
+	}
+
+	public int getBestMove() {
+		if (normal_search_moves.size() != 0) {
+			return normal_search_moves.get(0);
+		} else {
+			return Move.NULL_MOVE;
+		}
 	}
 	
-	private byte reorderList(int[] moveArray, int newBestMove, byte prevBestOriginalIndex) {
-		byte index = getIndex(moveArray, newBestMove);
+	public int getSafestMove() {
+		if (normal_search_moves.size() != 0) {
+			/* The logic is to avoid checks, which will be in the highest prio indexes of the ml */
+			return normal_search_moves.get(normal_search_moves.size()-1);
+		} else {
+			return Move.NULL_MOVE;
+		}
+	}
+	
+	private int getIndex(List<Integer> moves, int move) {
+		int index = -1;
+		int count = 0;
+		for (int currMove : moves) {
+			if (Move.areEqual(currMove, move)) {
+				index = count;
+				break;
+			} else {
+				count++;
+			}
+		}
+		return index;
+	}
+	
+	private void seedListWithBestMove(List<Integer> moves, int newBestMove) {
+		if (moves.size() != 0) {
+			int index = getIndex(moves, newBestMove);
+			if (index > 0) {
+				int prevBest = moves.get(0);
+				moves.set(0, moves.get(index));
+				moves.set(index, prevBest);
+			}
+		}
+	}
+	
+	private void swapWithFirst(List<Integer> moves, int index) {
+		if (moves.size() != 0) {
+			if (index > 0) {
+				int prevBest = moves.get(0);
+				moves.set(0, moves.get(index));
+				moves.set(index, prevBest);
+			}
+		}
+	}
+	
+	private int reorderList(List<Integer> moveArray, int newBestMove, int prevBestOriginalIndex) {
+		int index = getIndex(moveArray, newBestMove);
 		if (isMovePresent(index) && !isMoveAlreadyBest(index)) {
 			
 			if (wasPreviouslyModified(prevBestOriginalIndex)) {
@@ -262,50 +264,16 @@ public class MoveList implements Iterable<Integer> {
 	
 	private boolean wasPreviouslyModified(int index) { return index != -1; }
 	
-	@Override
-	public String toString() {
-		String retVal = "";
-		for (int move : this.normal_search_moves) {
-			retVal += Move.toString(move);
-			retVal += ", ";
-		}
-		return retVal;
-	}
-
-	public boolean hasMultipleRegularMoves() {
-		int count = 0;
-		for (int move : normal_search_moves) {
-			if (Move.isRegular(move)) {
-				count++;
-				if (count == 2 )
-					return true;
-			}
-		}
-		return false;
-	}
-	
-	public boolean contains(int move) {
+	// Test API
+	boolean contains(int move) {
 		for (int reg_move : normal_search_moves) {
 			if (move == reg_move)
 				return true;
 		}
 		return false;
 	}
-
-	public int getBestMove() {
-		if (normal_search_moves.length != 0) {
-			return normal_search_moves[0];
-		} else {
-			return Move.NULL_MOVE;
-		}
-	}
 	
-	public int getSafestMove() {
-		if (normal_search_moves.length != 0) {
-			/* The logic is to avoid checks, which will be in the highest prio indexes of the ml */
-			return normal_search_moves[normal_search_moves.length-1];
-		} else {
-			return Move.NULL_MOVE;
-		}
+	public void reorderWithNewBestMove(int newBestMove) {
+		normalSearchBestMovePreviousIndex = reorderList(normal_search_moves, newBestMove, normalSearchBestMovePreviousIndex);
 	}
 }

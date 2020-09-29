@@ -264,26 +264,7 @@ public class Board {
 					break;			
 				}
 			}
-			switch(pieceToMove & Piece.PIECE_NO_COLOUR_MASK) {
-			case Piece.PAWN:
-				pieces[INDEX_PAWN] |= targetSquareMask;
-				break;
-			case Piece.KNIGHT:
-				pieces[INDEX_KNIGHT] |= targetSquareMask;
-				break;
-			case Piece.BISHOP:
-				pieces[INDEX_BISHOP] |= targetSquareMask;
-				break;
-			case Piece.ROOK:
-				pieces[INDEX_ROOK] |= targetSquareMask;
-				break;
-			case Piece.QUEEN:
-				pieces[INDEX_QUEEN] |= targetSquareMask;
-				break;
-			default:
-				assert false;
-				break;			
-			}
+			pieces[pieceToMove & Piece.PIECE_NO_COLOUR_MASK] |= targetSquareMask;
 		} else {
 			// Piece type doesn't change across boards
 			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
@@ -462,30 +443,8 @@ public class Board {
 	public void setPieceAtSquare( int atPos, int pieceToPlace ) {
 		assert pieceToPlace != Piece.NONE;
 		long mask = BitBoard.positionToMask_Lut[atPos];
-		// Set on piece-specific bitboard, sorted in order of frequency, for efficiency
-		switch(pieceToPlace & Piece.PIECE_NO_COLOUR_MASK) {
-		case Piece.PAWN:
-			pieces[INDEX_PAWN] |= mask;
-			break;
-		case Piece.KNIGHT:
-			pieces[INDEX_KNIGHT] |= mask;
-			break;
-		case Piece.BISHOP:
-			pieces[INDEX_BISHOP] |= mask;
-			break;
-		case Piece.ROOK:
-			pieces[INDEX_ROOK] |= mask;
-			break;
-		case Piece.QUEEN:
-			pieces[INDEX_QUEEN] |= mask;
-			break;
-		case Piece.KING:
-			pieces[INDEX_KING] |= mask;
-			break;
-		default:
-			assert false;
-			break;			
-		}
+		// Set on piece-specific bitboard
+		pieces[pieceToPlace & Piece.PIECE_NO_COLOUR_MASK] |= mask;
 		// Set on colour bitboard
 		if (Piece.isBlack(pieceToPlace)) {
 			blackPieces |= (mask);
@@ -556,29 +515,7 @@ public class Board {
 				whitePieces &= ~pieceToPickUp;
 			}
 			// remove from specific bitboard
-			switch(piece & Piece.PIECE_NO_COLOUR_MASK) {
-			case Piece.PAWN:
-				pieces[INDEX_PAWN] &= ~pieceToPickUp;
-				break;
-			case Piece.KNIGHT:
-				pieces[INDEX_KNIGHT] &= ~pieceToPickUp;
-				break;
-			case Piece.BISHOP:
-				pieces[INDEX_BISHOP] &= ~pieceToPickUp;
-				break;
-			case Piece.ROOK:
-				pieces[INDEX_ROOK] &= ~pieceToPickUp;
-				break;
-			case Piece.QUEEN:
-				pieces[INDEX_QUEEN] &= ~pieceToPickUp;
-				break;
-			case Piece.KING:
-				pieces[INDEX_KING] &= ~pieceToPickUp;
-				break;
-			default:
-				assert false;
-				break;			
-			}
+			pieces[piece & Piece.PIECE_NO_COLOUR_MASK] &= ~pieceToPickUp;
 			// Remove from all pieces bitboard
 			allPieces &= ~pieceToPickUp;
 		} else {

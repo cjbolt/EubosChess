@@ -1,7 +1,7 @@
 package eubos.search;
 
+import java.util.Iterator;
 import java.util.List;
-import java.util.PrimitiveIterator;
 
 import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
@@ -168,7 +168,7 @@ public class PlySearcher {
             setDepthSearchedInPly();
 			trans = tt.setTransposition(trans, getTransDepth(), theScore.getScore(), theScore.getType(), Move.NULL_MOVE);
         } else {
-    		PrimitiveIterator.OfInt move_iter = ml.getIterator(isInExtendedSearch());
+    		Iterator<Integer> move_iter = ml.getStandardIterator(isInExtendedSearch());
     		if (move_iter.hasNext()) {
     			theScore = actuallySearchMoves(ml, move_iter, trans);
     		} else {
@@ -182,14 +182,14 @@ public class PlySearcher {
         return theScore;
     }
 
-	private Score actuallySearchMoves(MoveList ml, PrimitiveIterator.OfInt move_iter, ITransposition trans) throws InvalidPieceException {
+	private Score actuallySearchMoves(MoveList ml, Iterator<Integer> move_iter, ITransposition trans) throws InvalidPieceException {
 		boolean everBackedUp = false;
 		boolean backedUpScoreWasExact = false;
 		boolean refutationFound = false;
 
 		byte plyBound = (pos.onMoveIsWhite()) ? Score.lowerBound : Score.upperBound;
 		Score plyScore = new Score(plyBound);
-		int currMove = move_iter.nextInt();
+		int currMove = move_iter.next();
 		pc.initialise(currPly, currMove);
 
 		plyScore = initialiseScoreForSingularCaptureInExtendedSearch(ml, move_iter, plyBound, plyScore);
@@ -224,7 +224,7 @@ public class PlySearcher {
 				}
 			}
 			if (move_iter.hasNext()) {
-				currMove = move_iter.nextInt();
+				currMove = move_iter.next();
 			} else {
 				break;
 			}
@@ -251,7 +251,7 @@ public class PlySearcher {
 		return plyScore;
 	}
 
-	private Score initialiseScoreForSingularCaptureInExtendedSearch(MoveList ml, PrimitiveIterator.OfInt move_iter,
+	private Score initialiseScoreForSingularCaptureInExtendedSearch(MoveList ml, Iterator<Integer> move_iter,
 			byte plyBound, Score plyScore) throws InvalidPieceException {
 		if (isInExtendedSearch() && !move_iter.hasNext()) {
 			/*
