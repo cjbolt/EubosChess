@@ -19,10 +19,7 @@ public class MoveList implements Iterable<Integer> {
 	
 	private List<Integer> normal_search_moves;
 	private List<Integer> extended_search_moves;
-
-	private int normalSearchBestMovePreviousIndex = -1;
 	
-	/* Not currently used because we sort by ascending numerical order using Arrays.sort() */
     class MoveTypeComparator implements Comparator<Integer> {
         @Override public int compare(Integer move1, Integer move2) {
             boolean gt = Move.getType(move1) < Move.getType(move2);
@@ -35,11 +32,11 @@ public class MoveList implements Iterable<Integer> {
 		this(pm, Move.NULL_MOVE);
 	}
 	
-	int computeMoveType(PositionManager pm, int currMove, int piece) {
+	private int computeMoveType(PositionManager pm, int currMove, int piece) {
 		int moveType = Move.TYPE_REGULAR_NONE;
 		
 		boolean isCastle = (Piece.isKing(piece)) ? pm.lastMoveWasCastle() : false;
-		boolean isCheck = pm.isKingInCheck(pm.getOnMove());
+		boolean isCheck = pm.getTheBoard().moveCouldLeadToOtherKingDiscoveredCheck(currMove) && pm.isKingInCheck(pm.getOnMove());
 		
 		// Check
 		if (isCheck)
@@ -119,14 +116,14 @@ public class MoveList implements Iterable<Integer> {
 		}
 	}
 		
-	private List<Integer> create_extended_list(List<Integer> moves) {
-		List<Integer> extendedMoves = new ArrayList<Integer>(moves.size());
+	private void create_extended_list(List<Integer> moves) {
+		extended_search_moves = new ArrayList<Integer>(moves.size());
 		for (int move : moves ) {
 			if (Move.isQueenPromotion(move) || Move.isCapture(move) || Move.isCheck(move)) {
-				extendedMoves.add(move);
+				extended_search_moves.add(move);
 			}
 		}
-		return extendedMoves;
+		seedListWithBestMove(extended_search_moves, normal_search_moves.get(0));
 	}
 	
 	@Override
@@ -137,8 +134,7 @@ public class MoveList implements Iterable<Integer> {
 	public Iterator<Integer> getStandardIterator(boolean extended) {
 		Iterator<Integer> it;
 		if (extended) {
-			extended_search_moves = create_extended_list(normal_search_moves);
-			seedListWithBestMove(extended_search_moves, normal_search_moves.get(0));
+			create_extended_list(normal_search_moves);
 			it = extended_search_moves.iterator();
 		} else {
 			it = normal_search_moves.iterator();
@@ -224,46 +220,6 @@ public class MoveList implements Iterable<Integer> {
 		}
 	}
 	
-	private void swapWithFirst(List<Integer> moves, int index) {
-		if (moves.size() != 0) {
-			if (index > 0) {
-				int prevBest = moves.get(0);
-				moves.set(0, moves.get(index));
-				moves.set(index, prevBest);
-			}
-		}
-	}
-	
-	private int reorderList(List<Integer> moveArray, int newBestMove, int prevBestOriginalIndex) {
-		int index = getIndex(moveArray, newBestMove);
-		if (isMovePresent(index) && !isMoveAlreadyBest(index)) {
-			
-			if (wasPreviouslyModified(prevBestOriginalIndex)) {
-				// Swap back the previous best move into its previous position, if this isn't a direct swap
-				if (prevBestOriginalIndex == index) {
-					// It is a direct swap back, set to -1 as the list is restored to its initial state
-					prevBestOriginalIndex = -1;
-				} else {
-					swapWithFirst(moveArray, prevBestOriginalIndex);
-					prevBestOriginalIndex = index;
-				}
-			} else {
-				// Initialise the previous best index the first time the best move is altered
-				prevBestOriginalIndex = index;
-			}
-			
-			// Swap in the new best move
-			swapWithFirst(moveArray, index);
-		}
-		return prevBestOriginalIndex;
-	}
-	
-	private boolean isMovePresent(int index) { return (index != -1); }
-	
-	private boolean isMoveAlreadyBest(int index) { return (index == 0); }
-	
-	private boolean wasPreviouslyModified(int index) { return index != -1; }
-	
 	// Test API
 	boolean contains(int move) {
 		for (int reg_move : normal_search_moves) {
@@ -271,9 +227,5 @@ public class MoveList implements Iterable<Integer> {
 				return true;
 		}
 		return false;
-	}
-	
-	public void reorderWithNewBestMove(int newBestMove) {
-		normalSearchBestMovePreviousIndex = reorderList(normal_search_moves, newBestMove, normalSearchBestMovePreviousIndex);
 	}
 }

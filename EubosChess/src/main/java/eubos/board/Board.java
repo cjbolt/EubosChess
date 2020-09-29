@@ -828,6 +828,30 @@ public class Board {
 		return ((square & attackingSquares) != 0);
 	}
 	
+	public boolean moveCouldLeadToOtherKingDiscoveredCheck(Integer move) {
+		int piece = Move.getOriginPiece(move);
+		long king = (Piece.isBlack(piece)) ? getWhiteKing() : getBlackKing();
+		
+		if (king == 0)  return false;
+		
+		int atSquare = Move.getOriginPosition(move);
+		// establish if the square is on a multiple square slider mask from the king position
+		long square = BitBoard.positionToMask_Lut[atSquare];
+		int kingPosition = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(king)];
+		long attackingSquares = directAttacksOnPosition_Lut[kingPosition];
+		if ((square & attackingSquares) != 0) {
+			return true;
+		} else {
+			int targetSquare = Move.getTargetPosition(move);
+			long targetMask = BitBoard.positionToMask_Lut[targetSquare];
+			if ((targetMask & SquareAttackEvaluator.allAttacksOnPosition_Lut[kingPosition]) != 0) {
+				// establish if target square puts attacker onto an attack square
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	private boolean isPromotionPawnBlocked(long pawns, Direction dir) {
 		boolean potentialPromotion = false;
 		PrimitiveIterator.OfInt iter = BitBoard.iterator(pawns);
