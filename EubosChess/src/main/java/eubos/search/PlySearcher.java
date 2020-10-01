@@ -102,7 +102,8 @@ public class PlySearcher {
 				theScore = searchMoves( eval.trans.getBestMove(), eval.trans);
 				break;
 			} else {
-				theScore = new Score(eval.trans.getScore(), eval.trans.getType());
+				short adjustedScore = st.adjustHashTableMateInXScore(currPly, eval.trans.getScore());
+				theScore = new Score(adjustedScore, eval.trans.getType());
 			}
 			pc.set(currPly, eval.trans.getBestMove());
 			if (EubosEngineMain.UCI_INFO_ENABLED)
