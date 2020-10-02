@@ -114,7 +114,6 @@ public class MoveList implements Iterable<Integer> {
 			needToEscapeMate = true;
 		}
 		normal_search_moves = pm.generateMoves();
-		extended_search_moves = new ArrayList<Integer>(normal_search_moves.size());
 		
 		ListIterator<Integer> it = normal_search_moves.listIterator();
 		while (it.hasNext()) {
@@ -134,10 +133,6 @@ public class MoveList implements Iterable<Integer> {
 					currMove = Move.setType(currMove, moveType);
 					// Update with type
 					it.set(currMove);
-					// Add to extended list
-					if (Move.isQueenPromotion(currMove) || Move.isCapture(currMove) || Move.isCheck(currMove)) {
-						extended_search_moves.add(currMove);
-					}
 				}
 				pm.unperformMove(false);
 			} catch(InvalidPieceException e) {
@@ -149,7 +144,6 @@ public class MoveList implements Iterable<Integer> {
 		
 		if (bestMove != Move.NULL_MOVE) {
 			seedListWithBestMove(normal_search_moves, bestMove);
-			seedListWithBestMove(extended_search_moves, bestMove);
 		}
 	}
 	
@@ -161,6 +155,13 @@ public class MoveList implements Iterable<Integer> {
 	public Iterator<Integer> getStandardIterator(boolean extended) {
 		Iterator<Integer> it;
 		if (extended) {
+			// Lazy creation of extended move list
+			extended_search_moves = new ArrayList<Integer>(normal_search_moves.size());
+			for (int currMove : normal_search_moves) {
+				if (Move.isQueenPromotion(currMove) || Move.isCapture(currMove) || Move.isCheck(currMove)) {
+					extended_search_moves.add(currMove);
+				}
+			}
 			it = extended_search_moves.iterator();
 		} else {
 			it = normal_search_moves.iterator();
