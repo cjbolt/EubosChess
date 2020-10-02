@@ -22,28 +22,23 @@ public final class Move {
 	private static final int ORIGIN_PIECE_MASK = Piece.PIECE_WHOLE_MASK << ORIGIN_PIECE_SHIFT;
 	
 	private static final int TARGET_PIECE_SHIFT = ORIGIN_PIECE_SHIFT+Long.bitCount(Piece.PIECE_WHOLE_MASK);
-	private static final int TARGET_PIECE_MASK = Piece.PIECE_NO_COLOUR_MASK << TARGET_PIECE_SHIFT;
+	private static final int TARGET_PIECE_MASK = Piece.PIECE_WHOLE_MASK << TARGET_PIECE_SHIFT;
 	
 	public static final int TYPE_REGULAR_NONE = 0;
-	
 	public static final int TYPE_CASTLE_BIT = 0;
 	public static final int TYPE_CHECK_BIT = 1;
-	public static final int TYPE_CAPTURE_PAWN_BIT = 2;
-	public static final int TYPE_CAPTURE_PIECE_BIT = 3;
-	public static final int TYPE_CAPTURE_QUEEN_BIT = 4;
-	public static final int TYPE_PROMOTION_PIECE_BIT = 5;
-	public static final int TYPE_PROMOTION_QUEEN_BIT = 6;
+	public static final int TYPE_CAPTURE_BIT = 2;
+	public static final int TYPE_PROMOTION_PIECE_BIT = 3;
+	public static final int TYPE_PROMOTION_QUEEN_BIT = 4;
 	public static final int TYPE_WIDTH = TYPE_PROMOTION_QUEEN_BIT + 1;
 	
 	public static final int TYPE_PROMOTION_QUEEN_MASK = (0x1 << TYPE_PROMOTION_QUEEN_BIT);
 	public static final int TYPE_PROMOTION_PIECE_MASK = (0x1 << TYPE_PROMOTION_PIECE_BIT);
-	public static final int TYPE_CAPTURE_QUEEN_MASK = (0x1 << TYPE_CAPTURE_QUEEN_BIT);
-	public static final int TYPE_CAPTURE_PIECE_MASK = (0x1 << TYPE_CAPTURE_PIECE_BIT);
-	public static final int TYPE_CAPTURE_PAWN_MASK = (0x1 << TYPE_CAPTURE_PAWN_BIT);
+	public static final int TYPE_CAPTURE_MASK = (0x1 << TYPE_CAPTURE_BIT);
 	public static final int TYPE_CHECK_MASK = (0x1 << TYPE_CHECK_BIT);
 	public static final int TYPE_CASTLE_MASK = (0x1 << TYPE_CASTLE_BIT);
 	
-	private static final int TYPE_SHIFT = TARGET_PIECE_SHIFT + Long.bitCount(Piece.PIECE_NO_COLOUR_MASK);
+	private static final int TYPE_SHIFT = TARGET_PIECE_SHIFT + Long.bitCount(Piece.PIECE_WHOLE_MASK);
 	private static final int TYPE_MASK = ((1<<TYPE_WIDTH)-1) << TYPE_SHIFT;
 	
 	public static final int NULL_MOVE =
@@ -77,8 +72,7 @@ public final class Move {
 		
 		// Encode Target Piece
 		assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
-		int target = targetPiece & Piece.PIECE_NO_COLOUR_MASK;
-		move |= target << TARGET_PIECE_SHIFT;
+		move |= targetPiece << TARGET_PIECE_SHIFT;
 		
 		// Encode promotion
 		assert (IntChessman.isValid(promotion) && IntChessman.isValidPromotion(promotion)) || promotion == IntChessman.NOCHESSMAN;
@@ -120,7 +114,7 @@ public final class Move {
 	}
 	
 	public static boolean isCapture(int move) {
-		return (getType(move) & (Move.TYPE_CAPTURE_QUEEN_MASK | Move.TYPE_CAPTURE_PIECE_MASK | Move.TYPE_CAPTURE_PAWN_MASK)) != 0;			
+		return (getType(move) & Move.TYPE_CAPTURE_MASK) != 0;			
 	}
 	
 	public static boolean isCheck(int move) {
@@ -243,17 +237,13 @@ public final class Move {
 	}
 	
 	public static int getTargetPiece(int move) {
-		int piece = (move & TARGET_PIECE_MASK) >>> TARGET_PIECE_SHIFT;
-		if (piece != Piece.NONE && Piece.isWhite(Move.getOriginPiece(move))) {
-			// If origin is white, target must be black
-			piece |= Piece.BLACK;
-		}		
+		int piece = (move & TARGET_PIECE_MASK) >>> TARGET_PIECE_SHIFT;		
 		return piece;
 	}
 
 	public static int setTargetPiece(int move, int piece) {
 		move &= ~TARGET_PIECE_MASK;
-		move |= (piece & Piece.PIECE_NO_COLOUR_MASK) << TARGET_PIECE_SHIFT;
+		move |= piece << TARGET_PIECE_SHIFT;
 		return move;
 	}
 	

@@ -101,23 +101,27 @@ public class MoveListTest {
 	public void test_mvv_lva_order() throws IllegalNotationException {
 		setup("8/N2B4/Q3q3/1r3PN1/2P3B1/4Rp2/6P1/1R6 w - - 0 1 ");
 		Iterator<Integer> it = classUnderTest.iterator();
-		assertEquals(new GenericMove("f5e6"), Move.toGenericMove(it.next())); // PxQ
-		assertEquals(new GenericMove("g5e6"), Move.toGenericMove(it.next())); // NxQ
-		assertEquals(new GenericMove("d7e6"), Move.toGenericMove(it.next())); // BxQ
-		assertEquals(new GenericMove("e3e6"), Move.toGenericMove(it.next())); // RxQ
+		
+		// gaining material
+		assertEquals(new GenericMove("f5e6"), Move.toGenericMove(it.next())); // PxQ delta 4 gains 8
+		assertEquals(new GenericMove("g5e6"), Move.toGenericMove(it.next())); // NxQ delta 2 gains 6
+		assertEquals(new GenericMove("d7e6"), Move.toGenericMove(it.next())); // BxQ delta 2 gains 6
+		assertEquals(new GenericMove("e3e6"), Move.toGenericMove(it.next())); // RxQ delta 1 gains 4
+		assertEquals(new GenericMove("c4b5"), Move.toGenericMove(it.next())); // PxR delta 3 gains 4
+		assertEquals(new GenericMove("a7b5"), Move.toGenericMove(it.next())); // NxR delta 2 gains 2
+		assertEquals(new GenericMove("d7b5"), Move.toGenericMove(it.next())); // BxR delta 1 gains 2
+		
+		// neutral exchanges
+		assertEquals(new GenericMove("b1b5"), Move.toGenericMove(it.next())); // RxR
+		assertEquals(new GenericMove("g2f3"), Move.toGenericMove(it.next())); // PxP
 		assertEquals(new GenericMove("a6e6"), Move.toGenericMove(it.next())); // QxQ
 		
-		assertEquals(new GenericMove("c4b5"), Move.toGenericMove(it.next())); // PxR
-		assertEquals(new GenericMove("a7b5"), Move.toGenericMove(it.next())); // NxR
-		assertEquals(new GenericMove("d7b5"), Move.toGenericMove(it.next())); // BxR
-		assertEquals(new GenericMove("b1b5"), Move.toGenericMove(it.next())); // RxR
-		// Should be last!
-		assertEquals(new GenericMove("a6b5"), Move.toGenericMove(it.next())); // QxR
+		// losing material
+		assertEquals(new GenericMove("g5f3"), Move.toGenericMove(it.next())); // NxP delta -1 loses 2
+		assertEquals(new GenericMove("g4f3"), Move.toGenericMove(it.next())); // BxP delta -2 loses 2
+		assertEquals(new GenericMove("e3f3"), Move.toGenericMove(it.next())); // RxP delta -3 loses 4
+		assertEquals(new GenericMove("a6b5"), Move.toGenericMove(it.next())); // QxR delta -1 loses 4
 		
-		assertEquals(new GenericMove("g2f3"), Move.toGenericMove(it.next())); // PxP
-		// Should all be last!
-		assertEquals(new GenericMove("g5f3"), Move.toGenericMove(it.next())); // NxP
-		assertEquals(new GenericMove("g4f3"), Move.toGenericMove(it.next())); // BxP
-		assertEquals(new GenericMove("e3f3"), Move.toGenericMove(it.next())); // RxP
+		// add more losing moves???
 	}
 }

@@ -14,6 +14,7 @@ import com.fluxchess.jcpi.models.IntChessman;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
+import eubos.score.MaterialEvaluator;
 
 public class MoveList implements Iterable<Integer> {
 	
@@ -28,6 +29,9 @@ public class MoveList implements Iterable<Integer> {
         }
     }
     
+    public static final int [] MATERIAL = {0, MaterialEvaluator.MATERIAL_VALUE_KING, MaterialEvaluator.MATERIAL_VALUE_QUEEN, MaterialEvaluator.MATERIAL_VALUE_ROOK, 
+    		                               MaterialEvaluator.MATERIAL_VALUE_BISHOP, MaterialEvaluator.MATERIAL_VALUE_KNIGHT, MaterialEvaluator.MATERIAL_VALUE_PAWN }; 
+    
     class MoveMvvLvaComparator implements Comparator<Integer> {
         @Override public int compare(Integer move1, Integer move2) {
             if (Move.getType(move1) < Move.getType(move2)) {
@@ -36,12 +40,12 @@ public class MoveList implements Iterable<Integer> {
             	if (!Move.isCapture(move1))
             		return 0;
             	// mvv lva used for tie breaking move type comparison, if it is a capture
-            	int victim1 = Move.getTargetPiece(move1);
-            	int attacker1 = Move.getOriginPiece(move1);
-            	int victim2 = Move.getTargetPiece(move2);
-            	int attacker2 = Move.getOriginPiece(move2);
-            	int mvvLvaRankingForMove1 = attacker1-victim1;
-            	int mvvLvaRankingForMove2 = attacker2-victim2;
+            	int victim1 = MATERIAL[Move.getTargetPiece(move1)&Piece.PIECE_NO_COLOUR_MASK];
+            	int attacker1 = MATERIAL[Move.getOriginPiece(move1)&Piece.PIECE_NO_COLOUR_MASK];
+            	int victim2 = MATERIAL[Move.getTargetPiece(move2)&Piece.PIECE_NO_COLOUR_MASK];
+            	int attacker2 = MATERIAL[Move.getOriginPiece(move2)&Piece.PIECE_NO_COLOUR_MASK];
+            	int mvvLvaRankingForMove1 = victim1-attacker1;
+            	int mvvLvaRankingForMove2 = victim2-attacker2;
             	
             	if (mvvLvaRankingForMove1 < mvvLvaRankingForMove2) {
             		return 1;
@@ -89,15 +93,11 @@ public class MoveList implements Iterable<Integer> {
 			// Captures
 			switch (targetPiece & Piece.PIECE_NO_COLOUR_MASK) {
 			case Piece.QUEEN:
-				moveType |= Move.TYPE_CAPTURE_QUEEN_MASK;
-				break;
 			case Piece.BISHOP:
 			case Piece.KNIGHT:
 			case Piece.ROOK:
-				moveType |= Move.TYPE_CAPTURE_PIECE_MASK;
-				break;
 			case Piece.PAWN:
-				moveType |= Move.TYPE_CAPTURE_PAWN_MASK;
+				moveType |= Move.TYPE_CAPTURE_MASK;
 				break;
 			default:
 				break;
