@@ -27,6 +27,34 @@ public class MoveList implements Iterable<Integer> {
             return gt ? 1 : (eq ? 0 : -1);
         }
     }
+    
+    class MoveMvvLvaComparator implements Comparator<Integer> {
+        @Override public int compare(Integer move1, Integer move2) {
+            if (Move.getType(move1) < Move.getType(move2)) {
+            	return 1;
+            } else if (Move.getType(move1) == Move.getType(move2)) {
+            	if (!Move.isCapture(move1))
+            		return 0;
+            	// mvv lva used for tie breaking move type comparison, if it is a capture
+            	int victim1 = Move.getTargetPiece(move1);
+            	int attacker1 = Move.getOriginPiece(move1);
+            	int victim2 = Move.getTargetPiece(move2);
+            	int attacker2 = Move.getOriginPiece(move2);
+            	int mvvLvaRankingForMove1 = attacker1-victim1;
+            	int mvvLvaRankingForMove2 = attacker2-victim2;
+            	
+            	if (mvvLvaRankingForMove1 < mvvLvaRankingForMove2) {
+            		return 1;
+            	} else if (mvvLvaRankingForMove1 == mvvLvaRankingForMove2) {
+            		return 0;
+            	} else {
+            		return -1;
+            	}
+            } else {
+            	return -1;
+            }
+        }
+    }
 	
 	public MoveList(PositionManager pm) {
 		this(pm, Move.NULL_MOVE);
@@ -117,7 +145,7 @@ public class MoveList implements Iterable<Integer> {
 			}
 		}
 		// Sort the list
-		Collections.sort(normal_search_moves, new MoveTypeComparator());
+		Collections.sort(normal_search_moves, new MoveMvvLvaComparator());
 		
 		if (bestMove != Move.NULL_MOVE) {
 			seedListWithBestMove(normal_search_moves, bestMove);

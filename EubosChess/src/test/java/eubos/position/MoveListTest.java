@@ -96,4 +96,28 @@ public class MoveListTest {
 		assertEquals(new GenericMove("b7c8q"), Move.toGenericMove(it.next())); // Promotion and capture
 		assertEquals(new GenericMove("b7b8q"), Move.toGenericMove(it.next())); // Promotion
 	}
+	
+	@Test
+	public void test_mvv_lva_order() throws IllegalNotationException {
+		setup("8/N2B4/Q3q3/1r3PN1/2P3B1/4Rp2/6P1/1R6 w - - 0 1 ");
+		Iterator<Integer> it = classUnderTest.iterator();
+		assertEquals(new GenericMove("f5e6"), Move.toGenericMove(it.next())); // PxQ
+		assertEquals(new GenericMove("g5e6"), Move.toGenericMove(it.next())); // NxQ
+		assertEquals(new GenericMove("d7e6"), Move.toGenericMove(it.next())); // BxQ
+		assertEquals(new GenericMove("e3e6"), Move.toGenericMove(it.next())); // RxQ
+		assertEquals(new GenericMove("a6e6"), Move.toGenericMove(it.next())); // QxQ
+		
+		assertEquals(new GenericMove("c4b5"), Move.toGenericMove(it.next())); // PxR
+		assertEquals(new GenericMove("a7b5"), Move.toGenericMove(it.next())); // NxR
+		assertEquals(new GenericMove("d7b5"), Move.toGenericMove(it.next())); // BxR
+		assertEquals(new GenericMove("b1b5"), Move.toGenericMove(it.next())); // RxR
+		// Should be last!
+		assertEquals(new GenericMove("a6b5"), Move.toGenericMove(it.next())); // QxR
+		
+		assertEquals(new GenericMove("g2f3"), Move.toGenericMove(it.next())); // PxP
+		// Should all be last!
+		assertEquals(new GenericMove("g5f3"), Move.toGenericMove(it.next())); // NxP
+		assertEquals(new GenericMove("g4f3"), Move.toGenericMove(it.next())); // BxP
+		assertEquals(new GenericMove("e3f3"), Move.toGenericMove(it.next())); // RxP
 	}
+}

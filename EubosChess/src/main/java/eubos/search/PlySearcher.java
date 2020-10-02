@@ -96,7 +96,9 @@ public class PlySearcher {
 		case sufficientTerminalNode:
 		case sufficientRefutation:
 			// Check score for hashed position causing a search cut-off is still valid (i.e. best move doesn't lead to a draw)
-			if (checkForRepetitionDueToPositionInSearchTree(eval.trans.getBestMove())) {
+			// If hashed score is a draw score, check it is still a draw, if not, search position
+			boolean isThreefold = checkForRepetitionDueToPositionInSearchTree(eval.trans.getBestMove());
+			if (isThreefold || (!isThreefold && (eval.trans.getScore() == 0))) {
 				// Assume it is now a draw, so re-search
 				SearchDebugAgent.printHashIsSeedMoveList(eval.trans.getBestMove(), pos.getHash());
 				theScore = searchMoves( eval.trans.getBestMove(), eval.trans);
