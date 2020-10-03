@@ -44,7 +44,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	private static final byte SEARCH_DEPTH_IN_PLY = 35;
 	
-	public static final boolean LOGGING_ENABLED = true;
+	public static final boolean LOGGING_ENABLED = false;
 	public static final boolean UCI_INFO_ENABLED = true;
 	
 	// Permanent data structures - static for duration of engine execution
@@ -80,7 +80,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public void receive(EngineInitializeRequestCommand command) {
 		logger.fine("Eubos Initialising");
 		
-		ProtocolInitializeAnswerCommand reply = new ProtocolInitializeAnswerCommand("Eubos 1.1.2","Chris Bolt");
+		ProtocolInitializeAnswerCommand reply = new ProtocolInitializeAnswerCommand("Eubos 1.1.3","Chris Bolt");
 		reply.addOption(Options.newHashOption((int)FixedSizeTranspositionTable.MBYTES_DEFAULT_HASH_SIZE, 32, 4*1000));
 		this.getProtocol().send( reply );
 		
