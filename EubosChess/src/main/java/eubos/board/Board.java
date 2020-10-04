@@ -205,6 +205,7 @@ public class Board {
 		CaptureData captureTarget = NULL_CAPTURE;
 		int pieceToMove = Move.getOriginPiece(move);
 		int targetSquare = Move.getTargetPosition(move);
+		int targetPiece = Move.getTargetPiece(move);
 		if (isEnPassantCapture(pieceToMove, targetSquare)) {
 			// Handle en passant captures, don't need to do other checks in this case
 			int rank = IntRank.NORANK;
@@ -224,9 +225,8 @@ public class Board {
 				if (Piece.isKing(pieceToMove)) {
 					performSecondaryCastlingMove(move);
 				}
-				if (!Move.isRegular(move)) {
-					// If could be a capture or a promotion, then may not be a null capture, do construction
-					captureTarget = new CaptureData(pickUpPieceAtSquare(targetSquare), targetSquare);
+				if (targetPiece != Piece.NONE) {
+					captureTarget = new CaptureData(pickUpPieceAtSquare(targetSquare, targetPiece), targetSquare);
 				}
 			}			
 		}
@@ -240,32 +240,31 @@ public class Board {
 		long targetSquareMask = BitBoard.positionToMask_Lut[Move.getTargetPosition(move)];
 		long positionsMask = initialSquareMask | targetSquareMask;
 		// Switch piece-specific bitboards
-		if (Move.getPromotion(move) != IntChessman.NOCHESSMAN) {
+		int promotedChessman = Move.getPromotion(move);
+		if (promotedChessman != IntChessman.NOCHESSMAN) {
 			// For a promotion, need to resolve piece-specific across multiple bitboards; can't be a king, sorted in order of likeliness.
 			if ((pieces[INDEX_PAWN] & initialSquareMask) == initialSquareMask) {
 				pieces[INDEX_PAWN] &= ~initialSquareMask;
-			} else if ((pieces[INDEX_QUEEN] & initialSquareMask) == initialSquareMask) {
-				pieces[INDEX_QUEEN] &= ~initialSquareMask;
-			} else if ((pieces[INDEX_ROOK] & initialSquareMask) == initialSquareMask) {
-				pieces[INDEX_ROOK] &= ~initialSquareMask;
-			} else if ((pieces[INDEX_BISHOP] & initialSquareMask) == initialSquareMask) {
-				pieces[INDEX_BISHOP] &= ~initialSquareMask;
-			} else if ((pieces[INDEX_KNIGHT] & initialSquareMask) == initialSquareMask) {
-				pieces[INDEX_KNIGHT] &= ~initialSquareMask;
-			} 
-			if (Piece.isPawn(pieceToMove)) {
-				pieces[INDEX_PAWN] |= targetSquareMask;
-			} else if (Piece.isQueen(pieceToMove)) {
-				pieces[INDEX_QUEEN] |= targetSquareMask;
-			} else if (Piece.isRook(pieceToMove)) {
-				pieces[INDEX_ROOK] |= targetSquareMask;
-			} else if (Piece.isBishop(pieceToMove)) {
-				pieces[INDEX_BISHOP] |= targetSquareMask;
-			} else if (Piece.isKnight(pieceToMove)) {
-				pieces[INDEX_KNIGHT] |= targetSquareMask;
 			} else {
-				assert false;
+				switch(promotedChessman) {
+				case IntChessman.KNIGHT:
+					pieces[INDEX_KNIGHT] &= ~initialSquareMask;
+					break;
+				case IntChessman.BISHOP:
+					pieces[INDEX_BISHOP] &= ~initialSquareMask;
+					break;
+				case IntChessman.ROOK:
+					pieces[INDEX_ROOK] &= ~initialSquareMask;
+					break;
+				case IntChessman.QUEEN:
+					pieces[INDEX_QUEEN] &= ~initialSquareMask;
+					break;
+				default:
+					assert false;
+					break;			
+				}
 			}
+			pieces[pieceToMove & Piece.PIECE_NO_COLOUR_MASK] |= targetSquareMask;
 		} else {
 			// Piece type doesn't change across boards
 			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
@@ -444,22 +443,8 @@ public class Board {
 	public void setPieceAtSquare( int atPos, int pieceToPlace ) {
 		assert pieceToPlace != Piece.NONE;
 		long mask = BitBoard.positionToMask_Lut[atPos];
-		// Set on piece-specific bitboard, sorted in order of frequency, for efficiency
-		if (Piece.isPawn(pieceToPlace)) {
-			pieces[INDEX_PAWN] |= (mask);
-		} else if (Piece.isRook(pieceToPlace)) {
-			pieces[INDEX_ROOK] |= (mask);
-		} else if (Piece.isBishop(pieceToPlace)) {
-			pieces[INDEX_BISHOP] |= (mask);
-		} else if (Piece.isKnight(pieceToPlace)) {
-			pieces[INDEX_KNIGHT] |= (mask);
-		} else if (Piece.isKing(pieceToPlace)) {
-			pieces[INDEX_KING] |= mask;
-		} else if (Piece.isQueen(pieceToPlace)) {
-			pieces[INDEX_QUEEN] |= (mask);
-		} else {
-			assert false;
-		}
+		// Set on piece-specific bitboard
+		pieces[pieceToPlace & Piece.PIECE_NO_COLOUR_MASK] |= mask;
 		// Set on colour bitboard
 		if (Piece.isBlack(pieceToPlace)) {
 			blackPieces |= (mask);
@@ -518,6 +503,25 @@ public class Board {
 			allPieces &= ~pieceToPickUp;
 		}
 		return type;
+	}
+	
+	public int pickUpPieceAtSquare( int atPos, int piece ) {
+		long pieceToPickUp = BitBoard.positionToMask_Lut[atPos];
+		if ((allPieces & pieceToPickUp) != 0) {	
+			// Remove from relevant colour bitboard
+			if (Piece.isBlack(piece)) {
+				blackPieces &= ~pieceToPickUp;
+			} else {
+				whitePieces &= ~pieceToPickUp;
+			}
+			// remove from specific bitboard
+			pieces[piece & Piece.PIECE_NO_COLOUR_MASK] &= ~pieceToPickUp;
+			// Remove from all pieces bitboard
+			allPieces &= ~pieceToPickUp;
+		} else {
+			piece = Piece.NONE;
+		}
+		return piece;
 	}
 	
 	public int countDoubledPawnsForSide(Colour side) {
@@ -816,10 +820,39 @@ public class Board {
 		
 		if (king == 0)  return false;
 		
-		int atSquare = Move.getOriginPosition(move);
-		// establish if the square is on a multiple square slider mask from the king position
-		long square = BitBoard.positionToMask_Lut[atSquare];
 		int kingPosition = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(king)];
+		
+		return moveCouldLeadToDiscoveredCheck(move, kingPosition);
+	}
+	
+	public boolean moveCouldPotentiallyCheckOtherKing(Integer move) {
+		boolean isPotentialCheck = false;
+		int piece = Move.getOriginPiece(move);
+		long king = (Piece.isBlack(piece)) ? getWhiteKing() : getBlackKing();
+		
+		if (king == 0)  return false;
+		
+		int kingPosition = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(king)];
+		if (moveCouldLeadToDiscoveredCheck(move, kingPosition)) {
+			// Could be a discovered check, so search further
+			isPotentialCheck = true;
+		} else {
+			int targetSquare = Move.getTargetPosition(move);
+			long targetMask = BitBoard.positionToMask_Lut[targetSquare];
+			
+			// Establish if target square puts attacker onto a king attack square
+			if ((targetMask & SquareAttackEvaluator.allAttacksOnPosition_Lut[kingPosition]) != 0) {
+				// Could be either a direct or indirect attack on the King, so search further
+				isPotentialCheck = true;
+			}
+		}
+		return isPotentialCheck;
+	}
+	
+	private boolean moveCouldLeadToDiscoveredCheck(Integer move, int kingPosition) {
+		int atSquare = Move.getOriginPosition(move);
+		// Establish if the initial square is on a multiple square slider mask from the king position
+		long square = BitBoard.positionToMask_Lut[atSquare];
 		long attackingSquares = directAttacksOnPosition_Lut[kingPosition];
 		return ((square & attackingSquares) != 0);
 	}

@@ -31,7 +31,7 @@ public class ZobristHashCodeTest {
 		PositionManager pm = new PositionManager("8/8/8/8/8/5p2/4P3/8 w - - 0 1");
 		PositionManager pm_after_capture = new PositionManager("8/8/8/8/8/5P2/8/8 b - - 0 2");
 		
-		pm.performMove(Move.toMove(move, pm.getTheBoard(), Move.TYPE_NONE));
+		pm.performMove(Move.toMove(move, pm.getTheBoard(), Move.TYPE_REGULAR_NONE));
 		
 		assertEquals(pm_after_capture.getHash(), pm.getHash());
 	}

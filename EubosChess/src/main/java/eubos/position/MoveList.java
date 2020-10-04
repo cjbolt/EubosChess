@@ -1,11 +1,12 @@
 package eubos.position;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
-import java.util.PrimitiveIterator;
+import java.util.ListIterator;
 import java.util.Random;
-import java.util.function.IntConsumer;
 
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IntChessman;
@@ -13,15 +14,13 @@ import com.fluxchess.jcpi.models.IntChessman;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
+import eubos.score.MaterialEvaluator;
 
 public class MoveList implements Iterable<Integer> {
 	
-	private int[] normal_search_moves;
-	private int[] extended_search_moves;
-	private byte normalSearchBestMovePreviousIndex = -1;
-	private byte extendedSearchListBestMovePreviousIndex = -1;
+	private List<Integer> normal_search_moves;
+	private List<Integer> extended_search_moves;
 	
-	/* Not currently used because we sort by ascending numerical order using Arrays.sort() */
     class MoveTypeComparator implements Comparator<Integer> {
         @Override public int compare(Integer move1, Integer move2) {
             boolean gt = Move.getType(move1) < Move.getType(move2);
@@ -29,17 +28,49 @@ public class MoveList implements Iterable<Integer> {
             return gt ? 1 : (eq ? 0 : -1);
         }
     }
+    
+    public static final int [] MATERIAL = {0, MaterialEvaluator.MATERIAL_VALUE_KING, MaterialEvaluator.MATERIAL_VALUE_QUEEN, MaterialEvaluator.MATERIAL_VALUE_ROOK, 
+    		                               MaterialEvaluator.MATERIAL_VALUE_BISHOP, MaterialEvaluator.MATERIAL_VALUE_KNIGHT, MaterialEvaluator.MATERIAL_VALUE_PAWN }; 
+    
+    class MoveMvvLvaComparator implements Comparator<Integer> {
+        @Override public int compare(Integer move1, Integer move2) {
+            if (Move.getType(move1) < Move.getType(move2)) {
+            	return 1;
+            } else if (Move.getType(move1) == Move.getType(move2)) {
+            	if (!Move.isCapture(move1))
+            		return 0;
+            	// mvv lva used for tie breaking move type comparison, if it is a capture
+            	int victim1 = MATERIAL[Move.getTargetPiece(move1)&Piece.PIECE_NO_COLOUR_MASK];
+            	int attacker1 = MATERIAL[Move.getOriginPiece(move1)&Piece.PIECE_NO_COLOUR_MASK];
+            	int victim2 = MATERIAL[Move.getTargetPiece(move2)&Piece.PIECE_NO_COLOUR_MASK];
+            	int attacker2 = MATERIAL[Move.getOriginPiece(move2)&Piece.PIECE_NO_COLOUR_MASK];
+            	int mvvLvaRankingForMove1 = victim1-attacker1;
+            	int mvvLvaRankingForMove2 = victim2-attacker2;
+            	
+            	if (mvvLvaRankingForMove1 < mvvLvaRankingForMove2) {
+            		return 1;
+            	} else if (mvvLvaRankingForMove1 == mvvLvaRankingForMove2) {
+            		return 0;
+            	} else {
+            		return -1;
+            	}
+            } else {
+            	return -1;
+            }
+        }
+    }
 	
 	public MoveList(PositionManager pm) {
 		this(pm, Move.NULL_MOVE);
 	}
 	
-	int computeMoveType(PositionManager pm, int currMove, int piece) {
-		int moveType = Move.TYPE_NONE;
-		CaptureData cap = pm.getCapturedPiece();
+	private int computeMoveType(PositionManager pm, int currMove, int piece) {
+		int moveType = Move.TYPE_REGULAR_NONE;
 		
 		boolean isCastle = (Piece.isKing(piece)) ? pm.lastMoveWasCastle() : false;
-		boolean isCheck = pm.isKingInCheck(pm.getOnMove());
+		
+		// Only test for check if the move could potentially cause a check
+		boolean isCheck = pm.getTheBoard().moveCouldPotentiallyCheckOtherKing(currMove) && pm.isKingInCheck(pm.getOnMove());
 		
 		// Check
 		if (isCheck)
@@ -50,33 +81,27 @@ public class MoveList implements Iterable<Integer> {
 			moveType |= Move.TYPE_CASTLE_MASK;
 			
 		} else {
-			boolean isCapture = (cap != null && cap.target != Piece.NONE);
+			int targetPiece = Move.getTargetPiece(currMove);
 			
 			// Promotions
 			int promotion = Move.getPromotion(currMove);
 			if (promotion == IntChessman.QUEEN)
 				moveType |= Move.TYPE_PROMOTION_QUEEN_MASK;
-			if (promotion == IntChessman.ROOK)
-				moveType |= Move.TYPE_PROMOTION_ROOK_MASK;
-			if (promotion == IntChessman.BISHOP || promotion == IntChessman.KNIGHT)
+			if (promotion == IntChessman.BISHOP || promotion == IntChessman.KNIGHT || promotion == IntChessman.ROOK)
 				moveType |= Move.TYPE_PROMOTION_PIECE_MASK;
 			
 			// Captures
-			if (isCapture) {
-				if (Piece.isQueen(cap.target)) {
-					moveType |= Move.TYPE_CAPTURE_QUEEN_MASK;
-				} else if (Piece.isRook(cap.target)) {
-					moveType |= Move.TYPE_CAPTURE_ROOK_MASK;
-				} else if (Piece.isKnight(cap.target) || Piece.isBishop(cap.target)) {
-					moveType |= Move.TYPE_CAPTURE_PIECE_MASK;
-				} else if (Piece.isPawn(cap.target)) {
-					moveType |= Move.TYPE_CAPTURE_PAWN_MASK;
-				}
+			switch (targetPiece & Piece.PIECE_NO_COLOUR_MASK) {
+			case Piece.QUEEN:
+			case Piece.BISHOP:
+			case Piece.KNIGHT:
+			case Piece.ROOK:
+			case Piece.PAWN:
+				moveType |= Move.TYPE_CAPTURE_MASK;
+				break;
+			default:
+				break;
 			}
-			
-			// Regular
-			if (moveType == Move.TYPE_NONE)
-				moveType |= Move.TYPE_REGULAR_MASK;
 		}		
 		
 		return moveType;		
@@ -88,10 +113,11 @@ public class MoveList implements Iterable<Integer> {
 		if (pm.lastMoveWasCheck() || (pm.noLastMove() && pm.isKingInCheck(onMove))) {
 			needToEscapeMate = true;
 		}
-		List<Integer> allMoves = pm.generateMoves();
-		int [] outputMove = new int [allMoves.size()];
-		int count = 0;
-		for (int currMove : allMoves) {
+		normal_search_moves = pm.generateMoves();
+		
+		ListIterator<Integer> it = normal_search_moves.listIterator();
+		while (it.hasNext()) {
+			int currMove = it.next();
 			try {
 				boolean possibleDiscoveredOrMoveIntoCheck = false;
 				int piece = pm.getTheBoard().getPieceAtSquare(Move.getOriginPosition(currMove));
@@ -100,10 +126,13 @@ public class MoveList implements Iterable<Integer> {
 				}
 				pm.performMove(currMove, false);
 				if ((possibleDiscoveredOrMoveIntoCheck || needToEscapeMate) && pm.isKingInCheck(onMove)) {
-					// Scratch any moves resulting in the king being in check, includes no escape moves!
+					// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
+					it.remove();
 				} else {
 					int moveType = computeMoveType(pm, currMove, piece);
-					outputMove[count++] = Move.setType(currMove, moveType);
+					currMove = Move.setType(currMove, moveType);
+					// Update with type
+					it.set(currMove);
 				}
 				pm.unperformMove(false);
 			} catch(InvalidPieceException e) {
@@ -111,159 +140,48 @@ public class MoveList implements Iterable<Integer> {
 			}
 		}
 		// Sort the list
-		Arrays.sort(outputMove);
-		
-		// copy and flip order
-		int [] moves = new int[count];
-		for (int i=0; i < count; i++) {
-			moves[i] = outputMove[outputMove.length-1-i];
-		}
-		
-		normal_search_moves = moves;
-		extended_search_moves = create_extended_list(moves);
+		Collections.sort(normal_search_moves, new MoveMvvLvaComparator());
 		
 		if (bestMove != Move.NULL_MOVE) {
 			seedListWithBestMove(normal_search_moves, bestMove);
-			seedListWithBestMove(extended_search_moves, bestMove);
 		}
-	}
-	
-	private byte getIndex(int[] moveArray, int move) {
-		byte index = 0;
-		boolean found = false;
-		for (int current : moveArray) {
-			if (Move.areEqual(move,current)) {
-				found = true;
-				break;	
-			}
-			index++;
-		}
-		if (!found) {
-			index = -1;
-		}
-		return index;
-	}
-	
-	private void swapWithFirst(int[] moveArray, int index) {
-		if (isMovePresent(index) && index < moveArray.length) {
-			int temp = moveArray[0];
-			moveArray[0] = moveArray[index];
-			moveArray[index] = temp;
-		}
-	}
-	
-	private void seedListWithBestMove(int[] moveArray, int newBestMove) {
-		int index = getIndex(moveArray, newBestMove);
-	    swapWithFirst(moveArray, index);
-	}
-		
-	private int[] create_extended_list(int[] moves) {
-		int[] countList = new int[moves.length];
-		int count = 0;
-		for (int move : moves ) {
-			if (Move.isQueenPromotion(move) || Move.isCapture(move) || Move.isCheck(move)) {
-				countList[count++] = move;
-			}
-		}
-		// copy
-		int[] array = new int[count];
-		for (int i=0; i<count; i++) {
-			array[i] = countList[i];
-		}
-		return array;
-	}
-	
-	public class MovesIterator implements PrimitiveIterator.OfInt {
-
-		private int[] moveList = null;
-		private int next = 0;
-	
-		public MovesIterator(int[] array) {
-			moveList = array.clone();
-			next = 0;
-		}
-
-		public boolean hasNext() {
-			return next < moveList.length;
-		}
-
-		public Integer next() {
-			assert false; // should always use nextInt()
-			return moveList[next++];
-		}
-
-		@Override
-		public void remove() {
-		}
-
-		@Override
-		public void forEachRemaining(IntConsumer action) {
-			
-		}
-
-		@Override
-		public int nextInt() {
-			return moveList[next++];
-		}
-	}
-	
-	public PrimitiveIterator.OfInt getIterator(boolean extended) {
-		return new MovesIterator(extended ? extended_search_moves : normal_search_moves);
 	}
 	
 	@Override
-	public PrimitiveIterator.OfInt iterator() {
-		return new MovesIterator(normal_search_moves);
+	public Iterator<Integer> iterator() {
+		return normal_search_moves.iterator();
+	}
+	
+	public Iterator<Integer> getStandardIterator(boolean extended) {
+		Iterator<Integer> it;
+		if (extended) {
+			// Lazy creation of extended move list
+			extended_search_moves = new ArrayList<Integer>(normal_search_moves.size());
+			for (int currMove : normal_search_moves) {
+				if (Move.isQueenPromotion(currMove) || Move.isCapture(currMove) || Move.isCheck(currMove)) {
+					extended_search_moves.add(currMove);
+				}
+			}
+			it = extended_search_moves.iterator();
+		} else {
+			it = normal_search_moves.iterator();
+		}
+		return it; 
 	}
 		
 	public boolean isMateOccurred() {
-		return (normal_search_moves.length == 0);
+		return (normal_search_moves.size() == 0);
 	}
 	
 	public GenericMove getRandomMove() {
 		GenericMove bestMove = null;
 		if (!isMateOccurred()) {
 			Random randomIndex = new Random();
-			Integer indexToGet = randomIndex.nextInt(normal_search_moves.length);
-			bestMove = Move.toGenericMove(normal_search_moves[indexToGet]);		
+			Integer indexToGet = randomIndex.nextInt(normal_search_moves.size());
+			bestMove = Move.toGenericMove(normal_search_moves.get(indexToGet));		
 		}
 		return bestMove;
 	}
-
-	public void reorderWithNewBestMove(int newBestMove) {
-		normalSearchBestMovePreviousIndex = reorderList(normal_search_moves, newBestMove, normalSearchBestMovePreviousIndex);
-		extendedSearchListBestMovePreviousIndex = reorderList(extended_search_moves, newBestMove, extendedSearchListBestMovePreviousIndex);
-	}
-	
-	private byte reorderList(int[] moveArray, int newBestMove, byte prevBestOriginalIndex) {
-		byte index = getIndex(moveArray, newBestMove);
-		if (isMovePresent(index) && !isMoveAlreadyBest(index)) {
-			
-			if (wasPreviouslyModified(prevBestOriginalIndex)) {
-				// Swap back the previous best move into its previous position, if this isn't a direct swap
-				if (prevBestOriginalIndex == index) {
-					// It is a direct swap back, set to -1 as the list is restored to its initial state
-					prevBestOriginalIndex = -1;
-				} else {
-					swapWithFirst(moveArray, prevBestOriginalIndex);
-					prevBestOriginalIndex = index;
-				}
-			} else {
-				// Initialise the previous best index the first time the best move is altered
-				prevBestOriginalIndex = index;
-			}
-			
-			// Swap in the new best move
-			swapWithFirst(moveArray, index);
-		}
-		return prevBestOriginalIndex;
-	}
-	
-	private boolean isMovePresent(int index) { return (index != -1); }
-	
-	private boolean isMoveAlreadyBest(int index) { return (index == 0); }
-	
-	private boolean wasPreviouslyModified(int index) { return index != -1; }
 	
 	@Override
 	public String toString() {
@@ -286,29 +204,55 @@ public class MoveList implements Iterable<Integer> {
 		}
 		return false;
 	}
-	
-	public boolean contains(int move) {
-		for (int reg_move : normal_search_moves) {
-			if (move == reg_move)
-				return true;
-		}
-		return false;
-	}
 
 	public int getBestMove() {
-		if (normal_search_moves.length != 0) {
-			return normal_search_moves[0];
+		if (normal_search_moves.size() != 0) {
+			return normal_search_moves.get(0);
 		} else {
 			return Move.NULL_MOVE;
 		}
 	}
 	
 	public int getSafestMove() {
-		if (normal_search_moves.length != 0) {
+		if (normal_search_moves.size() != 0) {
 			/* The logic is to avoid checks, which will be in the highest prio indexes of the ml */
-			return normal_search_moves[normal_search_moves.length-1];
+			return normal_search_moves.get(normal_search_moves.size()-1);
 		} else {
 			return Move.NULL_MOVE;
 		}
+	}
+	
+	private int getIndex(List<Integer> moves, int move) {
+		int index = -1;
+		int count = 0;
+		for (int currMove : moves) {
+			if (Move.areEqual(currMove, move)) {
+				index = count;
+				break;
+			} else {
+				count++;
+			}
+		}
+		return index;
+	}
+	
+	private void seedListWithBestMove(List<Integer> moves, int newBestMove) {
+		if (moves.size() != 0) {
+			int index = getIndex(moves, newBestMove);
+			if (index > 0) {
+				int prevBest = moves.get(0);
+				moves.set(0, moves.get(index));
+				moves.set(index, prevBest);
+			}
+		}
+	}
+	
+	// Test API
+	boolean contains(int move) {
+		for (int reg_move : normal_search_moves) {
+			if (move == reg_move)
+				return true;
+		}
+		return false;
 	}
 }

@@ -17,26 +17,30 @@ public class MateScoreGenerator implements IScoreMate {
 		this.pe = pe;
 	}
 	
+	private boolean isInitialOnMove(byte currPly) {
+		return (currPly%2) == 0;
+	}
+	
+	private short getWhiteIsMatedScore(short mateMoveNum) {
+		return (short) (Short.MIN_VALUE + mateMoveNum);
+	}
+	
+	private short getBlackIsMatedScore(short mateMoveNum) {
+		return (short) (Short.MAX_VALUE - mateMoveNum);
+	}
+	
 	public short scoreMate(byte currPly) {
-		// Handle mates (indicated by no legal moves)
 		short mateScore = 0;
 		if (pos.isKingInCheck()) {
+			// Checkmate
 			short mateMoveNum = (short)(((currPly-1)/PLIES_PER_MOVE)+1); // currPly-1 because mate was caused by the move from the previousPly
-			// If white got mated, need to back up a large negative score (good for black)
 			if (Colour.isWhite(initialOnMove)) {
-				if ((currPly%2) == 0) {
-					mateScore = (short) (Short.MIN_VALUE + mateMoveNum);
-				} else {
-					mateScore = (short) (Short.MAX_VALUE - mateMoveNum);
-				}
-			} else {
-				if ((currPly%2) == 0) {
-					mateScore = (short) (Short.MAX_VALUE - mateMoveNum);
-				} else {
-					mateScore = (short) (Short.MIN_VALUE + mateMoveNum);
-				}
+				mateScore = isInitialOnMove(currPly) ? getWhiteIsMatedScore(mateMoveNum) : getBlackIsMatedScore(mateMoveNum);
+			} else { // initial on move is black
+				mateScore = isInitialOnMove(currPly) ? getBlackIsMatedScore(mateMoveNum) : getWhiteIsMatedScore(mateMoveNum);
 			}
 		} else {
+			// Stalemate
 			mateScore = pe.getScoreForStalemate();
 		}
 		return mateScore;

@@ -1,7 +1,7 @@
 package eubos.search;
 
+import java.util.Iterator;
 import java.util.List;
-import java.util.PrimitiveIterator;
 
 import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
@@ -96,13 +96,16 @@ public class PlySearcher {
 		case sufficientTerminalNode:
 		case sufficientRefutation:
 			// Check score for hashed position causing a search cut-off is still valid (i.e. best move doesn't lead to a draw)
-			if (checkForRepetitionDueToPositionInSearchTree(eval.trans.getBestMove())) {
+			// If hashed score is a draw score, check it is still a draw, if not, search position
+			boolean isThreefold = checkForRepetitionDueToPositionInSearchTree(eval.trans.getBestMove());
+			if (isThreefold || (!isThreefold && (eval.trans.getScore() == 0))) {
 				// Assume it is now a draw, so re-search
 				SearchDebugAgent.printHashIsSeedMoveList(eval.trans.getBestMove(), pos.getHash());
 				theScore = searchMoves( eval.trans.getBestMove(), eval.trans);
 				break;
 			} else {
-				theScore = new Score(eval.trans.getScore(), eval.trans.getType());
+				short adjustedScore = st.adjustHashTableMateInXScore(currPly, eval.trans.getScore());
+				theScore = new Score(adjustedScore, eval.trans.getType());
 			}
 			pc.set(currPly, eval.trans.getBestMove());
 			if (EubosEngineMain.UCI_INFO_ENABLED)
@@ -168,7 +171,7 @@ public class PlySearcher {
             setDepthSearchedInPly();
 			trans = tt.setTransposition(trans, getTransDepth(), theScore.getScore(), theScore.getType(), Move.NULL_MOVE);
         } else {
-    		PrimitiveIterator.OfInt move_iter = ml.getIterator(isInExtendedSearch());
+    		Iterator<Integer> move_iter = ml.getStandardIterator(isInExtendedSearch());
     		if (move_iter.hasNext()) {
     			theScore = actuallySearchMoves(ml, move_iter, trans);
     		} else {
@@ -182,14 +185,14 @@ public class PlySearcher {
         return theScore;
     }
 
-	private Score actuallySearchMoves(MoveList ml, PrimitiveIterator.OfInt move_iter, ITransposition trans) throws InvalidPieceException {
+	private Score actuallySearchMoves(MoveList ml, Iterator<Integer> move_iter, ITransposition trans) throws InvalidPieceException {
 		boolean everBackedUp = false;
 		boolean backedUpScoreWasExact = false;
 		boolean refutationFound = false;
 
 		byte plyBound = (pos.onMoveIsWhite()) ? Score.lowerBound : Score.upperBound;
 		Score plyScore = new Score(plyBound);
-		int currMove = move_iter.nextInt();
+		int currMove = move_iter.next();
 		pc.initialise(currPly, currMove);
 
 		plyScore = initialiseScoreForSingularCaptureInExtendedSearch(ml, move_iter, plyBound, plyScore);
@@ -224,7 +227,7 @@ public class PlySearcher {
 				}
 			}
 			if (move_iter.hasNext()) {
-				currMove = move_iter.nextInt();
+				currMove = move_iter.next();
 			} else {
 				break;
 			}
@@ -251,7 +254,7 @@ public class PlySearcher {
 		return plyScore;
 	}
 
-	private Score initialiseScoreForSingularCaptureInExtendedSearch(MoveList ml, PrimitiveIterator.OfInt move_iter,
+	private Score initialiseScoreForSingularCaptureInExtendedSearch(MoveList ml, Iterator<Integer> move_iter,
 			byte plyBound, Score plyScore) throws InvalidPieceException {
 		if (isInExtendedSearch() && !move_iter.hasNext()) {
 			/*

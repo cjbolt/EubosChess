@@ -277,7 +277,9 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		setupPosition( "2N5/4R3/2k3KQ/R7/1PB5/5N2/8/6B1 w - - 0 1" );
 		// various possible mates
-		expectedMove = new GenericMove("b4b5");
+		//expectedMove = new GenericMove("b4b5");
+		expectedMove = new GenericMove("f3e5");
+		//expectedMove = new GenericMove("g6g7");
 		doFindMoveTest((byte)1, true);
 	}
 	
@@ -286,7 +288,8 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		setupPosition( "4N3/5P1P/5N1k/Q5p1/5PKP/B7/8/1B6 w - - 0 1" );
 		// various possible mates
-		expectedMove = new GenericMove("h7h8q");
+		//expectedMove = new GenericMove("h7h8q");
+		expectedMove = new GenericMove("f7f8q");
 		doFindMoveTest((byte)1, true);
 	}
 	
@@ -295,7 +298,8 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		setupPosition("8/4N3/7Q/4k3/8/4KP2/3P4/8 w - - 0 1" );
 		// Two possible pawn mates
-		expectedMove = new GenericMove("f3f4");
+		//expectedMove = new GenericMove("f3f4");
+		expectedMove = new GenericMove("d2d4");
 		doFindMoveTest((byte)1, true);
 	}
 	
@@ -422,7 +426,9 @@ public class MiniMaxMoveGeneratorTest {
 		assertEquals(expectedMove, res.bestMove);
 		
 		// changed to safest move in extended search changed the move used here 21st August 2020
-		expectedMove = new GenericMove("h8g8");
+		//expectedMove = new GenericMove("h8g8");
+		// equally valid
+		expectedMove = new GenericMove("h8g7");
 		List<Integer> lastPc = classUnderTest.pc.toPvList(0);
 		res = classUnderTest.findMove((byte)5, lastPc);
 		

@@ -86,4 +86,13 @@ public class ScoreTracker {
 		}
 		return isAlphaBetaCutOff;
 	}	
+	
+	public short adjustHashTableMateInXScore(byte currPly, short score) {
+		if (Math.abs(score) > Short.MAX_VALUE-100) {
+			// Indicates hash table score was mate-in-X, adjust the score according to this depth position in the search tree
+			int move_num = (currPly+1)/2;
+			score = (short) ((score < 0 ) ? score+move_num : score-move_num);
+		}
+		return score;
+	}
 }

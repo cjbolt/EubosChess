@@ -392,7 +392,7 @@ public class PositionManagerTest {
 	public void test_BlackPawn_MoveGen_PromoteRook() {
 		classUnderTest = new PositionManager("8/8/8/8/8/8/4p3/8 b - - 0 1 ");
 		theMl = new MoveList(classUnderTest);
-		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_ROOK_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, IntChessman.ROOK );
+		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_PIECE_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, IntChessman.ROOK );
 		assertTrue( theMl.contains( expectedMove ));
 	}
 	
@@ -560,7 +560,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_PromoteRook() {
 		classUnderTest = new PositionManager("8/4P3/8/8/8/8/8/8 w - - 0 1 ");
 		theMl = new MoveList(classUnderTest);
-		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_ROOK_MASK, Position.e7, Piece.PAWN, Position.e8, Piece.NONE, IntChessman.ROOK );
+		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_PIECE_MASK, Position.e7, Piece.PAWN, Position.e8, Piece.NONE, IntChessman.ROOK );
 		assertTrue( theMl.contains( expectedMove ));	
 	}
 	
