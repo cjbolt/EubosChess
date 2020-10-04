@@ -14,7 +14,7 @@ import com.fluxchess.jcpi.models.IntChessman;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
-import eubos.score.MaterialEvaluator;
+import eubos.score.PositionEvaluator;
 
 public class MoveList implements Iterable<Integer> {
 	
@@ -29,8 +29,8 @@ public class MoveList implements Iterable<Integer> {
         }
     }
     
-    public static final int [] MATERIAL = {0, MaterialEvaluator.MATERIAL_VALUE_KING, MaterialEvaluator.MATERIAL_VALUE_QUEEN, MaterialEvaluator.MATERIAL_VALUE_ROOK, 
-    		                               MaterialEvaluator.MATERIAL_VALUE_BISHOP, MaterialEvaluator.MATERIAL_VALUE_KNIGHT, MaterialEvaluator.MATERIAL_VALUE_PAWN }; 
+    public static final int [] MATERIAL = {0, PositionEvaluator.MATERIAL_VALUE_KING, PositionEvaluator.MATERIAL_VALUE_QUEEN, PositionEvaluator.MATERIAL_VALUE_ROOK, 
+    		PositionEvaluator.MATERIAL_VALUE_BISHOP, PositionEvaluator.MATERIAL_VALUE_KNIGHT, PositionEvaluator.MATERIAL_VALUE_PAWN }; 
     
     class MoveMvvLvaComparator implements Comparator<Integer> {
         @Override public int compare(Integer move1, Integer move2) {
