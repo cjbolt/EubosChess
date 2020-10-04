@@ -11,7 +11,7 @@ import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.score.IEvaluate;
-import eubos.score.MaterialEvaluator;
+import eubos.score.PositionEvaluator;
 import eubos.search.NoLegalMoveException;
 import eubos.search.PlySearcher;
 import eubos.search.PrincipalContinuation;
@@ -108,7 +108,7 @@ public class MiniMaxMoveGenerator implements
 			System.exit(0);
 		}
 		if (score != Short.MIN_VALUE && score != Short.MAX_VALUE &&
-			Math.abs(score) >= (MaterialEvaluator.MATERIAL_VALUE_KING*2)) {
+			Math.abs(score) >= (PositionEvaluator.MATERIAL_VALUE_KING*2)) {
 			foundMate = true;
 		}
 		if (EubosEngineMain.UCI_INFO_ENABLED && sendInfo) {

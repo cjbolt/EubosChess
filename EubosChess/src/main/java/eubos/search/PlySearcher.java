@@ -400,7 +400,7 @@ public class PlySearcher {
 		currPly++;
 		SearchDebugAgent.nextPly();
 		// exact because it is a terminal node
-		Score positionScore = new Score(pe.evaluatePosition(), Score.exact);
+		Score positionScore = pe.evaluatePosition();
 		
 		pm.unperformMove(false);
 		currPly--;
@@ -417,7 +417,7 @@ public class PlySearcher {
 	private Score assessNewPosition() throws InvalidPieceException {
 		Score positionScore = null;
 		if ( isTerminalNode() ) {
-			positionScore = new Score(pe.evaluatePosition(), Score.exact);
+			positionScore = pe.evaluatePosition();
 			currDepthSearchedInPly = 1; // We applied a move in order to generate this score
 		} else {
 			positionScore = searchPly();

@@ -5,7 +5,7 @@ import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.IPositionAccessors;
 import eubos.score.MaterialEvaluation;
-import eubos.score.MaterialEvaluator;
+import eubos.score.PositionEvaluator;
 
 public class SearchContext {
 	MaterialEvaluation initial;
@@ -19,20 +19,20 @@ public class SearchContext {
 	
 	static final short SIMPLIFICATION_BONUS = 75;
 	static final short AVOID_DRAW_HANDICAP = -150;
-	static final short ACHIEVES_DRAW_BONUS = MaterialEvaluator.MATERIAL_VALUE_KING/2;
+	static final short ACHIEVES_DRAW_BONUS = PositionEvaluator.MATERIAL_VALUE_KING/2;
 	
 	static final int ENDGAME_MATERIAL_THRESHOLD = 
-			MaterialEvaluator.MATERIAL_VALUE_KING + 
-			MaterialEvaluator.MATERIAL_VALUE_ROOK + 
-			MaterialEvaluator.MATERIAL_VALUE_KNIGHT + 
-			(4 * MaterialEvaluator.MATERIAL_VALUE_PAWN);
+			PositionEvaluator.MATERIAL_VALUE_KING + 
+			PositionEvaluator.MATERIAL_VALUE_ROOK + 
+			PositionEvaluator.MATERIAL_VALUE_KNIGHT + 
+			(4 * PositionEvaluator.MATERIAL_VALUE_PAWN);
 	
 	static final int ENDGAME_MATERIAL_THRESHOLD_WITHOUT_QUEENS =
-			MaterialEvaluator.MATERIAL_VALUE_KING + 
-			MaterialEvaluator.MATERIAL_VALUE_ROOK + 
-			MaterialEvaluator.MATERIAL_VALUE_KNIGHT +
-			MaterialEvaluator.MATERIAL_VALUE_BISHOP +
-			(4 * MaterialEvaluator.MATERIAL_VALUE_PAWN);
+			PositionEvaluator.MATERIAL_VALUE_KING + 
+			PositionEvaluator.MATERIAL_VALUE_ROOK + 
+			PositionEvaluator.MATERIAL_VALUE_KNIGHT +
+			PositionEvaluator.MATERIAL_VALUE_BISHOP +
+			(4 * PositionEvaluator.MATERIAL_VALUE_PAWN);
 	
 	static final boolean ALWAYS_TRY_FOR_WIN = false;
 	

@@ -61,23 +61,23 @@ public class MateScoreGeneratorTest {
 	public void testStaleMate_whenTryForStaleMate_white() {
 		PositionManager pm = new PositionManager("8/8/8/8/8/1k6/p7/K7 w - - 5 62");
 		MaterialEvaluation me = new MaterialEvaluation();
-		me.black = MaterialEvaluator.MATERIAL_VALUE_KING + 250;
-		me.white = MaterialEvaluator.MATERIAL_VALUE_KING;
+		me.black = PositionEvaluator.MATERIAL_VALUE_KING + 250;
+		me.white = PositionEvaluator.MATERIAL_VALUE_KING;
 		PositionEvaluator pe = new PositionEvaluator(pm);
 		classUnderTest = new MateScoreGenerator(pm, pe);
 		// White wants stalemate
-		assertEquals(MaterialEvaluator.MATERIAL_VALUE_KING/2, classUnderTest.scoreMate((byte)0));
+		assertEquals(PositionEvaluator.MATERIAL_VALUE_KING/2, classUnderTest.scoreMate((byte)0));
 	}
 	
 	@Test
 	public void testStaleMate_whenTryForStaleMate_black() {
 		PositionManager pm = new PositionManager("k7/P7/1K6/8/8/8/8/8 b - - 5 1");
 		MaterialEvaluation me = new MaterialEvaluation();
-		me.black = MaterialEvaluator.MATERIAL_VALUE_KING;
-		me.white = MaterialEvaluator.MATERIAL_VALUE_KING + 250;
+		me.black = PositionEvaluator.MATERIAL_VALUE_KING;
+		me.white = PositionEvaluator.MATERIAL_VALUE_KING + 250;
 		PositionEvaluator pe = new PositionEvaluator(pm);
 		classUnderTest = new MateScoreGenerator(pm, pe);
 		// Black wants stalemate
-		assertEquals(-MaterialEvaluator.MATERIAL_VALUE_KING/2, classUnderTest.scoreMate((byte)0));
+		assertEquals(-PositionEvaluator.MATERIAL_VALUE_KING/2, classUnderTest.scoreMate((byte)0));
 	}
 }
