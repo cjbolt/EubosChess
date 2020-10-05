@@ -299,4 +299,36 @@ public class PositionEvaluatorTest {
 		pm.performMove(Move.valueOf(Move.TYPE_CHECK_MASK, Position.b2, Piece.WHITE_BISHOP, Position.c1, Piece.NONE, IntChessman.NOCHESSMAN));
 		assertFalse(SUT.isQuiescent());
 	}
+	
+	@Test
+	public void test_updateMaterialForMove_queen_promotion() throws InvalidPieceException {
+		setUpPosition("8/4P3/7k/8/8/8/1B6/8 w - - 0 1");
+		MaterialEvaluation initialMe = SUT.evaluateMaterial(pm.getTheBoard(), true);
+		short initial = initialMe.getDelta();
+		int promotionMove = Move.valueOf(Move.TYPE_PROMOTION_QUEEN_MASK, Position.e7, Piece.WHITE_PAWN, Position.e8, Piece.NONE, IntChessman.QUEEN);
+		
+		pm.performMove(promotionMove);
+		MaterialEvaluation me = SUT.updateMaterialForDoMove(pm.getTheBoard(), promotionMove);
+		assertNotEquals(initial, me.getDelta());
+		
+		pm.unperformMove();
+		me = SUT.updateMaterialForUndoMove(pm.getTheBoard(), Move.reverse(promotionMove));
+		assertEquals(initialMe.getDelta(), me.getDelta());
+	}
+	
+	@Test
+	public void test_updateMaterialForMove_capture() throws InvalidPieceException {
+		setUpPosition("8/4P3/7k/8/8/8/1B6/8 w - - 0 1");
+		MaterialEvaluation initialMe = SUT.evaluateMaterial(pm.getTheBoard(), true);
+		short initial = initialMe.getDelta();
+		int promotionMove = Move.valueOf(Move.TYPE_PROMOTION_QUEEN_MASK, Position.e7, Piece.WHITE_PAWN, Position.e8, Piece.NONE, IntChessman.QUEEN);
+		
+		pm.performMove(promotionMove);
+		MaterialEvaluation me = SUT.updateMaterialForDoMove(pm.getTheBoard(), promotionMove);
+		assertNotEquals(initial, me.getDelta());
+		
+		pm.unperformMove();
+		me = SUT.updateMaterialForUndoMove(pm.getTheBoard(), Move.reverse(promotionMove));
+		assertEquals(initialMe.getDelta(), me.getDelta());
+	}
 }

@@ -73,6 +73,19 @@ public abstract class Piece {
 		return isWhite(arg) ? Colour.black : Colour.white;
 	} 
 	
+	public static int convertChessmanToPiece(int chessman, boolean isWhite) {
+		int eubosPiece = Piece.NONE;
+		if (chessman==IntChessman.KNIGHT)
+			eubosPiece = isWhite ? Piece.WHITE_KNIGHT : Piece.BLACK_KNIGHT;
+		else if (chessman==IntChessman.BISHOP)
+			eubosPiece = isWhite ? Piece.WHITE_BISHOP : Piece.BLACK_BISHOP;
+		else if (chessman==IntChessman.ROOK)
+			eubosPiece = isWhite? Piece.WHITE_ROOK : Piece.BLACK_ROOK;
+		else if (chessman==IntChessman.QUEEN)
+			eubosPiece = isWhite ? Piece.WHITE_QUEEN : Piece.BLACK_QUEEN;
+		return eubosPiece;
+	}
+	
 	public static char toFenChar(int piece) {
 		char chessman = 0;
 		if (piece==Piece.WHITE_PAWN)

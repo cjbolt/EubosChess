@@ -9,6 +9,7 @@ import eubos.board.Piece;
 import eubos.board.SquareAttackEvaluator;
 import eubos.board.Piece.Colour;
 import eubos.position.CaptureData;
+import eubos.position.CastlingManager;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.position.Position;
@@ -107,54 +108,174 @@ public class PositionEvaluator implements IEvaluate {
 		sc = new SearchContext(pm, me);
 	}
 	
+	private int updateMaterialForPiece(Board theBoard, boolean isEndgame, int currPiece, int atPos) {
+		int currValue = 0;
+		if ( currPiece==Piece.WHITE_PAWN ) {
+			currValue = MATERIAL_VALUE_PAWN;
+			currValue += PAWN_WHITE_WEIGHTINGS[atPos];
+		} else if ( currPiece==Piece.BLACK_PAWN ) {
+			currValue = MATERIAL_VALUE_PAWN;
+			currValue += PAWN_BLACK_WEIGHTINGS[atPos];
+		} else if (Piece.isRook(currPiece)) {
+			currValue = MATERIAL_VALUE_ROOK;
+			currValue += theBoard.getNumRankFileSquaresAvailable(atPos)*2;
+		} else if (Piece.isBishop(currPiece)) {
+			currValue = MATERIAL_VALUE_BISHOP;
+			currValue += theBoard.getNumDiagonalSquaresAvailable(atPos)*2;
+		} else if (Piece.isKnight(currPiece)) {
+			currValue = MATERIAL_VALUE_KNIGHT;
+			currValue += KNIGHT_WEIGHTINGS[atPos];
+		} else if (Piece.isQueen(currPiece)) {
+			currValue = MATERIAL_VALUE_QUEEN;
+		} else if (Piece.isKing(currPiece)) {
+			currValue = MATERIAL_VALUE_KING;
+			if (isEndgame) {
+				currValue += KING_ENDGAME_WEIGHTINGS[atPos];
+			} else {
+				currValue += KING_MIDGAME_WEIGHTINGS[atPos];
+			}
+		}
+		return currValue;
+	}
+	
+	private void incrementMaterialForPiece(Board theBoard, boolean isEndgame, int currPiece, int atPos) {
+		int currValue = updateMaterialForPiece(theBoard, isEndgame, currPiece, atPos);
+		if (Piece.isWhite(currPiece)) {
+			me.addWhite(currValue);
+		} else { 
+			me.addBlack(currValue);
+		}
+	}
+	
+	private void decrementMaterialForPiece(Board theBoard, boolean isEndgame, int currPiece, int atPos) {
+		int currValue = updateMaterialForPiece(theBoard, isEndgame, currPiece, atPos);
+		if (Piece.isWhite(currPiece)) {
+			me.addWhite(-currValue);
+		} else { 
+			me.addBlack(-currValue);
+		}
+	}
+	
 	MaterialEvaluation evaluateMaterial(Board theBoard, boolean isEndgame) {
 		PrimitiveIterator.OfInt iter_p = theBoard.iterator();
-		MaterialEvaluation materialEvaluation = new MaterialEvaluation();
+		me = new MaterialEvaluation();
 		while ( iter_p.hasNext() ) {
 			int atPos = iter_p.nextInt();
 			int currPiece = theBoard.getPieceAtSquare(atPos);
-			int currValue = 0;
-			if ( currPiece==Piece.WHITE_PAWN ) {
-				currValue = MATERIAL_VALUE_PAWN;
-				currValue += PAWN_WHITE_WEIGHTINGS[atPos];
-			} else if ( currPiece==Piece.BLACK_PAWN ) {
-				currValue = MATERIAL_VALUE_PAWN;
-				currValue += PAWN_BLACK_WEIGHTINGS[atPos];
-			} else if (Piece.isRook(currPiece)) {
-				currValue = MATERIAL_VALUE_ROOK;
-				currValue += theBoard.getNumRankFileSquaresAvailable(atPos)*2;
-			} else if (Piece.isBishop(currPiece)) {
-				currValue = MATERIAL_VALUE_BISHOP;
-				currValue += theBoard.getNumDiagonalSquaresAvailable(atPos)*2;
-			} else if (Piece.isKnight(currPiece)) {
-				currValue = MATERIAL_VALUE_KNIGHT;
-				currValue += KNIGHT_WEIGHTINGS[atPos];
-			} else if (Piece.isQueen(currPiece)) {
-				currValue = MATERIAL_VALUE_QUEEN;
-			} else if (Piece.isKing(currPiece)) {
-				currValue = MATERIAL_VALUE_KING;
-				if (isEndgame) {
-					currValue += KING_ENDGAME_WEIGHTINGS[atPos];
-				} else {
-					currValue += KING_MIDGAME_WEIGHTINGS[atPos];
-				}
-			}
-			if (Piece.isWhite(currPiece)) {
-				materialEvaluation.addWhite(currValue);
-			} else { 
-				materialEvaluation.addBlack(currValue);
-			}
+			incrementMaterialForPiece(theBoard, isEndgame, currPiece, atPos);
 		}
-		me = materialEvaluation;
 		return me;
 	}
 	
-	void updateMaterial(Board theBoard, boolean isEndgame, int move) {
-		// update for new origin piece PST
-		int piece = Move.getOriginPiece(move);
-		// update for target piece
-		//int target = Move.getTargetPiece(move);
-		// update for promotion
+	public MaterialEvaluation updateMaterialForDoMove(Board theBoard, int move) {
+		boolean isEndgame = sc.isEndgame();
+		// Update for new origin piece PSTs
+		int originPiece = Move.getOriginPiece(move);
+		if (Move.isPromotion(move)) {
+			int promotedChessman = Move.getPromotion(move);
+			int promotedPiece = Piece.convertChessmanToPiece(promotedChessman, Piece.isWhite(originPiece));
+			//int targetPos = Move.getTargetPosition(move);
+			//int targetRank = Position.getRank(targetPos);
+			//boolean applyPromotion = (targetRank == 0 || targetRank == 7);
+			//if (applyPromotion) {
+				// Do promotion
+				decrementMaterialForPiece(theBoard, isEndgame, originPiece, Move.getOriginPosition(move));
+				incrementMaterialForPiece(theBoard, isEndgame, promotedPiece, Move.getTargetPosition(move));
+			//} else {
+			//	// Undo promotion
+			//	decrementMaterialForPiece(theBoard, isEndgame, promotedPiece, Move.getOriginPosition(move));
+			//	incrementMaterialForPiece(theBoard, isEndgame, originPiece, Move.getTargetPosition(move));
+			//}
+		} else {
+			// Regular piece move
+			decrementMaterialForPiece(theBoard, isEndgame, originPiece, Move.getOriginPosition(move));
+			incrementMaterialForPiece(theBoard, isEndgame, originPiece, Move.getTargetPosition(move));
+		}
+		// Secondary rook moves
+		if (Move.isCastle(move)) {
+			handleCastling(theBoard, isEndgame, originPiece, move);
+		}	
+		// Update for target piece PSTs
+		if (Move.isCapture(move)) {
+			// TODO Check for en passant!
+			decrementMaterialForPiece(theBoard, isEndgame, Move.getTargetPiece(move), Move.getTargetPosition(move));
+		}
+		return me;
+	}
+	
+	public MaterialEvaluation updateMaterialForUndoMove(Board theBoard, int move) {
+		boolean isEndgame = sc.isEndgame();
+		// Update for new origin piece PSTs
+		int originPiece = Move.getOriginPiece(move);
+		if (Move.isPromotion(move)) {
+			int promotedChessman = Move.getPromotion(move);
+			int promotedPiece = Piece.convertChessmanToPiece(promotedChessman, Piece.isWhite(originPiece));
+			//int targetPos = Move.getTargetPosition(move);
+			//int targetRank = Position.getRank(targetPos);
+			//boolean applyPromotion = (targetRank == 0 || targetRank == 7);
+			//if (applyPromotion) {
+				// Do promotion
+				//decrementMaterialForPiece(theBoard, isEndgame, originPiece, Move.getOriginPosition(move));
+				//incrementMaterialForPiece(theBoard, isEndgame, promotedPiece, Move.getTargetPosition(move));
+			//} else {
+				// Undo promotion
+				decrementMaterialForPiece(theBoard, isEndgame, promotedPiece, Move.getOriginPosition(move));
+				incrementMaterialForPiece(theBoard, isEndgame, originPiece, Move.getTargetPosition(move));
+			//}
+		} else {
+			// Regular piece move
+			decrementMaterialForPiece(theBoard, isEndgame, originPiece, Move.getOriginPosition(move));
+			incrementMaterialForPiece(theBoard, isEndgame, originPiece, Move.getTargetPosition(move));
+		}
+		// Secondary rook moves
+		if (Move.isCastle(move)) {
+			handleCastling(theBoard, isEndgame, originPiece, move);
+		}		
+		// Update for target piece PSTs
+		if (Move.isCapture(move)) {
+			// TODO Check for en passant!
+			incrementMaterialForPiece(theBoard, isEndgame, Move.getTargetPiece(move), Move.getTargetPosition(move));
+		}
+		return me;
+	}
+	
+	private void handleCastling(Board theBoard, boolean isEndgame, int piece, int move) {
+		if ( piece==Piece.WHITE_KING ) {
+			if (Move.areEqual(move, CastlingManager.wksc)) {
+				decrementMaterialForPiece(theBoard, isEndgame, Piece.WHITE_ROOK, Position.h1);
+				incrementMaterialForPiece(theBoard, isEndgame, Piece.WHITE_ROOK, Position.f1);
+			}
+			else if (Move.areEqual(move,CastlingManager.wqsc)) {
+				decrementMaterialForPiece(theBoard, isEndgame, Piece.WHITE_ROOK, Position.a1);
+				incrementMaterialForPiece(theBoard, isEndgame, Piece.WHITE_ROOK, Position.d1);
+			}
+			else if (Move.areEqual(move,CastlingManager.undo_wksc))
+			{
+				decrementMaterialForPiece(theBoard, isEndgame, Piece.WHITE_ROOK, Position.f1);
+				incrementMaterialForPiece(theBoard, isEndgame, Piece.WHITE_ROOK, Position.h1);
+			}
+			else if (Move.areEqual(move,CastlingManager.undo_wqsc)) {
+				decrementMaterialForPiece(theBoard, isEndgame, Piece.WHITE_ROOK, Position.d1);
+				incrementMaterialForPiece(theBoard, isEndgame, Piece.WHITE_ROOK, Position.a1);
+			}
+		} else if (piece==Piece.BLACK_KING) {
+			if (Move.areEqual(move,CastlingManager.bksc)) {
+				decrementMaterialForPiece(theBoard, isEndgame, Piece.WHITE_ROOK, Position.a8);
+				incrementMaterialForPiece(theBoard, isEndgame, Piece.WHITE_ROOK, Position.d8);
+			}
+			else if (Move.areEqual(move,CastlingManager.bqsc)) {
+				decrementMaterialForPiece(theBoard, isEndgame, Piece.WHITE_ROOK, Position.d8);
+				incrementMaterialForPiece(theBoard, isEndgame, Piece.WHITE_ROOK, Position.a8);
+			}
+			else if (Move.areEqual(move,CastlingManager.undo_bksc)) {
+				decrementMaterialForPiece(theBoard, isEndgame, Piece.WHITE_ROOK, Position.f8);
+				incrementMaterialForPiece(theBoard, isEndgame, Piece.WHITE_ROOK, Position.h8);
+			}
+			else if (Move.areEqual(move,CastlingManager.undo_bqsc)) {
+				decrementMaterialForPiece(theBoard, isEndgame, Piece.WHITE_ROOK, Position.d8);
+				incrementMaterialForPiece(theBoard, isEndgame, Piece.WHITE_ROOK, Position.a8);
+			}
+		}
 	}
 	
 	public boolean isQuiescent() {
@@ -180,22 +301,14 @@ public class PositionEvaluator implements IEvaluate {
 		return true;
 	}
 	
-	public Score evaluatePosition(int move) {
-		if (move == Move.NULL_MOVE) {
-			me = evaluateMaterial(pm.getTheBoard(), sc.isEndgame());
-		} else {
-			updateMaterial(pm.getTheBoard(), sc.isEndgame(), move);
-		}
+	public Score evaluatePosition() {
+		me = evaluateMaterial(pm.getTheBoard(), sc.isEndgame());
 		SearchContextEvaluation eval = sc.computeSearchGoalBonus(me);
 		if (!eval.isDraw) {
 			eval.score += me.getDelta();
 			eval.score += evaluatePawnStructure();
 		}
 		return new Score(eval.score, Score.exact);
-	}
-	
-	public Score evaluatePosition() { 
-		return evaluatePosition(Move.NULL_MOVE);
 	}
 	
 	int encourageCastling() {
