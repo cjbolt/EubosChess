@@ -17,7 +17,7 @@ public class TrackedMoveTest {
 	
 	private static final int pawnCapture = Move.toMove(new GenericMove(GenericPosition.a2,GenericPosition.b3));
 	private static final int pawnAdvance = Move.toMove(new GenericMove(GenericPosition.a2,GenericPosition.a4));
-	private static final CaptureData capturedBlackPawn = new CaptureData(Piece.BLACK_PAWN, Position.b3);
+	private static final CaptureData capturedBlackPawn = new CaptureData(Piece.BLACK_PAWN, Position.b3, false);
 	private static final GenericPosition targetSq = GenericPosition.b3;
 	
 	@Before
@@ -59,7 +59,7 @@ public class TrackedMoveTest {
 
 	@Test
 	public void testSetCapturedPiece() {
-		classUnderTest.setCaptureData(new CaptureData(Piece.WHITE_KING, Position.b3));
+		classUnderTest.setCaptureData(new CaptureData(Piece.WHITE_KING, Position.b3, false));
 		CaptureData captured = classUnderTest.getCaptureData();
 		assertTrue(captured.target == Piece.WHITE_KING);
 		assertTrue(captured.square==Position.b3);

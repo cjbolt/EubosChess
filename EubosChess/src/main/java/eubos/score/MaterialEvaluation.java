@@ -7,6 +7,11 @@ public class MaterialEvaluation {
 	public MaterialEvaluation() {
 	}
 	
+	public MaterialEvaluation(short white, short black) {
+		this.black = black;
+		this.white = white;
+	}
+	
 	public short getBlack() {return black;}
 	public short getWhite() {return white;}
 	

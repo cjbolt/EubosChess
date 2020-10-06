@@ -24,7 +24,7 @@ class MobilityMask {
 }
 
 public class Board {
-	public static final CaptureData NULL_CAPTURE = new CaptureData(Piece.NONE, Position.NOPOSITION);
+	public static final CaptureData NULL_CAPTURE = new CaptureData(Piece.NONE, Position.NOPOSITION, false);
 	
 	private long allPieces = 0x0;
 	private long whitePieces = 0x0;
@@ -217,7 +217,7 @@ public class Board {
 				assert false;
 			}
 			int capturePos = Position.valueOf(Position.getFile(targetSquare), rank);
-			captureTarget = new CaptureData(pickUpPieceAtSquare(capturePos), capturePos);
+			captureTarget = new CaptureData(pickUpPieceAtSquare(capturePos), capturePos, true);
 		} else {
 			// handle castling, setting en passant etc
 			if (checkToSetEnPassantTargetSq(move) == IntFile.NOFILE) {
@@ -226,7 +226,7 @@ public class Board {
 					performSecondaryCastlingMove(move);
 				}
 				if (targetPiece != Piece.NONE) {
-					captureTarget = new CaptureData(pickUpPieceAtSquare(targetSquare, targetPiece), targetSquare);
+					captureTarget = new CaptureData(pickUpPieceAtSquare(targetSquare, targetPiece), targetSquare, false);
 				}
 			}			
 		}
@@ -793,8 +793,11 @@ public class Board {
 		int squaresCount = 0;
 		List<MobilityMask> list = maskMap[atPos];
 		for (MobilityMask levelMask : list) {
-			if ((allPieces & levelMask.mask) == 0)
+			if ((allPieces & levelMask.mask) == 0) {
 				squaresCount = levelMask.squares;
+			} else {
+				break;
+			}
 		}
 		return squaresCount;
 	}

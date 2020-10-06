@@ -47,4 +47,12 @@ class MoveTracker extends Stack<TrackedMove> {
 		}
 		return wasCheck;
 	}
+
+	public boolean lastMoveWasEnPassantCapture() {
+		boolean wasEnPassantCapture = false;
+		if ( !this.isEmpty()) {
+			wasEnPassantCapture = this.peek().isEnPassantCapture();
+		}
+		return wasEnPassantCapture;
+	}
 }

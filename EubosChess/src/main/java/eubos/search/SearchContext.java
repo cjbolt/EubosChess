@@ -44,7 +44,8 @@ public class SearchContext {
 	
 	public SearchContext(IPositionAccessors pos, MaterialEvaluation initialMaterial) {
 		this.pos = pos;
-		initial = initialMaterial;
+		// Make a copy of the initial Material Evaluation and store it here
+		initial = new MaterialEvaluation(initialMaterial.getWhite(), initialMaterial.getBlack());
 		initialOnMove = pos.getOnMove();
 		boolean queensOffBoard = (pos.getTheBoard().getWhiteQueens() == 0) && (pos.getTheBoard().getBlackQueens() ==0);
 		int opponentMaterial = Piece.Colour.isWhite(initialOnMove) ? initialMaterial.getBlack() : initialMaterial.getWhite();

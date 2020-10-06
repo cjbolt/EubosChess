@@ -13,6 +13,7 @@ public interface IPositionAccessors {
 	public boolean lastMoveWasCapture();
 	public boolean lastMoveWasCheck();
 	public boolean lastMoveWasPromotion();
+	public boolean lastMoveWasEnPassantCapture();
 	public boolean isPromotionPossible();
 	public CaptureData getCapturedPiece();
 	public int getCastlingFlags();

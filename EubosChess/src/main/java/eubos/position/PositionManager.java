@@ -383,4 +383,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public boolean noLastMove() {
 		return moveTracker.isEmpty();
 	}
+
+	@Override
+	public boolean lastMoveWasEnPassantCapture() {
+		return moveTracker.lastMoveWasEnPassantCapture();
+	}
 }
