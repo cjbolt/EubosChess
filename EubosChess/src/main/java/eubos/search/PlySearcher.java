@@ -130,6 +130,7 @@ public class PlySearcher {
 	private boolean checkForRepetitionDueToPositionInSearchTree(int move) throws InvalidPieceException {
 		boolean retVal = false;
 		if (move != Move.NULL_MOVE) {
+			// We don't evaluate material, just a draw check, so no need to update Material evaluation
 			pm.performMove(move);
 			SearchDebugAgent.nextPly();
 			if (pos.isThreefoldRepetitionPossible()) {
@@ -386,9 +387,9 @@ public class PlySearcher {
 		currPly++;
 		SearchDebugAgent.nextPly();
 		Score positionScore = assessNewPosition();
+		pe.updateMaterialForUndoMove(pos.getTheBoard(), Move.reverse(currMove));
 		pm.unperformMove(true);
 		currPly--;
-		pe.updateMaterialForUndoMove(pos.getTheBoard(), Move.reverse(currMove));
 		SearchDebugAgent.prevPly();
 		SearchDebugAgent.printUndoMove(currMove);
 		
@@ -408,9 +409,9 @@ public class PlySearcher {
 		// exact because it is a terminal node
 		Score positionScore = pe.evaluatePosition();
 		
+		pe.updateMaterialForUndoMove(pos.getTheBoard(), Move.reverse(currMove));
 		pm.unperformMove(false);
 		currPly--;
-		pe.updateMaterialForUndoMove(pos.getTheBoard(), Move.reverse(currMove));
 		SearchDebugAgent.prevPly();
 		SearchDebugAgent.printUndoMove(currMove);
 		

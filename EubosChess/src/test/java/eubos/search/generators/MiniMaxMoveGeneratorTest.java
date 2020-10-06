@@ -455,7 +455,7 @@ public class MiniMaxMoveGeneratorTest {
 		setupPosition("4k2r/2Q2ppp/8/3r4/1P5P/P1p5/4PP2/R3K1N1 b Qk - - -");
 		expectedMove = new GenericMove("e8g8");
 		
-		SearchResult res = classUnderTest.findMove((byte)4);
+		SearchResult res = classUnderTest.findMove((byte)2);
 		
 		assertEquals(expectedMove, res.bestMove);
 	}
