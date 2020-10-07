@@ -69,17 +69,14 @@ public class SearchContextTest {
 	}
 
 	@Test
-	@Ignore
-	// problem is the material evaluation is not updated in this test when we perform moves
-	// and when modified the move int doesn't have all the required fields populated to update properly.
 	public void test_detectSimplification_black() throws InvalidPieceException, IllegalNotationException {
 		setupPosition("3r2k1/p2q2pp/1p6/2p1p1N1/1n2Q3/6P1/PP5P/5R1K b - - 0 1");
 		pm.performMove(Move.toMove(new GenericMove("d7d5"), pm.getTheBoard())); // forces exchange of queens on d4. simplifying
-		pe.updateMaterialForDoMove(Move.toMove(new GenericMove("d7d5"), pm.getTheBoard()));
+		//pe.updateMaterialForDoMove(Move.toMove(new GenericMove("d7d5"), pm.getTheBoard()));
 		pm.performMove(Move.toMove(new GenericMove("e4d5"), pm.getTheBoard()));
-		pe.updateMaterialForDoMove(Move.toMove(new GenericMove("e4d5"), pm.getTheBoard()));
+		//pe.updateMaterialForDoMove(Move.toMove(new GenericMove("e4d5"), pm.getTheBoard()));
 		pm.performMove(Move.toMove(new GenericMove("d8d5"), pm.getTheBoard()));
-		pe.updateMaterialForDoMove(Move.toMove(new GenericMove("d8d5"), pm.getTheBoard()));
+		//pe.updateMaterialForDoMove(Move.toMove(new GenericMove("d8d5"), pm.getTheBoard()));
 		MaterialEvaluation current = pe.getMaterialEvaluation();
 		assertEquals(-SearchContext.SIMPLIFICATION_BONUS, sut.computeSearchGoalBonus(current).score);
 	}

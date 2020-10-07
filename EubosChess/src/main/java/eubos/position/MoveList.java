@@ -11,10 +11,10 @@ import java.util.Random;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IntChessman;
 
+import eubos.board.Board;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
-import eubos.score.PositionEvaluator;
 
 public class MoveList implements Iterable<Integer> {
 	
@@ -29,8 +29,8 @@ public class MoveList implements Iterable<Integer> {
         }
     }
     
-    public static final int [] MATERIAL = {0, PositionEvaluator.MATERIAL_VALUE_KING, PositionEvaluator.MATERIAL_VALUE_QUEEN, PositionEvaluator.MATERIAL_VALUE_ROOK, 
-    		PositionEvaluator.MATERIAL_VALUE_BISHOP, PositionEvaluator.MATERIAL_VALUE_KNIGHT, PositionEvaluator.MATERIAL_VALUE_PAWN }; 
+    public static final int [] MATERIAL = {0, Board.MATERIAL_VALUE_KING, Board.MATERIAL_VALUE_QUEEN, Board.MATERIAL_VALUE_ROOK, 
+    		Board.MATERIAL_VALUE_BISHOP, Board.MATERIAL_VALUE_KNIGHT, Board.MATERIAL_VALUE_PAWN }; 
     
     class MoveMvvLvaComparator implements Comparator<Integer> {
         @Override public int compare(Integer move1, Integer move2) {

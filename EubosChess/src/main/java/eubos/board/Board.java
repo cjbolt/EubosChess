@@ -12,6 +12,7 @@ import eubos.position.CaptureData;
 import eubos.position.CastlingManager;
 import eubos.position.Move;
 import eubos.position.Position;
+import eubos.score.MaterialEvaluation;
 
 import com.fluxchess.jcpi.models.IntChessman;
 import com.fluxchess.jcpi.models.IntFile;
@@ -199,13 +200,25 @@ public class Board {
 		for ( Entry<Integer, Integer> nextPiece : pieceMap.entrySet() ) {
 			setPieceAtSquare( nextPiece.getKey(), nextPiece.getValue() );
 		}
+		me = evaluateMaterial();
 	}
 	
 	public CaptureData doMove(int move) throws InvalidPieceException {
 		CaptureData captureTarget = NULL_CAPTURE;
 		int pieceToMove = Move.getOriginPiece(move);
+		int moveFrom = Move.getOriginPosition(move);
 		int targetSquare = Move.getTargetPosition(move);
 		int targetPiece = Move.getTargetPiece(move);
+		// Update material evaluation before moving any pieces
+		int originPiece = pieceToMove;
+		if (Move.getPromotion(move) != IntChessman.NOCHESSMAN) {
+			originPiece &= ~Piece.PIECE_NO_COLOUR_MASK;
+			originPiece |= Piece.PAWN;
+		} else if (Move.isCastle(move)) {
+			// Handle removal of rook at old position
+			handleCastlingOldPosition(pieceToMove, move);
+		}
+		decrementMaterialForPiece(originPiece, moveFrom);
 		if (isEnPassantCapture(pieceToMove, targetSquare)) {
 			// Handle en passant captures, don't need to do other checks in this case
 			int rank = IntRank.NORANK;
@@ -231,6 +244,15 @@ public class Board {
 			}			
 		}
 		movePiece(move);
+		// Update Material Evaluation following the move with the new board positions 
+		incrementMaterialForPiece(pieceToMove, targetSquare);
+		if (captureTarget.getPiece() != Piece.NONE) {
+			decrementMaterialForPiece(captureTarget.getPiece(), captureTarget.getSquare());
+		} else if (Move.isCastle(move)) {
+			// Handle rook in new position, if there is a Secondary rook move
+			handleCastlingNewPosition(pieceToMove, move);
+		}
+		
 		return captureTarget;
 	}
 	
@@ -340,6 +362,7 @@ public class Board {
 	}
 	
 	public void undoMove(int reversedMove, CaptureData cap) throws InvalidPieceException {
+		updateMaterialBeforeForUndoMove(reversedMove);
 		// Handle reversal of any castling secondary rook moves
 		if (Piece.isKing(Move.getOriginPiece(reversedMove))) {
 			unperformSecondaryCastlingMove(reversedMove);
@@ -348,6 +371,43 @@ public class Board {
 		// Undo any capture that had been previously performed.
 		if (cap.getPiece() != Piece.NONE) {
 			setPieceAtSquare(cap.getSquare(), cap.getPiece());
+		}
+		updateMaterialAfterForUndoMove(reversedMove, cap);
+	}
+	
+	private void updateMaterialBeforeForUndoMove(int move) {
+		// Update for new origin piece PSTs
+		int originPiece = Move.getOriginPiece(move);
+		if (Move.getPromotion(move) != IntChessman.NOCHESSMAN) {
+			int promotedChessman = Move.getPromotion(move);
+			int promotedPiece = Piece.convertChessmanToPiece(promotedChessman, Piece.isWhite(originPiece));
+			// Undo promotion
+			decrementMaterialForPiece(promotedPiece, Move.getOriginPosition(move));
+		} else {
+			// Regular piece move
+			decrementMaterialForPiece(originPiece, Move.getOriginPosition(move));
+		}
+		if (Move.isCastle(move)) {
+			// Handle removal of rook at old position
+			handleCastlingOldPosition(originPiece, move);
+		}
+	}
+	
+	private void updateMaterialAfterForUndoMove(int move, CaptureData cap) {
+		// Update for new origin piece PSTs
+		int originPiece = Move.getOriginPiece(move);
+		if (Move.getPromotion(move) != IntChessman.NOCHESSMAN) {
+			incrementMaterialForPiece(originPiece, Move.getTargetPosition(move));
+		} else {
+			// Regular piece move
+			incrementMaterialForPiece(originPiece, Move.getTargetPosition(move));
+		}
+		// Update for target piece PSTs
+		if (cap.getPiece() != Piece.NONE) {
+			incrementMaterialForPiece(cap.getPiece(), cap.getSquare());
+		} else if (Move.isCastle(move)) {
+			// Secondary rook moves
+			handleCastlingNewPosition(originPiece, move);
 		}
 	}
 	
@@ -885,5 +945,222 @@ public class Board {
 			potentialPromotion = isPromotionPawnBlocked(pawns, Direction.down);
 		}
 		return potentialPromotion;
+	}
+	
+	public MaterialEvaluation me;
+	
+	public static final short MATERIAL_VALUE_KING = 4000;
+	public static final short MATERIAL_VALUE_QUEEN = 950;
+	public static final short MATERIAL_VALUE_ROOK = 490;
+	public static final short MATERIAL_VALUE_BISHOP = 320;
+	public static final short MATERIAL_VALUE_KNIGHT = 290;
+	public static final short MATERIAL_VALUE_PAWN = 100;
+	
+	private static final int[] PAWN_WHITE_WEIGHTINGS;
+    static {
+    	PAWN_WHITE_WEIGHTINGS = new int[128];
+        PAWN_WHITE_WEIGHTINGS[Position.a1] = 0; PAWN_WHITE_WEIGHTINGS[Position.b1] = 0; PAWN_WHITE_WEIGHTINGS[Position.c1] = 0; PAWN_WHITE_WEIGHTINGS[Position.d1] = 0; PAWN_WHITE_WEIGHTINGS[Position.e1] = 0; PAWN_WHITE_WEIGHTINGS[Position.f1] = 0; PAWN_WHITE_WEIGHTINGS[Position.g1] = 0; PAWN_WHITE_WEIGHTINGS[Position.h1] = 0;
+        PAWN_WHITE_WEIGHTINGS[Position.a2] = 0; PAWN_WHITE_WEIGHTINGS[Position.b2] = 0; PAWN_WHITE_WEIGHTINGS[Position.c2] = 0; PAWN_WHITE_WEIGHTINGS[Position.d2] = 0; PAWN_WHITE_WEIGHTINGS[Position.e2] = 0; PAWN_WHITE_WEIGHTINGS[Position.f2] = 0; PAWN_WHITE_WEIGHTINGS[Position.g2] = 0; PAWN_WHITE_WEIGHTINGS[Position.h2] = 0;
+        PAWN_WHITE_WEIGHTINGS[Position.a3] = 0; PAWN_WHITE_WEIGHTINGS[Position.b3] = 0; PAWN_WHITE_WEIGHTINGS[Position.c3] = 0; PAWN_WHITE_WEIGHTINGS[Position.d3] = 5; PAWN_WHITE_WEIGHTINGS[Position.e3] = 5; PAWN_WHITE_WEIGHTINGS[Position.f3] = 0; PAWN_WHITE_WEIGHTINGS[Position.g3] = 0; PAWN_WHITE_WEIGHTINGS[Position.h3] = 0;
+        PAWN_WHITE_WEIGHTINGS[Position.a4] = 0; PAWN_WHITE_WEIGHTINGS[Position.b4] = 0; PAWN_WHITE_WEIGHTINGS[Position.c4] = 5; PAWN_WHITE_WEIGHTINGS[Position.d4] = 10; PAWN_WHITE_WEIGHTINGS[Position.e4] = 10;PAWN_WHITE_WEIGHTINGS[Position.f4] = 5; PAWN_WHITE_WEIGHTINGS[Position.g4] = 0; PAWN_WHITE_WEIGHTINGS[Position.h4] = 0;
+        PAWN_WHITE_WEIGHTINGS[Position.a5] = 0; PAWN_WHITE_WEIGHTINGS[Position.b5] = 3; PAWN_WHITE_WEIGHTINGS[Position.c5] = 5; PAWN_WHITE_WEIGHTINGS[Position.d5] = 15; PAWN_WHITE_WEIGHTINGS[Position.e5] = 15; PAWN_WHITE_WEIGHTINGS[Position.f5] = 5; PAWN_WHITE_WEIGHTINGS[Position.g5] = 3; PAWN_WHITE_WEIGHTINGS[Position.h5] = 0;
+		PAWN_WHITE_WEIGHTINGS[Position.a6] = 5; PAWN_WHITE_WEIGHTINGS[Position.b6] = 25; PAWN_WHITE_WEIGHTINGS[Position.c6] = 25; PAWN_WHITE_WEIGHTINGS[Position.d6] = 25; PAWN_WHITE_WEIGHTINGS[Position.e6] = 25; PAWN_WHITE_WEIGHTINGS[Position.f6] = 25; PAWN_WHITE_WEIGHTINGS[Position.g6] = 25; PAWN_WHITE_WEIGHTINGS[Position.h6] = 10;
+		PAWN_WHITE_WEIGHTINGS[Position.a7] = 25; PAWN_WHITE_WEIGHTINGS[Position.b7] = 50; PAWN_WHITE_WEIGHTINGS[Position.c7] = 50; PAWN_WHITE_WEIGHTINGS[Position.d7] = 50; PAWN_WHITE_WEIGHTINGS[Position.e7] = 50; PAWN_WHITE_WEIGHTINGS[Position.f7] = 50; PAWN_WHITE_WEIGHTINGS[Position.g7] = 50; PAWN_WHITE_WEIGHTINGS[Position.h7] = 25;
+		PAWN_WHITE_WEIGHTINGS[Position.a8] = 0; PAWN_WHITE_WEIGHTINGS[Position.b8] = 0; PAWN_WHITE_WEIGHTINGS[Position.c8] = 0; PAWN_WHITE_WEIGHTINGS[Position.d8] = 0; PAWN_WHITE_WEIGHTINGS[Position.e8] = 0; PAWN_WHITE_WEIGHTINGS[Position.f8] = 0; PAWN_WHITE_WEIGHTINGS[Position.g8] = 0; PAWN_WHITE_WEIGHTINGS[Position.h8] = 0;
+    }
+    
+	private static final int[] PAWN_BLACK_WEIGHTINGS;
+    static {
+    	PAWN_BLACK_WEIGHTINGS = new int[128];
+        PAWN_BLACK_WEIGHTINGS[Position.a1] = 0; PAWN_BLACK_WEIGHTINGS[Position.b1] = 0; PAWN_BLACK_WEIGHTINGS[Position.c1] = 0; PAWN_BLACK_WEIGHTINGS[Position.d1] = 0; PAWN_BLACK_WEIGHTINGS[Position.e1] = 0; PAWN_BLACK_WEIGHTINGS[Position.f1] = 0; PAWN_BLACK_WEIGHTINGS[Position.g1] = 0; PAWN_BLACK_WEIGHTINGS[Position.h1] = 0;
+        PAWN_BLACK_WEIGHTINGS[Position.a2] = 25; PAWN_BLACK_WEIGHTINGS[Position.b2] = 50; PAWN_BLACK_WEIGHTINGS[Position.c2] = 50; PAWN_BLACK_WEIGHTINGS[Position.d2] = 50;PAWN_BLACK_WEIGHTINGS[Position.e2] = 50;PAWN_BLACK_WEIGHTINGS[Position.f2] = 50; PAWN_BLACK_WEIGHTINGS[Position.g2] = 50; PAWN_BLACK_WEIGHTINGS[Position.h2] = 25;
+        PAWN_BLACK_WEIGHTINGS[Position.a3] = 5; PAWN_BLACK_WEIGHTINGS[Position.b3] = 25; PAWN_BLACK_WEIGHTINGS[Position.c3] = 25; PAWN_BLACK_WEIGHTINGS[Position.d3] = 25;PAWN_BLACK_WEIGHTINGS[Position.e3] = 25;PAWN_BLACK_WEIGHTINGS[Position.f3] = 25; PAWN_BLACK_WEIGHTINGS[Position.g3] = 25; PAWN_BLACK_WEIGHTINGS[Position.h3] = 10;
+        PAWN_BLACK_WEIGHTINGS[Position.a4] = 0; PAWN_BLACK_WEIGHTINGS[Position.b4] = 3; PAWN_BLACK_WEIGHTINGS[Position.c4] = 5; PAWN_BLACK_WEIGHTINGS[Position.d4] = 15;PAWN_BLACK_WEIGHTINGS[Position.e4] = 15;PAWN_BLACK_WEIGHTINGS[Position.f4] = 5;PAWN_BLACK_WEIGHTINGS[Position.g4] = 3; PAWN_BLACK_WEIGHTINGS[Position.h4] = 0;
+        PAWN_BLACK_WEIGHTINGS[Position.a5] = 0; PAWN_BLACK_WEIGHTINGS[Position.b5] = 0; PAWN_BLACK_WEIGHTINGS[Position.c5] = 5; PAWN_BLACK_WEIGHTINGS[Position.d5] = 10;PAWN_BLACK_WEIGHTINGS[Position.e5] = 10;PAWN_BLACK_WEIGHTINGS[Position.f5] = 5;PAWN_BLACK_WEIGHTINGS[Position.g5] = 0; PAWN_BLACK_WEIGHTINGS[Position.h5] = 0;
+		PAWN_BLACK_WEIGHTINGS[Position.a6] = 0; PAWN_BLACK_WEIGHTINGS[Position.b6] = 0; PAWN_BLACK_WEIGHTINGS[Position.c6] = 0; PAWN_BLACK_WEIGHTINGS[Position.d6] = 5;PAWN_BLACK_WEIGHTINGS[Position.e6] = 5;PAWN_BLACK_WEIGHTINGS[Position.f6] = 0; PAWN_BLACK_WEIGHTINGS[Position.g6] = 0; PAWN_BLACK_WEIGHTINGS[Position.h6] = 0;
+		PAWN_BLACK_WEIGHTINGS[Position.a7] = 0; PAWN_BLACK_WEIGHTINGS[Position.b7] = 0; PAWN_BLACK_WEIGHTINGS[Position.c7] = 0; PAWN_BLACK_WEIGHTINGS[Position.d7] = 0; PAWN_BLACK_WEIGHTINGS[Position.e7] = 0; PAWN_BLACK_WEIGHTINGS[Position.f7] = 0; PAWN_BLACK_WEIGHTINGS[Position.g7] = 0; PAWN_BLACK_WEIGHTINGS[Position.h7] = 0;
+		PAWN_BLACK_WEIGHTINGS[Position.a8] = 0; PAWN_BLACK_WEIGHTINGS[Position.b8] = 0; PAWN_BLACK_WEIGHTINGS[Position.c8] = 0; PAWN_BLACK_WEIGHTINGS[Position.d8] = 0; PAWN_BLACK_WEIGHTINGS[Position.e8] = 0; PAWN_BLACK_WEIGHTINGS[Position.f8] = 0; PAWN_BLACK_WEIGHTINGS[Position.g8] = 0; PAWN_BLACK_WEIGHTINGS[Position.h8] = 0;
+    }    
+	
+	private static final int[] KNIGHT_WEIGHTINGS;
+    static {
+    	KNIGHT_WEIGHTINGS = new int[128];
+        KNIGHT_WEIGHTINGS[Position.a1] = -20;KNIGHT_WEIGHTINGS[Position.b1] = -10;KNIGHT_WEIGHTINGS[Position.c1] = -10;KNIGHT_WEIGHTINGS[Position.d1] = -10;KNIGHT_WEIGHTINGS[Position.e1] = -10;KNIGHT_WEIGHTINGS[Position.f1] = -10;KNIGHT_WEIGHTINGS[Position.g1] = -10;KNIGHT_WEIGHTINGS[Position.h1] = -20;
+		KNIGHT_WEIGHTINGS[Position.a2] = -10;KNIGHT_WEIGHTINGS[Position.b2] = 0;KNIGHT_WEIGHTINGS[Position.c2] = 0;KNIGHT_WEIGHTINGS[Position.d2] = 0;KNIGHT_WEIGHTINGS[Position.e2] = 0;KNIGHT_WEIGHTINGS[Position.f2] = 0;KNIGHT_WEIGHTINGS[Position.g2] = 0;KNIGHT_WEIGHTINGS[Position.h2] = -10;
+		KNIGHT_WEIGHTINGS[Position.a3] = -10;KNIGHT_WEIGHTINGS[Position.b3] = 0;KNIGHT_WEIGHTINGS[Position.c3] = 10;KNIGHT_WEIGHTINGS[Position.d3] = 10;KNIGHT_WEIGHTINGS[Position.e3] = 10;KNIGHT_WEIGHTINGS[Position.f3] = 10;KNIGHT_WEIGHTINGS[Position.g3] = 0;KNIGHT_WEIGHTINGS[Position.h3] = -10;
+		KNIGHT_WEIGHTINGS[Position.a4] = -10;KNIGHT_WEIGHTINGS[Position.b4] = 0;KNIGHT_WEIGHTINGS[Position.c4] = 10;KNIGHT_WEIGHTINGS[Position.d4] = 20;KNIGHT_WEIGHTINGS[Position.e4] = 20;KNIGHT_WEIGHTINGS[Position.f4] = 10;KNIGHT_WEIGHTINGS[Position.g4] = 0;KNIGHT_WEIGHTINGS[Position.h4] = -10;
+		KNIGHT_WEIGHTINGS[Position.a5] = -10;KNIGHT_WEIGHTINGS[Position.b5] = 0;KNIGHT_WEIGHTINGS[Position.c5] = 10;KNIGHT_WEIGHTINGS[Position.d5] = 20;KNIGHT_WEIGHTINGS[Position.e5] = 20;KNIGHT_WEIGHTINGS[Position.f5] = 10;KNIGHT_WEIGHTINGS[Position.g5] = 0;KNIGHT_WEIGHTINGS[Position.h5] = -10;
+		KNIGHT_WEIGHTINGS[Position.a6] = -10;KNIGHT_WEIGHTINGS[Position.b6] = 0;KNIGHT_WEIGHTINGS[Position.c6] = 10;KNIGHT_WEIGHTINGS[Position.d6] = 10;KNIGHT_WEIGHTINGS[Position.e6] = 10;KNIGHT_WEIGHTINGS[Position.f6] = 10;KNIGHT_WEIGHTINGS[Position.g6] = 0;KNIGHT_WEIGHTINGS[Position.h6] = -10;
+		KNIGHT_WEIGHTINGS[Position.a7] = -10;KNIGHT_WEIGHTINGS[Position.b7] = 0;KNIGHT_WEIGHTINGS[Position.c7] = 0;KNIGHT_WEIGHTINGS[Position.d7] = 0;KNIGHT_WEIGHTINGS[Position.e7] = 0;KNIGHT_WEIGHTINGS[Position.f7] = 0;KNIGHT_WEIGHTINGS[Position.g7] = 0;KNIGHT_WEIGHTINGS[Position.h7] = -10;
+		KNIGHT_WEIGHTINGS[Position.a8] = -20;KNIGHT_WEIGHTINGS[Position.b8] = -10;KNIGHT_WEIGHTINGS[Position.c8] = -10;KNIGHT_WEIGHTINGS[Position.d8] = -10;KNIGHT_WEIGHTINGS[Position.e8] = -10;KNIGHT_WEIGHTINGS[Position.f8] = -10;KNIGHT_WEIGHTINGS[Position.g8] = -10;KNIGHT_WEIGHTINGS[Position.h8] = -20;
+    }
+    
+    private static final int[] KING_ENDGAME_WEIGHTINGS;
+    static {
+    	KING_ENDGAME_WEIGHTINGS = new int[128];
+        KING_ENDGAME_WEIGHTINGS[Position.a1] = -30;KING_ENDGAME_WEIGHTINGS[Position.b1] = -30;KING_ENDGAME_WEIGHTINGS[Position.c1] = -30;KING_ENDGAME_WEIGHTINGS[Position.d1] = -30;KING_ENDGAME_WEIGHTINGS[Position.e1] = -30;KING_ENDGAME_WEIGHTINGS[Position.f1] = -30;KING_ENDGAME_WEIGHTINGS[Position.g1] = -30;KING_ENDGAME_WEIGHTINGS[Position.h1] = -30;
+		KING_ENDGAME_WEIGHTINGS[Position.a2] = -30;KING_ENDGAME_WEIGHTINGS[Position.b2] = -20;KING_ENDGAME_WEIGHTINGS[Position.c2] = -20;KING_ENDGAME_WEIGHTINGS[Position.d2] = -20;KING_ENDGAME_WEIGHTINGS[Position.e2] = -20;KING_ENDGAME_WEIGHTINGS[Position.f2] = -20;KING_ENDGAME_WEIGHTINGS[Position.g2] = -20;KING_ENDGAME_WEIGHTINGS[Position.h2] = -30;
+		KING_ENDGAME_WEIGHTINGS[Position.a3] = -30;KING_ENDGAME_WEIGHTINGS[Position.b3] = -10;KING_ENDGAME_WEIGHTINGS[Position.c3] = 0;KING_ENDGAME_WEIGHTINGS[Position.d3] = 10;KING_ENDGAME_WEIGHTINGS[Position.e3] = 10;KING_ENDGAME_WEIGHTINGS[Position.f3] = 0;KING_ENDGAME_WEIGHTINGS[Position.g3] = -10;KING_ENDGAME_WEIGHTINGS[Position.h3] = -30;
+		KING_ENDGAME_WEIGHTINGS[Position.a4] = -20;KING_ENDGAME_WEIGHTINGS[Position.b4] = -10;KING_ENDGAME_WEIGHTINGS[Position.c4] = 10;KING_ENDGAME_WEIGHTINGS[Position.d4] = 20;KING_ENDGAME_WEIGHTINGS[Position.e4] = 20;KING_ENDGAME_WEIGHTINGS[Position.f4] = 10;KING_ENDGAME_WEIGHTINGS[Position.g4] = -10;KING_ENDGAME_WEIGHTINGS[Position.h4] = -20;
+		KING_ENDGAME_WEIGHTINGS[Position.a5] = -20;KING_ENDGAME_WEIGHTINGS[Position.b5] = -10;KING_ENDGAME_WEIGHTINGS[Position.c5] = 10;KING_ENDGAME_WEIGHTINGS[Position.d5] = 20;KING_ENDGAME_WEIGHTINGS[Position.e5] = 20;KING_ENDGAME_WEIGHTINGS[Position.f5] = 10;KING_ENDGAME_WEIGHTINGS[Position.g5] = -10;KING_ENDGAME_WEIGHTINGS[Position.h5] = -20;
+		KING_ENDGAME_WEIGHTINGS[Position.a6] = -30;KING_ENDGAME_WEIGHTINGS[Position.b6] = -10;KING_ENDGAME_WEIGHTINGS[Position.c6] = 0;KING_ENDGAME_WEIGHTINGS[Position.d6] = 10;KING_ENDGAME_WEIGHTINGS[Position.e6] = 10;KING_ENDGAME_WEIGHTINGS[Position.f6] = 0;KING_ENDGAME_WEIGHTINGS[Position.g6] = -10;KING_ENDGAME_WEIGHTINGS[Position.h6] = -30;
+		KING_ENDGAME_WEIGHTINGS[Position.a7] = -30;KING_ENDGAME_WEIGHTINGS[Position.b7] = -20;KING_ENDGAME_WEIGHTINGS[Position.c7] = -20;KING_ENDGAME_WEIGHTINGS[Position.d7] = -20;KING_ENDGAME_WEIGHTINGS[Position.e7] = -20;KING_ENDGAME_WEIGHTINGS[Position.f7] = -20;KING_ENDGAME_WEIGHTINGS[Position.g7] = -20;KING_ENDGAME_WEIGHTINGS[Position.h7] = -30;
+		KING_ENDGAME_WEIGHTINGS[Position.a8] = -30;KING_ENDGAME_WEIGHTINGS[Position.b8] = -30;KING_ENDGAME_WEIGHTINGS[Position.c8] = -30;KING_ENDGAME_WEIGHTINGS[Position.d8] = -30;KING_ENDGAME_WEIGHTINGS[Position.e8] = -30;KING_ENDGAME_WEIGHTINGS[Position.f8] = -30;KING_ENDGAME_WEIGHTINGS[Position.g8] = -30;KING_ENDGAME_WEIGHTINGS[Position.h8] = -30;
+    }
+    
+    private static final int[] KING_MIDGAME_WEIGHTINGS;
+    static {
+    	KING_MIDGAME_WEIGHTINGS = new int[128];
+        KING_MIDGAME_WEIGHTINGS[Position.a1] = 5;KING_MIDGAME_WEIGHTINGS[Position.b1] = 10;KING_MIDGAME_WEIGHTINGS[Position.c1] = 5;KING_MIDGAME_WEIGHTINGS[Position.d1] = 0;KING_MIDGAME_WEIGHTINGS[Position.e1] = 0;KING_MIDGAME_WEIGHTINGS[Position.f1] = 5;KING_MIDGAME_WEIGHTINGS[Position.g1] = 10;KING_MIDGAME_WEIGHTINGS[Position.h1] = 5;
+		KING_MIDGAME_WEIGHTINGS[Position.a2] = 0;KING_MIDGAME_WEIGHTINGS[Position.b2] = 0;KING_MIDGAME_WEIGHTINGS[Position.c2] = 0;KING_MIDGAME_WEIGHTINGS[Position.d2] = 0;KING_MIDGAME_WEIGHTINGS[Position.e2] = 0;KING_MIDGAME_WEIGHTINGS[Position.f2] = 0;KING_MIDGAME_WEIGHTINGS[Position.g2] = 0;KING_MIDGAME_WEIGHTINGS[Position.h2] = 0;
+		KING_MIDGAME_WEIGHTINGS[Position.a3] = -20;KING_MIDGAME_WEIGHTINGS[Position.b3] = -20;KING_MIDGAME_WEIGHTINGS[Position.c3] = -30;KING_MIDGAME_WEIGHTINGS[Position.d3] = -30;KING_MIDGAME_WEIGHTINGS[Position.e3] = -30;KING_MIDGAME_WEIGHTINGS[Position.f3] = -30;KING_MIDGAME_WEIGHTINGS[Position.g3] = -20;KING_MIDGAME_WEIGHTINGS[Position.h3] = -20;
+		KING_MIDGAME_WEIGHTINGS[Position.a4] = -30;KING_MIDGAME_WEIGHTINGS[Position.b4] = -40;KING_MIDGAME_WEIGHTINGS[Position.c4] = -50;KING_MIDGAME_WEIGHTINGS[Position.d4] = -50;KING_MIDGAME_WEIGHTINGS[Position.e4] = -50;KING_MIDGAME_WEIGHTINGS[Position.f4] = -40;KING_MIDGAME_WEIGHTINGS[Position.g4] = -40;KING_MIDGAME_WEIGHTINGS[Position.h4] = -30;
+		KING_MIDGAME_WEIGHTINGS[Position.a5] = -30;KING_MIDGAME_WEIGHTINGS[Position.b5] = -40;KING_MIDGAME_WEIGHTINGS[Position.c5] = -50;KING_MIDGAME_WEIGHTINGS[Position.d5] = -50;KING_MIDGAME_WEIGHTINGS[Position.e5] = -50;KING_MIDGAME_WEIGHTINGS[Position.f5] = -40;KING_MIDGAME_WEIGHTINGS[Position.g5] = -40;KING_MIDGAME_WEIGHTINGS[Position.h5] = -30;
+		KING_MIDGAME_WEIGHTINGS[Position.a6] = -20;KING_MIDGAME_WEIGHTINGS[Position.b6] = -20;KING_MIDGAME_WEIGHTINGS[Position.c6] = -30;KING_MIDGAME_WEIGHTINGS[Position.d6] = -30;KING_MIDGAME_WEIGHTINGS[Position.e6] = -30;KING_MIDGAME_WEIGHTINGS[Position.f6] = -30;KING_MIDGAME_WEIGHTINGS[Position.g6] = -20;KING_MIDGAME_WEIGHTINGS[Position.h6] = -20;
+		KING_MIDGAME_WEIGHTINGS[Position.a7] = 0;KING_MIDGAME_WEIGHTINGS[Position.b7] = 0;KING_MIDGAME_WEIGHTINGS[Position.c7] = 0;KING_MIDGAME_WEIGHTINGS[Position.d7] = 0;KING_MIDGAME_WEIGHTINGS[Position.e7] = 0;KING_MIDGAME_WEIGHTINGS[Position.f7] = 0;KING_MIDGAME_WEIGHTINGS[Position.g7] = 0;KING_MIDGAME_WEIGHTINGS[Position.h7] = 0;
+		KING_MIDGAME_WEIGHTINGS[Position.a8] = 5;KING_MIDGAME_WEIGHTINGS[Position.b8] = 10;KING_MIDGAME_WEIGHTINGS[Position.c8] = 5;KING_MIDGAME_WEIGHTINGS[Position.d8] = 0;KING_MIDGAME_WEIGHTINGS[Position.e8] = 0;KING_MIDGAME_WEIGHTINGS[Position.f8] = 5;KING_MIDGAME_WEIGHTINGS[Position.g8] = 10;KING_MIDGAME_WEIGHTINGS[Position.h8] = 5;
+    }
+	
+	private int updateMaterialForPiece(int currPiece, int atPos) {
+		int currValue = 0;
+		switch(currPiece) {
+		case Piece.WHITE_PAWN:
+			currValue = MATERIAL_VALUE_PAWN;
+			currValue += PAWN_WHITE_WEIGHTINGS[atPos];
+			break;
+		case Piece.BLACK_PAWN:
+			currValue = MATERIAL_VALUE_PAWN;
+			currValue += PAWN_BLACK_WEIGHTINGS[atPos];
+			break;
+		case Piece.WHITE_ROOK:
+		case Piece.BLACK_ROOK:
+			currValue = MATERIAL_VALUE_ROOK;
+			//currValue += getNumRankFileSquaresAvailable(atPos)*2;
+			break;
+		case Piece.WHITE_BISHOP:
+		case Piece.BLACK_BISHOP:
+			currValue = MATERIAL_VALUE_BISHOP;
+			//currValue += getNumDiagonalSquaresAvailable(atPos)*2;
+			break;
+		case Piece.WHITE_KNIGHT:
+		case Piece.BLACK_KNIGHT:
+			currValue = MATERIAL_VALUE_KNIGHT;
+			currValue += KNIGHT_WEIGHTINGS[atPos];
+			break;
+		case Piece.WHITE_QUEEN:
+		case Piece.BLACK_QUEEN:
+			currValue = MATERIAL_VALUE_QUEEN;
+			// TODO calculation of queen mobility spoils some tests with KQk mates
+			//currValue += pm.getTheBoard().getNumRankFileSquaresAvailable(atPos)*2;
+			//currValue += pm.getTheBoard().getNumDiagonalSquaresAvailable(atPos)*2;
+			break;
+		case Piece.WHITE_KING:
+		case Piece.BLACK_KING:
+			currValue = MATERIAL_VALUE_KING;
+			//if ((sc != null) ? sc.isEndgame() : false) {
+			//	currValue += KING_ENDGAME_WEIGHTINGS[atPos];
+			//} else {
+				currValue += KING_MIDGAME_WEIGHTINGS[atPos];
+			//}
+		default:
+			break;
+		}
+		return currValue;
+	}
+	
+	private void incrementMaterialForPiece(int currPiece, int atPos) {
+		int currValue = updateMaterialForPiece(currPiece, atPos);
+		if (Piece.isWhite(currPiece)) {
+			me.addWhite(currValue);
+		} else { 
+			me.addBlack(currValue);
+		}
+	}
+	
+	private void decrementMaterialForPiece(int currPiece, int atPos) {
+		int currValue = updateMaterialForPiece(currPiece, atPos);
+		if (Piece.isWhite(currPiece)) {
+			me.addWhite(-currValue);
+		} else { 
+			me.addBlack(-currValue);
+		}
+	}
+	
+	public MaterialEvaluation evaluateMaterial() {
+		PrimitiveIterator.OfInt iter_p = this.iterator();
+		MaterialEvaluation material = new MaterialEvaluation();
+		while ( iter_p.hasNext() ) {
+			int atPos = iter_p.nextInt();
+			int currPiece = getPieceAtSquare(atPos);
+			int currValue = updateMaterialForPiece(currPiece, atPos);
+			if (Piece.isWhite(currPiece)) {
+				material.addWhite(currValue);
+			} else { 
+				material.addBlack(currValue);
+			}
+		}
+		return material;
+	}
+	
+	private void handleCastlingOldPosition(int piece, int move) {
+		if ( piece==Piece.WHITE_KING ) {
+			if (Move.areEqual(move, CastlingManager.wksc)) {
+				decrementMaterialForPiece(Piece.WHITE_ROOK, Position.h1);
+			}
+			else if (Move.areEqual(move,CastlingManager.wqsc)) {
+				decrementMaterialForPiece(Piece.WHITE_ROOK, Position.a1);
+			}
+			else if (Move.areEqual(move,CastlingManager.undo_wksc))
+			{
+				decrementMaterialForPiece(Piece.WHITE_ROOK, Position.f1);
+			}
+			else if (Move.areEqual(move,CastlingManager.undo_wqsc)) {
+				decrementMaterialForPiece(Piece.WHITE_ROOK, Position.d1);
+			}
+		} else if (piece==Piece.BLACK_KING) {
+			if (Move.areEqual(move,CastlingManager.bksc)) {
+				decrementMaterialForPiece(Piece.BLACK_ROOK, Position.h8);
+			}
+			else if (Move.areEqual(move,CastlingManager.bqsc)) {
+				decrementMaterialForPiece(Piece.BLACK_ROOK, Position.a8);
+			}
+			else if (Move.areEqual(move,CastlingManager.undo_bksc)) {
+				decrementMaterialForPiece(Piece.BLACK_ROOK, Position.f8);
+			}
+			else if (Move.areEqual(move,CastlingManager.undo_bqsc)) {
+				decrementMaterialForPiece(Piece.BLACK_ROOK, Position.d8);
+			}
+		}
+	}
+	
+	private void handleCastlingNewPosition(int piece, int move) {
+		if ( piece==Piece.WHITE_KING ) {
+			if (Move.areEqual(move, CastlingManager.wksc)) {
+				incrementMaterialForPiece(Piece.WHITE_ROOK, Position.f1);
+			}
+			else if (Move.areEqual(move,CastlingManager.wqsc)) {
+				incrementMaterialForPiece(Piece.WHITE_ROOK, Position.d1);
+			}
+			else if (Move.areEqual(move,CastlingManager.undo_wksc))
+			{
+				incrementMaterialForPiece(Piece.WHITE_ROOK, Position.h1);
+			}
+			else if (Move.areEqual(move,CastlingManager.undo_wqsc)) {
+				incrementMaterialForPiece(Piece.WHITE_ROOK, Position.a1);
+			}
+		} else if (piece==Piece.BLACK_KING) {
+			if (Move.areEqual(move,CastlingManager.bksc)) {
+				incrementMaterialForPiece(Piece.BLACK_ROOK, Position.f8);
+			}
+			else if (Move.areEqual(move,CastlingManager.bqsc)) {
+				incrementMaterialForPiece(Piece.BLACK_ROOK, Position.d8);
+			}
+			else if (Move.areEqual(move,CastlingManager.undo_bksc)) {
+				incrementMaterialForPiece(Piece.BLACK_ROOK, Position.h8);
+			}
+			else if (Move.areEqual(move,CastlingManager.undo_bqsc)) {
+				incrementMaterialForPiece(Piece.BLACK_ROOK, Position.a8);
+			}
+		}
 	}
 }

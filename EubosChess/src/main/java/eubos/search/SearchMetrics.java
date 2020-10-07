@@ -7,10 +7,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
 import com.fluxchess.jcpi.models.GenericMove;
 
+import eubos.board.Board;
 import eubos.board.Piece.Colour;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
-import eubos.score.PositionEvaluator;
 
 public class SearchMetrics {
 	private IPositionAccessors pos;
@@ -57,7 +57,7 @@ public class SearchMetrics {
 		}
 		int score = getCpScore();
 		int depth = getDepth();
-		if (java.lang.Math.abs(score)<PositionEvaluator.MATERIAL_VALUE_KING) {
+		if (java.lang.Math.abs(score)<Board.MATERIAL_VALUE_KING) {
 			info.setCentipawns(score);
 		} else {
 			int mateMove = (score > 0) ? Short.MAX_VALUE - score : Short.MIN_VALUE - score;

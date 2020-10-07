@@ -13,6 +13,7 @@ import org.mockito.ArgumentCaptor;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
+import eubos.board.Board;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
@@ -85,7 +86,7 @@ public class PlySearcherTest {
 		initialisePositionAndSearch("7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69", (byte)4);
 		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
 
-		assertEquals(2*PositionEvaluator.MATERIAL_VALUE_QUEEN-40 /* relative pos of Kings, endgame */, classUnderTest.searchPly().getScore());		
+		assertEquals(2*Board.MATERIAL_VALUE_QUEEN-40 /* relative pos of Kings, endgame */, classUnderTest.searchPly().getScore());		
 	}
 	
 	@Test
