@@ -372,7 +372,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			return f;
 		}
 		private void create() {
-			theBoard =  new Board( pl );
+			theBoard =  new Board( pl, onMove );
 		}
 	}
 

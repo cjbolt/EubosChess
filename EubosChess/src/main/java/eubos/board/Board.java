@@ -190,7 +190,22 @@ public class Board {
 		}
 	}
 	
-	public Board( Map<Integer, Integer> pieceMap ) {
+	static final int ENDGAME_MATERIAL_THRESHOLD = 
+			Board.MATERIAL_VALUE_KING + 
+			Board.MATERIAL_VALUE_ROOK + 
+			Board.MATERIAL_VALUE_KNIGHT + 
+			(4 * Board.MATERIAL_VALUE_PAWN);
+	
+	static final int ENDGAME_MATERIAL_THRESHOLD_WITHOUT_QUEENS =
+			Board.MATERIAL_VALUE_KING + 
+			Board.MATERIAL_VALUE_ROOK + 
+			Board.MATERIAL_VALUE_KNIGHT +
+			Board.MATERIAL_VALUE_BISHOP +
+			(4 * Board.MATERIAL_VALUE_PAWN);
+	
+	boolean isEndgame;
+	
+	public Board( Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove ) {
 		allPieces = 0x0;
 		whitePieces = 0x0;
 		blackPieces = 0x0;
@@ -201,24 +216,34 @@ public class Board {
 			setPieceAtSquare( nextPiece.getKey(), nextPiece.getValue() );
 		}
 		me = evaluateMaterial();
+		boolean queensOffBoard = (getWhiteQueens() == 0) && (getBlackQueens() == 0);
+		int opponentMaterial = Piece.Colour.isWhite(initialOnMove) ? me.getBlack() : me.getWhite();
+		boolean queensOffMaterialThresholdReached = opponentMaterial <= ENDGAME_MATERIAL_THRESHOLD_WITHOUT_QUEENS;
+		boolean materialQuantityThreshholdReached = me.getWhite() <= ENDGAME_MATERIAL_THRESHOLD && me.getBlack() <= ENDGAME_MATERIAL_THRESHOLD;
+		if ((queensOffBoard && queensOffMaterialThresholdReached) || materialQuantityThreshholdReached) {
+			isEndgame = true;
+		}
+		// Now we have determined whether it is an endgame or not, re-evaluate material according to the correct King PST.
+		me = evaluateMaterial();
 	}
 	
 	public CaptureData doMove(int move) throws InvalidPieceException {
 		CaptureData captureTarget = NULL_CAPTURE;
 		int pieceToMove = Move.getOriginPiece(move);
-		int moveFrom = Move.getOriginPosition(move);
+//		int moveFrom = Move.getOriginPosition(move);
 		int targetSquare = Move.getTargetPosition(move);
 		int targetPiece = Move.getTargetPiece(move);
-		// Update material evaluation before moving any pieces
-		int originPiece = pieceToMove;
-		if (Move.getPromotion(move) != IntChessman.NOCHESSMAN) {
-			originPiece &= ~Piece.PIECE_NO_COLOUR_MASK;
-			originPiece |= Piece.PAWN;
-		} else if (Move.isCastle(move)) {
-			// Handle removal of rook at old position
-			handleCastlingOldPosition(pieceToMove, move);
-		}
-		decrementMaterialForPiece(originPiece, moveFrom);
+//		// Update material evaluation before moving any pieces
+//		int originPiece = pieceToMove;
+//		if (Move.getPromotion(move) != IntChessman.NOCHESSMAN) {
+//			// performMove will have changed the type to the promoted value, undo that here
+//			originPiece &= ~Piece.PIECE_NO_COLOUR_MASK;
+//			originPiece |= Piece.PAWN;
+//		} else {
+//			// Handle removal of rook at old position
+//			handleCastlingDecrementOldRookPosition(pieceToMove, move);
+//		}
+//		decrementMaterialForPiece(originPiece, moveFrom);
 		if (isEnPassantCapture(pieceToMove, targetSquare)) {
 			// Handle en passant captures, don't need to do other checks in this case
 			int rank = IntRank.NORANK;
@@ -244,16 +269,52 @@ public class Board {
 			}			
 		}
 		movePiece(move);
-		// Update Material Evaluation following the move with the new board positions 
-		incrementMaterialForPiece(pieceToMove, targetSquare);
-		if (captureTarget.getPiece() != Piece.NONE) {
-			decrementMaterialForPiece(captureTarget.getPiece(), captureTarget.getSquare());
-		} else if (Move.isCastle(move)) {
-			// Handle rook in new position, if there is a Secondary rook move
-			handleCastlingNewPosition(pieceToMove, move);
+//		// Update Material Evaluation following the move with the new board positions 
+//		incrementMaterialForPiece(pieceToMove, targetSquare);
+//		if (captureTarget.getPiece() != Piece.NONE) {
+//			decrementMaterialForPiece(captureTarget.getPiece(), captureTarget.getSquare());
+//		} else {
+//			// Handle rook in new position, if there is a Secondary rook move
+//		handleCastlingIncrementNewRookPosition(pieceToMove, move);
+//		}
+		return captureTarget;
+	}
+	
+	public void undoMove(int reversedMove, CaptureData cap) throws InvalidPieceException {
+		int originPiece = Move.getOriginPiece(reversedMove);
+//		int moveFrom = Move.getOriginPosition(reversedMove);
+//		int promotedChessman = Move.getPromotion(reversedMove); 
+		boolean isCapture = cap.getPiece() != Piece.NONE;
+		
+//		// Update Material Evaluation for origin piece PSTs before the board is changed
+//		if (promotedChessman != IntChessman.NOCHESSMAN) {
+//			int promotedPiece = Piece.convertChessmanToPiece(promotedChessman, Piece.isWhite(originPiece));
+//			decrementMaterialForPiece(promotedPiece, moveFrom);
+//		} else {
+//			decrementMaterialForPiece(originPiece, moveFrom);
+//			// Handle removal of rook at old position
+//			handleCastlingDecrementOldRookPosition(originPiece, reversedMove);
+//		}
+		
+		// Handle reversal of any castling secondary rook moves on the board
+		if (Piece.isKing(originPiece)) {
+			unperformSecondaryCastlingMove(reversedMove);
+		}
+		movePiece(reversedMove);
+		// Undo any capture that had been previously performed.
+		if (isCapture) {
+			setPieceAtSquare(cap.getSquare(), cap.getPiece());
 		}
 		
-		return captureTarget;
+//		// Update Material Evaluation for origin piece PSTs after the board is changed
+//		incrementMaterialForPiece(originPiece, Move.getTargetPosition(reversedMove));
+//		if (isCapture) {
+//			// Restore any captured piece
+//			incrementMaterialForPiece(cap.getPiece(), cap.getSquare());
+//		} else {
+//			// Secondary rook moves
+//			handleCastlingIncrementNewRookPosition(originPiece, reversedMove);
+//		}
 	}
 	
 	private void movePiece(int move) {
@@ -358,56 +419,6 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
 			allPieces ^= (bqsc_mask);
-		}
-	}
-	
-	public void undoMove(int reversedMove, CaptureData cap) throws InvalidPieceException {
-		updateMaterialBeforeForUndoMove(reversedMove);
-		// Handle reversal of any castling secondary rook moves
-		if (Piece.isKing(Move.getOriginPiece(reversedMove))) {
-			unperformSecondaryCastlingMove(reversedMove);
-		}
-		movePiece(reversedMove);
-		// Undo any capture that had been previously performed.
-		if (cap.getPiece() != Piece.NONE) {
-			setPieceAtSquare(cap.getSquare(), cap.getPiece());
-		}
-		updateMaterialAfterForUndoMove(reversedMove, cap);
-	}
-	
-	private void updateMaterialBeforeForUndoMove(int move) {
-		// Update for new origin piece PSTs
-		int originPiece = Move.getOriginPiece(move);
-		if (Move.getPromotion(move) != IntChessman.NOCHESSMAN) {
-			int promotedChessman = Move.getPromotion(move);
-			int promotedPiece = Piece.convertChessmanToPiece(promotedChessman, Piece.isWhite(originPiece));
-			// Undo promotion
-			decrementMaterialForPiece(promotedPiece, Move.getOriginPosition(move));
-		} else {
-			// Regular piece move
-			decrementMaterialForPiece(originPiece, Move.getOriginPosition(move));
-		}
-		if (Move.isCastle(move)) {
-			// Handle removal of rook at old position
-			handleCastlingOldPosition(originPiece, move);
-		}
-	}
-	
-	private void updateMaterialAfterForUndoMove(int move, CaptureData cap) {
-		// Update for new origin piece PSTs
-		int originPiece = Move.getOriginPiece(move);
-		if (Move.getPromotion(move) != IntChessman.NOCHESSMAN) {
-			incrementMaterialForPiece(originPiece, Move.getTargetPosition(move));
-		} else {
-			// Regular piece move
-			incrementMaterialForPiece(originPiece, Move.getTargetPosition(move));
-		}
-		// Update for target piece PSTs
-		if (cap.getPiece() != Piece.NONE) {
-			incrementMaterialForPiece(cap.getPiece(), cap.getSquare());
-		} else if (Move.isCastle(move)) {
-			// Secondary rook moves
-			handleCastlingNewPosition(originPiece, move);
 		}
 	}
 	
@@ -1035,12 +1046,12 @@ public class Board {
 		case Piece.WHITE_ROOK:
 		case Piece.BLACK_ROOK:
 			currValue = MATERIAL_VALUE_ROOK;
-			//currValue += getNumRankFileSquaresAvailable(atPos)*2;
+			currValue += getNumRankFileSquaresAvailable(atPos)*2;
 			break;
 		case Piece.WHITE_BISHOP:
 		case Piece.BLACK_BISHOP:
 			currValue = MATERIAL_VALUE_BISHOP;
-			//currValue += getNumDiagonalSquaresAvailable(atPos)*2;
+			currValue += getNumDiagonalSquaresAvailable(atPos)*2;
 			break;
 		case Piece.WHITE_KNIGHT:
 		case Piece.BLACK_KNIGHT:
@@ -1051,17 +1062,16 @@ public class Board {
 		case Piece.BLACK_QUEEN:
 			currValue = MATERIAL_VALUE_QUEEN;
 			// TODO calculation of queen mobility spoils some tests with KQk mates
-			//currValue += pm.getTheBoard().getNumRankFileSquaresAvailable(atPos)*2;
-			//currValue += pm.getTheBoard().getNumDiagonalSquaresAvailable(atPos)*2;
+			//currValue += (getNumRankFileSquaresAvailable(atPos)*2 + getNumDiagonalSquaresAvailable(atPos)*2);
 			break;
 		case Piece.WHITE_KING:
 		case Piece.BLACK_KING:
 			currValue = MATERIAL_VALUE_KING;
-			//if ((sc != null) ? sc.isEndgame() : false) {
-			//	currValue += KING_ENDGAME_WEIGHTINGS[atPos];
-			//} else {
+			if (isEndgame) {
+				currValue += KING_ENDGAME_WEIGHTINGS[atPos];
+			} else {
 				currValue += KING_MIDGAME_WEIGHTINGS[atPos];
-			//}
+			}
 		default:
 			break;
 		}
@@ -1099,10 +1109,11 @@ public class Board {
 				material.addBlack(currValue);
 			}
 		}
+		me = material;
 		return material;
 	}
 	
-	private void handleCastlingOldPosition(int piece, int move) {
+	private void handleCastlingDecrementOldRookPosition(int piece, int move) {
 		if ( piece==Piece.WHITE_KING ) {
 			if (Move.areEqual(move, CastlingManager.wksc)) {
 				decrementMaterialForPiece(Piece.WHITE_ROOK, Position.h1);
@@ -1133,7 +1144,7 @@ public class Board {
 		}
 	}
 	
-	private void handleCastlingNewPosition(int piece, int move) {
+	private void handleCastlingIncrementNewRookPosition(int piece, int move) {
 		if ( piece==Piece.WHITE_KING ) {
 			if (Move.areEqual(move, CastlingManager.wksc)) {
 				incrementMaterialForPiece(Piece.WHITE_ROOK, Position.f1);

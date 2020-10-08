@@ -12,7 +12,7 @@ public class SearchContext {
 	IPositionAccessors pos;
 	Piece.Colour initialOnMove;
 	SearchGoal goal;
-	boolean isEndgame;
+	
 	
 	static final short SIMPLIFY_THRESHOLD = 100;
 	static final short DRAW_THRESHOLD = -150;
@@ -20,19 +20,6 @@ public class SearchContext {
 	static final short SIMPLIFICATION_BONUS = 75;
 	static final short AVOID_DRAW_HANDICAP = -150;
 	static final short ACHIEVES_DRAW_BONUS = Board.MATERIAL_VALUE_KING/2;
-	
-	static final int ENDGAME_MATERIAL_THRESHOLD = 
-			Board.MATERIAL_VALUE_KING + 
-			Board.MATERIAL_VALUE_ROOK + 
-			Board.MATERIAL_VALUE_KNIGHT + 
-			(4 * Board.MATERIAL_VALUE_PAWN);
-	
-	static final int ENDGAME_MATERIAL_THRESHOLD_WITHOUT_QUEENS =
-			Board.MATERIAL_VALUE_KING + 
-			Board.MATERIAL_VALUE_ROOK + 
-			Board.MATERIAL_VALUE_KNIGHT +
-			Board.MATERIAL_VALUE_BISHOP +
-			(4 * Board.MATERIAL_VALUE_PAWN);
 	
 	static final boolean ALWAYS_TRY_FOR_WIN = false;
 	
@@ -47,13 +34,6 @@ public class SearchContext {
 		// Make a copy of the initial Material Evaluation and store it here
 		initial = new MaterialEvaluation(initialMaterial.getWhite(), initialMaterial.getBlack());
 		initialOnMove = pos.getOnMove();
-		boolean queensOffBoard = (pos.getTheBoard().getWhiteQueens() == 0) && (pos.getTheBoard().getBlackQueens() ==0);
-		int opponentMaterial = Piece.Colour.isWhite(initialOnMove) ? initialMaterial.getBlack() : initialMaterial.getWhite();
-		boolean queensOffMaterialThresholdReached = opponentMaterial <= ENDGAME_MATERIAL_THRESHOLD_WITHOUT_QUEENS;
-		boolean materialQuantityThreshholdReached = initialMaterial.getWhite() <= ENDGAME_MATERIAL_THRESHOLD && initialMaterial.getBlack() <= ENDGAME_MATERIAL_THRESHOLD;
-		if ((queensOffBoard && queensOffMaterialThresholdReached) || materialQuantityThreshholdReached) {
-			isEndgame = true;
-		}
 		setGoal();
 	}
 
@@ -132,11 +112,6 @@ public class SearchContext {
 			}			
 		}
 		return isSimplification;
-	}
-
-	public boolean isEndgame() {
-		// Could make this update for when we enter endgame as a consequence of moves applied during the search.
-		return isEndgame;
 	}
 	
 	public short getScoreForStalemate() {

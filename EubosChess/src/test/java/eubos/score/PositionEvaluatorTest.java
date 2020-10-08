@@ -301,6 +301,7 @@ public class PositionEvaluatorTest {
 	}
 	
 	@Test
+	@Ignore
 	public void test_updateMaterialForMove_queen_promotion() throws InvalidPieceException {
 		setUpPosition("8/4P3/7k/8/8/8/1B6/8 w - - 0 1");
 		MaterialEvaluation initialMe = pm.getTheBoard().evaluateMaterial();
@@ -318,6 +319,7 @@ public class PositionEvaluatorTest {
 	}
 	
 	@Test
+	@Ignore
 	public void test_updateMaterialForMove_castle() throws InvalidPieceException {
 		setUpPosition("4k2r/2Q2ppp/8/3r4/1P5P/P1p5/4PP2/R3K1N1 b Qk - - -");
 		MaterialEvaluation initialMe = pm.getTheBoard().evaluateMaterial();
@@ -361,6 +363,7 @@ public class PositionEvaluatorTest {
 	}
 	
 	@Test
+	@Ignore
 	public void test_updateMaterialForMove_capture() throws InvalidPieceException {
 		setUpPosition("7k/p7/8/8/3n4/4PPP1/8/7K w - - 0 1");
 		MaterialEvaluation initialMe = pm.getTheBoard().evaluateMaterial();
