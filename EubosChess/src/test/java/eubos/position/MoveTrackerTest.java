@@ -38,7 +38,7 @@ public class MoveTrackerTest {
 
 	@Test
 	public void testLastMoveWasCapture_WasACapture() throws IllegalNotationException {
-		CaptureData cap = new CaptureData(Piece.BLACK_PAWN, Position.b3, false);
+		CaptureData cap = new CaptureData(Piece.BLACK_PAWN, Position.b3);
 		TrackedMove tm = new TrackedMove(Move.toMove(new GenericMove("a2b3")), cap, Position.NOPOSITION, PositionManager.BLACK_KINGSIDE);
 		classUnderTest.add(tm);		
 		assertTrue(classUnderTest.lastMoveWasCapture());

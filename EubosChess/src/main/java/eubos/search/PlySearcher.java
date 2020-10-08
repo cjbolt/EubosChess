@@ -130,7 +130,6 @@ public class PlySearcher {
 	private boolean checkForRepetitionDueToPositionInSearchTree(int move) throws InvalidPieceException {
 		boolean retVal = false;
 		if (move != Move.NULL_MOVE) {
-			// We don't evaluate material, just a draw check, so no need to update Material evaluation
 			pm.performMove(move);
 			SearchDebugAgent.nextPly();
 			if (pos.isThreefoldRepetitionPossible()) {
