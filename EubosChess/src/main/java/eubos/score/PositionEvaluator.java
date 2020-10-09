@@ -65,11 +65,11 @@ public class PositionEvaluator implements IEvaluate {
 				assert false;
 			}
 		}
-		pm.getTheBoard().evaluateMaterial();
 		SearchContextEvaluation eval = sc.computeSearchGoalBonus(pm.getTheBoard().me);
 		if (!eval.isDraw) {
 			eval.score += pm.getTheBoard().me.getDelta();
-			eval.score += evaluatePawnStructure();
+			eval.score += (pawnCacheValid) ? pawnCache : evaluatePawnStructure();
+			eval.score += pm.getTheBoard().evaluateMobility();
 		}
 		return new Score(eval.score, Score.exact);
 	}
@@ -86,9 +86,19 @@ public class PositionEvaluator implements IEvaluate {
 		return castleScoreBoost;
 	}
 	
+	int pawnCache = 0;
+	boolean pawnCacheValid = false;
+	
+	public void invalidatePawnCache() {
+		pawnCache = 0;
+		pawnCacheValid = false;
+	}
+	
 	int evaluatePawnStructure() {
 		int pawnEvaluationScore = evaluatePawnsForColour(pm.getOnMove());
 		pawnEvaluationScore += evaluatePawnsForColour(Colour.getOpposite(pm.getOnMove()));
+		pawnCache = pawnEvaluationScore;
+		pawnCacheValid = true;
 		return pawnEvaluationScore;
 	}
 
