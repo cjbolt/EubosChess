@@ -13,6 +13,7 @@ import eubos.board.Board;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
+import eubos.score.IEvaluate;
 import eubos.score.PositionEvaluator;
 import eubos.search.DrawChecker;
 
@@ -389,10 +390,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return moveTracker.isEmpty();
 	}
 
-	PositionEvaluator pe;
+	IEvaluate pe;
 	
 	@Override
-	public void RegisterPositionEvaluator(PositionEvaluator pe) {
+	public void RegisterPositionEvaluator(IEvaluate pe) {
 		this.pe = pe;
 	}
 }
