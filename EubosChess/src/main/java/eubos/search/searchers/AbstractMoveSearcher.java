@@ -30,7 +30,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 		this.pos = pos;
 		PositionEvaluator pe = new PositionEvaluator(pos);
 		initialScore = pe.evaluatePosition().getScore();
-		pos.RegisterPositionEvaluator(pe);
+		//pos.RegisterPositionEvaluator(pe);
 		if (Colour.isBlack(pos.getOnMove())) {
 			initialScore = (short)-initialScore;
 		}

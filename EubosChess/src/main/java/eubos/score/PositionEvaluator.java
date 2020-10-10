@@ -69,7 +69,7 @@ public class PositionEvaluator implements IEvaluate {
 		SearchContextEvaluation eval = sc.computeSearchGoalBonus(pm.getTheBoard().me);
 		if (!eval.isDraw) {
 			eval.score += pm.getTheBoard().me.getDelta();
-			eval.score += (pawnCacheValid) ? pawnCache : evaluatePawnStructure();
+			//eval.score += (pawnCacheValid) ? pawnCache : evaluatePawnStructure();
 			//eval.score += pm.getTheBoard().evaluateMobility();
 		}
 		return new Score(eval.score, Score.exact);
@@ -106,7 +106,7 @@ public class PositionEvaluator implements IEvaluate {
 	private int evaluatePawnsForColour(Colour onMoveWas) {
 		Board board = pm.getTheBoard();
 		int passedPawnBoost = 0;
-		//int pawnHandicap = -board.countDoubledPawnsForSide(onMoveWas)*DOUBLED_PAWN_HANDICAP;
+		int pawnHandicap = -board.countDoubledPawnsForSide(onMoveWas)*DOUBLED_PAWN_HANDICAP;
 		int ownPawns = Colour.isWhite(onMoveWas) ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
 		PrimitiveIterator.OfInt iter = board.iterateType(ownPawns);
 		while (iter.hasNext()) {
@@ -120,10 +120,10 @@ public class PositionEvaluator implements IEvaluate {
 			}
 		}
 		if (Colour.isBlack(onMoveWas)) {
-			//pawnHandicap = -pawnHandicap;
+			pawnHandicap = -pawnHandicap;
 			passedPawnBoost = -passedPawnBoost;
 		}
-		return /*pawnHandicap +*/ passedPawnBoost;
+		return pawnHandicap + passedPawnBoost;
 	}
 	
 	public SearchContext getSearchContext() {

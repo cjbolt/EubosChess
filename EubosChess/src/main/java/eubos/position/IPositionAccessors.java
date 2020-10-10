@@ -20,5 +20,5 @@ public interface IPositionAccessors {
 	public long getHash();
 	public String getFen();
 	public boolean isThreefoldRepetitionPossible();
-	public void RegisterPositionEvaluator(IEvaluate pe);
+	//public void RegisterPositionEvaluator(IEvaluate pe);
 }

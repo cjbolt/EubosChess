@@ -50,7 +50,7 @@ public class MiniMaxMoveGenerator implements
 		this.pm = pm;
 		this.pos = pos;
 		this.pe = pe;
-		pos.RegisterPositionEvaluator(pe);
+		//pos.RegisterPositionEvaluator(pe);
 		tt = hashMap;
 		score = 0;
 		sm = new SearchMetrics(pos);
@@ -66,7 +66,7 @@ public class MiniMaxMoveGenerator implements
 		this.pm = pm;
 		this.pos = pos;
 		this.pe = pe;
-		pos.RegisterPositionEvaluator(pe);
+		//pos.RegisterPositionEvaluator(pe);
 		tt = hashMap;
 		score = 0;
 		sm = new SearchMetrics(pos);
