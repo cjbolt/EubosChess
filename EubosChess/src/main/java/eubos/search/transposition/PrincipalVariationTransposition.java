@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
-import eubos.position.MoveList;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.search.Score;
@@ -18,12 +17,12 @@ public class PrincipalVariationTransposition implements ITransposition {
 	private List<Integer> pv;
 	private short accessCount;
 
-	public PrincipalVariationTransposition(byte depth, short score, byte scoreType, MoveList ml, GenericMove bestMove) {
+	public PrincipalVariationTransposition(byte depth, short score, byte scoreType, GenericMove bestMove) {
 		// Only used by tests
-		this(depth, score, scoreType, ml, Move.toMove(bestMove, null, Move.TYPE_REGULAR_NONE), null);
+		this(depth, score, scoreType, Move.toMove(bestMove, null, Move.TYPE_REGULAR_NONE), null);
 	}
 	
-	public PrincipalVariationTransposition(byte depth, short score, byte scoreType, MoveList ml, int bestMove, List<Integer> pv) {
+	public PrincipalVariationTransposition(byte depth, short score, byte scoreType, int bestMove, List<Integer> pv) {
 		setDepthSearchedInPly(depth);
 		setScore(score);
 		setType(scoreType);
@@ -31,8 +30,8 @@ public class PrincipalVariationTransposition implements ITransposition {
 		setAccessCount((short)0);
 	}
 	
-	public PrincipalVariationTransposition(byte depth, Score score, MoveList ml, int bestMove, List<Integer> pv) {
-		this(depth, score.getScore(), score.getType(), ml, bestMove, pv);
+	public PrincipalVariationTransposition(byte depth, Score score, int bestMove, List<Integer> pv) {
+		this(depth, score.getScore(), score.getType(), bestMove, pv);
 	}
 
 	@Override

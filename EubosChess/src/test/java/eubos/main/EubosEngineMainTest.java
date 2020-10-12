@@ -301,6 +301,7 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
+	//@Ignore
 	public void test_KQk_mate_in_7() throws InterruptedException, IOException {
 		setupEngine();
 		// 1

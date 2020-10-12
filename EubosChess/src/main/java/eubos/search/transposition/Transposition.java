@@ -104,4 +104,8 @@ public class Transposition implements ITransposition {
 	public void setAccessCount(short accessCount) {
 		this.accessCount = accessCount;
 	}
+	
+	public List<Integer> getPv() {
+		return null;
+	}
 }

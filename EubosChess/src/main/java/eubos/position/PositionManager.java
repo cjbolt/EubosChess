@@ -13,8 +13,6 @@ import eubos.board.Board;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
-import eubos.score.IEvaluate;
-import eubos.score.PositionEvaluator;
 import eubos.search.DrawChecker;
 
 public class PositionManager implements IChangePosition, IPositionAccessors {
@@ -128,10 +126,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	public void performMove( int move, boolean computeHash ) throws InvalidPieceException {
-		
-//		if (pe != null && (Move.isPawnMove(move) || Piece.isPawn(Move.getTargetPiece(move)))) {
-//			pe.invalidatePawnCache();
-//		}
 		
 		// Save previous en passant square and initialise for this move
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
@@ -389,11 +383,4 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public boolean noLastMove() {
 		return moveTracker.isEmpty();
 	}
-
-//	IEvaluate pe;
-	
-//	@Override
-//	public void RegisterPositionEvaluator(IEvaluate pe) {
-//		this.pe = pe;
-//	}
 }

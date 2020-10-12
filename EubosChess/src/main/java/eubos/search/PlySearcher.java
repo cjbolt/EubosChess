@@ -105,10 +105,13 @@ public class PlySearcher {
 				break;
 			} else {
 				short adjustedScore = st.adjustHashTableMateInXScore(currPly, eval.trans.getScore());
+				if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
+					pc.update(currPly, eval.trans.getPv());
+				} else {
+					pc.set(currPly, eval.trans.getBestMove());
+				}
 				theScore = new Score(adjustedScore, eval.trans.getType());
-				//pe.invalidatePawnCache();
 			}
-			pc.set(currPly, eval.trans.getBestMove());
 			if (EubosEngineMain.UCI_INFO_ENABLED)
 				sm.incrementNodesSearched();
 			break;
@@ -210,14 +213,23 @@ public class PlySearcher {
 					backedUpScoreWasExact = positionScore.getType() == Score.exact;
 					plyScore = positionScore;
 					updatePrincipalContinuation(currMove, positionScore.getScore());
-					trans = tt.setTransposition(trans, getTransDepth(), positionScore.getScore(), plyBound, currMove);
+					if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
+						trans = tt.setTransposition(trans, getTransDepth(), positionScore.getScore(), plyBound, currMove, pc.toPvList(currPly));
+					} else {
+						trans = tt.setTransposition(trans, getTransDepth(), positionScore.getScore(), plyBound, currMove);
+					}
+					
 				} else {
 					// Always clear the principal continuation when we didn't back up the score
 					pc.clearContinuationBeyondPly(currPly);
 					// Update the position hash if the move is better than that previously stored at this position
 					if (shouldUpdatePositionBoundScoreAndBestMove(plyBound, plyScore.getScore(), positionScore.getScore())) {
 						plyScore = positionScore;
-						trans = tt.setTransposition(trans, getTransDepth(), plyScore.getScore(), plyBound, currMove);
+						if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
+							trans = tt.setTransposition(trans, getTransDepth(), plyScore.getScore(), plyBound, currMove, pc.toPvList(currPly));
+						} else {
+							trans = tt.setTransposition(trans, getTransDepth(), plyScore.getScore(), plyBound, currMove);
+						}
 					}
 				}
 
@@ -437,7 +449,7 @@ public class PlySearcher {
 		}  else if (pos.getTheBoard().isInsufficientMaterial()) {
 			terminalNode = true;
 		} else if (currPly == originalSearchDepthRequiredInPly) {
-			if (pe.isQuiescent()) {
+			if (pe.isQuiescent() || MiniMaxMoveGenerator.EXTENDED_SEARCH_PLY_LIMIT == 0) {
 				terminalNode = true;
 			}
 		} else if (currPly > originalSearchDepthRequiredInPly) {
