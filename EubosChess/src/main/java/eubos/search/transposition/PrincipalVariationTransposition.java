@@ -82,9 +82,9 @@ public class PrincipalVariationTransposition implements ITransposition {
 	}
 	
 	private void truncateOnwardPvToSearchDepth(List<Integer> pv) {
-//		if (pv != null && pv.size() > depthSearchedInPly) {
-//			pv.subList(depthSearchedInPly, pv.size()).clear();
-//		}
+		if (pv != null && pv.size() > depthSearchedInPly) {
+			pv.subList(depthSearchedInPly, pv.size()).clear();
+		}
 	}
 
 	public void setPv(List<Integer> pv) {

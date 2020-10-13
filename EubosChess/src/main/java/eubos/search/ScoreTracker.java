@@ -63,7 +63,7 @@ public class ScoreTracker {
 		return backUpScore;
 	}
 	
-	public boolean isAlphaBetaCutOff(byte currPly, Score positionScore) {
+	public boolean isAlphaBetaCutOff(byte currPly, Score scoreBackedUpToNode) {
 		boolean isAlphaBetaCutOff = false;
 		if (currPly > 0) {
 			Score prevPlyScore = scores[(byte)(currPly-1)];
@@ -71,28 +71,53 @@ public class ScoreTracker {
 			if (onMoveIsWhite(currPly)) {
 				/* A note about these score comparisons: 
 				 * 
-				 *  The prevPlyScore is for the opponent. If we have backed up a score to the current position
-				 *  which is worse for the opponent, then we have discovered a refutation of THEIR last move.
+				 *  The prevPlyScore is the best score backed up for the opponent of the side now on Move. If we have 
+				 *  now backed up a score to the current position (either through a hash hit or tree search) which is
+				 *  worse for the opponent, then we have discovered a refutation of THEIR last move.
+				 *  
 				 *  This isn't the same as the test to back up a score. That is the reason for unexpected comparison
 				 *  (wrt. the usual backing up operation). This comparison is specific to alpha/beta pruning.
 				 */
-				if (positionScore.getScore() >= prevPlyScore.getScore()) isAlphaBetaCutOff = true;
+				if (scoreBackedUpToNode.getScore() >= prevPlyScore.getScore()) isAlphaBetaCutOff = true;
 			} else {
-				if (positionScore.getScore() <= prevPlyScore.getScore()) isAlphaBetaCutOff = true;
+				if (scoreBackedUpToNode.getScore() <= prevPlyScore.getScore()) isAlphaBetaCutOff = true;
 			}
 			if (isAlphaBetaCutOff) {
-				SearchDebugAgent.printAlphaBetaComparison(prevPlyScore.getScore(), positionScore.getScore());
+				SearchDebugAgent.printAlphaBetaComparison(prevPlyScore.getScore(), scoreBackedUpToNode.getScore());
 			}
 		}
 		return isAlphaBetaCutOff;
 	}	
 	
 	public short adjustHashTableMateInXScore(byte currPly, short score) {
-		if (Math.abs(score) > Short.MAX_VALUE-100) {
-			// Indicates hash table score was mate-in-X, adjust the score according to this depth position in the search tree
-			int move_num = (currPly+1)/2;
-			score = (short) ((score < 0 ) ? score+move_num : score-move_num);
+		if (currPly != 0) {
+			if (Math.abs(score) > Short.MAX_VALUE-100) {
+				// Indicates hash table score was mate-in-X, adjust the score according to this depth position in the search tree
+				int move_num = (currPly+1)/2;
+				score = (short) ((score < 0 ) ? score+move_num : score-move_num);
+			}
 		}
 		return score;
+	}
+
+	public boolean isAlphaBetaCutOffForHash(byte currPly, short hashScore) {
+		boolean isAlphaBetaCutOff = false;
+		short adjustedHashScore = adjustHashTableMateInXScore(currPly, hashScore);
+		Score broughtDownScore = scores[currPly];
+		/*  
+		 * This uses a complete different scheme for when we are working out if a hashed move is a refutation as opposed
+		 * to that from a regular backup.
+		 */
+		if (onMoveIsWhite(currPly)) {
+			//if (adjustedHashScore >= broughtDownScore.getScore()) isAlphaBetaCutOff = true;
+			if (adjustedHashScore <= broughtDownScore.getScore()) isAlphaBetaCutOff = true;
+		} else {
+			//if (adjustedHashScore <= broughtDownScore.getScore()) isAlphaBetaCutOff = true;
+			if (adjustedHashScore >= broughtDownScore.getScore()) isAlphaBetaCutOff = true;
+		}
+		if (isAlphaBetaCutOff) {
+			SearchDebugAgent.printAlphaBetaComparison(broughtDownScore.getScore(), adjustedHashScore);
+		}
+		return isAlphaBetaCutOff;
 	}
 }
