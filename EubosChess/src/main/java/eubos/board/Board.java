@@ -403,26 +403,54 @@ public class Board {
 	public List<Integer> getRegularPieceMoves(Piece.Colour side) {
 		long bitBoardToIterate = Colour.isWhite(side) ? whitePieces : blackPieces;
 		ArrayList<Integer> movesList = new ArrayList<Integer>(60);
-		
-		PrimitiveIterator.OfInt iter = BitBoard.iterator(bitBoardToIterate);
-		while (iter.hasNext()) {
-			int bit_index = iter.nextInt();
-			int atSquare = BitBoard.bitToPosition_Lut[bit_index];
-			long mask = 1L<<bit_index;
-			// for efficiency sorted in order of frequency on the board
-			if ((pieces[INDEX_PAWN] & mask) == mask) {
-				movesList.addAll(Piece.pawn_generateMoves(this, atSquare, side));
-			} else if ((pieces[INDEX_ROOK] & mask) == mask) {
-				movesList.addAll(Piece.rook_generateMoves(this, atSquare, side));
-			} else if ((pieces[INDEX_BISHOP] & mask) == mask) {
-				movesList.addAll(Piece.bishop_generateMoves(this, atSquare, side));
-			} else if ((pieces[INDEX_KNIGHT] & mask) == mask) {
-				movesList.addAll(Piece.knight_generateMoves(this, atSquare, side));
-			} else if ((pieces[INDEX_KING] & mask) == mask) {
-				movesList.addAll(Piece.king_generateMoves(this, atSquare, side));
-			} else if ((pieces[INDEX_QUEEN] & mask) == mask) {
-				movesList.addAll(Piece.queen_generateMoves(this, atSquare, side));
-			}
+		// Unrolled loop for performance optimisation...
+		long scratchBitBoard = bitBoardToIterate & pieces[INDEX_PAWN];
+		while ( scratchBitBoard != 0x0L ) {
+			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
+			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
+			movesList.addAll(Piece.pawn_generateMoves(this, atSquare, side));
+			// clear the lssb
+			scratchBitBoard &= scratchBitBoard-1;
+		}
+		scratchBitBoard = bitBoardToIterate & pieces[INDEX_ROOK];
+		while ( scratchBitBoard != 0x0L ) {
+			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
+			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
+			movesList.addAll(Piece.rook_generateMoves(this, atSquare, side));
+			// clear the lssb
+			scratchBitBoard &= scratchBitBoard-1;
+		}
+		scratchBitBoard = bitBoardToIterate & pieces[INDEX_BISHOP];
+		while ( scratchBitBoard != 0x0L ) {
+			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
+			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
+			movesList.addAll(Piece.bishop_generateMoves(this, atSquare, side));
+			// clear the lssb
+			scratchBitBoard &= scratchBitBoard-1;
+		}
+		scratchBitBoard = bitBoardToIterate & pieces[INDEX_KNIGHT];
+		while ( scratchBitBoard != 0x0L ) {
+			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
+			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
+			movesList.addAll(Piece.knight_generateMoves(this, atSquare, side));
+			// clear the lssb
+			scratchBitBoard &= scratchBitBoard-1;
+		}
+		scratchBitBoard = bitBoardToIterate & pieces[INDEX_KING];
+		while ( scratchBitBoard != 0x0L ) {
+			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
+			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
+			movesList.addAll(Piece.king_generateMoves(this, atSquare, side));
+			// clear the lssb
+			scratchBitBoard &= scratchBitBoard-1;
+		}
+		scratchBitBoard = bitBoardToIterate & pieces[INDEX_QUEEN];
+		while ( scratchBitBoard != 0x0L ) {
+			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
+			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
+			movesList.addAll(Piece.queen_generateMoves(this, atSquare, side));
+			// clear the lssb
+			scratchBitBoard &= scratchBitBoard-1;
 		}
 		return movesList;
 	}
@@ -891,14 +919,16 @@ public class Board {
 	
 	private boolean isPromotionPawnBlocked(long pawns, Direction dir) {
 		boolean potentialPromotion = false;
-		PrimitiveIterator.OfInt iter = BitBoard.iterator(pawns);
-		while (iter.hasNext()) {
-			int pawn_bit = iter.nextInt();
-			int pos = BitBoard.bitToPosition_Lut[pawn_bit];
-			if (squareIsEmpty(Direction.getDirectMoveSq(dir, pos))) {
+		long scratchBitBoard = pawns;
+		while ( scratchBitBoard != 0x0L ) {
+			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
+			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
+			if (squareIsEmpty(Direction.getDirectMoveSq(dir, atSquare))) {
 				potentialPromotion = true;
 				break;
 			}
+			// clear the lssb
+			scratchBitBoard &= scratchBitBoard-1;
 		}
 		return potentialPromotion;
 	}
@@ -1010,12 +1040,16 @@ public class Board {
 		case Piece.WHITE_ROOK:
 		case Piece.BLACK_ROOK:
 			currValue = MATERIAL_VALUE_ROOK;
-			currValue += getNumRankFileSquaresAvailable(atPos)*2;
+			if (!isEndgame) {
+				currValue += getNumRankFileSquaresAvailable(atPos)*2;
+			}
 			break;
 		case Piece.WHITE_BISHOP:
 		case Piece.BLACK_BISHOP:
 			currValue = MATERIAL_VALUE_BISHOP;
-			currValue += getNumDiagonalSquaresAvailable(atPos)*2;
+			if (!isEndgame) {
+				currValue += getNumDiagonalSquaresAvailable(atPos)*2;
+			}
 			break;
 		case Piece.WHITE_KNIGHT:
 		case Piece.BLACK_KNIGHT:
@@ -1025,6 +1059,10 @@ public class Board {
 		case Piece.WHITE_QUEEN:
 		case Piece.BLACK_QUEEN:
 			currValue = MATERIAL_VALUE_QUEEN;
+//			if (!isEndgame) {
+//				currValue += getNumRankFileSquaresAvailable(atPos)*2;
+//				currValue += getNumDiagonalSquaresAvailable(atPos)*2;
+//			}
 			break;
 		case Piece.WHITE_KING:
 		case Piece.BLACK_KING:

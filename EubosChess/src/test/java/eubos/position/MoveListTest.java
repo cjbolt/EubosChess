@@ -112,8 +112,8 @@ public class MoveListTest {
 		assertEquals(new GenericMove("d7b5"), Move.toGenericMove(it.next())); // BxR delta 1 gains 2
 		
 		// neutral exchanges
-		assertEquals(new GenericMove("b1b5"), Move.toGenericMove(it.next())); // RxR
 		assertEquals(new GenericMove("g2f3"), Move.toGenericMove(it.next())); // PxP
+		assertEquals(new GenericMove("b1b5"), Move.toGenericMove(it.next())); // RxR
 		assertEquals(new GenericMove("a6e6"), Move.toGenericMove(it.next())); // QxQ
 		
 		// losing material
