@@ -55,6 +55,15 @@ public final class Move {
 	
 	public static int valueOf(int originPosition, int originPiece, int targetPosition, int targetPiece, int promotion) {
 		int move = 0;
+		
+		// Encode Target Piece and classification if a capture
+		if (targetPiece != Piece.NONE) {
+			move |= Move.TYPE_CAPTURE_MASK << TYPE_SHIFT;
+			
+			if (ENABLE_ASSERTS)
+				assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
+			move |= targetPiece << TARGET_PIECE_SHIFT;
+		}
 
 		// Encode origin position
 		if (ENABLE_ASSERTS)
@@ -71,11 +80,6 @@ public final class Move {
 			assert (targetPosition & 0x88) == 0;
 		move |= targetPosition << TARGETPOSITION_SHIFT;
 		
-		// Encode Target Piece
-		if (ENABLE_ASSERTS)
-			assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
-		move |= targetPiece << TARGET_PIECE_SHIFT;
-		
 		// Encode promotion
 		if (ENABLE_ASSERTS)
 			assert (IntChessman.isValid(promotion) && IntChessman.isValidPromotion(promotion)) || promotion == IntChessman.NOCHESSMAN;
@@ -87,10 +91,19 @@ public final class Move {
 	public static int valueOf(int type, int originPosition, int originPiece, int targetPosition, int targetPiece, int promotion) {
 		int move = 0;
 
-		// Encode move classification
-		if (ENABLE_ASSERTS)
-			assert (type & ~(Move.TYPE_MASK >>> TYPE_SHIFT)) == 0;
-		move |= type << TYPE_SHIFT;
+		// Encode Target Piece and classification if a capture
+		if (targetPiece != Piece.NONE) {
+			move |= (type | Move.TYPE_CAPTURE_MASK) << TYPE_SHIFT;
+			
+			if (ENABLE_ASSERTS)
+				assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
+			move |= targetPiece << TARGET_PIECE_SHIFT;
+		} else {
+			// Encode move classification
+			if (ENABLE_ASSERTS)
+				assert (type & ~(Move.TYPE_MASK >>> TYPE_SHIFT)) == 0;
+			move |= type << TYPE_SHIFT;
+		}
 
 		// Encode origin position
 		if (ENABLE_ASSERTS)

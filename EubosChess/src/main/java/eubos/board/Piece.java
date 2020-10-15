@@ -305,7 +305,7 @@ public abstract class Piece {
 			moveList.add( Move.valueOf(Move.TYPE_PROMOTION_PIECE_MASK, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.BISHOP ));
 			moveList.add( Move.valueOf(Move.TYPE_PROMOTION_PIECE_MASK, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.KNIGHT ));
 		} else {
-			moveList.add( Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece, IntChessman.NOCHESSMAN ) );
+			moveList.add( Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece, IntChessman.NOCHESSMAN));
 		}
 	}	
 	

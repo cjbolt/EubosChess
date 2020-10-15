@@ -63,34 +63,6 @@ public class MoveList implements Iterable<Integer> {
 		this(pm, Move.NULL_MOVE);
 	}
 	
-	private int computeMoveType(PositionManager pm, int currMove, int piece) {
-		int moveType = Move.getType(currMove);
-				
-		// Only test for check if the move could potentially cause a check
-		boolean isCheck = pm.getTheBoard().moveCouldPotentiallyCheckOtherKing(currMove) && pm.isKingInCheck(pm.getOnMove());
-		
-		// Check
-		if (isCheck)
-			moveType |= Move.TYPE_CHECK_MASK;
-		
-		int targetPiece = Move.getTargetPiece(currMove);
-		
-		// Captures
-		switch (targetPiece & Piece.PIECE_NO_COLOUR_MASK) {
-		case Piece.QUEEN:
-		case Piece.BISHOP:
-		case Piece.KNIGHT:
-		case Piece.ROOK:
-		case Piece.PAWN:
-			moveType |= Move.TYPE_CAPTURE_MASK;
-			break;
-		default:
-			break;
-		}		
-		
-		return moveType;		
-	}
-	
 	public MoveList(PositionManager pm, int bestMove) {
 		Colour onMove = pm.getOnMove();
 		boolean needToEscapeMate = false;
@@ -113,9 +85,13 @@ public class MoveList implements Iterable<Integer> {
 					// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
 					it.remove();
 				} else {
-					int moveType = computeMoveType(pm, currMove, piece);
-					currMove = Move.setType(currMove, moveType);
-					// Update with type
+					// Set the check flag for any moves attacking the opposing king
+					boolean isCheck = pm.getTheBoard().moveCouldPotentiallyCheckOtherKing(currMove) && pm.isKingInCheck(pm.getOnMove());
+					if (isCheck) {
+						int moveType = Move.getType(currMove);
+						moveType |= Move.TYPE_CHECK_MASK;
+						currMove = Move.setType(currMove, moveType);
+					}
 					it.set(currMove);
 				}
 				pm.unperformMove(false);

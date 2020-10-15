@@ -200,7 +200,10 @@ public class CastlingManager {
 		return (castleMoveLegal(Position.a8, qscBlackCheckSqs, qscBlackEmptySqs)) ? bqsc : 0;
 	}
 
-	public void updateFlags(int movedPiece, int lastMove) {
+	public void updateFlags(int lastMove) {
+		int movedPiece = Move.getOriginPiece(lastMove);
+		int targetPosition = Move.getTargetPosition(lastMove);
+		int originPosition = Move.getOriginPosition(lastMove);
 		// First handle castling moves
 		if (Piece.isKing(movedPiece)) {
 			if (Move.areEqual(lastMove,wksc) || Move.areEqual(lastMove,wqsc)) {
@@ -213,13 +216,13 @@ public class CastlingManager {
 		}
 		// After this, the move wasn't castling, but may have caused castling to be no longer possible
 		// A rook got captured
-		if (blackQsAvail && (Move.getTargetPosition(lastMove) == Position.a8)) {
+		if (blackQsAvail && (targetPosition == Position.a8)) {
 			blackQsAvail = false;
-		} else if (blackKsAvail && (Move.getTargetPosition(lastMove) == Position.h8)) {
+		} else if (blackKsAvail && (targetPosition == Position.h8)) {
 			blackKsAvail = false;
-		} else if (whiteQsAvail && (Move.getTargetPosition(lastMove) == Position.a1)) {
+		} else if (whiteQsAvail && (targetPosition == Position.a1)) {
 			whiteQsAvail = false;
-		} else if (whiteKsAvail && (Move.getTargetPosition(lastMove) == Position.h1)) {
+		} else if (whiteKsAvail && (targetPosition == Position.h1)) {
 			whiteKsAvail = false;
 		}
 		// King moved
@@ -229,16 +232,16 @@ public class CastlingManager {
 			blackKsAvail = blackQsAvail = false;
 		// Rook moved	
 		} else if (movedPiece == Piece.WHITE_ROOK) { 
-			if (Position.getFile(Move.getOriginPosition(lastMove))==IntFile.Fa) {
+			if (Position.getFile(originPosition)==IntFile.Fa) {
 				whiteQsAvail = false;
 			} 
-			if (Position.getFile(Move.getOriginPosition(lastMove))==IntFile.Fh) {
+			if (Position.getFile(originPosition)==IntFile.Fh) {
 				whiteKsAvail = false;
 			}
 		} else if (movedPiece == Piece.BLACK_ROOK) {
-			if (Position.getFile(Move.getOriginPosition(lastMove))==IntFile.Fa) {
+			if (Position.getFile(originPosition)==IntFile.Fa) {
 				blackQsAvail = false;
-			} else if (Position.getFile(Move.getOriginPosition(lastMove))==IntFile.Fh) {
+			} else if (Position.getFile(originPosition)==IntFile.Fh) {
 				blackKsAvail = false;
 			}	
 		}

@@ -141,7 +141,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq, getCastlingFlags()));
 		
 		// update castling flags
-		castling.updateFlags(Move.getOriginPiece(move), move);
+		castling.updateFlags(move);
 		
 		if (computeHash) {
 			// Update hash code
