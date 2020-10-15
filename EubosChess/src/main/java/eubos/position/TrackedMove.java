@@ -1,7 +1,6 @@
 package eubos.position;
 
 import eubos.board.Piece;
-import eubos.position.CaptureData;
 
 class TrackedMove {
 	private int move = 0;

@@ -127,6 +127,11 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public void performMove( int move, boolean computeHash ) throws InvalidPieceException {
 		
+//		if (pe!= null && (Move.isPawnMove(move) || Piece.isPawn(Move.getTargetPiece(move)))) {
+//			// Pawn moves or captures invalidate the stored pawn cache, it will need to be re-evaluated
+//			pe.invalidatePawnCache();
+//		}
+		
 		// Save previous en passant square and initialise for this move
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		
@@ -383,4 +388,11 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public boolean noLastMove() {
 		return moveTracker.isEmpty();
 	}
+
+//	IEvaluate pe;
+//	
+//	@Override
+//	public void registerPositionEvaluator(IEvaluate pe) {
+//		this.pe = pe;
+//	}
 }

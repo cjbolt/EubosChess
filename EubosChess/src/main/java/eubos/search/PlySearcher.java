@@ -66,6 +66,7 @@ public class PlySearcher {
 		dynamicSearchLevelInPly = searchDepthPly;
 		originalSearchDepthRequiredInPly = searchDepthPly;
 		extendedSearchLimitInPly = setExtSearchDepth();
+		//pos.registerPositionEvaluator(pe);
 		
 		this.st = st;
 		tt = hashMap;
@@ -111,6 +112,7 @@ public class PlySearcher {
 					pc.set(currPly, eval.trans.getBestMove());
 				}
 				theScore = new Score(adjustedScore, eval.trans.getType());
+				//pe.invalidatePawnCache();
 			}
 			if (EubosEngineMain.UCI_INFO_ENABLED)
 				sm.incrementNodesSearched();

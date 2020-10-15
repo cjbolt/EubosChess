@@ -15,7 +15,7 @@ import eubos.search.transposition.FixedSizeTranspositionTable;
 
 public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	
-	public static final int AVG_MOVES_PER_GAME = 60;
+	public static final int AVG_MOVES_PER_GAME = 40;
 	long gameTimeRemaining;
 	
 	boolean searchStopped = false;

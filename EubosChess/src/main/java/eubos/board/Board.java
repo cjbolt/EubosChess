@@ -105,7 +105,7 @@ public class Board {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private static final List<MobilityMask>[] RankFileMask_Lut = (List<MobilityMask>[]) new List[128];
+	private static final List<MobilityMask>[] RookMobilityMask_Lut = (List<MobilityMask>[]) new List[128];
 	static {
 		Direction [] rankFile = { Direction.left, Direction.up, Direction.right, Direction.down };
 		for (int square : Position.values) {
@@ -113,7 +113,7 @@ public class Board {
 			for (int index=1; index<8; index++) {
 				createMask(square, array, index, rankFile);
 			}
-			RankFileMask_Lut[square] = array;
+			RookMobilityMask_Lut[square] = array;
 		}
 	}
 	static private void createMask(int square, List<MobilityMask> array, int index, Direction [] directions) {
@@ -155,7 +155,7 @@ public class Board {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private static final List<MobilityMask>[] DiagonalMask_Lut = (List<MobilityMask>[]) new List[128];
+	private static final List<MobilityMask>[] BishopMobilityMask_Lut = (List<MobilityMask>[]) new List[128];
 	static {
 		Direction [] diagonals = { Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
 		for (int square : Position.values) {
@@ -163,7 +163,20 @@ public class Board {
 			for (int index=1; index<8; index++) {
 				createMask(square, array, index, diagonals);
 			}
-			DiagonalMask_Lut[square] = array;
+			BishopMobilityMask_Lut[square] = array;
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	private static final List<MobilityMask>[] QueenMobilityMask_Lut = (List<MobilityMask>[]) new List[128];
+	static {
+		Direction [] diagonals = { Direction.left, Direction.up, Direction.right, Direction.down, Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
+		for (int square : Position.values) {
+			List<MobilityMask> array = new ArrayList<MobilityMask>();
+			for (int index=1; index<8; index++) {
+				createMask(square, array, index, diagonals);
+			}
+			QueenMobilityMask_Lut[square] = array;
 		}
 	}
 	
@@ -215,6 +228,7 @@ public class Board {
 		for ( Entry<Integer, Integer> nextPiece : pieceMap.entrySet() ) {
 			setPieceAtSquare( nextPiece.getKey(), nextPiece.getValue() );
 		}
+		isEndgame = false;
 		me = evaluateMaterial();
 		boolean queensOffBoard = (getWhiteQueens() == 0) && (getBlackQueens() == 0);
 		int opponentMaterial = Piece.Colour.isWhite(initialOnMove) ? me.getBlack() : me.getWhite();
@@ -223,8 +237,6 @@ public class Board {
 		if ((queensOffBoard && queensOffMaterialThresholdReached) || materialQuantityThreshholdReached) {
 			isEndgame = true;
 		}
-		// Now we have determined whether it is an endgame or not, re-evaluate material according to the correct King PST.
-		me = evaluateMaterial();
 	}
 	
 	public CaptureData doMove(int move) throws InvalidPieceException {
@@ -839,11 +851,15 @@ public class Board {
 	}
 
 	public int getNumRankFileSquaresAvailable(int atPos) {
-		return getSquaresAvailableFromPosition(atPos, RankFileMask_Lut);
+		return getSquaresAvailableFromPosition(atPos, RookMobilityMask_Lut);
 	}
 	
 	public int getNumDiagonalSquaresAvailable(int atPos) {
-		return getSquaresAvailableFromPosition(atPos, DiagonalMask_Lut);
+		return getSquaresAvailableFromPosition(atPos, BishopMobilityMask_Lut);
+	}
+	
+	public int getAllDirectSquaresAvailable(int atPos) {
+		return getSquaresAvailableFromPosition(atPos, QueenMobilityMask_Lut);
 	}
 	
 	private int getSquaresAvailableFromPosition(int atPos, List<MobilityMask>[] maskMap ) {
@@ -953,7 +969,7 @@ public class Board {
 	public MaterialEvaluation me;
 	
 	public static final short MATERIAL_VALUE_KING = 4000;
-	public static final short MATERIAL_VALUE_QUEEN = 950;
+	public static final short MATERIAL_VALUE_QUEEN = 900;
 	public static final short MATERIAL_VALUE_ROOK = 490;
 	public static final short MATERIAL_VALUE_BISHOP = 320;
 	public static final short MATERIAL_VALUE_KNIGHT = 290;
@@ -1060,8 +1076,7 @@ public class Board {
 		case Piece.BLACK_QUEEN:
 			currValue = MATERIAL_VALUE_QUEEN;
 //			if (!isEndgame) {
-//				currValue += getNumRankFileSquaresAvailable(atPos)*2;
-//				currValue += getNumDiagonalSquaresAvailable(atPos)*2;
+//				currValue += getAllDirectSquaresAvailable(atPos)*2;
 //			}
 			break;
 		case Piece.WHITE_KING:
@@ -1072,28 +1087,6 @@ public class Board {
 			} else {
 				currValue += KING_MIDGAME_WEIGHTINGS[atPos];
 			}
-		default:
-			break;
-		}
-		return currValue;
-	}
-	
-	public int updateScoreForPieceMobility(int currPiece, int atPos) {
-		int currValue = 0;
-		switch(currPiece) {
-		case Piece.WHITE_ROOK:
-		case Piece.BLACK_ROOK:
-			currValue += getNumRankFileSquaresAvailable(atPos)*2;
-			break;
-		case Piece.WHITE_BISHOP:
-		case Piece.BLACK_BISHOP:
-			currValue += getNumDiagonalSquaresAvailable(atPos)*2;
-			break;
-		case Piece.WHITE_QUEEN:
-		case Piece.BLACK_QUEEN:
-			//currValue += getNumRankFileSquaresAvailable(atPos)*2;
-			//currValue += getNumDiagonalSquaresAvailable(atPos)*2;
-			break;
 		default:
 			break;
 		}
@@ -1133,25 +1126,6 @@ public class Board {
 		}
 		me = material;
 		return material;
-	}
-	
-	public int evaluateMobility() {
-		int mobilityScore = 0;
-		long piecesToCheck = pieces[INDEX_ROOK] | pieces[INDEX_BISHOP];
-		if (piecesToCheck != 0L) {
-			PrimitiveIterator.OfInt iter_p = BitBoard.iterator(piecesToCheck);
-			while ( iter_p.hasNext() ) {
-				int atPos = iter_p.nextInt();
-				int currPiece = getPieceAtSquare(atPos);
-				int currValue = updateScoreForPieceMobility(currPiece, atPos);
-				if (Piece.isWhite(currPiece)) {
-					mobilityScore += currValue;
-				} else { 
-					mobilityScore -= currValue;
-				}
-			}
-		}
-		return mobilityScore;
 	}
 	
 	void handleCastlingDecrementOldRookPosition(int piece, int move) {

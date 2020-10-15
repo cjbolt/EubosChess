@@ -9,7 +9,6 @@ import java.util.ListIterator;
 import java.util.Random;
 
 import com.fluxchess.jcpi.models.GenericMove;
-import com.fluxchess.jcpi.models.IntChessman;
 
 import eubos.board.Board;
 import eubos.board.InvalidPieceException;
@@ -65,10 +64,8 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	private int computeMoveType(PositionManager pm, int currMove, int piece) {
-		int moveType = Move.TYPE_REGULAR_NONE;
-		
-		boolean isCastle = (Piece.isKing(piece)) ? pm.lastMoveWasCastle() : false;
-		
+		int moveType = Move.getType(currMove);
+				
 		// Only test for check if the move could potentially cause a check
 		boolean isCheck = pm.getTheBoard().moveCouldPotentiallyCheckOtherKing(currMove) && pm.isKingInCheck(pm.getOnMove());
 		
@@ -76,32 +73,19 @@ public class MoveList implements Iterable<Integer> {
 		if (isCheck)
 			moveType |= Move.TYPE_CHECK_MASK;
 		
-		if (isCastle) {
-			// Castling (note: therefore excludes possibility of promotion or capture)
-			moveType |= Move.TYPE_CASTLE_MASK;
-			
-		} else {
-			int targetPiece = Move.getTargetPiece(currMove);
-			
-			// Promotions
-			int promotion = Move.getPromotion(currMove);
-			if (promotion == IntChessman.QUEEN)
-				moveType |= Move.TYPE_PROMOTION_QUEEN_MASK;
-			if (promotion == IntChessman.BISHOP || promotion == IntChessman.KNIGHT || promotion == IntChessman.ROOK)
-				moveType |= Move.TYPE_PROMOTION_PIECE_MASK;
-			
-			// Captures
-			switch (targetPiece & Piece.PIECE_NO_COLOUR_MASK) {
-			case Piece.QUEEN:
-			case Piece.BISHOP:
-			case Piece.KNIGHT:
-			case Piece.ROOK:
-			case Piece.PAWN:
-				moveType |= Move.TYPE_CAPTURE_MASK;
-				break;
-			default:
-				break;
-			}
+		int targetPiece = Move.getTargetPiece(currMove);
+		
+		// Captures
+		switch (targetPiece & Piece.PIECE_NO_COLOUR_MASK) {
+		case Piece.QUEEN:
+		case Piece.BISHOP:
+		case Piece.KNIGHT:
+		case Piece.ROOK:
+		case Piece.PAWN:
+			moveType |= Move.TYPE_CAPTURE_MASK;
+			break;
+		default:
+			break;
 		}		
 		
 		return moveType;		
