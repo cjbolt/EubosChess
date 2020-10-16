@@ -2,6 +2,7 @@ package eubos.search.transposition;
 
 import java.util.List;
 
+import eubos.main.EubosEngineMain;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.search.Score;
@@ -103,11 +104,13 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			    updateTransposition = true;
 			} else if ((currentBound == Score.upperBound) &&
 					   (new_score < current_trans.getScore())) {
-				assert currentBound == new_bound;
+				if (EubosEngineMain.ASSERTS_ENABLED)
+					assert currentBound == new_bound;
 				updateTransposition = true;
 			} else if ((currentBound == Score.lowerBound) &&
 					   (new_score > current_trans.getScore())) {
-				assert currentBound == new_bound;
+				if (EubosEngineMain.ASSERTS_ENABLED)
+					assert currentBound == new_bound;
 				updateTransposition = true;
 			}
 		}

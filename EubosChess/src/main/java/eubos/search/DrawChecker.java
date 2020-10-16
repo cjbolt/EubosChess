@@ -2,6 +2,8 @@ package eubos.search;
 
 import java.util.HashMap;
 
+import eubos.main.EubosEngineMain;
+
 public class DrawChecker {
 	
 	public static final boolean ENABLE_THREEFOLD_POSITION_DRAW_CHECK = true;
@@ -55,8 +57,8 @@ public class DrawChecker {
 		Integer truncatedHash = (int) (posHash >> 32);
 		Byte count = positionCount.get(truncatedHash);
 		if (count == null) {
-			// Now we clear the drawchecker in some circumstances this isn't a failure
-			assert false;
+			if (EubosEngineMain.ASSERTS_ENABLED)
+				assert false;
 		} else {
 			count--;
 			if (count == 0) {

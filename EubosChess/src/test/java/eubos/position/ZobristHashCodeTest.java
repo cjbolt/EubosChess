@@ -6,7 +6,6 @@ import org.junit.Test;
 import org.junit.Ignore;
 
 import com.fluxchess.jcpi.models.GenericMove;
-import com.fluxchess.jcpi.models.IntChessman;
 
 import eubos.board.Piece;
 
@@ -270,7 +269,7 @@ public class ZobristHashCodeTest {
 		PositionManager pm = new PositionManager("8/8/p6p/5kp1/1P6/5P1P/p4PK1/8 b - - 1 6 ");
 		long originalHashCode = pm.getHash();
 		
-		pm.performMove(Move.valueOf(Move.TYPE_PROMOTION_QUEEN_MASK, Position.a2, Piece.BLACK_PAWN, Position.a1, Piece.NONE, IntChessman.QUEEN));
+		pm.performMove(Move.valueOf(Move.TYPE_PROMOTION_QUEEN_MASK, Position.a2, Piece.BLACK_PAWN, Position.a1, Piece.NONE, Piece.QUEEN));
 		pm.unperformMove();
 
 		assertEquals(originalHashCode, pm.getHash());	

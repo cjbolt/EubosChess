@@ -26,7 +26,6 @@ public class PositionEvaluator implements IEvaluate {
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 20;
 	
 	public static final boolean DISABLE_QUIESCENCE_CHECK = false; 
-	public static final boolean ASSERT_MATERIAL_UPDATE = false;
 	
 	public PositionEvaluator(IPositionAccessors pm) {	
 		this.pm = pm;
@@ -57,14 +56,6 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	public Score evaluatePosition() {
-		if (ASSERT_MATERIAL_UPDATE) {
-			short per = pm.getTheBoard().me.getDelta();
-			short full = pm.getTheBoard().evaluateMaterial().getDelta();
-			if (per != full) {
-				System.out.println(String.format("per move me %d is not the same as actual me %d", per, full));
-				assert false;
-			}
-		}
 		pm.getTheBoard().evaluateMaterial();
 		SearchContextEvaluation eval = sc.computeSearchGoalBonus(pm.getTheBoard().me);
 		if (!eval.isDraw) {

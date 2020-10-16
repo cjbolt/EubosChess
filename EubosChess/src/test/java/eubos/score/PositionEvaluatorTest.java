@@ -12,7 +12,6 @@ import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
-import com.fluxchess.jcpi.models.IntChessman;
 
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
@@ -213,7 +212,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_isQuiescent_No_LastMoveWasCheckMate() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - - -");
-		pm.performMove(Move.valueOf(Move.TYPE_CHECK_MASK, Position.d3, Piece.WHITE_QUEEN, Position.h7, Piece.NONE, IntChessman.NOCHESSMAN));
+		pm.performMove(Move.valueOf(Move.TYPE_CHECK_MASK, Position.d3, Piece.WHITE_QUEEN, Position.h7, Piece.NONE, Piece.NONE));
 		assertFalse(SUT.isQuiescent());
 	}
 	
@@ -275,28 +274,28 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_isQuiescent_No_LastMoveWasPromotionBishop() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/4P3/8/8/8/8/8/8 w - - 0 1");
-		pm.performMove(Move.valueOf(Move.TYPE_PROMOTION_PIECE_MASK, Position.e7, Piece.WHITE_PAWN, Position.f8, Piece.NONE, IntChessman.BISHOP));
+		pm.performMove(Move.valueOf(Move.TYPE_PROMOTION_PIECE_MASK, Position.e7, Piece.WHITE_PAWN, Position.f8, Piece.NONE, Piece.BISHOP));
 		assertFalse(SUT.isQuiescent());
 	}
 	
 	@Test
 	public void test_isQuiescent_No_LastMoveWasPromotionQueenWithCheckAndCapture() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("5q2/4P3/7k/8/8/8/8/8 w - - 0 1");
-		pm.performMove(Move.valueOf(Move.TYPE_PROMOTION_QUEEN_MASK | Move.TYPE_CAPTURE_MASK | Move.TYPE_CHECK_MASK, Position.e7, Piece.WHITE_PAWN, Position.f8, Piece.BLACK_QUEEN, IntChessman.QUEEN));
+		pm.performMove(Move.valueOf(Move.TYPE_PROMOTION_QUEEN_MASK | Move.TYPE_CAPTURE_MASK | Move.TYPE_CHECK_MASK, Position.e7, Piece.WHITE_PAWN, Position.f8, Piece.BLACK_QUEEN, Piece.QUEEN));
 		assertFalse(SUT.isQuiescent());
 	}
 	
 	@Test
 	public void test_isQuiescent_Yes_LastMoveWasntPromotion() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/4P3/8/8/8/8/8/B7 w - - 0 1");
-		pm.performMove(Move.valueOf(Move.TYPE_REGULAR_NONE, Position.a1, Piece.WHITE_BISHOP, Position.b2, Piece.NONE, IntChessman.NOCHESSMAN));
+		pm.performMove(Move.valueOf(Position.a1, Piece.WHITE_BISHOP, Position.b2, Piece.NONE));
 		assertTrue(SUT.isQuiescent());
 	}
 	
 	@Test
 	public void test_isQuiescent_No_LastMoveWasCheck_alt() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/4P3/7k/8/8/8/1B6/8 w - - 0 1");
-		pm.performMove(Move.valueOf(Move.TYPE_CHECK_MASK, Position.b2, Piece.WHITE_BISHOP, Position.c1, Piece.NONE, IntChessman.NOCHESSMAN));
+		pm.performMove(Move.valueOf(Move.TYPE_CHECK_MASK, Position.b2, Piece.WHITE_BISHOP, Position.c1, Piece.NONE, Piece.NONE));
 		assertFalse(SUT.isQuiescent());
 	}
 	
@@ -306,7 +305,7 @@ public class PositionEvaluatorTest {
 		setUpPosition("8/4P3/7k/8/8/8/1B6/8 w - - 0 1");
 		MaterialEvaluation initialMe = pm.getTheBoard().evaluateMaterial();
 		short initial = initialMe.getDelta();
-		int promotionMove = Move.valueOf(Move.TYPE_PROMOTION_QUEEN_MASK, Position.e7, Piece.WHITE_PAWN, Position.e8, Piece.NONE, IntChessman.QUEEN);
+		int promotionMove = Move.valueOf(Move.TYPE_PROMOTION_QUEEN_MASK, Position.e7, Piece.WHITE_PAWN, Position.e8, Piece.NONE, Piece.QUEEN);
 		
 		pm.performMove(promotionMove);
 		
@@ -324,7 +323,7 @@ public class PositionEvaluatorTest {
 		setUpPosition("4k2r/2Q2ppp/8/3r4/1P5P/P1p5/4PP2/R3K1N1 b Qk - - -");
 		MaterialEvaluation initialMe = pm.getTheBoard().evaluateMaterial();
 		short initial = initialMe.getDelta();
-		int castleMove = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e8, Piece.BLACK_KING, Position.g8, Piece.NONE, IntChessman.NOCHESSMAN);
+		int castleMove = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e8, Piece.BLACK_KING, Position.g8, Piece.NONE, Piece.NONE);
 		
 		pm.performMove(castleMove);
 		MaterialEvaluation me = pm.getTheBoard().me;
@@ -341,7 +340,7 @@ public class PositionEvaluatorTest {
 		setUpPosition("4k3/8/4p3/5b2/8/8/8/4R3 w - - - -");
 		MaterialEvaluation initialMe = pm.getTheBoard().evaluateMaterial();
 		short initial = initialMe.getDelta();
-		int rookMove = Move.valueOf(Move.TYPE_REGULAR_NONE, Position.e1, Piece.WHITE_ROOK, Position.e5, Piece.NONE, IntChessman.NOCHESSMAN);
+		int rookMove = Move.valueOf(Move.TYPE_REGULAR_NONE, Position.e1, Piece.WHITE_ROOK, Position.e5, Piece.NONE, Piece.NONE);
 		
 		pm.performMove(rookMove);
 		MaterialEvaluation me = pm.getTheBoard().me;
@@ -352,7 +351,7 @@ public class PositionEvaluatorTest {
 		pm.unperformMove();
 		assertEquals(initial, me.getDelta());
 		
-		int rookMove2 = Move.valueOf(Move.TYPE_REGULAR_NONE, Position.e1, Piece.WHITE_ROOK, Position.e2, Piece.NONE, IntChessman.NOCHESSMAN);
+		int rookMove2 = Move.valueOf(Move.TYPE_REGULAR_NONE, Position.e1, Piece.WHITE_ROOK, Position.e2, Piece.NONE, Piece.NONE);
 		pm.performMove(rookMove2);
 		
 		assertNotEquals(initial, me.getDelta());
@@ -368,7 +367,7 @@ public class PositionEvaluatorTest {
 		setUpPosition("7k/p7/8/8/3n4/4PPP1/8/7K w - - 0 1");
 		MaterialEvaluation initialMe = pm.getTheBoard().evaluateMaterial();
 		short initial = initialMe.getDelta();
-		int captureMove = Move.valueOf(Move.TYPE_CAPTURE_MASK, Position.e3, Piece.WHITE_PAWN, Position.d4, Piece.BLACK_KNIGHT, IntChessman.NOCHESSMAN);
+		int captureMove = Move.valueOf(Move.TYPE_CAPTURE_MASK, Position.e3, Piece.WHITE_PAWN, Position.d4, Piece.BLACK_KNIGHT, Piece.NONE);
 		
 		pm.performMove(captureMove);
 

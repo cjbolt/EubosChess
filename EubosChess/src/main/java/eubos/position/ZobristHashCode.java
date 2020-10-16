@@ -4,7 +4,6 @@ import java.util.PrimitiveIterator;
 import java.util.Random;
 import java.util.Stack;
 
-import com.fluxchess.jcpi.models.IntChessman;
 import com.fluxchess.jcpi.models.IntFile;
 
 import eubos.board.Piece;
@@ -132,23 +131,10 @@ public class ZobristHashCode {
 		doCastlingFlags();
 		doOnMove();
 	}
-
-	private int convertChessmanToPiece(int chessman) {
-		int eubosPiece = Piece.NONE;
-		if (chessman==IntChessman.KNIGHT)
-			eubosPiece = (Colour.isBlack(pos.getOnMove())) ? Piece.WHITE_KNIGHT : Piece.BLACK_KNIGHT;
-		else if (chessman==IntChessman.BISHOP)
-			eubosPiece = (Colour.isBlack(pos.getOnMove())) ? Piece.WHITE_BISHOP : Piece.BLACK_BISHOP;
-		else if (chessman==IntChessman.ROOK)
-			eubosPiece = (Colour.isBlack(pos.getOnMove())) ? Piece.WHITE_ROOK : Piece.BLACK_ROOK;
-		else if (chessman==IntChessman.QUEEN)
-			eubosPiece = (Colour.isBlack(pos.getOnMove())) ? Piece.WHITE_QUEEN : Piece.BLACK_QUEEN;
-		return eubosPiece;
-	}
 	
 	protected int doBasicMove(int move, int piece) {
 		int promotedChessman = Move.getPromotion(move);
-		if (promotedChessman == IntChessman.NOCHESSMAN) {
+		if (promotedChessman == Piece.NONE) {
 			// Basic move only
 			hashCode ^= getPrnForPiece(Move.getTargetPosition(move), piece);
 			hashCode ^= getPrnForPiece(Move.getOriginPosition(move), piece);
@@ -156,7 +142,8 @@ public class ZobristHashCode {
 			// Promotion
 			if (Piece.isPawn(piece)) {
 				// is undoing promotion
-				int promotedToPiece = convertChessmanToPiece(promotedChessman);
+				int promotedToPiece = (Colour.isWhite(pos.getOnMove())) ? Piece.BLACK : 0x0;
+				promotedToPiece |= promotedChessman;
 				hashCode ^= getPrnForPiece(Move.getTargetPosition(move), piece);
 				hashCode ^= getPrnForPiece(Move.getOriginPosition(move), promotedToPiece);
 				piece = promotedToPiece;

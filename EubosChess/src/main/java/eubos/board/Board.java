@@ -8,13 +8,13 @@ import java.util.Map.Entry;
 import java.util.function.IntConsumer;
 
 import eubos.board.Piece.Colour;
+import eubos.main.EubosEngineMain;
 import eubos.position.CaptureData;
 import eubos.position.CastlingManager;
 import eubos.position.Move;
 import eubos.position.Position;
 import eubos.score.MaterialEvaluation;
 
-import com.fluxchess.jcpi.models.IntChessman;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntRank;
@@ -252,7 +252,8 @@ public class Board {
 			} else if (pieceToMove == Piece.BLACK_PAWN){
 				rank = IntRank.R4;
 			} else {
-				assert false;
+				if (EubosEngineMain.ASSERTS_ENABLED)
+					assert false;
 			}
 			int capturePos = Position.valueOf(Position.getFile(targetSquare), rank);
 			captureTarget = new CaptureData(pickUpPieceAtSquare(capturePos), capturePos);
@@ -293,30 +294,17 @@ public class Board {
 		long targetSquareMask = BitBoard.positionToMask_Lut[Move.getTargetPosition(move)];
 		long positionsMask = initialSquareMask | targetSquareMask;
 		// Switch piece-specific bitboards
-		int promotedChessman = Move.getPromotion(move);
-		if (promotedChessman != IntChessman.NOCHESSMAN) {
+		int promotedPiece = Move.getPromotion(move);
+		if (promotedPiece != Piece.NONE) {
 			// For a promotion, need to resolve piece-specific across multiple bitboards; can't be a king, sorted in order of likeliness.
 			if ((pieces[INDEX_PAWN] & initialSquareMask) == initialSquareMask) {
+				// remove pawn
 				pieces[INDEX_PAWN] &= ~initialSquareMask;
 			} else {
-				switch(promotedChessman) {
-				case IntChessman.KNIGHT:
-					pieces[INDEX_KNIGHT] &= ~initialSquareMask;
-					break;
-				case IntChessman.BISHOP:
-					pieces[INDEX_BISHOP] &= ~initialSquareMask;
-					break;
-				case IntChessman.ROOK:
-					pieces[INDEX_ROOK] &= ~initialSquareMask;
-					break;
-				case IntChessman.QUEEN:
-					pieces[INDEX_QUEEN] &= ~initialSquareMask;
-					break;
-				default:
-					assert false;
-					break;			
-				}
+				// remove piece
+				pieces[promotedPiece] &= ~initialSquareMask;			
 			}
+			// add to new board type
 			pieces[pieceToMove & Piece.PIECE_NO_COLOUR_MASK] |= targetSquareMask;
 		} else {
 			// Piece type doesn't change across boards
@@ -490,7 +478,10 @@ public class Board {
 		if ((allPieces & pieceToGet) != 0) {	
 			if ((blackPieces & pieceToGet) != 0) {
 				type |= Piece.BLACK;
-			} else assert (whitePieces & pieceToGet) != 0;
+			} else {
+				if (EubosEngineMain.ASSERTS_ENABLED)
+					assert (whitePieces & pieceToGet) != 0;
+			}
 			// Sorted in order of frequency of piece on the chess board, for efficiency
 			if ((pieces[INDEX_PAWN] & pieceToGet) == pieceToGet) {
 				type |= Piece.PAWN;
@@ -510,7 +501,8 @@ public class Board {
 	}
 	
 	public void setPieceAtSquare( int atPos, int pieceToPlace ) {
-		assert pieceToPlace != Piece.NONE;
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert pieceToPlace != Piece.NONE;
 		long mask = BitBoard.positionToMask_Lut[atPos];
 		// Set on piece-specific bitboard
 		pieces[pieceToPlace & Piece.PIECE_NO_COLOUR_MASK] |= mask;
@@ -545,7 +537,8 @@ public class Board {
 				blackPieces &= ~pieceToPickUp;
 				type |= Piece.BLACK;
 			} else {
-				assert (whitePieces & pieceToPickUp) != 0;
+				if (EubosEngineMain.ASSERTS_ENABLED)
+					assert (whitePieces & pieceToPickUp) != 0;
 				whitePieces &= ~pieceToPickUp;
 			}
 			// Remove from specific-piece bitboard
@@ -788,7 +781,8 @@ public class Board {
 			break;
 		case Piece.NONE:
 		default:
-			assert false;
+			if (EubosEngineMain.ASSERTS_ENABLED)
+				assert false;
 			break;
 		}
 		return mask;

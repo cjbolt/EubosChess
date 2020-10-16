@@ -46,6 +46,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	public static final boolean LOGGING_ENABLED = true;
 	public static final boolean UCI_INFO_ENABLED = true;
+	public static final boolean ASSERTS_ENABLED = false;
 	
 	// Permanent data structures - static for duration of engine execution
 	private FixedSizeTranspositionTable hashMap = null;

@@ -351,7 +351,8 @@ public class PlySearcher {
 	}
 	
 	private boolean isInNormalSearch() {
-		assert dynamicSearchLevelInPly >= originalSearchDepthRequiredInPly;
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert dynamicSearchLevelInPly >= originalSearchDepthRequiredInPly;
 		return dynamicSearchLevelInPly == originalSearchDepthRequiredInPly;
 	}
 
@@ -412,7 +413,8 @@ public class PlySearcher {
 	
 	private Score applySafestNormalMoveAndScore(MoveList ml) throws InvalidPieceException {
 		int currMove = ml.getSafestMove();
-		assert currMove != Move.NULL_MOVE;
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert currMove != Move.NULL_MOVE;
 		SearchDebugAgent.printPerformMove(currMove);
 		pm.performMove(currMove, false);
 		currPly++;

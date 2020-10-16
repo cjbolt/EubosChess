@@ -20,6 +20,8 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
+import eubos.main.EubosEngineMain;
+
 public final class Position {
 
   public static final int MASK = 0x7F;
@@ -86,21 +88,22 @@ public final class Position {
   }
 
   public static GenericPosition toGenericPosition(int position) {
-    assert (position & 0x88) == 0;
-
-    return GenericPosition.valueOf(IntFile.toGenericFile(getFile(position)), IntRank.toGenericRank(getRank(position)));
+	  if (EubosEngineMain.ASSERTS_ENABLED)
+		  	assert (position & 0x88) == 0;
+	  return GenericPosition.valueOf(IntFile.toGenericFile(getFile(position)), IntRank.toGenericRank(getRank(position)));
   }
 
   public static int getFile(int position) {
-    assert position != NOPOSITION;
-
-    return position % 16;
+	  if (EubosEngineMain.ASSERTS_ENABLED)
+		  assert position != NOPOSITION;
+	  return position % 16;
   }
 
   public static int getRank(int position) {
-    assert position != NOPOSITION;
+	  if (EubosEngineMain.ASSERTS_ENABLED)
+		  assert position != NOPOSITION;
 
-    return position >>> 4;
+	  return position >>> 4;
   }
 
 public static int valueOf(int file, int rank) {

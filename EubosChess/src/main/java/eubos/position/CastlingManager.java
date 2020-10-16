@@ -2,12 +2,12 @@ package eubos.position;
 
 import java.util.List;
 
-import com.fluxchess.jcpi.models.IntChessman;
 import com.fluxchess.jcpi.models.IntFile;
 
 import eubos.board.Board;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
+import eubos.main.EubosEngineMain;
 
 public class CastlingManager {
 	private boolean whiteKsAvail = true;
@@ -28,15 +28,15 @@ public class CastlingManager {
 	private static final int [] qscWhiteEmptySqs = {Position.c1, Position.d1, Position.b1};
 	private static final int [] qscBlackEmptySqs = {Position.c8, Position.d8, Position.b8};
 
-	public static final int bksc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e8, (Piece.BLACK | Piece.KING), Position.g8, Piece.NONE, IntChessman.NOCHESSMAN);
-	public static final int wksc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e1, Piece.KING, Position.g1, Piece.NONE, IntChessman.NOCHESSMAN);
-	public static final int bqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e8, (Piece.BLACK | Piece.KING), Position.c8, Piece.NONE, IntChessman.NOCHESSMAN);
-	public static final int wqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e1, Piece.KING, Position.c1, Piece.NONE, IntChessman.NOCHESSMAN);
+	public static final int bksc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e8, (Piece.BLACK | Piece.KING), Position.g8, Piece.NONE, Piece.NONE);
+	public static final int wksc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e1, Piece.KING, Position.g1, Piece.NONE, Piece.NONE);
+	public static final int bqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e8, (Piece.BLACK | Piece.KING), Position.c8, Piece.NONE, Piece.NONE);
+	public static final int wqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e1, Piece.KING, Position.c1, Piece.NONE, Piece.NONE);
 
-	public static final int undo_bksc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.g8, (Piece.BLACK | Piece.KING), Position.e8, Piece.NONE, IntChessman.NOCHESSMAN);
-	public static final int undo_wksc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.g1, Piece.KING, Position.e1, Piece.NONE, IntChessman.NOCHESSMAN);
-	public static final int undo_bqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.c8, (Piece.BLACK | Piece.KING), Position.e8, Piece.NONE, IntChessman.NOCHESSMAN);
-	public static final int undo_wqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.c1, Piece.KING, Position.e1, Piece.NONE, IntChessman.NOCHESSMAN);
+	public static final int undo_bksc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.g8, (Piece.BLACK | Piece.KING), Position.e8, Piece.NONE, Piece.NONE);
+	public static final int undo_wksc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.g1, Piece.KING, Position.e1, Piece.NONE, Piece.NONE);
+	public static final int undo_bqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.c8, (Piece.BLACK | Piece.KING), Position.e8, Piece.NONE, Piece.NONE);
+	public static final int undo_wqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.c1, Piece.KING, Position.e1, Piece.NONE, Piece.NONE);
 
 	CastlingManager(PositionManager Pm) { this( Pm, "-"); }
 
@@ -168,7 +168,8 @@ public class CastlingManager {
 			int [] checkSqs,
 			int [] emptySqs) {
 		Board theBoard = pm.getTheBoard();
-		assert Piece.isRook(theBoard.getPieceAtSquare(rookSq));
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert Piece.isRook(theBoard.getPieceAtSquare(rookSq));
 		
 		// All the intervening squares between King and Rook should be empty
 		for ( int emptySq : emptySqs ) {

@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.fluxchess.jcpi.models.GenericPosition;
-import com.fluxchess.jcpi.models.IntChessman;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
@@ -200,26 +199,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	private int checkForPawnPromotions(int move) {
-		if ( Move.getPromotion(move) != IntChessman.NOCHESSMAN ) {
+		if ( Move.getPromotion(move) != Piece.NONE ) {
 			int piece = Move.getOriginPiece(move);
 			piece &= Piece.BLACK; // preserve colour
-			switch( Move.getPromotion(move) ) {
-			case IntChessman.QUEEN:
-				piece |= Piece.QUEEN;
-				break;
-			case IntChessman.KNIGHT:
-				piece |= Piece.KNIGHT;
-				break;
-			case IntChessman.BISHOP:
-				piece |= Piece.BISHOP;
-				break;
-			case IntChessman.ROOK:
-				piece |= Piece.ROOK;
-				break;
-			default:
-				assert false;
-				break;
-			}
+			piece |= Move.getPromotion(move);
 			move = Move.setOriginPiece(move, piece);
 		}
 		return move;
@@ -227,7 +210,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	private int checkToUndoPawnPromotion(int moveToUndo) {
 		int promotedChessman = Move.getPromotion(moveToUndo);
-		if ( promotedChessman != IntChessman.NOCHESSMAN ) {
+		if ( promotedChessman != Piece.NONE ) {
 			int piece = Move.getOriginPiece(moveToUndo);
 			int type = theBoard.pickUpPieceAtSquare(Move.getTargetPosition(moveToUndo), piece);
 			if (Piece.isBlack(type)) {

@@ -118,7 +118,7 @@ public class MoveList implements Iterable<Integer> {
 			// Lazy creation of extended move list
 			extended_search_moves = new ArrayList<Integer>(normal_search_moves.size());
 			for (int currMove : normal_search_moves) {
-				if (Move.isQueenPromotion(currMove) || Move.isCapture(currMove) || Move.isCheck(currMove)) {
+				if (Move.isCapture(currMove) || Move.isCheck(currMove) || Move.isQueenPromotion(currMove)) {
 					extended_search_moves.add(currMove);
 				}
 			}

@@ -1,5 +1,7 @@
 package eubos.search;
 
+import eubos.main.EubosEngineMain;
+
 public class ScoreTracker {
 	private Score[] scores;
 	private boolean initialOnMoveIsWhite = false;
@@ -67,7 +69,8 @@ public class ScoreTracker {
 		boolean isAlphaBetaCutOff = false;
 		if (currPly > 0) {
 			Score prevPlyScore = scores[(byte)(currPly-1)];
-			assert prevPlyScore != null;
+			if (EubosEngineMain.ASSERTS_ENABLED)
+				assert prevPlyScore != null;
 			if (onMoveIsWhite(currPly)) {
 				/* A note about these score comparisons: 
 				 * 
