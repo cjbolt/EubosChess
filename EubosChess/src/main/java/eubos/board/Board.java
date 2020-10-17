@@ -1036,73 +1036,64 @@ public class Board {
 	
     // For reasons of performance optimisation, part of the material evaluation considers the mobility of pieces.
     // This function generates a score considering three categories A) material B) static PSTs C) Piece mobility (dynamic) 
-	private int updateMaterialForPiece(int currPiece, int atPos) {
-		int currValue = 0;
+	private MaterialEvaluation updateMaterialForPiece(int currPiece, int atPos, MaterialEvaluation eval) {
 		switch(currPiece) {
 		case Piece.WHITE_PAWN:
-			currValue = MATERIAL_VALUE_PAWN;
-			currValue += PAWN_WHITE_WEIGHTINGS[atPos];
+			eval.addWhite(MATERIAL_VALUE_PAWN);
+			eval.addPositionWhite(PAWN_WHITE_WEIGHTINGS[atPos]);
 			break;
 		case Piece.BLACK_PAWN:
-			currValue = MATERIAL_VALUE_PAWN;
-			currValue += PAWN_BLACK_WEIGHTINGS[atPos];
+			eval.addBlack(MATERIAL_VALUE_PAWN);
+			eval.addPositionBlack(PAWN_BLACK_WEIGHTINGS[atPos]);
 			break;
 		case Piece.WHITE_ROOK:
+			eval.addWhite(MATERIAL_VALUE_ROOK);
+			if (!isEndgame)
+				eval.addPositionWhite(getNumRankFileSquaresAvailable(atPos)*2);
+			break;
 		case Piece.BLACK_ROOK:
-			currValue = MATERIAL_VALUE_ROOK;
-			if (!isEndgame) {
-				currValue += getNumRankFileSquaresAvailable(atPos)*2;
-			}
+			eval.addBlack(MATERIAL_VALUE_ROOK);
+			if (!isEndgame)
+				eval.addPositionBlack(getNumRankFileSquaresAvailable(atPos)*2);
 			break;
 		case Piece.WHITE_BISHOP:
+			eval.addWhite(MATERIAL_VALUE_BISHOP);
+			if (!isEndgame)
+				eval.addPositionWhite(getNumDiagonalSquaresAvailable(atPos)*2);
+			break;
 		case Piece.BLACK_BISHOP:
-			currValue = MATERIAL_VALUE_BISHOP;
-			if (!isEndgame) {
-				currValue += getNumDiagonalSquaresAvailable(atPos)*2;
-			}
+			eval.addBlack(MATERIAL_VALUE_BISHOP);
+			if (!isEndgame)
+				eval.addPositionBlack(getNumDiagonalSquaresAvailable(atPos)*2);
 			break;
 		case Piece.WHITE_KNIGHT:
+			eval.addWhite(MATERIAL_VALUE_KNIGHT);
+			eval.addPositionWhite(KNIGHT_WEIGHTINGS[atPos]);
+			break;
 		case Piece.BLACK_KNIGHT:
-			currValue = MATERIAL_VALUE_KNIGHT;
-			currValue += KNIGHT_WEIGHTINGS[atPos];
+			eval.addBlack(MATERIAL_VALUE_KNIGHT);
+			eval.addPositionBlack(KNIGHT_WEIGHTINGS[atPos]);
 			break;
 		case Piece.WHITE_QUEEN:
+			eval.addWhite(MATERIAL_VALUE_QUEEN);
+			break;
 		case Piece.BLACK_QUEEN:
-			currValue = MATERIAL_VALUE_QUEEN;
-//			if (!isEndgame) {
-//				currValue += getAllDirectSquaresAvailable(atPos)*2;
-//			}
+			eval.addBlack(MATERIAL_VALUE_QUEEN);
+//			if (!isEndgame)
+//				eval.addPositionBlack(getAllDirectSquaresAvailable(atPos)*2);
 			break;
 		case Piece.WHITE_KING:
+			eval.addWhite(MATERIAL_VALUE_KING);
+			eval.addPositionWhite((isEndgame) ? KING_ENDGAME_WEIGHTINGS[atPos] : KING_MIDGAME_WEIGHTINGS[atPos]);
+			break;			
 		case Piece.BLACK_KING:
-			currValue = MATERIAL_VALUE_KING;
-			if (isEndgame) {
-				currValue += KING_ENDGAME_WEIGHTINGS[atPos];
-			} else {
-				currValue += KING_MIDGAME_WEIGHTINGS[atPos];
-			}
+			eval.addBlack(MATERIAL_VALUE_KING);
+			eval.addPositionBlack((isEndgame) ? KING_ENDGAME_WEIGHTINGS[atPos] : KING_MIDGAME_WEIGHTINGS[atPos]);
+			break;
 		default:
 			break;
 		}
-		return currValue;
-	}
-	
-	private void incrementMaterialForPiece(int currPiece, int atPos) {
-		int currValue = updateMaterialForPiece(currPiece, atPos);
-		if (Piece.isWhite(currPiece)) {
-			me.addWhite(currValue);
-		} else { 
-			me.addBlack(currValue);
-		}
-	}
-	
-	private void decrementMaterialForPiece(int currPiece, int atPos) {
-		int currValue = updateMaterialForPiece(currPiece, atPos);
-		if (Piece.isWhite(currPiece)) {
-			me.addWhite(-currValue);
-		} else { 
-			me.addBlack(-currValue);
-		}
+		return eval;
 	}
 	
 	public MaterialEvaluation evaluateMaterial() {
@@ -1111,76 +1102,9 @@ public class Board {
 		while ( iter_p.hasNext() ) {
 			int atPos = iter_p.nextInt();
 			int currPiece = getPieceAtSquare(atPos);
-			int currValue = updateMaterialForPiece(currPiece, atPos);
-			if (Piece.isWhite(currPiece)) {
-				material.addWhite(currValue);
-			} else { 
-				material.addBlack(currValue);
-			}
+			material = updateMaterialForPiece(currPiece, atPos, material);
 		}
 		me = material;
-		return material;
-	}
-	
-	void handleCastlingDecrementOldRookPosition(int piece, int move) {
-		if ( piece==Piece.WHITE_KING ) {
-			if (Move.areEqual(move, CastlingManager.wksc)) {
-				decrementMaterialForPiece(Piece.WHITE_ROOK, Position.h1);
-			}
-			else if (Move.areEqual(move,CastlingManager.wqsc)) {
-				decrementMaterialForPiece(Piece.WHITE_ROOK, Position.a1);
-			}
-			else if (Move.areEqual(move,CastlingManager.undo_wksc))
-			{
-				decrementMaterialForPiece(Piece.WHITE_ROOK, Position.f1);
-			}
-			else if (Move.areEqual(move,CastlingManager.undo_wqsc)) {
-				decrementMaterialForPiece(Piece.WHITE_ROOK, Position.d1);
-			}
-		} else if (piece==Piece.BLACK_KING) {
-			if (Move.areEqual(move,CastlingManager.bksc)) {
-				decrementMaterialForPiece(Piece.BLACK_ROOK, Position.h8);
-			}
-			else if (Move.areEqual(move,CastlingManager.bqsc)) {
-				decrementMaterialForPiece(Piece.BLACK_ROOK, Position.a8);
-			}
-			else if (Move.areEqual(move,CastlingManager.undo_bksc)) {
-				decrementMaterialForPiece(Piece.BLACK_ROOK, Position.f8);
-			}
-			else if (Move.areEqual(move,CastlingManager.undo_bqsc)) {
-				decrementMaterialForPiece(Piece.BLACK_ROOK, Position.d8);
-			}
-		}
-	}
-	
-	void handleCastlingIncrementNewRookPosition(int piece, int move) {
-		if ( piece==Piece.WHITE_KING ) {
-			if (Move.areEqual(move, CastlingManager.wksc)) {
-				incrementMaterialForPiece(Piece.WHITE_ROOK, Position.f1);
-			}
-			else if (Move.areEqual(move,CastlingManager.wqsc)) {
-				incrementMaterialForPiece(Piece.WHITE_ROOK, Position.d1);
-			}
-			else if (Move.areEqual(move,CastlingManager.undo_wksc))
-			{
-				incrementMaterialForPiece(Piece.WHITE_ROOK, Position.h1);
-			}
-			else if (Move.areEqual(move,CastlingManager.undo_wqsc)) {
-				incrementMaterialForPiece(Piece.WHITE_ROOK, Position.a1);
-			}
-		} else if (piece==Piece.BLACK_KING) {
-			if (Move.areEqual(move,CastlingManager.bksc)) {
-				incrementMaterialForPiece(Piece.BLACK_ROOK, Position.f8);
-			}
-			else if (Move.areEqual(move,CastlingManager.bqsc)) {
-				incrementMaterialForPiece(Piece.BLACK_ROOK, Position.d8);
-			}
-			else if (Move.areEqual(move,CastlingManager.undo_bksc)) {
-				incrementMaterialForPiece(Piece.BLACK_ROOK, Position.h8);
-			}
-			else if (Move.areEqual(move,CastlingManager.undo_bqsc)) {
-				incrementMaterialForPiece(Piece.BLACK_ROOK, Position.a8);
-			}
-		}
+		return me;
 	}
 }

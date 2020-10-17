@@ -24,6 +24,7 @@ public class SearchContext {
 	static final boolean ALWAYS_TRY_FOR_WIN = false;
 	
 	private enum SearchGoal {
+		try_for_mate,
 		try_for_win,
 		simplify,
 		try_for_draw
@@ -32,7 +33,7 @@ public class SearchContext {
 	public SearchContext(IPositionAccessors pos, MaterialEvaluation initialMaterial) {
 		this.pos = pos;
 		// Make a copy of the initial Material Evaluation and store it here
-		initial = new MaterialEvaluation(initialMaterial.getWhite(), initialMaterial.getBlack());
+		initial = new MaterialEvaluation(initialMaterial.getWhite(), initialMaterial.getBlack(), initialMaterial.getPosition());
 		initialOnMove = pos.getOnMove();
 		setGoal();
 	}
@@ -40,14 +41,25 @@ public class SearchContext {
 	private void setGoal() {
 		if (ALWAYS_TRY_FOR_WIN) {
 			goal = SearchGoal.try_for_win;
+			
+		} else if (pos.getTheBoard().isInsufficientMaterial(Colour.getOpposite(initialOnMove))) {
+			// When opponent can't win
+			goal = SearchGoal.try_for_mate;
+			// consider cleaning hash table when we first get this goal?
+			
 		} else if (pos.getTheBoard().isInsufficientMaterial(initialOnMove)) {
+			// When we can't win
 			goal = SearchGoal.try_for_draw;
+			
 		} else if ((Colour.isWhite(initialOnMove) && initial.getDelta() > SIMPLIFY_THRESHOLD) ||
 			(Colour.isBlack(initialOnMove) && initial.getDelta() < -SIMPLIFY_THRESHOLD )) {
+			// When simplification possible
 			goal = SearchGoal.simplify;
+			
 		} else if ((Colour.isWhite(initialOnMove) && initial.getDelta() < DRAW_THRESHOLD) ||
 				(Colour.isBlack(initialOnMove) && initial.getDelta() > -DRAW_THRESHOLD )) {
 			goal = SearchGoal.try_for_draw;
+			
 		} else {
 			goal = SearchGoal.try_for_win;
 		}
@@ -84,18 +96,31 @@ public class SearchContext {
 			case simplify: 
 			    if (isPositionSimplified(current)) {
 			    	eval.score = SIMPLIFICATION_BONUS;
-				} 
+			    	eval.score = adjustScoreIfBlack(eval.score);
+				}
+			    // Add on positional weightings
+			    eval.score += current.getPosition();
 				break;
 			case try_for_draw:
 				if (insufficient) {
 					eval.score = ACHIEVES_DRAW_BONUS;
+					eval.score = adjustScoreIfBlack(eval.score);
 				}
+			    // Add on positional weightings
+			    eval.score += current.getPosition();
 				break;
 			case try_for_win:
+			    // Add on positional weightings
+			    eval.score += current.getPosition();
+				break;
+			case try_for_mate:
+				// Don't add on positional factors to save aimless faffing about board
+				break;
 			default:
 				break;
 			}
-			eval.score = adjustScoreIfBlack(eval.score);
+		} else {
+			eval.score += current.getPosition();
 		}
 		return eval;
 	}
