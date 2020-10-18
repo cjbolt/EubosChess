@@ -205,4 +205,56 @@ public class ScoreTrackerTest {
 		classUnderTest.setBackedUpScoreAtPly(PLY2, positionScore_A_C_E_D);
 		assertTrue(classUnderTest.isAlphaBetaCutOff(PLY2, positionScore_A_C_E_D));	
 	}
+	
+	public static short WHITE_MATES_IN_1 = Short.MAX_VALUE - 1;
+	public static short WHITE_MATES_IN_2 = Short.MAX_VALUE - 2;
+	public static short WHITE_MATES_IN_3 = Short.MAX_VALUE - 3;
+	public static short WHITE_MATES_IN_4 = Short.MAX_VALUE - 4;
+	public static short WHITE_MATES_IN_5 = Short.MAX_VALUE - 5;
+	public static short WHITE_MATES_IN_6 = Short.MAX_VALUE - 6;
+			
+	public static short BLACK_MATES_IN_1 = Short.MIN_VALUE + 1;
+	public static short BLACK_MATES_IN_2 = Short.MIN_VALUE + 2;
+	public static short BLACK_MATES_IN_3 = Short.MIN_VALUE + 3;
+	public static short BLACK_MATES_IN_4 = Short.MIN_VALUE + 4;
+	public static short BLACK_MATES_IN_5 = Short.MIN_VALUE + 5;
+	public static short BLACK_MATES_IN_6 = Short.MIN_VALUE + 6;		;
+	
+	@Test
+	public void testadjustHashTableMateInXScore_White() {
+		// When white is initial on move, at root node the score is not adjusted
+		byte currPly = 0;
+		assertEquals(WHITE_MATES_IN_1, classUnderTest.adjustHashTableMateInXScore(currPly, WHITE_MATES_IN_1));
+		// at ply 1, when it is blacks move... if black is getting mated in 1, then it is still mate in 1
+		currPly = 1;
+		assertEquals(WHITE_MATES_IN_1, classUnderTest.adjustHashTableMateInXScore(currPly, WHITE_MATES_IN_1));
+		// at ply 2, we have one full move for white already in the tree, so it must be adjusted to mate in 2
+		currPly = 2;
+		assertEquals(WHITE_MATES_IN_2, classUnderTest.adjustHashTableMateInXScore(currPly, WHITE_MATES_IN_1));
+		// at ply 3, we have one full move for white already in the tree, so it must be adjusted to mate in 2
+		currPly = 3;
+		assertEquals(WHITE_MATES_IN_2, classUnderTest.adjustHashTableMateInXScore(currPly, WHITE_MATES_IN_1));
+	}
+	
+	@Test
+	public void testadjustHashTableMateInXScore_Back() {
+		// When white is initial on move, at root node the score is not adjusted
+		byte currPly = 0;
+		assertEquals(BLACK_MATES_IN_1, classUnderTest.adjustHashTableMateInXScore(currPly, BLACK_MATES_IN_1));
+		// at ply 1, when it is blacks move... if black is getting mated in 1, then it is still mate in 1
+		currPly = 1;
+		assertEquals(BLACK_MATES_IN_1, classUnderTest.adjustHashTableMateInXScore(currPly, BLACK_MATES_IN_1));
+		// at ply 2, we have one full move for white already in the tree, so it must be adjusted to mate in 2
+		currPly = 2;
+		assertEquals(BLACK_MATES_IN_2, classUnderTest.adjustHashTableMateInXScore(currPly, BLACK_MATES_IN_1));
+		// at ply 3, we have one full move for white already in the tree, so it must be adjusted to mate in 2
+		currPly = 3;
+		assertEquals(BLACK_MATES_IN_2, classUnderTest.adjustHashTableMateInXScore(currPly, BLACK_MATES_IN_1));
+		
+		currPly = 2;
+		assertEquals(BLACK_MATES_IN_3, classUnderTest.adjustHashTableMateInXScore(currPly, BLACK_MATES_IN_2));
+		// at ply 3, we have one full move for white already in the tree, so it must be adjusted to mate in 2
+		currPly = 3;
+		assertEquals(BLACK_MATES_IN_3, classUnderTest.adjustHashTableMateInXScore(currPly, BLACK_MATES_IN_2));
+	}
 }
