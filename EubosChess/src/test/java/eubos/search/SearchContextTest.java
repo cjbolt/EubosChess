@@ -17,6 +17,7 @@ import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.score.MaterialEvaluation;
 
+@Ignore // As we now return positional PST factors and mobility score as part of SearchContext bonus (to prevent faffing when mating bare king)
 public class SearchContextTest {
 	
 	private SearchContext sut;

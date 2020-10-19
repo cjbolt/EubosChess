@@ -306,7 +306,7 @@ public class EubosEngineMainTest {
 		setupEngine();
 		// 1
 		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"15"+CMD_TERMINATOR,BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"14"+CMD_TERMINATOR,BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
 		// 2
 		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"g7f6"+CMD_TERMINATOR));
@@ -325,7 +325,7 @@ public class EubosEngineMainTest {
 		// 7
 		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 g7f6 c6d5 f6f5 d5c6 f5e6 c6c7 b4b5 c7c8 e6d6 c8d8"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"b5d7"+CMD_TERMINATOR));
-		performTest(28000);
+		performTest(23000);
 		assertEquals(14, (int)classUnderTest.dc.getNumEntries());
 	}
 	

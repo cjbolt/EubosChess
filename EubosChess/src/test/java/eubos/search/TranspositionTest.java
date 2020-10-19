@@ -25,19 +25,21 @@ public class TranspositionTest {
 
 	@Test
 	public void test_truncationOfPv() throws IllegalNotationException {
-		if (EubosEngineMain.UCI_INFO_ENABLED) {
-			byte depth = 1;
-			short score = 0;
-			byte scoreType = Score.lowerBound;
-			GenericMove bestMove = new GenericMove("e2e4");
-			sut = new PrincipalVariationTransposition(depth, score, scoreType, bestMove);
-			
-			int[] pvArray = { Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE };
-			List<Integer> pv = Arrays.stream(pvArray).boxed().collect(Collectors.toList());
-			
-			sut.setPv(pv);
-			List<Integer> truncated = sut.getPv();
-			assertEquals(depth, truncated.size());
+		if (PrincipalVariationTransposition.TRUNCATION_OF_PV_ENABLED) {
+			if (EubosEngineMain.UCI_INFO_ENABLED) {
+				byte depth = 1;
+				short score = 0;
+				byte scoreType = Score.lowerBound;
+				GenericMove bestMove = new GenericMove("e2e4");
+				sut = new PrincipalVariationTransposition(depth, score, scoreType, bestMove);
+				
+				int[] pvArray = { Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE };
+				List<Integer> pv = Arrays.stream(pvArray).boxed().collect(Collectors.toList());
+				
+				sut.setPv(pv);
+				List<Integer> truncated = sut.getPv();
+				assertEquals(depth, truncated.size());
+			}
 		}
 	}
 	
@@ -63,21 +65,23 @@ public class TranspositionTest {
 	
 	@Test
 	public void test_PvValuesExpected() throws IllegalNotationException {
-		if (EubosEngineMain.UCI_INFO_ENABLED) {
-			byte depth = 1;
-			short score = 0;
-			byte scoreType = Score.lowerBound;
-			GenericMove bestMove = new GenericMove("e2e4");
-			sut = new PrincipalVariationTransposition(depth, score, scoreType, bestMove);
-			
-			int[] pvArray = { Move.toMove(bestMove), Move.toMove(new GenericMove("d7d5")), Move.toMove(new GenericMove("d2d4")) };
-			List<Integer> pv = Arrays.stream(pvArray).boxed().collect(Collectors.toList());
-			
-			sut.setPv(pv);
-			List<Integer> truncated = sut.getPv();
-			
-			assertEquals(depth, truncated.size());
-			assertEquals(bestMove, Move.toGenericMove(truncated.get(0)));
+		if (PrincipalVariationTransposition.TRUNCATION_OF_PV_ENABLED) {
+			if (EubosEngineMain.UCI_INFO_ENABLED) {
+				byte depth = 1;
+				short score = 0;
+				byte scoreType = Score.lowerBound;
+				GenericMove bestMove = new GenericMove("e2e4");
+				sut = new PrincipalVariationTransposition(depth, score, scoreType, bestMove);
+				
+				int[] pvArray = { Move.toMove(bestMove), Move.toMove(new GenericMove("d7d5")), Move.toMove(new GenericMove("d2d4")) };
+				List<Integer> pv = Arrays.stream(pvArray).boxed().collect(Collectors.toList());
+				
+				sut.setPv(pv);
+				List<Integer> truncated = sut.getPv();
+				
+				assertEquals(depth, truncated.size());
+				assertEquals(bestMove, Move.toGenericMove(truncated.get(0)));
+			}
 		}
 	}
 

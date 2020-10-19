@@ -105,13 +105,19 @@ public class PlySearcher {
 				theScore = searchMoves( eval.trans.getBestMove(), eval.trans);
 				break;
 			} else {
-				short adjustedScore = st.adjustHashTableMateInXScore(currPly, eval.trans.getScore());
+				short adjustedScoreForThisPositionInTree = st.adjustHashTableMateInXScore(currPly, eval.trans.getScore());
 				if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
 					pc.update(currPly, eval.trans.getPv());
 				} else {
 					pc.set(currPly, eval.trans.getBestMove());
 				}
-				theScore = new Score(adjustedScore, eval.trans.getType());
+				if (adjustedScoreForThisPositionInTree != eval.trans.getScore()) {
+					int plyMateOccursOn = (adjustedScoreForThisPositionInTree < 0) ? Short.MIN_VALUE + adjustedScoreForThisPositionInTree : Short.MAX_VALUE - adjustedScoreForThisPositionInTree;
+					//int mateDistanceAjustmentAppliedInPly = eval.trans.getScore() - adjustedScoreForThisPositionInTree;
+					theScore = new Score(adjustedScoreForThisPositionInTree, eval.trans.getType(), plyMateOccursOn);
+				} else {
+					theScore = new Score(adjustedScoreForThisPositionInTree, eval.trans.getType());
+				}
 				//pe.invalidatePawnCache();
 			}
 			if (EubosEngineMain.UCI_INFO_ENABLED)
@@ -215,10 +221,24 @@ public class PlySearcher {
 					backedUpScoreWasExact = positionScore.getType() == Score.exact;
 					plyScore = positionScore;
 					updatePrincipalContinuation(currMove, positionScore.getScore());
+					short scoreHandlingDownstreamMates = positionScore.getScore();
+					if (positionScore.isMate()) {
+						int plyMateOccuredOn = positionScore.getDownstreamMateMoves();
+						if (plyMateOccuredOn != 0) {
+							int plyAdjustment = plyMateOccuredOn - currPly;
+							if (plyAdjustment > 0) {
+								if (scoreHandlingDownstreamMates < 0) {
+									scoreHandlingDownstreamMates = (short) (plyMateOccuredOn + plyAdjustment);
+								} else {
+									scoreHandlingDownstreamMates = (short) (plyMateOccuredOn - plyAdjustment);
+								}
+							}
+						}
+					}
 					if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
-						trans = tt.setTransposition(trans, getTransDepth(), positionScore.getScore(), plyBound, currMove, pc.toPvList(currPly));
+						trans = tt.setTransposition(trans, getTransDepth(), scoreHandlingDownstreamMates, plyBound, currMove, pc.toPvList(currPly));
 					} else {
-						trans = tt.setTransposition(trans, getTransDepth(), positionScore.getScore(), plyBound, currMove);
+						trans = tt.setTransposition(trans, getTransDepth(), scoreHandlingDownstreamMates, plyBound, currMove);
 					}
 					
 				} else {
@@ -227,10 +247,24 @@ public class PlySearcher {
 					// Update the position hash if the move is better than that previously stored at this position
 					if (shouldUpdatePositionBoundScoreAndBestMove(plyBound, plyScore.getScore(), positionScore.getScore())) {
 						plyScore = positionScore;
+						short scoreHandlingDownstreamMates = positionScore.getScore();
+						if (positionScore.isMate()) {
+							int plyMateOccuredOn = positionScore.getDownstreamMateMoves();
+							if (plyMateOccuredOn != 0) {
+								int plyAdjustment = plyMateOccuredOn - currPly;
+								if (plyAdjustment > 0) {
+									if (scoreHandlingDownstreamMates < 0) {
+										scoreHandlingDownstreamMates = (short) (plyMateOccuredOn + plyAdjustment);
+									} else {
+										scoreHandlingDownstreamMates = (short) (plyMateOccuredOn - plyAdjustment);
+									}
+								}
+							}
+						}
 						if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
-							trans = tt.setTransposition(trans, getTransDepth(), plyScore.getScore(), plyBound, currMove, pc.toPvList(currPly));
+							trans = tt.setTransposition(trans, getTransDepth(), scoreHandlingDownstreamMates, plyBound, currMove, pc.toPvList(currPly));
 						} else {
-							trans = tt.setTransposition(trans, getTransDepth(), plyScore.getScore(), plyBound, currMove);
+							trans = tt.setTransposition(trans, getTransDepth(), scoreHandlingDownstreamMates, plyBound, currMove);
 						}
 					}
 				}

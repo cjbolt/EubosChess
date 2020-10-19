@@ -7,15 +7,23 @@ public class Score {
 	
 	short score;
 	byte type;
+	int downstreamMate;
 	
 	public Score() {
 		score = 0;
+		downstreamMate = 0;
 		type = Score.exact;
 	}
 	
 	public Score(short theScore, byte theType) {
 		score = theScore;
 		type = theType;
+	}
+	
+	public Score(short theScore, byte theType, int adjustment) {
+		score = theScore;
+		type = theType;
+		downstreamMate = adjustment;		
 	}
 
 	public Score(byte plyBound) {
@@ -33,5 +41,15 @@ public class Score {
 
 	public void setExact() {
 		type = Score.exact;		
+	}
+	
+	public boolean isMate() {
+		int abs = Math.abs(score);
+		int thresh = Short.MAX_VALUE-200;
+		return (abs > thresh) /*&& (type == exact)*/;
+	}
+	
+	public int getDownstreamMateMoves() {
+		return downstreamMate;
 	}
 }

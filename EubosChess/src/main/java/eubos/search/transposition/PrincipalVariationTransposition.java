@@ -16,6 +16,8 @@ public class PrincipalVariationTransposition implements ITransposition {
 	private byte scoreType;
 	private List<Integer> pv;
 	private short accessCount;
+	
+	public static final boolean TRUNCATION_OF_PV_ENABLED = false;
 
 	public PrincipalVariationTransposition(byte depth, short score, byte scoreType, GenericMove bestMove) {
 		// Only used by tests
@@ -82,8 +84,10 @@ public class PrincipalVariationTransposition implements ITransposition {
 	}
 	
 	private void truncateOnwardPvToSearchDepth(List<Integer> pv) {
-		if (pv != null && pv.size() > depthSearchedInPly) {
-			pv.subList(depthSearchedInPly, pv.size()).clear();
+		if (TRUNCATION_OF_PV_ENABLED) {
+			if (pv != null && pv.size() > depthSearchedInPly) {
+				pv.subList(depthSearchedInPly, pv.size()).clear();
+			}
 		}
 	}
 

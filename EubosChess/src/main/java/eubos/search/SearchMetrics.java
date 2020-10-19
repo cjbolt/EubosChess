@@ -61,6 +61,7 @@ public class SearchMetrics {
 			info.setCentipawns(score);
 		} else {
 			int mateMove = (score > 0) ? Short.MAX_VALUE - score : Short.MIN_VALUE - score;
+			mateMove = mateMove / 2;
 			info.setMate(mateMove);
 		}
 		info.setDepth(depth);

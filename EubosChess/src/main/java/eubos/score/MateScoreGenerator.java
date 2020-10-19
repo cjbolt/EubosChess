@@ -33,7 +33,9 @@ public class MateScoreGenerator implements IScoreMate {
 		short mateScore = 0;
 		if (pos.isKingInCheck()) {
 			// Checkmate
-			short mateMoveNum = (short)(((currPly-1)/PLIES_PER_MOVE)+1); // currPly-1 because mate was caused by the move from the previousPly
+			//short mateMoveNum = (short)(((currPly-1)/PLIES_PER_MOVE)+1); // currPly-1 because mate was caused by the move from the previousPly
+			short mateOnPly = (short)currPly;
+			short mateMoveNum = mateOnPly;
 			if (Colour.isWhite(initialOnMove)) {
 				mateScore = isInitialOnMove(currPly) ? getWhiteIsMatedScore(mateMoveNum) : getBlackIsMatedScore(mateMoveNum);
 			} else { // initial on move is black
