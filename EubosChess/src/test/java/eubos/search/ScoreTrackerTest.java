@@ -3,6 +3,7 @@ package eubos.search;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class ScoreTrackerTest {
@@ -221,6 +222,7 @@ public class ScoreTrackerTest {
 	public static short BLACK_MATES_IN_6 = Short.MIN_VALUE + 6;		;
 	
 	@Test
+	@Ignore
 	public void testadjustHashTableMateInXScore_White() {
 		// When white is initial on move, at root node the score is not adjusted
 		byte currPly = 0;
@@ -237,6 +239,7 @@ public class ScoreTrackerTest {
 	}
 	
 	@Test
+	@Ignore
 	public void testadjustHashTableMateInXScore_Back() {
 		// When black is initial on move, at root node the score is not adjusted
 		byte currPly = 0;

@@ -46,5 +46,11 @@ public class MateScoreGenerator implements IScoreMate {
 			mateScore = pe.getScoreForStalemate();
 		}
 		return mateScore;
-	}	
+	}
+	
+	public int getMateDistanceInPly(short score) {
+		if (Math.abs(score) > Short.MAX_VALUE-200) {
+			return (score < 0) ? Math.abs(Short.MIN_VALUE - score) : Short.MAX_VALUE - score;
+		} else return 0;		
+	}
 }

@@ -7,11 +7,11 @@ public class Score {
 	
 	short score;
 	byte type;
-	int downstreamMate;
+	int mateDistanceInPly;
 	
 	public Score() {
 		score = 0;
-		downstreamMate = 0;
+		mateDistanceInPly = 0;
 		type = Score.exact;
 	}
 	
@@ -20,10 +20,10 @@ public class Score {
 		type = theType;
 	}
 	
-	public Score(short theScore, byte theType, int adjustment) {
+	public Score(short theScore, byte theType, int distance) {
 		score = theScore;
 		type = theType;
-		downstreamMate = adjustment;		
+		mateDistanceInPly = distance;		
 	}
 
 	public Score(byte plyBound) {
@@ -49,7 +49,7 @@ public class Score {
 		return (abs > thresh) /*&& (type == exact)*/;
 	}
 	
-	public int getDownstreamMateMoves() {
-		return downstreamMate;
+	public int getMateDistance() {
+		return mateDistanceInPly;
 	}
 }
