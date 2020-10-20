@@ -111,17 +111,7 @@ public class PlySearcher {
 				} else {
 					pc.set(currPly, eval.trans.getBestMove());
 				}
-				int mateDistanceInPly = 0;
-				if (adjustedScoreForThisPositionInTree != eval.trans.getScore()) {
-					mateDistanceInPly = sg.getMateDistanceInPly(eval.trans.getScore());
-					//System.out.println(pos.getFen());
-					//System.out.println(mateDistanceInPly + " " + PrincipalContinuation.pvToString(eval.trans.getPv()) + " " + adjustedScoreForThisPositionInTree + " " + eval.trans.getScore() +" " + currPly);
-					//System.out.flush();
-					if (eval.trans.getPv() != null) {
-						//assert mateDistanceInPly < (eval.trans.getPv().size()+3) : mateDistanceInPly;
-					}
-				}
-				theScore = new Score(adjustedScoreForThisPositionInTree, eval.trans.getType(), mateDistanceInPly);
+				theScore = new Score(adjustedScoreForThisPositionInTree, eval.trans.getType());
 				//pe.invalidatePawnCache();
 			}
 			if (EubosEngineMain.UCI_INFO_ENABLED)
@@ -226,26 +216,8 @@ public class PlySearcher {
 					backedUpScoreWasExact = positionScore.getType() == Score.exact;
 					plyScore = positionScore;
 					updatePrincipalContinuation(currMove, positionScore.getScore());
-					short scoreFromDownTree = positionScore.getScore();
-					//
-					// Modify mate score (which is expressed in distance from root node in ply) to
-					// distance from leaf node (which is what needs to be stored in the hash table)
-					//
-					if (positionScore.isMate()) {
-						if (scoreFromDownTree < 0) {
-							//scoreFromDownTree = (short) (Short.MIN_VALUE + mateDistanceInPly + plyAdjustment);
-							scoreFromDownTree = (short) (scoreFromDownTree - currPly);// + mateDistanceInPly);
-						} else {
-							//scoreFromDownTree = (short) (Short.MAX_VALUE - mateDistanceInPly - plyAdjustment);
-							scoreFromDownTree = (short) (scoreFromDownTree + currPly);// - mateDistanceInPly);
-						}
-					}
+					short scoreFromDownTree = updateMateScoresForEncodingMateDistanceInHashTable(positionScore);
 					if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
-						List<Integer> pv = pc.toPvList(currPly);
-						if (pv!=null && positionScore.isMate()) {
-							int mateDistance = sg.getMateDistanceInPly(scoreFromDownTree);
-							//assert mateDistance < pv.size()+3 : scoreFromDownTree + " " +pos.getFen() + " " + mateDistance + " oops " + PrincipalContinuation.pvToString(pv);
-						}
 						trans = tt.setTransposition(trans, getTransDepth(), scoreFromDownTree, plyBound, currMove, pc.toPvList(currPly));
 					} else {
 						trans = tt.setTransposition(trans, getTransDepth(), scoreFromDownTree, plyBound, currMove);
@@ -257,22 +229,7 @@ public class PlySearcher {
 					// Update the position hash if the move is better than that previously stored at this position
 					if (shouldUpdatePositionBoundScoreAndBestMove(plyBound, plyScore.getScore(), positionScore.getScore())) {
 						plyScore = positionScore;
-						short scoreFromDownTree = positionScore.getScore();
-						//
-						// Modify mate score (which is expressed in distance from root node in ply) to
-						// distance from leaf node (which is what needs to be stored in the hash table)
-						//
-						if (positionScore.isMate()) {
-							if (positionScore.isMate()) {
-								if (scoreFromDownTree < 0) {
-									//scoreFromDownTree = (short) (Short.MIN_VALUE + mateDistanceInPly + plyAdjustment);
-									scoreFromDownTree = (short) (scoreFromDownTree - currPly);// + mateDistanceInPly);
-								} else {
-									//scoreFromDownTree = (short) (Short.MAX_VALUE - mateDistanceInPly - plyAdjustment);
-									scoreFromDownTree = (short) (scoreFromDownTree + currPly);// - mateDistanceInPly);
-								}
-							}
-						}
+						short scoreFromDownTree = updateMateScoresForEncodingMateDistanceInHashTable(positionScore);
 						if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
 							trans = tt.setTransposition(trans, getTransDepth(), scoreFromDownTree, plyBound, currMove, pc.toPvList(currPly));
 						} else {
@@ -305,16 +262,7 @@ public class PlySearcher {
 
 					// found to be needed due to score discrepancies caused by refutations coming out of extended search...
 					trans.setBestMove(pc.getBestMove(currPly));
-					short scoreFromDownTree = plyScore.getScore();
-					if (plyScore.isMate()) {
-						if (scoreFromDownTree < 0) {
-							//scoreFromDownTree = (short) (Short.MIN_VALUE + mateDistanceInPly + plyAdjustment);
-							scoreFromDownTree = (short) (scoreFromDownTree - currPly);// + mateDistanceInPly);
-						} else {
-							//scoreFromDownTree = (short) (Short.MAX_VALUE - mateDistanceInPly - plyAdjustment);
-							scoreFromDownTree = (short) (scoreFromDownTree + currPly);// - mateDistanceInPly);
-						}
-					}
+					short scoreFromDownTree = updateMateScoresForEncodingMateDistanceInHashTable(plyScore);
 					trans.setScore(scoreFromDownTree);
 
 					SearchDebugAgent.printExactTrans(pos.getHash(), trans);
@@ -323,6 +271,22 @@ public class PlySearcher {
 			}
 		}
 		return plyScore;
+	}
+
+	private short updateMateScoresForEncodingMateDistanceInHashTable(Score positionScore) {
+		//
+		// Modify mate score (which is expressed in distance from root node in ply) to
+		// distance from leaf node (which is what needs to be stored in the hash table)
+		//
+		short scoreFromDownTree = positionScore.getScore();
+		if (positionScore.isMate()) {
+			if (scoreFromDownTree < 0) {
+				scoreFromDownTree = (short) (scoreFromDownTree - currPly);
+			} else {
+				scoreFromDownTree = (short) (scoreFromDownTree + currPly);
+			}
+		}
+		return scoreFromDownTree;
 	}
 
 	private Score initialiseScoreForSingularCaptureInExtendedSearch(MoveList ml, Iterator<Integer> move_iter,

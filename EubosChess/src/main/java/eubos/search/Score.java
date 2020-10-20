@@ -7,11 +7,9 @@ public class Score {
 	
 	short score;
 	byte type;
-	int mateDistanceInPly;
 	
 	public Score() {
 		score = 0;
-		mateDistanceInPly = 0;
 		type = Score.exact;
 	}
 	
@@ -19,12 +17,7 @@ public class Score {
 		score = theScore;
 		type = theType;
 	}
-	
-	public Score(short theScore, byte theType, int distance) {
-		score = theScore;
-		type = theType;
-		mateDistanceInPly = distance;		
-	}
+
 
 	public Score(byte plyBound) {
 		score = (plyBound == Score.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE;
@@ -44,12 +37,6 @@ public class Score {
 	}
 	
 	public boolean isMate() {
-		int abs = Math.abs(score);
-		int thresh = Short.MAX_VALUE-200;
-		return (abs > thresh) /*&& (type == exact)*/;
-	}
-	
-	public int getMateDistance() {
-		return mateDistanceInPly;
+		return (Math.abs(score) > Short.MAX_VALUE-200);
 	}
 }
