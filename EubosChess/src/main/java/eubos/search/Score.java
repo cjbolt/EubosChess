@@ -39,4 +39,8 @@ public class Score {
 	public boolean isMate() {
 		return (Math.abs(score) > Short.MAX_VALUE-200);
 	}
+	
+	static public boolean isMate(short score) {
+		return (Math.abs(score) > Short.MAX_VALUE-200);
+	}
 }
