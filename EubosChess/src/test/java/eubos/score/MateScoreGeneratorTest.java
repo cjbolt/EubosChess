@@ -22,7 +22,7 @@ public class MateScoreGeneratorTest {
 	public void setUp() {
 	}
 	
-	private byte convertPlyToMove( byte ply ) { return (byte)((ply+1)/2); }
+	public static byte convertPlyToMove( byte ply ) { return (byte)((ply+1)/2); }
 	
 	@Test
 	public void testGenerateScoreForCheckmate_fromWhite() throws InvalidPieceException, IllegalNotationException {
