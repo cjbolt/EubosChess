@@ -75,7 +75,7 @@ public class ScoreTracker {
 				/* A note about these score comparisons: 
 				 * 
 				 *  The prevPlyScore is the best score backed up for the opponent of the side now on Move. If we have 
-				 *  now backed up a score to the current position (either through a hash hit or tree search) which is
+				 *  now backed up a score to the current position through the tree search which is
 				 *  worse for the opponent, then we have discovered a refutation of THEIR last move.
 				 *  
 				 *  This isn't the same as the test to back up a score. That is the reason for unexpected comparison
@@ -93,7 +93,9 @@ public class ScoreTracker {
 	}	
 	
 	public short adjustHashTableMateInXScore(byte currPly, short score) {
-		if (Math.abs(score) > Short.MAX_VALUE-200) {
+		if (Score.isMate(score)) {
+			// The score stored in the hash table encodes the distance to the mate from the hashed position,
+			// not the root node, so adjust for the position in search tree.
 			score = (short) ((score < 0 ) ? score+currPly : score-currPly);
 		}
 		return score;
@@ -101,21 +103,30 @@ public class ScoreTracker {
 
 	public boolean isAlphaBetaCutOffForHash(byte currPly, short hashScore) {
 		boolean isAlphaBetaCutOff = false;
-		short adjustedHashScore = adjustHashTableMateInXScore(currPly, hashScore);
-		Score broughtDownScore = scores[currPly];
-		/*  
-		 * This uses a complete different scheme for when we are working out if a hashed move is a refutation as opposed
-		 * to that from a regular backup.
-		 */
-		if (onMoveIsWhite(currPly)) {
-			//if (adjustedHashScore >= broughtDownScore.getScore()) isAlphaBetaCutOff = true;
-			if (adjustedHashScore <= broughtDownScore.getScore()) isAlphaBetaCutOff = true;
-		} else {
-			//if (adjustedHashScore <= broughtDownScore.getScore()) isAlphaBetaCutOff = true;
-			if (adjustedHashScore >= broughtDownScore.getScore()) isAlphaBetaCutOff = true;
-		}
-		if (isAlphaBetaCutOff) {
-			SearchDebugAgent.printAlphaBetaComparison(broughtDownScore.getScore(), adjustedHashScore);
+		if (currPly > 0) {
+			
+			short adjustedHashScore = adjustHashTableMateInXScore(currPly, hashScore);			
+			Score prevPlyScore = scores[(byte)(currPly-1)];
+			if (EubosEngineMain.ASSERTS_ENABLED)
+				assert prevPlyScore != null;
+			if (onMoveIsWhite(currPly)) {
+				/* A note about these score comparisons: 
+				 * 
+				 *  The prevPlyScore is the best score backed up for the opponent of the side now on Move. 
+				 *  If the hash table for this position has a best score which is worse for the opponent, 
+				 *  then we have discovered a refutation of THEIR last move.
+				 *  
+				 *  This isn't the same as the test to back up a score. That is the reason for unexpected comparison
+				 *  (wrt. the usual backing up operation). This comparison is specific to alpha/beta pruning.
+				 */
+				if (adjustedHashScore >= prevPlyScore.getScore()) isAlphaBetaCutOff = true;
+			} else {
+				if (adjustedHashScore <= prevPlyScore.getScore()) isAlphaBetaCutOff = true;
+			}
+			
+			if (isAlphaBetaCutOff) {
+				SearchDebugAgent.printAlphaBetaComparison(hashScore, adjustedHashScore);
+			}
 		}
 		return isAlphaBetaCutOff;
 	}

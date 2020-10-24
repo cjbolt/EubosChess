@@ -210,6 +210,15 @@ public class PlySearcher {
 			if (!isTerminated()) {
 				// Rationale: this is when a score was backed up - at this instant update the depth searched
 				setDepthSearchedInPly();
+				
+				if (st.isAlphaBetaCutOff(currPly, positionScore)) {
+					plyScore = positionScore;
+					trans = updateTranspositionTable(trans, plyBound, currMove, positionScore);
+					refutationFound = true;
+					SearchDebugAgent.printRefutationFound();
+					break;    
+				}
+				
 				if (doScoreBackup(positionScore)) {
 					backedUpScoreWasExact = positionScore.getType() == Score.exact;
 					plyScore = positionScore;
@@ -217,21 +226,14 @@ public class PlySearcher {
 					trans = updateTranspositionTable(trans, plyBound, currMove, positionScore);
 					
 				} else {
-					// Always clear the principal continuation when we didn't back up the score
-					pc.clearContinuationBeyondPly(currPly);
 					// Update the position hash if the move is better than that previously stored at this position
 					if (shouldUpdatePositionBoundScoreAndBestMove(plyBound, plyScore.getScore(), positionScore.getScore())) {
 						plyScore = positionScore;
 						trans = updateTranspositionTable(trans, plyBound, currMove, positionScore);
 					}
 				}
-
-				if (st.isAlphaBetaCutOff(currPly, positionScore)) {
-					refutationFound = true;
-					SearchDebugAgent.printRefutationFound();
-					break;    
-				}
 			}
+			
 			if (move_iter.hasNext()) {
 				currMove = move_iter.next();
 			} else {
