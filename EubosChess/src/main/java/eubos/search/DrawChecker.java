@@ -7,7 +7,7 @@ import eubos.main.EubosEngineMain;
 public class DrawChecker {
 	
 	public static final boolean ENABLE_THREEFOLD_POSITION_DRAW_CHECK = true;
-	public static final int THREEFOLD_THRESHOLD = 3;
+	public static final int THREEFOLD_THRESHOLD = 2;
 	
 	private HashMap<Integer,Byte> positionCount;
 	
