@@ -45,7 +45,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	private static final byte SEARCH_DEPTH_IN_PLY = 35;
 	
-	public static final boolean LOGGING_ENABLED = true;
+	public static final boolean LOGGING_ENABLED = false;
 	public static final boolean UCI_INFO_ENABLED = true;
 	public static final boolean ASSERTS_ENABLED = false;
 	
@@ -125,7 +125,7 @@ public class EubosEngineMain extends AbstractEngine {
 			// This temporary pm is to ensure that the correct position is used to initialise the search 
 			// context of the position evaluator, required when we get a position and move list to apply to it.
 			PositionManager temp_pm = new PositionManager(uci_fen_string, dc);
-			temp_pm.registerPositionEvaluator(new PositionEvaluator(temp_pm));
+			//temp_pm.registerPositionEvaluator(new PositionEvaluator(temp_pm));
 			try {
 				for (GenericMove nextMove : command.moves) {
 					int move = Move.toMove(nextMove, temp_pm.getTheBoard());

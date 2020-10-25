@@ -127,17 +127,25 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public void performMove( int move, boolean computeHash ) throws InvalidPieceException {
 		
-		if ((Move.isPawnCapture(move) || Move.isPromotion(move) || Piece.isPawn(Move.getTargetPiece(move)))) {
-			// Promotions, pawn captures or pawns being captured invalidate the stored pawn cache, it will need to be re-evaluated
-			pe.invalidatePawnCache();
-		}
-		
 		// Save previous en passant square and initialise for this move
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
+	
+		int piece = Move.getOriginPiece(move);
+		//if (Piece.isPawn(piece) && Move.isCapture(move))
+		//	pe.invalidatePawnCache();
 		
 		// Handle pawn promotion moves - remains in position manager because it updates the move
-		move = checkForPawnPromotions(move);
+		if ( Move.getPromotion(move) != Piece.NONE ) {
+			//pe.invalidatePawnCache();
+			piece &= Piece.BLACK; // preserve colour
+			piece |= Move.getPromotion(move);
+			move = Move.setOriginPiece(move, piece);
+		}
+		
 		CaptureData captureTarget = theBoard.doMove(move);
+//		if (Piece.isPawn(captureTarget.target)) {
+//			pe.invalidatePawnCache();
+//		}
 		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq, getCastlingFlags()));
 		
 		// update castling flags
@@ -169,13 +177,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		TrackedMove tm = moveTracker.pop();
 		CaptureData cap = tm.getCaptureData();
 		int moveToUndo = tm.getMove();
-		
-		// Check for reversal of any pawn promotion that had been previously applied
-		moveToUndo = checkToUndoPawnPromotion(moveToUndo);
-		
-		// Actually undo the move.
 		int reversedMove = Move.reverse(moveToUndo);
-		theBoard.undoMove(reversedMove, cap);
+		reversedMove = theBoard.undoMove(reversedMove, cap);
 		
 		// Restore castling
 		castling.setFlags(tm.getCastlingFlags());
@@ -197,32 +200,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		if (Colour.isBlack(onMove)) {
 			moveNumber--;
 		}
-	}
-	
-	private int checkForPawnPromotions(int move) {
-		if ( Move.getPromotion(move) != Piece.NONE ) {
-			int piece = Move.getOriginPiece(move);
-			piece &= Piece.BLACK; // preserve colour
-			piece |= Move.getPromotion(move);
-			move = Move.setOriginPiece(move, piece);
-		}
-		return move;
-	}
-	
-	private int checkToUndoPawnPromotion(int moveToUndo) {
-		int promotedChessman = Move.getPromotion(moveToUndo);
-		if ( promotedChessman != Piece.NONE ) {
-			int piece = Move.getOriginPiece(moveToUndo);
-			int type = theBoard.pickUpPieceAtSquare(Move.getTargetPosition(moveToUndo), piece);
-			if (Piece.isBlack(type)) {
-				type = Piece.BLACK_PAWN;
-			} else {
-				type = Piece.WHITE_PAWN;
-			}
-			theBoard.setPieceAtSquare(Move.getTargetPosition(moveToUndo), type);
-			moveToUndo = Move.setOriginPiece(moveToUndo, type);
-		}
-		return moveToUndo;
 	}
 		
 	public String getFen() {
