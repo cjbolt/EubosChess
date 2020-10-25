@@ -8,6 +8,7 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
+import eubos.board.Board;
 import eubos.board.InvalidPieceException;
 import eubos.position.Move;
 import eubos.position.PositionManager;
@@ -21,7 +22,7 @@ public class MateScoreGeneratorTest {
 	public void setUp() {
 	}
 	
-	private byte convertPlyToMove( byte ply ) { return (byte)((ply+1)/2); }
+	public static byte convertPlyToMove( byte ply ) { return (byte)((ply+1)/2); }
 	
 	@Test
 	public void testGenerateScoreForCheckmate_fromWhite() throws InvalidPieceException, IllegalNotationException {
@@ -31,7 +32,7 @@ public class MateScoreGeneratorTest {
 		// Mate detected on the ply after the move that caused the mate!
 		for (byte testPly = 1; testPly <= 30; testPly+=2) {
 			if ((testPly % 2) == 1) {
-				assertEquals(Short.MAX_VALUE-convertPlyToMove(testPly), classUnderTest.scoreMate(testPly));
+				assertEquals(Short.MAX_VALUE-testPly, classUnderTest.scoreMate(testPly));
 			}
 		}
 	}
@@ -44,7 +45,7 @@ public class MateScoreGeneratorTest {
 		// Mate detected on the ply after the move that caused the mate!
 		for (byte testPly = 1; testPly <= 30; testPly+=2) {
 			if ((testPly % 2) == 1) {
-				assertEquals(Short.MIN_VALUE+convertPlyToMove(testPly), classUnderTest.scoreMate(testPly));
+				assertEquals(Short.MIN_VALUE+testPly, classUnderTest.scoreMate(testPly));
 			}
 		}
 	}
@@ -54,30 +55,30 @@ public class MateScoreGeneratorTest {
 		classUnderTest = new MateScoreGenerator(new PositionManager("r1r3kQ/pb1p1p2/1p2pBp1/2pPP3/2P5/1P3NP1/n4PBP/b3R1K1 b - - 1 3"), null);
 		// Mate detected on the ply after the move that caused the mate!
 		byte testPly = 4;
-		assertEquals(Short.MAX_VALUE-convertPlyToMove(testPly), classUnderTest.scoreMate(testPly));
+		assertEquals(Short.MAX_VALUE-testPly, classUnderTest.scoreMate(testPly));
 	}
 	
 	@Test
 	public void testStaleMate_whenTryForStaleMate_white() {
 		PositionManager pm = new PositionManager("8/8/8/8/8/1k6/p7/K7 w - - 5 62");
-		MaterialEvaluation me = new MaterialEvaluation();
-		me.black = MaterialEvaluator.MATERIAL_VALUE_KING + 250;
-		me.white = MaterialEvaluator.MATERIAL_VALUE_KING;
+		PiecewiseEvaluation me = new PiecewiseEvaluation();
+		me.black = Board.MATERIAL_VALUE_KING + 250;
+		me.white = Board.MATERIAL_VALUE_KING;
 		PositionEvaluator pe = new PositionEvaluator(pm);
 		classUnderTest = new MateScoreGenerator(pm, pe);
 		// White wants stalemate
-		assertEquals(MaterialEvaluator.MATERIAL_VALUE_KING/2, classUnderTest.scoreMate((byte)0));
+		assertEquals(Board.MATERIAL_VALUE_KING/2, classUnderTest.scoreMate((byte)0));
 	}
 	
 	@Test
 	public void testStaleMate_whenTryForStaleMate_black() {
 		PositionManager pm = new PositionManager("k7/P7/1K6/8/8/8/8/8 b - - 5 1");
-		MaterialEvaluation me = new MaterialEvaluation();
-		me.black = MaterialEvaluator.MATERIAL_VALUE_KING;
-		me.white = MaterialEvaluator.MATERIAL_VALUE_KING + 250;
+		PiecewiseEvaluation me = new PiecewiseEvaluation();
+		me.black = Board.MATERIAL_VALUE_KING;
+		me.white = Board.MATERIAL_VALUE_KING + 250;
 		PositionEvaluator pe = new PositionEvaluator(pm);
 		classUnderTest = new MateScoreGenerator(pm, pe);
 		// Black wants stalemate
-		assertEquals(-MaterialEvaluator.MATERIAL_VALUE_KING/2, classUnderTest.scoreMate((byte)0));
+		assertEquals(-Board.MATERIAL_VALUE_KING/2, classUnderTest.scoreMate((byte)0));
 	}
 }

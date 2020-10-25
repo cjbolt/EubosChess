@@ -9,12 +9,11 @@ import java.util.ListIterator;
 import java.util.Random;
 
 import com.fluxchess.jcpi.models.GenericMove;
-import com.fluxchess.jcpi.models.IntChessman;
 
+import eubos.board.Board;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
-import eubos.score.MaterialEvaluator;
 
 public class MoveList implements Iterable<Integer> {
 	
@@ -29,8 +28,8 @@ public class MoveList implements Iterable<Integer> {
         }
     }
     
-    public static final int [] MATERIAL = {0, MaterialEvaluator.MATERIAL_VALUE_KING, MaterialEvaluator.MATERIAL_VALUE_QUEEN, MaterialEvaluator.MATERIAL_VALUE_ROOK, 
-    		                               MaterialEvaluator.MATERIAL_VALUE_BISHOP, MaterialEvaluator.MATERIAL_VALUE_KNIGHT, MaterialEvaluator.MATERIAL_VALUE_PAWN }; 
+    public static final int [] MATERIAL = {0, Board.MATERIAL_VALUE_KING, Board.MATERIAL_VALUE_QUEEN, Board.MATERIAL_VALUE_ROOK, 
+    		Board.MATERIAL_VALUE_BISHOP, Board.MATERIAL_VALUE_KNIGHT, Board.MATERIAL_VALUE_PAWN }; 
     
     class MoveMvvLvaComparator implements Comparator<Integer> {
         @Override public int compare(Integer move1, Integer move2) {
@@ -64,49 +63,6 @@ public class MoveList implements Iterable<Integer> {
 		this(pm, Move.NULL_MOVE);
 	}
 	
-	private int computeMoveType(PositionManager pm, int currMove, int piece) {
-		int moveType = Move.TYPE_REGULAR_NONE;
-		
-		boolean isCastle = (Piece.isKing(piece)) ? pm.lastMoveWasCastle() : false;
-		
-		// Only test for check if the move could potentially cause a check
-		boolean isCheck = pm.getTheBoard().moveCouldPotentiallyCheckOtherKing(currMove) && pm.isKingInCheck(pm.getOnMove());
-		
-		// Check
-		if (isCheck)
-			moveType |= Move.TYPE_CHECK_MASK;
-		
-		if (isCastle) {
-			// Castling (note: therefore excludes possibility of promotion or capture)
-			moveType |= Move.TYPE_CASTLE_MASK;
-			
-		} else {
-			int targetPiece = Move.getTargetPiece(currMove);
-			
-			// Promotions
-			int promotion = Move.getPromotion(currMove);
-			if (promotion == IntChessman.QUEEN)
-				moveType |= Move.TYPE_PROMOTION_QUEEN_MASK;
-			if (promotion == IntChessman.BISHOP || promotion == IntChessman.KNIGHT || promotion == IntChessman.ROOK)
-				moveType |= Move.TYPE_PROMOTION_PIECE_MASK;
-			
-			// Captures
-			switch (targetPiece & Piece.PIECE_NO_COLOUR_MASK) {
-			case Piece.QUEEN:
-			case Piece.BISHOP:
-			case Piece.KNIGHT:
-			case Piece.ROOK:
-			case Piece.PAWN:
-				moveType |= Move.TYPE_CAPTURE_MASK;
-				break;
-			default:
-				break;
-			}
-		}		
-		
-		return moveType;		
-	}
-	
 	public MoveList(PositionManager pm, int bestMove) {
 		Colour onMove = pm.getOnMove();
 		boolean needToEscapeMate = false;
@@ -129,9 +85,13 @@ public class MoveList implements Iterable<Integer> {
 					// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
 					it.remove();
 				} else {
-					int moveType = computeMoveType(pm, currMove, piece);
-					currMove = Move.setType(currMove, moveType);
-					// Update with type
+					// Set the check flag for any moves attacking the opposing king
+					boolean isCheck = pm.getTheBoard().moveCouldPotentiallyCheckOtherKing(currMove) && pm.isKingInCheck(pm.getOnMove());
+					if (isCheck) {
+						int moveType = Move.getType(currMove);
+						moveType |= Move.TYPE_CHECK_MASK;
+						currMove = Move.setType(currMove, moveType);
+					}
 					it.set(currMove);
 				}
 				pm.unperformMove(false);
@@ -158,7 +118,7 @@ public class MoveList implements Iterable<Integer> {
 			// Lazy creation of extended move list
 			extended_search_moves = new ArrayList<Integer>(normal_search_moves.size());
 			for (int currMove : normal_search_moves) {
-				if (Move.isQueenPromotion(currMove) || Move.isCapture(currMove) || Move.isCheck(currMove)) {
+				if (Move.isCapture(currMove) || Move.isCheck(currMove) || Move.isQueenPromotion(currMove)) {
 					extended_search_moves.add(currMove);
 				}
 			}

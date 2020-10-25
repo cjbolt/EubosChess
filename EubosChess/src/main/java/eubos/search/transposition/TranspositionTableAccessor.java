@@ -2,6 +2,7 @@ package eubos.search.transposition;
 
 import java.util.List;
 
+import eubos.main.EubosEngineMain;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.search.Score;
@@ -36,9 +37,8 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 				ret.status = TranspositionTableStatus.sufficientTerminalNode;
 				SearchDebugAgent.printHashIsTerminalNode(ret.trans, pos.getHash());
 			} else {
-				short adjustedScore = st.adjustHashTableMateInXScore(currPly, ret.trans.getScore());
 				// must be either (bound == Score.upperBound || bound == Score.lowerBound)
-				if (st.isAlphaBetaCutOff(currPly, new Score(adjustedScore, ret.trans.getType()))) {
+				if (st.isAlphaBetaCutOffForHash(currPly, ret.trans.getScore())) {
 					SearchDebugAgent.printHashIsRefutation(pos.getHash(), ret.trans);
 					ret.status = TranspositionTableStatus.sufficientRefutation;
 		        } else {
@@ -58,19 +58,28 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return ret;
 	}
 	
-	public ITransposition setTransposition(ITransposition trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove) {
+	public ITransposition setTransposition(ITransposition trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv) {
 		if (trans == null) {
-			trans = getTransCreateIfNew(new_Depth, new_score, new_bound, new_bestMove);
+			trans = getTransCreateIfNew(new_Depth, new_score, new_bound, new_bestMove, pv);
 		}
-		trans = checkForUpdateTrans(trans, new_Depth, new_score, new_bound, new_bestMove, null);
+		trans = checkForUpdateTrans(trans, new_Depth, new_score, new_bound, new_bestMove, pv);
 		return trans;
 	}
 	
-	private ITransposition getTransCreateIfNew(byte new_Depth, short new_score, byte new_bound, int new_bestMove) {
+	public ITransposition setTransposition(ITransposition trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove) {
+		return setTransposition(trans, new_Depth, new_score, new_bound, new_bestMove, null);
+	}
+	
+	private ITransposition getTransCreateIfNew(byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv) {
 		SearchDebugAgent.printTransNull(pos.getHash());
 		ITransposition trans = hashMap.getTransposition(pos.getHash());
 		if (trans == null) {
-			ITransposition new_trans = new Transposition(new_Depth, new_score, new_bound, new_bestMove, null);
+			ITransposition new_trans;
+			if (USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
+				new_trans = new PrincipalVariationTransposition(new_Depth, new_score, new_bound, new_bestMove, pv);
+			} else {
+				new_trans= new Transposition(new_Depth, new_score, new_bound, new_bestMove, null);
+			}
 			SearchDebugAgent.printCreateTrans(pos.getHash());
 			hashMap.putTransposition(pos.getHash(), new_trans);
 			SearchDebugAgent.printTransUpdate(new_trans, pos.getHash());
@@ -95,11 +104,13 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			    updateTransposition = true;
 			} else if ((currentBound == Score.upperBound) &&
 					   (new_score < current_trans.getScore())) {
-				assert currentBound == new_bound;
+				if (EubosEngineMain.ASSERTS_ENABLED)
+					assert currentBound == new_bound;
 				updateTransposition = true;
 			} else if ((currentBound == Score.lowerBound) &&
 					   (new_score > current_trans.getScore())) {
-				assert currentBound == new_bound;
+				if (EubosEngineMain.ASSERTS_ENABLED)
+					assert currentBound == new_bound;
 				updateTransposition = true;
 			}
 		}

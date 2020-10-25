@@ -18,6 +18,7 @@ public class Score {
 		type = theType;
 	}
 
+
 	public Score(byte plyBound) {
 		score = (plyBound == Score.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE;
 		type = plyBound;
@@ -33,5 +34,13 @@ public class Score {
 
 	public void setExact() {
 		type = Score.exact;		
+	}
+	
+	public boolean isMate() {
+		return (Math.abs(score) > Short.MAX_VALUE-200);
+	}
+	
+	static public boolean isMate(short score) {
+		return (Math.abs(score) > Short.MAX_VALUE-200);
 	}
 }

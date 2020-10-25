@@ -5,6 +5,7 @@ import java.util.EnumMap;
 import java.util.Map;
 
 import eubos.board.Piece.Colour;
+import eubos.main.EubosEngineMain;
 import eubos.position.Position;
 
 public class SquareAttackEvaluator {
@@ -280,7 +281,8 @@ public class SquareAttackEvaluator {
 					attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
 				break;
 			default:
-				assert false; // should not receive indirect moves here!
+				if (EubosEngineMain.ASSERTS_ENABLED)
+					assert false; // should not receive indirect moves here!
 				break;
 			}
 			if (attacked) break;
@@ -334,7 +336,8 @@ public class SquareAttackEvaluator {
 			}
 			break;
 		default:
-			assert false; // should not receive indirect moves here!
+			if (EubosEngineMain.ASSERTS_ENABLED)
+				assert false; // should not receive indirect moves here!
 			break;
 		}
 		return attacked;

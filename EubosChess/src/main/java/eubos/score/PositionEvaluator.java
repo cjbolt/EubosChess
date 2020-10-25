@@ -11,6 +11,7 @@ import eubos.board.Piece.Colour;
 import eubos.position.CaptureData;
 import eubos.position.IPositionAccessors;
 import eubos.position.Position;
+import eubos.search.Score;
 import eubos.search.SearchContext;
 import eubos.search.SearchContext.SearchContextEvaluation;
 
@@ -20,7 +21,7 @@ public class PositionEvaluator implements IEvaluate {
 	private SearchContext sc;
 	
 	public static final int HAS_CASTLED_BOOST_CENTIPAWNS = 50;
-	public static final int DOUBLED_PAWN_HANDICAP = 50;
+	public static final int DOUBLED_PAWN_HANDICAP = 0;
 	public static final int PASSED_PAWN_BOOST = 30;
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 20;
 	
@@ -28,7 +29,7 @@ public class PositionEvaluator implements IEvaluate {
 	
 	public PositionEvaluator(IPositionAccessors pm) {	
 		this.pm = pm;
-		sc = new SearchContext(pm, MaterialEvaluator.evaluate(pm.getTheBoard(), false));
+		sc = new SearchContext(pm, pm.getTheBoard().evaluateMaterial());
 	}
 	
 	public boolean isQuiescent() {
@@ -54,14 +55,14 @@ public class PositionEvaluator implements IEvaluate {
 		return true;
 	}
 	
-	public short evaluatePosition() { 
-		MaterialEvaluation mat = MaterialEvaluator.evaluate(pm.getTheBoard(), sc.isEndgame());
-		SearchContextEvaluation eval = sc.computeSearchGoalBonus(mat);
+	public Score evaluatePosition() {
+		pm.getTheBoard().evaluateMaterial();
+		SearchContextEvaluation eval = sc.computeSearchGoalBonus(pm.getTheBoard().me);
 		if (!eval.isDraw) {
-			eval.score += mat.getDelta();
-			eval.score += evaluatePawnStructure();
+			eval.score += pm.getTheBoard().me.getDelta();
+			//eval.score += (pawnCacheValid) ? pawnCache : evaluatePawnStructure();
 		}
-		return eval.score;
+		return new Score(eval.score, Score.exact);
 	}
 	
 	int encourageCastling() {
@@ -76,16 +77,26 @@ public class PositionEvaluator implements IEvaluate {
 		return castleScoreBoost;
 	}
 	
+	int pawnCache = 0;
+	boolean pawnCacheValid = false;
+	
+	public void invalidatePawnCache() {
+		pawnCache = 0;
+		pawnCacheValid = false;
+	}
+	
 	int evaluatePawnStructure() {
 		int pawnEvaluationScore = evaluatePawnsForColour(pm.getOnMove());
 		pawnEvaluationScore += evaluatePawnsForColour(Colour.getOpposite(pm.getOnMove()));
+		pawnCache = pawnEvaluationScore;
+		pawnCacheValid = true;
 		return pawnEvaluationScore;
 	}
 
 	private int evaluatePawnsForColour(Colour onMoveWas) {
 		Board board = pm.getTheBoard();
 		int passedPawnBoost = 0;
-		int pawnHandicap = -board.countDoubledPawnsForSide(onMoveWas)*DOUBLED_PAWN_HANDICAP;
+		//int pawnHandicap = -board.countDoubledPawnsForSide(onMoveWas)*DOUBLED_PAWN_HANDICAP;
 		int ownPawns = Colour.isWhite(onMoveWas) ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
 		PrimitiveIterator.OfInt iter = board.iterateType(ownPawns);
 		while (iter.hasNext()) {
@@ -99,14 +110,10 @@ public class PositionEvaluator implements IEvaluate {
 			}
 		}
 		if (Colour.isBlack(onMoveWas)) {
-			pawnHandicap = -pawnHandicap;
+			//pawnHandicap = -pawnHandicap;
 			passedPawnBoost = -passedPawnBoost;
 		}
-		return pawnHandicap + passedPawnBoost;
-	}
-
-	public MaterialEvaluation getMaterialEvaluation() {
-		return MaterialEvaluator.evaluate(pm.getTheBoard(), sc.isEndgame());
+		return /*pawnHandicap +*/ passedPawnBoost;
 	}
 	
 	public SearchContext getSearchContext() {

@@ -6,6 +6,7 @@ import java.util.List;
 import com.fluxchess.jcpi.models.IntChessman;
 import com.fluxchess.jcpi.models.IntRank;
 
+import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.Position;
 
@@ -53,7 +54,8 @@ public abstract class Piece {
 	public static boolean isKnight(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == KNIGHT; }
 	
 	public static boolean isOppositeColour(Colour ownColour, int toCheck) {
-		assert (toCheck & PIECE_NO_COLOUR_MASK) != NONE;
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert (toCheck & PIECE_NO_COLOUR_MASK) != NONE;
 		return Colour.isWhite(ownColour) ? isBlack(toCheck) : isWhite(toCheck);
 	}
 	public static boolean isOppositeColourOrNone(Colour ownColour, int toCheck) {
@@ -72,6 +74,36 @@ public abstract class Piece {
 	public static Colour getOpposite(int arg) {
 		return isWhite(arg) ? Colour.black : Colour.white;
 	} 
+	
+	public static int convertChessmanToPiece(int chessman, boolean isWhite) {
+		int eubosPiece = Piece.NONE;
+		if (chessman==IntChessman.KNIGHT)
+			eubosPiece = isWhite ? Piece.WHITE_KNIGHT : Piece.BLACK_KNIGHT;
+		else if (chessman==IntChessman.BISHOP)
+			eubosPiece = isWhite ? Piece.WHITE_BISHOP : Piece.BLACK_BISHOP;
+		else if (chessman==IntChessman.ROOK)
+			eubosPiece = isWhite? Piece.WHITE_ROOK : Piece.BLACK_ROOK;
+		else if (chessman==IntChessman.QUEEN)
+			eubosPiece = isWhite ? Piece.WHITE_QUEEN : Piece.BLACK_QUEEN;
+		return eubosPiece;
+	}
+	
+	public static int convertPieceToChessman(int piece) {
+		int chessman = IntChessman.NOCHESSMAN;
+		if (Piece.isKnight(piece))
+			chessman = IntChessman.KNIGHT;
+		else if (Piece.isBishop(piece))
+			chessman = IntChessman.BISHOP;
+		else if (Piece.isRook(piece))
+			chessman = IntChessman.ROOK;
+		else if (Piece.isQueen(piece))
+			chessman = IntChessman.QUEEN;
+		else if (Piece.isKing(piece))
+			chessman = IntChessman.KING;
+		else if (Piece.isPawn(piece))
+			chessman = IntChessman.PAWN;		
+		return chessman;
+	}
 	
 	public static char toFenChar(int piece) {
 		char chessman = 0;
@@ -119,7 +151,7 @@ public abstract class Piece {
 		if ( targetSquare != Position.NOPOSITION ) {
 			int targetPiece = theBoard.getPieceAtSquare(targetSquare);
 			if (Piece.isOppositeColourOrNone(ownSide, targetPiece)) {
-				moveList.add(Move.valueOf(Move.TYPE_REGULAR_NONE, atSquare, theBoard.getPieceAtSquare(atSquare), targetSquare, targetPiece, IntChessman.NOCHESSMAN));
+				moveList.add(Move.valueOf(atSquare, theBoard.getPieceAtSquare(atSquare), targetSquare, targetPiece));
 			}
 		}
 	}
@@ -128,7 +160,7 @@ public abstract class Piece {
 		if ( targetSquare != Position.NOPOSITION ) {
 			int targetPiece = theBoard.getPieceAtSquare(targetSquare);
 			if (Piece.isOppositeColourOrNone(ownSide, targetPiece)) {
-				moveList.add( Move.valueOf(Move.TYPE_REGULAR_NONE, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.NOCHESSMAN));
+				moveList.add( Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
 			} else {
 				// Indicates blocked by own piece.
 			}
@@ -205,13 +237,13 @@ public abstract class Piece {
 				int targetPiece = theBoard.getPieceAtSquare(targetSquare);
 				if (targetPiece == Piece.NONE) {
 					// Slider move
-					moveList.add( Move.valueOf(Move.TYPE_REGULAR_NONE, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.NOCHESSMAN));
+					moveList.add(Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
 					continueAddingMoves = true;
 					continue;
 				}
 				else if (targetPiece != Piece.NONE && Piece.isOppositeColour(ownSide, targetPiece)) {
 					// Indicates a capture
-					moveList.add( Move.valueOf(Move.TYPE_REGULAR_NONE, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.NOCHESSMAN));
+					moveList.add(Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
 				} else {
 					// Indicates blocked by own piece.
 				}
@@ -287,12 +319,12 @@ public abstract class Piece {
 			int targetSquare, int targetPiece) {
 		if ( pawn_checkPromotionPossible( ownSide, targetSquare )) {
 			// Add in order of prioritisation
-			moveList.add( Move.valueOf( Move.TYPE_REGULAR_NONE, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.QUEEN ));
-			moveList.add( Move.valueOf( Move.TYPE_REGULAR_NONE, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.ROOK ));
-			moveList.add( Move.valueOf( Move.TYPE_REGULAR_NONE, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.BISHOP ));
-			moveList.add( Move.valueOf( Move.TYPE_REGULAR_NONE, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.KNIGHT ));
+			moveList.add( Move.valueOf(Move.TYPE_PROMOTION_QUEEN_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.QUEEN ));
+			moveList.add( Move.valueOf(Move.TYPE_PROMOTION_PIECE_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.ROOK ));
+			moveList.add( Move.valueOf(Move.TYPE_PROMOTION_PIECE_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.BISHOP ));
+			moveList.add( Move.valueOf(Move.TYPE_PROMOTION_PIECE_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.KNIGHT ));
 		} else {
-			moveList.add( Move.valueOf( Move.TYPE_REGULAR_NONE, atSquare, ownPiece, targetSquare, targetPiece, IntChessman.NOCHESSMAN ) );
+			moveList.add( Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
 		}
 	}	
 	
@@ -309,7 +341,7 @@ public abstract class Piece {
 			pawn_checkPromotionAddMove(ownPiece, theBoard, atSquare, ownSide, moveList, moveTo, Piece.NONE);
 			moveTo = pawn_genTwoSqTarget(atSquare, ownSide);
 			if ( moveTo != Position.NOPOSITION && theBoard.squareIsEmpty( moveTo )) {
-				moveList.add( Move.valueOf( Move.TYPE_REGULAR_NONE, atSquare, ownPiece, moveTo , Piece.NONE, IntChessman.NOCHESSMAN));
+				moveList.add( Move.valueOf(atSquare, ownPiece, moveTo , Piece.NONE));
 			}	
 		}
 		// Check for capture moves, includes en passant

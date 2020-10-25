@@ -10,7 +10,6 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.board.Piece.Colour;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
-import eubos.score.MaterialEvaluator;
 
 public class SearchMetrics {
 	private IPositionAccessors pos;
@@ -55,13 +54,14 @@ public class SearchMetrics {
 		if (pvValid) {
 			info.setMoveList(getPrincipalVariation());
 		}
-		int score = getCpScore();
+		short score = getCpScore();
 		int depth = getDepth();
-		if (java.lang.Math.abs(score)<MaterialEvaluator.MATERIAL_VALUE_KING) {
-			info.setCentipawns(score);
-		} else {
-			int mateMove = (score > 0) ? Short.MAX_VALUE - score : Short.MIN_VALUE - score;
+		if (Score.isMate(score)) {
+			int matePly = (score > 0) ? Short.MAX_VALUE - score + 1 : Short.MIN_VALUE - score;
+			int mateMove = matePly / 2;
 			info.setMate(mateMove);
+		} else {
+			info.setCentipawns(score);
 		}
 		info.setDepth(depth);
 		info.setMaxDepth(getPartialDepth());
@@ -116,8 +116,12 @@ public class SearchMetrics {
 	
 	public synchronized short getCpScore() { return cpScore; }
 	synchronized void setCpScore(short positionScore) { 
-		if (Colour.isBlack(pos.getOnMove()))
+		if (Colour.isBlack(pos.getOnMove())) {
+			if (Score.isMate(positionScore)) {
+				positionScore += 1; // out by one error due to negation of mate scores?
+			}
 			positionScore = (short) -positionScore; // Negated due to UCI spec (from engine pov)
+		}
 		this.cpScore = positionScore;
 	}
 	

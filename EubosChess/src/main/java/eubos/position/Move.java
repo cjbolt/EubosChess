@@ -5,6 +5,7 @@ import com.fluxchess.jcpi.models.IntChessman;
 
 import eubos.board.Board;
 import eubos.board.Piece;
+import eubos.main.EubosEngineMain;
 
 /* This class represents a move as a integer primitive value. */
 public final class Move {
@@ -16,9 +17,9 @@ public final class Move {
 	private static final int TARGETPOSITION_MASK = Position.MASK << TARGETPOSITION_SHIFT;
 	
 	private static final int PROMOTION_SHIFT = TARGETPOSITION_SHIFT+Long.bitCount(Position.MASK);
-	private static final int PROMOTION_MASK = IntChessman.MASK << PROMOTION_SHIFT;
+	private static final int PROMOTION_MASK = Piece.PIECE_NO_COLOUR_MASK << PROMOTION_SHIFT;
 	
-	private static final int ORIGIN_PIECE_SHIFT = PROMOTION_SHIFT+Long.bitCount(IntChessman.MASK);
+	private static final int ORIGIN_PIECE_SHIFT = PROMOTION_SHIFT+Long.bitCount(Piece.PIECE_NO_COLOUR_MASK);
 	private static final int ORIGIN_PIECE_MASK = Piece.PIECE_WHOLE_MASK << ORIGIN_PIECE_SHIFT;
 	
 	private static final int TARGET_PIECE_SHIFT = ORIGIN_PIECE_SHIFT+Long.bitCount(Piece.PIECE_WHOLE_MASK);
@@ -42,40 +43,118 @@ public final class Move {
 	private static final int TYPE_MASK = ((1<<TYPE_WIDTH)-1) << TYPE_SHIFT;
 	
 	public static final int NULL_MOVE =
-			valueOf(TYPE_REGULAR_NONE, Position.a1, Piece.NONE, Position.a1, Piece.NONE, IntChessman.NOCHESSMAN);
+			valueOf(TYPE_REGULAR_NONE, Position.a1, Piece.NONE, Position.a1, Piece.NONE, Piece.NONE);
 	
 	private Move() {
 	}
 	
 	public static int valueOf(int originPosition, int originPiece, int targetPosition, int targetPiece) {
-		return Move.valueOf(Move.TYPE_REGULAR_NONE, originPosition, originPiece, targetPosition, targetPiece, IntChessman.NOCHESSMAN);
+		int move = 0;
+		
+		// Encode Target Piece and classification if a capture
+		if (targetPiece != Piece.NONE) {
+			move |= Move.TYPE_CAPTURE_MASK << TYPE_SHIFT;
+			
+			if (EubosEngineMain.ASSERTS_ENABLED)
+				assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
+			move |= targetPiece << TARGET_PIECE_SHIFT;
+		}
+
+		// Encode origin position
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert (originPosition & 0x88) == 0;
+		move |= originPosition << ORIGINPOSITION_SHIFT;
+		
+		// Encode Origin Piece
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert (originPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
+		move |= originPiece << ORIGIN_PIECE_SHIFT;
+
+		// Encode target position
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert (targetPosition & 0x88) == 0;
+		move |= targetPosition << TARGETPOSITION_SHIFT;
+		
+		return move;
+	}
+	
+	public static int valueOf(int originPosition, int originPiece, int targetPosition, int targetPiece, int promotion) {
+		int move = 0;
+		
+		// Encode Target Piece and classification if a capture
+		if (targetPiece != Piece.NONE) {
+			move |= Move.TYPE_CAPTURE_MASK << TYPE_SHIFT;
+			
+			if (EubosEngineMain.ASSERTS_ENABLED)
+				assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
+			move |= targetPiece << TARGET_PIECE_SHIFT;
+		}
+
+		// Encode origin position
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert (originPosition & 0x88) == 0;
+		move |= originPosition << ORIGINPOSITION_SHIFT;
+		
+		// Encode Origin Piece
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert (originPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
+		move |= originPiece << ORIGIN_PIECE_SHIFT;
+
+		// Encode target position
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert (targetPosition & 0x88) == 0;
+		move |= targetPosition << TARGETPOSITION_SHIFT;
+		
+		// Encode promotion
+		if (EubosEngineMain.ASSERTS_ENABLED) {
+			//assert (/* Valid promotion */) || promotion == Piece.NONE;
+		}
+		move |= promotion << PROMOTION_SHIFT;
+
+		return move;
 	}
 
 	public static int valueOf(int type, int originPosition, int originPiece, int targetPosition, int targetPiece, int promotion) {
 		int move = 0;
 
-		// Encode move classification
-		assert (type & ~(Move.TYPE_MASK >>> TYPE_SHIFT)) == 0;
-		move |= type << TYPE_SHIFT;
+		// Encode Target Piece and classification if a capture
+		if (targetPiece != Piece.NONE) {
+			move |= (type | Move.TYPE_CAPTURE_MASK) << TYPE_SHIFT;
+			
+			if (EubosEngineMain.ASSERTS_ENABLED)
+				assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
+			move |= targetPiece << TARGET_PIECE_SHIFT;
+		} else {
+			// Encode move classification
+			if (EubosEngineMain.ASSERTS_ENABLED)
+				assert (type & ~(Move.TYPE_MASK >>> TYPE_SHIFT)) == 0;
+			move |= type << TYPE_SHIFT;
+		}
 
 		// Encode origin position
-		assert (originPosition & 0x88) == 0;
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert (originPosition & 0x88) == 0;
 		move |= originPosition << ORIGINPOSITION_SHIFT;
 		
 		// Encode Origin Piece
-		assert (originPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert (originPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
 		move |= originPiece << ORIGIN_PIECE_SHIFT;
 
 		// Encode target position
-		assert (targetPosition & 0x88) == 0;
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert (targetPosition & 0x88) == 0;
 		move |= targetPosition << TARGETPOSITION_SHIFT;
 		
 		// Encode Target Piece
-		assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
 		move |= targetPiece << TARGET_PIECE_SHIFT;
 		
 		// Encode promotion
-		assert (IntChessman.isValid(promotion) && IntChessman.isValidPromotion(promotion)) || promotion == IntChessman.NOCHESSMAN;
+		if (EubosEngineMain.ASSERTS_ENABLED) {
+			//assert (/* Valid promotion */) || promotion == IntChessman.NOCHESSMAN;
+		}
 		move |= promotion << PROMOTION_SHIFT;
 
 		return move;
@@ -85,7 +164,7 @@ public final class Move {
 		int intMove = 0;
 		int targetPosition = Position.valueOf(move.to);
 		int originPosition = Position.valueOf(move.from);
-		int promotion = IntChessman.NOCHESSMAN;
+		int promotion = Piece.NONE;
 		int originPiece = Piece.NONE;
 		int targetPiece = Piece.NONE;
 		if (theBoard != null) {
@@ -93,7 +172,7 @@ public final class Move {
 			targetPiece = theBoard.getPieceAtSquare(targetPosition);
 		}
 		if (move.promotion != null) {
-			promotion = IntChessman.valueOf(move.promotion);
+			promotion = Piece.convertChessmanToPiece(IntChessman.valueOf(move.promotion), false);
 			intMove = Move.valueOf(Move.TYPE_PROMOTION_PIECE_MASK, originPosition, originPiece, targetPosition, targetPiece, promotion);
 		} else {
 			intMove = Move.valueOf(type, originPosition, originPiece, targetPosition, targetPiece, promotion);
@@ -144,7 +223,7 @@ public final class Move {
 			return new GenericMove(
 					Position.toGenericPosition(originPosition),
 					Position.toGenericPosition(targetPosition),
-					IntChessman.toGenericChessman(getPromotion(move)));
+					IntChessman.toGenericChessman(Piece.convertPieceToChessman(getPromotion(move))));
 		} else {
 			return new GenericMove(
 					Position.toGenericPosition(originPosition),
@@ -164,15 +243,16 @@ public final class Move {
 
 	public static int getType(int move) {
 		int type = (move & TYPE_MASK) >>> TYPE_SHIFT;
-
-		assert (type & ~(Move.TYPE_MASK >>> TYPE_SHIFT)) == 0;
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert (type & ~(Move.TYPE_MASK >>> TYPE_SHIFT)) == 0;
 
 		return type;
 	}
 
 	public static int getOriginPosition(int move) {
 		int originPosition = (move & ORIGINPOSITION_MASK) >>> ORIGINPOSITION_SHIFT;
-		assert (originPosition & 0x88) == 0;
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert (originPosition & 0x88) == 0;
 
 		return originPosition;
 	}
@@ -182,7 +262,8 @@ public final class Move {
 		move &= ~ORIGINPOSITION_MASK;
 
 		// Encode origin position
-		assert (originPosition & 0x88) == 0;
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert (originPosition & 0x88) == 0;
 		move |= originPosition << ORIGINPOSITION_SHIFT;
 
 		return move;
@@ -190,7 +271,8 @@ public final class Move {
 
 	public static int getTargetPosition(int move) {
 		int targetPosition = (move & TARGETPOSITION_MASK) >>> TARGETPOSITION_SHIFT;
-		assert (targetPosition & 0x88) == 0;
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert (targetPosition & 0x88) == 0;
 
 		return targetPosition;
 	}
@@ -200,7 +282,8 @@ public final class Move {
 		move &= ~TARGETPOSITION_MASK;
 
 		// Encode target position
-		assert (targetPosition & 0x88) == 0;
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert (targetPosition & 0x88) == 0;
 		move |= targetPosition << TARGETPOSITION_SHIFT;
 
 		return move;
@@ -208,9 +291,11 @@ public final class Move {
 
 	public static int getPromotion(int move) {
 		int promotion = (move & PROMOTION_MASK) >>> PROMOTION_SHIFT;
-		if (move != 0) {
-			assert (IntChessman.isValid(promotion) && IntChessman.isValidPromotion(promotion)) || promotion == IntChessman.NOCHESSMAN;
-		}
+		//if (move != 0) {
+			if (EubosEngineMain.ASSERTS_ENABLED) {
+				//assert (/* Valid promotion*/) || promotion == Piece.NONE;
+			}
+		//}
 		return promotion;
 	}
 
@@ -219,7 +304,9 @@ public final class Move {
 		move &= ~PROMOTION_MASK;
 
 		// Encode promotion
-		assert (IntChessman.isValid(promotion) && IntChessman.isValidPromotion(promotion)) || promotion == IntChessman.NOCHESSMAN;
+		if (EubosEngineMain.ASSERTS_ENABLED) {
+			//assert (/* Valid promotion*/) || promotion == Piece.NONE;
+		}
 		move |= promotion << PROMOTION_SHIFT;
 
 		return move;
@@ -254,7 +341,7 @@ public final class Move {
 
 			if (isPromotion(move)) {
 				string.append(":");
-				string.append(IntChessman.toGenericChessman(getPromotion(move)));
+				string.append(IntChessman.toGenericChessman(Piece.convertPieceToChessman(getPromotion(move))));
 			}
 			
 			if (getOriginPiece(move) != Piece.NONE) {
@@ -272,7 +359,8 @@ public final class Move {
 
 	public static int setType(int move, int type) {
 		move &= ~TYPE_MASK;
-		assert ((type<<TYPE_SHIFT) & ~Move.TYPE_MASK) == 0;
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert ((type<<TYPE_SHIFT) & ~Move.TYPE_MASK) == 0;
 		return move |= type << TYPE_SHIFT;
 	}
 	

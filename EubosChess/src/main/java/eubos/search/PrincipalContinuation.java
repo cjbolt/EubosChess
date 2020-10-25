@@ -48,6 +48,18 @@ public class PrincipalContinuation {
 		return output.toString();
 	}
 	
+	public static String pvToString(List<Integer> pv) {
+		StringBuilder output = new StringBuilder();
+		if (pv != null && !pv.isEmpty()) {
+			for (int currMove : pv) {
+				//assert currMove != Move.NULL_MOVE;
+				output.append((Move.toString(currMove)));
+				output.append(' ');
+			}
+		}
+		return output.toString();
+	}
+	
 	public List<Integer> toPvList(int currPly) { 
 		List<Integer> mv = new ArrayList<Integer>(pc.size());
 		if (currPly < pc.size()) {

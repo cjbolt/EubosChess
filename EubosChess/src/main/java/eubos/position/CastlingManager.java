@@ -2,12 +2,12 @@ package eubos.position;
 
 import java.util.List;
 
-import com.fluxchess.jcpi.models.IntChessman;
 import com.fluxchess.jcpi.models.IntFile;
 
 import eubos.board.Board;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
+import eubos.main.EubosEngineMain;
 
 public class CastlingManager {
 	private boolean whiteKsAvail = true;
@@ -28,15 +28,15 @@ public class CastlingManager {
 	private static final int [] qscWhiteEmptySqs = {Position.c1, Position.d1, Position.b1};
 	private static final int [] qscBlackEmptySqs = {Position.c8, Position.d8, Position.b8};
 
-	public static final int bksc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e8, (Piece.BLACK | Piece.KING), Position.g8, Piece.NONE, IntChessman.NOCHESSMAN);
-	public static final int wksc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e1, Piece.KING, Position.g1, Piece.NONE, IntChessman.NOCHESSMAN);
-	public static final int bqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e8, (Piece.BLACK | Piece.KING), Position.c8, Piece.NONE, IntChessman.NOCHESSMAN);
-	public static final int wqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e1, Piece.KING, Position.c1, Piece.NONE, IntChessman.NOCHESSMAN);
+	public static final int bksc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e8, (Piece.BLACK | Piece.KING), Position.g8, Piece.NONE, Piece.NONE);
+	public static final int wksc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e1, Piece.KING, Position.g1, Piece.NONE, Piece.NONE);
+	public static final int bqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e8, (Piece.BLACK | Piece.KING), Position.c8, Piece.NONE, Piece.NONE);
+	public static final int wqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e1, Piece.KING, Position.c1, Piece.NONE, Piece.NONE);
 
-	public static final int undo_bksc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.g8, (Piece.BLACK | Piece.KING), Position.e8, Piece.NONE, IntChessman.NOCHESSMAN);
-	public static final int undo_wksc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.g1, Piece.KING, Position.e1, Piece.NONE, IntChessman.NOCHESSMAN);
-	public static final int undo_bqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.c8, (Piece.BLACK | Piece.KING), Position.e8, Piece.NONE, IntChessman.NOCHESSMAN);
-	public static final int undo_wqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.c1, Piece.KING, Position.e1, Piece.NONE, IntChessman.NOCHESSMAN);
+	public static final int undo_bksc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.g8, (Piece.BLACK | Piece.KING), Position.e8, Piece.NONE, Piece.NONE);
+	public static final int undo_wksc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.g1, Piece.KING, Position.e1, Piece.NONE, Piece.NONE);
+	public static final int undo_bqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.c8, (Piece.BLACK | Piece.KING), Position.e8, Piece.NONE, Piece.NONE);
+	public static final int undo_wqsc = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.c1, Piece.KING, Position.e1, Piece.NONE, Piece.NONE);
 
 	CastlingManager(PositionManager Pm) { this( Pm, "-"); }
 
@@ -168,7 +168,8 @@ public class CastlingManager {
 			int [] checkSqs,
 			int [] emptySqs) {
 		Board theBoard = pm.getTheBoard();
-		assert Piece.isRook(theBoard.getPieceAtSquare(rookSq));
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert Piece.isRook(theBoard.getPieceAtSquare(rookSq));
 		
 		// All the intervening squares between King and Rook should be empty
 		for ( int emptySq : emptySqs ) {
@@ -200,7 +201,10 @@ public class CastlingManager {
 		return (castleMoveLegal(Position.a8, qscBlackCheckSqs, qscBlackEmptySqs)) ? bqsc : 0;
 	}
 
-	public void updateFlags(int movedPiece, int lastMove) {
+	public void updateFlags(int lastMove) {
+		int movedPiece = Move.getOriginPiece(lastMove);
+		int targetPosition = Move.getTargetPosition(lastMove);
+		int originPosition = Move.getOriginPosition(lastMove);
 		// First handle castling moves
 		if (Piece.isKing(movedPiece)) {
 			if (Move.areEqual(lastMove,wksc) || Move.areEqual(lastMove,wqsc)) {
@@ -213,13 +217,13 @@ public class CastlingManager {
 		}
 		// After this, the move wasn't castling, but may have caused castling to be no longer possible
 		// A rook got captured
-		if (blackQsAvail && (Move.getTargetPosition(lastMove) == Position.a8)) {
+		if (blackQsAvail && (targetPosition == Position.a8)) {
 			blackQsAvail = false;
-		} else if (blackKsAvail && (Move.getTargetPosition(lastMove) == Position.h8)) {
+		} else if (blackKsAvail && (targetPosition == Position.h8)) {
 			blackKsAvail = false;
-		} else if (whiteQsAvail && (Move.getTargetPosition(lastMove) == Position.a1)) {
+		} else if (whiteQsAvail && (targetPosition == Position.a1)) {
 			whiteQsAvail = false;
-		} else if (whiteKsAvail && (Move.getTargetPosition(lastMove) == Position.h1)) {
+		} else if (whiteKsAvail && (targetPosition == Position.h1)) {
 			whiteKsAvail = false;
 		}
 		// King moved
@@ -229,16 +233,16 @@ public class CastlingManager {
 			blackKsAvail = blackQsAvail = false;
 		// Rook moved	
 		} else if (movedPiece == Piece.WHITE_ROOK) { 
-			if (Position.getFile(Move.getOriginPosition(lastMove))==IntFile.Fa) {
+			if (Position.getFile(originPosition)==IntFile.Fa) {
 				whiteQsAvail = false;
 			} 
-			if (Position.getFile(Move.getOriginPosition(lastMove))==IntFile.Fh) {
+			if (Position.getFile(originPosition)==IntFile.Fh) {
 				whiteKsAvail = false;
 			}
 		} else if (movedPiece == Piece.BLACK_ROOK) {
-			if (Position.getFile(Move.getOriginPosition(lastMove))==IntFile.Fa) {
+			if (Position.getFile(originPosition)==IntFile.Fa) {
 				blackQsAvail = false;
-			} else if (Position.getFile(Move.getOriginPosition(lastMove))==IntFile.Fh) {
+			} else if (Position.getFile(originPosition)==IntFile.Fh) {
 				blackKsAvail = false;
 			}	
 		}

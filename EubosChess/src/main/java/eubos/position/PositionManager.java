@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.fluxchess.jcpi.models.GenericPosition;
-import com.fluxchess.jcpi.models.IntChessman;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
@@ -127,6 +126,11 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public void performMove( int move, boolean computeHash ) throws InvalidPieceException {
 		
+//		if (pe!= null && (Move.isPawnMove(move) || Piece.isPawn(Move.getTargetPiece(move)))) {
+//			// Pawn moves or captures invalidate the stored pawn cache, it will need to be re-evaluated
+//			pe.invalidatePawnCache();
+//		}
+		
 		// Save previous en passant square and initialise for this move
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		
@@ -136,7 +140,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq, getCastlingFlags()));
 		
 		// update castling flags
-		castling.updateFlags(Move.getOriginPiece(move), move);
+		castling.updateFlags(move);
 		
 		if (computeHash) {
 			// Update hash code
@@ -195,26 +199,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	private int checkForPawnPromotions(int move) {
-		if ( Move.getPromotion(move) != IntChessman.NOCHESSMAN ) {
+		if ( Move.getPromotion(move) != Piece.NONE ) {
 			int piece = Move.getOriginPiece(move);
 			piece &= Piece.BLACK; // preserve colour
-			switch( Move.getPromotion(move) ) {
-			case IntChessman.QUEEN:
-				piece |= Piece.QUEEN;
-				break;
-			case IntChessman.KNIGHT:
-				piece |= Piece.KNIGHT;
-				break;
-			case IntChessman.BISHOP:
-				piece |= Piece.BISHOP;
-				break;
-			case IntChessman.ROOK:
-				piece |= Piece.ROOK;
-				break;
-			default:
-				assert false;
-				break;
-			}
+			piece |= Move.getPromotion(move);
 			move = Move.setOriginPiece(move, piece);
 		}
 		return move;
@@ -222,7 +210,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	private int checkToUndoPawnPromotion(int moveToUndo) {
 		int promotedChessman = Move.getPromotion(moveToUndo);
-		if ( promotedChessman != IntChessman.NOCHESSMAN ) {
+		if ( promotedChessman != Piece.NONE ) {
 			int piece = Move.getOriginPiece(moveToUndo);
 			int type = theBoard.pickUpPieceAtSquare(Move.getTargetPosition(moveToUndo), piece);
 			if (Piece.isBlack(type)) {
@@ -372,7 +360,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			return f;
 		}
 		private void create() {
-			theBoard =  new Board( pl );
+			theBoard =  new Board( pl, onMove );
 		}
 	}
 
@@ -383,4 +371,11 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public boolean noLastMove() {
 		return moveTracker.isEmpty();
 	}
+
+//	IEvaluate pe;
+//	
+//	@Override
+//	public void registerPositionEvaluator(IEvaluate pe) {
+//		this.pe = pe;
+//	}
 }

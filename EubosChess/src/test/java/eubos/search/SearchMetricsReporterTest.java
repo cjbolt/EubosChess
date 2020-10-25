@@ -77,7 +77,7 @@ public class SearchMetricsReporterTest {
 	
 	@Test
 	public void testMateScore_gettingMatedIn3() {
-		sm.setCpScore((short) (Short.MIN_VALUE+3)); // indicates mate in 3 moves
+		sm.setCpScore((short) (Short.MIN_VALUE+6)); // indicates mate in 3 moves
 		classUnderTest.setSendInfo(true);
 		classUnderTest.reportPrincipalVariation();
 		
@@ -86,7 +86,7 @@ public class SearchMetricsReporterTest {
 	
 	@Test
 	public void testMateScore_MateIn3() {
-		sm.setCpScore((short) (Short.MAX_VALUE-3)); // indicates mate in 3 moves
+		sm.setCpScore((short) (Short.MAX_VALUE-6)); // indicates mate in 3 moves
 		classUnderTest.setSendInfo(true);
 		classUnderTest.reportPrincipalVariation();
 		

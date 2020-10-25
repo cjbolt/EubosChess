@@ -1,7 +1,10 @@
 package eubos.score;
 
+import eubos.search.Score;
+
 public interface IEvaluate {
-	short evaluatePosition();
+	Score evaluatePosition();
 	boolean isQuiescent();
 	short getScoreForStalemate();
+	//void invalidatePawnCache();
 }

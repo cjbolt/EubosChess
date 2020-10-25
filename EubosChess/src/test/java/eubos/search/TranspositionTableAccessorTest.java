@@ -107,6 +107,7 @@ public class TranspositionTableAccessorTest {
 	}
 	
 	@Test
+	@Ignore
 	public void testEval_StoreRetrieve_whenLowerBound_AndScoreIsHigher_sufficientRefutation() throws InvalidPieceException, IllegalNotationException {
 		/* Example from second limb of search tree, fig9.15, pg.178, How Computers Play Chess, Newborn and Levy */
 		List<GenericMove> pc = new ArrayList<GenericMove>();
