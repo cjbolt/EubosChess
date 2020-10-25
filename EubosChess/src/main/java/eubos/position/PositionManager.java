@@ -127,8 +127,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public void performMove( int move, boolean computeHash ) throws InvalidPieceException {
 		
-		if (pe != null && (Move.isPawnCapture(move) || Piece.isPawn(Move.getTargetPiece(move)))) {
-			// Pawn captures or Pawns being captured invalidate the stored pawn cache, it will need to be re-evaluated
+		if ((Move.isPawnCapture(move) || Move.isPromotion(move) || Piece.isPawn(Move.getTargetPiece(move)))) {
+			// Promotions, pawn captures or pawns being captured invalidate the stored pawn cache, it will need to be re-evaluated
 			pe.invalidatePawnCache();
 		}
 		

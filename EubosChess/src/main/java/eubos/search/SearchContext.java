@@ -94,24 +94,31 @@ public class SearchContext {
 		if (pos.getOnMove().equals(opponent)) {
 			switch(goal) {
 			case simplify: 
-			    if (isPositionSimplified(current)) {
-			    	eval.score = SIMPLIFICATION_BONUS;
-			    	eval.score = adjustScoreIfBlack(eval.score);
+			    if (!eval.isDraw) {
+			    	if (isPositionSimplified(current)) {
+				    	eval.score = SIMPLIFICATION_BONUS;
+				    	eval.score = adjustScoreIfBlack(eval.score);
+			    	}
+				    // Add on positional weightings
+				    eval.score += current.getPosition();
 				}
-			    // Add on positional weightings
-			    eval.score += current.getPosition();
 				break;
 			case try_for_draw:
 				if (insufficient) {
 					eval.score = ACHIEVES_DRAW_BONUS;
 					eval.score = adjustScoreIfBlack(eval.score);
+				} else if (!eval.isDraw) {
+				    // Add on positional weightings
+				    eval.score += current.getPosition();
+				} else {
+					// do nothing if a draw
 				}
-			    // Add on positional weightings
-			    eval.score += current.getPosition();
 				break;
 			case try_for_win:
-			    // Add on positional weightings
-			    eval.score += current.getPosition();
+				if (!eval.isDraw) {
+					// Add on positional weightings
+					eval.score += current.getPosition();
+			    }
 				break;
 			case try_for_mate:
 				// Don't add on positional factors to save aimless faffing about board

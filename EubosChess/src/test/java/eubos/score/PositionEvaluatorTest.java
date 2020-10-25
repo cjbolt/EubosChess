@@ -32,12 +32,13 @@ public class PositionEvaluatorTest {
 	protected void setUpPosition(String fen) {
 		pm = new PositionManager(fen, new DrawChecker());
 		SUT = new PositionEvaluator(pm);
+		pm.registerPositionEvaluator(SUT);
 	}
 	
 	@Test
 	public void test_evalPosA() {
 		setUpPosition("rn2k1nr/1pp2p1p/p7/8/6b1/2P2N2/PPP2PP1/R1BB1RK1 b kq - 0 12");
-		assertEquals(170, SUT.evaluatePosition().getScore()); // Knight good pos, pawn up, castled, not endgame
+		assertEquals(137, SUT.evaluatePosition().getScore()); // Knight good pos, pawn up, doubled pawns, castled, not endgame
 	}
 	
 	@Test
