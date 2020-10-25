@@ -5,10 +5,10 @@ import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.IPositionAccessors;
-import eubos.score.MaterialEvaluation;
+import eubos.score.PiecewiseEvaluation;
 
 public class SearchContext {
-	MaterialEvaluation initial;
+	PiecewiseEvaluation initial;
 	IPositionAccessors pos;
 	Piece.Colour initialOnMove;
 	SearchGoal goal;
@@ -30,10 +30,10 @@ public class SearchContext {
 		try_for_draw
 	};
 	
-	public SearchContext(IPositionAccessors pos, MaterialEvaluation initialMaterial) {
+	public SearchContext(IPositionAccessors pos, PiecewiseEvaluation initialMaterial) {
 		this.pos = pos;
 		// Make a copy of the initial Material Evaluation and store it here
-		initial = new MaterialEvaluation(initialMaterial.getWhite(), initialMaterial.getBlack(), initialMaterial.getPosition());
+		initial = new PiecewiseEvaluation(initialMaterial.getWhite(), initialMaterial.getBlack(), initialMaterial.getPosition());
 		initialOnMove = pos.getOnMove();
 		setGoal();
 	}
@@ -80,7 +80,7 @@ public class SearchContext {
 		}
 	}
 	
-	public SearchContextEvaluation computeSearchGoalBonus(MaterialEvaluation current) {
+	public SearchContextEvaluation computeSearchGoalBonus(PiecewiseEvaluation current) {
 		Piece.Colour opponent = Colour.getOpposite(initialOnMove);
 		SearchContextEvaluation eval = new SearchContextEvaluation();
 		
@@ -125,7 +125,7 @@ public class SearchContext {
 		return eval;
 	}
 	
-	private boolean isPositionSimplified(MaterialEvaluation current) {
+	private boolean isPositionSimplified(PiecewiseEvaluation current) {
 		boolean isSimplification = false;
 		if (Colour.isWhite(initialOnMove)) {
 			if ((initial.getDelta() <= current.getDelta()) && initial.getWhite() > current.getWhite()) {

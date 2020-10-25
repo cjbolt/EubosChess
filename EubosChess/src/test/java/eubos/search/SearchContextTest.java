@@ -15,7 +15,7 @@ import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.PositionManager;
-import eubos.score.MaterialEvaluation;
+import eubos.score.PiecewiseEvaluation;
 
 @Ignore // As we now return positional PST factors and mobility score as part of SearchContext bonus (to prevent faffing when mating bare king)
 public class SearchContextTest {
@@ -52,7 +52,7 @@ public class SearchContextTest {
 		pm.performMove(Move.toMove(new GenericMove("d2d4"), pm.getTheBoard())); // forces exchange of queens on d4. simplifying
 		pm.performMove(Move.toMove(new GenericMove("e5d4"), pm.getTheBoard()));
 		pm.performMove(Move.toMove(new GenericMove("d1d4"), pm.getTheBoard()));
-		MaterialEvaluation current = pm.getTheBoard().evaluateMaterial();
+		PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
 		assertEquals(SearchContext.SIMPLIFICATION_BONUS, sut.computeSearchGoalBonus(current).score);
 	}
 	
@@ -61,7 +61,7 @@ public class SearchContextTest {
 		setupPosition("5r1k/pp5p/6p1/1N2q3/2P1P1n1/1P6/P2Q2PP/3R2K1 w - - 0 1");
 		pm.performMove(Move.toMove(new GenericMove("d2d4"), pm.getTheBoard())); // forces exchange of queens on d4. simplifying
 		pm.performMove(Move.toMove(new GenericMove("e5d4"), pm.getTheBoard()));
-		MaterialEvaluation current = pm.getTheBoard().evaluateMaterial();
+		PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
 		assertEquals(0, sut.computeSearchGoalBonus(current).score);
 	}
 
@@ -71,7 +71,7 @@ public class SearchContextTest {
 		pm.performMove(Move.toMove(new GenericMove("d7d5"), pm.getTheBoard())); // forces exchange of queens on d4. simplifying
 		pm.performMove(Move.toMove(new GenericMove("e4d5"), pm.getTheBoard()));
 		pm.performMove(Move.toMove(new GenericMove("d8d5"), pm.getTheBoard()));
-		MaterialEvaluation current = pm.getTheBoard().evaluateMaterial();
+		PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
 		assertEquals(-SearchContext.SIMPLIFICATION_BONUS, sut.computeSearchGoalBonus(current).score);
 	}
 	
@@ -81,14 +81,14 @@ public class SearchContextTest {
 		pm.performMove(Move.toMove(new GenericMove("d7d5"), pm.getTheBoard())); // forces exchange of queens on d4. simplifying
 		pm.performMove(Move.toMove(new GenericMove("e4d5"), pm.getTheBoard()));
 		// At this point queen recapture not completed
-		MaterialEvaluation current = pm.getTheBoard().evaluateMaterial();
+		PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
 		assertEquals(0, sut.computeSearchGoalBonus(current).score);
 	}
 	
 	@Test
 	public void test_lichess_pos() throws InvalidPieceException, IllegalNotationException {
 		setupPosition("4r1k1/2p2pb1/4Q3/8/3pPB2/1p1P3p/1P3P2/R5K1 b - - 0 42");
-		MaterialEvaluation current = pm.getTheBoard().evaluateMaterial();
+		PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
 		assertEquals(0, sut.computeSearchGoalBonus(current).score);
 	}
 	 
@@ -104,7 +104,7 @@ public class SearchContextTest {
 						new GenericMove("h2g1"),new GenericMove("a1h8"),
 						new GenericMove("g1h2")};
 		applyMoveList(moveList);
-		MaterialEvaluation current = pm.getTheBoard().evaluateMaterial();
+		PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
 		// Good for black as black is trying to draw
 		assertEquals(SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current).score);
 	}
@@ -120,7 +120,7 @@ public class SearchContextTest {
 		                new GenericMove("h1a8"),new GenericMove("h7g8"),
 		                new GenericMove("a8h1"),new GenericMove("g8h7")};
 		applyMoveList(moveList);
-		MaterialEvaluation current = pm.getTheBoard().evaluateMaterial();
+		PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
 		// Good for white as white is trying to draw
 		assertEquals(-SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current).score);
 	}
@@ -132,7 +132,7 @@ public class SearchContextTest {
 		GenericMove [] moveList = new GenericMove[]{new GenericMove("h8a1"),new GenericMove("h2g1"),
                 									new GenericMove("a1h8")};
 		applyMoveList(moveList);
-		MaterialEvaluation current = pm.getTheBoard().evaluateMaterial();
+		PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
 		assertEquals(0, sut.computeSearchGoalBonus(current).score);
 	}
 	
@@ -150,7 +150,7 @@ public class SearchContextTest {
 		applyMoveList(moveList);
 		assertTrue(dc.isPositionOpponentCouldClaimDraw(pm.getHash()));
 		dc.incrementPositionReachedCount(pm.getHash());
-		MaterialEvaluation current = pm.getTheBoard().evaluateMaterial();
+		PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
 		assertEquals(SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current).score);
 	}
 	
@@ -167,7 +167,7 @@ public class SearchContextTest {
 		
 		applyMoveList(moveList);
 		assertTrue(dc.isPositionOpponentCouldClaimDraw(pm.getHash()));
-		MaterialEvaluation current = pm.getTheBoard().evaluateMaterial();
+		PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
 		assertEquals(SearchContext.ACHIEVES_DRAW_BONUS, sut.computeSearchGoalBonus(current).score);
 	}
 }

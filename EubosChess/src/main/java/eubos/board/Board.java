@@ -13,7 +13,7 @@ import eubos.position.CaptureData;
 import eubos.position.CastlingManager;
 import eubos.position.Move;
 import eubos.position.Position;
-import eubos.score.MaterialEvaluation;
+import eubos.score.PiecewiseEvaluation;
 
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.GenericPosition;
@@ -960,7 +960,7 @@ public class Board {
 		return potentialPromotion;
 	}
 	
-	public MaterialEvaluation me;
+	public PiecewiseEvaluation me;
 	
 	public static final short MATERIAL_VALUE_KING = 4000;
 	public static final short MATERIAL_VALUE_QUEEN = 900;
@@ -1036,7 +1036,7 @@ public class Board {
 	
     // For reasons of performance optimisation, part of the material evaluation considers the mobility of pieces.
     // This function generates a score considering three categories A) material B) static PSTs C) Piece mobility (dynamic) 
-	private MaterialEvaluation updateMaterialForPiece(int currPiece, int atPos, MaterialEvaluation eval) {
+	private PiecewiseEvaluation updateMaterialForPiece(int currPiece, int atPos, PiecewiseEvaluation eval) {
 		switch(currPiece) {
 		case Piece.WHITE_PAWN:
 			eval.addWhite(MATERIAL_VALUE_PAWN);
@@ -1096,9 +1096,9 @@ public class Board {
 		return eval;
 	}
 	
-	public MaterialEvaluation evaluateMaterial() {
+	public PiecewiseEvaluation evaluateMaterial() {
 		PrimitiveIterator.OfInt iter_p = this.iterator();
-		MaterialEvaluation material = new MaterialEvaluation();
+		PiecewiseEvaluation material = new PiecewiseEvaluation();
 		while ( iter_p.hasNext() ) {
 			int atPos = iter_p.nextInt();
 			int currPiece = getPieceAtSquare(atPos);

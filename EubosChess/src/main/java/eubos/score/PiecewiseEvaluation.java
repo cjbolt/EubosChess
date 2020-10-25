@@ -1,14 +1,14 @@
 package eubos.score;
 
-public class MaterialEvaluation {
+public class PiecewiseEvaluation {
 	short black = 0;
 	short white = 0;
 	short position = 0;
 	
-	public MaterialEvaluation() {
+	public PiecewiseEvaluation() {
 	}
 	
-	public MaterialEvaluation(short white, short black, short position) {
+	public PiecewiseEvaluation(short white, short black, short position) {
 		this.black = black;
 		this.white = white;
 		this.position = position;
