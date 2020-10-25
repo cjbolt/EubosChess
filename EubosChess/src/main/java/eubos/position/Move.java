@@ -211,6 +211,10 @@ public final class Move {
 	public static boolean isPawnMove(int move) {
 		return Piece.isPawn(getOriginPiece(move));
 	}
+	
+	public static boolean isPawnCapture(int move) {
+		return Piece.isPawn(getOriginPiece(move)) && Move.isCapture(move);
+	}
 
 	public static GenericMove toGenericMove(int move) {
 		if (move == Move.NULL_MOVE)
