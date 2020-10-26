@@ -239,8 +239,19 @@ public class Board {
 		}
 	}
 	
-	public CaptureData doMove(int move) throws InvalidPieceException {
-		CaptureData captureTarget = NULL_CAPTURE;
+	public class MoveData {
+		public CaptureData cap;
+		public int updatedMove;	
+		
+		public MoveData() {
+			cap = NULL_CAPTURE;
+			updatedMove = Move.NULL_MOVE;
+		}
+	}
+	
+	public MoveData doMove(int move) throws InvalidPieceException {
+		MoveData md = new MoveData();
+		md.updatedMove = move;
 		int pieceToMove = Move.getOriginPiece(move);
 		int originSquare = Move.getOriginPosition(move);
 		int targetSquare = Move.getTargetPosition(move);
@@ -257,7 +268,7 @@ public class Board {
 					assert false;
 			}
 			int capturePos = Position.valueOf(Position.getFile(targetSquare), rank);
-			captureTarget = new CaptureData(pickUpPieceAtSquare(capturePos), capturePos);
+			md.cap = new CaptureData(pickUpPieceAtSquare(capturePos), capturePos);
 		} else {
 			// handle castling, setting en passant etc
 			if (checkToSetEnPassantTargetSq(move) == IntFile.NOFILE) {
@@ -266,7 +277,7 @@ public class Board {
 					performSecondaryCastlingMove(move);
 				}
 				if (targetPiece != Piece.NONE) {
-					captureTarget = new CaptureData(pickUpPieceAtSquare(targetSquare, targetPiece), targetSquare);
+					md.cap = new CaptureData(pickUpPieceAtSquare(targetSquare, targetPiece), targetSquare);
 				}
 			}			
 		}
@@ -276,6 +287,10 @@ public class Board {
 		// Switch piece-specific bitboards
 		int promotedPiece = Move.getPromotion(move);
 		if (promotedPiece != Piece.NONE) {
+			// Change the origin piece to the type for the promotion (not sure this is really needed)- N.b. changes the move!!!
+			pieceToMove &= Piece.BLACK; // preserve colour
+			pieceToMove |= promotedPiece;
+			md.updatedMove = Move.setOriginPiece(move, pieceToMove);
 			// For a promotion, need to resolve piece-specific across multiple bitboards; can't be a king, sorted in order of likeliness.
 			if ((pieces[INDEX_PAWN] & initialSquareMask) == initialSquareMask) {
 				// remove pawn
@@ -298,7 +313,7 @@ public class Board {
 		}
 		// Switch all pieces bitboard
 		allPieces ^= positionsMask;
-		return captureTarget;
+		return md;
 	}
 	
 	public int undoMove(int moveToUndo, CaptureData cap) throws InvalidPieceException {

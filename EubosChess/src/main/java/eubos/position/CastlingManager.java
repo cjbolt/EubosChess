@@ -203,48 +203,61 @@ public class CastlingManager {
 
 	public void updateFlags(int lastMove) {
 		int movedPiece = Move.getOriginPiece(lastMove);
-		int targetPosition = Move.getTargetPosition(lastMove);
-		int originPosition = Move.getOriginPosition(lastMove);
-		// First handle castling moves
-		if (Piece.isKing(movedPiece)) {
+		switch(movedPiece) {
+		case Piece.WHITE_KING:
+			// First handle castling moves
 			if (Move.areEqual(lastMove,wksc) || Move.areEqual(lastMove,wqsc)) {
-				whiteKsAvail = whiteQsAvail = false;
 				whiteCastled = true;
-			} else if (Move.areEqual(lastMove,bksc) || Move.areEqual(lastMove,bqsc)) {
-				blackKsAvail = blackQsAvail = false;
+			}
+			// King moved
+			whiteKsAvail = whiteQsAvail = false;
+			break;
+		case Piece.BLACK_KING:
+			// First handle castling moves
+			if (Move.areEqual(lastMove,bksc) || Move.areEqual(lastMove,bqsc)) {
 				blackCastled = true;
-			} 
+			}
+			// King moved
+			blackKsAvail = blackQsAvail = false;
+			break;
+		case Piece.WHITE_ROOK:
+			{
+				// Rook moved
+				int originPosition = Move.getOriginPosition(lastMove);
+				if (Position.getFile(originPosition)==IntFile.Fa) {
+					whiteQsAvail = false;
+				} 
+				if (Position.getFile(originPosition)==IntFile.Fh) {
+					whiteKsAvail = false;
+				}
+			}
+			break;
+		case Piece.BLACK_ROOK:
+			{
+				// Rook moved
+				int originPosition = Move.getOriginPosition(lastMove);
+				if (Position.getFile(originPosition)==IntFile.Fa) {
+					blackQsAvail = false;
+				} else if (Position.getFile(originPosition)==IntFile.Fh) {
+					blackKsAvail = false;
+				}
+	
+			}
+			break;
+		default:
+			break;
 		}
 		// After this, the move wasn't castling, but may have caused castling to be no longer possible
-		// A rook got captured
-		if (blackQsAvail && (targetPosition == Position.a8)) {
+		// If a rook got captured
+		int targetPosition = Move.getTargetPosition(lastMove);
+		if (targetPosition == Position.a8) {
 			blackQsAvail = false;
-		} else if (blackKsAvail && (targetPosition == Position.h8)) {
+		} else if (targetPosition == Position.h8) {
 			blackKsAvail = false;
-		} else if (whiteQsAvail && (targetPosition == Position.a1)) {
+		} else if (targetPosition == Position.a1) {
 			whiteQsAvail = false;
-		} else if (whiteKsAvail && (targetPosition == Position.h1)) {
+		} else if (targetPosition == Position.h1) {
 			whiteKsAvail = false;
-		}
-		// King moved
-		if (movedPiece == Piece.WHITE_KING) {
-			whiteKsAvail = whiteQsAvail = false;
-		} else if (movedPiece == Piece.BLACK_KING) {
-			blackKsAvail = blackQsAvail = false;
-		// Rook moved	
-		} else if (movedPiece == Piece.WHITE_ROOK) { 
-			if (Position.getFile(originPosition)==IntFile.Fa) {
-				whiteQsAvail = false;
-			} 
-			if (Position.getFile(originPosition)==IntFile.Fh) {
-				whiteKsAvail = false;
-			}
-		} else if (movedPiece == Piece.BLACK_ROOK) {
-			if (Position.getFile(originPosition)==IntFile.Fa) {
-				blackQsAvail = false;
-			} else if (Position.getFile(originPosition)==IntFile.Fh) {
-				blackKsAvail = false;
-			}	
 		}
 	}
 }

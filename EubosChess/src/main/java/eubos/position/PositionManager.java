@@ -9,6 +9,7 @@ import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
 import eubos.board.Board;
+import eubos.board.Board.MoveData;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
@@ -129,34 +130,19 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		
 		// Save previous en passant square and initialise for this move
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
-	
-		int piece = Move.getOriginPiece(move);
-		//if (Piece.isPawn(piece) && Move.isCapture(move))
-		//	pe.invalidatePawnCache();
 		
-		// Handle pawn promotion moves - remains in position manager because it updates the move
-		if ( Move.getPromotion(move) != Piece.NONE ) {
-			//pe.invalidatePawnCache();
-			piece &= Piece.BLACK; // preserve colour
-			piece |= Move.getPromotion(move);
-			move = Move.setOriginPiece(move, piece);
-		}
-		
-		CaptureData captureTarget = theBoard.doMove(move);
-//		if (Piece.isPawn(captureTarget.target)) {
-//			pe.invalidatePawnCache();
-//		}
-		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq, getCastlingFlags()));
+		MoveData md = theBoard.doMove(move);
+		moveTracker.push( new TrackedMove(md.updatedMove, md.cap, prevEnPassantTargetSq, getCastlingFlags()));
 		
 		// update castling flags
-		castling.updateFlags(move);
+		castling.updateFlags(md.updatedMove);
 		
 		if (computeHash) {
 			// Update hash code
 			if (hash != null) {
 				int enPasTargetSq = theBoard.getEnPassantTargetSq();
 				Boolean setEnPassant = (enPasTargetSq != Position.NOPOSITION);
-				hash.update(move, captureTarget, setEnPassant ? Position.getFile(enPasTargetSq) : IntFile.NOFILE);
+				hash.update(md.updatedMove, md.cap, setEnPassant ? Position.getFile(enPasTargetSq) : IntFile.NOFILE);
 			}
 			// Update the draw checker
 			repetitionPossible = dc.incrementPositionReachedCount(getHash());
