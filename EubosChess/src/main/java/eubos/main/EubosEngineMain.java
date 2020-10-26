@@ -27,7 +27,6 @@ import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.position.Move;
 import eubos.position.PositionManager;
-import eubos.score.PositionEvaluator;
 import eubos.search.SearchDebugAgent;
 import eubos.search.DrawChecker;
 import eubos.search.searchers.AbstractMoveSearcher;

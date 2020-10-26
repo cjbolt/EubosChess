@@ -173,6 +173,7 @@ public final class Move {
 		}
 		if (move.promotion != null) {
 			promotion = Piece.convertChessmanToPiece(IntChessman.valueOf(move.promotion), false);
+			promotion &= Piece.PIECE_NO_COLOUR_MASK;
 			intMove = Move.valueOf(Move.TYPE_PROMOTION_PIECE_MASK, originPosition, originPiece, targetPosition, targetPiece, promotion);
 		} else {
 			intMove = Move.valueOf(type, originPosition, originPiece, targetPosition, targetPiece, promotion);

@@ -239,23 +239,17 @@ public class Board {
 		}
 	}
 	
-	public class MoveData {
-		public CaptureData cap;
-		public int updatedMove;	
-		
-		public MoveData() {
-			cap = NULL_CAPTURE;
-			updatedMove = Move.NULL_MOVE;
-		}
-	}
-	
-	public MoveData doMove(int move) throws InvalidPieceException {
-		MoveData md = new MoveData();
-		md.updatedMove = move;
+	public CaptureData doMove(int move) throws InvalidPieceException {
+		CaptureData cap = NULL_CAPTURE;
 		int pieceToMove = Move.getOriginPiece(move);
 		int originSquare = Move.getOriginPosition(move);
 		int targetSquare = Move.getTargetPosition(move);
 		int targetPiece = Move.getTargetPiece(move);
+		int promotedPiece = Move.getPromotion(move);
+		long initialSquareMask = BitBoard.positionToMask_Lut[originSquare];
+		long targetSquareMask = BitBoard.positionToMask_Lut[targetSquare];
+		long positionsMask = initialSquareMask | targetSquareMask;
+		
 		if (isEnPassantCapture(pieceToMove, targetSquare)) {
 			// Handle en passant captures, don't need to do other checks in this case
 			int rank = IntRank.NORANK;
@@ -268,7 +262,7 @@ public class Board {
 					assert false;
 			}
 			int capturePos = Position.valueOf(Position.getFile(targetSquare), rank);
-			md.cap = new CaptureData(pickUpPieceAtSquare(capturePos), capturePos);
+			cap = new CaptureData(pickUpPieceAtSquare(capturePos), capturePos);
 		} else {
 			// handle castling, setting en passant etc
 			if (checkToSetEnPassantTargetSq(move) == IntFile.NOFILE) {
@@ -277,30 +271,15 @@ public class Board {
 					performSecondaryCastlingMove(move);
 				}
 				if (targetPiece != Piece.NONE) {
-					md.cap = new CaptureData(pickUpPieceAtSquare(targetSquare, targetPiece), targetSquare);
+					cap = new CaptureData(pickUpPieceAtSquare(targetSquare, targetPiece), targetSquare);
 				}
 			}			
 		}
-		long initialSquareMask = BitBoard.positionToMask_Lut[originSquare];
-		long targetSquareMask = BitBoard.positionToMask_Lut[targetSquare];
-		long positionsMask = initialSquareMask | targetSquareMask;
 		// Switch piece-specific bitboards
-		int promotedPiece = Move.getPromotion(move);
 		if (promotedPiece != Piece.NONE) {
-			// Change the origin piece to the type for the promotion (not sure this is really needed)- N.b. changes the move!!!
-			pieceToMove &= Piece.BLACK; // preserve colour
-			pieceToMove |= promotedPiece;
-			md.updatedMove = Move.setOriginPiece(move, pieceToMove);
-			// For a promotion, need to resolve piece-specific across multiple bitboards; can't be a king, sorted in order of likeliness.
-			if ((pieces[INDEX_PAWN] & initialSquareMask) == initialSquareMask) {
-				// remove pawn
-				pieces[INDEX_PAWN] &= ~initialSquareMask;
-			} else {
-				// remove piece
-				pieces[promotedPiece] &= ~initialSquareMask;			
-			}
-			// add to new board type
-			pieces[pieceToMove & Piece.PIECE_NO_COLOUR_MASK] |= targetSquareMask;
+			// For a promotion, need to resolve piece-specific across multiple bitboards
+			pieces[INDEX_PAWN] &= ~initialSquareMask;
+			pieces[promotedPiece & Piece.PIECE_NO_COLOUR_MASK] |= targetSquareMask;
 		} else {
 			// Piece type doesn't change across boards
 			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
@@ -313,46 +292,28 @@ public class Board {
 		}
 		// Switch all pieces bitboard
 		allPieces ^= positionsMask;
-		return md;
+		return cap;
 	}
 	
-	public int undoMove(int moveToUndo, CaptureData cap) throws InvalidPieceException {
+	public void undoMove(int moveToUndo, CaptureData cap) throws InvalidPieceException {
 		int originPiece = Move.getOriginPiece(moveToUndo);
 		int originSquare = Move.getOriginPosition(moveToUndo);
 		int targetSquare = Move.getTargetPosition(moveToUndo);
 		int promotedPiece = Move.getPromotion(moveToUndo);
+		long initialSquareMask = BitBoard.positionToMask_Lut[originSquare];
+		long targetSquareMask = BitBoard.positionToMask_Lut[targetSquare];
+		long positionsMask = initialSquareMask | targetSquareMask;
 		boolean isCapture = cap.getPiece() != Piece.NONE;
 		
 		// Handle reversal of any castling secondary rook moves on the board
 		if (Piece.isKing(originPiece)) {
 			unperformSecondaryCastlingMove(moveToUndo);
 		}
-		
-		long initialSquareMask = BitBoard.positionToMask_Lut[originSquare];
-		long targetSquareMask = BitBoard.positionToMask_Lut[targetSquare];
-		long positionsMask = initialSquareMask | targetSquareMask;
-		// Switch piece-specific bitboards
+		// Switch piece bitboard
 		if (promotedPiece != Piece.NONE) {
-			int type = pickUpPieceAtSquare(originSquare, originPiece);
-			if (Piece.isBlack(type)) {
-				type = Piece.BLACK_PAWN;
-			} else {
-				type = Piece.WHITE_PAWN;
-			}
-			setPieceAtSquare(originSquare, type);
-			moveToUndo = Move.setOriginPiece(moveToUndo, type);
-			originPiece = type;
-			
-			// For a promotion, need to resolve piece-specific across multiple bitboards; can't be a king, sorted in order of likeliness.
-			if ((pieces[INDEX_PAWN] & initialSquareMask) == initialSquareMask) {
-				// remove pawn
-				pieces[INDEX_PAWN] &= ~initialSquareMask;
-			} else {
-				// remove piece
-				pieces[promotedPiece] &= ~initialSquareMask;			
-			}
-			// add to new board type
-			pieces[originPiece & Piece.PIECE_NO_COLOUR_MASK] |= targetSquareMask;
+			// Remove promoted piece and replace it with a pawn
+			pieces[promotedPiece] &= ~initialSquareMask;	
+			pieces[INDEX_PAWN] |= targetSquareMask;
 		} else {
 			// Piece type doesn't change across boards
 			pieces[Piece.PIECE_NO_COLOUR_MASK & originPiece] ^= positionsMask;
@@ -370,7 +331,6 @@ public class Board {
 		if (isCapture) {
 			setPieceAtSquare(cap.getSquare(), cap.getPiece());
 		}
-		return moveToUndo;
 	}
 	
 	private boolean isEnPassantCapture(int pieceToMove, int targetSquare) {

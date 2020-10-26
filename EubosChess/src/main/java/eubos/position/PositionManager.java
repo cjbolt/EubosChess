@@ -9,7 +9,6 @@ import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
 import eubos.board.Board;
-import eubos.board.Board.MoveData;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
@@ -131,18 +130,18 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Save previous en passant square and initialise for this move
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		
-		MoveData md = theBoard.doMove(move);
-		moveTracker.push( new TrackedMove(md.updatedMove, md.cap, prevEnPassantTargetSq, getCastlingFlags()));
+		CaptureData cap = theBoard.doMove(move);
+		moveTracker.push( new TrackedMove(move, cap, prevEnPassantTargetSq, getCastlingFlags()));
 		
 		// update castling flags
-		castling.updateFlags(md.updatedMove);
+		castling.updateFlags(move);
 		
 		if (computeHash) {
 			// Update hash code
 			if (hash != null) {
 				int enPasTargetSq = theBoard.getEnPassantTargetSq();
 				Boolean setEnPassant = (enPasTargetSq != Position.NOPOSITION);
-				hash.update(md.updatedMove, md.cap, setEnPassant ? Position.getFile(enPasTargetSq) : IntFile.NOFILE);
+				hash.update(move, cap, setEnPassant ? Position.getFile(enPasTargetSq) : IntFile.NOFILE);
 			}
 			// Update the draw checker
 			repetitionPossible = dc.incrementPositionReachedCount(getHash());
@@ -162,9 +161,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public void unperformMove(boolean computeHash) throws InvalidPieceException {
 		TrackedMove tm = moveTracker.pop();
 		CaptureData cap = tm.getCaptureData();
-		int moveToUndo = tm.getMove();
-		int reversedMove = Move.reverse(moveToUndo);
-		reversedMove = theBoard.undoMove(reversedMove, cap);
+		int reversedMove = Move.reverse(tm.getMove());
+		theBoard.undoMove(reversedMove, cap);
 		
 		// Restore castling
 		castling.setFlags(tm.getCastlingFlags());

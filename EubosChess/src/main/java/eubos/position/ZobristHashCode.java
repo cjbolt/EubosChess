@@ -5,9 +5,9 @@ import java.util.Random;
 import java.util.Stack;
 
 import com.fluxchess.jcpi.models.IntFile;
+import com.fluxchess.jcpi.models.IntRank;
 
 import eubos.board.Piece;
-import eubos.board.Piece.Colour;
 
 public class ZobristHashCode {
 	
@@ -53,9 +53,9 @@ public class ZobristHashCode {
 	static {
 		// Set up the pseudo random number lookup table that shall be used
 		Random randGen = new Random();
-		for (int index = 0; index < prnLookupTable.length; index++) 
-				// TODO: investigate using a better PRN generator here...
-				prnLookupTable[index] = randGen.nextLong();
+		for (int index = 0; index < prnLookupTable.length; index++) {
+			prnLookupTable[index] = randGen.nextLong();
+		}
 	};
 
 	public ZobristHashCode(IPositionAccessors pm) {
@@ -132,7 +132,7 @@ public class ZobristHashCode {
 		doOnMove();
 	}
 	
-	protected int doBasicMove(int move, int piece) {
+	protected void doBasicMove(int move, int piece) {
 		int promotedChessman = Move.getPromotion(move);
 		if (promotedChessman == Piece.NONE) {
 			// Basic move only
@@ -140,24 +140,18 @@ public class ZobristHashCode {
 			hashCode ^= getPrnForPiece(Move.getOriginPosition(move), piece);
 		} else {
 			// Promotion
-			if (Piece.isPawn(piece)) {
-				// is undoing promotion
-				int promotedToPiece = (Colour.isWhite(pos.getOnMove())) ? Piece.BLACK : 0x0;
-				promotedToPiece |= promotedChessman;
-				hashCode ^= getPrnForPiece(Move.getTargetPosition(move), piece);
-				hashCode ^= getPrnForPiece(Move.getOriginPosition(move), promotedToPiece);
-				piece = promotedToPiece;
-			} else if (Piece.isKnight(piece) ||
-					   Piece.isBishop(piece) || 
-					   Piece.isRook(piece) || 
-					   Piece.isQueen(piece)) {
+			int promotedPiece = (piece & ~Piece.PIECE_NO_COLOUR_MASK) | promotedChessman;
+			if ((Position.getRank(Move.getTargetPosition(move)) == IntRank.R1) ||
+				(Position.getRank(Move.getTargetPosition(move)) == IntRank.R8)) {
 				// is doing a promotion
-				int unpromotedPawn = Colour.isWhite(pos.getOnMove()) ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
+				hashCode ^= getPrnForPiece(Move.getTargetPosition(move), promotedPiece);
+				hashCode ^= getPrnForPiece(Move.getOriginPosition(move), piece);
+			} else {
+				// is undoing promotion
+				hashCode ^= getPrnForPiece(Move.getOriginPosition(move), promotedPiece);
 				hashCode ^= getPrnForPiece(Move.getTargetPosition(move), piece);
-				hashCode ^= getPrnForPiece(Move.getOriginPosition(move), unpromotedPawn);
 			}
 		}
-		return piece;
 	}
 
 	protected void doCapturedPiece(CaptureData captureTarget) {
