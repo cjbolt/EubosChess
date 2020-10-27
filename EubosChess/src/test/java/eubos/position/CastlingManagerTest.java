@@ -16,6 +16,7 @@ import eubos.board.Piece;
 public class CastlingManagerTest {
 
 	protected CastlingManager classUnderTest;
+	private PositionManager pm;
 	private LinkedList<Integer> ml; 
 	
 	@Before
@@ -34,8 +35,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		classUnderTest = new PositionManager("8/8/8/8/8/8/8/4K2R w K - - -").castling;
-		classUnderTest.addCastlingMoves(ml);
+		pm = new PositionManager("8/8/8/8/8/8/8/4K2R w K - - -");
+		classUnderTest = pm.castling;
+		classUnderTest.addCastlingMoves(pm.getOnMove(), ml);
 		expectWkscMove();
 	}
 	
@@ -60,7 +62,7 @@ public class CastlingManagerTest {
 			e.printStackTrace();
 		}
 		classUnderTest = pm.castling;	
-		classUnderTest.addCastlingMoves(ml);
+		classUnderTest.addCastlingMoves(pm.getOnMove(), ml);
 		assertTrue(ml.isEmpty());
 	}
 	
@@ -85,7 +87,7 @@ public class CastlingManagerTest {
 			e.printStackTrace();
 		}
 		classUnderTest = pm.castling;	
-		classUnderTest.addCastlingMoves(ml);
+		classUnderTest.addCastlingMoves(pm.getOnMove(), ml);
 		assertTrue(ml.isEmpty());
 	}	
 	
@@ -100,8 +102,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		classUnderTest = new PositionManager("8/8/8/8/8/8/8/4K2R w k - - -").castling;
-		classUnderTest.addCastlingMoves(ml);
+		pm = new PositionManager("8/8/8/8/8/8/8/4K2R w k - - -");
+		classUnderTest = pm.castling;
+		classUnderTest.addCastlingMoves(pm.getOnMove(), ml);
 		assertTrue(ml.isEmpty());
 	}
 	
@@ -116,8 +119,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		classUnderTest = new PositionManager("8/8/8/8/8/2b5/8/4K2R w K - - -").castling;
-		classUnderTest.addCastlingMoves(ml);
+		pm = new PositionManager("8/8/8/8/8/2b5/8/4K2R w K - - -");
+		classUnderTest = pm.castling;
+		classUnderTest.addCastlingMoves(pm.getOnMove(), ml);
 		assertTrue(ml.isEmpty());
 	}
 	
@@ -132,8 +136,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		classUnderTest = new PositionManager("8/8/8/8/8/3b4/8/4K2R w K - - -").castling;
-		classUnderTest.addCastlingMoves(ml);
+		pm = new PositionManager("8/8/8/8/8/3b4/8/4K2R w K - - -");
+		classUnderTest = pm.castling;
+		classUnderTest.addCastlingMoves(pm.getOnMove(), ml);
 		assertTrue(ml.isEmpty());
 	}
 	
@@ -148,8 +153,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		classUnderTest = new PositionManager("8/8/8/8/8/4b3/8/4K2R w K - - -").castling;
-		classUnderTest.addCastlingMoves(ml);
+		pm = new PositionManager("8/8/8/8/8/4b3/8/4K2R w K - - -");
+		classUnderTest = pm.castling;
+		classUnderTest.addCastlingMoves(pm.getOnMove(), ml);
 		assertTrue(ml.isEmpty());
 	}
 	
@@ -164,8 +170,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....kb.r
 		//   abcdefgh
-		classUnderTest = new PositionManager("8/8/8/8/8/8/8/4KB1R w K - - -").castling;
-		classUnderTest.addCastlingMoves(ml);
+		pm = new PositionManager("8/8/8/8/8/8/8/4KB1R w K - - -");
+		classUnderTest = pm.castling;
+		classUnderTest.addCastlingMoves(pm.getOnMove(), ml);
 		assertTrue(ml.isEmpty());
 	}
 	
@@ -180,8 +187,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k.br
 		//   abcdefgh
-		classUnderTest = new PositionManager("8/8/8/8/8/8/8/4K1BR w K - - -").castling;
-		classUnderTest.addCastlingMoves(ml);
+		pm = new PositionManager("8/8/8/8/8/8/8/4K1BR w K - - -");
+		classUnderTest = pm.castling;
+		classUnderTest.addCastlingMoves(pm.getOnMove(), ml);
 		assertTrue(ml.isEmpty());
 	}	
 	
@@ -196,8 +204,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		classUnderTest = new PositionManager("8/8/8/8/8/5b2/8/4K2R w K - - -").castling;
-		classUnderTest.addCastlingMoves(ml);
+		pm = new PositionManager("8/8/8/8/8/5b2/8/4K2R w K - - -");
+		classUnderTest = pm.castling;
+		classUnderTest.addCastlingMoves(pm.getOnMove(), ml);
 		expectWkscMove();
 	}
 
@@ -212,8 +221,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new PositionManager("r3k3/8/8/8/8/8/8/8 b q - - -").castling;
-		classUnderTest.addCastlingMoves(ml);
+		pm = new PositionManager("r3k3/8/8/8/8/8/8/8 b q - - -");
+		classUnderTest = pm.castling;
+		classUnderTest.addCastlingMoves(pm.getOnMove(), ml);
 		expectBqscMove();
 	}
 	
@@ -228,8 +238,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new PositionManager("r3k3/8/6B1/8/8/8/8/8 b q - - -").castling;
-		classUnderTest.addCastlingMoves(ml);
+		pm = new PositionManager("r3k3/8/6B1/8/8/8/8/8 b q - - -");
+		classUnderTest = pm.castling;
+		classUnderTest.addCastlingMoves(pm.getOnMove(), ml);
 		assertTrue(ml.isEmpty());
 	}
 	
@@ -244,8 +255,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new PositionManager("r3k3/8/8/8/8/8/8/8 b Q - - -").castling;
-		classUnderTest.addCastlingMoves(ml);
+		pm = new PositionManager("r3k3/8/8/8/8/8/8/8 b Q - - -");
+		classUnderTest = pm.castling;
+		classUnderTest.addCastlingMoves(pm.getOnMove(), ml);
 		assertTrue(ml.isEmpty());
 	}
 	
@@ -260,8 +272,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new PositionManager("r3k3/8/8/8/8/8/8/8 b q - - -").castling;
-		classUnderTest.addCastlingMoves(ml);
+		pm = new PositionManager("r3k3/8/8/8/8/8/8/8 b q - - -");
+		classUnderTest = pm.castling;
+		classUnderTest.addCastlingMoves(pm.getOnMove(), ml);
 		expectBqscMove();
 	}	
 	
@@ -276,8 +289,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new PositionManager("r3k3/8/5B2/8/8/8/8/8 b q - - -").castling;
-		classUnderTest.addCastlingMoves(ml);
+		pm = new PositionManager("r3k3/8/5B2/8/8/8/8/8 b q - - -");
+		classUnderTest = pm.castling;
+		classUnderTest.addCastlingMoves(pm.getOnMove(), ml);
 		assertTrue(ml.isEmpty());
 	}
 		
@@ -292,8 +306,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new PositionManager("r3k3/8/4B3/8/8/8/8/8 b q - - -").castling;
-		classUnderTest.addCastlingMoves(ml);
+		pm = new PositionManager("r3k3/8/4B3/8/8/8/8/8 b q - - -");
+		classUnderTest = pm.castling;
+		classUnderTest.addCastlingMoves(pm.getOnMove(), ml);
 		assertTrue(ml.isEmpty());
 	}
 	
@@ -308,8 +323,9 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new PositionManager("r2qk3/8/8/8/8/8/8/8 b q - - -").castling;
-		classUnderTest.addCastlingMoves(ml);
+		pm = new PositionManager("r2qk3/8/8/8/8/8/8/8 b q - - -");
+		classUnderTest = pm.castling;
+		classUnderTest.addCastlingMoves(pm.getOnMove(), ml);
 		assertTrue(ml.isEmpty());
 	}
 	
@@ -324,15 +340,17 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		classUnderTest = new PositionManager("r3k3/8/R7/8/8/8/8/8 b q - - -").castling;
-		classUnderTest.addCastlingMoves(ml);
+		pm = new PositionManager("r3k3/8/R7/8/8/8/8/8 b q - - -");
+		classUnderTest = pm.castling;
+		classUnderTest.addCastlingMoves(pm.getOnMove(), ml);
 		expectBqscMove();
 	}
 	
 	@Test
 	public void test_WhiteKingSideCastle_fromgame() throws IllegalNotationException  {
-		classUnderTest = new PositionManager("rnb2bnr/1ppp1kpp/4pq2/8/p1BPP3/8/PPP2PPP/RNBQK2R w KQ - 1 7").castling;
-		classUnderTest.addCastlingMoves(ml);
+		pm = new PositionManager("rnb2bnr/1ppp1kpp/4pq2/8/p1BPP3/8/PPP2PPP/RNBQK2R w KQ - 1 7");
+		classUnderTest = pm.castling;
+		classUnderTest.addCastlingMoves(pm.getOnMove(), ml);
 		expectWkscMove();
 	}
 

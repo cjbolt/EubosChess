@@ -8,7 +8,6 @@ public interface IPositionAccessors {
 	public Board getTheBoard();
 	public Colour getOnMove();
 	public boolean onMoveIsWhite();
-	public boolean hasCastled(Colour colour);
 	public boolean isKingInCheck();
 	public int getMoveNumber();
 	public boolean lastMoveWasCapture();

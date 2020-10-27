@@ -20,7 +20,6 @@ public class PositionEvaluator implements IEvaluate {
 	IPositionAccessors pm;
 	private SearchContext sc;
 	
-	public static final int HAS_CASTLED_BOOST_CENTIPAWNS = 50;
 	public static final int DOUBLED_PAWN_HANDICAP = 33;
 	public static final int PASSED_PAWN_BOOST = 30;
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 20;
@@ -64,19 +63,7 @@ public class PositionEvaluator implements IEvaluate {
 		}
 		return new Score(eval.score, Score.exact);
 	}
-	
-	int encourageCastling() {
-		int castleScoreBoost = 0;
-		Colour onMoveWas = Colour.getOpposite(pm.getOnMove());
-		if (pm.hasCastled(onMoveWas)) {
-			castleScoreBoost = HAS_CASTLED_BOOST_CENTIPAWNS;
-		}
-		if (Colour.isBlack(onMoveWas)) {
-			castleScoreBoost = -castleScoreBoost;
-		}
-		return castleScoreBoost;
-	}
-	
+		
 	int pawnCache = 0;
 	boolean pawnCacheValid = false;
 	

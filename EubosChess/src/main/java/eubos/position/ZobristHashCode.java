@@ -75,13 +75,13 @@ public class ZobristHashCode {
 		}
 		// add castling
 		prevCastlingMask = pos.getCastlingFlags();	
-		if ((prevCastlingMask & PositionManager.WHITE_KINGSIDE)==PositionManager.WHITE_KINGSIDE)
+		if ((prevCastlingMask & CastlingManager.WHITE_KINGSIDE)==CastlingManager.WHITE_KINGSIDE)
 			hashCode ^= prnLookupTable[INDEX_WHITE_KSC];
-		if ((prevCastlingMask & PositionManager.WHITE_QUEENSIDE)==PositionManager.WHITE_QUEENSIDE)
+		if ((prevCastlingMask & CastlingManager.WHITE_QUEENSIDE)==CastlingManager.WHITE_QUEENSIDE)
 			hashCode ^= prnLookupTable[INDEX_WHITE_QSC];
-		if ((prevCastlingMask & PositionManager.BLACK_KINGSIDE)==PositionManager.BLACK_KINGSIDE)
+		if ((prevCastlingMask & CastlingManager.BLACK_KINGSIDE)==CastlingManager.BLACK_KINGSIDE)
 			hashCode ^= prnLookupTable[INDEX_BLACK_KSC];
-		if ((prevCastlingMask & PositionManager.BLACK_QUEENSIDE)==PositionManager.BLACK_QUEENSIDE)
+		if ((prevCastlingMask & CastlingManager.BLACK_QUEENSIDE)==CastlingManager.BLACK_QUEENSIDE)
 			hashCode ^= prnLookupTable[INDEX_BLACK_QSC];
 		// add on move
 		if (!pos.onMoveIsWhite()) {
@@ -190,17 +190,17 @@ public class ZobristHashCode {
 		int delta = currentCastlingFlags ^ this.prevCastlingMask;
 		if (delta != 0)
 		{
-			if ((delta & PositionManager.WHITE_KINGSIDE)==PositionManager.WHITE_KINGSIDE)
+			if ((delta & CastlingManager.WHITE_KINGSIDE)==CastlingManager.WHITE_KINGSIDE)
 			{
 				hashCode ^= prnLookupTable[INDEX_WHITE_KSC];
 			}
-			if ((delta & PositionManager.WHITE_QUEENSIDE)==PositionManager.WHITE_QUEENSIDE) {
+			if ((delta & CastlingManager.WHITE_QUEENSIDE)==CastlingManager.WHITE_QUEENSIDE) {
 				hashCode ^= prnLookupTable[INDEX_WHITE_QSC];
 			}
-			if ((delta & PositionManager.BLACK_KINGSIDE)==PositionManager.BLACK_KINGSIDE) {
+			if ((delta & CastlingManager.BLACK_KINGSIDE)==CastlingManager.BLACK_KINGSIDE) {
 				hashCode ^= prnLookupTable[INDEX_BLACK_KSC];
 			}
-			if ((delta & PositionManager.BLACK_QUEENSIDE)==PositionManager.BLACK_QUEENSIDE) {
+			if ((delta & CastlingManager.BLACK_QUEENSIDE)==CastlingManager.BLACK_QUEENSIDE) {
 				hashCode ^= prnLookupTable[INDEX_BLACK_QSC];
 			}
 		}

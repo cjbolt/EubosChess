@@ -9,7 +9,6 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
-import eubos.board.Piece.Colour;
 import eubos.score.PositionEvaluator;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -143,7 +142,6 @@ public class PositionManagerTest {
 		assertTrue(whiteRook == Piece.NONE);
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.f1);
 		assertTrue( whiteRook==Piece.WHITE_ROOK );
-		assertTrue(classUnderTest.castling.everCastled(Colour.white));
 		assertTrue(classUnderTest.castling.getFenFlags().equals("-"));
 	}
 	
@@ -172,7 +170,6 @@ public class PositionManagerTest {
 		assertTrue( whiteRook==Piece.WHITE_ROOK );
 		int whiteKing = classUnderTest.getTheBoard().getPieceAtSquare(Position.e1);
 		assertTrue( whiteKing==Piece.WHITE_KING );
-		assertTrue(!classUnderTest.castling.everCastled(Colour.white));
 		assertTrue(classUnderTest.castling.getFenFlags().equals("K"));
 	}
 	

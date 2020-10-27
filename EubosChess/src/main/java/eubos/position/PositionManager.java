@@ -39,7 +39,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public List<Integer> generateMoves() {
 		List<Integer> entireMoveList = theBoard.getRegularPieceMoves( onMove );
-		castling.addCastlingMoves(entireMoveList);
+		castling.addCastlingMoves(onMove, entireMoveList);
 		return entireMoveList;
 	}
 	
@@ -48,10 +48,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	CastlingManager castling;
-	public static final int WHITE_KINGSIDE = 1<<0;
-	public static final int WHITE_QUEENSIDE = 1<<1;
-	public static final int BLACK_KINGSIDE = 1<<2;
-	public static final int BLACK_QUEENSIDE = 1<<3;
 	public int getCastlingFlags() {
 		return castling.getFlags();
 	}
@@ -80,10 +76,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return moveTracker.getCapturedPiece();
 	}
 	
-	public boolean hasCastled(Colour colour){
-		return castling.everCastled(colour);
-	}
-
 	// No public setter, because onMove is only changed by performing a move on the board.
 	private Colour onMove;
 	public Colour getOnMove() {
