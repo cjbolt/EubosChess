@@ -5,9 +5,9 @@ import java.util.Random;
 import java.util.Stack;
 
 import com.fluxchess.jcpi.models.IntFile;
+import com.fluxchess.jcpi.models.IntRank;
 
 import eubos.board.Piece;
-import eubos.board.Piece.Colour;
 
 public class ZobristHashCode {
 	
@@ -45,6 +45,7 @@ public class ZobristHashCode {
 	private static final int INDEX_KING = 5;
 	
 	private IPositionAccessors pos;
+	private CastlingManager castling;
 	
 	private Stack<Integer> prevEnPassantFile = null;
 	private int prevCastlingMask = 0;
@@ -53,13 +54,14 @@ public class ZobristHashCode {
 	static {
 		// Set up the pseudo random number lookup table that shall be used
 		Random randGen = new Random();
-		for (int index = 0; index < prnLookupTable.length; index++) 
-				// TODO: investigate using a better PRN generator here...
-				prnLookupTable[index] = randGen.nextLong();
+		for (int index = 0; index < prnLookupTable.length; index++) {
+			prnLookupTable[index] = randGen.nextLong();
+		}
 	};
 
-	public ZobristHashCode(IPositionAccessors pm) {
+	public ZobristHashCode(IPositionAccessors pm, CastlingManager castling) {
 		pos = pm;
+		this.castling = castling;
 		prevEnPassantFile = new Stack<Integer>();
 		generate();
 	}
@@ -74,15 +76,8 @@ public class ZobristHashCode {
 			hashCode ^= getPrnForPiece(pieceSq, pos.getTheBoard().getPieceAtSquare(pieceSq));
 		}
 		// add castling
-		prevCastlingMask = pos.getCastlingFlags();	
-		if ((prevCastlingMask & PositionManager.WHITE_KINGSIDE)==PositionManager.WHITE_KINGSIDE)
-			hashCode ^= prnLookupTable[INDEX_WHITE_KSC];
-		if ((prevCastlingMask & PositionManager.WHITE_QUEENSIDE)==PositionManager.WHITE_QUEENSIDE)
-			hashCode ^= prnLookupTable[INDEX_WHITE_QSC];
-		if ((prevCastlingMask & PositionManager.BLACK_KINGSIDE)==PositionManager.BLACK_KINGSIDE)
-			hashCode ^= prnLookupTable[INDEX_BLACK_KSC];
-		if ((prevCastlingMask & PositionManager.BLACK_QUEENSIDE)==PositionManager.BLACK_QUEENSIDE)
-			hashCode ^= prnLookupTable[INDEX_BLACK_QSC];
+		prevCastlingMask = castling.getFlags();
+		updateCastling(prevCastlingMask);
 		// add on move
 		if (!pos.onMoveIsWhite()) {
 			doOnMove();
@@ -132,7 +127,7 @@ public class ZobristHashCode {
 		doOnMove();
 	}
 	
-	protected int doBasicMove(int move, int piece) {
+	protected void doBasicMove(int move, int piece) {
 		int promotedChessman = Move.getPromotion(move);
 		if (promotedChessman == Piece.NONE) {
 			// Basic move only
@@ -140,24 +135,18 @@ public class ZobristHashCode {
 			hashCode ^= getPrnForPiece(Move.getOriginPosition(move), piece);
 		} else {
 			// Promotion
-			if (Piece.isPawn(piece)) {
-				// is undoing promotion
-				int promotedToPiece = (Colour.isWhite(pos.getOnMove())) ? Piece.BLACK : 0x0;
-				promotedToPiece |= promotedChessman;
-				hashCode ^= getPrnForPiece(Move.getTargetPosition(move), piece);
-				hashCode ^= getPrnForPiece(Move.getOriginPosition(move), promotedToPiece);
-				piece = promotedToPiece;
-			} else if (Piece.isKnight(piece) ||
-					   Piece.isBishop(piece) || 
-					   Piece.isRook(piece) || 
-					   Piece.isQueen(piece)) {
+			int promotedPiece = (piece & ~Piece.PIECE_NO_COLOUR_MASK) | promotedChessman;
+			if ((Position.getRank(Move.getTargetPosition(move)) == IntRank.R1) ||
+				(Position.getRank(Move.getTargetPosition(move)) == IntRank.R8)) {
 				// is doing a promotion
-				int unpromotedPawn = Colour.isWhite(pos.getOnMove()) ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
+				hashCode ^= getPrnForPiece(Move.getTargetPosition(move), promotedPiece);
+				hashCode ^= getPrnForPiece(Move.getOriginPosition(move), piece);
+			} else {
+				// is undoing promotion
+				hashCode ^= getPrnForPiece(Move.getOriginPosition(move), promotedPiece);
 				hashCode ^= getPrnForPiece(Move.getTargetPosition(move), piece);
-				hashCode ^= getPrnForPiece(Move.getOriginPosition(move), unpromotedPawn);
 			}
 		}
-		return piece;
 	}
 
 	protected void doCapturedPiece(CaptureData captureTarget) {
@@ -192,25 +181,28 @@ public class ZobristHashCode {
 	}
 
 	protected void doCastlingFlags() {
-		int currentCastlingFlags = pos.getCastlingFlags();
+		int currentCastlingFlags = castling.getFlags();
 		int delta = currentCastlingFlags ^ this.prevCastlingMask;
-		if (delta != 0)
-		{
-			if ((delta & PositionManager.WHITE_KINGSIDE)==PositionManager.WHITE_KINGSIDE)
-			{
-				hashCode ^= prnLookupTable[INDEX_WHITE_KSC];
-			}
-			if ((delta & PositionManager.WHITE_QUEENSIDE)==PositionManager.WHITE_QUEENSIDE) {
-				hashCode ^= prnLookupTable[INDEX_WHITE_QSC];
-			}
-			if ((delta & PositionManager.BLACK_KINGSIDE)==PositionManager.BLACK_KINGSIDE) {
-				hashCode ^= prnLookupTable[INDEX_BLACK_KSC];
-			}
-			if ((delta & PositionManager.BLACK_QUEENSIDE)==PositionManager.BLACK_QUEENSIDE) {
-				hashCode ^= prnLookupTable[INDEX_BLACK_QSC];
-			}
+		if (delta != 0) {
+			updateCastling(delta);
 		}
 		this.prevCastlingMask = currentCastlingFlags;
+	}
+
+	private void updateCastling(int delta) {
+		if ((delta & CastlingManager.WHITE_KINGSIDE)==CastlingManager.WHITE_KINGSIDE)
+		{
+			hashCode ^= prnLookupTable[INDEX_WHITE_KSC];
+		}
+		if ((delta & CastlingManager.WHITE_QUEENSIDE)==CastlingManager.WHITE_QUEENSIDE) {
+			hashCode ^= prnLookupTable[INDEX_WHITE_QSC];
+		}
+		if ((delta & CastlingManager.BLACK_KINGSIDE)==CastlingManager.BLACK_KINGSIDE) {
+			hashCode ^= prnLookupTable[INDEX_BLACK_KSC];
+		}
+		if ((delta & CastlingManager.BLACK_QUEENSIDE)==CastlingManager.BLACK_QUEENSIDE) {
+			hashCode ^= prnLookupTable[INDEX_BLACK_QSC];
+		}
 	}
 
 	protected void doSecondaryMove(int move, int piece) {

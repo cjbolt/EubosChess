@@ -12,6 +12,7 @@ import eubos.board.Board;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
+import eubos.score.IEvaluate;
 import eubos.search.DrawChecker;
 
 public class PositionManager implements IChangePosition, IPositionAccessors {
@@ -19,7 +20,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public PositionManager( String fenString, DrawChecker dc) {
 		moveTracker = new MoveTracker();
 		new fenParser( this, fenString );
-		hash = new ZobristHashCode(this);
+		hash = new ZobristHashCode(this, castling);
 		this.dc = dc; 
 	}
 	
@@ -31,6 +32,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", new DrawChecker());
 	}
 
+	CastlingManager castling;
 	private Board theBoard;
 	public Board getTheBoard() {
 		return theBoard;
@@ -38,24 +40,12 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public List<Integer> generateMoves() {
 		List<Integer> entireMoveList = theBoard.getRegularPieceMoves( onMove );
-		castling.addCastlingMoves(entireMoveList);
+		castling.addCastlingMoves(onMove, entireMoveList);
 		return entireMoveList;
 	}
 	
 	public String toString() {
 		return this.theBoard.getAsFenString();
-	}
-	
-	CastlingManager castling;
-	public static final int WHITE_KINGSIDE = 1<<0;
-	public static final int WHITE_QUEENSIDE = 1<<1;
-	public static final int BLACK_KINGSIDE = 1<<2;
-	public static final int BLACK_QUEENSIDE = 1<<3;
-	public int getCastlingFlags() {
-		return castling.getFlags();
-	}
-	public void setCastlingFlags(int castlingFlags) {
-		castling.setFlags(castlingFlags);
 	}
 	
 	private MoveTracker moveTracker = new MoveTracker();
@@ -79,10 +69,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return moveTracker.getCapturedPiece();
 	}
 	
-	public boolean hasCastled(Colour colour){
-		return castling.everCastled(colour);
-	}
-
 	// No public setter, because onMove is only changed by performing a move on the board.
 	private Colour onMove;
 	public Colour getOnMove() {
@@ -126,18 +112,11 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public void performMove( int move, boolean computeHash ) throws InvalidPieceException {
 		
-//		if (pe!= null && (Move.isPawnMove(move) || Piece.isPawn(Move.getTargetPiece(move)))) {
-//			// Pawn moves or captures invalidate the stored pawn cache, it will need to be re-evaluated
-//			pe.invalidatePawnCache();
-//		}
-		
 		// Save previous en passant square and initialise for this move
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		
-		// Handle pawn promotion moves - remains in position manager because it updates the move
-		move = checkForPawnPromotions(move);
-		CaptureData captureTarget = theBoard.doMove(move);
-		moveTracker.push( new TrackedMove(move, captureTarget, prevEnPassantTargetSq, getCastlingFlags()));
+		CaptureData cap = theBoard.doMove(move);
+		moveTracker.push( new TrackedMove(move, cap, prevEnPassantTargetSq, castling.getFlags()));
 		
 		// update castling flags
 		castling.updateFlags(move);
@@ -147,7 +126,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			if (hash != null) {
 				int enPasTargetSq = theBoard.getEnPassantTargetSq();
 				Boolean setEnPassant = (enPasTargetSq != Position.NOPOSITION);
-				hash.update(move, captureTarget, setEnPassant ? Position.getFile(enPasTargetSq) : IntFile.NOFILE);
+				hash.update(move, cap, setEnPassant ? Position.getFile(enPasTargetSq) : IntFile.NOFILE);
 			}
 			// Update the draw checker
 			repetitionPossible = dc.incrementPositionReachedCount(getHash());
@@ -167,17 +146,12 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public void unperformMove(boolean computeHash) throws InvalidPieceException {
 		TrackedMove tm = moveTracker.pop();
 		CaptureData cap = tm.getCaptureData();
-		int moveToUndo = tm.getMove();
-		
-		// Check for reversal of any pawn promotion that had been previously applied
-		moveToUndo = checkToUndoPawnPromotion(moveToUndo);
-		
-		// Actually undo the move.
-		int reversedMove = Move.reverse(moveToUndo);
+		int reversedMove = Move.reverse(tm.getMove());
 		theBoard.undoMove(reversedMove, cap);
 		
 		// Restore castling
 		castling.setFlags(tm.getCastlingFlags());
+		
 		// Restore en passant target
 		int enPasTargetSq = tm.getEnPassantTarget();
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
@@ -196,32 +170,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		if (Colour.isBlack(onMove)) {
 			moveNumber--;
 		}
-	}
-	
-	private int checkForPawnPromotions(int move) {
-		if ( Move.getPromotion(move) != Piece.NONE ) {
-			int piece = Move.getOriginPiece(move);
-			piece &= Piece.BLACK; // preserve colour
-			piece |= Move.getPromotion(move);
-			move = Move.setOriginPiece(move, piece);
-		}
-		return move;
-	}
-	
-	private int checkToUndoPawnPromotion(int moveToUndo) {
-		int promotedChessman = Move.getPromotion(moveToUndo);
-		if ( promotedChessman != Piece.NONE ) {
-			int piece = Move.getOriginPiece(moveToUndo);
-			int type = theBoard.pickUpPieceAtSquare(Move.getTargetPosition(moveToUndo), piece);
-			if (Piece.isBlack(type)) {
-				type = Piece.BLACK_PAWN;
-			} else {
-				type = Piece.WHITE_PAWN;
-			}
-			theBoard.setPieceAtSquare(Move.getTargetPosition(moveToUndo), type);
-			moveToUndo = Move.setOriginPiece(moveToUndo, type);
-		}
-		return moveToUndo;
 	}
 		
 	public String getFen() {
@@ -372,10 +320,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return moveTracker.isEmpty();
 	}
 
-//	IEvaluate pe;
-//	
-//	@Override
-//	public void registerPositionEvaluator(IEvaluate pe) {
-//		this.pe = pe;
-//	}
+	IEvaluate pe;
+	
+	@Override
+	public void registerPositionEvaluator(IEvaluate pe) {
+		this.pe = pe;
+	}
 }

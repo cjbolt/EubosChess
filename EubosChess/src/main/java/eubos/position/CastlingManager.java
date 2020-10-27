@@ -10,12 +10,15 @@ import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 
 public class CastlingManager {
-	private boolean whiteKsAvail = true;
-	private boolean whiteQsAvail = true;
-	private boolean blackKsAvail = true;
-	private boolean blackQsAvail = true;
-	private boolean whiteCastled = false;
-	private boolean blackCastled = false;
+	
+	public static final int WHITE_KINGSIDE = 1<<0;
+	public static final int WHITE_QUEENSIDE = 1<<1;
+	public static final int BLACK_KINGSIDE = 1<<2;
+	public static final int BLACK_QUEENSIDE = 1<<3;
+	public static final int WHITE_CAN_CASTLE = (WHITE_KINGSIDE | WHITE_QUEENSIDE);
+	public static final int BLACK_CAN_CASTLE = (BLACK_KINGSIDE | BLACK_QUEENSIDE);
+	private int flags = 0;
+	
 	private PositionManager pm;
 
 	private static final int [] kscWhiteCheckSqs = {Position.e1, Position.f1, Position.g1};
@@ -42,22 +45,19 @@ public class CastlingManager {
 
 	CastlingManager(PositionManager Pm, String fenCastle) {
 		pm = Pm;
-		whiteKsAvail = false;
-		whiteQsAvail = false;
-		blackKsAvail = false;
-		blackQsAvail = false;
+		flags = 0;
 		setFenFlags(fenCastle);
 	}
 	
 	String getFenFlags() {
 		StringBuilder fenCastle = new StringBuilder();
-		if (whiteKsAvail && !whiteCastled)
+		if (((flags & WHITE_KINGSIDE) != 0))
 			fenCastle.append("K");
-		if (whiteQsAvail && !whiteCastled)
+		if (((flags & WHITE_QUEENSIDE) != 0))
 			fenCastle.append("Q");
-		if (blackKsAvail && !blackCastled)
+		if (((flags & BLACK_KINGSIDE) != 0))
 			fenCastle.append("k");
-		if (blackQsAvail && !blackCastled)
+		if (((flags & BLACK_QUEENSIDE) != 0))
 			fenCastle.append("q");
 		if (fenCastle.length() == 0)
 			fenCastle.append("-");
@@ -65,105 +65,63 @@ public class CastlingManager {
 	}
 	
 	void setFenFlags(String fenCastle) {
-		if (fenCastle.contains("-")) {
-			whiteKsAvail = false;
-			whiteQsAvail = false;
-			blackKsAvail = false;
-			blackQsAvail = false;
-		} else {
-			if (fenCastle.contains("K")) {
-				whiteKsAvail = true;
-				whiteCastled = false;
-			}
-			if (fenCastle.contains("Q")) {
-				whiteQsAvail = true;
-				whiteCastled = false;
-			}
-			if (fenCastle.contains("k")) {
-				blackKsAvail = true;
-				blackCastled = false;
-			}
-			if (fenCastle.contains("q")) {
-				blackQsAvail = true;
-				blackCastled = false;
-			}
+		flags = 0;
+		if (fenCastle.contains("K")) {
+			flags |= WHITE_KINGSIDE;
+		}
+		if (fenCastle.contains("Q")) {
+			flags |= WHITE_QUEENSIDE;
+		}
+		if (fenCastle.contains("k")) {
+			flags |= BLACK_KINGSIDE;
+		}
+		if (fenCastle.contains("q")) {
+			flags |= BLACK_QUEENSIDE;
 		}
 	}
 
 	int getFlags() {
-		int castleMask = 0;
-		castleMask |= (whiteKsAvail ? PositionManager.WHITE_KINGSIDE : 0);
-		castleMask |= (whiteQsAvail ? PositionManager.WHITE_QUEENSIDE : 0);
-		castleMask |= (blackKsAvail ? PositionManager.BLACK_KINGSIDE : 0);
-		castleMask |= (blackQsAvail ? PositionManager.BLACK_QUEENSIDE : 0);
-		return castleMask;
+		return flags;
 	}
 	
 	void setFlags(int flags) {
-		if (flags == 0) {
-			whiteKsAvail = false;
-			whiteQsAvail = false;
-			blackKsAvail = false;
-			blackQsAvail = false;
-		} else {
-			if ((flags & PositionManager.WHITE_KINGSIDE)==PositionManager.WHITE_KINGSIDE) {
-				whiteKsAvail = true;
-				whiteCastled = false;
-			}
-			if ((flags & PositionManager.WHITE_QUEENSIDE)==PositionManager.WHITE_QUEENSIDE) {
-				whiteQsAvail = true;
-				whiteCastled = false;
-			}
-			if ((flags & PositionManager.BLACK_KINGSIDE)==PositionManager.BLACK_KINGSIDE) {
-				blackKsAvail = true;
-				blackCastled = false;
-			}
-			if ((flags & PositionManager.BLACK_QUEENSIDE)==PositionManager.BLACK_QUEENSIDE) {
-				blackQsAvail = true;
-				blackCastled = false;
-			}
-		}
+		this.flags = flags;
 	}
 
-	void addCastlingMoves(List<Integer> ml) {
+	void addCastlingMoves(Colour onMove, List<Integer> ml) {
+		boolean whiteOnMove = Colour.isWhite(onMove);
 		// The side on move should not have previously castled
-		Colour onMove = pm.getOnMove();
-		if ( !castlingAvaillable(onMove))
+		if ( !castlingAvaillable(whiteOnMove))
 			return;
-		// Check for castling king-side
-		int ksc = 0;		
-		if (Colour.isWhite(onMove) && whiteKsAvail) {
-			ksc = getWhiteKingsideCastleMove();
-		} else if (Colour.isBlack(onMove) && blackKsAvail) {
-			ksc = getBlackKingsideCastleMove();
+		
+		int ksc = Move.NULL_MOVE;
+		int qsc = Move.NULL_MOVE;
+		if (whiteOnMove) {
+			if ((flags & WHITE_KINGSIDE) != 0) {
+				ksc = getWhiteKingsideCastleMove();
+			}
+			if ((flags & WHITE_QUEENSIDE) != 0) {
+				qsc = getWhiteQueensideCastleMove();
+			}
+		} else {
+			// Black
+			if ((flags & BLACK_KINGSIDE) != 0) {
+				ksc = getBlackKingsideCastleMove();
+			}
+			if ((flags & BLACK_QUEENSIDE) != 0) {
+				qsc = getBlackQueensideCastleMove();
+			}
 		}
-		if ( ksc != 0 )
+		if ( ksc != Move.NULL_MOVE )
 			ml.add(ksc);
-		// Check for castling queen side
-		int qsc = 0;
-		if (Colour.isWhite(onMove) && whiteQsAvail) {
-			qsc = getWhiteQueensideCastleMove();
-		} else if (Colour.isBlack(onMove) && blackQsAvail) {
-			qsc = getBlackQueensideCastleMove();
-		}
-		if ( qsc != 0 )
+		if ( qsc != Move.NULL_MOVE )
 			ml.add(qsc);
 	}
 
-	private boolean castlingAvaillable(Colour colour) {
-		boolean castlingAvaillable = false;
-		if (Colour.isWhite(colour) && (whiteKsAvail || whiteQsAvail)) {
-			castlingAvaillable = true;
-		} else if (Colour.isBlack(colour) && (blackKsAvail || blackQsAvail)) {
-			castlingAvaillable = true;
-		}
-		return castlingAvaillable;
+	private boolean castlingAvaillable(boolean whiteOnMove) {
+		return whiteOnMove ? (flags & WHITE_CAN_CASTLE) != 0 : (flags & BLACK_CAN_CASTLE) != 0;
 	}
 	
-	boolean everCastled(Colour colour){
-		return Colour.isWhite(colour) ? whiteCastled : blackCastled;
-	}
-
 	private boolean castleMoveLegal(int rookSq,
 			int [] checkSqs,
 			int [] emptySqs) {
@@ -202,49 +160,56 @@ public class CastlingManager {
 	}
 
 	public void updateFlags(int lastMove) {
-		int movedPiece = Move.getOriginPiece(lastMove);
-		int targetPosition = Move.getTargetPosition(lastMove);
-		int originPosition = Move.getOriginPosition(lastMove);
-		// First handle castling moves
-		if (Piece.isKing(movedPiece)) {
-			if (Move.areEqual(lastMove,wksc) || Move.areEqual(lastMove,wqsc)) {
-				whiteKsAvail = whiteQsAvail = false;
-				whiteCastled = true;
-			} else if (Move.areEqual(lastMove,bksc) || Move.areEqual(lastMove,bqsc)) {
-				blackKsAvail = blackQsAvail = false;
-				blackCastled = true;
-			} 
-		}
-		// After this, the move wasn't castling, but may have caused castling to be no longer possible
-		// A rook got captured
-		if (blackQsAvail && (targetPosition == Position.a8)) {
-			blackQsAvail = false;
-		} else if (blackKsAvail && (targetPosition == Position.h8)) {
-			blackKsAvail = false;
-		} else if (whiteQsAvail && (targetPosition == Position.a1)) {
-			whiteQsAvail = false;
-		} else if (whiteKsAvail && (targetPosition == Position.h1)) {
-			whiteKsAvail = false;
-		}
-		// King moved
-		if (movedPiece == Piece.WHITE_KING) {
-			whiteKsAvail = whiteQsAvail = false;
-		} else if (movedPiece == Piece.BLACK_KING) {
-			blackKsAvail = blackQsAvail = false;
-		// Rook moved	
-		} else if (movedPiece == Piece.WHITE_ROOK) { 
-			if (Position.getFile(originPosition)==IntFile.Fa) {
-				whiteQsAvail = false;
-			} 
-			if (Position.getFile(originPosition)==IntFile.Fh) {
-				whiteKsAvail = false;
+		if (flags !=0) {
+			// This code can only clear flags, so don't execute if they are already cleared	
+			int movedPiece = Move.getOriginPiece(lastMove);
+			switch(movedPiece) {
+			case Piece.WHITE_KING:
+				// King moved
+				flags &= ~WHITE_CAN_CASTLE;
+				break;
+			case Piece.BLACK_KING:
+				// King moved
+				flags &= ~BLACK_CAN_CASTLE;
+				break;
+			case Piece.WHITE_ROOK:
+				{
+					// Rook moved
+					int originPosition = Move.getOriginPosition(lastMove);
+					if (Position.getFile(originPosition)==IntFile.Fa) {
+						flags &= ~WHITE_QUEENSIDE;
+					} 
+					if (Position.getFile(originPosition)==IntFile.Fh) {
+						flags &= ~WHITE_KINGSIDE;
+					}
+				}
+				break;
+			case Piece.BLACK_ROOK:
+				{
+					// Rook moved
+					int originPosition = Move.getOriginPosition(lastMove);
+					if (Position.getFile(originPosition)==IntFile.Fa) {
+						flags &= ~BLACK_QUEENSIDE;
+					} else if (Position.getFile(originPosition)==IntFile.Fh) {
+						flags &= ~BLACK_KINGSIDE;
+					}
+				}
+				break;
+			default:
+				break;
 			}
-		} else if (movedPiece == Piece.BLACK_ROOK) {
-			if (Position.getFile(originPosition)==IntFile.Fa) {
-				blackQsAvail = false;
-			} else if (Position.getFile(originPosition)==IntFile.Fh) {
-				blackKsAvail = false;
-			}	
+			// After this, the move wasn't castling, but may have caused castling to be no longer possible
+			// If a rook got captured
+			int targetPosition = Move.getTargetPosition(lastMove);
+			if (targetPosition == Position.a8) {
+				flags &= ~BLACK_QUEENSIDE;
+			} else if (targetPosition == Position.h8) {
+				flags &= ~BLACK_KINGSIDE;
+			} else if (targetPosition == Position.a1) {
+				flags &= ~WHITE_QUEENSIDE;
+			} else if (targetPosition == Position.h1) {
+				flags &= ~WHITE_KINGSIDE;
+			}
 		}
 	}
 }

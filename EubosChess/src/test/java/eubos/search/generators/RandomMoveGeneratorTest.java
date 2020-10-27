@@ -15,6 +15,7 @@ import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.position.PositionManager;
+import eubos.score.PositionEvaluator;
 import eubos.search.NoLegalMoveException;
 import eubos.search.SearchResult;
 
@@ -27,6 +28,12 @@ public class RandomMoveGeneratorTest {
 	@Before
 	public void setUp() {
 		pl = new LinkedList<Piece>();
+	}
+	
+	private PositionManager createPmAndRegisterPe(String fenString) {
+		PositionManager pm = new PositionManager(fenString);
+		pm.registerPositionEvaluator(new PositionEvaluator(pm));
+		return pm;
 	}
 	
 	private void performTest( boolean assertSense ) {
@@ -54,7 +61,7 @@ public class RandomMoveGeneratorTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		PositionManager bm = new PositionManager( "k7/8/2P5/8/8/8/8/8 b - - 0 1" );
+		PositionManager bm = createPmAndRegisterPe( "k7/8/2P5/8/8/8/8/8 b - - 0 1" );
 		classUnderTest = new RandomMoveGenerator( bm, Colour.black );
 		expectedMove = new GenericMove( GenericPosition.a8, GenericPosition.b7 );
 		performTest(false);
@@ -72,7 +79,7 @@ public class RandomMoveGeneratorTest {
 		// 1 kP......
 		//   abcdefgh
 		// pawn at b2 can be captured to escape check
-		PositionManager bm = new PositionManager("8/8/8/8/8/1p6/ppp5/Kp6 w - - 0 1");
+		PositionManager bm = createPmAndRegisterPe("8/8/8/8/8/1p6/ppp5/Kp6 w - - 0 1");
 		classUnderTest = new RandomMoveGenerator( bm, Colour.white );
 		expectedMove = new GenericMove( GenericPosition.a1, GenericPosition.b2 );
 		performTest(true);			
@@ -90,7 +97,7 @@ public class RandomMoveGeneratorTest {
 		// 1 k.......
 		//   abcdefgh
 		// king can move out of check to b1
-		PositionManager bm = new PositionManager("8/8/8/8/8/1pp5/1p6/K7 w - - 0 1 ");
+		PositionManager bm = createPmAndRegisterPe("8/8/8/8/8/1pp5/1p6/K7 w - - 0 1 ");
 		classUnderTest = new RandomMoveGenerator( bm, Colour.white );
 		expectedMove = new GenericMove( GenericPosition.a1, GenericPosition.b1 );
 		performTest(true);
@@ -107,7 +114,7 @@ public class RandomMoveGeneratorTest {
 		// 2 PPP.....
 		// 1 kP......
 		//   abcdefgh
-		PositionManager bm = new PositionManager("8/8/8/8/8/1pp5/ppp5/Kp6 w - - 0 1");
+		PositionManager bm = createPmAndRegisterPe("8/8/8/8/8/1pp5/ppp5/Kp6 w - - 0 1");
 		classUnderTest = new RandomMoveGenerator( bm, Colour.white );
 		classUnderTest.findMove((byte)0);
 	}

@@ -291,6 +291,7 @@ public class MiniMaxMoveGeneratorTest {
 		// various possible mates
 		//expectedMove = new GenericMove("h7h8q");
 		expectedMove = new GenericMove("f7f8q");
+		//expectedMove = new GenericMove("f4g5");
 		doFindMoveTest((byte)1, true);
 	}
 	

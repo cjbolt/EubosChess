@@ -1,7 +1,6 @@
 package eubos.score;
 
 import static eubos.score.PositionEvaluator.DOUBLED_PAWN_HANDICAP;
-import static eubos.score.PositionEvaluator.HAS_CASTLED_BOOST_CENTIPAWNS;
 import static eubos.score.PositionEvaluator.PASSED_PAWN_BOOST;
 import static eubos.score.PositionEvaluator.ROOK_FILE_PASSED_PAWN_BOOST;
 import static org.junit.Assert.*;
@@ -32,41 +31,13 @@ public class PositionEvaluatorTest {
 	protected void setUpPosition(String fen) {
 		pm = new PositionManager(fen, new DrawChecker());
 		SUT = new PositionEvaluator(pm);
+		pm.registerPositionEvaluator(SUT);
 	}
 	
 	@Test
 	public void test_evalPosA() {
 		setUpPosition("rn2k1nr/1pp2p1p/p7/8/6b1/2P2N2/PPP2PP1/R1BB1RK1 b kq - 0 12");
 		assertEquals(170, SUT.evaluatePosition().getScore()); // Knight good pos, pawn up, castled, not endgame
-	}
-	
-	@Test
-	public void test_encourageCastling_notYetCastled() {
-		setUpPosition("8/8/8/8/8/8/8/4K2R w K - - -");
-		int score = SUT.encourageCastling();
-		assertEquals(0, score);
-	}
-	
-	@Test
-	public void test_encourageCastling_castled() throws InvalidPieceException, IllegalNotationException {
-		setUpPosition("k7/8/8/8/8/8/8/4K2R w K - - -");
-	    pm.performMove(Move.valueOf(Position.e1, Piece.WHITE_KING, Position.g1, Piece.NONE));
-		int score = SUT.encourageCastling();
-		assertEquals(HAS_CASTLED_BOOST_CENTIPAWNS, score);
-	}
-
-	
-
-	@Test
-	public void test_encourageCastling_castled_fewMoveLater() throws InvalidPieceException, IllegalNotationException {
-		setUpPosition("k7/8/8/8/8/8/8/4K2R w K - - -");
-		pm.performMove(Move.valueOf(Position.e1, Piece.WHITE_KING, Position.g1, Piece.NONE));
-		pm.performMove(Move.toMove(new GenericMove("a8b8"), pm.getTheBoard()));
-		pm.performMove(Move.toMove(new GenericMove("f1d1"), pm.getTheBoard()));
-		pm.performMove(Move.toMove(new GenericMove("b8a8"), pm.getTheBoard()));
-		pm.performMove(Move.toMove(new GenericMove("d1d8"), pm.getTheBoard()));
-		int score = SUT.encourageCastling();
-		assertEquals(HAS_CASTLED_BOOST_CENTIPAWNS, score);
 	}	
 	
 	@Test
