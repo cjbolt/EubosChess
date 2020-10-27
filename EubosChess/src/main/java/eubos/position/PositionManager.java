@@ -20,7 +20,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public PositionManager( String fenString, DrawChecker dc) {
 		moveTracker = new MoveTracker();
 		new fenParser( this, fenString );
-		hash = new ZobristHashCode(this);
+		hash = new ZobristHashCode(this, castling);
 		this.dc = dc; 
 	}
 	
@@ -32,6 +32,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", new DrawChecker());
 	}
 
+	CastlingManager castling;
 	private Board theBoard;
 	public Board getTheBoard() {
 		return theBoard;
@@ -45,14 +46,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public String toString() {
 		return this.theBoard.getAsFenString();
-	}
-	
-	CastlingManager castling;
-	public int getCastlingFlags() {
-		return castling.getFlags();
-	}
-	public void setCastlingFlags(int castlingFlags) {
-		castling.setFlags(castlingFlags);
 	}
 	
 	private MoveTracker moveTracker = new MoveTracker();
@@ -123,7 +116,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		
 		CaptureData cap = theBoard.doMove(move);
-		moveTracker.push( new TrackedMove(move, cap, prevEnPassantTargetSq, getCastlingFlags()));
+		moveTracker.push( new TrackedMove(move, cap, prevEnPassantTargetSq, castling.getFlags()));
 		
 		// update castling flags
 		castling.updateFlags(move);
@@ -158,6 +151,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		
 		// Restore castling
 		castling.setFlags(tm.getCastlingFlags());
+		
 		// Restore en passant target
 		int enPasTargetSq = tm.getEnPassantTarget();
 		theBoard.setEnPassantTargetSq(enPasTargetSq);

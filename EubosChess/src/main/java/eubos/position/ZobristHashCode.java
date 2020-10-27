@@ -45,6 +45,7 @@ public class ZobristHashCode {
 	private static final int INDEX_KING = 5;
 	
 	private IPositionAccessors pos;
+	private CastlingManager castling;
 	
 	private Stack<Integer> prevEnPassantFile = null;
 	private int prevCastlingMask = 0;
@@ -58,8 +59,9 @@ public class ZobristHashCode {
 		}
 	};
 
-	public ZobristHashCode(IPositionAccessors pm) {
+	public ZobristHashCode(IPositionAccessors pm, CastlingManager castling) {
 		pos = pm;
+		this.castling = castling;
 		prevEnPassantFile = new Stack<Integer>();
 		generate();
 	}
@@ -74,15 +76,8 @@ public class ZobristHashCode {
 			hashCode ^= getPrnForPiece(pieceSq, pos.getTheBoard().getPieceAtSquare(pieceSq));
 		}
 		// add castling
-		prevCastlingMask = pos.getCastlingFlags();	
-		if ((prevCastlingMask & CastlingManager.WHITE_KINGSIDE)==CastlingManager.WHITE_KINGSIDE)
-			hashCode ^= prnLookupTable[INDEX_WHITE_KSC];
-		if ((prevCastlingMask & CastlingManager.WHITE_QUEENSIDE)==CastlingManager.WHITE_QUEENSIDE)
-			hashCode ^= prnLookupTable[INDEX_WHITE_QSC];
-		if ((prevCastlingMask & CastlingManager.BLACK_KINGSIDE)==CastlingManager.BLACK_KINGSIDE)
-			hashCode ^= prnLookupTable[INDEX_BLACK_KSC];
-		if ((prevCastlingMask & CastlingManager.BLACK_QUEENSIDE)==CastlingManager.BLACK_QUEENSIDE)
-			hashCode ^= prnLookupTable[INDEX_BLACK_QSC];
+		prevCastlingMask = castling.getFlags();
+		updateCastling(prevCastlingMask);
 		// add on move
 		if (!pos.onMoveIsWhite()) {
 			doOnMove();
@@ -186,25 +181,28 @@ public class ZobristHashCode {
 	}
 
 	protected void doCastlingFlags() {
-		int currentCastlingFlags = pos.getCastlingFlags();
+		int currentCastlingFlags = castling.getFlags();
 		int delta = currentCastlingFlags ^ this.prevCastlingMask;
-		if (delta != 0)
-		{
-			if ((delta & CastlingManager.WHITE_KINGSIDE)==CastlingManager.WHITE_KINGSIDE)
-			{
-				hashCode ^= prnLookupTable[INDEX_WHITE_KSC];
-			}
-			if ((delta & CastlingManager.WHITE_QUEENSIDE)==CastlingManager.WHITE_QUEENSIDE) {
-				hashCode ^= prnLookupTable[INDEX_WHITE_QSC];
-			}
-			if ((delta & CastlingManager.BLACK_KINGSIDE)==CastlingManager.BLACK_KINGSIDE) {
-				hashCode ^= prnLookupTable[INDEX_BLACK_KSC];
-			}
-			if ((delta & CastlingManager.BLACK_QUEENSIDE)==CastlingManager.BLACK_QUEENSIDE) {
-				hashCode ^= prnLookupTable[INDEX_BLACK_QSC];
-			}
+		if (delta != 0) {
+			updateCastling(delta);
 		}
 		this.prevCastlingMask = currentCastlingFlags;
+	}
+
+	private void updateCastling(int delta) {
+		if ((delta & CastlingManager.WHITE_KINGSIDE)==CastlingManager.WHITE_KINGSIDE)
+		{
+			hashCode ^= prnLookupTable[INDEX_WHITE_KSC];
+		}
+		if ((delta & CastlingManager.WHITE_QUEENSIDE)==CastlingManager.WHITE_QUEENSIDE) {
+			hashCode ^= prnLookupTable[INDEX_WHITE_QSC];
+		}
+		if ((delta & CastlingManager.BLACK_KINGSIDE)==CastlingManager.BLACK_KINGSIDE) {
+			hashCode ^= prnLookupTable[INDEX_BLACK_KSC];
+		}
+		if ((delta & CastlingManager.BLACK_QUEENSIDE)==CastlingManager.BLACK_QUEENSIDE) {
+			hashCode ^= prnLookupTable[INDEX_BLACK_QSC];
+		}
 	}
 
 	protected void doSecondaryMove(int move, int piece) {

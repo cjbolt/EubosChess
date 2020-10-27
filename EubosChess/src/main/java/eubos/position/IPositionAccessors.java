@@ -15,7 +15,6 @@ public interface IPositionAccessors {
 	public boolean lastMoveWasPromotion();
 	public boolean isPromotionPossible();
 	public CaptureData getCapturedPiece();
-	public int getCastlingFlags();
 	public long getHash();
 	public String getFen();
 	public boolean isThreefoldRepetitionPossible();
