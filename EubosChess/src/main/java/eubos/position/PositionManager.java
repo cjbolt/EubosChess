@@ -111,7 +111,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	public void performMove( int move, boolean computeHash ) throws InvalidPieceException {
-		
+		if (Move.isPromotion(move) || Move.isPawnCapture(move) || Piece.isPawn(Move.getTargetPiece(move))) {
+			pe.invalidatePawnCache();
+		}
 		// Save previous en passant square and initialise for this move
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		
@@ -146,7 +148,13 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public void unperformMove(boolean computeHash) throws InvalidPieceException {
 		TrackedMove tm = moveTracker.pop();
 		CaptureData cap = tm.getCaptureData();
-		int reversedMove = Move.reverse(tm.getMove());
+		
+		int move = tm.getMove();
+		if (Move.isPromotion(move) || Move.isPawnCapture(move) || Piece.isPawn(Move.getTargetPiece(move))) {
+			pe.invalidatePawnCache();
+		}
+		
+		int reversedMove = Move.reverse(move);
 		theBoard.undoMove(reversedMove, cap);
 		
 		// Restore castling
