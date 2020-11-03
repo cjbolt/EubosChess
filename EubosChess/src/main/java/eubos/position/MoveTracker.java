@@ -8,28 +8,12 @@ class MoveTracker extends Stack<TrackedMove> {
 
 	MoveTracker() {}
 	
-	boolean lastMoveWasCapture() {
-		boolean wasCapture = false;
-		if ( !this.isEmpty()) {
-			wasCapture = this.peek().isCapture();
-		}
-		return wasCapture;
-	}
-	
 	public CaptureData getCapturedPiece() {
 		CaptureData captured = null;
 		if ( !this.isEmpty()) {
 			captured = this.peek().getCaptureData();
 		}
 		return captured;
-	}
-
-	public boolean lastMoveWasPromotion() {
-		boolean wasPromotion = false;
-		if ( !this.isEmpty()) {
-			wasPromotion = Move.isPromotion(this.peek().getMove());
-		}
-		return wasPromotion;
 	}
 
 	public boolean lastMoveWasCheck() {

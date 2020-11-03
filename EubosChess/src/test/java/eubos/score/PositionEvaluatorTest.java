@@ -141,69 +141,57 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_isQuiescent_No_QueenRecapture() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/8/5p2/4p3/3Q4/8/8/8 w - - 0 1 ");
-		pm.performMove(Move.toMove(new GenericMove("d4e5"), pm.getTheBoard()));
-		assertFalse(SUT.isQuiescent());
+		int currMove = Move.toMove(new GenericMove("d4e5"), pm.getTheBoard());
+		pm.performMove(currMove);
+		assertFalse(SUT.isQuiescent(currMove));
 	}
 	
 	@Test
 	public void test_isQuiescent_Yes_QueenNoRecapture() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/8/8/4p3/3Q4/8/8/8 w - - 0 1 ");
-		pm.performMove(Move.toMove(new GenericMove("d4e5"), pm.getTheBoard()));
-		assertTrue(SUT.isQuiescent());
+		int currMove = Move.toMove(new GenericMove("d4e5"), pm.getTheBoard());
+		pm.performMove(currMove);
+		assertTrue(SUT.isQuiescent(currMove));
 	}
 	
 	@Test
 	public void test_isQuiescent_Yes_NoCaptures() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/3p4/8/8/3P4/8/8/8 w - - 0 1 ");
-		pm.performMove(Move.toMove(new GenericMove("d4d5"), pm.getTheBoard()));
-		assertTrue(SUT.isQuiescent());
+		int currMove = Move.toMove(new GenericMove("d4d5"), pm.getTheBoard());
+		pm.performMove(currMove);
+		assertTrue(SUT.isQuiescent(currMove));
 	}
 	
 	@Test
 	public void test_isQuiescent_Yes_LastMoveWasntCapture() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/8/4p3/8/3P4/8/8/8 w - - 0 1 ");
-		pm.performMove(Move.toMove(new GenericMove("d4d5"), pm.getTheBoard()));
-		assertTrue(SUT.isQuiescent());
+		int currMove = Move.toMove(new GenericMove("d4d5"), pm.getTheBoard());
+		pm.performMove(currMove);
+		assertTrue(SUT.isQuiescent(currMove));
 	}
 	
 	@Test
 	public void test_isQuiescent_Yes_LastMoveWasCapture_NoRecapturesPossible_Alt() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("rp6/1p6/Pp6/8/1p6/1p6/PP6/QP6 b - - 0 41");
-		pm.performMove(Move.toMove(new GenericMove("a8a6"), pm.getTheBoard()));
-		assertTrue(SUT.isQuiescent());
+		int currMove = Move.toMove(new GenericMove("a8a6"), pm.getTheBoard());
+		pm.performMove(currMove);
+		assertTrue(SUT.isQuiescent(currMove));
 	}
 	 
 	@Test
 	public void test_isQuiescent_No_LastMoveWasCheck() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("1r1k1r2/p5Q1/2p3p1/8/1q1p2n1/3P2P1/P3RPP1/4RK2 b - - 0 1");
-		pm.performMove(Move.toMove(new GenericMove("f8f2"), pm.getTheBoard()));
-		assertFalse(SUT.isQuiescent());
+		int currMove = Move.toMove(new GenericMove("f8f2"), pm.getTheBoard());
+		pm.performMove(currMove);
+		assertFalse(SUT.isQuiescent(currMove));
 	}
 	
 	@Test
 	public void test_isQuiescent_No_LastMoveWasCheckMate() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - - -");
-		pm.performMove(Move.valueOf(Move.TYPE_CHECK_MASK, Position.d3, Piece.WHITE_QUEEN, Position.h7, Piece.NONE, Piece.NONE));
-		assertFalse(SUT.isQuiescent());
-	}
-	
-	@Test
-	@Ignore 
-	/* not needed as we will only extend searches by having applied moves, and whether they are in check is 
-	 * now determined by checking the previous move type. */
-	public void test() throws InvalidPieceException, IllegalNotationException {
-		setUpPosition("4r3/7P/2k5/1P6/8/6P1/8/6K1 b - - 0 57");
-		assertFalse(SUT.isQuiescent());
-	}
-	
-	@Test
-	@Ignore 
-	/* not needed as we will only extend searches by having applied moves, and whether they are in check is 
-	 * now determined by checking the previous move type. */
-	public void test2() throws InvalidPieceException, IllegalNotationException {
-		setUpPosition("4r3/7P/2k5/1Q5r/P7/6P1/8/6K1 b - - 10 56");
-		assertFalse(SUT.isQuiescent());
-		assertEquals(371, SUT.evaluatePosition());
+		int currMove = Move.valueOf(Move.TYPE_CHECK_MASK, Position.d3, Piece.WHITE_QUEEN, Position.h7, Piece.NONE, Piece.NONE);
+		pm.performMove(currMove);
+		assertFalse(SUT.isQuiescent(currMove));
 	}
 	
 	@Test
@@ -215,59 +203,63 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_isQuiescent_No_PromotionPossible() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/4P3/8/8/8/8/8/8 w - - 0 1");
-		assertFalse(SUT.isQuiescent());
+		assertFalse(SUT.isQuiescent(Move.NULL_MOVE));
 	}
 	
 	@Test
 	public void test_isQuiescent_Yes_PromotionPossibleButNotForOnMove() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/4P3/8/8/8/8/8/8 b - - 0 1");
-		assertTrue(SUT.isQuiescent());
+		assertTrue(SUT.isQuiescent(Move.NULL_MOVE));
 	}
 	
 	@Test
 	public void test_isQuiescent_Yes_PromotionPossibleButNotForOnMoveBlack() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/8/8/8/8/8/4p3/8 w - - 0 1");
-		assertTrue(SUT.isQuiescent());
+		assertTrue(SUT.isQuiescent(Move.NULL_MOVE));
 	}
 	
 	@Test
 	public void test_isQuiescent_Yes_PromotionBlockaded() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("4n3/4P3/8/8/8/8/8/8 w - - 0 1");
-		assertTrue(SUT.isQuiescent());
+		assertTrue(SUT.isQuiescent(Move.NULL_MOVE));
 	}
 	
 	@Test
 	public void test_isQuiescent_Yes_PromotionBlockaded_Black() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/8/8/8/8/8/4p3/4N3 b - - 0 1");
-		assertTrue(SUT.isQuiescent());
+		assertTrue(SUT.isQuiescent(Move.NULL_MOVE));
 	}
 	
 	@Test
 	public void test_isQuiescent_No_LastMoveWasPromotionBishop() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/4P3/8/8/8/8/8/8 w - - 0 1");
-		pm.performMove(Move.valueOf(Move.TYPE_PROMOTION_PIECE_MASK, Position.e7, Piece.WHITE_PAWN, Position.f8, Piece.NONE, Piece.BISHOP));
-		assertFalse(SUT.isQuiescent());
+		int currMove = Move.valueOf(Move.TYPE_PROMOTION_PIECE_MASK, Position.e7, Piece.WHITE_PAWN, Position.f8, Piece.NONE, Piece.BISHOP);
+		pm.performMove(currMove);
+		assertFalse(SUT.isQuiescent(currMove));
 	}
 	
 	@Test
 	public void test_isQuiescent_No_LastMoveWasPromotionQueenWithCheckAndCapture() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("5q2/4P3/7k/8/8/8/8/8 w - - 0 1");
-		pm.performMove(Move.valueOf(Move.TYPE_PROMOTION_QUEEN_MASK | Move.TYPE_CAPTURE_MASK | Move.TYPE_CHECK_MASK, Position.e7, Piece.WHITE_PAWN, Position.f8, Piece.BLACK_QUEEN, Piece.QUEEN));
-		assertFalse(SUT.isQuiescent());
+		int currMove = Move.valueOf(Move.TYPE_PROMOTION_QUEEN_MASK | Move.TYPE_CAPTURE_MASK | Move.TYPE_CHECK_MASK, Position.e7, Piece.WHITE_PAWN, Position.f8, Piece.BLACK_QUEEN, Piece.QUEEN);
+		pm.performMove(currMove);
+		assertFalse(SUT.isQuiescent(currMove));
 	}
 	
 	@Test
 	public void test_isQuiescent_Yes_LastMoveWasntPromotion() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/4P3/8/8/8/8/8/B7 w - - 0 1");
-		pm.performMove(Move.valueOf(Position.a1, Piece.WHITE_BISHOP, Position.b2, Piece.NONE));
-		assertTrue(SUT.isQuiescent());
+		int currMove = Move.valueOf(Position.a1, Piece.WHITE_BISHOP, Position.b2, Piece.NONE);
+		pm.performMove(currMove);
+		assertTrue(SUT.isQuiescent(currMove));
 	}
 	
 	@Test
 	public void test_isQuiescent_No_LastMoveWasCheck_alt() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/4P3/7k/8/8/8/1B6/8 w - - 0 1");
-		pm.performMove(Move.valueOf(Move.TYPE_CHECK_MASK, Position.b2, Piece.WHITE_BISHOP, Position.c1, Piece.NONE, Piece.NONE));
-		assertFalse(SUT.isQuiescent());
+		int currMove = Move.valueOf(Move.TYPE_CHECK_MASK, Position.b2, Piece.WHITE_BISHOP, Position.c1, Piece.NONE, Piece.NONE);
+		pm.performMove(currMove);
+		assertFalse(SUT.isQuiescent(currMove));
 	}
 	
 	@Test

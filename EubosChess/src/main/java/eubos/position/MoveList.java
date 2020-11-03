@@ -20,7 +20,7 @@ public class MoveList implements Iterable<Integer> {
 	private List<Integer> normal_search_moves;
 	private List<Integer> extended_search_moves;
 	
-    class MoveTypeComparator implements Comparator<Integer> {
+    static class MoveTypeComparator implements Comparator<Integer> {
         @Override public int compare(Integer move1, Integer move2) {
             boolean gt = Move.getType(move1) < Move.getType(move2);
             boolean eq = Move.getType(move1) == Move.getType(move2);
@@ -31,13 +31,19 @@ public class MoveList implements Iterable<Integer> {
     public static final int [] MATERIAL = {0, Board.MATERIAL_VALUE_KING, Board.MATERIAL_VALUE_QUEEN, Board.MATERIAL_VALUE_ROOK, 
     		Board.MATERIAL_VALUE_BISHOP, Board.MATERIAL_VALUE_KNIGHT, Board.MATERIAL_VALUE_PAWN }; 
     
-    class MoveMvvLvaComparator implements Comparator<Integer> {
+    private static final MoveMvvLvaComparator mvvLvaComparator = new MoveMvvLvaComparator();
+    
+    private static class MoveMvvLvaComparator implements Comparator<Integer> {
         @Override public int compare(Integer move1, Integer move2) {
-            if (Move.getType(move1) < Move.getType(move2)) {
+        	int type1 = Move.getType(move1);
+        	int type2 = Move.getType(move2);
+            if (type1 < type2) {
             	return 1;
-            } else if (Move.getType(move1) == Move.getType(move2)) {
-            	if (!Move.isCapture(move1))
+            } else if (type1 == type2) {
+            	if ((type1 & Move.TYPE_CAPTURE_MASK) == 0) {
+            		// Only valid for captures
             		return 0;
+            	}
             	// mvv lva used for tie breaking move type comparison, if it is a capture
             	int victim1 = MATERIAL[Move.getTargetPiece(move1)&Piece.PIECE_NO_COLOUR_MASK];
             	int attacker1 = MATERIAL[Move.getOriginPiece(move1)&Piece.PIECE_NO_COLOUR_MASK];
@@ -76,8 +82,7 @@ public class MoveList implements Iterable<Integer> {
 			int currMove = it.next();
 			try {
 				boolean possibleDiscoveredOrMoveIntoCheck = false;
-				int piece = pm.getTheBoard().getPieceAtSquare(Move.getOriginPosition(currMove));
-				if (pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove) || Piece.isKing(piece)) {
+				if (pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove) || Piece.isKing(Move.getOriginPiece(currMove))) {
 					possibleDiscoveredOrMoveIntoCheck = true;
 				}
 				pm.performMove(currMove, false);
@@ -88,9 +93,7 @@ public class MoveList implements Iterable<Integer> {
 					// Set the check flag for any moves attacking the opposing king
 					boolean isCheck = pm.getTheBoard().moveCouldPotentiallyCheckOtherKing(currMove) && pm.isKingInCheck(pm.getOnMove());
 					if (isCheck) {
-						int moveType = Move.getType(currMove);
-						moveType |= Move.TYPE_CHECK_MASK;
-						currMove = Move.setType(currMove, moveType);
+						currMove = Move.setCheck(currMove);
 					}
 					it.set(currMove);
 				}
@@ -100,7 +103,7 @@ public class MoveList implements Iterable<Integer> {
 			}
 		}
 		// Sort the list
-		Collections.sort(normal_search_moves, new MoveMvvLvaComparator());
+		Collections.sort(normal_search_moves, mvvLvaComparator);
 		
 		if (bestMove != Move.NULL_MOVE) {
 			seedListWithBestMove(normal_search_moves, bestMove);

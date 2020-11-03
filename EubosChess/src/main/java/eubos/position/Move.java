@@ -385,4 +385,8 @@ public final class Move {
 		}
 		return false;
 	}
+
+	public static int setCheck(int move) {
+		return (move |= (Move.TYPE_CHECK_MASK << TYPE_SHIFT));
+	}
 }

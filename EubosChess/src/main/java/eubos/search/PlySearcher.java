@@ -415,7 +415,7 @@ public class PlySearcher {
 		pm.performMove(currMove, true);
 		currPly++;
 		SearchDebugAgent.nextPly();
-		Score positionScore = assessNewPosition();
+		Score positionScore = assessNewPosition(currMove);
 		pm.unperformMove(true);
 		currPly--;
 		SearchDebugAgent.prevPly();
@@ -449,9 +449,9 @@ public class PlySearcher {
 		return positionScore;
 	}
 	
-	private Score assessNewPosition() throws InvalidPieceException {
+	private Score assessNewPosition(int lastMove) throws InvalidPieceException {
 		Score positionScore = null;
-		if ( isTerminalNode() ) {
+		if ( isTerminalNode(lastMove) ) {
 			positionScore = pe.evaluatePosition();
 			currDepthSearchedInPly = 1; // We applied a move in order to generate this score
 		} else {
@@ -460,7 +460,7 @@ public class PlySearcher {
 		return positionScore;
 	}
 	
-	private boolean isTerminalNode() {
+	private boolean isTerminalNode(int lastMove) {
 		boolean terminalNode = false;
 		if (pos.isThreefoldRepetitionPossible()) {
 			SearchDebugAgent.printRepeatedPositionSearch(pos.getHash(), pos.getFen());
@@ -468,11 +468,11 @@ public class PlySearcher {
 		} else if (pos.getTheBoard().isInsufficientMaterial()) {
 			terminalNode = true;
 		} else if (currPly == originalSearchDepthRequiredInPly) {
-			if (pe.isQuiescent() || MiniMaxMoveGenerator.EXTENDED_SEARCH_PLY_LIMIT == 0) {
+			if (pe.isQuiescent(lastMove) || MiniMaxMoveGenerator.EXTENDED_SEARCH_PLY_LIMIT == 0) {
 				terminalNode = true;
 			}
 		} else if (currPly > originalSearchDepthRequiredInPly) {
-			if (pe.isQuiescent() || isExtendedSearchLimitReached()) {
+			if (pe.isQuiescent(lastMove) || isExtendedSearchLimitReached()) {
 				if (currPly > extendedSearchDeepestPly) {
 					extendedSearchDeepestPly = currPly;
 				}

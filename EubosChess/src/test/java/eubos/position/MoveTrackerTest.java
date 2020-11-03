@@ -23,24 +23,4 @@ public class MoveTrackerTest {
 	public void testMoveTracker() {
 		assertTrue(classUnderTest!=null);
 	}
-
-	@Test
-	public void testLastMoveWasCapture_NoTrackedMoves() {
-		assertFalse(classUnderTest.lastMoveWasCapture());
-	}
-
-	@Test
-	public void testLastMoveWasCapture_NotACapture() throws IllegalNotationException {
-		TrackedMove tm = new TrackedMove(Move.toMove(new GenericMove("a2a4")));
-		classUnderTest.add(tm);		
-		assertFalse(classUnderTest.lastMoveWasCapture());
-	}
-
-	@Test
-	public void testLastMoveWasCapture_WasACapture() throws IllegalNotationException {
-		CaptureData cap = new CaptureData(Piece.BLACK_PAWN, Position.b3);
-		TrackedMove tm = new TrackedMove(Move.toMove(new GenericMove("a2b3")), cap, Position.NOPOSITION, CastlingManager.BLACK_KINGSIDE);
-		classUnderTest.add(tm);		
-		assertTrue(classUnderTest.lastMoveWasCapture());
-	}
 }

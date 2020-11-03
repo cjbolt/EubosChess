@@ -10,9 +10,7 @@ public interface IPositionAccessors {
 	public boolean onMoveIsWhite();
 	public boolean isKingInCheck();
 	public int getMoveNumber();
-	public boolean lastMoveWasCapture();
 	public boolean lastMoveWasCheck();
-	public boolean lastMoveWasPromotion();
 	public boolean isPromotionPossible();
 	public CaptureData getCapturedPiece();
 	public long getHash();
