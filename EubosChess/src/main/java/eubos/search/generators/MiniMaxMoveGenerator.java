@@ -45,11 +45,10 @@ public class MiniMaxMoveGenerator implements
 	// Used for unit tests
 	MiniMaxMoveGenerator( FixedSizeTranspositionTable hashMap,
 			IChangePosition pm,
-			IPositionAccessors pos,
-			IEvaluate pe) {
+			IPositionAccessors pos) {
 		this.pm = pm;
 		this.pos = pos;
-		this.pe = pe;
+		this.pe = pos.getPositionEvaluator();
 		tt = hashMap;
 		score = 0;
 		sm = new SearchMetrics(pos);
@@ -59,12 +58,11 @@ public class MiniMaxMoveGenerator implements
 	public MiniMaxMoveGenerator( EubosEngineMain eubos,
 			FixedSizeTranspositionTable hashMap,
 			IChangePosition pm,
-			IPositionAccessors pos,
-			IEvaluate pe) {
+			IPositionAccessors pos) {
 		callback = eubos;
 		this.pm = pm;
 		this.pos = pos;
-		this.pe = pe;
+		this.pe = pos.getPositionEvaluator();
 		tt = hashMap;
 		score = 0;
 		sm = new SearchMetrics(pos);

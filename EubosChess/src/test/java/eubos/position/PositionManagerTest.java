@@ -9,7 +9,6 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
-import eubos.score.PositionEvaluator;
 
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
@@ -31,7 +30,6 @@ public class PositionManagerTest {
 	
 	private void createSutAndRegisterPe(String fenString) {
 		classUnderTest = new PositionManager(fenString);
-		classUnderTest.registerPositionEvaluator(new PositionEvaluator(classUnderTest));
 	}
 	
 	private void contains(int move) {

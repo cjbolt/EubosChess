@@ -73,6 +73,11 @@ public class PositionEvaluator implements IEvaluate {
 		pawnCacheValid = false;
 	}
 	
+	@Override
+	public boolean isPawnCacheValid() {
+		return pawnCacheValid;
+	}
+	
 	int evaluatePawnStructure() {
 		int pawnEvaluationScore = evaluatePawnsForColour(pm.getOnMove());
 		pawnEvaluationScore += evaluatePawnsForColour(Colour.getOpposite(pm.getOnMove()));

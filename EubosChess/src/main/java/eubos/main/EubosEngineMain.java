@@ -27,7 +27,6 @@ import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.position.Move;
 import eubos.position.PositionManager;
-import eubos.score.PositionEvaluator;
 import eubos.search.SearchDebugAgent;
 import eubos.search.DrawChecker;
 import eubos.search.searchers.AbstractMoveSearcher;
@@ -125,7 +124,6 @@ public class EubosEngineMain extends AbstractEngine {
 			// This temporary pm is to ensure that the correct position is used to initialise the search 
 			// context of the position evaluator, required when we get a position and move list to apply to it.
 			PositionManager temp_pm = new PositionManager(uci_fen_string, dc);
-			temp_pm.registerPositionEvaluator(new PositionEvaluator(temp_pm));
 			try {
 				for (GenericMove nextMove : command.moves) {
 					int move = Move.toMove(nextMove, temp_pm.getTheBoard());

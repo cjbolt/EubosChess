@@ -66,7 +66,6 @@ public class PlySearcher {
 		dynamicSearchLevelInPly = searchDepthPly;
 		originalSearchDepthRequiredInPly = searchDepthPly;
 		extendedSearchLimitInPly = setExtSearchDepth();
-		pos.registerPositionEvaluator(pe);
 		
 		this.st = st;
 		tt = hashMap;

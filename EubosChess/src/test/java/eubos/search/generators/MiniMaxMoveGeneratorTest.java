@@ -19,7 +19,6 @@ import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.PositionManager;
-import eubos.score.PositionEvaluator;
 import eubos.search.NoLegalMoveException;
 import eubos.search.SearchDebugAgent;
 import eubos.search.transposition.FixedSizeTranspositionTable;
@@ -84,7 +83,7 @@ public class MiniMaxMoveGeneratorTest {
 
 	protected void setupPosition(String fen) {
 		pm = new PositionManager( fen );
-		classUnderTest = new MiniMaxMoveGenerator( hashMap, pm, pm, new PositionEvaluator(pm));
+		classUnderTest = new MiniMaxMoveGenerator( hashMap, pm, pm);
 	}	
 	
 	@Test

@@ -8,7 +8,6 @@ import org.junit.Ignore;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.Piece;
-import eubos.score.PositionEvaluator;
 
 public class ZobristHashCodeTest {
 	
@@ -17,7 +16,6 @@ public class ZobristHashCodeTest {
 	@Test
 	public void test_update_PerformUnperformMove_GivesSameHashCode() throws Exception {
 		PositionManager pm = new PositionManager("8/8/8/8/8/8/4P3/8 w - - 0 1");
-		pm.registerPositionEvaluator(new PositionEvaluator(pm));
 		long initialHashCode = pm.getHash();
 		
 		pm.performMove(Move.valueOf(Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE));
@@ -30,7 +28,6 @@ public class ZobristHashCodeTest {
 	public void test_update_PerformCapture_GivesExpectedHashCode() throws Exception {
 		GenericMove move = new GenericMove("e2f3");
 		PositionManager pm = new PositionManager("8/8/8/8/8/5p2/4P3/8 w - - 0 1");
-		pm.registerPositionEvaluator(new PositionEvaluator(pm));
 		PositionManager pm_after_capture = new PositionManager("8/8/8/8/8/5P2/8/8 b - - 0 2");
 		
 		pm.performMove(Move.toMove(move, pm.getTheBoard(), Move.TYPE_REGULAR_NONE));
@@ -41,7 +38,6 @@ public class ZobristHashCodeTest {
 	@Test
 	public void test_update_PerformCaptureUnperform_GivesSameHashCode() throws Exception {
 		PositionManager pm = new PositionManager("8/8/8/8/8/5p2/4P3/8 w - - 0 1");
-		pm.registerPositionEvaluator(new PositionEvaluator(pm));
 		long initialHashCode = pm.getHash();
 		
 		pm.performMove(Move.valueOf(Position.e2, Piece.WHITE_PAWN, Position.f3, Piece.BLACK_PAWN));
@@ -53,7 +49,6 @@ public class ZobristHashCodeTest {
 	@Test
 	public void test_update_PerformEnPassantCapture_GivesExpectedHashCode() throws Exception {
 		PositionManager pm = new PositionManager("8/8/8/8/4Pp2/8/8/8 b - e3 0 1");
-		pm.registerPositionEvaluator(new PositionEvaluator(pm));
 		PositionManager pm_after_capture = new PositionManager("8/8/8/8/8/4p3/8/8 w - - 0 2");
 		
 		pm.performMove(Move.valueOf(Position.f4, Piece.BLACK_PAWN, Position.e3, Piece.WHITE_PAWN));
@@ -65,7 +60,6 @@ public class ZobristHashCodeTest {
 	public void test_update_PerformEnPassantCaptureUnperform_GivesSameHashCode() throws Exception {
 		GenericMove move = new GenericMove("f4e3");
 		PositionManager pm = new PositionManager("8/8/8/8/4Pp2/8/8/8 b - e3 0 1");
-		pm.registerPositionEvaluator(new PositionEvaluator(pm));
 		long initialHashCode = pm.getHash();
 		
 		pm.performMove(Move.toMove(move, pm.getTheBoard()));
@@ -250,7 +244,6 @@ public class ZobristHashCodeTest {
 	@Test
 	public void test_EndGameJustPromotionMove_RegenerateSamePosition() throws Exception {
 		PositionManager pm = new PositionManager("8/8/p6p/5kp1/1P6/5P1P/p4PK1/8 b - - 1 6 ");
-		pm.registerPositionEvaluator(new PositionEvaluator(pm));
 		PositionManager after_pm = new PositionManager("8/8/p6p/5kp1/1P6/5P1P/5PK1/q7 w - - 0 7 ");
 		long afterHashCode = after_pm.getHash();
 		
@@ -274,7 +267,6 @@ public class ZobristHashCodeTest {
 	@Test
 	public void test_EndGameJustPromotion_RegenerateSamePosition() throws Exception {
 		PositionManager pm = new PositionManager("8/8/p6p/5kp1/1P6/5P1P/p4PK1/8 b - - 1 6 ");
-		pm.registerPositionEvaluator(new PositionEvaluator(pm));
 		long originalHashCode = pm.getHash();
 		
 		pm.performMove(Move.valueOf(Move.TYPE_PROMOTION_QUEEN_MASK, Position.a2, Piece.BLACK_PAWN, Position.a1, Piece.NONE, Piece.QUEEN));
@@ -286,7 +278,6 @@ public class ZobristHashCodeTest {
 	@Test
 	public void test_BadHashFound_enPassantWasPossible() throws Exception {
 		PositionManager pm = new PositionManager("1r1k1r2/6Q1/2p3p1/p7/1q1p2n1/3P2P1/P3RPP1/4RK2 w - a6 - 2");
-		pm.registerPositionEvaluator(new PositionEvaluator(pm));
 		long originalHashCode = pm.getHash();
 		
 		pm.performMove(Move.valueOf(Position.g7, Piece.WHITE_QUEEN, Position.g6, Piece.BLACK_PAWN));

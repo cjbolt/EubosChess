@@ -11,7 +11,6 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
-import eubos.score.PositionEvaluator;
 
 public class MoveListTest {
 
@@ -22,7 +21,6 @@ public class MoveListTest {
 	
 	private void setup(String fen) {
 		PositionManager pm = new PositionManager( fen );
-		pm.registerPositionEvaluator(new PositionEvaluator(pm));
 		classUnderTest = new MoveList(pm);
 	}
 	
