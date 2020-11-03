@@ -16,14 +16,6 @@ class MoveTracker extends Stack<TrackedMove> {
 		return wasCapture;
 	}
 	
-	boolean lastMoveWasCastle() {
-		boolean wasCastle = false;
-		if ( !this.isEmpty()) {
-			wasCastle = this.peek().isCastle();
-		}
-		return wasCastle;
-	}
-
 	public CaptureData getCapturedPiece() {
 		CaptureData captured = null;
 		if ( !this.isEmpty()) {

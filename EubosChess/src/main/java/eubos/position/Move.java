@@ -190,32 +190,25 @@ public final class Move {
 	}
 	
 	public static boolean isPromotion(int move) {
-		return (getType(move) & (Move.TYPE_PROMOTION_QUEEN_MASK | Move.TYPE_PROMOTION_PIECE_MASK)) != 0;			
+		return (move & ((Move.TYPE_PROMOTION_QUEEN_MASK | Move.TYPE_PROMOTION_PIECE_MASK) << TYPE_SHIFT)) != 0;
 	}
 	
 	public static boolean isCapture(int move) {
-		return (getType(move) & Move.TYPE_CAPTURE_MASK) != 0;			
+		return (move & ((Move.TYPE_CAPTURE_MASK) << TYPE_SHIFT)) != 0;
 	}
 	
 	public static boolean isCheck(int move) {
-		return (getType(move) & Move.TYPE_CHECK_MASK) != 0;
+		return (move & ((Move.TYPE_CHECK_MASK) << TYPE_SHIFT)) != 0;
 	}
 	
 	public static boolean isRegular(int move) { 
 		return ((getType(move) == 0) || ((getType(move) & Move.TYPE_CASTLE_MASK) != 0));
 	}
 	
-	public static boolean isCastle(int move) {
-		return (getType(move) & Move.TYPE_CASTLE_MASK)==Move.TYPE_CASTLE_MASK;
-	}
-	
 	public static boolean isPawnMove(int move) {
 		return Piece.isPawn(getOriginPiece(move));
 	}
-	
-	public static boolean isPawnCapture(int move) {
-		return Piece.isPawn(getOriginPiece(move)) && Move.isCapture(move);
-	}
+
 
 	public static GenericMove toGenericMove(int move) {
 		if (move == Move.NULL_MOVE)
@@ -296,11 +289,9 @@ public final class Move {
 
 	public static int getPromotion(int move) {
 		int promotion = (move & PROMOTION_MASK) >>> PROMOTION_SHIFT;
-		//if (move != 0) {
-			if (EubosEngineMain.ASSERTS_ENABLED) {
-				//assert (/* Valid promotion*/) || promotion == Piece.NONE;
-			}
-		//}
+		if (EubosEngineMain.ASSERTS_ENABLED) {
+			//assert (/* Valid promotion*/) || promotion == Piece.NONE;
+		}
 		return promotion;
 	}
 
@@ -377,6 +368,21 @@ public final class Move {
 	}
 
 	public static boolean isQueenPromotion(int move) {
-		return ((getType(move) & Move.TYPE_PROMOTION_QUEEN_MASK) != 0);
+		return (move & (Move.TYPE_PROMOTION_QUEEN_MASK) << TYPE_SHIFT) != 0;
+	}
+
+	public static boolean invalidatesPawnCache(int move) {
+		if ((move & ((Move.TYPE_PROMOTION_QUEEN_MASK | Move.TYPE_PROMOTION_PIECE_MASK) << TYPE_SHIFT)) != 0) { // isPromotion(move);
+			return true;
+		}
+		if ((move & ((Move.TYPE_CAPTURE_MASK) << TYPE_SHIFT)) != 0 ) { // Is a Pawn Capture another piece;
+			if ((move & (Piece.PIECE_NO_COLOUR_MASK << ORIGIN_PIECE_SHIFT)) == (Piece.PAWN << ORIGIN_PIECE_SHIFT)) {
+				return true;
+			}
+		}
+		if ((move & (Piece.PIECE_NO_COLOUR_MASK << TARGET_PIECE_SHIFT)) == (Piece.PAWN << TARGET_PIECE_SHIFT)) { // Target piece is a pawn
+			return true;
+		}
+		return false;
 	}
 }
