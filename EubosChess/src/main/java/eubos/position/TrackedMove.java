@@ -1,7 +1,5 @@
 package eubos.position;
 
-import eubos.board.Piece;
-
 class TrackedMove {
 	private int move = 0;
 	private CaptureData capture = null;
@@ -15,17 +13,6 @@ class TrackedMove {
 		enPassantTarget = enP;
 		castlingFlags = castling;
 	}
-	boolean isCapture() { return (capture.target != Piece.NONE); }
-	
-	boolean isCastle() { 
-		if (Move.areEqual(move, CastlingManager.bksc) || 
-			Move.areEqual(move, CastlingManager.bqsc) ||
-			Move.areEqual(move, CastlingManager.wksc) ||
-			Move.areEqual(move, CastlingManager.wqsc)) {
-			return true;
-		}
-		return false;
-	}
 
 	int getMove() {
 		return move;
@@ -37,7 +24,8 @@ class TrackedMove {
 		return capture;
 	}
 	void setCaptureData(CaptureData capturedPiece) {
-		this.capture = capturedPiece;
+		this.capture.square = capturedPiece.square;
+		this.capture.target = capturedPiece.target;
 	}
 	int getEnPassantTarget() {
 		return enPassantTarget;
@@ -47,5 +35,8 @@ class TrackedMove {
 	}
 	int getCastlingFlags() {
 		return castlingFlags;
+	}
+	void setCastlingFlags(int flags) {
+		this.castlingFlags = flags;
 	}
 }

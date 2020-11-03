@@ -1,26 +1,55 @@
 package eubos.position;
 
-import java.util.Stack;
-
-class MoveTracker extends Stack<TrackedMove> {
+class MoveTracker {
 	
-	static final long serialVersionUID = 0x1L;
-
-	MoveTracker() {}
+	private static final int CAPACITY = 200;
+	private TrackedMove[] stack;
+	private int index = 0;
+	
+	MoveTracker() {
+		stack = new TrackedMove[CAPACITY];
+		for (int i = 0; i < CAPACITY; i++) {
+			stack[i] = new TrackedMove(Move.NULL_MOVE);
+		}
+		index = 0;
+	}
+	
+	public void push(int move, CaptureData cap, int enPassant, int castlingFlags) {
+		if (index < CAPACITY) {
+			stack[index].setCaptureData(cap);
+			stack[index].setEnPassantTarget(enPassant);
+			stack[index].setMove(move);
+			stack[index].setCastlingFlags(castlingFlags);
+			index += 1;
+		}
+	}
+	
+	public TrackedMove pop() {
+		TrackedMove tm = null;
+		if (!isEmpty()) {
+			index -= 1;
+			tm = stack[index];
+		}
+		return tm;
+	}
 	
 	public CaptureData getCapturedPiece() {
 		CaptureData captured = null;
-		if ( !this.isEmpty()) {
-			captured = this.peek().getCaptureData();
+		if ( !isEmpty()) {
+			captured = stack[index-1].getCaptureData();
 		}
 		return captured;
 	}
 
 	public boolean lastMoveWasCheck() {
 		boolean wasCheck = false;
-		if ( !this.isEmpty()) {
-			wasCheck = Move.isCheck(this.peek().getMove());
+		if ( !isEmpty()) {
+			wasCheck = Move.isCheck(stack[index-1].getMove());
 		}
 		return wasCheck;
+	}
+	
+	public boolean isEmpty() {
+		return index == 0;
 	}
 }

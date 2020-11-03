@@ -37,11 +37,6 @@ public class TrackedMoveTest {
 	}
 
 	@Test
-	public void testIsCapture() throws IllegalNotationException {
-		assertTrue(classUnderTest.isCapture());
-	}
-
-	@Test
 	public void testGetMove() throws IllegalNotationException {
 		assertTrue(classUnderTest.getMove() == pawnCapture);
 	}

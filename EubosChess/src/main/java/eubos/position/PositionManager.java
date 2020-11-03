@@ -109,7 +109,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		
 		CaptureData cap = theBoard.doMove(move);
-		moveTracker.push( new TrackedMove(move, cap, prevEnPassantTargetSq, castling.getFlags()));
+		moveTracker.push(move, cap, prevEnPassantTargetSq, castling.getFlags());
 		
 		// update castling flags
 		castling.updateFlags(move);
