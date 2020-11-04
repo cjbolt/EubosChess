@@ -370,20 +370,13 @@ public final class Move {
 	public static boolean isQueenPromotion(int move) {
 		return (move & (Move.TYPE_PROMOTION_QUEEN_MASK) << TYPE_SHIFT) != 0;
 	}
+	
+	public static boolean isPawnCapture(int move) {
+		return Piece.isPawn(getOriginPiece(move)) && Move.isCapture(move);
+	}
 
 	public static boolean invalidatesPawnCache(int move) {
-		if ((move & ((Move.TYPE_PROMOTION_QUEEN_MASK | Move.TYPE_PROMOTION_PIECE_MASK) << TYPE_SHIFT)) != 0) { // isPromotion(move);
-			return true;
-		}
-		if ((move & ((Move.TYPE_CAPTURE_MASK) << TYPE_SHIFT)) != 0 ) { // Is a Pawn Capture another piece;
-			if ((move & (Piece.PIECE_NO_COLOUR_MASK << ORIGIN_PIECE_SHIFT)) == (Piece.PAWN << ORIGIN_PIECE_SHIFT)) {
-				return true;
-			}
-		}
-		if ((move & (Piece.PIECE_NO_COLOUR_MASK << TARGET_PIECE_SHIFT)) == (Piece.PAWN << TARGET_PIECE_SHIFT)) { // Target piece is a pawn
-			return true;
-		}
-		return false;
+		return (Move.isPromotion(move) || Move.isPawnCapture(move) || Piece.isPawn(Move.getTargetPiece(move)));
 	}
 
 	public static int setCheck(int move) {
