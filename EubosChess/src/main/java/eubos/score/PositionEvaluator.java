@@ -42,12 +42,12 @@ public class PositionEvaluator implements IEvaluate {
 		} else if (Move.isCapture(currMove)) {
 			// we could keep a capture list, so we know where we are in the exchange series?
 			// we can get access to the captured piece in the current codebase, but we need to know the whole capture sequence to do swap off?
-			CaptureData captured = pm.getCapturedPiece();
-			if (captured != null)
+			int captured = pm.getCaptureData();
+			if (CaptureData.getPiece(captured) != 0)
 			{
 				if (SquareAttackEvaluator.isAttacked(
 						pm.getTheBoard(),
-						captured.getSquare(),
+						CaptureData.getSquare(captured),
 						Colour.getOpposite(pm.getOnMove())))
 					return false;
 			}

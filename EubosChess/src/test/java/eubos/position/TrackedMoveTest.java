@@ -3,6 +3,7 @@ package eubos.position;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -17,12 +18,12 @@ public class TrackedMoveTest {
 	
 	private static final int pawnCapture = Move.toMove(new GenericMove(GenericPosition.a2,GenericPosition.b3));
 	private static final int pawnAdvance = Move.toMove(new GenericMove(GenericPosition.a2,GenericPosition.a4));
-	private static final CaptureData capturedBlackPawn = new CaptureData(Piece.BLACK_PAWN, Position.b3);
+	//private static final CaptureData capturedBlackPawn = new CaptureData(Piece.BLACK_PAWN, Position.b3);
 	private static final GenericPosition targetSq = GenericPosition.b3;
 	
 	@Before
 	public void setUp() throws Exception {
-		classUnderTest = new TrackedMove(pawnCapture, capturedBlackPawn, Position.NOPOSITION, 0xF);
+		classUnderTest = new TrackedMove(pawnCapture, (Piece.BLACK_PAWN | (Position.b3 << 8)), Position.NOPOSITION, 0xF);
 	}
 
 	@Test
@@ -49,15 +50,16 @@ public class TrackedMoveTest {
 
 	@Test
 	public void testGetCapturedPiece() {
-		assertTrue(classUnderTest.getCaptureData().equals(capturedBlackPawn));
+		assertTrue(classUnderTest.getCaptureData() == (Piece.BLACK_PAWN | (Position.b3 << 8)));
 	}
 
 	@Test
+	@Ignore // of little use
 	public void testSetCapturedPiece() {
-		classUnderTest.setCaptureData(new CaptureData(Piece.WHITE_KING, Position.b3));
-		CaptureData captured = classUnderTest.getCaptureData();
-		assertTrue(captured.target == Piece.WHITE_KING);
-		assertTrue(captured.square==Position.b3);
+//		classUnderTest.setCaptureData((Piece.WHITE_KING, Position.b3));
+//		int captured = classUnderTest.getCaptureData();
+//		assertTrue(captured.target == Piece.WHITE_KING);
+//		assertTrue(captured.square==Position.b3);
 	}
 
 	@Test

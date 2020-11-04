@@ -25,7 +25,6 @@ class MobilityMask {
 }
 
 public class Board {
-	public static final CaptureData NULL_CAPTURE = new CaptureData(Piece.NONE, Position.NOPOSITION);
 	
 	private long allPieces = 0x0;
 	private long whitePieces = 0x0;
@@ -239,8 +238,8 @@ public class Board {
 		}
 	}
 	
-	public CaptureData doMove(int move) throws InvalidPieceException {
-		CaptureData cap = NULL_CAPTURE;
+	public int doMove(int move) throws InvalidPieceException {
+		int cap = CaptureData.NULL_CAPTURE;
 		int pieceToMove = Move.getOriginPiece(move);
 		int originSquare = Move.getOriginPosition(move);
 		int targetSquare = Move.getTargetPosition(move);
@@ -262,7 +261,7 @@ public class Board {
 					assert false;
 			}
 			int capturePos = Position.valueOf(Position.getFile(targetSquare), rank);
-			cap = new CaptureData(pickUpPieceAtSquare(capturePos), capturePos);
+			cap = CaptureData.valueOf(pickUpPieceAtSquare(capturePos), capturePos);
 		} else {
 			// handle castling, setting en passant etc
 			if (checkToSetEnPassantTargetSq(move) == IntFile.NOFILE) {
@@ -271,7 +270,7 @@ public class Board {
 					performSecondaryCastlingMove(move);
 				}
 				if (targetPiece != Piece.NONE) {
-					cap = new CaptureData(pickUpPieceAtSquare(targetSquare, targetPiece), targetSquare);
+					cap = CaptureData.valueOf(pickUpPieceAtSquare(targetSquare), targetSquare);
 				}
 			}			
 		}
@@ -295,7 +294,7 @@ public class Board {
 		return cap;
 	}
 	
-	public void undoMove(int moveToUndo, CaptureData cap) throws InvalidPieceException {
+	public void undoMove(int moveToUndo, int cap) throws InvalidPieceException {
 		int originPiece = Move.getOriginPiece(moveToUndo);
 		int originSquare = Move.getOriginPosition(moveToUndo);
 		int targetSquare = Move.getTargetPosition(moveToUndo);
@@ -303,7 +302,7 @@ public class Board {
 		long initialSquareMask = BitBoard.positionToMask_Lut[originSquare];
 		long targetSquareMask = BitBoard.positionToMask_Lut[targetSquare];
 		long positionsMask = initialSquareMask | targetSquareMask;
-		boolean isCapture = cap.getPiece() != Piece.NONE;
+		boolean isCapture = CaptureData.getPiece(cap) != Piece.NONE;
 		
 		// Handle reversal of any castling secondary rook moves on the board
 		if (Piece.isKing(originPiece)) {
@@ -329,7 +328,7 @@ public class Board {
 		
 		// Undo any capture that had been previously performed.
 		if (isCapture) {
-			setPieceAtSquare(cap.getSquare(), cap.getPiece());
+			setPieceAtSquare(CaptureData.getSquare(cap), CaptureData.getPiece(cap));
 		}
 	}
 	

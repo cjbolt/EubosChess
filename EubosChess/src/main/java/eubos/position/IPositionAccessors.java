@@ -12,7 +12,7 @@ public interface IPositionAccessors {
 	public int getMoveNumber();
 	public boolean lastMoveWasCheck();
 	public boolean isPromotionPossible();
-	public CaptureData getCapturedPiece();
+	public int getCaptureData();
 	public long getHash();
 	public String getFen();
 	public boolean isThreefoldRepetitionPossible();

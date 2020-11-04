@@ -56,8 +56,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return moveTracker.lastMoveWasCheck();
 	}
 	
-	public CaptureData getCapturedPiece() {
-		return moveTracker.getCapturedPiece();
+	public int getCaptureData() {
+		return moveTracker.getCaptureData();
 	}
 	
 	// No public setter, because onMove is only changed by performing a move on the board.
@@ -108,7 +108,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Save previous en passant square and initialise for this move
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		
-		CaptureData cap = theBoard.doMove(move);
+		int cap = theBoard.doMove(move);
 		moveTracker.push(move, cap, prevEnPassantTargetSq, castling.getFlags());
 		
 		// update castling flags
@@ -138,7 +138,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public void unperformMove(boolean computeHash) throws InvalidPieceException {
 		TrackedMove tm = moveTracker.pop();
-		CaptureData cap = tm.getCaptureData();
+		int cap = tm.getCaptureData();
 		
 		int move = tm.getMove();
 		if (pe.isPawnCacheValid() && Move.invalidatesPawnCache(move)) {

@@ -2,12 +2,12 @@ package eubos.position;
 
 class TrackedMove {
 	private int move = 0;
-	private CaptureData capture = null;
+	private int capture = 0;
 	private int enPassantTarget = Position.NOPOSITION;
 	private int castlingFlags = 0;
 
-	TrackedMove( int inMove ) { move = inMove; capture = new CaptureData(); }
-	TrackedMove( int inMove, CaptureData capture, int enP, int castling) {
+	TrackedMove( int inMove ) { move = inMove; capture = 0; }
+	TrackedMove( int inMove, int capture, int enP, int castling) {
 		move = inMove; 
 		this.capture = capture;
 		enPassantTarget = enP;
@@ -20,12 +20,11 @@ class TrackedMove {
 	void setMove(int move) {
 		this.move = move;
 	}
-	CaptureData getCaptureData() {
+	int getCaptureData() {
 		return capture;
 	}
-	void setCaptureData(CaptureData capturedPiece) {
-		this.capture.square = capturedPiece.square;
-		this.capture.target = capturedPiece.target;
+	void setCaptureData(int capturedPiece) {
+		this.capture = capturedPiece;
 	}
 	int getEnPassantTarget() {
 		return enPassantTarget;

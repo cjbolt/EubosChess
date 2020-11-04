@@ -2,7 +2,7 @@ package eubos.position;
 
 class MoveTracker {
 	
-	private static final int CAPACITY = 200;
+	private static final int CAPACITY = 400;
 	private TrackedMove[] stack;
 	private int index = 0;
 	
@@ -14,7 +14,7 @@ class MoveTracker {
 		index = 0;
 	}
 	
-	public void push(int move, CaptureData cap, int enPassant, int castlingFlags) {
+	public void push(int move, int cap, int enPassant, int castlingFlags) {
 		if (index < CAPACITY) {
 			stack[index].setCaptureData(cap);
 			stack[index].setEnPassantTarget(enPassant);
@@ -33,8 +33,8 @@ class MoveTracker {
 		return tm;
 	}
 	
-	public CaptureData getCapturedPiece() {
-		CaptureData captured = null;
+	public int getCaptureData() {
+		int captured = 0;
 		if ( !isEmpty()) {
 			captured = stack[index-1].getCaptureData();
 		}
