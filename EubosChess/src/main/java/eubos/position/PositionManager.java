@@ -107,7 +107,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		
 		int cap = theBoard.doMove(move);
-		moveTracker.push(move, cap, prevEnPassantTargetSq, castling.getFlags());
+		moveTracker.push(TrackedMove.valueOf(move, cap, prevEnPassantTargetSq, castling.getFlags()));
 		
 		// update castling flags
 		castling.updateFlags(move);
@@ -135,17 +135,17 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	public void unperformMove(boolean computeHash) throws InvalidPieceException {
-		TrackedMove tm = moveTracker.pop();
-		int cap = tm.getCaptureData();
+		long tm = moveTracker.pop();
+		int cap = TrackedMove.getCaptureData(tm);
 		
-		int reversedMove = Move.reverse(tm.getMove());
+		int reversedMove = Move.reverse(TrackedMove.getMove(tm));
 		theBoard.undoMove(reversedMove, cap);
 		
 		// Restore castling
-		castling.setFlags(tm.getCastlingFlags());
+		castling.setFlags(TrackedMove.getCastlingFlags(tm));
 		
 		// Restore en passant target
-		int enPasTargetSq = tm.getEnPassantTarget();
+		int enPasTargetSq = TrackedMove.getEnPassantTarget(tm);
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		
 		if (computeHash) {

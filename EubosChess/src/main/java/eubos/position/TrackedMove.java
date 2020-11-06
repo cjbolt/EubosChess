@@ -1,41 +1,77 @@
 package eubos.position;
 
-class TrackedMove {
-	private int move = 0;
-	private int capture = 0;
-	private int enPassantTarget = Position.NOPOSITION;
-	private int castlingFlags = 0;
-
-	TrackedMove( int inMove ) { move = inMove; capture = 0; }
-	TrackedMove( int inMove, int capture, int enP, int castling) {
-		move = inMove; 
-		this.capture = capture;
-		enPassantTarget = enP;
-		castlingFlags = castling;
+public final class TrackedMove {
+	public static final long NULL_TRACKED_MOVE = Move.NULL_MOVE;
+	
+	private static final int MOVE_SHIFT = 0;
+	private static final long MOVE_MASK = 0xFFFFFFFFL << MOVE_SHIFT;
+	
+	private static final int CAPTURE_SHIFT = 32;
+	private static final long CAPTURE_MASK = 0xFFFFL << CAPTURE_SHIFT;
+	
+	private static final int EN_PASSANT_SHIFT = CAPTURE_SHIFT + 16;
+	private static final long EN_PASSANT_MASK = 0xFFL << EN_PASSANT_SHIFT;
+	
+	private static final int CASTLING_SHIFT = EN_PASSANT_SHIFT + 8;
+	private static final long CASTLING_MASK = 0xFL << CASTLING_SHIFT;	
+	
+	private static final long DEFAULT_VALUE = 0x7FL << EN_PASSANT_SHIFT;
+	
+	public static long valueOf(int move, int capture, int enP, int castling) {
+		// Default value is the most common value - optimisation
+		long trackedMove = DEFAULT_VALUE;
+		if (capture != 0) {
+			long cap = capture;
+			trackedMove |= cap << CAPTURE_SHIFT;
+		}
+		if (enP != Position.NOPOSITION) {
+			long enPassant = enP;
+			trackedMove &= ~EN_PASSANT_MASK;
+			trackedMove |= enPassant << EN_PASSANT_SHIFT;
+		}
+		if (castling != 0) {
+			long cast = castling;
+			trackedMove |= cast << CASTLING_SHIFT;
+		}
+		// Always add the move
+		trackedMove |= move;
+		return trackedMove;
 	}
-
-	int getMove() {
-		return move;
+	
+	public static int getMove(long trackedMove) {
+		long move = trackedMove & MOVE_MASK;
+		return (int) move;
 	}
-	void setMove(int move) {
-		this.move = move;
+	public static long setMove(long trackedMove, int move) {
+		trackedMove &= ~MOVE_MASK;
+		trackedMove |= move;
+		return trackedMove;
 	}
-	int getCaptureData() {
-		return capture;
+	public static int getCaptureData(long trackedMove) {
+		long cap = (trackedMove & CAPTURE_MASK) >>> CAPTURE_SHIFT;
+		return (int)cap;
 	}
-	void setCaptureData(int capturedPiece) {
-		this.capture = capturedPiece;
+	public static long setCaptureData(long trackedMove, int capturedPiece) {
+		trackedMove &= ~CAPTURE_MASK;
+		trackedMove |= capturedPiece << CAPTURE_SHIFT;
+		return trackedMove;
 	}
-	int getEnPassantTarget() {
-		return enPassantTarget;
+	public static int getEnPassantTarget(long trackedMove) {
+		long enP = (trackedMove & EN_PASSANT_MASK) >>> EN_PASSANT_SHIFT;
+		return (int) enP;
 	}
-	void setEnPassantTarget(int enPassantTarget) {
-		this.enPassantTarget = enPassantTarget;
+	public static long setEnPassantTarget(long trackedMove, int enPassantTarget) {
+		trackedMove &= ~EN_PASSANT_MASK;
+		trackedMove |= enPassantTarget << EN_PASSANT_SHIFT;
+		return trackedMove;
 	}
-	int getCastlingFlags() {
-		return castlingFlags;
+	public static int getCastlingFlags(long trackedMove) {
+		long flags = (trackedMove & CASTLING_MASK) >>> CASTLING_SHIFT;
+		return (int) flags;
 	}
-	void setCastlingFlags(int flags) {
-		this.castlingFlags = flags;
+	public static long setCastlingFlags(long trackedMove, int flags) {
+		trackedMove &= ~CASTLING_MASK;
+		trackedMove |= flags << CASTLING_SHIFT;
+		return trackedMove;
 	}
 }
