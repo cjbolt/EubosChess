@@ -60,41 +60,29 @@ public class PositionEvaluator implements IEvaluate {
 		SearchContextEvaluation eval = sc.computeSearchGoalBonus(pm.getTheBoard().me);
 		if (!eval.isDraw) {
 			eval.score += pm.getTheBoard().me.getDelta();
-			eval.score += (pawnCacheValid) ? pawnCache : evaluatePawnStructure();
+			eval.score += evaluatePawnStructure();
 		}
 		return new Score(eval.score, Score.exact);
 	}
-		
-	int pawnCache = 0;
-	boolean pawnCacheValid = false;
-	
-	public void invalidatePawnCache() {
-		pawnCache = 0;
-		pawnCacheValid = false;
-	}
-	
-	@Override
-	public boolean isPawnCacheValid() {
-		return pawnCacheValid;
-	}
 	
 	int evaluatePawnStructure() {
-		int pawnEvaluationScore = evaluatePawnsForColour(pm.getOnMove());
-		pawnEvaluationScore += evaluatePawnsForColour(Colour.getOpposite(pm.getOnMove()));
-		pawnCache = pawnEvaluationScore;
-		pawnCacheValid = true;
+		int pawnEvaluationScore = 0;
+		if (pm.getTheBoard().getWhitePawns() != 0)
+			pawnEvaluationScore += evaluatePawnsForColour(Colour.white);
+		if (pm.getTheBoard().getBlackPawns() != 0)
+			pawnEvaluationScore += evaluatePawnsForColour(Colour.black);
 		return pawnEvaluationScore;
 	}
 
-	private int evaluatePawnsForColour(Colour onMoveWas) {
+	private int evaluatePawnsForColour(Colour side) {
 		Board board = pm.getTheBoard();
 		int passedPawnBoost = 0;
-		int pawnHandicap = -board.countDoubledPawnsForSide(onMoveWas)*DOUBLED_PAWN_HANDICAP;
-		int ownPawns = Colour.isWhite(onMoveWas) ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
+		int pawnHandicap = -board.countDoubledPawnsForSide(side)*DOUBLED_PAWN_HANDICAP;
+		int ownPawns = Colour.isWhite(side) ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
 		PrimitiveIterator.OfInt iter = board.iterateType(ownPawns);
 		while (iter.hasNext()) {
 			int pawn = iter.nextInt();
-			if (board.isPassedPawn(pawn, onMoveWas)) {
+			if (board.isPassedPawn(pawn, side)) {
 				if (Position.getFile(pawn) == IntFile.Fa || Position.getFile(pawn) == IntFile.Fh) {
 					passedPawnBoost += ROOK_FILE_PASSED_PAWN_BOOST;
 				} else {
@@ -102,7 +90,7 @@ public class PositionEvaluator implements IEvaluate {
 				}
 			}
 		}
-		if (Colour.isBlack(onMoveWas)) {
+		if (Colour.isBlack(side)) {
 			pawnHandicap = -pawnHandicap;
 			passedPawnBoost = -passedPawnBoost;
 		}
