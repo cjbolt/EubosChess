@@ -3,29 +3,26 @@ package eubos.position;
 class MoveTracker {
 	
 	private static final int CAPACITY = 400;
-	private TrackedMove[] stack;
+	private long[] stack;
 	private int index = 0;
 	
 	MoveTracker() {
-		stack = new TrackedMove[CAPACITY];
+		stack = new long[CAPACITY];
 		for (int i = 0; i < CAPACITY; i++) {
-			stack[i] = new TrackedMove(Move.NULL_MOVE);
+			stack[i] = Move.NULL_MOVE;
 		}
 		index = 0;
 	}
 	
-	public void push(int move, int cap, int enPassant, int castlingFlags) {
+	public void push(long tm) {
 		if (index < CAPACITY) {
-			stack[index].setCaptureData(cap);
-			stack[index].setEnPassantTarget(enPassant);
-			stack[index].setMove(move);
-			stack[index].setCastlingFlags(castlingFlags);
+			stack[index] = tm;
 			index += 1;
 		}
 	}
 	
-	public TrackedMove pop() {
-		TrackedMove tm = null;
+	public long pop() {
+		long tm = TrackedMove.NULL_TRACKED_MOVE;
 		if (!isEmpty()) {
 			index -= 1;
 			tm = stack[index];
@@ -36,7 +33,7 @@ class MoveTracker {
 	public int getCaptureData() {
 		int captured = 0;
 		if ( !isEmpty()) {
-			captured = stack[index-1].getCaptureData();
+			captured = TrackedMove.getCaptureData(stack[index-1]);
 		}
 		return captured;
 	}
@@ -44,7 +41,7 @@ class MoveTracker {
 	public boolean lastMoveWasCheck() {
 		boolean wasCheck = false;
 		if ( !isEmpty()) {
-			wasCheck = Move.isCheck(stack[index-1].getMove());
+			wasCheck = Move.isCheck(TrackedMove.getMove(stack[index-1]));
 		}
 		return wasCheck;
 	}
