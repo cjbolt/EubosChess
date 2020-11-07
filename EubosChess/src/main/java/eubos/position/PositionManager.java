@@ -108,8 +108,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Save previous en passant square and initialise for this move
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		
-		int cap = theBoard.doMove(move);
-		moveTracker.push(TrackedMove.valueOf(move, cap, prevEnPassantTargetSq, castling.getFlags()));
+		int capturedPieceSquare = theBoard.doMove(move);
+		moveTracker.push(TrackedMove.valueOf(move, capturedPieceSquare, prevEnPassantTargetSq, castling.getFlags()));
 		
 		// update castling flags
 		castling.updateFlags(move);
@@ -119,7 +119,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			if (hash != null) {
 				int enPasTargetSq = theBoard.getEnPassantTargetSq();
 				Boolean setEnPassant = (enPasTargetSq != Position.NOPOSITION);
-				hash.update(move, cap, setEnPassant ? Position.getFile(enPasTargetSq) : IntFile.NOFILE);
+				hash.update(move, capturedPieceSquare, setEnPassant ? Position.getFile(enPasTargetSq) : IntFile.NOFILE);
 			}
 			// Update the draw checker
 			repetitionPossible = dc.incrementPositionReachedCount(getHash());
@@ -138,7 +138,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public void unperformMove(boolean computeHash) throws InvalidPieceException {
 		long tm = moveTracker.pop();
-		int cap = TrackedMove.getCaptureData(tm);
+		int capturedPieceSquare = TrackedMove.getCaptureData(tm);
 		
 		int move = TrackedMove.getMove(tm);
 		if (pe.isPawnCacheValid() && Move.invalidatesPawnCache(move)) {
@@ -146,7 +146,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		}
 		
 		int reversedMove = Move.reverse(move);
-		theBoard.undoMove(reversedMove, cap);
+		theBoard.undoMove(reversedMove, capturedPieceSquare);
 		
 		// Restore castling
 		castling.setFlags(TrackedMove.getCastlingFlags(tm));
@@ -159,7 +159,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			dc.decrementPositionReachedCount(getHash());
 
 			int enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? Position.getFile(enPasTargetSq) : IntFile.NOFILE;
-			hash.update(reversedMove, cap, enPassantFile);
+			hash.update(reversedMove, capturedPieceSquare, enPassantFile);
 			
 			repetitionPossible = dc.isPositionOpponentCouldClaimDraw(getHash());
 		}

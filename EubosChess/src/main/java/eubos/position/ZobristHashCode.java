@@ -117,10 +117,10 @@ public class ZobristHashCode {
 	}
 	
 	// Used to update the Zobrist hash code whenever a position changes due to a move being performed
-	public void update(int move, int captureTarget, int enPassantFile) {
+	public void update(int move, int capturedPieceSquare, int enPassantFile) {
 		int piece = Move.getOriginPiece(move);
 		doBasicMove(move, piece);
-		doCapturedPiece(captureTarget);
+		doCapturedPiece(Move.getTargetPiece(move), capturedPieceSquare);
 		doEnPassant(enPassantFile);
      	doSecondaryMove(move, piece);
 		doCastlingFlags();
@@ -149,9 +149,9 @@ public class ZobristHashCode {
 		}
 	}
 
-	protected void doCapturedPiece(int captureTarget) {
-		if (CaptureData.getPiece(captureTarget) != Piece.NONE)
-			hashCode ^= getPrnForPiece(CaptureData.getSquare(captureTarget), CaptureData.getPiece(captureTarget));
+	protected void doCapturedPiece(int targetPiece, int capturedPieceSquare) {
+		if (targetPiece != Piece.NONE)
+			hashCode ^= getPrnForPiece(capturedPieceSquare, targetPiece);
 	}
 
 	private void setTargetFile(int enPasFile) {

@@ -6,23 +6,24 @@ public final class TrackedMove {
 	private static final int MOVE_SHIFT = 0;
 	private static final long MOVE_MASK = 0xFFFFFFFFL << MOVE_SHIFT;
 	
-	private static final int CAPTURE_SHIFT = 32;
-	private static final long CAPTURE_MASK = 0xFFFFL << CAPTURE_SHIFT;
+	private static final int CAPTURED_PIECE_POSITION_SHIFT = 32;
+	private static final long CAPTURED_PIECE_POSITION_MASK = 0xFFL << CAPTURED_PIECE_POSITION_SHIFT;
 	
-	private static final int EN_PASSANT_SHIFT = CAPTURE_SHIFT + 16;
+	private static final int EN_PASSANT_SHIFT = CAPTURED_PIECE_POSITION_SHIFT + 8;
 	private static final long EN_PASSANT_MASK = 0xFFL << EN_PASSANT_SHIFT;
 	
 	private static final int CASTLING_SHIFT = EN_PASSANT_SHIFT + 8;
 	private static final long CASTLING_MASK = 0xFL << CASTLING_SHIFT;	
 	
-	private static final long DEFAULT_VALUE = 0x7FL << EN_PASSANT_SHIFT;
+	private static final long DEFAULT_VALUE = (0x7FL << EN_PASSANT_SHIFT) | (0x7FL << CAPTURED_PIECE_POSITION_SHIFT);
 	
 	public static long valueOf(int move, int capture, int enP, int castling) {
 		// Default value is the most common value - optimisation
 		long trackedMove = DEFAULT_VALUE;
-		if (capture != 0) {
+		if (capture != Position.NOPOSITION) {
 			long cap = capture;
-			trackedMove |= cap << CAPTURE_SHIFT;
+			trackedMove &= ~CAPTURED_PIECE_POSITION_MASK;
+			trackedMove |= cap << CAPTURED_PIECE_POSITION_SHIFT;
 		}
 		if (enP != Position.NOPOSITION) {
 			long enPassant = enP;
@@ -48,12 +49,12 @@ public final class TrackedMove {
 		return trackedMove;
 	}
 	public static int getCaptureData(long trackedMove) {
-		long cap = (trackedMove & CAPTURE_MASK) >>> CAPTURE_SHIFT;
+		long cap = (trackedMove & CAPTURED_PIECE_POSITION_MASK) >>> CAPTURED_PIECE_POSITION_SHIFT;
 		return (int)cap;
 	}
 	public static long setCaptureData(long trackedMove, int capturedPiece) {
-		trackedMove &= ~CAPTURE_MASK;
-		trackedMove |= capturedPiece << CAPTURE_SHIFT;
+		trackedMove &= ~CAPTURED_PIECE_POSITION_MASK;
+		trackedMove |= capturedPiece << CAPTURED_PIECE_POSITION_SHIFT;
 		return trackedMove;
 	}
 	public static int getEnPassantTarget(long trackedMove) {
