@@ -43,36 +43,19 @@ public final class TrackedMove {
 		long move = trackedMove & MOVE_MASK;
 		return (int) move;
 	}
-	public static long setMove(long trackedMove, int move) {
-		trackedMove &= ~MOVE_MASK;
-		trackedMove |= move;
-		return trackedMove;
-	}
-	public static int getCaptureData(long trackedMove) {
+	
+	public static int getCapturedPieceSquare(long trackedMove) {
 		long cap = (trackedMove & CAPTURED_PIECE_POSITION_MASK) >>> CAPTURED_PIECE_POSITION_SHIFT;
 		return (int)cap;
 	}
-	public static long setCaptureData(long trackedMove, int capturedPiece) {
-		trackedMove &= ~CAPTURED_PIECE_POSITION_MASK;
-		trackedMove |= capturedPiece << CAPTURED_PIECE_POSITION_SHIFT;
-		return trackedMove;
-	}
+	
 	public static int getEnPassantTarget(long trackedMove) {
 		long enP = (trackedMove & EN_PASSANT_MASK) >>> EN_PASSANT_SHIFT;
 		return (int) enP;
 	}
-	public static long setEnPassantTarget(long trackedMove, int enPassantTarget) {
-		trackedMove &= ~EN_PASSANT_MASK;
-		trackedMove |= enPassantTarget << EN_PASSANT_SHIFT;
-		return trackedMove;
-	}
+	
 	public static int getCastlingFlags(long trackedMove) {
 		long flags = (trackedMove & CASTLING_MASK) >>> CASTLING_SHIFT;
 		return (int) flags;
-	}
-	public static long setCastlingFlags(long trackedMove, int flags) {
-		trackedMove &= ~CASTLING_MASK;
-		trackedMove |= flags << CASTLING_SHIFT;
-		return trackedMove;
 	}
 }

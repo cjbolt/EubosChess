@@ -8,9 +8,6 @@ class MoveTracker {
 	
 	MoveTracker() {
 		stack = new long[CAPACITY];
-		for (int i = 0; i < CAPACITY; i++) {
-			stack[i] = Move.NULL_MOVE;
-		}
 		index = 0;
 	}
 	
@@ -30,10 +27,10 @@ class MoveTracker {
 		return tm;
 	}
 	
-	public int getCaptureData() {
+	public int getCapturedPieceSquare() {
 		int captured = 0;
 		if ( !isEmpty()) {
-			captured = TrackedMove.getCaptureData(stack[index-1]);
+			captured = TrackedMove.getCapturedPieceSquare(stack[index-1]);
 		}
 		return captured;
 	}

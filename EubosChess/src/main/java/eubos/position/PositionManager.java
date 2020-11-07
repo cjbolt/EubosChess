@@ -57,7 +57,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	public int getCaptureData() {
-		return moveTracker.getCaptureData();
+		return moveTracker.getCapturedPieceSquare();
 	}
 	
 	// No public setter, because onMove is only changed by performing a move on the board.
@@ -102,9 +102,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	public void performMove( int move, boolean computeHash ) throws InvalidPieceException {
-		if (pe.isPawnCacheValid() && Move.invalidatesPawnCache(move)) {
-			pe.invalidatePawnCache();
-		}
+
 		// Save previous en passant square and initialise for this move
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		
@@ -138,14 +136,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public void unperformMove(boolean computeHash) throws InvalidPieceException {
 		long tm = moveTracker.pop();
-		int capturedPieceSquare = TrackedMove.getCaptureData(tm);
-		
-		int move = TrackedMove.getMove(tm);
-		if (pe.isPawnCacheValid() && Move.invalidatesPawnCache(move)) {
-			pe.invalidatePawnCache();
-		}
-		
-		int reversedMove = Move.reverse(move);
+		int capturedPieceSquare = TrackedMove.getCapturedPieceSquare(tm);
+				
+		int reversedMove = Move.reverse(TrackedMove.getMove(tm));
 		theBoard.undoMove(reversedMove, capturedPieceSquare);
 		
 		// Restore castling

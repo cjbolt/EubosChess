@@ -242,7 +242,6 @@ public class Board {
 		int pieceToMove = Move.getOriginPiece(move);
 		int originSquare = Move.getOriginPosition(move);
 		int targetSquare = Move.getTargetPosition(move);
-		int targetPiece = Move.getTargetPiece(move);
 		int promotedPiece = Move.getPromotion(move);
 		long initialSquareMask = BitBoard.positionToMask_Lut[originSquare];
 		long targetSquareMask = BitBoard.positionToMask_Lut[targetSquare];
@@ -270,6 +269,7 @@ public class Board {
 				if (Piece.isKing(pieceToMove)) {
 					performSecondaryCastlingMove(move);
 				}
+				int targetPiece = Move.getTargetPiece(move);
 				if (targetPiece != Piece.NONE) {
 					pickUpPieceAtSquare(targetSquare);
 					// Is not an en passant capture, so the captured piece is on the target square
@@ -301,12 +301,10 @@ public class Board {
 		int originPiece = Move.getOriginPiece(moveToUndo);
 		int originSquare = Move.getOriginPosition(moveToUndo);
 		int targetSquare = Move.getTargetPosition(moveToUndo);
-		int targetPiece = Move.getTargetPiece(moveToUndo);
 		int promotedPiece = Move.getPromotion(moveToUndo);
 		long initialSquareMask = BitBoard.positionToMask_Lut[originSquare];
 		long targetSquareMask = BitBoard.positionToMask_Lut[targetSquare];
 		long positionsMask = initialSquareMask | targetSquareMask;
-		boolean isCapture = targetPiece != Piece.NONE;
 		
 		// Handle reversal of any castling secondary rook moves on the board
 		if (Piece.isKing(originPiece)) {
@@ -331,7 +329,8 @@ public class Board {
 		allPieces ^= positionsMask;
 		
 		// Undo any capture that had been previously performed.
-		if (isCapture) {
+		if (capturedPieceSquare != Position.NOPOSITION) {
+			int targetPiece = Move.getTargetPiece(moveToUndo);
 			setPieceAtSquare(capturedPieceSquare, targetPiece);
 		}
 	}
