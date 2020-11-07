@@ -60,7 +60,7 @@ public class PositionEvaluator implements IEvaluate {
 		SearchContextEvaluation eval = sc.computeSearchGoalBonus(pm.getTheBoard().me);
 		if (!eval.isDraw) {
 			eval.score += pm.getTheBoard().me.getDelta();
-			eval.score += evaluatePawnStructure();
+			//eval.score += evaluatePawnStructure();
 		}
 		return new Score(eval.score, Score.exact);
 	}
