@@ -56,10 +56,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return moveTracker.lastMoveWasCheck();
 	}
 	
-	public int getCaptureData() {
-		return moveTracker.getCaptureData();
-	}
-	
 	// No public setter, because onMove is only changed by performing a move on the board.
 	private Colour onMove;
 	public Colour getOnMove() {
@@ -102,14 +98,12 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	public void performMove( int move, boolean computeHash ) throws InvalidPieceException {
-		if (pe.isPawnCacheValid() && Move.invalidatesPawnCache(move)) {
-			pe.invalidatePawnCache();
-		}
+
 		// Save previous en passant square and initialise for this move
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		
-		int capturedPieceSquare = theBoard.doMove(move);
-		moveTracker.push(TrackedMove.valueOf(move, capturedPieceSquare, prevEnPassantTargetSq, castling.getFlags()));
+		boolean enPassantCapture = theBoard.doMove(move);
+		moveTracker.push(TrackedMove.valueOf(move, enPassantCapture, prevEnPassantTargetSq, castling.getFlags()));
 		
 		// update castling flags
 		castling.updateFlags(move);
@@ -119,7 +113,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			if (hash != null) {
 				int enPasTargetSq = theBoard.getEnPassantTargetSq();
 				Boolean setEnPassant = (enPasTargetSq != Position.NOPOSITION);
-				hash.update(move, capturedPieceSquare, setEnPassant ? Position.getFile(enPasTargetSq) : IntFile.NOFILE);
+				int capturePosition = (enPassantCapture) ? 
+						theBoard.generateCapturePositionForEnPassant(Move.getOriginPiece(move), Move.getTargetPosition(move)) : Move.getTargetPosition(move);
+				hash.update(move, capturePosition, setEnPassant ? Position.getFile(enPasTargetSq) : IntFile.NOFILE);
 			}
 			// Update the draw checker
 			repetitionPossible = dc.incrementPositionReachedCount(getHash());
@@ -138,15 +134,11 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public void unperformMove(boolean computeHash) throws InvalidPieceException {
 		long tm = moveTracker.pop();
-		int capturedPieceSquare = TrackedMove.getCaptureData(tm);
+		boolean enPassantCapture = TrackedMove.getCaptureData(tm);
 		
 		int move = TrackedMove.getMove(tm);
-		if (pe.isPawnCacheValid() && Move.invalidatesPawnCache(move)) {
-			pe.invalidatePawnCache();
-		}
-		
 		int reversedMove = Move.reverse(move);
-		theBoard.undoMove(reversedMove, capturedPieceSquare);
+		theBoard.undoMove(reversedMove, enPassantCapture);
 		
 		// Restore castling
 		castling.setFlags(TrackedMove.getCastlingFlags(tm));
@@ -159,7 +151,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			dc.decrementPositionReachedCount(getHash());
 
 			int enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? Position.getFile(enPasTargetSq) : IntFile.NOFILE;
-			hash.update(reversedMove, capturedPieceSquare, enPassantFile);
+			int capturePosition = (enPassantCapture) ? 
+					theBoard.generateCapturePositionForEnPassant(Move.getOriginPiece(move), Move.getTargetPosition(move)) : Move.getTargetPosition(move);
+			hash.update(reversedMove, capturePosition, enPassantFile);
 			
 			repetitionPossible = dc.isPositionOpponentCouldClaimDraw(getHash());
 		}

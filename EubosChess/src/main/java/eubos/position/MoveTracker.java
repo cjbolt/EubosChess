@@ -29,14 +29,6 @@ class MoveTracker {
 		}
 		return tm;
 	}
-	
-	public int getCaptureData() {
-		int captured = 0;
-		if ( !isEmpty()) {
-			captured = TrackedMove.getCaptureData(stack[index-1]);
-		}
-		return captured;
-	}
 
 	public boolean lastMoveWasCheck() {
 		boolean wasCheck = false;

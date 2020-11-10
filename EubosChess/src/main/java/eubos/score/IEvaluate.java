@@ -6,6 +6,4 @@ public interface IEvaluate {
 	Score evaluatePosition();
 	boolean isQuiescent(int currMove);
 	short getScoreForStalemate();
-	void invalidatePawnCache();
-	boolean isPawnCacheValid();
 }

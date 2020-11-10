@@ -15,15 +15,13 @@ public final class TrackedMove {
 	private static final int CASTLING_SHIFT = EN_PASSANT_SHIFT + 8;
 	private static final long CASTLING_MASK = 0xFL << CASTLING_SHIFT;	
 	
-	private static final long DEFAULT_VALUE = (0x7FL << EN_PASSANT_SHIFT) | (0x7FL << CAPTURED_PIECE_POSITION_SHIFT);
+	private static final long DEFAULT_VALUE = (0x7FL << EN_PASSANT_SHIFT);
 	
-	public static long valueOf(int move, int capture, int enP, int castling) {
+	public static long valueOf(int move, boolean enPassantCapture, int enP, int castling) {
 		// Default value is the most common value - optimisation
 		long trackedMove = DEFAULT_VALUE;
-		if (capture != Position.NOPOSITION) {
-			long cap = capture;
-			trackedMove &= ~CAPTURED_PIECE_POSITION_MASK;
-			trackedMove |= cap << CAPTURED_PIECE_POSITION_SHIFT;
+		if (enPassantCapture) {
+			trackedMove |= 0x1L << CAPTURED_PIECE_POSITION_SHIFT;
 		}
 		if (enP != Position.NOPOSITION) {
 			long enPassant = enP;
@@ -43,36 +41,18 @@ public final class TrackedMove {
 		long move = trackedMove & MOVE_MASK;
 		return (int) move;
 	}
-	public static long setMove(long trackedMove, int move) {
-		trackedMove &= ~MOVE_MASK;
-		trackedMove |= move;
-		return trackedMove;
+	
+	public static boolean getCaptureData(long trackedMove) {
+		return ((trackedMove & CAPTURED_PIECE_POSITION_MASK) != 0);
 	}
-	public static int getCaptureData(long trackedMove) {
-		long cap = (trackedMove & CAPTURED_PIECE_POSITION_MASK) >>> CAPTURED_PIECE_POSITION_SHIFT;
-		return (int)cap;
-	}
-	public static long setCaptureData(long trackedMove, int capturedPiece) {
-		trackedMove &= ~CAPTURED_PIECE_POSITION_MASK;
-		trackedMove |= capturedPiece << CAPTURED_PIECE_POSITION_SHIFT;
-		return trackedMove;
-	}
+	
 	public static int getEnPassantTarget(long trackedMove) {
 		long enP = (trackedMove & EN_PASSANT_MASK) >>> EN_PASSANT_SHIFT;
 		return (int) enP;
 	}
-	public static long setEnPassantTarget(long trackedMove, int enPassantTarget) {
-		trackedMove &= ~EN_PASSANT_MASK;
-		trackedMove |= enPassantTarget << EN_PASSANT_SHIFT;
-		return trackedMove;
-	}
+	
 	public static int getCastlingFlags(long trackedMove) {
 		long flags = (trackedMove & CASTLING_MASK) >>> CASTLING_SHIFT;
 		return (int) flags;
-	}
-	public static long setCastlingFlags(long trackedMove, int flags) {
-		trackedMove &= ~CASTLING_MASK;
-		trackedMove |= flags << CASTLING_SHIFT;
-		return trackedMove;
 	}
 }

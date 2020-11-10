@@ -237,8 +237,8 @@ public class Board {
 		}
 	}
 	
-	public int doMove(int move) throws InvalidPieceException {
-		int capturedPieceSquare = Position.NOPOSITION;
+	public boolean doMove(int move) throws InvalidPieceException {
+		boolean enPassantCapture = false;
 		int pieceToMove = Move.getOriginPiece(move);
 		int originSquare = Move.getOriginPosition(move);
 		int targetSquare = Move.getTargetPosition(move);
@@ -250,19 +250,9 @@ public class Board {
 		
 		if (isEnPassantCapture(pieceToMove, targetSquare)) {
 			// Handle en passant captures, don't need to do other checks in this case
-			int rank = IntRank.NORANK;
-			if (pieceToMove == Piece.WHITE_PAWN) {
-				rank = IntRank.R5;
-			} else if (pieceToMove == Piece.BLACK_PAWN){
-				rank = IntRank.R4;
-			} else {
-				if (EubosEngineMain.ASSERTS_ENABLED)
-					assert false;
-			}
-			int capturePos = Position.valueOf(Position.getFile(targetSquare), rank);
+			int capturePos = generateCapturePositionForEnPassant(pieceToMove, targetSquare);
 			pickUpPieceAtSquare(capturePos);
-			// For en passant captures the captured piece is not on the target square for the piece moving
-			capturedPieceSquare = capturePos;
+			enPassantCapture = true;
 		} else {
 			// handle castling, setting en passant etc
 			if (checkToSetEnPassantTargetSq(move) == IntFile.NOFILE) {
@@ -272,8 +262,6 @@ public class Board {
 				}
 				if (targetPiece != Piece.NONE) {
 					pickUpPieceAtSquare(targetSquare);
-					// Is not an en passant capture, so the captured piece is on the target square
-					capturedPieceSquare = targetSquare;
 				}
 			}			
 		}
@@ -294,10 +282,10 @@ public class Board {
 		}
 		// Switch all pieces bitboard
 		allPieces ^= positionsMask;
-		return capturedPieceSquare;
+		return enPassantCapture;
 	}
 	
-	public void undoMove(int moveToUndo, int capturedPieceSquare) throws InvalidPieceException {
+	public void undoMove(int moveToUndo, boolean isEnpassantCapture) throws InvalidPieceException {
 		int originPiece = Move.getOriginPiece(moveToUndo);
 		int originSquare = Move.getOriginPosition(moveToUndo);
 		int targetSquare = Move.getTargetPosition(moveToUndo);
@@ -332,8 +320,24 @@ public class Board {
 		
 		// Undo any capture that had been previously performed.
 		if (isCapture) {
+			// Origin square because the move has been reversed and origin square is the original target square
+			int capturedPieceSquare = isEnpassantCapture ? generateCapturePositionForEnPassant(originPiece, originSquare) : originSquare;
 			setPieceAtSquare(capturedPieceSquare, targetPiece);
 		}
+	}
+	
+	public int generateCapturePositionForEnPassant(int pieceToMove, int targetSquare) {
+		int rank = IntRank.NORANK;
+		if (pieceToMove == Piece.WHITE_PAWN) {
+			rank = IntRank.R5;
+		} else if (pieceToMove == Piece.BLACK_PAWN){
+			rank = IntRank.R4;
+		} else {
+			if (EubosEngineMain.ASSERTS_ENABLED)
+				assert false;
+		}
+		int capturePos = Position.valueOf(Position.getFile(targetSquare), rank);
+		return capturePos;
 	}
 	
 	private boolean isEnPassantCapture(int pieceToMove, int targetSquare) {

@@ -111,7 +111,6 @@ public class PlySearcher {
 					pc.set(currPly, eval.trans.getBestMove());
 				}
 				theScore = new Score(adjustedScoreForThisPositionInTree, eval.trans.getType());
-				pe.invalidatePawnCache();
 			}
 			if (EubosEngineMain.UCI_INFO_ENABLED)
 				sm.incrementNodesSearched();

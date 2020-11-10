@@ -58,29 +58,13 @@ public class PositionEvaluator implements IEvaluate {
 		SearchContextEvaluation eval = sc.computeSearchGoalBonus(pm.getTheBoard().me);
 		if (!eval.isDraw) {
 			eval.score += pm.getTheBoard().me.getDelta();
-			eval.score += (pawnCacheValid) ? pawnCache : evaluatePawnStructure();
 		}
 		return new Score(eval.score, Score.exact);
-	}
-		
-	int pawnCache = 0;
-	boolean pawnCacheValid = false;
-	
-	public void invalidatePawnCache() {
-		pawnCache = 0;
-		pawnCacheValid = false;
-	}
-	
-	@Override
-	public boolean isPawnCacheValid() {
-		return pawnCacheValid;
 	}
 	
 	int evaluatePawnStructure() {
 		int pawnEvaluationScore = evaluatePawnsForColour(pm.getOnMove());
 		pawnEvaluationScore += evaluatePawnsForColour(Colour.getOpposite(pm.getOnMove()));
-		pawnCache = pawnEvaluationScore;
-		pawnCacheValid = true;
 		return pawnEvaluationScore;
 	}
 
