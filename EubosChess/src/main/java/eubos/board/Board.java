@@ -247,6 +247,7 @@ public class Board {
 		long targetSquareMask = BitBoard.positionToMask_Lut[targetSquare];
 		long positionsMask = initialSquareMask | targetSquareMask;
 		
+		// Initialise En Passant target square
 		setEnPassantTargetSq(Position.NOPOSITION);
 		
 		if (Move.isEnPassantCapture(move)) {
@@ -254,8 +255,8 @@ public class Board {
 			int capturePos = generateCapturePositionForEnPassant(pieceToMove, targetSquare);
 			pickUpPieceAtSquare(capturePos, targetPiece);
 		} else {
-			// handle castling, setting en passant etc
-			if (checkToSetEnPassantTargetSq(move) == IntFile.NOFILE) {
+			// Handle castling, setting en passant etc
+			if (checkToSetEnPassantTargetSq(pieceToMove, originSquare, targetSquare) == IntFile.NOFILE) {
 				// Handle castling secondary rook moves...
 				if (Piece.isKing(pieceToMove)) {
 					performSecondaryCastlingMove(move);
@@ -339,23 +340,23 @@ public class Board {
 		return capturePos;
 	}
 	
-	private int checkToSetEnPassantTargetSq(int move) {
+	private int checkToSetEnPassantTargetSq(int originPiece, int originSquare, int targetSquare) {
 		int enPassantFile = IntFile.NOFILE;
-		if (Move.getOriginPiece(move) == Piece.WHITE_PAWN) {
-			int potentialEnPassantFile = Position.getFile(Move.getOriginPosition(move));
-			if ( Position.getRank(Move.getOriginPosition(move)) == IntRank.R2) {
-				if (Position.getRank(Move.getTargetPosition(move)) == IntRank.R4) {
+		if (originPiece == Piece.WHITE_PAWN) {
+			int potentialEnPassantFile = Position.getFile(originSquare);
+			if ( Position.getRank(originSquare) == IntRank.R2) {
+				if (Position.getRank(targetSquare) == IntRank.R4) {
 					enPassantFile = potentialEnPassantFile;
-					int enPassantWhite = Position.valueOf(enPassantFile,IntRank.R3);
+					int enPassantWhite = Position.valueOf(enPassantFile, IntRank.R3);
 					setEnPassantTargetSq(enPassantWhite);
 				}
 			}
-		} else if (Move.getOriginPiece(move) == Piece.BLACK_PAWN) {
-			int potentialEnPassantFile = Position.getFile(Move.getOriginPosition(move));
-			if (Position.getRank(Move.getOriginPosition(move)) == IntRank.R7) {
-				if (Position.getRank(Move.getTargetPosition(move)) == IntRank.R5) {
+		} else if (originPiece == Piece.BLACK_PAWN) {
+			int potentialEnPassantFile = Position.getFile(originSquare);
+			if (Position.getRank(originSquare) == IntRank.R7) {
+				if (Position.getRank(targetSquare) == IntRank.R5) {
 					enPassantFile = potentialEnPassantFile;
-					int enPassantBlack = Position.valueOf(enPassantFile,IntRank.R6);
+					int enPassantBlack = Position.valueOf(enPassantFile, IntRank.R6);
 					setEnPassantTargetSq(enPassantBlack);
 				}
 			}
