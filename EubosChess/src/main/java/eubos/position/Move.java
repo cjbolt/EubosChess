@@ -28,14 +28,16 @@ public final class Move {
 	public static final int TYPE_REGULAR_NONE = 0;
 	public static final int TYPE_CASTLE_BIT = 0;
 	public static final int TYPE_CHECK_BIT = 1;
-	public static final int TYPE_CAPTURE_BIT = 2;
-	public static final int TYPE_PROMOTION_PIECE_BIT = 3;
-	public static final int TYPE_PROMOTION_QUEEN_BIT = 4;
+	public static final int TYPE_EN_PASSANT_CAPTURE_BIT = 2;
+	public static final int TYPE_CAPTURE_BIT = 3;
+	public static final int TYPE_PROMOTION_PIECE_BIT = 4;
+	public static final int TYPE_PROMOTION_QUEEN_BIT = 5;
 	public static final int TYPE_WIDTH = TYPE_PROMOTION_QUEEN_BIT + 1;
 	
 	public static final int TYPE_PROMOTION_QUEEN_MASK = (0x1 << TYPE_PROMOTION_QUEEN_BIT);
 	public static final int TYPE_PROMOTION_PIECE_MASK = (0x1 << TYPE_PROMOTION_PIECE_BIT);
 	public static final int TYPE_CAPTURE_MASK = (0x1 << TYPE_CAPTURE_BIT);
+	public static final int TYPE_EN_PASSANT_CAPTURE_MASK = (0x1 << TYPE_EN_PASSANT_CAPTURE_BIT);
 	public static final int TYPE_CHECK_MASK = (0x1 << TYPE_CHECK_BIT);
 	public static final int TYPE_CASTLE_MASK = (0x1 << TYPE_CASTLE_BIT);
 	
@@ -381,5 +383,9 @@ public final class Move {
 
 	public static int setCheck(int move) {
 		return (move |= (Move.TYPE_CHECK_MASK << TYPE_SHIFT));
+	}
+
+	public static boolean isEnPassantCapture(int move) {
+		return (move & ((Move.TYPE_EN_PASSANT_CAPTURE_MASK) << TYPE_SHIFT)) != 0;
 	}
 }

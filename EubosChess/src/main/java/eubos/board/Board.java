@@ -237,8 +237,7 @@ public class Board {
 		}
 	}
 	
-	public boolean doMove(int move) throws InvalidPieceException {
-		boolean enPassantCapture = false;
+	public void doMove(int move) throws InvalidPieceException {
 		int pieceToMove = Move.getOriginPiece(move);
 		int originSquare = Move.getOriginPosition(move);
 		int targetSquare = Move.getTargetPosition(move);
@@ -248,11 +247,12 @@ public class Board {
 		long targetSquareMask = BitBoard.positionToMask_Lut[targetSquare];
 		long positionsMask = initialSquareMask | targetSquareMask;
 		
-		if (isEnPassantCapture(pieceToMove, targetSquare)) {
+		setEnPassantTargetSq(Position.NOPOSITION);
+		
+		if (Move.isEnPassantCapture(move)) {
 			// Handle en passant captures, don't need to do other checks in this case
 			int capturePos = generateCapturePositionForEnPassant(pieceToMove, targetSquare);
-			pickUpPieceAtSquare(capturePos);
-			enPassantCapture = true;
+			pickUpPieceAtSquare(capturePos, targetPiece);
 		} else {
 			// handle castling, setting en passant etc
 			if (checkToSetEnPassantTargetSq(move) == IntFile.NOFILE) {
@@ -261,7 +261,7 @@ public class Board {
 					performSecondaryCastlingMove(move);
 				}
 				if (targetPiece != Piece.NONE) {
-					pickUpPieceAtSquare(targetSquare);
+					pickUpPieceAtSquare(targetSquare, targetPiece);
 				}
 			}			
 		}
@@ -282,10 +282,9 @@ public class Board {
 		}
 		// Switch all pieces bitboard
 		allPieces ^= positionsMask;
-		return enPassantCapture;
 	}
 	
-	public void undoMove(int moveToUndo, boolean isEnpassantCapture) throws InvalidPieceException {
+	public void undoMove(int moveToUndo) throws InvalidPieceException {
 		int originPiece = Move.getOriginPiece(moveToUndo);
 		int originSquare = Move.getOriginPosition(moveToUndo);
 		int targetSquare = Move.getTargetPosition(moveToUndo);
@@ -321,7 +320,7 @@ public class Board {
 		// Undo any capture that had been previously performed.
 		if (isCapture) {
 			// Origin square because the move has been reversed and origin square is the original target square
-			int capturedPieceSquare = isEnpassantCapture ? generateCapturePositionForEnPassant(originPiece, originSquare) : originSquare;
+			int capturedPieceSquare = Move.isEnPassantCapture(moveToUndo) ? generateCapturePositionForEnPassant(originPiece, originSquare) : originSquare;
 			setPieceAtSquare(capturedPieceSquare, targetPiece);
 		}
 	}
@@ -338,17 +337,6 @@ public class Board {
 		}
 		int capturePos = Position.valueOf(Position.getFile(targetSquare), rank);
 		return capturePos;
-	}
-	
-	private boolean isEnPassantCapture(int pieceToMove, int targetSquare) {
-		boolean enPassantCapture = false;
-		if ( getEnPassantTargetSq() != Position.NOPOSITION &&
-			 Piece.isPawn(pieceToMove) && 
-			 targetSquare == getEnPassantTargetSq()) {
-			enPassantCapture = true;
-		}
-		setEnPassantTargetSq(Position.NOPOSITION);
-		return enPassantCapture;
 	}
 	
 	private int checkToSetEnPassantTargetSq(int move) {

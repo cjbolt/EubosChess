@@ -102,8 +102,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Save previous en passant square and initialise for this move
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		
-		boolean enPassantCapture = theBoard.doMove(move);
-		moveTracker.push(TrackedMove.valueOf(move, enPassantCapture, prevEnPassantTargetSq, castling.getFlags()));
+		theBoard.doMove(move);
+		moveTracker.push(TrackedMove.valueOf(move, prevEnPassantTargetSq, castling.getFlags()));
 		
 		// update castling flags
 		castling.updateFlags(move);
@@ -113,7 +113,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			if (hash != null) {
 				int enPasTargetSq = theBoard.getEnPassantTargetSq();
 				Boolean setEnPassant = (enPasTargetSq != Position.NOPOSITION);
-				int capturePosition = (enPassantCapture) ? 
+				int capturePosition = Move.isEnPassantCapture(move) ? 
 						theBoard.generateCapturePositionForEnPassant(Move.getOriginPiece(move), Move.getTargetPosition(move)) : Move.getTargetPosition(move);
 				hash.update(move, capturePosition, setEnPassant ? Position.getFile(enPasTargetSq) : IntFile.NOFILE);
 			}
@@ -133,12 +133,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	public void unperformMove(boolean computeHash) throws InvalidPieceException {
-		long tm = moveTracker.pop();
-		boolean enPassantCapture = TrackedMove.getCaptureData(tm);
-		
+		long tm = moveTracker.pop();		
 		int move = TrackedMove.getMove(tm);
 		int reversedMove = Move.reverse(move);
-		theBoard.undoMove(reversedMove, enPassantCapture);
+		theBoard.undoMove(reversedMove);
 		
 		// Restore castling
 		castling.setFlags(TrackedMove.getCastlingFlags(tm));
@@ -151,7 +149,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			dc.decrementPositionReachedCount(getHash());
 
 			int enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? Position.getFile(enPasTargetSq) : IntFile.NOFILE;
-			int capturePosition = (enPassantCapture) ? 
+			int capturePosition = Move.isEnPassantCapture(move) ? 
 					theBoard.generateCapturePositionForEnPassant(Move.getOriginPiece(move), Move.getTargetPosition(move)) : Move.getTargetPosition(move);
 			hash.update(reversedMove, capturePosition, enPassantFile);
 			

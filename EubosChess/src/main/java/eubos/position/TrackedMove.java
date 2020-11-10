@@ -6,10 +6,7 @@ public final class TrackedMove {
 	private static final int MOVE_SHIFT = 0;
 	private static final long MOVE_MASK = 0xFFFFFFFFL << MOVE_SHIFT;
 	
-	private static final int CAPTURED_PIECE_POSITION_SHIFT = 32;
-	private static final long CAPTURED_PIECE_POSITION_MASK = 0xFFL << CAPTURED_PIECE_POSITION_SHIFT;
-	
-	private static final int EN_PASSANT_SHIFT = CAPTURED_PIECE_POSITION_SHIFT + 8;
+	private static final int EN_PASSANT_SHIFT = MOVE_SHIFT + 32;
 	private static final long EN_PASSANT_MASK = 0xFFL << EN_PASSANT_SHIFT;
 	
 	private static final int CASTLING_SHIFT = EN_PASSANT_SHIFT + 8;
@@ -17,12 +14,9 @@ public final class TrackedMove {
 	
 	private static final long DEFAULT_VALUE = (0x7FL << EN_PASSANT_SHIFT);
 	
-	public static long valueOf(int move, boolean enPassantCapture, int enP, int castling) {
+	public static long valueOf(int move, int enP, int castling) {
 		// Default value is the most common value - optimisation
 		long trackedMove = DEFAULT_VALUE;
-		if (enPassantCapture) {
-			trackedMove |= 0x1L << CAPTURED_PIECE_POSITION_SHIFT;
-		}
 		if (enP != Position.NOPOSITION) {
 			long enPassant = enP;
 			trackedMove &= ~EN_PASSANT_MASK;
@@ -40,10 +34,6 @@ public final class TrackedMove {
 	public static int getMove(long trackedMove) {
 		long move = trackedMove & MOVE_MASK;
 		return (int) move;
-	}
-	
-	public static boolean getCaptureData(long trackedMove) {
-		return ((trackedMove & CAPTURED_PIECE_POSITION_MASK) != 0);
 	}
 	
 	public static int getEnPassantTarget(long trackedMove) {
