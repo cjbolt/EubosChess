@@ -339,6 +339,7 @@ public abstract class Piece {
 			pawn_checkPromotionAddMove(ownPiece, theBoard, atSquare, ownSide, moveList, moveTo, Piece.NONE);
 			moveTo = pawn_genTwoSqTarget(atSquare, ownSide);
 			if ( moveTo != Position.NOPOSITION && theBoard.squareIsEmpty( moveTo )) {
+				// Can't be a promotion
 				moveList.add( Move.valueOf(atSquare, ownPiece, moveTo , Piece.NONE));
 			}	
 		}

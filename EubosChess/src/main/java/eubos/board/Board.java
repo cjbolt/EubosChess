@@ -237,7 +237,8 @@ public class Board {
 		}
 	}
 	
-	public void doMove(int move) throws InvalidPieceException {
+	public int doMove(int move) throws InvalidPieceException {
+		int capturePosition = Position.NOPOSITION;
 		int pieceToMove = Move.getOriginPiece(move);
 		int originSquare = Move.getOriginPosition(move);
 		int targetSquare = Move.getTargetPosition(move);
@@ -252,8 +253,8 @@ public class Board {
 		
 		if (Move.isEnPassantCapture(move)) {
 			// Handle en passant captures, don't need to do other checks in this case
-			int capturePos = generateCapturePositionForEnPassant(pieceToMove, targetSquare);
-			pickUpPieceAtSquare(capturePos, targetPiece);
+			capturePosition = generateCapturePositionForEnPassant(pieceToMove, targetSquare);
+			pickUpPieceAtSquare(capturePosition, targetPiece);
 		} else {
 			// Handle castling, setting en passant etc
 			if (checkToSetEnPassantTargetSq(pieceToMove, originSquare, targetSquare) == IntFile.NOFILE) {
@@ -262,6 +263,7 @@ public class Board {
 					performSecondaryCastlingMove(move);
 				}
 				if (targetPiece != Piece.NONE) {
+					capturePosition = targetSquare;
 					pickUpPieceAtSquare(targetSquare, targetPiece);
 				}
 			}			
@@ -283,9 +285,12 @@ public class Board {
 		}
 		// Switch all pieces bitboard
 		allPieces ^= positionsMask;
+		
+		return capturePosition;
 	}
 	
-	public void undoMove(int moveToUndo) throws InvalidPieceException {
+	public int undoMove(int moveToUndo) throws InvalidPieceException {
+		int capturedPieceSquare = Position.NOPOSITION;
 		int originPiece = Move.getOriginPiece(moveToUndo);
 		int originSquare = Move.getOriginPosition(moveToUndo);
 		int targetSquare = Move.getTargetPosition(moveToUndo);
@@ -321,9 +326,12 @@ public class Board {
 		// Undo any capture that had been previously performed.
 		if (isCapture) {
 			// Origin square because the move has been reversed and origin square is the original target square
-			int capturedPieceSquare = Move.isEnPassantCapture(moveToUndo) ? generateCapturePositionForEnPassant(originPiece, originSquare) : originSquare;
+			capturedPieceSquare = Move.isEnPassantCapture(moveToUndo) ? 
+					generateCapturePositionForEnPassant(originPiece, originSquare) : originSquare;
 			setPieceAtSquare(capturedPieceSquare, targetPiece);
 		}
+		
+		return capturedPieceSquare;
 	}
 	
 	public int generateCapturePositionForEnPassant(int pieceToMove, int targetSquare) {

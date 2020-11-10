@@ -102,7 +102,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Save previous en passant square and initialise for this move
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		
-		theBoard.doMove(move);
+		int capturePosition = theBoard.doMove(move);
 		moveTracker.push(TrackedMove.valueOf(move, prevEnPassantTargetSq, castling.getFlags()));
 		
 		// update castling flags
@@ -113,8 +113,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			if (hash != null) {
 				int enPasTargetSq = theBoard.getEnPassantTargetSq();
 				Boolean setEnPassant = (enPasTargetSq != Position.NOPOSITION);
-				int capturePosition = Move.isEnPassantCapture(move) ? 
-						theBoard.generateCapturePositionForEnPassant(Move.getOriginPiece(move), Move.getTargetPosition(move)) : Move.getTargetPosition(move);
 				hash.update(move, capturePosition, setEnPassant ? Position.getFile(enPasTargetSq) : IntFile.NOFILE);
 			}
 			// Update the draw checker
@@ -136,7 +134,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		long tm = moveTracker.pop();		
 		int move = TrackedMove.getMove(tm);
 		int reversedMove = Move.reverse(move);
-		theBoard.undoMove(reversedMove);
+		int capturePosition = theBoard.undoMove(reversedMove);
 		
 		// Restore castling
 		castling.setFlags(TrackedMove.getCastlingFlags(tm));
@@ -149,8 +147,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			dc.decrementPositionReachedCount(getHash());
 
 			int enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? Position.getFile(enPasTargetSq) : IntFile.NOFILE;
-			int capturePosition = Move.isEnPassantCapture(move) ? 
-					theBoard.generateCapturePositionForEnPassant(Move.getOriginPiece(move), Move.getTargetPosition(move)) : Move.getTargetPosition(move);
 			hash.update(reversedMove, capturePosition, enPassantFile);
 			
 			repetitionPossible = dc.isPositionOpponentCouldClaimDraw(getHash());
