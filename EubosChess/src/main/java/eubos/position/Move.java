@@ -172,9 +172,16 @@ public final class Move {
 		if (theBoard != null) {
 			// Some unit tests don't specify the board, when we don't care about some move field content
 			originPiece = theBoard.getPieceAtSquare(originPosition);
-			targetPiece = theBoard.getPieceAtSquare(targetPosition);
-			if (targetPosition == theBoard.getEnPassantTargetSq()) {
-				type |= Move.TYPE_EN_PASSANT_CAPTURE_MASK;
+			if (Piece.isPawn(originPiece) && targetPosition==theBoard.getEnPassantTargetSq()) {
+				// En Passant capture move
+				int enPassantCaptureSquare = theBoard.generateCapturePositionForEnPassant(originPiece, targetPosition);
+				targetPiece = theBoard.getPieceAtSquare(enPassantCaptureSquare);
+				if (Piece.isPawn(targetPiece)) {
+					type |= Move.TYPE_EN_PASSANT_CAPTURE_MASK;
+				}
+			} else {
+				// Normal move
+				targetPiece = theBoard.getPieceAtSquare(targetPosition);
 			}
 		}
 		if (move.promotion != null) {
