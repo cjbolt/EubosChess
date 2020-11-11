@@ -47,6 +47,8 @@ public final class Move {
 	public static final int NULL_MOVE =
 			valueOf(TYPE_REGULAR_NONE, Position.a1, Piece.NONE, Position.a1, Piece.NONE, Piece.NONE);
 	
+	public static final int EQUALITY_MASK = ORIGINPOSITION_MASK | TARGETPOSITION_MASK | PROMOTION_MASK;
+	
 	private Move() {
 	}
 	
@@ -222,7 +224,6 @@ public final class Move {
 		return Piece.isPawn(getOriginPiece(move));
 	}
 
-
 	public static GenericMove toGenericMove(int move) {
 		if (move == Move.NULL_MOVE)
 			return null;
@@ -243,15 +244,9 @@ public final class Move {
 	}
 	
 	public static boolean areEqual(int move1, int move2) {
-		boolean areEqual = false;
-		if (Move.getOriginPosition(move1)==Move.getOriginPosition(move2) &&
-			Move.getTargetPosition(move1)==Move.getTargetPosition(move2) &&
-			Move.getPromotion(move1)==Move.getPromotion(move2)) {
-			areEqual = true;
-		}
-		return areEqual;
+		return (move1 & EQUALITY_MASK) == (move2 & EQUALITY_MASK);
 	}
-
+	
 	public static int getType(int move) {
 		int type = (move & TYPE_MASK) >>> TYPE_SHIFT;
 		if (EubosEngineMain.ASSERTS_ENABLED)

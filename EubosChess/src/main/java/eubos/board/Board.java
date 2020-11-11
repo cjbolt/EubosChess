@@ -402,7 +402,7 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (wksc_mask);
 			whitePieces ^= (wksc_mask);
 			allPieces ^= (wksc_mask);
-		} else	if (Move.areEqual(move, CastlingManager.undo_wqsc)) {
+		} else if (Move.areEqual(move, CastlingManager.undo_wqsc)) {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
@@ -427,7 +427,7 @@ public class Board {
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
 			movesList.addAll(Piece.pawn_generateMoves(this, atSquare, side));
 			// clear the lssb
-			scratchBitBoard &= scratchBitBoard-1;
+			scratchBitBoard &= scratchBitBoard-1L;
 		}
 		scratchBitBoard = bitBoardToIterate & pieces[INDEX_ROOK];
 		while ( scratchBitBoard != 0x0L ) {
@@ -435,7 +435,7 @@ public class Board {
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
 			movesList.addAll(Piece.rook_generateMoves(this, atSquare, side));
 			// clear the lssb
-			scratchBitBoard &= scratchBitBoard-1;
+			scratchBitBoard &= scratchBitBoard-1L;
 		}
 		scratchBitBoard = bitBoardToIterate & pieces[INDEX_BISHOP];
 		while ( scratchBitBoard != 0x0L ) {
@@ -443,7 +443,7 @@ public class Board {
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
 			movesList.addAll(Piece.bishop_generateMoves(this, atSquare, side));
 			// clear the lssb
-			scratchBitBoard &= scratchBitBoard-1;
+			scratchBitBoard &= scratchBitBoard-1L;
 		}
 		scratchBitBoard = bitBoardToIterate & pieces[INDEX_KNIGHT];
 		while ( scratchBitBoard != 0x0L ) {
@@ -451,7 +451,7 @@ public class Board {
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
 			movesList.addAll(Piece.knight_generateMoves(this, atSquare, side));
 			// clear the lssb
-			scratchBitBoard &= scratchBitBoard-1;
+			scratchBitBoard &= scratchBitBoard-1L;
 		}
 		scratchBitBoard = bitBoardToIterate & pieces[INDEX_KING];
 		while ( scratchBitBoard != 0x0L ) {
@@ -459,7 +459,7 @@ public class Board {
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
 			movesList.addAll(Piece.king_generateMoves(this, atSquare, side));
 			// clear the lssb
-			scratchBitBoard &= scratchBitBoard-1;
+			scratchBitBoard &= scratchBitBoard-1L;
 		}
 		scratchBitBoard = bitBoardToIterate & pieces[INDEX_QUEEN];
 		while ( scratchBitBoard != 0x0L ) {
@@ -467,7 +467,7 @@ public class Board {
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
 			movesList.addAll(Piece.queen_generateMoves(this, atSquare, side));
 			// clear the lssb
-			scratchBitBoard &= scratchBitBoard-1;
+			scratchBitBoard &= scratchBitBoard-1L;
 		}
 		return movesList;
 	}
