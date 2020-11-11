@@ -170,8 +170,12 @@ public final class Move {
 		int originPiece = Piece.NONE;
 		int targetPiece = Piece.NONE;
 		if (theBoard != null) {
+			// Some unit tests don't specify the board, when we don't care about some move field content
 			originPiece = theBoard.getPieceAtSquare(originPosition);
 			targetPiece = theBoard.getPieceAtSquare(targetPosition);
+			if (targetPosition == theBoard.getEnPassantTargetSq()) {
+				type |= Move.TYPE_EN_PASSANT_CAPTURE_MASK;
+			}
 		}
 		if (move.promotion != null) {
 			promotion = Piece.convertChessmanToPiece(IntChessman.valueOf(move.promotion), false);

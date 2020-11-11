@@ -56,7 +56,7 @@ public class EubosEngineMain extends AbstractEngine {
 	private PositionManager pm;
 	private AbstractMoveSearcher ms;
 	private Piece.Colour lastOnMove = null;
-	private String lastFen = null;
+	String lastFen = null;
 	
     public static Logger logger = Logger.getLogger("eubos.main");
 

@@ -368,6 +368,17 @@ public class EubosEngineMainTest {
 		performTest(4000);
 	}
 	
+    @Test
+    public void test_createPositionFromAnalyseCommand_enPassantMovesAreIdentifedCorrectly() throws IllegalNotationException {
+    	// To catch a defect where En Passant moves were not properly identified when applied through the UCI received from lichess/Arena
+    	ArrayList<GenericMove> applyMoveList = new ArrayList<GenericMove>();
+    	applyMoveList.add(new GenericMove("c2c4"));
+    	applyMoveList.add(new GenericMove("b4c3")); // en passant capture!
+    	// In the defect case the captured pawn was not removed from the board.
+		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("r4b2/1b2k1p1/1B1pPp1q/p2P1r2/1p6/1P1N4/P1P3QP/R5RK w - - 4 32"), applyMoveList));
+		assertEquals("r4b2/1b2k1p1/1B1pPp1q/p2P1r2/8/1PpN4/P5QP/R5RK w - - - 33", classUnderTest.lastFen);
+    }
+    
 	@Test
 	public void test_createPositionFromAnalyseCommand() throws IllegalNotationException {
 		// Black move 62
