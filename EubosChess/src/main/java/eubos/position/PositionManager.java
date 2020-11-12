@@ -99,9 +99,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public void performMove( int move, boolean computeHash ) throws InvalidPieceException {
 
-		// Save previous en passant square and initialise for this move
+		// Save previous en passant square
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
-		
 		int capturePosition = theBoard.doMove(move);
 		moveTracker.push(TrackedMove.valueOf(move, prevEnPassantTargetSq, castling.getFlags()));
 		
@@ -111,9 +110,13 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		if (computeHash) {
 			// Update hash code
 			if (hash != null) {
+				// Determine whether move set en Passant file
+				int enPassantFile = IntFile.NOFILE;
 				int enPasTargetSq = theBoard.getEnPassantTargetSq();
-				Boolean setEnPassant = (enPasTargetSq != Position.NOPOSITION);
-				hash.update(move, capturePosition, setEnPassant ? Position.getFile(enPasTargetSq) : IntFile.NOFILE);
+				if (enPasTargetSq != Position.NOPOSITION)
+					enPassantFile = Position.getFile(enPasTargetSq);
+				
+				hash.update(move, capturePosition, enPassantFile);
 			}
 			// Update the draw checker
 			repetitionPossible = dc.incrementPositionReachedCount(getHash());

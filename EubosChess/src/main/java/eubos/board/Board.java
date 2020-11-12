@@ -257,7 +257,7 @@ public class Board {
 			pickUpPieceAtSquare(capturePosition, targetPiece);
 		} else {
 			// Handle castling, setting en passant etc
-			if (checkToSetEnPassantTargetSq(pieceToMove, originSquare, targetSquare) == IntFile.NOFILE) {
+			if (!moveEnablesEnPassantCapture(pieceToMove, originSquare, targetSquare)) {
 				// Handle castling secondary rook moves...
 				if (Piece.isKing(pieceToMove)) {
 					performSecondaryCastlingMove(move);
@@ -335,41 +335,32 @@ public class Board {
 	}
 	
 	public int generateCapturePositionForEnPassant(int pieceToMove, int targetSquare) {
-		int rank = IntRank.NORANK;
 		if (pieceToMove == Piece.WHITE_PAWN) {
-			rank = IntRank.R5;
+			targetSquare -= 16;
 		} else if (pieceToMove == Piece.BLACK_PAWN){
-			rank = IntRank.R4;
-		} else {
-			if (EubosEngineMain.ASSERTS_ENABLED)
-				assert false;
+			targetSquare += 16;
 		}
-		int capturePos = Position.valueOf(Position.getFile(targetSquare), rank);
-		return capturePos;
+		return targetSquare;
 	}
 	
-	private int checkToSetEnPassantTargetSq(int originPiece, int originSquare, int targetSquare) {
-		int enPassantFile = IntFile.NOFILE;
+	private boolean moveEnablesEnPassantCapture(int originPiece, int originSquare, int targetSquare) {
+		boolean isEnPassantCapturePossible = false;
 		if (originPiece == Piece.WHITE_PAWN) {
-			int potentialEnPassantFile = Position.getFile(originSquare);
 			if ( Position.getRank(originSquare) == IntRank.R2) {
 				if (Position.getRank(targetSquare) == IntRank.R4) {
-					enPassantFile = potentialEnPassantFile;
-					int enPassantWhite = Position.valueOf(enPassantFile, IntRank.R3);
-					setEnPassantTargetSq(enPassantWhite);
+					isEnPassantCapturePossible = true;
+					setEnPassantTargetSq(targetSquare-16);
 				}
 			}
 		} else if (originPiece == Piece.BLACK_PAWN) {
-			int potentialEnPassantFile = Position.getFile(originSquare);
 			if (Position.getRank(originSquare) == IntRank.R7) {
 				if (Position.getRank(targetSquare) == IntRank.R5) {
-					enPassantFile = potentialEnPassantFile;
-					int enPassantBlack = Position.valueOf(enPassantFile, IntRank.R6);
-					setEnPassantTargetSq(enPassantBlack);
+					isEnPassantCapturePossible = true;
+					setEnPassantTargetSq(targetSquare+16);
 				}
 			}
 		}
-		return enPassantFile;
+		return isEnPassantCapturePossible;
 	}
 	
 	private static final long wksc_mask = BitBoard.positionToMask_Lut[Position.h1] | BitBoard.positionToMask_Lut[Position.f1];
