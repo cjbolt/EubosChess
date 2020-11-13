@@ -1,6 +1,7 @@
 package eubos.board;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.PrimitiveIterator;
@@ -410,7 +411,7 @@ public class Board {
 	
 	public List<Integer> getRegularPieceMoves(Piece.Colour side) {
 		long bitBoardToIterate = Colour.isWhite(side) ? whitePieces : blackPieces;
-		ArrayList<Integer> movesList = new ArrayList<Integer>(60);
+		List<Integer> movesList = new LinkedList<Integer>();
 		// Unrolled loop for performance optimisation...
 		long scratchBitBoard = bitBoardToIterate & pieces[INDEX_PAWN];
 		while ( scratchBitBoard != 0x0L ) {
