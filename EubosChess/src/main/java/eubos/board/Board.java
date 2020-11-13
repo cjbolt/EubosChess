@@ -416,7 +416,7 @@ public class Board {
 		while ( scratchBitBoard != 0x0L ) {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-			movesList.addAll(Piece.pawn_generateMoves(this, atSquare, side));
+			Piece.pawn_generateMoves(movesList, this, atSquare, side);
 			// clear the lssb
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
@@ -424,7 +424,7 @@ public class Board {
 		while ( scratchBitBoard != 0x0L ) {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-			movesList.addAll(Piece.rook_generateMoves(this, atSquare, side));
+			Piece.rook_generateMoves(movesList, this, atSquare, side);
 			// clear the lssb
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
@@ -432,7 +432,7 @@ public class Board {
 		while ( scratchBitBoard != 0x0L ) {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-			movesList.addAll(Piece.bishop_generateMoves(this, atSquare, side));
+			Piece.bishop_generateMoves(movesList, this, atSquare, side);
 			// clear the lssb
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
@@ -440,7 +440,7 @@ public class Board {
 		while ( scratchBitBoard != 0x0L ) {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-			movesList.addAll(Piece.knight_generateMoves(this, atSquare, side));
+			Piece.knight_generateMoves(movesList, this, atSquare, side);
 			// clear the lssb
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
@@ -448,7 +448,7 @@ public class Board {
 		while ( scratchBitBoard != 0x0L ) {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-			movesList.addAll(Piece.king_generateMoves(this, atSquare, side));
+			Piece.king_generateMoves(movesList, this, atSquare, side);
 			// clear the lssb
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
@@ -456,7 +456,7 @@ public class Board {
 		while ( scratchBitBoard != 0x0L ) {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-			movesList.addAll(Piece.queen_generateMoves(this, atSquare, side));
+			Piece.queen_generateMoves(movesList, this, atSquare, side);
 			// clear the lssb
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
