@@ -135,7 +135,7 @@ public class PositionManagerTest {
 		// 1 ....k..r
 		//   abcdefgh
 		createSutAndRegisterPe("8/8/8/8/8/8/8/4K2R w K - - -");
-		classUnderTest.performMove( Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e1, Piece.KING, Position.g1, Piece.NONE, Piece.NONE));
+		classUnderTest.performMove( Move.valueOf(Move.TYPE_REGULAR_NONE, Position.e1, Piece.KING, Position.g1, Piece.NONE, Piece.NONE));
 		int whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.h1);
 		assertTrue(whiteRook == Piece.NONE);
 		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.f1);
@@ -155,7 +155,7 @@ public class PositionManagerTest {
 		// 1 ....k..r
 		//   abcdefgh
 		createSutAndRegisterPe("8/8/8/8/8/8/8/4K2R w K - - -");
-		int expectedMove = Move.valueOf( Move.TYPE_CASTLE_MASK, Position.e1, Piece.WHITE_KING, Position.g1, Piece.NONE, Piece.NONE );
+		int expectedMove = Move.valueOf( Move.TYPE_REGULAR_NONE, Position.e1, Piece.WHITE_KING, Position.g1, Piece.NONE, Piece.NONE );
 		classUnderTest.performMove(expectedMove);
 		int whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.h1);
 		assertTrue(whiteRook == Piece.NONE);

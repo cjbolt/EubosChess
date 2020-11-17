@@ -8,6 +8,7 @@ import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
+import eubos.search.KillerList;
 import eubos.search.NoLegalMoveException;
 import eubos.search.SearchDebugAgent;
 import eubos.search.SearchResult;
@@ -27,8 +28,9 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			IChangePosition inputPm,  
 			IPositionAccessors pos, 
 			long time,
-			long increment) {
-		super(eubos,inputPm,pos,hashMap);
+			long increment,
+			KillerList killers) {
+		super(eubos,inputPm,pos,hashMap, killers);
 		EubosEngineMain.logger.info(
 				String.format("Starting initialScore=%d gameTimeRemaining=%d", initialScore, time));
 		// We use the lichess hypothesis about increments and game time

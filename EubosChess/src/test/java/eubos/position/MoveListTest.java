@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.Iterator;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -63,6 +64,7 @@ public class MoveListTest {
 	}
 	
 	@Test
+	@Ignore // Eubos no longer privileges castling in move ordering
 	public void testCreateMoveList_ChecksFirstThenCastles() throws InvalidPieceException, IllegalNotationException {
 		setup("8/3k3B/8/1p6/8/8/8/4K2R w K - 0 1");
 		Iterator<Integer> it = classUnderTest.iterator();

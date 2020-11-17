@@ -35,6 +35,7 @@ public class PlySearcher {
 	private byte dynamicSearchLevelInPly;
 	private ITranspositionAccessor tt;
 	private SearchMetricsReporter sr;
+	private KillerList killers;
 	
 	byte currPly = 0;
 	byte currDepthSearchedInPly = 0;
@@ -52,7 +53,8 @@ public class PlySearcher {
 			IChangePosition pm,
 			IPositionAccessors pos,
 			List<Integer> lastPc,
-			IEvaluate pe) {
+			IEvaluate pe,
+			KillerList killers) {
 		currPly = 0;
 		currDepthSearchedInPly = 0;
 		
@@ -70,6 +72,7 @@ public class PlySearcher {
 		this.st = st;
 		tt = hashMap;
 		sg = new MateScoreGenerator(pos, pe);
+		this.killers = killers;
 	}
 	
 	private byte setExtSearchDepth() {
@@ -213,6 +216,7 @@ public class PlySearcher {
 					plyScore = positionScore;
 					trans = updateTranspositionTable(trans, plyBound, currMove, positionScore);
 					refutationFound = true;
+					killers.addMove(currPly, currMove);
 					SearchDebugAgent.printRefutationFound();
 					break;    
 				}
@@ -403,7 +407,13 @@ public class PlySearcher {
 			// Use transposition best move or last principal continuation for seeding move list
 			ml = new MoveList((PositionManager) pm, transBestMove);
 		} else {
-			ml = new MoveList((PositionManager) pm);
+			// Look up any previous refutation from killer list
+			int killer = killers.getMove(currPly);
+			if (killer != Move.NULL_MOVE) {
+				ml = new MoveList((PositionManager) pm, killer);
+			} else {
+				ml = new MoveList((PositionManager) pm);
+			}
 		}
 		return ml;
 	}

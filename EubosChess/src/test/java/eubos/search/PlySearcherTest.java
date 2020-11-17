@@ -67,6 +67,7 @@ public class PlySearcherTest {
 	private void initialisePositionAndSearch(String fen, byte depth) {
 		pm = new PositionManager(fen, new DrawChecker());
 		PositionEvaluator pe = new PositionEvaluator(pm);
+		KillerList killers = new KillerList(depth);
 		classUnderTest = new PlySearcher(
 				mock_hashMap,
 				st,
@@ -77,7 +78,8 @@ public class PlySearcherTest {
 				pm,
 				pm,
 				lastPc,
-				pe);		
+				pe,
+				killers);		
 	}
 	
 	@Test

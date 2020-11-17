@@ -9,6 +9,7 @@ import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
+import eubos.search.KillerList;
 import eubos.search.NoLegalMoveException;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;
@@ -22,7 +23,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 	protected MiniMaxMoveGenerator mg;
 	protected short initialScore;
 
-	public AbstractMoveSearcher(EubosEngineMain eng, IChangePosition pm, IPositionAccessors pos, FixedSizeTranspositionTable hashMap) {
+	public AbstractMoveSearcher(EubosEngineMain eng, IChangePosition pm, IPositionAccessors pos, FixedSizeTranspositionTable hashMap, KillerList killers) {
 		super();
 		this.eubosEngine = eng;
 		this.pm = pm;
@@ -31,7 +32,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 		if (Colour.isBlack(pos.getOnMove())) {
 			initialScore = (short)-initialScore;
 		}
-		this.mg = new MiniMaxMoveGenerator( eng, hashMap, pm, pos);
+		this.mg = new MiniMaxMoveGenerator( eng, hashMap, pm, pos, killers);
 	}
 
 	public AbstractMoveSearcher(Runnable target) {

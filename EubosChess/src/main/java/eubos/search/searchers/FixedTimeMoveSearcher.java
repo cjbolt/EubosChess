@@ -8,6 +8,7 @@ import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
+import eubos.search.KillerList;
 import eubos.search.SearchDebugAgent;
 import eubos.search.SearchResult;
 import eubos.search.transposition.FixedSizeTranspositionTable;
@@ -20,8 +21,8 @@ public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 	private static final int MAX_SEARCH_DEPTH = 18;
 
 	public FixedTimeMoveSearcher(EubosEngineMain eubos, FixedSizeTranspositionTable hashMap, IChangePosition inputPm, 
-			IPositionAccessors pos, long time) {
-		super(eubos, inputPm, pos, hashMap);
+			IPositionAccessors pos, long time, KillerList killers) {
+		super(eubos, inputPm, pos, hashMap, killers);
 		moveTime = time;
 		this.setName("FixedTimeMoveSearcher");
 	}

@@ -12,6 +12,7 @@ import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.score.IEvaluate;
+import eubos.search.KillerList;
 import eubos.search.NoLegalMoveException;
 import eubos.search.PlySearcher;
 import eubos.search.PrincipalContinuation;
@@ -39,6 +40,7 @@ public class MiniMaxMoveGenerator implements
 	private ScoreTracker st;
 	private short score;
 	private boolean sendInfo = false;
+	private KillerList killers;
 	
 	public static final int EXTENDED_SEARCH_PLY_LIMIT = 8;
 
@@ -50,6 +52,7 @@ public class MiniMaxMoveGenerator implements
 		this.pos = pos;
 		this.pe = pos.getPositionEvaluator();
 		tt = hashMap;
+		killers = new KillerList(EXTENDED_SEARCH_PLY_LIMIT);
 		score = 0;
 		sm = new SearchMetrics(pos);
 	}
@@ -58,12 +61,14 @@ public class MiniMaxMoveGenerator implements
 	public MiniMaxMoveGenerator( EubosEngineMain eubos,
 			FixedSizeTranspositionTable hashMap,
 			IChangePosition pm,
-			IPositionAccessors pos) {
+			IPositionAccessors pos,
+			KillerList killers) {
 		callback = eubos;
 		this.pm = pm;
 		this.pos = pos;
 		this.pe = pos.getPositionEvaluator();
 		tt = hashMap;
+		this.killers = killers;
 		score = 0;
 		sm = new SearchMetrics(pos);
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
@@ -94,7 +99,7 @@ public class MiniMaxMoveGenerator implements
 	public SearchResult findMove(byte searchDepth, List<Integer> lastPc) throws NoLegalMoveException, InvalidPieceException {
 		boolean foundMate = false;
 		initialiseSearchDepthDependentObjects(searchDepth, pm);
-		ps = new PlySearcher(tta, st, pc, sm, sr, searchDepth, pm, pos, lastPc, pe);
+		ps = new PlySearcher(tta, st, pc, sm, sr, searchDepth, pm, pos, lastPc, pe, killers);
 		if (EubosEngineMain.UCI_INFO_ENABLED && sendInfo) {
 			sr.setSendInfo(true);
 		}

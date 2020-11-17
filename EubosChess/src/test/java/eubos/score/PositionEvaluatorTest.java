@@ -285,7 +285,7 @@ public class PositionEvaluatorTest {
 		setUpPosition("4k2r/2Q2ppp/8/3r4/1P5P/P1p5/4PP2/R3K1N1 b Qk - - -");
 		PiecewiseEvaluation initialMe = pm.getTheBoard().evaluateMaterial();
 		short initial = initialMe.getDelta();
-		int castleMove = Move.valueOf(Move.TYPE_CASTLE_MASK, Position.e8, Piece.BLACK_KING, Position.g8, Piece.NONE, Piece.NONE);
+		int castleMove = Move.valueOf(Move.TYPE_REGULAR_NONE, Position.e8, Piece.BLACK_KING, Position.g8, Piece.NONE, Piece.NONE);
 		
 		pm.performMove(castleMove);
 		PiecewiseEvaluation me = pm.getTheBoard().me;

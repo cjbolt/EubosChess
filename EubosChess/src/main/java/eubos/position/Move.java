@@ -26,20 +26,20 @@ public final class Move {
 	private static final int TARGET_PIECE_MASK = Piece.PIECE_WHOLE_MASK << TARGET_PIECE_SHIFT;
 	
 	public static final int TYPE_REGULAR_NONE = 0;
-	public static final int TYPE_CASTLE_BIT = 0;
-	public static final int TYPE_CHECK_BIT = 1;
-	public static final int TYPE_EN_PASSANT_CAPTURE_BIT = 2;
-	public static final int TYPE_CAPTURE_BIT = 3;
-	public static final int TYPE_PROMOTION_PIECE_BIT = 4;
-	public static final int TYPE_PROMOTION_QUEEN_BIT = 5;
-	public static final int TYPE_WIDTH = TYPE_PROMOTION_QUEEN_BIT + 1;
+	public static final int TYPE_CHECK_BIT = 0;
+	public static final int TYPE_EN_PASSANT_CAPTURE_BIT = 1;
+	public static final int TYPE_CAPTURE_BIT = 2;
+	public static final int TYPE_PROMOTION_PIECE_BIT = 3;
+	public static final int TYPE_PROMOTION_QUEEN_BIT = 4;
+	public static final int TYPE_BEST_KILLER_BIT = 5;
+	public static final int TYPE_WIDTH = TYPE_BEST_KILLER_BIT + 1;
 	
 	public static final int TYPE_PROMOTION_QUEEN_MASK = (0x1 << TYPE_PROMOTION_QUEEN_BIT);
 	public static final int TYPE_PROMOTION_PIECE_MASK = (0x1 << TYPE_PROMOTION_PIECE_BIT);
 	public static final int TYPE_CAPTURE_MASK = (0x1 << TYPE_CAPTURE_BIT);
 	public static final int TYPE_EN_PASSANT_CAPTURE_MASK = (0x1 << TYPE_EN_PASSANT_CAPTURE_BIT);
 	public static final int TYPE_CHECK_MASK = (0x1 << TYPE_CHECK_BIT);
-	public static final int TYPE_CASTLE_MASK = (0x1 << TYPE_CASTLE_BIT);
+	public static final int TYPE_BEST_KILLER_MASK = (0x1 << TYPE_BEST_KILLER_BIT);
 	
 	private static final int TYPE_SHIFT = TARGET_PIECE_SHIFT + Long.bitCount(Piece.PIECE_WHOLE_MASK);
 	private static final int TYPE_MASK = ((1<<TYPE_WIDTH)-1) << TYPE_SHIFT;
@@ -48,6 +48,7 @@ public final class Move {
 			valueOf(TYPE_REGULAR_NONE, Position.a1, Piece.NONE, Position.a1, Piece.NONE, Piece.NONE);
 	
 	public static final int EQUALITY_MASK = ORIGINPOSITION_MASK | TARGETPOSITION_MASK | PROMOTION_MASK;
+	public static final int BEST_KILLER_EQUALITY_MASK = ORIGINPOSITION_MASK | ORIGIN_PIECE_MASK | TARGETPOSITION_MASK | TARGET_PIECE_MASK | PROMOTION_MASK;
 	
 	private Move() {
 	}
@@ -217,7 +218,7 @@ public final class Move {
 	}
 	
 	public static boolean isRegular(int move) { 
-		return ((getType(move) == 0) || ((getType(move) & Move.TYPE_CASTLE_MASK) != 0));
+		return (getType(move) == 0);
 	}
 	
 	public static boolean isPawnMove(int move) {
@@ -245,6 +246,10 @@ public final class Move {
 	
 	public static boolean areEqual(int move1, int move2) {
 		return (move1 & EQUALITY_MASK) == (move2 & EQUALITY_MASK);
+	}
+	
+	public static boolean areEqualForBestKiller(int move1, int move2) {
+		return (move1 & BEST_KILLER_EQUALITY_MASK) == (move2 & BEST_KILLER_EQUALITY_MASK);
 	}
 	
 	public static int getType(int move) {
@@ -389,6 +394,10 @@ public final class Move {
 
 	public static int setCheck(int move) {
 		return (move |= (Move.TYPE_CHECK_MASK << TYPE_SHIFT));
+	}
+	
+	public static int setBestKiller(int move) {
+		return (move |= (Move.TYPE_BEST_KILLER_MASK << TYPE_SHIFT));
 	}
 
 	public static boolean isEnPassantCapture(int move) {

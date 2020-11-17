@@ -25,6 +25,7 @@ public class IterativeMoveSearcherTest {
 	protected IterativeMoveSearcher sut;
 	protected GenericMove expectedMove;
 	protected FixedSizeTranspositionTable hashMap;
+	protected KillerList killers;
 	PositionManager pm;
 	
 	private class EubosMock extends EubosEngineMain {
@@ -48,12 +49,13 @@ public class IterativeMoveSearcherTest {
 	
 	protected void setupPosition(String fen, long time) {
 		pm = new PositionManager( fen );
-		sut = new IterativeMoveSearcher(eubos, hashMap, pm, pm, time, 0);
+		sut = new IterativeMoveSearcher(eubos, hashMap, pm, pm, time, 0, killers);
 	}
 	
 	@Before
 	public void setUp() throws Exception {
 		eubos = new EubosMock();
+		killers = new KillerList(EubosEngineMain.SEARCH_DEPTH_IN_PLY);
 		SearchDebugAgent.open(0, true);
 		hashMap = new FixedSizeTranspositionTable();
 		EubosEngineMain.logger.setLevel(Level.OFF);
@@ -125,7 +127,7 @@ public class IterativeMoveSearcherTest {
 	@Test
 	public void test_endgame_o() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
 		setupPosition("4k3/4Pp2/5P2/4K3/8/8/8/8 w - - 0 1",  1000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
-		expectedMove = new GenericMove("e5f4"); // not in accordance with Stockfish (e5f5)
+		expectedMove = new GenericMove("e5f5"); // in accordance with Stockfish (e5f5)
 		runSearcherAndTestBestMoveReturned();
 	}
 	

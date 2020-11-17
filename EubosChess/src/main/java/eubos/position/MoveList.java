@@ -71,6 +71,7 @@ public class MoveList implements Iterable<Integer> {
 	
 	public MoveList(PositionManager pm, int bestMove) {
 		Colour onMove = pm.getOnMove();
+		boolean validBestKillerMove = bestMove != Move.NULL_MOVE;
 		boolean needToEscapeMate = false;
 		if (pm.lastMoveWasCheck() || (pm.noLastMove() && pm.isKingInCheck(onMove))) {
 			needToEscapeMate = true;
@@ -92,10 +93,16 @@ public class MoveList implements Iterable<Integer> {
 				} else {
 					// Set the check flag for any moves attacking the opposing king
 					boolean isCheck = pm.getTheBoard().moveCouldPotentiallyCheckOtherKing(currMove) && pm.isKingInCheck(pm.getOnMove());
+					boolean isBestKiller = validBestKillerMove && Move.areEqualForBestKiller(currMove, bestMove);
 					if (isCheck) {
 						currMove = Move.setCheck(currMove);
 					}
-					it.set(currMove);
+					if (isBestKiller) {
+						currMove = Move.setBestKiller(currMove);
+					}
+					if (isCheck || isBestKiller) {
+						it.set(currMove);
+					}
 				}
 				pm.unperformMove(false);
 			} catch(InvalidPieceException e) {
@@ -104,10 +111,6 @@ public class MoveList implements Iterable<Integer> {
 		}
 		// Sort the list
 		Collections.sort(normal_search_moves, mvvLvaComparator);
-		
-		if (bestMove != Move.NULL_MOVE) {
-			seedListWithBestMove(normal_search_moves, bestMove);
-		}
 	}
 	
 	@Override
@@ -182,31 +185,6 @@ public class MoveList implements Iterable<Integer> {
 			return normal_search_moves.get(normal_search_moves.size()-1);
 		} else {
 			return Move.NULL_MOVE;
-		}
-	}
-	
-	private int getIndex(List<Integer> moves, int move) {
-		int index = -1;
-		int count = 0;
-		for (int currMove : moves) {
-			if (Move.areEqual(currMove, move)) {
-				index = count;
-				break;
-			} else {
-				count++;
-			}
-		}
-		return index;
-	}
-	
-	private void seedListWithBestMove(List<Integer> moves, int newBestMove) {
-		if (moves.size() != 0) {
-			int index = getIndex(moves, newBestMove);
-			if (index > 0) {
-				int prevBest = moves.get(0);
-				moves.set(0, moves.get(index));
-				moves.set(index, prevBest);
-			}
 		}
 	}
 	

@@ -323,7 +323,8 @@ public class MiniMaxMoveGeneratorTest {
 	@Test
 	public void test_findMove_mateInOne7()  throws NoLegalMoveException, IllegalNotationException {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
-		setupPosition( "8/7B/8/3N4/8/1Q2B3/PPP5/rk2K2R w K - 0 1" );
+		//setupPosition( "8/7B/8/3N4/8/1Q2B3/PPP5/rk2K2R w K - 0 1" ); // multiple possible mates! Doesn't ensure castle is mate
+		setupPosition("q7/8/8/8/8/1Q2B3/PPP5/rk2K2R w K - 0 1");
 		expectedMove = new GenericMove("e1g1");
 		doFindMoveTest((byte)1, true);
 	}
@@ -492,6 +493,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
+	@Ignore // Not a good test - nowadays it isn't clear eubos should castle.
 	public void test_findMove_NeedToCastle_FromLichess1() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
 		setupPosition( "rnb1kbnr/p4p1p/1qp1p1p1/3p4/8/1B2PN2/PPPP1PPP/RNBQK2R w KQkq - - -");
 		expectedMove = new GenericMove("e1g1");
