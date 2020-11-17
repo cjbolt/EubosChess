@@ -4,34 +4,43 @@ import eubos.position.Move;
 
 public class KillerList {
 	
+	public static final boolean ENABLE_KILLER_MOVES = false;
+	
 	private int [] killerList = null;
 	
 	public KillerList(int maxDepth) {
-		killerList = new int[maxDepth];
-		for (int i=0; i<maxDepth; i++) {
-			killerList[i] = Move.NULL_MOVE;
+		if (ENABLE_KILLER_MOVES) {
+			killerList = new int[maxDepth];
+			for (int i=0; i<maxDepth; i++) {
+				killerList[i] = Move.NULL_MOVE;
+			}
 		}
 	}
 	
 	public void addMove(int ply, int move) {
-		if (ply < killerList.length) {
-			killerList[ply] = move;
+		if (ENABLE_KILLER_MOVES) {
+			if (ply < killerList.length) {
+				killerList[ply] = move;
+			}
 		}
 	}
 	
 	public int getMove(int ply) {
-		if (ply < killerList.length) {
-			return killerList[ply];
-		} else {
-			return Move.NULL_MOVE;
+		if (ENABLE_KILLER_MOVES) {
+			if (ply < killerList.length) {
+				return killerList[ply];
+			}
 		}
+		return Move.NULL_MOVE;
 	}
 	
 	public void shuffleList(int ply) {
-		int [] temp = new int[killerList.length];
-		for (int i=0; i<(killerList.length-ply); i++) {
-			temp[i] = killerList[i+ply];
+		if (ENABLE_KILLER_MOVES) {
+			int [] temp = new int[killerList.length];
+			for (int i=0; i<(killerList.length-ply); i++) {
+				temp[i] = killerList[i+ply];
+			}
+			killerList = temp;
 		}
-		killerList = temp;
 	}
 }

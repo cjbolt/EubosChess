@@ -37,6 +37,15 @@ public class MoveList implements Iterable<Integer> {
         @Override public int compare(Integer move1, Integer move2) {
         	int type1 = Move.getType(move1);
         	int type2 = Move.getType(move2);
+        	// Note, promotion captures are always winning by definition, no need to check that
+        	// Ignore en passant captures and checks when ranking captures
+        	if ((type1 & Move.TYPE_CAPTURE_MASK) != 0) {
+        		type1 &= ~(Move.TYPE_EN_PASSANT_CAPTURE_MASK | Move.TYPE_CHECK_MASK);
+        	}
+        	if ((type2 & Move.TYPE_CAPTURE_MASK) != 0) {
+        		type2 &= ~(Move.TYPE_EN_PASSANT_CAPTURE_MASK | Move.TYPE_CHECK_MASK);
+        	}
+        	// Winning captures should be prioritised before checks
             if (type1 < type2) {
             	return 1;
             } else if (type1 == type2) {

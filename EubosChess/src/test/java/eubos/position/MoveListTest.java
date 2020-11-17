@@ -126,4 +126,56 @@ public class MoveListTest {
 		
 		// add more losing moves???
 	}
+	
+	@Test
+	public void test_mvv_lva_order_for_captures_with_check() throws IllegalNotationException {
+		// as prior test but adds a king into the mix
+		setup("8/N2Bk3/Q3p3/1r3PN1/2P3B1/4Rp2/6P1/1R6 w - - 0 1 ");
+		Iterator<Integer> it = classUnderTest.iterator();
+		
+		// gaining material
+		assertEquals(new GenericMove("c4b5"), Move.toGenericMove(it.next())); // PxR delta 3 gains 4
+		assertEquals(new GenericMove("a7b5"), Move.toGenericMove(it.next())); // NxR delta 2 gains 2
+		assertEquals(new GenericMove("d7b5"), Move.toGenericMove(it.next())); // BxR delta 1 gains 2
+		
+		// neutral exchanges
+		assertEquals(new GenericMove("g2f3"), Move.toGenericMove(it.next())); // PxP
+		assertEquals(new GenericMove("f5e6"), Move.toGenericMove(it.next())); // PxP
+		assertEquals(new GenericMove("b1b5"), Move.toGenericMove(it.next())); // RxR
+		
+		// losing material
+		assertEquals(new GenericMove("g5f3"), Move.toGenericMove(it.next())); // NxP delta -1 loses 2
+		assertEquals(new GenericMove("g5e6"), Move.toGenericMove(it.next())); // NxP delta -1 loses 2
+		assertEquals(new GenericMove("g4f3"), Move.toGenericMove(it.next())); // BxP delta -2 loses 2
+		assertEquals(new GenericMove("d7e6"), Move.toGenericMove(it.next())); // BxP delta -2 loses 2
+		assertEquals(new GenericMove("e3e6"), Move.toGenericMove(it.next())); // RxP delta -3 loses 4 losing material but checks
+		assertEquals(new GenericMove("e3f3"), Move.toGenericMove(it.next())); // RxP delta -3 loses 4
+		assertEquals(new GenericMove("a6b5"), Move.toGenericMove(it.next())); // QxR delta -1 loses 4
+		assertEquals(new GenericMove("a6e6"), Move.toGenericMove(it.next())); // QxP delta -4 loses 8 losing material but checks
+		
+		// add more losing moves???
+	}
+	
+	@Test
+	public void test_move_ordering_when_mix_of_captures_and_checks() throws IllegalNotationException {
+		// as prior test but adds a king into the mix
+		setup("8/4k3/4p3/5PN1/8/4R1q1/8/8 w - - 0 1");
+		Iterator<Integer> it = classUnderTest.iterator();
+		
+		// gaining material
+		assertEquals(new GenericMove("e3g3"), Move.toGenericMove(it.next())); // RxQ delta 1 gains 9
+		
+		// neutral material
+		assertEquals(new GenericMove("f5e6"), Move.toGenericMove(it.next())); // PxP
+		
+		// losing material
+		assertEquals(new GenericMove("g5e6"), Move.toGenericMove(it.next())); // NxP delta -1 loses 2
+		assertEquals(new GenericMove("e3e6"), Move.toGenericMove(it.next())); // RxP delta -3 loses 4 losing material (happens to check, but that is ignored)
+		
+		// checks
+		assertEquals(new GenericMove("f5f6"), Move.toGenericMove(it.next())); // Check
+		
+		// regular moves
+		assertEquals(new GenericMove("e3e2"), Move.toGenericMove(it.next())); // Regular move
+	}
 }
