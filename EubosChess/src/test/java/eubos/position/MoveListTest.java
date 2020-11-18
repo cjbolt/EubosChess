@@ -178,4 +178,41 @@ public class MoveListTest {
 		// regular moves
 		assertEquals(new GenericMove("e3e2"), Move.toGenericMove(it.next())); // Regular move
 	}
+	
+	@Test
+	public void test_move_ordering_when_mix_of_promotions_captures_and_checks() throws IllegalNotationException {
+		// as prior test but adds a king into the mix
+		setup("1n6/P3kP2/8/1Pp2P2/8/8/8/8 w - c6 0 1");
+		Iterator<Integer> it = classUnderTest.iterator();
+		
+		// Queen promotions
+		assertEquals(new GenericMove("a7b8q"), Move.toGenericMove(it.next())); // Queen promotion with capture, PxN
+		assertEquals(new GenericMove("f7f8q"), Move.toGenericMove(it.next())); // Queen promotion with check
+		assertEquals(new GenericMove("a7a8q"), Move.toGenericMove(it.next())); // Queen promotion
+		
+		// Piece promotions with captures should be considered before queen promotions??
+		assertEquals(new GenericMove("a7b8r"), Move.toGenericMove(it.next())); // Rook promotion with capture, PxN
+		assertEquals(new GenericMove("a7b8b"), Move.toGenericMove(it.next())); // Bishop promotion with capture, PxN
+		assertEquals(new GenericMove("a7b8n"), Move.toGenericMove(it.next())); // Knight promotion with capture, PxN
+		
+		// Piece promotions with check
+		assertEquals(new GenericMove("f7f8b"), Move.toGenericMove(it.next())); // Bishop promotion with check
+		
+		// Piece promotions
+		assertEquals(new GenericMove("a7a8r"), Move.toGenericMove(it.next())); // Rook promotion
+		assertEquals(new GenericMove("a7a8b"), Move.toGenericMove(it.next())); // Bishop promotion
+		assertEquals(new GenericMove("a7a8n"), Move.toGenericMove(it.next())); // Knight promotion
+		assertEquals(new GenericMove("f7f8r"), Move.toGenericMove(it.next())); // Bishop promotion
+		assertEquals(new GenericMove("f7f8n"), Move.toGenericMove(it.next())); // Knight promotion
+		
+		// Captures
+		assertEquals(new GenericMove("b5c6"), Move.toGenericMove(it.next())); // En Passant capture, PxP
+		
+		// Checks
+		assertEquals(new GenericMove("f5f6"), Move.toGenericMove(it.next())); // Pawn check
+		
+		// Regular moves
+		assertEquals(new GenericMove("b5b6"), Move.toGenericMove(it.next())); // Regular pawn move
+		assertFalse(it.hasNext());
+	}
 }
