@@ -7,7 +7,6 @@ import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
-import eubos.search.KillerList;
 import eubos.search.SearchDebugAgent;
 import eubos.search.SearchResult;
 import eubos.search.transposition.FixedSizeTranspositionTable;
@@ -21,9 +20,8 @@ public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 			FixedSizeTranspositionTable hashMap, 
 			IChangePosition inputPm,  
 			IPositionAccessors pos, 
-			byte searchDepth,
-			KillerList killers) {
-		super(eubos,inputPm,pos, hashMap, killers);
+			byte searchDepth) {
+		super(eubos,inputPm,pos, hashMap);
 		this.searchDepth = searchDepth;
 		this.setName("FixedDepthMoveSearcher");
 	}

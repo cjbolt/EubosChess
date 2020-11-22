@@ -15,19 +15,12 @@ public class KillerListTest {
 	
 	private int moveKingPawn  = Move.valueOf(Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE);
 	private int moveQueenPawn = Move.valueOf(Position.d2, Piece.WHITE_PAWN, Position.d4, Piece.NONE);
+	private int moveRookPawn = Move.valueOf(Position.h2, Piece.WHITE_PAWN, Position.h4, Piece.NONE);
+	private int moveKnightPawn = Move.valueOf(Position.g2, Piece.WHITE_PAWN, Position.g4, Piece.NONE);
 	
 	@Before
 	public void setUp() throws Exception {
-		sut = new KillerList(35);
-	}
-
-	@Test
-	public void test_canAddAndGetOneMove() {
-		if (KillerList.ENABLE_KILLER_MOVES) {
-			int ply = 0;
-			sut.addMove(ply, moveKingPawn);
-			assertEquals(moveKingPawn, sut.getMove(ply));
-		}
+		sut = new KillerList(5);
 	}
 	
 	@Test
@@ -52,5 +45,97 @@ public class KillerListTest {
 			assertEquals(moveQueenPawn, moves[1]);
 		}
 	}
+	
+	@Test
+	public void test_canAddThreeMovesReplacingOldest() {
+		if (KillerList.ENABLE_KILLER_MOVES) {
+			int ply = 0;
+			sut.addMove(ply, moveKingPawn);
+			sut.addMove(ply, moveQueenPawn);
+			sut.addMove(ply, moveRookPawn);
+			// Rook pawn move should replace oldest move
+			int [] moves = sut.getMoves(ply);
+			assertEquals(moveRookPawn, moves[0]);
+			assertEquals(moveQueenPawn, moves[1]);
+		}
+	}
+	
+	@Test
+	public void test_canAddFourMovesReplacingOldest() {
+		if (KillerList.ENABLE_KILLER_MOVES) {
+			int ply = 0;
+			sut.addMove(ply, moveKingPawn);
+			sut.addMove(ply, moveQueenPawn);
+			sut.addMove(ply, moveRookPawn);
+			sut.addMove(ply, moveKnightPawn);
+			// Rook pawn move should replace oldest move
+			int [] moves = sut.getMoves(ply);
+			assertEquals(moveRookPawn, moves[0]);
+			assertEquals(moveKnightPawn, moves[1]);
+		}
+	}
 
+	@Test
+	public void test_whenMoveIsTheSameDontReplace() {
+		if (KillerList.ENABLE_KILLER_MOVES) {
+			int ply = 0;
+			sut.addMove(ply, moveKingPawn);
+			sut.addMove(ply, moveKingPawn);
+			sut.addMove(ply, moveKingPawn);
+			sut.addMove(ply, moveKingPawn);
+			// Rook pawn move should replace oldest move
+			
+			int [] moves = sut.getMoves(ply);
+			assertEquals(moveKingPawn, moves[0]);
+			assertEquals(Move.NULL_MOVE, moves[1]);
+		}
+	}
+	
+	@Test
+	public void test_whenMoveIsTheSameDontReplace_alt() {
+		if (KillerList.ENABLE_KILLER_MOVES) {
+			int ply = 0;
+			sut.addMove(ply, moveKingPawn);
+			sut.addMove(ply, moveQueenPawn);
+			sut.addMove(ply, moveQueenPawn);
+			sut.addMove(ply, moveKingPawn);
+			
+			int [] moves = sut.getMoves(ply);
+			assertEquals(moveKingPawn, moves[0]);
+			assertEquals(moveQueenPawn, moves[1]);
+		}
+	}
+	
+	@Test
+	public void test_killerListShouldBeLastTwoMovesAdded() {
+		if (KillerList.ENABLE_KILLER_MOVES) {
+			int ply = 0;
+			sut.addMove(ply, moveKingPawn);
+			sut.addMove(ply, moveQueenPawn);
+			sut.addMove(ply, moveQueenPawn);
+			sut.addMove(ply, moveKingPawn);
+			sut.addMove(ply, moveRookPawn);
+			
+			int [] moves = sut.getMoves(ply);
+			assertEquals(moveKingPawn, moves[0]);
+			assertEquals(moveRookPawn, moves[1]);
+		}
+	}
+	
+	@Test
+	public void test_killerListShouldBeLastTwoMovesAdded_alt() {
+		if (KillerList.ENABLE_KILLER_MOVES) {
+			int ply = 0;
+			sut.addMove(ply, moveKingPawn);
+			sut.addMove(ply, moveQueenPawn);
+			sut.addMove(ply, moveQueenPawn);
+			sut.addMove(ply, moveKingPawn);
+			sut.addMove(ply, moveRookPawn);
+			sut.addMove(ply, moveKnightPawn);
+
+			int [] moves = sut.getMoves(ply);
+			assertEquals(moveKnightPawn, moves[0]);
+			assertEquals(moveRookPawn, moves[1]);
+		}
+	}
 }

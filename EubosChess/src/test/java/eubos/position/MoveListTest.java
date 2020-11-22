@@ -215,4 +215,32 @@ public class MoveListTest {
 		assertEquals(new GenericMove("b5b6"), Move.toGenericMove(it.next())); // Regular pawn move
 		assertFalse(it.hasNext());
 	}
+	
+	@Test
+	public void test_best_and_killer_ordering() throws IllegalNotationException {
+		PositionManager pm = new PositionManager( "8/3k3B/8/1p6/2P5/8/4K3/8 w - - 0 1 " );
+		
+		// fake best and killers in this position just to check correct move ordering is used.
+		GenericMove best_gen = new GenericMove("c4c5");
+		int best = Move.toMove(best_gen, pm.getTheBoard());
+		GenericMove killer1_gen = new GenericMove("h7e4");
+		int killer1 = Move.toMove(killer1_gen, pm.getTheBoard());
+		GenericMove killer2_gen = new GenericMove("e2d1");
+		int killer2 = Move.toMove(killer2_gen, pm.getTheBoard());
+		
+		classUnderTest = new MoveList(pm, best, killer1, killer2);
+		Iterator<Integer> it = classUnderTest.iterator();
+		
+		// best
+		assertEquals(best_gen, Move.toGenericMove(it.next()));
+		
+		// killers
+		assertEquals(killer1_gen, Move.toGenericMove(it.next()));
+		assertEquals(killer2_gen, Move.toGenericMove(it.next()));
+		
+		// capture
+		assertEquals(new GenericMove("c4b5"), Move.toGenericMove(it.next()));
+		// check
+		assertEquals(new GenericMove("h7f5"), Move.toGenericMove(it.next()));
+	}
 }

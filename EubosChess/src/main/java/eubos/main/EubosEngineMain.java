@@ -29,7 +29,6 @@ import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.search.SearchDebugAgent;
 import eubos.search.DrawChecker;
-import eubos.search.KillerList;
 import eubos.search.searchers.AbstractMoveSearcher;
 import eubos.search.searchers.FixedDepthMoveSearcher;
 import eubos.search.searchers.FixedTimeMoveSearcher;
@@ -52,7 +51,6 @@ public class EubosEngineMain extends AbstractEngine {
 	// Permanent data structures - static for duration of engine execution
 	private FixedSizeTranspositionTable hashMap = null;
 	DrawChecker dc;
-	private KillerList killers = null;
 	
 	// Temporary data structures - created and deleted at each analyse/find move instance
 	private PositionManager pm;
@@ -78,7 +76,6 @@ public class EubosEngineMain extends AbstractEngine {
 	private void createEnginePermanentDataStructures() {
 		hashMap = new FixedSizeTranspositionTable();
 		dc = new DrawChecker();
-		killers = new KillerList(SEARCH_DEPTH_IN_PLY);
 	}
 
 	public void receive(EngineInitializeRequestCommand command) {
@@ -160,12 +157,10 @@ public class EubosEngineMain extends AbstractEngine {
 		if (lastOnMove == null || (lastOnMove == nowOnMove && !fen_to_use.equals(lastFen))) {
 			// Update the draw checker with the position following the opponents last move
 			dc.incrementPositionReachedCount(hashCode);
-			killers.shuffleList(2); // consume 2 plies, one move for us, one for them
 		} else {
 			/* Don't increment the position reached count, because it will have already been incremented 
 			 * in the previous send move command (when Eubos is analysing both sides positions). */
 			logger.fine("Not incrementing drawchecker reached count for initial position");
-			killers.shuffleList(1); // consume 1 ply
 		}
 		lastOnMove = nowOnMove;
 		lastFen = fen_to_use;
@@ -198,11 +193,11 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		if (clockTimeValid) {
 			logger.info("Search move, clock time " + clockTime);
-			ms = new IterativeMoveSearcher(this, hashMap, pm, pm, clockTime, clockInc, killers);
+			ms = new IterativeMoveSearcher(this, hashMap, pm, pm, clockTime, clockInc);
 		}
 		else if (command.getMoveTime() != null) {
 			logger.info("Search move, fixed time " + command.getMoveTime());
-			ms = new FixedTimeMoveSearcher(this, hashMap, pm, pm, command.getMoveTime(), killers);
+			ms = new FixedTimeMoveSearcher(this, hashMap, pm, pm, command.getMoveTime());
 		} else {
 			byte searchDepth = SEARCH_DEPTH_IN_PLY;
 			if (command.getInfinite()) {
@@ -211,7 +206,7 @@ public class EubosEngineMain extends AbstractEngine {
 				searchDepth = (byte)((int)command.getDepth());
 			}
 			logger.info("Search move, fixed depth " + searchDepth);
-			ms = new FixedDepthMoveSearcher(this, hashMap, pm, pm, searchDepth, killers);
+			ms = new FixedDepthMoveSearcher(this, hashMap, pm, pm, searchDepth);
 		}
 	}
 

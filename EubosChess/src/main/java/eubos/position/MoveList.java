@@ -75,13 +75,16 @@ public class MoveList implements Iterable<Integer> {
     }
 	
 	public MoveList(PositionManager pm) {
-		this(pm, Move.NULL_MOVE);
+		this(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE );
 	}
 	
-	public MoveList(PositionManager pm, int bestMove) {
+	public MoveList(PositionManager pm, int bestMove, int killer1, int killer2) {
 		Colour onMove = pm.getOnMove();
-		boolean validBestKillerMove = bestMove != Move.NULL_MOVE;
+		boolean validBest = bestMove != Move.NULL_MOVE;
+		boolean validKillerMove1 = killer1 != Move.NULL_MOVE;
+		boolean validKillerMove2 = killer2 != Move.NULL_MOVE;
 		boolean needToEscapeMate = false;
+		int bestMoveToAddAtStart = Move.NULL_MOVE;
 		if (pm.lastMoveWasCheck() || (pm.noLastMove() && pm.isKingInCheck(onMove))) {
 			needToEscapeMate = true;
 		}
@@ -102,15 +105,31 @@ public class MoveList implements Iterable<Integer> {
 				} else {
 					// Set the check flag for any moves attacking the opposing king
 					boolean isCheck = pm.getTheBoard().moveCouldPotentiallyCheckOtherKing(currMove) && pm.isKingInCheck(pm.getOnMove());
-					boolean isBestKiller = validBestKillerMove && Move.areEqualForBestKiller(currMove, bestMove);
+					boolean isBest = validBest && Move.areEqualForBestKiller(currMove, bestMove);
+					if (isBest) {
+						validBest = false; // as already found
+					}
+					boolean isKiller1 = validKillerMove1 && Move.areEqualForBestKiller(currMove, killer1);
+					if (isKiller1) {
+						validKillerMove1 = false; // as already found
+					}
+					boolean isKiller2 = validKillerMove2 && Move.areEqualForBestKiller(currMove, killer2);
+					if (isKiller2) {
+						validKillerMove2 = false; // as already found
+					}
 					if (isCheck) {
 						currMove = Move.setCheck(currMove);
 					}
-					if (isBestKiller) {
+					if (isKiller1 || isKiller2) {
 						currMove = Move.setBestKiller(currMove);
 					}
-					if (isCheck || isBestKiller) {
+					if (isBest) {
+						bestMoveToAddAtStart = Move.setBestKiller(currMove);
+						it.remove();
+					} else if (isCheck || isKiller1 || isKiller2) {
 						it.set(currMove);
+					} else {
+						// do nothing
 					}
 				}
 				pm.unperformMove(false);
@@ -120,6 +139,9 @@ public class MoveList implements Iterable<Integer> {
 		}
 		// Sort the list
 		Collections.sort(normal_search_moves, mvvLvaComparator);
+		if (bestMoveToAddAtStart != Move.NULL_MOVE) {
+			normal_search_moves.add(0, bestMoveToAddAtStart);
+		}
 	}
 	
 	@Override

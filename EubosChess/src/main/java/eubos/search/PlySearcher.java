@@ -96,8 +96,10 @@ public class PlySearcher {
 		byte depthRequiredForTerminalNode = initialiseSearchAtPly();
 		TranspositionEvaluation eval = tt.getTransposition(currPly, depthRequiredForTerminalNode);		
 		switch (eval.status) {
-		case sufficientTerminalNode:
 		case sufficientRefutation:
+			// Add refuting move to killer list
+			killers.addMove(currPly, eval.trans.getBestMove());
+		case sufficientTerminalNode:
 			// Check score for hashed position causing a search cut-off is still valid (i.e. best move doesn't lead to a draw)
 			// If hashed score is a draw score, check it is still a draw, if not, search position
 			boolean isThreefold = checkForRepetitionDueToPositionInSearchTree(eval.trans.getBestMove());
@@ -402,20 +404,8 @@ public class PlySearcher {
 	}
 		
 	private MoveList getMoveList(int transBestMove) throws InvalidPieceException {
-		MoveList ml = null;
-		if (transBestMove != Move.NULL_MOVE) {
-			// Use transposition best move or last principal continuation for seeding move list
-			ml = new MoveList((PositionManager) pm, transBestMove);
-		} else {
-			// Look up any previous refutation from killer list
-			int killer = killers.getMove(currPly);
-			if (killer != Move.NULL_MOVE) {
-				ml = new MoveList((PositionManager) pm, killer);
-			} else {
-				ml = new MoveList((PositionManager) pm);
-			}
-		}
-		return ml;
+		int[] killer_moves = killers.getMoves(currPly);
+		return new MoveList((PositionManager) pm, transBestMove, killer_moves[0], killer_moves[1]);
 	}
 	
 	private Score applyMoveAndScore(int currMove) throws InvalidPieceException {

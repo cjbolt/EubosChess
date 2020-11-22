@@ -22,12 +22,14 @@ public abstract class AbstractMoveSearcher extends Thread {
 	protected IPositionAccessors pos;
 	protected MiniMaxMoveGenerator mg;
 	protected short initialScore;
+	protected KillerList killers;
 
-	public AbstractMoveSearcher(EubosEngineMain eng, IChangePosition pm, IPositionAccessors pos, FixedSizeTranspositionTable hashMap, KillerList killers) {
+	public AbstractMoveSearcher(EubosEngineMain eng, IChangePosition pm, IPositionAccessors pos, FixedSizeTranspositionTable hashMap) {
 		super();
 		this.eubosEngine = eng;
 		this.pm = pm;
 		this.pos = pos;
+		this.killers = new KillerList(EubosEngineMain.SEARCH_DEPTH_IN_PLY);
 		initialScore = pos.getPositionEvaluator().evaluatePosition().getScore();
 		if (Colour.isBlack(pos.getOnMove())) {
 			initialScore = (short)-initialScore;
