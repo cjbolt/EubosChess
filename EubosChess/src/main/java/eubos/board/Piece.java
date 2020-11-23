@@ -173,56 +173,54 @@ public abstract class Piece {
 	
 	static List<Integer> rook_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, Piece.Colour ownSide) {
 		int ownPiece = (Colour.isBlack(ownSide)) ? Piece.BLACK_ROOK : Piece.WHITE_ROOK;
-		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.down);
-		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.up);
-		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.left);
-		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.right);
+		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.down);
+		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.up);
+		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.left);
+		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.right);
 		return moveList;	
 	}
 	
 	static List<Integer> queen_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, Piece.Colour ownSide) {
 		int ownPiece = (Colour.isBlack(ownSide)) ? Piece.BLACK_QUEEN : Piece.WHITE_QUEEN;
-		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.downLeft);
-		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.upLeft);
-		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.downRight);
-		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.upRight);
-		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.down);
-		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.up);
-		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.left);
-		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.right);
+		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.downLeft);
+		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.upLeft);
+		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.downRight);
+		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.upRight);
+		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.down);
+		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.up);
+		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.left);
+		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.right);
 		return moveList;	
 	}
 	
 	static List<Integer> bishop_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, Piece.Colour ownSide) {
 		int ownPiece = (Colour.isBlack(ownSide)) ? Piece.BLACK_BISHOP : Piece.WHITE_BISHOP;
-		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.downLeft);
-		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.upLeft);
-		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.downRight);
-		multidirect_addMoves(ownPiece, atSquare, ownSide, moveList, theBoard, Direction.upRight);
+		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.downLeft);
+		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.upLeft);
+		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.downRight);
+		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.upRight);
 		return moveList;	
 	}
 
-	private static void multidirect_addMoves(int ownPiece, int atSquare, Piece.Colour ownSide, List<Integer> moveList, Board theBoard, Direction dir) {
-		boolean continueAddingMoves = true;
+	private static void multidirect_addMoves(int ownPiece, int atSquare, List<Integer> moveList, Board theBoard, Direction dir) {
 		int targetSquare = atSquare;
-		while ( continueAddingMoves ) {
-			targetSquare = Direction.getDirectMoveSq(dir, targetSquare);
-			if ( targetSquare != Position.NOPOSITION ) {
+		while ( true ) {
+			targetSquare = Direction.getDirectMoveSqRaw(dir, targetSquare);
+			if ((targetSquare & 0x88) == 0) { // If bit set indicates the square is off the board
 				int targetPiece = theBoard.getPieceAtSquare(targetSquare);
 				if (targetPiece == Piece.NONE) {
 					// Slider move
-					moveList.add(Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
-					continueAddingMoves = true;
+					moveList.add(Move.valueOfRegular(atSquare, ownPiece, targetSquare));
 					continue;
 				}
-				else if (targetPiece != Piece.NONE && Piece.isOppositeColour(ownSide, targetPiece)) {
+				else if ((ownPiece&Piece.BLACK) != (targetPiece&Piece.BLACK)) {
 					// Indicates a capture
-					moveList.add(Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
+					moveList.add(Move.valueOfCapture(atSquare, ownPiece, targetSquare, targetPiece));
 				} else {
 					// Indicates blocked by own piece.
 				}
 			}
-			continueAddingMoves = false;
+			return;
 		}
 	}
 	

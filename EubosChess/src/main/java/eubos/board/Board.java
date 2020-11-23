@@ -492,17 +492,17 @@ public class Board {
 					assert (whitePieces & pieceToGet) != 0;
 			}
 			// Sorted in order of frequency of piece on the chess board, for efficiency
-			if ((pieces[INDEX_PAWN] & pieceToGet) == pieceToGet) {
+			if ((pieces[INDEX_PAWN] & pieceToGet) != 0) {
 				type |= Piece.PAWN;
-			} else if ((pieces[INDEX_ROOK] & pieceToGet) == pieceToGet) {
+			} else if ((pieces[INDEX_ROOK] & pieceToGet) != 0) {
 				type |= Piece.ROOK;
-			} else if ((pieces[INDEX_BISHOP] & pieceToGet) == pieceToGet) {
+			} else if ((pieces[INDEX_BISHOP] & pieceToGet) != 0) {
 				type |= Piece.BISHOP;
-			} else if ((pieces[INDEX_KNIGHT] & pieceToGet) == pieceToGet) {
+			} else if ((pieces[INDEX_KNIGHT] & pieceToGet) != 0) {
 				type |= Piece.KNIGHT;
-			} else if ((pieces[INDEX_KING] & pieceToGet) == pieceToGet) {
+			} else if ((pieces[INDEX_KING] & pieceToGet) != 0) {
 				type |= Piece.KING;
-			} else if ((pieces[INDEX_QUEEN] & pieceToGet) == pieceToGet) {
+			} else if ((pieces[INDEX_QUEEN] & pieceToGet) != 0) {
 				type |= Piece.QUEEN;
 			}
 		}

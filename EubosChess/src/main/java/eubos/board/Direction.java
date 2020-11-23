@@ -44,6 +44,42 @@ public enum Direction {
 		return retVal;
 	}
 	
+	public static int getDirectMoveSqRaw( Direction dir, int startSq ) {
+		switch( dir ) {
+		case downLeft:
+		case leftDown:
+			startSq -= 17;
+			break;
+		case down:
+			startSq -= 16;
+			break;
+		case downRight:
+		case rightDown:
+			startSq -= 15;
+			break;
+		case left:
+			startSq -= 1;
+			break;
+		case right:
+			startSq += 1;
+			break;
+		case up:
+			startSq += 16;
+			break;
+		case upLeft:
+		case leftUp:
+			startSq += 15;
+			break;
+		case upRight:
+		case rightUp:
+			startSq += 17;
+			break;
+		default:
+			startSq = Position.NOPOSITION;
+		}
+		return startSq;
+	}
+	
 	public static int getIndirectMoveSq( Direction dir, int onSquare ) {
 		int retVal = Position.NOPOSITION;
 		switch( dir ) {
