@@ -89,7 +89,7 @@ public class PositionManagerTest {
 		// 1 ........
 		//   abcdefgh
 		createSutAndRegisterPe("8/8/8/8/8/8/4p3/8 b - - - -");
-		classUnderTest.performMove( Move.valueOf(Move.TYPE_PROMOTION_QUEEN_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.QUEEN));
+		classUnderTest.performMove( Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.QUEEN));
 		classUnderTest.unperformMove();
 		int expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( Position.e2 );
 		assertEquals( Piece.BLACK_PAWN, expectPawn );
@@ -368,7 +368,7 @@ public class PositionManagerTest {
 	public void test_BlackPawn_MoveGen_PromoteQueen() {
 		createSutAndRegisterPe("8/8/8/8/8/8/4p3/8 b - - 0 1 ");
 		theMl = new MoveList(classUnderTest);
-		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_QUEEN_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.QUEEN );
+		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.QUEEN );
 		assertTrue( theMl.contains( expectedMove ));
 	}	
 
@@ -376,7 +376,7 @@ public class PositionManagerTest {
 	public void test_BlackPawn_MoveGen_PromoteKnight() {
 		createSutAndRegisterPe("8/8/8/8/8/8/4p3/8 b - - 0 1 ");
 		theMl = new MoveList(classUnderTest);
-		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_PIECE_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.KNIGHT );
+		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.KNIGHT );
 		assertTrue( theMl.contains( expectedMove ));		
 	}
 
@@ -384,7 +384,7 @@ public class PositionManagerTest {
 	public void test_BlackPawn_MoveGen_PromoteBishop() {
 		createSutAndRegisterPe("8/8/8/8/8/8/4p3/8 b - - 0 1 ");
 		theMl = new MoveList(classUnderTest);
-		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_PIECE_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.BISHOP );
+		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.BISHOP );
 		assertTrue( theMl.contains( expectedMove ));		
 	}
 
@@ -392,7 +392,7 @@ public class PositionManagerTest {
 	public void test_BlackPawn_MoveGen_PromoteRook() {
 		createSutAndRegisterPe("8/8/8/8/8/8/4p3/8 b - - 0 1 ");
 		theMl = new MoveList(classUnderTest);
-		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_PIECE_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.ROOK );
+		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.ROOK );
 		assertTrue( theMl.contains( expectedMove ));
 	}
 	
@@ -536,7 +536,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_PromoteQueen() {
 		createSutAndRegisterPe("8/4P3/8/8/8/8/8/8 w - - 0 1 ");
 		theMl = new MoveList(classUnderTest);
-		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_QUEEN_MASK, Position.e7, Piece.PAWN, Position.e8, Piece.NONE, Piece.QUEEN );
+		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_MASK, Position.e7, Piece.PAWN, Position.e8, Piece.NONE, Piece.QUEEN );
 		assertTrue( theMl.contains( expectedMove ));
 	}	
 
@@ -544,7 +544,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_PromoteKnight() {
 		createSutAndRegisterPe("8/4P3/8/8/8/8/8/8 w - - 0 1 ");
 		theMl = new MoveList(classUnderTest);
-		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_PIECE_MASK, Position.e7, Piece.PAWN, Position.e8, Piece.NONE, Piece.KNIGHT );
+		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_MASK, Position.e7, Piece.PAWN, Position.e8, Piece.NONE, Piece.KNIGHT );
 		assertTrue( theMl.contains( expectedMove ));		
 	}
 
@@ -552,7 +552,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_PromoteBishop() {
 		createSutAndRegisterPe("8/4P3/8/8/8/8/8/8 w - - 0 1 ");
 		theMl = new MoveList(classUnderTest);
-		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_PIECE_MASK, Position.e7, Piece.PAWN, Position.e8, Piece.NONE, Piece.BISHOP );
+		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_MASK, Position.e7, Piece.PAWN, Position.e8, Piece.NONE, Piece.BISHOP );
 		assertTrue( theMl.contains( expectedMove ));			
 	}
 
@@ -560,7 +560,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_PromoteRook() {
 		createSutAndRegisterPe("8/4P3/8/8/8/8/8/8 w - - 0 1 ");
 		theMl = new MoveList(classUnderTest);
-		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_PIECE_MASK, Position.e7, Piece.PAWN, Position.e8, Piece.NONE, Piece.ROOK );
+		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_MASK, Position.e7, Piece.PAWN, Position.e8, Piece.NONE, Piece.ROOK );
 		assertTrue( theMl.contains( expectedMove ));	
 	}
 	

@@ -27,19 +27,19 @@ public final class Move {
 	
 	public static final int TYPE_REGULAR_NONE = 0;
 	public static final int TYPE_CHECK_BIT = 0;
-	public static final int TYPE_EN_PASSANT_CAPTURE_BIT = 1;
-	public static final int TYPE_CAPTURE_BIT = 2;
-	public static final int TYPE_PROMOTION_PIECE_BIT = 3;
-	public static final int TYPE_PROMOTION_QUEEN_BIT = 4;
-	public static final int TYPE_BEST_KILLER_BIT = 5;
-	public static final int TYPE_WIDTH = TYPE_BEST_KILLER_BIT + 1;
+	public static final int TYPE_KILLER_BIT = 1;
+	public static final int TYPE_EN_PASSANT_CAPTURE_BIT = 2;
+	public static final int TYPE_CAPTURE_BIT = 3;
+	public static final int TYPE_PROMOTION_BIT = 4;
+	public static final int TYPE_BEST_BIT = 5;
+	public static final int TYPE_WIDTH = TYPE_BEST_BIT + 1;
 	
-	public static final int TYPE_PROMOTION_QUEEN_MASK = (0x1 << TYPE_PROMOTION_QUEEN_BIT);
-	public static final int TYPE_PROMOTION_PIECE_MASK = (0x1 << TYPE_PROMOTION_PIECE_BIT);
+	public static final int TYPE_PROMOTION_MASK = (0x1 << TYPE_PROMOTION_BIT);
 	public static final int TYPE_CAPTURE_MASK = (0x1 << TYPE_CAPTURE_BIT);
 	public static final int TYPE_EN_PASSANT_CAPTURE_MASK = (0x1 << TYPE_EN_PASSANT_CAPTURE_BIT);
 	public static final int TYPE_CHECK_MASK = (0x1 << TYPE_CHECK_BIT);
-	public static final int TYPE_BEST_KILLER_MASK = (0x1 << TYPE_BEST_KILLER_BIT);
+	public static final int TYPE_BEST_MASK = (0x1 << TYPE_BEST_BIT);
+	public static final int TYPE_KILLER_MASK = (0x1 << TYPE_KILLER_BIT);
 	
 	private static final int TYPE_SHIFT = TARGET_PIECE_SHIFT + Long.bitCount(Piece.PIECE_WHOLE_MASK);
 	private static final int TYPE_MASK = ((1<<TYPE_WIDTH)-1) << TYPE_SHIFT;
@@ -190,7 +190,7 @@ public final class Move {
 		if (move.promotion != null) {
 			promotion = Piece.convertChessmanToPiece(IntChessman.valueOf(move.promotion), false);
 			promotion &= Piece.PIECE_NO_COLOUR_MASK;
-			intMove = Move.valueOf(Move.TYPE_PROMOTION_PIECE_MASK, originPosition, originPiece, targetPosition, targetPiece, promotion);
+			intMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, originPosition, originPiece, targetPosition, targetPiece, promotion);
 		} else {
 			intMove = Move.valueOf(type, originPosition, originPiece, targetPosition, targetPiece, promotion);
 		}
@@ -206,7 +206,7 @@ public final class Move {
 	}
 	
 	public static boolean isPromotion(int move) {
-		return (move & ((Move.TYPE_PROMOTION_QUEEN_MASK | Move.TYPE_PROMOTION_PIECE_MASK) << TYPE_SHIFT)) != 0;
+		return (move & (Move.TYPE_PROMOTION_MASK << TYPE_SHIFT)) != 0;
 	}
 	
 	public static boolean isCapture(int move) {
@@ -381,7 +381,7 @@ public final class Move {
 	}
 
 	public static boolean isQueenPromotion(int move) {
-		return (move & (Move.TYPE_PROMOTION_QUEEN_MASK) << TYPE_SHIFT) != 0;
+		return (((move & (Move.TYPE_PROMOTION_MASK) << TYPE_SHIFT) != 0) && Piece.isQueen(Move.getPromotion(move)));
 	}
 	
 	public static boolean isPawnCapture(int move) {
@@ -396,8 +396,12 @@ public final class Move {
 		return (move |= (Move.TYPE_CHECK_MASK << TYPE_SHIFT));
 	}
 	
-	public static int setBestKiller(int move) {
-		return (move |= (Move.TYPE_BEST_KILLER_MASK << TYPE_SHIFT));
+	public static int setKiller(int move) {
+		return (move |= (Move.TYPE_KILLER_MASK << TYPE_SHIFT));
+	}
+	
+	public static int setBest(int move) {
+		return (move |= (Move.TYPE_BEST_MASK << TYPE_SHIFT));
 	}
 
 	public static boolean isEnPassantCapture(int move) {

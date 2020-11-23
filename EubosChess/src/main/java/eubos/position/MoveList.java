@@ -49,24 +49,39 @@ public class MoveList implements Iterable<Integer> {
             if (type1 < type2) {
             	return 1;
             } else if (type1 == type2) {
-            	if ((type1 & Move.TYPE_CAPTURE_MASK) == 0) {
-            		// Only valid for captures
-            		return 0;
-            	}
-            	// mvv lva used for tie breaking move type comparison, if it is a capture
-            	int victim1 = MATERIAL[Move.getTargetPiece(move1)&Piece.PIECE_NO_COLOUR_MASK];
-            	int attacker1 = MATERIAL[Move.getOriginPiece(move1)&Piece.PIECE_NO_COLOUR_MASK];
-            	int victim2 = MATERIAL[Move.getTargetPiece(move2)&Piece.PIECE_NO_COLOUR_MASK];
-            	int attacker2 = MATERIAL[Move.getOriginPiece(move2)&Piece.PIECE_NO_COLOUR_MASK];
-            	int mvvLvaRankingForMove1 = victim1-attacker1;
-            	int mvvLvaRankingForMove2 = victim2-attacker2;
-            	
-            	if (mvvLvaRankingForMove1 < mvvLvaRankingForMove2) {
-            		return 1;
-            	} else if (mvvLvaRankingForMove1 == mvvLvaRankingForMove2) {
-            		return 0;
+            	if ((type1 & Move.TYPE_PROMOTION_MASK) == 0) {
+            		// When not a promotion, do MVVLVA ranking of capture, if any
+	            	if ((type1 & Move.TYPE_CAPTURE_MASK) == 0) {
+	            		// Only valid for captures
+	            		return 0;
+	            	}
+	            	// mvv lva used for tie breaking move type comparison, if it is a capture
+	            	int victim1 = MATERIAL[Move.getTargetPiece(move1)&Piece.PIECE_NO_COLOUR_MASK];
+	            	int attacker1 = MATERIAL[Move.getOriginPiece(move1)&Piece.PIECE_NO_COLOUR_MASK];
+	            	int victim2 = MATERIAL[Move.getTargetPiece(move2)&Piece.PIECE_NO_COLOUR_MASK];
+	            	int attacker2 = MATERIAL[Move.getOriginPiece(move2)&Piece.PIECE_NO_COLOUR_MASK];
+	            	int mvvLvaRankingForMove1 = victim1-attacker1;
+	            	int mvvLvaRankingForMove2 = victim2-attacker2;
+	            	
+	            	if (mvvLvaRankingForMove1 < mvvLvaRankingForMove2) {
+	            		return 1;
+	            	} else if (mvvLvaRankingForMove1 == mvvLvaRankingForMove2) {
+	            		return 0;
+	            	} else {
+	            		return -1;
+	            	}
             	} else {
-            		return -1;
+            		// when promotion order queens first, uses natural ordering of Piece
+            		int promo1 = Move.getPromotion(move1);
+            		int promo2 = Move.getPromotion(move2);
+            		
+	            	if (promo1 > promo2) {
+	            		return 1;
+	            	} else if (promo1 == promo2) {
+	            		return 0;
+	            	} else {
+	            		return -1;
+	            	}
             	}
             } else {
             	return -1;
@@ -84,7 +99,7 @@ public class MoveList implements Iterable<Integer> {
 		boolean validKillerMove1 = killer1 != Move.NULL_MOVE;
 		boolean validKillerMove2 = killer2 != Move.NULL_MOVE;
 		boolean needToEscapeMate = false;
-		int bestMoveToAddAtStart = Move.NULL_MOVE;
+		
 		if (pm.lastMoveWasCheck() || (pm.noLastMove() && pm.isKingInCheck(onMove))) {
 			needToEscapeMate = true;
 		}
@@ -105,10 +120,16 @@ public class MoveList implements Iterable<Integer> {
 				} else {
 					// Set the check flag for any moves attacking the opposing king
 					boolean isCheck = pm.getTheBoard().moveCouldPotentiallyCheckOtherKing(currMove) && pm.isKingInCheck(pm.getOnMove());
+					if (isCheck) {
+						currMove = Move.setCheck(currMove);
+					}
+					// Check whether to set the best move - note it could be the same as one of the killers
 					boolean isBest = validBest && Move.areEqualForBestKiller(currMove, bestMove);
 					if (isBest) {
+						currMove = Move.setBest(currMove);
 						validBest = false; // as already found
 					}
+					// Check whether to set Killer flags
 					boolean isKiller1 = validKillerMove1 && Move.areEqualForBestKiller(currMove, killer1);
 					if (isKiller1) {
 						validKillerMove1 = false; // as already found
@@ -117,19 +138,13 @@ public class MoveList implements Iterable<Integer> {
 					if (isKiller2) {
 						validKillerMove2 = false; // as already found
 					}
-					if (isCheck) {
-						currMove = Move.setCheck(currMove);
-					}
 					if (isKiller1 || isKiller2) {
-						currMove = Move.setBestKiller(currMove);
+						currMove = Move.setKiller(currMove);
 					}
-					if (isBest) {
-						bestMoveToAddAtStart = Move.setBestKiller(currMove);
-						it.remove();
-					} else if (isCheck || isKiller1 || isKiller2) {
+
+					if (isBest || isCheck || isKiller1 || isKiller2) {
+						// Move was modified, update it using the iterator
 						it.set(currMove);
-					} else {
-						// do nothing
 					}
 				}
 				pm.unperformMove(false);
@@ -139,9 +154,6 @@ public class MoveList implements Iterable<Integer> {
 		}
 		// Sort the list
 		Collections.sort(normal_search_moves, mvvLvaComparator);
-		if (bestMoveToAddAtStart != Move.NULL_MOVE) {
-			normal_search_moves.add(0, bestMoveToAddAtStart);
-		}
 	}
 	
 	@Override

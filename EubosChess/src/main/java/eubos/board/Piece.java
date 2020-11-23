@@ -291,10 +291,10 @@ public abstract class Piece {
 			int targetSquare, int targetPiece) {
 		if ( pawn_checkPromotionPossible( ownSide, targetSquare )) {
 			// Add in order of prioritisation
-			moveList.add( Move.valueOf(Move.TYPE_PROMOTION_QUEEN_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.QUEEN ));
-			moveList.add( Move.valueOf(Move.TYPE_PROMOTION_PIECE_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.ROOK ));
-			moveList.add( Move.valueOf(Move.TYPE_PROMOTION_PIECE_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.BISHOP ));
-			moveList.add( Move.valueOf(Move.TYPE_PROMOTION_PIECE_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.KNIGHT ));
+			moveList.add( Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.QUEEN ));
+			moveList.add( Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.ROOK ));
+			moveList.add( Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.BISHOP ));
+			moveList.add( Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.KNIGHT ));
 		} else {
 			moveList.add( Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
 		}
