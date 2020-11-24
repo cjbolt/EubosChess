@@ -509,6 +509,29 @@ public class Board {
 		return type;
 	}
 	
+	public boolean isRookOrQueen( long pieceToGet ) {
+	    return ((pieces[INDEX_ROOK] | pieces[INDEX_QUEEN]) & pieceToGet) != 0;
+	}
+	
+	public boolean isBishopOrQueen( long pieceToGet ) {
+		return ((pieces[INDEX_BISHOP] | pieces[INDEX_QUEEN]) & pieceToGet) != 0;
+	}
+	
+	public static final int OCCUPIED_NONE = 0;
+	public static final int OCCUPIED_WHITE = 1;
+	public static final int OCCUPIED_BLACK = 2;
+	public int isSquareOccupied( long pieceToGet ) {
+		int isOccupied = OCCUPIED_NONE;
+		if ((allPieces & pieceToGet) != 0) {	
+			if ((blackPieces & pieceToGet) != 0) {
+				isOccupied = OCCUPIED_BLACK;
+			} else {
+				isOccupied = OCCUPIED_WHITE;
+			}
+		}
+		return isOccupied;
+	}
+	
 	public void setPieceAtSquare( int atPos, int pieceToPlace ) {
 		if (EubosEngineMain.ASSERTS_ENABLED)
 			assert pieceToPlace != Piece.NONE;
