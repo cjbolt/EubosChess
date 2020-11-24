@@ -14,6 +14,7 @@ import eubos.board.Board;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
+import eubos.search.KillerList;
 
 public class MoveList implements Iterable<Integer> {
 	
@@ -129,22 +130,31 @@ public class MoveList implements Iterable<Integer> {
 						currMove = Move.setBest(currMove);
 						validBest = false; // as already found
 					}
-					// Check whether to set Killer flags
-					boolean isKiller1 = validKillerMove1 && Move.areEqualForBestKiller(currMove, killer1);
-					if (isKiller1) {
-						validKillerMove1 = false; // as already found
-					}
-					boolean isKiller2 = validKillerMove2 && Move.areEqualForBestKiller(currMove, killer2);
-					if (isKiller2) {
-						validKillerMove2 = false; // as already found
-					}
-					if (isKiller1 || isKiller2) {
-						currMove = Move.setKiller(currMove);
-					}
-
-					if (isBest || isCheck || isKiller1 || isKiller2) {
-						// Move was modified, update it using the iterator
-						it.set(currMove);
+					
+					if (KillerList.ENABLE_KILLER_MOVES) {
+						// Check whether to set Killer flags
+						boolean isKiller1 = validKillerMove1 && Move.areEqualForBestKiller(currMove, killer1);
+						if (isKiller1) {
+							validKillerMove1 = false; // as already found
+						}
+						boolean isKiller2 = validKillerMove2 && Move.areEqualForBestKiller(currMove, killer2);
+						if (isKiller2) {
+							validKillerMove2 = false; // as already found
+						}
+						if (isKiller1 || isKiller2) {
+							currMove = Move.setKiller(currMove);
+						}
+						
+	
+						if (isBest || isCheck || isKiller1 || isKiller2) {
+							// Move was modified, update it using the iterator
+							it.set(currMove);
+						}
+					} else {
+						if (isBest || isCheck) {
+							// Move was modified, update it using the iterator
+							it.set(currMove);
+						}
 					}
 				}
 				pm.unperformMove(false);

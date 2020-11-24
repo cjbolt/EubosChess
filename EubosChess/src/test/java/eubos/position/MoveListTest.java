@@ -12,6 +12,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
+import eubos.search.KillerList;
 
 public class MoveListTest {
 
@@ -241,8 +242,10 @@ public class MoveListTest {
 		assertEquals(new GenericMove("c4b5"), Move.toGenericMove(it.next()));
 		
 		// killers
-		assertEquals(killer1_gen, Move.toGenericMove(it.next()));
-		assertEquals(killer2_gen, Move.toGenericMove(it.next()));
+		if (KillerList.ENABLE_KILLER_MOVES) {
+			assertEquals(killer1_gen, Move.toGenericMove(it.next()));
+			assertEquals(killer2_gen, Move.toGenericMove(it.next()));
+		}
 		
 		// check
 		assertEquals(new GenericMove("h7f5"), Move.toGenericMove(it.next()));
