@@ -1,5 +1,7 @@
 package eubos.position;
 
+import java.util.Comparator;
+
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IntChessman;
 
@@ -34,12 +36,15 @@ public final class Move {
 	public static final int TYPE_BEST_BIT = 5;
 	public static final int TYPE_WIDTH = TYPE_BEST_BIT + 1;
 	
-	public static final int TYPE_PROMOTION_MASK = (0x1 << TYPE_PROMOTION_BIT);
-	public static final int TYPE_CAPTURE_MASK = (0x1 << TYPE_CAPTURE_BIT);
-	public static final int TYPE_EN_PASSANT_CAPTURE_MASK = (0x1 << TYPE_EN_PASSANT_CAPTURE_BIT);
 	public static final int TYPE_CHECK_MASK = (0x1 << TYPE_CHECK_BIT);
-	public static final int TYPE_BEST_MASK = (0x1 << TYPE_BEST_BIT);
+	public static final int TYPE_EN_PASSANT_CAPTURE_MASK = (0x1 << TYPE_EN_PASSANT_CAPTURE_BIT);
+	
 	public static final int TYPE_KILLER_MASK = (0x1 << TYPE_KILLER_BIT);
+	public static final int TYPE_CAPTURE_MASK = (0x1 << TYPE_CAPTURE_BIT);
+	public static final int TYPE_PROMOTION_MASK = (0x1 << TYPE_PROMOTION_BIT);
+	public static final int TYPE_BEST_MASK = (0x1 << TYPE_BEST_BIT);
+	
+	public static final int MOVE_ORDERING_MASK = (TYPE_KILLER_MASK | TYPE_CAPTURE_MASK | TYPE_PROMOTION_MASK | TYPE_BEST_MASK);
 	
 	private static final int TYPE_SHIFT = TARGET_PIECE_SHIFT + Long.bitCount(Piece.PIECE_WHOLE_MASK);
 	private static final int TYPE_MASK = ((1<<TYPE_WIDTH)-1) << TYPE_SHIFT;
@@ -349,6 +354,20 @@ public final class Move {
 		}
 		return promotion;
 	}
+	
+	public static int comparePromotions(int move1, int move2 ) {
+		// Order better promotions first, uses natural ordering of Piece
+		int promo1 = move1 & Move.PROMOTION_MASK;
+		int promo2 = move2 & Move.PROMOTION_MASK;
+		
+    	if (promo1 > promo2) {
+    		return 1;
+    	} else if (promo1 == promo2) {
+    		return 0;
+    	} else {
+    		return -1;
+    	}
+	}
 
 	public static int setPromotion(int move, int promotion) {
 		// Zero out promotion chessman
@@ -362,6 +381,67 @@ public final class Move {
 
 		return move;
 	}
+	
+    public static final int [] MATERIAL = {0, Board.MATERIAL_VALUE_KING, Board.MATERIAL_VALUE_QUEEN, Board.MATERIAL_VALUE_ROOK, 
+    		Board.MATERIAL_VALUE_BISHOP, Board.MATERIAL_VALUE_KNIGHT, Board.MATERIAL_VALUE_PAWN }; 
+    
+	public static int compareCaptures(int move1, int move2) {
+    	if ((move1 & (Move.TYPE_CAPTURE_MASK<<Move.TYPE_SHIFT)) == 0) {
+    		// Comparison only valid for captures
+    		return 0;
+    	}
+    	// mvv lva used for tie breaking move type comparison, if it is a capture
+    	int victim1 = MATERIAL[Move.getTargetPiece(move1)&Piece.PIECE_NO_COLOUR_MASK];
+    	int attacker1 = MATERIAL[Move.getOriginPiece(move1)&Piece.PIECE_NO_COLOUR_MASK];
+    	int victim2 = MATERIAL[Move.getTargetPiece(move2)&Piece.PIECE_NO_COLOUR_MASK];
+    	int attacker2 = MATERIAL[Move.getOriginPiece(move2)&Piece.PIECE_NO_COLOUR_MASK];
+    	int mvvLvaRankingForMove1 = victim1-attacker1;
+    	int mvvLvaRankingForMove2 = victim2-attacker2;
+    	
+    	if (mvvLvaRankingForMove1 < mvvLvaRankingForMove2) {
+    		return 1;
+    	} else if (mvvLvaRankingForMove1 == mvvLvaRankingForMove2) {
+    		return 0;
+    	} else {
+    		return -1;
+    	}
+	}
+	
+    public static final MoveMvvLvaComparator mvvLvaComparator = new MoveMvvLvaComparator();
+    
+    private static class MoveMvvLvaComparator implements Comparator<Integer> {
+        @Override public int compare(Integer move1, Integer move2) {
+        	//int type1 = move1 & (Move.MOVE_ORDERING_MASK << Move.TYPE_SHIFT);
+        	//int type2 = move2 & (Move.MOVE_ORDERING_MASK << Move.TYPE_SHIFT);
+        	int type1;
+        	int type2;
+        	// Note, promotion captures are always winning by definition, no need to check that
+        	// Ignore en passant captures and checks when ranking captures
+        	// As a further optimisation, these could be moved out of the type bitmask
+        	if ((move1 & (Move.TYPE_CAPTURE_MASK<<Move.TYPE_SHIFT)) != 0) {
+        		type1 = move1 & (Move.MOVE_ORDERING_MASK << Move.TYPE_SHIFT);
+        	} else {
+        		type1 = move1 & Move.TYPE_MASK;
+        	}
+        	if ((move2 & (Move.TYPE_CAPTURE_MASK<<Move.TYPE_SHIFT)) != 0) {
+        		type2 = move2 & (Move.MOVE_ORDERING_MASK << Move.TYPE_SHIFT);
+        	} else {
+        		type2 = move2 & Move.TYPE_MASK;
+        	}
+        	// Winning captures should be prioritised before checks
+            if (type1 < type2) {
+            	return 1;
+            } else if (type1 == type2) {
+            	if ((type1 & (Move.TYPE_PROMOTION_MASK << Move.TYPE_SHIFT)) == 0) {
+            		return Move.compareCaptures(move1, move2);
+            	} else {
+            		return Move.comparePromotions(move1, move2);
+            	}
+            } else {
+            	return -1;
+            }
+        }
+    }
 	
 	public static int getOriginPiece(int move) {
 		int piece = (move & ORIGIN_PIECE_MASK) >>> ORIGIN_PIECE_SHIFT;		

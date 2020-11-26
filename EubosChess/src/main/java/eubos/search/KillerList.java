@@ -4,7 +4,7 @@ import eubos.position.Move;
 
 public class KillerList {
 	
-	public static final boolean ENABLE_KILLER_MOVES = false;
+	public static final boolean ENABLE_KILLER_MOVES = true;
 	
 	private int [][] killerList = null;
 	private int [] replaceIndex = null;

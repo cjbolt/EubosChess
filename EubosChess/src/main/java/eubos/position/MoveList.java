@@ -10,7 +10,6 @@ import java.util.Random;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
-import eubos.board.Board;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
@@ -26,67 +25,6 @@ public class MoveList implements Iterable<Integer> {
             boolean gt = Move.getType(move1) < Move.getType(move2);
             boolean eq = Move.getType(move1) == Move.getType(move2);
             return gt ? 1 : (eq ? 0 : -1);
-        }
-    }
-    
-    public static final int [] MATERIAL = {0, Board.MATERIAL_VALUE_KING, Board.MATERIAL_VALUE_QUEEN, Board.MATERIAL_VALUE_ROOK, 
-    		Board.MATERIAL_VALUE_BISHOP, Board.MATERIAL_VALUE_KNIGHT, Board.MATERIAL_VALUE_PAWN }; 
-    
-    private static final MoveMvvLvaComparator mvvLvaComparator = new MoveMvvLvaComparator();
-    
-    private static class MoveMvvLvaComparator implements Comparator<Integer> {
-        @Override public int compare(Integer move1, Integer move2) {
-        	int type1 = Move.getType(move1);
-        	int type2 = Move.getType(move2);
-        	// Note, promotion captures are always winning by definition, no need to check that
-        	// Ignore en passant captures and checks when ranking captures
-        	if ((type1 & Move.TYPE_CAPTURE_MASK) != 0) {
-        		type1 &= ~(Move.TYPE_EN_PASSANT_CAPTURE_MASK | Move.TYPE_CHECK_MASK);
-        	}
-        	if ((type2 & Move.TYPE_CAPTURE_MASK) != 0) {
-        		type2 &= ~(Move.TYPE_EN_PASSANT_CAPTURE_MASK | Move.TYPE_CHECK_MASK);
-        	}
-        	// Winning captures should be prioritised before checks
-            if (type1 < type2) {
-            	return 1;
-            } else if (type1 == type2) {
-            	if ((type1 & Move.TYPE_PROMOTION_MASK) == 0) {
-            		// When not a promotion, do MVVLVA ranking of capture, if any
-	            	if ((type1 & Move.TYPE_CAPTURE_MASK) == 0) {
-	            		// Only valid for captures
-	            		return 0;
-	            	}
-	            	// mvv lva used for tie breaking move type comparison, if it is a capture
-	            	int victim1 = MATERIAL[Move.getTargetPiece(move1)&Piece.PIECE_NO_COLOUR_MASK];
-	            	int attacker1 = MATERIAL[Move.getOriginPiece(move1)&Piece.PIECE_NO_COLOUR_MASK];
-	            	int victim2 = MATERIAL[Move.getTargetPiece(move2)&Piece.PIECE_NO_COLOUR_MASK];
-	            	int attacker2 = MATERIAL[Move.getOriginPiece(move2)&Piece.PIECE_NO_COLOUR_MASK];
-	            	int mvvLvaRankingForMove1 = victim1-attacker1;
-	            	int mvvLvaRankingForMove2 = victim2-attacker2;
-	            	
-	            	if (mvvLvaRankingForMove1 < mvvLvaRankingForMove2) {
-	            		return 1;
-	            	} else if (mvvLvaRankingForMove1 == mvvLvaRankingForMove2) {
-	            		return 0;
-	            	} else {
-	            		return -1;
-	            	}
-            	} else {
-            		// when promotion order queens first, uses natural ordering of Piece
-            		int promo1 = Move.getPromotion(move1);
-            		int promo2 = Move.getPromotion(move2);
-            		
-	            	if (promo1 > promo2) {
-	            		return 1;
-	            	} else if (promo1 == promo2) {
-	            		return 0;
-	            	} else {
-	            		return -1;
-	            	}
-            	}
-            } else {
-            	return -1;
-            }
         }
     }
 	
@@ -144,7 +82,6 @@ public class MoveList implements Iterable<Integer> {
 						if (isKiller1 || isKiller2) {
 							currMove = Move.setKiller(currMove);
 						}
-						
 	
 						if (isBest || isCheck || isKiller1 || isKiller2) {
 							// Move was modified, update it using the iterator
@@ -163,7 +100,7 @@ public class MoveList implements Iterable<Integer> {
 			}
 		}
 		// Sort the list
-		Collections.sort(normal_search_moves, mvvLvaComparator);
+		Collections.sort(normal_search_moves, Move.mvvLvaComparator);
 	}
 	
 	@Override
