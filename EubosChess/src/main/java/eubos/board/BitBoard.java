@@ -10,7 +10,7 @@ import com.fluxchess.jcpi.models.IntRank;
 
 public class BitBoard {
 	
-	static int[] bitToPosition_Lut = new int[64];
+	static final int[] bitToPosition_Lut = new int[64];
 	static {
 		int bit_index = 0;
 		for (int square : Position.values) {
@@ -18,7 +18,16 @@ public class BitBoard {
 		}
 	}
 	
-	static long[] positionToMask_Lut = new long[128];
+//	static final Map<Long, Integer> maskToPosition = new HashMap<Long, Integer>(64);
+//	static {
+//		int bit_index = 0;
+//		for (int square : Position.values) {
+//			maskToPosition.put((1L << bit_index), square);
+//			bit_index++;
+//		}
+//	}
+	
+	static final long[] positionToMask_Lut = new long[128];
 	static {
 		int bit_index = 0;
 		for (int x88_square : Position.values) {
