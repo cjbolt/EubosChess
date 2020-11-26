@@ -23,9 +23,11 @@ public final class Move {
 	
 	private static final int ORIGIN_PIECE_SHIFT = PROMOTION_SHIFT+Long.bitCount(Piece.PIECE_NO_COLOUR_MASK);
 	private static final int ORIGIN_PIECE_MASK = Piece.PIECE_WHOLE_MASK << ORIGIN_PIECE_SHIFT;
+	private static final int ORIGIN_PIECE_MASK_NO_COLOUR = Piece.PIECE_NO_COLOUR_MASK << ORIGIN_PIECE_SHIFT;
 	
 	private static final int TARGET_PIECE_SHIFT = ORIGIN_PIECE_SHIFT+Long.bitCount(Piece.PIECE_WHOLE_MASK);
 	private static final int TARGET_PIECE_MASK = Piece.PIECE_WHOLE_MASK << TARGET_PIECE_SHIFT;
+	private static final int TARGET_PIECE_NO_COLOUR_MASK = Piece.PIECE_NO_COLOUR_MASK << TARGET_PIECE_SHIFT;
 	
 	public static final int TYPE_REGULAR_NONE = 0;
 	public static final int TYPE_CHECK_BIT = 0;
@@ -382,19 +384,15 @@ public final class Move {
 		return move;
 	}
 	
-    public static final int [] MATERIAL = {0, Board.MATERIAL_VALUE_KING, Board.MATERIAL_VALUE_QUEEN, Board.MATERIAL_VALUE_ROOK, 
+    private static final int [] MATERIAL = {0, Board.MATERIAL_VALUE_KING, Board.MATERIAL_VALUE_QUEEN, Board.MATERIAL_VALUE_ROOK, 
     		Board.MATERIAL_VALUE_BISHOP, Board.MATERIAL_VALUE_KNIGHT, Board.MATERIAL_VALUE_PAWN }; 
     
 	public static int compareCaptures(int move1, int move2) {
-    	if ((move1 & (Move.TYPE_CAPTURE_MASK<<Move.TYPE_SHIFT)) == 0) {
-    		// Comparison only valid for captures
-    		return 0;
-    	}
     	// mvv lva used for tie breaking move type comparison, if it is a capture
-    	int victim1 = MATERIAL[Move.getTargetPiece(move1)&Piece.PIECE_NO_COLOUR_MASK];
-    	int attacker1 = MATERIAL[Move.getOriginPiece(move1)&Piece.PIECE_NO_COLOUR_MASK];
-    	int victim2 = MATERIAL[Move.getTargetPiece(move2)&Piece.PIECE_NO_COLOUR_MASK];
-    	int attacker2 = MATERIAL[Move.getOriginPiece(move2)&Piece.PIECE_NO_COLOUR_MASK];
+    	int victim1 = MATERIAL[Move.getTargetPieceNoColour(move1)];
+    	int attacker1 = MATERIAL[Move.getOriginPieceNoColour(move1)];
+    	int victim2 = MATERIAL[Move.getTargetPieceNoColour(move2)];
+    	int attacker2 = MATERIAL[Move.getOriginPieceNoColour(move2)];
     	int mvvLvaRankingForMove1 = victim1-attacker1;
     	int mvvLvaRankingForMove2 = victim2-attacker2;
     	
@@ -411,14 +409,12 @@ public final class Move {
     
     private static class MoveMvvLvaComparator implements Comparator<Integer> {
         @Override public int compare(Integer move1, Integer move2) {
-        	//int type1 = move1 & (Move.MOVE_ORDERING_MASK << Move.TYPE_SHIFT);
-        	//int type2 = move2 & (Move.MOVE_ORDERING_MASK << Move.TYPE_SHIFT);
         	int type1;
         	int type2;
-        	// Note, promotion captures are always winning by definition, no need to check that
+        	boolean isCapture = false;
         	// Ignore en passant captures and checks when ranking captures
-        	// As a further optimisation, these could be moved out of the type bitmask
         	if ((move1 & (Move.TYPE_CAPTURE_MASK<<Move.TYPE_SHIFT)) != 0) {
+        		isCapture = true;
         		type1 = move1 & (Move.MOVE_ORDERING_MASK << Move.TYPE_SHIFT);
         	} else {
         		type1 = move1 & Move.TYPE_MASK;
@@ -433,8 +429,13 @@ public final class Move {
             	return 1;
             } else if (type1 == type2) {
             	if ((type1 & (Move.TYPE_PROMOTION_MASK << Move.TYPE_SHIFT)) == 0) {
-            		return Move.compareCaptures(move1, move2);
+                	if (isCapture) {
+                		// MVV LVA comparison only valid for captures
+                		return Move.compareCaptures(move1, move2);
+                	}
+                	return 0;
             	} else {
+            		// Note, promotion captures are always winning by definition, no need to check that
             		return Move.comparePromotions(move1, move2);
             	}
             } else {
@@ -447,6 +448,11 @@ public final class Move {
 		int piece = (move & ORIGIN_PIECE_MASK) >>> ORIGIN_PIECE_SHIFT;		
 		return piece;
 	}
+	
+	public static int getOriginPieceNoColour(int move) {
+		int piece = (move & ORIGIN_PIECE_MASK_NO_COLOUR) >>> ORIGIN_PIECE_SHIFT;		
+		return piece;
+	}
 
 	public static int setOriginPiece(int move, int piece) {
 		move &= ~ORIGIN_PIECE_MASK;
@@ -456,6 +462,11 @@ public final class Move {
 	
 	public static int getTargetPiece(int move) {
 		int piece = (move & TARGET_PIECE_MASK) >>> TARGET_PIECE_SHIFT;		
+		return piece;
+	}
+	
+	public static int getTargetPieceNoColour(int move) {
+		int piece = (move & TARGET_PIECE_NO_COLOUR_MASK) >>> TARGET_PIECE_SHIFT;		
 		return piece;
 	}
 
