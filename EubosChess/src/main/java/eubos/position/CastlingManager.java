@@ -136,7 +136,7 @@ public class CastlingManager {
 		}
 		// King cannot move through an attacked square
 		for (int sqToCheck: checkSqs) {
-			if (theBoard.squareIsAttacked(sqToCheck, pm.getOnMove())) {
+			if (theBoard.squareIsAttacked(sqToCheck, Piece.Colour.getOpposite(pm.getOnMove()))) {
 				return false;
 			}
 		}

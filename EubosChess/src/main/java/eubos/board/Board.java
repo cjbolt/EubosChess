@@ -477,8 +477,8 @@ public class Board {
 		return (allPieces & BitBoard.positionToMask_Lut[atPos]) == 0;		
 	}
 	
-	public boolean squareIsAttacked( int atPos, Piece.Colour ownColour ) {
-		return SquareAttackEvaluator.isAttacked(this, atPos, ownColour);
+	public boolean squareIsAttacked( int atPos, Piece.Colour attackingColour ) {
+		return SquareAttackEvaluator.isAttacked(this, atPos, attackingColour);
 	}
 	
 	public int getPieceAtSquare( int atPos ) {
@@ -532,7 +532,7 @@ public class Board {
 		if (kingMask != 0) {
 			// The conditional is needed because some unit test positions don't have a king...
 			int kingSquare = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(kingMask)];
-			inCheck = squareIsAttacked(kingSquare, side);
+			inCheck = squareIsAttacked(kingSquare, Piece.Colour.getOpposite(side));
 		}
 		return inCheck;
 	}
@@ -747,54 +747,6 @@ public class Board {
 		} catch (InvalidPieceException e) {
 			return null;
 		}
-	}
-	
-	public long getMaskForType(int type) {
-		long mask = 0x0;
-		switch(type) {
-		case Piece.WHITE_KING:
-			mask = getWhiteKing();
-			break;
-		case Piece.WHITE_QUEEN:
-			mask = getWhiteQueens();
-			break;
-		case Piece.WHITE_ROOK:
-			mask = getWhiteRooks();
-			break;
-		case Piece.WHITE_BISHOP:
-			mask = getWhiteBishops();
-			break;
-		case Piece.WHITE_KNIGHT:
-			mask = getWhiteKnights();
-			break;
-		case Piece.WHITE_PAWN:
-			mask = getWhitePawns();
-			break;
-		case Piece.BLACK_KING:
-			mask = getBlackKing();
-			break;
-		case Piece.BLACK_QUEEN:
-			mask = getBlackQueens();
-			break;
-		case Piece.BLACK_ROOK:
-			mask = getBlackRooks();
-			break;
-		case Piece.BLACK_BISHOP:
-			mask = getBlackBishops();
-			break;
-		case Piece.BLACK_KNIGHT:
-			mask = getBlackKnights();
-			break;
-		case Piece.BLACK_PAWN:
-			mask = getBlackPawns();
-			break;
-		case Piece.NONE:
-		default:
-			if (EubosEngineMain.ASSERTS_ENABLED)
-				assert false;
-			break;
-		}
-		return mask;
 	}
 		
 	public long getBlackPawns() {

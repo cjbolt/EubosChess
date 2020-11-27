@@ -46,7 +46,7 @@ public class PositionEvaluator implements IEvaluate {
 				if (SquareAttackEvaluator.isAttacked(
 						pm.getTheBoard(),
 						Move.getTargetPosition(currMove),
-						Colour.getOpposite(pm.getOnMove())))
+						pm.getOnMove()))
 					return false;
 			}
 		}

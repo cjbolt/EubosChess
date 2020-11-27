@@ -181,8 +181,49 @@ public class SquareAttackEvaluator {
 		return mask;
 	}
 	
-	public static boolean isAttacked( Board bd, int attackedSq, Piece.Colour ownColour ) {
-		Colour attackingColour = Piece.Colour.getOpposite(ownColour);
+	static final long[] BlackPawnAttacks_Lut = new long[128];
+	static {
+		for (int square : Position.values) {
+			BlackPawnAttacks_Lut[square] = createBlackPawnMovesAtSq(square);
+		}
+	}
+	static long createBlackPawnMovesAtSq(int atPos) {
+		long mask = 0;
+		if (Position.getRank(atPos) != 7) {
+			int sq = Direction.getDirectMoveSq(Direction.upRight, atPos);
+			if (sq != Position.NOPOSITION) {
+				mask |= BitBoard.positionToMask_Lut[sq];
+			}
+			sq = Direction.getDirectMoveSq(Direction.upLeft, atPos);
+			if (sq != Position.NOPOSITION) {
+				mask |= BitBoard.positionToMask_Lut[sq];
+			}
+		}
+		return mask;
+	}
+	
+	static final long[] WhitePawnAttacks_Lut = new long[128];
+	static {
+		for (int square : Position.values) {
+			WhitePawnAttacks_Lut[square] = createWhitePawnMovesAtSq(square);
+		}
+	}
+	static long createWhitePawnMovesAtSq(int atPos) {
+		long mask = 0;
+		if (Position.getRank(atPos) != 0) {
+			int sq = Direction.getDirectMoveSq(Direction.downRight, atPos);
+			if (sq != Position.NOPOSITION) {
+				mask |= BitBoard.positionToMask_Lut[sq];
+			}
+			sq = Direction.getDirectMoveSq(Direction.downLeft, atPos);
+			if (sq != Position.NOPOSITION) {
+				mask |= BitBoard.positionToMask_Lut[sq];
+			}
+		}
+		return mask;
+	}
+	
+	public static boolean isAttacked( Board bd, int attackedSq, Piece.Colour attackingColour ) {
 		boolean isBlackAttacking = Colour.isBlack(attackingColour);
 		
 		// Early terminate, if no potential attackers
@@ -196,26 +237,25 @@ public class SquareAttackEvaluator {
 		do {
 			if (isBlackAttacking) {
 				if (attackingPawnsMask != 0) {
-					// TODO could have a mask LUT of pawnAttacker masks for each position and colour
-					attacked = attackedByPawn(bd, attackingPawnsMask, Direction.getDirectMoveSq(Direction.upRight,attackedSq));
+					attacked = (attackingPawnsMask & BlackPawnAttacks_Lut[attackedSq]) != 0;
 					if (attacked) break;
-					attacked = attackedByPawn(bd, attackingPawnsMask, Direction.getDirectMoveSq(Direction.upLeft,attackedSq));
+					attacked = (attackingPawnsMask & BlackPawnAttacks_Lut[attackedSq]) != 0;
 					if (attacked) break;
 				}
-				attacked = checkForAttacksHelper(bd, Piece.BLACK_KING, KingMove_Lut[attackedSq]);
+				attacked = (bd.getBlackKing() & KingMove_Lut[attackedSq]) != 0;;
 				if (attacked) break;
-				attacked = checkForAttacksHelper(bd, Piece.BLACK_KNIGHT, KnightMove_Lut[attackedSq]);
+				attacked = (bd.getBlackKnights() & KnightMove_Lut[attackedSq]) != 0;
 				if (attacked) break;
 			} else {
 				if (attackingPawnsMask != 0) {
-					attacked = attackedByPawn(bd, attackingPawnsMask, Direction.getDirectMoveSq(Direction.downRight,attackedSq));
+					attacked = (attackingPawnsMask & WhitePawnAttacks_Lut[attackedSq]) != 0;
 					if (attacked) break;
-					attacked = attackedByPawn(bd, attackingPawnsMask, Direction.getDirectMoveSq(Direction.downLeft,attackedSq));
+					attacked = (attackingPawnsMask & WhitePawnAttacks_Lut[attackedSq]) != 0;
 					if (attacked) break;
 				}
-				attacked = checkForAttacksHelper(bd, Piece.WHITE_KING, KingMove_Lut[attackedSq]);
+				attacked = (bd.getWhiteKing() & KingMove_Lut[attackedSq]) != 0;
 				if (attacked) break;
-				attacked = checkForAttacksHelper(bd, Piece.WHITE_KNIGHT, KnightMove_Lut[attackedSq]);
+				attacked = (bd.getWhiteKnights() & KnightMove_Lut[attackedSq]) != 0;
 				if (attacked) break;
 			}
 			attacked = checkForDirectPieceAttacker(bd, attackingColour, attackedSq, isBlackAttacking);
@@ -224,19 +264,6 @@ public class SquareAttackEvaluator {
 		return attacked;	
 	}
 
-	private static boolean checkForAttacksHelper(Board theBoard, int attackingPieceType, long attackingSquaresMask) {
-		return (theBoard.getMaskForType(attackingPieceType) & attackingSquaresMask) != 0;
-	}
-	
-	private static boolean attackedByPawn(Board theBoard, long attackingPawns, int attackerSq) {
-		boolean attacked = false;
-		if (attackerSq != Position.NOPOSITION) {
-			long atPosMask = BitBoard.positionToMask_Lut[attackerSq];
-			attacked = ((attackingPawns & atPosMask) != 0);
-		}
-		return attacked;
-	}
-	
 	private static boolean checkForDirectPieceAttacker(Board bd, Colour attackingColour, int attackedSq, boolean isBlackAttacking) {
 		boolean attacked = false;
 		// direct piece check is computationally heavy, so just do what is necessary
