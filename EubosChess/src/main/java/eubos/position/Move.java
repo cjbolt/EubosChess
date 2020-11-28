@@ -47,6 +47,7 @@ public final class Move {
 	public static final int TYPE_BEST_MASK = (0x1 << TYPE_BEST_BIT);
 	
 	public static final int MOVE_ORDERING_MASK = (TYPE_KILLER_MASK | TYPE_CAPTURE_MASK | TYPE_PROMOTION_MASK | TYPE_BEST_MASK);
+	public static final int KILLER_EXCLUSION_MASK = (TYPE_CAPTURE_MASK | TYPE_PROMOTION_MASK | TYPE_BEST_MASK);
 	
 	private static final int TYPE_SHIFT = TARGET_PIECE_SHIFT + Long.bitCount(Piece.PIECE_WHOLE_MASK);
 	private static final int TYPE_MASK = ((1<<TYPE_WIDTH)-1) << TYPE_SHIFT;
@@ -539,5 +540,9 @@ public final class Move {
 
 	public static boolean isEnPassantCapture(int move) {
 		return (move & ((Move.TYPE_EN_PASSANT_CAPTURE_MASK) << TYPE_SHIFT)) != 0;
+	}
+
+	public static boolean isNotBestCaptureOrPromotion(int move) {
+		return (move & (Move.KILLER_EXCLUSION_MASK << Move.TYPE_SHIFT)) == 0;
 	}
 }

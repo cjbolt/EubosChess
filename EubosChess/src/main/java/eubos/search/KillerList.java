@@ -22,7 +22,7 @@ public class KillerList {
 	
 	public void addMove(int ply, int move) {
 		if (ENABLE_KILLER_MOVES) {
-			if (ply < killerList.length) {
+			if (Move.isNotBestCaptureOrPromotion(move) && ply < killerList.length) {
 				int indexToUpdate = replaceIndex[ply];	
 				int otherIndex = (indexToUpdate == 0) ? 1 : 0;
 				int otherMove = killerList[ply][otherIndex];
