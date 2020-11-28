@@ -117,41 +117,8 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	void createPositionFromAnalyseCommand(EngineAnalyzeCommand command) {
-		String uci_fen_string = command.board.toString();
-		String fen_to_use = null;
-		boolean lastMoveWasCaptureOrPawnMove = false;
-		if (!command.moves.isEmpty()) {
-			// This temporary pm is to ensure that the correct position is used to initialise the search 
-			// context of the position evaluator, required when we get a position and move list to apply to it.
-			PositionManager temp_pm = new PositionManager(uci_fen_string, dc);
-			try {
-				for (GenericMove nextMove : command.moves) {
-					int move = Move.toMove(nextMove, temp_pm.getTheBoard());
-					temp_pm.performMove(move);
-					lastMoveWasCaptureOrPawnMove = Move.isCapture(move) || Move.isPawnMove(move);
-				}
-			} catch(InvalidPieceException e ) {
-				System.err.println(String.format(
-				    "Serious error: Eubos can't find a piece on the board whilst applying previous moves, at %s", e.getAtPosition()));
-			}
-			// Assign the actual pm fen to use
-			fen_to_use = temp_pm.getFen();
-			// unwind the moves made to get the fen so that the draw checker position count is correct; we don't double count
-			for (int i=0; i<command.moves.size(); i++) {
-				try {
-					temp_pm.unperformMove();
-				} catch (InvalidPieceException e) {
-					e.printStackTrace();
-				}
-			}
-		} else {
-			fen_to_use = uci_fen_string;
-		}
+		String fen_to_use = getActualFenStringForPosition(command); 
 		pm = new PositionManager(fen_to_use, dc);
-		if (lastMoveWasCaptureOrPawnMove) {
-			// Pawn moves and captures are irreversible, clear the draw checker
-			dc.reset();
-		}
 		long hashCode = pm.getHash();
 		Piece.Colour nowOnMove = pm.getOnMove();
 		if (lastOnMove == null || (lastOnMove == nowOnMove && !fen_to_use.equals(lastFen))) {
@@ -166,6 +133,36 @@ public class EubosEngineMain extends AbstractEngine {
 		lastFen = fen_to_use;
 		logger.info(String.format("positionReceived fen=%s hashCode=%d reachedCount=%d",
 				fen_to_use, hashCode, dc.getPositionReachedCount(hashCode)));
+	}
+
+	private String getActualFenStringForPosition(EngineAnalyzeCommand command) {
+		String uci_fen_string = command.board.toString();
+		String fen_to_use = null;
+		boolean lastMoveWasCaptureOrPawnMove = false;
+		if (!command.moves.isEmpty()) {
+			// This temporary pm is to ensure that the correct position is used to initialise the search 
+			// context of the position evaluator, required when we get a position and move list to apply to it.
+			PositionManager temp_pm = new PositionManager(uci_fen_string, dc);
+			try {
+				for (GenericMove nextMove : command.moves) {
+					int move = Move.toMove(nextMove, temp_pm.getTheBoard());
+					temp_pm.performMove(move, false); // don't update draw checker or hash
+					lastMoveWasCaptureOrPawnMove = Move.isCapture(move) || Move.isPawnMove(move);
+				}
+			} catch(InvalidPieceException e ) {
+				System.err.println(String.format(
+				    "Serious error: Eubos can't find a piece on the board whilst applying previous moves, at %s", e.getAtPosition()));
+			}
+			fen_to_use = temp_pm.getFen();
+
+			if (lastMoveWasCaptureOrPawnMove) {
+				// Pawn moves and captures are irreversible, so if needed, clear the draw checker
+				dc.reset();
+			}
+		} else {
+			fen_to_use = uci_fen_string;
+		}
+		return fen_to_use;
 	}
 	
 	private void logAnalyse(EngineAnalyzeCommand command) {

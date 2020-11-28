@@ -236,6 +236,7 @@ public class Board {
 		if ((queensOffBoard && queensOffMaterialThresholdReached) || materialQuantityThreshholdReached) {
 			isEndgame = true;
 		}
+		EubosEngineMain.logger.info(String.format("materialEval %d isEndgame %s", me.getDelta(), isEndgame));
 	}
 	
 	public int doMove(int move) throws InvalidPieceException {
