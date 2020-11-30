@@ -185,11 +185,11 @@ public class PlySearcher {
     		if (move_iter.hasNext()) {
     			theScore = actuallySearchMoves(ml, move_iter, trans);
     		} else {
-    			// It is effectively a terminal node in extended search, so do a 1 ply search
-    			// of all the normal moves in the position to generate a score.			
+    			// It is effectively a terminal node in extended search, so update the trans with null best move
+    			// and return a *safe* exact position score back down the tree. (i.e. not a check).			
+    			theScore = applySafestNormalMoveAndScore(ml);
     			SearchDebugAgent.printExtSearchNoMoves(theScore);
-    			move_iter = ml.getStandardIterator(false);
-    			theScore = actuallySearchMoves(ml, move_iter, trans);
+    			trans = tt.setTransposition(trans, (byte)0, theScore.getScore(), theScore.getType(), Move.NULL_MOVE);
     		}
         }
         return theScore;
