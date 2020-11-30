@@ -477,6 +477,12 @@ public final class Move {
 		return move;
 	}
 	
+	public static int setCapture(int move, int piece) {
+		move &= ~TARGET_PIECE_MASK;
+		move |= ((Move.TYPE_CAPTURE_MASK << Move.TYPE_SHIFT) | (piece << TARGET_PIECE_SHIFT)) ;
+		return move;
+	}
+	
 	public static String toString(int move) {
 		StringBuilder string = new StringBuilder();
 		if (move != Move.NULL_MOVE) {

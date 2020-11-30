@@ -339,4 +339,25 @@ public class PositionEvaluatorTest {
 		pm.unperformMove();
 		assertEquals(initial, me.getDelta());
 	}
+	
+	@Test
+	public void test_investigate_bad_evaluation() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("r1b1k3/1p1p1p1p/p3pR2/8/3KP3/1PN3r1/P1PQB3/2q5 b q - 4 21");
+		// black good rook, white bad queen, but this isn't quiet! In the position (dubious continuation) white is about to lose queen!
+		// this happens because one of the continuations goes into an extended search and immediately runs out of moves, backing up a bad score as exact :(
+		// I could write some unit tests for this as it is a good test of the evaluation that happens when we terminate an extended search.
+		assertEquals(-441, SUT.evaluatePosition().getScore());
+		// bishop interpose
+		setUpPosition("r1b1k3/1p1p1p1p/p3pR2/8/4P3/1PN1KBr1/P1PQ4/2q5 b q - 4 21");
+		assertEquals(-419, SUT.evaluatePosition().getScore());
+		// rook interpose
+		setUpPosition("r1b1k3/1p1p1p1p/p3p3/8/4P3/1PN1KRr1/P1PQB3/2q5 b q - 4 21");
+		assertEquals(-419, SUT.evaluatePosition().getScore());
+		// alternate King move 1
+		setUpPosition("r1b1k3/1p1p1p1p/p3pR2/8/4PK2/1PN3r1/P1PQB3/2q5 b q - 4 21 ");
+		assertEquals(-431, SUT.evaluatePosition().getScore());
+		// alternate King move 2
+		setUpPosition("r1b1k3/1p1p1p1p/p3pR2/8/4P3/1PN3r1/P1PQBK2/2q5 b q - 4 21 ");
+		assertEquals(-391, SUT.evaluatePosition().getScore());
+	}
 }

@@ -132,44 +132,105 @@ public abstract class Piece {
 			chessman = 'k';
 		return chessman;
 	}
-		
-	static List<Integer> king_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, Piece.Colour ownSide) {
-		int piece = (Colour.isBlack(ownSide)) ? Piece.BLACK_KING : Piece.WHITE_KING;
-		kingKnight_checkAddMove(ownSide, piece, atSquare, moveList, theBoard, Direction.getDirectMoveSq(Direction.up, atSquare));
-		kingKnight_checkAddMove(ownSide, piece, atSquare, moveList, theBoard, Direction.getDirectMoveSq(Direction.upRight, atSquare));
-		kingKnight_checkAddMove(ownSide, piece, atSquare, moveList, theBoard, Direction.getDirectMoveSq(Direction.right, atSquare));
-		kingKnight_checkAddMove(ownSide, piece, atSquare, moveList, theBoard, Direction.getDirectMoveSq(Direction.downRight, atSquare));
-		kingKnight_checkAddMove(ownSide, piece, atSquare, moveList, theBoard, Direction.getDirectMoveSq(Direction.down, atSquare));
-		kingKnight_checkAddMove(ownSide, piece, atSquare, moveList, theBoard, Direction.getDirectMoveSq(Direction.downLeft, atSquare));
-		kingKnight_checkAddMove(ownSide, piece, atSquare, moveList, theBoard, Direction.getDirectMoveSq(Direction.left, atSquare));
-		kingKnight_checkAddMove(ownSide, piece, atSquare, moveList, theBoard, Direction.getDirectMoveSq(Direction.upLeft, atSquare));
-		return moveList;
+	
+	static final int[][] WhiteKnightMove_Lut = new int[128][];
+	static {
+		for (int square : Position.values) {
+			WhiteKnightMove_Lut[square] = createKnightMovesFromOriginPosition(square, true);
+		}
+	}
+	static final int[][] BlackKnightMove_Lut = new int[128][];
+	static {
+		for (int square : Position.values) {
+			BlackKnightMove_Lut[square] = createKnightMovesFromOriginPosition(square, false);
+		}
+	}
+	static int [] createKnightMovesFromOriginPosition(int originPosition, boolean isWhite) {
+		int originPiece = isWhite ? Piece.WHITE_KNIGHT : Piece.BLACK_KNIGHT;
+		int count = 0;
+		int [] moves = new int[8];
+		// Create reference moves (with target none)
+		for (Direction dir: Direction.values()) {
+			int targetPosition = Direction.getIndirectMoveSq(dir, originPosition);
+			if (targetPosition != Position.NOPOSITION) {
+				moves[count] = Move.valueOf(originPosition, originPiece, targetPosition, Piece.NONE);
+				count++;
+			}
+		}
+		// Copy to correctly sized array
+		int [] ref_moves = new int[count];
+		for (int i=0; i < count; i++) {
+			ref_moves[i] = moves[i];
+		}
+		return ref_moves;
+	}
+	
+	static final int[][] WhiteKingMove_Lut = new int[128][];
+	static {
+		for (int square : Position.values) {
+			WhiteKingMove_Lut[square] = createKingMovesFromOriginPosition(square, true);
+		}
+	}
+	static final int[][] BlackKingMove_Lut = new int[128][];
+	static {
+		for (int square : Position.values) {
+			BlackKingMove_Lut[square] = createKingMovesFromOriginPosition(square, false);
+		}
+	}
+	static int [] createKingMovesFromOriginPosition(int originPosition, boolean isWhite) {
+		Direction [] allDirect = { Direction.up, Direction.upRight, Direction.right, Direction.downRight, Direction.down, Direction.downLeft, Direction.left, Direction.upLeft };
+		int originPiece = isWhite ? Piece.WHITE_KING : Piece.BLACK_KING;
+		int count = 0;
+		int [] moves = new int[8];
+		// Create reference moves (with target none)
+		for (Direction dir: allDirect) {
+			int targetPosition = Direction.getDirectMoveSq(dir, originPosition);
+			if (targetPosition != Position.NOPOSITION) {
+				moves[count] = Move.valueOf(originPosition, originPiece, targetPosition, Piece.NONE);
+				count++;
+			}
+		}
+		// Copy to correctly sized array
+		int [] ref_moves = new int[count];
+		for (int i=0; i < count; i++) {
+			ref_moves[i] = moves[i];
+		}
+		return ref_moves;
 	}
 
-	private static void kingKnight_checkAddMove(Piece.Colour ownSide, int piece, int atSquare, List<Integer> moveList, Board theBoard, int targetSquare) {
-		if ( targetSquare != Position.NOPOSITION ) {
-			int targetPiece = theBoard.getPieceAtSquare(targetSquare);
-			if (Piece.isOppositeColourOrNone(ownSide, targetPiece)) {
-				moveList.add(Move.valueOf(atSquare, piece, targetSquare, targetPiece));
+	static List<Integer> king_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, Piece.Colour ownSide) {
+		int [] ref_moves = Colour.isWhite(ownSide) ? WhiteKingMove_Lut[atSquare] : BlackKingMove_Lut[atSquare];
+		for (int new_move : ref_moves) {
+			int targetPiece = theBoard.getPieceAtSquare(Move.getTargetPosition(new_move));
+			if (targetPiece == Piece.NONE) {
+				moveList.add(new_move);
+			} else if (Piece.isOppositeColour(ownSide, targetPiece)) {
+				// assign capture into actual move to add to movelist
+				new_move = Move.setCapture(new_move, targetPiece);
+				moveList.add(new_move);
 			} else {
 				// Indicates blocked by own piece.
 			}
 		}
+		return moveList;	
 	}
 	
 	static List<Integer> knight_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, Piece.Colour ownSide) {
-		int ownPiece = (Colour.isBlack(ownSide)) ? Piece.BLACK_KNIGHT : Piece.WHITE_KNIGHT;
-		kingKnight_checkAddMove(ownSide, ownPiece, atSquare, moveList, theBoard, Direction.getIndirectMoveSq(Direction.upRight, atSquare));
-		kingKnight_checkAddMove(ownSide, ownPiece, atSquare, moveList, theBoard, Direction.getIndirectMoveSq(Direction.upLeft, atSquare));
-		kingKnight_checkAddMove(ownSide, ownPiece, atSquare, moveList, theBoard, Direction.getIndirectMoveSq(Direction.rightUp, atSquare));
-		kingKnight_checkAddMove(ownSide, ownPiece, atSquare, moveList, theBoard, Direction.getIndirectMoveSq(Direction.rightDown, atSquare));
-		kingKnight_checkAddMove(ownSide, ownPiece, atSquare, moveList, theBoard, Direction.getIndirectMoveSq(Direction.downRight, atSquare));
-		kingKnight_checkAddMove(ownSide, ownPiece, atSquare, moveList, theBoard, Direction.getIndirectMoveSq(Direction.downLeft, atSquare));
-		kingKnight_checkAddMove(ownSide, ownPiece, atSquare, moveList, theBoard, Direction.getIndirectMoveSq(Direction.leftUp, atSquare));
-		kingKnight_checkAddMove(ownSide, ownPiece, atSquare, moveList, theBoard, Direction.getIndirectMoveSq(Direction.leftDown, atSquare));
+		int [] ref_moves = Colour.isWhite(ownSide) ? WhiteKnightMove_Lut[atSquare] : BlackKnightMove_Lut[atSquare];
+		for (int new_move : ref_moves) {
+			int targetPiece = theBoard.getPieceAtSquare(Move.getTargetPosition(new_move));
+			if (targetPiece == Piece.NONE) {
+				moveList.add(new_move);
+			} else if (Piece.isOppositeColour(ownSide, targetPiece)) {
+				// assign capture into actual move to add to movelist
+				new_move = Move.setCapture(new_move, targetPiece);
+				moveList.add(new_move);
+			} else {
+				// Indicates blocked by own piece.
+			}
+		}
 		return moveList;		
 	}
-	
 	
 	static List<Integer> rook_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, Piece.Colour ownSide) {
 		int ownPiece = (Colour.isBlack(ownSide)) ? Piece.BLACK_ROOK : Piece.WHITE_ROOK;
@@ -223,8 +284,7 @@ public abstract class Piece {
 			return;
 		}
 	}
-	
-	
+		
 	private static boolean pawn_isAtInitialPosition(int atSquare, Piece.Colour ownSide) {
 		if (Colour.isBlack(ownSide)) {
 			return (Position.getRank(atSquare) == IntRank.R7);
