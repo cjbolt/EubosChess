@@ -474,7 +474,7 @@ public abstract class Piece {
 			} else if (captureAt == theBoard.getEnPassantTargetSq()) {
 				capturePiece = !ownSideIsWhite ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
 				// promotion can't be possible if en passant capture
-				moveList.add( Move.valueOf(Move.TYPE_EN_PASSANT_CAPTURE_MASK, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
+				moveList.add( Move.valueOf(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
 			}
 		}
 		captureAt = pawn_genRightCaptureTarget(atSquare, ownSideIsWhite);
@@ -485,7 +485,7 @@ public abstract class Piece {
 			} else if (captureAt == theBoard.getEnPassantTargetSq()) {
 				capturePiece = !ownSideIsWhite ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
 				// promotion can't be possible if en passant capture
-				moveList.add( Move.valueOf(Move.TYPE_EN_PASSANT_CAPTURE_MASK, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
+				moveList.add( Move.valueOf(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
 			}
 		}
 		return moveList;

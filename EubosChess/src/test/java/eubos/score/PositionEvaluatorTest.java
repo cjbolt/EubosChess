@@ -188,7 +188,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_isQuiescent_No_LastMoveWasCheckMate() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - - -");
-		int currMove = Move.valueOf(Move.TYPE_CHECK_MASK, Position.d3, Piece.WHITE_QUEEN, Position.h7, Piece.NONE, Piece.NONE);
+		int currMove = Move.valueOf(Move.MISC_CHECK_MASK, 0, Position.d3, Piece.WHITE_QUEEN, Position.h7, Piece.NONE, Piece.NONE);
 		pm.performMove(currMove);
 		assertFalse(SUT.isQuiescent(currMove));
 	}
@@ -240,7 +240,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_isQuiescent_No_LastMoveWasPromotionQueenWithCheckAndCapture() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("5q2/4P3/7k/8/8/8/8/8 w - - 0 1");
-		int currMove = Move.valueOf(Move.TYPE_PROMOTION_MASK | Move.TYPE_CAPTURE_MASK | Move.TYPE_CHECK_MASK, Position.e7, Piece.WHITE_PAWN, Position.f8, Piece.BLACK_QUEEN, Piece.QUEEN);
+		int currMove = Move.valueOf(Move.MISC_CHECK_MASK, Move.TYPE_PROMOTION_MASK | Move.TYPE_CAPTURE_MASK, Position.e7, Piece.WHITE_PAWN, Position.f8, Piece.BLACK_QUEEN, Piece.QUEEN);
 		pm.performMove(currMove);
 		assertFalse(SUT.isQuiescent(currMove));
 	}
@@ -256,7 +256,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_isQuiescent_No_LastMoveWasCheck_alt() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("8/4P3/7k/8/8/8/1B6/8 w - - 0 1");
-		int currMove = Move.valueOf(Move.TYPE_CHECK_MASK, Position.b2, Piece.WHITE_BISHOP, Position.c1, Piece.NONE, Piece.NONE);
+		int currMove = Move.valueOf(Move.MISC_CHECK_MASK, 0, Position.b2, Piece.WHITE_BISHOP, Position.c1, Piece.NONE, Piece.NONE);
 		pm.performMove(currMove);
 		assertFalse(SUT.isQuiescent(currMove));
 	}

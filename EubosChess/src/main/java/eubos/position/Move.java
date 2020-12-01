@@ -29,18 +29,14 @@ public final class Move {
 	private static final int TARGET_PIECE_MASK = Piece.PIECE_WHOLE_MASK << TARGET_PIECE_SHIFT;
 	private static final int TARGET_PIECE_NO_COLOUR_MASK = Piece.PIECE_NO_COLOUR_MASK << TARGET_PIECE_SHIFT;
 	
+	// Move ordering
 	public static final int TYPE_REGULAR_NONE = 0;
-	public static final int TYPE_CHECK_BIT = 0;
-	public static final int TYPE_KILLER_BIT = 1;
-	public static final int TYPE_EN_PASSANT_CAPTURE_BIT = 2;
-	public static final int TYPE_CAPTURE_BIT = 3;
-	public static final int TYPE_PROMOTION_BIT = 4;
-	public static final int TYPE_BEST_BIT = 5;
+	public static final int TYPE_KILLER_BIT = 0;
+	public static final int TYPE_CAPTURE_BIT = 1;
+	public static final int TYPE_PROMOTION_BIT = 2;
+	public static final int TYPE_BEST_BIT = 3;
 	public static final int TYPE_WIDTH = TYPE_BEST_BIT + 1;
-	
-	public static final int TYPE_CHECK_MASK = (0x1 << TYPE_CHECK_BIT);
-	public static final int TYPE_EN_PASSANT_CAPTURE_MASK = (0x1 << TYPE_EN_PASSANT_CAPTURE_BIT);
-	
+
 	public static final int TYPE_KILLER_MASK = (0x1 << TYPE_KILLER_BIT);
 	public static final int TYPE_CAPTURE_MASK = (0x1 << TYPE_CAPTURE_BIT);
 	public static final int TYPE_PROMOTION_MASK = (0x1 << TYPE_PROMOTION_BIT);
@@ -51,6 +47,15 @@ public final class Move {
 	
 	private static final int TYPE_SHIFT = TARGET_PIECE_SHIFT + Long.bitCount(Piece.PIECE_WHOLE_MASK);
 	private static final int TYPE_MASK = ((1<<TYPE_WIDTH)-1) << TYPE_SHIFT;
+	
+	// Micsc flags
+	public static final int MISC_CHECK_BIT = 0;
+	public static final int MISC_EN_PASSANT_CAPTURE_BIT = 1;
+	private static final int MISC_SHIFT = TYPE_SHIFT + Long.bitCount(TYPE_MASK);
+	//private static final int MISC_MASK = ((1<<TYPE_WIDTH)-1) << TYPE_SHIFT;
+	
+	public static final int MISC_CHECK_MASK = (0x1 << (MISC_CHECK_BIT + MISC_SHIFT));
+	public static final int MISC_EN_PASSANT_CAPTURE_MASK = (0x1 << (MISC_EN_PASSANT_CAPTURE_BIT+ MISC_SHIFT));
 	
 	public static final int NULL_MOVE =
 			valueOf(TYPE_REGULAR_NONE, Position.a1, Piece.NONE, Position.a1, Piece.NONE, Piece.NONE);
@@ -167,6 +172,56 @@ public final class Move {
 
 		return move;
 	}
+	
+	public static int valueOf(int enPassant, int type, int originPosition, int originPiece, int targetPosition, int targetPiece, int promotion) {
+		int move = originPosition;
+
+		// Encode Target Piece and classification if a capture
+		if (targetPiece != Piece.NONE) {
+			move |= (type | Move.TYPE_CAPTURE_MASK) << TYPE_SHIFT;
+			
+			if (EubosEngineMain.ASSERTS_ENABLED)
+				assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
+			move |= targetPiece << TARGET_PIECE_SHIFT;
+		} else {
+			// Encode move classification
+			if (EubosEngineMain.ASSERTS_ENABLED)
+				assert (type & ~(Move.TYPE_MASK >>> TYPE_SHIFT)) == 0;
+			move |= type << TYPE_SHIFT;
+		}
+		
+		// Encode enPassant - single bit, doesn't need masking
+		move |= enPassant;
+
+		// Done in initial assignment
+//		// Encode origin position
+//		if (EubosEngineMain.ASSERTS_ENABLED)
+//			assert (originPosition & 0x88) == 0;
+//		move |= originPosition << ORIGINPOSITION_SHIFT;
+		
+		// Encode Origin Piece
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert (originPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
+		move |= originPiece << ORIGIN_PIECE_SHIFT;
+
+		// Encode target position
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert (targetPosition & 0x88) == 0;
+		move |= targetPosition << TARGETPOSITION_SHIFT;
+		
+		// Encode Target Piece
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
+		move |= targetPiece << TARGET_PIECE_SHIFT;
+		
+		// Encode promotion
+		if (EubosEngineMain.ASSERTS_ENABLED) {
+			//assert (/* Valid promotion */) || promotion == IntChessman.NOCHESSMAN;
+		}
+		move |= promotion << PROMOTION_SHIFT;
+
+		return move;
+	}
 
 	public static int valueOf(int type, int originPosition, int originPiece, int targetPosition, int targetPiece, int promotion) {
 		int move = originPosition;
@@ -184,13 +239,7 @@ public final class Move {
 				assert (type & ~(Move.TYPE_MASK >>> TYPE_SHIFT)) == 0;
 			move |= type << TYPE_SHIFT;
 		}
-
-		// Done in initial assignment
-//		// Encode origin position
-//		if (EubosEngineMain.ASSERTS_ENABLED)
-//			assert (originPosition & 0x88) == 0;
-//		move |= originPosition << ORIGINPOSITION_SHIFT;
-		
+			
 		// Encode Origin Piece
 		if (EubosEngineMain.ASSERTS_ENABLED)
 			assert (originPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
@@ -222,6 +271,7 @@ public final class Move {
 		int promotion = Piece.NONE;
 		int originPiece = Piece.NONE;
 		int targetPiece = Piece.NONE;
+		int misc = 0;
 		if (theBoard != null) {
 			// Some unit tests don't specify the board, when we don't care about some move field content
 			originPiece = theBoard.getPieceAtSquare(originPosition);
@@ -230,7 +280,7 @@ public final class Move {
 				int enPassantCaptureSquare = theBoard.generateCapturePositionForEnPassant(originPiece, targetPosition);
 				targetPiece = theBoard.getPieceAtSquare(enPassantCaptureSquare);
 				if (Piece.isPawn(targetPiece)) {
-					type |= Move.TYPE_EN_PASSANT_CAPTURE_MASK;
+					misc |= Move.MISC_EN_PASSANT_CAPTURE_MASK;
 				}
 			} else {
 				// Normal move
@@ -242,7 +292,7 @@ public final class Move {
 			promotion &= Piece.PIECE_NO_COLOUR_MASK;
 			intMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, originPosition, originPiece, targetPosition, targetPiece, promotion);
 		} else {
-			intMove = Move.valueOf(type, originPosition, originPiece, targetPosition, targetPiece, promotion);
+			intMove = Move.valueOf(misc, type, originPosition, originPiece, targetPosition, targetPiece, promotion);
 		}
 		return intMove;
 	}
@@ -264,7 +314,7 @@ public final class Move {
 	}
 	
 	public static boolean isCheck(int move) {
-		return (move & ((Move.TYPE_CHECK_MASK) << TYPE_SHIFT)) != 0;
+		return (move & Move.MISC_CHECK_MASK) != 0;
 	}
 	
 	public static boolean isRegular(int move) { 
@@ -410,34 +460,19 @@ public final class Move {
     
     private static class MoveMvvLvaComparator implements Comparator<Integer> {
         @Override public int compare(Integer move1, Integer move2) {
-        	int type1;
-        	int type2;
-        	boolean isCapture = false;
-        	// Ignore en passant captures and checks when ranking captures
-        	if ((move1 & (Move.TYPE_CAPTURE_MASK<<Move.TYPE_SHIFT)) != 0) {
-        		isCapture = true;
-        		type1 = move1 & (Move.MOVE_ORDERING_MASK << Move.TYPE_SHIFT);
-        	} else {
-        		type1 = move1 & Move.TYPE_MASK;
-        	}
-        	if ((move2 & (Move.TYPE_CAPTURE_MASK<<Move.TYPE_SHIFT)) != 0) {
-        		type2 = move2 & (Move.MOVE_ORDERING_MASK << Move.TYPE_SHIFT);
-        	} else {
-        		type2 = move2 & Move.TYPE_MASK;
-        	}
-        	// Winning captures should be prioritised before checks
+        	int type1 = move1 & Move.TYPE_MASK;
+        	int type2 = move2 & Move.TYPE_MASK;
             if (type1 < type2) {
             	return 1;
             } else if (type1 == type2) {
-            	if ((type1 & (Move.TYPE_PROMOTION_MASK << Move.TYPE_SHIFT)) == 0) {
-                	if (isCapture) {
-                		// MVV LVA comparison only valid for captures
-                		return Move.compareCaptures(move1, move2);
-                	}
-                	return 0;
-            	} else {
+            	boolean isPromotion = (type1 & (Move.TYPE_PROMOTION_MASK << Move.TYPE_SHIFT)) != 0;
+            	if (isPromotion) {
             		// Note, promotion captures are always winning by definition, no need to check that
             		return Move.comparePromotions(move1, move2);
+             	} else {
+               		boolean isCapture = ((move1 & (Move.TYPE_CAPTURE_MASK << Move.TYPE_SHIFT)) != 0);
+            		// MVV LVA comparison only valid for captures, otherwise return equal
+                	return (isCapture) ? Move.compareCaptures(move1, move2) : 0;
             	}
             } else {
             	return -1;
@@ -533,7 +568,7 @@ public final class Move {
 	}
 
 	public static int setCheck(int move) {
-		return (move |= (Move.TYPE_CHECK_MASK << TYPE_SHIFT));
+		return (move |= Move.MISC_CHECK_MASK);
 	}
 	
 	public static int setKiller(int move) {
@@ -545,7 +580,7 @@ public final class Move {
 	}
 
 	public static boolean isEnPassantCapture(int move) {
-		return (move & ((Move.TYPE_EN_PASSANT_CAPTURE_MASK) << TYPE_SHIFT)) != 0;
+		return (move & Move.MISC_EN_PASSANT_CAPTURE_MASK) != 0;
 	}
 
 	public static boolean isNotBestCaptureOrPromotion(int move) {

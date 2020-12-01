@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import java.util.Iterator;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -42,11 +41,10 @@ public class MoveListTest {
 	}
 	
 	@Test
-	public void testCreateMoveList_CapturesFirstThenChecks() throws InvalidPieceException, IllegalNotationException {
+	public void testCreateMoveList_CapturesFirst() throws InvalidPieceException, IllegalNotationException {
 		setup("8/3k3B/8/1p6/2P5/8/4K3/8 w - - 0 1 ");
 		Iterator<Integer> it = classUnderTest.iterator();
 		assertEquals(new GenericMove("c4b5"), Move.toGenericMove(it.next()));
-		assertEquals(new GenericMove("h7f5"), Move.toGenericMove(it.next()));
 	}
 	
 	@Test
@@ -55,22 +53,6 @@ public class MoveListTest {
 		Iterator<Integer> it = classUnderTest.iterator();
 		assertEquals(new GenericMove("e7e8q"), Move.toGenericMove(it.next()));
 		assertEquals(new GenericMove("e7e8r"), Move.toGenericMove(it.next()));
-	}
-	
-	@Test
-	public void testCreateMoveList_ChecksFirst() throws InvalidPieceException, IllegalNotationException {
-		setup( "8/3k3B/8/8/8/8/4K3/8 w - - 0 1");
-		Iterator<Integer> it = classUnderTest.iterator();
-		assertEquals(new GenericMove("h7f5"), Move.toGenericMove(it.next()));
-	}
-	
-	@Test
-	@Ignore // Eubos no longer privileges castling in move ordering
-	public void testCreateMoveList_ChecksFirstThenCastles() throws InvalidPieceException, IllegalNotationException {
-		setup("8/3k3B/8/1p6/8/8/8/4K2R w K - 0 1");
-		Iterator<Integer> it = classUnderTest.iterator();
-		assertEquals(new GenericMove("h7f5"), Move.toGenericMove(it.next()));
-		assertEquals(new GenericMove("e1g1"), Move.toGenericMove(it.next()));
 	}
 	
 	@Test
@@ -86,9 +68,8 @@ public class MoveListTest {
 	public void test_whenCheckAndCapturePossible() throws IllegalNotationException {
 		setup("8/K7/8/8/4B1R1/8/6q1/7k w - - 0 1 ");
 		Iterator<Integer> it = classUnderTest.iterator();
-		assertEquals(new GenericMove("e4g2"), Move.toGenericMove(it.next())); // Check and capture
+		assertEquals(new GenericMove("e4g2"), Move.toGenericMove(it.next())); // capture (happens to have check)
 		assertEquals(new GenericMove("g4g2"), Move.toGenericMove(it.next())); // capture
-		assertEquals(new GenericMove("g4h4"), Move.toGenericMove(it.next())); // check
 	}
 	
 	@Test
@@ -200,23 +181,22 @@ public class MoveListTest {
 		assertEquals(new GenericMove("a7b8r"), Move.toGenericMove(it.next())); // Rook promotion with capture, PxN
 		assertEquals(new GenericMove("a7b8b"), Move.toGenericMove(it.next())); // Bishop promotion with capture, PxN
 		assertEquals(new GenericMove("a7b8n"), Move.toGenericMove(it.next())); // Knight promotion with capture, PxN
-		assertEquals(new GenericMove("f7f8q"), Move.toGenericMove(it.next())); // Queen promotion with check
-		assertEquals(new GenericMove("f7f8b"), Move.toGenericMove(it.next())); // Bishop promotion with check
 		assertEquals(new GenericMove("a7a8q"), Move.toGenericMove(it.next())); // Queen promotion
+		assertEquals(new GenericMove("f7f8q"), Move.toGenericMove(it.next())); // Queen promotion (with check)
 		assertEquals(new GenericMove("a7a8r"), Move.toGenericMove(it.next())); // Rook promotion
 		assertEquals(new GenericMove("f7f8r"), Move.toGenericMove(it.next())); // Rook promotion
 		assertEquals(new GenericMove("a7a8b"), Move.toGenericMove(it.next())); // Bishop promotion
+		assertEquals(new GenericMove("f7f8b"), Move.toGenericMove(it.next())); // Bishop promotion (with check)
 		assertEquals(new GenericMove("a7a8n"), Move.toGenericMove(it.next())); // Knight promotion
 		assertEquals(new GenericMove("f7f8n"), Move.toGenericMove(it.next())); // Knight promotion
 		
 		// Captures
 		assertEquals(new GenericMove("b5c6"), Move.toGenericMove(it.next())); // En Passant capture, PxP
-		
-		// Checks
-		assertEquals(new GenericMove("f5f6"), Move.toGenericMove(it.next())); // Pawn check
-		
+				
 		// Regular moves
 		assertEquals(new GenericMove("b5b6"), Move.toGenericMove(it.next())); // Regular pawn move
+		assertEquals(new GenericMove("f5f6"), Move.toGenericMove(it.next())); // Pawn check
+		
 		assertFalse(it.hasNext());
 	}
 	
@@ -246,8 +226,5 @@ public class MoveListTest {
 			assertEquals(killer1_gen, Move.toGenericMove(it.next()));
 			assertEquals(killer2_gen, Move.toGenericMove(it.next()));
 		}
-		
-		// check
-		assertEquals(new GenericMove("h7f5"), Move.toGenericMove(it.next()));
 	}
 }
