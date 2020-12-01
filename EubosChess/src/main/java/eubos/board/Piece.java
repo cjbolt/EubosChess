@@ -198,48 +198,6 @@ public abstract class Piece {
 		}
 		return ref_moves;
 	}
-
-	static List<Integer> king_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
-		int [] ref_moves = ownSideIsWhite ? WhiteKingMove_Lut[atSquare] : BlackKingMove_Lut[atSquare];
-		for (int new_move : ref_moves) {
-			int targetPiece = theBoard.getPieceAtSquareOptimise(Move.getTargetPosition(new_move), ownSideIsWhite);
-			switch(targetPiece) {
-			case Piece.NONE:
-				moveList.add(new_move);
-				continue;
-			case Piece.DONT_CARE:
-				// own piece blocks move
-				break;
-			default:
-				// assign capture into actual move to add to movelist
-				new_move = Move.setCapture(new_move, targetPiece);
-				moveList.add(new_move);
-				break;
-			}
-		}
-		return moveList;	
-	}
-	
-	static List<Integer> knight_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
-		int [] ref_moves = ownSideIsWhite ? WhiteKnightMove_Lut[atSquare] : BlackKnightMove_Lut[atSquare];
-		for (int new_move : ref_moves) {
-			int targetPiece = theBoard.getPieceAtSquareOptimise(Move.getTargetPosition(new_move), ownSideIsWhite);
-			switch(targetPiece) {
-			case Piece.NONE:
-				moveList.add(new_move);
-				continue;
-			case Piece.DONT_CARE:
-				// own piece blocks move
-				break;
-			default:
-				// assign capture into actual move to add to movelist
-				new_move = Move.setCapture(new_move, targetPiece);
-				moveList.add(new_move);
-				break;
-			}
-		}
-		return moveList;		
-	}
 	
 	static final int[][][] WhiteRookMove_Lut = new int[128][][]; // Position by direction by moves in that direction
 	static {
@@ -361,22 +319,29 @@ public abstract class Piece {
 		return return_value;
 	}
 	
-	static List<Integer> rook_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+	static void king_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+		int [] ref_moves = ownSideIsWhite ? WhiteKingMove_Lut[atSquare] : BlackKingMove_Lut[atSquare];
+		single_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves);	
+	}
+	
+	static void knight_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+		int [] ref_moves = ownSideIsWhite ? WhiteKnightMove_Lut[atSquare] : BlackKnightMove_Lut[atSquare];
+		single_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves);
+	}
+	
+	static void rook_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
 		int [][] ref_moves = ownSideIsWhite ? WhiteRookMove_Lut[atSquare] : BlackRookMove_Lut[atSquare];
 		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves);
-		return moveList;	
 	}
 	
-	static List<Integer> queen_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+	static void queen_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
 		int [][] ref_moves = ownSideIsWhite ? WhiteQueenMove_Lut[atSquare] : BlackQueenMove_Lut[atSquare];
-		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves);
-		return moveList;	
+		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves);	
 	}
 	
-	static List<Integer> bishop_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+	static void bishop_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
 		int [][] ref_moves = ownSideIsWhite ? WhiteBishopMove_Lut[atSquare] : BlackBishopMove_Lut[atSquare];
-		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves);
-		return moveList;	
+		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves);	
 	}
 
 	private static void multidirect_addMoves(boolean ownSideIsWhite, List<Integer> moveList, Board theBoard, int[][] moves) {
@@ -396,6 +361,23 @@ public abstract class Piece {
 				}
 				break;
 			}	
+		}
+	}
+	
+	private static void single_addMoves(boolean ownSideIsWhite, List<Integer> moveList, Board theBoard, int[] moves) {
+		for (int new_move : moves) {
+			int targetPiece = theBoard.getPieceAtSquareOptimise(Move.getTargetPosition(new_move), ownSideIsWhite);
+			switch(targetPiece) {
+			case Piece.NONE:
+				moveList.add(new_move);
+				continue;
+			case Piece.DONT_CARE:
+				break; // i.e. blocked by own piece
+			default:
+				new_move = Move.setCapture(new_move, targetPiece);
+				moveList.add(new_move);
+				break;
+			}
 		}
 	}
 		

@@ -258,13 +258,13 @@ public class SquareAttackEvaluator {
 				attacked = (bd.getWhiteKnights() & KnightMove_Lut[attackedSq]) != 0;
 				if (attacked) break;
 			}
-			attacked = checkForDirectPieceAttacker(bd, attackingColour, attackedSq, isBlackAttacking);
+			attacked = checkForDirectPieceAttacker(bd, attackedSq, isBlackAttacking);
 			if (attacked) break;
 		} while (false);
 		return attacked;	
 	}
 
-	private static boolean checkForDirectPieceAttacker(Board bd, Colour attackingColour, int attackedSq, boolean isBlackAttacking) {
+	private static boolean checkForDirectPieceAttacker(Board bd, int attackedSq, boolean isBlackAttacking) {
 		boolean attacked = false;
 		// direct piece check is computationally heavy, so just do what is necessary
 		long attackingQueensMask = isBlackAttacking ? bd.getBlackQueens() : bd.getWhiteQueens();

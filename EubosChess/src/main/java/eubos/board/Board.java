@@ -419,7 +419,6 @@ public class Board {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
 			Piece.pawn_generateMoves(movesList, this, atSquare, ownSideIsWhite);
-			// clear the lssb
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
 		scratchBitBoard = bitBoardToIterate & pieces[INDEX_ROOK];
@@ -427,7 +426,6 @@ public class Board {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
 			Piece.rook_generateMoves(movesList, this, atSquare, ownSideIsWhite);
-			// clear the lssb
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
 		scratchBitBoard = bitBoardToIterate & pieces[INDEX_BISHOP];
@@ -435,7 +433,6 @@ public class Board {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
 			Piece.bishop_generateMoves(movesList, this, atSquare, ownSideIsWhite);
-			// clear the lssb
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
 		scratchBitBoard = bitBoardToIterate & pieces[INDEX_KNIGHT];
@@ -443,7 +440,6 @@ public class Board {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
 			Piece.knight_generateMoves(movesList, this, atSquare, ownSideIsWhite);
-			// clear the lssb
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
 		scratchBitBoard = bitBoardToIterate & pieces[INDEX_KING];
@@ -451,7 +447,6 @@ public class Board {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
 			Piece.king_generateMoves(movesList, this, atSquare, ownSideIsWhite);
-			// clear the lssb
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
 		scratchBitBoard = bitBoardToIterate & pieces[INDEX_QUEEN];
@@ -459,7 +454,6 @@ public class Board {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
 			Piece.queen_generateMoves(movesList, this, atSquare, ownSideIsWhite);
-			// clear the lssb
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
 		return movesList;
