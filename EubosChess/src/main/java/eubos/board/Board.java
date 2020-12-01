@@ -419,7 +419,7 @@ public class Board {
 		while ( scratchBitBoard != 0x0L ) {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-			Piece.pawn_generateMoves(movesList, this, atSquare, side);
+			Piece.pawn_generateMoves(movesList, this, atSquare, ownSideIsWhite);
 			// clear the lssb
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
@@ -516,8 +516,8 @@ public class Board {
 		long pieceToGet = BitBoard.positionToMask_Lut[atPos];;
 		if ((allPieces & pieceToGet) != 0) {	
 			if ((blackPieces & pieceToGet) != 0) {
-				type |= Piece.BLACK;
 				if (!ownSideIsWhite) return Piece.DONT_CARE;
+				type |= Piece.BLACK;
 			} else {
 				if (EubosEngineMain.ASSERTS_ENABLED)
 					assert (whitePieces & pieceToGet) != 0;
