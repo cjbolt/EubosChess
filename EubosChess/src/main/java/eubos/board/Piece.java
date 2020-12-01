@@ -203,14 +203,18 @@ public abstract class Piece {
 		int [] ref_moves = ownSideIsWhite ? WhiteKingMove_Lut[atSquare] : BlackKingMove_Lut[atSquare];
 		for (int new_move : ref_moves) {
 			int targetPiece = theBoard.getPieceAtSquareOptimise(Move.getTargetPosition(new_move), ownSideIsWhite);
-			if (targetPiece == Piece.NONE) {
+			switch(targetPiece) {
+			case Piece.NONE:
 				moveList.add(new_move);
-			} else if (targetPiece != Piece.DONT_CARE) {
+				continue;
+			case Piece.DONT_CARE:
+				// own piece blocks move
+				break;
+			default:
 				// assign capture into actual move to add to movelist
 				new_move = Move.setCapture(new_move, targetPiece);
 				moveList.add(new_move);
-			} else {
-				// Indicates blocked by own piece.
+				break;
 			}
 		}
 		return moveList;	
@@ -220,14 +224,18 @@ public abstract class Piece {
 		int [] ref_moves = ownSideIsWhite ? WhiteKnightMove_Lut[atSquare] : BlackKnightMove_Lut[atSquare];
 		for (int new_move : ref_moves) {
 			int targetPiece = theBoard.getPieceAtSquareOptimise(Move.getTargetPosition(new_move), ownSideIsWhite);
-			if (targetPiece == Piece.NONE) {
+			switch(targetPiece) {
+			case Piece.NONE:
 				moveList.add(new_move);
-			} else if (targetPiece != Piece.DONT_CARE) {
+				continue;
+			case Piece.DONT_CARE:
+				// own piece blocks move
+				break;
+			default:
 				// assign capture into actual move to add to movelist
 				new_move = Move.setCapture(new_move, targetPiece);
 				moveList.add(new_move);
-			} else {
-				// Indicates blocked by own piece.
+				break;
 			}
 		}
 		return moveList;		
@@ -375,19 +383,18 @@ public abstract class Piece {
 		for (int[] movesInDirection : moves) {
 			for (int new_move : movesInDirection) {
 				int targetPiece = theBoard.getPieceAtSquareOptimise(Move.getTargetPosition(new_move), ownSideIsWhite);
-				if (targetPiece == Piece.NONE) {
-					// Slider move
+				switch(targetPiece) {
+				case Piece.NONE:
 					moveList.add(new_move);
 					continue;
-				} else if (targetPiece == Piece.DONT_CARE) {
-					// Indicates blocked by own piece.
-					break;
-				} else {
-					// assign capture into actual move to add to movelist
+				case Piece.DONT_CARE:
+					break; // i.e. blocked by own piece
+				default:
 					new_move = Move.setCapture(new_move, targetPiece);
 					moveList.add(new_move);
 					break;
 				}
+				break;
 			}	
 		}
 	}
