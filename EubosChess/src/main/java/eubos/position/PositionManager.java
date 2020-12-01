@@ -41,8 +41,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	public List<Integer> generateMoves() {
-		List<Integer> entireMoveList = theBoard.getRegularPieceMoves( onMove );
-		castling.addCastlingMoves(onMove, entireMoveList);
+		boolean isWhiteOnMove = Piece.Colour.isWhite(onMove);
+		List<Integer> entireMoveList = theBoard.getRegularPieceMoves( isWhiteOnMove );
+		castling.addCastlingMoves(isWhiteOnMove, entireMoveList);
 		return entireMoveList;
 	}
 	

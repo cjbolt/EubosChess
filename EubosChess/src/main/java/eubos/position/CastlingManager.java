@@ -6,7 +6,6 @@ import com.fluxchess.jcpi.models.IntFile;
 
 import eubos.board.Board;
 import eubos.board.Piece;
-import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 
 public class CastlingManager {
@@ -88,15 +87,14 @@ public class CastlingManager {
 		this.flags = flags;
 	}
 
-	void addCastlingMoves(Colour onMove, List<Integer> ml) {
-		boolean whiteOnMove = Colour.isWhite(onMove);
+	void addCastlingMoves(boolean isWhiteOnMove, List<Integer> ml) {
 		// The side on move should not have previously castled
-		if ( !castlingAvaillable(whiteOnMove))
+		if ( !castlingAvaillable(isWhiteOnMove))
 			return;
 		
 		int ksc = Move.NULL_MOVE;
 		int qsc = Move.NULL_MOVE;
-		if (whiteOnMove) {
+		if (isWhiteOnMove) {
 			if ((flags & WHITE_KINGSIDE) != 0) {
 				ksc = getWhiteKingsideCastleMove();
 			}

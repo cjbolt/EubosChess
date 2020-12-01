@@ -410,9 +410,8 @@ public class Board {
 		}
 	}
 	
-	public List<Integer> getRegularPieceMoves(Piece.Colour side) {
-		long bitBoardToIterate = Colour.isWhite(side) ? whitePieces : blackPieces;
-		boolean ownSideIsWhite = Colour.isWhite(side);
+	public List<Integer> getRegularPieceMoves(boolean ownSideIsWhite) {
+		long bitBoardToIterate = ownSideIsWhite ? whitePieces : blackPieces;
 		List<Integer> movesList = new LinkedList<Integer>();
 		// Unrolled loop for performance optimisation...
 		long scratchBitBoard = bitBoardToIterate & pieces[INDEX_PAWN];

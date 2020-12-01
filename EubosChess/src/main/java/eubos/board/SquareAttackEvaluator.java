@@ -327,19 +327,22 @@ public class SquareAttackEvaluator {
 		case upRight:
 		case downRight:
 			for (int attackerSq: array[directionIndex_Lut.get(dir)]) {
-				int currPiece = theBoard.getPieceAtSquare(attackerSq);
-				if (currPiece != Piece.NONE ) {
-					if (attackerIsBlack) {
-						if (currPiece == Piece.BLACK_QUEEN || currPiece == Piece.BLACK_BISHOP) {
-							attacked = true;
-						}
-					} else {
-						if (currPiece == Piece.WHITE_QUEEN || currPiece == Piece.WHITE_BISHOP) {
-							attacked = true;
-						}
-					} // else blocked by own piece or non-attacking enemy
+				int currPiece = theBoard.getPieceAtSquareOptimise(attackerSq, attackerIsBlack);
+				switch(currPiece) {
+				case Piece.NONE:
+					continue;
+				case Piece.BLACK_BISHOP:
+				case Piece.BLACK_QUEEN:
+					attacked = attackerIsBlack;
+					break;
+				case Piece.WHITE_BISHOP:
+				case Piece.WHITE_QUEEN:
+					attacked = !attackerIsBlack;
+					break;
+				default:
 					break;
 				}
+				break; 
 			}
 			break;
 		case left:
@@ -347,19 +350,22 @@ public class SquareAttackEvaluator {
 		case right:
 		case down:
 			for (int attackerSq: array[directionIndex_Lut.get(dir)]) {
-				int currPiece = theBoard.getPieceAtSquare(attackerSq);
-				if (currPiece != Piece.NONE ) {
-					if (attackerIsBlack) {
-						if (currPiece == Piece.BLACK_QUEEN || currPiece == Piece.BLACK_ROOK) {
-							attacked = true;
-						}
-					} else {
-						if (currPiece == Piece.WHITE_QUEEN || currPiece == Piece.WHITE_ROOK) {
-							attacked = true;
-						}
-					} // else blocked by own piece or non-attacking enemy
+				int currPiece = theBoard.getPieceAtSquareOptimise(attackerSq, attackerIsBlack);
+				switch(currPiece) {
+				case Piece.NONE:
+					continue;
+				case Piece.BLACK_ROOK:
+				case Piece.BLACK_QUEEN:
+					attacked = attackerIsBlack;
 					break;
-				} 
+				case Piece.WHITE_ROOK:
+				case Piece.WHITE_QUEEN:
+					attacked = !attackerIsBlack;
+					break;
+				default:
+					break;
+				}
+				break; 
 			}
 			break;
 		default:
