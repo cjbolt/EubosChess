@@ -25,6 +25,7 @@ public abstract class Piece {
 	public static final int BISHOP = 0x4;
 	public static final int KNIGHT = 0x5;
 	public static final int PAWN = 0x6;
+	public static final int DONT_CARE = 0x7;
 	
 	public static final int BLACK = 0x8;
 	
@@ -198,13 +199,13 @@ public abstract class Piece {
 		return ref_moves;
 	}
 
-	static List<Integer> king_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, Piece.Colour ownSide) {
-		int [] ref_moves = Colour.isWhite(ownSide) ? WhiteKingMove_Lut[atSquare] : BlackKingMove_Lut[atSquare];
+	static List<Integer> king_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+		int [] ref_moves = ownSideIsWhite ? WhiteKingMove_Lut[atSquare] : BlackKingMove_Lut[atSquare];
 		for (int new_move : ref_moves) {
-			int targetPiece = theBoard.getPieceAtSquare(Move.getTargetPosition(new_move));
+			int targetPiece = theBoard.getPieceAtSquareOptimise(Move.getTargetPosition(new_move), ownSideIsWhite);
 			if (targetPiece == Piece.NONE) {
 				moveList.add(new_move);
-			} else if (Piece.isOppositeColour(ownSide, targetPiece)) {
+			} else if (targetPiece != Piece.DONT_CARE) {
 				// assign capture into actual move to add to movelist
 				new_move = Move.setCapture(new_move, targetPiece);
 				moveList.add(new_move);
@@ -215,13 +216,13 @@ public abstract class Piece {
 		return moveList;	
 	}
 	
-	static List<Integer> knight_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, Piece.Colour ownSide) {
-		int [] ref_moves = Colour.isWhite(ownSide) ? WhiteKnightMove_Lut[atSquare] : BlackKnightMove_Lut[atSquare];
+	static List<Integer> knight_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+		int [] ref_moves = ownSideIsWhite ? WhiteKnightMove_Lut[atSquare] : BlackKnightMove_Lut[atSquare];
 		for (int new_move : ref_moves) {
-			int targetPiece = theBoard.getPieceAtSquare(Move.getTargetPosition(new_move));
+			int targetPiece = theBoard.getPieceAtSquareOptimise(Move.getTargetPosition(new_move), ownSideIsWhite);
 			if (targetPiece == Piece.NONE) {
 				moveList.add(new_move);
-			} else if (Piece.isOppositeColour(ownSide, targetPiece)) {
+			} else if (targetPiece != Piece.DONT_CARE) {
 				// assign capture into actual move to add to movelist
 				new_move = Move.setCapture(new_move, targetPiece);
 				moveList.add(new_move);
@@ -232,57 +233,175 @@ public abstract class Piece {
 		return moveList;		
 	}
 	
-	static List<Integer> rook_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, Piece.Colour ownSide) {
-		int ownPiece = (Colour.isBlack(ownSide)) ? Piece.BLACK_ROOK : Piece.WHITE_ROOK;
-		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.down);
-		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.up);
-		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.left);
-		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.right);
+	static final int[][][] WhiteRookMove_Lut = new int[128][][]; // Position by direction by moves in that direction
+	static {
+		for (int square : Position.values) {
+			WhiteRookMove_Lut[square] = createRookMovesFromOriginPosition(square, true);
+		}
+	}
+	static final int[][][] BlackRookMove_Lut = new int[128][][];
+	static {
+		for (int square : Position.values) {
+			BlackRookMove_Lut[square] = createRookMovesFromOriginPosition(square, false);
+		}
+	}
+	static int [][] createRookMovesFromOriginPosition(int originPosition, boolean isWhite) {
+		Direction [] rookDirect = { Direction.down, Direction.up, Direction.left, Direction.right };
+		int originPiece = isWhite ? Piece.WHITE_ROOK: Piece.BLACK_ROOK;
+		int [][] return_value = new int [4][];
+		int direction_index = 0;
+		// Create reference moves (with target none)
+		for (Direction dir : rookDirect) {
+			int count = 0;
+			int [] moves = new int[7];
+			// Walk down direction adding all squares to the edge of the board
+			int targetPosition = Direction.getDirectMoveSq(dir, originPosition);
+			while (targetPosition != Position.NOPOSITION) {
+				if (targetPosition != Position.NOPOSITION) {
+					moves[count] = Move.valueOf(originPosition, originPiece, targetPosition, Piece.NONE);
+					count++;
+				}
+				targetPosition = Direction.getDirectMoveSq(dir, targetPosition);
+			}
+			// Copy to correctly sized array
+			int []ref_moves = new int[count];
+			for (int i=0; i < count; i++) {
+				ref_moves[i] = moves[i];
+			}
+			return_value[direction_index++] = ref_moves;
+		}
+		return return_value;
+	}
+	
+	static final int[][][] WhiteBishopMove_Lut = new int[128][][]; // Position by direction by moves in that direction
+	static {
+		for (int square : Position.values) {
+			WhiteBishopMove_Lut[square] = createBishopMovesFromOriginPosition(square, true);
+		}
+	}
+	static final int[][][] BlackBishopMove_Lut = new int[128][][];
+	static {
+		for (int square : Position.values) {
+			BlackBishopMove_Lut[square] = createBishopMovesFromOriginPosition(square, false);
+		}
+	}
+	static int [][] createBishopMovesFromOriginPosition(int originPosition, boolean isWhite) {
+		Direction [] bishopDirect = { Direction.downLeft, Direction.upLeft, Direction.downRight, Direction.upRight };
+		int originPiece = isWhite ? Piece.WHITE_BISHOP: Piece.BLACK_BISHOP;
+		int [][] return_value = new int [4][];
+		int direction_index = 0;
+		// Create reference moves (with target none)
+		for (Direction dir : bishopDirect) {
+			int count = 0;
+			int [] moves = new int[7];
+			// Walk down direction adding all squares to the edge of the board
+			int targetPosition = Direction.getDirectMoveSq(dir, originPosition);
+			while (targetPosition != Position.NOPOSITION) {
+				if (targetPosition != Position.NOPOSITION) {
+					moves[count] = Move.valueOf(originPosition, originPiece, targetPosition, Piece.NONE);
+					count++;
+				}
+				targetPosition = Direction.getDirectMoveSq(dir, targetPosition);
+			}
+			// Copy to correctly sized array
+			int []ref_moves = new int[count];
+			for (int i=0; i < count; i++) {
+				ref_moves[i] = moves[i];
+			}
+			return_value[direction_index++] = ref_moves;
+		}
+		return return_value;
+	}
+	
+	static final int[][][] WhiteQueenMove_Lut = new int[128][][]; // Position by direction by moves in that direction
+	static {
+		for (int square : Position.values) {
+			WhiteQueenMove_Lut[square] = createQueenMovesFromOriginPosition(square, true);
+		}
+	}
+	static final int[][][] BlackQueenMove_Lut = new int[128][][];
+	static {
+		for (int square : Position.values) {
+			BlackQueenMove_Lut[square] = createQueenMovesFromOriginPosition(square, false);
+		}
+	}
+	static int [][] createQueenMovesFromOriginPosition(int originPosition, boolean isWhite) {
+		Direction [] queenDirect = { Direction.downLeft, Direction.upLeft, Direction.downRight, Direction.upRight, Direction.down, Direction.up, Direction.left, Direction.right };
+		int originPiece = isWhite ? Piece.WHITE_QUEEN: Piece.BLACK_QUEEN;
+		int [][] return_value = new int [8][];
+		int direction_index = 0;
+		// Create reference moves (with target none)
+		for (Direction dir : queenDirect) {
+			int count = 0;
+			int [] moves = new int[7];
+			// Walk down direction adding all squares to the edge of the board
+			int targetPosition = Direction.getDirectMoveSq(dir, originPosition);
+			while (targetPosition != Position.NOPOSITION) {
+				if (targetPosition != Position.NOPOSITION) {
+					moves[count] = Move.valueOf(originPosition, originPiece, targetPosition, Piece.NONE);
+					count++;
+				}
+				targetPosition = Direction.getDirectMoveSq(dir, targetPosition);
+			}
+			// Copy to correctly sized array
+			int []ref_moves = new int[count];
+			for (int i=0; i < count; i++) {
+				ref_moves[i] = moves[i];
+			}
+			return_value[direction_index++] = ref_moves;
+		}
+		return return_value;
+	}
+	
+	static List<Integer> rook_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+		int [][] ref_moves = ownSideIsWhite ? WhiteRookMove_Lut[atSquare] : BlackRookMove_Lut[atSquare];
+		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves[0]);
+		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves[1]);
+		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves[2]);
+		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves[3]);
 		return moveList;	
 	}
 	
-	static List<Integer> queen_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, Piece.Colour ownSide) {
-		int ownPiece = (Colour.isBlack(ownSide)) ? Piece.BLACK_QUEEN : Piece.WHITE_QUEEN;
-		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.downLeft);
-		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.upLeft);
-		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.downRight);
-		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.upRight);
-		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.down);
-		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.up);
-		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.left);
-		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.right);
+	static List<Integer> queen_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+		int [][] ref_moves = ownSideIsWhite ? WhiteQueenMove_Lut[atSquare] : BlackQueenMove_Lut[atSquare];
+		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves[0]);
+		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves[1]);
+		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves[2]);
+		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves[3]);
+		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves[4]);
+		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves[5]);
+		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves[6]);
+		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves[7]);
 		return moveList;	
 	}
 	
-	static List<Integer> bishop_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, Piece.Colour ownSide) {
-		int ownPiece = (Colour.isBlack(ownSide)) ? Piece.BLACK_BISHOP : Piece.WHITE_BISHOP;
-		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.downLeft);
-		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.upLeft);
-		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.downRight);
-		multidirect_addMoves(ownPiece, atSquare, moveList, theBoard, Direction.upRight);
+	static List<Integer> bishop_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+		int [][] ref_moves = ownSideIsWhite ? WhiteBishopMove_Lut[atSquare] : BlackBishopMove_Lut[atSquare];
+		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves[0]);
+		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves[1]);
+		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves[2]);
+		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves[3]);
 		return moveList;	
 	}
 
-	private static void multidirect_addMoves(int ownPiece, int atSquare, List<Integer> moveList, Board theBoard, Direction dir) {
-		int targetSquare = atSquare;
-		while ( true ) {
-			targetSquare = Direction.getDirectMoveSqRaw(dir, targetSquare);
-			if ((targetSquare & 0x88) == 0) { // If bit set indicates the square is off the board
-				int targetPiece = theBoard.getPieceAtSquare(targetSquare);
-				if (targetPiece == Piece.NONE) {
-					// Slider move
-					moveList.add(Move.valueOfRegular(atSquare, ownPiece, targetSquare));
-					continue;
-				}
-				else if ((ownPiece&Piece.BLACK) != (targetPiece&Piece.BLACK)) {
-					// Indicates a capture
-					moveList.add(Move.valueOfCapture(atSquare, ownPiece, targetSquare, targetPiece));
-				} else {
-					// Indicates blocked by own piece.
-				}
+	private static void multidirect_addMoves(boolean ownSideIsWhite, List<Integer> moveList, Board theBoard, int[] moves) {
+		for (int new_move : moves) {
+			int targetPiece = theBoard.getPieceAtSquareOptimise(Move.getTargetPosition(new_move), ownSideIsWhite);
+			if (targetPiece == Piece.NONE) {
+				// Slider move
+				moveList.add(new_move);
+				continue;
+			} else if (targetPiece != Piece.DONT_CARE) {
+				// assign capture into actual move to add to movelist
+				new_move = Move.setCapture(new_move, targetPiece);
+				moveList.add(new_move);
+				break;
+			} else {
+				// Indicates blocked by own piece.
+				break;
 			}
-			return;
 		}
+		return;	
 	}
 		
 	private static boolean pawn_isAtInitialPosition(int atSquare, Piece.Colour ownSide) {

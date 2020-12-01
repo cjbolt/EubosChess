@@ -412,6 +412,7 @@ public class Board {
 	
 	public List<Integer> getRegularPieceMoves(Piece.Colour side) {
 		long bitBoardToIterate = Colour.isWhite(side) ? whitePieces : blackPieces;
+		boolean ownSideIsWhite = Colour.isWhite(side);
 		List<Integer> movesList = new LinkedList<Integer>();
 		// Unrolled loop for performance optimisation...
 		long scratchBitBoard = bitBoardToIterate & pieces[INDEX_PAWN];
@@ -426,7 +427,7 @@ public class Board {
 		while ( scratchBitBoard != 0x0L ) {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-			Piece.rook_generateMoves(movesList, this, atSquare, side);
+			Piece.rook_generateMoves(movesList, this, atSquare, ownSideIsWhite);
 			// clear the lssb
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
@@ -434,7 +435,7 @@ public class Board {
 		while ( scratchBitBoard != 0x0L ) {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-			Piece.bishop_generateMoves(movesList, this, atSquare, side);
+			Piece.bishop_generateMoves(movesList, this, atSquare, ownSideIsWhite);
 			// clear the lssb
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
@@ -442,7 +443,7 @@ public class Board {
 		while ( scratchBitBoard != 0x0L ) {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-			Piece.knight_generateMoves(movesList, this, atSquare, side);
+			Piece.knight_generateMoves(movesList, this, atSquare, ownSideIsWhite);
 			// clear the lssb
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
@@ -450,7 +451,7 @@ public class Board {
 		while ( scratchBitBoard != 0x0L ) {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-			Piece.king_generateMoves(movesList, this, atSquare, side);
+			Piece.king_generateMoves(movesList, this, atSquare, ownSideIsWhite);
 			// clear the lssb
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
@@ -458,7 +459,7 @@ public class Board {
 		while ( scratchBitBoard != 0x0L ) {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-			Piece.queen_generateMoves(movesList, this, atSquare, side);
+			Piece.queen_generateMoves(movesList, this, atSquare, ownSideIsWhite);
 			// clear the lssb
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
@@ -491,6 +492,36 @@ public class Board {
 			} else {
 				if (EubosEngineMain.ASSERTS_ENABLED)
 					assert (whitePieces & pieceToGet) != 0;
+			}
+			// Sorted in order of frequency of piece on the chess board, for efficiency
+			if ((pieces[INDEX_PAWN] & pieceToGet) != 0) {
+				type |= Piece.PAWN;
+			} else if ((pieces[INDEX_ROOK] & pieceToGet) != 0) {
+				type |= Piece.ROOK;
+			} else if ((pieces[INDEX_BISHOP] & pieceToGet) != 0) {
+				type |= Piece.BISHOP;
+			} else if ((pieces[INDEX_KNIGHT] & pieceToGet) != 0) {
+				type |= Piece.KNIGHT;
+			} else if ((pieces[INDEX_KING] & pieceToGet) != 0) {
+				type |= Piece.KING;
+			} else if ((pieces[INDEX_QUEEN] & pieceToGet) != 0) {
+				type |= Piece.QUEEN;
+			}
+		}
+		return type;
+	}
+	
+	public int getPieceAtSquareOptimise( int atPos, boolean ownSideIsWhite ) {
+		int type = Piece.NONE;
+		long pieceToGet = BitBoard.positionToMask_Lut[atPos];;
+		if ((allPieces & pieceToGet) != 0) {	
+			if ((blackPieces & pieceToGet) != 0) {
+				type |= Piece.BLACK;
+				if (!ownSideIsWhite) return Piece.DONT_CARE;
+			} else {
+				if (EubosEngineMain.ASSERTS_ENABLED)
+					assert (whitePieces & pieceToGet) != 0;
+				if (ownSideIsWhite) return Piece.DONT_CARE;
 			}
 			// Sorted in order of frequency of piece on the chess board, for efficiency
 			if ((pieces[INDEX_PAWN] & pieceToGet) != 0) {
