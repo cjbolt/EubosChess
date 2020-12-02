@@ -28,16 +28,17 @@ public class MoveList implements Iterable<Integer> {
         }
     }
 	
-	public MoveList(PositionManager pm) {
+	public MoveList(PositionManager pm) throws InvalidPieceException {
 		this(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE );
 	}
 	
-	public MoveList(PositionManager pm, int bestMove, int killer1, int killer2) {
+	public MoveList(PositionManager pm, int bestMove, int killer1, int killer2) throws InvalidPieceException {
 		Colour onMove = pm.getOnMove();
 		boolean validBest = bestMove != Move.NULL_MOVE;
 		boolean validKillerMove1 = killer1 != Move.NULL_MOVE;
 		boolean validKillerMove2 = killer2 != Move.NULL_MOVE;
 		boolean needToEscapeMate = false;
+		boolean foundBest = false;
 		
 		if (pm.lastMoveWasCheck() || (pm.noLastMove() && pm.isKingInCheck(onMove))) {
 			needToEscapeMate = true;
@@ -47,59 +48,60 @@ public class MoveList implements Iterable<Integer> {
 		ListIterator<Integer> it = normal_search_moves.listIterator();
 		while (it.hasNext()) {
 			int currMove = it.next();
-			try {
-				boolean possibleDiscoveredOrMoveIntoCheck = false;
-				if (pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove) || Piece.isKing(Move.getOriginPiece(currMove))) {
-					possibleDiscoveredOrMoveIntoCheck = true;
-				}
-				pm.performMove(currMove, false);
-				if ((possibleDiscoveredOrMoveIntoCheck || needToEscapeMate) && pm.isKingInCheck(onMove)) {
-					// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
-					it.remove();
-				} else {
-					// Set the check flag for any moves attacking the opposing king
-					boolean isCheck = pm.getTheBoard().moveCouldPotentiallyCheckOtherKing(currMove) && pm.isKingInCheck(pm.getOnMove());
-					if (isCheck) {
-						currMove = Move.setCheck(currMove);
-					}
-					// Check whether to set the best move - note it could be the same as one of the killers
-					boolean isBest = validBest && Move.areEqualForBestKiller(currMove, bestMove);
-					if (isBest) {
-						currMove = Move.setBest(currMove);
-						validBest = false; // as already found
-					}
-					
-					if (KillerList.ENABLE_KILLER_MOVES) {
-						// Check whether to set Killer flags
-						boolean isKiller1 = validKillerMove1 && Move.areEqualForBestKiller(currMove, killer1);
-						if (isKiller1) {
-							validKillerMove1 = false; // as already found
-						}
-						boolean isKiller2 = validKillerMove2 && Move.areEqualForBestKiller(currMove, killer2);
-						if (isKiller2) {
-							validKillerMove2 = false; // as already found
-						}
-						if (isKiller1 || isKiller2) {
-							currMove = Move.setKiller(currMove);
-						}
-	
-						if (isBest || isCheck || isKiller1 || isKiller2) {
-							// Move was modified, update it using the iterator
-							it.set(currMove);
-						}
-					} else {
-						if (isBest || isCheck) {
-							// Move was modified, update it using the iterator
-							it.set(currMove);
-						}
-					}
-				}
-				pm.unperformMove(false);
-			} catch(InvalidPieceException e) {
-				assert false;
+			boolean possibleDiscoveredOrMoveIntoCheck = false;
+			if (pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove) || Piece.isKing(Move.getOriginPiece(currMove))) {
+				possibleDiscoveredOrMoveIntoCheck = true;
 			}
+			pm.performMove(currMove, false);
+			if ((possibleDiscoveredOrMoveIntoCheck || needToEscapeMate) && pm.isKingInCheck(onMove)) {
+				// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
+				it.remove();
+			} else {
+				// Set the check flag for any moves attacking the opposing king
+				boolean isCheck = pm.getTheBoard().moveCouldPotentiallyCheckOtherKing(currMove) && pm.isKingInCheck(pm.getOnMove());
+				if (isCheck) {
+					currMove = Move.setCheck(currMove);
+				}
+				// Check whether to set the best move - note it could be the same as one of the killers
+				boolean isBest = validBest && Move.areEqualForBestKiller(currMove, bestMove);
+				if (isBest) {
+					currMove = Move.setBest(currMove);
+					bestMove = currMove;
+					validBest = false; // as already found
+					foundBest = true;
+					it.remove();
+				}
+				
+				if (KillerList.ENABLE_KILLER_MOVES) {
+					// Check whether to set Killer flags
+					boolean isKiller1 = validKillerMove1 && Move.areEqualForBestKiller(currMove, killer1);
+					if (isKiller1) {
+						validKillerMove1 = false; // as already found
+					}
+					boolean isKiller2 = validKillerMove2 && Move.areEqualForBestKiller(currMove, killer2);
+					if (isKiller2) {
+						validKillerMove2 = false; // as already found
+					}
+					if (isKiller1 || isKiller2) {
+						currMove = Move.setKiller(currMove);
+					}
+
+					if (!isBest && (isCheck || isKiller1 || isKiller2)) {
+						// Move was modified, update it using the iterator
+						it.set(currMove);
+					}
+				} else {
+					if (!isBest && isCheck) {
+						// Move was modified, update it using the iterator
+						it.set(currMove);
+					}
+				}
+			}
+			pm.unperformMove(false);
 		}
 		// Sort the list
+		if (foundBest)
+			normal_search_moves.add(0, bestMove);
 		Collections.sort(normal_search_moves, Move.mvvLvaComparator);
 	}
 	

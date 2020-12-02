@@ -365,7 +365,7 @@ public class PositionManagerTest {
 	}
 	
 	@Test
-	public void test_BlackPawn_MoveGen_PromoteQueen() {
+	public void test_BlackPawn_MoveGen_PromoteQueen() throws InvalidPieceException {
 		createSutAndRegisterPe("8/8/8/8/8/8/4p3/8 b - - 0 1 ");
 		theMl = new MoveList(classUnderTest);
 		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.QUEEN );
@@ -373,7 +373,7 @@ public class PositionManagerTest {
 	}	
 
 	@Test
-	public void test_BlackPawn_MoveGen_PromoteKnight() {
+	public void test_BlackPawn_MoveGen_PromoteKnight() throws InvalidPieceException {
 		createSutAndRegisterPe("8/8/8/8/8/8/4p3/8 b - - 0 1 ");
 		theMl = new MoveList(classUnderTest);
 		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.KNIGHT );
@@ -381,7 +381,7 @@ public class PositionManagerTest {
 	}
 
 	@Test
-	public void test_BlackPawn_MoveGen_PromoteBishop() {
+	public void test_BlackPawn_MoveGen_PromoteBishop() throws InvalidPieceException {
 		createSutAndRegisterPe("8/8/8/8/8/8/4p3/8 b - - 0 1 ");
 		theMl = new MoveList(classUnderTest);
 		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.BISHOP );
@@ -389,7 +389,7 @@ public class PositionManagerTest {
 	}
 
 	@Test
-	public void test_BlackPawn_MoveGen_PromoteRook() {
+	public void test_BlackPawn_MoveGen_PromoteRook() throws InvalidPieceException {
 		createSutAndRegisterPe("8/8/8/8/8/8/4p3/8 b - - 0 1 ");
 		theMl = new MoveList(classUnderTest);
 		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.ROOK );
@@ -533,7 +533,7 @@ public class PositionManagerTest {
 	}
 	
 	@Test
-	public void test_WhitePawn_MoveGen_PromoteQueen() {
+	public void test_WhitePawn_MoveGen_PromoteQueen() throws InvalidPieceException {
 		createSutAndRegisterPe("8/4P3/8/8/8/8/8/8 w - - 0 1 ");
 		theMl = new MoveList(classUnderTest);
 		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_MASK, Position.e7, Piece.PAWN, Position.e8, Piece.NONE, Piece.QUEEN );
@@ -541,7 +541,7 @@ public class PositionManagerTest {
 	}	
 
 	@Test
-	public void test_WhitePawn_MoveGen_PromoteKnight() {
+	public void test_WhitePawn_MoveGen_PromoteKnight() throws InvalidPieceException {
 		createSutAndRegisterPe("8/4P3/8/8/8/8/8/8 w - - 0 1 ");
 		theMl = new MoveList(classUnderTest);
 		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_MASK, Position.e7, Piece.PAWN, Position.e8, Piece.NONE, Piece.KNIGHT );
@@ -549,7 +549,7 @@ public class PositionManagerTest {
 	}
 
 	@Test
-	public void test_WhitePawn_MoveGen_PromoteBishop() {
+	public void test_WhitePawn_MoveGen_PromoteBishop() throws InvalidPieceException {
 		createSutAndRegisterPe("8/4P3/8/8/8/8/8/8 w - - 0 1 ");
 		theMl = new MoveList(classUnderTest);
 		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_MASK, Position.e7, Piece.PAWN, Position.e8, Piece.NONE, Piece.BISHOP );
@@ -557,7 +557,7 @@ public class PositionManagerTest {
 	}
 
 	@Test
-	public void test_WhitePawn_MoveGen_PromoteRook() {
+	public void test_WhitePawn_MoveGen_PromoteRook() throws InvalidPieceException {
 		createSutAndRegisterPe("8/4P3/8/8/8/8/8/8 w - - 0 1 ");
 		theMl = new MoveList(classUnderTest);
 		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_MASK, Position.e7, Piece.PAWN, Position.e8, Piece.NONE, Piece.ROOK );

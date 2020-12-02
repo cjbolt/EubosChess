@@ -14,7 +14,7 @@ import eubos.search.SearchResult;
 class RandomMoveGenerator implements IMoveGenerator {
 	private MoveList ml;
 	
-	RandomMoveGenerator( PositionManager pm, Piece.Colour sideToMove) {
+	RandomMoveGenerator( PositionManager pm, Piece.Colour sideToMove) throws InvalidPieceException {
 		ml = new MoveList(pm);
 	}
 

@@ -22,7 +22,7 @@ public class PerformanceTest {
 			this.requestedDepthPly = requestedDepthPly;
 		}
 	    
-	    public long perft() {
+	    public long perft() throws InvalidPieceException {
 	        if (currPly < requestedDepthPly) {        
 	            MoveList ml = new MoveList(pm);
 	            Iterator<Integer> iter = ml.getStandardIterator(false);
