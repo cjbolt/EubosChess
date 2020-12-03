@@ -1,6 +1,6 @@
 package eubos.search;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import eubos.main.EubosEngineMain;
 
@@ -9,10 +9,10 @@ public class DrawChecker {
 	public static final boolean ENABLE_THREEFOLD_POSITION_DRAW_CHECK = true;
 	public static final int THREEFOLD_THRESHOLD = 2;
 	
-	private HashMap<Integer,Byte> positionCount;
+	private ConcurrentHashMap<Integer,Byte> positionCount;
 	
 	public DrawChecker() {
-		positionCount = new HashMap<Integer,Byte>();
+		positionCount = new ConcurrentHashMap<Integer,Byte>();
 	}
 	
 	public void reset() {

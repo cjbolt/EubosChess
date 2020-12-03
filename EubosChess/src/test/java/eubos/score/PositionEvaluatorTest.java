@@ -36,7 +36,11 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_evalPosA() {
 		setUpPosition("rn2k1nr/1pp2p1p/p7/8/6b1/2P2N2/PPP2PP1/R1BB1RK1 b kq - 0 12");
-		assertEquals(170, SUT.evaluatePosition().getScore()); // Knight good pos, pawn up, castled, not endgame
+		if (PositionEvaluator.ENABLE_PAWN_EVALUATION) {
+			assertEquals(137, SUT.evaluatePosition().getScore()); // Knight good pos, pawn up, doubled pawns, not endgame
+		} else {
+			assertEquals(170, SUT.evaluatePosition().getScore()); // Knight good pos, pawn up, not endgame
+		}
 	}	
 	
 	@Test
@@ -194,6 +198,20 @@ public class PositionEvaluatorTest {
 	}
 	
 	@Test
+	public void test_isQuiescent_ForcedMoveOutOfCheckWithCaptureEnPrise() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("r1b1k3/1p1p1p1p/p3pR2/8/4P3/1PN1K3/P1PQB1r1/2q5 b q - - 20");
+		int currMove = Move.valueOf(Move.MISC_CHECK_MASK, 0, Position.g2, Piece.BLACK_ROOK, Position.g3, Piece.NONE, Piece.NONE);
+		pm.performMove(currMove);
+		assertFalse(SUT.isQuiescent(currMove));
+		currMove = Move.valueOf(0, Position.e3, Piece.WHITE_KING, Position.d4, Piece.NONE, Piece.NONE);
+		pm.performMove(currMove);
+		assertFalse(SUT.isQuiescent(currMove, true));
+		currMove = Move.valueOf(0, Position.c1, Piece.BLACK_QUEEN, Position.d2, Piece.WHITE_QUEEN, Piece.NONE);
+		pm.performMove(currMove);
+		assertTrue(SUT.isQuiescent(currMove));
+	}
+	
+	@Test
 	public void test_custom_position_score_reporter() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("4r1k1/2p2pb1/4Q3/8/3pPB2/1p1P3p/1P3P2/R5K1 b - - 0 42");
 		System.out.println(SUT.evaluatePosition());
@@ -341,6 +359,7 @@ public class PositionEvaluatorTest {
 	}
 	
 	@Test
+	@Ignore
 	public void test_investigate_bad_evaluation() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("r1b1k3/1p1p1p1p/p3pR2/8/3KP3/1PN3r1/P1PQB3/2q5 b q - 4 21");
 		// black good rook, white bad queen, but this isn't quiet! In the position (dubious continuation) white is about to lose queen!

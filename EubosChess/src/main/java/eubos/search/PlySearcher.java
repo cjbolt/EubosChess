@@ -409,12 +409,13 @@ public class PlySearcher {
 	}
 	
 	private Score applyMoveAndScore(int currMove) throws InvalidPieceException {
+		boolean neededToEscapeCheck = pos.lastMoveWasCheck();
 		SearchDebugAgent.printPerformMove(currMove);
-		pm.performMove(currMove, true);
+		pm.performMove(currMove);
 		currPly++;
 		SearchDebugAgent.nextPly();
-		Score positionScore = assessNewPosition(currMove);
-		pm.unperformMove(true);
+		Score positionScore = assessNewPosition(currMove, neededToEscapeCheck);
+		pm.unperformMove();
 		currPly--;
 		SearchDebugAgent.prevPly();
 		SearchDebugAgent.printUndoMove(currMove);
@@ -447,9 +448,9 @@ public class PlySearcher {
 		return positionScore;
 	}
 	
-	private Score assessNewPosition(int lastMove) throws InvalidPieceException {
+	private Score assessNewPosition(int lastMove, boolean neededToEscapeCheck) throws InvalidPieceException {
 		Score positionScore = null;
-		if ( isTerminalNode(lastMove) ) {
+		if ( isTerminalNode(lastMove, neededToEscapeCheck) ) {
 			positionScore = pe.evaluatePosition();
 			currDepthSearchedInPly = 1; // We applied a move in order to generate this score
 		} else {
@@ -458,7 +459,7 @@ public class PlySearcher {
 		return positionScore;
 	}
 	
-	private boolean isTerminalNode(int lastMove) {
+	private boolean isTerminalNode(int lastMove, boolean neededToEscapeCheck) {
 		boolean terminalNode = false;
 		if (pos.isThreefoldRepetitionPossible()) {
 			SearchDebugAgent.printRepeatedPositionSearch(pos.getHash(), pos.getFen());
@@ -466,11 +467,11 @@ public class PlySearcher {
 		} else if (pos.getTheBoard().isInsufficientMaterial()) {
 			terminalNode = true;
 		} else if (currPly == originalSearchDepthRequiredInPly) {
-			if (pe.isQuiescent(lastMove) || MiniMaxMoveGenerator.EXTENDED_SEARCH_PLY_LIMIT == 0) {
+			if (pe.isQuiescent(lastMove, neededToEscapeCheck) || MiniMaxMoveGenerator.EXTENDED_SEARCH_PLY_LIMIT == 0) {
 				terminalNode = true;
 			}
 		} else if (currPly > originalSearchDepthRequiredInPly) {
-			if (pe.isQuiescent(lastMove) || isExtendedSearchLimitReached()) {
+			if (pe.isQuiescent(lastMove, neededToEscapeCheck) || isExtendedSearchLimitReached()) {
 				if (currPly > extendedSearchDeepestPly) {
 					extendedSearchDeepestPly = currPly;
 				}

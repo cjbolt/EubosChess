@@ -24,7 +24,8 @@ public class PositionEvaluator implements IEvaluate {
 	public static final int PASSED_PAWN_BOOST = 30;
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 20;
 	
-	public static final boolean DISABLE_QUIESCENCE_CHECK = false; 
+	public static final boolean DISABLE_QUIESCENCE_CHECK = false;
+	public static final boolean ENABLE_PAWN_EVALUATION = false; 
 	
 	public PositionEvaluator(IPositionAccessors pm) {	
 		this.pm = pm;
@@ -32,22 +33,24 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	public boolean isQuiescent(int currMove) {
+		return isQuiescent(currMove, false);
+	}
+	
+	public boolean isQuiescent(int currMove, boolean neededToEscapeCheck) {
 		if (DISABLE_QUIESCENCE_CHECK)
 			return true;
-		if (Move.isCheck(currMove)) {
+		if (Move.isCheck(currMove) || (neededToEscapeCheck && Piece.isKing(Move.getOriginPiece(currMove)))) {
+			// This condition indicates a potentially highly forced move, need to check for move the defender type en-prise captures */
 			return false;
 		} else if (Move.isPromotion(currMove) || pm.isPromotionPossible()) {
 			return false;
 		} else if (Move.isCapture(currMove)) {
-			// we could keep a capture list, so we know where we are in the exchange series?
-			// we can get access to the captured piece in the current codebase, but we need to know the whole capture sequence to do swap off?
-			if (Move.getTargetPiece(currMove) != Piece.NONE)
-			{
-				if (SquareAttackEvaluator.isAttacked(
-						pm.getTheBoard(),
-						Move.getTargetPosition(currMove),
-						pm.getOnMove()))
-					return false;
+			// It isn't quiescent if a recapture is possible
+			if (SquareAttackEvaluator.isAttacked(
+					pm.getTheBoard(),
+					Move.getTargetPosition(currMove),
+					pm.getOnMove())) {
+				return false;
 			}
 		}
 		return true;
@@ -58,13 +61,25 @@ public class PositionEvaluator implements IEvaluate {
 		SearchContextEvaluation eval = sc.computeSearchGoalBonus(pm.getTheBoard().me);
 		if (!eval.isDraw) {
 			eval.score += pm.getTheBoard().me.getDelta();
+			if (ENABLE_PAWN_EVALUATION) {
+				eval.score += evaluatePawnStructure();
+			}
 		}
 		return new Score(eval.score, Score.exact);
 	}
 	
 	int evaluatePawnStructure() {
-		int pawnEvaluationScore = evaluatePawnsForColour(pm.getOnMove());
-		pawnEvaluationScore += evaluatePawnsForColour(Colour.getOpposite(pm.getOnMove()));
+		boolean onMoveIsWhite = Colour.isWhite(pm.getOnMove());
+		Board bd = pm.getTheBoard();
+		int pawnEvaluationScore = 0;
+		long pawnsToTest = onMoveIsWhite ? bd.getWhitePawns() : bd.getBlackPawns();
+		if (pawnsToTest != 0x0) {
+			pawnEvaluationScore = evaluatePawnsForColour(pm.getOnMove());
+		}
+		pawnsToTest = (!onMoveIsWhite) ? bd.getWhitePawns() : bd.getBlackPawns();
+		if (pawnsToTest != 0x0) {
+			pawnEvaluationScore += evaluatePawnsForColour(Colour.getOpposite(pm.getOnMove()));
+		}
 		return pawnEvaluationScore;
 	}
 
