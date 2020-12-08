@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.openjdk.jol.info.ClassLayout;
 
@@ -47,7 +48,7 @@ public class FixedSizeTranspositionTable {
 	
 	public static final long MBYTES_DEFAULT_HASH_SIZE = (ELEMENTS_DEFAULT_HASH_SIZE*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE;
 	
-	private HashMap<Long, ITransposition> hashMap = null;
+	private ConcurrentHashMap<Long, ITransposition> hashMap = null;
 	private long hashMapSize = 0;
 	private long maxHashMapSize = ELEMENTS_DEFAULT_HASH_SIZE;
 	
@@ -87,7 +88,7 @@ public class FixedSizeTranspositionTable {
 					(hashSizeElements*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE));
 		}
 		
-		hashMap = new HashMap<Long, ITransposition>((int)hashSizeElements, (float)0.75);
+		hashMap = new ConcurrentHashMap<Long, ITransposition>((int)hashSizeElements, (float)0.75);
 		hashMapSize = 0;
 		maxHashMapSize = hashSizeElements;
 	}

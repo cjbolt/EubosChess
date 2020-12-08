@@ -190,11 +190,11 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		if (clockTimeValid) {
 			logger.info("Search move, clock time " + clockTime);
-			ms = new IterativeMoveSearcher(this, hashMap, pm, pm, clockTime, clockInc);
+			ms = new IterativeMoveSearcher(this, hashMap, lastFen, dc, clockTime, clockInc);
 		}
 		else if (command.getMoveTime() != null) {
 			logger.info("Search move, fixed time " + command.getMoveTime());
-			ms = new FixedTimeMoveSearcher(this, hashMap, pm, pm, command.getMoveTime());
+			ms = new FixedTimeMoveSearcher(this, hashMap, lastFen, dc, command.getMoveTime());
 		} else {
 			byte searchDepth = SEARCH_DEPTH_IN_PLY;
 			if (command.getInfinite()) {
@@ -203,7 +203,7 @@ public class EubosEngineMain extends AbstractEngine {
 				searchDepth = (byte)((int)command.getDepth());
 			}
 			logger.info("Search move, fixed depth " + searchDepth);
-			ms = new FixedDepthMoveSearcher(this, hashMap, pm, pm, searchDepth);
+			ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth);
 		}
 	}
 

@@ -11,7 +11,9 @@ import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
+import eubos.position.PositionManager;
 import eubos.score.IEvaluate;
+import eubos.search.DrawChecker;
 import eubos.search.KillerList;
 import eubos.search.NoLegalMoveException;
 import eubos.search.PlySearcher;
@@ -28,7 +30,7 @@ public class MiniMaxMoveGenerator implements
 		IMoveGenerator {
 
 	private IChangePosition pm;
-	private IPositionAccessors pos;
+	public IPositionAccessors pos;
 	public PrincipalContinuation pc;
 	public SearchMetrics sm;
 	private SearchMetricsReporter sr;
@@ -60,16 +62,17 @@ public class MiniMaxMoveGenerator implements
 	// Used with Arena, Lichess
 	public MiniMaxMoveGenerator( EubosEngineMain eubos,
 			FixedSizeTranspositionTable hashMap,
-			IChangePosition pm,
-			IPositionAccessors pos,
-			KillerList killers) {
+			String fen,
+			DrawChecker dc) {
 		callback = eubos;
+		PositionManager pm = new PositionManager(fen, dc);
 		this.pm = pm;
-		this.pos = pos;
+		this.pos = pm;
 		this.pe = pos.getPositionEvaluator();
 		tt = hashMap;
-		this.killers = killers;
 		score = 0;
+		// objects that are not depth dependent and therefore generated once at construction only
+		killers = new KillerList(EubosEngineMain.SEARCH_DEPTH_IN_PLY);
 		sm = new SearchMetrics(pos);
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			sendInfo = true;

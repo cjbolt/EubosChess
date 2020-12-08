@@ -7,8 +7,8 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
-import eubos.position.IChangePosition;
-import eubos.position.IPositionAccessors;
+import eubos.position.PositionManager;
+import eubos.search.DrawChecker;
 import eubos.search.KillerList;
 import eubos.search.NoLegalMoveException;
 import eubos.search.SearchResult;
@@ -18,23 +18,18 @@ import eubos.search.transposition.FixedSizeTranspositionTable;
 public abstract class AbstractMoveSearcher extends Thread {
 
 	protected EubosEngineMain eubosEngine;
-	protected IChangePosition pm;
-	protected IPositionAccessors pos;
 	protected MiniMaxMoveGenerator mg;
 	protected short initialScore;
-	protected KillerList killers;
 
-	public AbstractMoveSearcher(EubosEngineMain eng, IChangePosition pm, IPositionAccessors pos, FixedSizeTranspositionTable hashMap) {
+	public AbstractMoveSearcher(EubosEngineMain eng, String fen, DrawChecker dc, FixedSizeTranspositionTable hashMap) {
 		super();
 		this.eubosEngine = eng;
-		this.pm = pm;
-		this.pos = pos;
-		this.killers = new KillerList(EubosEngineMain.SEARCH_DEPTH_IN_PLY);
-		initialScore = pos.getPositionEvaluator().evaluatePosition().getScore();
-		if (Colour.isBlack(pos.getOnMove())) {
+		this.mg = new MiniMaxMoveGenerator( eng, hashMap, fen, dc);
+		
+		initialScore = mg.pos.getPositionEvaluator().evaluatePosition().getScore();
+		if (Colour.isBlack(mg.pos.getOnMove())) {
 			initialScore = (short)-initialScore;
 		}
-		this.mg = new MiniMaxMoveGenerator( eng, hashMap, pm, pos, killers);
 	}
 
 	public AbstractMoveSearcher(Runnable target) {
@@ -59,7 +54,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 			res = mg.findMove(depth, pc);
 		} catch( NoLegalMoveException e ) {
 			EubosEngineMain.logger.info(
-					String.format("AbstractMoveSearcher out of legal moves for %s", pos.getOnMove()));
+					String.format("AbstractMoveSearcher out of legal moves"));
 		} catch(InvalidPieceException e ) {
 			EubosEngineMain.logger.info(
 					String.format("AbstractMoveSearcher can't find piece at %s", e.getAtPosition()));
