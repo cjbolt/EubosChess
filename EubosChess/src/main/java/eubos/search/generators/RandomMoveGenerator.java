@@ -9,6 +9,8 @@ import eubos.board.Piece;
 import eubos.position.MoveList;
 import eubos.position.PositionManager;
 import eubos.search.NoLegalMoveException;
+import eubos.search.SearchMetrics;
+import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
 
 class RandomMoveGenerator implements IMoveGenerator {
@@ -34,5 +36,11 @@ class RandomMoveGenerator implements IMoveGenerator {
 			throw new NoLegalMoveException();
 		}
 		return new SearchResult(bestMove, false);
+	}
+
+	@Override
+	public SearchResult findMove(byte searchDepth, List<Integer> lastPc, SearchMetrics sm, SearchMetricsReporter sr)
+			throws NoLegalMoveException, InvalidPieceException {
+		return this.findMove(searchDepth);
 	}
 }

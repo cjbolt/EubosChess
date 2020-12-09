@@ -7,10 +7,10 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
-import eubos.position.PositionManager;
 import eubos.search.DrawChecker;
-import eubos.search.KillerList;
 import eubos.search.NoLegalMoveException;
+import eubos.search.SearchMetrics;
+import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.FixedSizeTranspositionTable;
@@ -19,16 +19,29 @@ public abstract class AbstractMoveSearcher extends Thread {
 
 	protected EubosEngineMain eubosEngine;
 	protected MiniMaxMoveGenerator mg;
+	
+	protected boolean sendInfo = false;
+	protected SearchMetrics sm;
+	protected SearchMetricsReporter sr;
+	
 	protected short initialScore;
 
 	public AbstractMoveSearcher(EubosEngineMain eng, String fen, DrawChecker dc, FixedSizeTranspositionTable hashMap) {
 		super();
 		this.eubosEngine = eng;
-		this.mg = new MiniMaxMoveGenerator( eng, hashMap, fen, dc);
+		this.mg = new MiniMaxMoveGenerator(hashMap, fen, dc);
 		
 		initialScore = mg.pos.getPositionEvaluator().evaluatePosition().getScore();
 		if (Colour.isBlack(mg.pos.getOnMove())) {
 			initialScore = (short)-initialScore;
+		}
+		
+		sm = new SearchMetrics(mg.pos);
+		if (EubosEngineMain.UCI_INFO_ENABLED) {
+			sendInfo = true;
+			sr = new SearchMetricsReporter(eubosEngine, sm);	
+			sr.setSendInfo(true);
+			sr.start();
 		}
 	}
 
@@ -77,6 +90,11 @@ public abstract class AbstractMoveSearcher extends Thread {
 	public AbstractMoveSearcher(ThreadGroup group, Runnable target, String name,
 			long stackSize) {
 		super(group, target, name, stackSize);
+	}
+	
+	public void terminateSearchMetricsReporter() {
+		if (EubosEngineMain.UCI_INFO_ENABLED && sendInfo)
+			sr.end();
 	}
 
 }

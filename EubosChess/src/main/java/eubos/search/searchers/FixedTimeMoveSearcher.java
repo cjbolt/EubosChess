@@ -44,7 +44,7 @@ public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 			pc = mg.pc.toPvList(0);
 		}
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
-		mg.terminateSearchMetricsReporter();
+		terminateSearchMetricsReporter();
 		SearchDebugAgent.close();
 	}
 }

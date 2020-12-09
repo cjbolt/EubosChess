@@ -5,11 +5,8 @@ import java.util.List;
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 
 import eubos.board.InvalidPieceException;
-import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
-import eubos.position.PositionManager;
 import eubos.search.DrawChecker;
-import eubos.search.KillerList;
 import eubos.search.NoLegalMoveException;
 import eubos.search.SearchDebugAgent;
 import eubos.search.SearchResult;
@@ -53,11 +50,14 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		byte currentDepth = 1;
 		SearchResult res = new SearchResult(null, false);
 		List<Integer> pc = null;
+		if (EubosEngineMain.UCI_INFO_ENABLED && sendInfo) {
+			sr.setSendInfo(true);
+		}
 		IterativeMoveSearchStopper stopper = new IterativeMoveSearchStopper();
 		stopper.start();
 		while (!searchStopped) {
 			try {
-				res = mg.findMove(currentDepth, pc);
+				res = mg.findMove(currentDepth, pc, sm, sr);
 			} catch( NoLegalMoveException e ) {
 				EubosEngineMain.logger.info(
 						String.format("IterativeMoveSearcher out of legal moves"));
@@ -88,8 +88,11 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		EubosEngineMain.logger.info(
 			String.format("IterativeMoveSearcher ended best=%s gameTimeRemaining=%d", res.bestMove, gameTimeRemaining));
 		stopper.end();
+		if (EubosEngineMain.UCI_INFO_ENABLED && sendInfo) {
+			sr.setSendInfo(false);
+		}
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
-		mg.terminateSearchMetricsReporter();
+		terminateSearchMetricsReporter();
 		SearchDebugAgent.close();
 		if (EXPLICIT_GARBAGE_COLLECTION) {
 			if (gameTimeRemaining > 60000)
@@ -156,7 +159,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			boolean terminateNow = false;
 			
 			/* Consider extending time for Search according to following... */
-			short currentScore = mg.sm.getCpScore();
+			short currentScore = sm.getCpScore();
 			switch (checkPoint) {
 			case 0:
 				if (currentScore > (initialScore + 500))
