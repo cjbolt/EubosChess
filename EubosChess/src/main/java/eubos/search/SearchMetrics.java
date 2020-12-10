@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.Piece.Colour;
@@ -17,7 +16,7 @@ public class SearchMetrics {
 	private long time;
 	private short hashFull;
 	private List<Integer> pv;
-	private boolean pvValid = false;
+	public boolean pvValid = false;
 	private short cpScore;
 	private int depth;
 	private int partialDepth;
@@ -39,46 +38,16 @@ public class SearchMetrics {
 		this(1, pos);
 	}
 	
-	public synchronized void setPeriodicInfoCommand(ProtocolInformationCommand info) {
-		incrementTime();
-		info.setNodes(getNodesSearched());
-		info.setNps(getNodesPerSecond());
-		info.setTime(getTime());
-		info.setHash(getHashFull());
-	}
+	synchronized void incrementNodesSearched() { nodesSearched.incrementAndGet(); }
+	synchronized long getNodesSearched() { return nodesSearched.get(); }
 	
-	public synchronized void setPvInfoCommand(ProtocolInformationCommand info) {
-		incrementTime();
-		info.setNodes(getNodesSearched());
-		info.setHash(getHashFull());
-		if (pvValid) {
-			info.setMoveList(getPrincipalVariation());
-		}
-		short score = getCpScore();
-		int depth = getDepth();
-		if (Score.isMate(score)) {
-			int matePly = (score > 0) ? Short.MAX_VALUE - score + 1 : Short.MIN_VALUE - score;
-			int mateMove = matePly / 2;
-			info.setMate(mateMove);
-		} else {
-			info.setCentipawns(score);
-		}
-		info.setDepth(depth);
-		info.setMaxDepth(getPartialDepth());
-		info.setNps(getNodesPerSecond());
-		info.setTime(getTime());
-	}
-	
-	void incrementNodesSearched() { nodesSearched.incrementAndGet(); }
-	long getNodesSearched() { return nodesSearched.get(); }
-	
-	private void incrementTime() {
+	synchronized void incrementTime() {
 		long currentTimestamp = System.currentTimeMillis();
 		time = currentTimestamp - initialTimestamp;
 	}
-	private long getTime() { return time; }
+	synchronized long getTime() { return time; }
 	
-	private int getNodesPerSecond() {
+	synchronized int getNodesPerSecond() {
 		int nps = 0;
 		if (time != 0) {
 			nps = (int)(nodesSearched.get()*1000/time);
@@ -95,7 +64,7 @@ public class SearchMetrics {
 		}
 	}
 	
-	private List<GenericMove> getPrincipalVariation() {
+	synchronized List<GenericMove> getPrincipalVariation() {
 		List<GenericMove> thePv = null;
 		if (pvValid) {
 			thePv = new ArrayList<GenericMove>(pv.size());
@@ -131,6 +100,6 @@ public class SearchMetrics {
 	synchronized int getPartialDepth() { return partialDepth; }
 	synchronized void setPartialDepth(int depth ) { this.partialDepth = depth; }
 	
-	private short getHashFull() { return hashFull;	}
+	synchronized short getHashFull() { return hashFull;	}
 	public synchronized void setHashFull(short hashFull) { this.hashFull = hashFull; }
 }

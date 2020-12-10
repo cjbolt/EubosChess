@@ -80,7 +80,7 @@ public class SearchMetricsReporterTest {
 	public void testMateScore_gettingMatedIn3() {
 		sm.setCpScore((short) (Short.MIN_VALUE+6)); // indicates mate in 3 moves
 		classUnderTest.setSendInfo(true);
-		classUnderTest.reportPrincipalVariation();
+		classUnderTest.reportPrincipalVariation(sm);
 		
 		assertEquals(Integer.valueOf(-3), eubos.last_info.getMate());
 	}
@@ -89,7 +89,7 @@ public class SearchMetricsReporterTest {
 	public void testMateScore_MateIn3() {
 		sm.setCpScore((short) (Short.MAX_VALUE-6)); // indicates mate in 3 moves
 		classUnderTest.setSendInfo(true);
-		classUnderTest.reportPrincipalVariation();
+		classUnderTest.reportPrincipalVariation(sm);
 		
 		assertEquals(Integer.valueOf(3), eubos.last_info.getMate());
 	}
