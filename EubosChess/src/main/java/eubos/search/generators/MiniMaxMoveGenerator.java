@@ -55,9 +55,11 @@ public class MiniMaxMoveGenerator implements
 	// Used with Arena, Lichess
 	public MiniMaxMoveGenerator(FixedSizeTranspositionTable hashMap,
 			String fen,
-			DrawChecker dc) {
+			DrawChecker dc,
+			SearchMetricsReporter sr) {
 		PositionManager pm = new PositionManager(fen, dc);
 		commonInit(hashMap, pm, pm);
+		sr.register(sm);
 		SearchDebugAgent.open(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
 	}
 
@@ -100,7 +102,6 @@ public class MiniMaxMoveGenerator implements
 			SearchMetricsReporter sr) throws NoLegalMoveException, InvalidPieceException {
 		boolean foundMate = false;
 		initialiseSearchDepthDependentObjects(searchDepth, pm, sm);
-		sr.register(sm);
 		ps = new PlySearcher(tta, st, pc, sm, sr, searchDepth, pm, pos, lastPc, pe, killers);
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		try {

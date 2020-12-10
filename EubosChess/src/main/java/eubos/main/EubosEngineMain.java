@@ -33,6 +33,7 @@ import eubos.search.searchers.AbstractMoveSearcher;
 import eubos.search.searchers.FixedDepthMoveSearcher;
 import eubos.search.searchers.FixedTimeMoveSearcher;
 import eubos.search.searchers.IterativeMoveSearcher;
+import eubos.search.searchers.MultithreadedIterativeMoveSearcher;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 
 import java.text.SimpleDateFormat;
@@ -44,7 +45,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	public static final byte SEARCH_DEPTH_IN_PLY = 35;
 	
-	public static final boolean LOGGING_ENABLED = false;
+	public static final boolean LOGGING_ENABLED = true;
 	public static final boolean UCI_INFO_ENABLED = true;
 	public static final boolean ASSERTS_ENABLED = false;
 	
@@ -190,7 +191,7 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		if (clockTimeValid) {
 			logger.info("Search move, clock time " + clockTime);
-			ms = new IterativeMoveSearcher(this, hashMap, lastFen, dc, clockTime, clockInc);
+			ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, clockTime, clockInc);
 		}
 		else if (command.getMoveTime() != null) {
 			logger.info("Search move, fixed time " + command.getMoveTime());

@@ -28,6 +28,7 @@ public class SearchMetricsReporter extends Thread {
 	
 	public void register(SearchMetrics registering_sm) {
 		sm.add(registering_sm);
+		EubosEngineMain.logger.info(String.format("SearchMetricsReporter register sm=%s count=%s", registering_sm, sm.size()));
 	}
 	
 	public void run() {
@@ -41,6 +42,7 @@ public class SearchMetricsReporter extends Thread {
 				break;
 			}
 			if (reporterActive) {
+				EubosEngineMain.logger.info(String.format("SearchMetricsReporter periodic update send=%s empty=%s", sendInfo, sm.isEmpty()));
 				reportNodeData();
 			}
 		} while (reporterActive);

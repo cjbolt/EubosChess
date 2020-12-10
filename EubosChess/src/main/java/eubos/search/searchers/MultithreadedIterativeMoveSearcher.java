@@ -10,9 +10,16 @@ import eubos.search.DrawChecker;
 import eubos.search.NoLegalMoveException;
 import eubos.search.SearchDebugAgent;
 import eubos.search.SearchResult;
+import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 
 public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
+	
+	protected IterativeMoveSearchStopper stopper;
+	protected MiniMaxMoveGenerator mg2;
+	
+	protected MultithreadedIterativeMoveSearcherWorkerThread worker1;
+	protected MultithreadedIterativeMoveSearcherWorkerThread worker2;
 	
 	public MultithreadedIterativeMoveSearcher(EubosEngineMain eubos, 
 			FixedSizeTranspositionTable hashMap, 
@@ -22,61 +29,112 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			long increment) {
 		super(eubos, hashMap, fen, dc, time, increment);
 		this.setName("MultithreadedIterativeMoveSearcher");
+		mg2 = new MiniMaxMoveGenerator(hashMap, fen, dc, sr);
+		stopper = new IterativeMoveSearchStopper();
 	}
 	
 	@Override
 	public void halt() {
-		mg.terminateFindMove();
+		worker1.halt();
+		worker2.halt();
 		searchStopped = true; 
 	}
 	
 	@Override
 	public void run() {
-		byte currentDepth = 1;
-		SearchResult res = new SearchResult(null, false);
-		List<Integer> pc = null;
-		IterativeMoveSearchStopper stopper = new IterativeMoveSearchStopper();
 		stopper.start();
+		// Create workers and let them run
+		worker1 = new MultithreadedIterativeMoveSearcherWorkerThread(mg);
+		worker2 = new MultithreadedIterativeMoveSearcherWorkerThread(mg2);
+		worker1.start();
+		worker2.start();
+		enableSearchMetricsReporter(true);
+		// wait for the workers to check in with their result
 		while (!searchStopped) {
 			try {
-				res = mg.findMove(currentDepth, pc);
-			} catch( NoLegalMoveException e ) {
-				EubosEngineMain.logger.info(
-						String.format("IterativeMoveSearcher out of legal moves"));
-				searchStopped = true;
-			} catch(InvalidPieceException e ) {
-				EubosEngineMain.logger.info(
-						String.format("IterativeMoveSearcher can't find piece at %s", e.getAtPosition()));
-				searchStopped = true;
-			}
-			if (res != null && res.foundMate) {
-				EubosEngineMain.logger.info("IterativeMoveSearcher found mate");
-				break;
-			}				
-			if (stopper.extraTime && !searchStopped) {
-				// don't start a new iteration, we only allow time to complete the current ply
-				searchStopped = true;
-				if (DEBUG_LOGGING) {
-					EubosEngineMain.logger.info(String.format(
-							"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
-				}
-			}
-			pc = mg.pc.toPvList(0);
-			currentDepth++;
-			if (currentDepth == Byte.MAX_VALUE) {
-				break;
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 			}
 		}
+		// Collate best move from worker threads and send it
+		while(worker1.isAlive() && worker2.isAlive()) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		}
+		enableSearchMetricsReporter(false);
 		EubosEngineMain.logger.info(
-			String.format("IterativeMoveSearcher ended best=%s gameTimeRemaining=%d", res.bestMove, gameTimeRemaining));
+			String.format("MultithreadedIterativeMoveSearcher worker1 ended best=%s gameTimeRemaining=%d", worker1.result.bestMove, gameTimeRemaining));
+		EubosEngineMain.logger.info(
+				String.format("MultithreadedIterativeMoveSearcher worker2 ended best=%s gameTimeRemaining=%d", worker2.result.bestMove, gameTimeRemaining));
 		stopper.end();
-		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
+		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( worker1.result.bestMove, null ));
 		terminateSearchMetricsReporter();
 		SearchDebugAgent.close();
 		if (EXPLICIT_GARBAGE_COLLECTION) {
 			if (gameTimeRemaining > 60000)
 				System.gc();
 		}
+	}
+	
+	class MultithreadedIterativeMoveSearcherWorkerThread extends Thread {
+		
+		private MiniMaxMoveGenerator myMg;
+		public SearchResult result;
+		
+		public MultithreadedIterativeMoveSearcherWorkerThread( MiniMaxMoveGenerator moveGen ) {
+			this.myMg = moveGen;
+		}
+		
+		public void run() {
+			
+			byte currentDepth = 1;
+			List<Integer> pc = null;
+			result = new SearchResult(null, false);
+			
+			EubosEngineMain.logger.info(String.format("MultithreadedIterativeMoveSearcherWorkerThread %s alive", this));
+		
+			while (!searchStopped) {
+				try {
+					result = myMg.findMove(currentDepth, pc, sr);
+				} catch( NoLegalMoveException e ) {
+					EubosEngineMain.logger.info(
+							String.format("MultithreadedIterativeMoveSearcherWorkerThread out of legal moves"));
+					searchStopped = true;
+				} catch(InvalidPieceException e ) {
+					EubosEngineMain.logger.info(
+							String.format("MultithreadedIterativeMoveSearcherWorkerThread can't find piece at %s", e.getAtPosition()));
+					searchStopped = true;
+				}
+				if (result != null && result.foundMate) {
+					EubosEngineMain.logger.info("MultithreadedIterativeMoveSearcherWorkerThread found mate");
+					break;
+				}				
+				if (stopper.extraTime && !searchStopped) {
+					// don't start a new iteration, we only allow time to complete the current ply
+					searchStopped = true;
+					if (DEBUG_LOGGING) {
+						EubosEngineMain.logger.info(String.format(
+								"MultithreadedIterativeMoveSearcherWorkerThread %s findMove stopped, not time for a new iteration, ran for %d ms", this, stopper.timeRanFor));
+					}
+				}
+				pc = myMg.pc.toPvList(0);
+				currentDepth++;
+				if (currentDepth == Byte.MAX_VALUE) {
+					break;
+				}
+			}
+			
+			// Send result to main thread can read result structure
+			
+		}
+		
+		public void halt() {
+			myMg.terminateFindMove(); 
+		}	
 	}
 
 	class IterativeMoveSearchStopper extends Thread {

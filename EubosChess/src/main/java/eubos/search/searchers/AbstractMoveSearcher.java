@@ -27,7 +27,11 @@ public abstract class AbstractMoveSearcher extends Thread {
 	public AbstractMoveSearcher(EubosEngineMain eng, String fen, DrawChecker dc, FixedSizeTranspositionTable hashMap) {
 		super();
 		this.eubosEngine = eng;
-		this.mg = new MiniMaxMoveGenerator(hashMap, fen, dc);
+		if (EubosEngineMain.UCI_INFO_ENABLED) {
+			sendInfo = true;
+			sr = new SearchMetricsReporter(eubosEngine);
+		}
+		this.mg = new MiniMaxMoveGenerator(hashMap, fen, dc, sr);
 		
 		initialScore = mg.pos.getPositionEvaluator().evaluatePosition().getScore();
 		if (Colour.isBlack(mg.pos.getOnMove())) {
@@ -35,8 +39,6 @@ public abstract class AbstractMoveSearcher extends Thread {
 		}
 		
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
-			sendInfo = true;
-			sr = new SearchMetricsReporter(eubosEngine);
 			sr.start();
 		}
 	}
