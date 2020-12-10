@@ -9,7 +9,6 @@ import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.search.DrawChecker;
 import eubos.search.NoLegalMoveException;
-import eubos.search.SearchMetrics;
 import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;
@@ -21,7 +20,6 @@ public abstract class AbstractMoveSearcher extends Thread {
 	protected MiniMaxMoveGenerator mg;
 	
 	protected boolean sendInfo = false;
-	protected SearchMetrics sm;
 	protected SearchMetricsReporter sr;
 	
 	protected short initialScore;
@@ -36,11 +34,9 @@ public abstract class AbstractMoveSearcher extends Thread {
 			initialScore = (short)-initialScore;
 		}
 		
-		sm = new SearchMetrics(mg.pos);
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			sendInfo = true;
-			sr = new SearchMetricsReporter(eubosEngine, sm);	
-			sr.setSendInfo(true);
+			sr = new SearchMetricsReporter(eubosEngine);
 			sr.start();
 		}
 	}
@@ -64,7 +60,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 	protected SearchResult doFindMove(GenericMove selectedMove, List<Integer> pc, byte depth) {
 		SearchResult res = null;
 		try {
-			res = mg.findMove(depth, pc);
+			res = mg.findMove(depth, pc, sr);
 		} catch( NoLegalMoveException e ) {
 			EubosEngineMain.logger.info(
 					String.format("AbstractMoveSearcher out of legal moves"));
@@ -90,6 +86,12 @@ public abstract class AbstractMoveSearcher extends Thread {
 	public AbstractMoveSearcher(ThreadGroup group, Runnable target, String name,
 			long stackSize) {
 		super(group, target, name, stackSize);
+	}
+	
+	public void enableSearchMetricsReporter(boolean enable) {
+		if (EubosEngineMain.UCI_INFO_ENABLED && sendInfo) {
+			sr.setSendInfo(enable);
+		}
 	}
 	
 	public void terminateSearchMetricsReporter() {

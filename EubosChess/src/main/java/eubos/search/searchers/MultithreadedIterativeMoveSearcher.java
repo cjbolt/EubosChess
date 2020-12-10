@@ -138,7 +138,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			boolean terminateNow = false;
 			
 			/* Consider extending time for Search according to following... */
-			short currentScore = sm.getCpScore();
+			short currentScore = mg.sm.getCpScore();
 			switch (checkPoint) {
 			case 0:
 				if (currentScore > (initialScore + 500))

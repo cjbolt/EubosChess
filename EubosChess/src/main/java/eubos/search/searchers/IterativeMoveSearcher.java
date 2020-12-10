@@ -29,14 +29,18 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			long time,
 			long increment) {
 		super(eubos, fen, dc, hashMap);
+		this.setName("IterativeMoveSearcher");
+		setGameTimeRemaining(time, increment);
 		EubosEngineMain.logger.info(
-				String.format("Starting initialScore=%d gameTimeRemaining=%d", initialScore, time));
-		// We use the lichess hypothesis about increments and game time
+				String.format("Starting initialScore=%d gameTimeRemaining=%d", initialScore, gameTimeRemaining));
+	}
+
+	private void setGameTimeRemaining(long time, long increment) {
+		// We use the Lichess hypothesis about increments and game time
 		moveNumber = mg.pos.getMoveNumber();
 		long incrementTime = increment * Math.max((AVG_MOVES_PER_GAME - moveNumber), 0);
 		incrementTime = Math.min(Math.max(time-5000, 0), incrementTime); // Cater for short on time
 		gameTimeRemaining = time + incrementTime;
-		this.setName("IterativeMoveSearcher");
 	}
 	
 	@Override
@@ -50,14 +54,12 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		byte currentDepth = 1;
 		SearchResult res = new SearchResult(null, false);
 		List<Integer> pc = null;
-		if (EubosEngineMain.UCI_INFO_ENABLED && sendInfo) {
-			sr.setSendInfo(true);
-		}
+		enableSearchMetricsReporter(true);
 		IterativeMoveSearchStopper stopper = new IterativeMoveSearchStopper();
 		stopper.start();
 		while (!searchStopped) {
 			try {
-				res = mg.findMove(currentDepth, pc, sm, sr);
+				res = mg.findMove(currentDepth, pc, sr);
 			} catch( NoLegalMoveException e ) {
 				EubosEngineMain.logger.info(
 						String.format("IterativeMoveSearcher out of legal moves"));
@@ -88,9 +90,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		EubosEngineMain.logger.info(
 			String.format("IterativeMoveSearcher ended best=%s gameTimeRemaining=%d", res.bestMove, gameTimeRemaining));
 		stopper.end();
-		if (EubosEngineMain.UCI_INFO_ENABLED && sendInfo) {
-			sr.setSendInfo(false);
-		}
+		enableSearchMetricsReporter(false);
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
 		terminateSearchMetricsReporter();
 		SearchDebugAgent.close();
@@ -159,7 +159,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			boolean terminateNow = false;
 			
 			/* Consider extending time for Search according to following... */
-			short currentScore = sm.getCpScore();
+			short currentScore = mg.sm.getCpScore();
 			switch (checkPoint) {
 			case 0:
 				if (currentScore > (initialScore + 500))

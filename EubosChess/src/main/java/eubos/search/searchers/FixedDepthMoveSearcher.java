@@ -34,11 +34,13 @@ public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 	@Override
 	public void run() {
 		SearchResult res = new SearchResult(null, false);
+		enableSearchMetricsReporter(true);
 		List<Integer> pc = null;
 		for (byte depth=1; depth<=searchDepth && !searchStopped; depth++) {
 			res = doFindMove(res.bestMove, pc, depth);
 			pc = mg.pc.toPvList(0);
 		}
+		enableSearchMetricsReporter(false);
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
 		terminateSearchMetricsReporter();
 		SearchDebugAgent.close();

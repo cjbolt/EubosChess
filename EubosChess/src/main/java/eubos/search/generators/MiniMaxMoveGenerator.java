@@ -32,13 +32,13 @@ public class MiniMaxMoveGenerator implements
 	private IChangePosition pm;
 	public IPositionAccessors pos;
 	public PrincipalContinuation pc;
+	public SearchMetrics sm;
 
 	private PlySearcher ps;
 	private IEvaluate pe;
 	private FixedSizeTranspositionTable tt;
 	private TranspositionTableAccessor tta;
 	private ScoreTracker st;
-	private SearchMetrics sm;
 	private short score;
 	
 	private KillerList killers;
@@ -49,14 +49,7 @@ public class MiniMaxMoveGenerator implements
 	MiniMaxMoveGenerator( FixedSizeTranspositionTable hashMap,
 			IChangePosition pm,
 			IPositionAccessors pos) {
-		this.pm = pm;
-		this.pos = pos;
-		this.pe = pos.getPositionEvaluator();
-		sm = new SearchMetrics(pos);
-		
-		tt = hashMap;
-		score = 0;
-		killers = new KillerList(EXTENDED_SEARCH_PLY_LIMIT);
+		commonInit(hashMap, pm, pos);
 	}
 
 	// Used with Arena, Lichess
@@ -64,20 +57,24 @@ public class MiniMaxMoveGenerator implements
 			String fen,
 			DrawChecker dc) {
 		PositionManager pm = new PositionManager(fen, dc);
+		commonInit(hashMap, pm, pm);
+		SearchDebugAgent.open(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
+	}
+
+	private void commonInit(FixedSizeTranspositionTable hashMap, IChangePosition pm, IPositionAccessors pos) {
 		this.pm = pm;
-		this.pos = pm;
-		this.pe = pos.getPositionEvaluator();
+		this.pos = pos;
 		
+		pe = pos.getPositionEvaluator();
+		sm = new SearchMetrics(pos);
 		tt = hashMap;
 		score = 0;
 		killers = new KillerList(EubosEngineMain.SEARCH_DEPTH_IN_PLY);
-
-		SearchDebugAgent.open(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
 	}
 	
 	public short getScore() { return score; }
 	
-	private void initialiseSearchDepthDependentObjects(int searchDepth, IChangePosition pm) {
+	private void initialiseSearchDepthDependentObjects(int searchDepth, IChangePosition pm, SearchMetrics sm) {
 		pc = new PrincipalContinuation(searchDepth+EXTENDED_SEARCH_PLY_LIMIT);
 		sm.setDepth(searchDepth);
 		sm.setPrincipalVariation(pc.toPvList(0));
@@ -87,26 +84,23 @@ public class MiniMaxMoveGenerator implements
 	
 	@Override
 	public SearchResult findMove(byte searchDepth) throws NoLegalMoveException, InvalidPieceException {
-		this.sm = new SearchMetrics(pos);
-		return this.findMove(searchDepth, null, sm, new SearchMetricsReporter(null, sm));
+		return this.findMove(searchDepth, null);
 	}
 	
 	public SearchResult findMove(
 			byte searchDepth, 
 			List<Integer> lastPc) throws NoLegalMoveException, InvalidPieceException {
-		this.sm = new SearchMetrics(pos);
-		return this.findMove(searchDepth, lastPc, sm, new SearchMetricsReporter(null, sm));
+		return this.findMove(searchDepth, lastPc, new SearchMetricsReporter(null));
 	}
 	
 	@Override
 	public SearchResult findMove(
 			byte searchDepth, 
 			List<Integer> lastPc,
-			SearchMetrics sm,
 			SearchMetricsReporter sr) throws NoLegalMoveException, InvalidPieceException {
 		boolean foundMate = false;
-		this.sm = sm;
-		initialiseSearchDepthDependentObjects(searchDepth, pm);
+		initialiseSearchDepthDependentObjects(searchDepth, pm, sm);
+		sr.register(sm);
 		ps = new PlySearcher(tta, st, pc, sm, sr, searchDepth, pm, pos, lastPc, pe, killers);
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		try {

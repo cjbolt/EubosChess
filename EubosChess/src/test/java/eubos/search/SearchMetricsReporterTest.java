@@ -46,7 +46,8 @@ public class SearchMetricsReporterTest {
 		List<Integer> pv = new ArrayList<Integer>();
 		pv.add(Move.valueOf(Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE));
 		sm.setPrincipalVariation(pv);
-		classUnderTest = new SearchMetricsReporter(eubos, sm);
+		classUnderTest = new SearchMetricsReporter(eubos);
+		classUnderTest.register(sm);
 	}
 	
 	@Test
