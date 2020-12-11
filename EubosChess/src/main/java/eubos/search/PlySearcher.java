@@ -42,6 +42,7 @@ public class PlySearcher {
 	private byte originalSearchDepthRequiredInPly = 0;
 	private byte extendedSearchDeepestPly = 0;
 	private byte extendedSearchLimitInPly = 0;
+	private boolean moveListOrdering = true;
 	
 	public PlySearcher(
 			ITranspositionAccessor hashMap,
@@ -405,7 +406,7 @@ public class PlySearcher {
 		
 	private MoveList getMoveList(int transBestMove) throws InvalidPieceException {
 		int[] killer_moves = killers.getMoves(currPly);
-		return new MoveList((PositionManager) pm, transBestMove, killer_moves[0], killer_moves[1]);
+		return new MoveList((PositionManager) pm, transBestMove, killer_moves[0], killer_moves[1], moveListOrdering);
 	}
 	
 	private Score applyMoveAndScore(int currMove) throws InvalidPieceException {
@@ -493,5 +494,9 @@ public class PlySearcher {
 			}
 		}
 		return limitReached;
+	}
+
+	public void disableMoveListOrdering() {
+		moveListOrdering  = false;		
 	}
 }

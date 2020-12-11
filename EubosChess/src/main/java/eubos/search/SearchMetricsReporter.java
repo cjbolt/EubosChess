@@ -23,12 +23,17 @@ public class SearchMetricsReporter extends Thread {
 		reporterActive = true;
 		eubosEngine = eubos;
 		sm = new ArrayList<SearchMetrics>(MAX_THREADS);
+		lastScore = 0;
+		lastDepth = 0;
 		this.setName("SearchMetricsReporter");
 	}
 	
-	public void register(SearchMetrics registering_sm) {
+	public synchronized void register(SearchMetrics registering_sm) {
 		sm.add(registering_sm);
-		EubosEngineMain.logger.info(String.format("SearchMetricsReporter register sm=%s count=%s", registering_sm, sm.size()));
+	}
+	
+	public void setSendInfo(boolean enable) {
+		sendInfo = enable;		
 	}
 	
 	public void run() {
@@ -42,7 +47,6 @@ public class SearchMetricsReporter extends Thread {
 				break;
 			}
 			if (reporterActive) {
-				EubosEngineMain.logger.info(String.format("SearchMetricsReporter periodic update send=%s empty=%s", sendInfo, sm.isEmpty()));
 				reportNodeData();
 			}
 		} while (reporterActive);
@@ -55,7 +59,21 @@ public class SearchMetricsReporter extends Thread {
 		}
 	}
 	
-	public void reportNodeData() {
+	synchronized void reportPrincipalVariation(SearchMetrics pv) {
+		if (sendInfo && pv != null) {
+			int currDepth = pv.getDepth();
+			int score = pv.getCpScore();
+			if (currDepth > lastDepth || (currDepth == lastDepth && score > lastScore)) {
+				ProtocolInformationCommand info = new ProtocolInformationCommand();
+				generatePvInfoCommand(info, pv);
+				eubosEngine.sendInfoCommand(info);
+				lastDepth = currDepth;
+				lastScore = score;
+			}
+		}
+	}
+	
+	private void reportNodeData() {
 		if (sendInfo && !sm.isEmpty()) {
 			ProtocolInformationCommand info = new ProtocolInformationCommand();
 			generatePeriodicInfoCommand(info); 
@@ -63,25 +81,7 @@ public class SearchMetricsReporter extends Thread {
 		}
 	}
 	
-	void reportPrincipalVariation(SearchMetrics sm) {
-		if (sendInfo && sm != null) {
-			int currDepth = sm.getDepth();
-			int score = sm.getCpScore();
-			if (currDepth > lastDepth || (currDepth == lastDepth && score > lastScore)) {
-				ProtocolInformationCommand info = new ProtocolInformationCommand();
-				generatePvInfoCommand(info, sm);
-				eubosEngine.sendInfoCommand(info);
-				lastDepth = currDepth;
-				lastScore = score;
-			}
-		}
-	}
-
-	public void setSendInfo(boolean enable) {
-		sendInfo = enable;		
-	}
-	
-	public synchronized void generatePeriodicInfoCommand(ProtocolInformationCommand info) {
+	private void generatePeriodicInfoCommand(ProtocolInformationCommand info) {
 		long time = 0;
 		long nodes = 0;
 		int nps = 0;
@@ -101,15 +101,15 @@ public class SearchMetricsReporter extends Thread {
 		info.setHash(hashFull);
 	}
 	
-	public void generatePvInfoCommand(ProtocolInformationCommand info, SearchMetrics sm) {
-		sm.incrementTime();
-		info.setNodes(sm.getNodesSearched());
-		info.setHash(sm.getHashFull());
-		if (sm.pvValid) {
-			info.setMoveList(sm.getPrincipalVariation());
+	private void generatePvInfoCommand(ProtocolInformationCommand info, SearchMetrics pv) {
+		pv.incrementTime();
+		
+		info.setHash(pv.getHashFull());
+		if (pv.pvValid) {
+			info.setMoveList(pv.getPrincipalVariation());
 		}
-		short score = sm.getCpScore();
-		int depth = sm.getDepth();
+		
+		short score = pv.getCpScore();
 		if (Score.isMate(score)) {
 			int matePly = (score > 0) ? Short.MAX_VALUE - score + 1 : Short.MIN_VALUE - score;
 			int mateMove = matePly / 2;
@@ -117,9 +117,20 @@ public class SearchMetricsReporter extends Thread {
 		} else {
 			info.setCentipawns(score);
 		}
-		info.setDepth(depth);
-		info.setMaxDepth(sm.getPartialDepth());
-		info.setNps(sm.getNodesPerSecond());
-		info.setTime(sm.getTime());
+		
+		info.setDepth(pv.getDepth());
+		info.setMaxDepth(pv.getPartialDepth());
+		
+		int nps = 0;
+		long nodes = 0;
+		for (SearchMetrics thread : sm) {
+			// collate NPS from all registered SMs
+			nps += thread.getNodesPerSecond();
+			nodes += thread.getNodesSearched();
+		}
+		info.setNodes(nodes);
+		info.setNps(nps);
+		
+		info.setTime(pv.getTime());
 	}
 }

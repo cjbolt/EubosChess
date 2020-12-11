@@ -32,7 +32,6 @@ import eubos.search.DrawChecker;
 import eubos.search.searchers.AbstractMoveSearcher;
 import eubos.search.searchers.FixedDepthMoveSearcher;
 import eubos.search.searchers.FixedTimeMoveSearcher;
-import eubos.search.searchers.IterativeMoveSearcher;
 import eubos.search.searchers.MultithreadedIterativeMoveSearcher;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 

@@ -29,7 +29,9 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			long increment) {
 		super(eubos, hashMap, fen, dc, time, increment);
 		this.setName("MultithreadedIterativeMoveSearcher");
-		mg2 = new MiniMaxMoveGenerator(hashMap, fen, dc, sr);
+		// Create second move generator using cloned DrawChecker
+		mg2 = new MiniMaxMoveGenerator(hashMap, fen, new DrawChecker(dc.getState()), sr);
+		mg2.disableMoveListOrdering();
 		stopper = new IterativeMoveSearchStopper();
 	}
 	
@@ -49,14 +51,14 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		worker1.start();
 		worker2.start();
 		enableSearchMetricsReporter(true);
-		// wait for the workers to check in with their result
-		while (!searchStopped) {
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-			}
-		}
+//		// wait for the workers to check in with their result
+//		while (!searchStopped) {
+//			try {
+//				Thread.sleep(100);
+//			} catch (InterruptedException e) {
+//				Thread.currentThread().interrupt();
+//			}
+//		}
 		// Collate best move from worker threads and send it
 		while(worker1.isAlive() && worker2.isAlive()) {
 			try {
@@ -67,9 +69,9 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		}
 		enableSearchMetricsReporter(false);
 		EubosEngineMain.logger.info(
-			String.format("MultithreadedIterativeMoveSearcher worker1 ended best=%s gameTimeRemaining=%d", worker1.result.bestMove, gameTimeRemaining));
+			String.format("worker1 ended best=%s gameTimeRemaining=%d", worker1.result.bestMove, gameTimeRemaining));
 		EubosEngineMain.logger.info(
-				String.format("MultithreadedIterativeMoveSearcher worker2 ended best=%s gameTimeRemaining=%d", worker2.result.bestMove, gameTimeRemaining));
+				String.format("worker2 ended best=%s gameTimeRemaining=%d", worker2.result.bestMove, gameTimeRemaining));
 		stopper.end();
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( worker1.result.bestMove, null ));
 		terminateSearchMetricsReporter();
@@ -95,22 +97,22 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			List<Integer> pc = null;
 			result = new SearchResult(null, false);
 			
-			EubosEngineMain.logger.info(String.format("MultithreadedIterativeMoveSearcherWorkerThread %s alive", this));
+			EubosEngineMain.logger.info(String.format("%s alive", this));
 		
 			while (!searchStopped) {
 				try {
 					result = myMg.findMove(currentDepth, pc, sr);
 				} catch( NoLegalMoveException e ) {
 					EubosEngineMain.logger.info(
-							String.format("MultithreadedIterativeMoveSearcherWorkerThread out of legal moves"));
+							String.format("out of legal moves"));
 					searchStopped = true;
 				} catch(InvalidPieceException e ) {
 					EubosEngineMain.logger.info(
-							String.format("MultithreadedIterativeMoveSearcherWorkerThread can't find piece at %s", e.getAtPosition()));
+							String.format("can't find piece at %s", e.getAtPosition()));
 					searchStopped = true;
 				}
 				if (result != null && result.foundMate) {
-					EubosEngineMain.logger.info("MultithreadedIterativeMoveSearcherWorkerThread found mate");
+					EubosEngineMain.logger.info("found mate");
 					break;
 				}				
 				if (stopper.extraTime && !searchStopped) {
@@ -118,7 +120,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 					searchStopped = true;
 					if (DEBUG_LOGGING) {
 						EubosEngineMain.logger.info(String.format(
-								"MultithreadedIterativeMoveSearcherWorkerThread %s findMove stopped, not time for a new iteration, ran for %d ms", this, stopper.timeRanFor));
+							"%s findMove stopped, not time for a new iteration, ran for %d ms", this, stopper.timeRanFor));
 					}
 				}
 				pc = myMg.pc.toPvList(0);
@@ -127,9 +129,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 					break;
 				}
 			}
-			
-			// Send result to main thread can read result structure
-			
+			// The result can be read by reading the result member
 		}
 		
 		public void halt() {

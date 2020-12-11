@@ -29,10 +29,10 @@ public class MoveList implements Iterable<Integer> {
     }
 	
 	public MoveList(PositionManager pm) throws InvalidPieceException {
-		this(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE );
+		this(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, true );
 	}
 	
-	public MoveList(PositionManager pm, int bestMove, int killer1, int killer2) throws InvalidPieceException {
+	public MoveList(PositionManager pm, int bestMove, int killer1, int killer2, boolean orderMoveList) throws InvalidPieceException {
 		Colour onMove = pm.getOnMove();
 		boolean validBest = bestMove != Move.NULL_MOVE;
 		boolean validKillerMove1 = killer1 != Move.NULL_MOVE;
@@ -102,7 +102,9 @@ public class MoveList implements Iterable<Integer> {
 		// Sort the list
 		if (foundBest)
 			normal_search_moves.add(0, bestMove);
-		Collections.sort(normal_search_moves, Move.mvvLvaComparator);
+		if (orderMoveList) {
+			Collections.sort(normal_search_moves, Move.mvvLvaComparator);
+		}
 	}
 	
 	@Override
