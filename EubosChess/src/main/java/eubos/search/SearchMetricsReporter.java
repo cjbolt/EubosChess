@@ -14,7 +14,6 @@ public class SearchMetricsReporter extends Thread {
 	private List<SearchMetrics> sm;
 	private EubosEngineMain eubosEngine;
 	private static final int UPDATE_RATE_MS = 1000;
-	public static final int MAX_THREADS = 4;
 	
 	private int lastScore = 0;
 	private int lastDepth = 0;
@@ -22,7 +21,7 @@ public class SearchMetricsReporter extends Thread {
 	public SearchMetricsReporter( EubosEngineMain eubos ) {
 		reporterActive = true;
 		eubosEngine = eubos;
-		sm = new ArrayList<SearchMetrics>(MAX_THREADS);
+		sm = new ArrayList<SearchMetrics>(EubosEngineMain.DEFAULT_NUM_SEARCH_THREADS);
 		lastScore = 0;
 		lastDepth = 0;
 		this.setName("SearchMetricsReporter");
