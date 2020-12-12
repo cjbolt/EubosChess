@@ -18,6 +18,9 @@ import eubos.search.transposition.ITransposition;
 
 public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	
+	private static final int STAGGERED_START_TIME_FOR_THREADS = 25;
+	private static final boolean DISABLE_MOVE_LIST_ORDERING_IN_WORKER_THREADS = false;
+	
 	protected IterativeMoveSearchStopper stopper;
 	protected int threads = 0;
 	private long rootPositionHash = 0;
@@ -51,7 +54,9 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		for (int i=1; i < threads; i++) {
 			MiniMaxMoveGenerator thisMg = new MiniMaxMoveGenerator(hashMap, fen, new DrawChecker(dc.getState()), sr);
 			moveGenerators.add(thisMg);
-			thisMg.disableMoveListOrdering();
+			if (DISABLE_MOVE_LIST_ORDERING_IN_WORKER_THREADS) {
+				thisMg.disableMoveListOrdering();
+			}
 		}
 	}
 	
@@ -75,6 +80,13 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			MultithreadedSearchWorkerThread worker = new MultithreadedSearchWorkerThread(moveGenerators.get(i));
 			workers.add(worker);
 			worker.start();
+			if (STAGGERED_START_TIME_FOR_THREADS > 0) {
+				try {
+					Thread.sleep(STAGGERED_START_TIME_FOR_THREADS);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+			}
 		}
 		
 		enableSearchMetricsReporter(true);

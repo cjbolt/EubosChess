@@ -15,6 +15,7 @@ import org.junit.Test;
 import org.junit.Ignore;
 
 import com.fluxchess.jcpi.commands.EngineAnalyzeCommand;
+import com.fluxchess.jcpi.commands.EngineNewGameCommand;
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import com.fluxchess.jcpi.models.GenericBoard;
 import com.fluxchess.jcpi.models.GenericMove;
@@ -67,6 +68,7 @@ public class EubosEngineMainTest {
 	private static final String ID_NAME_CMD = "id name Eubos 1.1.6"+CMD_TERMINATOR;
 	private static final String ID_AUTHOR_CMD = "id author Chris Bolt"+CMD_TERMINATOR;
 	private static final String OPTION_HASH = "option name Hash type spin default 1310 min 32 max 4000"+CMD_TERMINATOR;
+	private static final String OPTION_THREADS = "option name NumberOfWorkerThreads type spin default 2 min 1 max 4"+CMD_TERMINATOR;
 	private static final String UCI_OK_CMD = "uciok"+CMD_TERMINATOR;
 	private static final String READY_OK_CMD = "readyok"+CMD_TERMINATOR;
 	
@@ -399,6 +401,7 @@ public class EubosEngineMainTest {
 	
     @Test
     public void test_createPositionFromAnalyseCommand_enPassantMovesAreIdentifedCorrectly() throws IllegalNotationException {
+    	classUnderTest.receive(new EngineNewGameCommand());
     	// To catch a defect where En Passant moves were not properly identified when applied through the UCI received from lichess/Arena
     	ArrayList<GenericMove> applyMoveList = new ArrayList<GenericMove>();
     	applyMoveList.add(new GenericMove("c2c4"));
@@ -410,6 +413,7 @@ public class EubosEngineMainTest {
     
 	@Test
 	public void test_createPositionFromAnalyseCommand() throws IllegalNotationException {
+		classUnderTest.receive(new EngineNewGameCommand());
 		// Black move 62
 		ArrayList<GenericMove> applyMoveList = new ArrayList<GenericMove>();
 		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
@@ -504,7 +508,7 @@ public class EubosEngineMainTest {
 	}
 
 	private void setupEngine() {
-		commands.add(new commandPair(UCI_CMD, ID_NAME_CMD+ID_AUTHOR_CMD+OPTION_HASH+UCI_OK_CMD));
+		commands.add(new commandPair(UCI_CMD, ID_NAME_CMD+ID_AUTHOR_CMD+OPTION_HASH+OPTION_THREADS+UCI_OK_CMD));
 		commands.add(new commandPair(ISREADY_CMD,READY_OK_CMD));
 		commands.add(new commandPair(NEWGAME_CMD,null));
 		commands.add(new commandPair(ISREADY_CMD,READY_OK_CMD));
