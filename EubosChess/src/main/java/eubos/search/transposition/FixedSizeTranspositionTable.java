@@ -52,16 +52,12 @@ public class FixedSizeTranspositionTable {
 	private long hashMapSize = 0;
 	private long maxHashMapSize = ELEMENTS_DEFAULT_HASH_SIZE;
 	
-	public synchronized long getHashMapSize() {
+	public long getHashMapSize() {
 		return hashMapSize;
 	}
 	
-	public synchronized long getHashMapMaxSize() {
+	public long getHashMapMaxSize() {
 		return maxHashMapSize;
-	}
-	
-	public synchronized void remove(long hashCode) {
-		hashMap.remove(hashCode);
 	}
 	
 	public FixedSizeTranspositionTable() {
@@ -93,13 +89,8 @@ public class FixedSizeTranspositionTable {
 		maxHashMapSize = hashSizeElements;
 	}
 	
-	public synchronized boolean containsHash(long hashCode) {
-		return hashMap.containsKey(hashCode);
-	}
-	
-	private void incrementAccessCount(long hashCode) {
-		if (hashMap.containsKey(hashCode)) {
-			ITransposition trans = hashMap.get(hashCode);
+	private void incrementAccessCount(ITransposition trans) {
+		if (trans != null) {
 			short count = trans.getAccessCount();
 			if (count != Short.MAX_VALUE) {
 				trans.setAccessCount((short)(count+1));
@@ -107,11 +98,9 @@ public class FixedSizeTranspositionTable {
 		}
 	}
 	
-	public synchronized ITransposition getTransposition(long hashCode) {
+	public ITransposition getTransposition(long hashCode) {
 		ITransposition retrievedTrans = hashMap.get(hashCode);
-		if (retrievedTrans != null) {
-			incrementAccessCount(hashCode);
-		}
+		incrementAccessCount(retrievedTrans);
 		return retrievedTrans;
 	}
 	
@@ -150,13 +139,6 @@ public class FixedSizeTranspositionTable {
 			// Only increment size if hash wasn't already contained, otherwise overwrites
 			hashMapSize++;
 		}
-		incrementAccessCount(hashCode);
-	}
-
-	public synchronized void protectHash(long hashCode) {
-		if (hashMap.containsKey(hashCode)) {
-			ITransposition trans = hashMap.get(hashCode);
-			trans.setAccessCount(Short.MAX_VALUE);
-		}
+		incrementAccessCount(trans);
 	}
 }
