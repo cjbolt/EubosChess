@@ -215,7 +215,7 @@ public class Board {
 			Board.MATERIAL_VALUE_BISHOP +
 			(4 * Board.MATERIAL_VALUE_PAWN);
 	
-	boolean isEndgame;
+	public boolean isEndgame;
 	
 	public Board( Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove ) {
 		allPieces = 0x0;
@@ -236,7 +236,6 @@ public class Board {
 		if ((queensOffBoard && queensOffMaterialThresholdReached) || materialQuantityThreshholdReached) {
 			isEndgame = true;
 		}
-		EubosEngineMain.logger.info(String.format("materialEval %d isEndgame %s", me.getDelta(), isEndgame));
 	}
 	
 	public int doMove(int move) throws InvalidPieceException {

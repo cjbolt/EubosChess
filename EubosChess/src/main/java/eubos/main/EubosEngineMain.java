@@ -97,7 +97,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public void receive(EngineInitializeRequestCommand command) {
 		logger.fine("Eubos Initialising");
 		
-		ProtocolInitializeAnswerCommand reply = new ProtocolInitializeAnswerCommand("Eubos 1.1.6","Chris Bolt");
+		ProtocolInitializeAnswerCommand reply = new ProtocolInitializeAnswerCommand("Eubos 1.1.7","Chris Bolt");
 		reply.addOption(Options.newHashOption((int)DEFAULT_HASH_SIZE, MIN_HASH_SIZE, MAX_HASH_SIZE));
 		reply.addOption(new SpinnerOption("NumberOfWorkerThreads", defaultNumberOfWorkerThreads, 1, numCores));
 		this.getProtocol().send( reply );
@@ -113,7 +113,7 @@ public class EubosEngineMain extends AbstractEngine {
 		// If the GUI has configured the hash table size, reinitialise it at the correct size
 		if (command.name.startsWith("Hash")) {
 			hashSize = Long.parseLong(command.value);
-			logger.fine(String.format("MaxHashSizeInElements=%d", hashSize));
+			logger.fine(String.format("MaxHashSizeInMBs=%d", hashSize));
 		}
 		if (command.name.startsWith("NumberOfWorkerThreads")) {
 			numberOfWorkerThreads = Integer.parseInt(command.value);

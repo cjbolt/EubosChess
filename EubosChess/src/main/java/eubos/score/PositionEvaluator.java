@@ -25,7 +25,7 @@ public class PositionEvaluator implements IEvaluate {
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 20;
 	
 	public static final boolean DISABLE_QUIESCENCE_CHECK = false;
-	public static final boolean ENABLE_PAWN_EVALUATION = true; 
+	public static final boolean ENABLE_PAWN_EVALUATION = false; 
 	
 	public PositionEvaluator(IPositionAccessors pm) {	
 		this.pm = pm;
@@ -113,5 +113,10 @@ public class PositionEvaluator implements IEvaluate {
 	@Override
 	public short getScoreForStalemate() {
 		return sc.getScoreForStalemate();
+	}
+
+	@Override
+	public String getGoal() {
+		return sc.getGoal();
 	}
 }

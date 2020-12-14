@@ -131,7 +131,6 @@ public class PlySearcher {
 		default:
 			break;
 		}
-		handleEarlyTermination();
 		clearUpSearchAtPly();
 		
 		return theScore;
@@ -329,40 +328,6 @@ public class PlySearcher {
 			sm.setHashFull(tt.getHashUtilisation());
 			sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), positionScore);
 			sr.reportPrincipalVariation(sm);
-		}
-	}
-	
-	private void handleEarlyTermination() throws InvalidPieceException {
-		if (atRootNode() && isTerminated()) {
-			int pcBestMove = pc.getBestMove((byte)0);
-			TranspositionEvaluation eval = tt.getTransposition(currPly, dynamicSearchLevelInPly);
-			if (eval != null && eval.trans != null && eval.trans.getBestMove() != Move.NULL_MOVE) {
-				int transBestMove = eval.trans.getBestMove();
-				// Use current best knowledge about the position from the transposition table
-				EubosEngineMain.logger.info(
-						String.format("best is trans=%s", eval.trans.report()));
-				if (!Move.areEqual(pcBestMove, transBestMove)) {
-					/* This should be an assert mitigation, it should never occur and could be removed. */
-					EubosEngineMain.logger.info(
-							String.format("early term problem - trans and pc moves not equal: %s != %s", 
-									Move.toString(transBestMove),
-									Move.toString(pcBestMove)));
-					if (!checkForRepetitionDueToPositionInSearchTree(transBestMove)) {
-						// Check we don't return a drawing move!
-						pc.set(0, transBestMove);
-					}
-				}
-			}
-			else if (lastPc != null) {
-				// Set best move to the previous iteration search result
-				EubosEngineMain.logger.info(
-						String.format("best is lastPc=%s", Move.toString(lastPc.get(0))));
-				pc.update(0, lastPc.get(0));
-			} else {
-				// Just return the current pc
-				EubosEngineMain.logger.info(
-						String.format("best is pc=%s", Move.toString(pcBestMove)));
-			}
 		}
 	}
 	

@@ -65,10 +65,13 @@ public class EubosEngineMainTest {
 	private static final String GO_TIME_CMD = "go movetime 1000"+CMD_TERMINATOR;
 	private static final String QUIT_CMD = "quit"+CMD_TERMINATOR;
 	// Outputs
-	private static final String ID_NAME_CMD = "id name Eubos 1.1.6"+CMD_TERMINATOR;
+	private static final String ID_NAME_CMD = "id name Eubos 1.1.7"+CMD_TERMINATOR;
 	private static final String ID_AUTHOR_CMD = "id author Chris Bolt"+CMD_TERMINATOR;
 	private static final String OPTION_HASH = "option name Hash type spin default 1310 min 32 max 4000"+CMD_TERMINATOR;
-	private static final String OPTION_THREADS = "option name NumberOfWorkerThreads type spin default 2 min 1 max 4"+CMD_TERMINATOR;
+	private static final String OPTION_THREADS = String.format(
+			"option name NumberOfWorkerThreads type spin default %s min 1 max %s%s",
+			Runtime.getRuntime().availableProcessors()-2,
+			Runtime.getRuntime().availableProcessors(), CMD_TERMINATOR);
 	private static final String UCI_OK_CMD = "uciok"+CMD_TERMINATOR;
 	private static final String READY_OK_CMD = "readyok"+CMD_TERMINATOR;
 	

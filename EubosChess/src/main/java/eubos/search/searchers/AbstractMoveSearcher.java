@@ -37,6 +37,8 @@ public abstract class AbstractMoveSearcher extends Thread {
 		if (Colour.isBlack(mg.pos.getOnMove())) {
 			initialScore = (short)-initialScore;
 		}
+		EubosEngineMain.logger.info(String.format("initialScore %d, SearchContext %s, isEndgame %s",
+				initialScore, mg.pos.getPositionEvaluator().getGoal(), mg.pos.getTheBoard().isEndgame));
 		
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			sr.start();

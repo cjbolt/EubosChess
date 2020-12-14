@@ -7,4 +7,5 @@ public interface IEvaluate {
 	boolean isQuiescent(int currMove);
 	boolean isQuiescent(int currMove, boolean neededToEscapeCheck);
 	short getScoreForStalemate();
+	String getGoal();
 }

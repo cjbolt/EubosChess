@@ -19,7 +19,7 @@ import eubos.search.transposition.ITransposition;
 public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	
 	private static final int STAGGERED_START_TIME_FOR_THREADS = 25;
-	private static final boolean DISABLE_MOVE_LIST_ORDERING_IN_WORKER_THREADS = false;
+	private static final boolean ENABLE_MOVE_LIST_ORDERING_IN_WORKER_THREADS = true;
 	
 	protected IterativeMoveSearchStopper stopper;
 	protected int threads = 0;
@@ -54,7 +54,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		for (int i=1; i < threads; i++) {
 			MiniMaxMoveGenerator thisMg = new MiniMaxMoveGenerator(hashMap, fen, new DrawChecker(dc.getState()), sr);
 			moveGenerators.add(thisMg);
-			if (DISABLE_MOVE_LIST_ORDERING_IN_WORKER_THREADS) {
+			if (!ENABLE_MOVE_LIST_ORDERING_IN_WORKER_THREADS) {
 				thisMg.disableMoveListOrdering();
 			}
 		}
@@ -100,16 +100,21 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		enableSearchMetricsReporter(false);
 		
 		stopper.end();
+		sendBestMove();
+		terminateSearchMetricsReporter();
+	}
+
+	private void sendBestMove() {
 		GenericMove bestMove;
 		ITransposition trans = tt.getTransposition(this.rootPositionHash);
 		if (trans != null) {
+			EubosEngineMain.logger.info(String.format("best is trans=%s", trans.report()));
 			bestMove = Move.toGenericMove(trans.getBestMove());
 		} else {
 			EubosEngineMain.logger.warning("Can't find bestMove in Transposition Table");
 			bestMove = workers.get(0).result.bestMove;
 		}
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( bestMove, null ));
-		terminateSearchMetricsReporter();
 	}
 	
 	private boolean isAtLeastOneWorkerStillAlive() {
@@ -136,8 +141,6 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			byte currentDepth = 1;
 			List<Integer> pc = null;
 			result = new SearchResult(null, false);
-			
-			EubosEngineMain.logger.info(String.format("%s alive", this));
 		
 			while (!searchStopped) {
 				try {
@@ -152,7 +155,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 					searchStopped = true;
 				}
 				if (result != null && result.foundMate) {
-					EubosEngineMain.logger.info("found mate");
+					EubosEngineMain.logger.info(String.format("%s found mate", this));
 					break;
 				}				
 				if (stopper.extraTime && !searchStopped) {
@@ -169,7 +172,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 					break;
 				}
 			}
-			// The result can be read by reading the result member
+			// The result can be read by reading the result member of this object or by reading the shared transposition table
 		}
 		
 		public void halt() {
