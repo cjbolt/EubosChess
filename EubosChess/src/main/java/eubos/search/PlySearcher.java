@@ -235,9 +235,9 @@ public class PlySearcher {
 					plyScore = Score.valueOf(justPositionScore, plyBound);
 					st.setBackedUpScoreAtPly(currPly, plyScore);
 					
-					trans = updateTranspositionTable(trans, currMove, plyScore);
 					updatePrincipalContinuation(currMove, justPositionScore);
-					
+					trans = updateTranspositionTable(trans, currMove, plyScore);
+
 				} else if (shouldUpdatePositionBoundScoreAndBestMove(plyScore, justPositionScore)) {
 					// Update the hash entry if the move is better than that previously stored at this position
 					plyScore = Score.valueOf(justPositionScore, plyBound);
@@ -265,14 +265,13 @@ public class PlySearcher {
 		// This is the only way a hash and score can be exact.
 		if (trans.getDepthSearchedInPly() <= getTransDepth()) {
 			// however we need to be careful that the depth is appropriate, we don't set exact for wrong depth...
-			trans.setType(Score.exact);
 
 			// found to be needed due to score discrepancies caused by refutations coming out of extended search...
 			// Still needed 22nd October 2020.
 			trans.setBestMove(pc.getBestMove(currPly));
 			int scoreFromDownTree = updateMateScoresForEncodingMateDistanceInHashTable(plyScore);
 			trans.setScore(scoreFromDownTree);
-			//updateTranspositionTable(trans, pc.getBestMove(currPly), Score.valueOf(Score.getScore(scoreFromDownTree), Score.exact));
+			trans.setType(Score.exact);
 
 			SearchDebugAgent.printExactTrans(pos.getHash(), trans);
 		}
@@ -317,7 +316,7 @@ public class PlySearcher {
 			 * back up if the score for the capture is worse than that.
 			 */
 			int provScore = st.getBackedUpScoreAtPly(currPly);
-			boolean isProvisional = Score.getType(provScore) != Score.exact;
+			boolean isProvisional = (Score.getScore(provScore) == Short.MAX_VALUE || Score.getScore(provScore) == Short.MIN_VALUE);
 			if (isProvisional && ml.hasMultipleRegularMoves()) {
 				plyScore = applySafestNormalMoveAndScore(ml);
 				plyScore = Score.setType(plyScore, plyBound);

@@ -127,10 +127,16 @@ public class SearchDebugAgent {
 
 	public static void printAlphaBetaComparison(int prevPlyScore, short positionScore) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%sab cmp prev:%d curr:%d @%d",
+			printOutput(String.format("%sab cmp prev:%s curr:%d @%d",
 				indent, Score.toString(prevPlyScore), positionScore, currPly));
 		}
-		
+	}
+	
+	public static void printAlphaBetaComparison(short prevPlyScore, short positionScore) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%sab cmp prev:%s curr:%d @%d",
+				indent, prevPlyScore, positionScore, currPly));
+		}
 	}
 
 	public static void printTransUpdate(ITransposition trans, long hashCode) {

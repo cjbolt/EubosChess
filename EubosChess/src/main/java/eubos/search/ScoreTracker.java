@@ -62,7 +62,8 @@ public class ScoreTracker {
 	public boolean isAlphaBetaCutOff(byte currPly, short scoreBackedUpToNode) {
 		boolean isAlphaBetaCutOff = false;
 		if (currPly > 0) {
-			short prevPlyScore = Score.getScore(scores[(byte)(currPly-1)]);
+			int prevPlyBackedUp = scores[(byte)(currPly-1)];
+			short prevPlyScore = Score.getScore(prevPlyBackedUp);
 			if (onMoveIsWhite(currPly)) {
 				/* A note about these score comparisons: 
 				 * 
@@ -78,7 +79,7 @@ public class ScoreTracker {
 				if (scoreBackedUpToNode <= prevPlyScore) isAlphaBetaCutOff = true;
 			}
 			if (isAlphaBetaCutOff) {
-				SearchDebugAgent.printAlphaBetaComparison(prevPlyScore, scoreBackedUpToNode);
+				SearchDebugAgent.printAlphaBetaComparison(prevPlyBackedUp, scoreBackedUpToNode);
 			}
 		}
 		return isAlphaBetaCutOff;

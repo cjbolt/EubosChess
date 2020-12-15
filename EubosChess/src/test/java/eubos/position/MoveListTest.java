@@ -228,4 +228,24 @@ public class MoveListTest {
 			assertEquals(killer2_gen, Move.toGenericMove(it.next()));
 		}
 	}
+	
+	@Test
+	public void test_check_extended_search_moves_contain_only_checks_escape_checks_promotions_captures() throws InvalidPieceException, IllegalNotationException {
+		setup( "3q1rk1/p4pp1/2p4p/3p4/6Pr/1PNQ4/P1PB1PPb/4RR1K b - - - 2");
+		Iterator<Integer> it = classUnderTest.getStandardIterator(true);
+		
+		// Capture
+		assertEquals(new GenericMove("h4g4"), Move.toGenericMove(it.next()));
+		
+		// Discovered checks!
+		assertEquals(new GenericMove("h2g1"), Move.toGenericMove(it.next()));
+		assertEquals(new GenericMove("h2g3"), Move.toGenericMove(it.next()));
+		assertEquals(new GenericMove("h2f4"), Move.toGenericMove(it.next()));
+		assertEquals(new GenericMove("h2e5"), Move.toGenericMove(it.next()));
+		assertEquals(new GenericMove("h2d6"), Move.toGenericMove(it.next()));
+		assertEquals(new GenericMove("h2c7"), Move.toGenericMove(it.next()));
+		assertEquals(new GenericMove("h2b8"), Move.toGenericMove(it.next()));
+		
+		assertFalse(it.hasNext());
+	}
 }

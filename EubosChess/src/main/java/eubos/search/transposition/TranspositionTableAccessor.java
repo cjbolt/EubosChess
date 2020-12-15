@@ -104,12 +104,12 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 					new_bound == Score.exact) {
 			    updateTransposition = true;
 			} else if ((currentBound == Score.upperBound) &&
-					   (new_score < current_trans.getScore())) {
+					   (Score.getScore(new_score) < current_trans.getScore())) {
 				if (EubosEngineMain.ASSERTS_ENABLED)
 					assert currentBound == new_bound;
 				updateTransposition = true;
 			} else if ((currentBound == Score.lowerBound) &&
-					   (new_score > current_trans.getScore())) {
+					   (Score.getScore(new_score) > current_trans.getScore())) {
 				if (EubosEngineMain.ASSERTS_ENABLED)
 					assert currentBound == new_bound;
 				updateTransposition = true;

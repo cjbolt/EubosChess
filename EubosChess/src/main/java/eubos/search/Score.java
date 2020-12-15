@@ -41,9 +41,12 @@ public final class Score {
 		return (Math.abs(score) > Short.MAX_VALUE-200);
 	}
 	
-	public static int valueOf(short score, int bound) {
+	public static int valueOf(short score, byte bound) {
 		int theScore = score;
 		theScore &= SCORE_MASK;
+		if (EubosEngineMain.ASSERTS_ENABLED) {
+			assert bound == Score.exact || bound == Score.upperBound || bound == Score.lowerBound;
+		}
 		theScore |= bound << BOUND_SHIFT;
 		return theScore;
 	}
@@ -70,6 +73,9 @@ public final class Score {
 			the_type='L';
 			break;
 		default:
+			if (EubosEngineMain.ASSERTS_ENABLED) {
+				assert false;
+			}
 			break;
 		}
 		string.append(the_type);
