@@ -1,46 +1,80 @@
 package eubos.search;
 
-public class Score {
+import eubos.main.EubosEngineMain;
+
+public final class Score {
 	public static final byte exact = 1;
 	public static final byte upperBound = 2;
 	public static final byte lowerBound = 3;
 	
-	short score;
-	byte type;
+	private static final int SCORE_SHIFT = 0;
+	private static final int SCORE_MASK = ((1<<Short.SIZE)-1) << SCORE_SHIFT;
 	
-	public Score() {
-		score = 0;
-		type = Score.exact;
+	private static final int BOUND_SHIFT = SCORE_SHIFT + Short.SIZE;
+	private static final int BOUND_MASK = 0x3 << BOUND_SHIFT;
+
+	public static short getScore(int score) {
+		return (short)(score & SCORE_MASK);
+	}
+
+	public static byte getType(int score) {
+		return (byte)(score >>> BOUND_SHIFT);
 	}
 	
-	public Score(short theScore, byte theType) {
-		score = theScore;
-		type = theType;
-	}
-
-
-	public Score(byte plyBound) {
-		score = (plyBound == Score.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE;
-		type = plyBound;
-	}
-
-	public short getScore() {
+	public static int setType(int score, int type) {
+		score &= ~BOUND_MASK;
+		score |= (type << BOUND_SHIFT);	
 		return score;
 	}
 
-	public byte getType() {
-		return type;
+	public static int setExact(int score) {
+		score &= ~BOUND_MASK;
+		score |= (Score.exact << BOUND_SHIFT);	
+		return score;
+	}
+	
+	public static boolean isMate(int score) {
+		return (Math.abs(getScore(score)) > Short.MAX_VALUE-200);
+	}
+	
+	public static boolean isMate(short score) {
+		return (Math.abs(score) > Short.MAX_VALUE-200);
+	}
+	
+	public static int valueOf(short score, int bound) {
+		int theScore = score;
+		theScore &= SCORE_MASK;
+		theScore |= bound << BOUND_SHIFT;
+		return theScore;
 	}
 
-	public void setExact() {
-		type = Score.exact;		
+	public static int valueOf(byte plyBound) {
+		if (EubosEngineMain.ASSERTS_ENABLED) {
+			assert plyBound != Score.exact;
+		}
+		return (plyBound == upperBound) ? valueOf(Short.MAX_VALUE, plyBound) : valueOf(Short.MIN_VALUE, plyBound);
 	}
 	
-	public boolean isMate() {
-		return (Math.abs(score) > Short.MAX_VALUE-200);
-	}
-	
-	static public boolean isMate(short score) {
-		return (Math.abs(score) > Short.MAX_VALUE-200);
+	public static String toString(int score) {
+		StringBuilder string = new StringBuilder();
+		char the_type = 'E';
+		switch(getType(score))
+		{
+		case Score.exact:
+			the_type='X';
+			break;
+		case Score.upperBound:
+			the_type='U';
+			break;
+		case Score.lowerBound:
+			the_type='L';
+			break;
+		default:
+			break;
+		}
+		string.append(the_type);
+		string.append(":");
+		string.append(getScore(score));
+		return string.toString();
 	}
 }

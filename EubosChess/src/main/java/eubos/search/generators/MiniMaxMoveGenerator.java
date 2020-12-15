@@ -18,6 +18,7 @@ import eubos.search.KillerList;
 import eubos.search.NoLegalMoveException;
 import eubos.search.PlySearcher;
 import eubos.search.PrincipalContinuation;
+import eubos.search.Score;
 import eubos.search.ScoreTracker;
 import eubos.search.SearchDebugAgent;
 import eubos.search.SearchMetrics;
@@ -109,7 +110,7 @@ public class MiniMaxMoveGenerator implements
 		}
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		try {
-			score = ps.searchPly().getScore();
+			score = Score.getScore(ps.searchPly());
 		} catch (AssertionError e) {
 			e.printStackTrace();
 			System.exit(0);

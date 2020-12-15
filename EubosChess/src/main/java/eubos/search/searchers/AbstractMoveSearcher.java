@@ -9,6 +9,7 @@ import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.search.DrawChecker;
 import eubos.search.NoLegalMoveException;
+import eubos.search.Score;
 import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;
@@ -33,7 +34,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 		}
 		this.mg = new MiniMaxMoveGenerator(hashMap, fen, dc, sr);
 		
-		initialScore = mg.pos.getPositionEvaluator().evaluatePosition().getScore();
+		initialScore = Score.getScore(mg.pos.getPositionEvaluator().evaluatePosition());
 		if (Colour.isBlack(mg.pos.getOnMove())) {
 			initialScore = (short)-initialScore;
 		}

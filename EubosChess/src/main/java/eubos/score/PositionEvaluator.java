@@ -56,7 +56,7 @@ public class PositionEvaluator implements IEvaluate {
 		return true;
 	}
 	
-	public Score evaluatePosition() {
+	public int evaluatePosition() {
 		pm.getTheBoard().evaluateMaterial();
 		SearchContextEvaluation eval = sc.computeSearchGoalBonus(pm.getTheBoard().me);
 		if (!eval.isDraw) {
@@ -65,7 +65,7 @@ public class PositionEvaluator implements IEvaluate {
 				eval.score += evaluatePawnStructure();
 			}
 		}
-		return new Score(eval.score, Score.exact);
+		return Score.valueOf(eval.score, Score.exact);
 	}
 	
 	int evaluatePawnStructure() {

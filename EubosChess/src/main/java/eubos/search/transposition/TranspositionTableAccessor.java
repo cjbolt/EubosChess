@@ -58,27 +58,27 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return ret;
 	}
 	
-	public ITransposition setTransposition(ITransposition trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv) {
+	public ITransposition setTransposition(ITransposition trans, byte new_Depth, int new_score, int new_bestMove, List<Integer> pv) {
 		if (trans == null) {
-			trans = getTransCreateIfNew(new_Depth, new_score, new_bound, new_bestMove, pv);
+			trans = getTransCreateIfNew(new_Depth, new_score, new_bestMove, pv);
 		}
-		trans = checkForUpdateTrans(trans, new_Depth, new_score, new_bound, new_bestMove, pv);
+		trans = checkForUpdateTrans(trans, new_Depth, new_score, new_bestMove, pv);
 		return trans;
 	}
 	
-	public ITransposition setTransposition(ITransposition trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove) {
-		return setTransposition(trans, new_Depth, new_score, new_bound, new_bestMove, null);
+	public ITransposition setTransposition(ITransposition trans, byte new_Depth, int new_score, int new_bestMove) {
+		return setTransposition(trans, new_Depth, new_score, new_bestMove, null);
 	}
 	
-	private ITransposition getTransCreateIfNew(byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv) {
+	private ITransposition getTransCreateIfNew(byte new_Depth, int new_score, int new_bestMove, List<Integer> pv) {
 		SearchDebugAgent.printTransNull(pos.getHash());
 		ITransposition trans = hashMap.getTransposition(pos.getHash());
 		if (trans == null) {
 			ITransposition new_trans;
 			if (USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
-				new_trans = new PrincipalVariationTransposition(new_Depth, new_score, new_bound, new_bestMove, pv);
+				new_trans = new PrincipalVariationTransposition(new_Depth, new_score, new_bestMove, pv);
 			} else {
-				new_trans= new Transposition(new_Depth, new_score, new_bound, new_bestMove, null);
+				new_trans= new Transposition(new_Depth, new_score, new_bestMove, null);
 			}
 			SearchDebugAgent.printCreateTrans(pos.getHash());
 			hashMap.putTransposition(pos.getHash(), new_trans);
@@ -88,9 +88,10 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return trans;
 	}
 	
-	private ITransposition checkForUpdateTrans(ITransposition current_trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv) {
+	private ITransposition checkForUpdateTrans(ITransposition current_trans, byte new_Depth, int new_score, int new_bestMove, List<Integer> pv) {
 		boolean updateTransposition = false;
 		int currentDepth = current_trans.getDepthSearchedInPly();
+		int new_bound = Score.getType(new_score);
 		
 		SearchDebugAgent.printTransDepthCheck(currentDepth, new_Depth);
 		
@@ -98,7 +99,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			updateTransposition = true;
 		} else if (currentDepth == new_Depth) {
 			byte currentBound = current_trans.getType();
-			SearchDebugAgent.printTransBoundScoreCheck(currentBound, current_trans.getScore(), new_score);
+			SearchDebugAgent.printTransBoundScoreCheck(currentBound, current_trans.getScore(), Score.getScore(new_score));
 			if (((currentBound == Score.upperBound) || (currentBound == Score.lowerBound)) &&
 					new_bound == Score.exact) {
 			    updateTransposition = true;
@@ -115,7 +116,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			}
 		}
 		if (updateTransposition) {
-			current_trans.update(new_Depth, new_score, new_bound, new_bestMove, pv );
+			current_trans.update(new_Depth, new_score, new_bestMove, pv );
 		    hashMap.putTransposition(pos.getHash(), current_trans);
 		    SearchDebugAgent.printTransUpdate(current_trans, pos.getHash());
 		}

@@ -9,45 +9,44 @@ import eubos.search.Score;
 
 public class Transposition implements ITransposition {
 	private byte depthSearchedInPly;
-	private short score;
+	private int score;
 	private int bestMove;
-	private byte scoreType;
 	private short accessCount;
 
-	public Transposition(byte depth, short score, byte scoreType, GenericMove bestMove) {
+	public Transposition(byte depth, int score, GenericMove bestMove) {
 		// Only used by tests
-		this(depth, score, scoreType, Move.toMove(bestMove, null, Move.TYPE_REGULAR_NONE), null);
+		this(depth, score, Move.toMove(bestMove, null, Move.TYPE_REGULAR_NONE), null);
 	}
 	
-	public Transposition(byte depth, short score, byte scoreType, int bestMove, List<Integer> pv) {
+	public Transposition(byte depth, int score, int bestMove, List<Integer> pv) {
 		setDepthSearchedInPly(depth);
-		setScore(score);
-		setType(scoreType);
+		this.score = score;
 		setBestMove(bestMove);
 		setAccessCount((short)0);
-	}
-	
-	public Transposition(byte depth, Score score, int bestMove, List<Integer> pv) {
-		this(depth, score.getScore(), score.getType(), bestMove, pv);
 	}
 
 	@Override
 	public byte getType() {
-		return scoreType;
+		return (byte)Score.getType(score);
 	}
 
 	@Override
 	public void setType(byte type) {
-		this.scoreType = type;
+		this.score = Score.setType(this.score, type);
 	}
 
 	@Override
 	public short getScore() {
-		return score;
+		return Score.getScore(score);
 	}
 
 	@Override
 	public void setScore(short score) {
+		this.score = Score.valueOf(score, Score.getType(this.score));
+	}
+	
+	@Override
+	public void setScore(int score) {
 		this.score = score;
 	}
 
@@ -78,21 +77,19 @@ public class Transposition implements ITransposition {
 		String output = String.format("trans best=%s, dep=%d, sc=%d, type=%s", 
 				Move.toString(bestMove),
 				depthSearchedInPly,
-				score,
-				scoreType);
+				Score.getScore(score),
+				Score.getType(score));
 		return output;
 	}
 	
 	@Override
 	public void update(
 			byte new_Depth, 
-			short new_score, 
-			byte new_bound, 
+			int new_score, 
 			int new_bestMove, 
 			List<Integer> pv) {
 		// TODO consider incrementing access count?
 		setDepthSearchedInPly(new_Depth);
-		setType(new_bound);
 		setScore(new_score);
 		setBestMove(new_bestMove);
 	}

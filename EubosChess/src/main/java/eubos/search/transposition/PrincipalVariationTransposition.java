@@ -11,7 +11,7 @@ import eubos.search.Score;
 public class PrincipalVariationTransposition implements ITransposition {
 
 	private byte depthSearchedInPly;
-	private short score;
+	private int score;
 	private int bestMove;
 	private byte scoreType;
 	private List<Integer> pv;
@@ -33,8 +33,8 @@ public class PrincipalVariationTransposition implements ITransposition {
 		setAccessCount((short)0);
 	}
 	
-	public PrincipalVariationTransposition(byte depth, Score score, int bestMove, List<Integer> pv) {
-		this(depth, score.getScore(), score.getType(), bestMove, pv);
+	public PrincipalVariationTransposition(byte depth, int score, int bestMove, List<Integer> pv) {
+		this(depth, Score.getScore(score), (byte)Score.getType(score), bestMove, pv);
 	}
 
 	@Override
@@ -49,11 +49,16 @@ public class PrincipalVariationTransposition implements ITransposition {
 
 	@Override
 	public short getScore() {
-		return score;
+		return Score.getScore(score);
 	}
 
 	@Override
 	public void setScore(short score) {
+		this.score = Score.valueOf(score, Score.getType(this.score));
+	}
+	
+	@Override
+	public void setScore(int score) {
 		this.score = score;
 	}
 
@@ -120,13 +125,11 @@ public class PrincipalVariationTransposition implements ITransposition {
 	@Override
 	public void update(
 			byte new_Depth, 
-			short new_score, 
-			byte new_bound, 
+			int new_score,  
 			int new_bestMove, 
 			List<Integer> pv) {
 		// order is important because setPv uses depth
 		setDepthSearchedInPly(new_Depth);
-		setType(new_bound);
 		setScore(new_score);
 		setBestMove(new_bestMove);
 		setPv(pv);
