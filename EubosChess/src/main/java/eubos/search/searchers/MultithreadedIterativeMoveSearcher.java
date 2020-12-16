@@ -77,7 +77,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		stopper.start();
 		// Create workers and let them run
 		for (int i=0; i < threads; i++) {
-			MultithreadedSearchWorkerThread worker = new MultithreadedSearchWorkerThread(moveGenerators.get(i));
+			MultithreadedSearchWorkerThread worker = new MultithreadedSearchWorkerThread(moveGenerators.get(i), this);
 			workers.add(worker);
 			worker.start();
 			if (STAGGERED_START_TIME_FOR_THREADS > 0) {
@@ -92,11 +92,13 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		enableSearchMetricsReporter(true);
 		while (isAtLeastOneWorkerStillAlive()) {
 			try {
-				Thread.sleep(50);
+				synchronized (this) {
+					wait();
+				}
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}
-		}
+		}		
 		enableSearchMetricsReporter(false);
 		
 		stopper.end();
@@ -120,7 +122,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	private boolean isAtLeastOneWorkerStillAlive() {
 		boolean isAtLeastOneWorkerStillAlive = false;
 		for (MultithreadedSearchWorkerThread worker : workers) {
-			if (worker.isAlive()) {
+			if (!worker.completed) {
 				isAtLeastOneWorkerStillAlive = true;
 				break;
 			}
@@ -130,11 +132,14 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 
 	class MultithreadedSearchWorkerThread extends Thread {
 		
+		private AbstractMoveSearcher main;
 		private MiniMaxMoveGenerator myMg;
 		public SearchResult result;
+		boolean completed = false;
 		
-		public MultithreadedSearchWorkerThread( MiniMaxMoveGenerator moveGen ) {
+		public MultithreadedSearchWorkerThread( MiniMaxMoveGenerator moveGen, AbstractMoveSearcher main ) {
 			this.myMg = moveGen;
+			this.main = main;
 		}
 		
 		public void run() {
@@ -170,9 +175,13 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 				currentDepth++;
 				if (currentDepth == Byte.MAX_VALUE) {
 					break;
-				}
+				}				
 			}
 			// The result can be read by reading the result member of this object or by reading the shared transposition table
+			completed = true;
+			synchronized(main) {
+				main.notify();
+			}
 		}
 		
 		public void halt() {
