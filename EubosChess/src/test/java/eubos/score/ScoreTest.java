@@ -9,7 +9,7 @@ import eubos.search.Score;
 
 public class ScoreTest {
 
-	public int sut;
+	public short sut;
 	
 	@Before
 	public void setUp() throws Exception {
@@ -18,7 +18,7 @@ public class ScoreTest {
 
 	@Test
 	public void isMate_staleMate() {
-		sut = Score.valueOf((short)2000, Score.exact);
+		sut = (short)2000;
 		assertFalse(Score.isMate(sut));
 	}
 
@@ -26,7 +26,7 @@ public class ScoreTest {
 	
 	@Test
 	public void isMate_mateIn1() {
-		sut = Score.valueOf(WHITE_MATES_IN_1, Score.exact);
+		sut = WHITE_MATES_IN_1;
 		assertTrue(Score.isMate(sut));
 	}
 	

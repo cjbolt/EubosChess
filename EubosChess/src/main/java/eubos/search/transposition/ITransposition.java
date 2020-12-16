@@ -11,8 +11,6 @@ public interface ITransposition {
 	short getScore();
 
 	void setScore(short score);
-	
-	void setScore(int score);
 
 	byte getDepthSearchedInPly();
 
@@ -24,7 +22,7 @@ public interface ITransposition {
 
 	String report();
 
-	void update(byte new_Depth, int new_score, int new_bestMove, List<Integer> pv);
+	void update(byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv);
 	
 	short getAccessCount();
 	

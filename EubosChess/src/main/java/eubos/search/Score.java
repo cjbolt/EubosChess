@@ -16,6 +16,12 @@ public final class Score {
 	public static short getScore(int score) {
 		return (short)(score & SCORE_MASK);
 	}
+	
+	public static int setScore(int score, short new_score) {
+		score &= ~SCORE_MASK;
+		score |= new_score;
+		return score;
+	}
 
 	public static byte getType(int score) {
 		return (byte)(score >>> BOUND_SHIFT);
@@ -27,14 +33,8 @@ public final class Score {
 		return score;
 	}
 
-	public static int setExact(int score) {
-		score &= ~BOUND_MASK;
-		score |= (Score.exact << BOUND_SHIFT);	
-		return score;
-	}
-	
-	public static boolean isMate(int score) {
-		return (Math.abs(getScore(score)) > Short.MAX_VALUE-200);
+	public static boolean isExact(int score) {	
+		return ((score & ~BOUND_MASK) == (Score.exact << BOUND_SHIFT));
 	}
 	
 	public static boolean isMate(short score) {
@@ -49,13 +49,6 @@ public final class Score {
 		}
 		theScore |= bound << BOUND_SHIFT;
 		return theScore;
-	}
-
-	public static int valueOf(byte plyBound) {
-		if (EubosEngineMain.ASSERTS_ENABLED) {
-			assert plyBound != Score.exact;
-		}
-		return (plyBound == upperBound) ? valueOf(Short.MAX_VALUE, plyBound) : valueOf(Short.MIN_VALUE, plyBound);
 	}
 	
 	public static String toString(int score) {

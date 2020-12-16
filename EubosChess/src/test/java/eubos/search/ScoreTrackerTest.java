@@ -124,7 +124,7 @@ public class ScoreTrackerTest {
 	public void testIsBackUpRequired_ItIs() {
 		initialiseToSearchDepth();
 		short positionScore_A_C_B_D = Score_A_C_B_D;
-		assertTrue(classUnderTest.isBackUpRequired(PLY3, positionScore_A_C_B_D));
+		assertTrue(classUnderTest.isBackUpRequired(PLY3, positionScore_A_C_B_D, Score.upperBound));
 	}
 	
 	@Test
@@ -132,7 +132,7 @@ public class ScoreTrackerTest {
 		initialiseToSearchDepth();
 		int positionScore_A_C_B_D = Score.valueOf(Score_A_C_B_D, Score.exact);
 		classUnderTest.setBackedUpScoreAtPly(PLY3, positionScore_A_C_B_D);
-		assertFalse(classUnderTest.isBackUpRequired(PLY3, (short)15));
+		assertFalse(classUnderTest.isBackUpRequired(PLY3, (short)15, Score.upperBound));
 	}
 	
 	@Test
@@ -140,24 +140,24 @@ public class ScoreTrackerTest {
 		initialiseToSearchDepth();
 		int positionScore_A_C_B_D = Score.valueOf(Score_A_C_B_D, Score.exact);
 		
-		classUnderTest.isBackUpRequired(PLY3, Score.getScore(positionScore_A_C_B_D));
+		classUnderTest.isBackUpRequired(PLY3, Score.getScore(positionScore_A_C_B_D), Score.upperBound);
 		classUnderTest.setBackedUpScoreAtPly(PLY3, positionScore_A_C_B_D);
 		
-		assertTrue(classUnderTest.isBackUpRequired(PLY3, (short)4));
+		assertTrue(classUnderTest.isBackUpRequired(PLY3, (short)4, Score.upperBound));
 	}
 	
 	@Test
 	public void testIsBackUpRequired_Case1() {
 		initialiseToSearchDepth();
 		int positionScore_A_C_B_D = Score.valueOf(Score_A_C_B_D, Score.exact);
-		classUnderTest.isBackUpRequired(PLY3, Score.getScore(positionScore_A_C_B_D));
+		classUnderTest.isBackUpRequired(PLY3, Score.getScore(positionScore_A_C_B_D), Score.upperBound);
 		classUnderTest.setBackedUpScoreAtPly(PLY3, positionScore_A_C_B_D);
 		
 		int positionScore_A_C_B_I = Score.valueOf(Score_A_C_B_I, Score.exact);
-		classUnderTest.isBackUpRequired(PLY3, Score.getScore(positionScore_A_C_B_I));
+		classUnderTest.isBackUpRequired(PLY3, Score.getScore(positionScore_A_C_B_I), Score.upperBound);
 		classUnderTest.setBackedUpScoreAtPly(PLY3, positionScore_A_C_B_I);
 		
-		assertTrue(classUnderTest.isBackUpRequired(PLY2, Score.getScore(positionScore_A_C_B_I)));
+		assertTrue(classUnderTest.isBackUpRequired(PLY2, Score.getScore(positionScore_A_C_B_I), Score.lowerBound));
 		assertFalse(classUnderTest.isAlphaBetaCutOff(PLY2, Score.getScore(positionScore_A_C_B_I)));
 	}	
 	
@@ -165,7 +165,7 @@ public class ScoreTrackerTest {
 	public void testSetProvisionalScoreAtPly_MaxDepthBringsDown() {
 		initialiseToSearchDepth();
 		backup_SearchTree_ACBI();
-		assertTrue(Score.getScore(classUnderTest.getBackedUpScoreAtPly(PLY3))==Short.MAX_VALUE);
+		assertTrue(classUnderTest.getBackedUpScoreAtPly(PLY3)==Short.MAX_VALUE);
 		int positionScore_A_C_E_D = Score.valueOf(Score_A_C_E_D, Score.exact);
 		classUnderTest.setBackedUpScoreAtPly(PLY3, positionScore_A_C_E_D);
 	}
@@ -177,12 +177,12 @@ public class ScoreTrackerTest {
 		
 		int positionScore_A_C_E_D = Score.valueOf(Score_A_C_E_D, Score.exact);
 		classUnderTest.setBackedUpScoreAtPly(PLY3, positionScore_A_C_E_D);
-		assertTrue(classUnderTest.isBackUpRequired(PLY2, Score.getScore(positionScore_A_C_E_D)));
+		assertTrue(classUnderTest.isBackUpRequired(PLY2, Score.getScore(positionScore_A_C_E_D), Score.lowerBound));
 		classUnderTest.setBackedUpScoreAtPly(PLY2, positionScore_A_C_E_D);
-		assertTrue(classUnderTest.isBackUpRequired(PLY1, Score.getScore(positionScore_A_C_E_D)));
+		assertTrue(classUnderTest.isBackUpRequired(PLY1, Score.getScore(positionScore_A_C_E_D), Score.upperBound));
 		classUnderTest.setBackedUpScoreAtPly(PLY1, positionScore_A_C_E_D);
 		classUnderTest.setProvisionalScoreAtPly(PLY2);
-		assertTrue(Score.getScore(classUnderTest.getBackedUpScoreAtPly(PLY2))==Short.MIN_VALUE);
+		assertTrue(classUnderTest.getBackedUpScoreAtPly(PLY2)==Short.MIN_VALUE);
 	}
 	
 	@Test
@@ -192,7 +192,7 @@ public class ScoreTrackerTest {
 		backup_SearchTree_ACED();
 		classUnderTest.setProvisionalScoreAtPly(PLY2);
 		classUnderTest.setProvisionalScoreAtPly(PLY3);
-		assertTrue(Score.getScore(classUnderTest.getBackedUpScoreAtPly(PLY3))==Score_A_C_E_D);
+		assertTrue(classUnderTest.getBackedUpScoreAtPly(PLY3)==Score_A_C_E_D);
 	}	
 
 	@Test

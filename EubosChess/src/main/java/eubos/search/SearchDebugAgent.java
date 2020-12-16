@@ -168,7 +168,7 @@ public class SearchDebugAgent {
 			if (currPly == 0) {
 				printOutput(String.format("\n\n\n NEW ITERATION %d\n\n\n", originalSearchDepthRequiredInPly));
 			}
-			printOutput(String.format("%ssearch @:%d prov:%d", indent, currPly, Score.getScore(st.getBackedUpScoreAtPly((byte)currPly))));
+			printOutput(String.format("%ssearch @:%d prov:%d", indent, currPly, st.getBackedUpScoreAtPly((byte)currPly)));
 			printOutput(String.format("%sfen:%s", indent, pos.getFen()));
 		}
 	}

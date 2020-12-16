@@ -6,12 +6,11 @@ import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
-import eubos.search.Score;
 
 public class PrincipalVariationTransposition implements ITransposition {
 
 	private byte depthSearchedInPly;
-	private int score;
+	private short score;
 	private int bestMove;
 	private byte scoreType;
 	private List<Integer> pv;
@@ -32,10 +31,6 @@ public class PrincipalVariationTransposition implements ITransposition {
 		setPv(pv);
 		setAccessCount((short)0);
 	}
-	
-	public PrincipalVariationTransposition(byte depth, int score, int bestMove, List<Integer> pv) {
-		this(depth, Score.getScore(score), (byte)Score.getType(score), bestMove, pv);
-	}
 
 	@Override
 	public byte getType() {
@@ -49,17 +44,12 @@ public class PrincipalVariationTransposition implements ITransposition {
 
 	@Override
 	public short getScore() {
-		return Score.getScore(score);
+		return score;
 	}
 
 	@Override
-	public void setScore(short score) {
-		this.score = Score.valueOf(score, Score.getType(this.score));
-	}
-	
-	@Override
-	public void setScore(int score) {
-		this.score = score;
+	public void setScore(short new_score) {
+		this.score = new_score;
 	}
 
 	@Override
@@ -125,12 +115,14 @@ public class PrincipalVariationTransposition implements ITransposition {
 	@Override
 	public void update(
 			byte new_Depth, 
-			int new_score,  
+			short new_score,  
+			byte new_bound,
 			int new_bestMove, 
 			List<Integer> pv) {
 		// order is important because setPv uses depth
 		setDepthSearchedInPly(new_Depth);
 		setScore(new_score);
+		setType(new_bound);
 		setBestMove(new_bestMove);
 		setPv(pv);
 	}
