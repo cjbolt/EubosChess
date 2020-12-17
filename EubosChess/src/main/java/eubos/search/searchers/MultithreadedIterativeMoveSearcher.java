@@ -62,11 +62,12 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	
 	@Override
 	public void halt() {
+		searchStopped = true;
 		haltAllWorkers();
-		searchStopped = true; 
 	}
 	
 	private void haltAllWorkers() {
+		EubosEngineMain.logger.info(String.format("Halting all workers"));
 		for (MultithreadedSearchWorkerThread worker : workers) {
 			worker.halt();
 		}		
@@ -94,9 +95,11 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			try {
 				synchronized (this) {
 					wait();
+					this.notifyAll();
 				}
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
+				break;
 			}
 		}		
 		enableSearchMetricsReporter(false);
@@ -122,10 +125,14 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	private boolean isAtLeastOneWorkerStillAlive() {
 		boolean isAtLeastOneWorkerStillAlive = false;
 		for (MultithreadedSearchWorkerThread worker : workers) {
-			if (!worker.completed) {
+			if (!worker.halted) {
 				isAtLeastOneWorkerStillAlive = true;
+				EubosEngineMain.logger.info(String.format("Worker still active %s", worker.getName()));
 				break;
 			}
+		}
+		if (!isAtLeastOneWorkerStillAlive) {
+			EubosEngineMain.logger.info("All workers halted, stopping MultithreadedIterativeMoveSearcher");
 		}
 		return isAtLeastOneWorkerStillAlive;
 	}
@@ -135,7 +142,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		private AbstractMoveSearcher main;
 		private MiniMaxMoveGenerator myMg;
 		public SearchResult result;
-		boolean completed = false;
+		boolean halted = false;
 		
 		public MultithreadedSearchWorkerThread( MiniMaxMoveGenerator moveGen, AbstractMoveSearcher main ) {
 			this.myMg = moveGen;
@@ -147,7 +154,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			List<Integer> pc = null;
 			result = new SearchResult(null, false);
 		
-			while (!searchStopped) {
+			while (!searchStopped || !halted) {
 				try {
 					result = myMg.findMove(currentDepth, pc, sr);
 				} catch( NoLegalMoveException e ) {
@@ -178,14 +185,16 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 				}				
 			}
 			// The result can be read by reading the result member of this object or by reading the shared transposition table
-			completed = true;
+			halted = true;
+			EubosEngineMain.logger.info(String.format("Worker %s halted, notifying", this.getName()));
 			synchronized(main) {
-				main.notify();
+				main.notifyAll();
 			}
 		}
 		
 		public void halt() {
 			myMg.terminateFindMove(); 
+			halted = true;
 		}	
 	}
 }

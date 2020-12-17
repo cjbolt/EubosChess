@@ -175,7 +175,22 @@ public class PlySearcher {
 		int theScore;	
 		MoveList ml = getMoveList(prevBestMove);
         if (ml.isMateOccurred()) {
-            theScore = Score.valueOf(sg.scoreMate(currPly), Score.exact);
+        	if (isInExtendedSearch()) {
+        		ml = new MoveList((PositionManager) pm, Move.NULL_MOVE,  Move.NULL_MOVE,  Move.NULL_MOVE, false);
+        		if (!ml.isMateOccurred()) {
+	        		// It isn't actually a mate, stand PAT
+	        		Byte plyBound = pos.onMoveIsWhite() ? Score.lowerBound : Score.upperBound;
+	    			theScore = Score.setType(pe.evaluatePosition(), plyBound);
+	    			SearchDebugAgent.printExtSearchNoMoves(theScore);
+	    			trans = tt.setTransposition(trans, (byte)0, Score.getScore(theScore), plyBound, Move.NULL_MOVE);
+        		} else {
+        			// This was an extended search that was a mate position
+            		theScore = Score.valueOf(sg.scoreMate(currPly), Score.exact);
+        		}
+        	} else {
+        		// In normal search it is guaranteed to be a mate, so score accordingly
+        		theScore = Score.valueOf(sg.scoreMate(currPly), Score.exact);
+        	}
             st.setBackedUpScoreAtPly(currPly, theScore);
             // We will now de-recurse, so should make sure the depth searched is correct
             setDepthSearchedInPly();
