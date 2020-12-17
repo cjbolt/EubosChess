@@ -95,7 +95,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			try {
 				synchronized (this) {
 					wait();
-					this.notifyAll();
+					break;
 				}
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
@@ -103,10 +103,17 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			}
 		}		
 		enableSearchMetricsReporter(false);
-		
 		stopper.end();
-		sendBestMove();
 		terminateSearchMetricsReporter();
+		
+		while (isAtLeastOneWorkerStillAlive()) {
+			try {
+				Thread.sleep(5);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		}
+		sendBestMove();
 	}
 
 	private void sendBestMove() {
@@ -188,7 +195,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			halted = true;
 			EubosEngineMain.logger.info(String.format("Worker %s halted, notifying", this.getName()));
 			synchronized(main) {
-				main.notifyAll();
+				main.notify();
 			}
 		}
 		
