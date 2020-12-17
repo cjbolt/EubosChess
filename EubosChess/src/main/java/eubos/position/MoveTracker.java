@@ -38,6 +38,14 @@ class MoveTracker {
 		return wasCheck;
 	}
 	
+	public int lastMoveTargetSquare() {
+		int targetSq = Position.NOPOSITION;
+		if (!isEmpty()) {
+			targetSq = Move.getTargetPosition(TrackedMove.getMove(stack[index-1]));
+		}
+		return targetSq;
+	}
+	
 	public boolean isEmpty() {
 		return index == 0;
 	}

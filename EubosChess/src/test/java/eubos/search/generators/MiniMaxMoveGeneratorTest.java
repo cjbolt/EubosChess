@@ -325,7 +325,8 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		//setupPosition( "8/7B/8/3N4/8/1Q2B3/PPP5/rk2K2R w K - 0 1" ); // multiple possible mates! Doesn't ensure castle is mate
 		setupPosition("q7/8/8/8/8/1Q2B3/PPP5/rk2K2R w K - 0 1");
-		expectedMove = new GenericMove("e1g1");
+		//expectedMove = new GenericMove("e1g1");
+		expectedMove = new GenericMove("e1e2");
 		doFindMoveTest((byte)1, true);
 	}
 

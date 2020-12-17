@@ -367,8 +367,15 @@ public class PlySearcher {
 	}
 
 	private MoveList getMoveList(int transBestMove) throws InvalidPieceException {
+		MoveList ml = null;
 		int[] killer_moves = killers.getMoves(currPly);
-		return new MoveList((PositionManager) pm, transBestMove, killer_moves[0], killer_moves[1], moveListOrdering);
+		if (isInExtendedSearch()) {
+			int targetSq = pos.lastMoveTargetSquare();
+			ml = new MoveList((PositionManager) pm, transBestMove, killer_moves[0], killer_moves[1], moveListOrdering, targetSq);
+		} else {
+			ml = new MoveList((PositionManager) pm, transBestMove, killer_moves[0], killer_moves[1], moveListOrdering);
+		}
+		return ml;
 	}
 	
 	private int applyMoveAndScore(int currMove) throws InvalidPieceException {

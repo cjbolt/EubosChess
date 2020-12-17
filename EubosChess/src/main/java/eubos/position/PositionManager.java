@@ -40,9 +40,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return theBoard;
 	}
 	
-	public List<Integer> generateMoves() {
+	public List<Integer> generateMoves(int square) {
 		boolean isWhiteOnMove = Piece.Colour.isWhite(onMove);
-		List<Integer> entireMoveList = theBoard.getRegularPieceMoves( isWhiteOnMove );
+		List<Integer> entireMoveList = theBoard.getRegularPieceMoves(isWhiteOnMove, square);
 		castling.addCastlingMoves(isWhiteOnMove, entireMoveList);
 		return entireMoveList;
 	}
@@ -316,5 +316,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	@Override
 	public IEvaluate getPositionEvaluator() {
 		return pe;
+	}
+
+	@Override
+	public int lastMoveTargetSquare() {
+		return moveTracker.lastMoveTargetSquare();
 	}
 }
