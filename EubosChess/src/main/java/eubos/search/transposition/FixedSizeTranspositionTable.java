@@ -141,4 +141,8 @@ public class FixedSizeTranspositionTable {
 		}
 		incrementAccessCount(trans);
 	}
+	
+	public short getHashUtilisation() {
+		return (short) (( ((long) hashMapSize)*(long)1000) / maxHashMapSize);
+	}
 }

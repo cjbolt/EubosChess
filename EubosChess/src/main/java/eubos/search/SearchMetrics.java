@@ -14,7 +14,6 @@ public class SearchMetrics {
 	private IPositionAccessors pos;
 	private AtomicLong nodesSearched;
 	private long time;
-	private short hashFull;
 	private List<Integer> pv;
 	public boolean pvValid = false;
 	private short cpScore;
@@ -29,7 +28,6 @@ public class SearchMetrics {
 		pvValid = false;
 		depth = searchDepth;
 		partialDepth = 0;
-		hashFull = 0;
 		initialTimestamp = System.currentTimeMillis();
 		this.pos = pos;
 	}
@@ -99,7 +97,4 @@ public class SearchMetrics {
 	
 	synchronized int getPartialDepth() { return partialDepth; }
 	synchronized void setPartialDepth(int depth ) { this.partialDepth = depth; }
-	
-	synchronized short getHashFull() { return hashFull;	}
-	public synchronized void setHashFull(short hashFull) { this.hashFull = hashFull; }
 }

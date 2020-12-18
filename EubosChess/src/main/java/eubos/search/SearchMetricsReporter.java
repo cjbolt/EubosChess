@@ -6,6 +6,7 @@ import java.util.List;
 import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
 
 import eubos.main.EubosEngineMain;
+import eubos.search.transposition.FixedSizeTranspositionTable;
 
 public class SearchMetricsReporter extends Thread {
 	
@@ -13,14 +14,16 @@ public class SearchMetricsReporter extends Thread {
 	private volatile boolean reporterActive;
 	private List<SearchMetrics> sm;
 	private EubosEngineMain eubosEngine;
+	private FixedSizeTranspositionTable tt;
 	private static final int UPDATE_RATE_MS = 1000;
 	
 	private int lastScore = 0;
 	private int lastDepth = 0;
 	
-	public SearchMetricsReporter( EubosEngineMain eubos ) {
+	public SearchMetricsReporter( EubosEngineMain eubos, FixedSizeTranspositionTable tt ) {
 		reporterActive = true;
 		eubosEngine = eubos;
+		this.tt = tt;
 		sm = new ArrayList<SearchMetrics>(EubosEngineMain.DEFAULT_NUM_SEARCH_THREADS);
 		lastScore = 0;
 		lastDepth = 0;
@@ -84,26 +87,23 @@ public class SearchMetricsReporter extends Thread {
 		long time = 0;
 		long nodes = 0;
 		int nps = 0;
-		int hashFull = 0;
 		
 		for (SearchMetrics thread : sm) {
 			thread.incrementTime();
 			nodes += thread.getNodesSearched();
 			nps += thread.getNodesPerSecond();
 			time = thread.getTime();
-			hashFull = thread.getHashFull();
 		}
 		
 		info.setNodes(nodes);
 		info.setNps(nps);
 		info.setTime(time);
-		info.setHash(hashFull);
+		info.setHash(tt.getHashUtilisation());
 	}
 	
 	private void generatePvInfoCommand(ProtocolInformationCommand info, SearchMetrics pv) {
 		pv.incrementTime();
-		
-		info.setHash(pv.getHashFull());
+
 		if (pv.pvValid) {
 			info.setMoveList(pv.getPrincipalVariation());
 		}

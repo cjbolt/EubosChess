@@ -14,6 +14,7 @@ import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.FixedSizeTranspositionTable;
+import eubos.search.transposition.TranspositionTableAccessor;
 
 public abstract class AbstractMoveSearcher extends Thread {
 
@@ -30,7 +31,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 		this.eubosEngine = eng;
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			sendInfo = true;
-			sr = new SearchMetricsReporter(eubosEngine);
+			sr = new SearchMetricsReporter(eubosEngine, hashMap);
 		}
 		this.mg = new MiniMaxMoveGenerator(hashMap, fen, dc, sr);
 		

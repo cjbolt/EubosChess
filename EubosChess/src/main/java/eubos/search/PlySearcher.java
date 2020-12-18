@@ -189,12 +189,15 @@ public class PlySearcher {
         	} else {
         		// In normal search it is guaranteed to be a mate, so score accordingly
         		theScore = Score.valueOf(sg.scoreMate(currPly), Score.exact);
+                // We will now de-recurse, so should make sure the depth searched is correct
+                setDepthSearchedInPly();
+                // Only update the transposition table in normal search, it isn't useful for extended search
+                short mateScoreForTable = (short)((Score.getScore(theScore) < 0) ? Short.MIN_VALUE + 1 : Short.MAX_VALUE - 1);
+    			trans = tt.setTransposition(trans, currDepthSearchedInPly, mateScoreForTable, Score.exact, Move.NULL_MOVE);
         	}
+        	
             st.setBackedUpScoreAtPly(currPly, theScore);
-            // We will now de-recurse, so should make sure the depth searched is correct
-            setDepthSearchedInPly();
-            short mateScoreForTable = (short)((Score.getScore(theScore) < 0) ? Short.MIN_VALUE + 1 : Short.MAX_VALUE - 1);
-			trans = tt.setTransposition(trans, getTransDepth(), mateScoreForTable, Score.exact, Move.NULL_MOVE);
+
         } else {
     		Iterator<Integer> move_iter = ml.getStandardIterator(isInExtendedSearch(), pos.lastMoveTargetSquare());
     		if (move_iter.hasNext()) {
@@ -275,8 +278,11 @@ public class PlySearcher {
 	}
 
 	private void checkToPromoteHashTableToExact(ITransposition trans, short plyScore) {
+		if (EubosEngineMain.ASSERTS_ENABLED)
+			assert isInNormalSearch();
+		
 		// This is the only way a hash and score can be exact.
-		if (trans.getDepthSearchedInPly() <= getTransDepth()) {
+		if (trans.getDepthSearchedInPly() <= currDepthSearchedInPly) {
 			// however we need to be careful that the depth is appropriate, we don't set exact for wrong depth...
 
 			// found to be needed due to score discrepancies caused by refutations coming out of extended search...
@@ -291,11 +297,13 @@ public class PlySearcher {
 	}
 
 	private ITransposition updateTranspositionTable(ITransposition trans, int currMove, short plyScore, byte plyBound) {
-		short scoreFromDownTree = updateMateScoresForEncodingMateDistanceInHashTable(plyScore);
-		if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
-			trans = tt.setTransposition(trans, getTransDepth(), scoreFromDownTree, plyBound, currMove, pc.toPvList(currPly));
-		} else {
-			trans = tt.setTransposition(trans, getTransDepth(), scoreFromDownTree, plyBound, currMove);
+		if (isInNormalSearch()) {
+			short scoreFromDownTree = updateMateScoresForEncodingMateDistanceInHashTable(plyScore);
+			if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
+				trans = tt.setTransposition(trans, currDepthSearchedInPly, scoreFromDownTree, plyBound, currMove, pc.toPvList(currPly));
+			} else {
+				trans = tt.setTransposition(trans, currDepthSearchedInPly, scoreFromDownTree, plyBound, currMove);
+			}
 		}
 		return trans;
 	}
@@ -343,7 +351,6 @@ public class PlySearcher {
 			throws InvalidPieceException {
 		pc.update(currPly, currMove);
 		if (EubosEngineMain.UCI_INFO_ENABLED && atRootNode() && sr != null) {
-			sm.setHashFull(tt.getHashUtilisation());
 			sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), positionScore);
 			sr.reportPrincipalVariation(sm);
 		}
@@ -359,12 +366,6 @@ public class PlySearcher {
 		return dynamicSearchLevelInPly == originalSearchDepthRequiredInPly;
 	}
 
-	private byte getTransDepth() {
-		/* By design, extended searches always use depth zero; therefore ensuring partially 
-           searched transpositions can only be used for seeding move lists */
-		return isInNormalSearch() ? currDepthSearchedInPly: 0;
-	}
-
 	private boolean shouldUpdatePositionBoundScoreAndBestMove(short plyScore, byte plyBound, short positionScore) {
 		boolean doUpdate = false;
 		if (plyBound == Score.lowerBound) {
@@ -374,7 +375,8 @@ public class PlySearcher {
 			if (positionScore < plyScore && positionScore != Short.MIN_VALUE)
 				doUpdate = true;
 		} else {
-			// exact score? do what?
+			if (EubosEngineMain.ASSERTS_ENABLED)
+				assert false;
 		}
 		return doUpdate;
 	}

@@ -50,7 +50,7 @@ public class PlySearcherTest {
 		sm = new SearchMetrics(searchDepth*3, new PositionManager());
 		sm.setPrincipalVariation(pc.toPvList(0));
 		mockEubos = new EubosEngineMain();
-		sr = new SearchMetricsReporter(mockEubos);
+		sr = new SearchMetricsReporter(mockEubos, null);
 		sr.register(sm);
 		mock_pos = mock(IPositionAccessors.class);
 		mock_hashMap = mock(ITranspositionAccessor.class);

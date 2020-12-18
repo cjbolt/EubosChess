@@ -121,8 +121,4 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		}
 		return current_trans;
 	}
-	
-	public short getHashUtilisation() {
-		return (short) (( ((long) hashMap.getHashMapSize())*(long)1000) / hashMap.getHashMapMaxSize());
-	}
 }

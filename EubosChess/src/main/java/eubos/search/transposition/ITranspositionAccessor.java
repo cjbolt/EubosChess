@@ -9,5 +9,4 @@ public interface ITranspositionAccessor {
 	TranspositionEvaluation getTransposition(byte currPly, int depthRequiredPly);
 	ITransposition setTransposition(ITransposition trans, byte depth, short new_score, byte new_bound, int new_bestMove);
 	ITransposition setTransposition(ITransposition trans, byte depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv);
-	public short getHashUtilisation();
 }
