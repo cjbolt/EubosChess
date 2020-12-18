@@ -364,7 +364,7 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
-	//@Ignore
+	@Ignore
 	public void test_KQk_mate_in_7_alt2() throws InterruptedException, IOException {
 		setupEngine();
 		// 1
@@ -388,6 +388,35 @@ public class EubosEngineMainTest {
 		// 7
 		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 g7g6 c6c7 b4b5 c7c8 g6f5 c8d8 b5b7 d8e8 f5e6 e8d8"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"b7d7"+CMD_TERMINATOR));
+		performTest(20000);
+		assertEquals(14, (int)classUnderTest.dc.getNumEntries());
+	}
+	
+	@Test
+	//@Ignore
+	public void test_KQk_mate_in_7_alt3() throws InterruptedException, IOException {
+		setupEngine();
+		// 1
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"14"+CMD_TERMINATOR,BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
+		// 2
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"b4a5"+CMD_TERMINATOR));
+		// 3
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 b4a5 c6b7"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"g7f6"+CMD_TERMINATOR));
+		// 4
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 b4a5 c6b7 g7f6 b7c6"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"f6e6"+CMD_TERMINATOR));
+		// 5
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 b4a5 c6b7 g7f6 b7c6 f6e6 c6b7"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"e6d6"+CMD_TERMINATOR));
+		// 6
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 b4a5 c6b7 g7f6 b7c6 f6e6 c6b7 e6d6 b7b8"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"d6c6"+CMD_TERMINATOR));
+		// 7
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 b4a5 c6b7 g7f6 b7c6 f6e6 c6b7 e6d6 b7b8 e6d6 b8c8"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"a5c7"+CMD_TERMINATOR));
 		performTest(20000);
 		assertEquals(14, (int)classUnderTest.dc.getNumEntries());
 	}

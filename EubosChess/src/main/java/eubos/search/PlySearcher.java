@@ -182,7 +182,6 @@ public class PlySearcher {
 	        		Byte plyBound = pos.onMoveIsWhite() ? Score.lowerBound : Score.upperBound;
 	    			theScore = Score.setType(pe.evaluatePosition(), plyBound);
 	    			SearchDebugAgent.printExtSearchNoMoves(theScore);
-	    			trans = tt.setTransposition(trans, (byte)0, Score.getScore(theScore), plyBound, Move.NULL_MOVE);
         		} else {
         			// This was an extended search that was a mate position
             		theScore = Score.valueOf(sg.scoreMate(currPly), Score.exact);
@@ -197,7 +196,7 @@ public class PlySearcher {
             short mateScoreForTable = (short)((Score.getScore(theScore) < 0) ? Short.MIN_VALUE + 1 : Short.MAX_VALUE - 1);
 			trans = tt.setTransposition(trans, getTransDepth(), mateScoreForTable, Score.exact, Move.NULL_MOVE);
         } else {
-    		Iterator<Integer> move_iter = ml.getStandardIterator(isInExtendedSearch());
+    		Iterator<Integer> move_iter = ml.getStandardIterator(isInExtendedSearch(), pos.lastMoveTargetSquare());
     		if (move_iter.hasNext()) {
     			theScore = actuallySearchMoves(ml, move_iter, trans);
     		} else {
@@ -205,7 +204,6 @@ public class PlySearcher {
     			// and return a *safe* exact position score back down the tree. (i.e. not a check).			
     			theScore = applySafestNormalMoveAndScore(ml);
     			SearchDebugAgent.printExtSearchNoMoves(theScore);
-    			trans = tt.setTransposition(trans, (byte)0, Score.getScore(theScore), Score.getType(theScore), Move.NULL_MOVE);
     		}
         }
         return theScore;
@@ -394,12 +392,11 @@ public class PlySearcher {
 	}
 	
 	private int applyMoveAndScore(int currMove) throws InvalidPieceException {
-		boolean neededToEscapeCheck = pos.lastMoveWasCheck();
 		SearchDebugAgent.printPerformMove(currMove);
 		pm.performMove(currMove);
 		currPly++;
 		SearchDebugAgent.nextPly();
-		int positionScore = assessNewPosition(currMove, neededToEscapeCheck);
+		int positionScore = assessNewPosition(currMove);
 		pm.unperformMove();
 		currPly--;
 		SearchDebugAgent.prevPly();
@@ -433,9 +430,9 @@ public class PlySearcher {
 		return positionScore;
 	}
 	
-	private int assessNewPosition(int lastMove, boolean neededToEscapeCheck) throws InvalidPieceException {
+	private int assessNewPosition(int lastMove) throws InvalidPieceException {
 		int positionScore = 0;
-		if ( isTerminalNode(lastMove, neededToEscapeCheck) ) {
+		if (isTerminalNode(lastMove)) {
 			positionScore = pe.evaluatePosition();
 			currDepthSearchedInPly = 1; // We applied a move in order to generate this score
 		} else {
@@ -444,7 +441,7 @@ public class PlySearcher {
 		return positionScore;
 	}
 	
-	private boolean isTerminalNode(int lastMove, boolean neededToEscapeCheck) {
+	private boolean isTerminalNode(int lastMove) {
 		boolean terminalNode = false;
 		if (pos.isThreefoldRepetitionPossible()) {
 			SearchDebugAgent.printRepeatedPositionSearch(pos.getHash(), pos.getFen());
@@ -452,11 +449,11 @@ public class PlySearcher {
 		} else if (pos.getTheBoard().isInsufficientMaterial()) {
 			terminalNode = true;
 		} else if (currPly == originalSearchDepthRequiredInPly) {
-			if (pe.isQuiescent(lastMove, neededToEscapeCheck) || MiniMaxMoveGenerator.EXTENDED_SEARCH_PLY_LIMIT == 0) {
+			if (pe.isQuiescent(lastMove) || MiniMaxMoveGenerator.EXTENDED_SEARCH_PLY_LIMIT == 0) {
 				terminalNode = true;
 			}
 		} else if (currPly > originalSearchDepthRequiredInPly) {
-			if (pe.isQuiescent(lastMove, neededToEscapeCheck) || isExtendedSearchLimitReached()) {
+			if (pe.isQuiescent(lastMove) || isExtendedSearchLimitReached()) {
 				if (currPly > extendedSearchDeepestPly) {
 					extendedSearchDeepestPly = currPly;
 				}

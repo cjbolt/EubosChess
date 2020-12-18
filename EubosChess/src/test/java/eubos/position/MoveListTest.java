@@ -58,9 +58,9 @@ public class MoveListTest {
 	@Test
 	public void test_whenNoChecksCapturesOrPromotions() throws InvalidPieceException, IllegalNotationException { 
 		setup("8/3p4/8/8/8/5k2/1P6/7K w - - 0 1");
-		Iterator<Integer> iter = classUnderTest.getStandardIterator(EXTENDED);
+		Iterator<Integer> iter = classUnderTest.getStandardIterator(EXTENDED, Position.NOPOSITION);
 		assertFalse(iter.hasNext());
-		iter = classUnderTest.getStandardIterator(NORMAL);
+		iter = classUnderTest.getStandardIterator(NORMAL, Position.NOPOSITION);
 		assertTrue(iter.hasNext());
 	}
 	
@@ -232,7 +232,7 @@ public class MoveListTest {
 	@Test
 	public void test_check_extended_search_moves_contain_only_checks_escape_checks_promotions_captures() throws InvalidPieceException, IllegalNotationException {
 		setup( "3q1rk1/p4pp1/2p4p/3p4/6Pr/1PNQ4/P1PB1PPb/4RR1K b - - - 2");
-		Iterator<Integer> it = classUnderTest.getStandardIterator(true);
+		Iterator<Integer> it = classUnderTest.getStandardIterator(true, Position.g4);
 		
 		// Capture
 		assertEquals(new GenericMove("h4g4"), Move.toGenericMove(it.next()));

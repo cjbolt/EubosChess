@@ -15,6 +15,7 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.position.Move;
+import eubos.position.MoveList;
 import eubos.position.Position;
 import eubos.position.PositionManager;
 import eubos.search.DrawChecker;
@@ -155,7 +156,9 @@ public class PositionEvaluatorTest {
 		setUpPosition("8/8/8/4p3/3Q4/8/8/8 w - - 0 1 ");
 		int currMove = Move.toMove(new GenericMove("d4e5"), pm.getTheBoard());
 		pm.performMove(currMove);
-		assertTrue(SUT.isQuiescent(currMove));
+		assertFalse(SUT.isQuiescent(currMove));
+		MoveList ml = new MoveList(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, false, Position.e5);
+		assertTrue(ml.isMateOccurred());
 	}
 	
 	@Test
@@ -179,7 +182,10 @@ public class PositionEvaluatorTest {
 		setUpPosition("rp6/1p6/Pp6/8/1p6/1p6/PP6/QP6 b - - 0 41");
 		int currMove = Move.toMove(new GenericMove("a8a6"), pm.getTheBoard());
 		pm.performMove(currMove);
-		assertTrue(SUT.isQuiescent(currMove));
+		assertFalse(SUT.isQuiescent(currMove));
+		// Shall now do an extended search and see that the move list is empty, so stand PAT.
+		MoveList ml = new MoveList(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, false, Position.a6);
+		assertFalse(ml.getStandardIterator(true, Position.a6).hasNext());
 	}
 	 
 	@Test
@@ -195,21 +201,7 @@ public class PositionEvaluatorTest {
 		setUpPosition("5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - - -");
 		int currMove = Move.valueOf(Move.MISC_CHECK_MASK, 0, Position.d3, Piece.WHITE_QUEEN, Position.h7, Piece.NONE, Piece.NONE);
 		pm.performMove(currMove);
-		assertFalse(SUT.isQuiescent(currMove));
-	}
-	
-	@Test
-	public void test_isQuiescent_ForcedMoveOutOfCheckWithCaptureEnPrise() throws InvalidPieceException, IllegalNotationException {
-		setUpPosition("r1b1k3/1p1p1p1p/p3pR2/8/4P3/1PN1K3/P1PQB1r1/2q5 b q - - 20");
-		int currMove = Move.valueOf(Move.MISC_CHECK_MASK, 0, Position.g2, Piece.BLACK_ROOK, Position.g3, Piece.NONE, Piece.NONE);
-		pm.performMove(currMove);
-		assertFalse(SUT.isQuiescent(currMove));
-		currMove = Move.valueOf(0, Position.e3, Piece.WHITE_KING, Position.d4, Piece.NONE, Piece.NONE);
-		pm.performMove(currMove);
-		assertFalse(SUT.isQuiescent(currMove, true));
-		currMove = Move.valueOf(0, Position.c1, Piece.BLACK_QUEEN, Position.d2, Piece.WHITE_QUEEN, Piece.NONE);
-		pm.performMove(currMove);
-		assertTrue(SUT.isQuiescent(currMove));
+		assertTrue(SUT.isQuiescent(currMove)); // no longer quiescent search checks
 	}
 	
 	@Test
@@ -277,7 +269,7 @@ public class PositionEvaluatorTest {
 		setUpPosition("8/4P3/7k/8/8/8/1B6/8 w - - 0 1");
 		int currMove = Move.valueOf(Move.MISC_CHECK_MASK, 0, Position.b2, Piece.WHITE_BISHOP, Position.c1, Piece.NONE, Piece.NONE);
 		pm.performMove(currMove);
-		assertFalse(SUT.isQuiescent(currMove));
+		assertTrue(SUT.isQuiescent(currMove)); // no longer quiescent search checks
 	}
 	
 	@Test

@@ -117,13 +117,13 @@ public class MoveList implements Iterable<Integer> {
 		return normal_search_moves.iterator();
 	}
 	
-	public Iterator<Integer> getStandardIterator(boolean extended) {
+	public Iterator<Integer> getStandardIterator(boolean extended, int captureSq) {
 		Iterator<Integer> it;
 		if (extended) {
 			// Lazy creation of extended move list
 			extended_search_moves = new ArrayList<Integer>(normal_search_moves.size());
 			for (int currMove : normal_search_moves) {
-				if (Move.isCapture(currMove) || Move.isCheck(currMove) || Move.isQueenPromotion(currMove)) {
+				if ((Move.isCapture(currMove) && (Move.getTargetPosition(currMove) == captureSq)) || Move.isCheck(currMove) || Move.isQueenPromotion(currMove)) {
 					extended_search_moves.add(currMove);
 				}
 			}
