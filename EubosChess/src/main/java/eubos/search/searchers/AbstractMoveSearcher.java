@@ -14,7 +14,6 @@ import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.FixedSizeTranspositionTable;
-import eubos.search.transposition.TranspositionTableAccessor;
 
 public abstract class AbstractMoveSearcher extends Thread {
 

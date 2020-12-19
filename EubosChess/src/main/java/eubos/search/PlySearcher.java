@@ -95,36 +95,46 @@ public class PlySearcher {
 		SearchDebugAgent.printStartPlyInfo(st, pos, originalSearchDepthRequiredInPly);
 		
 		byte depthRequiredForTerminalNode = initialiseSearchAtPly();
-		TranspositionEvaluation eval = tt.getTransposition(currPly, depthRequiredForTerminalNode);		
+		TranspositionEvaluation eval = tt.getTransposition(currPly, depthRequiredForTerminalNode);
+		int trans_move = Move.NULL_MOVE;
+		byte trans_bound = 0;
+		short trans_score = 0;
+		if (eval.status != TranspositionEvaluation.TranspositionTableStatus.insufficientNoData) {
+			synchronized (eval.trans) {
+				trans_move = eval.trans.getBestMove();
+				trans_bound = eval.trans.getType();
+				trans_score = eval.trans.getScore();
+			}
+		}
 		switch (eval.status) {
 		case sufficientRefutation:
 			// Add refuting move to killer list
-			killers.addMove(currPly, eval.trans.getBestMove());
+			killers.addMove(currPly, trans_move);
 		case sufficientTerminalNode:
 			// Check score for hashed position causing a search cut-off is still valid (i.e. best move doesn't lead to a draw)
 			// If hashed score is a draw score, check it is still a draw, if not, search position
-			boolean isThreefold = checkForRepetitionDueToPositionInSearchTree(eval.trans.getBestMove());
-			if (isThreefold || (!isThreefold && (eval.trans.getScore() == 0))) {
+			boolean isThreefold = checkForRepetitionDueToPositionInSearchTree(trans_move);
+			if (isThreefold || (!isThreefold && (trans_score == 0))) {
 				// Assume it is now a draw, so re-search
-				SearchDebugAgent.printHashIsSeedMoveList(eval.trans.getBestMove(), pos.getHash());
-				theScore = searchMoves( eval.trans.getBestMove(), eval.trans);
+				SearchDebugAgent.printHashIsSeedMoveList(trans_move, pos.getHash());
+				theScore = searchMoves( trans_move, eval.trans);
 				break;
 			} else {
-				short adjustedScoreForThisPositionInTree = st.adjustHashTableMateInXScore(currPly, eval.trans.getScore());
+				short adjustedScoreForThisPositionInTree = st.adjustHashTableMateInXScore(currPly, trans_score);
 				if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
 					pc.update(currPly, eval.trans.getPv());
 				} else {
-					pc.set(currPly, eval.trans.getBestMove());
+					pc.set(currPly, trans_move);
 				}
-				theScore = Score.valueOf(adjustedScoreForThisPositionInTree, eval.trans.getType());
+				theScore = Score.valueOf(adjustedScoreForThisPositionInTree, trans_bound);
 			}
 			if (EubosEngineMain.UCI_INFO_ENABLED)
 				sm.incrementNodesSearched();
 			break;
 			
 		case sufficientSeedMoveList:
-			SearchDebugAgent.printHashIsSeedMoveList(eval.trans.getBestMove(), pos.getHash());
-			prevBestMove = eval.trans.getBestMove();
+			SearchDebugAgent.printHashIsSeedMoveList(trans_move, pos.getHash());
+			prevBestMove = trans_move;
 			// intentional drop through
 		case insufficientNoData:
 			theScore = searchMoves( prevBestMove, eval.trans);
@@ -287,10 +297,8 @@ public class PlySearcher {
 
 			// found to be needed due to score discrepancies caused by refutations coming out of extended search...
 			// Still needed 22nd October 2020.
-			trans.setBestMove(pc.getBestMove(currPly));
 			short scoreFromDownTree = updateMateScoresForEncodingMateDistanceInHashTable(plyScore);
-			trans.setScore(scoreFromDownTree);
-			trans.setType(Score.exact);
+			trans.updateToExact(scoreFromDownTree, pc.getBestMove(currPly));
 
 			SearchDebugAgent.printExactTrans(pos.getHash(), trans);
 		}

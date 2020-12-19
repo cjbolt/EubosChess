@@ -30,29 +30,30 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		ret.trans = hashMap.getTransposition(pos.getHash());
 		if (ret.trans == null)
 			return ret;
-		
-		if (ret.trans.getDepthSearchedInPly() >= depthRequiredPly) {
-			
-			if (ret.trans.getType() == Score.exact) {
-				ret.status = TranspositionTableStatus.sufficientTerminalNode;
-				SearchDebugAgent.printHashIsTerminalNode(ret.trans, pos.getHash());
+		synchronized(ret.trans) {
+			if (ret.trans.getDepthSearchedInPly() >= depthRequiredPly) {
+				
+				if (ret.trans.getType() == Score.exact) {
+					ret.status = TranspositionTableStatus.sufficientTerminalNode;
+					SearchDebugAgent.printHashIsTerminalNode(ret.trans, pos.getHash());
+				} else {
+					// must be either (bound == Score.upperBound || bound == Score.lowerBound)
+					if (st.isAlphaBetaCutOffForHash(currPly, ret.trans.getScore())) {
+						SearchDebugAgent.printHashIsRefutation(pos.getHash(), ret.trans);
+						ret.status = TranspositionTableStatus.sufficientRefutation;
+			        } else {
+			        	ret.status = TranspositionTableStatus.sufficientSeedMoveList;
+			        }
+				}
 			} else {
-				// must be either (bound == Score.upperBound || bound == Score.lowerBound)
-				if (st.isAlphaBetaCutOffForHash(currPly, ret.trans.getScore())) {
-					SearchDebugAgent.printHashIsRefutation(pos.getHash(), ret.trans);
-					ret.status = TranspositionTableStatus.sufficientRefutation;
-		        } else {
-		        	ret.status = TranspositionTableStatus.sufficientSeedMoveList;
-		        }
+				ret.status = TranspositionTableStatus.sufficientSeedMoveList;
 			}
-		} else {
-			ret.status = TranspositionTableStatus.sufficientSeedMoveList;
-		}
-		
-		if (ret.trans.getBestMove() == Move.NULL_MOVE) {
-			// It is possible that we don't have a move to seed the list with, guard against that.
-			if (ret.status == TranspositionTableStatus.sufficientSeedMoveList) {
-				ret.status = TranspositionTableStatus.insufficientNoData;
+			
+			if (ret.trans.getBestMove() == Move.NULL_MOVE) {
+				// It is possible that we don't have a move to seed the list with, guard against that.
+				if (ret.status == TranspositionTableStatus.sufficientSeedMoveList) {
+					ret.status = TranspositionTableStatus.insufficientNoData;
+				}
 			}
 		}
 		return ret;
@@ -62,7 +63,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		if (trans == null) {
 			trans = getTransCreateIfNew(new_Depth, new_score, new_bound, new_bestMove, pv);
 		}
-		trans = checkForUpdateTrans(trans, new_Depth, new_score, new_bound, new_bestMove, pv);
+		checkForUpdateTrans(trans, new_Depth, new_score, new_bound, new_bestMove, pv);
 		return trans;
 	}
 	
@@ -88,37 +89,40 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return trans;
 	}
 	
-	private ITransposition checkForUpdateTrans(ITransposition current_trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv) {
+	private void checkForUpdateTrans(ITransposition current_trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv) {
 		boolean updateTransposition = false;
-		int currentDepth = current_trans.getDepthSearchedInPly();
 		
-		SearchDebugAgent.printTransDepthCheck(currentDepth, new_Depth);
-		
-		if (currentDepth < new_Depth) {
-			updateTransposition = true;
-		} else if (currentDepth == new_Depth) {
-			byte currentBound = current_trans.getType();
-			SearchDebugAgent.printTransBoundScoreCheck(currentBound, current_trans.getScore(), Score.getScore(new_score));
-			if (((currentBound == Score.upperBound) || (currentBound == Score.lowerBound)) &&
-					new_bound == Score.exact) {
-			    updateTransposition = true;
-			} else if ((currentBound == Score.upperBound) &&
-					   (Score.getScore(new_score) < current_trans.getScore())) {
-				if (EubosEngineMain.ASSERTS_ENABLED)
-					assert currentBound == new_bound;
+		synchronized(current_trans) {
+			int currentDepth = current_trans.getDepthSearchedInPly();
+			
+			SearchDebugAgent.printTransDepthCheck(currentDepth, new_Depth);
+			
+			if (currentDepth < new_Depth) {
 				updateTransposition = true;
-			} else if ((currentBound == Score.lowerBound) &&
-					   (Score.getScore(new_score) > current_trans.getScore())) {
-				if (EubosEngineMain.ASSERTS_ENABLED)
-					assert currentBound == new_bound;
-				updateTransposition = true;
+			} else if (currentDepth == new_Depth) {
+				byte currentBound = current_trans.getType();
+				SearchDebugAgent.printTransBoundScoreCheck(currentBound, current_trans.getScore(), Score.getScore(new_score));
+				if (((currentBound == Score.upperBound) || (currentBound == Score.lowerBound)) &&
+						new_bound == Score.exact) {
+				    updateTransposition = true;
+				} else if ((currentBound == Score.upperBound) &&
+						   (Score.getScore(new_score) < current_trans.getScore())) {
+					if (EubosEngineMain.ASSERTS_ENABLED)
+						assert currentBound == new_bound;
+					updateTransposition = true;
+				} else if ((currentBound == Score.lowerBound) &&
+						   (Score.getScore(new_score) > current_trans.getScore())) {
+					if (EubosEngineMain.ASSERTS_ENABLED)
+						assert currentBound == new_bound;
+					updateTransposition = true;
+				}
 			}
 		}
+		
 		if (updateTransposition) {
 			current_trans.update(new_Depth, new_score, new_bound, new_bestMove, pv );
 		    hashMap.putTransposition(pos.getHash(), current_trans);
 		    SearchDebugAgent.printTransUpdate(current_trans, pos.getHash());
 		}
-		return current_trans;
 	}
 }
