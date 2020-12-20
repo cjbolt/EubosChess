@@ -81,7 +81,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			MultithreadedSearchWorkerThread worker = new MultithreadedSearchWorkerThread(moveGenerators.get(i), this);
 			workers.add(worker);
 			worker.start();
-			if (STAGGERED_START_TIME_FOR_THREADS > 0) {
+			if (STAGGERED_START_TIME_FOR_THREADS > 0 && gameTimeRemaining > STAGGERED_START_TIME_FOR_THREADS*100) {
 				try {
 					Thread.sleep(STAGGERED_START_TIME_FOR_THREADS);
 				} catch (InterruptedException e) {
