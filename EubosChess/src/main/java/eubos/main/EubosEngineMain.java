@@ -90,7 +90,7 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	private void createEnginePermanentDataStructures() {
-		hashMap = new FixedSizeTranspositionTable(hashSize);
+		hashMap = new FixedSizeTranspositionTable(hashSize, numberOfWorkerThreads);
 		dc = new DrawChecker();
 	}
 
