@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.openjdk.jol.info.ClassLayout;
@@ -48,7 +49,7 @@ public class FixedSizeTranspositionTable {
 	
 	public static final long MBYTES_DEFAULT_HASH_SIZE = (ELEMENTS_DEFAULT_HASH_SIZE*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE;
 	
-	private ConcurrentHashMap<Long, ITransposition> hashMap = null;
+	private Map<Long, ITransposition> hashMap = null;
 	private long hashMapSize = 0;
 	private long maxHashMapSize = ELEMENTS_DEFAULT_HASH_SIZE;
 	
@@ -61,10 +62,10 @@ public class FixedSizeTranspositionTable {
 	}
 	
 	public FixedSizeTranspositionTable() {
-		this(MBYTES_DEFAULT_HASH_SIZE);
+		this(MBYTES_DEFAULT_HASH_SIZE, 1);
 	}
 	
-	public FixedSizeTranspositionTable(long hashSizeMBytes) {
+	public FixedSizeTranspositionTable(long hashSizeMBytes, int numThreads) {
 		long hashSizeElements = (hashSizeMBytes * BYTES_PER_MEGABYTE) / BYTES_PER_TRANSPOSITION;
 		long maxHeapSize = Runtime.getRuntime().maxMemory();
 		if ((hashSizeMBytes * BYTES_PER_MEGABYTE) > ((maxHeapSize*4)/10)) {
@@ -83,8 +84,11 @@ public class FixedSizeTranspositionTable {
 					hashSizeMBytes, maxHeapSize/BYTES_PER_MEGABYTE, hashSizeElements,
 					(hashSizeElements*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE));
 		}
-		
-		hashMap = new ConcurrentHashMap<Long, ITransposition>((int)hashSizeElements, (float)0.75);
+		if (numThreads == 1) {
+			hashMap = new HashMap<Long, ITransposition>((int)hashSizeElements, (float)0.75);
+		} else {
+			hashMap = new ConcurrentHashMap<Long, ITransposition>((int)hashSizeElements, (float)0.75);
+		}
 		hashMapSize = 0;
 		maxHashMapSize = hashSizeElements;
 	}
