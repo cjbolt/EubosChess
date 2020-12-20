@@ -10,35 +10,30 @@ import eubos.search.Score;
 public class Transposition implements ITransposition {
 	private byte depthSearchedInPly;
 	private short score;
+	private byte type;
 	private int bestMove;
-	private byte scoreType;
 	private short accessCount;
 
-	public Transposition(byte depth, short score, byte scoreType, GenericMove bestMove) {
+	public Transposition(byte depth, short score, byte bound, GenericMove bestMove) {
 		// Only used by tests
-		this(depth, score, scoreType, Move.toMove(bestMove, null, Move.TYPE_REGULAR_NONE), null);
+		this(depth, score, bound, Move.toMove(bestMove, null, Move.TYPE_REGULAR_NONE), null);
 	}
 	
-	public Transposition(byte depth, short score, byte scoreType, int bestMove, List<Integer> pv) {
+	public Transposition(byte depth, short score, byte bound, int bestMove, List<Integer> pv) {
 		setDepthSearchedInPly(depth);
 		setScore(score);
-		setType(scoreType);
+		setType(bound);
 		setBestMove(bestMove);
 		setAccessCount((short)0);
-	}
-	
-	public Transposition(byte depth, Score score, int bestMove, List<Integer> pv) {
-		this(depth, score.getScore(), score.getType(), bestMove, pv);
 	}
 
 	@Override
 	public byte getType() {
-		return scoreType;
+		return type;
 	}
 
-	@Override
-	public void setType(byte type) {
-		this.scoreType = type;
+	private void setType(byte type) {
+		this.type = type;
 	}
 
 	@Override
@@ -46,18 +41,16 @@ public class Transposition implements ITransposition {
 		return score;
 	}
 
-	@Override
-	public void setScore(short score) {
-		this.score = score;
+	private void setScore(short new_score) {
+		this.score = new_score;
 	}
-
+	
 	@Override
 	public byte getDepthSearchedInPly() {
 		return depthSearchedInPly;
 	}
 
-	@Override
-	public void setDepthSearchedInPly(byte depthSearchedInPly) {
+	private void setDepthSearchedInPly(byte depthSearchedInPly) {
 		this.depthSearchedInPly = depthSearchedInPly;
 	}
 
@@ -66,8 +59,7 @@ public class Transposition implements ITransposition {
 		return bestMove;
 	}
 	
-	@Override
-	public void setBestMove(int bestMove) {
+	private void setBestMove(int bestMove) {
 		if (!Move.areEqual(this.bestMove, bestMove)) {
 			this.bestMove = bestMove;
 		}
@@ -79,21 +71,29 @@ public class Transposition implements ITransposition {
 				Move.toString(bestMove),
 				depthSearchedInPly,
 				score,
-				scoreType);
+				type);
 		return output;
 	}
 	
 	@Override
-	public void update(
+	public synchronized void update(
 			byte new_Depth, 
-			short new_score, 
-			byte new_bound, 
+			short new_score,
+			byte new_bound,
 			int new_bestMove, 
 			List<Integer> pv) {
-		// TODO consider incrementing access count?
 		setDepthSearchedInPly(new_Depth);
-		setType(new_bound);
 		setScore(new_score);
+		setType(new_bound);
+		setBestMove(new_bestMove);
+	}
+	
+	@Override
+	public synchronized void updateToExact(
+			short new_score,
+			int new_bestMove) {
+		setScore(new_score);
+		setType(Score.exact);
 		setBestMove(new_bestMove);
 	}
 	

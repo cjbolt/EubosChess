@@ -32,18 +32,13 @@ public class PrincipalVariationTransposition implements ITransposition {
 		setPv(pv);
 		setAccessCount((short)0);
 	}
-	
-	public PrincipalVariationTransposition(byte depth, Score score, int bestMove, List<Integer> pv) {
-		this(depth, score.getScore(), score.getType(), bestMove, pv);
-	}
 
 	@Override
 	public byte getType() {
 		return scoreType;
 	}
 
-	@Override
-	public void setType(byte scoreType) {
+	private void setType(byte scoreType) {
 		this.scoreType = scoreType;
 	}
 
@@ -52,9 +47,8 @@ public class PrincipalVariationTransposition implements ITransposition {
 		return score;
 	}
 
-	@Override
-	public void setScore(short score) {
-		this.score = score;
+	private void setScore(short new_score) {
+		this.score = new_score;
 	}
 
 	@Override
@@ -62,8 +56,7 @@ public class PrincipalVariationTransposition implements ITransposition {
 		return depthSearchedInPly;
 	}
 
-	@Override
-	public void setDepthSearchedInPly(byte depthSearchedInPly) {
+	private void setDepthSearchedInPly(byte depthSearchedInPly) {
 		this.depthSearchedInPly = depthSearchedInPly;
 	}
 
@@ -72,8 +65,7 @@ public class PrincipalVariationTransposition implements ITransposition {
 		return bestMove;
 	}
 	
-	@Override
-	public void setBestMove(int bestMove) {
+	private void setBestMove(int bestMove) {
 		if (!Move.areEqual(this.bestMove, bestMove)) {
 			this.bestMove = bestMove;
 		}
@@ -118,18 +110,28 @@ public class PrincipalVariationTransposition implements ITransposition {
 	}
 	
 	@Override
-	public void update(
+	public synchronized void update(
 			byte new_Depth, 
-			short new_score, 
-			byte new_bound, 
+			short new_score,  
+			byte new_bound,
 			int new_bestMove, 
 			List<Integer> pv) {
 		// order is important because setPv uses depth
 		setDepthSearchedInPly(new_Depth);
-		setType(new_bound);
 		setScore(new_score);
+		setType(new_bound);
 		setBestMove(new_bestMove);
 		setPv(pv);
+	}
+	
+	@Override
+	public synchronized void updateToExact(
+			short new_score,  
+			int new_bestMove) {
+		// order is important because setPv uses depth
+		setScore(new_score);
+		setType(Score.exact);
+		setBestMove(new_bestMove);
 	}
 	
 	public short getAccessCount() {

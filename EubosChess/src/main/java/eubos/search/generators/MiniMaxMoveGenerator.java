@@ -11,11 +11,14 @@ import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
+import eubos.position.PositionManager;
 import eubos.score.IEvaluate;
+import eubos.search.DrawChecker;
 import eubos.search.KillerList;
 import eubos.search.NoLegalMoveException;
 import eubos.search.PlySearcher;
 import eubos.search.PrincipalContinuation;
+import eubos.search.Score;
 import eubos.search.ScoreTracker;
 import eubos.search.SearchDebugAgent;
 import eubos.search.SearchMetrics;
@@ -28,19 +31,19 @@ public class MiniMaxMoveGenerator implements
 		IMoveGenerator {
 
 	private IChangePosition pm;
-	private IPositionAccessors pos;
+	public IPositionAccessors pos;
 	public PrincipalContinuation pc;
 	public SearchMetrics sm;
-	private SearchMetricsReporter sr;
-	private EubosEngineMain callback;
+
 	private PlySearcher ps;
 	private IEvaluate pe;
 	private FixedSizeTranspositionTable tt;
 	private TranspositionTableAccessor tta;
 	private ScoreTracker st;
 	private short score;
-	private boolean sendInfo = false;
+	
 	private KillerList killers;
+	private boolean disableMoveListOrdering = false;
 	
 	public static final int EXTENDED_SEARCH_PLY_LIMIT = 8;
 
@@ -48,41 +51,34 @@ public class MiniMaxMoveGenerator implements
 	MiniMaxMoveGenerator( FixedSizeTranspositionTable hashMap,
 			IChangePosition pm,
 			IPositionAccessors pos) {
-		this.pm = pm;
-		this.pos = pos;
-		this.pe = pos.getPositionEvaluator();
-		tt = hashMap;
-		killers = new KillerList(EXTENDED_SEARCH_PLY_LIMIT);
-		score = 0;
-		sm = new SearchMetrics(pos);
+		commonInit(hashMap, pm, pos);
 	}
 
 	// Used with Arena, Lichess
-	public MiniMaxMoveGenerator( EubosEngineMain eubos,
-			FixedSizeTranspositionTable hashMap,
-			IChangePosition pm,
-			IPositionAccessors pos,
-			KillerList killers) {
-		callback = eubos;
+	public MiniMaxMoveGenerator(FixedSizeTranspositionTable hashMap,
+			String fen,
+			DrawChecker dc,
+			SearchMetricsReporter sr) {
+		PositionManager pm = new PositionManager(fen, dc);
+		commonInit(hashMap, pm, pm);
+		sr.register(sm);
+		SearchDebugAgent.open(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
+	}
+
+	private void commonInit(FixedSizeTranspositionTable hashMap, IChangePosition pm, IPositionAccessors pos) {
 		this.pm = pm;
 		this.pos = pos;
-		this.pe = pos.getPositionEvaluator();
-		tt = hashMap;
-		this.killers = killers;
-		score = 0;
+		
+		pe = pos.getPositionEvaluator();
 		sm = new SearchMetrics(pos);
-		if (EubosEngineMain.UCI_INFO_ENABLED) {
-			sendInfo = true;
-			sr = new SearchMetricsReporter(callback, sm);	
-			sr.setSendInfo(true);
-			sr.start();
-		}
-		SearchDebugAgent.open(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
+		tt = hashMap;
+		score = 0;
+		killers = new KillerList(EubosEngineMain.SEARCH_DEPTH_IN_PLY);
 	}
 	
 	public short getScore() { return score; }
 	
-	private void initialiseSearchDepthDependentObjects(int searchDepth, IChangePosition pm) {
+	private void initialiseSearchDepthDependentObjects(int searchDepth, IChangePosition pm, SearchMetrics sm) {
 		pc = new PrincipalContinuation(searchDepth+EXTENDED_SEARCH_PLY_LIMIT);
 		sm.setDepth(searchDepth);
 		sm.setPrincipalVariation(pc.toPvList(0));
@@ -95,17 +91,26 @@ public class MiniMaxMoveGenerator implements
 		return this.findMove(searchDepth, null);
 	}
 	
+	public SearchResult findMove(
+			byte searchDepth, 
+			List<Integer> lastPc) throws NoLegalMoveException, InvalidPieceException {
+		return this.findMove(searchDepth, lastPc, new SearchMetricsReporter(null, tt));
+	}
+	
 	@Override
-	public SearchResult findMove(byte searchDepth, List<Integer> lastPc) throws NoLegalMoveException, InvalidPieceException {
+	public SearchResult findMove(
+			byte searchDepth, 
+			List<Integer> lastPc,
+			SearchMetricsReporter sr) throws NoLegalMoveException, InvalidPieceException {
 		boolean foundMate = false;
-		initialiseSearchDepthDependentObjects(searchDepth, pm);
+		initialiseSearchDepthDependentObjects(searchDepth, pm, sm);
 		ps = new PlySearcher(tta, st, pc, sm, sr, searchDepth, pm, pos, lastPc, pe, killers);
-		if (EubosEngineMain.UCI_INFO_ENABLED && sendInfo) {
-			sr.setSendInfo(true);
+		if (disableMoveListOrdering) {
+			ps.disableMoveListOrdering();
 		}
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		try {
-			score = ps.searchPly().getScore();
+			score = Score.getScore(ps.searchPly());
 		} catch (AssertionError e) {
 			e.printStackTrace();
 			System.exit(0);
@@ -113,9 +118,6 @@ public class MiniMaxMoveGenerator implements
 		if (score != Short.MIN_VALUE && score != Short.MAX_VALUE &&
 			Math.abs(score) >= (Board.MATERIAL_VALUE_KING*2)) {
 			foundMate = true;
-		}
-		if (EubosEngineMain.UCI_INFO_ENABLED && sendInfo) {
-			sr.setSendInfo(false);
 		}
 		// Select the best move
 		GenericMove bestMove = Move.toGenericMove(pc.getBestMove((byte)0));
@@ -129,9 +131,8 @@ public class MiniMaxMoveGenerator implements
 		if (ps != null)
 			ps.terminateFindMove();
 	}
-	
-	public void terminateSearchMetricsReporter() {
-		if (EubosEngineMain.UCI_INFO_ENABLED && sendInfo)
-			sr.end();
+
+	public void disableMoveListOrdering() {
+		disableMoveListOrdering  = true;		
 	}
 }

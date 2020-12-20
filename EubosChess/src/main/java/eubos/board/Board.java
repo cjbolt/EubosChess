@@ -215,7 +215,7 @@ public class Board {
 			Board.MATERIAL_VALUE_BISHOP +
 			(4 * Board.MATERIAL_VALUE_PAWN);
 	
-	boolean isEndgame;
+	public boolean isEndgame;
 	
 	public Board( Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove ) {
 		allPieces = 0x0;
@@ -236,7 +236,6 @@ public class Board {
 		if ((queensOffBoard && queensOffMaterialThresholdReached) || materialQuantityThreshholdReached) {
 			isEndgame = true;
 		}
-		EubosEngineMain.logger.info(String.format("materialEval %d isEndgame %s", me.getDelta(), isEndgame));
 	}
 	
 	public int doMove(int move) throws InvalidPieceException {
@@ -410,9 +409,10 @@ public class Board {
 		}
 	}
 	
-	public List<Integer> getRegularPieceMoves(boolean ownSideIsWhite) {
+	public List<Integer> getRegularPieceMoves(boolean ownSideIsWhite, int potentialAttckersOfSquare) {
 		long bitBoardToIterate = ownSideIsWhite ? whitePieces : blackPieces;
 		List<Integer> movesList = new LinkedList<Integer>();
+		long potentialAttackersMask = (potentialAttckersOfSquare != Position.NOPOSITION) ? SquareAttackEvaluator.allAttacksOnPosition_Lut[potentialAttckersOfSquare] : -1;
 		// Unrolled loop for performance optimisation...
 		long scratchBitBoard = bitBoardToIterate & pieces[INDEX_PAWN];
 		while ( scratchBitBoard != 0x0L ) {
@@ -422,6 +422,7 @@ public class Board {
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
 		scratchBitBoard = bitBoardToIterate & pieces[INDEX_ROOK];
+		scratchBitBoard &= potentialAttackersMask;
 		while ( scratchBitBoard != 0x0L ) {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
@@ -429,6 +430,7 @@ public class Board {
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
 		scratchBitBoard = bitBoardToIterate & pieces[INDEX_BISHOP];
+		scratchBitBoard &= potentialAttackersMask;
 		while ( scratchBitBoard != 0x0L ) {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
@@ -436,6 +438,7 @@ public class Board {
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
 		scratchBitBoard = bitBoardToIterate & pieces[INDEX_KNIGHT];
+		scratchBitBoard &= potentialAttackersMask;
 		while ( scratchBitBoard != 0x0L ) {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
@@ -443,6 +446,7 @@ public class Board {
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
 		scratchBitBoard = bitBoardToIterate & pieces[INDEX_KING];
+		scratchBitBoard &= potentialAttackersMask;
 		while ( scratchBitBoard != 0x0L ) {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
@@ -450,6 +454,7 @@ public class Board {
 			scratchBitBoard &= scratchBitBoard-1L;
 		}
 		scratchBitBoard = bitBoardToIterate & pieces[INDEX_QUEEN];
+		scratchBitBoard &= potentialAttackersMask;
 		while ( scratchBitBoard != 0x0L ) {
 			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];

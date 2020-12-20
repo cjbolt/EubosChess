@@ -15,6 +15,7 @@ import org.junit.Test;
 import org.junit.Ignore;
 
 import com.fluxchess.jcpi.commands.EngineAnalyzeCommand;
+import com.fluxchess.jcpi.commands.EngineNewGameCommand;
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import com.fluxchess.jcpi.models.GenericBoard;
 import com.fluxchess.jcpi.models.GenericMove;
@@ -64,9 +65,13 @@ public class EubosEngineMainTest {
 	private static final String GO_TIME_CMD = "go movetime 1000"+CMD_TERMINATOR;
 	private static final String QUIT_CMD = "quit"+CMD_TERMINATOR;
 	// Outputs
-	private static final String ID_NAME_CMD = "id name Eubos 1.1.6"+CMD_TERMINATOR;
+	private static final String ID_NAME_CMD = "id name Eubos 1.1.7"+CMD_TERMINATOR;
 	private static final String ID_AUTHOR_CMD = "id author Chris Bolt"+CMD_TERMINATOR;
 	private static final String OPTION_HASH = "option name Hash type spin default 1310 min 32 max 4000"+CMD_TERMINATOR;
+	private static final String OPTION_THREADS = String.format(
+			"option name NumberOfWorkerThreads type spin default %s min 1 max %s%s",
+			Runtime.getRuntime().availableProcessors()-2,
+			Runtime.getRuntime().availableProcessors(), CMD_TERMINATOR);
 	private static final String UCI_OK_CMD = "uciok"+CMD_TERMINATOR;
 	private static final String READY_OK_CMD = "readyok"+CMD_TERMINATOR;
 	
@@ -330,6 +335,7 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
+	@Ignore
 	public void test_KQk_mate_in_7_alt() throws InterruptedException, IOException {
 		setupEngine();
 		// 1
@@ -353,8 +359,90 @@ public class EubosEngineMainTest {
 		// 7
 		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 g7g6 c6c7 b4b5 c7d6 g6f6 d6c7 f6e6 c7c8 e6d6 c8d8"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"b5b8"+CMD_TERMINATOR));
-		performTest(12000);
+		performTest(20000);
 		assertEquals(14, (int)classUnderTest.dc.getNumEntries());
+	}
+	
+	@Test
+	@Ignore
+	public void test_KQk_mate_in_7_alt2() throws InterruptedException, IOException {
+		setupEngine();
+		// 1
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"13"+CMD_TERMINATOR,BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
+		// 2
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"g7g6"+CMD_TERMINATOR));
+		// 3
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 g7g6 c6c7"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"b4b5"+CMD_TERMINATOR));
+		// 4
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 g7g6 c6c7 b4b5 c7c8"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"g6f5"+CMD_TERMINATOR));
+		// 5
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 g7g6 c6c7 b4b5 c7c8 g6f5 c8d8"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"b5b7"+CMD_TERMINATOR));
+		// 6
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 g7g6 c6c7 b4b5 c7c8 g6f5 c8d8 b5b7 d8e8"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"f5e6"+CMD_TERMINATOR));
+		// 7
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 g7g6 c6c7 b4b5 c7c8 g6f5 c8d8 b5b7 d8e8 f5e6 e8d8"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"b7d7"+CMD_TERMINATOR));
+		performTest(20000);
+		assertEquals(14, (int)classUnderTest.dc.getNumEntries());
+	}
+	
+	@Test
+	//@Ignore
+	public void test_KQk_mate_in_7_alt3() throws InterruptedException, IOException {
+		setupEngine();
+		// 1
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"14"+CMD_TERMINATOR,BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
+		// 2
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"b4a5"+CMD_TERMINATOR));
+		// 3
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 b4a5 c6b7"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"g7f6"+CMD_TERMINATOR));
+		// 4
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 b4a5 c6b7 g7f6 b7c6"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"f6e6"+CMD_TERMINATOR));
+		// 5
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 b4a5 c6b7 g7f6 b7c6 f6e6 c6b7"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"e6d6"+CMD_TERMINATOR));
+		// 6
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 b4a5 c6b7 g7f6 b7c6 f6e6 c6b7 e6d6 b7b8"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"d6c6"+CMD_TERMINATOR));
+		// 7
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 b4a5 c6b7 g7f6 b7c6 f6e6 c6b7 e6d6 b7b8 e6d6 b8c8"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"a5c7"+CMD_TERMINATOR));
+		performTest(20000);
+		assertEquals(14, (int)classUnderTest.dc.getNumEntries());
+	}
+	
+	@Test
+	@Ignore
+	public void test_WAC009() throws InterruptedException, IOException {
+		setupEngine();
+		// 1
+		commands.add(new commandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR,BEST_PREFIX+"d6h2"+CMD_TERMINATOR));
+		// 2
+		commands.add(new commandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1 moves d6h2 g1h1"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h2g3"+CMD_TERMINATOR));
+		// 3
+		commands.add(new commandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1 moves d6h2 g1h1 h2g3 h1g1"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h4h1"+CMD_TERMINATOR));
+		// 4
+		commands.add(new commandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1 moves d6h2 g1h1 h2g3 h1g1 h4h1 g1h1"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"d8h4"+CMD_TERMINATOR));
+		// 5
+		commands.add(new commandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1 moves d6h2 g1h1 h2g3 h1g1 h4h1 g1h1 d8h4 h1g1"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h4h2"+CMD_TERMINATOR));
+
+		performTest(120000);
+		assertEquals(4, (int)classUnderTest.dc.getNumEntries());
 	}
 	
 	@Test
@@ -399,6 +487,7 @@ public class EubosEngineMainTest {
 	
     @Test
     public void test_createPositionFromAnalyseCommand_enPassantMovesAreIdentifedCorrectly() throws IllegalNotationException {
+    	classUnderTest.receive(new EngineNewGameCommand());
     	// To catch a defect where En Passant moves were not properly identified when applied through the UCI received from lichess/Arena
     	ArrayList<GenericMove> applyMoveList = new ArrayList<GenericMove>();
     	applyMoveList.add(new GenericMove("c2c4"));
@@ -410,6 +499,7 @@ public class EubosEngineMainTest {
     
 	@Test
 	public void test_createPositionFromAnalyseCommand() throws IllegalNotationException {
+		classUnderTest.receive(new EngineNewGameCommand());
 		// Black move 62
 		ArrayList<GenericMove> applyMoveList = new ArrayList<GenericMove>();
 		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
@@ -504,7 +594,8 @@ public class EubosEngineMainTest {
 	}
 
 	private void setupEngine() {
-		commands.add(new commandPair(UCI_CMD, ID_NAME_CMD+ID_AUTHOR_CMD+OPTION_HASH+UCI_OK_CMD));
+		commands.add(new commandPair(UCI_CMD, ID_NAME_CMD+ID_AUTHOR_CMD+OPTION_HASH+OPTION_THREADS+UCI_OK_CMD));
+		commands.add(new commandPair("setoption name NumberOfWorkerThreads value 1"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(ISREADY_CMD,READY_OK_CMD));
 		commands.add(new commandPair(NEWGAME_CMD,null));
 		commands.add(new commandPair(ISREADY_CMD,READY_OK_CMD));

@@ -15,6 +15,14 @@ public class DrawChecker {
 		positionCount = new ConcurrentHashMap<Integer,Byte>();
 	}
 	
+	public DrawChecker(ConcurrentHashMap<Integer,Byte> clone) {
+		positionCount = new ConcurrentHashMap<Integer,Byte>(clone);
+	}
+	
+	public ConcurrentHashMap<Integer,Byte> getState() {
+		return positionCount;
+	}
+	
 	public void reset() {
 		positionCount.clear();
 	}

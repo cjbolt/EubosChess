@@ -5,6 +5,7 @@ import java.util.Iterator;
 import eubos.board.InvalidPieceException;
 import eubos.position.PositionManager;
 import eubos.position.MoveList;
+import eubos.position.Position;
 
 public class PerformanceTest {
 
@@ -25,7 +26,7 @@ public class PerformanceTest {
 	    public long perft() throws InvalidPieceException {
 	        if (currPly < requestedDepthPly) {        
 	            MoveList ml = new MoveList(pm);
-	            Iterator<Integer> iter = ml.getStandardIterator(false);
+	            Iterator<Integer> iter = ml.getStandardIterator(false, Position.NOPOSITION);
 	            while (iter.hasNext()) {
 	            	int move = iter.next();
 	                try {

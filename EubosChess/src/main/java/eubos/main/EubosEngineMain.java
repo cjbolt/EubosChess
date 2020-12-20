@@ -21,6 +21,7 @@ import com.fluxchess.jcpi.commands.ProtocolReadyAnswerCommand;
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import com.fluxchess.jcpi.models.*;
 import com.fluxchess.jcpi.options.Options;
+import com.fluxchess.jcpi.options.SpinnerOption;
 import com.fluxchess.jcpi.protocols.NoProtocolException;
 
 import eubos.board.InvalidPieceException;
@@ -32,7 +33,7 @@ import eubos.search.DrawChecker;
 import eubos.search.searchers.AbstractMoveSearcher;
 import eubos.search.searchers.FixedDepthMoveSearcher;
 import eubos.search.searchers.FixedTimeMoveSearcher;
-import eubos.search.searchers.IterativeMoveSearcher;
+import eubos.search.searchers.MultithreadedIterativeMoveSearcher;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 
 import java.text.SimpleDateFormat;
@@ -43,12 +44,13 @@ import java.util.logging.*;
 public class EubosEngineMain extends AbstractEngine {
 	
 	public static final byte SEARCH_DEPTH_IN_PLY = 35;
+	public static final int DEFAULT_NUM_SEARCH_THREADS = 2;
 	
-	public static final boolean LOGGING_ENABLED = false;
+	public static final boolean LOGGING_ENABLED = true;
 	public static final boolean UCI_INFO_ENABLED = true;
 	public static final boolean ASSERTS_ENABLED = false;
 	
-	// Permanent data structures - static for duration of engine execution
+	// Permanent data structures - static for the duration of a single game
 	private FixedSizeTranspositionTable hashMap = null;
 	DrawChecker dc;
 	
@@ -58,31 +60,46 @@ public class EubosEngineMain extends AbstractEngine {
 	private Piece.Colour lastOnMove = null;
 	String lastFen = null;
 	
+	// Multithreading configuration
+	public static int numberOfWorkerThreads;
+	public static int numCores;
+	public static int defaultNumberOfWorkerThreads;
+	static {
+		numCores = Runtime.getRuntime().availableProcessors();
+		defaultNumberOfWorkerThreads = Math.max(numCores-2, 1);
+		numberOfWorkerThreads = defaultNumberOfWorkerThreads;
+	}
+	
+	// Hash configuration
+	public static final int MIN_HASH_SIZE = 32;
+	public static final int MAX_HASH_SIZE = 4*1000;
+	public static final long DEFAULT_HASH_SIZE = FixedSizeTranspositionTable.MBYTES_DEFAULT_HASH_SIZE;
+	public static long hashSize = DEFAULT_HASH_SIZE;
+
     public static Logger logger = Logger.getLogger("eubos.main");
 
 	private static FileHandler fh; 
     
 	public EubosEngineMain() { 
 		super();
-		createEnginePermanentDataStructures();
 	}
 	
 	public EubosEngineMain( PipedWriter out) throws IOException {
 		super(new BufferedReader(new PipedReader(out)), System.out);
-		createEnginePermanentDataStructures();
 		logger.setLevel(Level.INFO);
 	}
 	
 	private void createEnginePermanentDataStructures() {
-		hashMap = new FixedSizeTranspositionTable();
+		hashMap = new FixedSizeTranspositionTable(hashSize, numberOfWorkerThreads);
 		dc = new DrawChecker();
 	}
 
 	public void receive(EngineInitializeRequestCommand command) {
 		logger.fine("Eubos Initialising");
 		
-		ProtocolInitializeAnswerCommand reply = new ProtocolInitializeAnswerCommand("Eubos 1.1.6","Chris Bolt");
-		reply.addOption(Options.newHashOption((int)FixedSizeTranspositionTable.MBYTES_DEFAULT_HASH_SIZE, 32, 4*1000));
+		ProtocolInitializeAnswerCommand reply = new ProtocolInitializeAnswerCommand("Eubos 1.1.7","Chris Bolt");
+		reply.addOption(Options.newHashOption((int)DEFAULT_HASH_SIZE, MIN_HASH_SIZE, MAX_HASH_SIZE));
+		reply.addOption(new SpinnerOption("NumberOfWorkerThreads", defaultNumberOfWorkerThreads, 1, numCores));
 		this.getProtocol().send( reply );
 		
 		LocalDateTime dateTime = LocalDateTime.now();
@@ -92,11 +109,15 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 
 	public void receive(EngineSetOptionCommand command) {
-		logger.fine("SetOptionCommand is " +command.name);
+		logger.fine(String.format("SetOptionCommand is %s", command.name));
 		// If the GUI has configured the hash table size, reinitialise it at the correct size
 		if (command.name.startsWith("Hash")) {
-			hashMap = new FixedSizeTranspositionTable(Long.parseLong(command.value));
-			logger.fine("MaxHashSizeInElements=" +hashMap.getHashMapMaxSize());
+			hashSize = Long.parseLong(command.value);
+			logger.fine(String.format("MaxHashSizeInMBs=%d", hashSize));
+		}
+		if (command.name.startsWith("NumberOfWorkerThreads")) {
+			numberOfWorkerThreads = Integer.parseInt(command.value);
+			logger.fine(String.format("WorkerThreads=%d", numberOfWorkerThreads));
 		}
 	}
 
@@ -109,6 +130,7 @@ public class EubosEngineMain extends AbstractEngine {
 
 	public void receive(EngineNewGameCommand command) {
 		logger.fine("New Game");
+		createEnginePermanentDataStructures();
 	}
 
 	public void receive(EngineAnalyzeCommand command) {
@@ -190,11 +212,11 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		if (clockTimeValid) {
 			logger.info("Search move, clock time " + clockTime);
-			ms = new IterativeMoveSearcher(this, hashMap, pm, pm, clockTime, clockInc);
+			ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, clockTime, clockInc, numberOfWorkerThreads);
 		}
 		else if (command.getMoveTime() != null) {
 			logger.info("Search move, fixed time " + command.getMoveTime());
-			ms = new FixedTimeMoveSearcher(this, hashMap, pm, pm, command.getMoveTime());
+			ms = new FixedTimeMoveSearcher(this, hashMap, lastFen, dc, command.getMoveTime());
 		} else {
 			byte searchDepth = SEARCH_DEPTH_IN_PLY;
 			if (command.getInfinite()) {
@@ -203,7 +225,7 @@ public class EubosEngineMain extends AbstractEngine {
 				searchDepth = (byte)((int)command.getDepth());
 			}
 			logger.info("Search move, fixed depth " + searchDepth);
-			ms = new FixedDepthMoveSearcher(this, hashMap, pm, pm, searchDepth);
+			ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth);
 		}
 	}
 

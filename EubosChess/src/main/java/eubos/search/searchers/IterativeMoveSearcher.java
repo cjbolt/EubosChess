@@ -6,8 +6,7 @@ import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 
 import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
-import eubos.position.IChangePosition;
-import eubos.position.IPositionAccessors;
+import eubos.search.DrawChecker;
 import eubos.search.NoLegalMoveException;
 import eubos.search.SearchDebugAgent;
 import eubos.search.SearchResult;
@@ -17,6 +16,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	
 	public static final int AVG_MOVES_PER_GAME = 60;
 	long gameTimeRemaining;
+	int moveNumber = 0;
 	
 	boolean searchStopped = false;
 	public static final boolean DEBUG_LOGGING = true;
@@ -24,18 +24,23 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 
 	public IterativeMoveSearcher(EubosEngineMain eubos, 
 			FixedSizeTranspositionTable hashMap, 
-			IChangePosition inputPm,  
-			IPositionAccessors pos, 
+			String fen,  
+			DrawChecker dc, 
 			long time,
 			long increment) {
-		super(eubos,inputPm,pos,hashMap);
+		super(eubos, fen, dc, hashMap);
+		this.setName("IterativeMoveSearcher");
+		setGameTimeRemaining(time, increment);
 		EubosEngineMain.logger.info(
-				String.format("Starting initialScore=%d gameTimeRemaining=%d", initialScore, time));
-		// We use the lichess hypothesis about increments and game time
-		long incrementTime = increment * Math.max((AVG_MOVES_PER_GAME - pos.getMoveNumber()), 0);
+				String.format("Starting initialScore=%d gameTimeRemaining=%d", initialScore, gameTimeRemaining));
+	}
+
+	private void setGameTimeRemaining(long time, long increment) {
+		// We use the Lichess hypothesis about increments and game time
+		moveNumber = mg.pos.getMoveNumber();
+		long incrementTime = increment * Math.max((AVG_MOVES_PER_GAME - moveNumber), 0);
 		incrementTime = Math.min(Math.max(time-5000, 0), incrementTime); // Cater for short on time
 		gameTimeRemaining = time + incrementTime;
-		this.setName("IterativeMoveSearcher");
 	}
 	
 	@Override
@@ -49,14 +54,15 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		byte currentDepth = 1;
 		SearchResult res = new SearchResult(null, false);
 		List<Integer> pc = null;
+		enableSearchMetricsReporter(true);
 		IterativeMoveSearchStopper stopper = new IterativeMoveSearchStopper();
 		stopper.start();
 		while (!searchStopped) {
 			try {
-				res = mg.findMove(currentDepth, pc);
+				res = mg.findMove(currentDepth, pc, sr);
 			} catch( NoLegalMoveException e ) {
 				EubosEngineMain.logger.info(
-						String.format("IterativeMoveSearcher out of legal moves for %s", pos.getOnMove()));
+						String.format("IterativeMoveSearcher out of legal moves"));
 				searchStopped = true;
 			} catch(InvalidPieceException e ) {
 				EubosEngineMain.logger.info(
@@ -84,8 +90,9 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		EubosEngineMain.logger.info(
 			String.format("IterativeMoveSearcher ended best=%s gameTimeRemaining=%d", res.bestMove, gameTimeRemaining));
 		stopper.end();
+		enableSearchMetricsReporter(false);
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
-		mg.terminateSearchMetricsReporter();
+		terminateSearchMetricsReporter();
 		SearchDebugAgent.close();
 		if (EXPLICIT_GARBAGE_COLLECTION) {
 			if (gameTimeRemaining > 60000)
@@ -140,8 +147,8 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			this.interrupt();
 		}
 		
-		private long calculateSearchTimeQuanta() {
-			int moveHypothesis = (AVG_MOVES_PER_GAME - pos.getMoveNumber());
+		protected long calculateSearchTimeQuanta() {
+			int moveHypothesis = (AVG_MOVES_PER_GAME - moveNumber);
 			int movesRemaining = Math.max(moveHypothesis, 10);
 			long msPerMove = Math.max((gameTimeRemaining/movesRemaining), 2);
 			long timeQuanta = msPerMove/2;

@@ -7,10 +7,10 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
-import eubos.position.IChangePosition;
-import eubos.position.IPositionAccessors;
-import eubos.search.KillerList;
+import eubos.search.DrawChecker;
 import eubos.search.NoLegalMoveException;
+import eubos.search.Score;
+import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.FixedSizeTranspositionTable;
@@ -18,23 +18,32 @@ import eubos.search.transposition.FixedSizeTranspositionTable;
 public abstract class AbstractMoveSearcher extends Thread {
 
 	protected EubosEngineMain eubosEngine;
-	protected IChangePosition pm;
-	protected IPositionAccessors pos;
 	protected MiniMaxMoveGenerator mg;
+	
+	protected boolean sendInfo = false;
+	protected SearchMetricsReporter sr;
+	
 	protected short initialScore;
-	protected KillerList killers;
 
-	public AbstractMoveSearcher(EubosEngineMain eng, IChangePosition pm, IPositionAccessors pos, FixedSizeTranspositionTable hashMap) {
+	public AbstractMoveSearcher(EubosEngineMain eng, String fen, DrawChecker dc, FixedSizeTranspositionTable hashMap) {
 		super();
 		this.eubosEngine = eng;
-		this.pm = pm;
-		this.pos = pos;
-		this.killers = new KillerList(EubosEngineMain.SEARCH_DEPTH_IN_PLY);
-		initialScore = pos.getPositionEvaluator().evaluatePosition().getScore();
-		if (Colour.isBlack(pos.getOnMove())) {
+		if (EubosEngineMain.UCI_INFO_ENABLED) {
+			sendInfo = true;
+			sr = new SearchMetricsReporter(eubosEngine, hashMap);
+		}
+		this.mg = new MiniMaxMoveGenerator(hashMap, fen, dc, sr);
+		
+		initialScore = Score.getScore(mg.pos.getPositionEvaluator().evaluatePosition());
+		if (Colour.isBlack(mg.pos.getOnMove())) {
 			initialScore = (short)-initialScore;
 		}
-		this.mg = new MiniMaxMoveGenerator( eng, hashMap, pm, pos, killers);
+		EubosEngineMain.logger.info(String.format("initialScore %d, SearchContext %s, isEndgame %s",
+				initialScore, mg.pos.getPositionEvaluator().getGoal(), mg.pos.getTheBoard().isEndgame));
+		
+		if (EubosEngineMain.UCI_INFO_ENABLED) {
+			sr.start();
+		}
 	}
 
 	public AbstractMoveSearcher(Runnable target) {
@@ -56,10 +65,10 @@ public abstract class AbstractMoveSearcher extends Thread {
 	protected SearchResult doFindMove(GenericMove selectedMove, List<Integer> pc, byte depth) {
 		SearchResult res = null;
 		try {
-			res = mg.findMove(depth, pc);
+			res = mg.findMove(depth, pc, sr);
 		} catch( NoLegalMoveException e ) {
 			EubosEngineMain.logger.info(
-					String.format("AbstractMoveSearcher out of legal moves for %s", pos.getOnMove()));
+					String.format("AbstractMoveSearcher out of legal moves"));
 		} catch(InvalidPieceException e ) {
 			EubosEngineMain.logger.info(
 					String.format("AbstractMoveSearcher can't find piece at %s", e.getAtPosition()));
@@ -82,6 +91,17 @@ public abstract class AbstractMoveSearcher extends Thread {
 	public AbstractMoveSearcher(ThreadGroup group, Runnable target, String name,
 			long stackSize) {
 		super(group, target, name, stackSize);
+	}
+	
+	public void enableSearchMetricsReporter(boolean enable) {
+		if (EubosEngineMain.UCI_INFO_ENABLED && sendInfo) {
+			sr.setSendInfo(enable);
+		}
+	}
+	
+	public void terminateSearchMetricsReporter() {
+		if (EubosEngineMain.UCI_INFO_ENABLED && sendInfo)
+			sr.end();
 	}
 
 }

@@ -206,7 +206,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_King_MoveGen_CornerTopLeft() throws IllegalNotationException {
 		createSutAndRegisterPe("k7/8/8/8/8/8/8/8 b - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( Position.a8, Piece.BLACK_KING, Position.b8, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( Position.a8, Piece.BLACK_KING, Position.b7, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( Position.a8, Piece.BLACK_KING, Position.a7, Piece.NONE ));
@@ -218,7 +218,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_BlackPawn_MoveGen_InitialMoveOneSquare() {
 		createSutAndRegisterPe("8/4p3/8/8/8/8/8/8 b - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Position.e7, Piece.BLACK_PAWN, Position.e6, Piece.NONE );
 		contains( expectedMove );
 	}
@@ -226,7 +226,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_BlackPawn_MoveGen_InitialMoveTwoSquares() {
 		createSutAndRegisterPe("8/4p3/8/8/8/8/8/8 b - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Position.e7, Piece.BLACK_PAWN, Position.e5, Piece.NONE );
 		contains( expectedMove );
 	}
@@ -234,7 +234,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_BlackPawn_MoveGen_InitialBlocked() {
 		createSutAndRegisterPe("8/4p3/4P3/8/8/8/8/8 b - - 0 1 ");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		assertTrue( ml.size() == 0 );
 	}
 
@@ -243,7 +243,7 @@ public class PositionManagerTest {
 		// Black is on e4, white moves f4, then black ml contains capture en passant, exf
 		createSutAndRegisterPe("8/8/8/8/4p3/8/5P2/8 w - - 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.f2, Piece.WHITE_PAWN, Position.f4, Piece.NONE ));
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.e4, Piece.BLACK_PAWN, Position.f3, Piece.WHITE_PAWN, Piece.NONE );
 		contains( expectedMove );
 	}
@@ -253,7 +253,7 @@ public class PositionManagerTest {
 		// Black is on e4, white moves a knight to f4, check black ml doesn't contain a capture en passant, exf
 		createSutAndRegisterPe("8/8/8/8/4p3/8/5N2/8 w - - 0 1 ");
 		classUnderTest.performMove( Move.valueOf( Position.f2, Piece.WHITE_KNIGHT, Position.f4, Piece.NONE ));
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Position.e4, Piece.BLACK_PAWN, Position.f3, Piece.WHITE_PAWN );
 		doesntContain( expectedMove );
 	}
@@ -263,7 +263,7 @@ public class PositionManagerTest {
 		// Black is on e4, white moves d4, then black ml contains capture en passant, exd
 		createSutAndRegisterPe("8/8/8/8/4p3/8/3P4/8 w - - 0 1 ");
 		classUnderTest.performMove( Move.valueOf( Position.d2, Piece.WHITE_PAWN, Position.d4, Piece.NONE ));
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.e4, Piece.BLACK_PAWN, Position.d3, Piece.WHITE_PAWN, Piece.NONE );
 		contains( expectedMove );
 	}
@@ -273,7 +273,7 @@ public class PositionManagerTest {
 		// Black is on e4, white moves a knight to d4, check black ml doesn't contain a capture en passant, exd
 		createSutAndRegisterPe("8/8/8/8/4p3/8/3N4/8 w - - 0 1 ");
 		classUnderTest.performMove( Move.valueOf( Position.d2, Piece.WHITE_KNIGHT, Position.d4, Piece.NONE ));
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Position.e4, Piece.BLACK_PAWN, Position.d3, Piece.WHITE_PAWN );
 		doesntContain( expectedMove );
 	}	
@@ -283,7 +283,7 @@ public class PositionManagerTest {
 		// Black is on a4, white moves b4, then black ml contains capture en passant, axb
 		createSutAndRegisterPe("8/8/8/8/p7/8/1P6/8 w - - 0 1 ");
 		classUnderTest.performMove( Move.valueOf( Position.b2, Piece.WHITE_PAWN, Position.b4, Piece.NONE ));
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.a4, Piece.BLACK_PAWN, Position.b3, Piece.WHITE_PAWN, Piece.NONE );
 		contains( expectedMove );
 	}
@@ -293,7 +293,7 @@ public class PositionManagerTest {
 		// Black is on a4, white moves b4, then black ml contains capture en passant, axb
 		createSutAndRegisterPe("8/8/8/8/pP6/8/8/8 w - - 0 1 ");
 		classUnderTest.performMove( Move.valueOf( Position.b4, Piece.WHITE_PAWN, Position.b5, Piece.NONE ));
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.a4, Piece.BLACK_PAWN, Position.b3, Piece.WHITE_PAWN, Piece.NONE );
 		doesntContain( expectedMove );
 	}	
@@ -303,7 +303,7 @@ public class PositionManagerTest {
 		// Black is on h4, white moves g4, then black ml contains capture en passant, hxg
 		createSutAndRegisterPe("8/8/8/8/7p/8/6P1/8 w - - 0 1 ");
 		classUnderTest.performMove( Move.valueOf( Position.g2, Piece.WHITE_PAWN, Position.g4, Piece.NONE ));
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.h4, Piece.BLACK_PAWN, Position.g3, Piece.WHITE_PAWN, Piece.NONE );
 		contains( expectedMove );
 	}		
@@ -314,7 +314,7 @@ public class PositionManagerTest {
 		createSutAndRegisterPe("8/4p3/8/8/8/8/4P3/8 b - - 0 1 ");
 		classUnderTest.performMove( Move.valueOf( Position.e7, Piece.BLACK_PAWN, Position.e6, Piece.NONE ));
 		classUnderTest.performMove( Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE ));
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Position.e6, Piece.BLACK_PAWN, Position.e5, Piece.NONE );
 		assertTrue( ml.size() == 1 );
 		contains( expectedMove );		
@@ -323,7 +323,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_BlackPawn_MoveGen_CaptureLeft() {
 		createSutAndRegisterPe("8/4p3/5P2/8/8/8/8/8 b - - 0 1 ");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Position.e7, Piece.BLACK_PAWN, Position.f6, Piece.WHITE_PAWN );
 		contains( expectedMove );
 	}
@@ -331,7 +331,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_BlackPawn_MoveGen_CaptureRight() {
 		createSutAndRegisterPe("8/4p3/3P4/8/8/8/8/8 b - - 0 1 ");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Position.e7, Piece.BLACK_PAWN, Position.d6, Piece.WHITE_PAWN );
 		contains( expectedMove );
 	}
@@ -339,7 +339,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_BlackPawn_MoveGen_CaptureFork() {
 		createSutAndRegisterPe("8/4p3/3P1P2/8/8/8/8/8 b - - 0 1 ");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		int captureLeft = Move.valueOf( Position.e7, Piece.BLACK_PAWN, Position.d6, Piece.WHITE_PAWN );
 		int captureRight = Move.valueOf( Position.e7, Piece.BLACK_PAWN, Position.f6, Piece.WHITE_PAWN );
 		contains( captureLeft );
@@ -350,7 +350,7 @@ public class PositionManagerTest {
 	public void test_BlackPawn_MoveGen_CaptureFromAFile() {
 		// Can only capture left
 		createSutAndRegisterPe("8/p7/1P6/8/8/8/8/8 b - - 0 1 ");
-		ml = classUnderTest.generateMoves();;
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);;
 		expectedMove = Move.valueOf( Position.a7, Piece.BLACK_PAWN, Position.b6, Piece.WHITE_PAWN );
 		contains( expectedMove );
 	}
@@ -359,7 +359,7 @@ public class PositionManagerTest {
 	public void test_BlackPawn_MoveGen_CaptureFromHFile() {
 		// Can only capture right
 		createSutAndRegisterPe("8/7p/6P1/8/8/8/8/8 b - - 0 1 ");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Position.h7, Piece.BLACK_PAWN, Position.g6, Piece.WHITE_PAWN );
 		contains( expectedMove );
 	}
@@ -399,7 +399,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_WhitePawn_MoveGen_InitialMoveOneSquare() {
 		createSutAndRegisterPe("8/8/8/8/8/8/4P3/8 w - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE  );
 		contains( expectedMove );
 	}
@@ -407,7 +407,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_WhitePawn_MoveGen_InitialMoveTwoSquares() {
 		createSutAndRegisterPe("8/8/8/8/8/8/4P3/8 w - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.e3, Piece.NONE );
 		contains( expectedMove );
 	}
@@ -415,7 +415,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_WhitePawn_MoveGen_InitialBlocked() {
 		createSutAndRegisterPe("8/8/8/8/8/4p3/4P3/8 w - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		assertEquals( 0, ml.size() );
 	}
 
@@ -423,7 +423,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_CaptureEnPassantLeft() throws InvalidPieceException {
 		createSutAndRegisterPe("8/3p4/8/4P3/8/8/8/8 b - - 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.d7, Piece.BLACK_PAWN, Position.d5, Piece.NONE ));
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.e5, Piece.WHITE_PAWN, Position.d6, Piece.BLACK_PAWN, Piece.NONE );
 		contains( expectedMove );
 	}
@@ -432,7 +432,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_CaptureEnPassantLeftFalse() throws InvalidPieceException {
 		createSutAndRegisterPe("8/5r2/8/4P3/8/8/8/8 b - - 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.f7, Piece.BLACK_ROOK, Position.f5, Piece.NONE ));
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Position.e5, Piece.WHITE_PAWN, Position.f6, Piece.BLACK_PAWN );
 		doesntContain( expectedMove );
 	}
@@ -441,7 +441,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_CaptureEnPassantRight() throws InvalidPieceException {
 		createSutAndRegisterPe("8/5p2/8/4P3/8/8/8/8 b - - 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.f7, Piece.BLACK_PAWN, Position.f5, Piece.NONE ));
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.e5, Piece.WHITE_PAWN, Position.f6, Piece.BLACK_PAWN, Piece.NONE );
 		contains( expectedMove );
 	}
@@ -450,7 +450,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_CaptureEnPassantRightFalse() throws InvalidPieceException {
 		createSutAndRegisterPe("8/5r2/8/4P3/8/8/8/8 b - - 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.f7, Piece.BLACK_ROOK, Position.f5, Piece.NONE ));
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Position.e5, Piece.WHITE_PAWN, Position.f6, Piece.BLACK_PAWN );
 		doesntContain( expectedMove );
 	}	
@@ -460,7 +460,7 @@ public class PositionManagerTest {
 		// white is on a5, black moves b5, then black ml contains capture en passant, axb
 		createSutAndRegisterPe("8/1p6/8/P7/8/8/8/8 b - - 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.b7, Piece.BLACK_PAWN, Position.b5, Piece.NONE ));
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.a5, Piece.WHITE_PAWN, Position.b6, Piece.BLACK_PAWN, Piece.NONE );
 		contains( expectedMove );
 	}
@@ -470,7 +470,7 @@ public class PositionManagerTest {
 		// Black is on h4, white moves g4, then black ml contains capture en passant, hxg
 		createSutAndRegisterPe("8/6p1/8/7P/8/8/8/8 b - - 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.g7, Piece.BLACK_PAWN, Position.g5, Piece.NONE ));
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.h5, Piece.WHITE_PAWN, Position.g6, Piece.BLACK_PAWN, Piece.NONE );
 		contains( expectedMove );
 	}		
@@ -482,7 +482,7 @@ public class PositionManagerTest {
 		classUnderTest.performMove( Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE ));
 		classUnderTest.performMove( Move.valueOf( Position.f7, Piece.BLACK_PAWN, Position.f6, Piece.NONE ));
 		
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Position.e4, Piece.WHITE_PAWN, Position.e5, Piece.NONE );
 		assertTrue( ml.size() == 1 );
 		contains( expectedMove );		
@@ -491,7 +491,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_WhitePawn_MoveGen_CaptureLeft() {
 		createSutAndRegisterPe("8/8/8/8/8/5p2/4P3/8 w - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.f3, Piece.BLACK_PAWN );
 		contains( expectedMove );
 	}
@@ -499,7 +499,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_WhitePawn_MoveGen_CaptureRight() {
 		createSutAndRegisterPe("8/8/8/8/8/3p4/4P3/8 w - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.d3, Piece.BLACK_PAWN );
 		contains( expectedMove );
 	}
@@ -507,7 +507,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_WhitePawn_MoveGen_CaptureFork() {
 		createSutAndRegisterPe("8/8/8/8/8/3p1p2/4P3/8 w - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		int captureLeft = Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.d3, Piece.BLACK_PAWN );
 		int captureRight = Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.f3, Piece.BLACK_PAWN );
 		contains( captureLeft );
@@ -518,7 +518,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_CaptureFromAFile() {
 		// Can only capture left
 		createSutAndRegisterPe("8/8/8/8/8/1p6/P7/8 w - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Position.a2, Piece.WHITE_PAWN, Position.b3, Piece.BLACK_PAWN );
 		contains( expectedMove );
 	}
@@ -527,7 +527,7 @@ public class PositionManagerTest {
 	public void test_WhitePawn_MoveGen_CaptureFromHFile() {
 		// Can only capture right
 		createSutAndRegisterPe("8/8/8/8/8/6p1/7P/8 w - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMove = Move.valueOf( Position.h2, Piece.WHITE_PAWN, Position.g3, Piece.BLACK_PAWN );
 		contains( expectedMove );
 	}
@@ -568,7 +568,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Bishop_MoveGen_CornerTopLeft() {
 		createSutAndRegisterPe("b7/8/8/8/8/8/8/8 b - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( Position.a8, Piece.BLACK_BISHOP, Position.b7, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( Position.a8, Piece.BLACK_BISHOP, Position.h1, Piece.NONE ));
 		expectedNumMoves = 7;
@@ -578,7 +578,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Bishop_MoveGen_CornerTopRight() {
 		createSutAndRegisterPe("7b/8/8/8/8/8/8/8 b - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( Position.h8, Piece.BLACK_BISHOP, Position.g7, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( Position.h8, Piece.BLACK_BISHOP, Position.a1, Piece.NONE ));
 		expectedNumMoves = 7;
@@ -588,7 +588,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Bishop_MoveGen_CornerBottomRight() {
 		createSutAndRegisterPe("8/8/8/8/8/8/8/7b b - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( Position.h1, Piece.BLACK_BISHOP, Position.g2, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( Position.h1, Piece.BLACK_BISHOP, Position.a8, Piece.NONE ));
 		expectedNumMoves = 7;
@@ -598,7 +598,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Bishop_MoveGen_CornerBottomLeft() {
 		createSutAndRegisterPe("8/8/8/8/8/8/8/b7 b - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( Position.a1, Piece.BLACK_BISHOP, Position.b2, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( Position.a1, Piece.BLACK_BISHOP, Position.h8, Piece.NONE ));
 		expectedNumMoves = 7;
@@ -608,7 +608,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Bishop_MoveGen_CornerBottomLeft_ObstructedOwnPieces() {
 		createSutAndRegisterPe("8/8/8/8/8/8/1p6/b7 b - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedNumMoves = 4;
 		checkExpectedMoves(ml);
 	}
@@ -616,7 +616,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Bishop_MoveGen_LeftEdge_PartiallyObstructedOwnPiece() {
 		createSutAndRegisterPe("8/8/8/8/b7/1p6/8/8 b - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( Position.a4, Piece.BLACK_BISHOP, Position.b5, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( Position.a4, Piece.BLACK_BISHOP, Position.e8, Piece.NONE ));
 		expectedNumMoves = 5;
@@ -626,7 +626,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Bishop_MoveGen_LeftEdge_PartiallyObstructedCapturablePiece() {
 		createSutAndRegisterPe("8/8/8/8/b7/1P6/8/8 b - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( Position.a4, Piece.BLACK_BISHOP, Position.b5, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( Position.a4, Piece.BLACK_BISHOP, Position.e8, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( Position.a4, Piece.BLACK_BISHOP, Position.b3, Piece.WHITE_PAWN ));
@@ -637,7 +637,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Bishop_MoveGen_Middle_ObstructedCapturablePieces() {
 		createSutAndRegisterPe("8/8/8/3P1P2/4b3/3P1P2/8/8 b - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( Position.e4, Piece.BLACK_BISHOP, Position.d3, Piece.WHITE_PAWN ));
 		expectedMoves.add( Move.valueOf( Position.e4, Piece.BLACK_BISHOP, Position.d5, Piece.WHITE_PAWN ));
 		expectedMoves.add( Move.valueOf( Position.e4, Piece.BLACK_BISHOP, Position.f3, Piece.WHITE_PAWN ));
@@ -649,7 +649,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Bishop_MoveGen_Middle_ObstructedMixturePieces() {
 		createSutAndRegisterPe("8/8/8/3P1p2/4b3/3P1p2/8/8 b - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( Position.e4, Piece.BLACK_BISHOP, Position.d3, Piece.WHITE_PAWN ));
 		expectedMoves.add( Move.valueOf( Position.e4, Piece.BLACK_BISHOP, Position.d5, Piece.WHITE_PAWN ));
 		expectedNumMoves = 4;
@@ -659,7 +659,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Bishop_MoveGen_Middle_Unobstructed() {
 		createSutAndRegisterPe("8/8/8/4P3/3PbP2/4P3/8/8 b - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( Position.e4, Piece.BLACK_BISHOP, Position.d3, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( Position.e4, Piece.BLACK_BISHOP, Position.d5, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( Position.e4, Piece.BLACK_BISHOP, Position.f3, Piece.NONE ));
@@ -671,7 +671,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Bishop_MoveGen_CapturesOnlySinglePiece() {
 		createSutAndRegisterPe("8/8/8/8/8/2P5/1P6/b7 b - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( Position.a1, Piece.BLACK_BISHOP, Position.b2, Piece.WHITE_PAWN ));
 		expectedNumMoves = 1;
 		checkExpectedMoves(ml);
@@ -684,7 +684,7 @@ public class PositionManagerTest {
 	public void test_SquareA8() {
 		startTestOnSq = Position.a8;
 		createSutAndRegisterPe("N7/8/8/8/8/8/8/8 w - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( startTestOnSq, Piece.WHITE_KNIGHT, Position.c7, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( startTestOnSq, Piece.WHITE_KNIGHT, Position.b6, Piece.NONE ));
 		expectedNumMoves = 2;
@@ -695,7 +695,7 @@ public class PositionManagerTest {
 	public void test_SquareB7() {
 		startTestOnSq = Position.b7;
 		createSutAndRegisterPe("8/1N6/8/8/8/8/8/8 w - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( startTestOnSq, Piece.WHITE_KNIGHT, Position.d8, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( startTestOnSq, Piece.WHITE_KNIGHT, Position.d6, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( startTestOnSq, Piece.WHITE_KNIGHT, Position.a5, Piece.NONE ));
@@ -708,7 +708,7 @@ public class PositionManagerTest {
 	public void test_SquareC6() {
 		startTestOnSq = Position.c6;
 		createSutAndRegisterPe("8/8/2N5/8/8/8/8/8 w - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( startTestOnSq, Piece.WHITE_KNIGHT, Position.b8, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( startTestOnSq, Piece.WHITE_KNIGHT, Position.d8, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( startTestOnSq, Piece.WHITE_KNIGHT, Position.e7, Piece.NONE ));
@@ -725,7 +725,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Rook_MoveGen_CornerTopLeft() {
 		createSutAndRegisterPe("R7/8/8/8/8/8/8/8 w - - 0 1 ");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( Position.a8, Piece.WHITE_ROOK, Position.a7, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( Position.a8, Piece.WHITE_ROOK, Position.b8, Piece.NONE ));
 		expectedNumMoves = 14;
@@ -735,7 +735,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Rook_MoveGen_CornerTopRight() {
 		createSutAndRegisterPe("7R/8/8/8/8/8/8/8 w - - 0 1 ");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( Position.h8, Piece.WHITE_ROOK, Position.h7, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( Position.h8, Piece.WHITE_ROOK, Position.g8, Piece.NONE ));
 		expectedNumMoves = 14;
@@ -745,7 +745,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Rook_MoveGen_CornerBottomRight() {
 		createSutAndRegisterPe("8/8/8/8/8/8/8/7R w - - 0 1 ");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( Position.h1, Piece.WHITE_ROOK, Position.h2, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( Position.h1, Piece.WHITE_ROOK, Position.g1, Piece.NONE ));
 		expectedNumMoves = 14;
@@ -755,7 +755,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Rook_MoveGen_CornerBottomLeft() {
 		createSutAndRegisterPe("8/8/8/8/8/8/8/R7 w - - 0 1 ");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( Position.a1, Piece.WHITE_ROOK, Position.a2, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( Position.a1, Piece.WHITE_ROOK, Position.b1, Piece.NONE ));
 		expectedNumMoves = 14;
@@ -765,7 +765,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Rook_MoveGen_CornerBottomLeft_ObstructedOwnPieces() {
 		createSutAndRegisterPe("8/8/8/8/8/8/P7/RK6 w - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedNumMoves = 5;
 		checkExpectedMoves(ml);
 	}
@@ -773,7 +773,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Rook_MoveGen_CornerBottomLeft_PartiallyObstructedOwnPiece() {
 		createSutAndRegisterPe("8/8/8/8/8/8/P7/R7 w - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedNumMoves = 9;
 		checkExpectedMoves(ml);
 	}
@@ -781,7 +781,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Rook_MoveGen_CornerBottomLeft_PartiallyObstructedCapturablePiece() {
 		createSutAndRegisterPe("8/8/8/8/8/8/p7/R7 w - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( Position.a1, Piece.WHITE_ROOK, Position.a2, Piece.BLACK_PAWN ));
 		expectedMoves.add( Move.valueOf( Position.a1, Piece.WHITE_ROOK, Position.b1, Piece.NONE ));		
 		expectedNumMoves = 8;
@@ -791,7 +791,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Rook_MoveGen_Middle_ObstructedCapturablePieces() {
 		createSutAndRegisterPe("8/8/8/4P3/3PrP2/4P3/8/8 b - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( Position.e4, Piece.BLACK_ROOK, Position.f4, Piece.WHITE_PAWN ));
 		expectedMoves.add( Move.valueOf( Position.e4, Piece.BLACK_ROOK, Position.d4, Piece.WHITE_PAWN ));
 		expectedMoves.add( Move.valueOf( Position.e4, Piece.BLACK_ROOK, Position.e5, Piece.WHITE_PAWN ));
@@ -803,7 +803,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Rook_MoveGen_Middle_ObstructedMixturePieces() {
 		createSutAndRegisterPe("8/8/8/4P3/3prp2/4P3/8/8 b - - 0 1");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( Position.e4, Piece.BLACK_ROOK, Position.e5, Piece.WHITE_PAWN ));
 		expectedMoves.add( Move.valueOf( Position.e4, Piece.BLACK_ROOK, Position.e3, Piece.WHITE_PAWN ));
 		expectedNumMoves = 6;
@@ -813,7 +813,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Rook_MoveGen_Middle_Unobstructed() {
 		createSutAndRegisterPe("8/8/8/3P1P2/4r3/3P1P2/8/8 b - - 0 1 ");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		expectedMoves.add( Move.valueOf( Position.e4, Piece.BLACK_ROOK, Position.f4, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( Position.e4, Piece.BLACK_ROOK, Position.d4, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( Position.e4, Piece.BLACK_ROOK, Position.e5, Piece.NONE ));
@@ -825,7 +825,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_Rook_MoveGen_CapturesOnlySinglePiece() {
 		createSutAndRegisterPe("8/8/8/8/8/P7/P7/r7 b - - 0 1 ");
-		ml = classUnderTest.generateMoves();
+		ml = classUnderTest.generateMoves(Position.NOPOSITION);
 		assertFalse(ml.size() == 0);
 		contains( Move.valueOf( Position.a1, Piece.BLACK_ROOK, Position.a2, Piece.WHITE_PAWN ));
 		doesntContain( Move.valueOf( Position.a1, Piece.BLACK_ROOK, Position.a3, Piece.WHITE_PAWN ));

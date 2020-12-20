@@ -3,7 +3,6 @@ package eubos.search;
 import eubos.board.Board;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
-import eubos.main.EubosEngineMain;
 import eubos.position.IPositionAccessors;
 import eubos.score.PiecewiseEvaluation;
 
@@ -12,7 +11,6 @@ public class SearchContext {
 	IPositionAccessors pos;
 	Piece.Colour initialOnMove;
 	SearchGoal goal;
-	
 	
 	static final short SIMPLIFY_THRESHOLD = 100;
 	static final short DRAW_THRESHOLD = -150;
@@ -63,7 +61,6 @@ public class SearchContext {
 		} else {
 			goal = SearchGoal.try_for_win;
 		}
-		EubosEngineMain.logger.info(String.format("SearchContext is %s", goal));
 	}
 	
 	public boolean isTryForDraw() {
@@ -156,5 +153,9 @@ public class SearchContext {
 			score = (short) -score;
 		}
 		return score;
+	}
+
+	public String getGoal() {
+		return goal.toString();
 	}
 }

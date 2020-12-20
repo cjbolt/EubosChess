@@ -78,7 +78,8 @@ public class SearchDebugAgent {
 
 	static void printBackUpScore(int currPly, int prevScore, int positionScore) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%sbackedUp was:%d now:%d @%d", indent, prevScore, positionScore, currPly));
+			printOutput(String.format("%sbackedUp was:%s now:%s @%d",
+				indent, Score.toString(prevScore), Score.toString(positionScore), currPly));
 		}
 	}
 
@@ -124,11 +125,18 @@ public class SearchDebugAgent {
 		}
 	}
 
-	public static void printAlphaBetaComparison(int prevPlyScore, int positionScore) {
+	public static void printAlphaBetaComparison(int prevPlyScore, short positionScore) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%sab cmp prev:%d curr:%d @%d", indent, prevPlyScore, positionScore, currPly));
+			printOutput(String.format("%sab cmp prev:%s curr:%d @%d",
+				indent, Score.toString(prevPlyScore), positionScore, currPly));
 		}
-		
+	}
+	
+	public static void printAlphaBetaComparison(short prevPlyScore, short positionScore) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%sab cmp prev:%s curr:%d @%d",
+				indent, prevPlyScore, positionScore, currPly));
+		}
 	}
 
 	public static void printTransUpdate(ITransposition trans, long hashCode) {
@@ -160,7 +168,7 @@ public class SearchDebugAgent {
 			if (currPly == 0) {
 				printOutput(String.format("\n\n\n NEW ITERATION %d\n\n\n", originalSearchDepthRequiredInPly));
 			}
-			printOutput(String.format("%ssearch @:%d prov:%d", indent, currPly, st.getBackedUpScoreAtPly((byte)currPly).getScore()));
+			printOutput(String.format("%ssearch @:%d prov:%d", indent, currPly, st.getBackedUpScoreAtPly((byte)currPly)));
 			printOutput(String.format("%sfen:%s", indent, pos.getFen()));
 		}
 	}
@@ -193,9 +201,9 @@ public class SearchDebugAgent {
 		}
 	}
 
-	public static void printExtSearchNoMoves(Score theScore) {
+	public static void printExtSearchNoMoves(int theScore) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%sextSearch NoMoves term @%d score:%s", indent, currPly, theScore.getScore()));
+			printOutput(String.format("%sextSearch NoMoves term @%d score:%s", indent, currPly, Score.getScore(theScore)));
 		}
 	}
 

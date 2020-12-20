@@ -11,6 +11,7 @@ public interface IPositionAccessors {
 	public boolean isKingInCheck();
 	public int getMoveNumber();
 	public boolean lastMoveWasCheck();
+	public int lastMoveTargetSquare();
 	public boolean isPromotionPossible();
 	public long getHash();
 	public String getFen();

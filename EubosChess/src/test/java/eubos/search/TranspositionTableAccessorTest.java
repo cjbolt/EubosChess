@@ -97,7 +97,7 @@ public class TranspositionTableAccessorTest {
 		sut.setTransposition(null, (byte)1, (short)18, Score.upperBound, Move.toMove(pc.get(0)));
 		
 		// Set up score tracker according to diagram
-		st.setBackedUpScoreAtPly((byte)0, new Score((short)12, Score.upperBound));
+		st.setBackedUpScoreAtPly((byte)0, (short)12);
 		st.setProvisionalScoreAtPly((byte)1);
 		st.setProvisionalScoreAtPly((byte)2);
 		st.setProvisionalScoreAtPly((byte)3);
@@ -117,12 +117,12 @@ public class TranspositionTableAccessorTest {
 		sut.setTransposition(null, (byte)1, (short)18, Score.upperBound, Move.toMove(pc.get(0), pm.getTheBoard()));
 		
 		// Set up score tracker according to diagram
-		st.setBackedUpScoreAtPly((byte)0, new Score((short)12, Score.upperBound));
+		st.setBackedUpScoreAtPly((byte)0, Score.valueOf((short)12, Score.upperBound));
 		st.setProvisionalScoreAtPly((byte)1);
 		st.setProvisionalScoreAtPly((byte)2);
 		st.setProvisionalScoreAtPly((byte)3);
-		st.setBackedUpScoreAtPly((byte)3, new Score((short)40, Score.exact));
-		st.setBackedUpScoreAtPly((byte)2, new Score((short)40, Score.exact));
+		st.setBackedUpScoreAtPly((byte)3, Score.valueOf((short)40, Score.exact));
+		st.setBackedUpScoreAtPly((byte)2, Score.valueOf((short)40, Score.exact));
 		st.setProvisionalScoreAtPly((byte)3);
 		eval = sut.getTransposition(currPly, 1);
 		

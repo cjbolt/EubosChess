@@ -6,7 +6,6 @@ import com.fluxchess.jcpi.models.IntFile;
 
 import eubos.board.Board;
 import eubos.board.Piece;
-import eubos.board.SquareAttackEvaluator;
 import eubos.board.Piece.Colour;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
@@ -33,30 +32,17 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	public boolean isQuiescent(int currMove) {
-		return isQuiescent(currMove, false);
-	}
-	
-	public boolean isQuiescent(int currMove, boolean neededToEscapeCheck) {
 		if (DISABLE_QUIESCENCE_CHECK)
 			return true;
-		if (Move.isCheck(currMove) || (neededToEscapeCheck && Piece.isKing(Move.getOriginPiece(currMove)))) {
-			// This condition indicates a potentially highly forced move, need to check for move the defender type en-prise captures */
-			return false;
-		} else if (Move.isPromotion(currMove) || pm.isPromotionPossible()) {
+		if (Move.isPromotion(currMove) || pm.isPromotionPossible()) {
 			return false;
 		} else if (Move.isCapture(currMove)) {
-			// It isn't quiescent if a recapture is possible
-			if (SquareAttackEvaluator.isAttacked(
-					pm.getTheBoard(),
-					Move.getTargetPosition(currMove),
-					pm.getOnMove())) {
-				return false;
-			}
+		    return false;
 		}
 		return true;
 	}
 	
-	public Score evaluatePosition() {
+	public int evaluatePosition() {
 		pm.getTheBoard().evaluateMaterial();
 		SearchContextEvaluation eval = sc.computeSearchGoalBonus(pm.getTheBoard().me);
 		if (!eval.isDraw) {
@@ -65,7 +51,7 @@ public class PositionEvaluator implements IEvaluate {
 				eval.score += evaluatePawnStructure();
 			}
 		}
-		return new Score(eval.score, Score.exact);
+		return Score.valueOf(eval.score, Score.exact);
 	}
 	
 	int evaluatePawnStructure() {
@@ -113,5 +99,10 @@ public class PositionEvaluator implements IEvaluate {
 	@Override
 	public short getScoreForStalemate() {
 		return sc.getScoreForStalemate();
+	}
+
+	@Override
+	public String getGoal() {
+		return sc.getGoal();
 	}
 }
