@@ -97,7 +97,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public void receive(EngineInitializeRequestCommand command) {
 		logger.fine("Eubos Initialising");
 		
-		ProtocolInitializeAnswerCommand reply = new ProtocolInitializeAnswerCommand("Eubos 1.1.7","Chris Bolt");
+		ProtocolInitializeAnswerCommand reply = new ProtocolInitializeAnswerCommand("Eubos 2.0","Chris Bolt");
 		reply.addOption(Options.newHashOption((int)DEFAULT_HASH_SIZE, MIN_HASH_SIZE, MAX_HASH_SIZE));
 		reply.addOption(new SpinnerOption("NumberOfWorkerThreads", defaultNumberOfWorkerThreads, 1, numCores));
 		this.getProtocol().send( reply );
