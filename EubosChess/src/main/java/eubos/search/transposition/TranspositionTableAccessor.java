@@ -25,38 +25,41 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 	}
 	
 	public TranspositionEvaluation getTransposition(byte currPly, int depthRequiredPly) {
-		TranspositionEvaluation ret = new TranspositionEvaluation();
-		ret.trans = hashMap.getTransposition(pos.getHash());
-		if (ret.trans == null)
-			return ret;
-		
-		synchronized(ret.trans) {
-			if (ret.trans.getDepthSearchedInPly() >= depthRequiredPly) {
+		TranspositionEvaluation eval = new TranspositionEvaluation();
+		eval.trans = hashMap.getTransposition(pos.getHash());
+		if (eval.trans != null) {
+			evaluateTranspositionData(currPly, depthRequiredPly, eval);
+		}
+		return eval;
+	}
+
+	private void evaluateTranspositionData(byte currPly, int depthRequiredPly, TranspositionEvaluation eval) {
+		synchronized(eval.trans) {
+			if (eval.trans.getDepthSearchedInPly() >= depthRequiredPly) {
 				
-				if (ret.trans.getType() == Score.exact) {
-					ret.status = TranspositionTableStatus.sufficientTerminalNode;
-					SearchDebugAgent.printHashIsTerminalNode(ret.trans, pos.getHash());
+				if (eval.trans.getType() == Score.exact) {
+					eval.status = TranspositionTableStatus.sufficientTerminalNode;
+					SearchDebugAgent.printHashIsTerminalNode(eval.trans, pos.getHash());
 				} else {
 					// must be either (bound == Score.upperBound || bound == Score.lowerBound)
-					if (st.isAlphaBetaCutOffForHash(currPly, ret.trans.getScore())) {
-						SearchDebugAgent.printHashIsRefutation(pos.getHash(), ret.trans);
-						ret.status = TranspositionTableStatus.sufficientRefutation;
+					if (st.isAlphaBetaCutOffForHash(currPly, eval.trans.getScore())) {
+						SearchDebugAgent.printHashIsRefutation(pos.getHash(), eval.trans);
+						eval.status = TranspositionTableStatus.sufficientRefutation;
 			        } else {
-			        	ret.status = TranspositionTableStatus.sufficientSeedMoveList;
+			        	eval.status = TranspositionTableStatus.sufficientSeedMoveList;
 			        }
 				}
 			} else {
-				ret.status = TranspositionTableStatus.sufficientSeedMoveList;
+				eval.status = TranspositionTableStatus.sufficientSeedMoveList;
 			}
 			
-			if (ret.trans.getBestMove() == Move.NULL_MOVE) {
+			if (eval.trans.getBestMove() == Move.NULL_MOVE) {
 				// It is possible that we don't have a move to seed the list with, guard against that.
-				if (ret.status == TranspositionTableStatus.sufficientSeedMoveList) {
-					ret.status = TranspositionTableStatus.insufficientNoData;
+				if (eval.status == TranspositionTableStatus.sufficientSeedMoveList) {
+					eval.status = TranspositionTableStatus.insufficientNoData;
 				}
 			}
 		}
-		return ret;
 	}
 	
 	public ITransposition setTransposition(ITransposition trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove) {
@@ -87,14 +90,13 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 	}
 	
 	private ITransposition createTranpositionAddToTable(byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv) {
-		SearchDebugAgent.printTransNull(pos.getHash());
 		ITransposition new_trans;
+		SearchDebugAgent.printCreateTrans(pos.getHash());
 		if (USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
 			new_trans = new PrincipalVariationTransposition(new_Depth, new_score, new_bound, new_bestMove, pv);
 		} else {
 			new_trans= new Transposition(new_Depth, new_score, new_bound, new_bestMove, null);
 		}
-		SearchDebugAgent.printCreateTrans(pos.getHash());
 		hashMap.putTransposition(pos.getHash(), new_trans);
 		SearchDebugAgent.printTransUpdate(new_trans, pos.getHash());
 		return new_trans;

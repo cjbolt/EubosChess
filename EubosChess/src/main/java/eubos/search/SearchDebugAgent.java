@@ -144,12 +144,6 @@ public class SearchDebugAgent {
 			printOutput(String.format("%s%s hash:%d object:%s", indent, trans.report(), hashCode, trans.toString()));
 		}		
 	}
-
-	public static void printTransNull(long hashCode) {
-		if (DEBUG_ENABLED) {
-			printOutput(String.format("%strans is null, hash:%d", indent, hashCode));
-		}		
-	}
 	
 	public static void printCreateTrans(long hashCode) {
 		if (DEBUG_ENABLED) {

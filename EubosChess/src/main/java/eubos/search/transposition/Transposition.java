@@ -10,11 +10,11 @@ import eubos.search.Score;
 import eubos.search.SearchDebugAgent;
 
 public class Transposition implements ITransposition {
-	private byte depthSearchedInPly;
-	private short score;
-	private byte type;
-	private int bestMove;
-	private short accessCount;
+	protected byte depthSearchedInPly;
+	protected short score;
+	protected byte type;
+	protected int bestMove;
+	protected short accessCount;
 
 	public Transposition(byte depth, short score, byte bound, GenericMove bestMove) {
 		// Only used by tests
@@ -34,7 +34,7 @@ public class Transposition implements ITransposition {
 		return type;
 	}
 
-	private void setType(byte type) {
+	protected void setType(byte type) {
 		this.type = type;
 	}
 
@@ -43,7 +43,7 @@ public class Transposition implements ITransposition {
 		return score;
 	}
 
-	private void setScore(short new_score) {
+	protected void setScore(short new_score) {
 		this.score = new_score;
 	}
 	
@@ -52,7 +52,7 @@ public class Transposition implements ITransposition {
 		return depthSearchedInPly;
 	}
 
-	private void setDepthSearchedInPly(byte depthSearchedInPly) {
+	protected void setDepthSearchedInPly(byte depthSearchedInPly) {
 		this.depthSearchedInPly = depthSearchedInPly;
 	}
 
@@ -61,7 +61,7 @@ public class Transposition implements ITransposition {
 		return bestMove;
 	}
 	
-	private void setBestMove(int bestMove) {
+	protected void setBestMove(int bestMove) {
 		if (!Move.areEqual(this.bestMove, bestMove)) {
 			this.bestMove = bestMove;
 		}
