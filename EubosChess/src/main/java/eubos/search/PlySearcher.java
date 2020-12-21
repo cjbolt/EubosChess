@@ -291,16 +291,14 @@ public class PlySearcher {
 		if (EubosEngineMain.ASSERTS_ENABLED)
 			assert isInNormalSearch();
 		
+		short scoreFromDownTree = updateMateScoresForEncodingMateDistanceInHashTable(plyScore);
+		
 		// This is the only way a hash and score can be exact.
-		if (trans.getDepthSearchedInPly() <= currDepthSearchedInPly) {
-			// however we need to be careful that the depth is appropriate, we don't set exact for wrong depth...
-
-			// found to be needed due to score discrepancies caused by refutations coming out of extended search...
-			// Still needed 22nd October 2020.
-			short scoreFromDownTree = updateMateScoresForEncodingMateDistanceInHashTable(plyScore);
-			trans.updateToExact(scoreFromDownTree, pc.getBestMove(currPly));
-
-			SearchDebugAgent.printExactTrans(pos.getHash(), trans);
+		// found to be needed due to score discrepancies caused by refutations coming out of extended search...
+		// Still needed 22nd October 2020
+		if (trans.checkUpdateToExact(currDepthSearchedInPly, scoreFromDownTree, pc.getBestMove(currPly)))
+		{
+			SearchDebugAgent.printExactTrans(pos.getHash(), trans);			
 		}
 	}
 

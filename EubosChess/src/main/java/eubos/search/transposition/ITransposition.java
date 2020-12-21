@@ -14,9 +14,9 @@ public interface ITransposition {
 
 	String report();
 
-	boolean update(byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv);
+	boolean checkUpdate(byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv);
 	
-	void updateToExact(short new_score, int new_bestMove);
+	boolean checkUpdateToExact(byte depth, short new_score, int new_bestMove);
 	
 	short getAccessCount();
 	

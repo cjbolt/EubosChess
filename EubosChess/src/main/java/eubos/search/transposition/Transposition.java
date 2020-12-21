@@ -78,7 +78,7 @@ public class Transposition implements ITransposition {
 	}
 	
 	@Override
-	public synchronized boolean update(
+	public synchronized boolean checkUpdate(
 			byte new_Depth, 
 			short new_score,
 			byte new_bound,
@@ -120,12 +120,19 @@ public class Transposition implements ITransposition {
 	}
 	
 	@Override
-	public synchronized void updateToExact(
+	public synchronized boolean checkUpdateToExact(
+			byte currDepthSearchedInPly,
 			short new_score,
 			int new_bestMove) {
-		setScore(new_score);
-		setType(Score.exact);
-		setBestMove(new_bestMove);
+		boolean wasSetAsExact = false;
+		if (getDepthSearchedInPly() <= currDepthSearchedInPly) {
+			// however we need to be careful that the depth is appropriate, we don't set exact for wrong depth...
+			setScore(new_score);
+			setType(Score.exact);
+			setBestMove(new_bestMove);
+			wasSetAsExact = true;
+		}
+		return wasSetAsExact;
 	}
 	
 	public short getAccessCount() {

@@ -7,6 +7,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.search.Score;
+import eubos.search.SearchDebugAgent;
 
 public class PrincipalVariationTransposition implements ITransposition {
 
@@ -110,29 +111,62 @@ public class PrincipalVariationTransposition implements ITransposition {
 	}
 	
 	@Override
-	public synchronized boolean update(
+	public synchronized boolean checkUpdate(
 			byte new_Depth, 
 			short new_score,  
 			byte new_bound,
 			int new_bestMove, 
 			List<Integer> pv) {
-		// order is important because setPv uses depth
-		setDepthSearchedInPly(new_Depth);
-		setScore(new_score);
-		setType(new_bound);
-		setBestMove(new_bestMove);
-		setPv(pv);
-		return true;
+		boolean updateTransposition = false;
+		SearchDebugAgent.printTransDepthCheck(depthSearchedInPly, new_Depth);
+		
+		if (depthSearchedInPly < new_Depth) {
+			updateTransposition = true;
+			
+		} else if (depthSearchedInPly == new_Depth) {
+			SearchDebugAgent.printTransBoundScoreCheck(scoreType, score, new_score);
+			if (((scoreType == Score.upperBound) || (scoreType == Score.lowerBound)) &&
+					new_bound == Score.exact) {
+			    updateTransposition = true;
+			} else if ((scoreType == Score.upperBound) &&
+					   (new_score < getScore())) {
+				if (EubosEngineMain.ASSERTS_ENABLED)
+					assert scoreType == new_bound;
+				updateTransposition = true;
+			} else if ((scoreType == Score.lowerBound) &&
+					   (new_score > getScore())) {
+				if (EubosEngineMain.ASSERTS_ENABLED)
+					assert scoreType == new_bound;
+				updateTransposition = true;
+			}
+		}
+		
+		if (updateTransposition) {
+			// order is important because setPv uses depth
+			depthSearchedInPly = new_Depth;
+			score = new_score;
+			scoreType = new_bound;
+			bestMove = new_bestMove;
+			setPv(pv);
+		}
+		
+		return updateTransposition;
 	}
 	
 	@Override
-	public synchronized void updateToExact(
+	public synchronized boolean checkUpdateToExact(
+			byte currDepthSearchedInPly,
 			short new_score,  
 			int new_bestMove) {
-		// order is important because setPv uses depth
-		setScore(new_score);
-		setType(Score.exact);
-		setBestMove(new_bestMove);
+		boolean wasSetAsExact = false;
+		if (getDepthSearchedInPly() <= currDepthSearchedInPly) {
+			// order is important because setPv uses depth
+			setScore(new_score);
+			setType(Score.exact);
+			setBestMove(new_bestMove);
+			wasSetAsExact = true;
+		}
+		return wasSetAsExact;
 	}
 	
 	public short getAccessCount() {

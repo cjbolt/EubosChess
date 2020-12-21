@@ -78,7 +78,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			}
 		}
 		if (!is_created) {
-			boolean is_updated = trans.update(new_Depth, new_score, new_bound, new_bestMove, pv);
+			boolean is_updated = trans.checkUpdate(new_Depth, new_score, new_bound, new_bestMove, pv);
 			if (is_updated) {
 				SearchDebugAgent.printTransUpdate(trans, pos.getHash());
 			}
