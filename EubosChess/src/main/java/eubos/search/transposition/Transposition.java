@@ -4,8 +4,10 @@ import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
+import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.search.Score;
+import eubos.search.SearchDebugAgent;
 
 public class Transposition implements ITransposition {
 	private byte depthSearchedInPly;
@@ -76,16 +78,45 @@ public class Transposition implements ITransposition {
 	}
 	
 	@Override
-	public synchronized void update(
+	public synchronized boolean update(
 			byte new_Depth, 
 			short new_score,
 			byte new_bound,
 			int new_bestMove, 
 			List<Integer> pv) {
-		setDepthSearchedInPly(new_Depth);
-		setScore(new_score);
-		setType(new_bound);
-		setBestMove(new_bestMove);
+		
+		boolean updateTransposition = false;
+		SearchDebugAgent.printTransDepthCheck(depthSearchedInPly, new_Depth);
+		
+		if (depthSearchedInPly < new_Depth) {
+			updateTransposition = true;
+			
+		} else if (depthSearchedInPly == new_Depth) {
+			SearchDebugAgent.printTransBoundScoreCheck(type, score, new_score);
+			if (((type == Score.upperBound) || (type == Score.lowerBound)) &&
+					new_bound == Score.exact) {
+			    updateTransposition = true;
+			} else if ((type == Score.upperBound) &&
+					   (new_score < getScore())) {
+				if (EubosEngineMain.ASSERTS_ENABLED)
+					assert type == new_bound;
+				updateTransposition = true;
+			} else if ((type == Score.lowerBound) &&
+					   (new_score > getScore())) {
+				if (EubosEngineMain.ASSERTS_ENABLED)
+					assert type == new_bound;
+				updateTransposition = true;
+			}
+		}
+		
+		if (updateTransposition) {
+			depthSearchedInPly = new_Depth;
+			score = new_score;
+			type = new_bound;
+			bestMove = new_bestMove;
+		}
+		
+		return updateTransposition;
 	}
 	
 	@Override

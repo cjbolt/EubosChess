@@ -2,7 +2,6 @@ package eubos.search.transposition;
 
 import java.util.List;
 
-import eubos.main.EubosEngineMain;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.search.Score;
@@ -30,6 +29,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		ret.trans = hashMap.getTransposition(pos.getHash());
 		if (ret.trans == null)
 			return ret;
+		
 		synchronized(ret.trans) {
 			if (ret.trans.getDepthSearchedInPly() >= depthRequiredPly) {
 				
@@ -59,70 +59,44 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		return ret;
 	}
 	
-	public ITransposition setTransposition(ITransposition trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv) {
-		if (trans == null) {
-			trans = getTransCreateIfNew(new_Depth, new_score, new_bound, new_bestMove, pv);
-		}
-		checkForUpdateTrans(trans, new_Depth, new_score, new_bound, new_bestMove, pv);
-		return trans;
-	}
-	
 	public ITransposition setTransposition(ITransposition trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove) {
 		return setTransposition(trans, new_Depth, new_score, new_bound, new_bestMove, null);
 	}
 	
-	private ITransposition getTransCreateIfNew(byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv) {
-		SearchDebugAgent.printTransNull(pos.getHash());
-		ITransposition trans = hashMap.getTransposition(pos.getHash());
+	public ITransposition setTransposition(ITransposition trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv) {
+		boolean is_created = false;
 		if (trans == null) {
-			ITransposition new_trans;
-			if (USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
-				new_trans = new PrincipalVariationTransposition(new_Depth, new_score, new_bound, new_bestMove, pv);
-			} else {
-				new_trans= new Transposition(new_Depth, new_score, new_bound, new_bestMove, null);
+			synchronized(hashMap) {
+				// Needed, because we want to merge this transposition with that of other threads, not to lose their effort.
+				// Read, modify, write, otherwise we blindly update the transposition table, potentially overwriting other thread's Transposition object.
+				// This is done in a lock to ensure that no-one adds whilst we are adding
+				trans = hashMap.getTransposition(pos.getHash());
+				if (trans == null) {
+					trans = createTranpositionAddToTable(new_Depth, new_score, new_bound, new_bestMove, pv);
+					is_created = true;
+				}
 			}
-			SearchDebugAgent.printCreateTrans(pos.getHash());
-			hashMap.putTransposition(pos.getHash(), new_trans);
-			SearchDebugAgent.printTransUpdate(new_trans, pos.getHash());
-			trans = new_trans;
+		}
+		if (!is_created) {
+			boolean is_updated = trans.update(new_Depth, new_score, new_bound, new_bestMove, pv);
+			if (is_updated) {
+				SearchDebugAgent.printTransUpdate(trans, pos.getHash());
+			}
 		}
 		return trans;
 	}
 	
-	private void checkForUpdateTrans(ITransposition current_trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv) {
-		boolean updateTransposition = false;
-		
-		synchronized(current_trans) {
-			int currentDepth = current_trans.getDepthSearchedInPly();
-			
-			SearchDebugAgent.printTransDepthCheck(currentDepth, new_Depth);
-			
-			if (currentDepth < new_Depth) {
-				updateTransposition = true;
-			} else if (currentDepth == new_Depth) {
-				byte currentBound = current_trans.getType();
-				SearchDebugAgent.printTransBoundScoreCheck(currentBound, current_trans.getScore(), Score.getScore(new_score));
-				if (((currentBound == Score.upperBound) || (currentBound == Score.lowerBound)) &&
-						new_bound == Score.exact) {
-				    updateTransposition = true;
-				} else if ((currentBound == Score.upperBound) &&
-						   (Score.getScore(new_score) < current_trans.getScore())) {
-					if (EubosEngineMain.ASSERTS_ENABLED)
-						assert currentBound == new_bound;
-					updateTransposition = true;
-				} else if ((currentBound == Score.lowerBound) &&
-						   (Score.getScore(new_score) > current_trans.getScore())) {
-					if (EubosEngineMain.ASSERTS_ENABLED)
-						assert currentBound == new_bound;
-					updateTransposition = true;
-				}
-			}
+	private ITransposition createTranpositionAddToTable(byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv) {
+		SearchDebugAgent.printTransNull(pos.getHash());
+		ITransposition new_trans;
+		if (USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
+			new_trans = new PrincipalVariationTransposition(new_Depth, new_score, new_bound, new_bestMove, pv);
+		} else {
+			new_trans= new Transposition(new_Depth, new_score, new_bound, new_bestMove, null);
 		}
-		
-		if (updateTransposition) {
-			current_trans.update(new_Depth, new_score, new_bound, new_bestMove, pv );
-		    hashMap.putTransposition(pos.getHash(), current_trans);
-		    SearchDebugAgent.printTransUpdate(current_trans, pos.getHash());
-		}
+		SearchDebugAgent.printCreateTrans(pos.getHash());
+		hashMap.putTransposition(pos.getHash(), new_trans);
+		SearchDebugAgent.printTransUpdate(new_trans, pos.getHash());
+		return new_trans;
 	}
 }

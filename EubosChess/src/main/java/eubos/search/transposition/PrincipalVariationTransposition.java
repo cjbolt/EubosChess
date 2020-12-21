@@ -110,7 +110,7 @@ public class PrincipalVariationTransposition implements ITransposition {
 	}
 	
 	@Override
-	public synchronized void update(
+	public synchronized boolean update(
 			byte new_Depth, 
 			short new_score,  
 			byte new_bound,
@@ -122,6 +122,7 @@ public class PrincipalVariationTransposition implements ITransposition {
 		setType(new_bound);
 		setBestMove(new_bestMove);
 		setPv(pv);
+		return true;
 	}
 	
 	@Override

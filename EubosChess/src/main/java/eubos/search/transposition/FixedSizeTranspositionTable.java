@@ -134,7 +134,7 @@ public class FixedSizeTranspositionTable {
 		}
 	}
 	
-	public synchronized void putTransposition(long hashCode, ITransposition trans) {
+	public void putTransposition(long hashCode, ITransposition trans) {
 		if (hashMapSize >= maxHashMapSize) {
 			// Remove the oldest 20% of hashes to make way for this one
 			removeLeastUsed();
