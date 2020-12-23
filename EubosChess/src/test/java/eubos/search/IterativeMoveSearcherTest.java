@@ -55,7 +55,6 @@ public class IterativeMoveSearcherTest {
 	public void setUp() throws Exception {
 		eubos = new EubosMock();
 		killers = new KillerList(EubosEngineMain.SEARCH_DEPTH_IN_PLY);
-		SearchDebugAgent.open(0, true);
 		hashMap = new FixedSizeTranspositionTable();
 		EubosEngineMain.logger.setLevel(Level.OFF);
 		EubosEngineMain.logger.setUseParentHandlers(false);
@@ -63,7 +62,7 @@ public class IterativeMoveSearcherTest {
 	
 	@After
 	public void tearDown() {
-		SearchDebugAgent.close();
+		sut.closeSearchDebugAgent();
 	}
 
 	private void runSearcherAndTestBestMoveReturned() {

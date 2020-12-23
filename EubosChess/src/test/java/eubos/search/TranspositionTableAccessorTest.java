@@ -39,10 +39,11 @@ public class TranspositionTableAccessorTest {
 	@Before
 	public void setUp() throws Exception {
 		transTable = new FixedSizeTranspositionTable();
-		st = new ScoreTracker(SEARCH_DEPTH_IN_PLY, true);
+		SearchDebugAgent sda = new SearchDebugAgent(0, true);
+		st = new ScoreTracker(SEARCH_DEPTH_IN_PLY, true, sda);
 		st.setProvisionalScoreAtPly((byte) 0);
 		pm = new PositionManager();
-		sut = new TranspositionTableAccessor(transTable, pm, st);
+		sut = new TranspositionTableAccessor(transTable, pm, st, sda);
 		currPly = 0;
 	}
 
@@ -165,7 +166,7 @@ public class TranspositionTableAccessorTest {
 	@Test
 	public void testUpdateWorks_whenExistingUpdated_ArenaError() throws IllegalNotationException {
 		pm = new PositionManager("8/8/p6p/1p3kp1/1P6/P4PKP/5P2/8 w - - 0 1"); //Endgame pos
-		sut = new TranspositionTableAccessor(transTable, pm, st);
+		sut = new TranspositionTableAccessor(transTable, pm, st, new SearchDebugAgent(0, true));
 		GenericMove move1 = new GenericMove("h3h4");
 		GenericMove move2 = new GenericMove("f3f4");
 		

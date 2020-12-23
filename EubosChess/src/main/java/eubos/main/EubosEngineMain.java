@@ -101,10 +101,6 @@ public class EubosEngineMain extends AbstractEngine {
 		reply.addOption(Options.newHashOption((int)DEFAULT_HASH_SIZE, MIN_HASH_SIZE, MAX_HASH_SIZE));
 		reply.addOption(new SpinnerOption("NumberOfWorkerThreads", defaultNumberOfWorkerThreads, 1, numCores));
 		this.getProtocol().send( reply );
-		
-		LocalDateTime dateTime = LocalDateTime.now();
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy-HH-mm-ss");
-		SearchDebugAgent.setFileNameBaseString(dateTime.format(formatter));
 		lastOnMove = null;
 	}
 
@@ -348,7 +344,6 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	@Override
 	protected void quit() {
-		SearchDebugAgent.close();
 	}
 
 	public static void main(String[] args) {

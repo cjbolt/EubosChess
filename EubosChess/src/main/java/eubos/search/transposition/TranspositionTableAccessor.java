@@ -14,14 +14,17 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 	private FixedSizeTranspositionTable hashMap;
 	private IPositionAccessors pos;
 	private ScoreTracker st;
+	private SearchDebugAgent sda;
 	
 	public TranspositionTableAccessor(
 			FixedSizeTranspositionTable transTable,
 			IPositionAccessors pos,
-			ScoreTracker st) {
+			ScoreTracker st,
+			SearchDebugAgent sda) {
 		hashMap = transTable;
 		this.pos = pos;
 		this.st = st;
+		this.sda = sda;
 	}
 	
 	public TranspositionEvaluation getTransposition(byte currPly, int depthRequiredPly) {
@@ -39,11 +42,11 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 				
 				if (eval.trans.getType() == Score.exact) {
 					eval.status = TranspositionTableStatus.sufficientTerminalNode;
-					SearchDebugAgent.printHashIsTerminalNode(eval.trans, pos.getHash());
+					sda.printHashIsTerminalNode(eval.trans, pos.getHash());
 				} else {
 					// must be either (bound == Score.upperBound || bound == Score.lowerBound)
 					if (st.isAlphaBetaCutOffForHash(currPly, eval.trans.getScore())) {
-						SearchDebugAgent.printHashIsRefutation(pos.getHash(), eval.trans);
+						sda.printHashIsRefutation(pos.getHash(), eval.trans);
 						eval.status = TranspositionTableStatus.sufficientRefutation;
 			        } else {
 			        	eval.status = TranspositionTableStatus.sufficientSeedMoveList;
@@ -83,7 +86,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		if (!is_created) {
 			boolean is_updated = trans.checkUpdate(new_Depth, new_score, new_bound, new_bestMove, pv);
 			if (is_updated) {
-				SearchDebugAgent.printTransUpdate(trans, pos.getHash());
+				sda.printTransUpdate(trans, pos.getHash());
 			}
 		}
 		return trans;
@@ -91,14 +94,14 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 	
 	private ITransposition createTranpositionAddToTable(byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv) {
 		ITransposition new_trans;
-		SearchDebugAgent.printCreateTrans(pos.getHash());
+		sda.printCreateTrans(pos.getHash());
 		if (USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
 			new_trans = new PrincipalVariationTransposition(new_Depth, new_score, new_bound, new_bestMove, pv);
 		} else {
 			new_trans= new Transposition(new_Depth, new_score, new_bound, new_bestMove, null);
 		}
 		hashMap.putTransposition(pos.getHash(), new_trans);
-		SearchDebugAgent.printTransUpdate(new_trans, pos.getHash());
+		sda.printTransUpdate(new_trans, pos.getHash());
 		return new_trans;
 	}
 }

@@ -41,12 +41,13 @@ public class PlySearcherTest {
 	List<Integer> lastPc;
 	private ITranspositionAccessor mock_hashMap;
 	private ScoreTracker st;
+	private SearchDebugAgent sda;
 	
 	@Before
 	public void setUp() throws Exception {
-		SearchDebugAgent.open(0, true);
+		sda = new SearchDebugAgent(0, false);
 		
-		pc = new PrincipalContinuation(searchDepth*3);
+		pc = new PrincipalContinuation(searchDepth*3, sda);
 		sm = new SearchMetrics(searchDepth*3, new PositionManager());
 		sm.setPrincipalVariation(pc.toPvList(0));
 		mockEubos = new EubosEngineMain();
@@ -54,7 +55,7 @@ public class PlySearcherTest {
 		sr.register(sm);
 		mock_pos = mock(IPositionAccessors.class);
 		mock_hashMap = mock(ITranspositionAccessor.class);
-		st = new ScoreTracker(searchDepth*3, true);
+		st = new ScoreTracker(searchDepth*3, true, sda);
 		lastPc = null;
 		
 		when(mock_pos.getOnMove()).thenReturn(Colour.white);
@@ -62,7 +63,7 @@ public class PlySearcherTest {
 	
 	@After
 	public void tearDown() {
-		SearchDebugAgent.close();
+		sda.close();
 	}
 	
 	private void initialisePositionAndSearch(String fen, byte depth) {
@@ -80,7 +81,8 @@ public class PlySearcherTest {
 				pm,
 				lastPc,
 				pe,
-				killers);		
+				killers,
+				sda);		
 	}
 	
 	@Test

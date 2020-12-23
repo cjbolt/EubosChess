@@ -47,7 +47,7 @@ public class ScoreTrackerTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		classUnderTest = new ScoreTracker(searchDepth, isWhite);
+		classUnderTest = new ScoreTracker(searchDepth, isWhite, new SearchDebugAgent(0, true));
 	}
 
 	@Test

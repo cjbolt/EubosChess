@@ -8,7 +8,6 @@ import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
 import eubos.search.DrawChecker;
 import eubos.search.NoLegalMoveException;
-import eubos.search.SearchDebugAgent;
 import eubos.search.SearchResult;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 
@@ -99,7 +98,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		enableSearchMetricsReporter(false);
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
 		terminateSearchMetricsReporter();
-		SearchDebugAgent.close();
+		mg.sda.close();
 		if (EXPLICIT_GARBAGE_COLLECTION) {
 			if (gameTimeRemaining > 60000)
 				System.gc();
@@ -204,5 +203,9 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			halt();
 			stopperActive = false;
 		}
+	}
+
+	public void closeSearchDebugAgent() {
+		mg.sda.close();
 	}
 }

@@ -6,7 +6,6 @@ import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 
 import eubos.main.EubosEngineMain;
 import eubos.search.DrawChecker;
-import eubos.search.SearchDebugAgent;
 import eubos.search.SearchResult;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 
@@ -43,6 +42,6 @@ public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 		enableSearchMetricsReporter(false);
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
 		terminateSearchMetricsReporter();
-		SearchDebugAgent.close();
+		mg.sda.close();
 	}
 }

@@ -22,7 +22,7 @@ public class PrincipalContinuationTest {
 	
 	@Before
 	public void setUp() {
-		classUnderTest = new PrincipalContinuation(searchDepth);
+		classUnderTest = new PrincipalContinuation(searchDepth, new SearchDebugAgent(0, true));
 	}
 	
 	@Test

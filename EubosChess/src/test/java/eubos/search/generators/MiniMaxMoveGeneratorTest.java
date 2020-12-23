@@ -20,7 +20,6 @@ import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.search.NoLegalMoveException;
-import eubos.search.SearchDebugAgent;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 import eubos.search.SearchResult;
 
@@ -36,7 +35,6 @@ public class MiniMaxMoveGeneratorTest {
 	@Before
 	public void setUp() {
 		EubosEngineMain.logger.setLevel(Level.OFF);
-		SearchDebugAgent.open(0, true);
 		pl = new LinkedList<Piece>();
 		hashMap = new FixedSizeTranspositionTable();
 		pm = null;
@@ -44,7 +42,7 @@ public class MiniMaxMoveGeneratorTest {
 	
 	@After
 	public void tearDown() {
-		SearchDebugAgent.close();
+		classUnderTest.sda.close();
 	}
 	
 	private void doFindMoveTest( boolean expectMove ) {

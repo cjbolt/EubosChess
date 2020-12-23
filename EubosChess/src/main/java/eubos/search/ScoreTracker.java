@@ -5,12 +5,14 @@ import eubos.main.EubosEngineMain;
 public class ScoreTracker {
 	private short[] scores;
 	private boolean initialOnMoveIsWhite = false;
+	private SearchDebugAgent sda;
 	
 	private static final int MINIMUM_PLY_FOR_ALPHA_BETA_CUT_OFF = 2;
 
-	public ScoreTracker(int searchDepth, boolean isWhite) {
+	public ScoreTracker(int searchDepth, boolean isWhite, SearchDebugAgent sda) {
 		scores = new short[searchDepth];
 		initialOnMoveIsWhite = isWhite;
+		this.sda = sda;
 	}
 	
 	private void bringDownAlphaBetaCutOff(byte currPly) {
@@ -30,12 +32,12 @@ public class ScoreTracker {
 	}
 	
 	void setBackedUpScoreAtPly(byte currPly, int positionScore) {
-		SearchDebugAgent.printBackUpScore(currPly, scores[currPly], positionScore);
+		sda.printBackUpScore(currPly, scores[currPly], positionScore);
 		scores[currPly] = Score.getScore(positionScore);
 	}
 	
 	void setBackedUpScoreAtPly(byte currPly, short positionScore) {
-		SearchDebugAgent.printBackUpScore(currPly, scores[currPly], positionScore);
+		sda.printBackUpScore(currPly, scores[currPly], positionScore);
 		scores[currPly] = positionScore;
 	}	
 	
@@ -111,7 +113,7 @@ public class ScoreTracker {
 			if (currScore <= prevPlyScore) isAlphaBetaCutOff = true;
 		}
 		if (isAlphaBetaCutOff) {
-			SearchDebugAgent.printAlphaBetaComparison(prevPlyScore, currScore);
+			sda.printAlphaBetaComparison(prevPlyScore, currScore);
 		}
 		return isAlphaBetaCutOff;
 	}

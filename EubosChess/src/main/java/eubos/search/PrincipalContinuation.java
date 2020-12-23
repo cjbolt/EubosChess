@@ -8,12 +8,14 @@ import eubos.position.Move;
 public class PrincipalContinuation {
 
 	private List<List<Integer>> pc;
+	private SearchDebugAgent sda;
 
-	public PrincipalContinuation(int searchDepth) {
+	public PrincipalContinuation(int searchDepth, SearchDebugAgent sda) {
 		pc = new ArrayList<List<Integer>>(searchDepth);
 		for (int i=0; i<searchDepth; i++) {
 			pc.add(new ArrayList<Integer>(searchDepth));
 		}
+		this.sda = sda;
 	}
 	
 	public int getBestMove(byte currPly) {
@@ -88,7 +90,7 @@ public class PrincipalContinuation {
 				// Bring down, if possible
 				plyToUpdatePc.addAll(pc.get(nextPly));
 			}
-			SearchDebugAgent.printPrincipalContinuation(this);
+			sda.printPrincipalContinuation(this);
 		}
 	}
 	
@@ -98,7 +100,7 @@ public class PrincipalContinuation {
 			plyToUpdatePc.clear();
 			plyToUpdatePc.add(currMove);
 			clearContinuationBeyondPly(currPly);
-			SearchDebugAgent.printPrincipalContinuation(this);
+			sda.printPrincipalContinuation(this);
 		}
 	}
 	

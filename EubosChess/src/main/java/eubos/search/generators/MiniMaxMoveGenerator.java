@@ -44,6 +44,7 @@ public class MiniMaxMoveGenerator implements
 	
 	private KillerList killers;
 	private boolean disableMoveListOrdering = false;
+	public SearchDebugAgent sda;
 	
 	public static final int EXTENDED_SEARCH_PLY_LIMIT = 8;
 
@@ -52,6 +53,7 @@ public class MiniMaxMoveGenerator implements
 			IChangePosition pm,
 			IPositionAccessors pos) {
 		commonInit(hashMap, pm, pos);
+		sda = new SearchDebugAgent(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
 	}
 
 	// Used with Arena, Lichess
@@ -62,7 +64,7 @@ public class MiniMaxMoveGenerator implements
 		PositionManager pm = new PositionManager(fen, dc);
 		commonInit(hashMap, pm, pm);
 		sr.register(sm);
-		SearchDebugAgent.open(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
+		sda = new SearchDebugAgent(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
 	}
 
 	private void commonInit(FixedSizeTranspositionTable hashMap, IChangePosition pm, IPositionAccessors pos) {
@@ -79,11 +81,11 @@ public class MiniMaxMoveGenerator implements
 	public short getScore() { return score; }
 	
 	private void initialiseSearchDepthDependentObjects(int searchDepth, IChangePosition pm, SearchMetrics sm) {
-		pc = new PrincipalContinuation(searchDepth+EXTENDED_SEARCH_PLY_LIMIT);
+		pc = new PrincipalContinuation(searchDepth+EXTENDED_SEARCH_PLY_LIMIT, sda);
 		sm.setDepth(searchDepth);
 		sm.setPrincipalVariation(pc.toPvList(0));
-		st = new ScoreTracker(searchDepth+EXTENDED_SEARCH_PLY_LIMIT, pos.onMoveIsWhite());
-		tta = new TranspositionTableAccessor(tt, pos, st);
+		st = new ScoreTracker(searchDepth+EXTENDED_SEARCH_PLY_LIMIT, pos.onMoveIsWhite(), sda);
+		tta = new TranspositionTableAccessor(tt, pos, st, sda);
 	}
 	
 	@Override
@@ -104,7 +106,7 @@ public class MiniMaxMoveGenerator implements
 			SearchMetricsReporter sr) throws NoLegalMoveException, InvalidPieceException {
 		boolean foundMate = false;
 		initialiseSearchDepthDependentObjects(searchDepth, pm, sm);
-		ps = new PlySearcher(tta, st, pc, sm, sr, searchDepth, pm, pos, lastPc, pe, killers);
+		ps = new PlySearcher(tta, st, pc, sm, sr, searchDepth, pm, pos, lastPc, pe, killers, sda);
 		if (disableMoveListOrdering) {
 			ps.disableMoveListOrdering();
 		}

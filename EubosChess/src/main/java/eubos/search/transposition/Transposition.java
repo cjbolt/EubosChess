@@ -7,7 +7,6 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.search.Score;
-import eubos.search.SearchDebugAgent;
 
 public class Transposition implements ITransposition {
 	protected byte depthSearchedInPly;
@@ -86,13 +85,13 @@ public class Transposition implements ITransposition {
 			List<Integer> pv) {
 		
 		boolean updateTransposition = false;
-		SearchDebugAgent.printTransDepthCheck(depthSearchedInPly, new_Depth);
+		//mg.sda.printTransDepthCheck(depthSearchedInPly, new_Depth);
 		
 		if (depthSearchedInPly < new_Depth) {
 			updateTransposition = true;
 			
 		} else if (depthSearchedInPly == new_Depth) {
-			SearchDebugAgent.printTransBoundScoreCheck(type, score, new_score);
+			//mg.sda.printTransBoundScoreCheck(type, score, new_score);
 			if (((type == Score.upperBound) || (type == Score.lowerBound)) &&
 					new_bound == Score.exact) {
 			    updateTransposition = true;
