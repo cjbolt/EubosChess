@@ -7,6 +7,8 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.search.Score;
+import eubos.search.ScoreTracker;
+import eubos.search.transposition.TranspositionEvaluation.TranspositionTableStatus;
 
 public class Transposition implements ITransposition {
 	protected byte depthSearchedInPly;
@@ -124,7 +126,7 @@ public class Transposition implements ITransposition {
 			short new_score,
 			int new_bestMove) {
 		boolean wasSetAsExact = false;
-		if (getDepthSearchedInPly() <= currDepthSearchedInPly) {
+		if (getDepthSearchedInPly() < currDepthSearchedInPly || (getDepthSearchedInPly() == currDepthSearchedInPly && type != Score.exact)) {
 			// however we need to be careful that the depth is appropriate, we don't set exact for wrong depth...
 			setScore(new_score);
 			setType(Score.exact);
@@ -144,5 +146,32 @@ public class Transposition implements ITransposition {
 	
 	public List<Integer> getPv() {
 		return null;
+	}
+	
+	public synchronized TranspositionTableStatus evaluateSuitability(byte currPly, int depthRequiredPly, ScoreTracker st) {
+		TranspositionTableStatus eval = TranspositionTableStatus.insufficientNoData;
+		if (getDepthSearchedInPly() >= depthRequiredPly) {
+			
+			if (getType() == Score.exact) {
+				eval = TranspositionTableStatus.sufficientTerminalNode;
+				
+			} else { // must be either (bound == Score.upperBound || bound == Score.lowerBound)
+				if (st.isAlphaBetaCutOffForHash(currPly, getScore())) {
+					eval = TranspositionTableStatus.sufficientRefutation;
+		        } else {
+		        	eval = TranspositionTableStatus.sufficientSeedMoveList;
+		        }
+			}
+		} else {
+			eval = TranspositionTableStatus.sufficientSeedMoveList;
+		}
+		
+		if (getBestMove() == Move.NULL_MOVE) {
+			// It is possible that we don't have a move to seed the list with, guard against that.
+			if (eval == TranspositionTableStatus.sufficientSeedMoveList) {
+				eval = TranspositionTableStatus.insufficientNoData;
+			}
+		}
+		return eval;
 	}
 }

@@ -2,6 +2,9 @@ package eubos.search.transposition;
 
 import java.util.List;
 
+import eubos.search.ScoreTracker;
+import eubos.search.transposition.TranspositionEvaluation.TranspositionTableStatus;
+
 public interface ITransposition {
 
 	byte getType();
@@ -23,4 +26,6 @@ public interface ITransposition {
 	void setAccessCount(short accessCount);
 
 	List<Integer> getPv();
+	
+	TranspositionTableStatus evaluateSuitability(byte currPly, int depthRequiredPly, ScoreTracker st);
 }

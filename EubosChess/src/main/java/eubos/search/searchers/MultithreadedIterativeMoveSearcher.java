@@ -197,6 +197,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			synchronized(main) {
 				main.notify();
 			}
+			myMg.sda.close();
 		}
 		
 		public void halt() {

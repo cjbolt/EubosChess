@@ -125,9 +125,9 @@ public class SearchDebugAgent {
 		
 	}
 
-	public void printHashIsSeedMoveList(int move, long hash) {
+	public void printHashIsSeedMoveList(long hash, ITransposition trans) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%shash:%d sufficient seed ml with best:%s @%d", indent, hash, Move.toString(move), currPly));
+			printOutput(String.format("%shash:%d seed:%s @%d", indent, hash, trans.report(), currPly));
 		}
 	}
 

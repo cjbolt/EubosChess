@@ -119,7 +119,7 @@ public class PlySearcher {
 			boolean isThreefold = checkForRepetitionDueToPositionInSearchTree(trans_move);
 			if (isThreefold || (!isThreefold && (trans_score == 0))) {
 				// Assume it is now a draw, so re-search
-				sda.printHashIsSeedMoveList(trans_move, pos.getHash());
+				sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
 				theScore = searchMoves( trans_move, eval.trans);
 				break;
 			} else {
@@ -136,7 +136,7 @@ public class PlySearcher {
 			break;
 			
 		case sufficientSeedMoveList:
-			sda.printHashIsSeedMoveList(trans_move, pos.getHash());
+			sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
 			prevBestMove = trans_move;
 			// intentional drop through
 		case insufficientNoData:

@@ -28,7 +28,6 @@ import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.position.Move;
 import eubos.position.PositionManager;
-import eubos.search.SearchDebugAgent;
 import eubos.search.DrawChecker;
 import eubos.search.searchers.AbstractMoveSearcher;
 import eubos.search.searchers.FixedDepthMoveSearcher;
@@ -37,8 +36,6 @@ import eubos.search.searchers.MultithreadedIterativeMoveSearcher;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.logging.*;
 
 public class EubosEngineMain extends AbstractEngine {
