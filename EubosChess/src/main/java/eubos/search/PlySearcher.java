@@ -113,28 +113,13 @@ public class PlySearcher {
 		case sufficientRefutation:
 			// Add refuting move to killer list
 			killers.addMove(currPly, trans_move);
-		case sufficientTerminalNode:
-			// Check score for hashed position causing a search cut-off is still valid (i.e. best move doesn't lead to a draw)
-			// If hashed score is a draw score, check it is still a draw, if not, search position
-			boolean isThreefold = checkForRepetitionDueToPositionInSearchTree(trans_move);
-			if (isThreefold || (!isThreefold && (trans_score == 0))) {
-				// Assume it is now a draw, so re-search
-				sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
-				theScore = searchMoves( trans_move, eval.trans);
-				break;
-			} else {
-				short adjustedScoreForThisPositionInTree = st.adjustHashTableMateInXScore(currPly, trans_score);
-				if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
-					pc.update(currPly, eval.trans.getPv());
-				} else {
-					pc.set(currPly, trans_move);
-				}
-				theScore = Score.valueOf(adjustedScoreForThisPositionInTree, trans_bound);
-			}
-			if (EubosEngineMain.UCI_INFO_ENABLED)
-				sm.incrementNodesSearched();
+			sda.printHashIsRefutation(pos.getHash(), eval.trans);
+			theScore = handleRefutationOrTerminalNodeFromHash(trans_move, trans_bound, trans_score, theScore, eval.trans);
 			break;
-			
+		case sufficientTerminalNode:
+			sda.printHashIsTerminalNode(eval.trans, pos.getHash());
+			theScore = handleRefutationOrTerminalNodeFromHash(trans_move, trans_bound, trans_score, theScore, eval.trans);
+			break;
 		case sufficientSeedMoveList:
 			sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
 			prevBestMove = trans_move;
@@ -147,6 +132,30 @@ public class PlySearcher {
 		}
 		clearUpSearchAtPly();
 		
+		return theScore;
+	}
+	
+	private int handleRefutationOrTerminalNodeFromHash(
+			int trans_move, byte trans_bound, short trans_score, int theScore, ITransposition trans) 
+					throws InvalidPieceException {
+		// Check score for hashed position causing a search cut-off is still valid (i.e. best move doesn't lead to a draw)
+		// If hashed score is a draw score, check it is still a draw, if not, search position
+		boolean isThreefold = checkForRepetitionDueToPositionInSearchTree(trans_move);
+		if (isThreefold || (!isThreefold && (trans_score == 0))) {
+			// Assume it is now a draw, so re-search
+			sda.printHashIsSeedMoveList(pos.getHash(), trans);
+			theScore = searchMoves( trans_move, trans);
+		} else {
+			short adjustedScoreForThisPositionInTree = st.adjustHashTableMateInXScore(currPly, trans_score);
+			if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
+				pc.update(currPly, trans.getPv());
+			} else {
+				pc.set(currPly, trans_move);
+			}
+			theScore = Score.valueOf(adjustedScoreForThisPositionInTree, trans_bound);
+		}
+		if (EubosEngineMain.UCI_INFO_ENABLED)
+			sm.incrementNodesSearched();
 		return theScore;
 	}
 	

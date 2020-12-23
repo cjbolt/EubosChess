@@ -166,9 +166,9 @@ public class Transposition implements ITransposition {
 			eval = TranspositionTableStatus.sufficientSeedMoveList;
 		}
 		
-		if (getBestMove() == Move.NULL_MOVE) {
+		if (eval == TranspositionTableStatus.sufficientSeedMoveList) {
 			// It is possible that we don't have a move to seed the list with, guard against that.
-			if (eval == TranspositionTableStatus.sufficientSeedMoveList) {
+			if (getBestMove() == Move.NULL_MOVE) {
 				eval = TranspositionTableStatus.insufficientNoData;
 			}
 		}
