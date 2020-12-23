@@ -17,6 +17,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	public static final int AVG_MOVES_PER_GAME = 60;
 	long gameTimeRemaining;
 	int moveNumber = 0;
+	boolean analyse = false;
 	
 	boolean searchStopped = false;
 	public static final boolean DEBUG_LOGGING = true;
@@ -30,7 +31,12 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			long increment) {
 		super(eubos, fen, dc, hashMap);
 		this.setName("IterativeMoveSearcher");
-		setGameTimeRemaining(time, increment);
+		if (time == Long.MAX_VALUE) {
+			analyse = true;
+			gameTimeRemaining = time;
+		} else {
+			setGameTimeRemaining(time, increment);
+		}
 		EubosEngineMain.logger.info(
 				String.format("Starting initialScore=%d gameTimeRemaining=%d", initialScore, gameTimeRemaining));
 	}
@@ -69,7 +75,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 						String.format("IterativeMoveSearcher can't find piece at %s", e.getAtPosition()));
 				searchStopped = true;
 			}
-			if (res != null && res.foundMate) {
+			if (res != null && res.foundMate && !analyse) {
 				EubosEngineMain.logger.info("IterativeMoveSearcher found mate");
 				break;
 			}				

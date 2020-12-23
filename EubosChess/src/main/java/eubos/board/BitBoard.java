@@ -8,7 +8,7 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
-public class BitBoard {
+public final class BitBoard {
 	
 	static final int[] bitToPosition_Lut = new int[64];
 	static {

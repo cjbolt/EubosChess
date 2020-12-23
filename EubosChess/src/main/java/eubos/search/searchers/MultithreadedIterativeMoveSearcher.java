@@ -173,7 +173,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 							String.format("can't find piece at %s", e.getAtPosition()));
 					searchStopped = true;
 				}
-				if (result != null && result.foundMate) {
+				if (result != null && result.foundMate && !analyse) {
 					EubosEngineMain.logger.info(String.format("%s found mate", this));
 					break;
 				}				

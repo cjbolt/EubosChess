@@ -218,14 +218,20 @@ public class EubosEngineMain extends AbstractEngine {
 			logger.info("Search move, fixed time " + command.getMoveTime());
 			ms = new FixedTimeMoveSearcher(this, hashMap, lastFen, dc, command.getMoveTime());
 		} else {
-			byte searchDepth = SEARCH_DEPTH_IN_PLY;
+			// Analyse mode
+			byte searchDepth = 0;
 			if (command.getInfinite()) {
-
+				// We shall use a timed search which, for all intents and purposes, is infinite.
 			} else if (command.getDepth() != null) {
 				searchDepth = (byte)((int)command.getDepth());
+			}	
+			if (searchDepth != 0) {
+				logger.info(String.format("Search move, fixed depth %d", searchDepth));
+				ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth);
+			} else {
+				logger.info(String.format("Search move, infinite search, threads %d", numberOfWorkerThreads));
+				ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, Long.MAX_VALUE, clockInc, numberOfWorkerThreads);
 			}
-			logger.info("Search move, fixed depth " + searchDepth);
-			ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth);
 		}
 	}
 
