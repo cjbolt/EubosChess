@@ -109,6 +109,10 @@ public class MoveList implements Iterable<Integer> {
 			normal_search_moves.add(0, bestMove);
 		if (orderMoveList) {
 			Collections.sort(normal_search_moves, Move.mvvLvaComparator);
+		} else {
+			// still order, but use a crude comparator so the list orders are different
+			Collections.reverse(normal_search_moves);
+			Collections.sort(normal_search_moves, new MoveList.MoveTypeComparator());
 		}
 	}
 	

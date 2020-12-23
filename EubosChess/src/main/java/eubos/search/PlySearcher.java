@@ -99,30 +99,20 @@ public class PlySearcher {
 		
 		byte depthRequiredForTerminalNode = initialiseSearchAtPly();
 		TranspositionEvaluation eval = tt.getTransposition(currPly, depthRequiredForTerminalNode);
-		int trans_move = Move.NULL_MOVE;
-		byte trans_bound = 0;
-		short trans_score = 0;
-		if (eval.status != TranspositionEvaluation.TranspositionTableStatus.insufficientNoData) {
-			synchronized (eval.trans) {
-				trans_move = eval.trans.getBestMove();
-				trans_bound = eval.trans.getType();
-				trans_score = eval.trans.getScore();
-			}
-		}
 		switch (eval.status) {
 		case sufficientRefutation:
 			// Add refuting move to killer list
-			killers.addMove(currPly, trans_move);
+			killers.addMove(currPly, eval.trans.getBestMove());
 			sda.printHashIsRefutation(pos.getHash(), eval.trans);
-			theScore = handleRefutationOrTerminalNodeFromHash(trans_move, trans_bound, trans_score, theScore, eval.trans);
+			theScore = handleRefutationOrTerminalNodeFromHash(theScore, eval.trans);
 			break;
 		case sufficientTerminalNode:
 			sda.printHashIsTerminalNode(eval.trans, pos.getHash());
-			theScore = handleRefutationOrTerminalNodeFromHash(trans_move, trans_bound, trans_score, theScore, eval.trans);
+			theScore = handleRefutationOrTerminalNodeFromHash(theScore, eval.trans);
 			break;
 		case sufficientSeedMoveList:
 			sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
-			prevBestMove = trans_move;
+			prevBestMove = eval.trans.getBestMove();
 			// intentional drop through
 		case insufficientNoData:
 			theScore = searchMoves( prevBestMove, eval.trans);
@@ -135,9 +125,16 @@ public class PlySearcher {
 		return theScore;
 	}
 	
-	private int handleRefutationOrTerminalNodeFromHash(
-			int trans_move, byte trans_bound, short trans_score, int theScore, ITransposition trans) 
+	private int handleRefutationOrTerminalNodeFromHash(int theScore, ITransposition trans) 
 					throws InvalidPieceException {
+		int trans_move;
+		byte trans_bound;
+		short trans_score;
+		synchronized (trans) {
+			trans_move = trans.getBestMove();
+			trans_bound = trans.getType();
+			trans_score = trans.getScore();
+		}
 		// Check score for hashed position causing a search cut-off is still valid (i.e. best move doesn't lead to a draw)
 		// If hashed score is a draw score, check it is still a draw, if not, search position
 		boolean isThreefold = checkForRepetitionDueToPositionInSearchTree(trans_move);
@@ -497,7 +494,7 @@ public class PlySearcher {
 		return limitReached;
 	}
 
-	public void disableMoveListOrdering() {
+	public void alternativeMoveListOrdering() {
 		moveListOrdering  = false;		
 	}
 }

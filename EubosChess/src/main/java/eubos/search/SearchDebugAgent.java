@@ -114,20 +114,20 @@ public class SearchDebugAgent {
 
 	public void printHashIsTerminalNode(ITransposition trans, long hash) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%shash:%d term:%s @%d", indent, hash, trans.report(), currPly));
+			printOutput(String.format("%shash:%d term:%s object:%s @%d", indent, hash, trans.report(), trans.toString(), currPly));
 		}
 	}
 
 	public void printHashIsRefutation(long hash, ITransposition trans) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%shash:%d ref:%s @%d", indent, hash, trans.report(), currPly));
+			printOutput(String.format("%shash:%d ref:%s object:%s @%d", indent, hash, trans.report(), trans.toString(), currPly));
 		}
 		
 	}
 
 	public void printHashIsSeedMoveList(long hash, ITransposition trans) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%shash:%d seed:%s @%d", indent, hash, trans.report(), currPly));
+			printOutput(String.format("%shash:%d seed:%s object:%s @%d", indent, hash, trans.report(), trans.toString(), currPly));
 		}
 	}
 
@@ -165,10 +165,13 @@ public class SearchDebugAgent {
 
 	public void printStartPlyInfo(ScoreTracker st, IPositionAccessors pos, byte originalSearchDepthRequiredInPly) {
 		if (DEBUG_ENABLED) {
+			LocalDateTime dateTime = LocalDateTime.now();
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH-mm-ss.SSSSSS");
+			String timestamp = dateTime.format(formatter);
 			if (currPly == 0) {
-				printOutput(String.format("\n\n\n NEW ITERATION %d\n\n\n", originalSearchDepthRequiredInPly));
-			}
-			printOutput(String.format("%ssearch @:%d prov:%d", indent, currPly, st.getBackedUpScoreAtPly((byte)currPly)));
+				printOutput(String.format("\n\n\n NEW ITERATION %d @time %s\n\n\n", originalSearchDepthRequiredInPly, timestamp));
+			}			
+			printOutput(String.format("%ssearch @:%d prov:%d @time %s", indent, currPly, st.getBackedUpScoreAtPly((byte)currPly), timestamp));
 			printOutput(String.format("%sfen:%s", indent, pos.getFen()));
 		}
 	}
@@ -207,5 +210,13 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			printOutput(String.format("%s3-fold in search rep @%d hash:%d fen:%s", indent, currPly, hash, fen));
 		}
+	}
+
+	public void printTimeStamp() {
+		if (DEBUG_ENABLED) {
+			LocalDateTime dateTime = LocalDateTime.now();
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH-mm-ss.SSSSSS");
+			printOutput(String.format("%s@time %s", indent, dateTime.format(formatter)));	
+		}		
 	}
 }

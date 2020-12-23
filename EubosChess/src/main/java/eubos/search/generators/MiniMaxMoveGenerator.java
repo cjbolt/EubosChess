@@ -43,7 +43,7 @@ public class MiniMaxMoveGenerator implements
 	private short score;
 	
 	private KillerList killers;
-	private boolean disableMoveListOrdering = false;
+	private boolean alternativeMoveListOrdering = false;
 	public SearchDebugAgent sda;
 	
 	public static final int EXTENDED_SEARCH_PLY_LIMIT = 8;
@@ -107,8 +107,8 @@ public class MiniMaxMoveGenerator implements
 		boolean foundMate = false;
 		initialiseSearchDepthDependentObjects(searchDepth, pm, sm);
 		ps = new PlySearcher(tta, st, pc, sm, sr, searchDepth, pm, pos, lastPc, pe, killers, sda);
-		if (disableMoveListOrdering) {
-			ps.disableMoveListOrdering();
+		if (alternativeMoveListOrdering) {
+			ps.alternativeMoveListOrdering();
 		}
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		try {
@@ -134,7 +134,7 @@ public class MiniMaxMoveGenerator implements
 			ps.terminateFindMove();
 	}
 
-	public void disableMoveListOrdering() {
-		disableMoveListOrdering  = true;		
+	public void alternativeMoveListOrdering() {
+		alternativeMoveListOrdering  = true;		
 	}
 }
