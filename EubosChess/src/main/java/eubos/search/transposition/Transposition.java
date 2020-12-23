@@ -113,7 +113,7 @@ public class Transposition implements ITransposition {
 			depthSearchedInPly = new_Depth;
 			score = new_score;
 			type = new_bound;
-			bestMove = new_bestMove;
+			setBestMove(new_bestMove);
 		}
 		
 		return updateTransposition;
