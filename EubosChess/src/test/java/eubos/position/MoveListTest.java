@@ -213,7 +213,7 @@ public class MoveListTest {
 		GenericMove killer2_gen = new GenericMove("e2d1");
 		int killer2 = Move.toMove(killer2_gen, pm.getTheBoard());
 		
-		classUnderTest = new MoveList(pm, best, killer1, killer2, true);
+		classUnderTest = new MoveList(pm, best, killer1, killer2, 1);
 		Iterator<Integer> it = classUnderTest.iterator();
 		
 		// best

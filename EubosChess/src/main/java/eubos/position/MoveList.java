@@ -29,14 +29,14 @@ public class MoveList implements Iterable<Integer> {
     }
 	
 	public MoveList(PositionManager pm) throws InvalidPieceException {
-		this(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, true );
+		this(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, 0 );
 	}
 	
-	public MoveList(PositionManager pm, int bestMove, int killer1, int killer2, boolean orderMoveList) throws InvalidPieceException {
+	public MoveList(PositionManager pm, int bestMove, int killer1, int killer2, int orderMoveList) throws InvalidPieceException {
 		this(pm, bestMove, killer1, killer2, orderMoveList, Position.NOPOSITION);
 	}
 	
-	public MoveList(PositionManager pm, int bestMove, int killer1, int killer2, boolean orderMoveList, int targetSquare) throws InvalidPieceException {	
+	public MoveList(PositionManager pm, int bestMove, int killer1, int killer2, int orderMoveList, int targetSquare) throws InvalidPieceException {	
 	
 		Colour onMove = pm.getOnMove();
 		boolean validBest = bestMove != Move.NULL_MOVE;
@@ -107,12 +107,24 @@ public class MoveList implements Iterable<Integer> {
 		// Sort the list
 		if (foundBest)
 			normal_search_moves.add(0, bestMove);
-		if (orderMoveList) {
+		switch (orderMoveList) {
+		case 1:
 			Collections.sort(normal_search_moves, Move.mvvLvaComparator);
-		} else {
+			break;
+		case 2:
 			// still order, but use a crude comparator so the list orders are different
 			Collections.reverse(normal_search_moves);
 			Collections.sort(normal_search_moves, new MoveList.MoveTypeComparator());
+			break;
+		case 3:
+			Collections.reverse(normal_search_moves);
+			Collections.sort(normal_search_moves, Move.mvvLvaComparator);
+			break;
+		case 4:
+			Collections.sort(normal_search_moves, new MoveList.MoveTypeComparator());
+			break;
+		default:
+			break;
 		}
 	}
 	

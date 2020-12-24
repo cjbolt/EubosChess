@@ -43,7 +43,7 @@ public class PlySearcher {
 	private byte originalSearchDepthRequiredInPly = 0;
 	private byte extendedSearchDeepestPly = 0;
 	private byte extendedSearchLimitInPly = 0;
-	private boolean moveListOrdering = true;
+	private int moveListOrdering = 1;
 	
 	public PlySearcher(
 			ITranspositionAccessor hashMap,
@@ -195,7 +195,7 @@ public class PlySearcher {
 		MoveList ml = getMoveList(prevBestMove);
         if (ml.isMateOccurred()) {
         	if (isInExtendedSearch()) {
-        		ml = new MoveList((PositionManager) pm, Move.NULL_MOVE,  Move.NULL_MOVE,  Move.NULL_MOVE, false);
+        		ml = new MoveList((PositionManager) pm, Move.NULL_MOVE,  Move.NULL_MOVE,  Move.NULL_MOVE, 0);
         		if (!ml.isMateOccurred()) {
 	        		// It isn't actually a mate, stand PAT
 	        		Byte plyBound = pos.onMoveIsWhite() ? Score.lowerBound : Score.upperBound;
@@ -494,7 +494,7 @@ public class PlySearcher {
 		return limitReached;
 	}
 
-	public void alternativeMoveListOrdering() {
-		moveListOrdering  = false;		
+	public void alternativeMoveListOrdering(int orderingScheme) {
+		moveListOrdering  = orderingScheme;		
 	}
 }
