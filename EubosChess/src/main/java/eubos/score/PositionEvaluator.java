@@ -24,7 +24,7 @@ public class PositionEvaluator implements IEvaluate {
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 20;
 	
 	public static final boolean DISABLE_QUIESCENCE_CHECK = false;
-	public static final boolean ENABLE_PAWN_EVALUATION = false; 
+	public static final boolean ENABLE_PAWN_EVALUATION = true; 
 	
 	public PositionEvaluator(IPositionAccessors pm) {	
 		this.pm = pm;
