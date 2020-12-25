@@ -29,7 +29,7 @@ public class MoveList implements Iterable<Integer> {
     }
 	
 	public MoveList(PositionManager pm) throws InvalidPieceException {
-		this(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, 0 );
+		this(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, 1 );
 	}
 	
 	public MoveList(PositionManager pm, int bestMove, int killer1, int killer2, int orderMoveList) throws InvalidPieceException {
