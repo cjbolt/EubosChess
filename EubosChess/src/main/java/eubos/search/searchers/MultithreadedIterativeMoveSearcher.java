@@ -55,7 +55,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			MiniMaxMoveGenerator thisMg = new MiniMaxMoveGenerator(hashMap, fen, new DrawChecker(dc.getState()), sr);
 			moveGenerators.add(thisMg);
 			if (ALTERNATIVE_MOVE_LIST_ORDERING_IN_WORKER_THREADS) {
-				thisMg.alternativeMoveListOrdering((i%4)+1);
+				thisMg.alternativeMoveListOrdering(((i-1)%4)+1);
 			}
 		}
 	}

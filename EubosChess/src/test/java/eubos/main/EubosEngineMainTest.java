@@ -69,7 +69,7 @@ public class EubosEngineMainTest {
 	private static final String ID_AUTHOR_CMD = "id author Chris Bolt"+CMD_TERMINATOR;
 	private static final String OPTION_HASH = "option name Hash type spin default 1310 min 32 max 4000"+CMD_TERMINATOR;
 	private static final String OPTION_THREADS = String.format(
-			"option name NumberOfWorkerThreads type spin default %s min 1 max %s%s",
+			"option name Threads type spin default %s min 1 max %s%s",
 			Runtime.getRuntime().availableProcessors()-2,
 			Runtime.getRuntime().availableProcessors(), CMD_TERMINATOR);
 	private static final String UCI_OK_CMD = "uciok"+CMD_TERMINATOR;

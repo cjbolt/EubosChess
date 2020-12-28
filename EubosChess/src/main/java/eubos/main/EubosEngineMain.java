@@ -79,10 +79,12 @@ public class EubosEngineMain extends AbstractEngine {
     
 	public EubosEngineMain() { 
 		super();
+		createEnginePermanentDataStructures();
 	}
 	
 	public EubosEngineMain( PipedWriter out) throws IOException {
 		super(new BufferedReader(new PipedReader(out)), System.out);
+		createEnginePermanentDataStructures();
 		logger.setLevel(Level.INFO);
 	}
 	
@@ -96,7 +98,7 @@ public class EubosEngineMain extends AbstractEngine {
 		
 		ProtocolInitializeAnswerCommand reply = new ProtocolInitializeAnswerCommand("Eubos 2.0","Chris Bolt");
 		reply.addOption(Options.newHashOption((int)DEFAULT_HASH_SIZE, MIN_HASH_SIZE, MAX_HASH_SIZE));
-		reply.addOption(new SpinnerOption("NumberOfWorkerThreads", defaultNumberOfWorkerThreads, 1, numCores));
+		reply.addOption(new SpinnerOption("Threads", defaultNumberOfWorkerThreads, 1, numCores));
 		this.getProtocol().send( reply );
 		lastOnMove = null;
 	}
@@ -108,7 +110,7 @@ public class EubosEngineMain extends AbstractEngine {
 			hashSize = Long.parseLong(command.value);
 			logger.fine(String.format("MaxHashSizeInMBs=%d", hashSize));
 		}
-		if (command.name.startsWith("NumberOfWorkerThreads")) {
+		if (command.name.startsWith("Threads")) {
 			numberOfWorkerThreads = Integer.parseInt(command.value);
 			logger.fine(String.format("WorkerThreads=%d", numberOfWorkerThreads));
 		}
