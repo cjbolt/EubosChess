@@ -54,8 +54,15 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		for (int i=1; i < threads; i++) {
 			MiniMaxMoveGenerator thisMg = new MiniMaxMoveGenerator(hashMap, fen, new DrawChecker(dc.getState()), sr);
 			moveGenerators.add(thisMg);
-			if (ALTERNATIVE_MOVE_LIST_ORDERING_IN_WORKER_THREADS) {
-				thisMg.alternativeMoveListOrdering(((i-1)%4)+1);
+		}
+		// Set move ordering scheme to use, if in operation
+		if (ALTERNATIVE_MOVE_LIST_ORDERING_IN_WORKER_THREADS) {
+			int i=0;
+			for (MiniMaxMoveGenerator thisMg : moveGenerators) {
+				int useOrderingScheme = (i%4)+1;
+				thisMg.alternativeMoveListOrdering(useOrderingScheme);
+				EubosEngineMain.logger.info(String.format("MoveGenerator %d using ordering scheme %d", i, useOrderingScheme));
+				i++;
 			}
 		}
 	}
