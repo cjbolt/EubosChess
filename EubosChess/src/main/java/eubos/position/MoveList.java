@@ -20,6 +20,7 @@ public class MoveList implements Iterable<Integer> {
 	
 	private List<Integer> normal_search_moves;
 	private List<Integer> extended_search_moves;
+	private static final MoveTypeComparator moveTypeComparator = new MoveTypeComparator();
 	
     static class MoveTypeComparator implements Comparator<Integer> {
         @Override public int compare(Integer move1, Integer move2) {
@@ -31,6 +32,10 @@ public class MoveList implements Iterable<Integer> {
 	
 	public MoveList(PositionManager pm) throws InvalidPieceException {
 		this(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, 1 );
+	}
+	
+	public MoveList(PositionManager pm, int orderMoveList) throws InvalidPieceException {
+		this(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, orderMoveList );
 	}
 	
 	public MoveList(PositionManager pm, int bestMove, int killer1, int killer2, int orderMoveList) throws InvalidPieceException {
@@ -105,27 +110,36 @@ public class MoveList implements Iterable<Integer> {
 			}
 			pm.unperformMove(false);
 		}
-		// Sort the list
+
 		if (foundBest)
 			normal_search_moves.add(0, bestMove);
+		
+		checkToSortList(orderMoveList);
+	}
+
+	private void checkToSortList(int orderMoveList) {
 		switch (orderMoveList) {
+		case 0:
+			/* Don't order the move list in this case. */
+			break;
 		case 1:
 			Collections.sort(normal_search_moves, Move.mvvLvaComparator);
 			break;
 		case 2:
-			// still order, but use a crude comparator so the list orders are different
 			Collections.reverse(normal_search_moves);
-			Collections.sort(normal_search_moves, new MoveList.MoveTypeComparator());
+			Collections.sort(normal_search_moves, moveTypeComparator);
 			break;
 		case 3:
 			Collections.reverse(normal_search_moves);
 			Collections.sort(normal_search_moves, Move.mvvLvaComparator);
 			break;
 		case 4:
-			Collections.sort(normal_search_moves, new MoveList.MoveTypeComparator());
+			Collections.sort(normal_search_moves, moveTypeComparator);
 			break;
 		default:
 			EubosEngineMain.logger.severe(String.format("Bad move ordering scheme %d!", orderMoveList));
+			if (EubosEngineMain.ASSERTS_ENABLED)
+				assert false;
 			break;
 		}
 	}
