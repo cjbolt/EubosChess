@@ -195,7 +195,7 @@ public class PlySearcher {
 		MoveList ml = getMoveList(prevBestMove);
         if (ml.isMateOccurred()) {
         	if (isInExtendedSearch()) {
-        		ml = new MoveList((PositionManager) pm, Move.NULL_MOVE,  Move.NULL_MOVE,  Move.NULL_MOVE, 0);
+        		ml = new MoveList((PositionManager) pm);
         		if (!ml.isMateOccurred()) {
 	        		// It isn't actually a mate, stand PAT
 	        		Byte plyBound = pos.onMoveIsWhite() ? Score.lowerBound : Score.upperBound;

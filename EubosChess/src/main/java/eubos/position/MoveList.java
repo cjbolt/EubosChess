@@ -13,6 +13,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
+import eubos.main.EubosEngineMain;
 import eubos.search.KillerList;
 
 public class MoveList implements Iterable<Integer> {
@@ -124,6 +125,7 @@ public class MoveList implements Iterable<Integer> {
 			Collections.sort(normal_search_moves, new MoveList.MoveTypeComparator());
 			break;
 		default:
+			EubosEngineMain.logger.severe(String.format("Bad move ordering scheme %d!", orderMoveList));
 			break;
 		}
 	}
