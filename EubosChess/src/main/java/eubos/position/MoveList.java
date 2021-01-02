@@ -45,24 +45,28 @@ public class MoveList implements Iterable<Integer> {
 	public MoveList(PositionManager pm, int bestMove, int killer1, int killer2, int orderMoveList, int targetSquare) throws InvalidPieceException {	
 	
 		Colour onMove = pm.getOnMove();
+
+		boolean needToEscapeMate = (pm.lastMoveWasCheck() || (pm.noLastMove() && pm.isKingInCheck(onMove)));
+
+		normal_search_moves = pm.generateMoves(targetSquare);
+		
+		removeIllegalMovesIdentifyChecksKillersAndBestMove(pm, bestMove, killer1, killer2, onMove, needToEscapeMate);
+		
+		checkToSortList(orderMoveList);
+	}
+
+	private void removeIllegalMovesIdentifyChecksKillersAndBestMove(PositionManager pm, int bestMove, int killer1, int killer2, Colour onMove,
+			boolean needToEscapeMate) throws InvalidPieceException {
 		boolean validBest = bestMove != Move.NULL_MOVE;
 		boolean validKillerMove1 = killer1 != Move.NULL_MOVE;
 		boolean validKillerMove2 = killer2 != Move.NULL_MOVE;
-		boolean needToEscapeMate = false;
 		boolean foundBest = false;
-		
-		if (pm.lastMoveWasCheck() || (pm.noLastMove() && pm.isKingInCheck(onMove))) {
-			needToEscapeMate = true;
-		}
-		normal_search_moves = pm.generateMoves(targetSquare);
 		
 		ListIterator<Integer> it = normal_search_moves.listIterator();
 		while (it.hasNext()) {
 			int currMove = it.next();
-			boolean possibleDiscoveredOrMoveIntoCheck = false;
-			if (pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove) || Piece.isKing(Move.getOriginPiece(currMove))) {
-				possibleDiscoveredOrMoveIntoCheck = true;
-			}
+			boolean possibleDiscoveredOrMoveIntoCheck = pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove) || 
+														Piece.isKing(Move.getOriginPiece(currMove));
 			pm.performMove(currMove, false);
 			if ((possibleDiscoveredOrMoveIntoCheck || needToEscapeMate) && pm.isKingInCheck(onMove)) {
 				// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
@@ -113,8 +117,6 @@ public class MoveList implements Iterable<Integer> {
 
 		if (foundBest)
 			normal_search_moves.add(0, bestMove);
-		
-		checkToSortList(orderMoveList);
 	}
 
 	private void checkToSortList(int orderMoveList) {

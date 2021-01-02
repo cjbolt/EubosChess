@@ -27,9 +27,13 @@ public class DrawChecker {
 		positionCount.clear();
 	}
 	
-	public boolean incrementPositionReachedCount(Long posHash) {
+	private int getTruncatedHash(long hash) {
+		return (int) (hash >> 32);
+	}
+	
+	public boolean incrementPositionReachedCount(long posHash) {
 		boolean repetitionPossible = false;
-		Integer truncatedHash = (int) (posHash >> 32);
+		int truncatedHash = getTruncatedHash(posHash);
 		Byte count = positionCount.get(truncatedHash);
 		if (count == null) {
 			positionCount.put(truncatedHash, (byte)1);
@@ -45,8 +49,8 @@ public class DrawChecker {
 		return repetitionPossible;
 	}
 	
-	public Byte getPositionReachedCount(Long posHash) {
-		Integer truncatedHash = (int) (posHash >> 32);
+	public Byte getPositionReachedCount(long posHash) {
+		int truncatedHash = getTruncatedHash(posHash);
 		return positionCount.get(truncatedHash);
 	}
 
@@ -62,7 +66,7 @@ public class DrawChecker {
 	}
 
 	public void decrementPositionReachedCount(long posHash) {
-		Integer truncatedHash = (int) (posHash >> 32);
+		int truncatedHash = getTruncatedHash(posHash);
 		Byte count = positionCount.get(truncatedHash);
 		if (count == null) {
 			if (EubosEngineMain.ASSERTS_ENABLED)
