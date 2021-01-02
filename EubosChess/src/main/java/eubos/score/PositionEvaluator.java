@@ -68,6 +68,13 @@ public class PositionEvaluator implements IEvaluate {
 		}
 		return pawnEvaluationScore;
 	}
+	
+	int evaluateKingSafety() {
+		int kingSafetyScore = 0;
+		kingSafetyScore = evaluateKingSafetyForColour(pm.getOnMove());
+		kingSafetyScore += evaluateKingSafetyForColour(Colour.getOpposite(pm.getOnMove()));
+		return kingSafetyScore;
+	}
 
 	private int evaluatePawnsForColour(Colour onMoveWas) {
 		Board board = pm.getTheBoard();
@@ -90,6 +97,19 @@ public class PositionEvaluator implements IEvaluate {
 			passedPawnBoost = -passedPawnBoost;
 		}
 		return pawnHandicap + passedPawnBoost;
+	}
+	
+	private int evaluateKingSafetyForColour(Colour side) {
+		int kingSafetyScore = 0;
+		Board board = pm.getTheBoard();
+		if (!board.isEndgame) {
+			/* Evaluate for King on open lines of attack */
+			kingSafetyScore = board.evaluateKingSafety(side);
+		}
+		if (Colour.isBlack(side)) {
+			kingSafetyScore = -kingSafetyScore;
+		}
+		return kingSafetyScore;
 	}
 	
 	public SearchContext getSearchContext() {

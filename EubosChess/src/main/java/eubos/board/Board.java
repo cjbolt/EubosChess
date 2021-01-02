@@ -1098,4 +1098,8 @@ public class Board {
 		me = material;
 		return me;
 	}
+	public int evaluateKingSafety(Colour side) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }
