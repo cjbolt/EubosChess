@@ -10,7 +10,6 @@ public interface IPositionAccessors {
 	public boolean onMoveIsWhite();
 	public boolean isKingInCheck();
 	public int getMoveNumber();
-	public boolean lastMoveWasCheck();
 	public int lastMoveTargetSquare();
 	public boolean isPromotionPossible();
 	public long getHash();

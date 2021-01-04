@@ -29,14 +29,6 @@ class MoveTracker {
 		}
 		return tm;
 	}
-
-	public boolean lastMoveWasCheck() {
-		boolean wasCheck = false;
-		if ( !isEmpty()) {
-			wasCheck = Move.isCheck(TrackedMove.getMove(stack[index-1]));
-		}
-		return wasCheck;
-	}
 	
 	public int lastMoveTargetSquare() {
 		int targetSq = Position.NOPOSITION;

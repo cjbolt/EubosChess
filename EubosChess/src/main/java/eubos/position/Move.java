@@ -49,12 +49,8 @@ public final class Move {
 	private static final int TYPE_MASK = ((1<<TYPE_WIDTH)-1) << TYPE_SHIFT;
 	
 	// Micsc flags
-	public static final int MISC_CHECK_BIT = 0;
-	public static final int MISC_EN_PASSANT_CAPTURE_BIT = 1;
+	public static final int MISC_EN_PASSANT_CAPTURE_BIT = 0;
 	private static final int MISC_SHIFT = TYPE_SHIFT + Long.bitCount(TYPE_MASK);
-	//private static final int MISC_MASK = ((1<<TYPE_WIDTH)-1) << TYPE_SHIFT;
-	
-	public static final int MISC_CHECK_MASK = (0x1 << (MISC_CHECK_BIT + MISC_SHIFT));
 	public static final int MISC_EN_PASSANT_CAPTURE_MASK = (0x1 << (MISC_EN_PASSANT_CAPTURE_BIT+ MISC_SHIFT));
 	
 	public static final int NULL_MOVE =
@@ -313,10 +309,6 @@ public final class Move {
 		return (move & ((Move.TYPE_CAPTURE_MASK) << TYPE_SHIFT)) != 0;
 	}
 	
-	public static boolean isCheck(int move) {
-		return (move & Move.MISC_CHECK_MASK) != 0;
-	}
-	
 	public static boolean isRegular(int move) { 
 		return (getType(move) == 0);
 	}
@@ -565,10 +557,6 @@ public final class Move {
 
 	public static boolean invalidatesPawnCache(int move) {
 		return (Move.isPromotion(move) || Move.isPawnCapture(move) || Piece.isPawn(Move.getTargetPiece(move)));
-	}
-
-	public static int setCheck(int move) {
-		return (move |= Move.MISC_CHECK_MASK);
 	}
 	
 	public static int setKiller(int move) {
