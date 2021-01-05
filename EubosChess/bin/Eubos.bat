@@ -1,3 +1,4 @@
 @echo off
 REM This batch file is to start Eubos as a process from e.g. Arena, use the UCI protocol via stdin/stdout to communicate with Eubos
-java -Xshare:off -jar .\Eubos.jar
+java -XX:+UnlockDiagnosticVMOptions -Xshare:off -XX:+LogCompilation -XX:+TraceClassLoading -XX:MaxInlineSize=40 -Djdk.attach.allowAttachSelf -Xmx4G -Xms4G -jar .\Eubos.jar
+REM java -Xshare:off -XX:MaxInlineSize=40 -Djdk.attach.allowAttachSelf -Xmx4G -Xms4G -jar .\Eubos.jar

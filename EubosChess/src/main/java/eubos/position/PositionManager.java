@@ -52,10 +52,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	private MoveTracker moveTracker = new MoveTracker();
-
-	public boolean lastMoveWasCheck() {
-		return moveTracker.lastMoveWasCheck();
-	}
 	
 	// No public setter, because onMove is only changed by performing a move on the board.
 	private Colour onMove;

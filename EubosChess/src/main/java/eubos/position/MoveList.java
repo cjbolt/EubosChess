@@ -43,24 +43,23 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	public MoveList(PositionManager pm, int bestMove, int killer1, int killer2, int orderMoveList, int targetSquare) throws InvalidPieceException {	
-	
 		Colour onMove = pm.getOnMove();
-
-		boolean needToEscapeMate = (pm.lastMoveWasCheck() || (pm.noLastMove() && pm.isKingInCheck(onMove)));
+		boolean needToEscapeMate = pm.isKingInCheck(onMove);
 
 		normal_search_moves = pm.generateMoves(targetSquare);
-		
-		removeIllegalMovesIdentifyChecksKillersAndBestMove(pm, bestMove, killer1, killer2, onMove, needToEscapeMate);
-		
+		int foundBestMove = removeInvalidIdentifyBestKillerMoves(pm, bestMove, killer1, killer2, onMove, needToEscapeMate);
+		if (foundBestMove != Move.NULL_MOVE) {
+			normal_search_moves.add(0, foundBestMove);
+		}
 		checkToSortList(orderMoveList);
 	}
 
-	private void removeIllegalMovesIdentifyChecksKillersAndBestMove(PositionManager pm, int bestMove, int killer1, int killer2, Colour onMove,
+	private int removeInvalidIdentifyBestKillerMoves(PositionManager pm, int bestMove, int killer1, int killer2, Colour onMove,
 			boolean needToEscapeMate) throws InvalidPieceException {
 		boolean validBest = bestMove != Move.NULL_MOVE;
 		boolean validKillerMove1 = killer1 != Move.NULL_MOVE;
 		boolean validKillerMove2 = killer2 != Move.NULL_MOVE;
-		boolean foundBest = false;
+		int foundBestMove = Move.NULL_MOVE;
 		
 		ListIterator<Integer> it = normal_search_moves.listIterator();
 		while (it.hasNext()) {
@@ -72,18 +71,11 @@ public class MoveList implements Iterable<Integer> {
 				// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
 				it.remove();
 			} else {
-				// Set the check flag for any moves attacking the opposing king
-				boolean isCheck = pm.getTheBoard().moveCouldPotentiallyCheckOtherKing(currMove) && pm.isKingInCheck(pm.getOnMove());
-				if (isCheck) {
-					currMove = Move.setCheck(currMove);
-				}
 				// Check whether to set the best move - note it could be the same as one of the killers
 				boolean isBest = validBest && Move.areEqualForBestKiller(currMove, bestMove);
 				if (isBest) {
-					currMove = Move.setBest(currMove);
-					bestMove = currMove;
+					foundBestMove = Move.setBest(currMove);
 					validBest = false; // as already found
-					foundBest = true;
 					it.remove();
 				}
 				
@@ -97,26 +89,16 @@ public class MoveList implements Iterable<Integer> {
 					if (isKiller2) {
 						validKillerMove2 = false; // as already found
 					}
-					if (isKiller1 || isKiller2) {
+					if (!isBest && (isKiller1 || isKiller2)) {
+						// Move was modified, update it using the iterator
 						currMove = Move.setKiller(currMove);
-					}
-
-					if (!isBest && (isCheck || isKiller1 || isKiller2)) {
-						// Move was modified, update it using the iterator
-						it.set(currMove);
-					}
-				} else {
-					if (!isBest && isCheck) {
-						// Move was modified, update it using the iterator
 						it.set(currMove);
 					}
 				}
 			}
 			pm.unperformMove(false);
 		}
-
-		if (foundBest)
-			normal_search_moves.add(0, bestMove);
+		return foundBestMove;
 	}
 
 	private void checkToSortList(int orderMoveList) {
@@ -157,7 +139,7 @@ public class MoveList implements Iterable<Integer> {
 			// Lazy creation of extended move list
 			extended_search_moves = new ArrayList<Integer>(normal_search_moves.size());
 			for (int currMove : normal_search_moves) {
-				if ((Move.isCapture(currMove) && (Move.getTargetPosition(currMove) == captureSq)) || Move.isCheck(currMove) || Move.isQueenPromotion(currMove)) {
+				if ((Move.isCapture(currMove) && (Move.getTargetPosition(currMove) == captureSq)) || Move.isQueenPromotion(currMove)) {
 					extended_search_moves.add(currMove);
 				}
 			}

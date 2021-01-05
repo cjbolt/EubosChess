@@ -240,7 +240,7 @@ public class PlySearcher {
 		int currMove = move_iter.next();
 		pc.initialise(currPly, currMove);
 
-		plyScore = initialiseScoreForSingularCaptureInExtendedSearch(ml, move_iter, plyBound, plyScore);
+		plyScore = establishStandPatInExtendedSearch(ml, plyBound, plyScore);
 
 		while(!isTerminated()) {
 			if (EubosEngineMain.UCI_INFO_ENABLED)
@@ -338,9 +338,9 @@ public class PlySearcher {
 		return plyScore;
 	}
 
-	private short initialiseScoreForSingularCaptureInExtendedSearch(MoveList ml, Iterator<Integer> move_iter, byte plyBound, short plyScore) throws InvalidPieceException {
+	private short establishStandPatInExtendedSearch(MoveList ml, byte plyBound, short plyScore) throws InvalidPieceException {
 		short theScore = plyScore;
-		if (isInExtendedSearch() && !move_iter.hasNext()) {
+		if (isInExtendedSearch()) {
 			/*
 			 * The idea is that if we are in an extended search, if there are normal moves available 
 			 * and only a single "forced" capture, we shouldn't necessarily be forced into making that capture.
@@ -348,10 +348,8 @@ public class PlySearcher {
 			 * Note: This is only a problem for the PV search, all others will bring down alpha/beta score and won't 
 			 * back up if the score for the capture is worse than that.
 			 */
-			int provScore = st.getBackedUpScoreAtPly(currPly);
-			boolean isProvisional = (provScore == Short.MAX_VALUE || provScore == Short.MIN_VALUE);
-			if (isProvisional && ml.hasMultipleRegularMoves()) {
-				theScore = Score.getScore(applySafestNormalMoveAndScore(ml));
+			theScore = Score.getScore(pe.evaluatePosition());
+			if (st.isBackUpRequired(currPly, theScore, plyBound)) {
 				st.setBackedUpScoreAtPly(currPly, theScore);
 			}
 		}
