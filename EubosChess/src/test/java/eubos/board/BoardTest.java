@@ -306,4 +306,18 @@ public class BoardTest {
 		setUpPosition("8/P/8/8/8/8/k/7K w - - 0 1");
 		assertFalse(classUnderTest.isInsufficientMaterial());
 	}
+	
+	@Test
+	public void test_evaluateKingSafety_safe() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("5krr/4pppp/6bq/8/8/6BQ/4PPPP/5KRR b - - 13 1");
+		assertEquals(0, classUnderTest.evaluateKingSafety(false));
+		assertEquals(0, classUnderTest.evaluateKingSafety(true));
+	}
+	
+	@Test
+	public void test_evaluateKingSafety_notVerySafe() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("6rr/5ppp/1k4bq/8/8/1K4BQ/5PPP/6RR b - - 13 1 ");
+		assertEquals(51, classUnderTest.evaluateKingSafety(false));
+		assertEquals(-51, classUnderTest.evaluateKingSafety(true));
+	}
 }

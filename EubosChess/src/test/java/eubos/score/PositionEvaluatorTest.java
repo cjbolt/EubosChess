@@ -39,7 +39,7 @@ public class PositionEvaluatorTest {
 	public void test_evalPosA() {
 		setUpPosition("rn2k1nr/1pp2p1p/p7/8/6b1/2P2N2/PPP2PP1/R1BB1RK1 b kq - 0 12");
 		if (PositionEvaluator.ENABLE_PAWN_EVALUATION) {
-			assertEquals(137, Score.getScore(SUT.evaluatePosition())); // Knight good pos, pawn up, doubled pawns, not endgame
+			assertEquals(143, Score.getScore(SUT.evaluatePosition())); // Knight good pos, pawn up, doubled pawns, not endgame, some danger to black king (open file)
 		} else {
 			assertEquals(170, Score.getScore(SUT.evaluatePosition())); // Knight good pos, pawn up, not endgame
 		}
@@ -382,18 +382,18 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_evaluateKingSafety_No_opposingBishopWrongColour() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("r4rk1/1p3p2/p7/P2P1p1B/4p3/2b5/3R1PPP/4K2R b K - 13 1 ");
-		assertEquals(0, SUT.evaluateKingSafety());
+		assertEquals(-12, SUT.evaluateKingSafety());
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_Yes_opposingBishopRightColour() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("r4rk1/1p6/p7/P2P1p1B/4p3/2b5/3R1PPP/2K4R b - - 13 1 ");
-		assertEquals(7, SUT.evaluateKingSafety()); // 7 squares on diagonals, times one bishop that can utilise them...
+		assertEquals(-13, SUT.evaluateKingSafety()); // 7 squares on diagonals, times one bishop that can utilise them...
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_Yes_opposingQueenBishop() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("r4rk1/1p6/p7/P2P1p1B/4p3/2b5/3R1PPP/Q1K4R b - - 13 1 ");
-		assertEquals(14, SUT.evaluateKingSafety()); // 7 squares on diagonals, times one bishop and one queen that can utilise them...
+		assertEquals(8, SUT.evaluateKingSafety()); // 7 squares on diagonals, times one bishop and one queen that can utilise them...
 	}
 }

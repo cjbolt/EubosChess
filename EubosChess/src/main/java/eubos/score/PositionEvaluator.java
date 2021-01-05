@@ -24,7 +24,8 @@ public class PositionEvaluator implements IEvaluate {
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 20;
 	
 	public static final boolean DISABLE_QUIESCENCE_CHECK = false;
-	public static final boolean ENABLE_PAWN_EVALUATION = true; 
+	public static final boolean ENABLE_PAWN_EVALUATION = true;
+	public static final boolean ENABLE_KING_SAFETY_EVALUATION = true;
 	
 	public PositionEvaluator(IPositionAccessors pm) {	
 		this.pm = pm;
@@ -50,6 +51,9 @@ public class PositionEvaluator implements IEvaluate {
 			if (ENABLE_PAWN_EVALUATION) {
 				eval.score += evaluatePawnStructure();
 			}
+			if (ENABLE_KING_SAFETY_EVALUATION) {
+				eval.score += evaluateKingSafety();
+			}
 		}
 		return Score.valueOf(eval.score, Score.exact);
 	}
@@ -72,8 +76,8 @@ public class PositionEvaluator implements IEvaluate {
 	int evaluateKingSafety() {
 		int kingSafetyScore = 0;
 		boolean ownSideIsWhite = pm.onMoveIsWhite();
-		kingSafetyScore = evaluateKingSafetyForColour(ownSideIsWhite);
-		kingSafetyScore += evaluateKingSafetyForColour(!ownSideIsWhite);
+		kingSafetyScore = pm.getTheBoard().evaluateKingSafety(ownSideIsWhite);
+		kingSafetyScore += pm.getTheBoard().evaluateKingSafety(!ownSideIsWhite);
 		return kingSafetyScore;
 	}
 
@@ -98,19 +102,6 @@ public class PositionEvaluator implements IEvaluate {
 			passedPawnBoost = -passedPawnBoost;
 		}
 		return pawnHandicap + passedPawnBoost;
-	}
-	
-	private int evaluateKingSafetyForColour(boolean onMoveWasWhite) {
-		int kingSafetyScore = 0;
-		Board board = pm.getTheBoard();
-		if (!board.isEndgame) {
-			/* Evaluate for King on open lines of attack */
-			kingSafetyScore = board.evaluateKingSafety(onMoveWasWhite);
-		}
-		if (!onMoveWasWhite) {
-			kingSafetyScore = -kingSafetyScore;
-		}
-		return kingSafetyScore;
 	}
 	
 	public SearchContext getSearchContext() {

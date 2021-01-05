@@ -1103,26 +1103,41 @@ public class Board {
 	private static final long DARK_SQUARES_MASK = 0xAA55AA55AA55AA55L; 
 	
 	public int evaluateKingSafety(boolean onMoveWasWhite) {
-		// King
-		long kingMask = onMoveWasWhite ? getWhiteKing() : getBlackKing();
-		boolean isKingOnDarkSq = (kingMask & DARK_SQUARES_MASK) != 0;
-		// Attackers
-		long attackingQueensMask = onMoveWasWhite ? getBlackQueens() : getWhiteQueens();
-		//long attackingRooksMask = onMoveWasWhite ? getBlackRooks() : getWhiteRooks();
-		long attackingBishopsMask = onMoveWasWhite ? getBlackBishops() : getWhiteBishops();
-		// create masks of attackers
-		long pertinentBishopMask = attackingBishopsMask & ((isKingOnDarkSq) ? DARK_SQUARES_MASK : LIGHT_SQUARES_MASK);
-		long diagonalAttackersMask = attackingQueensMask | pertinentBishopMask;
-		//long rankFileAttackersMask = attackingQueensMask | attackingRooksMask;
-		
-		// First score according to King exposure on open diagonals
-		int numPotentialAttackers = Long.bitCount(diagonalAttackersMask);
-		int kingPos = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(kingMask)];
-		return computeDiagonalExposureFactor(kingPos, onMoveWasWhite) * -numPotentialAttackers;
+		int evaluation = 0;
+		if (!isEndgame) {
+			// King
+			long kingMask = onMoveWasWhite ? getWhiteKing() : getBlackKing();
+			boolean isKingOnDarkSq = (kingMask & DARK_SQUARES_MASK) != 0;
+			// Attackers
+			long attackingQueensMask = onMoveWasWhite ? getBlackQueens() : getWhiteQueens();
+			long attackingRooksMask = onMoveWasWhite ? getBlackRooks() : getWhiteRooks();
+			long attackingBishopsMask = onMoveWasWhite ? getBlackBishops() : getWhiteBishops();
+			// create masks of attackers
+			long pertinentBishopMask = attackingBishopsMask & ((isKingOnDarkSq) ? DARK_SQUARES_MASK : LIGHT_SQUARES_MASK);
+			long diagonalAttackersMask = attackingQueensMask | pertinentBishopMask;
+			long rankFileAttackersMask = attackingQueensMask | attackingRooksMask;
+			
+			// First score according to King exposure on open diagonals
+			int numPotentialAttackers = Long.bitCount(diagonalAttackersMask);
+			int kingPos = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(kingMask)];
+			evaluation = computeDiagonalExposureFactor(kingPos, onMoveWasWhite) * -numPotentialAttackers;
+			
+			numPotentialAttackers = Long.bitCount(rankFileAttackersMask);
+			evaluation += computeRankFileExposureFactor(kingPos, onMoveWasWhite) * -numPotentialAttackers;
+			
+			if (!onMoveWasWhite) {
+				evaluation = -evaluation;
+			}
+		}
+		return evaluation;
 	}
 	
 	public int computeDiagonalExposureFactor(int atPos, boolean onMoveWasWhite) {
 		return calculateExposure(atPos, BishopMobilityMask_Lut, onMoveWasWhite);
+	}
+	
+	public int computeRankFileExposureFactor(int atPos, boolean onMoveWasWhite) {
+		return calculateExposure(atPos, RookMobilityMask_Lut, onMoveWasWhite);
 	}
 	
     private int calculateExposure(int atPos, List<MobilityMask>[] maskMap, boolean onMoveWasWhite) {
