@@ -372,4 +372,28 @@ public class PositionEvaluatorTest {
 		setUpPosition("r1b1k3/1p1p1p1p/p3pR2/8/4P3/1PN3r1/P1PQBK2/2q5 b q - 4 21 ");
 		assertEquals(-391, Score.getScore(SUT.evaluatePosition()));
 	}
+	
+	@Test
+	public void test_evaluateKingSafety_No_inEndgame() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("8/8/8/8/8/8/8/K7 w - - 0 1");
+		assertEquals(0, SUT.evaluateKingSafety());
+	}
+	
+	@Test
+	public void test_evaluateKingSafety_No_opposingBishopWrongColour() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("r4rk1/1p3p2/p7/P2P1p1B/4p3/2b5/3R1PPP/4K2R b K - 13 1 ");
+		assertEquals(0, SUT.evaluateKingSafety());
+	}
+	
+	@Test
+	public void test_evaluateKingSafety_Yes_opposingBishopRightColour() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("r4rk1/1p6/p7/P2P1p1B/4p3/2b5/3R1PPP/2K4R b - - 13 1 ");
+		assertEquals(7, SUT.evaluateKingSafety()); // 7 squares on diagonals, times one bishop that can utilise them...
+	}
+	
+	@Test
+	public void test_evaluateKingSafety_Yes_opposingQueenBishop() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("r4rk1/1p6/p7/P2P1p1B/4p3/2b5/3R1PPP/Q1K4R b - - 13 1 ");
+		assertEquals(14, SUT.evaluateKingSafety()); // 7 squares on diagonals, times one bishop and one queen that can utilise them...
+	}
 }
