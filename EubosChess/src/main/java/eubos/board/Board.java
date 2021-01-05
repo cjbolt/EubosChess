@@ -26,91 +26,81 @@ class MobilityMask {
 
 public class Board {
 	
-	private long allPieces = 0x0;
-	private long whitePieces = 0x0;
-	private long blackPieces = 0x0;
+	private static final long LIGHT_SQUARES_MASK = 0x55AA55AA55AA55AAL;
+	private static final long DARK_SQUARES_MASK = 0xAA55AA55AA55AA55L; 
 	
-	public long getWhitePieces() {
-		return whitePieces;
-	}
-	public long getBlackPieces() {
-		return blackPieces;
-	}
-
-	private static final int INDEX_PAWN = Piece.PAWN;
-	private static final int INDEX_KNIGHT = Piece.KNIGHT;
-	private static final int INDEX_BISHOP = Piece.BISHOP;
-	private static final int INDEX_ROOK = Piece.ROOK;
-	private static final int INDEX_QUEEN = Piece.QUEEN;
-	private static final int INDEX_KING = Piece.KING;
-	//private static final int INDEX_NONE = Piece.NONE;
-	
-	private long[] pieces = new long[7]; // N.b. INDEX_NONE is an empty long at index 0.
-	
-	public boolean isInsufficientMaterial() {
-		// Major pieces
-		if (pieces[Piece.QUEEN] != 0)
-			return false;
-		if (pieces[Piece.ROOK] != 0)
-			return false;
-		// Possible promotions
-		if (pieces[Piece.PAWN] != 0)
-			return false;
-		
-		// Minor pieces
-		int numWhiteBishops = Long.bitCount(getWhiteBishops());
-		int numWhiteKnights = Long.bitCount(getWhiteKnights());
-		int numBlackBishops = Long.bitCount(getBlackBishops());
-		int numBlackKnights = Long.bitCount(getBlackKnights());
-		
-		if (numWhiteBishops >= 2 || numBlackBishops >= 2) {
-			// One side has at least two bishops
-			return false;
+	private static final long[] FileMask_Lut = new long[8];
+	static {
+		for (int file : IntFile.values) {
+			long mask = 0;
+			int f=file;
+			for (int r = 0; r<8; r++) {
+				mask  |= 1L << r*8+f;
+			}
+			FileMask_Lut[file]= mask;
 		}
-		if ((numWhiteBishops == 1 && numWhiteKnights >= 1) ||
-		    (numBlackBishops == 1 && numBlackKnights >= 1))
-			// One side has Knight and Bishop
-			return false;
-		
-		// else insufficient
-		return true;
 	}
 	
-	public boolean isInsufficientMaterial(Piece.Colour side) {
-		long ownBitBoard =  Colour.isWhite(side) ? whitePieces : blackPieces;
-		// Major pieces
-		if ((pieces[Piece.QUEEN] & ownBitBoard) != 0)
-			return false;
-		if ((pieces[Piece.ROOK] & ownBitBoard) != 0)
-			return false;
-		// Possible promotions
-		if ((pieces[Piece.PAWN] & ownBitBoard) != 0)
-			return false;
-		
-		// Minor pieces
-		int numBishops = Long.bitCount((pieces[Piece.BISHOP] & ownBitBoard));
-		int numKnights = Long.bitCount((pieces[Piece.KNIGHT] & ownBitBoard));
-		
-		if (numBishops >= 2) {
-			// side has at least two bishops
-			return false;
+	private static final long[] RankMask_Lut = new long[8];
+	static {
+		for (int r : IntRank.values) {
+			long mask = 0;
+			for (int f = 0; f<8; f++) {
+				mask  |= 1L << r*8+f;
+			}
+			RankMask_Lut[r] = mask;
 		}
-		if (numBishops == 1 && numKnights >= 1)
-			// side has Knight and Bishop
-			return false;
-		
-		// else insufficient
-		return true;
+	}
+	
+	private static final long[][] PassedPawn_Lut = new long[2][]; 
+	static {
+		long[] white_map = new long[128];
+		PassedPawn_Lut[Colour.white.ordinal()] = white_map;
+		for (int atPos : Position.values) {
+			white_map[atPos] = buildPassedPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), true);
+		}
+		long[] black_map = new long[128];
+		PassedPawn_Lut[Colour.black.ordinal()] = black_map;
+		for (int atPos : Position.values) {
+			black_map[atPos] = buildPassedPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), false);
+		}
+	}
+	private static long buildPassedPawnFileMask(int f, int r, boolean isWhite) {
+		long mask = 0;
+		boolean hasPrevFile = IntFile.toGenericFile(f).hasPrev();
+		boolean hasNextFile = IntFile.toGenericFile(f).hasNext();
+		if (isWhite) {
+			for (r=r+1; r < 7; r++) {
+				mask = addRankForPassedPawnMask(mask, r, f, hasPrevFile,
+						hasNextFile);
+			}
+		} else {
+			for (r=r-1; r > 0; r--) {
+				mask = addRankForPassedPawnMask(mask, r, f, hasPrevFile,
+						hasNextFile);	
+			}
+		}
+		return mask;
+	}
+	private static long addRankForPassedPawnMask(long mask, int r, int f,
+			boolean hasPrevFile, boolean hasNextFile) {
+		if (hasPrevFile) {
+			mask |= 1L << r*8+(f-1);
+		}
+		mask |= 1L << r*8+f;
+		if (hasNextFile) {
+			mask |= 1L << r*8+(f+1);
+		}
+		return mask;
 	}
 	
 	@SuppressWarnings("unchecked")
 	private static final List<MobilityMask>[] RookMobilityMask_Lut = (List<MobilityMask>[]) new List[128];
 	static {
-		Direction [] rankFile = { Direction.left, Direction.up, Direction.right, Direction.down };
 		for (int square : Position.values) {
 			List<MobilityMask> array = new ArrayList<MobilityMask>();
 			for (int index=1; index<8; index++) {
-				createMask(square, array, index, rankFile);
+				createMask(square, array, index, SquareAttackEvaluator.rankFile);
 			}
 			RookMobilityMask_Lut[square] = array;
 		}
@@ -141,26 +131,13 @@ public class Board {
 		}
 	}
 	
-	private static final long[] directAttacksOnPosition_Lut = new long[128];
-	static {
-		Direction [] allDirect = { Direction.left, Direction.up, Direction.right, Direction.down, Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
-		for (int square : Position.values) {
-			MobilityMask allAttacksMask = new MobilityMask();
-			for (Direction dir: allDirect) {
-				setAllInDirection(dir, square, allAttacksMask, 8);
-			}
-			directAttacksOnPosition_Lut[square] = allAttacksMask.mask;
-		}
-	}
-	
 	@SuppressWarnings("unchecked")
 	private static final List<MobilityMask>[] BishopMobilityMask_Lut = (List<MobilityMask>[]) new List[128];
 	static {
-		Direction [] diagonals = { Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
 		for (int square : Position.values) {
 			List<MobilityMask> array = new ArrayList<MobilityMask>();
 			for (int index=1; index<8; index++) {
-				createMask(square, array, index, diagonals);
+				createMask(square, array, index, SquareAttackEvaluator.diagonals);
 			}
 			BishopMobilityMask_Lut[square] = array;
 		}
@@ -169,38 +146,36 @@ public class Board {
 	@SuppressWarnings("unchecked")
 	private static final List<MobilityMask>[] QueenMobilityMask_Lut = (List<MobilityMask>[]) new List[128];
 	static {
-		Direction [] diagonals = { Direction.left, Direction.up, Direction.right, Direction.down, Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
+		Direction [] allDirectAttacks = SquareAttackEvaluator.allDirect;
 		for (int square : Position.values) {
 			List<MobilityMask> array = new ArrayList<MobilityMask>();
 			for (int index=1; index<8; index++) {
-				createMask(square, array, index, diagonals);
+				createMask(square, array, index, allDirectAttacks);
 			}
 			QueenMobilityMask_Lut[square] = array;
 		}
 	}
 	
-	private static final long[] FileMask_Lut = new long[8];
-	static {
-		for (int file : IntFile.values) {
-			long mask = 0;
-			int f=file;
-			for (int r = 0; r<8; r++) {
-				mask  |= 1L << r*8+f;
-			}
-			FileMask_Lut[file]= mask;
-		}
-	}
+	private long allPieces = 0x0;
+	private long whitePieces = 0x0;
+	private long blackPieces = 0x0;
 	
-	private static final long[] RankMask_Lut = new long[8];
-	static {
-		for (int r : IntRank.values) {
-			long mask = 0;
-			for (int f = 0; f<8; f++) {
-				mask  |= 1L << r*8+f;
-			}
-			RankMask_Lut[r] = mask;
-		}
+	public long getWhitePieces() {
+		return whitePieces;
 	}
+	public long getBlackPieces() {
+		return blackPieces;
+	}
+
+	private static final int INDEX_PAWN = Piece.PAWN;
+	private static final int INDEX_KNIGHT = Piece.KNIGHT;
+	private static final int INDEX_BISHOP = Piece.BISHOP;
+	private static final int INDEX_ROOK = Piece.ROOK;
+	private static final int INDEX_QUEEN = Piece.QUEEN;
+	private static final int INDEX_KING = Piece.KING;
+	//private static final int INDEX_NONE = Piece.NONE;
+	
+	private long[] pieces = new long[7]; // N.b. INDEX_NONE is an empty long at index 0.
 	
 	static final int ENDGAME_MATERIAL_THRESHOLD = 
 			Board.MATERIAL_VALUE_KING + 
@@ -236,6 +211,31 @@ public class Board {
 		if ((queensOffBoard && queensOffMaterialThresholdReached) || materialQuantityThreshholdReached) {
 			isEndgame = true;
 		}
+	}
+	
+	public String getAsFenString() {
+		int currPiece = Piece.NONE;
+		int spaceCounter = 0;
+		StringBuilder fen = new StringBuilder();
+		for (int rank=7; rank>=0; rank--) {
+			for (int file=0; file<8; file++) {
+				currPiece = this.getPieceAtSquare(Position.valueOf(file,rank));
+				if (currPiece != Piece.NONE) {
+					if (spaceCounter != 0)
+						fen.append(spaceCounter);
+					fen.append(Piece.toFenChar(currPiece));
+					spaceCounter=0;					
+				} else {
+					spaceCounter++;
+				}
+			}
+			if (spaceCounter != 0)
+				fen.append(spaceCounter);
+			if (rank != 0)
+				fen.append('/');
+			spaceCounter=0;
+		}
+		return fen.toString();
 	}
 	
 	public int doMove(int move) throws InvalidPieceException {
@@ -649,73 +649,6 @@ public class Board {
 		return isPassed;
 	}
 	
-	private static final long[][] PassedPawn_Lut = new long[2][]; 
-	static {
-		long[] white_map = new long[128];
-		PassedPawn_Lut[Colour.white.ordinal()] = white_map;
-		for (int atPos : Position.values) {
-			white_map[atPos] = buildPassedPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), true);
-		}
-		long[] black_map = new long[128];
-		PassedPawn_Lut[Colour.black.ordinal()] = black_map;
-		for (int atPos : Position.values) {
-			black_map[atPos] = buildPassedPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), false);
-		}
-	}
-	private static long buildPassedPawnFileMask(int f, int r, boolean isWhite) {
-		long mask = 0;
-		boolean hasPrevFile = IntFile.toGenericFile(f).hasPrev();
-		boolean hasNextFile = IntFile.toGenericFile(f).hasNext();
-		if (isWhite) {
-			for (r=r+1; r < 7; r++) {
-				mask = addRankForPassedPawnMask(mask, r, f, hasPrevFile,
-						hasNextFile);
-			}
-		} else {
-			for (r=r-1; r > 0; r--) {
-				mask = addRankForPassedPawnMask(mask, r, f, hasPrevFile,
-						hasNextFile);	
-			}
-		}
-		return mask;
-	}
-	private static long addRankForPassedPawnMask(long mask, int r, int f,
-			boolean hasPrevFile, boolean hasNextFile) {
-		if (hasPrevFile) {
-			mask |= 1L << r*8+(f-1);
-		}
-		mask |= 1L << r*8+f;
-		if (hasNextFile) {
-			mask |= 1L << r*8+(f+1);
-		}
-		return mask;
-	}
-	
-	public String getAsFenString() {
-		int currPiece = Piece.NONE;
-		int spaceCounter = 0;
-		StringBuilder fen = new StringBuilder();
-		for (int rank=7; rank>=0; rank--) {
-			for (int file=0; file<8; file++) {
-				currPiece = this.getPieceAtSquare(Position.valueOf(file,rank));
-				if (currPiece != Piece.NONE) {
-					if (spaceCounter != 0)
-						fen.append(spaceCounter);
-					fen.append(Piece.toFenChar(currPiece));
-					spaceCounter=0;					
-				} else {
-					spaceCounter++;
-				}
-			}
-			if (spaceCounter != 0)
-				fen.append(spaceCounter);
-			if (rank != 0)
-				fen.append('/');
-			spaceCounter=0;
-		}
-		return fen.toString();
-	}
-	
 	class allPiecesOnBoardIterator implements PrimitiveIterator.OfInt {	
 		private int[] pieces = null;
 		private int count = 0;
@@ -883,7 +816,7 @@ public class Board {
 		
 		int kingPosition = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(king)];
 		
-		return moveCouldLeadToDiscoveredCheck(move, kingPosition);
+		return SquareAttackEvaluator.moveCouldLeadToDiscoveredCheck(move, kingPosition);
 	}
 	
 	public boolean moveCouldPotentiallyCheckOtherKing(Integer move) {
@@ -894,7 +827,7 @@ public class Board {
 		if (king == 0)  return false;
 		
 		int kingPosition = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(king)];
-		if (moveCouldLeadToDiscoveredCheck(move, kingPosition)) {
+		if (SquareAttackEvaluator.moveCouldLeadToDiscoveredCheck(move, kingPosition)) {
 			// Could be a discovered check, so search further
 			isPotentialCheck = true;
 		} else {
@@ -908,14 +841,6 @@ public class Board {
 			}
 		}
 		return isPotentialCheck;
-	}
-	
-	private boolean moveCouldLeadToDiscoveredCheck(Integer move, int kingPosition) {
-		int atSquare = Move.getOriginPosition(move);
-		// Establish if the initial square is on a multiple square slider mask from the king position
-		long square = BitBoard.positionToMask_Lut[atSquare];
-		long attackingSquares = directAttacksOnPosition_Lut[kingPosition];
-		return ((square & attackingSquares) != 0);
 	}
 	
 	private boolean isPromotionPawnBlocked(long pawns, Direction dir) {
@@ -949,6 +874,62 @@ public class Board {
 			}
 		}
 		return potentialPromotion;
+	}
+	
+	public boolean isInsufficientMaterial() {
+		// Major pieces
+		if (pieces[Piece.QUEEN] != 0)
+			return false;
+		if (pieces[Piece.ROOK] != 0)
+			return false;
+		// Possible promotions
+		if (pieces[Piece.PAWN] != 0)
+			return false;
+		
+		// Minor pieces
+		int numWhiteBishops = Long.bitCount(getWhiteBishops());
+		int numWhiteKnights = Long.bitCount(getWhiteKnights());
+		int numBlackBishops = Long.bitCount(getBlackBishops());
+		int numBlackKnights = Long.bitCount(getBlackKnights());
+		
+		if (numWhiteBishops >= 2 || numBlackBishops >= 2) {
+			// One side has at least two bishops
+			return false;
+		}
+		if ((numWhiteBishops == 1 && numWhiteKnights >= 1) ||
+		    (numBlackBishops == 1 && numBlackKnights >= 1))
+			// One side has Knight and Bishop
+			return false;
+		
+		// else insufficient
+		return true;
+	}
+	
+	public boolean isInsufficientMaterial(Piece.Colour side) {
+		long ownBitBoard =  Colour.isWhite(side) ? whitePieces : blackPieces;
+		// Major pieces
+		if ((pieces[Piece.QUEEN] & ownBitBoard) != 0)
+			return false;
+		if ((pieces[Piece.ROOK] & ownBitBoard) != 0)
+			return false;
+		// Possible promotions
+		if ((pieces[Piece.PAWN] & ownBitBoard) != 0)
+			return false;
+		
+		// Minor pieces
+		int numBishops = Long.bitCount((pieces[Piece.BISHOP] & ownBitBoard));
+		int numKnights = Long.bitCount((pieces[Piece.KNIGHT] & ownBitBoard));
+		
+		if (numBishops >= 2) {
+			// side has at least two bishops
+			return false;
+		}
+		if (numBishops == 1 && numKnights >= 1)
+			// side has Knight and Bishop
+			return false;
+		
+		// else insufficient
+		return true;
 	}
 	
 	public PiecewiseEvaluation me;
@@ -1099,9 +1080,6 @@ public class Board {
 		return me;
 	}
 	
-	private static final long LIGHT_SQUARES_MASK = 0x55AA55AA55AA55AAL;
-	private static final long DARK_SQUARES_MASK = 0xAA55AA55AA55AA55L; 
-	
 	public int evaluateKingSafety(boolean onMoveWasWhite) {
 		int evaluation = 0;
 		if (!isEndgame) {
@@ -1133,24 +1111,64 @@ public class Board {
 	}
 	
 	public int computeDiagonalExposureFactor(int atPos, boolean onMoveWasWhite) {
-		return calculateExposure(atPos, BishopMobilityMask_Lut, onMoveWasWhite);
+		int exposure = 0;
+		for (Direction dir: SquareAttackEvaluator.diagonals) {  
+			exposure += getNumEmptySquaresInDirection(onMoveWasWhite, atPos, dir);
+		}
+		return exposure;
 	}
 	
 	public int computeRankFileExposureFactor(int atPos, boolean onMoveWasWhite) {
-		return calculateExposure(atPos, RookMobilityMask_Lut, onMoveWasWhite);
-	}
-	
-    private int calculateExposure(int atPos, List<MobilityMask>[] maskMap, boolean onMoveWasWhite) {
 		int exposure = 0;
-		long ownPieceMask = onMoveWasWhite ? whitePieces : blackPieces;
-		List<MobilityMask> list = maskMap[atPos];
-		for (MobilityMask levelMask : list) {
-			if ((ownPieceMask & levelMask.mask) == 0) {
-				exposure = levelMask.squares;
-			} else {
-				break;
-			}
+		for (Direction dir: SquareAttackEvaluator.rankFile) {  
+			exposure += getNumEmptySquaresInDirection(onMoveWasWhite, atPos, dir);
 		}
 		return exposure;
+	}
+	
+	private int getNumEmptySquaresInDirection(boolean attackerIsBlack, int atPos, Direction dir) {
+		int numEmpty = 0;
+		long inPathMask = 0;
+		switch(dir) {
+		case downLeft:
+			inPathMask = SquareAttackEvaluator.directAttacksOnPositionDownLeft_Lut[atPos];
+			break;
+		case upLeft:
+			inPathMask = SquareAttackEvaluator.directAttacksOnPositionUpLeft_Lut[atPos];
+			break;
+		case upRight:
+			inPathMask = SquareAttackEvaluator.directAttacksOnPositionUpRight_Lut[atPos];
+			break;
+		case downRight:
+			inPathMask = SquareAttackEvaluator.directAttacksOnPositionDownRight_Lut[atPos];
+			break;
+		case left:
+			inPathMask = SquareAttackEvaluator.directAttacksOnPositionLeft_Lut[atPos];
+			break;
+		case up:
+			inPathMask = SquareAttackEvaluator.directAttacksOnPositionUp_Lut[atPos];
+			break;
+		case right:
+			inPathMask = SquareAttackEvaluator.directAttacksOnPositionRight_Lut[atPos];
+			break;
+		case down:
+			inPathMask = SquareAttackEvaluator.directAttacksOnPositionDown_Lut[atPos];
+			break;	
+		default:
+			break;		
+		}
+		// one dimension for each direction, other dimension is array of squares in that direction
+		int [][] array = SquareAttackEvaluator.directPieceMove_Lut[atPos]; 
+		if ((allPieces & inPathMask) != 0) {
+			for (int attackerSq: array[SquareAttackEvaluator.directionIndex_Lut.get(dir)]) {
+				if (squareIsEmpty(attackerSq)) {
+					numEmpty++;
+				} else break;
+			}
+		} else {
+			// all the squares are empty in this direction
+			numEmpty = array[SquareAttackEvaluator.directionIndex_Lut.get(dir)].length;
+		}
+		return numEmpty;
 	}
 }

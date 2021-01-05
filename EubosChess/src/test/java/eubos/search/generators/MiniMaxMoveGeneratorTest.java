@@ -278,7 +278,7 @@ public class MiniMaxMoveGeneratorTest {
 		expectedMove = new GenericMove("b4b5");
 		//expectedMove = new GenericMove("f3e5");
 		//expectedMove = new GenericMove("g6g7");
-		doFindMoveTest((byte)1, true);
+		doFindMoveTest((byte)2, true);
 	}
 	
 	@Test

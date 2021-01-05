@@ -6,13 +6,18 @@ import java.util.Map;
 
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
+import eubos.position.Move;
 import eubos.position.Position;
 
 public class SquareAttackEvaluator {
 	
+	static final Direction [] rankFile = { Direction.left, Direction.up, Direction.right, Direction.down };
+	
+	static final Direction [] diagonals = { Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
+	
 	static final Direction [] allDirect = { Direction.left, Direction.up, Direction.right, Direction.down, Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
 	
-	private static final Map<Direction, Integer> directionIndex_Lut = new EnumMap<Direction, Integer>(Direction.class);
+	static final Map<Direction, Integer> directionIndex_Lut = new EnumMap<Direction, Integer>(Direction.class);
 	static {
 		// Indexes as specified by the order of the array SquareAttackEvaluator.allDirect
 		directionIndex_Lut.put(Direction.left, 0);
@@ -25,7 +30,11 @@ public class SquareAttackEvaluator {
 		directionIndex_Lut.put(Direction.downRight, 7);
 	}
 	
-	static private final int[][][] directPieceMove_Lut = new int[128][allDirect.length][];
+	/* 3-dimensional array:
+	 * 1st is a position integer, this is the origin square
+	 * 2nd is a direction from the origin square (diagonal/rank+file) i.e all direct attack directions from origin square
+	 * 3rd is a position integer, representing all the squares on the board in that direction */
+	static final int[][][] directPieceMove_Lut = new int[128][allDirect.length][];
 	static {
 		for (int square : Position.values) {
 			directPieceMove_Lut[square] = createDiagonalForSq(square);
@@ -61,6 +70,9 @@ public class SquareAttackEvaluator {
 		return currMask;
 	}
 	
+	/* 1-dimensional array:
+	 * 1st index is a position integer, this is the target square
+	 * indexes a bit mask of the squares that attack the target square by a Knight (indirect) move */
 	static final long[] KnightMove_Lut = new long[128];
 	static {
 		for (int square : Position.values) {
@@ -78,6 +90,9 @@ public class SquareAttackEvaluator {
 		return mask;
 	}
 	
+	/* 1-dimensional array:
+	 * 1st index is a position integer, this is the target square
+	 * indexes a bit mask of all the squares on the board that can attack the target square by either a direct or indirect move */
 	static final long[] allAttacksOnPosition_Lut = new long[128];
 	static {
 		for (int square : Position.values) {
@@ -92,6 +107,21 @@ public class SquareAttackEvaluator {
 		}
 	}
 	
+	/* The following 1-dimensional arrays provide bit masks of all the squares that can directly attack the target square:
+	 * 1st index is a position integer, this is the target square */	
+	static final long[] directAttacksOnPosition_Lut = new long[128];
+	static {
+		for (int square : Position.values) {
+			Long allAttacksMask = 0L;
+			for (Direction dir: allDirect) {
+				allAttacksMask = setAllInDirection(dir, square, allAttacksMask, 8);
+			}
+			directAttacksOnPosition_Lut[square] = allAttacksMask;
+		}
+	}
+	
+	/* The following 1-dimensional arrays provide bit masks of all the squares in a direction that can attack the target square:
+	 * 1st index is a position integer, this is the target square */
 	static final long[] directAttacksOnPositionUp_Lut = new long[128];
 	static {
 		for (int square : Position.values) {
@@ -164,6 +194,9 @@ public class SquareAttackEvaluator {
 		}
 	}
 	
+	/* 1-dimensional array:
+	 * 1st index is a position integer, this is the origin square
+	 * indexes a bit mask of the squares that the origin square can attack by a King move */
 	static final long[] KingMove_Lut = new long[128];
 	static {
 		for (int square : Position.values) {
@@ -181,6 +214,9 @@ public class SquareAttackEvaluator {
 		return mask;
 	}
 	
+	/* 1-dimensional array:
+	 * 1st index is a position integer, this is the origin square
+	 * indexes a bit mask of the squares that the origin square can attack by a Black Pawn capture */
 	static final long[] BlackPawnAttacks_Lut = new long[128];
 	static {
 		for (int square : Position.values) {
@@ -202,6 +238,9 @@ public class SquareAttackEvaluator {
 		return mask;
 	}
 	
+	/* 1-dimensional array:
+	 * 1st index is a position integer, this is the origin square
+	 * indexes a bit mask of the squares that the origin square can attack by a White Pawn capture */
 	static final long[] WhitePawnAttacks_Lut = new long[128];
 	static {
 		for (int square : Position.values) {
@@ -374,5 +413,13 @@ public class SquareAttackEvaluator {
 			break;
 		}
 		return attacked;
+	}
+	
+	public static boolean moveCouldLeadToDiscoveredCheck(Integer move, int kingPosition) {
+		int atSquare = Move.getOriginPosition(move);
+		// Establish if the initial square is on a multiple square slider mask from the king position
+		long square = BitBoard.positionToMask_Lut[atSquare];
+		long attackingSquares = directAttacksOnPosition_Lut[kingPosition];
+		return ((square & attackingSquares) != 0);
 	}
 }

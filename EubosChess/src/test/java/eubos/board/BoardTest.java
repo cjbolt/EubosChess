@@ -310,14 +310,40 @@ public class BoardTest {
 	@Test
 	public void test_evaluateKingSafety_safe() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("5krr/4pppp/6bq/8/8/6BQ/4PPPP/5KRR b - - 13 1");
-		assertEquals(0, classUnderTest.evaluateKingSafety(false));
-		assertEquals(0, classUnderTest.evaluateKingSafety(true));
+		assertEquals(15, classUnderTest.evaluateKingSafety(false)); // 5 squares, can be attacked by three pieces
+		assertEquals(-15, classUnderTest.evaluateKingSafety(true));
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_notVerySafe() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("6rr/5ppp/1k4bq/8/8/1K4BQ/5PPP/6RR b - - 13 1 ");
-		assertEquals(51, classUnderTest.evaluateKingSafety(false));
-		assertEquals(-51, classUnderTest.evaluateKingSafety(true));
+		assertEquals(41, classUnderTest.evaluateKingSafety(false)); // diagonals 7 squares, can be attacked by two pieces; r'n'f 9 squares can be attacked by three pieces
+		assertEquals(-41, classUnderTest.evaluateKingSafety(true));
+	}
+	
+	@Test
+	public void test_evaluateKingSafety_No_inEndgame() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("8/8/8/8/8/8/8/K7 w - - 0 1");
+		assertEquals(0, classUnderTest.evaluateKingSafety(true));
+	}
+	
+	@Test
+	public void test_evaluateKingSafety_No_opposingBishopWrongColour() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("r4rk1/1p3p2/p7/P2P1p1B/4p3/2b5/3R1PPP/4K2R b K - 13 1 ");
+		assertEquals(-16, classUnderTest.evaluateKingSafety(true));
+		assertEquals(13, classUnderTest.evaluateKingSafety(false));
+	}
+	
+	@Test
+	public void test_evaluateKingSafety_Yes_opposingBishopRightColour() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("r4rk1/1p6/p7/P2P1p1B/4p3/2b5/3R1PPP/2K4R b - - 13 1 ");
+		assertEquals(-16, classUnderTest.evaluateKingSafety(true));
+	}
+	
+	@Test
+	public void test_evaluateKingSafety_Yes_opposingQueenBishop() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("r4rk1/1p6/p7/P2P1p1B/4p3/2b5/3R1PPP/Q1K4R b - - 13 1 ");
+		assertEquals(-14, classUnderTest.evaluateKingSafety(true));
+		assertEquals(24, classUnderTest.evaluateKingSafety(false)); // 3 * 2 diag + 6 * 3 r'n'f
 	}
 }
