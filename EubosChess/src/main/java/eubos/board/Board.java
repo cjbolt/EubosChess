@@ -1,6 +1,5 @@
 package eubos.board;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -18,11 +17,6 @@ import eubos.score.PiecewiseEvaluation;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntRank;
-
-class MobilityMask {
-	public long mask = 0;
-	public int squares = 0;
-}
 
 public class Board {
 	
@@ -92,68 +86,6 @@ public class Board {
 			mask |= 1L << r*8+(f+1);
 		}
 		return mask;
-	}
-	
-	@SuppressWarnings("unchecked")
-	private static final List<MobilityMask>[] RookMobilityMask_Lut = (List<MobilityMask>[]) new List[128];
-	static {
-		for (int square : Position.values) {
-			List<MobilityMask> array = new ArrayList<MobilityMask>();
-			for (int index=1; index<8; index++) {
-				createMask(square, array, index, SquareAttackEvaluator.rankFile);
-			}
-			RookMobilityMask_Lut[square] = array;
-		}
-	}
-	static private void createMask(int square, List<MobilityMask> array, int index, Direction [] directions) {
-		MobilityMask currMask = new MobilityMask();
-		for (Direction dir: directions) {
-			setAllInDirection(dir, square, currMask, index);
-		}
-		// Clear the central bit
-		currMask.mask &= ~BitBoard.positionToMask_Lut[square];
-		currMask.squares = Long.bitCount(currMask.mask);
-		// Only add the mask if it isn't the same as previous (i.e. no more squares to add)
-		if (array.size()-1 >= 0) {
-			if (currMask.mask != array.get(array.size()-1).mask)
-				array.add(currMask);
-		} else {
-			array.add(currMask);
-		}
-	}
-	static private void setAllInDirection(Direction dir, int fromSq, MobilityMask currMask, int index) {
-		int newSquare = fromSq;
-		for (int i=0; i < index; i++) {
-			if (newSquare != Position.NOPOSITION)
-				newSquare = Direction.getDirectMoveSq(dir, newSquare);
-			if (newSquare != Position.NOPOSITION)
-				currMask.mask |= BitBoard.positionToMask_Lut[newSquare];
-		}
-	}
-	
-	@SuppressWarnings("unchecked")
-	private static final List<MobilityMask>[] BishopMobilityMask_Lut = (List<MobilityMask>[]) new List[128];
-	static {
-		for (int square : Position.values) {
-			List<MobilityMask> array = new ArrayList<MobilityMask>();
-			for (int index=1; index<8; index++) {
-				createMask(square, array, index, SquareAttackEvaluator.diagonals);
-			}
-			BishopMobilityMask_Lut[square] = array;
-		}
-	}
-	
-	@SuppressWarnings("unchecked")
-	private static final List<MobilityMask>[] QueenMobilityMask_Lut = (List<MobilityMask>[]) new List[128];
-	static {
-		Direction [] allDirectAttacks = SquareAttackEvaluator.allDirect;
-		for (int square : Position.values) {
-			List<MobilityMask> array = new ArrayList<MobilityMask>();
-			for (int index=1; index<8; index++) {
-				createMask(square, array, index, allDirectAttacks);
-			}
-			QueenMobilityMask_Lut[square] = array;
-		}
 	}
 	
 	private long allPieces = 0x0;
@@ -768,31 +700,6 @@ public class Board {
 		}
 	}
 
-	public int getNumRankFileSquaresAvailable(int atPos) {
-		return getSquaresAvailableFromPosition(atPos, RookMobilityMask_Lut);
-	}
-	
-	public int getNumDiagonalSquaresAvailable(int atPos) {
-		return getSquaresAvailableFromPosition(atPos, BishopMobilityMask_Lut);
-	}
-	
-	public int getAllDirectSquaresAvailable(int atPos) {
-		return getSquaresAvailableFromPosition(atPos, QueenMobilityMask_Lut);
-	}
-	
-	private int getSquaresAvailableFromPosition(int atPos, List<MobilityMask>[] maskMap ) {
-		int squaresCount = 0;
-		List<MobilityMask> list = maskMap[atPos];
-		for (MobilityMask levelMask : list) {
-			if ((allPieces & levelMask.mask) == 0) {
-				squaresCount = levelMask.squares;
-			} else {
-				break;
-			}
-		}
-		return squaresCount;
-	}
-	
 	public boolean isOnHalfOpenFile(GenericPosition atPos, int type) {
 		boolean isHalfOpen = false;
 		long fileMask = FileMask_Lut[IntFile.valueOf(atPos.file)];
@@ -1021,22 +928,22 @@ public class Board {
 		case Piece.WHITE_ROOK:
 			eval.addWhite(MATERIAL_VALUE_ROOK);
 			if (!isEndgame)
-				eval.addPositionWhite(getNumRankFileSquaresAvailable(atPos)*2);
+				eval.addPositionWhite(getNumEmptyRankFileSquares(atPos)*2);
 			break;
 		case Piece.BLACK_ROOK:
 			eval.addBlack(MATERIAL_VALUE_ROOK);
 			if (!isEndgame)
-				eval.addPositionBlack(getNumRankFileSquaresAvailable(atPos)*2);
+				eval.addPositionBlack(getNumEmptyRankFileSquares(atPos)*2);
 			break;
 		case Piece.WHITE_BISHOP:
 			eval.addWhite(MATERIAL_VALUE_BISHOP);
 			if (!isEndgame)
-				eval.addPositionWhite(getNumDiagonalSquaresAvailable(atPos)*2);
+				eval.addPositionWhite(getNumEmptyDiagonalSquares(atPos)*2);
 			break;
 		case Piece.BLACK_BISHOP:
 			eval.addBlack(MATERIAL_VALUE_BISHOP);
 			if (!isEndgame)
-				eval.addPositionBlack(getNumDiagonalSquaresAvailable(atPos)*2);
+				eval.addPositionBlack(getNumEmptyDiagonalSquares(atPos)*2);
 			break;
 		case Piece.WHITE_KNIGHT:
 			eval.addWhite(MATERIAL_VALUE_KNIGHT);
@@ -1048,11 +955,13 @@ public class Board {
 			break;
 		case Piece.WHITE_QUEEN:
 			eval.addWhite(MATERIAL_VALUE_QUEEN);
+			if (!isEndgame)
+				eval.addPositionWhite(getNumEmptyAllDirectSquares(atPos)*2);
 			break;
 		case Piece.BLACK_QUEEN:
 			eval.addBlack(MATERIAL_VALUE_QUEEN);
-//			if (!isEndgame)
-//				eval.addPositionBlack(getAllDirectSquaresAvailable(atPos)*2);
+			if (!isEndgame)
+				eval.addPositionBlack(getNumEmptyAllDirectSquares(atPos)*2);
 			break;
 		case Piece.WHITE_KING:
 			eval.addWhite(MATERIAL_VALUE_KING);
@@ -1098,10 +1007,10 @@ public class Board {
 			// First score according to King exposure on open diagonals
 			int numPotentialAttackers = Long.bitCount(diagonalAttackersMask);
 			int kingPos = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(kingMask)];
-			evaluation = computeDiagonalExposureFactor(kingPos, onMoveWasWhite) * -numPotentialAttackers;
+			evaluation = getNumEmptyDiagonalSquares(kingPos) * -numPotentialAttackers;
 			
 			numPotentialAttackers = Long.bitCount(rankFileAttackersMask);
-			evaluation += computeRankFileExposureFactor(kingPos, onMoveWasWhite) * -numPotentialAttackers;
+			evaluation += getNumEmptyRankFileSquares(kingPos) * -numPotentialAttackers;
 			
 			if (!onMoveWasWhite) {
 				evaluation = -evaluation;
@@ -1110,65 +1019,63 @@ public class Board {
 		return evaluation;
 	}
 	
-	public int computeDiagonalExposureFactor(int atPos, boolean onMoveWasWhite) {
-		int exposure = 0;
-		for (Direction dir: SquareAttackEvaluator.diagonals) {  
-			exposure += getNumEmptySquaresInDirection(onMoveWasWhite, atPos, dir);
-		}
-		return exposure;
+	public int getNumEmptyDiagonalSquares(int atPos) {
+		return getNumEmptySquaresInDirection(atPos, SquareAttackEvaluator.diagonals);
 	}
 	
-	public int computeRankFileExposureFactor(int atPos, boolean onMoveWasWhite) {
-		int exposure = 0;
-		for (Direction dir: SquareAttackEvaluator.rankFile) {  
-			exposure += getNumEmptySquaresInDirection(onMoveWasWhite, atPos, dir);
-		}
-		return exposure;
+	public int getNumEmptyRankFileSquares(int atPos) {
+		return getNumEmptySquaresInDirection(atPos, SquareAttackEvaluator.rankFile);
 	}
 	
-	private int getNumEmptySquaresInDirection(boolean attackerIsBlack, int atPos, Direction dir) {
-		int numEmpty = 0;
-		long inPathMask = 0;
-		switch(dir) {
-		case downLeft:
-			inPathMask = SquareAttackEvaluator.directAttacksOnPositionDownLeft_Lut[atPos];
-			break;
-		case upLeft:
-			inPathMask = SquareAttackEvaluator.directAttacksOnPositionUpLeft_Lut[atPos];
-			break;
-		case upRight:
-			inPathMask = SquareAttackEvaluator.directAttacksOnPositionUpRight_Lut[atPos];
-			break;
-		case downRight:
-			inPathMask = SquareAttackEvaluator.directAttacksOnPositionDownRight_Lut[atPos];
-			break;
-		case left:
-			inPathMask = SquareAttackEvaluator.directAttacksOnPositionLeft_Lut[atPos];
-			break;
-		case up:
-			inPathMask = SquareAttackEvaluator.directAttacksOnPositionUp_Lut[atPos];
-			break;
-		case right:
-			inPathMask = SquareAttackEvaluator.directAttacksOnPositionRight_Lut[atPos];
-			break;
-		case down:
-			inPathMask = SquareAttackEvaluator.directAttacksOnPositionDown_Lut[atPos];
-			break;	
-		default:
-			break;		
-		}
-		// one dimension for each direction, other dimension is array of squares in that direction
-		int [][] array = SquareAttackEvaluator.directPieceMove_Lut[atPos]; 
-		if ((allPieces & inPathMask) != 0) {
-			for (int attackerSq: array[SquareAttackEvaluator.directionIndex_Lut.get(dir)]) {
-				if (squareIsEmpty(attackerSq)) {
-					numEmpty++;
-				} else break;
+	public int getNumEmptyAllDirectSquares(int atPos) {
+		return getNumEmptySquaresInDirection(atPos, SquareAttackEvaluator.allDirect);
+	}
+	
+	private int getNumEmptySquaresInDirection(int atPos, Direction [] dirs) {
+		int numSquares = 0;
+		for (Direction dir: dirs) { 
+			long inPathMask = 0;
+			switch(dir) {
+			case downLeft:
+				inPathMask = SquareAttackEvaluator.directAttacksOnPositionDownLeft_Lut[atPos];
+				break;
+			case upLeft:
+				inPathMask = SquareAttackEvaluator.directAttacksOnPositionUpLeft_Lut[atPos];
+				break;
+			case upRight:
+				inPathMask = SquareAttackEvaluator.directAttacksOnPositionUpRight_Lut[atPos];
+				break;
+			case downRight:
+				inPathMask = SquareAttackEvaluator.directAttacksOnPositionDownRight_Lut[atPos];
+				break;
+			case left:
+				inPathMask = SquareAttackEvaluator.directAttacksOnPositionLeft_Lut[atPos];
+				break;
+			case up:
+				inPathMask = SquareAttackEvaluator.directAttacksOnPositionUp_Lut[atPos];
+				break;
+			case right:
+				inPathMask = SquareAttackEvaluator.directAttacksOnPositionRight_Lut[atPos];
+				break;
+			case down:
+				inPathMask = SquareAttackEvaluator.directAttacksOnPositionDown_Lut[atPos];
+				break;	
+			default:
+				break;		
 			}
-		} else {
-			// all the squares are empty in this direction
-			numEmpty = array[SquareAttackEvaluator.directionIndex_Lut.get(dir)].length;
+			// one dimension for each direction, other dimension is array of squares in that direction
+			int [][] array = SquareAttackEvaluator.directPieceMove_Lut[atPos]; 
+			if ((allPieces & inPathMask) != 0) {
+				for (int attackerSq: array[SquareAttackEvaluator.directionIndex_Lut.get(dir)]) {
+					if (squareIsEmpty(attackerSq)) {
+						numSquares++;
+					} else break;
+				}
+			} else {
+				// all the squares are empty in this direction
+				numSquares += array[SquareAttackEvaluator.directionIndex_Lut.get(dir)].length;
+			}
 		}
-		return numEmpty;
+		return numSquares;
 	}
 }
