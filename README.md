@@ -1,11 +1,25 @@
 # EubosChess
-Eubos chess is a basic Java chess engine self-built and playable online using lichess (https://lichess.org/@/eubos - it is hosted on Heroku). Eubos is rated around 1400-1500 ELO against other engines, not humans (this is at blitz 2+1 time control, see  http://ccrl.chessdom.com/ccrl/404/).
+Eubos chess is a multi-threaded Java chess engine. It was self-built and is playable online 24/7 via lichess (https://lichess.org/@/eubos - it is hosted on Heroku). It is rated around 1500 ELO against other engines, not humans (this is at blitz 2+1 time control, see  http://ccrl.chessdom.com/ccrl/404/). It uses the UCI protocol.
 
 ## Features
-Eubos uses a standard alpha beta minimax algorithm with transpostion hashing and quiescence search extension. It doesn't search very deeply compared to C/C++ engines (averaging in the region of 370 KNodes/s in a typical blitz game on an i5 PC). Eubos uses the UCI protocol to communicate with a Chess GUI. I have recently simplified the evaluation function, as the benefit of analysing the pawn structure didn't seem to compensate for the extra computation time needed.
+Eubos uses a standard alpha beta minimax algorithm with transpostion hashing and quiescence search extension.
+
+The evaluation function takes account of the following factors
+* material balance
+* piece mobility
+* pawn structure
+* king safety
+
+It knows about draws by 3-fold repetition and insufficient material.
 
 ## Current version
-Current release version 1.1.6
+Current release version 2.0
+
+## Configuration
+UCI option | Eubos functionality
+------------ | -------------
+Threads | Sets the number of worker threds that shall be used to perform the search. Configuring 1 means Eubos shall be single-threaded, greater than 1 and it will run multi-threaded.
+Hash | Sets the size of the hash table to use, in Megabytes. The hash table is shared by all the threads, it is not duplicated per worker thread.
 
 ## Installation
 You can get a binary from the bin folder, alongside a batch file for running the Eubos engine in a GUI such as Arena.
@@ -20,4 +34,4 @@ To install Eubos as a UCI engine in the popular Arena Chess GUI:
 4. Select UCI protocol to communicate with Eubos
 5. That's it!
 
-Alternatively, you can install the Eubos.jar file directly in Arena, but if you do this, be aware that the memory allocated to the JVM and Eubos will be capped to 2GB.
+Alternatively, you can install the Eubos.jar file directly in Arena, but if you do this, be aware that the JVM won't be optimised for the Eubos application and also the memory allocated to the JVM will be capped to 2GB.
