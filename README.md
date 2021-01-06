@@ -18,7 +18,7 @@ Current release version 2.0
 ## Configuration
 UCI option | Eubos functionality
 ------------ | -------------
-Threads | Sets the number of worker threds that shall be used to perform the search. Configuring 1 means Eubos shall be single-threaded, greater than 1 and it will run multi-threaded.
+Threads | Sets the number of worker threads that shall be used to perform the search. Configuring 1 means Eubos shall be single-threaded, greater than 1 and it will run multi-threaded.
 Hash | Sets the size of the hash table to use, in Megabytes. The hash table is shared by all the threads, it is not duplicated per worker thread.
 
 ## Installation
