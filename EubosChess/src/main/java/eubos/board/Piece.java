@@ -1,5 +1,6 @@
 package eubos.board;
 
+import java.util.Arrays;
 import java.util.List;
 
 import com.fluxchess.jcpi.models.IntChessman;
@@ -134,6 +135,21 @@ public abstract class Piece {
 		return chessman;
 	}
 	
+	public static String reportStaticDataSizes() {
+		StringBuilder s = new StringBuilder();
+		s.append(String.format("KnightMove_Lut_Size %d bytes\n", KnightMove_Lut_Size*4));
+		s.append(String.format("KingMove_Lut_Size %d bytes\n", KingMove_Lut_Size*4));
+		s.append(String.format("QueenMove_Lut_Size %d bytes\n", QueenMove_Lut_Size*4));
+		s.append(String.format("RookMove_Lut_Size %d bytes\n", RookMove_Lut_Size*4));
+		s.append(String.format("BishopMove_Lut_Size %d bytes\n", BishopMove_Lut_Size*4));
+		return s.toString();
+	}
+	
+	public static int getStaticDataSize() {
+		return (KnightMove_Lut_Size + KingMove_Lut_Size + QueenMove_Lut_Size + RookMove_Lut_Size + BishopMove_Lut_Size) * 4;
+	}
+	
+	static int KnightMove_Lut_Size = 0;
 	static final int[][] WhiteKnightMove_Lut = new int[128][];
 	static {
 		for (int square : Position.values) {
@@ -159,13 +175,12 @@ public abstract class Piece {
 			}
 		}
 		// Copy to correctly sized array
-		int [] ref_moves = new int[count];
-		for (int i=0; i < count; i++) {
-			ref_moves[i] = moves[i];
-		}
+		int [] ref_moves = Arrays.copyOf(moves, count);
+		KnightMove_Lut_Size += ref_moves.length;
 		return ref_moves;
 	}
 	
+	static int KingMove_Lut_Size = 0;
 	static final int[][] WhiteKingMove_Lut = new int[128][];
 	static {
 		for (int square : Position.values) {
@@ -192,13 +207,12 @@ public abstract class Piece {
 			}
 		}
 		// Copy to correctly sized array
-		int [] ref_moves = new int[count];
-		for (int i=0; i < count; i++) {
-			ref_moves[i] = moves[i];
-		}
+		int [] ref_moves = Arrays.copyOf(moves, count);
+		KingMove_Lut_Size += ref_moves.length;
 		return ref_moves;
 	}
 	
+	static int RookMove_Lut_Size = 0;
 	static final int[][][] WhiteRookMove_Lut = new int[128][][]; // Position by direction by moves in that direction
 	static {
 		for (int square : Position.values) {
@@ -230,15 +244,14 @@ public abstract class Piece {
 				targetPosition = Direction.getDirectMoveSq(dir, targetPosition);
 			}
 			// Copy to correctly sized array
-			int []ref_moves = new int[count];
-			for (int i=0; i < count; i++) {
-				ref_moves[i] = moves[i];
-			}
+			int [] ref_moves = Arrays.copyOf(moves, count);
 			return_value[direction_index++] = ref_moves;
+			RookMove_Lut_Size += ref_moves.length;
 		}
 		return return_value;
 	}
 	
+	static int BishopMove_Lut_Size = 0;
 	static final int[][][] WhiteBishopMove_Lut = new int[128][][]; // Position by direction by moves in that direction
 	static {
 		for (int square : Position.values) {
@@ -270,15 +283,14 @@ public abstract class Piece {
 				targetPosition = Direction.getDirectMoveSq(dir, targetPosition);
 			}
 			// Copy to correctly sized array
-			int []ref_moves = new int[count];
-			for (int i=0; i < count; i++) {
-				ref_moves[i] = moves[i];
-			}
+			int [] ref_moves = Arrays.copyOf(moves, count);
 			return_value[direction_index++] = ref_moves;
+			BishopMove_Lut_Size += ref_moves.length;
 		}
 		return return_value;
 	}
 	
+	static int QueenMove_Lut_Size = 0;
 	static final int[][][] WhiteQueenMove_Lut = new int[128][][]; // Position by direction by moves in that direction
 	static {
 		for (int square : Position.values) {
@@ -310,11 +322,9 @@ public abstract class Piece {
 				targetPosition = Direction.getDirectMoveSq(dir, targetPosition);
 			}
 			// Copy to correctly sized array
-			int []ref_moves = new int[count];
-			for (int i=0; i < count; i++) {
-				ref_moves[i] = moves[i];
-			}
+			int [] ref_moves = Arrays.copyOf(moves, count);
 			return_value[direction_index++] = ref_moves;
+			QueenMove_Lut_Size += ref_moves.length;
 		}
 		return return_value;
 	}

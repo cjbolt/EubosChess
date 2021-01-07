@@ -30,21 +30,35 @@ public class SquareAttackEvaluator {
 		directionIndex_Lut.put(Direction.downRight, 7);
 	}
 	
+	public static String reportStaticDataSizes() {
+		StringBuilder s = new StringBuilder();
+		s.append(String.format("DirectPieceMove_Lut_Size %d bytes\n", directPieceMove_Lut_Size*4));
+		s.append(String.format("All In Direction Masks %d bytes\n", 8*128*8));
+		s.append(String.format("Knight, King, Pawn W/B All + Direct masks %d bytes\n", 6*128*8));
+		return s.toString();
+	}
+	
+	public static int getStaticDataSize() {
+		return (directPieceMove_Lut_Size * 4) + ((6+8)*128*8);
+	}
+	
 	/* 3-dimensional array:
 	 * 1st is a position integer, this is the origin square
 	 * 2nd is a direction from the origin square (diagonal/rank+file) i.e all direct attack directions from origin square
 	 * 3rd is a position integer, representing all the squares on the board in that direction */
+	static int directPieceMove_Lut_Size = 0;
 	static final int[][][] directPieceMove_Lut = new int[128][allDirect.length][];
 	static {
 		for (int square : Position.values) {
-			directPieceMove_Lut[square] = createDiagonalForSq(square);
+			directPieceMove_Lut[square] = createLinesFromSq(square);
 		}
 	}
-	static private int [][] createDiagonalForSq(int square) {
+	static private int [][] createLinesFromSq(int square) {
 		int [][] ret = new int [allDirect.length][];
 		int index = 0;
 		for (Direction dir: allDirect) {
 			ret[index] = getSqsInDirection(dir, square);
+			directPieceMove_Lut_Size += ret[index].length;
 			index++;
 		}
 		return ret;

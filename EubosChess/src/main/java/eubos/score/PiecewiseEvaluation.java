@@ -17,13 +17,13 @@ public class PiecewiseEvaluation {
 	public short getBlack() {return black;}
 	public short getWhite() {return white;}
 	
-	public void addBlack(int toAdd) { black += toAdd; }
-	public void addWhite(int toAdd) { white += toAdd; }
+	public void addBlack(short toAdd) { black += toAdd; }
+	public void addWhite(short toAdd) { white += toAdd; }
 	
 	public short getDelta() { return (short)(white-black); }
 
-	public void addPositionWhite(int pstBoost) { position += pstBoost; }
-	public void addPositionBlack(int pstBoost) { position -= pstBoost; }
+	public void addPositionWhite(short pstBoost) { position += pstBoost; }
+	public void addPositionBlack(short pstBoost) { position -= pstBoost; }
 	
 	public short getPosition() { return position; }
 }

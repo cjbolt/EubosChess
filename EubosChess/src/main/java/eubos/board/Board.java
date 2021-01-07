@@ -145,6 +145,21 @@ public class Board {
 		}
 	}
 	
+	public static String reportStaticDataSizes() {
+		StringBuilder s = new StringBuilder();
+		int bytecountofstatics = PAWN_WHITE_WEIGHTINGS.length + PAWN_BLACK_WEIGHTINGS.length + KNIGHT_WEIGHTINGS.length + KING_ENDGAME_WEIGHTINGS.length + KING_MIDGAME_WEIGHTINGS.length;
+		s.append(String.format("PieceSquareTables %d bytes\n", bytecountofstatics));
+		int len = 0;
+		for(int i = 0; i < PassedPawn_Lut.length; i++)
+		{
+		    len += PassedPawn_Lut[i].length;
+		}
+		s.append(String.format("PassedPawn_Lut %d bytes\n", len*8));
+		s.append(String.format("FileMask_Lut %d bytes\n", FileMask_Lut.length*8));
+		s.append(String.format("RankMask_Lut %d bytes\n", RankMask_Lut.length*8));
+		return s.toString();
+	}
+	
 	public String getAsFenString() {
 		int currPiece = Piece.NONE;
 		int spaceCounter = 0;
@@ -848,9 +863,9 @@ public class Board {
 	public static final short MATERIAL_VALUE_KNIGHT = 290;
 	public static final short MATERIAL_VALUE_PAWN = 100;
 	
-	private static final int[] PAWN_WHITE_WEIGHTINGS;
+	private static final byte[] PAWN_WHITE_WEIGHTINGS;
     static {
-    	PAWN_WHITE_WEIGHTINGS = new int[128];
+    	PAWN_WHITE_WEIGHTINGS = new byte[128];
         PAWN_WHITE_WEIGHTINGS[Position.a1] = 0; PAWN_WHITE_WEIGHTINGS[Position.b1] = 0; PAWN_WHITE_WEIGHTINGS[Position.c1] = 0; PAWN_WHITE_WEIGHTINGS[Position.d1] = 0; PAWN_WHITE_WEIGHTINGS[Position.e1] = 0; PAWN_WHITE_WEIGHTINGS[Position.f1] = 0; PAWN_WHITE_WEIGHTINGS[Position.g1] = 0; PAWN_WHITE_WEIGHTINGS[Position.h1] = 0;
         PAWN_WHITE_WEIGHTINGS[Position.a2] = 0; PAWN_WHITE_WEIGHTINGS[Position.b2] = 0; PAWN_WHITE_WEIGHTINGS[Position.c2] = 0; PAWN_WHITE_WEIGHTINGS[Position.d2] = 0; PAWN_WHITE_WEIGHTINGS[Position.e2] = 0; PAWN_WHITE_WEIGHTINGS[Position.f2] = 0; PAWN_WHITE_WEIGHTINGS[Position.g2] = 0; PAWN_WHITE_WEIGHTINGS[Position.h2] = 0;
         PAWN_WHITE_WEIGHTINGS[Position.a3] = 0; PAWN_WHITE_WEIGHTINGS[Position.b3] = 0; PAWN_WHITE_WEIGHTINGS[Position.c3] = 0; PAWN_WHITE_WEIGHTINGS[Position.d3] = 5; PAWN_WHITE_WEIGHTINGS[Position.e3] = 5; PAWN_WHITE_WEIGHTINGS[Position.f3] = 0; PAWN_WHITE_WEIGHTINGS[Position.g3] = 0; PAWN_WHITE_WEIGHTINGS[Position.h3] = 0;
@@ -861,9 +876,9 @@ public class Board {
 		PAWN_WHITE_WEIGHTINGS[Position.a8] = 0; PAWN_WHITE_WEIGHTINGS[Position.b8] = 0; PAWN_WHITE_WEIGHTINGS[Position.c8] = 0; PAWN_WHITE_WEIGHTINGS[Position.d8] = 0; PAWN_WHITE_WEIGHTINGS[Position.e8] = 0; PAWN_WHITE_WEIGHTINGS[Position.f8] = 0; PAWN_WHITE_WEIGHTINGS[Position.g8] = 0; PAWN_WHITE_WEIGHTINGS[Position.h8] = 0;
     }
     
-	private static final int[] PAWN_BLACK_WEIGHTINGS;
+	private static final byte[] PAWN_BLACK_WEIGHTINGS;
     static {
-    	PAWN_BLACK_WEIGHTINGS = new int[128];
+    	PAWN_BLACK_WEIGHTINGS = new byte[128];
         PAWN_BLACK_WEIGHTINGS[Position.a1] = 0; PAWN_BLACK_WEIGHTINGS[Position.b1] = 0; PAWN_BLACK_WEIGHTINGS[Position.c1] = 0; PAWN_BLACK_WEIGHTINGS[Position.d1] = 0; PAWN_BLACK_WEIGHTINGS[Position.e1] = 0; PAWN_BLACK_WEIGHTINGS[Position.f1] = 0; PAWN_BLACK_WEIGHTINGS[Position.g1] = 0; PAWN_BLACK_WEIGHTINGS[Position.h1] = 0;
         PAWN_BLACK_WEIGHTINGS[Position.a2] = 25; PAWN_BLACK_WEIGHTINGS[Position.b2] = 50; PAWN_BLACK_WEIGHTINGS[Position.c2] = 50; PAWN_BLACK_WEIGHTINGS[Position.d2] = 50;PAWN_BLACK_WEIGHTINGS[Position.e2] = 50;PAWN_BLACK_WEIGHTINGS[Position.f2] = 50; PAWN_BLACK_WEIGHTINGS[Position.g2] = 50; PAWN_BLACK_WEIGHTINGS[Position.h2] = 25;
         PAWN_BLACK_WEIGHTINGS[Position.a3] = 5; PAWN_BLACK_WEIGHTINGS[Position.b3] = 25; PAWN_BLACK_WEIGHTINGS[Position.c3] = 25; PAWN_BLACK_WEIGHTINGS[Position.d3] = 25;PAWN_BLACK_WEIGHTINGS[Position.e3] = 25;PAWN_BLACK_WEIGHTINGS[Position.f3] = 25; PAWN_BLACK_WEIGHTINGS[Position.g3] = 25; PAWN_BLACK_WEIGHTINGS[Position.h3] = 10;
@@ -874,9 +889,9 @@ public class Board {
 		PAWN_BLACK_WEIGHTINGS[Position.a8] = 0; PAWN_BLACK_WEIGHTINGS[Position.b8] = 0; PAWN_BLACK_WEIGHTINGS[Position.c8] = 0; PAWN_BLACK_WEIGHTINGS[Position.d8] = 0; PAWN_BLACK_WEIGHTINGS[Position.e8] = 0; PAWN_BLACK_WEIGHTINGS[Position.f8] = 0; PAWN_BLACK_WEIGHTINGS[Position.g8] = 0; PAWN_BLACK_WEIGHTINGS[Position.h8] = 0;
     }    
 	
-	private static final int[] KNIGHT_WEIGHTINGS;
+	private static final byte[] KNIGHT_WEIGHTINGS;
     static {
-    	KNIGHT_WEIGHTINGS = new int[128];
+    	KNIGHT_WEIGHTINGS = new byte[128];
         KNIGHT_WEIGHTINGS[Position.a1] = -20;KNIGHT_WEIGHTINGS[Position.b1] = -10;KNIGHT_WEIGHTINGS[Position.c1] = -10;KNIGHT_WEIGHTINGS[Position.d1] = -10;KNIGHT_WEIGHTINGS[Position.e1] = -10;KNIGHT_WEIGHTINGS[Position.f1] = -10;KNIGHT_WEIGHTINGS[Position.g1] = -10;KNIGHT_WEIGHTINGS[Position.h1] = -20;
 		KNIGHT_WEIGHTINGS[Position.a2] = -10;KNIGHT_WEIGHTINGS[Position.b2] = 0;KNIGHT_WEIGHTINGS[Position.c2] = 0;KNIGHT_WEIGHTINGS[Position.d2] = 0;KNIGHT_WEIGHTINGS[Position.e2] = 0;KNIGHT_WEIGHTINGS[Position.f2] = 0;KNIGHT_WEIGHTINGS[Position.g2] = 0;KNIGHT_WEIGHTINGS[Position.h2] = -10;
 		KNIGHT_WEIGHTINGS[Position.a3] = -10;KNIGHT_WEIGHTINGS[Position.b3] = 0;KNIGHT_WEIGHTINGS[Position.c3] = 10;KNIGHT_WEIGHTINGS[Position.d3] = 10;KNIGHT_WEIGHTINGS[Position.e3] = 10;KNIGHT_WEIGHTINGS[Position.f3] = 10;KNIGHT_WEIGHTINGS[Position.g3] = 0;KNIGHT_WEIGHTINGS[Position.h3] = -10;
@@ -887,9 +902,9 @@ public class Board {
 		KNIGHT_WEIGHTINGS[Position.a8] = -20;KNIGHT_WEIGHTINGS[Position.b8] = -10;KNIGHT_WEIGHTINGS[Position.c8] = -10;KNIGHT_WEIGHTINGS[Position.d8] = -10;KNIGHT_WEIGHTINGS[Position.e8] = -10;KNIGHT_WEIGHTINGS[Position.f8] = -10;KNIGHT_WEIGHTINGS[Position.g8] = -10;KNIGHT_WEIGHTINGS[Position.h8] = -20;
     }
     
-    private static final int[] KING_ENDGAME_WEIGHTINGS;
+    private static final byte[] KING_ENDGAME_WEIGHTINGS;
     static {
-    	KING_ENDGAME_WEIGHTINGS = new int[128];
+    	KING_ENDGAME_WEIGHTINGS = new byte[128];
         KING_ENDGAME_WEIGHTINGS[Position.a1] = -30;KING_ENDGAME_WEIGHTINGS[Position.b1] = -30;KING_ENDGAME_WEIGHTINGS[Position.c1] = -30;KING_ENDGAME_WEIGHTINGS[Position.d1] = -30;KING_ENDGAME_WEIGHTINGS[Position.e1] = -30;KING_ENDGAME_WEIGHTINGS[Position.f1] = -30;KING_ENDGAME_WEIGHTINGS[Position.g1] = -30;KING_ENDGAME_WEIGHTINGS[Position.h1] = -30;
 		KING_ENDGAME_WEIGHTINGS[Position.a2] = -30;KING_ENDGAME_WEIGHTINGS[Position.b2] = -20;KING_ENDGAME_WEIGHTINGS[Position.c2] = -20;KING_ENDGAME_WEIGHTINGS[Position.d2] = -20;KING_ENDGAME_WEIGHTINGS[Position.e2] = -20;KING_ENDGAME_WEIGHTINGS[Position.f2] = -20;KING_ENDGAME_WEIGHTINGS[Position.g2] = -20;KING_ENDGAME_WEIGHTINGS[Position.h2] = -30;
 		KING_ENDGAME_WEIGHTINGS[Position.a3] = -30;KING_ENDGAME_WEIGHTINGS[Position.b3] = -10;KING_ENDGAME_WEIGHTINGS[Position.c3] = 0;KING_ENDGAME_WEIGHTINGS[Position.d3] = 10;KING_ENDGAME_WEIGHTINGS[Position.e3] = 10;KING_ENDGAME_WEIGHTINGS[Position.f3] = 0;KING_ENDGAME_WEIGHTINGS[Position.g3] = -10;KING_ENDGAME_WEIGHTINGS[Position.h3] = -30;
@@ -900,9 +915,9 @@ public class Board {
 		KING_ENDGAME_WEIGHTINGS[Position.a8] = -30;KING_ENDGAME_WEIGHTINGS[Position.b8] = -30;KING_ENDGAME_WEIGHTINGS[Position.c8] = -30;KING_ENDGAME_WEIGHTINGS[Position.d8] = -30;KING_ENDGAME_WEIGHTINGS[Position.e8] = -30;KING_ENDGAME_WEIGHTINGS[Position.f8] = -30;KING_ENDGAME_WEIGHTINGS[Position.g8] = -30;KING_ENDGAME_WEIGHTINGS[Position.h8] = -30;
     }
     
-    private static final int[] KING_MIDGAME_WEIGHTINGS;
+    private static final byte[] KING_MIDGAME_WEIGHTINGS;
     static {
-    	KING_MIDGAME_WEIGHTINGS = new int[128];
+    	KING_MIDGAME_WEIGHTINGS = new byte[128];
         KING_MIDGAME_WEIGHTINGS[Position.a1] = 5;KING_MIDGAME_WEIGHTINGS[Position.b1] = 10;KING_MIDGAME_WEIGHTINGS[Position.c1] = 5;KING_MIDGAME_WEIGHTINGS[Position.d1] = 0;KING_MIDGAME_WEIGHTINGS[Position.e1] = 0;KING_MIDGAME_WEIGHTINGS[Position.f1] = 5;KING_MIDGAME_WEIGHTINGS[Position.g1] = 10;KING_MIDGAME_WEIGHTINGS[Position.h1] = 5;
 		KING_MIDGAME_WEIGHTINGS[Position.a2] = 0;KING_MIDGAME_WEIGHTINGS[Position.b2] = 0;KING_MIDGAME_WEIGHTINGS[Position.c2] = 0;KING_MIDGAME_WEIGHTINGS[Position.d2] = 0;KING_MIDGAME_WEIGHTINGS[Position.e2] = 0;KING_MIDGAME_WEIGHTINGS[Position.f2] = 0;KING_MIDGAME_WEIGHTINGS[Position.g2] = 0;KING_MIDGAME_WEIGHTINGS[Position.h2] = 0;
 		KING_MIDGAME_WEIGHTINGS[Position.a3] = -20;KING_MIDGAME_WEIGHTINGS[Position.b3] = -20;KING_MIDGAME_WEIGHTINGS[Position.c3] = -30;KING_MIDGAME_WEIGHTINGS[Position.d3] = -30;KING_MIDGAME_WEIGHTINGS[Position.e3] = -30;KING_MIDGAME_WEIGHTINGS[Position.f3] = -30;KING_MIDGAME_WEIGHTINGS[Position.g3] = -20;KING_MIDGAME_WEIGHTINGS[Position.h3] = -20;
@@ -928,22 +943,22 @@ public class Board {
 		case Piece.WHITE_ROOK:
 			eval.addWhite(MATERIAL_VALUE_ROOK);
 			if (!isEndgame)
-				eval.addPositionWhite(getNumEmptyRankFileSquares(atPos)*2);
+				eval.addPositionWhite((byte)(getNumEmptyRankFileSquares(atPos)*2));
 			break;
 		case Piece.BLACK_ROOK:
 			eval.addBlack(MATERIAL_VALUE_ROOK);
 			if (!isEndgame)
-				eval.addPositionBlack(getNumEmptyRankFileSquares(atPos)*2);
+				eval.addPositionBlack((byte)(getNumEmptyRankFileSquares(atPos)*2));
 			break;
 		case Piece.WHITE_BISHOP:
 			eval.addWhite(MATERIAL_VALUE_BISHOP);
 			if (!isEndgame)
-				eval.addPositionWhite(getNumEmptyDiagonalSquares(atPos)*2);
+				eval.addPositionWhite((byte)(getNumEmptyDiagonalSquares(atPos)*2));
 			break;
 		case Piece.BLACK_BISHOP:
 			eval.addBlack(MATERIAL_VALUE_BISHOP);
 			if (!isEndgame)
-				eval.addPositionBlack(getNumEmptyDiagonalSquares(atPos)*2);
+				eval.addPositionBlack((byte)(getNumEmptyDiagonalSquares(atPos)*2));
 			break;
 		case Piece.WHITE_KNIGHT:
 			eval.addWhite(MATERIAL_VALUE_KNIGHT);
@@ -956,12 +971,12 @@ public class Board {
 		case Piece.WHITE_QUEEN:
 			eval.addWhite(MATERIAL_VALUE_QUEEN);
 			if (!isEndgame)
-				eval.addPositionWhite(getNumEmptyAllDirectSquares(atPos)*2);
+				eval.addPositionWhite((byte)(getNumEmptyAllDirectSquares(atPos)*2));
 			break;
 		case Piece.BLACK_QUEEN:
 			eval.addBlack(MATERIAL_VALUE_QUEEN);
 			if (!isEndgame)
-				eval.addPositionBlack(getNumEmptyAllDirectSquares(atPos)*2);
+				eval.addPositionBlack((byte)(getNumEmptyAllDirectSquares(atPos)*2));
 			break;
 		case Piece.WHITE_KING:
 			eval.addWhite(MATERIAL_VALUE_KING);
@@ -1019,20 +1034,21 @@ public class Board {
 		return evaluation;
 	}
 	
-	public int getNumEmptyDiagonalSquares(int atPos) {
+	public byte getNumEmptyDiagonalSquares(int atPos) {
 		return getNumEmptySquaresInDirection(atPos, SquareAttackEvaluator.diagonals);
 	}
 	
-	public int getNumEmptyRankFileSquares(int atPos) {
+	public byte getNumEmptyRankFileSquares(int atPos) {
 		return getNumEmptySquaresInDirection(atPos, SquareAttackEvaluator.rankFile);
 	}
 	
-	public int getNumEmptyAllDirectSquares(int atPos) {
+	public byte getNumEmptyAllDirectSquares(int atPos) {
 		return getNumEmptySquaresInDirection(atPos, SquareAttackEvaluator.allDirect);
 	}
 	
-	private int getNumEmptySquaresInDirection(int atPos, Direction [] dirs) {
-		int numSquares = 0;
+	private byte getNumEmptySquaresInDirection(int atPos, Direction [] dirs) {
+		byte numSquares = 0;
+		int [][] array = SquareAttackEvaluator.directPieceMove_Lut[atPos]; 
 		for (Direction dir: dirs) { 
 			long inPathMask = 0;
 			switch(dir) {
@@ -1063,8 +1079,11 @@ public class Board {
 			default:
 				break;		
 			}
+			if (inPathMask == 0) {
+				// skip if nothing to do for this direction
+				continue;
+			}
 			// one dimension for each direction, other dimension is array of squares in that direction
-			int [][] array = SquareAttackEvaluator.directPieceMove_Lut[atPos]; 
 			if ((allPieces & inPathMask) != 0) {
 				for (int attackerSq: array[SquareAttackEvaluator.directionIndex_Lut.get(dir)]) {
 					if (squareIsEmpty(attackerSq)) {
