@@ -118,18 +118,20 @@ public class FixedSizeTranspositionTable {
 		return theAccessCounts.get(twentyPercentIndex);
 	}
 	
-	private void removeLeastUsed() {
-		Short bottomTwentyPercentAccessThreshold = getBottomTwentyPercentAccessThreshold();
-		Iterator<Long> it = hashMap.keySet().iterator();
-		while (it.hasNext()){
-			ITransposition trans = hashMap.get(it.next());
-			short count = trans.getAccessCount();
-			if (count <= bottomTwentyPercentAccessThreshold) {
-				it.remove();
-				hashMapSize--;
-			} else {
-				// Normalise remaining counts after every cull operation
-				trans.setAccessCount((short)(count-bottomTwentyPercentAccessThreshold));
+	private synchronized void removeLeastUsed() {
+		if (hashMapSize >= maxHashMapSize) {
+			Short bottomTwentyPercentAccessThreshold = getBottomTwentyPercentAccessThreshold();
+			Iterator<Long> it = hashMap.keySet().iterator();
+			while (it.hasNext()){
+				ITransposition trans = hashMap.get(it.next());
+				short count = trans.getAccessCount();
+				if (count <= bottomTwentyPercentAccessThreshold) {
+					it.remove();
+					hashMapSize--;
+				} else {
+					// Normalise remaining counts after every cull operation
+					trans.setAccessCount((short)(count-bottomTwentyPercentAccessThreshold));
+				}
 			}
 		}
 	}
