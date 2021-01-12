@@ -111,6 +111,9 @@ public class EubosEngineMain extends AbstractEngine {
 		if (command.name.startsWith("Hash")) {
 			hashSize = Long.parseLong(command.value);
 			logger.fine(String.format("MaxHashSizeInMBs=%d", hashSize));
+			/* In Heroku Eubos deployments for lichess-bot, we never get a new game UCI command; 
+			 * so we need to rebuild the hash table if it was resized from the defaults */
+			createEnginePermanentDataStructures();
 		}
 		if (command.name.startsWith("Threads")) {
 			numberOfWorkerThreads = Integer.parseInt(command.value);
