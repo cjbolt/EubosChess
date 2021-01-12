@@ -289,6 +289,12 @@ public class PlySearcher {
 			}
 		}
 		
+		if (EubosEngineMain.ENABLE_YIELD_IN_WORKER_THREADS) {
+			if ((currPly % 2) == 0) {
+				Thread.yield();
+			}
+		}
+		
 		if (!isTerminated() && isInNormalSearch() && backedUpScoreWasExact && !refutationFound && trans != null) {
 			checkToPromoteHashTableToExact(trans, plyScore);
 			plyBound = Score.exact;
