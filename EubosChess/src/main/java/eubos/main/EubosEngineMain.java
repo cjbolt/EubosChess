@@ -48,7 +48,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean LOGGING_ENABLED = true;
 	public static final boolean UCI_INFO_ENABLED = true;
 	public static final boolean ASSERTS_ENABLED = false;
-	public static final boolean ENABLE_YIELD_IN_WORKER_THREADS = true;
+	public static final boolean ENABLE_YIELD_IN_WORKER_THREADS = false;
 	
 	// Permanent data structures - static for the duration of a single game
 	private FixedSizeTranspositionTable hashMap = null;
@@ -59,6 +59,7 @@ public class EubosEngineMain extends AbstractEngine {
 	private AbstractMoveSearcher ms;
 	private Piece.Colour lastOnMove = null;
 	String lastFen = null;
+	private boolean createdHashTable = false;
 	
 	// Multithreading configuration
 	public static int numberOfWorkerThreads;
@@ -82,18 +83,19 @@ public class EubosEngineMain extends AbstractEngine {
     
 	public EubosEngineMain() { 
 		super();
-		createEnginePermanentDataStructures();
 	}
 	
 	public EubosEngineMain( PipedWriter out) throws IOException {
 		super(new BufferedReader(new PipedReader(out)), System.out);
-		createEnginePermanentDataStructures();
 		logger.setLevel(Level.INFO);
 	}
 	
-	private void createEnginePermanentDataStructures() {
-		hashMap = new FixedSizeTranspositionTable(hashSize, numberOfWorkerThreads);
-		dc = new DrawChecker();
+	private void checkToCreateEnginePermanentDataStructures() {
+		if (!createdHashTable) {
+			hashMap = new FixedSizeTranspositionTable(hashSize, numberOfWorkerThreads);
+			dc = new DrawChecker();
+			createdHashTable = true;
+		}	
 	}
 
 	public void receive(EngineInitializeRequestCommand command) {
@@ -113,8 +115,10 @@ public class EubosEngineMain extends AbstractEngine {
 			hashSize = Long.parseLong(command.value);
 			logger.fine(String.format("MaxHashSizeInMBs=%d", hashSize));
 			/* In Heroku Eubos deployments for lichess-bot, we never get a new game UCI command; 
-			 * so we need to rebuild the hash table if it was resized from the defaults */
-			createEnginePermanentDataStructures();
+			 * so we need to rebuild the hash table if it was resized from the defaults, force this
+			 * by setting the created flag to false. */
+			createdHashTable = false;
+			checkToCreateEnginePermanentDataStructures();
 		}
 		if (command.name.startsWith("Threads")) {
 			numberOfWorkerThreads = Integer.parseInt(command.value);
@@ -131,11 +135,13 @@ public class EubosEngineMain extends AbstractEngine {
 
 	public void receive(EngineNewGameCommand command) {
 		logger.fine("New Game");
-		createEnginePermanentDataStructures();
+		checkToCreateEnginePermanentDataStructures();
 	}
 
 	public void receive(EngineAnalyzeCommand command) {
-		logAnalyse(command);
+		logger.fine(String.format("Analysing position: %s with moves %s",
+				command.board.toString(), command.moves));
+		checkToCreateEnginePermanentDataStructures();
 		createPositionFromAnalyseCommand(command);
 	}
 	
@@ -186,11 +192,6 @@ public class EubosEngineMain extends AbstractEngine {
 			fen_to_use = uci_fen_string;
 		}
 		return fen_to_use;
-	}
-	
-	private void logAnalyse(EngineAnalyzeCommand command) {
-		logger.fine("Analysing position: " + command.board.toString() +
-				    " with moves " + command.moves);
 	}
 
 	public void receive(EngineStartCalculatingCommand command) {
