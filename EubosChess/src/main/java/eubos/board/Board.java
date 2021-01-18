@@ -124,6 +124,8 @@ public class Board {
 	
 	public boolean isEndgame;
 	
+	private PieceList pieceLists = new PieceList();
+	
 	public Board( Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove ) {
 		allPieces = 0x0;
 		whitePieces = 0x0;
@@ -216,14 +218,18 @@ public class Board {
 				}
 			}			
 		}
-		// Switch piece-specific bitboards
+		// Switch piece-specific bitboards and piece lists
 		if (promotedPiece != Piece.NONE) {
 			// For a promotion, need to resolve piece-specific across multiple bitboards
 			pieces[INDEX_PAWN] &= ~initialSquareMask;
 			pieces[promotedPiece & Piece.PIECE_NO_COLOUR_MASK] |= targetSquareMask;
+			pieceLists.removePiece(pieceToMove, originSquare);
+			pieceLists.addPiece((promotedPiece | (pieceToMove & ~Piece.PIECE_NO_COLOUR_MASK)), targetSquare);
 		} else {
 			// Piece type doesn't change across boards
 			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
+			pieceLists.removePiece(pieceToMove, originSquare);
+			pieceLists.addPiece(pieceToMove, targetSquare);
 		}
 		// Switch colour bitboard
 		if (Piece.isWhite(pieceToMove)) {
@@ -258,9 +264,15 @@ public class Board {
 			// Remove promoted piece and replace it with a pawn
 			pieces[promotedPiece] &= ~initialSquareMask;	
 			pieces[INDEX_PAWN] |= targetSquareMask;
+			// and update piece list
+			pieceLists.removePiece((promotedPiece | (originPiece & ~Piece.PIECE_NO_COLOUR_MASK)), originSquare);
+			pieceLists.addPiece(originPiece, targetSquare);
 		} else {
 			// Piece type doesn't change across boards
 			pieces[Piece.PIECE_NO_COLOUR_MASK & originPiece] ^= positionsMask;
+			// and update piece list
+			pieceLists.removePiece(originPiece, originSquare);
+			pieceLists.addPiece(originPiece, targetSquare);
 		}
 		// Switch colour bitboard
 		if (Piece.isWhite(originPiece)) {
@@ -357,56 +369,24 @@ public class Board {
 	}
 	
 	public List<Integer> getRegularPieceMoves(boolean ownSideIsWhite, int potentialAttckersOfSquare) {
-		long bitBoardToIterate = ownSideIsWhite ? whitePieces : blackPieces;
 		List<Integer> movesList = new LinkedList<Integer>();
-		long potentialAttackersMask = (potentialAttckersOfSquare != Position.NOPOSITION) ? SquareAttackEvaluator.allAttacksOnPosition_Lut[potentialAttckersOfSquare] : -1;
-		// Unrolled loop for performance optimisation...
-		long scratchBitBoard = bitBoardToIterate & pieces[INDEX_PAWN];
-		while ( scratchBitBoard != 0x0L ) {
-			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
-			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
+		for (int atSquare : pieceLists.getPieceArray(ownSideIsWhite ? Piece.WHITE_PAWN : Piece.BLACK_PAWN)) {
 			Piece.pawn_generateMoves(movesList, this, atSquare, ownSideIsWhite);
-			scratchBitBoard &= scratchBitBoard-1L;
 		}
-		scratchBitBoard = bitBoardToIterate & pieces[INDEX_ROOK];
-		scratchBitBoard &= potentialAttackersMask;
-		while ( scratchBitBoard != 0x0L ) {
-			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
-			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
+		for (int atSquare : pieceLists.getPieceArray(ownSideIsWhite ? Piece.WHITE_ROOK : Piece.BLACK_ROOK)) {
 			Piece.rook_generateMoves(movesList, this, atSquare, ownSideIsWhite);
-			scratchBitBoard &= scratchBitBoard-1L;
 		}
-		scratchBitBoard = bitBoardToIterate & pieces[INDEX_BISHOP];
-		scratchBitBoard &= potentialAttackersMask;
-		while ( scratchBitBoard != 0x0L ) {
-			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
-			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
+		for (int atSquare : pieceLists.getPieceArray(ownSideIsWhite ? Piece.WHITE_BISHOP : Piece.BLACK_BISHOP)) {
 			Piece.bishop_generateMoves(movesList, this, atSquare, ownSideIsWhite);
-			scratchBitBoard &= scratchBitBoard-1L;
 		}
-		scratchBitBoard = bitBoardToIterate & pieces[INDEX_KNIGHT];
-		scratchBitBoard &= potentialAttackersMask;
-		while ( scratchBitBoard != 0x0L ) {
-			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
-			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
+		for (int atSquare : pieceLists.getPieceArray(ownSideIsWhite ? Piece.WHITE_KNIGHT : Piece.BLACK_KNIGHT)) {
 			Piece.knight_generateMoves(movesList, this, atSquare, ownSideIsWhite);
-			scratchBitBoard &= scratchBitBoard-1L;
 		}
-		scratchBitBoard = bitBoardToIterate & pieces[INDEX_KING];
-		scratchBitBoard &= potentialAttackersMask;
-		while ( scratchBitBoard != 0x0L ) {
-			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
-			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
+		for (int atSquare : pieceLists.getPieceArray(ownSideIsWhite ? Piece.WHITE_KING : Piece.BLACK_KING)) {
 			Piece.king_generateMoves(movesList, this, atSquare, ownSideIsWhite);
-			scratchBitBoard &= scratchBitBoard-1L;
 		}
-		scratchBitBoard = bitBoardToIterate & pieces[INDEX_QUEEN];
-		scratchBitBoard &= potentialAttackersMask;
-		while ( scratchBitBoard != 0x0L ) {
-			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
-			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
+		for (int atSquare : pieceLists.getPieceArray(ownSideIsWhite ? Piece.WHITE_QUEEN : Piece.BLACK_QUEEN)) {
 			Piece.queen_generateMoves(movesList, this, atSquare, ownSideIsWhite);
-			scratchBitBoard &= scratchBitBoard-1L;
 		}
 		return movesList;
 	}
@@ -485,10 +465,14 @@ public class Board {
 		}
 		return type;
 	}
+
 	
 	public void setPieceAtSquare( int atPos, int pieceToPlace ) {
-		if (EubosEngineMain.ASSERTS_ENABLED)
+		if (EubosEngineMain.ASSERTS_ENABLED) {
+			assert atPos != Position.NOPOSITION;
 			assert pieceToPlace != Piece.NONE;
+		}
+		pieceLists.addPiece(pieceToPlace, atPos);
 		long mask = BitBoard.positionToMask_Lut[atPos];
 		// Set on piece-specific bitboard
 		pieces[pieceToPlace & Piece.PIECE_NO_COLOUR_MASK] |= mask;
@@ -549,6 +533,8 @@ public class Board {
 			}
 			// Remove from all pieces bitboard
 			allPieces &= ~pieceToPickUp;
+			// Remove from piece list
+			pieceLists.removePiece(type, atPos);
 		}
 		return type;
 	}
@@ -566,6 +552,8 @@ public class Board {
 			pieces[piece & Piece.PIECE_NO_COLOUR_MASK] &= ~pieceToPickUp;
 			// Remove from all pieces bitboard
 			allPieces &= ~pieceToPickUp;
+			// Remove from piece list
+			pieceLists.removePiece(piece, atPos);
 		} else {
 			piece = Piece.NONE;
 		}
