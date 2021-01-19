@@ -156,4 +156,9 @@ public class PieceList {
 			}
 		}		
 	}
+	
+	public int getKingPos(boolean sideIsWhite) {
+		int colour_index = sideIsWhite ? 0 : 1;
+		return piece_list[colour_index][Piece.KING][0];
+	}
 }

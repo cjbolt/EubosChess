@@ -491,11 +491,9 @@ public class Board implements IForEachPieceCallback {
 	
 	public boolean isKingInCheck(Piece.Colour side) {
 		boolean inCheck = false;
-		long getFromBoard = Colour.isWhite(side) ? whitePieces : blackPieces;
-		long kingMask = getFromBoard & pieces[INDEX_KING];
-		if (kingMask != 0) {
+		int kingSquare = pieceLists.getKingPos(Colour.isWhite(side));
+		if (kingSquare != Position.NOPOSITION) {
 			// The conditional is needed because some unit test positions don't have a king...
-			int kingSquare = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(kingMask)];
 			inCheck = squareIsAttacked(kingSquare, Piece.Colour.getOpposite(side));
 		}
 		return inCheck;
@@ -650,39 +648,13 @@ public class Board implements IForEachPieceCallback {
 		return isHalfOpen;
 	}
 	
-	public boolean moveCouldLeadToOwnKingDiscoveredCheck(Integer move) {
-		int piece = Move.getOriginPiece(move);
-		long king = (Piece.isWhite(piece)) ? getWhiteKing() : getBlackKing();
-		
-		if (king == 0)  return false;
-		
-		int kingPosition = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(king)];
-		
-		return SquareAttackEvaluator.moveCouldLeadToDiscoveredCheck(move, kingPosition);
-	}
-	
-	public boolean moveCouldPotentiallyCheckOtherKing(Integer move) {
-		boolean isPotentialCheck = false;
-		int piece = Move.getOriginPiece(move);
-		long king = (Piece.isBlack(piece)) ? getWhiteKing() : getBlackKing();
-		
-		if (king == 0)  return false;
-		
-		int kingPosition = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(king)];
-		if (SquareAttackEvaluator.moveCouldLeadToDiscoveredCheck(move, kingPosition)) {
-			// Could be a discovered check, so search further
-			isPotentialCheck = true;
-		} else {
-			int targetSquare = Move.getTargetPosition(move);
-			long targetMask = BitBoard.positionToMask_Lut[targetSquare];
-			
-			// Establish if target square puts attacker onto a king attack square
-			if ((targetMask & SquareAttackEvaluator.allAttacksOnPosition_Lut[kingPosition]) != 0) {
-				// Could be either a direct or indirect attack on the King, so search further
-				isPotentialCheck = true;
-			}
+	public boolean moveCouldLeadToOwnKingDiscoveredCheck(int move, int piece) {
+		boolean couldLeadToDiscoveredCheck = false;
+		int kingPosition = pieceLists.getKingPos(Piece.isWhite(piece));
+		if (kingPosition != Position.NOPOSITION) {
+			couldLeadToDiscoveredCheck = SquareAttackEvaluator.moveCouldLeadToDiscoveredCheck(move, kingPosition);
 		}
-		return isPotentialCheck;
+		return couldLeadToDiscoveredCheck;
 	}
 	
 	private boolean isPromotionPawnBlocked(long pawns, Direction dir) {
@@ -935,7 +907,7 @@ public class Board implements IForEachPieceCallback {
 			
 			// First score according to King exposure on open diagonals
 			int numPotentialAttackers = Long.bitCount(diagonalAttackersMask);
-			int kingPos = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(kingMask)];
+			int kingPos = pieceLists.getKingPos(onMoveWasWhite);
 			evaluation = getNumEmptyDiagonalSquares(kingPos) * -numPotentialAttackers;
 			
 			numPotentialAttackers = Long.bitCount(rankFileAttackersMask);

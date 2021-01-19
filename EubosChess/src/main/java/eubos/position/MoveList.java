@@ -64,8 +64,9 @@ public class MoveList implements Iterable<Integer> {
 		ListIterator<Integer> it = normal_search_moves.listIterator();
 		while (it.hasNext()) {
 			int currMove = it.next();
-			boolean possibleDiscoveredOrMoveIntoCheck = pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove) || 
-														Piece.isKing(Move.getOriginPiece(currMove));
+			int originPiece = Move.getOriginPiece(currMove);
+			boolean possibleDiscoveredOrMoveIntoCheck = pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove, originPiece) || 
+														Piece.isKing(originPiece);
 			pm.performMove(currMove, false);
 			if ((possibleDiscoveredOrMoveIntoCheck || needToEscapeMate) && pm.isKingInCheck(onMove)) {
 				// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
