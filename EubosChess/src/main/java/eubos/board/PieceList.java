@@ -83,6 +83,28 @@ public class PieceList {
 		}
 	}
 	
+	public void updatePiece(int piece, int atPos, int targetPos) {
+		int colour_index = Piece.isBlack(piece) ? 1 : 0;
+		int piece_index = piece & Piece.PIECE_NO_COLOUR_MASK;
+		int piece_number = 0;
+		
+		if (EubosEngineMain.ASSERTS_ENABLED) {
+			assert piece != Piece.NONE;
+			assert atPos != Position.NOPOSITION;
+		}
+		
+		// find the index into the relevant piece list to update
+		for (int position : piece_list[colour_index][piece_index]) {
+			if (position == atPos) {
+				piece_list[colour_index][piece_index][piece_number] = targetPos;
+				break;
+			} else {
+				// search on
+				piece_number++;
+			}
+		}
+	}
+	
 	public int getNum(int piece) {
 		int colour_index = Piece.isBlack(piece) ? 1 : 0;
 		int piece_index = piece & Piece.PIECE_NO_COLOUR_MASK;
@@ -93,5 +115,45 @@ public class PieceList {
 		int colour_index = Piece.isBlack(piece) ? 1 : 0;
 		int piece_index = piece & Piece.PIECE_NO_COLOUR_MASK;
 		return Arrays.copyOf(piece_list[colour_index][piece_index],piece_count[colour_index][piece_index]);
+	}
+	
+	public void forEachPieceDoCallback(IForEachPieceCallback caller) {
+		int [][] whiteSide = piece_list[0];
+		int currPiece = Piece.NONE;
+		for (int [] piece : whiteSide) { 
+			for(int atPos : piece) {
+				if (atPos != Position.NOPOSITION) {
+					caller.callback(currPiece, atPos);
+				} else {
+					break;
+				}
+			}
+			currPiece++;
+		}
+		int [][] blackSide = piece_list[1];
+		currPiece = Piece.NONE | Piece.BLACK;
+		for (int [] piece : blackSide) { 
+			for(int atPos : piece) {
+				if (atPos != Position.NOPOSITION) {
+					caller.callback(currPiece, atPos);
+				} else {
+					break;
+				}
+			}
+			currPiece++;
+		}
+	}
+	
+	public void forEachPawnOfSideDoCallback(IForEachPieceCallback caller, boolean isBlack) {
+		int colour_index = isBlack ? 1 : 0;
+		int pawn = isBlack ? Piece.BLACK_PAWN : Piece.WHITE_PAWN;
+		int [] pawns = piece_list[colour_index][Piece.PAWN];
+		for(int atPos : pawns) {
+			if (atPos != Position.NOPOSITION) {
+				caller.callback(pawn, atPos);
+			} else {
+				break;
+			}
+		}		
 	}
 }

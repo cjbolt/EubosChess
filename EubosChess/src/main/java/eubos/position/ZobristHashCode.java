@@ -1,15 +1,15 @@
 package eubos.position;
 
-import java.util.PrimitiveIterator;
 import java.util.Random;
 import java.util.Stack;
 
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
+import eubos.board.IForEachPieceCallback;
 import eubos.board.Piece;
 
-public class ZobristHashCode {
+public class ZobristHashCode implements IForEachPieceCallback {
 	
 	public long hashCode;
 	
@@ -66,15 +66,16 @@ public class ZobristHashCode {
 		generate();
 	}
 	
+	@Override
+	public void callback(int piece, int atPos) { 
+		hashCode ^= getPrnForPiece(atPos, piece);
+	}
+	
 	// Generate a hash code for a position from scratch
 	private long generate() {
 		// add pieces
 		hashCode = 0;
-		PrimitiveIterator.OfInt iter = pos.getTheBoard().iterator();
-		while (iter.hasNext()) {
-			int pieceSq = iter.nextInt();
-			hashCode ^= getPrnForPiece(pieceSq, pos.getTheBoard().getPieceAtSquare(pieceSq));
-		}
+		pos.getTheBoard().forEachPiece(this);
 		// add castling
 		prevCastlingMask = castling.getFlags();
 		updateCastling(prevCastlingMask);

@@ -1,11 +1,9 @@
 package eubos.score;
 
-import java.util.PrimitiveIterator;
-
 import com.fluxchess.jcpi.models.IntFile;
 
 import eubos.board.Board;
-import eubos.board.Piece;
+import eubos.board.IForEachPieceCallback;
 import eubos.board.Piece.Colour;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
@@ -14,7 +12,7 @@ import eubos.search.Score;
 import eubos.search.SearchContext;
 import eubos.search.SearchContext.SearchContextEvaluation;
 
-public class PositionEvaluator implements IEvaluate {
+public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 
 	IPositionAccessors pm;
 	private SearchContext sc;
@@ -80,23 +78,27 @@ public class PositionEvaluator implements IEvaluate {
 		kingSafetyScore += pm.getTheBoard().evaluateKingSafety(!ownSideIsWhite);
 		return kingSafetyScore;
 	}
-
-	private int evaluatePawnsForColour(Colour onMoveWas) {
-		Board board = pm.getTheBoard();
-		int passedPawnBoost = 0;
-		int pawnHandicap = -board.countDoubledPawnsForSide(onMoveWas)*DOUBLED_PAWN_HANDICAP;
-		int ownPawns = Colour.isWhite(onMoveWas) ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
-		PrimitiveIterator.OfInt iter = board.iterateType(ownPawns);
-		while (iter.hasNext()) {
-			int pawn = iter.nextInt();
-			if (board.isPassedPawn(pawn, onMoveWas)) {
-				if (Position.getFile(pawn) == IntFile.Fa || Position.getFile(pawn) == IntFile.Fh) {
-					passedPawnBoost += ROOK_FILE_PASSED_PAWN_BOOST;
-				} else {
-					passedPawnBoost += PASSED_PAWN_BOOST;
-				}
+	
+	Colour onMoveWas;
+	int passedPawnBoost = 0;
+	
+	@Override
+	public void callback(int piece, int atPos) {
+		if (pm.getTheBoard().isPassedPawn(atPos, onMoveWas)) {
+			if (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) {
+				passedPawnBoost += ROOK_FILE_PASSED_PAWN_BOOST;
+			} else {
+				passedPawnBoost += PASSED_PAWN_BOOST;
 			}
 		}
+	}
+	
+	private int evaluatePawnsForColour(Colour onMoveWas) {
+		Board board = pm.getTheBoard();
+		this.onMoveWas = onMoveWas;
+		this.passedPawnBoost = 0;
+		int pawnHandicap = -board.countDoubledPawnsForSide(onMoveWas)*DOUBLED_PAWN_HANDICAP;
+		board.forEachPawnOfSide(this, Colour.isBlack(onMoveWas));
 		if (Colour.isBlack(onMoveWas)) {
 			pawnHandicap = -pawnHandicap;
 			passedPawnBoost = -passedPawnBoost;

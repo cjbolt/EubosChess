@@ -3,9 +3,7 @@ package eubos.board;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.PrimitiveIterator;
 import java.util.Map.Entry;
-import java.util.function.IntConsumer;
 
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
@@ -18,7 +16,7 @@ import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntRank;
 
-public class Board {
+public class Board implements IForEachPieceCallback {
 	
 	private static final long LIGHT_SQUARES_MASK = 0x55AA55AA55AA55AAL;
 	private static final long DARK_SQUARES_MASK = 0xAA55AA55AA55AA55L; 
@@ -228,8 +226,7 @@ public class Board {
 		} else {
 			// Piece type doesn't change across boards
 			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
-			pieceLists.removePiece(pieceToMove, originSquare);
-			pieceLists.addPiece(pieceToMove, targetSquare);
+			pieceLists.updatePiece(pieceToMove, originSquare, targetSquare);
 		}
 		// Switch colour bitboard
 		if (Piece.isWhite(pieceToMove)) {
@@ -270,9 +267,7 @@ public class Board {
 		} else {
 			// Piece type doesn't change across boards
 			pieces[Piece.PIECE_NO_COLOUR_MASK & originPiece] ^= positionsMask;
-			// and update piece list
-			pieceLists.removePiece(originPiece, originSquare);
-			pieceLists.addPiece(originPiece, targetSquare);
+			pieceLists.updatePiece(originPiece, originSquare, targetSquare);
 		}
 		// Switch colour bitboard
 		if (Piece.isWhite(originPiece)) {
@@ -333,18 +328,22 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (wksc_mask);
 			whitePieces ^= (wksc_mask);
 			allPieces ^= (wksc_mask);
+			pieceLists.updatePiece(Piece.WHITE_ROOK, Position.h1, Position.f1);
 		} else if (Move.areEqual(move, CastlingManager.wqsc)) {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
+			pieceLists.updatePiece(Piece.WHITE_ROOK, Position.a1, Position.d1);
 		} else if (Move.areEqual(move, CastlingManager.bksc)) {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
+			pieceLists.updatePiece(Piece.BLACK_ROOK, Position.h8, Position.f8);
 		} else if (Move.areEqual(move, CastlingManager.bqsc)) {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
 			allPieces ^= (bqsc_mask);
+			pieceLists.updatePiece(Piece.BLACK_ROOK, Position.a8, Position.d8);
 		}
 	}
 	
@@ -353,18 +352,22 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (wksc_mask);
 			whitePieces ^= (wksc_mask);
 			allPieces ^= (wksc_mask);
+			pieceLists.updatePiece(Piece.WHITE_ROOK, Position.f1, Position.h1);
 		} else if (Move.areEqual(move, CastlingManager.undo_wqsc)) {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
+			pieceLists.updatePiece(Piece.WHITE_ROOK, Position.d1, Position.a1);
 		} else if (Move.areEqual(move, CastlingManager.undo_bksc)) {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
+			pieceLists.updatePiece(Piece.BLACK_ROOK, Position.f8, Position.h8);
 		} else if (Move.areEqual(move, CastlingManager.undo_bqsc)) {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
 			allPieces ^= (bqsc_mask);
+			pieceLists.updatePiece(Piece.BLACK_ROOK, Position.d8, Position.a8);
 		}
 	}
 	
@@ -583,69 +586,6 @@ public class Board {
 		}
 		return isPassed;
 	}
-	
-	class allPiecesOnBoardIterator implements PrimitiveIterator.OfInt {	
-		private int[] pieces = null;
-		private int count = 0;
-		private int next = 0;
-
-		allPiecesOnBoardIterator() throws InvalidPieceException {
-			pieces = new int[64];
-			buildIterList(allPieces);
-		}
-
-		allPiecesOnBoardIterator( int typeToIterate ) throws InvalidPieceException {
-			pieces = new int[64];
-			long bitBoardToIterate;
-			if (typeToIterate == Piece.WHITE_PAWN) {
-				bitBoardToIterate = getWhitePawns();
-			} else if (typeToIterate == Piece.BLACK_PAWN) {
-				bitBoardToIterate = getBlackPawns();
-			} else {
-				bitBoardToIterate = 0x0;
-			}
-			buildIterList(bitBoardToIterate);
-		}
-
-		private void buildIterList(long bitBoardToIterate) {
-			PrimitiveIterator.OfInt iter = BitBoard.iterator(bitBoardToIterate);
-			while (iter.hasNext()) {
-				int bit_index = iter.nextInt();
-				pieces[count++] = BitBoard.bitToPosition_Lut[bit_index];
-			}
-		}	
-
-		public boolean hasNext() {
-			return next < pieces.length && next < count;
-		}
-
-		public Integer next() {
-			assert false; // should always use nextInt()
-			return pieces[next++];
-		}
-
-		@Override
-		public void remove() {
-		}
-
-		@Override
-		public void forEachRemaining(IntConsumer action) {
-		}
-
-		@Override
-		public int nextInt() {
-			return pieces[next++];
-		}
-	}
-
-	public PrimitiveIterator.OfInt iterator() {
-		// default iterator returns all the pieces on the board, not all positions
-		try {
-			return new allPiecesOnBoardIterator( );
-		} catch (InvalidPieceException e) {
-			return null;
-		}
-	}
 		
 	public long getBlackPawns() {
 		return blackPieces & (pieces[INDEX_PAWN]);
@@ -695,14 +635,6 @@ public class Board {
 		return whitePieces & (pieces[INDEX_KING]);
 	}
 	
-	public PrimitiveIterator.OfInt iterateType( int typeToIterate ) {
-		try {
-			return new allPiecesOnBoardIterator( typeToIterate );
-		} catch (InvalidPieceException e) {
-			return null;
-		}
-	}
-
 	public boolean isOnHalfOpenFile(GenericPosition atPos, int type) {
 		boolean isHalfOpen = false;
 		long fileMask = FileMask_Lut[IntFile.valueOf(atPos.file)];
@@ -797,10 +729,10 @@ public class Board {
 			return false;
 		
 		// Minor pieces
-		int numWhiteBishops = Long.bitCount(getWhiteBishops());
-		int numWhiteKnights = Long.bitCount(getWhiteKnights());
-		int numBlackBishops = Long.bitCount(getBlackBishops());
-		int numBlackKnights = Long.bitCount(getBlackKnights());
+		int numWhiteBishops = pieceLists.getNum(Piece.WHITE_BISHOP);
+		int numWhiteKnights = pieceLists.getNum(Piece.WHITE_KNIGHT);
+		int numBlackBishops = pieceLists.getNum(Piece.BLACK_BISHOP);
+		int numBlackKnights = pieceLists.getNum(Piece.BLACK_KNIGHT);
 		
 		if (numWhiteBishops >= 2 || numBlackBishops >= 2) {
 			// One side has at least two bishops
@@ -981,14 +913,8 @@ public class Board {
 	}
 	
 	public PiecewiseEvaluation evaluateMaterial() {
-		PrimitiveIterator.OfInt iter_p = this.iterator();
-		PiecewiseEvaluation material = new PiecewiseEvaluation();
-		while ( iter_p.hasNext() ) {
-			int atPos = iter_p.nextInt();
-			int currPiece = getPieceAtSquare(atPos);
-			material = updateMaterialForPiece(currPiece, atPos, material);
-		}
-		me = material;
+		me = new PiecewiseEvaluation();
+		pieceLists.forEachPieceDoCallback(this);
 		return me;
 	}
 	
@@ -1084,5 +1010,18 @@ public class Board {
 			}
 		}
 		return numSquares;
+	}
+	
+	@Override
+	public void callback(int piece, int atPos) {
+		updateMaterialForPiece(piece, atPos, me);
+	}
+	
+	public void forEachPiece(IForEachPieceCallback caller) {
+		pieceLists.forEachPieceDoCallback(caller);
+	}
+	
+	public void forEachPawnOfSide(IForEachPieceCallback caller, boolean isBlack) {
+		pieceLists.forEachPawnOfSideDoCallback(caller, isBlack);
 	}
 }
