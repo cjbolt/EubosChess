@@ -29,6 +29,7 @@ public abstract class Piece {
 	public static final int DONT_CARE = 0x7;
 	
 	public static final int BLACK = 0x8;
+	public static final int COLOUR_BIT_SHIFT = 3;
 	
 	public static final int PIECE_NO_COLOUR_MASK = 0x7;
 	public static final int PIECE_WHOLE_MASK = 0xf;
