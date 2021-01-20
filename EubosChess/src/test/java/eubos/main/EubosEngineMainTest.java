@@ -140,20 +140,20 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
-	@Ignore // till we can mask out the time info in info messages
-	public void test_infoMessageSending() throws InterruptedException, IOException {
+	public void test_infoMessageSending_clearsPreviousPvMoves() throws InterruptedException, IOException {
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			setupEngine();
 			// Setup Commands specific to this test
 			commands.add(new commandPair(POS_FEN_PREFIX+"r1b1kb1r/ppqnpppp/8/3pP3/3Q4/5N2/PPP2PPP/RNB1K2R b KQkq - 2 8"+CMD_TERMINATOR, null));
-			commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR, "info depth 1 seldepth 4 score cp -800 pv c7e5 f3e5 d7e5 d4e5 hashfull 0 nps 196 time 61 nodes 12"+CMD_TERMINATOR+
-					                                                         "info depth 1 seldepth 4 score cp -30 pv d7e5 f3e5 c7c2 hashfull 0 nps 492 time 63 nodes 31"+CMD_TERMINATOR+
-					                                                         "info depth 1 seldepth 4 score cp 155 pv c7c2 hashfull 0 nps 507 time 63 nodes 32"+CMD_TERMINATOR
-					                                                         +BEST_PREFIX+"c7c2"+CMD_TERMINATOR));
-			/* causes a bad info message to be generated, f3e5 and c7c2 are not cleared from the first PV in the ext search...
-			info depth 1 seldepth 4 score cp -490 pv c7e5 f3e5 d7e5 hashfull 0 nps 214 time 42 nodes 9
-			info depth 1 seldepth 4 score cp -30 pv d7e5 f3e5 c7c2 hashfull 0 nps 538 time 52 nodes 28
-			info depth 1 seldepth 4 score cp 155 pv c7c2 f3e5 c7c2 hashfull 0 nps 547 time 53 nodes 29 */
+			commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR, removeTimeFieldsFromUciInfoMessage("info depth 1 seldepth 4 score cp -149 pv d7e5 f3e5 c7e5 nps 0 time 0 nodes 7"+CMD_TERMINATOR+
+					                                                         "info depth 1 seldepth 4 score cp 135 pv c7c2 e1g1 nps 105 time 85 nodes 9"+CMD_TERMINATOR+
+					                                                         "info depth 2 seldepth 0 score cp 13 pv c7c2 d4d5 c2e2 nps 1000 time 85 nodes 85"+CMD_TERMINATOR
+					                                                         +BEST_PREFIX+"c7c2")+CMD_TERMINATOR)); // don't strip the last command terminator!
+			/* Historically, this position and search caused a bad UCI info message to be generated. 
+			 * The second info contains c7e5, which has not been cleared from the first PV of the ext search...
+			info depth 1 seldepth 4 score cp -149 pv d7e5 f3e5 c7e5 nps 0 time 0 nodes 7
+			info depth 1 seldepth 4 score cp 135 pv c7c2 e1g1 c7e5 nps 105 time 85 nodes 9
+			info depth 2 seldepth 0 score cp 13 pv c7c2 d4d5 c2e2 nps 1000 time 85 nodes 85 */
 			performTest(1000, true); // check infos
 		}
 	}
@@ -586,22 +586,35 @@ public class EubosEngineMainTest {
 			if (expectedOutput != null) {
 				boolean received = false;
 				int timer = 0;
+				boolean accumulate = false;
+				String recievedCmd = "";
 				// Receive message or wait for timeout to expire.
 				while (!received && timer<timeout) {
-					String recievedCmd = "";
 					// Give the engine thread some CPU time
 					Thread.sleep(sleep_50ms);
 					timer += sleep_50ms;
 					testOutput.flush();
-					recievedCmd = testOutput.toString();
+					if (accumulate) {
+						recievedCmd += testOutput.toString();
+					} else {
+						recievedCmd = testOutput.toString();
+					}
 					if (recievedCmd != null && !recievedCmd.isEmpty()) {
 						System.err.println(recievedCmd);
 						testOutput.reset();
 						// Ignore any line starting with info, if not checking infos
 					    parsedCmd = parseReceivedCommandString(recievedCmd, checkInfoMsgs);
-						if (parsedCmd.equals(expectedOutput)) {
-							received = true;
-						}	
+					    if (!parsedCmd.isBlank()) {
+							if (parsedCmd.equals(expectedOutput)) {
+								received = true;
+								accumulate = false;
+							} else if (expectedOutput.startsWith(parsedCmd)){
+								accumulate = true;
+							} else {
+								EubosEngineMain.logger.info(String.format("parsed '%s' != '%s'", parsedCmd, expectedOutput));
+								accumulate = false;
+							}
+					    }
 					}
 				}
 				if (!received) {
@@ -633,11 +646,39 @@ public class EubosEngineMainTest {
 				 * # WARNING: Unable to get Instrumentation. Dynamic Attach failed. You may add this JAR as -javaagent manually, or supply -Djdk.attach.allowAttachSelf
 				 * # WARNING: Unable to attach Serviceability Agent. Unable to attach even with module exceptions: [org.openjdk.jol.vm.sa.SASupportException: Sense failed., org.openjdk.jol.vm.sa.SASupportException: Sense failed., org.openjdk.jol.vm.sa.SASupportException: Sense failed.]
 				 */
-			} else if (checkInfoMessages || !currLine.contains("info")) {
+			} else if (!currLine.contains("info")) {
+				//EubosEngineMain.logger.info(String.format("raw text received was '%s'", currLine));
 				parsedCmd += (currLine + CMD_TERMINATOR);
+			} else if (checkInfoMessages) {
+				// parse to remove time from info messages
+				parsedCmd += (removeTimeFieldsFromUciInfoMessage(currLine) + CMD_TERMINATOR);
+			} else {
+				// omit line
 			}
 		}
 		scan.close();
 		return parsedCmd;
-	}	
+	}
+	
+	private String removeTimeFieldsFromUciInfoMessage(String info) {
+		String [] array = info.split(" ");
+		String output = "";
+		boolean delete_next_token = false;
+		for (String token : array) {
+			if (delete_next_token) {
+				Integer.parseInt(token);
+				// skip this token
+				delete_next_token = false;
+			} else {
+				// reconstruct
+				output = String.join(" ", output, token);
+			}
+			if (token.equals("nps") || token.equals("time")) {
+				delete_next_token = true;
+			}
+		}
+		output = output.trim();
+		//EubosEngineMain.logger.info(String.format("parsed UCI Info was '%s'", output));
+		return output;
+	}
 }

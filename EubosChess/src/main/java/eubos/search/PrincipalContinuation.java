@@ -80,6 +80,7 @@ public class PrincipalContinuation {
 		}
 	}
 	
+	// Bring down a pv from node further down the tree, with curr move added at the head
 	void update(int currPly, int currMove) {
 		if (currPly < pc.size()) {
 			List<Integer> plyToUpdatePc = pc.get(currPly);
@@ -94,6 +95,7 @@ public class PrincipalContinuation {
 		}
 	}
 	
+	// Update a principal continuation from a Transposition hit where we don't have onwards pv
 	void set(int currPly, int currMove) {
 		if (currPly < pc.size()) {
 			List<Integer> plyToUpdatePc = pc.get(currPly);
@@ -104,9 +106,9 @@ public class PrincipalContinuation {
 		}
 	}
 	
+	// Update a principal continuation from a Transposition hit where we do have an onwards pv
 	public void update(int currPly, List<Integer> onwards_pv) {
 		if (currPly < pc.size()) {
-			// Update a principal continuation from a Transposition hit
 			List<Integer> plyToUpdatePc = pc.get(currPly);
 			plyToUpdatePc.clear();
 			if (onwards_pv != null) {
@@ -116,10 +118,12 @@ public class PrincipalContinuation {
 		}
 	}
 	
+	// Clear all downstream pv's, from the current ply
 	void clearContinuationBeyondPly(int currPly) {
 		int nextPly = currPly+1;
-		if (nextPly < pc.size()) {
+		while (nextPly < pc.size()) {
 			pc.get(nextPly).clear();
+			nextPly++;
 		}
 	}
 }
