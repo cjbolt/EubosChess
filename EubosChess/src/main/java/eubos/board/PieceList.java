@@ -117,16 +117,16 @@ public class PieceList {
 	
 	public void forEachPieceDoCallback(IForEachPieceCallback caller) {
 		// white pieces
-		int currPiece = Piece.NONE;
+		int currPiece = Piece.KING;
 		helper(piece_list[0], caller, currPiece);
 		// black pieces
-		currPiece = Piece.NONE | Piece.BLACK;
+		currPiece = Piece.BLACK_KING;
 		helper(piece_list[1], caller, currPiece);
 	}
 	
 	private void helper(int [][] side, IForEachPieceCallback caller, int currPiece) {
-		for (int [] piece : side) {
-			anotherHelper(piece, caller, currPiece);
+		for (int i = Piece.KING; i < NUM_PIECE_TYPES; i++) {
+			anotherHelper(side[i], caller, currPiece);
 			currPiece++;
 		}
 	}
@@ -151,5 +151,12 @@ public class PieceList {
 	public int getKingPos(boolean sideIsWhite) {
 		int colour_index = sideIsWhite ? 0 : 1;
 		return piece_list[colour_index][Piece.KING][0];
+	}
+
+	public void forEachPieceOfSideDoCallback(IForEachPieceCallback caller, boolean sideIsWhite) {
+		int colour_index = sideIsWhite ? 0 : 1;
+		int [][] pieces = piece_list[colour_index];
+		int piece = sideIsWhite ? Piece.WHITE_KING : Piece.BLACK_KING;
+		helper(pieces, caller, piece);		
 	}
 }

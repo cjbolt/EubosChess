@@ -106,8 +106,8 @@ public class MoveListTest {
 		assertEquals(new GenericMove("d7b5"), Move.toGenericMove(it.next())); // BxR delta 1 gains 2
 		
 		// neutral exchanges
-		assertEquals(new GenericMove("a6e6"), Move.toGenericMove(it.next())); // QxQ
 		assertEquals(new GenericMove("b1b5"), Move.toGenericMove(it.next())); // RxR
+		assertEquals(new GenericMove("a6e6"), Move.toGenericMove(it.next())); // QxQ
 		assertEquals(new GenericMove("g2f3"), Move.toGenericMove(it.next())); // PxP
 		
 		// losing material
@@ -164,11 +164,9 @@ public class MoveListTest {
 		assertEquals(new GenericMove("g5e6"), Move.toGenericMove(it.next())); // NxP delta -1 loses 2
 		assertEquals(new GenericMove("e3e6"), Move.toGenericMove(it.next())); // RxP delta -3 loses 4 losing material (happens to check, but that is ignored)
 		
-		// checks
-		assertEquals(new GenericMove("f5f6"), Move.toGenericMove(it.next())); // Check
-		
 		// regular moves
 		assertEquals(new GenericMove("e3e2"), Move.toGenericMove(it.next())); // Regular move
+		assertEquals(new GenericMove("e3e1"), Move.toGenericMove(it.next())); // Regular move
 	}
 	
 	@Test
@@ -208,9 +206,9 @@ public class MoveListTest {
 		// fake best and killers in this position just to check correct move ordering is used.
 		GenericMove best_gen = new GenericMove("c4c5");
 		int best = Move.toMove(best_gen, pm.getTheBoard());
-		GenericMove killer1_gen = new GenericMove("h7e4");
+		GenericMove killer1_gen = new GenericMove("e2d1");
 		int killer1 = Move.toMove(killer1_gen, pm.getTheBoard());
-		GenericMove killer2_gen = new GenericMove("e2d1");
+		GenericMove killer2_gen = new GenericMove("h7e4");
 		int killer2 = Move.toMove(killer2_gen, pm.getTheBoard());
 		
 		classUnderTest = new MoveList(pm, best, killer1, killer2, 1);
