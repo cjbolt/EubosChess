@@ -429,6 +429,8 @@ public class PlySearcher {
 	}
 	
 	private int applySafestNormalMoveAndScore(MoveList ml) throws InvalidPieceException {
+		if (EubosEngineMain.UCI_INFO_ENABLED)
+			pc.clearContinuationBeyondPly(currPly);
 		int currMove = ml.getSafestMove();
 		if (EubosEngineMain.ASSERTS_ENABLED)
 			assert currMove != Move.NULL_MOVE;

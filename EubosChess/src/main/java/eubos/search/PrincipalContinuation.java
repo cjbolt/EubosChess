@@ -121,9 +121,8 @@ public class PrincipalContinuation {
 	// Clear all downstream pv's, from the current ply
 	void clearContinuationBeyondPly(int currPly) {
 		int nextPly = currPly+1;
-		while (nextPly < pc.size()) {
+		if (nextPly < pc.size()) {
 			pc.get(nextPly).clear();
-			nextPly++;
 		}
 	}
 }
