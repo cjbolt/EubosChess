@@ -600,7 +600,7 @@ public class EubosEngineMainTest {
 						testOutput.reset();
 						// Ignore any line starting with info, if not checking infos
 					    parsedCmd = parseReceivedCommandString(recievedCmd, checkInfoMsgs);
-					    if (!parsedCmd.isBlank()) {
+					    if (!parsedCmd.isEmpty()) { // want to use isBlank(), but that is Java 11 only.
 							if (parsedCmd.equals(expectedOutput)) {
 								received = true;
 								accumulate = false;
