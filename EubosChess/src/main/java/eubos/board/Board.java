@@ -93,7 +93,10 @@ public class Board {
 	public static final short MATERIAL_VALUE_KNIGHT = 290;
 	public static final short MATERIAL_VALUE_PAWN = 100;
 	
-	private static final byte[] PAWN_WHITE_WEIGHTINGS;
+    public static final short [] PIECE_TO_MATERIAL_LUT = {0, Board.MATERIAL_VALUE_KING, Board.MATERIAL_VALUE_QUEEN, Board.MATERIAL_VALUE_ROOK, 
+    		Board.MATERIAL_VALUE_BISHOP, Board.MATERIAL_VALUE_KNIGHT, Board.MATERIAL_VALUE_PAWN };
+	
+	static final byte[] PAWN_WHITE_WEIGHTINGS;
     static {
     	PAWN_WHITE_WEIGHTINGS = new byte[128];
         PAWN_WHITE_WEIGHTINGS[Position.a1] = 0; PAWN_WHITE_WEIGHTINGS[Position.b1] = 0; PAWN_WHITE_WEIGHTINGS[Position.c1] = 0; PAWN_WHITE_WEIGHTINGS[Position.d1] = 0; PAWN_WHITE_WEIGHTINGS[Position.e1] = 0; PAWN_WHITE_WEIGHTINGS[Position.f1] = 0; PAWN_WHITE_WEIGHTINGS[Position.g1] = 0; PAWN_WHITE_WEIGHTINGS[Position.h1] = 0;
@@ -106,7 +109,7 @@ public class Board {
 		PAWN_WHITE_WEIGHTINGS[Position.a8] = 0; PAWN_WHITE_WEIGHTINGS[Position.b8] = 0; PAWN_WHITE_WEIGHTINGS[Position.c8] = 0; PAWN_WHITE_WEIGHTINGS[Position.d8] = 0; PAWN_WHITE_WEIGHTINGS[Position.e8] = 0; PAWN_WHITE_WEIGHTINGS[Position.f8] = 0; PAWN_WHITE_WEIGHTINGS[Position.g8] = 0; PAWN_WHITE_WEIGHTINGS[Position.h8] = 0;
     }
     
-	private static final byte[] PAWN_BLACK_WEIGHTINGS;
+	static final byte[] PAWN_BLACK_WEIGHTINGS;
     static {
     	PAWN_BLACK_WEIGHTINGS = new byte[128];
         PAWN_BLACK_WEIGHTINGS[Position.a1] = 0; PAWN_BLACK_WEIGHTINGS[Position.b1] = 0; PAWN_BLACK_WEIGHTINGS[Position.c1] = 0; PAWN_BLACK_WEIGHTINGS[Position.d1] = 0; PAWN_BLACK_WEIGHTINGS[Position.e1] = 0; PAWN_BLACK_WEIGHTINGS[Position.f1] = 0; PAWN_BLACK_WEIGHTINGS[Position.g1] = 0; PAWN_BLACK_WEIGHTINGS[Position.h1] = 0;
@@ -119,7 +122,7 @@ public class Board {
 		PAWN_BLACK_WEIGHTINGS[Position.a8] = 0; PAWN_BLACK_WEIGHTINGS[Position.b8] = 0; PAWN_BLACK_WEIGHTINGS[Position.c8] = 0; PAWN_BLACK_WEIGHTINGS[Position.d8] = 0; PAWN_BLACK_WEIGHTINGS[Position.e8] = 0; PAWN_BLACK_WEIGHTINGS[Position.f8] = 0; PAWN_BLACK_WEIGHTINGS[Position.g8] = 0; PAWN_BLACK_WEIGHTINGS[Position.h8] = 0;
     }    
 	
-	private static final byte[] KNIGHT_WEIGHTINGS;
+	static final byte[] KNIGHT_WEIGHTINGS;
     static {
     	KNIGHT_WEIGHTINGS = new byte[128];
         KNIGHT_WEIGHTINGS[Position.a1] = -20;KNIGHT_WEIGHTINGS[Position.b1] = -10;KNIGHT_WEIGHTINGS[Position.c1] = -10;KNIGHT_WEIGHTINGS[Position.d1] = -10;KNIGHT_WEIGHTINGS[Position.e1] = -10;KNIGHT_WEIGHTINGS[Position.f1] = -10;KNIGHT_WEIGHTINGS[Position.g1] = -10;KNIGHT_WEIGHTINGS[Position.h1] = -20;
@@ -132,7 +135,7 @@ public class Board {
 		KNIGHT_WEIGHTINGS[Position.a8] = -20;KNIGHT_WEIGHTINGS[Position.b8] = -10;KNIGHT_WEIGHTINGS[Position.c8] = -10;KNIGHT_WEIGHTINGS[Position.d8] = -10;KNIGHT_WEIGHTINGS[Position.e8] = -10;KNIGHT_WEIGHTINGS[Position.f8] = -10;KNIGHT_WEIGHTINGS[Position.g8] = -10;KNIGHT_WEIGHTINGS[Position.h8] = -20;
     }
     
-    private static final byte[] KING_ENDGAME_WEIGHTINGS;
+    static final byte[] KING_ENDGAME_WEIGHTINGS;
     static {
     	KING_ENDGAME_WEIGHTINGS = new byte[128];
         KING_ENDGAME_WEIGHTINGS[Position.a1] = -30;KING_ENDGAME_WEIGHTINGS[Position.b1] = -30;KING_ENDGAME_WEIGHTINGS[Position.c1] = -30;KING_ENDGAME_WEIGHTINGS[Position.d1] = -30;KING_ENDGAME_WEIGHTINGS[Position.e1] = -30;KING_ENDGAME_WEIGHTINGS[Position.f1] = -30;KING_ENDGAME_WEIGHTINGS[Position.g1] = -30;KING_ENDGAME_WEIGHTINGS[Position.h1] = -30;
@@ -145,7 +148,7 @@ public class Board {
 		KING_ENDGAME_WEIGHTINGS[Position.a8] = -30;KING_ENDGAME_WEIGHTINGS[Position.b8] = -30;KING_ENDGAME_WEIGHTINGS[Position.c8] = -30;KING_ENDGAME_WEIGHTINGS[Position.d8] = -30;KING_ENDGAME_WEIGHTINGS[Position.e8] = -30;KING_ENDGAME_WEIGHTINGS[Position.f8] = -30;KING_ENDGAME_WEIGHTINGS[Position.g8] = -30;KING_ENDGAME_WEIGHTINGS[Position.h8] = -30;
     }
     
-    private static final byte[] KING_MIDGAME_WEIGHTINGS;
+    static final byte[] KING_MIDGAME_WEIGHTINGS;
     static {
     	KING_MIDGAME_WEIGHTINGS = new byte[128];
         KING_MIDGAME_WEIGHTINGS[Position.a1] = 5;KING_MIDGAME_WEIGHTINGS[Position.b1] = 10;KING_MIDGAME_WEIGHTINGS[Position.c1] = 5;KING_MIDGAME_WEIGHTINGS[Position.d1] = 0;KING_MIDGAME_WEIGHTINGS[Position.e1] = 0;KING_MIDGAME_WEIGHTINGS[Position.f1] = 5;KING_MIDGAME_WEIGHTINGS[Position.g1] = 10;KING_MIDGAME_WEIGHTINGS[Position.h1] = 5;
@@ -157,7 +160,6 @@ public class Board {
 		KING_MIDGAME_WEIGHTINGS[Position.a7] = 0;KING_MIDGAME_WEIGHTINGS[Position.b7] = 0;KING_MIDGAME_WEIGHTINGS[Position.c7] = 0;KING_MIDGAME_WEIGHTINGS[Position.d7] = 0;KING_MIDGAME_WEIGHTINGS[Position.e7] = 0;KING_MIDGAME_WEIGHTINGS[Position.f7] = 0;KING_MIDGAME_WEIGHTINGS[Position.g7] = 0;KING_MIDGAME_WEIGHTINGS[Position.h7] = 0;
 		KING_MIDGAME_WEIGHTINGS[Position.a8] = 5;KING_MIDGAME_WEIGHTINGS[Position.b8] = 10;KING_MIDGAME_WEIGHTINGS[Position.c8] = 5;KING_MIDGAME_WEIGHTINGS[Position.d8] = 0;KING_MIDGAME_WEIGHTINGS[Position.e8] = 0;KING_MIDGAME_WEIGHTINGS[Position.f8] = 5;KING_MIDGAME_WEIGHTINGS[Position.g8] = 10;KING_MIDGAME_WEIGHTINGS[Position.h8] = 5;
     }
-	
 	
 	private long allPieces = 0x0;
 	private long whitePieces = 0x0;
@@ -196,10 +198,6 @@ public class Board {
 	public boolean isEndgame;
 	
 	private PieceList pieceLists = new PieceList();
-	
-	private MoveListFactory mlf = new MoveListFactory(this);
-	
-	private MaterialEvaluationHelper meh =new MaterialEvaluationHelper();
 	
 	public PiecewiseEvaluation me;
 	
@@ -745,138 +743,17 @@ public class Board {
 		return potentialPromotion;
 	}
 	
-	class MoveListFactory implements IForEachPieceCallback {
-		public List<Integer> movesList;
-		boolean ownSideIsWhite;
-		Board theBoard;
-		
-		public MoveListFactory(Board theBoard) {
-			this.theBoard = theBoard;
-		}
-		
-		public List<Integer> createMoveList(boolean ownSideIsWhite) {
-			movesList = new LinkedList<Integer>();
-			this.ownSideIsWhite = ownSideIsWhite;
-			pieceLists.forEachPieceOfSideDoCallback(this, ownSideIsWhite);
-			return movesList;
-		}
-		
-		@Override
-		public void callback(int piece, int atSquare) {
-			switch(piece) {
-			case Piece.WHITE_PAWN:
-			case Piece.BLACK_PAWN:
-				Piece.pawn_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
-				break;
-			case Piece.WHITE_ROOK:
-			case Piece.BLACK_ROOK:
-				Piece.rook_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
-				break;
-			case Piece.WHITE_BISHOP:
-			case Piece.BLACK_BISHOP:
-				Piece.bishop_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
-				break;
-			case Piece.WHITE_KNIGHT:
-			case Piece.BLACK_KNIGHT:
-				Piece.knight_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
-				break;
-			case Piece.WHITE_QUEEN:
-			case Piece.BLACK_QUEEN:
-				Piece.queen_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
-				break;
-			case Piece.WHITE_KING:			
-			case Piece.BLACK_KING:
-				Piece.king_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
-				break;
-			default:
-				break;
-			}	
-		}
-	}
-	
 	public List<Integer> getRegularPieceMoves(boolean ownSideIsWhite) {
-		return mlf.createMoveList(ownSideIsWhite);
-	}
-	
-	class MaterialEvaluationHelper implements IForEachPieceCallback {
-	    // For reasons of performance optimisation, part of the material evaluation considers the mobility of pieces.
-	    // This function generates a score considering three categories A) material B) static PSTs C) Piece mobility (dynamic) 
-		private PiecewiseEvaluation updateMaterialForPiece(int currPiece, int atPos, PiecewiseEvaluation eval) {
-			switch(currPiece) {
-			case Piece.WHITE_PAWN:
-				eval.addWhite(MATERIAL_VALUE_PAWN);
-				eval.addPositionWhite(PAWN_WHITE_WEIGHTINGS[atPos]);
-				break;
-			case Piece.BLACK_PAWN:
-				eval.addBlack(MATERIAL_VALUE_PAWN);
-				eval.addPositionBlack(PAWN_BLACK_WEIGHTINGS[atPos]);
-				break;
-			case Piece.WHITE_ROOK:
-				eval.addWhite(MATERIAL_VALUE_ROOK);
-				if (!isEndgame)
-					eval.addPositionWhite((byte)(getNumEmptyRankFileSquares(atPos)*2));
-				break;
-			case Piece.BLACK_ROOK:
-				eval.addBlack(MATERIAL_VALUE_ROOK);
-				if (!isEndgame)
-					eval.addPositionBlack((byte)(getNumEmptyRankFileSquares(atPos)*2));
-				break;
-			case Piece.WHITE_BISHOP:
-				eval.addWhite(MATERIAL_VALUE_BISHOP);
-				if (!isEndgame)
-					eval.addPositionWhite((byte)(getNumEmptyDiagonalSquares(atPos)*2));
-				break;
-			case Piece.BLACK_BISHOP:
-				eval.addBlack(MATERIAL_VALUE_BISHOP);
-				if (!isEndgame)
-					eval.addPositionBlack((byte)(getNumEmptyDiagonalSquares(atPos)*2));
-				break;
-			case Piece.WHITE_KNIGHT:
-				eval.addWhite(MATERIAL_VALUE_KNIGHT);
-				eval.addPositionWhite(KNIGHT_WEIGHTINGS[atPos]);
-				break;
-			case Piece.BLACK_KNIGHT:
-				eval.addBlack(MATERIAL_VALUE_KNIGHT);
-				eval.addPositionBlack(KNIGHT_WEIGHTINGS[atPos]);
-				break;
-			case Piece.WHITE_QUEEN:
-				eval.addWhite(MATERIAL_VALUE_QUEEN);
-				if (!isEndgame)
-					eval.addPositionWhite((byte)(getNumEmptyAllDirectSquares(atPos)*2));
-				break;
-			case Piece.BLACK_QUEEN:
-				eval.addBlack(MATERIAL_VALUE_QUEEN);
-				if (!isEndgame)
-					eval.addPositionBlack((byte)(getNumEmptyAllDirectSquares(atPos)*2));
-				break;
-			case Piece.WHITE_KING:
-				eval.addWhite(MATERIAL_VALUE_KING);
-				eval.addPositionWhite((isEndgame) ? KING_ENDGAME_WEIGHTINGS[atPos] : KING_MIDGAME_WEIGHTINGS[atPos]);
-				break;			
-			case Piece.BLACK_KING:
-				eval.addBlack(MATERIAL_VALUE_KING);
-				eval.addPositionBlack((isEndgame) ? KING_ENDGAME_WEIGHTINGS[atPos] : KING_MIDGAME_WEIGHTINGS[atPos]);
-				break;
-			default:
-				break;
-			}
-			return eval;
-		}
-		
-		public PiecewiseEvaluation evaluateMaterial() {
-			me = new PiecewiseEvaluation();
-			pieceLists.forEachPieceDoCallback(this);
-			return me;
-		}
-		
-		@Override
-		public void callback(int piece, int atPos) {
-			updateMaterialForPiece(piece, atPos, me);
-		}
+		List<Integer> movesList = new LinkedList<Integer>();
+		pieceLists.addMoves(this, ownSideIsWhite, movesList);
+		return movesList;
 	}
 	
 	public PiecewiseEvaluation evaluateMaterial() {
-		return meh.evaluateMaterial();
+		me = new PiecewiseEvaluation();
+		pieceLists.updateMaterial(true, this);
+		pieceLists.updateMaterial(false, this);
+		return me;
 	}
 	
 	public boolean isInsufficientMaterial() {

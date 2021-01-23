@@ -1,6 +1,7 @@
 package eubos.board;
 
 import java.util.Arrays;
+import java.util.List;
 
 import eubos.main.EubosEngineMain;
 import eubos.position.Position;
@@ -141,6 +142,85 @@ public class PieceList {
 		}
 	}
 	
+	public void addMoves(Board theBoard, boolean ownSideIsWhite, List<Integer> movesList) {
+		int [][] side = piece_list[ownSideIsWhite ? 0 : 1];
+		for(int atSquare : side[Piece.KING]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.king_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+			} else break;
+		}
+		for(int atSquare : side[Piece.QUEEN]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.queen_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+			} else break;
+		}
+		for(int atSquare : side[Piece.ROOK]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.rook_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+			} else break;
+		}
+		for(int atSquare : side[Piece.BISHOP]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.bishop_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+			} else break;
+		}
+		for(int atSquare : side[Piece.KNIGHT]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.knight_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+			} else break;
+		}
+		for(int atSquare : side[Piece.PAWN]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.pawn_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+			} else break;
+		}
+	}
+	
+	public void updateMaterial(boolean isWhite, Board theBoard) {
+		int [][] side = piece_list[isWhite ? 0 : 1];
+		for(int atSquare : side[Piece.KING]) {
+			if (atSquare != Position.NOPOSITION) {			
+				theBoard.me.addPiece(isWhite, Piece.KING);
+				theBoard.me.addPosition(isWhite, theBoard.isEndgame ? Board.KING_ENDGAME_WEIGHTINGS[atSquare] : Board.KING_MIDGAME_WEIGHTINGS[atSquare]);
+			} else break;
+		}
+		for(int atSquare : side[Piece.QUEEN]) {
+			if (atSquare != Position.NOPOSITION) {			
+				theBoard.me.addPiece(isWhite, Piece.QUEEN);
+				if (!theBoard.isEndgame)
+					theBoard.me.addPosition(isWhite, (byte)(theBoard.getNumEmptyAllDirectSquares(atSquare)*2));
+			} else break;
+		}
+		for(int atSquare : side[Piece.ROOK]) {
+			if (atSquare != Position.NOPOSITION) {			
+				theBoard.me.addPiece(isWhite, Piece.ROOK);
+				if (!theBoard.isEndgame)
+					theBoard.me.addPosition(isWhite, (byte)(theBoard.getNumEmptyRankFileSquares(atSquare)*2));
+			} else break;
+		}
+		for(int atSquare : side[Piece.BISHOP]) {
+			if (atSquare != Position.NOPOSITION) {			
+				theBoard.me.addPiece(isWhite, Piece.BISHOP);
+				if (!theBoard.isEndgame)
+					theBoard.me.addPosition(isWhite, (byte)(theBoard.getNumEmptyDiagonalSquares(atSquare)*2));
+			} else break;
+		}
+		for(int atSquare : side[Piece.KNIGHT]) {
+			if (atSquare != Position.NOPOSITION) {			
+				theBoard.me.addPiece(isWhite, Piece.KNIGHT);
+				if (!theBoard.isEndgame)
+					theBoard.me.addPosition(isWhite, Board.KNIGHT_WEIGHTINGS[atSquare]);
+			} else break;
+		}
+		for(int atSquare : side[Piece.PAWN]) {
+			if (atSquare != Position.NOPOSITION) {			
+				theBoard.me.addPiece(isWhite, Piece.PAWN);
+				if (!theBoard.isEndgame)
+					theBoard.me.addPosition(isWhite, isWhite ? Board.PAWN_WHITE_WEIGHTINGS[atSquare] : Board.PAWN_BLACK_WEIGHTINGS[atSquare]);
+			} else break;
+		}		
+	}
+	
 	public void forEachPawnOfSideDoCallback(IForEachPieceCallback caller, boolean sideIsBlack) {
 		int colour_index = sideIsBlack ? 1 : 0;
 		int pawn = sideIsBlack ? Piece.BLACK_PAWN : Piece.WHITE_PAWN;
@@ -151,12 +231,5 @@ public class PieceList {
 	public int getKingPos(boolean sideIsWhite) {
 		int colour_index = sideIsWhite ? 0 : 1;
 		return piece_list[colour_index][Piece.KING][0];
-	}
-
-	public void forEachPieceOfSideDoCallback(IForEachPieceCallback caller, boolean sideIsWhite) {
-		int colour_index = sideIsWhite ? 0 : 1;
-		int [][] pieces = piece_list[colour_index];
-		int piece = sideIsWhite ? Piece.WHITE_KING : Piece.BLACK_KING;
-		helper(pieces, caller, piece);		
 	}
 }

@@ -427,15 +427,14 @@ public final class Move {
 		return move;
 	}
 	
-    private static final int [] MATERIAL = {0, Board.MATERIAL_VALUE_KING, Board.MATERIAL_VALUE_QUEEN, Board.MATERIAL_VALUE_ROOK, 
-    		Board.MATERIAL_VALUE_BISHOP, Board.MATERIAL_VALUE_KNIGHT, Board.MATERIAL_VALUE_PAWN }; 
+ 
     
 	public static int compareCaptures(int move1, int move2) {
     	// mvv lva used for tie breaking move type comparison, if it is a capture
-    	int victim1 = MATERIAL[Move.getTargetPieceNoColour(move1)];
-    	int attacker1 = MATERIAL[Move.getOriginPieceNoColour(move1)];
-    	int victim2 = MATERIAL[Move.getTargetPieceNoColour(move2)];
-    	int attacker2 = MATERIAL[Move.getOriginPieceNoColour(move2)];
+    	int victim1 = Board.PIECE_TO_MATERIAL_LUT[Move.getTargetPieceNoColour(move1)];
+    	int attacker1 = Board.PIECE_TO_MATERIAL_LUT[Move.getOriginPieceNoColour(move1)];
+    	int victim2 = Board.PIECE_TO_MATERIAL_LUT[Move.getTargetPieceNoColour(move2)];
+    	int attacker2 = Board.PIECE_TO_MATERIAL_LUT[Move.getOriginPieceNoColour(move2)];
     	int mvvLvaRankingForMove1 = victim1-attacker1;
     	int mvvLvaRankingForMove2 = victim2-attacker2;
     	
