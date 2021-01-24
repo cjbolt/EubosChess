@@ -46,6 +46,10 @@ public class PieceList {
 				piece_list[colour_index][piece_index][piece_number] = atPos;
 				//piece_count[colour_index][piece_index] += 1;
 				break;
+			} else if (position == atPos) {
+				// return no change needed
+				//piece_count[colour_index][piece_index] += 1;
+				break;
 			} else {
 				// search on
 				piece_number++;
