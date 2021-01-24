@@ -197,7 +197,7 @@ public class Board {
 	
 	public boolean isEndgame;
 	
-	private PieceList pieceLists = new PieceList();
+	private PieceList pieceLists = new PieceList(this);
 	
 	public PiecewiseEvaluation me;
 	
@@ -745,14 +745,14 @@ public class Board {
 	
 	public List<Integer> getRegularPieceMoves(boolean ownSideIsWhite) {
 		List<Integer> movesList = new LinkedList<Integer>();
-		pieceLists.addMoves(this, ownSideIsWhite, movesList);
+		pieceLists.addMoves(ownSideIsWhite, movesList);
 		return movesList;
 	}
 	
 	public PiecewiseEvaluation evaluateMaterial() {
 		me = new PiecewiseEvaluation();
-		pieceLists.updateMaterial(true, this);
-		pieceLists.updateMaterial(false, this);
+		pieceLists.evaluateMaterialBalanceAndPieceMobility(true);
+		pieceLists.evaluateMaterialBalanceAndPieceMobility(false);
 		return me;
 	}
 	
@@ -767,10 +767,10 @@ public class Board {
 			return false;
 		
 		// Minor pieces
-		int numWhiteBishops = pieceLists.getNum(Piece.WHITE_BISHOP);
-		int numWhiteKnights = pieceLists.getNum(Piece.WHITE_KNIGHT);
-		int numBlackBishops = pieceLists.getNum(Piece.BLACK_BISHOP);
-		int numBlackKnights = pieceLists.getNum(Piece.BLACK_KNIGHT);
+		int numWhiteBishops = Long.bitCount(pieces[Piece.BISHOP] & whitePieces);
+		int numWhiteKnights = Long.bitCount(pieces[Piece.KNIGHT] & whitePieces);
+		int numBlackBishops = Long.bitCount(pieces[Piece.BISHOP] & blackPieces);
+		int numBlackKnights = Long.bitCount(pieces[Piece.KNIGHT] & blackPieces);
 		
 		if (numWhiteBishops >= 2 || numBlackBishops >= 2) {
 			// One side has at least two bishops
