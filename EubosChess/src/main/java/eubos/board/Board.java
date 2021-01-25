@@ -297,9 +297,8 @@ public class Board {
 		if (promotedPiece != Piece.NONE) {
 			// For a promotion, need to resolve piece-specific across multiple bitboards
 			pieces[INDEX_PAWN] &= ~initialSquareMask;
-			pieces[promotedPiece & Piece.PIECE_NO_COLOUR_MASK] |= targetSquareMask;
-			pieceLists.removePiece(pieceToMove, originSquare);
-			pieceLists.addPiece((promotedPiece | (pieceToMove & ~Piece.PIECE_NO_COLOUR_MASK)), targetSquare);
+			pieces[promotedPiece] |= targetSquareMask;
+			pieceLists.updatePiece(pieceToMove, (promotedPiece | (pieceToMove & ~Piece.PIECE_NO_COLOUR_MASK)), originSquare, targetSquare);
 		} else {
 			// Piece type doesn't change across boards
 			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
@@ -339,8 +338,7 @@ public class Board {
 			pieces[promotedPiece] &= ~initialSquareMask;	
 			pieces[INDEX_PAWN] |= targetSquareMask;
 			// and update piece list
-			pieceLists.removePiece((promotedPiece | (originPiece & ~Piece.PIECE_NO_COLOUR_MASK)), originSquare);
-			pieceLists.addPiece(originPiece, targetSquare);
+			pieceLists.updatePiece((promotedPiece | (originPiece & ~Piece.PIECE_NO_COLOUR_MASK)), originPiece, originSquare, targetSquare);
 		} else {
 			// Piece type doesn't change across boards
 			pieces[Piece.PIECE_NO_COLOUR_MASK & originPiece] ^= positionsMask;

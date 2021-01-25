@@ -101,6 +101,41 @@ public class PieceList {
 		}
 	}
 	
+	public void updatePiece(int oldPiece, int piece, int atPos, int targetPos) {
+		int colour_index = piece >> Piece.COLOUR_BIT_SHIFT;
+		int piece_index = piece & Piece.PIECE_NO_COLOUR_MASK;
+		int old_piece_index = oldPiece & Piece.PIECE_NO_COLOUR_MASK;
+		
+		// find the index into the old piece list to remove
+		int [] the_list = piece_list[colour_index][old_piece_index];
+		boolean found = false;
+		for (int i=0; i < MAX_NUM_PIECES; i++) {
+			if (the_list[i] == Position.NOPOSITION) {
+				break;
+			} else if (the_list[i] == atPos) {
+				//piece_count[colour_index][piece_index] -= 1;
+				found = true;
+			} else {
+				// do nothing, just continue search or bringing down other positions...
+			}
+			if (found) {
+				// bring down next entry 
+				the_list[i] = (i < (MAX_NUM_PIECES-1)) ? the_list[i+1] : Position.NOPOSITION;
+			} 
+		}		
+		// find the index into the relevant piece list to set
+		int piece_number = 0;
+		for (int position : piece_list[colour_index][piece_index]) {
+			if (position == Position.NOPOSITION) {
+				piece_list[colour_index][piece_index][piece_number] = targetPos;
+				break;
+			} else {
+				// search on
+				piece_number++;
+			}
+		}
+	}
+	
 	public void forEachPieceDoCallback(IForEachPieceCallback caller) {
 		// white pieces
 		int currPiece = Piece.KING;
