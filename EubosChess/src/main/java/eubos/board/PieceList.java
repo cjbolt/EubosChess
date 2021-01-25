@@ -215,15 +215,13 @@ public class PieceList {
 			for(int atSquare : side[Piece.KNIGHT]) {
 				if (atSquare != Position.NOPOSITION) {			
 					theBoard.me.addPiece(isWhite, Piece.KNIGHT);
-					if (!theBoard.isEndgame)
-						theBoard.me.addPosition(isWhite, Board.KNIGHT_WEIGHTINGS[atSquare]);
+					theBoard.me.addPosition(isWhite, Board.KNIGHT_WEIGHTINGS[atSquare]);
 				} else break;
 			}
 			for(int atSquare : side[Piece.PAWN]) {
 				if (atSquare != Position.NOPOSITION) {			
 					theBoard.me.addPiece(isWhite, Piece.PAWN);
-					if (!theBoard.isEndgame)
-						theBoard.me.addPosition(isWhite, isWhite ? Board.PAWN_WHITE_WEIGHTINGS[atSquare] : Board.PAWN_BLACK_WEIGHTINGS[atSquare]);
+					theBoard.me.addPosition(isWhite, isWhite ? Board.PAWN_WHITE_WEIGHTINGS[atSquare] : Board.PAWN_BLACK_WEIGHTINGS[atSquare]);
 				} else break;
 			}
 			//isWhite = !isWhite;
