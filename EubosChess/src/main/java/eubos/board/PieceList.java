@@ -17,7 +17,6 @@ public class PieceList {
 	// 2nd index is piece type
 	// 3rd index is index into that piece array, gives the position of that piece
 	private int [][][] piece_list = new int[NUM_COLOURS][NUM_PIECE_TYPES][MAX_NUM_PIECES];
-	//private byte [][] piece_count = new byte [NUM_COLOURS][NUM_PIECE_TYPES];
 	
 	private Board theBoard;
 	
@@ -44,11 +43,6 @@ public class PieceList {
 		for (int position : piece_list[colour_index][piece_index]) {
 			if (position == Position.NOPOSITION) {
 				piece_list[colour_index][piece_index][piece_number] = atPos;
-				//piece_count[colour_index][piece_index] += 1;
-				break;
-			} else if (position == atPos) {
-				// return no change needed
-				//piece_count[colour_index][piece_index] += 1;
 				break;
 			} else {
 				// search on
@@ -106,18 +100,6 @@ public class PieceList {
 			}
 		}
 	}
-	
-//	public int getNum(int piece) {
-//		int colour_index = piece >> Piece.COLOUR_BIT_SHIFT;
-//		int piece_index = piece & Piece.PIECE_NO_COLOUR_MASK;
-//		return piece_count[colour_index][piece_index];
-//	}
-//	
-//	public int[] getPieceArray(int piece) {
-//		int colour_index = piece >> Piece.COLOUR_BIT_SHIFT;
-//		int piece_index = piece & Piece.PIECE_NO_COLOUR_MASK;
-//		return Arrays.copyOf(piece_list[colour_index][piece_index],piece_count[colour_index][piece_index]);
-//	}
 	
 	public void forEachPieceDoCallback(IForEachPieceCallback caller) {
 		// white pieces
