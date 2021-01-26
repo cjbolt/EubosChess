@@ -105,16 +105,14 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		castling.updateFlags(move);
 		
 		if (computeHash) {
-			// Update hash code
-			if (hash != null) {
-				// Determine whether move set en Passant file
-				int enPassantFile = IntFile.NOFILE;
-				int enPasTargetSq = theBoard.getEnPassantTargetSq();
-				if (enPasTargetSq != Position.NOPOSITION)
-					enPassantFile = Position.getFile(enPasTargetSq);
-				
-				hash.update(move, capturePosition, enPassantFile);
-			}
+			// Determine whether move set en Passant file
+			int enPassantFile = IntFile.NOFILE;
+			int enPasTargetSq = theBoard.getEnPassantTargetSq();
+			if (enPasTargetSq != Position.NOPOSITION)
+				enPassantFile = Position.getFile(enPasTargetSq);
+			
+			hash.update(move, capturePosition, enPassantFile);
+
 			// Update the draw checker
 			repetitionPossible = dc.incrementPositionReachedCount(getHash());
 		}

@@ -17,7 +17,6 @@ public class ZobristHashCode implements IForEachPieceCallback {
 	private static final int NUM_PIECES = 6;
 	private static final int NUM_SQUARES = 64;
 	// One entry for each piece at each square for each colour.
-	private static final int INDEX_WHITE = 0;
 	private static final int INDEX_BLACK = (NUM_PIECES*NUM_SQUARES);
 	// One entry indicating that the side to move is black
 	private static final int INDEX_SIDE_TO_MOVE = (NUM_COLOURS*NUM_PIECES*NUM_SQUARES);
@@ -36,13 +35,6 @@ public class ZobristHashCode implements IForEachPieceCallback {
 	private static final int INDEX_ENP_G = INDEX_ENP_F+1;
 	private static final int INDEX_ENP_H = INDEX_ENP_G+1;
 	private static final int LENGTH_TABLE = INDEX_ENP_H+1;
-	
-	private static final int INDEX_PAWN = 0;
-	private static final int INDEX_KNIGHT = 1;
-	private static final int INDEX_BISHOP = 2;
-	private static final int INDEX_ROOK = 3;
-	private static final int INDEX_QUEEN = 4;
-	private static final int INDEX_KING = 5;
 	
 	private IPositionAccessors pos;
 	private CastlingManager castling;
@@ -95,25 +87,13 @@ public class ZobristHashCode implements IForEachPieceCallback {
 
 	protected long getPrnForPiece(int pos, int currPiece) {
 		// compute prnLookup index to use, based on piece type, colour and square.
-		int lookupIndex = INDEX_WHITE;
 		int atFile = Position.getFile(pos);
 		int atRank = Position.getRank(pos);
-		int pieceType = INDEX_PAWN; // Default
-		if (Piece.isKnight(currPiece)) {
-			pieceType = INDEX_KNIGHT;
-		} else if (Piece.isBishop(currPiece)) {
-			pieceType = INDEX_BISHOP;
-		} else if (Piece.isRook(currPiece)) {
-			pieceType = INDEX_ROOK;
-		} else if (Piece.isQueen(currPiece)) {
-			pieceType = INDEX_QUEEN;
-		} else if (Piece.isKing(currPiece)) {
-			pieceType = INDEX_KING;
-		}
-		lookupIndex = atFile + atRank * 8 + pieceType * NUM_SQUARES;
-		if (Piece.isBlack(currPiece))
+		int pieceType = (currPiece & Piece.PIECE_NO_COLOUR_MASK) - 1; // convert piece type to Zobrist index
+		int lookupIndex = atFile + atRank * 8 + pieceType * NUM_SQUARES;
+		if (Piece.isBlack(currPiece)) {
 			lookupIndex += INDEX_BLACK;
-		
+		}		
 		return prnLookupTable[lookupIndex];
 	}
 	
@@ -144,8 +124,8 @@ public class ZobristHashCode implements IForEachPieceCallback {
 				hashCode ^= getPrnForPiece(Move.getOriginPosition(move), piece);
 			} else {
 				// is undoing promotion
-				hashCode ^= getPrnForPiece(Move.getOriginPosition(move), promotedPiece);
 				hashCode ^= getPrnForPiece(Move.getTargetPosition(move), piece);
+				hashCode ^= getPrnForPiece(Move.getOriginPosition(move), promotedPiece);
 			}
 		}
 	}
