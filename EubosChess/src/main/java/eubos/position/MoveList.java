@@ -38,15 +38,11 @@ public class MoveList implements Iterable<Integer> {
 		this(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, orderMoveList );
 	}
 	
-	public MoveList(PositionManager pm, int bestMove, int killer1, int killer2, int orderMoveList) throws InvalidPieceException {
-		this(pm, bestMove, killer1, killer2, orderMoveList, Position.NOPOSITION);
-	}
-	
-	public MoveList(PositionManager pm, int bestMove, int killer1, int killer2, int orderMoveList, int targetSquare) throws InvalidPieceException {	
+	public MoveList(PositionManager pm, int bestMove, int killer1, int killer2, int orderMoveList) throws InvalidPieceException {	
 		Colour onMove = pm.getOnMove();
 		boolean needToEscapeMate = pm.isKingInCheck(onMove);
 
-		normal_search_moves = pm.generateMoves(targetSquare);
+		normal_search_moves = pm.generateMoves();
 		int foundBestMove = removeInvalidIdentifyBestKillerMoves(pm, bestMove, killer1, killer2, onMove, needToEscapeMate);
 		if (foundBestMove != Move.NULL_MOVE) {
 			normal_search_moves.add(0, foundBestMove);

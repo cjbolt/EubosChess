@@ -277,23 +277,24 @@ public class Board {
 		// Initialise En Passant target square
 		setEnPassantTargetSq(Position.NOPOSITION);
 		
-		if (Move.isEnPassantCapture(move)) {
-			// Handle en passant captures, don't need to do other checks in this case
-			capturePosition = generateCapturePositionForEnPassant(pieceToMove, targetSquare);
+		if (targetPiece != Piece.NONE) {
+			// Handle captures
+			if (Move.isEnPassantCapture(move)) {
+				// Handle en passant captures, don't need to do other checks in this case
+				capturePosition = generateCapturePositionForEnPassant(pieceToMove, targetSquare);
+			} else {
+				capturePosition = targetSquare;
+			}
 			pickUpPieceAtSquare(capturePosition, targetPiece);
 		} else {
-			// Handle castling, setting en passant etc
 			if (!moveEnablesEnPassantCapture(pieceToMove, originSquare, targetSquare)) {
 				// Handle castling secondary rook moves...
 				if (Piece.isKing(pieceToMove)) {
 					performSecondaryCastlingMove(move);
 				}
-				if (targetPiece != Piece.NONE) {
-					capturePosition = targetSquare;
-					pickUpPieceAtSquare(targetSquare, targetPiece);
-				}
-			}			
+			}
 		}
+		
 		// Switch piece-specific bitboards and piece lists
 		if (promotedPiece != Piece.NONE) {
 			// For a promotion, need to resolve piece-specific across multiple bitboards

@@ -4,7 +4,6 @@ import static org.junit.Assert.*;
 
 import org.junit.*;
 
-import eubos.board.Piece.Colour;
 import eubos.position.Position;
 import eubos.position.PositionManager;
 

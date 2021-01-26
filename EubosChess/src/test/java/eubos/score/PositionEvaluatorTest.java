@@ -157,7 +157,7 @@ public class PositionEvaluatorTest {
 		int currMove = Move.toMove(new GenericMove("d4e5"), pm.getTheBoard());
 		pm.performMove(currMove);
 		assertFalse(SUT.isQuiescent(currMove));
-		MoveList ml = new MoveList(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, 0, Position.e5);
+		MoveList ml = new MoveList(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, 0);
 		assertTrue(ml.isMateOccurred());
 	}
 	
@@ -184,7 +184,7 @@ public class PositionEvaluatorTest {
 		pm.performMove(currMove);
 		assertFalse(SUT.isQuiescent(currMove));
 		// Shall now do an extended search and see that the move list is empty, so stand PAT.
-		MoveList ml = new MoveList(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, 0, Position.a6);
+		MoveList ml = new MoveList(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, 0);
 		assertFalse(ml.getStandardIterator(true, Position.a6).hasNext());
 	}
 	 
