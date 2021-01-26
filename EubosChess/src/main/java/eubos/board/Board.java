@@ -265,6 +265,7 @@ public class Board {
 	public int doMove(int move) throws InvalidPieceException {
 		int capturePosition = Position.NOPOSITION;
 		int pieceToMove = Move.getOriginPiece(move);
+		boolean isWhite = Piece.isWhite(pieceToMove);
 		int originSquare = Move.getOriginPosition(move);
 		int targetSquare = Move.getTargetPosition(move);
 		int targetPiece = Move.getTargetPiece(move);
@@ -298,14 +299,14 @@ public class Board {
 			// For a promotion, need to resolve piece-specific across multiple bitboards
 			pieces[INDEX_PAWN] &= ~initialSquareMask;
 			pieces[promotedPiece] |= targetSquareMask;
-			pieceLists.updatePiece(pieceToMove, (promotedPiece | (pieceToMove & ~Piece.PIECE_NO_COLOUR_MASK)), originSquare, targetSquare);
+			pieceLists.updatePiece(pieceToMove, (isWhite ? promotedPiece : promotedPiece|Piece.BLACK), originSquare, targetSquare);
 		} else {
 			// Piece type doesn't change across boards
 			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
 			pieceLists.updatePiece(pieceToMove, originSquare, targetSquare);
 		}
 		// Switch colour bitboard
-		if (Piece.isWhite(pieceToMove)) {
+		if (isWhite) {
 			whitePieces ^= positionsMask;
 		} else {
 			blackPieces ^= positionsMask;
@@ -319,6 +320,7 @@ public class Board {
 	public int undoMove(int moveToUndo) throws InvalidPieceException {
 		int capturedPieceSquare = Position.NOPOSITION;
 		int originPiece = Move.getOriginPiece(moveToUndo);
+		boolean isWhite = Piece.isWhite(originPiece);
 		int originSquare = Move.getOriginPosition(moveToUndo);
 		int targetSquare = Move.getTargetPosition(moveToUndo);
 		int targetPiece = Move.getTargetPiece(moveToUndo);
@@ -338,14 +340,14 @@ public class Board {
 			pieces[promotedPiece] &= ~initialSquareMask;	
 			pieces[INDEX_PAWN] |= targetSquareMask;
 			// and update piece list
-			pieceLists.updatePiece((promotedPiece | (originPiece & ~Piece.PIECE_NO_COLOUR_MASK)), originPiece, originSquare, targetSquare);
+			pieceLists.updatePiece((isWhite ? promotedPiece : promotedPiece|Piece.BLACK), originPiece, originSquare, targetSquare);
 		} else {
 			// Piece type doesn't change across boards
 			pieces[Piece.PIECE_NO_COLOUR_MASK & originPiece] ^= positionsMask;
 			pieceLists.updatePiece(originPiece, originSquare, targetSquare);
 		}
 		// Switch colour bitboard
-		if (Piece.isWhite(originPiece)) {
+		if (isWhite) {
 			whitePieces ^= positionsMask;
 		} else {
 			blackPieces ^= positionsMask;
