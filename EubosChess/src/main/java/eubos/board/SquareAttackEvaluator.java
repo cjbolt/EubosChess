@@ -208,6 +208,18 @@ public class SquareAttackEvaluator {
 		}
 	}
 	
+	static final long[][] directAttacksOnPositionAll_Lut = new long[allDirect.length][];
+	static {
+		directAttacksOnPositionAll_Lut[directionIndex_Lut.get(Direction.up)] = directAttacksOnPositionUp_Lut;
+		directAttacksOnPositionAll_Lut[directionIndex_Lut.get(Direction.upRight)] = directAttacksOnPositionUpRight_Lut;
+		directAttacksOnPositionAll_Lut[directionIndex_Lut.get(Direction.right)] = directAttacksOnPositionRight_Lut;
+		directAttacksOnPositionAll_Lut[directionIndex_Lut.get(Direction.downRight)] = directAttacksOnPositionDownRight_Lut;
+		directAttacksOnPositionAll_Lut[directionIndex_Lut.get(Direction.down)] = directAttacksOnPositionDown_Lut;
+		directAttacksOnPositionAll_Lut[directionIndex_Lut.get(Direction.downLeft)] = directAttacksOnPositionDownLeft_Lut;
+		directAttacksOnPositionAll_Lut[directionIndex_Lut.get(Direction.left)] = directAttacksOnPositionLeft_Lut;
+		directAttacksOnPositionAll_Lut[directionIndex_Lut.get(Direction.upLeft)] = directAttacksOnPositionUpLeft_Lut;
+	}
+	
 	/* 1-dimensional array:
 	 * 1st index is a position integer, this is the origin square
 	 * indexes a bit mask of the squares that the origin square can attack by a King move */

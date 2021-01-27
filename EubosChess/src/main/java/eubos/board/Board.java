@@ -855,53 +855,43 @@ public class Board {
 		return getNumEmptySquaresInDirection(atPos, SquareAttackEvaluator.allDirect);
 	}
 	
+	static private final long[][][] emptySquareMask_Lut = new long[128][SquareAttackEvaluator.allDirect.length][];
+	static {
+		for (int square : Position.values) {
+			int [][] forSqArray = SquareAttackEvaluator.directPieceMove_Lut[square];
+			int j=0;
+			for (int[] dir : forSqArray) {
+				long [] mask = new long[dir.length];
+				int i=0;
+				for (int sq : dir) {
+					mask[i++] = BitBoard.positionToMask_Lut[sq];
+				}
+				emptySquareMask_Lut[square][j++] = mask;
+			}
+		}
+	}
+	
 	private byte getNumEmptySquaresInDirection(int atPos, Direction [] dirs) {
 		byte numSquares = 0;
-		int [][] array = SquareAttackEvaluator.directPieceMove_Lut[atPos]; 
+		// One dimension for each direction, other dimension is array of individual square masks in that direction
+		long [][] emptySqMaskArray = emptySquareMask_Lut[atPos]; 
 		for (Direction dir: dirs) { 
-			long inPathMask = 0;
-			switch(dir) {
-			case downLeft:
-				inPathMask = SquareAttackEvaluator.directAttacksOnPositionDownLeft_Lut[atPos];
-				break;
-			case upLeft:
-				inPathMask = SquareAttackEvaluator.directAttacksOnPositionUpLeft_Lut[atPos];
-				break;
-			case upRight:
-				inPathMask = SquareAttackEvaluator.directAttacksOnPositionUpRight_Lut[atPos];
-				break;
-			case downRight:
-				inPathMask = SquareAttackEvaluator.directAttacksOnPositionDownRight_Lut[atPos];
-				break;
-			case left:
-				inPathMask = SquareAttackEvaluator.directAttacksOnPositionLeft_Lut[atPos];
-				break;
-			case up:
-				inPathMask = SquareAttackEvaluator.directAttacksOnPositionUp_Lut[atPos];
-				break;
-			case right:
-				inPathMask = SquareAttackEvaluator.directAttacksOnPositionRight_Lut[atPos];
-				break;
-			case down:
-				inPathMask = SquareAttackEvaluator.directAttacksOnPositionDown_Lut[atPos];
-				break;	
-			default:
-				break;		
-			}
-			if (inPathMask == 0) {
-				// skip if nothing to do for this direction
-				continue;
-			}
-			// one dimension for each direction, other dimension is array of squares in that direction
-			if ((allPieces & inPathMask) != 0) {
-				for (int attackerSq: array[SquareAttackEvaluator.directionIndex_Lut.get(dir)]) {
-					if (squareIsEmpty(attackerSq)) {
-						numSquares++;
-					} else break;
+			int directionIndex = SquareAttackEvaluator.directionIndex_Lut.get(dir);
+			long inPathMask = SquareAttackEvaluator.directAttacksOnPositionAll_Lut[directionIndex][atPos];
+			if (inPathMask != 0) {
+				if ((allPieces & inPathMask) != 0) {
+					// Count the empty squares
+					for (long mask: emptySqMaskArray[directionIndex]) {
+						if ((allPieces & mask) == 0) {
+							numSquares++;
+						} else break;
+					}
+				} else {
+					// All the squares are empty in this direction
+					numSquares += emptySqMaskArray[directionIndex].length;
 				}
 			} else {
-				// all the squares are empty in this direction
-				numSquares += array[SquareAttackEvaluator.directionIndex_Lut.get(dir)].length;
+				 // This is a square on the edge of the board from which that direction is off the board
 			}
 		}
 		return numSquares;
