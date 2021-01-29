@@ -855,7 +855,7 @@ public class Board {
 		return getNumEmptySquaresInDirection(atPos, SquareAttackEvaluator.allDirect);
 	}
 	
-	static private final long[][][] emptySquareMask_Lut = new long[128][SquareAttackEvaluator.allDirect.length][];
+	static final long[][][] emptySquareMask_Lut = new long[128][SquareAttackEvaluator.allDirect.length][];
 	static {
 		for (int square : Position.values) {
 			int [][] forSqArray = SquareAttackEvaluator.directPieceMove_Lut[square];

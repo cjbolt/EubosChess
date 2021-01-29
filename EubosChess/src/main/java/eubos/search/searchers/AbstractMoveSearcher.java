@@ -7,6 +7,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
+import eubos.position.Move;
 import eubos.search.DrawChecker;
 import eubos.search.NoLegalMoveException;
 import eubos.search.Score;
@@ -14,6 +15,7 @@ import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.FixedSizeTranspositionTable;
+import eubos.search.transposition.ITransposition;
 
 public abstract class AbstractMoveSearcher extends Thread {
 
@@ -38,8 +40,21 @@ public abstract class AbstractMoveSearcher extends Thread {
 		if (Colour.isBlack(mg.pos.getOnMove())) {
 			initialScore = (short)-initialScore;
 		}
-		EubosEngineMain.logger.info(String.format("initialScore %d, SearchContext %s, isEndgame %s",
-				initialScore, mg.pos.getPositionEvaluator().getGoal(), mg.pos.getTheBoard().isEndgame));
+		
+		// Set initial score from previous Transposition table, if an entry exists 
+		ITransposition trans = hashMap.getTransposition(mg.pos.getHash());
+		String transReport = "None";
+		if (trans != null) {
+			transReport = trans.report();
+			initialScore = trans.getScore();
+		} else {
+			initialScore = Score.getScore(mg.pos.getPositionEvaluator().evaluatePosition());
+			if (Colour.isBlack(mg.pos.getOnMove())) {
+				initialScore = (short)-initialScore;
+			}
+		}
+		EubosEngineMain.logger.info(String.format("initialScore %d, SearchContext %s, isEndgame %s root %s",
+				initialScore, mg.pos.getPositionEvaluator().getGoal(), mg.pos.getTheBoard().isEndgame, transReport));
 		
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			sr.start();

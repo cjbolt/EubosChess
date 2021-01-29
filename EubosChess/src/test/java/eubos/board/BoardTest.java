@@ -346,4 +346,22 @@ public class BoardTest {
 		assertEquals(-14, classUnderTest.evaluateKingSafety(true));
 		assertEquals(24, classUnderTest.evaluateKingSafety(false)); // 3 * 2 diag + 6 * 3 r'n'f
 	}
+	
+	@Test
+	public void test_verify_empty_squares_mask_lut() {
+		int j=0, k=0;
+		for (int i : Position.values) {
+			long [][] atSquare = Board.emptySquareMask_Lut[i];
+			j = 0;
+			for (long [] inDirection : atSquare) {
+				k = 0;
+				for (long mask : inDirection) {
+					int position = SquareAttackEvaluator.directPieceMove_Lut[i][j][k];
+					assertEquals(BitBoard.positionToMask_Lut[position], mask);
+					k++;
+				}
+				j++;
+			}
+		}
+	}
 }

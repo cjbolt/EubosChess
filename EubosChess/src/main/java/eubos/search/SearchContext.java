@@ -44,7 +44,8 @@ public class SearchContext {
 			// When opponent can't win
 			goal = SearchGoal.try_for_mate;
 			// consider cleaning hash table when we first get this goal?
-			
+			// otherwise we can get a problem where prior hash scores exist which can have e.g. try_for_draw scores in them, causing errors!
+			// see this position - 8/1P6/2K2k2/8/4n3/8/8/8 w - - - 75
 		} else if (pos.getTheBoard().isInsufficientMaterial(initialOnMove)) {
 			// When we can't win
 			goal = SearchGoal.try_for_draw;

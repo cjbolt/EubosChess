@@ -170,4 +170,33 @@ public class SearchContextTest {
 		PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
 		assertEquals(SearchContext.ACHIEVES_DRAW_BONUS, sut.computeSearchGoalBonus(current).score);
 	}
+	
+	@Test
+	public void test_eubos_takes_draw_instead_of_mate() throws InvalidPieceException, IllegalNotationException {
+		/* In this position, Eubos choose to under promote to a bishop in order to secure the bonus for
+		 * getting a draw (by insufficient material) when he considered himself behind. A naive material eval
+		 * puts white at -130, even though the pawn can promote to a queen. */
+		setupPosition("8/1P6/2K2k2/8/4n3/8/8/8 w - - - 75"); 
+		GenericMove [] moveList = new GenericMove[] { new GenericMove("b7b8b") };
+
+		applyMoveList(moveList);
+		PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
+		assertEquals(SearchContext.ACHIEVES_DRAW_BONUS, sut.computeSearchGoalBonus(current).score);
+	}
+	
+	
+//	@Test
+//	public void test_eubos_takes_draw_instead_of_mate_one_move_earlier() throws InvalidPieceException, IllegalNotationException {
+//		/* In this position, Eubos choose to under promote to a bishop in order to secure the bonus for
+//		 * getting a draw (by insufficient material) when he considered himself behind. A naive material eval
+//		 * puts white at -130, even though the pawn can promote to a queen. */
+//		setupPosition("8/1P6/2q2k2/2K5/8/8/5n2/8 w - - - 74"); 
+//		GenericMove [] moveList = new GenericMove[] { 
+//				new GenericMove("c5c6"), new GenericMove("b7b8b")
+//				new GenericMove("b7b8b") };
+//
+//		applyMoveList(moveList);
+//		PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
+//		assertEquals(SearchContext.ACHIEVES_DRAW_BONUS, sut.computeSearchGoalBonus(current).score);
+//	}
 }
