@@ -7,7 +7,6 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
-import eubos.position.Move;
 import eubos.search.DrawChecker;
 import eubos.search.NoLegalMoveException;
 import eubos.search.Score;
@@ -46,8 +45,14 @@ public abstract class AbstractMoveSearcher extends Thread {
 		String transReport = "None";
 		if (trans != null) {
 			transReport = trans.report();
-			initialScore = trans.getScore();
-		} else {
+			if (trans.getType() == Score.exact) {
+				initialScore = trans.getScore();
+			} else {
+				// can't use a bound score!
+				trans = null;
+			}
+		}
+		if (trans == null) {
 			initialScore = Score.getScore(mg.pos.getPositionEvaluator().evaluatePosition());
 			if (Colour.isBlack(mg.pos.getOnMove())) {
 				initialScore = (short)-initialScore;
