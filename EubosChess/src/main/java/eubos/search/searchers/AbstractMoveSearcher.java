@@ -35,11 +35,6 @@ public abstract class AbstractMoveSearcher extends Thread {
 		}
 		this.mg = new MiniMaxMoveGenerator(hashMap, fen, dc, sr);
 		
-		initialScore = Score.getScore(mg.pos.getPositionEvaluator().evaluatePosition());
-		if (Colour.isBlack(mg.pos.getOnMove())) {
-			initialScore = (short)-initialScore;
-		}
-		
 		// Set initial score from previous Transposition table, if an entry exists 
 		ITransposition trans = hashMap.getTransposition(mg.pos.getHash());
 		String transReport = "None";
@@ -53,10 +48,12 @@ public abstract class AbstractMoveSearcher extends Thread {
 			}
 		}
 		if (trans == null) {
+			// if that wasn't possible use a static evaluation of the root position
 			initialScore = Score.getScore(mg.pos.getPositionEvaluator().evaluatePosition());
-			if (Colour.isBlack(mg.pos.getOnMove())) {
-				initialScore = (short)-initialScore;
-			}
+		}
+		// convert to a UCI score, as we will sniff the UCI metric in the search stopper
+		if (Colour.isBlack(mg.pos.getOnMove())) {
+			initialScore = (short)-initialScore;
 		}
 		EubosEngineMain.logger.info(String.format("initialScore %d, SearchContext %s, isEndgame %s root %s",
 				initialScore, mg.pos.getPositionEvaluator().getGoal(), mg.pos.getTheBoard().isEndgame, transReport));
