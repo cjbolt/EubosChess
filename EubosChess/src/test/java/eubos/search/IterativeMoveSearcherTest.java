@@ -44,6 +44,15 @@ public class IterativeMoveSearcherTest {
 			bestMoveCommandReceived = true;
 			last_bestMove = command;
 		}
+		
+		@Override
+		public void setLastScore(short uciScore) {
+		}
+		
+		@Override
+		public boolean isLastScoreValid() {
+			return false;
+		}
 	}
 	private EubosMock eubos;
 	

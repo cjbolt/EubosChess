@@ -32,13 +32,11 @@ import eubos.board.SquareAttackEvaluator;
 import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.search.DrawChecker;
-import eubos.search.Score;
 import eubos.search.searchers.AbstractMoveSearcher;
 import eubos.search.searchers.FixedDepthMoveSearcher;
 import eubos.search.searchers.FixedTimeMoveSearcher;
 import eubos.search.searchers.MultithreadedIterativeMoveSearcher;
 import eubos.search.transposition.FixedSizeTranspositionTable;
-import eubos.search.transposition.ITransposition;
 
 import java.text.SimpleDateFormat;
 import java.util.logging.*;
@@ -140,6 +138,9 @@ public class EubosEngineMain extends AbstractEngine {
 	public void receive(EngineNewGameCommand command) {
 		logger.fine("New Game");
 		checkToCreateEnginePermanentDataStructures();
+		lastScoreIsValid = new boolean[] { false, false };
+		lastScore = new short[] { 0, 0 };
+		lastMoveNumber = new int[] { 0, 0 };
 	}
 
 	public void receive(EngineAnalyzeCommand command) {
@@ -152,10 +153,10 @@ public class EubosEngineMain extends AbstractEngine {
 	void createPositionFromAnalyseCommand(EngineAnalyzeCommand command) {
 		String fen_to_use = getActualFenStringForPosition(command); 
 		pm = new PositionManager(fen_to_use, dc);
+		// Ensure we flag if the last score is invalidated
+		checkLastScoreValidity();
 		long hashCode = pm.getHash();
 		Piece.Colour nowOnMove = pm.getOnMove();
-		// Ensure we flag if the last score is invalidated
-		setLastScoreValid(nowOnMove);
 		if (lastOnMove == null || (lastOnMove == nowOnMove && !fen_to_use.equals(lastFen))) {
 			// Update the draw checker with the position following the opponents last move
 			dc.incrementPositionReachedCount(hashCode);
@@ -337,7 +338,6 @@ public class EubosEngineMain extends AbstractEngine {
 		if (protocolBestMoveCommand.bestMove != null) {
 			try {
 				int bestMove = Move.toMove(protocolBestMoveCommand.bestMove, pm.getTheBoard(), Move.TYPE_REGULAR_NONE);
-				setLastScore();
 				// Apply the best move to update the DrawChecker state
 				pm.performMove(bestMove);
 				boolean bestMoveWasCaptureOrPawnMove = Move.isCapture(bestMove) || Move.isPawnMove(bestMove);
@@ -392,35 +392,32 @@ public class EubosEngineMain extends AbstractEngine {
 	short lastScore[] = { 0, 0 };
 	int lastMoveNumber[] = { 0, 0 };
 	
-	public boolean isLastScoreValid(Colour initialOnMove) {
-		return (Colour.isWhite(initialOnMove)) ? lastScoreIsValid[0] : lastScoreIsValid[1];
+	public boolean isLastScoreValid() {
+		int side = Colour.isWhite(pm.getOnMove()) ? 0 : 1;
+		return lastScoreIsValid[side];
 	}
 	
-	void setLastScoreValid(Colour initialOnMove) {
-		int arrayIndex = Colour.isWhite(initialOnMove) ? 0 : 1;
-		if (pm.getMoveNumber() != (lastMoveNumber[arrayIndex] + 1)) {
-			lastScoreIsValid[arrayIndex] = false;
-			lastScore[arrayIndex] = 0;
-			lastMoveNumber[arrayIndex] = 0;
+	void checkLastScoreValidity() {
+		int side = Colour.isWhite(pm.getOnMove()) ? 0 : 1;
+		if (pm.getMoveNumber() != (lastMoveNumber[side] + 1)) {
+			// This check is for when running from Arena in analyse mode, for example
+			lastScoreIsValid[side] = false;
+			lastScore[side] = 0;
+			lastMoveNumber[side] = 0;
 		}
 	}
 
-	public short getLastScore(Colour initialOnMove) {
-		return (Colour.isWhite(initialOnMove)) ? lastScore[0] : lastScore[1];
+	public short getLastScore() {
+		int side = Colour.isWhite(pm.getOnMove()) ? 0 : 1;
+		lastScoreIsValid[side] = false; // invalidate, will be validated by next UCI PV message
+		return lastScore[side];
 	}
 	
-	void setLastScore() {
-		int arrayIndex = Colour.isWhite(pm.getOnMove()) ? 0 : 1;
-		ITransposition trans = hashMap.getTransposition(pm.getHash());
-		if (trans != null && trans.getType() == Score.exact) {
-			lastScoreIsValid[arrayIndex] = true;
-			lastScore[arrayIndex] = trans.getScore();
-			lastMoveNumber[arrayIndex] = pm.getMoveNumber();
-		} else {
-			// Invalidate last score
-			lastScoreIsValid[arrayIndex] = false;
-			lastScore[arrayIndex] = 0;
-			lastMoveNumber[arrayIndex] = 0;
-		}
+	public void setLastScore(short uciScore) {
+		int side = Colour.isWhite(pm.getOnMove()) ? 0 : 1;
+		short eubosScore = Colour.isWhite(pm.getOnMove()) ? uciScore : (short)-uciScore;
+		lastScoreIsValid[side] = true; 
+		lastScore[side] = eubosScore;
+	    lastMoveNumber[side] = pm.getMoveNumber();
 	}
 }

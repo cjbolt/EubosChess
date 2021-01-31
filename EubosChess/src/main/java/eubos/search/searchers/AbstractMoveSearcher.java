@@ -5,7 +5,6 @@ import java.util.List;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.InvalidPieceException;
-import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.search.DrawChecker;
@@ -35,7 +34,6 @@ public abstract class AbstractMoveSearcher extends Thread {
 			sr = new SearchMetricsReporter(eubosEngine, hashMap);
 		}
 		this.mg = new MiniMaxMoveGenerator(hashMap, fen, dc, sr);
-		Piece.Colour initialOnMove = mg.pos.getOnMove();
 		
 		ITransposition trans = hashMap.getTransposition(mg.pos.getHash());
 		String initialScoreSetFrom = "None";
@@ -43,10 +41,10 @@ public abstract class AbstractMoveSearcher extends Thread {
 			// Set initial score from previous Transposition table, if an entry exists 
 			initialScoreSetFrom = trans.report();
 			initialScore = trans.getScore();
-		} else if (eng.isLastScoreValid(initialOnMove)) {
+		} else if (eng.isLastScoreValid()) {
 			// Use the last score as an estimate of the initial score
 			initialScoreSetFrom = "set from last score";
-			initialScore = eng.getLastScore(initialOnMove);
+			initialScore = eng.getLastScore();
 		} else {
 			// Back off to a static evaluation to work out initial score
 			initialScoreSetFrom = "set from static eval";
