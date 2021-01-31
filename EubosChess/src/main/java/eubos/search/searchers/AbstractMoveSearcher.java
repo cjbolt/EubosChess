@@ -8,7 +8,6 @@ import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
-import eubos.position.Move;
 import eubos.search.DrawChecker;
 import eubos.search.NoLegalMoveException;
 import eubos.search.Score;
