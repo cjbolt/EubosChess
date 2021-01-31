@@ -5,6 +5,7 @@ import java.util.List;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.InvalidPieceException;
+import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
@@ -35,26 +36,29 @@ public abstract class AbstractMoveSearcher extends Thread {
 			sr = new SearchMetricsReporter(eubosEngine, hashMap);
 		}
 		this.mg = new MiniMaxMoveGenerator(hashMap, fen, dc, sr);
+		Piece.Colour initialOnMove = mg.pos.getOnMove();
 		
-		initialScore = Score.getScore(mg.pos.getPositionEvaluator().evaluatePosition());
+		ITransposition trans = hashMap.getTransposition(mg.pos.getHash());
+		String initialScoreSetFrom = "None";
+		if (trans != null && trans.getType() == Score.exact) {
+			// Set initial score from previous Transposition table, if an entry exists 
+			initialScoreSetFrom = trans.report();
+			initialScore = trans.getScore();
+		} else if (eng.isLastScoreValid(initialOnMove)) {
+			// Use the last score as an estimate of the initial score
+			initialScoreSetFrom = "set from last score";
+			initialScore = eng.getLastScore(initialOnMove);
+		} else {
+			// Back off to a static evaluation to work out initial score
+			initialScoreSetFrom = "set from static eval";
+			initialScore = Score.getScore(mg.pos.getPositionEvaluator().evaluatePosition());
+		}
+		// Convert to a UCI score
 		if (Colour.isBlack(mg.pos.getOnMove())) {
 			initialScore = (short)-initialScore;
 		}
-		
-		// Set initial score from previous Transposition table, if an entry exists 
-		ITransposition trans = hashMap.getTransposition(mg.pos.getHash());
-		String transReport = "None";
-		if (trans != null) {
-			transReport = trans.report();
-			initialScore = trans.getScore();
-		} else {
-			initialScore = Score.getScore(mg.pos.getPositionEvaluator().evaluatePosition());
-			if (Colour.isBlack(mg.pos.getOnMove())) {
-				initialScore = (short)-initialScore;
-			}
-		}
-		EubosEngineMain.logger.info(String.format("initialScore %d, SearchContext %s, isEndgame %s root %s",
-				initialScore, mg.pos.getPositionEvaluator().getGoal(), mg.pos.getTheBoard().isEndgame, transReport));
+		EubosEngineMain.logger.info(String.format("initialScore %d %s, SearchContext %s, isEndgame %s",
+				initialScore, initialScoreSetFrom, mg.pos.getPositionEvaluator().getGoal(), mg.pos.getTheBoard().isEndgame));
 		
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			sr.start();
