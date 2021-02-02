@@ -147,13 +147,13 @@ public class EubosEngineMainTest {
 			commands.add(new commandPair(POS_FEN_PREFIX+"r1b1kb1r/ppqnpppp/8/3pP3/3Q4/5N2/PPP2PPP/RNB1K2R b KQkq - 2 8"+CMD_TERMINATOR, null));
 			commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR, removeTimeFieldsFromUciInfoMessage("info depth 1 seldepth 4 score cp -149 pv d7e5 f3e5 c7e5 nps 0 time 0 nodes 7"+CMD_TERMINATOR+
 					                                                         "info depth 1 seldepth 4 score cp 135 pv c7c2 e1g1 nps 105 time 85 nodes 9"+CMD_TERMINATOR+
-					                                                         "info depth 2 seldepth 0 score cp 34 pv c7c2 d4d5 a7a5 nps 801 time 106 nodes 85"+CMD_TERMINATOR
+					                                                         "info depth 2 seldepth 0 score cp 24 pv c7c2 d4d5 e8d8 nps 562 time 151 nodes 85"+CMD_TERMINATOR
 					                                                         +BEST_PREFIX+"c7c2")+CMD_TERMINATOR)); // don't strip the last command terminator!
 			/* Historically, this position and search caused a bad UCI info message to be generated. 
 			 * The second info contains c7e5, which has not been cleared from the first PV of the ext search...
-			info depth 1 seldepth 4 score cp -149 pv d7e5 f3e5 c7e5 nps 0 time 0 nodes 7
-			info depth 1 seldepth 4 score cp 135 pv c7c2 e1g1 c7e5 nps 105 time 85 nodes 9
-			info depth 2 seldepth 0 score cp 34 pv c7c2 d4d5 a7a5 nps 801 time 106 nodes 85 */
+			info depth 1 seldepth 4 score cp -149 pv d7e5 f3e5 c7e5 nps 200 time 35 nodes 7
+			info depth 1 seldepth 4 score cp 135 pv c7c2 e1g1 nps 73 time 122 nodes 9
+			info depth 2 seldepth 0 score cp 24 pv c7c2 d4d5 e8d8 nps 562 time 151 nodes 85 */
 			performTest(1000, true); // check infos
 		}
 	}
