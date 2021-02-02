@@ -16,7 +16,8 @@ public class PieceList {
 	// 1st index Colour 0 is white, 1 is black
 	// 2nd index is piece type
 	// 3rd index is index into that piece array, gives the position of that piece
-	private int [][][] piece_list = new int[NUM_COLOURS][NUM_PIECE_TYPES][MAX_NUM_PIECES];
+	//     NOTE: DELIBERATELY TOO LONG, simplifies array traversal when removing and bringing down pieces
+	private int [][][] piece_list = new int[NUM_COLOURS][NUM_PIECE_TYPES][MAX_NUM_PIECES+1];
 	
 	private Board theBoard;
 	
@@ -32,21 +33,16 @@ public class PieceList {
 	public void addPiece(int piece, int atPos) {
 		int colour_index = piece >> Piece.COLOUR_BIT_SHIFT;
 		int piece_index = piece & Piece.PIECE_NO_COLOUR_MASK;
-		int piece_number = 0;
 		
 		if (EubosEngineMain.ASSERTS_ENABLED) {
 			assert piece != Piece.NONE;
 			assert atPos != Position.NOPOSITION;
 		}
 		
-		// find the index into the relevant piece list to set
-		for (int position : piece_list[colour_index][piece_index]) {
-			if (position == Position.NOPOSITION) {
+		for (int piece_number = 0; piece_number < MAX_NUM_PIECES; piece_number++) {
+			if (piece_list[colour_index][piece_index][piece_number] == Position.NOPOSITION) {
 				piece_list[colour_index][piece_index][piece_number] = atPos;
 				break;
-			} else {
-				// search on
-				piece_number++;
 			}
 		}
 	}
@@ -64,39 +60,38 @@ public class PieceList {
 		int [] the_list = piece_list[colour_index][piece_index];
 		boolean found = false;
 		for (int i=0; i < MAX_NUM_PIECES; i++) {
-			if (the_list[i] == Position.NOPOSITION) {
-				break;
-			} else if (the_list[i] == atPos) {
-				//piece_count[colour_index][piece_index] -= 1;
+			if (the_list[i] == atPos) {
 				found = true;
-			} else {
-				// do nothing, just continue search or bringing down other positions...
 			}
 			if (found) {
-				// bring down next entry 
-				the_list[i] = (i < (MAX_NUM_PIECES-1)) ? the_list[i+1] : Position.NOPOSITION;
-			} 
+				// Bring down next entry 
+				the_list[i] = the_list[i+1];
+				// Break out ASAP
+				if (the_list[i+1] == Position.NOPOSITION) {
+					break;
+				}
+			}
+		}
+		
+		if (EubosEngineMain.ASSERTS_ENABLED) {
+			assert found;
 		}
 	}
 	
 	public void updatePiece(int piece, int atPos, int targetPos) {
 		int colour_index = piece >> Piece.COLOUR_BIT_SHIFT;
 		int piece_index = piece & Piece.PIECE_NO_COLOUR_MASK;
-		int piece_number = 0;
 		
 		if (EubosEngineMain.ASSERTS_ENABLED) {
 			assert piece != Piece.NONE;
 			assert atPos != Position.NOPOSITION;
 		}
 		
-		// find the index into the relevant piece list to update
-		for (int position : piece_list[colour_index][piece_index]) {
-			if (position == atPos) {
+		// find the piece to update
+		for (int piece_number = 0; piece_number < MAX_NUM_PIECES; piece_number++) {
+			if (piece_list[colour_index][piece_index][piece_number] == atPos) {
 				piece_list[colour_index][piece_index][piece_number] = targetPos;
 				break;
-			} else {
-				// search on
-				piece_number++;
 			}
 		}
 	}
@@ -106,32 +101,29 @@ public class PieceList {
 		int piece_index = piece & Piece.PIECE_NO_COLOUR_MASK;
 		int old_piece_index = oldPiece & Piece.PIECE_NO_COLOUR_MASK;
 		
-		// find the index into the old piece list to remove
+		// find the index into the relevant piece list to clear
 		int [] the_list = piece_list[colour_index][old_piece_index];
 		boolean found = false;
 		for (int i=0; i < MAX_NUM_PIECES; i++) {
-			if (the_list[i] == Position.NOPOSITION) {
-				break;
-			} else if (the_list[i] == atPos) {
-				//piece_count[colour_index][piece_index] -= 1;
+			if (the_list[i] == atPos) {
 				found = true;
 			} else {
-				// do nothing, just continue search or bringing down other positions...
+				// Continue search or bringing down other positions...
 			}
 			if (found) {
-				// bring down next entry 
-				the_list[i] = (i < (MAX_NUM_PIECES-1)) ? the_list[i+1] : Position.NOPOSITION;
-			} 
-		}		
-		// find the index into the relevant piece list to set
-		int piece_number = 0;
-		for (int position : piece_list[colour_index][piece_index]) {
-			if (position == Position.NOPOSITION) {
+				// Bring down next entry 
+				the_list[i] = the_list[i+1];
+				// Break out ASAP
+				if (the_list[i] == Position.NOPOSITION) {
+					break;
+				}
+			}
+		}
+		// find the piece to update
+		for (int piece_number = 0; piece_number < MAX_NUM_PIECES; piece_number++) {
+			if (piece_list[colour_index][piece_index][piece_number] == Position.NOPOSITION) {
 				piece_list[colour_index][piece_index][piece_number] = targetPos;
 				break;
-			} else {
-				// search on
-				piece_number++;
 			}
 		}
 	}
@@ -153,12 +145,10 @@ public class PieceList {
 	}
 	
 	private void anotherHelper(int [] piece_array, IForEachPieceCallback caller, int piece) {
-		for(int atPos : piece_array) {
+		for (int atPos : piece_array) {
 			if (atPos != Position.NOPOSITION) {
 				caller.callback(piece, atPos);
-			} else {
-				break;
-			}
+			} else break;
 		}
 	}
 	

@@ -378,15 +378,13 @@ public class Board {
 	
 	private boolean moveEnablesEnPassantCapture(int originPiece, int originSquare, int targetSquare) {
 		boolean isEnPassantCapturePossible = false;
-		if (originPiece == Piece.WHITE_PAWN) {
-			if ( Position.getRank(originSquare) == IntRank.R2) {
+		if (Piece.isPawn(originPiece)) {
+			if (Position.getRank(originSquare) == IntRank.R2) {
 				if (Position.getRank(targetSquare) == IntRank.R4) {
 					isEnPassantCapturePossible = true;
 					setEnPassantTargetSq(targetSquare-16);
 				}
-			}
-		} else if (originPiece == Piece.BLACK_PAWN) {
-			if (Position.getRank(originSquare) == IntRank.R7) {
+			} else if (Position.getRank(originSquare) == IntRank.R7) {
 				if (Position.getRank(targetSquare) == IntRank.R5) {
 					isEnPassantCapturePossible = true;
 					setEnPassantTargetSq(targetSquare+16);
