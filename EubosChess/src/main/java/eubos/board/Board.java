@@ -746,7 +746,11 @@ public class Board {
 	
 	public List<Integer> getRegularPieceMoves(boolean ownSideIsWhite) {
 		List<Integer> movesList = new LinkedList<Integer>();
-		pieceLists.addMoves(ownSideIsWhite, movesList);
+		if (isEndgame) {
+			pieceLists.addMovesEndgame(ownSideIsWhite, movesList);
+		} else {
+			pieceLists.addMovesMiddlegame(ownSideIsWhite, movesList);
+		}
 		return movesList;
 	}
 	

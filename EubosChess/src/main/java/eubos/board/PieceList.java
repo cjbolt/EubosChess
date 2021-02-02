@@ -162,7 +162,7 @@ public class PieceList {
 		}
 	}
 	
-	public void addMoves(boolean ownSideIsWhite, List<Integer> movesList) {
+	public void addMovesEndgame(boolean ownSideIsWhite, List<Integer> movesList) {
 		int [][] side = piece_list[ownSideIsWhite ? 0 : 1];
 		{
 			int atSquare = side[Piece.KING][0];
@@ -194,6 +194,41 @@ public class PieceList {
 			if (atSquare != Position.NOPOSITION) {			
 				Piece.pawn_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
 			} else break;
+		}
+	}
+	
+	public void addMovesMiddlegame(boolean ownSideIsWhite, List<Integer> movesList) {
+		int [][] side = piece_list[ownSideIsWhite ? 0 : 1];
+		for(int atSquare : side[Piece.QUEEN]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.queen_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+			} else break;
+		}
+		for(int atSquare : side[Piece.ROOK]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.rook_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+			} else break;
+		}
+		for(int atSquare : side[Piece.BISHOP]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.bishop_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+			} else break;
+		}
+		for(int atSquare : side[Piece.KNIGHT]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.knight_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+			} else break;
+		}
+		for(int atSquare : side[Piece.PAWN]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.pawn_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+			} else break;
+		}
+		{
+			int atSquare = side[Piece.KING][0];
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.king_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+			}
 		}
 	}
 	
