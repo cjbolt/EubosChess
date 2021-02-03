@@ -92,7 +92,7 @@ public class SearchMetrics {
 		this.cpScore = positionScore;
 	}
 	
-	synchronized int getDepth() { return depth; }
+	public synchronized int getDepth() { return depth; }
 	public synchronized void setDepth(int depth) { this.depth = depth; }
 	
 	synchronized int getPartialDepth() { return partialDepth; }

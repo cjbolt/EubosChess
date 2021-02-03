@@ -36,7 +36,7 @@ public class SearchMetricsReporterTest {
 		
 		public boolean getInfoCommandReceived() { return infoCommandReceived; }
 		
-		public void setLastScore(short uciScore) {}
+		public void setLastScore(short uciScore, byte depth) {}
 	}
 	
 	@Before

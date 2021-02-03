@@ -391,6 +391,7 @@ public class EubosEngineMain extends AbstractEngine {
 	boolean lastScoreIsValid[] = { false, false };
 	short lastScore[] = { 0, 0 };
 	int lastMoveNumber[] = { 0, 0 };
+	byte lastDepth[] = { 0, 0 };
 	
 	public boolean isLastScoreValid() {
 		int side = Colour.isWhite(pm.getOnMove()) ? 0 : 1;
@@ -404,6 +405,7 @@ public class EubosEngineMain extends AbstractEngine {
 			lastScoreIsValid[side] = false;
 			lastScore[side] = 0;
 			lastMoveNumber[side] = 0;
+			lastDepth[side] = 0;
 		}
 	}
 
@@ -413,11 +415,17 @@ public class EubosEngineMain extends AbstractEngine {
 		return lastScore[side];
 	}
 	
-	public void setLastScore(short uciScore) {
+	public byte getLastDepth() {
+		int side = Colour.isWhite(pm.getOnMove()) ? 0 : 1;
+		return lastDepth[side];
+	}
+	
+	public void setLastScore(short uciScore, byte depth) {
 		int side = Colour.isWhite(pm.getOnMove()) ? 0 : 1;
 		short eubosScore = Colour.isWhite(pm.getOnMove()) ? uciScore : (short)-uciScore;
 		lastScoreIsValid[side] = true; 
 		lastScore[side] = eubosScore;
 	    lastMoveNumber[side] = pm.getMoveNumber();
+	    lastDepth[side] = depth;
 	}
 }

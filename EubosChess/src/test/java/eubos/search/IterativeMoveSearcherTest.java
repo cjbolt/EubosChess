@@ -46,7 +46,7 @@ public class IterativeMoveSearcherTest {
 		}
 		
 		@Override
-		public void setLastScore(short uciScore) {
+		public void setLastScore(short uciScore, byte depth) {
 		}
 		
 		@Override

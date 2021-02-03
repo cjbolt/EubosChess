@@ -25,6 +25,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 	protected SearchMetricsReporter sr;
 	
 	protected short initialScore;
+	protected byte initialScoreDepth;
 
 	public AbstractMoveSearcher(EubosEngineMain eng, String fen, DrawChecker dc, FixedSizeTranspositionTable hashMap) {
 		super();
@@ -41,14 +42,17 @@ public abstract class AbstractMoveSearcher extends Thread {
 			// Set initial score from previous Transposition table, if an entry exists 
 			initialScoreSetFrom = trans.report();
 			initialScore = trans.getScore();
+			initialScoreDepth = trans.getDepthSearchedInPly();
 		} else if (eng.isLastScoreValid()) {
 			// Use the last score as an estimate of the initial score
 			initialScoreSetFrom = "set from last score";
 			initialScore = eng.getLastScore();
+			initialScoreDepth = (byte)(eng.getLastDepth() - 2);
 		} else {
 			// Back off to a static evaluation to work out initial score
 			initialScoreSetFrom = "set from static eval";
 			initialScore = Score.getScore(mg.pos.getPositionEvaluator().evaluatePosition());
+			initialScoreDepth = 1;
 		}
 		// Convert to a UCI score
 		if (Colour.isBlack(mg.pos.getOnMove())) {
