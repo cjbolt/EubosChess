@@ -17,6 +17,7 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
 import eubos.position.PositionManager;
+import eubos.score.ReferenceScore;
 import eubos.search.searchers.IterativeMoveSearcher;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 
@@ -44,20 +45,11 @@ public class IterativeMoveSearcherTest {
 			bestMoveCommandReceived = true;
 			last_bestMove = command;
 		}
-		
-		@Override
-		public void setLastScore(short uciScore, byte depth) {
-		}
-		
-		@Override
-		public boolean isLastScoreValid() {
-			return false;
-		}
 	}
 	private EubosMock eubos;
 	
 	protected void setupPosition(String fen, long time) {
-		sut = new IterativeMoveSearcher(eubos, hashMap, fen, new DrawChecker(), time, 0);
+		sut = new IterativeMoveSearcher(eubos, hashMap, fen, new DrawChecker(), time, 0, new ReferenceScore(hashMap));
 	}
 	
 	@Before

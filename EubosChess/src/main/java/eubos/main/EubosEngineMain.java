@@ -31,6 +31,7 @@ import eubos.board.Piece.Colour;
 import eubos.board.SquareAttackEvaluator;
 import eubos.position.Move;
 import eubos.position.PositionManager;
+import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
 import eubos.search.searchers.AbstractMoveSearcher;
 import eubos.search.searchers.FixedDepthMoveSearcher;
@@ -54,6 +55,8 @@ public class EubosEngineMain extends AbstractEngine {
 	// Permanent data structures - static for the duration of a single game
 	private FixedSizeTranspositionTable hashMap = null;
 	DrawChecker dc;
+	ReferenceScore whiteRefScore;
+	ReferenceScore blackRefScore;
 	
 	// Temporary data structures - created and deleted at each analyse/find move instance
 	private PositionManager pm;
@@ -95,6 +98,8 @@ public class EubosEngineMain extends AbstractEngine {
 		if (!createdHashTable) {
 			hashMap = new FixedSizeTranspositionTable(hashSize, numberOfWorkerThreads);
 			dc = new DrawChecker();
+			whiteRefScore = new ReferenceScore(hashMap);
+			blackRefScore = new ReferenceScore(hashMap);
 			createdHashTable = true;
 		}	
 	}
@@ -138,9 +143,6 @@ public class EubosEngineMain extends AbstractEngine {
 	public void receive(EngineNewGameCommand command) {
 		logger.fine("New Game");
 		checkToCreateEnginePermanentDataStructures();
-		lastScoreIsValid = new boolean[] { false, false };
-		lastScore = new short[] { 0, 0 };
-		lastMoveNumber = new int[] { 0, 0 };
 	}
 
 	public void receive(EngineAnalyzeCommand command) {
@@ -153,8 +155,10 @@ public class EubosEngineMain extends AbstractEngine {
 	void createPositionFromAnalyseCommand(EngineAnalyzeCommand command) {
 		String fen_to_use = getActualFenStringForPosition(command); 
 		pm = new PositionManager(fen_to_use, dc);
-		// Ensure we flag if the last score is invalidated
-		checkLastScoreValidity();
+		// Update the reference score
+		ReferenceScore refScore = Colour.isWhite(pm.getOnMove()) ? whiteRefScore : blackRefScore;
+		refScore.checkLastScoreValidity(pm);
+
 		long hashCode = pm.getHash();
 		Piece.Colour nowOnMove = pm.getOnMove();
 		if (lastOnMove == null || (lastOnMove == nowOnMove && !fen_to_use.equals(lastFen))) {
@@ -209,6 +213,8 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	private void moveSearcherFactory(EngineStartCalculatingCommand command) {
+		ReferenceScore refScore = Colour.isWhite(pm.getOnMove()) ? whiteRefScore : blackRefScore;
+		refScore.updateAtNewRootPosition(pm);
 		boolean clockTimeValid = true;
 		long clockTime = 0;
 		long clockInc = 0;
@@ -221,7 +227,7 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		if (clockTimeValid) {
 			logger.info("Search move, clock time " + clockTime);
-			ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, clockTime, clockInc, numberOfWorkerThreads);
+			ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, clockTime, clockInc, numberOfWorkerThreads, refScore);
 		}
 		else if (command.getMoveTime() != null) {
 			logger.info("Search move, fixed time " + command.getMoveTime());
@@ -239,7 +245,7 @@ public class EubosEngineMain extends AbstractEngine {
 				ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth);
 			} else {
 				logger.info(String.format("Search move, infinite search, threads %d", numberOfWorkerThreads));
-				ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, Long.MAX_VALUE, clockInc, numberOfWorkerThreads);
+				ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, Long.MAX_VALUE, clockInc, numberOfWorkerThreads, refScore);
 			}
 		}
 	}
@@ -386,46 +392,5 @@ public class EubosEngineMain extends AbstractEngine {
 		logger.addHandler(fh);
 		logger.setLevel(Level.ALL);
 		logger.setUseParentHandlers(false);
-	}
-
-	boolean lastScoreIsValid[] = { false, false };
-	short lastScore[] = { 0, 0 };
-	int lastMoveNumber[] = { 0, 0 };
-	byte lastDepth[] = { 0, 0 };
-	
-	public boolean isLastScoreValid() {
-		int side = Colour.isWhite(pm.getOnMove()) ? 0 : 1;
-		return lastScoreIsValid[side];
-	}
-	
-	void checkLastScoreValidity() {
-		int side = Colour.isWhite(pm.getOnMove()) ? 0 : 1;
-		if (pm.getMoveNumber() != (lastMoveNumber[side] + 1)) {
-			// This check is for when running from Arena in analyse mode, for example
-			lastScoreIsValid[side] = false;
-			lastScore[side] = 0;
-			lastMoveNumber[side] = 0;
-			lastDepth[side] = 0;
-		}
-	}
-
-	public short getLastScore() {
-		int side = Colour.isWhite(pm.getOnMove()) ? 0 : 1;
-		lastScoreIsValid[side] = false; // invalidate, will be validated by next UCI PV message
-		return lastScore[side];
-	}
-	
-	public byte getLastDepth() {
-		int side = Colour.isWhite(pm.getOnMove()) ? 0 : 1;
-		return lastDepth[side];
-	}
-	
-	public void setLastScore(short uciScore, byte depth) {
-		int side = Colour.isWhite(pm.getOnMove()) ? 0 : 1;
-		short eubosScore = Colour.isWhite(pm.getOnMove()) ? uciScore : (short)-uciScore;
-		lastScoreIsValid[side] = true; 
-		lastScore[side] = eubosScore;
-	    lastMoveNumber[side] = pm.getMoveNumber();
-	    lastDepth[side] = depth;
 	}
 }

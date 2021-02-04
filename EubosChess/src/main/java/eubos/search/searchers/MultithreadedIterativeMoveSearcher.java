@@ -9,6 +9,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
+import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
 import eubos.search.NoLegalMoveException;
 import eubos.search.SearchResult;
@@ -35,8 +36,9 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			DrawChecker dc, 
 			long time,
 			long increment,
-			int threads) {
-		super(eubos, hashMap, fen, dc, time, increment);
+			int threads,
+			ReferenceScore refScore) {
+		super(eubos, hashMap, fen, dc, time, increment, refScore);
 		this.setName("MultithreadedIterativeMoveSearcher");
 		this.threads = threads;
 		this.tt = hashMap;

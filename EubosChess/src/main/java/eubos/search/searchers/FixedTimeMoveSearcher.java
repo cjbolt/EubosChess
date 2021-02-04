@@ -6,6 +6,7 @@ import java.util.List;
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 
 import eubos.main.EubosEngineMain;
+import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
 import eubos.search.SearchResult;
 import eubos.search.transposition.FixedSizeTranspositionTable;
@@ -18,7 +19,7 @@ public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 	private static final int MAX_SEARCH_DEPTH = 18;
 
 	public FixedTimeMoveSearcher(EubosEngineMain eubos, FixedSizeTranspositionTable hashMap, String fen, DrawChecker dc, long time) {
-		super(eubos, fen, dc, hashMap);
+		super(eubos, fen, dc, hashMap, new ReferenceScore(hashMap));
 		moveTime = time;
 		this.setName("FixedTimeMoveSearcher");
 	}

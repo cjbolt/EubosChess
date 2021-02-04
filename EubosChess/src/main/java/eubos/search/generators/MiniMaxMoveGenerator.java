@@ -13,6 +13,7 @@ import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.score.IEvaluate;
+import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
 import eubos.search.KillerList;
 import eubos.search.NoLegalMoveException;
@@ -96,7 +97,7 @@ public class MiniMaxMoveGenerator implements
 	public SearchResult findMove(
 			byte searchDepth, 
 			List<Integer> lastPc) throws NoLegalMoveException, InvalidPieceException {
-		return this.findMove(searchDepth, lastPc, new SearchMetricsReporter(null, tt));
+		return this.findMove(searchDepth, lastPc, new SearchMetricsReporter(null, tt, new ReferenceScore(tt)));
 	}
 	
 	@Override

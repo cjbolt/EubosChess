@@ -21,6 +21,7 @@ import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.score.PositionEvaluator;
+import eubos.score.ReferenceScore;
 import eubos.search.transposition.ITranspositionAccessor;
 import eubos.search.transposition.Transposition;
 import eubos.search.transposition.TranspositionEvaluation;
@@ -51,7 +52,7 @@ public class PlySearcherTest {
 		sm = new SearchMetrics(searchDepth*3, new PositionManager());
 		sm.setPrincipalVariation(pc.toPvList(0));
 		mockEubos = new EubosEngineMain();
-		sr = new SearchMetricsReporter(mockEubos, null);
+		sr = new SearchMetricsReporter(mockEubos, null, new ReferenceScore(null));
 		sr.register(sm);
 		mock_pos = mock(IPositionAccessors.class);
 		mock_hashMap = mock(ITranspositionAccessor.class);

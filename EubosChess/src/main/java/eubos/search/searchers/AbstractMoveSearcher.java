@@ -5,16 +5,14 @@ import java.util.List;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.InvalidPieceException;
-import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
+import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
 import eubos.search.NoLegalMoveException;
-import eubos.search.Score;
 import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.FixedSizeTranspositionTable;
-import eubos.search.transposition.ITransposition;
 
 public abstract class AbstractMoveSearcher extends Thread {
 
@@ -26,40 +24,24 @@ public abstract class AbstractMoveSearcher extends Thread {
 	
 	protected short initialScore;
 	protected byte initialScoreDepth;
+	protected short staticInitialScore;
 
-	public AbstractMoveSearcher(EubosEngineMain eng, String fen, DrawChecker dc, FixedSizeTranspositionTable hashMap) {
+	public AbstractMoveSearcher(EubosEngineMain eng, String fen, DrawChecker dc, FixedSizeTranspositionTable hashMap, ReferenceScore refScore) {
 		super();
 		this.eubosEngine = eng;
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			sendInfo = true;
-			sr = new SearchMetricsReporter(eubosEngine, hashMap);
+			sr = new SearchMetricsReporter(eubosEngine, hashMap, refScore);
 		}
 		this.mg = new MiniMaxMoveGenerator(hashMap, fen, dc, sr);
 		
-		ITransposition trans = hashMap.getTransposition(mg.pos.getHash());
-		String initialScoreSetFrom = "None";
-		if (trans != null && trans.getType() == Score.exact) {
-			// Set initial score from previous Transposition table, if an entry exists 
-			initialScoreSetFrom = trans.report();
-			initialScore = trans.getScore();
-			initialScoreDepth = trans.getDepthSearchedInPly();
-		} else if (eng.isLastScoreValid()) {
-			// Use the last score as an estimate of the initial score
-			initialScoreSetFrom = "set from last score";
-			initialScore = eng.getLastScore();
-			initialScoreDepth = (byte)(eng.getLastDepth() - 2);
-		} else {
-			// Back off to a static evaluation to work out initial score
-			initialScoreSetFrom = "set from static eval";
-			initialScore = Score.getScore(mg.pos.getPositionEvaluator().evaluatePosition());
-			initialScoreDepth = 1;
-		}
-		// Convert to a UCI score
-		if (Colour.isBlack(mg.pos.getOnMove())) {
-			initialScore = (short)-initialScore;
-		}
-		EubosEngineMain.logger.info(String.format("initialScore %d %s, SearchContext %s, isEndgame %s",
-				initialScore, initialScoreSetFrom, mg.pos.getPositionEvaluator().getGoal(), mg.pos.getTheBoard().isEndgame));
+		// Setup the reference score that shall be used by any IterativeSearchStopper
+		initialScore = refScore.getReferenceUciScore();
+		staticInitialScore = refScore.getStaticEvalOfRootPositionAsUciScore();
+		initialScoreDepth = refScore.getReferenceDepth();
+		EubosEngineMain.logger.info(String.format("initialScore %d, depth %d %s, SearchContext %s, isEndgame %s",
+				initialScore, initialScoreDepth, refScore.referenceScoreSetFrom,
+				mg.pos.getPositionEvaluator().getGoal(), mg.pos.getTheBoard().isEndgame));
 		
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			sr.start();

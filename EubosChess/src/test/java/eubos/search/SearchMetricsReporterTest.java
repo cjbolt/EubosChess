@@ -35,8 +35,6 @@ public class SearchMetricsReporterTest {
 		}
 		
 		public boolean getInfoCommandReceived() { return infoCommandReceived; }
-		
-		public void setLastScore(short uciScore, byte depth) {}
 	}
 	
 	@Before
@@ -48,7 +46,7 @@ public class SearchMetricsReporterTest {
 		List<Integer> pv = new ArrayList<Integer>();
 		pv.add(Move.valueOf(Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE));
 		sm.setPrincipalVariation(pv);
-		classUnderTest = new SearchMetricsReporter(eubos, null);
+		classUnderTest = new SearchMetricsReporter(eubos, null, null);
 		classUnderTest.register(sm);
 	}
 	

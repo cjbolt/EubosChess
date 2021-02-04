@@ -6,6 +6,7 @@ import java.util.List;
 import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
 
 import eubos.main.EubosEngineMain;
+import eubos.score.ReferenceScore;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 
 public class SearchMetricsReporter extends Thread {
@@ -15,15 +16,17 @@ public class SearchMetricsReporter extends Thread {
 	private List<SearchMetrics> sm;
 	private EubosEngineMain eubosEngine;
 	private FixedSizeTranspositionTable tt;
+	private ReferenceScore refScore;
 	private static final int UPDATE_RATE_MS = 1000;
 	
 	private int lastScore = 0;
 	private int lastDepth = 0;
 	
-	public SearchMetricsReporter( EubosEngineMain eubos, FixedSizeTranspositionTable tt ) {
+	public SearchMetricsReporter( EubosEngineMain eubos, FixedSizeTranspositionTable tt, ReferenceScore refScore ) {
 		reporterActive = true;
 		eubosEngine = eubos;
 		this.tt = tt;
+		this.refScore = refScore;
 		sm = new ArrayList<SearchMetrics>(EubosEngineMain.DEFAULT_NUM_SEARCH_THREADS);
 		lastScore = 0;
 		lastDepth = 0;
@@ -109,7 +112,9 @@ public class SearchMetricsReporter extends Thread {
 		}
 		
 		short score = pv.getCpScore();
-		eubosEngine.setLastScore(score, (byte)pv.getDepth());
+		if (refScore != null) {
+			refScore.updateLastScore(score, (byte)pv.getDepth());
+		}
 		if (Score.isMate(score)) {
 			int matePly = (score > 0) ? Short.MAX_VALUE - score + 1 : Short.MIN_VALUE - score;
 			int mateMove = matePly / 2;

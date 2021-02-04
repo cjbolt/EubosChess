@@ -6,6 +6,7 @@ import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 
 import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
+import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
 import eubos.search.NoLegalMoveException;
 import eubos.search.SearchResult;
@@ -27,8 +28,9 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			String fen,  
 			DrawChecker dc, 
 			long time,
-			long increment) {
-		super(eubos, fen, dc, hashMap);
+			long increment,
+			ReferenceScore refScore) {
+		super(eubos, fen, dc, hashMap, refScore);
 		this.setName("IterativeMoveSearcher");
 		if (time == Long.MAX_VALUE) {
 			analyse = true;
@@ -168,7 +170,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			byte currDepth = (byte)mg.sm.getDepth();
 			switch (checkPoint) {
 			case 0:
-				if (currentScore > (initialScore + 500))
+				if (currentScore > (staticInitialScore + 500))
 					terminateNow = true;
 				break;
 			case 1:
