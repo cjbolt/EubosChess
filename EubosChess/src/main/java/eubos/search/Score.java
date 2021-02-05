@@ -76,4 +76,16 @@ public final class Score {
 		string.append(getScore(score));
 		return string.toString();
 	}
+	
+	public static String toString(short score) {
+		String scoreString;
+		if (Score.isMate(score)) {
+			int matePly = (score > 0) ? Short.MAX_VALUE - score + 1 : Short.MIN_VALUE - score;
+			int mateMove = matePly / 2;
+			scoreString = String.format("mateIn%d", mateMove);
+		} else {
+			scoreString = Short.toString(score);
+		}
+		return scoreString;
+	}
 }

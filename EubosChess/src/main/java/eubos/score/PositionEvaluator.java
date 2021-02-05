@@ -27,7 +27,11 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	
 	public PositionEvaluator(IPositionAccessors pm, ReferenceScore refScore) {	
 		this.pm = pm;
-		sc = new SearchContext(pm, pm.getTheBoard().evaluateMaterial(), refScore);
+		PiecewiseEvaluation mat = pm.getTheBoard().me;
+		if (mat == null) {
+			mat = pm.getTheBoard().evaluateMaterial();
+		}
+		sc = new SearchContext(pm, mat, refScore);
 	}
 	
 	public boolean isQuiescent(int currMove) {

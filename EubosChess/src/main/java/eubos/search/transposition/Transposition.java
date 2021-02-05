@@ -70,10 +70,10 @@ public class Transposition implements ITransposition {
 	
 	@Override
 	public String report() {
-		String output = String.format("trans best=%s, dep=%d, sc=%d, type=%s", 
+		String output = String.format("trans best=%s, dep=%d, sc=%s, type=%s", 
 				Move.toString(bestMove),
 				depthSearchedInPly,
-				score,
+				Score.toString(score),
 				type);
 		return output;
 	}

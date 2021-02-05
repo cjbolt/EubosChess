@@ -10,6 +10,7 @@ import eubos.score.ReferenceScore;
 import eubos.score.ReferenceScore.Reference;
 import eubos.search.DrawChecker;
 import eubos.search.NoLegalMoveException;
+import eubos.search.Score;
 import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;
@@ -37,8 +38,8 @@ public abstract class AbstractMoveSearcher extends Thread {
 		this.refScore = refScore;
 		refScore.updateReference(mg.pos);
 		Reference ref = refScore.getReference();
-		EubosEngineMain.logger.info(String.format("initialScore %d, depth %d %s, SearchContext %s, isEndgame %s",
-				ref.score, ref.depth, ref.origin, mg.pos.getPositionEvaluator().getGoal(), mg.pos.getTheBoard().isEndgame));
+		EubosEngineMain.logger.info(String.format("refScore %s, depth %d %s, SearchContext %s, isEndgame %s",
+				Score.toString(ref.score), ref.depth, ref.origin, mg.pos.getPositionEvaluator().getGoal(), mg.pos.getTheBoard().isEndgame));
 		
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			sr.start();
