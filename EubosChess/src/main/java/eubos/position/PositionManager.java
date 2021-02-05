@@ -14,24 +14,25 @@ import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.score.IEvaluate;
 import eubos.score.PositionEvaluator;
+import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
 
 public class PositionManager implements IChangePosition, IPositionAccessors {
 	
-	public PositionManager( String fenString, DrawChecker dc) {
+	public PositionManager( String fenString, DrawChecker dc, ReferenceScore refScore) {
 		moveTracker = new MoveTracker();
 		new fenParser( this, fenString );
 		hash = new ZobristHashCode(this, castling);
 		this.dc = dc; 
-		pe = new PositionEvaluator(this);
+		pe = new PositionEvaluator(this, refScore);
 	}
 	
 	public PositionManager( String fenString) {
-		this(fenString, new DrawChecker());
+		this(fenString, new DrawChecker(), null);
 	}
 	
 	public PositionManager() {
-		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", new DrawChecker());
+		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", new DrawChecker(), null);
 	}
 
 	CastlingManager castling;

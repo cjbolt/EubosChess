@@ -12,6 +12,7 @@ import eubos.position.Move;
 import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
 import eubos.search.NoLegalMoveException;
+import eubos.search.Score;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.FixedSizeTranspositionTable;
@@ -54,7 +55,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		moveGenerators.add(mg);
 		// Create subsequent move generators using cloned DrawCheckers
 		for (int i=1; i < threads; i++) {
-			MiniMaxMoveGenerator thisMg = new MiniMaxMoveGenerator(hashMap, fen, new DrawChecker(dc.getState()), sr);
+			MiniMaxMoveGenerator thisMg = new MiniMaxMoveGenerator(hashMap, fen, new DrawChecker(dc.getState()), sr, refScore);
 			moveGenerators.add(thisMg);
 		}
 		// Set move ordering scheme to use, if in operation
@@ -130,6 +131,10 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		ITransposition trans = tt.getTransposition(this.rootPositionHash);
 		if (trans != null) {
 			EubosEngineMain.logger.info(String.format("best is trans=%s", trans.report()));
+			if (Score.isMate(trans.getScore())) {
+				// it is possible that we didn't send a uci info pv message, so update the last score
+				refScore.updateLastScore(trans);
+			}
 			bestMove = Move.toGenericMove(trans.getBestMove());
 		} else {
 			EubosEngineMain.logger.warning("Can't find bestMove in Transposition Table");

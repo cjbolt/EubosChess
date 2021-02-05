@@ -7,6 +7,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
 import eubos.score.ReferenceScore;
+import eubos.score.ReferenceScore.Reference;
 import eubos.search.DrawChecker;
 import eubos.search.NoLegalMoveException;
 import eubos.search.SearchMetricsReporter;
@@ -21,10 +22,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 	
 	protected boolean sendInfo = false;
 	protected SearchMetricsReporter sr;
-	
-	protected short initialScore;
-	protected byte initialScoreDepth;
-	protected short staticInitialScore;
+	protected ReferenceScore refScore;
 
 	public AbstractMoveSearcher(EubosEngineMain eng, String fen, DrawChecker dc, FixedSizeTranspositionTable hashMap, ReferenceScore refScore) {
 		super();
@@ -33,15 +31,13 @@ public abstract class AbstractMoveSearcher extends Thread {
 			sendInfo = true;
 			sr = new SearchMetricsReporter(eubosEngine, hashMap, refScore);
 		}
-		this.mg = new MiniMaxMoveGenerator(hashMap, fen, dc, sr);
+		this.mg = new MiniMaxMoveGenerator(hashMap, fen, dc, sr, refScore);
 		
 		// Setup the reference score that shall be used by any IterativeSearchStopper
-		initialScore = refScore.getReferenceUciScore();
-		staticInitialScore = refScore.getStaticEvalOfRootPositionAsUciScore();
-		initialScoreDepth = refScore.getReferenceDepth();
+		this.refScore = refScore;
+		Reference ref = refScore.getReference();
 		EubosEngineMain.logger.info(String.format("initialScore %d, depth %d %s, SearchContext %s, isEndgame %s",
-				initialScore, initialScoreDepth, refScore.referenceScoreSetFrom,
-				mg.pos.getPositionEvaluator().getGoal(), mg.pos.getTheBoard().isEndgame));
+				ref.score, ref.depth, ref.origin, mg.pos.getPositionEvaluator().getGoal(), mg.pos.getTheBoard().isEndgame));
 		
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
 			sr.start();

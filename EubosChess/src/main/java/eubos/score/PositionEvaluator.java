@@ -25,9 +25,9 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	public static final boolean ENABLE_PAWN_EVALUATION = true;
 	public static final boolean ENABLE_KING_SAFETY_EVALUATION = true;
 	
-	public PositionEvaluator(IPositionAccessors pm) {	
+	public PositionEvaluator(IPositionAccessors pm, ReferenceScore refScore) {	
 		this.pm = pm;
-		sc = new SearchContext(pm, pm.getTheBoard().evaluateMaterial());
+		sc = new SearchContext(pm, pm.getTheBoard().evaluateMaterial(), refScore);
 	}
 	
 	public boolean isQuiescent(int currMove) {

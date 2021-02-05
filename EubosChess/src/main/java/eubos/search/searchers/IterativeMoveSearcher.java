@@ -7,6 +7,7 @@ import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
 import eubos.score.ReferenceScore;
+import eubos.score.ReferenceScore.Reference;
 import eubos.search.DrawChecker;
 import eubos.search.NoLegalMoveException;
 import eubos.search.SearchResult;
@@ -39,7 +40,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			setGameTimeRemaining(time, increment);
 		}
 		EubosEngineMain.logger.info(
-				String.format("Starting initialScore=%d gameTimeRemaining=%d", initialScore, gameTimeRemaining));
+				String.format("Starting search gameTimeRemaining=%d", gameTimeRemaining));
 	}
 
 	private void setGameTimeRemaining(long time, long increment) {
@@ -168,19 +169,20 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			/* Consider extending time for Search according to following... */
 			short currentScore = mg.sm.getCpScore();
 			byte currDepth = (byte)mg.sm.getDepth();
+			Reference ref = refScore.getReference();
 			switch (checkPoint) {
 			case 0:
-				if (currentScore > (staticInitialScore + 500))
+				if (currentScore > ref.staticEvalOfRootPosition + 500)
 					terminateNow = true;
 				break;
 			case 1:
-				if (currentScore >= (initialScore - 10) && (currDepth >= initialScoreDepth)) {
+				if (currentScore >= ref.score && currDepth >= ref.depth) {
 					terminateNow = true;
 				}
 				extraTime = true;
 				break;
 			case 3:
-				if (currentScore >= (initialScore - 300) && (currDepth >= initialScoreDepth))
+				if ((currentScore >= ref.score - 300) && (currDepth >= ref.depth))
 					terminateNow = true;
 				break;
 			case 7:

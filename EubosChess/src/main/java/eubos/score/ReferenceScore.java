@@ -7,55 +7,62 @@ import eubos.search.transposition.FixedSizeTranspositionTable;
 import eubos.search.transposition.ITransposition;
 
 public class ReferenceScore {
+	public class Reference {
+		public short staticEvalOfRootPosition = 0;
+		public short score = 0;
+		public String origin = "None";
+		public byte depth = 0;
+	}
+	private Reference reference;
 	
-	boolean lastScoreIsValid = false;
-	short lastScore = 0;
-	int lastMoveNumber = 0;
-	byte lastDepth = 0;
+	private boolean lastScoreIsValid = false;
+	private short lastScore = 0;
+	private int lastMoveNumber = 0;
+	private byte lastDepth = 0;
 	
-	short staticEvalOfRootPosition = 0;
-	short referenceScore = 0;
-	public String referenceScoreSetFrom = "None";
-	byte referenceScoreDepth = 0;
-	
-	IPositionAccessors rootPosition;
-	FixedSizeTranspositionTable hashMap;
+	private IPositionAccessors rootPosition;
+	private FixedSizeTranspositionTable hashMap;
 	
 	public ReferenceScore(FixedSizeTranspositionTable hashMap) {
 		this.hashMap = hashMap;
+		this.reference = new Reference();
 	}
 	
-	public void updateAtNewRootPosition(IPositionAccessors rootPos) {
+	public void updateReference(IPositionAccessors rootPos) {
 		this.rootPosition = rootPos;
-		staticEvalOfRootPosition = Score.getScore(rootPos.getPositionEvaluator().evaluatePosition());
+		checkLastScoreValidity();
+		reference.staticEvalOfRootPosition = Score.getScore(rootPos.getPositionEvaluator().evaluatePosition());
 		
 		ITransposition trans = hashMap.getTransposition(rootPos.getHash());		
 		if (trans != null && trans.getType() == Score.exact) {
 			// Set reference score from previous Transposition table, if an exact entry exists 
-			referenceScoreSetFrom = trans.report();
-			referenceScore = trans.getScore();
-			referenceScoreDepth = trans.getDepthSearchedInPly();
+			reference.origin = trans.report();
+			reference.score = trans.getScore();
+			reference.depth = trans.getDepthSearchedInPly();
 		} else if (lastScoreIsValid) {
-			// Use the last score as an estimate of the initial score
-			referenceScoreSetFrom = "set from last score";
-			referenceScore = lastScore;
-			referenceScoreDepth = (byte)(lastDepth - 2);
+			// Use the last reported score (from previous Search) as the reference score
+			reference.origin = "set from last score";
+			reference.score = lastScore;
+			reference.depth = (byte)(lastDepth - MateScoreGenerator.PLIES_PER_MOVE);
 		} else {
 			// Back off to a static evaluation to work out initial score
-			referenceScoreSetFrom = "set from static eval";
-			referenceScore = staticEvalOfRootPosition;
-			referenceScoreDepth = 1;
+			reference.origin = "set from static eval";
+			reference.score = reference.staticEvalOfRootPosition;
+			reference.depth = 0;
 		}
 		
 		// Convert to UCI scores
 		if (Colour.isBlack(rootPos.getOnMove())) {
-			referenceScore = (short)-referenceScore;
-			staticEvalOfRootPosition = (short)-staticEvalOfRootPosition;
+			reference.score = (short)-reference.score;
+			reference.staticEvalOfRootPosition = (short)-reference.staticEvalOfRootPosition;
 		}
+		
+		// Invalidate the last score, this will be re-validated when the first UCI PV message of search is received
+		lastScoreIsValid = false;
 	}
 	
-	public void checkLastScoreValidity(IPositionAccessors pos) {
-		if (pos.getMoveNumber() != (lastMoveNumber + 1)) {
+	private void checkLastScoreValidity() {
+		if (lastScoreIsValid && (rootPosition.getMoveNumber() != (lastMoveNumber + 1))) {
 			// This check is for when running from Arena in analyse mode, for example
 			lastScoreIsValid = false;
 			lastScore = 0;
@@ -63,20 +70,9 @@ public class ReferenceScore {
 			lastDepth = 0;
 		}
 	}
-
-	public short getReferenceUciScore() {
-		lastScoreIsValid = false; // invalidate, will be validated by next UCI PV message
-		return referenceScore;
-	}
 	
-	public byte getReferenceDepth() {
-		lastScoreIsValid = false; // invalidate, will be validated by next UCI PV message
-		return referenceScoreDepth;
-	}
-	
-	public short getStaticEvalOfRootPositionAsUciScore() {
-		lastScoreIsValid = false; // invalidate, will be validated by next UCI PV message
-		return staticEvalOfRootPosition;
+	public Reference getReference() {
+		return reference;
 	}
 	
 	public void updateLastScore(short uciScore, byte depth) {
@@ -88,5 +84,12 @@ public class ReferenceScore {
 		    lastMoveNumber = rootPosition.getMoveNumber();
 		    lastDepth = depth;
 		}
+	}
+
+	public void updateLastScore(ITransposition trans) {
+		lastScoreIsValid = true;
+		lastScore = trans.getScore();
+	    lastDepth = trans.getDepthSearchedInPly();
+	    lastMoveNumber = rootPosition.getMoveNumber();
 	}
 }

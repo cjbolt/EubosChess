@@ -154,11 +154,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	void createPositionFromAnalyseCommand(EngineAnalyzeCommand command) {
 		String fen_to_use = getActualFenStringForPosition(command); 
-		pm = new PositionManager(fen_to_use, dc);
-		// Update the reference score
-		ReferenceScore refScore = Colour.isWhite(pm.getOnMove()) ? whiteRefScore : blackRefScore;
-		refScore.checkLastScoreValidity(pm);
-
+		pm = new PositionManager(fen_to_use, dc, null);
 		long hashCode = pm.getHash();
 		Piece.Colour nowOnMove = pm.getOnMove();
 		if (lastOnMove == null || (lastOnMove == nowOnMove && !fen_to_use.equals(lastFen))) {
@@ -182,7 +178,7 @@ public class EubosEngineMain extends AbstractEngine {
 		if (!command.moves.isEmpty()) {
 			// This temporary pm is to ensure that the correct position is used to initialise the search 
 			// context of the position evaluator, required when we get a position and move list to apply to it.
-			PositionManager temp_pm = new PositionManager(uci_fen_string, dc);
+			PositionManager temp_pm = new PositionManager(uci_fen_string, dc, null);
 			try {
 				for (GenericMove nextMove : command.moves) {
 					int move = Move.toMove(nextMove, temp_pm.getTheBoard());
@@ -213,8 +209,10 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	private void moveSearcherFactory(EngineStartCalculatingCommand command) {
+		// Update the Reference Score, used by the Search process, for the new root position
 		ReferenceScore refScore = Colour.isWhite(pm.getOnMove()) ? whiteRefScore : blackRefScore;
-		refScore.updateAtNewRootPosition(pm);
+		refScore.updateReference(pm);
+		// Parse clock time data
 		boolean clockTimeValid = true;
 		long clockTime = 0;
 		long clockInc = 0;
@@ -225,6 +223,7 @@ public class EubosEngineMain extends AbstractEngine {
 		} catch (NullPointerException e) {
 			clockTimeValid = false;
 		}
+		// Create Move Searcher
 		if (clockTimeValid) {
 			logger.info("Search move, clock time " + clockTime);
 			ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, clockTime, clockInc, numberOfWorkerThreads, refScore);

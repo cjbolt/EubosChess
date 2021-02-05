@@ -5,6 +5,7 @@ import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.position.IPositionAccessors;
 import eubos.score.PiecewiseEvaluation;
+import eubos.score.ReferenceScore;
 
 public class SearchContext {
 	PiecewiseEvaluation initial;
@@ -28,15 +29,15 @@ public class SearchContext {
 		try_for_draw
 	};
 	
-	public SearchContext(IPositionAccessors pos, PiecewiseEvaluation initialMaterial) {
+	public SearchContext(IPositionAccessors pos, PiecewiseEvaluation initialMaterial, ReferenceScore refScore) {
 		this.pos = pos;
 		// Make a copy of the initial Material Evaluation and store it here
 		initial = new PiecewiseEvaluation(initialMaterial.getWhite(), initialMaterial.getBlack(), initialMaterial.getPosition());
 		initialOnMove = pos.getOnMove();
-		setGoal();
+		setGoal(refScore);
 	}
 
-	private void setGoal() {
+	private void setGoal(ReferenceScore refScore) {
 		if (ALWAYS_TRY_FOR_WIN) {
 			goal = SearchGoal.try_for_win;
 			
@@ -50,13 +51,13 @@ public class SearchContext {
 			// When we can't win
 			goal = SearchGoal.try_for_draw;
 			
-		} else if ((Colour.isWhite(initialOnMove) && initial.getDelta() > SIMPLIFY_THRESHOLD) ||
-			(Colour.isBlack(initialOnMove) && initial.getDelta() < -SIMPLIFY_THRESHOLD )) {
+		} else if ((refScore != null && refScore.getReference().score > SIMPLIFY_THRESHOLD) && 
+				(Colour.isWhite(initialOnMove) && initial.getDelta() > SIMPLIFY_THRESHOLD) ||
+				(Colour.isBlack(initialOnMove) && initial.getDelta() < -SIMPLIFY_THRESHOLD )) {
 			// When simplification possible
 			goal = SearchGoal.simplify;
 			
-		} else if ((Colour.isWhite(initialOnMove) && initial.getDelta() < DRAW_THRESHOLD) ||
-				(Colour.isBlack(initialOnMove) && initial.getDelta() > -DRAW_THRESHOLD )) {
+		} else if (refScore != null && refScore.getReference().score < DRAW_THRESHOLD) {
 			goal = SearchGoal.try_for_draw;
 			
 		} else {

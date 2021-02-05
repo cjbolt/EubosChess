@@ -64,7 +64,7 @@ public class MateScoreGeneratorTest {
 		PiecewiseEvaluation me = new PiecewiseEvaluation();
 		me.black = Board.MATERIAL_VALUE_KING + 250;
 		me.white = Board.MATERIAL_VALUE_KING;
-		PositionEvaluator pe = new PositionEvaluator(pm);
+		PositionEvaluator pe = new PositionEvaluator(pm, null);
 		classUnderTest = new MateScoreGenerator(pm, pe);
 		// White wants stalemate
 		assertEquals(Board.MATERIAL_VALUE_KING/2, classUnderTest.scoreMate((byte)0));
@@ -76,7 +76,7 @@ public class MateScoreGeneratorTest {
 		PiecewiseEvaluation me = new PiecewiseEvaluation();
 		me.black = Board.MATERIAL_VALUE_KING;
 		me.white = Board.MATERIAL_VALUE_KING + 250;
-		PositionEvaluator pe = new PositionEvaluator(pm);
+		PositionEvaluator pe = new PositionEvaluator(pm, null);
 		classUnderTest = new MateScoreGenerator(pm, pe);
 		// Black wants stalemate
 		assertEquals(-Board.MATERIAL_VALUE_KING/2, classUnderTest.scoreMate((byte)0));

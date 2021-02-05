@@ -19,7 +19,7 @@ public class DrawCheckerTest {
 	private PositionManager pm;
 
 	private void setupPosition(String fen) {
-		pm = new PositionManager(fen, sut);
+		pm = new PositionManager(fen, sut, null);
 	}
 	
 	@Before
