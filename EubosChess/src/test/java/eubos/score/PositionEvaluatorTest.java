@@ -31,7 +31,7 @@ public class PositionEvaluatorTest {
 	}
 
 	protected void setUpPosition(String fen) {
-		pm = new PositionManager(fen, new DrawChecker(), null);
+		pm = new PositionManager(fen, new DrawChecker(), new ReferenceScore(null));
 		SUT = (PositionEvaluator) pm.getPositionEvaluator();
 	}
 	

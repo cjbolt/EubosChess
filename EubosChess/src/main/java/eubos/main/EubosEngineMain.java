@@ -59,7 +59,7 @@ public class EubosEngineMain extends AbstractEngine {
 	ReferenceScore blackRefScore;
 	
 	// Temporary data structures - created and deleted at each analyse/find move instance
-	private PositionManager pm;
+	private PositionManager rootPosition;
 	private AbstractMoveSearcher ms;
 	private Piece.Colour lastOnMove = null;
 	String lastFen = null;
@@ -153,10 +153,10 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	void createPositionFromAnalyseCommand(EngineAnalyzeCommand command) {
-		String fen_to_use = getActualFenStringForPosition(command); 
-		pm = new PositionManager(fen_to_use, dc, null);
-		long hashCode = pm.getHash();
-		Piece.Colour nowOnMove = pm.getOnMove();
+		String fen_to_use = getActualFenStringForPosition(command);
+		rootPosition = new PositionManager(fen_to_use, dc, null);
+		long hashCode = rootPosition.getHash();
+		Piece.Colour nowOnMove = rootPosition.getOnMove();
 		if (lastOnMove == null || (lastOnMove == nowOnMove && !fen_to_use.equals(lastFen))) {
 			// Update the draw checker with the position following the opponents last move
 			dc.incrementPositionReachedCount(hashCode);
@@ -178,18 +178,18 @@ public class EubosEngineMain extends AbstractEngine {
 		if (!command.moves.isEmpty()) {
 			// This temporary pm is to ensure that the correct position is used to initialise the search 
 			// context of the position evaluator, required when we get a position and move list to apply to it.
-			PositionManager temp_pm = new PositionManager(uci_fen_string, dc, null);
+			rootPosition = new PositionManager(uci_fen_string, dc, null);
 			try {
 				for (GenericMove nextMove : command.moves) {
-					int move = Move.toMove(nextMove, temp_pm.getTheBoard());
-					temp_pm.performMove(move, false); // don't update draw checker or hash
+					int move = Move.toMove(nextMove, rootPosition.getTheBoard());
+					rootPosition.performMove(move, false); // don't update draw checker or hash
 					lastMoveWasCaptureOrPawnMove = Move.isCapture(move) || Move.isPawnMove(move);
 				}
 			} catch(InvalidPieceException e ) {
 				System.err.println(String.format(
 				    "Serious error: Eubos can't find a piece on the board whilst applying previous moves, at %s", e.getAtPosition()));
 			}
-			fen_to_use = temp_pm.getFen();
+			fen_to_use = rootPosition.getFen();
 
 			if (lastMoveWasCaptureOrPawnMove) {
 				// Pawn moves and captures are irreversible, so if needed, clear the draw checker
@@ -210,14 +210,13 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	private void moveSearcherFactory(EngineStartCalculatingCommand command) {
 		// Update the Reference Score, used by the Search process, for the new root position
-		ReferenceScore refScore = Colour.isWhite(pm.getOnMove()) ? whiteRefScore : blackRefScore;
-		refScore.updateReference(pm);
+		ReferenceScore refScore = Colour.isWhite(rootPosition.getOnMove()) ? whiteRefScore : blackRefScore;
 		// Parse clock time data
 		boolean clockTimeValid = true;
 		long clockTime = 0;
 		long clockInc = 0;
 		try {
-			GenericColor side = pm.onMoveIsWhite() ? GenericColor.WHITE : GenericColor.BLACK;
+			GenericColor side = rootPosition.onMoveIsWhite() ? GenericColor.WHITE : GenericColor.BLACK;
 			clockTime = command.getClock(side);
 			clockInc = command.getClockIncrement(side);
 		} catch (NullPointerException e) {
@@ -342,16 +341,16 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		if (protocolBestMoveCommand.bestMove != null) {
 			try {
-				int bestMove = Move.toMove(protocolBestMoveCommand.bestMove, pm.getTheBoard(), Move.TYPE_REGULAR_NONE);
+				int bestMove = Move.toMove(protocolBestMoveCommand.bestMove, rootPosition.getTheBoard(), Move.TYPE_REGULAR_NONE);
 				// Apply the best move to update the DrawChecker state
-				pm.performMove(bestMove);
+				rootPosition.performMove(bestMove);
 				boolean bestMoveWasCaptureOrPawnMove = Move.isCapture(bestMove) || Move.isPawnMove(bestMove);
 				if (bestMoveWasCaptureOrPawnMove) {
 					dc.reset();
-					dc.incrementPositionReachedCount(pm.getHash());
+					dc.incrementPositionReachedCount(rootPosition.getHash());
 				}
 				logger.info(String.format("BestMove=%s hashCode=%d positionReachedCount=%d",
-						protocolBestMoveCommand.bestMove, pm.getHash(), dc.getPositionReachedCount(pm.getHash())));
+						protocolBestMoveCommand.bestMove, rootPosition.getHash(), dc.getPositionReachedCount(rootPosition.getHash())));
 			} catch (InvalidPieceException e) {
 				logger.severe("Error in sendBestMoveCommand!");
 			}

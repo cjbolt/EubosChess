@@ -23,12 +23,14 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		moveTracker = new MoveTracker();
 		new fenParser( this, fenString );
 		hash = new ZobristHashCode(this, castling);
-		this.dc = dc; 
-		pe = new PositionEvaluator(this, refScore);
+		this.dc = dc;
+		if (refScore != null) {
+			pe = new PositionEvaluator(this, refScore);
+		}
 	}
 	
 	public PositionManager( String fenString) {
-		this(fenString, new DrawChecker(), null);
+		this(fenString, new DrawChecker(), new ReferenceScore(null));
 	}
 	
 	public PositionManager() {

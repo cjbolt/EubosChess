@@ -35,6 +35,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 		
 		// Setup the reference score that shall be used by any IterativeSearchStopper
 		this.refScore = refScore;
+		refScore.updateReference(mg.pos);
 		Reference ref = refScore.getReference();
 		EubosEngineMain.logger.info(String.format("initialScore %d, depth %d %s, SearchContext %s, isEndgame %s",
 				ref.score, ref.depth, ref.origin, mg.pos.getPositionEvaluator().getGoal(), mg.pos.getTheBoard().isEndgame));
