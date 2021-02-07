@@ -3,6 +3,7 @@ package eubos.search;
 import java.util.Iterator;
 import java.util.List;
 
+import eubos.board.Board;
 import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
@@ -403,7 +404,12 @@ public class PlySearcher {
 	private MoveList getMoveList(int transBestMove) throws InvalidPieceException {
 		MoveList ml = null;
 		int[] killer_moves = killers.getMoves(currPly);
-		ml = new MoveList((PositionManager) pm, transBestMove, killer_moves[0], killer_moves[1], moveListOrdering);
+		if (!Board.ENABLE_PIECE_LISTS && isInExtendedSearch()) {
+			int targetSq = pos.lastMoveTargetSquare();
+			ml = new MoveList((PositionManager) pm, transBestMove, killer_moves[0], killer_moves[1], moveListOrdering, targetSq);
+		} else {
+			ml = new MoveList((PositionManager) pm, transBestMove, killer_moves[0], killer_moves[1], moveListOrdering);
+		}
 		return ml;
 	}
 	

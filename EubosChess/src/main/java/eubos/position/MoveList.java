@@ -31,18 +31,22 @@ public class MoveList implements Iterable<Integer> {
     }
 	
 	public MoveList(PositionManager pm) throws InvalidPieceException {
-		this(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, 1 );
+		this(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, 1, Position.NOPOSITION);
 	}
 	
 	public MoveList(PositionManager pm, int orderMoveList) throws InvalidPieceException {
-		this(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, orderMoveList );
+		this(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, orderMoveList, Position.NOPOSITION);
 	}
 	
-	public MoveList(PositionManager pm, int bestMove, int killer1, int killer2, int orderMoveList) throws InvalidPieceException {	
+	public MoveList(PositionManager pm, int bestMove, int killer1, int killer2, int orderMoveList) throws InvalidPieceException {
+		this(pm, bestMove, killer1, killer2, orderMoveList, Position.NOPOSITION);
+	}	
+	
+	public MoveList(PositionManager pm, int bestMove, int killer1, int killer2, int orderMoveList, int targetPosition) throws InvalidPieceException {	
 		Colour onMove = pm.getOnMove();
 		boolean needToEscapeMate = pm.isKingInCheck(onMove);
 
-		normal_search_moves = pm.generateMoves();
+		normal_search_moves = pm.generateMoves(targetPosition);
 		int foundBestMove = removeInvalidIdentifyBestKillerMoves(pm, bestMove, killer1, killer2, onMove, needToEscapeMate);
 		if (foundBestMove != Move.NULL_MOVE) {
 			normal_search_moves.add(0, foundBestMove);
