@@ -134,72 +134,198 @@ public class PieceList {
 		}
 	}
 	
-	public void addMovesEndgame(boolean ownSideIsWhite, List<Integer> movesList) {
+	public void addMovesEndgame(boolean ownSideIsWhite, List<Integer> movesList, int potentialAttackersOfSquare) {
 		int side = ownSideIsWhite ? 0 : Piece.BLACK;
-		{
-			int atSquare = piece_list[side+Piece.KING][0];
-			if (atSquare != Position.NOPOSITION) {			
-				Piece.king_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+		if (potentialAttackersOfSquare == Position.NOPOSITION) {
+			{
+				int atSquare = piece_list[side+Piece.KING][0];
+				if (atSquare != Position.NOPOSITION) {			
+					Piece.king_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+				}
 			}
-		}
-		for(int atSquare : piece_list[side+Piece.QUEEN]) {
-			if (atSquare != Position.NOPOSITION) {			
-				Piece.queen_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
-			} else break;
-		}
-		for(int atSquare : piece_list[side+Piece.ROOK]) {
-			if (atSquare != Position.NOPOSITION) {			
-				Piece.rook_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
-			} else break;
-		}
-		for(int atSquare : piece_list[side+Piece.BISHOP]) {
-			if (atSquare != Position.NOPOSITION) {			
-				Piece.bishop_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
-			} else break;
-		}
-		for(int atSquare : piece_list[side+Piece.KNIGHT]) {
-			if (atSquare != Position.NOPOSITION) {			
-				Piece.knight_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
-			} else break;
-		}
-		for(int atSquare : piece_list[side+Piece.PAWN]) {
-			if (atSquare != Position.NOPOSITION) {			
-				Piece.pawn_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
-			} else break;
+			for(int atSquare : piece_list[side+Piece.QUEEN]) {
+				if (atSquare != Position.NOPOSITION) {			
+					Piece.queen_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+				} else break;
+			}
+			for(int atSquare : piece_list[side+Piece.ROOK]) {
+				if (atSquare != Position.NOPOSITION) {			
+					Piece.rook_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+				} else break;
+			}
+			for(int atSquare : piece_list[side+Piece.BISHOP]) {
+				if (atSquare != Position.NOPOSITION) {			
+					Piece.bishop_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+				} else break;
+			}
+			for(int atSquare : piece_list[side+Piece.KNIGHT]) {
+				if (atSquare != Position.NOPOSITION) {			
+					Piece.knight_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+				} else break;
+			}
+			for(int atSquare : piece_list[side+Piece.PAWN]) {
+				if (atSquare != Position.NOPOSITION) {			
+					Piece.pawn_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+				} else break;
+			}
+		} else {
+			long allAttacksMask = SquareAttackEvaluator.allAttacksOnPosition_Lut[potentialAttackersOfSquare];
+			long pieceMask = ownSideIsWhite ? theBoard.getWhiteKing() : theBoard.getBlackKing();
+			if ((allAttacksMask & pieceMask) != 0) {
+				int atSquare = piece_list[side+Piece.KING][0];
+				if (atSquare != Position.NOPOSITION) {
+					if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {
+						Piece.king_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+					}
+				}
+			}
+			pieceMask = ownSideIsWhite ? theBoard.getWhiteQueens() : theBoard.getBlackQueens();
+			if ((allAttacksMask & pieceMask) != 0) {
+				for(int atSquare : piece_list[side+Piece.QUEEN]) {
+					if (atSquare != Position.NOPOSITION) {
+						if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {
+							Piece.queen_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+						}
+					} else break;
+				}
+			}
+			pieceMask = ownSideIsWhite ? theBoard.getWhiteRooks() : theBoard.getBlackRooks();
+			if ((allAttacksMask & pieceMask) != 0) {
+				for(int atSquare : piece_list[side+Piece.ROOK]) {
+					if (atSquare != Position.NOPOSITION) {
+						if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {	
+							Piece.rook_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+						}
+					} else break;
+				}
+			}
+			pieceMask = ownSideIsWhite ? theBoard.getWhiteBishops() : theBoard.getBlackBishops();
+			if ((allAttacksMask & pieceMask) != 0) {
+				for(int atSquare : piece_list[side+Piece.BISHOP]) {
+					if (atSquare != Position.NOPOSITION) {
+						if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {			
+							Piece.bishop_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+						}
+					} else break;
+				}
+			}
+			pieceMask = ownSideIsWhite ? theBoard.getWhiteKnights() : theBoard.getBlackKnights();
+			if ((allAttacksMask & pieceMask) != 0) {
+				for(int atSquare : piece_list[side+Piece.KNIGHT]) {
+					if (atSquare != Position.NOPOSITION) {	
+						if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {
+							Piece.knight_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+						}
+					} else break;
+				}
+			}
+			pieceMask = ownSideIsWhite ? theBoard.getWhitePawns() : theBoard.getBlackPawns();
+			if ((allAttacksMask & pieceMask) != 0) {
+				for(int atSquare : piece_list[side+Piece.PAWN]) {
+					if (atSquare != Position.NOPOSITION) {	
+						if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {
+							Piece.pawn_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+						}
+					} else break;
+				}
+			}
 		}
 	}
 	
-	public void addMovesMiddlegame(boolean ownSideIsWhite, List<Integer> movesList) {
+	public void addMovesMiddlegame(boolean ownSideIsWhite, List<Integer> movesList, int potentialAttackersOfSquare) {
 		int side = ownSideIsWhite ? 0 : Piece.BLACK;
-		for(int atSquare : piece_list[side+Piece.QUEEN]) {
-			if (atSquare != Position.NOPOSITION) {			
-				Piece.queen_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
-			} else break;
-		}
-		for(int atSquare : piece_list[side+Piece.ROOK]) {
-			if (atSquare != Position.NOPOSITION) {			
-				Piece.rook_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
-			} else break;
-		}
-		for(int atSquare : piece_list[side+Piece.BISHOP]) {
-			if (atSquare != Position.NOPOSITION) {			
-				Piece.bishop_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
-			} else break;
-		}
-		for(int atSquare : piece_list[side+Piece.KNIGHT]) {
-			if (atSquare != Position.NOPOSITION) {			
-				Piece.knight_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
-			} else break;
-		}
-		for(int atSquare : piece_list[side+Piece.PAWN]) {
-			if (atSquare != Position.NOPOSITION) {			
-				Piece.pawn_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
-			} else break;
-		}
-		{
-			int atSquare = piece_list[side+Piece.KING][0];
-			if (atSquare != Position.NOPOSITION) {			
-				Piece.king_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+		if (potentialAttackersOfSquare == Position.NOPOSITION) {
+			for(int atSquare : piece_list[side+Piece.QUEEN]) {
+				if (atSquare != Position.NOPOSITION) {			
+					Piece.queen_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+				} else break;
+			}
+			for(int atSquare : piece_list[side+Piece.ROOK]) {
+				if (atSquare != Position.NOPOSITION) {			
+					Piece.rook_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+				} else break;
+			}
+			for(int atSquare : piece_list[side+Piece.BISHOP]) {
+				if (atSquare != Position.NOPOSITION) {			
+					Piece.bishop_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+				} else break;
+			}
+			for(int atSquare : piece_list[side+Piece.KNIGHT]) {
+				if (atSquare != Position.NOPOSITION) {			
+					Piece.knight_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+				} else break;
+			}
+			for(int atSquare : piece_list[side+Piece.PAWN]) {
+				if (atSquare != Position.NOPOSITION) {			
+					Piece.pawn_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+				} else break;
+			}
+			{
+				int atSquare = piece_list[side+Piece.KING][0];
+				if (atSquare != Position.NOPOSITION) {			
+					Piece.king_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+				}
+			}
+		} else {
+			long allAttacksMask = SquareAttackEvaluator.allAttacksOnPosition_Lut[potentialAttackersOfSquare];
+			long pieceMask = ownSideIsWhite ? theBoard.getWhiteQueens() : theBoard.getBlackQueens();
+			if ((allAttacksMask & pieceMask) != 0) {
+				for(int atSquare : piece_list[side+Piece.QUEEN]) {
+					if (atSquare != Position.NOPOSITION) {
+						if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {
+							Piece.queen_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+						}
+					} else break;
+				}
+			}
+			pieceMask = ownSideIsWhite ? theBoard.getWhiteRooks() : theBoard.getBlackRooks();
+			if ((allAttacksMask & pieceMask) != 0) {
+				for(int atSquare : piece_list[side+Piece.ROOK]) {
+					if (atSquare != Position.NOPOSITION) {	
+						if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {
+							Piece.rook_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+						}
+					} else break;
+				}
+			}
+			pieceMask = ownSideIsWhite ? theBoard.getWhiteBishops() : theBoard.getBlackBishops();
+			if ((allAttacksMask & pieceMask) != 0) {
+				for(int atSquare : piece_list[side+Piece.BISHOP]) {
+					if (atSquare != Position.NOPOSITION) {		
+						if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {
+							Piece.bishop_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+						}
+					} else break;
+				}
+			}
+			pieceMask = ownSideIsWhite ? theBoard.getWhiteKnights() : theBoard.getBlackKnights();
+			if ((allAttacksMask & pieceMask) != 0) {
+				for(int atSquare : piece_list[side+Piece.KNIGHT]) {
+					if (atSquare != Position.NOPOSITION) {
+						if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {
+							Piece.knight_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+						}
+					} else break;
+				}
+			}
+			pieceMask = ownSideIsWhite ? theBoard.getWhitePawns() : theBoard.getBlackPawns();
+			if ((allAttacksMask & pieceMask) != 0) {
+				for(int atSquare : piece_list[side+Piece.PAWN]) {
+					if (atSquare != Position.NOPOSITION) {
+						if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {
+							Piece.pawn_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+						}
+					} else break;
+				}
+			}
+			pieceMask = ownSideIsWhite ? theBoard.getWhiteKing() : theBoard.getBlackKing();
+			if ((allAttacksMask & pieceMask) != 0) {
+				int atSquare = piece_list[side+Piece.KING][0];
+				if (atSquare != Position.NOPOSITION) {
+					if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {
+						Piece.king_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+					}
+				}
 			}
 		}
 	}

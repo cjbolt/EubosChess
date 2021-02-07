@@ -20,7 +20,7 @@ import com.fluxchess.jcpi.models.IntRank;
 
 public class Board {
 	
-	public static final boolean ENABLE_PIECE_LISTS = false;
+	public static final boolean ENABLE_PIECE_LISTS = true;
 	
 	private static final long LIGHT_SQUARES_MASK = 0x55AA55AA55AA55AAL;
 	private static final long DARK_SQUARES_MASK = 0xAA55AA55AA55AA55L; 
@@ -861,9 +861,9 @@ public class Board {
 		if (ENABLE_PIECE_LISTS) {
 			List<Integer> movesList = new LinkedList<Integer>();
 			if (isEndgame) {
-				pieceLists.addMovesEndgame(ownSideIsWhite, movesList);
+				pieceLists.addMovesEndgame(ownSideIsWhite, movesList, potentialAttckersOfSquare);
 			} else {
-				pieceLists.addMovesMiddlegame(ownSideIsWhite, movesList);
+				pieceLists.addMovesMiddlegame(ownSideIsWhite, movesList, potentialAttckersOfSquare);
 			}
 			return movesList;
 		} else {
