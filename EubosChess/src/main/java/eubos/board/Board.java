@@ -20,7 +20,7 @@ import com.fluxchess.jcpi.models.IntRank;
 
 public class Board {
 	
-	public static final boolean ENABLE_PIECE_LISTS = true;
+	public static final boolean ENABLE_PIECE_LISTS = false;
 	
 	private static final long LIGHT_SQUARES_MASK = 0x55AA55AA55AA55AAL;
 	private static final long DARK_SQUARES_MASK = 0xAA55AA55AA55AA55L; 
@@ -869,12 +869,22 @@ public class Board {
 		} else {
 			long bitBoardToIterate = ownSideIsWhite ? whitePieces : blackPieces;
 			List<Integer> movesList = new LinkedList<Integer>();
+			long scratchBitBoard = 0;
 			// Unrolled loop for performance optimisation...
-			long scratchBitBoard = bitBoardToIterate & pieces[INDEX_PAWN];
+			if (isEndgame) {
+				scratchBitBoard = bitBoardToIterate & pieces[INDEX_KING];
+				while ( scratchBitBoard != 0x0L ) {
+					int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
+					int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
+					Piece.king_generateMoves(movesList, this, atSquare, ownSideIsWhite);
+					scratchBitBoard &= scratchBitBoard-1L;
+				}
+			}
+			scratchBitBoard = bitBoardToIterate & pieces[INDEX_QUEEN];
 			while ( scratchBitBoard != 0x0L ) {
 				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-				Piece.pawn_generateMoves(movesList, this, atSquare, ownSideIsWhite);
+				Piece.queen_generateMoves(movesList, this, atSquare, ownSideIsWhite);
 				scratchBitBoard &= scratchBitBoard-1L;
 			}
 			scratchBitBoard = bitBoardToIterate & pieces[INDEX_ROOK];
@@ -898,19 +908,21 @@ public class Board {
 				Piece.knight_generateMoves(movesList, this, atSquare, ownSideIsWhite);
 				scratchBitBoard &= scratchBitBoard-1L;
 			}
-			scratchBitBoard = bitBoardToIterate & pieces[INDEX_KING];
+			scratchBitBoard = bitBoardToIterate & pieces[INDEX_PAWN];
 			while ( scratchBitBoard != 0x0L ) {
 				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-				Piece.king_generateMoves(movesList, this, atSquare, ownSideIsWhite);
+				Piece.pawn_generateMoves(movesList, this, atSquare, ownSideIsWhite);
 				scratchBitBoard &= scratchBitBoard-1L;
 			}
-			scratchBitBoard = bitBoardToIterate & pieces[INDEX_QUEEN];
-			while ( scratchBitBoard != 0x0L ) {
-				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
-				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-				Piece.queen_generateMoves(movesList, this, atSquare, ownSideIsWhite);
-				scratchBitBoard &= scratchBitBoard-1L;
+			if (!isEndgame) {
+				scratchBitBoard = bitBoardToIterate & pieces[INDEX_KING];
+				while ( scratchBitBoard != 0x0L ) {
+					int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
+					int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
+					Piece.king_generateMoves(movesList, this, atSquare, ownSideIsWhite);
+					scratchBitBoard &= scratchBitBoard-1L;
+				}
 			}
 			return movesList;
 		}
