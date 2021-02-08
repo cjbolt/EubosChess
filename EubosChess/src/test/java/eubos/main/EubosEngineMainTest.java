@@ -150,7 +150,7 @@ public class EubosEngineMainTest {
 			if (Board.ENABLE_PIECE_LISTS) {
 				commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR, removeTimeFieldsFromUciInfoMessage("info depth 1 seldepth 4 score cp -149 pv d7e5 f3e5 c7e5 nps 0 time 0 nodes 7"+CMD_TERMINATOR+
 						                                                         "info depth 1 seldepth 4 score cp 135 pv c7c2 e1g1 nps 105 time 85 nodes 9"+CMD_TERMINATOR+
-						                                                         "info depth 2 seldepth 0 score cp 24 pv c7c2 d4d5 f7f5 nps 825 time 103 nodes 85"+CMD_TERMINATOR
+						                                                         "info depth 2 seldepth 0 score cp 34 pv c7c2 d4d5 a7a5 nps 904 time 94 nodes 85"+CMD_TERMINATOR
 						                                                         +BEST_PREFIX+"c7c2")+CMD_TERMINATOR)); // don't strip the last command terminator!
 			} else {
 				commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR, removeTimeFieldsFromUciInfoMessage("info depth 1 seldepth 4 score cp -149 pv d7e5 f3e5 c7e5 nps 0 time 0 nodes 7"+CMD_TERMINATOR+

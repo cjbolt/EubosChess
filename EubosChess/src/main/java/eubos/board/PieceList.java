@@ -219,15 +219,12 @@ public class PieceList {
 					} else break;
 				}
 			}
+			// Search pawn moves in extended search because they could lead to a promotion
 			pieceMask = ownSideIsWhite ? theBoard.getWhitePawns() : theBoard.getBlackPawns();
-			if ((allAttacksMask & pieceMask) != 0) {
-				for(int atSquare : piece_list[side+Piece.PAWN]) {
-					if (atSquare != Position.NOPOSITION) {	
-						if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {
-							Piece.pawn_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
-						}
-					} else break;
-				}
+			for(int atSquare : piece_list[side+Piece.PAWN]) {
+				if (atSquare != Position.NOPOSITION) {	
+					Piece.pawn_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+				} else break;
 			}
 		}
 	}
@@ -309,14 +306,11 @@ public class PieceList {
 				}
 			}
 			pieceMask = ownSideIsWhite ? theBoard.getWhitePawns() : theBoard.getBlackPawns();
-			if ((allAttacksMask & pieceMask) != 0) {
-				for(int atSquare : piece_list[side+Piece.PAWN]) {
-					if (atSquare != Position.NOPOSITION) {
-						if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {
-							Piece.pawn_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
-						}
-					} else break;
-				}
+			// Search pawn moves in extended search because they could lead to a promotion
+			for(int atSquare : piece_list[side+Piece.PAWN]) {
+				if (atSquare != Position.NOPOSITION) {
+					Piece.pawn_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+				} else break;
 			}
 			pieceMask = ownSideIsWhite ? theBoard.getWhiteKing() : theBoard.getBlackKing();
 			if ((allAttacksMask & pieceMask) != 0) {
