@@ -8,7 +8,6 @@ import eubos.search.transposition.ITransposition;
 
 public class ReferenceScore {
 	public class Reference {
-		public short staticEvalOfRootPosition = 0;
 		public short score = 0;
 		public String origin = "None";
 		public byte depth = 0;
@@ -31,7 +30,6 @@ public class ReferenceScore {
 	public void updateReference(IPositionAccessors rootPos) {
 		this.rootPosition = rootPos;
 		checkLastScoreValidity();
-		reference.staticEvalOfRootPosition = Score.getScore(rootPos.getPositionEvaluator().evaluatePosition());
 		
 		ITransposition trans = hashMap.getTransposition(rootPos.getHash());		
 		if (trans != null && trans.getType() == Score.exact) {
@@ -47,14 +45,13 @@ public class ReferenceScore {
 		} else {
 			// Back off to a static evaluation to work out initial score
 			reference.origin = "set from static eval";
-			reference.score = reference.staticEvalOfRootPosition;
+			reference.score = Score.getScore(rootPos.getPositionEvaluator().evaluatePosition());
 			reference.depth = 0;
 		}
 		
-		// Convert to UCI scores
+		// Convert to UCI score
 		if (Colour.isBlack(rootPos.getOnMove())) {
 			reference.score = (short)-reference.score;
-			reference.staticEvalOfRootPosition = (short)-reference.staticEvalOfRootPosition;
 		}
 		
 		// Invalidate the last score, this will be re-validated when the first UCI PV message of search is received

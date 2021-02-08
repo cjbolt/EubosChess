@@ -3,7 +3,6 @@ package eubos.search;
 import java.util.Iterator;
 import java.util.List;
 
-import eubos.board.Board;
 import eubos.board.InvalidPieceException;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;

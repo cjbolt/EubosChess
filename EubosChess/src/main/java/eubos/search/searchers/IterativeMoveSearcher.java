@@ -171,10 +171,6 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			byte currDepth = (byte)mg.sm.getDepth();
 			Reference ref = refScore.getReference();
 			switch (checkPoint) {
-			case 0:
-				if (currentScore > ref.staticEvalOfRootPosition + 500)
-					terminateNow = true;
-				break;
 			case 1:
 				if (currentScore >= ref.score && currDepth >= ref.depth) {
 					terminateNow = true;

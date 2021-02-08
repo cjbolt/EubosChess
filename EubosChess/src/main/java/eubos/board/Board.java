@@ -970,22 +970,22 @@ public class Board {
 		case Piece.WHITE_ROOK:
 			eval.addPiece(true, Piece.ROOK);
 			if (!isEndgame)
-				eval.addPosition(true, (short)(getNumEmptyRankFileSquares(atPos)*2));
+				eval.addPosition(true, getTwiceNumEmptyRankFileSquares(atPos));
 			break;
 		case Piece.BLACK_ROOK:
 			eval.addPiece(false, Piece.ROOK);
 			if (!isEndgame)
-				eval.addPosition(false, (short)(getNumEmptyRankFileSquares(atPos)*2));
+				eval.addPosition(false, getTwiceNumEmptyRankFileSquares(atPos));
 			break;
 		case Piece.WHITE_BISHOP:
 			eval.addPiece(true, Piece.BISHOP);
 			if (!isEndgame)
-				eval.addPosition(true, (short)(getNumEmptyDiagonalSquares(atPos)*2));
+				eval.addPosition(true, getTwiceNumEmptyDiagonalSquares(atPos));
 			break;
 		case Piece.BLACK_BISHOP:
 			eval.addPiece(false, Piece.BISHOP);
 			if (!isEndgame)
-				eval.addPosition(false, (short)(getNumEmptyDiagonalSquares(atPos)*2));
+				eval.addPosition(false, getTwiceNumEmptyDiagonalSquares(atPos));
 			break;
 		case Piece.WHITE_KNIGHT:
 			eval.addPiece(true, Piece.KNIGHT);
@@ -998,12 +998,12 @@ public class Board {
 		case Piece.WHITE_QUEEN:
 			eval.addPiece(true, Piece.QUEEN);
 			if (!isEndgame)
-				eval.addPosition(true, (short)(getNumEmptyAllDirectSquares(atPos)*2));
+				eval.addPosition(true, getTwiceNumEmptyAllDirectSquares(atPos));
 			break;
 		case Piece.BLACK_QUEEN:
 			eval.addPiece(false, Piece.QUEEN);
 			if (!isEndgame)
-				eval.addPosition(false, (short)(getNumEmptyAllDirectSquares(atPos)*2));
+				eval.addPosition(false, getTwiceNumEmptyAllDirectSquares(atPos));
 			break;
 		case Piece.WHITE_KING:
 			eval.addPiece(true, Piece.KING);
@@ -1098,10 +1098,10 @@ public class Board {
 			} else {
 				kingPos = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(kingMask)];
 			}
-			evaluation = getNumEmptyDiagonalSquares(kingPos) * -numPotentialAttackers;
+			evaluation = (getTwiceNumEmptyDiagonalSquares(kingPos)/2) * -numPotentialAttackers;
 			
 			numPotentialAttackers = Long.bitCount(rankFileAttackersMask);
-			evaluation += getNumEmptyRankFileSquares(kingPos) * -numPotentialAttackers;
+			evaluation += (getTwiceNumEmptyRankFileSquares(kingPos)/2) * -numPotentialAttackers;
 			
 			if (!onMoveWasWhite) {
 				evaluation = -evaluation;
@@ -1110,16 +1110,16 @@ public class Board {
 		return evaluation;
 	}
 	
-	public byte getNumEmptyDiagonalSquares(int atPos) {
-		return getNumEmptySquaresInDirection(atPos, SquareAttackEvaluator.diagonals);
+	public byte getTwiceNumEmptyDiagonalSquares(int atPos) {
+		return getTwiceNumEmptySquaresInDirection(atPos, SquareAttackEvaluator.diagonals);
 	}
 	
-	public byte getNumEmptyRankFileSquares(int atPos) {
-		return getNumEmptySquaresInDirection(atPos, SquareAttackEvaluator.rankFile);
+	public byte getTwiceNumEmptyRankFileSquares(int atPos) {
+		return getTwiceNumEmptySquaresInDirection(atPos, SquareAttackEvaluator.rankFile);
 	}
 	
-	public byte getNumEmptyAllDirectSquares(int atPos) {
-		return getNumEmptySquaresInDirection(atPos, SquareAttackEvaluator.allDirect);
+	public byte getTwiceNumEmptyAllDirectSquares(int atPos) {
+		return getTwiceNumEmptySquaresInDirection(atPos, SquareAttackEvaluator.allDirect);
 	}
 	
 	static final long[][][] emptySquareMask_Lut = new long[128][SquareAttackEvaluator.allDirect.length][];
@@ -1138,7 +1138,7 @@ public class Board {
 		}
 	}
 	
-	private byte getNumEmptySquaresInDirection(int atPos, Direction [] dirs) {
+	private byte getTwiceNumEmptySquaresInDirection(int atPos, Direction [] dirs) {
 		byte numSquares = 0;
 		// One dimension for each direction, other dimension is array of individual square masks in that direction
 		long [][] emptySqMaskArray = emptySquareMask_Lut[atPos]; 
@@ -1150,12 +1150,12 @@ public class Board {
 					// Count the empty squares
 					for (long mask: emptySqMaskArray[directionIndex]) {
 						if ((allPieces & mask) == 0) {
-							numSquares++;
+							numSquares+=2;
 						} else break;
 					}
 				} else {
 					// All the squares are empty in this direction
-					numSquares += emptySqMaskArray[directionIndex].length;
+					numSquares += (emptySqMaskArray[directionIndex].length*2);
 				}
 			} else {
 				 // This is a square on the edge of the board from which that direction is off the board

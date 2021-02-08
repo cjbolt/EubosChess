@@ -131,21 +131,21 @@ public class BoardTest {
 	@Test
 	public void testOpenFile_isOpen() {
 		classUnderTest.setPieceAtSquare(Position.h8, Piece.BLACK_PAWN);
-		assertEquals(14, classUnderTest.getNumEmptyRankFileSquares(Position.h8));
+		assertEquals(14, classUnderTest.getTwiceNumEmptyRankFileSquares(Position.h8)/2);
 	}
 	
 	@Test
 	public void testOpenFile_isClosed() {
 		classUnderTest.setPieceAtSquare(Position.h7, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(Position.h2, Piece.WHITE_ROOK);
-		assertEquals(12, classUnderTest.getNumEmptyRankFileSquares(Position.h2));
+		assertEquals(12, classUnderTest.getTwiceNumEmptyRankFileSquares(Position.h2)/2);
 	}
 	
 	@Test
 	public void testOpenFile_isOpen1() {
 		classUnderTest.setPieceAtSquare(Position.d7, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(Position.e2, Piece.WHITE_ROOK);
-		assertEquals(14, classUnderTest.getNumEmptyRankFileSquares(Position.e2));
+		assertEquals(14, classUnderTest.getTwiceNumEmptyRankFileSquares(Position.e2)/2);
 	}
 	
 	@Test
@@ -176,14 +176,14 @@ public class BoardTest {
 	public void testisOnOpenDiagonal_Yes() {
 		classUnderTest.setPieceAtSquare(Position.d5, Piece.BLACK_BISHOP);
 		classUnderTest.setPieceAtSquare(Position.e5, Piece.WHITE_PAWN);
-		assertEquals(13,classUnderTest.getNumEmptyDiagonalSquares(Position.d5));
+		assertEquals(13,classUnderTest.getTwiceNumEmptyDiagonalSquares(Position.d5)/2);
 	}
 	
 	@Test
 	public void testisOnOpenDiagonal_No() {
 		classUnderTest.setPieceAtSquare(Position.d5, Piece.BLACK_BISHOP);
 		classUnderTest.setPieceAtSquare(Position.e6, Piece.WHITE_PAWN);
-		assertEquals(10,classUnderTest.getNumEmptyDiagonalSquares(Position.d5));
+		assertEquals(10,classUnderTest.getTwiceNumEmptyDiagonalSquares(Position.d5)/2);
 	}
 	
 	@Test
@@ -193,21 +193,21 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.d6, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.d4, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.c5, Piece.WHITE_PAWN);
-		assertEquals(13,classUnderTest.getNumEmptyDiagonalSquares(Position.d5));
+		assertEquals(13,classUnderTest.getTwiceNumEmptyDiagonalSquares(Position.d5)/2);
 	}
 	
 	@Test
 	public void testisOnOpenDiagonal_No1() {
 		classUnderTest.setPieceAtSquare(Position.a1, Piece.BLACK_BISHOP);
 		classUnderTest.setPieceAtSquare(Position.h8, Piece.WHITE_PAWN);
-		assertEquals(6,classUnderTest.getNumEmptyDiagonalSquares(Position.a1));
+		assertEquals(6,classUnderTest.getTwiceNumEmptyDiagonalSquares(Position.a1)/2);
 	}
 	
 	@Test
 	public void testisOnOpenDiagonal_Yes2() {
 		classUnderTest.setPieceAtSquare(Position.a1, Piece.BLACK_BISHOP);
 		classUnderTest.setPieceAtSquare(Position.a8, Piece.WHITE_PAWN);
-		assertEquals(7,classUnderTest.getNumEmptyDiagonalSquares(Position.a1));
+		assertEquals(7,classUnderTest.getTwiceNumEmptyDiagonalSquares(Position.a1)/2);
 	}
 	
 	@Test

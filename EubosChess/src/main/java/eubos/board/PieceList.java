@@ -337,21 +337,21 @@ public class PieceList {
 			if (atSquare != Position.NOPOSITION) {			
 				theBoard.me.addPiece(isWhite, Piece.QUEEN);
 				if (!theBoard.isEndgame)
-					theBoard.me.addPosition(isWhite, (byte)(theBoard.getNumEmptyAllDirectSquares(atSquare)*2));
+					theBoard.me.addPosition(isWhite, theBoard.getTwiceNumEmptyAllDirectSquares(atSquare));
 			} else break;
 		}
 		for(int atSquare : piece_list[side+Piece.ROOK]) {
 			if (atSquare != Position.NOPOSITION) {			
 				theBoard.me.addPiece(isWhite, Piece.ROOK);
 				if (!theBoard.isEndgame)
-					theBoard.me.addPosition(isWhite, (byte)(theBoard.getNumEmptyRankFileSquares(atSquare)*2));
+					theBoard.me.addPosition(isWhite, theBoard.getTwiceNumEmptyRankFileSquares(atSquare));
 			} else break;
 		}
 		for(int atSquare : piece_list[side+Piece.BISHOP]) {
 			if (atSquare != Position.NOPOSITION) {			
 				theBoard.me.addPiece(isWhite, Piece.BISHOP);
 				if (!theBoard.isEndgame)
-					theBoard.me.addPosition(isWhite, (byte)(theBoard.getNumEmptyDiagonalSquares(atSquare)*2));
+					theBoard.me.addPosition(isWhite, theBoard.getTwiceNumEmptyDiagonalSquares(atSquare));
 			} else break;
 		}
 		for(int atSquare : piece_list[side+Piece.KNIGHT]) {
