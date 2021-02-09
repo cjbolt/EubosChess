@@ -38,30 +38,28 @@ public class SearchContext {
 	}
 
 	private void setGoal(ReferenceScore refScore) {
-		if (ALWAYS_TRY_FOR_WIN) {
-			goal = SearchGoal.try_for_win;
-			
-		} else if (pos.getTheBoard().isInsufficientMaterial(Colour.getOpposite(initialOnMove))) {
-			// When opponent can't win
-			goal = SearchGoal.try_for_mate;
-			// consider cleaning hash table when we first get this goal?
-			// otherwise we can get a problem where prior hash scores exist which can have e.g. try_for_draw scores in them, causing errors!
-			// see this position - 8/1P6/2K2k2/8/4n3/8/8/8 w - - - 75
-		} else if (pos.getTheBoard().isInsufficientMaterial(initialOnMove)) {
-			// When we can't win
-			goal = SearchGoal.try_for_draw;
-			
-		} else if ((refScore != null && refScore.getReference().score > SIMPLIFY_THRESHOLD) && 
-				(Colour.isWhite(initialOnMove) && initial.getDelta() > SIMPLIFY_THRESHOLD) ||
-				(Colour.isBlack(initialOnMove) && initial.getDelta() < -SIMPLIFY_THRESHOLD )) {
-			// When simplification possible
-			goal = SearchGoal.simplify;
-			
-		} else if (refScore != null && refScore.getReference().score < DRAW_THRESHOLD) {
-			goal = SearchGoal.try_for_draw;
-			
-		} else {
-			goal = SearchGoal.try_for_win;
+		goal = SearchGoal.try_for_win;
+		if (!ALWAYS_TRY_FOR_WIN) {
+			if (pos.getTheBoard().isInsufficientMaterial(Colour.getOpposite(initialOnMove))) {
+				// When opponent can't win
+				goal = SearchGoal.try_for_mate;
+				// consider cleaning hash table when we first get this goal?
+				// otherwise we can get a problem where prior hash scores exist which can have e.g. try_for_draw scores in them, causing errors!
+				// see this position - 8/1P6/2K2k2/8/4n3/8/8/8 w - - - 75
+				
+			} else if (pos.getTheBoard().isInsufficientMaterial(initialOnMove) ||
+					   (refScore != null && refScore.getReference().score < DRAW_THRESHOLD)) {
+				// When we can't win
+				goal = SearchGoal.try_for_draw;
+				
+			} else if (refScore != null && 
+					   (!pos.getTheBoard().isEndgame && refScore.getReference().score > SIMPLIFY_THRESHOLD) ||
+					   (pos.getTheBoard().isEndgame && refScore.getReference().score < 0)) {
+				// When simplification possible, but don't oversimplify in the endgame, if winning. Can simplify endgame if losing.
+				goal = SearchGoal.simplify;
+			} else {
+				// Default; try_for_win
+			}
 		}
 	}
 	

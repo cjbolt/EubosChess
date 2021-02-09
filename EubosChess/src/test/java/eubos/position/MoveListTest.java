@@ -107,9 +107,9 @@ public class MoveListTest {
 		assertEquals(new GenericMove("d7b5"), Move.toGenericMove(it.next())); // BxR delta 1 gains 2
 		
 		// neutral exchanges
+		assertEquals(new GenericMove("g2f3"), Move.toGenericMove(it.next())); // PxP
 		assertEquals(new GenericMove("b1b5"), Move.toGenericMove(it.next())); // RxR
 		assertEquals(new GenericMove("a6e6"), Move.toGenericMove(it.next())); // QxQ
-		assertEquals(new GenericMove("g2f3"), Move.toGenericMove(it.next())); // PxP
 		
 		// losing material
 		assertEquals(new GenericMove("g5f3"), Move.toGenericMove(it.next())); // NxP delta -1 loses 2
@@ -132,12 +132,13 @@ public class MoveListTest {
 		assertEquals(new GenericMove("d7b5"), Move.toGenericMove(it.next())); // BxR delta 1 gains 2
 		
 		// neutral exchanges
-		assertEquals(new GenericMove("b1b5"), Move.toGenericMove(it.next())); // RxR
+		assertEquals(new GenericMove("g2f3"), Move.toGenericMove(it.next())); // PxP
 		if (Board.ENABLE_PIECE_LISTS) {
 			assertEquals(new GenericMove("f5e6"), Move.toGenericMove(it.next())); // PxP
-			assertEquals(new GenericMove("g2f3"), Move.toGenericMove(it.next())); // PxP
+			assertEquals(new GenericMove("b1b5"), Move.toGenericMove(it.next())); // RxR
+			
 		} else {
-			assertEquals(new GenericMove("g2f3"), Move.toGenericMove(it.next())); // PxP
+			assertEquals(new GenericMove("b1b5"), Move.toGenericMove(it.next())); // RxR
 			assertEquals(new GenericMove("f5e6"), Move.toGenericMove(it.next())); // PxP
 		}
 		

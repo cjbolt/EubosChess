@@ -459,9 +459,29 @@ public abstract class Piece {
 			moveList.add(0, Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.BISHOP ));
 			moveList.add(0, Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.KNIGHT ));
 		} else {
-			moveList.add(Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
+			if (targetPiece != Piece.NONE) {
+				// add captures at head of list
+				moveList.add(0, Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
+			} else {
+				moveList.add(Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
+			}
 		}
-	}	
+	}
+	
+	private static void pawn_checkQueenPromotionAddMove(int ownPiece, Board theBoard, int atSquare, boolean ownSideIsWhite, List<Integer> moveList,
+			int targetSquare, int targetPiece) {
+		if ( pawn_checkPromotionPossible( ownSideIsWhite, targetSquare )) {
+			// In extended search only generate the queen promotion move
+			moveList.add(0, Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.QUEEN ));
+		} else {
+			if (targetPiece != Piece.NONE) {
+				// add captures at head of list
+				moveList.add(0, Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
+			} else {
+				moveList.add(Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
+			}
+		}
+	}
 	
 	static List<Integer> pawn_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
 		int ownPiece = ownSideIsWhite ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
@@ -500,5 +520,31 @@ public abstract class Piece {
 			}
 		}
 		return moveList;
-	}		
+	}
+	
+	static List<Integer> pawn_generateMovesForExtendedSearch(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+		int ownPiece = ownSideIsWhite ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
+		int capturePiece = Piece.NONE;
+		// Standard move
+		int moveTo = pawn_genOneSqTarget(atSquare, ownSideIsWhite);
+		if ( moveTo != Position.NOPOSITION && theBoard.squareIsEmpty( moveTo )) {
+			pawn_checkQueenPromotionAddMove(ownPiece, theBoard, atSquare, ownSideIsWhite, moveList, moveTo, Piece.NONE);
+		}
+		// Capture moves
+		int captureAt = pawn_genLeftCaptureTarget(atSquare, ownSideIsWhite);
+		if ( captureAt != Position.NOPOSITION ) {
+			capturePiece = pawn_isCapturable(ownSideIsWhite, theBoard, captureAt);
+			if (capturePiece != Piece.NONE) {
+				pawn_checkQueenPromotionAddMove(ownPiece, theBoard, atSquare, ownSideIsWhite, moveList, captureAt, capturePiece);
+			}
+		}
+		captureAt = pawn_genRightCaptureTarget(atSquare, ownSideIsWhite);
+		if ( captureAt != Position.NOPOSITION ) {
+			capturePiece = pawn_isCapturable(ownSideIsWhite, theBoard, captureAt);
+			if (capturePiece != Piece.NONE) {
+				pawn_checkQueenPromotionAddMove(ownPiece, theBoard, atSquare, ownSideIsWhite, moveList, captureAt, capturePiece);
+			}
+		}
+		return moveList;
+	}
 }

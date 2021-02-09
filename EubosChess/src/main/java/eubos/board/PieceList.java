@@ -219,11 +219,10 @@ public class PieceList {
 					} else break;
 				}
 			}
-			// Search pawn moves in extended search because they could lead to a promotion
-			pieceMask = ownSideIsWhite ? theBoard.getWhitePawns() : theBoard.getBlackPawns();
+			// Search pawn moves in extended search because they could lead to a promotion, but only add promotions and captures
 			for(int atSquare : piece_list[side+Piece.PAWN]) {
-				if (atSquare != Position.NOPOSITION) {	
-					Piece.pawn_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+				if (atSquare != Position.NOPOSITION) {
+					Piece.pawn_generateMovesForExtendedSearch(movesList, theBoard, atSquare, ownSideIsWhite);
 				} else break;
 			}
 		}
@@ -306,10 +305,10 @@ public class PieceList {
 				}
 			}
 			pieceMask = ownSideIsWhite ? theBoard.getWhitePawns() : theBoard.getBlackPawns();
-			// Search pawn moves in extended search because they could lead to a promotion
+			// Search pawn moves in extended search because they could lead to a promotion, but only add promotions and captures
 			for(int atSquare : piece_list[side+Piece.PAWN]) {
 				if (atSquare != Position.NOPOSITION) {
-					Piece.pawn_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+					Piece.pawn_generateMovesForExtendedSearch(movesList, theBoard, atSquare, ownSideIsWhite);
 				} else break;
 			}
 			pieceMask = ownSideIsWhite ? theBoard.getWhiteKing() : theBoard.getBlackKing();
