@@ -11,23 +11,41 @@ import eubos.position.Position;
 
 public class SquareAttackEvaluator {
 	
-	static final Direction [] rankFile = { Direction.left, Direction.up, Direction.right, Direction.down };
+	static final Direction [] rankFile = { Direction.down, Direction.up, Direction.left, Direction.right };
 	
-	static final Direction [] diagonals = { Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
+	static final Map<Direction, Integer> rankFileDirectionIndex_Lut = new EnumMap<Direction, Integer>(Direction.class);
+	static {
+		// Indexes as specified by the order of the array SquareAttackEvaluator.rankFile
+		rankFileDirectionIndex_Lut.put(Direction.down, 0);
+		rankFileDirectionIndex_Lut.put(Direction.up, 1);
+		rankFileDirectionIndex_Lut.put(Direction.left, 2);
+		rankFileDirectionIndex_Lut.put(Direction.right, 3);
+	}
 	
-	static final Direction [] allDirect = { Direction.left, Direction.up, Direction.right, Direction.down, Direction.downLeft, Direction.upLeft, Direction.upRight, Direction.downRight };
+	static final Direction [] diagonals = { Direction.downLeft, Direction.upLeft, Direction.downRight, Direction.upRight };
+	
+	static final Map<Direction, Integer> diagonalsDirectionIndex_Lut = new EnumMap<Direction, Integer>(Direction.class);
+	static {
+		// Indexes as specified by the order of the array SquareAttackEvaluator.diagonals
+		diagonalsDirectionIndex_Lut.put(Direction.downLeft, 0);
+		diagonalsDirectionIndex_Lut.put(Direction.upLeft, 1);
+		diagonalsDirectionIndex_Lut.put(Direction.downRight, 2);
+		diagonalsDirectionIndex_Lut.put(Direction.upRight, 3);
+	}
+	
+	static final Direction [] allDirect = { Direction.downLeft, Direction.upLeft, Direction.downRight, Direction.upRight, Direction.down, Direction.up, Direction.left, Direction.right };
 	
 	static final Map<Direction, Integer> directionIndex_Lut = new EnumMap<Direction, Integer>(Direction.class);
 	static {
 		// Indexes as specified by the order of the array SquareAttackEvaluator.allDirect
-		directionIndex_Lut.put(Direction.left, 0);
-		directionIndex_Lut.put(Direction.up, 1);
-		directionIndex_Lut.put(Direction.right, 2);
-		directionIndex_Lut.put(Direction.down, 3);
-		directionIndex_Lut.put(Direction.downLeft, 4);
-		directionIndex_Lut.put(Direction.upLeft, 5);
-		directionIndex_Lut.put(Direction.upRight, 6);
-		directionIndex_Lut.put(Direction.downRight, 7);
+		directionIndex_Lut.put(Direction.downLeft, 0);
+		directionIndex_Lut.put(Direction.upLeft, 1);
+		directionIndex_Lut.put(Direction.downRight, 2);
+		directionIndex_Lut.put(Direction.upRight, 3);
+		directionIndex_Lut.put(Direction.down, 4);
+		directionIndex_Lut.put(Direction.up, 5);
+		directionIndex_Lut.put(Direction.left, 6);
+		directionIndex_Lut.put(Direction.right, 7);
 	}
 	
 	public static String reportStaticDataSizes() {
@@ -447,5 +465,18 @@ public class SquareAttackEvaluator {
 		long square = BitBoard.positionToMask_Lut[atSquare];
 		long attackingSquares = directAttacksOnPosition_Lut[kingPosition];
 		return ((square & attackingSquares) != 0);
+	}
+	
+	public static Direction findDirectionToTarget(int atSquare, int targetSq, Direction[] directionsToConsider) {
+		long targetMask = BitBoard.positionToMask_Lut[targetSq];
+		Direction attackDir = null;
+		for (Direction direction : directionsToConsider) {
+			long directionMask = directAttacksOnPositionAll_Lut[directionIndex_Lut.get(direction)][atSquare];
+			if ((targetMask & directionMask) != 0) {
+				attackDir = direction;
+				break;
+			}
+		}
+		return attackDir;
 	}
 }

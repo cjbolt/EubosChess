@@ -155,4 +155,14 @@ public class SquareAttackEvaluatorTest {
 		PositionManager pm = new PositionManager("5r1k/p2R3Q/1pp2p1p/8/5q2/5bN1/PP3P2/6K1 b - - - 0");
 		assertTrue(SquareAttackEvaluator.isAttacked(pm.getTheBoard(), Position.g8, Piece.Colour.getOpposite(pm.getOnMove())));
 	}
+	
+	@Test
+	public void test_findDirectionToTarget_upRight() {
+		assertEquals(Direction.upRight, SquareAttackEvaluator.findDirectionToTarget(Position.a1, Position.b2, SquareAttackEvaluator.diagonals));
+	}
+	
+	@Test
+	public void test_findDirectionToTarget_fail() {
+		assertNull(SquareAttackEvaluator.findDirectionToTarget(Position.a1, Position.b8, SquareAttackEvaluator.allDirect));
+	}
 }
