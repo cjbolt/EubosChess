@@ -175,30 +175,9 @@ public class MoveList implements Iterable<Integer> {
 		return retVal;
 	}
 
-	public boolean hasMultipleRegularMoves() {
-		int count = 0;
-		for (int move : normal_search_moves) {
-			if (Move.isRegular(move)) {
-				count++;
-				if (count == 2 )
-					return true;
-			}
-		}
-		return false;
-	}
-
 	public int getBestMove() {
 		if (normal_search_moves.size() != 0) {
 			return normal_search_moves.get(0);
-		} else {
-			return Move.NULL_MOVE;
-		}
-	}
-	
-	public int getSafestMove() {
-		if (normal_search_moves.size() != 0) {
-			/* The logic is to avoid checks, which will be in the highest prio indexes of the ml */
-			return normal_search_moves.get(normal_search_moves.size()-1);
 		} else {
 			return Move.NULL_MOVE;
 		}

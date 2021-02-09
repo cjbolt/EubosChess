@@ -219,14 +219,7 @@ public class PlySearcher {
 
         } else {
     		Iterator<Integer> move_iter = ml.getStandardIterator(isInExtendedSearch(), pos.lastMoveTargetSquare());
-    		if (move_iter.hasNext()) {
-    			theScore = actuallySearchMoves(ml, move_iter, trans);
-    		} else {
-    			// It is effectively a terminal node in extended search, so update the trans with null best move
-    			// and return a *safe* exact position score back down the tree. (i.e. not a check).			
-    			theScore = applySafestNormalMoveAndScore(ml);
-    			sda.printExtSearchNoMoves(theScore);
-    		}
+   			theScore = actuallySearchMoves(ml, move_iter, trans);
         }
         return theScore;
     }
@@ -237,10 +230,15 @@ public class PlySearcher {
 
 		byte plyBound = pos.onMoveIsWhite() ? Score.lowerBound : Score.upperBound;
 		short plyScore = (plyBound == Score.lowerBound) ? Short.MIN_VALUE : Short.MAX_VALUE;
+		plyScore = establishStandPatInExtendedSearch(ml, plyBound, plyScore);
+		
+		if (!move_iter.hasNext()) {
+			sda.printExtSearchNoMoves(plyScore);
+			return plyScore;
+		}
+		
 		int currMove = move_iter.next();
 		pc.initialise(currPly, currMove);
-
-		plyScore = establishStandPatInExtendedSearch(ml, plyBound, plyScore);
 
 		while(!isTerminated()) {
 			if (EubosEngineMain.UCI_INFO_ENABLED)
@@ -422,31 +420,6 @@ public class PlySearcher {
 		currPly--;
 		sda.prevPly();
 		sda.printUndoMove(currMove);
-		
-		if (EubosEngineMain.UCI_INFO_ENABLED)
-			sm.incrementNodesSearched();
-		return positionScore;
-	}
-	
-	private int applySafestNormalMoveAndScore(MoveList ml) throws InvalidPieceException {
-		if (EubosEngineMain.UCI_INFO_ENABLED)
-			pc.clearContinuationBeyondPly(currPly);
-		int currMove = ml.getSafestMove();
-		if (EubosEngineMain.ASSERTS_ENABLED)
-			assert currMove != Move.NULL_MOVE;
-		sda.printPerformMove(currMove);
-		pm.performMove(currMove, false);
-		currPly++;
-		sda.nextPly();
-		// exact because it is a terminal node
-		int positionScore = pe.evaluatePosition();
-		
-		pm.unperformMove(false);
-		currPly--;
-		sda.prevPly();
-		sda.printUndoMove(currMove);
-		
-		pc.update(currPly, currMove);
 		
 		if (EubosEngineMain.UCI_INFO_ENABLED)
 			sm.incrementNodesSearched();

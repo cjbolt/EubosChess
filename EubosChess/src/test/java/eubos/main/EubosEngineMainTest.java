@@ -148,9 +148,9 @@ public class EubosEngineMainTest {
 			// Setup Commands specific to this test
 			commands.add(new commandPair(POS_FEN_PREFIX+"r1b1kb1r/ppqnpppp/8/3pP3/3Q4/5N2/PPP2PPP/RNB1K2R b KQkq - 2 8"+CMD_TERMINATOR, null));
 			if (Board.ENABLE_PIECE_LISTS) {
-				commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR, removeTimeFieldsFromUciInfoMessage("info depth 1 seldepth 4 score cp -149 pv d7e5 f3e5 c7e5 nps 0 time 0 nodes 7"+CMD_TERMINATOR+
-						                                                         "info depth 1 seldepth 4 score cp 135 pv c7c2 e1g1 nps 105 time 85 nodes 9"+CMD_TERMINATOR+
-						                                                         "info depth 2 seldepth 0 score cp 34 pv c7c2 d4d5 a7a5 nps 904 time 94 nodes 85"+CMD_TERMINATOR
+				commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR, removeTimeFieldsFromUciInfoMessage("info depth 1 seldepth 4 score cp -149 pv d7e5 f3e5 c7e5 nps 350 time 20 nodes 7"+CMD_TERMINATOR+
+						                                                         "info depth 1 seldepth 4 score cp 168 pv c7c2 nps 80 time 99 nodes 8"+CMD_TERMINATOR+
+						                                                         "info depth 2 seldepth 0 score cp 30 pv c7c2 d4d5 nps 759 time 108 nodes 82"+CMD_TERMINATOR
 						                                                         +BEST_PREFIX+"c7c2")+CMD_TERMINATOR)); // don't strip the last command terminator!
 			} else {
 				commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR, removeTimeFieldsFromUciInfoMessage("info depth 1 seldepth 4 score cp -149 pv d7e5 f3e5 c7e5 nps 0 time 0 nodes 7"+CMD_TERMINATOR+
