@@ -101,28 +101,35 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		}
 		
 		enableSearchMetricsReporter(true);
-		while (isAtLeastOneWorkerStillAlive()) {
+		boolean isSearchCompleted = false;
+		do {
 			try {
 				synchronized (this) {
-					wait();
-					break;
+					if (isAtLeastOneWorkerStillAlive()) {
+						// Conditional, because if a mate is found from the hash table, the worker(s) might return before we hit the wait
+						wait();
+						EubosEngineMain.logger.info("MultithreadedIterativeMoveSearcher got notified.");
+					} else {
+						EubosEngineMain.logger.info("MultithreadedIterativeMoveSearcher dropthrough, already finished!");
+						isSearchCompleted = true;
+					}
 				}
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
-				break;
+				EubosEngineMain.logger.info("MultithreadedIterativeMoveSearcher got an InterruptedException.");
 			}
-		}		
+		} while (!isSearchCompleted && isAtLeastOneWorkerStillAlive());
 		enableSearchMetricsReporter(false);
 		stopper.end();
 		terminateSearchMetricsReporter();
 		
-		while (isAtLeastOneWorkerStillAlive()) {
-			try {
-				Thread.sleep(5);
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-			}
-		}
+//		while (isAtLeastOneWorkerStillAlive()) {
+//			try {
+//				Thread.sleep(5);
+//			} catch (InterruptedException e) {
+//				Thread.currentThread().interrupt();
+//			}
+//		}
 		sendBestMove();
 	}
 

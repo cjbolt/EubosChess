@@ -10,6 +10,7 @@ import eubos.score.ReferenceScore;
 import eubos.score.ReferenceScore.Reference;
 import eubos.search.DrawChecker;
 import eubos.search.NoLegalMoveException;
+import eubos.search.Score;
 import eubos.search.SearchResult;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 
@@ -129,10 +130,6 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				long timeQuantaForCheckPoint = calculateSearchTimeQuanta();
 				if (hasWaitedOnce) {
 					evaluateSearchProgressAtCheckpoint();
-					if (DEBUG_LOGGING) {
-						EubosEngineMain.logger.info(String.format(
-								"checkPoint=%d searchStopped=%s ranFor=%d ", checkPoint, searchStopped, timeRanFor));
-					}
 				}
 				if (stopperActive) {
 					// Handle sleeping and account for failure to wake up in a timely fashion
@@ -186,7 +183,17 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				break;
 			}
 			
-			if (terminateNow) { stopMoveSearcher(); } else { checkPoint++; };
+			if (terminateNow) { 
+				stopMoveSearcher(); 
+			}
+			checkPoint++;
+			
+			if (DEBUG_LOGGING) {
+				EubosEngineMain.logger.info(String.format(
+						"checkPoint=%d currentScore=%s refScore=%s depth=%d refDepth=%d SearchStopped=%s StopperActive=%s ranFor=%d ",
+						checkPoint, Score.toString(currentScore), Score.toString(ref.score), currDepth, ref.depth,
+						searchStopped, stopperActive, timeRanFor));
+			}
 		}
 		
 		private long sleepAndReportDuration(long timeQuanta) {
