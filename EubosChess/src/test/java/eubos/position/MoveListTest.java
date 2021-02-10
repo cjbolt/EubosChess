@@ -240,7 +240,7 @@ public class MoveListTest {
 	}
 	
 	@Test
-	public void test_check_extended_search_moves_contain_only_promotions_captures() throws InvalidPieceException, IllegalNotationException {
+	public void test_check_extended_search_moves_contain_only_promotions_captures_rook() throws InvalidPieceException, IllegalNotationException {
 		setup( "3q1rk1/p4pp1/2p4p/3p4/6Pr/1PNQ4/P1PB1PPb/4RR1K b - - - 2");
 		Iterator<Integer> it = classUnderTest.getStandardIterator(true, Position.g4);
 		
@@ -248,4 +248,56 @@ public class MoveListTest {
 		assertEquals(new GenericMove("h4g4"), Move.toGenericMove(it.next()));		
 		assertFalse(it.hasNext());
 	}
+	
+	@Test
+	public void test_check_extended_search_moves_contain_only_promotions_captures_knight_queen() throws InvalidPieceException, IllegalNotationException {
+		PositionManager pm = new PositionManager("3q1rk1/p4pp1/2p4p/3p4/6Pr/1PNQ4/P1PB1PPb/4RR1K w - - - 2");
+		classUnderTest = new MoveList(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, 1, Position.d5);
+		Iterator<Integer> it = classUnderTest.getStandardIterator(true, Position.d5);
+		
+		// Capture
+		assertEquals(new GenericMove("c3d5"), Move.toGenericMove(it.next()));
+		assertEquals(new GenericMove("d3d5"), Move.toGenericMove(it.next()));
+		assertFalse(it.hasNext());
+	}
+	
+	@Test
+	public void test_check_extended_search_moves_contain_only_promotions_captures_king() throws InvalidPieceException, IllegalNotationException {
+		PositionManager pm = new PositionManager("3q1rk1/p4pp1/2p4p/3p4/6P1/1PNQ4/P1PB1PPb/4RR1K w - - - 2");
+		classUnderTest = new MoveList(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, 1, Position.h2);
+		Iterator<Integer> it = classUnderTest.getStandardIterator(true, Position.h2);
+		
+		// Capture - removed rook to make the king capture legal!
+		assertEquals(new GenericMove("h1h2"), Move.toGenericMove(it.next()));
+		assertFalse(it.hasNext());
+	}
+	
+	@Test
+	public void test_check_extended_search_moves_contain_only_promotions_and_captures_all() throws InvalidPieceException, IllegalNotationException {
+		PositionManager pm = new PositionManager("6k1/PBN5/8/2Kp4/2P5/5Q2/8/3R4 w - - 0 1 ");
+		classUnderTest = new MoveList(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, 1, Position.d5);
+		Iterator<Integer> it = classUnderTest.getStandardIterator(true, Position.d5);
+		
+		// Promotion
+		assertEquals(new GenericMove("a7a8Q"), Move.toGenericMove(it.next()));
+		// Captures
+		assertEquals(new GenericMove("c4d5"), Move.toGenericMove(it.next())); // PxP
+		assertEquals(new GenericMove("c7d5"), Move.toGenericMove(it.next())); // NxP
+		assertEquals(new GenericMove("b7d5"), Move.toGenericMove(it.next())); // BxP
+		assertEquals(new GenericMove("d1d5"), Move.toGenericMove(it.next())); // RxP
+		assertEquals(new GenericMove("f3d5"), Move.toGenericMove(it.next())); // QxP
+		assertEquals(new GenericMove("c5d5"), Move.toGenericMove(it.next())); // KxP
+		
+		assertFalse(it.hasNext());
+		
+		// check for identity between normal and extended moves
+		int countOfStandardMoves = 0;
+		it = classUnderTest.getStandardIterator(false, Position.NOPOSITION);
+		while (it.hasNext()) {
+			System.out.println(Move.toString(it.next()));
+			countOfStandardMoves++;
+		}
+		assertEquals(7,countOfStandardMoves);
+	}
+	 
 }

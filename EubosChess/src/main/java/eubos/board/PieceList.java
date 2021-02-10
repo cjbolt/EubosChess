@@ -321,7 +321,7 @@ public class PieceList {
 				if (atSquare != Position.NOPOSITION) {
 					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[potentialAttackersOfSquare];
 					if ((BitBoard.positionToMask_Lut[atSquare] & kingAttacksMask) != 0) {
-						Piece.king_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+						Piece.king_generateMovesExtSearch(movesList, theBoard, atSquare, ownSideIsWhite, potentialAttackersOfSquare);
 					}
 				}
 			}
