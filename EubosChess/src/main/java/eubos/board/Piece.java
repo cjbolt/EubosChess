@@ -340,7 +340,6 @@ public abstract class Piece {
 		single_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves);
 	}
 	
-	// Suspect!!! Write tests
 	static void king_generateMovesExtSearch(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
 		int piece = ownSideIsWhite ? Piece.WHITE_KING : Piece.BLACK_KING;
 		int targetPiece = theBoard.getPieceAtSquareOptimise(targetSq, ownSideIsWhite);
@@ -349,7 +348,6 @@ public abstract class Piece {
 		}
 	}
 	
-	// Suspect, write tests
 	static void knight_generateMovesExtSearch(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
 		int piece = ownSideIsWhite ? Piece.WHITE_KNIGHT : Piece.BLACK_KNIGHT;
 		int targetPiece = theBoard.getPieceAtSquareOptimise(targetSq, ownSideIsWhite);

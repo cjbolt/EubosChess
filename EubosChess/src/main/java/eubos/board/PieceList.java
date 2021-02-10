@@ -175,9 +175,9 @@ public class PieceList {
 			if ((allAttacksMask & pieceMask) != 0) {
 				int atSquare = piece_list[side+Piece.KING][0];
 				if (atSquare != Position.NOPOSITION) {
-					if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {
-						//Piece.king_generateMovesExtSearch(movesList, theBoard, atSquare, ownSideIsWhite, potentialAttackersOfSquare);
-						Piece.king_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[potentialAttackersOfSquare];
+					if ((BitBoard.positionToMask_Lut[atSquare] & kingAttacksMask) != 0) {
+						Piece.king_generateMovesExtSearch(movesList, theBoard, atSquare, ownSideIsWhite, potentialAttackersOfSquare);
 					}
 				}
 			}
@@ -213,11 +213,11 @@ public class PieceList {
 			}
 			pieceMask = ownSideIsWhite ? theBoard.getWhiteKnights() : theBoard.getBlackKnights();
 			if ((allAttacksMask & pieceMask) != 0) {
+				long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[potentialAttackersOfSquare];
 				for(int atSquare : piece_list[side+Piece.KNIGHT]) {
 					if (atSquare != Position.NOPOSITION) {	
-						if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {
-							//Piece.knight_generateMovesExtSearch(movesList, theBoard, atSquare, ownSideIsWhite, potentialAttackersOfSquare);
-							Piece.knight_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+						if ((BitBoard.positionToMask_Lut[atSquare] & knightAttacksMask) != 0) {
+							Piece.knight_generateMovesExtSearch(movesList, theBoard, atSquare, ownSideIsWhite, potentialAttackersOfSquare);
 						}
 					} else break;
 				}
@@ -299,11 +299,11 @@ public class PieceList {
 			}
 			pieceMask = ownSideIsWhite ? theBoard.getWhiteKnights() : theBoard.getBlackKnights();
 			if ((allAttacksMask & pieceMask) != 0) {
+				long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[potentialAttackersOfSquare];
 				for(int atSquare : piece_list[side+Piece.KNIGHT]) {
 					if (atSquare != Position.NOPOSITION) {
-						if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {
-							//Piece.knight_generateMovesExtSearch(movesList, theBoard, atSquare, ownSideIsWhite, potentialAttackersOfSquare);
-							Piece.knight_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
+						if ((BitBoard.positionToMask_Lut[atSquare] & knightAttacksMask) != 0) {
+							Piece.knight_generateMovesExtSearch(movesList, theBoard, atSquare, ownSideIsWhite, potentialAttackersOfSquare);
 						}
 					} else break;
 				}
@@ -319,8 +319,8 @@ public class PieceList {
 			if ((allAttacksMask & pieceMask) != 0) {
 				int atSquare = piece_list[side+Piece.KING][0];
 				if (atSquare != Position.NOPOSITION) {
-					if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {
-						//Piece.king_generateMovesExtSearch(movesList, theBoard, atSquare, ownSideIsWhite, potentialAttackersOfSquare);
+					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[potentialAttackersOfSquare];
+					if ((BitBoard.positionToMask_Lut[atSquare] & kingAttacksMask) != 0) {
 						Piece.king_generateMoves(movesList, theBoard, atSquare, ownSideIsWhite);
 					}
 				}
