@@ -87,7 +87,10 @@ public class PlySearcher {
 	}
 	private boolean atRootNode() { return currPly == 0; }
 	
-	public synchronized void terminateFindMove() { terminate = true; }
+	public synchronized void terminateFindMove() { 
+		EubosEngineMain.logger.info("Terminating PlySearcher");
+		terminate = true;
+	}
 	private synchronized boolean isTerminated() { return terminate; }	
 	
 	public int searchPly() throws InvalidPieceException {

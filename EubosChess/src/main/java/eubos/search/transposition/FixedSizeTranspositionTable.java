@@ -120,6 +120,7 @@ public class FixedSizeTranspositionTable {
 	
 	private synchronized void removeLeastUsed() {
 		if (hashMapSize >= maxHashMapSize) {
+			EubosEngineMain.logger.info("Starting to free bottom 20% of Hash Table");
 			Short bottomTwentyPercentAccessThreshold = getBottomTwentyPercentAccessThreshold();
 			Iterator<Long> it = hashMap.keySet().iterator();
 			while (it.hasNext()){
@@ -133,6 +134,7 @@ public class FixedSizeTranspositionTable {
 					trans.setAccessCount((short)(count-bottomTwentyPercentAccessThreshold));
 				}
 			}
+			EubosEngineMain.logger.info("Completed freeing bottom 20% of Hash Table");
 		}
 	}
 	

@@ -135,7 +135,7 @@ public class SearchMetricsReporter extends Thread {
 		}
 		info.setNodes(nodes);
 		info.setNps(nps);
-		
+		info.setHash(tt.getHashUtilisation());
 		info.setTime(pv.getTime());
 	}
 }
