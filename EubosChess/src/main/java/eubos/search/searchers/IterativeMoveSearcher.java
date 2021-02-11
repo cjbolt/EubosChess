@@ -183,9 +183,6 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				break;
 			}
 			
-			if (terminateNow) { 
-				stopMoveSearcher(); 
-			}
 			checkPoint++;
 			
 			if (DEBUG_LOGGING) {
@@ -193,6 +190,10 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 						"checkPoint=%d currentScore=%s refScore=%s depth=%d refDepth=%d SearchStopped=%s StopperActive=%s ranFor=%d ",
 						checkPoint, Score.toString(currentScore), Score.toString(ref.score), currDepth, ref.depth,
 						searchStopped, stopperActive, timeRanFor));
+			}
+			
+			if (terminateNow) { 
+				stopMoveSearcher(); 
 			}
 		}
 		
