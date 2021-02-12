@@ -112,6 +112,7 @@ public class PlySearcher {
 		case sufficientTerminalNode:
 			sda.printHashIsTerminalNode(eval.trans, pos.getHash());
 			theScore = handleRefutationOrTerminalNodeFromHash(theScore, eval.trans);
+			updatePrincipalContinuation(eval.trans.getBestMove(), Score.getScore(theScore));
 			break;
 		case sufficientSeedMoveList:
 			sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);

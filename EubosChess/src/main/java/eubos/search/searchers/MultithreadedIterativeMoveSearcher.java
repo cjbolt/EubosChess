@@ -85,7 +85,10 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 
 	@Override
 	public void run() {
+		enableSearchMetricsReporter(true);
+		boolean isSearchCompleted = false;
 		stopper.start();
+		
 		// Create workers and let them run
 		for (int i=0; i < threads; i++) {
 			MultithreadedSearchWorkerThread worker = new MultithreadedSearchWorkerThread(moveGenerators.get(i), this);
@@ -99,9 +102,6 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 				}
 			}
 		}
-		
-		enableSearchMetricsReporter(true);
-		boolean isSearchCompleted = false;
 		do {
 			try {
 				synchronized (this) {
