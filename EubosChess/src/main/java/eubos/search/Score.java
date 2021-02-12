@@ -34,11 +34,11 @@ public final class Score {
 	}
 
 	public static boolean isExact(int score) {	
-		return ((score & ~BOUND_MASK) == (Score.exact << BOUND_SHIFT));
+		return ((score & BOUND_MASK) == (Score.exact << BOUND_SHIFT));
 	}
 	
 	public static boolean isMate(short score) {
-		return (Math.abs(score) > Short.MAX_VALUE-200);
+		return (score != Short.MIN_VALUE && score != Short.MAX_VALUE && Math.abs(score) > Short.MAX_VALUE-200);
 	}
 	
 	public static int valueOf(short score, byte bound) {

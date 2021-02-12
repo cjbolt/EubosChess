@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
-import eubos.board.Board;
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
@@ -107,6 +106,7 @@ public class MiniMaxMoveGenerator implements
 			List<Integer> lastPc,
 			SearchMetricsReporter sr) throws NoLegalMoveException, InvalidPieceException {
 		boolean foundMate = false;
+		boolean isExactScore = false;
 		initialiseSearchDepthDependentObjects(searchDepth, pm, sm);
 		ps = new PlySearcher(tta, st, pc, sm, sr, searchDepth, pm, pos, lastPc, pe, killers, sda);
 		if (alternativeMoveListOrderingScheme > 0) {
@@ -114,13 +114,14 @@ public class MiniMaxMoveGenerator implements
 		}
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		try {
-			score = Score.getScore(ps.searchPly());
+			int eubos_score = ps.searchPly();
+			score = Score.getScore(eubos_score);
+			isExactScore = Score.isExact(eubos_score);
 		} catch (AssertionError e) {
 			e.printStackTrace();
 			System.exit(0);
 		}
-		if (score != Short.MIN_VALUE && score != Short.MAX_VALUE &&
-			Math.abs(score) >= (Board.MATERIAL_VALUE_KING*2)) {
+		if (Score.isMate(score) && isExactScore) {
 			foundMate = true;
 		}
 		// Select the best move
