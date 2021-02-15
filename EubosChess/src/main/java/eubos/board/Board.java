@@ -11,6 +11,7 @@ import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.CastlingManager;
 import eubos.position.Move;
+import eubos.position.MoveList;
 import eubos.position.Position;
 import eubos.score.PiecewiseEvaluation;
 
@@ -857,15 +858,13 @@ public class Board {
 		return potentialPromotion;
 	}
 	
-	public List<Integer> getRegularPieceMoves(boolean ownSideIsWhite, int potentialAttckersOfSquare) {
+	public void getRegularPieceMoves(MoveList ml, boolean ownSideIsWhite, int potentialAttckersOfSquare) {
 		if (ENABLE_PIECE_LISTS) {
-			List<Integer> movesList = new LinkedList<Integer>();
 			if (isEndgame) {
-				pieceLists.addMovesEndgame(ownSideIsWhite, movesList, potentialAttckersOfSquare);
+				pieceLists.addMovesEndgame(ml, ownSideIsWhite, potentialAttckersOfSquare);
 			} else {
-				pieceLists.addMovesMiddlegame(ownSideIsWhite, movesList, potentialAttckersOfSquare);
+				pieceLists.addMovesMiddlegame(ml, ownSideIsWhite, potentialAttckersOfSquare);
 			}
-			return movesList;
 		} else {
 			long bitBoardToIterate = ownSideIsWhite ? whitePieces : blackPieces;
 			List<Integer> movesList = new LinkedList<Integer>();
@@ -878,7 +877,7 @@ public class Board {
 				while ( scratchBitBoard != 0x0L ) {
 					int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 					int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-					Piece.king_generateMoves(movesList, this, atSquare, ownSideIsWhite);
+					Piece.king_generateMoves(ml, this, atSquare, ownSideIsWhite);
 					scratchBitBoard &= scratchBitBoard-1L;
 				}
 			}
@@ -887,7 +886,7 @@ public class Board {
 			while ( scratchBitBoard != 0x0L ) {
 				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-				Piece.queen_generateMoves(movesList, this, atSquare, ownSideIsWhite);
+				Piece.queen_generateMoves(ml, this, atSquare, ownSideIsWhite);
 				scratchBitBoard &= scratchBitBoard-1L;
 			}
 			scratchBitBoard = bitBoardToIterate & pieces[INDEX_ROOK];
@@ -895,7 +894,7 @@ public class Board {
 			while ( scratchBitBoard != 0x0L ) {
 				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-				Piece.rook_generateMoves(movesList, this, atSquare, ownSideIsWhite);
+				Piece.rook_generateMoves(ml, this, atSquare, ownSideIsWhite);
 				scratchBitBoard &= scratchBitBoard-1L;
 			}
 			scratchBitBoard = bitBoardToIterate & pieces[INDEX_BISHOP];
@@ -903,7 +902,7 @@ public class Board {
 			while ( scratchBitBoard != 0x0L ) {
 				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-				Piece.bishop_generateMoves(movesList, this, atSquare, ownSideIsWhite);
+				Piece.bishop_generateMoves(ml, this, atSquare, ownSideIsWhite);
 				scratchBitBoard &= scratchBitBoard-1L;
 			}
 			scratchBitBoard = bitBoardToIterate & pieces[INDEX_KNIGHT];
@@ -911,7 +910,7 @@ public class Board {
 			while ( scratchBitBoard != 0x0L ) {
 				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-				Piece.knight_generateMoves(movesList, this, atSquare, ownSideIsWhite);
+				Piece.knight_generateMoves(ml, this, atSquare, ownSideIsWhite);
 				scratchBitBoard &= scratchBitBoard-1L;
 			}
 			scratchBitBoard = bitBoardToIterate & pieces[INDEX_PAWN];
@@ -919,7 +918,7 @@ public class Board {
 			while ( scratchBitBoard != 0x0L ) {
 				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-				Piece.pawn_generateMoves(movesList, this, atSquare, ownSideIsWhite);
+				Piece.pawn_generateMoves(ml, this, atSquare, ownSideIsWhite);
 				scratchBitBoard &= scratchBitBoard-1L;
 			}
 			if (!isEndgame) {
@@ -928,11 +927,10 @@ public class Board {
 				while ( scratchBitBoard != 0x0L ) {
 					int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 					int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-					Piece.king_generateMoves(movesList, this, atSquare, ownSideIsWhite);
+					Piece.king_generateMoves(ml, this, atSquare, ownSideIsWhite);
 					scratchBitBoard &= scratchBitBoard-1L;
 				}
 			}
-			return movesList;
 		}
 	}
 	

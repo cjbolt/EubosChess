@@ -1,13 +1,13 @@
 package eubos.board;
 
 import java.util.Arrays;
-import java.util.List;
 
 import com.fluxchess.jcpi.models.IntChessman;
 import com.fluxchess.jcpi.models.IntRank;
 
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
+import eubos.position.MoveList;
 import eubos.position.Position;
 
 public abstract class Piece {
@@ -330,87 +330,87 @@ public abstract class Piece {
 		return return_value;
 	}
 	
-	static void king_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+	static void king_generateMoves(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
 		int [] ref_moves = ownSideIsWhite ? WhiteKingMove_Lut[atSquare] : BlackKingMove_Lut[atSquare];
-		single_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves);	
+		single_addMoves(ownSideIsWhite, ml, theBoard, ref_moves);	
 	}
 	
-	static void knight_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+	static void knight_generateMoves(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
 		int [] ref_moves = ownSideIsWhite ? WhiteKnightMove_Lut[atSquare] : BlackKnightMove_Lut[atSquare];
-		single_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves);
+		single_addMoves(ownSideIsWhite, ml, theBoard, ref_moves);
 	}
 	
-	static void king_generateMovesExtSearch(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
+	static void king_generateMovesExtSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
 		int piece = ownSideIsWhite ? Piece.WHITE_KING : Piece.BLACK_KING;
 		int targetPiece = theBoard.getPieceAtSquareOptimise(targetSq, ownSideIsWhite);
 		if (targetPiece != Piece.NONE && targetPiece != Piece.DONT_CARE) {
-			moveList.add(0, Move.valueOf(atSquare, piece, targetSq, targetPiece));
+			ml.addPrio(Move.valueOf(atSquare, piece, targetSq, targetPiece));
 		}
 	}
 	
-	static void knight_generateMovesExtSearch(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
+	static void knight_generateMovesExtSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
 		int piece = ownSideIsWhite ? Piece.WHITE_KNIGHT : Piece.BLACK_KNIGHT;
 		int targetPiece = theBoard.getPieceAtSquareOptimise(targetSq, ownSideIsWhite);
 		if (targetPiece != Piece.NONE && targetPiece != Piece.DONT_CARE) {
-			moveList.add(0, Move.valueOf(atSquare, piece, targetSq, targetPiece));
+			ml.addPrio(Move.valueOf(atSquare, piece, targetSq, targetPiece));
 		}
 	}
 	
-	static void rook_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+	static void rook_generateMoves(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
 		int [][] ref_moves = ownSideIsWhite ? WhiteRookMove_Lut[atSquare] : BlackRookMove_Lut[atSquare];
-		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves);
+		multidirect_addMoves(ownSideIsWhite, ml, theBoard, ref_moves);
 	}
 	
-	static void queen_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+	static void queen_generateMoves(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
 		int [][] ref_moves = ownSideIsWhite ? WhiteQueenMove_Lut[atSquare] : BlackQueenMove_Lut[atSquare];
-		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves);	
+		multidirect_addMoves(ownSideIsWhite, ml, theBoard, ref_moves);	
 	}
 	
-	static void bishop_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+	static void bishop_generateMoves(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
 		int [][] ref_moves = ownSideIsWhite ? WhiteBishopMove_Lut[atSquare] : BlackBishopMove_Lut[atSquare];
-		multidirect_addMoves(ownSideIsWhite, moveList, theBoard, ref_moves);	
+		multidirect_addMoves(ownSideIsWhite, ml, theBoard, ref_moves);	
 	}
 	
-	static void rook_generateMovesExtSearch(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
+	static void rook_generateMovesExtSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
 		int [][] ref_moves = ownSideIsWhite ? WhiteRookMove_Lut[atSquare] : BlackRookMove_Lut[atSquare];
 		Direction dir = SquareAttackEvaluator.findDirectionToTarget(atSquare, targetSq, SquareAttackEvaluator.rankFile);
 		if (dir != null) {
 			int [] moves = ref_moves[SquareAttackEvaluator.rankFileDirectionIndex_Lut.get(dir)];
-			multidirect_addMoves(ownSideIsWhite, moveList, theBoard, moves, atSquare, targetSq);
+			multidirect_addMoves(ownSideIsWhite, ml, theBoard, moves, atSquare, targetSq);
 		}
 	}
 	
-	static void queen_generateMovesExtSearch(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
+	static void queen_generateMovesExtSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
 		int [][] ref_moves = ownSideIsWhite ? WhiteQueenMove_Lut[atSquare] : BlackQueenMove_Lut[atSquare];
 		Direction dir = SquareAttackEvaluator.findDirectionToTarget(atSquare, targetSq, SquareAttackEvaluator.allDirect);
 		if (dir != null) {
 			int [] moves = ref_moves[SquareAttackEvaluator.directionIndex_Lut.get(dir)];
-			multidirect_addMoves(ownSideIsWhite, moveList, theBoard, moves, atSquare, targetSq);
+			multidirect_addMoves(ownSideIsWhite, ml, theBoard, moves, atSquare, targetSq);
 		}	
 	}
 	
-	static void bishop_generateMovesExtSearch(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
+	static void bishop_generateMovesExtSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
 		int [][] ref_moves = ownSideIsWhite ? WhiteBishopMove_Lut[atSquare] : BlackBishopMove_Lut[atSquare];
 		Direction dir = SquareAttackEvaluator.findDirectionToTarget(atSquare, targetSq, SquareAttackEvaluator.diagonals);
 		if (dir != null) {
 			int [] moves = ref_moves[SquareAttackEvaluator.diagonalsDirectionIndex_Lut.get(dir)];
-			multidirect_addMoves(ownSideIsWhite, moveList, theBoard, moves, atSquare, targetSq);
+			multidirect_addMoves(ownSideIsWhite, ml, theBoard, moves, atSquare, targetSq);
 		}
 	}
 
-	private static void multidirect_addMoves(boolean ownSideIsWhite, List<Integer> moveList, Board theBoard, int[][] moves) {
+	private static void multidirect_addMoves(boolean ownSideIsWhite, MoveList ml, Board theBoard, int[][] moves) {
 		for (int[] movesInDirection : moves) {
 			for (int new_move : movesInDirection) {
 				int targetPiece = theBoard.getPieceAtSquareOptimise(Move.getTargetPosition(new_move), ownSideIsWhite);
 				switch(targetPiece) {
 				case Piece.NONE:
-					moveList.add(new_move);
+					ml.addNormal(new_move);
 					continue;
 				case Piece.DONT_CARE:
 					break; // i.e. blocked by own piece
 				default:
 					new_move = Move.setCapture(new_move, targetPiece);
-					moveList.add(0, new_move);
+					ml.addPrio(new_move);
 					break;
 				}
 				break;
@@ -418,7 +418,7 @@ public abstract class Piece {
 		}
 	}
 	
-	private static void multidirect_addMoves(boolean ownSideIsWhite, List<Integer> moveList, Board theBoard, int[] moves, int atSquare, int targetSq) {
+	private static void multidirect_addMoves(boolean ownSideIsWhite, MoveList ml, Board theBoard, int[] moves, int atSquare, int targetSq) {
 		for (int new_move : moves) {
 			int targetPiece = theBoard.getPieceAtSquareOptimise(Move.getTargetPosition(new_move), ownSideIsWhite);
 			switch(targetPiece) {
@@ -428,25 +428,25 @@ public abstract class Piece {
 				break; // i.e. blocked by own piece
 			default:
 				new_move = Move.setCapture(new_move, targetPiece);
-				moveList.add(0, new_move);
+				ml.addPrio(new_move);
 				break;
 			}
 			break;
 		}	
 	}
 	
-	private static void single_addMoves(boolean ownSideIsWhite, List<Integer> moveList, Board theBoard, int[] moves) {
+	private static void single_addMoves(boolean ownSideIsWhite, MoveList ml, Board theBoard, int[] moves) {
 		for (int new_move : moves) {
 			int targetPiece = theBoard.getPieceAtSquareOptimise(Move.getTargetPosition(new_move), ownSideIsWhite);
 			switch(targetPiece) {
 			case Piece.NONE:
-				moveList.add(new_move);
+				ml.addNormal(new_move);
 				continue;
 			case Piece.DONT_CARE:
 				break; // i.e. blocked by own piece
 			default:
 				new_move = Move.setCapture(new_move, targetPiece);
-				moveList.add(0, new_move);
+				ml.addPrio(new_move);
 				break;
 			}
 		}
@@ -510,50 +510,50 @@ public abstract class Piece {
 				( ownSideIsWhite && Position.getRank(targetSquare) == IntRank.R8));
 	}
 	
-	private static void pawn_checkPromotionAddMove(int ownPiece, Board theBoard, int atSquare, boolean ownSideIsWhite, List<Integer> moveList,
+	private static void pawn_checkPromotionAddMove(int ownPiece, Board theBoard, int atSquare, boolean ownSideIsWhite, MoveList ml,
 			int targetSquare, int targetPiece) {
 		if ( pawn_checkPromotionPossible( ownSideIsWhite, targetSquare )) {
 			// Add in order of prioritisation
-			moveList.add(0, Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.QUEEN ));
-			moveList.add(0, Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.ROOK ));
-			moveList.add(0, Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.BISHOP ));
-			moveList.add(0, Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.KNIGHT ));
+			ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.QUEEN ));
+			ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.ROOK ));
+			ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.BISHOP ));
+			ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.KNIGHT ));
 		} else {
 			if (targetPiece != Piece.NONE) {
 				// add captures at head of list
-				moveList.add(0, Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
+				ml.addPrio(Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
 			} else {
-				moveList.add(Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
+				ml.addNormal(Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
 			}
 		}
 	}
 	
-	private static void pawn_checkQueenPromotionAddMove(int ownPiece, Board theBoard, int atSquare, boolean ownSideIsWhite, List<Integer> moveList,
+	private static void pawn_checkQueenPromotionAddMove(int ownPiece, Board theBoard, int atSquare, boolean ownSideIsWhite, MoveList ml,
 			int targetSquare, int targetPiece) {
 		if ( pawn_checkPromotionPossible( ownSideIsWhite, targetSquare )) {
 			// In extended search only generate the queen promotion move
-			moveList.add(0, Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.QUEEN ));
+			ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.QUEEN ));
 		} else {
 			if (targetPiece != Piece.NONE) {
 				// add captures at head of list
-				moveList.add(0, Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
+				ml.addPrio(Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
 			} else {
-				moveList.add(Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
+				ml.addNormal(Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
 			}
 		}
 	}
 	
-	static List<Integer> pawn_generateMoves(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+	static void pawn_generateMoves(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
 		int ownPiece = ownSideIsWhite ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
 		int capturePiece = Piece.NONE;
 		// Check for standard one and two square moves
 		int moveTo = pawn_genOneSqTarget(atSquare, ownSideIsWhite);
 		if ( moveTo != Position.NOPOSITION && theBoard.squareIsEmpty( moveTo )) {
-			pawn_checkPromotionAddMove(ownPiece, theBoard, atSquare, ownSideIsWhite, moveList, moveTo, Piece.NONE);
+			pawn_checkPromotionAddMove(ownPiece, theBoard, atSquare, ownSideIsWhite, ml, moveTo, Piece.NONE);
 			moveTo = pawn_genTwoSqTarget(atSquare, ownSideIsWhite);
 			if ( moveTo != Position.NOPOSITION && theBoard.squareIsEmpty( moveTo )) {
 				// Can't be a promotion
-				moveList.add( Move.valueOf(atSquare, ownPiece, moveTo , Piece.NONE));
+				ml.addNormal(Move.valueOf(atSquare, ownPiece, moveTo , Piece.NONE));
 			}	
 		}
 		// Check for capture moves, includes en passant
@@ -561,50 +561,48 @@ public abstract class Piece {
 		if ( captureAt != Position.NOPOSITION ) {
 			capturePiece = pawn_isCapturable(ownSideIsWhite, theBoard, captureAt);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkPromotionAddMove(ownPiece, theBoard, atSquare, ownSideIsWhite, moveList, captureAt, capturePiece);
+				pawn_checkPromotionAddMove(ownPiece, theBoard, atSquare, ownSideIsWhite, ml, captureAt, capturePiece);
 			} else if (captureAt == theBoard.getEnPassantTargetSq()) {
 				capturePiece = !ownSideIsWhite ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
 				// promotion can't be possible if en passant capture
-				moveList.add(0, Move.valueOf(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
+				ml.addPrio(Move.valueOf(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
 			}
 		}
 		captureAt = pawn_genRightCaptureTarget(atSquare, ownSideIsWhite);
 		if ( captureAt != Position.NOPOSITION ) {
 			capturePiece = pawn_isCapturable(ownSideIsWhite, theBoard, captureAt);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkPromotionAddMove(ownPiece, theBoard, atSquare, ownSideIsWhite, moveList, captureAt, capturePiece);
+				pawn_checkPromotionAddMove(ownPiece, theBoard, atSquare, ownSideIsWhite, ml, captureAt, capturePiece);
 			} else if (captureAt == theBoard.getEnPassantTargetSq()) {
 				capturePiece = !ownSideIsWhite ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
 				// promotion can't be possible if en passant capture
-				moveList.add(0, Move.valueOf(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
+				ml.addPrio(Move.valueOf(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
 			}
 		}
-		return moveList;
 	}
 	
-	static List<Integer> pawn_generateMovesForExtendedSearch(List<Integer> moveList, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+	static void pawn_generateMovesForExtendedSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
 		int ownPiece = ownSideIsWhite ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
 		int capturePiece = Piece.NONE;
 		// Standard move
 		int moveTo = pawn_genOneSqTarget(atSquare, ownSideIsWhite);
 		if ( moveTo != Position.NOPOSITION && theBoard.squareIsEmpty( moveTo )) {
-			pawn_checkQueenPromotionAddMove(ownPiece, theBoard, atSquare, ownSideIsWhite, moveList, moveTo, Piece.NONE);
+			pawn_checkQueenPromotionAddMove(ownPiece, theBoard, atSquare, ownSideIsWhite, ml, moveTo, Piece.NONE);
 		}
 		// Capture moves
 		int captureAt = pawn_genLeftCaptureTarget(atSquare, ownSideIsWhite);
 		if ( captureAt != Position.NOPOSITION ) {
 			capturePiece = pawn_isCapturable(ownSideIsWhite, theBoard, captureAt);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkQueenPromotionAddMove(ownPiece, theBoard, atSquare, ownSideIsWhite, moveList, captureAt, capturePiece);
+				pawn_checkQueenPromotionAddMove(ownPiece, theBoard, atSquare, ownSideIsWhite, ml, captureAt, capturePiece);
 			}
 		}
 		captureAt = pawn_genRightCaptureTarget(atSquare, ownSideIsWhite);
 		if ( captureAt != Position.NOPOSITION ) {
 			capturePiece = pawn_isCapturable(ownSideIsWhite, theBoard, captureAt);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkQueenPromotionAddMove(ownPiece, theBoard, atSquare, ownSideIsWhite, moveList, captureAt, capturePiece);
+				pawn_checkQueenPromotionAddMove(ownPiece, theBoard, atSquare, ownSideIsWhite, ml, captureAt, capturePiece);
 			}
 		}
-		return moveList;
 	}
 }

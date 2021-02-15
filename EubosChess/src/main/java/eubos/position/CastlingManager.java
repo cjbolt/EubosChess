@@ -1,7 +1,5 @@
 package eubos.position;
 
-import java.util.List;
-
 import com.fluxchess.jcpi.models.IntFile;
 
 import eubos.board.Board;
@@ -87,7 +85,7 @@ public class CastlingManager {
 		this.flags = flags;
 	}
 
-	void addCastlingMoves(boolean isWhiteOnMove, List<Integer> ml) {
+	void addCastlingMoves(boolean isWhiteOnMove, MoveList ml) {
 		// The side on move should not have previously castled
 		if ( !castlingAvaillable(isWhiteOnMove))
 			return;
@@ -111,9 +109,9 @@ public class CastlingManager {
 			}
 		}
 		if ( ksc != Move.NULL_MOVE )
-			ml.add(ksc);
+			ml.addNormal(ksc);
 		if ( qsc != Move.NULL_MOVE )
-			ml.add(qsc);
+			ml.addNormal(qsc);
 	}
 
 	private boolean castlingAvaillable(boolean whiteOnMove) {

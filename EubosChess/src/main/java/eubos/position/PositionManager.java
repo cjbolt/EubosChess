@@ -1,7 +1,6 @@
 package eubos.position;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.fluxchess.jcpi.models.GenericPosition;
@@ -43,15 +42,14 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return theBoard;
 	}
 	
-	public List<Integer> generateMoves() {
-		return generateMoves(Position.NOPOSITION);
+	public void generateMoves(MoveList ml) {
+		generateMoves(ml, Position.NOPOSITION);
 	}
 	
-	public List<Integer> generateMoves(int targetSquare) {
+	public void generateMoves(MoveList ml, int targetSquare) {
 		boolean isWhiteOnMove = Piece.Colour.isWhite(onMove);
-		List<Integer> entireMoveList = theBoard.getRegularPieceMoves(isWhiteOnMove, targetSquare);
-		castling.addCastlingMoves(isWhiteOnMove, entireMoveList);
-		return entireMoveList;
+		theBoard.getRegularPieceMoves(ml, isWhiteOnMove, targetSquare);
+		castling.addCastlingMoves(isWhiteOnMove, ml);
 	}
 	
 	public String toString() {

@@ -12,6 +12,7 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.Board;
 import eubos.board.InvalidPieceException;
+import eubos.board.Piece;
 import eubos.search.KillerList;
 
 public class MoveListTest {
@@ -77,15 +78,15 @@ public class MoveListTest {
 	public void test_whenPromotionAndPromoteWithCaptureAndCheckPossible() throws InvalidPieceException, IllegalNotationException {
 		setup("q1n5/1P6/8/8/8/8/1K6/7k w - - 0 1 ");
 		Iterator<Integer> it = classUnderTest.iterator();
-		assertEquals(new GenericMove("b7c8q"), Move.toGenericMove(it.next())); // Promotion and capture
 		assertEquals(new GenericMove("b7a8q"), Move.toGenericMove(it.next())); // Promotion with check and capture
+		assertEquals(new GenericMove("b7c8q"), Move.toGenericMove(it.next())); // Promotion and capture
 		
-		assertEquals(new GenericMove("b7c8r"), Move.toGenericMove(it.next())); // Promotion (piece) and capture
 		assertEquals(new GenericMove("b7a8r"), Move.toGenericMove(it.next())); // Promotion (piece) and capture
-		assertEquals(new GenericMove("b7c8b"), Move.toGenericMove(it.next())); // Promotion (piece) and capture
+		assertEquals(new GenericMove("b7c8r"), Move.toGenericMove(it.next())); // Promotion (piece) and capture
 		assertEquals(new GenericMove("b7a8b"), Move.toGenericMove(it.next())); // Promotion (piece) and capture
-		assertEquals(new GenericMove("b7c8n"), Move.toGenericMove(it.next())); // Promotion (piece) and capture
+		assertEquals(new GenericMove("b7c8b"), Move.toGenericMove(it.next())); // Promotion (piece) and capture
 		assertEquals(new GenericMove("b7a8n"), Move.toGenericMove(it.next())); // Promotion (piece) and capture
+		assertEquals(new GenericMove("b7c8n"), Move.toGenericMove(it.next())); // Promotion (piece) and capture
 		assertEquals(new GenericMove("b7b8q"), Move.toGenericMove(it.next())); // Promotion
 		assertEquals(new GenericMove("b7b8r"), Move.toGenericMove(it.next())); // Promotion (piece)
 		assertEquals(new GenericMove("b7b8b"), Move.toGenericMove(it.next())); // Promotion (piece)
@@ -107,9 +108,9 @@ public class MoveListTest {
 		assertEquals(new GenericMove("d7b5"), Move.toGenericMove(it.next())); // BxR delta 1 gains 2
 		
 		// neutral exchanges
-		assertEquals(new GenericMove("g2f3"), Move.toGenericMove(it.next())); // PxP
-		assertEquals(new GenericMove("b1b5"), Move.toGenericMove(it.next())); // RxR
 		assertEquals(new GenericMove("a6e6"), Move.toGenericMove(it.next())); // QxQ
+		assertEquals(new GenericMove("b1b5"), Move.toGenericMove(it.next())); // RxR
+		assertEquals(new GenericMove("g2f3"), Move.toGenericMove(it.next())); // PxP		
 		
 		// losing material
 		assertEquals(new GenericMove("g5f3"), Move.toGenericMove(it.next())); // NxP delta -1 loses 2
@@ -132,28 +133,27 @@ public class MoveListTest {
 		assertEquals(new GenericMove("d7b5"), Move.toGenericMove(it.next())); // BxR delta 1 gains 2
 		
 		// neutral exchanges
-		assertEquals(new GenericMove("g2f3"), Move.toGenericMove(it.next())); // PxP
+		assertEquals(new GenericMove("b1b5"), Move.toGenericMove(it.next())); // RxR
 		if (Board.ENABLE_PIECE_LISTS) {
 			assertEquals(new GenericMove("f5e6"), Move.toGenericMove(it.next())); // PxP
-			assertEquals(new GenericMove("b1b5"), Move.toGenericMove(it.next())); // RxR
-			
+			assertEquals(new GenericMove("g2f3"), Move.toGenericMove(it.next())); // PxP
 		} else {
-			assertEquals(new GenericMove("b1b5"), Move.toGenericMove(it.next())); // RxR
+			assertEquals(new GenericMove("g2f3"), Move.toGenericMove(it.next())); // PxP
 			assertEquals(new GenericMove("f5e6"), Move.toGenericMove(it.next())); // PxP
 		}
 		
 		// losing material
-		assertEquals(new GenericMove("g5e6"), Move.toGenericMove(it.next())); // NxP delta -1 loses 2
 		assertEquals(new GenericMove("g5f3"), Move.toGenericMove(it.next())); // NxP delta -1 loses 2
+		assertEquals(new GenericMove("g5e6"), Move.toGenericMove(it.next())); // NxP delta -1 loses 2
 		if (Board.ENABLE_PIECE_LISTS) {
-			assertEquals(new GenericMove("g4f3"), Move.toGenericMove(it.next())); // BxP delta -2 loses 2
 			assertEquals(new GenericMove("d7e6"), Move.toGenericMove(it.next())); // BxP delta -2 loses 2
+			assertEquals(new GenericMove("g4f3"), Move.toGenericMove(it.next())); // BxP delta -2 loses 2
 		} else {
 			assertEquals(new GenericMove("d7e6"), Move.toGenericMove(it.next())); // BxP delta -2 loses 2
 			assertEquals(new GenericMove("g4f3"), Move.toGenericMove(it.next())); // BxP delta -2 loses 2
 		}
-		assertEquals(new GenericMove("e3f3"), Move.toGenericMove(it.next())); // RxP delta -3 loses 4 losing material but checks
 		assertEquals(new GenericMove("e3e6"), Move.toGenericMove(it.next())); // RxP delta -3 loses 4
+		assertEquals(new GenericMove("e3f3"), Move.toGenericMove(it.next())); // RxP delta -3 loses 4 losing material but checks
 		assertEquals(new GenericMove("a6b5"), Move.toGenericMove(it.next())); // QxR delta -1 loses 4
 		assertEquals(new GenericMove("a6e6"), Move.toGenericMove(it.next())); // QxP delta -4 loses 8 losing material but checks
 		
@@ -192,14 +192,14 @@ public class MoveListTest {
 		assertEquals(new GenericMove("a7b8r"), Move.toGenericMove(it.next())); // Rook promotion with capture, PxN
 		assertEquals(new GenericMove("a7b8b"), Move.toGenericMove(it.next())); // Bishop promotion with capture, PxN
 		assertEquals(new GenericMove("a7b8n"), Move.toGenericMove(it.next())); // Knight promotion with capture, PxN
-		assertEquals(new GenericMove("f7f8q"), Move.toGenericMove(it.next())); // Queen promotion (with check)
 		assertEquals(new GenericMove("a7a8q"), Move.toGenericMove(it.next())); // Queen promotion
-		assertEquals(new GenericMove("f7f8r"), Move.toGenericMove(it.next())); // Rook promotion
+		assertEquals(new GenericMove("f7f8q"), Move.toGenericMove(it.next())); // Queen promotion (with check)
 		assertEquals(new GenericMove("a7a8r"), Move.toGenericMove(it.next())); // Rook promotion
-		assertEquals(new GenericMove("f7f8b"), Move.toGenericMove(it.next())); // Bishop promotion (with check)
+		assertEquals(new GenericMove("f7f8r"), Move.toGenericMove(it.next())); // Rook promotion
 		assertEquals(new GenericMove("a7a8b"), Move.toGenericMove(it.next())); // Bishop promotion
-		assertEquals(new GenericMove("f7f8n"), Move.toGenericMove(it.next())); // Knight promotion
+		assertEquals(new GenericMove("f7f8b"), Move.toGenericMove(it.next())); // Bishop promotion (with check)
 		assertEquals(new GenericMove("a7a8n"), Move.toGenericMove(it.next())); // Knight promotion
+		assertEquals(new GenericMove("f7f8n"), Move.toGenericMove(it.next())); // Knight promotion
 		
 		// Captures
 		assertEquals(new GenericMove("b5c6"), Move.toGenericMove(it.next())); // En Passant capture, PxP
@@ -237,6 +237,8 @@ public class MoveListTest {
 			assertEquals(killer1_gen, Move.toGenericMove(it.next()));
 			assertEquals(killer2_gen, Move.toGenericMove(it.next()));
 		}
+		
+		assertEquals(17, classUnderTest.getList().size());
 	}
 	
 	@Test
@@ -298,6 +300,14 @@ public class MoveListTest {
 			countOfStandardMoves++;
 		}
 		assertEquals(7,countOfStandardMoves);
+	}
+	
+	@Test
+	public void test_mate_in_7_best_move() throws InvalidPieceException, IllegalNotationException {
+		PositionManager pm = new PositionManager("5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113");
+		int best = Move.valueOf(Position.f8, Piece.WHITE_QUEEN, Position.b4, Piece.NONE);
+		classUnderTest = new MoveList(pm, best, Move.NULL_MOVE, Move.NULL_MOVE, 1, Position.NOPOSITION);
+		assertEquals(new GenericMove("f8b4"), Move.toGenericMove(classUnderTest.getBestMove()));
 	}
 	 
 }
