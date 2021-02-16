@@ -22,6 +22,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.Board;
+import eubos.score.PositionEvaluator;
 
 public class EubosEngineMainTest {
 
@@ -141,23 +142,37 @@ public class EubosEngineMainTest {
 		performTest(1000);
 	}
 	
+	@SuppressWarnings("unused")
 	@Test
 	public void test_infoMessageSending_clearsPreviousPvMoves() throws InterruptedException, IOException {
 		if (EubosEngineMain.UCI_INFO_ENABLED) {
+			String expectedOutput;
+			if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION) {
+				expectedOutput = "info depth 1 seldepth 4 score cp -149 pv d7e5 f3e5 c7e5 hashfull 0 nps 350 time 20 nodes 7"+CMD_TERMINATOR+
+	                    "info depth 1 seldepth 4 score cp 168 pv c7c2 hashfull 0 nps 80 time 99 nodes 12"+CMD_TERMINATOR+
+	                    "info depth 2 seldepth 0 score cp 30 pv c7c2 d4d5 hashfull 0 nps 759 time 108 nodes 82"+CMD_TERMINATOR
+	                    +BEST_PREFIX+"c7c2";
+			} else if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && !PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
+				expectedOutput = "info depth 1 seldepth 4 score cp -141 pv d7e5 f3e5 c7e5 hashfull 0 nps 500 time 14 nodes 7"+CMD_TERMINATOR+
+                        "info depth 1 seldepth 4 score cp 178 pv c7c2 hashfull 0 nps 122 time 98 nodes 12"+CMD_TERMINATOR+
+                        "info depth 2 seldepth 0 score cp 38 pv c7c2 d4d5 hashfull 0 nps 803 time 102 nodes 82"+CMD_TERMINATOR
+                        +BEST_PREFIX+"c7c2";
+			} else if (Board.ENABLE_PIECE_LISTS && !PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION &&!PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
+				expectedOutput = "info depth 1 seldepth 4 score cp -160 pv d7e5 f3e5 c7e5 hashfull 0 nps 538 time 13 nodes 7"+CMD_TERMINATOR+
+                        "info depth 1 seldepth 4 score cp 155 pv c7c2 hashfull 0 nps 126 time 95 nodes 12"+CMD_TERMINATOR+
+                        "info depth 2 seldepth 0 score cp 15 pv c7c2 d4d5 hashfull 0 nps 820 time 100 nodes 82"+CMD_TERMINATOR
+                        +BEST_PREFIX+"c7c2";
+			} else {
+				expectedOutput = "info depth 1 seldepth 4 score cp -149 pv d7e5 f3e5 c7e5 nps 0 time 0 nodes 7"+CMD_TERMINATOR+
+                        "info depth 1 seldepth 4 score cp 155 pv c7c2 hashfull 0 nps 130 time 92 nodes 12"+CMD_TERMINATOR+
+                        "info depth 2 seldepth 0 score cp 36 pv c7c2 d4d5 h7h5 nps 0 time 0 nodes 85"+CMD_TERMINATOR
+                        +BEST_PREFIX+"c7c2";
+			}
 			setupEngine();
 			// Setup Commands specific to this test
 			commands.add(new commandPair(POS_FEN_PREFIX+"r1b1kb1r/ppqnpppp/8/3pP3/3Q4/5N2/PPP2PPP/RNB1K2R b KQkq - 2 8"+CMD_TERMINATOR, null));
-			if (Board.ENABLE_PIECE_LISTS) {
-				commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR, removeTimeFieldsFromUciInfoMessage("info depth 1 seldepth 4 score cp -149 pv d7e5 f3e5 c7e5 hashfull 0 nps 350 time 20 nodes 7"+CMD_TERMINATOR+
-						                                                         "info depth 1 seldepth 4 score cp 168 pv c7c2 hashfull 0 nps 80 time 99 nodes 12"+CMD_TERMINATOR+
-						                                                         "info depth 2 seldepth 0 score cp 30 pv c7c2 d4d5 hashfull 0 nps 759 time 108 nodes 82"+CMD_TERMINATOR
-						                                                         +BEST_PREFIX+"c7c2")+CMD_TERMINATOR)); // don't strip the last command terminator!
-			} else {
-				commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR, removeTimeFieldsFromUciInfoMessage("info depth 1 seldepth 4 score cp -149 pv d7e5 f3e5 c7e5 nps 0 time 0 nodes 7"+CMD_TERMINATOR+
-                        "info depth 1 seldepth 4 score cp 135 pv c7c2 e1g1 nps 0 time 0 nodes 9"+CMD_TERMINATOR+
-                        "info depth 2 seldepth 0 score cp 36 pv c7c2 d4d5 h7h5 nps 0 time 0 nodes 85"+CMD_TERMINATOR
-                        +BEST_PREFIX+"c7c2")+CMD_TERMINATOR)); // don't strip the last command terminator!
-			}
+			commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR, removeTimeFieldsFromUciInfoMessage(expectedOutput)+CMD_TERMINATOR));
+			
 			/* Historically, this position and search caused a bad UCI info message to be generated. 
 			 * The second info contains c7e5, which has not been cleared from the first PV of the ext search...
 			info depth 1 seldepth 4 score cp -149 pv d7e5 f3e5 c7e5 nps 200 time 35 nodes 7
@@ -459,7 +474,7 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR,BEST_PREFIX+"d6h2"+CMD_TERMINATOR));
 		// 2
 		commands.add(new commandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1 moves d6h2 g1h1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h2g3"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR,BEST_PREFIX+"h2g3"+CMD_TERMINATOR));
 		// 3
 		commands.add(new commandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1 moves d6h2 g1h1 h2g3 h1g1"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h4h1"+CMD_TERMINATOR));
@@ -470,7 +485,7 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1 moves d6h2 g1h1 h2g3 h1g1 h4h1 g1h1 d8h4 h1g1"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h4h2"+CMD_TERMINATOR));
 
-		performTest(20000);
+		performTest(22000);
 		assertEquals(4, (int)classUnderTest.dc.getNumEntries());
 	}
 	

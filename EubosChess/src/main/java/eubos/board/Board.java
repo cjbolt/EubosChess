@@ -14,6 +14,7 @@ import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.Position;
 import eubos.score.PiecewiseEvaluation;
+import eubos.score.PositionEvaluator;
 
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.GenericPosition;
@@ -955,6 +956,7 @@ public class Board {
 	
     // For reasons of performance optimisation, part of the material evaluation considers the mobility of pieces.
     // This function generates a score considering three categories A) material B) static PSTs C) Piece mobility (dynamic) 
+	@SuppressWarnings("unused")
 	private PiecewiseEvaluation updateMaterialForPiece(int currPiece, int atPos, PiecewiseEvaluation eval) {
 		switch(currPiece) {
 		case Piece.WHITE_PAWN:
@@ -967,22 +969,22 @@ public class Board {
 			break;
 		case Piece.WHITE_ROOK:
 			eval.addPiece(true, Piece.ROOK);
-			if (!isEndgame)
+			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !isEndgame)
 				eval.addPosition(true, getTwiceNumEmptyRankFileSquares(atPos));
 			break;
 		case Piece.BLACK_ROOK:
 			eval.addPiece(false, Piece.ROOK);
-			if (!isEndgame)
+			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !isEndgame)
 				eval.addPosition(false, getTwiceNumEmptyRankFileSquares(atPos));
 			break;
 		case Piece.WHITE_BISHOP:
 			eval.addPiece(true, Piece.BISHOP);
-			if (!isEndgame)
+			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !isEndgame)
 				eval.addPosition(true, getTwiceNumEmptyDiagonalSquares(atPos));
 			break;
 		case Piece.BLACK_BISHOP:
 			eval.addPiece(false, Piece.BISHOP);
-			if (!isEndgame)
+			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !isEndgame)
 				eval.addPosition(false, getTwiceNumEmptyDiagonalSquares(atPos));
 			break;
 		case Piece.WHITE_KNIGHT:
@@ -995,12 +997,12 @@ public class Board {
 			break;
 		case Piece.WHITE_QUEEN:
 			eval.addPiece(true, Piece.QUEEN);
-			if (!isEndgame)
+			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !isEndgame)
 				eval.addPosition(true, getTwiceNumEmptyAllDirectSquares(atPos));
 			break;
 		case Piece.BLACK_QUEEN:
 			eval.addPiece(false, Piece.QUEEN);
-			if (!isEndgame)
+			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !isEndgame)
 				eval.addPosition(false, getTwiceNumEmptyAllDirectSquares(atPos));
 			break;
 		case Piece.WHITE_KING:
