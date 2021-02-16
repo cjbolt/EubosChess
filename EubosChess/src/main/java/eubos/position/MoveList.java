@@ -51,8 +51,11 @@ public class MoveList implements Iterable<Integer> {
 		
 		Colour onMove = pm.getOnMove();
 		boolean needToEscapeMate = pm.isKingInCheck(onMove);
-
-		pm.generateMoves(this, targetPosition);
+		boolean isWhiteOnMove = Piece.Colour.isWhite(onMove);
+		
+		pm.getTheBoard().getRegularPieceMoves(this, isWhiteOnMove, targetPosition);
+		pm.castling.addCastlingMoves(isWhiteOnMove, this);
+		
 		removeInvalidIdentifyBestKillerMoves(pm, bestMove, killer1, killer2, onMove, needToEscapeMate);
 		checkToSortList(orderMoveList);
 		

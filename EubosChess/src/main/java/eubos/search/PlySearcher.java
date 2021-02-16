@@ -9,6 +9,7 @@ import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.position.MoveList;
+import eubos.position.Position;
 import eubos.position.PositionManager;
 import eubos.score.IEvaluate;
 import eubos.score.IScoreMate;
@@ -196,7 +197,10 @@ public class PlySearcher {
 	
 	private int searchMoves(int prevBestMove, ITransposition trans) throws InvalidPieceException {
 		int theScore;	
-		MoveList ml = getMoveList(prevBestMove);
+		int[] killer_moves = killers.getMoves(currPly);
+		int targetSq = isInExtendedSearch() ? pos.lastMoveTargetSquare() : Position.NOPOSITION;
+		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, killer_moves[0], killer_moves[1], moveListOrdering, targetSq);
+		
         if (ml.isMateOccurred()) {
         	if (isInExtendedSearch()) {
         		ml = new MoveList((PositionManager) pm, 0); // don't bother to sort
@@ -400,18 +404,6 @@ public class PlySearcher {
 				assert false;
 		}
 		return doUpdate;
-	}
-
-	private MoveList getMoveList(int transBestMove) throws InvalidPieceException {
-		MoveList ml = null;
-		int[] killer_moves = killers.getMoves(currPly);
-		if (isInExtendedSearch()) {
-			int targetSq = pos.lastMoveTargetSquare();
-			ml = new MoveList((PositionManager) pm, transBestMove, killer_moves[0], killer_moves[1], moveListOrdering, targetSq);
-		} else {
-			ml = new MoveList((PositionManager) pm, transBestMove, killer_moves[0], killer_moves[1], moveListOrdering);
-		}
-		return ml;
 	}
 	
 	private int applyMoveAndScore(int currMove) throws InvalidPieceException {
