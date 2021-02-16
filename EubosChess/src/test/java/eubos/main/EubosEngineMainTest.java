@@ -474,7 +474,7 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR,BEST_PREFIX+"d6h2"+CMD_TERMINATOR));
 		// 2
 		commands.add(new commandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1 moves d6h2 g1h1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR,BEST_PREFIX+"h2g3"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h2g3"+CMD_TERMINATOR));
 		// 3
 		commands.add(new commandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1 moves d6h2 g1h1 h2g3 h1g1"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h4h1"+CMD_TERMINATOR));
