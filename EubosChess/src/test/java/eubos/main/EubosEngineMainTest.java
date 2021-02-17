@@ -415,35 +415,35 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
-	@Ignore
 	public void test_KQk_mate_in_7_alt2() throws InterruptedException, IOException {
 		setupEngine();
 		// 1
 		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"13"+CMD_TERMINATOR,BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"14"+CMD_TERMINATOR,BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
 		// 2
 		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"g7g6"+CMD_TERMINATOR));
 		// 3
 		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 g7g6 c6c7"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"b4b5"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"g6f6"+CMD_TERMINATOR));
 		// 4
-		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 g7g6 c6c7 b4b5 c7c8"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"g6f5"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 g7g6 c6c7 g6f6 c7c6"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"f6e6"+CMD_TERMINATOR));
 		// 5
-		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 g7g6 c6c7 b4b5 c7c8 g6f5 c8d8"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"b5b7"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 g7g6 c6c7 g6f6 c7c6 f6e6 c6c7"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"b4b5"+CMD_TERMINATOR));
 		// 6
-		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 g7g6 c6c7 b4b5 c7c8 g6f5 c8d8 b5b7 d8e8"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"f5e6"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 g7g6 c6c7 g6f6 c7c6 f6e6 c6c7 b4b5 c7c8"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"e6d6"+CMD_TERMINATOR));
 		// 7
-		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 g7g6 c6c7 b4b5 c7c8 g6f5 c8d8 b5b7 d8e8 f5e6 e8d8"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"b7d7"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113 moves f8b4 d5c6 g7g6 c6c7 g6f6 c7c6 f6e6 c6c7 b4b5 c7c8 e6d6 c8d8"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"b5d7"+CMD_TERMINATOR));
 		performTest(20000);
 		assertEquals(14, (int)classUnderTest.dc.getNumEntries());
 	}
 	
 	@Test
+	@Ignore
 	public void test_KQk_mate_in_7() throws InterruptedException, IOException {
 		setupEngine();
 		// 1
@@ -517,7 +517,7 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"d4d5"+CMD_TERMINATOR));
 		// 7
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111 moves h1d1 d5c4 f5e5 c4c3 e5e4 c3c4 d1c1 c4b5 e4d4 b5b6 d4d5 b6b5"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR,BEST_PREFIX+"c1b1"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"11"+CMD_TERMINATOR,BEST_PREFIX+"c1b1"+CMD_TERMINATOR));
 		// 8
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111 moves h1d1 d5c4 f5e5 c4c3 e5e4 c3c4 d1c1 c4b5 e4d4 b5b6 d4d5 b6b5 c1b1 b5a6"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"d5c5"+CMD_TERMINATOR));

@@ -197,9 +197,8 @@ public class PlySearcher {
 	
 	private int searchMoves(int prevBestMove, ITransposition trans) throws InvalidPieceException {
 		int theScore;	
-		int[] killer_moves = killers.getMoves(currPly);
 		int targetSq = isInExtendedSearch() ? pos.lastMoveTargetSquare() : Position.NOPOSITION;
-		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, killer_moves[0], killer_moves[1], moveListOrdering, targetSq);
+		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, killers.getMoves(currPly), moveListOrdering, targetSq);
 		
         if (ml.isMateOccurred()) {
         	if (isInExtendedSearch()) {

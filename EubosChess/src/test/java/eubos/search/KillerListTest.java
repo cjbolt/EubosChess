@@ -31,6 +31,7 @@ public class KillerListTest {
 			int [] moves = sut.getMoves(ply);
 			assertEquals(moveKingPawn, moves[0]);
 			assertEquals(Move.NULL_MOVE, moves[1]);
+			assertEquals(Move.NULL_MOVE, moves[2]);
 		}
 	}
 	
@@ -55,8 +56,9 @@ public class KillerListTest {
 			sut.addMove(ply, moveRookPawn);
 			// Rook pawn move should replace oldest move
 			int [] moves = sut.getMoves(ply);
-			assertEquals(moveRookPawn, moves[0]);
+			assertEquals(moveKingPawn, moves[0]);
 			assertEquals(moveQueenPawn, moves[1]);
+			assertEquals(moveRookPawn, moves[2]);
 		}
 	}
 	
@@ -70,8 +72,8 @@ public class KillerListTest {
 			sut.addMove(ply, moveKnightPawn);
 			// Rook pawn move should replace oldest move
 			int [] moves = sut.getMoves(ply);
-			assertEquals(moveRookPawn, moves[0]);
-			assertEquals(moveKnightPawn, moves[1]);
+			assertEquals(moveKnightPawn, moves[0]);
+			assertEquals(moveQueenPawn, moves[1]);
 		}
 	}
 
@@ -118,7 +120,8 @@ public class KillerListTest {
 			
 			int [] moves = sut.getMoves(ply);
 			assertEquals(moveKingPawn, moves[0]);
-			assertEquals(moveRookPawn, moves[1]);
+			assertEquals(moveQueenPawn, moves[1]);
+			assertEquals(moveRookPawn, moves[2]);
 		}
 	}
 	
@@ -135,7 +138,7 @@ public class KillerListTest {
 
 			int [] moves = sut.getMoves(ply);
 			assertEquals(moveKnightPawn, moves[0]);
-			assertEquals(moveRookPawn, moves[1]);
+			assertEquals(moveQueenPawn, moves[1]);
 		}
 	}
 }

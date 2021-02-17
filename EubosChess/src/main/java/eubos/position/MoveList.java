@@ -33,18 +33,18 @@ public class MoveList implements Iterable<Integer> {
     }
 	
 	public MoveList(PositionManager pm) throws InvalidPieceException {
-		this(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, 1, Position.NOPOSITION);
+		this(pm, Move.NULL_MOVE, null, 1, Position.NOPOSITION);
 	}
 	
 	public MoveList(PositionManager pm, int orderMoveList) throws InvalidPieceException {
-		this(pm, Move.NULL_MOVE, Move.NULL_MOVE, Move.NULL_MOVE, orderMoveList, Position.NOPOSITION);
+		this(pm, Move.NULL_MOVE, null, orderMoveList, Position.NOPOSITION);
 	}
 	
-	public MoveList(PositionManager pm, int bestMove, int killer1, int killer2, int orderMoveList) throws InvalidPieceException {
-		this(pm, bestMove, killer1, killer2, orderMoveList, Position.NOPOSITION);
+	public MoveList(PositionManager pm, int bestMove, int [] killers, int orderMoveList) throws InvalidPieceException {
+		this(pm, bestMove, killers, orderMoveList, Position.NOPOSITION);
 	}	
 	
-	public MoveList(PositionManager pm, int bestMove, int killer1, int killer2, int orderMoveList, int targetPosition) throws InvalidPieceException {	
+	public MoveList(PositionManager pm, int bestMove, int [] killers, int orderMoveList, int targetPosition) throws InvalidPieceException {	
 		
 		normal_search_moves = new LinkedList<Integer>();
 		priority_moves = new LinkedList<Integer>();
@@ -56,17 +56,23 @@ public class MoveList implements Iterable<Integer> {
 		pm.getTheBoard().getRegularPieceMoves(this, isWhiteOnMove, targetPosition);
 		pm.castling.addCastlingMoves(isWhiteOnMove, this);
 		
-		removeInvalidIdentifyBestKillerMoves(pm, bestMove, killer1, killer2, onMove, needToEscapeMate);
+		removeInvalidIdentifyBestKillerMoves(pm, bestMove, killers, onMove, needToEscapeMate);
 		checkToSortList(orderMoveList);
 		
 		normal_search_moves.addAll(0, priority_moves);
 	}
 
-	private void removeInvalidIdentifyBestKillerMoves(PositionManager pm, int bestMove, int killer1, int killer2, Colour onMove,
+	private void removeInvalidIdentifyBestKillerMoves(PositionManager pm, int bestMove, int[] killers, Colour onMove,
 			boolean needToEscapeMate) throws InvalidPieceException {
 		boolean validBest = bestMove != Move.NULL_MOVE;
-		boolean validKillerMove1 = killer1 != Move.NULL_MOVE && !Move.areEqualForBestKiller(killer1, bestMove);
-		boolean validKillerMove2 = killer2 != Move.NULL_MOVE && !Move.areEqualForBestKiller(killer2, bestMove);
+		boolean validKillerMove1 = false;
+		boolean validKillerMove2 = false;
+		boolean validKillerMove3 = false;
+		if (killers != null) {
+			validKillerMove1 = killers[0] != Move.NULL_MOVE && !Move.areEqualForBestKiller(killers[0], bestMove);
+			validKillerMove2 = killers[1] != Move.NULL_MOVE && !Move.areEqualForBestKiller(killers[1], bestMove);
+			validKillerMove3 = killers[2] != Move.NULL_MOVE && !Move.areEqualForBestKiller(killers[2], bestMove);
+		}
 		int foundBestMove = Move.NULL_MOVE;
 		
 		ListIterator<Integer> it = priority_moves.listIterator();
@@ -116,15 +122,19 @@ public class MoveList implements Iterable<Integer> {
 				
 				if (KillerList.ENABLE_KILLER_MOVES) {
 					// Check whether to set Killer flags
-					boolean isKiller1 = validKillerMove1 && Move.areEqualForBestKiller(currMove, killer1);
+					boolean isKiller1 = validKillerMove1 && Move.areEqualForBestKiller(currMove, killers[0]);
 					if (isKiller1) {
 						validKillerMove1 = false; // as already found
 					}
-					boolean isKiller2 = validKillerMove2 && Move.areEqualForBestKiller(currMove, killer2);
+					boolean isKiller2 = validKillerMove2 && Move.areEqualForBestKiller(currMove, killers[1]);
 					if (isKiller2) {
 						validKillerMove2 = false; // as already found
 					}
-					if (isKiller1 || isKiller2) {
+					boolean isKiller3 = validKillerMove3 && Move.areEqualForBestKiller(currMove, killers[2]);
+					if (isKiller3) {
+						validKillerMove3 = false; // as already found
+					}
+					if (isKiller1 || isKiller2 || isKiller3) {
 						// Move was modified, add it to the priority list, where it will be sorted (add killers at end)
 						currMove = Move.setKiller(currMove);
 						it.remove();
