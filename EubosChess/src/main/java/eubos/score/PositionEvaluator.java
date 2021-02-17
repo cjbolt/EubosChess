@@ -21,7 +21,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	public static final int PASSED_PAWN_BOOST = 30;
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 20;
 	
-	public static final boolean DISABLE_QUIESCENCE_CHECK = false;
+	public static final boolean ENABLE_QUIESCENCE_CHECK = true;
 	public static final boolean ENABLE_PAWN_EVALUATION = true;
 	public static final boolean ENABLE_KING_SAFETY_EVALUATION = true;
 	public static final boolean ENABLE_DYNAMIC_POSITIONAL_EVALUATION = true;
@@ -36,7 +36,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	}
 	
 	public boolean isQuiescent(int currMove) {
-		if (DISABLE_QUIESCENCE_CHECK)
+		if (!ENABLE_QUIESCENCE_CHECK)
 			return true;
 		if (Move.isPromotion(currMove) || pm.isPromotionPossible()) {
 			return false;
