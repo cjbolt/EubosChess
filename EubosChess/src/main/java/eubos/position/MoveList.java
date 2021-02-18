@@ -65,14 +65,6 @@ public class MoveList implements Iterable<Integer> {
 	private void removeInvalidIdentifyBestKillerMoves(PositionManager pm, int bestMove, int[] killers, Colour onMove,
 			boolean needToEscapeMate) throws InvalidPieceException {
 		boolean validBest = bestMove != Move.NULL_MOVE;
-		boolean validKillerMove1 = false;
-		boolean validKillerMove2 = false;
-		boolean validKillerMove3 = false;
-		if (killers != null) {
-			validKillerMove1 = killers[0] != Move.NULL_MOVE && !Move.areEqualForBestKiller(killers[0], bestMove);
-			validKillerMove2 = killers[1] != Move.NULL_MOVE && !Move.areEqualForBestKiller(killers[1], bestMove);
-			validKillerMove3 = killers[2] != Move.NULL_MOVE && !Move.areEqualForBestKiller(killers[2], bestMove);
-		}
 		int foundBestMove = Move.NULL_MOVE;
 		
 		ListIterator<Integer> it = priority_moves.listIterator();
@@ -111,35 +103,19 @@ public class MoveList implements Iterable<Integer> {
 				// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
 				it.remove();
 			} else {
-				// Check whether to set the best move - note it could be the same as one of the killers
+				// Check whether to set the best move - note it could be the same as one of the killers, so check for best first
 				boolean isBest = validBest && Move.areEqualForBestKiller(currMove, bestMove);
 				if (isBest) {
 					foundBestMove = Move.setBest(currMove);
 					validBest = false; // as already found
 					it.remove();
 					priority_moves.add(0, foundBestMove); // Add at head of priority list
-				}
-				
-				if (KillerList.ENABLE_KILLER_MOVES) {
-					// Check whether to set Killer flags
-					boolean isKiller1 = validKillerMove1 && Move.areEqualForBestKiller(currMove, killers[0]);
-					if (isKiller1) {
-						validKillerMove1 = false; // as already found
-					}
-					boolean isKiller2 = validKillerMove2 && Move.areEqualForBestKiller(currMove, killers[1]);
-					if (isKiller2) {
-						validKillerMove2 = false; // as already found
-					}
-					boolean isKiller3 = validKillerMove3 && Move.areEqualForBestKiller(currMove, killers[2]);
-					if (isKiller3) {
-						validKillerMove3 = false; // as already found
-					}
-					if (isKiller1 || isKiller2 || isKiller3) {
-						// Move was modified, add it to the priority list, where it will be sorted (add killers at end)
-						currMove = Move.setKiller(currMove);
-						it.remove();
-						priority_moves.add(currMove);
-					}
+					
+				} else if (KillerList.isMoveOnListAtPly(killers, currMove)) {
+					// Move was modified, add it to the priority list, where it will be sorted (add killers at end)
+					currMove = Move.setKiller(currMove);
+					it.remove();
+					priority_moves.add(currMove);
 				}
 			}
 			pm.unperformMove(false);

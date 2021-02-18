@@ -92,10 +92,68 @@ public class Board {
 		return mask;
 	}
 	
+	private static final long[][] BackwardsPawn_Lut = new long[2][]; 
+	static {
+		long[] white_map = new long[128];
+		BackwardsPawn_Lut[Colour.white.ordinal()] = white_map;
+		for (int atPos : Position.values) {
+			white_map[atPos] = buildBackwardPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), true);
+		}
+		long[] black_map = new long[128];
+		BackwardsPawn_Lut[Colour.black.ordinal()] = black_map;
+		for (int atPos : Position.values) {
+			black_map[atPos] = buildBackwardPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), false);
+		}
+	}
+	private static long buildBackwardPawnFileMask(int f, int r, boolean isWhite) {
+		long mask = 0;
+		boolean hasPrevFile = IntFile.toGenericFile(f).hasPrev();
+		boolean hasNextFile = IntFile.toGenericFile(f).hasNext();
+		if (isWhite) {
+			for (r=r-1; r > 0; r--) {
+				mask = addRankForBackwardsPawnMask(mask, r, f, hasPrevFile, hasNextFile);
+			}
+		} else {
+			for (r=r+1; r < 7; r++) {
+				mask = addRankForBackwardsPawnMask(mask, r, f, hasPrevFile,	hasNextFile);	
+			}
+		}
+		return mask;
+	}
+	private static long addRankForBackwardsPawnMask(long mask, int r, int f,
+			boolean hasPrevFile, boolean hasNextFile) {
+		if (hasPrevFile) {
+			mask |= 1L << r*8+(f-1);
+		}
+		if (hasNextFile) {
+			mask |= 1L << r*8+(f+1);
+		}
+		return mask;
+	}
+	
+	private static final long[] IsolatedPawn_Lut = new long[128]; 
+	static {
+		for (int atPos : Position.values) {
+			IsolatedPawn_Lut[atPos] = buildIsolatedPawnFileMask(Position.getFile(atPos));
+		}
+	}
+	private static long buildIsolatedPawnFileMask(int f) {
+		long mask = 0;
+		boolean hasPrevFile = IntFile.toGenericFile(f).hasPrev();
+		boolean hasNextFile = IntFile.toGenericFile(f).hasNext();
+		if (hasPrevFile) {
+			mask |= FileMask_Lut[f-1];
+		}
+		if (hasNextFile) {
+			mask |= FileMask_Lut[f+1];
+		}
+		return mask;
+	}
+	
 	public static final short MATERIAL_VALUE_KING = 4000;
 	public static final short MATERIAL_VALUE_QUEEN = 900;
 	public static final short MATERIAL_VALUE_ROOK = 490;
-	public static final short MATERIAL_VALUE_BISHOP = 320;
+	public static final short MATERIAL_VALUE_BISHOP = 305;
 	public static final short MATERIAL_VALUE_KNIGHT = 290;
 	public static final short MATERIAL_VALUE_PAWN = 100;
 	
@@ -680,6 +738,26 @@ public class Board {
 			isPassed  = false;
 		}
 		return isPassed;
+	}
+	
+	public boolean isBackwardsPawn(int atPos, Colour side) {
+		boolean isBackwards = true;
+		long mask = BackwardsPawn_Lut[side.ordinal()][atPos];
+		long ownSidePawns = Colour.isBlack(side) ? getBlackPawns() : getWhitePawns();
+		if ((mask & ownSidePawns) != 0) {
+			isBackwards  = false;
+		}
+		return isBackwards;
+	}
+	
+	public boolean isIsolatedPawn(int atPos, Colour side) {
+		boolean isIsolated = true;
+		long mask = IsolatedPawn_Lut[atPos];
+		long ownSidePawns = Colour.isBlack(side) ? getBlackPawns() : getWhitePawns();
+		if ((mask & ownSidePawns) != 0) {
+			isIsolated  = false;
+		}
+		return isIsolated;
 	}
 	
 	class allPiecesOnBoardIterator implements PrimitiveIterator.OfInt {	

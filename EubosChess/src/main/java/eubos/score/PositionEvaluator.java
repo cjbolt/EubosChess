@@ -17,9 +17,14 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	IPositionAccessors pm;
 	private SearchContext sc;
 	
-	public static final int DOUBLED_PAWN_HANDICAP = 33;
-	public static final int PASSED_PAWN_BOOST = 30;
+	public static final int DOUBLED_PAWN_HANDICAP = 20;
+	public static final int ISOLATED_PAWN_HANDICAP = 33;
+	public static final int BACKWARD_PAWN_HANDICAP = 12;
+	
+	public static final int PASSED_PAWN_BOOST = 33;
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 20;
+	
+	public static final int CONNECTED_PASSED_PAWN_BOOST = 75;
 	
 	public static final boolean ENABLE_QUIESCENCE_CHECK = true;
 	public static final boolean ENABLE_PAWN_EVALUATION = true;
@@ -85,30 +90,35 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	}
 	
 	Colour onMoveWas;
-	int passedPawnBoost = 0;
+	int individualPawnEval = 0;
 	
 	@Override
 	public void callback(int piece, int atPos) {
 		if (pm.getTheBoard().isPassedPawn(atPos, onMoveWas)) {
 			if (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) {
-				passedPawnBoost += ROOK_FILE_PASSED_PAWN_BOOST;
+				individualPawnEval += ROOK_FILE_PASSED_PAWN_BOOST;
 			} else {
-				passedPawnBoost += PASSED_PAWN_BOOST;
+				individualPawnEval += PASSED_PAWN_BOOST;
 			}
+		}
+		if (pm.getTheBoard().isIsolatedPawn(atPos, onMoveWas)) {
+			individualPawnEval -= ISOLATED_PAWN_HANDICAP;
+		} else if (pm.getTheBoard().isBackwardsPawn(atPos, onMoveWas)) {
+			individualPawnEval -= BACKWARD_PAWN_HANDICAP;
 		}
 	}
 	
 	private int evaluatePawnsForColour(Colour onMoveWas) {
 		Board board = pm.getTheBoard();
 		this.onMoveWas = onMoveWas;
-		this.passedPawnBoost = 0;
+		this.individualPawnEval = 0;
 		int pawnHandicap = -board.countDoubledPawnsForSide(onMoveWas)*DOUBLED_PAWN_HANDICAP;
 		board.forEachPawnOfSide(this, Colour.isBlack(onMoveWas));
 		if (Colour.isBlack(onMoveWas)) {
 			pawnHandicap = -pawnHandicap;
-			passedPawnBoost = -passedPawnBoost;
+			individualPawnEval = -individualPawnEval;
 		}
-		return pawnHandicap + passedPawnBoost;
+		return pawnHandicap + individualPawnEval;
 	}
 	
 	public SearchContext getSearchContext() {

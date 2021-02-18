@@ -24,10 +24,12 @@ public class KillerList {
 		}
 	}
 	
-	public boolean isMoveOnListAtPly(int ply, int move) {
-		for (int listMove : killerList[ply]) {
-			if (Move.areEqualForBestKiller(listMove, move)) {
-				return true;
+	public static boolean isMoveOnListAtPly(int [] list, int move) {
+		if (KillerList.ENABLE_KILLER_MOVES && list != null) {
+			for (int listMove : list) {
+				if (Move.areEqualForBestKiller(listMove, move)) {
+					return true;
+				}
 			}
 		}
 		return false;
@@ -36,7 +38,7 @@ public class KillerList {
 	public void addMove(int ply, int move) {
 		if (ENABLE_KILLER_MOVES) {
 			if (Move.isNotCaptureOrPromotion(move) && ply < killerList.length) {
-				if (!isMoveOnListAtPly(ply, move)) {
+				if (!isMoveOnListAtPly(killerList[ply], move)) {
 					// update the move and change the index to update next time
 					int indexToUpdate = replaceIndex[ply];
 					killerList[ply][indexToUpdate] = move;

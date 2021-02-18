@@ -3,6 +3,8 @@ package eubos.score;
 import static eubos.score.PositionEvaluator.DOUBLED_PAWN_HANDICAP;
 import static eubos.score.PositionEvaluator.PASSED_PAWN_BOOST;
 import static eubos.score.PositionEvaluator.ROOK_FILE_PASSED_PAWN_BOOST;
+import static eubos.score.PositionEvaluator.ISOLATED_PAWN_HANDICAP;
+import static eubos.score.PositionEvaluator.BACKWARD_PAWN_HANDICAP;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
@@ -40,7 +42,7 @@ public class PositionEvaluatorTest {
 	public void test_evalPosA() {
 		setUpPosition("rn2k1nr/1pp2p1p/p7/8/6b1/2P2N2/PPP2PP1/R1BB1RK1 b kq - 0 12");
 		if (PositionEvaluator.ENABLE_PAWN_EVALUATION && PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
-			assertEquals(161, Score.getScore(SUT.evaluatePosition())); // Knight good pos, pawn up, doubled pawns, not endgame, some danger to black king (open file)
+			assertEquals(204, Score.getScore(SUT.evaluatePosition())); // Knight good pos, pawn up, doubled pawns, isolated pawn, not endgame, some danger to black king (open file)
 		} else if (PositionEvaluator.ENABLE_PAWN_EVALUATION && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION) {
 			assertEquals(159, Score.getScore(SUT.evaluatePosition())); // Knight good pos, pawn up, doubled pawns, not endgame, some danger to black king (open file)
 		} else {
@@ -52,63 +54,63 @@ public class PositionEvaluatorTest {
 	public void test_DiscourageDoubledPawns_w() {
 		setUpPosition("8/pppppp2/8/8/8/1P2P3/1P1P2PP/8 b - - 0 1");
 		int score = SUT.evaluatePawnStructure();
-		assertEquals(-DOUBLED_PAWN_HANDICAP+ROOK_FILE_PASSED_PAWN_BOOST, score);
+		assertEquals(-DOUBLED_PAWN_HANDICAP+ROOK_FILE_PASSED_PAWN_BOOST-2*ISOLATED_PAWN_HANDICAP-3*BACKWARD_PAWN_HANDICAP+6*BACKWARD_PAWN_HANDICAP, score);
 	}
 	
 	@Test
 	public void test_DiscourageDoubledPawns_b() {
 		setUpPosition("8/pp2p1p1/3p2p1/8/8/8/2PPPPPP/8 w - - 0 1 ");
 		int score = SUT.evaluatePawnStructure();
-		assertEquals(DOUBLED_PAWN_HANDICAP-ROOK_FILE_PASSED_PAWN_BOOST, score);
+		assertEquals(DOUBLED_PAWN_HANDICAP-ROOK_FILE_PASSED_PAWN_BOOST+2*ISOLATED_PAWN_HANDICAP+3*BACKWARD_PAWN_HANDICAP-6*BACKWARD_PAWN_HANDICAP, score);
 	}
 	
 	@Test
 	public void test_DiscourageTripledPawns_w() {
 		setUpPosition("8/8/8/8/2P5/2P5/2P5/8 w - - 0 38 ");
 		int score = SUT.evaluatePawnStructure();
-		assertEquals(-2*DOUBLED_PAWN_HANDICAP+3*PASSED_PAWN_BOOST, score);
+		assertEquals(-2*DOUBLED_PAWN_HANDICAP+3*PASSED_PAWN_BOOST-3*ISOLATED_PAWN_HANDICAP, score);
 	}
 
 	@Test
 	public void test_DiscourageTripledPawns_b() {
 		setUpPosition("8/8/8/8/2p5/2p5/2p5/8 w - - 0 38 ");
 		int score = SUT.evaluatePawnStructure();
-		assertEquals(2*DOUBLED_PAWN_HANDICAP-3*PASSED_PAWN_BOOST, score);
+		assertEquals(2*DOUBLED_PAWN_HANDICAP-3*PASSED_PAWN_BOOST+3*ISOLATED_PAWN_HANDICAP, score);
 	}
 	
 	@Test
 	public void test_encouragePassedPawns_PassedPawn() {
 		setUpPosition("8/8/3pp3/8/3p4/8/2P5/8 b - - 0 1 ");
 		int score = SUT.evaluatePawnStructure();
-		assertEquals(-PASSED_PAWN_BOOST+DOUBLED_PAWN_HANDICAP /* passed e pawn */, score);
+		assertEquals(-PASSED_PAWN_BOOST+DOUBLED_PAWN_HANDICAP+2*BACKWARD_PAWN_HANDICAP-ISOLATED_PAWN_HANDICAP /* passed e pawn */, score);
 	}
 	
 	@Test
 	public void test_encouragePassedPawns_TwoPassedPawnsForBlack() {
 		setUpPosition("8/8/3pp3/8/8/8/2Pp4/8 b - - 0 1");
 		int score = SUT.evaluatePawnStructure();
-		assertEquals(-2*PASSED_PAWN_BOOST+DOUBLED_PAWN_HANDICAP /* passed d and e pawns */, score);
+		assertEquals(-2*PASSED_PAWN_BOOST+DOUBLED_PAWN_HANDICAP-ISOLATED_PAWN_HANDICAP+2*BACKWARD_PAWN_HANDICAP/* passed d and e pawns */, score);
 	}
 	
 	@Test
 	public void test_encouragePassedPawns_PassedPawnForWhite() {
 		setUpPosition("8/2pPp3/8/2P1P3/8/8/8/8 w - - 0 1 ");
 		int score = SUT.evaluatePawnStructure();
-		assertEquals(PASSED_PAWN_BOOST /* passed d pawn */, score);
+		assertEquals(PASSED_PAWN_BOOST+2*ISOLATED_PAWN_HANDICAP-2*BACKWARD_PAWN_HANDICAP/* passed d pawn */, score);
 	}
 	 
 	@Test
 	public void test_encouragePassedPawns_PassedPawnForBlack1() {
 		setUpPosition("8/8/8/8/8/2p1p3/2PpP3/8 b - - 0 1 ");
 		int score = SUT.evaluatePawnStructure();
-		assertEquals(-PASSED_PAWN_BOOST /* passed d pawn */, score);
+		assertEquals(-PASSED_PAWN_BOOST-2*ISOLATED_PAWN_HANDICAP+2*BACKWARD_PAWN_HANDICAP /* passed d pawn */, score);
 	}
 	
 	@Test
 	public void test_encouragePassedPawns_TwoPassedPawnsForBlackOneRookFile() {
 		setUpPosition("8/8/3p3p/8/8/8/2Pp4/8 b - - 0 1");
 		int score = SUT.evaluatePawnStructure();
-		assertEquals(-(PASSED_PAWN_BOOST+ROOK_FILE_PASSED_PAWN_BOOST-DOUBLED_PAWN_HANDICAP) /* passed d and e pawns */, score);
+		assertEquals(-(PASSED_PAWN_BOOST+ROOK_FILE_PASSED_PAWN_BOOST-DOUBLED_PAWN_HANDICAP)+2*ISOLATED_PAWN_HANDICAP /* passed d and e pawns */, score);
 	} 
 	
 	@Test
