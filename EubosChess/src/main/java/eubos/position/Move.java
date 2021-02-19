@@ -513,20 +513,27 @@ public final class Move {
 		StringBuilder string = new StringBuilder();
 		if (move != Move.NULL_MOVE) {
 			string.append(toGenericMove(move).toString());
-
+			
 			if (isPromotion(move)) {
 				string.append(":");
 				string.append(IntChessman.toGenericChessman(Piece.convertPieceToChessman(getPromotion(move))));
-			}
-			
+			}		
 			if (getOriginPiece(move) != Piece.NONE) {
 				string.append(":");
 				string.append(Piece.toFenChar(getOriginPiece(move)));
 			}
-			
 			if (getTargetPiece(move) != Piece.NONE) {
 				string.append(":");
 				string.append(Piece.toFenChar(getTargetPiece(move)));
+			}
+			if (Move.isEnPassantCapture(move)) {
+				string.append(":ep");
+			}
+			if ((Move.getType(move) & Move.TYPE_BEST_MASK) != 0) {
+				string.append(":best");
+			}
+			if ((Move.getType(move) & Move.TYPE_KILLER_MASK) != 0) {
+				string.append(":killer");
 			}
 		}
 		return string.toString();

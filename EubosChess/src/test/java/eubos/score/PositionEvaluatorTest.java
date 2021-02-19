@@ -157,12 +157,12 @@ public class PositionEvaluatorTest {
 		int score = SUT.evaluatePawnStructure();
 		// black
 		int expectedScore = 0;
-		expectedScore -= (7-1)*PASSED_PAWN_BOOST; // black d pawn about to queen
+		expectedScore -= ((7-1)*PASSED_PAWN_BOOST - ISOLATED_PAWN_HANDICAP); // black d pawn about to queen
 		expectedScore -= ((7-5)*ROOK_FILE_PASSED_PAWN_BOOST - ISOLATED_PAWN_HANDICAP); // black h pawn 6th rank
 		expectedScore -= -ISOLATED_PAWN_HANDICAP; // black d pawn 6th rank
 		expectedScore -= -DOUBLED_PAWN_HANDICAP; // black doubled pawns
 		// white
-		expectedScore += PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP;
+		expectedScore += -ISOLATED_PAWN_HANDICAP;
 		assertEquals(expectedScore, score);
 	} 
 	

@@ -22,8 +22,8 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	public static final int ISOLATED_PAWN_HANDICAP = 33;
 	public static final int BACKWARD_PAWN_HANDICAP = 12;
 	
-	public static final int PASSED_PAWN_BOOST = 33;
-	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 20;
+	public static final int PASSED_PAWN_BOOST = 18;
+	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 12;
 	
 	public static final int CONNECTED_PASSED_PAWN_BOOST = 75;
 	
