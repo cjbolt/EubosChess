@@ -93,39 +93,6 @@ public class SearchContextTest {
 	}
 	 
 	@Test
-	@Ignore
-	public void test_draw_black() throws InvalidPieceException, IllegalNotationException {
-		setupPosition("7q/1P6/8/8/8/8/2k3PQ/7K b - - 0 42");
-		// set up a draw by repeated check
-		GenericMove [] moveList = new GenericMove[]{
-												new GenericMove("h8a1"),
-						new GenericMove("h2g1"),new GenericMove("a1h8"),
-						new GenericMove("g1h2"),new GenericMove("h8a1"),
-						new GenericMove("h2g1"),new GenericMove("a1h8"),
-						new GenericMove("g1h2")};
-		applyMoveList(moveList);
-		PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
-		// Good for black as black is trying to draw
-		assertEquals(SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current).score);
-	}
-	
-	@Test
-	@Ignore
-	public void test_draw_white() throws InvalidPieceException, IllegalNotationException {
-		setupPosition("7k/2K3pq/8/8/8/8/1p6/7Q w - - 0 1");
-		// set up a draw by repeated check
-		GenericMove [] moveList = new GenericMove[]{
-						new GenericMove("h1a8"),new GenericMove("h7g8"),
-		                new GenericMove("a8h1"),new GenericMove("g8h7"),
-		                new GenericMove("h1a8"),new GenericMove("h7g8"),
-		                new GenericMove("a8h1"),new GenericMove("g8h7")};
-		applyMoveList(moveList);
-		PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
-		// Good for white as white is trying to draw
-		assertEquals(-SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current).score);
-	}
-	
-	@Test
 	public void test_is_not_a_draw() throws InvalidPieceException, IllegalNotationException {
 		setupPosition("7q/1P6/8/8/8/8/2k3PQ/7K b - - 0 42");
 		// insufficient moves for draw
@@ -151,24 +118,7 @@ public class SearchContextTest {
 		assertTrue(dc.isPositionOpponentCouldClaimDraw(pm.getHash()));
 		dc.incrementPositionReachedCount(pm.getHash());
 		PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
-		assertEquals(SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current).score);
-	}
-	
-	@Test
-	@Ignore
-	public void test_eubos_main_white_achieves_draw() throws InvalidPieceException, IllegalNotationException {
-		setupPosition("8/8/2K5/8/7k/8/8/6q1 b - - 0 60");
-		GenericMove [] moveList = new GenericMove[] {
-												new GenericMove("g1g2"),
-						new GenericMove("c6c5"),new GenericMove("g2g1"),
-						new GenericMove("c5c6"),new GenericMove("g1g2"),
-						new GenericMove("c6c5"),new GenericMove("g2g1"),
-						new GenericMove("c5c6")};
-		
-		applyMoveList(moveList);
-		assertTrue(dc.isPositionOpponentCouldClaimDraw(pm.getHash()));
-		PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
-		assertEquals(SearchContext.ACHIEVES_DRAW_BONUS, sut.computeSearchGoalBonus(current).score);
+		//assertEquals(SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current).score);
 	}
 	
 	@Test
@@ -183,20 +133,4 @@ public class SearchContextTest {
 		PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
 		assertEquals(SearchContext.ACHIEVES_DRAW_BONUS, sut.computeSearchGoalBonus(current).score);
 	}
-	
-	
-//	@Test
-//	public void test_eubos_takes_draw_instead_of_mate_one_move_earlier() throws InvalidPieceException, IllegalNotationException {
-//		/* In this position, Eubos choose to under promote to a bishop in order to secure the bonus for
-//		 * getting a draw (by insufficient material) when he considered himself behind. A naive material eval
-//		 * puts white at -130, even though the pawn can promote to a queen. */
-//		setupPosition("8/1P6/2q2k2/2K5/8/8/5n2/8 w - - - 74"); 
-//		GenericMove [] moveList = new GenericMove[] { 
-//				new GenericMove("c5c6"), new GenericMove("b7b8b")
-//				new GenericMove("b7b8b") };
-//
-//		applyMoveList(moveList);
-//		PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
-//		assertEquals(SearchContext.ACHIEVES_DRAW_BONUS, sut.computeSearchGoalBonus(current).score);
-//	}
 }

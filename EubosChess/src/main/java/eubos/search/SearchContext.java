@@ -11,13 +11,13 @@ public class SearchContext {
 	PiecewiseEvaluation initial;
 	IPositionAccessors pos;
 	Piece.Colour initialOnMove;
+	Piece.Colour opponent;
 	SearchGoal goal;
 	
 	static final short SIMPLIFY_THRESHOLD = 100;
 	static final short DRAW_THRESHOLD = -150;
 	
 	static final short SIMPLIFICATION_BONUS = 75;
-	static final short AVOID_DRAW_HANDICAP = -150;
 	static final short ACHIEVES_DRAW_BONUS = Board.MATERIAL_VALUE_KING/2;
 	
 	static final boolean ALWAYS_TRY_FOR_WIN = false;
@@ -34,6 +34,7 @@ public class SearchContext {
 		// Make a copy of the initial Material Evaluation and store it here
 		initial = new PiecewiseEvaluation(initialMaterial.getWhite(), initialMaterial.getBlack(), initialMaterial.getPosition());
 		initialOnMove = pos.getOnMove();
+		opponent = Colour.getOpposite(initialOnMove);
 		setGoal(refScore);
 	}
 
@@ -78,53 +79,38 @@ public class SearchContext {
 	}
 	
 	public SearchContextEvaluation computeSearchGoalBonus(PiecewiseEvaluation current) {
-		Piece.Colour opponent = Colour.getOpposite(initialOnMove);
+		
 		SearchContextEvaluation eval = new SearchContextEvaluation();
 		
+		boolean weJustMoved = pos.getOnMove().equals(opponent);
 		boolean threeFold = pos.isThreefoldRepetitionPossible();
 		boolean insufficient = pos.getTheBoard().isInsufficientMaterial();
-		if (threeFold || insufficient) {
-			eval.isDraw  = true;
-		}
 		
-		// If we just moved, score as according to our goal
-		if (pos.getOnMove().equals(opponent)) {
+		eval.isDraw = (threeFold || insufficient);
+		if (!weJustMoved) {
+			// For opponent, always add on positional weightings
+			eval.score = current.getPosition();
+		} else if (eval.isDraw) {
+			// If we drew, rank according to our goal
+			eval.score = (isTryForDraw() && insufficient) ? adjustScoreIfBlack(ACHIEVES_DRAW_BONUS) : 0;
+		} else {
+			// We just moved and it isn't a draw, score according to our goal
 			switch(goal) {
 			case simplify: 
-			    if (!eval.isDraw) {
-			    	if (isPositionSimplified(current)) {
-				    	eval.score = SIMPLIFICATION_BONUS;
-				    	eval.score = adjustScoreIfBlack(eval.score);
-			    	}
-				    // Add on positional weightings
-				    eval.score += current.getPosition();
-				}
-				break;
+		    	if (isPositionSimplified(current)) {
+			    	eval.score = adjustScoreIfBlack(SIMPLIFICATION_BONUS);
+		    	}
+		    	// Deliberate drop through
 			case try_for_draw:
-				if (insufficient) {
-					eval.score = ACHIEVES_DRAW_BONUS;
-					eval.score = adjustScoreIfBlack(eval.score);
-				} else if (!eval.isDraw) {
-				    // Add on positional weightings
-				    eval.score += current.getPosition();
-				} else {
-					// do nothing if a draw
-				}
-				break;
 			case try_for_win:
-				if (!eval.isDraw) {
-					// Add on positional weightings
-					eval.score += current.getPosition();
-			    }
+				// Add on positional weightings
+				eval.score += current.getPosition();
 				break;
 			case try_for_mate:
+			default:
 				// Don't add on positional factors to save aimless faffing about board
 				break;
-			default:
-				break;
 			}
-		} else {
-			eval.score += current.getPosition();
 		}
 		return eval;
 	}
