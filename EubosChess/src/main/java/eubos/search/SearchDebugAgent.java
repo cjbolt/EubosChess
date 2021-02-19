@@ -76,9 +76,9 @@ public class SearchDebugAgent {
 		}
 	}
 
-	void printUndoMove(int currMove) {
+	void printUndoMove(int currMove, int positionScore) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%sundo(%s) @%d", indent, Move.toString(currMove), currPly));
+			printOutput(String.format("%sundo(%s, %s) @%d", indent, Move.toString(currMove), Score.toString(positionScore), currPly));
 		}
 	}
 
@@ -101,9 +101,9 @@ public class SearchDebugAgent {
 		}
 	}
 	
-	void printRefutationFound() {
+	void printRefutationFound(int positionScore) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%sref @%d", indent, currPly));
+			printOutput(String.format("%sref now:%s @%d", indent, Score.toString(positionScore), currPly));
 		}
 	}
 	

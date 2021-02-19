@@ -4,6 +4,7 @@ import com.fluxchess.jcpi.models.IntFile;
 
 import eubos.board.Board;
 import eubos.board.IForEachPieceCallback;
+import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
@@ -95,10 +96,16 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	@Override
 	public void callback(int piece, int atPos) {
 		if (pm.getTheBoard().isPassedPawn(atPos, onMoveWas)) {
-			if (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) {
-				individualPawnEval += ROOK_FILE_PASSED_PAWN_BOOST;
+			int weighting = 1;
+			if (Piece.isBlack(piece)) {
+				weighting = 7-Position.getRank(atPos);
 			} else {
-				individualPawnEval += PASSED_PAWN_BOOST;
+				weighting = Position.getRank(atPos);
+			}
+			if (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) {
+				individualPawnEval += weighting*ROOK_FILE_PASSED_PAWN_BOOST;
+			} else {
+				individualPawnEval += weighting*PASSED_PAWN_BOOST;
 			}
 		}
 		if (pm.getTheBoard().isIsolatedPawn(atPos, onMoveWas)) {

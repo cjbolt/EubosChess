@@ -42,7 +42,7 @@ public class PositionEvaluatorTest {
 	public void test_evalPosA() {
 		setUpPosition("rn2k1nr/1pp2p1p/p7/8/6b1/2P2N2/PPP2PP1/R1BB1RK1 b kq - 0 12");
 		if (PositionEvaluator.ENABLE_PAWN_EVALUATION && PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
-			assertEquals(204, Score.getScore(SUT.evaluatePosition())); // Knight good pos, pawn up, doubled pawns, isolated pawn, not endgame, some danger to black king (open file)
+			assertEquals(189, Score.getScore(SUT.evaluatePosition())); // Knight good pos, pawn up, doubled pawns, isolated pawn, not endgame, some danger to black king (open file)
 		} else if (PositionEvaluator.ENABLE_PAWN_EVALUATION && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION) {
 			assertEquals(159, Score.getScore(SUT.evaluatePosition())); // Knight good pos, pawn up, doubled pawns, not endgame, some danger to black king (open file)
 		} else {
@@ -68,49 +68,102 @@ public class PositionEvaluatorTest {
 	public void test_DiscourageTripledPawns_w() {
 		setUpPosition("8/8/8/8/2P5/2P5/2P5/8 w - - 0 38 ");
 		int score = SUT.evaluatePawnStructure();
-		assertEquals(-2*DOUBLED_PAWN_HANDICAP+3*PASSED_PAWN_BOOST-3*ISOLATED_PAWN_HANDICAP, score);
+		// black
+		int expectedScore = 0;
+		// white
+		expectedScore += 1*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP;
+		expectedScore += 2*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP;
+		expectedScore += 3*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP;
+		expectedScore += -2*DOUBLED_PAWN_HANDICAP;
+		assertEquals(expectedScore, score);
 	}
 
 	@Test
 	public void test_DiscourageTripledPawns_b() {
 		setUpPosition("8/8/8/8/2p5/2p5/2p5/8 w - - 0 38 ");
 		int score = SUT.evaluatePawnStructure();
-		assertEquals(2*DOUBLED_PAWN_HANDICAP-3*PASSED_PAWN_BOOST+3*ISOLATED_PAWN_HANDICAP, score);
+		// black
+		int expectedScore = 0;
+		expectedScore -= ((7-1)*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP);
+		expectedScore -= ((7-2)*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP);
+		expectedScore -= ((7-3)*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP);
+		expectedScore -= -2*DOUBLED_PAWN_HANDICAP;
+		assertEquals(expectedScore, score);
 	}
 	
 	@Test
 	public void test_encouragePassedPawns_PassedPawn() {
 		setUpPosition("8/8/3pp3/8/3p4/8/2P5/8 b - - 0 1 ");
 		int score = SUT.evaluatePawnStructure();
-		assertEquals(-PASSED_PAWN_BOOST+DOUBLED_PAWN_HANDICAP+2*BACKWARD_PAWN_HANDICAP-ISOLATED_PAWN_HANDICAP /* passed e pawn */, score);
+		// black
+		int expectedScore = 0;
+		expectedScore -= -BACKWARD_PAWN_HANDICAP; // black d pawn about to queen
+		expectedScore -= (7-5)*PASSED_PAWN_BOOST; // black e pawn 6th rank
+		expectedScore -= -BACKWARD_PAWN_HANDICAP; // black d pawn 6th rank
+		expectedScore -= -DOUBLED_PAWN_HANDICAP; // black doubled pawns
+		// white
+		expectedScore += -ISOLATED_PAWN_HANDICAP;
+		assertEquals(expectedScore, score);
 	}
 	
 	@Test
 	public void test_encouragePassedPawns_TwoPassedPawnsForBlack() {
 		setUpPosition("8/8/3pp3/8/8/8/2Pp4/8 b - - 0 1");
 		int score = SUT.evaluatePawnStructure();
-		assertEquals(-2*PASSED_PAWN_BOOST+DOUBLED_PAWN_HANDICAP-ISOLATED_PAWN_HANDICAP+2*BACKWARD_PAWN_HANDICAP/* passed d and e pawns */, score);
+		// black
+		int expectedScore = 0;
+		expectedScore -= (7-1)*PASSED_PAWN_BOOST; // black d pawn about to queen
+		expectedScore -= ((7-5)*PASSED_PAWN_BOOST - BACKWARD_PAWN_HANDICAP); // black e pawn 6th rank
+		expectedScore -= -BACKWARD_PAWN_HANDICAP; // black d pawn 6th rank
+		expectedScore -= -DOUBLED_PAWN_HANDICAP; // black doubled pawns
+		// white
+		expectedScore += -ISOLATED_PAWN_HANDICAP;
+		assertEquals(expectedScore, score);
 	}
 	
 	@Test
 	public void test_encouragePassedPawns_PassedPawnForWhite() {
 		setUpPosition("8/2pPp3/8/2P1P3/8/8/8/8 w - - 0 1 ");
 		int score = SUT.evaluatePawnStructure();
-		assertEquals(PASSED_PAWN_BOOST+2*ISOLATED_PAWN_HANDICAP-2*BACKWARD_PAWN_HANDICAP/* passed d pawn */, score);
+		// white
+		int expectedScore = 0;
+		expectedScore += 6*PASSED_PAWN_BOOST;
+		expectedScore += -BACKWARD_PAWN_HANDICAP;
+		expectedScore += -BACKWARD_PAWN_HANDICAP;
+		// white
+		expectedScore -= -ISOLATED_PAWN_HANDICAP;
+		expectedScore -= -ISOLATED_PAWN_HANDICAP;
+		assertEquals(expectedScore, score);
 	}
 	 
 	@Test
 	public void test_encouragePassedPawns_PassedPawnForBlack1() {
 		setUpPosition("8/8/8/8/8/2p1p3/2PpP3/8 b - - 0 1 ");
 		int score = SUT.evaluatePawnStructure();
-		assertEquals(-PASSED_PAWN_BOOST-2*ISOLATED_PAWN_HANDICAP+2*BACKWARD_PAWN_HANDICAP /* passed d pawn */, score);
+		// black
+		int expectedScore = 0;
+		expectedScore -= (7-1)*PASSED_PAWN_BOOST;
+		expectedScore -= -BACKWARD_PAWN_HANDICAP;
+		expectedScore -= -BACKWARD_PAWN_HANDICAP;
+		// white
+		expectedScore += -ISOLATED_PAWN_HANDICAP;
+		expectedScore += -ISOLATED_PAWN_HANDICAP;
+		assertEquals(expectedScore, score);
 	}
 	
 	@Test
 	public void test_encouragePassedPawns_TwoPassedPawnsForBlackOneRookFile() {
 		setUpPosition("8/8/3p3p/8/8/8/2Pp4/8 b - - 0 1");
 		int score = SUT.evaluatePawnStructure();
-		assertEquals(-(PASSED_PAWN_BOOST+ROOK_FILE_PASSED_PAWN_BOOST-DOUBLED_PAWN_HANDICAP)+2*ISOLATED_PAWN_HANDICAP /* passed d and e pawns */, score);
+		// black
+		int expectedScore = 0;
+		expectedScore -= (7-1)*PASSED_PAWN_BOOST; // black d pawn about to queen
+		expectedScore -= ((7-5)*ROOK_FILE_PASSED_PAWN_BOOST - ISOLATED_PAWN_HANDICAP); // black h pawn 6th rank
+		expectedScore -= -ISOLATED_PAWN_HANDICAP; // black d pawn 6th rank
+		expectedScore -= -DOUBLED_PAWN_HANDICAP; // black doubled pawns
+		// white
+		expectedScore += PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP;
+		assertEquals(expectedScore, score);
 	} 
 	
 	@Test
@@ -145,7 +198,7 @@ public class PositionEvaluatorTest {
 	public void test_encouragePassedPawns_BothPassedPawns() {
 		setUpPosition("8/8/8/8/6P1/8/6p1/8 b - - 0 1 ");
 		int score = SUT.evaluatePawnStructure();
-		assertEquals(0 /* both pawns on the same file, passed */, score);
+		assertEquals(-((7-3)*PASSED_PAWN_BOOST)+PASSED_PAWN_BOOST/* both pawns on the same file, passed */, score);
 	}
 	
 	@Test
@@ -398,5 +451,138 @@ public class PositionEvaluatorTest {
 		// alternate King move 2
 		setUpPosition("r1b1k3/1p1p1p1p/p3pR2/8/4P3/1PN3r1/P1PQBK2/2q5 b q - 4 21 ");
 		assertEquals(-391, Score.getScore(SUT.evaluatePosition()));
+	}
+	
+	
+/* Test surrounding the anomalous score in the below SDA log....
+
+	undo(g3a3:r, L:510) @3
+do(g3h3:r) @3
+	search @:4 prov:4 @time 19-34-24.689453
+	fen:6k1/6pp/B3b3/P1B1Rn2/2P5/7r/1r6/R6K w - - - 37
+	do(h1g1:K) @4
+		search @:5 prov:43 @time 19-34-24.689453
+		fen:6k1/6pp/B3b3/P1B1Rn2/2P5/7r/1r6/R5K1 b - - - 37
+		hash:7120664301139237326 seed:trans best=b2h2:r, dep=5, sc=43, type=2 object:eubos.search.transposition.Transposition@537d6635 @5
+		do(b2h2:r) @5
+		undo(b2h2:r, X:95) @5
+		do(e6c4:b:P) @5
+			search @:6 prov:4 @time 19-34-24.689453
+			fen:6k1/6pp/B7/P1B1Rn2/2b5/7r/1r6/R5K1 w - - - 38
+			hash:-7551081746862432276 seed:trans best=a6c4:B:b, dep=4, sc=480, type=3 object:eubos.search.transposition.Transposition@79f8e8cc @6
+			do(a6c4:B:b) @6
+				search @:7 prov:43 @time 19-34-24.689453
+				fen:6k1/6pp/8/P1B1Rn2/2B5/7r/1r6/R5K1 b - - - 38
+				hash:761058831192763197 seed:trans best=g8h8:k, dep=3, sc=480, type=2 object:eubos.search.transposition.Transposition@1a939857 @7
+				extSearch NoMoves term @7 score:243
+				backedUp was:E:43 now:U:243 @7
+			undo(a6c4:B:b, U:243) @6
+			ab cmp prev:43 curr:243 @6
+			ref now:U:243 @6
+		undo(e6c4:b:P, L:243) @5
+		do(f5d4:n) @5
+		undo(f5d4:n, X:65) @5
+		
+		Killer? Perhaps print move flags to help identify such?
+		
+		do(g7g5:p) @5
+		undo(g7g5:p, X:9) @5
+		backedUp was:E:43 now:E:9 @5
+		pc:g7g5:p 
+		do(g8f7:k) @5
+		undo(g8f7:k, X:94) @5
+		do(b2b1:r) @5
+		undo(b2b1:r, X:77) @5
+		do(b2b3:r) @5
+		undo(b2b3:r, X:85) @5
+		do(b2b4:r) @5
+		undo(b2b4:r, X:87) @5
+		do(b2b5:r) @5
+		undo(b2b5:r, X:91) @5
+		do(b2b6:r) @5
+		undo(b2b6:r, X:85) @5
+		do(b2b7:r) @5
+		undo(b2b7:r, X:79) @5
+		do(b2b8:r) @5
+		undo(b2b8:r, X:79) @5
+		do(b2a2:r) @5
+		undo(b2a2:r, X:83) @5
+		do(b2c2:r) @5
+		undo(b2c2:r, X:89) @5
+		do(b2d2:r) @5
+		undo(b2d2:r, X:79) @5
+		do(b2e2:r) @5
+		undo(b2e2:r, X:83) @5
+		do(b2f2:r) @5
+		undo(b2f2:r, X:85) @5
+		do(b2g2:r) @5
+		undo(b2g2:r, X:95) @5
+		do(h3h2:r) @5
+		undo(h3h2:r, X:85) @5
+		do(h3h1:r) @5
+		undo(h3h1:r, X:95) @5
+		do(h3h4:r) @5
+		undo(h3h4:r, X:85) @5
+		do(h3h5:r) @5
+		undo(h3h5:r, X:91) @5
+		do(h3h6:r) @5
+		undo(h3h6:r, X:89) @5
+		do(h3g3:r) @5
+		undo(h3g3:r, X:-11) @5
+		ab cmp prev:4 curr:-11 @5
+		ref now:X:-11 @5
+	undo(h1g1:K, U:-11) @4
+	trans create, hash:-8931909632838107069
+	trans best=h1g1:K, dep=2, sc=-11, type=3 hash:-8931909632838107069 object:eubos.search.transposition.Transposition@3b8e54fd
+undo(g3h3:r, L:-11) @3
+ab cmp prev:4 curr:-11 @3
+trans best=g3h3:r, dep=3, sc=-11, type=2 hash:-5530230281005173188 object:eubos.search.transposition.Transposition@15d1517
+ref now:L:-11 @3
+undo(g1h1:K, U:-11) @2
+trans create, hash:6168375866375925681
+trans best=g1h1:K, dep=4, sc=-11, type=3 hash:6168375866375925681 object:eubos.search.transposition.Transposition@2f931baa
+
+My theory is that it could only be more in favour of black like this if the material balance was altered by a capture!?!
+
+No, it was caused by returning a drawn position when that is inconsistent with our search goal.
+*/
+	@Test
+	@Ignore
+	public void test_pos_last_good() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("6k1/6pp/B3b3/P1B1Rn2/2P5/7r/1r6/R5K1 b - - - 37");
+		pm.performMove(Move.toMove(new GenericMove("h3h6"), pm.getTheBoard()));
+		assertEquals(89, Score.getScore(SUT.evaluatePosition()));
+	}
+	
+	@Test
+	@Ignore
+	public void test_pos_bad_unexpected_eval_in_eubos_run_repeatable_apply_move() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("6k1/6pp/B3b3/P1B1Rn2/2P5/7r/1r6/R5K1 b - - - 37");
+		pm.performMove(Move.toMove(new GenericMove("h3g3"), pm.getTheBoard()));
+		assertEquals(-11, Score.getScore(SUT.evaluatePosition()));
+	}
+	
+	@Test
+	@Ignore
+	public void test_pos_bad_unexpected_eval_in_eubos_run_repeatable_exact_pos_fen() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("6k1/6pp/B3b3/P1B1Rn2/2P5/6r1/1r6/R5K1 w - - 1 38");
+		assertEquals(-11, Score.getScore(SUT.evaluatePosition()));
+	}
+	
+	@Test
+	@Ignore
+	public void test_pos() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("2b3k1/6pp/8/P3R3/2P5/6nr/5K2/R7 b - - 0 38");
+		assertEquals(-8, Score.getScore(SUT.evaluatePosition()));
+	}
+	
+	@Test
+	@Ignore
+	public void test_defect_board_state_when_making_moves_from_last_good() throws InvalidPieceException, IllegalNotationException {
+		setUpPosition("6k1/6pp/B3b3/P1B1Rn2/2P5/7r/1r6/R5K1 b - - - 37");
+		pm.performMove(Move.toMove(new GenericMove("h3h6"), pm.getTheBoard()));
+		pm.unperformMove();
+		pm.performMove(Move.toMove(new GenericMove("h3g3"), pm.getTheBoard()));
+		assertEquals(-11, Score.getScore(SUT.evaluatePosition()));
 	}
 }

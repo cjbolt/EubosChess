@@ -28,7 +28,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 	public AbstractMoveSearcher(EubosEngineMain eng, String fen, DrawChecker dc, FixedSizeTranspositionTable hashMap, ReferenceScore refScore) {
 		super();
 		this.eubosEngine = eng;
-		if (EubosEngineMain.UCI_INFO_ENABLED) {
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			sendInfo = true;
 			sr = new SearchMetricsReporter(eubosEngine, hashMap, refScore);
 		}
@@ -41,7 +41,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 		EubosEngineMain.logger.info(String.format("refScore %s, depth %d %s, SearchContext %s, isEndgame %s",
 				Score.toString(ref.score), ref.depth, ref.origin, mg.pos.getPositionEvaluator().getGoal(), mg.pos.getTheBoard().isEndgame));
 		
-		if (EubosEngineMain.UCI_INFO_ENABLED) {
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			sr.start();
 		}
 	}
@@ -94,13 +94,13 @@ public abstract class AbstractMoveSearcher extends Thread {
 	}
 	
 	public void enableSearchMetricsReporter(boolean enable) {
-		if (EubosEngineMain.UCI_INFO_ENABLED && sendInfo) {
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && sendInfo) {
 			sr.setSendInfo(enable);
 		}
 	}
 	
 	public void terminateSearchMetricsReporter() {
-		if (EubosEngineMain.UCI_INFO_ENABLED && sendInfo)
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && sendInfo)
 			sr.end();
 	}
 

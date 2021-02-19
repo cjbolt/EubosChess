@@ -37,7 +37,7 @@ public class ScoreTracker {
 	}
 	
 	void setBackedUpScoreAtPly(byte currPly, short positionScore) {
-		sda.printBackUpScore(currPly, scores[currPly], positionScore);
+		sda.printBackUpScore(currPly, Score.valueOf(scores[currPly], Score.typeUnknown), Score.valueOf(positionScore, Score.typeUnknown));
 		scores[currPly] = positionScore;
 	}	
 	
@@ -63,7 +63,7 @@ public class ScoreTracker {
 			backUpScore = (positionScore < scores[currPly] && positionScore != Short.MIN_VALUE);
 			break;
 		default:
-			if (EubosEngineMain.ASSERTS_ENABLED) {
+			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert false;
 			}
 			break;

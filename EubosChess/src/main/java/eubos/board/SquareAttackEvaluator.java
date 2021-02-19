@@ -391,7 +391,7 @@ public class SquareAttackEvaluator {
 					attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
 				break;
 			default:
-				if (EubosEngineMain.ASSERTS_ENABLED)
+				if (EubosEngineMain.ENABLE_ASSERTS)
 					assert false; // should not receive indirect moves here!
 				break;
 			}
@@ -452,7 +452,7 @@ public class SquareAttackEvaluator {
 			}
 			break;
 		default:
-			if (EubosEngineMain.ASSERTS_ENABLED)
+			if (EubosEngineMain.ENABLE_ASSERTS)
 				assert false; // should not receive indirect moves here!
 			break;
 		}

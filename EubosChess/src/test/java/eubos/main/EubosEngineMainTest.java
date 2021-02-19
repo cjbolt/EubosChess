@@ -145,13 +145,13 @@ public class EubosEngineMainTest {
 	@SuppressWarnings("unused")
 	@Test
 	public void test_infoMessageSending_clearsPreviousPvMoves() throws InterruptedException, IOException {
-		if (EubosEngineMain.UCI_INFO_ENABLED) {
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			String expectedOutput;
 			if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && PositionEvaluator.ENABLE_QUIESCENCE_CHECK) {
-				expectedOutput = "info depth 1 seldepth 4 score cp -149 pv d7e5 f3e5 c7e5 hashfull 0 nps 500 time 14 nodes 7"+CMD_TERMINATOR+
-	                    "info depth 1 seldepth 4 score cp 159 pv c7c2 hashfull 0 nps 125 time 96 nodes 12"+CMD_TERMINATOR+
-	                    "info depth 2 seldepth 0 score cp 18 pv c7c2 d4d5 hashfull 0 nps 811 time 101 nodes 82"+CMD_TERMINATOR+
-	                    "info depth 2 seldepth 0 score cp 19 pv e7e6 e1g1 hashfull 0 nps 1956 time 116 nodes 227"+CMD_TERMINATOR
+				expectedOutput = "info depth 1 seldepth 4 score cp -164 pv d7e5 f3e5 c7e5 hashfull 0 nps 466 time 15 nodes 7"+CMD_TERMINATOR+
+	                    "info depth 1 seldepth 4 score cp 210 pv c7c2 hashfull 0 nps 142 time 84 nodes 12"+CMD_TERMINATOR+
+	                    "info depth 2 seldepth 0 score cp 3 pv c7c2 d4d5 hashfull 0 nps 820 time 100 nodes 82"+CMD_TERMINATOR+
+	                    "info depth 2 seldepth 0 score cp 4 pv e7e6 e1g1 hashfull 0 nps 1956 time 116 nodes 227"+CMD_TERMINATOR
 	                    +BEST_PREFIX+"e7e6";
 			} else if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && !PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
 				expectedOutput = "info depth 1 seldepth 4 score cp -141 pv d7e5 f3e5 c7e5 hashfull 0 nps 500 time 14 nodes 7"+CMD_TERMINATOR+

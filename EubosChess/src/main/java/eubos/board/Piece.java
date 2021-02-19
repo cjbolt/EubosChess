@@ -56,7 +56,7 @@ public abstract class Piece {
 	public static boolean isKnight(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == KNIGHT; }
 	
 	public static boolean isOppositeColour(Colour ownColour, int toCheck) {
-		if (EubosEngineMain.ASSERTS_ENABLED)
+		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (toCheck & PIECE_NO_COLOUR_MASK) != NONE;
 		return Colour.isWhite(ownColour) ? isBlack(toCheck) : isWhite(toCheck);
 	}

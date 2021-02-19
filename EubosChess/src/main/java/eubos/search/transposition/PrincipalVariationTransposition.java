@@ -37,7 +37,7 @@ public class PrincipalVariationTransposition extends Transposition {
 	}
 
 	public void setPv(List<Integer> pv) {
-		if (EubosEngineMain.UCI_INFO_ENABLED) {
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			truncateOnwardPvToSearchDepth(pv);
 			this.pv = pv;
 		}
@@ -46,7 +46,7 @@ public class PrincipalVariationTransposition extends Transposition {
 	@Override
 	public String report() {
 		String onward_pv = "";
-		if (EubosEngineMain.UCI_INFO_ENABLED) {
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			if (pv != null) {
 				for (int move : pv) {
 					onward_pv += String.format("%s, ", Move.toString(move));

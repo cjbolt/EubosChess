@@ -143,7 +143,7 @@ public class MoveList implements Iterable<Integer> {
 			break;
 		default:
 			EubosEngineMain.logger.severe(String.format("Bad move ordering scheme %d!", orderMoveList));
-			if (EubosEngineMain.ASSERTS_ENABLED)
+			if (EubosEngineMain.ENABLE_ASSERTS)
 				assert false;
 			break;
 		}

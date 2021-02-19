@@ -47,10 +47,11 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final byte SEARCH_DEPTH_IN_PLY = 35;
 	public static final int DEFAULT_NUM_SEARCH_THREADS = 2;
 	
-	public static final boolean LOGGING_ENABLED = true;
-	public static final boolean UCI_INFO_ENABLED = true;
-	public static final boolean ASSERTS_ENABLED = false;
+	public static final boolean ENABLE_LOGGING = true;
+	public static final boolean ENABLE_UCI_INFO_SENDING = true;
+	public static final boolean ENABLE_ASSERTS = false;
 	public static final boolean ENABLE_YIELD_IN_WORKER_THREADS = false;
+	public static final boolean ENABLE_REPETITION_DETECTION = true;
 	
 	// Permanent data structures - static for the duration of a single game
 	private FixedSizeTranspositionTable hashMap = null;
@@ -258,7 +259,7 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	public void sendInfoCommand(ProtocolInformationCommand infoCommand) {
-		if (UCI_INFO_ENABLED) {
+		if (ENABLE_UCI_INFO_SENDING) {
 			this.getProtocol().send(infoCommand);
 			logInfo(infoCommand);
 		}
@@ -365,7 +366,7 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 
 	public static void main(String[] args) {
-		if (LOGGING_ENABLED) {
+		if (ENABLE_LOGGING) {
 			logStart();
 		} else {
 			logger.setLevel(Level.OFF);

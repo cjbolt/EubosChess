@@ -26,7 +26,7 @@ public class TranspositionTest {
 	@Test
 	public void test_truncationOfPv() throws IllegalNotationException {
 		if (PrincipalVariationTransposition.TRUNCATION_OF_PV_ENABLED) {
-			if (EubosEngineMain.UCI_INFO_ENABLED) {
+			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 				byte depth = 1;
 				short score = 0;
 				byte scoreType = Score.lowerBound;
@@ -45,7 +45,7 @@ public class TranspositionTest {
 	
 	@Test
 	public void test_PvDoesntNeedTruncation() throws IllegalNotationException {
-		if (EubosEngineMain.UCI_INFO_ENABLED) {
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			byte depth = 1;
 			short score = 0;
 			byte scoreType = Score.lowerBound;
@@ -66,7 +66,7 @@ public class TranspositionTest {
 	@Test
 	public void test_PvValuesExpected() throws IllegalNotationException {
 		if (PrincipalVariationTransposition.TRUNCATION_OF_PV_ENABLED) {
-			if (EubosEngineMain.UCI_INFO_ENABLED) {
+			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 				byte depth = 1;
 				short score = 0;
 				byte scoreType = Score.lowerBound;

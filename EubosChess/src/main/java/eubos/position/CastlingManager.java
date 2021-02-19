@@ -122,7 +122,7 @@ public class CastlingManager {
 			int [] checkSqs,
 			int [] emptySqs) {
 		Board theBoard = pm.getTheBoard();
-		if (EubosEngineMain.ASSERTS_ENABLED)
+		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert Piece.isRook(theBoard.getPieceAtSquare(rookSq));
 		
 		// All the intervening squares between King and Rook should be empty

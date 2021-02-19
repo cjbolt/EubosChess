@@ -3,6 +3,7 @@ package eubos.search;
 import eubos.main.EubosEngineMain;
 
 public final class Score {
+	public static final byte typeUnknown = 0;
 	public static final byte exact = 1;
 	public static final byte upperBound = 2;
 	public static final byte lowerBound = 3;
@@ -44,8 +45,8 @@ public final class Score {
 	public static int valueOf(short score, byte bound) {
 		int theScore = score;
 		theScore &= SCORE_MASK;
-		if (EubosEngineMain.ASSERTS_ENABLED) {
-			assert bound == Score.exact || bound == Score.upperBound || bound == Score.lowerBound;
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			assert bound == Score.exact || bound == Score.upperBound || bound == Score.lowerBound || bound == Score.typeUnknown;
 		}
 		theScore |= bound << BOUND_SHIFT;
 		return theScore;
@@ -53,11 +54,17 @@ public final class Score {
 	
 	public static String toString(int score) {
 		StringBuilder string = new StringBuilder();
-		char the_type = 'E';
-		switch(getType(score))
+		char the_type = 'Y';
+		byte tester = getType(score);
+		switch(tester)
 		{
+		case -1:
+			break;
+		case Score.typeUnknown:
+			the_type = 'Z';
+			break;
 		case Score.exact:
-			the_type='X';
+			the_type='E';
 			break;
 		case Score.upperBound:
 			the_type='U';
@@ -66,8 +73,8 @@ public final class Score {
 			the_type='L';
 			break;
 		default:
-			if (EubosEngineMain.ASSERTS_ENABLED) {
-				assert false;
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert false : String.format("type was %d", tester);
 			}
 			break;
 		}

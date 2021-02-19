@@ -559,7 +559,7 @@ public class Board {
 			if ((blackPieces & pieceToGet) != 0) {
 				type |= Piece.BLACK;
 			} else {
-				if (EubosEngineMain.ASSERTS_ENABLED)
+				if (EubosEngineMain.ENABLE_ASSERTS)
 					assert (whitePieces & pieceToGet) != 0;
 			}
 			// Sorted in order of frequency of piece on the chess board, for efficiency
@@ -588,7 +588,7 @@ public class Board {
 				if (!ownSideIsWhite) return Piece.DONT_CARE;
 				type |= Piece.BLACK;
 			} else {
-				if (EubosEngineMain.ASSERTS_ENABLED)
+				if (EubosEngineMain.ENABLE_ASSERTS)
 					assert (whitePieces & pieceToGet) != 0;
 				if (ownSideIsWhite) return Piece.DONT_CARE;
 			}
@@ -611,7 +611,7 @@ public class Board {
 	}
 
 	public void setPieceAtSquare( int atPos, int pieceToPlace ) {
-		if (EubosEngineMain.ASSERTS_ENABLED) {
+		if (EubosEngineMain.ENABLE_ASSERTS) {
 			assert atPos != Position.NOPOSITION;
 			assert pieceToPlace != Piece.NONE;
 		}
@@ -659,7 +659,7 @@ public class Board {
 				blackPieces &= ~pieceToPickUp;
 				type |= Piece.BLACK;
 			} else {
-				if (EubosEngineMain.ASSERTS_ENABLED)
+				if (EubosEngineMain.ENABLE_ASSERTS)
 					assert (whitePieces & pieceToPickUp) != 0;
 				whitePieces &= ~pieceToPickUp;
 			}

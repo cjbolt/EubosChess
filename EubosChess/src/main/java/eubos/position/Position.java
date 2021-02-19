@@ -88,19 +88,19 @@ public final class Position {
   }
 
   public static GenericPosition toGenericPosition(int position) {
-	  if (EubosEngineMain.ASSERTS_ENABLED)
+	  if (EubosEngineMain.ENABLE_ASSERTS)
 		  	assert (position & 0x88) == 0;
 	  return GenericPosition.valueOf(IntFile.toGenericFile(getFile(position)), IntRank.toGenericRank(getRank(position)));
   }
 
   public static int getFile(int position) {
-	  if (EubosEngineMain.ASSERTS_ENABLED)
+	  if (EubosEngineMain.ENABLE_ASSERTS)
 		  assert position != NOPOSITION;
 	  return position % 16;
   }
 
   public static int getRank(int position) {
-	  if (EubosEngineMain.ASSERTS_ENABLED)
+	  if (EubosEngineMain.ENABLE_ASSERTS)
 		  assert position != NOPOSITION;
 
 	  return position >>> 4;

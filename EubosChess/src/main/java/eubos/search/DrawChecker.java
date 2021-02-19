@@ -69,7 +69,7 @@ public class DrawChecker {
 		int truncatedHash = getTruncatedHash(posHash);
 		Byte count = positionCount.get(truncatedHash);
 		if (count == null) {
-			if (EubosEngineMain.ASSERTS_ENABLED)
+			if (EubosEngineMain.ENABLE_ASSERTS)
 				assert false;
 		} else {
 			count--;

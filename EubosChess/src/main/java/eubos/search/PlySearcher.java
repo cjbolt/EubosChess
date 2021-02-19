@@ -20,7 +20,7 @@ import eubos.search.transposition.ITransposition;
 import eubos.search.transposition.TranspositionEvaluation;
 
 public class PlySearcher {
-
+	
 	private IChangePosition pm;
 	IPositionAccessors pos;
 	
@@ -156,11 +156,12 @@ public class PlySearcher {
 			}
 			theScore = Score.valueOf(adjustedScoreForThisPositionInTree, trans_bound);
 		}
-		if (EubosEngineMain.UCI_INFO_ENABLED)
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)
 			sm.incrementNodesSearched();
 		return theScore;
 	}
 	
+	@SuppressWarnings("unused")
 	private boolean checkForRepetitionDueToPositionInSearchTree(int move) throws InvalidPieceException {
 		boolean retVal = false;
 		if (move != Move.NULL_MOVE) {
@@ -248,7 +249,7 @@ public class PlySearcher {
 		pc.initialise(currPly, currMove);
 
 		while(!isTerminated()) {
-			if (EubosEngineMain.UCI_INFO_ENABLED)
+			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)
 				pc.clearContinuationBeyondPly(currPly);
 			
 			int positionScore = applyMoveAndScore(currMove);
@@ -263,7 +264,7 @@ public class PlySearcher {
 					trans = updateTranspositionTable(trans, currMove, plyScore, plyBound);
 					refutationFound = true;
 					killers.addMove(currPly, currMove);
-					sda.printRefutationFound();
+					sda.printRefutationFound(positionScore);
 					break;    
 				}
 				
@@ -308,7 +309,7 @@ public class PlySearcher {
 	}
 
 	private void checkToPromoteHashTableToExact(ITransposition trans, short plyScore) {
-		if (EubosEngineMain.ASSERTS_ENABLED)
+		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert isInNormalSearch();
 		
 		short scoreFromDownTree = updateMateScoresForEncodingMateDistanceInHashTable(plyScore);
@@ -374,7 +375,7 @@ public class PlySearcher {
 	private void updatePrincipalContinuation(int currMove, short positionScore)
 			throws InvalidPieceException {
 		pc.update(currPly, currMove);
-		if (EubosEngineMain.UCI_INFO_ENABLED && atRootNode() && sr != null) {
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && atRootNode() && sr != null) {
 			sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), positionScore);
 			sr.reportPrincipalVariation(sm);
 		}
@@ -385,7 +386,7 @@ public class PlySearcher {
 	}
 	
 	private boolean isInNormalSearch() {
-		if (EubosEngineMain.ASSERTS_ENABLED)
+		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert dynamicSearchLevelInPly >= originalSearchDepthRequiredInPly;
 		return dynamicSearchLevelInPly == originalSearchDepthRequiredInPly;
 	}
@@ -399,7 +400,7 @@ public class PlySearcher {
 			if (positionScore < plyScore && positionScore != Short.MIN_VALUE)
 				doUpdate = true;
 		} else {
-			if (EubosEngineMain.ASSERTS_ENABLED)
+			if (EubosEngineMain.ENABLE_ASSERTS)
 				assert false;
 		}
 		return doUpdate;
@@ -414,9 +415,9 @@ public class PlySearcher {
 		pm.unperformMove();
 		currPly--;
 		sda.prevPly();
-		sda.printUndoMove(currMove);
+		sda.printUndoMove(currMove, positionScore);
 		
-		if (EubosEngineMain.UCI_INFO_ENABLED)
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)
 			sm.incrementNodesSearched();
 		return positionScore;
 	}
@@ -432,6 +433,7 @@ public class PlySearcher {
 		return positionScore;
 	}
 	
+	@SuppressWarnings("unused")
 	private boolean isTerminalNode(int lastMove) {
 		boolean terminalNode = false;
 		if (pos.isThreefoldRepetitionPossible()) {

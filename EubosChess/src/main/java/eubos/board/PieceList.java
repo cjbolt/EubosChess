@@ -30,7 +30,7 @@ public class PieceList {
 	}
 	
 	public void addPiece(int piece, int atPos) {
-		if (EubosEngineMain.ASSERTS_ENABLED) {
+		if (EubosEngineMain.ENABLE_ASSERTS) {
 			assert piece != Piece.NONE;
 			assert atPos != Position.NOPOSITION;
 		}
@@ -44,7 +44,7 @@ public class PieceList {
 	}
 	
 	public void removePiece(int piece, int atPos) {
-		if (EubosEngineMain.ASSERTS_ENABLED) {
+		if (EubosEngineMain.ENABLE_ASSERTS) {
 			assert piece != Piece.NONE;
 			assert atPos != Position.NOPOSITION;
 		}
@@ -66,13 +66,13 @@ public class PieceList {
 			}
 		}
 		
-		if (EubosEngineMain.ASSERTS_ENABLED) {
+		if (EubosEngineMain.ENABLE_ASSERTS) {
 			assert found;
 		}
 	}
 	
 	public void updatePiece(int piece, int atPos, int targetPos) {
-		if (EubosEngineMain.ASSERTS_ENABLED) {
+		if (EubosEngineMain.ENABLE_ASSERTS) {
 			assert piece != Piece.NONE;
 			assert atPos != Position.NOPOSITION;
 		}
@@ -83,6 +83,18 @@ public class PieceList {
 				piece_list[piece][piece_number] = targetPos;
 				break;
 			}
+		}
+		
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			// error check to ensure consistency of piece list with bitboard!
+			boolean found = false;
+			for (int piece_number = 0; piece_number < MAX_NUM_PIECES; piece_number++) {
+				if (piece_list[piece][piece_number] == targetPos) {
+					found = true;
+					break;
+				}
+			}
+			assert found;
 		}
 	}
 	
@@ -367,7 +379,11 @@ public class PieceList {
 			} else break;
 		}
 		for(int atSquare : piece_list[side+Piece.PAWN]) {
-			if (atSquare != Position.NOPOSITION) {			
+			if (atSquare != Position.NOPOSITION) {
+				if (EubosEngineMain.ENABLE_ASSERTS) {
+					assert theBoard.getPieceAtSquare(atSquare) != Piece.NONE :
+						String.format("Found a Pawn at %s that isn't on Board", Position.toGenericPosition(atSquare));
+				}
 				theBoard.me.addPiece(isWhite, Piece.PAWN);
 				theBoard.me.addPosition(isWhite, isWhite ? Board.PAWN_WHITE_WEIGHTINGS[atSquare] : Board.PAWN_BLACK_WEIGHTINGS[atSquare]);
 			} else break;

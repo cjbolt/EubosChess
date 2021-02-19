@@ -99,12 +99,12 @@ public class Transposition implements ITransposition {
 			    updateTransposition = true;
 			} else if ((type == Score.upperBound) &&
 					   (new_score < getScore())) {
-				if (EubosEngineMain.ASSERTS_ENABLED)
+				if (EubosEngineMain.ENABLE_ASSERTS)
 					assert type == new_bound;
 				updateTransposition = true;
 			} else if ((type == Score.lowerBound) &&
 					   (new_score > getScore())) {
-				if (EubosEngineMain.ASSERTS_ENABLED)
+				if (EubosEngineMain.ENABLE_ASSERTS)
 					assert type == new_bound;
 				updateTransposition = true;
 			}
