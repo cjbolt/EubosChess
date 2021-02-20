@@ -57,6 +57,7 @@ public class EubosEngineMainTest {
 	private static final String GO_DEPTH_PREFIX = "go depth ";
 	//private static final String GO_WTIME_PREFIX = "go wtime ";
 	//private static final String GO_BTIME_PREFIX = "go btime ";
+	private static final String GO_TIME_PREFIX = "go movetime ";
 	private static final String BEST_PREFIX = "bestmove ";
 	
 	// Whole Commands
@@ -65,7 +66,6 @@ public class EubosEngineMainTest {
 	private static final String ISREADY_CMD = "isready"+CMD_TERMINATOR;
 	private static final String NEWGAME_CMD = "ucinewgame"+CMD_TERMINATOR;
 	//private static final String GO_INF_CMD = "go infinite"+CMD_TERMINATOR;
-	private static final String GO_TIME_CMD = "go movetime 1000"+CMD_TERMINATOR;
 	private static final String QUIT_CMD = "quit"+CMD_TERMINATOR;
 	// Outputs
 	private static final String ID_NAME_CMD = "id name Eubos 2.0"+CMD_TERMINATOR;
@@ -120,7 +120,7 @@ public class EubosEngineMainTest {
 		setupEngine();
 		// Setup Commands specific to this test
 		commands.add(new commandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_TIME_CMD,BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_TIME_PREFIX+"1000"+CMD_TERMINATOR,BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
 		performTest(1000);
 	}
 	
@@ -358,6 +358,16 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
+	public void test_KQk_mate_in_7_NEW() throws InterruptedException, IOException {
+		setupEngine();
+		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_TIME_PREFIX+"8000"+CMD_TERMINATOR, BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
+		performTestExpectMate(9000, 12);
+		assertEquals(2, (int)classUnderTest.dc.getNumEntries());
+	}
+	
+	@Test
+	@Ignore
 	public void test_KQk_mate_in_7() throws InterruptedException, IOException {
 		setupEngine();
 		// 1
@@ -438,6 +448,17 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
+	//@Ignore // Takes too long
+	public void test_KRk_mate_in_11_NEW() throws InterruptedException, IOException {
+		setupEngine();
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_TIME_PREFIX+"33000"+CMD_TERMINATOR, BEST_PREFIX+"h1h4"+CMD_TERMINATOR));
+		performTestExpectMate(40000, 22);
+		assertEquals(2, (int)classUnderTest.dc.getNumEntries());
+	}
+	
+	@Test
+	@Ignore
 	public void test_KRk_mate_in_11() throws InterruptedException, IOException {
 		setupEngine();
 		// 1
@@ -596,6 +617,69 @@ public class EubosEngineMainTest {
 				Thread.sleep(sleep_50ms);
 			}
 		}
+	}
+	
+	private void performTestExpectMate(int timeout, int mateInX) throws IOException, InterruptedException {
+		boolean mateDetected = false;
+		boolean checkInfoMsgs = true;
+		String mateExpectation = String.format("mate %d", mateInX);
+		testOutput.flush();
+		inputToEngine.flush();
+		int commandNumber = 1;
+		for (commandPair currCmdPair: commands) {
+			String inputCmd = currCmdPair.getIn();
+			String expectedOutput = currCmdPair.getOut();
+			String parsedCmd= "";
+			// Pass command to engine
+			if (inputCmd != null) {
+				inputToEngine.write(inputCmd);
+				inputToEngine.flush();
+			}
+			// Test expected command was received
+			if (expectedOutput != null) {
+				boolean received = false;
+				int timer = 0;
+				boolean accumulate = false;
+				String recievedCmd = "";
+				// Receive message or wait for timeout to expire.
+				while (!received && timer<timeout) {
+					// Give the engine thread some CPU time
+					Thread.sleep(sleep_50ms);
+					timer += sleep_50ms;
+					testOutput.flush();
+					if (accumulate) {
+						recievedCmd += testOutput.toString();
+					} else {
+						recievedCmd = testOutput.toString();
+					}
+					if (recievedCmd != null && !recievedCmd.isEmpty()) {
+						System.err.println(recievedCmd);
+						testOutput.reset();
+						// Ignore any line starting with info, if not checking infos
+					    parsedCmd = parseReceivedCommandString(recievedCmd, checkInfoMsgs);
+					    if (!parsedCmd.isEmpty()) { // want to use isBlank(), but that is Java 11 only.
+							if (parsedCmd.endsWith(expectedOutput)) {
+								received = true;
+								accumulate = false;
+							} else if (parsedCmd.contains(mateExpectation)) {
+								mateDetected = true;
+								accumulate = true;
+							} else {
+								EubosEngineMain.logger.info(String.format("parsed '%s' != '%s'", parsedCmd, expectedOutput));
+								accumulate = false;
+							}
+					    }
+					}
+				}
+				if (!received) {
+					fail(inputCmd + expectedOutput + "command that failed " + (commandNumber-3));
+				}
+				commandNumber++;
+			} else {
+				Thread.sleep(sleep_50ms);
+			}
+		}
+		assertTrue(mateDetected);
 	}
 
 	private void setupEngine() {

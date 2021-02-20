@@ -60,7 +60,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 			if (ENABLE_PAWN_EVALUATION) {
 				eval.score += evaluatePawnStructure();
 			}
-			if (ENABLE_KING_SAFETY_EVALUATION) {
+			if (ENABLE_KING_SAFETY_EVALUATION && !sc.isTryForMate()) {
 				eval.score += evaluateKingSafety();
 			}
 		}

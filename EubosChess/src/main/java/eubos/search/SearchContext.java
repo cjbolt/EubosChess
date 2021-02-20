@@ -67,6 +67,10 @@ public class SearchContext {
 	public boolean isTryForDraw() {
 		return goal == SearchGoal.try_for_draw; 
 	}
+	
+	public boolean isTryForMate() {
+		return goal == SearchGoal.try_for_mate; 
+	}
 		
 	public class SearchContextEvaluation {
 		public boolean isDraw;
@@ -87,17 +91,14 @@ public class SearchContext {
 		boolean insufficient = pos.getTheBoard().isInsufficientMaterial();
 		
 		eval.isDraw = (threeFold || insufficient);
-		if (!weJustMoved) {
-			// For opponent, always add on positional weightings
-			eval.score = current.getPosition();
-		} else if (eval.isDraw) {
-			// If we drew, rank according to our goal
-			eval.score = (isTryForDraw() && insufficient) ? adjustScoreIfBlack(ACHIEVES_DRAW_BONUS) : 0;
+		if (eval.isDraw) {
+			// If we drew, score according to our goal
+			eval.score = (weJustMoved && isTryForDraw() && insufficient) ? adjustScoreIfBlack(ACHIEVES_DRAW_BONUS) : 0;
 		} else {
 			// We just moved and it isn't a draw, score according to our goal
 			switch(goal) {
 			case simplify: 
-		    	if (isPositionSimplified(current)) {
+		    	if (weJustMoved && isPositionSimplified(current)) {
 			    	eval.score = adjustScoreIfBlack(SIMPLIFICATION_BONUS);
 		    	}
 		    	// Deliberate drop through
@@ -108,7 +109,7 @@ public class SearchContext {
 				break;
 			case try_for_mate:
 			default:
-				// Don't add on positional factors to save aimless faffing about board
+				// Don't evaluate for positional factors, which prevents aimless faffing about board
 				break;
 			}
 		}

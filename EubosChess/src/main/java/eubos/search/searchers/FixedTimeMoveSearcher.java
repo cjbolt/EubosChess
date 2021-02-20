@@ -33,6 +33,7 @@ public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 	public void run() {
 		SearchResult res = new SearchResult(null, false);
 		List<Integer> pc = null;
+		enableSearchMetricsReporter(true);
 		Timestamp msTargetEndTime = new Timestamp(System.currentTimeMillis() + moveTime);
 		for (byte depth=1; depth<MAX_SEARCH_DEPTH; depth++) {
 			res = doFindMove(res.bestMove, pc, depth);
@@ -43,6 +44,7 @@ public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 				break;
 			pc = mg.pc.toPvList(0);
 		}
+		enableSearchMetricsReporter(false);
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
 		terminateSearchMetricsReporter();
 		mg.sda.close();
