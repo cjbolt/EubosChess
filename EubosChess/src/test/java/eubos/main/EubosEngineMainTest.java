@@ -448,7 +448,7 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
-	//@Ignore // Takes too long
+	@Ignore // Takes too long
 	public void test_KRk_mate_in_11_NEW() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
