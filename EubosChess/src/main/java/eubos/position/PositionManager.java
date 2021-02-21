@@ -311,6 +311,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 
 	@Override
 	public int lastMoveTargetSquare() {
-		return moveTracker.lastMoveTargetSquare();
+		return EubosEngineMain.ENABLE_SEARCH_ALL_CAPTURES_IN_QUIESCENSE ? Position.NOPOSITION : moveTracker.lastMoveTargetSquare();
 	}
 }

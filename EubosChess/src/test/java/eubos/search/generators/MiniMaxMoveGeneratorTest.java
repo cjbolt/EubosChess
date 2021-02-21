@@ -19,7 +19,6 @@ import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.PositionManager;
-import eubos.score.PositionEvaluator;
 import eubos.search.NoLegalMoveException;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 import eubos.search.SearchResult;
@@ -179,7 +178,7 @@ public class MiniMaxMoveGeneratorTest {
 		setupPosition( "3nkbnr/3p1ppp/8/1B1p4/R2N4/8/6PP/4R1K1 b - - - -" );
 		//expectedMove = new GenericMove("d8e6");
 		expectedMove = new GenericMove("f8e7");
-		if (!PositionEvaluator.ENABLE_QUIESCENCE_CHECK) {
+		if (!EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
 			expectedMove = new GenericMove("g8e7");
 		}
 		doFindMoveTest(true);
@@ -291,7 +290,7 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		setupPosition( "4N3/5P1P/5N1k/Q5p1/5PKP/B7/8/1B6 w - - 0 1" );
 		// various possible mates
-		if (!PositionEvaluator.ENABLE_QUIESCENCE_CHECK) {
+		if (!EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
 			expectedMove = new GenericMove("h7h8q");
 		} else {
 			expectedMove = new GenericMove("f7f8q");
@@ -482,7 +481,7 @@ public class MiniMaxMoveGeneratorTest {
 	
 	@Test
 	public void test_extendedSearch_recaptureQueenLeadsToLossOfMaterial() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		if (PositionEvaluator.ENABLE_QUIESCENCE_CHECK) {
+		if (EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
 			setupPosition("8/6q1/5p2/8/8/2Q5/8/8 w - - 0 38 ");
 			expectedMove = new GenericMove("c3f6");
 			

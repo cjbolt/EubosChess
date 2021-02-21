@@ -426,8 +426,6 @@ public final class Move {
 
 		return move;
 	}
-	
- 
     
 	public static int compareCaptures(int move1, int move2) {
     	// mvv lva used for tie breaking move type comparison, if it is a capture
@@ -579,5 +577,19 @@ public final class Move {
 
 	public static boolean isNotCaptureOrPromotion(int move) {
 		return (move & (Move.KILLER_EXCLUSION_MASK << Move.TYPE_SHIFT)) == 0;
+	}
+
+	public static boolean isWinningorNeutralCapture(int move) {
+		boolean isWinningOrNeutralCapture = false;
+		if (Move.isCapture(move)) {
+	    	// mvv lva used for tie breaking move type comparison, if it is a capture
+	    	int victim1 = Board.PIECE_TO_MATERIAL_LUT[Move.getTargetPieceNoColour(move)];
+	    	int attacker1 = Board.PIECE_TO_MATERIAL_LUT[Move.getOriginPieceNoColour(move)];
+	    	int mvvLvaRankingForMove1 = victim1-attacker1;
+	    	if (mvvLvaRankingForMove1 >= 0) {
+	    		isWinningOrNeutralCapture = true;
+	    	}
+		}
+		return isWinningOrNeutralCapture;
 	}
 }

@@ -117,7 +117,7 @@ public class SearchContextTest {
 		applyMoveList(moveList);
 		assertTrue(dc.isPositionOpponentCouldClaimDraw(pm.getHash()));
 		dc.incrementPositionReachedCount(pm.getHash());
-		PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
+		//PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
 		//assertEquals(SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current).score);
 	}
 	

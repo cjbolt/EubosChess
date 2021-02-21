@@ -16,6 +16,7 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
 import eubos.board.Piece;
+import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.Position;
@@ -203,7 +204,7 @@ public class PositionEvaluatorTest {
 	
 	@Test
 	public void test_isQuiescent_No_QueenRecapture() throws InvalidPieceException, IllegalNotationException {
-		if (!PositionEvaluator.ENABLE_QUIESCENCE_CHECK) {
+		if (!EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
 			setUpPosition("8/8/5p2/4p3/3Q4/8/8/8 w - - 0 1 ");
 			int currMove = Move.toMove(new GenericMove("d4e5"), pm.getTheBoard());
 			pm.performMove(currMove);
@@ -213,7 +214,7 @@ public class PositionEvaluatorTest {
 	
 	@Test
 	public void test_isQuiescent_Yes_QueenNoRecapture() throws InvalidPieceException, IllegalNotationException {
-		if (!PositionEvaluator.ENABLE_QUIESCENCE_CHECK) {
+		if (!EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
 			setUpPosition("8/8/8/4p3/3Q4/8/8/8 w - - 0 1 ");
 			int currMove = Move.toMove(new GenericMove("d4e5"), pm.getTheBoard());
 			pm.performMove(currMove);
@@ -225,7 +226,7 @@ public class PositionEvaluatorTest {
 	
 	@Test
 	public void test_isQuiescent_Yes_NoCaptures() throws InvalidPieceException, IllegalNotationException {
-		if (!PositionEvaluator.ENABLE_QUIESCENCE_CHECK) {
+		if (!EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
 			setUpPosition("8/3p4/8/8/3P4/8/8/8 w - - 0 1 ");
 			int currMove = Move.toMove(new GenericMove("d4d5"), pm.getTheBoard());
 			pm.performMove(currMove);
@@ -243,7 +244,7 @@ public class PositionEvaluatorTest {
 	
 	@Test
 	public void test_isQuiescent_Yes_LastMoveWasCapture_NoRecapturesPossible_Alt() throws InvalidPieceException, IllegalNotationException {
-		if (!PositionEvaluator.ENABLE_QUIESCENCE_CHECK) {
+		if (!EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
 			setUpPosition("rp6/1p6/Pp6/8/1p6/1p6/PP6/QP6 b - - 0 41");
 			int currMove = Move.toMove(new GenericMove("a8a6"), pm.getTheBoard());
 			pm.performMove(currMove);
@@ -256,7 +257,7 @@ public class PositionEvaluatorTest {
 	 
 	@Test
 	public void test_isQuiescent_No_LastMoveWasCheck() throws InvalidPieceException, IllegalNotationException {
-		if (PositionEvaluator.ENABLE_QUIESCENCE_CHECK) {
+		if (EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
 			setUpPosition("1r1k1r2/p5Q1/2p3p1/8/1q1p2n1/3P2P1/P3RPP1/4RK2 b - - 0 1");
 			int currMove = Move.toMove(new GenericMove("f8f2"), pm.getTheBoard());
 			pm.performMove(currMove);
@@ -266,7 +267,7 @@ public class PositionEvaluatorTest {
 	
 	@Test
 	public void test_isQuiescent_Yes_LastMoveWasCheckMate() throws InvalidPieceException, IllegalNotationException {
-		if (PositionEvaluator.ENABLE_QUIESCENCE_CHECK) {
+		if (EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
 			setUpPosition("5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - - -");
 			int currMove = Move.valueOf(0, 0, Position.d3, Piece.WHITE_QUEEN, Position.h7, Piece.NONE, Piece.NONE);
 			pm.performMove(currMove);
@@ -282,7 +283,7 @@ public class PositionEvaluatorTest {
 	
 	@Test
 	public void test_isQuiescent_No_PromotionPossible() throws InvalidPieceException, IllegalNotationException {
-		if (PositionEvaluator.ENABLE_QUIESCENCE_CHECK) {
+		if (EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
 			setUpPosition("8/4P3/8/8/8/8/8/8 w - - 0 1");
 			assertFalse(SUT.isQuiescent(Move.NULL_MOVE));
 		}
@@ -290,7 +291,7 @@ public class PositionEvaluatorTest {
 	
 	@Test
 	public void test_isQuiescent_Yes_PromotionPossibleButNotForOnMove() throws InvalidPieceException, IllegalNotationException {
-		if (PositionEvaluator.ENABLE_QUIESCENCE_CHECK) {
+		if (EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
 			setUpPosition("8/4P3/8/8/8/8/8/8 b - - 0 1");
 			assertTrue(SUT.isQuiescent(Move.NULL_MOVE));
 		}
@@ -316,17 +317,17 @@ public class PositionEvaluatorTest {
 	
 	@Test
 	public void test_isQuiescent_No_LastMoveWasPromotionBishop() throws InvalidPieceException, IllegalNotationException {
-		if (PositionEvaluator.ENABLE_QUIESCENCE_CHECK) {
+		if (EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
 			setUpPosition("8/4P3/8/8/8/8/8/8 w - - 0 1");
 			int currMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e7, Piece.WHITE_PAWN, Position.f8, Piece.NONE, Piece.BISHOP);
 			pm.performMove(currMove);
-			assertFalse(SUT.isQuiescent(currMove));
+			assertTrue(SUT.isQuiescent(currMove)); // only care about queen promotions for now
 		}
 	}
 	
 	@Test
 	public void test_isQuiescent_No_LastMoveWasPromotionQueenWithCheckAndCapture() throws InvalidPieceException, IllegalNotationException {
-		if (PositionEvaluator.ENABLE_QUIESCENCE_CHECK) {
+		if (EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
 			setUpPosition("5q2/4P3/7k/8/8/8/8/8 w - - 0 1");
 			int currMove = Move.valueOf(0, Move.TYPE_PROMOTION_MASK | Move.TYPE_CAPTURE_MASK, Position.e7, Piece.WHITE_PAWN, Position.f8, Piece.BLACK_QUEEN, Piece.QUEEN);
 			pm.performMove(currMove);
@@ -336,7 +337,7 @@ public class PositionEvaluatorTest {
 	
 	@Test
 	public void test_isQuiescent_Yes_LastMoveWasntPromotion() throws InvalidPieceException, IllegalNotationException {
-		if (PositionEvaluator.ENABLE_QUIESCENCE_CHECK) {
+		if (EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
 			setUpPosition("8/4P3/8/8/8/8/8/B7 w - - 0 1");
 			int currMove = Move.valueOf(Position.a1, Piece.WHITE_BISHOP, Position.b2, Piece.NONE);
 			pm.performMove(currMove);

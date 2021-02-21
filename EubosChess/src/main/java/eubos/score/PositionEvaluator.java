@@ -6,6 +6,7 @@ import eubos.board.Board;
 import eubos.board.IForEachPieceCallback;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
+import eubos.main.EubosEngineMain;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.position.Position;
@@ -27,7 +28,6 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	
 	public static final int CONNECTED_PASSED_PAWN_BOOST = 75;
 	
-	public static final boolean ENABLE_QUIESCENCE_CHECK = true;
 	public static final boolean ENABLE_PAWN_EVALUATION = true;
 	public static final boolean ENABLE_KING_SAFETY_EVALUATION = true;
 	public static final boolean ENABLE_DYNAMIC_POSITIONAL_EVALUATION = true;
@@ -42,13 +42,13 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	}
 	
 	public boolean isQuiescent(int currMove) {
-		if (!ENABLE_QUIESCENCE_CHECK)
+		if (!EubosEngineMain.ENABLE_QUIESCENCE_CHECK)
 			return true;
-		if (Move.isPromotion(currMove) || pm.isPromotionPossible()) {
+		if (Move.isQueenPromotion(currMove) || pm.isPromotionPossible()) {
 			return false;
 		} else if (Move.isCapture(currMove)) {
 		    return false;
-		} else if (pm.isKingInCheck()) {
+		} else if (EubosEngineMain.ENABLE_SEARCH_CHECKS_IN_QUIESCENSE && pm.isKingInCheck()) {
 			return false;
 		}
 		return true;

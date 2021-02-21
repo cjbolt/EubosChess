@@ -46,7 +46,7 @@ public class MiniMaxMoveGenerator implements
 	private int alternativeMoveListOrderingScheme = 1;
 	public SearchDebugAgent sda;
 	
-	public static final int EXTENDED_SEARCH_PLY_LIMIT = 8;
+	public static final int EXTENDED_SEARCH_PLY_LIMIT = 32;
 
 	// Used for unit tests
 	MiniMaxMoveGenerator( FixedSizeTranspositionTable hashMap,

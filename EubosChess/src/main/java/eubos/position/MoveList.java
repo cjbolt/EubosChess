@@ -160,7 +160,9 @@ public class MoveList implements Iterable<Integer> {
 			// Lazy creation of extended move list
 			extended_search_moves = new ArrayList<Integer>(priority_moves.size());
 			for (int currMove : priority_moves) {
-				if ((Move.isCapture(currMove) && (Move.getTargetPosition(currMove) == captureSq)) || Move.isQueenPromotion(currMove)) {
+				boolean includeInQuiescenceSearch = Move.isQueenPromotion(currMove) || (Move.isCapture(currMove) && 
+						(Move.getTargetPosition(currMove) == captureSq || EubosEngineMain.ENABLE_SEARCH_ALL_CAPTURES_IN_QUIESCENSE));
+				if (includeInQuiescenceSearch) {
 					extended_search_moves.add(currMove);
 				}
 			}
