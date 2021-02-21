@@ -109,7 +109,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			
 			hash.update(move, capturePosition, enPassantFile);
 
-			// Update the draw checker and check material for draws
+			// Update the draw checker
 			repetitionPossible = dc.incrementPositionReachedCount(getHash());
 		}
 		
@@ -143,7 +143,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			int enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? Position.getFile(enPasTargetSq) : IntFile.NOFILE;
 			hash.update(reversedMove, capturePosition, enPassantFile);
 			
-			// Revert draw indicators, insufficient material should always be cleared.
+			// Revert draw indicator
 			repetitionPossible = dc.isPositionOpponentCouldClaimDraw(getHash());
 		}
 		

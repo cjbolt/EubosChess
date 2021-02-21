@@ -48,6 +48,8 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 			return false;
 		} else if (Move.isCapture(currMove)) {
 		    return false;
+		} else if (pm.isKingInCheck()) {
+			return false;
 		}
 		return true;
 	}

@@ -270,7 +270,7 @@ public class PositionEvaluatorTest {
 			setUpPosition("5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - - -");
 			int currMove = Move.valueOf(0, 0, Position.d3, Piece.WHITE_QUEEN, Position.h7, Piece.NONE, Piece.NONE);
 			pm.performMove(currMove);
-			assertTrue(SUT.isQuiescent(currMove)); // no longer quiescent search checks
+			assertFalse(SUT.isQuiescent(currMove));
 		}
 	}
 	
@@ -349,7 +349,7 @@ public class PositionEvaluatorTest {
 		setUpPosition("8/4P3/7k/8/8/8/1B6/8 w - - 0 1");
 		int currMove = Move.valueOf(0, 0, Position.b2, Piece.WHITE_BISHOP, Position.c1, Piece.NONE, Piece.NONE);
 		pm.performMove(currMove);
-		assertTrue(SUT.isQuiescent(currMove)); // no longer quiescent search checks
+		assertFalse(SUT.isQuiescent(currMove));
 	}
 	
 	@Test
