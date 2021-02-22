@@ -937,12 +937,12 @@ public class Board {
 		return potentialPromotion;
 	}
 	
-	public void getRegularPieceMoves(MoveList ml, boolean ownSideIsWhite, int potentialAttckersOfSquare) {
+	public void getRegularPieceMoves(MoveList ml, boolean ownSideIsWhite, boolean captures, int potentialAttckersOfSquare) {
 		if (ENABLE_PIECE_LISTS) {
 			if (isEndgame) {
-				pieceLists.addMovesEndgame(ml, ownSideIsWhite, potentialAttckersOfSquare);
+				pieceLists.addMovesEndgame(ml, ownSideIsWhite, captures, potentialAttckersOfSquare);
 			} else {
-				pieceLists.addMovesMiddlegame(ml, ownSideIsWhite, potentialAttckersOfSquare);
+				pieceLists.addMovesMiddlegame(ml, ownSideIsWhite, captures, potentialAttckersOfSquare);
 			}
 		} else {
 			long bitBoardToIterate = ownSideIsWhite ? whitePieces : blackPieces;

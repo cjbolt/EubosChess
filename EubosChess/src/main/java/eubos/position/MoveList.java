@@ -33,18 +33,18 @@ public class MoveList implements Iterable<Integer> {
     }
 	
 	public MoveList(PositionManager pm) throws InvalidPieceException {
-		this(pm, Move.NULL_MOVE, null, 1, Position.NOPOSITION);
+		this(pm, Move.NULL_MOVE, null, 1, false, Position.NOPOSITION);
 	}
 	
 	public MoveList(PositionManager pm, int orderMoveList) throws InvalidPieceException {
-		this(pm, Move.NULL_MOVE, null, orderMoveList, Position.NOPOSITION);
+		this(pm, Move.NULL_MOVE, null, orderMoveList, false, Position.NOPOSITION);
 	}
 	
 	public MoveList(PositionManager pm, int bestMove, int [] killers, int orderMoveList) throws InvalidPieceException {
-		this(pm, bestMove, killers, orderMoveList, Position.NOPOSITION);
+		this(pm, bestMove, killers, orderMoveList, false, Position.NOPOSITION);
 	}	
 	
-	public MoveList(PositionManager pm, int bestMove, int [] killers, int orderMoveList, int targetPosition) throws InvalidPieceException {	
+	public MoveList(PositionManager pm, int bestMove, int [] killers, int orderMoveList, boolean capturesOnly, int targetPosition) throws InvalidPieceException {	
 		
 		normal_search_moves = new LinkedList<Integer>();
 		priority_moves = new LinkedList<Integer>();
@@ -53,8 +53,10 @@ public class MoveList implements Iterable<Integer> {
 		boolean needToEscapeMate = pm.isKingInCheck(onMove);
 		boolean isWhiteOnMove = Piece.Colour.isWhite(onMove);
 		
-		pm.getTheBoard().getRegularPieceMoves(this, isWhiteOnMove, targetPosition);
-		pm.castling.addCastlingMoves(isWhiteOnMove, this);
+		pm.getTheBoard().getRegularPieceMoves(this, isWhiteOnMove, capturesOnly, targetPosition);
+		if (!capturesOnly) {
+			pm.castling.addCastlingMoves(isWhiteOnMove, this);
+		}
 		
 		removeInvalidIdentifyBestKillerMoves(pm, bestMove, killers, onMove, needToEscapeMate);
 		checkToSortList(orderMoveList);

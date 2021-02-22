@@ -348,12 +348,22 @@ public abstract class Piece {
 		}
 	}
 	
+	static void king_generateMovesExtSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+		int [] ref_moves = ownSideIsWhite ? WhiteKingMove_Lut[atSquare] : BlackKingMove_Lut[atSquare];
+		single_addCaptures(ownSideIsWhite, ml, theBoard, ref_moves);
+	}
+	
 	static void knight_generateMovesExtSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
 		int piece = ownSideIsWhite ? Piece.WHITE_KNIGHT : Piece.BLACK_KNIGHT;
 		int targetPiece = theBoard.getPieceAtSquareOptimise(targetSq, ownSideIsWhite);
 		if (targetPiece != Piece.NONE && targetPiece != Piece.DONT_CARE) {
 			ml.addPrio(Move.valueOf(atSquare, piece, targetSq, targetPiece));
 		}
+	}
+	
+	static void knight_generateMovesExtSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+		int [] ref_moves = ownSideIsWhite ? WhiteKnightMove_Lut[atSquare] : BlackKnightMove_Lut[atSquare];
+		single_addCaptures(ownSideIsWhite, ml, theBoard, ref_moves);
 	}
 	
 	static void rook_generateMoves(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
@@ -380,6 +390,11 @@ public abstract class Piece {
 		}
 	}
 	
+	static void rook_generateMovesExtSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+		int [][] ref_moves = ownSideIsWhite ? WhiteRookMove_Lut[atSquare] : BlackRookMove_Lut[atSquare];
+		multidirect_addCaptures(ownSideIsWhite, ml, theBoard, ref_moves);
+	}
+	
 	static void queen_generateMovesExtSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
 		int [][] ref_moves = ownSideIsWhite ? WhiteQueenMove_Lut[atSquare] : BlackQueenMove_Lut[atSquare];
 		Direction dir = SquareAttackEvaluator.findDirectionToTarget(atSquare, targetSq, SquareAttackEvaluator.allDirect);
@@ -389,6 +404,11 @@ public abstract class Piece {
 		}	
 	}
 	
+	static void queen_generateMovesExtSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+		int [][] ref_moves = ownSideIsWhite ? WhiteQueenMove_Lut[atSquare] : BlackQueenMove_Lut[atSquare];
+		multidirect_addCaptures(ownSideIsWhite, ml, theBoard, ref_moves);	
+	}
+	
 	static void bishop_generateMovesExtSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
 		int [][] ref_moves = ownSideIsWhite ? WhiteBishopMove_Lut[atSquare] : BlackBishopMove_Lut[atSquare];
 		Direction dir = SquareAttackEvaluator.findDirectionToTarget(atSquare, targetSq, SquareAttackEvaluator.diagonals);
@@ -396,6 +416,11 @@ public abstract class Piece {
 			int [] moves = ref_moves[SquareAttackEvaluator.diagonalsDirectionIndex_Lut.get(dir)];
 			multidirect_addMoves(ownSideIsWhite, ml, theBoard, moves, atSquare, targetSq);
 		}
+	}
+	
+	static void bishop_generateMovesExtSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+		int [][] ref_moves = ownSideIsWhite ? WhiteBishopMove_Lut[atSquare] : BlackBishopMove_Lut[atSquare];
+		multidirect_addCaptures(ownSideIsWhite, ml, theBoard, ref_moves);	
 	}
 
 	private static void multidirect_addMoves(boolean ownSideIsWhite, MoveList ml, Board theBoard, int[][] moves) {
@@ -435,12 +460,47 @@ public abstract class Piece {
 		}	
 	}
 	
+	private static void multidirect_addCaptures(boolean ownSideIsWhite, MoveList ml, Board theBoard, int[][] moves) {
+		for (int[] movesInDirection : moves) {
+			for (int new_move : movesInDirection) {
+				int targetPiece = theBoard.getPieceAtSquareOptimise(Move.getTargetPosition(new_move), ownSideIsWhite);
+				switch(targetPiece) {
+				case Piece.NONE:
+					continue;
+				case Piece.DONT_CARE:
+					break; // i.e. blocked by own piece
+				default:
+					new_move = Move.setCapture(new_move, targetPiece);
+					ml.addPrio(new_move);
+					break;
+				}
+				break;
+			}
+		}
+	}
+	
 	private static void single_addMoves(boolean ownSideIsWhite, MoveList ml, Board theBoard, int[] moves) {
 		for (int new_move : moves) {
 			int targetPiece = theBoard.getPieceAtSquareOptimise(Move.getTargetPosition(new_move), ownSideIsWhite);
 			switch(targetPiece) {
 			case Piece.NONE:
 				ml.addNormal(new_move);
+				continue;
+			case Piece.DONT_CARE:
+				break; // i.e. blocked by own piece
+			default:
+				new_move = Move.setCapture(new_move, targetPiece);
+				ml.addPrio(new_move);
+				break;
+			}
+		}
+	}
+	
+	private static void single_addCaptures(boolean ownSideIsWhite, MoveList ml, Board theBoard, int[] moves) {
+		for (int new_move : moves) {
+			int targetPiece = theBoard.getPieceAtSquareOptimise(Move.getTargetPosition(new_move), ownSideIsWhite);
+			switch(targetPiece) {
+			case Piece.NONE:
 				continue;
 			case Piece.DONT_CARE:
 				break; // i.e. blocked by own piece

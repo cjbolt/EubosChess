@@ -148,9 +148,9 @@ public class EubosEngineMainTest {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			String expectedOutput;
 			if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
-				expectedOutput = "info depth 1 seldepth 0 score cp 154 pv d7e5 hashfull 0 nps 83 time 12 nodes 1"+CMD_TERMINATOR+
-	                    "info depth 1 seldepth 4 score cp 166 pv c7c2 hashfull 0 nps 62 time 96 nodes 6"+CMD_TERMINATOR+
-	                    "info depth 2 seldepth 0 score cp 6 pv c7c2 d4d5 hashfull 0 nps 754 time 102 nodes 77"+CMD_TERMINATOR
+				expectedOutput = "info depth 1 seldepth 4 score cp -166 pv d7e5 f3e5 c7e5 hashfull 0 nps 1200 time 15 nodes 18"+CMD_TERMINATOR+
+	                    "info depth 1 seldepth 4 score cp 166 pv c7c2 d4a7 hashfull 0 nps 292 time 99 nodes 29"+CMD_TERMINATOR+
+	                    "info depth 2 seldepth 10 score cp 132 pv c7c2 b1c3 hashfull 0 nps 1407 time 113 nodes 159"+CMD_TERMINATOR
 	                    +BEST_PREFIX+"c7c2";
 			} else if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && !PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
 				expectedOutput = "info depth 1 seldepth 4 score cp -141 pv d7e5 f3e5 c7e5 hashfull 0 nps 500 time 14 nodes 7"+CMD_TERMINATOR+
@@ -428,8 +428,7 @@ public class EubosEngineMainTest {
 		setupEngine();
 		// 1
 		commands.add(new commandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"9"+CMD_TERMINATOR,BEST_PREFIX+"d6h2"+CMD_TERMINATOR));
-		//commands.add(new commandPair(GO_TIME_PREFIX+"15000"+CMD_TERMINATOR, BEST_PREFIX+"d6h2"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"d6h2"+CMD_TERMINATOR));
 		// 2
 		commands.add(new commandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1 moves d6h2 g1h1"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h2g3"+CMD_TERMINATOR));
@@ -443,7 +442,7 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1 moves d6h2 g1h1 h2g3 h1g1 h4h1 g1h1 d8h4 h1g1"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h4h2"+CMD_TERMINATOR));
 
-		performTest(30000);
+		performTest(15000);
 		assertEquals(4, (int)classUnderTest.dc.getNumEntries());
 	}
 	
