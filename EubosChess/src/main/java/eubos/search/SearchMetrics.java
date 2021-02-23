@@ -87,7 +87,6 @@ public class SearchMetrics {
 			if (Score.isMate(positionScore)) {
 				positionScore += 1; // out by one error due to negation of mate scores?
 			}
-			positionScore = (short) -positionScore; // Negated due to UCI spec (from engine pov)
 		}
 		this.cpScore = positionScore;
 	}

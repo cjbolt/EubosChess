@@ -58,7 +58,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		pm.getTheBoard().evaluateMaterial();
 		SearchContextEvaluation eval = sc.computeSearchGoalBonus(pm.getTheBoard().me);
 		if (!eval.isDraw) {
-			eval.score += pm.getTheBoard().me.getDelta();
+			eval.score += Colour.isBlack(pm.getOnMove()) ? -pm.getTheBoard().me.getDelta() : pm.getTheBoard().me.getDelta();
 			if (ENABLE_PAWN_EVALUATION) {
 				eval.score += evaluatePawnStructure();
 			}
@@ -79,7 +79,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		}
 		pawnsToTest = (!onMoveIsWhite) ? bd.getWhitePawns() : bd.getBlackPawns();
 		if (pawnsToTest != 0x0) {
-			pawnEvaluationScore += evaluatePawnsForColour(Colour.getOpposite(pm.getOnMove()));
+			pawnEvaluationScore -= evaluatePawnsForColour(Colour.getOpposite(pm.getOnMove()));
 		}
 		return pawnEvaluationScore;
 	}
@@ -88,16 +88,16 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		int kingSafetyScore = 0;
 		boolean ownSideIsWhite = pm.onMoveIsWhite();
 		kingSafetyScore = pm.getTheBoard().evaluateKingSafety(ownSideIsWhite);
-		kingSafetyScore += pm.getTheBoard().evaluateKingSafety(!ownSideIsWhite);
+		kingSafetyScore -= pm.getTheBoard().evaluateKingSafety(!ownSideIsWhite);
 		return kingSafetyScore;
 	}
 	
-	Colour onMoveWas;
+	Colour onMoveIs;
 	int individualPawnEval = 0;
 	
 	@Override
 	public void callback(int piece, int atPos) {
-		if (pm.getTheBoard().isPassedPawn(atPos, onMoveWas)) {
+		if (pm.getTheBoard().isPassedPawn(atPos, onMoveIs)) {
 			int weighting = 1;
 			if (Piece.isBlack(piece)) {
 				weighting = 7-Position.getRank(atPos);
@@ -110,23 +110,19 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 				individualPawnEval += weighting*PASSED_PAWN_BOOST;
 			}
 		}
-		if (pm.getTheBoard().isIsolatedPawn(atPos, onMoveWas)) {
+		if (pm.getTheBoard().isIsolatedPawn(atPos, onMoveIs)) {
 			individualPawnEval -= ISOLATED_PAWN_HANDICAP;
-		} else if (pm.getTheBoard().isBackwardsPawn(atPos, onMoveWas)) {
+		} else if (pm.getTheBoard().isBackwardsPawn(atPos, onMoveIs)) {
 			individualPawnEval -= BACKWARD_PAWN_HANDICAP;
 		}
 	}
 	
-	private int evaluatePawnsForColour(Colour onMoveWas) {
+	private int evaluatePawnsForColour(Colour onMove) {
 		Board board = pm.getTheBoard();
-		this.onMoveWas = onMoveWas;
+		this.onMoveIs = onMove;
 		this.individualPawnEval = 0;
-		int pawnHandicap = -board.countDoubledPawnsForSide(onMoveWas)*DOUBLED_PAWN_HANDICAP;
-		board.forEachPawnOfSide(this, Colour.isBlack(onMoveWas));
-		if (Colour.isBlack(onMoveWas)) {
-			pawnHandicap = -pawnHandicap;
-			individualPawnEval = -individualPawnEval;
-		}
+		int pawnHandicap = -board.countDoubledPawnsForSide(onMove)*DOUBLED_PAWN_HANDICAP;
+		board.forEachPawnOfSide(this, Colour.isBlack(onMove));
 		return pawnHandicap + individualPawnEval;
 	}
 	

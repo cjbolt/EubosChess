@@ -97,7 +97,13 @@ public class SearchDebugAgent {
 	
 	void printMateFound() {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%spossible mate @%d", indent, +currPly));
+			printOutput(String.format("%spossible mate @%d", indent, currPly));
+		}
+	}
+	
+	void printMateFound(short score) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%s%s found @%d", indent, Score.toString(score), currPly));
 		}
 	}
 	
@@ -218,5 +224,17 @@ public class SearchDebugAgent {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH-mm-ss.SSSSSS");
 			printOutput(String.format("%s@time %s", indent, dateTime.format(formatter)));	
 		}		
+	}
+	
+	public void printNormalSearch(int alpha, int beta) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%snormal search ply @%d alpha:%d beta:%d", indent, currPly, alpha, beta));
+		}
+	}
+
+	public void printExtSearch(int alpha, int beta) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%sext search ply @%d alpha:%d beta:%d", indent, currPly, alpha, beta));
+		}
 	}
 }

@@ -148,9 +148,9 @@ public class EubosEngineMainTest {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			String expectedOutput;
 			if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
-				expectedOutput = "info depth 1 seldepth 4 score cp -166 pv d7e5 f3e5 c7e5 hashfull 0 nps 1200 time 15 nodes 18"+CMD_TERMINATOR+
-	                    "info depth 1 seldepth 4 score cp 166 pv c7c2 d4a7 hashfull 0 nps 292 time 99 nodes 29"+CMD_TERMINATOR+
-	                    "info depth 2 seldepth 10 score cp 132 pv c7c2 b1c3 hashfull 0 nps 1407 time 113 nodes 159"+CMD_TERMINATOR
+				expectedOutput = "info depth 1 seldepth 5 score cp -16 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 1437 time 16 nodes 23"+CMD_TERMINATOR+
+	                    "info depth 1 seldepth 5 score cp 166 pv c7c2 d4a7 hashfull 0 nps 2150 time 20 nodes 43"+CMD_TERMINATOR+
+	                    "info depth 2 seldepth 6 score cp 132 pv c7c2 b1c3 d7e5 hashfull 0 nps 5147 time 34 nodes 175"+CMD_TERMINATOR
 	                    +BEST_PREFIX+"c7c2";
 			} else if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && !PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
 				expectedOutput = "info depth 1 seldepth 4 score cp -141 pv d7e5 f3e5 c7e5 hashfull 0 nps 500 time 14 nodes 7"+CMD_TERMINATOR+
@@ -295,7 +295,7 @@ public class EubosEngineMainTest {
 	public void test_when_has_insufficient_material_to_mate_takes_draw() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"7K/8/8/8/8/k1N5/p7/N7 w - - 11 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR,BEST_PREFIX+"c3a2"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR,BEST_PREFIX+"c3a2"+CMD_TERMINATOR));
 		performTest(1000);
 	}
 	

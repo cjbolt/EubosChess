@@ -39,7 +39,7 @@ public final class Score {
 	}
 	
 	public static boolean isMate(short score) {
-		return (score != Short.MIN_VALUE && score != Short.MAX_VALUE && Math.abs(score) > Short.MAX_VALUE-200);
+		return (score != (Short.MIN_VALUE+1) && score != Short.MAX_VALUE && Math.abs(score) > Short.MAX_VALUE-200);
 	}
 	
 	public static int valueOf(short score, byte bound) {
@@ -87,7 +87,7 @@ public final class Score {
 	public static String toString(short score) {
 		String scoreString;
 		if (Score.isMate(score)) {
-			int matePly = (score > 0) ? Short.MAX_VALUE - score + 1 : Short.MIN_VALUE - score;
+			int matePly = (score > 0) ? Short.MAX_VALUE - score + 1 : Short.MIN_VALUE+1 - score;
 			int mateMove = matePly / 2;
 			scoreString = String.format("mateIn%d", mateMove);
 		} else {

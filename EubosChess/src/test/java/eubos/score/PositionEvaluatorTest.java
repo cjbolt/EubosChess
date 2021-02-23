@@ -43,11 +43,11 @@ public class PositionEvaluatorTest {
 	public void test_evalPosA() {
 		setUpPosition("rn2k1nr/1pp2p1p/p7/8/6b1/2P2N2/PPP2PP1/R1BB1RK1 b kq - 0 12");
 		if (PositionEvaluator.ENABLE_PAWN_EVALUATION && PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
-			assertEquals(189, Score.getScore(SUT.evaluatePosition())); // Knight good pos, pawn up, doubled pawns, isolated pawn, not endgame, some danger to black king (open file)
+			assertEquals(-189, Score.getScore(SUT.evaluatePosition())); // Knight good pos, pawn up, doubled pawns, isolated pawn, not endgame, some danger to black king (open file)
 		} else if (PositionEvaluator.ENABLE_PAWN_EVALUATION && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION) {
-			assertEquals(159, Score.getScore(SUT.evaluatePosition())); // Knight good pos, pawn up, doubled pawns, not endgame, some danger to black king (open file)
+			assertEquals(-159, Score.getScore(SUT.evaluatePosition())); // Knight good pos, pawn up, doubled pawns, not endgame, some danger to black king (open file)
 		} else {
-			assertEquals(137, Score.getScore(SUT.evaluatePosition())); // Knight good pos, pawn up, not endgame
+			assertEquals(-137, Score.getScore(SUT.evaluatePosition())); // Knight good pos, pawn up, not endgame
 		}
 	}	
 	
@@ -55,7 +55,7 @@ public class PositionEvaluatorTest {
 	public void test_DiscourageDoubledPawns_w() {
 		setUpPosition("8/pppppp2/8/8/8/1P2P3/1P1P2PP/8 b - - 0 1");
 		int score = SUT.evaluatePawnStructure();
-		assertEquals(-DOUBLED_PAWN_HANDICAP+ROOK_FILE_PASSED_PAWN_BOOST-2*ISOLATED_PAWN_HANDICAP-3*BACKWARD_PAWN_HANDICAP+6*BACKWARD_PAWN_HANDICAP, score);
+		assertEquals(DOUBLED_PAWN_HANDICAP-ROOK_FILE_PASSED_PAWN_BOOST+2*ISOLATED_PAWN_HANDICAP+3*BACKWARD_PAWN_HANDICAP-6*BACKWARD_PAWN_HANDICAP, score);
 	}
 	
 	@Test
@@ -98,12 +98,12 @@ public class PositionEvaluatorTest {
 		int score = SUT.evaluatePawnStructure();
 		// black
 		int expectedScore = 0;
-		expectedScore -= -BACKWARD_PAWN_HANDICAP; // black d pawn about to queen
-		expectedScore -= (7-5)*PASSED_PAWN_BOOST; // black e pawn 6th rank
-		expectedScore -= -BACKWARD_PAWN_HANDICAP; // black d pawn 6th rank
-		expectedScore -= -DOUBLED_PAWN_HANDICAP; // black doubled pawns
+		expectedScore += -BACKWARD_PAWN_HANDICAP; // black d pawn about to queen
+		expectedScore += (7-5)*PASSED_PAWN_BOOST; // black e pawn 6th rank
+		expectedScore += -BACKWARD_PAWN_HANDICAP; // black d pawn 6th rank
+		expectedScore += -DOUBLED_PAWN_HANDICAP; // black doubled pawns
 		// white
-		expectedScore += -ISOLATED_PAWN_HANDICAP;
+		expectedScore -= -ISOLATED_PAWN_HANDICAP;
 		assertEquals(expectedScore, score);
 	}
 	
@@ -113,12 +113,12 @@ public class PositionEvaluatorTest {
 		int score = SUT.evaluatePawnStructure();
 		// black
 		int expectedScore = 0;
-		expectedScore -= (7-1)*PASSED_PAWN_BOOST; // black d pawn about to queen
-		expectedScore -= ((7-5)*PASSED_PAWN_BOOST - BACKWARD_PAWN_HANDICAP); // black e pawn 6th rank
-		expectedScore -= -BACKWARD_PAWN_HANDICAP; // black d pawn 6th rank
-		expectedScore -= -DOUBLED_PAWN_HANDICAP; // black doubled pawns
+		expectedScore += (7-1)*PASSED_PAWN_BOOST; // black d pawn about to queen
+		expectedScore += ((7-5)*PASSED_PAWN_BOOST - BACKWARD_PAWN_HANDICAP); // black e pawn 6th rank
+		expectedScore += -BACKWARD_PAWN_HANDICAP; // black d pawn 6th rank
+		expectedScore += -DOUBLED_PAWN_HANDICAP; // black doubled pawns
 		// white
-		expectedScore += -ISOLATED_PAWN_HANDICAP;
+		expectedScore += ISOLATED_PAWN_HANDICAP;
 		assertEquals(expectedScore, score);
 	}
 	
@@ -143,12 +143,12 @@ public class PositionEvaluatorTest {
 		int score = SUT.evaluatePawnStructure();
 		// black
 		int expectedScore = 0;
-		expectedScore -= (7-1)*PASSED_PAWN_BOOST;
-		expectedScore -= -BACKWARD_PAWN_HANDICAP;
-		expectedScore -= -BACKWARD_PAWN_HANDICAP;
+		expectedScore += (7-1)*PASSED_PAWN_BOOST;
+		expectedScore += -BACKWARD_PAWN_HANDICAP;
+		expectedScore += -BACKWARD_PAWN_HANDICAP;
 		// white
-		expectedScore += -ISOLATED_PAWN_HANDICAP;
-		expectedScore += -ISOLATED_PAWN_HANDICAP;
+		expectedScore -= -ISOLATED_PAWN_HANDICAP;
+		expectedScore -= -ISOLATED_PAWN_HANDICAP;
 		assertEquals(expectedScore, score);
 	}
 	
@@ -158,12 +158,12 @@ public class PositionEvaluatorTest {
 		int score = SUT.evaluatePawnStructure();
 		// black
 		int expectedScore = 0;
-		expectedScore -= ((7-1)*PASSED_PAWN_BOOST - ISOLATED_PAWN_HANDICAP); // black d pawn about to queen
-		expectedScore -= ((7-5)*ROOK_FILE_PASSED_PAWN_BOOST - ISOLATED_PAWN_HANDICAP); // black h pawn 6th rank
-		expectedScore -= -ISOLATED_PAWN_HANDICAP; // black d pawn 6th rank
-		expectedScore -= -DOUBLED_PAWN_HANDICAP; // black doubled pawns
+		expectedScore += ((7-1)*PASSED_PAWN_BOOST - ISOLATED_PAWN_HANDICAP); // black d pawn about to queen
+		expectedScore += ((7-5)*ROOK_FILE_PASSED_PAWN_BOOST - ISOLATED_PAWN_HANDICAP); // black h pawn 6th rank
+		expectedScore += -ISOLATED_PAWN_HANDICAP; // black d pawn 6th rank
+		expectedScore += -DOUBLED_PAWN_HANDICAP; // black doubled pawns
 		// white
-		expectedScore += -ISOLATED_PAWN_HANDICAP;
+		expectedScore -= -ISOLATED_PAWN_HANDICAP;
 		assertEquals(expectedScore, score);
 	} 
 	
@@ -199,7 +199,7 @@ public class PositionEvaluatorTest {
 	public void test_encouragePassedPawns_BothPassedPawns() {
 		setUpPosition("8/8/8/8/6P1/8/6p1/8 b - - 0 1 ");
 		int score = SUT.evaluatePawnStructure();
-		assertEquals(-((7-3)*PASSED_PAWN_BOOST)+PASSED_PAWN_BOOST/* both pawns on the same file, passed */, score);
+		assertEquals(((7-3)*PASSED_PAWN_BOOST)-PASSED_PAWN_BOOST/* both pawns on the same file, passed */, score);
 	}
 	
 	@Test

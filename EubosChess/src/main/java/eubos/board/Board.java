@@ -1180,10 +1180,6 @@ public class Board {
 			
 			numPotentialAttackers = Long.bitCount(rankFileAttackersMask);
 			evaluation += (getTwiceNumEmptyRankFileSquares(kingPos)/2) * -numPotentialAttackers;
-			
-			if (!onMoveWasWhite) {
-				evaluation = -evaluation;
-			}
 		}
 		return evaluation;
 	}

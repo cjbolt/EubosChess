@@ -85,27 +85,29 @@ public class SearchContext {
 	public SearchContextEvaluation computeSearchGoalBonus(PiecewiseEvaluation current) {
 		
 		SearchContextEvaluation eval = new SearchContextEvaluation();
-		
-		boolean weJustMoved = pos.getOnMove().equals(opponent);
 		boolean threeFold = pos.isThreefoldRepetitionPossible();
 		boolean insufficient = pos.getTheBoard().isInsufficientMaterial();
 		
 		eval.isDraw = (threeFold || insufficient);
 		if (eval.isDraw) {
 			// If we drew, score according to our goal
-			eval.score = (weJustMoved && isTryForDraw() && insufficient) ? adjustScoreIfBlack(ACHIEVES_DRAW_BONUS) : 0;
+			if (isTryForDraw() && insufficient) {
+				eval.score = (pos.getOnMove() == initialOnMove) ? ACHIEVES_DRAW_BONUS : -ACHIEVES_DRAW_BONUS;
+			} else {
+				eval.score = 0;
+			}
 		} else {
 			// We just moved and it isn't a draw, score according to our goal
 			switch(goal) {
 			case simplify: 
-		    	if (weJustMoved && isPositionSimplified(current)) {
-			    	eval.score = adjustScoreIfBlack(SIMPLIFICATION_BONUS);
+		    	if ((pos.getOnMove() == initialOnMove) && isPositionSimplified(current)) {
+			    	eval.score = SIMPLIFICATION_BONUS;
 		    	}
 		    	// Deliberate drop through
 			case try_for_draw:
 			case try_for_win:
 				// Add on positional weightings
-				eval.score += current.getPosition();
+				eval.score += Colour.isBlack(pos.getOnMove()) ? -current.getPosition() : current.getPosition();
 				break;
 			case try_for_mate:
 			default:
@@ -131,15 +133,8 @@ public class SearchContext {
 	}
 	
 	public short getScoreForStalemate() {
-		short mateScore = isTryForDraw() ? ACHIEVES_DRAW_BONUS : -ACHIEVES_DRAW_BONUS;
-		return adjustScoreIfBlack(mateScore);	
-	}
-	
-	private short adjustScoreIfBlack(short score) {
-		if (Colour.isBlack(initialOnMove)) {
-			score = (short) -score;
-		}
-		return score;
+		short mateScore = ((pos.getOnMove() == initialOnMove) && isTryForDraw()) ? ACHIEVES_DRAW_BONUS : -ACHIEVES_DRAW_BONUS;
+		return mateScore;	
 	}
 
 	public String getGoal() {

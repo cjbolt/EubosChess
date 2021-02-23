@@ -116,7 +116,7 @@ public class SearchMetricsReporter extends Thread {
 			refScore.updateLastScore(score, (byte)pv.getDepth());
 		}
 		if (Score.isMate(score)) {
-			int matePly = (score > 0) ? Short.MAX_VALUE - score + 1 : Short.MIN_VALUE - score;
+			int matePly = (score > 0) ? Short.MAX_VALUE - score + 1 : Short.MIN_VALUE+1 - score;
 			int mateMove = matePly / 2;
 			info.setMate(mateMove);
 		} else {
