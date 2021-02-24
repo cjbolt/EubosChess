@@ -18,6 +18,7 @@ import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.ITranspositionAccessor;
 import eubos.search.transposition.ITransposition;
 import eubos.search.transposition.TranspositionEvaluation;
+import eubos.search.transposition.TranspositionEvaluation.TranspositionTableStatus;
 
 public class PlySearcher {
 	
@@ -112,25 +113,26 @@ public class PlySearcher {
 		sda.printNormalSearch(alpha, beta);
 		
 		TranspositionEvaluation eval = tt.getTransposition(depth, beta);
-		switch (eval.status) {
-		case sufficientRefutation:
-			// Add refuting move to killer list
-			killers.addMove(currPly, eval.trans.getBestMove());
+
+		if (eval.status == TranspositionTableStatus.sufficientTerminalNode || 
+			eval.status == TranspositionTableStatus.sufficientRefutation) {
+			if (eval.status == TranspositionTableStatus.sufficientRefutation) {
+				killers.addMove(currPly, eval.trans.getBestMove());
+			}
 			sda.printHashIsRefutation(pos.getHash(), eval.trans);
-			plyScore = handleRefutationOrTerminalNodeFromHash(plyScore, eval.trans);
-			return Score.getScore(plyScore);
-		case sufficientTerminalNode:
-			sda.printHashIsTerminalNode(eval.trans, pos.getHash());
-			plyScore = handleRefutationOrTerminalNodeFromHash(plyScore, eval.trans);
-			updatePrincipalContinuation(eval.trans.getBestMove(), Score.getScore(plyScore));
-			return Score.getScore(plyScore);
-		case sufficientSeedMoveList:
+			plyScore = handleRefutationOrTerminalNodeFromHash(plyScore, eval);
+			if (eval.status == TranspositionTableStatus.sufficientTerminalNode) {
+				updatePrincipalContinuation(eval.trans.getBestMove(), Score.getScore(plyScore));
+			}
+		}
+		// If still good enough for a cut off, that will happen here
+		if (eval.status == TranspositionTableStatus.sufficientTerminalNode || 
+			eval.status == TranspositionTableStatus.sufficientRefutation) {
+				return Score.getScore(plyScore);
+		}
+		if (eval.status == TranspositionTableStatus.sufficientSeedMoveList) {
 			sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
 			prevBestMove = eval.trans.getBestMove();
-			// intentional drop through
-		case insufficientNoData:
-		default:
-			break;
 		}
 		
 		if (depth == 0) {
@@ -218,7 +220,9 @@ public class PlySearcher {
 		}
 
 		if (!isTerminated() && eval.trans != null) {
-			checkToPromoteHashTableToExact(eval.trans, depth, (short) alpha);
+			// We have to know that the score backed up from the child was exact to set this node as exact?
+			// although a beta cut off should still result in an exact score?
+			//checkToPromoteHashTableToExact(eval.trans, depth, (short) alpha);
 		}
 		return alpha;
 	}
@@ -301,7 +305,12 @@ public class PlySearcher {
 	}
 	
 	ITransposition updateTranspositionTable(ITransposition trans, byte depth, int currMove, short plyScore, byte plyBound) {
-		short scoreFromDownTree = updateMateScoresForEncodingMateDistanceInHashTable(plyScore);
+		// Modify mate score (which is expressed in distance from the root node, in ply) to
+		// the distance from leaf node (which is what needs to be stored in the hash table).
+		short scoreFromDownTree = plyScore;
+		if (Score.isMate(plyScore)) {
+			scoreFromDownTree = (short) ((plyScore < 0) ? plyScore - currPly : plyScore + currPly);
+		}
 		if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
 			trans = tt.setTransposition(trans, depth, scoreFromDownTree, plyBound, currMove, pc.toPvList(currPly));
 		} else {
@@ -310,34 +319,19 @@ public class PlySearcher {
 		return trans;
 	}
 	
-	private short updateMateScoresForEncodingMateDistanceInHashTable(short plyScore) {
-		//
-		// Modify mate score (which is expressed in distance from root node in ply) to
-		// distance from leaf node (which is what needs to be stored in the hash table)
-		//
-		if (Score.isMate(plyScore)) {
-			if (plyScore < 0) {
-				plyScore = (short)(plyScore - currPly);
-			} else {
-				plyScore = (short)(plyScore + currPly);
-			}
-		}
-		return plyScore;
-	}
-	
-	private int handleRefutationOrTerminalNodeFromHash(int theScore, ITransposition trans) throws InvalidPieceException {
+	private int handleRefutationOrTerminalNodeFromHash(int theScore, TranspositionEvaluation eval) throws InvalidPieceException {
 		int trans_move;
 		short trans_score;
-		synchronized (trans) {
-			trans_move = trans.getBestMove();
-			trans_score = trans.getScore();
+		synchronized (eval.trans) {
+			trans_move = eval.trans.getBestMove();
+			trans_score = eval.trans.getScore();
 		}
 		// Check score for hashed position causing a search cut-off is still valid (i.e. best move doesn't lead to a draw)
 		// If hashed score is a draw score, check it is still a draw, if not, search position
 		boolean isThreefold = checkForRepetitionDueToPositionInSearchTree(trans_move);
 		if (isThreefold || (!isThreefold && (trans_score == 0))) {
-			// Assume it is now a draw, so re-search
-			sda.printHashIsSeedMoveList(pos.getHash(), trans);
+			sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
+			eval.status = TranspositionTableStatus.sufficientSeedMoveList;
 			theScore = 0;
 		} else {
 			short adjustedScoreForThisPositionInTree = trans_score;
@@ -347,11 +341,11 @@ public class PlySearcher {
 				adjustedScoreForThisPositionInTree = (short) ((trans_score < 0 ) ? trans_score+currPly : trans_score-currPly);
 			}
 			if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
-				pc.update(currPly, trans.getPv());
+				pc.update(currPly, eval.trans.getPv());
 			} else {
 				pc.set(currPly, trans_move);
 			}
-			theScore = adjustedScoreForThisPositionInTree; //Score.valueOf(adjustedScoreForThisPositionInTree, trans_bound);
+			theScore = adjustedScoreForThisPositionInTree;
 		}
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)
 			sm.incrementNodesSearched();
@@ -375,9 +369,10 @@ public class PlySearcher {
 	}
 
 	void checkToPromoteHashTableToExact(ITransposition trans, int depth, short plyScore) {
-
-		short scoreFromDownTree = updateMateScoresForEncodingMateDistanceInHashTable(plyScore);
-
+		short scoreFromDownTree = plyScore;
+		if (Score.isMate(plyScore)) {
+			scoreFromDownTree = (short) ((plyScore < 0) ? plyScore - currPly : plyScore + currPly);
+		}
 		// This is the only way a hash and score can be exact.
 		// found to be needed due to score discrepancies caused by refutations coming out of extended search...
 		// Still needed 22nd October 2020

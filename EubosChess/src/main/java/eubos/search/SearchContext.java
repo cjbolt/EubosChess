@@ -106,10 +106,11 @@ public class SearchContext {
 		    	// Deliberate drop through
 			case try_for_draw:
 			case try_for_win:
+			case try_for_mate:
 				// Add on positional weightings
 				eval.score += Colour.isBlack(pos.getOnMove()) ? -current.getPosition() : current.getPosition();
 				break;
-			case try_for_mate:
+			//case try_for_mate:
 			default:
 				// Don't evaluate for positional factors, which prevents aimless faffing about board
 				break;
