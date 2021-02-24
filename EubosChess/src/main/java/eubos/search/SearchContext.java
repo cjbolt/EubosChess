@@ -133,7 +133,7 @@ public class SearchContext {
 	}
 	
 	public short getScoreForStalemate() {
-		short mateScore = ((pos.getOnMove() == initialOnMove) && isTryForDraw()) ? ACHIEVES_DRAW_BONUS : -ACHIEVES_DRAW_BONUS;
+		short mateScore = 0; // ((pos.getOnMove() == initialOnMove) && isTryForDraw()) ? 0 : 0;
 		return mateScore;	
 	}
 

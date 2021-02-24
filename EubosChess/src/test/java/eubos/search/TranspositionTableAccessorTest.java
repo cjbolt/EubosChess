@@ -13,6 +13,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.InvalidPieceException;
+import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.search.transposition.FixedSizeTranspositionTable;
@@ -29,7 +30,7 @@ public class TranspositionTableAccessorTest {
 	PrincipalContinuation pc;
 	List<GenericMove> lastPc;
 	
-	private  static final int SEARCH_DEPTH_IN_PLY = 4;
+	private static final int SEARCH_DEPTH_IN_PLY = 4;
 	
 	byte currPly; 
 	
@@ -43,7 +44,7 @@ public class TranspositionTableAccessorTest {
 		st = new ScoreTracker(SEARCH_DEPTH_IN_PLY, true, sda);
 		st.setProvisionalScoreAtPly((byte) 0);
 		pm = new PositionManager();
-		sut = new TranspositionTableAccessor(transTable, pm, st, sda);
+		sut = new TranspositionTableAccessor(transTable, pm, sda);
 		currPly = 0;
 	}
 
@@ -55,6 +56,7 @@ public class TranspositionTableAccessorTest {
 	
 	@Test
 	public void testEval_StoreRetrieve_sufficientTerminalNode() throws InvalidPieceException, IllegalNotationException {
+		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
 		
@@ -63,23 +65,27 @@ public class TranspositionTableAccessorTest {
 		eval = sut.getTransposition(currPly, 1);
 		
 		assertEquals(TranspositionTableStatus.sufficientTerminalNode, eval.status);
+		}
 	}
 	
 	@Test
 	public void testEval_StoreRetrieve_sufficientSeedMoveList() throws InvalidPieceException, IllegalNotationException {
+		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
 		
 		sut.setTransposition(null, (byte)1, (short)105, Score.exact, Move.toMove(pc.get(0)));
 		
-		eval = sut.getTransposition(currPly, 2);
+		eval = sut.getTransposition(2, 35);
 		
 		assertEquals(TranspositionTableStatus.sufficientSeedMoveList, eval.status);
+		}
 	}
 	
 	@Test
 	@Ignore
 	public void testEval_StoreRetrieve_whenNoMoveList_insufficientNoData() throws InvalidPieceException, IllegalNotationException {
+		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		
 		sut.setTransposition(null, (byte)1, (short)105, Score.exact, Move.toMove(pc.get(0)));
@@ -87,10 +93,12 @@ public class TranspositionTableAccessorTest {
 		eval = sut.getTransposition(currPly, 2);
 		
 		assertEquals(TranspositionTableStatus.insufficientNoData, eval.status);
+		}
 	}
 	
 	@Test
 	public void testEval_StoreRetrieve_whenUpperBound_AndScoreIsLower_inSufficientRefutation() throws InvalidPieceException, IllegalNotationException {
+		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
 
@@ -105,6 +113,7 @@ public class TranspositionTableAccessorTest {
 		eval = sut.getTransposition(currPly, 1);
 		
 		assertEquals(TranspositionTableStatus.sufficientSeedMoveList, eval.status);
+		}
 	}
 	
 	@Test
@@ -132,15 +141,18 @@ public class TranspositionTableAccessorTest {
 	
 	@Test
 	public void testUpdateWorks_whenNew() throws IllegalNotationException {
+		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
 
 		currPly = 2;
 		sut.setTransposition(null, (byte)1, (short)105, Score.lowerBound, Move.toMove(pc.get(0)));
+		}
 	}
 	
 	@Test
 	public void testUpdateWorks_whenExistingUpdated() throws IllegalNotationException {
+		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
 		GenericMove move1 = new GenericMove("e2e4");
 		GenericMove move2 = new GenericMove("d2d4");
 		List<GenericMove> pc = new ArrayList<GenericMove>();
@@ -161,12 +173,14 @@ public class TranspositionTableAccessorTest {
 		eval = sut.getTransposition(currPly, 1);
 		assertEquals(stored_trans, eval.trans);
 		assertTrue(Move.areEqual(Move.toMove(move2), eval.trans.getBestMove()));
+		}
 	}
 	
 	@Test
 	public void testUpdateWorks_whenExistingUpdated_ArenaError() throws IllegalNotationException {
+		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
 		pm = new PositionManager("8/8/p6p/1p3kp1/1P6/P4PKP/5P2/8 w - - 0 1"); //Endgame pos
-		sut = new TranspositionTableAccessor(transTable, pm, st, new SearchDebugAgent(0, true));
+		sut = new TranspositionTableAccessor(transTable, pm, new SearchDebugAgent(0, true));
 		GenericMove move1 = new GenericMove("h3h4");
 		GenericMove move2 = new GenericMove("f3f4");
 		
@@ -188,5 +202,6 @@ public class TranspositionTableAccessorTest {
 		eval = sut.getTransposition(currPly, 1);
 		assertEquals(stored_trans, eval.trans);
 		assertTrue(Move.areEqual(Move.toMove(move2), eval.trans.getBestMove()));
+		}
 	}
 }

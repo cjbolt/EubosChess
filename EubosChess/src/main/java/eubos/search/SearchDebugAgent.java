@@ -169,7 +169,7 @@ public class SearchDebugAgent {
 		}		
 	}
 
-	public void printStartPlyInfo(ScoreTracker st, IPositionAccessors pos, byte originalSearchDepthRequiredInPly) {
+	public void printStartPlyInfo(IPositionAccessors pos, byte originalSearchDepthRequiredInPly) {
 		if (DEBUG_ENABLED) {
 			LocalDateTime dateTime = LocalDateTime.now();
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH-mm-ss.SSSSSS");
@@ -177,7 +177,7 @@ public class SearchDebugAgent {
 			if (currPly == 0) {
 				printOutput(String.format("\n\n\n NEW ITERATION %d @time %s\n\n\n", originalSearchDepthRequiredInPly, timestamp));
 			}			
-			printOutput(String.format("%ssearch @:%d prov:%d @time %s", indent, currPly, st.getBackedUpScoreAtPly((byte)currPly), timestamp));
+			printOutput(String.format("%ssearch @:%d @time %s", indent, currPly, timestamp));
 			printOutput(String.format("%sfen:%s", indent, pos.getFen()));
 		}
 	}

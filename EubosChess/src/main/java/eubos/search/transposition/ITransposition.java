@@ -2,7 +2,6 @@ package eubos.search.transposition;
 
 import java.util.List;
 
-import eubos.search.ScoreTracker;
 import eubos.search.transposition.TranspositionEvaluation.TranspositionTableStatus;
 
 public interface ITransposition {
@@ -27,5 +26,5 @@ public interface ITransposition {
 
 	List<Integer> getPv();
 	
-	TranspositionTableStatus evaluateSuitability(byte currPly, int depthRequiredPly, ScoreTracker st);
+	TranspositionTableStatus evaluateSuitability(int depthRequiredPly, int beta);
 }

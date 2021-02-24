@@ -7,7 +7,6 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.search.Score;
-import eubos.search.ScoreTracker;
 import eubos.search.transposition.TranspositionEvaluation.TranspositionTableStatus;
 
 public class Transposition implements ITransposition {
@@ -97,17 +96,15 @@ public class Transposition implements ITransposition {
 			if (((type == Score.upperBound) || (type == Score.lowerBound)) &&
 					new_bound == Score.exact) {
 			    updateTransposition = true;
-			} else if ((type == Score.upperBound) &&
-					   (new_score < getScore())) {
+			} else if ((type == Score.upperBound || type == Score.lowerBound) && (new_score > getScore())) {
 				if (EubosEngineMain.ENABLE_ASSERTS)
 					assert type == new_bound;
 				updateTransposition = true;
-			} else if ((type == Score.lowerBound) &&
-					   (new_score > getScore())) {
-				if (EubosEngineMain.ENABLE_ASSERTS)
-					assert type == new_bound;
-				updateTransposition = true;
+			} else {
+				// don't update, worse score
 			}
+		} else {
+			// don't update, depth is less than what we have
 		}
 		
 		if (updateTransposition) {
@@ -148,7 +145,7 @@ public class Transposition implements ITransposition {
 		return null;
 	}
 	
-	public synchronized TranspositionTableStatus evaluateSuitability(byte currPly, int depthRequiredPly, ScoreTracker st) {
+	public synchronized TranspositionTableStatus evaluateSuitability(int depthRequiredPly, int beta) {
 		TranspositionTableStatus eval = TranspositionTableStatus.insufficientNoData;
 		if (getDepthSearchedInPly() >= depthRequiredPly) {
 			
@@ -156,7 +153,7 @@ public class Transposition implements ITransposition {
 				eval = TranspositionTableStatus.sufficientTerminalNode;
 				
 			} else { // must be either (bound == Score.upperBound || bound == Score.lowerBound)
-				if (st.isAlphaBetaCutOffForHash(currPly, getScore())) {
+				if (getScore() >= beta) {
 					eval = TranspositionTableStatus.sufficientRefutation;
 		        } else {
 		        	eval = TranspositionTableStatus.sufficientSeedMoveList;

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
+import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.main.EubosEngineMain;
 import eubos.score.ReferenceScore;
@@ -90,18 +91,29 @@ public class SearchMetricsReporter extends Thread {
 		long time = 0;
 		long nodes = 0;
 		int nps = 0;
+		int moveNumber = 0;
+		int threadCount = 0;
+		GenericMove move = null;
 		
 		for (SearchMetrics thread : sm) {
 			thread.incrementTime();
 			nodes += thread.getNodesSearched();
 			nps += thread.getNodesPerSecond();
 			time = thread.getTime();
+			moveNumber = thread.getCurrentMoveNum();
+			move = thread.getCurrentMove();
+			threadCount += 1;
 		}
 		
 		info.setNodes(nodes);
 		info.setNps(nps);
 		info.setTime(time);
 		info.setHash(tt.getHashUtilisation());
+		if (threadCount == 1) {
+			// The current move being searched is only meaningful for single threaded search
+			info.setCurrentMove(move);
+			info.setCurrentMoveNumber(moveNumber);
+		}
 	}
 	
 	private void generatePvInfoCommand(ProtocolInformationCommand info, SearchMetrics pv) {

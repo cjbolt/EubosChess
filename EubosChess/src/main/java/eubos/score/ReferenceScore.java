@@ -1,6 +1,5 @@
 package eubos.score;
 
-import eubos.board.Piece.Colour;
 import eubos.position.IPositionAccessors;
 import eubos.search.Score;
 import eubos.search.transposition.FixedSizeTranspositionTable;
@@ -49,11 +48,6 @@ public class ReferenceScore {
 			reference.depth = 0;
 		}
 		
-		// Convert to UCI score
-		if (Colour.isBlack(rootPos.getOnMove())) {
-			reference.score = (short)-reference.score;
-		}
-		
 		// Invalidate the last score, this will be re-validated when the first UCI PV message of search is received
 		lastScoreIsValid = false;
 	}
@@ -75,9 +69,9 @@ public class ReferenceScore {
 	public void updateLastScore(short uciScore, byte depth) {
 		if (rootPosition != null) {
 			// Convert to a Eubos score from UCI
-			short eubosScore = Colour.isWhite(rootPosition.getOnMove()) ? uciScore : (short)-uciScore;
+			//short eubosScore = Colour.isWhite(rootPosition.getOnMove()) ? uciScore : (short)-uciScore;
 			lastScoreIsValid = true; 
-			lastScore = eubosScore;
+			lastScore = uciScore;
 		    lastMoveNumber = rootPosition.getMoveNumber();
 		    lastDepth = depth;
 		}

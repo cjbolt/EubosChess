@@ -20,6 +20,8 @@ public class SearchMetrics {
 	private int depth;
 	private int partialDepth;
 	private long initialTimestamp;
+	private int moveNum;
+	private GenericMove move;
 	
 	public SearchMetrics(int searchDepth, IPositionAccessors pos) {
 		nodesSearched = new AtomicLong(0);
@@ -30,6 +32,8 @@ public class SearchMetrics {
 		partialDepth = 0;
 		initialTimestamp = System.currentTimeMillis();
 		this.pos = pos;
+		moveNum = 0;
+		move = null;
 	}
 
 	public SearchMetrics(IPositionAccessors pos) {
@@ -96,4 +100,15 @@ public class SearchMetrics {
 	
 	synchronized int getPartialDepth() { return partialDepth; }
 	synchronized void setPartialDepth(int depth ) { this.partialDepth = depth; }
+
+	public int getCurrentMoveNum() {
+		return moveNum;
+	}
+	public void setCurrentMove(GenericMove move, int moveNumber) {
+		moveNum = moveNumber;
+		this.move = move;
+	}
+	public GenericMove getCurrentMove() {
+		return move;
+	}
 }

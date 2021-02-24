@@ -122,21 +122,13 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		enableSearchMetricsReporter(false);
 		stopper.end();
 		terminateSearchMetricsReporter();
-		
-//		while (isAtLeastOneWorkerStillAlive()) {
-//			try {
-//				Thread.sleep(5);
-//			} catch (InterruptedException e) {
-//				Thread.currentThread().interrupt();
-//			}
-//		}
 		sendBestMove();
 	}
 
 	private void sendBestMove() {
 		GenericMove bestMove;
 		ITransposition trans = tt.getTransposition(this.rootPositionHash);
-		if (trans != null) {
+		if (trans != null && trans.getType() == Score.exact) {
 			EubosEngineMain.logger.info(String.format("best is trans=%s", trans.report()));
 			if (Score.isMate(trans.getScore())) {
 				// it is possible that we didn't send a uci info pv message, so update the last score
