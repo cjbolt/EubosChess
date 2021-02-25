@@ -22,6 +22,8 @@ import eubos.search.transposition.TranspositionEvaluation.TranspositionTableStat
 
 public class PlySearcher {
 	
+	private static final boolean ENABLE_MATE_CHECK_IN_EXTENDED_SEARCH = false;
+	
 	private IChangePosition pm;
 	private IPositionAccessors pos;
 	private IEvaluate pe;
@@ -224,32 +226,34 @@ public class PlySearcher {
 	
 	public int extendedSearch(int alpha, int beta) throws InvalidPieceException {
 		sda.printExtSearch(alpha, beta);
-        
+		if (currPly > extendedSearchDeepestPly) {
+			extendedSearchDeepestPly = currPly;
+		}
+		
 		int prevBestMove = Move.NULL_MOVE;
 		TranspositionEvaluation eval = tt.getTransposition(100, beta);
-
 		if (eval.status == TranspositionTableStatus.sufficientSeedMoveList) {
 			sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
 			prevBestMove = eval.trans.getBestMove();
 		}
-		
+		// Don't use Killer moves as we don't search quiet moves in the extended search
 		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, null, moveListOrdering, true, Position.NOPOSITION);
 		Iterator<Integer> move_iter = ml.getStandardIterator(true, Position.NOPOSITION);
 		
 		sda.printExtendedSearchMoveList(ml);
 		
-        if (ml.isMateOccurred()) {
-        	MoveList new_ml = new MoveList((PositionManager) pm, 0); // don't bother to sort the list
-    		if (new_ml.isMateOccurred()) {
-    			short mateScore = sg.scoreMate(currPly);
-    			sda.printMateFound(mateScore);
-        		//return mateScore;
-    		}
-        }
-        
-		if (currPly > extendedSearchDeepestPly) {
-			extendedSearchDeepestPly = currPly;
-		}
+		if (ENABLE_MATE_CHECK_IN_EXTENDED_SEARCH) {
+			if (ml.isMateOccurred()) {
+	        	// Ideally we need just one normal move to determine that it isn't mate to
+	        	// use stand PAT - this could be optimised, at the moment it is too heavy!
+	        	MoveList new_ml = new MoveList((PositionManager) pm, 0); // don't bother to sort the list
+	    		if (new_ml.isMateOccurred()) {
+	    			short mateScore = sg.scoreMate(currPly);
+	    			sda.printMateFound(mateScore);
+	        		return mateScore;
+	    		}
+        	}    		
+        } // else we will detect there are no moves and assume there are normal moves and stand Pat
 		
 		// Stand Pat in extended search
 		short plyScore = Score.getScore(pe.evaluatePosition());	
@@ -260,10 +264,10 @@ public class PlySearcher {
 			return plyScore;
 		}
 		if (plyScore >= beta) {
+			// There is no move to put in the killer table for stand Pat
 			sda.printRefutationFound(plyScore);
 			return beta;
 		}
-		
 		if (plyScore > alpha) {
 			alpha = plyScore;
 		}
