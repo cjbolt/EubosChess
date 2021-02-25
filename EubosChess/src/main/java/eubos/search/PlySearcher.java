@@ -23,12 +23,11 @@ import eubos.search.transposition.TranspositionEvaluation.TranspositionTableStat
 public class PlySearcher {
 	
 	private IChangePosition pm;
-	IPositionAccessors pos;
-	
-	ScoreTracker st;
+	private IPositionAccessors pos;
 	private IEvaluate pe;
 	private IScoreMate sg;
-	PrincipalContinuation pc;
+	
+	private PrincipalContinuation pc;
 	private SearchMetrics sm;
 	private SearchDebugAgent sda;
 	
@@ -39,8 +38,7 @@ public class PlySearcher {
 	private SearchMetricsReporter sr;
 	private KillerList killers;
 	
-	byte currPly = 0;
-	byte currDepthSearchedInPly = 0;
+	private byte currPly = 0;
 	private byte originalSearchDepthRequiredInPly = 0;
 	private byte extendedSearchDeepestPly = 0;
 	private byte extendedSearchLimitInPly = 0;
@@ -60,7 +58,6 @@ public class PlySearcher {
 			KillerList killers,
 			SearchDebugAgent sda) {
 		currPly = 0;
-		currDepthSearchedInPly = 0;
 		
 		this.pc = pc;
 		this.sm = sm;
@@ -71,19 +68,13 @@ public class PlySearcher {
 		this.lastPc = lastPc;
 		this.sda = sda;
 		originalSearchDepthRequiredInPly = searchDepthPly;
-		extendedSearchLimitInPly = setExtSearchDepth();
+		extendedSearchLimitInPly = (byte) (MiniMaxMoveGenerator.EXTENDED_SEARCH_PLY_LIMIT + originalSearchDepthRequiredInPly);
 		
 		tt = hashMap;
 		sg = new MateScoreGenerator(pos, pe);
 		this.killers = killers;
 	}
-	
-	private byte setExtSearchDepth() {
-		int variableDepthPly = originalSearchDepthRequiredInPly * 4;
-		byte extDepthLimitPly = (byte)Math.min(MiniMaxMoveGenerator.EXTENDED_SEARCH_PLY_LIMIT, variableDepthPly);
-		extDepthLimitPly += originalSearchDepthRequiredInPly;
-		return extDepthLimitPly;
-	}
+
 	private boolean atRootNode() { return currPly == 0; }
 	
 	public synchronized void terminateFindMove() { 
@@ -93,19 +84,20 @@ public class PlySearcher {
 	private synchronized boolean isTerminated() { return terminate; }	
 
 	public void alternativeMoveListOrdering(int orderingScheme) {
-		moveListOrdering  = orderingScheme;		
+		moveListOrdering = orderingScheme;		
 	}
 	
 	public int searchPly() throws InvalidPieceException {
 		short score = 0;
 		currPly = 0;
 		extendedSearchDeepestPly = 0;		
-		score = (short) search(Short.MIN_VALUE+1, Short.MAX_VALUE, originalSearchDepthRequiredInPly);
+		score = (short) search(Score.PROVISIONAL_ALPHA, Score.PROVISIONAL_BETA, originalSearchDepthRequiredInPly);
 		return Score.valueOf(score, Score.exact);
 	}
 	
 	int search(int alpha, int beta, int depth) throws InvalidPieceException {
-		int plyScore = Short.MIN_VALUE+1;
+		boolean isAlphaIncreased = false;
+		int plyScore = Score.PROVISIONAL_ALPHA;
 		byte plyBound = pos.onMoveIsWhite() ? Score.lowerBound : Score.upperBound;
 		int prevBestMove = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
 		
@@ -118,21 +110,28 @@ public class PlySearcher {
 			eval.status == TranspositionTableStatus.sufficientRefutation) {
 			if (eval.status == TranspositionTableStatus.sufficientRefutation) {
 				killers.addMove(currPly, eval.trans.getBestMove());
+				sda.printHashIsRefutation(pos.getHash(), eval.trans);
 			}
-			sda.printHashIsRefutation(pos.getHash(), eval.trans);
 			plyScore = handleRefutationOrTerminalNodeFromHash(plyScore, eval);
 			if (eval.status == TranspositionTableStatus.sufficientTerminalNode) {
+				sda.printHashIsTerminalNode(eval.trans, pos.getHash());
 				updatePrincipalContinuation(eval.trans.getBestMove(), Score.getScore(plyScore));
 			}
 		}
 		// If still good enough for a cut off, that will happen here
 		if (eval.status == TranspositionTableStatus.sufficientTerminalNode || 
 			eval.status == TranspositionTableStatus.sufficientRefutation) {
-				return Score.getScore(plyScore);
+				sda.printCutOffWithScore(plyScore);
+				return plyScore;
 		}
 		if (eval.status == TranspositionTableStatus.sufficientSeedMoveList) {
 			sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
 			prevBestMove = eval.trans.getBestMove();
+		}
+		
+		// Extend search for in-check scenarios, treated outside of quiescence search 
+		if (depth == 0 && pos.isKingInCheck()) {
+			++depth;
 		}
 		
 		if (depth == 0) {
@@ -147,11 +146,6 @@ public class PlySearcher {
 		// Absolute depth limit
 		if (currPly >= extendedSearchLimitInPly - 1) {
 			return Score.getScore(pe.evaluatePosition());
-		}
-
-		// Extend search for in-check scenarios, treated outside of quiescence search 
-		if (pos.isKingInCheck()) {
-			++depth;
 		}
 		
 		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, killers.getMoves(currPly), moveListOrdering, false, Position.NOPOSITION);
@@ -180,7 +174,7 @@ public class PlySearcher {
 			pm.unperformMove();
 			currPly--;
 			sda.prevPly();
-			sda.printUndoMove(currMove, plyScore);
+			sda.printUndoMove(currMove, positionScore);
 			
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)
 				sm.incrementNodesSearched();
@@ -192,15 +186,16 @@ public class PlySearcher {
 			
 			// Handle score backed up to this node
 			if (positionScore > alpha) {	
-				killers.addMove(currPly, currMove);
-				sda.printRefutationFound(plyScore);
 				
 				if (positionScore >= beta) {
+					killers.addMove(currPly, currMove);
+					sda.printRefutationFound(positionScore);
 					eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) beta, plyBound);
 					return beta;
 				}
 				
 				alpha = positionScore;
+				isAlphaIncreased = true;
 				eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) alpha, plyBound);
 				updatePrincipalContinuation(currMove,(short) alpha);
 				
@@ -219,25 +214,36 @@ public class PlySearcher {
 			}
 		}
 
-		if (!isTerminated() && eval.trans != null) {
+		if (!isTerminated() && eval.trans != null && isAlphaIncreased) {
 			// We have to know that the score backed up from the child was exact to set this node as exact?
 			// although a beta cut off should still result in an exact score?
-			//checkToPromoteHashTableToExact(eval.trans, depth, (short) alpha);
+			checkToPromoteHashTableToExact(eval.trans, depth, (short) alpha);
 		}
 		return alpha;
 	}
 	
 	public int extendedSearch(int alpha, int beta) throws InvalidPieceException {
 		sda.printExtSearch(alpha, beta);
-		MoveList ml = new MoveList((PositionManager) pm, Move.NULL_MOVE, killers.getMoves(currPly), moveListOrdering, true, Position.NOPOSITION);
+        
+		int prevBestMove = Move.NULL_MOVE;
+		TranspositionEvaluation eval = tt.getTransposition(100, beta);
+
+		if (eval.status == TranspositionTableStatus.sufficientSeedMoveList) {
+			sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
+			prevBestMove = eval.trans.getBestMove();
+		}
+		
+		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, null, moveListOrdering, true, Position.NOPOSITION);
 		Iterator<Integer> move_iter = ml.getStandardIterator(true, Position.NOPOSITION);
+		
+		sda.printExtendedSearchMoveList(ml);
 		
         if (ml.isMateOccurred()) {
         	MoveList new_ml = new MoveList((PositionManager) pm, 0); // don't bother to sort the list
     		if (new_ml.isMateOccurred()) {
     			short mateScore = sg.scoreMate(currPly);
     			sda.printMateFound(mateScore);
-        		return mateScore;
+        		//return mateScore;
     		}
         }
         
@@ -245,26 +251,25 @@ public class PlySearcher {
 			extendedSearchDeepestPly = currPly;
 		}
 		
+		// Stand Pat in extended search
 		short plyScore = Score.getScore(pe.evaluatePosition());	
 		if (currPly >= extendedSearchLimitInPly - 1)
 			return plyScore;
-		
 		if (!move_iter.hasNext()) {
 			sda.printExtSearchNoMoves(plyScore);
 			return plyScore;
 		}
-		
-		// Stand Pat in extended search
 		if (plyScore >= beta) {
 			sda.printRefutationFound(plyScore);
 			return beta;
 		}
-		if (plyScore > alpha)
+		
+		if (plyScore > alpha) {
 			alpha = plyScore;
+		}
 		
 		int currMove = move_iter.next();
 		pc.initialise(currPly, currMove);
-
 		while(true) {
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)
 				pc.clearContinuationBeyondPly(currPly);
@@ -273,26 +278,29 @@ public class PlySearcher {
 			sda.printPerformMove(currMove);			
 			sda.nextPly();
 			currPly++;
-			pm.performMove(currMove, false);
-			short lastScore = (short) -extendedSearch(-beta, -alpha);
-			pm.unperformMove(false);
+			pm.performMove(currMove);
+			short positionScore = (short) -extendedSearch(-beta, -alpha);
+			pm.unperformMove();
 			currPly--;
 			sda.prevPly();
-			sda.printUndoMove(currMove, plyScore);
+			sda.printUndoMove(currMove, positionScore);
 			
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)
 				sm.incrementNodesSearched();
 			
-			if (lastScore > alpha) {
-				if (lastScore >= beta) {
+			if (positionScore > alpha) {
+				if (positionScore >= beta) {
 					killers.addMove(currPly, currMove);
-					sda.printRefutationFound(lastScore);
+					sda.printRefutationFound(positionScore);
+					eval.trans = updateTranspositionTable(eval.trans, (byte) 0, currMove, (short) beta, Score.upperBound);
 					return beta;
 				}
 				alpha = plyScore;
 				updatePrincipalContinuation(currMove, plyScore);
-			} else if (lastScore > plyScore) {
-				plyScore = lastScore;
+				eval.trans = updateTranspositionTable(eval.trans, (byte) 0, currMove, (short) alpha, Score.upperBound);
+			} else if (positionScore > plyScore) {
+				plyScore = positionScore;
+				eval.trans = updateTranspositionTable(eval.trans, (byte) 0, currMove, (short) plyScore, Score.upperBound);
 			}
 			
 			if (move_iter.hasNext()) {
@@ -304,7 +312,7 @@ public class PlySearcher {
 		return alpha;
 	}
 	
-	ITransposition updateTranspositionTable(ITransposition trans, byte depth, int currMove, short plyScore, byte plyBound) {
+	private ITransposition updateTranspositionTable(ITransposition trans, byte depth, int currMove, short plyScore, byte plyBound) {
 		// Modify mate score (which is expressed in distance from the root node, in ply) to
 		// the distance from leaf node (which is what needs to be stored in the hash table).
 		short scoreFromDownTree = plyScore;
@@ -368,7 +376,7 @@ public class PlySearcher {
 		return retVal;
 	}
 
-	void checkToPromoteHashTableToExact(ITransposition trans, int depth, short plyScore) {
+	private void checkToPromoteHashTableToExact(ITransposition trans, int depth, short plyScore) {
 		short scoreFromDownTree = plyScore;
 		if (Score.isMate(plyScore)) {
 			scoreFromDownTree = (short) ((plyScore < 0) ? plyScore - currPly : plyScore + currPly);
@@ -382,7 +390,6 @@ public class PlySearcher {
 		}
 	}
 
-
 	private void updatePrincipalContinuation(int currMove, short positionScore)
 			throws InvalidPieceException {
 		pc.update(currPly, currMove);
@@ -391,20 +398,5 @@ public class PlySearcher {
 			sr.reportPrincipalVariation(sm);
 			extendedSearchDeepestPly = 0;
 		}
-	}
-
-	boolean shouldUpdatePositionBoundScoreAndBestMove(short plyScore, byte plyBound, short positionScore) {
-		boolean doUpdate = false;
-		if (plyBound == Score.lowerBound) {
-			if (positionScore > plyScore && positionScore != Short.MAX_VALUE)
-				doUpdate = true;
-		} else if (plyBound == Score.upperBound) {
-			if (positionScore < plyScore && positionScore != Short.MIN_VALUE)
-				doUpdate = true;
-		} else {
-			if (EubosEngineMain.ENABLE_ASSERTS)
-				assert false;
-		}
-		return doUpdate;
 	}
 }

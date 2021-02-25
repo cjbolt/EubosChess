@@ -13,6 +13,10 @@ public final class Score {
 	
 	private static final int BOUND_SHIFT = SCORE_SHIFT + Short.SIZE;
 	private static final int BOUND_MASK = 0x3 << BOUND_SHIFT;
+	
+	public static final int PROVISIONAL_ALPHA = (Short.MIN_VALUE + 1);
+	public static final int PROVISIONAL_BETA = Short.MAX_VALUE;
+	
 
 	public static short getScore(int score) {
 		return (short)(score & SCORE_MASK);
@@ -39,7 +43,7 @@ public final class Score {
 	}
 	
 	public static boolean isMate(short score) {
-		return (score != (Short.MIN_VALUE+1) && score != Short.MAX_VALUE && Math.abs(score) > Short.MAX_VALUE-200);
+		return (!isProvisional(score) && Math.abs(score) > Short.MAX_VALUE-200);
 	}
 	
 	public static int valueOf(short score, byte bound) {
@@ -87,12 +91,16 @@ public final class Score {
 	public static String toString(short score) {
 		String scoreString;
 		if (Score.isMate(score)) {
-			int matePly = (score > 0) ? Short.MAX_VALUE - score + 1 : Short.MIN_VALUE+1 - score;
+			int matePly = (score > 0) ? PROVISIONAL_BETA - score + 1 : PROVISIONAL_ALPHA - score;
 			int mateMove = matePly / 2;
 			scoreString = String.format("mateIn%d", mateMove);
 		} else {
 			scoreString = Short.toString(score);
 		}
 		return scoreString;
+	}
+	
+	public static boolean isProvisional(int score) {
+		return (score >= PROVISIONAL_BETA || score <= PROVISIONAL_ALPHA);
 	}
 }

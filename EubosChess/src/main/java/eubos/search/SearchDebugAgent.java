@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
+import eubos.position.MoveList;
 import eubos.search.transposition.ITransposition;
 
 public class SearchDebugAgent {
@@ -236,5 +237,17 @@ public class SearchDebugAgent {
 		if (DEBUG_ENABLED) {
 			printOutput(String.format("%sext search ply @%d alpha:%d beta:%d", indent, currPly, alpha, beta));
 		}
+	}
+
+	public void printExtendedSearchMoveList(MoveList ml) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%sext search move list:%s", indent, ml.toString()));
+		}
+	}
+
+	public void printCutOffWithScore(int plyScore) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%sext search cut-off score:%s", indent, Score.toString(plyScore)));
+		}		
 	}
 }

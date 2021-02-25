@@ -1,6 +1,7 @@
 package eubos.score;
 
 import eubos.position.IPositionAccessors;
+import eubos.search.Score;
 
 public class MateScoreGenerator implements IScoreMate {
 	
@@ -17,7 +18,7 @@ public class MateScoreGenerator implements IScoreMate {
 	public short scoreMate(byte currPly) {
 		short mateScore = 0;
 		if (pos.isKingInCheck()) {
-			mateScore = (short) (Short.MIN_VALUE+1+currPly);
+			mateScore = (short) (Score.PROVISIONAL_ALPHA+currPly);
 		} else {
 			// Stalemate
 			mateScore = pe.getScoreForStalemate();
