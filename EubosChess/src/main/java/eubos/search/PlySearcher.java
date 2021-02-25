@@ -103,11 +103,26 @@ public class PlySearcher {
 		byte plyBound = pos.onMoveIsWhite() ? Score.lowerBound : Score.upperBound;
 		int prevBestMove = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
 		
+		// Handle draws by three-fold repetition
+		if (!atRootNode() && pos.isThreefoldRepetitionPossible()) {
+			return 0;
+		}
+		// Absolute depth limit
+		if (currPly >= extendedSearchLimitInPly - 1) {
+			return Score.getScore(pe.evaluatePosition());
+		}
+		// Extend search for in-check scenarios, treated outside of quiescence search 
+		if (depth == 0 && pos.isKingInCheck()) {
+			++depth;
+		}
+		if (depth == 0) {
+			return extendedSearch(alpha,beta);
+		}
+		
 		sda.printStartPlyInfo(pos, originalSearchDepthRequiredInPly);
 		sda.printNormalSearch(alpha, beta);
 		
 		TranspositionEvaluation eval = tt.getTransposition(depth, beta);
-
 		if (eval.status == TranspositionTableStatus.sufficientTerminalNode || 
 			eval.status == TranspositionTableStatus.sufficientRefutation) {
 			if (eval.status == TranspositionTableStatus.sufficientRefutation) {
@@ -131,25 +146,6 @@ public class PlySearcher {
 			prevBestMove = eval.trans.getBestMove();
 		}
 		
-		// Extend search for in-check scenarios, treated outside of quiescence search 
-		if (depth == 0 && pos.isKingInCheck()) {
-			++depth;
-		}
-		
-		if (depth == 0) {
-			return extendedSearch(alpha,beta);
-		}
-
-		// Handle draws by three-fold repetition
-		if (!atRootNode() && pos.isThreefoldRepetitionPossible()) {
-			return 0;
-		}
-
-		// Absolute depth limit
-		if (currPly >= extendedSearchLimitInPly - 1) {
-			return Score.getScore(pe.evaluatePosition());
-		}
-		
 		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, killers.getMoves(currPly), moveListOrdering, false, Position.NOPOSITION);
 		Iterator<Integer> move_iter = ml.getStandardIterator(false, Position.NOPOSITION);
 		if (!move_iter.hasNext()) {
@@ -164,8 +160,9 @@ public class PlySearcher {
 			if (atRootNode()) {
 				sm.setCurrentMove(Move.toGenericMove(currMove), moveNumber);
 			}
-			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)
+			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 				pc.clearContinuationBeyondPly(currPly);
+			}
 			
 			// Apply move and score
 			sda.printPerformMove(currMove);
@@ -230,6 +227,16 @@ public class PlySearcher {
 			extendedSearchDeepestPly = currPly;
 		}
 		
+		// Stand Pat in extended search
+		short plyScore = Score.getScore(pe.evaluatePosition());	
+		if (currPly >= extendedSearchLimitInPly - 1)
+			return plyScore;
+		if (plyScore >= beta) {
+			// There is no move to put in the killer table when we stand Pat
+			sda.printRefutationFound(plyScore);
+			return beta;
+		}
+		
 		int prevBestMove = Move.NULL_MOVE;
 		TranspositionEvaluation eval = tt.getTransposition(100, beta);
 		if (eval.status == TranspositionTableStatus.sufficientSeedMoveList) {
@@ -239,9 +246,7 @@ public class PlySearcher {
 		// Don't use Killer moves as we don't search quiet moves in the extended search
 		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, null, moveListOrdering, true, Position.NOPOSITION);
 		Iterator<Integer> move_iter = ml.getStandardIterator(true, Position.NOPOSITION);
-		
 		sda.printExtendedSearchMoveList(ml);
-		
 		if (ENABLE_MATE_CHECK_IN_EXTENDED_SEARCH) {
 			if (ml.isMateOccurred()) {
 	        	// Ideally we need just one normal move to determine that it isn't mate to
@@ -254,24 +259,15 @@ public class PlySearcher {
 	    		}
         	}    		
         } // else we will detect there are no moves and assume there are normal moves and stand Pat
-		
-		// Stand Pat in extended search
-		short plyScore = Score.getScore(pe.evaluatePosition());	
-		if (currPly >= extendedSearchLimitInPly - 1)
-			return plyScore;
 		if (!move_iter.hasNext()) {
 			sda.printExtSearchNoMoves(plyScore);
 			return plyScore;
 		}
-		if (plyScore >= beta) {
-			// There is no move to put in the killer table for stand Pat
-			sda.printRefutationFound(plyScore);
-			return beta;
-		}
+		
 		if (plyScore > alpha) {
 			alpha = plyScore;
 		}
-		
+
 		int currMove = move_iter.next();
 		pc.initialise(currPly, currMove);
 		while(true) {
