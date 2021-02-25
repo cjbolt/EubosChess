@@ -123,29 +123,30 @@ public class PlySearcher {
 		sda.printNormalSearch(alpha, beta);
 		
 		TranspositionEvaluation eval = tt.getTransposition(depth, beta);
-		if (eval.status == TranspositionTableStatus.sufficientTerminalNode || 
-			eval.status == TranspositionTableStatus.sufficientRefutation) {
-			if (eval.status == TranspositionTableStatus.sufficientRefutation) {
-				killers.addMove(currPly, eval.trans.getBestMove());
-				sda.printHashIsRefutation(pos.getHash(), eval.trans);
+		if (eval.status != TranspositionTableStatus.insufficientNoData) {
+			if (eval.status != TranspositionTableStatus.sufficientSeedMoveList) {
+				if (eval.status == TranspositionTableStatus.sufficientRefutation) {
+					killers.addMove(currPly, eval.trans.getBestMove());
+					sda.printHashIsRefutation(pos.getHash(), eval.trans);
+				}
+				// Common to both terminal node types, could downgrade status if pos could be a draw...
+				plyScore = handleRefutationOrTerminalNodeFromHash(plyScore, eval);
+				if (eval.status == TranspositionTableStatus.sufficientTerminalNode) {
+					sda.printHashIsTerminalNode(eval.trans, pos.getHash());
+					updatePrincipalContinuation(eval.trans.getBestMove(), Score.getScore(plyScore));
+				}
 			}
-			plyScore = handleRefutationOrTerminalNodeFromHash(plyScore, eval);
-			if (eval.status == TranspositionTableStatus.sufficientTerminalNode) {
-				sda.printHashIsTerminalNode(eval.trans, pos.getHash());
-				updatePrincipalContinuation(eval.trans.getBestMove(), Score.getScore(plyScore));
+			// ...If hash data still good enough for a cut off, that will happen here.
+			if (eval.status != TranspositionTableStatus.sufficientSeedMoveList) {
+					sda.printCutOffWithScore(plyScore);
+					return plyScore;
+			}
+			// Otherwise seed move list
+			if (eval.status == TranspositionTableStatus.sufficientSeedMoveList) {
+				sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
+				prevBestMove = eval.trans.getBestMove();
 			}
 		}
-		// If still good enough for a cut off, that will happen here
-		if (eval.status == TranspositionTableStatus.sufficientTerminalNode || 
-			eval.status == TranspositionTableStatus.sufficientRefutation) {
-				sda.printCutOffWithScore(plyScore);
-				return plyScore;
-		}
-		if (eval.status == TranspositionTableStatus.sufficientSeedMoveList) {
-			sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
-			prevBestMove = eval.trans.getBestMove();
-		}
-		
 		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, killers.getMoves(currPly), moveListOrdering, false, Position.NOPOSITION);
 		Iterator<Integer> move_iter = ml.getStandardIterator(false, Position.NOPOSITION);
 		if (!move_iter.hasNext()) {
