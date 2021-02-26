@@ -53,7 +53,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_YIELD_IN_WORKER_THREADS = false;
 	public static final boolean ENABLE_REPETITION_DETECTION = true;
 	
-	public static final boolean ENABLE_TRANSPOSITION_TABLE = true;
+	public static final boolean ENABLE_TRANSPOSITION_TABLE = false;
 	public static final boolean ENABLE_SEARCH_ALL_CAPTURES_IN_QUIESCENSE = true;
 	
 	// Permanent data structures - static for the duration of a single game

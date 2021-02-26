@@ -69,11 +69,18 @@ public class PlySearcher {
 		this.lastPc = lastPc;
 		this.sda = sda;
 		originalSearchDepthRequiredInPly = searchDepthPly;
-		extendedSearchLimitInPly = (byte) (MiniMaxMoveGenerator.EXTENDED_SEARCH_PLY_LIMIT + originalSearchDepthRequiredInPly);
+		extendedSearchLimitInPly = setExtSearchDepth();
 		
 		tt = hashMap;
 		sg = new MateScoreGenerator(pos, pe);
 		this.killers = killers;
+	}
+	
+	private byte setExtSearchDepth() {
+		int variableDepthPly = originalSearchDepthRequiredInPly * 4;
+		byte extDepthLimitPly = (byte)Math.min(MiniMaxMoveGenerator.EXTENDED_SEARCH_PLY_LIMIT, variableDepthPly);
+		extDepthLimitPly += originalSearchDepthRequiredInPly;
+		return extDepthLimitPly;
 	}
 
 	private boolean atRootNode() { return currPly == 0; }
@@ -109,13 +116,9 @@ public class PlySearcher {
 		if (currPly >= extendedSearchLimitInPly - 1) {
 			return Score.getScore(pe.evaluatePosition());
 		}
+
 		if (depth == 0) {
-			if (pos.isKingInCheck()) {
-				// Extend search for in-check scenarios, treated outside of quiescence search 
-				++depth;
-			} else {
-				return extendedSearch(alpha,beta);
-			}
+			return extendedSearch(alpha,beta);
 		}
 		
 		sda.printStartPlyInfo(pos, originalSearchDepthRequiredInPly);
@@ -145,16 +148,20 @@ public class PlySearcher {
 				prevBestMove = eval.trans.getBestMove();
 			}
 		}
+		
 		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, killers.getMoves(currPly), moveListOrdering, false, Position.NOPOSITION);
 		Iterator<Integer> move_iter = ml.getStandardIterator(false, Position.NOPOSITION);
 		if (!move_iter.hasNext()) {
 			return sg.scoreMate(currPly);
 		}
-		
 		int currMove = move_iter.next();
 		pc.initialise(currPly, currMove);
-		
 		int moveNumber = 1;
+		
+		if (pos.isKingInCheck()) {
+		    ++depth;
+		}
+		
 		while (!isTerminated()) {
 			if (atRootNode()) {
 				sm.setCurrentMove(Move.toGenericMove(currMove), moveNumber);
@@ -183,7 +190,7 @@ public class PlySearcher {
 			}
 			
 			// Handle score backed up to this node
-			if (positionScore > alpha) {	
+			if (positionScore > alpha) {
 				
 				if (positionScore >= beta) {
 					killers.addMove(currPly, currMove);
@@ -195,11 +202,7 @@ public class PlySearcher {
 				alpha = positionScore;
 				isAlphaIncreased = true;
 				eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) alpha, Score.bound);
-				updatePrincipalContinuation(currMove,(short) alpha);
-				
-			} else if (positionScore > plyScore) {
-				plyScore = positionScore;
-				eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) plyScore, Score.bound);
+				updatePrincipalContinuation(currMove,(short) alpha);	
 			}
 			
 			// Break-out when out of moves
@@ -212,11 +215,11 @@ public class PlySearcher {
 			}
 		}
 
-		if (!isTerminated() && eval.trans != null && isAlphaIncreased) {
-			// We have to know that the score backed up from the child was exact to set this node as exact?
-			// although a beta cut off should still result in an exact score?
-			checkToPromoteHashTableToExact(eval.trans, depth, (short) alpha);
-		}
+//		if (!isTerminated() && eval.trans != null && isAlphaIncreased) {
+//			// We have to know that the score backed up from the child was exact to set this node as exact?
+//			// although a beta cut off should still result in an exact score?
+//			checkToPromoteHashTableToExact(eval.trans, depth, (short) alpha);
+//		}
 		return alpha;
 	}
 	
@@ -294,15 +297,12 @@ public class PlySearcher {
 				if (positionScore >= beta) {
 					killers.addMove(currPly, currMove);
 					sda.printRefutationFound(positionScore);
-					eval.trans = updateTranspositionTable(eval.trans, (byte) 0, currMove, (short) beta, Score.bound);
+					//eval.trans = updateTranspositionTable(eval.trans, (byte) 0, currMove, (short) beta, Score.bound);
 					return beta;
 				}
 				alpha = plyScore;
 				updatePrincipalContinuation(currMove, plyScore);
-				eval.trans = updateTranspositionTable(eval.trans, (byte) 0, currMove, (short) alpha, Score.bound);
-			} else if (positionScore > plyScore) {
-				plyScore = positionScore;
-				eval.trans = updateTranspositionTable(eval.trans, (byte) 0, currMove, (short) plyScore, Score.bound);
+				//eval.trans = updateTranspositionTable(eval.trans, (byte) 0, currMove, (short) alpha, Score.bound);
 			}
 			
 			if (move_iter.hasNext()) {
