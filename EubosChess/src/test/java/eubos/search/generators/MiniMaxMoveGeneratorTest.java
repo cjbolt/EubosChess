@@ -486,8 +486,8 @@ public class MiniMaxMoveGeneratorTest {
 			expectedMove = new GenericMove("c3f6");
 			
 			SearchResult res = classUnderTest.findMove((byte)1);
-			
-			assertNotEquals(expectedMove, res.bestMove);
+			// Eubos sees that it can achieve stalemate, which is better than what it has
+			assertEquals(expectedMove, res.bestMove);
 		}
 	}
 	

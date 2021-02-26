@@ -148,9 +148,9 @@ public class EubosEngineMainTest {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			String expectedOutput;
 			if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
-				expectedOutput = "info depth 1 seldepth 5 score cp -16 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 1437 time 16 nodes 23"+CMD_TERMINATOR+
-	                    "info depth 1 seldepth 5 score cp 166 pv c7c2 d4a7 hashfull 0 nps 2150 time 20 nodes 43"+CMD_TERMINATOR+
-	                    "info depth 2 seldepth 6 score cp 132 pv c7c2 b1c3 d7e5 hashfull 0 nps 5147 time 34 nodes 175"+CMD_TERMINATOR
+				expectedOutput = "info depth 1 seldepth 7 score cp 154 pv d7e5 d4d5 e5f3 hashfull 0 nps 504 time 103 nodes 52"+CMD_TERMINATOR+
+	                    "info depth 1 seldepth 3 score cp 166 pv c7c2 d4a7 hashfull 0 nps 580 time 105 nodes 61"+CMD_TERMINATOR+
+	                    "info depth 2 seldepth 7 score cp 67 pv c7c2 d4a7 c2c1 hashfull 0 nps 1592 time 113 nodes 180"+CMD_TERMINATOR
 	                    +BEST_PREFIX+"c7c2";
 			} else if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && !PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
 				expectedOutput = "info depth 1 seldepth 4 score cp -141 pv d7e5 f3e5 c7e5 hashfull 0 nps 500 time 14 nodes 7"+CMD_TERMINATOR+

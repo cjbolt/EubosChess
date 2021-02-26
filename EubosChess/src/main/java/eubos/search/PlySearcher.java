@@ -48,7 +48,6 @@ public class PlySearcher {
 	
 	public PlySearcher(
 			ITranspositionAccessor hashMap,
-			ScoreTracker st,
 			PrincipalContinuation pc,
 			SearchMetrics sm,
 			SearchMetricsReporter sr,
@@ -100,7 +99,6 @@ public class PlySearcher {
 	int search(int alpha, int beta, int depth) throws InvalidPieceException {
 		boolean isAlphaIncreased = false;
 		int plyScore = Score.PROVISIONAL_ALPHA;
-		byte plyBound = pos.onMoveIsWhite() ? Score.lowerBound : Score.upperBound;
 		int prevBestMove = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
 		
 		// Handle draws by three-fold repetition
@@ -111,12 +109,13 @@ public class PlySearcher {
 		if (currPly >= extendedSearchLimitInPly - 1) {
 			return Score.getScore(pe.evaluatePosition());
 		}
-		// Extend search for in-check scenarios, treated outside of quiescence search 
-		if (depth == 0 && pos.isKingInCheck()) {
-			++depth;
-		}
 		if (depth == 0) {
-			return extendedSearch(alpha,beta);
+			if (pos.isKingInCheck()) {
+				// Extend search for in-check scenarios, treated outside of quiescence search 
+				++depth;
+			} else {
+				return extendedSearch(alpha,beta);
+			}
 		}
 		
 		sda.printStartPlyInfo(pos, originalSearchDepthRequiredInPly);
@@ -136,13 +135,12 @@ public class PlySearcher {
 					updatePrincipalContinuation(eval.trans.getBestMove(), Score.getScore(plyScore));
 				}
 			}
-			// ...If hash data still good enough for a cut off, that will happen here.
 			if (eval.status != TranspositionTableStatus.sufficientSeedMoveList) {
-					sda.printCutOffWithScore(plyScore);
-					return plyScore;
-			}
-			// Otherwise seed move list
-			if (eval.status == TranspositionTableStatus.sufficientSeedMoveList) {
+				// ...If hash data still good enough for a cut off, that will happen here.
+				sda.printCutOffWithScore(plyScore);
+				return plyScore;
+			} else {
+				// Otherwise seed move list
 				sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
 				prevBestMove = eval.trans.getBestMove();
 			}
@@ -190,18 +188,18 @@ public class PlySearcher {
 				if (positionScore >= beta) {
 					killers.addMove(currPly, currMove);
 					sda.printRefutationFound(positionScore);
-					eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) beta, plyBound);
+					eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) beta, Score.bound);
 					return beta;
 				}
 				
 				alpha = positionScore;
 				isAlphaIncreased = true;
-				eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) alpha, plyBound);
+				eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) alpha, Score.bound);
 				updatePrincipalContinuation(currMove,(short) alpha);
 				
 			} else if (positionScore > plyScore) {
 				plyScore = positionScore;
-				eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) plyScore, plyBound);
+				eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) plyScore, Score.bound);
 			}
 			
 			// Break-out when out of moves
@@ -293,15 +291,15 @@ public class PlySearcher {
 				if (positionScore >= beta) {
 					killers.addMove(currPly, currMove);
 					sda.printRefutationFound(positionScore);
-					eval.trans = updateTranspositionTable(eval.trans, (byte) 0, currMove, (short) beta, Score.upperBound);
+					eval.trans = updateTranspositionTable(eval.trans, (byte) 0, currMove, (short) beta, Score.bound);
 					return beta;
 				}
 				alpha = plyScore;
 				updatePrincipalContinuation(currMove, plyScore);
-				eval.trans = updateTranspositionTable(eval.trans, (byte) 0, currMove, (short) alpha, Score.upperBound);
+				eval.trans = updateTranspositionTable(eval.trans, (byte) 0, currMove, (short) alpha, Score.bound);
 			} else if (positionScore > plyScore) {
 				plyScore = positionScore;
-				eval.trans = updateTranspositionTable(eval.trans, (byte) 0, currMove, (short) plyScore, Score.upperBound);
+				eval.trans = updateTranspositionTable(eval.trans, (byte) 0, currMove, (short) plyScore, Score.bound);
 			}
 			
 			if (move_iter.hasNext()) {

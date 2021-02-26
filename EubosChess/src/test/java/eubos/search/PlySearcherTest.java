@@ -41,7 +41,6 @@ public class PlySearcherTest {
 	private EubosEngineMain mockEubos;
 	List<Integer> lastPc;
 	private ITranspositionAccessor mock_hashMap;
-	private ScoreTracker st;
 	private SearchDebugAgent sda;
 	
 	@Before
@@ -56,7 +55,6 @@ public class PlySearcherTest {
 		sr.register(sm);
 		mock_pos = mock(IPositionAccessors.class);
 		mock_hashMap = mock(ITranspositionAccessor.class);
-		st = new ScoreTracker(searchDepth*3, true, sda);
 		lastPc = null;
 		
 		when(mock_pos.getOnMove()).thenReturn(Colour.white);
@@ -73,7 +71,6 @@ public class PlySearcherTest {
 		KillerList killers = new KillerList(depth);
 		classUnderTest = new PlySearcher(
 				mock_hashMap,
-				st,
 			    pc,
 				sm,
 				sr,
@@ -160,7 +157,7 @@ public class PlySearcherTest {
 		
 		TranspositionEvaluation eval0 = new TranspositionEvaluation();
 		eval0.status = TranspositionTableStatus.sufficientSeedMoveList;
-		eval0.trans = new Transposition((byte)1, (short)-5, Score.lowerBound, new GenericMove("b2c3"));
+		eval0.trans = new Transposition((byte)1, (short)-5, Score.bound, new GenericMove("b2c3"));
 		
 		TranspositionEvaluation eval1_0 = new TranspositionEvaluation();
 		eval1_0.status = TranspositionTableStatus.sufficientTerminalNode;

@@ -19,7 +19,6 @@ import eubos.search.NoLegalMoveException;
 import eubos.search.PlySearcher;
 import eubos.search.PrincipalContinuation;
 import eubos.search.Score;
-import eubos.search.ScoreTracker;
 import eubos.search.SearchDebugAgent;
 import eubos.search.SearchMetrics;
 import eubos.search.SearchMetricsReporter;
@@ -39,7 +38,6 @@ public class MiniMaxMoveGenerator implements
 	private IEvaluate pe;
 	private FixedSizeTranspositionTable tt;
 	private TranspositionTableAccessor tta;
-	private ScoreTracker st;
 	private short score;
 	
 	private KillerList killers;
@@ -85,7 +83,6 @@ public class MiniMaxMoveGenerator implements
 		pc = new PrincipalContinuation(searchDepth+EXTENDED_SEARCH_PLY_LIMIT, sda);
 		sm.setDepth(searchDepth);
 		sm.setPrincipalVariation(pc.toPvList(0));
-		st = null;
 		tta = new TranspositionTableAccessor(tt, pos, sda);
 	}
 	
@@ -108,7 +105,7 @@ public class MiniMaxMoveGenerator implements
 		boolean foundMate = false;
 		boolean isExactScore = false;
 		initialiseSearchDepthDependentObjects(searchDepth, pm, sm);
-		ps = new PlySearcher(tta, st, pc, sm, sr, searchDepth, pm, pos, lastPc, pe, killers, sda);
+		ps = new PlySearcher(tta, pc, sm, sr, searchDepth, pm, pos, lastPc, pe, killers, sda);
 		if (alternativeMoveListOrderingScheme > 0) {
 			ps.alternativeMoveListOrdering(alternativeMoveListOrderingScheme);
 		}

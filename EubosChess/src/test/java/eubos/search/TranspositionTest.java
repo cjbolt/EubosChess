@@ -29,7 +29,7 @@ public class TranspositionTest {
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 				byte depth = 1;
 				short score = 0;
-				byte scoreType = Score.lowerBound;
+				byte scoreType = Score.bound;
 				GenericMove bestMove = new GenericMove("e2e4");
 				sut = new PrincipalVariationTransposition(depth, score, scoreType, bestMove);
 				
@@ -48,7 +48,7 @@ public class TranspositionTest {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			byte depth = 1;
 			short score = 0;
-			byte scoreType = Score.lowerBound;
+			byte scoreType = Score.bound;
 			GenericMove bestMove = new GenericMove("e2e4");
 			sut = new PrincipalVariationTransposition(depth, score, scoreType, bestMove);
 			
@@ -69,7 +69,7 @@ public class TranspositionTest {
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 				byte depth = 1;
 				short score = 0;
-				byte scoreType = Score.lowerBound;
+				byte scoreType = Score.bound;
 				GenericMove bestMove = new GenericMove("e2e4");
 				sut = new PrincipalVariationTransposition(depth, score, scoreType, bestMove);
 				

@@ -26,7 +26,6 @@ public class TranspositionTableAccessorTest {
 
 	FixedSizeTranspositionTable transTable;
 	PositionManager pm;
-	ScoreTracker st;
 	PrincipalContinuation pc;
 	List<GenericMove> lastPc;
 	
@@ -41,8 +40,6 @@ public class TranspositionTableAccessorTest {
 	public void setUp() throws Exception {
 		transTable = new FixedSizeTranspositionTable();
 		SearchDebugAgent sda = new SearchDebugAgent(0, true);
-		st = new ScoreTracker(SEARCH_DEPTH_IN_PLY, true, sda);
-		st.setProvisionalScoreAtPly((byte) 0);
 		pm = new PositionManager();
 		sut = new TranspositionTableAccessor(transTable, pm, sda);
 		currPly = 0;
@@ -97,19 +94,15 @@ public class TranspositionTableAccessorTest {
 	}
 	
 	@Test
-	public void testEval_StoreRetrieve_whenUpperBound_AndScoreIsLower_inSufficientRefutation() throws InvalidPieceException, IllegalNotationException {
+	public void testEval_StoreRetrieve_whenbound_AndScoreIsLower_inSufficientRefutation() throws InvalidPieceException, IllegalNotationException {
 		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
 
 		currPly = 3;
-		sut.setTransposition(null, (byte)1, (short)18, Score.upperBound, Move.toMove(pc.get(0)));
+		sut.setTransposition(null, (byte)1, (short)18, Score.bound, Move.toMove(pc.get(0)));
 		
 		// Set up score tracker according to diagram
-		st.setBackedUpScoreAtPly((byte)0, (short)12);
-		st.setProvisionalScoreAtPly((byte)1);
-		st.setProvisionalScoreAtPly((byte)2);
-		st.setProvisionalScoreAtPly((byte)3);
 		eval = sut.getTransposition(currPly, 1);
 		
 		assertEquals(TranspositionTableStatus.sufficientSeedMoveList, eval.status);
@@ -118,22 +111,15 @@ public class TranspositionTableAccessorTest {
 	
 	@Test
 	@Ignore
-	public void testEval_StoreRetrieve_whenLowerBound_AndScoreIsHigher_sufficientRefutation() throws InvalidPieceException, IllegalNotationException {
+	public void testEval_StoreRetrieve_whenbound_AndScoreIsHigher_sufficientRefutation() throws InvalidPieceException, IllegalNotationException {
 		/* Example from second limb of search tree, fig9.15, pg.178, How Computers Play Chess, Newborn and Levy */
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
 
 		currPly = 3;
-		sut.setTransposition(null, (byte)1, (short)18, Score.upperBound, Move.toMove(pc.get(0), pm.getTheBoard()));
+		sut.setTransposition(null, (byte)1, (short)18, Score.bound, Move.toMove(pc.get(0), pm.getTheBoard()));
 		
 		// Set up score tracker according to diagram
-		st.setBackedUpScoreAtPly((byte)0, Score.valueOf((short)12, Score.upperBound));
-		st.setProvisionalScoreAtPly((byte)1);
-		st.setProvisionalScoreAtPly((byte)2);
-		st.setProvisionalScoreAtPly((byte)3);
-		st.setBackedUpScoreAtPly((byte)3, Score.valueOf((short)40, Score.exact));
-		st.setBackedUpScoreAtPly((byte)2, Score.valueOf((short)40, Score.exact));
-		st.setProvisionalScoreAtPly((byte)3);
 		eval = sut.getTransposition(currPly, 1);
 		
 		assertEquals(TranspositionTableStatus.sufficientRefutation, eval.status);
@@ -146,7 +132,7 @@ public class TranspositionTableAccessorTest {
 		pc.add(new GenericMove("e2e4"));
 
 		currPly = 2;
-		sut.setTransposition(null, (byte)1, (short)105, Score.lowerBound, Move.toMove(pc.get(0)));
+		sut.setTransposition(null, (byte)1, (short)105, Score.bound, Move.toMove(pc.get(0)));
 		}
 	}
 	
@@ -159,7 +145,7 @@ public class TranspositionTableAccessorTest {
 		pc.add(move1);
 
 		currPly = 2;
-		ITransposition stored_trans = sut.setTransposition(null, (byte)1, (short)105, Score.lowerBound, Move.toMove(move1, pm.getTheBoard()));
+		ITransposition stored_trans = sut.setTransposition(null, (byte)1, (short)105, Score.bound, Move.toMove(move1, pm.getTheBoard()));
 		
 		stored_trans = sut.setTransposition(stored_trans, (byte)1, (short)110, Score.exact, Move.toMove(move2, pm.getTheBoard()));
 		
@@ -188,11 +174,11 @@ public class TranspositionTableAccessorTest {
 		pc.add(move1);
 		
 		currPly = 0;
-		ITransposition stored_trans = sut.setTransposition(null, (byte)9, (short)25, Score.lowerBound, Move.toMove(move1));
+		ITransposition stored_trans = sut.setTransposition(null, (byte)9, (short)25, Score.bound, Move.toMove(move1));
 		
-		stored_trans = sut.setTransposition(stored_trans, (byte)9, (short)72, Score.lowerBound, Move.toMove(move2));
+		stored_trans = sut.setTransposition(stored_trans, (byte)9, (short)72, Score.bound, Move.toMove(move2));
 		
-		assertEquals(Score.lowerBound, stored_trans.getType());
+		assertEquals(Score.bound, stored_trans.getType());
 		assertEquals(72, stored_trans.getScore());
 		
 		// check move list order is updated

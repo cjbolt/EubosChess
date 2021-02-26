@@ -5,8 +5,7 @@ import eubos.main.EubosEngineMain;
 public final class Score {
 	public static final byte typeUnknown = 0;
 	public static final byte exact = 1;
-	public static final byte upperBound = 2;
-	public static final byte lowerBound = 3;
+	public static final byte bound = 2;
 	
 	private static final int SCORE_SHIFT = 0;
 	private static final int SCORE_MASK = ((1<<Short.SIZE)-1) << SCORE_SHIFT;
@@ -50,7 +49,7 @@ public final class Score {
 		int theScore = score;
 		theScore &= SCORE_MASK;
 		if (EubosEngineMain.ENABLE_ASSERTS) {
-			assert bound == Score.exact || bound == Score.upperBound || bound == Score.lowerBound || bound == Score.typeUnknown;
+			assert bound == Score.exact || bound == Score.bound || bound == Score.typeUnknown;
 		}
 		theScore |= bound << BOUND_SHIFT;
 		return theScore;
@@ -70,11 +69,8 @@ public final class Score {
 		case Score.exact:
 			the_type='E';
 			break;
-		case Score.upperBound:
-			the_type='U';
-			break;
-		case Score.lowerBound:
-			the_type='L';
+		case Score.bound:
+			the_type='B';
 			break;
 		default:
 			if (EubosEngineMain.ENABLE_ASSERTS) {
