@@ -242,9 +242,12 @@ public class PlySearcher {
 			sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
 			prevBestMove = eval.trans.getBestMove();
 		}
-		// Don't use Killer moves as we don't search quiet moves in the extended search
-		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, null, moveListOrdering, true, Position.NOPOSITION);
-		Iterator<Integer> move_iter = ml.getStandardIterator(true, Position.NOPOSITION);
+		// Move List creation 
+		// + Don't use Killer moves as we don't search quiet moves in the extended search
+		// + If only searching capture on square, captureSquare will not be Position.NOPOSITION
+		int captureSquare = pos.lastMoveTargetSquare();
+		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, null, moveListOrdering, true, captureSquare);
+		Iterator<Integer> move_iter = ml.getStandardIterator(true, captureSquare);
 		sda.printExtendedSearchMoveList(ml);
 		if (ENABLE_MATE_CHECK_IN_EXTENDED_SEARCH) {
 			if (ml.isMateOccurred()) {

@@ -6,9 +6,7 @@ import eubos.board.Board;
 import eubos.board.IForEachPieceCallback;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
-import eubos.main.EubosEngineMain;
 import eubos.position.IPositionAccessors;
-import eubos.position.Move;
 import eubos.position.Position;
 import eubos.search.Score;
 import eubos.search.SearchContext;
@@ -39,19 +37,6 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 			mat = pm.getTheBoard().evaluateMaterial();
 		}
 		sc = new SearchContext(pm, mat, refScore);
-	}
-	
-	public boolean isQuiescent(int currMove) {
-		if (!EubosEngineMain.ENABLE_QUIESCENCE_CHECK)
-			return true;
-		if (Move.isQueenPromotion(currMove) || pm.isPromotionPossible()) {
-			return false;
-		} else if (Move.isCapture(currMove)) {
-		    return false;
-		} else if (EubosEngineMain.ENABLE_SEARCH_CHECKS_IN_QUIESCENSE && pm.isKingInCheck()) {
-			return false;
-		}
-		return true;
 	}
 	
 	public int evaluatePosition() {
