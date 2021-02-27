@@ -104,9 +104,13 @@ public class PlySearcher {
 	}
 	
 	int search(int alpha, int beta, int depth) throws InvalidPieceException {
-		boolean isAlphaIncreased = false;
+		//boolean isAlphaIncreased = false;
 		int plyScore = Score.PROVISIONAL_ALPHA;
 		int prevBestMove = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
+
+		if (depth == 0) {
+			return extendedSearch(alpha,beta);
+		}
 		
 		// Handle draws by three-fold repetition
 		if (!atRootNode() && pos.isThreefoldRepetitionPossible()) {
@@ -115,10 +119,6 @@ public class PlySearcher {
 		// Absolute depth limit
 		if (currPly >= extendedSearchLimitInPly - 1) {
 			return Score.getScore(pe.evaluatePosition());
-		}
-
-		if (depth == 0) {
-			return extendedSearch(alpha,beta);
 		}
 		
 		sda.printStartPlyInfo(pos, originalSearchDepthRequiredInPly);
@@ -191,16 +191,18 @@ public class PlySearcher {
 			
 			// Handle score backed up to this node
 			if (positionScore > alpha) {
+				killers.addMove(currPly, currMove);
+				sda.printRefutationFound(positionScore);
 				
 				if (positionScore >= beta) {
-					killers.addMove(currPly, currMove);
-					sda.printRefutationFound(positionScore);
+					//killers.addMove(currPly, currMove);
+					//sda.printRefutationFound(positionScore);
 					eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) beta, Score.bound);
 					return beta;
 				}
 				
 				alpha = positionScore;
-				isAlphaIncreased = true;
+				//isAlphaIncreased = true;
 				eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) alpha, Score.bound);
 				updatePrincipalContinuation(currMove,(short) alpha);	
 			}
@@ -231,7 +233,7 @@ public class PlySearcher {
 		
 		// Stand Pat in extended search
 		short plyScore = Score.getScore(pe.evaluatePosition());	
-		if (currPly >= extendedSearchLimitInPly - 1)
+		if (currPly >= extendedSearchLimitInPly)
 			return plyScore;
 		if (plyScore >= beta) {
 			// There is no move to put in the killer table when we stand Pat
