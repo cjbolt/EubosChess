@@ -104,14 +104,13 @@ public class PlySearcher {
 	}
 	
 	int search(int alpha, int beta, int depth) throws InvalidPieceException {
-		// Quiescence search to get a score for a terminal node
-		if (depth == 0) {
-			return extendedSearch(alpha,beta);
-		}
-		
 		//boolean isAlphaIncreased = false;
 		int plyScore = Score.PROVISIONAL_ALPHA;
 		int prevBestMove = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
+
+		if (depth == 0) {
+			return extendedSearch(alpha,beta);
+		}
 		
 		// Handle draws by three-fold repetition
 		if (!atRootNode() && pos.isThreefoldRepetitionPossible()) {
@@ -192,10 +191,12 @@ public class PlySearcher {
 			
 			// Handle score backed up to this node
 			if (positionScore > alpha) {
+				killers.addMove(currPly, currMove);
+				sda.printRefutationFound(positionScore);
 				
 				if (positionScore >= beta) {
-					killers.addMove(currPly, currMove);
-					sda.printRefutationFound(positionScore);
+					//killers.addMove(currPly, currMove);
+					//sda.printRefutationFound(positionScore);
 					eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) beta, Score.bound);
 					return beta;
 				}
@@ -230,6 +231,16 @@ public class PlySearcher {
 			extendedSearchDeepestPly = currPly;
 		}
 		
+		// Stand Pat in extended search
+		short plyScore = Score.getScore(pe.evaluatePosition());	
+		if (currPly >= extendedSearchLimitInPly)
+			return plyScore;
+		if (plyScore >= beta) {
+			// There is no move to put in the killer table when we stand Pat
+			sda.printRefutationFound(plyScore);
+			return beta;
+		}
+		
 		int prevBestMove = Move.NULL_MOVE;
 		TranspositionEvaluation eval = tt.getTransposition(100, beta);
 		if (eval.status == TranspositionTableStatus.sufficientSeedMoveList) {
@@ -254,27 +265,18 @@ public class PlySearcher {
 	        		return mateScore;
 	    		}
         	}    		
-        } // else we will detect there are no moves, assume there are normal moves and stand Pat
-		short plyScore = Score.getScore(pe.evaluatePosition());	
+        } // else we will detect there are no moves and assume there are normal moves and stand Pat
 		if (!move_iter.hasNext()) {
 			sda.printExtSearchNoMoves(plyScore);
 			return plyScore;
 		}
-		if (currPly >= extendedSearchLimitInPly) {
-			return plyScore;
-		}
-		if (plyScore >= beta) {
-			// There is no move to put in the killer table when we stand Pat
-			sda.printRefutationFound(plyScore);
-			return beta;
-		}
+		
 		if (plyScore > alpha) {
 			alpha = plyScore;
 		}
 
 		int currMove = move_iter.next();
 		pc.initialise(currPly, currMove);
-		
 		while(true) {
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)
 				pc.clearContinuationBeyondPly(currPly);
