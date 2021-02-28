@@ -191,9 +191,9 @@ public class PlySearcher {
 			
 			// Handle score backed up to this node
 			if (positionScore > alpha) {
+				killers.addMove(currPly, currMove);
 				
 				if (positionScore >= beta) {
-					killers.addMove(currPly, currMove);
 					sda.printRefutationFound(positionScore);
 					eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) beta, Score.bound);
 					return beta;
@@ -295,7 +295,6 @@ public class PlySearcher {
 			
 			if (positionScore > alpha) {
 				if (positionScore >= beta) {
-					killers.addMove(currPly, currMove);
 					sda.printRefutationFound(positionScore);
 					//eval.trans = updateTranspositionTable(eval.trans, (byte) 0, currMove, (short) beta, Score.bound);
 					return beta;
