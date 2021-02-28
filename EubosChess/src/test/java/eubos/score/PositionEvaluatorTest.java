@@ -20,7 +20,6 @@ import eubos.position.Move;
 import eubos.position.Position;
 import eubos.position.PositionManager;
 import eubos.search.DrawChecker;
-import eubos.search.Score;
 
 public class PositionEvaluatorTest {
 
@@ -41,11 +40,11 @@ public class PositionEvaluatorTest {
 	public void test_evalPosA() {
 		setUpPosition("rn2k1nr/1pp2p1p/p7/8/6b1/2P2N2/PPP2PP1/R1BB1RK1 b kq - 0 12");
 		if (PositionEvaluator.ENABLE_PAWN_EVALUATION && PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
-			assertEquals(-189, Score.getScore(SUT.evaluatePosition())); // Knight good pos, pawn up, doubled pawns, isolated pawn, not endgame, some danger to black king (open file)
+			assertEquals(-189, SUT.evaluatePosition()); // Knight good pos, pawn up, doubled pawns, isolated pawn, not endgame, some danger to black king (open file)
 		} else if (PositionEvaluator.ENABLE_PAWN_EVALUATION && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION) {
-			assertEquals(-159, Score.getScore(SUT.evaluatePosition())); // Knight good pos, pawn up, doubled pawns, not endgame, some danger to black king (open file)
+			assertEquals(-159, SUT.evaluatePosition()); // Knight good pos, pawn up, doubled pawns, not endgame, some danger to black king (open file)
 		} else {
-			assertEquals(-137, Score.getScore(SUT.evaluatePosition())); // Knight good pos, pawn up, not endgame
+			assertEquals(-137, SUT.evaluatePosition()); // Knight good pos, pawn up, not endgame
 		}
 	}	
 	
@@ -292,19 +291,19 @@ public class PositionEvaluatorTest {
 		// black good rook, white bad queen, but this isn't quiet! In the position (dubious continuation) white is about to lose queen!
 		// this happens because one of the continuations goes into an extended search and immediately runs out of moves, backing up a bad score as exact :(
 		// I could write some unit tests for this as it is a good test of the evaluation that happens when we terminate an extended search.
-		assertEquals(-441, Score.getScore(SUT.evaluatePosition()));
+		assertEquals(-441, SUT.evaluatePosition());
 		// bishop interpose
 		setUpPosition("r1b1k3/1p1p1p1p/p3pR2/8/4P3/1PN1KBr1/P1PQ4/2q5 b q - 4 21");
-		assertEquals(-419, Score.getScore(SUT.evaluatePosition()));
+		assertEquals(-419, SUT.evaluatePosition());
 		// rook interpose
 		setUpPosition("r1b1k3/1p1p1p1p/p3p3/8/4P3/1PN1KRr1/P1PQB3/2q5 b q - 4 21");
-		assertEquals(-419, Score.getScore(SUT.evaluatePosition()));
+		assertEquals(-419, SUT.evaluatePosition());
 		// alternate King move 1
 		setUpPosition("r1b1k3/1p1p1p1p/p3pR2/8/4PK2/1PN3r1/P1PQB3/2q5 b q - 4 21 ");
-		assertEquals(-431, Score.getScore(SUT.evaluatePosition()));
+		assertEquals(-431, SUT.evaluatePosition());
 		// alternate King move 2
 		setUpPosition("r1b1k3/1p1p1p1p/p3pR2/8/4P3/1PN3r1/P1PQBK2/2q5 b q - 4 21 ");
-		assertEquals(-391, Score.getScore(SUT.evaluatePosition()));
+		assertEquals(-391, SUT.evaluatePosition());
 	}
 	
 	
@@ -405,7 +404,7 @@ No, it was caused by returning a drawn position when that is inconsistent with o
 	public void test_pos_last_good() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("6k1/6pp/B3b3/P1B1Rn2/2P5/7r/1r6/R5K1 b - - - 37");
 		pm.performMove(Move.toMove(new GenericMove("h3h6"), pm.getTheBoard()));
-		assertEquals(89, Score.getScore(SUT.evaluatePosition()));
+		assertEquals(89, SUT.evaluatePosition());
 	}
 	
 	@Test
@@ -413,21 +412,21 @@ No, it was caused by returning a drawn position when that is inconsistent with o
 	public void test_pos_bad_unexpected_eval_in_eubos_run_repeatable_apply_move() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("6k1/6pp/B3b3/P1B1Rn2/2P5/7r/1r6/R5K1 b - - - 37");
 		pm.performMove(Move.toMove(new GenericMove("h3g3"), pm.getTheBoard()));
-		assertEquals(-11, Score.getScore(SUT.evaluatePosition()));
+		assertEquals(-11, SUT.evaluatePosition());
 	}
 	
 	@Test
 	@Ignore
 	public void test_pos_bad_unexpected_eval_in_eubos_run_repeatable_exact_pos_fen() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("6k1/6pp/B3b3/P1B1Rn2/2P5/6r1/1r6/R5K1 w - - 1 38");
-		assertEquals(-11, Score.getScore(SUT.evaluatePosition()));
+		assertEquals(-11, SUT.evaluatePosition());
 	}
 	
 	@Test
 	@Ignore
 	public void test_pos() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("2b3k1/6pp/8/P3R3/2P5/6nr/5K2/R7 b - - 0 38");
-		assertEquals(-8, Score.getScore(SUT.evaluatePosition()));
+		assertEquals(-8, SUT.evaluatePosition());
 	}
 	
 	@Test
@@ -437,6 +436,6 @@ No, it was caused by returning a drawn position when that is inconsistent with o
 		pm.performMove(Move.toMove(new GenericMove("h3h6"), pm.getTheBoard()));
 		pm.unperformMove();
 		pm.performMove(Move.toMove(new GenericMove("h3g3"), pm.getTheBoard()));
-		assertEquals(-11, Score.getScore(SUT.evaluatePosition()));
+		assertEquals(-11, SUT.evaluatePosition());
 	}
 }

@@ -48,7 +48,6 @@ public class PlySearcher {
 	
 	public PlySearcher(
 			ITranspositionAccessor hashMap,
-			ScoreTracker st,
 			PrincipalContinuation pc,
 			SearchMetrics sm,
 			SearchMetricsReporter sr,
@@ -90,11 +89,9 @@ public class PlySearcher {
 	}
 	
 	public int searchPly() throws InvalidPieceException {
-		short score = 0;
 		currPly = 0;
 		extendedSearchDeepestPly = 0;		
-		score = (short) search(Score.PROVISIONAL_ALPHA, Score.PROVISIONAL_BETA, originalSearchDepthRequiredInPly);
-		return Score.valueOf(score, Score.exact);
+		return (short) search(Score.PROVISIONAL_ALPHA, Score.PROVISIONAL_BETA, originalSearchDepthRequiredInPly);
 	}
 	
 	int search(int alpha, int beta, int depth) throws InvalidPieceException {
@@ -108,7 +105,7 @@ public class PlySearcher {
 		}
 		// Absolute depth limit
 		if (currPly >= extendedSearchLimitInPly - 1) {
-			return Score.getScore(pe.evaluatePosition());
+			return pe.evaluatePosition();
 		}
 		// Extend search for in-check scenarios, treated outside of quiescence search 
 		if (depth == 0 && pos.isKingInCheck()) {
@@ -237,7 +234,7 @@ public class PlySearcher {
 		}
 		
 		// Stand Pat in extended search
-		short plyScore = Score.getScore(pe.evaluatePosition());	
+		short plyScore = (short) pe.evaluatePosition();	
 		if (currPly >= extendedSearchLimitInPly - 1)
 			return plyScore;
 		if (plyScore >= beta) {

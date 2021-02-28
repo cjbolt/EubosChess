@@ -8,7 +8,6 @@ import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.position.IPositionAccessors;
 import eubos.position.Position;
-import eubos.search.Score;
 import eubos.search.SearchContext;
 import eubos.search.SearchContext.SearchContextEvaluation;
 
@@ -51,7 +50,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 				eval.score += evaluateKingSafety();
 			}
 		}
-		return Score.valueOf(eval.score, Score.exact);
+		return eval.score;
 	}
 	
 	int evaluatePawnStructure() {

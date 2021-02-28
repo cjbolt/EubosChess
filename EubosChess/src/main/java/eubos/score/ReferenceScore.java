@@ -44,7 +44,7 @@ public class ReferenceScore {
 		} else {
 			// Back off to a static evaluation to work out initial score
 			reference.origin = "set from static eval";
-			reference.score = Score.getScore(rootPos.getPositionEvaluator().evaluatePosition());
+			reference.score = (short) rootPos.getPositionEvaluator().evaluatePosition();
 			reference.depth = 0;
 		}
 		
@@ -68,8 +68,6 @@ public class ReferenceScore {
 	
 	public void updateLastScore(short uciScore, byte depth) {
 		if (rootPosition != null) {
-			// Convert to a Eubos score from UCI
-			//short eubosScore = Colour.isWhite(rootPosition.getOnMove()) ? uciScore : (short)-uciScore;
 			lastScoreIsValid = true; 
 			lastScore = uciScore;
 		    lastMoveNumber = rootPosition.getMoveNumber();

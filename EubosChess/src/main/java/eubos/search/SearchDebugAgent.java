@@ -79,14 +79,7 @@ public class SearchDebugAgent {
 
 	void printUndoMove(int currMove, int positionScore) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%sundo(%s, %s) @%d", indent, Move.toString(currMove), Score.toString(positionScore), currPly));
-		}
-	}
-
-	void printBackUpScore(int currPly, int prevScore, int positionScore) {
-		if (DEBUG_ENABLED) {
-			printOutput(String.format("%sbackedUp was:%s now:%s @%d",
-				indent, Score.toString(prevScore), Score.toString(positionScore), currPly));
+			printOutput(String.format("%sundo(%s, %s) @%d", indent, Move.toString(currMove), Score.toString((short)positionScore), currPly));
 		}
 	}
 
@@ -110,15 +103,10 @@ public class SearchDebugAgent {
 	
 	void printRefutationFound(int positionScore) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%sref now:%s @%d", indent, Score.toString(positionScore), currPly));
+			printOutput(String.format("%sref now:%s @%d", indent, Score.toString((short)positionScore), currPly));
 		}
 	}
 	
-	void printAlphaBetaCutOffLimit(int score) {
-		if (DEBUG_ENABLED) {
-		}
-	}
-
 	public void printHashIsTerminalNode(ITransposition trans, long hash) {
 		if (DEBUG_ENABLED) {
 			printOutput(String.format("%shash:%d term:%s object:%s @%d", indent, hash, trans.report(), trans.toString(), currPly));
@@ -135,20 +123,6 @@ public class SearchDebugAgent {
 	public void printHashIsSeedMoveList(long hash, ITransposition trans) {
 		if (DEBUG_ENABLED) {
 			printOutput(String.format("%shash:%d seed:%s object:%s @%d", indent, hash, trans.report(), trans.toString(), currPly));
-		}
-	}
-
-	public void printAlphaBetaComparison(int prevPlyScore, short positionScore) {
-		if (DEBUG_ENABLED) {
-			printOutput(String.format("%sab cmp prev:%s curr:%d @%d",
-				indent, Score.toString(prevPlyScore), positionScore, currPly));
-		}
-	}
-	
-	public void printAlphaBetaComparison(short prevPlyScore, short positionScore) {
-		if (DEBUG_ENABLED) {
-			printOutput(String.format("%sab cmp prev:%s curr:%d @%d",
-				indent, prevPlyScore, positionScore, currPly));
 		}
 	}
 
@@ -201,21 +175,9 @@ public class SearchDebugAgent {
 		}	
 	}
 
-	public void inExtendedSearchAlternatives(int currMove, short score) {
-		if (DEBUG_ENABLED) {
-			printOutput(String.format("%sextSearch @%d move:%s alt score:%d", indent, currPly, Move.toString(currMove), score));
-		}
-	}
-
 	public void printExtSearchNoMoves(int theScore) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%sextSearch NoMoves term @%d score:%s", indent, currPly, Score.getScore(theScore)));
-		}
-	}
-
-	public void printRepeatedPositionSearch(long hash, String fen) {
-		if (DEBUG_ENABLED) {
-			printOutput(String.format("%s3-fold in search rep @%d hash:%d fen:%s", indent, currPly, hash, fen));
+			printOutput(String.format("%sextSearch NoMoves term @%d score:%s", indent, currPly, theScore));
 		}
 	}
 
@@ -247,7 +209,7 @@ public class SearchDebugAgent {
 
 	public void printCutOffWithScore(int plyScore) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%sext search cut-off score:%s", indent, Score.toString(plyScore)));
+			printOutput(String.format("%sext search cut-off score:%s", indent, Score.toString((short)plyScore)));
 		}		
 	}
 }

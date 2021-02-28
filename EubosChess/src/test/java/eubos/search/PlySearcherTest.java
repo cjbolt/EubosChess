@@ -41,7 +41,6 @@ public class PlySearcherTest {
 	private EubosEngineMain mockEubos;
 	List<Integer> lastPc;
 	private ITranspositionAccessor mock_hashMap;
-	private ScoreTracker st;
 	private SearchDebugAgent sda;
 	
 	@Before
@@ -56,7 +55,6 @@ public class PlySearcherTest {
 		sr.register(sm);
 		mock_pos = mock(IPositionAccessors.class);
 		mock_hashMap = mock(ITranspositionAccessor.class);
-		st = new ScoreTracker(searchDepth*3, true, sda);
 		lastPc = null;
 		
 		when(mock_pos.getOnMove()).thenReturn(Colour.white);
@@ -73,7 +71,6 @@ public class PlySearcherTest {
 		KillerList killers = new KillerList(depth);
 		classUnderTest = new PlySearcher(
 				mock_hashMap,
-				st,
 			    pc,
 				sm,
 				sr,
@@ -92,7 +89,7 @@ public class PlySearcherTest {
 		initialisePositionAndSearch("7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69", (byte)4);
 		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte());
 
-		assertEquals(2*Board.MATERIAL_VALUE_QUEEN-40 /* relative pos of Kings, endgame */, Score.getScore(classUnderTest.searchPly()));		
+		assertEquals(2*Board.MATERIAL_VALUE_QUEEN-40 /* relative pos of Kings, endgame */, classUnderTest.searchPly());		
 	}
 	
 	@Test
@@ -150,7 +147,7 @@ public class PlySearcherTest {
 		
 		when(mock_hashMap.getTransposition((byte)0)).thenReturn(eval);
 		
-		assertEquals(50, Score.getScore(classUnderTest.searchPly()));
+		assertEquals(50, classUnderTest.searchPly());
 	}
 	
 	@Test
