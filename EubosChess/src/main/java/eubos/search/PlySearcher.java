@@ -140,6 +140,12 @@ public class PlySearcher {
 				}
 				// ...If hash data still good enough for a cut off, do that here.
 				if (eval.status != TranspositionTableStatus.sufficientSeedMoveList) {
+	//				// careful not to bring down continuations we shouldn't!
+	//			    if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
+	//					pc.update(currPly, eval.trans.getPv());
+	//				} else {
+	//					pc.set(currPly, trans_move);
+	//				}
 					updatePrincipalContinuation(eval.trans.getBestMove(), (short) hashScore);
 					sda.printCutOffWithScore(hashScore);
 					return hashScore;
@@ -222,7 +228,9 @@ public class PlySearcher {
 		}
 
 		if (!isTerminated() && eval.trans != null && (alpha > alphaOriginal && alpha < beta)) {
-			checkToPromoteHashTableToExact(eval.trans, depth, (short) alpha);
+			if (eval.trans.checkUpdateToExact((byte) depth)) {
+				sda.printExactTrans(pos.getHash(), eval.trans);			
+			}
 		}
 		return alpha;
 	}
@@ -354,11 +362,6 @@ public class PlySearcher {
 				// not the root node, so adjust for the position in search tree.
 				adjustedScoreForThisPositionInTree = (short) ((trans_score < 0 ) ? trans_score+currPly : trans_score-currPly);
 			}
-//			if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
-//				pc.update(currPly, eval.trans.getPv());
-//			} else {
-//				pc.set(currPly, trans_move);
-//			}
 			theScore = adjustedScoreForThisPositionInTree;
 		}
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)
@@ -366,7 +369,6 @@ public class PlySearcher {
 		return theScore;
 	}
 
-	@SuppressWarnings("unused")
 	private boolean checkForRepetitionDueToPositionInSearchTree(int move) throws InvalidPieceException {
 		boolean retVal = false;
 		if (move != Move.NULL_MOVE) {
@@ -380,20 +382,6 @@ public class PlySearcher {
 			sda.prevPly();
 		}
 		return retVal;
-	}
-
-	private void checkToPromoteHashTableToExact(ITransposition trans, int depth, short plyScore) {
-		short scoreFromDownTree = plyScore;
-		if (Score.isMate(plyScore)) {
-			scoreFromDownTree = (short) ((plyScore < 0) ? plyScore - currPly : plyScore + currPly);
-		}
-		// This is the only way a hash and score can be exact.
-		// found to be needed due to score discrepancies caused by refutations coming out of extended search...
-		// Still needed 22nd October 2020
-		if (trans.checkUpdateToExact((byte) depth, scoreFromDownTree, pc.getBestMove(currPly)))
-		{
-			sda.printExactTrans(pos.getHash(), trans);			
-		}
 	}
 
 	private void updatePrincipalContinuation(int currMove, short positionScore)

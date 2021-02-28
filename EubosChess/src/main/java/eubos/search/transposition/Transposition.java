@@ -118,20 +118,31 @@ public class Transposition implements ITransposition {
 	}
 	
 	@Override
-	public synchronized boolean checkUpdateToExact(
-			byte currDepthSearchedInPly,
-			short new_score,
-			int new_bestMove) {
+	public synchronized boolean checkUpdateToExact(byte currDepthSearchedInPly) {
 		boolean wasSetAsExact = false;
 		if (getDepthSearchedInPly() < currDepthSearchedInPly || (getDepthSearchedInPly() == currDepthSearchedInPly && type != Score.exact)) {
 			// however we need to be careful that the depth is appropriate, we don't set exact for wrong depth...
-			setScore(new_score);
 			setType(Score.exact);
-			setBestMove(new_bestMove);
 			wasSetAsExact = true;
 		}
 		return wasSetAsExact;
 	}
+	
+//	@Override
+//	public synchronized boolean checkUpdateToExact(
+//			byte currDepthSearchedInPly,
+//			short new_score,
+//			int new_bestMove) {
+//		boolean wasSetAsExact = false;
+//		if (getDepthSearchedInPly() < currDepthSearchedInPly || (getDepthSearchedInPly() == currDepthSearchedInPly && type != Score.exact)) {
+//			// however we need to be careful that the depth is appropriate, we don't set exact for wrong depth...
+//			setScore(new_score);
+//			setType(Score.exact);
+//			setBestMove(new_bestMove);
+//			wasSetAsExact = true;
+//		}
+//		return wasSetAsExact;
+//	}
 	
 	public short getAccessCount() {
 		return accessCount;

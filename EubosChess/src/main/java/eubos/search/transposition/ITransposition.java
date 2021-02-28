@@ -18,7 +18,7 @@ public interface ITransposition {
 
 	boolean checkUpdate(byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv);
 	
-	boolean checkUpdateToExact(byte depth, short new_score, int new_bestMove);
+	boolean checkUpdateToExact(byte depth);
 	
 	short getAccessCount();
 	
