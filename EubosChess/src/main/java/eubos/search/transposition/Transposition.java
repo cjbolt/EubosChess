@@ -145,17 +145,14 @@ public class Transposition implements ITransposition {
 		return null;
 	}
 	
-	public synchronized TranspositionTableStatus evaluateSuitability(int depthRequiredPly, int beta) {
+	public synchronized TranspositionTableStatus evaluateSuitability(int depthRequiredPly) {
 		TranspositionTableStatus eval = TranspositionTableStatus.insufficientNoData;
 		if (getDepthSearchedInPly() >= depthRequiredPly) {
 			
 			if (getType() == Score.exact) {
 				eval = TranspositionTableStatus.sufficientTerminalNode;
-				
-			} else { // must be either (bound == Score.upperBound || bound == Score.lowerBound)
-				//if (getScore() >= beta && !Score.isProvisional(beta)) {
+			} else {
 				eval = TranspositionTableStatus.sufficientRefutation;
-		        //}
 			}
 		} else {
 			eval = TranspositionTableStatus.sufficientSeedMoveList;

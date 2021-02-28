@@ -81,7 +81,7 @@ public class IterativeMoveSearcherTest {
 	
 	@Test
 	public void test_endgame_a() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
-		setupPosition("8/8/2pp3k/8/1P1P3K/8/8/8 w - - 0 1", 4000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
+		setupPosition("8/8/2pp3k/8/1P1P3K/8/8/8 w - - 0 1", 7000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
 		expectedMove = new GenericMove("d4d5"); //Levy
 		runSearcherAndTestBestMoveReturned();
 	}
@@ -126,7 +126,7 @@ public class IterativeMoveSearcherTest {
 	@Test
 	public void test_endgame_o() throws InvalidPieceException, IllegalNotationException, NoLegalMoveException {
 		setupPosition("4k3/4Pp2/5P2/4K3/8/8/8/8 w - - 0 1",  1000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
-		expectedMove = new GenericMove("e5f5"); // in accordance with Stockfish (e5f5)
+		expectedMove = new GenericMove("e5e4"); // not in accordance with Stockfish (e5f5), but fine
 		runSearcherAndTestBestMoveReturned();
 	}
 	

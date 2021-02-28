@@ -134,7 +134,7 @@ public class SearchContext {
 	}
 	
 	public short getScoreForStalemate() {
-		return ((pos.getOnMove() == initialOnMove) && isTryForDraw()) ? ACHIEVES_DRAW_BONUS : -ACHIEVES_DRAW_BONUS;	
+		return ((pos.getOnMove() == initialOnMove) && isTryForDraw()) ? ACHIEVES_DRAW_BONUS : 0; //ACHIEVES_DRAW_BONUS : -ACHIEVES_DRAW_BONUS;	
 	}
 
 	public String getGoal() {

@@ -90,7 +90,7 @@ public class PlySearcherTest {
 	@Ignore // Till resolve fact that pawn is blocked but this position is judged not quiescent
 	public void test_depthSearchedUpdates() throws InvalidPieceException, IllegalNotationException {
 		initialisePositionAndSearch("7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69", (byte)4);
-		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
+		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte());
 
 		assertEquals(2*Board.MATERIAL_VALUE_QUEEN-40 /* relative pos of Kings, endgame */, Score.getScore(classUnderTest.searchPly()));		
 	}
@@ -100,7 +100,7 @@ public class PlySearcherTest {
 	public void test_singleLineOfPlay_depthSearchedUpdates() throws InvalidPieceException, IllegalNotationException {
 		initialisePositionAndSearch("8/8/1P6/8/5p2/8/8/8 w - - 0 1", (byte)4);
 		
-		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
+		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte());
 		
 		doReturn(new Transposition((byte)1, (short)0, (byte) 1, null)).when(mock_hashMap).setTransposition((Transposition)isNull(), anyByte(), anyShort(), anyByte(), anyInt());
 		
@@ -148,7 +148,7 @@ public class PlySearcherTest {
 		eval.status = TranspositionTableStatus.sufficientTerminalNode;
 		eval.trans = new Transposition((byte)1, (short)50, Score.exact, new GenericMove("b6b7"));
 		
-		when(mock_hashMap.getTransposition((byte)0, 1)).thenReturn(eval);
+		when(mock_hashMap.getTransposition((byte)0)).thenReturn(eval);
 		
 		assertEquals(50, Score.getScore(classUnderTest.searchPly()));
 	}
@@ -170,8 +170,8 @@ public class PlySearcherTest {
 		eval1_1.status = TranspositionTableStatus.sufficientSeedMoveList;
 		eval1_1.trans = new Transposition((byte)1, (short)-400, Score.exact, new GenericMove("c3a5"));
 		
-		when(mock_hashMap.getTransposition((byte)0, 2)).thenReturn(eval0);
-		when(mock_hashMap.getTransposition((byte)1, 1)).thenReturn(eval1_0).thenReturn(eval1_1);
+		when(mock_hashMap.getTransposition((byte)0)).thenReturn(eval0);
+		when(mock_hashMap.getTransposition((byte)1)).thenReturn(eval1_0).thenReturn(eval1_1);
 		
 		assertEquals(0, classUnderTest.searchPly());
 	}
@@ -182,7 +182,7 @@ public class PlySearcherTest {
 		initialisePositionAndSearch("6k1/5pb1/6p1/r2R4/8/2q5/1B3PP1/5RK1 w - - 0 1", (byte)2);
 		
 	    //setupBackUpToRootNodeTerminatesTest();
-		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte(), anyInt());
+		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte());
 		verify(mock_hashMap, never()).setTransposition((Transposition)isNull(), anyByte(), anyShort(), anyByte(), anyInt());
 		classUnderTest.searchPly();
 	}

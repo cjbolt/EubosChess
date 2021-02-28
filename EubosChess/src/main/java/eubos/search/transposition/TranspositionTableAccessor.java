@@ -21,12 +21,12 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		this.sda = sda;
 	}
 	
-	public TranspositionEvaluation getTransposition(int depthRequiredPly, int beta) {
+	public TranspositionEvaluation getTransposition(int depthRequiredPly) {
 		TranspositionEvaluation eval = new TranspositionEvaluation();
 		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
 			eval.trans = hashMap.getTransposition(pos.getHash());
 			if (eval.trans != null) {
-				eval.status = eval.trans.evaluateSuitability(depthRequiredPly, beta);
+				eval.status = eval.trans.evaluateSuitability(depthRequiredPly);
 			}
 		}
 		return eval;

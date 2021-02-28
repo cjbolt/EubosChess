@@ -50,7 +50,7 @@ public class TranspositionTableAccessorTest {
 
 	@Test
 	public void testEval_WhenEmpty_insufficientNoData() {
-		eval = sut.getTransposition(currPly, SEARCH_DEPTH_IN_PLY);
+		eval = sut.getTransposition(SEARCH_DEPTH_IN_PLY);
 		assertEquals(TranspositionTableStatus.insufficientNoData, eval.status);
 	}
 	
@@ -62,7 +62,7 @@ public class TranspositionTableAccessorTest {
 		
 		sut.setTransposition(null, (byte)1, (short)105, Score.exact, Move.toMove(pc.get(0), pm.getTheBoard()));
 		
-		eval = sut.getTransposition(currPly, 1);
+		eval = sut.getTransposition(currPly);
 		
 		assertEquals(TranspositionTableStatus.sufficientTerminalNode, eval.status);
 		}
@@ -76,7 +76,7 @@ public class TranspositionTableAccessorTest {
 		
 		sut.setTransposition(null, (byte)1, (short)105, Score.exact, Move.toMove(pc.get(0)));
 		
-		eval = sut.getTransposition(2, 35);
+		eval = sut.getTransposition(2);
 		
 		assertEquals(TranspositionTableStatus.sufficientSeedMoveList, eval.status);
 		}
@@ -90,7 +90,7 @@ public class TranspositionTableAccessorTest {
 		
 		sut.setTransposition(null, (byte)1, (short)105, Score.exact, Move.toMove(pc.get(0)));
 		
-		eval = sut.getTransposition(currPly, 2);
+		eval = sut.getTransposition(2);
 		
 		assertEquals(TranspositionTableStatus.insufficientNoData, eval.status);
 		}
@@ -101,8 +101,7 @@ public class TranspositionTableAccessorTest {
 		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
-
-		currPly = 3;
+		
 		sut.setTransposition(null, (byte)1, (short)18, Score.upperBound, Move.toMove(pc.get(0)));
 		
 		// Set up score tracker according to diagram
@@ -110,7 +109,7 @@ public class TranspositionTableAccessorTest {
 		st.setProvisionalScoreAtPly((byte)1);
 		st.setProvisionalScoreAtPly((byte)2);
 		st.setProvisionalScoreAtPly((byte)3);
-		eval = sut.getTransposition(currPly, 1);
+		eval = sut.getTransposition(3);
 		
 		assertEquals(TranspositionTableStatus.sufficientSeedMoveList, eval.status);
 		}
@@ -134,7 +133,7 @@ public class TranspositionTableAccessorTest {
 		st.setBackedUpScoreAtPly((byte)3, Score.valueOf((short)40, Score.exact));
 		st.setBackedUpScoreAtPly((byte)2, Score.valueOf((short)40, Score.exact));
 		st.setProvisionalScoreAtPly((byte)3);
-		eval = sut.getTransposition(currPly, 1);
+		eval = sut.getTransposition(1);
 		
 		assertEquals(TranspositionTableStatus.sufficientRefutation, eval.status);
 	}
@@ -170,7 +169,7 @@ public class TranspositionTableAccessorTest {
 		assertTrue(Move.areEqual(Move.toMove(move2), stored_trans.getBestMove()));
 		
 		// Check eval returns expected hash data
-		eval = sut.getTransposition(currPly, 1);
+		eval = sut.getTransposition(1);
 		assertEquals(stored_trans, eval.trans);
 		assertTrue(Move.areEqual(Move.toMove(move2), eval.trans.getBestMove()));
 		}
@@ -199,7 +198,7 @@ public class TranspositionTableAccessorTest {
 		assertTrue(Move.areEqual(Move.toMove(move2), stored_trans.getBestMove()));
 		
 		// Check eval returns expected hash data
-		eval = sut.getTransposition(currPly, 1);
+		eval = sut.getTransposition(1);
 		assertEquals(stored_trans, eval.trans);
 		assertTrue(Move.areEqual(Move.toMove(move2), eval.trans.getBestMove()));
 		}

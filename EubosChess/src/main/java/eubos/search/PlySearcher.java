@@ -22,7 +22,7 @@ import eubos.search.transposition.TranspositionEvaluation.TranspositionTableStat
 
 public class PlySearcher {
 	
-	private static final boolean ENABLE_MATE_CHECK_IN_EXTENDED_SEARCH = false;
+	private static final boolean ENABLE_MATE_CHECK_IN_EXTENDED_SEARCH = true;
 	
 	private IChangePosition pm;
 	private IPositionAccessors pos;
@@ -98,10 +98,8 @@ public class PlySearcher {
 	}
 	
 	int search(int alpha, int beta, int depth) throws InvalidPieceException {
-		boolean isAlphaIncreased = false;
 		int alphaOriginal = alpha;
 		int plyScore = Score.PROVISIONAL_ALPHA;
-		byte plyBound = pos.onMoveIsWhite() ? Score.lowerBound : Score.upperBound;
 		int prevBestMove = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
 		
 		// Handle draws by three-fold repetition
@@ -120,39 +118,37 @@ public class PlySearcher {
 		sda.printStartPlyInfo(pos, originalSearchDepthRequiredInPly);
 		sda.printNormalSearch(alpha, beta);
 		
-		TranspositionEvaluation eval = tt.getTransposition(depth, beta);
+		TranspositionEvaluation eval = tt.getTransposition(depth);
 		if (eval.status != TranspositionTableStatus.insufficientNoData) {
 			if (eval.status != TranspositionTableStatus.sufficientSeedMoveList) {
-				// Common to both terminal node types, could downgrade status if pos could be a draw...
-				plyScore = handleRefutationOrTerminalNodeFromHash(plyScore, eval);
+				// Common to both terminal node types, could downgrade status if the position could be a draw...
+				int hashScore = handleRefutationOrTerminalNodeFromHash(eval);
 				if (eval.status == TranspositionTableStatus.sufficientRefutation) {
 					// Update alpha/beta bound score according to transposition data
 					if (eval.trans.getType() == Score.upperBound) {
-						beta = Math.min(beta, plyScore);
+						beta = Math.min(beta, hashScore);
 					} else if (eval.trans.getType() == Score.lowerBound) {
-						alpha = Math.max(alpha, plyScore);
+						alpha = Math.max(alpha, hashScore);
 					}
-					// If good enough for a refutation...
+					// Determine if good enough for a refutation...
 					if (alpha >= beta) {
 						killers.addMove(currPly, eval.trans.getBestMove());
 						sda.printHashIsRefutation(pos.getHash(), eval.trans);
-						updatePrincipalContinuation(eval.trans.getBestMove(), Score.getScore(plyScore));
 					} else {
-						// else search on with new alpha/beta
+						// else search on with the updated alpha/beta from the Transposition
 						eval.status = TranspositionTableStatus.sufficientSeedMoveList;
 					}
-				}
-				if (eval.status == TranspositionTableStatus.sufficientTerminalNode) {
+				} else if (eval.status == TranspositionTableStatus.sufficientTerminalNode) {
 					sda.printHashIsTerminalNode(eval.trans, pos.getHash());
-					updatePrincipalContinuation(eval.trans.getBestMove(), Score.getScore(plyScore));
+				}
+				// ...If hash data still good enough for a cut off, do that here.
+				if (eval.status != TranspositionTableStatus.sufficientSeedMoveList) {
+					updatePrincipalContinuation(eval.trans.getBestMove(), (short) hashScore);
+					sda.printCutOffWithScore(hashScore);
+					return hashScore;
 				}
 			}
-			// ...If hash data still good enough for a cut off, that will happen here.
-			if (eval.status != TranspositionTableStatus.sufficientSeedMoveList) {
-					sda.printCutOffWithScore(plyScore);
-					return plyScore;
-			}
-			// Otherwise seed move list
+			// Otherwise seed the move list
 			if (eval.status == TranspositionTableStatus.sufficientSeedMoveList) {
 				sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
 				prevBestMove = eval.trans.getBestMove();
@@ -201,18 +197,15 @@ public class PlySearcher {
 			}
 			
 			// Handle score backed up to this node
-			if (positionScore > alpha) {	
-				
-				killers.addMove(currPly, currMove);
-				
+			if (positionScore > alpha) {					
 				if (positionScore >= beta) {
+					killers.addMove(currPly, currMove);
 					sda.printRefutationFound(positionScore);
 					eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) beta, Score.lowerBound);
 					return beta;
 				}
 				
 				alpha = positionScore;
-				isAlphaIncreased = true;
 				eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) alpha, Score.upperBound);
 				updatePrincipalContinuation(currMove,(short) alpha);
 				
@@ -232,8 +225,6 @@ public class PlySearcher {
 		}
 
 		if (!isTerminated() && eval.trans != null && (alpha > alphaOriginal && alpha < beta)) {
-			// We have to know that the score backed up from the child was exact to set this node as exact?
-			// although a beta cut off should still result in an exact score?
 			checkToPromoteHashTableToExact(eval.trans, depth, (short) alpha);
 		}
 		return alpha;
@@ -256,7 +247,7 @@ public class PlySearcher {
 		}
 		
 		int prevBestMove = Move.NULL_MOVE;
-		TranspositionEvaluation eval = tt.getTransposition(100, beta);
+		TranspositionEvaluation eval = tt.getTransposition(100);
 		if (eval.status == TranspositionTableStatus.sufficientSeedMoveList) {
 			sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
 			prevBestMove = eval.trans.getBestMove();
@@ -345,8 +336,9 @@ public class PlySearcher {
 		return trans;
 	}
 	
-	private int handleRefutationOrTerminalNodeFromHash(int theScore, TranspositionEvaluation eval) throws InvalidPieceException {
+	private int handleRefutationOrTerminalNodeFromHash(TranspositionEvaluation eval) throws InvalidPieceException {
 		int trans_move;
+		int theScore = 0;
 		short trans_score;
 		synchronized (eval.trans) {
 			trans_move = eval.trans.getBestMove();
@@ -358,7 +350,6 @@ public class PlySearcher {
 		if (isThreefold || (!isThreefold && (trans_score == 0))) {
 			sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
 			eval.status = TranspositionTableStatus.sufficientSeedMoveList;
-			theScore = 0;
 		} else {
 			short adjustedScoreForThisPositionInTree = trans_score;
 			if (Score.isMate(trans_score)) {
@@ -366,11 +357,11 @@ public class PlySearcher {
 				// not the root node, so adjust for the position in search tree.
 				adjustedScoreForThisPositionInTree = (short) ((trans_score < 0 ) ? trans_score+currPly : trans_score-currPly);
 			}
-			if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
-				pc.update(currPly, eval.trans.getPv());
-			} else {
-				pc.set(currPly, trans_move);
-			}
+//			if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
+//				pc.update(currPly, eval.trans.getPv());
+//			} else {
+//				pc.set(currPly, trans_move);
+//			}
 			theScore = adjustedScoreForThisPositionInTree;
 		}
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)

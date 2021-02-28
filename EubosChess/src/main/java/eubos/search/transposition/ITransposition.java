@@ -26,5 +26,5 @@ public interface ITransposition {
 
 	List<Integer> getPv();
 	
-	TranspositionTableStatus evaluateSuitability(int depthRequiredPly, int beta);
+	TranspositionTableStatus evaluateSuitability(int depthRequiredPly);
 }
