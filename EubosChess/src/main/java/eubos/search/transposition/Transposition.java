@@ -153,11 +153,9 @@ public class Transposition implements ITransposition {
 				eval = TranspositionTableStatus.sufficientTerminalNode;
 				
 			} else { // must be either (bound == Score.upperBound || bound == Score.lowerBound)
-				if (getScore() >= beta && !Score.isProvisional(beta)) {
-					eval = TranspositionTableStatus.sufficientRefutation;
-		        } else {
-		        	eval = TranspositionTableStatus.sufficientSeedMoveList;
-		        }
+				//if (getScore() >= beta && !Score.isProvisional(beta)) {
+				eval = TranspositionTableStatus.sufficientRefutation;
+		        //}
 			}
 		} else {
 			eval = TranspositionTableStatus.sufficientSeedMoveList;

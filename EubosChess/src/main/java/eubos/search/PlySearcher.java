@@ -99,6 +99,7 @@ public class PlySearcher {
 	
 	int search(int alpha, int beta, int depth) throws InvalidPieceException {
 		boolean isAlphaIncreased = false;
+		int alphaOriginal = alpha;
 		int plyScore = Score.PROVISIONAL_ALPHA;
 		byte plyBound = pos.onMoveIsWhite() ? Score.lowerBound : Score.upperBound;
 		int prevBestMove = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
@@ -115,9 +116,6 @@ public class PlySearcher {
 		if (depth == 0 && pos.isKingInCheck()) {
 			++depth;
 		}
-		if (depth == 0) {
-			return extendedSearch(alpha,beta);
-		}
 		
 		sda.printStartPlyInfo(pos, originalSearchDepthRequiredInPly);
 		sda.printNormalSearch(alpha, beta);
@@ -125,12 +123,25 @@ public class PlySearcher {
 		TranspositionEvaluation eval = tt.getTransposition(depth, beta);
 		if (eval.status != TranspositionTableStatus.insufficientNoData) {
 			if (eval.status != TranspositionTableStatus.sufficientSeedMoveList) {
-				if (eval.status == TranspositionTableStatus.sufficientRefutation) {
-					killers.addMove(currPly, eval.trans.getBestMove());
-					sda.printHashIsRefutation(pos.getHash(), eval.trans);
-				}
 				// Common to both terminal node types, could downgrade status if pos could be a draw...
 				plyScore = handleRefutationOrTerminalNodeFromHash(plyScore, eval);
+				if (eval.status == TranspositionTableStatus.sufficientRefutation) {
+					// Update alpha/beta bound score according to transposition data
+					if (eval.trans.getType() == Score.upperBound) {
+						beta = Math.min(beta, plyScore);
+					} else if (eval.trans.getType() == Score.lowerBound) {
+						alpha = Math.max(alpha, plyScore);
+					}
+					// If good enough for a refutation...
+					if (alpha >= beta) {
+						killers.addMove(currPly, eval.trans.getBestMove());
+						sda.printHashIsRefutation(pos.getHash(), eval.trans);
+						updatePrincipalContinuation(eval.trans.getBestMove(), Score.getScore(plyScore));
+					} else {
+						// else search on with new alpha/beta
+						eval.status = TranspositionTableStatus.sufficientSeedMoveList;
+					}
+				}
 				if (eval.status == TranspositionTableStatus.sufficientTerminalNode) {
 					sda.printHashIsTerminalNode(eval.trans, pos.getHash());
 					updatePrincipalContinuation(eval.trans.getBestMove(), Score.getScore(plyScore));
@@ -147,6 +158,11 @@ public class PlySearcher {
 				prevBestMove = eval.trans.getBestMove();
 			}
 		}
+		
+		if (depth == 0) {
+			return extendedSearch(alpha,beta);
+		}
+		
 		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, killers.getMoves(currPly), moveListOrdering, false, Position.NOPOSITION);
 		Iterator<Integer> move_iter = ml.getStandardIterator(false, Position.NOPOSITION);
 		if (!move_iter.hasNext()) {
@@ -187,21 +203,22 @@ public class PlySearcher {
 			// Handle score backed up to this node
 			if (positionScore > alpha) {	
 				
+				killers.addMove(currPly, currMove);
+				
 				if (positionScore >= beta) {
-					killers.addMove(currPly, currMove);
 					sda.printRefutationFound(positionScore);
-					eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) beta, plyBound);
+					eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) beta, Score.lowerBound);
 					return beta;
 				}
 				
 				alpha = positionScore;
 				isAlphaIncreased = true;
-				eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) alpha, plyBound);
+				eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) alpha, Score.upperBound);
 				updatePrincipalContinuation(currMove,(short) alpha);
 				
 			} else if (positionScore > plyScore) {
 				plyScore = positionScore;
-				eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) plyScore, plyBound);
+				eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) plyScore, Score.upperBound);
 			}
 			
 			// Break-out when out of moves
@@ -214,7 +231,7 @@ public class PlySearcher {
 			}
 		}
 
-		if (!isTerminated() && eval.trans != null && isAlphaIncreased) {
+		if (!isTerminated() && eval.trans != null && (alpha > alphaOriginal && alpha < beta)) {
 			// We have to know that the score backed up from the child was exact to set this node as exact?
 			// although a beta cut off should still result in an exact score?
 			checkToPromoteHashTableToExact(eval.trans, depth, (short) alpha);

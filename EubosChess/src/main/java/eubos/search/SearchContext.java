@@ -134,8 +134,7 @@ public class SearchContext {
 	}
 	
 	public short getScoreForStalemate() {
-		short mateScore = 0; // ((pos.getOnMove() == initialOnMove) && isTryForDraw()) ? 0 : 0;
-		return mateScore;	
+		return ((pos.getOnMove() == initialOnMove) && isTryForDraw()) ? ACHIEVES_DRAW_BONUS : -ACHIEVES_DRAW_BONUS;	
 	}
 
 	public String getGoal() {

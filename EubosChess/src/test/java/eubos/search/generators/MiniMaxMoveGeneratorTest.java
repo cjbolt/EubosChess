@@ -486,8 +486,8 @@ public class MiniMaxMoveGeneratorTest {
 			expectedMove = new GenericMove("c3f6");
 			
 			SearchResult res = classUnderTest.findMove((byte)1);
-			
-			assertNotEquals(expectedMove, res.bestMove);
+			// Leads to stalemate
+			assertEquals(expectedMove, res.bestMove);
 		}
 	}
 	
