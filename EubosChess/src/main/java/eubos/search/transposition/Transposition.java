@@ -7,7 +7,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.search.Score;
-import eubos.search.transposition.TranspositionEvaluation.TranspositionTableStatus;
+import eubos.search.transposition.TranspositionEvaluation.Status;
 
 public class Transposition implements ITransposition {
 	protected byte depthSearchedInPly;
@@ -156,23 +156,23 @@ public class Transposition implements ITransposition {
 		return null;
 	}
 	
-	public synchronized TranspositionTableStatus evaluateSuitability(int depthRequiredPly) {
-		TranspositionTableStatus eval = TranspositionTableStatus.insufficientNoData;
+	public synchronized Status evaluateSuitability(int depthRequiredPly) {
+		Status eval = Status.insufficientNoData;
 		if (getDepthSearchedInPly() >= depthRequiredPly) {
 			
 			if (getType() == Score.exact) {
-				eval = TranspositionTableStatus.sufficientTerminalNode;
+				eval = Status.sufficientTerminalNode;
 			} else {
-				eval = TranspositionTableStatus.sufficientRefutation;
+				eval = Status.sufficientRefutation;
 			}
 		} else {
-			eval = TranspositionTableStatus.sufficientSeedMoveList;
+			eval = Status.sufficientSeedMoveList;
 		}
 		
-		if (eval == TranspositionTableStatus.sufficientSeedMoveList) {
+		if (eval == Status.sufficientSeedMoveList) {
 			// It is possible that we don't have a move to seed the list with, guard against that.
 			if (getBestMove() == Move.NULL_MOVE) {
-				eval = TranspositionTableStatus.insufficientNoData;
+				eval = Status.insufficientNoData;
 			}
 		}
 		return eval;

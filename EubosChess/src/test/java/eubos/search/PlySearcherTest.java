@@ -25,7 +25,7 @@ import eubos.score.ReferenceScore;
 import eubos.search.transposition.ITranspositionAccessor;
 import eubos.search.transposition.Transposition;
 import eubos.search.transposition.TranspositionEvaluation;
-import eubos.search.transposition.TranspositionEvaluation.TranspositionTableStatus;
+import eubos.search.transposition.TranspositionEvaluation.Status;
 import static org.mockito.Mockito.*;
 
 public class PlySearcherTest {
@@ -142,7 +142,7 @@ public class PlySearcherTest {
 		initialisePositionAndSearch("8/8/1P6/8/5p2/8/8/8 w - - 0 1", (byte)1);
 		
 		TranspositionEvaluation eval = new TranspositionEvaluation();
-		eval.status = TranspositionTableStatus.sufficientTerminalNode;
+		eval.status = Status.sufficientTerminalNode;
 		eval.trans = new Transposition((byte)1, (short)50, Score.exact, new GenericMove("b6b7"));
 		
 		when(mock_hashMap.getTransposition((byte)0)).thenReturn(eval);
@@ -156,15 +156,15 @@ public class PlySearcherTest {
 		initialisePositionAndSearch("6k1/5pb1/6p1/r2R4/8/2q5/1B3PP1/5RK1 w - - 0 1", (byte)2);
 		
 		TranspositionEvaluation eval0 = new TranspositionEvaluation();
-		eval0.status = TranspositionTableStatus.sufficientSeedMoveList;
+		eval0.status = Status.sufficientSeedMoveList;
 		eval0.trans = new Transposition((byte)1, (short)-5, Score.lowerBound, new GenericMove("b2c3"));
 		
 		TranspositionEvaluation eval1_0 = new TranspositionEvaluation();
-		eval1_0.status = TranspositionTableStatus.sufficientTerminalNode;
+		eval1_0.status = Status.sufficientTerminalNode;
 		eval1_0.trans = new Transposition((byte)1, (short)0, Score.exact, new GenericMove("a5d5"));
 
 		TranspositionEvaluation eval1_1 = new TranspositionEvaluation();
-		eval1_1.status = TranspositionTableStatus.sufficientSeedMoveList;
+		eval1_1.status = Status.sufficientSeedMoveList;
 		eval1_1.trans = new Transposition((byte)1, (short)-400, Score.exact, new GenericMove("c3a5"));
 		
 		when(mock_hashMap.getTransposition((byte)0)).thenReturn(eval0);

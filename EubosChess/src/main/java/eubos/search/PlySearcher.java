@@ -18,7 +18,7 @@ import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.ITranspositionAccessor;
 import eubos.search.transposition.ITransposition;
 import eubos.search.transposition.TranspositionEvaluation;
-import eubos.search.transposition.TranspositionEvaluation.TranspositionTableStatus;
+import eubos.search.transposition.TranspositionEvaluation.Status;
 
 public class PlySearcher {
 	
@@ -116,11 +116,11 @@ public class PlySearcher {
 		sda.printNormalSearch(alpha, beta);
 		
 		TranspositionEvaluation eval = tt.getTransposition(depth);
-		if (eval.status != TranspositionTableStatus.insufficientNoData) {
-			if (eval.status != TranspositionTableStatus.sufficientSeedMoveList) {
+		if (eval.status != Status.insufficientNoData) {
+			if (eval.status != Status.sufficientSeedMoveList) {
 				// Common to both terminal node types, could downgrade status if the position could be a draw...
 				int hashScore = handleRefutationOrTerminalNodeFromHash(eval);
-				if (eval.status == TranspositionTableStatus.sufficientRefutation) {
+				if (eval.status == Status.sufficientRefutation) {
 					// Update alpha/beta bound score according to transposition data
 					if (eval.trans.getType() == Score.upperBound) {
 						beta = Math.min(beta, hashScore);
@@ -133,13 +133,13 @@ public class PlySearcher {
 						sda.printHashIsRefutation(pos.getHash(), eval.trans);
 					} else {
 						// else search on with the updated alpha/beta from the Transposition
-						eval.status = TranspositionTableStatus.sufficientSeedMoveList;
+						eval.status = Status.sufficientSeedMoveList;
 					}
-				} else if (eval.status == TranspositionTableStatus.sufficientTerminalNode) {
+				} else if (eval.status == Status.sufficientTerminalNode) {
 					sda.printHashIsTerminalNode(eval.trans, pos.getHash());
 				}
 				// ...If hash data still good enough for a cut off, do that here.
-				if (eval.status != TranspositionTableStatus.sufficientSeedMoveList) {
+				if (eval.status != Status.sufficientSeedMoveList) {
 	//				// careful not to bring down continuations we shouldn't!
 	//			    if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
 	//					pc.update(currPly, eval.trans.getPv());
@@ -152,7 +152,7 @@ public class PlySearcher {
 				}
 			}
 			// Otherwise seed the move list
-			if (eval.status == TranspositionTableStatus.sufficientSeedMoveList) {
+			if (eval.status == Status.sufficientSeedMoveList) {
 				sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
 				prevBestMove = eval.trans.getBestMove();
 			}
@@ -253,7 +253,7 @@ public class PlySearcher {
 		
 		int prevBestMove = Move.NULL_MOVE;
 		TranspositionEvaluation eval = tt.getTransposition(100);
-		if (eval.status == TranspositionTableStatus.sufficientSeedMoveList) {
+		if (eval.status == Status.sufficientSeedMoveList) {
 			sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
 			prevBestMove = eval.trans.getBestMove();
 		}
@@ -354,7 +354,7 @@ public class PlySearcher {
 		boolean isThreefold = checkForRepetitionDueToPositionInSearchTree(trans_move);
 		if (isThreefold || (!isThreefold && (trans_score == 0))) {
 			sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
-			eval.status = TranspositionTableStatus.sufficientSeedMoveList;
+			eval.status = Status.sufficientSeedMoveList;
 		} else {
 			short adjustedScoreForThisPositionInTree = trans_score;
 			if (Score.isMate(trans_score)) {

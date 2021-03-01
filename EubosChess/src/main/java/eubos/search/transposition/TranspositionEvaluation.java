@@ -3,11 +3,11 @@ package eubos.search.transposition;
 public class TranspositionEvaluation {
 	
 	public TranspositionEvaluation() {
-		status = TranspositionTableStatus.insufficientNoData;
+		status = Status.insufficientNoData;
 		trans = null;
 	}
 	
-	public enum TranspositionTableStatus {
+	public enum Status {
 		insufficientNoData,
 		sufficientTerminalNode,
 		sufficientTerminalNodeInExtendedSearch,
@@ -15,6 +15,6 @@ public class TranspositionEvaluation {
 		sufficientSeedMoveList		
 	};
 	
-	public TranspositionTableStatus status;
+	public Status status;
 	public ITransposition trans;
 }

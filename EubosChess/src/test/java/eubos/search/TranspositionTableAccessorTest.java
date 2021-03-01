@@ -20,7 +20,7 @@ import eubos.search.transposition.FixedSizeTranspositionTable;
 import eubos.search.transposition.ITransposition;
 import eubos.search.transposition.TranspositionEvaluation;
 import eubos.search.transposition.TranspositionTableAccessor;
-import eubos.search.transposition.TranspositionEvaluation.TranspositionTableStatus;
+import eubos.search.transposition.TranspositionEvaluation.Status;
 
 public class TranspositionTableAccessorTest {
 
@@ -48,7 +48,7 @@ public class TranspositionTableAccessorTest {
 	@Test
 	public void testEval_WhenEmpty_insufficientNoData() {
 		eval = sut.getTransposition(SEARCH_DEPTH_IN_PLY);
-		assertEquals(TranspositionTableStatus.insufficientNoData, eval.status);
+		assertEquals(Status.insufficientNoData, eval.status);
 	}
 	
 	@Test
@@ -61,7 +61,7 @@ public class TranspositionTableAccessorTest {
 		
 		eval = sut.getTransposition(currPly);
 		
-		assertEquals(TranspositionTableStatus.sufficientTerminalNode, eval.status);
+		assertEquals(Status.sufficientTerminalNode, eval.status);
 		}
 	}
 	
@@ -75,7 +75,7 @@ public class TranspositionTableAccessorTest {
 		
 		eval = sut.getTransposition(2);
 		
-		assertEquals(TranspositionTableStatus.sufficientSeedMoveList, eval.status);
+		assertEquals(Status.sufficientSeedMoveList, eval.status);
 		}
 	}
 	
@@ -89,7 +89,7 @@ public class TranspositionTableAccessorTest {
 		
 		eval = sut.getTransposition(2);
 		
-		assertEquals(TranspositionTableStatus.insufficientNoData, eval.status);
+		assertEquals(Status.insufficientNoData, eval.status);
 		}
 	}
 	
@@ -104,7 +104,7 @@ public class TranspositionTableAccessorTest {
 		// Set up score tracker according to diagram
 		eval = sut.getTransposition(3);
 		
-		assertEquals(TranspositionTableStatus.sufficientSeedMoveList, eval.status);
+		assertEquals(Status.sufficientSeedMoveList, eval.status);
 		}
 	}
 	
@@ -121,7 +121,7 @@ public class TranspositionTableAccessorTest {
 		// Set up score tracker according to diagram
 		eval = sut.getTransposition(1);
 		
-		assertEquals(TranspositionTableStatus.sufficientRefutation, eval.status);
+		assertEquals(Status.sufficientRefutation, eval.status);
 	}
 	
 	@Test
