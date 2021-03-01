@@ -37,7 +37,7 @@ public class IterativeMoveSearcherTest {
 		public void sendInfoCommand(ProtocolInformationCommand command) {
 			// Debug the principal continuations returned during the search
 			if (command.getMoveList() != null)
-				System.out.println("Info moves: "+command.getMoveList());
+				System.out.println(String.format("Info depth: %d moves: %s", command.getDepth(), command.getMoveList()));
 		}
 		
 		@Override

@@ -103,7 +103,6 @@ public class MiniMaxMoveGenerator implements
 			List<Integer> lastPc,
 			SearchMetricsReporter sr) throws NoLegalMoveException, InvalidPieceException {
 		boolean foundMate = false;
-		boolean isExactScore = false;
 		initialiseSearchDepthDependentObjects(searchDepth, pm, sm);
 		ps = new PlySearcher(tta, pc, sm, sr, searchDepth, pm, pos, lastPc, pe, killers, sda);
 		if (alternativeMoveListOrderingScheme > 0) {
@@ -116,7 +115,7 @@ public class MiniMaxMoveGenerator implements
 			e.printStackTrace();
 			System.exit(0);
 		}
-		if (Score.isMate(score) && isExactScore) {
+		if (Score.isMate(score)) {
 			foundMate = true;
 		}
 		// Select the best move
