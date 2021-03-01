@@ -447,12 +447,11 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
-	@Ignore // Takes too long
 	public void test_KRk_mate_in_11_NEW() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_TIME_PREFIX+"33000"+CMD_TERMINATOR, BEST_PREFIX+"h1h4"+CMD_TERMINATOR));
-		performTestExpectMate(40000, 22);
+		commands.add(new commandPair(GO_TIME_PREFIX+"23000"+CMD_TERMINATOR, BEST_PREFIX+"h1h4"+CMD_TERMINATOR));
+		performTestExpectMate(25000, 18);
 		assertEquals(2, (int)classUnderTest.dc.getNumEntries());
 	}
 	
@@ -652,7 +651,8 @@ public class EubosEngineMainTest {
 						recievedCmd = testOutput.toString();
 					}
 					if (recievedCmd != null && !recievedCmd.isEmpty()) {
-						System.err.println(recievedCmd);
+						if (!accumulate)
+							System.err.println(recievedCmd);
 						testOutput.reset();
 						// Ignore any line starting with info, if not checking infos
 					    parsedCmd = parseReceivedCommandString(recievedCmd, checkInfoMsgs);
@@ -664,7 +664,7 @@ public class EubosEngineMainTest {
 								mateDetected = true;
 								accumulate = true;
 							} else {
-								EubosEngineMain.logger.info(String.format("parsed '%s' != '%s'", parsedCmd, expectedOutput));
+								//EubosEngineMain.logger.info(String.format("parsed '%s' != '%s'", parsedCmd, expectedOutput));
 								accumulate = false;
 							}
 					    }
