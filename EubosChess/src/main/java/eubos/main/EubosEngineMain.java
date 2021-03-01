@@ -44,10 +44,13 @@ import java.util.logging.*;
 
 public class EubosEngineMain extends AbstractEngine {
 	
+	static final int EUBOS_MAJOR_VERSION = 2;
+	static final int EUBOS_MINOR_VERSION = 1;
+	
 	public static final byte SEARCH_DEPTH_IN_PLY = 35;
 	public static final int DEFAULT_NUM_SEARCH_THREADS = 2;
 	
-	public static final boolean ENABLE_LOGGING = true;
+	public static final boolean ENABLE_LOGGING = false;
 	public static final boolean ENABLE_UCI_INFO_SENDING = true;
 	public static final boolean ENABLE_ASSERTS = false;
 	public static final boolean ENABLE_YIELD_IN_WORKER_THREADS = false;
@@ -113,7 +116,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public void receive(EngineInitializeRequestCommand command) {
 		logger.fine("Eubos Initialising");
 		
-		ProtocolInitializeAnswerCommand reply = new ProtocolInitializeAnswerCommand("Eubos 2.0","Chris Bolt");
+		ProtocolInitializeAnswerCommand reply = new ProtocolInitializeAnswerCommand("Eubos 2.1","Chris Bolt");
 		reply.addOption(Options.newHashOption((int)DEFAULT_HASH_SIZE, MIN_HASH_SIZE, MAX_HASH_SIZE));
 		reply.addOption(new SpinnerOption("Threads", defaultNumberOfWorkerThreads, 1, numCores));
 		logger.fine(String.format("Cores available=%d", numCores));

@@ -68,7 +68,8 @@ public class EubosEngineMainTest {
 	//private static final String GO_INF_CMD = "go infinite"+CMD_TERMINATOR;
 	private static final String QUIT_CMD = "quit"+CMD_TERMINATOR;
 	// Outputs
-	private static final String ID_NAME_CMD = "id name Eubos 2.0"+CMD_TERMINATOR;
+	private static final String ID_NAME_CMD = String.format("id name Eubos %d.%d%s", 
+			EubosEngineMain.EUBOS_MAJOR_VERSION, EubosEngineMain.EUBOS_MINOR_VERSION, CMD_TERMINATOR);
 	private static final String ID_AUTHOR_CMD = "id author Chris Bolt"+CMD_TERMINATOR;
 	private static final String OPTION_HASH = "option name Hash type spin default 1310 min 32 max 4000"+CMD_TERMINATOR;
 	private static final String OPTION_THREADS = String.format(
