@@ -330,7 +330,7 @@ public class BoardTest {
 	@Test
 	public void test_evaluateKingSafety_No_opposingBishopWrongColour() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("r4rk1/1p3p2/p7/P2P1p1B/4p3/2b5/3R1PPP/4K2R b K - 13 1 ");
-		assertEquals(-16, classUnderTest.evaluateKingSafety(true));
+		assertEquals(-28, classUnderTest.evaluateKingSafety(true)); // 
 		assertEquals(-13, classUnderTest.evaluateKingSafety(false));
 	}
 	
@@ -343,8 +343,8 @@ public class BoardTest {
 	@Test
 	public void test_evaluateKingSafety_Yes_opposingQueenBishop() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("r4rk1/1p6/p7/P2P1p1B/4p3/2b5/3R1PPP/Q1K4R b - - 13 1 ");
-		assertEquals(-14, classUnderTest.evaluateKingSafety(true));
-		assertEquals(-24, classUnderTest.evaluateKingSafety(false)); // 3 * 2 diag + 6 * 3 r'n'f
+		assertEquals(-70, classUnderTest.evaluateKingSafety(true));  // (5 up right + 2 up left) *2 *1bish = 14; (7 up + 2 left + 5 right) * 2 *2rooks = 28*2; 56+14 = 70
+		assertEquals(-46, classUnderTest.evaluateKingSafety(false)); // 1*2*2 diag = 4; 7*2*3 = 42 r'n'f; 4+42 = 46 
 	}
 	
 	@Test

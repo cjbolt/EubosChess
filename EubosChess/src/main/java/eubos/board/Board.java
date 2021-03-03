@@ -1176,10 +1176,10 @@ public class Board {
 			} else {
 				kingPos = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(kingMask)];
 			}
-			evaluation = (getTwiceNumEmptyDiagonalSquares(kingPos)/2) * -numPotentialAttackers;
+			evaluation = (getKingSafetyEvaluationDiagonalSquares(kingPos)) * -numPotentialAttackers;
 			
 			numPotentialAttackers = Long.bitCount(rankFileAttackersMask);
-			evaluation += (getTwiceNumEmptyRankFileSquares(kingPos)/2) * -numPotentialAttackers;
+			evaluation += (getKingSafetyEvaluationRankFileSquares(kingPos)) * -numPotentialAttackers;
 		}
 		return evaluation;
 	}
@@ -1196,6 +1196,18 @@ public class Board {
 		return getTwiceNumEmptySquaresInDirection(atPos, SquareAttackEvaluator.allDirect);
 	}
 	
+	public byte getKingSafetyEvaluationDiagonalSquares(int atPos) {
+		return getKingSafetyEvaluation(atPos, SquareAttackEvaluator.diagonals);
+	}
+	
+	public byte getKingSafetyEvaluationRankFileSquares(int atPos) {
+		return getKingSafetyEvaluation(atPos, SquareAttackEvaluator.rankFile);
+	}
+	
+	public byte getKingSafetyEvaluationAllDirectSquares(int atPos) {
+		return getKingSafetyEvaluation(atPos, SquareAttackEvaluator.allDirect);
+	}
+	
 	static final long[][][] emptySquareMask_Lut = new long[128][SquareAttackEvaluator.allDirect.length][];
 	static {
 		for (int square : Position.values) {
@@ -1210,6 +1222,25 @@ public class Board {
 				emptySquareMask_Lut[square][j++] = mask;
 			}
 		}
+	}
+	
+	private byte getKingSafetyEvaluation(int atPos, Direction [] dirs) {
+		byte numSquares = 0;
+		// One dimension for each direction, other dimension is array of individual square masks in that direction
+		long [][] emptySqMaskArray = emptySquareMask_Lut[atPos]; 
+		for (Direction dir: dirs) { 
+			int directionIndex = SquareAttackEvaluator.directionIndex_Lut.get(dir);
+			long inPathMask = SquareAttackEvaluator.directAttacksOnPositionAll_Lut[directionIndex][atPos];
+			if (inPathMask != 0) {
+				if ((pieces[Piece.PAWN] & inPathMask) == 0) {
+					// All the squares are empty in this direction
+					numSquares += (emptySqMaskArray[directionIndex].length*2);
+				}
+			} else {
+				// This is a square on the edge of the board from which that direction is off the board
+			}
+		}
+		return numSquares;
 	}
 	
 	private byte getTwiceNumEmptySquaresInDirection(int atPos, Direction [] dirs) {
