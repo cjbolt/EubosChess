@@ -99,7 +99,7 @@ public class PlySearcherTest {
 		
 		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte());
 		
-		doReturn(new Transposition((byte)1, (short)0, (byte) 1, null)).when(mock_hashMap).setTransposition((Transposition)isNull(), anyByte(), anyShort(), anyByte(), anyInt());
+		doReturn(new Transposition(0, (byte)1, (short)0, (byte) 1, null)).when(mock_hashMap).setTransposition((Transposition)isNull(), anyByte(), anyShort(), anyByte(), anyInt());
 		
 		assertEquals(650, classUnderTest.searchPly());
 		
@@ -143,7 +143,7 @@ public class PlySearcherTest {
 		
 		TranspositionEvaluation eval = new TranspositionEvaluation();
 		eval.status = Status.sufficientTerminalNode;
-		eval.trans = new Transposition((byte)1, (short)50, Score.exact, new GenericMove("b6b7"));
+		eval.trans = new Transposition(0, (byte)1, (short)50, Score.exact, new GenericMove("b6b7"));
 		
 		when(mock_hashMap.getTransposition((byte)0)).thenReturn(eval);
 		
@@ -157,15 +157,15 @@ public class PlySearcherTest {
 		
 		TranspositionEvaluation eval0 = new TranspositionEvaluation();
 		eval0.status = Status.sufficientSeedMoveList;
-		eval0.trans = new Transposition((byte)1, (short)-5, Score.lowerBound, new GenericMove("b2c3"));
+		eval0.trans = new Transposition(0, (byte)1, (short)-5, Score.lowerBound, new GenericMove("b2c3"));
 		
 		TranspositionEvaluation eval1_0 = new TranspositionEvaluation();
 		eval1_0.status = Status.sufficientTerminalNode;
-		eval1_0.trans = new Transposition((byte)1, (short)0, Score.exact, new GenericMove("a5d5"));
+		eval1_0.trans = new Transposition(0, (byte)1, (short)0, Score.exact, new GenericMove("a5d5"));
 
 		TranspositionEvaluation eval1_1 = new TranspositionEvaluation();
 		eval1_1.status = Status.sufficientSeedMoveList;
-		eval1_1.trans = new Transposition((byte)1, (short)-400, Score.exact, new GenericMove("c3a5"));
+		eval1_1.trans = new Transposition(0, (byte)1, (short)-400, Score.exact, new GenericMove("c3a5"));
 		
 		when(mock_hashMap.getTransposition((byte)0)).thenReturn(eval0);
 		when(mock_hashMap.getTransposition((byte)1)).thenReturn(eval1_0).thenReturn(eval1_1);
