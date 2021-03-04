@@ -15,18 +15,24 @@ public class Transposition implements ITransposition {
 	protected byte type;
 	protected int bestMove;
 	protected short accessCount;
+	protected int hashFragment;
 
-	public Transposition(byte depth, short score, byte bound, GenericMove bestMove) {
+	public Transposition(long hash, byte depth, short score, byte bound, GenericMove bestMove) {
 		// Only used by tests
-		this(depth, score, bound, Move.toMove(bestMove, null, Move.TYPE_REGULAR_NONE), null);
+		this(hash, depth, score, bound, Move.toMove(bestMove, null, Move.TYPE_REGULAR_NONE), null);
 	}
 	
-	public Transposition(byte depth, short score, byte bound, int bestMove, List<Integer> pv) {
+	public Transposition(long hash, byte depth, short score, byte bound, int bestMove, List<Integer> pv) {
 		setDepthSearchedInPly(depth);
 		setScore(score);
 		setType(bound);
 		setBestMove(bestMove);
 		setAccessCount((short)0);
+		setHashFragment(hash);
+	}
+
+	private void setHashFragment(long hash) {
+		hashFragment = (int)(hash >> 32);
 	}
 
 	@Override
@@ -176,5 +182,10 @@ public class Transposition implements ITransposition {
 			}
 		}
 		return eval;
+	}
+
+	@Override
+	public boolean checkHash(int hashCode) {
+		return hashCode == hashFragment;
 	}
 }

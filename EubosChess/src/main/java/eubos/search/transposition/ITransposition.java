@@ -27,4 +27,6 @@ public interface ITransposition {
 	List<Integer> getPv();
 	
 	Status evaluateSuitability(int depthRequiredPly);
+	
+	boolean checkHash(int hashCode);
 }

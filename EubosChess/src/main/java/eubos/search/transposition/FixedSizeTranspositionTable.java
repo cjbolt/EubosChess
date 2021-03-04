@@ -49,7 +49,7 @@ public class FixedSizeTranspositionTable {
 	
 	public static final long MBYTES_DEFAULT_HASH_SIZE = (ELEMENTS_DEFAULT_HASH_SIZE*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE;
 	
-	private Map<Long, ITransposition> hashMap = null;
+	private Map<Integer, ITransposition> hashMap = null;
 	private long hashMapSize = 0;
 	private long maxHashMapSize = ELEMENTS_DEFAULT_HASH_SIZE;
 	
@@ -85,12 +85,24 @@ public class FixedSizeTranspositionTable {
 					(hashSizeElements*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE));
 		}
 		if (numThreads == 1) {
-			hashMap = new HashMap<Long, ITransposition>((int)hashSizeElements, (float)0.75);
+			hashMap = new HashMap<Integer, ITransposition>((int)hashSizeElements, (float)0.75);
 		} else {
-			hashMap = new ConcurrentHashMap<Long, ITransposition>((int)hashSizeElements, (float)0.75);
+			hashMap = new ConcurrentHashMap<Integer, ITransposition>((int)hashSizeElements, (float)0.75);
 		}
 		hashMapSize = 0;
 		maxHashMapSize = hashSizeElements;
+	}
+	
+	private int getLeastSignificantBits(long hashCode) {
+		return (int)(hashCode & 0xFFFFFFFF);
+	}
+	
+	private int getMostSignificantBits(long hashCode) {
+		return (int)(hashCode >> 32);
+	}
+	
+	private boolean isMatchingHashCode(ITransposition trans, long hashCode) {
+		return trans.checkHash(getMostSignificantBits(hashCode));
 	}
 	
 	private void incrementAccessCount(ITransposition trans) {
@@ -103,9 +115,13 @@ public class FixedSizeTranspositionTable {
 	}
 	
 	public ITransposition getTransposition(long hashCode) {
-		ITransposition retrievedTrans = hashMap.get(hashCode);
-		incrementAccessCount(retrievedTrans);
-		return retrievedTrans;
+		ITransposition retrievedTrans = hashMap.get(getLeastSignificantBits(hashCode));
+		if (retrievedTrans != null && isMatchingHashCode(retrievedTrans, hashCode)) {
+			incrementAccessCount(retrievedTrans);
+			return retrievedTrans;
+		} else {
+			return null;
+		}
 	}
 	
 	private Short getBottomTwentyPercentAccessThreshold() {
@@ -122,7 +138,7 @@ public class FixedSizeTranspositionTable {
 		if (hashMapSize >= maxHashMapSize) {
 			EubosEngineMain.logger.info("Starting to free bottom 20% of Hash Table");
 			Short bottomTwentyPercentAccessThreshold = getBottomTwentyPercentAccessThreshold();
-			Iterator<Long> it = hashMap.keySet().iterator();
+			Iterator<Integer> it = hashMap.keySet().iterator();
 			while (it.hasNext()){
 				ITransposition trans = hashMap.get(it.next());
 				short count = trans.getAccessCount();
@@ -143,7 +159,7 @@ public class FixedSizeTranspositionTable {
 			// Remove the oldest 20% of hashes to make way for this one
 			removeLeastUsed();
 		}
-		if (hashMap.put(hashCode, trans) == null) {
+		if (hashMap.put(getLeastSignificantBits(hashCode), trans) == null) {
 			// Only increment size if hash wasn't already contained, otherwise overwrites
 			hashMapSize++;
 		}
