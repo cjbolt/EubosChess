@@ -330,8 +330,8 @@ public class BoardTest {
 	@Test
 	public void test_evaluateKingSafety_No_opposingBishopWrongColour() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("r4rk1/1p3p2/p7/P2P1p1B/4p3/2b5/3R1PPP/4K2R b K - 13 1 ");
-		assertEquals(-28, classUnderTest.evaluateKingSafety(true)); // 
-		assertEquals(-13, classUnderTest.evaluateKingSafety(false));
+		assertEquals(-28, classUnderTest.evaluateKingSafety(true)); // 7*2*2 rnf 0 diag = 28
+		assertEquals(-30, classUnderTest.evaluateKingSafety(false)); // 7*2*2 rnf 1*2*1 = 30
 	}
 	
 	@Test
