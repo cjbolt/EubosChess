@@ -94,17 +94,14 @@ public class Transposition implements ITransposition {
 		boolean updateTransposition = false;
 		//mg.sda.printTransDepthCheck(depthSearchedInPly, new_Depth);
 		
-		if (depthSearchedInPly < new_Depth) {
-			updateTransposition = true;
-			
+		if (depthSearchedInPly <= new_Depth) {
+			updateTransposition = true;	
 		} else if (depthSearchedInPly == new_Depth) {
 			//mg.sda.printTransBoundScoreCheck(type, score, new_score);
 			if (((type == Score.upperBound) || (type == Score.lowerBound)) &&
 					new_bound == Score.exact) {
 			    updateTransposition = true;
-			} else if ((type == Score.upperBound || type == Score.lowerBound) && (new_score > getScore())) {
-				if (EubosEngineMain.ENABLE_ASSERTS)
-					assert type == new_bound;
+			} else if ((type == Score.upperBound || type == Score.lowerBound) && new_score > getScore()) {
 				updateTransposition = true;
 			} else {
 				// don't update, worse score
