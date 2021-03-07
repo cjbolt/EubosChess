@@ -124,7 +124,9 @@ public class PositionManagerTest {
 	@Test
 	public void test_enPassantCaptureAtC3() throws InvalidPieceException, IllegalNotationException {
 		createSutAndRegisterPe( "r3k2r/1bqpbppp/p1n1p3/3nP3/PpP1N3/3B1N2/1P2QPPP/R4RK1 b kq c3 0 1");
-		classUnderTest.performMove( Move.valueOf( Position.b4, Piece.BLACK_PAWN, Position.c3, Piece.WHITE_PAWN ));
+		int en_passant_move =  Move.valueOf( Position.b4, Piece.BLACK_PAWN, Position.c3, Piece.WHITE_PAWN );
+		en_passant_move |= Move.MISC_EN_PASSANT_CAPTURE_MASK;
+		classUnderTest.performMove(en_passant_move);
 		int expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( Position.c3 );
 		assertEquals( Piece.BLACK_PAWN, expectPawn );
 	}
