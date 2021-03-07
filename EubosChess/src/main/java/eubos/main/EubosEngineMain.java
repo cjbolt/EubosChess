@@ -277,18 +277,20 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	private void validatePv(ProtocolInformationCommand command) {
 		if (ENABLE_ASSERTS) {
-			try {
-				int moves_applied = 0;
-				for (GenericMove move : command.getMoveList()) {
-					int eubos_move = Move.toMove(move, rootPosition.getTheBoard());
-					rootPosition.performMove(eubos_move, false); // don't update draw checker or hash
-					++moves_applied;
+			if (command.getMoveList() != null) {
+				try {
+					int moves_applied = 0;
+					for (GenericMove move : command.getMoveList()) {
+						int eubos_move = Move.toMove(move, rootPosition.getTheBoard());
+						rootPosition.performMove(eubos_move, false); // don't update draw checker or hash
+						++moves_applied;
+					}
+					for (int i=0; i<moves_applied; i++) {
+						rootPosition.unperformMove(false);
+					}
+				} catch (InvalidPieceException e) {
+					assert false;
 				}
-				for (int i=0; i<moves_applied; i++) {
-					rootPosition.unperformMove(false);
-				}
-			} catch (InvalidPieceException e) {
-				assert false;
 			}
 		}
 	}
