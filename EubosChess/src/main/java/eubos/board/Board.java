@@ -362,6 +362,10 @@ public class Board {
 		// Switch piece-specific bitboards and piece lists
 		if (promotedPiece != Piece.NONE) {
 			// For a promotion, need to resolve piece-specific across multiple bitboards
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert (pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] & initialSquareMask) != 0: 
+					String.format("Non-existant piece at %s", Position.toGenericPosition(originSquare));
+			}
 			pieces[INDEX_PAWN] &= ~initialSquareMask;
 			pieces[promotedPiece] |= targetSquareMask;
 			if (ENABLE_PIECE_LISTS) {
@@ -369,6 +373,10 @@ public class Board {
 			}
 		} else {
 			// Piece type doesn't change across boards
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert (pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] & initialSquareMask) != 0: 
+					String.format("Non-existant piece at %s", Position.toGenericPosition(originSquare));
+			}
 			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
 			if (ENABLE_PIECE_LISTS) {
 				pieceLists.updatePiece(pieceToMove, originSquare, targetSquare);
@@ -711,6 +719,9 @@ public class Board {
 				pieceLists.removePiece(piece, atPos);
 			}
 		} else {
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert false;
+			}
 			piece = Piece.NONE;
 		}
 		return piece;
@@ -1197,12 +1208,12 @@ public class Board {
 	}
 	
 	public byte getKingSafetyEvaluationDiagonalSquares(boolean whiteOnMove, int atPos) {
-		long ownPieces = (whiteOnMove) ? getWhitePawns()|getWhiteBishops() : getBlackPawns()|getBlackBishops();
+		long ownPieces = pieces[Piece.PAWN];  //(whiteOnMove) ? getWhitePawns()/*|getWhiteBishops()*/ : getBlackPawns()/*|getBlackBishops()*/;
 		return getKingSafetyEvaluation(ownPieces, atPos, SquareAttackEvaluator.diagonals);
 	}
 	
 	public byte getKingSafetyEvaluationRankFileSquares(boolean whiteOnMove, int atPos) {
-		long ownPieces = (whiteOnMove) ? getWhitePawns()|getWhiteRooks() : getBlackPawns()|getBlackRooks();
+		long ownPieces = pieces[Piece.PAWN]; //(whiteOnMove) ? getWhitePawns()/*|getWhiteRooks()*/ : getBlackPawns()/*|getBlackRooks()*/;
 		return getKingSafetyEvaluation(ownPieces, atPos, SquareAttackEvaluator.rankFile);
 	}
 		
