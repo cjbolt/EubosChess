@@ -94,7 +94,7 @@ public class Transposition implements ITransposition {
 		boolean updateTransposition = false;
 		//mg.sda.printTransDepthCheck(depthSearchedInPly, new_Depth);
 		
-		if (depthSearchedInPly <= new_Depth) {
+		if (depthSearchedInPly < new_Depth) {
 			updateTransposition = true;	
 		} else if (depthSearchedInPly == new_Depth) {
 			//mg.sda.printTransBoundScoreCheck(type, score, new_score);
