@@ -117,20 +117,4 @@ public class PieceListTest {
 		sut.addPiece(Piece.WHITE_BISHOP, Position.b2);
 		//assertEquals(8, sut.getNum(Piece.WHITE_BISHOP));
 	}
-	
-	@Test
-	public void test_whenPiecesRemoved_multipleTimes_countIsZero() {
-		sut.addPiece(Piece.WHITE_BISHOP, Position.a1);
-		sut.removePiece(Piece.WHITE_BISHOP, Position.a1);
-		sut.removePiece(Piece.WHITE_BISHOP, Position.a1);
-		//assertEquals(0, sut.getNum(Piece.WHITE_BISHOP));
-	}
-	
-	@Test
-	public void test_whenPiecesRemoved_multipleTimes_arrayIsEmpty() {
-		sut.addPiece(Piece.WHITE_BISHOP, Position.a1);
-		sut.removePiece(Piece.WHITE_BISHOP, Position.a1);
-		sut.removePiece(Piece.WHITE_BISHOP, Position.a1);
-		//assertEquals(0, sut.getPieceArray(Piece.WHITE_BISHOP).length);
-	}
 }
