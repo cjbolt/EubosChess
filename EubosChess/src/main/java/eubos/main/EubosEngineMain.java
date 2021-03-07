@@ -271,6 +271,25 @@ public class EubosEngineMain extends AbstractEngine {
 		if (ENABLE_UCI_INFO_SENDING) {
 			this.getProtocol().send(infoCommand);
 			logInfo(infoCommand);
+			validatePv(infoCommand);
+		}
+	}
+	
+	private void validatePv(ProtocolInformationCommand command) {
+		if (ENABLE_ASSERTS) {
+			try {
+				int moves_applied = 0;
+				for (GenericMove move : command.getMoveList()) {
+					int eubos_move = Move.toMove(move, rootPosition.getTheBoard());
+					rootPosition.performMove(eubos_move, false); // don't update draw checker or hash
+					++moves_applied;
+				}
+				for (int i=0; i<moves_applied; i++) {
+					rootPosition.unperformMove(false);
+				}
+			} catch (InvalidPieceException e) {
+				assert false;
+			}
 		}
 	}
 	
