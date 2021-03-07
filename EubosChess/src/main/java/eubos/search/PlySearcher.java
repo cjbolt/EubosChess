@@ -98,6 +98,8 @@ public class PlySearcher {
 		int alphaOriginal = alpha;
 		int plyScore = Score.PROVISIONAL_ALPHA;
 		int prevBestMove = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)
+			pc.clearContinuationBeyondPly(currPly);
 		
 		// Handle draws by three-fold repetition
 		if (!atRootNode() && pos.isThreefoldRepetitionPossible()) {
@@ -175,11 +177,7 @@ public class PlySearcher {
 		while (!isTerminated()) {
 			if (atRootNode()) {
 				sm.setCurrentMove(Move.toGenericMove(currMove), moveNumber);
-			}
-			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
-				pc.clearContinuationBeyondPly(currPly);
-			}
-			
+			}		
 			// Apply move and score
 			sda.printPerformMove(currMove);
 			sda.nextPly();
@@ -240,6 +238,8 @@ public class PlySearcher {
 		if (currPly > extendedSearchDeepestPly) {
 			extendedSearchDeepestPly = currPly;
 		}
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)
+			pc.clearContinuationBeyondPly(currPly);
 		
 		// Stand Pat in extended search
 		short plyScore = (short) pe.evaluatePosition();	
@@ -284,10 +284,7 @@ public class PlySearcher {
 
 		int currMove = move_iter.next();
 		pc.initialise(currPly, currMove);
-		while(true) {
-			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)
-				pc.clearContinuationBeyondPly(currPly);
-			
+		while(true) {			
 			// Apply capture and score
 			sda.printPerformMove(currMove);			
 			sda.nextPly();
