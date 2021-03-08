@@ -9,9 +9,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Random;
 
-import com.fluxchess.jcpi.models.GenericMove;
-
-
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
@@ -179,12 +176,12 @@ public class MoveList implements Iterable<Integer> {
 		return (normal_search_moves.size() == 0);
 	}
 	
-	public GenericMove getRandomMove() {
-		GenericMove bestMove = null;
+	public int getRandomMove() {
+		int bestMove = Move.NULL_MOVE;
 		if (!isMateOccurred()) {
 			Random randomIndex = new Random();
 			Integer indexToGet = randomIndex.nextInt(normal_search_moves.size());
-			bestMove = Move.toGenericMove(normal_search_moves.get(indexToGet));		
+			bestMove = normal_search_moves.get(indexToGet);		
 		}
 		return bestMove;
 	}

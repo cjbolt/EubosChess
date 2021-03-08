@@ -1,7 +1,7 @@
 package eubos.search.generators;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 import java.util.LinkedList;
 
@@ -14,8 +14,9 @@ import com.fluxchess.jcpi.models.GenericPosition;
 
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
+import eubos.position.Move;
 import eubos.position.PositionManager;
-import eubos.search.NoLegalMoveException;
+
 import eubos.search.SearchResult;
 
 public class RandomMoveGeneratorTest {
@@ -35,15 +36,11 @@ public class RandomMoveGeneratorTest {
 	}
 	
 	private void performTest( boolean assertSense ) {
-		try {
-			SearchResult res = classUnderTest.findMove((byte)0);
-			if ( assertSense )
-				assertTrue(res.bestMove.equals(expectedMove));
-			else
-				assertFalse(res.bestMove.equals(expectedMove));
-		} catch ( NoLegalMoveException e ) {
-			assert( false );
-		}
+		SearchResult res = classUnderTest.findMove((byte)0);
+		if ( assertSense )
+			assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
+		else
+			assertNotEquals(expectedMove, Move.toGenericMove(res.bestMove));
 	}
 	
 	@Test
@@ -64,7 +61,7 @@ public class RandomMoveGeneratorTest {
 	}
 	
 	@Test
-	public void test_findBestMove_CaptureToEscapeCheck() throws NoLegalMoveException {
+	public void test_findBestMove_CaptureToEscapeCheck()  {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -82,7 +79,7 @@ public class RandomMoveGeneratorTest {
 	}
 	
 	@Test
-	public void test_findBestMove_MoveToEscapeCheck() throws NoLegalMoveException {
+	public void test_findBestMove_MoveToEscapeCheck()  {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -99,8 +96,8 @@ public class RandomMoveGeneratorTest {
 		performTest(true);
 	}
 	
-	@Test(expected=NoLegalMoveException.class)
-	public void test_findBestMove_NoLegalMove() throws NoLegalMoveException {
+	@Test
+	public void test_findBestMove_NoLegalMove()  {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -112,6 +109,6 @@ public class RandomMoveGeneratorTest {
 		//   abcdefgh
 		PositionManager bm = createPm("8/8/8/8/8/1pp5/ppp5/Kp6 w - - 0 1");
 		classUnderTest = new RandomMoveGenerator( bm, Colour.white );
-		classUnderTest.findMove((byte)0);
+		assertEquals(Move.NULL_MOVE, classUnderTest.findMove((byte)0).bestMove);
 	}
 }

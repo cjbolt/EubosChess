@@ -19,7 +19,7 @@ import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.PositionManager;
-import eubos.search.NoLegalMoveException;
+
 import eubos.search.transposition.FixedSizeTranspositionTable;
 import eubos.search.SearchResult;
 
@@ -51,15 +51,11 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	private void doFindMoveTest( byte searchDepth, boolean expectMove ) {
-		try {
-			SearchResult res = classUnderTest.findMove(searchDepth);
-			if ( expectMove )
-				assertEquals(expectedMove, res.bestMove);
-			else
-				assertFalse(res.bestMove.equals(expectedMove));
-		} catch ( NoLegalMoveException e ) {
-			fail();
-		}
+		SearchResult res = classUnderTest.findMove(searchDepth);
+		if ( expectMove )
+			assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
+		else
+			assertFalse(Move.toGenericMove(res.bestMove).equals(expectedMove));
 	}
 
 	@Test
@@ -100,7 +96,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	public void test_findMove_CaptureToEscapeCheck() throws NoLegalMoveException, IllegalNotationException {
+	public void test_findMove_CaptureToEscapeCheck() throws IllegalNotationException {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -116,7 +112,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	public void test_findMove_MoveToEscapeCheck() throws NoLegalMoveException, IllegalNotationException {
+	public void test_findMove_MoveToEscapeCheck() throws IllegalNotationException {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -131,8 +127,8 @@ public class MiniMaxMoveGeneratorTest {
 		doFindMoveTest(true);
 	}
 	
-	@Test(expected=NoLegalMoveException.class)
-	public void test_findMove_NoLegalMove() throws NoLegalMoveException {
+	@Test
+	public void test_findMove_NoLegalMove()  {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -143,11 +139,11 @@ public class MiniMaxMoveGeneratorTest {
 		// 1 kP......
 		//   abcdefgh
 		setupPosition( "8/8/8/8/8/1pp5/ppp5/Kp6 w - - - -" );
-		classUnderTest.findMove(SEARCH_DEPTH_IN_PLY);
+		assertEquals(Move.NULL_MOVE, classUnderTest.findMove(SEARCH_DEPTH_IN_PLY).bestMove);
 	}
 	
 	@Test
-	public void test_findMove_ArenaFailKingMove() throws NoLegalMoveException, IllegalNotationException {
+	public void test_findMove_ArenaFailKingMove() throws IllegalNotationException {
 		// 8 ..b.q...
 		// 7 ......K.
 		// 6 ..q.....
@@ -163,7 +159,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	public void test_findMove_ArenaFailKingInCheck() throws NoLegalMoveException, IllegalNotationException {
+	public void test_findMove_ArenaFailKingInCheck()throws IllegalNotationException {
 		// 8 ...NKBNR
 		// 7 ...P.PPP
 		// 6 ........
@@ -183,7 +179,7 @@ public class MiniMaxMoveGeneratorTest {
 	}	
 	
 	@Test
-	public void test_findMove_ChooseHighestValueCapture() throws NoLegalMoveException, IllegalNotationException {
+	public void test_findMove_ChooseHighestValueCapture()throws IllegalNotationException {
 		// 8 ........
 		// 7 .....Q..
 		// 6 ...Pp...
@@ -199,7 +195,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	public void test_findMove_ChooseHighestValueCaptureAndPromotion() throws NoLegalMoveException, IllegalNotationException {
+	public void test_findMove_ChooseHighestValueCaptureAndPromotion()throws IllegalNotationException {
 		// 8 .....Q..
 		// 7 ....p...
 		// 6 ...P....
@@ -215,7 +211,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	public void test_findMove_pawnPromotion()  throws NoLegalMoveException, IllegalNotationException {
+	public void test_findMove_pawnPromotion() throws IllegalNotationException {
 		// 8 ........
 		// 7 ....p...
 		// 6 ...P....
@@ -231,7 +227,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	public void test_findMove_pinnedPawn1()  throws NoLegalMoveException, IllegalNotationException {
+	public void test_findMove_pinnedPawn1() throws IllegalNotationException {
 		// 8 ....K...
 		// 7 ........
 		// 6 ....P...
@@ -247,7 +243,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 
 	@Test
-	public void test_findMove_pinnedPawn2()  throws NoLegalMoveException, IllegalNotationException {
+	public void test_findMove_pinnedPawn2() throws IllegalNotationException {
 		// Observed to produce an illegal move exception in Arena testing, 29th March 2015.
 		// 8 .NBQK..R
 		// 7 ...P...P
@@ -264,7 +260,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 
 	@Test
-	public void test_findMove_mateInOne1()  throws NoLegalMoveException, IllegalNotationException {
+	public void test_findMove_mateInOne1() throws IllegalNotationException {
 		// chess.com Problem ID: 0160818
 		setupPosition( "5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - - -" );
 		expectedMove = new GenericMove("d3h7");
@@ -272,7 +268,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	public void test_findMove_mateInOne2()  throws NoLegalMoveException, IllegalNotationException {
+	public void test_findMove_mateInOne2() throws IllegalNotationException {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		setupPosition( "2N5/4R3/2k3KQ/R7/1PB5/5N2/8/6B1 w - - 0 1" );
 		// various possible mates
@@ -284,7 +280,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	public void test_findMove_mateInOne3()  throws NoLegalMoveException, IllegalNotationException {
+	public void test_findMove_mateInOne3() throws IllegalNotationException {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		setupPosition( "4N3/5P1P/5N1k/Q5p1/5PKP/B7/8/1B6 w - - 0 1" );
 		// various possible mates
@@ -298,7 +294,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	public void test_findMove_mateInOne4()  throws NoLegalMoveException, IllegalNotationException {
+	public void test_findMove_mateInOne4() throws IllegalNotationException {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		setupPosition("8/4N3/7Q/4k3/8/4KP2/3P4/8 w - - 0 1" );
 		// Two possible pawn mates
@@ -308,7 +304,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	public void test_findMove_mateInOne5()  throws NoLegalMoveException, IllegalNotationException {
+	public void test_findMove_mateInOne5() throws IllegalNotationException {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		setupPosition( "8/8/K7/p7/k2N3R/p7/P7/8 w - - 0 1" );
 		expectedMove = new GenericMove("d4e6");
@@ -316,7 +312,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 
 	@Test
-	public void test_findMove_mateInOne6()  throws NoLegalMoveException, IllegalNotationException {
+	public void test_findMove_mateInOne6() throws IllegalNotationException {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		setupPosition( "1rk2N2/1p6/8/B1Pp4/B6Q/K7/8/2R5 w - d6 0 1" );
 		expectedMove = new GenericMove("c5d6"); //en passant move causes discovered checkmate
@@ -324,7 +320,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 
 	@Test
-	public void test_findMove_mateInOne7()  throws NoLegalMoveException, IllegalNotationException {
+	public void test_findMove_mateInOne7() throws IllegalNotationException {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		//setupPosition( "8/7B/8/3N4/8/1Q2B3/PPP5/rk2K2R w K - 0 1" ); // multiple possible mates! Doesn't ensure castle is mate
 		setupPosition("q7/8/8/8/8/1Q2B3/PPP5/rk2K2R w K - 0 1");
@@ -334,7 +330,7 @@ public class MiniMaxMoveGeneratorTest {
 	}
 
 	@Test
-	public void test_findMove_mateInTwo1()  throws NoLegalMoveException, IllegalNotationException {
+	public void test_findMove_mateInTwo1() throws IllegalNotationException {
 		// chess.com Problem ID: 0022190
 		setupPosition("k1K5/b7/R7/1P6/1n6/8/8/8 w - - - -" );
 		expectedMove = new GenericMove("b5b6");
@@ -414,15 +410,15 @@ public class MiniMaxMoveGeneratorTest {
 	}
 		
 	@Test
-	public void test_findMove_bugPromotingPawn_Arena_4ply()throws IllegalNotationException, NoLegalMoveException {
+	public void test_findMove_bugPromotingPawn_Arena_4ply()throws IllegalNotationException  {
 		setupPosition( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
 		expectedMove = new GenericMove("h8g7");
 		SearchResult res = classUnderTest.findMove((byte)4);
-		assertEquals(expectedMove, res.bestMove);
+		assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
 	}
 		
 	@Test
-	public void test_findMove_bugPromotingPawn_Arena_5ply()throws IllegalNotationException, NoLegalMoveException {
+	public void test_findMove_bugPromotingPawn_Arena_5ply()throws IllegalNotationException  {
 		// In this test, Eubos originally couldn't find the move to promote the 2nd pawn and just checked indefinitely with queen.
 		// It can do it with depth = 3, but not 5>=depth<10 (Because move order is not considered in depth first mini max algorithm).
 		// The solution is to do an iterative search, deepening and seeding each time.
@@ -430,7 +426,7 @@ public class MiniMaxMoveGeneratorTest {
 		expectedMove = new GenericMove("h8g7");
 		
 		SearchResult res = classUnderTest.findMove((byte)4);
-		assertEquals(expectedMove, res.bestMove);
+		assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
 		
 		// changed to safest move in extended search changed the move used here 21st August 2020
 		//expectedMove = new GenericMove("h8g8");
@@ -439,11 +435,11 @@ public class MiniMaxMoveGeneratorTest {
 		List<Integer> lastPc = classUnderTest.pc.toPvList(0);
 		res = classUnderTest.findMove((byte)5, lastPc);
 		
-		assertEquals(expectedMove, res.bestMove);
+		assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
 	}
 	
 	@Test
-	public void test_findMove_bugPromotingPawn_Arena_6ply()throws IllegalNotationException, NoLegalMoveException {
+	public void test_findMove_bugPromotingPawn_Arena_6ply()throws IllegalNotationException  {
 		// N.b. as per test_findMove_bugPromotingPawn_Arena_5ply
 		setupPosition( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
 		expectedMove = new GenericMove("h8g7");
@@ -454,12 +450,12 @@ public class MiniMaxMoveGeneratorTest {
 		lastPc = classUnderTest.pc.toPvList(0);
 		SearchResult res = classUnderTest.findMove((byte)6,lastPc);
 		
-	    assertEquals(expectedMove, res.bestMove);
+	    assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
 	}
 	
 	@Test
 	@Ignore // Not decisive enough case to castle. Not massively clear why should castle.
-	public void test_findMove_NeedToCastle_FromLichess()throws IllegalNotationException, NoLegalMoveException {
+	public void test_findMove_NeedToCastle_FromLichess()throws IllegalNotationException  {
 		setupPosition("4k2r/2Q2ppp/8/3r4/1P5P/P1p5/4PP2/R3K1N1 b Qk - - -");
 		expectedMove = new GenericMove("e8g8");
 		
@@ -469,29 +465,29 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
-	public void test_mate_in_2()throws IllegalNotationException, NoLegalMoveException {
+	public void test_mate_in_2()throws IllegalNotationException  {
 		setupPosition("5bkr/5ppp/5P2/8/8/8/6Q1/R4KR1 w - - 0 38 ");
 		expectedMove = new GenericMove("g2g7"); // queen sac leads to mate in 1
 		SearchResult res = classUnderTest.findMove((byte)3);
 		
-		assertEquals(expectedMove, res.bestMove);
+		assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
 	}
 	
 	@Test
-	public void test_extendedSearch_recaptureQueenLeadsToLossOfMaterial()throws IllegalNotationException, NoLegalMoveException {
+	public void test_extendedSearch_recaptureQueenLeadsToLossOfMaterial()throws IllegalNotationException  {
 		if (EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
 			setupPosition("8/6q1/5p2/8/8/2Q5/8/8 w - - 0 38 ");
 			expectedMove = new GenericMove("c3f6");
 			
 			SearchResult res = classUnderTest.findMove((byte)1);
 			// Leads to stalemate
-			assertEquals(expectedMove, res.bestMove);
+			assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
 		}
 	}
 	
 	@Test
 	@Ignore // confusing as the position is unreal - e.g. stalemate! Perhaps add Kings???
-	public void test_extendedSearch_recaptureBishopLeadsToLossOfMaterial()throws IllegalNotationException, NoLegalMoveException {
+	public void test_extendedSearch_recaptureBishopLeadsToLossOfMaterial()throws IllegalNotationException  {
 		setupPosition("8/6q1/5p2/8/8/2B5/8/8 w - - 0 38 ");
 		expectedMove = new GenericMove("c3f6");
 		
@@ -502,7 +498,7 @@ public class MiniMaxMoveGeneratorTest {
 	
 	@Test
 	@Ignore // Not a good test - nowadays it isn't clear eubos should castle.
-	public void test_findMove_NeedToCastle_FromLichess1()throws IllegalNotationException, NoLegalMoveException {
+	public void test_findMove_NeedToCastle_FromLichess1()throws IllegalNotationException  {
 		setupPosition( "rnb1kbnr/p4p1p/1qp1p1p1/3p4/8/1B2PN2/PPPP1PPP/RNBQK2R w KQkq - - -");
 		expectedMove = new GenericMove("e1g1");
 		

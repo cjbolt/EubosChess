@@ -6,10 +6,11 @@ import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 
 
 import eubos.main.EubosEngineMain;
+import eubos.position.Move;
 import eubos.score.ReferenceScore;
 import eubos.score.ReferenceScore.Reference;
 import eubos.search.DrawChecker;
-import eubos.search.NoLegalMoveException;
+
 import eubos.search.Score;
 import eubos.search.SearchResult;
 import eubos.search.transposition.FixedSizeTranspositionTable;
@@ -61,17 +62,15 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	@Override
 	public void run() {
 		byte currentDepth = 1;
-		SearchResult res = new SearchResult(null, false);
+		SearchResult res = new SearchResult(Move.NULL_MOVE, false);
 		List<Integer> pc = null;
 		enableSearchMetricsReporter(true);
 		IterativeMoveSearchStopper stopper = new IterativeMoveSearchStopper();
 		stopper.start();
 		while (!searchStopped) {
-			try {
-				res = mg.findMove(currentDepth, pc, sr);
-			} catch( NoLegalMoveException e ) {
-				EubosEngineMain.logger.info(
-						String.format("IterativeMoveSearcher out of legal moves"));
+			res = mg.findMove(currentDepth, pc, sr);
+			if (res != null && res.bestMove == Move.NULL_MOVE) {
+				EubosEngineMain.logger.info("IterativeMoveSearcher out of legal moves");
 				searchStopped = true;
 			}
 			if (res != null && res.foundMate && !analyse) {
@@ -96,7 +95,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			String.format("IterativeMoveSearcher ended best=%s gameTimeRemaining=%d", res.bestMove, gameTimeRemaining));
 		stopper.end();
 		enableSearchMetricsReporter(false);
-		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( res.bestMove, null ));
+		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( Move.toGenericMove(res.bestMove), null ));
 		terminateSearchMetricsReporter();
 		mg.sda.close();
 		if (EXPLICIT_GARBAGE_COLLECTION) {

@@ -11,7 +11,7 @@ import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
-import eubos.search.NoLegalMoveException;
+
 import eubos.search.Score;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;
@@ -137,7 +137,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			bestMove = Move.toGenericMove(trans.getBestMove());
 		} else {
 			EubosEngineMain.logger.warning("Can't find bestMove in Transposition Table");
-			bestMove = workers.get(0).result.bestMove;
+			bestMove = Move.toGenericMove(workers.get(0).result.bestMove);
 		}
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( bestMove, null ));
 	}
@@ -172,14 +172,12 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		public void run() {
 			byte currentDepth = 1;
 			List<Integer> pc = null;
-			result = new SearchResult(null, false);
+			result = new SearchResult(Move.NULL_MOVE, false);
 		
 			while (!searchStopped || !halted) {
-				try {
-					result = myMg.findMove(currentDepth, pc, sr);
-				} catch( NoLegalMoveException e ) {
-					EubosEngineMain.logger.info(
-							String.format("out of legal moves"));
+				result = myMg.findMove(currentDepth, pc, sr);
+				if (result != null && result.bestMove == Move.NULL_MOVE) {
+					EubosEngineMain.logger.info(String.format("out of legal moves"));
 					searchStopped = true;
 				}
 				if (result != null && result.foundMate && !analyse) {

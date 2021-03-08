@@ -1,12 +1,10 @@
 package eubos.search;
 
-import com.fluxchess.jcpi.models.GenericMove;
-
 public class SearchResult {
-	public GenericMove bestMove;
+	public int bestMove;
 	public boolean foundMate;
 	
-	public SearchResult(GenericMove bestMove, boolean foundMate) {
+	public SearchResult(int bestMove, boolean foundMate) {
 		this.bestMove = bestMove;
 		this.foundMate = foundMate;
 	}

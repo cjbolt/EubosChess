@@ -9,7 +9,7 @@ import eubos.main.EubosEngineMain;
 import eubos.score.ReferenceScore;
 import eubos.score.ReferenceScore.Reference;
 import eubos.search.DrawChecker;
-import eubos.search.NoLegalMoveException;
+
 import eubos.search.Score;
 import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
@@ -63,14 +63,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 	public abstract void halt();
 
 	protected SearchResult doFindMove(GenericMove selectedMove, List<Integer> pc, byte depth) {
-		SearchResult res = null;
-		try {
-			res = mg.findMove(depth, pc, sr);
-		} catch( NoLegalMoveException e ) {
-			EubosEngineMain.logger.info(
-					String.format("AbstractMoveSearcher out of legal moves"));
-		}
-		return res;
+		return mg.findMove(depth, pc, sr);
 	}
 
 	public AbstractMoveSearcher(ThreadGroup group, String name) {

@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
-import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.search.Score;
 import eubos.search.transposition.TranspositionEvaluation.Status;

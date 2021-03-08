@@ -2,20 +2,16 @@ package eubos.search.generators;
 
 import java.util.List;
 
-import com.fluxchess.jcpi.models.GenericMove;
-
-
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
-import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.score.IEvaluate;
 import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
 import eubos.search.KillerList;
-import eubos.search.NoLegalMoveException;
+
 import eubos.search.PlySearcher;
 import eubos.search.PrincipalContinuation;
 import eubos.search.Score;
@@ -87,13 +83,13 @@ public class MiniMaxMoveGenerator implements
 	}
 	
 	@Override
-	public SearchResult findMove(byte searchDepth) throws NoLegalMoveException {
+	public SearchResult findMove(byte searchDepth)  {
 		return this.findMove(searchDepth, null);
 	}
 	
 	public SearchResult findMove(
 			byte searchDepth, 
-			List<Integer> lastPc) throws NoLegalMoveException {
+			List<Integer> lastPc)  {
 		return this.findMove(searchDepth, lastPc, new SearchMetricsReporter(null, tt, new ReferenceScore(tt)));
 	}
 	
@@ -101,7 +97,7 @@ public class MiniMaxMoveGenerator implements
 	public SearchResult findMove(
 			byte searchDepth, 
 			List<Integer> lastPc,
-			SearchMetricsReporter sr) throws NoLegalMoveException {
+			SearchMetricsReporter sr)  {
 		boolean foundMate = false;
 		initialiseSearchDepthDependentObjects(searchDepth, pm, sm);
 		ps = new PlySearcher(tta, pc, sm, sr, searchDepth, pm, pos, lastPc, pe, killers, sda);
@@ -119,11 +115,7 @@ public class MiniMaxMoveGenerator implements
 			foundMate = true;
 		}
 		// Select the best move
-		GenericMove bestMove = Move.toGenericMove(pc.getBestMove((byte)0));
-		if (bestMove==null) {
-			throw new NoLegalMoveException();
-		}
-		return new SearchResult(bestMove,foundMate);
+		return new SearchResult(pc.getBestMove((byte)0), foundMate);
 	}
 	
 	public synchronized void terminateFindMove() {
