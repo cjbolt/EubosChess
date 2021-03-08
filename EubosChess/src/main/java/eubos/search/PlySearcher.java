@@ -98,8 +98,9 @@ public class PlySearcher {
 		int alphaOriginal = alpha;
 		int plyScore = Score.PROVISIONAL_ALPHA;
 		int prevBestMove = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
-		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			pc.clearContinuationBeyondPly(currPly);
+		}
 		
 		// Handle draws by three-fold repetition
 		if (!atRootNode() && pos.isThreefoldRepetitionPossible()) {
@@ -142,12 +143,12 @@ public class PlySearcher {
 				}
 				// ...If hash data still good enough for a cut off, do that here.
 				if (eval.status != Status.sufficientSeedMoveList) {
-	//				// careful not to bring down continuations we shouldn't!
-	//			    if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
-	//					pc.update(currPly, eval.trans.getPv());
-	//				} else {
-	//					pc.set(currPly, trans_move);
-	//				}
+					// careful not to bring down continuations we shouldn't!
+				    if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
+						pc.update(currPly, eval.trans.getPv());
+					} else {
+						pc.set(currPly, eval.trans.getBestMove());
+					}
 					updatePrincipalContinuation(eval.trans.getBestMove(), (short) hashScore);
 					sda.printCutOffWithScore(hashScore);
 					return hashScore;
@@ -177,7 +178,10 @@ public class PlySearcher {
 		while (!isTerminated()) {
 			if (atRootNode()) {
 				sm.setCurrentMove(Move.toGenericMove(currMove), moveNumber);
-			}		
+			}
+			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
+				pc.clearContinuationBeyondPly(currPly);
+			}
 			// Apply move and score
 			sda.printPerformMove(currMove);
 			sda.nextPly();
@@ -238,8 +242,9 @@ public class PlySearcher {
 		if (currPly > extendedSearchDeepestPly) {
 			extendedSearchDeepestPly = currPly;
 		}
-		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			pc.clearContinuationBeyondPly(currPly);
+		}
 		
 		// Stand Pat in extended search
 		short plyScore = (short) pe.evaluatePosition();	
@@ -284,7 +289,10 @@ public class PlySearcher {
 
 		int currMove = move_iter.next();
 		pc.initialise(currPly, currMove);
-		while(true) {			
+		while(true) {		
+			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
+				pc.clearContinuationBeyondPly(currPly);
+			}
 			// Apply capture and score
 			sda.printPerformMove(currMove);			
 			sda.nextPly();
