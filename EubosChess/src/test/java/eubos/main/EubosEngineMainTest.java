@@ -149,9 +149,9 @@ public class EubosEngineMainTest {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			String expectedOutput;
 			if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
-				expectedOutput = "info depth 1 seldepth 7 score cp 154 pv d7e5 d4d5 e5f3 hashfull 0 nps 500 time 104 nodes 52"+CMD_TERMINATOR+
-	                    "info depth 1 seldepth 3 score cp 166 pv c7c2 d4a7 hashfull 0 nps 575 time 106 nodes 61"+CMD_TERMINATOR+
-	                    "info depth 2 seldepth 6 score cp 132 pv c7c2 b1c3 d7e5 hashfull 0 nps 1577 time 116 nodes 183"+CMD_TERMINATOR
+				expectedOutput = "info depth 1 seldepth 7 score cp 143 pv d7e5 d4d5 e5f3 hashfull 0 nps 504 time 103 nodes 52"+CMD_TERMINATOR+
+	                    "info depth 1 seldepth 3 score cp 151 pv c7c2 d4a7 hashfull 0 nps 580 time 105 nodes 61"+CMD_TERMINATOR+
+	                    "info depth 2 seldepth 6 score cp 123 pv c7c2 b1c3 d7e5 hashfull 0 nps 1600 time 115 nodes 184"+CMD_TERMINATOR
 	                    +BEST_PREFIX+"c7c2";
 			} else if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && !PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
 				expectedOutput = "info depth 1 seldepth 4 score cp -141 pv d7e5 f3e5 c7e5 hashfull 0 nps 500 time 14 nodes 7"+CMD_TERMINATOR+
@@ -313,8 +313,8 @@ public class EubosEngineMainTest {
 	public void test_pawn_move_clears_draw_checker() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"1"+CMD_TERMINATOR,BEST_PREFIX+"e2e3"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves e2e3 e7e5"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"1"+CMD_TERMINATOR,BEST_PREFIX+"e2e4"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves e2e4 e7e5"+CMD_TERMINATOR, null));
 		performTest(500);
 		assertEquals(1, (int)classUnderTest.dc.getNumEntries()); // Pawn moves clear DrawChecker history, so we just get the position after the pawn move
 	}
@@ -461,7 +461,7 @@ public class EubosEngineMainTest {
 	public void test_mate_in_3_guardian3713() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/2p5/P4p2/Q1N2k1P/2P2P2/3PK2P/5R2/2B2R2 w - - 1 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_TIME_PREFIX+"4000"+CMD_TERMINATOR, BEST_PREFIX+"f2d2"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR, BEST_PREFIX+"f2d2"+CMD_TERMINATOR));
 		performTestExpectMate(4000, 3);
 		assertEquals(2, (int)classUnderTest.dc.getNumEntries());
 	}

@@ -97,14 +97,10 @@ public class Transposition implements ITransposition {
 		if (depthSearchedInPly < new_Depth) {
 			updateTransposition = true;	
 		} else if (depthSearchedInPly == new_Depth) {
-			//mg.sda.printTransBoundScoreCheck(type, score, new_score);
-			if (((type == Score.upperBound) || (type == Score.lowerBound)) &&
-					new_bound == Score.exact) {
-			    updateTransposition = true;
-			} else if ((type == Score.upperBound || type == Score.lowerBound) && new_score > getScore()) {
+			if ((type == Score.upperBound || type == Score.lowerBound) && new_score > getScore()) {
 				updateTransposition = true;
 			} else {
-				// don't update, worse score
+				// don't update, worse bound score than we currently have
 			}
 		} else {
 			// don't update, depth is less than what we have

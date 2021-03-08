@@ -310,15 +310,15 @@ public class BoardTest {
 	@Test
 	public void test_evaluateKingSafety_safe() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("5krr/4pppp/6bq/8/8/6BQ/4PPPP/5KRR b - - 13 1");
-		assertEquals(-15, classUnderTest.evaluateKingSafety(false)); // 5 squares, can be attacked by three pieces
-		assertEquals(-15, classUnderTest.evaluateKingSafety(true));
+		assertEquals(-42, classUnderTest.evaluateKingSafety(false)); // 5 squares, can be attacked by three pieces
+		assertEquals(-42, classUnderTest.evaluateKingSafety(true));
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_notVerySafe() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("6rr/5ppp/1k4bq/8/8/1K4BQ/5PPP/6RR b - - 13 1 ");
-		assertEquals(-41, classUnderTest.evaluateKingSafety(false)); // diagonals 7 squares, can be attacked by two pieces; r'n'f 9 squares can be attacked by three pieces
-		assertEquals(-41, classUnderTest.evaluateKingSafety(true));
+		assertEquals(-100, classUnderTest.evaluateKingSafety(false)); // diagonals 7 squares, can be attacked by two pieces; r'n'f 9 squares can be attacked by three pieces
+		assertEquals(-100, classUnderTest.evaluateKingSafety(true));
 	}
 	
 	@Test
@@ -337,7 +337,7 @@ public class BoardTest {
 	@Test
 	public void test_evaluateKingSafety_Yes_opposingBishopRightColour() throws InvalidPieceException, IllegalNotationException {
 		setUpPosition("r4rk1/1p6/p7/P2P1p1B/4p3/2b5/3R1PPP/2K4R b - - 13 1 ");
-		assertEquals(-16, classUnderTest.evaluateKingSafety(true));
+		assertEquals(-70, classUnderTest.evaluateKingSafety(true));
 	}
 	
 	@Test
