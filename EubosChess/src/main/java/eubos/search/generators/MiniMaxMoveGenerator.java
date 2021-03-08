@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
-import eubos.board.InvalidPieceException;
+
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
@@ -87,13 +87,13 @@ public class MiniMaxMoveGenerator implements
 	}
 	
 	@Override
-	public SearchResult findMove(byte searchDepth) throws NoLegalMoveException, InvalidPieceException {
+	public SearchResult findMove(byte searchDepth) throws NoLegalMoveException {
 		return this.findMove(searchDepth, null);
 	}
 	
 	public SearchResult findMove(
 			byte searchDepth, 
-			List<Integer> lastPc) throws NoLegalMoveException, InvalidPieceException {
+			List<Integer> lastPc) throws NoLegalMoveException {
 		return this.findMove(searchDepth, lastPc, new SearchMetricsReporter(null, tt, new ReferenceScore(tt)));
 	}
 	
@@ -101,7 +101,7 @@ public class MiniMaxMoveGenerator implements
 	public SearchResult findMove(
 			byte searchDepth, 
 			List<Integer> lastPc,
-			SearchMetricsReporter sr) throws NoLegalMoveException, InvalidPieceException {
+			SearchMetricsReporter sr) throws NoLegalMoveException {
 		boolean foundMate = false;
 		initialiseSearchDepthDependentObjects(searchDepth, pm, sm);
 		ps = new PlySearcher(tta, pc, sm, sr, searchDepth, pm, pos, lastPc, pe, killers, sda);

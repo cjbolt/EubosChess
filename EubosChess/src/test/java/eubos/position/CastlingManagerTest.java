@@ -8,7 +8,7 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
-import eubos.board.InvalidPieceException;
+
 import eubos.board.Piece;
 
 public class CastlingManagerTest {
@@ -21,13 +21,13 @@ public class CastlingManagerTest {
 	public void setUp() {
 	}
 	
-	void setupPosition(String fen) throws InvalidPieceException {
+	void setupPosition(String fen)  {
 		pm = new PositionManager(fen);
 		ml = new MoveList(pm);
 	}
 	
 	@Test
-	public void test_WhiteKingSideCastle() throws IllegalNotationException, InvalidPieceException {
+	public void test_WhiteKingSideCastle() throws IllegalNotationException  {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -44,7 +44,7 @@ public class CastlingManagerTest {
 	}
 	
 	@Test
-	public void test_WhiteKingSideCastle_whenRookMoved() throws IllegalNotationException, InvalidPieceException{
+	public void test_WhiteKingSideCastle_whenRookMoved() throws IllegalNotationException {
 		// 8 k.......
 		// 7 ........
 		// 6 ........
@@ -55,14 +55,10 @@ public class CastlingManagerTest {
 		// 1 ....K..R
 		//   abcdefgh
 		setupPosition("k7/8/8/8/8/8/8/4K2R w K - - -");
-		try {
-			pm.performMove(Move.toMove(new GenericMove("h1h2"), pm.getTheBoard()));
-			pm.performMove(Move.toMove(new GenericMove("a8b8"), pm.getTheBoard()));
-			pm.performMove(Move.toMove(new GenericMove("h2h1"), pm.getTheBoard()));
-			pm.performMove(Move.toMove(new GenericMove("b8a8"), pm.getTheBoard()));
-		} catch (InvalidPieceException e) {
-			e.printStackTrace();
-		}
+		pm.performMove(Move.toMove(new GenericMove("h1h2"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("a8b8"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("h2h1"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("b8a8"), pm.getTheBoard()));
 		classUnderTest = pm.castling;
 		ml = new MoveList(pm);
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml);
@@ -71,7 +67,7 @@ public class CastlingManagerTest {
 	}
 	
 	@Test
-	public void test_WhiteKingSideCastle_whenKingMoved() throws IllegalNotationException, InvalidPieceException{
+	public void test_WhiteKingSideCastle_whenKingMoved() throws IllegalNotationException {
 		// 8 k.......
 		// 7 ........
 		// 6 ........
@@ -82,14 +78,10 @@ public class CastlingManagerTest {
 		// 1 ....K..R
 		//   abcdefgh
 		setupPosition("k7/8/8/8/8/8/8/4K2R w K - - -");
-		try {
-			pm.performMove(Move.valueOf(Position.e1, Piece.WHITE_KING, Position.e2, Piece.NONE));
-			pm.performMove(Move.valueOf(Position.a8, Piece.BLACK_KING, Position.b8, Piece.NONE));
-			pm.performMove(Move.valueOf(Position.e2, Piece.WHITE_KING, Position.e1, Piece.NONE));
-			pm.performMove(Move.valueOf(Position.b8, Piece.BLACK_KING, Position.a8, Piece.NONE));
-		} catch (InvalidPieceException e) {
-			e.printStackTrace();
-		}
+		pm.performMove(Move.valueOf(Position.e1, Piece.WHITE_KING, Position.e2, Piece.NONE));
+		pm.performMove(Move.valueOf(Position.a8, Piece.BLACK_KING, Position.b8, Piece.NONE));
+		pm.performMove(Move.valueOf(Position.e2, Piece.WHITE_KING, Position.e1, Piece.NONE));
+		pm.performMove(Move.valueOf(Position.b8, Piece.BLACK_KING, Position.a8, Piece.NONE));
 		classUnderTest = pm.castling;	
 		ml = new MoveList(pm);
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml);
@@ -98,7 +90,7 @@ public class CastlingManagerTest {
 	}	
 	
 	@Test
-	public void test_wksc_fen_unavaill() throws IllegalNotationException, InvalidPieceException{
+	public void test_wksc_fen_unavaill() throws IllegalNotationException {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -116,7 +108,7 @@ public class CastlingManagerTest {
 	}
 	
 	@Test
-	public void test_WhiteKingSideCastle_Check() throws IllegalNotationException, InvalidPieceException {
+	public void test_WhiteKingSideCastle_Check() throws IllegalNotationException  {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -134,7 +126,7 @@ public class CastlingManagerTest {
 	}
 	
 	@Test
-	public void test_WhiteKingSideCastle_MovesThroughCheckAtF1() throws InvalidPieceException {
+	public void test_WhiteKingSideCastle_MovesThroughCheckAtF1()  {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -152,7 +144,7 @@ public class CastlingManagerTest {
 	}
 	
 	@Test
-	public void test_WhiteKingSideCastle_MovesThroughCheckAtG1() throws InvalidPieceException{
+	public void test_WhiteKingSideCastle_MovesThroughCheckAtG1() {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -170,7 +162,7 @@ public class CastlingManagerTest {
 	}
 	
 	@Test
-	public void test_WhiteKingSideCastle_BlockedOwnPieceAtF1() throws InvalidPieceException {
+	public void test_WhiteKingSideCastle_BlockedOwnPieceAtF1()  {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -188,7 +180,7 @@ public class CastlingManagerTest {
 	}
 	
 	@Test
-	public void test_WhiteKingSideCastle_BlockedOwnPieceAtG1() throws InvalidPieceException {
+	public void test_WhiteKingSideCastle_BlockedOwnPieceAtG1()  {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -206,7 +198,7 @@ public class CastlingManagerTest {
 	}	
 	
 	@Test
-	public void test_WhiteKingSideCastle_RookIsAttackedAtH1() throws IllegalNotationException, InvalidPieceException {
+	public void test_WhiteKingSideCastle_RookIsAttackedAtH1() throws IllegalNotationException  {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -223,7 +215,7 @@ public class CastlingManagerTest {
 	}
 
 	@Test
-	public void test_BlackQueenSideCastle() throws IllegalNotationException, InvalidPieceException  {
+	public void test_BlackQueenSideCastle() throws IllegalNotationException   {
 		// 8 R...K...
 		// 7 ........
 		// 6 ........
@@ -240,7 +232,7 @@ public class CastlingManagerTest {
 	}
 	
 	@Test
-	public void test_BlackQueenSideCastle_Check() throws InvalidPieceException {
+	public void test_BlackQueenSideCastle_Check()  {
 		// 8 R...K...
 		// 7 ........
 		// 6 ......b.
@@ -258,7 +250,7 @@ public class CastlingManagerTest {
 	}
 	
 	@Test
-	public void test_bqsc_fen_unavaill() throws InvalidPieceException {
+	public void test_bqsc_fen_unavaill()  {
 		// 8 R...K...
 		// 7 ........
 		// 6 ......b.
@@ -276,7 +268,7 @@ public class CastlingManagerTest {
 	}
 	
 	@Test
-	public void test_bqsc_fen_availl() throws IllegalNotationException, InvalidPieceException {
+	public void test_bqsc_fen_availl() throws IllegalNotationException  {
 		// 8 R...K...
 		// 7 ........
 		// 6 ......b.
@@ -294,7 +286,7 @@ public class CastlingManagerTest {
 	}	
 	
 	@Test
-	public void test_BlackQueenSideCastle_MovesThroughCheckAtD8() throws InvalidPieceException {
+	public void test_BlackQueenSideCastle_MovesThroughCheckAtD8()  {
 		// 8 R...K...
 		// 7 ........
 		// 6 .....b..
@@ -312,7 +304,7 @@ public class CastlingManagerTest {
 	}
 		
 	@Test
-	public void test_BlackQueenSideCastle_MovesThroughCheckAtC8() throws InvalidPieceException {
+	public void test_BlackQueenSideCastle_MovesThroughCheckAtC8()  {
 		// 8 R...K...
 		// 7 ........
 		// 6 ....b...
@@ -330,7 +322,7 @@ public class CastlingManagerTest {
 	}
 	
 	@Test
-	public void test_BlackQueenSideCastle_BlockedOwnPieceAtD8() throws InvalidPieceException {
+	public void test_BlackQueenSideCastle_BlockedOwnPieceAtD8()  {
 		// 8 R..QK...
 		// 7 ........
 		// 6 ........
@@ -348,7 +340,7 @@ public class CastlingManagerTest {
 	}
 	
 	@Test
-	public void test_BlackQueenSideCastle_RookIsAttackedAtA8() throws IllegalNotationException, InvalidPieceException  {
+	public void test_BlackQueenSideCastle_RookIsAttackedAtA8() throws IllegalNotationException   {
 		// 8 R...K...
 		// 7 ........
 		// 6 R.......
@@ -366,7 +358,7 @@ public class CastlingManagerTest {
 	}
 	
 	@Test
-	public void test_WhiteKingSideCastle_fromgame() throws IllegalNotationException, InvalidPieceException  {
+	public void test_WhiteKingSideCastle_fromgame() throws IllegalNotationException   {
 		pm = new PositionManager("rnb2bnr/1ppp1kpp/4pq2/8/p1BPP3/8/PPP2PPP/RNBQK2R w KQ - 1 7");
 		ml = new MoveList(pm);
 		classUnderTest = pm.castling;

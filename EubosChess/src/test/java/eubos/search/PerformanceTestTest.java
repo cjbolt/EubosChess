@@ -6,7 +6,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import eubos.board.InvalidPieceException;
+
 import eubos.position.PositionManager;
 
 @Ignore
@@ -33,7 +33,7 @@ public class PerformanceTestTest {
 		sut = new PerformanceTest(pm, depth);
 	}
 	
-	public void runTest(String fen, long[] expectedCounts) throws InvalidPieceException {
+	public void runTest(String fen, long[] expectedCounts)  {
 		setupPosition(fen, 0);
 		for (long expectedCount : expectedCounts) {
 			sut = new PerformanceTest(pm, currDepth);
@@ -43,12 +43,12 @@ public class PerformanceTestTest {
 	}
 	
 	@Test
-	public void perft_depth0() throws InvalidPieceException {
+	public void perft_depth0()  {
 		assertEquals( 1, sut.perft());
 	}
 
 	@Test
-	public void perft_OriginalPosition() throws InvalidPieceException {
+	public void perft_OriginalPosition()  {
 		for (long expectedCount : expectedNodeCount_Original) {
 			sut = new PerformanceTest(pm, currDepth);
 			assertEquals( expectedCount, sut.perft());
@@ -58,28 +58,28 @@ public class PerformanceTestTest {
 
 	@Test
 	@Ignore
-	public void perft_OriginalPosition_6() throws InvalidPieceException {
+	public void perft_OriginalPosition_6()  {
 		sut.setRequestedDepthPly(6);
 		assertEquals( 119060324, sut.perft());
 	}
 	
 	@Test
-	public void perft_Kiwipete() throws InvalidPieceException {
+	public void perft_Kiwipete()  {
 		runTest("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - - -", expectedNodeCount_Kiwipete);
 	}
 	
 	@Test
-	public void perft_Position5() throws InvalidPieceException {
+	public void perft_Position5()  {
 		runTest("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8", expectedNodeCount_Position5);
 	}
 	
 	@Test
-	public void perft_Position4() throws InvalidPieceException {
+	public void perft_Position4()  {
 		runTest("r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1", expectedNodeCount_Position4);
 	}
 	
 	@Test
-	public void perft_Position3() throws InvalidPieceException {
+	public void perft_Position3()  {
 		runTest("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - - -", expectedNodeCount_Position3);
 	}
 }

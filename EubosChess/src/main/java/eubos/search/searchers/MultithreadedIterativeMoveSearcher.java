@@ -6,7 +6,7 @@ import java.util.List;
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import com.fluxchess.jcpi.models.GenericMove;
 
-import eubos.board.InvalidPieceException;
+
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.score.ReferenceScore;
@@ -180,10 +180,6 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 				} catch( NoLegalMoveException e ) {
 					EubosEngineMain.logger.info(
 							String.format("out of legal moves"));
-					searchStopped = true;
-				} catch(InvalidPieceException e ) {
-					EubosEngineMain.logger.info(
-							String.format("can't find piece at %s", e.getAtPosition()));
 					searchStopped = true;
 				}
 				if (result != null && result.foundMate && !analyse) {

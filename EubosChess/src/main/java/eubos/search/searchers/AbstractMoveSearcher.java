@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
-import eubos.board.InvalidPieceException;
+
 import eubos.main.EubosEngineMain;
 import eubos.score.ReferenceScore;
 import eubos.score.ReferenceScore.Reference;
@@ -69,9 +69,6 @@ public abstract class AbstractMoveSearcher extends Thread {
 		} catch( NoLegalMoveException e ) {
 			EubosEngineMain.logger.info(
 					String.format("AbstractMoveSearcher out of legal moves"));
-		} catch(InvalidPieceException e ) {
-			EubosEngineMain.logger.info(
-					String.format("AbstractMoveSearcher can't find piece at %s", e.getAtPosition()));
 		}
 		return res;
 	}

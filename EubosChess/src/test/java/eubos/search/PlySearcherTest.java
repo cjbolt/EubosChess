@@ -14,7 +14,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.Board;
-import eubos.board.InvalidPieceException;
+
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.IPositionAccessors;
@@ -85,7 +85,7 @@ public class PlySearcherTest {
 	
 	@Test
 	@Ignore // Till resolve fact that pawn is blocked but this position is judged not quiescent
-	public void test_depthSearchedUpdates() throws InvalidPieceException, IllegalNotationException {
+	public void test_depthSearchedUpdates()throws IllegalNotationException {
 		initialisePositionAndSearch("7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69", (byte)4);
 		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte());
 
@@ -94,7 +94,7 @@ public class PlySearcherTest {
 	
 	@Test
 	@Ignore
-	public void test_singleLineOfPlay_depthSearchedUpdates() throws InvalidPieceException, IllegalNotationException {
+	public void test_singleLineOfPlay_depthSearchedUpdates()throws IllegalNotationException {
 		initialisePositionAndSearch("8/8/1P6/8/5p2/8/8/8 w - - 0 1", (byte)4);
 		
 		doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte());
@@ -138,7 +138,7 @@ public class PlySearcherTest {
 	
 	@Test
 	@Ignore
-	public void test_singleLineOfPlay_exactHashHit() throws InvalidPieceException, IllegalNotationException {
+	public void test_singleLineOfPlay_exactHashHit()throws IllegalNotationException {
 		initialisePositionAndSearch("8/8/1P6/8/5p2/8/8/8 w - - 0 1", (byte)1);
 		
 		TranspositionEvaluation eval = new TranspositionEvaluation();
@@ -152,7 +152,7 @@ public class PlySearcherTest {
 	
 	@Test
 	@Ignore
-	public void test_refutation() throws InvalidPieceException, IllegalNotationException {
+	public void test_refutation()throws IllegalNotationException {
 		initialisePositionAndSearch("6k1/5pb1/6p1/r2R4/8/2q5/1B3PP1/5RK1 w - - 0 1", (byte)2);
 		
 		TranspositionEvaluation eval0 = new TranspositionEvaluation();
@@ -175,7 +175,7 @@ public class PlySearcherTest {
 	
 	@Test
 	@Ignore
-	public void test_when_aborted_doesnt_update_transposition_table() throws InvalidPieceException, IllegalNotationException {
+	public void test_when_aborted_doesnt_update_transposition_table()throws IllegalNotationException {
 		initialisePositionAndSearch("6k1/5pb1/6p1/r2R4/8/2q5/1B3PP1/5RK1 w - - 0 1", (byte)2);
 		
 	    //setupBackUpToRootNodeTerminatesTest();
@@ -184,7 +184,7 @@ public class PlySearcherTest {
 		classUnderTest.searchPly();
 	}
 
-	/*private void setupBackUpToRootNodeTerminatesTest() throws InvalidPieceException {
+	/*private void setupBackUpToRootNodeTerminatesTest()  {
 		doAnswer(new Answer<Void>(){
             public Void answer(InvocationOnMock invocation) throws Throwable {
             	classUnderTest.terminateFindMove();

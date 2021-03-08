@@ -11,7 +11,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.Board;
-import eubos.board.InvalidPieceException;
+
 import eubos.board.Piece;
 import eubos.search.KillerList;
 
@@ -22,7 +22,7 @@ public class MoveListTest {
 	
 	protected MoveList classUnderTest;
 	
-	private void setup(String fen) throws InvalidPieceException {
+	private void setup(String fen)  {
 		PositionManager pm = new PositionManager( fen );
 		classUnderTest = new MoveList(pm);
 	}
@@ -32,25 +32,25 @@ public class MoveListTest {
 	}
 
 	@Test
-	public void testLegalMoveListGenerator() throws InvalidPieceException {
+	public void testLegalMoveListGenerator()  {
 		classUnderTest = new MoveList(new PositionManager());
 	}
 
 	@Test
-	public void testCreateMoveList() throws InvalidPieceException {
+	public void testCreateMoveList()  {
 		setup("8/8/8/8/8/1pp5/ppp5/Kp6 w - - - -"); // is_stalemate
 		assertFalse(classUnderTest.iterator().hasNext());		
 	}
 	
 	@Test
-	public void testCreateMoveList_CapturesFirst() throws InvalidPieceException, IllegalNotationException {
+	public void testCreateMoveList_CapturesFirst()throws IllegalNotationException {
 		setup("8/3k3B/8/1p6/2P5/8/4K3/8 w - - 0 1 ");
 		Iterator<Integer> it = classUnderTest.iterator();
 		assertEquals(new GenericMove("c4b5"), Move.toGenericMove(it.next()));
 	}
 	
 	@Test
-	public void testCreateMoveList_typePromotionIsSet() throws InvalidPieceException, IllegalNotationException {
+	public void testCreateMoveList_typePromotionIsSet()throws IllegalNotationException {
 		setup("8/4P3/8/8/8/8/8/8 w - - - -");
 		Iterator<Integer> it = classUnderTest.iterator();
 		assertEquals(new GenericMove("e7e8q"), Move.toGenericMove(it.next()));
@@ -58,7 +58,7 @@ public class MoveListTest {
 	}
 	
 	@Test
-	public void test_whenNoChecksCapturesOrPromotions() throws InvalidPieceException, IllegalNotationException { 
+	public void test_whenNoChecksCapturesOrPromotions()throws IllegalNotationException { 
 		setup("8/3p4/8/8/8/5k2/1P6/7K w - - 0 1");
 		Iterator<Integer> iter = classUnderTest.getStandardIterator(EXTENDED, Position.NOPOSITION);
 		assertFalse(iter.hasNext());
@@ -67,7 +67,7 @@ public class MoveListTest {
 	}
 	
 	@Test
-	public void test_whenCheckAndCapturePossible() throws InvalidPieceException, IllegalNotationException {
+	public void test_whenCheckAndCapturePossible()throws IllegalNotationException {
 		setup("8/K7/8/8/4B1R1/8/6q1/7k w - - 0 1 ");
 		Iterator<Integer> it = classUnderTest.iterator();
 		assertEquals(new GenericMove("e4g2"), Move.toGenericMove(it.next())); // capture (happens to have check)
@@ -75,7 +75,7 @@ public class MoveListTest {
 	}
 	
 	@Test
-	public void test_whenPromotionAndPromoteWithCaptureAndCheckPossible() throws InvalidPieceException, IllegalNotationException {
+	public void test_whenPromotionAndPromoteWithCaptureAndCheckPossible()throws IllegalNotationException {
 		setup("q1n5/1P6/8/8/8/8/1K6/7k w - - 0 1 ");
 		Iterator<Integer> it = classUnderTest.iterator();
 		assertEquals(new GenericMove("b7a8q"), Move.toGenericMove(it.next())); // Promotion with check and capture
@@ -94,7 +94,7 @@ public class MoveListTest {
 	}
 	
 	@Test
-	public void test_mvv_lva_order() throws InvalidPieceException, IllegalNotationException {
+	public void test_mvv_lva_order()throws IllegalNotationException {
 		setup("8/N2B4/Q3q3/1r3PN1/2P3B1/4Rp2/6P1/1R6 w - - 0 1 ");
 		Iterator<Integer> it = classUnderTest.iterator();
 		
@@ -122,7 +122,7 @@ public class MoveListTest {
 	}
 	
 	@Test
-	public void test_mvv_lva_order_for_captures_with_check() throws InvalidPieceException, IllegalNotationException {
+	public void test_mvv_lva_order_for_captures_with_check()throws IllegalNotationException {
 		// as prior test but adds a king into the mix
 		setup("8/N2Bk3/Q3p3/1r3PN1/2P3B1/4Rp2/6P1/1R6 w - - 0 1 ");
 		Iterator<Integer> it = classUnderTest.iterator();
@@ -161,7 +161,7 @@ public class MoveListTest {
 	}
 	
 	@Test
-	public void test_move_ordering_when_mix_of_captures_and_checks() throws InvalidPieceException, IllegalNotationException {
+	public void test_move_ordering_when_mix_of_captures_and_checks()throws IllegalNotationException {
 		// as prior test but adds a king into the mix
 		setup("8/4k3/4p3/5PN1/8/4R1q1/8/8 w - - 0 1");
 		Iterator<Integer> it = classUnderTest.iterator();
@@ -182,7 +182,7 @@ public class MoveListTest {
 	}
 	
 	@Test
-	public void test_move_ordering_when_mix_of_promotions_captures_and_checks() throws InvalidPieceException, IllegalNotationException {
+	public void test_move_ordering_when_mix_of_promotions_captures_and_checks()throws IllegalNotationException {
 		// as prior test but adds a king into the mix
 		setup("1n6/P3kP2/8/1Pp2P2/8/8/8/8 w - c6 0 1");
 		Iterator<Integer> it = classUnderTest.iterator();
@@ -212,7 +212,7 @@ public class MoveListTest {
 	}
 	
 	@Test
-	public void test_best_and_killer_ordering() throws InvalidPieceException, IllegalNotationException {
+	public void test_best_and_killer_ordering()throws IllegalNotationException {
 		PositionManager pm = new PositionManager( "8/3k3B/8/1p6/2P5/8/4K3/8 w - - 0 1 " );
 		
 		// fake best and killers in this position just to check correct move ordering is used.
@@ -244,7 +244,7 @@ public class MoveListTest {
 	}
 	
 	@Test
-	public void test_check_extended_search_moves_contain_only_promotions_captures_rook() throws InvalidPieceException, IllegalNotationException {
+	public void test_check_extended_search_moves_contain_only_promotions_captures_rook()throws IllegalNotationException {
 		setup( "3q1rk1/p4pp1/2p4p/3p4/6Pr/1PNQ4/P1PB1PPb/4RR1K b - - - 2");
 		Iterator<Integer> it = classUnderTest.getStandardIterator(true, Position.g4);
 		
@@ -254,7 +254,7 @@ public class MoveListTest {
 	}
 	
 	@Test
-	public void test_check_extended_search_moves_contain_only_promotions_captures_knight_queen() throws InvalidPieceException, IllegalNotationException {
+	public void test_check_extended_search_moves_contain_only_promotions_captures_knight_queen()throws IllegalNotationException {
 		PositionManager pm = new PositionManager("3q1rk1/p4pp1/2p4p/3p4/6Pr/1PNQ4/P1PB1PPb/4RR1K w - - - 2");
 		classUnderTest = new MoveList(pm, Move.NULL_MOVE, null, 1, true, Position.d5);
 		Iterator<Integer> it = classUnderTest.getStandardIterator(true, Position.d5);
@@ -266,7 +266,7 @@ public class MoveListTest {
 	}
 	
 	@Test
-	public void test_check_extended_search_moves_contain_only_promotions_captures_king() throws InvalidPieceException, IllegalNotationException {
+	public void test_check_extended_search_moves_contain_only_promotions_captures_king()throws IllegalNotationException {
 		PositionManager pm = new PositionManager("3q1rk1/p4pp1/2p4p/3p4/6P1/1PNQ4/P1PB1PPb/4RR1K w - - - 2");
 		classUnderTest = new MoveList(pm, Move.NULL_MOVE, null, 1, true, Position.h2);
 		Iterator<Integer> it = classUnderTest.getStandardIterator(true, Position.h2);
@@ -277,7 +277,7 @@ public class MoveListTest {
 	}
 	
 	@Test
-	public void test_check_extended_search_moves_contain_only_promotions_and_captures_all() throws InvalidPieceException, IllegalNotationException {
+	public void test_check_extended_search_moves_contain_only_promotions_and_captures_all()throws IllegalNotationException {
 		PositionManager pm = new PositionManager("6k1/PBN5/8/2Kp4/2P5/5Q2/8/3R4 w - - 0 1 ");
 		classUnderTest = new MoveList(pm, Move.NULL_MOVE, null, 1, true, Position.d5);
 		Iterator<Integer> it = classUnderTest.getStandardIterator(true, Position.d5);
@@ -305,7 +305,7 @@ public class MoveListTest {
 	}
 	
 	@Test
-	public void test_mate_in_7_best_move() throws InvalidPieceException, IllegalNotationException {
+	public void test_mate_in_7_best_move()throws IllegalNotationException {
 		PositionManager pm = new PositionManager("5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113");
 		int best = Move.valueOf(Position.f8, Piece.WHITE_QUEEN, Position.b4, Piece.NONE);
 		classUnderTest = new MoveList(pm, best, null, 1, false, Position.NOPOSITION);

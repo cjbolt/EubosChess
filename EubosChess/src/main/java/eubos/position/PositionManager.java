@@ -8,7 +8,7 @@ import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
 import eubos.board.Board;
-import eubos.board.InvalidPieceException;
+
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
@@ -86,11 +86,11 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	DrawChecker dc;
 	
-	public void performMove( int move ) throws InvalidPieceException {
+	public void performMove( int move )  {
 		performMove(move, true);
 	}
 	
-	public void performMove( int move, boolean computeHash ) throws InvalidPieceException {
+	public void performMove( int move, boolean computeHash ) {
 
 		// Save previous en passant square
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
@@ -120,11 +120,11 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		}
 	}
 		
-	public void unperformMove() throws InvalidPieceException {
+	public void unperformMove() {
 		unperformMove(true);
 	}
 	
-	public void unperformMove(boolean computeHash) throws InvalidPieceException {
+	public void unperformMove(boolean computeHash) {
 		long tm = moveTracker.pop();		
 		int move = TrackedMove.getMove(tm);
 		int reversedMove = Move.reverse(move);

@@ -11,7 +11,7 @@ import java.util.Random;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
-import eubos.board.InvalidPieceException;
+
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
@@ -32,19 +32,19 @@ public class MoveList implements Iterable<Integer> {
         }
     }
 	
-	public MoveList(PositionManager pm) throws InvalidPieceException {
+	public MoveList(PositionManager pm)  {
 		this(pm, Move.NULL_MOVE, null, 1, false, Position.NOPOSITION);
 	}
 	
-	public MoveList(PositionManager pm, int orderMoveList) throws InvalidPieceException {
+	public MoveList(PositionManager pm, int orderMoveList)  {
 		this(pm, Move.NULL_MOVE, null, orderMoveList, false, Position.NOPOSITION);
 	}
 	
-	public MoveList(PositionManager pm, int bestMove, int [] killers, int orderMoveList) throws InvalidPieceException {
+	public MoveList(PositionManager pm, int bestMove, int [] killers, int orderMoveList)  {
 		this(pm, bestMove, killers, orderMoveList, false, Position.NOPOSITION);
 	}	
 	
-	public MoveList(PositionManager pm, int bestMove, int [] killers, int orderMoveList, boolean capturesOnly, int targetPosition) throws InvalidPieceException {	
+	public MoveList(PositionManager pm, int bestMove, int [] killers, int orderMoveList, boolean capturesOnly, int targetPosition)  {	
 		
 		normal_search_moves = new LinkedList<Integer>();
 		priority_moves = new LinkedList<Integer>();
@@ -65,7 +65,7 @@ public class MoveList implements Iterable<Integer> {
 	}
 
 	private void removeInvalidIdentifyBestKillerMoves(PositionManager pm, int bestMove, int[] killers, Colour onMove,
-			boolean needToEscapeMate) throws InvalidPieceException {
+			boolean needToEscapeMate)  {
 		boolean validBest = bestMove != Move.NULL_MOVE;
 		int foundBestMove = Move.NULL_MOVE;
 		

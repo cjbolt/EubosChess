@@ -7,7 +7,7 @@ import java.util.logging.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import eubos.board.InvalidPieceException;
+
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
@@ -58,7 +58,7 @@ public class DrawCheckerTest {
 	}
 	
 	@Test
-	public void test_TestSize_InitialAnd3Moves() throws InvalidPieceException {
+	public void test_TestSize_InitialAnd3Moves()  {
 		setupPosition("r1bq1rk1/ppp2ppp/2np1n2/1B2p1B1/4P3/2PP1N2/P1P2PPP/R2Q1RK1 b - - 0 8");
 		Long hashCode = pm.getHash();
 		sut.incrementPositionReachedCount(hashCode);

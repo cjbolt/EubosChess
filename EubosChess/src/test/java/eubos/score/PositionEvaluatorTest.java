@@ -14,7 +14,7 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
-import eubos.board.InvalidPieceException;
+
 import eubos.board.Piece;
 import eubos.position.Move;
 import eubos.position.Position;
@@ -200,14 +200,14 @@ public class PositionEvaluatorTest {
 	}
 	
 	@Test
-	public void test_custom_position_score_reporter() throws InvalidPieceException, IllegalNotationException {
+	public void test_custom_position_score_reporter()throws IllegalNotationException {
 		setUpPosition("4r1k1/2p2pb1/4Q3/8/3pPB2/1p1P3p/1P3P2/R5K1 b - - 0 42");
 		System.out.println(SUT.evaluatePosition());
 	}
 	
 	@Test
 	@Ignore
-	public void test_updateMaterialForMove_queen_promotion() throws InvalidPieceException {
+	public void test_updateMaterialForMove_queen_promotion()  {
 		setUpPosition("8/4P3/7k/8/8/8/1B6/8 w - - 0 1");
 		PiecewiseEvaluation initialMe = pm.getTheBoard().evaluateMaterial();
 		short initial = initialMe.getDelta();
@@ -225,7 +225,7 @@ public class PositionEvaluatorTest {
 	
 	@Test
 	@Ignore
-	public void test_updateMaterialForMove_castle() throws InvalidPieceException {
+	public void test_updateMaterialForMove_castle()  {
 		setUpPosition("4k2r/2Q2ppp/8/3r4/1P5P/P1p5/4PP2/R3K1N1 b Qk - - -");
 		PiecewiseEvaluation initialMe = pm.getTheBoard().evaluateMaterial();
 		short initial = initialMe.getDelta();
@@ -242,7 +242,7 @@ public class PositionEvaluatorTest {
 	
 	@Test
 	@Ignore // because needs PSTs to be applied in evaluation to make any sense.
-	public void test_updateMaterialForMove_rookMove() throws InvalidPieceException {
+	public void test_updateMaterialForMove_rookMove()  {
 		setUpPosition("4k3/8/4p3/5b2/8/8/8/4R3 w - - - -");
 		PiecewiseEvaluation initialMe = pm.getTheBoard().evaluateMaterial();
 		short initial = initialMe.getDelta();
@@ -269,7 +269,7 @@ public class PositionEvaluatorTest {
 	
 	@Test
 	@Ignore
-	public void test_updateMaterialForMove_capture() throws InvalidPieceException {
+	public void test_updateMaterialForMove_capture()  {
 		setUpPosition("7k/p7/8/8/3n4/4PPP1/8/7K w - - 0 1");
 		PiecewiseEvaluation initialMe = pm.getTheBoard().evaluateMaterial();
 		short initial = initialMe.getDelta();
@@ -286,7 +286,7 @@ public class PositionEvaluatorTest {
 	
 	@Test
 	@Ignore
-	public void test_investigate_bad_evaluation() throws InvalidPieceException, IllegalNotationException {
+	public void test_investigate_bad_evaluation()throws IllegalNotationException {
 		setUpPosition("r1b1k3/1p1p1p1p/p3pR2/8/3KP3/1PN3r1/P1PQB3/2q5 b q - 4 21");
 		// black good rook, white bad queen, but this isn't quiet! In the position (dubious continuation) white is about to lose queen!
 		// this happens because one of the continuations goes into an extended search and immediately runs out of moves, backing up a bad score as exact :(
@@ -401,7 +401,7 @@ No, it was caused by returning a drawn position when that is inconsistent with o
 */
 	@Test
 	@Ignore
-	public void test_pos_last_good() throws InvalidPieceException, IllegalNotationException {
+	public void test_pos_last_good()throws IllegalNotationException {
 		setUpPosition("6k1/6pp/B3b3/P1B1Rn2/2P5/7r/1r6/R5K1 b - - - 37");
 		pm.performMove(Move.toMove(new GenericMove("h3h6"), pm.getTheBoard()));
 		assertEquals(89, SUT.evaluatePosition());
@@ -409,7 +409,7 @@ No, it was caused by returning a drawn position when that is inconsistent with o
 	
 	@Test
 	@Ignore
-	public void test_pos_bad_unexpected_eval_in_eubos_run_repeatable_apply_move() throws InvalidPieceException, IllegalNotationException {
+	public void test_pos_bad_unexpected_eval_in_eubos_run_repeatable_apply_move()throws IllegalNotationException {
 		setUpPosition("6k1/6pp/B3b3/P1B1Rn2/2P5/7r/1r6/R5K1 b - - - 37");
 		pm.performMove(Move.toMove(new GenericMove("h3g3"), pm.getTheBoard()));
 		assertEquals(-11, SUT.evaluatePosition());
@@ -417,21 +417,21 @@ No, it was caused by returning a drawn position when that is inconsistent with o
 	
 	@Test
 	@Ignore
-	public void test_pos_bad_unexpected_eval_in_eubos_run_repeatable_exact_pos_fen() throws InvalidPieceException, IllegalNotationException {
+	public void test_pos_bad_unexpected_eval_in_eubos_run_repeatable_exact_pos_fen()throws IllegalNotationException {
 		setUpPosition("6k1/6pp/B3b3/P1B1Rn2/2P5/6r1/1r6/R5K1 w - - 1 38");
 		assertEquals(-11, SUT.evaluatePosition());
 	}
 	
 	@Test
 	@Ignore
-	public void test_pos() throws InvalidPieceException, IllegalNotationException {
+	public void test_pos()throws IllegalNotationException {
 		setUpPosition("2b3k1/6pp/8/P3R3/2P5/6nr/5K2/R7 b - - 0 38");
 		assertEquals(-8, SUT.evaluatePosition());
 	}
 	
 	@Test
 	@Ignore
-	public void test_defect_board_state_when_making_moves_from_last_good() throws InvalidPieceException, IllegalNotationException {
+	public void test_defect_board_state_when_making_moves_from_last_good()throws IllegalNotationException {
 		setUpPosition("6k1/6pp/B3b3/P1B1Rn2/2P5/7r/1r6/R5K1 b - - - 37");
 		pm.performMove(Move.toMove(new GenericMove("h3h6"), pm.getTheBoard()));
 		pm.unperformMove();

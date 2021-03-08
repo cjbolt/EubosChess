@@ -326,7 +326,7 @@ public class Board {
 		return fen.toString();
 	}
 	
-	public int doMove(int move) throws InvalidPieceException {
+	public int doMove(int move) {
 		int capturePosition = Position.NOPOSITION;
 		int pieceToMove = Move.getOriginPiece(move);
 		boolean isWhite = Piece.isWhite(pieceToMove);
@@ -394,7 +394,7 @@ public class Board {
 		return capturePosition;
 	}
 	
-	public int undoMove(int moveToUndo) throws InvalidPieceException {
+	public int undoMove(int moveToUndo) {
 		int capturedPieceSquare = Position.NOPOSITION;
 		int originPiece = Move.getOriginPiece(moveToUndo);
 		boolean isWhite = Piece.isWhite(originPiece);
@@ -479,7 +479,7 @@ public class Board {
 	private static final long bksc_mask = BitBoard.positionToMask_Lut[Position.h8] | BitBoard.positionToMask_Lut[Position.f8];
 	private static final long bqsc_mask = BitBoard.positionToMask_Lut[Position.a8] | BitBoard.positionToMask_Lut[Position.d8];
 	
-	private void performSecondaryCastlingMove(int move) throws InvalidPieceException {
+	private void performSecondaryCastlingMove(int move) {
 		if (Move.areEqual(move, CastlingManager.wksc)) {
 			pieces[INDEX_ROOK] ^= (wksc_mask);
 			whitePieces ^= (wksc_mask);
@@ -511,7 +511,7 @@ public class Board {
 		}
 	}
 	
-	private void unperformSecondaryCastlingMove(int move) throws InvalidPieceException {
+	private void unperformSecondaryCastlingMove(int move) {
 		if (Move.areEqual(move, CastlingManager.undo_wksc)) {
 			pieces[INDEX_ROOK] ^= (wksc_mask);
 			whitePieces ^= (wksc_mask);
@@ -776,12 +776,12 @@ public class Board {
 		private int count = 0;
 		private int next = 0;
 
-		allPiecesOnBoardIterator() throws InvalidPieceException {
+		allPiecesOnBoardIterator()  {
 			pieces = new int[64];
 			buildIterList(allPieces);
 		}
 
-		allPiecesOnBoardIterator( int typeToIterate ) throws InvalidPieceException {
+		allPiecesOnBoardIterator( int typeToIterate )  {
 			pieces = new int[64];
 			long bitBoardToIterate;
 			if (typeToIterate == Piece.WHITE_PAWN) {
@@ -827,11 +827,7 @@ public class Board {
 
 	public PrimitiveIterator.OfInt iterator() {
 		// default iterator returns all the pieces on the board, not all positions
-		try {
-			return new allPiecesOnBoardIterator( );
-		} catch (InvalidPieceException e) {
-			return null;
-		}
+		return new allPiecesOnBoardIterator( );
 	}
 		
 	public long getBlackPawns() {

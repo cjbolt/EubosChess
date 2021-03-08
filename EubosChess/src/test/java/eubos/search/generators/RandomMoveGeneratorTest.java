@@ -11,7 +11,7 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
 
-import eubos.board.InvalidPieceException;
+
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.position.PositionManager;
@@ -43,13 +43,11 @@ public class RandomMoveGeneratorTest {
 				assertFalse(res.bestMove.equals(expectedMove));
 		} catch ( NoLegalMoveException e ) {
 			assert( false );
-		} catch (InvalidPieceException e) {
-			assert(false);
 		}
 	}
 	
 	@Test
-	public void test_findBestMove_DoNotMoveIntoCheck() throws InvalidPieceException {
+	public void test_findBestMove_DoNotMoveIntoCheck()  {
 		// 8 K.......
 		// 7 ........
 		// 6 ..p.....
@@ -66,7 +64,7 @@ public class RandomMoveGeneratorTest {
 	}
 	
 	@Test
-	public void test_findBestMove_CaptureToEscapeCheck() throws InvalidPieceException, NoLegalMoveException {
+	public void test_findBestMove_CaptureToEscapeCheck() throws NoLegalMoveException {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -84,7 +82,7 @@ public class RandomMoveGeneratorTest {
 	}
 	
 	@Test
-	public void test_findBestMove_MoveToEscapeCheck() throws InvalidPieceException, NoLegalMoveException {
+	public void test_findBestMove_MoveToEscapeCheck() throws NoLegalMoveException {
 		// 8 ........
 		// 7 ........
 		// 6 ........
@@ -102,7 +100,7 @@ public class RandomMoveGeneratorTest {
 	}
 	
 	@Test(expected=NoLegalMoveException.class)
-	public void test_findBestMove_NoLegalMove() throws NoLegalMoveException, InvalidPieceException {
+	public void test_findBestMove_NoLegalMove() throws NoLegalMoveException {
 		// 8 ........
 		// 7 ........
 		// 6 ........

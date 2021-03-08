@@ -12,7 +12,7 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
-import eubos.board.InvalidPieceException;
+
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.PositionManager;
@@ -52,7 +52,7 @@ public class TranspositionTableAccessorTest {
 	}
 	
 	@Test
-	public void testEval_StoreRetrieve_sufficientTerminalNode() throws InvalidPieceException, IllegalNotationException {
+	public void testEval_StoreRetrieve_sufficientTerminalNode()throws IllegalNotationException {
 		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
@@ -66,7 +66,7 @@ public class TranspositionTableAccessorTest {
 	}
 	
 	@Test
-	public void testEval_StoreRetrieve_sufficientSeedMoveList() throws InvalidPieceException, IllegalNotationException {
+	public void testEval_StoreRetrieve_sufficientSeedMoveList()throws IllegalNotationException {
 		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
@@ -81,7 +81,7 @@ public class TranspositionTableAccessorTest {
 	
 	@Test
 	@Ignore
-	public void testEval_StoreRetrieve_whenNoMoveList_insufficientNoData() throws InvalidPieceException, IllegalNotationException {
+	public void testEval_StoreRetrieve_whenNoMoveList_insufficientNoData()throws IllegalNotationException {
 		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		
@@ -94,7 +94,7 @@ public class TranspositionTableAccessorTest {
 	}
 	
 	@Test
-	public void testEval_StoreRetrieve_whenUpperBound_AndScoreIsLower_inSufficientRefutation() throws InvalidPieceException, IllegalNotationException {
+	public void testEval_StoreRetrieve_whenUpperBound_AndScoreIsLower_inSufficientRefutation()throws IllegalNotationException {
 		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
@@ -110,7 +110,7 @@ public class TranspositionTableAccessorTest {
 	
 	@Test
 	@Ignore
-	public void testEval_StoreRetrieve_whenLowerBound_AndScoreIsHigher_sufficientRefutation() throws InvalidPieceException, IllegalNotationException {
+	public void testEval_StoreRetrieve_whenLowerBound_AndScoreIsHigher_sufficientRefutation()throws IllegalNotationException {
 		/* Example from second limb of search tree, fig9.15, pg.178, How Computers Play Chess, Newborn and Levy */
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));

@@ -60,7 +60,7 @@ public class BoardTest {
 	}
 
 	@Test
-	public void testPickUpPieceAtSquare_Exists() throws InvalidPieceException {
+	public void testPickUpPieceAtSquare_Exists()  {
 		assertTrue(classUnderTest.squareIsEmpty(testSq));
 		classUnderTest.setPieceAtSquare(testSq, Piece.WHITE_PAWN);
 		assertFalse(classUnderTest.squareIsEmpty(testSq));
@@ -70,7 +70,7 @@ public class BoardTest {
 	}
 	
 	@Test
-	public void testPickUpPieceAtSquare_DoesntExist() throws InvalidPieceException {
+	public void testPickUpPieceAtSquare_DoesntExist()  {
 		assertEquals(Piece.NONE, classUnderTest.pickUpPieceAtSquare(testSq));
 	}	
 
@@ -248,100 +248,100 @@ public class BoardTest {
 	}
 	
 	@Test
-	public void test_isInsufficientMaterial_JustKings() throws InvalidPieceException, IllegalNotationException {
+	public void test_isInsufficientMaterial_JustKings()throws IllegalNotationException {
 		setUpPosition("8/8/8/8/8/8/k/7K w - - 0 1");
 		assertTrue(classUnderTest.isInsufficientMaterial());
 	}
 	
 	@Test
-	public void test_isInsufficientMaterial_RookOnBoard() throws InvalidPieceException, IllegalNotationException {
+	public void test_isInsufficientMaterial_RookOnBoard()throws IllegalNotationException {
 		setUpPosition("8/R7/8/8/8/8/k/7K w - - 0 1");
 		assertFalse(classUnderTest.isInsufficientMaterial());
 	}
 	
 	@Test
-	public void test_isInsufficientMaterial_QueenOnBoard() throws InvalidPieceException, IllegalNotationException {
+	public void test_isInsufficientMaterial_QueenOnBoard()throws IllegalNotationException {
 		setUpPosition("8/Q7/8/8/8/8/k/7K w - - 0 1");
 		assertFalse(classUnderTest.isInsufficientMaterial());
 	}
 	
 	@Test
-	public void test_isInsufficientMaterial_TwoKnights() throws InvalidPieceException, IllegalNotationException {
+	public void test_isInsufficientMaterial_TwoKnights()throws IllegalNotationException {
 		setUpPosition("8/K7/8/K7/8/8/k/7K w - - 0 1");
 		assertTrue(classUnderTest.isInsufficientMaterial());
 	}
 	
 	@Test
-	public void test_isInsufficientMaterial_BishopKnight() throws InvalidPieceException, IllegalNotationException {
+	public void test_isInsufficientMaterial_BishopKnight()throws IllegalNotationException {
 		setUpPosition("8/B7/8/4N3/8/8/k/7K w - - 0 1");
 		assertFalse(classUnderTest.isInsufficientMaterial());
 	}
 	
 	@Test
-	public void test_isInsufficientMaterial_BishopKnightDifferentSides() throws InvalidPieceException, IllegalNotationException {
+	public void test_isInsufficientMaterial_BishopKnightDifferentSides()throws IllegalNotationException {
 		setUpPosition("8/B7/8/4n3/8/8/k/7K w - - 0 1");
 		assertTrue(classUnderTest.isInsufficientMaterial());
 	}
 	
 	@Test
-	public void test_isInsufficientMaterial_TwoBishops() throws InvalidPieceException, IllegalNotationException {
+	public void test_isInsufficientMaterial_TwoBishops()throws IllegalNotationException {
 		setUpPosition("BB6/8/8/8/8/8/k/7K w - - 0 1");
 		assertFalse(classUnderTest.isInsufficientMaterial());
 	}
 	
 	@Test
-	public void test_isInsufficientMaterial_TwoBishopsDifferentSides() throws InvalidPieceException, IllegalNotationException {
+	public void test_isInsufficientMaterial_TwoBishopsDifferentSides()throws IllegalNotationException {
 		setUpPosition("Bb6/8/8/8/8/8/k/7K w - - 0 1");
 		assertTrue(classUnderTest.isInsufficientMaterial());
 	}
 	
 	@Test
-	public void test_isInsufficientMaterial_SingleBishop() throws InvalidPieceException, IllegalNotationException {
+	public void test_isInsufficientMaterial_SingleBishop()throws IllegalNotationException {
 		setUpPosition("B7/8/8/8/8/8/k/7K w - - 0 1");
 		assertTrue(classUnderTest.isInsufficientMaterial());
 	}
 	
 	@Test
-	public void test_isInsufficientMaterial_PawnOnBoard() throws InvalidPieceException, IllegalNotationException {
+	public void test_isInsufficientMaterial_PawnOnBoard()throws IllegalNotationException {
 		setUpPosition("8/P/8/8/8/8/k/7K w - - 0 1");
 		assertFalse(classUnderTest.isInsufficientMaterial());
 	}
 	
 	@Test
-	public void test_evaluateKingSafety_safe() throws InvalidPieceException, IllegalNotationException {
+	public void test_evaluateKingSafety_safe()throws IllegalNotationException {
 		setUpPosition("5krr/4pppp/6bq/8/8/6BQ/4PPPP/5KRR b - - 13 1");
 		assertEquals(-42, classUnderTest.evaluateKingSafety(false)); // 5 squares, can be attacked by three pieces
 		assertEquals(-42, classUnderTest.evaluateKingSafety(true));
 	}
 	
 	@Test
-	public void test_evaluateKingSafety_notVerySafe() throws InvalidPieceException, IllegalNotationException {
+	public void test_evaluateKingSafety_notVerySafe()throws IllegalNotationException {
 		setUpPosition("6rr/5ppp/1k4bq/8/8/1K4BQ/5PPP/6RR b - - 13 1 ");
 		assertEquals(-100, classUnderTest.evaluateKingSafety(false)); // diagonals 7 squares, can be attacked by two pieces; r'n'f 9 squares can be attacked by three pieces
 		assertEquals(-100, classUnderTest.evaluateKingSafety(true));
 	}
 	
 	@Test
-	public void test_evaluateKingSafety_No_inEndgame() throws InvalidPieceException, IllegalNotationException {
+	public void test_evaluateKingSafety_No_inEndgame()throws IllegalNotationException {
 		setUpPosition("8/8/8/8/8/8/8/K7 w - - 0 1");
 		assertEquals(0, classUnderTest.evaluateKingSafety(true));
 	}
 	
 	@Test
-	public void test_evaluateKingSafety_No_opposingBishopWrongColour() throws InvalidPieceException, IllegalNotationException {
+	public void test_evaluateKingSafety_No_opposingBishopWrongColour()throws IllegalNotationException {
 		setUpPosition("r4rk1/1p3p2/p7/P2P1p1B/4p3/2b5/3R1PPP/4K2R b K - 13 1 ");
 		assertEquals(-28, classUnderTest.evaluateKingSafety(true)); // 7*2*2 rnf 0 diag = 28
 		assertEquals(-30, classUnderTest.evaluateKingSafety(false)); // 7*2*2 rnf 1*2*1 = 30
 	}
 	
 	@Test
-	public void test_evaluateKingSafety_Yes_opposingBishopRightColour() throws InvalidPieceException, IllegalNotationException {
+	public void test_evaluateKingSafety_Yes_opposingBishopRightColour()throws IllegalNotationException {
 		setUpPosition("r4rk1/1p6/p7/P2P1p1B/4p3/2b5/3R1PPP/2K4R b - - 13 1 ");
 		assertEquals(-70, classUnderTest.evaluateKingSafety(true));
 	}
 	
 	@Test
-	public void test_evaluateKingSafety_Yes_opposingQueenBishop() throws InvalidPieceException, IllegalNotationException {
+	public void test_evaluateKingSafety_Yes_opposingQueenBishop()throws IllegalNotationException {
 		setUpPosition("r4rk1/1p6/p7/P2P1p1B/4p3/2b5/3R1PPP/Q1K4R b - - 13 1 ");
 		assertEquals(-70, classUnderTest.evaluateKingSafety(true));  // (5 up right + 2 up left) *2 *1bish = 14; (7 up + 2 left + 5 right) * 2 *2rooks = 28*2; 56+14 = 70
 		assertEquals(-46, classUnderTest.evaluateKingSafety(false)); // 1*2*2 diag = 4; 7*2*3 = 42 r'n'f; 4+42 = 46 

@@ -9,7 +9,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.Board;
-import eubos.board.InvalidPieceException;
+
 import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.search.Score;
@@ -26,7 +26,7 @@ public class MateScoreGeneratorTest {
 	public static byte convertPlyToMove( byte ply ) { return (byte)((ply+1)/2); }
 	
 	@Test
-	public void testGenerateScoreForCheckmate_fromWhite() throws InvalidPieceException, IllegalNotationException {
+	public void testGenerateScoreForCheckmate_fromWhite()throws IllegalNotationException {
 		pm = new PositionManager("7k/8/5K2/8/8/8/8/6Q1 w - - 0 1");
 		classUnderTest = new MateScoreGenerator(pm, null);
 		pm.performMove(Move.toMove(new GenericMove("g1g7"), pm.getTheBoard()));
@@ -39,7 +39,7 @@ public class MateScoreGeneratorTest {
 	}
 		
 	@Test
-	public void testGenerateScoreForCheckmate_fromBlack() throws InvalidPieceException, IllegalNotationException {
+	public void testGenerateScoreForCheckmate_fromBlack()throws IllegalNotationException {
 		pm = new PositionManager("6q1/8/8/8/8/5k2/8/7K b - - 0 1");
 		classUnderTest = new MateScoreGenerator(pm, null);
 		pm.performMove(Move.toMove(new GenericMove("g8g2"), pm.getTheBoard()));

@@ -3,7 +3,7 @@ package eubos.search;
 import java.util.Iterator;
 import java.util.List;
 
-import eubos.board.InvalidPieceException;
+
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
@@ -88,13 +88,13 @@ public class PlySearcher {
 		moveListOrdering = orderingScheme;		
 	}
 	
-	public int searchPly() throws InvalidPieceException {
+	public int searchPly()  {
 		currPly = 0;
 		extendedSearchDeepestPly = 0;		
 		return (short) search(Score.PROVISIONAL_ALPHA, Score.PROVISIONAL_BETA, originalSearchDepthRequiredInPly);
 	}
 	
-	int search(int alpha, int beta, int depth) throws InvalidPieceException {
+	int search(int alpha, int beta, int depth)  {
 		int alphaOriginal = alpha;
 		int plyScore = Score.PROVISIONAL_ALPHA;
 		int prevBestMove = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
@@ -237,7 +237,7 @@ public class PlySearcher {
 		return alpha;
 	}
 	
-	public int extendedSearch(int alpha, int beta) throws InvalidPieceException {
+	public int extendedSearch(int alpha, int beta)  {
 		sda.printExtSearch(alpha, beta);
 		if (currPly > extendedSearchDeepestPly) {
 			extendedSearchDeepestPly = currPly;
@@ -346,7 +346,7 @@ public class PlySearcher {
 		return trans;
 	}
 	
-	private int handleRefutationOrTerminalNodeFromHash(TranspositionEvaluation eval) throws InvalidPieceException {
+	private int handleRefutationOrTerminalNodeFromHash(TranspositionEvaluation eval)  {
 		int trans_move;
 		int theScore = 0;
 		short trans_score;
@@ -374,7 +374,7 @@ public class PlySearcher {
 		return theScore;
 	}
 
-	private boolean checkForRepetitionDueToPositionInSearchTree(int move) throws InvalidPieceException {
+	private boolean checkForRepetitionDueToPositionInSearchTree(int move)  {
 		boolean retVal = false;
 		if (move != Move.NULL_MOVE) {
 			pm.performMove(move);
@@ -390,7 +390,7 @@ public class PlySearcher {
 	}
 
 	private void updatePrincipalContinuation(int currMove, short positionScore)
-			throws InvalidPieceException {
+			 {
 		pc.update(currPly, currMove);
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && atRootNode() && sr != null) {
 			sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), positionScore);

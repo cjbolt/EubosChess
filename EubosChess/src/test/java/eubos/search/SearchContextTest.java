@@ -11,7 +11,7 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
-import eubos.board.InvalidPieceException;
+
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.PositionManager;
@@ -40,14 +40,14 @@ public class SearchContextTest {
 	}
 	
 	private void applyMoveList(GenericMove[] moveList)
-			throws InvalidPieceException {
+			 {
 		for (GenericMove curr : moveList ) {
 			pm.performMove(Move.toMove(curr, pm.getTheBoard()));
 		}
 	}
 
 	@Test
-	public void test_detectSimplification() throws InvalidPieceException, IllegalNotationException {
+	public void test_detectSimplification()throws IllegalNotationException {
 		setupPosition("5r1k/pp5p/6p1/1N2q3/2P1P1n1/1P6/P2Q2PP/3R2K1 w - - 0 1");
 		pm.performMove(Move.toMove(new GenericMove("d2d4"), pm.getTheBoard())); // forces exchange of queens on d4. simplifying
 		pm.performMove(Move.toMove(new GenericMove("e5d4"), pm.getTheBoard()));
@@ -57,7 +57,7 @@ public class SearchContextTest {
 	}
 	
 	@Test
-	public void test_notSimplified_materialNotRecaptured() throws InvalidPieceException, IllegalNotationException {
+	public void test_notSimplified_materialNotRecaptured()throws IllegalNotationException {
 		setupPosition("5r1k/pp5p/6p1/1N2q3/2P1P1n1/1P6/P2Q2PP/3R2K1 w - - 0 1");
 		pm.performMove(Move.toMove(new GenericMove("d2d4"), pm.getTheBoard())); // forces exchange of queens on d4. simplifying
 		pm.performMove(Move.toMove(new GenericMove("e5d4"), pm.getTheBoard()));
@@ -66,7 +66,7 @@ public class SearchContextTest {
 	}
 
 	@Test
-	public void test_detectSimplification_black() throws InvalidPieceException, IllegalNotationException {
+	public void test_detectSimplification_black()throws IllegalNotationException {
 		setupPosition("3r2k1/p2q2pp/1p6/2p1p1N1/1n2Q3/6P1/PP5P/5R1K b - - 0 1");
 		pm.performMove(Move.toMove(new GenericMove("d7d5"), pm.getTheBoard())); // forces exchange of queens on d4. simplifying
 		pm.performMove(Move.toMove(new GenericMove("e4d5"), pm.getTheBoard()));
@@ -76,7 +76,7 @@ public class SearchContextTest {
 	}
 	
 	@Test
-	public void test_notSimplified_materialNotRecaptured_black() throws InvalidPieceException, IllegalNotationException {
+	public void test_notSimplified_materialNotRecaptured_black()throws IllegalNotationException {
 		setupPosition("3r2k1/p2q2pp/1p6/2p1p1N1/1n2Q3/6P1/PP5P/5R1K b - - 0 1");
 		pm.performMove(Move.toMove(new GenericMove("d7d5"), pm.getTheBoard())); // forces exchange of queens on d4. simplifying
 		pm.performMove(Move.toMove(new GenericMove("e4d5"), pm.getTheBoard()));
@@ -86,14 +86,14 @@ public class SearchContextTest {
 	}
 	
 	@Test
-	public void test_lichess_pos() throws InvalidPieceException, IllegalNotationException {
+	public void test_lichess_pos()throws IllegalNotationException {
 		setupPosition("4r1k1/2p2pb1/4Q3/8/3pPB2/1p1P3p/1P3P2/R5K1 b - - 0 42");
 		PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
 		assertEquals(0, sut.computeSearchGoalBonus(current).score);
 	}
 	 
 	@Test
-	public void test_is_not_a_draw() throws InvalidPieceException, IllegalNotationException {
+	public void test_is_not_a_draw()throws IllegalNotationException {
 		setupPosition("7q/1P6/8/8/8/8/2k3PQ/7K b - - 0 42");
 		// insufficient moves for draw
 		GenericMove [] moveList = new GenericMove[]{new GenericMove("h8a1"),new GenericMove("h2g1"),
@@ -105,7 +105,7 @@ public class SearchContextTest {
 	
 	@Test
 	@Ignore
-	public void test_lichess_draw() throws InvalidPieceException, IllegalNotationException {
+	public void test_lichess_draw()throws IllegalNotationException {
 		setupPosition("8/2R3p1/7p/5k1P/P7/2BP4/1P3P2/1K6 w - - 0 46");
 		// Draw from a test lichess game
 		GenericMove [] moveList = new GenericMove[]{
@@ -122,7 +122,7 @@ public class SearchContextTest {
 	}
 	
 	@Test
-	public void test_eubos_takes_draw_instead_of_mate() throws InvalidPieceException, IllegalNotationException {
+	public void test_eubos_takes_draw_instead_of_mate()throws IllegalNotationException {
 		/* In this position, Eubos choose to under promote to a bishop in order to secure the bonus for
 		 * getting a draw (by insufficient material) when he considered himself behind. A naive material eval
 		 * puts white at -130, even though the pawn can promote to a queen. */

@@ -25,7 +25,7 @@ import com.fluxchess.jcpi.options.SpinnerOption;
 import com.fluxchess.jcpi.protocols.NoProtocolException;
 
 import eubos.board.Board;
-import eubos.board.InvalidPieceException;
+
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.board.SquareAttackEvaluator;
@@ -189,15 +189,10 @@ public class EubosEngineMain extends AbstractEngine {
 			// This temporary pm is to ensure that the correct position is used to initialise the search 
 			// context of the position evaluator, required when we get a position and move list to apply to it.
 			rootPosition = new PositionManager(uci_fen_string, dc, null);
-			try {
-				for (GenericMove nextMove : command.moves) {
-					int move = Move.toMove(nextMove, rootPosition.getTheBoard());
-					rootPosition.performMove(move, false); // don't update draw checker or hash
-					lastMoveWasCaptureOrPawnMove = Move.isCapture(move) || Move.isPawnMove(move);
-				}
-			} catch(InvalidPieceException e ) {
-				System.err.println(String.format(
-				    "Serious error: Eubos can't find a piece on the board whilst applying previous moves, at %s", e.getAtPosition()));
+			for (GenericMove nextMove : command.moves) {
+				int move = Move.toMove(nextMove, rootPosition.getTheBoard());
+				rootPosition.performMove(move, false); // don't update draw checker or hash
+				lastMoveWasCaptureOrPawnMove = Move.isCapture(move) || Move.isPawnMove(move);
 			}
 			fen_to_use = rootPosition.getFen();
 
@@ -278,18 +273,14 @@ public class EubosEngineMain extends AbstractEngine {
 	private void validatePv(ProtocolInformationCommand command) {
 		if (ENABLE_ASSERTS) {
 			if (command.getMoveList() != null) {
-				try {
-					int moves_applied = 0;
-					for (GenericMove move : command.getMoveList()) {
-						int eubos_move = Move.toMove(move, rootPosition.getTheBoard());
-						rootPosition.performMove(eubos_move, false); // don't update draw checker or hash
-						++moves_applied;
-					}
-					for (int i=0; i<moves_applied; i++) {
-						rootPosition.unperformMove(false);
-					}
-				} catch (InvalidPieceException e) {
-					assert false;
+				int moves_applied = 0;
+				for (GenericMove move : command.getMoveList()) {
+					int eubos_move = Move.toMove(move, rootPosition.getTheBoard());
+					rootPosition.performMove(eubos_move, false); // don't update draw checker or hash
+					++moves_applied;
+				}
+				for (int i=0; i<moves_applied; i++) {
+					rootPosition.unperformMove(false);
 				}
 			}
 		}
@@ -372,20 +363,16 @@ public class EubosEngineMain extends AbstractEngine {
 			// In unit tests carry on without the protocol being connected
 		}
 		if (protocolBestMoveCommand.bestMove != null) {
-			try {
-				int bestMove = Move.toMove(protocolBestMoveCommand.bestMove, rootPosition.getTheBoard(), Move.TYPE_REGULAR_NONE);
-				// Apply the best move to update the DrawChecker state
-				rootPosition.performMove(bestMove);
-				boolean bestMoveWasCaptureOrPawnMove = Move.isCapture(bestMove) || Move.isPawnMove(bestMove);
-				if (bestMoveWasCaptureOrPawnMove) {
-					dc.reset();
-					dc.incrementPositionReachedCount(rootPosition.getHash());
-				}
-				logger.info(String.format("BestMove=%s hashCode=%d positionReachedCount=%d",
-						protocolBestMoveCommand.bestMove, rootPosition.getHash(), dc.getPositionReachedCount(rootPosition.getHash())));
-			} catch (InvalidPieceException e) {
-				logger.severe("Error in sendBestMoveCommand!");
+			int bestMove = Move.toMove(protocolBestMoveCommand.bestMove, rootPosition.getTheBoard(), Move.TYPE_REGULAR_NONE);
+			// Apply the best move to update the DrawChecker state
+			rootPosition.performMove(bestMove);
+			boolean bestMoveWasCaptureOrPawnMove = Move.isCapture(bestMove) || Move.isPawnMove(bestMove);
+			if (bestMoveWasCaptureOrPawnMove) {
+				dc.reset();
+				dc.incrementPositionReachedCount(rootPosition.getHash());
 			}
+			logger.info(String.format("BestMove=%s hashCode=%d positionReachedCount=%d",
+					protocolBestMoveCommand.bestMove, rootPosition.getHash(), dc.getPositionReachedCount(rootPosition.getHash())));
 		} else {
 			logger.severe("Best move is null!");
 		}

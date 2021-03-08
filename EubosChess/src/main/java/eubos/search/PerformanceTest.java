@@ -2,7 +2,7 @@ package eubos.search;
 
 import java.util.Iterator;
 
-import eubos.board.InvalidPieceException;
+
 import eubos.position.PositionManager;
 import eubos.position.MoveList;
 import eubos.position.Position;
@@ -23,21 +23,17 @@ public class PerformanceTest {
 			this.requestedDepthPly = requestedDepthPly;
 		}
 	    
-	    public long perft() throws InvalidPieceException {
+	    public long perft()  {
 	        if (currPly < requestedDepthPly) {        
 	            MoveList ml = new MoveList(pm);
 	            Iterator<Integer> iter = ml.getStandardIterator(false, Position.NOPOSITION);
 	            while (iter.hasNext()) {
 	            	int move = iter.next();
-	                try {
-						pm.performMove(move, false);
-		                currPly+=1;
-		                perft();
-		                currPly-=1;
-		                pm.unperformMove(false);
-					} catch (InvalidPieceException e) {
-						e.printStackTrace();
-					}
+					pm.performMove(move, false);
+	                currPly+=1;
+	                perft();
+	                currPly-=1;
+	                pm.unperformMove(false);
 	            }
 	        } else {
 	        	nodeCount += 1;
