@@ -21,15 +21,12 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		this.sda = sda;
 	}
 	
-	public TranspositionEvaluation getTransposition(int depthRequiredPly) {
-		TranspositionEvaluation eval = new TranspositionEvaluation();
+	public ITransposition getTransposition() {
+		ITransposition trans = null;
 		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
-			eval.trans = hashMap.getTransposition(pos.getHash());
-			if (eval.trans != null) {
-				eval.status = eval.trans.evaluateSuitability(depthRequiredPly);
-			}
+			trans = hashMap.getTransposition(pos.getHash());
 		}
-		return eval;
+		return trans;
 	}
 	
 	public ITransposition setTransposition(ITransposition trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove) {
@@ -54,7 +51,7 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			if (!is_created) {
 				boolean is_updated = trans.checkUpdate(new_Depth, new_score, new_bound, new_bestMove, pv);
 				if (is_updated) {
-					sda.printTransUpdate(trans, pos.getHash());
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.printTransUpdate(trans, pos.getHash());
 				}
 			}
 		}
@@ -63,14 +60,14 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 	
 	private ITransposition createTranpositionAddToTable(byte new_Depth, short new_score, byte new_bound, int new_bestMove, List<Integer> pv) {
 		ITransposition new_trans;
-		sda.printCreateTrans(pos.getHash());
+		if (SearchDebugAgent.DEBUG_ENABLED) sda.printCreateTrans(pos.getHash());
 		if (USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
 			new_trans = new PrincipalVariationTransposition(pos.getHash(), new_Depth, new_score, new_bound, new_bestMove, pv);
 		} else {
 			new_trans= new Transposition(pos.getHash(), new_Depth, new_score, new_bound, new_bestMove, null);
 		}
 		hashMap.putTransposition(pos.getHash(), new_trans);
-		sda.printTransUpdate(new_trans, pos.getHash());
+		if (SearchDebugAgent.DEBUG_ENABLED) sda.printTransUpdate(new_trans, pos.getHash());
 		return new_trans;
 	}
 }

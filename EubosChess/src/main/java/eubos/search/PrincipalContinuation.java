@@ -91,7 +91,7 @@ public class PrincipalContinuation {
 				// Bring down, if possible
 				plyToUpdatePc.addAll(pc.get(nextPly));
 			}
-			sda.printPrincipalContinuation(this);
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPrincipalContinuation(this);
 		}
 	}
 	
@@ -102,7 +102,7 @@ public class PrincipalContinuation {
 			plyToUpdatePc.clear();
 			plyToUpdatePc.add(currMove);
 			clearContinuationBeyondPly(currPly);
-			sda.printPrincipalContinuation(this);
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPrincipalContinuation(this);
 		}
 	}
 	

@@ -2,8 +2,6 @@ package eubos.search.transposition;
 
 import java.util.List;
 
-import eubos.search.transposition.TranspositionEvaluation.Status;
-
 public interface ITransposition {
 
 	byte getType();
@@ -25,8 +23,6 @@ public interface ITransposition {
 	void setAccessCount(short accessCount);
 
 	List<Integer> getPv();
-	
-	Status evaluateSuitability(int depthRequiredPly);
 	
 	boolean checkHash(int hashCode);
 }

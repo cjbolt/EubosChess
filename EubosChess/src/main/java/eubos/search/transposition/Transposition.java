@@ -6,7 +6,6 @@ import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.position.Move;
 import eubos.search.Score;
-import eubos.search.transposition.TranspositionEvaluation.Status;
 
 public class Transposition implements ITransposition {
 	protected byte depthSearchedInPly;
@@ -88,15 +87,12 @@ public class Transposition implements ITransposition {
 			short new_score,
 			byte new_bound,
 			int new_bestMove, 
-			List<Integer> pv) {
-		
+			List<Integer> pv) {	
 		boolean updateTransposition = false;
-		//mg.sda.printTransDepthCheck(depthSearchedInPly, new_Depth);
-		
 		if (depthSearchedInPly < new_Depth) {
 			updateTransposition = true;	
 		} else if (depthSearchedInPly == new_Depth) {
-			if ((type == Score.upperBound || type == Score.lowerBound) && new_score > getScore()) {
+			if (type != Score.exact && new_score > getScore()) {
 				updateTransposition = true;
 			} else {
 				// don't update, worse bound score than we currently have
@@ -104,14 +100,12 @@ public class Transposition implements ITransposition {
 		} else {
 			// don't update, depth is less than what we have
 		}
-		
 		if (updateTransposition) {
 			depthSearchedInPly = new_Depth;
 			score = new_score;
 			type = new_bound;
 			setBestMove(new_bestMove);
 		}
-		
 		return updateTransposition;
 	}
 	
@@ -126,22 +120,6 @@ public class Transposition implements ITransposition {
 		return wasSetAsExact;
 	}
 	
-//	@Override
-//	public synchronized boolean checkUpdateToExact(
-//			byte currDepthSearchedInPly,
-//			short new_score,
-//			int new_bestMove) {
-//		boolean wasSetAsExact = false;
-//		if (getDepthSearchedInPly() < currDepthSearchedInPly || (getDepthSearchedInPly() == currDepthSearchedInPly && type != Score.exact)) {
-//			// however we need to be careful that the depth is appropriate, we don't set exact for wrong depth...
-//			setScore(new_score);
-//			setType(Score.exact);
-//			setBestMove(new_bestMove);
-//			wasSetAsExact = true;
-//		}
-//		return wasSetAsExact;
-//	}
-	
 	public short getAccessCount() {
 		return accessCount;
 	}
@@ -152,28 +130,6 @@ public class Transposition implements ITransposition {
 	
 	public List<Integer> getPv() {
 		return null;
-	}
-	
-	public synchronized Status evaluateSuitability(int depthRequiredPly) {
-		Status eval = Status.insufficientNoData;
-		if (getDepthSearchedInPly() >= depthRequiredPly) {
-			
-			if (getType() == Score.exact) {
-				eval = Status.sufficientTerminalNode;
-			} else {
-				eval = Status.sufficientRefutation;
-			}
-		} else {
-			eval = Status.sufficientSeedMoveList;
-		}
-		
-		if (eval == Status.sufficientSeedMoveList) {
-			// It is possible that we don't have a move to seed the list with, guard against that.
-			if (getBestMove() == Move.NULL_MOVE) {
-				eval = Status.insufficientNoData;
-			}
-		}
-		return eval;
 	}
 
 	@Override

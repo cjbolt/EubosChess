@@ -17,8 +17,6 @@ import eubos.score.MateScoreGenerator;
 import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.ITranspositionAccessor;
 import eubos.search.transposition.ITransposition;
-import eubos.search.transposition.TranspositionEvaluation;
-import eubos.search.transposition.TranspositionEvaluation.Status;
 
 public class PlySearcher {
 	
@@ -115,54 +113,53 @@ public class PlySearcher {
 			++depth;
 		}
 		
-		sda.printStartPlyInfo(pos, originalSearchDepthRequiredInPly);
-		sda.printNormalSearch(alpha, beta);
+		if (SearchDebugAgent.DEBUG_ENABLED) sda.printStartPlyInfo(pos, originalSearchDepthRequiredInPly);
+		if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(alpha, beta);
 		
-		TranspositionEvaluation eval = tt.getTransposition(depth);
-		if (eval.status != Status.insufficientNoData) {
-			if (eval.status != Status.sufficientSeedMoveList) {
-				// Common to both terminal node types, could downgrade status if the position could be a draw...
-				int hashScore = handleRefutationOrTerminalNodeFromHash(eval);
-				if (eval.status == Status.sufficientRefutation) {
+		ITransposition trans = tt.getTransposition();
+		if (trans != null) {
+			if (depth <= trans.getDepthSearchedInPly()) {
+				int type = trans.getType();
+				boolean isCutOff = false;
+				int hashScore = handleRefutationOrTerminalNodeFromHash(trans);
+				if (hashScore == 0) {
+					// Downgrade transposition status if the position could be drawn.
+					type = Score.lowerBound;
+				}
+				if (type == Score.exact) {
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
+					isCutOff = true;
+				} else {
 					// Update alpha/beta bound score according to transposition data
-					if (eval.trans.getType() == Score.upperBound) {
+					if (type == Score.upperBound) {
 						beta = Math.min(beta, hashScore);
-					} else if (eval.trans.getType() == Score.lowerBound) {
+					} else if (type == Score.lowerBound) {
 						alpha = Math.max(alpha, hashScore);
 					}
 					// Determine if good enough for a refutation...
 					if (alpha >= beta) {
-						killers.addMove(currPly, eval.trans.getBestMove());
-						sda.printHashIsRefutation(pos.getHash(), eval.trans);
-					} else {
-						// else search on with the updated alpha/beta from the Transposition
-						eval.status = Status.sufficientSeedMoveList;
+						killers.addMove(currPly, trans.getBestMove());
+						if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsRefutation(pos.getHash(), trans);
+						isCutOff = true;
 					}
-				} else if (eval.status == Status.sufficientTerminalNode) {
-					sda.printHashIsTerminalNode(eval.trans, pos.getHash());
 				}
-				// ...If hash data still good enough for a cut off, do that here.
-				if (eval.status != Status.sufficientSeedMoveList) {
-					// careful not to bring down continuations we shouldn't!
+				if (isCutOff) {
 				    if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
-						pc.update(currPly, eval.trans.getPv());
+						pc.update(currPly, trans.getPv());
 					} else {
-						pc.set(currPly, eval.trans.getBestMove());
+						pc.set(currPly, trans.getBestMove());
 					}
-					updatePrincipalContinuation(eval.trans.getBestMove(), (short) hashScore);
-					sda.printCutOffWithScore(hashScore);
+				    if (SearchDebugAgent.DEBUG_ENABLED) sda.printCutOffWithScore(hashScore);
 					return hashScore;
 				}
 			}
-			// Otherwise seed the move list
-			if (eval.status == Status.sufficientSeedMoveList) {
-				sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
-				prevBestMove = eval.trans.getBestMove();
-			}
+			// Transposition still useful to seed the move list
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
+			prevBestMove = trans.getBestMove();
 		}
 		
 		if (depth == 0) {
-			return extendedSearch(alpha,beta);
+			return extendedSearch(alpha, beta);
 		}
 		
 		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, killers.getMoves(currPly), moveListOrdering, false, Position.NOPOSITION);
@@ -183,15 +180,15 @@ public class PlySearcher {
 				pc.clearContinuationBeyondPly(currPly);
 			}
 			// Apply move and score
-			sda.printPerformMove(currMove);
-			sda.nextPly();
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
 			currPly++;
 			pm.performMove(currMove);
 			int positionScore = -search(-beta, -alpha, depth-1);
 			pm.unperformMove();
 			currPly--;
-			sda.prevPly();
-			sda.printUndoMove(currMove, positionScore);
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
 			
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)
 				sm.incrementNodesSearched();
@@ -205,23 +202,23 @@ public class PlySearcher {
 			if (positionScore > alpha) {					
 				if (positionScore >= beta) {
 					killers.addMove(currPly, currMove);
-					sda.printRefutationFound(positionScore);
-					eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) beta, Score.lowerBound);
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(positionScore);
+					trans = updateTranspositionTable(trans, (byte) depth, currMove, (short) beta, Score.lowerBound);
 					return beta;
 				}
 				
 				alpha = positionScore;
-				eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) alpha, Score.upperBound);
+				trans = updateTranspositionTable(trans, (byte) depth, currMove, (short) alpha, Score.upperBound);
 				updatePrincipalContinuation(currMove,(short) alpha);
 				
 			} else if (positionScore > plyScore) {
 				plyScore = positionScore;
-				eval.trans = updateTranspositionTable(eval.trans, (byte) depth, currMove, (short) plyScore, Score.upperBound);
+				trans = updateTranspositionTable(trans, (byte) depth, currMove, (short) plyScore, Score.upperBound);
 			}
 			
 			// Break-out when out of moves
 			if (move_iter.hasNext()) {
-				sda.printNormalSearch(alpha, beta);
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(alpha, beta);
 				currMove = move_iter.next();
 				moveNumber += 1;
 			} else {
@@ -229,16 +226,16 @@ public class PlySearcher {
 			}
 		}
 
-		if (!isTerminated() && eval.trans != null && (alpha > alphaOriginal && alpha < beta)) {
-			if (eval.trans.checkUpdateToExact((byte) depth)) {
-				sda.printExactTrans(pos.getHash(), eval.trans);			
+		if (!isTerminated() && trans != null && (alpha > alphaOriginal && alpha < beta)) {
+			if (trans.checkUpdateToExact((byte) depth)) {
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printExactTrans(pos.getHash(), trans);			
 			}
 		}
 		return alpha;
 	}
 	
 	public int extendedSearch(int alpha, int beta)  {
-		sda.printExtSearch(alpha, beta);
+		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearch(alpha, beta);
 		if (currPly > extendedSearchDeepestPly) {
 			extendedSearchDeepestPly = currPly;
 		}
@@ -252,20 +249,20 @@ public class PlySearcher {
 			return plyScore;
 		if (plyScore >= beta) {
 			// There is no move to put in the killer table when we stand Pat
-			sda.printRefutationFound(plyScore);
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
 			return beta;
 		}
 		
 		int prevBestMove = Move.NULL_MOVE;
-		TranspositionEvaluation eval = tt.getTransposition(100);
-		if (eval.status == Status.sufficientSeedMoveList) {
-			sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
-			prevBestMove = eval.trans.getBestMove();
+		ITransposition trans = tt.getTransposition();
+		if (trans != null) {
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
+			prevBestMove = trans.getBestMove();
 		}
 		// Don't use Killer moves as we don't search quiet moves in the extended search
 		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, null, moveListOrdering, true, Position.NOPOSITION);
 		Iterator<Integer> move_iter = ml.getStandardIterator(true, Position.NOPOSITION);
-		sda.printExtendedSearchMoveList(ml);
+		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtendedSearchMoveList(ml);
 		if (ENABLE_MATE_CHECK_IN_EXTENDED_SEARCH) {
 			if (ml.isMateOccurred()) {
 	        	// Ideally we need just one normal move to determine that it isn't mate to
@@ -279,7 +276,7 @@ public class PlySearcher {
         	}    		
         } // else we will detect there are no moves and assume there are normal moves and stand Pat
 		if (!move_iter.hasNext()) {
-			sda.printExtSearchNoMoves(plyScore);
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearchNoMoves(plyScore);
 			return plyScore;
 		}
 		
@@ -294,15 +291,15 @@ public class PlySearcher {
 				pc.clearContinuationBeyondPly(currPly);
 			}
 			// Apply capture and score
-			sda.printPerformMove(currMove);			
-			sda.nextPly();
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);			
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
 			currPly++;
 			pm.performMove(currMove);
 			short positionScore = (short) -extendedSearch(-beta, -alpha);
 			pm.unperformMove();
 			currPly--;
-			sda.prevPly();
-			sda.printUndoMove(currMove, positionScore);
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
 			
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)
 				sm.incrementNodesSearched();
@@ -310,16 +307,16 @@ public class PlySearcher {
 			if (positionScore > alpha) {
 				if (positionScore >= beta) {
 					killers.addMove(currPly, currMove);
-					sda.printRefutationFound(positionScore);
-					eval.trans = updateTranspositionTable(eval.trans, (byte) 0, currMove, (short) beta, Score.upperBound);
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(positionScore);
+					trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) beta, Score.upperBound);
 					return beta;
 				}
 				alpha = plyScore;
 				updatePrincipalContinuation(currMove, plyScore);
-				eval.trans = updateTranspositionTable(eval.trans, (byte) 0, currMove, (short) alpha, Score.upperBound);
+				trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) alpha, Score.upperBound);
 			} else if (positionScore > plyScore) {
 				plyScore = positionScore;
-				eval.trans = updateTranspositionTable(eval.trans, (byte) 0, currMove, (short) plyScore, Score.upperBound);
+				trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) plyScore, Score.upperBound);
 			}
 			
 			if (move_iter.hasNext()) {
@@ -346,20 +343,19 @@ public class PlySearcher {
 		return trans;
 	}
 	
-	private int handleRefutationOrTerminalNodeFromHash(TranspositionEvaluation eval)  {
+	private int handleRefutationOrTerminalNodeFromHash(ITransposition trans)  {
 		int trans_move;
 		int theScore = 0;
 		short trans_score;
-		synchronized (eval.trans) {
-			trans_move = eval.trans.getBestMove();
-			trans_score = eval.trans.getScore();
+		synchronized (trans) {
+			trans_move = trans.getBestMove();
+			trans_score = trans.getScore();
 		}
 		// Check score for hashed position causing a search cut-off is still valid (i.e. best move doesn't lead to a draw)
 		// If hashed score is a draw score, check it is still a draw, if not, search position
 		boolean isThreefold = checkForRepetitionDueToPositionInSearchTree(trans_move);
 		if (isThreefold || (!isThreefold && (trans_score == 0))) {
-			sda.printHashIsSeedMoveList(pos.getHash(), eval.trans);
-			eval.status = Status.sufficientSeedMoveList;
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
 		} else {
 			short adjustedScoreForThisPositionInTree = trans_score;
 			if (Score.isMate(trans_score)) {
@@ -378,13 +374,13 @@ public class PlySearcher {
 		boolean retVal = false;
 		if (move != Move.NULL_MOVE) {
 			pm.performMove(move);
-			sda.nextPly();
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
 			if (pos.isThreefoldRepetitionPossible()) {
-				sda.printRepeatedPositionHash(pos.getHash(), pos.getFen());
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printRepeatedPositionHash(pos.getHash(), pos.getFen());
 				retVal = true;
 			}
 			pm.unperformMove();
-			sda.prevPly();
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
 		}
 		return retVal;
 	}
