@@ -109,12 +109,16 @@ public class PlySearcher {
 			return pe.evaluatePosition();
 		}
 		// Extend search for in-check scenarios, treated outside of quiescence search 
-		if (depth == 0 && pos.isKingInCheck()) {
+		if (pos.isKingInCheck()) {
 			++depth;
 		}
 		
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printStartPlyInfo(pos, originalSearchDepthRequiredInPly);
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(alpha, beta);
+		
+		if (depth == 0) {
+			return extendedSearch(alpha, beta);
+		}
 		
 		ITransposition trans = tt.getTransposition();
 		if (trans != null) {
@@ -156,10 +160,6 @@ public class PlySearcher {
 			// Transposition still useful to seed the move list
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
 			prevBestMove = trans.getBestMove();
-		}
-		
-		if (depth == 0) {
-			return extendedSearch(alpha, beta);
 		}
 		
 		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, killers.getMoves(currPly), moveListOrdering, false, Position.NOPOSITION);
