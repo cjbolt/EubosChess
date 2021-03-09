@@ -338,6 +338,12 @@ public class Board {
 		long targetSquareMask = BitBoard.positionToMask_Lut[targetSquare];
 		long positionsMask = initialSquareMask | targetSquareMask;
 		
+		// Check assertions, if enabled in build
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			assert (pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] & initialSquareMask) != 0: 
+				String.format("Non-existant piece at %s", Position.toGenericPosition(originSquare));
+		}
+		
 		// Initialise En Passant target square
 		setEnPassantTargetSq(Position.NOPOSITION);
 		
@@ -362,10 +368,6 @@ public class Board {
 		// Switch piece-specific bitboards and piece lists
 		if (promotedPiece != Piece.NONE) {
 			// For a promotion, need to resolve piece-specific across multiple bitboards
-			if (EubosEngineMain.ENABLE_ASSERTS) {
-				assert (pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] & initialSquareMask) != 0: 
-					String.format("Non-existant piece at %s", Position.toGenericPosition(originSquare));
-			}
 			pieces[INDEX_PAWN] &= ~initialSquareMask;
 			pieces[promotedPiece] |= targetSquareMask;
 			if (ENABLE_PIECE_LISTS) {
@@ -373,10 +375,6 @@ public class Board {
 			}
 		} else {
 			// Piece type doesn't change across boards
-			if (EubosEngineMain.ENABLE_ASSERTS) {
-				assert (pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] & initialSquareMask) != 0: 
-					String.format("Non-existant piece at %s", Position.toGenericPosition(originSquare));
-			}
 			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
 			if (ENABLE_PIECE_LISTS) {
 				pieceLists.updatePiece(pieceToMove, originSquare, targetSquare);
@@ -406,6 +404,13 @@ public class Board {
 		long targetSquareMask = BitBoard.positionToMask_Lut[targetSquare];
 		long positionsMask = initialSquareMask | targetSquareMask;
 		boolean isCapture = targetPiece != Piece.NONE;
+		
+		// Check assertions, if enabled in build
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			long pieceMask = (promotedPiece != Piece.NONE) ? pieces[promotedPiece] : pieces[Piece.PIECE_NO_COLOUR_MASK & originPiece];
+			assert (pieceMask & initialSquareMask) != 0: String.format("Non-existant piece at %s, %s",
+					Position.toGenericPosition(originSquare), Move.toString(moveToUndo));
+		}
 		
 		// Handle reversal of any castling secondary rook moves on the board
 		if (Piece.isKing(originPiece)) {
@@ -720,7 +725,7 @@ public class Board {
 			}
 		} else {
 			if (EubosEngineMain.ENABLE_ASSERTS) {
-				assert false;
+				assert false : String.format("Non-existant target piece at %s", Position.toGenericPosition(atPos));
 			}
 			piece = Piece.NONE;
 		}

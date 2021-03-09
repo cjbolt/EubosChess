@@ -94,7 +94,8 @@ public class PieceList {
 					break;
 				}
 			}
-			assert found;
+			assert found : String.format("PieceList out of sync with Board for %d at %s",
+					piece, Position.toGenericPosition(targetPos));
 		}
 	}
 	
