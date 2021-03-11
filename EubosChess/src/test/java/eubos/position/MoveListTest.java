@@ -225,7 +225,7 @@ public class MoveListTest {
 		int [] killers = new int[3];
 		killers[0] = killer1; killers[1] = killer2; killers[2] = Move.NULL_MOVE;
 		
-		classUnderTest = new MoveList(pm, best, killers, 1);
+		classUnderTest = new MoveList(pm, best, killers, 1, false, Position.NOPOSITION, pm.isKingInCheck());
 		Iterator<Integer> it = classUnderTest.iterator();
 		
 		// best
@@ -256,7 +256,7 @@ public class MoveListTest {
 	@Test
 	public void test_check_extended_search_moves_contain_only_promotions_captures_knight_queen()throws IllegalNotationException {
 		PositionManager pm = new PositionManager("3q1rk1/p4pp1/2p4p/3p4/6Pr/1PNQ4/P1PB1PPb/4RR1K w - - - 2");
-		classUnderTest = new MoveList(pm, Move.NULL_MOVE, null, 1, true, Position.d5);
+		classUnderTest = new MoveList(pm, Move.NULL_MOVE, null, 1, true, Position.d5, pm.isKingInCheck());
 		Iterator<Integer> it = classUnderTest.getStandardIterator(true, Position.d5);
 		
 		// Capture
@@ -268,7 +268,7 @@ public class MoveListTest {
 	@Test
 	public void test_check_extended_search_moves_contain_only_promotions_captures_king()throws IllegalNotationException {
 		PositionManager pm = new PositionManager("3q1rk1/p4pp1/2p4p/3p4/6P1/1PNQ4/P1PB1PPb/4RR1K w - - - 2");
-		classUnderTest = new MoveList(pm, Move.NULL_MOVE, null, 1, true, Position.h2);
+		classUnderTest = new MoveList(pm, Move.NULL_MOVE, null, 1, true, Position.h2, pm.isKingInCheck());
 		Iterator<Integer> it = classUnderTest.getStandardIterator(true, Position.h2);
 		
 		// Capture - removed rook to make the king capture legal!
@@ -279,7 +279,7 @@ public class MoveListTest {
 	@Test
 	public void test_check_extended_search_moves_contain_only_promotions_and_captures_all()throws IllegalNotationException {
 		PositionManager pm = new PositionManager("6k1/PBN5/8/2Kp4/2P5/5Q2/8/3R4 w - - 0 1 ");
-		classUnderTest = new MoveList(pm, Move.NULL_MOVE, null, 1, true, Position.d5);
+		classUnderTest = new MoveList(pm, Move.NULL_MOVE, null, 1, true, Position.d5, pm.isKingInCheck());
 		Iterator<Integer> it = classUnderTest.getStandardIterator(true, Position.d5);
 		
 		// Promotion
@@ -308,7 +308,7 @@ public class MoveListTest {
 	public void test_mate_in_7_best_move()throws IllegalNotationException {
 		PositionManager pm = new PositionManager("5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113");
 		int best = Move.valueOf(Position.f8, Piece.WHITE_QUEEN, Position.b4, Piece.NONE);
-		classUnderTest = new MoveList(pm, best, null, 1, false, Position.NOPOSITION);
+		classUnderTest = new MoveList(pm, best, null, 1, false, Position.NOPOSITION, pm.isKingInCheck());
 		assertEquals(new GenericMove("f8b4"), Move.toGenericMove(classUnderTest.getBestMove()));
 	}
 	 

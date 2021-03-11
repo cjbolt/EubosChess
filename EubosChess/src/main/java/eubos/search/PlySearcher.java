@@ -108,8 +108,9 @@ public class PlySearcher {
 		if (currPly >= extendedSearchLimitInPly - 1) {
 			return pe.evaluatePosition();
 		}
-		// Extend search for in-check scenarios, treated outside of quiescence search 
-		if (pos.isKingInCheck()) {
+		// Extend search for in-check scenarios, treated outside of quiescence search
+		boolean needToEscapeCheck = pos.isKingInCheck();
+		if (needToEscapeCheck) {
 			++depth;
 		}
 		
@@ -117,7 +118,7 @@ public class PlySearcher {
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(alpha, beta);
 		
 		if (depth == 0) {
-			return extendedSearch(alpha, beta);
+			return extendedSearch(alpha, beta, needToEscapeCheck);
 		}
 		
 		ITransposition trans = tt.getTransposition();
@@ -153,6 +154,10 @@ public class PlySearcher {
 					} else {
 						pc.set(currPly, trans.getBestMove());
 					}
+					if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && atRootNode() && sr != null) {
+						sm.setPrincipalVariationData(0, pc.toPvList(0), (short)hashScore);
+						sr.reportPrincipalVariation(sm);
+					}
 				    if (SearchDebugAgent.DEBUG_ENABLED) sda.printCutOffWithScore(hashScore);
 					return hashScore;
 				}
@@ -162,7 +167,7 @@ public class PlySearcher {
 			prevBestMove = trans.getBestMove();
 		}
 		
-		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, killers.getMoves(currPly), moveListOrdering, false, Position.NOPOSITION);
+		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, killers.getMoves(currPly), moveListOrdering, false, Position.NOPOSITION, needToEscapeCheck);
 		Iterator<Integer> move_iter = ml.getStandardIterator(false, Position.NOPOSITION);
 		if (!move_iter.hasNext()) {
 			return sg.scoreMate(currPly);
@@ -234,7 +239,7 @@ public class PlySearcher {
 		return alpha;
 	}
 	
-	public int extendedSearch(int alpha, int beta)  {
+	private int extendedSearch(int alpha, int beta, boolean needToEscapeCheck)  {
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearch(alpha, beta);
 		if (currPly > extendedSearchDeepestPly) {
 			extendedSearchDeepestPly = currPly;
@@ -260,7 +265,7 @@ public class PlySearcher {
 			prevBestMove = trans.getBestMove();
 		}
 		// Don't use Killer moves as we don't search quiet moves in the extended search
-		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, null, moveListOrdering, true, Position.NOPOSITION);
+		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, null, moveListOrdering, true, Position.NOPOSITION, pos.isKingInCheck());
 		Iterator<Integer> move_iter = ml.getStandardIterator(true, Position.NOPOSITION);
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtendedSearchMoveList(ml);
 		if (ENABLE_MATE_CHECK_IN_EXTENDED_SEARCH) {
@@ -295,7 +300,7 @@ public class PlySearcher {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
 			currPly++;
 			pm.performMove(currMove);
-			short positionScore = (short) -extendedSearch(-beta, -alpha);
+			short positionScore = (short) -extendedSearch(-beta, -alpha, pos.isKingInCheck());
 			pm.unperformMove();
 			currPly--;
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();

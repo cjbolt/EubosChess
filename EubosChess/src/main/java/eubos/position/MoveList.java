@@ -30,24 +30,19 @@ public class MoveList implements Iterable<Integer> {
     }
 	
 	public MoveList(PositionManager pm)  {
-		this(pm, Move.NULL_MOVE, null, 1, false, Position.NOPOSITION);
+		this(pm, Move.NULL_MOVE, null, 1, false, Position.NOPOSITION, pm.isKingInCheck(pm.getOnMove()));
 	}
 	
 	public MoveList(PositionManager pm, int orderMoveList)  {
-		this(pm, Move.NULL_MOVE, null, orderMoveList, false, Position.NOPOSITION);
-	}
-	
-	public MoveList(PositionManager pm, int bestMove, int [] killers, int orderMoveList)  {
-		this(pm, bestMove, killers, orderMoveList, false, Position.NOPOSITION);
+		this(pm, Move.NULL_MOVE, null, orderMoveList, false, Position.NOPOSITION, pm.isKingInCheck(pm.getOnMove()));
 	}	
 	
-	public MoveList(PositionManager pm, int bestMove, int [] killers, int orderMoveList, boolean capturesOnly, int targetPosition)  {	
+	public MoveList(PositionManager pm, int bestMove, int [] killers, int orderMoveList, boolean capturesOnly, int targetPosition, boolean needToEscapeMate)  {	
 		
 		normal_search_moves = new LinkedList<Integer>();
 		priority_moves = new LinkedList<Integer>();
 		
 		Colour onMove = pm.getOnMove();
-		boolean needToEscapeMate = pm.isKingInCheck(onMove);
 		boolean isWhiteOnMove = Piece.Colour.isWhite(onMove);
 		
 		pm.getTheBoard().getRegularPieceMoves(this, isWhiteOnMove, capturesOnly, targetPosition);

@@ -69,26 +69,29 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		stopper.start();
 		while (!searchStopped) {
 			res = mg.findMove(currentDepth, pc, sr);
-			if (res != null && res.bestMove == Move.NULL_MOVE) {
-				EubosEngineMain.logger.info("IterativeMoveSearcher out of legal moves");
-				searchStopped = true;
-			}
-			if (res != null && res.foundMate && !analyse) {
-				EubosEngineMain.logger.info("IterativeMoveSearcher found mate");
-				break;
-			}				
-			if (stopper.extraTime && !searchStopped) {
-				// don't start a new iteration, we only allow time to complete the current ply
-				searchStopped = true;
-				if (DEBUG_LOGGING) {
-					EubosEngineMain.logger.info(String.format(
-							"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
+			if (res != null) {
+				if (res.foundMate && !analyse) {
+					EubosEngineMain.logger.info("IterativeMoveSearcher found mate");
+					searchStopped = true;
+				} else if (res.bestMove == Move.NULL_MOVE) {
+					EubosEngineMain.logger.info("IterativeMoveSearcher out of legal moves");
+					searchStopped = true;
 				}
 			}
-			pc = mg.pc.toPvList(0);
-			currentDepth++;
-			if (currentDepth == Byte.MAX_VALUE) {
-				break;
+			if (!searchStopped) {
+				if (stopper.extraTime) {
+					// don't start a new iteration, we were only allowing time to complete the search at the current ply
+					searchStopped = true;
+					if (DEBUG_LOGGING) {
+						EubosEngineMain.logger.info(String.format(
+								"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
+					}
+				}
+				pc = mg.pc.toPvList(0);
+				currentDepth++;
+				if (currentDepth == Byte.MAX_VALUE) {
+					break;
+				}
 			}
 		}
 		EubosEngineMain.logger.info(
