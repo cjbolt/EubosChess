@@ -180,9 +180,11 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 					if (result.foundMate && !analyse) {
 						EubosEngineMain.logger.info("IterativeMoveSearcher found mate");
 						searchStopped = true;
+						halted = true;
 					} else if (result.bestMove == Move.NULL_MOVE) {
 						EubosEngineMain.logger.info("IterativeMoveSearcher out of legal moves");
 						searchStopped = true;
+						halted = true;
 					}
 				}
 				if (!searchStopped) {

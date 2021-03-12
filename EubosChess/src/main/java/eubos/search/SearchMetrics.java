@@ -22,11 +22,13 @@ public class SearchMetrics {
 	private long initialTimestamp;
 	private int moveNum;
 	private GenericMove move;
+	boolean scoreIsValid = false;
 	
 	public SearchMetrics(int searchDepth, IPositionAccessors pos) {
 		nodesSearched = new AtomicLong(0);
 		time = 0;
 		cpScore = 0;
+		scoreIsValid = false;
 		pvValid = false;
 		depth = searchDepth;
 		partialDepth = 0;
@@ -92,6 +94,7 @@ public class SearchMetrics {
 				positionScore += 1; // out by one error due to negation of mate scores?
 			}
 		}
+		scoreIsValid = true;
 		this.cpScore = positionScore;
 	}
 	
@@ -110,5 +113,9 @@ public class SearchMetrics {
 	}
 	public GenericMove getCurrentMove() {
 		return move;
+	}
+
+	public boolean isScoreValid() {
+		return scoreIsValid;
 	}
 }

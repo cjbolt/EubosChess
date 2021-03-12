@@ -164,16 +164,17 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			/* Consider extending time for Search according to following... */
 			short currentScore = mg.sm.getCpScore();
 			byte currDepth = (byte)mg.sm.getDepth();
+			boolean hasBackedUpAScore = mg.sm.isScoreValid();
 			Reference ref = refScore.getReference();
 			switch (checkPoint) {
 			case 1:
-				if (currentScore >= ref.score && currDepth >= ref.depth) {
+				if (hasBackedUpAScore && currentScore >= ref.score && currDepth >= ref.depth) {
 					terminateNow = true;
 				}
 				extraTime = true;
 				break;
 			case 3:
-				if ((currentScore >= ref.score - 300) && (currDepth >= ref.depth))
+				if (hasBackedUpAScore && (currentScore >= ref.score - 300) && (currDepth >= ref.depth))
 					terminateNow = true;
 				break;
 			case 7:
