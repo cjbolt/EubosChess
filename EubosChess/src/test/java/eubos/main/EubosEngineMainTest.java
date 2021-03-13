@@ -148,9 +148,9 @@ public class EubosEngineMainTest {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			String expectedOutput;
 			if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
-				expectedOutput = "info depth 1 seldepth 7 score cp 143 pv d7e5 d4d5 e5f3 hashfull 0 nps 514 time 101 nodes 52"+CMD_TERMINATOR+
-	                    "info depth 1 seldepth 3 score cp 151 pv c7c2 d4a7 hashfull 0 nps 592 time 103 nodes 61"+CMD_TERMINATOR+
-	                    "info depth 2 seldepth 7 score cp 52 pv c7c2 d4a7 c2c1 hashfull 0 nps 1607 time 112 nodes 180"+CMD_TERMINATOR
+				expectedOutput = "info depth 1 seldepth 7 score cp 185 pv d7e5 d4d5 e5f3 hashfull 0 nps 509 time 102 nodes 52"+CMD_TERMINATOR+
+	                    "info depth 2 seldepth 6 score cp -167 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 1423 time 111 nodes 158"+CMD_TERMINATOR+
+	                    "info depth 2 seldepth 6 score cp 17 pv c7c2 d4d5 c2c1 hashfull 0 nps 2068 time 116 nodes 240"+CMD_TERMINATOR
 	                    +BEST_PREFIX+"c7c2";
 			} else if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && !PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
 				expectedOutput = "info depth 1 seldepth 4 score cp -141 pv d7e5 f3e5 c7e5 hashfull 0 nps 500 time 14 nodes 7"+CMD_TERMINATOR+
@@ -208,8 +208,8 @@ public class EubosEngineMainTest {
 	public void test_pawn_move_clears_draw_checker() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"1"+CMD_TERMINATOR,BEST_PREFIX+"e2e4"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves e2e4 e7e5"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"1"+CMD_TERMINATOR,BEST_PREFIX+"e2e3"+CMD_TERMINATOR));
+		commands.add(new commandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves e2e3 e7e5"+CMD_TERMINATOR, null));
 		performTest(500);
 		assertEquals(1, (int)classUnderTest.dc.getNumEntries()); // Pawn moves clear DrawChecker history, so we just get the position after the pawn move
 	}

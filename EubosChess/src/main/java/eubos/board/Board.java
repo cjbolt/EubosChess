@@ -150,6 +150,24 @@ public class Board {
 		return mask;
 	}
 	
+	private static long[] knightKingSafetyMask_Lut = new long[128];
+	static {
+		for (int atPos : Position.values) {
+			knightKingSafetyMask_Lut[atPos] = buildKnightAttacksForKingZone(atPos);
+		}
+	}
+	private static long buildKnightAttacksForKingZone(int atPos) {
+		long mask = 0;
+		long kingZone = SquareAttackEvaluator.KingMove_Lut[atPos];
+		for (int knightPos : Position.values) {
+			long knightMask = SquareAttackEvaluator.KnightMove_Lut[knightPos];
+			if ((knightMask & kingZone) != 0) {
+				mask |= BitBoard.positionToMask_Lut[knightPos];
+			}
+		}
+		return mask;
+	}
+	
 	public static final short MATERIAL_VALUE_KING = 4000;
 	public static final short MATERIAL_VALUE_QUEEN = 900;
 	public static final short MATERIAL_VALUE_ROOK = 490;
@@ -1189,9 +1207,14 @@ public class Board {
 				kingPos = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(kingMask)];
 			}
 			evaluation = (getKingSafetyEvaluationDiagonalSquares(onMoveWasWhite, kingPos)) * -numPotentialAttackers;
-			
+			// Then score according to King exposure on open rank/files
 			numPotentialAttackers = Long.bitCount(rankFileAttackersMask);
 			evaluation += (getKingSafetyEvaluationRankFileSquares(onMoveWasWhite, kingPos)) * -numPotentialAttackers;
+			// Then account for Knight proximity to the adjacent square around the King
+			long attackingKnightsMask = onMoveWasWhite ? getBlackKnights() : getWhiteKnights();
+			long pertintentKnightsMask = attackingKnightsMask & knightKingSafetyMask_Lut[kingPos];
+			evaluation += -8*Long.bitCount(pertintentKnightsMask);
+			
 		}
 		return evaluation;
 	}
@@ -1209,13 +1232,15 @@ public class Board {
 	}
 	
 	public byte getKingSafetyEvaluationDiagonalSquares(boolean whiteOnMove, int atPos) {
-		long ownPieces = pieces[Piece.PAWN];  //(whiteOnMove) ? getWhitePawns()/*|getWhiteBishops()*/ : getBlackPawns()/*|getBlackBishops()*/;
-		return getKingSafetyEvaluation(ownPieces, atPos, SquareAttackEvaluator.diagonals);
+		long defenders = (whiteOnMove) ? getWhiteBishops() : getBlackBishops();
+		long blockers = (whiteOnMove) ? getWhitePawns()|getWhiteKnights() : getBlackPawns()|getBlackKnights();
+		return getKingSafetyEvaluation(defenders, blockers, atPos, SquareAttackEvaluator.diagonals);
 	}
 	
 	public byte getKingSafetyEvaluationRankFileSquares(boolean whiteOnMove, int atPos) {
-		long ownPieces = pieces[Piece.PAWN]; //(whiteOnMove) ? getWhitePawns()/*|getWhiteRooks()*/ : getBlackPawns()/*|getBlackRooks()*/;
-		return getKingSafetyEvaluation(ownPieces, atPos, SquareAttackEvaluator.rankFile);
+		long defenders = (whiteOnMove) ? getWhiteRooks() : getBlackRooks();
+		long blockers = (whiteOnMove) ? getWhitePawns()|getWhiteKnights() : getBlackPawns()|getBlackKnights();
+		return getKingSafetyEvaluation(defenders, blockers, atPos, SquareAttackEvaluator.rankFile);
 	}
 		
 	static final long[][][] emptySquareMask_Lut = new long[128][SquareAttackEvaluator.allDirect.length][];
@@ -1234,15 +1259,27 @@ public class Board {
 		}
 	}
 	
-	private byte getKingSafetyEvaluation(long ownPieces, int atPos, Direction [] dirs) {
+	private byte getKingSafetyEvaluation(long defenderMask, long blockerMask, int atPos, Direction [] dirs) {
 		byte numSquares = 0; 
+		//long ownPieces = defenderMask | blockerMask;
 		// One dimension for each direction, other dimension is array of individual square masks in that direction
 		long [][] emptySqMaskArray = emptySquareMask_Lut[atPos]; 
 		for (Direction dir: dirs) { 
 			int directionIndex = SquareAttackEvaluator.directionIndex_Lut.get(dir);
 			long inPathMask = SquareAttackEvaluator.directAttacksOnPositionAll_Lut[directionIndex][atPos];
 			if (inPathMask != 0) {
-				if ((ownPieces & inPathMask) == 0) {
+				if ((defenderMask & inPathMask) != 0) {
+					// If there is a defender, assume this direction is safe
+					break;
+				}
+				if ((blockerMask & inPathMask) != 0) {
+					// Count the empty squares to the blocker
+					for (long mask: emptySqMaskArray[directionIndex]) {
+						if ((blockerMask & mask) == 0) {
+							numSquares+=2;
+						} else break;
+					}
+				} else {
 					// All the squares are empty in this direction
 					numSquares += (emptySqMaskArray[directionIndex].length*2);
 				}
