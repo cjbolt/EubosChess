@@ -1183,16 +1183,18 @@ public class Board {
 		return true;
 	}
 	
-	public int evaluateKingSafety(boolean onMoveWasWhite) {
+	public int evaluateKingSafety(Piece.Colour side) {
 		int evaluation = 0;
+		boolean isWhite = Piece.Colour.isWhite(side);
 		if (!isEndgame) {
 			// King
-			long kingMask = onMoveWasWhite ? getWhiteKing() : getBlackKing();
+			long kingMask = isWhite ? getWhiteKing() : getBlackKing();
 			boolean isKingOnDarkSq = (kingMask & DARK_SQUARES_MASK) != 0;
 			// Attackers
-			long attackingQueensMask = onMoveWasWhite ? getBlackQueens() : getWhiteQueens();
-			long attackingRooksMask = onMoveWasWhite ? getBlackRooks() : getWhiteRooks();
-			long attackingBishopsMask = onMoveWasWhite ? getBlackBishops() : getWhiteBishops();
+			long attackingQueensMask = isWhite ? getBlackQueens() : getWhiteQueens();
+			long attackingRooksMask = isWhite ? getBlackRooks() : getWhiteRooks();
+			long attackingBishopsMask = isWhite ? getBlackBishops() : getWhiteBishops();
+			long attackingKnightsMask = isWhite ? getBlackKnights() : getWhiteKnights();
 			// create masks of attackers
 			long pertinentBishopMask = attackingBishopsMask & ((isKingOnDarkSq) ? DARK_SQUARES_MASK : LIGHT_SQUARES_MASK);
 			long diagonalAttackersMask = attackingQueensMask | pertinentBishopMask;
@@ -1202,16 +1204,15 @@ public class Board {
 			int numPotentialAttackers = Long.bitCount(diagonalAttackersMask);
 			int kingPos = Position.NOPOSITION;
 			if (ENABLE_PIECE_LISTS) {
-				kingPos = pieceLists.getKingPos(onMoveWasWhite);
+				kingPos = pieceLists.getKingPos(isWhite);
 			} else {
 				kingPos = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(kingMask)];
 			}
-			evaluation = (getKingSafetyEvaluationDiagonalSquares(onMoveWasWhite, kingPos)) * -numPotentialAttackers;
+			evaluation = (getKingSafetyEvaluationDiagonalSquares(isWhite, kingPos)) * -numPotentialAttackers;
 			// Then score according to King exposure on open rank/files
 			numPotentialAttackers = Long.bitCount(rankFileAttackersMask);
-			evaluation += (getKingSafetyEvaluationRankFileSquares(onMoveWasWhite, kingPos)) * -numPotentialAttackers;
+			evaluation += (getKingSafetyEvaluationRankFileSquares(isWhite, kingPos)) * -numPotentialAttackers;
 			// Then account for Knight proximity to the adjacent square around the King
-			long attackingKnightsMask = onMoveWasWhite ? getBlackKnights() : getWhiteKnights();
 			long pertintentKnightsMask = attackingKnightsMask & knightKingSafetyMask_Lut[kingPos];
 			evaluation += -8*Long.bitCount(pertintentKnightsMask);
 			

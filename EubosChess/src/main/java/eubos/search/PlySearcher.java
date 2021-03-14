@@ -209,14 +209,21 @@ public class PlySearcher {
 					killers.addMove(currPly, currMove);
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(positionScore);
 					trans = updateTranspositionTable(trans, (byte) depth, currMove, (short) beta, Score.lowerBound);
+					reportPv((short) beta);
 					return beta;
 				}
 				
 				alpha = positionScore;
+				plyScore = positionScore;
 				trans = updateTranspositionTable(trans, (byte) depth, currMove, (short) alpha, Score.upperBound);
-				updatePrincipalContinuation(currMove,(short) alpha);
+				pc.update(currPly, currMove);
+				reportPv((short) alpha);
 				
 			} else if (positionScore > plyScore) {
+				if (atRootNode() && plyScore == Score.PROVISIONAL_ALPHA && positionScore == alpha) {
+					pc.update(currPly, currMove);
+					reportPv((short) alpha);
+				}
 				plyScore = positionScore;
 				trans = updateTranspositionTable(trans, (byte) depth, currMove, (short) plyScore, Score.upperBound);
 			}
@@ -317,7 +324,7 @@ public class PlySearcher {
 					return beta;
 				}
 				alpha = plyScore;
-				updatePrincipalContinuation(currMove, plyScore);
+				pc.update(currPly, currMove);
 				trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) alpha, Score.upperBound);
 			} else if (positionScore > plyScore) {
 				plyScore = positionScore;
@@ -390,9 +397,7 @@ public class PlySearcher {
 		return retVal;
 	}
 
-	private void updatePrincipalContinuation(int currMove, short positionScore)
-			 {
-		pc.update(currPly, currMove);
+	private void reportPv(short positionScore) {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && atRootNode() && sr != null) {
 			sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), positionScore);
 			sr.reportPrincipalVariation(sm);

@@ -310,41 +310,73 @@ public class BoardTest {
 	@Test
 	public void test_evaluateKingSafety_safe()throws IllegalNotationException {
 		setUpPosition("5krr/4pppp/6bq/8/8/6BQ/4PPPP/5KRR b - - 13 1");
-		assertEquals(-30, classUnderTest.evaluateKingSafety(false)); // 5 squares, can be attacked by three pieces
-		assertEquals(-30, classUnderTest.evaluateKingSafety(true));
+		assertEquals(-30, classUnderTest.evaluateKingSafety(Piece.Colour.white)); // 5 squares, can be attacked by three pieces
+		assertEquals(-30, classUnderTest.evaluateKingSafety(Piece.Colour.black));
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_notVerySafe()throws IllegalNotationException {
 		setUpPosition("6rr/5ppp/1k4bq/8/8/1K4BQ/5PPP/6RR b - - 13 1 ");
-		assertEquals(-120, classUnderTest.evaluateKingSafety(false)); // diagonals 7 squares, can be attacked by two pieces; r'n'f 9 squares can be attacked by three pieces
-		assertEquals(-120, classUnderTest.evaluateKingSafety(true));
+		assertEquals(-120, classUnderTest.evaluateKingSafety(Piece.Colour.black)); // diagonals 7 squares, can be attacked by two pieces; r'n'f 9 squares can be attacked by three pieces
+		assertEquals(-120, classUnderTest.evaluateKingSafety(Piece.Colour.white));
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_No_inEndgame()throws IllegalNotationException {
 		setUpPosition("8/8/8/8/8/8/8/K7 w - - 0 1");
-		assertEquals(0, classUnderTest.evaluateKingSafety(true));
+		assertEquals(0, classUnderTest.evaluateKingSafety(Piece.Colour.white));
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_No_opposingBishopWrongColour()throws IllegalNotationException {
 		setUpPosition("r4rk1/1p3p2/p7/P2P1p1B/4p3/2b5/3R1PPP/4K2R b K - 13 1 ");
-		assertEquals(-50, classUnderTest.evaluateKingSafety(true)); // 7*2*2 rnf 0 diag = 28
-		assertEquals(-30, classUnderTest.evaluateKingSafety(false)); // 7*2*2 rnf 1*2*1 = 30
+		assertEquals(-50, classUnderTest.evaluateKingSafety(Piece.Colour.white)); // 7*2*2 rnf 0 diag = 28
+		assertEquals(-30, classUnderTest.evaluateKingSafety(Piece.Colour.black)); // 7*2*2 rnf 1*2*1 = 30
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_Yes_opposingBishopRightColour()throws IllegalNotationException {
 		setUpPosition("r4rk1/1p6/p7/P2P1p1B/4p3/2b5/3R1PPP/2K4R b - - 13 1 ");
-		assertEquals(-50, classUnderTest.evaluateKingSafety(true));
+		assertEquals(-50, classUnderTest.evaluateKingSafety(Piece.Colour.white));
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_Yes_opposingQueenBishop()throws IllegalNotationException {
 		setUpPosition("r4rk1/1p6/p7/P2P1p1B/4p3/2b5/3R1PPP/Q1K4R b - - 13 1 ");
-		assertEquals(-50, classUnderTest.evaluateKingSafety(true));  // (5 up right + 2 up left) *2 *1bish = 14; (7 up + 2 left + 5 right) * 2 *2rooks = 28*2; 56+14 = 70
-		assertEquals(-70, classUnderTest.evaluateKingSafety(false)); // 1*2*2 diag = 4; 7*2*3 = 42 r'n'f; 4+42 = 46 
+		assertEquals(-50, classUnderTest.evaluateKingSafety(Piece.Colour.white));  // (5 up right + 2 up left) *2 *1bish = 14; (7 up + 2 left + 5 right) * 2 *2rooks = 28*2; 56+14 = 70
+		assertEquals(-70, classUnderTest.evaluateKingSafety(Piece.Colour.black)); // 1*2*2 diag = 4; 7*2*3 = 42 r'n'f; 4+42 = 46 
+	}
+	
+	@Test
+	public void test_evaluateKingSafety_OneKnight_attackBlack()throws IllegalNotationException {
+		setUpPosition("8/8/4k3/8/8/1N4N1/8/8 w - - 1 1 ");
+		classUnderTest.isEndgame = false;
+		assertEquals(0, classUnderTest.evaluateKingSafety(Piece.Colour.white));
+		assertEquals(-8, classUnderTest.evaluateKingSafety(Piece.Colour.black)); // One knight attacks the black king zone
+	}
+	
+	@Test
+	public void test_evaluateKingSafety_TwoKnights_attackBlack()throws IllegalNotationException {
+		setUpPosition("8/8/4k3/8/8/2N3N1/8/8 w - - 1 1 ");
+		classUnderTest.isEndgame = false;
+		assertEquals(0, classUnderTest.evaluateKingSafety(Piece.Colour.white));
+		assertEquals(-16, classUnderTest.evaluateKingSafety(Piece.Colour.black)); // One knight attacks the black king zone
+	}
+	
+	@Test
+	public void test_evaluateKingSafety_OneKnight_attackWhite()throws IllegalNotationException {
+		setUpPosition("8/8/4K3/8/8/1n4n1/8/8 b - - 1 1 ");
+		classUnderTest.isEndgame = false;
+		assertEquals(-8, classUnderTest.evaluateKingSafety(Piece.Colour.white));
+		assertEquals(0, classUnderTest.evaluateKingSafety(Piece.Colour.black)); // One knight attacks the black king zone
+	}
+	
+	@Test
+	public void test_evaluateKingSafety_TwoKnights_attackWhite()throws IllegalNotationException {
+		setUpPosition("8/8/4K3/8/8/2n3n1/8/8 b - - 1 1 ");
+		classUnderTest.isEndgame = false;
+		assertEquals(-16, classUnderTest.evaluateKingSafety(Piece.Colour.white));
+		assertEquals(0, classUnderTest.evaluateKingSafety(Piece.Colour.black)); // One knight attacks the black king zone
 	}
 	
 	@Test

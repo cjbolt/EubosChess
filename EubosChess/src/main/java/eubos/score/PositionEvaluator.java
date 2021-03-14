@@ -39,10 +39,11 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	}
 	
 	public int evaluatePosition() {
-		pm.getTheBoard().evaluateMaterial();
-		SearchContextEvaluation eval = sc.computeSearchGoalBonus(pm.getTheBoard().me);
+		Board bd = pm.getTheBoard();
+		bd.evaluateMaterial();
+		SearchContextEvaluation eval = sc.computeSearchGoalBonus(bd.me);
 		if (!eval.isDraw) {
-			eval.score += Colour.isBlack(pm.getOnMove()) ? -pm.getTheBoard().me.getDelta() : pm.getTheBoard().me.getDelta();
+			eval.score += pm.onMoveIsWhite() ? bd.me.getDelta() : -bd.me.getDelta();
 			if (ENABLE_PAWN_EVALUATION) {
 				eval.score += evaluatePawnStructure();
 			}
@@ -54,14 +55,13 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	}
 	
 	int evaluatePawnStructure() {
-		boolean onMoveIsWhite = Colour.isWhite(pm.getOnMove());
 		Board bd = pm.getTheBoard();
 		int pawnEvaluationScore = 0;
-		long pawnsToTest = onMoveIsWhite ? bd.getWhitePawns() : bd.getBlackPawns();
+		long pawnsToTest = pm.onMoveIsWhite() ? bd.getWhitePawns() : bd.getBlackPawns();
 		if (pawnsToTest != 0x0) {
 			pawnEvaluationScore = evaluatePawnsForColour(pm.getOnMove());
 		}
-		pawnsToTest = (!onMoveIsWhite) ? bd.getWhitePawns() : bd.getBlackPawns();
+		pawnsToTest = (!pm.onMoveIsWhite()) ? bd.getWhitePawns() : bd.getBlackPawns();
 		if (pawnsToTest != 0x0) {
 			pawnEvaluationScore -= evaluatePawnsForColour(Colour.getOpposite(pm.getOnMove()));
 		}
@@ -70,9 +70,8 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	
 	int evaluateKingSafety() {
 		int kingSafetyScore = 0;
-		boolean ownSideIsWhite = pm.onMoveIsWhite();
-		kingSafetyScore = pm.getTheBoard().evaluateKingSafety(ownSideIsWhite);
-		kingSafetyScore -= pm.getTheBoard().evaluateKingSafety(!ownSideIsWhite);
+		kingSafetyScore = pm.getTheBoard().evaluateKingSafety(pm.getOnMove());
+		kingSafetyScore -= pm.getTheBoard().evaluateKingSafety(Piece.Colour.getOpposite(pm.getOnMove()));
 		return kingSafetyScore;
 	}
 	

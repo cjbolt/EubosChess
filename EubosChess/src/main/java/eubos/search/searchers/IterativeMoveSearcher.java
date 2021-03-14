@@ -186,8 +186,8 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			
 			if (DEBUG_LOGGING) {
 				EubosEngineMain.logger.info(String.format(
-						"checkPoint=%d currentScore=%s refScore=%s depth=%d refDepth=%d SearchStopped=%s StopperActive=%s ranFor=%d ",
-						checkPoint, Score.toString(currentScore), Score.toString(ref.score), currDepth, ref.depth,
+						"checkPoint=%d hasBackedUpAScore=%s currentScore=%s refScore=%s depth=%d refDepth=%d SearchStopped=%s StopperActive=%s ranFor=%d ",
+						checkPoint, hasBackedUpAScore, Score.toString(currentScore), Score.toString(ref.score), currDepth, ref.depth,
 						searchStopped, stopperActive, timeRanFor));
 			}
 			
