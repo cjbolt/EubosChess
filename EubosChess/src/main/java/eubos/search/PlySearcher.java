@@ -220,7 +220,7 @@ public class PlySearcher {
 				reportPv((short) alpha);
 				
 			} else if (positionScore > plyScore) {
-				if (atRootNode() && plyScore == Score.PROVISIONAL_ALPHA && positionScore == alpha) {
+				if (atRootNode() && plyScore == Score.PROVISIONAL_ALPHA) {
 					pc.update(currPly, currMove);
 					reportPv((short) alpha);
 				}
@@ -294,6 +294,7 @@ public class PlySearcher {
 		
 		if (plyScore > alpha) {
 			alpha = plyScore;
+			//trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) alpha, Score.upperBound);
 		}
 
 		int currMove = move_iter.next();
@@ -318,12 +319,13 @@ public class PlySearcher {
 			
 			if (positionScore > alpha) {
 				if (positionScore >= beta) {
-					killers.addMove(currPly, currMove);
+					//killers.addMove(currPly, currMove);
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(positionScore);
-					trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) beta, Score.upperBound);
+					trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) beta, Score.lowerBound);
 					return beta;
 				}
-				alpha = plyScore;
+				alpha = positionScore;
+				plyScore = positionScore;
 				pc.update(currPly, currMove);
 				trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) alpha, Score.upperBound);
 			} else if (positionScore > plyScore) {

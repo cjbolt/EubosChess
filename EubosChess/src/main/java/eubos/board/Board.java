@@ -233,14 +233,14 @@ public class Board {
     static final byte[] KING_MIDGAME_WEIGHTINGS;
     static {
     	KING_MIDGAME_WEIGHTINGS = new byte[128];
-        KING_MIDGAME_WEIGHTINGS[Position.a1] = 5;KING_MIDGAME_WEIGHTINGS[Position.b1] = 10;KING_MIDGAME_WEIGHTINGS[Position.c1] = 5;KING_MIDGAME_WEIGHTINGS[Position.d1] = 0;KING_MIDGAME_WEIGHTINGS[Position.e1] = 0;KING_MIDGAME_WEIGHTINGS[Position.f1] = 5;KING_MIDGAME_WEIGHTINGS[Position.g1] = 10;KING_MIDGAME_WEIGHTINGS[Position.h1] = 5;
+        KING_MIDGAME_WEIGHTINGS[Position.a1] = 5;KING_MIDGAME_WEIGHTINGS[Position.b1] = 25;KING_MIDGAME_WEIGHTINGS[Position.c1] = 50;KING_MIDGAME_WEIGHTINGS[Position.d1] = 0;KING_MIDGAME_WEIGHTINGS[Position.e1] = 0;KING_MIDGAME_WEIGHTINGS[Position.f1] = 5;KING_MIDGAME_WEIGHTINGS[Position.g1] = 50;KING_MIDGAME_WEIGHTINGS[Position.h1] = 5;
 		KING_MIDGAME_WEIGHTINGS[Position.a2] = 0;KING_MIDGAME_WEIGHTINGS[Position.b2] = -10;KING_MIDGAME_WEIGHTINGS[Position.c2] = -10;KING_MIDGAME_WEIGHTINGS[Position.d2] = -10;KING_MIDGAME_WEIGHTINGS[Position.e2] = -10;KING_MIDGAME_WEIGHTINGS[Position.f2] = -10;KING_MIDGAME_WEIGHTINGS[Position.g2] = -10;KING_MIDGAME_WEIGHTINGS[Position.h2] = -10;
 		KING_MIDGAME_WEIGHTINGS[Position.a3] = -20;KING_MIDGAME_WEIGHTINGS[Position.b3] = -20;KING_MIDGAME_WEIGHTINGS[Position.c3] = -30;KING_MIDGAME_WEIGHTINGS[Position.d3] = -30;KING_MIDGAME_WEIGHTINGS[Position.e3] = -30;KING_MIDGAME_WEIGHTINGS[Position.f3] = -30;KING_MIDGAME_WEIGHTINGS[Position.g3] = -20;KING_MIDGAME_WEIGHTINGS[Position.h3] = -20;
 		KING_MIDGAME_WEIGHTINGS[Position.a4] = -30;KING_MIDGAME_WEIGHTINGS[Position.b4] = -40;KING_MIDGAME_WEIGHTINGS[Position.c4] = -50;KING_MIDGAME_WEIGHTINGS[Position.d4] = -50;KING_MIDGAME_WEIGHTINGS[Position.e4] = -50;KING_MIDGAME_WEIGHTINGS[Position.f4] = -40;KING_MIDGAME_WEIGHTINGS[Position.g4] = -40;KING_MIDGAME_WEIGHTINGS[Position.h4] = -30;
 		KING_MIDGAME_WEIGHTINGS[Position.a5] = -30;KING_MIDGAME_WEIGHTINGS[Position.b5] = -40;KING_MIDGAME_WEIGHTINGS[Position.c5] = -50;KING_MIDGAME_WEIGHTINGS[Position.d5] = -50;KING_MIDGAME_WEIGHTINGS[Position.e5] = -50;KING_MIDGAME_WEIGHTINGS[Position.f5] = -40;KING_MIDGAME_WEIGHTINGS[Position.g5] = -40;KING_MIDGAME_WEIGHTINGS[Position.h5] = -30;
 		KING_MIDGAME_WEIGHTINGS[Position.a6] = -20;KING_MIDGAME_WEIGHTINGS[Position.b6] = -20;KING_MIDGAME_WEIGHTINGS[Position.c6] = -30;KING_MIDGAME_WEIGHTINGS[Position.d6] = -30;KING_MIDGAME_WEIGHTINGS[Position.e6] = -30;KING_MIDGAME_WEIGHTINGS[Position.f6] = -30;KING_MIDGAME_WEIGHTINGS[Position.g6] = -20;KING_MIDGAME_WEIGHTINGS[Position.h6] = -20;
 		KING_MIDGAME_WEIGHTINGS[Position.a7] = -10;KING_MIDGAME_WEIGHTINGS[Position.b7] = -10;KING_MIDGAME_WEIGHTINGS[Position.c7] = -10;KING_MIDGAME_WEIGHTINGS[Position.d7] = -10;KING_MIDGAME_WEIGHTINGS[Position.e7] = -10;KING_MIDGAME_WEIGHTINGS[Position.f7] = -10;KING_MIDGAME_WEIGHTINGS[Position.g7] = -10;KING_MIDGAME_WEIGHTINGS[Position.h7] = -10;
-		KING_MIDGAME_WEIGHTINGS[Position.a8] = 5;KING_MIDGAME_WEIGHTINGS[Position.b8] = 10;KING_MIDGAME_WEIGHTINGS[Position.c8] = 5;KING_MIDGAME_WEIGHTINGS[Position.d8] = 0;KING_MIDGAME_WEIGHTINGS[Position.e8] = 0;KING_MIDGAME_WEIGHTINGS[Position.f8] = 5;KING_MIDGAME_WEIGHTINGS[Position.g8] = 10;KING_MIDGAME_WEIGHTINGS[Position.h8] = 5;
+		KING_MIDGAME_WEIGHTINGS[Position.a8] = 5;KING_MIDGAME_WEIGHTINGS[Position.b8] = 25;KING_MIDGAME_WEIGHTINGS[Position.c8] = 50;KING_MIDGAME_WEIGHTINGS[Position.d8] = 0;KING_MIDGAME_WEIGHTINGS[Position.e8] = 0;KING_MIDGAME_WEIGHTINGS[Position.f8] = 5;KING_MIDGAME_WEIGHTINGS[Position.g8] = 50;KING_MIDGAME_WEIGHTINGS[Position.h8] = 5;
     }
 	
 	private long allPieces = 0x0;
@@ -1234,13 +1234,13 @@ public class Board {
 	
 	public byte getKingSafetyEvaluationDiagonalSquares(boolean whiteOnMove, int atPos) {
 		long defenders = (whiteOnMove) ? getWhiteBishops() : getBlackBishops();
-		long blockers = (whiteOnMove) ? getWhitePawns()|getWhiteKnights() : getBlackPawns()|getBlackKnights();
+		long blockers = (whiteOnMove) ? getWhitePawns()/*|getWhiteKnights()*/ : getBlackPawns()/*|getBlackKnights()*/;
 		return getKingSafetyEvaluation(defenders, blockers, atPos, SquareAttackEvaluator.diagonals);
 	}
 	
 	public byte getKingSafetyEvaluationRankFileSquares(boolean whiteOnMove, int atPos) {
 		long defenders = (whiteOnMove) ? getWhiteRooks() : getBlackRooks();
-		long blockers = (whiteOnMove) ? getWhitePawns()|getWhiteKnights() : getBlackPawns()|getBlackKnights();
+		long blockers = (whiteOnMove) ? getWhitePawns()/*|getWhiteKnights()*/ : getBlackPawns()/*|getBlackKnights()*/;
 		return getKingSafetyEvaluation(defenders, blockers, atPos, SquareAttackEvaluator.rankFile);
 	}
 		
