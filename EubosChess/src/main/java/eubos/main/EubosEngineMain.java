@@ -265,8 +265,10 @@ public class EubosEngineMain extends AbstractEngine {
 	public void sendInfoCommand(ProtocolInformationCommand infoCommand) {
 		if (ENABLE_UCI_INFO_SENDING) {
 			this.getProtocol().send(infoCommand);
-			logInfo(infoCommand);
-			validatePv(infoCommand);
+			if (ENABLE_LOGGING) {
+				logInfo(infoCommand);
+				validatePv(infoCommand);
+			}
 		}
 	}
 	
