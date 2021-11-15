@@ -967,22 +967,20 @@ public class Board {
 		return potentialPromotion;
 	}
 	
-	public void getRegularPieceMoves(MoveList ml, boolean ownSideIsWhite, boolean captures, int potentialAttckersOfSquare) {
+	public void getRegularPieceMoves(MoveList ml, boolean ownSideIsWhite, boolean captures) {
 		if (ENABLE_PIECE_LISTS) {
 			if (isEndgame) {
-				pieceLists.addMovesEndgame(ml, ownSideIsWhite, captures, potentialAttckersOfSquare);
+				pieceLists.addMovesEndgame(ml, ownSideIsWhite, captures);
 			} else {
-				pieceLists.addMovesMiddlegame(ml, ownSideIsWhite, captures, potentialAttckersOfSquare);
+				pieceLists.addMovesMiddlegame(ml, ownSideIsWhite, captures);
 			}
 		} else {
 			long bitBoardToIterate = ownSideIsWhite ? whitePieces : blackPieces;
 			List<Integer> movesList = new LinkedList<Integer>();
-			long potentialAttackersMask = (potentialAttckersOfSquare != Position.NOPOSITION) ? SquareAttackEvaluator.allAttacksOnPosition_Lut[potentialAttckersOfSquare] : -1;
 			long scratchBitBoard = 0;
 			// Unrolled loop for performance optimisation...
 			if (isEndgame) {
 				scratchBitBoard = bitBoardToIterate & pieces[INDEX_KING];
-				scratchBitBoard &= potentialAttackersMask;
 				while ( scratchBitBoard != 0x0L ) {
 					int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 					int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
@@ -991,7 +989,6 @@ public class Board {
 				}
 			}
 			scratchBitBoard = bitBoardToIterate & pieces[INDEX_QUEEN];
-			scratchBitBoard &= potentialAttackersMask;
 			while ( scratchBitBoard != 0x0L ) {
 				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
@@ -999,7 +996,6 @@ public class Board {
 				scratchBitBoard &= scratchBitBoard-1L;
 			}
 			scratchBitBoard = bitBoardToIterate & pieces[INDEX_ROOK];
-			scratchBitBoard &= potentialAttackersMask;
 			while ( scratchBitBoard != 0x0L ) {
 				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
@@ -1007,7 +1003,6 @@ public class Board {
 				scratchBitBoard &= scratchBitBoard-1L;
 			}
 			scratchBitBoard = bitBoardToIterate & pieces[INDEX_BISHOP];
-			scratchBitBoard &= potentialAttackersMask;
 			while ( scratchBitBoard != 0x0L ) {
 				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
@@ -1015,7 +1010,6 @@ public class Board {
 				scratchBitBoard &= scratchBitBoard-1L;
 			}
 			scratchBitBoard = bitBoardToIterate & pieces[INDEX_KNIGHT];
-			scratchBitBoard &= potentialAttackersMask;
 			while ( scratchBitBoard != 0x0L ) {
 				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
@@ -1023,7 +1017,6 @@ public class Board {
 				scratchBitBoard &= scratchBitBoard-1L;
 			}
 			scratchBitBoard = bitBoardToIterate & pieces[INDEX_PAWN];
-			//scratchBitBoard &= potentialAttackersMask;
 			while ( scratchBitBoard != 0x0L ) {
 				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
@@ -1032,7 +1025,6 @@ public class Board {
 			}
 			if (!isEndgame) {
 				scratchBitBoard = bitBoardToIterate & pieces[INDEX_KING];
-				scratchBitBoard &= potentialAttackersMask;
 				while ( scratchBitBoard != 0x0L ) {
 					int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
 					int atSquare = BitBoard.bitToPosition_Lut[bitIndex];

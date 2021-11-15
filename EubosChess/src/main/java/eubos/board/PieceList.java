@@ -148,7 +148,7 @@ public class PieceList {
 		}
 	}
 	
-	public void addMovesEndgame(MoveList ml, boolean ownSideIsWhite, boolean captures, int potentialAttackersOfSquare) {
+	public void addMovesEndgame(MoveList ml, boolean ownSideIsWhite, boolean captures) {
 		int side = ownSideIsWhite ? 0 : Piece.BLACK;
 		if (!captures) {
 			{
@@ -180,66 +180,6 @@ public class PieceList {
 			for(int atSquare : piece_list[side+Piece.PAWN]) {
 				if (atSquare != Position.NOPOSITION) {			
 					Piece.pawn_generateMoves(ml, theBoard, atSquare, ownSideIsWhite);
-				} else break;
-			}
-		} else if (potentialAttackersOfSquare != Position.NOPOSITION) {
-			// Optimisations for generating move lists in extended search
-			long allAttacksMask = SquareAttackEvaluator.allAttacksOnPosition_Lut[potentialAttackersOfSquare];
-			long pieceMask = ownSideIsWhite ? theBoard.getWhiteKing() : theBoard.getBlackKing();
-			if ((allAttacksMask & pieceMask) != 0) {
-				int atSquare = piece_list[side+Piece.KING][0];
-				if (atSquare != Position.NOPOSITION) {
-					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[potentialAttackersOfSquare];
-					if ((BitBoard.positionToMask_Lut[atSquare] & kingAttacksMask) != 0) {
-						Piece.king_generateMovesExtSearch(ml, theBoard, atSquare, ownSideIsWhite, potentialAttackersOfSquare);
-					}
-				}
-			}
-			pieceMask = ownSideIsWhite ? theBoard.getWhiteQueens() : theBoard.getBlackQueens();
-			if ((allAttacksMask & pieceMask) != 0) {
-				for(int atSquare : piece_list[side+Piece.QUEEN]) {
-					if (atSquare != Position.NOPOSITION) {
-						if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {
-							Piece.queen_generateMovesExtSearch(ml, theBoard, atSquare, ownSideIsWhite, potentialAttackersOfSquare);
-						}
-					} else break;
-				}
-			}
-			pieceMask = ownSideIsWhite ? theBoard.getWhiteRooks() : theBoard.getBlackRooks();
-			if ((allAttacksMask & pieceMask) != 0) {
-				for(int atSquare : piece_list[side+Piece.ROOK]) {
-					if (atSquare != Position.NOPOSITION) {
-						if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {	
-							Piece.rook_generateMovesExtSearch(ml, theBoard, atSquare, ownSideIsWhite, potentialAttackersOfSquare);
-						}
-					} else break;
-				}
-			}
-			pieceMask = ownSideIsWhite ? theBoard.getWhiteBishops() : theBoard.getBlackBishops();
-			if ((allAttacksMask & pieceMask) != 0) {
-				for(int atSquare : piece_list[side+Piece.BISHOP]) {
-					if (atSquare != Position.NOPOSITION) {
-						if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {			
-							Piece.bishop_generateMovesExtSearch(ml, theBoard, atSquare, ownSideIsWhite, potentialAttackersOfSquare);
-						}
-					} else break;
-				}
-			}
-			pieceMask = ownSideIsWhite ? theBoard.getWhiteKnights() : theBoard.getBlackKnights();
-			if ((allAttacksMask & pieceMask) != 0) {
-				long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[potentialAttackersOfSquare];
-				for(int atSquare : piece_list[side+Piece.KNIGHT]) {
-					if (atSquare != Position.NOPOSITION) {	
-						if ((BitBoard.positionToMask_Lut[atSquare] & knightAttacksMask) != 0) {
-							Piece.knight_generateMovesExtSearch(ml, theBoard, atSquare, ownSideIsWhite, potentialAttackersOfSquare);
-						}
-					} else break;
-				}
-			}
-			// Search pawn moves in extended search because they could lead to a promotion, but only add promotions and captures
-			for(int atSquare : piece_list[side+Piece.PAWN]) {
-				if (atSquare != Position.NOPOSITION) {
-					Piece.pawn_generateMovesForExtendedSearch(ml, theBoard, atSquare, ownSideIsWhite);
 				} else break;
 			}
 		} else {
@@ -295,7 +235,7 @@ public class PieceList {
 		}
 	}
 	
-	public void addMovesMiddlegame(MoveList ml, boolean ownSideIsWhite, boolean captures, int potentialAttackersOfSquare) {
+	public void addMovesMiddlegame(MoveList ml, boolean ownSideIsWhite, boolean captures) {
 		int side = ownSideIsWhite ? 0 : Piece.BLACK;
 		if (!captures) {
 			for(int atSquare : piece_list[side+Piece.QUEEN]) {
@@ -327,66 +267,6 @@ public class PieceList {
 				int atSquare = piece_list[side+Piece.KING][0];
 				if (atSquare != Position.NOPOSITION) {			
 					Piece.king_generateMoves(ml, theBoard, atSquare, ownSideIsWhite);
-				}
-			}
-		} else if (potentialAttackersOfSquare != Position.NOPOSITION) {
-			long allAttacksMask = SquareAttackEvaluator.allAttacksOnPosition_Lut[potentialAttackersOfSquare];
-			long pieceMask = ownSideIsWhite ? theBoard.getWhiteQueens() : theBoard.getBlackQueens();
-			if ((allAttacksMask & pieceMask) != 0) {
-				for(int atSquare : piece_list[side+Piece.QUEEN]) {
-					if (atSquare != Position.NOPOSITION) {
-						if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {
-							Piece.queen_generateMovesExtSearch(ml, theBoard, atSquare, ownSideIsWhite, potentialAttackersOfSquare);
-						}
-					} else break;
-				}
-			}
-			pieceMask = ownSideIsWhite ? theBoard.getWhiteRooks() : theBoard.getBlackRooks();
-			if ((allAttacksMask & pieceMask) != 0) {
-				for(int atSquare : piece_list[side+Piece.ROOK]) {
-					if (atSquare != Position.NOPOSITION) {	
-						if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {
-							Piece.rook_generateMovesExtSearch(ml, theBoard, atSquare, ownSideIsWhite, potentialAttackersOfSquare);
-						}
-					} else break;
-				}
-			}
-			pieceMask = ownSideIsWhite ? theBoard.getWhiteBishops() : theBoard.getBlackBishops();
-			if ((allAttacksMask & pieceMask) != 0) {
-				for(int atSquare : piece_list[side+Piece.BISHOP]) {
-					if (atSquare != Position.NOPOSITION) {		
-						if ((BitBoard.positionToMask_Lut[atSquare] & allAttacksMask) != 0) {
-							Piece.bishop_generateMovesExtSearch(ml, theBoard, atSquare, ownSideIsWhite, potentialAttackersOfSquare);
-						}
-					} else break;
-				}
-			}
-			pieceMask = ownSideIsWhite ? theBoard.getWhiteKnights() : theBoard.getBlackKnights();
-			if ((allAttacksMask & pieceMask) != 0) {
-				long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[potentialAttackersOfSquare];
-				for(int atSquare : piece_list[side+Piece.KNIGHT]) {
-					if (atSquare != Position.NOPOSITION) {
-						if ((BitBoard.positionToMask_Lut[atSquare] & knightAttacksMask) != 0) {
-							Piece.knight_generateMovesExtSearch(ml, theBoard, atSquare, ownSideIsWhite, potentialAttackersOfSquare);
-						}
-					} else break;
-				}
-			}
-			pieceMask = ownSideIsWhite ? theBoard.getWhitePawns() : theBoard.getBlackPawns();
-			// Search pawn moves in extended search because they could lead to a promotion, but only add promotions and captures
-			for(int atSquare : piece_list[side+Piece.PAWN]) {
-				if (atSquare != Position.NOPOSITION) {
-					Piece.pawn_generateMovesForExtendedSearch(ml, theBoard, atSquare, ownSideIsWhite);
-				} else break;
-			}
-			pieceMask = ownSideIsWhite ? theBoard.getWhiteKing() : theBoard.getBlackKing();
-			if ((allAttacksMask & pieceMask) != 0) {
-				int atSquare = piece_list[side+Piece.KING][0];
-				if (atSquare != Position.NOPOSITION) {
-					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[potentialAttackersOfSquare];
-					if ((BitBoard.positionToMask_Lut[atSquare] & kingAttacksMask) != 0) {
-						Piece.king_generateMovesExtSearch(ml, theBoard, atSquare, ownSideIsWhite, potentialAttackersOfSquare);
-					}
 				}
 			}
 		} else {
