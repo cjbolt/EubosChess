@@ -5,7 +5,6 @@ import java.util.Iterator;
 
 import eubos.position.PositionManager;
 import eubos.position.MoveList;
-import eubos.position.Position;
 
 public class PerformanceTest {
 
@@ -26,7 +25,7 @@ public class PerformanceTest {
 	    public long perft()  {
 	        if (currPly < requestedDepthPly) {        
 	            MoveList ml = new MoveList(pm);
-	            Iterator<Integer> iter = ml.getStandardIterator(false, Position.NOPOSITION);
+	            Iterator<Integer> iter = ml.iterator();
 	            while (iter.hasNext()) {
 	            	int move = iter.next();
 					pm.performMove(move, false);

@@ -148,14 +148,13 @@ public class MoveList implements Iterable<Integer> {
 		return normal_search_moves.iterator();
 	}
 	
-	public Iterator<Integer> getStandardIterator(boolean extended, int captureSq) {
+	public Iterator<Integer> getStandardIterator(boolean extended) {
 		Iterator<Integer> it;
 		if (extended) {
 			// Lazy creation of extended move list
 			extended_search_moves = new ArrayList<Integer>(priority_moves.size());
 			for (int currMove : priority_moves) {
-				boolean includeInQuiescenceSearch = Move.isQueenPromotion(currMove) || (Move.isCapture(currMove) && 
-						(Move.getTargetPosition(currMove) == captureSq || EubosEngineMain.ENABLE_SEARCH_ALL_CAPTURES_IN_QUIESCENSE));
+				boolean includeInQuiescenceSearch = Move.isQueenPromotion(currMove) || Move.isCapture(currMove);
 				if (includeInQuiescenceSearch) {
 					extended_search_moves.add(currMove);
 				}
