@@ -95,9 +95,7 @@ public class PlySearcher {
 		int alphaOriginal = alpha;
 		int plyScore = Score.PROVISIONAL_ALPHA;
 		int prevBestMove = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
-		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
-			pc.clearContinuationBeyondPly(currPly);
-		}
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
 		// Handle draws by three-fold repetition
 		if (!atRootNode() && pos.isThreefoldRepetitionPossible()) {
@@ -180,9 +178,7 @@ public class PlySearcher {
 			if (atRootNode()) {
 				sm.setCurrentMove(Move.toGenericMove(currMove), moveNumber);
 			}
-			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
-				pc.clearContinuationBeyondPly(currPly);
-			}
+			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 			// Apply move and score
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
@@ -194,8 +190,7 @@ public class PlySearcher {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
 			
-			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)
-				sm.incrementNodesSearched();
+			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
 			
 			if (isTerminated()) {
 				// don't update PV if out of time for search, instead return last fully searched PV.
@@ -250,9 +245,7 @@ public class PlySearcher {
 		if (currPly > extendedSearchDeepestPly) {
 			extendedSearchDeepestPly = currPly;
 		}
-		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
-			pc.clearContinuationBeyondPly(currPly);
-		}
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
 		// Stand Pat in extended search
 		short plyScore = (short) pe.evaluatePosition();	
@@ -299,9 +292,7 @@ public class PlySearcher {
 		int currMove = move_iter.next();
 		pc.initialise(currPly, currMove);
 		while(true) {		
-			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
-				pc.clearContinuationBeyondPly(currPly);
-			}
+			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 			// Apply capture and score
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);			
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
@@ -313,8 +304,7 @@ public class PlySearcher {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
 			
-			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)
-				sm.incrementNodesSearched();
+			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
 			
 			if (positionScore > alpha) {
 				if (positionScore >= beta) {
@@ -378,8 +368,7 @@ public class PlySearcher {
 			}
 			theScore = adjustedScoreForThisPositionInTree;
 		}
-		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)
-			sm.incrementNodesSearched();
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
 		return theScore;
 	}
 

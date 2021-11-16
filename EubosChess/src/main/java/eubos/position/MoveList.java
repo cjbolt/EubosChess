@@ -65,8 +65,8 @@ public class MoveList implements Iterable<Integer> {
 		while (it.hasNext()) {
 			int currMove = it.next();
 			int originPiece = Move.getOriginPiece(currMove);
-			boolean possibleDiscoveredOrMoveIntoCheck = pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove, originPiece) ||
-					Piece.isKing(originPiece);
+			boolean possibleDiscoveredOrMoveIntoCheck = Piece.isKing(originPiece) || 
+					                                    pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove, originPiece);
 			pm.performMove(currMove, false);
 			if ((possibleDiscoveredOrMoveIntoCheck || needToEscapeMate) && pm.isKingInCheck(onMove)) {
 				// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
@@ -90,8 +90,8 @@ public class MoveList implements Iterable<Integer> {
 		while (it.hasNext()) {
 			int currMove = it.next();
 			int originPiece = Move.getOriginPiece(currMove);
-			boolean possibleDiscoveredOrMoveIntoCheck = pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove, originPiece) || 
-														Piece.isKing(originPiece);
+			boolean possibleDiscoveredOrMoveIntoCheck = Piece.isKing(originPiece) || 
+														pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove, originPiece);
 			pm.performMove(currMove, false);
 			if ((possibleDiscoveredOrMoveIntoCheck || needToEscapeMate) && pm.isKingInCheck(onMove)) {
 				// Scratch any moves resulting in the king being in check, including moves that don't escape mate!

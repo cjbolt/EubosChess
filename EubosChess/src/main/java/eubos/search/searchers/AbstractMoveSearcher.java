@@ -41,9 +41,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 		EubosEngineMain.logger.info(String.format("refScore %s, depth %d %s, SearchContext %s, isEndgame %s",
 				Score.toString(ref.score), ref.depth, ref.origin, mg.pos.getPositionEvaluator().getGoal(), mg.pos.getTheBoard().isEndgame));
 		
-		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
-			sr.start();
-		}
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sr.start();
 	}
 
 	public AbstractMoveSearcher(Runnable target) {
