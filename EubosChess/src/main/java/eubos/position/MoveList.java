@@ -30,7 +30,7 @@ public class MoveList implements Iterable<Integer> {
     }
 	
 	public MoveList(PositionManager pm)  {
-		this(pm, Move.NULL_MOVE, null, 1, false, pm.isKingInCheck(pm.getOnMove()));
+		this(pm, Move.NULL_MOVE, null, 0, false, pm.isKingInCheck(pm.getOnMove()));
 	}
 	
 	public MoveList(PositionManager pm, int orderMoveList)  {
@@ -65,8 +65,8 @@ public class MoveList implements Iterable<Integer> {
 		while (it.hasNext()) {
 			int currMove = it.next();
 			int originPiece = Move.getOriginPiece(currMove);
-			boolean possibleDiscoveredOrMoveIntoCheck = pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove, originPiece) || 
-														Piece.isKing(originPiece);
+			boolean possibleDiscoveredOrMoveIntoCheck = pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove, originPiece) ||
+					Piece.isKing(originPiece);
 			pm.performMove(currMove, false);
 			if ((possibleDiscoveredOrMoveIntoCheck || needToEscapeMate) && pm.isKingInCheck(onMove)) {
 				// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
@@ -148,22 +148,16 @@ public class MoveList implements Iterable<Integer> {
 		return normal_search_moves.iterator();
 	}
 	
-	public Iterator<Integer> getStandardIterator(boolean extended) {
-		Iterator<Integer> it;
-		if (extended) {
-			// Lazy creation of extended move list
-			extended_search_moves = new ArrayList<Integer>(priority_moves.size());
-			for (int currMove : priority_moves) {
-				boolean includeInQuiescenceSearch = Move.isQueenPromotion(currMove) || Move.isCapture(currMove);
-				if (includeInQuiescenceSearch) {
-					extended_search_moves.add(currMove);
-				}
+	public Iterator<Integer> getExtendedIterator() {
+		// Lazy creation of extended move list
+		extended_search_moves = new ArrayList<Integer>(priority_moves.size());
+		for (int currMove : priority_moves) {
+			boolean includeInQuiescenceSearch = Move.isQueenPromotion(currMove) || Move.isCapture(currMove);
+			if (includeInQuiescenceSearch) {
+				extended_search_moves.add(currMove);
 			}
-			it = extended_search_moves.iterator();
-		} else {
-			it = normal_search_moves.iterator();
 		}
-		return it; 
+		return extended_search_moves.iterator(); 
 	}
 		
 	public boolean isMateOccurred() {
