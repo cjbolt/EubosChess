@@ -256,8 +256,8 @@ public class EubosEngineMainTest {
 	public void test_KQk_mate_in_7_NEW() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_TIME_PREFIX+"25000"+CMD_TERMINATOR, BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
-		performTestExpectMate(25000, 13);
+		commands.add(new commandPair(GO_TIME_PREFIX+"30000"+CMD_TERMINATOR, BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
+		performTestExpectMate(30000, 13);
 		assertEquals(2, (int)classUnderTest.dc.getNumEntries());
 	}
 	
