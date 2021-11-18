@@ -150,7 +150,7 @@ public class EubosEngineMainTest {
 			if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
 				expectedOutput = "info depth 1 seldepth 6 score cp 7 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 247 time 97 nodes 24"+CMD_TERMINATOR+
 	                    "info depth 1 seldepth 6 score cp 169 pv c7c2 d4a7 hashfull 0 nps 441 time 102 nodes 45"+CMD_TERMINATOR+
-	                    "info depth 2 seldepth 6 score cp 85 pv c7c2 e1g1 d7e5 hashfull 0 nps 1836 time 116 nodes 213"+CMD_TERMINATOR
+	                    "info depth 2 seldepth 6 score cp 144 pv c7c2 c1d2 d7e5 hashfull 0 nps 1836 time 116 nodes 167"+CMD_TERMINATOR
 	                    +BEST_PREFIX+"c7c2";
 			} else if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && !PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
 				expectedOutput = "info depth 1 seldepth 4 score cp -141 pv d7e5 f3e5 c7e5 hashfull 0 nps 500 time 14 nodes 7"+CMD_TERMINATOR+
@@ -257,7 +257,7 @@ public class EubosEngineMainTest {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_TIME_PREFIX+"30000"+CMD_TERMINATOR, BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
-		performTestExpectMate(30000, 13);
+		performTestExpectMate(30000, 7);
 		assertEquals(2, (int)classUnderTest.dc.getNumEntries());
 	}
 	
@@ -288,8 +288,8 @@ public class EubosEngineMainTest {
 	public void test_KRk_mate_in_11_NEW() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_TIME_PREFIX+"23000"+CMD_TERMINATOR, BEST_PREFIX+"h1h4"+CMD_TERMINATOR));
-		performTestExpectMate(25000, 25);
+		commands.add(new commandPair(GO_TIME_PREFIX+"23000"+CMD_TERMINATOR, BEST_PREFIX+"h1d1"+CMD_TERMINATOR));
+		performTestExpectMate(25000, 20);
 		assertEquals(2, (int)classUnderTest.dc.getNumEntries());
 	}
 	

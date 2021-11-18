@@ -106,7 +106,7 @@ public class MiniMaxMoveGenerator implements
 		}
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		try {
-			score = (short) ps.searchPly();
+			score = (short) ps.searchPly(score);
 		} catch (AssertionError e) {
 			e.printStackTrace();
 			System.exit(0);

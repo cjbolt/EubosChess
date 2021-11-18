@@ -45,7 +45,7 @@ import java.util.logging.*;
 public class EubosEngineMain extends AbstractEngine {
 	
 	static final int EUBOS_MAJOR_VERSION = 2;
-	static final int EUBOS_MINOR_VERSION = 2;
+	static final int EUBOS_MINOR_VERSION = 3;
 	
 	public static final byte SEARCH_DEPTH_IN_PLY = 35;
 	public static final int DEFAULT_NUM_SEARCH_THREADS = 2;

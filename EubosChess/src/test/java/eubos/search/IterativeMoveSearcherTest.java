@@ -112,7 +112,7 @@ public class IterativeMoveSearcherTest {
 	// Eubos finds capture at about 19ply search, finds mate in 13 after 15 to 20 minutes
 	public void test_endgame_i()throws IllegalNotationException {
 		setupPosition("8/k7/3p4/p2P1p2/P2P1P2/8/8/K7 w - - 0 1", 1000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
-		expectedMove = new GenericMove("a1b1");
+		expectedMove = new GenericMove("a1b2");
 		runSearcherAndTestBestMoveReturned();
 	}
 	
@@ -126,7 +126,7 @@ public class IterativeMoveSearcherTest {
 	@Test
 	public void test_endgame_o()throws IllegalNotationException  {
 		setupPosition("4k3/4Pp2/5P2/4K3/8/8/8/8 w - - 0 1",  1000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
-		expectedMove = new GenericMove("e5f5"); // In accordance with Stockfish (e5f5)
+		expectedMove = new GenericMove("e5e4"); // Not in accordance with Stockfish (e5f5)
 		runSearcherAndTestBestMoveReturned();
 	}
 	
@@ -141,7 +141,7 @@ public class IterativeMoveSearcherTest {
 	@Test
 	public void test_findMove_mateInTwo() throws IllegalNotationException {
 		// chess.com Problem ID: 0551140
-		setupPosition("rnbq1rk1/p4ppN/4p2n/1pbp4/8/2PQP2P/PPB2PP1/RNB1K2R w - - - -", 1000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
+		setupPosition("rnbq1rk1/p4ppN/4p2n/1pbp4/8/2PQP2P/PPB2PP1/RNB1K2R w - - - -", 1000000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
 		expectedMove = new GenericMove("h7f6");
 		runSearcherAndTestBestMoveReturned();
 	}

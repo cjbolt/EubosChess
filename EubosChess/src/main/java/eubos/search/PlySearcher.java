@@ -87,8 +87,40 @@ public class PlySearcher {
 	
 	public int searchPly()  {
 		currPly = 0;
-		extendedSearchDeepestPly = 0;		
+		extendedSearchDeepestPly = 0;
 		return (short) search(Score.PROVISIONAL_ALPHA, Score.PROVISIONAL_BETA, originalSearchDepthRequiredInPly);
+	}
+	
+	public int searchPly(short lastScore)  {
+		currPly = 0;
+		extendedSearchDeepestPly = 0;	
+		boolean exact = false;
+		
+		// Adjust the window - consider making the window +/- 1 ply if it is a mate condition
+		int alpha = (lastScore == 0) ? Score.PROVISIONAL_ALPHA : Score.isMate(lastScore) ? lastScore-1 : lastScore-25;
+		int beta = (lastScore == 0) ? Score.PROVISIONAL_BETA : Score.isMate(lastScore) ? lastScore+1 : lastScore+25;
+		short score = 0;
+		
+		while (!exact) {
+			score = (short) search(alpha, beta, originalSearchDepthRequiredInPly);
+	
+			if (Score.isProvisional(score)) {
+        		// Must be an illegal position
+        		exact = true;
+	            break;
+        	} else if (score <= alpha) {
+        		// Failed low, adjust window
+	            alpha = Score.PROVISIONAL_ALPHA;
+	        } else if (score >= beta) {
+	        	// Failed high, adjust window
+	            beta = Score.PROVISIONAL_BETA;
+	        } else {
+	        	// Exact score in window returned
+	        	exact = true;
+	            break;
+	        }
+		}
+		return score;
 	}
 	
 	int search(int alpha, int beta, int depth)  {
