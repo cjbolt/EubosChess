@@ -100,8 +100,8 @@ public class PlySearcher {
 		int alpha = Score.PROVISIONAL_ALPHA;
 		int beta = Score.PROVISIONAL_BETA;
 		if (originalSearchDepthRequiredInPly >= 5) {
-			alpha = Score.isMate(lastScore) ? lastScore-1 : lastScore-50;
-			beta = Score.isMate(lastScore) ? lastScore+1 : lastScore+50;
+			alpha = Score.isMate(lastScore) ? lastScore-1 : lastScore-100;
+			beta = Score.isMate(lastScore) ? lastScore+1 : lastScore+100;
 		}
 
 		while (!isTerminated()) {
@@ -133,6 +133,19 @@ public class PlySearcher {
 		// Handle draws by three-fold repetition
 		if (!atRootNode() && pos.isThreefoldRepetitionPossible()) {
 			return 0;
+		}
+		// Mate distance pruning - first condition where side on move is trying to find a better checkmate
+		int mateCutOff = Score.PROVISIONAL_BETA - currPly;
+		if (mateCutOff < beta) {
+			// Firstly, where the side to move is trying to find a better checkmate
+			beta = mateCutOff;
+			if (alpha >= mateCutOff) return mateCutOff;
+		}
+		mateCutOff = Score.PROVISIONAL_ALPHA + currPly;
+		if (mateCutOff > alpha) {
+			// Secondly, where the side to move is getting mated and trying to postpone the inevitable
+		    alpha = mateCutOff;
+		    if (beta <= mateCutOff) return mateCutOff;
 		}
 		// Absolute depth limit
 		if (currPly >= extendedSearchLimitInPly - 1) {
