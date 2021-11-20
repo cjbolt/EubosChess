@@ -106,7 +106,11 @@ public class MiniMaxMoveGenerator implements
 		}
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		try {
-			score = (short) ps.searchPly(score);
+			if (EubosEngineMain.ENABLE_ASPIRATION_WINDOWS) {
+				score = (short) ps.searchPly(score);
+			} else {
+				score = (short) ps.searchPly();
+			}
 		} catch (AssertionError e) {
 			e.printStackTrace();
 			System.exit(0);

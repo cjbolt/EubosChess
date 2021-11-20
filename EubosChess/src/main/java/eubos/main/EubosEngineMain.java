@@ -50,7 +50,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final byte SEARCH_DEPTH_IN_PLY = 35;
 	public static final int DEFAULT_NUM_SEARCH_THREADS = 2;
 	
-	public static final boolean ENABLE_LOGGING = true;
+	public static final boolean ENABLE_LOGGING = false;
 	public static final boolean ENABLE_UCI_INFO_SENDING = true;
 	public static final boolean ENABLE_ASSERTS = false;
 	public static final boolean ENABLE_YIELD_IN_WORKER_THREADS = false;
@@ -60,6 +60,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_QUIESCENCE_CHECK = true;
 	public static final boolean ENABLE_SEARCH_ALL_CAPTURES_IN_QUIESCENSE = true;
 	public static final boolean ENABLE_SEARCH_CHECKS_IN_QUIESCENSE = true;
+	public static final boolean ENABLE_ASPIRATION_WINDOWS = true;
 	
 	// Permanent data structures - static for the duration of a single game
 	private FixedSizeTranspositionTable hashMap = null;

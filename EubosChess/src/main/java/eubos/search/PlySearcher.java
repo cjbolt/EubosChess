@@ -95,17 +95,21 @@ public class PlySearcher {
 		currPly = 0;
 		extendedSearchDeepestPly = 0;	
 		boolean exact = false;
-		
-		// Adjust the window - consider making the window +/- 1 ply if it is a mate condition
-		int alpha = (lastScore == 0) ? Score.PROVISIONAL_ALPHA : Score.isMate(lastScore) ? lastScore-1 : lastScore-25;
-		int beta = (lastScore == 0) ? Score.PROVISIONAL_BETA : Score.isMate(lastScore) ? lastScore+1 : lastScore+25;
 		short score = 0;
 		
+		// Adjust the aspiration window, according to the last score, if searching to sufficient depth
+		int alpha = Score.PROVISIONAL_ALPHA;
+		int beta = Score.PROVISIONAL_BETA;
+		if (originalSearchDepthRequiredInPly >= 5) {
+			alpha = Score.isMate(lastScore) ? lastScore-1 : lastScore-25;
+			beta = Score.isMate(lastScore) ? lastScore+1 : lastScore+25;
+		}
+
 		while (!exact) {
 			score = (short) search(alpha, beta, originalSearchDepthRequiredInPly);
 	
 			if (Score.isProvisional(score)) {
-        		// Must be an illegal position
+        		// If this is true after the search, it must be an illegal position
         		exact = true;
 	            break;
         	} else if (score <= alpha) {
