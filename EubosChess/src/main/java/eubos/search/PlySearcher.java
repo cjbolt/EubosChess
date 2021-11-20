@@ -94,23 +94,21 @@ public class PlySearcher {
 	public int searchPly(short lastScore)  {
 		currPly = 0;
 		extendedSearchDeepestPly = 0;	
-		boolean exact = false;
 		short score = 0;
 		
 		// Adjust the aspiration window, according to the last score, if searching to sufficient depth
 		int alpha = Score.PROVISIONAL_ALPHA;
 		int beta = Score.PROVISIONAL_BETA;
 		if (originalSearchDepthRequiredInPly >= 5) {
-			alpha = Score.isMate(lastScore) ? lastScore-1 : lastScore-25;
-			beta = Score.isMate(lastScore) ? lastScore+1 : lastScore+25;
+			alpha = Score.isMate(lastScore) ? lastScore-1 : lastScore-50;
+			beta = Score.isMate(lastScore) ? lastScore+1 : lastScore+50;
 		}
 
-		while (!exact) {
+		while (!isTerminated()) {
 			score = (short) search(alpha, beta, originalSearchDepthRequiredInPly);
 	
 			if (Score.isProvisional(score)) {
         		// If this is true after the search, it must be an illegal position
-        		exact = true;
 	            break;
         	} else if (score <= alpha) {
         		// Failed low, adjust window
@@ -120,7 +118,6 @@ public class PlySearcher {
 	            beta = Score.PROVISIONAL_BETA;
 	        } else {
 	        	// Exact score in window returned
-	        	exact = true;
 	            break;
 	        }
 		}
