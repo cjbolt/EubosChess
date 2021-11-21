@@ -262,6 +262,15 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
+	public void test_KQk_mated_in_6_NEW() throws InterruptedException, IOException {
+		setupEngine();
+		commands.add(new commandPair(POS_FEN_PREFIX+"8/6K1/8/3k4/1Q6/8/8/8 b - - 1 1"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"13"+CMD_TERMINATOR, BEST_PREFIX+"d5c6"+CMD_TERMINATOR));
+		performTestExpectMate(30000, -6);
+		assertEquals(2, (int)classUnderTest.dc.getNumEntries());
+	} 
+	
+	@Test
 	public void test_WAC009() throws InterruptedException, IOException {
 		setupEngine();
 		// 1
