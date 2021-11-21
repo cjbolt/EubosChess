@@ -467,6 +467,9 @@ public class EubosEngineMainTest {
 							if (parsedCmd.endsWith(expectedOutput)) {
 								received = true;
 								accumulate = false;
+								if (parsedCmd.contains(mateExpectation)) {
+									mateDetected = true;
+								}
 							} else if (parsedCmd.contains(mateExpectation)) {
 								mateDetected = true;
 								accumulate = true;
