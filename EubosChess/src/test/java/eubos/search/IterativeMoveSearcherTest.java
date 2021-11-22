@@ -112,7 +112,7 @@ public class IterativeMoveSearcherTest {
 	// Eubos finds capture at about 19ply search, finds mate in 13 after 15 to 20 minutes
 	public void test_endgame_i()throws IllegalNotationException {
 		setupPosition("8/k7/3p4/p2P1p2/P2P1P2/8/8/K7 w - - 0 1", 1000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
-		expectedMove = new GenericMove("a1b2");
+		expectedMove = new GenericMove("a1b1");
 		runSearcherAndTestBestMoveReturned();
 	}
 	

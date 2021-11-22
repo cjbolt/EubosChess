@@ -136,7 +136,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			}
 			bestMove = Move.toGenericMove(trans.getBestMove());
 		} else {
-			EubosEngineMain.logger.warning("Can't find bestMove in Transposition Table");
+			EubosEngineMain.logger.warning("Can't find bestMove with exact score in Transposition Table");
 			bestMove = Move.toGenericMove(workers.get(0).result.bestMove);
 		}
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( bestMove, null ));

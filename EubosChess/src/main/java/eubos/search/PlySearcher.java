@@ -19,7 +19,8 @@ import eubos.search.transposition.ITransposition;
 
 public class PlySearcher {
 	
-	private static final boolean ENABLE_MATE_CHECK_IN_EXTENDED_SEARCH = true;
+	private static final boolean ENABLE_MATE_CHECK_IN_EXTENDED_SEARCH = false;
+	private static final boolean ENABLE_MATE_DISTANCE_PRUNING = false; 
 	
 	private IChangePosition pm;
 	private IPositionAccessors pos;
@@ -125,8 +126,6 @@ public class PlySearcher {
 		return score;
 	}
 	
-	public static final boolean ENABLE_MATE_DISTANCE_PRUNING = false; 
-	
 	int search(int alpha, int beta, int depth)  {
 		int alphaOriginal = alpha;
 		int plyScore = Score.PROVISIONAL_ALPHA;
@@ -151,6 +150,13 @@ public class PlySearcher {
 			    alpha = mateCutOff;
 			    if (beta <= mateCutOff) return mateCutOff;
 			}
+		} else {
+//			int bestMateAtPly = Score.PROVISIONAL_BETA - currPly;
+//			if (alpha < -bestMateAtPly && !Score.isProvisional(alpha)) alpha = -bestMateAtPly;
+//			if (beta > bestMateAtPly /*- 1*/ && !Score.isProvisional(beta)) beta = bestMateAtPly /*- 1*/;
+//			if (alpha >= beta) {
+//			    return alpha;
+//			}
 		}
 		// Absolute depth limit
 		if (currPly >= extendedSearchLimitInPly - 1) {
