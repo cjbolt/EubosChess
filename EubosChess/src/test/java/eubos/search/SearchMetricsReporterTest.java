@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -23,6 +24,7 @@ public class SearchMetricsReporterTest {
 	SearchMetricsReporter classUnderTest;
 	SearchMetrics sm;
 	EubosMock eubos;
+	protected FixedSizeTranspositionTable hashMap;
 	private static final int searchDepth = 4;
 	
 	private class EubosMock extends EubosEngineMain {
@@ -42,13 +44,19 @@ public class SearchMetricsReporterTest {
 	public void setUp() throws IllegalNotationException {
 		eubos = new EubosMock();
 		PositionManager pm = new PositionManager();
+		hashMap = new FixedSizeTranspositionTable();
 		sm = new SearchMetrics(searchDepth, pm);
 		// Minimal setup of the Search Metrics object
 		List<Integer> pv = new ArrayList<Integer>();
 		pv.add(Move.valueOf(Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE));
 		sm.setPrincipalVariation(pv);
-		classUnderTest = new SearchMetricsReporter(eubos, new FixedSizeTranspositionTable(), null);
+		classUnderTest = new SearchMetricsReporter(eubos, hashMap, null);
 		classUnderTest.register(sm);
+	}
+	
+	@After
+	public void tearDown() {
+		hashMap.haltMonitor();
 	}
 	
 	@Test

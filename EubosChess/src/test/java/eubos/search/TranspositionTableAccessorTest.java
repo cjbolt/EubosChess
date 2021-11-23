@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -41,6 +42,11 @@ public class TranspositionTableAccessorTest {
 		pm = new PositionManager();
 		sut = new TranspositionTableAccessor(transTable, pm, sda);
 		currPly = 0;
+	}
+	
+	@After
+	public void tearDown() {
+		transTable.haltMonitor();
 	}
 
 	@Test
