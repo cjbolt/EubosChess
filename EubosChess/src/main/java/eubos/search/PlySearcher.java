@@ -19,7 +19,7 @@ import eubos.search.transposition.ITransposition;
 
 public class PlySearcher {
 	
-	private static final boolean ENABLE_MATE_CHECK_IN_EXTENDED_SEARCH = false;
+	private static final boolean ENABLE_MATE_CHECK_IN_EXTENDED_SEARCH = true;
 	private static final boolean ENABLE_MATE_DISTANCE_PRUNING = false; 
 	
 	private IChangePosition pm;
@@ -321,15 +321,13 @@ public class PlySearcher {
 			prevBestMove = trans.getBestMove();
 		}
 		// Don't use Killer moves as we don't search quiet moves in the extended search
-		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, null, moveListOrdering, true, pos.isKingInCheck());
+		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, null, moveListOrdering, true, needToEscapeCheck);
 		Iterator<Integer> move_iter = ml.getExtendedIterator();
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtendedSearchMoveList(ml);
 		if (ENABLE_MATE_CHECK_IN_EXTENDED_SEARCH) {
-			if (ml.isMateOccurred()) {
-	        	// Ideally we need just one normal move to determine that it isn't mate to
-	        	// use stand PAT - this could be optimised, at the moment it is too heavy!
-	        	MoveList new_ml = new MoveList((PositionManager) pm, 0); // don't bother to sort the list
-	    		if (new_ml.isMateOccurred()) {
+			if (ml.isMateOccurred() && currPly < originalSearchDepthRequiredInPly+4) {
+	        	// We need just one normal move to determine that it isn't mate, in order to stand PAT
+	    		if (!MoveList.anyValidMoves((PositionManager) pm)) {
 	    			short mateScore = sg.scoreMate(currPly);
 	    			sda.printMateFound(mateScore);
 	        		return mateScore;

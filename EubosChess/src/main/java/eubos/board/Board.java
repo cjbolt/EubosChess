@@ -967,6 +967,22 @@ public class Board {
 		return potentialPromotion;
 	}
 	
+	public void getKingMoves(List<Integer> moves, boolean ownSideIsWhite) {
+		if (ENABLE_PIECE_LISTS) {
+			pieceLists.addKingEscapeMoves(moves, ownSideIsWhite);
+		} else {
+			long bitBoardToIterate = ownSideIsWhite ? whitePieces : blackPieces;
+			long scratchBitBoard = 0;
+			scratchBitBoard = bitBoardToIterate & pieces[INDEX_KING];
+    		while ( scratchBitBoard != 0x0L ) {
+				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
+				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
+				Piece.king_generateEscapeMoves(moves, this, atSquare, ownSideIsWhite);
+				scratchBitBoard &= scratchBitBoard-1L;
+			}
+		}
+	}
+	
 	public void getRegularPieceMoves(MoveList ml, boolean ownSideIsWhite, boolean captures) {
 		if (ENABLE_PIECE_LISTS) {
 			if (isEndgame) {

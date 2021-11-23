@@ -35,7 +35,11 @@ public class MoveList implements Iterable<Integer> {
 	
 	public MoveList(PositionManager pm, int orderMoveList)  {
 		this(pm, Move.NULL_MOVE, null, orderMoveList, false, pm.isKingInCheck(pm.getOnMove()));
-	}	
+	}
+	
+	public MoveList(PositionManager pm, int orderMoveList, boolean needToEscapeMate)  {
+		this(pm, Move.NULL_MOVE, null, orderMoveList, false, needToEscapeMate);
+	}
 	
 	public MoveList(PositionManager pm, int bestMove, int [] killers, int orderMoveList, boolean capturesOnly, boolean needToEscapeMate)  {	
 		
@@ -46,7 +50,8 @@ public class MoveList implements Iterable<Integer> {
 		boolean isWhiteOnMove = Piece.Colour.isWhite(onMove);
 		
 		pm.getTheBoard().getRegularPieceMoves(this, isWhiteOnMove, capturesOnly);
-		if (!capturesOnly) {
+		if (!capturesOnly && !needToEscapeMate) {
+			// Can't castle out of check and don't care in extended search
 			pm.castling.addCastlingMoves(isWhiteOnMove, this);
 		}
 		
@@ -54,6 +59,35 @@ public class MoveList implements Iterable<Integer> {
 		checkToSortList(orderMoveList);
 		
 		normal_search_moves.addAll(0, priority_moves);
+	}
+	
+	public static boolean anyValidMoves(PositionManager pm) {
+		boolean validMoveExists = false;
+		LinkedList<Integer> moves = new LinkedList<Integer>();		
+		Colour onMove = pm.getOnMove();
+		boolean isWhiteOnMove = Piece.Colour.isWhite(onMove);
+		
+		// Check for king escape moves first, hoping not to need full move list generation
+		pm.getTheBoard().getKingMoves(moves, isWhiteOnMove);
+		ListIterator<Integer> it = moves.listIterator();
+		// Remove any moves which don't escape check
+		while (it.hasNext()) {
+			int currMove = it.next();
+			pm.performMove(currMove, false);
+			if (pm.isKingInCheck(onMove)) {
+				it.remove();
+			}
+			pm.unperformMove(false);
+		}
+		validMoveExists = !moves.isEmpty();
+		if (!validMoveExists) {
+			/* We already know we can't capture the piece giving check otherwise it would have been in the
+			   extended search move list, so we don't need to look for a capture, go straight on to trying
+			   to find an interposing move. Note potential optimisation, a knight check can't be blocked! */
+			MoveList ml = new MoveList(pm, 0, true);
+			validMoveExists = !ml.isMateOccurred();
+		}
+		return validMoveExists;
 	}
 
 	private void removeInvalidIdentifyBestKillerMoves(PositionManager pm, int bestMove, int[] killers, Colour onMove,
