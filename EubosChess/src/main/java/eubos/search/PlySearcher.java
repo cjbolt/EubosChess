@@ -19,7 +19,7 @@ import eubos.search.transposition.ITransposition;
 
 public class PlySearcher {
 	
-	private static final boolean ENABLE_MATE_CHECK_IN_EXTENDED_SEARCH = true;
+	private static final boolean ENABLE_MATE_CHECK_IN_EXTENDED_SEARCH = false;
 	private static final boolean ENABLE_MATE_DISTANCE_PRUNING = false; 
 	
 	private IChangePosition pm;
