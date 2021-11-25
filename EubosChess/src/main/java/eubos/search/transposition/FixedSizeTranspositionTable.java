@@ -86,7 +86,8 @@ public class FixedSizeTranspositionTable {
 					(hashSizeElements*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE));
 		}
 		if (numThreads == 1) {
-			hashMap = new HashMap<Integer, ITransposition>((int)hashSizeElements, (float)0.75);
+			// Now we have the monitor thread!
+			hashMap = new ConcurrentHashMap<Integer, ITransposition>((int)hashSizeElements, (float)0.75);
 		} else {
 			hashMap = new ConcurrentHashMap<Integer, ITransposition>((int)hashSizeElements, (float)0.75);
 		}
@@ -146,6 +147,7 @@ public class FixedSizeTranspositionTable {
 		}
 		else
 		{
+			EubosEngineMain.logger.info("Hash Map too full!");
 			wakeMonitor();
 		}
 	}
@@ -157,21 +159,21 @@ public class FixedSizeTranspositionTable {
 	class TranspositionTableMonitorThread extends Thread {
 		
 		private boolean isActive = true;
-		private int pollRateMillisecs = 10000;
+		static final private int pollRateMillisecs = 30000;
 		
 		public TranspositionTableMonitorThread() {
+			this.setName("TranspositionTableMonitorThread");
 		}
 		
 		public void run() {
 			while (isActive) {
-				try {
-					Thread.sleep(pollRateMillisecs);
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
 				if (hashMapSize >= maxHashMapSize*0.8) {
 					// Remove the oldest 20% of hashes to make way for this one
 					removeLeastUsed();
+				}
+				try {
+					Thread.sleep(pollRateMillisecs);
+				} catch (InterruptedException e) {
 				}
 			}
 		}

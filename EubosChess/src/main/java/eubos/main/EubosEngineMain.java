@@ -389,6 +389,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	@Override
 	protected void quit() {
+		logger.info("Quitting Eubos");
 		hashMap.haltMonitor();
 	}
 
@@ -404,6 +405,7 @@ public class EubosEngineMain extends AbstractEngine {
 				SquareAttackEvaluator.reportStaticDataSizes(), SquareAttackEvaluator.getStaticDataSize()));
 		// start the Engine
 		Thread EubosThread = new Thread( new EubosEngineMain() );
+		EubosThread.setName("EubosMainThread");
 		EubosThread.start();
 	}
 	

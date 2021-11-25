@@ -167,6 +167,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		public MultithreadedSearchWorkerThread( MiniMaxMoveGenerator moveGen, AbstractMoveSearcher main ) {
 			this.myMg = moveGen;
 			this.main = main;
+			this.setName("MultithreadedSearchWorkerThread");
 		}
 		
 		public void run() {
