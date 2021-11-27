@@ -87,7 +87,7 @@ public class FixedSizeTranspositionTable {
 		}
 		if (numThreads == 1) {
 			// Now we have the monitor thread!
-			hashMap = new ConcurrentHashMap<Integer, ITransposition>((int)hashSizeElements, (float)0.75);
+			hashMap = new HashMap<Integer, ITransposition>((int)hashSizeElements, (float)0.75);
 		} else {
 			hashMap = new ConcurrentHashMap<Integer, ITransposition>((int)hashSizeElements, (float)0.75);
 		}
