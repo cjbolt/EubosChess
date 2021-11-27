@@ -175,7 +175,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			List<Integer> pc = null;
 			result = new SearchResult(Move.NULL_MOVE, false);
 		
-			while (!searchStopped || !halted) {
+			while (!searchStopped && !halted) {
 				result = myMg.findMove(currentDepth, pc, sr);
 				if (result != null) {
 					if (result.foundMate && !analyse) {

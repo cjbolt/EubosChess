@@ -110,13 +110,17 @@ public class PlySearcher {
 			score = (short) search(alpha, beta, originalSearchDepthRequiredInPly);
 	
 			if (Score.isProvisional(score)) {
-        		// If this is true after the search, it must be an illegal position
+				EubosEngineMain.logger.info("Aspiration Window failed - no score, illegal position");
 	            break;
         	} else if (score <= alpha) {
         		// Failed low, adjust window
+        		EubosEngineMain.logger.info(String.format("Aspiration Window failed low score=%d alpha=%d depth=%d",
+        				score, alpha, originalSearchDepthRequiredInPly));
 	            alpha = Score.PROVISIONAL_ALPHA;
 	        } else if (score >= beta) {
 	        	// Failed high, adjust window
+	        	EubosEngineMain.logger.info(String.format("Aspiration Window failed high score=%d beta=%d depth=%d",
+        				score, beta, originalSearchDepthRequiredInPly));
 	            beta = Score.PROVISIONAL_BETA;
 	        } else {
 	        	// Exact score in window returned
