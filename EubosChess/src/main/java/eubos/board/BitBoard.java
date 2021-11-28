@@ -48,4 +48,30 @@ public final class BitBoard {
 	public static PrimitiveIterator.OfLong maskIterator(Long bitBoard) {
 		return new MaskIterator(bitBoard);
 	}
+	
+	public static long downOccludedEmpty(long board, long empty) {
+	   long flood = board;
+	   flood |= board = (board >> 8) & empty;
+	   flood |= board = (board >> 8) & empty;
+	   flood |= board = (board >> 8) & empty;
+	   flood |= board = (board >> 8) & empty;
+	   flood |= board = (board >> 8) & empty;
+	   flood |= board = (board >> 8) & empty;
+	   flood |=         (board >> 8) & empty;
+	   return flood;
+	}
+	
+	public static long rightOccludedEmpty(long board, long empty) {
+	   long not_a_file = 0xfefefefefefefefeL;
+	   long flood = board;
+	   empty &= not_a_file; // clear a file bits so that we can't overflow into the next rank
+	   flood |= board = (board << 1) & empty;
+	   flood |= board = (board << 1) & empty;
+	   flood |= board = (board << 1) & empty;
+	   flood |= board = (board << 1) & empty;
+	   flood |= board = (board << 1) & empty;
+	   flood |= board = (board << 1) & empty;
+	   flood |=         (board << 1) & empty;
+	   return flood;
+	}
 }
