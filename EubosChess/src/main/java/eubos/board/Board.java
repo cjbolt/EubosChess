@@ -1058,7 +1058,7 @@ public class Board {
 			pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(true);
 			pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(false);
 			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !isEndgame) {
-				getSliderMobility(me);
+				calculateDynamicMobility(me);
 			}
 			return me;
 		} else {
@@ -1071,51 +1071,58 @@ public class Board {
 			}
 			me = material;
 			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !isEndgame) {
-				getSliderMobility(me);
+				calculateDynamicMobility(me);
 			}
 			return me;
 		}
 	}
 	
-	int getSliderMobility(PiecewiseEvaluation me) {
+	void calculateDynamicMobility(PiecewiseEvaluation me) {
 		long empty = ~allPieces;
 		// White Bishop and Queen
 		long white_diagonal_sliders = getWhiteBishops() | getWhiteQueens();
 		long mobility_mask = 0x0;
-		mobility_mask |= BitBoard.downLeftOccludedEmpty(white_diagonal_sliders, empty);
-		mobility_mask |= BitBoard.upLeftOccludedEmpty(white_diagonal_sliders, empty);
-		mobility_mask |= BitBoard.upRightOccludedEmpty(white_diagonal_sliders, empty);
-		mobility_mask |= BitBoard.downRightOccludedEmpty(white_diagonal_sliders, empty);
-		mobility_mask ^= white_diagonal_sliders;
-		me.addPosition(true, (short)(Long.bitCount(mobility_mask)*2));
+		if (white_diagonal_sliders != 0) {
+			mobility_mask |= BitBoard.downLeftOccludedEmpty(white_diagonal_sliders, empty);
+			mobility_mask |= BitBoard.upLeftOccludedEmpty(white_diagonal_sliders, empty);
+			mobility_mask |= BitBoard.upRightOccludedEmpty(white_diagonal_sliders, empty);
+			mobility_mask |= BitBoard.downRightOccludedEmpty(white_diagonal_sliders, empty);
+			mobility_mask ^= white_diagonal_sliders;
+			me.addPosition(true, (short)(Long.bitCount(mobility_mask)*2));
+		}
 		// White Rook and Queen
 		long white_rank_file_sliders = getWhiteRooks() | getWhiteQueens();
-		mobility_mask = 0x0;
-		mobility_mask |= BitBoard.downOccludedEmpty(white_rank_file_sliders, empty);
-		mobility_mask |= BitBoard.upOccludedEmpty(white_rank_file_sliders, empty);
-		mobility_mask |= BitBoard.rightOccludedEmpty(white_rank_file_sliders, empty);
-		mobility_mask |= BitBoard.leftOccludedEmpty(white_rank_file_sliders, empty);
-		mobility_mask ^= white_rank_file_sliders;
-		me.addPosition(true, (short)(Long.bitCount(mobility_mask)*2));
+		if (white_rank_file_sliders != 0) {
+			mobility_mask = 0x0;
+			mobility_mask |= BitBoard.downOccludedEmpty(white_rank_file_sliders, empty);
+			mobility_mask |= BitBoard.upOccludedEmpty(white_rank_file_sliders, empty);
+			mobility_mask |= BitBoard.rightOccludedEmpty(white_rank_file_sliders, empty);
+			mobility_mask |= BitBoard.leftOccludedEmpty(white_rank_file_sliders, empty);
+			mobility_mask ^= white_rank_file_sliders;
+			me.addPosition(true, (short)(Long.bitCount(mobility_mask)*2));
+		}
 		// Black Bishop and Queen
 		long black_diagonal_sliders = getBlackBishops() | getBlackQueens();
-		mobility_mask = 0x0;
-		mobility_mask |= BitBoard.downLeftOccludedEmpty(black_diagonal_sliders, empty);
-		mobility_mask |= BitBoard.upLeftOccludedEmpty(black_diagonal_sliders, empty);
-		mobility_mask |= BitBoard.upRightOccludedEmpty(black_diagonal_sliders, empty);
-		mobility_mask |= BitBoard.downRightOccludedEmpty(black_diagonal_sliders, empty);
-		mobility_mask ^= black_diagonal_sliders;
-		me.addPosition(false, (short)(Long.bitCount(mobility_mask)*2));
+		if (black_diagonal_sliders != 0) {
+			mobility_mask = 0x0;
+			mobility_mask |= BitBoard.downLeftOccludedEmpty(black_diagonal_sliders, empty);
+			mobility_mask |= BitBoard.upLeftOccludedEmpty(black_diagonal_sliders, empty);
+			mobility_mask |= BitBoard.upRightOccludedEmpty(black_diagonal_sliders, empty);
+			mobility_mask |= BitBoard.downRightOccludedEmpty(black_diagonal_sliders, empty);
+			mobility_mask ^= black_diagonal_sliders;
+			me.addPosition(false, (short)(Long.bitCount(mobility_mask)*2));
+		}
 		// Black Rook and Queen
 		long black_rank_file_sliders = getBlackRooks() | getBlackQueens();
-		mobility_mask = 0x0;
-		mobility_mask |= BitBoard.downOccludedEmpty(black_rank_file_sliders, empty);
-		mobility_mask |= BitBoard.upOccludedEmpty(black_rank_file_sliders, empty);
-		mobility_mask |= BitBoard.rightOccludedEmpty(black_rank_file_sliders, empty);
-		mobility_mask |= BitBoard.leftOccludedEmpty(black_rank_file_sliders, empty);
-		mobility_mask ^= black_rank_file_sliders;
-		me.addPosition(false, (short)(Long.bitCount(mobility_mask)*2));
-		return 0;
+		if (black_rank_file_sliders != 0) {
+			mobility_mask = 0x0;
+			mobility_mask |= BitBoard.downOccludedEmpty(black_rank_file_sliders, empty);
+			mobility_mask |= BitBoard.upOccludedEmpty(black_rank_file_sliders, empty);
+			mobility_mask |= BitBoard.rightOccludedEmpty(black_rank_file_sliders, empty);
+			mobility_mask |= BitBoard.leftOccludedEmpty(black_rank_file_sliders, empty);
+			mobility_mask ^= black_rank_file_sliders;
+			me.addPosition(false, (short)(Long.bitCount(mobility_mask)*2));
+		}
 	}
 	
     // For reasons of performance optimisation, part of the material evaluation considers the mobility of pieces.
