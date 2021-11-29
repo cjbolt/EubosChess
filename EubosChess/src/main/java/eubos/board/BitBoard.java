@@ -10,6 +10,9 @@ import com.fluxchess.jcpi.models.IntRank;
 
 public final class BitBoard {
 	
+	private static final long not_a_file = 0xfefefefefefefefeL;
+	private static final long not_h_file = 0x7f7f7f7f7f7f7f7fL;
+	
 	static final int[] bitToPosition_Lut = new int[64];
 	static {
 		int bit_index = 0;
@@ -49,20 +52,31 @@ public final class BitBoard {
 		return new MaskIterator(bitBoard);
 	}
 	
+	public static long upOccludedEmpty(long board, long empty) {
+	   long flood = board;
+	   flood |= board = (board << 8) & empty;
+	   flood |= board = (board << 8) & empty;
+	   flood |= board = (board << 8) & empty;
+	   flood |= board = (board << 8) & empty;
+	   flood |= board = (board << 8) & empty;
+	   flood |= board = (board << 8) & empty;
+	   flood |=         (board << 8) & empty;
+	   return flood;
+	}	
+	
 	public static long downOccludedEmpty(long board, long empty) {
 	   long flood = board;
-	   flood |= board = (board >> 8) & empty;
-	   flood |= board = (board >> 8) & empty;
-	   flood |= board = (board >> 8) & empty;
-	   flood |= board = (board >> 8) & empty;
-	   flood |= board = (board >> 8) & empty;
-	   flood |= board = (board >> 8) & empty;
-	   flood |=         (board >> 8) & empty;
+	   flood |= board = (board >>> 8) & empty;
+	   flood |= board = (board >>> 8) & empty;
+	   flood |= board = (board >>> 8) & empty;
+	   flood |= board = (board >>> 8) & empty;
+	   flood |= board = (board >>> 8) & empty;
+	   flood |= board = (board >>> 8) & empty;
+	   flood |=         (board >>> 8) & empty;
 	   return flood;
 	}
 	
 	public static long rightOccludedEmpty(long board, long empty) {
-	   long not_a_file = 0xfefefefefefefefeL;
 	   long flood = board;
 	   empty &= not_a_file; // clear a file bits so that we can't overflow into the next rank
 	   flood |= board = (board << 1) & empty;
@@ -72,6 +86,71 @@ public final class BitBoard {
 	   flood |= board = (board << 1) & empty;
 	   flood |= board = (board << 1) & empty;
 	   flood |=         (board << 1) & empty;
+	   return flood;
+	}
+	
+	public static long downRightOccludedEmpty(long board, long empty) {
+	   long flood = board;
+	   empty &= not_a_file; // clear a file bits so that we can't overflow into the next rank
+	   flood |= board = (board >>> 7) & empty;
+	   flood |= board = (board >>> 7) & empty;
+	   flood |= board = (board >>> 7) & empty;
+	   flood |= board = (board >>> 7) & empty;
+	   flood |= board = (board >>> 7) & empty;
+	   flood |= board = (board >>> 7) & empty;
+	   flood |=         (board >>> 7) & empty;
+	   return flood;
+	}
+	
+	public static long upRightOccludedEmpty(long board, long empty) {
+	   long flood = board;
+	   empty &= not_a_file; // clear a file bits so that we can't overflow into the next rank
+	   flood |= board = (board << 9) & empty;
+	   flood |= board = (board << 9) & empty;
+	   flood |= board = (board << 9) & empty;
+	   flood |= board = (board << 9) & empty;
+	   flood |= board = (board << 9) & empty;
+	   flood |= board = (board << 9) & empty;
+	   flood |=         (board << 9) & empty;
+	   return flood;
+	}
+	
+	public static long leftOccludedEmpty(long board, long empty) {
+	   long flood = board;
+	   empty &= not_h_file; // clear h file bits so that we can't overflow into the next rank
+	   flood |= board = (board >>> 1) & empty;
+	   flood |= board = (board >>> 1) & empty;
+	   flood |= board = (board >>> 1) & empty;
+	   flood |= board = (board >>> 1) & empty;
+	   flood |= board = (board >>> 1) & empty;
+	   flood |= board = (board >>> 1) & empty;
+	   flood |=         (board >>> 1) & empty;
+	   return flood;
+	}
+	
+	public static long downLeftOccludedEmpty(long board, long empty) {
+	   long flood = board;
+	   empty &= not_h_file; // clear h file bits so that we can't overflow into the next rank
+	   flood |= board = (board >>> 9) & empty;
+	   flood |= board = (board >>> 9) & empty;
+	   flood |= board = (board >>> 9) & empty;
+	   flood |= board = (board >>> 9) & empty;
+	   flood |= board = (board >>> 9) & empty;
+	   flood |= board = (board >>> 9) & empty;
+	   flood |=         (board >>> 9) & empty;
+	   return flood;
+	}
+	
+	public static long upLeftOccludedEmpty(long board, long empty) {
+	   long flood = board;
+	   empty &= not_h_file; // clear h file bits so that we can't overflow into the next rank
+	   flood |= board = (board << 7) & empty;
+	   flood |= board = (board << 7) & empty;
+	   flood |= board = (board << 7) & empty;
+	   flood |= board = (board << 7) & empty;
+	   flood |= board = (board << 7) & empty;
+	   flood |= board = (board << 7) & empty;
+	   flood |=         (board << 7) & empty;
 	   return flood;
 	}
 }

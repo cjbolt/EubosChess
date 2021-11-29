@@ -6,7 +6,6 @@ import java.util.List;
 import eubos.main.EubosEngineMain;
 import eubos.position.MoveList;
 import eubos.position.Position;
-import eubos.score.PositionEvaluator;
 
 public class PieceList {
 	
@@ -331,8 +330,7 @@ public class PieceList {
 		}
 	}
 	
-	@SuppressWarnings("unused")
-	public void evaluateMaterialBalanceAndPieceMobility(boolean isWhite) {
+	public void evaluateMaterialBalanceAndStaticPieceMobility(boolean isWhite) {
 		int side = isWhite ? 0 : Piece.BLACK;
 		{
 			int atSquare = piece_list[side+Piece.KING][0];
@@ -344,22 +342,16 @@ public class PieceList {
 		for(int atSquare : piece_list[side+Piece.QUEEN]) {
 			if (atSquare != Position.NOPOSITION) {			
 				theBoard.me.addPiece(isWhite, Piece.QUEEN);
-				if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !theBoard.isEndgame)
-					theBoard.me.addPosition(isWhite, theBoard.getTwiceNumEmptyAllDirectSquares(atSquare));
 			} else break;
 		}
 		for(int atSquare : piece_list[side+Piece.ROOK]) {
 			if (atSquare != Position.NOPOSITION) {			
 				theBoard.me.addPiece(isWhite, Piece.ROOK);
-				if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !theBoard.isEndgame)
-					theBoard.me.addPosition(isWhite, theBoard.getTwiceNumEmptyRankFileSquares(atSquare));
 			} else break;
 		}
 		for(int atSquare : piece_list[side+Piece.BISHOP]) {
 			if (atSquare != Position.NOPOSITION) {			
 				theBoard.me.addPiece(isWhite, Piece.BISHOP);
-				if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !theBoard.isEndgame)
-					theBoard.me.addPosition(isWhite, theBoard.getTwiceNumEmptyDiagonalSquares(atSquare));
 			} else break;
 		}
 		for(int atSquare : piece_list[side+Piece.KNIGHT]) {

@@ -23,6 +23,7 @@ import com.fluxchess.jcpi.models.IntRank;
 public class Board {
 	
 	public static final boolean ENABLE_PIECE_LISTS = true;
+	public static final boolean ENABLE_SIMPLIFIED_KING_SAFETY_EVAL = false;
 	
 	private static final long LIGHT_SQUARES_MASK = 0x55AA55AA55AA55AAL;
 	private static final long DARK_SQUARES_MASK = 0xAA55AA55AA55AA55L; 
@@ -1054,8 +1055,11 @@ public class Board {
 	public PiecewiseEvaluation evaluateMaterial() {
 		if (ENABLE_PIECE_LISTS) {
 			me = new PiecewiseEvaluation();
-			pieceLists.evaluateMaterialBalanceAndPieceMobility(true);
-			pieceLists.evaluateMaterialBalanceAndPieceMobility(false);
+			pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(true);
+			pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(false);
+			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !isEndgame) {
+				getSliderMobility(me);
+			}
 			return me;
 		} else {
 			PrimitiveIterator.OfInt iter_p = this.iterator();
@@ -1066,13 +1070,56 @@ public class Board {
 				material = updateMaterialForPiece(currPiece, atPos, material);
 			}
 			me = material;
+			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !isEndgame) {
+				getSliderMobility(me);
+			}
 			return me;
 		}
 	}
 	
+	int getSliderMobility(PiecewiseEvaluation me) {
+		long empty = ~allPieces;
+		// White Bishop and Queen
+		long white_diagonal_sliders = getWhiteBishops() | getWhiteQueens();
+		long mobility_mask = 0x0;
+		mobility_mask |= BitBoard.downLeftOccludedEmpty(white_diagonal_sliders, empty);
+		mobility_mask |= BitBoard.upLeftOccludedEmpty(white_diagonal_sliders, empty);
+		mobility_mask |= BitBoard.upRightOccludedEmpty(white_diagonal_sliders, empty);
+		mobility_mask |= BitBoard.downRightOccludedEmpty(white_diagonal_sliders, empty);
+		mobility_mask ^= white_diagonal_sliders;
+		me.addPosition(true, (short)(Long.bitCount(mobility_mask)*2));
+		// White Rook and Queen
+		long white_rank_file_sliders = getWhiteRooks() | getWhiteQueens();
+		mobility_mask = 0x0;
+		mobility_mask |= BitBoard.downOccludedEmpty(white_rank_file_sliders, empty);
+		mobility_mask |= BitBoard.upOccludedEmpty(white_rank_file_sliders, empty);
+		mobility_mask |= BitBoard.rightOccludedEmpty(white_rank_file_sliders, empty);
+		mobility_mask |= BitBoard.leftOccludedEmpty(white_rank_file_sliders, empty);
+		mobility_mask ^= white_rank_file_sliders;
+		me.addPosition(true, (short)(Long.bitCount(mobility_mask)*2));
+		// Black Bishop and Queen
+		long black_diagonal_sliders = getBlackBishops() | getBlackQueens();
+		mobility_mask = 0x0;
+		mobility_mask |= BitBoard.downLeftOccludedEmpty(black_diagonal_sliders, empty);
+		mobility_mask |= BitBoard.upLeftOccludedEmpty(black_diagonal_sliders, empty);
+		mobility_mask |= BitBoard.upRightOccludedEmpty(black_diagonal_sliders, empty);
+		mobility_mask |= BitBoard.downRightOccludedEmpty(black_diagonal_sliders, empty);
+		mobility_mask ^= black_diagonal_sliders;
+		me.addPosition(false, (short)(Long.bitCount(mobility_mask)*2));
+		// Black Rook and Queen
+		long black_rank_file_sliders = getBlackRooks() | getBlackQueens();
+		mobility_mask = 0x0;
+		mobility_mask |= BitBoard.downOccludedEmpty(black_rank_file_sliders, empty);
+		mobility_mask |= BitBoard.upOccludedEmpty(black_rank_file_sliders, empty);
+		mobility_mask |= BitBoard.rightOccludedEmpty(black_rank_file_sliders, empty);
+		mobility_mask |= BitBoard.leftOccludedEmpty(black_rank_file_sliders, empty);
+		mobility_mask ^= black_rank_file_sliders;
+		me.addPosition(false, (short)(Long.bitCount(mobility_mask)*2));
+		return 0;
+	}
+	
     // For reasons of performance optimisation, part of the material evaluation considers the mobility of pieces.
-    // This function generates a score considering three categories A) material B) static PSTs C) Piece mobility (dynamic) 
-	@SuppressWarnings("unused")
+    // This function generates a score considering two categories A) material B) static PSTs 
 	private PiecewiseEvaluation updateMaterialForPiece(int currPiece, int atPos, PiecewiseEvaluation eval) {
 		switch(currPiece) {
 		case Piece.WHITE_PAWN:
@@ -1085,23 +1132,15 @@ public class Board {
 			break;
 		case Piece.WHITE_ROOK:
 			eval.addPiece(true, Piece.ROOK);
-			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !isEndgame)
-				eval.addPosition(true, getTwiceNumEmptyRankFileSquares(atPos));
 			break;
 		case Piece.BLACK_ROOK:
 			eval.addPiece(false, Piece.ROOK);
-			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !isEndgame)
-				eval.addPosition(false, getTwiceNumEmptyRankFileSquares(atPos));
 			break;
 		case Piece.WHITE_BISHOP:
 			eval.addPiece(true, Piece.BISHOP);
-			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !isEndgame)
-				eval.addPosition(true, getTwiceNumEmptyDiagonalSquares(atPos));
 			break;
 		case Piece.BLACK_BISHOP:
 			eval.addPiece(false, Piece.BISHOP);
-			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !isEndgame)
-				eval.addPosition(false, getTwiceNumEmptyDiagonalSquares(atPos));
 			break;
 		case Piece.WHITE_KNIGHT:
 			eval.addPiece(true, Piece.KNIGHT);
@@ -1113,13 +1152,9 @@ public class Board {
 			break;
 		case Piece.WHITE_QUEEN:
 			eval.addPiece(true, Piece.QUEEN);
-			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !isEndgame)
-				eval.addPosition(true, getTwiceNumEmptyAllDirectSquares(atPos));
 			break;
 		case Piece.BLACK_QUEEN:
 			eval.addPiece(false, Piece.QUEEN);
-			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !isEndgame)
-				eval.addPosition(false, getTwiceNumEmptyAllDirectSquares(atPos));
 			break;
 		case Piece.WHITE_KING:
 			eval.addPiece(true, Piece.KING);
@@ -1216,10 +1251,37 @@ public class Board {
 			} else {
 				kingPos = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(kingMask)];
 			}
-			evaluation = (getKingSafetyEvaluationDiagonalSquares(isWhite, kingPos)) * -numPotentialAttackers;
+			long empty = ~allPieces;
+			long mobility_mask = 0x0;
+			if (numPotentialAttackers > 0) {
+				if (ENABLE_SIMPLIFIED_KING_SAFETY_EVAL) {
+					mobility_mask |= BitBoard.downLeftOccludedEmpty(kingMask, empty);
+					mobility_mask |= BitBoard.upLeftOccludedEmpty(kingMask, empty);
+					mobility_mask |= BitBoard.upRightOccludedEmpty(kingMask, empty);
+					mobility_mask |= BitBoard.downRightOccludedEmpty(kingMask, empty);
+					mobility_mask ^= kingMask;
+					evaluation = Long.bitCount(mobility_mask)*-numPotentialAttackers;
+				} else {
+					evaluation = (getKingSafetyEvaluationDiagonalSquares(isWhite, kingPos)) * -numPotentialAttackers;
+				}
+			}
+			
 			// Then score according to King exposure on open rank/files
 			numPotentialAttackers = Long.bitCount(rankFileAttackersMask);
-			evaluation += (getKingSafetyEvaluationRankFileSquares(isWhite, kingPos)) * -numPotentialAttackers;
+			if (numPotentialAttackers > 0) {
+				if (ENABLE_SIMPLIFIED_KING_SAFETY_EVAL) {
+					mobility_mask = 0x0;
+					mobility_mask |= BitBoard.downOccludedEmpty(kingMask, empty);
+					mobility_mask |= BitBoard.upOccludedEmpty(kingMask, empty);
+					mobility_mask |= BitBoard.rightOccludedEmpty(kingMask, empty);
+					mobility_mask |= BitBoard.leftOccludedEmpty(kingMask, empty);
+					mobility_mask ^= kingMask;
+					evaluation = Long.bitCount(mobility_mask)*-numPotentialAttackers;
+				} else {
+					evaluation += (getKingSafetyEvaluationRankFileSquares(isWhite, kingPos)) * -numPotentialAttackers;
+				}
+			}
+			
 			// Then account for Knight proximity to the adjacent square around the King
 			long pertintentKnightsMask = attackingKnightsMask & knightKingSafetyMask_Lut[kingPos];
 			evaluation += -8*Long.bitCount(pertintentKnightsMask);
