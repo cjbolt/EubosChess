@@ -15,6 +15,7 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 import eubos.position.Move;
 import eubos.position.Position;
 import eubos.position.PositionManager;
+import eubos.score.PiecewiseEvaluation;
 import eubos.search.DrawChecker;
 
 public class BoardTest {
@@ -395,5 +396,14 @@ public class BoardTest {
 				j++;
 			}
 		}
+	}
+	
+	@Test
+	public void test_slider_refactor_eval() {
+		setUpPosition("r1b1kb1r/ppq1pppp/8/3pN3/3Q4/8/PPP2PPP/RNB1K2R b KQkq - 0 1");
+		classUnderTest.isEndgame = false;
+		PiecewiseEvaluation me = new PiecewiseEvaluation();
+		classUnderTest.calculateDynamicMobility(me);
+		assertEquals(8, me.getPosition());
 	}
 }
