@@ -30,8 +30,8 @@ public class PrincipalVariationTransposition extends Transposition {
 	
 	protected void truncateOnwardPvToSearchDepth(List<Integer> pv) {
 		if (TRUNCATION_OF_PV_ENABLED) {
-			if (pv != null && pv.size() > depthSearchedInPly) {
-				pv.subList(depthSearchedInPly, pv.size()).clear();
+			if (pv != null && pv.size() > getDepthSearchedInPly()) {
+				pv.subList(getDepthSearchedInPly(), pv.size()).clear();
 			}
 		}
 	}
@@ -55,9 +55,9 @@ public class PrincipalVariationTransposition extends Transposition {
 		}
 		String output = String.format("trans best=%s, dep=%d, sc=%d, type=%s, pv=%s", 
 				Move.toString(bestMove),
-				depthSearchedInPly,
+				getDepthSearchedInPly(),
 				score,
-				type,
+				getType(),
 				onward_pv);
 		return output;
 	}

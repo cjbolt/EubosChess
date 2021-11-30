@@ -18,20 +18,6 @@ public class FixedSizeTranspositionTable {
 	
 	public static final long ELEMENTS_DEFAULT_HASH_SIZE = (1L << 25);
 	
-	public static final long MOVELIST_NORMAL_WORST_SIZE = 40L;
-	public static final long MOVELIST_NORMAL_AVERAGE_SIZE = 26L;
-	public static final long MOVELIST_EXTENDED_AVERAGE_SIZE = 5L;
-	
-	public static final long MOVELIST_AVERAGE_SIZE = (
-			MOVELIST_NORMAL_WORST_SIZE +
-			MOVELIST_EXTENDED_AVERAGE_SIZE);
-	
-	public static final long BYTES_MOVELIST_AVERAGE;
-	static {
-		BYTES_MOVELIST_AVERAGE = ClassLayout.parseClass(MoveList.class).instanceSize() +
-				MOVELIST_AVERAGE_SIZE*Integer.BYTES;
-	}
-	
 	public static final long BYTES_TRANSPOSTION_ELEMENT;
 	static {
 		BYTES_TRANSPOSTION_ELEMENT = ClassLayout.parseClass(Transposition.class).instanceSize();
@@ -77,8 +63,8 @@ public class FixedSizeTranspositionTable {
 		
 		if (DEBUG_LOGGING) {
 			EubosEngineMain.logger.info(String.format(
-					"BYTES_TRANSPOSTION_ELEMENT=%d BYTES_MOVELIST_AVERAGE=%d, BYTES_PER_TRANSPOSITION=%d", 
-					BYTES_TRANSPOSTION_ELEMENT, BYTES_MOVELIST_AVERAGE,	BYTES_PER_TRANSPOSITION));
+					"BYTES_TRANSPOSTION_ELEMENT=%d, BYTES_PER_TRANSPOSITION=%d", 
+					BYTES_TRANSPOSTION_ELEMENT, BYTES_PER_TRANSPOSITION));
 			
 			EubosEngineMain.logger.info(String.format(
 					"Hash dimensions requestedSizeMBytes=%d maxHeapSizeMBytes=%d, maxSizeElements=%d, maxSizeMBytes=%d", 
@@ -111,7 +97,7 @@ public class FixedSizeTranspositionTable {
 	}
 	
 	private int getMostSignificantBits(long hashCode) {
-		return (int)(hashCode >> 32);
+		return (int)(hashCode >>> 32);
 	}
 	
 	private boolean isMatchingHashCode(ITransposition trans, long hashCode) {

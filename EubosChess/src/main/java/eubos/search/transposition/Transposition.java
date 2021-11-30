@@ -8,12 +8,10 @@ import eubos.position.Move;
 import eubos.search.Score;
 
 public class Transposition implements ITransposition {
-	protected byte depthSearchedInPly;
 	protected short score;
-	protected byte type;
 	protected int bestMove;
-	protected short accessCount;
-	protected int hashFragment;
+	protected short hashFragment;
+	protected short bitfield;
 
 	public Transposition(long hash, byte depth, short score, byte bound, GenericMove bestMove) {
 		// Only used by tests
@@ -30,16 +28,36 @@ public class Transposition implements ITransposition {
 	}
 
 	private void setHashFragment(long hash) {
-		hashFragment = (int)(hash >> 32);
+		hashFragment = (short)(hash >>> 48);
+	}
+	
+	@Override
+	public byte getDepthSearchedInPly() {
+		return (byte)((bitfield >>> 0) & 0x7F);
 	}
 
+	protected void setDepthSearchedInPly(byte depthSearchedInPly) {
+		bitfield &= ~(0x7F << 0);
+		bitfield |= (short)((depthSearchedInPly & 0x7F) << 0);
+	}
+	
 	@Override
 	public byte getType() {
-		return type;
+		return (byte)((bitfield >>> 7) & 0x3);
 	}
 
 	protected void setType(byte type) {
-		this.type = type;
+		bitfield &= ~(0x3 << 7);
+		bitfield |= (short)((type & 0x3) << 7);
+	}
+	
+	public short getAccessCount() {
+		return (short)((bitfield >>> 9) & 0x7F);
+	}
+	
+	public void setAccessCount(short accessCount) {
+		bitfield &= ~(0x7F << 9);
+		bitfield |= (short)((accessCount & 0x7F) << 9);
 	}
 
 	@Override
@@ -50,15 +68,7 @@ public class Transposition implements ITransposition {
 	protected void setScore(short new_score) {
 		this.score = new_score;
 	}
-	
-	@Override
-	public byte getDepthSearchedInPly() {
-		return depthSearchedInPly;
-	}
 
-	protected void setDepthSearchedInPly(byte depthSearchedInPly) {
-		this.depthSearchedInPly = depthSearchedInPly;
-	}
 
 	@Override
 	public int getBestMove() {
@@ -75,9 +85,9 @@ public class Transposition implements ITransposition {
 	public String report() {
 		String output = String.format("trans best=%s, dep=%d, sc=%s, type=%s", 
 				Move.toString(bestMove),
-				depthSearchedInPly,
+				getDepthSearchedInPly(),
 				Score.toString(score),
-				type);
+				getType());
 		return output;
 	}
 	
@@ -89,10 +99,10 @@ public class Transposition implements ITransposition {
 			int new_bestMove, 
 			List<Integer> pv) {	
 		boolean updateTransposition = false;
-		if (depthSearchedInPly < new_Depth) {
+		if (getDepthSearchedInPly() < new_Depth) {
 			updateTransposition = true;	
-		} else if (depthSearchedInPly == new_Depth) {
-			if (type != Score.exact && new_score > getScore()) {
+		} else if (getDepthSearchedInPly() == new_Depth) {
+			if (getType() != Score.exact && new_score > getScore()) {
 				updateTransposition = true;
 			} else {
 				// don't update, worse bound score than we currently have
@@ -101,9 +111,9 @@ public class Transposition implements ITransposition {
 			// don't update, depth is less than what we have
 		}
 		if (updateTransposition) {
-			depthSearchedInPly = new_Depth;
+			setDepthSearchedInPly(new_Depth);
 			score = new_score;
-			type = new_bound;
+			setType(new_bound);
 			setBestMove(new_bestMove);
 		}
 		return updateTransposition;
@@ -120,20 +130,13 @@ public class Transposition implements ITransposition {
 		return wasSetAsExact;
 	}
 	
-	public short getAccessCount() {
-		return accessCount;
-	}
-	
-	public void setAccessCount(short accessCount) {
-		this.accessCount = accessCount;
-	}
-	
 	public List<Integer> getPv() {
 		return null;
 	}
 
 	@Override
 	public boolean checkHash(int hashCode) {
-		return hashCode == hashFragment;
+		short checker = (short)(hashCode >>> 16);
+		return (checker == hashFragment);
 	}
 }
