@@ -51,12 +51,12 @@ public class Transposition implements ITransposition {
 	}
 	
 	public short getAccessCount() {
-		return (short)((bitfield >>> 9) & 0x6F);
+		return (short)((bitfield >>> 9) & 0x3F);
 	}
 	
 	public void setAccessCount(short accessCount) {
-		bitfield &= ~(0x6F << 9);
-		bitfield |= (accessCount & 0x6F) << 9;
+		bitfield &= ~(0x3F << 9);
+		bitfield |= (accessCount & 0x3F) << 9;
 	}
 
 	@Override

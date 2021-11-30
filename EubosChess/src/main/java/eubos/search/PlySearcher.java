@@ -421,7 +421,6 @@ public class PlySearcher {
 		// Populate the members of the move read from the transposition table.
 		if (trans_move != Move.NULL_MOVE) {
 			int originPiece = pos.getTheBoard().getPieceAtSquare(Move.getOriginPosition(trans_move));
-			assert originPiece != 0;
 			trans_move = Move.setOriginPiece(trans_move, originPiece);
 			int targetPiece = pos.getTheBoard().getPieceAtSquare(Move.getTargetPosition(trans_move));
 			trans_move = Move.setTargetPiece(trans_move, targetPiece);
