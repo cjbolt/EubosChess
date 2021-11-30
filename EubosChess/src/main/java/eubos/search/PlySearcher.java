@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import eubos.board.Board;
+import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
@@ -203,7 +204,18 @@ public class PlySearcher {
 					}
 					// Determine if good enough for a refutation...
 					if (alpha >= beta) {
-						killers.addMove(currPly, trans.getBestMove());
+						int trans_move = trans.getBestMove();
+						// Populate the members of the move read from the transposition table.
+						if (trans_move != Move.NULL_MOVE) {
+							int originPiece = pos.getTheBoard().getPieceAtSquare(Move.getOriginPosition(trans_move));
+							trans_move = Move.setOriginPiece(trans_move, originPiece);
+							int targetPiece = pos.getTheBoard().getPieceAtSquare(Move.getTargetPosition(trans_move));
+							trans_move = Move.setTargetPiece(trans_move, targetPiece);
+							if (targetPiece != Piece.NONE) {
+								trans_move = Move.setCapture(trans_move, targetPiece);
+							}
+						}
+						killers.addMove(currPly, trans_move);
 						if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsRefutation(pos.getHash(), trans);
 						isCutOff = true;
 					}

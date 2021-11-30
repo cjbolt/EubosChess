@@ -92,6 +92,10 @@ public final class Move {
 		}
 		move |= promotion << PROMOTION_SHIFT;
 		
+		if (promotion != Piece.NONE) {
+			move |= (Move.TYPE_BEST_MASK << TYPE_SHIFT);
+		}
+		
 		return move;
 	}
 	
