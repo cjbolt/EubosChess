@@ -413,13 +413,23 @@ public class PlySearcher {
 		int trans_move;
 		int theScore = 0;
 		short trans_score;
+		boolean isThreefold = false;
 		synchronized (trans) {
 			trans_move = trans.getBestMove();
 			trans_score = trans.getScore();
 		}
+		// Populate the members of the move read from the transposition table.
+		if (trans_move != Move.NULL_MOVE) {
+			int originPiece = pos.getTheBoard().getPieceAtSquare(Move.getOriginPosition(trans_move));
+			assert originPiece != 0;
+			trans_move = Move.setOriginPiece(trans_move, originPiece);
+			int targetPiece = pos.getTheBoard().getPieceAtSquare(Move.getTargetPosition(trans_move));
+			trans_move = Move.setTargetPiece(trans_move, targetPiece);
+		}
+		
 		// Check score for hashed position causing a search cut-off is still valid (i.e. best move doesn't lead to a draw)
 		// If hashed score is a draw score, check it is still a draw, if not, search position
-		boolean isThreefold = checkForRepetitionDueToPositionInSearchTree(trans_move);
+		isThreefold = checkForRepetitionDueToPositionInSearchTree(trans_move);
 		if (isThreefold || (!isThreefold && (trans_score == 0))) {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
 		} else {

@@ -10,7 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.openjdk.jol.info.ClassLayout;
 
 import eubos.main.EubosEngineMain;
-import eubos.position.MoveList;
 
 public class FixedSizeTranspositionTable {
 	

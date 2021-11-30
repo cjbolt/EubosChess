@@ -95,6 +95,14 @@ public class MoveList implements Iterable<Integer> {
 		boolean validBest = bestMove != Move.NULL_MOVE;
 		int foundBestMove = Move.NULL_MOVE;
 		
+		if (validBest) {
+			// Setup best move check on origin and target sq, not in transpo table
+			int bestOriginPiece = pm.getTheBoard().getPieceAtSquare(Move.getOriginPosition(bestMove));
+			bestMove = Move.setOriginPiece(bestMove, bestOriginPiece);
+			int targetPiece = pm.getTheBoard().getPieceAtSquare(Move.getTargetPosition(bestMove));
+			bestMove = Move.setTargetPiece(bestMove, targetPiece);
+		}
+		
 		ListIterator<Integer> it = priority_moves.listIterator();
 		while (it.hasNext()) {
 			int currMove = it.next();

@@ -54,7 +54,7 @@ public class PrincipalVariationTransposition extends Transposition {
 			}
 		}
 		String output = String.format("trans best=%s, dep=%d, sc=%d, type=%s, pv=%s", 
-				Move.toString(bestMove),
+				Move.toString(getBestMove()),
 				getDepthSearchedInPly(),
 				score,
 				getType(),
