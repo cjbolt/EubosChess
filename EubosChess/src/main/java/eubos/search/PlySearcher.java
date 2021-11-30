@@ -112,6 +112,8 @@ public class PlySearcher {
 			if (Score.isProvisional(score)) {
 				EubosEngineMain.logger.info("Aspiration Window failed - no score, illegal position");
 	            break;
+        	} else if (isTerminated() && score ==0) {
+        		// Early termination, didn't back up a score at the last ply			
         	} else if (score <= alpha) {
         		// Failed low, adjust window
         		EubosEngineMain.logger.info(String.format("Aspiration Window failed low score=%d alpha=%d depth=%d",
@@ -213,7 +215,7 @@ public class PlySearcher {
 						pc.set(currPly, trans.getBestMove());
 					}
 					if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && atRootNode() && sr != null) {
-						sm.setPrincipalVariationData(0, pc.toPvList(0), (short)hashScore);
+						sm.setPrincipalVariationDataFromHash(0, pc.toPvList(0), (short)hashScore);
 						sr.reportPrincipalVariation(sm);
 					}
 				    if (SearchDebugAgent.DEBUG_ENABLED) sda.printCutOffWithScore(hashScore);
@@ -294,6 +296,8 @@ public class PlySearcher {
 		}
 
 		if (!isTerminated() && trans != null && (alpha > alphaOriginal && alpha < beta)) {
+			/* If we didn't fail on the search window, i.e. alpha > score < beta, and didn't stop search early,
+			   this means we found an exact score for this depth. */
 			if (trans.checkUpdateToExact((byte) depth)) {
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printExactTrans(pos.getHash(), trans);			
 			}

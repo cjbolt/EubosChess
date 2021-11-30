@@ -22,13 +22,13 @@ public class SearchMetrics {
 	private long initialTimestamp;
 	private int moveNum;
 	private GenericMove move;
-	boolean scoreIsValid = false;
+	boolean isScoreBackedUpFromSearch = false;
 	
 	public SearchMetrics(int searchDepth, IPositionAccessors pos) {
 		nodesSearched = new AtomicLong(0);
 		time = 0;
 		cpScore = 0;
-		scoreIsValid = false;
+		isScoreBackedUpFromSearch = false;
 		pvValid = false;
 		depth = searchDepth;
 		partialDepth = 0;
@@ -85,6 +85,12 @@ public class SearchMetrics {
 		setPartialDepth(extendedSearchDeepestPly);
 		setPrincipalVariation(pc);
 		setCpScore(positionScore);
+		isScoreBackedUpFromSearch = true;
+	}
+	
+	synchronized void setPrincipalVariationDataFromHash(int extendedSearchDeepestPly, List<Integer> pc, short positionScore) {
+		setCpScore(positionScore);
+		this.cpScore = positionScore;
 	}
 	
 	public synchronized short getCpScore() { return cpScore; }
@@ -94,7 +100,6 @@ public class SearchMetrics {
 				positionScore += 1; // out by one error due to negation of mate scores?
 			}
 		}
-		scoreIsValid = true;
 		this.cpScore = positionScore;
 	}
 	
@@ -115,7 +120,7 @@ public class SearchMetrics {
 		return move;
 	}
 
-	public boolean isScoreValid() {
-		return scoreIsValid;
+	public boolean isScoreBackedUpFromSearch() {
+		return isScoreBackedUpFromSearch;
 	}
 }
