@@ -46,7 +46,13 @@ public class PositionEvaluatorTest {
 		} else {
 			assertEquals(-137, SUT.evaluatePosition()); // Knight good pos, pawn up, not endgame
 		}
-	}	
+	}
+	
+	@Test
+	public void test_EvalPosB() {
+		setUpPosition("8/8/1B6/8/8/4Kpk1/8/b7 w - - - 85");
+		assertEquals(-149, SUT.evaluatePosition());
+	}
 	
 	@Test
 	public void test_DiscourageDoubledPawns_w() {

@@ -20,7 +20,6 @@ import eubos.search.transposition.ITransposition;
 public class PlySearcher {
 	
 	private static final boolean ENABLE_MATE_CHECK_IN_EXTENDED_SEARCH = false;
-	private static final boolean ENABLE_MATE_DISTANCE_PRUNING = false; 
 	
 	private IChangePosition pm;
 	private IPositionAccessors pos;
@@ -141,28 +140,6 @@ public class PlySearcher {
 		// Handle draws by three-fold repetition
 		if (!atRootNode() && pos.isThreefoldRepetitionPossible()) {
 			return 0;
-		}
-		if (ENABLE_MATE_DISTANCE_PRUNING) {
-			// Mate distance pruning - first condition where side on move is trying to find a better checkmate
-			int mateCutOff = Score.PROVISIONAL_BETA - currPly;
-			if (mateCutOff < beta) {
-				// Firstly, where the side to move is trying to find a better checkmate
-				beta = mateCutOff;
-				if (alpha >= mateCutOff) return mateCutOff;
-			}
-			mateCutOff = Score.PROVISIONAL_ALPHA + currPly;
-			if (mateCutOff > alpha) {
-				// Secondly, where the side to move is getting mated and trying to postpone the inevitable
-			    alpha = mateCutOff;
-			    if (beta <= mateCutOff) return mateCutOff;
-			}
-		} else {
-//			int bestMateAtPly = Score.PROVISIONAL_BETA - currPly;
-//			if (alpha < -bestMateAtPly && !Score.isProvisional(alpha)) alpha = -bestMateAtPly;
-//			if (beta > bestMateAtPly /*- 1*/ && !Score.isProvisional(beta)) beta = bestMateAtPly /*- 1*/;
-//			if (alpha >= beta) {
-//			    return alpha;
-//			}
 		}
 		// Absolute depth limit
 		if (currPly >= extendedSearchLimitInPly - 1) {

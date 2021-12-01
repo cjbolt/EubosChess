@@ -489,7 +489,7 @@ public class MiniMaxMoveGeneratorTest {
 	
 	@Test
 	@Ignore // confusing as the position is unreal - e.g. stalemate! Perhaps add Kings???
-	public void test_extendedSearch_recaptureBishopLeadsToLossOfMaterial()throws IllegalNotationException  {
+	public void test_extendedSearch_recaptureBishopLeadsToLossOfMaterial() throws IllegalNotationException {
 		setupPosition("8/6q1/5p2/8/8/2B5/8/8 w - - 0 38 ");
 		expectedMove = new GenericMove("c3f6");
 		
@@ -500,12 +500,40 @@ public class MiniMaxMoveGeneratorTest {
 	
 	@Test
 	@Ignore // Not a good test - nowadays it isn't clear eubos should castle.
-	public void test_findMove_NeedToCastle_FromLichess1()throws IllegalNotationException  {
+	public void test_findMove_NeedToCastle_FromLichess1() throws IllegalNotationException {
 		setupPosition( "rnb1kbnr/p4p1p/1qp1p1p1/3p4/8/1B2PN2/PPPP1PPP/RNBQK2R w KQkq - - -");
 		expectedMove = new GenericMove("e1g1");
 		
 		SearchResult res = classUnderTest.findMove((byte)3);
 		
 		assertEquals(expectedMove, res.bestMove);
+	}
+	
+	@Test
+	@Ignore // Don't usually run, takes ~12 seconds from an empty hashTable!
+	public void test_assymetric_eval_due_to_zugzwang() throws IllegalNotationException {
+		setupPosition("8/8/8/3K2k1/5b2/5p2/5B2/8 w - - - 61");
+		SearchResult res = classUnderTest.findMove((byte)11);
+		
+		// Check the move and score are as expected
+		expectedMove = new GenericMove("d5e4");
+		assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
+		assertEquals(-139, classUnderTest.getScore());
+		
+		// Check the hash score is updated properly, negated for white POV
+		pm.performMove(res.bestMove);
+		assertEquals(139,hashMap.getTransposition(pm.getHash()).getScore());
+	}
+	
+	@Test
+	@Ignore // Don't usually run, takes ~7 seconds from an empty hashTable!
+	public void test_assymetric_eval_due_to_zugzwang_from_black() throws IllegalNotationException {
+		setupPosition("8/8/8/6k1/4Kb2/5p2/5B2/8 b - - 1 1");
+		SearchResult res = classUnderTest.findMove((byte)11);
+		
+		// Check the move and score are as expected
+		expectedMove = new GenericMove("g5g4");
+		assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
+		assertEquals(157, classUnderTest.getScore());
 	}
 }
