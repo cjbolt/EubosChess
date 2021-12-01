@@ -397,41 +397,14 @@ public abstract class Piece {
 		multidirect_addMoves(ownSideIsWhite, ml, theBoard, ref_moves);	
 	}
 	
-	static void rook_generateMovesExtSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
-		int [][] ref_moves = ownSideIsWhite ? WhiteRookMove_Lut[atSquare] : BlackRookMove_Lut[atSquare];
-		Direction dir = SquareAttackEvaluator.findDirectionToTarget(atSquare, targetSq, SquareAttackEvaluator.rankFile);
-		if (dir != null) {
-			int [] moves = ref_moves[SquareAttackEvaluator.rankFileDirectionIndex_Lut.get(dir)];
-			multidirect_addMoves(ownSideIsWhite, ml, theBoard, moves, atSquare, targetSq);
-		}
-	}
-	
 	static void rook_generateMovesExtSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
 		int [][] ref_moves = ownSideIsWhite ? WhiteRookMove_Lut[atSquare] : BlackRookMove_Lut[atSquare];
 		multidirect_addCaptures(ownSideIsWhite, ml, theBoard, ref_moves);
 	}
 	
-	static void queen_generateMovesExtSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
-		int [][] ref_moves = ownSideIsWhite ? WhiteQueenMove_Lut[atSquare] : BlackQueenMove_Lut[atSquare];
-		Direction dir = SquareAttackEvaluator.findDirectionToTarget(atSquare, targetSq, SquareAttackEvaluator.allDirect);
-		if (dir != null) {
-			int [] moves = ref_moves[SquareAttackEvaluator.directionIndex_Lut.get(dir)];
-			multidirect_addMoves(ownSideIsWhite, ml, theBoard, moves, atSquare, targetSq);
-		}	
-	}
-	
 	static void queen_generateMovesExtSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
 		int [][] ref_moves = ownSideIsWhite ? WhiteQueenMove_Lut[atSquare] : BlackQueenMove_Lut[atSquare];
 		multidirect_addCaptures(ownSideIsWhite, ml, theBoard, ref_moves);	
-	}
-	
-	static void bishop_generateMovesExtSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
-		int [][] ref_moves = ownSideIsWhite ? WhiteBishopMove_Lut[atSquare] : BlackBishopMove_Lut[atSquare];
-		Direction dir = SquareAttackEvaluator.findDirectionToTarget(atSquare, targetSq, SquareAttackEvaluator.diagonals);
-		if (dir != null) {
-			int [] moves = ref_moves[SquareAttackEvaluator.diagonalsDirectionIndex_Lut.get(dir)];
-			multidirect_addMoves(ownSideIsWhite, ml, theBoard, moves, atSquare, targetSq);
-		}
 	}
 	
 	static void bishop_generateMovesExtSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
@@ -457,23 +430,6 @@ public abstract class Piece {
 				break;
 			}	
 		}
-	}
-	
-	private static void multidirect_addMoves(boolean ownSideIsWhite, MoveList ml, Board theBoard, int[] moves, int atSquare, int targetSq) {
-		for (int new_move : moves) {
-			int targetPiece = theBoard.getPieceAtSquareOptimise(Move.getTargetPosition(new_move), ownSideIsWhite);
-			switch(targetPiece) {
-			case Piece.NONE:
-				continue;
-			case Piece.DONT_CARE:
-				break; // i.e. blocked by own piece
-			default:
-				new_move = Move.setCapture(new_move, targetPiece);
-				ml.addPrio(new_move);
-				break;
-			}
-			break;
-		}	
 	}
 	
 	private static void multidirect_addCaptures(boolean ownSideIsWhite, MoveList ml, Board theBoard, int[][] moves) {

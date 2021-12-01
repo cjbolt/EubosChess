@@ -18,13 +18,14 @@ public class CastlingManager {
 	
 	private PositionManager pm;
 
-	private static final int [] kscWhiteCheckSqs = {Position.e1, Position.f1, Position.g1};
-	private static final int [] kscBlackCheckSqs = {Position.e8, Position.f8, Position.g8};
+	// Optimisation - King cannot be in check when we call castling manager, so we don't check King square.
+	private static final int [] kscWhiteCheckSqs = {Position.f1, Position.g1};
+	private static final int [] kscBlackCheckSqs = {Position.f8, Position.g8};
 	private static final int [] kscWhiteEmptySqs = {Position.f1, Position.g1};
 	private static final int [] kscBlackEmptySqs = {Position.f8, Position.g8};
 
-	private static final int [] qscWhiteCheckSqs = {Position.c1, Position.d1, Position.e1};
-	private static final int [] qscBlackCheckSqs = {Position.c8, Position.d8, Position.e8};
+	private static final int [] qscWhiteCheckSqs = {Position.c1, Position.d1};
+	private static final int [] qscBlackCheckSqs = {Position.c8, Position.d8};
 	private static final int [] qscWhiteEmptySqs = {Position.c1, Position.d1, Position.b1};
 	private static final int [] qscBlackEmptySqs = {Position.c8, Position.d8, Position.b8};
 

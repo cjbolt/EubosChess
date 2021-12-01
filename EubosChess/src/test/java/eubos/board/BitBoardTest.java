@@ -337,4 +337,26 @@ public class BitBoardTest {
 		long expect_inital_sq_set = BitBoard.positionToMask_Lut[Position.h8];
 		assertEquals(expect_inital_sq_set, empty_mask);
 	}
+	
+	@Test
+	public void test_up_left_attacks_not_wrapped() {
+		long all_pieces = BitBoard.positionToMask_Lut[Position.h1] |
+				BitBoard.positionToMask_Lut[Position.b7] |
+				BitBoard.positionToMask_Lut[Position.b1];
+		
+		long our_pieces = BitBoard.positionToMask_Lut[Position.h1] |
+				BitBoard.positionToMask_Lut[Position.b1];
+		long attack_mask = BitBoard.upLeftAttacks(our_pieces, ~all_pieces);
+		long expect_nearly_all_diagonal_set =
+				// attacks from h1
+				BitBoard.positionToMask_Lut[Position.g2] | 
+				BitBoard.positionToMask_Lut[Position.f3] |
+				BitBoard.positionToMask_Lut[Position.e4] |
+				BitBoard.positionToMask_Lut[Position.d5] |
+				BitBoard.positionToMask_Lut[Position.c6] |
+				BitBoard.positionToMask_Lut[Position.b7] | // Piece is attacked
+				// attacks from b1
+				BitBoard.positionToMask_Lut[Position.a2];
+		assertEquals(expect_nearly_all_diagonal_set, attack_mask);
+	}
 }

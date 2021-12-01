@@ -930,7 +930,11 @@ public class Board {
 			kingPosition = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(king)];
 		}
 		if (kingPosition != Position.NOPOSITION) {
-			couldLeadToDiscoveredCheck = SquareAttackEvaluator.moveCouldLeadToDiscoveredCheck(move, kingPosition);
+			int atSquare = Move.getOriginPosition(move);
+			// Establish if the initial square is on a multiple square slider mask from the king position
+			long square = BitBoard.positionToMask_Lut[atSquare];
+			long attackingSquares = SquareAttackEvaluator.directAttacksOnPosition_Lut[kingPosition];
+			couldLeadToDiscoveredCheck = ((square & attackingSquares) != 0);
 		}
 		return couldLeadToDiscoveredCheck;
 	}
@@ -1415,5 +1419,21 @@ public class Board {
 				scratchBitBoard &= scratchBitBoard-1L;
 			}
 		}
+	}
+	
+	public static Direction findDirectionToTarget(int atSquare, int targetSq, Direction[] directionsToConsider) {
+		long targetMask = BitBoard.positionToMask_Lut[targetSq];
+		Direction attackDir = null;
+		for (Direction direction : directionsToConsider) {
+			long directionMask = SquareAttackEvaluator.directAttacksOnPositionAll_Lut[SquareAttackEvaluator.directionIndex_Lut.get(direction)][atSquare];
+			if ((targetMask & directionMask) != 0) {
+				attackDir = direction;
+				break;
+			}
+		}
+		return attackDir;
+	}
+	public long getEmpty() {
+		return ~allPieces;
 	}
 }

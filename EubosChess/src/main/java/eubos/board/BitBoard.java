@@ -153,4 +153,36 @@ public final class BitBoard {
 	   flood |=         (board << 7) & empty;
 	   return flood;
 	}
+	
+	public static long upAttacks(long board, long empty) {
+		return upOccludedEmpty(board, empty) << 8;
+	}
+	
+	public static long downAttacks(long board, long empty) {
+		return downOccludedEmpty(board, empty) >>> 8;
+	}
+	
+	public static long leftAttacks(long board, long empty) {
+		return (leftOccludedEmpty(board, empty) >>> 1) & not_h_file;
+	}
+	
+	public static long rightAttacks(long board, long empty) {
+		return (rightOccludedEmpty(board, empty) << 1) & not_a_file;
+	}
+	
+	public static long upLeftAttacks(long board, long empty) {
+	   return (upLeftOccludedEmpty(board, empty) << 7) & not_h_file;
+	}
+	
+	public static long upRightAttacks(long board, long empty) {
+		return (upRightOccludedEmpty(board, empty) << 9) & not_a_file;
+	}
+	
+	public static long downLeftAttacks(long board, long empty) {
+		return (downLeftOccludedEmpty(board, empty) >>> 9) & not_h_file;
+	}
+	
+	public static long downRightAttacks(long board, long empty) {
+		return (downRightOccludedEmpty(board, empty) >>> 7) & not_a_file;
+	}
 }

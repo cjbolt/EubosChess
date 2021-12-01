@@ -155,24 +155,4 @@ public class SquareAttackEvaluatorTest {
 		PositionManager pm = new PositionManager("5r1k/p2R3Q/1pp2p1p/8/5q2/5bN1/PP3P2/6K1 b - - - 0");
 		assertTrue(SquareAttackEvaluator.isAttacked(pm.getTheBoard(), Position.g8, Piece.Colour.getOpposite(pm.getOnMove())));
 	}
-	
-	// get direction of target square from origin square
-	@Test
-	public void test_findDirectionToTarget_diag_upRight() {
-		assertEquals(Direction.upRight, SquareAttackEvaluator.findDirectionToTarget(Position.a1, Position.b2, SquareAttackEvaluator.diagonals)); }
-	@Test
-	public void test_findDirectionToTarget_diag_notAttacked() {
-		assertNull(SquareAttackEvaluator.findDirectionToTarget(Position.a1, Position.a2, SquareAttackEvaluator.diagonals)); }
-	@Test
-	public void test_findDirectionToTarget_rank_Left() {
-		assertEquals(Direction.left, SquareAttackEvaluator.findDirectionToTarget(Position.d5, Position.c5, SquareAttackEvaluator.rankFile)); }
-	@Test
-	public void test_findDirectionToTarget_rank_notAttacked() {
-		assertNull(SquareAttackEvaluator.findDirectionToTarget(Position.d6, Position.c5, SquareAttackEvaluator.rankFile)); }
-	@Test
-	public void test_findDirectionToTarget_down() {
-		assertEquals(Direction.down, SquareAttackEvaluator.findDirectionToTarget(Position.c8, Position.c1, SquareAttackEvaluator.allDirect)); }
-	@Test
-	public void test_findDirectionToTarget_notAttacked() {
-		assertNull(SquareAttackEvaluator.findDirectionToTarget(Position.a1, Position.b8, SquareAttackEvaluator.allDirect)); }
 }

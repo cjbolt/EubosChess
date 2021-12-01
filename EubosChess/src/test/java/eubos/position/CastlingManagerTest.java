@@ -3,6 +3,7 @@ package eubos.position;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -108,6 +109,7 @@ public class CastlingManagerTest {
 	}
 	
 	@Test
+	@Ignore // As when the king is in check, the castling manager is not called
 	public void test_WhiteKingSideCastle_Check() throws IllegalNotationException  {
 		// 8 ........
 		// 7 ........
@@ -232,6 +234,7 @@ public class CastlingManagerTest {
 	}
 	
 	@Test
+	@Ignore // As when the king is in check, the castling manager is not called
 	public void test_BlackQueenSideCastle_Check()  {
 		// 8 R...K...
 		// 7 ........

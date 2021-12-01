@@ -6,10 +6,10 @@ import java.util.Map;
 
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
-import eubos.position.Move;
 import eubos.position.Position;
 
 public class SquareAttackEvaluator {
+	public static final boolean ENABLE_NEW_SLIDER_ATTACKS = true;
 	
 	static final Direction [] rankFile = { Direction.down, Direction.up, Direction.left, Direction.right };
 	
@@ -314,41 +314,34 @@ public class SquareAttackEvaluator {
 		if ((allAttacksOnPosition_Lut[attackedSq] & attackers) == 0)
 			return false;
 		
+		// Pawns
 		long attackingPawnsMask = isBlackAttacking ? bd.getBlackPawns() : bd.getWhitePawns();
 		boolean attacked = false;
-		// do/while loop is to allow the function to return attacked=true at earliest possibility
-		do {
-			if (isBlackAttacking) {
-				if (attackingPawnsMask != 0) {
-					attacked = (attackingPawnsMask & BlackPawnAttacks_Lut[attackedSq]) != 0;
-					if (attacked) break;
-					attacked = (attackingPawnsMask & BlackPawnAttacks_Lut[attackedSq]) != 0;
-					if (attacked) break;
-				}
-				attacked = (bd.getBlackKing() & KingMove_Lut[attackedSq]) != 0;;
-				if (attacked) break;
-				attacked = (bd.getBlackKnights() & KnightMove_Lut[attackedSq]) != 0;
-				if (attacked) break;
-			} else {
-				if (attackingPawnsMask != 0) {
-					attacked = (attackingPawnsMask & WhitePawnAttacks_Lut[attackedSq]) != 0;
-					if (attacked) break;
-					attacked = (attackingPawnsMask & WhitePawnAttacks_Lut[attackedSq]) != 0;
-					if (attacked) break;
-				}
-				attacked = (bd.getWhiteKing() & KingMove_Lut[attackedSq]) != 0;
-				if (attacked) break;
-				attacked = (bd.getWhiteKnights() & KnightMove_Lut[attackedSq]) != 0;
-				if (attacked) break;
-			}
-			attacked = checkForDirectPieceAttacker(bd, attackedSq, isBlackAttacking);
-			if (attacked) break;
-		} while (false);
-		return attacked;	
+		if (isBlackAttacking) {
+			attacked = (attackingPawnsMask & BlackPawnAttacks_Lut[attackedSq]) != 0;
+			if (attacked) return true;
+			attacked = (attackingPawnsMask & BlackPawnAttacks_Lut[attackedSq]) != 0;
+			if (attacked) return true;
+		} else {
+			attacked = (attackingPawnsMask & WhitePawnAttacks_Lut[attackedSq]) != 0;
+			if (attacked) return true;
+			attacked = (attackingPawnsMask & WhitePawnAttacks_Lut[attackedSq]) != 0;
+			if (attacked) return true;
+		}
+		
+		// Non-sliders
+		long attackingKingMask = isBlackAttacking ? bd.getBlackKing() : bd.getWhiteKing();
+		attacked = (attackingKingMask & KingMove_Lut[attackedSq]) != 0;
+		if (attacked) return true;
+		long attackingKnightsMask = isBlackAttacking ? bd.getBlackKnights() : bd.getWhiteKnights();
+		attacked = (attackingKnightsMask & KnightMove_Lut[attackedSq]) != 0;
+		if (attacked) return true;
+		
+		// Sliders
+		return checkForDirectPieceAttacker(bd, attackedSq, isBlackAttacking);	
 	}
 
 	private static boolean checkForDirectPieceAttacker(Board bd, int attackedSq, boolean isBlackAttacking) {
-		boolean attacked = false;
 		// direct piece check is computationally heavy, so just do what is necessary
 		long attackingQueensMask = isBlackAttacking ? bd.getBlackQueens() : bd.getWhiteQueens();
 		long attackingRooksMask = isBlackAttacking ? bd.getBlackRooks() : bd.getWhiteRooks();
@@ -356,48 +349,77 @@ public class SquareAttackEvaluator {
 		// create masks of attackers
 		long diagonalAttackersMask = attackingQueensMask | attackingBishopsMask;
 		long rankFileAttackersMask = attackingQueensMask | attackingRooksMask;	
-		for (Direction dir: allDirect) { 
-			switch(dir) {
-			case downLeft:
-				if ((diagonalAttackersMask & directAttacksOnPositionDownLeft_Lut[attackedSq]) != 0)
-					attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
-				break;
-			case upLeft:
-				if ((diagonalAttackersMask & directAttacksOnPositionUpLeft_Lut[attackedSq]) != 0)
-					attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
-				break;
-			case upRight:
-				if ((diagonalAttackersMask & directAttacksOnPositionUpRight_Lut[attackedSq]) != 0)
-					attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
-				break;
-			case downRight:
-				if ((diagonalAttackersMask & directAttacksOnPositionDownRight_Lut[attackedSq]) != 0)
-					attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
-				break;
-			case left:
-				if ((rankFileAttackersMask & directAttacksOnPositionLeft_Lut[attackedSq]) != 0)
-					attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
-				break;
-			case up:
-				if ((rankFileAttackersMask & directAttacksOnPositionUp_Lut[attackedSq]) != 0)
-					attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
-				break;
-			case right:
-				if ((rankFileAttackersMask & directAttacksOnPositionRight_Lut[attackedSq]) != 0)
-					attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
-				break;
-			case down:
-				if ((rankFileAttackersMask & directAttacksOnPositionDown_Lut[attackedSq]) != 0)
-					attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
-				break;
-			default:
-				if (EubosEngineMain.ENABLE_ASSERTS)
-					assert false; // should not receive indirect moves here!
-				break;
+		
+		if (ENABLE_NEW_SLIDER_ATTACKS) {
+			long empty = bd.getEmpty();
+			long target = BitBoard.positionToMask_Lut[attackedSq];
+			
+			if (diagonalAttackersMask != 0) {
+				long attackMask = BitBoard.downLeftAttacks(diagonalAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+				attackMask = BitBoard.downRightAttacks(diagonalAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+				attackMask = BitBoard.upRightAttacks(diagonalAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+				attackMask = BitBoard.upLeftAttacks(diagonalAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
 			}
-			if (attacked) break;
-		}
-		return attacked;
+			if (rankFileAttackersMask != 0) {
+				long attackMask = BitBoard.downAttacks(rankFileAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+				attackMask = BitBoard.rightAttacks(rankFileAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+				attackMask = BitBoard.upAttacks(rankFileAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+				attackMask = BitBoard.leftAttacks(rankFileAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+			}
+		} else {
+			
+			boolean attacked = false;
+			for (Direction dir: allDirect) { 
+				switch(dir) {
+				case downLeft:
+					if ((diagonalAttackersMask & directAttacksOnPositionDownLeft_Lut[attackedSq]) != 0)
+						attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
+					break;
+				case upLeft:
+					if ((diagonalAttackersMask & directAttacksOnPositionUpLeft_Lut[attackedSq]) != 0)
+						attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
+					break;
+				case upRight:
+					if ((diagonalAttackersMask & directAttacksOnPositionUpRight_Lut[attackedSq]) != 0)
+						attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
+					break;
+				case downRight:
+					if ((diagonalAttackersMask & directAttacksOnPositionDownRight_Lut[attackedSq]) != 0)
+						attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
+					break;
+				case left:
+					if ((rankFileAttackersMask & directAttacksOnPositionLeft_Lut[attackedSq]) != 0)
+						attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
+					break;
+				case up:
+					if ((rankFileAttackersMask & directAttacksOnPositionUp_Lut[attackedSq]) != 0)
+						attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
+					break;
+				case right:
+					if ((rankFileAttackersMask & directAttacksOnPositionRight_Lut[attackedSq]) != 0)
+						attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
+					break;
+				case down:
+					if ((rankFileAttackersMask & directAttacksOnPositionDown_Lut[attackedSq]) != 0)
+						attacked = checkDirectionForDirectPieceAttacker(bd, isBlackAttacking, attackedSq, dir);
+					break;
+				default:
+					if (EubosEngineMain.ENABLE_ASSERTS)
+						assert false; // should not receive indirect moves here!
+					break;
+				}
+				if (attacked) return true;
+			}
+		}		
+		return false;
 	}
 
 	private static boolean checkDirectionForDirectPieceAttacker(Board theBoard, boolean attackerIsBlack, int targetSq, Direction dir) {
@@ -457,26 +479,5 @@ public class SquareAttackEvaluator {
 			break;
 		}
 		return attacked;
-	}
-	
-	public static boolean moveCouldLeadToDiscoveredCheck(Integer move, int kingPosition) {
-		int atSquare = Move.getOriginPosition(move);
-		// Establish if the initial square is on a multiple square slider mask from the king position
-		long square = BitBoard.positionToMask_Lut[atSquare];
-		long attackingSquares = directAttacksOnPosition_Lut[kingPosition];
-		return ((square & attackingSquares) != 0);
-	}
-	
-	public static Direction findDirectionToTarget(int atSquare, int targetSq, Direction[] directionsToConsider) {
-		long targetMask = BitBoard.positionToMask_Lut[targetSq];
-		Direction attackDir = null;
-		for (Direction direction : directionsToConsider) {
-			long directionMask = directAttacksOnPositionAll_Lut[directionIndex_Lut.get(direction)][atSquare];
-			if ((targetMask & directionMask) != 0) {
-				attackDir = direction;
-				break;
-			}
-		}
-		return attackDir;
 	}
 }
