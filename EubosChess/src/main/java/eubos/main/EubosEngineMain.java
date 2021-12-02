@@ -59,7 +59,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_TRANSPOSITION_TABLE = true;
 	public static final boolean ENABLE_QUIESCENCE_CHECK = true;
 	public static final boolean ENABLE_SEARCH_ALL_CAPTURES_IN_QUIESCENSE = true;
-	public static final boolean ENABLE_ASPIRATION_WINDOWS = false;
+	public static final boolean ENABLE_ASPIRATION_WINDOWS = true;
 	
 	// Permanent data structures - static for the duration of a single game
 	private FixedSizeTranspositionTable hashMap = null;

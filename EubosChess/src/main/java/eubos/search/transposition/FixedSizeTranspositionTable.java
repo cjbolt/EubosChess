@@ -70,12 +70,8 @@ public class FixedSizeTranspositionTable {
 					hashSizeMBytes, maxHeapSize/BYTES_PER_MEGABYTE, hashSizeElements,
 					(hashSizeElements*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE));
 		}
-		if (numThreads == 1) {
-			// Now we have the monitor thread!
-			hashMap = new HashMap<Integer, ITransposition>((int)hashSizeElements, (float)0.75);
-		} else {
-			hashMap = new ConcurrentHashMap<Integer, ITransposition>((int)hashSizeElements, (float)0.75);
-		}
+
+		hashMap = new ConcurrentHashMap<Integer, ITransposition>((int)hashSizeElements, (float)0.75);
 		hashMapSize = 0;
 		maxHashMapSize = hashSizeElements;
 		

@@ -79,6 +79,10 @@ public class SearchMetricsReporter extends Thread {
 		}
 	}
 	
+	void resetAfterWindowingFail() {
+		lastScore = Score.PROVISIONAL_ALPHA;
+	}
+	
 	private void reportNodeData() {
 		if (sendInfo && !sm.isEmpty()) {
 			ProtocolInformationCommand info = new ProtocolInformationCommand();

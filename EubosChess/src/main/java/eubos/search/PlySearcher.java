@@ -118,11 +118,13 @@ public class PlySearcher {
         		EubosEngineMain.logger.info(String.format("Aspiration Window failed low score=%d alpha=%d depth=%d",
         				score, alpha, originalSearchDepthRequiredInPly));
 	            alpha = Score.PROVISIONAL_ALPHA;
+	            sr.resetAfterWindowingFail();
 	        } else if (score >= beta) {
 	        	// Failed high, adjust window
 	        	EubosEngineMain.logger.info(String.format("Aspiration Window failed high score=%d beta=%d depth=%d",
         				score, beta, originalSearchDepthRequiredInPly));
 	            beta = Score.PROVISIONAL_BETA;
+	            sr.resetAfterWindowingFail();
 	        } else {
 	        	// Exact score in window returned
 	            break;
