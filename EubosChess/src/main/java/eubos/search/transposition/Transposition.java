@@ -33,31 +33,33 @@ public class Transposition implements ITransposition {
 	
 	@Override
 	public byte getDepthSearchedInPly() {
-		return (byte)((bitfield >>> 0) & 0x7F);
+		return (byte)((bitfield >>> 0) & 0x3F);
 	}
 
 	protected void setDepthSearchedInPly(byte depthSearchedInPly) {
-		bitfield &= ~(0x7F << 0);
-		bitfield |= (short)((depthSearchedInPly & 0x7F) << 0);
+		short limitedDepth = (short)Math.min(0x3F, depthSearchedInPly);
+		bitfield &= ~(0x3F << 0);
+		bitfield |= (short)((limitedDepth & 0x3F) << 0);
 	}
 	
 	@Override
 	public byte getType() {
-		return (byte)((bitfield >>> 7) & 0x3);
+		return (byte)((bitfield >>> 6) & 0x3);
 	}
 
 	protected void setType(byte type) {
-		bitfield &= ~(0x3 << 7);
-		bitfield |= (short)((type & 0x3) << 7);
+		bitfield &= ~(0x3 << 6);
+		bitfield |= (short)((type & 0x3) << 6);
 	}
 	
 	public short getAccessCount() {
-		return (short)((bitfield >>> 9) & 0x7F);
+		return (short)((bitfield >>> 8) & 0xFF);
 	}
 	
 	public void setAccessCount(short accessCount) {
-		bitfield &= ~(0x7F << 9);
-		bitfield |= (short)((accessCount & 0x7F) << 9);
+		short limitedAccessCount = (short)Math.min(0xFF, accessCount);
+		bitfield &= ~(0xFF << 8);
+		bitfield |= (short)((limitedAccessCount & 0xFF) << 8);
 	}
 
 	@Override

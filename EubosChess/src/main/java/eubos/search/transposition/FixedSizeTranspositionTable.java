@@ -176,7 +176,11 @@ public class FixedSizeTranspositionTable {
 			if (!theAccessCounts.isEmpty()) {
 				Collections.sort(theAccessCounts);
 				int twentyPercentIndex = (int) (maxHashMapSize/5);
-				return theAccessCounts.get(twentyPercentIndex);
+				short twentyPercentValue = theAccessCounts.get(twentyPercentIndex);
+				int maxValue = (theAccessCounts.size() > 0) ? theAccessCounts.get(theAccessCounts.size()-1): 0;
+				EubosEngineMain.logger.info(String.format("Trans access counts max=%d, min=%d, 20pc=%d",
+						maxValue, theAccessCounts.get(0), twentyPercentValue));
+				return twentyPercentValue;
 			} else {
 				return 0;
 			}
