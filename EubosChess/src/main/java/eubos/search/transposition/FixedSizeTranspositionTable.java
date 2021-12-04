@@ -101,10 +101,7 @@ public class FixedSizeTranspositionTable {
 	
 	private void incrementAccessCount(ITransposition trans) {
 		if (trans != null) {
-			short count = trans.getAccessCount();
-			if (count != Short.MAX_VALUE) {
-				trans.setAccessCount((short)(count+1));
-			}
+			trans.incrementAccessCount();
 		}
 	}
 	
@@ -119,7 +116,7 @@ public class FixedSizeTranspositionTable {
 	}
 	
 	public void putTransposition(long hashCode, ITransposition trans) {
-		if (hashMapSize < maxHashMapSize*0.98) {
+		if (hashMapSize < maxHashMapSize) {
 			if (hashMap.put(getLeastSignificantBits(hashCode), trans) == null) {
 				// Only increment size if hash wasn't already contained, otherwise overwrites
 				hashMapSize++;
@@ -128,8 +125,8 @@ public class FixedSizeTranspositionTable {
 		}
 		else
 		{
-			EubosEngineMain.logger.info("Hash Map too full!");
 			wakeMonitor();
+			Thread.yield();
 		}
 	}
 	
@@ -142,14 +139,17 @@ public class FixedSizeTranspositionTable {
 		private boolean isActive = true;
 		static final private int pollRateMillisecs = 30000;
 		
+		int mean_depth = 0;
+		short twentyPercentValue = 0;
+		
 		public TranspositionTableMonitorThread() {
 			this.setName("TranspositionTableMonitorThread");
 		}
 		
 		public void run() {
 			while (isActive) {
-				if (hashMapSize >= maxHashMapSize*0.8) {
-					// Remove the oldest 20% of hashes to make way for this one
+				if (hashMapSize >= maxHashMapSize*0.75) {
+					// Remove the least used 20% of hashes by access count
 					removeLeastUsed();
 				}
 				try {
@@ -168,33 +168,39 @@ public class FixedSizeTranspositionTable {
 			this.interrupt();
 		}
 		
-		private Short getBottomTwentyPercentAccessThreshold() {
-			ArrayList<Short> theAccessCounts = new ArrayList<Short>(hashMap.size()); 
+		private void getBottomTwentyPercentAccessThreshold() {
+			ArrayList<Short> theAccessCounts = new ArrayList<Short>(hashMap.size());
+			mean_depth = 0;
+			long depth_accumulator = 0L;
 			for (ITransposition trans : hashMap.values()) {
 				theAccessCounts.add(trans.getAccessCount());
+				depth_accumulator += trans.getDepthSearchedInPly();
 			}
 			if (!theAccessCounts.isEmpty()) {
 				Collections.sort(theAccessCounts);
 				int twentyPercentIndex = (int) (maxHashMapSize/5);
-				short twentyPercentValue = theAccessCounts.get(twentyPercentIndex);
+				twentyPercentValue = theAccessCounts.get(twentyPercentIndex);
 				int maxValue = (theAccessCounts.size() > 0) ? theAccessCounts.get(theAccessCounts.size()-1): 0;
-				EubosEngineMain.logger.info(String.format("Trans access counts max=%d, min=%d, 20pc=%d",
-						maxValue, theAccessCounts.get(0), twentyPercentValue));
-				return twentyPercentValue;
+				mean_depth = (int)(depth_accumulator / theAccessCounts.size());
+				EubosEngineMain.logger.info(String.format("Trans access counts max=%d, min=%d, 20pc=%d mean_depth=%d acc=%d",
+						maxValue, theAccessCounts.get(0), twentyPercentValue, mean_depth, depth_accumulator));
 			} else {
-				return 0;
+				twentyPercentValue = 0;
 			}
 		}
 		
 		private void removeLeastUsed() {
 			EubosEngineMain.logger.info("Starting to free bottom 20% of Hash Table");
-			Short bottomTwentyPercentAccessThreshold = getBottomTwentyPercentAccessThreshold();
+			getBottomTwentyPercentAccessThreshold();
+			Short bottomTwentyPercentAccessThreshold = twentyPercentValue;
+			int depth_threshold = Math.max(mean_depth, 1);
 			if (bottomTwentyPercentAccessThreshold != 0) {
 				Iterator<Integer> it = hashMap.keySet().iterator();
 				while (it.hasNext()){
 					ITransposition trans = hashMap.get(it.next());
 					short count = trans.getAccessCount();
-					if (count <= bottomTwentyPercentAccessThreshold) {
+					int depth = trans.getDepthSearchedInPly();
+					if (count <= bottomTwentyPercentAccessThreshold && depth <= depth_threshold) {
 						it.remove();
 						hashMapSize--;
 					} else {

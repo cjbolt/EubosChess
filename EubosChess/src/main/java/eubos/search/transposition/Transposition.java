@@ -61,6 +61,12 @@ public class Transposition implements ITransposition {
 		bitfield &= ~(0xFF << 8);
 		bitfield |= (short)((limitedAccessCount & 0xFF) << 8);
 	}
+	
+	public void incrementAccessCount() {
+		short limitedAccessCount = (short)Math.min(0xFF, getAccessCount()+1);
+		bitfield &= ~(0xFF << 8);
+		bitfield |= (short)((limitedAccessCount & 0xFF) << 8);
+	}
 
 	@Override
 	public short getScore() {

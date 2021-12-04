@@ -21,6 +21,8 @@ public interface ITransposition {
 	short getAccessCount();
 	
 	void setAccessCount(short accessCount);
+	
+	void incrementAccessCount();
 
 	List<Integer> getPv();
 	
