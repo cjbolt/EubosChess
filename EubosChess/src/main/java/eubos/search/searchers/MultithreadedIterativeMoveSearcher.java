@@ -126,7 +126,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	}
 
 	private void sendBestMove() {
-		GenericMove bestMove;
+		GenericMove bestMove = null;
 		ITransposition trans = tt.getTransposition(this.rootPositionHash);
 		if (trans != null && trans.getType() == Score.exact) {
 			EubosEngineMain.logger.info(String.format("best is trans=%s", trans.report()));
@@ -135,11 +135,16 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 				refScore.updateLastScore(trans);
 			}
 			bestMove = Move.toGenericMove(trans.getBestMove());
-		} else {
-			EubosEngineMain.logger.warning("Can't find bestMove with exact score in Transposition Table");
+		} else if (workers.get(0).result.bestMove != Move.NULL_MOVE) {
+			EubosEngineMain.logger.warning("Can't find bestMove with exact score in Transposition Table, use principal continuation.");
 			bestMove = Move.toGenericMove(workers.get(0).result.bestMove);
+		} else if (trans != null) {
+			EubosEngineMain.logger.warning("Can't find bestMove in principal continuation sending Transposition Table bound score.");
+			bestMove = Move.toGenericMove(trans.getBestMove());
+		} else {
+			// we will send null, it will be a rules infraction and Eubos will lose.
 		}
-		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( bestMove, null ));
+		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand(bestMove, null ));
 	}
 	
 	private boolean isAtLeastOneWorkerStillAlive() {

@@ -352,16 +352,16 @@ public class PlySearcher {
 				if (positionScore >= beta) {
 					//killers.addMove(currPly, currMove);
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(positionScore);
-					trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) beta, Score.lowerBound);
+					//trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) beta, Score.lowerBound);
 					return beta;
 				}
 				alpha = positionScore;
 				plyScore = positionScore;
 				pc.update(currPly, currMove);
-				trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) alpha, Score.upperBound);
+				//trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) alpha, Score.upperBound);
 			} else if (positionScore > plyScore) {
 				plyScore = positionScore;
-				trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) plyScore, Score.upperBound);
+				//trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) plyScore, Score.upperBound);
 			}
 			
 			if (move_iter.hasNext()) {
