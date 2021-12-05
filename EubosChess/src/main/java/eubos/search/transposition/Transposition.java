@@ -131,7 +131,8 @@ public class Transposition implements ITransposition {
 	@Override
 	public synchronized boolean checkUpdateToExact(byte currDepthSearchedInPly) {
 		boolean wasSetAsExact = false;
-		if (getDepthSearchedInPly() == currDepthSearchedInPly && getType() != Score.exact) {
+		if ((getDepthSearchedInPly() < currDepthSearchedInPly) ||
+			(getDepthSearchedInPly() == currDepthSearchedInPly && getType() != Score.exact)) {
 			// We need to be careful that the depth searched is appropriate, i.e. we don't set exact for wrong depth...
 			setType(Score.exact);
 			wasSetAsExact = true;
