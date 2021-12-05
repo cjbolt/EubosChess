@@ -11,8 +11,10 @@ import java.util.stream.Collectors;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
+import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
+import eubos.position.Position;
 import eubos.search.transposition.PrincipalVariationTransposition;
 
 public class TranspositionTest {
@@ -84,5 +86,14 @@ public class TranspositionTest {
 			}
 		}
 	}
-
+	
+	@Test
+	public void test_bitfield() {
+		byte depth = 1;
+		short score = 0;
+		byte scoreType = Score.exact;
+		sut = new PrincipalVariationTransposition(depth, score, scoreType, Move.valueOfRegular(Position.d5, Piece.WHITE_PAWN, Position.d6), null);
+		int move = sut.getBestMove();
+		assertEquals(Move.valueOfPromotion(Position.d5, Position.d6, Piece.NONE), move);
+	}
 }

@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import eubos.board.Board;
+import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
@@ -182,7 +183,18 @@ public class PlySearcher {
 					}
 					// Determine if good enough for a refutation...
 					if (alpha >= beta) {
-						killers.addMove(currPly, trans.getBestMove());
+						int trans_move = trans.getBestMove();
+						// Populate the members of the move read from the transposition table.
+						if (trans_move != Move.NULL_MOVE) {
+							int originPiece = pos.getTheBoard().getPieceAtSquare(Move.getOriginPosition(trans_move));
+							trans_move = Move.setOriginPiece(trans_move, originPiece);
+							int targetPiece = pos.getTheBoard().getPieceAtSquare(Move.getTargetPosition(trans_move));
+							trans_move = Move.setTargetPiece(trans_move, targetPiece);
+							if (targetPiece != Piece.NONE) {
+								trans_move = Move.setCapture(trans_move, targetPiece);
+							}
+						}
+						killers.addMove(currPly, trans_move);
 						if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsRefutation(pos.getHash(), trans);
 						isCutOff = true;
 					}
@@ -392,13 +404,22 @@ public class PlySearcher {
 		int trans_move;
 		int theScore = 0;
 		short trans_score;
+		boolean isThreefold = false;
 		synchronized (trans) {
 			trans_move = trans.getBestMove();
 			trans_score = trans.getScore();
 		}
+		// Populate the members of the move read from the transposition table.
+		if (trans_move != Move.NULL_MOVE) {
+			int originPiece = pos.getTheBoard().getPieceAtSquare(Move.getOriginPosition(trans_move));
+			trans_move = Move.setOriginPiece(trans_move, originPiece);
+			int targetPiece = pos.getTheBoard().getPieceAtSquare(Move.getTargetPosition(trans_move));
+			trans_move = Move.setTargetPiece(trans_move, targetPiece);
+		}
+		
 		// Check score for hashed position causing a search cut-off is still valid (i.e. best move doesn't lead to a draw)
 		// If hashed score is a draw score, check it is still a draw, if not, search position
-		boolean isThreefold = checkForRepetitionDueToPositionInSearchTree(trans_move);
+		isThreefold = checkForRepetitionDueToPositionInSearchTree(trans_move);
 		if (isThreefold || (!isThreefold && (trans_score == 0))) {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
 		} else {

@@ -78,6 +78,27 @@ public final class Move {
 		return move;
 	}
 	
+	public static int valueOfPromotion(int originPosition, int targetPosition, int promotion) {
+		int move = originPosition;
+
+		// Encode target position
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert (targetPosition & 0x88) == 0;
+		move |= targetPosition << TARGETPOSITION_SHIFT;
+		
+		// Encode promotion
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			//assert (/* Valid promotion */) || promotion == Piece.NONE;
+		}
+		move |= promotion << PROMOTION_SHIFT;
+		
+		if (promotion != Piece.NONE) {
+			move |= (Move.TYPE_BEST_MASK << TYPE_SHIFT);
+		}
+		
+		return move;
+	}
+	
 	public static int valueOf(int originPosition, int originPiece, int targetPosition, int targetPiece) {
 		int move = originPosition;
 		

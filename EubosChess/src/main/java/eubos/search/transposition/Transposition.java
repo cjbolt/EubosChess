@@ -9,8 +9,7 @@ import eubos.search.Score;
 
 public class Transposition implements ITransposition {
 	protected short score;
-	protected int bestMove;
-	protected short bitfield;
+	protected int bitfield;
 
 	public Transposition(byte depth, short score, byte bound, GenericMove bestMove) {
 		// Only used by tests
@@ -47,19 +46,19 @@ public class Transposition implements ITransposition {
 	}
 	
 	public short getAccessCount() {
-		return (short)((bitfield >>> 8) & 0xFF);
+		return (short)((bitfield >>> 8) & 0x7F);
 	}
 	
 	public void setAccessCount(short accessCount) {
-		short limitedAccessCount = (short)Math.min(0xFF, accessCount);
-		bitfield &= ~(0xFF << 8);
-		bitfield |= (short)((limitedAccessCount & 0xFF) << 8);
+		short limitedAccessCount = (short)Math.min(0x7F, accessCount);
+		bitfield &= ~(0x7F << 8);
+		bitfield |= (short)((limitedAccessCount & 0x7F) << 8);
 	}
 	
 	public void incrementAccessCount() {
-		short limitedAccessCount = (short)Math.min(0xFF, getAccessCount()+1);
-		bitfield &= ~(0xFF << 8);
-		bitfield |= (short)((limitedAccessCount & 0xFF) << 8);
+		short limitedAccessCount = (short)Math.min(0x7F, getAccessCount()+1);
+		bitfield &= ~(0x7F << 8);
+		bitfield |= (short)((limitedAccessCount & 0x7F) << 8);
 	}
 
 	@Override
@@ -71,22 +70,30 @@ public class Transposition implements ITransposition {
 		this.score = new_score;
 	}
 
-
 	@Override
 	public int getBestMove() {
-		return bestMove;
+		int origin = ((bitfield >>> 15) & 0x7F);
+		int target = ((bitfield >>> 22) & 0x7F);
+		int promo = ((bitfield >>> 29) & 0x7);
+		return Move.valueOfPromotion(origin, target, promo);
 	}
 	
 	protected void setBestMove(int bestMove) {
-		if (!Move.areEqual(this.bestMove, bestMove)) {
-			this.bestMove = bestMove;
+		int origin = Move.getOriginPosition(bestMove);
+		int target = Move.getTargetPosition(bestMove);
+		int promo = Move.getPromotion(bestMove);
+		if (!Move.areEqual(getBestMove(), bestMove)) {
+			bitfield &= ~(0x1FFFF << 15);
+			bitfield |= (origin & 0x7F) << 15;
+			bitfield |= (target & 0x7F) << 22;
+			bitfield |= (promo & 0x7) << 29;
 		}
 	}
 	
 	@Override
 	public String report() {
 		String output = String.format("trans best=%s, dep=%d, sc=%s, type=%s", 
-				Move.toString(bestMove),
+				Move.toString(getBestMove()),
 				getDepthSearchedInPly(),
 				Score.toString(score),
 				getType());

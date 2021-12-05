@@ -29,7 +29,7 @@ public class FixedSizeTranspositionTable {
 	
 	public static final long BYTES_HASHMAP_ZOBRIST_KEY = 8L;
 	
-	public static final long BYTES_PER_TRANSPOSITION =  BYTES_TRANSPOSTION_ELEMENT + BYTES_HASHMAP_ENTRY + BYTES_HASHMAP_ZOBRIST_KEY;
+	public static final long BYTES_PER_TRANSPOSITION =  BYTES_TRANSPOSTION_ELEMENT + BYTES_HASHMAP_ENTRY; //+ BYTES_HASHMAP_ZOBRIST_KEY;
 	
 	public static final long BYTES_PER_MEGABYTE = (1024L * 1000L);
 	
