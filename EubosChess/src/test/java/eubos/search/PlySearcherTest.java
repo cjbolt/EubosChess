@@ -95,7 +95,7 @@ public class PlySearcherTest {
 		
 		//doReturn(new TranspositionEvaluation()).when(mock_hashMap).getTransposition(anyByte());
 		
-		doReturn(new Transposition(0, (byte)1, (short)0, (byte) 1, null)).when(mock_hashMap).setTransposition((Transposition)isNull(), anyByte(), anyShort(), anyByte(), anyInt());
+		doReturn(new Transposition((byte)1, (short)0, (byte) 1, null)).when(mock_hashMap).setTransposition((Transposition)isNull(), anyByte(), anyShort(), anyByte(), anyInt());
 		
 		assertEquals(650, classUnderTest.searchPly());
 		

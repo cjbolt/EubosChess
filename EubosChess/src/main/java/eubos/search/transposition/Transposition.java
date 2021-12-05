@@ -10,25 +10,19 @@ import eubos.search.Score;
 public class Transposition implements ITransposition {
 	protected short score;
 	protected int bestMove;
-	protected short hashFragment;
 	protected short bitfield;
 
-	public Transposition(long hash, byte depth, short score, byte bound, GenericMove bestMove) {
+	public Transposition(byte depth, short score, byte bound, GenericMove bestMove) {
 		// Only used by tests
-		this(hash, depth, score, bound, Move.toMove(bestMove, null, Move.TYPE_REGULAR_NONE), null);
+		this(depth, score, bound, Move.toMove(bestMove, null, Move.TYPE_REGULAR_NONE), null);
 	}
 	
-	public Transposition(long hash, byte depth, short score, byte bound, int bestMove, List<Integer> pv) {
+	public Transposition(byte depth, short score, byte bound, int bestMove, List<Integer> pv) {
 		setDepthSearchedInPly(depth);
 		setScore(score);
 		setType(bound);
 		setBestMove(bestMove);
 		setAccessCount((short)0);
-		setHashFragment(hash);
-	}
-
-	private void setHashFragment(long hash) {
-		hashFragment = (short)(hash >>> 48);
 	}
 	
 	@Override
@@ -140,11 +134,5 @@ public class Transposition implements ITransposition {
 	
 	public List<Integer> getPv() {
 		return null;
-	}
-
-	@Override
-	public boolean checkHash(int hashCode) {
-		short checker = (short)(hashCode >>> 16);
-		return (checker == hashFragment);
 	}
 }

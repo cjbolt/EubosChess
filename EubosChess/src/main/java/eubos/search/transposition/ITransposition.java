@@ -25,6 +25,4 @@ public interface ITransposition {
 	void incrementAccessCount();
 
 	List<Integer> getPv();
-	
-	boolean checkHash(int hashCode);
 }

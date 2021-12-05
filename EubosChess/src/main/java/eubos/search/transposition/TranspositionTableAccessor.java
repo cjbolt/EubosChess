@@ -62,9 +62,9 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 		ITransposition new_trans;
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printCreateTrans(pos.getHash());
 		if (USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
-			new_trans = new PrincipalVariationTransposition(pos.getHash(), new_Depth, new_score, new_bound, new_bestMove, pv);
+			new_trans = new PrincipalVariationTransposition(new_Depth, new_score, new_bound, new_bestMove, pv);
 		} else {
-			new_trans= new Transposition(pos.getHash(), new_Depth, new_score, new_bound, new_bestMove, null);
+			new_trans= new Transposition(new_Depth, new_score, new_bound, new_bestMove, null);
 		}
 		hashMap.putTransposition(pos.getHash(), new_trans);
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printTransUpdate(new_trans, pos.getHash());

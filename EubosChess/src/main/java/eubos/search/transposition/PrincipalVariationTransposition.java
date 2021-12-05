@@ -15,11 +15,11 @@ public class PrincipalVariationTransposition extends Transposition {
 
 	public PrincipalVariationTransposition(byte depth, short score, byte scoreType, GenericMove bestMove) {
 		// Only used by tests
-		this(0, depth, score, scoreType, Move.toMove(bestMove, null, Move.TYPE_REGULAR_NONE), null);
+		this(depth, score, scoreType, Move.toMove(bestMove, null, Move.TYPE_REGULAR_NONE), null);
 	}
 	
-	public PrincipalVariationTransposition(long hash, byte depth, short score, byte scoreType, int bestMove, List<Integer> pv) {
-		super(hash, depth, score, scoreType, bestMove, pv);
+	public PrincipalVariationTransposition(byte depth, short score, byte scoreType, int bestMove, List<Integer> pv) {
+		super(depth, score, scoreType, bestMove, pv);
 		setPv(pv);
 	}
 	

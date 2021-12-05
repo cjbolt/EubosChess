@@ -13,7 +13,7 @@ import eubos.main.EubosEngineMain;
 
 public class FixedSizeTranspositionTable {
 	
-	public static final boolean DEBUG_LOGGING = false;
+	private static final boolean DEBUG_LOGGING = false;
 	
 	public static final long ELEMENTS_DEFAULT_HASH_SIZE = (1L << 25);
 	
@@ -27,13 +27,15 @@ public class FixedSizeTranspositionTable {
 		BYTES_HASHMAP_ENTRY = ClassLayout.parseClass(HashMap.Entry.class).instanceSize();
 	}
 	
-	public static final long BYTES_PER_TRANSPOSITION =  BYTES_TRANSPOSTION_ELEMENT + BYTES_HASHMAP_ENTRY;
+	public static final long BYTES_HASHMAP_ZOBRIST_KEY = 8L;
+	
+	public static final long BYTES_PER_TRANSPOSITION =  BYTES_TRANSPOSTION_ELEMENT + BYTES_HASHMAP_ENTRY + BYTES_HASHMAP_ZOBRIST_KEY;
 	
 	public static final long BYTES_PER_MEGABYTE = (1024L * 1000L);
 	
 	public static final long MBYTES_DEFAULT_HASH_SIZE = (ELEMENTS_DEFAULT_HASH_SIZE*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE;
 	
-	private Map<Integer, ITransposition> hashMap = null;
+	private Map<Long, ITransposition> hashMap = null;
 	private long hashMapSize = 0;
 	private long maxHashMapSize = ELEMENTS_DEFAULT_HASH_SIZE;
 	
@@ -71,7 +73,7 @@ public class FixedSizeTranspositionTable {
 					(hashSizeElements*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE));
 		}
 
-		hashMap = new ConcurrentHashMap<Integer, ITransposition>((int)hashSizeElements, (float)0.75);
+		hashMap = new ConcurrentHashMap<Long, ITransposition>((int)hashSizeElements, (float)0.75);
 		hashMapSize = 0;
 		maxHashMapSize = hashSizeElements;
 		
@@ -87,18 +89,6 @@ public class FixedSizeTranspositionTable {
 		monitorThread.wake();
 	}
 	
-	private int getLeastSignificantBits(long hashCode) {
-		return (int)(hashCode & 0xFFFFFFFF);
-	}
-	
-	private int getMostSignificantBits(long hashCode) {
-		return (int)(hashCode >>> 32);
-	}
-	
-	private boolean isMatchingHashCode(ITransposition trans, long hashCode) {
-		return trans.checkHash(getMostSignificantBits(hashCode));
-	}
-	
 	private void incrementAccessCount(ITransposition trans) {
 		if (trans != null) {
 			trans.incrementAccessCount();
@@ -106,8 +96,8 @@ public class FixedSizeTranspositionTable {
 	}
 	
 	public ITransposition getTransposition(long hashCode) {
-		ITransposition retrievedTrans = hashMap.get(getLeastSignificantBits(hashCode));
-		if (retrievedTrans != null && isMatchingHashCode(retrievedTrans, hashCode)) {
+		ITransposition retrievedTrans = hashMap.get(hashCode);
+		if (retrievedTrans != null) {
 			incrementAccessCount(retrievedTrans);
 			return retrievedTrans;
 		} else {
@@ -117,7 +107,7 @@ public class FixedSizeTranspositionTable {
 	
 	public void putTransposition(long hashCode, ITransposition trans) {
 		if (hashMapSize < maxHashMapSize) {
-			if (hashMap.put(getLeastSignificantBits(hashCode), trans) == null) {
+			if (hashMap.put(hashCode, trans) == null) {
 				// Only increment size if hash wasn't already contained, otherwise overwrites
 				hashMapSize++;
 			}
@@ -190,12 +180,12 @@ public class FixedSizeTranspositionTable {
 		}
 		
 		private void removeLeastUsed() {
-			EubosEngineMain.logger.info("Starting to free bottom 20% of Hash Table");
+			EubosEngineMain.logger.info("Starting to free least used Hash Table entries by access count and depth");
 			getBottomTwentyPercentAccessThreshold();
 			Short bottomTwentyPercentAccessThreshold = twentyPercentValue;
 			int depth_threshold = Math.max(mean_depth, 1);
 			if (bottomTwentyPercentAccessThreshold != 0) {
-				Iterator<Integer> it = hashMap.keySet().iterator();
+				Iterator<Long> it = hashMap.keySet().iterator();
 				while (it.hasNext()){
 					ITransposition trans = hashMap.get(it.next());
 					short count = trans.getAccessCount();
@@ -209,7 +199,7 @@ public class FixedSizeTranspositionTable {
 					}
 				}
 			}
-			EubosEngineMain.logger.info("Completed freeing bottom 20% of Hash Table");
+			EubosEngineMain.logger.info("Completed freeing least used Hash Table entries by access count and depth");
 		}
 	}
 	
