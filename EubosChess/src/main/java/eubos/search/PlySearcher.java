@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import eubos.board.Board;
-import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
@@ -107,6 +106,9 @@ public class PlySearcher {
 		}
 
 		while (!isTerminated()) {
+			EubosEngineMain.logger.info(String.format("Aspiration Window lastScore=%d alpha=%d beta=%d depth=%d",
+					lastScore, alpha, beta, originalSearchDepthRequiredInPly));
+			
 			score = (short) search(alpha, beta, originalSearchDepthRequiredInPly);
 	
 			if (Score.isProvisional(score)) {
@@ -128,6 +130,8 @@ public class PlySearcher {
 	            sr.resetAfterWindowingFail();
 	        } else {
 	        	// Exact score in window returned
+	        	EubosEngineMain.logger.info(String.format("Exact score in window returned score=%d alpha=%d beta=%d",
+        				score, alpha, beta));
 	            break;
 	        }
 		}
@@ -183,17 +187,7 @@ public class PlySearcher {
 					}
 					// Determine if good enough for a refutation...
 					if (alpha >= beta) {
-						int trans_move = trans.getBestMove();
-						// Populate the members of the move read from the transposition table.
-						if (trans_move != Move.NULL_MOVE) {
-							int originPiece = pos.getTheBoard().getPieceAtSquare(Move.getOriginPosition(trans_move));
-							trans_move = Move.setOriginPiece(trans_move, originPiece);
-							int targetPiece = pos.getTheBoard().getPieceAtSquare(Move.getTargetPosition(trans_move));
-							trans_move = Move.setTargetPiece(trans_move, targetPiece);
-							if (targetPiece != Piece.NONE) {
-								trans_move = Move.setCapture(trans_move, targetPiece);
-							}
-						}
+						int trans_move = trans.getBestMove(pos.getTheBoard());
 						killers.addMove(currPly, trans_move);
 						if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsRefutation(pos.getHash(), trans);
 						isCutOff = true;
@@ -203,7 +197,7 @@ public class PlySearcher {
 				    if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
 						pc.update(currPly, trans.getPv());
 					} else {
-						pc.set(currPly, trans.getBestMove());
+						pc.set(currPly, trans.getBestMove(pos.getTheBoard()));
 					}
 					if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && atRootNode() && sr != null) {
 						sm.setPrincipalVariationDataFromHash(0, pc.toPvList(0), (short)hashScore);
@@ -215,7 +209,7 @@ public class PlySearcher {
 			}
 			// Transposition still useful to seed the move list
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-			prevBestMove = trans.getBestMove();
+			prevBestMove = trans.getBestMove(pos.getTheBoard());
 		}
 		
 		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, killers.getMoves(currPly), moveListOrdering, false, needToEscapeCheck);
@@ -317,7 +311,7 @@ public class PlySearcher {
 		ITransposition trans = tt.getTransposition();
 		if (trans != null) {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-			prevBestMove = trans.getBestMove();
+			prevBestMove = trans.getBestMove(pos.getTheBoard());
 		}
 		// Don't use Killer moves as we don't search quiet moves in the extended search
 		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, null, moveListOrdering, true, needToEscapeCheck);
@@ -406,17 +400,9 @@ public class PlySearcher {
 		short trans_score;
 		boolean isThreefold = false;
 		synchronized (trans) {
-			trans_move = trans.getBestMove();
+			trans_move = trans.getBestMove(pos.getTheBoard());
 			trans_score = trans.getScore();
-		}
-		// Populate the members of the move read from the transposition table.
-		if (trans_move != Move.NULL_MOVE) {
-			int originPiece = pos.getTheBoard().getPieceAtSquare(Move.getOriginPosition(trans_move));
-			trans_move = Move.setOriginPiece(trans_move, originPiece);
-			int targetPiece = pos.getTheBoard().getPieceAtSquare(Move.getTargetPosition(trans_move));
-			trans_move = Move.setTargetPiece(trans_move, targetPiece);
-		}
-		
+		}	
 		// Check score for hashed position causing a search cut-off is still valid (i.e. best move doesn't lead to a draw)
 		// If hashed score is a draw score, check it is still a draw, if not, search position
 		isThreefold = checkForRepetitionDueToPositionInSearchTree(trans_move);

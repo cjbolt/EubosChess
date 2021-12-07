@@ -2,6 +2,8 @@ package eubos.search.transposition;
 
 import java.util.List;
 
+import eubos.board.Board;
+
 public interface ITransposition {
 
 	byte getType();
@@ -10,7 +12,7 @@ public interface ITransposition {
 
 	byte getDepthSearchedInPly();
 
-	int getBestMove();
+	int getBestMove(Board theBoard);
 
 	String report();
 

@@ -93,7 +93,7 @@ public class TranspositionTest {
 		short score = 0;
 		byte scoreType = Score.exact;
 		sut = new PrincipalVariationTransposition(depth, score, scoreType, Move.valueOfRegular(Position.d5, Piece.WHITE_PAWN, Position.d6), null);
-		int move = sut.getBestMove();
+		int move = sut.getBestMove(null);
 		assertEquals(Move.valueOfPromotion(Position.d5, Position.d6, Piece.NONE), move);
 	}
 }

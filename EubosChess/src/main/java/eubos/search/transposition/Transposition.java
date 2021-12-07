@@ -4,6 +4,8 @@ import java.util.List;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
+import eubos.board.Board;
+import eubos.board.Piece;
 import eubos.position.Move;
 import eubos.search.Score;
 
@@ -71,18 +73,29 @@ public class Transposition implements ITransposition {
 	}
 
 	@Override
-	public int getBestMove() {
+	public int getBestMove(Board theBoard) {
 		int origin = ((bitfield >>> 15) & 0x7F);
 		int target = ((bitfield >>> 22) & 0x7F);
 		int promo = ((bitfield >>> 29) & 0x7);
-		return Move.valueOfPromotion(origin, target, promo);
+		int trans_move = Move.valueOfPromotion(origin, target, promo);
+		// Populate the members of the move read from the transposition table.
+		if (trans_move != Move.NULL_MOVE && theBoard != null) {
+			int originPiece = theBoard.getPieceAtSquare(Move.getOriginPosition(trans_move));
+			trans_move = Move.setOriginPiece(trans_move, originPiece);
+			int targetPiece = theBoard.getPieceAtSquare(Move.getTargetPosition(trans_move));
+			trans_move = Move.setTargetPiece(trans_move, targetPiece);
+			if (targetPiece != Piece.NONE) {
+				trans_move = Move.setCapture(trans_move, targetPiece);
+			}
+		}
+		return trans_move;
 	}
 	
 	protected void setBestMove(int bestMove) {
 		int origin = Move.getOriginPosition(bestMove);
 		int target = Move.getTargetPosition(bestMove);
 		int promo = Move.getPromotion(bestMove);
-		if (!Move.areEqual(getBestMove(), bestMove)) {
+		if (!Move.areEqual(getBestMove(null), bestMove)) {
 			bitfield &= ~(0x1FFFF << 15);
 			bitfield |= (origin & 0x7F) << 15;
 			bitfield |= (target & 0x7F) << 22;
@@ -93,7 +106,7 @@ public class Transposition implements ITransposition {
 	@Override
 	public String report() {
 		String output = String.format("trans best=%s, dep=%d, sc=%s, type=%s", 
-				Move.toString(getBestMove()),
+				Move.toString(getBestMove(null)),
 				getDepthSearchedInPly(),
 				Score.toString(score),
 				getType());
