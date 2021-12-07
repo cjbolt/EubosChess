@@ -62,13 +62,13 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_ASPIRATION_WINDOWS = true;
 	
 	// Permanent data structures - static for the duration of a single game
-	private FixedSizeTranspositionTable hashMap = null;
+	FixedSizeTranspositionTable hashMap = null;
 	DrawChecker dc;
 	ReferenceScore whiteRefScore;
 	ReferenceScore blackRefScore;
 	
 	// Temporary data structures - created and deleted at each analyse/find move instance
-	private PositionManager rootPosition;
+	PositionManager rootPosition;
 	private AbstractMoveSearcher ms;
 	private Piece.Colour lastOnMove = null;
 	String lastFen = null;
