@@ -124,7 +124,7 @@ public class Transposition implements ITransposition {
 		if (getDepthSearchedInPly() < new_Depth) {
 			updateTransposition = true;	
 		} else if (getDepthSearchedInPly() == new_Depth) {
-			if (getType() != Score.exact && new_score > getScore()) {
+			if (getType() != Score.exact) {
 				updateTransposition = true;
 			} else {
 				// don't update, worse bound score than we currently have
