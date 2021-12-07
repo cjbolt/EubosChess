@@ -136,10 +136,13 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			}
 			bestMove = Move.toGenericMove(trans.getBestMove(null));
 		} else if (workers.get(0).result.bestMove != Move.NULL_MOVE) {
-			EubosEngineMain.logger.warning("Can't find bestMove with exact score in Transposition Table, use principal continuation.");
+			EubosEngineMain.logger.warning(
+					String.format("Can't find bestMove with exact score (trans=%s), use principal continuation.",
+					(trans != null) ? trans.report() : "null"));
 			bestMove = Move.toGenericMove(workers.get(0).result.bestMove);
 		} else if (trans != null) {
-			EubosEngineMain.logger.warning("Can't find bestMove in principal continuation sending Transposition Table bound score.");
+			EubosEngineMain.logger.warning(
+					String.format("Can't find bestMove in principal continuation, using trans=%s", trans.report()));
 			bestMove = Move.toGenericMove(trans.getBestMove(null));
 		} else {
 			// we will send null, it will be a rules infraction and Eubos will lose.
