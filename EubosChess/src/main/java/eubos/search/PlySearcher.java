@@ -173,7 +173,7 @@ public class PlySearcher {
 				int hashScore = handleRefutationOrTerminalNodeFromHash(trans);
 				if (hashScore == 0) {
 					// Downgrade transposition status if the position could be drawn.
-					type = Score.lowerBound;
+					type = Score.typeUnknown;
 				}
 				if (type == Score.exact) {
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
