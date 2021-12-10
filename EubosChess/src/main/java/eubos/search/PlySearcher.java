@@ -104,11 +104,10 @@ public class PlySearcher {
 			alpha = lastScore - windowSize;
 			beta = lastScore + windowSize;
 		}
-
+		
 		while (!isTerminated()) {
-			EubosEngineMain.logger.info(String.format("Aspiration Window lastScore=%d alpha=%d beta=%d depth=%d",
-					lastScore, alpha, beta, originalSearchDepthRequiredInPly));
-			
+			boolean windowFailed = false;
+
 			score = (short) search(alpha, beta, originalSearchDepthRequiredInPly);
 	
 			if (Score.isProvisional(score)) {
@@ -118,22 +117,22 @@ public class PlySearcher {
         		// Early termination, didn't back up a score at the last ply			
         	} else if (score <= alpha) {
         		// Failed low, adjust window
-        		EubosEngineMain.logger.info(String.format("Aspiration Window failed low score=%d alpha=%d depth=%d",
-        				score, alpha, originalSearchDepthRequiredInPly));
+        		windowFailed = true;
 	            alpha = Score.PROVISIONAL_ALPHA;
-	            sr.resetAfterWindowingFail();
 	        } else if (score >= beta) {
 	        	// Failed high, adjust window
-	        	EubosEngineMain.logger.info(String.format("Aspiration Window failed high score=%d beta=%d depth=%d",
-        				score, beta, originalSearchDepthRequiredInPly));
+	        	windowFailed = true;
 	            beta = Score.PROVISIONAL_BETA;
-	            sr.resetAfterWindowingFail();
 	        } else {
 	        	// Exact score in window returned
-	        	EubosEngineMain.logger.info(String.format("Exact score in window returned score=%d alpha=%d beta=%d",
-        				score, alpha, beta));
 	            break;
 	        }
+			if (windowFailed) {
+				EubosEngineMain.logger.info(String.format("Aspiration Window failed score=%d alpha=%d beta=%d depth=%d",
+        				score, alpha, beta, originalSearchDepthRequiredInPly));
+				sr.resetAfterWindowingFail();
+				windowFailed = false;
+			}
 		}
 		return score;
 	}
@@ -356,18 +355,17 @@ public class PlySearcher {
 			
 			if (positionScore > alpha) {
 				if (positionScore >= beta) {
-					//killers.addMove(currPly, currMove);
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(positionScore);
-					//trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) beta, Score.lowerBound);
+					trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) beta, Score.lowerBound);
 					return beta;
 				}
 				alpha = positionScore;
 				plyScore = positionScore;
 				pc.update(currPly, currMove);
-				//trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) alpha, Score.upperBound);
+				trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) alpha, Score.upperBound);
 			} else if (positionScore > plyScore) {
 				plyScore = positionScore;
-				//trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) plyScore, Score.upperBound);
+				trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) plyScore, Score.upperBound);
 			}
 			
 			if (move_iter.hasNext()) {
