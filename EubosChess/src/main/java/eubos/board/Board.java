@@ -1081,45 +1081,98 @@ public class Board {
 		}
 	}
 	
-	void calculateDynamicMobility(PiecewiseEvaluation me) {
+	int calculateDiagonalMobility(long bishops, long queens) {
 		long empty = ~allPieces;
-		// White Bishop and Queen
-		long white_diagonal_sliders = getWhiteBishops() | getWhiteQueens();
 		int mobility_score = 0x0;
-		if (white_diagonal_sliders != 0) {
-			mobility_score =  Long.bitCount(BitBoard.downLeftOccludedEmpty(white_diagonal_sliders, empty) ^ white_diagonal_sliders);
-			mobility_score += Long.bitCount(BitBoard.upLeftOccludedEmpty(white_diagonal_sliders, empty) ^ white_diagonal_sliders);
-			mobility_score += Long.bitCount(BitBoard.upRightOccludedEmpty(white_diagonal_sliders, empty) ^ white_diagonal_sliders);
-			mobility_score += Long.bitCount(BitBoard.downRightOccludedEmpty(white_diagonal_sliders, empty) ^ white_diagonal_sliders);
-			me.addPosition(true, (short)(mobility_score*2));
+		long diagonal_sliders = bishops | queens;
+		if (queens != 0) {
+			if (bishops != 0) {
+				long mobility_mask_1 = BitBoard.downLeftOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
+				long mobility_mask_2 = BitBoard.upRightOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
+				if ((mobility_mask_1 & mobility_mask_2) == 0x0) {
+					mobility_score = Long.bitCount(mobility_mask_1 | mobility_mask_2);
+				} else {
+					mobility_score = Long.bitCount(mobility_mask_1) + Long.bitCount(mobility_mask_2);
+				}
+				mobility_mask_1 = BitBoard.downRightOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
+				mobility_mask_2 = BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
+				if ((mobility_mask_1 & mobility_mask_2) == 0x0) {
+					mobility_score += Long.bitCount(mobility_mask_1 | mobility_mask_2);
+				} else {
+					mobility_score += Long.bitCount(mobility_mask_1) + Long.bitCount(mobility_mask_2);
+				}
+			} else {
+				// Assume that if it is just queens, then material is so unbalanced that it doesn't matter that they can intersect
+				long mobility_mask = BitBoard.downLeftOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
+				mobility_mask |= BitBoard.upRightOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
+				mobility_mask |= BitBoard.downRightOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
+				mobility_mask |= BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
+				mobility_score = Long.bitCount(mobility_mask);
+			}
+		} else if (bishops != 0) {
+			// Assume that if it is just bishops, they can't intersect, which allows optimisation
+			if (diagonal_sliders != 0) {
+				long mobility_mask = BitBoard.downLeftOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
+				mobility_mask |= BitBoard.upRightOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
+				mobility_mask |= BitBoard.downRightOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
+				mobility_mask |= BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
+				mobility_score = Long.bitCount(mobility_mask);
+			}
 		}
+		return mobility_score;
+	}
+	
+	int calculateRankFileMobility(long rooks, long queens) {
+		long empty = ~allPieces;
+		int mobility_score = 0x0;
+		long rank_file_sliders = rooks | queens;
+		if (rooks != 0) {
+			long mobility_mask_1 = BitBoard.leftOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;
+			long mobility_mask_2 = BitBoard.rightOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;
+			if ((mobility_mask_1 & mobility_mask_2) == 0x0) {
+				mobility_score = Long.bitCount(mobility_mask_1 | mobility_mask_2);
+			} else {
+				mobility_score = Long.bitCount(mobility_mask_1) + Long.bitCount(mobility_mask_2);
+			}
+			
+			mobility_mask_1 = BitBoard.upOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;
+			mobility_mask_2 = BitBoard.downOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;
+			if ((mobility_mask_1 & mobility_mask_2) == 0x0) {
+				mobility_score += Long.bitCount(mobility_mask_1 | mobility_mask_2);
+			} else {
+				mobility_score += Long.bitCount(mobility_mask_1) + Long.bitCount(mobility_mask_2);
+			}
+		}
+		else if (rank_file_sliders != 0) {
+			// Assume single queen, as material likely unbalanced, this optimisation should be fine
+			long mobility_mask = BitBoard.leftOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;
+			mobility_mask |= BitBoard.rightOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;
+			mobility_mask |= BitBoard.downOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;
+			mobility_mask |= BitBoard.upOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;
+			mobility_score = Long.bitCount(mobility_mask);
+		}
+		return mobility_score;
+	}
+	
+	void calculateDynamicMobility(PiecewiseEvaluation me) {
+		int mobility_score = 0x0;
+		// White Bishop and Queen
+		long white_queens = getWhiteQueens();
+		mobility_score = calculateDiagonalMobility(getWhiteBishops(), white_queens);
+		me.addPosition(true, (short)(mobility_score*2));
+
 		// White Rook and Queen
-		long white_rank_file_sliders = getWhiteRooks() | getWhiteQueens();
-		if (white_rank_file_sliders != 0) {
-			mobility_score =  Long.bitCount(BitBoard.leftOccludedEmpty(white_rank_file_sliders, empty) ^ white_rank_file_sliders);
-			mobility_score += Long.bitCount(BitBoard.upOccludedEmpty(white_rank_file_sliders, empty) ^ white_rank_file_sliders);
-			mobility_score += Long.bitCount(BitBoard.rightOccludedEmpty(white_rank_file_sliders, empty) ^ white_rank_file_sliders);
-			mobility_score += Long.bitCount(BitBoard.downOccludedEmpty(white_rank_file_sliders, empty) ^ white_rank_file_sliders);
-			me.addPosition(true, (short)(mobility_score*2));
-		}
+		mobility_score = calculateRankFileMobility(getWhiteRooks(), white_queens);
+		me.addPosition(true, (short)(mobility_score*2));
+		
 		// Black Bishop and Queen
-		long black_diagonal_sliders = getBlackBishops() | getBlackQueens();
-		if (black_diagonal_sliders != 0) {
-			mobility_score =  Long.bitCount(BitBoard.downLeftOccludedEmpty(black_diagonal_sliders, empty) ^ black_diagonal_sliders);
-			mobility_score += Long.bitCount(BitBoard.upLeftOccludedEmpty(black_diagonal_sliders, empty) ^ black_diagonal_sliders);
-			mobility_score += Long.bitCount(BitBoard.upRightOccludedEmpty(black_diagonal_sliders, empty) ^ black_diagonal_sliders);
-			mobility_score += Long.bitCount(BitBoard.downRightOccludedEmpty(black_diagonal_sliders, empty) ^ black_diagonal_sliders);
-			me.addPosition(false, (short)(mobility_score*2));
-		}
+		long black_queens = getBlackQueens();
+		mobility_score = calculateDiagonalMobility(getBlackBishops(), black_queens);
+		me.addPosition(false, (short)(mobility_score*2));
+		
 		// Black Rook and Queen
-		long black_rank_file_sliders = getBlackRooks() | getBlackQueens();
-		if (black_rank_file_sliders != 0) {
-			mobility_score =  Long.bitCount(BitBoard.leftOccludedEmpty(black_rank_file_sliders, empty) ^ black_rank_file_sliders);
-			mobility_score += Long.bitCount(BitBoard.upOccludedEmpty(black_rank_file_sliders, empty) ^ black_rank_file_sliders);
-			mobility_score += Long.bitCount(BitBoard.rightOccludedEmpty(black_rank_file_sliders, empty) ^ black_rank_file_sliders);
-			mobility_score += Long.bitCount(BitBoard.downOccludedEmpty(black_rank_file_sliders, empty) ^ black_rank_file_sliders);
-			me.addPosition(false, (short)(mobility_score*2));
-		}
+		mobility_score = calculateRankFileMobility(getBlackRooks(), black_queens);
+		me.addPosition(false, (short)(mobility_score*2));
 	}
 	
     // For reasons of performance optimisation, part of the material evaluation considers the mobility of pieces.
