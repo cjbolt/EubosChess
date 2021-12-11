@@ -299,6 +299,7 @@ public class PlySearcher {
 		// Stand Pat in extended search
 		short plyScore = (short) pe.evaluatePosition();	
 		if (currPly >= extendedSearchLimitInPly - 1)
+			// Absolute depth limit
 			return plyScore;
 		if (plyScore >= beta) {
 			// There is no move to put in the killer table when we stand Pat
@@ -332,8 +333,8 @@ public class PlySearcher {
 		}
 		
 		if (plyScore > alpha) {
+			// Null move hypothesis
 			alpha = plyScore;
-			//trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) alpha, Score.upperBound);
 		}
 
 		int currMove = move_iter.next();
@@ -356,16 +357,10 @@ public class PlySearcher {
 			if (positionScore > alpha) {
 				if (positionScore >= beta) {
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(positionScore);
-					trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) beta, Score.lowerBound);
 					return beta;
 				}
 				alpha = positionScore;
-				plyScore = positionScore;
 				pc.update(currPly, currMove);
-				trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) alpha, Score.upperBound);
-			} else if (positionScore > plyScore) {
-				plyScore = positionScore;
-				trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) plyScore, Score.upperBound);
 			}
 			
 			if (move_iter.hasNext()) {
