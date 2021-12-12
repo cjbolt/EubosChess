@@ -218,6 +218,7 @@ public class PlySearcher {
 		}
 		
 		int currMove = move_iter.next();
+		int bestMove = currMove;
 		pc.initialise(currPly, currMove);
 		
 		int moveNumber = 1;
@@ -245,19 +246,19 @@ public class PlySearcher {
 			}
 			
 			// Handle score backed up to this node
-			if (positionScore > alpha) {					
-				if (positionScore >= beta) {
-					killers.addMove(currPly, currMove);
-					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(positionScore);
-					trans = updateTranspositionTable(trans, (byte) depth, currMove, (short) beta, Score.lowerBound);
+			if (positionScore > alpha) {
+				alpha = plyScore = positionScore;
+				bestMove = currMove;
+				
+				if (alpha >= beta) {
+					plyScore = beta; // fail hard
+					killers.addMove(currPly, bestMove);
 					reportPv((short) beta);
-					return beta;
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
+					break;
 				}
 				
-				alpha = positionScore;
-				plyScore = positionScore;
-				trans = updateTranspositionTable(trans, (byte) depth, currMove, (short) alpha, Score.upperBound);
-				pc.update(currPly, currMove);
+				pc.update(currPly, bestMove);
 				reportPv((short) alpha);
 				
 			} else if (positionScore > plyScore) {
@@ -265,8 +266,8 @@ public class PlySearcher {
 					pc.update(currPly, currMove);
 					reportPv((short) alpha);
 				}
+				bestMove = currMove;
 				plyScore = positionScore;
-				trans = updateTranspositionTable(trans, (byte) depth, currMove, (short) plyScore, Score.upperBound);
 			}
 			
 			// Break-out when out of moves
@@ -278,14 +279,23 @@ public class PlySearcher {
 				break;
 			}
 		}
-
-		if (!isTerminated() && trans != null && (alpha > alphaOriginal && alpha < beta)) {
-			/* If we didn't fail on the search window, i.e. alpha > score < beta, and didn't stop search early,
-			   this means we found an exact score for this depth. */
-			if (trans.checkUpdateToExact((byte) depth)) {
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printExactTrans(pos.getHash(), trans);			
-			}
+		
+		byte plyBound = Score.typeUnknown;
+		if (plyScore <= alphaOriginal) {
+			// Didn't raise alpha
+			plyBound = Score.upperBound;
+		} else if (plyScore >= beta) {
+			// A beta cut-off, alpha raise was 'too good'
+			plyBound = Score.lowerBound;
+		} else {
+			// In exact window, searched all nodes...
+			plyBound = Score.exact;
+		}		
+		if (!isTerminated()) {
+			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) plyScore, plyBound);
 		}
+		
+		// fail hard, so don't return plyScore
 		return alpha;
 	}
 	

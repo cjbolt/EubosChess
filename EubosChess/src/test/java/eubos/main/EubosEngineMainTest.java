@@ -152,8 +152,8 @@ public class EubosEngineMainTest {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			String expectedOutput;
 			if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
-				expectedOutput = "info depth 1 seldepth 6 score cp 7 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 247 time 97 nodes 24"+CMD_TERMINATOR+
-	                    "info depth 1 seldepth 6 score cp 169 pv c7c2 d4a7 hashfull 0 nps 441 time 102 nodes 45"+CMD_TERMINATOR+
+				expectedOutput = "info depth 1 seldepth 6 score cp 7 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
+						"info depth 1 seldepth 6 score cp 169 pv c7c2 d4a7 hashfull 0 nps 441 time 102 nodes 45"+CMD_TERMINATOR+
 	                    "info depth 2 seldepth 6 score cp 85 pv c7c2 e1g1 d7e5 hashfull 0 nps 1836 time 116 nodes 225"+CMD_TERMINATOR
 	                    +BEST_PREFIX+"c7c2";
 			} else if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && !PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
@@ -261,7 +261,7 @@ public class EubosEngineMainTest {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_TIME_PREFIX+"30000"+CMD_TERMINATOR, BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
-		performTestExpectMate(30000, 7);
+		performTestExpectMate(30000, 8);
 		assertEquals(2, (int)classUnderTest.dc.getNumEntries());
 	}
 	
@@ -269,7 +269,7 @@ public class EubosEngineMainTest {
 	public void test_KQk_mated_in_6_NEW() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/6K1/8/3k4/1Q6/8/8/8 b - - 1 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"11"+CMD_TERMINATOR, BEST_PREFIX+"d5e5"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"11"+CMD_TERMINATOR, BEST_PREFIX+"d5c6"+CMD_TERMINATOR));
 		performTestExpectMate(15000, -6);
 		assertEquals(2, (int)classUnderTest.dc.getNumEntries());
 	} 
@@ -303,8 +303,8 @@ public class EubosEngineMainTest {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
 		if (EubosEngineMain.ENABLE_ASPIRATION_WINDOWS) {
-			commands.add(new commandPair(GO_TIME_PREFIX+"23000"+CMD_TERMINATOR, BEST_PREFIX+"h1d1"+CMD_TERMINATOR));
-			mateDepth = 20;
+			commands.add(new commandPair(GO_TIME_PREFIX+"23000"+CMD_TERMINATOR, BEST_PREFIX+"h1h4"+CMD_TERMINATOR));
+			mateDepth = 13;
 		} else {
 			commands.add(new commandPair(GO_TIME_PREFIX+"23000"+CMD_TERMINATOR, BEST_PREFIX+"h1h4"+CMD_TERMINATOR));
 			mateDepth = 25;
