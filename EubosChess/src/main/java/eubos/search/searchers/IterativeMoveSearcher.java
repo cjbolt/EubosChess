@@ -22,7 +22,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	int moveNumber = 0;
 	boolean analyse = false;
 	
-	boolean searchStopped = false;
+	volatile boolean searchStopped = false;
 	public static final boolean DEBUG_LOGGING = true;
 	public static final boolean EXPLICIT_GARBAGE_COLLECTION = false;
 
@@ -109,7 +109,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 
 	class IterativeMoveSearchStopper extends Thread {
 		
-		private boolean stopperActive = false;
+		private volatile boolean stopperActive = false;
 		boolean extraTime = false;
 		private int checkPoint = 0;
 		long timeRanFor = 0;

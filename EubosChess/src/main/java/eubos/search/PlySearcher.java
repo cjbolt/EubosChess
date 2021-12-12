@@ -30,7 +30,7 @@ public class PlySearcher {
 	private SearchMetrics sm;
 	private SearchDebugAgent sda;
 	
-	private boolean terminate = false;
+	private volatile boolean terminate = false;
 	
 	private List<Integer> lastPc;
 	private ITranspositionAccessor tt;

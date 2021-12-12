@@ -126,7 +126,7 @@ public class FixedSizeTranspositionTable {
 	
 	class TranspositionTableMonitorThread extends Thread {
 		
-		private boolean isActive = true;
+		private volatile boolean isActive = true;
 		static final private int pollRateMillisecs = 30000;
 		
 		int mean_depth = 0;

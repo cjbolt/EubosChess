@@ -170,7 +170,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		private AbstractMoveSearcher main;
 		private MiniMaxMoveGenerator myMg;
 		public SearchResult result;
-		boolean halted = false;
+		volatile boolean halted = false;
 		
 		public MultithreadedSearchWorkerThread( MiniMaxMoveGenerator moveGen, AbstractMoveSearcher main ) {
 			this.myMg = moveGen;
