@@ -303,7 +303,7 @@ public class EubosEngineMainTest {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
 		if (EubosEngineMain.ENABLE_ASPIRATION_WINDOWS) {
-			commands.add(new commandPair(GO_TIME_PREFIX+"23000"+CMD_TERMINATOR, BEST_PREFIX+"h1h4"+CMD_TERMINATOR));
+			commands.add(new commandPair(GO_TIME_PREFIX+"23000"+CMD_TERMINATOR, BEST_PREFIX+"h1d1"+CMD_TERMINATOR));
 			mateDepth = 13;
 		} else {
 			commands.add(new commandPair(GO_TIME_PREFIX+"23000"+CMD_TERMINATOR, BEST_PREFIX+"h1h4"+CMD_TERMINATOR));
