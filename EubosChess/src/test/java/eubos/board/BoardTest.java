@@ -406,4 +406,46 @@ public class BoardTest {
 		classUnderTest.calculateDynamicMobility(me);
 		assertEquals(8, me.getPosition());
 	}
+	
+	@Test
+	public void test_optimised_mobility_func() {
+		for (int outer_rank=0; outer_rank<8; outer_rank++) {
+			for (int outer_file=0; outer_file<8; outer_file++) {
+				classUnderTest.setPieceAtSquare(Position.valueOf(outer_file, outer_rank), Piece.WHITE_QUEEN);
+				for (int rank=0; rank<8; rank++) {
+					for (int file=0; file<8; file++) {
+						if (file==outer_file && rank==outer_rank) continue;
+						int atPos = Position.valueOf(file, rank);
+						PiecewiseEvaluation me = new PiecewiseEvaluation();
+						PiecewiseEvaluation old_me = new PiecewiseEvaluation();
+						classUnderTest.setPieceAtSquare(atPos, Piece.WHITE_BISHOP);
+						classUnderTest.calculateDynamicMobility(me);
+						classUnderTest.calculateDynamicMobility(old_me);
+						assertEquals(old_me.getPosition(), me.getPosition());
+						classUnderTest.pickUpPieceAtSquare(atPos, Piece.WHITE_BISHOP);
+					}
+				}
+				classUnderTest.pickUpPieceAtSquare(Position.valueOf(outer_file, outer_rank), Piece.WHITE_QUEEN);
+			}
+		}
+		for (int outer_rank=0; outer_rank<8; outer_rank++) {
+			for (int outer_file=0; outer_file<8; outer_file++) {
+				classUnderTest.setPieceAtSquare(Position.valueOf(outer_file, outer_rank), Piece.WHITE_QUEEN);
+				for (int rank=0; rank<8; rank++) {
+					for (int file=0; file<8; file++) {
+						if (file==outer_file && rank==outer_rank) continue;
+						int atPos = Position.valueOf(file, rank);
+						PiecewiseEvaluation me = new PiecewiseEvaluation();
+						PiecewiseEvaluation old_me = new PiecewiseEvaluation();
+						classUnderTest.setPieceAtSquare(atPos, Piece.WHITE_ROOK);
+						classUnderTest.calculateDynamicMobility(me);
+						classUnderTest.calculateDynamicMobility(old_me);
+						assertEquals(old_me.getPosition(), me.getPosition());
+						classUnderTest.pickUpPieceAtSquare(atPos, Piece.WHITE_ROOK);
+					}
+				}
+				classUnderTest.pickUpPieceAtSquare(Position.valueOf(outer_file, outer_rank), Piece.WHITE_QUEEN);
+			}
+		}
+	}
 }
