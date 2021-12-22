@@ -392,7 +392,7 @@ public class Board {
 		return type;
 	}
 	
-	public int getPieceAtSquareOptimise( int atPos, boolean ownSideIsWhite ) {
+	public int getPieceAtSquareIfEnemy( int atPos, boolean ownSideIsWhite ) {
 		int type = Piece.NONE;
 		long pieceToGet = BitBoard.positionToMask_Lut[atPos];;
 		if ((allPieces & pieceToGet) != 0) {	
@@ -444,7 +444,6 @@ public class Board {
 	}
 	
 	public boolean isKingInCheck(Piece.Colour side) {
-		boolean inCheck = false;
 		int kingSquare = Position.NOPOSITION;
 		if (ENABLE_PIECE_LISTS) {
 			kingSquare = pieceLists.getKingPos(Colour.isWhite(side));
@@ -455,11 +454,7 @@ public class Board {
 			
 			kingSquare = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(king)];
 		}
-		if (kingSquare != Position.NOPOSITION) {
-			// The conditional is needed because some unit test positions don't have a king...
-			inCheck = squareIsAttacked(kingSquare, Piece.Colour.getOpposite(side));
-		}
-		return inCheck;
+		return squareIsAttacked(kingSquare, Piece.Colour.getOpposite(side));
 	}
 	
 	public int pickUpPieceAtSquare( int atPos, int piece ) {
@@ -655,7 +650,6 @@ public class Board {
 	}
 	
 	public boolean moveCouldLeadToOwnKingDiscoveredCheck(int move, int piece) {
-		boolean couldLeadToDiscoveredCheck = false;
 		int kingPosition = Position.NOPOSITION;
 		if (ENABLE_PIECE_LISTS) {
 			kingPosition = pieceLists.getKingPos(Piece.isWhite(piece));
@@ -666,14 +660,11 @@ public class Board {
 			
 			kingPosition = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(king)];
 		}
-		if (kingPosition != Position.NOPOSITION) {
-			int atSquare = Move.getOriginPosition(move);
-			// Establish if the initial square is on a multiple square slider mask from the king position
-			long square = BitBoard.positionToMask_Lut[atSquare];
-			long attackingSquares = SquareAttackEvaluator.directAttacksOnPosition_Lut[kingPosition];
-			couldLeadToDiscoveredCheck = ((square & attackingSquares) != 0);
-		}
-		return couldLeadToDiscoveredCheck;
+		int atSquare = Move.getOriginPosition(move);
+		// Establish if the initial square is on a multiple square slider mask from the king position
+		long square = BitBoard.positionToMask_Lut[atSquare];
+		long attackingSquares = SquareAttackEvaluator.directAttacksOnPosition_Lut[kingPosition];
+		return ((square & attackingSquares) != 0);
 	}
 	
 	public void getRegularPieceMoves(MoveList ml, boolean ownSideIsWhite, boolean captures) {

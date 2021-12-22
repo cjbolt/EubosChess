@@ -1,7 +1,6 @@
 package eubos.board;
 
 import java.util.Arrays;
-import java.util.List;
 
 import com.fluxchess.jcpi.models.IntChessman;
 import com.fluxchess.jcpi.models.IntRank;
@@ -411,21 +410,6 @@ public abstract class Piece {
 		single_addMoves(ownSideIsWhite, ml, theBoard, ref_moves);	
 	}
 	
-	static void king_generateEscapeMoves(List<Integer> moves, Board theBoard, int atSquare, boolean ownSideIsWhite) {
-		int [] ref_moves = ownSideIsWhite ? WhiteKingMove_Lut[atSquare] : BlackKingMove_Lut[atSquare];
-		for (int new_move : ref_moves) {
-			int targetPiece = theBoard.getPieceAtSquareOptimise(Move.getTargetPosition(new_move), ownSideIsWhite);
-			switch(targetPiece) {
-			case Piece.NONE:
-				moves.add(new_move);
-				continue;
-			default:
-				// Otherwise, blocked - note: we already know there are no valid captures.
-				break;
-			}
-		}
-	}
-	
 	static void knight_generateMoves(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
 		int [] ref_moves = ownSideIsWhite ? WhiteKnightMove_Lut[atSquare] : BlackKnightMove_Lut[atSquare];
 		single_addMoves(ownSideIsWhite, ml, theBoard, ref_moves);
@@ -433,7 +417,7 @@ public abstract class Piece {
 	
 	static void king_generateMovesExtSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
 		int piece = ownSideIsWhite ? Piece.WHITE_KING : Piece.BLACK_KING;
-		int targetPiece = theBoard.getPieceAtSquareOptimise(targetSq, ownSideIsWhite);
+		int targetPiece = theBoard.getPieceAtSquareIfEnemy(targetSq, ownSideIsWhite);
 		if (targetPiece != Piece.NONE && targetPiece != Piece.DONT_CARE) {
 			ml.addPrio(Move.valueOf(atSquare, piece, targetSq, targetPiece));
 		}
@@ -446,7 +430,7 @@ public abstract class Piece {
 	
 	static void knight_generateMovesExtSearch(MoveList ml, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
 		int piece = ownSideIsWhite ? Piece.WHITE_KNIGHT : Piece.BLACK_KNIGHT;
-		int targetPiece = theBoard.getPieceAtSquareOptimise(targetSq, ownSideIsWhite);
+		int targetPiece = theBoard.getPieceAtSquareIfEnemy(targetSq, ownSideIsWhite);
 		if (targetPiece != Piece.NONE && targetPiece != Piece.DONT_CARE) {
 			ml.addPrio(Move.valueOf(atSquare, piece, targetSq, targetPiece));
 		}
@@ -490,7 +474,7 @@ public abstract class Piece {
 	private static void multidirect_addMoves(boolean ownSideIsWhite, MoveList ml, Board theBoard, int[][] moves) {
 		for (int[] movesInDirection : moves) {
 			for (int new_move : movesInDirection) {
-				int targetPiece = theBoard.getPieceAtSquareOptimise(Move.getTargetPosition(new_move), ownSideIsWhite);
+				int targetPiece = theBoard.getPieceAtSquareIfEnemy(Move.getTargetPosition(new_move), ownSideIsWhite);
 				switch(targetPiece) {
 				case Piece.NONE:
 					ml.addNormal(new_move);
@@ -510,7 +494,7 @@ public abstract class Piece {
 	private static void multidirect_addCaptures(boolean ownSideIsWhite, MoveList ml, Board theBoard, int[][] moves) {
 		for (int[] movesInDirection : moves) {
 			for (int new_move : movesInDirection) {
-				int targetPiece = theBoard.getPieceAtSquareOptimise(Move.getTargetPosition(new_move), ownSideIsWhite);
+				int targetPiece = theBoard.getPieceAtSquareIfEnemy(Move.getTargetPosition(new_move), ownSideIsWhite);
 				switch(targetPiece) {
 				case Piece.NONE:
 					continue;
@@ -528,7 +512,7 @@ public abstract class Piece {
 	
 	private static void single_addMoves(boolean ownSideIsWhite, MoveList ml, Board theBoard, int[] moves) {
 		for (int new_move : moves) {
-			int targetPiece = theBoard.getPieceAtSquareOptimise(Move.getTargetPosition(new_move), ownSideIsWhite);
+			int targetPiece = theBoard.getPieceAtSquareIfEnemy(Move.getTargetPosition(new_move), ownSideIsWhite);
 			switch(targetPiece) {
 			case Piece.NONE:
 				ml.addNormal(new_move);
@@ -545,7 +529,7 @@ public abstract class Piece {
 	
 	private static void single_addCaptures(boolean ownSideIsWhite, MoveList ml, Board theBoard, int[] moves) {
 		for (int new_move : moves) {
-			int targetPiece = theBoard.getPieceAtSquareOptimise(Move.getTargetPosition(new_move), ownSideIsWhite);
+			int targetPiece = theBoard.getPieceAtSquareIfEnemy(Move.getTargetPosition(new_move), ownSideIsWhite);
 			switch(targetPiece) {
 			case Piece.NONE:
 				continue;
@@ -605,7 +589,7 @@ public abstract class Piece {
 	
 	private static int pawn_isCapturable(boolean ownSideIsWhite, Board theBoard, int captureAt ) {
 		int capturePiece = Piece.NONE;
-		int queryPiece = theBoard.getPieceAtSquareOptimise(captureAt, ownSideIsWhite);
+		int queryPiece = theBoard.getPieceAtSquareIfEnemy(captureAt, ownSideIsWhite);
 		if ( queryPiece != Piece.NONE && queryPiece != Piece.DONT_CARE) {
 			capturePiece = queryPiece;
 		}

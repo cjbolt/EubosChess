@@ -1,7 +1,6 @@
 package eubos.board;
 
 import java.util.Arrays;
-import java.util.List;
 
 import eubos.main.EubosEngineMain;
 import eubos.position.MoveList;
@@ -145,14 +144,6 @@ public class PieceList {
 			if (atPos != Position.NOPOSITION) {
 				caller.callback(piece, atPos);
 			} else break;
-		}
-	}
-	
-	public void addKingEscapeMoves(List<Integer> moves, boolean ownSideIsWhite) {
-		int side = ownSideIsWhite ? 0 : Piece.BLACK;
-		int atSquare = piece_list[side+Piece.KING][0];
-		if (atSquare != Position.NOPOSITION) {			
-			Piece.king_generateEscapeMoves(moves, theBoard, atSquare, ownSideIsWhite);
 		}
 	}
 	
