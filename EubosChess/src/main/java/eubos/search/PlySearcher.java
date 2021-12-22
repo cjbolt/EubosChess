@@ -3,7 +3,7 @@ package eubos.search;
 import java.util.Iterator;
 import java.util.List;
 
-import eubos.board.Board;
+import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
@@ -18,8 +18,6 @@ import eubos.search.transposition.ITranspositionAccessor;
 import eubos.search.transposition.ITransposition;
 
 public class PlySearcher {
-	
-	private static final boolean ENABLE_MATE_CHECK_IN_EXTENDED_SEARCH = false;
 	
 	private IChangePosition pm;
 	private IPositionAccessors pos;
@@ -100,7 +98,7 @@ public class PlySearcher {
 		int alpha = Score.PROVISIONAL_ALPHA;
 		int beta = Score.PROVISIONAL_BETA;
 		if (originalSearchDepthRequiredInPly >= 5) {
-			int windowSize = Score.isMate(lastScore) ? 1 : Board.MATERIAL_VALUE_PAWN/2;
+			int windowSize = Score.isMate(lastScore) ? 1 : Piece.MATERIAL_VALUE_PAWN/2;
 			alpha = lastScore - windowSize;
 			beta = lastScore + windowSize;
 		}
@@ -330,16 +328,6 @@ public class PlySearcher {
 		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, null, moveListOrdering, true, needToEscapeCheck);
 		Iterator<Integer> move_iter = ml.getExtendedIterator();
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtendedSearchMoveList(ml);
-		if (ENABLE_MATE_CHECK_IN_EXTENDED_SEARCH) {
-			if (ml.isMateOccurred() && currPly < originalSearchDepthRequiredInPly+4) {
-	        	// We need just one normal move to determine that it isn't mate, in order to stand PAT
-	    		if (!MoveList.anyValidMoves((PositionManager) pm)) {
-	    			short mateScore = sg.scoreMate(currPly);
-	    			sda.printMateFound(mateScore);
-	        		return mateScore;
-	    		}
-        	}    		
-        } // else we will detect there are no moves and assume there are normal moves and stand Pat
 		if (!move_iter.hasNext()) {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearchNoMoves(plyScore);
 			return plyScore;

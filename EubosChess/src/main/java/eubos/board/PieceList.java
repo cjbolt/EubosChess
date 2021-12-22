@@ -336,7 +336,7 @@ public class PieceList {
 			int atSquare = piece_list[side+Piece.KING][0];
 			if (atSquare != Position.NOPOSITION) {			
 				theBoard.me.addPiece(isWhite, Piece.KING);
-				theBoard.me.addPosition(isWhite, theBoard.isEndgame ? Board.KING_ENDGAME_WEIGHTINGS[atSquare] : Board.KING_MIDGAME_WEIGHTINGS[atSquare]);
+				theBoard.me.addPosition(isWhite, theBoard.isEndgame ? Piece.KING_ENDGAME_WEIGHTINGS[atSquare] : Piece.KING_MIDGAME_WEIGHTINGS[atSquare]);
 			}
 		}
 		for(int atSquare : piece_list[side+Piece.QUEEN]) {
@@ -357,7 +357,7 @@ public class PieceList {
 		for(int atSquare : piece_list[side+Piece.KNIGHT]) {
 			if (atSquare != Position.NOPOSITION) {			
 				theBoard.me.addPiece(isWhite, Piece.KNIGHT);
-				theBoard.me.addPosition(isWhite, Board.KNIGHT_WEIGHTINGS[atSquare]);
+				theBoard.me.addPosition(isWhite, Piece.KNIGHT_WEIGHTINGS[atSquare]);
 			} else break;
 		}
 		for(int atSquare : piece_list[side+Piece.PAWN]) {
@@ -367,7 +367,7 @@ public class PieceList {
 						String.format("Found a Pawn at %s that isn't on Board", Position.toGenericPosition(atSquare));
 				}
 				theBoard.me.addPiece(isWhite, Piece.PAWN);
-				theBoard.me.addPosition(isWhite, isWhite ? Board.PAWN_WHITE_WEIGHTINGS[atSquare] : Board.PAWN_BLACK_WEIGHTINGS[atSquare]);
+				theBoard.me.addPosition(isWhite, isWhite ? Piece.PAWN_WHITE_WEIGHTINGS[atSquare] : Piece.PAWN_BLACK_WEIGHTINGS[atSquare]);
 			} else break;
 		}
 	}

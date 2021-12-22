@@ -1,6 +1,6 @@
 package eubos.score;
 
-import eubos.board.Board;
+import eubos.board.Piece;
 
 public class PiecewiseEvaluation {
 	short black = 0;
@@ -23,7 +23,7 @@ public class PiecewiseEvaluation {
 	private void addWhite(short toAdd) { white += toAdd; }
 	
 	public void addPiece(boolean isWhite, int piece_no_colour) {
-		short value = Board.PIECE_TO_MATERIAL_LUT[piece_no_colour];
+		short value = Piece.PIECE_TO_MATERIAL_LUT[piece_no_colour];
 		if (isWhite) {
 			addWhite(value);
 		} else {

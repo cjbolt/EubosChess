@@ -294,10 +294,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		}
 	}
 
-	public boolean isPromotionPossible() {
-		return theBoard.isPromotionPossible(onMove);
-	}
-
 	public boolean noLastMove() {
 		return moveTracker.isEmpty();
 	}

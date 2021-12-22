@@ -1,6 +1,5 @@
 package eubos.search;
 
-import eubos.board.Board;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.position.IPositionAccessors;
@@ -18,7 +17,7 @@ public class SearchContext {
 	static final short DRAW_THRESHOLD = -150;
 	
 	static final short SIMPLIFICATION_BONUS = 75;
-	static final short ACHIEVES_DRAW_BONUS = Board.MATERIAL_VALUE_KING/2;
+	static final short ACHIEVES_DRAW_BONUS = Piece.MATERIAL_VALUE_KING/2;
 	
 	static final boolean ALWAYS_TRY_FOR_WIN = false;
 	

@@ -8,8 +8,7 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
-import eubos.board.Board;
-
+import eubos.board.Piece;
 import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.search.Score;
@@ -63,23 +62,23 @@ public class MateScoreGeneratorTest {
 	public void testStaleMate_whenTryForStaleMate_white() {
 		PositionManager pm = new PositionManager("8/8/8/8/8/1k6/p7/K7 w - - 5 62");
 		PiecewiseEvaluation me = new PiecewiseEvaluation();
-		me.black = Board.MATERIAL_VALUE_KING + 250;
-		me.white = Board.MATERIAL_VALUE_KING;
+		me.black = Piece.MATERIAL_VALUE_KING + 250;
+		me.white = Piece.MATERIAL_VALUE_KING;
 		PositionEvaluator pe = new PositionEvaluator(pm, null);
 		classUnderTest = new MateScoreGenerator(pm, pe);
 		// White wants stalemate
-		assertEquals(Board.MATERIAL_VALUE_KING/2, classUnderTest.scoreMate((byte)0));
+		assertEquals(Piece.MATERIAL_VALUE_KING/2, classUnderTest.scoreMate((byte)0));
 	}
 	
 	@Test
 	public void testStaleMate_whenTryForStaleMate_black() {
 		PositionManager pm = new PositionManager("k7/P7/1K6/8/8/8/8/8 b - - 5 1");
 		PiecewiseEvaluation me = new PiecewiseEvaluation();
-		me.black = Board.MATERIAL_VALUE_KING;
-		me.white = Board.MATERIAL_VALUE_KING + 250;
+		me.black = Piece.MATERIAL_VALUE_KING;
+		me.white = Piece.MATERIAL_VALUE_KING + 250;
 		PositionEvaluator pe = new PositionEvaluator(pm, null);
 		classUnderTest = new MateScoreGenerator(pm, pe);
 		// Black wants stalemate
-		assertEquals(Board.MATERIAL_VALUE_KING/2, classUnderTest.scoreMate((byte)0));
+		assertEquals(Piece.MATERIAL_VALUE_KING/2, classUnderTest.scoreMate((byte)0));
 	}
 }

@@ -25,225 +25,6 @@ public class Board {
 	public static final boolean ENABLE_PIECE_LISTS = true;
 	public static final boolean ENABLE_SIMPLIFIED_KING_SAFETY_EVAL = false;
 	
-	private static final long LIGHT_SQUARES_MASK = 0x55AA55AA55AA55AAL;
-	private static final long DARK_SQUARES_MASK = 0xAA55AA55AA55AA55L; 
-	
-	private static final long[] FileMask_Lut = new long[8];
-	static {
-		for (int file : IntFile.values) {
-			long mask = 0;
-			int f=file;
-			for (int r = 0; r<8; r++) {
-				mask  |= 1L << r*8+f;
-			}
-			FileMask_Lut[file]= mask;
-		}
-	}
-	
-	private static final long[] RankMask_Lut = new long[8];
-	static {
-		for (int r : IntRank.values) {
-			long mask = 0;
-			for (int f = 0; f<8; f++) {
-				mask  |= 1L << r*8+f;
-			}
-			RankMask_Lut[r] = mask;
-		}
-	}
-	
-	private static final long[][] PassedPawn_Lut = new long[2][]; 
-	static {
-		long[] white_map = new long[128];
-		PassedPawn_Lut[Colour.white.ordinal()] = white_map;
-		for (int atPos : Position.values) {
-			white_map[atPos] = buildPassedPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), true);
-		}
-		long[] black_map = new long[128];
-		PassedPawn_Lut[Colour.black.ordinal()] = black_map;
-		for (int atPos : Position.values) {
-			black_map[atPos] = buildPassedPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), false);
-		}
-	}
-	private static long buildPassedPawnFileMask(int f, int r, boolean isWhite) {
-		long mask = 0;
-		boolean hasPrevFile = IntFile.toGenericFile(f).hasPrev();
-		boolean hasNextFile = IntFile.toGenericFile(f).hasNext();
-		if (isWhite) {
-			for (r=r+1; r < 7; r++) {
-				mask = addRankForPassedPawnMask(mask, r, f, hasPrevFile,
-						hasNextFile);
-			}
-		} else {
-			for (r=r-1; r > 0; r--) {
-				mask = addRankForPassedPawnMask(mask, r, f, hasPrevFile,
-						hasNextFile);	
-			}
-		}
-		return mask;
-	}
-	private static long addRankForPassedPawnMask(long mask, int r, int f,
-			boolean hasPrevFile, boolean hasNextFile) {
-		if (hasPrevFile) {
-			mask |= 1L << r*8+(f-1);
-		}
-		mask |= 1L << r*8+f;
-		if (hasNextFile) {
-			mask |= 1L << r*8+(f+1);
-		}
-		return mask;
-	}
-	
-	private static final long[][] BackwardsPawn_Lut = new long[2][]; 
-	static {
-		long[] white_map = new long[128];
-		BackwardsPawn_Lut[Colour.white.ordinal()] = white_map;
-		for (int atPos : Position.values) {
-			white_map[atPos] = buildBackwardPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), true);
-		}
-		long[] black_map = new long[128];
-		BackwardsPawn_Lut[Colour.black.ordinal()] = black_map;
-		for (int atPos : Position.values) {
-			black_map[atPos] = buildBackwardPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), false);
-		}
-	}
-	private static long buildBackwardPawnFileMask(int f, int r, boolean isWhite) {
-		long mask = 0;
-		boolean hasPrevFile = IntFile.toGenericFile(f).hasPrev();
-		boolean hasNextFile = IntFile.toGenericFile(f).hasNext();
-		if (isWhite) {
-			for (r=r-1; r > 0; r--) {
-				mask = addRankForBackwardsPawnMask(mask, r, f, hasPrevFile, hasNextFile);
-			}
-		} else {
-			for (r=r+1; r < 7; r++) {
-				mask = addRankForBackwardsPawnMask(mask, r, f, hasPrevFile,	hasNextFile);	
-			}
-		}
-		return mask;
-	}
-	private static long addRankForBackwardsPawnMask(long mask, int r, int f,
-			boolean hasPrevFile, boolean hasNextFile) {
-		if (hasPrevFile) {
-			mask |= 1L << r*8+(f-1);
-		}
-		if (hasNextFile) {
-			mask |= 1L << r*8+(f+1);
-		}
-		return mask;
-	}
-	
-	private static final long[] IsolatedPawn_Lut = new long[128]; 
-	static {
-		for (int atPos : Position.values) {
-			IsolatedPawn_Lut[atPos] = buildIsolatedPawnFileMask(Position.getFile(atPos));
-		}
-	}
-	private static long buildIsolatedPawnFileMask(int f) {
-		long mask = 0;
-		boolean hasPrevFile = IntFile.toGenericFile(f).hasPrev();
-		boolean hasNextFile = IntFile.toGenericFile(f).hasNext();
-		if (hasPrevFile) {
-			mask |= FileMask_Lut[f-1];
-		}
-		if (hasNextFile) {
-			mask |= FileMask_Lut[f+1];
-		}
-		return mask;
-	}
-	
-	private static long[] knightKingSafetyMask_Lut = new long[128];
-	static {
-		for (int atPos : Position.values) {
-			knightKingSafetyMask_Lut[atPos] = buildKnightAttacksForKingZone(atPos);
-		}
-	}
-	private static long buildKnightAttacksForKingZone(int atPos) {
-		long mask = 0;
-		long kingZone = SquareAttackEvaluator.KingMove_Lut[atPos];
-		for (int knightPos : Position.values) {
-			long knightMask = SquareAttackEvaluator.KnightMove_Lut[knightPos];
-			if ((knightMask & kingZone) != 0) {
-				mask |= BitBoard.positionToMask_Lut[knightPos];
-			}
-		}
-		return mask;
-	}
-	
-	public static final short MATERIAL_VALUE_KING = 4000;
-	public static final short MATERIAL_VALUE_QUEEN = 900;
-	public static final short MATERIAL_VALUE_ROOK = 490;
-	public static final short MATERIAL_VALUE_BISHOP = 305;
-	public static final short MATERIAL_VALUE_KNIGHT = 290;
-	public static final short MATERIAL_VALUE_PAWN = 100;
-	
-    public static final short [] PIECE_TO_MATERIAL_LUT = {0, Board.MATERIAL_VALUE_KING, Board.MATERIAL_VALUE_QUEEN, Board.MATERIAL_VALUE_ROOK, 
-    		Board.MATERIAL_VALUE_BISHOP, Board.MATERIAL_VALUE_KNIGHT, Board.MATERIAL_VALUE_PAWN };
-	
-	static final byte[] PAWN_WHITE_WEIGHTINGS;
-    static {
-    	PAWN_WHITE_WEIGHTINGS = new byte[128];
-        PAWN_WHITE_WEIGHTINGS[Position.a1] = 0; PAWN_WHITE_WEIGHTINGS[Position.b1] = 0; PAWN_WHITE_WEIGHTINGS[Position.c1] = 0; PAWN_WHITE_WEIGHTINGS[Position.d1] = 0; PAWN_WHITE_WEIGHTINGS[Position.e1] = 0; PAWN_WHITE_WEIGHTINGS[Position.f1] = 0; PAWN_WHITE_WEIGHTINGS[Position.g1] = 0; PAWN_WHITE_WEIGHTINGS[Position.h1] = 0;
-        PAWN_WHITE_WEIGHTINGS[Position.a2] = 0; PAWN_WHITE_WEIGHTINGS[Position.b2] = 0; PAWN_WHITE_WEIGHTINGS[Position.c2] = 0; PAWN_WHITE_WEIGHTINGS[Position.d2] = 0; PAWN_WHITE_WEIGHTINGS[Position.e2] = 0; PAWN_WHITE_WEIGHTINGS[Position.f2] = 0; PAWN_WHITE_WEIGHTINGS[Position.g2] = 0; PAWN_WHITE_WEIGHTINGS[Position.h2] = 0;
-        PAWN_WHITE_WEIGHTINGS[Position.a3] = 0; PAWN_WHITE_WEIGHTINGS[Position.b3] = 0; PAWN_WHITE_WEIGHTINGS[Position.c3] = 0; PAWN_WHITE_WEIGHTINGS[Position.d3] = 5; PAWN_WHITE_WEIGHTINGS[Position.e3] = 5; PAWN_WHITE_WEIGHTINGS[Position.f3] = 0; PAWN_WHITE_WEIGHTINGS[Position.g3] = 0; PAWN_WHITE_WEIGHTINGS[Position.h3] = 0;
-        PAWN_WHITE_WEIGHTINGS[Position.a4] = 0; PAWN_WHITE_WEIGHTINGS[Position.b4] = 0; PAWN_WHITE_WEIGHTINGS[Position.c4] = 3; PAWN_WHITE_WEIGHTINGS[Position.d4] = 8; PAWN_WHITE_WEIGHTINGS[Position.e4] = 8;PAWN_WHITE_WEIGHTINGS[Position.f4] = 3; PAWN_WHITE_WEIGHTINGS[Position.g4] = 0; PAWN_WHITE_WEIGHTINGS[Position.h4] = 0;
-        PAWN_WHITE_WEIGHTINGS[Position.a5] = 2; PAWN_WHITE_WEIGHTINGS[Position.b5] = 3; PAWN_WHITE_WEIGHTINGS[Position.c5] = 8; PAWN_WHITE_WEIGHTINGS[Position.d5] = 12; PAWN_WHITE_WEIGHTINGS[Position.e5] = 12; PAWN_WHITE_WEIGHTINGS[Position.f5] = 8; PAWN_WHITE_WEIGHTINGS[Position.g5] = 3; PAWN_WHITE_WEIGHTINGS[Position.h5] = 2;
-		PAWN_WHITE_WEIGHTINGS[Position.a6] = 4; PAWN_WHITE_WEIGHTINGS[Position.b6] = 8; PAWN_WHITE_WEIGHTINGS[Position.c6] = 12; PAWN_WHITE_WEIGHTINGS[Position.d6] = 16; PAWN_WHITE_WEIGHTINGS[Position.e6] = 16; PAWN_WHITE_WEIGHTINGS[Position.f6] = 12; PAWN_WHITE_WEIGHTINGS[Position.g6] = 8; PAWN_WHITE_WEIGHTINGS[Position.h6] = 4;
-		PAWN_WHITE_WEIGHTINGS[Position.a7] = 5; PAWN_WHITE_WEIGHTINGS[Position.b7] = 10; PAWN_WHITE_WEIGHTINGS[Position.c7] = 15; PAWN_WHITE_WEIGHTINGS[Position.d7] = 20; PAWN_WHITE_WEIGHTINGS[Position.e7] = 20; PAWN_WHITE_WEIGHTINGS[Position.f7] = 15; PAWN_WHITE_WEIGHTINGS[Position.g7] = 10; PAWN_WHITE_WEIGHTINGS[Position.h7] = 5;
-		PAWN_WHITE_WEIGHTINGS[Position.a8] = 0; PAWN_WHITE_WEIGHTINGS[Position.b8] = 0; PAWN_WHITE_WEIGHTINGS[Position.c8] = 0; PAWN_WHITE_WEIGHTINGS[Position.d8] = 0; PAWN_WHITE_WEIGHTINGS[Position.e8] = 0; PAWN_WHITE_WEIGHTINGS[Position.f8] = 0; PAWN_WHITE_WEIGHTINGS[Position.g8] = 0; PAWN_WHITE_WEIGHTINGS[Position.h8] = 0;
-    }
-    
-	static final byte[] PAWN_BLACK_WEIGHTINGS;
-    static {
-    	PAWN_BLACK_WEIGHTINGS = new byte[128];
-        PAWN_BLACK_WEIGHTINGS[Position.a1] = 0; PAWN_BLACK_WEIGHTINGS[Position.b1] = 0; PAWN_BLACK_WEIGHTINGS[Position.c1] = 0; PAWN_BLACK_WEIGHTINGS[Position.d1] = 0; PAWN_BLACK_WEIGHTINGS[Position.e1] = 0; PAWN_BLACK_WEIGHTINGS[Position.f1] = 0; PAWN_BLACK_WEIGHTINGS[Position.g1] = 0; PAWN_BLACK_WEIGHTINGS[Position.h1] = 0;
-        PAWN_BLACK_WEIGHTINGS[Position.a2] = 5; PAWN_BLACK_WEIGHTINGS[Position.b2] = 10; PAWN_BLACK_WEIGHTINGS[Position.c2] = 15; PAWN_BLACK_WEIGHTINGS[Position.d2] = 20;PAWN_BLACK_WEIGHTINGS[Position.e2] = 20;PAWN_BLACK_WEIGHTINGS[Position.f2] = 15; PAWN_BLACK_WEIGHTINGS[Position.g2] = 10; PAWN_BLACK_WEIGHTINGS[Position.h2] = 5;
-        PAWN_BLACK_WEIGHTINGS[Position.a3] = 4; PAWN_BLACK_WEIGHTINGS[Position.b3] = 8; PAWN_BLACK_WEIGHTINGS[Position.c3] = 12; PAWN_BLACK_WEIGHTINGS[Position.d3] = 16;PAWN_BLACK_WEIGHTINGS[Position.e3] = 16;PAWN_BLACK_WEIGHTINGS[Position.f3] = 12; PAWN_BLACK_WEIGHTINGS[Position.g3] = 8; PAWN_BLACK_WEIGHTINGS[Position.h3] = 4;
-        PAWN_BLACK_WEIGHTINGS[Position.a4] = 2; PAWN_BLACK_WEIGHTINGS[Position.b4] = 3; PAWN_BLACK_WEIGHTINGS[Position.c4] = 8; PAWN_BLACK_WEIGHTINGS[Position.d4] = 12;PAWN_BLACK_WEIGHTINGS[Position.e4] = 12;PAWN_BLACK_WEIGHTINGS[Position.f4] = 8;PAWN_BLACK_WEIGHTINGS[Position.g4] = 3; PAWN_BLACK_WEIGHTINGS[Position.h4] = 2;
-        PAWN_BLACK_WEIGHTINGS[Position.a5] = 0; PAWN_BLACK_WEIGHTINGS[Position.b5] = 0; PAWN_BLACK_WEIGHTINGS[Position.c5] = 3; PAWN_BLACK_WEIGHTINGS[Position.d5] = 8;PAWN_BLACK_WEIGHTINGS[Position.e5] = 8;PAWN_BLACK_WEIGHTINGS[Position.f5] = 3;PAWN_BLACK_WEIGHTINGS[Position.g5] = 0; PAWN_BLACK_WEIGHTINGS[Position.h5] = 0;
-		PAWN_BLACK_WEIGHTINGS[Position.a6] = 0; PAWN_BLACK_WEIGHTINGS[Position.b6] = 0; PAWN_BLACK_WEIGHTINGS[Position.c6] = 0; PAWN_BLACK_WEIGHTINGS[Position.d6] = 5;PAWN_BLACK_WEIGHTINGS[Position.e6] = 5;PAWN_BLACK_WEIGHTINGS[Position.f6] = 0; PAWN_BLACK_WEIGHTINGS[Position.g6] = 0; PAWN_BLACK_WEIGHTINGS[Position.h6] = 0;
-		PAWN_BLACK_WEIGHTINGS[Position.a7] = 0; PAWN_BLACK_WEIGHTINGS[Position.b7] = 0; PAWN_BLACK_WEIGHTINGS[Position.c7] = 0; PAWN_BLACK_WEIGHTINGS[Position.d7] = 0; PAWN_BLACK_WEIGHTINGS[Position.e7] = 0; PAWN_BLACK_WEIGHTINGS[Position.f7] = 0; PAWN_BLACK_WEIGHTINGS[Position.g7] = 0; PAWN_BLACK_WEIGHTINGS[Position.h7] = 0;
-		PAWN_BLACK_WEIGHTINGS[Position.a8] = 0; PAWN_BLACK_WEIGHTINGS[Position.b8] = 0; PAWN_BLACK_WEIGHTINGS[Position.c8] = 0; PAWN_BLACK_WEIGHTINGS[Position.d8] = 0; PAWN_BLACK_WEIGHTINGS[Position.e8] = 0; PAWN_BLACK_WEIGHTINGS[Position.f8] = 0; PAWN_BLACK_WEIGHTINGS[Position.g8] = 0; PAWN_BLACK_WEIGHTINGS[Position.h8] = 0;
-    }    
-	
-	static final byte[] KNIGHT_WEIGHTINGS;
-    static {
-    	KNIGHT_WEIGHTINGS = new byte[128];
-        KNIGHT_WEIGHTINGS[Position.a1] = -20;KNIGHT_WEIGHTINGS[Position.b1] = -10;KNIGHT_WEIGHTINGS[Position.c1] = -10;KNIGHT_WEIGHTINGS[Position.d1] = -10;KNIGHT_WEIGHTINGS[Position.e1] = -10;KNIGHT_WEIGHTINGS[Position.f1] = -10;KNIGHT_WEIGHTINGS[Position.g1] = -10;KNIGHT_WEIGHTINGS[Position.h1] = -20;
-		KNIGHT_WEIGHTINGS[Position.a2] = -10;KNIGHT_WEIGHTINGS[Position.b2] = 0;KNIGHT_WEIGHTINGS[Position.c2] = 0;KNIGHT_WEIGHTINGS[Position.d2] = 0;KNIGHT_WEIGHTINGS[Position.e2] = 0;KNIGHT_WEIGHTINGS[Position.f2] = 0;KNIGHT_WEIGHTINGS[Position.g2] = 0;KNIGHT_WEIGHTINGS[Position.h2] = -10;
-		KNIGHT_WEIGHTINGS[Position.a3] = -10;KNIGHT_WEIGHTINGS[Position.b3] = 0;KNIGHT_WEIGHTINGS[Position.c3] = 10;KNIGHT_WEIGHTINGS[Position.d3] = 10;KNIGHT_WEIGHTINGS[Position.e3] = 10;KNIGHT_WEIGHTINGS[Position.f3] = 10;KNIGHT_WEIGHTINGS[Position.g3] = 0;KNIGHT_WEIGHTINGS[Position.h3] = -10;
-		KNIGHT_WEIGHTINGS[Position.a4] = -10;KNIGHT_WEIGHTINGS[Position.b4] = 0;KNIGHT_WEIGHTINGS[Position.c4] = 10;KNIGHT_WEIGHTINGS[Position.d4] = 20;KNIGHT_WEIGHTINGS[Position.e4] = 20;KNIGHT_WEIGHTINGS[Position.f4] = 10;KNIGHT_WEIGHTINGS[Position.g4] = 0;KNIGHT_WEIGHTINGS[Position.h4] = -10;
-		KNIGHT_WEIGHTINGS[Position.a5] = -10;KNIGHT_WEIGHTINGS[Position.b5] = 0;KNIGHT_WEIGHTINGS[Position.c5] = 10;KNIGHT_WEIGHTINGS[Position.d5] = 20;KNIGHT_WEIGHTINGS[Position.e5] = 20;KNIGHT_WEIGHTINGS[Position.f5] = 10;KNIGHT_WEIGHTINGS[Position.g5] = 0;KNIGHT_WEIGHTINGS[Position.h5] = -10;
-		KNIGHT_WEIGHTINGS[Position.a6] = -10;KNIGHT_WEIGHTINGS[Position.b6] = 0;KNIGHT_WEIGHTINGS[Position.c6] = 10;KNIGHT_WEIGHTINGS[Position.d6] = 10;KNIGHT_WEIGHTINGS[Position.e6] = 10;KNIGHT_WEIGHTINGS[Position.f6] = 10;KNIGHT_WEIGHTINGS[Position.g6] = 0;KNIGHT_WEIGHTINGS[Position.h6] = -10;
-		KNIGHT_WEIGHTINGS[Position.a7] = -10;KNIGHT_WEIGHTINGS[Position.b7] = 0;KNIGHT_WEIGHTINGS[Position.c7] = 0;KNIGHT_WEIGHTINGS[Position.d7] = 0;KNIGHT_WEIGHTINGS[Position.e7] = 0;KNIGHT_WEIGHTINGS[Position.f7] = 0;KNIGHT_WEIGHTINGS[Position.g7] = 0;KNIGHT_WEIGHTINGS[Position.h7] = -10;
-		KNIGHT_WEIGHTINGS[Position.a8] = -20;KNIGHT_WEIGHTINGS[Position.b8] = -10;KNIGHT_WEIGHTINGS[Position.c8] = -10;KNIGHT_WEIGHTINGS[Position.d8] = -10;KNIGHT_WEIGHTINGS[Position.e8] = -10;KNIGHT_WEIGHTINGS[Position.f8] = -10;KNIGHT_WEIGHTINGS[Position.g8] = -10;KNIGHT_WEIGHTINGS[Position.h8] = -20;
-    }
-    
-    static final byte[] KING_ENDGAME_WEIGHTINGS;
-    static {
-    	KING_ENDGAME_WEIGHTINGS = new byte[128];
-        KING_ENDGAME_WEIGHTINGS[Position.a1] = -30;KING_ENDGAME_WEIGHTINGS[Position.b1] = -30;KING_ENDGAME_WEIGHTINGS[Position.c1] = -30;KING_ENDGAME_WEIGHTINGS[Position.d1] = -30;KING_ENDGAME_WEIGHTINGS[Position.e1] = -30;KING_ENDGAME_WEIGHTINGS[Position.f1] = -30;KING_ENDGAME_WEIGHTINGS[Position.g1] = -30;KING_ENDGAME_WEIGHTINGS[Position.h1] = -30;
-		KING_ENDGAME_WEIGHTINGS[Position.a2] = -30;KING_ENDGAME_WEIGHTINGS[Position.b2] = -20;KING_ENDGAME_WEIGHTINGS[Position.c2] = -20;KING_ENDGAME_WEIGHTINGS[Position.d2] = -20;KING_ENDGAME_WEIGHTINGS[Position.e2] = -20;KING_ENDGAME_WEIGHTINGS[Position.f2] = -20;KING_ENDGAME_WEIGHTINGS[Position.g2] = -20;KING_ENDGAME_WEIGHTINGS[Position.h2] = -30;
-		KING_ENDGAME_WEIGHTINGS[Position.a3] = -30;KING_ENDGAME_WEIGHTINGS[Position.b3] = -10;KING_ENDGAME_WEIGHTINGS[Position.c3] = 0;KING_ENDGAME_WEIGHTINGS[Position.d3] = 10;KING_ENDGAME_WEIGHTINGS[Position.e3] = 10;KING_ENDGAME_WEIGHTINGS[Position.f3] = 0;KING_ENDGAME_WEIGHTINGS[Position.g3] = -10;KING_ENDGAME_WEIGHTINGS[Position.h3] = -30;
-		KING_ENDGAME_WEIGHTINGS[Position.a4] = -20;KING_ENDGAME_WEIGHTINGS[Position.b4] = -10;KING_ENDGAME_WEIGHTINGS[Position.c4] = 10;KING_ENDGAME_WEIGHTINGS[Position.d4] = 20;KING_ENDGAME_WEIGHTINGS[Position.e4] = 20;KING_ENDGAME_WEIGHTINGS[Position.f4] = 10;KING_ENDGAME_WEIGHTINGS[Position.g4] = -10;KING_ENDGAME_WEIGHTINGS[Position.h4] = -20;
-		KING_ENDGAME_WEIGHTINGS[Position.a5] = -20;KING_ENDGAME_WEIGHTINGS[Position.b5] = -10;KING_ENDGAME_WEIGHTINGS[Position.c5] = 10;KING_ENDGAME_WEIGHTINGS[Position.d5] = 20;KING_ENDGAME_WEIGHTINGS[Position.e5] = 20;KING_ENDGAME_WEIGHTINGS[Position.f5] = 10;KING_ENDGAME_WEIGHTINGS[Position.g5] = -10;KING_ENDGAME_WEIGHTINGS[Position.h5] = -20;
-		KING_ENDGAME_WEIGHTINGS[Position.a6] = -30;KING_ENDGAME_WEIGHTINGS[Position.b6] = -10;KING_ENDGAME_WEIGHTINGS[Position.c6] = 0;KING_ENDGAME_WEIGHTINGS[Position.d6] = 10;KING_ENDGAME_WEIGHTINGS[Position.e6] = 10;KING_ENDGAME_WEIGHTINGS[Position.f6] = 0;KING_ENDGAME_WEIGHTINGS[Position.g6] = -10;KING_ENDGAME_WEIGHTINGS[Position.h6] = -30;
-		KING_ENDGAME_WEIGHTINGS[Position.a7] = -30;KING_ENDGAME_WEIGHTINGS[Position.b7] = -20;KING_ENDGAME_WEIGHTINGS[Position.c7] = -20;KING_ENDGAME_WEIGHTINGS[Position.d7] = -20;KING_ENDGAME_WEIGHTINGS[Position.e7] = -20;KING_ENDGAME_WEIGHTINGS[Position.f7] = -20;KING_ENDGAME_WEIGHTINGS[Position.g7] = -20;KING_ENDGAME_WEIGHTINGS[Position.h7] = -30;
-		KING_ENDGAME_WEIGHTINGS[Position.a8] = -30;KING_ENDGAME_WEIGHTINGS[Position.b8] = -30;KING_ENDGAME_WEIGHTINGS[Position.c8] = -30;KING_ENDGAME_WEIGHTINGS[Position.d8] = -30;KING_ENDGAME_WEIGHTINGS[Position.e8] = -30;KING_ENDGAME_WEIGHTINGS[Position.f8] = -30;KING_ENDGAME_WEIGHTINGS[Position.g8] = -30;KING_ENDGAME_WEIGHTINGS[Position.h8] = -30;
-    }
-    
-    static final byte[] KING_MIDGAME_WEIGHTINGS;
-    static {
-    	KING_MIDGAME_WEIGHTINGS = new byte[128];
-        KING_MIDGAME_WEIGHTINGS[Position.a1] = 5;KING_MIDGAME_WEIGHTINGS[Position.b1] = 25;KING_MIDGAME_WEIGHTINGS[Position.c1] = 50;KING_MIDGAME_WEIGHTINGS[Position.d1] = 0;KING_MIDGAME_WEIGHTINGS[Position.e1] = 0;KING_MIDGAME_WEIGHTINGS[Position.f1] = 5;KING_MIDGAME_WEIGHTINGS[Position.g1] = 50;KING_MIDGAME_WEIGHTINGS[Position.h1] = 5;
-		KING_MIDGAME_WEIGHTINGS[Position.a2] = 0;KING_MIDGAME_WEIGHTINGS[Position.b2] = -10;KING_MIDGAME_WEIGHTINGS[Position.c2] = -10;KING_MIDGAME_WEIGHTINGS[Position.d2] = -10;KING_MIDGAME_WEIGHTINGS[Position.e2] = -10;KING_MIDGAME_WEIGHTINGS[Position.f2] = -10;KING_MIDGAME_WEIGHTINGS[Position.g2] = -10;KING_MIDGAME_WEIGHTINGS[Position.h2] = -10;
-		KING_MIDGAME_WEIGHTINGS[Position.a3] = -20;KING_MIDGAME_WEIGHTINGS[Position.b3] = -20;KING_MIDGAME_WEIGHTINGS[Position.c3] = -30;KING_MIDGAME_WEIGHTINGS[Position.d3] = -30;KING_MIDGAME_WEIGHTINGS[Position.e3] = -30;KING_MIDGAME_WEIGHTINGS[Position.f3] = -30;KING_MIDGAME_WEIGHTINGS[Position.g3] = -20;KING_MIDGAME_WEIGHTINGS[Position.h3] = -20;
-		KING_MIDGAME_WEIGHTINGS[Position.a4] = -30;KING_MIDGAME_WEIGHTINGS[Position.b4] = -40;KING_MIDGAME_WEIGHTINGS[Position.c4] = -50;KING_MIDGAME_WEIGHTINGS[Position.d4] = -50;KING_MIDGAME_WEIGHTINGS[Position.e4] = -50;KING_MIDGAME_WEIGHTINGS[Position.f4] = -40;KING_MIDGAME_WEIGHTINGS[Position.g4] = -40;KING_MIDGAME_WEIGHTINGS[Position.h4] = -30;
-		KING_MIDGAME_WEIGHTINGS[Position.a5] = -30;KING_MIDGAME_WEIGHTINGS[Position.b5] = -40;KING_MIDGAME_WEIGHTINGS[Position.c5] = -50;KING_MIDGAME_WEIGHTINGS[Position.d5] = -50;KING_MIDGAME_WEIGHTINGS[Position.e5] = -50;KING_MIDGAME_WEIGHTINGS[Position.f5] = -40;KING_MIDGAME_WEIGHTINGS[Position.g5] = -40;KING_MIDGAME_WEIGHTINGS[Position.h5] = -30;
-		KING_MIDGAME_WEIGHTINGS[Position.a6] = -20;KING_MIDGAME_WEIGHTINGS[Position.b6] = -20;KING_MIDGAME_WEIGHTINGS[Position.c6] = -30;KING_MIDGAME_WEIGHTINGS[Position.d6] = -30;KING_MIDGAME_WEIGHTINGS[Position.e6] = -30;KING_MIDGAME_WEIGHTINGS[Position.f6] = -30;KING_MIDGAME_WEIGHTINGS[Position.g6] = -20;KING_MIDGAME_WEIGHTINGS[Position.h6] = -20;
-		KING_MIDGAME_WEIGHTINGS[Position.a7] = -10;KING_MIDGAME_WEIGHTINGS[Position.b7] = -10;KING_MIDGAME_WEIGHTINGS[Position.c7] = -10;KING_MIDGAME_WEIGHTINGS[Position.d7] = -10;KING_MIDGAME_WEIGHTINGS[Position.e7] = -10;KING_MIDGAME_WEIGHTINGS[Position.f7] = -10;KING_MIDGAME_WEIGHTINGS[Position.g7] = -10;KING_MIDGAME_WEIGHTINGS[Position.h7] = -10;
-		KING_MIDGAME_WEIGHTINGS[Position.a8] = 5;KING_MIDGAME_WEIGHTINGS[Position.b8] = 25;KING_MIDGAME_WEIGHTINGS[Position.c8] = 50;KING_MIDGAME_WEIGHTINGS[Position.d8] = 0;KING_MIDGAME_WEIGHTINGS[Position.e8] = 0;KING_MIDGAME_WEIGHTINGS[Position.f8] = 5;KING_MIDGAME_WEIGHTINGS[Position.g8] = 50;KING_MIDGAME_WEIGHTINGS[Position.h8] = 5;
-    }
-	
 	private long allPieces = 0x0;
 	private long whitePieces = 0x0;
 	private long blackPieces = 0x0;
@@ -266,17 +47,17 @@ public class Board {
 	private long[] pieces = new long[7]; // N.b. INDEX_NONE is an empty long at index 0.
 	
 	static final int ENDGAME_MATERIAL_THRESHOLD = 
-			Board.MATERIAL_VALUE_KING + 
-			Board.MATERIAL_VALUE_ROOK + 
-			Board.MATERIAL_VALUE_KNIGHT + 
-			(4 * Board.MATERIAL_VALUE_PAWN);
+			Piece.MATERIAL_VALUE_KING + 
+			Piece.MATERIAL_VALUE_ROOK + 
+			Piece.MATERIAL_VALUE_KNIGHT + 
+			(4 * Piece.MATERIAL_VALUE_PAWN);
 	
 	static final int ENDGAME_MATERIAL_THRESHOLD_WITHOUT_QUEENS =
-			Board.MATERIAL_VALUE_KING + 
-			Board.MATERIAL_VALUE_ROOK + 
-			Board.MATERIAL_VALUE_KNIGHT +
-			Board.MATERIAL_VALUE_BISHOP +
-			(4 * Board.MATERIAL_VALUE_PAWN);
+			Piece.MATERIAL_VALUE_KING + 
+			Piece.MATERIAL_VALUE_ROOK + 
+			Piece.MATERIAL_VALUE_KNIGHT +
+			Piece.MATERIAL_VALUE_BISHOP +
+			(4 * Piece.MATERIAL_VALUE_PAWN);
 	
 	public boolean isEndgame;
 	
@@ -307,16 +88,15 @@ public class Board {
 	
 	public static String reportStaticDataSizes() {
 		StringBuilder s = new StringBuilder();
-		int bytecountofstatics = PAWN_WHITE_WEIGHTINGS.length + PAWN_BLACK_WEIGHTINGS.length + KNIGHT_WEIGHTINGS.length + KING_ENDGAME_WEIGHTINGS.length + KING_MIDGAME_WEIGHTINGS.length;
+		int bytecountofstatics = Piece.PAWN_WHITE_WEIGHTINGS.length + Piece.PAWN_BLACK_WEIGHTINGS.length + Piece.KNIGHT_WEIGHTINGS.length + Piece.KING_ENDGAME_WEIGHTINGS.length + Piece.KING_MIDGAME_WEIGHTINGS.length;
 		s.append(String.format("PieceSquareTables %d bytes\n", bytecountofstatics));
 		int len = 0;
-		for(int i = 0; i < PassedPawn_Lut.length; i++)
+		for(int i = 0; i < BitBoard.PassedPawn_Lut.length; i++)
 		{
-		    len += PassedPawn_Lut[i].length;
+		    len += BitBoard.PassedPawn_Lut[i].length;
 		}
 		s.append(String.format("PassedPawn_Lut %d bytes\n", len*8));
-		s.append(String.format("FileMask_Lut %d bytes\n", FileMask_Lut.length*8));
-		s.append(String.format("RankMask_Lut %d bytes\n", RankMask_Lut.length*8));
+		s.append(String.format("FileMask_Lut %d bytes\n", BitBoard.FileMask_Lut.length*8));
 		return s.toString();
 	}
 	
@@ -682,49 +462,6 @@ public class Board {
 		return inCheck;
 	}
 	
-	public int pickUpPieceAtSquare( int atPos ) {
-		int type = Piece.NONE;
-		long pieceToPickUp = BitBoard.positionToMask_Lut[atPos];
-		if ((allPieces & pieceToPickUp) != 0) {	
-			// Remove from relevant colour bitboard
-			if ((blackPieces & pieceToPickUp) != 0) {
-				blackPieces &= ~pieceToPickUp;
-				type |= Piece.BLACK;
-			} else {
-				if (EubosEngineMain.ENABLE_ASSERTS)
-					assert (whitePieces & pieceToPickUp) != 0;
-				whitePieces &= ~pieceToPickUp;
-			}
-			// Remove from specific-piece bitboard
-			if ((pieces[INDEX_KING] & pieceToPickUp) == pieceToPickUp) {
-				pieces[INDEX_KING] &= ~pieceToPickUp;
-				type |= Piece.KING;
-			} else if ((pieces[INDEX_QUEEN] & pieceToPickUp) == pieceToPickUp) {
-				pieces[INDEX_QUEEN] &= ~pieceToPickUp;
-				type |= Piece.QUEEN;
-			} else if ((pieces[INDEX_ROOK] & pieceToPickUp) == pieceToPickUp) {
-				pieces[INDEX_ROOK] &= ~pieceToPickUp;
-				type |= Piece.ROOK;
-			} else if ((pieces[INDEX_BISHOP] & pieceToPickUp) == pieceToPickUp) {
-				pieces[INDEX_BISHOP] &= ~pieceToPickUp;
-				type |= Piece.BISHOP;
-			} else if ((pieces[INDEX_KNIGHT] & pieceToPickUp) == pieceToPickUp) {
-				pieces[INDEX_KNIGHT] &= ~pieceToPickUp;
-				type |= Piece.KNIGHT;
-			} else if ((pieces[INDEX_PAWN] & pieceToPickUp) == pieceToPickUp) {
-				pieces[INDEX_PAWN] &= ~pieceToPickUp;
-				type |= Piece.PAWN;
-			}
-			// Remove from all pieces bitboard
-			allPieces &= ~pieceToPickUp;
-			// Remove from piece list
-			if (ENABLE_PIECE_LISTS) {
-				pieceLists.removePiece(type, atPos);
-			}
-		}
-		return type;
-	}
-	
 	public int pickUpPieceAtSquare( int atPos, int piece ) {
 		long pieceToPickUp = BitBoard.positionToMask_Lut[atPos];
 		if ((allPieces & pieceToPickUp) != 0) {	
@@ -755,7 +492,7 @@ public class Board {
 		int doubledCount = 0;
 		long pawns = Colour.isWhite(side) ? getWhitePawns() : getBlackPawns();
 		for (int file : IntFile.values) {
-			long mask = FileMask_Lut[file];
+			long mask = BitBoard.FileMask_Lut[file];
 			long fileMask = pawns & mask;
 			int numPawnsInFile = Long.bitCount(fileMask);
 			if (numPawnsInFile > 1) {
@@ -767,7 +504,7 @@ public class Board {
 	
 	public boolean isPassedPawn(int atPos, Colour side) {
 		boolean isPassed = true;
-		long mask = PassedPawn_Lut[side.ordinal()][atPos];
+		long mask = BitBoard.PassedPawn_Lut[side.ordinal()][atPos];
 		long otherSidePawns = Colour.isWhite(side) ? getBlackPawns() : getWhitePawns();
 		if ((mask & otherSidePawns) != 0) {
 			isPassed  = false;
@@ -777,7 +514,7 @@ public class Board {
 	
 	public boolean isBackwardsPawn(int atPos, Colour side) {
 		boolean isBackwards = true;
-		long mask = BackwardsPawn_Lut[side.ordinal()][atPos];
+		long mask = BitBoard.BackwardsPawn_Lut[side.ordinal()][atPos];
 		long ownSidePawns = Colour.isBlack(side) ? getBlackPawns() : getWhitePawns();
 		if ((mask & ownSidePawns) != 0) {
 			isBackwards  = false;
@@ -787,7 +524,7 @@ public class Board {
 	
 	public boolean isIsolatedPawn(int atPos, Colour side) {
 		boolean isIsolated = true;
-		long mask = IsolatedPawn_Lut[atPos];
+		long mask = BitBoard.IsolatedPawn_Lut[atPos];
 		long ownSidePawns = Colour.isBlack(side) ? getBlackPawns() : getWhitePawns();
 		if ((mask & ownSidePawns) != 0) {
 			isIsolated  = false;
@@ -904,7 +641,7 @@ public class Board {
 	
 	public boolean isOnHalfOpenFile(GenericPosition atPos, int type) {
 		boolean isHalfOpen = false;
-		long fileMask = FileMask_Lut[IntFile.valueOf(atPos.file)];
+		long fileMask = BitBoard.FileMask_Lut[IntFile.valueOf(atPos.file)];
 		long otherSide = Piece.getOpposite(type) == Colour.white ? whitePieces : blackPieces;
 		long pawnMask = otherSide & (pieces[INDEX_PAWN]);
 		boolean opponentPawnOnFile = (pawnMask & fileMask) != 0;
@@ -937,55 +674,6 @@ public class Board {
 			couldLeadToDiscoveredCheck = ((square & attackingSquares) != 0);
 		}
 		return couldLeadToDiscoveredCheck;
-	}
-	
-	private boolean isPromotionPawnBlocked(long pawns, Direction dir) {
-		boolean potentialPromotion = false;
-		long scratchBitBoard = pawns;
-		while ( scratchBitBoard != 0x0L ) {
-			int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
-			int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-			if (squareIsEmpty(Direction.getDirectMoveSq(dir, atSquare))) {
-				potentialPromotion = true;
-				break;
-			}
-			// clear the lssb
-			scratchBitBoard &= scratchBitBoard-1;
-		}
-		return potentialPromotion;
-	}
-	
-	public boolean isPromotionPossible(Colour onMove) {
-		// TODO At the moment this doesn't consider if the pawn is pinned.
-		boolean potentialPromotion = false;
-		if (Piece.Colour.isWhite(onMove)) {
-			long pawns = getWhitePawns() & (RankMask_Lut[IntRank.R7]);
-			if (pawns != 0L) {
-				potentialPromotion = isPromotionPawnBlocked(pawns, Direction.up);
-			}
-		} else {
-			long pawns = getBlackPawns() & (RankMask_Lut[IntRank.R2]);
-			if (pawns != 0L) {
-				potentialPromotion = isPromotionPawnBlocked(pawns, Direction.down);
-			}
-		}
-		return potentialPromotion;
-	}
-	
-	public void getKingMoves(List<Integer> moves, boolean ownSideIsWhite) {
-		if (ENABLE_PIECE_LISTS) {
-			pieceLists.addKingEscapeMoves(moves, ownSideIsWhite);
-		} else {
-			long bitBoardToIterate = ownSideIsWhite ? whitePieces : blackPieces;
-			long scratchBitBoard = 0;
-			scratchBitBoard = bitBoardToIterate & pieces[INDEX_KING];
-    		while ( scratchBitBoard != 0x0L ) {
-				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
-				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-				Piece.king_generateEscapeMoves(moves, this, atSquare, ownSideIsWhite);
-				scratchBitBoard &= scratchBitBoard-1L;
-			}
-		}
 	}
 	
 	public void getRegularPieceMoves(MoveList ml, boolean ownSideIsWhite, boolean captures) {
@@ -1175,58 +863,17 @@ public class Board {
 		me.addPosition(false, (short)(mobility_score*2));
 	}
 	
-	void calculateDynamicMobilityOld(PiecewiseEvaluation me) {
-		long empty = ~allPieces;
-		// White Bishop and Queen
-		long white_diagonal_sliders = getWhiteBishops() | getWhiteQueens();
-		int mobility_score = 0x0;
-		if (white_diagonal_sliders != 0) {
-			mobility_score =  Long.bitCount(BitBoard.downLeftOccludedEmpty(white_diagonal_sliders, empty) ^ white_diagonal_sliders);
-			mobility_score += Long.bitCount(BitBoard.upLeftOccludedEmpty(white_diagonal_sliders, empty) ^ white_diagonal_sliders);
-			mobility_score += Long.bitCount(BitBoard.upRightOccludedEmpty(white_diagonal_sliders, empty) ^ white_diagonal_sliders);
-			mobility_score += Long.bitCount(BitBoard.downRightOccludedEmpty(white_diagonal_sliders, empty) ^ white_diagonal_sliders);
-			me.addPosition(true, (short)(mobility_score*2));
-		}
-		// White Rook and Queen
-		long white_rank_file_sliders = getWhiteRooks() | getWhiteQueens();
-		if (white_rank_file_sliders != 0) {
-			mobility_score =  Long.bitCount(BitBoard.leftOccludedEmpty(white_rank_file_sliders, empty) ^ white_rank_file_sliders);
-			mobility_score += Long.bitCount(BitBoard.upOccludedEmpty(white_rank_file_sliders, empty) ^ white_rank_file_sliders);
-			mobility_score += Long.bitCount(BitBoard.rightOccludedEmpty(white_rank_file_sliders, empty) ^ white_rank_file_sliders);
-			mobility_score += Long.bitCount(BitBoard.downOccludedEmpty(white_rank_file_sliders, empty) ^ white_rank_file_sliders);
-			me.addPosition(true, (short)(mobility_score*2));
-		}
-		// Black Bishop and Queen
-		long black_diagonal_sliders = getBlackBishops() | getBlackQueens();
-		if (black_diagonal_sliders != 0) {
-			mobility_score =  Long.bitCount(BitBoard.downLeftOccludedEmpty(black_diagonal_sliders, empty) ^ black_diagonal_sliders);
-			mobility_score += Long.bitCount(BitBoard.upLeftOccludedEmpty(black_diagonal_sliders, empty) ^ black_diagonal_sliders);
-			mobility_score += Long.bitCount(BitBoard.upRightOccludedEmpty(black_diagonal_sliders, empty) ^ black_diagonal_sliders);
-			mobility_score += Long.bitCount(BitBoard.downRightOccludedEmpty(black_diagonal_sliders, empty) ^ black_diagonal_sliders);
-			me.addPosition(false, (short)(mobility_score*2));
-		}
-		// Black Rook and Queen
-		long black_rank_file_sliders = getBlackRooks() | getBlackQueens();
-		if (black_rank_file_sliders != 0) {
-			mobility_score =  Long.bitCount(BitBoard.leftOccludedEmpty(black_rank_file_sliders, empty) ^ black_rank_file_sliders);
-			mobility_score += Long.bitCount(BitBoard.upOccludedEmpty(black_rank_file_sliders, empty) ^ black_rank_file_sliders);
-			mobility_score += Long.bitCount(BitBoard.rightOccludedEmpty(black_rank_file_sliders, empty) ^ black_rank_file_sliders);
-			mobility_score += Long.bitCount(BitBoard.downOccludedEmpty(black_rank_file_sliders, empty) ^ black_rank_file_sliders);
-			me.addPosition(false, (short)(mobility_score*2));
-		}
-	}
-	
     // For reasons of performance optimisation, part of the material evaluation considers the mobility of pieces.
     // This function generates a score considering two categories A) material B) static PSTs 
 	private PiecewiseEvaluation updateMaterialForPiece(int currPiece, int atPos, PiecewiseEvaluation eval) {
 		switch(currPiece) {
 		case Piece.WHITE_PAWN:
 			eval.addPiece(true, Piece.PAWN);
-			eval.addPosition(true, PAWN_WHITE_WEIGHTINGS[atPos]);
+			eval.addPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[atPos]);
 			break;
 		case Piece.BLACK_PAWN:
 			eval.addPiece(false, Piece.PAWN);
-			eval.addPosition(false, PAWN_BLACK_WEIGHTINGS[atPos]);
+			eval.addPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[atPos]);
 			break;
 		case Piece.WHITE_ROOK:
 			eval.addPiece(true, Piece.ROOK);
@@ -1242,11 +889,11 @@ public class Board {
 			break;
 		case Piece.WHITE_KNIGHT:
 			eval.addPiece(true, Piece.KNIGHT);
-			eval.addPosition(true, KNIGHT_WEIGHTINGS[atPos]);
+			eval.addPosition(true, Piece.KNIGHT_WEIGHTINGS[atPos]);
 			break;
 		case Piece.BLACK_KNIGHT:
 			eval.addPiece(false, Piece.KNIGHT);
-			eval.addPosition(false, KNIGHT_WEIGHTINGS[atPos]);
+			eval.addPosition(false, Piece.KNIGHT_WEIGHTINGS[atPos]);
 			break;
 		case Piece.WHITE_QUEEN:
 			eval.addPiece(true, Piece.QUEEN);
@@ -1256,11 +903,11 @@ public class Board {
 			break;
 		case Piece.WHITE_KING:
 			eval.addPiece(true, Piece.KING);
-			eval.addPosition(true, (isEndgame) ? KING_ENDGAME_WEIGHTINGS[atPos] : KING_MIDGAME_WEIGHTINGS[atPos]);
+			eval.addPosition(true, (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[atPos] : Piece.KING_MIDGAME_WEIGHTINGS[atPos]);
 			break;			
 		case Piece.BLACK_KING:
 			eval.addPiece(false, Piece.KING);
-			eval.addPosition(false, (isEndgame) ? KING_ENDGAME_WEIGHTINGS[atPos] : KING_MIDGAME_WEIGHTINGS[atPos]);
+			eval.addPosition(false, (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[atPos] : Piece.KING_MIDGAME_WEIGHTINGS[atPos]);
 			break;
 		default:
 			break;
@@ -1322,6 +969,43 @@ public class Board {
 		
 		// else insufficient
 		return true;
+	}
+	
+	private static final long LIGHT_SQUARES_MASK = 0x55AA55AA55AA55AAL;
+	private static final long DARK_SQUARES_MASK = 0xAA55AA55AA55AA55L; 
+	
+	private static long[] knightKingSafetyMask_Lut = new long[128];
+	static {
+		for (int atPos : Position.values) {
+			knightKingSafetyMask_Lut[atPos] = buildKnightAttacksForKingZone(atPos);
+		}
+	}
+	private static long buildKnightAttacksForKingZone(int atPos) {
+		long mask = 0;
+		long kingZone = SquareAttackEvaluator.KingMove_Lut[atPos];
+		for (int knightPos : Position.values) {
+			long knightMask = SquareAttackEvaluator.KnightMove_Lut[knightPos];
+			if ((knightMask & kingZone) != 0) {
+				mask |= BitBoard.positionToMask_Lut[knightPos];
+			}
+		}
+		return mask;
+	}
+	
+	static final long[][][] emptySquareMask_Lut = new long[128][SquareAttackEvaluator.allDirect.length][];
+	static {
+		for (int square : Position.values) {
+			int [][] forSqArray = SquareAttackEvaluator.directPieceMove_Lut[square];
+			int j=0;
+			for (int[] dir : forSqArray) {
+				long [] mask = new long[dir.length];
+				int i=0;
+				for (int sq : dir) {
+					mask[i++] = BitBoard.positionToMask_Lut[sq];
+				}
+				emptySquareMask_Lut[square][j++] = mask;
+			}
+		}
 	}
 	
 	public int evaluateKingSafety(Piece.Colour side) {
@@ -1388,18 +1072,6 @@ public class Board {
 		return evaluation;
 	}
 	
-	public byte getTwiceNumEmptyDiagonalSquares(int atPos) {
-		return getTwiceNumEmptySquaresInDirection(atPos, SquareAttackEvaluator.diagonals);
-	}
-	
-	public byte getTwiceNumEmptyRankFileSquares(int atPos) {
-		return getTwiceNumEmptySquaresInDirection(atPos, SquareAttackEvaluator.rankFile);
-	}
-	
-	public byte getTwiceNumEmptyAllDirectSquares(int atPos) {
-		return getTwiceNumEmptySquaresInDirection(atPos, SquareAttackEvaluator.allDirect);
-	}
-	
 	public byte getKingSafetyEvaluationDiagonalSquares(boolean whiteOnMove, int atPos) {
 		long defenders = (whiteOnMove) ? getWhiteBishops() : getBlackBishops();
 		long blockers = (whiteOnMove) ? getWhitePawns()/*|getWhiteKnights()*/ : getBlackPawns()/*|getBlackKnights()*/;
@@ -1410,22 +1082,6 @@ public class Board {
 		long defenders = (whiteOnMove) ? getWhiteRooks() : getBlackRooks();
 		long blockers = (whiteOnMove) ? getWhitePawns()/*|getWhiteKnights()*/ : getBlackPawns()/*|getBlackKnights()*/;
 		return getKingSafetyEvaluation(defenders, blockers, atPos, SquareAttackEvaluator.rankFile);
-	}
-		
-	static final long[][][] emptySquareMask_Lut = new long[128][SquareAttackEvaluator.allDirect.length][];
-	static {
-		for (int square : Position.values) {
-			int [][] forSqArray = SquareAttackEvaluator.directPieceMove_Lut[square];
-			int j=0;
-			for (int[] dir : forSqArray) {
-				long [] mask = new long[dir.length];
-				int i=0;
-				for (int sq : dir) {
-					mask[i++] = BitBoard.positionToMask_Lut[sq];
-				}
-				emptySquareMask_Lut[square][j++] = mask;
-			}
-		}
 	}
 	
 	private byte getKingSafetyEvaluation(long defenderMask, long blockerMask, int atPos, Direction [] dirs) {
@@ -1459,32 +1115,6 @@ public class Board {
 		return numSquares;
 	}
 	
-	private byte getTwiceNumEmptySquaresInDirection(int atPos, Direction [] dirs) {
-		byte numSquares = 0;
-		// One dimension for each direction, other dimension is array of individual square masks in that direction
-		long [][] emptySqMaskArray = emptySquareMask_Lut[atPos]; 
-		for (Direction dir: dirs) { 
-			int directionIndex = SquareAttackEvaluator.directionIndex_Lut.get(dir);
-			long inPathMask = SquareAttackEvaluator.directAttacksOnPositionAll_Lut[directionIndex][atPos];
-			if (inPathMask != 0) {
-				if ((allPieces & inPathMask) != 0) {
-					// Count the empty squares
-					for (long mask: emptySqMaskArray[directionIndex]) {
-						if ((allPieces & mask) == 0) {
-							numSquares+=2;
-						} else break;
-					}
-				} else {
-					// All the squares are empty in this direction
-					numSquares += (emptySqMaskArray[directionIndex].length*2);
-				}
-			} else {
-				 // This is a square on the edge of the board from which that direction is off the board
-			}
-		}
-		return numSquares;
-	}
-	
 	public void forEachPiece(IForEachPieceCallback caller) {
 		if (ENABLE_PIECE_LISTS) {
 			pieceLists.forEachPieceDoCallback(caller);
@@ -1498,6 +1128,7 @@ public class Board {
 			}
 		}
 	}
+	
 	
 	public void forEachPawnOfSide(IForEachPieceCallback caller, boolean isBlack) {
 		if (ENABLE_PIECE_LISTS) {
@@ -1515,18 +1146,6 @@ public class Board {
 		}
 	}
 	
-	public static Direction findDirectionToTarget(int atSquare, int targetSq, Direction[] directionsToConsider) {
-		long targetMask = BitBoard.positionToMask_Lut[targetSq];
-		Direction attackDir = null;
-		for (Direction direction : directionsToConsider) {
-			long directionMask = SquareAttackEvaluator.directAttacksOnPositionAll_Lut[SquareAttackEvaluator.directionIndex_Lut.get(direction)][atSquare];
-			if ((targetMask & directionMask) != 0) {
-				attackDir = direction;
-				break;
-			}
-		}
-		return attackDir;
-	}
 	public long getEmpty() {
 		return ~allPieces;
 	}

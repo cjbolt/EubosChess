@@ -2,6 +2,7 @@ package eubos.board;
 
 import java.util.PrimitiveIterator;
 
+import eubos.board.Piece.Colour;
 import eubos.position.Position;
 
 import com.fluxchess.jcpi.models.GenericPosition;
@@ -184,5 +185,117 @@ public final class BitBoard {
 	
 	public static long downRightAttacks(long board, long empty) {
 		return (downRightOccludedEmpty(board, empty) >>> 7) & not_a_file;
+	}
+	
+	static final long[] FileMask_Lut = new long[8];
+	static {
+		for (int file : IntFile.values) {
+			long mask = 0;
+			int f=file;
+			for (int r = 0; r<8; r++) {
+				mask  |= 1L << r*8+f;
+			}
+			FileMask_Lut[file]= mask;
+		}
+	}
+	
+	static final long[][] PassedPawn_Lut = new long[2][]; 
+	static {
+		long[] white_map = new long[128];
+		PassedPawn_Lut[Colour.white.ordinal()] = white_map;
+		for (int atPos : Position.values) {
+			white_map[atPos] = buildPassedPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), true);
+		}
+		long[] black_map = new long[128];
+		PassedPawn_Lut[Colour.black.ordinal()] = black_map;
+		for (int atPos : Position.values) {
+			black_map[atPos] = buildPassedPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), false);
+		}
+	}
+	private static long buildPassedPawnFileMask(int f, int r, boolean isWhite) {
+		long mask = 0;
+		boolean hasPrevFile = IntFile.toGenericFile(f).hasPrev();
+		boolean hasNextFile = IntFile.toGenericFile(f).hasNext();
+		if (isWhite) {
+			for (r=r+1; r < 7; r++) {
+				mask = addRankForPassedPawnMask(mask, r, f, hasPrevFile,
+						hasNextFile);
+			}
+		} else {
+			for (r=r-1; r > 0; r--) {
+				mask = addRankForPassedPawnMask(mask, r, f, hasPrevFile,
+						hasNextFile);	
+			}
+		}
+		return mask;
+	}
+	private static long addRankForPassedPawnMask(long mask, int r, int f,
+			boolean hasPrevFile, boolean hasNextFile) {
+		if (hasPrevFile) {
+			mask |= 1L << r*8+(f-1);
+		}
+		mask |= 1L << r*8+f;
+		if (hasNextFile) {
+			mask |= 1L << r*8+(f+1);
+		}
+		return mask;
+	}
+	
+	static final long[][] BackwardsPawn_Lut = new long[2][]; 
+	static {
+		long[] white_map = new long[128];
+		BackwardsPawn_Lut[Colour.white.ordinal()] = white_map;
+		for (int atPos : Position.values) {
+			white_map[atPos] = buildBackwardPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), true);
+		}
+		long[] black_map = new long[128];
+		BackwardsPawn_Lut[Colour.black.ordinal()] = black_map;
+		for (int atPos : Position.values) {
+			black_map[atPos] = buildBackwardPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), false);
+		}
+	}
+	private static long buildBackwardPawnFileMask(int f, int r, boolean isWhite) {
+		long mask = 0;
+		boolean hasPrevFile = IntFile.toGenericFile(f).hasPrev();
+		boolean hasNextFile = IntFile.toGenericFile(f).hasNext();
+		if (isWhite) {
+			for (r=r-1; r > 0; r--) {
+				mask = addRankForBackwardsPawnMask(mask, r, f, hasPrevFile, hasNextFile);
+			}
+		} else {
+			for (r=r+1; r < 7; r++) {
+				mask = addRankForBackwardsPawnMask(mask, r, f, hasPrevFile,	hasNextFile);	
+			}
+		}
+		return mask;
+	}
+	private static long addRankForBackwardsPawnMask(long mask, int r, int f,
+			boolean hasPrevFile, boolean hasNextFile) {
+		if (hasPrevFile) {
+			mask |= 1L << r*8+(f-1);
+		}
+		if (hasNextFile) {
+			mask |= 1L << r*8+(f+1);
+		}
+		return mask;
+	}
+	
+	static final long[] IsolatedPawn_Lut = new long[128]; 
+	static {
+		for (int atPos : Position.values) {
+			IsolatedPawn_Lut[atPos] = buildIsolatedPawnFileMask(Position.getFile(atPos));
+		}
+	}
+	private static long buildIsolatedPawnFileMask(int f) {
+		long mask = 0;
+		boolean hasPrevFile = IntFile.toGenericFile(f).hasPrev();
+		boolean hasNextFile = IntFile.toGenericFile(f).hasNext();
+		if (hasPrevFile) {
+			mask |= FileMask_Lut[f-1];
+		}
+		if (hasNextFile) {
+			mask |= FileMask_Lut[f+1];
+		}
+		return mask;
 	}
 }
