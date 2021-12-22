@@ -327,7 +327,7 @@ public class BoardTest {
 	public void test_evaluateKingSafety_No_opposingBishopWrongColour()throws IllegalNotationException {
 		setUpPosition("r4rk1/1p3p2/p7/P2P1p1B/4p3/2b5/3R1PPP/4K2R b K - 13 1 ");
 		assertEquals(-50, classUnderTest.evaluateKingSafety(Piece.Colour.white)); // 7*2*2 rnf 0 diag = 28
-		assertEquals(-30, classUnderTest.evaluateKingSafety(Piece.Colour.black)); // 7*2*2 rnf 1*2*1 = 30
+		assertEquals(-34, classUnderTest.evaluateKingSafety(Piece.Colour.black)); // 7*2*2 rnf 1*2*1 = 30
 	}
 	
 	@Test
@@ -340,7 +340,7 @@ public class BoardTest {
 	public void test_evaluateKingSafety_Yes_opposingQueenBishop()throws IllegalNotationException {
 		setUpPosition("r4rk1/1p6/p7/P2P1p1B/4p3/2b5/3R1PPP/Q1K4R b - - 13 1 ");
 		assertEquals(-50, classUnderTest.evaluateKingSafety(Piece.Colour.white));  // (5 up right + 2 up left) *2 *1bish = 14; (7 up + 2 left + 5 right) * 2 *2rooks = 28*2; 56+14 = 70
-		assertEquals(-70, classUnderTest.evaluateKingSafety(Piece.Colour.black)); // 1*2*2 diag = 4; 7*2*3 = 42 r'n'f; 4+42 = 46 
+		assertEquals(-76, classUnderTest.evaluateKingSafety(Piece.Colour.black));  // 1*2*2 diag = 4; 7*2*3 = 42 r'n'f; 4+42 = 46 
 	}
 	
 	@Test
