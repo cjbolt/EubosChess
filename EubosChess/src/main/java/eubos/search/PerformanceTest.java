@@ -1,10 +1,8 @@
 package eubos.search;
 
-import java.util.Iterator;
-
-
 import eubos.position.PositionManager;
 import eubos.position.MoveList;
+import eubos.position.MoveListIterator;
 
 public class PerformanceTest {
 
@@ -25,9 +23,9 @@ public class PerformanceTest {
 	    public long perft()  {
 	        if (currPly < requestedDepthPly) {        
 	            MoveList ml = new MoveList(pm);
-	            Iterator<Integer> iter = ml.iterator();
+	            MoveListIterator iter = ml.iterator();
 	            while (iter.hasNext()) {
-	            	int move = iter.next();
+	            	int move = iter.nextInt();
 					pm.performMove(move, false);
 	                currPly+=1;
 	                perft();

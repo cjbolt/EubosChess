@@ -39,8 +39,9 @@ public class CastlingManagerTest {
 		// 1 ....k..r
 		//   abcdefgh
 		setupPosition("8/8/8/8/8/8/8/4K2R w K - - -");
-		classUnderTest = pm.castling;
-		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml);
+		// Now added directly by MoveList Constructor
+		//classUnderTest = pm.castling;
+		//classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml);
 		expectWkscMove();
 	}
 	
@@ -211,8 +212,9 @@ public class CastlingManagerTest {
 		// 1 ....k..r
 		//   abcdefgh
 		setupPosition("8/8/8/8/8/5b2/8/4K2R w K - - -");
-		classUnderTest = pm.castling;
-		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml);
+		// Now added directly by MoveList Constructor
+		//classUnderTest = pm.castling;
+		//classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml);
 		expectWkscMove();
 	}
 
@@ -228,8 +230,9 @@ public class CastlingManagerTest {
 		// 1 ........
 		//   abcdefgh
 		setupPosition("r3k3/8/8/8/8/8/8/8 b q - - -");
-		classUnderTest = pm.castling;
-		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml);
+		// Now added directly by MoveList Constructor
+		//classUnderTest = pm.castling;
+		//classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml);
 		expectBqscMove();
 	}
 	
@@ -282,8 +285,9 @@ public class CastlingManagerTest {
 		// 1 ........
 		//   abcdefgh
 		setupPosition("r3k3/8/8/8/8/8/8/8 b q - - -");
-		classUnderTest = pm.castling;
-		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml);
+		// Now added directly by MoveList Constructor
+		//classUnderTest = pm.castling;
+		//classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml);
 		assertTrue(ml.contains(CastlingManager.bqsc));
 		assertFalse(ml.contains(CastlingManager.bksc));
 	}	

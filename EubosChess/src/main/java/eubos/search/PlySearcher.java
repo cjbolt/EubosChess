@@ -9,6 +9,7 @@ import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.position.MoveList;
+import eubos.position.MoveListIterator;
 import eubos.position.PositionManager;
 import eubos.score.IEvaluate;
 import eubos.score.IScoreMate;
@@ -212,12 +213,12 @@ public class PlySearcher {
 		}
 		
 		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, killers.getMoves(currPly), moveListOrdering, false, needToEscapeCheck);
-		Iterator<Integer> move_iter = ml.iterator();
+		MoveListIterator move_iter = ml.iterator();
 		if (!move_iter.hasNext()) {
 			return sg.scoreMate(currPly);
 		}
 		
-		int currMove = move_iter.next();
+		int currMove = move_iter.nextInt();
 		int bestMove = currMove;
 		pc.initialise(currPly, currMove);
 		
@@ -274,7 +275,7 @@ public class PlySearcher {
 			// Break-out when out of moves
 			if (move_iter.hasNext()) {
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(alpha, beta);
-				currMove = move_iter.next();
+				currMove = move_iter.nextInt();
 				moveNumber += 1;
 			} else {
 				break;
