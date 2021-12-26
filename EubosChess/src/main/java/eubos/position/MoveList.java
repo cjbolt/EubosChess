@@ -51,9 +51,9 @@ public class MoveList implements Iterable<Integer> {
 	
 	public MoveList(PositionManager pm, int bestMove, int [] killers, int orderMoveList, boolean capturesOnly, boolean needToEscapeMate)  {	
 		
-		normal_search_moves = new int[90];
+		normal_search_moves = new int[100];
 		//Arrays.fill(normal_search_moves, Move.NULL_MOVE);
-		priority_moves = new int[30];
+		priority_moves = new int[35];
 		//Arrays.fill(priority_moves, Move.NULL_MOVE);
 		normal_fill_index = 0;
 		priority_fill_index = (bestMove != Move.NULL_MOVE) ? 1 : 0; // reserve space for the best move!
