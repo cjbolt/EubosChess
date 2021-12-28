@@ -1,13 +1,12 @@
 package eubos.position;
 
-import java.util.Comparator;
-
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IntChessman;
 
 import eubos.board.Board;
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
+import it.unimi.dsi.fastutil.ints.IntComparator;
 
 /* This class represents a move as a integer primitive value. */
 public final class Move {
@@ -469,8 +468,8 @@ public final class Move {
 	
     public static final MoveMvvLvaComparator mvvLvaComparator = new MoveMvvLvaComparator();
     
-    private static class MoveMvvLvaComparator implements Comparator<Integer> {
-        @Override public int compare(Integer move1, Integer move2) {
+    private static class MoveMvvLvaComparator implements IntComparator {
+        @Override public int compare(int move1, int move2) {
         	int type1 = move1 & Move.TYPE_MASK;
         	int type2 = move2 & Move.TYPE_MASK;
             if (type1 < type2) {

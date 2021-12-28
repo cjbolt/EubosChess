@@ -1,9 +1,6 @@
 package eubos.position;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -14,6 +11,8 @@ import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.search.KillerList;
+import it.unimi.dsi.fastutil.ints.IntArrays;
+import it.unimi.dsi.fastutil.ints.IntComparator;
 
 public class MoveList implements Iterable<Integer> {
 	
@@ -29,8 +28,8 @@ public class MoveList implements Iterable<Integer> {
 	
 	private static final MoveTypeComparator moveTypeComparator = new MoveTypeComparator();
 	
-    static class MoveTypeComparator implements Comparator<Integer> {
-        @Override public int compare(Integer move1, Integer move2) {
+    static class MoveTypeComparator implements IntComparator {
+        @Override public int compare(int move1, int move2) {
             boolean gt = Move.getType(move1) < Move.getType(move2);
             boolean eq = Move.getType(move1) == Move.getType(move2);
             return gt ? 1 : (eq ? 0 : -1);
@@ -51,10 +50,8 @@ public class MoveList implements Iterable<Integer> {
 	
 	public MoveList(PositionManager pm, int bestMove, int [] killers, int orderMoveList, boolean capturesOnly, boolean needToEscapeMate)  {	
 		
-		normal_search_moves = new int[100];
-		//Arrays.fill(normal_search_moves, Move.NULL_MOVE);
-		priority_moves = new int[35];
-		//Arrays.fill(priority_moves, Move.NULL_MOVE);
+		normal_search_moves = new int[40];
+		priority_moves = new int[20];
 		normal_fill_index = 0;
 		priority_fill_index = (bestMove != Move.NULL_MOVE) ? 1 : 0; // reserve space for the best move!
 		
@@ -169,32 +166,23 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	private void checkToSortList(int orderMoveList) {
-		List<Integer> wrapper;
 		switch (orderMoveList) {
 		case 0:
 			/* Don't order the move list in this case. */
 			break;
 		case 1:
-			wrapper = IntStream.of(Arrays.copyOfRange(priority_moves, 0, priority_fill_index)).boxed().collect(Collectors.toList());
-			Collections.sort(wrapper, Move.mvvLvaComparator);
-			priority_moves = wrapper.stream().mapToInt(i->i).toArray();
+			IntArrays.quickSort(priority_moves, 0, priority_fill_index, Move.mvvLvaComparator);
 			break;
 		case 2:
-			wrapper = IntStream.of(Arrays.copyOfRange(priority_moves, 0, priority_fill_index)).boxed().collect(Collectors.toList());
-			Collections.reverse(wrapper);
-			Collections.sort(wrapper, moveTypeComparator);
-			priority_moves = wrapper.stream().mapToInt(i->i).toArray();
+			IntArrays.reverse(priority_moves, 0, priority_fill_index);
+			IntArrays.quickSort(priority_moves, 0, priority_fill_index, moveTypeComparator);
 			break;
 		case 3:
-			wrapper = IntStream.of(Arrays.copyOfRange(priority_moves, 0, priority_fill_index)).boxed().collect(Collectors.toList());
-			Collections.reverse(wrapper);
-			Collections.sort(wrapper, Move.mvvLvaComparator);
-			priority_moves = wrapper.stream().mapToInt(i->i).toArray();
+			IntArrays.reverse(priority_moves, 0, priority_fill_index);
+			IntArrays.quickSort(priority_moves, 0, priority_fill_index, Move.mvvLvaComparator);
 			break;
 		case 4:
-			wrapper = IntStream.of(Arrays.copyOfRange(priority_moves, 0, priority_fill_index)).boxed().collect(Collectors.toList());
-			Collections.sort(wrapper, moveTypeComparator);
-			priority_moves = wrapper.stream().mapToInt(i->i).toArray();
+			IntArrays.quickSort(priority_moves, 0, priority_fill_index, moveTypeComparator);
 			break;
 		default:
 			EubosEngineMain.logger.severe(String.format("Bad move ordering scheme %d!", orderMoveList));
@@ -228,14 +216,6 @@ public class MoveList implements Iterable<Integer> {
 	public int getRandomMove() {
 		int bestMove = Move.NULL_MOVE;
 		if (!isMateOccurred()) {
-			/* Exclude null moves
-			List<Integer> ml = new ArrayList<Integer>();
-			for (int move : normal_search_moves) {
-				if (move != Move.NULL_MOVE) {
-					ml.add(move);
-				}
-			}*/
-			// Get random move
 			Random randomIndex = new Random();
 			Integer indexToGet = randomIndex.nextInt(normal_search_moves.length);
 			bestMove = normal_search_moves[indexToGet];		
@@ -262,10 +242,16 @@ public class MoveList implements Iterable<Integer> {
 	}	
 	
 	public void addNormal(int move) {
-		this.normal_search_moves[normal_fill_index++]=(move);
+		if (normal_fill_index >= normal_search_moves.length-1) {
+			normal_search_moves = IntArrays.grow(normal_search_moves, normal_search_moves.length+40);
+		}
+		this.normal_search_moves[normal_fill_index++] = move;
 	}
 	
 	public void addPrio(int move) {
+		if (priority_fill_index >= priority_moves.length-1) {
+			priority_moves = IntArrays.grow(priority_moves, priority_moves.length+20);
+		}
 		this.priority_moves[priority_fill_index++] = move;
 	}
 	
