@@ -1,7 +1,7 @@
 package eubos.position;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -11,6 +11,7 @@ import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.search.KillerList;
+
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.ints.IntComparator;
 
@@ -22,7 +23,7 @@ public class MoveList implements Iterable<Integer> {
 	private int normal_fill_index;
 	private int priority_fill_index;
 	
-	private List<Integer> extended_search_moves;
+	private int [] extended_search_moves;
 	
 	private boolean isMate;
 	
@@ -197,16 +198,17 @@ public class MoveList implements Iterable<Integer> {
 		return new MoveListIterator(normal_search_moves);
 	}
 	
-	public Iterator<Integer> getExtendedIterator() {
+	public MoveListIterator getExtendedIterator() {
 		// Lazy creation of extended move list
-		extended_search_moves = new ArrayList<Integer>(priority_fill_index);
-		for (int currMove : priority_moves) {
+		extended_search_moves = new int [priority_fill_index];
+		int i =0;
+		for (int currMove : Arrays.copyOfRange(priority_moves, 0, priority_fill_index)) {
 			boolean includeInQuiescenceSearch = Move.isQueenPromotion(currMove) || Move.isCapture(currMove);
 			if (includeInQuiescenceSearch) {
-				extended_search_moves.add(currMove);
+				extended_search_moves[i++] = currMove;
 			}
 		}
-		return extended_search_moves.iterator(); 
+		return new MoveListIterator(IntArrays.trim(extended_search_moves, i)); 
 	}
 		
 	public boolean isMateOccurred() {

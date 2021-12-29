@@ -246,10 +246,10 @@ public class MoveListTest {
 	@Test
 	public void test_check_extended_search_moves_contain_only_promotions_captures_rook()throws IllegalNotationException {
 		setup( "3q1rk1/p4pp1/2p4p/3p4/6Pr/1PNQ4/P1PB1PPb/4RR1K b - - - 2");
-		Iterator<Integer> it = classUnderTest.getExtendedIterator();
+		MoveListIterator it = classUnderTest.getExtendedIterator();
 		
 		// Capture
-		assertEquals(new GenericMove("h4g4"), Move.toGenericMove(it.next()));		
+		assertEquals(new GenericMove("h4g4"), Move.toGenericMove(it.nextInt()));		
 		assertFalse(it.hasNext());
 	}
 	
@@ -257,12 +257,12 @@ public class MoveListTest {
 	public void test_check_extended_search_moves_contain_only_promotions_captures_knight_queen()throws IllegalNotationException {
 		PositionManager pm = new PositionManager("3q1rk1/p4pp1/2p4p/3p4/6Pr/1PNQ4/P1PB1PPb/4RR1K w - - - 2");
 		classUnderTest = new MoveList(pm, Move.NULL_MOVE, null, 1, true, pm.isKingInCheck());
-		Iterator<Integer> it = classUnderTest.getExtendedIterator();
+		MoveListIterator it = classUnderTest.getExtendedIterator();
 		
 		// Capture
-		assertEquals(new GenericMove("c3d5"), Move.toGenericMove(it.next()));
-		assertEquals(new GenericMove("d2h6"), Move.toGenericMove(it.next()));
-		assertEquals(new GenericMove("d3d5"), Move.toGenericMove(it.next()));
+		assertEquals(new GenericMove("c3d5"), Move.toGenericMove(it.nextInt()));
+		assertEquals(new GenericMove("d2h6"), Move.toGenericMove(it.nextInt()));
+		assertEquals(new GenericMove("d3d5"), Move.toGenericMove(it.nextInt()));
 		assertFalse(it.hasNext());
 	}
 	
@@ -270,13 +270,13 @@ public class MoveListTest {
 	public void test_check_extended_search_moves_contain_only_promotions_captures_king()throws IllegalNotationException {
 		PositionManager pm = new PositionManager("3q1rk1/p4pp1/2p4p/3p4/6P1/1PNQ4/P1PB1PPb/4RR1K w - - - 2");
 		classUnderTest = new MoveList(pm, Move.NULL_MOVE, null, 1, true, pm.isKingInCheck());
-		Iterator<Integer> it = classUnderTest.getExtendedIterator();
+		MoveListIterator it = classUnderTest.getExtendedIterator();
 		
 		// Capture - removed rook to make the king capture legal!
-		assertEquals(new GenericMove("c3d5"), Move.toGenericMove(it.next()));
-		assertEquals(new GenericMove("d2h6"), Move.toGenericMove(it.next()));
-		assertEquals(new GenericMove("d3d5"), Move.toGenericMove(it.next()));
-		assertEquals(new GenericMove("h1h2"), Move.toGenericMove(it.next()));
+		assertEquals(new GenericMove("c3d5"), Move.toGenericMove(it.nextInt()));
+		assertEquals(new GenericMove("d2h6"), Move.toGenericMove(it.nextInt()));
+		assertEquals(new GenericMove("d3d5"), Move.toGenericMove(it.nextInt()));
+		assertEquals(new GenericMove("h1h2"), Move.toGenericMove(it.nextInt()));
 		assertFalse(it.hasNext());
 	}
 	
@@ -284,17 +284,17 @@ public class MoveListTest {
 	public void test_check_extended_search_moves_contain_only_promotions_and_captures_all()throws IllegalNotationException {
 		PositionManager pm = new PositionManager("6k1/PBN5/8/2Kp4/2P5/5Q2/8/3R4 w - - 0 1 ");
 		classUnderTest = new MoveList(pm, Move.NULL_MOVE, null, 1, true, pm.isKingInCheck());
-		Iterator<Integer> it = classUnderTest.getExtendedIterator();
+		MoveListIterator it = classUnderTest.getExtendedIterator();
 		
 		// Promotion
-		assertEquals(new GenericMove("a7a8Q"), Move.toGenericMove(it.next()));
+		assertEquals(new GenericMove("a7a8Q"), Move.toGenericMove(it.nextInt()));
 		// Captures
-		assertEquals(new GenericMove("c4d5"), Move.toGenericMove(it.next())); // PxP
-		assertEquals(new GenericMove("c7d5"), Move.toGenericMove(it.next())); // NxP
-		assertEquals(new GenericMove("b7d5"), Move.toGenericMove(it.next())); // BxP
-		assertEquals(new GenericMove("d1d5"), Move.toGenericMove(it.next())); // RxP
-		assertEquals(new GenericMove("f3d5"), Move.toGenericMove(it.next())); // QxP
-		assertEquals(new GenericMove("c5d5"), Move.toGenericMove(it.next())); // KxP
+		assertEquals(new GenericMove("c4d5"), Move.toGenericMove(it.nextInt())); // PxP
+		assertEquals(new GenericMove("c7d5"), Move.toGenericMove(it.nextInt())); // NxP
+		assertEquals(new GenericMove("b7d5"), Move.toGenericMove(it.nextInt())); // BxP
+		assertEquals(new GenericMove("d1d5"), Move.toGenericMove(it.nextInt())); // RxP
+		assertEquals(new GenericMove("f3d5"), Move.toGenericMove(it.nextInt())); // QxP
+		assertEquals(new GenericMove("c5d5"), Move.toGenericMove(it.nextInt())); // KxP
 		
 		assertFalse(it.hasNext());
 		

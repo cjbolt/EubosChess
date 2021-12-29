@@ -327,7 +327,7 @@ public class PlySearcher {
 		}
 		// Don't use Killer moves as we don't search quiet moves in the extended search
 		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, null, moveListOrdering, true, needToEscapeCheck);
-		Iterator<Integer> move_iter = ml.getExtendedIterator();
+		MoveListIterator move_iter = ml.getExtendedIterator();
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtendedSearchMoveList(ml);
 		if (!move_iter.hasNext()) {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearchNoMoves(plyScore);
@@ -339,7 +339,7 @@ public class PlySearcher {
 			alpha = plyScore;
 		}
 
-		int currMove = move_iter.next();
+		int currMove = move_iter.nextInt();
 		pc.initialise(currPly, currMove);
 		while(true) {		
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
@@ -366,7 +366,7 @@ public class PlySearcher {
 			}
 			
 			if (move_iter.hasNext()) {
-				currMove = move_iter.next();
+				currMove = move_iter.nextInt();
 			} else {
 				break;
 			}
