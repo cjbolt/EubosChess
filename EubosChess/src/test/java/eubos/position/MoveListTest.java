@@ -315,5 +315,11 @@ public class MoveListTest {
 		classUnderTest = new MoveList(pm, best, null, 1, false, pm.isKingInCheck());
 		assertEquals(new GenericMove("f8b4"), Move.toGenericMove(classUnderTest.getBestMove()));
 	}
+	
+	@Test
+	public void test_extended_search_iterator_has_next_is_null() {
+		setup("8/8/8/8/8/1pp5/ppp5/Kp6 w - - - -"); // is_stalemate
+		assertFalse(classUnderTest.getExtendedIterator().hasNext());
+	}
 	 
 }

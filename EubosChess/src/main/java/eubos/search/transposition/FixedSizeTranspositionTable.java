@@ -141,6 +141,7 @@ public class FixedSizeTranspositionTable {
 				if (hashMapSize >= maxHashMapSize*0.75) {
 					// Remove the least used 20% of hashes by access count
 					removeLeastUsed();
+					System.gc();
 				}
 				try {
 					Thread.sleep(pollRateMillisecs);

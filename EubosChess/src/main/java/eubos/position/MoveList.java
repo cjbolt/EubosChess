@@ -1,7 +1,6 @@
 package eubos.position;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -72,8 +71,8 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	private void addPriorityMovesAtFrontAndRemoveNullMoves(int valid_move_count) {
-		int [] condensed_array = new int[valid_move_count];
 		if (!isMate) {
+			int [] condensed_array = new int[valid_move_count];
 			int i = 0;
 			for (int j=0; j < priority_fill_index; j++) {
 				int move = priority_moves[j];
@@ -81,14 +80,21 @@ public class MoveList implements Iterable<Integer> {
 					condensed_array[i++] = move;
 				}
 			}
+			// Update for number of valid priority moves, needed by lazy extended moves creation
+			priority_fill_index = i;
+			
 			for (int j=0; j < normal_fill_index; j++) {
 				int move = normal_search_moves[j];
 				if (move != Move.NULL_MOVE) {
 					condensed_array[i++] = move;
 				}
 			}
+			normal_search_moves = condensed_array;
+		} else {
+			// There are no moves
+			normal_search_moves = new int [0];
+			priority_fill_index = 0;
 		}
-		normal_search_moves = condensed_array;
 	}
 
 	private int removeInvalidIdentifyBestKillerMoves(PositionManager pm, int bestMove, int[] killers, Colour onMove,
@@ -199,16 +205,17 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	public MoveListIterator getExtendedIterator() {
-		// Lazy creation of extended move list
-		extended_search_moves = new int [priority_fill_index];
-		int i =0;
-		for (int currMove : Arrays.copyOfRange(priority_moves, 0, priority_fill_index)) {
-			boolean includeInQuiescenceSearch = Move.isQueenPromotion(currMove) || Move.isCapture(currMove);
+		// Lazy creation of extended moves
+		int ext_count = 0;
+		extended_search_moves = IntArrays.copy(normal_search_moves, 0, priority_fill_index);
+		for (int move : extended_search_moves) {
+			boolean includeInQuiescenceSearch = Move.isCapture(move) || Move.isQueenPromotion(move);
 			if (includeInQuiescenceSearch) {
-				extended_search_moves[i++] = currMove;
+				extended_search_moves[ext_count++] = move;
 			}
 		}
-		return new MoveListIterator(IntArrays.trim(extended_search_moves, i)); 
+		extended_search_moves = IntArrays.trim(extended_search_moves, ext_count);
+		return new MoveListIterator(extended_search_moves);
 	}
 		
 	public boolean isMateOccurred() {
