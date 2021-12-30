@@ -134,6 +134,7 @@ public class FixedSizeTranspositionTable {
 		
 		public TranspositionTableMonitorThread() {
 			this.setName("TranspositionTableMonitorThread");
+			setDaemon(true);
 		}
 		
 		public void run() {
@@ -141,8 +142,9 @@ public class FixedSizeTranspositionTable {
 				if (hashMapSize >= maxHashMapSize*0.75) {
 					// Remove the least used 20% of hashes by access count
 					removeLeastUsed();
-					System.gc();
 				}
+				// Run GC at least after every move is sent to the UI
+				System.gc();
 				try {
 					Thread.sleep(pollRateMillisecs);
 				} catch (InterruptedException e) {
