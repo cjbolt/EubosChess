@@ -211,7 +211,7 @@ public class PlySearcher {
 			prevBestMove = trans.getBestMove(pos.getTheBoard());
 		}
 		
-		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, killers.getMoves(currPly), moveListOrdering, false, needToEscapeCheck);
+		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, killers.getMoves(currPly), moveListOrdering, false, needToEscapeCheck, currPly);
 		MoveListIterator move_iter = ml.iterator();
 		if (!move_iter.hasNext()) {
 			return sg.scoreMate(currPly);
@@ -325,7 +325,7 @@ public class PlySearcher {
 			prevBestMove = trans.getBestMove(pos.getTheBoard());
 		}
 		// Don't use Killer moves as we don't search quiet moves in the extended search
-		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, null, moveListOrdering, true, needToEscapeCheck);
+		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, null, moveListOrdering, true, needToEscapeCheck, currPly);
 		MoveListIterator move_iter = ml.getExtendedIterator();
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtendedSearchMoveList(ml);
 		if (!move_iter.hasNext()) {

@@ -7,13 +7,15 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 
 	private int [] moves = null;
 	private int next = 0;
+	private int count = 0;
 
-	public MoveListIterator(int[] normal_search_moves) {
+	public MoveListIterator(int[] normal_search_moves, int length) {
 		moves = normal_search_moves;
+		count = length;
 	}
 
 	public boolean hasNext() {
-		return next < moves.length;
+		return next < count;
 	}
 
 	public Integer next() {

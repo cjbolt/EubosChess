@@ -22,7 +22,7 @@ public class PerformanceTest {
 	    
 	    public long perft()  {
 	        if (currPly < requestedDepthPly) {        
-	            MoveList ml = new MoveList(pm);
+	            MoveList ml = new MoveList(pm, currPly);
 	            MoveListIterator iter = ml.iterator();
 	            while (iter.hasNext()) {
 	            	int move = iter.nextInt();
