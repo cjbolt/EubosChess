@@ -100,20 +100,17 @@ public class MoveList implements Iterable<Integer> {
 			}
 			// Update for number of valid priority moves, needed by lazy extended moves creation
 			priority_fill_index = i;
-			
 			for (int j=0; j < normal_fill_index; j++) {
 				int move = normal_search_moves[ply][j];
 				if (move != Move.NULL_MOVE) {
 					scratchpad[i++] = move;
 				}
 			}
-			// copy to existing array, without re-allocating static array
+			// Copy to existing array, without re-allocating static array
 			int k=0;
 			for (; k<i; k++) {
-				//System.out.println(String.format("%d %d", i, k));
 				normal_search_moves[ply][k] = scratchpad[k];
 			}
-			// store number of moves in normal movelist
 			normal_list_length = k;
 		} else {
 			// There are no moves
@@ -243,13 +240,13 @@ public class MoveList implements Iterable<Integer> {
 	}
 		
 	public int getRandomMove() {
-		int bestMove = Move.NULL_MOVE;
-		if (normal_list_length != 0) {
+		int randomMove = Move.NULL_MOVE;
+		if (!isMate) {
 			Random randomIndex = new Random();
 			Integer indexToGet = randomIndex.nextInt(normal_list_length);
-			bestMove = normal_search_moves[ply][indexToGet];		
+			randomMove = normal_search_moves[ply][indexToGet];		
 		}
-		return bestMove;
+		return randomMove;
 	}
 	
 	@Override
@@ -263,7 +260,7 @@ public class MoveList implements Iterable<Integer> {
 	}
 
 	public int getBestMove() {
-		if (normal_search_moves[ply].length != 0) {
+		if (!isMate) {
 			return normal_search_moves[ply][0];
 		} else {
 			return Move.NULL_MOVE;
@@ -271,16 +268,10 @@ public class MoveList implements Iterable<Integer> {
 	}	
 	
 	public void addNormal(int move) {
-		/*if (normal_fill_index >= normal_search_moves[ply].length-1) {
-			normal_search_moves[ply] = IntArrays.grow(normal_search_moves[ply], normal_search_moves[ply].length+40);
-		}*/
 		normal_search_moves[ply][normal_fill_index++] = move;
 	}
 	
 	public void addPrio(int move) {
-		/*if (priority_fill_index >= priority_moves[ply].length-1) {
-			priority_moves[ply] = IntArrays.grow(priority_moves[ply], priority_moves[ply].length+20);
-		}*/
 		priority_moves[ply][priority_fill_index++] = move;
 	}
 	
