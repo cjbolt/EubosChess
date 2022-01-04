@@ -112,7 +112,10 @@ public class MiniMaxMoveGenerator implements
 				score = (short) ps.searchPly();
 			}
 		} catch (AssertionError e) {
-			e.printStackTrace();
+			EubosEngineMain.logger.severe(String.format("Assert fail: %s", e));
+			System.exit(0);
+		} catch (Exception e) {
+			EubosEngineMain.logger.severe(String.format("PlySearcher threw an exception: %s", e));
 			System.exit(0);
 		}
 		if (Score.isMate(score)) {
