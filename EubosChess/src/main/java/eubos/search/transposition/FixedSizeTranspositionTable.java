@@ -144,7 +144,7 @@ public class FixedSizeTranspositionTable {
 					removeLeastUsed();
 				}
 				// Run GC at least after every move is sent to the UI
-				//System.gc();
+				System.gc();
 				try {
 					Thread.sleep(pollRateMillisecs);
 				} catch (InterruptedException e) {
