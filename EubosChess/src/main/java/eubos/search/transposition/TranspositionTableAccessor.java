@@ -51,6 +51,8 @@ public class TranspositionTableAccessor implements ITranspositionAccessor {
 			if (!is_created) {
 				boolean is_updated = trans.checkUpdate(new_Depth, new_score, new_bound, new_bestMove, pv);
 				if (is_updated) {
+					// Need to update the position in the hash table when we update the transposition.
+					hashMap.putTransposition(pos.getHash(), trans);
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printTransUpdate(trans, pos.getHash());
 				}
 			}

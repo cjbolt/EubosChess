@@ -23,7 +23,6 @@ public class Transposition implements ITransposition {
 		setScore(score);
 		setType(bound);
 		setBestMove(bestMove);
-		setAccessCount((short)0);
 	}
 	
 	@Override
@@ -47,22 +46,6 @@ public class Transposition implements ITransposition {
 		bitfield |= (short)((type & 0x3) << 6);
 	}
 	
-	public short getAccessCount() {
-		return (short)((bitfield >>> 8) & 0x7F);
-	}
-	
-	public void setAccessCount(short accessCount) {
-		short limitedAccessCount = (short)Math.min(0x7F, accessCount);
-		bitfield &= ~(0x7F << 8);
-		bitfield |= (short)((limitedAccessCount & 0x7F) << 8);
-	}
-	
-	public void incrementAccessCount() {
-		short limitedAccessCount = (short)Math.min(0x7F, getAccessCount()+1);
-		bitfield &= ~(0x7F << 8);
-		bitfield |= (short)((limitedAccessCount & 0x7F) << 8);
-	}
-
 	@Override
 	public short getScore() {
 		return score;
@@ -140,19 +123,7 @@ public class Transposition implements ITransposition {
 		}
 		return updateTransposition;
 	}
-	
-	@Override
-	public synchronized boolean checkUpdateToExact(byte currDepthSearchedInPly) {
-		boolean wasSetAsExact = false;
-		if ((getDepthSearchedInPly() < currDepthSearchedInPly) ||
-			(getDepthSearchedInPly() == currDepthSearchedInPly && getType() != Score.exact)) {
-			// We need to be careful that the depth searched is appropriate, i.e. we don't set exact for wrong depth...
-			setType(Score.exact);
-			wasSetAsExact = true;
-		}
-		return wasSetAsExact;
-	}
-	
+		
 	public List<Integer> getPv() {
 		return null;
 	}
