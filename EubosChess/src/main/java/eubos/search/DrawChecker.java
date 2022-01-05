@@ -1,45 +1,39 @@
 package eubos.search;
 
-import java.util.concurrent.ConcurrentHashMap;
-
 import eubos.main.EubosEngineMain;
+import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
 
 public class DrawChecker {
 	
 	public static final boolean ENABLE_THREEFOLD_POSITION_DRAW_CHECK = true;
 	public static final int THREEFOLD_THRESHOLD = 2;
 	
-	private ConcurrentHashMap<Integer,Byte> positionCount;
+	private Long2ByteOpenHashMap positionCount;
 	
 	public DrawChecker() {
-		positionCount = new ConcurrentHashMap<Integer,Byte>();
+		positionCount = new Long2ByteOpenHashMap();
 	}
 	
-	public DrawChecker(ConcurrentHashMap<Integer,Byte> clone) {
-		positionCount = new ConcurrentHashMap<Integer,Byte>(clone);
+	public DrawChecker(Long2ByteOpenHashMap clone) {
+		positionCount = new Long2ByteOpenHashMap(clone);
 	}
 	
-	public ConcurrentHashMap<Integer,Byte> getState() {
+	public Long2ByteOpenHashMap getState() {
 		return positionCount;
 	}
 	
 	public void reset() {
 		positionCount.clear();
 	}
-	
-	private int getTruncatedHash(long hash) {
-		return (int) (hash >> 32);
-	}
-	
+		
 	public boolean incrementPositionReachedCount(long posHash) {
 		boolean repetitionPossible = false;
-		int truncatedHash = getTruncatedHash(posHash);
-		Byte count = positionCount.get(truncatedHash);
-		if (count == null) {
-			positionCount.put(truncatedHash, (byte)1);
+		byte count = positionCount.get(posHash);
+		if (count == 0) {
+			positionCount.put(posHash, (byte) 1);
 		} else {
 			count++;
-			positionCount.put(truncatedHash, count);
+			positionCount.put(posHash, count);
 			if (ENABLE_THREEFOLD_POSITION_DRAW_CHECK) {
 				if (count >= THREEFOLD_THRESHOLD) {
 					repetitionPossible = true;
@@ -50,8 +44,7 @@ public class DrawChecker {
 	}
 	
 	public Byte getPositionReachedCount(long posHash) {
-		int truncatedHash = getTruncatedHash(posHash);
-		return positionCount.get(truncatedHash);
+		return positionCount.get(posHash);
 	}
 
 	public boolean isPositionOpponentCouldClaimDraw(long positionHash) {
@@ -66,17 +59,16 @@ public class DrawChecker {
 	}
 
 	public void decrementPositionReachedCount(long posHash) {
-		int truncatedHash = getTruncatedHash(posHash);
-		Byte count = positionCount.get(truncatedHash);
-		if (count == null) {
+		byte count = positionCount.get(posHash);
+		if (count == 0) {
 			if (EubosEngineMain.ENABLE_ASSERTS)
 				assert false;
 		} else {
 			count--;
 			if (count == 0) {
-				positionCount.remove(truncatedHash);
+				positionCount.remove(posHash);
 			} else {
-				positionCount.put(truncatedHash, count);
+				positionCount.put(posHash, count);
 			}
 		}
 	}

@@ -589,6 +589,7 @@ public class EubosEngineMainTest {
 	private void setupEngine() {
 		commands.add(new commandPair(UCI_CMD, ID_NAME_CMD+ID_AUTHOR_CMD+OPTION_HASH+OPTION_THREADS+UCI_OK_CMD));
 		commands.add(new commandPair("setoption name NumberOfWorkerThreads value 1"+CMD_TERMINATOR, null));
+		commands.add(new commandPair("setoption name Hash value 256"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(ISREADY_CMD,READY_OK_CMD));
 		commands.add(new commandPair(NEWGAME_CMD,null));
 		commands.add(new commandPair(ISREADY_CMD,READY_OK_CMD));

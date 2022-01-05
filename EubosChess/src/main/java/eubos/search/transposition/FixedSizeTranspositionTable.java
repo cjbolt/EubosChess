@@ -4,12 +4,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.openjdk.jol.info.ClassLayout;
 
 import eubos.main.EubosEngineMain;
+import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 
 public class FixedSizeTranspositionTable {
 	
@@ -29,13 +28,13 @@ public class FixedSizeTranspositionTable {
 	
 	public static final long BYTES_HASHMAP_ZOBRIST_KEY = 8L;
 	
-	public static final long BYTES_PER_TRANSPOSITION =  BYTES_TRANSPOSTION_ELEMENT + BYTES_HASHMAP_ENTRY; //+ BYTES_HASHMAP_ZOBRIST_KEY;
+	public static final long BYTES_PER_TRANSPOSITION =  BYTES_TRANSPOSTION_ELEMENT + BYTES_HASHMAP_ENTRY; // + BYTES_HASHMAP_ZOBRIST_KEY;
 	
 	public static final long BYTES_PER_MEGABYTE = (1024L * 1000L);
 	
 	public static final long MBYTES_DEFAULT_HASH_SIZE = (ELEMENTS_DEFAULT_HASH_SIZE*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE;
 	
-	private Map<Long, ITransposition> hashMap = null;
+	private Long2ObjectLinkedOpenHashMap<ITransposition> hashMap = null;
 	private long hashMapSize = 0;
 	private long maxHashMapSize = ELEMENTS_DEFAULT_HASH_SIZE;
 	
@@ -73,7 +72,7 @@ public class FixedSizeTranspositionTable {
 					(hashSizeElements*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE));
 		}
 
-		hashMap = new ConcurrentHashMap<Long, ITransposition>((int)hashSizeElements, (float)0.75);
+		hashMap = new Long2ObjectLinkedOpenHashMap<ITransposition>((int)hashSizeElements);
 		hashMapSize = 0;
 		maxHashMapSize = hashSizeElements;
 		

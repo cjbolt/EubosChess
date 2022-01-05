@@ -32,11 +32,11 @@ public class DrawCheckerTest {
 	public void test_CanIncrementCount() {
 		setupPosition("5r1k/pp5p/6p1/1N2q3/2P1P1n1/1P6/P2Q2PP/3R2K1 w - - 0 1");
 		Long hashCode = pm.getHash();
-		assertNull(sut.getPositionReachedCount(hashCode));
+		assertEquals(0, (byte)sut.getPositionReachedCount(hashCode));
 		sut.incrementPositionReachedCount(hashCode);
-		assertEquals(1, (int)sut.getPositionReachedCount(hashCode));
+		assertEquals(1, (byte)sut.getPositionReachedCount(hashCode));
 		sut.incrementPositionReachedCount(hashCode);
-		assertEquals(2, (int)sut.getPositionReachedCount(hashCode));
+		assertEquals(2, (byte)sut.getPositionReachedCount(hashCode));
 	}
 	
 	@Test
