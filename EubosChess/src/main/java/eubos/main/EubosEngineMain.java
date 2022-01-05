@@ -384,13 +384,12 @@ public class EubosEngineMain extends AbstractEngine {
 		} else {
 			logger.severe("Best move is null!");
 		}
-		hashMap.wakeMonitor();
+		System.gc();
 	}
 	
 	@Override
 	protected void quit() {
 		logger.info("Quitting Eubos");
-		hashMap.haltMonitor();
 	}
 
 	public static void main(String[] args) {

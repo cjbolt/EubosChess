@@ -46,7 +46,6 @@ public class TranspositionTableAccessorTest {
 	
 	@After
 	public void tearDown() {
-		transTable.haltMonitor();
 	}
 
 	@Test

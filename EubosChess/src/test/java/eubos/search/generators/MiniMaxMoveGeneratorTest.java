@@ -44,7 +44,6 @@ public class MiniMaxMoveGeneratorTest {
 	public void tearDown() {
 		if (classUnderTest != null)
 			classUnderTest.sda.close();
-		hashMap.haltMonitor();
 	}
 	
 	private void doFindMoveTest( boolean expectMove ) {

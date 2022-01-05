@@ -56,7 +56,6 @@ public class SearchMetricsReporterTest {
 	
 	@After
 	public void tearDown() {
-		hashMap.haltMonitor();
 	}
 	
 	@Test

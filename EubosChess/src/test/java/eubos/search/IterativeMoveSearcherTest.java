@@ -64,7 +64,6 @@ public class IterativeMoveSearcherTest {
 	@After
 	public void tearDown() {
 		sut.closeSearchDebugAgent();
-		hashMap.haltMonitor();
 	}
 
 	private void runSearcherAndTestBestMoveReturned() {
