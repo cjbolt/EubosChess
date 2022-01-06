@@ -138,12 +138,13 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		
 		if (computeHash) {
+			// At old hash, decrement counter
 			dc.decrementPositionReachedCount(getHash());
 
 			int enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? Position.getFile(enPasTargetSq) : IntFile.NOFILE;
 			hash.update(reversedMove, capturePosition, enPassantFile);
 			
-			// Revert draw indicator
+			// At new hash, set draw indicator flag
 			repetitionPossible = dc.isPositionOpponentCouldClaimDraw(getHash());
 		}
 		
