@@ -35,14 +35,6 @@ public class FixedSizeTranspositionTable {
 	private long hashMapSize = 0;
 	private long maxHashMapSize = ELEMENTS_DEFAULT_HASH_SIZE;
 	
-	public long getHashMapSize() {
-		return hashMapSize;
-	}
-	
-	public long getHashMapMaxSize() {
-		return maxHashMapSize;
-	}
-	
 	public FixedSizeTranspositionTable() {
 		this(MBYTES_DEFAULT_HASH_SIZE, 1);
 	}
@@ -72,11 +64,11 @@ public class FixedSizeTranspositionTable {
 		maxHashMapSize = hashSizeElements;
 	}
 	
-	public ITransposition getTransposition(long hashCode) {
+	public synchronized ITransposition getTransposition(long hashCode) {
 		return hashMap.get(hashCode);
 	}
 	
-	public void putTransposition(long hashCode, ITransposition trans) {
+	public synchronized void putTransposition(long hashCode, ITransposition trans) {
 		if (hashMapSize >= maxHashMapSize) {
 			hashMap.removeFirst();
 			hashMapSize--;
@@ -87,7 +79,7 @@ public class FixedSizeTranspositionTable {
 		}
 	}
 	
-	public short getHashUtilisation() {
+	public synchronized short getHashUtilisation() {
 		return (short) (( ((long) hashMapSize)*(long)1000) / maxHashMapSize);
 	}	
 }
