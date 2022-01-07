@@ -65,6 +65,12 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	private void setMoveNumber(int move) {
 		moveNumber = move;
 	}
+	
+	public int getPlyNumber() {
+		int plyNumber = moveNumber * 2;
+		plyNumber += (!onMoveIsWhite()) ? 1 : 0;
+		return plyNumber;
+	}
 
 	public boolean isKingInCheck() {
 		return isKingInCheck(onMove);
@@ -110,7 +116,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			hash.update(move, capturePosition, enPassantFile);
 
 			// Update the draw checker
-			repetitionPossible = dc.incrementPositionReachedCount(getHash());
+			repetitionPossible = dc.setPositionReached(getHash(), getPlyNumber());
 		}
 		
 		// Update onMove
@@ -119,7 +125,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			moveNumber++;
 		}
 	}
-		
+
 	public void unperformMove() {
 		unperformMove(true);
 	}
@@ -138,14 +144,12 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		
 		if (computeHash) {
-			// At old hash, decrement counter
-			dc.decrementPositionReachedCount(getHash());
 
 			int enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? Position.getFile(enPasTargetSq) : IntFile.NOFILE;
 			hash.update(reversedMove, capturePosition, enPassantFile);
 			
-			// At new hash, set draw indicator flag
-			repetitionPossible = dc.isPositionOpponentCouldClaimDraw(getHash());
+			// Clear draw indicator flag
+			repetitionPossible = false;
 		}
 		
 		// Update onMove flag

@@ -36,7 +36,7 @@ public class SearchContextTest {
 		/* This next line emulates the position being received in EubosEngineMain from the analyse
 		 * UCI command, then we set the position reached count for the received FEN string, as the
 		 * move is not applied in performMove. */
-		dc.incrementPositionReachedCount(pm.getHash());
+		dc.setPositionReached(pm.getHash(), pm.getMoveNumber());
 	}
 	
 	private void applyMoveList(GenericMove[] moveList)
@@ -115,8 +115,8 @@ public class SearchContextTest {
 						new GenericMove("f5f4"),new GenericMove("g7g3"),
 						new GenericMove("f4f5"),new GenericMove("g3g7")};
 		applyMoveList(moveList);
-		assertTrue(dc.isPositionOpponentCouldClaimDraw(pm.getHash()));
-		dc.incrementPositionReachedCount(pm.getHash());
+		//assertTrue(dc.isPositionOpponentCouldClaimDraw(pm.getHash()));
+		dc.setPositionReached(pm.getHash(), pm.getPlyNumber());
 		//PiecewiseEvaluation current = pm.getTheBoard().evaluateMaterial();
 		//assertEquals(SearchContext.AVOID_DRAW_HANDICAP, sut.computeSearchGoalBonus(current).score);
 	}

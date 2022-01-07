@@ -1,75 +1,45 @@
 package eubos.search;
 
-import it.unimi.dsi.fastutil.longs.Long2ByteMap;
-import it.unimi.dsi.fastutil.longs.Long2ByteMaps;
-import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongArrays;
 
 public class DrawChecker {
 	
 	public static final boolean ENABLE_THREEFOLD_POSITION_DRAW_CHECK = true;
-	public static final int THREEFOLD_THRESHOLD = 2;
 	
-	private Long2ByteMap positionCount;
+	private long[] reachedPositions;
+	private int checkFromPly;
 	
 	public DrawChecker() {
-		positionCount = Long2ByteMaps.synchronize(new Long2ByteOpenHashMap());
+		reachedPositions = new long[300];
 	}
 	
-	public DrawChecker(Long2ByteMap clone) {
-		positionCount = Long2ByteMaps.synchronize(new Long2ByteOpenHashMap(clone));
+	public DrawChecker(DrawChecker clone) {
+		reachedPositions = LongArrays.copy(clone.getState());
 	}
 	
-	public Long2ByteMap getState() {
-		return positionCount;
+	public long[] getState() {
+		return reachedPositions;
 	}
 	
-	public void reset() {
-		positionCount.clear();
+	public void reset(int plyNumber) {
+		checkFromPly = plyNumber;
 	}
 		
-	public boolean incrementPositionReachedCount(long posHash) {
+	public boolean setPositionReached(long posHash, int gamePly) {
 		boolean repetitionPossible = false;
-		byte count = positionCount.get(posHash);
-		count++;
-		positionCount.put(posHash, count);
-		if (ENABLE_THREEFOLD_POSITION_DRAW_CHECK) {
-			if (count >= THREEFOLD_THRESHOLD) {
-				repetitionPossible = true;
-			}
+		if (ENABLE_THREEFOLD_POSITION_DRAW_CHECK && isPositionReachedBefore(posHash, gamePly)) {
+			repetitionPossible = true;
+		} else {
+			reachedPositions[gamePly] = posHash;
 		}
 		return repetitionPossible;
 	}
 	
-	public byte getPositionReachedCount(long posHash) {
-		return positionCount.get(posHash);
-	}
-
-	public boolean isPositionOpponentCouldClaimDraw(long positionHash) {
-		boolean opponentCouldClaimDraw = false;
-		if (ENABLE_THREEFOLD_POSITION_DRAW_CHECK) {
-			byte reachedCount = getPositionReachedCount(positionHash);
-			if (reachedCount >= THREEFOLD_THRESHOLD) {
-				opponentCouldClaimDraw = true;
-			}
+	private boolean isPositionReachedBefore(long posHash, int currentPly) {
+		for (int i=checkFromPly; i < currentPly; i++ ) {
+			if (reachedPositions[i] == posHash)
+				return true;
 		}
-		return opponentCouldClaimDraw;
-	}
-
-	public void decrementPositionReachedCount(long posHash) {
-		byte count = positionCount.get(posHash);
-		count--;
-		if (count <= 0) {
-			positionCount.remove(posHash);
-		} else {
-			positionCount.put(posHash, count);
-		}
-	}
-	
-	public Integer getNumEntries() {
-		return positionCount.size();
-	}
-	
-	public String toString() {
-		return positionCount.toString();
+		return false;
 	}
 }

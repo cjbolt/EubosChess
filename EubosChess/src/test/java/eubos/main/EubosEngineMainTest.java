@@ -200,25 +200,6 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
-	public void test_capture_clears_draw_checker() throws InterruptedException, IOException {
-		setupEngine();
-		commands.add(new commandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves e2e4 e7e5 b1c3 e5e4"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"1"+CMD_TERMINATOR,BEST_PREFIX+"c3e4"+CMD_TERMINATOR));
-		performTest(500);
-		assertEquals(1, (int)classUnderTest.dc.getNumEntries()); // Capture clears the draw checker, so we just have the position after the capture
-	}
-	
-	@Test
-	public void test_pawn_move_clears_draw_checker() throws InterruptedException, IOException {
-		setupEngine();
-		commands.add(new commandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"1"+CMD_TERMINATOR,BEST_PREFIX+"e2e3"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves e2e3 e7e5"+CMD_TERMINATOR, null));
-		performTest(500);
-		assertEquals(1, (int)classUnderTest.dc.getNumEntries()); // Pawn moves clear DrawChecker history, so we just get the position after the pawn move
-	}
-	
-	@Test
 	public void test_achieves_draw_black_repeated_check() throws InterruptedException, IOException {
 		setupEngine();
 		// Setup Commands specific to this test
@@ -233,8 +214,6 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(POS_FEN_PREFIX+"7q/1P6/8/8/8/8/2k3PQ/7K b - - 0 42 moves h8a1 h2g1 a1h8 g1h2 h8a1 h2g1 a1h8 g1h2"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h8a1"+CMD_TERMINATOR));
 		performTest(500);
-		/* There are only four positions in this test. */
-		assertEquals(4, (int)classUnderTest.dc.getNumEntries());
 	}
 	
 	@Test
@@ -252,8 +231,6 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(POS_FEN_PREFIX+"7k/2K3pq/8/8/8/8/1p6/7Q w - - 0 1 moves h1a8 h7g8 a8h1 g8h7 h1a8 h7g8 a8h1 g8h7"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h1a8"+CMD_TERMINATOR));
 		performTest(500);
-		/* There are only four positions in this test. */
-		assertEquals(4, (int)classUnderTest.dc.getNumEntries());
 	}
 	
 	@Test
@@ -262,7 +239,6 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_TIME_PREFIX+"30000"+CMD_TERMINATOR, BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
 		performTestExpectMate(30000, 8);
-		assertEquals(2, (int)classUnderTest.dc.getNumEntries());
 	}
 	
 	@Test
@@ -271,7 +247,6 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/6K1/8/3k4/1Q6/8/8/8 b - - 1 1"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"11"+CMD_TERMINATOR, BEST_PREFIX+"d5c6"+CMD_TERMINATOR));
 		performTestExpectMate(15000, -6);
-		assertEquals(2, (int)classUnderTest.dc.getNumEntries());
 	} 
 	
 	@Test
@@ -294,7 +269,6 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h4h2"+CMD_TERMINATOR));
 
 		performTest(15000);
-		assertEquals(4, (int)classUnderTest.dc.getNumEntries());
 	}
 	
 	@Test
@@ -310,7 +284,6 @@ public class EubosEngineMainTest {
 			mateDepth = 25;
 		}
 		performTestExpectMate(25000, mateDepth);
-		assertEquals(2, (int)classUnderTest.dc.getNumEntries());
 	}
 	
 	 
@@ -320,7 +293,6 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/2p5/P4p2/Q1N2k1P/2P2P2/3PK2P/5R2/2B2R2 w - - 1 1"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR, BEST_PREFIX+"f2d2"+CMD_TERMINATOR));
 		performTestExpectMate(4000, 3);
-		assertEquals(2, (int)classUnderTest.dc.getNumEntries());
 	}
 	
 	@Test
@@ -416,20 +388,17 @@ public class EubosEngineMainTest {
 		// Black move 62
 		ArrayList<GenericMove> applyMoveList = new ArrayList<GenericMove>();
 		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
-		assertEquals(Integer.valueOf(1), classUnderTest.dc.getNumEntries());
 		classUnderTest.sendBestMoveCommand(new ProtocolBestMoveCommand(new GenericMove("b3b4"), null));
 		// White move 63
 		applyMoveList = new ArrayList<GenericMove>();
 		applyMoveList.add(new GenericMove("b3b4"));
 		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
-		assertEquals(Integer.valueOf(2), classUnderTest.dc.getNumEntries());
 		classUnderTest.sendBestMoveCommand(new ProtocolBestMoveCommand(new GenericMove("a1a2"), null));
 		// Black move 63
 		applyMoveList = new ArrayList<GenericMove>();
 		applyMoveList.add(new GenericMove("b3b4"));
 		applyMoveList.add(new GenericMove("a1a2"));
 		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
-		assertEquals(Integer.valueOf(3), classUnderTest.dc.getNumEntries());
 		classUnderTest.sendBestMoveCommand(new ProtocolBestMoveCommand(new GenericMove("b4a4"), null));
 		// White move 64
 		applyMoveList = new ArrayList<GenericMove>();
@@ -437,7 +406,6 @@ public class EubosEngineMainTest {
 		applyMoveList.add(new GenericMove("a1a2"));
 		applyMoveList.add(new GenericMove("b4a4"));
 		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
-		assertEquals(Integer.valueOf(4), classUnderTest.dc.getNumEntries());
 		classUnderTest.sendBestMoveCommand(new ProtocolBestMoveCommand(new GenericMove("a2b1"), null));
 		//  Black move 64
 		applyMoveList = new ArrayList<GenericMove>();
@@ -446,15 +414,11 @@ public class EubosEngineMainTest {
 		applyMoveList.add(new GenericMove("b4a4"));
 		applyMoveList.add(new GenericMove("a2b1"));
 		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
-		assertEquals(Integer.valueOf(5), classUnderTest.dc.getNumEntries());
 		classUnderTest.sendBestMoveCommand(new ProtocolBestMoveCommand(new GenericMove("a4a5"), null));
-		System.err.println(classUnderTest.dc.toString());
-		assertEquals(Integer.valueOf(6), classUnderTest.dc.getNumEntries());
 		/* The positions are getting double incremented in test_avoidDraw_lichess_hash_table_draw_kpK_rook_pawn_alt
 		 * because Eubos is calculating moves for both black and white. Therefore we double count, once when the 
 		 * bestmove is sent, the again on the next ply when the analyse is received!
 		 */
-		
 	}
 	
 	private void performTest(int timeout) throws IOException, InterruptedException {

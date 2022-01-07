@@ -170,7 +170,7 @@ public class EubosEngineMain extends AbstractEngine {
 		Piece.Colour nowOnMove = rootPosition.getOnMove();
 		if (lastOnMove == null || (lastOnMove == nowOnMove && !fen_to_use.equals(lastFen))) {
 			// Update the draw checker with the position following the opponents last move
-			dc.incrementPositionReachedCount(hashCode);
+			dc.setPositionReached(hashCode, rootPosition.getPlyNumber());
 		} else {
 			/* Don't increment the position reached count, because it will have already been incremented 
 			 * in the previous send move command (when Eubos is analysing both sides positions). */
@@ -178,8 +178,8 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		lastOnMove = nowOnMove;
 		lastFen = fen_to_use;
-		logger.info(String.format("positionReceived fen=%s hashCode=%d reachedCount=%d",
-				fen_to_use, hashCode, dc.getPositionReachedCount(hashCode)));
+		logger.info(String.format("positionReceived fen=%s hashCode=%d",
+				fen_to_use, hashCode));
 	}
 
 	private String getActualFenStringForPosition(EngineAnalyzeCommand command) {
@@ -199,7 +199,7 @@ public class EubosEngineMain extends AbstractEngine {
 
 			if (lastMoveWasCaptureOrPawnMove) {
 				// Pawn moves and captures are irreversible, so if needed, clear the draw checker
-				dc.reset();
+				dc.reset(rootPosition.getPlyNumber());
 			}
 		} else {
 			fen_to_use = uci_fen_string;
@@ -372,15 +372,16 @@ public class EubosEngineMain extends AbstractEngine {
 			// Apply the best move to update the DrawChecker state
 			rootPosition.performMove(bestMove);
 			boolean bestMoveWasCaptureOrPawnMove = Move.isCapture(bestMove) || Move.isPawnMove(bestMove);
+			int plyAfterMove = rootPosition.getPlyNumber();
 			if (bestMoveWasCaptureOrPawnMove) {
-				dc.reset();
-				dc.incrementPositionReachedCount(rootPosition.getHash());
+				dc.reset(plyAfterMove);
+				dc.setPositionReached(rootPosition.getHash(), plyAfterMove);
 			}
 			if (analysisMode) {
-				dc.reset();
+				dc.reset(plyAfterMove);
 			}
-			logger.info(String.format("BestMove=%s hashCode=%d positionReachedCount=%d",
-					protocolBestMoveCommand.bestMove, rootPosition.getHash(), dc.getPositionReachedCount(rootPosition.getHash())));
+			logger.info(String.format("BestMove=%s hashCode=%d",
+					protocolBestMoveCommand.bestMove, rootPosition.getHash()));
 		} else {
 			logger.severe("Best move is null!");
 		}
