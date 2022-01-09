@@ -164,12 +164,18 @@ public class PlySearcher {
 		
 		ITransposition trans = tt.getTransposition();
 		if (trans != null) {
+			boolean override_trans_move = false;
+			
 			if (depth <= trans.getDepthSearchedInPly()) {
 				int type = trans.getType();
 				boolean isCutOff = false;
 				if (checkForRepetitionDueToPositionInSearchTree(trans.getBestMove(pos.getTheBoard()))) {
 					// Down-grade transposition status if the position could be drawn.
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
+					override_trans_move = true;
+					
+					// This is an exact score, so it could still cause a cut off, we could check for that here
+					
 				} else {
 					int hashScore = convertMateScoreForPositionInTree(trans);
 					if (type == Score.exact) {
@@ -208,7 +214,9 @@ public class PlySearcher {
 			}
 			// Transposition still useful to seed the move list
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-			prevBestMove = trans.getBestMove(pos.getTheBoard());
+			if (!override_trans_move) {
+				prevBestMove = trans.getBestMove(pos.getTheBoard());
+			}
 		}
 		
 		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, killers.getMoves(currPly), moveListOrdering, false, needToEscapeCheck, currPly);

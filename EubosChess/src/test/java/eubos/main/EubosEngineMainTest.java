@@ -190,6 +190,27 @@ public class EubosEngineMainTest {
 			performTest(2000, true); // check infos
 		}
 	}
+	
+	@Test
+	public void test_game_position_detect_draw() throws InterruptedException, IOException {
+		setupEngine();
+		// Setup Commands specific to this test, checking to avoid draw by repetition..
+		commands.add(new commandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves "
+				+ "e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f3d4 g8f6 b1c3 a7a6 f2f3 e7e5 d4b3 c8e6 f1d3 b8c6 e1g1"
+				+ " e6b3 a2b3 d6d5 e4d5 f8c5 g1h1 f6d5 c3e4 c5e3 c2c4 d5b4 c1e3 b4d3 d1e2 f7f5 e4g3 f5f4"
+				+ " f1d1 f4g3 d1d3 d8h4 h2h3 a6a5 e3c5 a8d8 d3d8 e8d8 b3b4 h4f6 b4a5 d8c7 a5a6 h8a8 e2e1"
+				+ " a8a6 a1a6 b7a6 e1g3 c6a5 g3f2 a5c4 f2c2 c4d6 c5d6 c7d6 c2h7 d6c5 h7g8 c5d4 g8b3 f6c6"
+				+ " b3d1 d4e3 b2b4 e3f4 d1d3 f4g5 d3e3 g5f5 h3h4 f5e6 e3g5 c6c4 g5g6 e6d5 g6f7 d5d4 f7g7"
+				+ " c4c1 h1h2 c1f4 h2h3 d4c4 g7b7 f4f5 g2g4 f5f6 h3g2 f6d6 h4h5 d6d2 g2h3 d2d6 g4g5 d6e6"
+				+ " h3g3 c4c3 g5g6 e6f5 g6g7 f5f4 g3g2 f4g5 g2f1 g5c1 f1e2 c1b2 e2e3 b2d2 e3e4 d2f4 e4d5"
+				+ " f4f3 d5e5 f3b7 g7g8q b7f3 g8g5 f3e2 e5d6 c3b4 g5f4 b4b3 h5h6 e2d3 d6e6 d3h7 f4e3 b3c4"
+				+ " e3e2 c4b4 e2d2 b4b3 d2d5 b3b2 d5d4 b2c2 d4c5 c2d2 c5g5 d2d1 e6f6 h7h8 g5g7 h8d8 f6f5"
+				+ " d8d5 f5f4 d5d6 f4e4 d6c6 e4d3 c6d5 g7d4 d5b3 d3e4 d1e2 e4e5 b3b8 d4d6 b8b2 e5f4 b2c1"
+				+ " f4f5 c1c2 f5f6 c2a4 d6h2 e2d3 h2h3 d3d2 h3h2 d2d3 h2h3 d3d2"+CMD_TERMINATOR, null));
+		// Need to insert a trans in the hash table for the root position with best score that is a draw at this new position!
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h6h7"+CMD_TERMINATOR)); // i.e not h2h3
+		performTest(5000);
+	}
 		
 	@Test
 	public void test_when_has_insufficient_material_to_mate_takes_draw() throws InterruptedException, IOException {
