@@ -175,9 +175,9 @@ public class PlySearcher {
 					override_trans_move = true;
 					
 					// This is an exact score, so it could still cause a cut off, we could check for that here
-					
-				} else {
-					int hashScore = convertMateScoreForPositionInTree(trans);
+				}
+				if (!override_trans_move || (override_trans_move && type != Score.exact)) {
+					int hashScore = !override_trans_move ? convertMateScoreForPositionInTree(trans) : 0;
 					if (type == Score.exact) {
 						if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
 						isCutOff = true;
@@ -212,7 +212,7 @@ public class PlySearcher {
 					}
 				}
 			}
-			// Transposition still useful to seed the move list
+			// Transposition may still be useful to seed the move list, if not drawing.
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
 			if (!override_trans_move) {
 				prevBestMove = trans.getBestMove(pos.getTheBoard());
