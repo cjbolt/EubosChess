@@ -20,6 +20,7 @@ import eubos.position.Position;
 import eubos.position.PositionManager;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 
+@Ignore
 public class SearchMetricsReporterTest {
 	SearchMetricsReporter classUnderTest;
 	SearchMetrics sm;

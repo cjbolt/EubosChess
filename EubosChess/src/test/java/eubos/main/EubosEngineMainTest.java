@@ -11,7 +11,6 @@ import java.util.Scanner;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.commands.EngineAnalyzeCommand;
@@ -28,7 +27,6 @@ import eubos.position.Position;
 import eubos.score.PositionEvaluator;
 import eubos.search.transposition.Transposition;
 
-@Ignore
 public class EubosEngineMainTest {
 
 	private EubosEngineMain classUnderTest;
