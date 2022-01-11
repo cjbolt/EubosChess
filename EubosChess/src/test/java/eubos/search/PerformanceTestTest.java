@@ -4,12 +4,15 @@ import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
-
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 
 import eubos.position.PositionManager;
 
-@Ignore
+//@Ignore
 public class PerformanceTestTest {
 
 	PerformanceTest sut;
@@ -21,6 +24,13 @@ public class PerformanceTestTest {
 	private static final long expectedNodeCount_Position3[] = { 14, 191, 2812, 43238, 674624, 11030083, 178633661 };
 	private static final long expectedNodeCount_Position4[] = { 6, 264, 9467, 422333, 15833292 };
 	private static final long expectedNodeCount_Position5[] = { 44, 1486, 62379, 2103487, 89941194 };
+	
+	@Rule
+	public TestRule watcher = new TestWatcher() {
+	   protected void starting(Description description) {
+	      System.out.println("Starting test: " + description.getMethodName());
+	   }
+	};
 	
 	@Before
 	public void setUp() throws Exception {
@@ -35,11 +45,16 @@ public class PerformanceTestTest {
 	
 	public void runTest(String fen, long[] expectedCounts)  {
 		setupPosition(fen, 0);
+		long nodes = 0;
+		long startTime = System.currentTimeMillis();
 		for (long expectedCount : expectedCounts) {
 			sut = new PerformanceTest(pm, currDepth);
 			assertEquals( expectedCount, sut.perft());
 			currDepth++;
+			nodes += expectedCount;
 		}
+		long delta_ms = System.currentTimeMillis()-startTime;
+		System.out.println(String.format("nps %d",(nodes*1000)/delta_ms));
 	}
 	
 	@Test
