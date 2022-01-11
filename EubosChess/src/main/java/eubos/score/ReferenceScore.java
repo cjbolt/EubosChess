@@ -38,7 +38,7 @@ public class ReferenceScore {
 			reference.depth = trans.getDepthSearchedInPly();
 		} else if (lastScoreIsValid) {
 			// Use the last reported score (from previous Search) as the reference score
-			reference.origin = "set from last score";
+			reference.origin = String.format("set from last score because %s", (trans != null) ? trans.report() : "trans is null");
 			reference.score = lastScore;
 			reference.depth = (byte)(lastDepth - MateScoreGenerator.PLIES_PER_MOVE);
 		} else {
