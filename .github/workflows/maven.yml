@@ -22,6 +22,6 @@ jobs:
         java-version: 1.8
     - name: Build with Maven
       run: |
-           export MAVEN_OPTS="-Xmx2g"
+           export MAVEN_OPTS="-Xmx4g -Xms4g"
            mvn -B package --file EubosChess/pom.xml
 
