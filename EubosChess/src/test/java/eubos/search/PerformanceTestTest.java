@@ -12,14 +12,17 @@ import org.junit.runner.Description;
 
 import eubos.position.PositionManager;
 
-//@Ignore
+@Ignore
 public class PerformanceTestTest {
 
 	PerformanceTest sut;
 	PositionManager pm;
 	int currDepth = 1;
 	
-	private static final long expectedNodeCount_Original[] = { 20, 400, 8902, 197281, 4865609 };
+	static long totalNps = 0;
+	static long totalCount = 0;
+	
+	private static final long expectedNodeCount_Original[] = { 20, 400, 8902, 197281, 4865609, 119060324 };
 	private static final long expectedNodeCount_Kiwipete[] = { 48, 2039, 97862, 4085603, 193690690 };
 	private static final long expectedNodeCount_Position3[] = { 14, 191, 2812, 43238, 674624, 11030083, 178633661 };
 	private static final long expectedNodeCount_Position4[] = { 6, 264, 9467, 422333, 15833292 };
@@ -27,9 +30,14 @@ public class PerformanceTestTest {
 	
 	@Rule
 	public TestRule watcher = new TestWatcher() {
-	   protected void starting(Description description) {
-	      System.out.println("Starting test: " + description.getMethodName());
-	   }
+		
+	    protected void starting(Description description) {
+	    	System.out.println("Starting test: " + description.getMethodName());
+	    }
+	    
+	    protected void finished(Description description) {
+			System.out.println(String.format("average nps %d", totalNps/totalCount));
+	    }
 	};
 	
 	@Before
@@ -54,7 +62,10 @@ public class PerformanceTestTest {
 			nodes += expectedCount;
 		}
 		long delta_ms = System.currentTimeMillis()-startTime;
-		System.out.println(String.format("nps %d",(nodes*1000)/delta_ms));
+		long nps = (nodes*1000)/delta_ms;
+		totalNps += nps;
+		totalCount += 1;
+		System.out.println(String.format("Test nps %d", nps));
 	}
 	
 	@Test
@@ -64,18 +75,7 @@ public class PerformanceTestTest {
 
 	@Test
 	public void perft_OriginalPosition()  {
-		for (long expectedCount : expectedNodeCount_Original) {
-			sut = new PerformanceTest(pm, currDepth);
-			assertEquals( expectedCount, sut.perft());
-			currDepth++;
-		}
-	}
-
-	@Test
-	@Ignore
-	public void perft_OriginalPosition_6()  {
-		sut.setRequestedDepthPly(6);
-		assertEquals( 119060324, sut.perft());
+		runTest("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", expectedNodeCount_Original);
 	}
 	
 	@Test
