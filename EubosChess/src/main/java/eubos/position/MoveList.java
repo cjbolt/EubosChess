@@ -16,7 +16,6 @@ import it.unimi.dsi.fastutil.ints.IntComparator;
 
 public class MoveList implements Iterable<Integer> {
 	
-	public static final int MOVE_LIST_MAX_DEPTH_IN_PLY = 150;
 	static private int[][] normal_search_moves;
 	static private int[][] priority_moves;
 	static private int[][] extended_search_moves;
@@ -25,12 +24,12 @@ public class MoveList implements Iterable<Integer> {
 		scratchpad = new int [100];
 		
 		// Create the static move list arrays
-		normal_search_moves = new int [MOVE_LIST_MAX_DEPTH_IN_PLY][];
-		priority_moves = new int [MOVE_LIST_MAX_DEPTH_IN_PLY][];
-		extended_search_moves = new int [MOVE_LIST_MAX_DEPTH_IN_PLY][];
+		normal_search_moves = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY][];
+		priority_moves = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY][];
+		extended_search_moves = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY][];
 		
 		// Create the list at each ply
-		for (int i=0; i < MOVE_LIST_MAX_DEPTH_IN_PLY; i++) {
+		for (int i=0; i < EubosEngineMain.SEARCH_DEPTH_IN_PLY; i++) {
 			normal_search_moves[i] = new int[110];
 			priority_moves[i] = new int[50];
 			extended_search_moves[i] = new int[30];
