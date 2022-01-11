@@ -13,7 +13,6 @@ import eubos.position.PositionManager;
 import eubos.score.IEvaluate;
 import eubos.score.IScoreMate;
 import eubos.score.MateScoreGenerator;
-import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.ITranspositionAccessor;
 import eubos.search.transposition.ITransposition;
 
@@ -38,7 +37,6 @@ public class PlySearcher {
 	private byte currPly = 0;
 	private byte originalSearchDepthRequiredInPly = 0;
 	private byte extendedSearchDeepestPly = 0;
-	private byte extendedSearchLimitInPly = 0;
 	private int moveListOrdering = 1;
 	
 	public PlySearcher(
@@ -49,7 +47,6 @@ public class PlySearcher {
 			byte searchDepthPly,
 			IChangePosition pm,
 			IPositionAccessors pos,
-			List<Integer> lastPc,
 			IEvaluate pe,
 			KillerList killers,
 			SearchDebugAgent sda) {
@@ -61,10 +58,9 @@ public class PlySearcher {
 		this.pos = pos;
 		this.pe = pe;
 		this.sr = sr;
-		this.lastPc = lastPc;
+		this.lastPc = pc.toPvList(0);
 		this.sda = sda;
 		originalSearchDepthRequiredInPly = searchDepthPly;
-		extendedSearchLimitInPly = (byte) (MiniMaxMoveGenerator.EXTENDED_SEARCH_PLY_LIMIT + originalSearchDepthRequiredInPly);
 		
 		tt = hashMap;
 		sg = new MateScoreGenerator(pos, pe);
@@ -146,7 +142,7 @@ public class PlySearcher {
 			return 0;
 		}
 		// Absolute depth limit
-		if (currPly >= extendedSearchLimitInPly - 1) {
+		if (currPly >= Byte.MAX_VALUE) {
 			return pe.evaluatePosition();
 		}
 		
@@ -331,7 +327,7 @@ public class PlySearcher {
 		
 		// Stand Pat in extended search
 		short plyScore = (short) pe.evaluatePosition();	
-		if (currPly >= extendedSearchLimitInPly - 1)
+		if (currPly >= Byte.MAX_VALUE)
 			// Absolute depth limit
 			return plyScore;
 		if (plyScore >= beta) {

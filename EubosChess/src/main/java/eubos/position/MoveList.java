@@ -136,26 +136,24 @@ public class MoveList implements Iterable<Integer> {
 		
 		for (int i=0; i<priority_fill_index; i++) {
 			int currMove = priority_moves[ply][i];
-			if (currMove != Move.NULL_MOVE) {
-				int originPiece = Move.getOriginPiece(currMove);
-				boolean possibleDiscoveredOrMoveIntoCheck = Piece.isKing(originPiece) || 
-						                                    pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove, originPiece);
-				pm.performMove(currMove, false);
-				if ((possibleDiscoveredOrMoveIntoCheck || needToEscapeMate) && pm.isKingInCheck(onMove)) {
-					// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
+			int originPiece = Move.getOriginPiece(currMove);
+			boolean possibleDiscoveredOrMoveIntoCheck = Piece.isKing(originPiece) || 
+					                                    pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove, originPiece);
+			pm.performMove(currMove, false);
+			if ((possibleDiscoveredOrMoveIntoCheck || needToEscapeMate) && pm.isKingInCheck(onMove)) {
+				// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
+				priority_moves[ply][i] = Move.NULL_MOVE;
+			} else {
+				// Check whether to set the best move - note it could be the same as one of the killers
+				boolean isBest = validBest && Move.areEqualForBestKiller(currMove, bestMove);
+				if (isBest) {
+					foundBestMove = Move.setBest(currMove);
+					validBest = false; // as already found
 					priority_moves[ply][i] = Move.NULL_MOVE;
-				} else {
-					// Check whether to set the best move - note it could be the same as one of the killers
-					boolean isBest = validBest && Move.areEqualForBestKiller(currMove, bestMove);
-					if (isBest) {
-						foundBestMove = Move.setBest(currMove);
-						validBest = false; // as already found
-						priority_moves[ply][i] = Move.NULL_MOVE;
-					}
-					valid_move_count++;
 				}
-				pm.unperformMove(false);
+				valid_move_count++;
 			}
+			pm.unperformMove(false);
 		}
 		if (foundBestMove != Move.NULL_MOVE) {
 			priority_moves[ply][0] = foundBestMove; // add back in at the head of the list
@@ -163,31 +161,29 @@ public class MoveList implements Iterable<Integer> {
 		
 		for (int i=0; i<normal_fill_index; i++) {
 			int currMove = normal_search_moves[ply][i];
-			if (currMove != Move.NULL_MOVE) {
-				int originPiece = Move.getOriginPiece(currMove);
-				boolean possibleDiscoveredOrMoveIntoCheck = Piece.isKing(originPiece) || 
-															pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove, originPiece);
-				pm.performMove(currMove, false);
-				if ((possibleDiscoveredOrMoveIntoCheck || needToEscapeMate) && pm.isKingInCheck(onMove)) {
-					// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
+			int originPiece = Move.getOriginPiece(currMove);
+			boolean possibleDiscoveredOrMoveIntoCheck = Piece.isKing(originPiece) || 
+														pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove, originPiece);
+			pm.performMove(currMove, false);
+			if ((possibleDiscoveredOrMoveIntoCheck || needToEscapeMate) && pm.isKingInCheck(onMove)) {
+				// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
+				normal_search_moves[ply][i] = Move.NULL_MOVE;
+			} else {
+				// Check whether to set the best move - note it could be the same as one of the killers, so check for best first
+				boolean isBest = validBest && Move.areEqualForBestKiller(currMove, bestMove);
+				if (isBest) {
+					foundBestMove = Move.setBest(currMove);
+					validBest = false; // as already found
 					normal_search_moves[ply][i] = Move.NULL_MOVE;
-				} else {
-					// Check whether to set the best move - note it could be the same as one of the killers, so check for best first
-					boolean isBest = validBest && Move.areEqualForBestKiller(currMove, bestMove);
-					if (isBest) {
-						foundBestMove = Move.setBest(currMove);
-						validBest = false; // as already found
-						normal_search_moves[ply][i] = Move.NULL_MOVE;
-						priority_moves[ply][0] = foundBestMove; // Add at head of priority list
-						
-					} else if (KillerList.isMoveOnListAtPly(killers, currMove)) {
-						// Move was modified, add it to the priority list, where it will be sorted (add killers at end)
-						currMove = Move.setKiller(currMove);
-						normal_search_moves[ply][i] = Move.NULL_MOVE;
-						addPrio(currMove); // Add to tail of prio
-					}
-					valid_move_count++;
+					priority_moves[ply][0] = foundBestMove; // Add at head of priority list
+					
+				} else if (KillerList.isMoveOnListAtPly(killers, currMove)) {
+					// Move was modified, add it to the priority list, where it will be sorted (add killers at end)
+					currMove = Move.setKiller(currMove);
+					normal_search_moves[ply][i] = Move.NULL_MOVE;
+					addPrio(currMove); // Add to tail of prio
 				}
+				valid_move_count++;
 			}
 			pm.unperformMove(false);
 		}

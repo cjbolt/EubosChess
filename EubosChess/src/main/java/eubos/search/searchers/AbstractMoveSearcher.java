@@ -1,9 +1,6 @@
 package eubos.search.searchers;
 
-import java.util.List;
-
 import com.fluxchess.jcpi.models.GenericMove;
-
 
 import eubos.main.EubosEngineMain;
 import eubos.score.ReferenceScore;
@@ -60,8 +57,8 @@ public abstract class AbstractMoveSearcher extends Thread {
 
 	public abstract void halt();
 
-	protected SearchResult doFindMove(GenericMove selectedMove, List<Integer> pc, byte depth) {
-		return mg.findMove(depth, pc, sr);
+	protected SearchResult doFindMove(GenericMove selectedMove, byte depth) {
+		return mg.findMove(depth, sr);
 	}
 
 	public AbstractMoveSearcher(ThreadGroup group, String name) {

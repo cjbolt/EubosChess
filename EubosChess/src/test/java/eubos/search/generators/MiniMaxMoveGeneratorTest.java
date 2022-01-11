@@ -3,7 +3,6 @@ package eubos.search.generators;
 import static org.junit.Assert.*;
 
 import java.util.LinkedList;
-import java.util.List;
 import java.util.logging.Level;
 
 import org.junit.Before;
@@ -14,13 +13,13 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
-
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.PositionManager;
-
+import eubos.score.ReferenceScore;
 import eubos.search.transposition.FixedSizeTranspositionTable;
+import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
 
 public class MiniMaxMoveGeneratorTest {
@@ -31,9 +30,11 @@ public class MiniMaxMoveGeneratorTest {
 	protected GenericMove expectedMove;
 	protected FixedSizeTranspositionTable hashMap;
 	PositionManager pm;
+	SearchMetricsReporter sr_stub;
 	
 	@Before
 	public void setUp() {
+		sr_stub = new SearchMetricsReporter(null, null, new ReferenceScore(null));
 		EubosEngineMain.logger.setLevel(Level.OFF);
 		pl = new LinkedList<Piece>();
 		hashMap = new FixedSizeTranspositionTable();
@@ -432,8 +433,7 @@ public class MiniMaxMoveGeneratorTest {
 		//expectedMove = new GenericMove("h8g8");
 		// equally valid
 		expectedMove = new GenericMove("h8g7");
-		List<Integer> lastPc = classUnderTest.pc.toPvList(0);
-		res = classUnderTest.findMove((byte)5, lastPc);
+		res = classUnderTest.findMove((byte)5, sr_stub);
 		
 		assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
 	}
@@ -445,10 +445,8 @@ public class MiniMaxMoveGeneratorTest {
 		expectedMove = new GenericMove("h8g7");
 		
 		classUnderTest.findMove((byte)4);
-		List<Integer> lastPc = classUnderTest.pc.toPvList(0);
-		classUnderTest.findMove((byte)5,lastPc);
-		lastPc = classUnderTest.pc.toPvList(0);
-		SearchResult res = classUnderTest.findMove((byte)6,lastPc);
+		classUnderTest.findMove((byte)5, sr_stub);
+		SearchResult res = classUnderTest.findMove((byte)6, sr_stub);
 		
 	    assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
 	}

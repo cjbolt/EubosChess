@@ -20,7 +20,7 @@ public class KillerListTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		sut = new KillerList(5);
+		sut = new KillerList();
 	}
 	
 	@Test

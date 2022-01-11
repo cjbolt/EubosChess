@@ -1,7 +1,5 @@
 package eubos.search.searchers;
 
-import java.util.List;
-
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 
 import eubos.main.EubosEngineMain;
@@ -36,10 +34,8 @@ public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 	public void run() {
 		SearchResult res = new SearchResult(Move.NULL_MOVE, false);
 		enableSearchMetricsReporter(true);
-		List<Integer> pc = null;
 		for (byte depth=1; depth<=searchDepth && !searchStopped; depth++) {
-			res = doFindMove(Move.toGenericMove(res.bestMove), pc, depth);
-			pc = mg.pc.toPvList(0);
+			res = doFindMove(Move.toGenericMove(res.bestMove), depth);
 		}
 		enableSearchMetricsReporter(false);
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( Move.toGenericMove(res.bestMove), null ));

@@ -1,7 +1,5 @@
 package eubos.search.generators;
 
-import java.util.List;
-
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
@@ -32,22 +30,18 @@ public class MiniMaxMoveGenerator implements
 
 	private PlySearcher ps;
 	private IEvaluate pe;
-	private FixedSizeTranspositionTable tt;
 	private TranspositionTableAccessor tta;
 	private short score;
 	
 	private KillerList killers;
 	private int alternativeMoveListOrderingScheme = 1;
 	public SearchDebugAgent sda;
-	
-	public static final int EXTENDED_SEARCH_PLY_LIMIT = 32;
 
 	// Used for unit tests
 	MiniMaxMoveGenerator( FixedSizeTranspositionTable hashMap,
 			IChangePosition pm,
 			IPositionAccessors pos) {
 		commonInit(hashMap, pm, pos);
-		sda = new SearchDebugAgent(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
 	}
 
 	// Used with Arena, Lichess
@@ -59,7 +53,6 @@ public class MiniMaxMoveGenerator implements
 		PositionManager pm = new PositionManager(fen, dc, refScore);
 		commonInit(hashMap, pm, pm);
 		sr.register(sm);
-		sda = new SearchDebugAgent(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
 	}
 
 	private void commonInit(FixedSizeTranspositionTable hashMap, IChangePosition pm, IPositionAccessors pos) {
@@ -68,39 +61,28 @@ public class MiniMaxMoveGenerator implements
 		
 		pe = pos.getPositionEvaluator();
 		sm = new SearchMetrics(pos);
-		tt = hashMap;
 		score = 0;
-		killers = new KillerList(EubosEngineMain.SEARCH_DEPTH_IN_PLY);
+		killers = new KillerList();
+		sda = new SearchDebugAgent(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
+		tta = new TranspositionTableAccessor(hashMap, pos, sda);
+		pc = new PrincipalContinuation(Byte.MAX_VALUE, sda);
 	}
 	
 	public short getScore() { return score; }
 	
-	private void initialiseSearchDepthDependentObjects(int searchDepth, IChangePosition pm, SearchMetrics sm) {
-		pc = new PrincipalContinuation(searchDepth+EXTENDED_SEARCH_PLY_LIMIT, sda);
-		sm.setDepth(searchDepth);
-		sm.setPrincipalVariation(pc.toPvList(0));
-		tta = new TranspositionTableAccessor(tt, pos, sda);
-	}
-	
 	@Override
 	public SearchResult findMove(byte searchDepth)  {
-		return this.findMove(searchDepth, null);
-	}
-	
-	public SearchResult findMove(
-			byte searchDepth, 
-			List<Integer> lastPc)  {
-		return this.findMove(searchDepth, lastPc, new SearchMetricsReporter(null, tt, new ReferenceScore(tt)));
+		return this.findMove(searchDepth, new SearchMetricsReporter(null, null, new ReferenceScore(null)));
 	}
 	
 	@Override
 	public SearchResult findMove(
 			byte searchDepth, 
-			List<Integer> lastPc,
 			SearchMetricsReporter sr)  {
 		boolean foundMate = false;
-		initialiseSearchDepthDependentObjects(searchDepth, pm, sm);
-		ps = new PlySearcher(tta, pc, sm, sr, searchDepth, pm, pos, lastPc, pe, killers, sda);
+		sm.setDepth(searchDepth);
+		sm.setPrincipalVariation(pc.toPvList(0));
+		ps = new PlySearcher(tta, pc, sm, sr, searchDepth, pm, pos, pe, killers, sda);
 		if (alternativeMoveListOrderingScheme > 0) {
 			ps.alternativeMoveListOrdering(alternativeMoveListOrderingScheme);
 		}

@@ -55,7 +55,7 @@ public class IterativeMoveSearcherTest {
 	@Before
 	public void setUp() throws Exception {
 		eubos = new EubosMock();
-		killers = new KillerList(EubosEngineMain.SEARCH_DEPTH_IN_PLY);
+		killers = new KillerList();
 		hashMap = new FixedSizeTranspositionTable();
 		EubosEngineMain.logger.setLevel(Level.OFF);
 		EubosEngineMain.logger.setUseParentHandlers(false);

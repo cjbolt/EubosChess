@@ -1,9 +1,6 @@
 package eubos.search.searchers;
 
-import java.util.List;
-
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
-
 
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
@@ -63,12 +60,11 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	public void run() {
 		byte currentDepth = 1;
 		SearchResult res = new SearchResult(Move.NULL_MOVE, false);
-		List<Integer> pc = null;
 		enableSearchMetricsReporter(true);
 		IterativeMoveSearchStopper stopper = new IterativeMoveSearchStopper();
 		stopper.start();
 		while (!searchStopped) {
-			res = mg.findMove(currentDepth, pc, sr);
+			res = mg.findMove(currentDepth, sr);
 			if (res != null) {
 				if (res.foundMate && !analyse) {
 					EubosEngineMain.logger.info("IterativeMoveSearcher found mate");
@@ -87,7 +83,6 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 								"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
 					}
 				}
-				pc = mg.pc.toPvList(0);
 				currentDepth++;
 				if (currentDepth == Byte.MAX_VALUE) {
 					break;

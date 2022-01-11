@@ -1,7 +1,6 @@
 package eubos.search;
 
-import java.util.Arrays;
-
+import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 
 public class KillerList {
@@ -12,13 +11,13 @@ public class KillerList {
 	private int [][] killerList = null;
 	private int [] replaceIndex = null;
 	
-	public KillerList(int maxDepth) {
+	public KillerList() {
 		if (ENABLE_KILLER_MOVES) {
+			int maxDepth = EubosEngineMain.SEARCH_DEPTH_IN_PLY;
 			// Initialise the killer list
 			killerList = new int[maxDepth][];
 			for (int i=0; i<maxDepth; i++) {
 				killerList[i] = new int [NUM_KILLERS_AT_PLY];
-				Arrays.fill(killerList[i], Move.NULL_MOVE);
 			}
 			replaceIndex = new int[maxDepth];
 		}

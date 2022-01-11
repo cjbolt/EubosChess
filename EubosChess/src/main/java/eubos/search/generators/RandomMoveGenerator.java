@@ -1,7 +1,5 @@
 package eubos.search.generators;
 
-import java.util.List;
-
 import eubos.board.Piece;
 import eubos.position.Move;
 import eubos.position.MoveList;
@@ -22,20 +20,15 @@ class RandomMoveGenerator implements IMoveGenerator {
 	}
 	
 	@Override
-	public SearchResult findMove(byte searchDepth)  {
-		return this.findMove(searchDepth, null);
-	}
-	
 	// Find a random legal move for the colour "on move"
-	public SearchResult findMove(byte searchDepth, List<Integer> lastPc)  {
+	public SearchResult findMove(byte searchDepth)  {
 		int bestMove = ml.getRandomMove();
 		boolean isMate = bestMove == Move.NULL_MOVE;
 		return new SearchResult(bestMove, isMate);
 	}
 
 	@Override
-	public SearchResult findMove(byte searchDepth, List<Integer> lastPc, SearchMetricsReporter sr)
-			 {
+	public SearchResult findMove(byte searchDepth, SearchMetricsReporter sr) {
 		return this.findMove(searchDepth);
 	}
 }

@@ -180,11 +180,10 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		
 		public void run() {
 			byte currentDepth = 1;
-			List<Integer> pc = null;
 			result = new SearchResult(Move.NULL_MOVE, false);
 		
 			while (!searchStopped && !halted) {
-				result = myMg.findMove(currentDepth, pc, sr);
+				result = myMg.findMove(currentDepth, sr);
 				if (result != null) {
 					if (result.foundMate && !analyse) {
 						EubosEngineMain.logger.info("IterativeMoveSearcher found mate");
@@ -205,7 +204,6 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 									"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
 						}
 					}
-					pc = mg.pc.toPvList(0);
 					currentDepth++;
 					if (currentDepth == Byte.MAX_VALUE) {
 						break;
