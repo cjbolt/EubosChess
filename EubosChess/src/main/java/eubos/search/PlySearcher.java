@@ -142,7 +142,7 @@ public class PlySearcher {
 			return 0;
 		}
 		// Absolute depth limit
-		if (currPly >= Byte.MAX_VALUE) {
+		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
 			return pe.evaluatePosition();
 		}
 		
@@ -327,7 +327,7 @@ public class PlySearcher {
 		
 		// Stand Pat in extended search
 		short plyScore = (short) pe.evaluatePosition();	
-		if (currPly >= Byte.MAX_VALUE)
+		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY)
 			// Absolute depth limit
 			return plyScore;
 		if (plyScore >= beta) {

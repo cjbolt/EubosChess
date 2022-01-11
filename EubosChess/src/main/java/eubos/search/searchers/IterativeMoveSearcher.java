@@ -84,7 +84,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 					}
 				}
 				currentDepth++;
-				if (currentDepth == Byte.MAX_VALUE) {
+				if (currentDepth == EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
 					break;
 				}
 			}

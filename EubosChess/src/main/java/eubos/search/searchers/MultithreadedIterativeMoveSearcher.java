@@ -205,7 +205,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 						}
 					}
 					currentDepth++;
-					if (currentDepth == Byte.MAX_VALUE) {
+					if (currentDepth == EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
 						break;
 					}
 				}			

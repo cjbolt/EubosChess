@@ -65,7 +65,7 @@ public class MiniMaxMoveGenerator implements
 		killers = new KillerList();
 		sda = new SearchDebugAgent(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
 		tta = new TranspositionTableAccessor(hashMap, pos, sda);
-		pc = new PrincipalContinuation(Byte.MAX_VALUE, sda);
+		pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
 	}
 	
 	public short getScore() { return score; }
