@@ -44,7 +44,7 @@ public class ReferenceScore {
 		} else {
 			// Back off to a static evaluation to work out initial score
 			reference.origin = "set from static eval";
-			reference.score = (short) rootPos.getPositionEvaluator().evaluatePosition();
+			reference.score = (short) rootPos.getPositionEvaluator().getFullEvaluation();
 			reference.depth = 0;
 		}
 		

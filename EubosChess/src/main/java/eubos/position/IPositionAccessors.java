@@ -10,7 +10,7 @@ public interface IPositionAccessors {
 	public boolean onMoveIsWhite();
 	public boolean isKingInCheck();
 	public int getMoveNumber();
-	public int lastMoveTargetSquare();
+	public int getPlyNumber();
 	public long getHash();
 	public String getFen();
 	public boolean isThreefoldRepetitionPossible();

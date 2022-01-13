@@ -299,19 +299,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		}
 	}
 
-	public boolean noLastMove() {
-		return moveTracker.isEmpty();
-	}
-
 	IEvaluate pe;
 
 	@Override
 	public IEvaluate getPositionEvaluator() {
 		return pe;
-	}
-
-	@Override
-	public int lastMoveTargetSquare() {
-		return EubosEngineMain.ENABLE_SEARCH_ALL_CAPTURES_IN_QUIESCENSE ? Position.NOPOSITION : moveTracker.lastMoveTargetSquare();
 	}
 }

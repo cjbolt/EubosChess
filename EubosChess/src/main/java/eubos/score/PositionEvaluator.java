@@ -31,19 +31,43 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	
 	public PositionEvaluator(IPositionAccessors pm, ReferenceScore refScore) {	
 		this.pm = pm;
-		PiecewiseEvaluation mat = pm.getTheBoard().me;
+		Board bd = pm.getTheBoard();
+		PiecewiseEvaluation mat = bd.me;
 		if (mat == null) {
 			mat = pm.getTheBoard().evaluateMaterial();
+			mat.clearDynamicPosition();
+			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !bd.isEndgame) {
+				bd.calculateDynamicMobility(mat);
+			}
 		}
 		sc = new SearchContext(pm, mat, refScore);
 	}
 	
 	public int evaluatePosition() {
 		Board bd = pm.getTheBoard();
+		bd.me.clearDynamicPosition();
 		bd.evaluateMaterial();
+		return getFullEvaluation();
+	}
+	
+	public int getCrudeEvaluation() {
+		Board bd = pm.getTheBoard();
 		SearchContextEvaluation eval = sc.computeSearchGoalBonus(bd.me);
 		if (!eval.isDraw) {
 			eval.score += pm.onMoveIsWhite() ? bd.me.getDelta() : -bd.me.getDelta();
+		}
+		return eval.score;
+	}
+	
+	public int getFullEvaluation() {
+		Board bd = pm.getTheBoard();
+		PiecewiseEvaluation me = bd.me;
+		if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !bd.isEndgame) {
+			bd.calculateDynamicMobility(me);
+		}
+		SearchContextEvaluation eval = sc.computeSearchGoalBonus(me);
+		if (!eval.isDraw) {
+			eval.score += pm.onMoveIsWhite() ? me.getDelta() : -me.getDelta();
 			if (ENABLE_PAWN_EVALUATION) {
 				eval.score += evaluatePawnStructure();
 			}

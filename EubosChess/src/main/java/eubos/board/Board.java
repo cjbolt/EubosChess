@@ -14,7 +14,6 @@ import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.Position;
 import eubos.score.PiecewiseEvaluation;
-import eubos.score.PositionEvaluator;
 
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.GenericPosition;
@@ -143,6 +142,8 @@ public class Board {
 				String.format("Non-existant piece at %s", Position.toGenericPosition(originSquare));
 		}
 		
+		me.clearDynamicPosition();
+		
 		// Initialise En Passant target square
 		setEnPassantTargetSq(Position.NOPOSITION);
 		
@@ -155,7 +156,10 @@ public class Board {
 				capturePosition = targetSquare;
 			}
 			pickUpPieceAtSquare(capturePosition, targetPiece);
+			// Incrementally update opponent material after capture, at the correct capturePosition
+		    me = subtractPstPiece(targetPiece, capturePosition, me);
 		} else {
+			// Check whether the move sets the En Passant target square
 			if (!moveEnablesEnPassantCapture(pieceToMove, originSquare, targetSquare)) {
 				// Handle castling secondary rook moves...
 				if (Piece.isKing(pieceToMove)) {
@@ -172,12 +176,14 @@ public class Board {
 			if (ENABLE_PIECE_LISTS) {
 				pieceLists.updatePiece(pieceToMove, (isWhite ? promotedPiece : promotedPiece|Piece.BLACK), originSquare, targetSquare);
 			}
+			me = incrementallyUpdatePromotionPiece((isWhite ? promotedPiece : promotedPiece|Piece.BLACK), originSquare, targetSquare, me);
 		} else {
 			// Piece type doesn't change across boards
 			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
 			if (ENABLE_PIECE_LISTS) {
 				pieceLists.updatePiece(pieceToMove, originSquare, targetSquare);
 			}
+			me = incrementallyUpdatePstPiece(pieceToMove, originSquare, targetSquare, me);
 		}
 		// Switch colour bitboard
 		if (isWhite) {
@@ -211,6 +217,8 @@ public class Board {
 					Position.toGenericPosition(originSquare), Move.toString(moveToUndo));
 		}
 		
+		me.clearDynamicPosition();
+		
 		// Handle reversal of any castling secondary rook moves on the board
 		if (Piece.isKing(originPiece)) {
 			unperformSecondaryCastlingMove(moveToUndo);
@@ -224,12 +232,14 @@ public class Board {
 			if (ENABLE_PIECE_LISTS) {
 				pieceLists.updatePiece((isWhite ? promotedPiece : promotedPiece|Piece.BLACK), originPiece, originSquare, targetSquare);
 			}
+			me = incrementallyUndoPromotionPiece((isWhite ? promotedPiece : promotedPiece|Piece.BLACK), originSquare, targetSquare, me);
 		} else {
 			// Piece type doesn't change across boards
 			pieces[Piece.PIECE_NO_COLOUR_MASK & originPiece] ^= positionsMask;
 			if (ENABLE_PIECE_LISTS) {
 				pieceLists.updatePiece(originPiece, originSquare, targetSquare);
 			}
+			me = incrementallyUpdatePstPiece(originPiece, originSquare, targetSquare, me);
 		}
 		// Switch colour bitboard
 		if (isWhite) {
@@ -246,6 +256,8 @@ public class Board {
 			capturedPieceSquare = Move.isEnPassantCapture(moveToUndo) ? 
 					generateCapturePositionForEnPassant(originPiece, originSquare) : originSquare;
 			setPieceAtSquare(capturedPieceSquare, targetPiece);
+			// Replace captured piece in incremental material update, at the correct capture square
+			addPstPiece(targetPiece, capturedPieceSquare, me);
 		}
 		
 		return capturedPieceSquare;
@@ -740,9 +752,6 @@ public class Board {
 			me = new PiecewiseEvaluation();
 			pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(true);
 			pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(false);
-			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !isEndgame) {
-				calculateDynamicMobility(me);
-			}
 			return me;
 		} else {
 			PrimitiveIterator.OfInt iter_p = this.iterator();
@@ -753,9 +762,6 @@ public class Board {
 				material = updateMaterialForPiece(currPiece, atPos, material);
 			}
 			me = material;
-			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !isEndgame) {
-				calculateDynamicMobility(me);
-			}
 			return me;
 		}
 	}
@@ -833,25 +839,25 @@ public class Board {
 		return mobility_score;
 	}
 	
-	void calculateDynamicMobility(PiecewiseEvaluation me) {
+	public void calculateDynamicMobility(PiecewiseEvaluation me) {
 		int mobility_score = 0x0;
 		// White Bishop and Queen
 		long white_queens = getWhiteQueens();
 		mobility_score = calculateDiagonalMobility(getWhiteBishops(), white_queens);
-		me.addPosition(true, (short)(mobility_score*2));
+		me.addDynamicPosition(true, (short)(mobility_score*2));
 
 		// White Rook and Queen
 		mobility_score = calculateRankFileMobility(getWhiteRooks(), white_queens);
-		me.addPosition(true, (short)(mobility_score*2));
+		me.addDynamicPosition(true, (short)(mobility_score*2));
 		
 		// Black Bishop and Queen
 		long black_queens = getBlackQueens();
 		mobility_score = calculateDiagonalMobility(getBlackBishops(), black_queens);
-		me.addPosition(false, (short)(mobility_score*2));
+		me.addDynamicPosition(false, (short)(mobility_score*2));
 		
 		// Black Rook and Queen
 		mobility_score = calculateRankFileMobility(getBlackRooks(), black_queens);
-		me.addPosition(false, (short)(mobility_score*2));
+		me.addDynamicPosition(false, (short)(mobility_score*2));
 	}
 	
     // For reasons of performance optimisation, part of the material evaluation considers the mobility of pieces.
@@ -899,6 +905,248 @@ public class Board {
 		case Piece.BLACK_KING:
 			eval.addPiece(false, Piece.KING);
 			eval.addPosition(false, (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[atPos] : Piece.KING_MIDGAME_WEIGHTINGS[atPos]);
+			break;
+		default:
+			break;
+		}
+		return eval;
+	}
+	
+    // For reasons of performance optimisation, part of the material evaluation considers the mobility of pieces.
+    // This function generates a score considering two categories A) material B) static PSTs 
+	private PiecewiseEvaluation incrementallyUpdatePstPiece(int currPiece, int oldPos, int newPos, PiecewiseEvaluation eval) {
+		switch(currPiece) {
+		case Piece.WHITE_PAWN:
+			eval.subPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[oldPos]);
+			eval.addPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[newPos]);
+			break;
+		case Piece.BLACK_PAWN:
+			eval.subPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[oldPos]);
+			eval.addPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[newPos]);
+			break;
+		case Piece.WHITE_KNIGHT:
+			eval.subPosition(true, Piece.KNIGHT_WEIGHTINGS[oldPos]);
+			eval.addPosition(true, Piece.KNIGHT_WEIGHTINGS[newPos]);
+			break;
+		case Piece.BLACK_KNIGHT:
+			eval.subPosition(false, Piece.KNIGHT_WEIGHTINGS[oldPos]);
+			eval.addPosition(false, Piece.KNIGHT_WEIGHTINGS[newPos]);
+			break;
+		case Piece.WHITE_KING:
+			eval.subPosition(true, (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[oldPos] : Piece.KING_MIDGAME_WEIGHTINGS[oldPos]);
+			eval.addPosition(true, (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[newPos] : Piece.KING_MIDGAME_WEIGHTINGS[newPos]);
+			break;			
+		case Piece.BLACK_KING:
+			eval.subPosition(false, (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[oldPos] : Piece.KING_MIDGAME_WEIGHTINGS[oldPos]);
+			eval.addPosition(false, (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[newPos] : Piece.KING_MIDGAME_WEIGHTINGS[newPos]);
+			break;
+		default:
+		case Piece.WHITE_ROOK:
+		case Piece.BLACK_ROOK:
+		case Piece.WHITE_BISHOP:
+		case Piece.BLACK_BISHOP:
+		case Piece.WHITE_QUEEN:
+		case Piece.BLACK_QUEEN:
+			break;
+		}
+		return eval;
+	}
+	
+	private PiecewiseEvaluation incrementallyUpdatePromotionPiece(int promoPiece, int oldPos, int newPos, PiecewiseEvaluation eval) {
+		switch(promoPiece) {
+		case Piece.WHITE_KNIGHT:
+			eval.subPiece(true, Piece.PAWN);
+			eval.addPiece(true, Piece.KNIGHT);
+			eval.subPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[oldPos]);
+			eval.addPosition(true, Piece.KNIGHT_WEIGHTINGS[newPos]);
+			break;
+		case Piece.BLACK_KNIGHT:
+			eval.subPiece(false, Piece.PAWN);
+			eval.addPiece(false, Piece.KNIGHT);
+			eval.subPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[oldPos]);
+			eval.addPosition(false, Piece.KNIGHT_WEIGHTINGS[newPos]);
+			break;
+		case Piece.WHITE_ROOK:
+			eval.subPiece(true, Piece.PAWN);
+			eval.addPiece(true, Piece.ROOK);
+			eval.subPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[oldPos]);
+			break;
+		case Piece.BLACK_ROOK:
+			eval.subPiece(false, Piece.PAWN);
+			eval.addPiece(false, Piece.ROOK);
+			eval.subPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[oldPos]);
+			break;
+		case Piece.WHITE_BISHOP:
+			eval.subPiece(true, Piece.PAWN);
+			eval.addPiece(true, Piece.BISHOP);
+			eval.subPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[oldPos]);
+			break;
+		case Piece.BLACK_BISHOP:
+			eval.subPiece(false, Piece.PAWN);
+			eval.addPiece(false, Piece.BISHOP);
+			eval.subPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[oldPos]);
+			break;
+		case Piece.WHITE_QUEEN:
+			eval.subPiece(true, Piece.PAWN);
+			eval.addPiece(true, Piece.QUEEN);
+			eval.subPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[oldPos]);			
+			break;
+		case Piece.BLACK_QUEEN:
+			eval.subPiece(false, Piece.PAWN);
+			eval.addPiece(false, Piece.QUEEN);
+			eval.subPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[oldPos]);
+			break;
+		default:
+			assert false;
+			break;
+		}
+		return eval;
+	}
+	
+	private PiecewiseEvaluation incrementallyUndoPromotionPiece(int promoPiece, int oldPos, int newPos, PiecewiseEvaluation eval) {
+		switch(promoPiece) {
+		case Piece.WHITE_KNIGHT:
+			eval.addPiece(true, Piece.PAWN);
+			eval.subPiece(true, Piece.KNIGHT);
+			eval.addPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[newPos]);
+			eval.subPosition(true, Piece.KNIGHT_WEIGHTINGS[oldPos]);
+			break;
+		case Piece.BLACK_KNIGHT:
+			eval.addPiece(false, Piece.PAWN);
+			eval.subPiece(false, Piece.KNIGHT);
+			eval.addPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[newPos]);
+			eval.subPosition(false, Piece.KNIGHT_WEIGHTINGS[oldPos]);
+			break;
+		case Piece.WHITE_ROOK:
+			eval.addPiece(true, Piece.PAWN);
+			eval.subPiece(true, Piece.ROOK);
+			eval.addPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[newPos]);
+			break;
+		case Piece.BLACK_ROOK:
+			eval.addPiece(false, Piece.PAWN);
+			eval.subPiece(false, Piece.ROOK);
+			eval.addPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[newPos]);
+			break;
+		case Piece.WHITE_BISHOP:
+			eval.addPiece(true, Piece.PAWN);
+			eval.subPiece(true, Piece.BISHOP);
+			eval.addPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[newPos]);
+			break;
+		case Piece.BLACK_BISHOP:
+			eval.addPiece(false, Piece.PAWN);
+			eval.subPiece(false, Piece.BISHOP);
+			eval.addPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[newPos]);
+			break;
+		case Piece.WHITE_QUEEN:
+			eval.addPiece(true, Piece.PAWN);
+			eval.subPiece(true, Piece.QUEEN);
+			eval.addPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[newPos]);			
+			break;
+		case Piece.BLACK_QUEEN:
+			eval.addPiece(false, Piece.PAWN);
+			eval.subPiece(false, Piece.QUEEN);
+			eval.addPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[newPos]);
+			break;
+		default:
+			assert false;
+			break;
+		}
+		return eval;
+	}
+	
+    // For reasons of performance optimisation, part of the material evaluation considers the mobility of pieces.
+    // This function generates a score considering two categories A) material B) static PSTs 
+	private PiecewiseEvaluation subtractPstPiece(int currPiece, int atPos, PiecewiseEvaluation eval) {
+		switch(currPiece) {
+		case Piece.WHITE_PAWN:
+			eval.subPiece(true, Piece.PAWN);
+			eval.subPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[atPos]);
+			break;
+		case Piece.BLACK_PAWN:
+			eval.subPiece(false, Piece.PAWN);
+			eval.subPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[atPos]);
+			break;
+		case Piece.WHITE_KNIGHT:
+			eval.subPiece(true, Piece.KNIGHT);
+			eval.subPosition(true, Piece.KNIGHT_WEIGHTINGS[atPos]);
+			break;
+		case Piece.BLACK_KNIGHT:
+			eval.subPiece(false, Piece.KNIGHT);
+			eval.subPosition(false, Piece.KNIGHT_WEIGHTINGS[atPos]);
+			break;
+		case Piece.WHITE_KING:
+			assert false;
+			break;			
+		case Piece.BLACK_KING:
+			assert false;
+			break;
+		case Piece.WHITE_ROOK:
+			eval.subPiece(true, Piece.ROOK);
+			break;
+		case Piece.BLACK_ROOK:
+			eval.subPiece(false, Piece.ROOK);
+			break;
+		case Piece.WHITE_BISHOP:
+			eval.subPiece(true, Piece.BISHOP);
+			break;
+		case Piece.BLACK_BISHOP:
+			eval.subPiece(false, Piece.BISHOP);
+			break;
+		case Piece.WHITE_QUEEN:
+			eval.subPiece(true, Piece.QUEEN);
+			break;
+		case Piece.BLACK_QUEEN:
+			eval.subPiece(false, Piece.QUEEN);
+			break;
+		default:
+			break;
+		}
+		return eval;
+	}
+	
+	// For reasons of performance optimisation, part of the material evaluation considers the mobility of pieces.
+    // This function generates a score considering two categories A) material B) static PSTs 
+	private PiecewiseEvaluation addPstPiece(int currPiece, int atPos, PiecewiseEvaluation eval) {
+		switch(currPiece) {
+		case Piece.WHITE_PAWN:
+			eval.addPiece(true, Piece.PAWN);
+			eval.addPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[atPos]);
+			break;
+		case Piece.BLACK_PAWN:
+			eval.addPiece(false, Piece.PAWN);
+			eval.addPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[atPos]);
+			break;
+		case Piece.WHITE_KNIGHT:
+			eval.addPiece(true, Piece.KNIGHT);
+			eval.addPosition(true, Piece.KNIGHT_WEIGHTINGS[atPos]);
+			break;
+		case Piece.BLACK_KNIGHT:
+			eval.addPiece(false, Piece.KNIGHT);
+			eval.addPosition(false, Piece.KNIGHT_WEIGHTINGS[atPos]);
+			break;
+		case Piece.WHITE_KING:
+			assert false;
+			break;			
+		case Piece.BLACK_KING:
+			assert false;
+			break;
+		case Piece.WHITE_ROOK:
+			eval.addPiece(true, Piece.ROOK);
+			break;
+		case Piece.BLACK_ROOK:
+			eval.addPiece(false, Piece.ROOK);
+			break;
+		case Piece.WHITE_BISHOP:
+			eval.addPiece(true, Piece.BISHOP);
+			break;
+		case Piece.BLACK_BISHOP:
+			eval.addPiece(false, Piece.BISHOP);
+			break;
+		case Piece.WHITE_QUEEN:
+			eval.addPiece(true, Piece.QUEEN);
+			break;
+		case Piece.BLACK_QUEEN:
+			eval.addPiece(false, Piece.QUEEN);
 			break;
 		default:
 			break;

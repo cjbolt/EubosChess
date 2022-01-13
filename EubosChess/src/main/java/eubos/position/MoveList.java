@@ -248,7 +248,7 @@ public class MoveList implements Iterable<Integer> {
 	@Override
 	public String toString() {
 		String retVal = "";
-		for (int move : normal_search_moves[ply]) {
+		for (int move : IntArrays.trim(normal_search_moves[ply], normal_list_length)) {
 			retVal += Move.toString(move);
 			retVal += ", ";
 		}

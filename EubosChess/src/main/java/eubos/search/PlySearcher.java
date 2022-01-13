@@ -143,7 +143,7 @@ public class PlySearcher {
 		}
 		// Absolute depth limit
 		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
-			return pe.evaluatePosition();
+			return pe.getFullEvaluation();
 		}
 		
 		if (SearchDebugAgent.DEBUG_ENABLED) {
@@ -326,7 +326,7 @@ public class PlySearcher {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
 		// Stand Pat in extended search
-		short plyScore = (short) pe.evaluatePosition();	
+		short plyScore = (short) pe.getCrudeEvaluation();	
 		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY)
 			// Absolute depth limit
 			return plyScore;
@@ -334,6 +334,13 @@ public class PlySearcher {
 			// There is no move to put in the killer table when we stand Pat
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
 			return beta;
+		} else {
+			plyScore = (short) pe.getFullEvaluation();
+			if (plyScore >= beta) {
+				// There is no move to put in the killer table when we stand Pat
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
+				return beta;
+			}
 		}
 		
 		int prevBestMove = Move.NULL_MOVE;
