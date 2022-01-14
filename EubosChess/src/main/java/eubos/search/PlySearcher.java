@@ -327,10 +327,7 @@ public class PlySearcher {
 		
 		// Stand Pat in extended search
 		short plyScore = (short) pe.getCrudeEvaluation();	
-		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY)
-			// Absolute depth limit
-			return plyScore;
-		if (plyScore >= beta) {
+		if (!pos.getTheBoard().isEndgame && (plyScore-250 >= beta)) {
 			// There is no move to put in the killer table when we stand Pat
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
 			return beta;
@@ -342,6 +339,9 @@ public class PlySearcher {
 				return beta;
 			}
 		}
+		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY)
+			// Absolute depth limit, return full eval
+			return plyScore;
 		
 		int prevBestMove = Move.NULL_MOVE;
 		ITransposition trans = tt.getTransposition();
