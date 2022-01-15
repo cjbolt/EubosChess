@@ -82,7 +82,7 @@ public class MoveList implements Iterable<Integer> {
 			// Can't castle out of check and don't care in extended search
 			pm.castling.addCastlingMoves(isWhiteOnMove, this);
 		}
-		
+
 		int valid_move_count = removeInvalidIdentifyBestKillerMoves(pm, bestMove, killers, onMove, needToEscapeMate);
 		isMate = (valid_move_count == 0);
 		checkToSortList(orderMoveList);
@@ -133,7 +133,7 @@ public class MoveList implements Iterable<Integer> {
 			bestMove = Move.setTargetPiece(bestMove, targetPiece);
 		}
 		
-		for (int i=0; i<priority_fill_index; i++) {
+		for (int i=(bestMove != Move.NULL_MOVE) ? 1 : 0; i<priority_fill_index; i++) {
 			int currMove = priority_moves[ply][i];
 			int originPiece = Move.getOriginPiece(currMove);
 			boolean possibleDiscoveredOrMoveIntoCheck = Piece.isKing(originPiece) || 

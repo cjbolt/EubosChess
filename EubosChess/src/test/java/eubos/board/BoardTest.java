@@ -12,6 +12,7 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
+import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.Position;
 import eubos.position.PositionManager;
@@ -72,7 +73,9 @@ public class BoardTest {
 	
 	@Test
 	public void testPickUpPieceAtSquare_DoesntExist()  {
-		assertEquals(Piece.NONE, classUnderTest.pickUpPieceAtSquare(testSq, Piece.NONE));
+		if (!EubosEngineMain.ENABLE_ASSERTS) {
+			assertEquals(Piece.NONE, classUnderTest.pickUpPieceAtSquare(testSq, Piece.NONE));
+		}
 	}	
 
 	@Test
