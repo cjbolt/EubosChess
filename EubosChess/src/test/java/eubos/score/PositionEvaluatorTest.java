@@ -34,11 +34,7 @@ public class PositionEvaluatorTest {
 	public void test_evalPosA() {
 		setUpPosition("rn2k1nr/1pp2p1p/p7/8/6b1/2P2N2/PPP2PP1/R1BB1RK1 b kq - 0 12");
 		if (PositionEvaluator.ENABLE_PAWN_EVALUATION && PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
-			PiecewiseEvaluation temp = new PiecewiseEvaluation();
-			// Full eval on its own gives a score 2 cp different from this, why? Endgame tables... or bug?
-			pm.getTheBoard().evaluateMaterial(temp);
-			pm.getTheBoard().me = temp;
-			assertEquals(-239, SUT.getFullEvaluation()); // Knight good pos, pawn up, doubled pawns, isolated pawn, not endgame, some danger to black king (open file)
+			assertEquals(-241, SUT.getFullEvaluation()); // Knight good pos, pawn up, doubled pawns, isolated pawn, not endgame, some danger to black king (open file)
 		} else if (PositionEvaluator.ENABLE_PAWN_EVALUATION && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION) {
 			assertEquals(-159, SUT.getFullEvaluation()); // Knight good pos, pawn up, doubled pawns, not endgame, some danger to black king (open file)
 		} else {
