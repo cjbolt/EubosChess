@@ -318,6 +318,7 @@ public class PlySearcher {
 		return alpha;
 	}
 	
+	@SuppressWarnings("unused")
 	private int extendedSearch(int alpha, int beta, boolean needToEscapeCheck)  {
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearch(alpha, beta);
 		if (currPly > extendedSearchDeepestPly) {

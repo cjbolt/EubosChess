@@ -19,6 +19,7 @@ public abstract class Piece {
 		public static boolean isBlack( Colour arg ) { return arg == black; }
 	};
 	
+	// Note: Piece values below are not completely arbitrary, they must match Zobrist indexes
 	public static final int NONE = 0x0;
 	public static final int KING = 0x1;
 	public static final int QUEEN = 0x2;
