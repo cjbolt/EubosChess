@@ -56,16 +56,6 @@ public class PiecewiseEvaluation {
 		}
 	}
 	
-	private void addDynamicPositionWhite(short pstBoost) { dynamicPosition += pstBoost; }
-	private void addDynamicPositionBlack(short pstBoost) { dynamicPosition -= pstBoost; }
-	public void addDynamicPosition(boolean isWhite, short pstBoost) {
-		if (isWhite) {
-			addDynamicPositionWhite(pstBoost);
-		} else {
-			addDynamicPositionBlack(pstBoost);
-		}
-	}
-	
 	private void subPositionWhite(short pstBoost) { position -= pstBoost; }
 	private void subPositionBlack(short pstBoost) { position += pstBoost; }
 	public void subPosition(boolean isWhite, short pstBoost) {
@@ -73,6 +63,16 @@ public class PiecewiseEvaluation {
 			subPositionWhite(pstBoost);
 		} else {
 			subPositionBlack(pstBoost);
+		}
+	}
+	
+	private void addDynamicPositionWhite(short pstBoost) { dynamicPosition += pstBoost; }
+	private void addDynamicPositionBlack(short pstBoost) { dynamicPosition -= pstBoost; }
+	public void addDynamicPosition(boolean isWhite, short pstBoost) {
+		if (isWhite) {
+			addDynamicPositionWhite(pstBoost);
+		} else {
+			addDynamicPositionBlack(pstBoost);
 		}
 	}
 	

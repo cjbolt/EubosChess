@@ -75,7 +75,8 @@ public class Board {
 			setPieceAtSquare( nextPiece.getKey(), nextPiece.getValue() );
 		}
 		isEndgame = false;
-		me = evaluateMaterial();
+		me = new PiecewiseEvaluation();
+		evaluateMaterial(me);
 		boolean queensOffBoard = (getWhiteQueens() == 0) && (getBlackQueens() == 0);
 		int opponentMaterial = Piece.Colour.isWhite(initialOnMove) ? me.getBlack() : me.getWhite();
 		boolean queensOffMaterialThresholdReached = opponentMaterial <= ENDGAME_MATERIAL_THRESHOLD_WITHOUT_QUEENS;
@@ -83,6 +84,9 @@ public class Board {
 		if ((queensOffBoard && queensOffMaterialThresholdReached) || materialQuantityThreshholdReached) {
 			isEndgame = true;
 		}
+		// Regenerate, because no we know the correct endgame state!
+		me = new PiecewiseEvaluation();
+		evaluateMaterial(me);
 	}
 	
 	public static String reportStaticDataSizes() {
@@ -194,6 +198,16 @@ public class Board {
 		// Switch all pieces bitboard
 		allPieces ^= positionsMask;
 		
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			// check material incrementally updated against from scratch
+			PiecewiseEvaluation scratch_me = new PiecewiseEvaluation();
+			evaluateMaterial(scratch_me);
+			assert scratch_me.getDelta() == me.getDelta();
+			assert scratch_me.getPosition() == me.getPosition();
+			assert scratch_me.getBlack() == me.getBlack();
+			assert scratch_me.getWhite() == me.getWhite();
+		}
+		
 		return capturePosition;
 	}
 	
@@ -258,6 +272,16 @@ public class Board {
 			setPieceAtSquare(capturedPieceSquare, targetPiece);
 			// Replace captured piece in incremental material update, at the correct capture square
 			addPstPiece(targetPiece, capturedPieceSquare, me);
+		}
+		
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			// check material incrementally updated against from scratch
+			PiecewiseEvaluation scratch_me = new PiecewiseEvaluation();
+			evaluateMaterial(scratch_me);
+			assert scratch_me.getDelta() == me.getDelta();
+			assert scratch_me.getPosition() == me.getPosition();
+			assert scratch_me.getBlack() == me.getBlack();
+			assert scratch_me.getWhite() == me.getWhite();
 		}
 		
 		return capturedPieceSquare;
@@ -747,12 +771,10 @@ public class Board {
 		}
 	}
 	
-	public PiecewiseEvaluation evaluateMaterial() {
+	public void evaluateMaterial(PiecewiseEvaluation the_me) {
 		if (ENABLE_PIECE_LISTS) {
-			me = new PiecewiseEvaluation();
-			pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(true);
-			pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(false);
-			return me;
+			pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(true, the_me);
+			pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(false, the_me);
 		} else {
 			PrimitiveIterator.OfInt iter_p = this.iterator();
 			PiecewiseEvaluation material = new PiecewiseEvaluation();
@@ -762,7 +784,6 @@ public class Board {
 				material = updateMaterialForPiece(currPiece, atPos, material);
 			}
 			me = material;
-			return me;
 		}
 	}
 	

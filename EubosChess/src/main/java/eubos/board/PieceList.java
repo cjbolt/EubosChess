@@ -5,6 +5,7 @@ import java.util.Arrays;
 import eubos.main.EubosEngineMain;
 import eubos.position.MoveList;
 import eubos.position.Position;
+import eubos.score.PiecewiseEvaluation;
 
 public class PieceList {
 	
@@ -321,34 +322,34 @@ public class PieceList {
 		}
 	}
 	
-	public void evaluateMaterialBalanceAndStaticPieceMobility(boolean isWhite) {
+	public void evaluateMaterialBalanceAndStaticPieceMobility(boolean isWhite, PiecewiseEvaluation me) {
 		int side = isWhite ? 0 : Piece.BLACK;
 		{
 			int atSquare = piece_list[side+Piece.KING][0];
 			if (atSquare != Position.NOPOSITION) {			
-				theBoard.me.addPiece(isWhite, Piece.KING);
-				theBoard.me.addPosition(isWhite, theBoard.isEndgame ? Piece.KING_ENDGAME_WEIGHTINGS[atSquare] : Piece.KING_MIDGAME_WEIGHTINGS[atSquare]);
+				me.addPiece(isWhite, Piece.KING);
+				me.addPosition(isWhite, theBoard.isEndgame ? Piece.KING_ENDGAME_WEIGHTINGS[atSquare] : Piece.KING_MIDGAME_WEIGHTINGS[atSquare]);
 			}
 		}
 		for(int atSquare : piece_list[side+Piece.QUEEN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				theBoard.me.addPiece(isWhite, Piece.QUEEN);
+				me.addPiece(isWhite, Piece.QUEEN);
 			} else break;
 		}
 		for(int atSquare : piece_list[side+Piece.ROOK]) {
 			if (atSquare != Position.NOPOSITION) {			
-				theBoard.me.addPiece(isWhite, Piece.ROOK);
+				me.addPiece(isWhite, Piece.ROOK);
 			} else break;
 		}
 		for(int atSquare : piece_list[side+Piece.BISHOP]) {
 			if (atSquare != Position.NOPOSITION) {			
-				theBoard.me.addPiece(isWhite, Piece.BISHOP);
+				me.addPiece(isWhite, Piece.BISHOP);
 			} else break;
 		}
 		for(int atSquare : piece_list[side+Piece.KNIGHT]) {
 			if (atSquare != Position.NOPOSITION) {			
-				theBoard.me.addPiece(isWhite, Piece.KNIGHT);
-				theBoard.me.addPosition(isWhite, Piece.KNIGHT_WEIGHTINGS[atSquare]);
+				me.addPiece(isWhite, Piece.KNIGHT);
+				me.addPosition(isWhite, Piece.KNIGHT_WEIGHTINGS[atSquare]);
 			} else break;
 		}
 		for(int atSquare : piece_list[side+Piece.PAWN]) {
@@ -357,8 +358,8 @@ public class PieceList {
 					assert theBoard.getPieceAtSquare(atSquare) != Piece.NONE :
 						String.format("Found a Pawn at %s that isn't on Board", Position.toGenericPosition(atSquare));
 				}
-				theBoard.me.addPiece(isWhite, Piece.PAWN);
-				theBoard.me.addPosition(isWhite, isWhite ? Piece.PAWN_WHITE_WEIGHTINGS[atSquare] : Piece.PAWN_BLACK_WEIGHTINGS[atSquare]);
+				me.addPiece(isWhite, Piece.PAWN);
+				me.addPosition(isWhite, isWhite ? Piece.PAWN_WHITE_WEIGHTINGS[atSquare] : Piece.PAWN_BLACK_WEIGHTINGS[atSquare]);
 			} else break;
 		}
 	}

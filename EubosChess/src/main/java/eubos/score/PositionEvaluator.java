@@ -32,22 +32,13 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	public PositionEvaluator(IPositionAccessors pm, ReferenceScore refScore) {	
 		this.pm = pm;
 		Board bd = pm.getTheBoard();
-		PiecewiseEvaluation mat = bd.me;
-		if (mat == null) {
-			mat = pm.getTheBoard().evaluateMaterial();
-			mat.clearDynamicPosition();
-			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !bd.isEndgame) {
-				bd.calculateDynamicMobility(mat);
-			}
+		PiecewiseEvaluation mat = new PiecewiseEvaluation();
+		pm.getTheBoard().evaluateMaterial(mat);
+		if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !bd.isEndgame) {
+			bd.calculateDynamicMobility(mat);
 		}
+		bd.me = mat;
 		sc = new SearchContext(pm, mat, refScore);
-	}
-	
-	public int evaluatePosition() {
-		Board bd = pm.getTheBoard();
-		bd.me.clearDynamicPosition();
-		bd.evaluateMaterial();
-		return getFullEvaluation();
 	}
 	
 	public int getCrudeEvaluation() {
