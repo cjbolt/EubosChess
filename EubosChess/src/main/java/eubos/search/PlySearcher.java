@@ -327,7 +327,7 @@ public class PlySearcher {
 		
 		// Stand Pat in extended search
 		short plyScore = (short) pe.getCrudeEvaluation();	
-		if (!pos.getTheBoard().isEndgame && (plyScore-250 >= beta)) {
+		if (EubosEngineMain.ENABLE_LAZY_EVALUATION && !pos.getTheBoard().isEndgame && (plyScore-250 >= beta)) {
 			// There is no move to put in the killer table when we stand Pat
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
 			return beta;
