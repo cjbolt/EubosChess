@@ -124,6 +124,7 @@ public class PlySearcher {
 			if (windowFailed) {
 				EubosEngineMain.logger.info(String.format("Aspiration Window failed score=%d alpha=%d beta=%d depth=%d",
         				score, alpha, beta, originalSearchDepthRequiredInPly));
+				sm.setCurrentMove(Move.toGenericMove(pc.getBestMove((byte) 0)), 1);
 				sr.resetAfterWindowingFail();
 				windowFailed = false;
 			}
