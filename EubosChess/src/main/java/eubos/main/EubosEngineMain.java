@@ -52,6 +52,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	public static final boolean ENABLE_LOGGING = true;
 	public static final boolean ENABLE_UCI_INFO_SENDING = true;
+	public static final boolean ENABLE_UCI_MOVE_NUMBER = true;
 	public static final boolean ENABLE_ASSERTS = false;
 	public static final boolean ENABLE_YIELD_IN_WORKER_THREADS = false;
 	public static final boolean ENABLE_REPETITION_DETECTION = true;

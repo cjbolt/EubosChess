@@ -124,7 +124,6 @@ public class PlySearcher {
 			if (windowFailed) {
 				EubosEngineMain.logger.info(String.format("Aspiration Window failed score=%d alpha=%d beta=%d depth=%d",
         				score, alpha, beta, originalSearchDepthRequiredInPly));
-				sm.setCurrentMove(Move.toGenericMove(pc.getBestMove((byte) 0)), 1);
 				sr.resetAfterWindowingFail();
 				windowFailed = false;
 			}
@@ -242,8 +241,10 @@ public class PlySearcher {
 		
 		int moveNumber = 1;
 		while (!isTerminated()) {
-			if (atRootNode()) {
+			if (EubosEngineMain.ENABLE_UCI_MOVE_NUMBER && atRootNode()) {
 				sm.setCurrentMove(Move.toGenericMove(currMove), moveNumber);
+				if (depth > 6)
+					sr.reportCurrentMove();
 			}
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 			// Apply move and score
@@ -295,6 +296,10 @@ public class PlySearcher {
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(alpha, beta);
 				currMove = move_iter.nextInt();
 				moveNumber += 1;
+				if (EubosEngineMain.ENABLE_ASSERTS) {
+					assert currMove != Move.NULL_MOVE: "Null move found in MoveList";
+					assert moveNumber <= ml.getList().size() : "MoveList is too long";
+				}
 			} else {
 				break;
 			}
