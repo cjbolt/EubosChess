@@ -31,7 +31,7 @@ public class SearchContext {
 	public SearchContext(IPositionAccessors pos, PiecewiseEvaluation initialMaterial, ReferenceScore refScore) {
 		this.pos = pos;
 		// Make a copy of the initial Material Evaluation and store it here
-		initial = new PiecewiseEvaluation(initialMaterial.getWhite(), initialMaterial.getBlack(), initialMaterial.getPosition());
+		initial = new PiecewiseEvaluation(initialMaterial.white, initialMaterial.black, initialMaterial.getPosition());
 		initialOnMove = pos.getOnMove();
 		opponent = Colour.getOpposite(initialOnMove);
 		setGoal(refScore);
@@ -121,11 +121,11 @@ public class SearchContext {
 	private boolean isPositionSimplified(PiecewiseEvaluation current) {
 		boolean isSimplification = false;
 		if (Colour.isWhite(initialOnMove)) {
-			if ((initial.getDelta() <= current.getDelta()) && initial.getWhite() > current.getWhite()) {
+			if ((initial.getDelta() <= current.getDelta()) && initial.white > current.white) {
 				isSimplification = true;
 			}
 		} else {
-			if ((initial.getDelta() >= current.getDelta()) && initial.getBlack() > current.getBlack()) {
+			if ((initial.getDelta() >= current.getDelta()) && initial.black > current.black) {
 				isSimplification = true;
 			}			
 		}

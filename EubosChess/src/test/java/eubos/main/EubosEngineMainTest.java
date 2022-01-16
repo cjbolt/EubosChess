@@ -341,7 +341,7 @@ public class EubosEngineMainTest {
 			 16/29	04:56	 475,978k	1,604k	 0.00	Bxg3 a5 Bb8 Nf5 Ke5 a6 h5 Nd4 hxg4 hxg4 Kd6 Nb5+ Ke5 Nd4
 			 17/30	18:13	 1,728,005k	1,581k	 0.00	Bxg3 a5 Bb8 Nf5 Kd7 Nxh6 Ba7 Nf5 Bc5 Nd4 Kc7 Nb5+ Kc6 Nd4+ Kc7
 			*/
-		performTest(7000);
+		performTest(15000);
 	}
 	
 	@Test

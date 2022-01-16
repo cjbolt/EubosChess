@@ -78,9 +78,9 @@ public class Board {
 		me = new PiecewiseEvaluation();
 		evaluateMaterial(me);
 		boolean queensOffBoard = (getWhiteQueens() == 0) && (getBlackQueens() == 0);
-		int opponentMaterial = Piece.Colour.isWhite(initialOnMove) ? me.getBlack() : me.getWhite();
+		int opponentMaterial = Piece.Colour.isWhite(initialOnMove) ? me.black : me.white;
 		boolean queensOffMaterialThresholdReached = opponentMaterial <= ENDGAME_MATERIAL_THRESHOLD_WITHOUT_QUEENS;
-		boolean materialQuantityThreshholdReached = me.getWhite() <= ENDGAME_MATERIAL_THRESHOLD && me.getBlack() <= ENDGAME_MATERIAL_THRESHOLD;
+		boolean materialQuantityThreshholdReached = me.white <= ENDGAME_MATERIAL_THRESHOLD && me.black <= ENDGAME_MATERIAL_THRESHOLD;
 		if ((queensOffBoard && queensOffMaterialThresholdReached) || materialQuantityThreshholdReached) {
 			isEndgame = true;
 		}
@@ -146,7 +146,7 @@ public class Board {
 				String.format("Non-existant piece at %s", Position.toGenericPosition(originSquare));
 		}
 		
-		me.clearDynamicPosition();
+		me.dynamicPosition = 0;
 		
 		// Initialise En Passant target square
 		setEnPassantTargetSq(Position.NOPOSITION);
@@ -161,7 +161,7 @@ public class Board {
 			}
 			pickUpPieceAtSquare(capturePosition, targetPiece);
 			// Incrementally update opponent material after capture, at the correct capturePosition
-		    me = subtractPstPiece(targetPiece, capturePosition, me);
+		    subtractMaterialAndPositionForCapture(targetPiece, capturePosition);
 		} else {
 			// Check whether the move sets the En Passant target square
 			if (!moveEnablesEnPassantCapture(pieceToMove, originSquare, targetSquare)) {
@@ -177,17 +177,18 @@ public class Board {
 			// For a promotion, need to resolve piece-specific across multiple bitboards
 			pieces[INDEX_PAWN] &= ~initialSquareMask;
 			pieces[promotedPiece] |= targetSquareMask;
+			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
 			if (ENABLE_PIECE_LISTS) {
-				pieceLists.updatePiece(pieceToMove, (isWhite ? promotedPiece : promotedPiece|Piece.BLACK), originSquare, targetSquare);
+				pieceLists.updatePiece(pieceToMove, fullPromotedPiece, originSquare, targetSquare);
 			}
-			me = incrementallyUpdatePromotionPiece((isWhite ? promotedPiece : promotedPiece|Piece.BLACK), originSquare, targetSquare, me);
+			updateMaterialAndPositionForDoingPromotion(fullPromotedPiece, originSquare, targetSquare);
 		} else {
 			// Piece type doesn't change across boards
 			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
 			if (ENABLE_PIECE_LISTS) {
 				pieceLists.updatePiece(pieceToMove, originSquare, targetSquare);
 			}
-			me = incrementallyUpdatePstPiece(pieceToMove, originSquare, targetSquare, me);
+			updatePositionPstForPiece(pieceToMove, originSquare, targetSquare);
 		}
 		// Switch colour bitboard
 		if (isWhite) {
@@ -205,8 +206,8 @@ public class Board {
 			assert scratch_me != me;
 			assert scratch_me.getDelta() == me.getDelta();
 			assert scratch_me.getPosition() == me.getPosition();
-			assert scratch_me.getBlack() == me.getBlack();
-			assert scratch_me.getWhite() == me.getWhite();
+			assert scratch_me.black == me.black;
+			assert scratch_me.white == me.white;
 		}
 		
 		return capturePosition;
@@ -232,7 +233,7 @@ public class Board {
 					Position.toGenericPosition(originSquare), Move.toString(moveToUndo));
 		}
 		
-		me.clearDynamicPosition();
+		me.dynamicPosition = 0;
 		
 		// Handle reversal of any castling secondary rook moves on the board
 		if (Piece.isKing(originPiece)) {
@@ -244,17 +245,18 @@ public class Board {
 			pieces[promotedPiece] &= ~initialSquareMask;	
 			pieces[INDEX_PAWN] |= targetSquareMask;
 			// and update piece list
+			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
 			if (ENABLE_PIECE_LISTS) {
-				pieceLists.updatePiece((isWhite ? promotedPiece : promotedPiece|Piece.BLACK), originPiece, originSquare, targetSquare);
+				pieceLists.updatePiece(fullPromotedPiece, originPiece, originSquare, targetSquare);
 			}
-			me = incrementallyUndoPromotionPiece((isWhite ? promotedPiece : promotedPiece|Piece.BLACK), originSquare, targetSquare, me);
+			updateMaterialAndPositionForUndoingPromotion(fullPromotedPiece, originSquare, targetSquare);
 		} else {
 			// Piece type doesn't change across boards
 			pieces[Piece.PIECE_NO_COLOUR_MASK & originPiece] ^= positionsMask;
 			if (ENABLE_PIECE_LISTS) {
 				pieceLists.updatePiece(originPiece, originSquare, targetSquare);
 			}
-			me = incrementallyUpdatePstPiece(originPiece, originSquare, targetSquare, me);
+			updatePositionPstForPiece(originPiece, originSquare, targetSquare);
 		}
 		// Switch colour bitboard
 		if (isWhite) {
@@ -272,7 +274,7 @@ public class Board {
 					generateCapturePositionForEnPassant(originPiece, originSquare) : originSquare;
 			setPieceAtSquare(capturedPieceSquare, targetPiece);
 			// Replace captured piece in incremental material update, at the correct capture square
-			addPstPiece(targetPiece, capturedPieceSquare, me);
+			addMaterialAndPositionForReplacedCapture(targetPiece, capturedPieceSquare);
 		}
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -282,8 +284,8 @@ public class Board {
 			assert scratch_me != me;
 			assert scratch_me.getDelta() == me.getDelta();
 			assert scratch_me.getPosition() == me.getPosition();
-			assert scratch_me.getBlack() == me.getBlack();
-			assert scratch_me.getWhite() == me.getWhite();
+			assert scratch_me.black == me.black;
+			assert scratch_me.white == me.white;
 		}
 		
 		return capturedPieceSquare;
@@ -783,9 +785,8 @@ public class Board {
 			while ( iter_p.hasNext() ) {
 				int atPos = iter_p.nextInt();
 				int currPiece = getPieceAtSquare(atPos);
-				material = updateMaterialForPiece(currPiece, atPos, material);
+				updateMaterialForPiece(currPiece, atPos, the_me);
 			}
-			me = material;
 		}
 	}
 	
@@ -867,314 +868,297 @@ public class Board {
 		// White Bishop and Queen
 		long white_queens = getWhiteQueens();
 		mobility_score = calculateDiagonalMobility(getWhiteBishops(), white_queens);
-		me.addDynamicPosition(true, (short)(mobility_score*2));
+		me.dynamicPosition += (short)(mobility_score*2);
 
 		// White Rook and Queen
 		mobility_score = calculateRankFileMobility(getWhiteRooks(), white_queens);
-		me.addDynamicPosition(true, (short)(mobility_score*2));
+		me.dynamicPosition += (short)(mobility_score*2);
 		
 		// Black Bishop and Queen
 		long black_queens = getBlackQueens();
 		mobility_score = calculateDiagonalMobility(getBlackBishops(), black_queens);
-		me.addDynamicPosition(false, (short)(mobility_score*2));
+		me.dynamicPosition -= (short)(mobility_score*2);
 		
 		// Black Rook and Queen
 		mobility_score = calculateRankFileMobility(getBlackRooks(), black_queens);
-		me.addDynamicPosition(false, (short)(mobility_score*2));
+		me.dynamicPosition -= (short)(mobility_score*2);
 	}
 	
     // For reasons of performance optimisation, part of the material evaluation considers the mobility of pieces.
     // This function generates a score considering two categories A) material B) static PSTs 
-	private PiecewiseEvaluation updateMaterialForPiece(int currPiece, int atPos, PiecewiseEvaluation eval) {
+	private void updateMaterialForPiece(int currPiece, int atPos, PiecewiseEvaluation eval) {
 		switch(currPiece) {
 		case Piece.WHITE_PAWN:
-			eval.addPiece(true, Piece.PAWN);
-			eval.addPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[atPos]);
+			eval.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			eval.position += Piece.PAWN_WHITE_WEIGHTINGS[atPos];
 			break;
 		case Piece.BLACK_PAWN:
-			eval.addPiece(false, Piece.PAWN);
-			eval.addPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[atPos]);
+			eval.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			eval.position -= Piece.PAWN_BLACK_WEIGHTINGS[atPos];
 			break;
 		case Piece.WHITE_ROOK:
-			eval.addPiece(true, Piece.ROOK);
+			eval.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
 			break;
 		case Piece.BLACK_ROOK:
-			eval.addPiece(false, Piece.ROOK);
+			eval.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
 			break;
 		case Piece.WHITE_BISHOP:
-			eval.addPiece(true, Piece.BISHOP);
+			eval.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
 			break;
 		case Piece.BLACK_BISHOP:
-			eval.addPiece(false, Piece.BISHOP);
+			eval.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
 			break;
 		case Piece.WHITE_KNIGHT:
-			eval.addPiece(true, Piece.KNIGHT);
-			eval.addPosition(true, Piece.KNIGHT_WEIGHTINGS[atPos]);
+			eval.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
+			eval.position += Piece.KNIGHT_WEIGHTINGS[atPos];
 			break;
 		case Piece.BLACK_KNIGHT:
-			eval.addPiece(false, Piece.KNIGHT);
-			eval.addPosition(false, Piece.KNIGHT_WEIGHTINGS[atPos]);
+			eval.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
+			eval.position -= Piece.KNIGHT_WEIGHTINGS[atPos];
 			break;
 		case Piece.WHITE_QUEEN:
-			eval.addPiece(true, Piece.QUEEN);
+			eval.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
 			break;
 		case Piece.BLACK_QUEEN:
-			eval.addPiece(false, Piece.QUEEN);
+			eval.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
 			break;
 		case Piece.WHITE_KING:
-			eval.addPiece(true, Piece.KING);
-			eval.addPosition(true, (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[atPos] : Piece.KING_MIDGAME_WEIGHTINGS[atPos]);
+			eval.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.KING];
+			eval.position += (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[atPos] : Piece.KING_MIDGAME_WEIGHTINGS[atPos];
 			break;			
 		case Piece.BLACK_KING:
-			eval.addPiece(false, Piece.KING);
-			eval.addPosition(false, (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[atPos] : Piece.KING_MIDGAME_WEIGHTINGS[atPos]);
+			eval.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.KING];
+			eval.position -= (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[atPos] : Piece.KING_MIDGAME_WEIGHTINGS[atPos];
 			break;
 		default:
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert false : String.format("updateMaterialForPiece Trying to update for %d", currPiece);
+			}
 			break;
 		}
-		return eval;
 	}
 	
-    // For reasons of performance optimisation, part of the material evaluation considers the mobility of pieces.
-    // This function generates a score considering two categories A) material B) static PSTs 
-	private PiecewiseEvaluation incrementallyUpdatePstPiece(int currPiece, int oldPos, int newPos, PiecewiseEvaluation eval) {
+	private void updatePositionPstForPiece(int currPiece, int oldPos, int newPos) {
 		switch(currPiece) {
 		case Piece.WHITE_PAWN:
-			eval.subPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[oldPos]);
-			eval.addPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[newPos]);
+			me.position -= Piece.PAWN_WHITE_WEIGHTINGS[oldPos];
+			me.position += Piece.PAWN_WHITE_WEIGHTINGS[newPos];
 			break;
 		case Piece.BLACK_PAWN:
-			eval.subPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[oldPos]);
-			eval.addPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[newPos]);
+			me.position += Piece.PAWN_BLACK_WEIGHTINGS[oldPos];
+			me.position -= Piece.PAWN_BLACK_WEIGHTINGS[newPos];
 			break;
 		case Piece.WHITE_KNIGHT:
-			eval.subPosition(true, Piece.KNIGHT_WEIGHTINGS[oldPos]);
-			eval.addPosition(true, Piece.KNIGHT_WEIGHTINGS[newPos]);
+			me.position -= Piece.KNIGHT_WEIGHTINGS[oldPos];
+			me.position += Piece.KNIGHT_WEIGHTINGS[newPos];
 			break;
 		case Piece.BLACK_KNIGHT:
-			eval.subPosition(false, Piece.KNIGHT_WEIGHTINGS[oldPos]);
-			eval.addPosition(false, Piece.KNIGHT_WEIGHTINGS[newPos]);
+			me.position += Piece.KNIGHT_WEIGHTINGS[oldPos];
+			me.position -= Piece.KNIGHT_WEIGHTINGS[newPos];
 			break;
 		case Piece.WHITE_KING:
-			eval.subPosition(true, (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[oldPos] : Piece.KING_MIDGAME_WEIGHTINGS[oldPos]);
-			eval.addPosition(true, (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[newPos] : Piece.KING_MIDGAME_WEIGHTINGS[newPos]);
+			me.position -= (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[oldPos] : Piece.KING_MIDGAME_WEIGHTINGS[oldPos];
+			me.position += (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[newPos] : Piece.KING_MIDGAME_WEIGHTINGS[newPos];
 			break;			
 		case Piece.BLACK_KING:
-			eval.subPosition(false, (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[oldPos] : Piece.KING_MIDGAME_WEIGHTINGS[oldPos]);
-			eval.addPosition(false, (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[newPos] : Piece.KING_MIDGAME_WEIGHTINGS[newPos]);
+			me.position += (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[oldPos] : Piece.KING_MIDGAME_WEIGHTINGS[oldPos];
+			me.position -= (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[newPos] : Piece.KING_MIDGAME_WEIGHTINGS[newPos];
 			break;
-		default:
-		case Piece.WHITE_ROOK:
-		case Piece.BLACK_ROOK:
-		case Piece.WHITE_BISHOP:
-		case Piece.BLACK_BISHOP:
-		case Piece.WHITE_QUEEN:
-		case Piece.BLACK_QUEEN:
+		default: // The other piece types don't need their position contribution incrementally adjusted
 			break;
 		}
-		return eval;
 	}
 	
-	private PiecewiseEvaluation incrementallyUpdatePromotionPiece(int promoPiece, int oldPos, int newPos, PiecewiseEvaluation eval) {
+	private void updateMaterialAndPositionForDoingPromotion(int promoPiece, int oldPos, int newPos) {
 		switch(promoPiece) {
 		case Piece.WHITE_KNIGHT:
-			eval.subPiece(true, Piece.PAWN);
-			eval.addPiece(true, Piece.KNIGHT);
-			eval.subPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[oldPos]);
-			eval.addPosition(true, Piece.KNIGHT_WEIGHTINGS[newPos]);
+			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
+			me.position -= Piece.PAWN_WHITE_WEIGHTINGS[oldPos];
+			me.position += Piece.KNIGHT_WEIGHTINGS[newPos];
 			break;
 		case Piece.BLACK_KNIGHT:
-			eval.subPiece(false, Piece.PAWN);
-			eval.addPiece(false, Piece.KNIGHT);
-			eval.subPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[oldPos]);
-			eval.addPosition(false, Piece.KNIGHT_WEIGHTINGS[newPos]);
+			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
+			me.position += Piece.PAWN_BLACK_WEIGHTINGS[oldPos];
+			me.position -= Piece.KNIGHT_WEIGHTINGS[newPos];
 			break;
 		case Piece.WHITE_ROOK:
-			eval.subPiece(true, Piece.PAWN);
-			eval.addPiece(true, Piece.ROOK);
-			eval.subPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[oldPos]);
+			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
+			me.position -= Piece.PAWN_WHITE_WEIGHTINGS[oldPos];
 			break;
 		case Piece.BLACK_ROOK:
-			eval.subPiece(false, Piece.PAWN);
-			eval.addPiece(false, Piece.ROOK);
-			eval.subPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[oldPos]);
+			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
+			me.position += Piece.PAWN_BLACK_WEIGHTINGS[oldPos];
 			break;
 		case Piece.WHITE_BISHOP:
-			eval.subPiece(true, Piece.PAWN);
-			eval.addPiece(true, Piece.BISHOP);
-			eval.subPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[oldPos]);
+			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
+			me.position -= Piece.PAWN_WHITE_WEIGHTINGS[oldPos];
 			break;
 		case Piece.BLACK_BISHOP:
-			eval.subPiece(false, Piece.PAWN);
-			eval.addPiece(false, Piece.BISHOP);
-			eval.subPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[oldPos]);
+			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
+			me.position += Piece.PAWN_BLACK_WEIGHTINGS[oldPos];
 			break;
 		case Piece.WHITE_QUEEN:
-			eval.subPiece(true, Piece.PAWN);
-			eval.addPiece(true, Piece.QUEEN);
-			eval.subPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[oldPos]);			
+			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
+			me.position -= Piece.PAWN_WHITE_WEIGHTINGS[oldPos];			
 			break;
 		case Piece.BLACK_QUEEN:
-			eval.subPiece(false, Piece.PAWN);
-			eval.addPiece(false, Piece.QUEEN);
-			eval.subPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[oldPos]);
+			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
+			me.position += Piece.PAWN_BLACK_WEIGHTINGS[oldPos];
 			break;
 		default:
-			assert false;
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert false : String.format("incrementallyUpdatePromotionPiece Trying to update for %d", promoPiece);
+			}
 			break;
 		}
-		return eval;
 	}
 	
-	private PiecewiseEvaluation incrementallyUndoPromotionPiece(int promoPiece, int oldPos, int newPos, PiecewiseEvaluation eval) {
+	private void updateMaterialAndPositionForUndoingPromotion(int promoPiece, int oldPos, int newPos) {
 		switch(promoPiece) {
 		case Piece.WHITE_KNIGHT:
-			eval.addPiece(true, Piece.PAWN);
-			eval.subPiece(true, Piece.KNIGHT);
-			eval.addPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[newPos]);
-			eval.subPosition(true, Piece.KNIGHT_WEIGHTINGS[oldPos]);
+			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
+			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			me.position += Piece.PAWN_WHITE_WEIGHTINGS[newPos];
+			me.position -= Piece.KNIGHT_WEIGHTINGS[oldPos];
 			break;
 		case Piece.BLACK_KNIGHT:
-			eval.addPiece(false, Piece.PAWN);
-			eval.subPiece(false, Piece.KNIGHT);
-			eval.addPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[newPos]);
-			eval.subPosition(false, Piece.KNIGHT_WEIGHTINGS[oldPos]);
+			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
+			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			me.position -= Piece.PAWN_BLACK_WEIGHTINGS[newPos];
+			me.position += Piece.KNIGHT_WEIGHTINGS[oldPos];
 			break;
 		case Piece.WHITE_ROOK:
-			eval.addPiece(true, Piece.PAWN);
-			eval.subPiece(true, Piece.ROOK);
-			eval.addPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[newPos]);
+			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
+			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			me.position += Piece.PAWN_WHITE_WEIGHTINGS[newPos];
 			break;
 		case Piece.BLACK_ROOK:
-			eval.addPiece(false, Piece.PAWN);
-			eval.subPiece(false, Piece.ROOK);
-			eval.addPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[newPos]);
+			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
+			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			me.position -= Piece.PAWN_BLACK_WEIGHTINGS[newPos];
 			break;
 		case Piece.WHITE_BISHOP:
-			eval.addPiece(true, Piece.PAWN);
-			eval.subPiece(true, Piece.BISHOP);
-			eval.addPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[newPos]);
+			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
+			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			me.position += Piece.PAWN_WHITE_WEIGHTINGS[newPos];
 			break;
 		case Piece.BLACK_BISHOP:
-			eval.addPiece(false, Piece.PAWN);
-			eval.subPiece(false, Piece.BISHOP);
-			eval.addPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[newPos]);
+			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
+			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			me.position -= Piece.PAWN_BLACK_WEIGHTINGS[newPos];
 			break;
 		case Piece.WHITE_QUEEN:
-			eval.addPiece(true, Piece.PAWN);
-			eval.subPiece(true, Piece.QUEEN);
-			eval.addPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[newPos]);			
+			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
+			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			me.position += Piece.PAWN_WHITE_WEIGHTINGS[newPos];			
 			break;
 		case Piece.BLACK_QUEEN:
-			eval.addPiece(false, Piece.PAWN);
-			eval.subPiece(false, Piece.QUEEN);
-			eval.addPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[newPos]);
+			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
+			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			me.position -= Piece.PAWN_BLACK_WEIGHTINGS[newPos];
 			break;
 		default:
-			assert false;
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert false : String.format("incrementallyUndoPromotionPiece Trying to update for %d", promoPiece);
+			}
 			break;
 		}
-		return eval;
 	}
 	
-    // For reasons of performance optimisation, part of the material evaluation considers the mobility of pieces.
-    // This function generates a score considering two categories A) material B) static PSTs 
-	private PiecewiseEvaluation subtractPstPiece(int currPiece, int atPos, PiecewiseEvaluation eval) {
+	private void subtractMaterialAndPositionForCapture(int currPiece, int atPos) {
 		switch(currPiece) {
 		case Piece.WHITE_PAWN:
-			eval.subPiece(true, Piece.PAWN);
-			eval.subPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[atPos]);
+			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			me.position -= Piece.PAWN_WHITE_WEIGHTINGS[atPos];
 			break;
 		case Piece.BLACK_PAWN:
-			eval.subPiece(false, Piece.PAWN);
-			eval.subPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[atPos]);
+			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			me.position += Piece.PAWN_BLACK_WEIGHTINGS[atPos];
 			break;
 		case Piece.WHITE_KNIGHT:
-			eval.subPiece(true, Piece.KNIGHT);
-			eval.subPosition(true, Piece.KNIGHT_WEIGHTINGS[atPos]);
+			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
+			me.position -= Piece.KNIGHT_WEIGHTINGS[atPos];
 			break;
 		case Piece.BLACK_KNIGHT:
-			eval.subPiece(false, Piece.KNIGHT);
-			eval.subPosition(false, Piece.KNIGHT_WEIGHTINGS[atPos]);
-			break;
-		case Piece.WHITE_KING:
-			assert false;
-			break;			
-		case Piece.BLACK_KING:
-			assert false;
+			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
+			me.position += Piece.KNIGHT_WEIGHTINGS[atPos];
 			break;
 		case Piece.WHITE_ROOK:
-			eval.subPiece(true, Piece.ROOK);
+			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
 			break;
 		case Piece.BLACK_ROOK:
-			eval.subPiece(false, Piece.ROOK);
+			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
 			break;
 		case Piece.WHITE_BISHOP:
-			eval.subPiece(true, Piece.BISHOP);
+			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
 			break;
 		case Piece.BLACK_BISHOP:
-			eval.subPiece(false, Piece.BISHOP);
+			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
 			break;
 		case Piece.WHITE_QUEEN:
-			eval.subPiece(true, Piece.QUEEN);
+			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
 			break;
 		case Piece.BLACK_QUEEN:
-			eval.subPiece(false, Piece.QUEEN);
+			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
 			break;
 		default:
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert false : String.format("subtractPstPiece Trying to update for %d", currPiece);
+			}
 			break;
 		}
-		return eval;
 	}
 	
-	// For reasons of performance optimisation, part of the material evaluation considers the mobility of pieces.
-    // This function generates a score considering two categories A) material B) static PSTs 
-	private PiecewiseEvaluation addPstPiece(int currPiece, int atPos, PiecewiseEvaluation eval) {
+	private void addMaterialAndPositionForReplacedCapture(int currPiece, int atPos) {
 		switch(currPiece) {
 		case Piece.WHITE_PAWN:
-			eval.addPiece(true, Piece.PAWN);
-			eval.addPosition(true, Piece.PAWN_WHITE_WEIGHTINGS[atPos]);
+			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			me.position += Piece.PAWN_WHITE_WEIGHTINGS[atPos];
 			break;
 		case Piece.BLACK_PAWN:
-			eval.addPiece(false, Piece.PAWN);
-			eval.addPosition(false, Piece.PAWN_BLACK_WEIGHTINGS[atPos]);
+			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
+			me.position -= Piece.PAWN_BLACK_WEIGHTINGS[atPos];
 			break;
 		case Piece.WHITE_KNIGHT:
-			eval.addPiece(true, Piece.KNIGHT);
-			eval.addPosition(true, Piece.KNIGHT_WEIGHTINGS[atPos]);
+			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
+			me.position += Piece.KNIGHT_WEIGHTINGS[atPos];
 			break;
 		case Piece.BLACK_KNIGHT:
-			eval.addPiece(false, Piece.KNIGHT);
-			eval.addPosition(false, Piece.KNIGHT_WEIGHTINGS[atPos]);
-			break;
-		case Piece.WHITE_KING:
-			assert false;
-			break;			
-		case Piece.BLACK_KING:
-			assert false;
+			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
+			me.position -= Piece.KNIGHT_WEIGHTINGS[atPos];
 			break;
 		case Piece.WHITE_ROOK:
-			eval.addPiece(true, Piece.ROOK);
+			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
 			break;
 		case Piece.BLACK_ROOK:
-			eval.addPiece(false, Piece.ROOK);
+			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
 			break;
 		case Piece.WHITE_BISHOP:
-			eval.addPiece(true, Piece.BISHOP);
+			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
 			break;
 		case Piece.BLACK_BISHOP:
-			eval.addPiece(false, Piece.BISHOP);
+			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
 			break;
 		case Piece.WHITE_QUEEN:
-			eval.addPiece(true, Piece.QUEEN);
+			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
 			break;
 		case Piece.BLACK_QUEEN:
-			eval.addPiece(false, Piece.QUEEN);
+			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
 			break;
 		default:
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert false : String.format("addPstPiece Trying to update for %d", currPiece);
+			}
 			break;
 		}
-		return eval;
 	}
 	
 	public boolean isInsufficientMaterial() {

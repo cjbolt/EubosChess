@@ -326,7 +326,7 @@ public class PieceList {
 		int side = isWhite ? 0 : Piece.BLACK;
 		{
 			int atSquare = piece_list[side+Piece.KING][0];
-			if (atSquare != Position.NOPOSITION) {			
+			if (atSquare != Position.NOPOSITION) {	
 				me.addPiece(isWhite, Piece.KING);
 				me.addPosition(isWhite, theBoard.isEndgame ? Piece.KING_ENDGAME_WEIGHTINGS[atSquare] : Piece.KING_MIDGAME_WEIGHTINGS[atSquare]);
 			}
