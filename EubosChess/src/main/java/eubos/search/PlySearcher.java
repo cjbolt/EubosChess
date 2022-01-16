@@ -338,8 +338,22 @@ public class PlySearcher {
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
 				return beta;
 			}
+		}	
+		if (pos.isQuiescent() && EubosEngineMain.ENABLE_LAZY_EVALUATION) {
+			if (!pos.getTheBoard().isEndgame && (plyScore+250 <= alpha)) {
+				// According to lazy eval, can't increase alpha
+				return alpha;
+			}
 		}
-		// Create MoveList, needed for lazy alpha check
+		// Phase 2 full evaluation
+		plyScore = (short) pe.getFullEvaluation();
+		if (plyScore >= beta) {
+			// There is no move to put in the killer table when we stand Pat
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
+			return beta;
+		}
+		
+		// Create MoveList, computationally very heavy in extended search
 		ITransposition trans = tt.getTransposition();
 		if (trans != null) {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
@@ -349,21 +363,6 @@ public class PlySearcher {
 		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, null, moveListOrdering, true, needToEscapeCheck, currPly);
 		move_iter = ml.getExtendedIterator();
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtendedSearchMoveList(ml);
-		if (EubosEngineMain.ENABLE_LAZY_EVALUATION) {
-			if (!move_iter.hasNext() && !pos.getTheBoard().isEndgame && (plyScore+250 <= alpha)) {
-				// According to lazy eval can't increase alpha
-				return alpha;
-			}
-		}
-		
-		// Phase 2 full evaluation
-		plyScore = (short) pe.getFullEvaluation();
-		if (plyScore >= beta) {
-			// There is no move to put in the killer table when we stand Pat
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
-			return beta;
-		}
-		
 		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
 			// Absolute depth limit, return full eval
 			return plyScore;

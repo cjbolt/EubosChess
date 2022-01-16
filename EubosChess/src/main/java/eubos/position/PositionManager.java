@@ -305,4 +305,15 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public IEvaluate getPositionEvaluator() {
 		return pe;
 	}
+
+	@Override
+	public boolean isQuiescent() {
+		/* Note: As soon as we have a promo or a capture, cancel the movelist generation and see if we can
+		   lazy eval fail the node on alpha. In this case we wouldn't need to generate all the move as we do.
+		   
+		   It would be good to have a function that just tells us if there is an attacked piece or promotable
+		   pawn in the position. If there is, return early and check alpha vs pat. If there isn't anyway we
+		   will return plyScore either phase 1 or phase 2. */
+		return false;
+	}
 }

@@ -15,4 +15,5 @@ public interface IPositionAccessors {
 	public String getFen();
 	public boolean isThreefoldRepetitionPossible();
 	public IEvaluate getPositionEvaluator();
+	public boolean isQuiescent();
 }
