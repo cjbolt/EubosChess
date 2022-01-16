@@ -326,25 +326,20 @@ public class PlySearcher {
 		}
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
+		int prevBestMove = Move.NULL_MOVE;
+		MoveListIterator move_iter;
+		
 		// Stand Pat in extended search
+		// Phase 1 - crude evaluation
 		short plyScore = (short) pe.getCrudeEvaluation();	
-		if (EubosEngineMain.ENABLE_LAZY_EVALUATION && !pos.getTheBoard().isEndgame && (plyScore-250 >= beta)) {
-			// There is no move to put in the killer table when we stand Pat
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
-			return beta;
-		} else {
-			plyScore = (short) pe.getFullEvaluation();
-			if (plyScore >= beta) {
+		if (EubosEngineMain.ENABLE_LAZY_EVALUATION) {
+			if (!pos.getTheBoard().isEndgame && (plyScore-250 >= beta)) {
 				// There is no move to put in the killer table when we stand Pat
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
 				return beta;
 			}
 		}
-		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY)
-			// Absolute depth limit, return full eval
-			return plyScore;
-		
-		int prevBestMove = Move.NULL_MOVE;
+		// Create MoveList, needed for lazy alpha check
 		ITransposition trans = tt.getTransposition();
 		if (trans != null) {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
@@ -352,8 +347,27 @@ public class PlySearcher {
 		}
 		// Don't use Killer moves as we don't search quiet moves in the extended search
 		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, null, moveListOrdering, true, needToEscapeCheck, currPly);
-		MoveListIterator move_iter = ml.getExtendedIterator();
+		move_iter = ml.getExtendedIterator();
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtendedSearchMoveList(ml);
+		if (EubosEngineMain.ENABLE_LAZY_EVALUATION) {
+			if (!move_iter.hasNext() && !pos.getTheBoard().isEndgame && (plyScore+250 <= alpha)) {
+				// According to lazy eval can't increase alpha
+				return alpha;
+			}
+		}
+		
+		// Phase 2 full evaluation
+		plyScore = (short) pe.getFullEvaluation();
+		if (plyScore >= beta) {
+			// There is no move to put in the killer table when we stand Pat
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
+			return beta;
+		}
+		
+		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
+			// Absolute depth limit, return full eval
+			return plyScore;
+		}		
 		if (!move_iter.hasNext()) {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearchNoMoves(plyScore);
 			return plyScore;

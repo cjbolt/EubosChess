@@ -202,6 +202,7 @@ public class Board {
 			// check material incrementally updated against from scratch
 			PiecewiseEvaluation scratch_me = new PiecewiseEvaluation();
 			evaluateMaterial(scratch_me);
+			assert scratch_me != me;
 			assert scratch_me.getDelta() == me.getDelta();
 			assert scratch_me.getPosition() == me.getPosition();
 			assert scratch_me.getBlack() == me.getBlack();
@@ -278,6 +279,7 @@ public class Board {
 			// check material incrementally updated against from scratch
 			PiecewiseEvaluation scratch_me = new PiecewiseEvaluation();
 			evaluateMaterial(scratch_me);
+			assert scratch_me != me;
 			assert scratch_me.getDelta() == me.getDelta();
 			assert scratch_me.getPosition() == me.getPosition();
 			assert scratch_me.getBlack() == me.getBlack();
