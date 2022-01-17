@@ -243,7 +243,7 @@ public class PlySearcher {
 		while (!isTerminated()) {
 			if (EubosEngineMain.ENABLE_UCI_MOVE_NUMBER && atRootNode()) {
 				sm.setCurrentMove(Move.toGenericMove(currMove), moveNumber);
-				if (depth > 6)
+				if (originalSearchDepthRequiredInPly > 7)
 					sr.reportCurrentMove();
 			}
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
