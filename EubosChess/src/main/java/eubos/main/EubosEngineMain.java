@@ -45,10 +45,10 @@ import java.util.logging.*;
 public class EubosEngineMain extends AbstractEngine {
 	
 	static final int EUBOS_MAJOR_VERSION = 2;
-	static final int EUBOS_MINOR_VERSION = 5;
+	static final int EUBOS_MINOR_VERSION = 6;
 	
 	public static final byte SEARCH_DEPTH_IN_PLY = Byte.MAX_VALUE;
-	public static final int DEFAULT_NUM_SEARCH_THREADS = 2;
+	public static final int DEFAULT_NUM_SEARCH_THREADS = 1;
 	
 	public static final boolean ENABLE_LOGGING = true;
 	public static final boolean ENABLE_UCI_INFO_SENDING = true;
@@ -122,7 +122,7 @@ public class EubosEngineMain extends AbstractEngine {
 				String.format("Eubos %d.%d", EUBOS_MAJOR_VERSION, EUBOS_MINOR_VERSION),
 				"Chris Bolt");
 		reply.addOption(Options.newHashOption((int)DEFAULT_HASH_SIZE, MIN_HASH_SIZE, MAX_HASH_SIZE));
-		reply.addOption(new SpinnerOption("Threads", defaultNumberOfWorkerThreads, 1, numCores));
+		reply.addOption(new SpinnerOption("Threads", 1 /*defaultNumberOfWorkerThreads*/, 1, numCores));
 		logger.fine(String.format("Cores available=%d", numCores));
 		this.getProtocol().send( reply );
 		lastOnMove = null;
@@ -141,7 +141,7 @@ public class EubosEngineMain extends AbstractEngine {
 			checkToCreateEnginePermanentDataStructures();
 		}
 		if (command.name.startsWith("Threads")) {
-			numberOfWorkerThreads = Integer.parseInt(command.value);
+			numberOfWorkerThreads = 1; // Integer.parseInt(command.value);
 			logger.fine(String.format("WorkerThreads=%d", numberOfWorkerThreads));
 		}
 	}
