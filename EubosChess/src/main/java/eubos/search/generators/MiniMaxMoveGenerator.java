@@ -1,5 +1,9 @@
 package eubos.search.generators;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
+
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
@@ -94,12 +98,18 @@ public class MiniMaxMoveGenerator implements
 				score = (short) ps.searchPly();
 			}
 		} catch (AssertionError e) {
-			String error = String.format("Assert fail: %s", e);
+			Writer buffer = new StringWriter();
+			PrintWriter pw = new PrintWriter(buffer);
+			e.printStackTrace(pw);
+			String error = String.format("Assert fail: %s", pw.toString());
 			System.err.println(error);
 			EubosEngineMain.logger.severe(error);
 			System.exit(0);
 		} catch (Exception e) {
-			String error = String.format("PlySearcher threw an exception: %s", e);
+			Writer buffer = new StringWriter();
+			PrintWriter pw = new PrintWriter(buffer);
+			e.printStackTrace(pw);
+			String error = String.format("PlySearcher threw an exception: %s", buffer.toString());
 			System.err.println(error);
 			EubosEngineMain.logger.severe(error);
 			System.exit(0);
