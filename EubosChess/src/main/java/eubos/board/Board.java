@@ -326,13 +326,13 @@ public class Board {
 		
 		boolean isIllegal = false;
 		int pieceToMove = Move.getOriginPiece(move);
-		boolean isWhite = Piece.isWhite(pieceToMove);
 		boolean isKing = Piece.isKing(pieceToMove);
 		
 		boolean possibleDiscoveredOrMoveIntoCheck = isKing || moveCouldLeadToOwnKingDiscoveredCheck(move, pieceToMove);
 
 		if (possibleDiscoveredOrMoveIntoCheck || needToEscapeMate) {
 		
+			boolean isWhite = Piece.isWhite(pieceToMove);
 			int capturePosition = Position.NOPOSITION;
 			int originSquare = Move.getOriginPosition(move);
 			int targetSquare = Move.getTargetPosition(move);
@@ -398,9 +398,9 @@ public class Board {
 			// Undo any capture that had been previously performed.
 			if (isCapture) {
 				// Origin square because the move has been reversed and origin square is the original target square
-				int capturedPieceSquare = Move.isEnPassantCapture(move) ?
+				capturePosition = Move.isEnPassantCapture(move) ?
 						generateCapturePositionForEnPassant(pieceToMove, targetSquare) : targetSquare;
-				long mask = BitBoard.positionToMask_Lut[capturedPieceSquare];
+				long mask = BitBoard.positionToMask_Lut[capturePosition];
 				// Set on piece-specific bitboard
 				pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] |= mask;
 				// Set on colour bitboard
@@ -415,52 +415,6 @@ public class Board {
 		}
 		return isIllegal;
 	}
-	
-//	private void undoMoveLightest(int move) {
-//		int moveToUndo = Move.reverse(move);
-//		int capturedPieceSquare = Position.NOPOSITION;
-//		int originPiece = Move.getOriginPiece(moveToUndo);
-//		boolean isWhite = Piece.isWhite(originPiece);
-//		int originSquare = Move.getOriginPosition(moveToUndo);
-//		int targetSquare = Move.getTargetPosition(moveToUndo);
-//		int targetPiece = Move.getTargetPiece(moveToUndo);
-//		long initialSquareMask = BitBoard.positionToMask_Lut[originSquare];
-//		long targetSquareMask = BitBoard.positionToMask_Lut[targetSquare];
-//		long positionsMask = initialSquareMask | targetSquareMask;
-//		boolean isCapture = targetPiece != Piece.NONE;
-//		// Switch piece bitboard
-//		// Piece type doesn't change across boards
-//		pieces[Piece.PIECE_NO_COLOUR_MASK & originPiece] ^= positionsMask;
-//		// Switch colour bitboard
-//		if (isWhite) {
-//			whitePieces ^= positionsMask;
-//		} else {
-//			blackPieces ^= positionsMask;
-//		}
-//		// Switch all pieces bitboard
-//		allPieces ^= positionsMask;
-//		// Because of need to check if in check, need to update for King only
-//		if (Piece.isKing(originPiece)) {
-//			pieceLists.updatePiece(originPiece, originSquare, targetSquare);
-//		}
-//		// Undo any capture that had been previously performed.
-//		if (isCapture) {
-//			// Origin square because the move has been reversed and origin square is the original target square
-//			capturedPieceSquare = Move.isEnPassantCapture(moveToUndo) ?
-//					generateCapturePositionForEnPassant(originPiece, originSquare) : originSquare;
-//			long mask = BitBoard.positionToMask_Lut[capturedPieceSquare];
-//			// Set on piece-specific bitboard
-//			pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] |= mask;
-//			// Set on colour bitboard
-//			if (Piece.isBlack(targetPiece)) {
-//				blackPieces |= (mask);
-//			} else {
-//				whitePieces |= (mask);
-//			}
-//			// Set on all pieces bitboard
-//			allPieces |= (mask);
-//		}
-//	}
 	
 	private static final long wksc_mask = BitBoard.positionToMask_Lut[Position.h1] | BitBoard.positionToMask_Lut[Position.f1];
 	private static final long wqsc_mask = BitBoard.positionToMask_Lut[Position.a1] | BitBoard.positionToMask_Lut[Position.d1];

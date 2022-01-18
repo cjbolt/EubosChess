@@ -83,7 +83,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static int defaultNumberOfWorkerThreads;
 	static {
 		numCores = Runtime.getRuntime().availableProcessors();
-		defaultNumberOfWorkerThreads = 1 /*Math.max(numCores-2, 1)*/;
+		defaultNumberOfWorkerThreads = Math.max(numCores-2, 1);
 		numberOfWorkerThreads = defaultNumberOfWorkerThreads;
 	}
 	
@@ -122,7 +122,7 @@ public class EubosEngineMain extends AbstractEngine {
 				String.format("Eubos %d.%d", EUBOS_MAJOR_VERSION, EUBOS_MINOR_VERSION),
 				"Chris Bolt");
 		reply.addOption(Options.newHashOption((int)DEFAULT_HASH_SIZE, MIN_HASH_SIZE, MAX_HASH_SIZE));
-		reply.addOption(new SpinnerOption("Threads", 1 /*defaultNumberOfWorkerThreads*/, 1, numCores));
+		reply.addOption(new SpinnerOption("Threads", 1, 1, numCores));
 		logger.fine(String.format("Cores available=%d", numCores));
 		this.getProtocol().send( reply );
 		lastOnMove = null;
@@ -141,7 +141,7 @@ public class EubosEngineMain extends AbstractEngine {
 			checkToCreateEnginePermanentDataStructures();
 		}
 		if (command.name.startsWith("Threads")) {
-			numberOfWorkerThreads = 1; // Integer.parseInt(command.value);
+			numberOfWorkerThreads = Integer.parseInt(command.value);
 			logger.fine(String.format("WorkerThreads=%d", numberOfWorkerThreads));
 		}
 	}
