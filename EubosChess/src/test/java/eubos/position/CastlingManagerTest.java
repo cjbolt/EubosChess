@@ -24,7 +24,8 @@ public class CastlingManagerTest {
 	
 	void setupPosition(String fen)  {
 		pm = new PositionManager(fen);
-		ml = new MoveList(pm);
+		ml = new MoveList(pm, 0);
+		ml.createForPly(Move.NULL_MOVE, null, false, false, 0);	
 	}
 	
 	@Test
@@ -39,9 +40,6 @@ public class CastlingManagerTest {
 		// 1 ....k..r
 		//   abcdefgh
 		setupPosition("8/8/8/8/8/8/8/4K2R w K - - -");
-		// Now added directly by MoveList Constructor
-		//classUnderTest = pm.castling;
-		//classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml);
 		expectWkscMove();
 	}
 	
@@ -62,7 +60,8 @@ public class CastlingManagerTest {
 		pm.performMove(Move.toMove(new GenericMove("h2h1"), pm.getTheBoard()));
 		pm.performMove(Move.toMove(new GenericMove("b8a8"), pm.getTheBoard()));
 		classUnderTest = pm.castling;
-		ml = new MoveList(pm);
+		ml = new MoveList(pm, 0);
+		ml.createForPly(Move.NULL_MOVE, null, false, false, 0);	
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml);
 		assertFalse(ml.contains(CastlingManager.wqsc));
 		assertFalse(ml.contains(CastlingManager.wksc));
@@ -85,7 +84,8 @@ public class CastlingManagerTest {
 		pm.performMove(Move.valueOf(Position.e2, Piece.WHITE_KING, Position.e1, Piece.NONE));
 		pm.performMove(Move.valueOf(Position.b8, Piece.BLACK_KING, Position.a8, Piece.NONE));
 		classUnderTest = pm.castling;	
-		ml = new MoveList(pm);
+		ml = new MoveList(pm, 0);
+		ml.createForPly(Move.NULL_MOVE, null, false, false, 0);	
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml);
 		assertFalse(ml.contains(CastlingManager.wqsc));
 		assertFalse(ml.contains(CastlingManager.wksc));
@@ -212,9 +212,6 @@ public class CastlingManagerTest {
 		// 1 ....k..r
 		//   abcdefgh
 		setupPosition("8/8/8/8/8/5b2/8/4K2R w K - - -");
-		// Now added directly by MoveList Constructor
-		//classUnderTest = pm.castling;
-		//classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml);
 		expectWkscMove();
 	}
 
@@ -230,9 +227,6 @@ public class CastlingManagerTest {
 		// 1 ........
 		//   abcdefgh
 		setupPosition("r3k3/8/8/8/8/8/8/8 b q - - -");
-		// Now added directly by MoveList Constructor
-		//classUnderTest = pm.castling;
-		//classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml);
 		expectBqscMove();
 	}
 	
@@ -285,9 +279,6 @@ public class CastlingManagerTest {
 		// 1 ........
 		//   abcdefgh
 		setupPosition("r3k3/8/8/8/8/8/8/8 b q - - -");
-		// Now added directly by MoveList Constructor
-		//classUnderTest = pm.castling;
-		//classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml);
 		assertTrue(ml.contains(CastlingManager.bqsc));
 		assertFalse(ml.contains(CastlingManager.bksc));
 	}	
@@ -367,7 +358,8 @@ public class CastlingManagerTest {
 	@Test
 	public void test_WhiteKingSideCastle_fromgame() throws IllegalNotationException   {
 		pm = new PositionManager("rnb2bnr/1ppp1kpp/4pq2/8/p1BPP3/8/PPP2PPP/RNBQK2R w KQ - 1 7");
-		ml = new MoveList(pm);
+		ml = new MoveList(pm, 0);
+		ml.createForPly(Move.NULL_MOVE, null, false, false, 0);	
 		classUnderTest = pm.castling;
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml);
 		expectWkscMove();

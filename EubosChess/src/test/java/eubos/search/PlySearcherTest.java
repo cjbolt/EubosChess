@@ -17,6 +17,7 @@ import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
+import eubos.position.MoveList;
 import eubos.position.PositionManager;
 import eubos.score.PositionEvaluator;
 import eubos.score.ReferenceScore;
@@ -75,7 +76,8 @@ public class PlySearcherTest {
 				pm,
 				pe,
 				killers,
-				sda);		
+				sda,
+				new MoveList(pm, 0));		
 	}
 	
 	@Test

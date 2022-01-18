@@ -2,8 +2,6 @@ package eubos.position;
 
 import static org.junit.Assert.*;
 
-import java.util.Iterator;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -24,7 +22,7 @@ public class MoveListTest {
 	
 	private void setup(String fen)  {
 		PositionManager pm = new PositionManager( fen );
-		classUnderTest = new MoveList(pm);
+		classUnderTest = new MoveList(pm, 1);;
 	}
 	
 	@Before
@@ -33,7 +31,7 @@ public class MoveListTest {
 
 	@Test
 	public void testLegalMoveListGenerator()  {
-		classUnderTest = new MoveList(new PositionManager());
+		classUnderTest = new MoveList(new PositionManager(), 0);
 	}
 
 	@Test
@@ -45,14 +43,14 @@ public class MoveListTest {
 	@Test
 	public void testCreateMoveList_CapturesFirst()throws IllegalNotationException {
 		setup("8/3k3B/8/1p6/2P5/8/4K3/8 w - - 0 1 ");
-		MoveListIterator it = classUnderTest.iterator();
+		MoveListIterator it = classUnderTest.createForPly(Move.NULL_MOVE, null, true, false, 0);
 		assertEquals(new GenericMove("c4b5"), Move.toGenericMove(it.nextInt()));
 	}
 	
 	@Test
 	public void testCreateMoveList_typePromotionIsSet()throws IllegalNotationException {
 		setup("8/4P3/8/8/8/8/8/8 w - - - -");
-		MoveListIterator it = classUnderTest.iterator();
+		MoveListIterator it = classUnderTest.createForPly(Move.NULL_MOVE, null, false, false, 0);
 		assertEquals(new GenericMove("e7e8q"), Move.toGenericMove(it.nextInt()));
 		assertEquals(new GenericMove("e7e8r"), Move.toGenericMove(it.nextInt()));
 	}
@@ -60,16 +58,16 @@ public class MoveListTest {
 	@Test
 	public void test_whenNoChecksCapturesOrPromotions()throws IllegalNotationException { 
 		setup("8/3p4/8/8/8/5k2/1P6/7K w - - 0 1");
-		Iterator<Integer> iter = classUnderTest.getExtendedIterator();
-		assertFalse(iter.hasNext());
-		iter = classUnderTest.iterator();
+		MoveListIterator iter =  classUnderTest.createForPly(Move.NULL_MOVE, null, true, false, 0);
+		MoveListIterator extended_iter = classUnderTest.getExtendedIterator();
+		assertFalse(extended_iter.hasNext());
 		assertTrue(iter.hasNext());
 	}
 	
 	@Test
-	public void test_whenCheckAndCapturePossible()throws IllegalNotationException {
+	public void test_whenCheckAndCapturePossible() throws IllegalNotationException {
 		setup("8/K7/8/8/4B1R1/8/6q1/7k w - - 0 1 ");
-		MoveListIterator it = classUnderTest.iterator();
+		MoveListIterator it =  classUnderTest.createForPly(Move.NULL_MOVE, null, false, false, 0);
 		assertEquals(new GenericMove("e4g2"), Move.toGenericMove(it.nextInt())); // capture (happens to have check)
 		assertEquals(new GenericMove("g4g2"), Move.toGenericMove(it.nextInt())); // capture
 	}
@@ -77,7 +75,7 @@ public class MoveListTest {
 	@Test
 	public void test_whenPromotionAndPromoteWithCaptureAndCheckPossible()throws IllegalNotationException {
 		setup("q1n5/1P6/8/8/8/8/1K6/7k w - - 0 1 ");
-		MoveListIterator it = classUnderTest.iterator();
+		MoveListIterator it =  classUnderTest.createForPly(Move.NULL_MOVE, null, false, false, 0);
 		assertEquals(new GenericMove("b7a8q"), Move.toGenericMove(it.nextInt())); // Promotion with check and capture
 		assertEquals(new GenericMove("b7c8q"), Move.toGenericMove(it.nextInt())); // Promotion and capture
 		
@@ -96,7 +94,7 @@ public class MoveListTest {
 	@Test
 	public void test_mvv_lva_order()throws IllegalNotationException {
 		setup("8/N2B4/Q3q3/1r3PN1/2P3B1/4Rp2/6P1/1R6 w - - 0 1 ");
-		MoveListIterator it = classUnderTest.iterator();
+		MoveListIterator it =  classUnderTest.createForPly(Move.NULL_MOVE, null, false, false, 0);
 		
 		// gaining material
 		assertEquals(new GenericMove("f5e6"), Move.toGenericMove(it.nextInt())); // PxQ delta 4 gains 8
@@ -125,7 +123,7 @@ public class MoveListTest {
 	public void test_mvv_lva_order_for_captures_with_check()throws IllegalNotationException {
 		// as prior test but adds a king into the mix
 		setup("8/N2Bk3/Q3p3/1r3PN1/2P3B1/4Rp2/6P1/1R6 w - - 0 1 ");
-		MoveListIterator it = classUnderTest.iterator();
+		MoveListIterator it =  classUnderTest.createForPly(Move.NULL_MOVE, null, false, false, 0);
 		
 		// gaining material
 		assertEquals(new GenericMove("c4b5"), Move.toGenericMove(it.nextInt())); // PxR delta 3 gains 4
@@ -164,7 +162,7 @@ public class MoveListTest {
 	public void test_move_ordering_when_mix_of_captures_and_checks()throws IllegalNotationException {
 		// as prior test but adds a king into the mix
 		setup("8/4k3/4p3/5PN1/8/4R1q1/8/8 w - - 0 1");
-		MoveListIterator it = classUnderTest.iterator();
+		MoveListIterator it =  classUnderTest.createForPly(Move.NULL_MOVE, null, false, false, 0);
 		
 		// gaining material
 		assertEquals(new GenericMove("e3g3"), Move.toGenericMove(it.nextInt())); // RxQ delta 1 gains 9
@@ -185,7 +183,7 @@ public class MoveListTest {
 	public void test_move_ordering_when_mix_of_promotions_captures_and_checks()throws IllegalNotationException {
 		// as prior test but adds a king into the mix
 		setup("1n6/P3kP2/8/1Pp2P2/8/8/8/8 w - c6 0 1");
-		MoveListIterator it = classUnderTest.iterator();
+		MoveListIterator it = classUnderTest.createForPly(Move.NULL_MOVE, null, false, false, 0);
 		
 		// Promotions with capture
 		assertEquals(new GenericMove("a7b8q"), Move.toGenericMove(it.nextInt())); // Queen promotion with capture, PxN
@@ -225,8 +223,8 @@ public class MoveListTest {
 		int [] killers = new int[3];
 		killers[0] = killer1; killers[1] = killer2; killers[2] = Move.NULL_MOVE;
 		
-		classUnderTest = new MoveList(pm, best, killers, 1, false, pm.isKingInCheck(), 0);
-		MoveListIterator it = classUnderTest.iterator();
+		classUnderTest = new MoveList(pm, 1);
+		MoveListIterator it = classUnderTest.createForPly(best, killers, false, pm.isKingInCheck(), 0);
 		
 		// best
 		assertEquals(best_gen, Move.toGenericMove(it.nextInt()));
@@ -246,6 +244,7 @@ public class MoveListTest {
 	@Test
 	public void test_check_extended_search_moves_contain_only_promotions_captures_rook()throws IllegalNotationException {
 		setup( "3q1rk1/p4pp1/2p4p/3p4/6Pr/1PNQ4/P1PB1PPb/4RR1K b - - - 2");
+		classUnderTest.createForPly(Move.NULL_MOVE, null, true, false, 0);
 		MoveListIterator it = classUnderTest.getExtendedIterator();
 		
 		// Capture
@@ -256,7 +255,8 @@ public class MoveListTest {
 	@Test
 	public void test_check_extended_search_moves_contain_only_promotions_captures_knight_queen()throws IllegalNotationException {
 		PositionManager pm = new PositionManager("3q1rk1/p4pp1/2p4p/3p4/6Pr/1PNQ4/P1PB1PPb/4RR1K w - - - 2");
-		classUnderTest = new MoveList(pm, Move.NULL_MOVE, null, 1, true, pm.isKingInCheck(), 0);
+		classUnderTest = new MoveList(pm, 1);
+		classUnderTest.createForPly(Move.NULL_MOVE, null, true, pm.isKingInCheck(), 0);
 		MoveListIterator it = classUnderTest.getExtendedIterator();
 		
 		// Capture
@@ -269,7 +269,8 @@ public class MoveListTest {
 	@Test
 	public void test_check_extended_search_moves_contain_only_promotions_captures_king()throws IllegalNotationException {
 		PositionManager pm = new PositionManager("3q1rk1/p4pp1/2p4p/3p4/6P1/1PNQ4/P1PB1PPb/4RR1K w - - - 2");
-		classUnderTest = new MoveList(pm, Move.NULL_MOVE, null, 1, true, pm.isKingInCheck(), 0);
+		classUnderTest = new MoveList(pm, 1);
+		classUnderTest.createForPly(Move.NULL_MOVE, null, true, pm.isKingInCheck(), 0);
 		MoveListIterator it = classUnderTest.getExtendedIterator();
 		
 		// Capture - removed rook to make the king capture legal!
@@ -283,7 +284,8 @@ public class MoveListTest {
 	@Test
 	public void test_check_extended_search_moves_contain_only_promotions_and_captures_all()throws IllegalNotationException {
 		PositionManager pm = new PositionManager("6k1/PBN5/8/2Kp4/2P5/5Q2/8/3R4 w - - 0 1 ");
-		classUnderTest = new MoveList(pm, Move.NULL_MOVE, null, 1, true, pm.isKingInCheck(), 0);
+		classUnderTest = new MoveList(pm, 1);
+		classUnderTest.createForPly(Move.NULL_MOVE, null, true, pm.isKingInCheck(), 0);
 		MoveListIterator it = classUnderTest.getExtendedIterator();
 		
 		// Promotion
@@ -312,7 +314,8 @@ public class MoveListTest {
 	public void test_mate_in_7_best_move()throws IllegalNotationException {
 		PositionManager pm = new PositionManager("5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113");
 		int best = Move.valueOf(Position.f8, Piece.WHITE_QUEEN, Position.b4, Piece.NONE);
-		classUnderTest = new MoveList(pm, best, null, 1, false, pm.isKingInCheck(), 0);
+		classUnderTest = new MoveList(pm, 1);
+		classUnderTest.createForPly(best, null, false, pm.isKingInCheck(), 0);
 		assertEquals(new GenericMove("f8b4"), Move.toGenericMove(classUnderTest.getBestMove()));
 	}
 	

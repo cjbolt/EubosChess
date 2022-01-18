@@ -12,7 +12,8 @@ class RandomMoveGenerator implements IMoveGenerator {
 	private MoveList ml;
 	
 	RandomMoveGenerator( PositionManager pm, Piece.Colour sideToMove)  {
-		ml = new MoveList(pm);
+		ml = new MoveList(pm, 0);
+		ml.createForPly(Move.NULL_MOVE, null, false, false, 0);	
 	}
 
 	public SearchResult findMove()  {

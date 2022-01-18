@@ -9,7 +9,6 @@ import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.MoveListIterator;
-import eubos.position.PositionManager;
 import eubos.score.IEvaluate;
 import eubos.score.IScoreMate;
 import eubos.score.MateScoreGenerator;
@@ -37,7 +36,8 @@ public class PlySearcher {
 	private byte currPly = 0;
 	private byte originalSearchDepthRequiredInPly = 0;
 	private byte extendedSearchDeepestPly = 0;
-	private int moveListOrdering = 1;
+	
+	private MoveList ml;
 	
 	public PlySearcher(
 			ITranspositionAccessor hashMap,
@@ -49,7 +49,8 @@ public class PlySearcher {
 			IPositionAccessors pos,
 			IEvaluate pe,
 			KillerList killers,
-			SearchDebugAgent sda) {
+			SearchDebugAgent sda,
+			MoveList ml) {
 		currPly = 0;
 		
 		this.pc = pc;
@@ -65,6 +66,7 @@ public class PlySearcher {
 		tt = hashMap;
 		sg = new MateScoreGenerator(pos, pe);
 		this.killers = killers;
+		this.ml = ml;
 	}
 
 	private boolean atRootNode() { return currPly == 0; }
@@ -74,10 +76,6 @@ public class PlySearcher {
 		terminate = true;
 	}
 	private synchronized boolean isTerminated() { return terminate; }	
-
-	public void alternativeMoveListOrdering(int orderingScheme) {
-		moveListOrdering = orderingScheme;		
-	}
 	
 	public int searchPly()  {
 		currPly = 0;
@@ -229,8 +227,7 @@ public class PlySearcher {
 			}
 		}
 		
-		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, killers.getMoves(currPly), moveListOrdering, false, needToEscapeCheck, currPly);
-		MoveListIterator move_iter = ml.iterator();
+		MoveListIterator move_iter = ml.createForPly(prevBestMove, killers.getMoves(currPly), false, needToEscapeCheck, currPly);
 		if (!move_iter.hasNext()) {
 			return sg.scoreMate(currPly);
 		}
@@ -366,7 +363,7 @@ public class PlySearcher {
 			prevBestMove = trans.getBestMove(pos.getTheBoard());
 		}
 		// Don't use Killer moves as we don't search quiet moves in the extended search
-		MoveList ml = new MoveList((PositionManager) pm, prevBestMove, null, moveListOrdering, true, needToEscapeCheck, currPly);
+		ml.createForPly(prevBestMove, null, true, needToEscapeCheck, currPly);
 		move_iter = ml.getExtendedIterator();
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtendedSearchMoveList(ml);
 		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY) {

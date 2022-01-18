@@ -8,6 +8,7 @@ import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
+import eubos.position.MoveList;
 import eubos.position.PositionManager;
 import eubos.score.IEvaluate;
 import eubos.score.ReferenceScore;
@@ -31,6 +32,7 @@ public class MiniMaxMoveGenerator implements
 	public IPositionAccessors pos;
 	public PrincipalContinuation pc;
 	public SearchMetrics sm;
+	private MoveList ml;
 
 	private PlySearcher ps;
 	private IEvaluate pe;
@@ -70,6 +72,7 @@ public class MiniMaxMoveGenerator implements
 		sda = new SearchDebugAgent(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
 		tta = new TranspositionTableAccessor(hashMap, pos, sda);
 		pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
+		ml = new MoveList((PositionManager)pm, alternativeMoveListOrderingScheme);
 	}
 	
 	public short getScore() { return score; }
@@ -86,10 +89,7 @@ public class MiniMaxMoveGenerator implements
 		boolean foundMate = false;
 		sm.setDepth(searchDepth);
 		sm.setPrincipalVariation(pc.toPvList(0));
-		ps = new PlySearcher(tta, pc, sm, sr, searchDepth, pm, pos, pe, killers, sda);
-		if (alternativeMoveListOrderingScheme > 0) {
-			ps.alternativeMoveListOrdering(alternativeMoveListOrderingScheme);
-		}
+		ps = new PlySearcher(tta, pc, sm, sr, searchDepth, pm, pos, pe, killers, sda, ml);
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		try {
 			if (EubosEngineMain.ENABLE_ASPIRATION_WINDOWS) {
@@ -127,6 +127,6 @@ public class MiniMaxMoveGenerator implements
 	}
 
 	public void alternativeMoveListOrdering(int schemeToUse) {
-		alternativeMoveListOrderingScheme = schemeToUse;		
+		ml = new MoveList((PositionManager)pm, alternativeMoveListOrderingScheme);		
 	}
 }

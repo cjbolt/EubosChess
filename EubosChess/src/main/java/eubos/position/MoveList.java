@@ -16,33 +16,21 @@ import it.unimi.dsi.fastutil.ints.IntComparator;
 
 public class MoveList implements Iterable<Integer> {
 	
-	static private int[][] normal_search_moves;
-	static private int[][] priority_moves;
-	static private int[][] extended_search_moves;
-	static private int[] scratchpad;
-	static {
-		scratchpad = new int [100];
-		
-		// Create the static move list arrays
-		normal_search_moves = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY][];
-		priority_moves = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY][];
-		extended_search_moves = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY][];
-		
-		// Create the list at each ply
-		for (int i=0; i < EubosEngineMain.SEARCH_DEPTH_IN_PLY; i++) {
-			normal_search_moves[i] = new int[110];
-			priority_moves[i] = new int[50];
-			extended_search_moves[i] = new int[30];
-		}
-	}
+	private int [][] normal_search_moves;
+	private int [][] priority_moves;
+	private int [][] extended_search_moves;
+	private int [][] scratchpad;
 	
-	private int normal_fill_index;
-	private int priority_fill_index;
+	private int [] normal_fill_index;
+	private int [] priority_fill_index;
 	
-	private int normal_list_length;
+	private int [] normal_list_length;
 	
 	private boolean isMate;
 	private int ply;
+	
+	PositionManager pm;
+	int ordering;
 	
 	private static final MoveTypeComparator moveTypeComparator = new MoveTypeComparator();
 	
@@ -54,25 +42,50 @@ public class MoveList implements Iterable<Integer> {
         }
     }
 	
-	public MoveList(PositionManager pm)  {
-		this(pm, Move.NULL_MOVE, null, 1, false, pm.isKingInCheck(pm.getOnMove()), 0);
-	}
+//	public MoveList(PositionManager pm)  {
+//		this(pm, Move.NULL_MOVE, null, 1, false, pm.isKingInCheck(pm.getOnMove()), 0);
+//	}
+//	
+//	public MoveList(PositionManager pm, int ply)  {
+//		this(pm, Move.NULL_MOVE, null, 0, false, pm.isKingInCheck(pm.getOnMove()), ply);
+//	}
+//	
+//	public MoveList(PositionManager pm, int orderMoveList, boolean needToEscapeMate, int ply)  {
+//		this(pm, Move.NULL_MOVE, null, orderMoveList, false, needToEscapeMate, ply);
+//	}
 	
-	public MoveList(PositionManager pm, int ply)  {
-		this(pm, Move.NULL_MOVE, null, 0, false, pm.isKingInCheck(pm.getOnMove()), ply);
-	}
-	
-	public MoveList(PositionManager pm, int orderMoveList, boolean needToEscapeMate, int ply)  {
-		this(pm, Move.NULL_MOVE, null, orderMoveList, false, needToEscapeMate, ply);
-	}
-	
-	public MoveList(PositionManager pm, int bestMove, int [] killers, int orderMoveList, boolean capturesOnly, boolean needToEscapeMate, int ply)  {	
+	public MoveList(PositionManager pm, int orderMoveList)  {	
 		
+		scratchpad = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY][];
+		
+		// Create the move list arrays for this threads move list
+		normal_search_moves = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY][];
+		priority_moves = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY][];
+		extended_search_moves = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY][];
+		
+		normal_fill_index = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY];
+		priority_fill_index = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY];
+		normal_list_length = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY];
+		
+		// Create the list at each ply
+		for (int i=0; i < EubosEngineMain.SEARCH_DEPTH_IN_PLY; i++) {
+			normal_search_moves[i] = new int[110];
+			priority_moves[i] = new int[50];
+			extended_search_moves[i] = new int[30];
+			scratchpad[i] = new int [100];
+		}
+		
+		this.pm = pm;
+		this.ordering = orderMoveList;
+	}
+	
+	public MoveListIterator createForPly(int bestMove, int [] killers, boolean capturesOnly, boolean needToEscapeMate, int ply)
+	{		
 		this.ply = ply;
 		priority_moves[ply][0] = Move.NULL_MOVE; // clear previous best move in the static movelist 
 		
-		normal_fill_index = 0;
-		priority_fill_index = (bestMove != Move.NULL_MOVE) ? 1 : 0; // reserve space for the best move!
+		normal_fill_index[ply] = 0;
+		priority_fill_index[ply] = (bestMove != Move.NULL_MOVE) ? 1 : 0; // reserve space for the best move!
 		
 		Colour onMove = pm.getOnMove();
 		boolean isWhiteOnMove = Piece.Colour.isWhite(onMove);
@@ -83,44 +96,45 @@ public class MoveList implements Iterable<Integer> {
 			pm.castling.addCastlingMoves(isWhiteOnMove, this);
 		}
 
-		int valid_move_count = removeInvalidIdentifyBestKillerMoves(pm, bestMove, killers, onMove, needToEscapeMate);
+		int valid_move_count = removeInvalidIdentifyBestKillerMoves(bestMove, killers, onMove, needToEscapeMate);
 		isMate = (valid_move_count == 0);
-		checkToSortList(orderMoveList);
+		checkToSortList();
 		addPriorityMovesAtFrontAndRemoveNullMoves(valid_move_count);
+		
+		return iterator();
 	}
 	
 	private void addPriorityMovesAtFrontAndRemoveNullMoves(int valid_move_count) {
 		if (!isMate) {
 			int i = 0;
-			for (int j=0; j < priority_fill_index; j++) {
+			for (int j=0; j < priority_fill_index[ply]; j++) {
 				int move = priority_moves[ply][j];
 				if (move != Move.NULL_MOVE) {
-					scratchpad[i++] = move;
+					scratchpad[ply][i++] = move;
 				}
 			}
 			// Update for number of valid priority moves, needed by lazy extended moves creation
-			priority_fill_index = i;
-			for (int j=0; j < normal_fill_index; j++) {
+			priority_fill_index[ply] = i;
+			for (int j=0; j < normal_fill_index[ply]; j++) {
 				int move = normal_search_moves[ply][j];
 				if (move != Move.NULL_MOVE) {
-					scratchpad[i++] = move;
+					scratchpad[ply][i++] = move;
 				}
 			}
 			// Copy to existing array, without re-allocating static array
 			int k=0;
 			for (; k<i; k++) {
-				normal_search_moves[ply][k] = scratchpad[k];
+				normal_search_moves[ply][k] = scratchpad[ply][k];
 			}
-			normal_list_length = k;
+			normal_list_length[ply] = k;
 		} else {
 			// There are no moves
-			priority_fill_index = 0;
-			normal_list_length = 0;
+			priority_fill_index[ply] = 0;
+			normal_list_length[ply] = 0;
 		}
 	}
 
-	private int removeInvalidIdentifyBestKillerMoves(PositionManager pm, int bestMove, int[] killers, Colour onMove,
-			boolean needToEscapeMate)  {
+	private int removeInvalidIdentifyBestKillerMoves(int bestMove, int[] killers, Colour onMove, boolean needToEscapeMate)  {
 		boolean validBest = bestMove != Move.NULL_MOVE;
 		int foundBestMove = Move.NULL_MOVE;
 		int valid_move_count = 0;
@@ -133,7 +147,7 @@ public class MoveList implements Iterable<Integer> {
 			bestMove = Move.setTargetPiece(bestMove, targetPiece);
 		}
 		
-		for (int i=(bestMove != Move.NULL_MOVE) ? 1 : 0; i<priority_fill_index; i++) {
+		for (int i=(bestMove != Move.NULL_MOVE) ? 1 : 0; i<priority_fill_index[ply]; i++) {
 			int currMove = priority_moves[ply][i];
 			if (pm.getTheBoard().isIllegalMove(currMove, needToEscapeMate)) {
 				// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
@@ -154,7 +168,7 @@ public class MoveList implements Iterable<Integer> {
 			priority_moves[ply][0] = foundBestMove; // add back in at the head of the list
 		}
 		
-		for (int i=0; i<normal_fill_index; i++) {
+		for (int i=0; i<normal_fill_index[ply]; i++) {
 			int currMove = normal_search_moves[ply][i];
 			if (pm.getTheBoard().isIllegalMove(currMove, needToEscapeMate)) {
 				// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
@@ -181,27 +195,27 @@ public class MoveList implements Iterable<Integer> {
 		return valid_move_count;
 	}
 	
-	private void checkToSortList(int orderMoveList) {
-		switch (orderMoveList) {
+	private void checkToSortList() {
+		switch (ordering) {
 		case 0:
 			/* Don't order the move list in this case. */
 			break;
 		case 1:
-			IntArrays.quickSort(priority_moves[ply], 0, priority_fill_index, Move.mvvLvaComparator);
+			IntArrays.quickSort(priority_moves[ply], 0, priority_fill_index[ply], Move.mvvLvaComparator);
 			break;
 		case 2:
-			IntArrays.reverse(priority_moves[ply], 0, priority_fill_index);
-			IntArrays.quickSort(priority_moves[ply], 0, priority_fill_index, moveTypeComparator);
+			IntArrays.reverse(priority_moves[ply], 0, priority_fill_index[ply]);
+			IntArrays.quickSort(priority_moves[ply], 0, priority_fill_index[ply], moveTypeComparator);
 			break;
 		case 3:
-			IntArrays.reverse(priority_moves[ply], 0, priority_fill_index);
-			IntArrays.quickSort(priority_moves[ply], 0, priority_fill_index, Move.mvvLvaComparator);
+			IntArrays.reverse(priority_moves[ply], 0, priority_fill_index[ply]);
+			IntArrays.quickSort(priority_moves[ply], 0, priority_fill_index[ply], Move.mvvLvaComparator);
 			break;
 		case 4:
-			IntArrays.quickSort(priority_moves[ply], 0, priority_fill_index, moveTypeComparator);
+			IntArrays.quickSort(priority_moves[ply], 0, priority_fill_index[ply], moveTypeComparator);
 			break;
 		default:
-			EubosEngineMain.logger.severe(String.format("Bad move ordering scheme %d!", orderMoveList));
+			EubosEngineMain.logger.severe(String.format("Bad move ordering scheme %d!", ordering));
 			if (EubosEngineMain.ENABLE_ASSERTS)
 				assert false;
 			break;
@@ -210,13 +224,13 @@ public class MoveList implements Iterable<Integer> {
 	
 	@Override
 	public MoveListIterator iterator() {
-		return new MoveListIterator(normal_search_moves[ply], normal_list_length);
+		return new MoveListIterator(normal_search_moves[ply], normal_list_length[ply]);
 	}
 	
 	public MoveListIterator getExtendedIterator() {
 		// Lazy creation of extended moves
 		int ext_count = 0;
-		for (int i=0; i < priority_fill_index; i++) {
+		for (int i=0; i < priority_fill_index[ply]; i++) {
 			int move = normal_search_moves[ply][i];
 			boolean includeInQuiescenceSearch = Move.isCapture(move) || Move.isQueenPromotion(move);
 			if (includeInQuiescenceSearch) {
@@ -230,7 +244,7 @@ public class MoveList implements Iterable<Integer> {
 		int randomMove = Move.NULL_MOVE;
 		if (!isMate) {
 			Random randomIndex = new Random();
-			Integer indexToGet = randomIndex.nextInt(normal_list_length);
+			Integer indexToGet = randomIndex.nextInt(normal_list_length[ply]);
 			randomMove = normal_search_moves[ply][indexToGet];		
 		}
 		return randomMove;
@@ -239,7 +253,7 @@ public class MoveList implements Iterable<Integer> {
 	@Override
 	public String toString() {
 		String retVal = "";
-		for (int move : IntArrays.trim(normal_search_moves[ply], normal_list_length)) {
+		for (int move : IntArrays.trim(normal_search_moves[ply], normal_list_length[ply])) {
 			retVal += Move.toString(move);
 			retVal += ", ";
 		}
@@ -255,16 +269,16 @@ public class MoveList implements Iterable<Integer> {
 	}	
 	
 	public void addNormal(int move) {
-		normal_search_moves[ply][normal_fill_index++] = move;
+		normal_search_moves[ply][normal_fill_index[ply]++] = move;
 	}
 	
 	public void addPrio(int move) {
-		priority_moves[ply][priority_fill_index++] = move;
+		priority_moves[ply][priority_fill_index[ply]++] = move;
 	}
 	
 	// Test API
 	boolean contains(int move) {
-		for (int reg_move : IntArrays.trim(normal_search_moves[ply], normal_list_length)) {
+		for (int reg_move : IntArrays.trim(normal_search_moves[ply], normal_list_length[ply])) {
 			if (move == reg_move)
 				return true;
 		}
@@ -274,7 +288,7 @@ public class MoveList implements Iterable<Integer> {
 	public List<Integer> getList() {
 		List<Integer> ml; 
 		if (!isMate) {
-			ml = IntStream.of(IntArrays.trim(normal_search_moves[ply], normal_list_length)).boxed().collect(Collectors.toList());
+			ml = IntStream.of(IntArrays.trim(normal_search_moves[ply], normal_list_length[ply])).boxed().collect(Collectors.toList());
 		} else {
 			ml = new ArrayList<Integer>();
 		}
