@@ -135,11 +135,7 @@ public class MoveList implements Iterable<Integer> {
 		
 		for (int i=(bestMove != Move.NULL_MOVE) ? 1 : 0; i<priority_fill_index; i++) {
 			int currMove = priority_moves[ply][i];
-			int originPiece = Move.getOriginPiece(currMove);
-			boolean possibleDiscoveredOrMoveIntoCheck = Piece.isKing(originPiece) || 
-					                                    pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove, originPiece);
-			pm.getTheBoard().doMoveLightest(currMove);
-			if ((possibleDiscoveredOrMoveIntoCheck || needToEscapeMate) && pm.isKingInCheck(onMove)) {
+			if (pm.getTheBoard().isIllegalMove(currMove, needToEscapeMate)) {
 				// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
 				priority_moves[ply][i] = Move.NULL_MOVE;
 			} else {
@@ -152,19 +148,15 @@ public class MoveList implements Iterable<Integer> {
 				}
 				valid_move_count++;
 			}
-			pm.getTheBoard().undoMoveLightest(currMove);
 		}
+	
 		if (foundBestMove != Move.NULL_MOVE) {
 			priority_moves[ply][0] = foundBestMove; // add back in at the head of the list
 		}
 		
 		for (int i=0; i<normal_fill_index; i++) {
 			int currMove = normal_search_moves[ply][i];
-			int originPiece = Move.getOriginPiece(currMove);
-			boolean possibleDiscoveredOrMoveIntoCheck = Piece.isKing(originPiece) || 
-														pm.getTheBoard().moveCouldLeadToOwnKingDiscoveredCheck(currMove, originPiece);
-			pm.getTheBoard().doMoveLightest(currMove);
-			if ((possibleDiscoveredOrMoveIntoCheck || needToEscapeMate) && pm.isKingInCheck(onMove)) {
+			if (pm.getTheBoard().isIllegalMove(currMove, needToEscapeMate)) {
 				// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
 				normal_search_moves[ply][i] = Move.NULL_MOVE;
 			} else {
@@ -184,7 +176,6 @@ public class MoveList implements Iterable<Integer> {
 				}
 				valid_move_count++;
 			}
-			pm.getTheBoard().undoMoveLightest(currMove);
 		}
 		
 		return valid_move_count;
