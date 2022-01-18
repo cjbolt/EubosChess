@@ -1,18 +1,22 @@
 package eubos.search;
 
 import eubos.position.PositionManager;
+import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.MoveListIterator;
 
 public class PerformanceTest {
 
 	    private PositionManager pm;
+	    private MoveList ml;
+	    
 	    private long nodeCount = 0;
 	    private int currPly = 0;
 	    private int requestedDepthPly = 0;
 
 		public PerformanceTest(PositionManager pm, int depth) {
 	        this.pm = pm;
+	        this.ml = new MoveList(pm, 0);
 	        requestedDepthPly = depth;
 	    }
 		
@@ -22,8 +26,7 @@ public class PerformanceTest {
 	    
 	    public long perft()  {
 	        if (currPly < requestedDepthPly) {        
-	            MoveList ml = new MoveList(pm, currPly);
-	            MoveListIterator iter = ml.iterator();
+	            MoveListIterator iter = ml.createForPly(Move.NULL_MOVE, null, false, pm.isKingInCheck(pm.getOnMove()), currPly);
 	            while (iter.hasNext()) {
 	            	int move = iter.nextInt();
 					pm.performMove(move, false);

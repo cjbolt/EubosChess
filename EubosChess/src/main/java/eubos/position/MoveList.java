@@ -42,18 +42,6 @@ public class MoveList implements Iterable<Integer> {
         }
     }
 	
-//	public MoveList(PositionManager pm)  {
-//		this(pm, Move.NULL_MOVE, null, 1, false, pm.isKingInCheck(pm.getOnMove()), 0);
-//	}
-//	
-//	public MoveList(PositionManager pm, int ply)  {
-//		this(pm, Move.NULL_MOVE, null, 0, false, pm.isKingInCheck(pm.getOnMove()), ply);
-//	}
-//	
-//	public MoveList(PositionManager pm, int orderMoveList, boolean needToEscapeMate, int ply)  {
-//		this(pm, Move.NULL_MOVE, null, orderMoveList, false, needToEscapeMate, ply);
-//	}
-	
 	public MoveList(PositionManager pm, int orderMoveList)  {	
 		
 		scratchpad = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY][];
