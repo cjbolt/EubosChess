@@ -234,8 +234,8 @@ public class MoveListTest {
 		
 		// killers
 		if (KillerList.ENABLE_KILLER_MOVES) {
-			assertEquals(killer1_gen, Move.toGenericMove(it.nextInt()));
 			assertEquals(killer2_gen, Move.toGenericMove(it.nextInt()));
+			assertEquals(killer1_gen, Move.toGenericMove(it.nextInt()));
 		}
 		
 		assertEquals(17, classUnderTest.getList().size());

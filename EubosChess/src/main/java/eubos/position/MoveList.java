@@ -23,11 +23,16 @@ public class MoveList implements Iterable<Integer> {
 	
 	private int [] normal_fill_index;
 	private int [] priority_fill_index;
-	
 	private int [] normal_list_length;
 	
 	private boolean isMate;
 	private int ply;
+	private boolean needToEscapeMate;
+	private int moveCount;
+	private int scratchpad_fill_index;
+	private int extendedListFodderIndex;
+	private int bestMove;
+	private int [] killers;
 	
 	PositionManager pm;
 	int ordering;
@@ -68,13 +73,26 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	public MoveListIterator createForPly(int bestMove, int [] killers, boolean capturesOnly, boolean needToEscapeMate, int ply)
-	{		
-		this.ply = ply;
-		priority_moves[ply][0] = Move.NULL_MOVE; // clear previous best move in the static movelist 
-		
+	{
+		// Initialise working variables for building the MoveList at this ply
+		this.ply = ply; 
+		this.needToEscapeMate = needToEscapeMate;
+		this.killers = killers;
+		moveCount = 0;
 		normal_fill_index[ply] = 0;
-		priority_fill_index[ply] = (bestMove != Move.NULL_MOVE) ? 1 : 0; // reserve space for the best move!
+		priority_fill_index[ply] = 0;
+		scratchpad_fill_index = 0;
+		extendedListFodderIndex = 0;
 		
+		setupBestMove(bestMove);
+		getMoves(capturesOnly);
+		sortPriorityList();
+		collateMoveList();
+		
+		return iterator();
+	}
+	
+	private void getMoves(boolean capturesOnly) {
 		Colour onMove = pm.getOnMove();
 		boolean isWhiteOnMove = Piece.Colour.isWhite(onMove);
 		
@@ -83,50 +101,33 @@ public class MoveList implements Iterable<Integer> {
 			// Can't castle out of check and don't care in extended search
 			pm.castling.addCastlingMoves(isWhiteOnMove, this);
 		}
-
-		int valid_move_count = removeInvalidIdentifyBestKillerMoves(bestMove, killers, onMove, needToEscapeMate);
-		isMate = (valid_move_count == 0);
-		checkToSortList();
-		addPriorityMovesAtFrontAndRemoveNullMoves(valid_move_count);
-		
-		return iterator();
+		isMate = (moveCount == 0);
 	}
 	
-	private void addPriorityMovesAtFrontAndRemoveNullMoves(int valid_move_count) {
+	private void collateMoveList() {
 		if (!isMate) {
-			int i = 0;
 			for (int j=0; j < priority_fill_index[ply]; j++) {
-				int move = priority_moves[ply][j];
-				if (move != Move.NULL_MOVE) {
-					scratchpad[ply][i++] = move;
-				}
+				scratchpad[ply][scratchpad_fill_index++] = priority_moves[ply][j];
 			}
 			// Update for number of valid priority moves, needed by lazy extended moves creation
-			priority_fill_index[ply] = i;
+			extendedListFodderIndex = scratchpad_fill_index;
 			for (int j=0; j < normal_fill_index[ply]; j++) {
-				int move = normal_search_moves[ply][j];
-				if (move != Move.NULL_MOVE) {
-					scratchpad[ply][i++] = move;
-				}
+				scratchpad[ply][scratchpad_fill_index++] = normal_search_moves[ply][j];
 			}
-			// Copy to existing array, without re-allocating static array
-			int k=0;
-			for (; k<i; k++) {
+			// Copy to existing normal moves array as the final step. There are no NULL_MOVES in the array
+			for (int k=0; k<scratchpad_fill_index; k++) {
 				normal_search_moves[ply][k] = scratchpad[ply][k];
 			}
-			normal_list_length[ply] = k;
+			normal_list_length[ply] = moveCount;
 		} else {
 			// There are no moves
 			priority_fill_index[ply] = 0;
 			normal_list_length[ply] = 0;
 		}
 	}
-
-	private int removeInvalidIdentifyBestKillerMoves(int bestMove, int[] killers, Colour onMove, boolean needToEscapeMate)  {
-		boolean validBest = bestMove != Move.NULL_MOVE;
-		int foundBestMove = Move.NULL_MOVE;
-		int valid_move_count = 0;
-		
+	
+	private void setupBestMove(int bestMove)  {
+		boolean validBest = bestMove != Move.NULL_MOVE;		
 		if (validBest) {
 			// Setup best move check on origin and target sq, not in transpo table
 			int bestOriginPiece = pm.getTheBoard().getPieceAtSquare(Move.getOriginPosition(bestMove));
@@ -134,56 +135,10 @@ public class MoveList implements Iterable<Integer> {
 			int targetPiece = pm.getTheBoard().getPieceAtSquare(Move.getTargetPosition(bestMove));
 			bestMove = Move.setTargetPiece(bestMove, targetPiece);
 		}
-		
-		for (int i=(bestMove != Move.NULL_MOVE) ? 1 : 0; i<priority_fill_index[ply]; i++) {
-			int currMove = priority_moves[ply][i];
-			if (pm.getTheBoard().isIllegalMove(currMove, needToEscapeMate)) {
-				// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
-				priority_moves[ply][i] = Move.NULL_MOVE;
-			} else {
-				// Check whether to set the best move - note it could be the same as one of the killers
-				boolean isBest = validBest && Move.areEqualForBestKiller(currMove, bestMove);
-				if (isBest) {
-					foundBestMove = Move.setBest(currMove);
-					validBest = false; // as already found
-					priority_moves[ply][i] = Move.NULL_MOVE;
-				}
-				valid_move_count++;
-			}
-		}
-	
-		if (foundBestMove != Move.NULL_MOVE) {
-			priority_moves[ply][0] = foundBestMove; // add back in at the head of the list
-		}
-		
-		for (int i=0; i<normal_fill_index[ply]; i++) {
-			int currMove = normal_search_moves[ply][i];
-			if (pm.getTheBoard().isIllegalMove(currMove, needToEscapeMate)) {
-				// Scratch any moves resulting in the king being in check, including moves that don't escape mate!
-				normal_search_moves[ply][i] = Move.NULL_MOVE;
-			} else {
-				// Check whether to set the best move - note it could be the same as one of the killers, so check for best first
-				boolean isBest = validBest && Move.areEqualForBestKiller(currMove, bestMove);
-				if (isBest) {
-					foundBestMove = Move.setBest(currMove);
-					validBest = false; // as already found
-					normal_search_moves[ply][i] = Move.NULL_MOVE;
-					priority_moves[ply][0] = foundBestMove; // Add at head of priority list
-					
-				} else if (KillerList.isMoveOnListAtPly(killers, currMove)) {
-					// Move was modified, add it to the priority list, where it will be sorted (add killers at end)
-					currMove = Move.setKiller(currMove);
-					normal_search_moves[ply][i] = Move.NULL_MOVE;
-					addPrio(currMove); // Add to tail of prio
-				}
-				valid_move_count++;
-			}
-		}
-		
-		return valid_move_count;
+		this.bestMove = bestMove;
 	}
 	
-	private void checkToSortList() {
+	private void sortPriorityList() {
 		switch (ordering) {
 		case 0:
 			/* Don't order the move list in this case. */
@@ -218,7 +173,7 @@ public class MoveList implements Iterable<Integer> {
 	public MoveListIterator getExtendedIterator() {
 		// Lazy creation of extended moves
 		int ext_count = 0;
-		for (int i=0; i < priority_fill_index[ply]; i++) {
+		for (int i=0; i < extendedListFodderIndex; i++) {
 			int move = normal_search_moves[ply][i];
 			boolean includeInQuiescenceSearch = Move.isCapture(move) || Move.isQueenPromotion(move);
 			if (includeInQuiescenceSearch) {
@@ -257,11 +212,28 @@ public class MoveList implements Iterable<Integer> {
 	}	
 	
 	public void addNormal(int move) {
-		normal_search_moves[ply][normal_fill_index[ply]++] = move;
+		if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate)) {
+			if (Move.areEqualForBestKiller(move, bestMove)) {
+				scratchpad[ply][scratchpad_fill_index++] = Move.setBest(move);
+			} else if(KillerList.isMoveOnListAtPly(killers, move)) {
+				priority_moves[ply][priority_fill_index[ply]++] = Move.setKiller(move);;
+			} else {
+				normal_search_moves[ply][normal_fill_index[ply]++] = move;
+			}
+			moveCount++;
+		}
+		
 	}
 	
 	public void addPrio(int move) {
-		priority_moves[ply][priority_fill_index[ply]++] = move;
+		if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate)) {
+			if (Move.areEqualForBestKiller(move, bestMove)) {
+				scratchpad[ply][scratchpad_fill_index++] = Move.setBest(move);
+			} else {
+				priority_moves[ply][priority_fill_index[ply]++] = move;
+			}
+			moveCount++;
+		}
 	}
 	
 	// Test API
