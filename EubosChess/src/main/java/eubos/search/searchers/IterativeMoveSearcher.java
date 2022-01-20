@@ -169,6 +169,10 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				extraTime = true;
 				break;
 			case 3:
+				if (hasBackedUpAScore && (currentScore >= ref.score - 100) && (currDepth >= ref.depth))
+					terminateNow = true;
+				break;
+			case 5:
 				if (hasBackedUpAScore && (currentScore >= ref.score - 300) && (currDepth >= ref.depth))
 					terminateNow = true;
 				break;
