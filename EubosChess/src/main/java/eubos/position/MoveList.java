@@ -25,12 +25,11 @@ public class MoveList implements Iterable<Integer> {
 	private int [] priority_fill_index;
 	private int [] normal_list_length;
 	
-	private boolean isMate;
 	private int ply;
 	private boolean needToEscapeMate;
 	private int moveCount;
 	private int scratchpad_fill_index;
-	private int extendedListFodderIndex;
+	private int extendedListScopeEndpoint;
 	private int bestMove;
 	private int [] killers;
 	
@@ -81,13 +80,16 @@ public class MoveList implements Iterable<Integer> {
 		moveCount = 0;
 		normal_fill_index[ply] = 0;
 		priority_fill_index[ply] = 0;
+		normal_list_length[ply] = 0;
 		scratchpad_fill_index = 0;
-		extendedListFodderIndex = 0;
+		extendedListScopeEndpoint = 0;
 		
 		setupBestMove(bestMove);
 		getMoves(capturesOnly);
-		sortPriorityList();
-		collateMoveList();
+		if (moveCount != 0) {
+			sortPriorityList();
+			collateMoveList();
+		}
 		
 		return iterator();
 	}
@@ -101,29 +103,18 @@ public class MoveList implements Iterable<Integer> {
 			// Can't castle out of check and don't care in extended search
 			pm.castling.addCastlingMoves(isWhiteOnMove, this);
 		}
-		isMate = (moveCount == 0);
 	}
 	
 	private void collateMoveList() {
-		if (!isMate) {
 			for (int j=0; j < priority_fill_index[ply]; j++) {
 				scratchpad[ply][scratchpad_fill_index++] = priority_moves[ply][j];
 			}
 			// Update for number of valid priority moves, needed by lazy extended moves creation
-			extendedListFodderIndex = scratchpad_fill_index;
+			extendedListScopeEndpoint = scratchpad_fill_index;
 			for (int j=0; j < normal_fill_index[ply]; j++) {
 				scratchpad[ply][scratchpad_fill_index++] = normal_search_moves[ply][j];
 			}
-			// Copy to existing normal moves array as the final step. There are no NULL_MOVES in the array
-			for (int k=0; k<scratchpad_fill_index; k++) {
-				normal_search_moves[ply][k] = scratchpad[ply][k];
-			}
 			normal_list_length[ply] = moveCount;
-		} else {
-			// There are no moves
-			priority_fill_index[ply] = 0;
-			normal_list_length[ply] = 0;
-		}
 	}
 	
 	private void setupBestMove(int bestMove)  {
@@ -167,14 +158,14 @@ public class MoveList implements Iterable<Integer> {
 	
 	@Override
 	public MoveListIterator iterator() {
-		return new MoveListIterator(normal_search_moves[ply], normal_list_length[ply]);
+		return new MoveListIterator(scratchpad[ply], normal_list_length[ply]);
 	}
 	
 	public MoveListIterator getExtendedIterator() {
 		// Lazy creation of extended moves
 		int ext_count = 0;
-		for (int i=0; i < extendedListFodderIndex; i++) {
-			int move = normal_search_moves[ply][i];
+		for (int i=0; i < extendedListScopeEndpoint; i++) {
+			int move = scratchpad[ply][i];
 			boolean includeInQuiescenceSearch = Move.isCapture(move) || Move.isQueenPromotion(move);
 			if (includeInQuiescenceSearch) {
 				extended_search_moves[ply][ext_count++] = move;
@@ -185,10 +176,10 @@ public class MoveList implements Iterable<Integer> {
 		
 	public int getRandomMove() {
 		int randomMove = Move.NULL_MOVE;
-		if (!isMate) {
+		if (normal_list_length[ply] != 0) {
 			Random randomIndex = new Random();
 			Integer indexToGet = randomIndex.nextInt(normal_list_length[ply]);
-			randomMove = normal_search_moves[ply][indexToGet];		
+			randomMove = scratchpad[ply][indexToGet];		
 		}
 		return randomMove;
 	}
@@ -196,7 +187,7 @@ public class MoveList implements Iterable<Integer> {
 	@Override
 	public String toString() {
 		String retVal = "";
-		for (int move : IntArrays.trim(normal_search_moves[ply], normal_list_length[ply])) {
+		for (int move : IntArrays.trim(scratchpad[ply], normal_list_length[ply])) {
 			retVal += Move.toString(move);
 			retVal += ", ";
 		}
@@ -204,8 +195,8 @@ public class MoveList implements Iterable<Integer> {
 	}
 
 	public int getBestMove() {
-		if (!isMate) {
-			return normal_search_moves[ply][0];
+		if (normal_list_length[ply] != 0) {
+			return scratchpad[ply][0];
 		} else {
 			return Move.NULL_MOVE;
 		}
@@ -238,17 +229,17 @@ public class MoveList implements Iterable<Integer> {
 	
 	// Test API
 	boolean contains(int move) {
-		for (int reg_move : IntArrays.trim(normal_search_moves[ply], normal_list_length[ply])) {
+		for (int reg_move : IntArrays.trim(scratchpad[ply], normal_list_length[ply])) {
 			if (move == reg_move)
 				return true;
 		}
 		return false;
 	}
 	
-	public List<Integer> getList() {
+	public List<Integer> getList(int currPly) {
 		List<Integer> ml; 
-		if (!isMate) {
-			ml = IntStream.of(IntArrays.trim(normal_search_moves[ply], normal_list_length[ply])).boxed().collect(Collectors.toList());
+		if (normal_list_length[currPly] != 0) {
+			ml = IntStream.of(IntArrays.trim(scratchpad[currPly], normal_list_length[currPly])).boxed().collect(Collectors.toList());
 		} else {
 			ml = new ArrayList<Integer>();
 		}

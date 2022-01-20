@@ -295,7 +295,7 @@ public class PlySearcher {
 				moveNumber += 1;
 				if (EubosEngineMain.ENABLE_ASSERTS) {
 					assert currMove != Move.NULL_MOVE: "Null move found in MoveList";
-					assert moveNumber <= ml.getList().size() : "MoveList is too long";
+					assert moveNumber <= ml.getList(currPly).size() : "MoveList is too long";
 				}
 			} else {
 				break;

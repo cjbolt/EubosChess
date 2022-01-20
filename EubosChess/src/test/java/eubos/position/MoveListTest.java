@@ -238,7 +238,7 @@ public class MoveListTest {
 			assertEquals(killer1_gen, Move.toGenericMove(it.nextInt()));
 		}
 		
-		assertEquals(17, classUnderTest.getList().size());
+		assertEquals(17, classUnderTest.getList(0).size());
 	}
 	
 	@Test

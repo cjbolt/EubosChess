@@ -98,6 +98,7 @@ public class MiniMaxMoveGenerator implements
 				score = (short) ps.searchPly();
 			}
 		} catch (AssertionError e) {
+			System.err.println(e);
 			Writer buffer = new StringWriter();
 			PrintWriter pw = new PrintWriter(buffer);
 			e.printStackTrace(pw);
