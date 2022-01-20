@@ -59,6 +59,7 @@ public class Board {
 			(4 * Piece.MATERIAL_VALUE_PAWN);
 	
 	public boolean isEndgame;
+	private boolean initialOnMoveIsWhite;
 	
 	private PieceList pieceLists = new PieceList(this);
 	
@@ -75,18 +76,21 @@ public class Board {
 			setPieceAtSquare( nextPiece.getKey(), nextPiece.getValue() );
 		}
 		isEndgame = false;
+		initialOnMoveIsWhite = Piece.Colour.isWhite(initialOnMove);
 		me = new PiecewiseEvaluation();
 		evaluateMaterial(me);
+		updateGamePhase();
+		// Regenerate, because now we know the correct endgame state!
+		me = new PiecewiseEvaluation();
+		evaluateMaterial(me);
+	}
+	
+	public void updateGamePhase() {
 		boolean queensOffBoard = (getWhiteQueens() == 0) && (getBlackQueens() == 0);
-		int opponentMaterial = Piece.Colour.isWhite(initialOnMove) ? me.black : me.white;
+		int opponentMaterial = initialOnMoveIsWhite ? me.black : me.white;
 		boolean queensOffMaterialThresholdReached = opponentMaterial <= ENDGAME_MATERIAL_THRESHOLD_WITHOUT_QUEENS;
 		boolean materialQuantityThreshholdReached = me.white <= ENDGAME_MATERIAL_THRESHOLD && me.black <= ENDGAME_MATERIAL_THRESHOLD;
-		if ((queensOffBoard && queensOffMaterialThresholdReached) || materialQuantityThreshholdReached) {
-			isEndgame = true;
-		}
-		// Regenerate, because no we know the correct endgame state!
-		me = new PiecewiseEvaluation();
-		evaluateMaterial(me);
+		isEndgame = (queensOffBoard && queensOffMaterialThresholdReached) || materialQuantityThreshholdReached;
 	}
 	
 	public static String reportStaticDataSizes() {
@@ -1033,6 +1037,24 @@ public class Board {
 				assert false : String.format("updateMaterialForPiece Trying to update for %d", currPiece);
 			}
 			break;
+		}
+	}
+	
+	public void updateIncrementalKingPositionContributionForEndgameTransition(boolean isEnteringEndgame) {
+		if (isEnteringEndgame) {
+			int whiteKingPos = pieceLists.getKingPos(true);
+			me.position -= Piece.KING_MIDGAME_WEIGHTINGS[whiteKingPos];
+			me.position += Piece.KING_ENDGAME_WEIGHTINGS[whiteKingPos];
+			int blackKingPos = pieceLists.getKingPos(false);
+			me.position += Piece.KING_MIDGAME_WEIGHTINGS[blackKingPos];
+			me.position -= Piece.KING_ENDGAME_WEIGHTINGS[blackKingPos];		
+		} else {
+			int whiteKingPos = pieceLists.getKingPos(true);
+			me.position -= Piece.KING_ENDGAME_WEIGHTINGS[whiteKingPos];
+			me.position += Piece.KING_MIDGAME_WEIGHTINGS[whiteKingPos];
+			int blackKingPos = pieceLists.getKingPos(false);
+			me.position += Piece.KING_ENDGAME_WEIGHTINGS[blackKingPos];
+			me.position -= Piece.KING_MIDGAME_WEIGHTINGS[blackKingPos];	
 		}
 	}
 	

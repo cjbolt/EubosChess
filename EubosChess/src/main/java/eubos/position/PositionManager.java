@@ -99,12 +99,17 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public void performMove( int move, boolean computeHash ) {
 
 		// Save previous en passant square
+		boolean isEndgame = theBoard.isEndgame;
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		int capturePosition = theBoard.doMove(move);
-		moveTracker.push(TrackedMove.valueOf(move, prevEnPassantTargetSq, castling.getFlags()));
+		moveTracker.push(TrackedMove.valueOf(move, prevEnPassantTargetSq, castling.getFlags(), isEndgame));
 		
 		// update castling flags
 		castling.updateFlags(move);
+		theBoard.updateGamePhase();
+		if (isEndgame != theBoard.isEndgame) {
+			theBoard.updateIncrementalKingPositionContributionForEndgameTransition(theBoard.isEndgame);
+		}
 		
 		if (computeHash) {
 			// Determine whether move set en Passant file
@@ -116,7 +121,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			hash.update(move, capturePosition, enPassantFile);
 
 			// Update the draw checker
-			repetitionPossible = dc.setPositionReached(getHash(), getPlyNumber());
+			repetitionPossible = dc.setPositionReached(getHash(), getPlyNumber());			
 		}
 		
 		// Update onMove
@@ -131,9 +136,15 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	public void unperformMove(boolean computeHash) {
-		long tm = moveTracker.pop();		
+		long tm = moveTracker.pop();
+		boolean wasEndgame = TrackedMove.isEndgame(tm);
+		if (wasEndgame != theBoard.isEndgame) {
+			theBoard.updateIncrementalKingPositionContributionForEndgameTransition(wasEndgame);
+		}
+		theBoard.isEndgame = wasEndgame;
 		int move = TrackedMove.getMove(tm);
 		int reversedMove = Move.reverse(move);
+		
 		int capturePosition = theBoard.undoMove(reversedMove);
 		
 		// Restore castling
@@ -150,6 +161,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			
 			// Clear draw indicator flag
 			repetitionPossible = false;
+			
+			// Check for endgame transition
+			//theBoard.updateGamePhase();
 		}
 		
 		// Update onMove flag
