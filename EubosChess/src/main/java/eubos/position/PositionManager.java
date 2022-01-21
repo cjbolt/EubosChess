@@ -98,13 +98,13 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public void performMove( int move, boolean computeHash ) {
 
-		// Save previous en passant square
+		// Preserve state
 		boolean isEndgame = theBoard.isEndgame;
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		int capturePosition = theBoard.doMove(move);
 		moveTracker.push(TrackedMove.valueOf(move, prevEnPassantTargetSq, castling.getFlags(), isEndgame));
 		
-		// update castling flags
+		// update state
 		castling.updateFlags(move);
 		theBoard.updateGamePhase();
 		if (isEndgame != theBoard.isEndgame) {
@@ -161,9 +161,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			
 			// Clear draw indicator flag
 			repetitionPossible = false;
-			
-			// Check for endgame transition
-			//theBoard.updateGamePhase();
 		}
 		
 		// Update onMove flag

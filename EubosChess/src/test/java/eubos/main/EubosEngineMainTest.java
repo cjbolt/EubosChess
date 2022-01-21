@@ -348,7 +348,7 @@ public class EubosEngineMainTest {
 	public void test_hash_issue_losing_position() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"3r2k1/5p2/7p/3R2p1/p7/1q1Q1PP1/7P/3R2K1 b - - 1 42"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d8e8"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"b3b6"+CMD_TERMINATOR));
 
 		testOutput.flush();
 		inputToEngine.flush();

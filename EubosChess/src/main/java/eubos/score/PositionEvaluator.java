@@ -53,7 +53,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	public int getFullEvaluation() {
 		Board bd = pm.getTheBoard();
 		PiecewiseEvaluation me = bd.me;
-		if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !bd.isEndgame) {
+		if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION /*&& !bd.isEndgame*/) {
 			bd.calculateDynamicMobility(me);
 		}
 		SearchContextEvaluation eval = sc.computeSearchGoalBonus(me);

@@ -1377,76 +1377,75 @@ public class Board {
 	public int evaluateKingSafety(Piece.Colour side) {
 		int evaluation = 0;
 		boolean isWhite = Piece.Colour.isWhite(side);
-		if (!isEndgame) {
-			// King
-			long kingMask = isWhite ? getWhiteKing() : getBlackKing();
-			boolean isKingOnDarkSq = (kingMask & DARK_SQUARES_MASK) != 0;
-			// Attackers
-			long attackingQueensMask = isWhite ? getBlackQueens() : getWhiteQueens();
-			long attackingRooksMask = isWhite ? getBlackRooks() : getWhiteRooks();
-			long attackingBishopsMask = isWhite ? getBlackBishops() : getWhiteBishops();
-			long attackingKnightsMask = isWhite ? getBlackKnights() : getWhiteKnights();
 
-			
-			// create masks of attackers
-			long pertinentBishopMask = attackingBishopsMask & ((isKingOnDarkSq) ? DARK_SQUARES_MASK : LIGHT_SQUARES_MASK);
-			long diagonalAttackersMask = attackingQueensMask | pertinentBishopMask;
-			long rankFileAttackersMask = attackingQueensMask | attackingRooksMask;
-			
-			// First score according to King exposure on open diagonals
-			int numPotentialAttackers = Long.bitCount(diagonalAttackersMask);
-			int kingPos = Position.NOPOSITION;
-			if (ENABLE_PIECE_LISTS) {
-				kingPos = pieceLists.getKingPos(isWhite);
-			} else {
-				kingPos = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(kingMask)];
-			}
-			long mobility_mask = 0x0;
-			if (numPotentialAttackers > 0) {
-				if (ENABLE_SIMPLIFIED_KING_SAFETY_EVAL) {
-					long blockers = isWhite ? getWhitePawns() : getBlackPawns();
-					long defendingBishopsMask = isWhite ? getWhiteBishops() : getBlackBishops();
-					// only own side pawns should block an attack ray, not any piece, so don't use empty mask as propagator
-					long inDirection = BitBoard.downLeftOccludedEmpty(kingMask, ~blockers);
-					mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
-					inDirection = BitBoard.upLeftOccludedEmpty(kingMask, ~blockers);
-					mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
-					inDirection = BitBoard.upRightOccludedEmpty(kingMask, ~blockers);
-					mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
-					inDirection = BitBoard.downRightOccludedEmpty(kingMask, ~blockers);
-					mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
-					evaluation = Long.bitCount(mobility_mask ^ kingMask) * 2 * -numPotentialAttackers;
-				} else {
-					evaluation = (getKingSafetyEvaluationDiagonalSquares(isWhite, kingPos)) * -numPotentialAttackers;
-				}
-			}
-			
-			// Then score according to King exposure on open rank/files
-			numPotentialAttackers = Long.bitCount(rankFileAttackersMask);
-			if (numPotentialAttackers > 0) {
-				if (ENABLE_SIMPLIFIED_KING_SAFETY_EVAL) {
-					mobility_mask = 0x0;
-					long blockers = isWhite ? getWhitePawns() : getBlackPawns();
-					long defendingRooksMask = isWhite ? getWhiteRooks() : getBlackRooks();
-					long inDirection = BitBoard.downOccludedEmpty(kingMask, ~blockers);
-					mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
-					inDirection = BitBoard.upOccludedEmpty(kingMask, ~blockers);
-					mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
-					inDirection = BitBoard.rightOccludedEmpty(kingMask, ~blockers);
-					mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
-					inDirection = BitBoard.leftOccludedEmpty(kingMask, ~blockers);
-					mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
-					evaluation += Long.bitCount(mobility_mask ^ kingMask) * 2 * -numPotentialAttackers;
-				} else {
-					evaluation += (getKingSafetyEvaluationRankFileSquares(isWhite, kingPos)) * -numPotentialAttackers;
-				}
-			}
-			
-			// Then account for Knight proximity to the adjacent squares around the King
-			long pertintentKnightsMask = attackingKnightsMask & knightKingSafetyMask_Lut[kingPos];
-			evaluation += -8*Long.bitCount(pertintentKnightsMask);
-			
+		// King
+		long kingMask = isWhite ? getWhiteKing() : getBlackKing();
+		boolean isKingOnDarkSq = (kingMask & DARK_SQUARES_MASK) != 0;
+		// Attackers
+		long attackingQueensMask = isWhite ? getBlackQueens() : getWhiteQueens();
+		long attackingRooksMask = isWhite ? getBlackRooks() : getWhiteRooks();
+		long attackingBishopsMask = isWhite ? getBlackBishops() : getWhiteBishops();
+		long attackingKnightsMask = isWhite ? getBlackKnights() : getWhiteKnights();
+
+		
+		// create masks of attackers
+		long pertinentBishopMask = attackingBishopsMask & ((isKingOnDarkSq) ? DARK_SQUARES_MASK : LIGHT_SQUARES_MASK);
+		long diagonalAttackersMask = attackingQueensMask | pertinentBishopMask;
+		long rankFileAttackersMask = attackingQueensMask | attackingRooksMask;
+		
+		// First score according to King exposure on open diagonals
+		int numPotentialAttackers = Long.bitCount(diagonalAttackersMask);
+		int kingPos = Position.NOPOSITION;
+		if (ENABLE_PIECE_LISTS) {
+			kingPos = pieceLists.getKingPos(isWhite);
+		} else {
+			kingPos = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(kingMask)];
 		}
+		long mobility_mask = 0x0;
+		if (numPotentialAttackers > 0) {
+			if (ENABLE_SIMPLIFIED_KING_SAFETY_EVAL) {
+				long blockers = isWhite ? getWhitePawns() : getBlackPawns();
+				long defendingBishopsMask = isWhite ? getWhiteBishops() : getBlackBishops();
+				// only own side pawns should block an attack ray, not any piece, so don't use empty mask as propagator
+				long inDirection = BitBoard.downLeftOccludedEmpty(kingMask, ~blockers);
+				mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
+				inDirection = BitBoard.upLeftOccludedEmpty(kingMask, ~blockers);
+				mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
+				inDirection = BitBoard.upRightOccludedEmpty(kingMask, ~blockers);
+				mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
+				inDirection = BitBoard.downRightOccludedEmpty(kingMask, ~blockers);
+				mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
+				evaluation = Long.bitCount(mobility_mask ^ kingMask) * 2 * -numPotentialAttackers;
+			} else {
+				evaluation = (getKingSafetyEvaluationDiagonalSquares(isWhite, kingPos)) * -numPotentialAttackers;
+			}
+		}
+		
+		// Then score according to King exposure on open rank/files
+		numPotentialAttackers = Long.bitCount(rankFileAttackersMask);
+		if (numPotentialAttackers > 0) {
+			if (ENABLE_SIMPLIFIED_KING_SAFETY_EVAL) {
+				mobility_mask = 0x0;
+				long blockers = isWhite ? getWhitePawns() : getBlackPawns();
+				long defendingRooksMask = isWhite ? getWhiteRooks() : getBlackRooks();
+				long inDirection = BitBoard.downOccludedEmpty(kingMask, ~blockers);
+				mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
+				inDirection = BitBoard.upOccludedEmpty(kingMask, ~blockers);
+				mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
+				inDirection = BitBoard.rightOccludedEmpty(kingMask, ~blockers);
+				mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
+				inDirection = BitBoard.leftOccludedEmpty(kingMask, ~blockers);
+				mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
+				evaluation += Long.bitCount(mobility_mask ^ kingMask) * 2 * -numPotentialAttackers;
+			} else {
+				evaluation += (getKingSafetyEvaluationRankFileSquares(isWhite, kingPos)) * -numPotentialAttackers;
+			}
+		}
+		
+		// Then account for Knight proximity to the adjacent squares around the King
+		long pertintentKnightsMask = attackingKnightsMask & knightKingSafetyMask_Lut[kingPos];
+		evaluation += -8*Long.bitCount(pertintentKnightsMask);
+			
 		return evaluation;
 	}
 	
