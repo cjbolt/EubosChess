@@ -53,7 +53,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	public int getFullEvaluation() {
 		Board bd = pm.getTheBoard();
 		PiecewiseEvaluation me = bd.me;
-		if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION /*&& !bd.isEndgame*/) {
+		if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
 			bd.calculateDynamicMobility(me);
 		}
 		SearchContextEvaluation eval = sc.computeSearchGoalBonus(me);
@@ -62,7 +62,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 			if (ENABLE_PAWN_EVALUATION) {
 				eval.score += evaluatePawnStructure();
 			}
-			if (ENABLE_KING_SAFETY_EVALUATION && !sc.isTryForMate()) {
+			if (ENABLE_KING_SAFETY_EVALUATION && !bd.isEndgame && !sc.isTryForMate()) {
 				eval.score += evaluateKingSafety();
 			}
 		}
