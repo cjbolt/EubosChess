@@ -208,7 +208,7 @@ public class EubosEngineMainTest {
 				+ " d8d5 f5f4 d5d6 f4e4 d6c6 e4d3 c6d5 g7d4 d5b3 d3e4 d1e2 e4e5 b3b8 d4d6 b8b2 e5f4 b2c1"
 				+ " f4f5 c1c2 f5f6 c2a4 d6h2 e2d3 h2h3 d3d2 h3h2 d2d3 h2h3 d3d2"+CMD_TERMINATOR, null));
 		// Need to insert a trans in the hash table for the root position with best score that is a draw at this new position!
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h6h7"+CMD_TERMINATOR)); // i.e not h2h3
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h3g2"+CMD_TERMINATOR)); // i.e not h2h3
 		performTest(5000);
 	}
 		
@@ -266,7 +266,7 @@ public class EubosEngineMainTest {
 	public void test_KQk_mated_in_6_NEW() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/6K1/8/3k4/1Q6/8/8/8 b - - 1 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"11"+CMD_TERMINATOR, BEST_PREFIX+"d5c6"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"d5e5"+CMD_TERMINATOR));
 		performTestExpectMate(15000, -6);
 	} 
 	
