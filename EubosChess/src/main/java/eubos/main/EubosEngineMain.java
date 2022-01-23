@@ -194,7 +194,7 @@ public class EubosEngineMain extends AbstractEngine {
 			rootPosition = new PositionManager(uci_fen_string, dc, null);
 			for (GenericMove nextMove : command.moves) {
 				int move = Move.toMove(nextMove, rootPosition.getTheBoard());
-				rootPosition.performMove(move, false); // don't update draw checker or hash
+				rootPosition.performMove(move);
 				lastMoveWasCaptureOrPawnMove = Move.isCapture(move) || Move.isPawnMove(move);
 			}
 			fen_to_use = rootPosition.getFen();

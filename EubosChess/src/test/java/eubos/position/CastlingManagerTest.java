@@ -54,7 +54,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....K..R
 		//   abcdefgh
-		setupPosition("k7/8/8/8/8/8/8/4K2R w K - - -");
+		setupPosition("k7/8/8/8/8/8/8/4K2R w K - - 1");
 		pm.performMove(Move.toMove(new GenericMove("h1h2"), pm.getTheBoard()));
 		pm.performMove(Move.toMove(new GenericMove("a8b8"), pm.getTheBoard()));
 		pm.performMove(Move.toMove(new GenericMove("h2h1"), pm.getTheBoard()));
@@ -78,7 +78,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....K..R
 		//   abcdefgh
-		setupPosition("k7/8/8/8/8/8/8/4K2R w K - - -");
+		setupPosition("k7/8/8/8/8/8/8/4K2R w K - - 1");
 		pm.performMove(Move.valueOf(Position.e1, Piece.WHITE_KING, Position.e2, Piece.NONE));
 		pm.performMove(Move.valueOf(Position.a8, Piece.BLACK_KING, Position.b8, Piece.NONE));
 		pm.performMove(Move.valueOf(Position.e2, Piece.WHITE_KING, Position.e1, Piece.NONE));

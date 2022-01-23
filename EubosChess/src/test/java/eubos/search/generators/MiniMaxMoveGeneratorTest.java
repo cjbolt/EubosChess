@@ -70,7 +70,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		setupPosition("8/8/3p2p1/2P5/8/8/8/8 w - - - -");
+		setupPosition("8/8/3p2p1/2P5/8/8/8/8 w - - - 1");
 		expectedMove = new GenericMove("c5d6");
 		doFindMoveTest(true);
 	}
@@ -91,7 +91,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 .....p..
 		// 1 ........
 		//   abcdefgh
-		setupPosition( "8/3p4/2P5/8/8/8/5P2/8 b - - - -" );
+		setupPosition( "8/3p4/2P5/8/8/8/5P2/8 b - - - 1" );
 		expectedMove = new GenericMove("d7c6");
 		doFindMoveTest(true);
 	}
@@ -107,7 +107,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 PPP.....
 		// 1 kP......
 		//   abcdefgh
-		setupPosition( "8/8/8/8/8/1p6/ppp5/Kp6 w - - - -" );
+		setupPosition( "8/8/8/8/8/1p6/ppp5/Kp6 w - - - 1" );
 		expectedMove = new GenericMove("a1b2");
 		doFindMoveTest(true);			
 	}
@@ -123,7 +123,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 .P......
 		// 1 k.......
 		//   abcdefgh
-		setupPosition( "8/8/8/8/8/1pp5/1p6/K7 w - - - -" );
+		setupPosition( "8/8/8/8/8/1pp5/1p6/K7 w - - - 1" );
 		expectedMove = new GenericMove("a1b1");
 		doFindMoveTest(true);
 	}
@@ -139,7 +139,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 PPP.....
 		// 1 kP......
 		//   abcdefgh
-		setupPosition( "8/8/8/8/8/1pp5/ppp5/Kp6 w - - - -" );
+		setupPosition( "8/8/8/8/8/1pp5/ppp5/Kp6 w - - - 1" );
 		assertEquals(Move.NULL_MOVE, classUnderTest.findMove(SEARCH_DEPTH_IN_PLY).bestMove);
 	}
 	
@@ -154,7 +154,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 ........
 		// 1 ..kr...r
 		//   abcdefgh
-		setupPosition("2B1Q3/6k1/2Q5/P5B1/4P3/1P3NPN/8/2KR3R b - - - -" );
+		setupPosition("2B1Q3/6k1/2Q5/P5B1/4P3/1P3NPN/8/2KR3R b - - - 1" );
 		expectedMove = new GenericMove("g7h7");
 		doFindMoveTest(true);
 	}
@@ -170,7 +170,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 ......pp
 		// 1 ....r.k.
 		//   abcdefgh
-		setupPosition( "3nkbnr/3p1ppp/8/1B1p4/R2N4/8/6PP/4R1K1 b - - - -" );
+		setupPosition( "3nkbnr/3p1ppp/8/1B1p4/R2N4/8/6PP/4R1K1 b - - - 1" );
 		//expectedMove = new GenericMove("d8e6");
 		expectedMove = new GenericMove("f8e7");
 		if (!EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
@@ -190,7 +190,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		setupPosition( "8/5q2/3pP3/2P5/1b6/P7/8/8 w - - - -" );
+		setupPosition( "8/5q2/3pP3/2P5/1b6/P7/8/8 w - - - 1" );
 		expectedMove = new GenericMove("e6f7");
 		doFindMoveTest((byte)2, true);
 	}
@@ -206,7 +206,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		setupPosition( "5q2/4P3/3p4/2P5/1b6/P7/8/8 w - - - -" );
+		setupPosition( "5q2/4P3/3p4/2P5/1b6/P7/8/8 w - - - 1" );
 		expectedMove = new GenericMove("e7f8Q");
 		doFindMoveTest((byte)2, true);
 	}
@@ -222,7 +222,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		setupPosition( "8/4P3/3p4/8/8/8/8/8 w - - - -" );
+		setupPosition( "8/4P3/3p4/8/8/8/8/8 w - - - 1" );
 		expectedMove = new GenericMove("e7e8Q");
 		doFindMoveTest((byte)2, true);
 	}
@@ -238,7 +238,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 ........
 		// 1 ....r...
 		//   abcdefgh
-		setupPosition( "4k3/8/4p3/5b2/8/8/8/4R3 b - - - -" );
+		setupPosition( "4k3/8/4p3/5b2/8/8/8/4R3 b - - - 1" );
 		expectedMove = new GenericMove("e6f5");
 		doFindMoveTest((byte)2, false);
 	}
@@ -255,7 +255,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 .....ppp
 		// 1 r...r.k.
 		//   abcdefgh
-		setupPosition( "1nbqk2r/3p3p/r1pbpn2/1p3B2/3P4/PQP2N2/5PPP/R3R1K1 w - - - -" );
+		setupPosition( "1nbqk2r/3p3p/r1pbpn2/1p3B2/3P4/PQP2N2/5PPP/R3R1K1 w - - - 1" );
 		expectedMove = new GenericMove("e6f5");
 		doFindMoveTest((byte)2, false);
 	}
@@ -263,7 +263,7 @@ public class MiniMaxMoveGeneratorTest {
 	@Test
 	public void test_findMove_mateInOne1() throws IllegalNotationException {
 		// chess.com Problem ID: 0160818
-		setupPosition( "5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - - -" );
+		setupPosition( "5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - - 1" );
 		expectedMove = new GenericMove("d3h7");
 		doFindMoveTest((byte)2, true);
 	}
@@ -333,7 +333,7 @@ public class MiniMaxMoveGeneratorTest {
 	@Test
 	public void test_findMove_mateInTwo1() throws IllegalNotationException {
 		// chess.com Problem ID: 0022190
-		setupPosition("k1K5/b7/R7/1P6/1n6/8/8/8 w - - - -" );
+		setupPosition("k1K5/b7/R7/1P6/1n6/8/8/8 w - - - 1" );
 		expectedMove = new GenericMove("b5b6");
 		doFindMoveTest(true);
 	}
@@ -362,7 +362,7 @@ public class MiniMaxMoveGeneratorTest {
 	
 	@Test
 	public void test_findMove_mateInOne8()throws IllegalNotationException {
-		setupPosition("1k6/ppR5/8/8/8/8/PP6/K1Qq2r1 w - - - -");
+		setupPosition("1k6/ppR5/8/8/8/8/PP6/K1Qq2r1 w - - - 1");
 		expectedMove = new GenericMove("c7c8");
 		doFindMoveTest((byte)2, true);
 	}

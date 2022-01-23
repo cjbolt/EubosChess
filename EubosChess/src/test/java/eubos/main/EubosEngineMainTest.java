@@ -208,10 +208,31 @@ public class EubosEngineMainTest {
 				+ " d8d5 f5f4 d5d6 f4e4 d6c6 e4d3 c6d5 g7d4 d5b3 d3e4 d1e2 e4e5 b3b8 d4d6 b8b2 e5f4 b2c1"
 				+ " f4f5 c1c2 f5f6 c2a4 d6h2 e2d3 h2h3 d3d2 h3h2 d2d3 h2h3 d3d2"+CMD_TERMINATOR, null));
 		// Need to insert a trans in the hash table for the root position with best score that is a draw at this new position!
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h3g2"+CMD_TERMINATOR)); // i.e not h2h3
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR,BEST_PREFIX+"f6e5"+CMD_TERMINATOR)); // i.e not h2h3
 		performTest(5000);
 	}
-		
+	
+	@Test
+	public void test_game_position_takes_draw() throws InterruptedException, IOException {
+		setupEngine();
+		// Setup Commands specific to this test, checking to achieve draw by repetition..
+		commands.add(new commandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves "
+				+ "e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f3d4 g8f6 b1c3 a7a6 c1e3 e7e6 f2f3 b7b5 d1d3 b5b4 c3e2 e6e5 d4b3 "
+				+ "f8e7 d3c4 d6d5 e4d5 f6d5 e1c1 c8e6 c4e4 b8c6 c2c4 f7f5 e4b1 d5e3 d1d8 a8d8 b3d2 e6c4 e2g3 e7g5 "
+				+ "f1c4 e3c4 b1f5 g5d2 c1b1 c6d4 f5d3 d8c8 g3f5 d4f5 d3f5 e8e7 a2a3 g7g6 f5e4 b4a3 b2b3 c4e3 e4e5 "
+				+ "e7f7 e5f4 f7g8 f4d6 c8c2 d6e6 g8g7 e6e7 g7g8 e7d8 g8f7 d8d7 f7f8 d7d6 f8e8 d6e6 e8d8 e6d6 d8c8 "
+				+ "d6a6 c8d7 a6a3 h8c8 a3a4 d7e6 a4h4 c8c3 h4a4 e6e7 g2g3 e7f8 f3f4 h7h6 a4b5 d2c1 b5b8 f8f7 b1a1 "
+				+ "c1b2 a1b1 c3c7 b8c7 c2c7 b1b2 c7c2 b2a3 e3g4 h2h3 g4f6 g3g4 c2f2 g4g5 h6g5 f4g5 f6e4 h3h4 f2f3 "
+				+ "a3a2 e4d2 b3b4 d2c4 a2b1 f3f2 b1c1 f2b2 h1f1 f7g7 f1e1 b2b4 e1e4 g7f7 c1c2 c4a3 c2d3 b4b3 d3d4 "
+				+ "a3c2 d4c5 b3c3 c5d5 c3d3 d5e5 d3d7 e4f4 f7g7 e5e6 d7a7 f4e4 a7a1 e4c4 a1e1 e6d6 e1d1 d6e5 c2e3 "
+				+ "c4c7 g7g8 c7c8 g8f7 c8c7 f7f8 e5e6 e3d5 c7c8 f8g7 c8c4 d1d2 c4c6 d5f4 e6e5 f4d3 e5e4 d3b4 c6c7 "
+				+ "g7f8 e4e5 d2e2 e5d6 b4d3 c7c4 f8f7 " 
+				/* The repetition starts from here, when rook goes to c7 and gives check. */
+				+ "c4c7 f7g8 c7c8 g8f7 c8c7 f7g8 c7c8 g8f7"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"1"+CMD_TERMINATOR,BEST_PREFIX+"c8c7"+CMD_TERMINATOR));
+		performTest(5000);
+	}
+	
 	@Test
 	public void test_when_has_insufficient_material_to_mate_takes_draw() throws InterruptedException, IOException {
 		setupEngine();
