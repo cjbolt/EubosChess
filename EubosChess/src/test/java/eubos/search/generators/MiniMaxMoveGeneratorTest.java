@@ -413,7 +413,7 @@ public class MiniMaxMoveGeneratorTest {
 	@Test
 	public void test_findMove_bugPromotingPawn_Arena_4ply()throws IllegalNotationException  {
 		setupPosition( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
-		expectedMove = new GenericMove("h8g7");
+		expectedMove = new GenericMove("h8g8");
 		SearchResult res = classUnderTest.findMove((byte)4);
 		assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
 	}
@@ -424,7 +424,7 @@ public class MiniMaxMoveGeneratorTest {
 		// It can do it with depth = 3, but not 5>=depth<10 (Because move order is not considered in depth first mini max algorithm).
 		// The solution is to do an iterative search, deepening and seeding each time.
 		setupPosition( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
-		expectedMove = new GenericMove("h8g7");
+		expectedMove = new GenericMove("h8g8");
 		
 		SearchResult res = classUnderTest.findMove((byte)4);
 		assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
@@ -432,7 +432,7 @@ public class MiniMaxMoveGeneratorTest {
 		// changed to safest move in extended search changed the move used here 21st August 2020
 		//expectedMove = new GenericMove("h8g8");
 		// equally valid
-		expectedMove = new GenericMove("h8g7");
+		expectedMove = new GenericMove("h8g8");
 		res = classUnderTest.findMove((byte)5, sr_stub);
 		
 		assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
@@ -442,7 +442,7 @@ public class MiniMaxMoveGeneratorTest {
 	public void test_findMove_bugPromotingPawn_Arena_6ply()throws IllegalNotationException  {
 		// N.b. as per test_findMove_bugPromotingPawn_Arena_5ply
 		setupPosition( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
-		expectedMove = new GenericMove("h8g7");
+		expectedMove = new GenericMove("h8g8");
 		
 		classUnderTest.findMove((byte)4);
 		classUnderTest.findMove((byte)5, sr_stub);

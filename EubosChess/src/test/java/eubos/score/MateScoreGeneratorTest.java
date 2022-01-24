@@ -67,7 +67,7 @@ public class MateScoreGeneratorTest {
 		PositionEvaluator pe = new PositionEvaluator(pm, null);
 		classUnderTest = new MateScoreGenerator(pm, pe);
 		// White wants stalemate
-		assertEquals(Piece.MATERIAL_VALUE_KING/2, classUnderTest.scoreMate((byte)0));
+		assertEquals(0, classUnderTest.scoreMate((byte)0));
 	}
 	
 	@Test
@@ -79,6 +79,6 @@ public class MateScoreGeneratorTest {
 		PositionEvaluator pe = new PositionEvaluator(pm, null);
 		classUnderTest = new MateScoreGenerator(pm, pe);
 		// Black wants stalemate
-		assertEquals(Piece.MATERIAL_VALUE_KING/2, classUnderTest.scoreMate((byte)0));
+		assertEquals(0, classUnderTest.scoreMate((byte)0));
 	}
 }

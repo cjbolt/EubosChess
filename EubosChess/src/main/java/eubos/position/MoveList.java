@@ -94,6 +94,11 @@ public class MoveList implements Iterable<Integer> {
 		return iterator();
 	}
 	
+	public MoveListIterator createForPly(int bestMove, boolean needToEscapeMate, int ply) {
+		createForPly(bestMove, null, true, needToEscapeMate, ply);
+		return getExtendedIterator(); 
+	}
+	
 	private void getMoves(boolean capturesOnly) {
 		Colour onMove = pm.getOnMove();
 		boolean isWhiteOnMove = Piece.Colour.isWhite(onMove);

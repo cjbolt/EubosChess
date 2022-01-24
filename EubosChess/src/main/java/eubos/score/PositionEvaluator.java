@@ -8,13 +8,10 @@ import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.position.IPositionAccessors;
 import eubos.position.Position;
-import eubos.search.SearchContext;
-import eubos.search.SearchContext.SearchContextEvaluation;
 
 public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 
 	IPositionAccessors pm;
-	private SearchContext sc;
 	
 	public static final int DOUBLED_PAWN_HANDICAP = 12;
 	public static final int ISOLATED_PAWN_HANDICAP = 33;
@@ -38,12 +35,34 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 			bd.calculateDynamicMobility(mat);
 		}
 		bd.me = mat;
-		sc = new SearchContext(pm, mat, refScore);
+	}
+	
+	public class SearchContextEvaluation {
+		public boolean isDraw;
+		public short score;
+		
+		public SearchContextEvaluation() {
+			isDraw = false;
+			score = 0;
+		}
+	}
+	
+	private SearchContextEvaluation computeSearchGoalBonus(PiecewiseEvaluation current) {
+		
+		SearchContextEvaluation eval = new SearchContextEvaluation();
+		boolean threeFold = pm.isThreefoldRepetitionPossible();
+		boolean insufficient = pm.getTheBoard().isInsufficientMaterial();
+		
+		eval.isDraw = (threeFold || insufficient);
+		if (!eval.isDraw) {
+			eval.score += Colour.isBlack(pm.getOnMove()) ? -current.getPosition() : current.getPosition();
+		}
+		return eval;
 	}
 	
 	public int getCrudeEvaluation() {
 		Board bd = pm.getTheBoard();
-		SearchContextEvaluation eval = sc.computeSearchGoalBonus(bd.me);
+		SearchContextEvaluation eval = computeSearchGoalBonus(bd.me);
 		if (!eval.isDraw) {
 			eval.score += pm.onMoveIsWhite() ? bd.me.getDelta() : -bd.me.getDelta();
 		}
@@ -56,13 +75,13 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
 			bd.calculateDynamicMobility(me);
 		}
-		SearchContextEvaluation eval = sc.computeSearchGoalBonus(me);
+		SearchContextEvaluation eval = computeSearchGoalBonus(me);
 		if (!eval.isDraw) {
 			eval.score += pm.onMoveIsWhite() ? me.getDelta() : -me.getDelta();
 			if (ENABLE_PAWN_EVALUATION) {
 				eval.score += evaluatePawnStructure();
 			}
-			if (ENABLE_KING_SAFETY_EVALUATION && !bd.isEndgame && !sc.isTryForMate()) {
+			if (ENABLE_KING_SAFETY_EVALUATION && !bd.isEndgame) {
 				eval.score += evaluateKingSafety();
 			}
 		}
@@ -122,19 +141,5 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		int pawnHandicap = -board.countDoubledPawnsForSide(onMove)*DOUBLED_PAWN_HANDICAP;
 		board.forEachPawnOfSide(this, Colour.isBlack(onMove));
 		return pawnHandicap + individualPawnEval;
-	}
-	
-	public SearchContext getSearchContext() {
-		return this.sc;
-	}
-
-	@Override
-	public short getScoreForStalemate() {
-		return sc.getScoreForStalemate();
-	}
-
-	@Override
-	public String getGoal() {
-		return sc.getGoal();
 	}
 }

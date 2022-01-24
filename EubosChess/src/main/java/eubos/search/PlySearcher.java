@@ -355,6 +355,10 @@ public class PlySearcher {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
 			return beta;
 		}
+		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
+			// Absolute depth limit, return full eval
+			return plyScore;
+		}
 		
 		// Create MoveList, computationally very heavy in extended search
 		ITransposition trans = tt.getTransposition();
@@ -362,14 +366,8 @@ public class PlySearcher {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
 			prevBestMove = trans.getBestMove(pos.getTheBoard());
 		}
-		// Don't use Killer moves as we don't search quiet moves in the extended search
-		ml.createForPly(prevBestMove, null, true, needToEscapeCheck, currPly);
-		move_iter = ml.getExtendedIterator();
-		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtendedSearchMoveList(ml);
-		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
-			// Absolute depth limit, return full eval
-			return plyScore;
-		}		
+		move_iter = ml.createForPly(prevBestMove, needToEscapeCheck, currPly);
+		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtendedSearchMoveList(ml);		
 		if (!move_iter.hasNext()) {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearchNoMoves(plyScore);
 			return plyScore;
