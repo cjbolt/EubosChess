@@ -349,7 +349,6 @@ public class BoardTest {
 	@Test
 	public void test_evaluateKingSafety_OneKnight_attackBlack()throws IllegalNotationException {
 		setUpPosition("8/8/4k3/8/8/1N4N1/8/8 w - - 1 1 ");
-		classUnderTest.isEndgame = false;
 		assertEquals(0, classUnderTest.evaluateKingSafety(Piece.Colour.white));
 		assertEquals(-8, classUnderTest.evaluateKingSafety(Piece.Colour.black)); // One knight attacks the black king zone
 	}
@@ -357,7 +356,6 @@ public class BoardTest {
 	@Test
 	public void test_evaluateKingSafety_TwoKnights_attackBlack()throws IllegalNotationException {
 		setUpPosition("8/8/4k3/8/8/2N3N1/8/8 w - - 1 1 ");
-		classUnderTest.isEndgame = false;
 		assertEquals(0, classUnderTest.evaluateKingSafety(Piece.Colour.white));
 		assertEquals(-16, classUnderTest.evaluateKingSafety(Piece.Colour.black)); // One knight attacks the black king zone
 	}
@@ -365,7 +363,6 @@ public class BoardTest {
 	@Test
 	public void test_evaluateKingSafety_OneKnight_attackWhite()throws IllegalNotationException {
 		setUpPosition("8/8/4K3/8/8/1n4n1/8/8 b - - 1 1 ");
-		classUnderTest.isEndgame = false;
 		assertEquals(-8, classUnderTest.evaluateKingSafety(Piece.Colour.white));
 		assertEquals(0, classUnderTest.evaluateKingSafety(Piece.Colour.black)); // One knight attacks the black king zone
 	}
@@ -373,7 +370,6 @@ public class BoardTest {
 	@Test
 	public void test_evaluateKingSafety_TwoKnights_attackWhite()throws IllegalNotationException {
 		setUpPosition("8/8/4K3/8/8/2n3n1/8/8 b - - 1 1 ");
-		classUnderTest.isEndgame = false;
 		assertEquals(-16, classUnderTest.evaluateKingSafety(Piece.Colour.white));
 		assertEquals(0, classUnderTest.evaluateKingSafety(Piece.Colour.black)); // One knight attacks the black king zone
 	}
@@ -399,7 +395,6 @@ public class BoardTest {
 	@Test
 	public void test_slider_refactor_eval() {
 		setUpPosition("r1b1kb1r/ppq1pppp/8/3pN3/3Q4/8/PPP2PPP/RNB1K2R b KQkq - 0 1");
-		classUnderTest.isEndgame = false;
 		PiecewiseEvaluation me = new PiecewiseEvaluation();
 		classUnderTest.calculateDynamicMobility(me);
 		assertEquals(8, me.getPosition());
