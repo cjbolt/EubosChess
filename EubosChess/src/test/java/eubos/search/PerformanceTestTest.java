@@ -12,7 +12,7 @@ import org.junit.runner.Description;
 
 import eubos.position.PositionManager;
 
-@Ignore
+//@Ignore
 public class PerformanceTestTest {
 
 	PerformanceTest sut;

@@ -28,11 +28,15 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	
 	public boolean isDraw;
 	public short score;
+	public boolean goForMate;
 	public Board bd;
 	
 	public PositionEvaluator(IPositionAccessors pm) {	
 		this.pm = pm;
 		bd = pm.getTheBoard();
+		// If either side can't win (e.g. bare King) then do a mate search.
+		goForMate = ((Long.bitCount(bd.getBlackPieces()) == 1) || 
+				     (Long.bitCount(bd.getWhitePieces()) == 1));
 	}
 	
 	private void initialise() {
@@ -43,6 +47,11 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		score = 0;
 	}
 	
+	private short taperEvaluation(int midgameScore, int endgameScore) {
+		int phase = bd.me.getPhase();
+		return (short)(((midgameScore * (256 - phase)) + (endgameScore * phase)) / 256);
+	}
+	
 	public int getCrudeEvaluation() {
 		int midgameScore = 0;
 		int endgameScore = 0;
@@ -51,9 +60,8 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 			score += pm.onMoveIsWhite() ? bd.me.getDelta() : -bd.me.getDelta();
 			midgameScore = score + (pm.onMoveIsWhite() ? bd.me.getPosition() : -bd.me.getPosition());
 			endgameScore = score + (pm.onMoveIsWhite() ? bd.me.getEndgamePosition() : -bd.me.getEndgamePosition());
+			score = taperEvaluation(midgameScore, endgameScore);
 		}
-		int phase = bd.me.getPhase();
-		score = (short)(((midgameScore * (256 - phase)) + (endgameScore * phase)) / 256);
 		return score;
 	}
 	
@@ -61,22 +69,26 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		int midgameScore = 0;
 		int endgameScore = 0;
 		initialise();
-		if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
-			bd.calculateDynamicMobility(bd.me);
-		}
 		if (!isDraw) {
+			// Score factors common to each phase, material, pawn structure and piece mobility
 			score += pm.onMoveIsWhite() ? bd.me.getDelta() : -bd.me.getDelta();
+			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !goForMate) {
+				bd.calculateDynamicMobility(bd.me);
+			}
 			if (ENABLE_PAWN_EVALUATION) {
 				score += evaluatePawnStructure();
 			}
+			// Add phase specific static mobility (PSTs)
 			midgameScore = score + (pm.onMoveIsWhite() ? bd.me.getPosition() : -bd.me.getPosition());
 			endgameScore = score + (pm.onMoveIsWhite() ? bd.me.getEndgamePosition() : -bd.me.getEndgamePosition());
-			if (ENABLE_KING_SAFETY_EVALUATION) {
+			// Add King Safety in middle game
+			if (ENABLE_KING_SAFETY_EVALUATION && !goForMate) {
 				midgameScore += evaluateKingSafety();
 			}
+			if (!goForMate) {
+				score = taperEvaluation(midgameScore, endgameScore);
+			}
 		}
-		int phase = bd.me.getPhase();
-		score = (short)(((midgameScore * (256 - phase)) + (endgameScore * phase)) / 256);
 		return score;
 	}
 	
