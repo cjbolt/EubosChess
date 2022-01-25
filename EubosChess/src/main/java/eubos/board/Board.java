@@ -58,9 +58,6 @@ public class Board {
 			Piece.MATERIAL_VALUE_BISHOP +
 			(4 * Piece.MATERIAL_VALUE_PAWN);
 	
-	public boolean isEndgame;
-	private boolean initialOnMoveIsWhite;
-	
 	private PieceList pieceLists = new PieceList(this);
 	
 	public PiecewiseEvaluation me;
@@ -75,22 +72,8 @@ public class Board {
 		for ( Entry<Integer, Integer> nextPiece : pieceMap.entrySet() ) {
 			setPieceAtSquare( nextPiece.getKey(), nextPiece.getValue() );
 		}
-		isEndgame = false;
-		initialOnMoveIsWhite = Piece.Colour.isWhite(initialOnMove);
 		me = new PiecewiseEvaluation();
 		evaluateMaterial(me);
-		updateGamePhase();
-		// Regenerate, because now we know the correct endgame state!
-		me = new PiecewiseEvaluation();
-		evaluateMaterial(me);
-	}
-	
-	public void updateGamePhase() {
-		boolean queensOffBoard = (getWhiteQueens() == 0) && (getBlackQueens() == 0);
-		int opponentMaterial = initialOnMoveIsWhite ? me.black : me.white;
-		boolean queensOffMaterialThresholdReached = opponentMaterial <= ENDGAME_MATERIAL_THRESHOLD_WITHOUT_QUEENS;
-		boolean materialQuantityThreshholdReached = me.white <= ENDGAME_MATERIAL_THRESHOLD && me.black <= ENDGAME_MATERIAL_THRESHOLD;
-		isEndgame = (queensOffBoard && queensOffMaterialThresholdReached) || materialQuantityThreshholdReached;
 	}
 	
 	public static String reportStaticDataSizes() {
@@ -811,7 +794,7 @@ public class Board {
 	
 	public void getRegularPieceMoves(MoveList ml, boolean ownSideIsWhite, boolean captures) {
 		if (ENABLE_PIECE_LISTS) {
-			if (isEndgame) {
+			if (me.isEndgame()) {
 				pieceLists.addMovesEndgame(ml, ownSideIsWhite, captures);
 			} else {
 				pieceLists.addMovesMiddlegame(ml, ownSideIsWhite, captures);
@@ -821,7 +804,7 @@ public class Board {
 			List<Integer> movesList = new LinkedList<Integer>();
 			long scratchBitBoard = 0;
 			// Unrolled loop for performance optimisation...
-			if (isEndgame) {
+			if (me.isEndgame()) {
 				scratchBitBoard = bitBoardToIterate & pieces[INDEX_KING];
 				while ( scratchBitBoard != 0x0L ) {
 					int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
@@ -865,7 +848,7 @@ public class Board {
 				Piece.pawn_generateMoves(ml, this, atSquare, ownSideIsWhite);
 				scratchBitBoard &= scratchBitBoard-1L;
 			}
-			if (!isEndgame) {
+			if (!me.isEndgame()) {
 				scratchBitBoard = bitBoardToIterate & pieces[INDEX_KING];
 				while ( scratchBitBoard != 0x0L ) {
 					int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
@@ -881,6 +864,7 @@ public class Board {
 		if (ENABLE_PIECE_LISTS) {
 			pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(true, the_me);
 			pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(false, the_me);
+			me.setPhase();
 		} else {
 			PrimitiveIterator.OfInt iter_p = this.iterator();
 			PiecewiseEvaluation material = new PiecewiseEvaluation();
@@ -1026,35 +1010,19 @@ public class Board {
 			break;
 		case Piece.WHITE_KING:
 			eval.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.KING];
-			eval.position += (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[atPos] : Piece.KING_MIDGAME_WEIGHTINGS[atPos];
+			me.positionEndgame += Piece.KING_ENDGAME_WEIGHTINGS[atPos];
+			me.position += Piece.KING_MIDGAME_WEIGHTINGS[atPos];
 			break;			
 		case Piece.BLACK_KING:
 			eval.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.KING];
-			eval.position -= (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[atPos] : Piece.KING_MIDGAME_WEIGHTINGS[atPos];
+			me.positionEndgame -= Piece.KING_ENDGAME_WEIGHTINGS[atPos];
+			me.position -= Piece.KING_MIDGAME_WEIGHTINGS[atPos];
 			break;
 		default:
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert false : String.format("updateMaterialForPiece Trying to update for %d", currPiece);
 			}
 			break;
-		}
-	}
-	
-	public void updateIncrementalKingPositionContributionForEndgameTransition(boolean isEnteringEndgame) {
-		if (isEnteringEndgame) {
-			int whiteKingPos = pieceLists.getKingPos(true);
-			me.position -= Piece.KING_MIDGAME_WEIGHTINGS[whiteKingPos];
-			me.position += Piece.KING_ENDGAME_WEIGHTINGS[whiteKingPos];
-			int blackKingPos = pieceLists.getKingPos(false);
-			me.position += Piece.KING_MIDGAME_WEIGHTINGS[blackKingPos];
-			me.position -= Piece.KING_ENDGAME_WEIGHTINGS[blackKingPos];		
-		} else {
-			int whiteKingPos = pieceLists.getKingPos(true);
-			me.position -= Piece.KING_ENDGAME_WEIGHTINGS[whiteKingPos];
-			me.position += Piece.KING_MIDGAME_WEIGHTINGS[whiteKingPos];
-			int blackKingPos = pieceLists.getKingPos(false);
-			me.position += Piece.KING_ENDGAME_WEIGHTINGS[blackKingPos];
-			me.position -= Piece.KING_MIDGAME_WEIGHTINGS[blackKingPos];	
 		}
 	}
 	
@@ -1077,12 +1045,16 @@ public class Board {
 			me.position -= Piece.KNIGHT_WEIGHTINGS[newPos];
 			break;
 		case Piece.WHITE_KING:
-			me.position -= (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[oldPos] : Piece.KING_MIDGAME_WEIGHTINGS[oldPos];
-			me.position += (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[newPos] : Piece.KING_MIDGAME_WEIGHTINGS[newPos];
+			me.positionEndgame -= Piece.KING_ENDGAME_WEIGHTINGS[oldPos];
+			me.positionEndgame += Piece.KING_ENDGAME_WEIGHTINGS[newPos];
+			me.position -= Piece.KING_MIDGAME_WEIGHTINGS[oldPos];
+			me.position += Piece.KING_MIDGAME_WEIGHTINGS[newPos];
 			break;			
 		case Piece.BLACK_KING:
-			me.position += (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[oldPos] : Piece.KING_MIDGAME_WEIGHTINGS[oldPos];
-			me.position -= (isEndgame) ? Piece.KING_ENDGAME_WEIGHTINGS[newPos] : Piece.KING_MIDGAME_WEIGHTINGS[newPos];
+			me.positionEndgame += Piece.KING_ENDGAME_WEIGHTINGS[oldPos];
+			me.positionEndgame -= Piece.KING_ENDGAME_WEIGHTINGS[newPos];
+			me.position += Piece.KING_MIDGAME_WEIGHTINGS[oldPos];
+			me.position -= Piece.KING_MIDGAME_WEIGHTINGS[newPos];
 			break;
 		default: // The other piece types don't need their position contribution incrementally adjusted
 			break;
@@ -1096,42 +1068,58 @@ public class Board {
 			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
 			me.position -= Piece.PAWN_WHITE_WEIGHTINGS[oldPos];
 			me.position += Piece.KNIGHT_WEIGHTINGS[newPos];
+			me.p--;
+			me.n++;
 			break;
 		case Piece.BLACK_KNIGHT:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
 			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
 			me.position += Piece.PAWN_BLACK_WEIGHTINGS[oldPos];
 			me.position -= Piece.KNIGHT_WEIGHTINGS[newPos];
+			me.p--;
+			me.n++;
 			break;
 		case Piece.WHITE_ROOK:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
 			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
 			me.position -= Piece.PAWN_WHITE_WEIGHTINGS[oldPos];
+			me.p--;
+			me.r++;
 			break;
 		case Piece.BLACK_ROOK:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
 			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
 			me.position += Piece.PAWN_BLACK_WEIGHTINGS[oldPos];
+			me.p--;
+			me.r++;
 			break;
 		case Piece.WHITE_BISHOP:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
 			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
 			me.position -= Piece.PAWN_WHITE_WEIGHTINGS[oldPos];
+			me.p--;
+			me.b++;
 			break;
 		case Piece.BLACK_BISHOP:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
 			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
 			me.position += Piece.PAWN_BLACK_WEIGHTINGS[oldPos];
+			me.p--;
+			me.b++;
 			break;
 		case Piece.WHITE_QUEEN:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
 			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
-			me.position -= Piece.PAWN_WHITE_WEIGHTINGS[oldPos];			
+			me.position -= Piece.PAWN_WHITE_WEIGHTINGS[oldPos];
+			me.p--;
+			me.q++;
 			break;
 		case Piece.BLACK_QUEEN:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
 			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
 			me.position += Piece.PAWN_BLACK_WEIGHTINGS[oldPos];
+			me.p--;
+			me.q++;
 			break;
 		default:
 			if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -1148,42 +1136,58 @@ public class Board {
 			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
 			me.position += Piece.PAWN_WHITE_WEIGHTINGS[newPos];
 			me.position -= Piece.KNIGHT_WEIGHTINGS[oldPos];
+			me.p++;
+			me.n--;
 			break;
 		case Piece.BLACK_KNIGHT:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
 			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
 			me.position -= Piece.PAWN_BLACK_WEIGHTINGS[newPos];
 			me.position += Piece.KNIGHT_WEIGHTINGS[oldPos];
+			me.p++;
+			me.n--;
 			break;
 		case Piece.WHITE_ROOK:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
 			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
 			me.position += Piece.PAWN_WHITE_WEIGHTINGS[newPos];
+			me.p++;
+			me.r--;
 			break;
 		case Piece.BLACK_ROOK:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
 			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
 			me.position -= Piece.PAWN_BLACK_WEIGHTINGS[newPos];
+			me.p++;
+			me.r--;
 			break;
 		case Piece.WHITE_BISHOP:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
 			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
 			me.position += Piece.PAWN_WHITE_WEIGHTINGS[newPos];
+			me.p++;
+			me.b--;
 			break;
 		case Piece.BLACK_BISHOP:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
 			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
 			me.position -= Piece.PAWN_BLACK_WEIGHTINGS[newPos];
+			me.p++;
+			me.b--;
 			break;
 		case Piece.WHITE_QUEEN:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
 			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
-			me.position += Piece.PAWN_WHITE_WEIGHTINGS[newPos];			
+			me.position += Piece.PAWN_WHITE_WEIGHTINGS[newPos];
+			me.p++;
+			me.q--;
 			break;
 		case Piece.BLACK_QUEEN:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
 			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
 			me.position -= Piece.PAWN_BLACK_WEIGHTINGS[newPos];
+			me.p++;
+			me.q--;
 			break;
 		default:
 			if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -1198,36 +1202,46 @@ public class Board {
 		case Piece.WHITE_PAWN:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
 			me.position -= Piece.PAWN_WHITE_WEIGHTINGS[atPos];
+			me.p--;
 			break;
 		case Piece.BLACK_PAWN:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
 			me.position += Piece.PAWN_BLACK_WEIGHTINGS[atPos];
+			me.p--;
 			break;
 		case Piece.WHITE_KNIGHT:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
 			me.position -= Piece.KNIGHT_WEIGHTINGS[atPos];
+			me.n--;
 			break;
 		case Piece.BLACK_KNIGHT:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
 			me.position += Piece.KNIGHT_WEIGHTINGS[atPos];
+			me.n--;
 			break;
 		case Piece.WHITE_ROOK:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
+			me.r--;
 			break;
 		case Piece.BLACK_ROOK:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
+			me.r--;
 			break;
 		case Piece.WHITE_BISHOP:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
+			me.b--;
 			break;
 		case Piece.BLACK_BISHOP:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
+			me.b--;
 			break;
 		case Piece.WHITE_QUEEN:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
+			me.q--;
 			break;
 		case Piece.BLACK_QUEEN:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
+			me.q--;
 			break;
 		default:
 			if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -1242,36 +1256,46 @@ public class Board {
 		case Piece.WHITE_PAWN:
 			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
 			me.position += Piece.PAWN_WHITE_WEIGHTINGS[atPos];
+			me.p++;
 			break;
 		case Piece.BLACK_PAWN:
 			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
 			me.position -= Piece.PAWN_BLACK_WEIGHTINGS[atPos];
+			me.p++;
 			break;
 		case Piece.WHITE_KNIGHT:
 			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
 			me.position += Piece.KNIGHT_WEIGHTINGS[atPos];
+			me.n++;
 			break;
 		case Piece.BLACK_KNIGHT:
 			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
 			me.position -= Piece.KNIGHT_WEIGHTINGS[atPos];
+			me.n++;
 			break;
 		case Piece.WHITE_ROOK:
 			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
+			me.r++;
 			break;
 		case Piece.BLACK_ROOK:
 			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
+			me.r++;
 			break;
 		case Piece.WHITE_BISHOP:
 			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
+			me.b++;
 			break;
 		case Piece.BLACK_BISHOP:
 			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
+			me.b++;
 			break;
 		case Piece.WHITE_QUEEN:
 			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
+			me.q++;
 			break;
 		case Piece.BLACK_QUEEN:
 			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
+			me.q++;
 			break;
 		default:
 			if (EubosEngineMain.ENABLE_ASSERTS) {

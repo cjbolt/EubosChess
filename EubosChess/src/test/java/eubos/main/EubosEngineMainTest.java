@@ -152,9 +152,9 @@ public class EubosEngineMainTest {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			String expectedOutput;
 			if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
-				expectedOutput = "info depth 1 seldepth 6 score cp -17 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
-						"info depth 1 seldepth 6 score cp 145 pv c7c2 d4a7 hashfull 0 nps 441 time 102 nodes 38"+CMD_TERMINATOR+
-	                    "info depth 2 seldepth 6 score cp 67 pv c7c2 e1g1 d7e5 hashfull 0 nps 1836 time 116 nodes 224"+CMD_TERMINATOR
+				expectedOutput = "info depth 1 seldepth 6 score cp -22 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
+						"info depth 1 seldepth 6 score cp 143 pv c7c2 d4a7 hashfull 0 nps 441 time 102 nodes 38"+CMD_TERMINATOR+
+	                    "info depth 2 seldepth 6 score cp 71 pv c7c2 e1g1 d7e5 hashfull 0 nps 1836 time 116 nodes 221"+CMD_TERMINATOR
 	                    +BEST_PREFIX+"c7c2";
 			} else if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && !PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
 				expectedOutput = "info depth 1 seldepth 4 score cp -141 pv d7e5 f3e5 c7e5 hashfull 0 nps 500 time 14 nodes 7"+CMD_TERMINATOR+
@@ -208,7 +208,7 @@ public class EubosEngineMainTest {
 				+ " d8d5 f5f4 d5d6 f4e4 d6c6 e4d3 c6d5 g7d4 d5b3 d3e4 d1e2 e4e5 b3b8 d4d6 b8b2 e5f4 b2c1"
 				+ " f4f5 c1c2 f5f6 c2a4 d6h2 e2d3 h2h3 d3d2 h3h2 d2d3 h2h3 d3d2"+CMD_TERMINATOR, null));
 		// Need to insert a trans in the hash table for the root position with best score that is a draw at this new position!
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR,BEST_PREFIX+"f6e5"+CMD_TERMINATOR)); // i.e not h2h3
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR,BEST_PREFIX+"h3g2"+CMD_TERMINATOR)); // i.e not h2h3
 		performTest(5000);
 	}
 	
@@ -279,7 +279,7 @@ public class EubosEngineMainTest {
 	public void test_KQk_mated_in_6_NEW() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/6K1/8/3k4/1Q6/8/8/8 b - - 1 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"d5e5"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"d5c6"+CMD_TERMINATOR));
 		performTestExpectMate(15000, -6);
 	} 
 	
@@ -311,7 +311,7 @@ public class EubosEngineMainTest {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1d1"+CMD_TERMINATOR));
-		mateDepth = 13;
+		mateDepth = 12;
 		performTestExpectMate(14000, mateDepth);
 	}
 	

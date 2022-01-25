@@ -44,30 +44,39 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	}
 	
 	public int getCrudeEvaluation() {
+		int midgameScore = 0;
+		int endgameScore = 0;
 		initialise();
 		if (!isDraw) {
 			score += pm.onMoveIsWhite() ? bd.me.getDelta() : -bd.me.getDelta();
-			score += pm.onMoveIsWhite() ? bd.me.getPosition() : -bd.me.getPosition();
+			midgameScore = score + (pm.onMoveIsWhite() ? bd.me.getPosition() : -bd.me.getPosition());
+			endgameScore = score + (pm.onMoveIsWhite() ? bd.me.getEndgamePosition() : -bd.me.getEndgamePosition());
 		}
+		int phase = bd.me.getPhase();
+		score = (short)(((midgameScore * (256 - phase)) + (endgameScore * phase)) / 256);
 		return score;
 	}
 	
 	public int getFullEvaluation() {
+		int midgameScore = 0;
+		int endgameScore = 0;
 		initialise();
-		PiecewiseEvaluation me = bd.me;
 		if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
-			bd.calculateDynamicMobility(me);
+			bd.calculateDynamicMobility(bd.me);
 		}
 		if (!isDraw) {
-			score += pm.onMoveIsWhite() ? me.getDelta() : -me.getDelta();
-			score += pm.onMoveIsWhite() ? bd.me.getPosition() : -bd.me.getPosition();
+			score += pm.onMoveIsWhite() ? bd.me.getDelta() : -bd.me.getDelta();
 			if (ENABLE_PAWN_EVALUATION) {
 				score += evaluatePawnStructure();
 			}
-			if (ENABLE_KING_SAFETY_EVALUATION && !bd.isEndgame) {
-				score += evaluateKingSafety();
+			midgameScore = score + (pm.onMoveIsWhite() ? bd.me.getPosition() : -bd.me.getPosition());
+			endgameScore = score + (pm.onMoveIsWhite() ? bd.me.getEndgamePosition() : -bd.me.getEndgamePosition());
+			if (ENABLE_KING_SAFETY_EVALUATION) {
+				midgameScore += evaluateKingSafety();
 			}
 		}
+		int phase = bd.me.getPhase();
+		score = (short)(((midgameScore * (256 - phase)) + (endgameScore * phase)) / 256);
 		return score;
 	}
 	

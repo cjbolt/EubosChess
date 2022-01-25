@@ -11,13 +11,10 @@ public final class TrackedMove {
 	
 	private static final int CASTLING_SHIFT = EN_PASSANT_SHIFT + 8;
 	private static final long CASTLING_MASK = 0xFL << CASTLING_SHIFT;
-	
-	private static final int ENDGAME_SHIFT = CASTLING_SHIFT + 4;
-	private static final long ENDGAME_MASK = 0x1L << ENDGAME_SHIFT;
-	
+		
 	private static final long DEFAULT_VALUE = (0x7FL << EN_PASSANT_SHIFT);
 	
-	public static long valueOf(int move, int enP, int castling, boolean isEndgame) {
+	public static long valueOf(int move, int enP, int castling) {
 		// Default value is the most common value - optimisation
 		long trackedMove = DEFAULT_VALUE;
 		if (enP != Position.NOPOSITION) {
@@ -28,9 +25,6 @@ public final class TrackedMove {
 		if (castling != 0) {
 			long cast = castling;
 			trackedMove |= cast << CASTLING_SHIFT;
-		}
-		if (isEndgame) {
-			trackedMove |= ENDGAME_MASK;
 		}
 		// Always add the move
 		trackedMove |= move;
@@ -50,9 +44,5 @@ public final class TrackedMove {
 	public static int getCastlingFlags(long trackedMove) {
 		long flags = (trackedMove & CASTLING_MASK) >>> CASTLING_SHIFT;
 		return (int) flags;
-	}
-	
-	public static boolean isEndgame(long trackedMove) {
-		return ((trackedMove & ENDGAME_MASK) == ENDGAME_MASK);
 	}
 }

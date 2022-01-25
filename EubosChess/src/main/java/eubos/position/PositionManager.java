@@ -97,17 +97,12 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public void performMove( int move, boolean computeHash ) {
 
 		// Preserve state
-		boolean isEndgame = theBoard.isEndgame;
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		int capturePosition = theBoard.doMove(move);
-		moveTracker.push(TrackedMove.valueOf(move, prevEnPassantTargetSq, castling.getFlags(), isEndgame));
+		moveTracker.push(TrackedMove.valueOf(move, prevEnPassantTargetSq, castling.getFlags()));
 		
 		// update state
 		castling.updateFlags(move);
-		theBoard.updateGamePhase();
-		if (isEndgame != theBoard.isEndgame) {
-			theBoard.updateIncrementalKingPositionContributionForEndgameTransition(theBoard.isEndgame);
-		}
 		
 		if (computeHash) {
 			// Determine whether move set en Passant file
@@ -135,11 +130,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public void unperformMove(boolean computeHash) {
 		long tm = moveTracker.pop();
-		boolean wasEndgame = TrackedMove.isEndgame(tm);
-		if (wasEndgame != theBoard.isEndgame) {
-			theBoard.updateIncrementalKingPositionContributionForEndgameTransition(wasEndgame);
-		}
-		theBoard.isEndgame = wasEndgame;
 		int move = TrackedMove.getMove(tm);
 		int reversedMove = Move.reverse(move);
 		

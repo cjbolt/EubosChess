@@ -328,28 +328,33 @@ public class PieceList {
 			int atSquare = piece_list[side+Piece.KING][0];
 			if (atSquare != Position.NOPOSITION) {	
 				me.addPiece(isWhite, Piece.KING);
-				me.addPosition(isWhite, theBoard.isEndgame ? Piece.KING_ENDGAME_WEIGHTINGS[atSquare] : Piece.KING_MIDGAME_WEIGHTINGS[atSquare]);
+				me.addPosition(isWhite, Piece.KING_MIDGAME_WEIGHTINGS[atSquare]);
+				me.positionEndgame += (isWhite) ? Piece.KING_ENDGAME_WEIGHTINGS[atSquare] : -Piece.KING_ENDGAME_WEIGHTINGS[atSquare];
 			}
 		}
 		for(int atSquare : piece_list[side+Piece.QUEEN]) {
 			if (atSquare != Position.NOPOSITION) {			
 				me.addPiece(isWhite, Piece.QUEEN);
+				me.q++;
 			} else break;
 		}
 		for(int atSquare : piece_list[side+Piece.ROOK]) {
 			if (atSquare != Position.NOPOSITION) {			
 				me.addPiece(isWhite, Piece.ROOK);
+				me.r++;
 			} else break;
 		}
 		for(int atSquare : piece_list[side+Piece.BISHOP]) {
 			if (atSquare != Position.NOPOSITION) {			
 				me.addPiece(isWhite, Piece.BISHOP);
+				me.b++;
 			} else break;
 		}
 		for(int atSquare : piece_list[side+Piece.KNIGHT]) {
 			if (atSquare != Position.NOPOSITION) {			
 				me.addPiece(isWhite, Piece.KNIGHT);
 				me.addPosition(isWhite, Piece.KNIGHT_WEIGHTINGS[atSquare]);
+				me.n++;
 			} else break;
 		}
 		for(int atSquare : piece_list[side+Piece.PAWN]) {
@@ -360,6 +365,7 @@ public class PieceList {
 				}
 				me.addPiece(isWhite, Piece.PAWN);
 				me.addPosition(isWhite, isWhite ? Piece.PAWN_WHITE_WEIGHTINGS[atSquare] : Piece.PAWN_BLACK_WEIGHTINGS[atSquare]);
+				me.p++;
 			} else break;
 		}
 	}
