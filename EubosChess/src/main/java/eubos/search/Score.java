@@ -9,8 +9,14 @@ public final class Score {
 	public static final int PROVISIONAL_ALPHA = (Short.MIN_VALUE + 1);
 	public static final int PROVISIONAL_BETA = Short.MAX_VALUE;
 	
+	public static final byte PLIES_PER_MOVE = 2;
+	
 	public static boolean isMate(short score) {
 		return (!isProvisional(score) && Math.abs(score) > Short.MAX_VALUE-200);
+	}
+	
+	public static int getMateScore(int currPly) {
+		return Score.PROVISIONAL_ALPHA + currPly;
 	}
 	
 	public static String toString(short score) {

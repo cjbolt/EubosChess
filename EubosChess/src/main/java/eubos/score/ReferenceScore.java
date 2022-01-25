@@ -40,7 +40,7 @@ public class ReferenceScore {
 			// Use the last reported score (from previous Search) as the reference score
 			reference.origin = String.format("set from last score because %s", (trans != null) ? trans.report() : "trans is null");
 			reference.score = lastScore;
-			reference.depth = (byte)(lastDepth - MateScoreGenerator.PLIES_PER_MOVE);
+			reference.depth = (byte)(lastDepth - Score.PLIES_PER_MOVE);
 		} else {
 			// Back off to a static evaluation to work out initial score
 			reference.origin = "set from static eval";

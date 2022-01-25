@@ -37,34 +37,25 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		bd.me = mat;
 	}
 	
-	public class SearchContextEvaluation {
+	class SearchContextEvaluation {
 		public boolean isDraw;
 		public short score;
 		
 		public SearchContextEvaluation() {
-			isDraw = false;
+			boolean threeFold = pm.isThreefoldRepetitionPossible();
+			boolean insufficient = pm.getTheBoard().isInsufficientMaterial();
+			
+			isDraw = (threeFold || insufficient);
 			score = 0;
 		}
 	}
 	
-	private SearchContextEvaluation computeSearchGoalBonus(PiecewiseEvaluation current) {
-		
-		SearchContextEvaluation eval = new SearchContextEvaluation();
-		boolean threeFold = pm.isThreefoldRepetitionPossible();
-		boolean insufficient = pm.getTheBoard().isInsufficientMaterial();
-		
-		eval.isDraw = (threeFold || insufficient);
-		if (!eval.isDraw) {
-			eval.score += Colour.isBlack(pm.getOnMove()) ? -current.getPosition() : current.getPosition();
-		}
-		return eval;
-	}
-	
 	public int getCrudeEvaluation() {
 		Board bd = pm.getTheBoard();
-		SearchContextEvaluation eval = computeSearchGoalBonus(bd.me);
+		SearchContextEvaluation eval = new SearchContextEvaluation();
 		if (!eval.isDraw) {
 			eval.score += pm.onMoveIsWhite() ? bd.me.getDelta() : -bd.me.getDelta();
+			eval.score += pm.onMoveIsWhite() ? bd.me.getPosition() : -bd.me.getPosition();
 		}
 		return eval.score;
 	}
@@ -75,9 +66,10 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
 			bd.calculateDynamicMobility(me);
 		}
-		SearchContextEvaluation eval = computeSearchGoalBonus(me);
+		SearchContextEvaluation eval = new SearchContextEvaluation();
 		if (!eval.isDraw) {
 			eval.score += pm.onMoveIsWhite() ? me.getDelta() : -me.getDelta();
+			eval.score += pm.onMoveIsWhite() ? bd.me.getPosition() : -bd.me.getPosition();
 			if (ENABLE_PAWN_EVALUATION) {
 				eval.score += evaluatePawnStructure();
 			}

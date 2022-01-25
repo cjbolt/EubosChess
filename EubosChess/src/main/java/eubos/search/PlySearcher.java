@@ -10,8 +10,6 @@ import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.MoveListIterator;
 import eubos.score.IEvaluate;
-import eubos.score.IScoreMate;
-import eubos.score.MateScoreGenerator;
 import eubos.search.transposition.ITranspositionAccessor;
 import eubos.search.transposition.ITransposition;
 
@@ -20,7 +18,6 @@ public class PlySearcher {
 	private IChangePosition pm;
 	private IPositionAccessors pos;
 	private IEvaluate pe;
-	private IScoreMate sg;
 	
 	private PrincipalContinuation pc;
 	private SearchMetrics sm;
@@ -64,7 +61,6 @@ public class PlySearcher {
 		originalSearchDepthRequiredInPly = searchDepthPly;
 		
 		tt = hashMap;
-		sg = new MateScoreGenerator(pos, pe);
 		this.killers = killers;
 		this.ml = ml;
 	}
@@ -229,7 +225,8 @@ public class PlySearcher {
 		
 		MoveListIterator move_iter = ml.createForPly(prevBestMove, killers.getMoves(currPly), false, needToEscapeCheck, currPly);
 		if (!move_iter.hasNext()) {
-			return sg.scoreMate(currPly);
+			// No moves at this point means either a stalemate or checkmate has occurred
+			return needToEscapeCheck ? Score.getMateScore(currPly) : 0;
 		}
 		
 		int currMove = move_iter.nextInt();
