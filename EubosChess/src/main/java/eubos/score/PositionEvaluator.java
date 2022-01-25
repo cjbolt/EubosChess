@@ -30,7 +30,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	public short score;
 	public Board bd;
 	
-	public PositionEvaluator(IPositionAccessors pm, ReferenceScore refScore) {	
+	public PositionEvaluator(IPositionAccessors pm) {	
 		this.pm = pm;
 		bd = pm.getTheBoard();
 	}

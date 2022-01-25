@@ -242,7 +242,7 @@ public class BoardTest {
 	}
 	
 	protected void setUpPosition(String fen) {
-		PositionManager pm = new PositionManager(fen, new DrawChecker(), null);
+		PositionManager pm = new PositionManager(fen, new DrawChecker());
 		classUnderTest = pm.getTheBoard();
 	}
 	

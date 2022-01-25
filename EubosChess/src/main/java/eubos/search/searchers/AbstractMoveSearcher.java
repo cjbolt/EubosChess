@@ -29,7 +29,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 			sendInfo = true;
 			sr = new SearchMetricsReporter(eubosEngine, hashMap, refScore);
 		}
-		this.mg = new MiniMaxMoveGenerator(hashMap, fen, dc, sr, refScore);
+		this.mg = new MiniMaxMoveGenerator(hashMap, fen, dc, sr);
 		
 		// Setup the reference score that shall be used by any IterativeSearchStopper
 		this.refScore = refScore;

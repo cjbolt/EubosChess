@@ -54,9 +54,8 @@ public class MiniMaxMoveGenerator implements
 	public MiniMaxMoveGenerator(FixedSizeTranspositionTable hashMap,
 			String fen,
 			DrawChecker dc,
-			SearchMetricsReporter sr,
-			ReferenceScore refScore) {
-		PositionManager pm = new PositionManager(fen, dc, refScore);
+			SearchMetricsReporter sr) {
+		PositionManager pm = new PositionManager(fen, dc);
 		commonInit(hashMap, pm, pm);
 		sr.register(sm);
 	}

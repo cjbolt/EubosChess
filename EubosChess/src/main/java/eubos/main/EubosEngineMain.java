@@ -167,7 +167,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	void createPositionFromAnalyseCommand(EngineAnalyzeCommand command) {
 		String fen_to_use = getActualFenStringForPosition(command);
-		rootPosition = new PositionManager(fen_to_use, dc, null);
+		rootPosition = new PositionManager(fen_to_use, dc);
 		long hashCode = rootPosition.getHash();
 		Piece.Colour nowOnMove = rootPosition.getOnMove();
 		if (lastOnMove == null || (lastOnMove == nowOnMove && !fen_to_use.equals(lastFen))) {
@@ -191,7 +191,7 @@ public class EubosEngineMain extends AbstractEngine {
 		if (!command.moves.isEmpty()) {
 			// This temporary pm is to ensure that the correct position is used to initialise the search 
 			// context of the position evaluator, required when we get a position and move list to apply to it.
-			rootPosition = new PositionManager(uci_fen_string, dc, null);
+			rootPosition = new PositionManager(uci_fen_string, dc);
 			for (GenericMove nextMove : command.moves) {
 				int move = Move.toMove(nextMove, rootPosition.getTheBoard());
 				rootPosition.performMove(move);

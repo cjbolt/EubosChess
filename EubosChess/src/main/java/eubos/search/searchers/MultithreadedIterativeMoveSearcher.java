@@ -55,7 +55,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		moveGenerators.add(mg);
 		// Create subsequent move generators using cloned DrawCheckers
 		for (int i=1; i < threads; i++) {
-			MiniMaxMoveGenerator thisMg = new MiniMaxMoveGenerator(hashMap, fen, new DrawChecker(dc), sr, refScore);
+			MiniMaxMoveGenerator thisMg = new MiniMaxMoveGenerator(hashMap, fen, new DrawChecker(dc), sr);
 			moveGenerators.add(thisMg);
 		}
 		// Set move ordering scheme to use, if in operation
