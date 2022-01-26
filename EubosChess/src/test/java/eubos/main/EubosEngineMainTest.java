@@ -153,8 +153,8 @@ public class EubosEngineMainTest {
 			String expectedOutput;
 			if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
 				expectedOutput = "info depth 1 seldepth 6 score cp -22 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
-						"info depth 1 seldepth 6 score cp 143 pv c7c2 d4a7 hashfull 0 nps 441 time 102 nodes 38"+CMD_TERMINATOR+
-	                    "info depth 2 seldepth 6 score cp 71 pv c7c2 e1g1 d7e5 hashfull 0 nps 1836 time 116 nodes 221"+CMD_TERMINATOR
+						"info depth 1 seldepth 6 score cp 142 pv c7c2 d4a7 hashfull 0 nps 441 time 102 nodes 38"+CMD_TERMINATOR+
+	                    "info depth 2 seldepth 6 score cp 72 pv c7c2 e1g1 d7e5 hashfull 0 nps 1836 time 116 nodes 221"+CMD_TERMINATOR
 	                    +BEST_PREFIX+"c7c2";
 			} else if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && !PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
 				expectedOutput = "info depth 1 seldepth 4 score cp -141 pv d7e5 f3e5 c7e5 hashfull 0 nps 500 time 14 nodes 7"+CMD_TERMINATOR+

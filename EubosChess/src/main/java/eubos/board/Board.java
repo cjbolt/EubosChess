@@ -1070,6 +1070,7 @@ public class Board {
 			me.position += Piece.KNIGHT_WEIGHTINGS[newPos];
 			me.numberOfPieces[Piece.WHITE_PAWN]--;
 			me.numberOfPieces[Piece.WHITE_KNIGHT]++;
+			me.phase -= 192;
 			break;
 		case Piece.BLACK_KNIGHT:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
@@ -1078,6 +1079,7 @@ public class Board {
 			me.position -= Piece.KNIGHT_WEIGHTINGS[newPos];
 			me.numberOfPieces[Piece.BLACK_PAWN]--;
 			me.numberOfPieces[Piece.BLACK_KNIGHT]++;
+			me.phase -= 192;
 			break;
 		case Piece.WHITE_ROOK:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
@@ -1085,6 +1087,7 @@ public class Board {
 			me.position -= Piece.PAWN_WHITE_WEIGHTINGS[oldPos];
 			me.numberOfPieces[Piece.WHITE_PAWN]--;
 			me.numberOfPieces[Piece.WHITE_ROOK]++;
+			me.phase -= 320;
 			break;
 		case Piece.BLACK_ROOK:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
@@ -1092,6 +1095,7 @@ public class Board {
 			me.position += Piece.PAWN_BLACK_WEIGHTINGS[oldPos];
 			me.numberOfPieces[Piece.BLACK_PAWN]--;
 			me.numberOfPieces[Piece.BLACK_ROOK]++;
+			me.phase -= 320;
 			break;
 		case Piece.WHITE_BISHOP:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
@@ -1099,6 +1103,7 @@ public class Board {
 			me.position -= Piece.PAWN_WHITE_WEIGHTINGS[oldPos];
 			me.numberOfPieces[Piece.WHITE_PAWN]--;
 			me.numberOfPieces[Piece.WHITE_BISHOP]++;
+			me.phase -= 192;
 			break;
 		case Piece.BLACK_BISHOP:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
@@ -1106,6 +1111,7 @@ public class Board {
 			me.position += Piece.PAWN_BLACK_WEIGHTINGS[oldPos];
 			me.numberOfPieces[Piece.BLACK_PAWN]--;
 			me.numberOfPieces[Piece.BLACK_BISHOP]++;
+			me.phase -= 192;
 			break;
 		case Piece.WHITE_QUEEN:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
@@ -1113,6 +1119,7 @@ public class Board {
 			me.position -= Piece.PAWN_WHITE_WEIGHTINGS[oldPos];
 			me.numberOfPieces[Piece.WHITE_PAWN]--;
 			me.numberOfPieces[Piece.WHITE_QUEEN]++;
+			me.phase -= 640;
 			break;
 		case Piece.BLACK_QUEEN:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
@@ -1120,6 +1127,7 @@ public class Board {
 			me.position += Piece.PAWN_BLACK_WEIGHTINGS[oldPos];
 			me.numberOfPieces[Piece.BLACK_PAWN]--;
 			me.numberOfPieces[Piece.BLACK_QUEEN]++;
+			me.phase -= 640;
 			break;
 		default:
 			if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -1127,7 +1135,6 @@ public class Board {
 			}
 			break;
 		}
-		me.setPhase();
 	}
 	
 	private void updateMaterialAndPositionForUndoingPromotion(int promoPiece, int oldPos, int newPos) {
@@ -1139,6 +1146,7 @@ public class Board {
 			me.position -= Piece.KNIGHT_WEIGHTINGS[oldPos];
 			me.numberOfPieces[Piece.WHITE_PAWN]++;
 			me.numberOfPieces[Piece.WHITE_KNIGHT]--;
+			me.phase += 192;
 			break;
 		case Piece.BLACK_KNIGHT:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
@@ -1147,6 +1155,7 @@ public class Board {
 			me.position += Piece.KNIGHT_WEIGHTINGS[oldPos];
 			me.numberOfPieces[Piece.BLACK_PAWN]++;
 			me.numberOfPieces[Piece.BLACK_KNIGHT]--;
+			me.phase += 192;
 			break;
 		case Piece.WHITE_ROOK:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
@@ -1154,6 +1163,7 @@ public class Board {
 			me.position += Piece.PAWN_WHITE_WEIGHTINGS[newPos];
 			me.numberOfPieces[Piece.WHITE_PAWN]++;
 			me.numberOfPieces[Piece.WHITE_ROOK]--;
+			me.phase += 320;
 			break;
 		case Piece.BLACK_ROOK:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
@@ -1161,6 +1171,7 @@ public class Board {
 			me.position -= Piece.PAWN_BLACK_WEIGHTINGS[newPos];
 			me.numberOfPieces[Piece.BLACK_PAWN]++;
 			me.numberOfPieces[Piece.BLACK_ROOK]--;
+			me.phase += 320;
 			break;
 		case Piece.WHITE_BISHOP:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
@@ -1168,6 +1179,7 @@ public class Board {
 			me.position += Piece.PAWN_WHITE_WEIGHTINGS[newPos];
 			me.numberOfPieces[Piece.WHITE_PAWN]++;
 			me.numberOfPieces[Piece.WHITE_BISHOP]--;
+			me.phase += 192;
 			break;
 		case Piece.BLACK_BISHOP:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
@@ -1175,6 +1187,7 @@ public class Board {
 			me.position -= Piece.PAWN_BLACK_WEIGHTINGS[newPos];
 			me.numberOfPieces[Piece.BLACK_PAWN]++;
 			me.numberOfPieces[Piece.BLACK_BISHOP]--;
+			me.phase += 192;
 			break;
 		case Piece.WHITE_QUEEN:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
@@ -1182,6 +1195,7 @@ public class Board {
 			me.position += Piece.PAWN_WHITE_WEIGHTINGS[newPos];
 			me.numberOfPieces[Piece.WHITE_PAWN]++;
 			me.numberOfPieces[Piece.WHITE_QUEEN]--;
+			me.phase += 640;
 			break;
 		case Piece.BLACK_QUEEN:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
@@ -1189,6 +1203,7 @@ public class Board {
 			me.position -= Piece.PAWN_BLACK_WEIGHTINGS[newPos];
 			me.numberOfPieces[Piece.BLACK_PAWN]++;
 			me.numberOfPieces[Piece.BLACK_QUEEN]--;
+			me.phase += 640;
 			break;
 		default:
 			if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -1196,12 +1211,10 @@ public class Board {
 			}
 			break;
 		}
-		me.setPhase();
 	}
 	
 	private void subtractMaterialAndPositionForCapture(int currPiece, int atPos) {
 		me.numberOfPieces[currPiece]--;
-		me.setPhase();
 		switch(currPiece) {
 		case Piece.WHITE_PAWN:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
@@ -1214,28 +1227,36 @@ public class Board {
 		case Piece.WHITE_KNIGHT:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
 			me.position -= Piece.KNIGHT_WEIGHTINGS[atPos];
+			me.phase += 192;
 			break;
 		case Piece.BLACK_KNIGHT:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
 			me.position += Piece.KNIGHT_WEIGHTINGS[atPos];
+			me.phase += 192;
 			break;
 		case Piece.WHITE_ROOK:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
+			me.phase += 320;
 			break;
 		case Piece.BLACK_ROOK:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
+			me.phase += 320;
 			break;
 		case Piece.WHITE_BISHOP:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
+			me.phase += 192;
 			break;
 		case Piece.BLACK_BISHOP:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
+			me.phase += 192;
 			break;
 		case Piece.WHITE_QUEEN:
 			me.white -= Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
+			me.phase += 640;
 			break;
 		case Piece.BLACK_QUEEN:
 			me.black -= Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
+			me.phase += 640;
 			break;
 		default:
 			if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -1247,7 +1268,6 @@ public class Board {
 	
 	private void addMaterialAndPositionForReplacedCapture(int currPiece, int atPos) {
 		me.numberOfPieces[currPiece]++;
-		me.setPhase();
 		switch(currPiece) {
 		case Piece.WHITE_PAWN:
 			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.PAWN];
@@ -1260,28 +1280,36 @@ public class Board {
 		case Piece.WHITE_KNIGHT:
 			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
 			me.position += Piece.KNIGHT_WEIGHTINGS[atPos];
+			me.phase -= 192;
 			break;
 		case Piece.BLACK_KNIGHT:
 			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.KNIGHT];
 			me.position -= Piece.KNIGHT_WEIGHTINGS[atPos];
+			me.phase -= 192;
 			break;
 		case Piece.WHITE_ROOK:
 			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
+			me.phase -= 320;
 			break;
 		case Piece.BLACK_ROOK:
 			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.ROOK];
+			me.phase -= 320;
 			break;
 		case Piece.WHITE_BISHOP:
 			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
+			me.phase -= 192;
 			break;
 		case Piece.BLACK_BISHOP:
 			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.BISHOP];
+			me.phase -= 192;
 			break;
 		case Piece.WHITE_QUEEN:
 			me.white += Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
+			me.phase -= 640;
 			break;
 		case Piece.BLACK_QUEEN:
 			me.black += Piece.PIECE_TO_MATERIAL_LUT[Piece.QUEEN];
+			me.phase -= 640;
 			break;
 		default:
 			if (EubosEngineMain.ENABLE_ASSERTS) {

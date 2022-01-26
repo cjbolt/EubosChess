@@ -49,7 +49,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	
 	private short taperEvaluation(int midgameScore, int endgameScore) {
 		int phase = bd.me.getPhase();
-		return (short)(((midgameScore * (256 - phase)) + (endgameScore * phase)) / 256);
+		return (short)(((midgameScore * (4096 - phase)) + (endgameScore * phase)) / 4096);
 	}
 	
 	public int getCrudeEvaluation() {
