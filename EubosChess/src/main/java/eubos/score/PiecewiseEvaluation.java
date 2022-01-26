@@ -3,6 +3,12 @@ package eubos.score;
 import eubos.board.Piece;
 
 public class PiecewiseEvaluation {
+	
+	public static final int PIECE_PHASE = 192;
+	public static final int ROOK_PHASE = 320;
+	public static final int QUEEN_PHASE = 640;
+	public static final int TOTAL_PHASE = PIECE_PHASE * 8 + ROOK_PHASE * 4 + QUEEN_PHASE * 2;
+	
 	public short black = 0;
 	public short white = 0;
 	public short position = 0;
@@ -11,12 +17,6 @@ public class PiecewiseEvaluation {
 	
 	public int phase = 0;
 	public int [] numberOfPieces;
-	
-	public static final int KnightPhase = 192;
-	public static final int BishopPhase = 192;
-	public static final int RookPhase = 320;
-	public static final int QueenPhase = 640;
-	public static final int TotalPhase = KnightPhase*4 + BishopPhase*4 + RookPhase*4 + QueenPhase*2;
 	
 	public PiecewiseEvaluation() {
 		numberOfPieces = new int [16];
@@ -62,16 +62,15 @@ public class PiecewiseEvaluation {
 	
 	public void setPhase() {
 		// Phase calculation; pawns are excluded, king is excluded
-		phase = TotalPhase;
-		phase -= numberOfPieces[Piece.WHITE_KNIGHT] * KnightPhase;
-		phase -= numberOfPieces[Piece.WHITE_BISHOP] * BishopPhase;
-		phase -= numberOfPieces[Piece.WHITE_ROOK] * RookPhase;
-		phase -= numberOfPieces[Piece.WHITE_QUEEN] * QueenPhase;
-		phase -= numberOfPieces[Piece.BLACK_KNIGHT] * KnightPhase;
-		phase -= numberOfPieces[Piece.BLACK_BISHOP] * BishopPhase;
-		phase -= numberOfPieces[Piece.BLACK_ROOK] * RookPhase;
-		phase -= numberOfPieces[Piece.BLACK_QUEEN] * QueenPhase;
-
-		// Phase is now a 10 bit fixed point fraction of total phase
+		phase = TOTAL_PHASE;
+		phase -= numberOfPieces[Piece.WHITE_KNIGHT] * PIECE_PHASE;
+		phase -= numberOfPieces[Piece.WHITE_BISHOP] * PIECE_PHASE;
+		phase -= numberOfPieces[Piece.WHITE_ROOK] * ROOK_PHASE;
+		phase -= numberOfPieces[Piece.WHITE_QUEEN] * QUEEN_PHASE;
+		phase -= numberOfPieces[Piece.BLACK_KNIGHT] * PIECE_PHASE;
+		phase -= numberOfPieces[Piece.BLACK_BISHOP] * PIECE_PHASE;
+		phase -= numberOfPieces[Piece.BLACK_ROOK] * ROOK_PHASE;
+		phase -= numberOfPieces[Piece.BLACK_QUEEN] * QUEEN_PHASE;
+		// Phase is now a 10 bit fixed point fraction of the total phase
 	}
 }
