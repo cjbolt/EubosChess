@@ -20,11 +20,9 @@ import com.fluxchess.jcpi.models.GenericBoard;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
-import eubos.board.Board;
 import eubos.board.Piece;
 import eubos.position.Move;
 import eubos.position.Position;
-import eubos.score.PositionEvaluator;
 import eubos.search.transposition.Transposition;
 
 public class EubosEngineMainTest {
@@ -146,37 +144,13 @@ public class EubosEngineMainTest {
 		performTest(1000);
 	}
 	
-	@SuppressWarnings("unused")
 	@Test
 	public void test_infoMessageSending_clearsPreviousPvMoves() throws InterruptedException, IOException {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
-			String expectedOutput;
-			if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
-				expectedOutput = "info depth 1 seldepth 6 score cp -22 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
+			String expectedOutput = "info depth 1 seldepth 6 score cp -22 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
 						"info depth 1 seldepth 6 score cp 142 pv c7c2 d4a7 hashfull 0 nps 441 time 102 nodes 38"+CMD_TERMINATOR+
 	                    "info depth 2 seldepth 6 score cp 72 pv c7c2 e1g1 d7e5 hashfull 0 nps 1836 time 116 nodes 221"+CMD_TERMINATOR
 	                    +BEST_PREFIX+"c7c2";
-			} else if (Board.ENABLE_PIECE_LISTS && PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION && !PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
-				expectedOutput = "info depth 1 seldepth 4 score cp -141 pv d7e5 f3e5 c7e5 hashfull 0 nps 500 time 14 nodes 7"+CMD_TERMINATOR+
-                        "info depth 1 seldepth 4 score cp 178 pv c7c2 hashfull 0 nps 122 time 98 nodes 12"+CMD_TERMINATOR+
-                        "info depth 2 seldepth 0 score cp 38 pv c7c2 d4d5 hashfull 0 nps 803 time 102 nodes 82"+CMD_TERMINATOR
-                        +BEST_PREFIX+"c7c2";
-			} else if (Board.ENABLE_PIECE_LISTS && !PositionEvaluator.ENABLE_KING_SAFETY_EVALUATION &&!PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION) {
-				expectedOutput = "info depth 1 seldepth 4 score cp -160 pv d7e5 f3e5 c7e5 hashfull 0 nps 538 time 13 nodes 7"+CMD_TERMINATOR+
-                        "info depth 1 seldepth 4 score cp 155 pv c7c2 hashfull 0 nps 126 time 95 nodes 12"+CMD_TERMINATOR+
-                        "info depth 2 seldepth 0 score cp 15 pv c7c2 d4d5 hashfull 0 nps 820 time 100 nodes 82"+CMD_TERMINATOR
-                        +BEST_PREFIX+"c7c2";
-			} else if (!EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
-				expectedOutput = "info depth 1 seldepth 0 score cp 171 pv d7e5 hashfull 0 nps 83 time 12 nodes 1"+CMD_TERMINATOR+
-                        "info depth 2 seldepth 0 score cp -149 pv d7e5 f3e5 hashfull 0 nps 757 time 103 nodes 78"+CMD_TERMINATOR+
-                        "info depth 2 seldepth 0 score cp 30 pv c7c2 d4d5 hashfull 0 nps 1161 time 105 nodes 122"+CMD_TERMINATOR
-                        +BEST_PREFIX+"c7c2";
-			} else {
-				expectedOutput = "info depth 1 seldepth 4 score cp -149 pv d7e5 f3e5 c7e5 nps 0 time 0 nodes 7"+CMD_TERMINATOR+
-                        "info depth 1 seldepth 4 score cp 155 pv c7c2 hashfull 0 nps 130 time 92 nodes 12"+CMD_TERMINATOR+
-                        "info depth 2 seldepth 0 score cp 36 pv c7c2 d4d5 h7h5 nps 0 time 0 nodes 85"+CMD_TERMINATOR
-                        +BEST_PREFIX+"c7c2";
-			}
 			setupEngine();
 			// Setup Commands specific to this test
 			commands.add(new commandPair(POS_FEN_PREFIX+"r1b1kb1r/ppqnpppp/8/3pP3/3Q4/5N2/PPP2PPP/RNB1K2R b KQkq - 2 8"+CMD_TERMINATOR, null));

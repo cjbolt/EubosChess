@@ -9,8 +9,7 @@ public class PiecewiseEvaluation {
 	public static final int QUEEN_PHASE = 640;
 	public static final int TOTAL_PHASE = PIECE_PHASE * 8 + ROOK_PHASE * 4 + QUEEN_PHASE * 2;
 	
-	public short black = 0;
-	public short white = 0;
+	public short material = 0;
 	public short position = 0;
 	public short positionEndgame = 0;
 	public short dynamicPosition = 0;
@@ -26,21 +25,18 @@ public class PiecewiseEvaluation {
 		return phase > 2720;
 	}
 	
-	private void addBlack(short toAdd) { black += toAdd; }
-	private void addWhite(short toAdd) { white += toAdd; }
-	
 	public void addPiece(boolean isWhite, int piece_no_colour) {
 		short value = Piece.PIECE_TO_MATERIAL_LUT[piece_no_colour];
 		int side = isWhite ? 0 : Piece.BLACK;
 		numberOfPieces[side+piece_no_colour]++;
 		if (isWhite) {
-			addWhite(value);
+			material += value;
 		} else {
-			addBlack(value);
+			material -= value;
 		}
 	}
 	
-	public short getDelta() { return (short)(white-black); }
+	public short getDelta() { return material; }
 
 	private void addPositionWhite(short pstBoost) { position += pstBoost; }
 	private void addPositionBlack(short pstBoost) { position -= pstBoost; }
