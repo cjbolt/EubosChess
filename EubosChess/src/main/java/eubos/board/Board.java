@@ -133,8 +133,6 @@ public class Board {
 				String.format("Non-existant piece at %s", Position.toGenericPosition(originSquare));
 		}
 		
-		me.dynamicPosition = 0;
-		
 		// Initialise En Passant target square
 		setEnPassantTargetSq(Position.NOPOSITION);
 		
@@ -223,8 +221,6 @@ public class Board {
 			assert (pieceMask & initialSquareMask) != 0: String.format("Non-existant piece at %s, %s",
 					Position.toGenericPosition(originSquare), Move.toString(moveToUndo));
 		}
-		
-		me.dynamicPosition = 0;
 		
 		// Handle reversal of any castling secondary rook moves on the board
 		if (Piece.isKing(originPiece)) {

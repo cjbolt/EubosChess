@@ -57,6 +57,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		int endgameScore = 0;
 		initialise();
 		if (!isDraw) {
+			bd.me.dynamicPosition = 0;
 			score += pm.onMoveIsWhite() ? bd.me.getDelta() : -bd.me.getDelta();
 			midgameScore = score + (pm.onMoveIsWhite() ? bd.me.getPosition() : -bd.me.getPosition());
 			endgameScore = score + (pm.onMoveIsWhite() ? bd.me.getEndgamePosition() : -bd.me.getEndgamePosition());
@@ -71,6 +72,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		initialise();
 		if (!isDraw) {
 			// Score factors common to each phase, material, pawn structure and piece mobility
+			bd.me.dynamicPosition = 0;
 			score += pm.onMoveIsWhite() ? bd.me.getDelta() : -bd.me.getDelta();
 			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !goForMate) {
 				bd.calculateDynamicMobility(bd.me);
