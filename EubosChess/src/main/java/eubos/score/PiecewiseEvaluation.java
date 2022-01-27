@@ -22,31 +22,10 @@ public class PiecewiseEvaluation {
 	}
 	
 	public boolean isEndgame() {
-		return phase > 2720;
-	}
-	
-	public void addPiece(boolean isWhite, int piece_no_colour) {
-		short value = Piece.PIECE_TO_MATERIAL_LUT[piece_no_colour];
-		int side = isWhite ? 0 : Piece.BLACK;
-		numberOfPieces[side+piece_no_colour]++;
-		if (isWhite) {
-			material += value;
-		} else {
-			material -= value;
-		}
+		return phase > 3200;
 	}
 	
 	public short getDelta() { return material; }
-
-	private void addPositionWhite(short pstBoost) { position += pstBoost; }
-	private void addPositionBlack(short pstBoost) { position -= pstBoost; }
-	public void addPosition(boolean isWhite, short pstBoost) {
-		if (isWhite) {
-			addPositionWhite(pstBoost);
-		} else {
-			addPositionBlack(pstBoost);
-		}
-	}
 	
 	public short getPosition() { return (short)(position + dynamicPosition); }
 	

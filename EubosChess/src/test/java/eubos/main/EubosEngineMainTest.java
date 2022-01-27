@@ -147,9 +147,9 @@ public class EubosEngineMainTest {
 	@Test
 	public void test_infoMessageSending_clearsPreviousPvMoves() throws InterruptedException, IOException {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
-			String expectedOutput = "info depth 1 seldepth 6 score cp -22 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
-						"info depth 1 seldepth 6 score cp 142 pv c7c2 d4a7 hashfull 0 nps 441 time 102 nodes 38"+CMD_TERMINATOR+
-	                    "info depth 2 seldepth 6 score cp 72 pv c7c2 e1g1 d7e5 hashfull 0 nps 1836 time 116 nodes 221"+CMD_TERMINATOR
+			String expectedOutput = "info depth 1 seldepth 6 score cp -14 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
+						"info depth 1 seldepth 6 score cp 148 pv c7c2 d4a7 hashfull 0 nps 441 time 102 nodes 38"+CMD_TERMINATOR+
+	                    "info depth 2 seldepth 6 score cp 77 pv c7c2 e1g1 d7e5 hashfull 0 nps 1836 time 116 nodes 224"+CMD_TERMINATOR
 	                    +BEST_PREFIX+"c7c2";
 			setupEngine();
 			// Setup Commands specific to this test
