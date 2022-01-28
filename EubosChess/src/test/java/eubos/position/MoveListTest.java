@@ -106,8 +106,8 @@ public class MoveListTest {
 		assertEquals(new GenericMove("d7b5"), Move.toGenericMove(it.nextInt())); // BxR delta 1 gains 2
 		
 		// neutral exchanges
-		assertEquals(new GenericMove("b1b5"), Move.toGenericMove(it.nextInt())); // RxR
 		assertEquals(new GenericMove("a6e6"), Move.toGenericMove(it.nextInt())); // QxQ
+		assertEquals(new GenericMove("b1b5"), Move.toGenericMove(it.nextInt())); // RxR
 		assertEquals(new GenericMove("g2f3"), Move.toGenericMove(it.nextInt())); // PxP		
 		
 		// losing material
@@ -175,8 +175,8 @@ public class MoveListTest {
 		assertEquals(new GenericMove("e3e6"), Move.toGenericMove(it.nextInt())); // RxP delta -3 loses 4 losing material (happens to check, but that is ignored)
 		
 		// regular moves
-		assertEquals(new GenericMove("e3e2"), Move.toGenericMove(it.nextInt())); // Regular move
-		assertEquals(new GenericMove("e3e1"), Move.toGenericMove(it.nextInt())); // Regular move
+		assertEquals(new GenericMove("g5h7"), Move.toGenericMove(it.nextInt())); // Regular move
+		assertEquals(new GenericMove("g5h3"), Move.toGenericMove(it.nextInt())); // Regular move
 	}
 	
 	@Test
@@ -234,8 +234,8 @@ public class MoveListTest {
 		
 		// killers
 		if (KillerList.ENABLE_KILLER_MOVES) {
-			assertEquals(killer2_gen, Move.toGenericMove(it.nextInt()));
 			assertEquals(killer1_gen, Move.toGenericMove(it.nextInt()));
+			assertEquals(killer2_gen, Move.toGenericMove(it.nextInt()));
 		}
 		
 		assertEquals(17, classUnderTest.getList(0).size());

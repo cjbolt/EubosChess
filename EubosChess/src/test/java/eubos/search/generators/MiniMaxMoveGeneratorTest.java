@@ -273,10 +273,7 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		setupPosition( "2N5/4R3/2k3KQ/R7/1PB5/5N2/8/6B1 w - - 0 1" );
 		// various possible mates
-		//expectedMove = new GenericMove("b4b5");
-		//expectedMove = new GenericMove("f3e5");
-		//expectedMove = new GenericMove("g6g7");
-		expectedMove = new GenericMove("a5a6");
+		expectedMove = new GenericMove("c4d5");
 		doFindMoveTest((byte)2, true);
 	}
 	

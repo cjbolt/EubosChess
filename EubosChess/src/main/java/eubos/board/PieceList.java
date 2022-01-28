@@ -157,6 +157,11 @@ public class PieceList {
 					Piece.king_generateMoves(ml, theBoard, atSquare, ownSideIsWhite);
 				}
 			}
+			for(int atSquare : piece_list[side+Piece.PAWN]) {
+				if (atSquare != Position.NOPOSITION) {			
+					Piece.pawn_generateMoves(ml, theBoard, atSquare, ownSideIsWhite);
+				} else break;
+			}
 			for(int atSquare : piece_list[side+Piece.QUEEN]) {
 				if (atSquare != Position.NOPOSITION) {			
 					Piece.queen_generateMoves(ml, theBoard, atSquare, ownSideIsWhite);
@@ -177,11 +182,6 @@ public class PieceList {
 					Piece.knight_generateMoves(ml, theBoard, atSquare, ownSideIsWhite);
 				} else break;
 			}
-			for(int atSquare : piece_list[side+Piece.PAWN]) {
-				if (atSquare != Position.NOPOSITION) {			
-					Piece.pawn_generateMoves(ml, theBoard, atSquare, ownSideIsWhite);
-				} else break;
-			}
 		} else {
 			// Optimisations for generating move lists in extended search
 			long opponentPieces = ownSideIsWhite ? theBoard.getBlackPieces() : theBoard.getWhitePieces();
@@ -193,6 +193,12 @@ public class PieceList {
 						Piece.king_generateMovesExtSearch(ml, theBoard, atSquare, ownSideIsWhite);
 					}
 				}
+			}
+			// Search pawn moves in extended search because they could lead to a promotion, but only add promotions and captures
+			for(int atSquare : piece_list[side+Piece.PAWN]) {
+				if (atSquare != Position.NOPOSITION) {
+					Piece.pawn_generateMovesForExtendedSearch(ml, theBoard, atSquare, ownSideIsWhite);
+				} else break;
 			}
 			for(int atSquare : piece_list[side+Piece.QUEEN]) {
 				if (atSquare != Position.NOPOSITION) {
@@ -226,28 +232,12 @@ public class PieceList {
 					}
 				} else break;
 			}
-			// Search pawn moves in extended search because they could lead to a promotion, but only add promotions and captures
-			for(int atSquare : piece_list[side+Piece.PAWN]) {
-				if (atSquare != Position.NOPOSITION) {
-					Piece.pawn_generateMovesForExtendedSearch(ml, theBoard, atSquare, ownSideIsWhite);
-				} else break;
-			}
 		}
 	}
 	
 	public void addMovesMiddlegame(MoveList ml, boolean ownSideIsWhite, boolean captures) {
 		int side = ownSideIsWhite ? 0 : Piece.BLACK;
 		if (!captures) {
-			for(int atSquare : piece_list[side+Piece.QUEEN]) {
-				if (atSquare != Position.NOPOSITION) {			
-					Piece.queen_generateMoves(ml, theBoard, atSquare, ownSideIsWhite);
-				} else break;
-			}
-			for(int atSquare : piece_list[side+Piece.ROOK]) {
-				if (atSquare != Position.NOPOSITION) {			
-					Piece.rook_generateMoves(ml, theBoard, atSquare, ownSideIsWhite);
-				} else break;
-			}
 			for(int atSquare : piece_list[side+Piece.BISHOP]) {
 				if (atSquare != Position.NOPOSITION) {			
 					Piece.bishop_generateMoves(ml, theBoard, atSquare, ownSideIsWhite);
@@ -256,6 +246,16 @@ public class PieceList {
 			for(int atSquare : piece_list[side+Piece.KNIGHT]) {
 				if (atSquare != Position.NOPOSITION) {			
 					Piece.knight_generateMoves(ml, theBoard, atSquare, ownSideIsWhite);
+				} else break;
+			}
+			for(int atSquare : piece_list[side+Piece.QUEEN]) {
+				if (atSquare != Position.NOPOSITION) {			
+					Piece.queen_generateMoves(ml, theBoard, atSquare, ownSideIsWhite);
+				} else break;
+			}
+			for(int atSquare : piece_list[side+Piece.ROOK]) {
+				if (atSquare != Position.NOPOSITION) {			
+					Piece.rook_generateMoves(ml, theBoard, atSquare, ownSideIsWhite);
 				} else break;
 			}
 			for(int atSquare : piece_list[side+Piece.PAWN]) {
@@ -272,22 +272,6 @@ public class PieceList {
 		} else {
 			// Optimisations for generating move lists in extended search
 			long opponentPieces = ownSideIsWhite ? theBoard.getBlackPieces() : theBoard.getWhitePieces();
-			for(int atSquare : piece_list[side+Piece.QUEEN]) {
-				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
-					if ((opponentPieces & attacksMask) != 0) {
-						Piece.queen_generateMovesExtSearch(ml, theBoard, atSquare, ownSideIsWhite);
-					}
-				} else break;
-			}
-			for(int atSquare : piece_list[side+Piece.ROOK]) {
-				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
-					if ((opponentPieces & attacksMask) != 0) {	
-						Piece.rook_generateMovesExtSearch(ml, theBoard, atSquare, ownSideIsWhite);
-					}
-				} else break;
-			}
 			for(int atSquare : piece_list[side+Piece.BISHOP]) {
 				if (atSquare != Position.NOPOSITION) {
 					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
@@ -301,6 +285,22 @@ public class PieceList {
 					long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[atSquare];
 					if ((opponentPieces & knightAttacksMask) != 0) {
 						Piece.knight_generateMovesExtSearch(ml, theBoard, atSquare, ownSideIsWhite);
+					}
+				} else break;
+			}
+			for(int atSquare : piece_list[side+Piece.QUEEN]) {
+				if (atSquare != Position.NOPOSITION) {
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
+					if ((opponentPieces & attacksMask) != 0) {
+						Piece.queen_generateMovesExtSearch(ml, theBoard, atSquare, ownSideIsWhite);
+					}
+				} else break;
+			}
+			for(int atSquare : piece_list[side+Piece.ROOK]) {
+				if (atSquare != Position.NOPOSITION) {
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
+					if ((opponentPieces & attacksMask) != 0) {	
+						Piece.rook_generateMovesExtSearch(ml, theBoard, atSquare, ownSideIsWhite);
 					}
 				} else break;
 			}
