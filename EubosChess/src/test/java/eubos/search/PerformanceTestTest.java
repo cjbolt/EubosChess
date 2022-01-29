@@ -36,7 +36,8 @@ public class PerformanceTestTest {
 	    }
 	    
 	    protected void finished(Description description) {
-			System.out.println(String.format("average nps %d", totalNps/totalCount));
+	    	if (totalCount != 0)
+	    		System.out.println(String.format("average nps %d", totalNps/totalCount));
 	    }
 	};
 	

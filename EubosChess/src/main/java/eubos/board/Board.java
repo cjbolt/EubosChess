@@ -356,21 +356,40 @@ public class Board {
 		return isEnPassantCapturePossible;
 	}
 	
+	private int getKingPosition(boolean isWhite) {
+		int kingPosition = Position.NOPOSITION;
+		if (ENABLE_PIECE_LISTS) {
+			kingPosition = pieceLists.getKingPos(isWhite);
+		} else {
+			long king = (isWhite) ? getWhiteKing() : getBlackKing();
+			
+			kingPosition = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(king)];
+		}
+		return kingPosition;
+	}
+	
+	public boolean moveCouldLeadToOwnKingDiscoveredCheck(int move, int kingPosition) {
+		// Establish if the initial square is on a multiple square slider mask from the king position
+		int atSquare = Move.getOriginPosition(move);
+		long square = BitBoard.positionToMask_Lut[atSquare];
+		long attackingSquares = SquareAttackEvaluator.directAttacksOnPosition_Lut[kingPosition];
+		return ((square & attackingSquares) != 0);
+	}
+	
     /*
     Don't need to update promotions or piece lists or to track material, as this change is only being done to determine if a move is illegal (i.e. would result in check).
     Only do those operations that bear on this, and such that are needed to preserve state.
     */
 	public boolean isIllegalMove(int move, boolean needToEscapeMate) {
-		
 		boolean isIllegal = false;
+		
 		int pieceToMove = Move.getOriginPiece(move);
+		boolean isWhite = Piece.isWhite(pieceToMove);
 		boolean isKing = Piece.isKing(pieceToMove);
+		int kingPosition = getKingPosition(isWhite);
 		
-		boolean possibleDiscoveredOrMoveIntoCheck = isKing || moveCouldLeadToOwnKingDiscoveredCheck(move, pieceToMove);
-
-		if (possibleDiscoveredOrMoveIntoCheck || needToEscapeMate) {
+		if (needToEscapeMate || isKing || moveCouldLeadToOwnKingDiscoveredCheck(move, kingPosition)) {
 		
-			boolean isWhite = Piece.isWhite(pieceToMove);
 			int capturePosition = Position.NOPOSITION;
 			int originSquare = Move.getOriginPosition(move);
 			int targetSquare = Move.getTargetPosition(move);
@@ -380,6 +399,8 @@ public class Board {
 			long targetSquareMask = BitBoard.positionToMask_Lut[targetSquare];
 			long positionsMask = initialSquareMask | targetSquareMask;
 			
+			long pieceToPickUp = Position.NOPOSITION;
+			
 			if (isCapture) {
 				// Handle captures
 				if (Move.isEnPassantCapture(move)) {
@@ -388,9 +409,9 @@ public class Board {
 				} else {
 					capturePosition = targetSquare;
 				}
-				long pieceToPickUp = BitBoard.positionToMask_Lut[capturePosition];
+				pieceToPickUp = BitBoard.positionToMask_Lut[capturePosition];
 				// Remove from relevant colour bitboard
-				if (Piece.isBlack(targetPiece)) {
+				if (isWhite) {
 					blackPieces &= ~pieceToPickUp;
 				} else {
 					whitePieces &= ~pieceToPickUp;
@@ -412,11 +433,12 @@ public class Board {
 			// Switch all pieces bitboard
 			allPieces ^= positionsMask;
 			// Because of need to check if in check, need to update for King only
-			if (Piece.isKing(pieceToMove)) {
+			if (isKing) {
 				pieceLists.updatePiece(pieceToMove, originSquare, targetSquare);
+				kingPosition = targetSquare; // King moved!
 			}
 			
-			isIllegal = isKingInCheck(isWhite ? Colour.white : Colour.black);
+			isIllegal = squareIsAttacked(kingPosition, isWhite ? Piece.Colour.black : Piece.Colour.white);
 			
 			// Switch piece bitboard
 			// Piece type doesn't change across boards
@@ -435,20 +457,16 @@ public class Board {
 			}
 			// Undo any capture that had been previously performed.
 			if (isCapture) {
-				// Origin square because the move has been reversed and origin square is the original target square
-				capturePosition = Move.isEnPassantCapture(move) ?
-						generateCapturePositionForEnPassant(pieceToMove, targetSquare) : targetSquare;
-				long mask = BitBoard.positionToMask_Lut[capturePosition];
 				// Set on piece-specific bitboard
-				pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] |= mask;
+				pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] |= pieceToPickUp;
 				// Set on colour bitboard
-				if (Piece.isBlack(targetPiece)) {
-					blackPieces |= (mask);
+				if (isWhite) {
+					blackPieces |= pieceToPickUp;
 				} else {
-					whitePieces |= (mask);
+					whitePieces |= pieceToPickUp;
 				}
 				// Set on all pieces bitboard
-				allPieces |= (mask);
+				allPieces |= pieceToPickUp;
 			}
 		}
 		return isIllegal;
@@ -620,16 +638,7 @@ public class Board {
 	}
 	
 	public boolean isKingInCheck(Piece.Colour side) {
-		int kingSquare = Position.NOPOSITION;
-		if (ENABLE_PIECE_LISTS) {
-			kingSquare = pieceLists.getKingPos(Colour.isWhite(side));
-		} else {
-			long king = (Piece.Colour.isWhite(side)) ? getWhiteKing() : getBlackKing();
-
-			if (king == 0)  return false;
-			
-			kingSquare = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(king)];
-		}
+		int kingSquare = getKingPosition(Colour.isWhite(side));
 		return squareIsAttacked(kingSquare, Piece.Colour.getOpposite(side));
 	}
 	
@@ -823,24 +832,6 @@ public class Board {
 			isHalfOpen = !((pawnMask & fileMask) != 0);
 		}
 		return isHalfOpen;
-	}
-	
-	public boolean moveCouldLeadToOwnKingDiscoveredCheck(int move, int piece) {
-		int kingPosition = Position.NOPOSITION;
-		if (ENABLE_PIECE_LISTS) {
-			kingPosition = pieceLists.getKingPos(Piece.isWhite(piece));
-		} else {
-			long king = (Piece.isWhite(piece)) ? getWhiteKing() : getBlackKing();
-
-			if (king == 0)  return false;
-			
-			kingPosition = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(king)];
-		}
-		int atSquare = Move.getOriginPosition(move);
-		// Establish if the initial square is on a multiple square slider mask from the king position
-		long square = BitBoard.positionToMask_Lut[atSquare];
-		long attackingSquares = SquareAttackEvaluator.directAttacksOnPosition_Lut[kingPosition];
-		return ((square & attackingSquares) != 0);
 	}
 	
 	public void getRegularPieceMoves(MoveList ml, boolean ownSideIsWhite, boolean captures) {
