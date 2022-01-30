@@ -6,8 +6,6 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import eubos.board.Piece;
-import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.search.KillerList;
 
@@ -100,9 +98,7 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	private void getMoves(boolean capturesOnly) {
-		Colour onMove = pm.getOnMove();
-		boolean isWhiteOnMove = Piece.Colour.isWhite(onMove);
-		
+		boolean isWhiteOnMove = pm.onMoveIsWhite();
 		pm.getTheBoard().getRegularPieceMoves(this, isWhiteOnMove, capturesOnly);
 		if (!capturesOnly && !needToEscapeMate) {
 			// Can't castle out of check and don't care in extended search
