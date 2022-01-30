@@ -24,12 +24,12 @@ public class SquareAttackEvaluatorTest {
 	
 	private void assertTestSqIsNotAttacked(String fenString) {
 		createClassUnderTest(fenString);
-		assertFalse(SquareAttackEvaluator.isAttacked(bm.getTheBoard(), testSq, Piece.Colour.getOpposite(bm.getOnMove())));
+		assertFalse(SquareAttackEvaluator.isAttacked(bm.getTheBoard(), testSq, bm.onMoveIsWhite()));
 	}
 	
 	private void assertTestSqIsAttacked(String fenString) {
 		createClassUnderTest(fenString);
-		assertTrue(SquareAttackEvaluator.isAttacked(bm.getTheBoard(), testSq, Piece.Colour.getOpposite(bm.getOnMove())));
+		assertTrue(SquareAttackEvaluator.isAttacked(bm.getTheBoard(), testSq, bm.onMoveIsWhite()));
 	}
 	
 	@Before
@@ -153,6 +153,6 @@ public class SquareAttackEvaluatorTest {
 	@Test
 	public void testIsAttacked_MateInOne() {
 		PositionManager pm = new PositionManager("5r1k/p2R3Q/1pp2p1p/8/5q2/5bN1/PP3P2/6K1 b - - - 0");
-		assertTrue(SquareAttackEvaluator.isAttacked(pm.getTheBoard(), Position.g8, Piece.Colour.getOpposite(pm.getOnMove())));
+		assertTrue(SquareAttackEvaluator.isAttacked(pm.getTheBoard(), Position.g8, !pm.onMoveIsWhite()));
 	}
 }

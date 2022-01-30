@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Map;
 
-import eubos.board.Piece.Colour;
 import eubos.position.Position;
 
 public class SquareAttackEvaluator {
@@ -286,8 +285,7 @@ public class SquareAttackEvaluator {
 		return mask;
 	}
 	
-	public static boolean isAttacked( Board bd, int attackedSq, Piece.Colour attackingColour ) {
-		boolean isBlackAttacking = Colour.isBlack(attackingColour);
+	public static boolean isAttacked( Board bd, int attackedSq, boolean isBlackAttacking) {
 		
 		// Early terminate, if no potential attackers
 		long attackers = isBlackAttacking ? bd.getBlackPieces() : bd.getWhitePieces();

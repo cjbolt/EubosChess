@@ -71,10 +71,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 
 	public boolean isKingInCheck() {
-		return isKingInCheck(onMove);
-	}
-	public boolean isKingInCheck( Colour colour ) {
-		return theBoard.isKingInCheck(colour);		
+		return theBoard.isKingInCheck(onMoveIsWhite());
 	}
 	
 	private ZobristHashCode hash;

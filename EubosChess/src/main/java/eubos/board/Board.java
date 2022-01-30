@@ -438,7 +438,7 @@ public class Board {
 				kingPosition = targetSquare; // King moved!
 			}
 			
-			isIllegal = squareIsAttacked(kingPosition, isWhite ? Piece.Colour.black : Piece.Colour.white);
+			isIllegal = squareIsAttacked(kingPosition, isWhite);
 			
 			// Switch piece bitboard
 			// Piece type doesn't change across boards
@@ -554,8 +554,8 @@ public class Board {
 		return (allPieces & BitBoard.positionToMask_Lut[atPos]) == 0;		
 	}
 	
-	public boolean squareIsAttacked( int atPos, Piece.Colour attackingColour ) {
-		return SquareAttackEvaluator.isAttacked(this, atPos, attackingColour);
+	public boolean squareIsAttacked( int atPos, boolean isBlackAttacking ) {
+		return SquareAttackEvaluator.isAttacked(this, atPos, isBlackAttacking);
 	}
 	
 	public int getPieceAtSquare( int atPos ) {
@@ -637,9 +637,9 @@ public class Board {
 		allPieces |= (mask);
 	}
 	
-	public boolean isKingInCheck(Piece.Colour side) {
-		int kingSquare = getKingPosition(Colour.isWhite(side));
-		return squareIsAttacked(kingSquare, Piece.Colour.getOpposite(side));
+	public boolean isKingInCheck(boolean isWhite) {
+		int kingSquare = getKingPosition(isWhite);
+		return squareIsAttacked(kingSquare, isWhite);
 	}
 	
 	public int pickUpPieceAtSquare( int atPos, int piece ) {
