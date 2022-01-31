@@ -87,6 +87,38 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	DrawChecker dc;
 	
+	public boolean moveLeadsToThreefold(int move) {
+		boolean isDrawing = false;
+		int capturePosition = Position.NOPOSITION;
+		int pieceToMove = Move.getOriginPiece(move);
+		int targetSquare = Move.getTargetPosition(move);
+		int targetPiece = Move.getTargetPiece(move);
+		int enPassantFile = IntFile.NOFILE;
+		
+		// Calculate targetSquare and en passant file, needed for hash code update
+		if (targetPiece != Piece.NONE) {
+			// Handle captures
+			if (Move.isEnPassantCapture(move)) {
+				capturePosition = theBoard.generateCapturePositionForEnPassant(pieceToMove, targetSquare);
+				enPassantFile = Position.getFile(capturePosition);
+			} else {
+				capturePosition = targetSquare;
+			}
+		}	
+		
+		// Generate hash code
+		hash.update(move, capturePosition, enPassantFile);
+
+		// Update the draw checker - do we need to change ply number?
+		isDrawing = dc.setPositionReached(getHash(), getPlyNumber());
+		
+		// Undo the change
+		int reversedMove = Move.reverse(move);
+		hash.update(reversedMove, capturePosition, enPassantFile);
+		
+		return isDrawing;
+	}
+	
 	public void performMove( int move )  {
 		performMove(move, true);
 	}

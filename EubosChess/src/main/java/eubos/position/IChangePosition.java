@@ -1,7 +1,5 @@
 package eubos.position;
 
-
-
 public interface IChangePosition {
 	public void performMove( int move ) ;
 	public void performMove( int move, boolean computeHash ) ;

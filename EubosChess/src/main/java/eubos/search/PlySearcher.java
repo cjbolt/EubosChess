@@ -438,15 +438,9 @@ public class PlySearcher {
 
 	private boolean checkForRepetitionDueToPositionInSearchTree(int move)  {
 		boolean retVal = false;
-		if (move != Move.NULL_MOVE) {
-			pm.performMove(move);
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
-			if (pos.isThreefoldRepetitionPossible()) {
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printRepeatedPositionHash(pos.getHash(), pos.getFen());
-				retVal = true;
-			}
-			pm.unperformMove();
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
+		if (pos.moveLeadsToThreefold(move)) {
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRepeatedPositionHash(pos.getHash(), pos.getFen());
+			retVal = true;
 		}
 		return retVal;
 	}

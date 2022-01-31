@@ -16,4 +16,5 @@ public interface IPositionAccessors {
 	public boolean isThreefoldRepetitionPossible();
 	public IEvaluate getPositionEvaluator();
 	public boolean isQuiescent();
+	public boolean moveLeadsToThreefold(int move);
 }
