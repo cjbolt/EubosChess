@@ -217,7 +217,7 @@ public class PlySearcher {
 				}
 			}
 			// Transposition may still be useful to seed the move list, if not drawing.
-			if (!override_trans_move) {
+			if (!override_trans_move || (override_trans_move && prevBestMove == Move.NULL_MOVE)) {
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
 				prevBestMove = trans.getBestMove(pos.getTheBoard());
 			}

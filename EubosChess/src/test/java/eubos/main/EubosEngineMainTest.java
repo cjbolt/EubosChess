@@ -404,6 +404,94 @@ public class EubosEngineMainTest {
 		}
 	}
 	
+	@Test
+	public void test_hash_issue_threw_away_draw() throws InterruptedException, IOException {
+		setupEngine();
+		commands.add(new commandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves "
+				+ "e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f3d4 g8f6 b1c3 a7a6 c1e3 e7e6 g2g4 e6e5 d4f5 g7g6 "
+				+ "g4g5 g6f5 g5f6 f5f4 e3d2 b8d7 f1g2 d7f6 d1e2 h8g8 g2f3 f8h6 e1c1 c8e6 c3d5 f6d5 "
+				+ "e4d5 e6f5 f3e4 f5g6 h2h3 e8f8 c1b1 g6e4 e2e4 g8g6 h1e1 d8b6 e1e2 f8g8 a2a4 h6g5 "
+				+ "d1e1 g5h4 a4a5 b6b5 c2c4 b5b3 c4c5 d6c5 d2c3 f7f6 e2d2 a8d8 d5d6 g6g7 e4f3 b3e6 "
+				+ "e1d1 h7h6 d2d5 e6c8 d5d3 g8h8 f3h5 c5c4 h5h4 c8f5 c3e5 f6e5 h4d8 h8h7 d6d7 c4d3 "
+				+ "d8h8 h7h8 d7d8q g7g8 d8d3 f5d3 d1d3 e5e4 d3d6 g8g1 b1a2 g1g5 d6h6 h8g8 h6e6 g5a5 "
+				+ "a2b1 e4e3 f2e3 g8f7 e6e4 f4e3 b1c2 a5c5 c2d3 c5b5 b2b4 b5h5 h3h4 e3e2 d3e2 h5h6 "
+				+ "e2f3 b7b5 f3g4 h6g6 g4f5 g6g2 h4h5 g2h2 f5g5 h2d2 e4f4 f7g8 h5h6 d2d5 g5g6 d5d8 "
+				+ "f4f6 d8a8 f6e6 g8h8 h6h7 a8b8 e6d6 b8a8 d6c6 a8d8 c6b6 d8c8 g6h6 c8a8 b6f6 a8b8 "
+				+ "h6g6 b8a8 f6d6 a8c8 g6h6 c8b8 d6c6 b8d8 c6e6 d8c8 e6g6 c8b8 g6f6 b8c8 f6e6 c8d8 "
+				+ "e6c6 d8b8 c6d6 b8e8 d6d7 e8e6 h6g5 e6e5 g5g6 e5e6 g6f5 e6e2 d7a7 e2b2 f5g6 b2g2 "
+				+ "g6h5 g2e2 a7c7 e2d2 c7e7 d2d5 h5h6 d5d6 h6g5 d6d5 g5f6 d5d4 f6g6 d4d6 g6f5 d6d5 "
+				+ "f5e4 d5d2 e7a7 d2d6 e4e5 d6c6 e5f5 c6b6 f5g5 b6c6 a7b7 c6c4 g5h5 c4b4 h5g6 b4g4 "
+				+ "g6h6 g4h4 h6g6 h4g4 g6h6 g4h4 h6g6"+CMD_TERMINATOR, null));
+		//commands.add(new commandPair(GO_DEPTH_PREFIX+"20"+CMD_TERMINATOR, BEST_PREFIX+"a6a5"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR, BEST_PREFIX+"h4g4"+CMD_TERMINATOR));
+
+		testOutput.flush();
+		inputToEngine.flush();
+		int commandNumber = 1;
+		for (commandPair currCmdPair: commands) {
+			String inputCmd = currCmdPair.getIn();
+			String expectedOutput = currCmdPair.getOut();
+			String parsedCmd= "";
+			// Pass command to engine
+			if (inputCmd != null) {
+				if (inputCmd.startsWith("go")) {
+					Thread.sleep(sleep_50ms);
+					// Seed hash table with problematic hash
+					long problemHash = classUnderTest.rootPosition.getHash();
+					EubosEngineMain.logger.info(String.format("*************** using hash code %d", problemHash));
+					classUnderTest.hashMap.putTransposition(
+							problemHash,
+							//new Transposition((byte)19, (short)0, (byte)2, Move.valueOf(Position.h4, Piece.BLACK_ROOK, Position.g4, Piece.NONE), null));
+							new Transposition((byte)3, (short)0, (byte)2, Move.valueOf(Position.h4, Piece.BLACK_ROOK, Position.g4, Piece.NONE), null));
+				}
+				inputToEngine.write(inputCmd);
+				inputToEngine.flush();
+				EubosEngineMain.logger.info(String.format("************* %s", inputCmd));
+			}
+			// Test expected command was received
+			if (expectedOutput != null) {
+				boolean received = false;
+				int timer = 0;
+				boolean accumulate = false;
+				String recievedCmd = "";
+				// Receive message or wait for timeout to expire.
+				while (!received && timer<20000) {
+					// Give the engine thread some CPU time
+					Thread.sleep(sleep_50ms);
+					timer += sleep_50ms;
+					testOutput.flush();
+					if (accumulate) {
+						recievedCmd += testOutput.toString();
+					} else {
+						recievedCmd = testOutput.toString();
+					}
+					if (recievedCmd != null && !recievedCmd.isEmpty()) {
+						System.err.println(recievedCmd);
+						testOutput.reset();
+						// Ignore any line starting with info, if not checking infos
+					    parsedCmd = parseReceivedCommandString(recievedCmd, false);
+					    if (!parsedCmd.isEmpty()) { // want to use isBlank(), but that is Java 11 only.
+							if (parsedCmd.equals(expectedOutput)) {
+								received = true;
+								accumulate = false;
+							} else if (expectedOutput.startsWith(parsedCmd)){
+								accumulate = true;
+							} else {
+								EubosEngineMain.logger.info(String.format("parsed '%s' != '%s'", parsedCmd, expectedOutput));
+								accumulate = false;
+							}
+					    }
+					}
+				}
+				if (!received) {
+					fail(inputCmd + expectedOutput + "command that failed " + (commandNumber-3));
+				}
+				commandNumber++;
+			} else {
+				Thread.sleep(sleep_50ms);
+			}
+		}
+	}
 	
 	
     @Test
