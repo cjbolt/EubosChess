@@ -58,8 +58,8 @@ public class MoveListTest {
 	@Test
 	public void test_whenNoChecksCapturesOrPromotions()throws IllegalNotationException { 
 		setup("8/3p4/8/8/8/5k2/1P6/7K w - - 0 1");
-		MoveListIterator iter =  classUnderTest.createForPly(Move.NULL_MOVE, null, true, false, 0);
-		MoveListIterator extended_iter = classUnderTest.getExtendedIterator();
+		MoveListIterator iter =  classUnderTest.createForPly(Move.NULL_MOVE, null, false, false, 0);
+		MoveListIterator extended_iter = classUnderTest.createForPly(Move.NULL_MOVE, true, 0);
 		assertFalse(extended_iter.hasNext());
 		assertTrue(iter.hasNext());
 	}

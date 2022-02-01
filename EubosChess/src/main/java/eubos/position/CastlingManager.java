@@ -86,7 +86,7 @@ public class CastlingManager {
 		this.flags = flags;
 	}
 
-	void addCastlingMoves(boolean isWhiteOnMove, MoveList ml) {
+	void addCastlingMoves(boolean isWhiteOnMove, IAddMoves ml) {
 		// The side on move should not have previously castled
 		if ( !castlingAvaillable(isWhiteOnMove))
 			return;

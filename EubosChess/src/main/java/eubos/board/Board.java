@@ -10,8 +10,8 @@ import java.util.function.IntConsumer;
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.CastlingManager;
+import eubos.position.IAddMoves;
 import eubos.position.Move;
-import eubos.position.MoveList;
 import eubos.position.Position;
 import eubos.score.PiecewiseEvaluation;
 
@@ -834,7 +834,7 @@ public class Board {
 		return isHalfOpen;
 	}
 	
-	public void getRegularPieceMoves(MoveList ml, boolean ownSideIsWhite, boolean captures) {
+	public void getRegularPieceMoves(IAddMoves ml, boolean ownSideIsWhite, boolean captures) {
 		if (ENABLE_PIECE_LISTS) {
 			if (me.isEndgame()) {
 				pieceLists.addMovesEndgame(ml, ownSideIsWhite, captures);

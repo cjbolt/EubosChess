@@ -3,7 +3,7 @@ package eubos.board;
 import java.util.Arrays;
 
 import eubos.main.EubosEngineMain;
-import eubos.position.MoveList;
+import eubos.position.IAddMoves;
 import eubos.position.Position;
 import eubos.score.PiecewiseEvaluation;
 
@@ -148,7 +148,7 @@ public class PieceList {
 		}
 	}
 	
-	public void addMovesEndgame(MoveList ml, boolean ownSideIsWhite, boolean captures) {
+	public void addMovesEndgame(IAddMoves ml, boolean ownSideIsWhite, boolean captures) {
 		int side = ownSideIsWhite ? 0 : Piece.BLACK;
 		if (!captures) {
 			{
@@ -235,7 +235,7 @@ public class PieceList {
 		}
 	}
 	
-	public void addMovesMiddlegame(MoveList ml, boolean ownSideIsWhite, boolean captures) {
+	public void addMovesMiddlegame(IAddMoves ml, boolean ownSideIsWhite, boolean captures) {
 		int side = ownSideIsWhite ? 0 : Piece.BLACK;
 		if (!captures) {
 			for(int atSquare : piece_list[side+Piece.BISHOP]) {

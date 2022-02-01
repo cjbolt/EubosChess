@@ -33,6 +33,8 @@ public class MoveList implements Iterable<Integer> {
 	
 	PositionManager pm;
 	int ordering;
+	public MoveAdder ma;
+	public MoveAdderWithNoKillers ma_noKillers;
 	
 	private static final MoveTypeComparator moveTypeComparator = new MoveTypeComparator();
 	
@@ -67,6 +69,9 @@ public class MoveList implements Iterable<Integer> {
 		
 		this.pm = pm;
 		this.ordering = orderMoveList;
+		
+		ma = new MoveAdder();
+		ma_noKillers = new MoveAdderWithNoKillers();
 	}
 	
 	public MoveListIterator createForPly(int bestMove, int [] killers, boolean capturesOnly, boolean needToEscapeMate, int ply)
@@ -98,11 +103,12 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	private void getMoves(boolean capturesOnly) {
+		IAddMoves moveAdder = (killers == null) ? ma_noKillers : ma;
 		boolean isWhiteOnMove = pm.onMoveIsWhite();
-		pm.getTheBoard().getRegularPieceMoves(this, isWhiteOnMove, capturesOnly);
+		pm.getTheBoard().getRegularPieceMoves(moveAdder, isWhiteOnMove, capturesOnly);
 		if (!capturesOnly && !needToEscapeMate) {
 			// Can't castle out of check and don't care in extended search
-			pm.castling.addCastlingMoves(isWhiteOnMove, this);
+			pm.castling.addCastlingMoves(isWhiteOnMove, moveAdder);
 		}
 	}
 	
@@ -201,30 +207,44 @@ public class MoveList implements Iterable<Integer> {
 		} else {
 			return Move.NULL_MOVE;
 		}
-	}	
-	
-	public void addNormal(int move) {
-		if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate)) {
-			if (Move.areEqualForBestKiller(move, bestMove)) {
-				scratchpad[ply][scratchpad_fill_index++] = Move.setBest(move);
-			} else if(KillerList.isMoveOnListAtPly(killers, move)) {
-				priority_moves[ply][priority_fill_index[ply]++] = Move.setKiller(move);;
-			} else {
-				normal_search_moves[ply][normal_fill_index[ply]++] = move;
-			}
-			moveCount++;
-		}
-		
 	}
 	
-	public void addPrio(int move) {
-		if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate)) {
-			if (Move.areEqualForBestKiller(move, bestMove)) {
-				scratchpad[ply][scratchpad_fill_index++] = Move.setBest(move);
-			} else {
-				priority_moves[ply][priority_fill_index[ply]++] = move;
+	public class MoveAdder implements IAddMoves {
+		public void addPrio(int move) {
+			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate)) {
+				if (Move.areEqualForBestKiller(move, bestMove)) {
+					scratchpad[ply][scratchpad_fill_index++] = Move.setBest(move);
+				} else {
+					priority_moves[ply][priority_fill_index[ply]++] = move;
+				}
+				moveCount++;
 			}
-			moveCount++;
+		}
+		
+		public void addNormal(int move) {
+			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate)) {
+				if (Move.areEqualForBestKiller(move, bestMove)) {
+					scratchpad[ply][scratchpad_fill_index++] = Move.setBest(move);
+				} else if(KillerList.isMoveOnListAtPly(killers, move)) {
+					priority_moves[ply][priority_fill_index[ply]++] = Move.setKiller(move);;
+				} else {
+					normal_search_moves[ply][normal_fill_index[ply]++] = move;
+				}
+				moveCount++;
+			}
+		}
+	}
+	
+	public class MoveAdderWithNoKillers extends MoveAdder implements IAddMoves {
+		public void addNormal(int move) {
+			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate)) {
+				if (Move.areEqualForBestKiller(move, bestMove)) {
+					scratchpad[ply][scratchpad_fill_index++] = Move.setBest(move);
+				} else {
+					normal_search_moves[ply][normal_fill_index[ply]++] = move;
+				}
+				moveCount++;
+			}
 		}
 	}
 	

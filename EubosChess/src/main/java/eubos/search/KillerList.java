@@ -24,7 +24,7 @@ public class KillerList {
 	}
 	
 	public static boolean isMoveOnListAtPly(int [] list, int move) {
-		if (KillerList.ENABLE_KILLER_MOVES && list != null) {
+		if (KillerList.ENABLE_KILLER_MOVES) {
 			for (int listMove : list) {
 				if (Move.areEqualForBestKiller(listMove, move)) {
 					return true;
