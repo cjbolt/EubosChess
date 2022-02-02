@@ -22,7 +22,6 @@ import com.fluxchess.jcpi.models.IntRank;
 public class Board {
 	
 	public static final boolean ENABLE_PIECE_LISTS = true;
-	public static final boolean ENABLE_SIMPLIFIED_KING_SAFETY_EVAL = true;
 	
 	private long allPieces = 0x0;
 	private long whitePieces = 0x0;
@@ -1101,7 +1100,6 @@ public class Board {
 		long attackingBishopsMask = isWhite ? getBlackBishops() : getWhiteBishops();
 		long attackingKnightsMask = isWhite ? getBlackKnights() : getWhiteKnights();
 
-		
 		// create masks of attackers
 		long pertinentBishopMask = attackingBishopsMask & ((isKingOnDarkSq) ? DARK_SQUARES_MASK : LIGHT_SQUARES_MASK);
 		long diagonalAttackersMask = attackingQueensMask | pertinentBishopMask;
@@ -1117,43 +1115,35 @@ public class Board {
 		}
 		long mobility_mask = 0x0;
 		if (numPotentialAttackers > 0) {
-			if (ENABLE_SIMPLIFIED_KING_SAFETY_EVAL) {
-				long blockers = isWhite ? getWhitePawns() : getBlackPawns();
-				long defendingBishopsMask = isWhite ? getWhiteBishops() : getBlackBishops();
-				// only own side pawns should block an attack ray, not any piece, so don't use empty mask as propagator
-				long inDirection = BitBoard.downLeftOccludedEmpty(kingMask, ~blockers);
-				mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
-				inDirection = BitBoard.upLeftOccludedEmpty(kingMask, ~blockers);
-				mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
-				inDirection = BitBoard.upRightOccludedEmpty(kingMask, ~blockers);
-				mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
-				inDirection = BitBoard.downRightOccludedEmpty(kingMask, ~blockers);
-				mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
-				evaluation = Long.bitCount(mobility_mask ^ kingMask) * 2 * -numPotentialAttackers;
-			} else {
-				evaluation = (getKingSafetyEvaluationDiagonalSquares(isWhite, kingPos)) * -numPotentialAttackers;
-			}
+			long blockers = isWhite ? getWhitePawns() : getBlackPawns();
+			long defendingBishopsMask = isWhite ? getWhiteBishops() : getBlackBishops();
+			// only own side pawns should block an attack ray, not any piece, so don't use empty mask as propagator
+			long inDirection = BitBoard.downLeftOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
+			inDirection = BitBoard.upLeftOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
+			inDirection = BitBoard.upRightOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
+			inDirection = BitBoard.downRightOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
+			evaluation = Long.bitCount(mobility_mask ^ kingMask) * 2 * -numPotentialAttackers;
 		}
 		
 		// Then score according to King exposure on open rank/files
 		numPotentialAttackers = Long.bitCount(rankFileAttackersMask);
 		if (numPotentialAttackers > 0) {
-			if (ENABLE_SIMPLIFIED_KING_SAFETY_EVAL) {
-				mobility_mask = 0x0;
-				long blockers = isWhite ? getWhitePawns() : getBlackPawns();
-				long defendingRooksMask = isWhite ? getWhiteRooks() : getBlackRooks();
-				long inDirection = BitBoard.downOccludedEmpty(kingMask, ~blockers);
-				mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
-				inDirection = BitBoard.upOccludedEmpty(kingMask, ~blockers);
-				mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
-				inDirection = BitBoard.rightOccludedEmpty(kingMask, ~blockers);
-				mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
-				inDirection = BitBoard.leftOccludedEmpty(kingMask, ~blockers);
-				mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
-				evaluation += Long.bitCount(mobility_mask ^ kingMask) * 2 * -numPotentialAttackers;
-			} else {
-				evaluation += (getKingSafetyEvaluationRankFileSquares(isWhite, kingPos)) * -numPotentialAttackers;
-			}
+			mobility_mask = 0x0;
+			long blockers = isWhite ? getWhitePawns() : getBlackPawns();
+			long defendingRooksMask = isWhite ? getWhiteRooks() : getBlackRooks();
+			long inDirection = BitBoard.downOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
+			inDirection = BitBoard.upOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
+			inDirection = BitBoard.rightOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
+			inDirection = BitBoard.leftOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
+			evaluation += Long.bitCount(mobility_mask ^ kingMask) * 2 * -numPotentialAttackers;
 		}
 		
 		// Then account for Knight proximity to the adjacent squares around the King
@@ -1161,49 +1151,6 @@ public class Board {
 		evaluation += -8*Long.bitCount(pertintentKnightsMask);
 			
 		return evaluation;
-	}
-	
-	public byte getKingSafetyEvaluationDiagonalSquares(boolean whiteOnMove, int atPos) {
-		long defenders = (whiteOnMove) ? getWhiteBishops() : getBlackBishops();
-		long blockers = (whiteOnMove) ? getWhitePawns()/*|getWhiteKnights()*/ : getBlackPawns()/*|getBlackKnights()*/;
-		return getKingSafetyEvaluation(defenders, blockers, atPos, SquareAttackEvaluator.diagonals);
-	}
-	
-	public byte getKingSafetyEvaluationRankFileSquares(boolean whiteOnMove, int atPos) {
-		long defenders = (whiteOnMove) ? getWhiteRooks() : getBlackRooks();
-		long blockers = (whiteOnMove) ? getWhitePawns()/*|getWhiteKnights()*/ : getBlackPawns()/*|getBlackKnights()*/;
-		return getKingSafetyEvaluation(defenders, blockers, atPos, SquareAttackEvaluator.rankFile);
-	}
-	
-	private byte getKingSafetyEvaluation(long defenderMask, long blockerMask, int atPos, Direction [] dirs) {
-		byte numSquares = 0; 
-		//long ownPieces = defenderMask | blockerMask;
-		// One dimension for each direction, other dimension is array of individual square masks in that direction
-		long [][] emptySqMaskArray = emptySquareMask_Lut[atPos]; 
-		for (Direction dir: dirs) { 
-			int directionIndex = SquareAttackEvaluator.directionIndex_Lut.get(dir);
-			long inPathMask = SquareAttackEvaluator.directAttacksOnPositionAll_Lut[directionIndex][atPos];
-			if (inPathMask != 0) {
-				if ((defenderMask & inPathMask) != 0) {
-					// If there is a defender, assume this direction is safe
-					break;
-				}
-				if ((blockerMask & inPathMask) != 0) {
-					// Count the empty squares to the blocker
-					for (long mask: emptySqMaskArray[directionIndex]) {
-						if ((blockerMask & mask) == 0) {
-							numSquares+=2;
-						} else break;
-					}
-				} else {
-					// All the squares are empty in this direction
-					numSquares += (emptySqMaskArray[directionIndex].length*2);
-				}
-			} else {
-				// This is a square on the edge of the board from which that direction is off the board
-			}
-		}
-		return numSquares;
 	}
 	
 	public void forEachPiece(IForEachPieceCallback caller) {
@@ -1219,7 +1166,6 @@ public class Board {
 			}
 		}
 	}
-	
 	
 	public void forEachPawnOfSide(IForEachPieceCallback caller, boolean isBlack) {
 		if (ENABLE_PIECE_LISTS) {

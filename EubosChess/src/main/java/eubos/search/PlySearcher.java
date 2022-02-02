@@ -88,7 +88,7 @@ public class PlySearcher {
 		int alpha = Score.PROVISIONAL_ALPHA;
 		int beta = Score.PROVISIONAL_BETA;
 		if (originalSearchDepthRequiredInPly >= 5) {
-			int windowSize = Score.isMate(lastScore) ? 1 : Piece.MATERIAL_VALUE_PAWN/2;
+			int windowSize = Score.isMate(lastScore) ? 1 : Piece.MATERIAL_VALUE_PAWN/4;
 			alpha = lastScore - windowSize;
 			beta = lastScore + windowSize;
 		}
