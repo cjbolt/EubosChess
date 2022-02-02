@@ -6,19 +6,16 @@ public class DrawChecker {
 	
 	public static final boolean ENABLE_THREEFOLD_POSITION_DRAW_CHECK = true;
 	
-	private long[] reachedPositions;
-	private int checkFromPly;
+	public long[] reachedPositions;
+	public int checkFromPly;
 	
 	public DrawChecker() {
 		reachedPositions = new long[300];
 	}
 	
 	public DrawChecker(DrawChecker clone) {
-		reachedPositions = LongArrays.copy(clone.getState());
-	}
-	
-	public long[] getState() {
-		return reachedPositions;
+		reachedPositions = LongArrays.copy(clone.reachedPositions);
+		checkFromPly = clone.checkFromPly;
 	}
 	
 	public void reset(int plyNumber) {
