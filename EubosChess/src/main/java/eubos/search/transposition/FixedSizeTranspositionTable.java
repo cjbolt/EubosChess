@@ -29,8 +29,9 @@ public class FixedSizeTranspositionTable {
 	
 	public static final long BYTES_PER_MEGABYTE = (1024L * 1000L);
 	
-	public static final long MBYTES_DEFAULT_HASH_SIZE = (ELEMENTS_DEFAULT_HASH_SIZE*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE;
-	
+	//public static final long MBYTES_DEFAULT_HASH_SIZE = (ELEMENTS_DEFAULT_HASH_SIZE*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE;
+	public static final long MBYTES_DEFAULT_HASH_SIZE = 256L;
+			
 	private Long2ObjectLinkedOpenHashMap<ITransposition> hashMap = null;
 	private long hashMapSize = 0;
 	private long maxHashMapSize = ELEMENTS_DEFAULT_HASH_SIZE;
