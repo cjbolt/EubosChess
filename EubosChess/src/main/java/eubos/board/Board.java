@@ -917,25 +917,47 @@ public class Board {
 		the_me.setPhase();
 	}
 	
-	int calculateDiagonalMobility(long bishops, long queens) {
+	class PawnAttackAggregator implements IForEachPieceCallback {
+		long attackMask = 0L;
+		boolean attackerIsBlack = false;
+		
+		public PawnAttackAggregator() {
+			attackMask = 0;
+		}
+		
+		public void callback(int piece, int position) {
+			attackMask |= (attackerIsBlack ? SquareAttackEvaluator.BlackPawnAttacks_Lut[position]: SquareAttackEvaluator.WhitePawnAttacks_Lut[position]);
+		}
+		
+		public long getPawnAttacks(boolean attackerIsBlack) {
+			this.attackerIsBlack = attackerIsBlack;
+			forEachPawnOfSide(this, attackerIsBlack);
+			return attackMask;
+		}
+	}
+	
+	int calculateDiagonalMobility(long bishops, long queens, boolean attackerIsBlack) {
 		long empty = ~allPieces;
 		int mobility_score = 0x0;
+		long pawnAttacks = new PawnAttackAggregator().getPawnAttacks(attackerIsBlack);
 		long diagonal_sliders = bishops | queens;
 		if (queens != 0) {
 			if (bishops != 0) {
 				long mobility_mask_1 = BitBoard.downLeftOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
 				long mobility_mask_2 = BitBoard.upRightOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
 				if ((mobility_mask_1 & mobility_mask_2) == 0x0) {
-					mobility_score = Long.bitCount(mobility_mask_1 | mobility_mask_2);
+					long mobility_mask = (mobility_mask_1 | mobility_mask_2) & ~pawnAttacks;
+					mobility_score = Long.bitCount(mobility_mask);
 				} else {
-					mobility_score = Long.bitCount(mobility_mask_1) + Long.bitCount(mobility_mask_2);
+					mobility_score = Long.bitCount(mobility_mask_1 & ~pawnAttacks) + Long.bitCount(mobility_mask_2 & ~pawnAttacks);
 				}
 				mobility_mask_1 = BitBoard.downRightOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
 				mobility_mask_2 = BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
 				if ((mobility_mask_1 & mobility_mask_2) == 0x0) {
-					mobility_score += Long.bitCount(mobility_mask_1 | mobility_mask_2);
+					long mobility_mask = (mobility_mask_1 | mobility_mask_2) & ~pawnAttacks;
+					mobility_score += Long.bitCount(mobility_mask);
 				} else {
-					mobility_score += Long.bitCount(mobility_mask_1) + Long.bitCount(mobility_mask_2);
+					mobility_score += Long.bitCount(mobility_mask_1 & ~pawnAttacks) + Long.bitCount(mobility_mask_2 & ~pawnAttacks);
 				}
 			} else {
 				// Assume that if it is just queens, then material is so unbalanced that it doesn't matter that they can intersect
@@ -943,7 +965,8 @@ public class Board {
 				mobility_mask |= BitBoard.upRightOccludedEmpty(diagonal_sliders, empty);
 				mobility_mask |= BitBoard.downRightOccludedEmpty(diagonal_sliders, empty);
 				mobility_mask |= BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty);
-				mobility_score = Long.bitCount(mobility_mask ^ diagonal_sliders);
+				mobility_mask = (mobility_mask ^ diagonal_sliders) & ~pawnAttacks;
+				mobility_score = Long.bitCount(mobility_mask);
 			}
 		} else if (bishops != 0) {
 			// Assume that if it is just bishops, they can't intersect, which allows optimisation
@@ -952,31 +975,35 @@ public class Board {
 				mobility_mask |= BitBoard.upRightOccludedEmpty(diagonal_sliders, empty);
 				mobility_mask |= BitBoard.downRightOccludedEmpty(diagonal_sliders, empty);
 				mobility_mask |= BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty);
-				mobility_score = Long.bitCount(mobility_mask ^ diagonal_sliders);
+				mobility_mask = (mobility_mask ^ diagonal_sliders) & ~pawnAttacks;
+				mobility_score = Long.bitCount(mobility_mask);
 			}
 		}
 		return mobility_score;
 	}
 	
-	int calculateRankFileMobility(long rooks, long queens) {
+	int calculateRankFileMobility(long rooks, long queens, boolean attackerIsBlack) {
 		long empty = ~allPieces;
 		int mobility_score = 0x0;
+		long pawnAttacks = new PawnAttackAggregator().getPawnAttacks(attackerIsBlack);
 		long rank_file_sliders = rooks | queens;
 		if (rooks != 0) {
 			long mobility_mask_1 = BitBoard.leftOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;
 			long mobility_mask_2 = BitBoard.rightOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;
 			if ((mobility_mask_1 & mobility_mask_2) == 0x0) {
-				mobility_score = Long.bitCount(mobility_mask_1 | mobility_mask_2);
+				long mobility_mask = (mobility_mask_1 | mobility_mask_2) & ~pawnAttacks;
+				mobility_score += Long.bitCount(mobility_mask);
 			} else {
-				mobility_score = Long.bitCount(mobility_mask_1) + Long.bitCount(mobility_mask_2);
+				mobility_score = Long.bitCount(mobility_mask_1 & ~pawnAttacks) + Long.bitCount(mobility_mask_2 & ~pawnAttacks);
 			}
 			
 			mobility_mask_1 = BitBoard.upOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;
 			mobility_mask_2 = BitBoard.downOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;
 			if ((mobility_mask_1 & mobility_mask_2) == 0x0) {
-				mobility_score += Long.bitCount(mobility_mask_1 | mobility_mask_2);
+				long mobility_mask = (mobility_mask_1 | mobility_mask_2) & ~pawnAttacks;
+				mobility_score += Long.bitCount(mobility_mask);
 			} else {
-				mobility_score += Long.bitCount(mobility_mask_1) + Long.bitCount(mobility_mask_2);
+				mobility_score += Long.bitCount(mobility_mask_1 & ~pawnAttacks) + Long.bitCount(mobility_mask_2 & ~pawnAttacks);
 			}
 		}
 		else if (rank_file_sliders != 0) {
@@ -985,7 +1012,8 @@ public class Board {
 			mobility_mask |= BitBoard.rightOccludedEmpty(rank_file_sliders, empty);
 			mobility_mask |= BitBoard.downOccludedEmpty(rank_file_sliders, empty);
 			mobility_mask |= BitBoard.upOccludedEmpty(rank_file_sliders, empty);
-			mobility_score = Long.bitCount(mobility_mask ^ rank_file_sliders);
+			mobility_mask = (mobility_mask ^ rank_file_sliders) & ~pawnAttacks;
+			mobility_score = Long.bitCount(mobility_mask);
 		}
 		return mobility_score;
 	}
@@ -994,20 +1022,20 @@ public class Board {
 		int mobility_score = 0x0;
 		// White Bishop and Queen
 		long white_queens = getWhiteQueens();
-		mobility_score = calculateDiagonalMobility(getWhiteBishops(), white_queens);
+		mobility_score = calculateDiagonalMobility(getWhiteBishops(), white_queens, true);
 		me.dynamicPosition += (short)(mobility_score*2);
 
 		// White Rook and Queen
-		mobility_score = calculateRankFileMobility(getWhiteRooks(), white_queens);
+		mobility_score = calculateRankFileMobility(getWhiteRooks(), white_queens, true);
 		me.dynamicPosition += (short)(mobility_score*2);
 		
 		// Black Bishop and Queen
 		long black_queens = getBlackQueens();
-		mobility_score = calculateDiagonalMobility(getBlackBishops(), black_queens);
+		mobility_score = calculateDiagonalMobility(getBlackBishops(), black_queens, false);
 		me.dynamicPosition -= (short)(mobility_score*2);
 		
 		// Black Rook and Queen
-		mobility_score = calculateRankFileMobility(getBlackRooks(), black_queens);
+		mobility_score = calculateRankFileMobility(getBlackRooks(), black_queens, false);
 		me.dynamicPosition -= (short)(mobility_score*2);
 	}
 	

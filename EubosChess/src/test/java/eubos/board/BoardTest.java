@@ -130,21 +130,21 @@ public class BoardTest {
 	@Test
 	public void testOpenFile_isOpen() {
 		classUnderTest.setPieceAtSquare(Position.h8, Piece.WHITE_ROOK);
-		assertEquals(14, classUnderTest.calculateRankFileMobility(classUnderTest.getWhiteRooks(), 0));
+		assertEquals(14, classUnderTest.calculateRankFileMobility(classUnderTest.getWhiteRooks(), 0, true));
 	}
 	
 	@Test
 	public void testOpenFile_isClosed() {
 		classUnderTest.setPieceAtSquare(Position.h7, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(Position.h2, Piece.WHITE_ROOK);
-		assertEquals(12, classUnderTest.calculateRankFileMobility(classUnderTest.getWhiteRooks(), 0));
+		assertEquals(12, classUnderTest.calculateRankFileMobility(classUnderTest.getWhiteRooks(), 0, true));
 	}
 	
 	@Test
 	public void testOpenFile_isOpen1() {
 		classUnderTest.setPieceAtSquare(Position.d7, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(Position.e2, Piece.WHITE_ROOK);
-		assertEquals(14, classUnderTest.calculateRankFileMobility(classUnderTest.getWhiteRooks(), 0));
+		assertEquals(13, classUnderTest.calculateRankFileMobility(classUnderTest.getWhiteRooks(), 0, true));
 	}
 	
 	@Test
@@ -175,14 +175,14 @@ public class BoardTest {
 	public void testisOnOpenDiagonal_Yes() {
 		classUnderTest.setPieceAtSquare(Position.d5, Piece.BLACK_BISHOP);
 		classUnderTest.setPieceAtSquare(Position.e5, Piece.WHITE_PAWN);
-		assertEquals(13, classUnderTest.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0));
+		assertEquals(13, classUnderTest.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0, false));
 	}
 	
 	@Test
 	public void testisOnOpenDiagonal_No() {
 		classUnderTest.setPieceAtSquare(Position.d5, Piece.BLACK_BISHOP);
 		classUnderTest.setPieceAtSquare(Position.e6, Piece.WHITE_PAWN);
-		assertEquals(10, classUnderTest.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0));
+		assertEquals(10, classUnderTest.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0, false));
 	}
 	
 	@Test
@@ -192,21 +192,21 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.d6, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.d4, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.c5, Piece.WHITE_PAWN);
-		assertEquals(13, classUnderTest.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0));
+		assertEquals(13, classUnderTest.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0, false));
 	}
 	
 	@Test
 	public void testisOnOpenDiagonal_No1() {
 		classUnderTest.setPieceAtSquare(Position.a1, Piece.BLACK_BISHOP);
 		classUnderTest.setPieceAtSquare(Position.h8, Piece.WHITE_PAWN);
-		assertEquals(6, classUnderTest.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0));
+		assertEquals(5, classUnderTest.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0, false));
 	}
 	
 	@Test
 	public void testisOnOpenDiagonal_Yes2() {
 		classUnderTest.setPieceAtSquare(Position.a1, Piece.BLACK_BISHOP);
 		classUnderTest.setPieceAtSquare(Position.a8, Piece.WHITE_PAWN);
-		assertEquals(7, classUnderTest.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0));
+		assertEquals(7, classUnderTest.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0, false));
 	}
 	
 	@Test
