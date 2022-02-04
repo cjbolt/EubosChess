@@ -61,7 +61,12 @@ public class Board {
 	
 	public PiecewiseEvaluation me;
 	
+	PawnAttackAggregator paa;
+	PawnKnightAttackAggregator pkaa;
+	
 	public Board( Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove ) {
+		paa = new PawnAttackAggregator();
+		pkaa = new PawnKnightAttackAggregator();
 		allPieces = 0x0;
 		whitePieces = 0x0;
 		blackPieces = 0x0;
@@ -921,17 +926,47 @@ public class Board {
 		long attackMask = 0L;
 		boolean attackerIsBlack = false;
 		
-		public PawnAttackAggregator() {
-			attackMask = 0;
-		}
-		
 		public void callback(int piece, int position) {
-			attackMask |= (attackerIsBlack ? SquareAttackEvaluator.BlackPawnAttacks_Lut[position]: SquareAttackEvaluator.WhitePawnAttacks_Lut[position]);
+			attackMask |= (attackerIsBlack ? SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[position]: SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[position]);
 		}
 		
 		public long getPawnAttacks(boolean attackerIsBlack) {
 			this.attackerIsBlack = attackerIsBlack;
+			this.attackMask = 0L;
 			forEachPawnOfSide(this, attackerIsBlack);
+			return attackMask;
+		}
+	}
+	
+	class PawnKnightAttackAggregator implements IForEachPieceCallback {
+		
+		public final int[] BLACK = {Piece.BLACK_PAWN, Piece.BLACK_KNIGHT};
+		public final int[] WHITE = {Piece.WHITE_PAWN, Piece.WHITE_KNIGHT};
+		
+		long attackMask = 0L;
+		
+		public void callback(int piece, int position) {
+			long mask = 0L;
+			switch(piece) {
+			case Piece.WHITE_PAWN:
+				mask = SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[position];
+				break;
+			case Piece.BLACK_PAWN:
+				mask = SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[position];
+				break;
+			case Piece.WHITE_KNIGHT:
+			case Piece.BLACK_KNIGHT:
+				mask = SquareAttackEvaluator.KnightMove_Lut[position];
+				break;
+			default:
+				break;
+			}
+			attackMask |= mask;
+		}
+		
+		public long getAttacks(boolean attackerIsBlack) {
+			attackMask = 0L;
+			pieceLists.forEachPieceOfTypeDoCallback(this, attackerIsBlack ? BLACK: WHITE);
 			return attackMask;
 		}
 	}
@@ -939,7 +974,7 @@ public class Board {
 	int calculateDiagonalMobility(long bishops, long queens, boolean attackerIsBlack) {
 		long empty = ~allPieces;
 		int mobility_score = 0x0;
-		long pawnAttacks = new PawnAttackAggregator().getPawnAttacks(attackerIsBlack);
+		long pawnAttacks = paa.getPawnAttacks(attackerIsBlack);
 		long diagonal_sliders = bishops | queens;
 		if (queens != 0) {
 			if (bishops != 0) {
@@ -985,7 +1020,7 @@ public class Board {
 	int calculateRankFileMobility(long rooks, long queens, boolean attackerIsBlack) {
 		long empty = ~allPieces;
 		int mobility_score = 0x0;
-		long pawnAttacks = new PawnAttackAggregator().getPawnAttacks(attackerIsBlack);
+		long pawnAttacks = pkaa.getAttacks(attackerIsBlack);
 		long rank_file_sliders = rooks | queens;
 		if (rooks != 0) {
 			long mobility_mask_1 = BitBoard.leftOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;
