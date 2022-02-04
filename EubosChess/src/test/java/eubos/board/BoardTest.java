@@ -149,10 +149,6 @@ public class BoardTest {
 	
 	@Test
 	public void testRookMobility_ExcludePawnAttacks() {
-		// Max 8 pawns in the PieceLit limitation
-//		classUnderTest.setPieceAtSquare(Position.d7, Piece.BLACK_PAWN);
-//		classUnderTest.setPieceAtSquare(Position.d6, Piece.BLACK_PAWN);
-//		classUnderTest.setPieceAtSquare(Position.d5, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(Position.d4, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(Position.a3, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(Position.b3, Piece.BLACK_PAWN);
@@ -167,7 +163,6 @@ public class BoardTest {
 	
 	@Test
 	public void testRookMobility_ExcludePawnAttacks_1() {
-		// Max 8 pawns in the PieceLit limitation
 		classUnderTest.setPieceAtSquare(Position.d7, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(Position.d6, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(Position.d5, Piece.BLACK_PAWN);
@@ -180,7 +175,7 @@ public class BoardTest {
 	
 	@Test
 	public void testRookMobility_ExcludeWhitePawnAttacks() {
-		// Max 8 pawns in the PieceLit limitation
+		// Max 8 pawns in the PieceList limitation
 		classUnderTest.setPieceAtSquare(Position.d5, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.a6, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.b6, Piece.WHITE_PAWN);
@@ -289,7 +284,7 @@ public class BoardTest {
 	
 	@Test
 	public void testBishopMobility_ExcludeWhitePawnAttacks_1() {
-		// Max 8 pawns in the PieceLit limitation
+		// Max 8 pawns in the PieceList limitation
 		classUnderTest.setPieceAtSquare(Position.d2, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.e3, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.f4, Piece.WHITE_PAWN);
@@ -297,6 +292,26 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.h6, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.h8, Piece.BLACK_BISHOP);
 		assertEquals(2, classUnderTest.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0, false));
+	}
+	
+	@Test
+	public void testRookandQueenMobility_ExcludeBlackPawnandKnightAttacks() {	
+		setUpPosition("5K1k/2n5/2n5/8/2n5/2nn4/5pp1/R3Q3 w - - 0 1");
+		assertEquals(0, classUnderTest.calculateRankFileMobility(classUnderTest.getWhiteRooks(), classUnderTest.getWhiteQueens(), true));
+	}
+	
+	@Test
+	public void testRookandQueenMobility_ExcludeBlackPawnandKnightAttacks_1() {	
+		setUpPosition("5K1k/2n5/2n5/8/2n5/2nn4/5pp1/R3Q2R w - - 0 1");
+		assertEquals(6, classUnderTest.calculateRankFileMobility(classUnderTest.getWhiteRooks(), classUnderTest.getWhiteQueens(), true));
+	}
+	
+	@Test
+	public void testRookandQueenMobility_ExcludeBlackPawnandKnightAttacks_2() {	
+		setUpPosition("5K1k/2n5/2n5/8/2n5/2nn4/5pp1/R3Q2R w - - 0 1");
+		classUnderTest.me.dynamicPosition = 0;
+		classUnderTest.calculateDynamicMobility(classUnderTest.me);
+		assertEquals(12, classUnderTest.me.dynamicPosition);
 	}
 		
 	@Test
@@ -549,7 +564,7 @@ public class BoardTest {
 		setUpPosition("r1b1kb1r/ppq1pppp/8/3pN3/3Q4/8/PPP2PPP/RNB1K2R b KQkq - 0 1");
 		PiecewiseEvaluation me = new PiecewiseEvaluation();
 		classUnderTest.calculateDynamicMobility(me);
-		assertEquals(10, me.getPosition());
+		assertEquals(14, me.getPosition());
 	}
 	
 	@Test
