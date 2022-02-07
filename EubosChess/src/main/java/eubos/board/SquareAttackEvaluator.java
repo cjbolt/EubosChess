@@ -286,47 +286,26 @@ public class SquareAttackEvaluator {
 	}
 	
 	public static boolean isAttacked( Board bd, int attackedSq, boolean isBlackAttacking) {
-		
-		// Early terminate, if no potential attackers
-		long attackers = isBlackAttacking ? bd.getBlackPieces() : bd.getWhitePieces();
-		if ((allAttacksOnPosition_Lut[attackedSq] & attackers) == 0)
-			return false;
-		
-		// Pawns
-		long attackingPawnsMask = isBlackAttacking ? bd.getBlackPawns() : bd.getWhitePawns();
 		boolean attacked = false;
-		if (isBlackAttacking) {
-			attacked = (attackingPawnsMask & BlackPawnAttacks_Lut[attackedSq]) != 0;
-			if (attacked) return true;
-			attacked = (attackingPawnsMask & BlackPawnAttacks_Lut[attackedSq]) != 0;
-			if (attacked) return true;
-		} else {
-			attacked = (attackingPawnsMask & WhitePawnAttacks_Lut[attackedSq]) != 0;
-			if (attacked) return true;
-			attacked = (attackingPawnsMask & WhitePawnAttacks_Lut[attackedSq]) != 0;
-			if (attacked) return true;
-		}
 		
-		// Non-sliders
-		long attackingKingMask = isBlackAttacking ? bd.getBlackKing() : bd.getWhiteKing();
-		attacked = (attackingKingMask & KingMove_Lut[attackedSq]) != 0;
-		if (attacked) return true;
+		// Knights
 		long attackingKnightsMask = isBlackAttacking ? bd.getBlackKnights() : bd.getWhiteKnights();
 		attacked = (attackingKnightsMask & KnightMove_Lut[attackedSq]) != 0;
 		if (attacked) return true;
 		
+		// Pawns
+		long attackingPawnsMask = isBlackAttacking ? bd.getBlackPawns() : bd.getWhitePawns();
+		attacked = (attackingPawnsMask & (isBlackAttacking ? BlackPawnAttacks_Lut[attackedSq] : WhitePawnAttacks_Lut[attackedSq])) != 0;
+		if (attacked) return true;
+		
+		// Kings
+		long attackingKingMask = isBlackAttacking ? bd.getBlackKing() : bd.getWhiteKing();
+		attacked = (attackingKingMask & KingMove_Lut[attackedSq]) != 0;
+		if (attacked) return true;
+		
 		// Sliders
-		return checkForDirectPieceAttacker(bd, attackedSq, isBlackAttacking);	
-	}
-
-	private static boolean checkForDirectPieceAttacker(Board bd, int attackedSq, boolean isBlackAttacking) {
-		// direct piece check is computationally heavy, so just do what is necessary
-		long attackingQueensMask = isBlackAttacking ? bd.getBlackQueens() : bd.getWhiteQueens();
-		long attackingRooksMask = isBlackAttacking ? bd.getBlackRooks() : bd.getWhiteRooks();
-		long attackingBishopsMask = isBlackAttacking ? bd.getBlackBishops() : bd.getWhiteBishops();
-		// create masks of attackers
-		long diagonalAttackersMask = attackingQueensMask | attackingBishopsMask;
-		long rankFileAttackersMask = attackingQueensMask | attackingRooksMask;	
+		long diagonalAttackersMask = isBlackAttacking ? bd.getBlackDiagonal() : bd.getWhiteDiagonal();
+		long rankFileAttackersMask = isBlackAttacking ? bd.getBlackRankFile() : bd.getWhiteRankFile();
 		
 		long empty = bd.getEmpty();
 		long target = BitBoard.positionToMask_Lut[attackedSq];
@@ -351,7 +330,7 @@ public class SquareAttackEvaluator {
 			attackMask = BitBoard.leftAttacks(rankFileAttackersMask, empty);
 			if ((attackMask & target) != 0) return true;
 		}
-				
-		return false;
+		
+		return attacked;
 	}
 }

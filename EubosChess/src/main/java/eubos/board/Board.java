@@ -794,6 +794,14 @@ public class Board {
 		return blackPieces & (pieces[INDEX_KING]);
 	}
 	
+	public long getBlackDiagonal() {
+		return blackPieces & (pieces[INDEX_QUEEN] | pieces[INDEX_BISHOP]);
+	}
+	
+	public long getBlackRankFile() {
+		return blackPieces & (pieces[INDEX_QUEEN] | pieces[INDEX_ROOK]);
+	}
+	
 	public long getWhitePawns() {
 		return whitePieces & (pieces[INDEX_PAWN]);
 	}
@@ -816,6 +824,14 @@ public class Board {
 	
 	public long getWhiteKing() {
 		return whitePieces & (pieces[INDEX_KING]);
+	}
+	
+	public long getWhiteDiagonal() {
+		return whitePieces & (pieces[INDEX_QUEEN] | pieces[INDEX_BISHOP]);
+	}
+	
+	public long getWhiteRankFile() {
+		return whitePieces & (pieces[INDEX_QUEEN] | pieces[INDEX_ROOK]);
 	}
 	
 	public boolean isOnHalfOpenFile(GenericPosition atPos, int type) {
