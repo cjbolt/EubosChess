@@ -878,7 +878,7 @@ public class Board {
 	int calculateDiagonalMobility(long bishops, long queens, boolean attackerIsBlack) {
 		long empty = ~allPieces;
 		int mobility_score = 0x0;
-		long attackedSquares = pkaa.getAttacks(attackerIsBlack);
+		long attackedSquares = paa.getPawnAttacks(attackerIsBlack);
 		long diagonal_sliders = bishops | queens;
 		if (queens != 0) {
 			if (bishops != 0) {
@@ -924,7 +924,7 @@ public class Board {
 	int calculateRankFileMobility(long rooks, long queens, boolean attackerIsBlack) {
 		long empty = ~allPieces;
 		int mobility_score = 0x0;
-		long attackedSquares = pkaa.getAttacks(attackerIsBlack);
+		long attackedSquares = paa.getPawnAttacks(attackerIsBlack);
 		long rank_file_sliders = rooks | queens;
 		if (rooks != 0) {
 			long mobility_mask_1 = BitBoard.leftOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;

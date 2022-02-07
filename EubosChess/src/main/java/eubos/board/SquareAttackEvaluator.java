@@ -298,11 +298,7 @@ public class SquareAttackEvaluator {
 		if (isBlackAttacking) {
 			attacked = (attackingPawnsMask & BlackPawnAttacks_Lut[attackedSq]) != 0;
 			if (attacked) return true;
-			attacked = (attackingPawnsMask & BlackPawnAttacks_Lut[attackedSq]) != 0;
-			if (attacked) return true;
 		} else {
-			attacked = (attackingPawnsMask & WhitePawnAttacks_Lut[attackedSq]) != 0;
-			if (attacked) return true;
 			attacked = (attackingPawnsMask & WhitePawnAttacks_Lut[attackedSq]) != 0;
 			if (attacked) return true;
 		}

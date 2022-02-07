@@ -80,9 +80,9 @@ public abstract class Piece {
 	
 	public static final short MATERIAL_VALUE_KING = 4000;
 	public static final short MATERIAL_VALUE_QUEEN = 900;
-	public static final short MATERIAL_VALUE_ROOK = 490;
-	public static final short MATERIAL_VALUE_BISHOP = 305;
-	public static final short MATERIAL_VALUE_KNIGHT = 290;
+	public static final short MATERIAL_VALUE_ROOK = 500;
+	public static final short MATERIAL_VALUE_BISHOP = 300;
+	public static final short MATERIAL_VALUE_KNIGHT = 300;
 	public static final short MATERIAL_VALUE_PAWN = 100;
 	
     public static final short [] PIECE_TO_MATERIAL_LUT = {0, MATERIAL_VALUE_KING, MATERIAL_VALUE_QUEEN, MATERIAL_VALUE_ROOK, 
