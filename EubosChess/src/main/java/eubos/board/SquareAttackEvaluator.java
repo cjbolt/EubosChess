@@ -131,6 +131,32 @@ public class SquareAttackEvaluator {
 		}
 	}
 	
+	/* The following 1-dimensional arrays provide bit masks of all the squares that can directly attack the target square:
+	 * 1st index is a position integer, this is the target square */	
+	static final long[] directRankFileAttacksOnPosition_Lut = new long[128];
+	static {
+		for (int square : Position.values) {
+			Long allAttacksMask = 0L;
+			for (Direction dir: rankFile) {
+				allAttacksMask = setAllInDirection(dir, square, allAttacksMask, 8);
+			}
+			directRankFileAttacksOnPosition_Lut[square] = allAttacksMask;
+		}
+	}
+	
+	/* The following 1-dimensional arrays provide bit masks of all the squares that can directly attack the target square:
+	 * 1st index is a position integer, this is the target square */	
+	static final long[] directDiagonalAttacksOnPosition_Lut = new long[128];
+	static {
+		for (int square : Position.values) {
+			Long allAttacksMask = 0L;
+			for (Direction dir: diagonals) {
+				allAttacksMask = setAllInDirection(dir, square, allAttacksMask, 8);
+			}
+			directDiagonalAttacksOnPosition_Lut[square] = allAttacksMask;
+		}
+	}
+	
 	/* The following 1-dimensional arrays provide bit masks of all the squares in a direction that can attack the target square:
 	 * 1st index is a position integer, this is the target square */
 	static final long[] directAttacksOnPositionUp_Lut = new long[128];
@@ -310,7 +336,7 @@ public class SquareAttackEvaluator {
 		long empty = bd.getEmpty();
 		long target = BitBoard.positionToMask_Lut[attackedSq];
 		
-		if (diagonalAttackersMask != 0) {
+		if ((directDiagonalAttacksOnPosition_Lut[attackedSq] & diagonalAttackersMask) != 0) {
 			long attackMask = BitBoard.downLeftAttacks(diagonalAttackersMask, empty);
 			if ((attackMask & target) != 0) return true;
 			attackMask = BitBoard.downRightAttacks(diagonalAttackersMask, empty);
@@ -320,7 +346,8 @@ public class SquareAttackEvaluator {
 			attackMask = BitBoard.upLeftAttacks(diagonalAttackersMask, empty);
 			if ((attackMask & target) != 0) return true;
 		}
-		if (rankFileAttackersMask != 0) {
+		
+		if ((directRankFileAttacksOnPosition_Lut[attackedSq] & rankFileAttackersMask) != 0) {
 			long attackMask = BitBoard.downAttacks(rankFileAttackersMask, empty);
 			if ((attackMask & target) != 0) return true;
 			attackMask = BitBoard.rightAttacks(rankFileAttackersMask, empty);

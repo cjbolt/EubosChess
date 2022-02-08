@@ -1,7 +1,5 @@
 package eubos.board;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator;
@@ -361,8 +359,9 @@ public class Board {
 			kingPosition = pieceLists.getKingPos(isWhite);
 		} else {
 			long king = (isWhite) ? getWhiteKing() : getBlackKing();
-			
-			kingPosition = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(king)];
+			if (king != 0) {
+				kingPosition = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(king)];
+			}
 		}
 		return kingPosition;
 	}
@@ -858,7 +857,6 @@ public class Board {
 			}
 		} else {
 			long bitBoardToIterate = ownSideIsWhite ? whitePieces : blackPieces;
-			List<Integer> movesList = new LinkedList<Integer>();
 			long scratchBitBoard = 0;
 			// Unrolled loop for performance optimisation...
 			if (me.isEndgame()) {
@@ -1127,7 +1125,11 @@ public class Board {
 		if (ENABLE_PIECE_LISTS) {
 			kingPos = pieceLists.getKingPos(isWhite);
 		} else {
-			kingPos = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(kingMask)];
+			if (kingMask != 0) {
+				kingPos = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(kingMask)];
+			} else {
+				return 0;
+			}
 		}
 		long mobility_mask = 0x0;
 		if (numPotentialAttackers > 0) {
