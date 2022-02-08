@@ -7,14 +7,19 @@
   <description>Eubos Chess Engine</description>
   <dependencies>
   	<dependency>
-  		<groupId>junit</groupId>
-  		<artifactId>junit</artifactId>
-  		<scope>test</scope>
-  	</dependency>
+		<groupId>org.junit.jupiter</groupId>
+		<artifactId>junit-jupiter</artifactId>
+		<scope>test</scope>
+	</dependency>
+	<dependency>
+	    <groupId>org.junit.platform</groupId>
+	    <artifactId>junit-platform-launcher</artifactId>
+	    <version>1.4.2</version>
+	    <scope>test</scope>
+	</dependency>
 	<dependency>
 		<groupId>com.github.jjYBdx4IL.chess</groupId>
 		<artifactId>jcpi</artifactId>
-		<version>1.4.1.1</version>
 	</dependency>
 	<dependency>
 		<groupId>org.mockito</groupId>
@@ -30,6 +35,7 @@
     	<artifactId>fastutil</artifactId>
     	<version>8.5.6</version>
 	</dependency>
+
   </dependencies>
      <properties>
      	<maven.compiler.target>1.8</maven.compiler.target>
@@ -37,15 +43,38 @@
      </properties>
      <dependencyManagement>
      	<dependencies>
+		<dependency>
+			<groupId>org.junit</groupId>
+			<artifactId>junit-bom</artifactId>
+			<version>5.8.2</version>
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
+		<dependency>
+	        <groupId>org.junit.jupiter</groupId>
+	        <artifactId>junit-jupiter-engine</artifactId>
+	    </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>2.25.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+            <exclusions>
+              <exclusion>
+                  <groupId>junit</groupId>
+                  <artifactId>junit</artifactId>
+              </exclusion>
+            </exclusions>
+        </dependency>
      		<dependency>
-     			<groupId>junit</groupId>
-     			<artifactId>junit</artifactId>
-     			<version>4.13.1</version>
-     		</dependency>
-     		<dependency>
-     			<groupId>org.mockito</groupId>
-     			<artifactId>mockito-core</artifactId>
-     			<version>2.19.1</version>
+     			<groupId>com.github.jjYBdx4IL.chess</groupId>
+     			<artifactId>jcpi</artifactId>
+     			<version>1.4.1.1</version>
      		</dependency>
      	</dependencies>
      </dependencyManagement>
