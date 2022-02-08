@@ -8,8 +8,6 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
-import eubos.board.Board;
-
 import eubos.board.Piece;
 import eubos.search.KillerList;
 
@@ -132,24 +130,14 @@ public class MoveListTest {
 		
 		// neutral exchanges
 		assertEquals(new GenericMove("b1b5"), Move.toGenericMove(it.nextInt())); // RxR
-		if (Board.ENABLE_PIECE_LISTS) {
-			assertEquals(new GenericMove("f5e6"), Move.toGenericMove(it.nextInt())); // PxP
-			assertEquals(new GenericMove("g2f3"), Move.toGenericMove(it.nextInt())); // PxP
-		} else {
-			assertEquals(new GenericMove("g2f3"), Move.toGenericMove(it.nextInt())); // PxP
-			assertEquals(new GenericMove("f5e6"), Move.toGenericMove(it.nextInt())); // PxP
-		}
+		assertEquals(new GenericMove("f5e6"), Move.toGenericMove(it.nextInt())); // PxP
+		assertEquals(new GenericMove("g2f3"), Move.toGenericMove(it.nextInt())); // PxP
 		
 		// losing material
 		assertEquals(new GenericMove("g5f3"), Move.toGenericMove(it.nextInt())); // NxP delta -1 loses 2
 		assertEquals(new GenericMove("g5e6"), Move.toGenericMove(it.nextInt())); // NxP delta -1 loses 2
-		if (Board.ENABLE_PIECE_LISTS) {
-			assertEquals(new GenericMove("d7e6"), Move.toGenericMove(it.nextInt())); // BxP delta -2 loses 2
-			assertEquals(new GenericMove("g4f3"), Move.toGenericMove(it.nextInt())); // BxP delta -2 loses 2
-		} else {
-			assertEquals(new GenericMove("d7e6"), Move.toGenericMove(it.nextInt())); // BxP delta -2 loses 2
-			assertEquals(new GenericMove("g4f3"), Move.toGenericMove(it.nextInt())); // BxP delta -2 loses 2
-		}
+		assertEquals(new GenericMove("d7e6"), Move.toGenericMove(it.nextInt())); // BxP delta -2 loses 2
+		assertEquals(new GenericMove("g4f3"), Move.toGenericMove(it.nextInt())); // BxP delta -2 loses 2
 		assertEquals(new GenericMove("e3f3"), Move.toGenericMove(it.nextInt())); // RxP delta -3 loses 4 losing material but checks
 		assertEquals(new GenericMove("e3e6"), Move.toGenericMove(it.nextInt())); // RxP delta -3 loses 4
 		assertEquals(new GenericMove("a6b5"), Move.toGenericMove(it.nextInt())); // QxR delta -1 loses 4

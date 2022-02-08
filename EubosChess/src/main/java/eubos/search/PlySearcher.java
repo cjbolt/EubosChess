@@ -169,7 +169,7 @@ public class PlySearcher {
 					
 					// If the hashed data is now drawing, due to the position in the search tree, score it accordingly, but still check
 					// if it is good enough for a refutation.
-					int hashScore = !override_trans_move ? convertMateScoreForPositionInSearchTree(trans) : 0;
+					int hashScore = !override_trans_move ? convertMateScoreForPositionInSearchTree(trans.getScore()) : 0;
 					switch(type) {
 					case Score.exact:
 						if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
@@ -425,8 +425,7 @@ public class PlySearcher {
 		return trans;
 	}
 	
-	private int convertMateScoreForPositionInSearchTree(ITransposition trans)  {
-		short trans_score = trans.getScore();	
+	private int convertMateScoreForPositionInSearchTree(short trans_score)  {	
 		short adjustedScoreForThisPositionInTree = trans_score;
 		if (Score.isMate(trans_score)) {
 			// The score stored in the hash table encodes the distance to the mate from the hashed position,
@@ -446,7 +445,7 @@ public class PlySearcher {
 	}
 
 	private void reportPv(short positionScore) {
-		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && atRootNode() && sr != null) {
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && atRootNode()) {
 			sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), positionScore);
 			sr.reportPrincipalVariation(sm);
 			extendedSearchDeepestPly = 0;

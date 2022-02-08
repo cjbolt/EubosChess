@@ -298,11 +298,7 @@ public class SquareAttackEvaluator {
 		if (isBlackAttacking) {
 			attacked = (attackingPawnsMask & BlackPawnAttacks_Lut[attackedSq]) != 0;
 			if (attacked) return true;
-			attacked = (attackingPawnsMask & BlackPawnAttacks_Lut[attackedSq]) != 0;
-			if (attacked) return true;
 		} else {
-			attacked = (attackingPawnsMask & WhitePawnAttacks_Lut[attackedSq]) != 0;
-			if (attacked) return true;
 			attacked = (attackingPawnsMask & WhitePawnAttacks_Lut[attackedSq]) != 0;
 			if (attacked) return true;
 		}
@@ -353,5 +349,53 @@ public class SquareAttackEvaluator {
 		}
 				
 		return false;
+	}
+	
+	/* 1-dimensional array:
+	 * 1st index is a position integer, this is the origin square
+	 * indexes a bit mask of the squares that the origin square can attack by a Black Pawn capture */
+	static final long[] BlackPawnAttacksFromPosition_Lut = new long[128];
+	static {
+		for (int square : Position.values) {
+			BlackPawnAttacksFromPosition_Lut[square] = createBlackPawnMovesFromSq(square);
+		}
+	}
+	static long createBlackPawnMovesFromSq(int atPos) {
+		long mask = 0;
+		if (Position.getRank(atPos) != 7) {
+			int sq = Direction.getDirectMoveSq(Direction.downRight, atPos);
+			if (sq != Position.NOPOSITION) {
+				mask |= BitBoard.positionToMask_Lut[sq];
+			}
+			sq = Direction.getDirectMoveSq(Direction.downLeft, atPos);
+			if (sq != Position.NOPOSITION) {
+				mask |= BitBoard.positionToMask_Lut[sq];
+			}
+		}
+		return mask;
+	}
+	
+	/* 1-dimensional array:
+	 * 1st index is a position integer, this is the origin square
+	 * indexes a bit mask of the squares that the origin square can attack by a White Pawn capture */
+	static final long[] WhitePawnAttacksFromPosition_Lut = new long[128];
+	static {
+		for (int square : Position.values) {
+			WhitePawnAttacksFromPosition_Lut[square] = createWhitePawnMovesFromSq(square);
+		}
+	}
+	static long createWhitePawnMovesFromSq(int atPos) {
+		long mask = 0;
+		if (Position.getRank(atPos) != 0) {
+			int sq = Direction.getDirectMoveSq(Direction.upRight, atPos);
+			if (sq != Position.NOPOSITION) {
+				mask |= BitBoard.positionToMask_Lut[sq];
+			}
+			sq = Direction.getDirectMoveSq(Direction.upLeft, atPos);
+			if (sq != Position.NOPOSITION) {
+				mask |= BitBoard.positionToMask_Lut[sq];
+			}
+		}
+		return mask;
 	}
 }
