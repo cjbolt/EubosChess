@@ -587,7 +587,7 @@ public class Board {
 	
 	public int getPieceAtSquareIfEnemy( int atPos, boolean ownSideIsWhite ) {
 		int type = Piece.NONE;
-		long pieceToGet = BitBoard.positionToMask_Lut[atPos];;
+		long pieceToGet = BitBoard.positionToMask_Lut[atPos];
 		if ((allPieces & pieceToGet) != 0) {	
 			if ((blackPieces & pieceToGet) != 0) {
 				if (!ownSideIsWhite) return Piece.DONT_CARE;

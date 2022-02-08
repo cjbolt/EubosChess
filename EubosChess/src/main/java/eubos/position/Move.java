@@ -11,22 +11,22 @@ import it.unimi.dsi.fastutil.ints.IntComparator;
 /* This class represents a move as a integer primitive value. */
 public final class Move {
 	
-	private static final int ORIGINPOSITION_SHIFT = 0;
-	private static final int ORIGINPOSITION_MASK = Position.MASK << ORIGINPOSITION_SHIFT;
+	private static final int TARGET_PIECE_SHIFT = 0;
+	private static final int TARGET_PIECE_MASK = Piece.PIECE_WHOLE_MASK << TARGET_PIECE_SHIFT;
+	private static final int TARGET_PIECE_NO_COLOUR_MASK = Piece.PIECE_NO_COLOUR_MASK << TARGET_PIECE_SHIFT;
 	
-	private static final int TARGETPOSITION_SHIFT = ORIGINPOSITION_SHIFT+Long.bitCount(Position.MASK);
+	private static final int TARGETPOSITION_SHIFT = TARGET_PIECE_SHIFT+Long.bitCount(Piece.PIECE_WHOLE_MASK);
 	private static final int TARGETPOSITION_MASK = Position.MASK << TARGETPOSITION_SHIFT;
 	
-	private static final int PROMOTION_SHIFT = TARGETPOSITION_SHIFT+Long.bitCount(Position.MASK);
+	private static final int ORIGINPOSITION_SHIFT = TARGETPOSITION_SHIFT+Long.bitCount(Position.MASK);
+	private static final int ORIGINPOSITION_MASK = Position.MASK << ORIGINPOSITION_SHIFT;
+	
+	private static final int PROMOTION_SHIFT = ORIGINPOSITION_SHIFT+Long.bitCount(Position.MASK);
 	private static final int PROMOTION_MASK = Piece.PIECE_NO_COLOUR_MASK << PROMOTION_SHIFT;
 	
 	private static final int ORIGIN_PIECE_SHIFT = PROMOTION_SHIFT+Long.bitCount(Piece.PIECE_NO_COLOUR_MASK);
 	private static final int ORIGIN_PIECE_MASK = Piece.PIECE_WHOLE_MASK << ORIGIN_PIECE_SHIFT;
 	private static final int ORIGIN_PIECE_MASK_NO_COLOUR = Piece.PIECE_NO_COLOUR_MASK << ORIGIN_PIECE_SHIFT;
-	
-	private static final int TARGET_PIECE_SHIFT = ORIGIN_PIECE_SHIFT+Long.bitCount(Piece.PIECE_WHOLE_MASK);
-	private static final int TARGET_PIECE_MASK = Piece.PIECE_WHOLE_MASK << TARGET_PIECE_SHIFT;
-	private static final int TARGET_PIECE_NO_COLOUR_MASK = Piece.PIECE_NO_COLOUR_MASK << TARGET_PIECE_SHIFT;
 	
 	// Move ordering
 	public static final int TYPE_REGULAR_NONE = 0;
@@ -44,10 +44,10 @@ public final class Move {
 	public static final int MOVE_ORDERING_MASK = (TYPE_KILLER_MASK | TYPE_CAPTURE_MASK | TYPE_PROMOTION_MASK | TYPE_BEST_MASK);
 	public static final int KILLER_EXCLUSION_MASK = (TYPE_CAPTURE_MASK | TYPE_PROMOTION_MASK);
 	
-	private static final int TYPE_SHIFT = TARGET_PIECE_SHIFT + Long.bitCount(Piece.PIECE_WHOLE_MASK);
+	private static final int TYPE_SHIFT = ORIGIN_PIECE_SHIFT + Long.bitCount(Piece.PIECE_WHOLE_MASK);
 	private static final int TYPE_MASK = ((1<<TYPE_WIDTH)-1) << TYPE_SHIFT;
 	
-	// Micsc flags
+	// Misc flags
 	public static final int MISC_EN_PASSANT_CAPTURE_BIT = 0;
 	private static final int MISC_SHIFT = TYPE_SHIFT + Long.bitCount(TYPE_MASK);
 	public static final int MISC_EN_PASSANT_CAPTURE_MASK = (0x1 << (MISC_EN_PASSANT_CAPTURE_BIT+ MISC_SHIFT));
@@ -62,28 +62,28 @@ public final class Move {
 	}
 	
 	public static int valueOfRegular(int originPosition, int originPiece, int targetPosition) {
-		int move = originPosition;
+		int move = targetPosition << TARGETPOSITION_SHIFT;
 		
 		// Encode Origin Piece
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (originPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
 		move |= originPiece << ORIGIN_PIECE_SHIFT;
 
-		// Encode target position
+		// Encode origin position
 		if (EubosEngineMain.ENABLE_ASSERTS)
-			assert (targetPosition & 0x88) == 0;
-		move |= targetPosition << TARGETPOSITION_SHIFT;
+			assert (originPosition & 0x88) == 0;
+		move |= originPosition << ORIGINPOSITION_SHIFT;
 		
 		return move;
 	}
 	
 	public static int valueOfPromotion(int originPosition, int targetPosition, int promotion) {
-		int move = originPosition;
+		int move = targetPosition << TARGETPOSITION_SHIFT;
 
-		// Encode target position
+		// Encode origin position
 		if (EubosEngineMain.ENABLE_ASSERTS)
-			assert (targetPosition & 0x88) == 0;
-		move |= targetPosition << TARGETPOSITION_SHIFT;
+			assert (originPosition & 0x88) == 0;
+		move |= originPosition << ORIGINPOSITION_SHIFT;
 		
 		// Encode promotion
 		if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -100,28 +100,23 @@ public final class Move {
 	}
 	
 	public static int valueOf(int originPosition, int originPiece, int targetPosition, int targetPiece) {
-		int move = originPosition;
+		int move = targetPiece;
 		
 		// Encode Target Piece and classification if a capture
 		if (targetPiece != Piece.NONE) {
 			move |= Move.TYPE_CAPTURE_MASK << TYPE_SHIFT;
-			
-			if (EubosEngineMain.ENABLE_ASSERTS)
-				assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
-			move |= targetPiece << TARGET_PIECE_SHIFT;
 		}
 
-// Done in initial assignment
-//		// Encode origin position
-//		if (EubosEngineMain.ASSERTS_ENABLED)
-//			assert (originPosition & 0x88) == 0;
-//		move |= originPosition << ORIGINPOSITION_SHIFT;
+		// Encode origin position
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert (originPosition & 0x88) == 0;
+		move |= originPosition << ORIGINPOSITION_SHIFT;
 		
 		// Encode Origin Piece
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (originPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
 		move |= originPiece << ORIGIN_PIECE_SHIFT;
-
+		
 		// Encode target position
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (targetPosition & 0x88) == 0;
@@ -131,14 +126,10 @@ public final class Move {
 	}
 	
 	public static int valueOfCapture(int originPosition, int originPiece, int targetPosition, int targetPiece) {
-		int move = originPosition;
+		int move = targetPiece;
 		
 		// Encode Target Piece and capture classification
 		move |= Move.TYPE_CAPTURE_MASK << TYPE_SHIFT;
-		
-		if (EubosEngineMain.ENABLE_ASSERTS)
-			assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
-		move |= targetPiece << TARGET_PIECE_SHIFT;
 		
 		// Encode Origin Piece
 		if (EubosEngineMain.ENABLE_ASSERTS)
@@ -149,37 +140,37 @@ public final class Move {
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (targetPosition & 0x88) == 0;
 		move |= targetPosition << TARGETPOSITION_SHIFT;
+		
+		// Encode origin position
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert (originPosition & 0x88) == 0;
+		move |= originPosition << ORIGINPOSITION_SHIFT;
 		
 		return move;
 	}
 	
 	public static int valueOf(int originPosition, int originPiece, int targetPosition, int targetPiece, int promotion) {
-		int move = originPosition;
+		int move = targetPiece;
 		
 		// Encode Target Piece and classification if a capture
 		if (targetPiece != Piece.NONE) {
 			move |= Move.TYPE_CAPTURE_MASK << TYPE_SHIFT;
-			
-			if (EubosEngineMain.ENABLE_ASSERTS)
-				assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
-			move |= targetPiece << TARGET_PIECE_SHIFT;
 		}
 
-		// Done in initial assignment
-//		// Encode origin position
-//		if (EubosEngineMain.ASSERTS_ENABLED)
-//			assert (originPosition & 0x88) == 0;
-//		move |= originPosition << ORIGINPOSITION_SHIFT;
+		// Encode origin position
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert (originPosition & 0x88) == 0;
+		move |= originPosition << ORIGINPOSITION_SHIFT;
+		
+		// Encode target position
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert (targetPosition & 0x88) == 0;
+		move |= targetPosition << TARGETPOSITION_SHIFT;
 		
 		// Encode Origin Piece
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (originPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
 		move |= originPiece << ORIGIN_PIECE_SHIFT;
-
-		// Encode target position
-		if (EubosEngineMain.ENABLE_ASSERTS)
-			assert (targetPosition & 0x88) == 0;
-		move |= targetPosition << TARGETPOSITION_SHIFT;
 		
 		// Encode promotion
 		if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -191,15 +182,12 @@ public final class Move {
 	}
 	
 	public static int valueOf(int enPassant, int type, int originPosition, int originPiece, int targetPosition, int targetPiece, int promotion) {
-		int move = originPosition;
+		int move = targetPiece;
 
 		// Encode Target Piece and classification if a capture
 		if (targetPiece != Piece.NONE) {
 			move |= (type | Move.TYPE_CAPTURE_MASK) << TYPE_SHIFT;
 			
-			if (EubosEngineMain.ENABLE_ASSERTS)
-				assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
-			move |= targetPiece << TARGET_PIECE_SHIFT;
 		} else {
 			// Encode move classification
 			if (EubosEngineMain.ENABLE_ASSERTS)
@@ -208,23 +196,22 @@ public final class Move {
 		}
 		
 		// Encode enPassant - single bit, doesn't need masking
-		move |= enPassant;
-
-		// Done in initial assignment
-//		// Encode origin position
-//		if (EubosEngineMain.ASSERTS_ENABLED)
-//			assert (originPosition & 0x88) == 0;
-//		move |= originPosition << ORIGINPOSITION_SHIFT;
+		move |= enPassant;		// Done in initial assignment
+		
+		// Encode origin position
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert (originPosition & 0x88) == 0;
+		move |= originPosition << ORIGINPOSITION_SHIFT;
+		
+		// Encode target position
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert (targetPosition & 0x88) == 0;
+		move |= targetPosition << TARGETPOSITION_SHIFT;
 		
 		// Encode Origin Piece
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (originPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
 		move |= originPiece << ORIGIN_PIECE_SHIFT;
-
-		// Encode target position
-		if (EubosEngineMain.ENABLE_ASSERTS)
-			assert (targetPosition & 0x88) == 0;
-		move |= targetPosition << TARGETPOSITION_SHIFT;
 		
 		// Encode Target Piece
 		if (EubosEngineMain.ENABLE_ASSERTS)
@@ -241,15 +228,12 @@ public final class Move {
 	}
 
 	public static int valueOf(int type, int originPosition, int originPiece, int targetPosition, int targetPiece, int promotion) {
-		int move = originPosition;
+		int move = targetPiece;
 
 		// Encode Target Piece and classification if a capture
 		if (targetPiece != Piece.NONE) {
 			move |= (type | Move.TYPE_CAPTURE_MASK) << TYPE_SHIFT;
-			
-			if (EubosEngineMain.ENABLE_ASSERTS)
-				assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
-			move |= targetPiece << TARGET_PIECE_SHIFT;
+
 		} else {
 			// Encode move classification
 			if (EubosEngineMain.ENABLE_ASSERTS)
@@ -262,16 +246,16 @@ public final class Move {
 			assert (originPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
 		move |= originPiece << ORIGIN_PIECE_SHIFT;
 
+		// Encode Origin position
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert (originPosition & 0x88) == 0;
+		move |= originPosition << ORIGINPOSITION_SHIFT;
+		
 		// Encode target position
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (targetPosition & 0x88) == 0;
 		move |= targetPosition << TARGETPOSITION_SHIFT;
-		
-		// Encode Target Piece
-		if (EubosEngineMain.ENABLE_ASSERTS)
-			assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
-		move |= targetPiece << TARGET_PIECE_SHIFT;
-		
+				
 		// Encode promotion
 		if (EubosEngineMain.ENABLE_ASSERTS) {
 			//assert (/* Valid promotion */) || promotion == IntChessman.NOCHESSMAN;

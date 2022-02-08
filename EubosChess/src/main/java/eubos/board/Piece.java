@@ -445,6 +445,46 @@ public abstract class Piece {
 		return ref_moves;
 	}
 	
+	static final int[][] BlackPawnPromotionMove_Lut = new int[128][];
+	static {
+		for (int square : Position.values) {
+			if (Position.getRank(square) == IntRank.R2) {
+				BlackPawnPromotionMove_Lut[square] = createBlackPawnPromotionMovesFromOriginPosition(square);
+			}
+		}
+	}
+	static int [] createBlackPawnPromotionMovesFromOriginPosition(int originPosition) {
+		int originPiece = Piece.BLACK_PAWN;
+		int [] moves = new int[4];
+		// Create reference moves (with target none)
+		int targetPosition = Direction.getDirectMoveSq(Direction.down, originPosition);
+		moves[0] = Move.valueOf(Move.TYPE_PROMOTION_MASK, originPosition, originPiece, targetPosition, Piece.NONE, Piece.QUEEN );
+		moves[1] = Move.valueOf(Move.TYPE_PROMOTION_MASK, originPosition, originPiece, targetPosition, Piece.NONE, Piece.ROOK );
+		moves[2] = Move.valueOf(Move.TYPE_PROMOTION_MASK, originPosition, originPiece, targetPosition, Piece.NONE, Piece.BISHOP );
+		moves[3] = Move.valueOf(Move.TYPE_PROMOTION_MASK, originPosition, originPiece, targetPosition, Piece.NONE, Piece.KNIGHT );
+		return moves;
+	}
+	
+	static final int[][] WhitePawnPromotionMove_Lut = new int[128][];
+	static {
+		for (int square : Position.values) {
+			if (Position.getRank(square) == IntRank.R7) {
+				WhitePawnPromotionMove_Lut[square] = createWhitePawnPromotionMovesFromOriginPosition(square);
+			}
+		}
+	}
+	static int [] createWhitePawnPromotionMovesFromOriginPosition(int originPosition) {
+		int originPiece = Piece.WHITE_PAWN;
+		int [] moves = new int[4];
+		// Create reference moves (with target none)
+		int targetPosition = Direction.getDirectMoveSq(Direction.up, originPosition);
+		moves[0] = Move.valueOf(Move.TYPE_PROMOTION_MASK, originPosition, originPiece, targetPosition, Piece.NONE, Piece.QUEEN );
+		moves[1] = Move.valueOf(Move.TYPE_PROMOTION_MASK, originPosition, originPiece, targetPosition, Piece.NONE, Piece.ROOK );
+		moves[2] = Move.valueOf(Move.TYPE_PROMOTION_MASK, originPosition, originPiece, targetPosition, Piece.NONE, Piece.BISHOP );
+		moves[3] = Move.valueOf(Move.TYPE_PROMOTION_MASK, originPosition, originPiece, targetPosition, Piece.NONE, Piece.KNIGHT );
+		return moves;
+	}
+	
 	static int RookMove_Lut_Size = 0;
 	static final int[][][] WhiteRookMove_Lut = new int[128][][]; // Position by direction by moves in that direction
 	static {
@@ -699,85 +739,105 @@ public abstract class Piece {
 			}
 		}
 	}
-		
-	private static boolean pawn_isAtInitialPosition(int atSquare, boolean ownSideIsWhite) {
-		if (!ownSideIsWhite) {
-			return (Position.getRank(atSquare) == IntRank.R7);
-		} else {
-			return (Position.getRank(atSquare) == IntRank.R2);
-		}
-	}
 
 	private static int pawn_genOneSqTarget(int atSquare, boolean ownSideIsWhite) {
-		if (!ownSideIsWhite) {
-			return Direction.getDirectMoveSq(Direction.down, atSquare);
-		} else {
-			return Direction.getDirectMoveSq(Direction.up, atSquare);
-		}
+		return ownSideIsWhite ? atSquare+16: atSquare-16;
 	}	
 	
 	private static int pawn_genTwoSqTarget(int atSquare, boolean ownSideIsWhite) {
 		int moveTo = Position.NOPOSITION;
-		if ( pawn_isAtInitialPosition(atSquare, ownSideIsWhite) ) {
-			if (!ownSideIsWhite) {
-				moveTo = Direction.getDirectMoveSq(Direction.down, Direction.getDirectMoveSq(Direction.down, atSquare));
-			} else {
-				moveTo = Direction.getDirectMoveSq(Direction.up, Direction.getDirectMoveSq(Direction.up, atSquare));
-			}
+		if (Position.getRank(atSquare) == (ownSideIsWhite ? IntRank.R2 : IntRank.R7)) {
+			// bound checking is implicit from start position check
+			moveTo = ownSideIsWhite ? atSquare+32: atSquare-32;
 		}
 		return moveTo;
 	}
 	
 	private static int pawn_genLeftCaptureTarget(int atSquare, boolean ownSideIsWhite) {
-		if (!ownSideIsWhite) {
-			return Direction.getDirectMoveSq(Direction.downRight, atSquare);
-		} else {
-			return Direction.getDirectMoveSq(Direction.upLeft, atSquare);
-		}
+		// Needs off board check
+		return Direction.getDirectMoveSq(ownSideIsWhite ? Direction.upLeft : Direction.downRight, atSquare);
 	}
 	
 	private static int pawn_genRightCaptureTarget(int atSquare, boolean ownSideIsWhite) {
-		if (!ownSideIsWhite) {
-			return Direction.getDirectMoveSq(Direction.downLeft, atSquare);
-		} else {
-			return Direction.getDirectMoveSq(Direction.upRight, atSquare);
-		}		
+		// Needs off board check
+		return Direction.getDirectMoveSq(ownSideIsWhite ? Direction.upRight : Direction.downLeft, atSquare);	
 	}
 	
 	private static int pawn_isCapturable(boolean ownSideIsWhite, Board theBoard, int captureAt ) {
 		int capturePiece = Piece.NONE;
 		int queryPiece = theBoard.getPieceAtSquareIfEnemy(captureAt, ownSideIsWhite);
-		if ( queryPiece != Piece.NONE && queryPiece != Piece.DONT_CARE) {
+		if (queryPiece != Piece.NONE && queryPiece != Piece.DONT_CARE) {
 			capturePiece = queryPiece;
 		}
 		return capturePiece;
 	}
 	
 	private static boolean pawn_checkPromotionPossible(boolean ownSideIsWhite, int targetSquare ) {
-		return (( !ownSideIsWhite && Position.getRank(targetSquare) == IntRank.R1) || 
-				( ownSideIsWhite && Position.getRank(targetSquare) == IntRank.R8));
+		return Position.getRank(targetSquare) == (ownSideIsWhite ? IntRank.R8 : IntRank.R1);
 	}
 	
-	private static void pawn_checkPromotionAddMove(int ownPiece, Board theBoard, int atSquare, boolean ownSideIsWhite, IAddMoves ml,
+	private static void pawn_checkPromotionAddMove(int atSquare, boolean ownSideIsWhite, IAddMoves ml, int targetSquare) {
+		if (pawn_checkPromotionPossible( ownSideIsWhite, targetSquare )) {
+			for (int move : ownSideIsWhite ? WhitePawnPromotionMove_Lut[atSquare] : BlackPawnPromotionMove_Lut[atSquare]) {
+				ml.addPrio(move);
+			}
+		} else {
+			ml.addNormal(Move.valueOf(atSquare, ownSideIsWhite ? Piece.WHITE_PAWN : Piece.BLACK_PAWN, targetSquare, Piece.NONE));
+		}
+	}
+	
+	private static void pawn_checkPromotionAddCaptureMove(int ownPiece, int atSquare, boolean ownSideIsWhite, IAddMoves ml,
 			int targetSquare, int targetPiece) {
-		if ( pawn_checkPromotionPossible( ownSideIsWhite, targetSquare )) {
-			// Add in order of prioritisation
+		if (pawn_checkPromotionPossible( ownSideIsWhite, targetSquare )) {
 			ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.QUEEN ));
 			ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.ROOK ));
 			ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.BISHOP ));
 			ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.KNIGHT ));
 		} else {
-			if (targetPiece != Piece.NONE) {
-				// add captures at head of list
-				ml.addPrio(Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
-			} else {
-				ml.addNormal(Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
+			// add captures at head of list
+			ml.addPrio(Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
+		}
+	}
+	
+	static void pawn_generateMoves(IAddMoves ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+		int ownPiece = ownSideIsWhite ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
+		int capturePiece = Piece.NONE;
+		// Check for standard one and two square moves
+		int moveTo = pawn_genOneSqTarget(atSquare, ownSideIsWhite);
+		if (theBoard.squareIsEmpty(moveTo)) {
+			pawn_checkPromotionAddMove(atSquare, ownSideIsWhite, ml, moveTo);
+			moveTo = pawn_genTwoSqTarget(atSquare, ownSideIsWhite);
+			if (moveTo != Position.NOPOSITION && theBoard.squareIsEmpty(moveTo)) {
+				// Can't be a promotion or capture
+				ml.addNormal(Move.valueOf(atSquare, ownPiece, moveTo , Piece.NONE));
+			}	
+		}
+		// Check for capture moves, includes en passant
+		int captureAt = pawn_genLeftCaptureTarget(atSquare, ownSideIsWhite);
+		if (captureAt != Position.NOPOSITION) {
+			capturePiece = pawn_isCapturable(ownSideIsWhite, theBoard, captureAt);
+			if (capturePiece != Piece.NONE) {
+				pawn_checkPromotionAddCaptureMove(ownPiece, atSquare, ownSideIsWhite, ml, captureAt, capturePiece);
+			} else if (captureAt == theBoard.getEnPassantTargetSq()) {
+				capturePiece = ownSideIsWhite ? Piece.BLACK_PAWN : Piece.WHITE_PAWN;
+				// promotion can't be possible if en passant capture
+				ml.addPrio(Move.valueOf(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
+			}
+		}
+		captureAt = pawn_genRightCaptureTarget(atSquare, ownSideIsWhite);
+		if ( captureAt != Position.NOPOSITION ) {
+			capturePiece = pawn_isCapturable(ownSideIsWhite, theBoard, captureAt);
+			if (capturePiece != Piece.NONE) {
+				pawn_checkPromotionAddCaptureMove(ownPiece, atSquare, ownSideIsWhite, ml, captureAt, capturePiece);
+			} else if (captureAt == theBoard.getEnPassantTargetSq()) {
+				capturePiece = ownSideIsWhite ? Piece.BLACK_PAWN : Piece.WHITE_PAWN;
+				// promotion can't be possible if en passant capture
+				ml.addPrio(Move.valueOf(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
 			}
 		}
 	}
 	
-	private static void pawn_checkQueenPromotionAddMove(int ownPiece, Board theBoard, int atSquare, boolean ownSideIsWhite, IAddMoves ml,
-			int targetSquare, int targetPiece) {
+	private static void pawn_checkQueenPromotionAddCaptureMove(int ownPiece, int atSquare, boolean ownSideIsWhite, IAddMoves ml, int targetSquare, int targetPiece) {
 		if ( pawn_checkPromotionPossible( ownSideIsWhite, targetSquare )) {
 			ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.QUEEN ));
 		} else if (targetPiece != Piece.NONE) {
@@ -787,65 +847,27 @@ public abstract class Piece {
 		}
 	}
 	
-	static void pawn_generateMoves(IAddMoves ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
-		int ownPiece = ownSideIsWhite ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
-		int capturePiece = Piece.NONE;
-		// Check for standard one and two square moves
-		int moveTo = pawn_genOneSqTarget(atSquare, ownSideIsWhite);
-		if ( moveTo != Position.NOPOSITION && theBoard.squareIsEmpty( moveTo )) {
-			pawn_checkPromotionAddMove(ownPiece, theBoard, atSquare, ownSideIsWhite, ml, moveTo, Piece.NONE);
-			moveTo = pawn_genTwoSqTarget(atSquare, ownSideIsWhite);
-			if ( moveTo != Position.NOPOSITION && theBoard.squareIsEmpty( moveTo )) {
-				// Can't be a promotion
-				ml.addNormal(Move.valueOf(atSquare, ownPiece, moveTo , Piece.NONE));
-			}	
-		}
-		// Check for capture moves, includes en passant
-		int captureAt = pawn_genLeftCaptureTarget(atSquare, ownSideIsWhite);
-		if ( captureAt != Position.NOPOSITION ) {
-			capturePiece = pawn_isCapturable(ownSideIsWhite, theBoard, captureAt);
-			if (capturePiece != Piece.NONE) {
-				pawn_checkPromotionAddMove(ownPiece, theBoard, atSquare, ownSideIsWhite, ml, captureAt, capturePiece);
-			} else if (captureAt == theBoard.getEnPassantTargetSq()) {
-				capturePiece = !ownSideIsWhite ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
-				// promotion can't be possible if en passant capture
-				ml.addPrio(Move.valueOf(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
-			}
-		}
-		captureAt = pawn_genRightCaptureTarget(atSquare, ownSideIsWhite);
-		if ( captureAt != Position.NOPOSITION ) {
-			capturePiece = pawn_isCapturable(ownSideIsWhite, theBoard, captureAt);
-			if (capturePiece != Piece.NONE) {
-				pawn_checkPromotionAddMove(ownPiece, theBoard, atSquare, ownSideIsWhite, ml, captureAt, capturePiece);
-			} else if (captureAt == theBoard.getEnPassantTargetSq()) {
-				capturePiece = !ownSideIsWhite ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
-				// promotion can't be possible if en passant capture
-				ml.addPrio(Move.valueOf(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
-			}
-		}
-	}
-	
 	static void pawn_generateMovesForExtendedSearch(IAddMoves ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
-		int ownPiece = ownSideIsWhite ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
-		int capturePiece = Piece.NONE;
 		// Standard move
 		int moveTo = pawn_genOneSqTarget(atSquare, ownSideIsWhite);
-		if ( moveTo != Position.NOPOSITION && theBoard.squareIsEmpty( moveTo )) {
-			pawn_checkQueenPromotionAddMove(ownPiece, theBoard, atSquare, ownSideIsWhite, ml, moveTo, Piece.NONE);
+		if (pawn_checkPromotionPossible(ownSideIsWhite, moveTo) && theBoard.squareIsEmpty(moveTo)) {
+			ml.addPrio(ownSideIsWhite ? WhitePawnPromotionMove_Lut[atSquare][0] : BlackPawnPromotionMove_Lut[atSquare][0]);
 		}
 		// Capture moves
+		int ownPiece = ownSideIsWhite ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
+		int capturePiece = Piece.NONE;
 		int captureAt = pawn_genLeftCaptureTarget(atSquare, ownSideIsWhite);
-		if ( captureAt != Position.NOPOSITION ) {
+		if (captureAt != Position.NOPOSITION) {
 			capturePiece = pawn_isCapturable(ownSideIsWhite, theBoard, captureAt);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkQueenPromotionAddMove(ownPiece, theBoard, atSquare, ownSideIsWhite, ml, captureAt, capturePiece);
+				pawn_checkQueenPromotionAddCaptureMove(ownPiece, atSquare, ownSideIsWhite, ml, captureAt, capturePiece);
 			}
 		}
 		captureAt = pawn_genRightCaptureTarget(atSquare, ownSideIsWhite);
-		if ( captureAt != Position.NOPOSITION ) {
+		if (captureAt != Position.NOPOSITION) {
 			capturePiece = pawn_isCapturable(ownSideIsWhite, theBoard, captureAt);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkQueenPromotionAddMove(ownPiece, theBoard, atSquare, ownSideIsWhite, ml, captureAt, capturePiece);
+				pawn_checkQueenPromotionAddCaptureMove(ownPiece, atSquare, ownSideIsWhite, ml, captureAt, capturePiece);
 			}
 		}
 	}
