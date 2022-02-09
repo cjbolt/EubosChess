@@ -341,6 +341,8 @@ public class PieceList {
 		for(int atSquare : piece_list[side+Piece.ROOK]) {
 			if (atSquare != Position.NOPOSITION) {			
 				me.material += Piece.PIECE_TO_MATERIAL_LUT[side+Piece.ROOK];
+				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.ROOK][atSquare];
+				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.ROOK][atSquare];
 				me.numberOfPieces[side+Piece.ROOK]++;
 			} else break;
 		}

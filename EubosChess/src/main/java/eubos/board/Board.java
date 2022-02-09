@@ -483,6 +483,10 @@ public class Board {
 			if (ENABLE_PIECE_LISTS) {
 				pieceLists.updatePiece(Piece.WHITE_ROOK, Position.h1, Position.f1);
 			}
+			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.h1];
+			me.position += Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.f1];
+			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.h1];
+			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.f1];
 		} else if (Move.areEqual(move, CastlingManager.wqsc)) {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
@@ -490,6 +494,10 @@ public class Board {
 			if (ENABLE_PIECE_LISTS) {
 				pieceLists.updatePiece(Piece.WHITE_ROOK, Position.a1, Position.d1);
 			}
+			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.a1];
+			me.position += Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.d1];
+			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.a1];
+			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.d1];
 		} else if (Move.areEqual(move, CastlingManager.bksc)) {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
@@ -497,6 +505,10 @@ public class Board {
 			if (ENABLE_PIECE_LISTS) {
 				pieceLists.updatePiece(Piece.BLACK_ROOK, Position.h8, Position.f8);
 			}
+			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.h8];
+			me.position += Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.f8];
+			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.h8];
+			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.f8];
 		} else if (Move.areEqual(move, CastlingManager.bqsc)) {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
@@ -504,6 +516,10 @@ public class Board {
 			if (ENABLE_PIECE_LISTS) {
 				pieceLists.updatePiece(Piece.BLACK_ROOK, Position.a8, Position.d8);
 			}
+			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.a8];
+			me.position += Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.d8];
+			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.a8];
+			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.d8];
 		}
 	}
 	
@@ -515,6 +531,10 @@ public class Board {
 			if (ENABLE_PIECE_LISTS) {
 				pieceLists.updatePiece(Piece.WHITE_ROOK, Position.f1, Position.h1);
 			}
+			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.f1];
+			me.position += Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.h1];
+			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.f1];
+			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.h1];
 		} else if (Move.areEqual(move, CastlingManager.undo_wqsc)) {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
@@ -522,6 +542,10 @@ public class Board {
 			if (ENABLE_PIECE_LISTS) {
 				pieceLists.updatePiece(Piece.WHITE_ROOK, Position.d1, Position.a1);
 			}
+			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.d1];
+			me.position += Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.a1];
+			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.d1];
+			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.a1];
 		} else if (Move.areEqual(move, CastlingManager.undo_bksc)) {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
@@ -529,6 +553,10 @@ public class Board {
 			if (ENABLE_PIECE_LISTS) {
 				pieceLists.updatePiece(Piece.BLACK_ROOK, Position.f8, Position.h8);
 			}
+			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.f8];
+			me.position += Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.h8];
+			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.f8];
+			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.h8];
 		} else if (Move.areEqual(move, CastlingManager.undo_bqsc)) {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
@@ -536,6 +564,10 @@ public class Board {
 			if (ENABLE_PIECE_LISTS) {
 				pieceLists.updatePiece(Piece.BLACK_ROOK, Position.d8, Position.a8);
 			}
+			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.d8];
+			me.position += Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.a8];
+			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.d8];
+			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.a8];
 		}
 	}
 	
