@@ -337,37 +337,41 @@ public class SquareAttackEvaluator {
 		long target = BitBoard.positionToMask_Lut[attackedSq];
 		long attackMask = 0L;
 		
-		if ((directAttacksOnPositionUpRight_Lut[attackedSq] & diagonalAttackersMask) != 0) {
-			attackMask = BitBoard.downLeftAttacks(diagonalAttackersMask, empty);
-			if ((attackMask & target) != 0) return true;
+		if ((directDiagonalAttacksOnPosition_Lut[attackedSq] & diagonalAttackersMask) != 0) {
+			if ((directAttacksOnPositionUpRight_Lut[attackedSq] & diagonalAttackersMask) != 0) {
+				attackMask = BitBoard.downLeftAttacks(diagonalAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+			}
+			if ((directAttacksOnPositionUpLeft_Lut[attackedSq] & diagonalAttackersMask) != 0) {
+				attackMask = BitBoard.downRightAttacks(diagonalAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+			}
+			if ((directAttacksOnPositionDownLeft_Lut[attackedSq] & diagonalAttackersMask) != 0) {
+				attackMask = BitBoard.upRightAttacks(diagonalAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+			}
+			if ((directAttacksOnPositionDownRight_Lut[attackedSq] & diagonalAttackersMask) != 0) {
+				attackMask = BitBoard.upLeftAttacks(diagonalAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+			}
 		}
-		if ((directAttacksOnPositionUpLeft_Lut[attackedSq] & diagonalAttackersMask) != 0) {
-			attackMask = BitBoard.downRightAttacks(diagonalAttackersMask, empty);
-			if ((attackMask & target) != 0) return true;
-		}
-		if ((directAttacksOnPositionDownLeft_Lut[attackedSq] & diagonalAttackersMask) != 0) {
-			attackMask = BitBoard.upRightAttacks(diagonalAttackersMask, empty);
-			if ((attackMask & target) != 0) return true;
-		}
-		if ((directAttacksOnPositionDownRight_Lut[attackedSq] & diagonalAttackersMask) != 0) {
-			attackMask = BitBoard.upLeftAttacks(diagonalAttackersMask, empty);
-			if ((attackMask & target) != 0) return true;
-		}
-		if ((directAttacksOnPositionUp_Lut[attackedSq] & rankFileAttackersMask) != 0) {
-			attackMask = BitBoard.downAttacks(rankFileAttackersMask, empty);
-			if ((attackMask & target) != 0) return true;
-		}
-		if ((directAttacksOnPositionLeft_Lut[attackedSq] & rankFileAttackersMask) != 0) {
-			attackMask = BitBoard.rightAttacks(rankFileAttackersMask, empty);
-			if ((attackMask & target) != 0) return true;
-		}
-		if ((directAttacksOnPositionDown_Lut[attackedSq] & rankFileAttackersMask) != 0) {
-			attackMask = BitBoard.upAttacks(rankFileAttackersMask, empty);
-			if ((attackMask & target) != 0) return true;
-		}
-		if ((directAttacksOnPositionRight_Lut[attackedSq] & rankFileAttackersMask) != 0) {
-			attackMask = BitBoard.leftAttacks(rankFileAttackersMask, empty);
-			if ((attackMask & target) != 0) return true;
+		if ((directRankFileAttacksOnPosition_Lut[attackedSq] & rankFileAttackersMask) != 0) {
+			if ((directAttacksOnPositionUp_Lut[attackedSq] & rankFileAttackersMask) != 0) {
+				attackMask = BitBoard.downAttacks(rankFileAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+			}
+			if ((directAttacksOnPositionLeft_Lut[attackedSq] & rankFileAttackersMask) != 0) {
+				attackMask = BitBoard.rightAttacks(rankFileAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+			}
+			if ((directAttacksOnPositionDown_Lut[attackedSq] & rankFileAttackersMask) != 0) {
+				attackMask = BitBoard.upAttacks(rankFileAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+			}
+			if ((directAttacksOnPositionRight_Lut[attackedSq] & rankFileAttackersMask) != 0) {
+				attackMask = BitBoard.leftAttacks(rankFileAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+			}
 		}
 		
 		return attacked;
