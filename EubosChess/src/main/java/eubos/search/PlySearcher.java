@@ -330,21 +330,20 @@ public class PlySearcher {
 		MoveListIterator move_iter;
 		
 		// Stand Pat in extended search
-		// Phase 1 - crude evaluation
-		short plyScore = (short) pe.getCrudeEvaluation();	
+		short plyScore = (short) 0;
 		if (EubosEngineMain.ENABLE_LAZY_EVALUATION) {
+			// Phase 1 - crude evaluation
+			plyScore = (short) pe.getCrudeEvaluation();
 			if (plyScore-450 >= beta) {
 				// There is no move to put in the killer table when we stand Pat
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
 				return beta;
 			}
-		}	
-		if (pos.isQuiescent() && EubosEngineMain.ENABLE_LAZY_EVALUATION) {
-			if (plyScore+450 <= alpha) {
+			if (pos.isQuiescent() && (plyScore+450 <= alpha)) {
 				// According to lazy eval, can't increase alpha
 				return alpha;
 			}
-		}
+		}	
 		// Phase 2 full evaluation
 		plyScore = (short) pe.getFullEvaluation();
 		if (plyScore >= beta) {
