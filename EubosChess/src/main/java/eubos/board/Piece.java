@@ -821,7 +821,7 @@ public abstract class Piece {
 			} else if (captureAt == theBoard.getEnPassantTargetSq()) {
 				capturePiece = ownSideIsWhite ? Piece.BLACK_PAWN : Piece.WHITE_PAWN;
 				// promotion can't be possible if en passant capture
-				ml.addPrio(Move.valueOf(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
+				ml.addPrio(Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
 			}
 		}
 		captureAt = pawn_genRightCaptureTarget(atSquare, ownSideIsWhite);
@@ -832,7 +832,7 @@ public abstract class Piece {
 			} else if (captureAt == theBoard.getEnPassantTargetSq()) {
 				capturePiece = ownSideIsWhite ? Piece.BLACK_PAWN : Piece.WHITE_PAWN;
 				// promotion can't be possible if en passant capture
-				ml.addPrio(Move.valueOf(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
+				ml.addPrio(Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
 			}
 		}
 	}

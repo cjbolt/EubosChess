@@ -11,7 +11,6 @@ import eubos.board.Board;
 
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
-import eubos.main.EubosEngineMain;
 import eubos.score.IEvaluate;
 import eubos.score.PositionEvaluator;
 import eubos.search.DrawChecker;
@@ -82,7 +81,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	boolean repetitionPossible = false;
 	public boolean isThreefoldRepetitionPossible() {
-		return (EubosEngineMain.ENABLE_REPETITION_DETECTION) ? repetitionPossible : false;
+		return repetitionPossible;
 	}
 	
 	DrawChecker dc;
