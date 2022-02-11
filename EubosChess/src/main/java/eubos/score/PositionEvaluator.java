@@ -17,8 +17,8 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	public static final int ISOLATED_PAWN_HANDICAP = 33;
 	public static final int BACKWARD_PAWN_HANDICAP = 12;
 	
-	public static final int PASSED_PAWN_BOOST = 10;
-	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 6;
+	public static final int PASSED_PAWN_BOOST = 18;
+	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 12;
 	
 	public static final int CONNECTED_PASSED_PAWN_BOOST = 75;
 	
@@ -126,6 +126,9 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 			} else {
 				weighting = Position.getRank(atPos);
 			}
+			// scale weighting for game phase as well as promotion proximity, up to 3x
+			int scale = 1 + ((bd.me.phase+640) / 4096) + ((bd.me.phase+320) / 4096);
+			weighting *= scale;
 			if (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) {
 				individualPawnEval += weighting*ROOK_FILE_PASSED_PAWN_BOOST;
 			} else {
