@@ -46,7 +46,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_EvalPosB() {
 		setUpPosition("8/8/1B6/8/8/4Kpk1/8/b7 w - - - 85");
-		assertEquals(-242, SUT.getFullEvaluation());
+		assertEquals(-182, SUT.getFullEvaluation());
 	}
 	
 	@Test

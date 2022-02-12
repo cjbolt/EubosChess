@@ -147,9 +147,9 @@ public class EubosEngineMainTest {
 	@Test
 	public void test_infoMessageSending_clearsPreviousPvMoves() throws InterruptedException, IOException {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
-			String expectedOutput = "info depth 1 seldepth 6 score cp 11 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
-						"info depth 1 seldepth 6 score cp 184 pv c7c2 d4a7 hashfull 0 nps 441 time 102 nodes 45"+CMD_TERMINATOR+
-	                    "info depth 2 seldepth 6 score cp 114 pv c7c2 e1g1 d7e5 hashfull 0 nps 1836 time 116 nodes 201"+CMD_TERMINATOR
+			String expectedOutput = "info depth 1 seldepth 6 score cp -6 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
+						"info depth 1 seldepth 6 score cp 166 pv c7c2 d4a7 hashfull 0 nps 441 time 102 nodes 45"+CMD_TERMINATOR+
+	                    "info depth 2 seldepth 6 score cp 96 pv c7c2 e1g1 d7e5 hashfull 0 nps 1836 time 116 nodes 203"+CMD_TERMINATOR
 	                    +BEST_PREFIX+"c7c2";
 			setupEngine();
 			// Setup Commands specific to this test
@@ -302,7 +302,7 @@ public class EubosEngineMainTest {
 	public void test_tricky_endgame_position() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/4kp1p/3pb1p1/P5P1/3KN1PP/8/8 b - - 5 57"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"e5g3"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"h6h5"+CMD_TERMINATOR));
 		// h6h5 loses, it is a terrible move, but that is what Eubos selects. We should go with Bxg3 according to stockfish
 		/*
 		 * FEN: 8/8/4kp1p/3pb1p1/P5P1/3KN1PP/8/8 b - - 5 57
