@@ -341,6 +341,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		   It would be good to have a function that just tells us if there is an attacked piece or promotable
 		   pawn in the position. If there is, return early and check alpha vs pat. If there isn't anyway we
 		   will return plyScore either phase 1 or phase 2. */
-		return false;
+		return !theBoard.validCaptureMoveExists(onMoveIsWhite());
 	}
 }

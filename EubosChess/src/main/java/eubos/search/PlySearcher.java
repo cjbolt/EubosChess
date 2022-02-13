@@ -334,13 +334,15 @@ public class PlySearcher {
 		if (EubosEngineMain.ENABLE_LAZY_EVALUATION) {
 			// Phase 1 - crude evaluation
 			plyScore = (short) pe.getCrudeEvaluation();
-			if (plyScore-450 >= beta) {
+			if (!pos.getTheBoard().me.isEndgame() && plyScore-450 >= beta) {
 				// There is no move to put in the killer table when we stand Pat
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
+				// According to lazy eval, we probably can't reach beta
 				return beta;
 			}
-			if (pos.isQuiescent() && (plyScore+450 <= alpha)) {
-				// According to lazy eval, can't increase alpha
+			/* Note call to quiescence check last as it could be computationally heavy! */
+			if (!pos.getTheBoard().me.isEndgame() && (plyScore+450 <= alpha) && pos.isQuiescent()) {
+				// According to lazy eval, we probably can't increase alpha
 				return alpha;
 			}
 		}	

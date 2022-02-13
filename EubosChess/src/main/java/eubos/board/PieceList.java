@@ -384,4 +384,46 @@ public class PieceList {
 		int piece = sideIsWhite ? Piece.WHITE_KING : Piece.BLACK_KING;
 		return piece_list[piece][0];
 	}
+	
+	public boolean validCaptureMoveExists(IAddMoves ml, boolean ownSideIsWhite) {
+		int side = ownSideIsWhite ? 0 : Piece.BLACK;
+		for(int atSquare : piece_list[side+Piece.BISHOP]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.bishop_generateMovesExtSearch(ml, theBoard, atSquare, ownSideIsWhite);
+				if (ml.isLegalMoveFound()) return true;
+			} else break;
+		}
+		for(int atSquare : piece_list[side+Piece.KNIGHT]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.knight_generateMovesExtSearch(ml, theBoard, atSquare, ownSideIsWhite);
+				if (ml.isLegalMoveFound()) return true;
+			} else break;
+		}
+		for(int atSquare : piece_list[side+Piece.QUEEN]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.queen_generateMovesExtSearch(ml, theBoard, atSquare, ownSideIsWhite);
+				if (ml.isLegalMoveFound()) return true;
+			} else break;
+		}
+		for(int atSquare : piece_list[side+Piece.ROOK]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.rook_generateMovesExtSearch(ml, theBoard, atSquare, ownSideIsWhite);
+				if (ml.isLegalMoveFound()) return true;
+			} else break;
+		}
+		for(int atSquare : piece_list[side+Piece.PAWN]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.pawn_generateMovesForExtendedSearch(ml, theBoard, atSquare, ownSideIsWhite);
+				if (ml.isLegalMoveFound()) return true;
+			} else break;
+		}
+		{
+			int atSquare = piece_list[side+Piece.KING][0];
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.king_generateMovesExtSearch(ml, theBoard, atSquare, ownSideIsWhite);
+				if (ml.isLegalMoveFound()) return true;
+			}
+		}
+		return false;
+	}
 }

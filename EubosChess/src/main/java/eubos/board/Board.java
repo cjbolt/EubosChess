@@ -947,6 +947,38 @@ public class Board {
 		}
 	}
 	
+	public class LegalMoveChecker implements IAddMoves {
+		
+		boolean legalMoveFound = false;
+				
+		public void addPrio(int move) {
+			if (!isIllegalMove(move, true)) {
+				legalMoveFound = true;
+			}
+		}
+		
+		public void addNormal(int move) {
+			assert false;
+		}
+		
+		public boolean isLegalMoveFound() {
+			return legalMoveFound;
+		}
+	}
+	
+	LegalMoveChecker lmc = new LegalMoveChecker();
+	
+	public boolean validCaptureMoveExists(boolean ownSideIsWhite) {
+		boolean legalMoveExists = false;
+		if (ENABLE_PIECE_LISTS) {
+			lmc.legalMoveFound = false;
+			legalMoveExists = pieceLists.validCaptureMoveExists(lmc, ownSideIsWhite);
+		} else {
+			assert false;
+		}
+		return legalMoveExists;
+	}
+	
 	public void evaluateMaterial(PiecewiseEvaluation the_me) {
 		if (ENABLE_PIECE_LISTS) {
 			pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(true, the_me);

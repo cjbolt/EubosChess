@@ -233,6 +233,10 @@ public class MoveList implements Iterable<Integer> {
 				moveCount++;
 			}
 		}
+		
+		public boolean isLegalMoveFound() {
+			return false;
+		}
 	}
 	
 	public class MoveAdderWithNoKillers extends MoveAdder implements IAddMoves {

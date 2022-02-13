@@ -827,4 +827,16 @@ public class PositionManagerTest {
 		contains( Move.valueOf( Position.a1, Piece.BLACK_ROOK, Position.a2, Piece.WHITE_PAWN ));
 		doesntContain( Move.valueOf( Position.a1, Piece.BLACK_ROOK, Position.a3, Piece.WHITE_PAWN ));
 	}
+	
+	@Test
+	public void test_quiescent() {
+		createSutAndRegisterPe("1rk2N2/1p6/8/B1Pp4/B6Q/K7/8/2R5 w - d6 0 1");
+		assertTrue(classUnderTest.isQuiescent());
+	}
+	
+	@Test
+	public void test_not_quiescent_knight_takes_pawn() {
+		createSutAndRegisterPe("8/8/8/8/1N6/3K4/p7/k7 w - d6 0 1");
+		assertFalse(classUnderTest.isQuiescent());
+	}
 }
