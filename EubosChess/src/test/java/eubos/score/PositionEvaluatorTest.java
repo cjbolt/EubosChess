@@ -193,12 +193,13 @@ public class PositionEvaluatorTest {
 		assertEquals(0 /* blocked g pawn not passed */, score);
 	}
 	
-	@Disabled
 	@Test
 	public void test_encouragePassedPawns_BothPassedPawns() {
 		setUpPosition("8/8/8/8/6P1/8/6p1/8 b - - 0 1 ");
 		int score = SUT.evaluatePawnStructure();
-		//assertEquals((((7-3)*3*PASSED_PAWN_BOOST)-ISOLATED_PAWN_HANDICAP)-(3*3*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP)/* both pawns on the same file, passed */, score);
+		/* both pawns on the same file, passed, white at 3rd rank, black at 1st rank. */
+		int expected_eval = (((7-3)*3*PASSED_PAWN_BOOST)-ISOLATED_PAWN_HANDICAP)-(1*3*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP);
+		assertEquals(expected_eval, score);
 	}
 	
 	@Test
