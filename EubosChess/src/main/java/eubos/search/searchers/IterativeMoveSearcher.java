@@ -134,6 +134,11 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 								"Problem with waking stopper, quitting! checkPoint=%d ranFor=%d timeQuanta=%d duration=%d",
 								checkPoint, timeRanFor, timeQuantaForCheckPoint, duration));
 						stopMoveSearcher();
+					} else if (gameTimeRemaining < 500) {
+						/* Because we attempt to exceed the previous reference score depth, in some circumstances
+						   (high depth, drawing endgames) it is necessary to quit the search before the ref depth. */
+						EubosEngineMain.logger.info(String.format("Stopping search as gameTimeRemaining=%d < 500ms", gameTimeRemaining));
+						stopMoveSearcher();
 					}
 				}
 				hasWaitedOnce = true;
