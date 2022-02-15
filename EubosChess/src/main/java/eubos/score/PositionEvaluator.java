@@ -25,6 +25,8 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	public static final boolean ENABLE_PAWN_EVALUATION = true;
 	public static final boolean ENABLE_KING_SAFETY_EVALUATION = true;
 	public static final boolean ENABLE_DYNAMIC_POSITIONAL_EVALUATION = true;
+
+	private static final int BISHOP_PAIR_BOOST = 25;
 	
 	public boolean isDraw;
 	public short score;
@@ -59,6 +61,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		if (!isDraw) {
 			bd.me.dynamicPosition = 0;
 			score += pm.onMoveIsWhite() ? bd.me.getDelta() : -bd.me.getDelta();
+			score += evaluateBishopPair();
 			midgameScore = score + (pm.onMoveIsWhite() ? bd.me.getPosition() : -bd.me.getPosition());
 			endgameScore = score + (pm.onMoveIsWhite() ? bd.me.getEndgamePosition() : -bd.me.getEndgamePosition());
 			score = taperEvaluation(midgameScore, endgameScore);
@@ -74,6 +77,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 			// Score factors common to each phase, material, pawn structure and piece mobility
 			bd.me.dynamicPosition = 0;
 			score += pm.onMoveIsWhite() ? bd.me.getDelta() : -bd.me.getDelta();
+			score += evaluateBishopPair();
 			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !goForMate) {
 				bd.calculateDynamicMobility(bd.me);
 			}
@@ -112,6 +116,19 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		kingSafetyScore = pm.getTheBoard().evaluateKingSafety(pm.getOnMove());
 		kingSafetyScore -= pm.getTheBoard().evaluateKingSafety(Piece.Colour.getOpposite(pm.getOnMove()));
 		return kingSafetyScore;
+	}
+	
+	int evaluateBishopPair() {
+		int score = 0;
+		int onMoveBishopCount = pm.onMoveIsWhite() ? bd.me.numberOfPieces[Piece.WHITE_BISHOP] : bd.me.numberOfPieces[Piece.BLACK_BISHOP];
+		if (onMoveBishopCount >= 2) {
+			score += BISHOP_PAIR_BOOST;
+		}
+		int opponentBishopCount = pm.onMoveIsWhite() ? bd.me.numberOfPieces[Piece.BLACK_BISHOP] : bd.me.numberOfPieces[Piece.WHITE_BISHOP];
+		if (opponentBishopCount >= 2) {
+			score -= BISHOP_PAIR_BOOST;
+		}
+		return score;
 	}
 	
 	Colour onMoveIs;

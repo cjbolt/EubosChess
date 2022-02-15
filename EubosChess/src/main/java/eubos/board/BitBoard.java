@@ -14,27 +14,29 @@ public final class BitBoard {
 	private static final long not_a_file = 0xfefefefefefefefeL;
 	private static final long not_h_file = 0x7f7f7f7f7f7f7f7fL;
 	
-	static final int[] bitToPosition_Lut = new int[64];
-	static {
-		int bit_index = 0;
-		for (int square : Position.values) {
-			bitToPosition_Lut[bit_index++] = square;
-		}
-	}
-	
-	static final long[] positionToMask_Lut = new long[128];
-	static {
-		int bit_index = 0;
-		for (int x88_square : Position.values) {
-			long atPosMask = 1L << bit_index;
-			positionToMask_Lut[x88_square] = atPosMask;
-			bit_index++;
-		}
-	}
-			
-	public static String toString(long bitBoard) {
+	public static String toString(long board) {
+		int spaceCounter = 0;
 		StringBuilder sb = new StringBuilder();
-		PrimitiveIterator.OfInt iter = iterator(bitBoard);
+		for (int rank=7; rank>=0; rank--) {
+			for (int file=0; file<8; file++) {
+				long currentBit = positionToMask_Lut[Position.valueOf(file,rank)];
+				if ((currentBit & board) == currentBit) {
+					if (spaceCounter != 0)
+						sb.append(spaceCounter);
+					sb.append('X');
+					spaceCounter=0;					
+				} else {
+					spaceCounter++;
+				}
+			}
+			if (spaceCounter != 0)
+				sb.append(spaceCounter);
+			if (rank != 0)
+				sb.append('/');
+			spaceCounter=0;
+		}
+		sb.append(" ");
+		PrimitiveIterator.OfInt iter = iterator(board);
 		while (iter.hasNext()) {
 			int bit_index = iter.nextInt();
 			int file = bit_index%8;
@@ -43,6 +45,24 @@ public final class BitBoard {
 			sb.append(", ");
 		}
 		return sb.toString();
+	}
+	
+	static final int[] bitToPosition_Lut = new int[64];
+	static {
+		int bit_index = 0;
+		for (int square : Position.values) {
+			bitToPosition_Lut[bit_index++] = square;
+		}
+	}
+	
+	public static final long[] positionToMask_Lut = new long[128];
+	static {
+		int bit_index = 0;
+		for (int x88_square : Position.values) {
+			long atPosMask = 1L << bit_index;
+			positionToMask_Lut[x88_square] = atPosMask;
+			bit_index++;
+		}
 	}
 	
 	public static PrimitiveIterator.OfInt iterator(Long bitBoard) {
