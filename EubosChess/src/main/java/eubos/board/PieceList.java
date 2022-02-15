@@ -134,6 +134,12 @@ public class PieceList {
 		forEachPieceTypeOfSideHelper(caller, Piece.BLACK_KING);
 	}
 	
+	public void forEachPieceOfTypeDoCallback(IForEachPieceCallback caller, int[] pieceTypesToIterate) {
+		for(int piece : pieceTypesToIterate) {
+			forEachPieceOfTypeHelper(piece_list[piece], caller, piece);
+		}
+	}
+	
 	private void forEachPieceTypeOfSideHelper(IForEachPieceCallback caller, int currPiece) {
 		for (int piece = currPiece; piece < currPiece+NUM_PIECE_TYPES; piece++) {
 			forEachPieceOfTypeHelper(piece_list[piece], caller, piece);

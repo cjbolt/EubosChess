@@ -18,9 +18,6 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntRank;
 
 public class Board {
-	
-	public static final boolean ENABLE_PIECE_LISTS = true;
-	
 	private long allPieces = 0x0;
 	private long whitePieces = 0x0;
 	private long blackPieces = 0x0;
@@ -59,7 +56,12 @@ public class Board {
 	
 	public PiecewiseEvaluation me;
 	
+	PawnAttackAggregator paa;
+	PawnKnightAttackAggregator pkaa;
+	
 	public Board( Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove ) {
+		paa = new PawnAttackAggregator();
+		pkaa = new PawnKnightAttackAggregator();
 		allPieces = 0x0;
 		whitePieces = 0x0;
 		blackPieces = 0x0;
@@ -160,16 +162,12 @@ public class Board {
 			pieces[INDEX_PAWN] &= ~initialSquareMask;
 			pieces[promotedPiece] |= targetSquareMask;
 			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
-			if (ENABLE_PIECE_LISTS) {
-				pieceLists.updatePiece(pieceToMove, fullPromotedPiece, originSquare, targetSquare);
-			}
+			pieceLists.updatePiece(pieceToMove, fullPromotedPiece, originSquare, targetSquare);
 			updateMaterialAndPositionForDoingPromotion(fullPromotedPiece, originSquare, targetSquare);
 		} else {
 			// Piece type doesn't change across boards
 			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
-			if (ENABLE_PIECE_LISTS) {
-				pieceLists.updatePiece(pieceToMove, originSquare, targetSquare);
-			}
+			pieceLists.updatePiece(pieceToMove, originSquare, targetSquare);
 			// Update PST
 			me.position -= Piece.PIECE_SQUARE_TABLES[pieceToMove][originSquare];
 			me.position += Piece.PIECE_SQUARE_TABLES[pieceToMove][targetSquare];
@@ -230,16 +228,12 @@ public class Board {
 			pieces[INDEX_PAWN] |= targetSquareMask;
 			// and update piece list
 			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
-			if (ENABLE_PIECE_LISTS) {
-				pieceLists.updatePiece(fullPromotedPiece, originPiece, originSquare, targetSquare);
-			}
+			pieceLists.updatePiece(fullPromotedPiece, originPiece, originSquare, targetSquare);
 			updateMaterialAndPositionForUndoingPromotion(fullPromotedPiece, originSquare, targetSquare);
 		} else {
 			// Piece type doesn't change across boards
 			pieces[Piece.PIECE_NO_COLOUR_MASK & originPiece] ^= positionsMask;
-			if (ENABLE_PIECE_LISTS) {
-				pieceLists.updatePiece(originPiece, originSquare, targetSquare);
-			}
+			pieceLists.updatePiece(originPiece, originSquare, targetSquare);
 			me.position -= Piece.PIECE_SQUARE_TABLES[originPiece][originSquare];
 			me.position += Piece.PIECE_SQUARE_TABLES[originPiece][targetSquare];
 			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[originPiece][originSquare];
@@ -354,16 +348,7 @@ public class Board {
 	}
 	
 	private int getKingPosition(boolean isWhite) {
-		int kingPosition = Position.NOPOSITION;
-		if (ENABLE_PIECE_LISTS) {
-			kingPosition = pieceLists.getKingPos(isWhite);
-		} else {
-			long king = (isWhite) ? getWhiteKing() : getBlackKing();
-			if (king != 0) {
-				kingPosition = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(king)];
-			}
-		}
-		return kingPosition;
+		return pieceLists.getKingPos(isWhite);
 	}
 	
 	public boolean moveCouldLeadToOwnKingDiscoveredCheck(int move, int kingPosition) {
@@ -480,9 +465,7 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (wksc_mask);
 			whitePieces ^= (wksc_mask);
 			allPieces ^= (wksc_mask);
-			if (ENABLE_PIECE_LISTS) {
-				pieceLists.updatePiece(Piece.WHITE_ROOK, Position.h1, Position.f1);
-			}
+			pieceLists.updatePiece(Piece.WHITE_ROOK, Position.h1, Position.f1);
 			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.h1];
 			me.position += Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.f1];
 			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.h1];
@@ -491,9 +474,7 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
-			if (ENABLE_PIECE_LISTS) {
-				pieceLists.updatePiece(Piece.WHITE_ROOK, Position.a1, Position.d1);
-			}
+			pieceLists.updatePiece(Piece.WHITE_ROOK, Position.a1, Position.d1);
 			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.a1];
 			me.position += Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.d1];
 			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.a1];
@@ -502,9 +483,7 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
-			if (ENABLE_PIECE_LISTS) {
-				pieceLists.updatePiece(Piece.BLACK_ROOK, Position.h8, Position.f8);
-			}
+			pieceLists.updatePiece(Piece.BLACK_ROOK, Position.h8, Position.f8);
 			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.h8];
 			me.position += Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.f8];
 			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.h8];
@@ -513,9 +492,7 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
 			allPieces ^= (bqsc_mask);
-			if (ENABLE_PIECE_LISTS) {
-				pieceLists.updatePiece(Piece.BLACK_ROOK, Position.a8, Position.d8);
-			}
+			pieceLists.updatePiece(Piece.BLACK_ROOK, Position.a8, Position.d8);
 			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.a8];
 			me.position += Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.d8];
 			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.a8];
@@ -528,9 +505,7 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (wksc_mask);
 			whitePieces ^= (wksc_mask);
 			allPieces ^= (wksc_mask);
-			if (ENABLE_PIECE_LISTS) {
-				pieceLists.updatePiece(Piece.WHITE_ROOK, Position.f1, Position.h1);
-			}
+			pieceLists.updatePiece(Piece.WHITE_ROOK, Position.f1, Position.h1);
 			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.f1];
 			me.position += Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.h1];
 			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.f1];
@@ -539,9 +514,7 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
-			if (ENABLE_PIECE_LISTS) {
-				pieceLists.updatePiece(Piece.WHITE_ROOK, Position.d1, Position.a1);
-			}
+			pieceLists.updatePiece(Piece.WHITE_ROOK, Position.d1, Position.a1);
 			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.d1];
 			me.position += Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.a1];
 			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.d1];
@@ -550,9 +523,7 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
-			if (ENABLE_PIECE_LISTS) {
-				pieceLists.updatePiece(Piece.BLACK_ROOK, Position.f8, Position.h8);
-			}
+			pieceLists.updatePiece(Piece.BLACK_ROOK, Position.f8, Position.h8);
 			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.f8];
 			me.position += Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.h8];
 			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.f8];
@@ -561,9 +532,7 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
 			allPieces ^= (bqsc_mask);
-			if (ENABLE_PIECE_LISTS) {
-				pieceLists.updatePiece(Piece.BLACK_ROOK, Position.d8, Position.a8);
-			}
+			pieceLists.updatePiece(Piece.BLACK_ROOK, Position.d8, Position.a8);
 			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.d8];
 			me.position += Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.a8];
 			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.d8];
@@ -651,9 +620,7 @@ public class Board {
 			assert atPos != Position.NOPOSITION;
 			assert pieceToPlace != Piece.NONE;
 		}
-		if (ENABLE_PIECE_LISTS) {
-			pieceLists.addPiece(pieceToPlace, atPos);
-		}
+		pieceLists.addPiece(pieceToPlace, atPos);
 		long mask = BitBoard.positionToMask_Lut[atPos];
 		// Set on piece-specific bitboard
 		pieces[pieceToPlace & Piece.PIECE_NO_COLOUR_MASK] |= mask;
@@ -686,9 +653,7 @@ public class Board {
 			// Remove from all pieces bitboard
 			allPieces &= ~pieceToPickUp;
 			// Remove from piece list
-			if (ENABLE_PIECE_LISTS) {
-				pieceLists.removePiece(piece, atPos);
-			}
+			pieceLists.removePiece(piece, atPos);
 		} else {
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert false : String.format("Non-existant target piece at %s", Position.toGenericPosition(atPos));
@@ -880,70 +845,62 @@ public class Board {
 		return isHalfOpen;
 	}
 	
+	class PawnAttackAggregator implements IForEachPieceCallback {
+		long attackMask = 0L;
+		boolean attackerIsBlack = false;
+		
+		public void callback(int piece, int position) {
+			attackMask |= (attackerIsBlack ?
+					SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[position] : 
+						SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[position]);
+		}
+		
+		public long getPawnAttacks(boolean attackerIsBlack) {
+			this.attackerIsBlack = attackerIsBlack;
+			this.attackMask = 0L;
+			forEachPawnOfSide(this, attackerIsBlack);
+			return attackMask;
+		}
+	}
+	
+	class PawnKnightAttackAggregator implements IForEachPieceCallback {
+		
+		public final int[] BLACK_ATTACKERS = {Piece.BLACK_PAWN, Piece.BLACK_KNIGHT};
+		public final int[] WHITE_ATTACKERS = {Piece.WHITE_PAWN, Piece.WHITE_KNIGHT};
+		
+		long attackMask = 0L;
+		
+		public void callback(int piece, int position) {
+			long mask = 0L;
+			switch(piece) {
+			case Piece.WHITE_PAWN:
+				mask = SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[position];
+				break;
+			case Piece.BLACK_PAWN:
+				mask = SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[position];
+				break;
+			case Piece.WHITE_KNIGHT:
+			case Piece.BLACK_KNIGHT:
+				mask = SquareAttackEvaluator.KnightMove_Lut[position];
+				break;
+			default:
+				break;
+			}
+			attackMask |= mask;
+		}
+		
+		public long getAttacks(boolean attackerIsBlack) {
+			attackMask = 0L;
+			pieceLists.forEachPieceOfTypeDoCallback(this, attackerIsBlack ? BLACK_ATTACKERS: WHITE_ATTACKERS);
+			return attackMask;
+		}
+	}
+	
 	public void getRegularPieceMoves(IAddMoves ml, boolean ownSideIsWhite, boolean captures) {
-		if (ENABLE_PIECE_LISTS) {
-			if (me.isEndgame()) {
-				pieceLists.addMovesEndgame(ml, ownSideIsWhite, captures);
-			} else {
-				pieceLists.addMovesMiddlegame(ml, ownSideIsWhite, captures);
-			}
+		if (me.isEndgame()) {
+			pieceLists.addMovesEndgame(ml, ownSideIsWhite, captures);
 		} else {
-			long bitBoardToIterate = ownSideIsWhite ? whitePieces : blackPieces;
-			long scratchBitBoard = 0;
-			// Unrolled loop for performance optimisation...
-			if (me.isEndgame()) {
-				scratchBitBoard = bitBoardToIterate & pieces[INDEX_KING];
-				while ( scratchBitBoard != 0x0L ) {
-					int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
-					int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-					Piece.king_generateMoves(ml, this, atSquare, ownSideIsWhite);
-					scratchBitBoard &= scratchBitBoard-1L;
-				}
-			}
-			scratchBitBoard = bitBoardToIterate & pieces[INDEX_QUEEN];
-			while ( scratchBitBoard != 0x0L ) {
-				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
-				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-				Piece.queen_generateMoves(ml, this, atSquare, ownSideIsWhite);
-				scratchBitBoard &= scratchBitBoard-1L;
-			}
-			scratchBitBoard = bitBoardToIterate & pieces[INDEX_ROOK];
-			while ( scratchBitBoard != 0x0L ) {
-				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
-				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-				Piece.rook_generateMoves(ml, this, atSquare, ownSideIsWhite);
-				scratchBitBoard &= scratchBitBoard-1L;
-			}
-			scratchBitBoard = bitBoardToIterate & pieces[INDEX_BISHOP];
-			while ( scratchBitBoard != 0x0L ) {
-				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
-				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-				Piece.bishop_generateMoves(ml, this, atSquare, ownSideIsWhite);
-				scratchBitBoard &= scratchBitBoard-1L;
-			}
-			scratchBitBoard = bitBoardToIterate & pieces[INDEX_KNIGHT];
-			while ( scratchBitBoard != 0x0L ) {
-				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
-				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-				Piece.knight_generateMoves(ml, this, atSquare, ownSideIsWhite);
-				scratchBitBoard &= scratchBitBoard-1L;
-			}
-			scratchBitBoard = bitBoardToIterate & pieces[INDEX_PAWN];
-			while ( scratchBitBoard != 0x0L ) {
-				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
-				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-				Piece.pawn_generateMoves(ml, this, atSquare, ownSideIsWhite);
-				scratchBitBoard &= scratchBitBoard-1L;
-			}
-			if (!me.isEndgame()) {
-				scratchBitBoard = bitBoardToIterate & pieces[INDEX_KING];
-				while ( scratchBitBoard != 0x0L ) {
-					int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
-					int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-					Piece.king_generateMoves(ml, this, atSquare, ownSideIsWhite);
-					scratchBitBoard &= scratchBitBoard-1L;
-				}
-			}
+			pieceLists.addMovesMiddlegame(ml, ownSideIsWhite, captures);
 		}
 	}
 	
@@ -970,28 +927,14 @@ public class Board {
 	
 	public boolean validCaptureMoveExists(boolean ownSideIsWhite) {
 		boolean legalMoveExists = false;
-		if (ENABLE_PIECE_LISTS) {
-			lmc.legalMoveFound = false;
-			legalMoveExists = pieceLists.validCaptureMoveExists(lmc, ownSideIsWhite);
-		} else {
-			assert false;
-		}
+		lmc.legalMoveFound = false;
+		legalMoveExists = pieceLists.validCaptureMoveExists(lmc, ownSideIsWhite);
 		return legalMoveExists;
 	}
 	
 	public void evaluateMaterial(PiecewiseEvaluation the_me) {
-		if (ENABLE_PIECE_LISTS) {
-			pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(true, the_me);
-			pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(false, the_me);
-			the_me.setPhase();
-		} else {
-			PrimitiveIterator.OfInt iter_p = this.iterator();
-			while ( iter_p.hasNext() ) {
-				int atPos = iter_p.nextInt();
-				int currPiece = getPieceAtSquare(atPos);
-				updateMaterialForPiece(currPiece, atPos, the_me);
-			}
-		}
+		pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(true, the_me);
+		pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(false, the_me);
 		the_me.setPhase();
 	}
 	
@@ -1089,16 +1032,6 @@ public class Board {
 		me.dynamicPosition -= (short)(mobility_score*2);
 	}
 	
-    // For reasons of performance optimisation, part of the material evaluation considers the mobility of pieces.
-    // This function generates a score considering two categories A) material B) static PSTs 
-	private void updateMaterialForPiece(int currPiece, int atPos, PiecewiseEvaluation eval) {
-		eval.material += Piece.PIECE_TO_MATERIAL_LUT[currPiece];
-		eval.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[currPiece][atPos];
-		eval.position += Piece.PIECE_SQUARE_TABLES[currPiece][atPos];
-		eval.numberOfPieces[currPiece]++;
-		// Phase updated afterwards in caller
-	}
-	
 	public boolean isInsufficientMaterial() {
 		// Major pieces
 		if (pieces[Piece.QUEEN] != 0)
@@ -1185,16 +1118,7 @@ public class Board {
 		
 		// First score according to King exposure on open diagonals
 		int numPotentialAttackers = Long.bitCount(diagonalAttackersMask);
-		int kingPos = Position.NOPOSITION;
-		if (ENABLE_PIECE_LISTS) {
-			kingPos = pieceLists.getKingPos(isWhite);
-		} else {
-			if (kingMask != 0) {
-				kingPos = BitBoard.bitToPosition_Lut[Long.numberOfTrailingZeros(kingMask)];
-			} else {
-				return 0;
-			}
-		}
+		int kingPos = pieceLists.getKingPos(isWhite);
 		long mobility_mask = 0x0;
 		if (numPotentialAttackers > 0) {
 			long blockers = isWhite ? getWhitePawns() : getBlackPawns();
@@ -1236,33 +1160,11 @@ public class Board {
 	}
 	
 	public void forEachPiece(IForEachPieceCallback caller) {
-		if (ENABLE_PIECE_LISTS) {
-			pieceLists.forEachPieceDoCallback(caller);
-		} else {
-			long scratchBitBoard = allPieces;
-			while ( scratchBitBoard != 0x0L ) {
-				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
-				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-				caller.callback(getPieceAtSquare(atSquare), atSquare);
-				scratchBitBoard &= scratchBitBoard-1L;
-			}
-		}
+		pieceLists.forEachPieceDoCallback(caller);
 	}
 	
 	public void forEachPawnOfSide(IForEachPieceCallback caller, boolean isBlack) {
-		if (ENABLE_PIECE_LISTS) {
-			pieceLists.forEachPawnOfSideDoCallback(caller, isBlack);
-		} else {
-			long pawnMask = isBlack ? getBlackPawns() : getWhitePawns();
-			int piece = isBlack ? Piece.BLACK_PAWN : Piece.WHITE_PAWN;
-			long scratchBitBoard = pawnMask;
-			while ( scratchBitBoard != 0x0L ) {
-				int bitIndex = Long.numberOfTrailingZeros(scratchBitBoard);
-				int atSquare = BitBoard.bitToPosition_Lut[bitIndex];
-				caller.callback(piece, atSquare);
-				scratchBitBoard &= scratchBitBoard-1L;
-			}
-		}
+		pieceLists.forEachPawnOfSideDoCallback(caller, isBlack);
 	}
 	
 	public long getEmpty() {

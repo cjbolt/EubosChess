@@ -50,11 +50,13 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final byte SEARCH_DEPTH_IN_PLY = Byte.MAX_VALUE;
 	public static final int DEFAULT_NUM_SEARCH_THREADS = 1;
 	
-	public static final boolean ENABLE_ASSERTS = false;
 	public static final boolean ENABLE_LOGGING = true;
 	public static final boolean ENABLE_UCI_INFO_SENDING = true;
 	public static final boolean ENABLE_UCI_MOVE_NUMBER = true;
 	
+	public static final boolean ENABLE_ASSERTS = false;
+	
+	public static final boolean ENABLE_REPETITION_DETECTION = true;
 	public static final boolean ENABLE_TRANSPOSITION_TABLE = true;
 	public static final boolean ENABLE_QUIESCENCE_CHECK = true;
 	public static final boolean ENABLE_ASPIRATION_WINDOWS = true;

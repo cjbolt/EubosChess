@@ -14,6 +14,39 @@ public final class BitBoard {
 	private static final long not_a_file = 0xfefefefefefefefeL;
 	private static final long not_h_file = 0x7f7f7f7f7f7f7f7fL;
 	
+	public static String toString(long board) {
+		int spaceCounter = 0;
+		StringBuilder sb = new StringBuilder();
+		for (int rank=7; rank>=0; rank--) {
+			for (int file=0; file<8; file++) {
+				long currentBit = positionToMask_Lut[Position.valueOf(file,rank)];
+				if ((currentBit & board) == currentBit) {
+					if (spaceCounter != 0)
+						sb.append(spaceCounter);
+					sb.append('X');
+					spaceCounter=0;					
+				} else {
+					spaceCounter++;
+				}
+			}
+			if (spaceCounter != 0)
+				sb.append(spaceCounter);
+			if (rank != 0)
+				sb.append('/');
+			spaceCounter=0;
+		}
+		sb.append(" ");
+		PrimitiveIterator.OfInt iter = iterator(board);
+		while (iter.hasNext()) {
+			int bit_index = iter.nextInt();
+			int file = bit_index%8;
+			int rank = bit_index/8;
+			sb.append(GenericPosition.valueOf(IntFile.toGenericFile(file),IntRank.toGenericRank(rank)));
+			sb.append(", ");
+		}
+		return sb.toString();
+	}
+	
 	static final int[] bitToPosition_Lut = new int[64];
 	static {
 		int bit_index = 0;
@@ -30,19 +63,6 @@ public final class BitBoard {
 			positionToMask_Lut[x88_square] = atPosMask;
 			bit_index++;
 		}
-	}
-			
-	public static String toString(long bitBoard) {
-		StringBuilder sb = new StringBuilder();
-		PrimitiveIterator.OfInt iter = iterator(bitBoard);
-		while (iter.hasNext()) {
-			int bit_index = iter.nextInt();
-			int file = bit_index%8;
-			int rank = bit_index/8;
-			sb.append(GenericPosition.valueOf(IntFile.toGenericFile(file),IntRank.toGenericRank(rank)));
-			sb.append(", ");
-		}
-		return sb.toString();
 	}
 	
 	public static PrimitiveIterator.OfInt iterator(Long bitBoard) {
