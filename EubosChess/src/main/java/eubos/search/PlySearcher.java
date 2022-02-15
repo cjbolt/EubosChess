@@ -15,6 +15,9 @@ import eubos.search.transposition.ITransposition;
 
 public class PlySearcher {
 	
+	private static final boolean TUNE_LAZY_EVAL = false;
+	private static int count;  // Only used for tuning lazy evaluation
+	
 	private IChangePosition pm;
 	private IPositionAccessors pos;
 	private IEvaluate pe;
@@ -338,11 +341,29 @@ public class PlySearcher {
 				// There is no move to put in the killer table when we stand Pat
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
 				// According to lazy eval, we probably can't reach beta
+				if (TUNE_LAZY_EVAL) {
+					if (count == 1024) {
+						count = 0;
+						EubosEngineMain.logger.info(
+							String.format("TUNE LAZY B=%d delta=%d ", beta, plyScore-pe.getFullEvaluation()));
+					} else {
+						count++;
+					}
+				}
 				return beta;
 			}
 			/* Note call to quiescence check is last as it could be very computationally heavy! */
 			if (plyScore+350 <= alpha && pos.isQuiescent()) {
 				// According to lazy eval, we probably can't increase alpha
+				if (TUNE_LAZY_EVAL) {
+					if (count == 1024) {
+						count = 0;
+						EubosEngineMain.logger.info(
+							String.format("TUNE LAZY A=%d delta=%d ", alpha, plyScore-pe.getFullEvaluation()));
+					} else {
+						count++;
+					}
+				}
 				return alpha;
 			}
 		}	
