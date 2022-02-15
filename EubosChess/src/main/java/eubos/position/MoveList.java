@@ -6,6 +6,7 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import eubos.board.BitBoard;
 import eubos.main.EubosEngineMain;
 import eubos.search.KillerList;
 
@@ -62,7 +63,7 @@ public class MoveList implements Iterable<Integer> {
 		// Create the list at each ply
 		for (int i=0; i < EubosEngineMain.SEARCH_DEPTH_IN_PLY; i++) {
 			normal_search_moves[i] = new int[110];
-			priority_moves[i] = new int[50];
+			priority_moves[i] = new int[100];
 			extended_search_moves[i] = new int[30];
 			scratchpad[i] = new int [100];
 		}
@@ -103,8 +104,18 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	private void getMoves(boolean capturesOnly) {
-		IAddMoves moveAdder = (killers == null) ? ma_noKillers : ma;
+		IAddMoves moveAdder = null;
 		boolean isWhiteOnMove = pm.onMoveIsWhite();
+		if (killers == null) {
+			if (!capturesOnly) {
+				ma_noKillers.attackMask = pm.getTheBoard().pkaa.getAttacks(isWhiteOnMove);
+			}
+			moveAdder = ma_noKillers;
+		} else {
+			// Set-up move adder to filter the moves from attacked pieces into the priority part of the move list
+			ma.attackMask = pm.getTheBoard().pkaa.getAttacks(isWhiteOnMove);
+			moveAdder = ma;
+		}
 		pm.getTheBoard().getRegularPieceMoves(moveAdder, isWhiteOnMove, capturesOnly);
 		if (!capturesOnly && !needToEscapeMate) {
 			// Can't castle out of check and don't care in extended search
@@ -210,6 +221,9 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	public class MoveAdder implements IAddMoves {
+		
+		long attackMask = 0L;
+		
 		public void addPrio(int move) {
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate)) {
 				if (Move.areEqualForBestKiller(move, bestMove)) {
@@ -225,8 +239,10 @@ public class MoveList implements Iterable<Integer> {
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate)) {
 				if (Move.areEqualForBestKiller(move, bestMove)) {
 					scratchpad[ply][scratchpad_fill_index++] = Move.setBest(move);
-				} else if(KillerList.isMoveOnListAtPly(killers, move)) {
-					priority_moves[ply][priority_fill_index[ply]++] = Move.setKiller(move);;
+				} else if (KillerList.isMoveOnListAtPly(killers, move)) {
+					priority_moves[ply][priority_fill_index[ply]++] = Move.setKiller(move);
+				} else if (isMoveOriginSquareAttacked(move)) {
+					priority_moves[ply][priority_fill_index[ply]++] = move;
 				} else {
 					normal_search_moves[ply][normal_fill_index[ply]++] = move;
 				}
@@ -237,6 +253,13 @@ public class MoveList implements Iterable<Integer> {
 		public boolean isLegalMoveFound() {
 			return false;
 		}
+		
+		protected boolean isMoveOriginSquareAttacked(int move) {
+			long orginSquare = BitBoard.positionToMask_Lut[Move.getOriginPosition(move)];
+			if ((orginSquare & attackMask) == orginSquare)
+				return true;
+			return false;
+		}
 	}
 	
 	public class MoveAdderWithNoKillers extends MoveAdder implements IAddMoves {
@@ -244,6 +267,8 @@ public class MoveList implements Iterable<Integer> {
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate)) {
 				if (Move.areEqualForBestKiller(move, bestMove)) {
 					scratchpad[ply][scratchpad_fill_index++] = Move.setBest(move);
+				} else if (isMoveOriginSquareAttacked(move)) {
+					priority_moves[ply][priority_fill_index[ply]++] = move;
 				} else {
 					normal_search_moves[ply][normal_fill_index[ply]++] = move;
 				}

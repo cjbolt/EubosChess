@@ -144,7 +144,7 @@ public class BoardTest {
 	public void testOpenFile_isOpen1() {
 		classUnderTest.setPieceAtSquare(Position.d7, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(Position.e2, Piece.WHITE_ROOK);
-		assertEquals(13, classUnderTest.calculateRankFileMobility(classUnderTest.getWhiteRooks(), 0));
+		assertEquals(14, classUnderTest.calculateRankFileMobility(classUnderTest.getWhiteRooks(), 0));
 	}
 	
 	@Test
@@ -158,7 +158,7 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.g3, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(Position.h3, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(Position.e2, Piece.WHITE_ROOK);
-		assertEquals(6, classUnderTest.calculateRankFileMobility(classUnderTest.getWhiteRooks(), 0));
+		assertEquals(14, classUnderTest.calculateRankFileMobility(classUnderTest.getWhiteRooks(), 0));
 	}
 	
 	@Test
@@ -170,7 +170,7 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.d3, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(Position.d2, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(Position.e2, Piece.WHITE_ROOK);
-		assertEquals(5, classUnderTest.calculateRankFileMobility(classUnderTest.getWhiteRooks(), 0));
+		assertEquals(10, classUnderTest.calculateRankFileMobility(classUnderTest.getWhiteRooks(), 0));
 	}
 	
 	@Test
@@ -185,7 +185,7 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.g6, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.h6, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.e7, Piece.BLACK_ROOK);
-		assertEquals(6, classUnderTest.calculateRankFileMobility(classUnderTest.getBlackRooks(), 0));
+		assertEquals(14, classUnderTest.calculateRankFileMobility(classUnderTest.getBlackRooks(), 0));
 	}
 	
 	@Test
@@ -198,14 +198,14 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.d6, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.d7, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.e7, Piece.BLACK_ROOK);
-		assertEquals(5, classUnderTest.calculateRankFileMobility(classUnderTest.getBlackRooks(), 0));
+		assertEquals(10, classUnderTest.calculateRankFileMobility(classUnderTest.getBlackRooks(), 0));
 	}
 	
 	@Test
 	public void testRookMobility_ExcludeWhiteKnightAttacks() {
 		classUnderTest.setPieceAtSquare(Position.f6, Piece.WHITE_KNIGHT);
 		classUnderTest.setPieceAtSquare(Position.h8, Piece.BLACK_ROOK);
-		assertEquals(10, classUnderTest.calculateRankFileMobility(classUnderTest.getBlackRooks(), 0));
+		assertEquals(14, classUnderTest.calculateRankFileMobility(classUnderTest.getBlackRooks(), 0));
 	}
 	
 	@Test
@@ -214,14 +214,14 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.b7, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.g2, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.h8, Piece.BLACK_ROOK);
-		assertEquals(7, classUnderTest.calculateRankFileMobility(classUnderTest.getBlackRooks(), 0));
+		assertEquals(14, classUnderTest.calculateRankFileMobility(classUnderTest.getBlackRooks(), 0));
 	}
 	
 	@Test
 	public void testRookMobility_ExcludeBlackKnightAttacks() {
 		classUnderTest.setPieceAtSquare(Position.c3, Piece.BLACK_KNIGHT);
 		classUnderTest.setPieceAtSquare(Position.a1, Piece.WHITE_ROOK);
-		assertEquals(10, classUnderTest.calculateRankFileMobility(classUnderTest.getWhiteRooks(), 0));
+		assertEquals(14, classUnderTest.calculateRankFileMobility(classUnderTest.getWhiteRooks(), 0));
 	}
 	
 	@Test
@@ -247,7 +247,7 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.a3, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(Position.a1, Piece.WHITE_BISHOP);
 		// Can move to g7 and h8, that can't be attacked by a black pawn
-		assertEquals(2, classUnderTest.calculateDiagonalMobility(classUnderTest.getWhiteBishops(), 0));
+		assertEquals(7, classUnderTest.calculateDiagonalMobility(classUnderTest.getWhiteBishops(), 0));
 	}
 	
 	@Test
@@ -257,7 +257,7 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.a3, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(Position.a1, Piece.WHITE_BISHOP);
 		// Can move to g7 and h8, that can't be attacked by a black pawn, and c3 and e5 which aren't attacked
-		assertEquals(4, classUnderTest.calculateDiagonalMobility(classUnderTest.getWhiteBishops(), 0));
+		assertEquals(7, classUnderTest.calculateDiagonalMobility(classUnderTest.getWhiteBishops(), 0));
 	}
 	
 	@Test
@@ -268,7 +268,7 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.a1, Piece.WHITE_BISHOP);
 		classUnderTest.setPieceAtSquare(Position.e6, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(Position.b1, Piece.WHITE_QUEEN);
-		assertEquals(10, classUnderTest.calculateDiagonalMobility(classUnderTest.getWhiteBishops(), classUnderTest.getWhiteQueens()));
+		assertEquals(14, classUnderTest.calculateDiagonalMobility(classUnderTest.getWhiteBishops(), classUnderTest.getWhiteQueens()));
 	}
 	
 	@Test
@@ -279,7 +279,7 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.d3, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.e2, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.a8, Piece.BLACK_BISHOP);
-		assertEquals(2, classUnderTest.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0));
+		assertEquals(7, classUnderTest.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0));
 	}
 	
 	@Test
@@ -291,19 +291,19 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.g5, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.h6, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.h8, Piece.BLACK_BISHOP);
-		assertEquals(2, classUnderTest.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0));
+		assertEquals(7, classUnderTest.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0));
 	}
 	
 	@Test
 	public void testRookandQueenMobility_ExcludeBlackPawnandKnightAttacks() {	
 		setUpPosition("5K1k/2n5/2n5/8/2n5/2nn4/5pp1/R3Q3 w - - 0 1");
-		assertEquals(0, classUnderTest.calculateRankFileMobility(classUnderTest.getWhiteRooks(), classUnderTest.getWhiteQueens()));
+		assertEquals(23, classUnderTest.calculateRankFileMobility(classUnderTest.getWhiteRooks(), classUnderTest.getWhiteQueens()));
 	}
 	
 	@Test
 	public void testRookandQueenMobility_ExcludeBlackPawnandKnightAttacks_1() {	
 		setUpPosition("5K1k/2n5/2n5/8/2n5/2nn4/5pp1/R3Q2R w - - 0 1");
-		assertEquals(6, classUnderTest.calculateRankFileMobility(classUnderTest.getWhiteRooks(), classUnderTest.getWhiteQueens()));
+		assertEquals(30, classUnderTest.calculateRankFileMobility(classUnderTest.getWhiteRooks(), classUnderTest.getWhiteQueens()));
 	}
 	
 	@Test
@@ -311,7 +311,7 @@ public class BoardTest {
 		setUpPosition("5K1k/2n5/2n5/8/2n5/2nn4/5pp1/R3Q2R w - - 0 1");
 		classUnderTest.me.dynamicPosition = 0;
 		classUnderTest.calculateDynamicMobility(classUnderTest.me);
-		assertEquals(12, classUnderTest.me.dynamicPosition);
+		assertEquals(62, classUnderTest.me.dynamicPosition);
 	}
 		
 	@Test
@@ -564,7 +564,7 @@ public class BoardTest {
 		setUpPosition("r1b1kb1r/ppq1pppp/8/3pN3/3Q4/8/PPP2PPP/RNB1K2R b KQkq - 0 1");
 		PiecewiseEvaluation me = new PiecewiseEvaluation();
 		classUnderTest.calculateDynamicMobility(me);
-		assertEquals(14, me.getPosition());
+		assertEquals(8, me.getPosition());
 	}
 	
 	@Test

@@ -57,7 +57,7 @@ public class Board {
 	public PiecewiseEvaluation me;
 	
 	PawnAttackAggregator paa;
-	PawnKnightAttackAggregator pkaa;
+	public PawnKnightAttackAggregator pkaa;
 	
 	public Board( Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove ) {
 		paa = new PawnAttackAggregator();
@@ -863,7 +863,7 @@ public class Board {
 		}
 	}
 	
-	class PawnKnightAttackAggregator implements IForEachPieceCallback {
+	public class PawnKnightAttackAggregator implements IForEachPieceCallback {
 		
 		public final int[] BLACK_ATTACKERS = {Piece.BLACK_PAWN, Piece.BLACK_KNIGHT};
 		public final int[] WHITE_ATTACKERS = {Piece.WHITE_PAWN, Piece.WHITE_KNIGHT};
