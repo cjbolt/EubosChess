@@ -82,16 +82,20 @@ public class PlySearcher {
 		return (short) search(Score.PROVISIONAL_ALPHA, Score.PROVISIONAL_BETA, originalSearchDepthRequiredInPly);
 	}
 	
+	private static final int [] ASPIRATION_WINDOW_FALLBACK = 
+		{ Piece.MATERIAL_VALUE_PAWN/4, 2*Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
+	
 	public int searchPly(short lastScore)  {
 		currPly = 0;
 		extendedSearchDeepestPly = 0;	
 		short score = 0;
+		int fail_count = 0;
 		
 		// Adjust the aspiration window, according to the last score, if searching to sufficient depth
 		int alpha = Score.PROVISIONAL_ALPHA;
 		int beta = Score.PROVISIONAL_BETA;
 		if (originalSearchDepthRequiredInPly >= 5) {
-			int windowSize = Score.isMate(lastScore) ? 1 : Piece.MATERIAL_VALUE_PAWN/4;
+			int windowSize = Score.isMate(lastScore) ? 1 : ASPIRATION_WINDOW_FALLBACK[fail_count];
 			alpha = lastScore - windowSize;
 			beta = lastScore + windowSize;
 		}
@@ -109,18 +113,28 @@ public class PlySearcher {
         	} else if (score <= alpha) {
         		// Failed low, adjust window
         		windowFailed = true;
-	            alpha = Score.PROVISIONAL_ALPHA;
+        		fail_count++;
+	        	if (!Score.isMate(lastScore) && fail_count < ASPIRATION_WINDOW_FALLBACK.length-1) {
+	        		alpha = lastScore - ASPIRATION_WINDOW_FALLBACK[fail_count];
+	        	} else {
+	        		alpha = Score.PROVISIONAL_ALPHA;
+	        	}
 	        } else if (score >= beta) {
 	        	// Failed high, adjust window
 	        	windowFailed = true;
-	            beta = Score.PROVISIONAL_BETA;
+	        	fail_count++;
+	        	if (!Score.isMate(lastScore) && fail_count < ASPIRATION_WINDOW_FALLBACK.length-1) {
+	        		beta = lastScore + ASPIRATION_WINDOW_FALLBACK[fail_count];
+	        	} else {
+	        		beta = Score.PROVISIONAL_BETA;
+	        	}
 	        } else {
 	        	// Exact score in window returned
 	            break;
 	        }
 			if (windowFailed) {
-				EubosEngineMain.logger.info(String.format("Aspiration Window failed score=%d alpha=%d beta=%d depth=%d",
-        				score, alpha, beta, originalSearchDepthRequiredInPly));
+				EubosEngineMain.logger.info(String.format("Aspiration Window failed count=%d score=%d alpha=%d beta=%d depth=%d",
+        				fail_count, score, alpha, beta, originalSearchDepthRequiredInPly));
 				sr.resetAfterWindowingFail();
 				windowFailed = false;
 			}
