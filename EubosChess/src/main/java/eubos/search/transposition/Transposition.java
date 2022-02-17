@@ -6,6 +6,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.Board;
 import eubos.board.Piece;
+import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.search.Score;
 
@@ -79,10 +80,18 @@ public class Transposition implements ITransposition {
 		int target = Move.getTargetPosition(bestMove);
 		int promo = Move.getPromotion(bestMove);
 		if (!Move.areEqual(getBestMove(null), bestMove)) {
-			bitfield &= ~(0x1FFFF << 15);
+			bitfield &= ~(0x1FFFF << 15); // Suspect?
 			bitfield |= (origin & 0x7F) << 15;
 			bitfield |= (target & 0x7F) << 22;
 			bitfield |= (promo & 0x7) << 29;
+		}
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			int decode_origin = ((bitfield >>> 15) & 0x7F);
+			int decode_target = ((bitfield >>> 22) & 0x7F);
+			int decode_promo = ((bitfield >>> 29) & 0x7);
+			assert origin == decode_origin;
+			assert target == decode_target;
+			assert promo == decode_promo;
 		}
 	}
 	

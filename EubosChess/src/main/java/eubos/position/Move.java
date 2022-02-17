@@ -380,6 +380,8 @@ public final class Move {
 
 	public static int setOriginPiece(int move, int piece) {
 		move &= ~ORIGIN_PIECE_MASK;
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert piece != Piece.NONE;
 		move |= piece << ORIGIN_PIECE_SHIFT;
 		return move;
 	}

@@ -92,7 +92,13 @@ public class MoveList implements Iterable<Integer> {
 		setupBestMove(bestMove);
 		getMoves(capturesOnly);
 		if (moveCount != 0) {
-			sortPriorityList(capturesOnly);
+			if (EubosEngineMain.ENABLE_ASSERTS && bestMove != Move.NULL_MOVE) {
+				if (scratchpad_fill_index == 1) {
+					// Only check the best move is present if it is a hash table move, if it is from the principal continuation it shall only be definitely valid for ply 0. 
+					assert Move.areEqualForBestKiller(bestMove, scratchpad[ply][0]) : String.format("When creating MoveList, bestMove=%s was not found amongst available moves", Move.toString(bestMove));
+				}
+			}
+			sortPriorityList();
 			collateMoveList();
 		}
 		
@@ -156,20 +162,7 @@ public class MoveList implements Iterable<Integer> {
 		this.bestMove = bestMove;
 	}
 	
-	private void sortPriorityList(boolean capturesOnly) {
-		if (EubosEngineMain.ENABLE_ASSERTS && bestMove != Move.NULL_MOVE) {
-			//if (capturesOnly) {
-			//	assert Move.areEqualForBestKiller(bestMove, priority_moves[ply][0]); //bestMove == priority_moves[ply][0];
-			//} else {
-				assert Move.areEqualForBestKiller(bestMove, scratchpad[ply][0]); //bestMove == scratchpad[ply][0];
-			//}
-		}
-//		if (EubosEngineMain.ENABLE_ASSERTS && bestMove != Move.NULL_MOVE) {
-//			//if (capturesOnly) {
-//				assert Move.areEqualForBestKiller(bestMove, priority_moves[ply][0]) ||
-//				       Move.areEqualForBestKiller(bestMove, scratchpad[ply][0]); //bestMove == scratchpad[ply][0];
-//			//}
-//		}
+	private void sortPriorityList() {
 		switch (ordering) {
 		case 0:
 			/* Don't order the move list in this case. */
