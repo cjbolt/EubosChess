@@ -78,7 +78,8 @@ public class Transposition implements ITransposition {
 		return trans_move;
 	}
 	
-	protected int getBestMove() {
+	@Override
+	public int getBestMove() {
 		int origin = ((bitfield >>> 15) & 0x7F);
 		int target = ((bitfield >>> 22) & 0x7F);
 		int promo = ((bitfield >>> 29) & 0x7);

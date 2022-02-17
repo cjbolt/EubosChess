@@ -13,6 +13,8 @@ public interface ITransposition {
 	byte getDepthSearchedInPly();
 
 	int getBestMove(Board theBoard);
+	
+	int getBestMove();
 
 	String report();
 

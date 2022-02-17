@@ -134,7 +134,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 				// it is possible that we didn't send a uci info pv message, so update the last score
 				refScore.updateLastScore(trans);
 			}
-			bestMove = Move.toGenericMove(trans.getBestMove(null));
+			bestMove = Move.toGenericMove(trans.getBestMove());
 		} else if (workers.get(0).result.bestMove != Move.NULL_MOVE) {
 			EubosEngineMain.logger.warning(
 					String.format("Can't find bestMove with exact score (trans=%s), use principal continuation.",
@@ -143,7 +143,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		} else if (trans != null) {
 			EubosEngineMain.logger.warning(
 					String.format("Can't find bestMove in principal continuation, using trans=%s", trans.report()));
-			bestMove = Move.toGenericMove(trans.getBestMove(null));
+			bestMove = Move.toGenericMove(trans.getBestMove());
 		} else {
 			// we will send null, it will be a rules infraction and Eubos will lose.
 		}
