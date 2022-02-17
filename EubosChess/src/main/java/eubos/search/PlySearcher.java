@@ -222,7 +222,17 @@ public class PlySearcher {
 			// Transposition may still be useful to seed the move list, if not drawing.
 			if (!override_trans_move || (override_trans_move && prevBestMove == Move.NULL_MOVE)) {
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-				prevBestMove = trans.getBestMove(pos.getTheBoard());
+				int trans_move = trans.getBestMove(pos.getTheBoard());
+				if (trans_move != Move.NULL_MOVE) {
+					if (atRootNode()) {
+						EubosEngineMain.logger.info(
+								String.format("best move set from trans=%s", Move.toString(trans_move)));
+					}
+					prevBestMove = trans_move;
+				} else {
+					EubosEngineMain.logger.severe(
+							String.format("hash move is bad, falling back to prevBestMove=%s", Move.toString(prevBestMove)));
+				}
 			}
 		}
 		

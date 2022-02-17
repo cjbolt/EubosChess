@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import eubos.board.BitBoard;
+import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.search.KillerList;
 
@@ -91,7 +92,7 @@ public class MoveList implements Iterable<Integer> {
 		setupBestMove(bestMove);
 		getMoves(capturesOnly);
 		if (moveCount != 0) {
-			sortPriorityList();
+			sortPriorityList(capturesOnly);
 			collateMoveList();
 		}
 		
@@ -140,14 +141,35 @@ public class MoveList implements Iterable<Integer> {
 		if (validBest) {
 			// Setup best move check on origin and target sq, not in transpo table
 			int bestOriginPiece = pm.getTheBoard().getPieceAtSquare(Move.getOriginPosition(bestMove));
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert bestOriginPiece != Piece.NONE;
+			}
 			bestMove = Move.setOriginPiece(bestMove, bestOriginPiece);
 			int targetPiece = pm.getTheBoard().getPieceAtSquare(Move.getTargetPosition(bestMove));
 			bestMove = Move.setTargetPiece(bestMove, targetPiece);
 		}
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			if (validBest) {
+				assert !pm.getTheBoard().isIllegalMove(bestMove, true);
+			}
+		}
 		this.bestMove = bestMove;
 	}
 	
-	private void sortPriorityList() {
+	private void sortPriorityList(boolean capturesOnly) {
+		if (EubosEngineMain.ENABLE_ASSERTS && bestMove != Move.NULL_MOVE) {
+			//if (capturesOnly) {
+			//	assert Move.areEqualForBestKiller(bestMove, priority_moves[ply][0]); //bestMove == priority_moves[ply][0];
+			//} else {
+				assert Move.areEqualForBestKiller(bestMove, scratchpad[ply][0]); //bestMove == scratchpad[ply][0];
+			//}
+		}
+//		if (EubosEngineMain.ENABLE_ASSERTS && bestMove != Move.NULL_MOVE) {
+//			//if (capturesOnly) {
+//				assert Move.areEqualForBestKiller(bestMove, priority_moves[ply][0]) ||
+//				       Move.areEqualForBestKiller(bestMove, scratchpad[ply][0]); //bestMove == scratchpad[ply][0];
+//			//}
+//		}
 		switch (ordering) {
 		case 0:
 			/* Don't order the move list in this case. */
