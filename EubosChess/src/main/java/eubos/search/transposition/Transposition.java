@@ -62,16 +62,28 @@ public class Transposition implements ITransposition {
 		int target = ((bitfield >>> 22) & 0x7F);
 		int promo = ((bitfield >>> 29) & 0x7);
 		int trans_move = Move.valueOfPromotion(origin, target, promo);
-		// Populate the members of the move read from the transposition table.
-		if (trans_move != Move.NULL_MOVE && theBoard != null) {
-			int originPiece = theBoard.getPieceAtSquare(Move.getOriginPosition(trans_move));
-			trans_move = Move.setOriginPiece(trans_move, originPiece);
-			int targetPiece = theBoard.getPieceAtSquare(Move.getTargetPosition(trans_move));
-			trans_move = Move.setTargetPiece(trans_move, targetPiece);
-			if (targetPiece != Piece.NONE) {
-				trans_move = Move.setCapture(trans_move, targetPiece);
-			}
+		
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			assert trans_move != Move.NULL_MOVE : "Tranposition move was null.";
+			assert theBoard != null;
 		}
+		
+		// Populate the members of the move read from the transposition table.
+		int originPiece = theBoard.getPieceAtSquare(Move.getOriginPosition(trans_move));
+		trans_move = Move.setOriginPiece(trans_move, originPiece);
+		int targetPiece = theBoard.getPieceAtSquare(Move.getTargetPosition(trans_move));
+		if (targetPiece != Piece.NONE) {
+			trans_move = Move.setCapture(trans_move, targetPiece);
+		}
+		return trans_move;
+	}
+	
+	protected int getBestMove() {
+		int origin = ((bitfield >>> 15) & 0x7F);
+		int target = ((bitfield >>> 22) & 0x7F);
+		int promo = ((bitfield >>> 29) & 0x7);
+		int trans_move = Move.valueOfPromotion(origin, target, promo);
+		
 		return trans_move;
 	}
 	
@@ -79,12 +91,10 @@ public class Transposition implements ITransposition {
 		int origin = Move.getOriginPosition(bestMove);
 		int target = Move.getTargetPosition(bestMove);
 		int promo = Move.getPromotion(bestMove);
-		if (!Move.areEqual(getBestMove(null), bestMove)) {
-			bitfield &= ~(0x1FFFF << 15); // Suspect?
-			bitfield |= (origin & 0x7F) << 15;
-			bitfield |= (target & 0x7F) << 22;
-			bitfield |= (promo & 0x7) << 29;
-		}
+		bitfield &= ~(0x1FFFF << 15); // Suspect?
+		bitfield |= (origin & 0x7F) << 15;
+		bitfield |= (target & 0x7F) << 22;
+		bitfield |= (promo & 0x7) << 29;
 		if (EubosEngineMain.ENABLE_ASSERTS) {
 			int decode_origin = ((bitfield >>> 15) & 0x7F);
 			int decode_target = ((bitfield >>> 22) & 0x7F);
@@ -98,7 +108,7 @@ public class Transposition implements ITransposition {
 	@Override
 	public String report() {
 		String output = String.format("trans best=%s, dep=%d, sc=%s, type=%s", 
-				Move.toString(getBestMove(null)),
+				Move.toGenericMove(getBestMove()),
 				getDepthSearchedInPly(),
 				Score.toString(score),
 				getType());

@@ -369,12 +369,16 @@ public final class Move {
     }
 	
 	public static int getOriginPiece(int move) {
-		int piece = (move & ORIGIN_PIECE_MASK) >>> ORIGIN_PIECE_SHIFT;		
+		int piece = (move & ORIGIN_PIECE_MASK) >>> ORIGIN_PIECE_SHIFT;
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert piece != Piece.NONE;
 		return piece;
 	}
 	
 	public static int getOriginPieceNoColour(int move) {
-		int piece = (move & ORIGIN_PIECE_MASK_NO_COLOUR) >>> ORIGIN_PIECE_SHIFT;		
+		int piece = (move & ORIGIN_PIECE_MASK_NO_COLOUR) >>> ORIGIN_PIECE_SHIFT;
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert piece != Piece.NONE;
 		return piece;
 	}
 
@@ -398,6 +402,8 @@ public final class Move {
 
 	public static int setTargetPiece(int move, int piece) {
 		move &= ~TARGET_PIECE_MASK;
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert piece != Piece.NONE;
 		move |= piece << TARGET_PIECE_SHIFT;
 		return move;
 	}

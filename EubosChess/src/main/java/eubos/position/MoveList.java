@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import eubos.board.BitBoard;
-import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.search.KillerList;
 
@@ -89,13 +88,15 @@ public class MoveList implements Iterable<Integer> {
 		scratchpad_fill_index = 0;
 		extendedListScopeEndpoint = 0;
 		
-		setupBestMove(bestMove);
+		this.bestMove = bestMove;
 		getMoves(capturesOnly);
 		if (moveCount != 0) {
 			if (EubosEngineMain.ENABLE_ASSERTS && bestMove != Move.NULL_MOVE) {
 				if (scratchpad_fill_index == 1) {
-					// Only check the best move is present if it is a hash table move, if it is from the principal continuation it shall only be definitely valid for ply 0. 
-					assert Move.areEqualForBestKiller(bestMove, scratchpad[ply][0]) : String.format("When creating MoveList, bestMove=%s was not found amongst available moves", Move.toString(bestMove));
+					// Only check the best move is present if it is a hash table move, if it is from the principal 
+					// continuation it shall only be guaranteed valid for ply 0. 
+					assert Move.areEqualForBestKiller(bestMove, scratchpad[ply][0]) : 
+						String.format("When creating MoveList, bestMove=%s was not found amongst available moves", Move.toString(bestMove));
 				}
 			}
 			sortPriorityList();
@@ -140,26 +141,6 @@ public class MoveList implements Iterable<Integer> {
 				scratchpad[ply][scratchpad_fill_index++] = normal_search_moves[ply][j];
 			}
 			normal_list_length[ply] = moveCount;
-	}
-	
-	private void setupBestMove(int bestMove)  {
-		boolean validBest = bestMove != Move.NULL_MOVE;		
-		if (validBest) {
-			// Setup best move check on origin and target sq, not in transpo table
-			int bestOriginPiece = pm.getTheBoard().getPieceAtSquare(Move.getOriginPosition(bestMove));
-			if (EubosEngineMain.ENABLE_ASSERTS) {
-				assert bestOriginPiece != Piece.NONE;
-			}
-			bestMove = Move.setOriginPiece(bestMove, bestOriginPiece);
-			int targetPiece = pm.getTheBoard().getPieceAtSquare(Move.getTargetPosition(bestMove));
-			bestMove = Move.setTargetPiece(bestMove, targetPiece);
-		}
-		if (EubosEngineMain.ENABLE_ASSERTS) {
-			if (validBest) {
-				assert !pm.getTheBoard().isIllegalMove(bestMove, true);
-			}
-		}
-		this.bestMove = bestMove;
 	}
 	
 	private void sortPriorityList() {
