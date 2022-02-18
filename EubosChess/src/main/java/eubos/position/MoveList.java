@@ -75,12 +75,14 @@ public class MoveList implements Iterable<Integer> {
 		ma_noKillers = new MoveAdderWithNoKillers();
 	}
 	
+	@SuppressWarnings("unused")
 	public MoveListIterator createForPly(int bestMove, int [] killers, boolean capturesOnly, boolean needToEscapeMate, int ply)
 	{
 		// Initialise working variables for building the MoveList at this ply
 		this.ply = ply; 
 		this.needToEscapeMate = needToEscapeMate;
 		this.killers = killers;
+		this.bestMove = bestMove;
 		moveCount = 0;
 		normal_fill_index[ply] = 0;
 		priority_fill_index[ply] = 0;
@@ -88,7 +90,6 @@ public class MoveList implements Iterable<Integer> {
 		scratchpad_fill_index = 0;
 		extendedListScopeEndpoint = 0;
 		
-		this.bestMove = bestMove;
 		getMoves(capturesOnly);
 		if (moveCount != 0) {
 			if (EubosEngineMain.ENABLE_ASSERTS && bestMove != Move.NULL_MOVE) {

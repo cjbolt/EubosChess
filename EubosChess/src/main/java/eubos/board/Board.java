@@ -925,7 +925,7 @@ public class Board {
 	
 	LegalMoveChecker lmc = new LegalMoveChecker();
 	
-	public boolean validCaptureMoveExists(boolean ownSideIsWhite) {
+	public boolean validPriorityMoveExists(boolean ownSideIsWhite) {
 		boolean legalMoveExists = false;
 		lmc.legalMoveFound = false;
 		legalMoveExists = pieceLists.validCaptureMoveExists(lmc, ownSideIsWhite);

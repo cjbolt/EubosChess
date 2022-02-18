@@ -15,6 +15,10 @@ import eubos.search.transposition.ITransposition;
 
 public class PlySearcher {
 	
+	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
+	running with the logging in TUNE_LAZY_EVAL for Eubos2.8 and post processing the logs.
+	It will need to be re-tuned if the evaluation function is altered significantly. */
+	private static final int LAZY_EVAL_THRESHOLD_IN_CP = 350;
 	private static final boolean TUNE_LAZY_EVAL = false;
 	private static int count;  // Only used for tuning lazy evaluation
 	
@@ -342,7 +346,6 @@ public class PlySearcher {
 		return alpha;
 	}
 	
-	@SuppressWarnings("unused")
 	private int extendedSearch(int alpha, int beta, boolean needToEscapeCheck)  {
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearch(alpha, beta);
 		if (currPly > extendedSearchDeepestPly) {
@@ -358,7 +361,7 @@ public class PlySearcher {
 		if (EubosEngineMain.ENABLE_LAZY_EVALUATION && !pos.getTheBoard().me.isEndgame()) {
 			// Phase 1 - crude evaluation
 			plyScore = (short) pe.getCrudeEvaluation();
-			if (plyScore-350 >= beta) {
+			if (plyScore-LAZY_EVAL_THRESHOLD_IN_CP >= beta) {
 				// There is no move to put in the killer table when we stand Pat
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
 				// According to lazy eval, we probably can't reach beta
@@ -374,7 +377,7 @@ public class PlySearcher {
 				return beta;
 			}
 			/* Note call to quiescence check is last as it could be very computationally heavy! */
-			if (plyScore+350 <= alpha && pos.isQuiescent()) {
+			if (plyScore+LAZY_EVAL_THRESHOLD_IN_CP <= alpha && pos.isQuiescent()) {
 				// According to lazy eval, we probably can't increase alpha
 				if (TUNE_LAZY_EVAL) {
 					if (count == 1024) {
