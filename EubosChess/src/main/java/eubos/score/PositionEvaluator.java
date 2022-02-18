@@ -17,14 +17,16 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	public static final int ISOLATED_PAWN_HANDICAP = 33;
 	public static final int BACKWARD_PAWN_HANDICAP = 12;
 	
-	public static final int PASSED_PAWN_BOOST = 10;
-	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 6;
+	public static final int PASSED_PAWN_BOOST = 12;
+	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 8;
 	
 	public static final int CONNECTED_PASSED_PAWN_BOOST = 75;
 	
 	public static final boolean ENABLE_PAWN_EVALUATION = true;
 	public static final boolean ENABLE_KING_SAFETY_EVALUATION = true;
 	public static final boolean ENABLE_DYNAMIC_POSITIONAL_EVALUATION = true;
+
+	private static final int BISHOP_PAIR_BOOST = 25;
 	
 	public boolean isDraw;
 	public short score;
@@ -59,6 +61,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		if (!isDraw) {
 			bd.me.dynamicPosition = 0;
 			score += pm.onMoveIsWhite() ? bd.me.getDelta() : -bd.me.getDelta();
+			score += evaluateBishopPair();
 			midgameScore = score + (pm.onMoveIsWhite() ? bd.me.getPosition() : -bd.me.getPosition());
 			endgameScore = score + (pm.onMoveIsWhite() ? bd.me.getEndgamePosition() : -bd.me.getEndgamePosition());
 			score = taperEvaluation(midgameScore, endgameScore);
@@ -74,6 +77,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 			// Score factors common to each phase, material, pawn structure and piece mobility
 			bd.me.dynamicPosition = 0;
 			score += pm.onMoveIsWhite() ? bd.me.getDelta() : -bd.me.getDelta();
+			score += evaluateBishopPair();
 			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !goForMate) {
 				bd.calculateDynamicMobility(bd.me);
 			}
@@ -114,6 +118,19 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		return kingSafetyScore;
 	}
 	
+	int evaluateBishopPair() {
+		int score = 0;
+		int onMoveBishopCount = pm.onMoveIsWhite() ? bd.me.numberOfPieces[Piece.WHITE_BISHOP] : bd.me.numberOfPieces[Piece.BLACK_BISHOP];
+		if (onMoveBishopCount >= 2) {
+			score += BISHOP_PAIR_BOOST;
+		}
+		int opponentBishopCount = pm.onMoveIsWhite() ? bd.me.numberOfPieces[Piece.BLACK_BISHOP] : bd.me.numberOfPieces[Piece.WHITE_BISHOP];
+		if (opponentBishopCount >= 2) {
+			score -= BISHOP_PAIR_BOOST;
+		}
+		return score;
+	}
+	
 	Colour onMoveIs;
 	int individualPawnEval = 0;
 	
@@ -126,6 +143,9 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 			} else {
 				weighting = Position.getRank(atPos);
 			}
+			// scale weighting for game phase as well as promotion proximity, up to 3x
+			int scale = 1 + ((bd.me.phase+640) / 4096) + ((bd.me.phase+320) / 4096);
+			weighting *= scale;
 			if (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) {
 				individualPawnEval += weighting*ROOK_FILE_PASSED_PAWN_BOOST;
 			} else {

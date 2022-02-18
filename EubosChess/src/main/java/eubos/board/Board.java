@@ -18,7 +18,6 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntRank;
 
 public class Board {
-	
 	private long allPieces = 0x0;
 	private long whitePieces = 0x0;
 	private long blackPieces = 0x0;
@@ -58,7 +57,7 @@ public class Board {
 	public PiecewiseEvaluation me;
 	
 	PawnAttackAggregator paa;
-	PawnKnightAttackAggregator pkaa;
+	public PawnKnightAttackAggregator pkaa;
 	
 	public Board( Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove ) {
 		paa = new PawnAttackAggregator();
@@ -74,32 +73,6 @@ public class Board {
 		}
 		me = new PiecewiseEvaluation();
 		evaluateMaterial(me);
-	}
-	
-	public void getRegularPieceMoves(IAddMoves ml, boolean ownSideIsWhite, boolean captures) {
-		if (me.isEndgame()) {
-			pieceLists.addMovesEndgame(ml, ownSideIsWhite, captures);
-		} else {
-			pieceLists.addMovesMiddlegame(ml, ownSideIsWhite, captures);
-		}
-	}
-	
-	public void evaluateMaterial(PiecewiseEvaluation the_me) {
-		pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(true, the_me);
-		pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(false, the_me);
-		the_me.setPhase();
-	}
-	
-	public void forEachPiece(IForEachPieceCallback caller) {
-		pieceLists.forEachPieceDoCallback(caller);
-	}
-	
-	public void forEachPawnOfSide(IForEachPieceCallback caller, boolean isBlack) {
-		pieceLists.forEachPawnOfSideDoCallback(caller, isBlack);
-	}
-	
-	public long getEmpty() {
-		return ~allPieces;
 	}
 	
 	public static String reportStaticDataSizes() {
@@ -493,21 +466,37 @@ public class Board {
 			whitePieces ^= (wksc_mask);
 			allPieces ^= (wksc_mask);
 			pieceLists.updatePiece(Piece.WHITE_ROOK, Position.h1, Position.f1);
+			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.h1];
+			me.position += Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.f1];
+			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.h1];
+			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.f1];
 		} else if (Move.areEqual(move, CastlingManager.wqsc)) {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
 			pieceLists.updatePiece(Piece.WHITE_ROOK, Position.a1, Position.d1);
+			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.a1];
+			me.position += Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.d1];
+			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.a1];
+			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.d1];
 		} else if (Move.areEqual(move, CastlingManager.bksc)) {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
 			pieceLists.updatePiece(Piece.BLACK_ROOK, Position.h8, Position.f8);
+			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.h8];
+			me.position += Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.f8];
+			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.h8];
+			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.f8];
 		} else if (Move.areEqual(move, CastlingManager.bqsc)) {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
 			allPieces ^= (bqsc_mask);
 			pieceLists.updatePiece(Piece.BLACK_ROOK, Position.a8, Position.d8);
+			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.a8];
+			me.position += Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.d8];
+			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.a8];
+			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.d8];
 		}
 	}
 	
@@ -517,21 +506,37 @@ public class Board {
 			whitePieces ^= (wksc_mask);
 			allPieces ^= (wksc_mask);
 			pieceLists.updatePiece(Piece.WHITE_ROOK, Position.f1, Position.h1);
+			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.f1];
+			me.position += Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.h1];
+			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.f1];
+			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.h1];
 		} else if (Move.areEqual(move, CastlingManager.undo_wqsc)) {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
 			pieceLists.updatePiece(Piece.WHITE_ROOK, Position.d1, Position.a1);
+			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.d1];
+			me.position += Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.a1];
+			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.d1];
+			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][Position.a1];
 		} else if (Move.areEqual(move, CastlingManager.undo_bksc)) {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
 			pieceLists.updatePiece(Piece.BLACK_ROOK, Position.f8, Position.h8);
+			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.f8];
+			me.position += Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.h8];
+			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.f8];
+			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.h8];
 		} else if (Move.areEqual(move, CastlingManager.undo_bqsc)) {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
 			allPieces ^= (bqsc_mask);
 			pieceLists.updatePiece(Piece.BLACK_ROOK, Position.d8, Position.a8);
+			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.d8];
+			me.position += Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.a8];
+			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.d8];
+			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][Position.a8];
 		}
 	}
 	
@@ -582,7 +587,7 @@ public class Board {
 	
 	public int getPieceAtSquareIfEnemy( int atPos, boolean ownSideIsWhite ) {
 		int type = Piece.NONE;
-		long pieceToGet = BitBoard.positionToMask_Lut[atPos];;
+		long pieceToGet = BitBoard.positionToMask_Lut[atPos];
 		if ((allPieces & pieceToGet) != 0) {	
 			if ((blackPieces & pieceToGet) != 0) {
 				if (!ownSideIsWhite) return Piece.DONT_CARE;
@@ -785,6 +790,14 @@ public class Board {
 		return blackPieces & (pieces[INDEX_KING]);
 	}
 	
+	public long getBlackDiagonal() {
+		return blackPieces & (pieces[INDEX_QUEEN] | pieces[INDEX_BISHOP]);
+	}
+	
+	public long getBlackRankFile() {
+		return blackPieces & (pieces[INDEX_QUEEN] | pieces[INDEX_ROOK]);
+	}
+	
 	public long getWhitePawns() {
 		return whitePieces & (pieces[INDEX_PAWN]);
 	}
@@ -807,6 +820,14 @@ public class Board {
 	
 	public long getWhiteKing() {
 		return whitePieces & (pieces[INDEX_KING]);
+	}
+	
+	public long getWhiteDiagonal() {
+		return whitePieces & (pieces[INDEX_QUEEN] | pieces[INDEX_BISHOP]);
+	}
+	
+	public long getWhiteRankFile() {
+		return whitePieces & (pieces[INDEX_QUEEN] | pieces[INDEX_ROOK]);
 	}
 	
 	public boolean isOnHalfOpenFile(GenericPosition atPos, int type) {
@@ -842,7 +863,7 @@ public class Board {
 		}
 	}
 	
-	class PawnKnightAttackAggregator implements IForEachPieceCallback {
+	public class PawnKnightAttackAggregator implements IForEachPieceCallback {
 		
 		public final int[] BLACK_ATTACKERS = {Piece.BLACK_PAWN, Piece.BLACK_KNIGHT};
 		public final int[] WHITE_ATTACKERS = {Piece.WHITE_PAWN, Piece.WHITE_KNIGHT};
@@ -875,28 +896,67 @@ public class Board {
 		}
 	}
 	
-	int calculateDiagonalMobility(long bishops, long queens, boolean attackerIsBlack) {
+	public void getRegularPieceMoves(IAddMoves ml, boolean ownSideIsWhite, boolean captures) {
+		if (me.isEndgame()) {
+			pieceLists.addMovesEndgame(ml, ownSideIsWhite, captures);
+		} else {
+			pieceLists.addMovesMiddlegame(ml, ownSideIsWhite, captures);
+		}
+	}
+	
+	public class LegalMoveChecker implements IAddMoves {
+		
+		boolean legalMoveFound = false;
+				
+		public void addPrio(int move) {
+			if (!isIllegalMove(move, true)) {
+				legalMoveFound = true;
+			}
+		}
+		
+		public void addNormal(int move) {
+			assert false;
+		}
+		
+		public boolean isLegalMoveFound() {
+			return legalMoveFound;
+		}
+	}
+	
+	LegalMoveChecker lmc = new LegalMoveChecker();
+	
+	public boolean validPriorityMoveExists(boolean ownSideIsWhite) {
+		boolean legalMoveExists = false;
+		lmc.legalMoveFound = false;
+		legalMoveExists = pieceLists.validCaptureMoveExists(lmc, ownSideIsWhite);
+		return legalMoveExists;
+	}
+	
+	public void evaluateMaterial(PiecewiseEvaluation the_me) {
+		pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(true, the_me);
+		pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(false, the_me);
+		the_me.setPhase();
+	}
+	
+	int calculateDiagonalMobility(long bishops, long queens) {
 		long empty = ~allPieces;
 		int mobility_score = 0x0;
-		long attackedSquares = paa.getPawnAttacks(attackerIsBlack);
 		long diagonal_sliders = bishops | queens;
 		if (queens != 0) {
 			if (bishops != 0) {
 				long mobility_mask_1 = BitBoard.downLeftOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
 				long mobility_mask_2 = BitBoard.upRightOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
 				if ((mobility_mask_1 & mobility_mask_2) == 0x0) {
-					long mobility_mask = (mobility_mask_1 | mobility_mask_2) & ~attackedSquares;
-					mobility_score = Long.bitCount(mobility_mask);
+					mobility_score = Long.bitCount(mobility_mask_1 | mobility_mask_2);
 				} else {
-					mobility_score = Long.bitCount(mobility_mask_1 & ~attackedSquares) + Long.bitCount(mobility_mask_2 & ~attackedSquares);
+					mobility_score = Long.bitCount(mobility_mask_1) + Long.bitCount(mobility_mask_2);
 				}
 				mobility_mask_1 = BitBoard.downRightOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
 				mobility_mask_2 = BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
 				if ((mobility_mask_1 & mobility_mask_2) == 0x0) {
-					long mobility_mask = (mobility_mask_1 | mobility_mask_2) & ~attackedSquares;
-					mobility_score += Long.bitCount(mobility_mask);
+					mobility_score += Long.bitCount(mobility_mask_1 | mobility_mask_2);
 				} else {
-					mobility_score += Long.bitCount(mobility_mask_1 & ~attackedSquares) + Long.bitCount(mobility_mask_2 & ~attackedSquares);
+					mobility_score += Long.bitCount(mobility_mask_1) + Long.bitCount(mobility_mask_2);
 				}
 			} else {
 				// Assume that if it is just queens, then material is so unbalanced that it doesn't matter that they can intersect
@@ -904,8 +964,7 @@ public class Board {
 				mobility_mask |= BitBoard.upRightOccludedEmpty(diagonal_sliders, empty);
 				mobility_mask |= BitBoard.downRightOccludedEmpty(diagonal_sliders, empty);
 				mobility_mask |= BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty);
-				mobility_mask = (mobility_mask ^ diagonal_sliders) & ~attackedSquares;
-				mobility_score = Long.bitCount(mobility_mask);
+				mobility_score = Long.bitCount(mobility_mask ^ diagonal_sliders);
 			}
 		} else if (bishops != 0) {
 			// Assume that if it is just bishops, they can't intersect, which allows optimisation
@@ -914,35 +973,31 @@ public class Board {
 				mobility_mask |= BitBoard.upRightOccludedEmpty(diagonal_sliders, empty);
 				mobility_mask |= BitBoard.downRightOccludedEmpty(diagonal_sliders, empty);
 				mobility_mask |= BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty);
-				mobility_mask = (mobility_mask ^ diagonal_sliders) & ~attackedSquares;
-				mobility_score = Long.bitCount(mobility_mask);
+				mobility_score = Long.bitCount(mobility_mask ^ diagonal_sliders);
 			}
 		}
 		return mobility_score;
 	}
 	
-	int calculateRankFileMobility(long rooks, long queens, boolean attackerIsBlack) {
+	int calculateRankFileMobility(long rooks, long queens) {
 		long empty = ~allPieces;
 		int mobility_score = 0x0;
-		long attackedSquares = paa.getPawnAttacks(attackerIsBlack);
 		long rank_file_sliders = rooks | queens;
 		if (rooks != 0) {
 			long mobility_mask_1 = BitBoard.leftOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;
 			long mobility_mask_2 = BitBoard.rightOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;
 			if ((mobility_mask_1 & mobility_mask_2) == 0x0) {
-				long mobility_mask = (mobility_mask_1 | mobility_mask_2) & ~attackedSquares;
-				mobility_score += Long.bitCount(mobility_mask);
+				mobility_score = Long.bitCount(mobility_mask_1 | mobility_mask_2);
 			} else {
-				mobility_score = Long.bitCount(mobility_mask_1 & ~attackedSquares) + Long.bitCount(mobility_mask_2 & ~attackedSquares);
+				mobility_score = Long.bitCount(mobility_mask_1) + Long.bitCount(mobility_mask_2);
 			}
 			
 			mobility_mask_1 = BitBoard.upOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;
 			mobility_mask_2 = BitBoard.downOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;
 			if ((mobility_mask_1 & mobility_mask_2) == 0x0) {
-				long mobility_mask = (mobility_mask_1 | mobility_mask_2) & ~attackedSquares;
-				mobility_score += Long.bitCount(mobility_mask);
+				mobility_score += Long.bitCount(mobility_mask_1 | mobility_mask_2);
 			} else {
-				mobility_score += Long.bitCount(mobility_mask_1 & ~attackedSquares) + Long.bitCount(mobility_mask_2 & ~attackedSquares);
+				mobility_score += Long.bitCount(mobility_mask_1) + Long.bitCount(mobility_mask_2);
 			}
 		}
 		else if (rank_file_sliders != 0) {
@@ -951,8 +1006,7 @@ public class Board {
 			mobility_mask |= BitBoard.rightOccludedEmpty(rank_file_sliders, empty);
 			mobility_mask |= BitBoard.downOccludedEmpty(rank_file_sliders, empty);
 			mobility_mask |= BitBoard.upOccludedEmpty(rank_file_sliders, empty);
-			mobility_mask = (mobility_mask ^ rank_file_sliders) & ~attackedSquares;
-			mobility_score = Long.bitCount(mobility_mask);
+			mobility_score = Long.bitCount(mobility_mask ^ rank_file_sliders);
 		}
 		return mobility_score;
 	}
@@ -961,20 +1015,20 @@ public class Board {
 		int mobility_score = 0x0;
 		// White Bishop and Queen
 		long white_queens = getWhiteQueens();
-		mobility_score = calculateDiagonalMobility(getWhiteBishops(), white_queens, true);
+		mobility_score = calculateDiagonalMobility(getWhiteBishops(), white_queens);
 		me.dynamicPosition += (short)(mobility_score*2);
 
 		// White Rook and Queen
-		mobility_score = calculateRankFileMobility(getWhiteRooks(), white_queens, true);
+		mobility_score = calculateRankFileMobility(getWhiteRooks(), white_queens);
 		me.dynamicPosition += (short)(mobility_score*2);
 		
 		// Black Bishop and Queen
 		long black_queens = getBlackQueens();
-		mobility_score = calculateDiagonalMobility(getBlackBishops(), black_queens, false);
+		mobility_score = calculateDiagonalMobility(getBlackBishops(), black_queens);
 		me.dynamicPosition -= (short)(mobility_score*2);
 		
 		// Black Rook and Queen
-		mobility_score = calculateRankFileMobility(getBlackRooks(), black_queens, false);
+		mobility_score = calculateRankFileMobility(getBlackRooks(), black_queens);
 		me.dynamicPosition -= (short)(mobility_score*2);
 	}
 	
@@ -1103,5 +1157,17 @@ public class Board {
 		evaluation += -8*Long.bitCount(pertintentKnightsMask);
 			
 		return evaluation;
+	}
+	
+	public void forEachPiece(IForEachPieceCallback caller) {
+		pieceLists.forEachPieceDoCallback(caller);
+	}
+	
+	public void forEachPawnOfSide(IForEachPieceCallback caller, boolean isBlack) {
+		pieceLists.forEachPawnOfSideDoCallback(caller, isBlack);
+	}
+	
+	public long getEmpty() {
+		return ~allPieces;
 	}
 }

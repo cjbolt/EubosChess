@@ -11,7 +11,6 @@ import eubos.board.Board;
 
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
-import eubos.main.EubosEngineMain;
 import eubos.score.IEvaluate;
 import eubos.score.PositionEvaluator;
 import eubos.search.DrawChecker;
@@ -82,7 +81,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	boolean repetitionPossible = false;
 	public boolean isThreefoldRepetitionPossible() {
-		return (EubosEngineMain.ENABLE_REPETITION_DETECTION) ? repetitionPossible : false;
+		return repetitionPossible;
 	}
 	
 	DrawChecker dc;
@@ -336,12 +335,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 
 	@Override
 	public boolean isQuiescent() {
-		/* Note: As soon as we have a promo or a capture, cancel the movelist generation and see if we can
-		   lazy eval fail the node on alpha. In this case we wouldn't need to generate all the move as we do.
-		   
-		   It would be good to have a function that just tells us if there is an attacked piece or promotable
-		   pawn in the position. If there is, return early and check alpha vs pat. If there isn't anyway we
-		   will return plyScore either phase 1 or phase 2. */
-		return false;
+		// This function will return false on finding an attacked piece or promotable pawn on the board.
+		return !theBoard.validPriorityMoveExists(onMoveIsWhite());
 	}
 }

@@ -147,9 +147,9 @@ public class EubosEngineMainTest {
 	@Test
 	public void test_infoMessageSending_clearsPreviousPvMoves() throws InterruptedException, IOException {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
-			String expectedOutput = "info depth 1 seldepth 6 score cp -24 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
-						"info depth 1 seldepth 6 score cp 164 pv c7c2 d4a7 hashfull 0 nps 441 time 102 nodes 45"+CMD_TERMINATOR+
-	                    "info depth 2 seldepth 6 score cp 94 pv c7c2 e1g1 d7e5 hashfull 0 nps 1836 time 116 nodes 203"+CMD_TERMINATOR
+			String expectedOutput = "info depth 1 seldepth 6 score cp 18 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
+						"info depth 1 seldepth 6 score cp 191 pv c7c2 d4a7 hashfull 0 nps 441 time 102 nodes 45"+CMD_TERMINATOR+
+	                    "info depth 2 seldepth 6 score cp 121 pv c7c2 e1g1 d7e5 hashfull 0 nps 1836 time 116 nodes 203"+CMD_TERMINATOR
 	                    +BEST_PREFIX+"c7c2";
 			setupEngine();
 			// Setup Commands specific to this test
@@ -246,7 +246,7 @@ public class EubosEngineMainTest {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_TIME_PREFIX+"30000"+CMD_TERMINATOR, BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
-		performTestExpectMate(30000, 8);
+		performTestExpectMate(30000, 7);
 	}
 	
 	@Test
@@ -284,8 +284,8 @@ public class EubosEngineMainTest {
 		int mateDepth = 0;
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1d1"+CMD_TERMINATOR));
-		mateDepth = 17;
+		commands.add(new commandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1h4"+CMD_TERMINATOR));
+		mateDepth = 13;
 		performTestExpectMate(14000, mateDepth);
 	}
 	
@@ -335,7 +335,7 @@ public class EubosEngineMainTest {
 	public void test_hash_issue_losing_position() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"3r2k1/5p2/7p/3R2p1/p7/1q1Q1PP1/7P/3R2K1 b - - 1 42"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"b3b6"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d8d5"+CMD_TERMINATOR));
 
 		testOutput.flush();
 		inputToEngine.flush();

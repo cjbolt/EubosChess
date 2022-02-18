@@ -55,7 +55,7 @@ public final class BitBoard {
 		}
 	}
 	
-	static final long[] positionToMask_Lut = new long[128];
+	public static final long[] positionToMask_Lut = new long[128];
 	static {
 		int bit_index = 0;
 		for (int x88_square : Position.values) {

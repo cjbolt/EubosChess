@@ -247,7 +247,7 @@ public class PositionManagerTest {
 		createSutAndRegisterPe("8/8/8/8/4p3/8/5P2/8 w - - 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.f2, Piece.WHITE_PAWN, Position.f4, Piece.NONE ));
 		ml.createForPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
-		expectedMove = Move.valueOf( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.e4, Piece.BLACK_PAWN, Position.f3, Piece.WHITE_PAWN, Piece.NONE );
+		expectedMove = Move.valueOfEnPassant( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.e4, Piece.BLACK_PAWN, Position.f3, Piece.WHITE_PAWN, Piece.NONE );
 		contains( expectedMove );
 	}
 	
@@ -267,7 +267,7 @@ public class PositionManagerTest {
 		createSutAndRegisterPe("8/8/8/8/4p3/8/3P4/8 w - - 0 1 ");
 		classUnderTest.performMove( Move.valueOf( Position.d2, Piece.WHITE_PAWN, Position.d4, Piece.NONE ));
 		ml.createForPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
-		expectedMove = Move.valueOf( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.e4, Piece.BLACK_PAWN, Position.d3, Piece.WHITE_PAWN, Piece.NONE );
+		expectedMove = Move.valueOfEnPassant( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.e4, Piece.BLACK_PAWN, Position.d3, Piece.WHITE_PAWN, Piece.NONE );
 		contains( expectedMove );
 	}
 	
@@ -287,7 +287,7 @@ public class PositionManagerTest {
 		createSutAndRegisterPe("8/8/8/8/p7/8/1P6/8 w - - 0 1 ");
 		classUnderTest.performMove( Move.valueOf( Position.b2, Piece.WHITE_PAWN, Position.b4, Piece.NONE ));
 		ml.createForPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
-		expectedMove = Move.valueOf( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.a4, Piece.BLACK_PAWN, Position.b3, Piece.WHITE_PAWN, Piece.NONE );
+		expectedMove = Move.valueOfEnPassant( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.a4, Piece.BLACK_PAWN, Position.b3, Piece.WHITE_PAWN, Piece.NONE );
 		contains( expectedMove );
 	}
 	
@@ -297,7 +297,7 @@ public class PositionManagerTest {
 		createSutAndRegisterPe("8/8/8/8/pP6/8/8/8 w - - 0 1 ");
 		classUnderTest.performMove( Move.valueOf( Position.b4, Piece.WHITE_PAWN, Position.b5, Piece.NONE ));
 		
-		expectedMove = Move.valueOf( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.a4, Piece.BLACK_PAWN, Position.b3, Piece.WHITE_PAWN, Piece.NONE );
+		expectedMove = Move.valueOfEnPassant( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.a4, Piece.BLACK_PAWN, Position.b3, Piece.WHITE_PAWN, Piece.NONE );
 		doesntContain( expectedMove );
 	}	
 	
@@ -307,7 +307,7 @@ public class PositionManagerTest {
 		createSutAndRegisterPe("8/8/8/8/7p/8/6P1/8 w - - 0 1 ");
 		classUnderTest.performMove( Move.valueOf( Position.g2, Piece.WHITE_PAWN, Position.g4, Piece.NONE ));
 		ml.createForPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
-		expectedMove = Move.valueOf( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.h4, Piece.BLACK_PAWN, Position.g3, Piece.WHITE_PAWN, Piece.NONE );
+		expectedMove = Move.valueOfEnPassant( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.h4, Piece.BLACK_PAWN, Position.g3, Piece.WHITE_PAWN, Piece.NONE );
 		contains( expectedMove );
 	}		
 	
@@ -424,7 +424,7 @@ public class PositionManagerTest {
 		createSutAndRegisterPe("8/3p4/8/4P3/8/8/8/8 b - - 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.d7, Piece.BLACK_PAWN, Position.d5, Piece.NONE ));
 		ml.createForPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
-		expectedMove = Move.valueOf( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.e5, Piece.WHITE_PAWN, Position.d6, Piece.BLACK_PAWN, Piece.NONE );
+		expectedMove = Move.valueOfEnPassant( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.e5, Piece.WHITE_PAWN, Position.d6, Piece.BLACK_PAWN, Piece.NONE );
 		contains( expectedMove );
 	}
 	
@@ -442,7 +442,7 @@ public class PositionManagerTest {
 		createSutAndRegisterPe("8/5p2/8/4P3/8/8/8/8 b - - 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.f7, Piece.BLACK_PAWN, Position.f5, Piece.NONE ));
 		ml.createForPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
-		expectedMove = Move.valueOf(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.e5, Piece.WHITE_PAWN, Position.f6, Piece.BLACK_PAWN, Piece.NONE );
+		expectedMove = Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.e5, Piece.WHITE_PAWN, Position.f6, Piece.BLACK_PAWN, Piece.NONE );
 		contains( expectedMove );
 	}
 	
@@ -461,7 +461,7 @@ public class PositionManagerTest {
 		createSutAndRegisterPe("8/1p6/8/P7/8/8/8/8 b - - 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.b7, Piece.BLACK_PAWN, Position.b5, Piece.NONE ));
 		ml.createForPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
-		expectedMove = Move.valueOf( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.a5, Piece.WHITE_PAWN, Position.b6, Piece.BLACK_PAWN, Piece.NONE );
+		expectedMove = Move.valueOfEnPassant( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.a5, Piece.WHITE_PAWN, Position.b6, Piece.BLACK_PAWN, Piece.NONE );
 		contains( expectedMove );
 	}
 	
@@ -471,7 +471,7 @@ public class PositionManagerTest {
 		createSutAndRegisterPe("8/6p1/8/7P/8/8/8/8 b - - 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.g7, Piece.BLACK_PAWN, Position.g5, Piece.NONE ));
 		ml.createForPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
-		expectedMove = Move.valueOf( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.h5, Piece.WHITE_PAWN, Position.g6, Piece.BLACK_PAWN, Piece.NONE );
+		expectedMove = Move.valueOfEnPassant( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.h5, Piece.WHITE_PAWN, Position.g6, Piece.BLACK_PAWN, Piece.NONE );
 		contains( expectedMove );
 	}		
 	
@@ -826,5 +826,17 @@ public class PositionManagerTest {
 		assertFalse(ml.getList(0).size() == 0);
 		contains( Move.valueOf( Position.a1, Piece.BLACK_ROOK, Position.a2, Piece.WHITE_PAWN ));
 		doesntContain( Move.valueOf( Position.a1, Piece.BLACK_ROOK, Position.a3, Piece.WHITE_PAWN ));
+	}
+	
+	@Test
+	public void test_quiescent() {
+		createSutAndRegisterPe("1rk2N2/1p6/8/B1Pp4/B6Q/K7/8/2R5 w - d6 0 1");
+		assertTrue(classUnderTest.isQuiescent());
+	}
+	
+	@Test
+	public void test_not_quiescent_knight_takes_pawn() {
+		createSutAndRegisterPe("8/8/8/8/1N6/3K4/p7/k7 w - d6 0 1");
+		assertFalse(classUnderTest.isQuiescent());
 	}
 }

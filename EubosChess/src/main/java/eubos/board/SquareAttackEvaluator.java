@@ -131,6 +131,32 @@ public class SquareAttackEvaluator {
 		}
 	}
 	
+	/* The following 1-dimensional arrays provide bit masks of all the squares that can directly attack the target square:
+	 * 1st index is a position integer, this is the target square */	
+	static final long[] directRankFileAttacksOnPosition_Lut = new long[128];
+	static {
+		for (int square : Position.values) {
+			Long allAttacksMask = 0L;
+			for (Direction dir: rankFile) {
+				allAttacksMask = setAllInDirection(dir, square, allAttacksMask, 8);
+			}
+			directRankFileAttacksOnPosition_Lut[square] = allAttacksMask;
+		}
+	}
+	
+	/* The following 1-dimensional arrays provide bit masks of all the squares that can directly attack the target square:
+	 * 1st index is a position integer, this is the target square */	
+	static final long[] directDiagonalAttacksOnPosition_Lut = new long[128];
+	static {
+		for (int square : Position.values) {
+			Long allAttacksMask = 0L;
+			for (Direction dir: diagonals) {
+				allAttacksMask = setAllInDirection(dir, square, allAttacksMask, 8);
+			}
+			directDiagonalAttacksOnPosition_Lut[square] = allAttacksMask;
+		}
+	}
+	
 	/* The following 1-dimensional arrays provide bit masks of all the squares in a direction that can attack the target square:
 	 * 1st index is a position integer, this is the target square */
 	static final long[] directAttacksOnPositionUp_Lut = new long[128];
@@ -286,69 +312,69 @@ public class SquareAttackEvaluator {
 	}
 	
 	public static boolean isAttacked( Board bd, int attackedSq, boolean isBlackAttacking) {
-		
-		// Early terminate, if no potential attackers
-		long attackers = isBlackAttacking ? bd.getBlackPieces() : bd.getWhitePieces();
-		if ((allAttacksOnPosition_Lut[attackedSq] & attackers) == 0)
-			return false;
-		
-		// Pawns
-		long attackingPawnsMask = isBlackAttacking ? bd.getBlackPawns() : bd.getWhitePawns();
 		boolean attacked = false;
-		if (isBlackAttacking) {
-			attacked = (attackingPawnsMask & BlackPawnAttacks_Lut[attackedSq]) != 0;
-			if (attacked) return true;
-		} else {
-			attacked = (attackingPawnsMask & WhitePawnAttacks_Lut[attackedSq]) != 0;
-			if (attacked) return true;
-		}
 		
-		// Non-sliders
-		long attackingKingMask = isBlackAttacking ? bd.getBlackKing() : bd.getWhiteKing();
-		attacked = (attackingKingMask & KingMove_Lut[attackedSq]) != 0;
-		if (attacked) return true;
+		// Knights
 		long attackingKnightsMask = isBlackAttacking ? bd.getBlackKnights() : bd.getWhiteKnights();
 		attacked = (attackingKnightsMask & KnightMove_Lut[attackedSq]) != 0;
 		if (attacked) return true;
 		
+		// Pawns
+		long attackingPawnsMask = isBlackAttacking ? bd.getBlackPawns() : bd.getWhitePawns();
+		attacked = (attackingPawnsMask & (isBlackAttacking ? BlackPawnAttacks_Lut[attackedSq] : WhitePawnAttacks_Lut[attackedSq])) != 0;
+		if (attacked) return true;
+		
+		// Kings
+		long attackingKingMask = isBlackAttacking ? bd.getBlackKing() : bd.getWhiteKing();
+		attacked = (attackingKingMask & KingMove_Lut[attackedSq]) != 0;
+		if (attacked) return true;
+		
 		// Sliders
-		return checkForDirectPieceAttacker(bd, attackedSq, isBlackAttacking);	
-	}
-
-	private static boolean checkForDirectPieceAttacker(Board bd, int attackedSq, boolean isBlackAttacking) {
-		// direct piece check is computationally heavy, so just do what is necessary
-		long attackingQueensMask = isBlackAttacking ? bd.getBlackQueens() : bd.getWhiteQueens();
-		long attackingRooksMask = isBlackAttacking ? bd.getBlackRooks() : bd.getWhiteRooks();
-		long attackingBishopsMask = isBlackAttacking ? bd.getBlackBishops() : bd.getWhiteBishops();
-		// create masks of attackers
-		long diagonalAttackersMask = attackingQueensMask | attackingBishopsMask;
-		long rankFileAttackersMask = attackingQueensMask | attackingRooksMask;	
+		long diagonalAttackersMask = isBlackAttacking ? bd.getBlackDiagonal() : bd.getWhiteDiagonal();
+		long rankFileAttackersMask = isBlackAttacking ? bd.getBlackRankFile() : bd.getWhiteRankFile();
 		
 		long empty = bd.getEmpty();
 		long target = BitBoard.positionToMask_Lut[attackedSq];
+		long attackMask = 0L;
 		
-		if (diagonalAttackersMask != 0) {
-			long attackMask = BitBoard.downLeftAttacks(diagonalAttackersMask, empty);
-			if ((attackMask & target) != 0) return true;
-			attackMask = BitBoard.downRightAttacks(diagonalAttackersMask, empty);
-			if ((attackMask & target) != 0) return true;
-			attackMask = BitBoard.upRightAttacks(diagonalAttackersMask, empty);
-			if ((attackMask & target) != 0) return true;
-			attackMask = BitBoard.upLeftAttacks(diagonalAttackersMask, empty);
-			if ((attackMask & target) != 0) return true;
+		if ((directDiagonalAttacksOnPosition_Lut[attackedSq] & diagonalAttackersMask) != 0) {
+			if ((directAttacksOnPositionUpRight_Lut[attackedSq] & diagonalAttackersMask) != 0) {
+				attackMask = BitBoard.downLeftAttacks(diagonalAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+			}
+			if ((directAttacksOnPositionUpLeft_Lut[attackedSq] & diagonalAttackersMask) != 0) {
+				attackMask = BitBoard.downRightAttacks(diagonalAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+			}
+			if ((directAttacksOnPositionDownLeft_Lut[attackedSq] & diagonalAttackersMask) != 0) {
+				attackMask = BitBoard.upRightAttacks(diagonalAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+			}
+			if ((directAttacksOnPositionDownRight_Lut[attackedSq] & diagonalAttackersMask) != 0) {
+				attackMask = BitBoard.upLeftAttacks(diagonalAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+			}
 		}
-		if (rankFileAttackersMask != 0) {
-			long attackMask = BitBoard.downAttacks(rankFileAttackersMask, empty);
-			if ((attackMask & target) != 0) return true;
-			attackMask = BitBoard.rightAttacks(rankFileAttackersMask, empty);
-			if ((attackMask & target) != 0) return true;
-			attackMask = BitBoard.upAttacks(rankFileAttackersMask, empty);
-			if ((attackMask & target) != 0) return true;
-			attackMask = BitBoard.leftAttacks(rankFileAttackersMask, empty);
-			if ((attackMask & target) != 0) return true;
+		if ((directRankFileAttacksOnPosition_Lut[attackedSq] & rankFileAttackersMask) != 0) {
+			if ((directAttacksOnPositionUp_Lut[attackedSq] & rankFileAttackersMask) != 0) {
+				attackMask = BitBoard.downAttacks(rankFileAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+			}
+			if ((directAttacksOnPositionLeft_Lut[attackedSq] & rankFileAttackersMask) != 0) {
+				attackMask = BitBoard.rightAttacks(rankFileAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+			}
+			if ((directAttacksOnPositionDown_Lut[attackedSq] & rankFileAttackersMask) != 0) {
+				attackMask = BitBoard.upAttacks(rankFileAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+			}
+			if ((directAttacksOnPositionRight_Lut[attackedSq] & rankFileAttackersMask) != 0) {
+				attackMask = BitBoard.leftAttacks(rankFileAttackersMask, empty);
+				if ((attackMask & target) != 0) return true;
+			}
 		}
-				
-		return false;
+		
+		return attacked;
 	}
 	
 	/* 1-dimensional array:

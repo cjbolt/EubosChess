@@ -15,6 +15,13 @@ import eubos.search.transposition.ITransposition;
 
 public class PlySearcher {
 	
+	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
+	running with the logging in TUNE_LAZY_EVAL for Eubos2.8 and post processing the logs.
+	It will need to be re-tuned if the evaluation function is altered significantly. */
+	private static final int LAZY_EVAL_THRESHOLD_IN_CP = 350;
+	private static final boolean TUNE_LAZY_EVAL = false;
+	private static int count;  // Only used for tuning lazy evaluation
+	
 	private IChangePosition pm;
 	private IPositionAccessors pos;
 	private IEvaluate pe;
@@ -79,16 +86,20 @@ public class PlySearcher {
 		return (short) search(Score.PROVISIONAL_ALPHA, Score.PROVISIONAL_BETA, originalSearchDepthRequiredInPly);
 	}
 	
+	private static final int [] ASPIRATION_WINDOW_FALLBACK = 
+		{ Piece.MATERIAL_VALUE_PAWN/4, 2*Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
+	
 	public int searchPly(short lastScore)  {
 		currPly = 0;
 		extendedSearchDeepestPly = 0;	
 		short score = 0;
+		int fail_count = 0;
 		
 		// Adjust the aspiration window, according to the last score, if searching to sufficient depth
 		int alpha = Score.PROVISIONAL_ALPHA;
 		int beta = Score.PROVISIONAL_BETA;
 		if (originalSearchDepthRequiredInPly >= 5) {
-			int windowSize = Score.isMate(lastScore) ? 1 : Piece.MATERIAL_VALUE_PAWN/4;
+			int windowSize = Score.isMate(lastScore) ? 1 : ASPIRATION_WINDOW_FALLBACK[fail_count];
 			alpha = lastScore - windowSize;
 			beta = lastScore + windowSize;
 		}
@@ -106,18 +117,28 @@ public class PlySearcher {
         	} else if (score <= alpha) {
         		// Failed low, adjust window
         		windowFailed = true;
-	            alpha = Score.PROVISIONAL_ALPHA;
+        		fail_count++;
+	        	if (!Score.isMate(lastScore) && fail_count < ASPIRATION_WINDOW_FALLBACK.length-1) {
+	        		alpha = lastScore - ASPIRATION_WINDOW_FALLBACK[fail_count];
+	        	} else {
+	        		alpha = Score.PROVISIONAL_ALPHA;
+	        	}
 	        } else if (score >= beta) {
 	        	// Failed high, adjust window
 	        	windowFailed = true;
-	            beta = Score.PROVISIONAL_BETA;
+	        	fail_count++;
+	        	if (!Score.isMate(lastScore) && fail_count < ASPIRATION_WINDOW_FALLBACK.length-1) {
+	        		beta = lastScore + ASPIRATION_WINDOW_FALLBACK[fail_count];
+	        	} else {
+	        		beta = Score.PROVISIONAL_BETA;
+	        	}
 	        } else {
 	        	// Exact score in window returned
 	            break;
 	        }
 			if (windowFailed) {
-				EubosEngineMain.logger.info(String.format("Aspiration Window failed score=%d alpha=%d beta=%d depth=%d",
-        				score, alpha, beta, originalSearchDepthRequiredInPly));
+				EubosEngineMain.logger.info(String.format("Aspiration Window failed count=%d score=%d alpha=%d beta=%d depth=%d",
+        				fail_count, score, alpha, beta, originalSearchDepthRequiredInPly));
 				sr.resetAfterWindowingFail();
 				windowFailed = false;
 			}
@@ -128,6 +149,8 @@ public class PlySearcher {
 	int search(int alpha, int beta, int depth)  {
 		int alphaOriginal = alpha;
 		int plyScore = Score.PROVISIONAL_ALPHA;
+		// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
+		// It will deviate from the hash move when we start updating the hash during iterative deepening.
 		int prevBestMove = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
@@ -219,7 +242,12 @@ public class PlySearcher {
 			// Transposition may still be useful to seed the move list, if not drawing.
 			if (!override_trans_move || (override_trans_move && prevBestMove == Move.NULL_MOVE)) {
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-				prevBestMove = trans.getBestMove(pos.getTheBoard());
+				int trans_move = trans.getBestMove(pos.getTheBoard());
+				if (atRootNode()) {
+					EubosEngineMain.logger.info(
+							String.format("best move set from trans=%s", Move.toString(trans_move)));
+				}
+				prevBestMove = trans_move;
 			}
 		}
 		
@@ -318,7 +346,6 @@ public class PlySearcher {
 		return alpha;
 	}
 	
-	@SuppressWarnings("unused")
 	private int extendedSearch(int alpha, int beta, boolean needToEscapeCheck)  {
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearch(alpha, beta);
 		if (currPly > extendedSearchDeepestPly) {
@@ -330,21 +357,40 @@ public class PlySearcher {
 		MoveListIterator move_iter;
 		
 		// Stand Pat in extended search
-		// Phase 1 - crude evaluation
-		short plyScore = (short) pe.getCrudeEvaluation();	
-		if (EubosEngineMain.ENABLE_LAZY_EVALUATION) {
-			if (plyScore-450 >= beta) {
+		short plyScore = (short) 0;
+		if (EubosEngineMain.ENABLE_LAZY_EVALUATION && !pos.getTheBoard().me.isEndgame()) {
+			// Phase 1 - crude evaluation
+			plyScore = (short) pe.getCrudeEvaluation();
+			if (plyScore-LAZY_EVAL_THRESHOLD_IN_CP >= beta) {
 				// There is no move to put in the killer table when we stand Pat
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
+				// According to lazy eval, we probably can't reach beta
+				if (TUNE_LAZY_EVAL) {
+					if (count == 1024) {
+						count = 0;
+						EubosEngineMain.logger.info(
+							String.format("TUNE LAZY B=%d delta=%d ", beta, plyScore-pe.getFullEvaluation()));
+					} else {
+						count++;
+					}
+				}
 				return beta;
 			}
-		}	
-		if (pos.isQuiescent() && EubosEngineMain.ENABLE_LAZY_EVALUATION) {
-			if (plyScore+450 <= alpha) {
-				// According to lazy eval, can't increase alpha
+			/* Note call to quiescence check is last as it could be very computationally heavy! */
+			if (plyScore+LAZY_EVAL_THRESHOLD_IN_CP <= alpha && pos.isQuiescent()) {
+				// According to lazy eval, we probably can't increase alpha
+				if (TUNE_LAZY_EVAL) {
+					if (count == 1024) {
+						count = 0;
+						EubosEngineMain.logger.info(
+							String.format("TUNE LAZY A=%d delta=%d ", alpha, plyScore-pe.getFullEvaluation()));
+					} else {
+						count++;
+					}
+				}
 				return alpha;
 			}
-		}
+		}	
 		// Phase 2 full evaluation
 		plyScore = (short) pe.getFullEvaluation();
 		if (plyScore >= beta) {

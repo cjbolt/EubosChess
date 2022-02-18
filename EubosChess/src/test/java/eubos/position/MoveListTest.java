@@ -163,6 +163,7 @@ public class MoveListTest {
 		assertEquals(new GenericMove("e3e6"), Move.toGenericMove(it.nextInt())); // RxP delta -3 loses 4 losing material (happens to check, but that is ignored)
 		
 		// regular moves
+		assertEquals(new GenericMove("f5f6"), Move.toGenericMove(it.nextInt())); // piece is attacked, regular move
 		assertEquals(new GenericMove("g5h7"), Move.toGenericMove(it.nextInt())); // Regular move
 		assertEquals(new GenericMove("g5h3"), Move.toGenericMove(it.nextInt())); // Regular move
 	}
@@ -299,7 +300,7 @@ public class MoveListTest {
 	}
 	
 	@Test
-	public void test_mate_in_7_best_move()throws IllegalNotationException {
+	public void test_mate_in_7_best_move() throws IllegalNotationException {
 		PositionManager pm = new PositionManager("5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113");
 		int best = Move.valueOf(Position.f8, Piece.WHITE_QUEEN, Position.b4, Piece.NONE);
 		classUnderTest = new MoveList(pm, 1);
@@ -311,6 +312,22 @@ public class MoveListTest {
 	public void test_extended_search_iterator_has_next_is_null() {
 		setup("8/8/8/8/8/1pp5/ppp5/Kp6 w - - - -"); // is_stalemate
 		assertFalse(classUnderTest.getExtendedIterator().hasNext());
+	}
+	
+	@Test
+	public void test_attacked_piece_is_ordered_before_other_quiet_moves() throws IllegalNotationException {
+		setup("7k/8/8/5n2/8/1PPPP3/8/7K w - - 0 1 ");
+		MoveListIterator it =  classUnderTest.createForPly(Move.NULL_MOVE, null, false, false, 0);
+		assertEquals(new GenericMove("e3e4"), Move.toGenericMove(it.nextInt())); // Attacked pawn is ordered first
+	}
+	
+	@Test
+	public void test_attacked_piece_is_ordered_before_other_quiet_moves_alt() throws IllegalNotationException {
+		setup("7k/8/8/5n2/p7/1PPPP3/8/7K w - - 0 1 ");
+		MoveListIterator it =  classUnderTest.createForPly(Move.NULL_MOVE, null, false, false, 0);
+		assertEquals(new GenericMove("b3a4"), Move.toGenericMove(it.nextInt())); // PxP
+		assertEquals(new GenericMove("b3b4"), Move.toGenericMove(it.nextInt())); // Pawn attacked by pawn
+		assertEquals(new GenericMove("e3e4"), Move.toGenericMove(it.nextInt())); // Attacked pawn is ordered first
 	}
 	 
 }

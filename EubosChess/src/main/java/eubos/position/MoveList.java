@@ -6,6 +6,7 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import eubos.board.BitBoard;
 import eubos.main.EubosEngineMain;
 import eubos.search.KillerList;
 
@@ -62,7 +63,7 @@ public class MoveList implements Iterable<Integer> {
 		// Create the list at each ply
 		for (int i=0; i < EubosEngineMain.SEARCH_DEPTH_IN_PLY; i++) {
 			normal_search_moves[i] = new int[110];
-			priority_moves[i] = new int[50];
+			priority_moves[i] = new int[100];
 			extended_search_moves[i] = new int[30];
 			scratchpad[i] = new int [100];
 		}
@@ -74,12 +75,14 @@ public class MoveList implements Iterable<Integer> {
 		ma_noKillers = new MoveAdderWithNoKillers();
 	}
 	
+	@SuppressWarnings("unused")
 	public MoveListIterator createForPly(int bestMove, int [] killers, boolean capturesOnly, boolean needToEscapeMate, int ply)
 	{
 		// Initialise working variables for building the MoveList at this ply
 		this.ply = ply; 
 		this.needToEscapeMate = needToEscapeMate;
 		this.killers = killers;
+		this.bestMove = bestMove;
 		moveCount = 0;
 		normal_fill_index[ply] = 0;
 		priority_fill_index[ply] = 0;
@@ -87,9 +90,16 @@ public class MoveList implements Iterable<Integer> {
 		scratchpad_fill_index = 0;
 		extendedListScopeEndpoint = 0;
 		
-		setupBestMove(bestMove);
 		getMoves(capturesOnly);
 		if (moveCount != 0) {
+			if (EubosEngineMain.ENABLE_ASSERTS && bestMove != Move.NULL_MOVE) {
+				if (scratchpad_fill_index == 1) {
+					// Only check the best move is present if it is a hash table move, if it is from the principal 
+					// continuation it shall only be guaranteed valid for ply 0. 
+					assert Move.areEqualForBestKiller(bestMove, scratchpad[ply][0]) : 
+						String.format("When creating MoveList, bestMove=%s was not found amongst available moves", Move.toString(bestMove));
+				}
+			}
 			sortPriorityList();
 			collateMoveList();
 		}
@@ -103,8 +113,18 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	private void getMoves(boolean capturesOnly) {
-		IAddMoves moveAdder = (killers == null) ? ma_noKillers : ma;
+		IAddMoves moveAdder = null;
 		boolean isWhiteOnMove = pm.onMoveIsWhite();
+		if (killers == null) {
+			if (!capturesOnly) {
+				ma_noKillers.attackMask = pm.getTheBoard().pkaa.getAttacks(isWhiteOnMove);
+			}
+			moveAdder = ma_noKillers;
+		} else {
+			// Set-up move adder to filter the moves from attacked pieces into the priority part of the move list
+			ma.attackMask = pm.getTheBoard().pkaa.getAttacks(isWhiteOnMove);
+			moveAdder = ma;
+		}
 		pm.getTheBoard().getRegularPieceMoves(moveAdder, isWhiteOnMove, capturesOnly);
 		if (!capturesOnly && !needToEscapeMate) {
 			// Can't castle out of check and don't care in extended search
@@ -122,18 +142,6 @@ public class MoveList implements Iterable<Integer> {
 				scratchpad[ply][scratchpad_fill_index++] = normal_search_moves[ply][j];
 			}
 			normal_list_length[ply] = moveCount;
-	}
-	
-	private void setupBestMove(int bestMove)  {
-		boolean validBest = bestMove != Move.NULL_MOVE;		
-		if (validBest) {
-			// Setup best move check on origin and target sq, not in transpo table
-			int bestOriginPiece = pm.getTheBoard().getPieceAtSquare(Move.getOriginPosition(bestMove));
-			bestMove = Move.setOriginPiece(bestMove, bestOriginPiece);
-			int targetPiece = pm.getTheBoard().getPieceAtSquare(Move.getTargetPosition(bestMove));
-			bestMove = Move.setTargetPiece(bestMove, targetPiece);
-		}
-		this.bestMove = bestMove;
 	}
 	
 	private void sortPriorityList() {
@@ -210,6 +218,9 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	public class MoveAdder implements IAddMoves {
+		
+		long attackMask = 0L;
+		
 		public void addPrio(int move) {
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate)) {
 				if (Move.areEqualForBestKiller(move, bestMove)) {
@@ -225,13 +236,26 @@ public class MoveList implements Iterable<Integer> {
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate)) {
 				if (Move.areEqualForBestKiller(move, bestMove)) {
 					scratchpad[ply][scratchpad_fill_index++] = Move.setBest(move);
-				} else if(KillerList.isMoveOnListAtPly(killers, move)) {
-					priority_moves[ply][priority_fill_index[ply]++] = Move.setKiller(move);;
+				} else if (KillerList.isMoveOnListAtPly(killers, move)) {
+					priority_moves[ply][priority_fill_index[ply]++] = Move.setKiller(move);
+				} else if (isMoveOriginSquareAttacked(move)) {
+					priority_moves[ply][priority_fill_index[ply]++] = move;
 				} else {
 					normal_search_moves[ply][normal_fill_index[ply]++] = move;
 				}
 				moveCount++;
 			}
+		}
+		
+		public boolean isLegalMoveFound() {
+			return false;
+		}
+		
+		protected boolean isMoveOriginSquareAttacked(int move) {
+			long orginSquare = BitBoard.positionToMask_Lut[Move.getOriginPosition(move)];
+			if ((orginSquare & attackMask) == orginSquare)
+				return true;
+			return false;
 		}
 	}
 	
@@ -240,6 +264,8 @@ public class MoveList implements Iterable<Integer> {
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate)) {
 				if (Move.areEqualForBestKiller(move, bestMove)) {
 					scratchpad[ply][scratchpad_fill_index++] = Move.setBest(move);
+				} else if (isMoveOriginSquareAttacked(move)) {
+					priority_moves[ply][priority_fill_index[ply]++] = move;
 				} else {
 					normal_search_moves[ply][normal_fill_index[ply]++] = move;
 				}

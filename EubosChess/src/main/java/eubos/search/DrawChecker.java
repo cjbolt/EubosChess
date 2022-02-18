@@ -4,8 +4,6 @@ import it.unimi.dsi.fastutil.longs.LongArrays;
 
 public class DrawChecker {
 	
-	public static final boolean ENABLE_THREEFOLD_POSITION_DRAW_CHECK = true;
-	
 	public long[] reachedPositions;
 	public int checkFromPly;
 	
@@ -24,7 +22,7 @@ public class DrawChecker {
 		
 	public boolean setPositionReached(long posHash, int gamePly) {
 		boolean repetitionPossible = false;
-		if (ENABLE_THREEFOLD_POSITION_DRAW_CHECK && isPositionReachedBefore(posHash, gamePly)) {
+		if (isPositionReachedBefore(posHash, gamePly)) {
 			repetitionPossible = true;
 		} else {
 			reachedPositions[gamePly] = posHash;
