@@ -23,6 +23,8 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 import eubos.board.Piece;
 import eubos.position.Move;
 import eubos.position.Position;
+import eubos.search.Score;
+import eubos.search.transposition.ITransposition;
 import eubos.search.transposition.Transposition;
 
 public class EubosEngineMainTest {
@@ -337,71 +339,9 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(POS_FEN_PREFIX+"3r2k1/5p2/7p/3R2p1/p7/1q1Q1PP1/7P/3R2K1 b - - 1 42"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d8d5"+CMD_TERMINATOR));
 
-		testOutput.flush();
-		inputToEngine.flush();
-		int commandNumber = 1;
-		for (commandPair currCmdPair: commands) {
-			String inputCmd = currCmdPair.getIn();
-			String expectedOutput = currCmdPair.getOut();
-			String parsedCmd= "";
-			// Pass command to engine
-			if (inputCmd != null) {
-				if (inputCmd.startsWith("go")) {
-					Thread.sleep(sleep_50ms);
-					// Seed hash table with problematic hash
-					long problemHash = classUnderTest.rootPosition.getHash();
-					EubosEngineMain.logger.info(String.format("*************** using hash code %d", problemHash));
-					classUnderTest.hashMap.putTransposition(
-							problemHash,
-							new Transposition((byte)6, (short)0, (byte)1, Move.valueOf(Position.b3, Piece.BLACK_QUEEN, Position.d1, Piece.WHITE_ROOK), null));
-				}
-				inputToEngine.write(inputCmd);
-				inputToEngine.flush();
-				EubosEngineMain.logger.info(String.format("************* %s", inputCmd));
-			}
-			// Test expected command was received
-			if (expectedOutput != null) {
-				boolean received = false;
-				int timer = 0;
-				boolean accumulate = false;
-				String recievedCmd = "";
-				// Receive message or wait for timeout to expire.
-				while (!received && timer<20000) {
-					// Give the engine thread some CPU time
-					Thread.sleep(sleep_50ms);
-					timer += sleep_50ms;
-					testOutput.flush();
-					if (accumulate) {
-						recievedCmd += testOutput.toString();
-					} else {
-						recievedCmd = testOutput.toString();
-					}
-					if (recievedCmd != null && !recievedCmd.isEmpty()) {
-						System.err.println(recievedCmd);
-						testOutput.reset();
-						// Ignore any line starting with info, if not checking infos
-					    parsedCmd = parseReceivedCommandString(recievedCmd, false);
-					    if (!parsedCmd.isEmpty()) { // want to use isBlank(), but that is Java 11 only.
-							if (parsedCmd.equals(expectedOutput)) {
-								received = true;
-								accumulate = false;
-							} else if (expectedOutput.startsWith(parsedCmd)){
-								accumulate = true;
-							} else {
-								EubosEngineMain.logger.info(String.format("parsed '%s' != '%s'", parsedCmd, expectedOutput));
-								accumulate = false;
-							}
-					    }
-					}
-				}
-				if (!received) {
-					fail(inputCmd + expectedOutput + "command that failed " + (commandNumber-3));
-				}
-				commandNumber++;
-			} else {
-				Thread.sleep(sleep_50ms);
-			}
-		}
+		int hashMove = Move.valueOf(Position.b3, Piece.BLACK_QUEEN, Position.d1, Piece.WHITE_ROOK);
+		Transposition hashEntry = new Transposition((byte)6, (short)0, Score.exact, hashMove, null);
+		pokeHashEntryAndPerformTest(10000, hashEntry);
 	}
 	
 	@Test
@@ -424,75 +364,22 @@ public class EubosEngineMainTest {
 				+ "g6h6 g4h4 h6g6 h4g4 g6h6 g4h4 h6g6"+CMD_TERMINATOR, null));
 		//commands.add(new commandPair(GO_DEPTH_PREFIX+"20"+CMD_TERMINATOR, BEST_PREFIX+"a6a5"+CMD_TERMINATOR));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR, BEST_PREFIX+"h4g4"+CMD_TERMINATOR));
-
-		testOutput.flush();
-		inputToEngine.flush();
-		int commandNumber = 1;
-		for (commandPair currCmdPair: commands) {
-			String inputCmd = currCmdPair.getIn();
-			String expectedOutput = currCmdPair.getOut();
-			String parsedCmd= "";
-			// Pass command to engine
-			if (inputCmd != null) {
-				if (inputCmd.startsWith("go")) {
-					Thread.sleep(sleep_50ms);
-					// Seed hash table with problematic hash
-					long problemHash = classUnderTest.rootPosition.getHash();
-					EubosEngineMain.logger.info(String.format("*************** using hash code %d", problemHash));
-					classUnderTest.hashMap.putTransposition(
-							problemHash,
-							//new Transposition((byte)19, (short)0, (byte)2, Move.valueOf(Position.h4, Piece.BLACK_ROOK, Position.g4, Piece.NONE), null));
-							new Transposition((byte)3, (short)0, (byte)2, Move.valueOf(Position.h4, Piece.BLACK_ROOK, Position.g4, Piece.NONE), null));
-				}
-				inputToEngine.write(inputCmd);
-				inputToEngine.flush();
-				EubosEngineMain.logger.info(String.format("************* %s", inputCmd));
-			}
-			// Test expected command was received
-			if (expectedOutput != null) {
-				boolean received = false;
-				int timer = 0;
-				boolean accumulate = false;
-				String recievedCmd = "";
-				// Receive message or wait for timeout to expire.
-				while (!received && timer<20000) {
-					// Give the engine thread some CPU time
-					Thread.sleep(sleep_50ms);
-					timer += sleep_50ms;
-					testOutput.flush();
-					if (accumulate) {
-						recievedCmd += testOutput.toString();
-					} else {
-						recievedCmd = testOutput.toString();
-					}
-					if (recievedCmd != null && !recievedCmd.isEmpty()) {
-						System.err.println(recievedCmd);
-						testOutput.reset();
-						// Ignore any line starting with info, if not checking infos
-					    parsedCmd = parseReceivedCommandString(recievedCmd, false);
-					    if (!parsedCmd.isEmpty()) { // want to use isBlank(), but that is Java 11 only.
-							if (parsedCmd.equals(expectedOutput)) {
-								received = true;
-								accumulate = false;
-							} else if (expectedOutput.startsWith(parsedCmd)){
-								accumulate = true;
-							} else {
-								EubosEngineMain.logger.info(String.format("parsed '%s' != '%s'", parsedCmd, expectedOutput));
-								accumulate = false;
-							}
-					    }
-					}
-				}
-				if (!received) {
-					fail(inputCmd + expectedOutput + "command that failed " + (commandNumber-3));
-				}
-				commandNumber++;
-			} else {
-				Thread.sleep(sleep_50ms);
-			}
-		}
+		
+		int hashMove = Move.valueOf(Position.h4, Piece.BLACK_ROOK, Position.g4, Piece.NONE);
+		Transposition hashEntry = new Transposition((byte)3, (short)0, Score.upperBound, hashMove, null);
+		pokeHashEntryAndPerformTest(10000, hashEntry);
 	}
 	
+	@Test
+	public void test_hash_issue_best_move_changed_unexpectedly() throws InterruptedException, IOException {
+		setupEngine();
+		commands.add(new commandPair(POS_FEN_PREFIX+"2k5/1p3Rb1/p2pN3/P2P4/1P1P4/1K6/8/2r5 b - - 0 66"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"9"+CMD_TERMINATOR, BEST_PREFIX+"g7h6"+CMD_TERMINATOR));
+		
+		int hashMove = Move.valueOf(Position.g7, Piece.BLACK_BISHOP, Position.h6, Piece.NONE);
+		Transposition hashEntry = new Transposition((byte)8, (short)-55, Score.lowerBound, hashMove, null);
+		pokeHashEntryAndPerformTest(10000, hashEntry);
+	}
 	
     @Test
     public void test_createPositionFromAnalyseCommand_enPassantMovesAreIdentifedCorrectly() throws IllegalNotationException {
@@ -550,66 +437,19 @@ public class EubosEngineMainTest {
 	}
 
 	private void performTest(int timeout, boolean checkInfoMsgs) throws IOException, InterruptedException {
-		testOutput.flush();
-		inputToEngine.flush();
-		int commandNumber = 1;
-		for (commandPair currCmdPair: commands) {
-			String inputCmd = currCmdPair.getIn();
-			String expectedOutput = currCmdPair.getOut();
-			String parsedCmd= "";
-			// Pass command to engine
-			if (inputCmd != null) {
-				inputToEngine.write(inputCmd);
-				inputToEngine.flush();
-			}
-			// Test expected command was received
-			if (expectedOutput != null) {
-				boolean received = false;
-				int timer = 0;
-				boolean accumulate = false;
-				String recievedCmd = "";
-				// Receive message or wait for timeout to expire.
-				while (!received && timer<timeout) {
-					// Give the engine thread some CPU time
-					Thread.sleep(sleep_50ms);
-					timer += sleep_50ms;
-					testOutput.flush();
-					if (accumulate) {
-						recievedCmd += testOutput.toString();
-					} else {
-						recievedCmd = testOutput.toString();
-					}
-					if (recievedCmd != null && !recievedCmd.isEmpty()) {
-						System.err.println(recievedCmd);
-						testOutput.reset();
-						// Ignore any line starting with info, if not checking infos
-					    parsedCmd = parseReceivedCommandString(recievedCmd, checkInfoMsgs);
-					    if (!parsedCmd.isEmpty()) { // want to use isBlank(), but that is Java 11 only.
-							if (parsedCmd.equals(expectedOutput)) {
-								received = true;
-								accumulate = false;
-							} else if (expectedOutput.startsWith(parsedCmd)){
-								accumulate = true;
-							} else {
-								EubosEngineMain.logger.info(String.format("parsed '%s' != '%s'", parsedCmd, expectedOutput));
-								accumulate = false;
-							}
-					    }
-					}
-				}
-				if (!received) {
-					fail(inputCmd + expectedOutput + "command that failed " + (commandNumber-3));
-				}
-				commandNumber++;
-			} else {
-				Thread.sleep(sleep_50ms);
-			}
-		}
+		performTestHelper(timeout, checkInfoMsgs, null, 0);
 	}
 	
 	private void performTestExpectMate(int timeout, int mateInX) throws IOException, InterruptedException {
+		performTestHelper(timeout, true, null, mateInX);
+	}
+	
+	private void pokeHashEntryAndPerformTest(int timeout, ITransposition hashEntry) throws IOException, InterruptedException {
+		performTestHelper(timeout, false, hashEntry, 0);
+	}
+	
+	private void performTestHelper(int timeout, boolean checkInfoMsgs, ITransposition hashEntry, int mateInX) throws IOException, InterruptedException {
 		boolean mateDetected = false;
-		boolean checkInfoMsgs = true;
 		String mateExpectation = String.format("mate %d", mateInX);
 		testOutput.flush();
 		inputToEngine.flush();
@@ -620,8 +460,16 @@ public class EubosEngineMainTest {
 			String parsedCmd= "";
 			// Pass command to engine
 			if (inputCmd != null) {
+				if (inputCmd.startsWith("go") && hashEntry != null) {
+					Thread.sleep(sleep_50ms);
+					// Seed hash table with problematic hash
+					long problemHash = classUnderTest.rootPosition.getHash();
+					//EubosEngineMain.logger.info(String.format("*************** using hash code %d", problemHash));
+					classUnderTest.hashMap.putTransposition(problemHash, hashEntry);
+				}
 				inputToEngine.write(inputCmd);
 				inputToEngine.flush();
+				//EubosEngineMain.logger.info(String.format("************* %s", inputCmd));
 			}
 			// Test expected command was received
 			if (expectedOutput != null) {
@@ -630,7 +478,7 @@ public class EubosEngineMainTest {
 				boolean accumulate = false;
 				String recievedCmd = "";
 				// Receive message or wait for timeout to expire.
-				while (!received && timer<timeout) {
+				while (!received && timer < timeout) {
 					// Give the engine thread some CPU time
 					Thread.sleep(sleep_50ms);
 					timer += sleep_50ms;
@@ -671,7 +519,9 @@ public class EubosEngineMainTest {
 				Thread.sleep(sleep_50ms);
 			}
 		}
-		assertTrue(mateDetected);
+		if (mateInX != 0) {
+			assertTrue(mateDetected);
+		}
 	}
 
 	private void setupEngine() {
