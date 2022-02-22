@@ -263,6 +263,7 @@ public class PlySearcher {
 		int lmr = 0;
 		pc.initialise(currPly, currMove);
 		
+		int positionScore = plyScore;
 		int moveNumber = 1;
 		while (!isTerminated()) {
 			if (EubosEngineMain.ENABLE_UCI_MOVE_NUMBER && atRootNode()) {
@@ -270,21 +271,26 @@ public class PlySearcher {
 				if (originalSearchDepthRequiredInPly > 7)
 					sr.reportCurrentMove();
 			}
-			if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION) {
-				if (depth > 3 && !needToEscapeCheck && alpha > alphaOriginal && Move.isRegular(currMove) &&
-					!(Move.isPawnMove(currMove) && pos.getTheBoard().me.isEndgame())) {
-					lmr = 1;
-				} else {
-					lmr = 0;
-				}
-			}
+			
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 			// Apply move and score
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
 			currPly++;
 			pm.performMove(currMove);
-			int positionScore = -search(-beta, -alpha, depth-1-lmr);
+			
+			if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION) {
+				if (depth > 3 && moveNumber > 4  && !needToEscapeCheck && 
+					alpha > alphaOriginal && Move.isRegular(currMove) &&
+					!(Move.isPawnMove(currMove) && pos.getTheBoard().me.isEndgame())) {
+					positionScore = -search(-beta, -alpha, depth-2);
+					if (positionScore > alpha) {
+						positionScore = -search(-beta, -alpha, depth-1);
+					}
+				} else {
+					positionScore = -search(-beta, -alpha, depth-1);
+				}
+			}
 			pm.unperformMove();
 			currPly--;
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
