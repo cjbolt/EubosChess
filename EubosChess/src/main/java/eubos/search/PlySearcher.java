@@ -204,6 +204,7 @@ public class PlySearcher {
 						break;
 					case Score.lowerBound:
 						alpha = Math.max(alpha, hashScore);
+						alphaOriginal = alpha;
 						check_for_refutation = true;
 						break;
 					case Score.typeUnknown:
@@ -259,6 +260,7 @@ public class PlySearcher {
 		
 		int currMove = move_iter.nextInt();
 		int bestMove = currMove;
+		int lmr = 0;
 		pc.initialise(currPly, currMove);
 		
 		int moveNumber = 1;
@@ -268,13 +270,21 @@ public class PlySearcher {
 				if (originalSearchDepthRequiredInPly > 7)
 					sr.reportCurrentMove();
 			}
+			if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION) {
+				if (depth > 3 && !needToEscapeCheck && alpha > alphaOriginal && Move.isRegular(currMove) &&
+					!(Move.isPawnMove(currMove) && pos.getTheBoard().me.isEndgame())) {
+					lmr = 1;
+				} else {
+					lmr = 0;
+				}
+			}
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 			// Apply move and score
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
 			currPly++;
 			pm.performMove(currMove);
-			int positionScore = -search(-beta, -alpha, depth-1);
+			int positionScore = -search(-beta, -alpha, depth-1-lmr);
 			pm.unperformMove();
 			currPly--;
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
