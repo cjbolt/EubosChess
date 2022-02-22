@@ -286,8 +286,8 @@ public class EubosEngineMainTest {
 		int mateDepth = 0;
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1h4"+CMD_TERMINATOR));
-		mateDepth = 13;
+		commands.add(new commandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1d1"+CMD_TERMINATOR));
+		mateDepth = 12;
 		performTestExpectMate(14000, mateDepth);
 	}
 	

@@ -921,6 +921,9 @@ public class Board {
 		public boolean isLegalMoveFound() {
 			return legalMoveFound;
 		}
+
+		public void clearAttackedCache() {
+		}
 	}
 	
 	LegalMoveChecker lmc = new LegalMoveChecker();

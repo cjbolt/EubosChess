@@ -71,6 +71,7 @@ public class MoveList implements Iterable<Integer> {
 		
 		this.pm = pm;
 		this.ordering = orderMoveList;
+		this.deepestPly = 5; // Start pruning after ply 5
 		
 		ma = new MoveAdder();
 		ma_noKillers = new MoveAdderWithNoKillers();
@@ -141,8 +142,16 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	private void blindPruningOfQuietMoves() {
-		if (ply > 4 && ply >= deepestPly-1) {
+		// todo: don't remove checks?
+		if (ply >= deepestPly-1) {
 			if (normal_fill_index[ply] > 5) {
+				int orginal_index = normal_fill_index[ply];
+				normal_fill_index[ply] /= 2;
+				moveCount -= (orginal_index - normal_fill_index[ply]);
+			}
+		}
+		else if (ply >= deepestPly-2) {
+			if (normal_fill_index[ply] > 10) {
 				int orginal_index = normal_fill_index[ply];
 				normal_fill_index[ply] /= 2;
 				moveCount -= (orginal_index - normal_fill_index[ply]);
@@ -238,6 +247,8 @@ public class MoveList implements Iterable<Integer> {
 	public class MoveAdder implements IAddMoves {
 		
 		long attackMask = 0L;
+		boolean attacked = false;
+		boolean attackedDetermined = false;
 		
 		public void addPrio(int move) {
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate)) {
@@ -256,10 +267,13 @@ public class MoveList implements Iterable<Integer> {
 					scratchpad[ply][scratchpad_fill_index++] = Move.setBest(move);
 				} else if (KillerList.isMoveOnListAtPly(killers, move)) {
 					priority_moves[ply][priority_fill_index[ply]++] = Move.setKiller(move);
-				} else if (isMoveOriginSquareAttacked(move)) {
+				} else if (attacked || (!attackedDetermined && isMoveOriginSquareAttacked(move))) {
 					priority_moves[ply][priority_fill_index[ply]++] = move;
+					attackedDetermined = true;
+					attacked = true;
 				} else {
 					normal_search_moves[ply][normal_fill_index[ply]++] = move;
+					attackedDetermined = true;
 				}
 				moveCount++;
 			}
@@ -275,6 +289,12 @@ public class MoveList implements Iterable<Integer> {
 				return true;
 			return false;
 		}
+
+		@Override
+		public void clearAttackedCache() {
+			attackedDetermined = false;
+			attacked = false;			
+		}
 	}
 	
 	public class MoveAdderWithNoKillers extends MoveAdder implements IAddMoves {
@@ -282,10 +302,13 @@ public class MoveList implements Iterable<Integer> {
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate)) {
 				if (Move.areEqualForBestKiller(move, bestMove)) {
 					scratchpad[ply][scratchpad_fill_index++] = Move.setBest(move);
-				} else if (isMoveOriginSquareAttacked(move)) {
+				} else if (attacked || (!attackedDetermined && isMoveOriginSquareAttacked(move))) {
 					priority_moves[ply][priority_fill_index[ply]++] = move;
+					attackedDetermined = true;
+					attacked = true;
 				} else {
 					normal_search_moves[ply][normal_fill_index[ply]++] = move;
+					attackedDetermined = true;
 				}
 				moveCount++;
 			}

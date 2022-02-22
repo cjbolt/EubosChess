@@ -613,6 +613,7 @@ public abstract class Piece {
 	}
 	
 	static void king_generateMovesExtSearch(IAddMoves ml, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
+		ml.clearAttackedCache();
 		int piece = ownSideIsWhite ? Piece.WHITE_KING : Piece.BLACK_KING;
 		int targetPiece = theBoard.getPieceAtSquareIfEnemy(targetSq, ownSideIsWhite);
 		if (targetPiece != Piece.NONE && targetPiece != Piece.DONT_CARE) {
@@ -626,6 +627,7 @@ public abstract class Piece {
 	}
 	
 	static void knight_generateMovesExtSearch(IAddMoves ml, Board theBoard, int atSquare, boolean ownSideIsWhite, int targetSq) {
+		ml.clearAttackedCache();
 		int piece = ownSideIsWhite ? Piece.WHITE_KNIGHT : Piece.BLACK_KNIGHT;
 		int targetPiece = theBoard.getPieceAtSquareIfEnemy(targetSq, ownSideIsWhite);
 		if (targetPiece != Piece.NONE && targetPiece != Piece.DONT_CARE) {
@@ -669,6 +671,7 @@ public abstract class Piece {
 	}
 
 	private static void multidirect_addMoves(boolean ownSideIsWhite, IAddMoves ml, Board theBoard, int[][] moves) {
+		ml.clearAttackedCache();
 		for (int[] movesInDirection : moves) {
 			for (int new_move : movesInDirection) {
 				int targetPiece = theBoard.getPieceAtSquareIfEnemy(Move.getTargetPosition(new_move), ownSideIsWhite);
@@ -689,6 +692,7 @@ public abstract class Piece {
 	}
 	
 	private static void multidirect_addCaptures(boolean ownSideIsWhite, IAddMoves ml, Board theBoard, int[][] moves) {
+		ml.clearAttackedCache();
 		for (int[] movesInDirection : moves) {
 			for (int new_move : movesInDirection) {
 				int targetPiece = theBoard.getPieceAtSquareIfEnemy(Move.getTargetPosition(new_move), ownSideIsWhite);
@@ -708,6 +712,7 @@ public abstract class Piece {
 	}
 	
 	private static void single_addMoves(boolean ownSideIsWhite, IAddMoves ml, Board theBoard, int[] moves) {
+		ml.clearAttackedCache();
 		for (int new_move : moves) {
 			int targetPiece = theBoard.getPieceAtSquareIfEnemy(Move.getTargetPosition(new_move), ownSideIsWhite);
 			switch(targetPiece) {
@@ -725,6 +730,7 @@ public abstract class Piece {
 	}
 	
 	private static void single_addCaptures(boolean ownSideIsWhite, IAddMoves ml, Board theBoard, int[] moves) {
+		ml.clearAttackedCache();
 		for (int new_move : moves) {
 			int targetPiece = theBoard.getPieceAtSquareIfEnemy(Move.getTargetPosition(new_move), ownSideIsWhite);
 			switch(targetPiece) {
@@ -800,6 +806,7 @@ public abstract class Piece {
 	}
 	
 	static void pawn_generateMoves(IAddMoves ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+		ml.clearAttackedCache();
 		int ownPiece = ownSideIsWhite ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
 		int capturePiece = Piece.NONE;
 		// Check for standard one and two square moves
@@ -848,6 +855,7 @@ public abstract class Piece {
 	}
 	
 	static void pawn_generateMovesForExtendedSearch(IAddMoves ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+		ml.clearAttackedCache();
 		// Standard move
 		int moveTo = pawn_genOneSqTarget(atSquare, ownSideIsWhite);
 		if (pawn_checkPromotionPossible(ownSideIsWhite, moveTo) && theBoard.squareIsEmpty(moveTo)) {
