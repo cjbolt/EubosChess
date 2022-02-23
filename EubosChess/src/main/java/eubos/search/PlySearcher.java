@@ -174,7 +174,7 @@ public class PlySearcher {
 			++depth;
 		}
 		
-		if (depth == 0) {
+		if (depth <= 0) {
 			return extendedSearch(alpha, beta, needToEscapeCheck);
 		}
 		
@@ -260,7 +260,6 @@ public class PlySearcher {
 		
 		int currMove = move_iter.nextInt();
 		int bestMove = currMove;
-		int lmr = 0;
 		pc.initialise(currPly, currMove);
 		
 		int positionScore = plyScore;
@@ -279,18 +278,25 @@ public class PlySearcher {
 			currPly++;
 			pm.performMove(currMove);
 			
-			if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION) {
-				if (depth > 3 && moveNumber > 4  && !needToEscapeCheck && 
-					alpha > alphaOriginal && Move.isRegular(currMove) &&
-					!(Move.isPawnMove(currMove) && pos.getTheBoard().me.isEndgame())) {
-					positionScore = -search(-beta, -alpha, depth-2);
-					if (positionScore > alpha) {
-						positionScore = -search(-beta, -alpha, depth-1);
-					}
-				} else {
+			if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
+				!pe.goForMate() &&
+				depth > 3  && 
+			    !needToEscapeCheck && 
+			    Move.isRegular(currMove) &&
+				!(Move.isPawnMove(currMove) && pos.getTheBoard().me.isEndgame()) &&
+				!pos.isKingInCheck()) {
+				
+				// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
+				int lmr = (moveNumber < 6) ? 1 : depth/3;
+				positionScore = -search(-beta, -alpha, depth-1-lmr);
+				if (positionScore > alpha) {
+					// Re-search if the reduced search increased alpha 
 					positionScore = -search(-beta, -alpha, depth-1);
 				}
+			} else {
+				positionScore = -search(-beta, -alpha, depth-1);
 			}
+			
 			pm.unperformMove();
 			currPly--;
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();

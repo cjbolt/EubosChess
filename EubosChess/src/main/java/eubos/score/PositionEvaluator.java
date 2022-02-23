@@ -166,4 +166,8 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		bd.forEachPawnOfSide(this, Colour.isBlack(onMove));
 		return pawnHandicap + individualPawnEval;
 	}
+
+	public boolean goForMate() {
+		return goForMate;
+	}
 }

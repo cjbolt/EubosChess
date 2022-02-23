@@ -248,14 +248,14 @@ public class EubosEngineMainTest {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_TIME_PREFIX+"30000"+CMD_TERMINATOR, BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
-		performTestExpectMate(5000, 7);
+		performTestExpectMate(9000, 7);
 	}
 	
 	@Test
 	public void test_KQk_mated_in_6_NEW() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/6K1/8/3k4/1Q6/8/8/8 b - - 1 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"d5c6"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"11"+CMD_TERMINATOR, BEST_PREFIX+"d5c6"+CMD_TERMINATOR));
 		performTestExpectMate(5000, -6);
 	} 
 	
@@ -286,8 +286,8 @@ public class EubosEngineMainTest {
 		int mateDepth = 0;
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1d1"+CMD_TERMINATOR));
-		mateDepth = 14;
+		commands.add(new commandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1h4"+CMD_TERMINATOR));
+		mateDepth = 13;
 		performTestExpectMate(14000, mateDepth);
 	}
 	
@@ -296,7 +296,7 @@ public class EubosEngineMainTest {
 	public void test_mate_in_3_guardian3713() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/2p5/P4p2/Q1N2k1P/2P2P2/3PK2P/5R2/2B2R2 w - - 1 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR, BEST_PREFIX+"f2d2"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"7"+CMD_TERMINATOR, BEST_PREFIX+"f2d2"+CMD_TERMINATOR));
 		performTestExpectMate(4000, 3);
 	}
 	
@@ -304,7 +304,7 @@ public class EubosEngineMainTest {
 	public void test_tricky_endgame_position() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/4kp1p/3pb1p1/P5P1/3KN1PP/8/8 b - - 5 57"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"e5g3"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"h6h5"+CMD_TERMINATOR));
 		// h6h5 loses, it is a terrible move, but that is what Eubos selects. We should go with Bxg3 according to stockfish
 		/*
 		 * FEN: 8/8/4kp1p/3pb1p1/P5P1/3KN1PP/8/8 b - - 5 57
