@@ -64,7 +64,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_BLIND_PRUNING = false;	
 	public static final boolean ENABLE_LATE_MOVE_REDUCTION = true;
 	
-	public static final int MAXIMUM_PLIES_IN_GAME = 500;
+	public static final int MAXIMUM_PLIES_IN_GAME = 250;
 	
 	// Permanent data structures - static for the duration of a single game
 	FixedSizeTranspositionTable hashMap = null;

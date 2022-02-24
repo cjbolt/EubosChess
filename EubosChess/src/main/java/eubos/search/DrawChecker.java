@@ -26,6 +26,9 @@ public class DrawChecker {
 		if (isPositionReachedBefore(posHash, gamePly)) {
 			repetitionPossible = true;
 		} else {
+			if (gamePly > reachedPositions.length - 1) {
+				reachedPositions = LongArrays.grow(reachedPositions, EubosEngineMain.MAXIMUM_PLIES_IN_GAME);
+			}
 			reachedPositions[gamePly] = posHash;
 		}
 		return repetitionPossible;
