@@ -1,5 +1,6 @@
 package eubos.search;
 
+import eubos.main.EubosEngineMain;
 import it.unimi.dsi.fastutil.longs.LongArrays;
 
 public class DrawChecker {
@@ -8,7 +9,7 @@ public class DrawChecker {
 	public int checkFromPly;
 	
 	public DrawChecker() {
-		reachedPositions = new long[300];
+		reachedPositions = new long[EubosEngineMain.MAXIMUM_PLIES_IN_GAME];
 	}
 	
 	public DrawChecker(DrawChecker clone) {
