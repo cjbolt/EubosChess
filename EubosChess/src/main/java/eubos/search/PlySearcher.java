@@ -287,7 +287,7 @@ public class PlySearcher {
 				!pos.isKingInCheck()) {
 				
 				// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
-				int lmr = (moveNumber < 6) ? 1 : depth/3;
+				int lmr = (moveNumber < 6) ? 1 : Math.max(1, depth/4);
 				positionScore = -search(-beta, -alpha, depth-1-lmr);
 				if (positionScore > alpha) {
 					// Re-search if the reduced search increased alpha 
