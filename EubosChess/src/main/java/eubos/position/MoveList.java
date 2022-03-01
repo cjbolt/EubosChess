@@ -25,7 +25,6 @@ public class MoveList implements Iterable<Integer> {
 	private int [] normal_list_length;
 	
 	private int ply;
-	private int deepestPly;
 	private boolean needToEscapeMate;
 	private int moveCount;
 	private int scratchpad_fill_index;
@@ -71,7 +70,6 @@ public class MoveList implements Iterable<Integer> {
 		
 		this.pm = pm;
 		this.ordering = orderMoveList;
-		this.deepestPly = 5; // Start pruning after ply 5
 		
 		ma = new MoveAdder();
 		ma_noKillers = new MoveAdderWithNoKillers();
@@ -92,10 +90,6 @@ public class MoveList implements Iterable<Integer> {
 		scratchpad_fill_index = 0;
 		extendedListScopeEndpoint = 0;
 		
-		if (!capturesOnly && ply > deepestPly) {
-			deepestPly = ply;
-		}
-		
 		getMoves(capturesOnly);
 		if (moveCount != 0) {
 			if (EubosEngineMain.ENABLE_ASSERTS && bestMove != Move.NULL_MOVE) {
@@ -105,9 +99,6 @@ public class MoveList implements Iterable<Integer> {
 					assert Move.areEqualForBestKiller(bestMove, scratchpad[ply][0]) : 
 						String.format("When creating MoveList, bestMove=%s was not found amongst available moves", Move.toString(bestMove));
 				}
-			}
-			if (EubosEngineMain.ENABLE_BLIND_PRUNING && !capturesOnly) {
-				blindPruningOfQuietMoves();
 			}
 			sortPriorityList();
 			collateMoveList();
@@ -140,25 +131,7 @@ public class MoveList implements Iterable<Integer> {
 			pm.castling.addCastlingMoves(isWhiteOnMove, moveAdder);
 		}
 	}
-	
-	private void blindPruningOfQuietMoves() {
-		// todo: don't remove checks?
-		if (ply >= deepestPly-1) {
-			if (normal_fill_index[ply] > 5) {
-				int orginal_index = normal_fill_index[ply];
-				normal_fill_index[ply] /= 2;
-				moveCount -= (orginal_index - normal_fill_index[ply]);
-			}
-		}
-		else if (ply >= deepestPly-2) {
-			if (normal_fill_index[ply] > 10) {
-				int orginal_index = normal_fill_index[ply];
-				normal_fill_index[ply] /= 2;
-				moveCount -= (orginal_index - normal_fill_index[ply]);
-			}
-		}
-	}
-	
+		
 	private void collateMoveList() {
 			for (int j=0; j < priority_fill_index[ply]; j++) {
 				scratchpad[ply][scratchpad_fill_index++] = priority_moves[ply][j];
