@@ -39,8 +39,9 @@ public class PlySearcher {
 		public void report() {
 			IntSummaryStatistics stats = Arrays.stream(lazyThreshFailedCount).summaryStatistics();
 			EubosEngineMain.logger.info(String.format(
-					"LazyStats A=%d B=%d nodes=%d failCount=%d maxFail=%d meanFail=%d arrayExceededCount=%d MaxDeltaExceeded=%d",
-					lazySavedCountAlpha, lazySavedCountBeta, nodeCount, stats.getCount(), stats.getMax(), stats.getAverage(), maxFailureCount, maxFailure));
+					"LazyStats A=%d B=%d nodes=%d failSum=%d maxFail=%d meanFail=%.1f exceededCount=%d maxExceeded=%d",
+					lazySavedCountAlpha, lazySavedCountBeta, nodeCount, stats.getSum(), 
+					stats.getMax(), stats.getAverage(), maxFailureCount, maxFailure));
 		}
 	}
 	
