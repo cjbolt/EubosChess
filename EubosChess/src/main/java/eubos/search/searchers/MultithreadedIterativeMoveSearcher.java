@@ -212,6 +212,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			}
 			// The result can be read by reading the result member of this object or by reading the shared transposition table
 			halted = true;
+			myMg.reportLazyStatistics();
 			EubosEngineMain.logger.info(String.format("Worker %s halted, notifying", this.getName()));
 			synchronized(main) {
 				main.notify();

@@ -1,6 +1,8 @@
 package eubos.search;
 
+import java.util.IntSummaryStatistics;
 import java.util.List;
+import java.util.Arrays;
 
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
@@ -20,7 +22,29 @@ public class PlySearcher {
 	It will need to be re-tuned if the evaluation function is altered significantly. */
 	private static final int LAZY_EVAL_THRESHOLD_IN_CP = 350;
 	private static final boolean TUNE_LAZY_EVAL = false;
-	private static int count;  // Only used for tuning lazy evaluation
+	private class LazyEvalStatistics {
+		
+		static final int MAX_DELTA = Piece.MATERIAL_VALUE_QUEEN -LAZY_EVAL_THRESHOLD_IN_CP; 
+		long lazySavedCountAlpha;
+		long lazySavedCountBeta;
+		long nodeCount;
+		int lazyThreshFailedCount[];
+		int maxFailure;
+		int maxFailureCount;
+		
+		public LazyEvalStatistics() {
+			lazyThreshFailedCount = new int [MAX_DELTA];
+		}
+		
+		public void report() {
+			IntSummaryStatistics stats = Arrays.stream(lazyThreshFailedCount).summaryStatistics();
+			EubosEngineMain.logger.info(String.format(
+					"LazyStats A=%d B=%d nodes=%d failCount=%d maxFail=%d meanFail=%d arrayExceededCount=%d MaxDeltaExceeded=%d",
+					lazySavedCountAlpha, lazySavedCountBeta, nodeCount, stats.getCount(), stats.getMax(), stats.getAverage(), maxFailureCount, maxFailure));
+		}
+	}
+	
+	LazyEvalStatistics lazyStat = null;
 	
 	private IChangePosition pm;
 	private IPositionAccessors pos;
@@ -70,6 +94,9 @@ public class PlySearcher {
 		tt = hashMap;
 		this.killers = killers;
 		this.ml = ml;
+		if (TUNE_LAZY_EVAL) {
+			lazyStat = new LazyEvalStatistics();
+		}
 	}
 
 	private boolean atRootNode() { return currPly == 0; }
@@ -383,17 +410,23 @@ public class PlySearcher {
 		if (EubosEngineMain.ENABLE_LAZY_EVALUATION && !pos.getTheBoard().me.isEndgame()) {
 			// Phase 1 - crude evaluation
 			plyScore = (short) pe.getCrudeEvaluation();
+			if (TUNE_LAZY_EVAL) {
+				lazyStat.nodeCount++;
+			}
 			if (plyScore-LAZY_EVAL_THRESHOLD_IN_CP >= beta) {
 				// There is no move to put in the killer table when we stand Pat
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
 				// According to lazy eval, we probably can't reach beta
 				if (TUNE_LAZY_EVAL) {
-					if (count == 1024) {
-						count = 0;
-						EubosEngineMain.logger.info(
-							String.format("TUNE LAZY B=%d delta=%d ", beta, plyScore-pe.getFullEvaluation()));
-					} else {
-						count++;
+					lazyStat.lazySavedCountBeta++;
+					int delta = Math.abs(plyScore-pe.getFullEvaluation());
+					if (delta > LAZY_EVAL_THRESHOLD_IN_CP) {
+						if (delta < LazyEvalStatistics.MAX_DELTA) {
+							lazyStat.lazyThreshFailedCount[delta]++;
+						} else {
+							lazyStat.maxFailureCount++;
+							lazyStat.maxFailure = Math.max(delta, lazyStat.maxFailure);
+						}
 					}
 				}
 				return beta;
@@ -402,12 +435,15 @@ public class PlySearcher {
 			if (plyScore+LAZY_EVAL_THRESHOLD_IN_CP <= alpha && pos.isQuiescent()) {
 				// According to lazy eval, we probably can't increase alpha
 				if (TUNE_LAZY_EVAL) {
-					if (count == 1024) {
-						count = 0;
-						EubosEngineMain.logger.info(
-							String.format("TUNE LAZY A=%d delta=%d ", alpha, plyScore-pe.getFullEvaluation()));
-					} else {
-						count++;
+					lazyStat.lazySavedCountAlpha++;
+					int delta = Math.abs(plyScore-pe.getFullEvaluation());
+					if (delta > LAZY_EVAL_THRESHOLD_IN_CP) {
+						if (delta < LazyEvalStatistics.MAX_DELTA) {
+							lazyStat.lazyThreshFailedCount[delta]++;
+						} else {
+							lazyStat.maxFailureCount++;
+							lazyStat.maxFailure = Math.max(delta, lazyStat.maxFailure);
+						}
 					}
 				}
 				return alpha;
@@ -517,6 +553,12 @@ public class PlySearcher {
 			sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), positionScore);
 			sr.reportPrincipalVariation(sm);
 			extendedSearchDeepestPly = 0;
+		}
+	}
+	
+	public void reportLazyStatistics() {
+		if (TUNE_LAZY_EVAL) {
+			lazyStat.report();
 		}
 	}
 }
