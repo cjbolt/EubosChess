@@ -21,7 +21,7 @@ public class PlySearcher {
 	running with the logging in TUNE_LAZY_EVAL for Eubos2.8 and post processing the logs.
 	It will need to be re-tuned if the evaluation function is altered significantly. */
 	private static final int LAZY_EVAL_THRESHOLD_IN_CP = 320;
-	private static final boolean TUNE_LAZY_EVAL = true;
+	private static final boolean TUNE_LAZY_EVAL = false;
 	private class LazyEvalStatistics {
 		
 		static final int MAX_DELTA = Piece.MATERIAL_VALUE_QUEEN -LAZY_EVAL_THRESHOLD_IN_CP; 
