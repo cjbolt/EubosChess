@@ -20,8 +20,8 @@ public class PlySearcher {
 	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
 	running with the logging in TUNE_LAZY_EVAL for Eubos2.8 and post processing the logs.
 	It will need to be re-tuned if the evaluation function is altered significantly. */
-	private static final int LAZY_EVAL_THRESHOLD_IN_CP = 350;
-	private static final boolean TUNE_LAZY_EVAL = false;
+	private static final int LAZY_EVAL_THRESHOLD_IN_CP = 320;
+	private static final boolean TUNE_LAZY_EVAL = true;
 	private class LazyEvalStatistics {
 		
 		static final int MAX_DELTA = Piece.MATERIAL_VALUE_QUEEN -LAZY_EVAL_THRESHOLD_IN_CP; 
@@ -37,11 +37,27 @@ public class PlySearcher {
 		}
 		
 		public void report() {
+			// We want to know the bin that corresponds to the max error, this is the average threshold exceeded
+			// We also want to know the last non-zero array element
+			int max_threshold = 0;
+			int max_count = 0;
+			if (maxFailureCount == 0) {
+				for (int i=lazyThreshFailedCount.length-1; i >= 0; i--) {
+					if (lazyThreshFailedCount[i] != 0) {
+						max_threshold = i;
+						max_count = lazyThreshFailedCount[i];
+						break;
+					}
+				}
+			} else {
+				max_threshold = maxFailure;
+				max_count = maxFailureCount;
+			}
+			
 			IntSummaryStatistics stats = Arrays.stream(lazyThreshFailedCount).summaryStatistics();
 			EubosEngineMain.logger.info(String.format(
-					"LazyStats A=%d B=%d nodes=%d failSum=%d maxFail=%d meanFail=%.1f exceededCount=%d maxExceeded=%d",
-					lazySavedCountAlpha, lazySavedCountBeta, nodeCount, stats.getSum(), 
-					stats.getMax(), stats.getAverage(), maxFailureCount, maxFailure));
+					"LazyStats A=%d B=%d nodes=%d failSum=%d exceededCount=%d maxExceeded=%d",
+					lazySavedCountAlpha, lazySavedCountBeta, nodeCount, stats.getSum(), max_count, max_threshold));
 		}
 	}
 	
@@ -420,15 +436,7 @@ public class PlySearcher {
 				// According to lazy eval, we probably can't reach beta
 				if (TUNE_LAZY_EVAL) {
 					lazyStat.lazySavedCountBeta++;
-					int delta = Math.abs(plyScore-pe.getFullEvaluation());
-					if (delta > LAZY_EVAL_THRESHOLD_IN_CP) {
-						if (delta < LazyEvalStatistics.MAX_DELTA) {
-							lazyStat.lazyThreshFailedCount[delta]++;
-						} else {
-							lazyStat.maxFailureCount++;
-							lazyStat.maxFailure = Math.max(delta, lazyStat.maxFailure);
-						}
-					}
+					updateLazyStatistics(plyScore);
 				}
 				return beta;
 			}
@@ -437,15 +445,7 @@ public class PlySearcher {
 				// According to lazy eval, we probably can't increase alpha
 				if (TUNE_LAZY_EVAL) {
 					lazyStat.lazySavedCountAlpha++;
-					int delta = Math.abs(plyScore-pe.getFullEvaluation());
-					if (delta > LAZY_EVAL_THRESHOLD_IN_CP) {
-						if (delta < LazyEvalStatistics.MAX_DELTA) {
-							lazyStat.lazyThreshFailedCount[delta]++;
-						} else {
-							lazyStat.maxFailureCount++;
-							lazyStat.maxFailure = Math.max(delta, lazyStat.maxFailure);
-						}
-					}
+					updateLazyStatistics(plyScore);
 				}
 				return alpha;
 			}
@@ -513,6 +513,19 @@ public class PlySearcher {
 			}
 		}
 		return alpha;
+	}
+	
+	private void updateLazyStatistics(short plyScore) {
+		int delta = Math.abs(plyScore-pe.getFullEvaluation());
+		if (delta > LAZY_EVAL_THRESHOLD_IN_CP) {
+			delta -= LAZY_EVAL_THRESHOLD_IN_CP;
+			if (delta < LazyEvalStatistics.MAX_DELTA) {
+				lazyStat.lazyThreshFailedCount[delta]++;
+			} else {
+				lazyStat.maxFailureCount++;
+				lazyStat.maxFailure = Math.max(delta, lazyStat.maxFailure);
+			}
+		}
 	}
 	
 	private ITransposition updateTranspositionTable(ITransposition trans, byte depth, int currMove, short plyScore, byte plyBound) {
