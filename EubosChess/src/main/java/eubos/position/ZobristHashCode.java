@@ -136,6 +136,13 @@ public class ZobristHashCode implements IForEachPieceCallback {
 		doOnMove();
 	}
 	
+	// Used to update the Zobrist hash code whenever a position changes due to a move being performed
+	public void updateNullMove(int enPassantFile) {
+		// Update
+		doEnPassant(enPassantFile);
+		doOnMove();
+	}
+	
 	protected void doBasicMove() {
 		if (promotedPiece == Piece.NONE) {
 			// Basic move only

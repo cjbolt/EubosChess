@@ -191,6 +191,10 @@ public class PlySearcher {
 	}
 	
 	int search(int alpha, int beta, int depth)  {
+		return search(alpha, beta, depth, true);
+	}
+	
+	int search(int alpha, int beta, int depth, boolean nullCheckEnabled)  {
 		int alphaOriginal = alpha;
 		int plyScore = Score.PROVISIONAL_ALPHA;
 		// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
@@ -294,6 +298,27 @@ public class PlySearcher {
 				}
 				prevBestMove = trans_move;
 			}
+		}
+		
+		// Null move pruning
+		if (depth > 2 &&
+			nullCheckEnabled &&
+			// !is_pv && 
+			pe.getCrudeEvaluation() > beta &&
+			!pos.getTheBoard().me.isEndgame() &&
+			!needToEscapeCheck)
+		{
+			int R = 2;
+			if (depth > 6) R = 3;
+			currPly++;
+			pm.performNullMove();
+			
+			plyScore = -search(-beta, -beta+1, depth-1-R, false); // Pass in NO PV, NO NULL
+			pm.unperformNullMove();
+			currPly--;
+
+			if (isTerminated()) return 0;
+			if (plyScore >= beta) return beta;
 		}
 		
 		MoveListIterator move_iter = ml.createForPly(prevBestMove, killers.getMoves(currPly), false, needToEscapeCheck, currPly);

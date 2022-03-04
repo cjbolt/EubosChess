@@ -185,6 +185,44 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			moveNumber--;
 		}
 	}
+	
+	public void performNullMove() {
+		// Preserve state
+		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
+		theBoard.setEnPassantTargetSq(Position.NOPOSITION);
+		moveTracker.push(TrackedMove.valueOf(Move.NULL_MOVE, prevEnPassantTargetSq, castling.getFlags()));
+		hash.updateNullMove(IntFile.NOFILE);
+
+		// Update the draw checker
+		repetitionPossible = dc.setPositionReached(getHash(), getPlyNumber());
+		
+		// Update onMove
+		onMove = Colour.getOpposite(onMove);
+		if (Colour.isWhite(onMove)) {
+			moveNumber++;
+		}
+	}
+	
+	public void unperformNullMove() {
+		long tm = moveTracker.pop();
+		// Restore castling
+		castling.setFlags(TrackedMove.getCastlingFlags(tm));
+		// Restore en passant target
+		int enPasTargetSq = TrackedMove.getEnPassantTarget(tm);
+		theBoard.setEnPassantTargetSq(enPasTargetSq);
+		
+		int enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? Position.getFile(enPasTargetSq) : IntFile.NOFILE;
+		hash.updateNullMove(enPassantFile);
+		
+		// Clear draw indicator flag
+		repetitionPossible = false;
+		
+		// Update onMove flag
+		onMove = Piece.Colour.getOpposite(onMove);
+		if (Colour.isBlack(onMove)) {
+			moveNumber--;
+		}
+	}
 		
 	public String getFen() {
 		StringBuilder fen = new StringBuilder(theBoard.getAsFenString());
