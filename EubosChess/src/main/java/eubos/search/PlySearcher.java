@@ -84,6 +84,8 @@ public class PlySearcher {
 	
 	private MoveList ml;
 	
+	private boolean hasSearchedPv = false;
+	
 	public PlySearcher(
 			ITranspositionAccessor hashMap,
 			PrincipalContinuation pc,
@@ -135,7 +137,8 @@ public class PlySearcher {
 	
 	public int searchPly(short lastScore)  {
 		currPly = 0;
-		extendedSearchDeepestPly = 0;	
+		extendedSearchDeepestPly = 0;
+		hasSearchedPv = false;
 		short score = 0;
 		int fail_count = 0;
 		
@@ -185,6 +188,7 @@ public class PlySearcher {
         				fail_count, score, alpha, beta, originalSearchDepthRequiredInPly));
 				sr.resetAfterWindowingFail();
 				windowFailed = false;
+				hasSearchedPv = false;
 			}
 		}
 		return score;
@@ -301,10 +305,11 @@ public class PlySearcher {
 		}
 		
 		// Null move pruning
-		if (depth > 2 &&
+		if (EubosEngineMain.ENABLE_NULL_MOVE_PRUNING &&
+			depth > 2 &&
 			nullCheckEnabled &&
-			// !is_pv && 
-			pe.getCrudeEvaluation() > beta &&
+			hasSearchedPv && 
+			pe.getFullEvaluation() > beta &&
 			!pos.getTheBoard().me.isEndgame() &&
 			!needToEscapeCheck)
 		{
@@ -312,8 +317,7 @@ public class PlySearcher {
 			if (depth > 6) R = 3;
 			currPly++;
 			pm.performNullMove();
-			
-			plyScore = -search(-beta, -beta+1, depth-1-R, false); // Pass in NO PV, NO NULL
+			plyScore = -search(-beta, -beta+1, depth-1-R, false); // Pass in NO PV
 			pm.unperformNullMove();
 			currPly--;
 
@@ -409,6 +413,9 @@ public class PlySearcher {
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(alpha, beta);
 				currMove = move_iter.nextInt();
 				moveNumber += 1;
+				if (atRootNode()) {
+					hasSearchedPv = true;
+				}
 				if (EubosEngineMain.ENABLE_ASSERTS) {
 					assert currMove != Move.NULL_MOVE: "Null move found in MoveList";
 					assert moveNumber <= ml.getList(currPly).size() : "MoveList is too long";
