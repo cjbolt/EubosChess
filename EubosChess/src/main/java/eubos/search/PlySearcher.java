@@ -309,20 +309,26 @@ public class PlySearcher {
 			depth > 2 &&
 			nullCheckEnabled &&
 			hasSearchedPv && 
-			pe.getFullEvaluation() > beta &&
 			!pos.getTheBoard().me.isEndgame() &&
-			!needToEscapeCheck)
-		{
+			!needToEscapeCheck &&
+			!(Score.isMate((short)beta) || Score.isMate((short)alpha)) && 
+			pe.getCrudeEvaluation()+LAZY_EVAL_THRESHOLD_IN_CP > beta) {
 			int R = 2;
 			if (depth > 6) R = 3;
 			currPly++;
 			pm.performNullMove();
-			plyScore = -search(-beta, -beta+1, depth-1-R, false); // Pass in NO PV
+			plyScore = -search(-beta, -beta+1, depth-1-R, false);
 			pm.unperformNullMove();
 			currPly--;
 
-			if (isTerminated()) return 0;
-			if (plyScore >= beta) return beta;
+			if (isTerminated()) {
+				return 0;
+			}
+			if (plyScore >= beta) {
+				return beta;
+			} else {
+				plyScore = Score.PROVISIONAL_ALPHA;
+			}
 		}
 		
 		MoveListIterator move_iter = ml.createForPly(prevBestMove, killers.getMoves(currPly), false, needToEscapeCheck, currPly);
