@@ -206,10 +206,16 @@ public class PlySearcher {
 		int prevBestMove = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
-		// Handle draws by three-fold repetition
-		if (!atRootNode() && pos.isThreefoldRepetitionPossible()) {
-			return 0;
+		// If not at the root node, do mate distance pruning and check for draws by three-fold repetition
+		if (!atRootNode()) {
+			int  mateScoreAtPly = Score.PROVISIONAL_BETA - currPly; // -1
+			if (alpha < -mateScoreAtPly) alpha = -mateScoreAtPly;
+			if (beta > mateScoreAtPly - 1) beta = mateScoreAtPly - 1;
+			if (alpha >= beta) return alpha;
+			
+			if (pos.isThreefoldRepetitionPossible()) return 0;
 		}
+
 		// Absolute depth limit
 		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
 			return pe.getFullEvaluation();
@@ -396,15 +402,16 @@ public class PlySearcher {
 				if (alpha >= beta) {
 					plyScore = beta; // fail hard
 					killers.addMove(currPly, bestMove);
-					reportPv((short) beta);
+					if (atRootNode()) reportPv((short) beta);
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
 					break;
 				}
 				
 				pc.update(currPly, bestMove);
-				if (atRootNode()) trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) alpha, Score.upperBound);
-				reportPv((short) alpha);
-				
+				if (atRootNode()) {
+					trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) alpha, Score.upperBound);
+					reportPv((short) alpha);
+				}
 			} else if (positionScore > plyScore) {
 				if (atRootNode() && plyScore == Score.PROVISIONAL_ALPHA) {
 					pc.update(currPly, currMove);
@@ -601,7 +608,7 @@ public class PlySearcher {
 	}
 
 	private void reportPv(short positionScore) {
-		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && atRootNode()) {
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), positionScore);
 			sr.reportPrincipalVariation(sm);
 			extendedSearchDeepestPly = 0;
