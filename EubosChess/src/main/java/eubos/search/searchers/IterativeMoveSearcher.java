@@ -18,6 +18,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	long gameTimeRemaining;
 	int moveNumber = 0;
 	boolean analyse = false;
+	int move_overhead = 10;
 	
 	volatile boolean searchStopped = false;
 	public static final boolean DEBUG_LOGGING = true;
@@ -29,8 +30,10 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			DrawChecker dc, 
 			long time,
 			long increment,
-			ReferenceScore refScore) {
+			ReferenceScore refScore,
+			int moveOverhead) {
 		super(eubos, fen, dc, hashMap, refScore);
+		this.move_overhead = moveOverhead;
 		this.setName("IterativeMoveSearcher");
 		if (time == Long.MAX_VALUE) {
 			analyse = true;
@@ -153,7 +156,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		protected long calculateSearchTimeQuanta() {
 			int moveHypothesis = (AVG_MOVES_PER_GAME - moveNumber);
 			int movesRemaining = Math.max(moveHypothesis, 10);
-			long msPerMove = Math.max((gameTimeRemaining/movesRemaining), 2);
+			long msPerMove = Math.max((gameTimeRemaining/movesRemaining), 2) + move_overhead;
 			long timeQuanta = msPerMove/2;
 			return timeQuanta;
 		}

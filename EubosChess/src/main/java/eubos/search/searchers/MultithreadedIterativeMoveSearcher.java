@@ -38,8 +38,9 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			long time,
 			long increment,
 			int threads,
-			ReferenceScore refScore) {
-		super(eubos, hashMap, fen, dc, time, increment, refScore);
+			ReferenceScore refScore,
+			int move_overhead) {
+		super(eubos, hashMap, fen, dc, time, increment, refScore, move_overhead);
 		this.setName("MultithreadedIterativeMoveSearcher");
 		this.threads = threads;
 		this.tt = hashMap;

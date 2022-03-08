@@ -75,6 +75,7 @@ public class EubosEngineMainTest {
 			EubosEngineMain.EUBOS_MAJOR_VERSION, EubosEngineMain.EUBOS_MINOR_VERSION, CMD_TERMINATOR);
 	private static final String ID_AUTHOR_CMD = "id author Chris Bolt"+CMD_TERMINATOR;
 	private static final String OPTION_HASH = "option name Hash type spin default 256 min 32 max 4000"+CMD_TERMINATOR;
+	private static final String OPTION_MOVE_OVERHEAD = "option name Move Overhead type spin default 10 min 0 max 5000"+CMD_TERMINATOR;
 	private static final String OPTION_THREADS = String.format(
 			"option name Threads type spin default %s min 1 max %s%s",
 			Math.max(1, Runtime.getRuntime().availableProcessors()-2),
@@ -286,7 +287,7 @@ public class EubosEngineMainTest {
 		int mateDepth = 0;
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1d1"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1h4"+CMD_TERMINATOR));
 		mateDepth = 13;
 		performTestExpectMate(14000, mateDepth);
 	}
@@ -525,7 +526,7 @@ public class EubosEngineMainTest {
 	}
 
 	private void setupEngine() {
-		commands.add(new commandPair(UCI_CMD, ID_NAME_CMD+ID_AUTHOR_CMD+OPTION_HASH+OPTION_THREADS+UCI_OK_CMD));
+		commands.add(new commandPair(UCI_CMD, ID_NAME_CMD+ID_AUTHOR_CMD+OPTION_HASH+OPTION_THREADS+OPTION_MOVE_OVERHEAD+UCI_OK_CMD));
 		commands.add(new commandPair("setoption name NumberOfWorkerThreads value 1"+CMD_TERMINATOR, null));
 		commands.add(new commandPair("setoption name Hash value 256"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(ISREADY_CMD,READY_OK_CMD));

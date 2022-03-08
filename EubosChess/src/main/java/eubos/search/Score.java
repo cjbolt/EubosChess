@@ -16,6 +16,8 @@ public final class Score {
 	}
 	
 	public static int getMateScore(int currPly) {
+		// The mate occurred on the previous ply, so it is bad for beta player, hence based on alpha.
+		// It will be inverted when the search de-recurses and will therefore be good for alpha.
 		return Score.PROVISIONAL_ALPHA + currPly;
 	}
 	

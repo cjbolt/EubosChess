@@ -49,7 +49,7 @@ public class IterativeMoveSearcherTest {
 	private EubosMock eubos;
 	
 	protected void setupPosition(String fen, long time) {
-		sut = new IterativeMoveSearcher(eubos, hashMap, fen, new DrawChecker(), time, 0, new ReferenceScore(hashMap));
+		sut = new IterativeMoveSearcher(eubos, hashMap, fen, new DrawChecker(), time, 0, new ReferenceScore(hashMap), 0);
 	}
 	
 	@Before

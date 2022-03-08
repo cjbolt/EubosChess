@@ -90,6 +90,8 @@ public class EubosEngineMain extends AbstractEngine {
 		numberOfWorkerThreads = defaultNumberOfWorkerThreads;
 	}
 	
+	int move_overhead = 10;
+	
 	// Hash configuration
 	public static final int MIN_HASH_SIZE = 32;
 	public static final int MAX_HASH_SIZE = 4*1000;
@@ -126,6 +128,7 @@ public class EubosEngineMain extends AbstractEngine {
 				"Chris Bolt");
 		reply.addOption(Options.newHashOption((int)DEFAULT_HASH_SIZE, MIN_HASH_SIZE, MAX_HASH_SIZE));
 		reply.addOption(new SpinnerOption("Threads", defaultNumberOfWorkerThreads, 1, numCores));
+		reply.addOption(new SpinnerOption("Move Overhead", 10, 0, 5000));
 		logger.fine(String.format("Cores available=%d", numCores));
 		this.getProtocol().send( reply );
 		lastOnMove = null;
@@ -146,6 +149,10 @@ public class EubosEngineMain extends AbstractEngine {
 		if (command.name.startsWith("Threads")) {
 			numberOfWorkerThreads = Integer.parseInt(command.value);
 			logger.fine(String.format("WorkerThreads=%d", numberOfWorkerThreads));
+		}
+		if (command.name.startsWith("Move Overhead")) {
+			move_overhead = Integer.parseInt(command.value);
+			logger.fine(String.format("Move Overhead=%d", move_overhead));
 		}
 	}
 
@@ -237,7 +244,8 @@ public class EubosEngineMain extends AbstractEngine {
 		// Create Move Searcher
 		if (clockTimeValid) {
 			logger.info("Search move, clock time " + clockTime);
-			ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, clockTime, clockInc, numberOfWorkerThreads, refScore);
+			ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, clockTime, clockInc,
+					numberOfWorkerThreads, refScore, move_overhead);
 		}
 		else if (command.getMoveTime() != null) {
 			logger.info("Search move, fixed time " + command.getMoveTime());
@@ -256,7 +264,8 @@ public class EubosEngineMain extends AbstractEngine {
 				ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth);
 			} else {
 				logger.info(String.format("Search move, infinite search, threads %d", numberOfWorkerThreads));
-				ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, Long.MAX_VALUE, clockInc, numberOfWorkerThreads, refScore);
+				ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, Long.MAX_VALUE, clockInc,
+						numberOfWorkerThreads, refScore, move_overhead);
 			}
 		}
 	}
