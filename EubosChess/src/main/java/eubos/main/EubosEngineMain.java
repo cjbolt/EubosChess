@@ -399,7 +399,7 @@ public class EubosEngineMain extends AbstractEngine {
 		} else {
 			logger.severe("Best move is null!");
 		}
-		System.gc();
+		//System.gc();
 	}
 	
 	@Override
