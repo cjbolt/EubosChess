@@ -512,6 +512,7 @@ public class PlySearcher {
 		
 		// Null move pruning
 		if (EubosEngineMain.ENABLE_NULL_MOVE_PRUNING &&
+			!isTerminated() &&
 			depth > 2 &&
 			nullCheckEnabled &&
 			hasSearchedPv && 

@@ -156,8 +156,9 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		protected long calculateSearchTimeQuanta() {
 			int moveHypothesis = (AVG_MOVES_PER_GAME - moveNumber);
 			int movesRemaining = Math.max(moveHypothesis, 10);
-			long msPerMove = Math.max((gameTimeRemaining/movesRemaining), 2) + move_overhead;
-			long timeQuanta = msPerMove/2;
+			long msPerMove = Math.max((gameTimeRemaining/movesRemaining), 2);
+			msPerMove -= move_overhead;
+			long timeQuanta = (msPerMove > 2) ? msPerMove/2 : 2;
 			return timeQuanta;
 		}
 		
