@@ -2,8 +2,10 @@ package eubos.main;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PipedReader;
 import java.io.PipedWriter;
+import java.io.PrintStream;
 
 import com.fluxchess.jcpi.AbstractEngine;
 import com.fluxchess.jcpi.commands.EngineAnalyzeCommand;
@@ -102,12 +104,13 @@ public class EubosEngineMain extends AbstractEngine {
 
 	private static FileHandler fh; 
     
-	public EubosEngineMain() { 
-		super();
+	public EubosEngineMain() {
+		// Attempt to use an auto-flushing output stream 
+		super(new BufferedReader(new InputStreamReader(System.in)), new PrintStream(System.out, true));
 	}
 	
 	public EubosEngineMain( PipedWriter out) throws IOException {
-		super(new BufferedReader(new PipedReader(out)), System.out);
+		super(new BufferedReader(new PipedReader(out)), new PrintStream(System.out, true));
 		logger.setLevel(Level.INFO);
 	}
 	
