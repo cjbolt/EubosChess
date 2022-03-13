@@ -550,9 +550,12 @@ public class PlySearcher {
 			bestMove = prevBestMove;
 			pc.initialise(currPly, bestMove);
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
-			
+			// Apply move and score
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(bestMove);
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
 			currPly++;
 			pm.performMove(bestMove);
+			
 			if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
 				!pe.goForMate() &&
 				depth > 3  && 
@@ -569,8 +572,17 @@ public class PlySearcher {
 			} else {
 				positionScore = -search(-beta, -alpha, depth-1);
 			}
+			
 			pm.unperformMove();
 			currPly--;
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(bestMove, positionScore);
+			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
+			
+			if (isTerminated()) {
+				// don't update PV if out of time for search, instead return last fully searched PV.
+				return 0;
+			}
 			
 			if (positionScore > alpha) {
 				alpha = plyScore = positionScore;
