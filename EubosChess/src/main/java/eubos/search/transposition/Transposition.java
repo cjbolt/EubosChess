@@ -58,9 +58,9 @@ public class Transposition implements ITransposition {
 
 	@Override
 	public int getBestMove(Board theBoard) {
-		int origin = ((bitfield >>> 15) & 0x7F);
-		int target = ((bitfield >>> 22) & 0x7F);
-		int promo = ((bitfield >>> 29) & 0x7);
+		int origin = ((bitfield >>> 12) & 0x7F);
+		int target = ((bitfield >>> 19) & 0x7F);
+		int promo = ((bitfield >>> 26) & 0x7);
 		int trans_move = Move.valueOfPromotion(origin, target, promo);
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -69,20 +69,29 @@ public class Transposition implements ITransposition {
 		}
 		
 		// Populate the members of the move read from the transposition table.
-		int originPiece = theBoard.getPieceAtSquare(Move.getOriginPosition(trans_move));
+		int originPiece = theBoard.getPieceAtSquare(origin);
 		trans_move = Move.setOriginPiece(trans_move, originPiece);
-		int targetPiece = theBoard.getPieceAtSquare(Move.getTargetPosition(trans_move));
+		int targetPiece = theBoard.getPieceAtSquare(target);
 		if (targetPiece != Piece.NONE) {
+			// Regular capture
 			trans_move = Move.setCapture(trans_move, targetPiece);
+		} else if (Piece.isPawn(originPiece) && theBoard.getEnPassantTargetSq() == target) {
+			// En Passant capture
+			int enPassantCaptureSquare = theBoard.generateCapturePositionForEnPassant(originPiece, target);
+			targetPiece = theBoard.getPieceAtSquare(enPassantCaptureSquare);
+			if (Piece.isPawn(targetPiece)) {
+				trans_move = Move.setCapture(trans_move, targetPiece);
+				trans_move |= Move.MISC_EN_PASSANT_CAPTURE_MASK;
+			}
 		}
-		return trans_move;
+		return Move.setBest(trans_move);
 	}
 	
 	@Override
 	public int getBestMove() {
-		int origin = ((bitfield >>> 15) & 0x7F);
-		int target = ((bitfield >>> 22) & 0x7F);
-		int promo = ((bitfield >>> 29) & 0x7);
+		int origin = ((bitfield >>> 12) & 0x7F);
+		int target = ((bitfield >>> 19) & 0x7F);
+		int promo = ((bitfield >>> 26) & 0x7);
 		int trans_move = Move.valueOfPromotion(origin, target, promo);
 		
 		return trans_move;
@@ -92,14 +101,14 @@ public class Transposition implements ITransposition {
 		int origin = Move.getOriginPosition(bestMove);
 		int target = Move.getTargetPosition(bestMove);
 		int promo = Move.getPromotion(bestMove);
-		bitfield &= ~(0x1FFFF << 15); // Suspect?
-		bitfield |= (origin & 0x7F) << 15;
-		bitfield |= (target & 0x7F) << 22;
-		bitfield |= (promo & 0x7) << 29;
+		bitfield &= ~(0x1FFFF << 12);
+		bitfield |= ((origin & 0x7F) << 12);
+		bitfield |= ((target & 0x7F) << 19);
+		bitfield |= ((promo & 0x7) << 26);
 		if (EubosEngineMain.ENABLE_ASSERTS) {
-			int decode_origin = ((bitfield >>> 15) & 0x7F);
-			int decode_target = ((bitfield >>> 22) & 0x7F);
-			int decode_promo = ((bitfield >>> 29) & 0x7);
+			int decode_origin = ((bitfield >>> 12) & 0x7F);
+			int decode_target = ((bitfield >>> 19) & 0x7F);
+			int decode_promo = ((bitfield >>> 26) & 0x7);
 			assert origin == decode_origin;
 			assert target == decode_target;
 			assert promo == decode_promo;

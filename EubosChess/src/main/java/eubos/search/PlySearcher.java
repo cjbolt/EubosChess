@@ -506,8 +506,7 @@ public class PlySearcher {
 			// Transposition may still be useful to seed the move list, if not drawing.
 			if (!override_trans_move || (override_trans_move && prevBestMove == Move.NULL_MOVE)) {
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-				int trans_move = trans.getBestMove(pos.getTheBoard());
-				prevBestMove = trans_move;
+				prevBestMove = trans.getBestMove(pos.getTheBoard());
 				bestMoveFromHash = true;
 			}
 		}
@@ -610,7 +609,13 @@ public class PlySearcher {
 				// No moves at this point means either a stalemate or checkmate has occurred
 				return needToEscapeCheck ? Score.getMateScore(currPly) : 0;
 			}
-			currMove = move_iter.nextInt();		
+			currMove = move_iter.nextInt();	
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				if (bestMoveFromHash) {
+					assert currMove == bestMove : 
+						String.format("First move is not the same hash move: %s != %s", Move.toString(currMove), Move.toString(bestMove));
+				}
+			}
 			if (skipOverBestMove) {
 				// already tried best move above
 				if (!move_iter.hasNext()) {
