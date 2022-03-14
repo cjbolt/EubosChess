@@ -128,7 +128,8 @@ public class IterativeMoveSearcherTest {
 	public void test_endgame_o()throws IllegalNotationException  {
 		setupPosition("4k3/4Pp2/5P2/4K3/8/8/8/8 w - - 0 1",  1000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
 		//expectedMove = new GenericMove("e5f5"); // In accordance with Stockfish (e5f5)
-		expectedMove = new GenericMove("e5e4"); // Not in accordance with Stockfish (e5f5)
+		//expectedMove = new GenericMove("e5e4"); // Not in accordance with Stockfish (e5f5)
+		expectedMove = new GenericMove("e5f4"); // Not in accordance with Stockfish (e5f5)
 		runSearcherAndTestBestMoveReturned();
 	}
 	

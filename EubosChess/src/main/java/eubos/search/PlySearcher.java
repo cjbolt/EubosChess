@@ -612,8 +612,8 @@ public class PlySearcher {
 			currMove = move_iter.nextInt();	
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				if (bestMoveFromHash) {
-					assert currMove == bestMove : 
-						String.format("First move is not the same hash move: %s != %s", Move.toString(currMove), Move.toString(bestMove));
+					assert currMove == bestMove : String.format("First move is not the same as the hash move: %s != %s",
+							Move.toString(currMove), Move.toString(bestMove));
 				}
 			}
 			if (skipOverBestMove) {
@@ -771,26 +771,70 @@ public class PlySearcher {
 			return plyScore;
 		}
 		
-		// Create MoveList, computationally very heavy in extended search
-		ITransposition trans = tt.getTransposition();
-		if (trans != null) {
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-			prevBestMove = trans.getBestMove(pos.getTheBoard());
-		}
-		move_iter = ml.createForPly(prevBestMove, needToEscapeCheck, currPly);
-		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtendedSearchMoveList(ml);		
-		if (!move_iter.hasNext()) {
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearchNoMoves(plyScore);
-			return plyScore;
-		}
-		
 		if (plyScore > alpha) {
 			// Null move hypothesis
 			alpha = plyScore;
 		}
-
+		
+		// Create MoveList, computationally very heavy in extended search
+		boolean searchedBestMove = false;
+		ITransposition trans = tt.getTransposition();
+		if (trans != null) {
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
+			prevBestMove = trans.getBestMove(pos.getTheBoard());
+			
+			// Try hash best move immediately, even if it is an under promotion
+			if (EubosEngineMain.ENABLE_STAGED_MOVE_GENERATION) {
+				if (!Move.isNotCaptureOrPromotion(prevBestMove)) {
+					searchedBestMove = true;
+					pc.initialise(currPly, prevBestMove);
+					if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
+					// Apply capture and score
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(prevBestMove);			
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
+					currPly++;
+					pm.performMove(prevBestMove);
+					short positionScore = (short) -extendedSearch(-beta, -alpha, pos.isKingInCheck());
+					pm.unperformMove();
+					currPly--;
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(prevBestMove, positionScore);
+					
+					if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
+					
+					if (positionScore > alpha) {
+						if (positionScore >= beta) {
+							if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(positionScore);
+							return beta;
+						}
+						alpha = positionScore;
+						pc.update(currPly, prevBestMove);
+					}
+				}
+			}
+		}
+		
+		move_iter = ml.createForPly(prevBestMove, needToEscapeCheck, currPly);
+		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtendedSearchMoveList(ml);		
+		if (!move_iter.hasNext()) {
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearchNoMoves(plyScore);
+			return alpha;
+		}
 		int currMove = move_iter.nextInt();
-		pc.initialise(currPly, currMove);
+		if (searchedBestMove) {
+			// Skip passed the hash move, if it was in the extended move list (under promotions won't be)
+			if (currMove == prevBestMove) {
+				currMove = move_iter.nextInt();
+			}
+		}
+		if (!move_iter.hasNext()) {
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearchNoMoves(plyScore);
+			return alpha;
+		}
+		if (!searchedBestMove){
+			pc.initialise(currPly, currMove);
+		}
+		
 		while(true) {		
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 			// Apply capture and score
