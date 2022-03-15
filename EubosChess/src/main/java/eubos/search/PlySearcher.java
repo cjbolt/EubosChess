@@ -785,11 +785,12 @@ public class PlySearcher {
 			
 			// Try hash best move immediately, even if it is an under promotion
 			if (EubosEngineMain.ENABLE_STAGED_MOVE_GENERATION) {
-				if (!Move.isNotCaptureOrPromotion(prevBestMove)) {
+				if (Move.isQueenPromotion(prevBestMove) || Move.isCapture(prevBestMove)) {
+					
 					searchedBestMove = true;
 					pc.initialise(currPly, prevBestMove);
+					
 					if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
-					// Apply capture and score
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(prevBestMove);			
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
 					currPly++;
@@ -799,7 +800,6 @@ public class PlySearcher {
 					currPly--;
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(prevBestMove, positionScore);
-					
 					if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
 					
 					if (positionScore > alpha) {
@@ -817,19 +817,16 @@ public class PlySearcher {
 		move_iter = ml.createForPly(prevBestMove, needToEscapeCheck, currPly);
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtendedSearchMoveList(ml);		
 		if (!move_iter.hasNext()) {
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearchNoMoves(plyScore);
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearchNoMoves(alpha);
 			return alpha;
 		}
 		int currMove = move_iter.nextInt();
 		if (searchedBestMove) {
-			// Skip passed the hash move, if it was in the extended move list (under promotions won't be)
-			if (currMove == prevBestMove) {
-				currMove = move_iter.nextInt();
+			if (!move_iter.hasNext()) {
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearchNoMoves(alpha);
+				return alpha;
 			}
-		}
-		if (!move_iter.hasNext()) {
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearchNoMoves(plyScore);
-			return alpha;
+			currMove = move_iter.nextInt();
 		}
 		if (!searchedBestMove){
 			pc.initialise(currPly, currMove);

@@ -150,11 +150,10 @@ public class EubosEngineMainTest {
 	@Test
 	public void test_infoMessageSending_clearsPreviousPvMoves() throws InterruptedException, IOException {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
-			String expectedOutput = "info depth 1 seldepth 7 score cp 180 pv d7e5 d4d5 c7c2 f3e5 c2c1 hashfull 0 nps 0 time 0 nodes 36"+CMD_TERMINATOR+
-						"info depth 1 seldepth 5 score cp 191 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 49"+CMD_TERMINATOR+
-	                    "info depth 2 seldepth 9 score cp 121 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 663"+CMD_TERMINATOR+
-	                    "info depth 2 seldepth 7 score cp 180 pv d7e5 d4d5 c7c2 f3e5 c2c1 hashfull 0 nps 0 time 0 nodes 755"+CMD_TERMINATOR
-	                    +BEST_PREFIX+"d7e5";
+			String expectedOutput = "info depth 1 seldepth 6 score cp 18 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
+						"info depth 1 seldepth 6 score cp 191 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 45"+CMD_TERMINATOR+
+	                    "info depth 2 seldepth 6 score cp 121 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 203"+CMD_TERMINATOR
+	                    +BEST_PREFIX+"c7c2";
 			setupEngine();
 			// Setup Commands specific to this test
 			commands.add(new commandPair(POS_FEN_PREFIX+"r1b1kb1r/ppqnpppp/8/3pP3/3Q4/5N2/PPP2PPP/RNB1K2R b KQkq - 2 8"+CMD_TERMINATOR, null));
@@ -306,7 +305,7 @@ public class EubosEngineMainTest {
 	public void test_tricky_endgame_position() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/4kp1p/3pb1p1/P5P1/3KN1PP/8/8 b - - 5 57"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"e5g3"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"h6h5"+CMD_TERMINATOR));
 		// h6h5 loses, it is a terrible move, but that is what Eubos selects. We should go with Bxg3 according to stockfish
 		/*
 		 * FEN: 8/8/4kp1p/3pb1p1/P5P1/3KN1PP/8/8 b - - 5 57
