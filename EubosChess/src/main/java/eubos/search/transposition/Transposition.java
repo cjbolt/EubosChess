@@ -1,7 +1,5 @@
 package eubos.search.transposition;
 
-import java.util.List;
-
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.main.EubosEngineMain;
@@ -12,10 +10,10 @@ public final class Transposition {
 
 	public static long valueOf(byte depth, short score, byte bound, GenericMove bestMove) {
 		// Only used by tests
-		return valueOf(depth, score, bound, Move.toMove(bestMove, null, Move.TYPE_REGULAR_NONE), null);
+		return valueOf(depth, score, bound, Move.toMove(bestMove, null, Move.TYPE_REGULAR_NONE));
 	}
 	
-	public static long valueOf(byte depth, short score, byte bound, int bestMove, List<Integer> pv) {
+	public static long valueOf(byte depth, short score, byte bound, int bestMove) {
 		long trans = 0L;
 		trans = setDepthSearchedInPly(trans, depth);
 		trans = setScore(trans, score);
@@ -87,8 +85,7 @@ public final class Transposition {
 			byte new_Depth, 
 			short new_score,
 			byte new_bound,
-			int new_bestMove, 
-			List<Integer> pv) {	
+			int new_bestMove) {	
 		boolean updateTransposition = false;
 		if (getDepthSearchedInPly(trans) < new_Depth) {
 			updateTransposition = true;	
@@ -108,9 +105,5 @@ public final class Transposition {
 			trans = setBestMove(trans, new_bestMove);
 		}
 		return trans;
-	}
-		
-	public List<Integer> getPv() {
-		return null;
 	}
 }
