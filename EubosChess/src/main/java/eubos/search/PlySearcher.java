@@ -13,7 +13,7 @@ import eubos.position.MoveList;
 import eubos.position.MoveListIterator;
 import eubos.score.IEvaluate;
 import eubos.search.transposition.ITranspositionAccessor;
-import eubos.search.transposition.ITransposition;
+import eubos.search.transposition.Transposition;
 
 public class PlySearcher {
 	
@@ -214,21 +214,21 @@ public class PlySearcher {
 			++depth;
 		}
 		
-		ITransposition trans = tt.getTransposition();
-		if (trans != null) {
+		long trans = tt.getTransposition();
+		if (trans != 0L) {
 			boolean override_trans_move = false;
 			
-			if (depth <= trans.getDepthSearchedInPly()) {
-				int type = trans.getType();
+			if (depth <= Transposition.getDepthSearchedInPly(trans)) {
+				int type = Transposition.getType(trans);
 				boolean isCutOff = false;
-				override_trans_move = checkForRepetitionDueToPositionInSearchTree(trans.getBestMove(pos.getTheBoard()));
+				override_trans_move = checkForRepetitionDueToPositionInSearchTree(Transposition.getBestMove(trans));
 				
 				if (!override_trans_move || (override_trans_move && type != Score.exact)) {
 					boolean check_for_refutation = false;
 					
 					// If the hashed data is now drawing, due to the position in the search tree, score it accordingly, but still check
 					// if it is good enough for a refutation.
-					int hashScore = !override_trans_move ? convertMateScoreForPositionInSearchTree(trans.getScore()) : 0;
+					int hashScore = !override_trans_move ? convertMateScoreForPositionInSearchTree(Transposition.getScore(trans)) : 0;
 					switch(type) {
 					case Score.exact:
 						if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
@@ -253,17 +253,13 @@ public class PlySearcher {
 						// Determine if good enough for a refutation...
 						if (alpha >= beta) {
 							if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsRefutation(pos.getHash(), trans);
-							killers.addMove(currPly, trans.getBestMove(pos.getTheBoard()));
+							killers.addMove(currPly, Transposition.getBestMove(trans));
 							isCutOff = true;
 						}
 					}
 					if (isCutOff) {
 						// Refutation or exact score already known to require search depth, cut off the Search
-					    if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
-							pc.update(currPly, trans.getPv());
-						} else {
-							pc.set(currPly, trans.getBestMove(pos.getTheBoard()));
-						}
+						pc.set(currPly, Transposition.getBestMove(trans));
 					    if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 					    	sm.incrementNodesSearched();
 							sm.setPrincipalVariationDataFromHash(0, pc.toPvList(0), (short)hashScore);
@@ -277,7 +273,7 @@ public class PlySearcher {
 			// Transposition may still be useful to seed the move list, if not drawing.
 			if (!override_trans_move || (override_trans_move && prevBestMove == Move.NULL_MOVE)) {
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-				int trans_move = trans.getBestMove(pos.getTheBoard());
+				int trans_move = Transposition.getBestMove(trans);
 				EubosEngineMain.logger.info(String.format("best move set from trans=%s", Move.toString(trans_move)));
 				prevBestMove = trans_move;
 			}
@@ -447,21 +443,21 @@ public class PlySearcher {
 		}
 		
 		boolean bestMoveFromHash = false;
-		ITransposition trans = tt.getTransposition();
-		if (trans != null) {
+		long trans = tt.getTransposition();
+		if (trans != 0L) {
 			boolean override_trans_move = false;
 			
-			if (depth <= trans.getDepthSearchedInPly()) {
-				int type = trans.getType();
+			if (depth <= Transposition.getDepthSearchedInPly(trans)) {
+				int type = Transposition.getType(trans);
 				boolean isCutOff = false;
-				override_trans_move = checkForRepetitionDueToPositionInSearchTree(trans.getBestMove(pos.getTheBoard()));
+				override_trans_move = checkForRepetitionDueToPositionInSearchTree(Transposition.getBestMove(trans));
 				
 				if (!override_trans_move || (override_trans_move && type != Score.exact)) {
 					boolean check_for_refutation = false;
 					
 					// If the hashed data is now drawing, due to the position in the search tree, score it accordingly, but still check
 					// if it is good enough for a refutation.
-					int hashScore = !override_trans_move ? convertMateScoreForPositionInSearchTree(trans.getScore()) : 0;
+					int hashScore = !override_trans_move ? convertMateScoreForPositionInSearchTree(Transposition.getScore(trans)) : 0;
 					switch(type) {
 					case Score.exact:
 						if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
@@ -486,17 +482,13 @@ public class PlySearcher {
 						// Determine if good enough for a refutation...
 						if (alpha >= beta) {
 							if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsRefutation(pos.getHash(), trans);
-							killers.addMove(currPly, trans.getBestMove(pos.getTheBoard()));
+							killers.addMove(currPly, Transposition.getBestMove(trans));
 							isCutOff = true;
 						}
 					}
 					if (isCutOff) {
 						// Refutation or exact score already known to require search depth, cut off the Search
-					    if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
-							pc.update(currPly, trans.getPv());
-						} else {
-							pc.set(currPly, trans.getBestMove(pos.getTheBoard()));
-						}
+						pc.set(currPly, Transposition.getBestMove(trans));
 					    if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
 					    if (SearchDebugAgent.DEBUG_ENABLED) sda.printCutOffWithScore(hashScore);
 						return hashScore;
@@ -506,7 +498,7 @@ public class PlySearcher {
 			// Transposition may still be useful to seed the move list, if not drawing.
 			if (!override_trans_move || (override_trans_move && prevBestMove == Move.NULL_MOVE)) {
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-				prevBestMove = trans.getBestMove(pos.getTheBoard());
+				prevBestMove = Transposition.getBestMove(trans);
 				bestMoveFromHash = true;
 			}
 		}
@@ -612,7 +604,10 @@ public class PlySearcher {
 			currMove = move_iter.nextInt();	
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				if (bestMoveFromHash) {
-					assert currMove == bestMove : String.format("First move is not the same as the hash move: %s != %s",
+					int no_killer_current = currMove & ~(Move.TYPE_KILLER_MASK << Move.TYPE_SHIFT);
+					int no_killer_best = bestMove & ~(Move.TYPE_KILLER_MASK << Move.TYPE_SHIFT);
+					assert no_killer_current == no_killer_best : 
+						String.format("First move is not the same as the hash move: %s != %s",
 							Move.toString(currMove), Move.toString(bestMove));
 				}
 			}
@@ -778,10 +773,10 @@ public class PlySearcher {
 		
 		// Create MoveList, computationally very heavy in extended search
 		boolean searchedBestMove = false;
-		ITransposition trans = tt.getTransposition();
-		if (trans != null) {
+		long trans = tt.getTransposition();
+		if (trans != 0L) {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-			prevBestMove = trans.getBestMove(pos.getTheBoard());
+			prevBestMove = Transposition.getBestMove(trans);
 			
 			// Try hash best move immediately, even if it is an under promotion
 			if (EubosEngineMain.ENABLE_STAGED_MOVE_GENERATION) {
@@ -878,18 +873,14 @@ public class PlySearcher {
 		}
 	}
 	
-	private ITransposition updateTranspositionTable(ITransposition trans, byte depth, int currMove, short plyScore, byte plyBound) {
+	private long updateTranspositionTable(long trans, byte depth, int currMove, short plyScore, byte plyBound) {
 		// Modify mate score (which is expressed in distance from the root node, in ply) to
 		// the distance from leaf node (which is what needs to be stored in the hash table).
 		short scoreFromDownTree = plyScore;
 		if (Score.isMate(plyScore)) {
 			scoreFromDownTree = (short) ((plyScore < 0) ? plyScore - currPly : plyScore + currPly);
 		}
-		if (ITranspositionAccessor.USE_PRINCIPAL_VARIATION_TRANSPOSITIONS) {
-			trans = tt.setTransposition(trans, depth, scoreFromDownTree, plyBound, currMove, pc.toPvList(currPly));
-		} else {
-			trans = tt.setTransposition(trans, depth, scoreFromDownTree, plyBound, currMove);
-		}
+		trans = tt.setTransposition(trans, depth, scoreFromDownTree, plyBound, currMove);
 		return trans;
 	}
 	

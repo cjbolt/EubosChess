@@ -9,7 +9,7 @@ import java.time.format.DateTimeFormatter;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.position.MoveList;
-import eubos.search.transposition.ITransposition;
+import eubos.search.transposition.Transposition;
 
 public class SearchDebugAgent {
 
@@ -107,28 +107,28 @@ public class SearchDebugAgent {
 		}
 	}
 	
-	public void printHashIsTerminalNode(ITransposition trans, long hash) {
+	public void printHashIsTerminalNode(long trans, long hash) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%shash:%d term:%s object:%s @%d", indent, hash, trans.report(), trans.toString(), currPly));
+			printOutput(String.format("%shash:%d term:%s @%d", indent, hash, Transposition.report(trans), currPly));
 		}
 	}
 
-	public void printHashIsRefutation(long hash, ITransposition trans) {
+	public void printHashIsRefutation(long hash, long trans) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%shash:%d ref:%s object:%s @%d", indent, hash, trans.report(), trans.toString(), currPly));
+			printOutput(String.format("%shash:%d ref:%s @%d", indent, hash, Transposition.report(trans), currPly));
 		}
 		
 	}
 
-	public void printHashIsSeedMoveList(long hash, ITransposition trans) {
+	public void printHashIsSeedMoveList(long hash, long trans) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%shash:%d seed:%s object:%s @%d", indent, hash, trans.report(), trans.toString(), currPly));
+			printOutput(String.format("%shash:%d seed:%s @%d", indent, hash, Transposition.report(trans), currPly));
 		}
 	}
 
-	public void printTransUpdate(ITransposition trans, long hashCode) {
+	public void printTransUpdate(long trans, long hashCode) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%s%s hash:%d object:%s", indent, trans.report(), hashCode, trans.toString()));
+			printOutput(String.format("%s%s hash:%d", indent, Transposition.report(trans), hashCode));
 		}		
 	}
 	
@@ -138,9 +138,9 @@ public class SearchDebugAgent {
 		}		
 	}
 	
-	public void printExactTrans(long hashCode, ITransposition trans) {
+	public void printExactTrans(long hashCode, long trans) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%strans now exact, hash:%d trans:%s", indent, hashCode, trans.report()));
+			printOutput(String.format("%strans now exact, hash:%d trans:%s", indent, hashCode, Transposition.report(trans)));
 		}		
 	}
 

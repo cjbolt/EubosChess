@@ -19,6 +19,7 @@ import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.score.ReferenceScore;
 import eubos.search.transposition.FixedSizeTranspositionTable;
+import eubos.search.transposition.Transposition;
 import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
 
@@ -516,7 +517,7 @@ public class MiniMaxMoveGeneratorTest {
 		
 		// Check the hash score is updated properly, negated for white POV
 		pm.performMove(res.bestMove);
-		assertEquals(139,hashMap.getTransposition(pm.getHash()).getScore());
+		assertEquals(139,Transposition.getScore(hashMap.getTransposition(pm.getHash())));
 	}
 	
 	@Test

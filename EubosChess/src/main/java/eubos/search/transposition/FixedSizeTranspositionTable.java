@@ -4,8 +4,8 @@ import eubos.main.EubosEngineMain;
 
 import org.openjdk.jol.info.ClassLayout;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2LongLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2LongMap;
 
 public class FixedSizeTranspositionTable {
 	
@@ -15,12 +15,12 @@ public class FixedSizeTranspositionTable {
 	
 	public static final long BYTES_TRANSPOSTION_ELEMENT;
 	static {
-		BYTES_TRANSPOSTION_ELEMENT = ClassLayout.parseClass(Transposition.class).instanceSize();
+		BYTES_TRANSPOSTION_ELEMENT = 8L;
 	}
 	
 	public static final long BYTES_HASHMAP_ENTRY;
 	static {
-		BYTES_HASHMAP_ENTRY = ClassLayout.parseClass(Long2ObjectMap.Entry.class).instanceSize();
+		BYTES_HASHMAP_ENTRY = ClassLayout.parseClass(Long2LongMap.Entry.class).instanceSize();
 	}
 	
 	public static final long BYTES_HASHMAP_ZOBRIST_KEY = 8L;
@@ -32,7 +32,7 @@ public class FixedSizeTranspositionTable {
 	//public static final long MBYTES_DEFAULT_HASH_SIZE = (ELEMENTS_DEFAULT_HASH_SIZE*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE;
 	public static final long MBYTES_DEFAULT_HASH_SIZE = 256L;
 			
-	private Long2ObjectLinkedOpenHashMap<ITransposition> hashMap = null;
+	private Long2LongLinkedOpenHashMap hashMap = null;
 	private long hashMapSize = 0;
 	private long maxHashMapSize = ELEMENTS_DEFAULT_HASH_SIZE;
 	
@@ -60,21 +60,21 @@ public class FixedSizeTranspositionTable {
 					(hashSizeElements*BYTES_PER_TRANSPOSITION)/BYTES_PER_MEGABYTE));
 		}
 
-		hashMap = new Long2ObjectLinkedOpenHashMap<ITransposition>((int)hashSizeElements);
+		hashMap = new Long2LongLinkedOpenHashMap((int)hashSizeElements);
 		hashMapSize = 0;
 		maxHashMapSize = hashSizeElements;
 	}
 	
-	public synchronized ITransposition getTransposition(long hashCode) {
+	public synchronized long getTransposition(long hashCode) {
 		return hashMap.get(hashCode);
 	}
 	
-	public synchronized void putTransposition(long hashCode, ITransposition trans) {
+	public synchronized void putTransposition(long hashCode, long trans) {
 		if (hashMapSize >= maxHashMapSize) {
-			hashMap.removeFirst();
+			hashMap.removeFirstLong();
 			hashMapSize--;
 		}
-		if (hashMap.putAndMoveToLast(hashCode, trans) == null) {
+		if (hashMap.putAndMoveToLast(hashCode, trans) == hashMap.defaultReturnValue()) {
 			// Only increment size if hash wasn't already contained, otherwise overwrites
 			hashMapSize++;
 		}

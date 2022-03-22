@@ -44,7 +44,7 @@ public final class Move {
 	public static final int MOVE_ORDERING_MASK = (TYPE_KILLER_MASK | TYPE_CAPTURE_MASK | TYPE_PROMOTION_MASK | TYPE_BEST_MASK);
 	public static final int KILLER_EXCLUSION_MASK = (TYPE_CAPTURE_MASK | TYPE_PROMOTION_MASK);
 	
-	private static final int TYPE_SHIFT = ORIGIN_PIECE_SHIFT + Long.bitCount(Piece.PIECE_WHOLE_MASK);
+	public static final int TYPE_SHIFT = ORIGIN_PIECE_SHIFT + Long.bitCount(Piece.PIECE_WHOLE_MASK);
 	private static final int TYPE_MASK = ((1<<TYPE_WIDTH)-1) << TYPE_SHIFT;
 	
 	// Misc flags
