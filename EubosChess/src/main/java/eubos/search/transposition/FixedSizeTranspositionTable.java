@@ -2,19 +2,16 @@ package eubos.search.transposition;
 
 import eubos.main.EubosEngineMain;
 
-import org.openjdk.jol.info.ClassLayout;
-
 import it.unimi.dsi.fastutil.longs.Long2LongLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2LongMap;
 
 public class FixedSizeTranspositionTable {
 	
 	private static final boolean DEBUG_LOGGING = false;
 
-	public static final long BYTES_HASHMAP_ENTRY;
-	static {
-		BYTES_HASHMAP_ENTRY = ClassLayout.parseClass(Long2LongMap.Entry.class).instanceSize();
-	}
+	public static final long BYTES_HASHMAP_ENTRY = 16L;
+//	static {
+//		BYTES_HASHMAP_ENTRY = ClassLayout.parseClass(Long2LongMap.Entry.class).instanceSize();
+//	}
 	
 	public static final long BYTES_HASHMAP_ZOBRIST_KEY = 8L;
 	public static final long BYTES_TRANSPOSTION_ELEMENT = 8L;
