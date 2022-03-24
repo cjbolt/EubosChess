@@ -6,7 +6,7 @@ import it.unimi.dsi.fastutil.longs.Long2LongLinkedOpenHashMap;
 
 public class FixedSizeTranspositionTable {
 	
-	private static final boolean DEBUG_LOGGING = false;
+	private static final boolean DEBUG_LOGGING = true;
 
 	public static final long BYTES_HASHMAP_ENTRY = 16L;
 //	static {
@@ -18,7 +18,7 @@ public class FixedSizeTranspositionTable {
 	public static final long BYTES_PER_TRANSPOSITION =
 			BYTES_TRANSPOSTION_ELEMENT + BYTES_HASHMAP_ENTRY + BYTES_HASHMAP_ZOBRIST_KEY;
 	
-	public static final long BYTES_PER_MEGABYTE = (1024L * 1000L);
+	public static final long BYTES_PER_MEGABYTE = 1_000_000L;
 	
 	public static final long MBYTES_DEFAULT_HASH_SIZE = 256L;
 			
@@ -34,7 +34,6 @@ public class FixedSizeTranspositionTable {
 		long hashSizeElements = (hashSizeMBytes * BYTES_PER_MEGABYTE) / BYTES_PER_TRANSPOSITION;
 		
 		if (DEBUG_LOGGING) {
-			EubosEngineMain.logger.info(String.format("BYTES_PER_TRANSPOSITION=%d", BYTES_PER_TRANSPOSITION));
 			EubosEngineMain.logger.info(String.format(
 					"Hash dimensions requestedSizeMBytes=%d BYTES_PER_TRANSPOSITION=%d, maxSizeElements=%d", 
 					hashSizeMBytes, BYTES_PER_TRANSPOSITION, hashSizeElements));
