@@ -66,6 +66,13 @@ public class PlySearcher {
 	
 	LazyEvalStatistics lazyStat = null;
 	
+	int alpha[];
+	int beta[];
+	int alphaOriginal[];
+	int prevBestMove[];
+	boolean isCutOff[];
+	int hashScore[];
+	
 	private IChangePosition pm;
 	private IPositionAccessors pos;
 	private IEvaluate pe;
@@ -102,6 +109,13 @@ public class PlySearcher {
 			SearchDebugAgent sda,
 			MoveList ml) {
 		currPly = 0;
+		
+		this.alpha = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
+		this.beta = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
+		this.alphaOriginal = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
+		this.prevBestMove = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
+		this.isCutOff = new boolean[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
+		this.hashScore = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		
 		this.pc = pc;
 		this.sm = sm;
@@ -192,15 +206,83 @@ public class PlySearcher {
 		return score;
 	}
 	
+	void evaluateTranspositionAtRoot(long trans, int depth) {
+		
+		boolean override_trans_move = false;
+		
+		if (depth <= Transposition.getDepthSearchedInPly(trans)) {
+			int type = Transposition.getType(trans);
+			isCutOff[currPly] = false;
+			override_trans_move = checkForRepetitionDueToPositionInSearchTree(Transposition.getBestMove(trans));
+			
+			if (!override_trans_move || (override_trans_move && type != Score.exact)) {
+				boolean check_for_refutation = false;
+				
+				// If the hashed data is now drawing, due to the position in the search tree, score it accordingly, but still check
+				// if it is good enough for a refutation.
+				hashScore[currPly] = !override_trans_move ? convertMateScoreForPositionInSearchTree(Transposition.getScore(trans)) : 0;
+				switch(type) {
+				case Score.exact:
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
+					isCutOff[currPly] = true;
+					break;
+				case Score.upperBound:
+					this.beta[currPly] = Math.min(this.beta[currPly], hashScore[currPly]);
+					check_for_refutation = true;
+					break;
+				case Score.lowerBound:
+					this.alpha[currPly] = Math.max(this.alpha[currPly], hashScore[currPly]);
+					this.alphaOriginal[currPly] = this.alpha[currPly];
+					check_for_refutation = true;
+					break;
+				case Score.typeUnknown:
+				default:
+					if (EubosEngineMain.ENABLE_ASSERTS) assert false;
+					break;
+				}
+				
+				if (check_for_refutation) {
+					// Determine if good enough for a refutation...
+					if (this.alpha[currPly] >= this.beta[currPly]) {
+						if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsRefutation(pos.getHash(), trans);
+						killers.addMove(currPly, Transposition.getBestMove(trans));
+						isCutOff[currPly] = true;
+					}
+				}
+				if (isCutOff[currPly]) {
+					// Refutation or exact score already known to require search depth, cut off the Search
+					pc.set(currPly, Transposition.getBestMove(trans));
+				    if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
+				    	sm.incrementNodesSearched();
+						sm.setPrincipalVariationDataFromHash(0, pc.toPvList(0), (short)hashScore[currPly]);
+						sr.reportPrincipalVariation(sm);
+					}
+				    if (SearchDebugAgent.DEBUG_ENABLED) sda.printCutOffWithScore(hashScore[currPly]);
+				    return;
+				}
+			}
+		}
+		// Transposition may still be useful to seed the move list, if not drawing.
+		if (!override_trans_move || (override_trans_move && prevBestMove[currPly] == Move.NULL_MOVE)) {
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
+			int trans_move = Transposition.getBestMove(trans);
+			EubosEngineMain.logger.info(String.format("best move set from trans=%s", Move.toString(trans_move)));
+			prevBestMove[currPly] = trans_move;
+		}
+	}
+		
 	int searchRoot(int alpha, int beta, int depth) {
-		int alphaOriginal = alpha;
 		int plyScore = Score.PROVISIONAL_ALPHA;
+		
+		this.alpha[currPly] = alpha;
+		this.beta[currPly] = beta;
+		this.alphaOriginal[currPly] = alpha;
 		
 		hasSearchedPv = false;
 		
 		// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
 		// It will deviate from the hash move when we start updating the hash during iterative deepening.
-		int prevBestMove = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
+		prevBestMove[currPly] = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
 		if (SearchDebugAgent.DEBUG_ENABLED) {
@@ -216,70 +298,12 @@ public class PlySearcher {
 		
 		long trans = tt.getTransposition();
 		if (trans != 0L) {
-			boolean override_trans_move = false;
-			
-			if (depth <= Transposition.getDepthSearchedInPly(trans)) {
-				int type = Transposition.getType(trans);
-				boolean isCutOff = false;
-				override_trans_move = checkForRepetitionDueToPositionInSearchTree(Transposition.getBestMove(trans));
-				
-				if (!override_trans_move || (override_trans_move && type != Score.exact)) {
-					boolean check_for_refutation = false;
-					
-					// If the hashed data is now drawing, due to the position in the search tree, score it accordingly, but still check
-					// if it is good enough for a refutation.
-					int hashScore = !override_trans_move ? convertMateScoreForPositionInSearchTree(Transposition.getScore(trans)) : 0;
-					switch(type) {
-					case Score.exact:
-						if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
-						isCutOff = true;
-						break;
-					case Score.upperBound:
-						beta = Math.min(beta, hashScore);
-						check_for_refutation = true;
-						break;
-					case Score.lowerBound:
-						alpha = Math.max(alpha, hashScore);
-						alphaOriginal = alpha;
-						check_for_refutation = true;
-						break;
-					case Score.typeUnknown:
-					default:
-						if (EubosEngineMain.ENABLE_ASSERTS) assert false;
-						break;
-					}
-					
-					if (check_for_refutation) {
-						// Determine if good enough for a refutation...
-						if (alpha >= beta) {
-							if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsRefutation(pos.getHash(), trans);
-							killers.addMove(currPly, Transposition.getBestMove(trans));
-							isCutOff = true;
-						}
-					}
-					if (isCutOff) {
-						// Refutation or exact score already known to require search depth, cut off the Search
-						pc.set(currPly, Transposition.getBestMove(trans));
-					    if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
-					    	sm.incrementNodesSearched();
-							sm.setPrincipalVariationDataFromHash(0, pc.toPvList(0), (short)hashScore);
-							sr.reportPrincipalVariation(sm);
-						}
-					    if (SearchDebugAgent.DEBUG_ENABLED) sda.printCutOffWithScore(hashScore);
-						return hashScore;
-					}
-				}
-			}
-			// Transposition may still be useful to seed the move list, if not drawing.
-			if (!override_trans_move || (override_trans_move && prevBestMove == Move.NULL_MOVE)) {
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-				int trans_move = Transposition.getBestMove(trans);
-				EubosEngineMain.logger.info(String.format("best move set from trans=%s", Move.toString(trans_move)));
-				prevBestMove = trans_move;
+			evaluateTranspositionAtRoot(trans, depth);
+			if (isCutOff[currPly]) {
+				return hashScore[currPly];
 			}
 		}
-		
-		MoveListIterator move_iter = ml.createForPly(prevBestMove, killers.getMoves(currPly), false, needToEscapeCheck, currPly);
+		MoveListIterator move_iter = ml.createForPly(prevBestMove[currPly], killers.getMoves(currPly), false, needToEscapeCheck, currPly);
 		if (!move_iter.hasNext()) {
 			// No moves at this point means either a stalemate or checkmate has occurred
 			return needToEscapeCheck ? Score.getMateScore(currPly) : 0;
@@ -302,6 +326,10 @@ public class PlySearcher {
 			// Apply move and score
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
+			
+			beta = this.beta[currPly];
+			alpha = this.alpha[currPly];
+			
 			currPly++;
 			pm.performMove(currMove);
 			
@@ -337,25 +365,25 @@ public class PlySearcher {
 			}
 			
 			// Handle score backed up to this node
-			if (positionScore > alpha) {
-				alpha = plyScore = positionScore;
+			if (positionScore > this.alpha[currPly]) {
+				this.alpha[currPly] = plyScore = positionScore;
 				bestMove = currMove;
 				
-				if (alpha >= beta) {
-					plyScore = beta; // fail hard
+				if (this.alpha[currPly] >= this.beta[currPly]) {
+					plyScore = this.beta[currPly]; // fail hard
 					killers.addMove(currPly, bestMove);
-					if (atRootNode()) reportPv((short) beta);
+					if (atRootNode()) reportPv((short) this.beta[currPly]);
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
 					break;
 				}
 				
 				pc.update(currPly, bestMove);
-				trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) alpha, Score.upperBound);
-				reportPv((short) alpha);
+				trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) this.alpha[currPly], Score.upperBound);
+				reportPv((short) this.alpha[currPly]);
 			} else if (positionScore > plyScore) {
 				if (plyScore == Score.PROVISIONAL_ALPHA) {
 					pc.update(currPly, currMove);
-					reportPv((short) alpha);
+					reportPv((short) this.alpha[currPly]);
 				}
 				bestMove = currMove;
 				plyScore = positionScore;
@@ -363,7 +391,7 @@ public class PlySearcher {
 			
 			// Break-out when out of moves
 			if (move_iter.hasNext()) {
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(alpha, beta);
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(this.alpha[currPly], this.beta[currPly]);
 				currMove = move_iter.nextInt();
 				moveNumber += 1;
 				hasSearchedPv = true;
@@ -377,10 +405,10 @@ public class PlySearcher {
 		}
 		
 		byte plyBound = Score.typeUnknown;
-		if (plyScore <= alphaOriginal) {
+		if (plyScore <= this.alphaOriginal[currPly]) {
 			// Didn't raise alpha
 			plyBound = Score.upperBound;
-		} else if (plyScore >= beta) {
+		} else if (plyScore >= this.beta[currPly]) {
 			// A beta cut-off, alpha raise was 'too good'
 			plyBound = Score.lowerBound;
 		} else {
@@ -392,19 +420,87 @@ public class PlySearcher {
 		}
 		
 		// fail hard, so don't return plyScore
-		return alpha;
+		return this.alpha[currPly];
 	}
 	
 	int search(int alpha, int beta, int depth)  {
 		return search(alpha, beta, depth, true);
 	}
 	
+	boolean evaluateTransposition(long trans, int depth) {
+		boolean bestMoveFromHash = false;
+		boolean override_trans_move = false;
+		
+		if (depth <= Transposition.getDepthSearchedInPly(trans)) {
+			int type = Transposition.getType(trans);
+			isCutOff[currPly] = false;
+			override_trans_move = checkForRepetitionDueToPositionInSearchTree(Transposition.getBestMove(trans));
+			
+			if (!override_trans_move || (override_trans_move && type != Score.exact)) {
+				boolean check_for_refutation = false;
+				
+				// If the hashed data is now drawing, due to the position in the search tree, score it accordingly, but still check
+				// if it is good enough for a refutation.
+				hashScore[currPly] = !override_trans_move ? convertMateScoreForPositionInSearchTree(Transposition.getScore(trans)) : 0;
+				switch(type) {
+				case Score.exact:
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
+					isCutOff[currPly] = true;
+					break;
+				case Score.upperBound:
+					this.beta[currPly] = Math.min(this.beta[currPly], hashScore[currPly]);
+					check_for_refutation = true;
+					break;
+				case Score.lowerBound:
+					this.alpha[currPly] = Math.max(this.alpha[currPly], hashScore[currPly]);
+					this.alphaOriginal[currPly] = this.alpha[currPly];
+					check_for_refutation = true;
+					break;
+				case Score.typeUnknown:
+				default:
+					if (EubosEngineMain.ENABLE_ASSERTS) assert false;
+					break;
+				}
+				
+				if (check_for_refutation) {
+					// Determine if good enough for a refutation...
+					if (this.alpha[currPly] >= this.beta[currPly]) {
+						if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsRefutation(pos.getHash(), trans);
+						killers.addMove(currPly, Transposition.getBestMove(trans));
+						isCutOff[currPly] = true;
+					}
+				}
+				if (isCutOff[currPly]) {
+					// Refutation or exact score already known to require search depth, cut off the Search
+					pc.set(currPly, Transposition.getBestMove(trans));
+				    if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
+				    if (SearchDebugAgent.DEBUG_ENABLED) sda.printCutOffWithScore(hashScore[currPly]);
+					return true;
+				}
+			}
+		}
+		// Transposition may still be useful to seed the move list, if not drawing.
+		if (!override_trans_move || (override_trans_move && prevBestMove[currPly] == Move.NULL_MOVE)) {
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
+			prevBestMove[currPly] = Transposition.getBestMove(trans);
+			bestMoveFromHash = true;
+		}
+		return bestMoveFromHash;
+	}
+	
 	int search(int alpha, int beta, int depth, boolean nullCheckEnabled)  {
-		int alphaOriginal = alpha;
+		
 		int plyScore = Score.PROVISIONAL_ALPHA;
+		
+		this.alpha[currPly] = alpha;
+		this.beta[currPly] = beta;
+		this.alphaOriginal[currPly] = alpha;
+		this.isCutOff[currPly] = false;
+		this.hashScore[currPly] = plyScore;
+						
 		// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
 		// It will deviate from the hash move when we start updating the hash during iterative deepening.
-		int prevBestMove = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
+		prevBestMove[currPly] = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
 		// Check for draws by three-fold repetition
@@ -413,13 +509,13 @@ public class PlySearcher {
 		// Mate distance pruning
 		int mating_value = Score.PROVISIONAL_BETA - currPly;
 		if (mating_value < beta) {
-		   beta = mating_value;
-		   if (alpha >= mating_value) return mating_value;
+			this.beta[currPly] = mating_value;
+		    if (this.alpha[currPly] >= mating_value) return mating_value;
 		}
 		mating_value = Score.PROVISIONAL_ALPHA + currPly;
 		if (mating_value > alpha) {
-		   alpha = mating_value;
-		   if (beta <= mating_value) return mating_value;
+		    this.alpha[currPly] = mating_value;
+		    if (this.beta[currPly] <= mating_value) return mating_value;
 		}
 
 		// Absolute depth limit
@@ -429,7 +525,7 @@ public class PlySearcher {
 		
 		if (SearchDebugAgent.DEBUG_ENABLED) {
 			sda.printStartPlyInfo(pos, originalSearchDepthRequiredInPly);
-			sda.printNormalSearch(alpha, beta);
+			sda.printNormalSearch(this.alpha[currPly], this.beta[currPly]);
 		}
 		
 		// Extend search for in-check scenarios, treated outside of quiescence search
@@ -439,67 +535,15 @@ public class PlySearcher {
 		}
 		
 		if (depth <= 0) {
-			return extendedSearch(alpha, beta, needToEscapeCheck);
+			return extendedSearch(this.alpha[currPly], this.beta[currPly], needToEscapeCheck);
 		}
 		
 		boolean bestMoveFromHash = false;
 		long trans = tt.getTransposition();
 		if (trans != 0L) {
-			boolean override_trans_move = false;
-			
-			if (depth <= Transposition.getDepthSearchedInPly(trans)) {
-				int type = Transposition.getType(trans);
-				boolean isCutOff = false;
-				override_trans_move = checkForRepetitionDueToPositionInSearchTree(Transposition.getBestMove(trans));
-				
-				if (!override_trans_move || (override_trans_move && type != Score.exact)) {
-					boolean check_for_refutation = false;
-					
-					// If the hashed data is now drawing, due to the position in the search tree, score it accordingly, but still check
-					// if it is good enough for a refutation.
-					int hashScore = !override_trans_move ? convertMateScoreForPositionInSearchTree(Transposition.getScore(trans)) : 0;
-					switch(type) {
-					case Score.exact:
-						if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
-						isCutOff = true;
-						break;
-					case Score.upperBound:
-						beta = Math.min(beta, hashScore);
-						check_for_refutation = true;
-						break;
-					case Score.lowerBound:
-						alpha = Math.max(alpha, hashScore);
-						alphaOriginal = alpha;
-						check_for_refutation = true;
-						break;
-					case Score.typeUnknown:
-					default:
-						if (EubosEngineMain.ENABLE_ASSERTS) assert false;
-						break;
-					}
-					
-					if (check_for_refutation) {
-						// Determine if good enough for a refutation...
-						if (alpha >= beta) {
-							if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsRefutation(pos.getHash(), trans);
-							killers.addMove(currPly, Transposition.getBestMove(trans));
-							isCutOff = true;
-						}
-					}
-					if (isCutOff) {
-						// Refutation or exact score already known to require search depth, cut off the Search
-						pc.set(currPly, Transposition.getBestMove(trans));
-					    if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
-					    if (SearchDebugAgent.DEBUG_ENABLED) sda.printCutOffWithScore(hashScore);
-						return hashScore;
-					}
-				}
-			}
-			// Transposition may still be useful to seed the move list, if not drawing.
-			if (!override_trans_move || (override_trans_move && prevBestMove == Move.NULL_MOVE)) {
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-				prevBestMove = Transposition.getBestMove(trans);
-				bestMoveFromHash = true;
+			bestMoveFromHash = evaluateTransposition(trans, depth);
+			if (isCutOff[currPly]) {
+				return hashScore[currPly];
 			}
 		}
 		
@@ -511,10 +555,15 @@ public class PlySearcher {
 			hasSearchedPv && 
 			!pos.getTheBoard().me.isEndgame() &&
 			!needToEscapeCheck &&
-			!(Score.isMate((short)beta) || Score.isMate((short)alpha)) && 
-			pe.getCrudeEvaluation()+LAZY_EVAL_THRESHOLD_IN_CP > beta) {
+			!(Score.isMate((short)this.beta[currPly]) || Score.isMate((short)this.alpha[currPly])) && 
+			pe.getCrudeEvaluation()+LAZY_EVAL_THRESHOLD_IN_CP > this.beta[currPly]) {
+			
 			int R = 2;
 			if (depth > 6) R = 3;
+			
+			beta = this.beta[currPly];
+			alpha = this.alpha[currPly];
+			
 			currPly++;
 			pm.performNullMove();
 			plyScore = -search(-beta, -beta+1, depth-1-R, false);
@@ -524,8 +573,8 @@ public class PlySearcher {
 			if (isTerminated()) {
 				return 0;
 			}
-			if (plyScore >= beta) {
-				return beta;
+			if (plyScore >= this.beta[currPly]) {
+				return this.beta[currPly];
 			} else {
 				plyScore = Score.PROVISIONAL_ALPHA;
 			}
@@ -538,12 +587,16 @@ public class PlySearcher {
 		// try playing best move before creating the full move list
 		if (EubosEngineMain.ENABLE_STAGED_MOVE_GENERATION && bestMoveFromHash) {
 			skipOverBestMove = true;
-			bestMove = prevBestMove;
+			bestMove = prevBestMove[currPly];
 			pc.initialise(currPly, bestMove);
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 			// Apply move and score
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(bestMove);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
+			
+			beta = this.beta[currPly];
+			alpha = this.alpha[currPly];
+			
 			currPly++;
 			pm.performMove(bestMove);
 			
@@ -575,10 +628,10 @@ public class PlySearcher {
 				return 0;
 			}
 			
-			if (positionScore > alpha) {
-				alpha = plyScore = positionScore;
-				if (alpha >= beta) {
-					plyScore = beta; // fail hard
+			if (positionScore > this.alpha[currPly]) {
+				this.alpha[currPly] = plyScore = positionScore;
+				if (this.alpha[currPly] >= this.beta[currPly]) {
+					plyScore = this.beta[currPly]; // fail hard
 					killers.addMove(currPly, bestMove);
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
 					hashMoveCausedCutOff = true;
@@ -596,7 +649,7 @@ public class PlySearcher {
 		int currMove = Move.NULL_MOVE;
 		int moveNumber = 1;
 		if (!hashMoveCausedCutOff) {
-			move_iter = ml.createForPly(prevBestMove, killers.getMoves(currPly), false, needToEscapeCheck, currPly);
+			move_iter = ml.createForPly(prevBestMove[currPly], killers.getMoves(currPly), false, needToEscapeCheck, currPly);
 			if (!move_iter.hasNext()) {
 				// No moves at this point means either a stalemate or checkmate has occurred
 				return needToEscapeCheck ? Score.getMateScore(currPly) : 0;
@@ -631,6 +684,10 @@ public class PlySearcher {
 				// Apply move and score
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
+				
+				beta = this.beta[currPly];
+				alpha = this.alpha[currPly];
+				
 				currPly++;
 				pm.performMove(currMove);
 				
@@ -666,11 +723,11 @@ public class PlySearcher {
 				}
 				
 				// Handle score backed up to this node
-				if (positionScore > alpha) {
-					alpha = plyScore = positionScore;
+				if (positionScore > this.alpha[currPly]) {
+					this.alpha[currPly] = plyScore = positionScore;
 					bestMove = currMove;
-					if (alpha >= beta) {
-						plyScore = beta; // fail hard
+					if (this.alpha[currPly] >= this.beta[currPly]) {
+						plyScore = this.beta[currPly]; // fail hard
 						killers.addMove(currPly, bestMove);
 						if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
 						break;
@@ -684,7 +741,7 @@ public class PlySearcher {
 				
 				// Break-out when out of moves
 				if (move_iter.hasNext()) {
-					if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(alpha, beta);
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(this.alpha[currPly], this.beta[currPly]);
 					currMove = move_iter.nextInt();
 					moveNumber += 1;
 					if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -698,10 +755,10 @@ public class PlySearcher {
 		}
 		
 		byte plyBound = Score.typeUnknown;
-		if (plyScore <= alphaOriginal) {
+		if (plyScore <= alphaOriginal[currPly]) {
 			// Didn't raise alpha
 			plyBound = Score.upperBound;
-		} else if (plyScore >= beta) {
+		} else if (plyScore >= this.beta[currPly]) {
 			// A beta cut-off, alpha raise was 'too good'
 			plyBound = Score.lowerBound;
 		} else {
@@ -713,7 +770,7 @@ public class PlySearcher {
 		}
 		
 		// fail hard, so don't return plyScore
-		return alpha;
+		return this.alpha[currPly];
 	}
 	
 	private int extendedSearch(int alpha, int beta, boolean needToEscapeCheck)  {
