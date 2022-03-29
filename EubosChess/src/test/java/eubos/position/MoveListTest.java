@@ -324,10 +324,56 @@ public class MoveListTest {
 	@Test
 	public void test_attacked_piece_is_ordered_before_other_quiet_moves_alt() throws IllegalNotationException {
 		setup("7k/8/8/5n2/p7/1PPPP3/8/7K w - - 0 1 ");
-		MoveListIterator it =  classUnderTest.createForPly(Move.NULL_MOVE, null, false, false, 0);
+		MoveListIterator it = classUnderTest.createForPly(Move.NULL_MOVE, null, false, false, 0);
 		assertEquals(new GenericMove("b3a4"), Move.toGenericMove(it.nextInt())); // PxP
 		assertEquals(new GenericMove("b3b4"), Move.toGenericMove(it.nextInt())); // Pawn attacked by pawn
 		assertEquals(new GenericMove("e3e4"), Move.toGenericMove(it.nextInt())); // Attacked pawn is ordered first
 	}
-	 
+
+	@Test
+	public void test_staged_best_move_valid() {
+		PositionManager pm = new PositionManager("5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113");
+		int best = Move.valueOf(Position.f8, Piece.WHITE_QUEEN, Position.b4, Piece.NONE);
+		classUnderTest = new MoveList(pm, 1);
+		
+		MoveListIterator it = classUnderTest.createForPlyAtCheckpoint(0, best, null, false, pm.isKingInCheck(), 0);
+		
+		assertEquals(best, it.nextInt());
+	}
+	
+	@Test
+	public void test_staged_best_move_not_valid_no_promos_no_captures() {
+		PositionManager pm = new PositionManager("5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113");
+		int best = Move.valueOf(Position.a1, Piece.WHITE_QUEEN, Position.a2, Piece.NONE);
+		classUnderTest = new MoveList(pm, 1);
+		
+		MoveListIterator it = classUnderTest.createForPlyAtCheckpoint(0, best, null, false, pm.isKingInCheck(), 0);
+		
+		assertEquals(Move.valueOf(Position.g7, Piece.WHITE_KING, Position.g8, Piece.NONE), it.nextInt());
+	}
+	
+	@Test
+	public void test_staged_cp0_best_move_not_valid_so_returns_promo() {
+		PositionManager pm = new PositionManager("5Q2/P5K1/8/3k4/5n2/8/8/8 w - - 1 113");
+		int best = Move.valueOf(Position.a1, Piece.WHITE_QUEEN, Position.a2, Piece.NONE);
+		classUnderTest = new MoveList(pm, 1);
+		
+		MoveListIterator it = classUnderTest.createForPlyAtCheckpoint(0, best, null, false, pm.isKingInCheck(), 0);
+		
+		assertEquals(Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.a7, Piece.WHITE_PAWN, Position.a8, Piece.NONE, Piece.QUEEN), it.nextInt());
+	}	
+	
+	@Test
+	public void test_staged_best_move_valid_not_returned_twice() {
+		PositionManager pm = new PositionManager("5Q2/P5K1/8/3k4/5n2/8/8/8 w - - 1 113");
+		int best = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.a7, Piece.WHITE_PAWN, Position.a8, Piece.NONE, Piece.QUEEN);
+		classUnderTest = new MoveList(pm, 1);
+		
+		MoveListIterator it = classUnderTest.createForPlyAtCheckpoint(0, best, null, false, pm.isKingInCheck(), 0);
+		
+		assertEquals(Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.a7, Piece.WHITE_PAWN, Position.a8, Piece.NONE, Piece.QUEEN), it.nextInt());
+		
+	    it = classUnderTest.createForPlyAtCheckpoint(1, best, null, false, pm.isKingInCheck(), 0);
+	    assertNotEquals(Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.a7, Piece.WHITE_PAWN, Position.a8, Piece.NONE, Piece.QUEEN), it.nextInt());
+	}	
 }

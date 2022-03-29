@@ -455,6 +455,176 @@ public class Board {
 		return isIllegal;
 	}
 	
+	public class PlayableMoveChecker implements IAddMoves {
+		
+		int moveToCheckIsPlayable = Move.NULL_MOVE;
+		boolean moveIsPlayable = false;
+				
+		private void testMove(int move) {
+			if (move == moveToCheckIsPlayable) {
+				moveIsPlayable = true;
+			}
+		}
+		public void addPrio(int move) {
+			testMove(move);
+		}
+		
+		public void addNormal(int move) {
+			testMove(move);
+		}
+		
+		public boolean isPlayableMoveFound() {
+			return moveIsPlayable;
+		}
+
+		public void setup(int move) {
+			moveIsPlayable = false;
+			moveToCheckIsPlayable = move;
+		}
+
+		public boolean isLegalMoveFound() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+		
+		public void clearAttackedCache() {
+			// TODO Auto-generated method stub
+		}
+	}
+	
+	PlayableMoveChecker pmc = new PlayableMoveChecker();
+	
+	public boolean isPlayableMove(int move, boolean needToEscapeMate, CastlingManager castling) {
+		boolean isPlayable = false;
+		
+		int pieceToMove = Move.getOriginPiece(move);
+		int originSquare = Move.getOriginPosition(move);
+		int targetSquare = Move.getTargetPosition(move);
+		int targetPiece = Move.getTargetPiece(move);
+		
+		if (getPieceAtSquare(originSquare) != pieceToMove) {
+			return isPlayable;
+		}
+		if (getPieceAtSquare(targetSquare) != targetPiece && !Move.isEnPassantCapture(move)) {
+			return isPlayable;
+		}
+		
+		boolean isWhite = Piece.isWhite(pieceToMove);
+		boolean isKing = Piece.isKing(pieceToMove);
+		int kingPosition = getKingPosition(isWhite);
+		
+		// Check move can be made, i.e. it isn't blocked Pawn two square, slider
+		pmc.setup(move);
+		switch (Piece.PIECE_NO_COLOUR_MASK & pieceToMove) {
+		case Piece.KING:
+			Piece.king_generateMoves(pmc, this, originSquare, isWhite);
+			castling.addCastlingMoves(isWhite, pmc);
+			break;
+		case Piece.QUEEN:
+			Piece.queen_generateMoves(pmc, this, originSquare, isWhite);
+			break;
+		case Piece.ROOK:
+			Piece.rook_generateMoves(pmc, this, originSquare, isWhite);
+			break;
+		case Piece.BISHOP:
+			Piece.bishop_generateMoves(pmc, this, originSquare, isWhite);
+			break;
+		case Piece.KNIGHT:
+			Piece.knight_generateMoves(pmc, this, originSquare, isWhite);
+			break;
+		case Piece.PAWN:
+			// This should cover en passant captures
+			Piece.pawn_generateMoves(pmc, this, originSquare, isWhite);
+			break;
+		}
+		if (!pmc.isPlayableMoveFound()) {
+			return isPlayable;
+		}
+		
+		// It is valid
+		isPlayable = true;
+		if (needToEscapeMate || isKing || moveCouldLeadToOwnKingDiscoveredCheck(move, kingPosition)) {
+		
+			int capturePosition = Position.NOPOSITION;
+			
+			boolean isCapture = targetPiece != Piece.NONE;
+			long initialSquareMask = BitBoard.positionToMask_Lut[originSquare];
+			long targetSquareMask = BitBoard.positionToMask_Lut[targetSquare];
+			long positionsMask = initialSquareMask | targetSquareMask;
+			
+			long pieceToPickUp = Position.NOPOSITION;
+			
+			if (isCapture) {
+				// Handle captures
+				if (Move.isEnPassantCapture(move)) {
+					// Handle en passant captures, don't need to do other checks in this case
+					capturePosition = generateCapturePositionForEnPassant(pieceToMove, targetSquare);
+				} else {
+					capturePosition = targetSquare;
+				}
+				pieceToPickUp = BitBoard.positionToMask_Lut[capturePosition];
+				// Remove from relevant colour bitboard
+				if (isWhite) {
+					blackPieces &= ~pieceToPickUp;
+				} else {
+					whitePieces &= ~pieceToPickUp;
+				}
+				// remove from specific bitboard
+				pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] &= ~pieceToPickUp;
+				// Remove from all pieces bitboard
+				allPieces &= ~pieceToPickUp;
+			}
+			
+			// Simplification don't consider promotions between piece-specific bitboards and piece lists
+			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
+			// Switch colour bitboard
+			if (isWhite) {
+				whitePieces ^= positionsMask;
+			} else {
+				blackPieces ^= positionsMask;
+			}
+			// Switch all pieces bitboard
+			allPieces ^= positionsMask;
+			// Because of need to check if in check, need to update for King only
+			if (isKing) {
+				pieceLists.updatePiece(pieceToMove, originSquare, targetSquare);
+				kingPosition = targetSquare; // King moved!
+			}
+			
+			isPlayable = !squareIsAttacked(kingPosition, isWhite);
+			
+			// Switch piece bitboard
+			// Piece type doesn't change across boards
+			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
+			// Switch colour bitboard
+			if (isWhite) {
+				whitePieces ^= positionsMask;
+			} else {
+				blackPieces ^= positionsMask;
+			}
+			// Switch all pieces bitboard
+			allPieces ^= positionsMask;
+			// Because of need to check if in check, need to update for King only
+			if (isKing) {
+				pieceLists.updatePiece(pieceToMove, targetSquare, originSquare);
+			}
+			// Undo any capture that had been previously performed.
+			if (isCapture) {
+				// Set on piece-specific bitboard
+				pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] |= pieceToPickUp;
+				// Set on colour bitboard
+				if (isWhite) {
+					blackPieces |= pieceToPickUp;
+				} else {
+					whitePieces |= pieceToPickUp;
+				}
+				// Set on all pieces bitboard
+				allPieces |= pieceToPickUp;
+			}
+		}
+		return isPlayable;
+	}
+	
 	private static final long wksc_mask = BitBoard.positionToMask_Lut[Position.h1] | BitBoard.positionToMask_Lut[Position.f1];
 	private static final long wqsc_mask = BitBoard.positionToMask_Lut[Position.a1] | BitBoard.positionToMask_Lut[Position.d1];
 	private static final long bksc_mask = BitBoard.positionToMask_Lut[Position.h8] | BitBoard.positionToMask_Lut[Position.f8];

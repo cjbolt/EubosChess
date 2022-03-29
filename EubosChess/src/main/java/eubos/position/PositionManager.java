@@ -33,7 +33,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", new DrawChecker());
 	}
 
-	CastlingManager castling;
+	public CastlingManager castling;
 	private Board theBoard;
 	public Board getTheBoard() {
 		return theBoard;
