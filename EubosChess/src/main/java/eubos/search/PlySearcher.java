@@ -135,8 +135,6 @@ public class PlySearcher {
 		}
 	}
 
-	private boolean atRootNode() { return currPly == 0; }
-	
 	public synchronized void terminateFindMove() { 
 		EubosEngineMain.logger.info("Terminating PlySearcher");
 		terminate = true;
@@ -146,7 +144,9 @@ public class PlySearcher {
 	public int searchPly()  {
 		currPly = 0;
 		extendedSearchDeepestPly = 0;
-		return (short) searchRoot(Score.PROVISIONAL_ALPHA, Score.PROVISIONAL_BETA, originalSearchDepthRequiredInPly);
+		this.alpha[0] = Score.PROVISIONAL_ALPHA;
+		this.beta[0] = Score.PROVISIONAL_BETA;
+		return (short) searchRoot(originalSearchDepthRequiredInPly);
 	}
 	
 	public int searchPly(short lastScore)  {
@@ -166,8 +166,10 @@ public class PlySearcher {
 		
 		while (!isTerminated()) {
 			boolean windowFailed = false;
-
-			score = (short) searchRoot(alpha, beta, originalSearchDepthRequiredInPly);
+			this.alpha[0] = alpha;
+			this.beta[0] = beta;
+			
+			score = (short) searchRoot(originalSearchDepthRequiredInPly);
 	
 			if (Score.isProvisional(score)) {
 				EubosEngineMain.logger.info("Aspiration Window failed - no score, illegal position");
@@ -206,14 +208,11 @@ public class PlySearcher {
 		return score;
 	}
 		
-	int searchRoot(int alpha, int beta, int depth) {
+	int searchRoot(int depth) {
+		
 		int plyScore = Score.PROVISIONAL_ALPHA;
-		
-		this.alpha[currPly] = alpha;
-		this.beta[currPly] = beta;
-		this.alphaOriginal[currPly] = alpha;
-		
 		hasSearchedPv = false;
+		this.alphaOriginal[currPly] = alpha[currPly];
 		
 		// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
 		// It will deviate from the hash move when we start updating the hash during iterative deepening.
@@ -222,7 +221,7 @@ public class PlySearcher {
 		
 		if (SearchDebugAgent.DEBUG_ENABLED) {
 			sda.printStartPlyInfo(pos, originalSearchDepthRequiredInPly);
-			sda.printNormalSearch(alpha, beta);
+			sda.printNormalSearch(alpha[currPly], beta[currPly]);
 		}
 		
 		// Extend search for in-check scenarios, treated outside of quiescence search
@@ -245,7 +244,7 @@ public class PlySearcher {
 			// No moves at this point means either a stalemate or checkmate has occurred
 			return needToEscapeCheck ? Score.getMateScore(currPly) : 0;
 		}
-		
+			
 		int currMove = move_iter.nextInt();
 		int bestMove = currMove;
 		pc.initialise(currPly, currMove);
@@ -263,10 +262,7 @@ public class PlySearcher {
 			// Apply move and score
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
-			
-			beta = this.beta[currPly];
-			alpha = this.alpha[currPly];
-			
+						
 			currPly++;
 			pm.performMove(currMove);
 			
@@ -280,13 +276,13 @@ public class PlySearcher {
 				
 				// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
 				int lmr = (moveNumber < 6) ? 1 : Math.max(1, depth/4);
-				positionScore = -search(-beta, -alpha, depth-1-lmr);
-				if (positionScore > alpha) {
+				positionScore = -search(-beta[currPly-1], -alpha[currPly-1], depth-1-lmr);
+				if (positionScore > alpha[currPly-1]) {
 					// Re-search if the reduced search increased alpha 
-					positionScore = -search(-beta, -alpha, depth-1);
+					positionScore = -search(-beta[currPly-1], -alpha[currPly-1], depth-1);
 				}
 			} else {
-				positionScore = -search(-beta, -alpha, depth-1);
+				positionScore = -search(-beta[currPly-1], -alpha[currPly-1], depth-1);
 			}
 			
 			pm.unperformMove();
@@ -302,25 +298,25 @@ public class PlySearcher {
 			}
 			
 			// Handle score backed up to this node
-			if (positionScore > this.alpha[currPly]) {
-				this.alpha[currPly] = plyScore = positionScore;
+			if (positionScore > alpha[currPly]) {
+				alpha[currPly] = plyScore = positionScore;
 				bestMove = currMove;
 				
-				if (this.alpha[currPly] >= this.beta[currPly]) {
-					plyScore = this.beta[currPly]; // fail hard
+				if (alpha[currPly] >= beta[currPly]) {
+					plyScore = beta[currPly]; // fail hard
 					killers.addMove(currPly, bestMove);
-					if (atRootNode()) reportPv((short) this.beta[currPly]);
+					reportPv((short) beta[currPly]);
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
 					break;
 				}
 				
 				pc.update(currPly, bestMove);
-				trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) this.alpha[currPly], Score.upperBound);
-				reportPv((short) this.alpha[currPly]);
+				trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) alpha[currPly], Score.upperBound);
+				reportPv((short) alpha[currPly]);
 			} else if (positionScore > plyScore) {
 				if (plyScore == Score.PROVISIONAL_ALPHA) {
 					pc.update(currPly, currMove);
-					reportPv((short) this.alpha[currPly]);
+					reportPv((short) alpha[currPly]);
 				}
 				bestMove = currMove;
 				plyScore = positionScore;
@@ -328,7 +324,7 @@ public class PlySearcher {
 			
 			// Break-out when out of moves
 			if (move_iter.hasNext()) {
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(this.alpha[currPly], this.beta[currPly]);
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(alpha[currPly], beta[currPly]);
 				currMove = move_iter.nextInt();
 				moveNumber += 1;
 				hasSearchedPv = true;
@@ -346,13 +342,12 @@ public class PlySearcher {
 		}
 		
 		// fail hard, so don't return plyScore
-		return this.alpha[currPly];
+		return alpha[currPly];
 	}
 	
 	int search(int alpha, int beta, int depth)  {
 		return search(alpha, beta, depth, true);
 	}
-
 	
 	int search(int alpha, int beta, int depth, boolean nullCheckEnabled)  {
 		
@@ -784,7 +779,6 @@ public class PlySearcher {
 			}
 		}
 	}
-	
 	
 	boolean evaluateTransposition(long trans, int depth) {
 		boolean bestMoveFromHash = false;
