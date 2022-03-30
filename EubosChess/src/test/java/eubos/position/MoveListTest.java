@@ -334,6 +334,7 @@ public class MoveListTest {
 	public void test_staged_best_move_valid() {
 		PositionManager pm = new PositionManager("5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113");
 		int best = Move.valueOf(Position.f8, Piece.WHITE_QUEEN, Position.b4, Piece.NONE);
+		best = Move.setBest(best);
 		classUnderTest = new MoveList(pm, 1);
 		
 		MoveListIterator it = classUnderTest.createForPlyAtCheckpoint(0, best, null, false, pm.isKingInCheck(), 0);
@@ -367,13 +368,14 @@ public class MoveListTest {
 	public void test_staged_best_move_valid_not_returned_twice() {
 		PositionManager pm = new PositionManager("5Q2/P5K1/8/3k4/5n2/8/8/8 w - - 1 113");
 		int best = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.a7, Piece.WHITE_PAWN, Position.a8, Piece.NONE, Piece.QUEEN);
+		best = Move.setBest(best);
 		classUnderTest = new MoveList(pm, 1);
 		
 		MoveListIterator it = classUnderTest.createForPlyAtCheckpoint(0, best, null, false, pm.isKingInCheck(), 0);
 		
-		assertEquals(Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.a7, Piece.WHITE_PAWN, Position.a8, Piece.NONE, Piece.QUEEN), it.nextInt());
+		assertEquals(best, it.nextInt());
 		
 	    it = classUnderTest.createForPlyAtCheckpoint(1, best, null, false, pm.isKingInCheck(), 0);
-	    assertNotEquals(Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.a7, Piece.WHITE_PAWN, Position.a8, Piece.NONE, Piece.QUEEN), it.nextInt());
+	    assertNotEquals(best, it.nextInt());
 	}	
 }

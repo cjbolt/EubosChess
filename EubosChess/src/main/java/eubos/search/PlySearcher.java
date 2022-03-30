@@ -634,11 +634,12 @@ public class PlySearcher {
 			int currMove = Move.NULL_MOVE;
 			int moveNumber = 0;
 			boolean noMovesSearched = true;
+			boolean refuted = false;
 			int checkpoint = 0;
 			do {
-				move_iter = ml.createForPlyAtCheckpoint(checkpoint++, prevBestMove[currPly], killers.getMoves(currPly), false, needToEscapeCheck, currPly);
-				//move_iter = ml.createForPly(prevBestMove[currPly], killers.getMoves(currPly), false, needToEscapeCheck, currPly);
+				if (refuted) break;
 				
+				move_iter = ml.createForPlyAtCheckpoint(checkpoint++, prevBestMove[currPly], killers.getMoves(currPly), false, needToEscapeCheck, currPly);
 				if (!move_iter.hasNext()) {
 					if (noMovesSearched) {
 						// No moves at this point means either a stalemate or checkmate has occurred
@@ -723,7 +724,8 @@ public class PlySearcher {
 							plyScore = beta[currPly]; // fail hard
 							killers.addMove(currPly, bestMove);
 							if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
-							break;
+							refuted = true;
+							break; // Only breaks out into the movelist loop!
 						}
 						pc.update(currPly, bestMove);
 					} 
@@ -732,7 +734,7 @@ public class PlySearcher {
 						plyScore = positionScore;
 					}
 				} while (move_iter.hasNext());
-			} while (false);
+			} while (!isTerminated());
 		}
 		
 		if (!isTerminated()) {

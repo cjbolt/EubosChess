@@ -461,7 +461,7 @@ public class Board {
 		boolean moveIsPlayable = false;
 				
 		private void testMove(int move) {
-			if (move == moveToCheckIsPlayable) {
+			if (Move.areEqualForBestKiller(move, moveToCheckIsPlayable)) {
 				moveIsPlayable = true;
 			}
 		}
