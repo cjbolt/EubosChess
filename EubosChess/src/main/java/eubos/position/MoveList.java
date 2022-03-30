@@ -137,13 +137,13 @@ public class MoveList implements Iterable<Integer> {
 			this.killers[ply] = killers;
 			this.bestMove[ply] = bestMove;
 			lastCheckpoint[ply] = 0;
+			moveCount[ply] = 0;
+			normal_fill_index[ply] = 0;
+			priority_fill_index[ply] = 0;
+			normal_list_length[ply] = 0;
+			scratchpad_fill_index[ply] = 0;
+			extendedListScopeEndpoint[ply] = 0;
 		}
-		moveCount[ply] = 0;
-		normal_fill_index[ply] = 0;
-		priority_fill_index[ply] = 0;
-		normal_list_length[ply] = 0;
-		scratchpad_fill_index[ply] = 0;
-		extendedListScopeEndpoint[ply] = 0;
 		
 		switch(lastCheckpoint[ply]) {
 		case 0:
@@ -170,8 +170,6 @@ public class MoveList implements Iterable<Integer> {
 					// Step passed best move we returned already
 					iter.nextInt();
 				}
-				lastCheckpoint[ply] = 2;
-				break;
 			}
 		default:
 			lastCheckpoint[ply] = 2;
