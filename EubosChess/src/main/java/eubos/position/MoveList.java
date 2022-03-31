@@ -125,14 +125,14 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	@SuppressWarnings("unused")
-	public MoveListIterator createForPlyAtCheckpoint(int checkpoint, int bestMove, int [] killers, boolean capturesOnly, boolean needToEscapeMate, int ply)
+	public MoveListIterator createForPlyAtCheckpoint(boolean firstMoveAtPly, int bestMove, int [] killers, boolean capturesOnly, boolean needToEscapeMate, int ply)
 	{
 		MoveListIterator iter = null;
 		
 		this.ply = ply; 
 		
 		// Initialise working variables for building the MoveList at this ply
-		if (checkpoint == 0) {
+		if (firstMoveAtPly) {
 			this.needToEscapeMate[ply] = needToEscapeMate;
 			this.killers[ply] = killers;
 			this.bestMove[ply] = bestMove;

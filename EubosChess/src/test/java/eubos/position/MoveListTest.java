@@ -337,7 +337,7 @@ public class MoveListTest {
 		best = Move.setBest(best);
 		classUnderTest = new MoveList(pm, 1);
 		
-		MoveListIterator it = classUnderTest.createForPlyAtCheckpoint(0, best, null, false, pm.isKingInCheck(), 0);
+		MoveListIterator it = classUnderTest.createForPlyAtCheckpoint(true, best, null, false, pm.isKingInCheck(), 0);
 		
 		assertEquals(best, it.nextInt());
 	}
@@ -348,7 +348,7 @@ public class MoveListTest {
 		int best = Move.valueOf(Position.a1, Piece.WHITE_QUEEN, Position.a2, Piece.NONE);
 		classUnderTest = new MoveList(pm, 1);
 		
-		MoveListIterator it = classUnderTest.createForPlyAtCheckpoint(0, best, null, false, pm.isKingInCheck(), 0);
+		MoveListIterator it = classUnderTest.createForPlyAtCheckpoint(true, best, null, false, pm.isKingInCheck(), 0);
 		
 		assertEquals(Move.valueOf(Position.g7, Piece.WHITE_KING, Position.g8, Piece.NONE), it.nextInt());
 	}
@@ -359,7 +359,7 @@ public class MoveListTest {
 		int best = Move.valueOf(Position.a1, Piece.WHITE_QUEEN, Position.a2, Piece.NONE);
 		classUnderTest = new MoveList(pm, 1);
 		
-		MoveListIterator it = classUnderTest.createForPlyAtCheckpoint(0, best, null, false, pm.isKingInCheck(), 0);
+		MoveListIterator it = classUnderTest.createForPlyAtCheckpoint(true, best, null, false, pm.isKingInCheck(), 0);
 		
 		assertEquals(Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.a7, Piece.WHITE_PAWN, Position.a8, Piece.NONE, Piece.QUEEN), it.nextInt());
 	}	
@@ -371,11 +371,11 @@ public class MoveListTest {
 		best = Move.setBest(best);
 		classUnderTest = new MoveList(pm, 1);
 		
-		MoveListIterator it = classUnderTest.createForPlyAtCheckpoint(0, best, null, false, pm.isKingInCheck(), 0);
+		MoveListIterator it = classUnderTest.createForPlyAtCheckpoint(true, best, null, false, pm.isKingInCheck(), 0);
 		
 		assertEquals(best, it.nextInt());
 		
-	    it = classUnderTest.createForPlyAtCheckpoint(1, best, null, false, pm.isKingInCheck(), 0);
+	    it = classUnderTest.createForPlyAtCheckpoint(false, best, null, false, pm.isKingInCheck(), 0);
 	    assertNotEquals(best, it.nextInt());
 	}	
 }
