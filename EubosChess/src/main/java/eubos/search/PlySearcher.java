@@ -366,6 +366,7 @@ public class PlySearcher {
 		// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
 		// It will deviate from the hash move when we start updating the hash during iterative deepening.
 		prevBestMove[currPly] = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
+		prevBestMove[currPly] =  Move.clearBest(prevBestMove[currPly]);
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
 		// Check for draws by three-fold repetition
@@ -403,10 +404,9 @@ public class PlySearcher {
 			return extendedSearch(alpha[currPly], beta[currPly], needToEscapeCheck);
 		}
 		
-		boolean bestMoveFromHash = false;
 		long trans = tt.getTransposition();
 		if (trans != 0L) {
-			bestMoveFromHash = evaluateTransposition(trans, depth);
+			evaluateTransposition(trans, depth);
 			if (isCutOff[currPly]) {
 				return hashScore[currPly];
 			}
@@ -475,13 +475,13 @@ public class PlySearcher {
 					pc.initialise(currPly, currMove);
 					bestMove = currMove;
 					if (EubosEngineMain.ENABLE_ASSERTS) {
-						if (bestMoveFromHash) {
-							int no_killer_current = currMove & ~(Move.TYPE_KILLER_MASK << Move.TYPE_SHIFT);
-							int no_killer_best = bestMove & ~(Move.TYPE_KILLER_MASK << Move.TYPE_SHIFT);
-							assert no_killer_current == no_killer_best : 
-								String.format("First move is not the same as the hash move: %s != %s",
-									Move.toString(currMove), Move.toString(bestMove));
-						}
+//						if (bestMoveFromHash) {
+//							int no_killer_current = currMove & ~(Move.TYPE_KILLER_MASK << Move.TYPE_SHIFT);
+//							int no_killer_best = bestMove & ~(Move.TYPE_KILLER_MASK << Move.TYPE_SHIFT);
+//							assert no_killer_current == no_killer_best : 
+//								String.format("First move is not the same as the hash move: %s != %s",
+//									Move.toString(currMove), Move.toString(bestMove));
+//						}
 					}
 				}
 				
@@ -714,8 +714,7 @@ public class PlySearcher {
 		}
 	}
 	
-	boolean evaluateTransposition(long trans, int depth) {
-		boolean bestMoveFromHash = false;
+	void evaluateTransposition(long trans, int depth) {
 		boolean override_trans_move = false;
 		
 		if (depth <= Transposition.getDepthSearchedInPly(trans)) {
@@ -762,7 +761,6 @@ public class PlySearcher {
 					pc.set(currPly, Transposition.getBestMove(trans));
 				    if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
 				    if (SearchDebugAgent.DEBUG_ENABLED) sda.printCutOffWithScore(hashScore[currPly]);
-					return true;
 				}
 			}
 		}
@@ -770,9 +768,7 @@ public class PlySearcher {
 		if (!override_trans_move || (override_trans_move && prevBestMove[currPly] == Move.NULL_MOVE)) {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
 			prevBestMove[currPly] = Transposition.getBestMove(trans);
-			bestMoveFromHash = true;
 		}
-		return bestMoveFromHash;
 	}
 	
 	private long updateTranspositionTable(long trans, byte depth, int currMove, short plyScore) {

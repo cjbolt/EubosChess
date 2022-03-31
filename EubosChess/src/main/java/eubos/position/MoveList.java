@@ -23,7 +23,7 @@ public class MoveList implements Iterable<Integer> {
 	private int [] normal_fill_index;
 	private int [] priority_fill_index;
 	private int [] normal_list_length;
-	private int [] lastCheckpoint;
+	private int [] nextCheckPoint;
 	
 	private boolean [] needToEscapeMate;
 	private int [] moveCount;
@@ -69,7 +69,7 @@ public class MoveList implements Iterable<Integer> {
 		needToEscapeMate = new boolean [EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		killers = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY][3];
 		
-		lastCheckpoint = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY];
+		nextCheckPoint = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		
 		// Create the list at each ply
 		for (int i=0; i < EubosEngineMain.SEARCH_DEPTH_IN_PLY; i++) {
@@ -100,7 +100,7 @@ public class MoveList implements Iterable<Integer> {
 		normal_list_length[ply] = 0;
 		scratchpad_fill_index[ply] = 0;
 		extendedListScopeEndpoint[ply] = 0;
-		lastCheckpoint[ply] = 0;
+		nextCheckPoint[ply] = 0;
 		
 		getMoves(capturesOnly);
 		if (moveCount[ply] != 0) {
@@ -136,7 +136,7 @@ public class MoveList implements Iterable<Integer> {
 			this.needToEscapeMate[ply] = needToEscapeMate;
 			this.killers[ply] = killers;
 			this.bestMove[ply] = bestMove;
-			lastCheckpoint[ply] = 0;
+			nextCheckPoint[ply] = 0;
 			moveCount[ply] = 0;
 			normal_fill_index[ply] = 0;
 			priority_fill_index[ply] = 0;
@@ -145,19 +145,17 @@ public class MoveList implements Iterable<Integer> {
 			extendedListScopeEndpoint[ply] = 0;
 		}
 		
-		switch(lastCheckpoint[ply]) {
+		switch(nextCheckPoint[ply]) {
 		case 0:
 			// Return best Move if valid
-			if (bestMove != Move.NULL_MOVE && bestMoveIsValid()) {
-				this.bestMove[ply] = Move.setBest(bestMove);
+			nextCheckPoint[ply] = 1;
+			if (Move.isBest(this.bestMove[ply]) || (this.bestMove[ply] != Move.NULL_MOVE && bestMoveIsValid())) {
 				scratchpad[ply][0] = this.bestMove[ply];
 				iter = getBestIterator();
-				lastCheckpoint[ply] = 1;
+				nextCheckPoint[ply] = 1;
 				break;
-			} else {
-				this.bestMove[ply] = Move.NULL_MOVE;
-				lastCheckpoint[ply] = 1;
 			}
+			this.bestMove[ply] = Move.NULL_MOVE;
 			// Note fall-through if no valid best move
 		case 1:
 			// Lastly, generate all moves
@@ -172,7 +170,7 @@ public class MoveList implements Iterable<Integer> {
 				}
 			}
 		default:
-			lastCheckpoint[ply] = 2;
+			nextCheckPoint[ply] = 2;
 			break;
 		}
 		if (iter == null) {

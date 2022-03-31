@@ -184,6 +184,10 @@ public final class Move {
 		return (move & ((Move.TYPE_CAPTURE_MASK) << TYPE_SHIFT)) != 0;
 	}
 	
+	public static boolean isBest(int move) {
+		return (move & ((Move.TYPE_BEST_MASK) << TYPE_SHIFT)) != 0;
+	}
+	
 	public static boolean isRegular(int move) { 
 		return (getType(move) == 0);
 	}
@@ -452,6 +456,10 @@ public final class Move {
 	
 	public static int setBest(int move) {
 		return (move |= (Move.TYPE_BEST_MASK << TYPE_SHIFT));
+	}
+	
+	public static int clearBest(int move) {
+		return (move &= ~(Move.TYPE_BEST_MASK << TYPE_SHIFT));
 	}
 
 	public static boolean isEnPassantCapture(int move) {
