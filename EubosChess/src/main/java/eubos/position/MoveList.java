@@ -36,8 +36,12 @@ public class MoveList implements Iterable<Integer> {
 	
 	PositionManager pm;
 	int ordering;
-	public MoveAdder ma;
+	
+	public MoveAdderCapturesAndPromotions ma_capturesPromos;
+	public MoveAdderWithKillers ma_killers;
 	public MoveAdderWithNoKillers ma_noKillers;
+	public MoveAdderQuietMovesNoKillers ma_quietNoKillers;
+	public MoveAdderQuietMovesKillers ma_quietKillers;
 	
 	private static final MoveTypeComparator moveTypeComparator = new MoveTypeComparator();
 	
@@ -82,8 +86,11 @@ public class MoveList implements Iterable<Integer> {
 		this.pm = pm;
 		this.ordering = orderMoveList;
 		
-		ma = new MoveAdder();
+		ma_killers = new MoveAdderWithKillers();
 		ma_noKillers = new MoveAdderWithNoKillers();
+		ma_capturesPromos = new MoveAdderCapturesAndPromotions();
+		ma_quietNoKillers = new MoveAdderQuietMovesNoKillers();
+		ma_quietKillers = new MoveAdderQuietMovesKillers();
 	}
 	
 	@SuppressWarnings("unused")
@@ -127,60 +134,180 @@ public class MoveList implements Iterable<Integer> {
 	@SuppressWarnings("unused")
 	public MoveListIterator createForPlyAtCheckpoint(boolean firstMoveAtPly, int bestMove, int [] killers, boolean capturesOnly, boolean needToEscapeMate, int ply)
 	{
-		MoveListIterator iter = null;
-		
-		this.ply = ply; 
-		
-		// Initialise working variables for building the MoveList at this ply
-		if (firstMoveAtPly) {
-			this.needToEscapeMate[ply] = needToEscapeMate;
-			this.killers[ply] = killers;
-			this.bestMove[ply] = bestMove;
-			nextCheckPoint[ply] = 0;
-			moveCount[ply] = 0;
-			normal_fill_index[ply] = 0;
-			priority_fill_index[ply] = 0;
-			normal_list_length[ply] = 0;
-			scratchpad_fill_index[ply] = 0;
-			extendedListScopeEndpoint[ply] = 0;
-		}
-		
-		switch(nextCheckPoint[ply]) {
-		case 0:
-			// Return best Move if valid
-			nextCheckPoint[ply] = 1;
-			if (Move.isBest(this.bestMove[ply]) || (this.bestMove[ply] != Move.NULL_MOVE && bestMoveIsValid())) {
-				scratchpad[ply][0] = this.bestMove[ply];
-				iter = getBestIterator();
+		if (false) {
+			
+			
+			MoveListIterator iter = null;
+			
+			this.ply = ply; 
+			
+			// Initialise working variables for building the MoveList at this ply
+			if (firstMoveAtPly) {
+				this.needToEscapeMate[ply] = needToEscapeMate;
+				this.killers[ply] = killers;
+				this.bestMove[ply] = bestMove;
+				nextCheckPoint[ply] = 0;
+				moveCount[ply] = 0;
+				normal_fill_index[ply] = 0;
+				priority_fill_index[ply] = 0;
+				normal_list_length[ply] = 0;
+				scratchpad_fill_index[ply] = 0;
+				extendedListScopeEndpoint[ply] = 0;
+			}
+			
+			switch(nextCheckPoint[ply]) {
+			case 0:
+				// Return best Move if valid
 				nextCheckPoint[ply] = 1;
+				if (Move.isBest(this.bestMove[ply]) || (this.bestMove[ply] != Move.NULL_MOVE && bestMoveIsValid())) {
+					scratchpad[ply][0] = this.bestMove[ply];
+					iter = getBestIterator();
+					nextCheckPoint[ply] = 1;
+					break;
+				}
+				this.bestMove[ply] = Move.NULL_MOVE;
+				// Note fall-through if no valid best move
+			case 1:
+				// Generate all captures and promotions
+				nextCheckPoint[ply] = 2;
+				getCapturesAndPromotions();
+				if (moveCount[ply] != 0) {
+					sortPriorityList();
+					iter = new MoveListIterator(priority_moves[ply], priority_fill_index[ply]);
+					if (Move.areEqualForBestKiller(this.bestMove[ply], priority_moves[ply][0])) {
+						// Step passed best move that we returned already
+						iter.nextInt();
+						if (iter.hasNext()) {
+							break;
+						} else {
+							// If the only move was the previous best move, drop-through and look for killers
+						}
+					}
+				}
+			case 2:
+				// Generate Killers
+				nextCheckPoint[ply] = 3;
+				if (this.killers[ply] != null) {
+					int [] validKillers = new int[3];
+					int validCount = 0;
+					if (!Move.areEqualForBestKiller(this.bestMove[ply], this.killers[ply][0]) &&
+						pm.getTheBoard().isPlayableMove(this.killers[ply][0], this.needToEscapeMate[ply], pm.castling)) {
+						validKillers[0] = this.killers[ply][0];
+						validCount++;
+					}
+					if (!Move.areEqualForBestKiller(this.bestMove[ply], this.killers[ply][1]) &&
+						pm.getTheBoard().isPlayableMove(this.killers[ply][1], this.needToEscapeMate[ply], pm.castling)) {
+						validKillers[validCount] = this.killers[ply][1];
+						validCount++;
+					}
+					if (!Move.areEqualForBestKiller(this.bestMove[ply], this.killers[ply][2]) &&
+						pm.getTheBoard().isPlayableMove(this.killers[ply][2], this.needToEscapeMate[ply], pm.castling)) {
+						validKillers[validCount] = this.killers[ply][2];
+						validCount++;
+					}
+					if (validCount > 0) {
+						iter = new MoveListIterator(validKillers, validCount);
+						break;
+					}
+				}
+			case 3:
+				// Lastly, generate all moves that aren't best, killers, or tactical moves
+				nextCheckPoint[ply] = 4;
+				moveCount[ply] = 0;
+				getQuietMoves();
+				if (moveCount[ply] != 0) {
+					iter = new MoveListIterator(normal_search_moves[ply], normal_fill_index[ply]);
+					break;
+				}
+			default:
+				// Will return empty iterator, all moves generated.
 				break;
 			}
-			this.bestMove[ply] = Move.NULL_MOVE;
-			// Note fall-through if no valid best move
-		case 1:
-			// Lastly, generate all moves
-			getMoves(capturesOnly);
-			if (moveCount[ply] != 0) {
-				sortPriorityList();
-				collateMoveList();
-				iter = iterator();
-				if (Move.areEqualForBestKiller(this.bestMove[ply], scratchpad[ply][0])) {
-					// Step passed best move we returned already
-					iter.nextInt();
-				}
+			if (iter == null) {
+				iter = new MoveListIterator(scratchpad[ply], 0); // Empty iterator
 			}
-		default:
-			nextCheckPoint[ply] = 2;
-			break;
+			return iter;
+		
+		} else {
+			
+			MoveListIterator iter = null;
+			
+			this.ply = ply; 
+			
+			// Initialise working variables for building the MoveList at this ply
+			if (firstMoveAtPly) {
+				this.needToEscapeMate[ply] = needToEscapeMate;
+				this.killers[ply] = killers;
+				this.bestMove[ply] = bestMove;
+				nextCheckPoint[ply] = 0;
+				moveCount[ply] = 0;
+				normal_fill_index[ply] = 0;
+				priority_fill_index[ply] = 0;
+				normal_list_length[ply] = 0;
+				scratchpad_fill_index[ply] = 0;
+				extendedListScopeEndpoint[ply] = 0;
+			}
+			
+			switch(nextCheckPoint[ply]) {
+			case 0:
+				// Return best Move if valid
+				nextCheckPoint[ply] = 1;
+				if (Move.isBest(this.bestMove[ply]) || (this.bestMove[ply] != Move.NULL_MOVE && bestMoveIsValid())) {
+					scratchpad[ply][0] = this.bestMove[ply];
+					iter = getBestIterator();
+					nextCheckPoint[ply] = 1;
+					break;
+				}
+				this.bestMove[ply] = Move.NULL_MOVE;
+				// Note fall-through if no valid best move
+			case 1:
+				// Lastly, generate all moves
+				getMoves(capturesOnly);
+				if (moveCount[ply] != 0) {
+					sortPriorityList();
+					collateMoveList();
+					iter = iterator();
+					if (Move.areEqualForBestKiller(this.bestMove[ply], scratchpad[ply][0])) {
+						// Step passed best move we returned already
+						iter.nextInt();
+					}
+				}
+			default:
+				nextCheckPoint[ply] = 2;
+				break;
+			}
+			if (iter == null) {
+				iter = new MoveListIterator(scratchpad[ply], 0); // Empty iterator
+			}
+			return iter;
 		}
-		if (iter == null) {
-			iter = new MoveListIterator(scratchpad[ply], 0); // Empty iterator
-		}
-		return iter;
 	}
 	
 	private boolean bestMoveIsValid() {
 		return pm.getTheBoard().isPlayableMove(bestMove[ply], needToEscapeMate[ply], pm.castling);
+	}
+	
+	private void getCapturesAndPromotions() {
+		// Set-up move adder to filter the moves from attacked pieces into the priority part of the move list
+		boolean isWhiteOnMove = pm.onMoveIsWhite();
+		ma_capturesPromos.attackMask = pm.getTheBoard().pkaa.getAttacks(isWhiteOnMove);
+		pm.getTheBoard().getRegularPieceMoves(ma_capturesPromos, isWhiteOnMove, true);
+	}
+	
+	private void getQuietMoves() {
+		IAddMoves moveAdder = null;
+		boolean isWhiteOnMove = pm.onMoveIsWhite();
+		if (killers[ply] == null) {
+			moveAdder = ma_quietNoKillers;
+		} else {
+			// Set-up move adder to filter the moves from attacked pieces into the priority part of the move list
+			moveAdder = ma_quietKillers;
+		}
+		pm.getTheBoard().getRegularPieceMoves(moveAdder, isWhiteOnMove, false);
+		if (!needToEscapeMate[ply]) {
+			// Can't castle out of check and don't care in extended search
+			pm.castling.addCastlingMoves(isWhiteOnMove, moveAdder);
+		}
 	}
 	
 	private void getMoves(boolean capturesOnly) {
@@ -193,8 +320,8 @@ public class MoveList implements Iterable<Integer> {
 			moveAdder = ma_noKillers;
 		} else {
 			// Set-up move adder to filter the moves from attacked pieces into the priority part of the move list
-			ma.attackMask = pm.getTheBoard().pkaa.getAttacks(isWhiteOnMove);
-			moveAdder = ma;
+			ma_killers.attackMask = pm.getTheBoard().pkaa.getAttacks(isWhiteOnMove);
+			moveAdder = ma_killers;
 		}
 		pm.getTheBoard().getRegularPieceMoves(moveAdder, isWhiteOnMove, capturesOnly);
 		if (!capturesOnly && !needToEscapeMate[ply]) {
@@ -293,7 +420,82 @@ public class MoveList implements Iterable<Integer> {
 		}
 	}
 	
-	public class MoveAdder implements IAddMoves {
+	public class MoveAdderCapturesAndPromotions implements IAddMoves {
+		
+		long attackMask = 0L;
+		boolean attacked = false;
+		boolean attackedDetermined = false;
+		
+		public void addPrio(int move) {
+			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
+				priority_moves[ply][priority_fill_index[ply]++] = move;
+				moveCount[ply]++;
+			}
+		}
+		
+		public void addNormal(int move) {} // Doesn't deal with quiet moves by design
+		
+		public boolean isLegalMoveFound() {
+			return false;
+		}
+		
+		protected boolean isMoveOriginSquareAttacked(int move) {
+			long orginSquare = BitBoard.positionToMask_Lut[Move.getOriginPosition(move)];
+			if ((orginSquare & attackMask) == orginSquare)
+				return true;
+			return false;
+		}
+
+		@Override
+		public void clearAttackedCache() {
+			attackedDetermined = false;
+			attacked = false;			
+		}
+	}
+	
+	public class MoveAdderQuietMovesNoKillers extends MoveAdderCapturesAndPromotions implements IAddMoves {
+		
+		public void addPrio(int move) {} // Doesn't deal with tactical moves by design
+		
+		public void addNormal(int move) {
+			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
+				if (bestMove[ply] != Move.NULL_MOVE && Move.areEqualForBestKiller(bestMove[ply], move)) {
+					// Silently consume, the best move should already have been found and searched if not null
+				} else {
+					normal_search_moves[ply][normal_fill_index[ply]++] = move;
+					moveCount[ply]++;
+				}
+			}
+		}
+		
+		public boolean isLegalMoveFound() {
+			return false;
+		}
+		
+		protected boolean isMoveOriginSquareAttacked(int move) {
+			return false;
+		}
+
+		public void clearAttackedCache() {}
+	}
+	
+	public class MoveAdderQuietMovesKillers extends MoveAdderQuietMovesNoKillers implements IAddMoves {
+		
+		public void addNormal(int move) {
+			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
+				if (bestMove[ply] != Move.NULL_MOVE && Move.areEqualForBestKiller(bestMove[ply], move)) {
+					// Silently consume, the best move should already have been found and searched if not null
+				} else if (KillerList.isMoveOnListAtPly(killers[ply], move)) {
+					// Silently consume killers, they have already been searched
+				} else {
+					normal_search_moves[ply][normal_fill_index[ply]++] = move;
+					moveCount[ply]++;
+				}
+			}
+		}
+	}
+	
+	public class MoveAdderWithKillers extends MoveAdderCapturesAndPromotions implements IAddMoves {
 		
 		long attackMask = 0L;
 		boolean attacked = false;
@@ -346,7 +548,7 @@ public class MoveList implements Iterable<Integer> {
 		}
 	}
 	
-	public class MoveAdderWithNoKillers extends MoveAdder implements IAddMoves {
+	public class MoveAdderWithNoKillers extends MoveAdderWithKillers implements IAddMoves {
 		public void addNormal(int move) {
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
 				if (Move.areEqualForBestKiller(move, bestMove[ply])) {
@@ -364,7 +566,8 @@ public class MoveList implements Iterable<Integer> {
 		}
 	}
 	
-	// Test API
+	//---------------------------------------------------------------------------------------------
+	// Test APIs
 	boolean contains(int move) {
 		for (int reg_move : IntArrays.trim(scratchpad[ply], normal_list_length[ply])) {
 			if (move == reg_move)
@@ -376,7 +579,8 @@ public class MoveList implements Iterable<Integer> {
 	public List<Integer> getList(int currPly) {
 		List<Integer> ml; 
 		if (normal_list_length[currPly] != 0) {
-			ml = IntStream.of(IntArrays.trim(scratchpad[currPly], normal_list_length[currPly])).boxed().collect(Collectors.toList());
+			ml = IntStream.of(IntArrays.trim(scratchpad[currPly], normal_list_length[currPly]))
+					.boxed().collect(Collectors.toList());
 		} else {
 			ml = new ArrayList<Integer>();
 		}
