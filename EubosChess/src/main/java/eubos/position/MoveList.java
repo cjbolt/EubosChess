@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import eubos.board.BitBoard;
+import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.search.KillerList;
 
@@ -393,6 +394,15 @@ public class MoveList implements Iterable<Integer> {
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
 				priority_moves[ply][priority_fill_index[ply]++] = move;
 				moveCount[ply]++;
+				if (Move.isPromotion(move)) {
+					int under1 = Move.setPromotion(move, Piece.BISHOP);
+					int under2 = Move.setPromotion(move, Piece.KNIGHT);
+					int under3 = Move.setPromotion(move, Piece.ROOK);
+					priority_moves[ply][priority_fill_index[ply]++] = under1;
+					priority_moves[ply][priority_fill_index[ply]++] = under2;
+					priority_moves[ply][priority_fill_index[ply]++] = under3;
+					moveCount[ply]+=3;
+				}
 			}
 		}
 		
