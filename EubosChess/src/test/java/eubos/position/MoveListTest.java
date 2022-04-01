@@ -377,5 +377,26 @@ public class MoveListTest {
 		
 	    it = classUnderTest.createForPlyAtCheckpoint(false, best, null, false, pm.isKingInCheck(), 0);
 	    assertNotEquals(best, it.nextInt());
-	}	
+	}
+	
+	@Test
+	public void test_compare_extended_search_against_normal_staged_moves_all()throws IllegalNotationException {
+		PositionManager pm = new PositionManager("6k1/PBN5/8/2Kp4/2P5/5Q2/8/3R4 w - - 0 1 ");
+		classUnderTest = new MoveList(pm, 1);
+		classUnderTest.createForPly(Move.NULL_MOVE, null, true, pm.isKingInCheck(), 0);
+		MoveListIterator it = classUnderTest.getExtendedIterator();
+		MoveListIterator smg_it = classUnderTest.createForPlyAtCheckpoint(true, Move.NULL_MOVE, null, false, pm.isKingInCheck(), 0);
+		// Promotion
+		assertTrue(Move.areEqualForBestKiller(smg_it.nextInt(), it.nextInt())); // "a7a8Q"
+		// Captures
+		assertEquals(smg_it.nextInt(), it.nextInt()); // PxP "c4d5"
+		assertEquals(smg_it.nextInt(), it.nextInt()); // NxP "c7d5"
+		assertEquals(smg_it.nextInt(), it.nextInt()); // BxP "b7d5"
+		assertEquals(smg_it.nextInt(), it.nextInt()); // RxP "d1d5"
+		assertEquals(smg_it.nextInt(), it.nextInt()); // QxP "f3d5"
+		assertEquals(smg_it.nextInt(), it.nextInt()); // KxP "c5d5"
+		
+		assertFalse(it.hasNext());
+		assertFalse(smg_it.hasNext());
+	}
 }

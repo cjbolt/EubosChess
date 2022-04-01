@@ -134,8 +134,7 @@ public class MoveList implements Iterable<Integer> {
 	@SuppressWarnings("unused")
 	public MoveListIterator createForPlyAtCheckpoint(boolean firstMoveAtPly, int bestMove, int [] killers, boolean capturesOnly, boolean needToEscapeMate, int ply)
 	{
-		if (false) {
-			
+		if (true) {
 			
 			MoveListIterator iter = null;
 			
@@ -180,8 +179,10 @@ public class MoveList implements Iterable<Integer> {
 						if (iter.hasNext()) {
 							break;
 						} else {
-							// If the only move was the previous best move, drop-through and look for killers
+							// If the only move in the prio list was the previous best move, drop-through and look for killers
 						}
+					} else {
+						break;
 					}
 				}
 			case 2:
