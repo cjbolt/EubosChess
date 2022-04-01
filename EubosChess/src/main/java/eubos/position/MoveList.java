@@ -135,8 +135,7 @@ public class MoveList implements Iterable<Integer> {
 		return getExtendedIterator(); 
 	}
 	
-	@SuppressWarnings("unused")
-	public MoveListIterator createForPlyAtCheckpoint(boolean firstMoveAtPly, int bestMove, int [] killers, boolean capturesOnly, boolean needToEscapeMate, int ply)
+	public MoveListIterator stagedMoveGen(boolean firstMoveAtPly, int bestMove, int [] killers, boolean needToEscapeMate, int ply)
 	{
 		MoveListIterator iter = null;
 			
