@@ -98,8 +98,11 @@ public class MoveList implements Iterable<Integer> {
 		ma_quietHandleKillers = new MoveAdderQuietMovesOnlyWithHandlingKillers();
 	}
 	
-	public void initialise(int ply) {
+	public void initialise(int bestMove, int [] killers, boolean needToEscapeMate, int ply) {
 		// Initialise working variables for building the MoveList at this ply
+		this.needToEscapeMate[ply] = needToEscapeMate;
+		this.killers[ply] = killers;
+		this.bestMove[ply] = bestMove;
 		nextCheckPoint[ply] = 0;
 		moveCount[ply] = 0;
 		normal_fill_index[ply] = 0;
@@ -114,10 +117,7 @@ public class MoveList implements Iterable<Integer> {
 	{
 		// Initialise working variables for building the MoveList at this ply
 		this.ply = ply; 
-		this.needToEscapeMate[ply] = needToEscapeMate;
-		this.killers[ply] = killers;
-		this.bestMove[ply] = bestMove;
-		initialise(ply);
+		initialise(bestMove, killers, needToEscapeMate, ply);
 		
 		getMoves(capturesOnly);
 		if (moveCount[ply] != 0) {
@@ -141,13 +141,10 @@ public class MoveList implements Iterable<Integer> {
 		return getExtendedIterator(); 
 	}
 	
-	public MoveListIterator stagedMoveGen(int bestMove, int [] killers, boolean needToEscapeMate, int ply)
+	public MoveListIterator stagedMoveGen(int ply)
 	{
 		MoveListIterator iter = null;
 		this.ply = ply; 
-		this.needToEscapeMate[ply] = needToEscapeMate;
-		this.killers[ply] = killers;
-		this.bestMove[ply] = bestMove;
 		
 		switch(nextCheckPoint[ply]) {
 		case 0:
@@ -525,6 +522,7 @@ public class MoveList implements Iterable<Integer> {
 					priority_moves[ply][priority_fill_index[ply]++] = move;
 				}
 				moveCount[ply]++;
+				handleUnderPromotions(move);
 			}
 		}
 		

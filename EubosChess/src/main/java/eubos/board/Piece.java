@@ -784,9 +784,7 @@ public abstract class Piece {
 	
 	private static void pawn_checkPromotionAddMove(int atSquare, boolean ownSideIsWhite, IAddMoves ml, int targetSquare) {
 		if (pawn_checkPromotionPossible( ownSideIsWhite, targetSquare )) {
-			for (int move : ownSideIsWhite ? WhitePawnPromotionMove_Lut[atSquare] : BlackPawnPromotionMove_Lut[atSquare]) {
-				ml.addPrio(move);
-			}
+			ml.addPrio(ownSideIsWhite ? WhitePawnPromotionMove_Lut[atSquare][0] : BlackPawnPromotionMove_Lut[atSquare][0]);
 		} else {
 			ml.addNormal(Move.valueOf(atSquare, ownSideIsWhite ? Piece.WHITE_PAWN : Piece.BLACK_PAWN, targetSquare, Piece.NONE));
 		}
@@ -796,9 +794,6 @@ public abstract class Piece {
 			int targetSquare, int targetPiece) {
 		if (pawn_checkPromotionPossible( ownSideIsWhite, targetSquare )) {
 			ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.QUEEN ));
-			ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.ROOK ));
-			ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.BISHOP ));
-			ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.KNIGHT ));
 		} else {
 			// add captures at head of list
 			ml.addPrio(Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
@@ -844,16 +839,6 @@ public abstract class Piece {
 		}
 	}
 	
-	private static void pawn_checkQueenPromotionAddCaptureMove(int ownPiece, int atSquare, boolean ownSideIsWhite, IAddMoves ml, int targetSquare, int targetPiece) {
-		if ( pawn_checkPromotionPossible( ownSideIsWhite, targetSquare )) {
-			ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.QUEEN ));
-		} else if (targetPiece != Piece.NONE) {
-			ml.addPrio(Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
-		} else {
-			// Don't add in extended search
-		}
-	}
-	
 	static void pawn_generateMovesForExtendedSearch(IAddMoves ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
 		ml.clearAttackedCache();
 		// Standard move
@@ -868,7 +853,7 @@ public abstract class Piece {
 		if (captureAt != Position.NOPOSITION) {
 			capturePiece = pawn_isCapturable(ownSideIsWhite, theBoard, captureAt);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkQueenPromotionAddCaptureMove(ownPiece, atSquare, ownSideIsWhite, ml, captureAt, capturePiece);
+				pawn_checkPromotionAddCaptureMove(ownPiece, atSquare, ownSideIsWhite, ml, captureAt, capturePiece);
 			} else if (captureAt == theBoard.getEnPassantTargetSq()) {
 				capturePiece = ownSideIsWhite ? Piece.BLACK_PAWN : Piece.WHITE_PAWN;
 				// promotion can't be possible if en passant capture
@@ -879,7 +864,7 @@ public abstract class Piece {
 		if (captureAt != Position.NOPOSITION) {
 			capturePiece = pawn_isCapturable(ownSideIsWhite, theBoard, captureAt);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkQueenPromotionAddCaptureMove(ownPiece, atSquare, ownSideIsWhite, ml, captureAt, capturePiece);
+				pawn_checkPromotionAddCaptureMove(ownPiece, atSquare, ownSideIsWhite, ml, captureAt, capturePiece);
 			} else if (captureAt == theBoard.getEnPassantTargetSq()) {
 				capturePiece = ownSideIsWhite ? Piece.BLACK_PAWN : Piece.WHITE_PAWN;
 				// promotion can't be possible if en passant capture
