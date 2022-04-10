@@ -43,9 +43,9 @@ public class MoveList implements Iterable<Integer> {
 	public MoveAdderCapturesAndPromotions ma_capturesPromos;
 	public MoveAdderWithKillers ma_killers;
 	public MoveAdderWithNoKillers ma_noKillers;
-	public MoveAdderQuietMovesNoKillers ma_quietNoKillers;
-	public MoveAdderQuietMovesKillers ma_quietKillers;
-	public MoveAdderWithHandlingKillers ma_quietHandleKillers;
+	public MoveAdderQuietMovesOnlyNoKillers ma_quietNoKillers;
+	public MoveAdderQuietMovesOnlyConsumeKillers ma_quietKillers;
+	public MoveAdderQuietMovesOnlyWithHandlingKillers ma_quietHandleKillers;
 	
 	private static final MoveTypeComparator moveTypeComparator = new MoveTypeComparator();
 	
@@ -93,9 +93,20 @@ public class MoveList implements Iterable<Integer> {
 		ma_killers = new MoveAdderWithKillers();
 		ma_noKillers = new MoveAdderWithNoKillers();
 		ma_capturesPromos = new MoveAdderCapturesAndPromotions();
-		ma_quietNoKillers = new MoveAdderQuietMovesNoKillers();
-		ma_quietKillers = new MoveAdderQuietMovesKillers();
-		ma_quietHandleKillers = new MoveAdderWithHandlingKillers();
+		ma_quietNoKillers = new MoveAdderQuietMovesOnlyNoKillers();
+		ma_quietKillers = new MoveAdderQuietMovesOnlyConsumeKillers();
+		ma_quietHandleKillers = new MoveAdderQuietMovesOnlyWithHandlingKillers();
+	}
+	
+	public void initialise(int ply) {
+		// Initialise working variables for building the MoveList at this ply
+		nextCheckPoint[ply] = 0;
+		moveCount[ply] = 0;
+		normal_fill_index[ply] = 0;
+		priority_fill_index[ply] = 0;
+		normal_list_length[ply] = 0;
+		scratchpad_fill_index[ply] = 0;
+		extendedListScopeEndpoint[ply] = 0;
 	}
 	
 	@SuppressWarnings("unused")
@@ -106,13 +117,7 @@ public class MoveList implements Iterable<Integer> {
 		this.needToEscapeMate[ply] = needToEscapeMate;
 		this.killers[ply] = killers;
 		this.bestMove[ply] = bestMove;
-		moveCount[ply] = 0;
-		normal_fill_index[ply] = 0;
-		priority_fill_index[ply] = 0;
-		normal_list_length[ply] = 0;
-		scratchpad_fill_index[ply] = 0;
-		extendedListScopeEndpoint[ply] = 0;
-		nextCheckPoint[ply] = 0;
+		initialise(ply);
 		
 		getMoves(capturesOnly);
 		if (moveCount[ply] != 0) {
@@ -136,25 +141,13 @@ public class MoveList implements Iterable<Integer> {
 		return getExtendedIterator(); 
 	}
 	
-	public MoveListIterator stagedMoveGen(boolean firstMoveAtPly, int bestMove, int [] killers, boolean needToEscapeMate, int ply)
+	public MoveListIterator stagedMoveGen(int bestMove, int [] killers, boolean needToEscapeMate, int ply)
 	{
 		MoveListIterator iter = null;
-			
 		this.ply = ply; 
-		
-		// Initialise working variables for building the MoveList at this ply
-		if (firstMoveAtPly) {
-			this.needToEscapeMate[ply] = needToEscapeMate;
-			this.killers[ply] = killers;
-			this.bestMove[ply] = bestMove;
-			nextCheckPoint[ply] = 0;
-			moveCount[ply] = 0;
-			normal_fill_index[ply] = 0;
-			priority_fill_index[ply] = 0;
-			normal_list_length[ply] = 0;
-			scratchpad_fill_index[ply] = 0;
-			extendedListScopeEndpoint[ply] = 0;
-		}
+		this.needToEscapeMate[ply] = needToEscapeMate;
+		this.killers[ply] = killers;
+		this.bestMove[ply] = bestMove;
 		
 		switch(nextCheckPoint[ply]) {
 		case 0:
@@ -426,7 +419,7 @@ public class MoveList implements Iterable<Integer> {
 		}
 	}
 	
-	public class MoveAdderQuietMovesNoKillers extends MoveAdderCapturesAndPromotions implements IAddMoves {
+	public class MoveAdderQuietMovesOnlyNoKillers extends MoveAdderCapturesAndPromotions implements IAddMoves {
 		
 		public void addPrio(int move) {} // Doesn't deal with tactical moves by design
 		
@@ -452,7 +445,7 @@ public class MoveList implements Iterable<Integer> {
 		public void clearAttackedCache() {}
 	}
 	
-	public class MoveAdderQuietMovesKillers extends MoveAdderQuietMovesNoKillers implements IAddMoves {
+	public class MoveAdderQuietMovesOnlyConsumeKillers extends MoveAdderQuietMovesOnlyNoKillers implements IAddMoves {
 		
 		public void addNormal(int move) {
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
@@ -468,7 +461,7 @@ public class MoveList implements Iterable<Integer> {
 		}
 	}
 	
-	public class MoveAdderWithHandlingKillers extends MoveAdderCapturesAndPromotions implements IAddMoves {
+	public class MoveAdderQuietMovesOnlyWithHandlingKillers extends MoveAdderCapturesAndPromotions implements IAddMoves {
 		
 		long attackMask = 0L;
 		boolean attacked = false;
