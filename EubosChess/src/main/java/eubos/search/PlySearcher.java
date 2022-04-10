@@ -417,8 +417,9 @@ public class PlySearcher {
 		int positionScore = plyScore;
 		int moveNumber = 0;
 		boolean refuted = false;
+		ml.initialise(currPly);
 		do {
-			MoveListIterator move_iter = ml.stagedMoveGen(moveNumber == 0, prevBestMove[currPly], killers.getMoves(currPly), needToEscapeCheck, currPly);
+			MoveListIterator move_iter = ml.stagedMoveGen(prevBestMove[currPly], killers.getMoves(currPly), needToEscapeCheck, currPly);
 			if (!move_iter.hasNext()) {
 				if (moveNumber == 0) {
 					// No moves at this point means either a stalemate or checkmate has occurred
