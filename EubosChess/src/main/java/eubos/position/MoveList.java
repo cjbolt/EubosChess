@@ -44,7 +44,7 @@ public class MoveList implements Iterable<Integer> {
 	public MoveAdderWithKillers ma_killers;
 	public MoveAdderWithNoKillers ma_noKillers;
 	public MoveAdderQuietMovesOnlyNoKillers ma_quietNoKillers;
-	public MoveAdderQuietMovesOnlyConsumeKillers ma_quietKillers;
+	public MoveAdderQuietMovesOnlyConsumeKillers ma_quietConsumeKillers;
 	public MoveAdderQuietMovesOnlyWithHandlingKillers ma_quietHandleKillers;
 	
 	private static final MoveTypeComparator moveTypeComparator = new MoveTypeComparator();
@@ -94,7 +94,7 @@ public class MoveList implements Iterable<Integer> {
 		ma_noKillers = new MoveAdderWithNoKillers();
 		ma_capturesPromos = new MoveAdderCapturesAndPromotions();
 		ma_quietNoKillers = new MoveAdderQuietMovesOnlyNoKillers();
-		ma_quietKillers = new MoveAdderQuietMovesOnlyConsumeKillers();
+		ma_quietConsumeKillers = new MoveAdderQuietMovesOnlyConsumeKillers();
 		ma_quietHandleKillers = new MoveAdderQuietMovesOnlyWithHandlingKillers();
 	}
 	
@@ -255,7 +255,7 @@ public class MoveList implements Iterable<Integer> {
 		} else {
 			// Set-up move adder to filter the moves from attacked pieces into the priority part of the move list
 			if (DISTINCT_STAGE_FOR_KILLERS) {
-				moveAdder = ma_quietKillers;
+				moveAdder = ma_quietConsumeKillers;
 			} else {
 				moveAdder = ma_quietHandleKillers;
 			}
@@ -383,19 +383,23 @@ public class MoveList implements Iterable<Integer> {
 		boolean attacked = false;
 		boolean attackedDetermined = false;
 		
+		protected void handleUnderPromotions(int move) {
+			if (Move.isPromotion(move)) {
+				int under1 = Move.setPromotion(move, Piece.BISHOP);
+				int under2 = Move.setPromotion(move, Piece.KNIGHT);
+				int under3 = Move.setPromotion(move, Piece.ROOK);
+				priority_moves[ply][priority_fill_index[ply]++] = under1;
+				priority_moves[ply][priority_fill_index[ply]++] = under2;
+				priority_moves[ply][priority_fill_index[ply]++] = under3;
+				moveCount[ply]+=3;
+			}
+		}
+		
 		public void addPrio(int move) {
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
 				priority_moves[ply][priority_fill_index[ply]++] = move;
 				moveCount[ply]++;
-				if (Move.isPromotion(move)) {
-					int under1 = Move.setPromotion(move, Piece.BISHOP);
-					int under2 = Move.setPromotion(move, Piece.KNIGHT);
-					int under3 = Move.setPromotion(move, Piece.ROOK);
-					priority_moves[ply][priority_fill_index[ply]++] = under1;
-					priority_moves[ply][priority_fill_index[ply]++] = under2;
-					priority_moves[ply][priority_fill_index[ply]++] = under3;
-					moveCount[ply]+=3;
-				}
+				handleUnderPromotions(move);
 			}
 		}
 		
