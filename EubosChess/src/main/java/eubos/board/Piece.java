@@ -795,7 +795,6 @@ public abstract class Piece {
 		if (pawn_checkPromotionPossible( ownSideIsWhite, targetSquare )) {
 			ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.QUEEN ));
 		} else {
-			// add captures at head of list
 			ml.addPrio(Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
 		}
 	}

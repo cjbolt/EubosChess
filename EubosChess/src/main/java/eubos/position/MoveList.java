@@ -381,10 +381,10 @@ public class MoveList implements Iterable<Integer> {
 		boolean attackedDetermined = false;
 		
 		protected void handleUnderPromotions(int move) {
-			if (Move.isPromotion(move)) {
-				int under1 = Move.setPromotion(move, Piece.BISHOP);
-				int under2 = Move.setPromotion(move, Piece.KNIGHT);
-				int under3 = Move.setPromotion(move, Piece.ROOK);
+			if (Move.isQueenPromotion(move)) {
+				int under1 = Move.setPromotion(move, Piece.ROOK);
+				int under2 = Move.setPromotion(move, Piece.BISHOP);
+				int under3 = Move.setPromotion(move, Piece.KNIGHT);
 				priority_moves[ply][priority_fill_index[ply]++] = under1;
 				priority_moves[ply][priority_fill_index[ply]++] = under2;
 				priority_moves[ply][priority_fill_index[ply]++] = under3;
@@ -526,6 +526,8 @@ public class MoveList implements Iterable<Integer> {
 			}
 		}
 		
+		// Separate these two Move Adders into an extended search and a normal search version each...
+		// Move to their own file and write unit tests for them.
 		public void addNormal(int move) {
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
 				if (Move.areEqualForBestKiller(move, bestMove[ply])) {
