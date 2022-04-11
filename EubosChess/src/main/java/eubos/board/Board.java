@@ -826,7 +826,7 @@ public class Board {
 			pieceLists.removePiece(piece, atPos);
 		} else {
 			if (EubosEngineMain.ENABLE_ASSERTS) {
-				assert false : String.format("Non-existant target piece at %s", Position.toGenericPosition(atPos));
+				assert false : String.format("Non-existant target piece %c at %s", Piece.toFenChar(piece), Position.toGenericPosition(atPos));
 			}
 			piece = Piece.NONE;
 		}
