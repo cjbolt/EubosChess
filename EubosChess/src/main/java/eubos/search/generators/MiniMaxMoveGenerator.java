@@ -101,7 +101,7 @@ public class MiniMaxMoveGenerator implements
 			Writer buffer = new StringWriter();
 			PrintWriter pw = new PrintWriter(buffer);
 			e.printStackTrace(pw);
-			String error = String.format("Assert fail: %s", pw.toString());
+			String error = String.format("Assert fail %s\n%s", e.getMessage(), buffer.toString());
 			System.err.println(error);
 			EubosEngineMain.logger.severe(error);
 			System.exit(0);
