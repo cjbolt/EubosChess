@@ -1,6 +1,7 @@
 package eubos.position;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -110,6 +111,7 @@ public class MoveList implements Iterable<Integer> {
 		normal_list_length[ply] = 0;
 		scratchpad_fill_index[ply] = 0;
 		extendedListScopeEndpoint[ply] = 0;
+		Arrays.fill(scratchpad[ply], Move.NULL_MOVE);
 	}
 	
 	@SuppressWarnings("unused")
@@ -285,11 +287,14 @@ public class MoveList implements Iterable<Integer> {
 	}
 		
 	private void collateMoveList() {
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			assert scratchpad_fill_index[ply] <= 1 : "Scratchpad too long";
+		}
 		for (int j=0; j < priority_fill_index[ply]; j++) {
 			scratchpad[ply][scratchpad_fill_index[ply]++] = priority_moves[ply][j];
 		}
 		// Update for number of valid priority moves, needed by lazy extended moves creation
-		extendedListScopeEndpoint = scratchpad_fill_index;
+		extendedListScopeEndpoint[ply] = scratchpad_fill_index[ply];
 		for (int j=0; j < normal_fill_index[ply]; j++) {
 			scratchpad[ply][scratchpad_fill_index[ply]++] = normal_search_moves[ply][j];
 		}
@@ -341,6 +346,17 @@ public class MoveList implements Iterable<Integer> {
 			boolean includeInQuiescenceSearch = Move.isCapture(move) || Move.isQueenPromotion(move);
 			if (includeInQuiescenceSearch) {
 				extended_search_moves[ply][ext_count++] = move;
+			}
+			if (ext_count == 30) {
+				EubosEngineMain.logger.severe(String.format("extended moves overflowing %s", pm.getFen()));
+				StringBuilder s = new StringBuilder();
+				for (int j=0; j<30; j++) {
+					s.append(Move.toString(extended_search_moves[ply][j]));
+					s.append(' ');
+				}
+				EubosEngineMain.logger.severe(String.format("ext move list at ply %d is %s", ply, s.toString()));
+				ext_count--;
+				break;
 			}
 		}
 		return new MoveListIterator(extended_search_moves[ply], ext_count);
@@ -422,8 +438,10 @@ public class MoveList implements Iterable<Integer> {
 	
 	public class MoveAdderQuietMovesOnlyNoKillers extends MoveAdderCapturesAndPromotions implements IAddMoves {
 		
+		@Override
 		public void addPrio(int move) {} // Doesn't deal with tactical moves by design
 		
+		@Override
 		public void addNormal(int move) {
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
 				if (bestMove[ply] != Move.NULL_MOVE && Move.areEqualForBestKiller(bestMove[ply], move)) {
@@ -448,6 +466,7 @@ public class MoveList implements Iterable<Integer> {
 	
 	public class MoveAdderQuietMovesOnlyConsumeKillers extends MoveAdderQuietMovesOnlyNoKillers implements IAddMoves {
 		
+		@Override
 		public void addNormal(int move) {
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
 				if (bestMove[ply] != Move.NULL_MOVE && Move.areEqualForBestKiller(bestMove[ply], move)) {
@@ -468,8 +487,10 @@ public class MoveList implements Iterable<Integer> {
 		boolean attacked = false;
 		boolean attackedDetermined = false;
 		
+		@Override
 		public void addPrio(int move) {}
 		
+		@Override
 		public void addNormal(int move) {
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
 				if (bestMove[ply] != Move.NULL_MOVE && Move.areEqualForBestKiller(bestMove[ply], move)) {
@@ -514,6 +535,7 @@ public class MoveList implements Iterable<Integer> {
 		boolean attacked = false;
 		boolean attackedDetermined = false;
 		
+		@Override
 		public void addPrio(int move) {
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
 				if (Move.areEqualForBestKiller(move, bestMove[ply])) {
@@ -528,6 +550,7 @@ public class MoveList implements Iterable<Integer> {
 		
 		// Separate these two Move Adders into an extended search and a normal search version each...
 		// Move to their own file and write unit tests for them.
+		@Override
 		public void addNormal(int move) {
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
 				if (Move.areEqualForBestKiller(move, bestMove[ply])) {
@@ -565,6 +588,8 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	public class MoveAdderWithNoKillers extends MoveAdderWithKillers implements IAddMoves {
+		
+		@Override
 		public void addNormal(int move) {
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
 				if (Move.areEqualForBestKiller(move, bestMove[ply])) {
