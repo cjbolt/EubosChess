@@ -17,4 +17,5 @@ public interface IPositionAccessors {
 	public IEvaluate getPositionEvaluator();
 	public boolean isQuiescent();
 	public boolean moveLeadsToThreefold(int move);
+	public String unwindMoveStack();
 }

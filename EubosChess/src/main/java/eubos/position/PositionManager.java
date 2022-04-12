@@ -376,4 +376,13 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// This function will return false on finding an attacked piece or promotable pawn on the board.
 		return !theBoard.validPriorityMoveExists(onMoveIsWhite());
 	}
+	
+	public String unwindMoveStack() {
+		StringBuilder s = new StringBuilder();
+		while (!moveTracker.isEmpty()) {
+			s.append(Move.toString(TrackedMove.getMove(moveTracker.pop())));
+			s.append(' ');
+		}
+		return s.toString();
+	}
 }
