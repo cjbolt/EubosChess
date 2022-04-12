@@ -96,16 +96,6 @@ public class MiniMaxMoveGenerator implements
 			} else {
 				score = (short) ps.searchPly();
 			}
-		} catch (AssertionError e) {
-			System.err.println(e);
-			Writer buffer = new StringWriter();
-			PrintWriter pw = new PrintWriter(buffer);
-			e.printStackTrace(pw);
-			String error = String.format("Assert fail %s\n%s\n%s",
-					e.getMessage(), pos.unwindMoveStack(), buffer.toString());
-			System.err.println(error);
-			EubosEngineMain.logger.severe(error);
-			System.exit(0);
 		} catch (Exception e) {
 			Writer buffer = new StringWriter();
 			PrintWriter pw = new PrintWriter(buffer);
