@@ -508,6 +508,9 @@ public class Board {
 		if (getPieceAtSquare(targetSquare) != targetPiece && !Move.isEnPassantCapture(move)) {
 			return isPlayable;
 		}
+		if (Move.isEnPassantCapture(move) && (getEnPassantTargetSq() != targetSquare)) {
+			return isPlayable;
+		}
 		
 		boolean isWhite = Piece.isWhite(pieceToMove);
 		boolean isKing = Piece.isKing(pieceToMove);
