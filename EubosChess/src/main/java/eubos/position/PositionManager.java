@@ -380,8 +380,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public String unwindMoveStack() {
 		StringBuilder s = new StringBuilder();
 		while (!moveTracker.isEmpty()) {
-			s.append(Move.toString(TrackedMove.getMove(moveTracker.pop())));
-			s.append(' ');
+			// build the movelist backwards, the first move popped shall be the end of the list
+			s.insert(0, ' ');
+			s.insert(0, Move.toString(TrackedMove.getMove(moveTracker.pop())));
 		}
 		return s.toString();
 	}
