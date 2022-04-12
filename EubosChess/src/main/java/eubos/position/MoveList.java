@@ -18,6 +18,7 @@ import it.unimi.dsi.fastutil.ints.IntComparator;
 public class MoveList implements Iterable<Integer> {
 	
 	public static final boolean DISTINCT_STAGE_FOR_KILLERS = false;
+	public static final boolean DEBUG_CHECK = false;
 	
 	private int [][] normal_search_moves;
 	private int [][] priority_moves;
@@ -111,7 +112,9 @@ public class MoveList implements Iterable<Integer> {
 		normal_list_length[ply] = 0;
 		scratchpad_fill_index[ply] = 0;
 		extendedListScopeEndpoint[ply] = 0;
-		Arrays.fill(scratchpad[ply], Move.NULL_MOVE);
+		if (DEBUG_CHECK) {
+			Arrays.fill(scratchpad[ply], Move.NULL_MOVE);
+		}
 	}
 	
 	@SuppressWarnings("unused")
@@ -152,13 +155,13 @@ public class MoveList implements Iterable<Integer> {
 		case 0:
 			// Return best Move if valid
 			nextCheckPoint[ply] = 1;
-			if (Move.isBest(this.bestMove[ply]) || (this.bestMove[ply] != Move.NULL_MOVE && bestMoveIsValid())) {
-				scratchpad[ply][0] = this.bestMove[ply];
+			if (Move.isBest(bestMove[ply]) || (bestMove[ply] != Move.NULL_MOVE && bestMoveIsValid())) {
+				scratchpad[ply][0] = bestMove[ply];
 				iter = getBestIterator();
 				nextCheckPoint[ply] = 1;
 				break;
 			}
-			this.bestMove[ply] = Move.NULL_MOVE;
+			bestMove[ply] = Move.NULL_MOVE;
 			// Note fall-through if no valid best move
 		case 1:
 			// Generate all captures and promotions
@@ -167,7 +170,7 @@ public class MoveList implements Iterable<Integer> {
 			if (moveCount[ply] != 0) {
 				sortPriorityList();
 				iter = new MoveListIterator(priority_moves[ply], priority_fill_index[ply]);
-				if (Move.areEqualForBestKiller(this.bestMove[ply], priority_moves[ply][0])) {
+				if (Move.areEqualForBestKiller(bestMove[ply], priority_moves[ply][0])) {
 					// Step passed best move that we returned already
 					iter.nextInt();
 					if (iter.hasNext()) {
@@ -183,22 +186,22 @@ public class MoveList implements Iterable<Integer> {
 			if (DISTINCT_STAGE_FOR_KILLERS) {
 				// Generate Killers
 				nextCheckPoint[ply] = 3;
-				if (this.killers[ply] != null) {
+				if (killers[ply] != null) {
 					int [] validKillers = new int[3];
 					int validCount = 0;
-					if (!Move.areEqualForBestKiller(this.bestMove[ply], this.killers[ply][0]) &&
-						pm.getTheBoard().isPlayableMove(this.killers[ply][0], this.needToEscapeMate[ply], pm.castling)) {
-						validKillers[0] = this.killers[ply][0];
+					if (!Move.areEqualForBestKiller(bestMove[ply], killers[ply][0]) &&
+						pm.getTheBoard().isPlayableMove(killers[ply][0], needToEscapeMate[ply], pm.castling)) {
+						validKillers[0] = killers[ply][0];
 						validCount++;
 					}
-					if (!Move.areEqualForBestKiller(this.bestMove[ply], this.killers[ply][1]) &&
-						pm.getTheBoard().isPlayableMove(this.killers[ply][1], this.needToEscapeMate[ply], pm.castling)) {
-						validKillers[validCount] = this.killers[ply][1];
+					if (!Move.areEqualForBestKiller(bestMove[ply], killers[ply][1]) &&
+						pm.getTheBoard().isPlayableMove(killers[ply][1], needToEscapeMate[ply], pm.castling)) {
+						validKillers[validCount] = killers[ply][1];
 						validCount++;
 					}
-					if (!Move.areEqualForBestKiller(this.bestMove[ply], this.killers[ply][2]) &&
-						pm.getTheBoard().isPlayableMove(this.killers[ply][2], this.needToEscapeMate[ply], pm.castling)) {
-						validKillers[validCount] = this.killers[ply][2];
+					if (!Move.areEqualForBestKiller(bestMove[ply], killers[ply][2]) &&
+						pm.getTheBoard().isPlayableMove(killers[ply][2], needToEscapeMate[ply], pm.castling)) {
+						validKillers[validCount] = killers[ply][2];
 						validCount++;
 					}
 					if (validCount > 0) {
@@ -347,16 +350,18 @@ public class MoveList implements Iterable<Integer> {
 			if (includeInQuiescenceSearch) {
 				extended_search_moves[ply][ext_count++] = move;
 			}
-			if (ext_count == 30) {
-				EubosEngineMain.logger.severe(String.format("extended moves overflowing %s", pm.getFen()));
-				StringBuilder s = new StringBuilder();
-				for (int j=0; j<30; j++) {
-					s.append(Move.toString(extended_search_moves[ply][j]));
-					s.append(' ');
+			if (DEBUG_CHECK) {
+				if (ext_count == 30) {
+					EubosEngineMain.logger.severe(String.format("extended moves overflowing %s", pm.getFen()));
+					StringBuilder s = new StringBuilder();
+					for (int j=0; j<30; j++) {
+						s.append(Move.toString(extended_search_moves[ply][j]));
+						s.append(' ');
+					}
+					EubosEngineMain.logger.severe(String.format("ext move list at ply %d is %s", ply, s.toString()));
+					ext_count--;
+					break;
 				}
-				EubosEngineMain.logger.severe(String.format("ext move list at ply %d is %s", ply, s.toString()));
-				ext_count--;
-				break;
 			}
 		}
 		return new MoveListIterator(extended_search_moves[ply], ext_count);
