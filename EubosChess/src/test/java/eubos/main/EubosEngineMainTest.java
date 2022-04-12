@@ -301,6 +301,14 @@ public class EubosEngineMainTest {
 	}
 	
 	@Test
+	public void test_assert_fail() throws InterruptedException, IOException {
+		setupEngine();
+		commands.add(new commandPair(POS_FEN_PREFIX+"r3qrk1/pbpp1ppp/np1b1n2/8/2PPp3/P1N1P1PP/1P2NPB1/R1BQK2R w KQ - 1 10"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"9"+CMD_TERMINATOR, BEST_PREFIX+"f2d2"+CMD_TERMINATOR));
+		performTest(10000);
+	}
+	
+	@Test
 	public void test_tricky_endgame_position() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/4kp1p/3pb1p1/P5P1/3KN1PP/8/8 b - - 5 57"+CMD_TERMINATOR, null));
