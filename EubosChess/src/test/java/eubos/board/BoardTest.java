@@ -648,10 +648,11 @@ public class BoardTest {
 	
 	@Test
 	public void test_is_playable_valid_en_passant() {
-		setUpPosition("8/8/8/3k1pP1/8/8/8/4K3 w - f6 1 10");
+		setUpPosition("8/8/8/3k1pP1/8/8/8/4K3 w - f6 - 10");
 		int move = Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.g5, Piece.WHITE_PAWN, Position.f6, Piece.BLACK_PAWN, Piece.NONE);
 		boolean inCheck = false;
 		assertTrue(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+		assertEquals("8/8/8/3k1pP1/8/8/8/4K3 w - f6 - 10", pm.getFen());
 	}
 	
 	@Test
