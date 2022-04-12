@@ -155,13 +155,15 @@ public class MoveList implements Iterable<Integer> {
 		case 0:
 			// Return best Move if valid
 			nextCheckPoint[ply] = 1;
-			if (Move.isBest(bestMove[ply]) || (bestMove[ply] != Move.NULL_MOVE && bestMoveIsValid())) {
-				scratchpad[ply][0] = bestMove[ply];
-				iter = getBestIterator();
-				nextCheckPoint[ply] = 1;
-				break;
+			if (bestMove[ply] != Move.NULL_MOVE) {
+				if (Move.isBest(bestMove[ply]) || bestMoveIsValid()) {
+					scratchpad[ply][0] = bestMove[ply];
+					iter = getBestIterator();
+					nextCheckPoint[ply] = 1;
+					break;
+				}
+				bestMove[ply] = Move.NULL_MOVE;
 			}
-			bestMove[ply] = Move.NULL_MOVE;
 			// Note fall-through if no valid best move
 		case 1:
 			// Generate all captures and promotions
@@ -245,7 +247,7 @@ public class MoveList implements Iterable<Integer> {
 	private void getCapturesAndPromotions() {
 		// Set-up move adder to filter the moves from attacked pieces into the priority part of the move list
 		boolean isWhiteOnMove = pm.onMoveIsWhite();
-		ma_capturesPromos.attackMask = pm.getTheBoard().pkaa.getAttacks(isWhiteOnMove);
+		//ma_capturesPromos.attackMask = pm.getTheBoard().pkaa.getAttacks(isWhiteOnMove);
 		pm.getTheBoard().getRegularPieceMoves(ma_capturesPromos, isWhiteOnMove, true);
 	}
 	
@@ -397,9 +399,19 @@ public class MoveList implements Iterable<Integer> {
 	
 	public class MoveAdderCapturesAndPromotions implements IAddMoves {
 		
-		long attackMask = 0L;
-		boolean attacked = false;
-		boolean attackedDetermined = false;
+		public void addPrio(int move) {
+			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
+				priority_moves[ply][priority_fill_index[ply]++] = move;
+				moveCount[ply]++;
+				handleUnderPromotions(move);
+			}
+		}
+		
+		public void addNormal(int move) {} // Doesn't deal with quiet moves by design
+		
+		public boolean isLegalMoveFound() { return false; }
+
+		public void clearAttackedCache() { }
 		
 		protected void handleUnderPromotions(int move) {
 			if (Move.isQueenPromotion(move)) {
@@ -411,33 +423,6 @@ public class MoveList implements Iterable<Integer> {
 				priority_moves[ply][priority_fill_index[ply]++] = under3;
 				moveCount[ply]+=3;
 			}
-		}
-		
-		public void addPrio(int move) {
-			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
-				priority_moves[ply][priority_fill_index[ply]++] = move;
-				moveCount[ply]++;
-				handleUnderPromotions(move);
-			}
-		}
-		
-		public void addNormal(int move) {} // Doesn't deal with quiet moves by design
-		
-		public boolean isLegalMoveFound() {
-			return false;
-		}
-		
-		protected boolean isMoveOriginSquareAttacked(int move) {
-			long orginSquare = BitBoard.positionToMask_Lut[Move.getOriginPosition(move)];
-			if ((orginSquare & attackMask) == orginSquare)
-				return true;
-			return false;
-		}
-
-		@Override
-		public void clearAttackedCache() {
-			attackedDetermined = false;
-			attacked = false;			
 		}
 	}
 	
@@ -456,17 +441,10 @@ public class MoveList implements Iterable<Integer> {
 					moveCount[ply]++;
 				}
 			}
-		}
+		}	
 		
-		public boolean isLegalMoveFound() {
-			return false;
-		}
-		
-		protected boolean isMoveOriginSquareAttacked(int move) {
-			return false;
-		}
-
-		public void clearAttackedCache() {}
+		// Currently doesn't allow attacked pieces to be ordered first in the movelist
+		protected boolean isMoveOriginSquareAttacked(int move) { return false; }
 	}
 	
 	public class MoveAdderQuietMovesOnlyConsumeKillers extends MoveAdderQuietMovesOnlyNoKillers implements IAddMoves {
