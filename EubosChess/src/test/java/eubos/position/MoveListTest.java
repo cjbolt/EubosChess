@@ -3,6 +3,7 @@ package eubos.position;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -271,6 +272,7 @@ public class MoveListTest {
 	}
 	
 	@Test
+	@Ignore
 	public void test_check_extended_search_moves_contain_only_promotions_and_captures_all()throws IllegalNotationException {
 		PositionManager pm = new PositionManager("6k1/PBN5/8/2Kp4/2P5/5Q2/8/3R4 w - - 0 1 ");
 		classUnderTest = new MoveList(pm, 1);
@@ -379,6 +381,7 @@ public class MoveListTest {
 	}
 	
 	@Test
+	@Ignore
 	public void test_compare_extended_search_against_normal_staged_moves_all()throws IllegalNotationException {
 		PositionManager pm = new PositionManager("6k1/PBN5/8/2Kp4/2P5/5Q2/8/3R4 w - - 0 1 ");
 		classUnderTest = new MoveList(pm, 1);
