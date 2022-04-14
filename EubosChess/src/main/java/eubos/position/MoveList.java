@@ -17,7 +17,7 @@ import it.unimi.dsi.fastutil.ints.IntComparator;
 
 public class MoveList implements Iterable<Integer> {
 	
-	public static final boolean DISTINCT_STAGE_FOR_KILLERS = false;
+	public static final boolean DISTINCT_STAGE_FOR_KILLERS = true;
 	public static final boolean DEBUG_CHECK = false;
 	
 	private int [][] normal_search_moves;
@@ -211,21 +211,13 @@ public class MoveList implements Iterable<Integer> {
 			// Lastly, generate all moves that aren't best, killers, or tactical moves
 			nextCheckPoint[ply] = 4;
 			moveCount[ply] = 0;
-			if (DISTINCT_STAGE_FOR_KILLERS) {
-				getQuietMoves();
-				if (moveCount[ply] != 0) {
-					iter = new MoveListIterator(normal_search_moves[ply], normal_fill_index[ply]);
-					break;
-				}
-			} else {
-				priority_fill_index[ply] = 0;
-				getQuietMoves();
-				if (moveCount[ply] != 0) {
-					sortPriorityList();
-					collateMoveList();
-					iter = iterator();
-					break;
-				}
+			priority_fill_index[ply] = 0;
+			getQuietMoves();
+			if (moveCount[ply] != 0) {
+				sortPriorityList();
+				collateMoveList();
+				iter = iterator();
+				break;
 			}
 		case 4:
 		default:

@@ -662,4 +662,12 @@ public class BoardTest {
 		boolean inCheck = false;
 		assertFalse(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
 	}
+	
+	@Test 
+	public void test_is_playable_under_promotion() {
+		setUpPosition("6nn/6P1/8/3k1p2/8/8/8/4K3 w - - 1 10");
+		int move = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.g7, Piece.WHITE_PAWN, Position.h8, Piece.BLACK_KNIGHT, Piece.KNIGHT);
+		boolean inCheck = false;
+		assertTrue(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+	}
 }

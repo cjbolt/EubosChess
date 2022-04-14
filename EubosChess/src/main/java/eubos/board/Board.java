@@ -455,13 +455,19 @@ public class Board {
 		return isIllegal;
 	}
 	
-	public class PlayableMoveChecker implements IAddMoves {
+	public class PseudoPlayableMoveChecker implements IAddMoves {
+		
+		// Note test for legality is not performed by this class, that is a subsequent check
 		
 		int moveToCheckIsPlayable = Move.NULL_MOVE;
 		boolean moveIsPlayable = false;
+		boolean moveToCheckIsPromotion = false;
 				
 		private void testMove(int move) {
 			if (Move.areEqualForBestKiller(move, moveToCheckIsPlayable)) {
+				moveIsPlayable = true;
+			} else if (moveToCheckIsPromotion && Move.isQueenPromotion(move)) {
+				// An under promotion is always playable if the queen promotion is playable
 				moveIsPlayable = true;
 			}
 		}
@@ -480,6 +486,7 @@ public class Board {
 		public void setup(int move) {
 			moveIsPlayable = false;
 			moveToCheckIsPlayable = move;
+			moveToCheckIsPromotion = Move.isPromotion(move);
 		}
 
 		public boolean isLegalMoveFound() {
@@ -492,7 +499,7 @@ public class Board {
 		}
 	}
 	
-	PlayableMoveChecker pmc = new PlayableMoveChecker();
+	PseudoPlayableMoveChecker pmc = new PseudoPlayableMoveChecker();
 	
 	public boolean isPlayableMove(int move, boolean needToEscapeMate, CastlingManager castling) {
 		boolean isPlayable = false;
@@ -536,7 +543,6 @@ public class Board {
 			Piece.knight_generateMoves(pmc, this, originSquare, isWhite);
 			break;
 		case Piece.PAWN:
-			// This should cover en passant captures
 			Piece.pawn_generateMoves(pmc, this, originSquare, isWhite);
 			break;
 		}
