@@ -174,17 +174,10 @@ public class MoveList implements Iterable<Integer> {
 			if (moveCount[ply] != 0) {
 				sortPriorityList();
 				iter = new MoveListIterator(priority_moves[ply], priority_fill_index[ply]);
-				if (Move.areEqualForBestKiller(bestMove[ply], priority_moves[ply][0])) {
-					// Step passed best move that we returned already
-					iter.nextInt();
-					if (iter.hasNext()) {
-						break;
-					} else {
-						// If the only move in the prio list was the previous best move, drop-through and look for killers
-					}
-				} else {
-					break;
+			    if (iter.hasNext()) {
+					break; // Return if there is a move in the iterator
 				}
+				// Note fall-through if no valid move in the iterator
 			}
 		case 2:
 			if (DISTINCT_STAGE_FOR_KILLERS) {
@@ -249,7 +242,6 @@ public class MoveList implements Iterable<Integer> {
 	private void getCapturesAndPromotions() {
 		// Set-up move adder to filter the moves from attacked pieces into the priority part of the move list
 		boolean isWhiteOnMove = pm.onMoveIsWhite();
-		//ma_capturesPromos.attackMask = pm.getTheBoard().pkaa.getAttacks(isWhiteOnMove);
 		pm.getTheBoard().getRegularPieceMoves(ma_capturesPromos, isWhiteOnMove, true);
 	}
 	
@@ -408,8 +400,12 @@ public class MoveList implements Iterable<Integer> {
 		
 		public void addPrio(int move) {
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
-				priority_moves[ply][priority_fill_index[ply]++] = move;
-				moveCount[ply]++;
+				if (Move.areEqualForBestKiller(move, bestMove[ply])) {
+					// Silently consume
+				} else  {
+					priority_moves[ply][priority_fill_index[ply]++] = move;
+					moveCount[ply]++;
+				}
 				handleUnderPromotions(move);
 			}
 		}
@@ -459,8 +455,6 @@ public class MoveList implements Iterable<Integer> {
 				}
 			}
 		}	
-		
-		public boolean isLegalMoveFound() { return false; }
 		
 		protected boolean isMoveOriginSquareAttacked(int move) {
 			long orginSquare = BitBoard.positionToMask_Lut[Move.getOriginPosition(move)];
