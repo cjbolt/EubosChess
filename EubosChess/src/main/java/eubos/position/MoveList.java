@@ -17,7 +17,6 @@ import it.unimi.dsi.fastutil.ints.IntComparator;
 
 public class MoveList implements Iterable<Integer> {
 	
-	public static final boolean DISTINCT_STAGE_FOR_KILLERS = true;
 	public static final boolean DEBUG_CHECK = false;
 	
 	private int [][] normal_search_moves;
@@ -161,7 +160,6 @@ public class MoveList implements Iterable<Integer> {
 				if (Move.isBest(bestMove[ply]) || bestMoveIsValid()) {
 					scratchpad[ply][0] = bestMove[ply];
 					iter = getBestIterator();
-					nextCheckPoint[ply] = 1;
 					break;
 				}
 				bestMove[ply] = Move.NULL_MOVE;
@@ -180,36 +178,38 @@ public class MoveList implements Iterable<Integer> {
 				// Note fall-through if no valid move in the iterator
 			}
 		case 2:
-			if (DISTINCT_STAGE_FOR_KILLERS) {
-				// Generate Killers
-				nextCheckPoint[ply] = 3;
-				if (killers[ply] != null) {
-					int [] validKillers = new int[3];
-					int validCount = 0;
-					if (!Move.areEqualForBestKiller(bestMove[ply], killers[ply][0]) &&
-						pm.getTheBoard().isPlayableMove(killers[ply][0], needToEscapeMate[ply], pm.castling)) {
-						validKillers[0] = killers[ply][0];
-						validCount++;
-					}
-					if (!Move.areEqualForBestKiller(bestMove[ply], killers[ply][1]) &&
-						pm.getTheBoard().isPlayableMove(killers[ply][1], needToEscapeMate[ply], pm.castling)) {
-						validKillers[validCount] = killers[ply][1];
-						validCount++;
-					}
-					if (!Move.areEqualForBestKiller(bestMove[ply], killers[ply][2]) &&
-						pm.getTheBoard().isPlayableMove(killers[ply][2], needToEscapeMate[ply], pm.castling)) {
-						validKillers[validCount] = killers[ply][2];
-						validCount++;
-					}
-					if (validCount > 0) {
-						iter = new MoveListIterator(validKillers, validCount);
-						break;
-					}
+			nextCheckPoint[ply] = 3;
+			if (killers[ply] != null) {
+				if (!Move.areEqualForBestKiller(bestMove[ply], killers[ply][0]) &&
+					pm.getTheBoard().isPlayableMove(killers[ply][0], needToEscapeMate[ply], pm.castling)) {
+					scratchpad[ply][0] = killers[ply][0];
+					iter = getBestIterator();
+					break;
 				}
 			}
 		case 3:
-			// Lastly, generate all moves that aren't best, killers, or tactical moves
 			nextCheckPoint[ply] = 4;
+			if (killers[ply] != null) {
+				if (!Move.areEqualForBestKiller(bestMove[ply], killers[ply][1]) &&
+					pm.getTheBoard().isPlayableMove(killers[ply][1], needToEscapeMate[ply], pm.castling)) {
+					scratchpad[ply][0] = killers[ply][1];
+					iter = getBestIterator();
+					break;
+				}
+			}
+		case 4:
+			nextCheckPoint[ply] = 5;
+			if (killers[ply] != null) {
+				if (!Move.areEqualForBestKiller(bestMove[ply], killers[ply][2]) &&
+					pm.getTheBoard().isPlayableMove(killers[ply][2], needToEscapeMate[ply], pm.castling)) {
+					scratchpad[ply][0] = killers[ply][2];
+					iter = getBestIterator();
+					break;
+				}
+			}
+		case 5:
+			// Lastly, generate all moves that aren't best, killers, or tactical moves
+			nextCheckPoint[ply] = 6;
 			moveCount[ply] = 0;
 			priority_fill_index[ply] = 0;
 			getQuietMoves();
@@ -219,7 +219,7 @@ public class MoveList implements Iterable<Integer> {
 				iter = iterator();
 				break;
 			}
-		case 4:
+		case 6:
 		default:
 			iter = new MoveListIterator(scratchpad[ply], 0); // Empty iterator
 			break;
@@ -246,13 +246,8 @@ public class MoveList implements Iterable<Integer> {
 			ma_quietNoKillers.attackMask = attackMask;
 		} else {
 			// Set-up move adder to filter the moves from attacked pieces into the priority part of the move list
-			if (DISTINCT_STAGE_FOR_KILLERS) {
-				moveAdder = ma_quietConsumeKillers;
-				ma_quietConsumeKillers.attackMask = attackMask;
-			} else {
-				moveAdder = ma_quietKillers;
-				ma_quietKillers.attackMask = attackMask;
-			}
+			moveAdder = ma_quietConsumeKillers;
+			ma_quietConsumeKillers.attackMask = attackMask;
 		}
 		pm.getTheBoard().getRegularPieceMoves(moveAdder, isWhiteOnMove, false);
 		if (!needToEscapeMate[ply]) {
