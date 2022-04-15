@@ -18,6 +18,7 @@ import it.unimi.dsi.fastutil.ints.IntComparator;
 public class MoveList implements Iterable<Integer> {
 	
 	public static final boolean DEBUG_CHECK = false;
+	private static final boolean SINGLE_KILLER_STAGE = true;
 	
 	private int [][] normal_search_moves;
 	private int [][] priority_moves;
@@ -166,9 +167,9 @@ public class MoveList implements Iterable<Integer> {
 			}
 			// Note fall-through if no valid best move
 		case 1:
-			// Generate all captures and promotions
+			// Generate pawn promotions
 			nextCheckPoint[ply] = 2;
-			getCapturesAndPromotions();
+			getPawnPromotions();
 			if (moveCount[ply] != 0) {
 				sortPriorityList();
 				iter = new MoveListIterator(priority_moves[ply], priority_fill_index[ply]);
@@ -178,38 +179,65 @@ public class MoveList implements Iterable<Integer> {
 				// Note fall-through if no valid move in the iterator
 			}
 		case 2:
+			// Generate all captures other than pawn promotions
 			nextCheckPoint[ply] = 3;
-			if (killers[ply] != null) {
-				if (!Move.areEqualForBestKiller(bestMove[ply], killers[ply][0]) &&
-					pm.getTheBoard().isPlayableMove(killers[ply][0], needToEscapeMate[ply], pm.castling)) {
-					scratchpad[ply][0] = killers[ply][0];
-					iter = getBestIterator();
-					break;
+			moveCount[ply] = 0;
+			priority_fill_index[ply] = 0;
+			getNonPawnPromotionCaptures();
+			if (moveCount[ply] != 0) {
+				sortPriorityList();
+				iter = new MoveListIterator(priority_moves[ply], priority_fill_index[ply]);
+			    if (iter.hasNext()) {
+					break; // Return if there is a move in the iterator
 				}
+				// Note fall-through if no valid move in the iterator
 			}
 		case 3:
+			// Generate Killers
 			nextCheckPoint[ply] = 4;
-			if (killers[ply] != null) {
-				if (!Move.areEqualForBestKiller(bestMove[ply], killers[ply][1]) &&
-					pm.getTheBoard().isPlayableMove(killers[ply][1], needToEscapeMate[ply], pm.castling)) {
-					scratchpad[ply][0] = killers[ply][1];
-					iter = getBestIterator();
-					break;
+			if (SINGLE_KILLER_STAGE) {
+				if (killers[ply] != null) {
+					int [] validKillers = new int[3];
+					int validCount = 0;
+					if (!Move.areEqualForBestKiller(bestMove[ply], killers[ply][0]) &&
+						pm.getTheBoard().isPlayableMove(killers[ply][0], needToEscapeMate[ply], pm.castling)) {
+						validKillers[0] = killers[ply][0];
+						validCount++;
+					}
+					if (!Move.areEqualForBestKiller(bestMove[ply], killers[ply][1]) &&
+						pm.getTheBoard().isPlayableMove(killers[ply][1], needToEscapeMate[ply], pm.castling)) {
+						validKillers[validCount] = killers[ply][1];
+						validCount++;
+					}
+					if (!Move.areEqualForBestKiller(bestMove[ply], killers[ply][2]) &&
+						pm.getTheBoard().isPlayableMove(killers[ply][2], needToEscapeMate[ply], pm.castling)) {
+						validKillers[validCount] = killers[ply][2];
+						validCount++;
+					}
+					if (validCount > 0) {
+						iter = new MoveListIterator(validKillers, validCount);
+						break;
+					}
 				}
+			} else {
+				iter = checkKiller(0);
+				if (iter != null) break;
 			}
 		case 4:
 			nextCheckPoint[ply] = 5;
-			if (killers[ply] != null) {
-				if (!Move.areEqualForBestKiller(bestMove[ply], killers[ply][2]) &&
-					pm.getTheBoard().isPlayableMove(killers[ply][2], needToEscapeMate[ply], pm.castling)) {
-					scratchpad[ply][0] = killers[ply][2];
-					iter = getBestIterator();
-					break;
-				}
+			if (!SINGLE_KILLER_STAGE) {
+				iter = checkKiller(1);
+				if (iter != null) break;
 			}
 		case 5:
-			// Lastly, generate all moves that aren't best, killers, or tactical moves
 			nextCheckPoint[ply] = 6;
+			if (!SINGLE_KILLER_STAGE) {
+				iter = checkKiller(2);
+				if (iter != null) break;
+			}
+		case 6:
+			// Lastly, generate all moves that aren't best, killers, or tactical moves
+			nextCheckPoint[ply] = 7;
 			moveCount[ply] = 0;
 			priority_fill_index[ply] = 0;
 			getQuietMoves();
@@ -219,10 +247,22 @@ public class MoveList implements Iterable<Integer> {
 				iter = iterator();
 				break;
 			}
-		case 6:
+		case 7:
 		default:
 			iter = new MoveListIterator(scratchpad[ply], 0); // Empty iterator
 			break;
+		}
+		return iter;
+	}
+	
+	MoveListIterator checkKiller(int killerNum) {
+		MoveListIterator iter = null;
+		if (killers[ply] != null) {
+			if (!Move.areEqualForBestKiller(bestMove[ply], killers[ply][killerNum]) &&
+				pm.getTheBoard().isPlayableMove(killers[ply][killerNum], needToEscapeMate[ply], pm.castling)) {
+				scratchpad[ply][0] = killers[ply][killerNum];
+				iter = getBestIterator();
+			}
 		}
 		return iter;
 	}
@@ -235,6 +275,18 @@ public class MoveList implements Iterable<Integer> {
 		// Set-up move adder to filter the moves from attacked pieces into the priority part of the move list
 		boolean isWhiteOnMove = pm.onMoveIsWhite();
 		pm.getTheBoard().getRegularPieceMoves(ma_capturesPromos, isWhiteOnMove, true);
+	}
+	
+	private void getPawnPromotions() {
+		// Set-up move adder to filter the moves from attacked pieces into the priority part of the move list
+		boolean isWhiteOnMove = pm.onMoveIsWhite();
+		pm.getTheBoard().getPawnPromotionMovesForSide(ma_capturesPromos, isWhiteOnMove);
+	}
+	
+	private void getNonPawnPromotionCaptures() {
+		// Set-up move adder to filter the moves from attacked pieces into the priority part of the move list
+		boolean isWhiteOnMove = pm.onMoveIsWhite();
+		pm.getTheBoard().getCapturesExcludingPromotions(ma_capturesPromos, isWhiteOnMove);
 	}
 	
 	private void getQuietMoves() {
@@ -416,6 +468,17 @@ public class MoveList implements Iterable<Integer> {
 		}
 	}
 	
+	public class MoveAdderCaptures extends MoveAdderCapturesAndPromotions implements IAddMoves {
+		@Override
+		public void addPrio(int move) {
+			if (Move.areEqualForBestKiller(move, bestMove[ply])) return;
+			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
+				priority_moves[ply][priority_fill_index[ply]++] = move;
+				moveCount[ply]++;
+			}
+		}
+	}
+	
 	public class QuietMovesWithNoKillers extends MoveAdderCapturesAndPromotions implements IAddMoves {
 		
 		long attackMask = 0L;
@@ -427,10 +490,9 @@ public class MoveList implements Iterable<Integer> {
 		
 		@Override
 		public void addNormal(int move) {
+			if (Move.areEqualForBestKiller(move, bestMove[ply])) return;
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
-				if (bestMove[ply] != Move.NULL_MOVE && Move.areEqualForBestKiller(bestMove[ply], move)) {
-					// Silently consume, the best move should already have been found and searched if not null
-				} else if (attacked || (!attackedDetermined && isMoveOriginSquareAttacked(move))) {
+				if (attacked || (!attackedDetermined && isMoveOriginSquareAttacked(move))) {
 					priority_moves[ply][priority_fill_index[ply]++] = move;
 					attackedDetermined = true;
 					attacked = true;
@@ -461,12 +523,10 @@ public class MoveList implements Iterable<Integer> {
 		
 		@Override
 		public void addNormal(int move) {
+			if (Move.areEqualForBestKiller(move, bestMove[ply])) return;
+			if (KillerList.isMoveOnListAtPly(killers[ply], move)) return;
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
-				if (bestMove[ply] != Move.NULL_MOVE && Move.areEqualForBestKiller(bestMove[ply], move)) {
-					// Silently consume, the best move should already have been found and searched if not null
-				} else if (KillerList.isMoveOnListAtPly(killers[ply], move)) {
-					// Silently consume killers, they have already been searched
-				} else if (attacked || (!attackedDetermined && isMoveOriginSquareAttacked(move))) {
+				if (attacked || (!attackedDetermined && isMoveOriginSquareAttacked(move))) {
 					priority_moves[ply][priority_fill_index[ply]++] = move;
 					attackedDetermined = true;
 					attacked = true;
@@ -484,10 +544,9 @@ public class MoveList implements Iterable<Integer> {
 		
 		@Override
 		public void addNormal(int move) {
+			if (Move.areEqualForBestKiller(move, bestMove[ply])) return;
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
-				if (bestMove[ply] != Move.NULL_MOVE && Move.areEqualForBestKiller(bestMove[ply], move)) {
-					// Silently consume, the best move should already have been found and searched if not null
-				} else if (KillerList.isMoveOnListAtPly(killers[ply], move)) {
+				if (KillerList.isMoveOnListAtPly(killers[ply], move)) {
 					priority_moves[ply][priority_fill_index[ply]++] = Move.setKiller(move);
 					moveCount[ply]++;
 				} else if (attacked || (!attackedDetermined && isMoveOriginSquareAttacked(move))) {

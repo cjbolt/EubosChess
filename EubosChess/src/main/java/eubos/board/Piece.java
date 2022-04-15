@@ -871,4 +871,30 @@ public abstract class Piece {
 			}
 		}
 	}
+	
+	static void pawn_generatePromotionMoves(IAddMoves ml, Board theBoard, int atSquare, boolean ownSideIsWhite) {
+		ml.clearAttackedCache();
+		// Standard move
+		int moveTo = pawn_genOneSqTarget(atSquare, ownSideIsWhite);
+		if (pawn_checkPromotionPossible(ownSideIsWhite, moveTo) && theBoard.squareIsEmpty(moveTo)) {
+			ml.addPrio(ownSideIsWhite ? WhitePawnPromotionMove_Lut[atSquare][0] : BlackPawnPromotionMove_Lut[atSquare][0]);
+		}
+		// Capture moves
+		int ownPiece = ownSideIsWhite ? Piece.WHITE_PAWN : Piece.BLACK_PAWN;
+		int capturePiece = Piece.NONE;
+		int captureAt = pawn_genLeftCaptureTarget(atSquare, ownSideIsWhite);
+		if (captureAt != Position.NOPOSITION) {
+			capturePiece = pawn_isCapturable(ownSideIsWhite, theBoard, captureAt);
+			if (capturePiece != Piece.NONE) {
+				ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, captureAt, capturePiece, Piece.QUEEN ));
+			}
+		}
+		captureAt = pawn_genRightCaptureTarget(atSquare, ownSideIsWhite);
+		if (captureAt != Position.NOPOSITION) {
+			capturePiece = pawn_isCapturable(ownSideIsWhite, theBoard, captureAt);
+			if (capturePiece != Piece.NONE) {
+				ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, captureAt, capturePiece, Piece.QUEEN ));
+			}
+		}
+	}
 }

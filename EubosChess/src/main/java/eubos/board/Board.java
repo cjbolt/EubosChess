@@ -1083,6 +1083,14 @@ public class Board {
 		}
 	}
 	
+	public void getPawnPromotionMovesForSide(IAddMoves ml, boolean isWhite) {
+		pieceLists.addMoves_PawnPromotions(ml, isWhite);
+	}
+	
+	public void getCapturesExcludingPromotions(IAddMoves ml, boolean isWhite) {
+		pieceLists.addMoves_CapturesExcludingPawnPromotions(ml, isWhite);
+	}
+	
 	public class LegalMoveChecker implements IAddMoves {
 		
 		boolean legalMoveFound = false;
