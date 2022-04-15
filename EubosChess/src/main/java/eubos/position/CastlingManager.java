@@ -85,6 +85,16 @@ public class CastlingManager {
 	void setFlags(int flags) {
 		this.flags = flags;
 	}
+	
+	public boolean isCastlingMove(int move) {
+		if (Move.areEqualForBestKiller(move, wksc) ||
+			Move.areEqualForBestKiller(move, bksc) ||
+			Move.areEqualForBestKiller(move, wqsc) ||
+			Move.areEqualForBestKiller(move, bqsc)) {
+			return true;
+		}
+		return false;
+	}
 
 	public void addCastlingMoves(boolean isWhiteOnMove, IAddMoves ml) {
 		// The side on move should not have previously castled

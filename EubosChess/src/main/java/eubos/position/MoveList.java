@@ -18,7 +18,7 @@ import it.unimi.dsi.fastutil.ints.IntComparator;
 public class MoveList implements Iterable<Integer> {
 	
 	public static final boolean DEBUG_CHECK = false;
-	private static final boolean SINGLE_KILLER_STAGE = true;
+	private static final boolean SINGLE_KILLER_STAGE = false;
 	
 	private int [][] normal_search_moves;
 	private int [][] priority_moves;

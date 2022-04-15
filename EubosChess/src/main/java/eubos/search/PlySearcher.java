@@ -219,6 +219,7 @@ public class PlySearcher {
 		// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
 		// It will deviate from the hash move when we start updating the hash during iterative deepening.
 		prevBestMove[currPly] = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
+		prevBestMove[currPly] =  Move.clearBest(prevBestMove[currPly]);
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
 		if (SearchDebugAgent.DEBUG_ENABLED) {
@@ -262,20 +263,18 @@ public class PlySearcher {
 			}
 			do {
 				currMove = move_iter.nextInt();
+				if (EubosEngineMain.ENABLE_ASSERTS) {
+					assert currMove != Move.NULL_MOVE: "Null move found in MoveList";
+				}
 				moveNumber += 1;
-				
+				if (moveNumber == 1) {
+					pc.initialise(currPly, currMove);
+					bestMove = currMove;
+				}
 				if (EubosEngineMain.ENABLE_UCI_MOVE_NUMBER) {
 					sm.setCurrentMove(Move.toGenericMove(currMove), moveNumber);
 					if (originalSearchDepthRequiredInPly > 8)
 						sr.reportCurrentMove();
-				}
-				
-				if (EubosEngineMain.ENABLE_ASSERTS) {
-					assert currMove != Move.NULL_MOVE: "Null move found in MoveList";
-				}
-				if (moveNumber == 1) {
-					pc.initialise(currPly, currMove);
-					bestMove = currMove;
 				}
 				
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(alpha[currPly], beta[currPly]);
@@ -321,6 +320,7 @@ public class PlySearcher {
 					bestMove = currMove;
 					plyScore = positionScore;
 				}
+				
 				hasSearchedPv = true;
 				
 			} while (move_iter.hasNext());

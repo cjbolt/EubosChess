@@ -489,47 +489,42 @@ public class Board {
 			moveToCheckIsPromotion = Move.isPromotion(move);
 		}
 
-		public boolean isLegalMoveFound() {
-			// TODO Auto-generated method stub
-			return false;
-		}
+		public boolean isLegalMoveFound() { return false; }
 		
-		public void clearAttackedCache() {
-			// TODO Auto-generated method stub
-		}
+		public void clearAttackedCache() {}
 	}
 	
 	PseudoPlayableMoveChecker pmc = new PseudoPlayableMoveChecker();
 	
 	public boolean isPlayableMove(int move, boolean needToEscapeMate, CastlingManager castling) {
-		boolean isPlayable = false;
-		
 		int pieceToMove = Move.getOriginPiece(move);
 		int originSquare = Move.getOriginPosition(move);
 		int targetSquare = Move.getTargetPosition(move);
 		int targetPiece = Move.getTargetPiece(move);
 		
 		if (getPieceAtSquare(originSquare) != pieceToMove) {
-			return isPlayable;
+			return false;
 		}
 		if (getPieceAtSquare(targetSquare) != targetPiece && !Move.isEnPassantCapture(move)) {
-			return isPlayable;
+			return false;
 		}
 		if (Move.isEnPassantCapture(move) && (getEnPassantTargetSq() != targetSquare)) {
-			return isPlayable;
+			return false;
 		}
 		
 		boolean isWhite = Piece.isWhite(pieceToMove);
-		boolean isKing = Piece.isKing(pieceToMove);
-		int kingPosition = getKingPosition(isWhite);
 		
 		// Check move can be made, i.e. it isn't blocked Pawn two square, slider
 		pmc.setup(move);
 		switch (Piece.PIECE_NO_COLOUR_MASK & pieceToMove) {
 		case Piece.KING:
-			Piece.king_generateMoves(pmc, this, originSquare, isWhite);
-			if (!needToEscapeMate) {
-				castling.addCastlingMoves(isWhite, pmc);
+			if (castling.isCastlingMove(move)) {
+				if (!needToEscapeMate) {
+					castling.addCastlingMoves(isWhite, pmc);
+				}
+			} else {
+				// It is enough to rely on the checks before the switch if not a castling move
+				pmc.moveIsPlayable = true;
 			}
 			break;
 		case Piece.QUEEN:
@@ -542,22 +537,29 @@ public class Board {
 			Piece.bishop_generateMoves(pmc, this, originSquare, isWhite);
 			break;
 		case Piece.KNIGHT:
-			Piece.knight_generateMoves(pmc, this, originSquare, isWhite);
+			pmc.moveIsPlayable = true;
 			break;
 		case Piece.PAWN:
-			Piece.pawn_generateMoves(pmc, this, originSquare, isWhite);
+			if ((Position.getRank(originSquare) == (isWhite ? IntRank.R2 : IntRank.R7))) {
+				// two square pawn moves need to be checked if intermediate square is empty
+				int checkSquare = isWhite ? originSquare+16: originSquare-16;
+				pmc.moveIsPlayable = squareIsEmpty(checkSquare);
+			} else {
+				pmc.moveIsPlayable = true;
+			}
 			break;
 		}
 		if (!pmc.isPlayableMoveFound()) {
-			return isPlayable;
+			return false;
 		}
 		
 		// It is valid
-		isPlayable = true;
+		boolean isPlayable = true;
+		boolean isKing = Piece.isKing(pieceToMove);
+		int kingPosition = getKingPosition(isWhite);
 		if (needToEscapeMate || isKing || moveCouldLeadToOwnKingDiscoveredCheck(move, kingPosition)) {
 		
 			int capturePosition = Position.NOPOSITION;
-			
 			boolean isCapture = targetPiece != Piece.NONE;
 			long initialSquareMask = BitBoard.positionToMask_Lut[originSquare];
 			long targetSquareMask = BitBoard.positionToMask_Lut[targetSquare];
