@@ -31,6 +31,7 @@ public class MoveList implements Iterable<Integer> {
 	private int [] nextCheckPoint;
 	
 	private boolean [] needToEscapeMate;
+	private boolean [] extendedSearch;
 	private int [] moveCount;
 	private int [] scratchpad_fill_index;
 	private int [] extendedListScopeEndpoint;
@@ -80,6 +81,7 @@ public class MoveList implements Iterable<Integer> {
 		extendedListScopeEndpoint = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		bestMove = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		needToEscapeMate = new boolean [EubosEngineMain.SEARCH_DEPTH_IN_PLY];
+		extendedSearch = new boolean [EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		killers = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY][3];
 		
 		nextCheckPoint = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY];
@@ -104,9 +106,10 @@ public class MoveList implements Iterable<Integer> {
 		ma_quietKillers = new QuietMovesWithKillers();
 	}
 	
-	public void initialise(int bestMove, int [] killers, boolean needToEscapeMate, int ply) {
+	public void initialise(int bestMove, int [] killers, boolean needToEscapeMate, boolean capturesOnly, int ply) {
 		// Initialise working variables for building the MoveList at this ply
 		this.needToEscapeMate[ply] = needToEscapeMate;
+		this.extendedSearch[ply] = capturesOnly;
 		this.killers[ply] = killers;
 		this.bestMove[ply] = bestMove;
 		nextCheckPoint[ply] = 0;
@@ -126,7 +129,7 @@ public class MoveList implements Iterable<Integer> {
 	{
 		// Initialise working variables for building the MoveList at this ply
 		this.ply = ply; 
-		initialise(bestMove, killers, needToEscapeMate, ply);
+		initialise(bestMove, killers, needToEscapeMate, capturesOnly, ply);
 		
 		getMoves(capturesOnly);
 		if (moveCount[ply] != 0) {
@@ -160,7 +163,9 @@ public class MoveList implements Iterable<Integer> {
 			// Return best Move if valid
 			nextCheckPoint[ply] = 1;
 			if (bestMove[ply] != Move.NULL_MOVE) {
-				if (Move.isBest(bestMove[ply]) || bestMoveIsValid()) {
+				if ((Move.isBest(bestMove[ply]) || bestMoveIsValid()) &&
+					(!extendedSearch[ply] || 
+				     (extendedSearch[ply] && (Move.isQueenPromotion(bestMove[ply]) || Move.isCapture(bestMove[ply]))))) {
 					scratchpad[ply][0] = bestMove[ply];
 					iter = getBestIterator();
 					break;
@@ -189,6 +194,10 @@ public class MoveList implements Iterable<Integer> {
 			}
 			// Note fall-through to next stage if no captures
 		case 3:
+			if (extendedSearch[ply]) {
+				iter = new MoveListIterator(scratchpad[ply], 0);
+				break;
+			}
 			// Generate Killers
 			nextCheckPoint[ply] = 4;
 			if (SINGLE_KILLER_STAGE) {

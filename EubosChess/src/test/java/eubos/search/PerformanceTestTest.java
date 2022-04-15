@@ -10,7 +10,7 @@ import org.junit.jupiter.api.TestInfo;
 
 import eubos.position.PositionManager;
 
-@Disabled
+//@Disabled
 public class PerformanceTestTest {
 
 	PerformanceTest sut;

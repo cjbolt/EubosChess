@@ -241,86 +241,90 @@ public class PlySearcher {
 				return hashScore[currPly];
 			}
 		}
-		MoveListIterator move_iter = ml.createForPly(prevBestMove[currPly], killers.getMoves(currPly), false, needToEscapeCheck, currPly);
-		if (!move_iter.hasNext()) {
-			// No moves at this point means either a stalemate or checkmate has occurred
-			return needToEscapeCheck ? Score.getMateScore(currPly) : 0;
-		}
 			
-		int currMove = move_iter.nextInt();
-		int bestMove = currMove;
-		pc.initialise(currPly, currMove);
-		
+		// Main search loop for root ply
+		int bestMove = Move.NULL_MOVE;
+		int currMove = Move.NULL_MOVE;
 		int positionScore = plyScore;
-		int moveNumber = 1;
-		while (!isTerminated()) {
-			if (EubosEngineMain.ENABLE_UCI_MOVE_NUMBER) {
-				sm.setCurrentMove(Move.toGenericMove(currMove), moveNumber);
-				if (originalSearchDepthRequiredInPly > 8)
-					sr.reportCurrentMove();
-			}
-			
-			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
-			// Apply move and score
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
-						
-			currPly++;
-			pm.performMove(currMove);
-			
-			positionScore = doLateMoveReductionSubTreeSearch(depth, needToEscapeCheck, currMove, moveNumber);
-			
-			pm.unperformMove();
-			currPly--;
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
-			
-			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
-			
-			if (isTerminated()) {
-				// don't update PV if out of time for search, instead return last fully searched PV.
-				return 0;
-			}
-			
-			// Handle score backed up to this node
-			if (positionScore > alpha[currPly]) {
-				alpha[currPly] = plyScore = positionScore;
-				bestMove = currMove;
-				
-				if (alpha[currPly] >= beta[currPly]) {
-					plyScore = beta[currPly]; // fail hard
-					killers.addMove(currPly, bestMove);
-					reportPv((short) beta[currPly]);
-					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
+		int moveNumber = 0;
+		boolean refuted = false;
+		ml.initialise(prevBestMove[currPly], killers.getMoves(currPly), needToEscapeCheck, false, currPly);
+		do {
+			MoveListIterator move_iter = ml.stagedMoveGen(currPly);
+			if (!move_iter.hasNext()) {
+				if (moveNumber == 0) {
+					// No moves at this point means either a stalemate or checkmate has occurred
+					return needToEscapeCheck ? Score.getMateScore(currPly) : 0;
+				} else {
+					// As soon as there are no more moves returned from staged move generation, break out, if we already searched a move
 					break;
 				}
-				
-				pc.update(currPly, bestMove);
-				trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) alpha[currPly], Score.upperBound);
-				reportPv((short) alpha[currPly]);
-			} else if (positionScore > plyScore) {
-				if (plyScore == Score.PROVISIONAL_ALPHA) {
-					pc.update(currPly, currMove);
-					reportPv((short) alpha[currPly]);
-				}
-				bestMove = currMove;
-				plyScore = positionScore;
 			}
-			
-			// Break-out when out of moves
-			if (move_iter.hasNext()) {
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(alpha[currPly], beta[currPly]);
+			do {
 				currMove = move_iter.nextInt();
 				moveNumber += 1;
-				hasSearchedPv = true;
+				
+				if (EubosEngineMain.ENABLE_UCI_MOVE_NUMBER) {
+					sm.setCurrentMove(Move.toGenericMove(currMove), moveNumber);
+					if (originalSearchDepthRequiredInPly > 8)
+						sr.reportCurrentMove();
+				}
+				
 				if (EubosEngineMain.ENABLE_ASSERTS) {
 					assert currMove != Move.NULL_MOVE: "Null move found in MoveList";
-					assert moveNumber <= ml.getList(currPly).size() : "MoveList is too long";
 				}
-			} else {
-				break;
-			}
-		}
+				if (moveNumber == 1) {
+					pc.initialise(currPly, currMove);
+					bestMove = currMove;
+				}
+				
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(alpha[currPly], beta[currPly]);
+				if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
+				
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
+				currPly++;
+				pm.performMove(currMove);
+				
+				positionScore = doLateMoveReductionSubTreeSearch(depth, needToEscapeCheck, currMove, moveNumber);
+				
+				pm.unperformMove();
+				currPly--;
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
+				
+				if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
+				
+				if (isTerminated()) { return 0;	} // don't update PV if out of time for search, instead return last fully searched PV.
+				
+				// Handle score backed up to this node
+				if (positionScore > alpha[currPly]) {
+					alpha[currPly] = plyScore = positionScore;
+					bestMove = currMove;
+					if (alpha[currPly] >= beta[currPly]) {
+						plyScore = beta[currPly]; // fail hard
+						killers.addMove(currPly, bestMove);
+						reportPv((short) beta[currPly]);
+						if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
+						refuted = true;
+						break;
+					}
+					pc.update(currPly, bestMove);
+					trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) alpha[currPly], Score.upperBound);
+					reportPv((short) alpha[currPly]);
+				} 
+				else if (positionScore > plyScore) {
+					if (plyScore == Score.PROVISIONAL_ALPHA) {
+						pc.update(currPly, currMove);
+						reportPv((short) alpha[currPly]);
+					}
+					bestMove = currMove;
+					plyScore = positionScore;
+				}
+				hasSearchedPv = true;
+				
+			} while (move_iter.hasNext());
+		} while (!isTerminated() && !refuted);
 		
 		if (!isTerminated()) {
 			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) plyScore);
@@ -417,7 +421,7 @@ public class PlySearcher {
 		int positionScore = plyScore;
 		int moveNumber = 0;
 		boolean refuted = false;
-		ml.initialise(prevBestMove[currPly], killers.getMoves(currPly), needToEscapeCheck, currPly);
+		ml.initialise(prevBestMove[currPly], killers.getMoves(currPly), needToEscapeCheck, false, currPly);
 		do {
 			MoveListIterator move_iter = ml.stagedMoveGen(currPly);
 			if (!move_iter.hasNext()) {
@@ -495,7 +499,6 @@ public class PlySearcher {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
 		int prevBestMove = Move.NULL_MOVE;
-		MoveListIterator move_iter;
 		
 		// Stand Pat in extended search
 		short plyScore = (short) 0;
@@ -542,92 +545,60 @@ public class PlySearcher {
 			alpha = plyScore;
 		}
 		
-		// Create MoveList, computationally very heavy in extended search
-		boolean searchedBestMove = false;
 		long trans = tt.getTransposition();
 		if (trans != 0L) {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
 			prevBestMove = Transposition.getBestMove(trans);
-			
-			// Try hash best move immediately, even if it is an under promotion
-			if (EubosEngineMain.ENABLE_STAGED_MOVE_GENERATION) {
-				if (Move.isQueenPromotion(prevBestMove) || Move.isCapture(prevBestMove)) {
-					
-					searchedBestMove = true;
-					pc.initialise(currPly, prevBestMove);
-					
-					if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
-					if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(prevBestMove);			
-					if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
-					currPly++;
-					pm.performMove(prevBestMove);
-					short positionScore = (short) -extendedSearch(-beta, -alpha, pos.isKingInCheck());
-					pm.unperformMove();
-					currPly--;
-					if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
-					if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(prevBestMove, positionScore);
-					if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
-					
-					if (positionScore > alpha) {
-						if (positionScore >= beta) {
-							if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(positionScore);
-							return beta;
-						}
-						alpha = positionScore;
-						pc.update(currPly, prevBestMove);
-					}
-				}
-			}
 		}
 		
-		move_iter = ml.createForPly(prevBestMove, needToEscapeCheck, currPly);
-		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtendedSearchMoveList(ml);		
-		if (!move_iter.hasNext()) {
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearchNoMoves(alpha);
-			return alpha;
-		}
-		int currMove = move_iter.nextInt();
-		if (searchedBestMove) {
+		int currMove = Move.NULL_MOVE;
+		int positionScore = plyScore;
+		int moveNumber = 0;
+		ml.initialise(prevBestMove, null, needToEscapeCheck, true, currPly);
+		do {
+			MoveListIterator move_iter = ml.stagedMoveGen(currPly);
 			if (!move_iter.hasNext()) {
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearchNoMoves(alpha);
+				// As soon as there are no more moves returned from staged move generation, break out in extended search
 				return alpha;
 			}
-			currMove = move_iter.nextInt();
-		}
-		if (!searchedBestMove){
-			pc.initialise(currPly, currMove);
-		}
-		
-		while(true) {		
-			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
-			// Apply capture and score
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);			
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
-			currPly++;
-			pm.performMove(currMove);
-			short positionScore = (short) -extendedSearch(-beta, -alpha, pos.isKingInCheck());
-			pm.unperformMove();
-			currPly--;
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
-			
-			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
-			
-			if (positionScore > alpha) {
-				if (positionScore >= beta) {
-					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(positionScore);
-					return beta;
-				}
-				alpha = positionScore;
-				pc.update(currPly, currMove);
-			}
-			
-			if (move_iter.hasNext()) {
+			do {
 				currMove = move_iter.nextInt();
-			} else {
-				break;
-			}
-		}
+				moveNumber += 1;
+				if (EubosEngineMain.ENABLE_ASSERTS) {
+					assert currMove != Move.NULL_MOVE: "Null move found in MoveList";
+				}
+				if (moveNumber == 1) {
+					pc.initialise(currPly, currMove);
+				}
+
+				if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
+				currPly++;
+				pm.performMove(currMove);
+				
+				positionScore = (short) -extendedSearch(-beta, -alpha, pos.isKingInCheck());
+				
+				pm.unperformMove();
+				currPly--;
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
+				if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
+				
+				//if (isTerminated()) { return 0;	} // don't update PV if out of time for search, instead return last fully searched PV.
+				
+				// Handle score backed up to this node
+				if (positionScore > alpha) {
+					if (positionScore >= beta) {
+						if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(positionScore);
+						return beta;
+					}
+					alpha = positionScore;
+					pc.update(currPly, prevBestMove);
+				}
+			} while (move_iter.hasNext());
+		} while (!isTerminated());
+
 		return alpha;
 	}
 	

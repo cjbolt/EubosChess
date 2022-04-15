@@ -337,7 +337,7 @@ public class MoveListTest {
 		int best = Move.valueOf(Position.f8, Piece.WHITE_QUEEN, Position.b4, Piece.NONE);
 		best = Move.setBest(best);
 		classUnderTest = new MoveList(pm, 1);
-		classUnderTest.initialise(best, null, pm.isKingInCheck(), 0);
+		classUnderTest.initialise(best, null, pm.isKingInCheck(), false, 0);
 		MoveListIterator it = classUnderTest.stagedMoveGen(0);
 		
 		assertEquals(best, it.nextInt());
@@ -348,7 +348,7 @@ public class MoveListTest {
 		PositionManager pm = new PositionManager("5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113");
 		int best = Move.valueOf(Position.a1, Piece.WHITE_QUEEN, Position.a2, Piece.NONE);
 		classUnderTest = new MoveList(pm, 1);
-		classUnderTest.initialise(best, null, pm.isKingInCheck(), 0);
+		classUnderTest.initialise(best, null, pm.isKingInCheck(), false, 0);
 		MoveListIterator it = classUnderTest.stagedMoveGen(0);
 		
 		assertEquals(Move.valueOf(Position.g7, Piece.WHITE_KING, Position.g8, Piece.NONE), it.nextInt());
@@ -359,7 +359,7 @@ public class MoveListTest {
 		PositionManager pm = new PositionManager("5Q2/P5K1/8/3k4/5n2/8/8/8 w - - 1 113");
 		int best = Move.valueOf(Position.a1, Piece.WHITE_QUEEN, Position.a2, Piece.NONE);
 		classUnderTest = new MoveList(pm, 1);
-		classUnderTest.initialise(best, null, pm.isKingInCheck(), 0);
+		classUnderTest.initialise(best, null, pm.isKingInCheck(), false, 0);
 		MoveListIterator it = classUnderTest.stagedMoveGen(0);
 		
 		assertEquals(Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.a7, Piece.WHITE_PAWN, Position.a8, Piece.NONE, Piece.QUEEN), it.nextInt());
@@ -371,7 +371,7 @@ public class MoveListTest {
 		int best = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.a7, Piece.WHITE_PAWN, Position.a8, Piece.NONE, Piece.QUEEN);
 		best = Move.setBest(best);
 		classUnderTest = new MoveList(pm, 1);
-		classUnderTest.initialise(best, null, pm.isKingInCheck(), 0);
+		classUnderTest.initialise(best, null, pm.isKingInCheck(), false, 0);
 		MoveListIterator it = classUnderTest.stagedMoveGen(0);
 		
 		assertEquals(best, it.nextInt());
@@ -387,7 +387,7 @@ public class MoveListTest {
 		classUnderTest = new MoveList(pm, 1);
 		MoveListIterator it = classUnderTest.createForPly(Move.NULL_MOVE, pm.isKingInCheck(), 0);
 		
-		classUnderTest.initialise(Move.NULL_MOVE, null, pm.isKingInCheck(), 0);
+		classUnderTest.initialise(Move.NULL_MOVE, null, pm.isKingInCheck(), true, 0);
 		MoveListIterator smg_it = classUnderTest.stagedMoveGen(0);
 		// Promotion
 		assertTrue(Move.areEqualForBestKiller(smg_it.nextInt(), it.nextInt())); // "a7a8Q"
