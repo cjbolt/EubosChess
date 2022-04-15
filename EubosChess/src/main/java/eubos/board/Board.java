@@ -528,7 +528,9 @@ public class Board {
 		switch (Piece.PIECE_NO_COLOUR_MASK & pieceToMove) {
 		case Piece.KING:
 			Piece.king_generateMoves(pmc, this, originSquare, isWhite);
-			castling.addCastlingMoves(isWhite, pmc);
+			if (!needToEscapeMate) {
+				castling.addCastlingMoves(isWhite, pmc);
+			}
 			break;
 		case Piece.QUEEN:
 			Piece.queen_generateMoves(pmc, this, originSquare, isWhite);
