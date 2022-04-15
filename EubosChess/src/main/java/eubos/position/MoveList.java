@@ -42,7 +42,8 @@ public class MoveList implements Iterable<Integer> {
 	PositionManager pm;
 	int ordering;
 	
-	public MoveAdderCapturesAndPromotions ma_capturesPromos;
+	public MoveAdderPromotions ma_promotions;
+	public MoveAdderCaptures ma_captures;
 	
 	public AllMovesWithKillers ma_killers;
 	public AllMovesWithNoKillers ma_noKillers;
@@ -96,7 +97,8 @@ public class MoveList implements Iterable<Integer> {
 		
 		ma_killers = new AllMovesWithKillers();
 		ma_noKillers = new AllMovesWithNoKillers();
-		ma_capturesPromos = new MoveAdderCapturesAndPromotions();
+		ma_promotions = new MoveAdderPromotions();
+		ma_captures = new MoveAdderCaptures();
 		ma_quietNoKillers = new QuietMovesWithNoKillers();
 		ma_quietConsumeKillers = new QuietMovesConsumingKillers();
 		ma_quietKillers = new QuietMovesWithKillers();
@@ -163,9 +165,9 @@ public class MoveList implements Iterable<Integer> {
 					iter = getBestIterator();
 					break;
 				}
-				bestMove[ply] = Move.NULL_MOVE;
+				bestMove[ply] = Move.NULL_MOVE; // If it wasn't valid, invalidate it
 			}
-			// Note fall-through if no valid best move
+			// Note fall-through to next stage if no valid best move
 		case 1:
 			// Generate pawn promotions
 			nextCheckPoint[ply] = 2;
@@ -173,25 +175,19 @@ public class MoveList implements Iterable<Integer> {
 			if (moveCount[ply] != 0) {
 				sortPriorityList();
 				iter = new MoveListIterator(priority_moves[ply], priority_fill_index[ply]);
-			    if (iter.hasNext()) {
-					break; // Return if there is a move in the iterator
-				}
-				// Note fall-through if no valid move in the iterator
+				break; // Return if there is a move in the iterator
 			}
+			// Note fall-through to next stage if no promotions
 		case 2:
 			// Generate all captures other than pawn promotions
 			nextCheckPoint[ply] = 3;
-			moveCount[ply] = 0;
-			priority_fill_index[ply] = 0;
 			getNonPawnPromotionCaptures();
 			if (moveCount[ply] != 0) {
 				sortPriorityList();
 				iter = new MoveListIterator(priority_moves[ply], priority_fill_index[ply]);
-			    if (iter.hasNext()) {
-					break; // Return if there is a move in the iterator
-				}
-				// Note fall-through if no valid move in the iterator
+				break; // Return if there is a move in the iterator
 			}
+			// Note fall-through to next stage if no captures
 		case 3:
 			// Generate Killers
 			nextCheckPoint[ply] = 4;
@@ -219,6 +215,7 @@ public class MoveList implements Iterable<Integer> {
 						break;
 					}
 				}
+				// Note fall-through to next stage if no killer moves, or no valid killers for this position
 			} else {
 				iter = checkKiller(0);
 				if (iter != null) break;
@@ -238,15 +235,13 @@ public class MoveList implements Iterable<Integer> {
 		case 6:
 			// Lastly, generate all moves that aren't best, killers, or tactical moves
 			nextCheckPoint[ply] = 7;
-			moveCount[ply] = 0;
-			priority_fill_index[ply] = 0;
 			getQuietMoves();
 			if (moveCount[ply] != 0) {
-				sortPriorityList();
 				collateMoveList();
 				iter = iterator();
 				break;
 			}
+			// Note fall-through to empty iterator if there are no quiet moves in the position
 		case 7:
 		default:
 			iter = new MoveListIterator(scratchpad[ply], 0); // Empty iterator
@@ -271,25 +266,23 @@ public class MoveList implements Iterable<Integer> {
 		return pm.getTheBoard().isPlayableMove(bestMove[ply], needToEscapeMate[ply], pm.castling);
 	}
 	
-	private void getCapturesAndPromotions() {
-		// Set-up move adder to filter the moves from attacked pieces into the priority part of the move list
-		boolean isWhiteOnMove = pm.onMoveIsWhite();
-		pm.getTheBoard().getRegularPieceMoves(ma_capturesPromos, isWhiteOnMove, true);
-	}
-	
 	private void getPawnPromotions() {
-		// Set-up move adder to filter the moves from attacked pieces into the priority part of the move list
+		moveCount[ply] = 0;
+		priority_fill_index[ply] = 0;
 		boolean isWhiteOnMove = pm.onMoveIsWhite();
-		pm.getTheBoard().getPawnPromotionMovesForSide(ma_capturesPromos, isWhiteOnMove);
+		pm.getTheBoard().getPawnPromotionMovesForSide(ma_promotions, isWhiteOnMove);
 	}
 	
 	private void getNonPawnPromotionCaptures() {
-		// Set-up move adder to filter the moves from attacked pieces into the priority part of the move list
+		moveCount[ply] = 0;
+		priority_fill_index[ply] = 0;
 		boolean isWhiteOnMove = pm.onMoveIsWhite();
-		pm.getTheBoard().getCapturesExcludingPromotions(ma_capturesPromos, isWhiteOnMove);
+		pm.getTheBoard().getCapturesExcludingPromotions(ma_captures, isWhiteOnMove);
 	}
 	
 	private void getQuietMoves() {
+		moveCount[ply] = 0;
+		priority_fill_index[ply] = 0;
 		IAddMoves moveAdder = null;
 		boolean isWhiteOnMove = pm.onMoveIsWhite();
 		long attackMask = pm.getTheBoard().pkaa.getAttacks(isWhiteOnMove);
@@ -435,7 +428,7 @@ public class MoveList implements Iterable<Integer> {
 		}
 	}
 	
-	public class MoveAdderCapturesAndPromotions implements IAddMoves {
+	public class MoveAdderPromotions implements IAddMoves {
 		
 		public void addPrio(int move) {
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
@@ -468,7 +461,7 @@ public class MoveList implements Iterable<Integer> {
 		}
 	}
 	
-	public class MoveAdderCaptures extends MoveAdderCapturesAndPromotions implements IAddMoves {
+	public class MoveAdderCaptures extends MoveAdderPromotions implements IAddMoves {
 		@Override
 		public void addPrio(int move) {
 			if (Move.areEqualForBestKiller(move, bestMove[ply])) return;
@@ -479,7 +472,7 @@ public class MoveList implements Iterable<Integer> {
 		}
 	}
 	
-	public class QuietMovesWithNoKillers extends MoveAdderCapturesAndPromotions implements IAddMoves {
+	public class QuietMovesWithNoKillers extends MoveAdderPromotions implements IAddMoves {
 		
 		long attackMask = 0L;
 		boolean attacked = false;
