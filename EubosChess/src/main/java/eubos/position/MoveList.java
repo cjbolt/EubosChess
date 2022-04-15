@@ -458,7 +458,7 @@ public class MoveList implements Iterable<Integer> {
 		public void clearAttackedCache() { }
 		
 		protected void handleUnderPromotions(int move) {
-			if (Move.isQueenPromotion(move)) {
+			if (!extendedSearch[ply] && Move.isQueenPromotion(move)) {
 				int under1 = Move.setPromotion(move, Piece.ROOK);
 				int under2 = Move.setPromotion(move, Piece.BISHOP);
 				int under3 = Move.setPromotion(move, Piece.KNIGHT);
