@@ -647,6 +647,14 @@ public class BoardTest {
 	}
 	
 	@Test
+	public void test_is_playable_castling_king_in_check() {
+		setUpPosition("8/8/8/1b1k4/8/8/8/R3K2R w K - 1 10");
+		int move = Move.valueOf(Position.e1, Piece.WHITE_KING, Position.g1, Piece.NONE);
+		boolean inCheck = false;
+		assertFalse(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+	}
+	
+	@Test
 	public void test_is_playable_valid_en_passant() {
 		setUpPosition("8/8/8/3k1pP1/8/8/8/4K3 w - f6 - 10");
 		int move = Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.g5, Piece.WHITE_PAWN, Position.f6, Piece.BLACK_PAWN, Piece.NONE);
@@ -669,5 +677,21 @@ public class BoardTest {
 		int move = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.g7, Piece.WHITE_PAWN, Position.h8, Piece.BLACK_KNIGHT, Piece.KNIGHT);
 		boolean inCheck = false;
 		assertTrue(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+	}
+	
+	@Test 
+	public void test_is_playable_initial_pawn_move() {
+		setUpPosition("r1b1kb1r/ppq1pppp/8/3pN3/3Q4/8/PPP2PPP/RNB1K2R b KQkq - 0 1");
+		int move = Move.valueOf(Position.a7, Piece.BLACK_PAWN, Position.a5, Piece.NONE);
+		boolean inCheck = false;
+		assertTrue(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+	}
+	
+	@Test 
+	public void test_is_playable_initial_pawn_move_blocked() {
+		setUpPosition("r1b1kb1r/ppq1pppp/P7/3pN3/3Q4/8/PPP2PPP/RNB1K2R b KQkq - 0 1");
+		int move = Move.valueOf(Position.a7, Piece.BLACK_PAWN, Position.a5, Piece.NONE);
+		boolean inCheck = false;
+		assertFalse(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
 	}
 }
