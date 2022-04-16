@@ -428,14 +428,6 @@ public class MoveList implements Iterable<Integer> {
 		}
 		return retVal;
 	}
-
-	public int getBestMove() {
-		if (normal_list_length[ply] != 0) {
-			return scratchpad[ply][0];
-		} else {
-			return Move.NULL_MOVE;
-		}
-	}
 	
 	public class MoveAdderPromotions implements IAddMoves {
 		
