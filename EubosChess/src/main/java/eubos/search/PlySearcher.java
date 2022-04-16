@@ -585,7 +585,7 @@ public class PlySearcher {
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
 				if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
 				
-				//if (isTerminated()) { return 0;	} // don't update PV if out of time for search, instead return last fully searched PV.
+				if (isTerminated()) { return 0;	} // don't update PV if out of time for search, instead return last fully searched PV.
 				
 				// Handle score backed up to this node
 				if (positionScore > alpha) {
