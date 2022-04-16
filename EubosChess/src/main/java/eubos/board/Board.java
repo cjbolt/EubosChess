@@ -364,13 +364,15 @@ public class Board {
     Only do those operations that bear on this, and such that are needed to preserve state.
     */
 	public boolean isIllegalMove(int move, boolean needToEscapeMate) {
-		boolean isIllegal = false;
-		
 		int pieceToMove = Move.getOriginPiece(move);
 		boolean isWhite = Piece.isWhite(pieceToMove);
+		return isIllegalCheckHelper(move, needToEscapeMate, pieceToMove, isWhite);
+	}
+	
+	private boolean isIllegalCheckHelper(int move, boolean needToEscapeMate, int pieceToMove, boolean isWhite) {
+		boolean isIllegal = false;
 		boolean isKing = Piece.isKing(pieceToMove);
 		int kingPosition = getKingPosition(isWhite);
-		
 		if (needToEscapeMate || isKing || moveCouldLeadToOwnKingDiscoveredCheck(move, kingPosition)) {
 		
 			int capturePosition = Position.NOPOSITION;
@@ -553,89 +555,8 @@ public class Board {
 			return false;
 		}
 		
-		// It is valid
-		boolean isPlayable = true;
-		boolean isKing = Piece.isKing(pieceToMove);
-		int kingPosition = getKingPosition(isWhite);
-		if (needToEscapeMate || isKing || moveCouldLeadToOwnKingDiscoveredCheck(move, kingPosition)) {
-		
-			int capturePosition = Position.NOPOSITION;
-			boolean isCapture = targetPiece != Piece.NONE;
-			long initialSquareMask = BitBoard.positionToMask_Lut[originSquare];
-			long targetSquareMask = BitBoard.positionToMask_Lut[targetSquare];
-			long positionsMask = initialSquareMask | targetSquareMask;
-			
-			long pieceToPickUp = Position.NOPOSITION;
-			
-			if (isCapture) {
-				// Handle captures
-				if (Move.isEnPassantCapture(move)) {
-					// Handle en passant captures, don't need to do other checks in this case
-					capturePosition = generateCapturePositionForEnPassant(pieceToMove, targetSquare);
-				} else {
-					capturePosition = targetSquare;
-				}
-				pieceToPickUp = BitBoard.positionToMask_Lut[capturePosition];
-				// Remove from relevant colour bitboard
-				if (isWhite) {
-					blackPieces &= ~pieceToPickUp;
-				} else {
-					whitePieces &= ~pieceToPickUp;
-				}
-				// remove from specific bitboard
-				pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] &= ~pieceToPickUp;
-				// Remove from all pieces bitboard
-				allPieces &= ~pieceToPickUp;
-			}
-			
-			// Simplification don't consider promotions between piece-specific bitboards and piece lists
-			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
-			// Switch colour bitboard
-			if (isWhite) {
-				whitePieces ^= positionsMask;
-			} else {
-				blackPieces ^= positionsMask;
-			}
-			// Switch all pieces bitboard
-			allPieces ^= positionsMask;
-			// Because of need to check if in check, need to update for King only
-			if (isKing) {
-				pieceLists.updatePiece(pieceToMove, originSquare, targetSquare);
-				kingPosition = targetSquare; // King moved!
-			}
-			
-			isPlayable = !squareIsAttacked(kingPosition, isWhite);
-			
-			// Switch piece bitboard
-			// Piece type doesn't change across boards
-			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
-			// Switch colour bitboard
-			if (isWhite) {
-				whitePieces ^= positionsMask;
-			} else {
-				blackPieces ^= positionsMask;
-			}
-			// Switch all pieces bitboard
-			allPieces ^= positionsMask;
-			// Because of need to check if in check, need to update for King only
-			if (isKing) {
-				pieceLists.updatePiece(pieceToMove, targetSquare, originSquare);
-			}
-			// Undo any capture that had been previously performed.
-			if (isCapture) {
-				// Set on piece-specific bitboard
-				pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] |= pieceToPickUp;
-				// Set on colour bitboard
-				if (isWhite) {
-					blackPieces |= pieceToPickUp;
-				} else {
-					whitePieces |= pieceToPickUp;
-				}
-				// Set on all pieces bitboard
-				allPieces |= pieceToPickUp;
-			}
-		}
-		return isPlayable;
+		// It is valid, unless illegal
+		return !isIllegalCheckHelper(move, needToEscapeMate, pieceToMove, isWhite);
 	}
 	
 	private static final long wksc_mask = BitBoard.positionToMask_Lut[Position.h1] | BitBoard.positionToMask_Lut[Position.f1];
