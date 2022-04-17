@@ -502,4 +502,15 @@ public class PieceList {
 			}
 		}
 	}
+
+	public boolean isPresent(int pieceToMove, int originSquare) {
+		for(int atSquare : piece_list[pieceToMove]) {
+			if (atSquare != Position.NOPOSITION) {
+				if (originSquare == atSquare) {
+					return true;
+				}
+			} else break;
+		}
+		return false;
+	}
 }

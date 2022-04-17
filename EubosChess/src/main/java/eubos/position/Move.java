@@ -348,6 +348,7 @@ public final class Move {
         }
     }
 	
+	@SuppressWarnings("unused")
 	public static int getOriginPiece(int move) {
 		int piece = (move & ORIGIN_PIECE_MASK) >>> ORIGIN_PIECE_SHIFT;
 		if (EubosEngineMain.ENABLE_ASSERTS && !EubosEngineMain.ENABLE_STAGED_MOVE_GENERATION)
