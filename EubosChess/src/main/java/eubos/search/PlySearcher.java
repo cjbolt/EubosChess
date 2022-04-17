@@ -491,6 +491,7 @@ public class PlySearcher {
 		return alpha[currPly];
 	}
 	
+	@SuppressWarnings("unused")
 	private int extendedSearch(int alpha, int beta, boolean needToEscapeCheck)  {
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearch(alpha, beta);
 		if (currPly > extendedSearchDeepestPly) {
@@ -558,6 +559,7 @@ public class PlySearcher {
 		do {
 			MoveListIterator move_iter = ml.stagedMoveGen(currPly);
 			if (!move_iter.hasNext()) {
+				if (SearchDebugAgent.DEBUG_ENABLED && moveNumber == 0) sda.printExtSearchNoMoves(alpha);
 				// As soon as there are no more moves returned from staged move generation, break out in extended search
 				return alpha;
 			}
@@ -594,7 +596,7 @@ public class PlySearcher {
 						return beta;
 					}
 					alpha = positionScore;
-					pc.update(currPly, prevBestMove);
+					pc.update(currPly, currMove);
 				}
 			} while (move_iter.hasNext());
 		} while (!isTerminated());
