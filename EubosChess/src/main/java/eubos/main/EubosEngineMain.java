@@ -323,7 +323,7 @@ public class EubosEngineMain extends AbstractEngine {
 						rootPosition.unperformMove(false);
 					}
 				}
-			} catch (Exception e) {
+			} catch (AssertionError e) {
 				Writer buffer = new StringWriter();
 				PrintWriter pw = new PrintWriter(buffer);
 				e.printStackTrace(pw);
