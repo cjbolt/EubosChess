@@ -128,8 +128,19 @@ public class Board {
 		
 		// Check assertions, if enabled in build
 		if (EubosEngineMain.ENABLE_ASSERTS) {
+			// Check piece to move is on the bitboard, and is correct side
 			assert (pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] & initialSquareMask) != 0: 
-				String.format("Non-existant piece at %s", Position.toGenericPosition(originSquare));
+				String.format("Non-existant piece %s at %s for move %s", 
+						Piece.toFenChar(pieceToMove), Position.toGenericPosition(originSquare), Move.toString(move));
+			assert ((isWhite ? whitePieces : blackPieces) & initialSquareMask) != 0: 
+				String.format("Piece %s not on colour board for move %s", 
+						Piece.toFenChar(pieceToMove), Move.toString(move));
+			assert (allPieces & initialSquareMask) != 0: 
+				String.format("Piece %s not on all pieces board for move %s", 
+						Piece.toFenChar(pieceToMove), Move.toString(move));
+			assert pieceLists.isPresent(pieceToMove, originSquare) :
+				String.format("Piece %s is not present in PieceList for move %s", 
+					Piece.toFenChar(pieceToMove), Move.toString(move));
 		}
 		
 		// Initialise En Passant target square
@@ -142,6 +153,21 @@ public class Board {
 				capturePosition = generateCapturePositionForEnPassant(pieceToMove, targetSquare);
 			} else {
 				capturePosition = targetSquare;
+			}
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				long captureMask = BitBoard.positionToMask_Lut[capturePosition];
+				assert (pieces[Piece.PIECE_NO_COLOUR_MASK & targetPiece] & captureMask) != 0: 
+					String.format("Non-existant target piece %s at %s for move %s", 
+							Piece.toFenChar(targetPiece), Position.toGenericPosition(capturePosition), Move.toString(move));
+				assert ((isWhite ? blackPieces : whitePieces) & captureMask) != 0: 
+					String.format("Piece %s not on colour board for move %s", 
+							Piece.toFenChar(targetPiece), Move.toString(move));
+				assert (allPieces & captureMask) != 0: 
+					String.format("Piece %s not on all pieces board for move %s", 
+							Piece.toFenChar(targetPiece), Move.toString(move));
+				assert pieceLists.isPresent(targetPiece, capturePosition) :
+					String.format("Non-existant target piece %c at %s for move %s",
+						Piece.toFenChar(targetPiece), Position.toGenericPosition(capturePosition), Move.toString(move));
 			}
 			pickUpPieceAtSquare(capturePosition, targetPiece);
 			// Incrementally update opponent material after capture, at the correct capturePosition
@@ -745,7 +771,7 @@ public class Board {
 	
 	public int pickUpPieceAtSquare( int atPos, int piece ) {
 		long pieceToPickUp = BitBoard.positionToMask_Lut[atPos];
-		if ((allPieces & pieceToPickUp) != 0) {	
+		if ((allPieces & pieceToPickUp) != 0) {
 			// Remove from relevant colour bitboard
 			if (Piece.isBlack(piece)) {
 				blackPieces &= ~pieceToPickUp;
@@ -760,7 +786,8 @@ public class Board {
 			pieceLists.removePiece(piece, atPos);
 		} else {
 			if (EubosEngineMain.ENABLE_ASSERTS) {
-				assert false : String.format("Non-existant target piece %c at %s", Piece.toFenChar(piece), Position.toGenericPosition(atPos));
+				assert false : String.format("Non-existant target piece %c at %s",
+						Piece.toFenChar(piece), Position.toGenericPosition(atPos));
 			}
 			piece = Piece.NONE;
 		}
