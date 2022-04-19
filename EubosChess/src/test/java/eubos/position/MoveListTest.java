@@ -418,12 +418,15 @@ public class MoveListTest {
 	public void test_compare_extended_search_against_normal_staged_moves_all()throws IllegalNotationException {
 		PositionManager pm = new PositionManager("6k1/PBN5/8/2Kp4/2P5/5Q2/8/3R4 w - - 0 1 ");
 		classUnderTest = new MoveList(pm, 1);
-		MoveListIterator it = classUnderTest.createForPly(Move.NULL_MOVE, pm.isKingInCheck(), 0);
+		MoveListIterator it = classUnderTest.createForPly(Move.NULL_MOVE, null, true, pm.isKingInCheck(), 0);
+		it = classUnderTest.getExtendedIterator();
 		
 		classUnderTest.initialise(Move.NULL_MOVE, null, pm.isKingInCheck(), true, 0);
 		MoveListIterator smg_it = classUnderTest.stagedMoveGen(0);
 		// Promotion
 		assertTrue(Move.areEqualForBestKiller(smg_it.nextInt(), it.nextInt())); // "a7a8Q"
+		
+		smg_it = classUnderTest.stagedMoveGen(0);
 		// Captures
 		assertEquals(Move.toString(smg_it.nextInt()), Move.toString(it.nextInt())); // PxP "c4d5"
 		assertEquals(Move.toString(smg_it.nextInt()), Move.toString(it.nextInt())); // NxP "c7d5"

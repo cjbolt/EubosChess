@@ -148,11 +148,6 @@ public class MoveList implements Iterable<Integer> {
 		return iterator();
 	}
 	
-	public MoveListIterator createForPly(int bestMove, boolean needToEscapeMate, int ply) {
-		createForPly(bestMove, null, true, needToEscapeMate, ply);
-		return getExtendedIterator(); 
-	}
-	
 	public MoveListIterator stagedMoveGen(int ply)
 	{
 		MoveListIterator iter = null;
@@ -303,7 +298,7 @@ public class MoveList implements Iterable<Integer> {
 			moveAdder = ma_quietConsumeKillers;
 			ma_quietConsumeKillers.attackMask = attackMask;
 		}
-		pm.getTheBoard().getRegularPieceMoves(moveAdder, isWhiteOnMove, false);
+		pm.getTheBoard().getRegularPieceMoves(moveAdder, isWhiteOnMove);
 		if (!needToEscapeMate[ply]) {
 			// Can't castle out of check and don't care in extended search
 			pm.castling.addCastlingMoves(isWhiteOnMove, moveAdder);
@@ -324,7 +319,7 @@ public class MoveList implements Iterable<Integer> {
 			ma_killers.attackMask = attackMask;
 			moveAdder = ma_killers;
 		}
-		pm.getTheBoard().getRegularPieceMoves(moveAdder, isWhiteOnMove, capturesOnly);
+		pm.getTheBoard().getRegularPieceMoves(moveAdder, isWhiteOnMove);
 		if (!capturesOnly && !needToEscapeMate[ply]) {
 			// Can't castle out of check and don't care in extended search
 			pm.castling.addCastlingMoves(isWhiteOnMove, moveAdder);
@@ -411,11 +406,6 @@ public class MoveList implements Iterable<Integer> {
 		
 	public int getRandomMove() {
 		int randomMove = Move.NULL_MOVE;
-		if (normal_list_length[ply] != 0) {
-			Random randomIndex = new Random();
-			Integer indexToGet = randomIndex.nextInt(normal_list_length[ply]);
-			randomMove = scratchpad[ply][indexToGet];		
-		}
 		return randomMove;
 	}
 	

@@ -544,8 +544,9 @@ public class Board {
 		
 		// Check move can be made, i.e. it isn't blocked Pawn two square, slider
 		pmc.setup(move);
-		switch (Piece.PIECE_NO_COLOUR_MASK & pieceToMove) {
-		case Piece.KING:
+		switch (pieceToMove) {
+		case Piece.WHITE_KING:
+		case Piece.BLACK_KING:
 			if (castling.isCastlingMove(move)) {
 				if (!needToEscapeMate) {
 					castling.addCastlingMoves(isWhite, pmc);
@@ -555,19 +556,30 @@ public class Board {
 				pmc.moveIsPlayable = true;
 			}
 			break;
-		case Piece.QUEEN:
-			Piece.queen_generateMoves(pmc, this, originSquare, isWhite);
+		case Piece.WHITE_QUEEN:
+			Piece.queen_generateMoves_White(pmc, this, originSquare);
 			break;
-		case Piece.ROOK:
-			Piece.rook_generateMoves(pmc, this, originSquare, isWhite);
+		case Piece.WHITE_ROOK:
+			Piece.rook_generateMoves_White(pmc, this, originSquare);
 			break;
-		case Piece.BISHOP:
-			Piece.bishop_generateMoves(pmc, this, originSquare, isWhite);
+		case Piece.WHITE_BISHOP:
+			Piece.bishop_generateMoves_White(pmc, this, originSquare);
 			break;
-		case Piece.KNIGHT:
+		case Piece.BLACK_QUEEN:
+			Piece.queen_generateMoves_Black(pmc, this, originSquare);
+			break;
+		case Piece.BLACK_ROOK:
+			Piece.rook_generateMoves_Black(pmc, this, originSquare);
+			break;
+		case Piece.BLACK_BISHOP:
+			Piece.bishop_generateMoves_Black(pmc, this, originSquare);
+			break;
+		case Piece.WHITE_KNIGHT:
+		case Piece.BLACK_KNIGHT:
 			pmc.moveIsPlayable = true;
 			break;
-		case Piece.PAWN:
+		case Piece.WHITE_PAWN:
+		case Piece.BLACK_PAWN:
 			if ((Position.getRank(originSquare) == (isWhite ? IntRank.R2 : IntRank.R7))) {
 				// two square pawn moves need to be checked if intermediate square is empty
 				int checkSquare = isWhite ? originSquare+16: originSquare-16;
@@ -726,6 +738,63 @@ public class Board {
 				if (EubosEngineMain.ENABLE_ASSERTS)
 					assert (whitePieces & pieceToGet) != 0;
 				if (ownSideIsWhite) return Piece.DONT_CARE;
+			}
+			// Sorted in order of frequency of piece on the chess board, for efficiency
+			if ((pieces[INDEX_PAWN] & pieceToGet) != 0) {
+				type |= Piece.PAWN;
+			} else if ((pieces[INDEX_ROOK] & pieceToGet) != 0) {
+				type |= Piece.ROOK;
+			} else if ((pieces[INDEX_BISHOP] & pieceToGet) != 0) {
+				type |= Piece.BISHOP;
+			} else if ((pieces[INDEX_KNIGHT] & pieceToGet) != 0) {
+				type |= Piece.KNIGHT;
+			} else if ((pieces[INDEX_KING] & pieceToGet) != 0) {
+				type |= Piece.KING;
+			} else if ((pieces[INDEX_QUEEN] & pieceToGet) != 0) {
+				type |= Piece.QUEEN;
+			}
+		}
+		return type;
+	}
+	
+	public int getPieceAtSquareEnemyWhite(int atPos) {
+		int type = Piece.NONE;
+		long pieceToGet = BitBoard.positionToMask_Lut[atPos];
+		if ((allPieces & pieceToGet) != 0) {	
+			if ((blackPieces & pieceToGet) != 0) {
+				return Piece.DONT_CARE;
+			} else {
+				if (EubosEngineMain.ENABLE_ASSERTS)
+					assert (whitePieces & pieceToGet) != 0;
+			}
+			// Sorted in order of frequency of piece on the chess board, for efficiency
+			if ((pieces[INDEX_PAWN] & pieceToGet) != 0) {
+				type |= Piece.PAWN;
+			} else if ((pieces[INDEX_ROOK] & pieceToGet) != 0) {
+				type |= Piece.ROOK;
+			} else if ((pieces[INDEX_BISHOP] & pieceToGet) != 0) {
+				type |= Piece.BISHOP;
+			} else if ((pieces[INDEX_KNIGHT] & pieceToGet) != 0) {
+				type |= Piece.KNIGHT;
+			} else if ((pieces[INDEX_KING] & pieceToGet) != 0) {
+				type |= Piece.KING;
+			} else if ((pieces[INDEX_QUEEN] & pieceToGet) != 0) {
+				type |= Piece.QUEEN;
+			}
+		}
+		return type;
+	}
+	
+	public int getPieceAtSquareEnemyBlack(int atPos) {
+		int type = Piece.NONE;
+		long pieceToGet = BitBoard.positionToMask_Lut[atPos];
+		if ((allPieces & pieceToGet) != 0) {	
+			if ((blackPieces & pieceToGet) != 0) {
+				type |= Piece.BLACK;
+			} else {
+				if (EubosEngineMain.ENABLE_ASSERTS)
+					assert (whitePieces & pieceToGet) != 0;
+				return Piece.DONT_CARE;
 			}
 			// Sorted in order of frequency of piece on the chess board, for efficiency
 			if ((pieces[INDEX_PAWN] & pieceToGet) != 0) {
@@ -1027,11 +1096,19 @@ public class Board {
 		}
 	}
 	
-	public void getRegularPieceMoves(IAddMoves ml, boolean ownSideIsWhite, boolean captures) {
+	public void getRegularPieceMoves(IAddMoves ml, boolean ownSideIsWhite) {
 		if (me.isEndgame()) {
-			pieceLists.addMovesEndgame(ml, ownSideIsWhite, captures);
+			if (ownSideIsWhite) {
+				pieceLists.addMovesEndgame_White(ml);
+			} else {
+				pieceLists.addMovesEndgame_Black(ml);
+			}
 		} else {
-			pieceLists.addMovesMiddlegame(ml, ownSideIsWhite, captures);
+			if (ownSideIsWhite) {
+				pieceLists.addMovesMiddlegame_White(ml);
+			} else {
+				pieceLists.addMovesMiddlegame_Black(ml);
+			}
 		}
 	}
 	
@@ -1040,7 +1117,11 @@ public class Board {
 	}
 	
 	public void getCapturesExcludingPromotions(IAddMoves ml, boolean isWhite) {
-		pieceLists.addMoves_CapturesExcludingPawnPromotions(ml, isWhite);
+		if (isWhite) {
+			pieceLists.addMoves_CapturesExcludingPawnPromotions_White(ml);
+		} else {
+			pieceLists.addMoves_CapturesExcludingPawnPromotions_Black(ml);
+		}
 	}
 	
 	public class LegalMoveChecker implements IAddMoves {
@@ -1070,7 +1151,11 @@ public class Board {
 	public boolean validPriorityMoveExists(boolean ownSideIsWhite) {
 		boolean legalMoveExists = false;
 		lmc.legalMoveFound = false;
-		legalMoveExists = pieceLists.validCaptureMoveExists(lmc, ownSideIsWhite);
+		if (ownSideIsWhite) {
+			legalMoveExists = pieceLists.validCaptureMoveExistsWhite(lmc);
+		} else {
+			legalMoveExists = pieceLists.validCaptureMoveExistsBlack(lmc);
+		}
 		return legalMoveExists;
 	}
 	

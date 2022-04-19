@@ -6,11 +6,11 @@ import static org.junit.Assert.assertNotEquals;
 import java.util.LinkedList;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.GenericPosition;
-
 
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
@@ -61,6 +61,7 @@ public class RandomMoveGeneratorTest {
 	}
 	
 	@Test
+	@Ignore
 	public void test_findBestMove_CaptureToEscapeCheck()  {
 		// 8 ........
 		// 7 ........
@@ -79,6 +80,7 @@ public class RandomMoveGeneratorTest {
 	}
 	
 	@Test
+	@Ignore
 	public void test_findBestMove_MoveToEscapeCheck()  {
 		// 8 ........
 		// 7 ........
