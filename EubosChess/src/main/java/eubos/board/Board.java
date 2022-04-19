@@ -1113,7 +1113,11 @@ public class Board {
 	}
 	
 	public void getPawnPromotionMovesForSide(IAddMoves ml, boolean isWhite) {
-		pieceLists.addMoves_PawnPromotions(ml, isWhite);
+		if (isWhite) {
+			pieceLists.addMoves_PawnPromotions_White(ml);
+		} else {
+			pieceLists.addMoves_PawnPromotions_Black(ml);
+		}
 	}
 	
 	public void getCapturesExcludingPromotions(IAddMoves ml, boolean isWhite) {

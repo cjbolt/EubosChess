@@ -165,7 +165,7 @@ public class PieceList {
 		}
 		for(int atSquare : piece_list[Piece.WHITE_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.pawn_generateMoves(ml, theBoard, atSquare, true);
+				Piece.pawn_generateMoves_White(ml, theBoard, atSquare);
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.WHITE_QUEEN]) {
@@ -199,7 +199,7 @@ public class PieceList {
 		}
 		for(int atSquare : piece_list[Piece.BLACK_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.pawn_generateMoves(ml, theBoard, atSquare, false);
+				Piece.pawn_generateMoves_Black(ml, theBoard, atSquare);
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.BLACK_QUEEN]) {
@@ -247,7 +247,7 @@ public class PieceList {
 		}
 		for(int atSquare : piece_list[Piece.WHITE_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.pawn_generateMoves(ml, theBoard, atSquare, true);
+				Piece.pawn_generateMoves_White(ml, theBoard, atSquare);
 			} else break;
 		}
 		{
@@ -281,7 +281,7 @@ public class PieceList {
 		}
 		for(int atSquare : piece_list[Piece.BLACK_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.pawn_generateMoves(ml, theBoard, atSquare, false);
+				Piece.pawn_generateMoves_Black(ml, theBoard, atSquare);
 			} else break;
 		}
 		{
@@ -364,7 +364,7 @@ public class PieceList {
 		}
 		for(int atSquare : piece_list[Piece.BLACK_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.pawn_generateMovesForExtendedSearch(ml, theBoard, atSquare, false);
+				Piece.pawn_generateMovesForExtendedSearch_Black(ml, theBoard, atSquare);
 				if (ml.isLegalMoveFound()) return true;
 			} else break;
 		}
@@ -405,7 +405,7 @@ public class PieceList {
 		}
 		for(int atSquare : piece_list[Piece.WHITE_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.pawn_generateMovesForExtendedSearch(ml, theBoard, atSquare, true);
+				Piece.pawn_generateMovesForExtendedSearch_White(ml, theBoard, atSquare);
 				if (ml.isLegalMoveFound()) return true;
 			} else break;
 		}
@@ -437,20 +437,27 @@ public class PieceList {
 		return false;
 	}
 
-	public void addMoves_PawnPromotions(IAddMoves ml, boolean isWhite) {
-		int side = isWhite ? 0 : Piece.BLACK;
-		int promotionRank = isWhite ? IntRank.R7 : IntRank.R2;
-		for (int atSquare : piece_list[side+Piece.PAWN]) {
+	public void addMoves_PawnPromotions_White(IAddMoves ml) {
+		for (int atSquare : piece_list[Piece.WHITE_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {
-				if (Position.getRank(atSquare) == promotionRank) {
-					Piece.pawn_generatePromotionMoves(ml, theBoard, atSquare, isWhite);
+				if (Position.getRank(atSquare) == IntRank.R7) {
+					Piece.pawn_generatePromotionMoves_White(ml, theBoard, atSquare);
+				}
+			} else break;
+		}
+	}
+	
+	public void addMoves_PawnPromotions_Black(IAddMoves ml) {
+		for (int atSquare : piece_list[Piece.BLACK_PAWN]) {
+			if (atSquare != Position.NOPOSITION) {
+				if (Position.getRank(atSquare) == IntRank.R2) {
+					Piece.pawn_generatePromotionMoves_Black(ml, theBoard, atSquare);
 				}
 			} else break;
 		}
 	}
 	
 	public void addMoves_CapturesExcludingPawnPromotions_White(IAddMoves ml) {
-		int promotionRank = IntRank.R7;
 		// Optimisations for generating move lists in extended search
 		long opponentPieces = theBoard.getBlackPieces();
 		for(int atSquare : piece_list[Piece.WHITE_BISHOP]) {
@@ -488,8 +495,8 @@ public class PieceList {
 		// Only search pawn moves that cannot be a promotion
 		for(int atSquare : piece_list[Piece.WHITE_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {
-				if (promotionRank != Position.getRank(atSquare)) {
-					Piece.pawn_generateMovesForExtendedSearch(ml, theBoard, atSquare, true);
+				if (IntRank.R7 != Position.getRank(atSquare)) {
+					Piece.pawn_generateMovesForExtendedSearch_White(ml, theBoard, atSquare);
 				}
 			} else break;
 		}
@@ -505,7 +512,6 @@ public class PieceList {
 	}
 	
 	public void addMoves_CapturesExcludingPawnPromotions_Black(IAddMoves ml) {
-		int promotionRank = IntRank.R2;
 		// Optimisations for generating move lists in extended search
 		long opponentPieces = theBoard.getWhitePieces();
 		for(int atSquare : piece_list[Piece.BLACK_BISHOP]) {
@@ -543,8 +549,8 @@ public class PieceList {
 		// Only search pawn moves that cannot be a promotion
 		for(int atSquare : piece_list[Piece.BLACK_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {
-				if (promotionRank != Position.getRank(atSquare)) {
-					Piece.pawn_generateMovesForExtendedSearch(ml, theBoard, atSquare, false);
+				if (IntRank.R2 != Position.getRank(atSquare)) {
+					Piece.pawn_generateMovesForExtendedSearch_Black(ml, theBoard, atSquare);
 				}
 			} else break;
 		}
