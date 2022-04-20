@@ -6,6 +6,9 @@ import java.io.InputStreamReader;
 import java.io.PipedReader;
 import java.io.PipedWriter;
 import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 
 import com.fluxchess.jcpi.AbstractEngine;
 import com.fluxchess.jcpi.commands.EngineAnalyzeCommand;
@@ -47,12 +50,12 @@ import java.util.logging.*;
 public class EubosEngineMain extends AbstractEngine {
 	
 	static final int EUBOS_MAJOR_VERSION = 2;
-	static final int EUBOS_MINOR_VERSION = 10;
+	static final int EUBOS_MINOR_VERSION = 11;
 	
 	public static final byte SEARCH_DEPTH_IN_PLY = Byte.MAX_VALUE;
 	public static final int DEFAULT_NUM_SEARCH_THREADS = 1;
 	
-	public static final boolean ENABLE_LOGGING = false;
+	public static final boolean ENABLE_LOGGING = true;
 	public static final boolean ENABLE_UCI_INFO_SENDING = true;
 	public static final boolean ENABLE_UCI_MOVE_NUMBER = false;
 	
@@ -116,13 +119,26 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	private void checkToCreateEnginePermanentDataStructures() {
-		if (!createdHashTable) {
-			hashMap = new FixedSizeTranspositionTable(hashSize, numberOfWorkerThreads);
-			dc = new DrawChecker();
-			whiteRefScore = new ReferenceScore(hashMap);
-			blackRefScore = new ReferenceScore(hashMap);
-			createdHashTable = true;
-		}	
+		try {
+			if (!createdHashTable) {
+				hashMap = new FixedSizeTranspositionTable(hashSize, numberOfWorkerThreads);
+			}	
+		} catch (OutOfMemoryError oome) {
+			long heapFreeSize = Runtime.getRuntime().freeMemory()/1_000_000L;
+			logger.severe(String.format("Out of mem %s allocating hashMap=%d MB, trying %d free size",
+					oome.getMessage(), hashSize, heapFreeSize));
+			hashMap = new FixedSizeTranspositionTable(Math.max(heapFreeSize-1, 0), numberOfWorkerThreads);
+        } catch (Exception e) {
+        	logger.severe(String.format("Exception occurred allocating hashMap=%d MB: %s",
+        			hashSize, e.getMessage()));
+        } finally {
+        	if (hashMap != null) {
+        		createdHashTable = true;
+        	}
+        }
+		dc = new DrawChecker();
+		whiteRefScore = new ReferenceScore(hashMap);
+		blackRefScore = new ReferenceScore(hashMap);
 	}
 
 	public void receive(EngineInitializeRequestCommand command) {
@@ -295,16 +311,27 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	private void validatePv(ProtocolInformationCommand command) {
 		if (ENABLE_ASSERTS) {
-			if (command.getMoveList() != null) {
-				int moves_applied = 0;
-				for (GenericMove move : command.getMoveList()) {
-					int eubos_move = Move.toMove(move, rootPosition.getTheBoard());
-					rootPosition.performMove(eubos_move, false); // don't update draw checker or hash
-					++moves_applied;
+			try {
+				if (command.getMoveList() != null) {
+					int moves_applied = 0;
+					for (GenericMove move : command.getMoveList()) {
+						int eubos_move = Move.toMove(move, rootPosition.getTheBoard());
+						rootPosition.performMove(eubos_move, false); // don't update draw checker or hash
+						++moves_applied;
+					}
+					for (int i=0; i<moves_applied; i++) {
+						rootPosition.unperformMove(false);
+					}
 				}
-				for (int i=0; i<moves_applied; i++) {
-					rootPosition.unperformMove(false);
-				}
+			} catch (AssertionError e) {
+				Writer buffer = new StringWriter();
+				PrintWriter pw = new PrintWriter(buffer);
+				e.printStackTrace(pw);
+				String error = String.format("PlySearcher threw an exception: %s\n%s\n%s",
+						e.getMessage(), this.rootPosition.unwindMoveStack(), buffer.toString());
+				System.err.println(error);
+				EubosEngineMain.logger.severe(error);
+				System.exit(0);
 			}
 		}
 	}

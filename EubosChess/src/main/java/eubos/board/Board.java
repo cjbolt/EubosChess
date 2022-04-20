@@ -128,8 +128,19 @@ public class Board {
 		
 		// Check assertions, if enabled in build
 		if (EubosEngineMain.ENABLE_ASSERTS) {
+			// Check piece to move is on the bitboard, and is correct side
 			assert (pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] & initialSquareMask) != 0: 
-				String.format("Non-existant piece at %s", Position.toGenericPosition(originSquare));
+				String.format("Non-existant piece %s at %s for move %s", 
+						Piece.toFenChar(pieceToMove), Position.toGenericPosition(originSquare), Move.toString(move));
+			assert ((isWhite ? whitePieces : blackPieces) & initialSquareMask) != 0: 
+				String.format("Piece %s not on colour board for move %s", 
+						Piece.toFenChar(pieceToMove), Move.toString(move));
+			assert (allPieces & initialSquareMask) != 0: 
+				String.format("Piece %s not on all pieces board for move %s", 
+						Piece.toFenChar(pieceToMove), Move.toString(move));
+			assert pieceLists.isPresent(pieceToMove, originSquare) :
+				String.format("Piece %s is not present in PieceList for move %s", 
+					Piece.toFenChar(pieceToMove), Move.toString(move));
 		}
 		
 		// Initialise En Passant target square
@@ -142,6 +153,21 @@ public class Board {
 				capturePosition = generateCapturePositionForEnPassant(pieceToMove, targetSquare);
 			} else {
 				capturePosition = targetSquare;
+			}
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				long captureMask = BitBoard.positionToMask_Lut[capturePosition];
+				assert (pieces[Piece.PIECE_NO_COLOUR_MASK & targetPiece] & captureMask) != 0: 
+					String.format("Non-existant target piece %s at %s for move %s", 
+							Piece.toFenChar(targetPiece), Position.toGenericPosition(capturePosition), Move.toString(move));
+				assert ((isWhite ? blackPieces : whitePieces) & captureMask) != 0: 
+					String.format("Piece %s not on colour board for move %s", 
+							Piece.toFenChar(targetPiece), Move.toString(move));
+				assert (allPieces & captureMask) != 0: 
+					String.format("Piece %s not on all pieces board for move %s", 
+							Piece.toFenChar(targetPiece), Move.toString(move));
+				assert pieceLists.isPresent(targetPiece, capturePosition) :
+					String.format("Non-existant target piece %c at %s for move %s",
+						Piece.toFenChar(targetPiece), Position.toGenericPosition(capturePosition), Move.toString(move));
 			}
 			pickUpPieceAtSquare(capturePosition, targetPiece);
 			// Incrementally update opponent material after capture, at the correct capturePosition
@@ -364,13 +390,15 @@ public class Board {
     Only do those operations that bear on this, and such that are needed to preserve state.
     */
 	public boolean isIllegalMove(int move, boolean needToEscapeMate) {
-		boolean isIllegal = false;
-		
 		int pieceToMove = Move.getOriginPiece(move);
 		boolean isWhite = Piece.isWhite(pieceToMove);
+		return isIllegalCheckHelper(move, needToEscapeMate, pieceToMove, isWhite);
+	}
+	
+	private boolean isIllegalCheckHelper(int move, boolean needToEscapeMate, int pieceToMove, boolean isWhite) {
+		boolean isIllegal = false;
 		boolean isKing = Piece.isKing(pieceToMove);
 		int kingPosition = getKingPosition(isWhite);
-		
 		if (needToEscapeMate || isKing || moveCouldLeadToOwnKingDiscoveredCheck(move, kingPosition)) {
 		
 			int capturePosition = Position.NOPOSITION;
@@ -453,6 +481,120 @@ public class Board {
 			}
 		}
 		return isIllegal;
+	}
+	
+	public class PseudoPlayableMoveChecker implements IAddMoves {
+		
+		// Note test for legality is not performed by this class, that is a subsequent check
+		
+		int moveToCheckIsPlayable = Move.NULL_MOVE;
+		boolean moveIsPlayable = false;
+		boolean moveToCheckIsPromotion = false;
+				
+		private void testMove(int move) {
+			if (Move.areEqualForBestKiller(move, moveToCheckIsPlayable)) {
+				moveIsPlayable = true;
+			} else if (moveToCheckIsPromotion && Move.isQueenPromotion(move)) {
+				// An under promotion is always playable if the queen promotion is playable
+				moveIsPlayable = true;
+			}
+		}
+		public void addPrio(int move) {
+			testMove(move);
+		}
+		
+		public void addNormal(int move) {
+			testMove(move);
+		}
+		
+		public boolean isPlayableMoveFound() {
+			return moveIsPlayable;
+		}
+
+		public void setup(int move) {
+			moveIsPlayable = false;
+			moveToCheckIsPlayable = move;
+			moveToCheckIsPromotion = Move.isPromotion(move);
+		}
+
+		public boolean isLegalMoveFound() { return false; }
+		
+		public void clearAttackedCache() {}
+	}
+	
+	PseudoPlayableMoveChecker pmc = new PseudoPlayableMoveChecker();
+	
+	public boolean isPlayableMove(int move, boolean needToEscapeMate, CastlingManager castling) {
+		int pieceToMove = Move.getOriginPiece(move);
+		int originSquare = Move.getOriginPosition(move);
+		int targetSquare = Move.getTargetPosition(move);
+		int targetPiece = Move.getTargetPiece(move);
+		
+		if (getPieceAtSquare(originSquare) != pieceToMove) {
+			return false;
+		}
+		if (getPieceAtSquare(targetSquare) != targetPiece && !Move.isEnPassantCapture(move)) {
+			return false;
+		}
+		if (Move.isEnPassantCapture(move) && (getEnPassantTargetSq() != targetSquare)) {
+			return false;
+		}
+		
+		boolean isWhite = Piece.isWhite(pieceToMove);
+		
+		// Check move can be made, i.e. it isn't blocked Pawn two square, slider
+		pmc.setup(move);
+		switch (pieceToMove) {
+		case Piece.WHITE_KING:
+		case Piece.BLACK_KING:
+			if (castling.isCastlingMove(move)) {
+				if (!needToEscapeMate) {
+					castling.addCastlingMoves(isWhite, pmc);
+				}
+			} else {
+				// It is enough to rely on the checks before the switch if not a castling move
+				pmc.moveIsPlayable = true;
+			}
+			break;
+		case Piece.WHITE_QUEEN:
+			Piece.queen_generateMoves_White(pmc, this, originSquare);
+			break;
+		case Piece.WHITE_ROOK:
+			Piece.rook_generateMoves_White(pmc, this, originSquare);
+			break;
+		case Piece.WHITE_BISHOP:
+			Piece.bishop_generateMoves_White(pmc, this, originSquare);
+			break;
+		case Piece.BLACK_QUEEN:
+			Piece.queen_generateMoves_Black(pmc, this, originSquare);
+			break;
+		case Piece.BLACK_ROOK:
+			Piece.rook_generateMoves_Black(pmc, this, originSquare);
+			break;
+		case Piece.BLACK_BISHOP:
+			Piece.bishop_generateMoves_Black(pmc, this, originSquare);
+			break;
+		case Piece.WHITE_KNIGHT:
+		case Piece.BLACK_KNIGHT:
+			pmc.moveIsPlayable = true;
+			break;
+		case Piece.WHITE_PAWN:
+		case Piece.BLACK_PAWN:
+			if ((Position.getRank(originSquare) == (isWhite ? IntRank.R2 : IntRank.R7))) {
+				// two square pawn moves need to be checked if intermediate square is empty
+				int checkSquare = isWhite ? originSquare+16: originSquare-16;
+				pmc.moveIsPlayable = squareIsEmpty(checkSquare);
+			} else {
+				pmc.moveIsPlayable = true;
+			}
+			break;
+		}
+		if (!pmc.isPlayableMoveFound()) {
+			return false;
+		}
+		
+		// It is valid, unless illegal
+		return !isIllegalCheckHelper(move, needToEscapeMate, pieceToMove, isWhite);
 	}
 	
 	private static final long wksc_mask = BitBoard.positionToMask_Lut[Position.h1] | BitBoard.positionToMask_Lut[Position.f1];
@@ -614,6 +756,63 @@ public class Board {
 		}
 		return type;
 	}
+	
+	public int getPieceAtSquareEnemyWhite(int atPos) {
+		int type = Piece.NONE;
+		long pieceToGet = BitBoard.positionToMask_Lut[atPos];
+		if ((allPieces & pieceToGet) != 0) {	
+			if ((blackPieces & pieceToGet) != 0) {
+				return Piece.DONT_CARE;
+			} else {
+				if (EubosEngineMain.ENABLE_ASSERTS)
+					assert (whitePieces & pieceToGet) != 0;
+			}
+			// Sorted in order of frequency of piece on the chess board, for efficiency
+			if ((pieces[INDEX_PAWN] & pieceToGet) != 0) {
+				type |= Piece.PAWN;
+			} else if ((pieces[INDEX_ROOK] & pieceToGet) != 0) {
+				type |= Piece.ROOK;
+			} else if ((pieces[INDEX_BISHOP] & pieceToGet) != 0) {
+				type |= Piece.BISHOP;
+			} else if ((pieces[INDEX_KNIGHT] & pieceToGet) != 0) {
+				type |= Piece.KNIGHT;
+			} else if ((pieces[INDEX_KING] & pieceToGet) != 0) {
+				type |= Piece.KING;
+			} else if ((pieces[INDEX_QUEEN] & pieceToGet) != 0) {
+				type |= Piece.QUEEN;
+			}
+		}
+		return type;
+	}
+	
+	public int getPieceAtSquareEnemyBlack(int atPos) {
+		int type = Piece.NONE;
+		long pieceToGet = BitBoard.positionToMask_Lut[atPos];
+		if ((allPieces & pieceToGet) != 0) {	
+			if ((blackPieces & pieceToGet) != 0) {
+				type |= Piece.BLACK;
+			} else {
+				if (EubosEngineMain.ENABLE_ASSERTS)
+					assert (whitePieces & pieceToGet) != 0;
+				return Piece.DONT_CARE;
+			}
+			// Sorted in order of frequency of piece on the chess board, for efficiency
+			if ((pieces[INDEX_PAWN] & pieceToGet) != 0) {
+				type |= Piece.PAWN;
+			} else if ((pieces[INDEX_ROOK] & pieceToGet) != 0) {
+				type |= Piece.ROOK;
+			} else if ((pieces[INDEX_BISHOP] & pieceToGet) != 0) {
+				type |= Piece.BISHOP;
+			} else if ((pieces[INDEX_KNIGHT] & pieceToGet) != 0) {
+				type |= Piece.KNIGHT;
+			} else if ((pieces[INDEX_KING] & pieceToGet) != 0) {
+				type |= Piece.KING;
+			} else if ((pieces[INDEX_QUEEN] & pieceToGet) != 0) {
+				type |= Piece.QUEEN;
+			}
+		}
+		return type;
+	}
 
 	public void setPieceAtSquare( int atPos, int pieceToPlace ) {
 		if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -641,7 +840,7 @@ public class Board {
 	
 	public int pickUpPieceAtSquare( int atPos, int piece ) {
 		long pieceToPickUp = BitBoard.positionToMask_Lut[atPos];
-		if ((allPieces & pieceToPickUp) != 0) {	
+		if ((allPieces & pieceToPickUp) != 0) {
 			// Remove from relevant colour bitboard
 			if (Piece.isBlack(piece)) {
 				blackPieces &= ~pieceToPickUp;
@@ -656,7 +855,8 @@ public class Board {
 			pieceLists.removePiece(piece, atPos);
 		} else {
 			if (EubosEngineMain.ENABLE_ASSERTS) {
-				assert false : String.format("Non-existant target piece at %s", Position.toGenericPosition(atPos));
+				assert false : String.format("Non-existant target piece %c at %s",
+						Piece.toFenChar(piece), Position.toGenericPosition(atPos));
 			}
 			piece = Piece.NONE;
 		}
@@ -896,11 +1096,35 @@ public class Board {
 		}
 	}
 	
-	public void getRegularPieceMoves(IAddMoves ml, boolean ownSideIsWhite, boolean captures) {
+	public void getRegularPieceMoves(IAddMoves ml, boolean ownSideIsWhite) {
 		if (me.isEndgame()) {
-			pieceLists.addMovesEndgame(ml, ownSideIsWhite, captures);
+			if (ownSideIsWhite) {
+				pieceLists.addMovesEndgame_White(ml);
+			} else {
+				pieceLists.addMovesEndgame_Black(ml);
+			}
 		} else {
-			pieceLists.addMovesMiddlegame(ml, ownSideIsWhite, captures);
+			if (ownSideIsWhite) {
+				pieceLists.addMovesMiddlegame_White(ml);
+			} else {
+				pieceLists.addMovesMiddlegame_Black(ml);
+			}
+		}
+	}
+	
+	public void getPawnPromotionMovesForSide(IAddMoves ml, boolean isWhite) {
+		if (isWhite) {
+			pieceLists.addMoves_PawnPromotions_White(ml);
+		} else {
+			pieceLists.addMoves_PawnPromotions_Black(ml);
+		}
+	}
+	
+	public void getCapturesExcludingPromotions(IAddMoves ml, boolean isWhite) {
+		if (isWhite) {
+			pieceLists.addMoves_CapturesExcludingPawnPromotions_White(ml);
+		} else {
+			pieceLists.addMoves_CapturesExcludingPawnPromotions_Black(ml);
 		}
 	}
 	
@@ -931,7 +1155,11 @@ public class Board {
 	public boolean validPriorityMoveExists(boolean ownSideIsWhite) {
 		boolean legalMoveExists = false;
 		lmc.legalMoveFound = false;
-		legalMoveExists = pieceLists.validCaptureMoveExists(lmc, ownSideIsWhite);
+		if (ownSideIsWhite) {
+			legalMoveExists = pieceLists.validCaptureMoveExistsWhite(lmc);
+		} else {
+			legalMoveExists = pieceLists.validCaptureMoveExistsBlack(lmc);
+		}
 		return legalMoveExists;
 	}
 	

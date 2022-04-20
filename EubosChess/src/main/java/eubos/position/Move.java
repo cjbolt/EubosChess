@@ -44,7 +44,7 @@ public final class Move {
 	public static final int MOVE_ORDERING_MASK = (TYPE_KILLER_MASK | TYPE_CAPTURE_MASK | TYPE_PROMOTION_MASK | TYPE_BEST_MASK);
 	public static final int KILLER_EXCLUSION_MASK = (TYPE_CAPTURE_MASK | TYPE_PROMOTION_MASK);
 	
-	private static final int TYPE_SHIFT = ORIGIN_PIECE_SHIFT + Long.bitCount(Piece.PIECE_WHOLE_MASK);
+	public static final int TYPE_SHIFT = ORIGIN_PIECE_SHIFT + Long.bitCount(Piece.PIECE_WHOLE_MASK);
 	private static final int TYPE_MASK = ((1<<TYPE_WIDTH)-1) << TYPE_SHIFT;
 	
 	// Misc flags
@@ -57,30 +57,6 @@ public final class Move {
 	
 	public static final int EQUALITY_MASK = ORIGINPOSITION_MASK | TARGETPOSITION_MASK | PROMOTION_MASK;
 	public static final int BEST_KILLER_EQUALITY_MASK = ORIGINPOSITION_MASK | ORIGIN_PIECE_MASK | TARGETPOSITION_MASK | TARGET_PIECE_MASK | PROMOTION_MASK;
-	
-	public static int valueOfPromotion(int originPosition, int targetPosition, int promotion) {
-		if (EubosEngineMain.ENABLE_ASSERTS)
-			assert (targetPosition & 0x88) == 0;
-		int move = targetPosition << TARGETPOSITION_SHIFT;
-
-		// Encode origin position
-		if (EubosEngineMain.ENABLE_ASSERTS)
-			assert (originPosition & 0x88) == 0;
-		move |= originPosition << ORIGINPOSITION_SHIFT;
-		
-		// Encode promotion
-		if (EubosEngineMain.ENABLE_ASSERTS) {
-			assert promotion != Piece.KING && promotion != Piece.PAWN && (promotion & ~Piece.PIECE_NO_COLOUR_MASK) == 0;
-		}
-		move |= promotion << PROMOTION_SHIFT;
-		
-		// Set promotion flag, if needed
-		if (promotion != Piece.NONE) {
-			move |= (Move.TYPE_PROMOTION_MASK << TYPE_SHIFT);
-		}
-		
-		return move;
-	}
 	
 	public static int valueOf(int originPosition, int originPiece, int targetPosition, int targetPiece) {
 		if (EubosEngineMain.ENABLE_ASSERTS)
@@ -206,6 +182,10 @@ public final class Move {
 	
 	public static boolean isCapture(int move) {
 		return (move & ((Move.TYPE_CAPTURE_MASK) << TYPE_SHIFT)) != 0;
+	}
+	
+	public static boolean isBest(int move) {
+		return (move & ((Move.TYPE_BEST_MASK) << TYPE_SHIFT)) != 0;
 	}
 	
 	public static boolean isRegular(int move) { 
@@ -368,9 +348,10 @@ public final class Move {
         }
     }
 	
+	@SuppressWarnings("unused")
 	public static int getOriginPiece(int move) {
 		int piece = (move & ORIGIN_PIECE_MASK) >>> ORIGIN_PIECE_SHIFT;
-		if (EubosEngineMain.ENABLE_ASSERTS)
+		if (EubosEngineMain.ENABLE_ASSERTS && !EubosEngineMain.ENABLE_STAGED_MOVE_GENERATION)
 			assert piece != Piece.NONE;
 		return piece;
 	}
@@ -476,6 +457,10 @@ public final class Move {
 	
 	public static int setBest(int move) {
 		return (move |= (Move.TYPE_BEST_MASK << TYPE_SHIFT));
+	}
+	
+	public static int clearBest(int move) {
+		return (move &= ~(Move.TYPE_BEST_MASK << TYPE_SHIFT));
 	}
 
 	public static boolean isEnPassantCapture(int move) {

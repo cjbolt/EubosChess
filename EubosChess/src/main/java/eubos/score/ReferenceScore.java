@@ -3,7 +3,7 @@ package eubos.score;
 import eubos.position.IPositionAccessors;
 import eubos.search.Score;
 import eubos.search.transposition.FixedSizeTranspositionTable;
-import eubos.search.transposition.ITransposition;
+import eubos.search.transposition.Transposition;
 
 public class ReferenceScore {
 	public class Reference {
@@ -30,15 +30,15 @@ public class ReferenceScore {
 		this.rootPosition = rootPos;
 		checkLastScoreValidity();
 		
-		ITransposition trans = hashMap.getTransposition(rootPos.getHash());		
-		if (trans != null && trans.getType() == Score.exact) {
+		long trans = hashMap.getTransposition(rootPos.getHash());		
+		if (trans != 0L && Transposition.getType(trans) == Score.exact) {
 			// Set reference score from previous Transposition table, if an exact entry exists 
-			reference.origin = trans.report();
-			reference.score = trans.getScore();
-			reference.depth = trans.getDepthSearchedInPly();
+			reference.origin = Transposition.report(trans);
+			reference.score = Transposition.getScore(trans);
+			reference.depth = Transposition.getDepthSearchedInPly(trans);
 		} else if (lastScoreIsValid) {
 			// Use the last reported score (from previous Search) as the reference score
-			reference.origin = String.format("set from last score because %s", (trans != null) ? trans.report() : "trans is null");
+			reference.origin = String.format("set from last score because %s", (trans != 0L) ? Transposition.report(trans) : "trans is null");
 			reference.score = lastScore;
 			reference.depth = (byte)(lastDepth - Score.PLIES_PER_MOVE);
 		} else {
@@ -75,10 +75,10 @@ public class ReferenceScore {
 		}
 	}
 
-	public void updateLastScore(ITransposition trans) {
+	public void updateLastScore(long trans) {
 		lastScoreIsValid = true;
-		lastScore = trans.getScore();
-	    lastDepth = trans.getDepthSearchedInPly();
+		lastScore = Transposition.getScore(trans);
+	    lastDepth = Transposition.getDepthSearchedInPly(trans);
 	    lastMoveNumber = rootPosition.getMoveNumber();
 	}
 }

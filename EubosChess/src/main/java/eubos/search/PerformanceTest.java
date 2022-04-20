@@ -25,16 +25,20 @@ public class PerformanceTest {
 		}
 	    
 	    public long perft()  {
-	        if (currPly < requestedDepthPly) {        
-	            MoveListIterator iter = ml.createForPly(Move.NULL_MOVE, null, false, pm.isKingInCheck(), currPly);
-	            while (iter.hasNext()) {
-	            	int move = iter.nextInt();
-					pm.performMove(move, false);
-	                currPly+=1;
-	                perft();
-	                currPly-=1;
-	                pm.unperformMove(false);
-	            }
+	        if (currPly < requestedDepthPly) { 
+	        	ml.initialise(Move.NULL_MOVE, null, pm.isKingInCheck(), false, currPly);
+	        	do {
+		            MoveListIterator iter = ml.stagedMoveGen(currPly);
+		            if (!iter.hasNext()) break;
+		            do {
+		            	int move = iter.nextInt();
+						pm.performMove(move, false);
+		                currPly+=1;
+		                perft();
+		                currPly-=1;
+		                pm.unperformMove(false);
+		            } while (iter.hasNext());
+	        	} while(true);
 	        } else {
 	        	nodeCount += 1;
 	        }

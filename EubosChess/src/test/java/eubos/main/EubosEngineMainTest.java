@@ -24,7 +24,6 @@ import eubos.board.Piece;
 import eubos.position.Move;
 import eubos.position.Position;
 import eubos.search.Score;
-import eubos.search.transposition.ITransposition;
 import eubos.search.transposition.Transposition;
 
 public class EubosEngineMainTest {
@@ -288,7 +287,7 @@ public class EubosEngineMainTest {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1d1"+CMD_TERMINATOR));
-		mateDepth = 12;
+		mateDepth = 13;
 		performTestExpectMate(14000, mateDepth);
 	}
 	
@@ -299,6 +298,14 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/2p5/P4p2/Q1N2k1P/2P2P2/3PK2P/5R2/2B2R2 w - - 1 1"+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR, BEST_PREFIX+"f2d2"+CMD_TERMINATOR));
 		performTestExpectMate(4000, 4);
+	}
+	
+	@Test
+	public void test_defect_en_passant_treated_as_playable_move_regardless_of_board_state() throws InterruptedException, IOException {
+		setupEngine();
+		commands.add(new commandPair(POS_FEN_PREFIX+"r3qrk1/pbpp1ppp/np1b1n2/8/2PPp3/P1N1P1PP/1P2NPB1/R1BQK2R w KQ - 1 10"+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"9"+CMD_TERMINATOR, BEST_PREFIX+"e1g1"+CMD_TERMINATOR));
+		performTest(5000);
 	}
 	
 	@Test
@@ -341,7 +348,7 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d8e8"+CMD_TERMINATOR));
 
 		int hashMove = Move.valueOf(Position.b3, Piece.BLACK_QUEEN, Position.d1, Piece.WHITE_ROOK);
-		Transposition hashEntry = new Transposition((byte)6, (short)0, Score.exact, hashMove, null);
+		long hashEntry = Transposition.valueOf((byte)6, (short)0, Score.exact, hashMove);
 		pokeHashEntryAndPerformTest(10000, hashEntry);
 	}
 	
@@ -367,7 +374,7 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR, BEST_PREFIX+"h4g4"+CMD_TERMINATOR));
 		
 		int hashMove = Move.valueOf(Position.h4, Piece.BLACK_ROOK, Position.g4, Piece.NONE);
-		Transposition hashEntry = new Transposition((byte)3, (short)0, Score.upperBound, hashMove, null);
+		long hashEntry = Transposition.valueOf((byte)3, (short)0, Score.upperBound, hashMove);
 		pokeHashEntryAndPerformTest(10000, hashEntry);
 	}
 	
@@ -378,7 +385,7 @@ public class EubosEngineMainTest {
 		commands.add(new commandPair(GO_DEPTH_PREFIX+"9"+CMD_TERMINATOR, BEST_PREFIX+"g7h6"+CMD_TERMINATOR));
 		
 		int hashMove = Move.valueOf(Position.g7, Piece.BLACK_BISHOP, Position.h6, Piece.NONE);
-		Transposition hashEntry = new Transposition((byte)8, (short)-55, Score.lowerBound, hashMove, null);
+		long hashEntry = Transposition.valueOf((byte)8, (short)-55, Score.lowerBound, hashMove);
 		pokeHashEntryAndPerformTest(10000, hashEntry);
 	}
 	
@@ -438,18 +445,18 @@ public class EubosEngineMainTest {
 	}
 
 	private void performTest(int timeout, boolean checkInfoMsgs) throws IOException, InterruptedException {
-		performTestHelper(timeout, checkInfoMsgs, null, 0);
+		performTestHelper(timeout, checkInfoMsgs, 0L, 0);
 	}
 	
 	private void performTestExpectMate(int timeout, int mateInX) throws IOException, InterruptedException {
-		performTestHelper(timeout, true, null, mateInX);
+		performTestHelper(timeout, true, 0L, mateInX);
 	}
 	
-	private void pokeHashEntryAndPerformTest(int timeout, ITransposition hashEntry) throws IOException, InterruptedException {
+	private void pokeHashEntryAndPerformTest(int timeout, long hashEntry) throws IOException, InterruptedException {
 		performTestHelper(timeout, false, hashEntry, 0);
 	}
 	
-	private void performTestHelper(int timeout, boolean checkInfoMsgs, ITransposition hashEntry, int mateInX) throws IOException, InterruptedException {
+	private void performTestHelper(int timeout, boolean checkInfoMsgs, long hashEntry, int mateInX) throws IOException, InterruptedException {
 		boolean mateDetected = false;
 		String mateExpectation = String.format("mate %d", mateInX);
 		testOutput.flush();
@@ -461,7 +468,7 @@ public class EubosEngineMainTest {
 			String parsedCmd= "";
 			// Pass command to engine
 			if (inputCmd != null) {
-				if (inputCmd.startsWith("go") && hashEntry != null) {
+				if (inputCmd.startsWith("go") && hashEntry != 0L) {
 					Thread.sleep(sleep_50ms);
 					// Seed hash table with problematic hash
 					long problemHash = classUnderTest.rootPosition.getHash();

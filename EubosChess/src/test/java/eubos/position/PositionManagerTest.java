@@ -831,7 +831,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_quiescent() {
 		createSutAndRegisterPe("1rk2N2/1p6/8/B1Pp4/B6Q/K7/8/2R5 w - d6 0 1");
-		assertTrue(classUnderTest.isQuiescent());
+		assertFalse(classUnderTest.isQuiescent()); // En passant capture means this is not quiescent
 	}
 	
 	@Test

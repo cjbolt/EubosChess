@@ -16,7 +16,7 @@ import eubos.search.Score;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.FixedSizeTranspositionTable;
-import eubos.search.transposition.ITransposition;
+import eubos.search.transposition.Transposition;
 
 public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	
@@ -128,23 +128,23 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 
 	private void sendBestMove() {
 		GenericMove bestMove = null;
-		ITransposition trans = tt.getTransposition(this.rootPositionHash);
-		if (trans != null && trans.getType() == Score.exact) {
-			EubosEngineMain.logger.info(String.format("best is trans=%s", trans.report()));
-			if (Score.isMate(trans.getScore())) {
+		long trans = tt.getTransposition(this.rootPositionHash);
+		if (trans != 0L && Transposition.getType(trans) == Score.exact) {
+			EubosEngineMain.logger.info(String.format("best is trans=%s", Transposition.report(trans)));
+			if (Score.isMate(Transposition.getScore(trans))) {
 				// it is possible that we didn't send a uci info pv message, so update the last score
 				refScore.updateLastScore(trans);
 			}
-			bestMove = Move.toGenericMove(trans.getBestMove());
+			bestMove = Move.toGenericMove(Transposition.getBestMove(trans));
 		} else if (workers.get(0).result.bestMove != Move.NULL_MOVE) {
 			EubosEngineMain.logger.warning(
 					String.format("Can't find bestMove with exact score (trans=%s), use principal continuation.",
-					(trans != null) ? trans.report() : "null"));
+					(trans != 0L) ? Transposition.report(trans) : "null"));
 			bestMove = Move.toGenericMove(workers.get(0).result.bestMove);
-		} else if (trans != null) {
+		} else if (trans != 0L) {
 			EubosEngineMain.logger.warning(
-					String.format("Can't find bestMove in principal continuation, using trans=%s", trans.report()));
-			bestMove = Move.toGenericMove(trans.getBestMove());
+					String.format("Can't find bestMove in principal continuation, using trans=%s", Transposition.report(trans)));
+			bestMove = Move.toGenericMove(Transposition.getBestMove(trans));
 		} else {
 			// we will send null, it will be a rules infraction and Eubos will lose.
 		}

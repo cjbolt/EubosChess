@@ -33,7 +33,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", new DrawChecker());
 	}
 
-	CastlingManager castling;
+	public CastlingManager castling;
 	private Board theBoard;
 	public Board getTheBoard() {
 		return theBoard;
@@ -375,5 +375,15 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public boolean isQuiescent() {
 		// This function will return false on finding an attacked piece or promotable pawn on the board.
 		return !theBoard.validPriorityMoveExists(onMoveIsWhite());
+	}
+	
+	public String unwindMoveStack() {
+		StringBuilder s = new StringBuilder();
+		while (!moveTracker.isEmpty()) {
+			// build the movelist backwards, the first move popped shall be the end of the list
+			s.insert(0, ' ');
+			s.insert(0, Move.toString(TrackedMove.getMove(moveTracker.pop())));
+		}
+		return s.toString();
 	}
 }
