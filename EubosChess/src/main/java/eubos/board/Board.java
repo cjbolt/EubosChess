@@ -1128,6 +1128,22 @@ public class Board {
 		}
 	}
 	
+	public void getCapturesBufferRegularExcludingPromotions(IAddMoves ml, boolean isWhite) {
+		if (isWhite) {
+			pieceLists.addMoves_AllMovesForPiecesThatCouldCaptureExcludingPawnPromotions_White(ml);
+		} else {
+			pieceLists.addMoves_AllMovesForPiecesThatCouldCaptureExcludingPawnPromotions_Black(ml);
+		}
+	}
+	
+	public void getLeftoverRegularExcludingPromotions(IAddMoves ml, boolean isWhite) {
+		if (isWhite) {
+			pieceLists.addMoves_AllMovesForPiecesThatCannotCaptureExcludingPawnPromotions_White(ml);
+		} else {
+			pieceLists.addMoves_AllMovesForPiecesThatCannotCaptureExcludingPawnPromotions_Black(ml);
+		}
+	}
+	
 	public class LegalMoveChecker implements IAddMoves {
 		
 		boolean legalMoveFound = false;

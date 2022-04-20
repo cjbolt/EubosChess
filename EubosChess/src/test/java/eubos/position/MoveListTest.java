@@ -385,7 +385,7 @@ public class MoveListTest {
 		classUnderTest.initialise(best, null, pm.isKingInCheck(), false, 0);
 		MoveListIterator it = classUnderTest.stagedMoveGen(0);
 		
-		assertEquals(Move.valueOf(Position.g7, Piece.WHITE_KING, Position.g8, Piece.NONE), it.nextInt());
+		assertEquals(Move.valueOf(Position.g7, Piece.WHITE_KING, Position.g8, Piece.NONE), Move.toString(it.nextInt()));
 	}
 	
 	@Test
