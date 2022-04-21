@@ -81,7 +81,6 @@ public class MoveList implements Iterable<Integer> {
 
 		moveCount = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		scratchpad_fill_index = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
-		extendedListScopeEndpoint = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		bestMove = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		needToEscapeMate = new boolean[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		extendedSearch = new boolean[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
@@ -123,7 +122,6 @@ public class MoveList implements Iterable<Integer> {
 		priority_fill_index[ply] = 0;
 		normal_list_length[ply] = 0;
 		scratchpad_fill_index[ply] = 0;
-		extendedListScopeEndpoint[ply] = 0;
 		if (DEBUG_CHECK) {
 			Arrays.fill(scratchpad[ply], Move.NULL_MOVE);
 		}
@@ -311,7 +309,7 @@ public class MoveList implements Iterable<Integer> {
 	}
 
 	private void getQuietMoves() {
-		moveCount[ply] = normal_fill_index[ply];
+		moveCount[ply] = normal_fill_index[ply] + scratchpad_fill_index[ply];
 		priority_fill_index[ply] = 0;
 		IAddMoves moveAdder = null;
 		boolean isWhiteOnMove = pm.onMoveIsWhite();
@@ -361,9 +359,6 @@ public class MoveList implements Iterable<Integer> {
 		for (int j = 0; j < priority_fill_index[ply]; j++) {
 			scratchpad[ply][scratchpad_fill_index[ply]++] = priority_moves[ply][j];
 		}
-		// Update for number of valid priority moves, needed by lazy extended moves
-		// creation
-		extendedListScopeEndpoint[ply] = scratchpad_fill_index[ply];
 		for (int j = 0; j < normal_fill_index[ply]; j++) {
 			scratchpad[ply][scratchpad_fill_index[ply]++] = normal_search_moves[ply][j];
 		}
@@ -405,32 +400,6 @@ public class MoveList implements Iterable<Integer> {
 
 	public MoveListIterator getBestIterator() {
 		return new MoveListIterator(scratchpad[ply], 1);
-	}
-
-	public MoveListIterator getExtendedIterator() {
-		// Lazy creation of extended moves
-		int ext_count = 0;
-		for (int i = 0; i < extendedListScopeEndpoint[ply]; i++) {
-			int move = scratchpad[ply][i];
-			boolean includeInQuiescenceSearch = Move.isCapture(move) || Move.isQueenPromotion(move);
-			if (includeInQuiescenceSearch) {
-				extended_search_moves[ply][ext_count++] = move;
-			}
-			if (DEBUG_CHECK) {
-				if (ext_count == 30) {
-					EubosEngineMain.logger.severe(String.format("extended moves overflowing %s", pm.getFen()));
-					StringBuilder s = new StringBuilder();
-					for (int j = 0; j < 30; j++) {
-						s.append(Move.toString(extended_search_moves[ply][j]));
-						s.append(' ');
-					}
-					EubosEngineMain.logger.severe(String.format("ext move list at ply %d is %s", ply, s.toString()));
-					ext_count--;
-					break;
-				}
-			}
-		}
-		return new MoveListIterator(extended_search_moves[ply], ext_count);
 	}
 
 	public int getRandomMove() {
