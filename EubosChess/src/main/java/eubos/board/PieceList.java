@@ -565,9 +565,19 @@ public class PieceList {
 		}
 	}
 	
-	public void addMoves_AllMovesForPiecesThatCouldCaptureExcludingPawnPromotions_White(IAddMoves ml) {
+	public void addMoves_AllMovesForPiecesThatCouldCaptureExcludingPawnPromotions_White(IAddMoves ml, boolean isEndgame) {
 		// Optimisations for generating move lists in extended search
 		long opponentPieces = theBoard.getBlackPieces();
+		if (isEndgame)
+		{
+			int atSquare = piece_list[Piece.WHITE_KING][0];
+			if (atSquare != Position.NOPOSITION) {
+				long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[atSquare];
+				if ((opponentPieces & kingAttacksMask) != 0) {
+					Piece.king_generateMoves_White(ml, theBoard, atSquare);
+				}
+			}
+		}
 		for(int atSquare : piece_list[Piece.WHITE_BISHOP]) {
 			if (atSquare != Position.NOPOSITION) {
 				long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
@@ -608,6 +618,7 @@ public class PieceList {
 				}
 			} else break;
 		}
+		if (!isEndgame)
 		{
 			int atSquare = piece_list[Piece.WHITE_KING][0];
 			if (atSquare != Position.NOPOSITION) {
@@ -619,9 +630,19 @@ public class PieceList {
 		}
 	}
 	
-	public void addMoves_AllMovesForPiecesThatCouldCaptureExcludingPawnPromotions_Black(IAddMoves ml) {
+	public void addMoves_AllMovesForPiecesThatCouldCaptureExcludingPawnPromotions_Black(IAddMoves ml, boolean isEndgame) {
 		// Optimisations for generating move lists in extended search
 		long opponentPieces = theBoard.getWhitePieces();
+		if (isEndgame)
+		{
+			int atSquare = piece_list[Piece.BLACK_KING][0];
+			if (atSquare != Position.NOPOSITION) {
+				long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[atSquare];
+				if ((opponentPieces & kingAttacksMask) != 0) {
+					Piece.king_generateMoves_Black(ml, theBoard, atSquare);
+				}
+			}
+		}
 		for(int atSquare : piece_list[Piece.BLACK_BISHOP]) {
 			if (atSquare != Position.NOPOSITION) {
 				long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
@@ -662,6 +683,7 @@ public class PieceList {
 				}
 			} else break;
 		}
+		if (!isEndgame)
 		{
 			int atSquare = piece_list[Piece.BLACK_KING][0];
 			if (atSquare != Position.NOPOSITION) {
@@ -673,9 +695,19 @@ public class PieceList {
 		}
 	}
 	
-	public void addMoves_AllMovesForPiecesThatCannotCaptureExcludingPawnPromotions_White(IAddMoves ml) {
+	public void addMoves_AllMovesForPiecesThatCannotCaptureExcludingPawnPromotions_White(IAddMoves ml, boolean isEndgame) {
 		// Optimisations for generating move lists in extended search
 		long opponentPieces = theBoard.getBlackPieces();
+		if (isEndgame)
+		{
+			int atSquare = piece_list[Piece.WHITE_KING][0];
+			if (atSquare != Position.NOPOSITION) {
+				long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[atSquare];
+				if ((opponentPieces & kingAttacksMask) == 0) {
+					Piece.king_generateMoves_White(ml, theBoard, atSquare);
+				}
+			}
+		}
 		for(int atSquare : piece_list[Piece.WHITE_BISHOP]) {
 			if (atSquare != Position.NOPOSITION) {
 				long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
@@ -709,6 +741,7 @@ public class PieceList {
 			} else break;
 		}
 		// Pawn moves were already evaluated
+		if (!isEndgame)
 		{
 			int atSquare = piece_list[Piece.WHITE_KING][0];
 			if (atSquare != Position.NOPOSITION) {
@@ -720,9 +753,19 @@ public class PieceList {
 		}
 	}
 	
-	public void addMoves_AllMovesForPiecesThatCannotCaptureExcludingPawnPromotions_Black(IAddMoves ml) {
+	public void addMoves_AllMovesForPiecesThatCannotCaptureExcludingPawnPromotions_Black(IAddMoves ml, boolean isEndgame) {
 		// Optimisations for generating move lists in extended search
 		long opponentPieces = theBoard.getWhitePieces();
+		if (isEndgame)
+		{
+			int atSquare = piece_list[Piece.BLACK_KING][0];
+			if (atSquare != Position.NOPOSITION) {
+				long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[atSquare];
+				if ((opponentPieces & kingAttacksMask) == 0) {
+					Piece.king_generateMoves_Black(ml, theBoard, atSquare);
+				}
+			}
+		}
 		for(int atSquare : piece_list[Piece.BLACK_BISHOP]) {
 			if (atSquare != Position.NOPOSITION) {
 				long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
@@ -756,6 +799,7 @@ public class PieceList {
 			} else break;
 		}
 		// Pawn moves were already evaluated
+		if (!isEndgame)
 		{
 			int atSquare = piece_list[Piece.BLACK_KING][0];
 			if (atSquare != Position.NOPOSITION) {

@@ -170,6 +170,7 @@ public class MoveListTest {
 		// losing material
 		assertEquals(new GenericMove("g5e6"), Move.toGenericMove(it.nextInt())); // NxP delta -1 loses 2
 		assertEquals(new GenericMove("e3e6"), Move.toGenericMove(it.nextInt())); // RxP delta -3 loses 4 losing material (happens to check, but that is ignored)
+		assertFalse(it.hasNext());
 		
 		it = classUnderTest.stagedMoveGen(0);
 		// regular moves
@@ -231,21 +232,30 @@ public class MoveListTest {
 		
 		// best
 		assertEquals(best_gen, Move.toGenericMove(it.nextInt()));
+		assertFalse(it.hasNext());
 		
 		it = classUnderTest.stagedMoveGen(0);
 		// capture
 		assertEquals(new GenericMove("c4b5"), Move.toGenericMove(it.nextInt()));
+		assertFalse(it.hasNext());
 		
 		it = classUnderTest.stagedMoveGen(0);
 		// killers
 		if (KillerList.ENABLE_KILLER_MOVES) {
 			assertEquals(killer1_gen, Move.toGenericMove(it.nextInt()));
+			assertFalse(it.hasNext());
+			
 			it = classUnderTest.stagedMoveGen(0);
 			assertEquals(killer2_gen, Move.toGenericMove(it.nextInt()));
 		}
+		assertFalse(it.hasNext());
+		
 		it = classUnderTest.stagedMoveGen(0);
-		// 4 moves already returned 
+		// 4 moves already returned, there are 17 possible moves
 		assertEquals(13, classUnderTest.getList(0).size());
+		while (it.hasNext()) {
+			System.out.println(Move.toString(it.next()));
+		}
 	}
 	
 	@Test
@@ -385,7 +395,7 @@ public class MoveListTest {
 		classUnderTest.initialise(best, null, pm.isKingInCheck(), false, 0);
 		MoveListIterator it = classUnderTest.stagedMoveGen(0);
 		
-		assertEquals(Move.valueOf(Position.g7, Piece.WHITE_KING, Position.g8, Piece.NONE), Move.toString(it.nextInt()));
+		assertEquals(Move.toString(Move.valueOf(Position.g7, Piece.WHITE_KING, Position.g8, Piece.NONE)), Move.toString(it.nextInt()));
 	}
 	
 	@Test
