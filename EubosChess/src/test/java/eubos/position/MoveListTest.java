@@ -3,7 +3,6 @@ package eubos.position;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -253,10 +252,8 @@ public class MoveListTest {
 		
 		it = classUnderTest.stagedMoveGen(0);
 		// 4 moves already returned, there are 17 possible moves
-		assertEquals(13, classUnderTest.getList(0).size());
-		while (it.hasNext()) {
-			System.out.println(Move.toString(it.nextInt()));
-		}
+		classUnderTest.initialise(best, killers, pm.isKingInCheck(), false, 0);
+		assertEquals(17, classUnderTest.getList().size());
 	}
 	
 	@Test
@@ -423,31 +420,5 @@ public class MoveListTest {
 		
 	    it = classUnderTest.stagedMoveGen(0);
 	    assertNotEquals(best, it.nextInt());
-	}
-	
-	@Test
-	@Ignore
-	public void test_compare_extended_search_against_normal_staged_moves_all()throws IllegalNotationException {
-		PositionManager pm = new PositionManager("6k1/PBN5/8/2Kp4/2P5/5Q2/8/3R4 w - - 0 1 ");
-		classUnderTest = new MoveList(pm, 1);
-		MoveListIterator it = classUnderTest.createForPly(Move.NULL_MOVE, null, true, pm.isKingInCheck(), 0);
-		//it = classUnderTest.getExtendedIterator();
-		
-		classUnderTest.initialise(Move.NULL_MOVE, null, pm.isKingInCheck(), true, 0);
-		MoveListIterator smg_it = classUnderTest.stagedMoveGen(0);
-		// Promotion
-		assertTrue(Move.areEqualForBestKiller(smg_it.nextInt(), it.nextInt())); // "a7a8Q"
-		
-		smg_it = classUnderTest.stagedMoveGen(0);
-		// Captures
-		assertEquals(Move.toString(smg_it.nextInt()), Move.toString(it.nextInt())); // PxP "c4d5"
-		assertEquals(Move.toString(smg_it.nextInt()), Move.toString(it.nextInt())); // NxP "c7d5"
-		assertEquals(Move.toString(smg_it.nextInt()), Move.toString(it.nextInt())); // BxP "b7d5"
-		assertEquals(Move.toString(smg_it.nextInt()), Move.toString(it.nextInt())); // RxP "d1d5"
-		assertEquals(Move.toString(smg_it.nextInt()), Move.toString(it.nextInt())); // QxP "f3d5"
-		assertEquals(Move.toString(smg_it.nextInt()), Move.toString(it.nextInt())); // KxP "c5d5"
-		
-		assertFalse(it.hasNext());
-		assertFalse(smg_it.hasNext());
 	}
 }

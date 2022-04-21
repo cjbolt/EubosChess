@@ -173,10 +173,10 @@ public class MiniMaxMoveGeneratorTest {
 		//   abcdefgh
 		setupPosition( "3nkbnr/3p1ppp/8/1B1p4/R2N4/8/6PP/4R1K1 b - - - 1" );
 		//expectedMove = new GenericMove("d8e6");
-		expectedMove = new GenericMove("f8e7");
-		if (!EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
+		//expectedMove = new GenericMove("f8e7");
+		//if (!EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
 			expectedMove = new GenericMove("g8e7");
-		}
+		//}
 		doFindMoveTest(true);
 	}	
 	

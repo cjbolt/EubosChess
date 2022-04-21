@@ -1096,22 +1096,6 @@ public class Board {
 		}
 	}
 	
-	public void getRegularPieceMoves(IAddMoves ml, boolean ownSideIsWhite) {
-		if (me.isEndgame()) {
-			if (ownSideIsWhite) {
-				pieceLists.addMovesEndgame_White(ml);
-			} else {
-				pieceLists.addMovesEndgame_Black(ml);
-			}
-		} else {
-			if (ownSideIsWhite) {
-				pieceLists.addMovesMiddlegame_White(ml);
-			} else {
-				pieceLists.addMovesMiddlegame_Black(ml);
-			}
-		}
-	}
-	
 	public void getPawnPromotionMovesForSide(IAddMoves ml, boolean isWhite) {
 		if (isWhite) {
 			pieceLists.addMoves_PawnPromotions_White(ml);
@@ -1122,9 +1106,9 @@ public class Board {
 	
 	public void getCapturesExcludingPromotions(IAddMoves ml, boolean isWhite) {
 		if (isWhite) {
-			pieceLists.addMoves_CapturesExcludingPawnPromotions_White(ml);
+			pieceLists.addMoves_CapturesExcludingPawnPromotions_White(ml, me.isEndgame());
 		} else {
-			pieceLists.addMoves_CapturesExcludingPawnPromotions_Black(ml);
+			pieceLists.addMoves_CapturesExcludingPawnPromotions_Black(ml, me.isEndgame());
 		}
 	}
 	
