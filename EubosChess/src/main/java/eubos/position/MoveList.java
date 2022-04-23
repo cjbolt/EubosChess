@@ -115,6 +115,11 @@ public class MoveList implements Iterable<Integer> {
 		scratchpad_fill_index[ply] = 0;
 	}
 	
+	private boolean isValidBestMoveForExtendedSearch() {
+		return extendedSearch[ply] && 
+			(Move.isQueenPromotion(bestMove[ply]) || Move.isCapture(bestMove[ply]));
+	}
+	
 	public MoveListIterator stagedMoveGen(int ply) {
 		MoveListIterator iter = null;
 		this.ply = ply;
@@ -124,11 +129,12 @@ public class MoveList implements Iterable<Integer> {
 			// Return best Move if valid
 			nextCheckPoint[ply] = 1;
 			if (bestMove[ply] != Move.NULL_MOVE) {
-				if ((Move.isBest(bestMove[ply]) || bestMoveIsValid()) && (!extendedSearch[ply] || (extendedSearch[ply]
-						&& (Move.isQueenPromotion(bestMove[ply]) || Move.isCapture(bestMove[ply]))))) {
-					scratchpad[ply][0] = bestMove[ply];
-					iter = getBestIterator();
-					break;
+				if (Move.isBest(bestMove[ply]) || bestMoveIsValid()) {
+					if (!extendedSearch[ply] || isValidBestMoveForExtendedSearch()) {
+						scratchpad[ply][0] = bestMove[ply];
+						iter = getBestIterator();
+						break;
+					}
 				}
 				bestMove[ply] = Move.NULL_MOVE; // If it wasn't valid, invalidate it
 			}
