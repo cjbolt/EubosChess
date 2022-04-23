@@ -156,6 +156,142 @@ public class PieceList {
 		}
 	}
 	
+	public void addMovesEndgame_White(IAddMoves ml) {
+		{
+			int atSquare = piece_list[Piece.WHITE_KING][0];
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.king_generateMoves_White(ml, theBoard, atSquare);
+			}
+		}
+		for(int atSquare : piece_list[Piece.WHITE_PAWN]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.pawn_generateMoves_White(ml, theBoard, atSquare);
+			} else break;
+		}
+		for(int atSquare : piece_list[Piece.WHITE_QUEEN]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.queen_generateMoves_White(ml, theBoard, atSquare);
+			} else break;
+		}
+		for(int atSquare : piece_list[Piece.WHITE_ROOK]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.rook_generateMoves_White(ml, theBoard, atSquare);
+			} else break;
+		}
+		for(int atSquare : piece_list[Piece.WHITE_BISHOP]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.bishop_generateMoves_White(ml, theBoard, atSquare);
+			} else break;
+		}
+		for(int atSquare : piece_list[Piece.WHITE_KNIGHT]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.knight_generateMoves_White(ml, theBoard, atSquare);
+			} else break;
+		}
+	}
+	
+	public void addMovesEndgame_Black(IAddMoves ml) {
+		{
+			int atSquare = piece_list[Piece.BLACK_KING][0];
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.king_generateMoves_Black(ml, theBoard, atSquare);
+			}
+		}
+		for(int atSquare : piece_list[Piece.BLACK_PAWN]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.pawn_generateMoves_Black(ml, theBoard, atSquare);
+			} else break;
+		}
+		for(int atSquare : piece_list[Piece.BLACK_QUEEN]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.queen_generateMoves_Black(ml, theBoard, atSquare);
+			} else break;
+		}
+		for(int atSquare : piece_list[Piece.BLACK_ROOK]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.rook_generateMoves_Black(ml, theBoard, atSquare);
+			} else break;
+		}
+		for(int atSquare : piece_list[Piece.BLACK_BISHOP]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.bishop_generateMoves_Black(ml, theBoard, atSquare);
+			} else break;
+		}
+		for(int atSquare : piece_list[Piece.BLACK_KNIGHT]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.knight_generateMoves_Black(ml, theBoard, atSquare);
+			} else break;
+		}
+	}
+	
+	public void addMovesMiddlegame_White(IAddMoves ml) {
+		for(int atSquare : piece_list[Piece.WHITE_BISHOP]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.bishop_generateMoves_White(ml, theBoard, atSquare);
+			} else break;
+		}
+		for(int atSquare : piece_list[Piece.WHITE_KNIGHT]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.knight_generateMoves_White(ml, theBoard, atSquare);
+			} else break;
+		}
+		for(int atSquare : piece_list[Piece.WHITE_QUEEN]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.queen_generateMoves_White(ml, theBoard, atSquare);
+			} else break;
+		}
+		for(int atSquare : piece_list[Piece.WHITE_ROOK]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.rook_generateMoves_White(ml, theBoard, atSquare);
+			} else break;
+		}
+		for(int atSquare : piece_list[Piece.WHITE_PAWN]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.pawn_generateMoves_White(ml, theBoard, atSquare);
+			} else break;
+		}
+		{
+			int atSquare = piece_list[Piece.WHITE_KING][0];
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.king_generateMoves_White(ml, theBoard, atSquare);
+			}
+		}
+	}
+	
+	public void addMovesMiddlegame_Black(IAddMoves ml) {
+		for(int atSquare : piece_list[Piece.BLACK_BISHOP]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.bishop_generateMoves_Black(ml, theBoard, atSquare);
+			} else break;
+		}
+		for(int atSquare : piece_list[Piece.BLACK_KNIGHT]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.knight_generateMoves_Black(ml, theBoard, atSquare);
+			} else break;
+		}
+		for(int atSquare : piece_list[Piece.BLACK_QUEEN]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.queen_generateMoves_Black(ml, theBoard, atSquare);
+			} else break;
+		}
+		for(int atSquare : piece_list[Piece.BLACK_ROOK]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.rook_generateMoves_Black(ml, theBoard, atSquare);
+			} else break;
+		}
+		for(int atSquare : piece_list[Piece.BLACK_PAWN]) {
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.pawn_generateMoves_Black(ml, theBoard, atSquare);
+			} else break;
+		}
+		{
+			int atSquare = piece_list[Piece.BLACK_KING][0];
+			if (atSquare != Position.NOPOSITION) {			
+				Piece.king_generateMoves_Black(ml, theBoard, atSquare);
+			}
+		}
+	}
+	
 	public void evaluateMaterialBalanceAndStaticPieceMobility(boolean isWhite, PiecewiseEvaluation me) {
 		int side = isWhite ? 0 : Piece.BLACK;
 		{

@@ -12,6 +12,8 @@ import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.ints.IntComparator;
 
 public class MoveList implements Iterable<Integer> {
+	
+	public static final boolean ALTERNATE = false;
 
 	private int[][] normal_search_moves;
 	private int[][] priority_moves;
@@ -215,12 +217,12 @@ public class MoveList implements Iterable<Integer> {
 	private void getNonPawnPromotionCaptures() {
 		moveCount[ply] = 0;
 		priority_fill_index[ply] = 0;
-		if (extendedSearch[ply]) {
-			// N.b. In extended search, we have no killers and we don't check for regular
-			// moves
-			pm.getTheBoard().getCapturesExcludingPromotions(ma_captures, isWhite[ply]);
-		} else {
-			if (killers[ply] == null) {
+		if (ALTERNATE) {
+			if (extendedSearch[ply]) {
+				// N.b. In extended search, we have no killers and we don't check for regular
+				// moves
+				pm.getTheBoard().getCapturesExcludingPromotions(ma_captures, isWhite[ply]);
+			} else if (killers[ply] == null) {
 				ma_captures_regular_NoKillers.attackMask = attackMask[ply];
 				pm.getTheBoard().getCapturesBufferRegularExcludingPromotions(ma_captures_regular_NoKillers,
 						isWhite[ply]);
@@ -229,6 +231,8 @@ public class MoveList implements Iterable<Integer> {
 				pm.getTheBoard().getCapturesBufferRegularExcludingPromotions(ma_captures_regular_ConsumeKillers,
 						isWhite[ply]);
 			}
+		} else {
+			pm.getTheBoard().getCapturesExcludingPromotions(ma_captures, isWhite[ply]);
 		}
 	}
 
@@ -245,7 +249,11 @@ public class MoveList implements Iterable<Integer> {
 			moveAdder = ma_quietConsumeKillers;
 			ma_quietConsumeKillers.attackMask = attackMask[ply];
 		}
-		pm.getTheBoard().getLeftoverRegularExcludingPromotions(moveAdder, isWhite[ply]);
+		if (ALTERNATE) {
+			pm.getTheBoard().getLeftoverRegularExcludingPromotions(moveAdder, isWhite[ply]);
+		} else {
+			pm.getTheBoard().getRegularPieceMoves(moveAdder, isWhite[ply]);
+		}
 		if (!needToEscapeMate[ply]) {
 			// Can't castle out of check and don't care in extended search
 			pm.castling.addCastlingMoves(isWhite[ply], moveAdder);

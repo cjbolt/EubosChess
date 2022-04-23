@@ -1096,6 +1096,22 @@ public class Board {
 		}
 	}
 	
+	public void getRegularPieceMoves(IAddMoves ml, boolean ownSideIsWhite) {
+		if (me.isEndgame()) {
+			if (ownSideIsWhite) {
+				pieceLists.addMovesEndgame_White(ml);
+			} else {
+				pieceLists.addMovesEndgame_Black(ml);
+			}
+		} else {
+			if (ownSideIsWhite) {
+				pieceLists.addMovesMiddlegame_White(ml);
+			} else {
+				pieceLists.addMovesMiddlegame_Black(ml);
+			}
+		}
+	}
+	
 	public void getPawnPromotionMovesForSide(IAddMoves ml, boolean isWhite) {
 		if (isWhite) {
 			pieceLists.addMoves_PawnPromotions_White(ml);
