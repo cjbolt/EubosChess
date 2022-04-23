@@ -25,10 +25,12 @@ public class MoveList implements Iterable<Integer> {
 
 	private boolean[] needToEscapeMate;
 	private boolean[] extendedSearch;
+	private boolean[] isWhite;
 	private int[] moveCount;
 	private int[] scratchpad_fill_index;
 	private int[] bestMove;
 	private int[][] killers;
+	private long[] attackMask;
 
 	private int ply;
 
@@ -72,7 +74,9 @@ public class MoveList implements Iterable<Integer> {
 		bestMove = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		needToEscapeMate = new boolean[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		extendedSearch = new boolean[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
+		isWhite = new boolean[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		killers = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY][3];
+		attackMask = new long[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 
 		nextCheckPoint = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 
@@ -140,6 +144,8 @@ public class MoveList implements Iterable<Integer> {
 		case 2:
 			// Generate all captures other than pawn promotions
 			nextCheckPoint[ply] = 3;
+			isWhite[ply] = pm.onMoveIsWhite();
+			attackMask[ply] = extendedSearch[ply] ? 0L : pm.getTheBoard().pkaa.getAttacks(isWhite[ply]);
 			getNonPawnPromotionCaptures();
 			if ((moveCount[ply] - normal_fill_index[ply] - scratchpad_fill_index[ply]) != 0) {
 				sortPriorityList();
@@ -209,21 +215,19 @@ public class MoveList implements Iterable<Integer> {
 	private void getNonPawnPromotionCaptures() {
 		moveCount[ply] = 0;
 		priority_fill_index[ply] = 0;
-		boolean isWhiteOnMove = pm.onMoveIsWhite();
-		long attackMask = pm.getTheBoard().pkaa.getAttacks(isWhiteOnMove);
 		if (extendedSearch[ply]) {
 			// N.b. In extended search, we have no killers and we don't check for regular
 			// moves
-			pm.getTheBoard().getCapturesExcludingPromotions(ma_captures, isWhiteOnMove);
+			pm.getTheBoard().getCapturesExcludingPromotions(ma_captures, isWhite[ply]);
 		} else {
 			if (killers[ply] == null) {
-				ma_captures_regular_NoKillers.attackMask = attackMask;
+				ma_captures_regular_NoKillers.attackMask = attackMask[ply];
 				pm.getTheBoard().getCapturesBufferRegularExcludingPromotions(ma_captures_regular_NoKillers,
-						isWhiteOnMove);
+						isWhite[ply]);
 			} else {
-				ma_captures_regular_ConsumeKillers.attackMask = attackMask;
+				ma_captures_regular_ConsumeKillers.attackMask = attackMask[ply];
 				pm.getTheBoard().getCapturesBufferRegularExcludingPromotions(ma_captures_regular_ConsumeKillers,
-						isWhiteOnMove);
+						isWhite[ply]);
 			}
 		}
 	}
@@ -232,21 +236,19 @@ public class MoveList implements Iterable<Integer> {
 		moveCount[ply] = normal_fill_index[ply] + scratchpad_fill_index[ply];
 		priority_fill_index[ply] = 0;
 		IAddMoves moveAdder = null;
-		boolean isWhiteOnMove = pm.onMoveIsWhite();
-		long attackMask = pm.getTheBoard().pkaa.getAttacks(isWhiteOnMove);
 		if (killers[ply] == null) {
 			moveAdder = ma_quietNoKillers;
-			ma_quietNoKillers.attackMask = attackMask;
+			ma_quietNoKillers.attackMask = attackMask[ply];
 		} else {
 			// Set-up move adder to filter the moves from attacked pieces into the priority
 			// part of the move list
 			moveAdder = ma_quietConsumeKillers;
-			ma_quietConsumeKillers.attackMask = attackMask;
+			ma_quietConsumeKillers.attackMask = attackMask[ply];
 		}
-		pm.getTheBoard().getLeftoverRegularExcludingPromotions(moveAdder, isWhiteOnMove);
+		pm.getTheBoard().getLeftoverRegularExcludingPromotions(moveAdder, isWhite[ply]);
 		if (!needToEscapeMate[ply]) {
 			// Can't castle out of check and don't care in extended search
-			pm.castling.addCastlingMoves(isWhiteOnMove, moveAdder);
+			pm.castling.addCastlingMoves(isWhite[ply], moveAdder);
 		}
 	}
 
