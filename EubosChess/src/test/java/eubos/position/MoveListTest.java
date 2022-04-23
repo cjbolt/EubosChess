@@ -301,14 +301,14 @@ public class MoveListTest {
 	public void test_check_extended_search_moves_contain_only_promotions_and_captures_all()throws IllegalNotationException {
 		PositionManager pm = new PositionManager("6k1/PBN5/8/2Kp4/2P5/5Q2/8/3R4 w - - 0 1 ");
 		classUnderTest = new MoveList(pm, 1);
-		classUnderTest.initialise(Move.NULL_MOVE, null, pm.isKingInCheck(), true, 0);
-		MoveListIterator it = classUnderTest.stagedMoveGen(0);
+		classUnderTest.initialise(Move.NULL_MOVE, null, pm.isKingInCheck(), true, 1);
+		MoveListIterator it = classUnderTest.stagedMoveGen(1);
 		
 		// Promotion
 		assertEquals(new GenericMove("a7a8Q"), Move.toGenericMove(it.nextInt()));
 		assertFalse(it.hasNext());
 		
-		it = classUnderTest.stagedMoveGen(0);
+		it = classUnderTest.stagedMoveGen(1);
 		// Captures
 		assertEquals(new GenericMove("c4d5"), Move.toGenericMove(it.nextInt())); // PxP
 		assertEquals(new GenericMove("c7d5"), Move.toGenericMove(it.nextInt())); // NxP
@@ -319,21 +319,21 @@ public class MoveListTest {
 		assertFalse(it.hasNext());
 		
 		// No more extended search moves
-		it = classUnderTest.stagedMoveGen(0);
+		it = classUnderTest.stagedMoveGen(1);
 		assertFalse(it.hasNext());
 		
 		// Check expected normal moves number
 		int countOfStandardMoves = 0;
-		classUnderTest.initialise(Move.NULL_MOVE, null, pm.isKingInCheck(), false, 0);
-		MoveListIterator normal_it = classUnderTest.stagedMoveGen(0);
+		classUnderTest.initialise(Move.NULL_MOVE, null, pm.isKingInCheck(), false, 1);
+		MoveListIterator normal_it = classUnderTest.stagedMoveGen(1);
 		do {
 			do {
 				System.out.println(Move.toString(normal_it.nextInt()));
 				countOfStandardMoves++;
 			} while (normal_it.hasNext());
-			normal_it = classUnderTest.stagedMoveGen(0);
+			normal_it = classUnderTest.stagedMoveGen(1);
 		} while (normal_it.hasNext());
-		assertEquals(55, countOfStandardMoves);
+		assertEquals(52, countOfStandardMoves); // Don't generate under promotions at ply 1, only at ply 0.
 	}
 	
 	@Test
