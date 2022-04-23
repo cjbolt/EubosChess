@@ -25,8 +25,8 @@ public class CastlingManagerTest {
 	void setupPosition(String fen)  {
 		pm = new PositionManager(fen);
 		ml = new MoveList(pm, 0);
-		ml.initialise(Move.NULL_MOVE, null, false, false, 0);
-		ml.stagedMoveGen(0);
+		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
+		ml.getNextMovesAtPly(0);
 	}
 	
 	@Test
@@ -62,8 +62,8 @@ public class CastlingManagerTest {
 		pm.performMove(Move.toMove(new GenericMove("b8a8"), pm.getTheBoard()));
 		classUnderTest = pm.castling;
 		ml = new MoveList(pm, 0);
-		ml.initialise(Move.NULL_MOVE, null, false, false, 0);
-		ml.stagedMoveGen(0);
+		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
+		ml.getNextMovesAtPly(0);
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml.ma_quietNoKillers);
 		assertFalse(ml.getList().contains(CastlingManager.wqsc));
 		assertFalse(ml.getList().contains(CastlingManager.wksc));
@@ -87,8 +87,8 @@ public class CastlingManagerTest {
 		pm.performMove(Move.valueOf(Position.b8, Piece.BLACK_KING, Position.a8, Piece.NONE));
 		classUnderTest = pm.castling;	
 		ml = new MoveList(pm, 0);
-		ml.initialise(Move.NULL_MOVE, null, false, false, 0);
-		ml.stagedMoveGen(0);
+		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
+		ml.getNextMovesAtPly(0);
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml.ma_quietNoKillers);
 		assertFalse(ml.getList().contains(CastlingManager.wqsc));
 		assertFalse(ml.getList().contains(CastlingManager.wksc));
@@ -282,9 +282,9 @@ public class CastlingManagerTest {
 		// 1 ........
 		//   abcdefgh
 		setupPosition("r3k3/8/8/8/8/8/8/8 b q - - -");
-		ml.initialise(Move.NULL_MOVE, null, false, false, 0);
+		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
 		assertTrue(ml.getList().contains(CastlingManager.bqsc));
-		ml.initialise(Move.NULL_MOVE, null, false, false, 0);
+		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
 		assertFalse(ml.getList().contains(CastlingManager.bksc));
 	}	
 	
@@ -356,9 +356,9 @@ public class CastlingManagerTest {
 		setupPosition("r3k3/8/R7/8/8/8/8/8 b q - - -");
 		classUnderTest = pm.castling;
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml.ma_quietNoKillers);
-		ml.initialise(Move.NULL_MOVE, null, false, false, 0);
+		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
 		assertTrue(ml.getList().contains(CastlingManager.bqsc));
-		ml.initialise(Move.NULL_MOVE, null, false, false, 0);
+		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
 		assertFalse(ml.getList().contains(CastlingManager.bksc));
 	}
 	
@@ -366,21 +366,21 @@ public class CastlingManagerTest {
 	public void test_WhiteKingSideCastle_fromgame() throws IllegalNotationException   {
 		pm = new PositionManager("rnb2bnr/1ppp1kpp/4pq2/8/p1BPP3/8/PPP2PPP/RNBQK2R w KQ - 1 7");
 		ml = new MoveList(pm, 0);
-		ml.initialise(Move.NULL_MOVE, null, false, false, 0);
-		ml.stagedMoveGen(0);
-		ml.stagedMoveGen(0);
+		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
+		ml.getNextMovesAtPly(0);
+		ml.getNextMovesAtPly(0);
 		classUnderTest = pm.castling;
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml.ma_quietNoKillers);
 		expectWkscMove();
 	}
 
 	private void expectBqscMove() throws IllegalNotationException {
-		ml.initialise(Move.NULL_MOVE, null, false, false, 0);
+		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
 		assertTrue(ml.getList().contains(CastlingManager.bqsc));
 	}
 	
 	private void expectWkscMove() throws IllegalNotationException {
-		ml.initialise(Move.NULL_MOVE, null, false, false, 0);
+		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
 		assertTrue(ml.getList().contains(CastlingManager.wksc));
 	}
 }

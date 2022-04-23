@@ -26,9 +26,9 @@ public class PerformanceTest {
 	    
 	    public long perft()  {
 	        if (currPly < requestedDepthPly) { 
-	        	ml.initialise(Move.NULL_MOVE, null, pm.isKingInCheck(), false, currPly);
+	        	ml.initialiseAtPly(Move.NULL_MOVE, null, pm.isKingInCheck(), false, currPly);
 	        	do {
-		            MoveListIterator iter = ml.stagedMoveGen(currPly);
+		            MoveListIterator iter = ml.getNextMovesAtPly(currPly);
 		            if (!iter.hasNext()) break;
 		            do {
 		            	int move = iter.nextInt();
