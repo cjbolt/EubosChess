@@ -216,11 +216,11 @@ public final class Move {
 	}
 	
 	public static boolean areEqual(int move1, int move2) {
-		return (move1 & EQUALITY_MASK) == (move2 & EQUALITY_MASK);
+		return ((move1 ^ move2) & EQUALITY_MASK) == 0;
 	}
 	
 	public static boolean areEqualForBestKiller(int move1, int move2) {
-		return (move1 & BEST_KILLER_EQUALITY_MASK) == (move2 & BEST_KILLER_EQUALITY_MASK);
+		return ((move1 ^ move2) & BEST_KILLER_EQUALITY_MASK) == 0;
 	}
 	
 	public static int getType(int move) {

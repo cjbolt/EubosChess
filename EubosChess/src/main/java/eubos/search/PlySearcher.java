@@ -249,9 +249,9 @@ public class PlySearcher {
 		int positionScore = plyScore;
 		int moveNumber = 0;
 		boolean refuted = false;
-		ml.initialise(prevBestMove[0], killers.getMoves(0), needToEscapeCheck, false, 0);
+		ml.initialiseAtPly(prevBestMove[0], killers.getMoves(0), needToEscapeCheck, false, 0);
 		do {
-			MoveListIterator move_iter = ml.stagedMoveGen(0);
+			MoveListIterator move_iter = ml.getNextMovesAtPly(0);
 			if (!move_iter.hasNext()) {
 				if (moveNumber == 0) {
 					// No moves at this point means either a stalemate or checkmate has occurred
@@ -421,9 +421,9 @@ public class PlySearcher {
 		int positionScore = plyScore;
 		int moveNumber = 0;
 		boolean refuted = false;
-		ml.initialise(prevBestMove[currPly], killers.getMoves(currPly), needToEscapeCheck, false, currPly);
+		ml.initialiseAtPly(prevBestMove[currPly], killers.getMoves(currPly), needToEscapeCheck, false, currPly);
 		do {
-			MoveListIterator move_iter = ml.stagedMoveGen(currPly);
+			MoveListIterator move_iter = ml.getNextMovesAtPly(currPly);
 			if (!move_iter.hasNext()) {
 				if (moveNumber == 0) {
 					// No moves at this point means either a stalemate or checkmate has occurred
@@ -555,9 +555,9 @@ public class PlySearcher {
 		int currMove = Move.NULL_MOVE;
 		int positionScore = plyScore;
 		int moveNumber = 0;
-		ml.initialise(prevBestMove, null, needToEscapeCheck, true, currPly);
+		ml.initialiseAtPly(prevBestMove, null, needToEscapeCheck, true, currPly);
 		do {
-			MoveListIterator move_iter = ml.stagedMoveGen(currPly);
+			MoveListIterator move_iter = ml.getNextMovesAtPly(currPly);
 			if (!move_iter.hasNext()) {
 				if (SearchDebugAgent.DEBUG_ENABLED && moveNumber == 0) sda.printExtSearchNoMoves(alpha);
 				// As soon as there are no more moves returned from staged move generation, break out in extended search
