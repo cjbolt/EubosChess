@@ -24,6 +24,8 @@ public class MoveList implements Iterable<Integer> {
 		}
 	}
 	
+	private static MoveListIterator empty = new MoveListIterator(new int [] {}, 0);
+	
 	public static final boolean ALTERNATE = false;
 
 	private int[][] normal_search_moves;
@@ -44,6 +46,8 @@ public class MoveList implements Iterable<Integer> {
 	private int[] bestMove;
 	private int[][] killers;
 	private long[] attackMask;
+	
+	private MoveListIterator[] ml;
 
 	private int ply;
 
@@ -69,7 +73,7 @@ public class MoveList implements Iterable<Integer> {
 		killers = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY][3];
 		attackMask = new long[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		nextCheckPoint = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
-
+		
 		this.pm = pm;
 		ordering = orderMoveList;
 
@@ -172,12 +176,14 @@ public class MoveList implements Iterable<Integer> {
 		normal_search_moves = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY][];
 		priority_moves = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY][];
 		scratchpad = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY][];
+		ml = new MoveListIterator[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 	
 		// Create the list at each ply
 		for (int i = 0; i < EubosEngineMain.SEARCH_DEPTH_IN_PLY; i++) {
 			normal_search_moves[i] = new int[110];
 			priority_moves[i] = new int[100];
 			scratchpad[i] = new int[100];
+			ml[i] = new MoveListIterator(null, 0);
 		}
 		
 		normal_fill_index = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
@@ -300,20 +306,20 @@ public class MoveList implements Iterable<Integer> {
 
 	@Override
 	public MoveListIterator iterator() {
-		return new MoveListIterator(scratchpad[ply], moveCount[ply]);
+		return ml[ply].set(scratchpad[ply], moveCount[ply]);
 	}
 	
 	public MoveListIterator emptyIterator() {
-		return new MoveListIterator(scratchpad[ply], 0);
+		return empty;
 	}
 	
 	public MoveListIterator priorityIterator() {
-		return new MoveListIterator(priority_moves[ply], priority_fill_index[ply]);
+		return ml[ply].set(priority_moves[ply], priority_fill_index[ply]);
 	}
 
 	public MoveListIterator singleMoveIterator(int move) {
 		scratchpad[ply][0] = move;
-		return new MoveListIterator(scratchpad[ply], 1);
+		return ml[ply].set(scratchpad[ply], 1);
 	}
 
 	public int getRandomMove() {

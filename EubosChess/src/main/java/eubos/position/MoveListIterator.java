@@ -35,4 +35,11 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 	public int nextInt() {
 		return moves[next++];
 	}
+
+	public MoveListIterator set(int[] move_array, int length) {
+		moves = move_array;
+		count = length;
+		next = 0;
+		return this;
+	}
 }
