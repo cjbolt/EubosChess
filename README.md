@@ -20,7 +20,7 @@ It knows about draws by 3-fold repetition and insufficient material.
 ## Configuration
 UCI option | Eubos functionality
 ------------ | -------------
-Threads | Sets the number of worker threads that shall be used to perform the search. Configuring 1 means Eubos shall be single-threaded, greater than 1 and it will run multi-threaded. PLEASE NOTE: multithreaded operation is temporarily disabled from v2.5 due to a well understood defect.
+Threads | Sets the number of worker threads that shall be used to perform the search. Configuring 1 means Eubos shall be single-threaded, greater than 1 and it will run multi-threaded.
 Hash | Sets the size of the hash table to use, in Megabytes. The hash table is shared by all the threads, it is not duplicated per worker thread.
 Move Overhead | Factor for this number of milliseconds on the clock each time a move must be made. This is useful for countering latency in internet games.
 
