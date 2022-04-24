@@ -1122,9 +1122,25 @@ public class Board {
 	
 	public void getCapturesExcludingPromotions(IAddMoves ml, boolean isWhite) {
 		if (isWhite) {
-			pieceLists.addMoves_CapturesExcludingPawnPromotions_White(ml);
+			pieceLists.addMoves_CapturesExcludingPawnPromotions_White(ml, me.isEndgame());
 		} else {
-			pieceLists.addMoves_CapturesExcludingPawnPromotions_Black(ml);
+			pieceLists.addMoves_CapturesExcludingPawnPromotions_Black(ml, me.isEndgame());
+		}
+	}
+	
+	public void getCapturesBufferRegularExcludingPromotions(IAddMoves ml, boolean isWhite) {
+		if (isWhite) {
+			pieceLists.addMoves_AllMovesForPiecesThatCouldCaptureExcludingPawnPromotions_White(ml, me.isEndgame());
+		} else {
+			pieceLists.addMoves_AllMovesForPiecesThatCouldCaptureExcludingPawnPromotions_Black(ml, me.isEndgame());
+		}
+	}
+	
+	public void getLeftoverRegularExcludingPromotions(IAddMoves ml, boolean isWhite) {
+		if (isWhite) {
+			pieceLists.addMoves_AllMovesForPiecesThatCannotCaptureExcludingPawnPromotions_White(ml, me.isEndgame());
+		} else {
+			pieceLists.addMoves_AllMovesForPiecesThatCannotCaptureExcludingPawnPromotions_Black(ml, me.isEndgame());
 		}
 	}
 	
