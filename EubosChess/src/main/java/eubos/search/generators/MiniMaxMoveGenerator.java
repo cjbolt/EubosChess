@@ -3,6 +3,9 @@ package eubos.search.generators;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
@@ -87,7 +90,8 @@ public class MiniMaxMoveGenerator implements
 			SearchMetricsReporter sr)  {
 		boolean foundMate = false;
 		sm.setDepth(searchDepth);
-		sm.setPrincipalVariation(pc.toPvList(0));
+		List<Integer> list = Arrays.stream(pc.toPvList(0)).boxed().collect(Collectors.toList());
+		sm.setPrincipalVariation(list);
 		ps = new PlySearcher(tta, pc, sm, sr, searchDepth, pm, pos, pe, killers, sda, ml);
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		try {

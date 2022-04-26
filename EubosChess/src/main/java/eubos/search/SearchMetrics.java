@@ -88,7 +88,7 @@ public class SearchMetrics {
 		isScoreBackedUpFromSearch = true;
 	}
 	
-	synchronized void setPrincipalVariationDataFromHash(int extendedSearchDeepestPly, List<Integer> pc, short positionScore) {
+	synchronized void setPrincipalVariationDataFromHash(int extendedSearchDeepestPly, short positionScore) {
 		setCpScore(positionScore);
 		this.cpScore = positionScore;
 	}
