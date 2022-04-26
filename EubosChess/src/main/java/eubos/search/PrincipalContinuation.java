@@ -14,7 +14,7 @@ public class PrincipalContinuation {
 		// Create the pc list at each ply
 		pc = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY][];
 		for (int i = 0; i < EubosEngineMain.SEARCH_DEPTH_IN_PLY; i++) {
-			pc[i] = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY-i];
+			pc[i] = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		}
 		length = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		this.sda = sda;

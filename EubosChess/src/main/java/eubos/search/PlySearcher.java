@@ -84,6 +84,7 @@ public class PlySearcher {
 	
 	private volatile boolean terminate = false;
 	
+	private int[] lastPc;
 	private ITranspositionAccessor tt;
 	private SearchMetricsReporter sr;
 	private KillerList killers;
@@ -123,6 +124,7 @@ public class PlySearcher {
 		this.pos = pos;
 		this.pe = pe;
 		this.sr = sr;
+		this.lastPc = pc.toPvList(0);
 		this.sda = sda;
 		originalSearchDepthRequiredInPly = searchDepthPly;
 		
@@ -217,7 +219,8 @@ public class PlySearcher {
 		
 		// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
 		// It will deviate from the hash move when we start updating the hash during iterative deepening.
-		prevBestMove[0] = Move.clearBest(pc.getBestMove((byte)0));
+		prevBestMove[0] = ((lastPc != null) && (lastPc.length > 0)) ? lastPc[0] : Move.NULL_MOVE;
+		prevBestMove[0] =  Move.clearBest(prevBestMove[0]);
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(0);
 		
 		if (SearchDebugAgent.DEBUG_ENABLED) {
@@ -345,7 +348,8 @@ public class PlySearcher {
 						
 		// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
 		// It will deviate from the hash move when we start updating the hash during iterative deepening.
-		prevBestMove[currPly] = Move.clearBest(pc.getBestMove(currPly));
+		prevBestMove[currPly] = ((lastPc != null) && (lastPc.length > currPly)) ? lastPc[currPly] : Move.NULL_MOVE;
+		prevBestMove[currPly] =  Move.clearBest(prevBestMove[currPly]);
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
 		// Check for draws by three-fold repetition
