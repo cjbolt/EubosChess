@@ -2,7 +2,6 @@ package eubos.search;
 
 import java.util.IntSummaryStatistics;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.Arrays;
 
 import eubos.board.Piece;
@@ -84,7 +83,7 @@ public class PlySearcher {
 	
 	private volatile boolean terminate = false;
 	
-	private int[] lastPc;
+	private List<Integer> lastPc;
 	private ITranspositionAccessor tt;
 	private SearchMetricsReporter sr;
 	private KillerList killers;
@@ -219,7 +218,7 @@ public class PlySearcher {
 		
 		// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
 		// It will deviate from the hash move when we start updating the hash during iterative deepening.
-		prevBestMove[0] = ((lastPc != null) && (lastPc.length > 0)) ? lastPc[0] : Move.NULL_MOVE;
+		prevBestMove[0] = ((lastPc != null) && (lastPc.size() > 0)) ? lastPc.get(0) : Move.NULL_MOVE;
 		prevBestMove[0] =  Move.clearBest(prevBestMove[0]);
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(0);
 		
@@ -238,7 +237,7 @@ public class PlySearcher {
 		if (trans != 0L) {
 			evaluateTransposition(trans, depth);
 			if (isCutOff[0]) {
-				sm.setPrincipalVariationDataFromHash(0, (short)hashScore[0]);
+				sm.setPrincipalVariationDataFromHash(0, pc.toPvList(0), (short)hashScore[0]);
 				sr.reportPrincipalVariation(sm);
 				return hashScore[0];
 			}
@@ -348,7 +347,7 @@ public class PlySearcher {
 						
 		// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
 		// It will deviate from the hash move when we start updating the hash during iterative deepening.
-		prevBestMove[currPly] = ((lastPc != null) && (lastPc.length > currPly)) ? lastPc[currPly] : Move.NULL_MOVE;
+		prevBestMove[currPly] = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
 		prevBestMove[currPly] =  Move.clearBest(prevBestMove[currPly]);
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
@@ -722,8 +721,7 @@ public class PlySearcher {
 
 	private void reportPv(short positionScore) {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
-			List<Integer> list = Arrays.stream(pc.toPvList(0)).boxed().collect(Collectors.toList());
-			sm.setPrincipalVariationData(extendedSearchDeepestPly, list, positionScore);
+			sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), positionScore);
 			sr.reportPrincipalVariation(sm);
 			extendedSearchDeepestPly = 0;
 		}
