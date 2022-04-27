@@ -21,10 +21,8 @@ public class PrincipalContinuation {
 	}
 	
 	public int getBestMove(byte currPly) {
-		if (currPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
-			if (length[currPly] != 0)
-				return pc[currPly][0];
-		}
+		if (currPly < length[0])
+			return pc[0][currPly];
 		return Move.NULL_MOVE;
 	}
 	
