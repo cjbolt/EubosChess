@@ -1,8 +1,6 @@
 package eubos.search;
 
 import java.util.IntSummaryStatistics;
-import java.util.List;
-import java.util.stream.Collectors;
 import java.util.Arrays;
 
 import eubos.board.Piece;
@@ -718,8 +716,7 @@ public class PlySearcher {
 
 	private void reportPv(short positionScore) {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
-			List<Integer> list = Arrays.stream(pc.toPvList(0)).boxed().collect(Collectors.toList());
-			sm.setPrincipalVariationData(extendedSearchDeepestPly, list, positionScore);
+			sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), pc.length[0], positionScore);
 			sr.reportPrincipalVariation(sm);
 			extendedSearchDeepestPly = 0;
 		}

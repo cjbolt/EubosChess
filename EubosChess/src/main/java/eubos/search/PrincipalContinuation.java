@@ -2,12 +2,11 @@ package eubos.search;
 
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
-import it.unimi.dsi.fastutil.ints.IntArrays;
 
 public class PrincipalContinuation {
 
 	private int [][] pc;
-	private int [] length;
+	public int [] length;
 	private SearchDebugAgent sda;
 
 	public PrincipalContinuation(int searchDepth, SearchDebugAgent sda) {
@@ -53,8 +52,7 @@ public class PrincipalContinuation {
 	
 	public int [] toPvList(int currPly) { 
 		if (currPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
-			int [] pv = IntArrays.trim(pc[currPly], length[currPly]);
-			return pv;
+			return pc[currPly];
 		}
 		return null;
 	}

@@ -1,8 +1,10 @@
 package eubos.search;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
@@ -59,10 +61,11 @@ public class SearchMetrics {
 		return nps;
 	}
 	
-	public synchronized void setPrincipalVariation(List<Integer> pc) {
-		if (!pc.isEmpty()) {
+	public synchronized void setPrincipalVariation(int [] pc, int length_pc) {
+		if (pc != null && length_pc != 0) {
 			pvValid = true;
-			pv = new ArrayList<Integer>(pc);
+			pv = Arrays.stream(pc).boxed().collect(Collectors.toList());
+			pv = pv.subList(0, length_pc);
 		} else {
 			pvValid = false;
 		}
@@ -81,9 +84,9 @@ public class SearchMetrics {
 		return thePv;
 	}
 	
-	synchronized void setPrincipalVariationData(int extendedSearchDeepestPly, List<Integer> pc, short positionScore) {
+	synchronized void setPrincipalVariationData(int extendedSearchDeepestPly, int[] pc, int pc_length, short positionScore) {
 		setPartialDepth(extendedSearchDeepestPly);
-		setPrincipalVariation(pc);
+		setPrincipalVariation(pc, pc_length);
 		setCpScore(positionScore);
 		isScoreBackedUpFromSearch = true;
 	}
