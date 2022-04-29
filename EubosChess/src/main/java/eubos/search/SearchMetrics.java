@@ -13,6 +13,8 @@ import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 
 public class SearchMetrics {
+	
+	public static final boolean SINGLE_MOVE_PV = true;
 	private IPositionAccessors pos;
 	private AtomicLong nodesSearched;
 	private long time;
@@ -74,10 +76,15 @@ public class SearchMetrics {
 	synchronized List<GenericMove> getPrincipalVariation() {
 		List<GenericMove> thePv = null;
 		if (pvValid) {
-			thePv = new ArrayList<GenericMove>(pv.size());
-			for (int move : this.pv) {
-				if (move != Move.NULL_MOVE) {
-					thePv.add(Move.toGenericMove(move));
+			if (SINGLE_MOVE_PV) {
+				thePv = new ArrayList<GenericMove>(1);
+				thePv.add(Move.toGenericMove(pv.get(0)));
+			} else {
+				thePv = new ArrayList<GenericMove>(pv.size());
+				for (int move : this.pv) {
+					if (move != Move.NULL_MOVE) {
+						thePv.add(Move.toGenericMove(move));
+					}
 				}
 			}
 		}

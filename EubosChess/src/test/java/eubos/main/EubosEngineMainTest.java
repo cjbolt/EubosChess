@@ -24,6 +24,7 @@ import eubos.board.Piece;
 import eubos.position.Move;
 import eubos.position.Position;
 import eubos.search.Score;
+import eubos.search.SearchMetrics;
 import eubos.search.transposition.Transposition;
 
 public class EubosEngineMainTest {
@@ -146,9 +147,10 @@ public class EubosEngineMainTest {
 		performTest(1000);
 	}
 	
+	@SuppressWarnings("unused")
 	@Test
 	public void test_infoMessageSending_clearsPreviousPvMoves() throws InterruptedException, IOException {
-		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && !SearchMetrics.SINGLE_MOVE_PV) {
 			String expectedOutput = "info depth 1 seldepth 6 score cp 18 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
 						"info depth 1 seldepth 6 score cp 191 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 45"+CMD_TERMINATOR+
 	                    "info depth 2 seldepth 6 score cp 121 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 203"+CMD_TERMINATOR
