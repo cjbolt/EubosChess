@@ -57,7 +57,8 @@ public class MiniMaxMoveGenerator implements
 			SearchMetricsReporter sr) {
 		PositionManager pm = new PositionManager(fen, dc);
 		commonInit(hashMap, pm, pm);
-		sr.register(sm);
+		if (sr != null)
+			sr.register(sm);
 	}
 
 	private void commonInit(FixedSizeTranspositionTable hashMap, IChangePosition pm, IPositionAccessors pos) {

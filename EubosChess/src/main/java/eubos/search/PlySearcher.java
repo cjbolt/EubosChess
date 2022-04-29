@@ -198,7 +198,8 @@ public class PlySearcher {
 			if (windowFailed) {
 				EubosEngineMain.logger.info(String.format("Aspiration Window failed count=%d score=%d alpha=%d beta=%d depth=%d",
         				fail_count, score, alpha, beta, originalSearchDepthRequiredInPly));
-				sr.resetAfterWindowingFail();
+				if (sr != null)
+					sr.resetAfterWindowingFail();
 				windowFailed = false;
 			}
 		}
@@ -234,7 +235,8 @@ public class PlySearcher {
 			evaluateTransposition(trans, depth);
 			if (isCutOff[0]) {
 				sm.setPrincipalVariationDataFromHash(0, (short)hashScore[0]);
-				sr.reportPrincipalVariation(sm);
+				if (sr != null)
+					sr.reportPrincipalVariation(sm);
 				return hashScore[0];
 			}
 		}
@@ -717,7 +719,8 @@ public class PlySearcher {
 	private void reportPv(short positionScore) {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), pc.length[0], positionScore);
-			sr.reportPrincipalVariation(sm);
+			if (sr != null)
+				sr.reportPrincipalVariation(sm);
 			extendedSearchDeepestPly = 0;
 		}
 	}
