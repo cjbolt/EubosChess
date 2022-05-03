@@ -1,31 +1,31 @@
 package eubos.search;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.board.Piece.Colour;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
+import it.unimi.dsi.fastutil.ints.IntArrays;
 
 public class SearchMetrics {
 	
-	public static final boolean SINGLE_MOVE_PV = true;
+	public static final boolean ENABLE_SINGLE_MOVE_PV = false;
+	
 	private IPositionAccessors pos;
 	private AtomicLong nodesSearched;
 	private long time;
-	private List<Integer> pv;
+	private int[] pv;
 	public boolean pvValid = false;
 	private short cpScore;
 	private int depth;
 	private int partialDepth;
 	private long initialTimestamp;
 	private int moveNum;
-	private GenericMove move;
+	private int move;
 	boolean isScoreBackedUpFromSearch = false;
 	
 	public SearchMetrics(int searchDepth, IPositionAccessors pos) {
@@ -39,7 +39,7 @@ public class SearchMetrics {
 		initialTimestamp = System.currentTimeMillis();
 		this.pos = pos;
 		moveNum = 0;
-		move = null;
+		move = Move.NULL_MOVE;
 	}
 
 	public SearchMetrics(IPositionAccessors pos) {
@@ -66,8 +66,7 @@ public class SearchMetrics {
 	public synchronized void setPrincipalVariation(int [] pc, int length_pc) {
 		if (pc != null && length_pc != 0) {
 			pvValid = true;
-			pv = Arrays.stream(pc).boxed().collect(Collectors.toList());
-			pv = pv.subList(0, length_pc);
+			pv = IntArrays.trim(pc, length_pc);
 		} else {
 			pvValid = false;
 		}
@@ -76,12 +75,13 @@ public class SearchMetrics {
 	synchronized List<GenericMove> getPrincipalVariation() {
 		List<GenericMove> thePv = null;
 		if (pvValid) {
-			if (SINGLE_MOVE_PV) {
+			if (ENABLE_SINGLE_MOVE_PV) {
 				thePv = new ArrayList<GenericMove>(1);
-				thePv.add(Move.toGenericMove(pv.get(0)));
+				thePv.add(Move.toGenericMove(pv[0]));
 			} else {
-				thePv = new ArrayList<GenericMove>(pv.size());
-				for (int move : this.pv) {
+				// Need to convert from internal move representation to a generic list of moves for the UCI package API
+				thePv = new ArrayList<GenericMove>(pv.length);
+				for (int move : pv) {
 					if (move != Move.NULL_MOVE) {
 						thePv.add(Move.toGenericMove(move));
 					}
@@ -122,12 +122,12 @@ public class SearchMetrics {
 	public int getCurrentMoveNum() {
 		return moveNum;
 	}
-	public void setCurrentMove(GenericMove move, int moveNumber) {
+	public void setCurrentMove(int move, int moveNumber) {
 		moveNum = moveNumber;
 		this.move = move;
 	}
 	public GenericMove getCurrentMove() {
-		return move;
+		return Move.toGenericMove(move);
 	}
 
 	public boolean isScoreBackedUpFromSearch() {

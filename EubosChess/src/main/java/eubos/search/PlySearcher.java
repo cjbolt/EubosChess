@@ -270,7 +270,7 @@ public class PlySearcher {
 					bestMove = currMove;
 				}
 				if (EubosEngineMain.ENABLE_UCI_MOVE_NUMBER) {
-					sm.setCurrentMove(Move.toGenericMove(currMove), moveNumber);
+					sm.setCurrentMove(currMove, moveNumber);
 					if (originalSearchDepthRequiredInPly > 8)
 						sr.reportCurrentMove();
 				}

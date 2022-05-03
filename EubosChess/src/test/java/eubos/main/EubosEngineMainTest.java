@@ -150,7 +150,7 @@ public class EubosEngineMainTest {
 	@SuppressWarnings("unused")
 	@Test
 	public void test_infoMessageSending_clearsPreviousPvMoves() throws InterruptedException, IOException {
-		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && !SearchMetrics.SINGLE_MOVE_PV) {
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && !SearchMetrics.ENABLE_SINGLE_MOVE_PV) {
 			String expectedOutput = "info depth 1 seldepth 6 score cp 18 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
 						"info depth 1 seldepth 6 score cp 191 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 45"+CMD_TERMINATOR+
 	                    "info depth 2 seldepth 6 score cp 121 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 203"+CMD_TERMINATOR
