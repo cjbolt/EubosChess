@@ -388,7 +388,7 @@ public class BoardTest {
 	
 	@Test
 	public void testCouldLeadToCheck_Yes1() {
-		classUnderTest.setPieceAtSquare(Position.d8, Piece.BLACK_BISHOP);
+		classUnderTest.setPieceAtSquare(Position.h5, Piece.BLACK_BISHOP);
 		classUnderTest.setPieceAtSquare(Position.e2, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KING);
 		classUnderTest.evaluateMaterial(classUnderTest.me);
