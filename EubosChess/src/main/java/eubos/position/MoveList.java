@@ -350,8 +350,9 @@ public class MoveList implements Iterable<Integer> {
 		public void clearAttackedCache() {
 		}
 
+		@SuppressWarnings("unused")
 		protected void handleUnderPromotions(int move) {
-			if (ply == 0 && Move.isQueenPromotion(move)) {
+			if ((EubosEngineMain.ENABLE_PERFT || ply == 0) && Move.isQueenPromotion(move)) {
 				int under1 = Move.setPromotion(move, Piece.ROOK);
 				int under2 = Move.setPromotion(move, Piece.BISHOP);
 				int under3 = Move.setPromotion(move, Piece.KNIGHT);

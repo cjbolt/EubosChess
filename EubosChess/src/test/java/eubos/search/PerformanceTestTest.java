@@ -8,9 +8,9 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.RepetitionInfo;
 import org.junit.jupiter.api.TestInfo;
 
+import eubos.main.EubosEngineMain;
 import eubos.position.PositionManager;
 
-@Disabled
 public class PerformanceTestTest {
 
 	PerformanceTest sut;
@@ -50,20 +50,22 @@ public class PerformanceTestTest {
 	}
 	
 	public void runTest(String fen, long[] expectedCounts)  {
-		setupPosition(fen, 0);
-		long nodes = 0;
-		long startTime = System.currentTimeMillis();
-		for (long expectedCount : expectedCounts) {
-			sut = new PerformanceTest(pm, currDepth);
-			assertEquals( expectedCount, sut.perft());
-			currDepth++;
-			nodes += expectedCount;
+		if (EubosEngineMain.ENABLE_PERFT) {
+			setupPosition(fen, 0);
+			long nodes = 0;
+			long startTime = System.currentTimeMillis();
+			for (long expectedCount : expectedCounts) {
+				sut = new PerformanceTest(pm, currDepth);
+				assertEquals( expectedCount, sut.perft());
+				currDepth++;
+				nodes += expectedCount;
+			}
+			long delta_ms = System.currentTimeMillis()-startTime;
+			long nps = (nodes*1000)/delta_ms;
+			totalNps += nps;
+			totalCount += 1;
+			System.out.println(String.format("Test nps %d", nps));
 		}
-		long delta_ms = System.currentTimeMillis()-startTime;
-		long nps = (nodes*1000)/delta_ms;
-		totalNps += nps;
-		totalCount += 1;
-		System.out.println(String.format("Test nps %d", nps));
 	}
 	
 	@RepeatedTest(3)

@@ -378,18 +378,22 @@ public class BoardTest {
 	
 	@Test
 	public void testCouldLeadToCheck_Yes() {
+		classUnderTest.setPieceAtSquare(Position.d8, Piece.BLACK_ROOK);
 		classUnderTest.setPieceAtSquare(Position.d2, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KING);
+		classUnderTest.evaluateMaterial(classUnderTest.me);
 		int move = Move.valueOf(Position.d2, Piece.WHITE_PAWN, Position.d4, Piece.NONE);
-		assertTrue(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d1));
+		assertTrue(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d1, true));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_Yes1() {
+		classUnderTest.setPieceAtSquare(Position.d8, Piece.BLACK_BISHOP);
 		classUnderTest.setPieceAtSquare(Position.e2, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KING);
+		classUnderTest.evaluateMaterial(classUnderTest.me);
 		int move = Move.valueOf(Position.e2, Piece.WHITE_PAWN, Position.d3, Piece.NONE);
-		assertTrue(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d1));
+		assertTrue(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d1, true));
 	}
 	
 	@Test
@@ -397,7 +401,7 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.e3, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KING);
 		int move = Move.valueOf(Position.e3, Piece.WHITE_PAWN, Position.e4, Piece.NONE);
-		assertFalse(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d1));
+		assertFalse(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d1, true));
 	}
 	
 	@Test
@@ -405,7 +409,7 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KNIGHT);
 		classUnderTest.setPieceAtSquare(Position.e4, Piece.WHITE_KING);
 		int move = Move.valueOf(Position.d1, Piece.WHITE_KNIGHT, Position.c3, Piece.NONE);
-		assertFalse(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.e4));
+		assertFalse(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.e4, true));
 	}
 	
 	PositionManager pm;

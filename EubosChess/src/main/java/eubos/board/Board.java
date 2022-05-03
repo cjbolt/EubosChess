@@ -377,11 +377,27 @@ public class Board {
 		return pieceLists.getKingPos(isWhite);
 	}
 	
-	public boolean moveCouldLeadToOwnKingDiscoveredCheck(int move, int kingPosition) {
+	public boolean moveCouldLeadToOwnKingDiscoveredCheck(int move, int kingPosition, boolean isWhite) {
 		// Establish if the initial square is on a multiple square slider mask from the king position
 		int atSquare = Move.getOriginPosition(move);
 		long square = BitBoard.positionToMask_Lut[atSquare];
-		long attackingSquares = SquareAttackEvaluator.directAttacksOnPosition_Lut[kingPosition];
+		int numAttackingQueens = (isWhite) ? me.numberOfPieces[Piece.BLACK_QUEEN] : me.numberOfPieces[Piece.WHITE_QUEEN];
+		long attackingSquares = 0;
+		if (numAttackingQueens != 0) {
+			attackingSquares = SquareAttackEvaluator.directAttacksOnPosition_Lut[kingPosition];
+		} else {
+			int numAttackingRooks = (isWhite) ? me.numberOfPieces[Piece.BLACK_ROOK] : me.numberOfPieces[Piece.WHITE_ROOK];
+			int numAttackingBishops = (isWhite) ? me.numberOfPieces[Piece.BLACK_BISHOP] : me.numberOfPieces[Piece.WHITE_BISHOP];
+			if (numAttackingRooks != 0 && numAttackingBishops != 0) {
+				attackingSquares = SquareAttackEvaluator.directAttacksOnPosition_Lut[kingPosition];
+			} else if (numAttackingRooks != 0) {
+				attackingSquares = SquareAttackEvaluator.directRankFileAttacksOnPosition_Lut[kingPosition];
+			} else if (numAttackingBishops != 0) {
+				attackingSquares = SquareAttackEvaluator.directDiagonalAttacksOnPosition_Lut[kingPosition];
+			} else {
+				// There can be no direct attacks
+			}
+		}
 		return ((square & attackingSquares) != 0);
 	}
 	
@@ -399,7 +415,7 @@ public class Board {
 		boolean isIllegal = false;
 		boolean isKing = Piece.isKing(pieceToMove);
 		int kingPosition = getKingPosition(isWhite);
-		if (needToEscapeMate || isKing || moveCouldLeadToOwnKingDiscoveredCheck(move, kingPosition)) {
+		if (needToEscapeMate || isKing || moveCouldLeadToOwnKingDiscoveredCheck(move, kingPosition, isWhite)) {
 		
 			int capturePosition = Position.NOPOSITION;
 			int originSquare = Move.getOriginPosition(move);
