@@ -378,27 +378,28 @@ public class Board {
 	}
 	
 	public boolean moveCouldLeadToOwnKingDiscoveredCheck(int move, int kingPosition, boolean isWhite) {
-		// Establish if the initial square is on a multiple square slider mask from the king position
-		int atSquare = Move.getOriginPosition(move);
-		long square = BitBoard.positionToMask_Lut[atSquare];
-		int numAttackingQueens = (isWhite) ? me.numberOfPieces[Piece.BLACK_QUEEN] : me.numberOfPieces[Piece.WHITE_QUEEN];
-		long attackingSquares = 0;
-		if (numAttackingQueens != 0) {
-			attackingSquares = SquareAttackEvaluator.directAttacksOnPosition_Lut[kingPosition];
-		} else {
-			int numAttackingRooks = (isWhite) ? me.numberOfPieces[Piece.BLACK_ROOK] : me.numberOfPieces[Piece.WHITE_ROOK];
-			int numAttackingBishops = (isWhite) ? me.numberOfPieces[Piece.BLACK_BISHOP] : me.numberOfPieces[Piece.WHITE_BISHOP];
-			if (numAttackingRooks != 0 && numAttackingBishops != 0) {
-				attackingSquares = SquareAttackEvaluator.directAttacksOnPosition_Lut[kingPosition];
-			} else if (numAttackingRooks != 0) {
-				attackingSquares = SquareAttackEvaluator.directRankFileAttacksOnPosition_Lut[kingPosition];
-			} else if (numAttackingBishops != 0) {
-				attackingSquares = SquareAttackEvaluator.directDiagonalAttacksOnPosition_Lut[kingPosition];
-			} else {
-				// There can be no direct attacks
-			}
+		// Attackers
+		long attackingQueensMask = isWhite ? getBlackQueens() : getWhiteQueens();
+		long attackingRooksMask = isWhite ? getBlackRooks() : getWhiteRooks();
+		long attackingBishopsMask = isWhite ? getBlackBishops() : getWhiteBishops();
+
+		// Create masks of attackers
+		boolean isKingOnDarkSq = (BitBoard.positionToMask_Lut[kingPosition] & DARK_SQUARES_MASK) != 0;
+		long pertinentBishopMask = attackingBishopsMask & ((isKingOnDarkSq) ? DARK_SQUARES_MASK : LIGHT_SQUARES_MASK);
+		long diagonalAttackersMask = attackingQueensMask | pertinentBishopMask;
+		long rankFileAttackersMask = attackingQueensMask | attackingRooksMask;
+		
+		// Establish if the initial square is on a multiple square slider mask from the king position, for which there is a potential pin
+		long pinSquare = BitBoard.positionToMask_Lut[Move.getOriginPosition(move)];
+		long diagonalAttacksOnKing = SquareAttackEvaluator.directDiagonalAttacksOnPosition_Lut[kingPosition];
+		if ((diagonalAttackersMask & diagonalAttacksOnKing) != 0L) {
+			if ((pinSquare & diagonalAttacksOnKing) != 0L) return true;
 		}
-		return ((square & attackingSquares) != 0);
+		long rankFileAttacksOnKing = SquareAttackEvaluator.directRankFileAttacksOnPosition_Lut[kingPosition];
+		if ((rankFileAttackersMask & rankFileAttacksOnKing) != 0L) {
+			if ((pinSquare & rankFileAttacksOnKing) != 0L) return true;
+		}
+		return false;
 	}
 	
     /*
