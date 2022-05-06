@@ -246,6 +246,7 @@ public class PlySearcher {
 		int currMove = Move.NULL_MOVE;
 		int positionScore = plyScore;
 		int moveNumber = 0;
+		int quietOffset = 0;
 		boolean refuted = false;
 		ml.initialiseAtPly(prevBestMove[0], killers.getMoves(0), needToEscapeCheck, false, 0);
 		do {
@@ -269,6 +270,9 @@ public class PlySearcher {
 					pc.initialise(0, currMove);
 					bestMove = currMove;
 				}
+				if (!Move.isRegular(currMove)) {
+					quietOffset = moveNumber;
+				}
 				if (EubosEngineMain.ENABLE_UCI_MOVE_NUMBER) {
 					sm.setCurrentMove(currMove, moveNumber);
 					if (originalSearchDepthRequiredInPly > 8)
@@ -283,7 +287,7 @@ public class PlySearcher {
 				currPly++;
 				pm.performMove(currMove);
 				
-				positionScore = doLateMoveReductionSubTreeSearch(depth, needToEscapeCheck, currMove, moveNumber);
+				positionScore = doLateMoveReductionSubTreeSearch(depth, needToEscapeCheck, currMove, (moveNumber - quietOffset));
 				
 				pm.unperformMove();
 				currPly--;
@@ -417,6 +421,7 @@ public class PlySearcher {
 		int currMove = Move.NULL_MOVE;
 		int positionScore = plyScore;
 		int moveNumber = 0;
+		int quietOffset = 0;
 		boolean refuted = false;
 		ml.initialiseAtPly(prevBestMove[currPly], killers.getMoves(currPly), needToEscapeCheck, false, currPly);
 		do {
@@ -440,6 +445,9 @@ public class PlySearcher {
 					pc.initialise(currPly, currMove);
 					bestMove = currMove;
 				}
+				if (!Move.isRegular(currMove)) {
+					quietOffset = moveNumber;
+				}
 				
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(alpha[currPly], beta[currPly]);
 				if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
@@ -449,7 +457,7 @@ public class PlySearcher {
 				currPly++;
 				pm.performMove(currMove);
 				
-				positionScore = doLateMoveReductionSubTreeSearch(depth, needToEscapeCheck, currMove, moveNumber);
+				positionScore = doLateMoveReductionSubTreeSearch(depth, needToEscapeCheck, currMove, (moveNumber - quietOffset));
 				
 				pm.unperformMove();
 				currPly--;
