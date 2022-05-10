@@ -834,4 +834,34 @@ public class PositionManagerTest {
 		createSutAndRegisterPe("8/8/8/8/1N6/3K4/p7/k7 w - d6 0 1");
 		assertFalse(classUnderTest.isQuiescent());
 	}
+	
+	@Test
+	public void test_enemy_passed_pawn_is_present() {
+		createSutAndRegisterPe("8/8/8/8/1N6/3K4/p7/k7 w - d6 0 1");
+		assertEquals(Position.a2, classUnderTest.enemyAdvancedPassedPawn());
+	}
+	
+	@Test
+	public void test_enemy_passed_pawn_is_not_present() {
+		createSutAndRegisterPe("7k/2p5/8/8/8/2P2p2/4p3/7K b - - 0 1 ");
+		assertEquals(Position.NOPOSITION, classUnderTest.enemyAdvancedPassedPawn());
+	}
+	
+	@Test
+	public void test_enemy_passed_pawn_is_present_alt() {
+		createSutAndRegisterPe("7k/2p5/8/8/8/2P2p2/4p3/7K w - - 0 1 ");
+		assertEquals(Position.e2, classUnderTest.enemyAdvancedPassedPawn());
+	}
+	
+	@Test
+	public void test_enemy_passed_pawn_not_advanced_enough() {
+		createSutAndRegisterPe("7K/8/8/2p5/8/5P2/8/7k b - - 0 1");
+		assertEquals(Position.NOPOSITION, classUnderTest.enemyAdvancedPassedPawn());
+	}
+	
+	@Test
+	public void test_enemy_passed_pawn_not_advanced_enough_alt() {
+		createSutAndRegisterPe("7K/8/8/2p5/8/5P2/8/7k w - - 0 1");
+		assertEquals(Position.NOPOSITION, classUnderTest.enemyAdvancedPassedPawn());
+	}
 }

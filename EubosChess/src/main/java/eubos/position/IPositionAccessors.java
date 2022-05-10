@@ -18,4 +18,5 @@ public interface IPositionAccessors {
 	public boolean isQuiescent();
 	public boolean moveLeadsToThreefold(int move);
 	public String unwindMoveStack();
+	public int enemyAdvancedPassedPawn();
 }

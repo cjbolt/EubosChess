@@ -106,9 +106,41 @@ public final class Position {
 	  return position >>> 4;
   }
 
-public static int valueOf(int file, int rank) {
-	return (rank << 4) | (file & 0xF);
-}
+	public static int valueOf(int file, int rank) {
+		return (rank << 4) | (file & 0xF);
+	}
+	
+	static int[] arrDistanceBy0x88Diff;
+	static {
+		arrDistanceBy0x88Diff = new int[480];
+		for (int sq1 : values) {
+			for (int sq2 : values) {
+				arrDistanceBy0x88Diff[x88diff(sq1, sq2)] = precalcDistance(sq1, sq2);
+			}
+		}
+	}
+	
+	static int precalcDistance(int sq1, int sq2) {
+	   int file1, file2, rank1, rank2;
+	   int rankDistance, fileDistance;
+	   file1 = sq1  & 7;
+	   file2 = sq2  & 7;
+	   rank1 = sq1 >> 4;
+	   rank2 = sq2 >> 4;
+	   rankDistance = Math.abs(rank2 - rank1);
+	   fileDistance = Math.abs(file2 - file1);
+	   return Math.max(rankDistance, fileDistance);
+	}
 
+	static int x88diff(int sq1, int sq2) {
+		//sq1 = Position.getRank(sq1) << 3 | Position.getFile(sq1);
+		//sq2 = Position.getRank(sq2) << 3 | Position.getFile(sq2);
+		//return sq2 - sq1 + (sq2|7) - (sq1|7) + 120;
+		return sq2 - sq1 + (sq2|7) - (sq1|7) + 240;
+	}
+
+	static int distance(int sq1, int sq2) {
+		return arrDistanceBy0x88Diff[x88diff(sq1, sq2)];
+	}
 }
 
