@@ -373,7 +373,7 @@ public class Board {
 		return isEnPassantCapturePossible;
 	}
 	
-	private int getKingPosition(boolean isWhite) {
+	public int getKingPosition(boolean isWhite) {
 		return pieceLists.getKingPos(isWhite);
 	}
 	

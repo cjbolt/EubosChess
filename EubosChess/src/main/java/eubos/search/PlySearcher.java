@@ -10,7 +10,7 @@ import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.MoveListIterator;
-import eubos.position.Position;
+//import eubos.position.Position;
 import eubos.score.IEvaluate;
 import eubos.search.transposition.ITranspositionAccessor;
 import eubos.search.transposition.Transposition;
@@ -249,8 +249,8 @@ public class PlySearcher {
 		int moveNumber = 0;
 		int quietOffset = 0;
 		boolean refuted = false;
-		int passedPawnPosition = pos.enemyAdvancedPassedPawn();
-		boolean passedPawnPresent = passedPawnPosition != Position.NOPOSITION;
+		//int passedPawnPosition = pos.enemyAdvancedPassedPawn();
+		//boolean passedPawnPresent = passedPawnPosition != Position.NOPOSITION;
 		ml.initialiseAtPly(prevBestMove[0], killers.getMoves(0), needToEscapeCheck, false, 0);
 		do {
 			MoveListIterator move_iter = ml.getNextMovesAtPly(0);
@@ -290,7 +290,7 @@ public class PlySearcher {
 				currPly++;
 				pm.performMove(currMove);
 				
-				positionScore = doLateMoveReductionSubTreeSearch(depth, needToEscapeCheck, currMove, (moveNumber - quietOffset), passedPawnPresent);
+				positionScore = doLateMoveReductionSubTreeSearch(depth, needToEscapeCheck, currMove, (moveNumber - quietOffset), false);
 				
 				pm.unperformMove();
 				currPly--;
@@ -426,8 +426,8 @@ public class PlySearcher {
 		int moveNumber = 0;
 		int quietOffset = 0;
 		boolean refuted = false;
-		int passedPawnPosition = pos.enemyAdvancedPassedPawn();
-		boolean passedPawnPresent = passedPawnPosition != Position.NOPOSITION;
+		//int passedPawnPosition = pos.enemyAdvancedPassedPawn();
+		//boolean passedPawnPresent = passedPawnPosition != Position.NOPOSITION;
 		ml.initialiseAtPly(prevBestMove[currPly], killers.getMoves(currPly), needToEscapeCheck, false, currPly);
 		do {
 			MoveListIterator move_iter = ml.getNextMovesAtPly(currPly);
@@ -462,7 +462,7 @@ public class PlySearcher {
 				currPly++;
 				pm.performMove(currMove);
 				
-				positionScore = doLateMoveReductionSubTreeSearch(depth, needToEscapeCheck, currMove, (moveNumber - quietOffset), passedPawnPresent);
+				positionScore = doLateMoveReductionSubTreeSearch(depth, needToEscapeCheck, currMove, (moveNumber - quietOffset), false);
 				
 				pm.unperformMove();
 				currPly--;

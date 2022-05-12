@@ -133,13 +133,12 @@ public final class Position {
 	}
 
 	static int x88diff(int sq1, int sq2) {
-		//sq1 = Position.getRank(sq1) << 3 | Position.getFile(sq1);
-		//sq2 = Position.getRank(sq2) << 3 | Position.getFile(sq2);
-		//return sq2 - sq1 + (sq2|7) - (sq1|7) + 120;
 		return sq2 - sq1 + (sq2|7) - (sq1|7) + 240;
 	}
 
-	static int distance(int sq1, int sq2) {
+	public static int distance(int sq1, int sq2) {
+		// The following check is only needed for guarding unit tests where there are no kings on the board. It should be removed
+		if (sq1 == Position.NOPOSITION || sq2 == Position.NOPOSITION) return 0;
 		return arrDistanceBy0x88Diff[x88diff(sq1, sq2)];
 	}
 }

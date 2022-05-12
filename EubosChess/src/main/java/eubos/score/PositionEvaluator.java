@@ -138,10 +138,13 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	public void callback(int piece, int atPos) {
 		if (bd.isPassedPawn(atPos, onMoveIs)) {
 			int weighting = 1;
-			if (Piece.isBlack(piece)) {
-				weighting = 7-Position.getRank(atPos);
+			int queeningDistance = Position.getRank(atPos);
+			boolean isBlack = Piece.isBlack(piece);
+			if (isBlack) {
+				weighting = 7-queeningDistance;
 			} else {
-				weighting = Position.getRank(atPos);
+				weighting = queeningDistance;
+				queeningDistance = 7-queeningDistance;
 			}
 			// scale weighting for game phase as well as promotion proximity, up to 3x
 			int scale = 1 + ((bd.me.phase+640) / 4096) + ((bd.me.phase+320) / 4096);
@@ -150,6 +153,30 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 				individualPawnEval += weighting*ROOK_FILE_PASSED_PAWN_BOOST;
 			} else {
 				individualPawnEval += weighting*PASSED_PAWN_BOOST;
+			}
+			// can a passer be caught?
+			if (bd.me.phase == 4096) {
+				// it is a KPK endgame
+				int file = Position.getFile(atPos);
+				int queeningSquare = isBlack ? Position.valueOf(file, 0) : Position.valueOf(file, 7);
+				int oppoKingPos = bd.getKingPosition(isBlack);
+				int oppoDistance = Position.distance(queeningSquare, oppoKingPos);
+				if ((Piece.Colour.isWhite(pm.getOnMove()) && isBlack) || (Piece.Colour.isBlack(pm.getOnMove()) && !isBlack)) {
+					// if king is on move, assume it can get towards the square of the pawn
+					oppoDistance -= 1;
+				}
+				if (oppoDistance > queeningDistance) {
+					// can't be caught by opposite king
+					individualPawnEval = 700;
+				} else {
+					// Add code to increase score also if the pawn can be defended by own king
+					int ownKingPos = bd.getKingPosition(!isBlack);
+					int ownDistance = Position.distance(queeningSquare, ownKingPos);
+					if (ownDistance-1 <= oppoDistance) {
+						// Rationale is queen square can be blocked off from opposite King by own King
+						individualPawnEval = 700;
+					}
+				}
 			}
 		}
 		if (bd.isIsolatedPawn(atPos, onMoveIs)) {
