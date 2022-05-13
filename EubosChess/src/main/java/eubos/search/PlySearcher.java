@@ -692,10 +692,13 @@ public class PlySearcher {
 		} else if (plyScore >= this.beta[currPly]) {
 			// A beta cut-off, alpha raise was 'too good'
 			plyBound = Score.lowerBound;
-		} else {
+		} else if (!hasSearchedPv) {
 			// In exact window, searched all nodes...
 			plyBound = Score.exact;
-		}	
+		} else {
+			// because of LMR we can't be sure about depth for a non-PV node
+			plyBound = Score.upperBound;
+		}
 		return updateTranspositionTable(trans, depth, currMove, plyScore, plyBound);
 	}
 	
