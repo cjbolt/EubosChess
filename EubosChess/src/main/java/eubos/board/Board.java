@@ -1365,17 +1365,28 @@ public class Board {
 	
 	public class KingTropismChecker implements IForEachPieceCallback {
 		
-		public final int[] BLACK_ATTACKERS = {Piece.BLACK_QUEEN};
-		public final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN};
+		public final int[] BLACK_ATTACKERS = {Piece.BLACK_QUEEN, Piece.BLACK_KNIGHT};
+		public final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT};
 		// by distance, in centipawns.
-		public final int[] SCORE_LUT = {0, -100, -100, -50, -25, -10, 0, 0, 0};
+		public final int[] QUEEN_DIST_LUT = {0, -100, -100, -50, -25, -10, 0, 0, 0};
+		public final int[] KNIGHT_DIST_LUT = {0, -50, -50, -25, -25, 0, 0, 0, 0};
 		
 		int score = 0;
 		int kingSquare = Position.NOPOSITION;
 		
 		public void callback(int piece, int position) {
-			int queenDistance = Position.distance(position, kingSquare);
-			score += SCORE_LUT[queenDistance];
+			int distance = Position.distance(position, kingSquare);
+			piece &= ~Piece.BLACK;
+			switch(piece) {
+			case Piece.QUEEN:
+				score += QUEEN_DIST_LUT[distance];
+				break;
+			case Piece.KNIGHT:
+				score += KNIGHT_DIST_LUT[distance];
+				break;
+			default:
+				break;
+			}
 		}
 		
 		public int getScore(int kingPos, boolean attackerIsBlack) {
@@ -1443,13 +1454,20 @@ public class Board {
 		}
 		
 		// Then account for Knight proximity to the adjacent squares around the King
-		long pertintentKnightsMask = attackingKnightsMask & knightKingSafetyMask_Lut[kingPos];
-		evaluation += -8*Long.bitCount(pertintentKnightsMask);
+		//long pertintentKnightsMask = attackingKnightsMask & knightKingSafetyMask_Lut[kingPos];
+		//evaluation += -8*Long.bitCount(pertintentKnightsMask);
 			
 		// Then, do king tropism for queen as a bonus
 		evaluation += ktc.getScore(kingPos, isWhite);
 		
 		return evaluation;
+	}
+	
+	public boolean kingInDanger(boolean isWhite) {
+		int evaluation = 0;
+		int kingPos = pieceLists.getKingPos(isWhite);
+		evaluation += ktc.getScore(kingPos, isWhite);
+		return evaluation < -33;
 	}
 	
 	public void forEachPiece(IForEachPieceCallback caller) {
