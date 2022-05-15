@@ -62,6 +62,7 @@ public class Board {
 	public Board( Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove ) {
 		paa = new PawnAttackAggregator();
 		pkaa = new PawnKnightAttackAggregator();
+		ktc = new KingTropismChecker();
 		allPieces = 0x0;
 		whitePieces = 0x0;
 		blackPieces = 0x0;
@@ -1362,6 +1363,31 @@ public class Board {
 		}
 	}
 	
+	public class KingTropismChecker implements IForEachPieceCallback {
+		
+		public final int[] BLACK_ATTACKERS = {Piece.BLACK_QUEEN};
+		public final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN};
+		// by distance, in centipawns.
+		public final int[] SCORE_LUT = {0, -100, -100, -50, -25, -10, 0, 0, 0};
+		
+		int score = 0;
+		int kingSquare = Position.NOPOSITION;
+		
+		public void callback(int piece, int position) {
+			int queenDistance = Position.distance(position, kingSquare);
+			score += SCORE_LUT[queenDistance];
+		}
+		
+		public int getScore(int kingPos, boolean attackerIsBlack) {
+			score = 0;
+			kingSquare = kingPos;
+			pieceLists.forEachPieceOfTypeDoCallback(this, attackerIsBlack ? BLACK_ATTACKERS: WHITE_ATTACKERS);
+			return score;
+		}
+	}
+	
+	KingTropismChecker ktc;
+	
 	public int evaluateKingSafety(Piece.Colour side) {
 		int evaluation = 0;
 		boolean isWhite = Piece.Colour.isWhite(side);
@@ -1420,6 +1446,9 @@ public class Board {
 		long pertintentKnightsMask = attackingKnightsMask & knightKingSafetyMask_Lut[kingPos];
 		evaluation += -8*Long.bitCount(pertintentKnightsMask);
 			
+		// Then, do king tropism for queen as a bonus
+		evaluation += ktc.getScore(kingPos, isWhite);
+		
 		return evaluation;
 	}
 	

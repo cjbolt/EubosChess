@@ -481,8 +481,8 @@ public class BoardTest {
 	@Test
 	public void test_evaluateKingSafety_safe()throws IllegalNotationException {
 		setUpPosition("5krr/4pppp/6bq/8/8/6BQ/4PPPP/5KRR b - - 13 1");
-		assertEquals(-30, classUnderTest.evaluateKingSafety(Piece.Colour.white)); // 5 squares, can be attacked by three pieces
-		assertEquals(-30, classUnderTest.evaluateKingSafety(Piece.Colour.black));
+		assertEquals(-40, classUnderTest.evaluateKingSafety(Piece.Colour.white)); // 5 squares, can be attacked by three pieces
+		assertEquals(-40, classUnderTest.evaluateKingSafety(Piece.Colour.black));
 	}
 	
 	@Test
@@ -697,5 +697,11 @@ public class BoardTest {
 		int move = Move.valueOf(Position.a7, Piece.BLACK_PAWN, Position.a5, Piece.NONE);
 		boolean inCheck = false;
 		assertFalse(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+	}
+	
+	@Test
+	public void test_evaluateKingSafety_ScoreReporter()throws IllegalNotationException {
+		setUpPosition("4rbk1/1pr2p2/2p2Qp1/p2p4/6RP/2P1PN1q/PP3P2/2K3R1 b - - 9 30 ");
+		assertEquals(-114, classUnderTest.evaluateKingSafety(Piece.Colour.black));
 	}
 }
