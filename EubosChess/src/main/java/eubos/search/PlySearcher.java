@@ -23,7 +23,7 @@ public class PlySearcher {
 	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
 	running with the logging in TUNE_LAZY_EVAL for Eubos2.8 and post processing the logs.
 	It will need to be re-tuned if the evaluation function is altered significantly. */
-	private static final int LAZY_EVAL_THRESHOLD_IN_CP = 320;
+	private static final int LAZY_EVAL_THRESHOLD_IN_CP = 425;
 	private static final boolean TUNE_LAZY_EVAL = false;
 	private class LazyEvalStatistics {
 		
@@ -249,14 +249,14 @@ public class PlySearcher {
 		int moveNumber = 0;
 		int quietOffset = 0;
 		boolean refuted = false;
-		int passedPawnPosition = Position.NOPOSITION;
+//		int passedPawnPosition = Position.NOPOSITION;
 		boolean passedPawnPresent = false;
 		boolean isKingInDanger = false;
-		if (depth > 3) {
-			passedPawnPosition = pos.enemyAdvancedPassedPawn();
-		    passedPawnPresent = passedPawnPosition != Position.NOPOSITION;
-		    isKingInDanger = pos.getTheBoard().evaluateKingSafety(pos.getOnMove()) < -33;
-		}
+//		if (depth > 3) {
+//			passedPawnPosition = pos.enemyAdvancedPassedPawn();
+//		    passedPawnPresent = passedPawnPosition != Position.NOPOSITION;
+//		    isKingInDanger = pos.getTheBoard().evaluateKingSafety(pos.getOnMove()) < -33;
+//		}
 		ml.initialiseAtPly(prevBestMove[0], killers.getMoves(0), needToEscapeCheck, false, 0);
 		do {
 			MoveListIterator move_iter = ml.getNextMovesAtPly(0);
@@ -432,14 +432,14 @@ public class PlySearcher {
 		int moveNumber = 0;
 		int quietOffset = 0;
 		boolean refuted = false;
-		int passedPawnPosition = Position.NOPOSITION;
+//		int passedPawnPosition = Position.NOPOSITION;
 		boolean passedPawnPresent = false;
 		boolean isKingInDanger = false;
-		if (depth > 3) {
-			passedPawnPosition = pos.enemyAdvancedPassedPawn();
-		    passedPawnPresent = passedPawnPosition != Position.NOPOSITION;
-		    isKingInDanger = pos.getTheBoard().evaluateKingSafety(pos.getOnMove()) < -33;
-		}
+//		if (depth > 3) {
+//			passedPawnPosition = pos.enemyAdvancedPassedPawn();
+//		    passedPawnPresent = passedPawnPosition != Position.NOPOSITION;
+//		    isKingInDanger = pos.getTheBoard().evaluateKingSafety(pos.getOnMove()) < -33;
+//		}
 		ml.initialiseAtPly(prevBestMove[currPly], killers.getMoves(currPly), needToEscapeCheck, false, currPly);
 		do {
 			MoveListIterator move_iter = ml.getNextMovesAtPly(currPly);

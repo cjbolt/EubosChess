@@ -45,7 +45,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_EvalPosB() {
 		setUpPosition("8/8/1B6/8/8/4Kpk1/8/b7 w - - - 85");
-		assertEquals(-182, SUT.getFullEvaluation());
+		assertEquals(-262, SUT.getFullEvaluation());
 	}
 	
 	@Test
@@ -236,13 +236,13 @@ public class PositionEvaluatorTest {
 	public void test_drawn_KP_endgame_1() {
 		setUpPosition("8/8/k7/8/7K/4p3/8/8 w - - 0 1 ");
 		System.out.println(SUT.getFullEvaluation());
-		assertEquals(-247 /* passed pawn on second rank, can be caught */, SUT.getFullEvaluation());
+		assertEquals(-367 /* passed pawn on second rank, can be caught */, SUT.getFullEvaluation());
 	}
 	
 	@Test
 	public void test_drawn_KP_endgame() {
 		setUpPosition("8/8/k7/8/8/4p1K1/8/8 w - - 0 1");
-		assertEquals(-247 /* passed pawn on second rank, can be caught */, SUT.getFullEvaluation());
+		assertEquals(-367 /* passed pawn on second rank, can be caught */, SUT.getFullEvaluation());
 	}
 	
 	@Test
@@ -274,13 +274,13 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_drawn_KP_endgame_one() {
 		setUpPosition("8/8/8/8/8/2k1p3/8/5K2 w - - 44 1");
-		assertEquals(-247 /* passed pawn */, SUT.getFullEvaluation());
+		assertEquals(-367 /* passed pawn */, SUT.getFullEvaluation());
 	}
 	
 	@Test
 	public void test_drawn_KP_endgame_two() {
 		setUpPosition("8/8/8/8/8/1k2p3/6K1/8 w - - 44 1");
-		assertEquals(-247 /* passed pawn */, SUT.getFullEvaluation());
+		assertEquals(-367 /* passed pawn */, SUT.getFullEvaluation());
 	}
 	
 	@Test
@@ -293,13 +293,13 @@ public class PositionEvaluatorTest {
 	public void test_drawn_KP_endgame_1_white() {
 		setUpPosition("8/8/4P3/7k/8/K7/8/8 b - - 0 1 ");
 		System.out.println(SUT.getFullEvaluation());
-		assertEquals(-247 /* passed pawn on second rank, can be caught */, SUT.getFullEvaluation());
+		assertEquals(-367 /* passed pawn on second rank, can be caught */, SUT.getFullEvaluation());
 	}
 	
 	@Test
 	public void test_drawn_KP_endgame_white() {
 		setUpPosition("8/8/4P1k1/8/8/K7/8/8 b - - 0 1 ");
-		assertEquals(-247 /* passed pawn on second rank, can be caught */, SUT.getFullEvaluation());
+		assertEquals(-367 /* passed pawn on second rank, can be caught */, SUT.getFullEvaluation());
 	}
 	
 	@Test
