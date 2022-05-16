@@ -249,8 +249,8 @@ public class EubosEngineMainTest {
 	public void test_KQk_mate_in_7_NEW() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_TIME_PREFIX+"30000"+CMD_TERMINATOR, BEST_PREFIX+"f8c8"+CMD_TERMINATOR));
-		performTestExpectMate(15000, 12);
+		commands.add(new commandPair(GO_TIME_PREFIX+"30000"+CMD_TERMINATOR, BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
+		performTestExpectMate(15000, 7);
 	}
 	
 	@Test
@@ -288,8 +288,8 @@ public class EubosEngineMainTest {
 		int mateDepth = 0;
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1e1"+CMD_TERMINATOR));
-		mateDepth = 28;
+		commands.add(new commandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1h4"+CMD_TERMINATOR));
+		mateDepth = 13;
 		performTestExpectMate(14000, mateDepth);
 	}
 	
