@@ -1365,11 +1365,11 @@ public class Board {
 	
 	public class KingTropismChecker implements IForEachPieceCallback {
 		
-		public final int[] BLACK_ATTACKERS = {Piece.BLACK_QUEEN, Piece.BLACK_KNIGHT};
-		public final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT};
 		// by distance, in centipawns.
 		public final int[] QUEEN_DIST_LUT = {0, -100, -100, -50, -25, -10, 0, 0, 0};
 		public final int[] KNIGHT_DIST_LUT = {0, -50, -50, -25, -25, 0, 0, 0, 0};
+		public final int[] BISHOP_DIST_LUT = {0, -20, -15, -12, -8, -4, -2, -1, 0};
+		public final int[] ROOK_DIST_LUT = {0, -50, -30, -20, -10, -8, -4, -2, 0};
 		
 		int score = 0;
 		int kingSquare = Position.NOPOSITION;
@@ -1384,15 +1384,21 @@ public class Board {
 			case Piece.KNIGHT:
 				score += KNIGHT_DIST_LUT[distance];
 				break;
+			case Piece.BISHOP:
+				score += BISHOP_DIST_LUT[distance];
+				break;
+			case Piece.ROOK:
+				score += ROOK_DIST_LUT[distance];
+				break;
 			default:
 				break;
 			}
 		}
 		
-		public int getScore(int kingPos, boolean attackerIsBlack) {
+		public int getScore(int kingPos, int [] attackers) {
 			score = 0;
 			kingSquare = kingPos;
-			pieceLists.forEachPieceOfTypeDoCallback(this, attackerIsBlack ? BLACK_ATTACKERS: WHITE_ATTACKERS);
+			pieceLists.forEachPieceOfTypeDoCallback(this, attackers);
 			return score;
 		}
 	}
@@ -1410,7 +1416,7 @@ public class Board {
 		long attackingQueensMask = isWhite ? getBlackQueens() : getWhiteQueens();
 		long attackingRooksMask = isWhite ? getBlackRooks() : getWhiteRooks();
 		long attackingBishopsMask = isWhite ? getBlackBishops() : getWhiteBishops();
-		long attackingKnightsMask = isWhite ? getBlackKnights() : getWhiteKnights();
+		//long attackingKnightsMask = isWhite ? getBlackKnights() : getWhiteKnights();
 
 		// create masks of attackers
 		long pertinentBishopMask = attackingBishopsMask & ((isKingOnDarkSq) ? DARK_SQUARES_MASK : LIGHT_SQUARES_MASK);
@@ -1452,22 +1458,36 @@ public class Board {
 			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
 			evaluation += Long.bitCount(mobility_mask ^ kingMask) * 2 * -numPotentialAttackers;
 		}
-		
-		// Then account for Knight proximity to the adjacent squares around the King
-		//long pertintentKnightsMask = attackingKnightsMask & knightKingSafetyMask_Lut[kingPos];
-		//evaluation += -8*Long.bitCount(pertintentKnightsMask);
 			
 		// Then, do king tropism for queen as a bonus
-		evaluation += ktc.getScore(kingPos, isWhite);
+		final int[] BLACK_ATTACKERS = {Piece.BLACK_QUEEN, Piece.BLACK_KNIGHT};
+		final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT};
+		evaluation += ktc.getScore(kingPos, isWhite ? BLACK_ATTACKERS: WHITE_ATTACKERS);
 		
 		return evaluation;
 	}
 	
+//	public int evaluateKingSafety(Piece.Colour side) {
+//		int evaluation = 0;
+//		boolean isWhite = Piece.Colour.isWhite(side);
+//		int kingPos = pieceLists.getKingPos(isWhite);
+//
+//		// Then, do king tropism for queen as a bonus
+//		final int[] BLACK_ATTACKERS = {Piece.BLACK_QUEEN, Piece.BLACK_KNIGHT, Piece.BLACK_BISHOP, Piece.BLACK_ROOK};
+//		final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT, Piece.WHITE_BISHOP, Piece.WHITE_ROOK};
+//		evaluation += ktc.getScore(kingPos, isWhite ? BLACK_ATTACKERS: WHITE_ATTACKERS);
+//		
+//		return evaluation;
+//	}
+	
 	public boolean kingInDanger(boolean isWhite) {
+		if (this.me.isEndgame()) return false;
 		int evaluation = 0;
 		int kingPos = pieceLists.getKingPos(isWhite);
-		evaluation += ktc.getScore(kingPos, isWhite);
-		return evaluation < -33;
+		final int[] BLACK_ATTACKERS = {Piece.BLACK_QUEEN, Piece.BLACK_KNIGHT, Piece.BLACK_BISHOP, Piece.BLACK_ROOK};
+		final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT, Piece.WHITE_BISHOP, Piece.WHITE_ROOK};
+		evaluation += ktc.getScore(kingPos, isWhite ? BLACK_ATTACKERS: WHITE_ATTACKERS);
+		return evaluation < -160;
 	}
 	
 	public void forEachPiece(IForEachPieceCallback caller) {

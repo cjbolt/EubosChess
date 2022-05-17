@@ -229,6 +229,11 @@ public class PlySearcher {
 		boolean needToEscapeCheck = pos.isKingInCheck();
 		if (needToEscapeCheck) {
 			++depth;
+		} else if (currPly < originalSearchDepthRequiredInPly*2) {
+			boolean kingThreatened = pos.getTheBoard().kingInDanger(Piece.Colour.isWhite(pos.getOnMove()));
+			if (kingThreatened) {
+				++depth;
+			}
 		}
 		
 		long trans = tt.getTransposition();
@@ -252,12 +257,12 @@ public class PlySearcher {
 //		int passedPawnPosition = Position.NOPOSITION;
 		boolean passedPawnPresent = false;
 		boolean isKingInDanger = false;
-		if (depth > 3) {
+//		if (depth > 3) {
 //			passedPawnPosition = pos.enemyAdvancedPassedPawn();
 //		    passedPawnPresent = passedPawnPosition != Position.NOPOSITION;
 //		    isKingInDanger = pos.getTheBoard().evaluateKingSafety(pos.getOnMove()) < -33;
-			isKingInDanger = pos.getTheBoard().kingInDanger(Piece.Colour.isWhite(pos.getOnMove()));
-		}
+//			isKingInDanger = pos.getTheBoard().kingInDanger(Piece.Colour.isWhite(pos.getOnMove()));
+//		}
 		ml.initialiseAtPly(prevBestMove[0], killers.getMoves(0), needToEscapeCheck, false, 0);
 		do {
 			MoveListIterator move_iter = ml.getNextMovesAtPly(0);
@@ -391,6 +396,11 @@ public class PlySearcher {
 		boolean needToEscapeCheck = pos.isKingInCheck();
 		if (needToEscapeCheck) {
 			++depth;
+		} else if (currPly < originalSearchDepthRequiredInPly*2) {
+			boolean kingThreatened = pos.getTheBoard().kingInDanger(Piece.Colour.isWhite(pos.getOnMove()));
+			if (kingThreatened) {
+				++depth;
+			}
 		}
 		
 		if (depth <= 0) {
@@ -436,12 +446,12 @@ public class PlySearcher {
 //		int passedPawnPosition = Position.NOPOSITION;
 		boolean passedPawnPresent = false;
 		boolean isKingInDanger = false;
-		if (depth > 3) {
+//		if (depth > 3) {
 //			passedPawnPosition = pos.enemyAdvancedPassedPawn();
 //		    passedPawnPresent = passedPawnPosition != Position.NOPOSITION;
 //		    isKingInDanger = pos.getTheBoard().evaluateKingSafety(pos.getOnMove()) < -33;
-			isKingInDanger = pos.getTheBoard().kingInDanger(Piece.Colour.isWhite(pos.getOnMove()));
-		}
+//			isKingInDanger = pos.getTheBoard().kingInDanger(Piece.Colour.isWhite(pos.getOnMove()));
+//		}
 		ml.initialiseAtPly(prevBestMove[currPly], killers.getMoves(currPly), needToEscapeCheck, false, currPly);
 		do {
 			MoveListIterator move_iter = ml.getNextMovesAtPly(currPly);

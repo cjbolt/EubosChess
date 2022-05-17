@@ -137,8 +137,6 @@ public final class Position {
 	}
 
 	public static int distance(int sq1, int sq2) {
-		// The following check is only needed for guarding unit tests where there are no kings on the board. It should be removed
-		if (sq1 == Position.NOPOSITION || sq2 == Position.NOPOSITION) return 0;
 		return arrDistanceBy0x88Diff[x88diff(sq1, sq2)];
 	}
 }
