@@ -25,6 +25,9 @@ public class PlySearcher {
 	It will need to be re-tuned if the evaluation function is altered significantly. */
 	private static final int LAZY_EVAL_THRESHOLD_IN_CP = 425;
 	private static final boolean TUNE_LAZY_EVAL = false;
+
+	private static final boolean ENABLE_EXTRA_EXTENSIONS = false;
+	
 	private class LazyEvalStatistics {
 		
 		static final int MAX_DELTA = Piece.MATERIAL_VALUE_QUEEN -LAZY_EVAL_THRESHOLD_IN_CP; 
@@ -229,10 +232,18 @@ public class PlySearcher {
 		boolean needToEscapeCheck = pos.isKingInCheck();
 		if (needToEscapeCheck) {
 			++depth;
-		} else if (currPly < originalSearchDepthRequiredInPly*2) {
-			boolean kingThreatened = pos.getTheBoard().kingInDanger(Piece.Colour.isWhite(pos.getOnMove()));
-			if (kingThreatened) {
-				++depth;
+		}
+		if (ENABLE_EXTRA_EXTENSIONS) {
+			if (currPly < originalSearchDepthRequiredInPly*2) {
+				boolean kingThreatened = pos.getTheBoard().kingInDanger(Piece.Colour.isWhite(pos.getOnMove()));
+				if (kingThreatened) {
+					++depth;
+				}
+			}
+			else if (currPly < originalSearchDepthRequiredInPly*2) {
+				if (pos.promotablePawnPresent()) {
+					++depth;
+				}
 			}
 		}
 		
@@ -396,10 +407,18 @@ public class PlySearcher {
 		boolean needToEscapeCheck = pos.isKingInCheck();
 		if (needToEscapeCheck) {
 			++depth;
-		} else if (currPly < originalSearchDepthRequiredInPly*2) {
-			boolean kingThreatened = pos.getTheBoard().kingInDanger(Piece.Colour.isWhite(pos.getOnMove()));
-			if (kingThreatened) {
-				++depth;
+		}
+		if (ENABLE_EXTRA_EXTENSIONS) {
+			if (currPly < originalSearchDepthRequiredInPly*2) {
+				boolean kingThreatened = pos.getTheBoard().kingInDanger(Piece.Colour.isWhite(pos.getOnMove()));
+				if (kingThreatened) {
+					++depth;
+				}
+			}
+			else if (currPly < originalSearchDepthRequiredInPly*2) {
+				if (pos.promotablePawnPresent()) {
+					++depth;
+				}
 			}
 		}
 		

@@ -1501,4 +1501,14 @@ public class Board {
 	public long getEmpty() {
 		return ~allPieces;
 	}
+	
+	private long SeventhRankMask = 0x00FF000000000000L;
+	private long SecondRankMask = 0xFF00L;
+	public boolean isPromotablePawnPresent(boolean isWhite) {
+		if (!isWhite) {
+			return ((pieces[Piece.PAWN] & whitePieces & SeventhRankMask) != 0x0);
+		} else {
+			return ((pieces[Piece.PAWN] & blackPieces & SecondRankMask) != 0x0);
+		}
+	}
 }

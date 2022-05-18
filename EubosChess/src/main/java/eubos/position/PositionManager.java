@@ -417,4 +417,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 		theBoard.forEachPawnOfSide(this, Colour.isWhite(onMove));
 		return passedPawnPosition;
 	}
+	
+	public boolean promotablePawnPresent() {
+		return theBoard.isPromotablePawnPresent(Colour.isWhite(onMove));
+	}
 }
