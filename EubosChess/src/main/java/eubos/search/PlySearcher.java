@@ -10,7 +10,6 @@ import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.MoveListIterator;
-import eubos.position.Position;
 import eubos.score.IEvaluate;
 import eubos.search.transposition.ITranspositionAccessor;
 import eubos.search.transposition.Transposition;
@@ -265,15 +264,6 @@ public class PlySearcher {
 		int moveNumber = 0;
 		int quietOffset = 0;
 		boolean refuted = false;
-//		int passedPawnPosition = Position.NOPOSITION;
-		boolean passedPawnPresent = false;
-		boolean isKingInDanger = false;
-//		if (depth > 3) {
-//			passedPawnPosition = pos.enemyAdvancedPassedPawn();
-//		    passedPawnPresent = passedPawnPosition != Position.NOPOSITION;
-//		    isKingInDanger = pos.getTheBoard().evaluateKingSafety(pos.getOnMove()) < -33;
-//			isKingInDanger = pos.getTheBoard().kingInDanger(Piece.Colour.isWhite(pos.getOnMove()));
-//		}
 		ml.initialiseAtPly(prevBestMove[0], killers.getMoves(0), needToEscapeCheck, false, 0);
 		do {
 			MoveListIterator move_iter = ml.getNextMovesAtPly(0);
@@ -313,7 +303,7 @@ public class PlySearcher {
 				currPly++;
 				pm.performMove(currMove);
 				
-				positionScore = doLateMoveReductionSubTreeSearch(depth, needToEscapeCheck, currMove, (moveNumber - quietOffset), passedPawnPresent, isKingInDanger);
+				positionScore = doLateMoveReductionSubTreeSearch(depth, needToEscapeCheck, currMove, (moveNumber - quietOffset));
 				
 				pm.unperformMove();
 				currPly--;
@@ -462,15 +452,6 @@ public class PlySearcher {
 		int moveNumber = 0;
 		int quietOffset = 0;
 		boolean refuted = false;
-//		int passedPawnPosition = Position.NOPOSITION;
-		boolean passedPawnPresent = false;
-		boolean isKingInDanger = false;
-//		if (depth > 3) {
-//			passedPawnPosition = pos.enemyAdvancedPassedPawn();
-//		    passedPawnPresent = passedPawnPosition != Position.NOPOSITION;
-//		    isKingInDanger = pos.getTheBoard().evaluateKingSafety(pos.getOnMove()) < -33;
-//			isKingInDanger = pos.getTheBoard().kingInDanger(Piece.Colour.isWhite(pos.getOnMove()));
-//		}
 		ml.initialiseAtPly(prevBestMove[currPly], killers.getMoves(currPly), needToEscapeCheck, false, currPly);
 		do {
 			MoveListIterator move_iter = ml.getNextMovesAtPly(currPly);
@@ -505,7 +486,7 @@ public class PlySearcher {
 				currPly++;
 				pm.performMove(currMove);
 				
-				positionScore = doLateMoveReductionSubTreeSearch(depth, needToEscapeCheck, currMove, (moveNumber - quietOffset), passedPawnPresent, isKingInDanger);
+				positionScore = doLateMoveReductionSubTreeSearch(depth, needToEscapeCheck, currMove, (moveNumber - quietOffset));
 				
 				pm.unperformMove();
 				currPly--;
@@ -805,7 +786,7 @@ public class PlySearcher {
 		return plyScore;
 	}
 	
-	private int doLateMoveReductionSubTreeSearch(int depth, boolean needToEscapeCheck, int currMove, int moveNumber, boolean enemyPassedPawnPresent, boolean isKingInDanger) {
+	private int doLateMoveReductionSubTreeSearch(int depth, boolean needToEscapeCheck, int currMove, int moveNumber) {
 		int positionScore = 0;
 		boolean passedLmr = false;
 		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
@@ -818,10 +799,10 @@ public class PlySearcher {
 			
 			// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
 			int lmr = (moveNumber < 6) ? 1 : depth/3;
-			if ((enemyPassedPawnPresent || isKingInDanger) && lmr > 1) {
-				// Limit reduction in these circumstances
-				lmr = 1;
-			}
+//			if ((enemyPassedPawnPresent || isKingInDanger) && lmr > 1) {
+//				// Limit reduction in these circumstances
+//				lmr = 1;
+//			}
 			setAlphaBeta();
 			positionScore = -search(depth-1-lmr);
 			if (positionScore <= alpha[currPly-1]) {

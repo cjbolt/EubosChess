@@ -132,31 +132,22 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	}
 	
 	Colour onMoveIs;
-	int individualPawnEval = 0;
+	int piecewisePawnScoreAccumulator = 0;
 	
 	@Override
 	public void callback(int piece, int atPos) {
 		if (bd.isPassedPawn(atPos, onMoveIs)) {
-			int weighting = 1;
-			int queeningDistance = Position.getRank(atPos);
 			boolean isBlack = Piece.isBlack(piece);
+			int queeningDistance = Position.getRank(atPos);
+			int weighting = 1;
 			if (isBlack) {
 				weighting = 7-queeningDistance;
 			} else {
 				weighting = queeningDistance;
 				queeningDistance = 7-queeningDistance;
 			}
-			// scale weighting for game phase as well as promotion proximity, up to 3x
-			int scale = 1 + ((bd.me.phase+640) / 4096) + ((bd.me.phase+320) / 4096);
-			weighting *= scale;
-			if (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) {
-				individualPawnEval += weighting*ROOK_FILE_PASSED_PAWN_BOOST;
-			} else {
-				individualPawnEval += weighting*PASSED_PAWN_BOOST;
-			}
-			// can a passer be caught?
 			if (bd.me.phase == 4096) {
-				// it is a KPK endgame
+				// Special case, it is a KPK endgame
 				int file = Position.getFile(atPos);
 				int queeningSquare = isBlack ? Position.valueOf(file, 0) : Position.valueOf(file, 7);
 				int oppoKingPos = bd.getKingPosition(isBlack);
@@ -167,31 +158,40 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 				}
 				if (oppoDistance > queeningDistance) {
 					// can't be caught by opposite king
-					individualPawnEval = 700;
+					piecewisePawnScoreAccumulator += 700;
 				} else {
 					// Add code to increase score also if the pawn can be defended by own king
 					int ownKingPos = bd.getKingPosition(!isBlack);
 					int ownDistance = Position.distance(queeningSquare, ownKingPos);
 					if (ownDistance-1 <= oppoDistance) {
 						// Rationale is queen square can be blocked off from opposite King by own King
-						individualPawnEval = 700;
+						piecewisePawnScoreAccumulator += 700;
 					}
+				}
+			} else {
+				// scale weighting for game phase as well as promotion proximity, up to 3x
+				int scale = 1 + ((bd.me.phase+640) / 4096) + ((bd.me.phase+320) / 4096);
+				weighting *= scale;
+				if (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) {
+					piecewisePawnScoreAccumulator += weighting*ROOK_FILE_PASSED_PAWN_BOOST;
+				} else {
+					piecewisePawnScoreAccumulator += weighting*PASSED_PAWN_BOOST;
 				}
 			}
 		}
 		if (bd.isIsolatedPawn(atPos, onMoveIs)) {
-			individualPawnEval -= ISOLATED_PAWN_HANDICAP;
+			piecewisePawnScoreAccumulator -= ISOLATED_PAWN_HANDICAP;
 		} else if (bd.isBackwardsPawn(atPos, onMoveIs)) {
-			individualPawnEval -= BACKWARD_PAWN_HANDICAP;
+			piecewisePawnScoreAccumulator -= BACKWARD_PAWN_HANDICAP;
 		}
 	}
 	
 	private int evaluatePawnsForColour(Colour onMove) {
 		this.onMoveIs = onMove;
-		this.individualPawnEval = 0;
+		this.piecewisePawnScoreAccumulator = 0;
 		int pawnHandicap = -bd.countDoubledPawnsForSide(onMove)*DOUBLED_PAWN_HANDICAP;
 		bd.forEachPawnOfSide(this, Colour.isBlack(onMove));
-		return pawnHandicap + individualPawnEval;
+		return pawnHandicap + piecewisePawnScoreAccumulator;
 	}
 
 	public boolean goForMate() {
