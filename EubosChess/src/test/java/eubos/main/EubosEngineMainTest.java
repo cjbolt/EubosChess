@@ -151,9 +151,9 @@ public class EubosEngineMainTest {
 	@Test
 	public void test_infoMessageSending_clearsPreviousPvMoves() throws InterruptedException, IOException {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && !SearchMetrics.ENABLE_SINGLE_MOVE_PV) {
-			String expectedOutput = "info depth 1 seldepth 7 score cp 92 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 33"+CMD_TERMINATOR+
-						"info depth 1 seldepth 6 score cp 283 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 54"+CMD_TERMINATOR+
-	                    "info depth 2 seldepth 7 score cp 145 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 224"+CMD_TERMINATOR
+			String expectedOutput = "info depth 1 seldepth 6 score cp 18 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
+						"info depth 1 seldepth 6 score cp 191 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 45"+CMD_TERMINATOR+
+	                    "info depth 2 seldepth 6 score cp 121 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 203"+CMD_TERMINATOR
 	                    +BEST_PREFIX+"c7c2";
 			setupEngine();
 			// Setup Commands specific to this test
@@ -306,7 +306,8 @@ public class EubosEngineMainTest {
 	public void test_defect_en_passant_treated_as_playable_move_regardless_of_board_state() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"r3qrk1/pbpp1ppp/np1b1n2/8/2PPp3/P1N1P1PP/1P2NPB1/R1BQK2R w KQ - 1 10"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"9"+CMD_TERMINATOR, BEST_PREFIX+"d1c2"+CMD_TERMINATOR));
+		//commands.add(new commandPair(GO_DEPTH_PREFIX+"9"+CMD_TERMINATOR, BEST_PREFIX+"d1c2"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"9"+CMD_TERMINATOR, BEST_PREFIX+"e1g1"+CMD_TERMINATOR));
 		performTest(5000);
 	}
 	
@@ -347,7 +348,8 @@ public class EubosEngineMainTest {
 	public void test_hash_issue_losing_position() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+"3r2k1/5p2/7p/3R2p1/p7/1q1Q1PP1/7P/3R2K1 b - - 1 42"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d8d5"+CMD_TERMINATOR));
+		//commands.add(new commandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d8d5"+CMD_TERMINATOR));
+		commands.add(new commandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d8e8"+CMD_TERMINATOR));
 
 		int hashMove = Move.valueOf(Position.b3, Piece.BLACK_QUEEN, Position.d1, Piece.WHITE_ROOK);
 		long hashEntry = Transposition.valueOf((byte)6, (short)0, Score.exact, hashMove);

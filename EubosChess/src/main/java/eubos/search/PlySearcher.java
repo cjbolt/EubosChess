@@ -22,7 +22,7 @@ public class PlySearcher {
 	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
 	running with the logging in TUNE_LAZY_EVAL for Eubos2.8 and post processing the logs.
 	It will need to be re-tuned if the evaluation function is altered significantly. */
-	private static final int LAZY_EVAL_THRESHOLD_IN_CP = 425;
+	private static final int LAZY_EVAL_THRESHOLD_IN_CP = 320;
 	private static final boolean TUNE_LAZY_EVAL = false;
 
 	private static final boolean ENABLE_EXTRA_EXTENSIONS = false;

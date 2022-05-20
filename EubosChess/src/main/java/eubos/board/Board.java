@@ -1416,7 +1416,7 @@ public class Board {
 		long attackingQueensMask = isWhite ? getBlackQueens() : getWhiteQueens();
 		long attackingRooksMask = isWhite ? getBlackRooks() : getWhiteRooks();
 		long attackingBishopsMask = isWhite ? getBlackBishops() : getWhiteBishops();
-		//long attackingKnightsMask = isWhite ? getBlackKnights() : getWhiteKnights();
+		long attackingKnightsMask = isWhite ? getBlackKnights() : getWhiteKnights();
 
 		// create masks of attackers
 		long pertinentBishopMask = attackingBishopsMask & ((isKingOnDarkSq) ? DARK_SQUARES_MASK : LIGHT_SQUARES_MASK);
@@ -1458,11 +1458,15 @@ public class Board {
 			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
 			evaluation += Long.bitCount(mobility_mask ^ kingMask) * 2 * -numPotentialAttackers;
 		}
-			
-		// Then, do king tropism for queen as a bonus
-		final int[] BLACK_ATTACKERS = {Piece.BLACK_QUEEN, Piece.BLACK_KNIGHT};
-		final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT};
-		evaluation += ktc.getScore(kingPos, isWhite ? BLACK_ATTACKERS: WHITE_ATTACKERS);
+		
+		// Then account for Knight proximity to the adjacent squares around the King
+		long pertintentKnightsMask = attackingKnightsMask & knightKingSafetyMask_Lut[kingPos];
+		evaluation += -8*Long.bitCount(pertintentKnightsMask);
+		
+//		// Then, do king tropism for queen as a bonus
+//		final int[] BLACK_ATTACKERS = {Piece.BLACK_QUEEN, Piece.BLACK_KNIGHT};
+//		final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT};
+//		evaluation += ktc.getScore(kingPos, isWhite ? BLACK_ATTACKERS: WHITE_ATTACKERS);
 		
 		return evaluation;
 	}
