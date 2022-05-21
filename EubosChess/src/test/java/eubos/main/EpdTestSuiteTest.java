@@ -262,8 +262,10 @@ public class EpdTestSuiteTest {
 			String rest = epd.substring(bestMoveIndex+"bm ".length());
 			int endOfBestMoveIndex = rest.indexOf(";");
 			int x = bestMoveIndex+"bm ".length();
+			// TODO handle when multiple best moves are specified (space delimited)
 			String bestMoveAsString = epd.substring(x, x+endOfBestMoveIndex);
 			bestMove = pm.getNativeMove(bestMoveAsString);
+			// TODO search for ID tag to get name
 			testName = epd.substring(endOfBestMoveIndex);
 		}
 	};
@@ -287,10 +289,12 @@ public class EpdTestSuiteTest {
 	}
 	
 	String test = "2rr3k/pp3pp1/1nnqbN1p/3pN3/2pP4/2P3Q1/PPB4P/R4RK1 w - - bm Qg6; id \"WAC.001\";";
+	String test2= "3r1rk1/1p3p2/p3pnnp/2p3p1/2P2q2/1P5P/PB2QPPN/3RR1K1 w - - bm g3; id \"WAC.195\";";
+	String test3= "2r1kb1r/pp3ppp/2n1b3/1q1N2B1/1P2Q3/8/P4PPP/3RK1NR w Kk - bm Nc7+; id \"WAC.267\";";
 	
 	@Test
 	public void test_can_create_position() throws IllegalNotationException, IOException, InterruptedException {
-		IndividualTestPosition pos = new IndividualTestPosition(test);
+		IndividualTestPosition pos = new IndividualTestPosition(test3);
 		runTest(pos);		
 	}
 }

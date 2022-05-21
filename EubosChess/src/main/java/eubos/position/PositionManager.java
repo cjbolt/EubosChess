@@ -458,6 +458,44 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 		return Move.NULL_MOVE;
 	}
 	
+	private int getPawnPushMove(List<Integer> moveList, String notation, int originPiece) throws IllegalNotationException {
+		if (notation.length() == 2) {
+		    int targetSquare = getTargetSquare(notation);
+		    for (int move : moveList) {
+		    	if ((Move.getTargetPosition(move) == targetSquare) &&
+		    		(Move.getOriginPiece(move) == originPiece))
+		    		return move;
+		    }
+		} else if (notation.length() == 3) {
+			int targetSquare = getTargetSquare(notation.substring(0,2));
+			char promoPiece = notation.charAt(2);
+			int promo = Piece.NONE;
+			switch(promoPiece) {
+			case 'Q':
+				promo = Piece.QUEEN;
+				break;
+			case 'R':
+				promo = Piece.ROOK;
+				break;
+			case 'B':
+				promo = Piece.BISHOP;
+				break;
+			case 'N':
+				promo = Piece.KNIGHT;
+				break;
+			default:
+				break;
+			}
+			for (int move : moveList) {
+		    	if ((Move.getTargetPosition(move) == targetSquare) &&
+		    		(Move.getOriginPiece(move) == originPiece) && 
+		    		(Move.getPromotion(move) == promo))
+		    		return move;
+		    }
+		}
+		return Move.NULL_MOVE;
+	}
+	
 	public int getNativeMove(String bestMoveSAN) throws IllegalNotationException {
 		int move = Move.NULL_MOVE;
 		String notation = bestMoveSAN;
@@ -504,37 +542,46 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 			move = getMove(moveList, notation, originPiece);
 			break;
 		case 'R':
-			notation = notation.replaceAll("Q", "");
+			notation = notation.replaceAll("R", "");
 			originPiece = isWhite ? Piece.WHITE_ROOK: Piece.BLACK_ROOK;
 			move = getMove(moveList, notation, originPiece);
 			break;
 		case 'B':
-			notation = notation.replaceAll("Q", "");
+			notation = notation.replaceAll("B", "");
 			originPiece = isWhite ? Piece.WHITE_BISHOP: Piece.BLACK_BISHOP;
 			move = getMove(moveList, notation, originPiece);
 			break;
 		case 'N':
-			notation = notation.replaceAll("Q", "");
+			notation = notation.replaceAll("N", "");
 			originPiece = isWhite ? Piece.WHITE_KNIGHT: Piece.BLACK_KNIGHT;
 			move = getMove(moveList, notation, originPiece);
 			break;
 			// Pawn moves
 		case 'a':
-			break;
 		case 'b':
-			break;
 		case 'c':
-			break;
 		case 'd':
-			break;
 		case 'e':
-			break;
 		case 'f':
-			break;
 		case 'g':
-			break;
 		case 'h':
+			originPiece = isWhite ? Piece.WHITE_PAWN: Piece.BLACK_PAWN;
+			move = getPawnPushMove(moveList, notation, originPiece);
 			break;
+//		case 'b':
+//			break;
+//		case 'c':
+//			break;
+//		case 'd':
+//			break;
+//		case 'e':
+//			break;
+//		case 'f':
+//			break;
+//		case 'g':
+//			break;
+//		case 'h':
+//			break;
 		case 'O':
 			// Castling
 			break;
