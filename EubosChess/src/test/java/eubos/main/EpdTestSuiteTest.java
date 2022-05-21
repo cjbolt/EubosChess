@@ -2,8 +2,6 @@ package eubos.main;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PipedWriter;
@@ -14,14 +12,17 @@ import java.util.Scanner;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
-import eubos.main.EubosEngineMainTest.commandPair;
+import eubos.position.Move;
+import eubos.position.PositionManager;
 
-class EpdTestSuiteTest {
+public class EpdTestSuiteTest {
+	
 	private EubosEngineMain classUnderTest;
 	private Thread eubosThread;
 	
@@ -40,7 +41,6 @@ class EpdTestSuiteTest {
 			return out;
 		}
 	}
-	
 
 	private void setupEngine() {
 		commands.add(new commandPair(UCI_CMD, ID_NAME_CMD+ID_AUTHOR_CMD+OPTION_HASH+OPTION_THREADS+OPTION_MOVE_OVERHEAD+UCI_OK_CMD));
@@ -227,7 +227,7 @@ class EpdTestSuiteTest {
 	
 	private static final int sleep_50ms = 50;
 	
-	@Before
+	@BeforeEach
 	public void setUp() throws IOException {
 		// Start engine
 		System.setOut(new PrintStream(testOutput));
@@ -237,7 +237,7 @@ class EpdTestSuiteTest {
 		eubosThread.start();
 	}
 	
-	@After
+	@AfterEach
 	public void tearDown() throws IOException, InterruptedException {
 		// Stop the Engine TODO: could send quit command over stdin
 		inputToEngine.write(QUIT_CMD);
@@ -251,50 +251,46 @@ class EpdTestSuiteTest {
 	
 	public class IndividualTestPosition {
 		String fen;
-		GenericMove bestMove;
+		int bestMove;
 		String testName;
+		PositionManager pm;
 		
-		public IndividualTestPosition(String epd) {
-			//String[] test = epd.split("/^[^;]*/");
+		public IndividualTestPosition(String epd) throws IllegalNotationException {
 			int bestMoveIndex = epd.indexOf("bm ");
-			//fen = test[0];
 			fen = epd.substring(0, bestMoveIndex);
-			//test[1].split(regex);
-			//bestMove = new GenericMove()
-			String[] test = epd.substring(bestMoveIndex+"bm ".length()).split("/^[^;]*/");
-			try {
-			bestMove = new GenericMove(test[0]);
-			} catch (IllegalNotationException e) {
-				fail();
-			}
-			testName = test[1];
+			pm = new PositionManager(fen+" 0 0");
+			String rest = epd.substring(bestMoveIndex+"bm ".length());
+			int endOfBestMoveIndex = rest.indexOf(";");
+			int x = bestMoveIndex+"bm ".length();
+			String bestMoveAsString = epd.substring(x, x+endOfBestMoveIndex);
+			bestMove = pm.getNativeMove(bestMoveAsString);
+			testName = epd.substring(endOfBestMoveIndex);
 		}
 	};
-	
-	String test = "2rr3k/pp3pp1/1nnqbN1p/3pN3/2pP4/2P3Q1/PPB4P/R4RK1 w - - bm Qg6; id \"WAC.001\";";
-	
-	@Test
-	public void test_can_create_position() {
-		IndividualTestPosition pos = new IndividualTestPosition(test);
-		assertNotNull(pos);		
-	}
 	
 	public List<IndividualTestPosition> loadTestSuiteFromEpd(String filename) {
 		return new ArrayList<IndividualTestPosition>();
 	}
 	
+	public void runTest(IndividualTestPosition test) throws IOException, InterruptedException {
+		setupEngine();
+		commands.add(new commandPair(POS_FEN_PREFIX+test.fen+CMD_TERMINATOR, null));
+		commands.add(new commandPair(GO_TIME_PREFIX+"10000"+CMD_TERMINATOR, BEST_PREFIX+Move.toGenericMove(test.bestMove).toString()+CMD_TERMINATOR));
+		performTest(10000);
+	}
+	
 	public void runThroughTestSuite(String filename) {
 		List<IndividualTestPosition> testSuite = loadTestSuiteFromEpd(filename);
 		for (IndividualTestPosition test : testSuite) {
-			
+			// TODO implement reading and running through a whole EPD
 		}
 	}
 	
+	String test = "2rr3k/pp3pp1/1nnqbN1p/3pN3/2pP4/2P3Q1/PPB4P/R4RK1 w - - bm Qg6; id \"WAC.001\";";
+	
 	@Test
-	public void test_startEngine() throws InterruptedException, IOException {
-		setupEngine();
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/2p5/P4p2/Q1N2k1P/2P2P2/3PK2P/5R2/2B2R2 w - - 1 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"7"+CMD_TERMINATOR, BEST_PREFIX+"f2d2"+CMD_TERMINATOR));
-		performTestExpectMate(4000, 4);
+	public void test_can_create_position() throws IllegalNotationException, IOException, InterruptedException {
+		IndividualTestPosition pos = new IndividualTestPosition(test);
+		runTest(pos);		
 	}
 }

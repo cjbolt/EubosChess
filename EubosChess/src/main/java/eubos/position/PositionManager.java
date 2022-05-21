@@ -1,9 +1,13 @@
 package eubos.position;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericPosition;
+import com.fluxchess.jcpi.models.GenericRank;
+import com.fluxchess.jcpi.models.IllegalNotationException;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
@@ -420,5 +424,129 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 	
 	public boolean promotablePawnPresent() {
 		return theBoard.isPromotablePawnPresent(Colour.isWhite(onMove));
+	}
+	
+	private int getTargetSquare(String notation) throws IllegalNotationException {
+		if (notation.length() == 2) {
+			GenericFile file;
+			if (GenericFile.isValid(notation.charAt(0))) {
+				file = GenericFile.valueOf(notation.charAt(0));
+			} else {
+				throw new IllegalNotationException();
+			}
+		
+		    GenericRank rank;
+		    if (GenericRank.isValid(notation.charAt(1))) {
+			    rank = GenericRank.valueOf(notation.charAt(1));
+		    } else {
+			    throw new IllegalNotationException();
+		    }
+		
+		    return Position.valueOf(GenericPosition.valueOf(file, rank));
+		} else {
+			return Position.NOPOSITION;
+		}
+	}
+	
+	private int getMove(List<Integer> moveList, String notation, int originPiece) throws IllegalNotationException {
+	    int targetSquare = getTargetSquare(notation);
+	    for (int move : moveList) {
+	    	if ((Move.getTargetPosition(move) == targetSquare) &&
+	    		(Move.getOriginPiece(move) == originPiece))
+	    		return move;
+	    }
+		return Move.NULL_MOVE;
+	}
+	
+	public int getNativeMove(String bestMoveSAN) throws IllegalNotationException {
+		int move = Move.NULL_MOVE;
+		String notation = bestMoveSAN;
+		
+	    // Clean whitespace at the beginning and at the end
+	    notation = notation.trim();
+
+	    // Clean spaces in the notation
+	    notation = notation.replaceAll(" ", "");
+
+	    // Clean capturing notation
+	    notation = notation.replaceAll("x", "");
+	    notation = notation.replaceAll(":", "");
+
+	    // Clean pawn promotion notation
+	    notation = notation.replaceAll("=", "");
+
+	    // Clean check notation
+	    notation = notation.replaceAll("\\+", "");
+
+	    // Clean checkmate notation
+	    notation = notation.replaceAll("#", "");
+
+	    // Clean hyphen in long algebraic notation
+	    notation = notation.replaceAll("-", "");
+		
+		int originPiece = Piece.NONE;
+		boolean isWhite = Piece.Colour.isWhite(getOnMove());
+		
+		// Create a list of the valid moves in the position
+		MoveList ml = new MoveList(this, 0);
+		ml.initialiseAtPly(Move.NULL_MOVE, null, isKingInCheck(), false, 0);
+		List<Integer> moveList = ml.getList();
+		
+		switch(notation.charAt(0)) {
+		case 'K':
+			notation = notation.replaceAll("K", "");	
+			originPiece = isWhite ? Piece.WHITE_KING: Piece.BLACK_KING;
+			move = getMove(moveList, notation, originPiece);
+			break;
+		case 'Q':
+			notation = notation.replaceAll("Q", "");
+			originPiece = isWhite ? Piece.WHITE_QUEEN: Piece.BLACK_QUEEN;
+			move = getMove(moveList, notation, originPiece);
+			break;
+		case 'R':
+			notation = notation.replaceAll("Q", "");
+			originPiece = isWhite ? Piece.WHITE_ROOK: Piece.BLACK_ROOK;
+			move = getMove(moveList, notation, originPiece);
+			break;
+		case 'B':
+			notation = notation.replaceAll("Q", "");
+			originPiece = isWhite ? Piece.WHITE_BISHOP: Piece.BLACK_BISHOP;
+			move = getMove(moveList, notation, originPiece);
+			break;
+		case 'N':
+			notation = notation.replaceAll("Q", "");
+			originPiece = isWhite ? Piece.WHITE_KNIGHT: Piece.BLACK_KNIGHT;
+			move = getMove(moveList, notation, originPiece);
+			break;
+			// Pawn moves
+		case 'a':
+			break;
+		case 'b':
+			break;
+		case 'c':
+			break;
+		case 'd':
+			break;
+		case 'e':
+			break;
+		case 'f':
+			break;
+		case 'g':
+			break;
+		case 'h':
+			break;
+		case 'O':
+			// Castling
+			break;
+
+		default:
+			//pawn move
+			//push
+			//capture
+			//ep
+			//promotion
+			break;
+		}
+		return move;
 	}
 }
