@@ -432,14 +432,14 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 			if (GenericFile.isValid(notation.charAt(0))) {
 				file = GenericFile.valueOf(notation.charAt(0));
 			} else {
-				throw new IllegalNotationException();
+				throw new IllegalNotationException(notation);
 			}
 		
 		    GenericRank rank;
 		    if (GenericRank.isValid(notation.charAt(1))) {
 			    rank = GenericRank.valueOf(notation.charAt(1));
 		    } else {
-			    throw new IllegalNotationException();
+			    throw new IllegalNotationException(notation);
 		    }
 		
 		    return Position.valueOf(GenericPosition.valueOf(file, rank));
@@ -467,31 +467,42 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 		    		return move;
 		    }
 		} else if (notation.length() == 3) {
-			int targetSquare = getTargetSquare(notation.substring(0,2));
-			char promoPiece = notation.charAt(2);
-			int promo = Piece.NONE;
-			switch(promoPiece) {
-			case 'Q':
-				promo = Piece.QUEEN;
-				break;
-			case 'R':
-				promo = Piece.ROOK;
-				break;
-			case 'B':
-				promo = Piece.BISHOP;
-				break;
-			case 'N':
-				promo = Piece.KNIGHT;
-				break;
-			default:
-				break;
+			if (GenericFile.isValid(notation.charAt(1))) {
+				GenericFile file = GenericFile.valueOf(notation.charAt(0));
+				int targetSquare = getTargetSquare(notation.substring(1,2));
+				for (int move : moveList) {
+			    	if ((Move.getTargetPosition(move) == targetSquare) &&
+			    		(Move.getOriginPiece(move) == originPiece) && 
+			    		(Position.getFile(Move.getOriginPosition(move)) == IntFile.valueOf(file)))
+			    		return move;
+			    }
+			} else {
+				int targetSquare = getTargetSquare(notation.substring(0,2));
+				char promoPiece = notation.charAt(2);
+				int promo = Piece.NONE;
+				switch(promoPiece) {
+				case 'Q':
+					promo = Piece.QUEEN;
+					break;
+				case 'R':
+					promo = Piece.ROOK;
+					break;
+				case 'B':
+					promo = Piece.BISHOP;
+					break;
+				case 'N':
+					promo = Piece.KNIGHT;
+					break;
+				default:
+					break;
+				}
+				for (int move : moveList) {
+			    	if ((Move.getTargetPosition(move) == targetSquare) &&
+			    		(Move.getOriginPiece(move) == originPiece) && 
+			    		(Move.getPromotion(move) == promo))
+			    		return move;
+			    }
 			}
-			for (int move : moveList) {
-		    	if ((Move.getTargetPosition(move) == targetSquare) &&
-		    		(Move.getOriginPiece(move) == originPiece) && 
-		    		(Move.getPromotion(move) == promo))
-		    		return move;
-		    }
 		}
 		return Move.NULL_MOVE;
 	}

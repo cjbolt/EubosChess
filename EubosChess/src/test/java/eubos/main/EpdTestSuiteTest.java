@@ -3,9 +3,13 @@ package eubos.main;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PipedWriter;
 import java.io.PrintStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -104,14 +108,6 @@ public class EpdTestSuiteTest {
 
 	private void performTest(int timeout, boolean checkInfoMsgs) throws IOException, InterruptedException {
 		performTestHelper(timeout, checkInfoMsgs, 0L, 0);
-	}
-	
-	private void performTestExpectMate(int timeout, int mateInX) throws IOException, InterruptedException {
-		performTestHelper(timeout, true, 0L, mateInX);
-	}
-	
-	private void pokeHashEntryAndPerformTest(int timeout, long hashEntry) throws IOException, InterruptedException {
-		performTestHelper(timeout, false, hashEntry, 0);
 	}
 	
 	private void performTestHelper(int timeout, boolean checkInfoMsgs, long hashEntry, int mateInX) throws IOException, InterruptedException {
@@ -257,9 +253,11 @@ public class EpdTestSuiteTest {
 		
 		public IndividualTestPosition(String epd) throws IllegalNotationException {
 			int bestMoveIndex = epd.indexOf("bm ");
-			fen = epd.substring(0, bestMoveIndex);
+			int alternateMoveIndex = epd.indexOf("am ");
+			int endOfFenString = (alternateMoveIndex == -1 || bestMoveIndex < alternateMoveIndex) ? bestMoveIndex : alternateMoveIndex;
+			fen = epd.substring(0, endOfFenString);
 			pm = new PositionManager(fen+" 0 0");
-			String rest = epd.substring(bestMoveIndex+"bm ".length());
+			String rest = epd.substring(endOfFenString+"bm ".length());
 			int endOfBestMoveIndex = rest.indexOf(";");
 			int x = bestMoveIndex+"bm ".length();
 			// TODO handle when multiple best moves are specified (space delimited)
@@ -270,21 +268,42 @@ public class EpdTestSuiteTest {
 		}
 	};
 	
-	public List<IndividualTestPosition> loadTestSuiteFromEpd(String filename) {
-		return new ArrayList<IndividualTestPosition>();
+	public List<IndividualTestPosition> loadTestSuiteFromEpd(String filename) throws IllegalNotationException {
+		List<IndividualTestPosition> testList = new ArrayList<IndividualTestPosition>();
+		Path resourceDirectory = Paths.get("src","test","resources");
+		String absolutePath = resourceDirectory.toFile().getAbsolutePath();
+		try {
+			Scanner scanner = new Scanner(new File(absolutePath+"/"+filename));
+			while (scanner.hasNextLine()) {
+				try {
+					IndividualTestPosition pos = new IndividualTestPosition(scanner.nextLine());
+					testList.add(pos);
+				} catch (IllegalNotationException e) {
+					e.printStackTrace();
+				}
+			}
+			scanner.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		return testList;
 	}
 	
 	public void runTest(IndividualTestPosition test) throws IOException, InterruptedException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+test.fen+CMD_TERMINATOR, null));
 		commands.add(new commandPair(GO_TIME_PREFIX+"10000"+CMD_TERMINATOR, BEST_PREFIX+Move.toGenericMove(test.bestMove).toString()+CMD_TERMINATOR));
-		performTest(10000);
+		performTest(20000);
 	}
 	
-	public void runThroughTestSuite(String filename) {
+	public void runThroughTestSuite(String filename) throws IOException, InterruptedException, IllegalNotationException {
 		List<IndividualTestPosition> testSuite = loadTestSuiteFromEpd(filename);
 		for (IndividualTestPosition test : testSuite) {
-			// TODO implement reading and running through a whole EPD
+			System.err.println(test.testName);
+			setUp();
+			runTest(test);
+			tearDown();
+			commands.clear();
 		}
 	}
 	
@@ -296,5 +315,10 @@ public class EpdTestSuiteTest {
 	public void test_can_create_position() throws IllegalNotationException, IOException, InterruptedException {
 		IndividualTestPosition pos = new IndividualTestPosition(test3);
 		runTest(pos);		
+	}
+	
+	@Test
+	public void test_run_wac_test_suite() throws IOException, InterruptedException, IllegalNotationException {
+		runThroughTestSuite("wacnew.epd");		
 	}
 }
