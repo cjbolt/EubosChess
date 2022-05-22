@@ -13,6 +13,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.junit.After;
 import org.junit.Before;
@@ -250,21 +252,45 @@ public class EpdTestSuiteTest {
 		int bestMove;
 		String testName;
 		PositionManager pm;
+				
+		String fen_regex =
+				"([KkQqRrBbNnPp1-8]+[/][KkQqRrBbNnPp1-8]+[/][KkQqRrBbNnPp1-8]+[/][KkQqRrBbNnPp1-8]+[/]" +
+				"[KkQqRrBbNnPp1-8]+[/][KkQqRrBbNnPp1-8]+[/][KkQqRrBbNnPp1-8]+[/][KkQqRrBbNnPp1-8]+ " +
+				"[bw] [KkQq-]+ [a-h1-8-])";
 		
-		public IndividualTestPosition(String epd) throws IllegalNotationException {
+		private void extractFen(String epd) throws IllegalNotationException {
+			Pattern pattern = Pattern.compile(fen_regex);
+			Matcher matcher = pattern.matcher(epd);
+			if (matcher.find()) {
+			    fen = matcher.group(1);
+			} else {
+				throw new IllegalNotationException(String.format("Can't match FEN %s", epd));
+			}
+		}
+		
+		private void extractBestMove(String epd) throws IllegalNotationException {
 			int bestMoveIndex = epd.indexOf("bm ");
-			int alternateMoveIndex = epd.indexOf("am ");
-			int endOfFenString = (alternateMoveIndex == -1 || bestMoveIndex < alternateMoveIndex) ? bestMoveIndex : alternateMoveIndex;
-			fen = epd.substring(0, endOfFenString);
-			pm = new PositionManager(fen+" 0 0");
-			String rest = epd.substring(endOfFenString+"bm ".length());
+			String rest = epd.substring(bestMoveIndex+"bm ".length());
 			int endOfBestMoveIndex = rest.indexOf(";");
 			int x = bestMoveIndex+"bm ".length();
 			// TODO handle when multiple best moves are specified (space delimited)
 			String bestMoveAsString = epd.substring(x, x+endOfBestMoveIndex);
 			bestMove = pm.getNativeMove(bestMoveAsString);
-			// TODO search for ID tag to get name
-			testName = epd.substring(endOfBestMoveIndex);
+		}
+		
+		private void extractTestName(String epd) {
+			int idIndex = epd.indexOf("id ");
+			String rest = epd.substring(idIndex+"id ".length());
+			int endOfIdIndex = rest.indexOf(";");
+			int x = idIndex+"id ".length();
+			testName = epd.substring(x, x+endOfIdIndex);
+		}
+		
+		public IndividualTestPosition(String epd) throws IllegalNotationException {
+			extractFen(epd);
+			pm = new PositionManager(fen+" 0 0");
+			extractBestMove(epd);
+			extractTestName(epd);
 		}
 	};
 	
