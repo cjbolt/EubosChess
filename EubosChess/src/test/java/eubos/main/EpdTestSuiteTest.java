@@ -273,8 +273,12 @@ public class EpdTestSuiteTest {
 			String rest = epd.substring(bestMoveIndex+"bm ".length());
 			int endOfBestMoveIndex = rest.indexOf(";");
 			int x = bestMoveIndex+"bm ".length();
-			// TODO handle when multiple best moves are specified (space delimited)
+
 			String bestMoveAsString = epd.substring(x, x+endOfBestMoveIndex);
+			if (bestMoveAsString.indexOf(" ") != -1) {
+				// If multiple best moves, use only first...
+				bestMoveAsString = bestMoveAsString.substring(0,bestMoveAsString.indexOf(" "));
+			}
 			bestMove = pm.getNativeMove(bestMoveAsString);
 		}
 		
