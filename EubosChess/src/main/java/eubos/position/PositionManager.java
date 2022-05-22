@@ -449,12 +449,26 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 	}
 	
 	private int getMove(List<Integer> moveList, String notation, int originPiece) throws IllegalNotationException {
-	    int targetSquare = getTargetSquare(notation);
-	    for (int move : moveList) {
-	    	if ((Move.getTargetPosition(move) == targetSquare) &&
-	    		(Move.getOriginPiece(move) == originPiece))
-	    		return move;
-	    }
+		if (notation.length() == 3) {
+			// includes disambiguator, consider file
+			if (GenericFile.isValid(notation.charAt(1))) {
+				GenericFile file = GenericFile.valueOf(notation.charAt(0));
+				int targetSquare = getTargetSquare(notation.substring(1));
+				for (int move : moveList) {
+			    	if ((Move.getTargetPosition(move) == targetSquare) &&
+			    		(Move.getOriginPiece(move) == originPiece) && 
+			    		(Position.getFile(Move.getOriginPosition(move)) == IntFile.valueOf(file)))
+			    		return move;
+			    }
+			}
+		} else {
+		    int targetSquare = getTargetSquare(notation);
+		    for (int move : moveList) {
+		    	if ((Move.getTargetPosition(move) == targetSquare) &&
+		    		(Move.getOriginPiece(move) == originPiece))
+		    		return move;
+		    }
+		}
 		return Move.NULL_MOVE;
 	}
 	
@@ -469,7 +483,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 		} else if (notation.length() == 3) {
 			if (GenericFile.isValid(notation.charAt(1))) {
 				GenericFile file = GenericFile.valueOf(notation.charAt(0));
-				int targetSquare = getTargetSquare(notation.substring(1,2));
+				int targetSquare = getTargetSquare(notation.substring(1));
 				for (int move : moveList) {
 			    	if ((Move.getTargetPosition(move) == targetSquare) &&
 			    		(Move.getOriginPiece(move) == originPiece) && 
@@ -579,30 +593,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 			originPiece = isWhite ? Piece.WHITE_PAWN: Piece.BLACK_PAWN;
 			move = getPawnPushMove(moveList, notation, originPiece);
 			break;
-//		case 'b':
-//			break;
-//		case 'c':
-//			break;
-//		case 'd':
-//			break;
-//		case 'e':
-//			break;
-//		case 'f':
-//			break;
-//		case 'g':
-//			break;
-//		case 'h':
-//			break;
 		case 'O':
 			// Castling
 			break;
-
 		default:
-			//pawn move
-			//push
-			//capture
-			//ep
-			//promotion
 			break;
 		}
 		return move;

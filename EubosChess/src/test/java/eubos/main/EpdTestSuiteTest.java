@@ -16,10 +16,6 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.fluxchess.jcpi.models.IllegalNotationException;
@@ -34,17 +30,46 @@ public class EpdTestSuiteTest {
 	
 	// Command Lists emptied in main test loop.
 	public class commandPair {
-		private String in;
-		private String out;
+		protected String in;
+		protected String out;
 		public commandPair(String input, String output) {
 			in = input;
 			out = output;
-		}
+		}		
 		public String getIn() {
 			return in;
 		}
 		public String getOut() {
 			return out;
+		}
+		public boolean expectOutput() {
+			return out != null;
+		}
+		public boolean isExpectedOutput(String received) {
+			return received.endsWith(out);
+		}
+	}
+	
+	public class multipleAcceptableCommandPair extends commandPair {
+		private String [] outputAlternatives;
+		public multipleAcceptableCommandPair(String input, String [] output) {
+			super(input, null);
+			outputAlternatives = output;
+		}
+		@Override
+		public boolean expectOutput() {
+			return outputAlternatives != null;
+		}
+		@Override
+		public boolean isExpectedOutput(String received) {
+			boolean expectedCommandReceived = false;
+			for (String command : outputAlternatives) {
+				if (received.endsWith(command)) {
+					expectedCommandReceived = true;
+					break;
+				}
+			}
+			return expectedCommandReceived;
 		}
 	}
 
@@ -120,7 +145,6 @@ public class EpdTestSuiteTest {
 		int commandNumber = 1;
 		for (commandPair currCmdPair: commands) {
 			String inputCmd = currCmdPair.getIn();
-			String expectedOutput = currCmdPair.getOut();
 			String parsedCmd= "";
 			// Pass command to engine
 			if (inputCmd != null) {
@@ -136,7 +160,7 @@ public class EpdTestSuiteTest {
 				//EubosEngineMain.logger.info(String.format("************* %s", inputCmd));
 			}
 			// Test expected command was received
-			if (expectedOutput != null) {
+			if (currCmdPair.expectOutput()) {
 				boolean received = false;
 				int timer = 0;
 				boolean accumulate = false;
@@ -159,7 +183,7 @@ public class EpdTestSuiteTest {
 						// Ignore any line starting with info, if not checking infos
 					    parsedCmd = parseReceivedCommandString(recievedCmd, checkInfoMsgs);
 					    if (!parsedCmd.isEmpty()) { // want to use isBlank(), but that is Java 11 only.
-							if (parsedCmd.endsWith(expectedOutput)) {
+							if (currCmdPair.isExpectedOutput(parsedCmd)) {
 								received = true;
 								accumulate = false;
 								if (parsedCmd.contains(mateExpectation)) {
@@ -176,7 +200,7 @@ public class EpdTestSuiteTest {
 					}
 				}
 				if (!received) {
-					fail(inputCmd + expectedOutput + "command that failed " + (commandNumber-3));
+					fail(inputCmd + currCmdPair.getOut() + "command that failed " + (commandNumber-3));
 				}
 				commandNumber++;
 			} else {
@@ -197,7 +221,7 @@ public class EpdTestSuiteTest {
 	// Command building blocks
 	private static final String CMD_TERMINATOR = System.lineSeparator();
 	private static final String POS_FEN_PREFIX = "position fen ";
-	private static final String GO_DEPTH_PREFIX = "go depth ";
+	//private static final String GO_DEPTH_PREFIX = "go depth ";
 	//private static final String GO_WTIME_PREFIX = "go wtime ";
 	//private static final String GO_BTIME_PREFIX = "go btime ";
 	private static final String GO_TIME_PREFIX = "go movetime ";
@@ -225,8 +249,7 @@ public class EpdTestSuiteTest {
 	
 	private static final int sleep_50ms = 50;
 	
-	@BeforeEach
-	public void setUp() throws IOException {
+	public void createAndConnectEngine() throws IOException {
 		// Start engine
 		System.setOut(new PrintStream(testOutput));
 		inputToEngine = new PipedWriter();
@@ -235,9 +258,7 @@ public class EpdTestSuiteTest {
 		eubosThread.start();
 	}
 	
-	@AfterEach
-	public void tearDown() throws IOException, InterruptedException {
-		// Stop the Engine TODO: could send quit command over stdin
+	public void disconnectAndDestroyEngine() throws IOException, InterruptedException {
 		inputToEngine.write(QUIT_CMD);
 		inputToEngine.flush();
 		Thread.sleep(10);
@@ -249,7 +270,8 @@ public class EpdTestSuiteTest {
 	
 	public class IndividualTestPosition {
 		String fen;
-		int bestMove;
+		List<Integer> bestMoves;
+		List<String> bestMoveCommands;
 		String testName;
 		PositionManager pm;
 				
@@ -268,18 +290,18 @@ public class EpdTestSuiteTest {
 			}
 		}
 		
-		private void extractBestMove(String epd) throws IllegalNotationException {
+		private void extractBestMoves(String epd) throws IllegalNotationException {
 			int bestMoveIndex = epd.indexOf("bm ");
 			String rest = epd.substring(bestMoveIndex+"bm ".length());
 			int endOfBestMoveIndex = rest.indexOf(";");
 			int x = bestMoveIndex+"bm ".length();
-
-			String bestMoveAsString = epd.substring(x, x+endOfBestMoveIndex);
-			if (bestMoveAsString.indexOf(" ") != -1) {
-				// If multiple best moves, use only first...
-				bestMoveAsString = bestMoveAsString.substring(0,bestMoveAsString.indexOf(" "));
+			
+			String [] bestMovesAsString = epd.substring(x, x+endOfBestMoveIndex).split(" ");
+			for (String bestMove : bestMovesAsString) {
+				int current = pm.getNativeMove(bestMove);
+				bestMoves.add(current);
+				bestMoveCommands.add(BEST_PREFIX+Move.toGenericMove(current).toString()+CMD_TERMINATOR);
 			}
-			bestMove = pm.getNativeMove(bestMoveAsString);
 		}
 		
 		private void extractTestName(String epd) {
@@ -291,9 +313,11 @@ public class EpdTestSuiteTest {
 		}
 		
 		public IndividualTestPosition(String epd) throws IllegalNotationException {
+			bestMoves = new ArrayList<Integer>();
+			bestMoveCommands = new ArrayList<String>();
 			extractFen(epd);
 			pm = new PositionManager(fen+" 0 0");
-			extractBestMove(epd);
+			extractBestMoves(epd);
 			extractTestName(epd);
 		}
 	};
@@ -322,33 +346,35 @@ public class EpdTestSuiteTest {
 	public void runTest(IndividualTestPosition test) throws IOException, InterruptedException {
 		setupEngine();
 		commands.add(new commandPair(POS_FEN_PREFIX+test.fen+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_TIME_PREFIX+"10000"+CMD_TERMINATOR, BEST_PREFIX+Move.toGenericMove(test.bestMove).toString()+CMD_TERMINATOR));
-		performTest(20000);
+		String[] myArray = new String[test.bestMoveCommands.size()];
+		myArray = test.bestMoveCommands.toArray(myArray);
+		commands.add(new multipleAcceptableCommandPair(GO_TIME_PREFIX+"10000"+CMD_TERMINATOR, myArray));
+		performTest(12000);
 	}
 	
 	public void runThroughTestSuite(String filename) throws IOException, InterruptedException, IllegalNotationException {
 		List<IndividualTestPosition> testSuite = loadTestSuiteFromEpd(filename);
 		for (IndividualTestPosition test : testSuite) {
 			System.err.println(test.testName);
-			setUp();
+			createAndConnectEngine();
 			runTest(test);
-			tearDown();
+			disconnectAndDestroyEngine();
 			commands.clear();
 		}
-	}
-	
-	String test = "2rr3k/pp3pp1/1nnqbN1p/3pN3/2pP4/2P3Q1/PPB4P/R4RK1 w - - bm Qg6; id \"WAC.001\";";
-	String test2= "3r1rk1/1p3p2/p3pnnp/2p3p1/2P2q2/1P5P/PB2QPPN/3RR1K1 w - - bm g3; id \"WAC.195\";";
-	String test3= "2r1kb1r/pp3ppp/2n1b3/1q1N2B1/1P2Q3/8/P4PPP/3RK1NR w Kk - bm Nc7+; id \"WAC.267\";";
-	
-	@Test
-	public void test_can_create_position() throws IllegalNotationException, IOException, InterruptedException {
-		IndividualTestPosition pos = new IndividualTestPosition(test3);
-		runTest(pos);		
 	}
 	
 	@Test
 	public void test_run_wac_test_suite() throws IOException, InterruptedException, IllegalNotationException {
 		runThroughTestSuite("wacnew.epd");		
+	}
+	
+	@Test
+	public void test_run_null_move_test_suite() throws IOException, InterruptedException, IllegalNotationException {
+		runThroughTestSuite("null_move_test.epd");		
+	}
+	
+	@Test
+	public void test_run_bratko_kopec_test_suite() throws IOException, InterruptedException, IllegalNotationException {
+		runThroughTestSuite("bratko_kopec_test.epd");		
 	}
 }
