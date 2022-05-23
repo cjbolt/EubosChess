@@ -448,107 +448,98 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 		}
 	}
 	
-	private int getMove(List<Integer> moveList, String notation, int originPiece) throws IllegalNotationException {
-		if (notation.length() == 3) {
-			// includes disambiguator, consider file
-			if (GenericFile.isValid(notation.charAt(1))) {
-				GenericFile file = GenericFile.valueOf(notation.charAt(0));
-				int targetSquare = getTargetSquare(notation.substring(1));
-				for (int move : moveList) {
-			    	if ((Move.getTargetPosition(move) == targetSquare) &&
-			    		(Move.getOriginPiece(move) == originPiece) && 
-			    		(Position.getFile(Move.getOriginPosition(move)) == IntFile.valueOf(file)))
-			    		return move;
-			    }
-			}
-		} else {
-		    int targetSquare = getTargetSquare(notation);
-		    for (int move : moveList) {
+	private int disambiguateByfile(String notation, List<Integer> moveList, int originPiece) throws IllegalNotationException {
+		if (GenericFile.isValid(notation.charAt(1))) {
+			GenericFile file = GenericFile.valueOf(notation.charAt(0));
+			int targetSquare = getTargetSquare(notation.substring(1));
+			for (int move : moveList) {
 		    	if ((Move.getTargetPosition(move) == targetSquare) &&
-		    		(Move.getOriginPiece(move) == originPiece))
+		    		(Move.getOriginPiece(move) == originPiece) && 
+		    		(Position.getFile(Move.getOriginPosition(move)) == IntFile.valueOf(file)))
 		    		return move;
 		    }
 		}
 		return Move.NULL_MOVE;
+	}
+	
+	private int getBasic(String notation, List<Integer> moveList, int originPiece) throws IllegalNotationException {
+		int targetSquare = getTargetSquare(notation);
+	    for (int move : moveList) {
+	    	if ((Move.getTargetPosition(move) == targetSquare) &&
+	    		(Move.getOriginPiece(move) == originPiece))
+	    		return move;
+	    }
+	    return Move.NULL_MOVE;
+	}
+	
+	private int getPromotionMove(List<Integer> moveList, String notation, int originPiece) throws IllegalNotationException {
+		int targetSquare = getTargetSquare(notation.substring(0,2));
+		char promoPiece = notation.charAt(2);
+		int promo = Piece.NONE;
+		switch(promoPiece) {
+		case 'Q':
+			promo = Piece.QUEEN;
+			break;
+		case 'R':
+			promo = Piece.ROOK;
+			break;
+		case 'B':
+			promo = Piece.BISHOP;
+			break;
+		case 'N':
+			promo = Piece.KNIGHT;
+			break;
+		default:
+			break;
+		}
+		for (int move : moveList) {
+	    	if ((Move.getTargetPosition(move) == targetSquare) &&
+	    		(Move.getOriginPiece(move) == originPiece) && 
+	    		(Move.getPromotion(move) == promo))
+	    		return move;
+	    }
+		return Move.NULL_MOVE;
+	}
+	
+	private int getMove(List<Integer> moveList, String notation, int originPiece) throws IllegalNotationException {
+		if (notation.length() == 3) {
+			return disambiguateByfile(notation, moveList, originPiece);
+		} else {
+			return getBasic(notation, moveList, originPiece);
+		}
 	}
 	
 	private int getPawnPushMove(List<Integer> moveList, String notation, int originPiece) throws IllegalNotationException {
 		if (notation.length() == 2) {
-		    int targetSquare = getTargetSquare(notation);
-		    for (int move : moveList) {
-		    	if ((Move.getTargetPosition(move) == targetSquare) &&
-		    		(Move.getOriginPiece(move) == originPiece))
-		    		return move;
-		    }
+			return getBasic(notation, moveList, originPiece);
 		} else if (notation.length() == 3) {
-			if (GenericFile.isValid(notation.charAt(1))) {
-				GenericFile file = GenericFile.valueOf(notation.charAt(0));
-				int targetSquare = getTargetSquare(notation.substring(1));
-				for (int move : moveList) {
-			    	if ((Move.getTargetPosition(move) == targetSquare) &&
-			    		(Move.getOriginPiece(move) == originPiece) && 
-			    		(Position.getFile(Move.getOriginPosition(move)) == IntFile.valueOf(file)))
-			    		return move;
-			    }
+			int disambiguated_move = disambiguateByfile(notation, moveList, originPiece);
+			if (disambiguated_move != Move.NULL_MOVE) {
+				return disambiguated_move;
 			} else {
-				int targetSquare = getTargetSquare(notation.substring(0,2));
-				char promoPiece = notation.charAt(2);
-				int promo = Piece.NONE;
-				switch(promoPiece) {
-				case 'Q':
-					promo = Piece.QUEEN;
-					break;
-				case 'R':
-					promo = Piece.ROOK;
-					break;
-				case 'B':
-					promo = Piece.BISHOP;
-					break;
-				case 'N':
-					promo = Piece.KNIGHT;
-					break;
-				default:
-					break;
-				}
-				for (int move : moveList) {
-			    	if ((Move.getTargetPosition(move) == targetSquare) &&
-			    		(Move.getOriginPiece(move) == originPiece) && 
-			    		(Move.getPromotion(move) == promo))
-			    		return move;
-			    }
+				return getPromotionMove(moveList, notation, originPiece);
 			}
 		}
 		return Move.NULL_MOVE;
 	}
 	
-	public int getNativeMove(String bestMoveSAN) throws IllegalNotationException {
-		int move = Move.NULL_MOVE;
-		String notation = bestMoveSAN;
-		
-	    // Clean whitespace at the beginning and at the end
+	private String preprocessSAN(String notation) {
 	    notation = notation.trim();
-
-	    // Clean spaces in the notation
 	    notation = notation.replaceAll(" ", "");
-
-	    // Clean capturing notation
 	    notation = notation.replaceAll("x", "");
 	    notation = notation.replaceAll(":", "");
-
-	    // Clean pawn promotion notation
 	    notation = notation.replaceAll("=", "");
-
-	    // Clean check notation
 	    notation = notation.replaceAll("\\+", "");
-
-	    // Clean checkmate notation
 	    notation = notation.replaceAll("#", "");
-
-	    // Clean hyphen in long algebraic notation
 	    notation = notation.replaceAll("-", "");
-		
-		int originPiece = Piece.NONE;
+	    return notation;
+	}
+	
+	public int getNativeMove(String notation) throws IllegalNotationException {
+		int move = Move.NULL_MOVE;		
 		boolean isWhite = Piece.Colour.isWhite(getOnMove());
+		
+		notation = preprocessSAN(notation);
 		
 		// Create a list of the valid moves in the position
 		MoveList ml = new MoveList(this, 0);
@@ -557,44 +548,32 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 		
 		switch(notation.charAt(0)) {
 		case 'K':
-			notation = notation.replaceAll("K", "");	
-			originPiece = isWhite ? Piece.WHITE_KING: Piece.BLACK_KING;
-			move = getMove(moveList, notation, originPiece);
+			move = getMove(moveList, notation.replaceAll("K", ""), isWhite ? Piece.WHITE_KING: Piece.BLACK_KING);
 			break;
 		case 'Q':
-			notation = notation.replaceAll("Q", "");
-			originPiece = isWhite ? Piece.WHITE_QUEEN: Piece.BLACK_QUEEN;
-			move = getMove(moveList, notation, originPiece);
+			move = getMove(moveList, notation.replaceAll("Q", ""), isWhite ? Piece.WHITE_QUEEN: Piece.BLACK_QUEEN);
 			break;
 		case 'R':
-			notation = notation.replaceAll("R", "");
-			originPiece = isWhite ? Piece.WHITE_ROOK: Piece.BLACK_ROOK;
-			move = getMove(moveList, notation, originPiece);
+			move = getMove(moveList, notation.replaceAll("R", ""), isWhite ? Piece.WHITE_ROOK: Piece.BLACK_ROOK);
 			break;
 		case 'B':
-			notation = notation.replaceAll("B", "");
-			originPiece = isWhite ? Piece.WHITE_BISHOP: Piece.BLACK_BISHOP;
-			move = getMove(moveList, notation, originPiece);
+			move = getMove(moveList, notation.replaceAll("B", ""), isWhite ? Piece.WHITE_BISHOP: Piece.BLACK_BISHOP);
 			break;
 		case 'N':
-			notation = notation.replaceAll("N", "");
-			originPiece = isWhite ? Piece.WHITE_KNIGHT: Piece.BLACK_KNIGHT;
-			move = getMove(moveList, notation, originPiece);
+			move = getMove(moveList, notation.replaceAll("N", ""), isWhite ? Piece.WHITE_KNIGHT: Piece.BLACK_KNIGHT);
 			break;
 			// Pawn moves
-		case 'a':
-		case 'b':
-		case 'c':
-		case 'd':
-		case 'e':
-		case 'f':
-		case 'g':
-		case 'h':
-			originPiece = isWhite ? Piece.WHITE_PAWN: Piece.BLACK_PAWN;
-			move = getPawnPushMove(moveList, notation, originPiece);
+		case 'a': case 'b':	case 'c':case 'd': case 'e': case 'f': case 'g': case 'h':
+			move = getPawnPushMove(moveList, notation, isWhite ? Piece.WHITE_PAWN: Piece.BLACK_PAWN);
 			break;
 		case 'O':
 			// Castling
+			if (notation.matches("OOO")) {
+				move = isWhite ? CastlingManager.wqsc : CastlingManager.bqsc;
+			} else {
+				move = isWhite ? CastlingManager.wksc : CastlingManager.bksc;
+			}
+			if (moveList.indexOf(move) == -1) move = Move.NULL_MOVE;
 			break;
 		default:
 			break;

@@ -28,6 +28,43 @@ public class EpdTestSuiteTest {
 	private EubosEngineMain classUnderTest;
 	private Thread eubosThread;
 	
+	private ArrayList<commandPair> commands = new ArrayList<commandPair>();
+	
+	// Test infrastructure to allow pushing commands into Eubos and sniffing them out.
+	private PipedWriter inputToEngine;
+	private final ByteArrayOutputStream testOutput = new ByteArrayOutputStream();
+	
+	// Command building blocks
+	private static final String CMD_TERMINATOR = System.lineSeparator();
+	private static final String POS_FEN_PREFIX = "position fen ";
+	//private static final String GO_DEPTH_PREFIX = "go depth ";
+	//private static final String GO_WTIME_PREFIX = "go wtime ";
+	//private static final String GO_BTIME_PREFIX = "go btime ";
+	private static final String GO_TIME_PREFIX = "go movetime ";
+	private static final String BEST_PREFIX = "bestmove ";
+	
+	// Whole Commands
+	// Inputs
+	private static final String UCI_CMD = "uci"+CMD_TERMINATOR;
+	private static final String ISREADY_CMD = "isready"+CMD_TERMINATOR;
+	private static final String NEWGAME_CMD = "ucinewgame"+CMD_TERMINATOR;
+	//private static final String GO_INF_CMD = "go infinite"+CMD_TERMINATOR;
+	private static final String QUIT_CMD = "quit"+CMD_TERMINATOR;
+	// Outputs
+	private static final String ID_NAME_CMD = String.format("id name Eubos %d.%d%s", 
+			EubosEngineMain.EUBOS_MAJOR_VERSION, EubosEngineMain.EUBOS_MINOR_VERSION, CMD_TERMINATOR);
+	private static final String ID_AUTHOR_CMD = "id author Chris Bolt"+CMD_TERMINATOR;
+	private static final String OPTION_HASH = "option name Hash type spin default 256 min 32 max 4000"+CMD_TERMINATOR;
+	private static final String OPTION_MOVE_OVERHEAD = "option name Move Overhead type spin default 10 min 0 max 5000"+CMD_TERMINATOR;
+	private static final String OPTION_THREADS = String.format(
+			"option name Threads type spin default %s min 1 max %s%s",
+			Math.max(1, Runtime.getRuntime().availableProcessors()-2),
+			Runtime.getRuntime().availableProcessors(), CMD_TERMINATOR);
+	private static final String UCI_OK_CMD = "uciok"+CMD_TERMINATOR;
+	private static final String READY_OK_CMD = "readyok"+CMD_TERMINATOR;
+	
+	private static final int sleep_50ms = 50;
+	
 	// Command Lists emptied in main test loop.
 	public class commandPair {
 		protected String in;
@@ -212,43 +249,6 @@ public class EpdTestSuiteTest {
 		}
 	}
 	
-	private ArrayList<commandPair> commands = new ArrayList<commandPair>();
-	
-	// Test infrastructure to allow pushing commands into Eubos and sniffing them out.
-	private PipedWriter inputToEngine;
-	private final ByteArrayOutputStream testOutput = new ByteArrayOutputStream();
-	
-	// Command building blocks
-	private static final String CMD_TERMINATOR = System.lineSeparator();
-	private static final String POS_FEN_PREFIX = "position fen ";
-	//private static final String GO_DEPTH_PREFIX = "go depth ";
-	//private static final String GO_WTIME_PREFIX = "go wtime ";
-	//private static final String GO_BTIME_PREFIX = "go btime ";
-	private static final String GO_TIME_PREFIX = "go movetime ";
-	private static final String BEST_PREFIX = "bestmove ";
-	
-	// Whole Commands
-	// Inputs
-	private static final String UCI_CMD = "uci"+CMD_TERMINATOR;
-	private static final String ISREADY_CMD = "isready"+CMD_TERMINATOR;
-	private static final String NEWGAME_CMD = "ucinewgame"+CMD_TERMINATOR;
-	//private static final String GO_INF_CMD = "go infinite"+CMD_TERMINATOR;
-	private static final String QUIT_CMD = "quit"+CMD_TERMINATOR;
-	// Outputs
-	private static final String ID_NAME_CMD = String.format("id name Eubos %d.%d%s", 
-			EubosEngineMain.EUBOS_MAJOR_VERSION, EubosEngineMain.EUBOS_MINOR_VERSION, CMD_TERMINATOR);
-	private static final String ID_AUTHOR_CMD = "id author Chris Bolt"+CMD_TERMINATOR;
-	private static final String OPTION_HASH = "option name Hash type spin default 256 min 32 max 4000"+CMD_TERMINATOR;
-	private static final String OPTION_MOVE_OVERHEAD = "option name Move Overhead type spin default 10 min 0 max 5000"+CMD_TERMINATOR;
-	private static final String OPTION_THREADS = String.format(
-			"option name Threads type spin default %s min 1 max %s%s",
-			Math.max(1, Runtime.getRuntime().availableProcessors()-2),
-			Runtime.getRuntime().availableProcessors(), CMD_TERMINATOR);
-	private static final String UCI_OK_CMD = "uciok"+CMD_TERMINATOR;
-	private static final String READY_OK_CMD = "readyok"+CMD_TERMINATOR;
-	
-	private static final int sleep_50ms = 50;
-	
 	public void createAndConnectEngine() throws IOException {
 		// Start engine
 		System.setOut(new PrintStream(testOutput));
@@ -265,8 +265,6 @@ public class EpdTestSuiteTest {
 		classUnderTest = null;
 		eubosThread = null;
 	}
-	
-	public String[] epdTestSuiteList = {""};
 	
 	public class IndividualTestPosition {
 		String fen;
@@ -376,5 +374,20 @@ public class EpdTestSuiteTest {
 	@Test
 	public void test_run_bratko_kopec_test_suite() throws IOException, InterruptedException, IllegalNotationException {
 		runThroughTestSuite("bratko_kopec_test.epd");		
+	}
+	
+	@Test
+	public void test_run_silent_but_deadly_test_suite() throws IOException, InterruptedException, IllegalNotationException {
+		runThroughTestSuite("silent_but_deadly.epd");		
+	}
+	
+	@Test
+	public void test_run_ccr_one_hour_test_suite() throws IOException, InterruptedException, IllegalNotationException {
+		runThroughTestSuite("ccr_1hr_test.epd");		
+	}
+	
+	@Test
+	public void test_run_kaufman_test_suite() throws IOException, InterruptedException, IllegalNotationException {
+		runThroughTestSuite("kaufman_test.epd");		
 	}
 }
