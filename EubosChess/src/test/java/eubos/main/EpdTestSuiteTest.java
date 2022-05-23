@@ -364,13 +364,15 @@ public class EpdTestSuiteTest {
 	}
 	
 	public void runThroughTestSuite(String filename) throws IOException, InterruptedException, IllegalNotationException {
-		List<IndividualTestPosition> testSuite = loadTestSuiteFromEpd(filename);
-		for (IndividualTestPosition test : testSuite) {
-			System.err.println(test.testName);
-			createAndConnectEngine();
-			runTest(test);
-			disconnectAndDestroyEngine();
-			commands.clear();
+		if (EubosEngineMain.ENABLE_TEST_SUITES) {
+			List<IndividualTestPosition> testSuite = loadTestSuiteFromEpd(filename);
+			for (IndividualTestPosition test : testSuite) {
+				System.err.println(test.testName);
+				createAndConnectEngine();
+				runTest(test);
+				disconnectAndDestroyEngine();
+				commands.clear();
+			}
 		}
 	}
 	
