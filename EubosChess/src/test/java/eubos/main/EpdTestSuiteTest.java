@@ -20,7 +20,9 @@ import org.junit.jupiter.api.Test;
 
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
+import eubos.board.Piece;
 import eubos.position.Move;
+import eubos.position.MoveList;
 import eubos.position.PositionManager;
 
 public class EpdTestSuiteTest {
@@ -272,6 +274,7 @@ public class EpdTestSuiteTest {
 		List<String> bestMoveCommands;
 		String testName;
 		PositionManager pm;
+		boolean isWhite;
 				
 		String fen_regex =
 				"([KkQqRrBbNnPp1-8]+[/][KkQqRrBbNnPp1-8]+[/][KkQqRrBbNnPp1-8]+[/][KkQqRrBbNnPp1-8]+[/]" +
@@ -295,8 +298,17 @@ public class EpdTestSuiteTest {
 			int x = bestMoveIndex+"bm ".length();
 			
 			String [] bestMovesAsString = epd.substring(x, x+endOfBestMoveIndex).split(" ");
+			
+			// Create a list of the valid moves in the position
+			MoveList ml = new MoveList(pm, 0);
+			ml.initialiseAtPly(Move.NULL_MOVE, null, pm.isKingInCheck(), false, 0);
+			List<Integer> moveList = ml.getList();
+			
 			for (String bestMove : bestMovesAsString) {
-				int current = pm.getNativeMove(bestMove);
+				int current = MoveList.getNativeMove(isWhite, moveList, bestMove);
+				if (current == Move.NULL_MOVE) {
+					throw new IllegalNotationException(String.format("%s didn't match any Eubos moves at fen=%s", bestMove, fen));
+				}
 				bestMoves.add(current);
 				bestMoveCommands.add(BEST_PREFIX+Move.toGenericMove(current).toString()+CMD_TERMINATOR);
 			}
@@ -315,6 +327,7 @@ public class EpdTestSuiteTest {
 			bestMoveCommands = new ArrayList<String>();
 			extractFen(epd);
 			pm = new PositionManager(fen+" 0 0");
+			isWhite = Piece.Colour.isWhite(pm.getOnMove());
 			extractBestMoves(epd);
 			extractTestName(epd);
 		}

@@ -1,7 +1,5 @@
 package eubos.position;
 
-import com.fluxchess.jcpi.models.IllegalNotationException;
-
 import eubos.board.Board;
 import eubos.board.Piece.Colour;
 import eubos.score.IEvaluate;
@@ -22,5 +20,4 @@ public interface IPositionAccessors {
 	public String unwindMoveStack();
 	public int enemyAdvancedPassedPawn();
 	public boolean promotablePawnPresent();
-	public int getNativeMove(String bestMoveSAN) throws IllegalNotationException;
 }
