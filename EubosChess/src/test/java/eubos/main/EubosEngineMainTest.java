@@ -258,31 +258,6 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/4kp1p/3pb1p1/P5P1/3KN1PP/8/8 b - - 5 57"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"e5g3"+CMD_TERMINATOR));
-		// h6h5 loses, it is a terrible move, but that is what Eubos selects. We should go with Bxg3 according to stockfish
-		/*
-		 * FEN: 8/8/4kp1p/3pb1p1/P5P1/3KN1PP/8/8 b - - 5 57
-		 * 
-			Eubos Dev Version:
-			 1/3	00:00	 3	166	+1.19	Bxg3 Nxd5
-			 2/3	00:00	 34	2k	+1.05	Bxg3 a5
-			 3/6	00:00	 267	9k	+0.51	Bxg3 Nf5 Bf2 Nxh6
-			 3/9	00:00	 656	18k	+0.91	h5 gxh5 Bxg3 Nxd5
-			 4/9	00:00	 1k	24k	+0.77	h5 gxh5 Bxg3 a5
-			 5/11	00:00	 4k	60k	+0.87	h5 gxh5 Bxg3 a5 Ke5 Nxd5
-			 6/11	00:00	 10k	124k	+0.73	h5 gxh5 Bxg3 a5 Ke5 a6
-			 7/14	00:00	 30k	235k	+0.73	h5 gxh5 Bxg3 h6 Be5 h7 f5 h8Q
-			 8/13	00:00	 83k	340k	+0.59	h5 gxh5 Bxg3 h6 Be5 h7 f5 a5
-			 9/15	00:00	 246k	440k	+0.72	h5 gxh5 Bxg3 a5 f5 a6 Bb8 Kd4 Ba7+ Kd3 Bxe3
-			 10/17	00:01	 655k	604k	+0.80	h5 gxh5 Bxg3 a5 f5 a6 Bb8 h6 f4 h7 fxe3
-			 11/19	00:01	 1,772k	941k	+0.58	h5 gxh5 Bxg3 Nc2 Be5 a5 Bc7 Nd4+ Ke5 h6 f5 a6
-			 12/21	00:03	 4,727k	1,316k	+0.53	h5 gxh5 Bxg3 Nc2 f5 Nd4+ Kf6 h6 Kg6 Nc6 Kxh6 Kd4 f4 Kxd5
-			 13/22	00:07	 11,217k	1,559k	+0.03	h5 gxh5
-			 13/23	00:16	 26,542k	1,622k	+0.34	Bxg3 a5 Bb8 Nf5 h5 Nd4+ Kf7 gxh5 Ba7
-			 14/24	00:28	 47,868k	1,693k	+0.25	Bxg3 a5 Bb8 Nf5 Ba7 a6 Bb6 Nxh6 Ke5 Nf7+
-			 15/27	01:54	 184,310k	1,609k	+0.25	Bxg3 a5 Bb8 Nf5 Ba7 a6 Bb6 Nxh6 Ke5 Nf5 d4 Ng3 Ke6 Ke4 Kd6
-			 16/29	04:56	 475,978k	1,604k	 0.00	Bxg3 a5 Bb8 Nf5 Ke5 a6 h5 Nd4 hxg4 hxg4 Kd6 Nb5+ Ke5 Nd4
-			 17/30	18:13	 1,728,005k	1,581k	 0.00	Bxg3 a5 Bb8 Nf5 Kd7 Nxh6 Ba7 Nf5 Bc5 Nd4 Kc7 Nb5+ Kc6 Nd4+ Kc7
-			*/
 		performTest(15000);
 	}
 	
@@ -384,5 +359,70 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		 * because Eubos is calculating moves for both black and white. Therefore we double count, once when the 
 		 * bestmove is sent, the again on the next ply when the analyse is received!
 		 */
+	}
+	
+	@Test
+	public void test_WAC_086_position() throws InterruptedException, IOException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/p7/1ppk1n2/5ppp/P1PP4/2P1K1P1/5N1P/8 b - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"f6g4"+CMD_TERMINATOR));
+		performTest(15000);
+	}
+	
+	@Test
+	public void test_WAC_100_position() throws InterruptedException, IOException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/k1b5/P4p2/1Pp2p1p/K1P2P1P/8/3B4/8 w - - 0 1"+CMD_TERMINATOR, null));
+		String [] acceptable_best_move_commands = {
+				BEST_PREFIX+"b5b6"+CMD_TERMINATOR,
+				BEST_PREFIX+"d2e3"+CMD_TERMINATOR};
+		commands.add(new MultipleAcceptableCommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, acceptable_best_move_commands));
+		performTest(15000);
+	}
+	
+	@Test
+	public void test_WAC_230_position() throws InterruptedException, IOException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"2b5/1r6/2kBp1p1/p2pP1P1/2pP4/1pP3K1/1R3P2/8 b - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"b7b4"+CMD_TERMINATOR));
+		performTest(15000);
+	}
+	
+	@Test
+	public void test_WAC_243_position() throws InterruptedException, IOException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"1r3r1k/3p4/1p1Nn1R1/4Pp1q/pP3P1p/P7/5Q1P/6RK w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"f2e2"+CMD_TERMINATOR));
+		performTest(15000);
+	}
+	
+	@Test
+	public void test_WAC_252_position() throws InterruptedException, IOException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"1rb1r1k1/p1p2ppp/5n2/2pP4/5P2/2QB4/qNP3PP/2KRB2R b - - 0 1"+CMD_TERMINATOR, null));
+		String [] acceptable_best_move_commands = {
+				BEST_PREFIX+"e8e2"+CMD_TERMINATOR,
+				BEST_PREFIX+"c8g4"+CMD_TERMINATOR};
+		commands.add(new MultipleAcceptableCommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, acceptable_best_move_commands));
+		performTest(15000);
+	}
+	
+	@Test
+	public void test_WAC_264_position() throws InterruptedException, IOException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"r2r2k1/1R2qp2/p5pp/2P5/b1PN1b2/P7/1Q3PPP/1B1R2K1 b - - 0 1"+CMD_TERMINATOR, null));
+		String [] acceptable_best_move_commands = {
+				BEST_PREFIX+"a8b8"+CMD_TERMINATOR,
+				BEST_PREFIX+"e7e5"+CMD_TERMINATOR};
+		commands.add(new MultipleAcceptableCommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, acceptable_best_move_commands));
+		performTest(15000);
+	}
+	
+	@Test
+	public void test_WAC_283_position() throws InterruptedException, IOException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"3q1rk1/4bp1p/1n2P2Q/3p1p2/6r1/Pp2R2N/1B4PP/7K w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"h3g5"+CMD_TERMINATOR));
+		performTest(15000);
 	}
 }
