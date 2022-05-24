@@ -56,7 +56,7 @@ public class Board {
 	
 	public PiecewiseEvaluation me;
 	
-	PawnAttackAggregator paa;
+	public PawnAttackAggregator paa;
 	public PawnKnightAttackAggregator pkaa;
 	
 	public Board( Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove ) {
@@ -905,7 +905,7 @@ public class Board {
 		return isPassed;
 	}
 	
-	public boolean isCandidatePassedPawn(int atPos, Colour side) {
+	public boolean isCandidatePassedPawn(int atPos, Colour side, long own_pawn_attacks, long enemy_pawn_attacks) {
 		boolean isWhite = Colour.isWhite(side);
 		boolean isCandidate = true;
 		// Check frontspan is clear
@@ -916,12 +916,10 @@ public class Board {
 		}
 		if (isCandidate) {
 			// Check that no square in front span is attacked by more enemy pawns than defended by own pawns
-			long enemy_attacks = paa.getPawnAttacks(isWhite);
 			// Note - could return a second long from paa for squares that are attacked twice by pawns
-			long enemy_attacks_on_frontspan = enemy_attacks & front_span_mask;
+			long enemy_attacks_on_frontspan = enemy_pawn_attacks & front_span_mask;
 			if (enemy_attacks_on_frontspan != 0L) {
-				long own_attacks = paa.getPawnAttacks(!isWhite);
-				long own_attacks_on_frontspan = own_attacks & front_span_mask;
+				long own_attacks_on_frontspan = own_pawn_attacks & front_span_mask;
 				if ((enemy_attacks_on_frontspan & own_attacks_on_frontspan) != enemy_attacks_on_frontspan) {
 					isCandidate  = false;
 				}
@@ -1088,7 +1086,7 @@ public class Board {
 		return isHalfOpen;
 	}
 	
-	class PawnAttackAggregator implements IForEachPieceCallback {
+	public class PawnAttackAggregator implements IForEachPieceCallback {
 		long attackMask = 0L;
 		boolean attackerIsBlack = false;
 		

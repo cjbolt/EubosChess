@@ -133,6 +133,8 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	
 	Colour onMoveIs;
 	int piecewisePawnScoreAccumulator = 0;
+	long enemy_pawn_attacks = 0L;
+	long own_pawn_attacks = 0L;
 	
 	@Override
 	public void callback(int piece, int atPos) {
@@ -178,7 +180,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 					piecewisePawnScoreAccumulator += weighting*PASSED_PAWN_BOOST;
 				}
 			}
-		} else if (bd.isCandidatePassedPawn(atPos, onMoveIs)) {
+		} else if (bd.isCandidatePassedPawn(atPos, onMoveIs, own_pawn_attacks, enemy_pawn_attacks)) {
 			boolean isBlack = Piece.isBlack(piece);
 			int queeningDistance = Position.getRank(atPos);
 			int weighting = 1;
@@ -204,11 +206,14 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		}
 	}
 	
-	private int evaluatePawnsForColour(Colour onMove) {
-		this.onMoveIs = onMove;
+	private int evaluatePawnsForColour(Colour side) {
+		boolean isWhite = Colour.isWhite(side);
+		this.onMoveIs = side;
 		this.piecewisePawnScoreAccumulator = 0;
-		int pawnHandicap = -bd.countDoubledPawnsForSide(onMove)*DOUBLED_PAWN_HANDICAP;
-		bd.forEachPawnOfSide(this, Colour.isBlack(onMove));
+		this.own_pawn_attacks = bd.paa.getPawnAttacks(!isWhite);
+		this.enemy_pawn_attacks = bd.paa.getPawnAttacks(isWhite);
+		int pawnHandicap = -bd.countDoubledPawnsForSide(side)*DOUBLED_PAWN_HANDICAP;
+		bd.forEachPawnOfSide(this, Colour.isBlack(side));
 		return pawnHandicap + piecewisePawnScoreAccumulator;
 	}
 
