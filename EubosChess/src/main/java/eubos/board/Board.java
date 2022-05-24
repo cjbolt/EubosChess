@@ -905,6 +905,31 @@ public class Board {
 		return isPassed;
 	}
 	
+	public boolean isCandidatePassedPawn(int atPos, Colour side) {
+		boolean isWhite = Colour.isWhite(side);
+		boolean isCandidate = true;
+		// Check frontspan is clear
+		long front_span_mask = BitBoard.PawnFrontSpan_Lut[side.ordinal()][atPos];
+		long otherSidePawns = isWhite ? getBlackPawns() : getWhitePawns();
+		if ((front_span_mask & otherSidePawns) != 0) {
+			isCandidate  = false;
+		}
+		if (isCandidate) {
+			// Check that no square in front span is attacked by more enemy pawns than defended by own pawns
+			long enemy_attacks = paa.getPawnAttacks(isWhite);
+			// Note - could return a second long from paa for squares that are attacked twice by pawns
+			long enemy_attacks_on_frontspan = enemy_attacks & front_span_mask;
+			if (enemy_attacks_on_frontspan != 0L) {
+				long own_attacks = paa.getPawnAttacks(!isWhite);
+				long own_attacks_on_frontspan = own_attacks & front_span_mask;
+				if ((enemy_attacks_on_frontspan & own_attacks_on_frontspan) != enemy_attacks_on_frontspan) {
+					isCandidate  = false;
+				}
+			}
+		}
+		return isCandidate;
+	}
+	
 	public boolean isBackwardsPawn(int atPos, Colour side) {
 		boolean isBackwards = true;
 		long mask = BitBoard.BackwardsPawn_Lut[side.ordinal()][atPos];

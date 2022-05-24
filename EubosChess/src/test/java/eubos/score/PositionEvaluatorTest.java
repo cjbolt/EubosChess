@@ -177,7 +177,7 @@ public class PositionEvaluatorTest {
 	public void test_encouragePassedPawns_NotPassedPawn() {
 		setUpPosition("8/8/8/8/8/5p2/6P1/8 w - - 0 1 ");
 		int score = SUT.evaluatePawnStructure();
-		assertEquals(0 /* no passed f pawn, can be taken */, score);
+		assertEquals(-72 /* two candidate passed pawns, blacks is more valuable, but white can take it on the next move! */, score);
 	}
 	
 	@Test
@@ -209,6 +209,20 @@ public class PositionEvaluatorTest {
 		/* both pawns on the same file, passed, white at 3rd rank, black at 1st rank. */
 		int expected_eval = (((7-3)*3*PASSED_PAWN_BOOST)-ISOLATED_PAWN_HANDICAP)-(1*3*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP);
 		assertEquals(expected_eval, score);
+	}
+	 
+	@Test
+	public void test_encouragePassedPawns_CandidatePasserAtB5() {
+		setUpPosition("8/p7/8/PP6/8/8/8/8 w - - 0 1");
+		int score = SUT.evaluatePawnStructure();
+		assertEquals(81 /* b5 pawn will queen, not including material */, score);
+	}
+	
+	@Test
+	public void test_encouragePassedPawns_CandidatePasserAtB5NotSupportedByDefender() {
+		setUpPosition("8/p7/8/1P6/8/8/8/8 w - - 0 1");
+		int score = SUT.evaluatePawnStructure();
+		assertEquals(0 /* b5 pawn will not queen, because b6 is not defended by our pawn, not including material */, score);
 	}
 	
 	@Test

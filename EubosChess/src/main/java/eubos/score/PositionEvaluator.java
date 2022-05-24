@@ -178,6 +178,24 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 					piecewisePawnScoreAccumulator += weighting*PASSED_PAWN_BOOST;
 				}
 			}
+		} else if (bd.isCandidatePassedPawn(atPos, onMoveIs)) {
+			boolean isBlack = Piece.isBlack(piece);
+			int queeningDistance = Position.getRank(atPos);
+			int weighting = 1;
+			if (isBlack) {
+				weighting = 7-queeningDistance;
+			} else {
+				weighting = queeningDistance;
+				queeningDistance = 7-queeningDistance;
+			}
+			// scale weighting for game phase as well as promotion proximity, up to 3x
+			int scale = 1 + ((bd.me.phase+640) / 4096) + ((bd.me.phase+320) / 4096);
+			weighting *= scale;
+			if (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) {
+				piecewisePawnScoreAccumulator += weighting*ROOK_FILE_PASSED_PAWN_BOOST/2;
+			} else {
+				piecewisePawnScoreAccumulator += weighting*PASSED_PAWN_BOOST/2;
+			}
 		}
 		if (bd.isIsolatedPawn(atPos, onMoveIs)) {
 			piecewisePawnScoreAccumulator -= ISOLATED_PAWN_HANDICAP;
