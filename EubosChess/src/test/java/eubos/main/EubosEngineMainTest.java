@@ -257,7 +257,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_tricky_endgame_position() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/4kp1p/3pb1p1/P5P1/3KN1PP/8/8 b - - 5 57"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"e5g3"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"13"+CMD_TERMINATOR, BEST_PREFIX+"e5g3"+CMD_TERMINATOR));
 		performTest(15000);
 	}
 	
@@ -371,6 +371,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	
 	@Test
 	public void test_WAC_100_position() throws InterruptedException, IOException {
+		if (EubosEngineMain.ENABLE_TEST_SUITES) {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/k1b5/P4p2/1Pp2p1p/K1P2P1P/8/3B4/8 w - - 0 1"+CMD_TERMINATOR, null));
 		String [] acceptable_best_move_commands = {
@@ -378,26 +379,32 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 				BEST_PREFIX+"d2e3"+CMD_TERMINATOR};
 		commands.add(new MultipleAcceptableCommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, acceptable_best_move_commands));
 		performTest(15000);
+		}
 	}
 	
 	@Test
 	public void test_WAC_230_position() throws InterruptedException, IOException {
+		if (EubosEngineMain.ENABLE_TEST_SUITES) {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"2b5/1r6/2kBp1p1/p2pP1P1/2pP4/1pP3K1/1R3P2/8 b - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"b7b4"+CMD_TERMINATOR));
 		performTest(15000);
+		}
 	}
 	
 	@Test
 	public void test_WAC_243_position() throws InterruptedException, IOException {
+		if (EubosEngineMain.ENABLE_TEST_SUITES) {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"1r3r1k/3p4/1p1Nn1R1/4Pp1q/pP3P1p/P7/5Q1P/6RK w - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"f2e2"+CMD_TERMINATOR));
 		performTest(15000);
+		}
 	}
 	
 	@Test
 	public void test_WAC_252_position() throws InterruptedException, IOException {
+		if (EubosEngineMain.ENABLE_TEST_SUITES) {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"1rb1r1k1/p1p2ppp/5n2/2pP4/5P2/2QB4/qNP3PP/2KRB2R b - - 0 1"+CMD_TERMINATOR, null));
 		String [] acceptable_best_move_commands = {
@@ -405,10 +412,12 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 				BEST_PREFIX+"c8g4"+CMD_TERMINATOR};
 		commands.add(new MultipleAcceptableCommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, acceptable_best_move_commands));
 		performTest(15000);
+		}
 	}
 	
 	@Test
 	public void test_WAC_264_position() throws InterruptedException, IOException {
+		if (EubosEngineMain.ENABLE_TEST_SUITES) {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"r2r2k1/1R2qp2/p5pp/2P5/b1PN1b2/P7/1Q3PPP/1B1R2K1 b - - 0 1"+CMD_TERMINATOR, null));
 		String [] acceptable_best_move_commands = {
@@ -416,21 +425,32 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 				BEST_PREFIX+"e7e5"+CMD_TERMINATOR};
 		commands.add(new MultipleAcceptableCommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, acceptable_best_move_commands));
 		performTest(15000);
+		}
 	}
 	
 	@Test
 	public void test_WAC_283_position() throws InterruptedException, IOException {
+		if (EubosEngineMain.ENABLE_TEST_SUITES) {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"3q1rk1/4bp1p/1n2P2Q/3p1p2/6r1/Pp2R2N/1B4PP/7K w - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"h3g5"+CMD_TERMINATOR));
 		performTest(15000);
+		}
 	}
 	
 	@Test
 	public void test_aspiration_failure_processing() throws IOException, InterruptedException {
+		if (EubosEngineMain.ENABLE_TEST_SUITES) {
 		setupEngine();
-		commands.add(new CommandPair(POS_FEN_PREFIX+"8/5p2/3k2p1/pK5p/P4P1P/6P1/8/8 b - - 4 62"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(POS_START_PREFIX+"moves e2e4 c7c6 d2d4 d7d5 b1d2 d5e4 d2e4"+
+		" b8d7 g1f3 g8f6 e4g3 g7g6 f1c4 f8g7 c1g5 d7b6 c4b3 h7h6 g5d2 a7a5 a2a4 h6h5 f3e5 b6d5 c2c4 d5c7 g3e2"+
+	    " c6c5 d4c5 f6e4 d2f4 d8d1 a1d1 c7e6 e5d3 e4c5 d3c5 e6c5 b3c2 g7b2 f4e3 b2a3 e2c3 a3b4 e1g1 b4c3 e3c5"+
+		" c8d7 c5d4 c3d4 d1d4 d7c6 f1d1 e8g8 c2b3 e7e6 d4d6 f8c8 f2f4 c6e8 g1f2 c8c6 g2g3 c6d6 d1d6 e8c6 c4c5"+
+	    " a8b8 f2e3 b8e8 h2h4 e8a8 e3d4 a8b8 d4e3 b8e8 e3d3 e8f8 d3e3 f8b8 e3d4 g8h7 b3c2 b8c8 c2b3 h7h8 d4e5"+
+		" h8g7 e5d4 g7h7 d4c3 c8e8 c3d3 e8a8 d3d4 h7g8 b3c2 a8c8 c2b3 g8g7 d4e3 g7h7 e3d4 h7h8 d4e5 c6d5 b3d5"+
+	    " c8c5 e5d4 c5d5 d6d5 e6d5 d4d5 h8g7 d5c5 g7f6 c5b6 f6e6 b6b7 e6e7 b7b6 e7d6 b6b5"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"25"+CMD_TERMINATOR, BEST_PREFIX+"d6d5"+CMD_TERMINATOR));
 		performTest(1000000000);
+		}
 	}
 }

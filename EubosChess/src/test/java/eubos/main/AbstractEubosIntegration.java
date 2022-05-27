@@ -22,6 +22,7 @@ public abstract class AbstractEubosIntegration {
 	// Command building blocks
 	protected static final String CMD_TERMINATOR = System.lineSeparator();
 	protected static final String POS_FEN_PREFIX = "position fen ";
+	protected static final String POS_START_PREFIX = "position startpos ";
 	protected static final String GO_DEPTH_PREFIX = "go depth ";
 	protected static final String GO_WTIME_PREFIX = "go wtime ";
 	protected static final String GO_BTIME_PREFIX = "go btime ";
