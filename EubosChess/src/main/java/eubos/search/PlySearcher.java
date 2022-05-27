@@ -331,11 +331,6 @@ public class PlySearcher {
 					reportPv((short) alpha[0]);
 				} 
 				else if (positionScore > plyScore) {
-					if (plyScore == Score.PROVISIONAL_ALPHA) {
-						// Don't update or report PV on an aspiration failure, just do the research
-						//pc.update(0, currMove);
-						//reportPv((short) alpha[0]);
-					}
 					bestMove = currMove;
 					plyScore = positionScore;
 				}
