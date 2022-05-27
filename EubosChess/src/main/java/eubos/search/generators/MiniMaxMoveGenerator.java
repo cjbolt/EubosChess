@@ -125,4 +125,8 @@ public class MiniMaxMoveGenerator implements
 	public void reportLazyStatistics() {
 		this.ps.reportLazyStatistics();
 	}
+
+	public boolean lastAspirationFailed() {
+		return this.ps.lastAspirationFailed();
+	}
 }

@@ -22,7 +22,7 @@ public class PlySearcher {
 	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
 	running with the logging in TUNE_LAZY_EVAL for Eubos2.8 and post processing the logs.
 	It will need to be re-tuned if the evaluation function is altered significantly. */
-	private static final int LAZY_EVAL_THRESHOLD_IN_CP = 320;
+	private static final int LAZY_EVAL_THRESHOLD_IN_CP = 250;
 	private static final boolean TUNE_LAZY_EVAL = false;
 
 	private static final boolean ENABLE_EXTRA_EXTENSIONS = false;
@@ -96,6 +96,8 @@ public class PlySearcher {
 	private MoveList ml;
 	
 	private boolean hasSearchedPv = false;
+
+	private boolean lastAspirationFailed = false;
 	
 	public PlySearcher(
 			ITranspositionAccessor hashMap,
@@ -152,6 +154,7 @@ public class PlySearcher {
 	public int searchPly(short lastScore)  {
 		currPly = 0;
 		extendedSearchDeepestPly = 0;
+		lastAspirationFailed = false;
 		short score = 0;
 		int fail_count = 0;
 		
@@ -165,20 +168,20 @@ public class PlySearcher {
 		}
 		
 		while (!isTerminated()) {
-			boolean windowFailed = false;
 			this.alpha[0] = alpha;
 			this.beta[0] = beta;
 			
 			score = (short) searchRoot(originalSearchDepthRequiredInPly);
 	
 			if (Score.isProvisional(score)) {
+				lastAspirationFailed = true;
 				EubosEngineMain.logger.info("Aspiration Window failed - no score, illegal position");
 	            break;
         	} else if (isTerminated() && score ==0) {
         		// Early termination, didn't back up a score at the last ply			
         	} else if (score <= alpha) {
         		// Failed low, adjust window
-        		windowFailed = true;
+        		lastAspirationFailed = true;
         		fail_count++;
 	        	if (!Score.isMate(lastScore) && fail_count < ASPIRATION_WINDOW_FALLBACK.length-1) {
 	        		alpha = lastScore - ASPIRATION_WINDOW_FALLBACK[fail_count];
@@ -187,7 +190,7 @@ public class PlySearcher {
 	        	}
 	        } else if (score >= beta) {
 	        	// Failed high, adjust window
-	        	windowFailed = true;
+	        	lastAspirationFailed = true;
 	        	fail_count++;
 	        	if (!Score.isMate(lastScore) && fail_count < ASPIRATION_WINDOW_FALLBACK.length-1) {
 	        		beta = lastScore + ASPIRATION_WINDOW_FALLBACK[fail_count];
@@ -196,14 +199,14 @@ public class PlySearcher {
 	        	}
 	        } else {
 	        	// Exact score in window returned
+	        	lastAspirationFailed = false;
 	            break;
 	        }
-			if (windowFailed) {
+			if (lastAspirationFailed) {
 				EubosEngineMain.logger.info(String.format("Aspiration Window failed count=%d score=%d alpha=%d beta=%d depth=%d",
         				fail_count, score, alpha, beta, originalSearchDepthRequiredInPly));
 				if (sr != null)
 					sr.resetAfterWindowingFail();
-				windowFailed = false;
 			}
 		}
 		return score;
@@ -815,5 +818,9 @@ public class PlySearcher {
 			positionScore = -search(depth-1);
 		}
 		return positionScore;
+	}
+
+	public boolean lastAspirationFailed() {
+		return lastAspirationFailed ;
 	}
 }
