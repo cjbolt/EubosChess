@@ -334,10 +334,6 @@ public class PlySearcher {
 					reportPv((short) alpha[0]);
 				} 
 				else if (positionScore > plyScore) {
-					if (plyScore == Score.PROVISIONAL_ALPHA) {
-						pc.update(0, currMove);
-						reportPv((short) alpha[0]);
-					}
 					bestMove = currMove;
 					plyScore = positionScore;
 				}
