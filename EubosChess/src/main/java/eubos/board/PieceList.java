@@ -297,20 +297,23 @@ public class PieceList {
 		{
 			int atSquare = piece_list[side+Piece.KING][0];
 			if (atSquare != Position.NOPOSITION) {	
-				me.material += Piece.PIECE_TO_MATERIAL_LUT[side+Piece.KING];
+				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.KING];
+				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.KING];
 				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.KING][atSquare];
 				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.KING][atSquare];
 			}
 		}
 		for(int atSquare : piece_list[side+Piece.QUEEN]) {
 			if (atSquare != Position.NOPOSITION) {
-				me.material += Piece.PIECE_TO_MATERIAL_LUT[side+Piece.QUEEN];
+				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.QUEEN];
+				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.QUEEN];
 				me.numberOfPieces[side+Piece.QUEEN]++;
 			} else break;
 		}
 		for(int atSquare : piece_list[side+Piece.ROOK]) {
 			if (atSquare != Position.NOPOSITION) {			
-				me.material += Piece.PIECE_TO_MATERIAL_LUT[side+Piece.ROOK];
+				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.ROOK];
+				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.ROOK];
 				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.ROOK][atSquare];
 				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.ROOK][atSquare];
 				me.numberOfPieces[side+Piece.ROOK]++;
@@ -318,13 +321,15 @@ public class PieceList {
 		}
 		for(int atSquare : piece_list[side+Piece.BISHOP]) {
 			if (atSquare != Position.NOPOSITION) {			
-				me.material += Piece.PIECE_TO_MATERIAL_LUT[side+Piece.BISHOP];
+				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.BISHOP];
+				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.BISHOP];
 				me.numberOfPieces[side+Piece.BISHOP]++;
 			} else break;
 		}
 		for(int atSquare : piece_list[side+Piece.KNIGHT]) {
 			if (atSquare != Position.NOPOSITION) {			
-				me.material += Piece.PIECE_TO_MATERIAL_LUT[side+Piece.KNIGHT];
+				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.KNIGHT];
+				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.KNIGHT];
 				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.KNIGHT][atSquare];
 				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.KNIGHT][atSquare];
 				me.numberOfPieces[side+Piece.KNIGHT]++;
@@ -336,7 +341,8 @@ public class PieceList {
 					assert theBoard.getPieceAtSquare(atSquare) != Piece.NONE :
 						String.format("Found a Pawn at %s that isn't on Board", Position.toGenericPosition(atSquare));
 				}
-				me.material += Piece.PIECE_TO_MATERIAL_LUT[side+Piece.PAWN];
+				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.PAWN];
+				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.PAWN];
 				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.PAWN][atSquare];
 				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.PAWN][atSquare];
 				me.numberOfPieces[side+Piece.PAWN]++;

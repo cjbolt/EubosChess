@@ -60,10 +60,9 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		initialise();
 		if (!isDraw) {
 			bd.me.dynamicPosition = 0;
-			score += pm.onMoveIsWhite() ? bd.me.getDelta() : -bd.me.getDelta();
 			score += evaluateBishopPair();
-			midgameScore = score + (pm.onMoveIsWhite() ? bd.me.getPosition() : -bd.me.getPosition());
-			endgameScore = score + (pm.onMoveIsWhite() ? bd.me.getEndgamePosition() : -bd.me.getEndgamePosition());
+			midgameScore = score + (pm.onMoveIsWhite() ? bd.me.getMiddleGameDelta() + bd.me.getPosition() : -(bd.me.getMiddleGameDelta() + bd.me.getPosition()));
+			endgameScore = score + (pm.onMoveIsWhite() ? bd.me.getEndGameDelta() + bd.me.getEndgamePosition() : -(bd.me.getEndGameDelta() + bd.me.getEndgamePosition()));
 			score = taperEvaluation(midgameScore, endgameScore);
 		}
 		return score;
@@ -76,7 +75,6 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		if (!isDraw) {
 			// Score factors common to each phase, material, pawn structure and piece mobility
 			bd.me.dynamicPosition = 0;
-			score += pm.onMoveIsWhite() ? bd.me.getDelta() : -bd.me.getDelta();
 			score += evaluateBishopPair();
 			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !goForMate) {
 				bd.calculateDynamicMobility(bd.me);
@@ -85,14 +83,16 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 				score += evaluatePawnStructure();
 			}
 			// Add phase specific static mobility (PSTs)
-			midgameScore = score + (pm.onMoveIsWhite() ? bd.me.getPosition() : -bd.me.getPosition());
-			endgameScore = score + (pm.onMoveIsWhite() ? bd.me.getEndgamePosition() : -bd.me.getEndgamePosition());
+			midgameScore = score + (pm.onMoveIsWhite() ? bd.me.getMiddleGameDelta() + bd.me.getPosition() : -(bd.me.getMiddleGameDelta() + bd.me.getPosition()));
+			endgameScore = score + (pm.onMoveIsWhite() ? bd.me.getEndGameDelta() + bd.me.getEndgamePosition() : -(bd.me.getEndGameDelta() + bd.me.getEndgamePosition()));
 			// Add King Safety in middle game
 			if (ENABLE_KING_SAFETY_EVALUATION && !goForMate) {
 				midgameScore += evaluateKingSafety();
 			}
 			if (!goForMate) {
 				score = taperEvaluation(midgameScore, endgameScore);
+			} else {
+				score += pm.onMoveIsWhite() ? bd.me.getMiddleGameDelta() : -bd.me.getMiddleGameDelta();
 			}
 		}
 		return score;

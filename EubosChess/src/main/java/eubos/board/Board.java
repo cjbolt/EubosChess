@@ -215,7 +215,8 @@ public class Board {
 			PiecewiseEvaluation scratch_me = new PiecewiseEvaluation();
 			evaluateMaterial(scratch_me);
 			assert scratch_me != me;
-			assert scratch_me.material == me.material;
+			assert scratch_me.mg_material == me.mg_material;
+			assert scratch_me.eg_material == me.eg_material;
 			assert scratch_me.position == me.position;
 			assert scratch_me.positionEndgame == me.positionEndgame;
 			assert scratch_me.phase == me.phase;
@@ -290,7 +291,8 @@ public class Board {
 			PiecewiseEvaluation scratch_me = new PiecewiseEvaluation();
 			evaluateMaterial(scratch_me);
 			assert scratch_me != me;
-			assert scratch_me.material == me.material;
+			assert scratch_me.mg_material == me.mg_material;
+			assert scratch_me.eg_material == me.eg_material;
 			assert scratch_me.position == me.position;
 			assert scratch_me.positionEndgame == me.positionEndgame;
 			assert scratch_me.phase == me.phase;
@@ -301,7 +303,8 @@ public class Board {
 	
 	private void subtractMaterialAndPositionForCapture(int currPiece, int atPos) {
 		me.numberOfPieces[currPiece]--;
-		me.material -= Piece.PIECE_TO_MATERIAL_LUT[currPiece];
+		me.mg_material -= Piece.PIECE_TO_MATERIAL_LUT[0][currPiece];
+		me.eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
 		me.position -= Piece.PIECE_SQUARE_TABLES[currPiece][atPos];
 		me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[currPiece][atPos];
 		me.phase += Piece.PIECE_PHASE[currPiece];
@@ -309,7 +312,8 @@ public class Board {
 	
 	private void addMaterialAndPositionForReplacedCapture(int currPiece, int atPos) {
 		me.numberOfPieces[currPiece]++;
-		me.material += Piece.PIECE_TO_MATERIAL_LUT[currPiece];
+		me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][currPiece];
+		me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
 		me.position += Piece.PIECE_SQUARE_TABLES[currPiece][atPos];
 		me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[currPiece][atPos];
 		me.phase -= Piece.PIECE_PHASE[currPiece];
@@ -320,8 +324,10 @@ public class Board {
 		me.numberOfPieces[pawnToRemove]--;
 		me.numberOfPieces[promoPiece]++;
 		
-		me.material -= Piece.PIECE_TO_MATERIAL_LUT[pawnToRemove];
-		me.material += Piece.PIECE_TO_MATERIAL_LUT[promoPiece];
+		me.mg_material -= Piece.PIECE_TO_MATERIAL_LUT[0][pawnToRemove];
+		me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][promoPiece];
+		me.eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][pawnToRemove];
+		me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][promoPiece];
 		
 		me.position -= Piece.PIECE_SQUARE_TABLES[pawnToRemove][oldPos];
 		me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[pawnToRemove][oldPos];
@@ -336,8 +342,10 @@ public class Board {
 		me.numberOfPieces[pawnToReplace]++;
 		me.numberOfPieces[promoPiece]--;
 		
-		me.material += Piece.PIECE_TO_MATERIAL_LUT[pawnToReplace];
-		me.material -= Piece.PIECE_TO_MATERIAL_LUT[promoPiece];
+		me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][pawnToReplace];
+		me.mg_material -= Piece.PIECE_TO_MATERIAL_LUT[0][promoPiece];
+		me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][pawnToReplace];
+		me.eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][promoPiece];
 		
 		me.position += Piece.PIECE_SQUARE_TABLES[pawnToReplace][newPos];
 		me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[pawnToReplace][newPos];

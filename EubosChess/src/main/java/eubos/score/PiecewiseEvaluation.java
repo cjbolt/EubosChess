@@ -9,7 +9,8 @@ public class PiecewiseEvaluation {
 	public static final int QUEEN_PHASE = 640;
 	public static final int TOTAL_PHASE = PIECE_PHASE * 8 + ROOK_PHASE * 4 + QUEEN_PHASE * 2;
 	
-	public short material = 0;
+	public short mg_material = 0;
+	public short eg_material = 0;
 	public short position = 0;
 	public short positionEndgame = 0;
 	public short dynamicPosition = 0;
@@ -25,7 +26,9 @@ public class PiecewiseEvaluation {
 		return phase > 3200;
 	}
 	
-	public short getDelta() { return material; }
+	public short getMiddleGameDelta() { return mg_material; }
+	
+	public short getEndGameDelta() { return eg_material; }
 	
 	public short getPosition() { return (short)(position + dynamicPosition); }
 	

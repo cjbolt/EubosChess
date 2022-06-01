@@ -308,10 +308,10 @@ public final class Move {
     
 	public static int compareCaptures(int move1, int move2) {
     	// mvv lva used for tie breaking move type comparison, if it is a capture
-    	int victim1 = Piece.PIECE_TO_MATERIAL_LUT[Move.getTargetPieceNoColour(move1)];
-    	int attacker1 = Piece.PIECE_TO_MATERIAL_LUT[Move.getOriginPieceNoColour(move1)];
-    	int victim2 = Piece.PIECE_TO_MATERIAL_LUT[Move.getTargetPieceNoColour(move2)];
-    	int attacker2 = Piece.PIECE_TO_MATERIAL_LUT[Move.getOriginPieceNoColour(move2)];
+    	int victim1 = Piece.PIECE_TO_MATERIAL_LUT[0][Move.getTargetPieceNoColour(move1)];
+    	int attacker1 = Piece.PIECE_TO_MATERIAL_LUT[0][Move.getOriginPieceNoColour(move1)];
+    	int victim2 = Piece.PIECE_TO_MATERIAL_LUT[0][Move.getTargetPieceNoColour(move2)];
+    	int attacker2 = Piece.PIECE_TO_MATERIAL_LUT[0][Move.getOriginPieceNoColour(move2)];
     	int mvvLvaRankingForMove1 = victim1-attacker1;
     	int mvvLvaRankingForMove2 = victim2-attacker2;
     	
@@ -475,8 +475,8 @@ public final class Move {
 		boolean isWinningOrNeutralCapture = false;
 		if (Move.isCapture(move)) {
 	    	// mvv lva used for tie breaking move type comparison, if it is a capture
-	    	int victim1 = Piece.PIECE_TO_MATERIAL_LUT[Move.getTargetPieceNoColour(move)];
-	    	int attacker1 = Piece.PIECE_TO_MATERIAL_LUT[Move.getOriginPieceNoColour(move)];
+	    	int victim1 = Piece.PIECE_TO_MATERIAL_LUT[0][Move.getTargetPieceNoColour(move)];
+	    	int attacker1 = Piece.PIECE_TO_MATERIAL_LUT[0][Move.getOriginPieceNoColour(move)];
 	    	int mvvLvaRankingForMove1 = victim1-attacker1;
 	    	if (mvvLvaRankingForMove1 >= 0) {
 	    		isWinningOrNeutralCapture = true;
