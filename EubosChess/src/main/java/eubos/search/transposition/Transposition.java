@@ -7,9 +7,28 @@ import eubos.position.Move;
 import eubos.search.Score;
 
 public final class Transposition {
-
+	private static final int DEPTH_BITS = 8;
+	private static final long DEPTH_GUARD_MASK = (1L << DEPTH_BITS) - 1;
+	private static final int DEPTH_SHIFT = 48;
+	private static final long DEPTH_CLEAR_MASK = 0xFFL << DEPTH_SHIFT;
+	
+	private static final int TYPE_BITS = 2;
+	private static final long TYPE_GUARD_MASK = (1L << TYPE_BITS) - 1;
+	private static final int TYPE_SHIFT = 56;
+	private static final long TYPE_MASK = TYPE_GUARD_MASK << TYPE_SHIFT;
+	
+	private static final int SCORE_BITS = 16;
+	private static final long SCORE_GUARD_MASK = (1L << SCORE_BITS) - 1;
+	private static final int SCORE_SHIFT = 32;
+	private static final long SCORE_MASK = SCORE_GUARD_MASK << SCORE_SHIFT;
+	
+	private static final int BESTMOVE_BITS = 32;
+	private static final long BESTMOVE_GUARD_MASK = (1L << BESTMOVE_BITS) - 1;
+	private static final int BESTMOVE_SHIFT = 0;
+	private static final long BESTMOVE_MASK = BESTMOVE_GUARD_MASK << BESTMOVE_SHIFT;
+	
 	public static long valueOf(byte depth, short score, byte bound, GenericMove bestMove) {
-		// Only used by tests
+		// Only used by unit tests, when we don't care about value
 		return valueOf(depth, score, bound, Move.toMove(bestMove, null, Move.TYPE_REGULAR_NONE));
 	}
 	
@@ -23,41 +42,39 @@ public final class Transposition {
 	}
 	
 	public static byte getDepthSearchedInPly(long trans) {
-		return (byte)((trans >> 48) & 0xFF);
+		return (byte)((trans >> DEPTH_SHIFT) & DEPTH_GUARD_MASK);
 	}
 
 	protected static long setDepthSearchedInPly(long trans, byte depthSearchedInPly) {
-		short limitedDepth = (short)Math.min(0xFF, depthSearchedInPly);
-		trans &= ~(0xFFL << 48);
-		trans |= ((limitedDepth & 0xFFL) << 48);
+		long limitedDepth = depthSearchedInPly & DEPTH_GUARD_MASK;
+		trans &= ~DEPTH_CLEAR_MASK;
+		trans |= limitedDepth << DEPTH_SHIFT;
 		return trans;
 	}
 	
 	public static byte getType(long trans) {
-		return (byte)((trans >>> 56) & 0x3);
+		return (byte)((trans >>> TYPE_SHIFT) & TYPE_GUARD_MASK);
 	}
 
 	protected static long setType(long trans, byte type) {
-		long temp = ((long)type) << 56;
-		trans &= ~(0x3L << 56);
+		long temp = ((long)type) << TYPE_SHIFT;
+		trans &= ~TYPE_MASK;
 		trans |= temp;
 		return trans;
 	}
 	
 	public static short getScore(long trans) {
-		return (short) ((trans >>> 32) & 0xFFFFL);
+		return (short) ((trans >>> SCORE_SHIFT) & 0xFFFFL);
 	}
 
 	protected static long setScore(long trans, short new_score) {
-		long temp = ((long)new_score) << 32;
-		temp &= 0xFFFF00000000L;
-		trans &= ~(0xFFFFL << 32);
-		trans |= temp;
+		trans &= ~SCORE_MASK;
+		trans |= (new_score & SCORE_GUARD_MASK) << SCORE_SHIFT;
 		return trans;
 	}
 
 	public static int getBestMove(long trans) {
-		int trans_move = (int) (trans & 0xFFFFFFFFL);
+		int trans_move = (int) (trans & BESTMOVE_MASK);
 		if (EubosEngineMain.ENABLE_ASSERTS) {
 			assert trans_move != Move.NULL_MOVE : "Tranposition move was null.";
 		}
@@ -67,7 +84,7 @@ public final class Transposition {
 	protected static long setBestMove(long trans, int bestMove) {
 		// Is always best move, but killer flag could be different
 		bestMove = Move.setBest(bestMove);
-		trans &= ~(0xFFFFFFFFL << 0);
+		trans &= ~BESTMOVE_MASK;
 		trans |= bestMove;
 		return trans;
 	}
