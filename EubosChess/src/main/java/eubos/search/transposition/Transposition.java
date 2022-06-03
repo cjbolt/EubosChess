@@ -10,17 +10,14 @@ public final class Transposition {
 	private static final int DEPTH_BITS = 8;
 	private static final long DEPTH_GUARD_MASK = (1L << DEPTH_BITS) - 1;
 	private static final int DEPTH_SHIFT = 48;
-	private static final long DEPTH_CLEAR_MASK = 0xFFL << DEPTH_SHIFT;
 	
 	private static final int TYPE_BITS = 2;
 	private static final long TYPE_GUARD_MASK = (1L << TYPE_BITS) - 1;
 	private static final int TYPE_SHIFT = 56;
-	private static final long TYPE_MASK = TYPE_GUARD_MASK << TYPE_SHIFT;
 	
 	private static final int SCORE_BITS = 16;
 	private static final long SCORE_GUARD_MASK = (1L << SCORE_BITS) - 1;
 	private static final int SCORE_SHIFT = 32;
-	private static final long SCORE_MASK = SCORE_GUARD_MASK << SCORE_SHIFT;
 	
 	private static final int BESTMOVE_BITS = 32;
 	private static final long BESTMOVE_GUARD_MASK = (1L << BESTMOVE_BITS) - 1;
@@ -42,12 +39,11 @@ public final class Transposition {
 	}
 	
 	public static byte getDepthSearchedInPly(long trans) {
-		return (byte)((trans >> DEPTH_SHIFT) & DEPTH_GUARD_MASK);
+		return (byte)((trans >>> DEPTH_SHIFT) & DEPTH_GUARD_MASK);
 	}
 
 	protected static long setDepthSearchedInPly(long trans, byte depthSearchedInPly) {
 		long limitedDepth = depthSearchedInPly & DEPTH_GUARD_MASK;
-		trans &= ~DEPTH_CLEAR_MASK;
 		trans |= limitedDepth << DEPTH_SHIFT;
 		return trans;
 	}
@@ -58,17 +54,15 @@ public final class Transposition {
 
 	protected static long setType(long trans, byte type) {
 		long temp = ((long)type) << TYPE_SHIFT;
-		trans &= ~TYPE_MASK;
 		trans |= temp;
 		return trans;
 	}
 	
 	public static short getScore(long trans) {
-		return (short) ((trans >>> SCORE_SHIFT) & 0xFFFFL);
+		return (short) ((trans >>> SCORE_SHIFT) & SCORE_GUARD_MASK);
 	}
 
 	protected static long setScore(long trans, short new_score) {
-		trans &= ~SCORE_MASK;
 		trans |= (new_score & SCORE_GUARD_MASK) << SCORE_SHIFT;
 		return trans;
 	}
@@ -84,7 +78,6 @@ public final class Transposition {
 	protected static long setBestMove(long trans, int bestMove) {
 		// Is always best move, but killer flag could be different
 		bestMove = Move.setBest(bestMove);
-		trans &= ~BESTMOVE_MASK;
 		trans |= bestMove;
 		return trans;
 	}
@@ -104,22 +97,20 @@ public final class Transposition {
 			byte new_bound,
 			int new_bestMove) {	
 		boolean updateTransposition = false;
-		if (getDepthSearchedInPly(trans) < new_Depth) {
+		int currentDepth = getDepthSearchedInPly(trans);
+		if (currentDepth < new_Depth) {
 			updateTransposition = true;	
-		} else if (getDepthSearchedInPly(trans) == new_Depth) {
+		} else if (currentDepth == new_Depth) {
 			if (getType(trans) != Score.exact) {
 				updateTransposition = true;
 			} else {
-				// don't update, worse bound score than we currently have
+				// don't update, already have an exact score
 			}
 		} else {
 			// don't update, depth is less than what we have
 		}
 		if (updateTransposition) {
-			trans = setDepthSearchedInPly(trans, new_Depth);
-			trans = setScore(trans, new_score);
-			trans = setType(trans, new_bound);
-			trans = setBestMove(trans, new_bestMove);
+			trans = valueOf(new_Depth, new_score, new_bound, new_bestMove);
 		}
 		return trans;
 	}
