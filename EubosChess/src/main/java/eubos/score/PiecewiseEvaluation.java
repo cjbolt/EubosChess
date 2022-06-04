@@ -23,7 +23,7 @@ public class PiecewiseEvaluation {
 	}
 	
 	public boolean isEndgame() {
-		return phase > 3200;
+		return phase > 3000;
 	}
 	
 	public short getMiddleGameDelta() { return mg_material; }
