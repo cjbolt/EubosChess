@@ -1450,7 +1450,7 @@ public class Board {
 		long attackingKnightsMask = isWhite ? getBlackKnights() : getWhiteKnights();
 
 		// create masks of attackers
-		long pertinentBishopMask = attackingBishopsMask & ((isKingOnDarkSq) ? DARK_SQUARES_MASK : LIGHT_SQUARES_MASK);
+		long pertinentBishopMask = attackingBishopsMask;//& ((isKingOnDarkSq) ? DARK_SQUARES_MASK : LIGHT_SQUARES_MASK);
 		long diagonalAttackersMask = attackingQueensMask | pertinentBishopMask;
 		long rankFileAttackersMask = attackingQueensMask | attackingRooksMask;
 		
@@ -1470,7 +1470,7 @@ public class Board {
 			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
 			inDirection = BitBoard.downRightOccludedEmpty(kingMask, ~blockers);
 			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
-			evaluation = Long.bitCount(mobility_mask ^ kingMask) * 2 * -numPotentialAttackers;
+			evaluation = Long.bitCount(mobility_mask ^ kingMask) * -numPotentialAttackers;
 		}
 		
 		// Then score according to King exposure on open rank/files
@@ -1487,17 +1487,17 @@ public class Board {
 			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
 			inDirection = BitBoard.leftOccludedEmpty(kingMask, ~blockers);
 			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
-			evaluation += Long.bitCount(mobility_mask ^ kingMask) * 2 * -numPotentialAttackers;
+			evaluation += Long.bitCount(mobility_mask ^ kingMask) * -numPotentialAttackers;
 		}
 		
 		// Then account for Knight proximity to the adjacent squares around the King
 		long pertintentKnightsMask = attackingKnightsMask & knightKingSafetyMask_Lut[kingPos];
 		evaluation += -8*Long.bitCount(pertintentKnightsMask);
 		
-//		// Then, do king tropism for queen as a bonus
-//		final int[] BLACK_ATTACKERS = {Piece.BLACK_QUEEN, Piece.BLACK_KNIGHT};
-//		final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT};
-//		evaluation += ktc.getScore(kingPos, isWhite ? BLACK_ATTACKERS: WHITE_ATTACKERS);
+		// Then, do king tropism for queen and knight as a bonus
+		final int[] BLACK_ATTACKERS = {Piece.BLACK_QUEEN, Piece.BLACK_KNIGHT};
+		final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT};
+		evaluation += ktc.getScore(kingPos, isWhite ? BLACK_ATTACKERS: WHITE_ATTACKERS);
 		
 		return evaluation;
 	}
