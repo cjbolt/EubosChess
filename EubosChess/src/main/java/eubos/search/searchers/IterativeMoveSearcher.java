@@ -162,44 +162,52 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			return timeQuanta;
 		}
 		
-		private void evaluateSearchProgressAtCheckpoint() {
-			boolean terminateNow = false;
+		private boolean shouldTerminateIfEvalAboveThreshold(int threshold) {
+			boolean canTerminate = false;
 			
-			/* Consider extending time for Search according to following... */
 			short currentScore = mg.sm.getCpScore();
 			byte currDepth = (byte)mg.sm.getDepth();
 			boolean hasBackedUpAScore = mg.sm.isScoreBackedUpFromSearch();
 			boolean isResearchingAspirationFail = mg.lastAspirationFailed();
 			Reference ref = refScore.getReference();
 			
+			canTerminate =
+					hasBackedUpAScore && 
+					!isResearchingAspirationFail && 
+					currentScore >= (ref.score - threshold) && 
+					currDepth >= ref.depth;
+			
+			if (DEBUG_LOGGING) {
+				EubosEngineMain.logger.info(String.format(
+						"checkPoint=%d hasBackedUpAScore=%s research_asp=%d currentScore=%s refScore=%s"+
+						" depth=%d refDepth=%d SearchStopped=%s StopperActive=%s ranFor=%d",
+						checkPoint, hasBackedUpAScore, isResearchingAspirationFail, Score.toString(currentScore),
+						Score.toString(ref.score), currDepth, ref.depth, searchStopped, stopperActive, timeRanFor));
+			}
+			
+			return canTerminate;
+		}
+		
+		private void evaluateSearchProgressAtCheckpoint() {
+			boolean terminateNow = false;
+			
+			/* Consider extending time for Search according to following... */
 			switch (checkPoint) {
 			case 1:
-				if (hasBackedUpAScore && !isResearchingAspirationFail && currentScore >= ref.score && currDepth >= ref.depth) {
-					terminateNow = true;
-				}
+				terminateNow = shouldTerminateIfEvalAboveThreshold(0);
 				extraTime = true;
 				break;
 			case 3:
-				if (hasBackedUpAScore && !isResearchingAspirationFail && (currentScore >= ref.score - 100) && (currDepth >= ref.depth))
-					terminateNow = true;
+				terminateNow = shouldTerminateIfEvalAboveThreshold(-100);
 				break;
 			case 5:
-				if (hasBackedUpAScore && !isResearchingAspirationFail && (currentScore >= ref.score - 300) && (currDepth >= ref.depth))
-					terminateNow = true;
+				terminateNow = shouldTerminateIfEvalAboveThreshold(-300);
 				break;
 			case 7:
 				terminateNow = true;
 				break;
 			}
-			
 			checkPoint++;
-			
-			if (DEBUG_LOGGING) {
-				EubosEngineMain.logger.info(String.format(
-						"checkPoint=%d hasBackedUpAScore=%s currentScore=%s refScore=%s depth=%d refDepth=%d SearchStopped=%s StopperActive=%s ranFor=%d ",
-						checkPoint, hasBackedUpAScore, Score.toString(currentScore), Score.toString(ref.score), currDepth, ref.depth,
-						searchStopped, stopperActive, timeRanFor));
-			}
 			
 			if (terminateNow) { 
 				stopMoveSearcher(); 
