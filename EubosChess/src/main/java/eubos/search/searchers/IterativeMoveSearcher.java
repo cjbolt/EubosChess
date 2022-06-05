@@ -158,7 +158,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			int movesRemaining = Math.max(moveHypothesis, 10);
 			long msPerMove = Math.max((gameTimeRemaining/movesRemaining), 2);
 			msPerMove -= move_overhead;
-			long timeQuanta = (msPerMove > 2) ? msPerMove/2 : 2;
+			long timeQuanta = (msPerMove > 4) ? msPerMove/4 : 4;
 			return timeQuanta;
 		}
 		
@@ -179,7 +179,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			
 			if (DEBUG_LOGGING) {
 				EubosEngineMain.logger.info(String.format(
-						"checkPoint=%d hasBackedUpAScore=%s research_asp=%d currentScore=%s refScore=%s"+
+						"checkPoint=%d hasBackedUpAScore=%s research_asp=%s currentScore=%s refScore=%s"+
 						" depth=%d refDepth=%d SearchStopped=%s StopperActive=%s ranFor=%d",
 						checkPoint, hasBackedUpAScore, isResearchingAspirationFail, Score.toString(currentScore),
 						Score.toString(ref.score), currDepth, ref.depth, searchStopped, stopperActive, timeRanFor));
