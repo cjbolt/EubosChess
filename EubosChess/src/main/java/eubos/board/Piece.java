@@ -79,17 +79,17 @@ public abstract class Piece {
 	} 
 	
 	public static final short MATERIAL_VALUE_KING = 4000;
-	public static final short MATERIAL_VALUE_QUEEN = 900;
-	public static final short MATERIAL_VALUE_ROOK = 490;
-	public static final short MATERIAL_VALUE_BISHOP = 305;
-	public static final short MATERIAL_VALUE_KNIGHT = 290;
+	public static final short MATERIAL_VALUE_QUEEN = 1800;
+	public static final short MATERIAL_VALUE_ROOK = 900;
+	public static final short MATERIAL_VALUE_BISHOP = 600;
+	public static final short MATERIAL_VALUE_KNIGHT = 580;
 	public static final short MATERIAL_VALUE_PAWN = 100;
 	
 	public static final short EG_MATERIAL_VALUE_KING = 4000;
-	public static final short EG_MATERIAL_VALUE_QUEEN = 950;
-	public static final short EG_MATERIAL_VALUE_ROOK = 520;
-	public static final short EG_MATERIAL_VALUE_BISHOP = 305;
-	public static final short EG_MATERIAL_VALUE_KNIGHT = 290;
+	public static final short EG_MATERIAL_VALUE_QUEEN = 1560;
+	public static final short EG_MATERIAL_VALUE_ROOK = 845;
+	public static final short EG_MATERIAL_VALUE_BISHOP = 550;
+	public static final short EG_MATERIAL_VALUE_KNIGHT = 520;
 	public static final short EG_MATERIAL_VALUE_PAWN = 130;
 	
     public static final short [][] PIECE_TO_MATERIAL_LUT;
