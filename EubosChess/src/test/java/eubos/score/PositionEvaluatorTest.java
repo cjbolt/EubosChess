@@ -227,7 +227,7 @@ public class PositionEvaluatorTest {
 	
 	@Test
 	public void test_custom_position_score_reporter()throws IllegalNotationException {
-		setUpPosition("4r1k1/2p2pb1/4Q3/8/3pPB2/1p1P3p/1P3P2/R5K1 b - - 0 42");
+		setUpPosition("8/8/8/2p1k2p/7P/3K4/5P2/8 b - - 9 50");
 		System.out.println(SUT.getFullEvaluation());
 	}
 	

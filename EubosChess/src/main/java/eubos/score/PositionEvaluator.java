@@ -23,7 +23,11 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	public static final int CONNECTED_PASSED_PAWN_BOOST = 75;
 	
 	public static final boolean ENABLE_PAWN_EVALUATION = true;
+	public static final boolean ENABLE_KPK_EVALUATION = false;
+	public static final boolean ENABLE_CANDIDATE_PP_EVALUATION = true;
+	
 	public static final boolean ENABLE_KING_SAFETY_EVALUATION = true;
+	
 	public static final boolean ENABLE_DYNAMIC_POSITIONAL_EVALUATION = true;
 
 	private static final int BISHOP_PAIR_BOOST = 25;
@@ -136,6 +140,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	long enemy_pawn_attacks = 0L;
 	long own_pawn_attacks = 0L;
 	
+	@SuppressWarnings("unused")
 	@Override
 	public void callback(int piece, int atPos) {
 		if (bd.isPassedPawn(atPos, onMoveIs)) {
@@ -148,7 +153,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 				weighting = queeningDistance;
 				queeningDistance = 7-queeningDistance;
 			}
-			if (bd.me.phase == 4096) {
+			if (ENABLE_KPK_EVALUATION && bd.me.phase == 4096) {
 				// Special case, it is a KPK endgame
 				int file = Position.getFile(atPos);
 				int queeningSquare = isBlack ? Position.valueOf(file, 0) : Position.valueOf(file, 7);
@@ -180,7 +185,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 					piecewisePawnScoreAccumulator += weighting*PASSED_PAWN_BOOST;
 				}
 			}
-		} else if (bd.isCandidatePassedPawn(atPos, onMoveIs, own_pawn_attacks, enemy_pawn_attacks)) {
+		} else if (ENABLE_CANDIDATE_PP_EVALUATION && bd.isCandidatePassedPawn(atPos, onMoveIs, own_pawn_attacks, enemy_pawn_attacks)) {
 			boolean isBlack = Piece.isBlack(piece);
 			int queeningDistance = Position.getRank(atPos);
 			int weighting = 1;
