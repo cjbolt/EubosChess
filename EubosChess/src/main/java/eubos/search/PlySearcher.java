@@ -321,6 +321,7 @@ public class PlySearcher {
 				if (positionScore > alpha[0]) {
 					alpha[0] = plyScore = positionScore;
 					bestMove = currMove;
+					pc.update(0, bestMove);
 					if (alpha[0] >= beta[0]) {
 						plyScore = beta[0]; // fail hard
 						killers.addMove(0, bestMove);
@@ -329,7 +330,6 @@ public class PlySearcher {
 						refuted = true;
 						break;
 					}
-					pc.update(0, bestMove);
 					trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) alpha[0], Score.upperBound);
 					reportPv((short) alpha[0]);
 				} 
