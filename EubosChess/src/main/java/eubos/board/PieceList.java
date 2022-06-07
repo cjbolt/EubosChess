@@ -306,7 +306,7 @@ public class PieceList {
 		for(int atSquare : piece_list[side+Piece.QUEEN]) {
 			if (atSquare != Position.NOPOSITION) {
 				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.QUEEN];
-				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.QUEEN];
+				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.QUEEN];
 				me.numberOfPieces[side+Piece.QUEEN]++;
 			} else break;
 		}
