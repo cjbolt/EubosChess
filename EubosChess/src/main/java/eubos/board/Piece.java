@@ -79,17 +79,34 @@ public abstract class Piece {
 	} 
 	
 	public static final short MATERIAL_VALUE_KING = 4000;
-	public static final short MATERIAL_VALUE_QUEEN = 900;
-	public static final short MATERIAL_VALUE_ROOK = 490;
-	public static final short MATERIAL_VALUE_BISHOP = 305;
-	public static final short MATERIAL_VALUE_KNIGHT = 290;
+	public static final short MATERIAL_VALUE_QUEEN = 1800;
+	public static final short MATERIAL_VALUE_ROOK = 900;
+	public static final short MATERIAL_VALUE_BISHOP = 600;
+	public static final short MATERIAL_VALUE_KNIGHT = 580;
 	public static final short MATERIAL_VALUE_PAWN = 100;
 	
-    public static final short [] PIECE_TO_MATERIAL_LUT = {0, MATERIAL_VALUE_KING, MATERIAL_VALUE_QUEEN, MATERIAL_VALUE_ROOK, 
+	public static final short EG_MATERIAL_VALUE_KING = 4000;
+	public static final short EG_MATERIAL_VALUE_QUEEN = 1560;
+	public static final short EG_MATERIAL_VALUE_ROOK = 845;
+	public static final short EG_MATERIAL_VALUE_BISHOP = 550;
+	public static final short EG_MATERIAL_VALUE_KNIGHT = 520;
+	public static final short EG_MATERIAL_VALUE_PAWN = 130;
+	
+    public static final short [][] PIECE_TO_MATERIAL_LUT;
+    static {
+    	PIECE_TO_MATERIAL_LUT = new short [2][];
+    	PIECE_TO_MATERIAL_LUT[0] = new short [] {0, MATERIAL_VALUE_KING, MATERIAL_VALUE_QUEEN, MATERIAL_VALUE_ROOK, 
     		MATERIAL_VALUE_BISHOP, MATERIAL_VALUE_KNIGHT, MATERIAL_VALUE_PAWN,
     		0, 0, 
     		-MATERIAL_VALUE_KING, -MATERIAL_VALUE_QUEEN, -MATERIAL_VALUE_ROOK, 
     		-MATERIAL_VALUE_BISHOP, -MATERIAL_VALUE_KNIGHT, -MATERIAL_VALUE_PAWN, 0};
+		PIECE_TO_MATERIAL_LUT[1] = new short [] {
+	    	0, EG_MATERIAL_VALUE_KING, EG_MATERIAL_VALUE_QUEEN, EG_MATERIAL_VALUE_ROOK, 
+	    	EG_MATERIAL_VALUE_BISHOP, EG_MATERIAL_VALUE_KNIGHT, EG_MATERIAL_VALUE_PAWN,
+			0, 0, 
+			-EG_MATERIAL_VALUE_KING, -EG_MATERIAL_VALUE_QUEEN, -EG_MATERIAL_VALUE_ROOK, 
+			-EG_MATERIAL_VALUE_BISHOP, -EG_MATERIAL_VALUE_KNIGHT, -EG_MATERIAL_VALUE_PAWN, 0};
+	}
     
     public static final int [] PIECE_PHASE = {0, 0, 640, 320, 192, 192, 0, 0,
     		                                  0, 0, 640, 320, 192, 192, 0, 0};

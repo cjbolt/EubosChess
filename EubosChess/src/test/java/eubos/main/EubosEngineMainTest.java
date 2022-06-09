@@ -2,12 +2,10 @@ package eubos.main;
 
 import static org.junit.Assert.*;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PipedWriter;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 import org.junit.After;
 import org.junit.Before;
@@ -24,66 +22,11 @@ import eubos.board.Piece;
 import eubos.position.Move;
 import eubos.position.Position;
 import eubos.search.Score;
+import eubos.search.SearchMetrics;
 import eubos.search.transposition.Transposition;
 
-public class EubosEngineMainTest {
+public class EubosEngineMainTest extends AbstractEubosIntegration {
 
-	private EubosEngineMain classUnderTest;
-	private Thread eubosThread;
-	
-	// Command Lists emptied in main test loop.
-	public class commandPair {
-		private String in;
-		private String out;
-		public commandPair(String input, String output) {
-			in = input;
-			out = output;
-		}
-		public String getIn() {
-			return in;
-		}
-		public String getOut() {
-			return out;
-		}
-	}
-	
-	private ArrayList<commandPair> commands = new ArrayList<commandPair>();
-	
-	// Test infrastructure to allow pushing commands into Eubos and sniffing them out.
-	private PipedWriter inputToEngine;
-	private final ByteArrayOutputStream testOutput = new ByteArrayOutputStream();
-	
-	// Command building blocks
-	private static final String CMD_TERMINATOR = System.lineSeparator();
-	private static final String POS_FEN_PREFIX = "position fen ";
-	private static final String GO_DEPTH_PREFIX = "go depth ";
-	//private static final String GO_WTIME_PREFIX = "go wtime ";
-	//private static final String GO_BTIME_PREFIX = "go btime ";
-	private static final String GO_TIME_PREFIX = "go movetime ";
-	private static final String BEST_PREFIX = "bestmove ";
-	
-	// Whole Commands
-	// Inputs
-	private static final String UCI_CMD = "uci"+CMD_TERMINATOR;
-	private static final String ISREADY_CMD = "isready"+CMD_TERMINATOR;
-	private static final String NEWGAME_CMD = "ucinewgame"+CMD_TERMINATOR;
-	//private static final String GO_INF_CMD = "go infinite"+CMD_TERMINATOR;
-	private static final String QUIT_CMD = "quit"+CMD_TERMINATOR;
-	// Outputs
-	private static final String ID_NAME_CMD = String.format("id name Eubos %d.%d%s", 
-			EubosEngineMain.EUBOS_MAJOR_VERSION, EubosEngineMain.EUBOS_MINOR_VERSION, CMD_TERMINATOR);
-	private static final String ID_AUTHOR_CMD = "id author Chris Bolt"+CMD_TERMINATOR;
-	private static final String OPTION_HASH = "option name Hash type spin default 256 min 32 max 4000"+CMD_TERMINATOR;
-	private static final String OPTION_MOVE_OVERHEAD = "option name Move Overhead type spin default 10 min 0 max 5000"+CMD_TERMINATOR;
-	private static final String OPTION_THREADS = String.format(
-			"option name Threads type spin default %s min 1 max %s%s",
-			Math.max(1, Runtime.getRuntime().availableProcessors()-2),
-			Runtime.getRuntime().availableProcessors(), CMD_TERMINATOR);
-	private static final String UCI_OK_CMD = "uciok"+CMD_TERMINATOR;
-	private static final String READY_OK_CMD = "readyok"+CMD_TERMINATOR;
-	
-	private static final int sleep_50ms = 50;
-	
 	@Before
 	public void setUp() throws IOException {
 		// Start engine
@@ -114,8 +57,8 @@ public class EubosEngineMainTest {
 	public void test_mateInTwo() throws InterruptedException, IOException {
 		setupEngine();
 		// Setup Commands specific to this test
-		commands.add(new commandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"4"+CMD_TERMINATOR,BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"4"+CMD_TERMINATOR,BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
 		performTest(1000);
 	}
 	
@@ -123,8 +66,8 @@ public class EubosEngineMainTest {
 	public void test_mateInTwo_onTime() throws InterruptedException, IOException {
 		setupEngine();
 		// Setup Commands specific to this test
-		commands.add(new commandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_TIME_PREFIX+"1000"+CMD_TERMINATOR,BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_TIME_PREFIX+"1000"+CMD_TERMINATOR,BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
 		performTest(1000);
 	}
 	
@@ -132,8 +75,8 @@ public class EubosEngineMainTest {
 	public void test_mateInTwo_fromBlack() throws InterruptedException, IOException {
 		setupEngine();
 		// Setup Commands specific to this test
-		commands.add(new commandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1 moves b5b6"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"4"+CMD_TERMINATOR,BEST_PREFIX+"b4a6"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1 moves b5b6"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"4"+CMD_TERMINATOR,BEST_PREFIX+"b4a6"+CMD_TERMINATOR));
 		performTest(1000);
 	}	
 	
@@ -141,22 +84,23 @@ public class EubosEngineMainTest {
 	public void test_mateInOne() throws InterruptedException, IOException {
 		setupEngine();
 		// Setup Commands specific to this test
-		commands.add(new commandPair(POS_FEN_PREFIX+"5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR,BEST_PREFIX+"d3h7"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR,BEST_PREFIX+"d3h7"+CMD_TERMINATOR));
 		performTest(1000);
 	}
 	
+	@SuppressWarnings("unused")
 	@Test
 	public void test_infoMessageSending_clearsPreviousPvMoves() throws InterruptedException, IOException {
-		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
-			String expectedOutput = "info depth 1 seldepth 6 score cp 18 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
-						"info depth 1 seldepth 6 score cp 191 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 45"+CMD_TERMINATOR+
-	                    "info depth 2 seldepth 6 score cp 121 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 203"+CMD_TERMINATOR
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && !SearchMetrics.ENABLE_SINGLE_MOVE_PV) {
+			String expectedOutput = "info depth 1 seldepth 6 score cp -226 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
+						"info depth 1 seldepth 6 score cp 256 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 45"+CMD_TERMINATOR+
+	                    "info depth 2 seldepth 7 score cp 127 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 222"+CMD_TERMINATOR
 	                    +BEST_PREFIX+"c7c2";
 			setupEngine();
 			// Setup Commands specific to this test
-			commands.add(new commandPair(POS_FEN_PREFIX+"r1b1kb1r/ppqnpppp/8/3pP3/3Q4/5N2/PPP2PPP/RNB1K2R b KQkq - 2 8"+CMD_TERMINATOR, null));
-			commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR, removeTimeFieldsFromUciInfoMessage(expectedOutput)+CMD_TERMINATOR));
+			commands.add(new CommandPair(POS_FEN_PREFIX+"r1b1kb1r/ppqnpppp/8/3pP3/3Q4/5N2/PPP2PPP/RNB1K2R b KQkq - 2 8"+CMD_TERMINATOR, null));
+			commands.add(new CommandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR, removeTimeFieldsFromUciInfoMessage(expectedOutput)+CMD_TERMINATOR));
 			
 			/* Historically, this position and search caused a bad UCI info message to be generated. 
 			 * The second info contains c7e5, which has not been cleared from the first PV of the ext search...
@@ -171,7 +115,7 @@ public class EubosEngineMainTest {
 	public void test_game_position_detect_draw() throws InterruptedException, IOException {
 		setupEngine();
 		// Setup Commands specific to this test, checking to avoid draw by repetition..
-		commands.add(new commandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves "
+		commands.add(new CommandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves "
 				+ "e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f3d4 g8f6 b1c3 a7a6 f2f3 e7e5 d4b3 c8e6 f1d3 b8c6 e1g1"
 				+ " e6b3 a2b3 d6d5 e4d5 f8c5 g1h1 f6d5 c3e4 c5e3 c2c4 d5b4 c1e3 b4d3 d1e2 f7f5 e4g3 f5f4"
 				+ " f1d1 f4g3 d1d3 d8h4 h2h3 a6a5 e3c5 a8d8 d3d8 e8d8 b3b4 h4f6 b4a5 d8c7 a5a6 h8a8 e2e1"
@@ -184,7 +128,7 @@ public class EubosEngineMainTest {
 				+ " d8d5 f5f4 d5d6 f4e4 d6c6 e4d3 c6d5 g7d4 d5b3 d3e4 d1e2 e4e5 b3b8 d4d6 b8b2 e5f4 b2c1"
 				+ " f4f5 c1c2 f5f6 c2a4 d6h2 e2d3 h2h3 d3d2 h3h2 d2d3 h2h3 d3d2"+CMD_TERMINATOR, null));
 		// Need to insert a trans in the hash table for the root position with best score that is a draw at this new position!
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR,BEST_PREFIX+"h3g2"+CMD_TERMINATOR)); // i.e not h2h3
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR,BEST_PREFIX+"h3g2"+CMD_TERMINATOR)); // i.e not h2h3
 		performTest(5000);
 	}
 	
@@ -192,7 +136,7 @@ public class EubosEngineMainTest {
 	public void test_game_position_takes_draw() throws InterruptedException, IOException {
 		setupEngine();
 		// Setup Commands specific to this test, checking to achieve draw by repetition..
-		commands.add(new commandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves "
+		commands.add(new CommandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves "
 				+ "e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f3d4 g8f6 b1c3 a7a6 c1e3 e7e6 f2f3 b7b5 d1d3 b5b4 c3e2 e6e5 d4b3 "
 				+ "f8e7 d3c4 d6d5 e4d5 f6d5 e1c1 c8e6 c4e4 b8c6 c2c4 f7f5 e4b1 d5e3 d1d8 a8d8 b3d2 e6c4 e2g3 e7g5 "
 				+ "f1c4 e3c4 b1f5 g5d2 c1b1 c6d4 f5d3 d8c8 g3f5 d4f5 d3f5 e8e7 a2a3 g7g6 f5e4 b4a3 b2b3 c4e3 e4e5 "
@@ -205,7 +149,7 @@ public class EubosEngineMainTest {
 				+ "g7f8 e4e5 d2e2 e5d6 b4d3 c7c4 f8f7 " 
 				/* The repetition starts from here, when rook goes to c7 and gives check. */
 				+ "c4c7 f7g8 c7c8 g8f7 c8c7 f7g8 c7c8 g8f7"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"1"+CMD_TERMINATOR,BEST_PREFIX+"c8c7"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"1"+CMD_TERMINATOR,BEST_PREFIX+"c8c7"+CMD_TERMINATOR));
 		performTest(5000);
 	}
 	
@@ -213,16 +157,16 @@ public class EubosEngineMainTest {
 	public void test_achieves_draw_black_repeated_check() throws InterruptedException, IOException {
 		setupEngine();
 		// Setup Commands specific to this test
-		commands.add(new commandPair(POS_FEN_PREFIX+"7q/1P6/8/8/8/8/2k3PQ/7K b - - 0 42"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h8a1"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"7q/1P6/8/8/8/8/2k3PQ/7K b - - 0 42 moves h8a1 h2g1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"a1h8"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"7q/1P6/8/8/8/8/2k3PQ/7K b - - 0 42 moves h8a1 h2g1 a1h8 g1h2"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h8a1"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"7q/1P6/8/8/8/8/2k3PQ/7K b - - 0 42 moves h8a1 h2g1 a1h8 g1h2 h8a1 h2g1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"a1h8"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"7q/1P6/8/8/8/8/2k3PQ/7K b - - 0 42 moves h8a1 h2g1 a1h8 g1h2 h8a1 h2g1 a1h8 g1h2"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h8a1"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"7q/1P6/8/8/8/8/2k3PQ/7K b - - 0 42"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h8a1"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"7q/1P6/8/8/8/8/2k3PQ/7K b - - 0 42 moves h8a1 h2g1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"a1h8"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"7q/1P6/8/8/8/8/2k3PQ/7K b - - 0 42 moves h8a1 h2g1 a1h8 g1h2"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h8a1"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"7q/1P6/8/8/8/8/2k3PQ/7K b - - 0 42 moves h8a1 h2g1 a1h8 g1h2 h8a1 h2g1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"a1h8"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"7q/1P6/8/8/8/8/2k3PQ/7K b - - 0 42 moves h8a1 h2g1 a1h8 g1h2 h8a1 h2g1 a1h8 g1h2"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h8a1"+CMD_TERMINATOR));
 		performTest(500);
 	}
 	
@@ -230,32 +174,32 @@ public class EubosEngineMainTest {
 	public void test_achieves_draw_white_repeated_check() throws InterruptedException, IOException {
 		setupEngine();
 		// Setup Commands specific to this test
-		commands.add(new commandPair(POS_FEN_PREFIX+"7k/2K3pq/8/8/8/8/1p6/7Q w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h1a8"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"7k/2K3pq/8/8/8/8/1p6/7Q w - - 0 1 moves h1a8 h7g8"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"a8h1"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"7k/2K3pq/8/8/8/8/1p6/7Q w - - 0 1 moves h1a8 h7g8 a8h1 g8h7"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h1a8"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"7k/2K3pq/8/8/8/8/1p6/7Q w - - 0 1 moves h1a8 h7g8 a8h1 g8h7 h1a8 h7g8"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"a8h1"+CMD_TERMINATOR));
-		commands.add(new commandPair(POS_FEN_PREFIX+"7k/2K3pq/8/8/8/8/1p6/7Q w - - 0 1 moves h1a8 h7g8 a8h1 g8h7 h1a8 h7g8 a8h1 g8h7"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h1a8"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"7k/2K3pq/8/8/8/8/1p6/7Q w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h1a8"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"7k/2K3pq/8/8/8/8/1p6/7Q w - - 0 1 moves h1a8 h7g8"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"a8h1"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"7k/2K3pq/8/8/8/8/1p6/7Q w - - 0 1 moves h1a8 h7g8 a8h1 g8h7"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h1a8"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"7k/2K3pq/8/8/8/8/1p6/7Q w - - 0 1 moves h1a8 h7g8 a8h1 g8h7 h1a8 h7g8"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"a8h1"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"7k/2K3pq/8/8/8/8/1p6/7Q w - - 0 1 moves h1a8 h7g8 a8h1 g8h7 h1a8 h7g8 a8h1 g8h7"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h1a8"+CMD_TERMINATOR));
 		performTest(500);
 	}
 	
 	@Test
 	public void test_KQk_mate_in_7_NEW() throws InterruptedException, IOException {
 		setupEngine();
-		commands.add(new commandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_TIME_PREFIX+"30000"+CMD_TERMINATOR, BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
-		performTestExpectMate(9000, 7);
+		commands.add(new CommandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_TIME_PREFIX+"30000"+CMD_TERMINATOR, BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
+		performTestExpectMate(15000, 7);
 	}
 	
 	@Test
 	public void test_KQk_mated_in_6_NEW() throws InterruptedException, IOException {
 		setupEngine();
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/6K1/8/3k4/1Q6/8/8/8 b - - 1 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"11"+CMD_TERMINATOR, BEST_PREFIX+"d5c6"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/6K1/8/3k4/1Q6/8/8/8 b - - 1 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"11"+CMD_TERMINATOR, BEST_PREFIX+"d5c6"+CMD_TERMINATOR));
 		performTestExpectMate(5000, -6);
 	} 
 	
@@ -263,20 +207,20 @@ public class EubosEngineMainTest {
 	public void test_WAC009() throws InterruptedException, IOException {
 		setupEngine();
 		// 1
-		commands.add(new commandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"d6h2"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"d6h2"+CMD_TERMINATOR));
 		// 2
-		commands.add(new commandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1 moves d6h2 g1h1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"7"+CMD_TERMINATOR,BEST_PREFIX+"h2g3"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1 moves d6h2 g1h1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"7"+CMD_TERMINATOR,BEST_PREFIX+"h2g3"+CMD_TERMINATOR));
 		// 3
-		commands.add(new commandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1 moves d6h2 g1h1 h2g3 h1g1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h4h1"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1 moves d6h2 g1h1 h2g3 h1g1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h4h1"+CMD_TERMINATOR));
 		// 4
-		commands.add(new commandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1 moves d6h2 g1h1 h2g3 h1g1 h4h1 g1h1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"d8h4"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1 moves d6h2 g1h1 h2g3 h1g1 h4h1 g1h1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"d8h4"+CMD_TERMINATOR));
 		// 5
-		commands.add(new commandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1 moves d6h2 g1h1 h2g3 h1g1 h4h1 g1h1 d8h4 h1g1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h4h2"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1 moves d6h2 g1h1 h2g3 h1g1 h4h1 g1h1 d8h4 h1g1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h4h2"+CMD_TERMINATOR));
 
 		performTest(15000);
 	}
@@ -285,8 +229,8 @@ public class EubosEngineMainTest {
 	public void test_KRk_mate_in_11_NEW() throws InterruptedException, IOException {
 		int mateDepth = 0;
 		setupEngine();
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1d1"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1h4"+CMD_TERMINATOR));
 		mateDepth = 13;
 		performTestExpectMate(14000, mateDepth);
 	}
@@ -295,57 +239,34 @@ public class EubosEngineMainTest {
 	@Test
 	public void test_mate_in_3_guardian3713() throws InterruptedException, IOException {
 		setupEngine();
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/2p5/P4p2/Q1N2k1P/2P2P2/3PK2P/5R2/2B2R2 w - - 1 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR, BEST_PREFIX+"f2d2"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/2p5/P4p2/Q1N2k1P/2P2P2/3PK2P/5R2/2B2R2 w - - 1 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"7"+CMD_TERMINATOR, BEST_PREFIX+"f2d2"+CMD_TERMINATOR));
 		performTestExpectMate(4000, 4);
 	}
 	
 	@Test
 	public void test_defect_en_passant_treated_as_playable_move_regardless_of_board_state() throws InterruptedException, IOException {
 		setupEngine();
-		commands.add(new commandPair(POS_FEN_PREFIX+"r3qrk1/pbpp1ppp/np1b1n2/8/2PPp3/P1N1P1PP/1P2NPB1/R1BQK2R w KQ - 1 10"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"9"+CMD_TERMINATOR, BEST_PREFIX+"e1g1"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"r3qrk1/pbpp1ppp/np1b1n2/8/2PPp3/P1N1P1PP/1P2NPB1/R1BQK2R w KQ - 1 10"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"9"+CMD_TERMINATOR, BEST_PREFIX+"d1c2"+CMD_TERMINATOR));
+		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"9"+CMD_TERMINATOR, BEST_PREFIX+"e1g1"+CMD_TERMINATOR));
 		performTest(5000);
 	}
 	
 	@Test
 	public void test_tricky_endgame_position() throws InterruptedException, IOException {
 		setupEngine();
-		commands.add(new commandPair(POS_FEN_PREFIX+"8/8/4kp1p/3pb1p1/P5P1/3KN1PP/8/8 b - - 5 57"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"h6h5"+CMD_TERMINATOR));
-		// h6h5 loses, it is a terrible move, but that is what Eubos selects. We should go with Bxg3 according to stockfish
-		/*
-		 * FEN: 8/8/4kp1p/3pb1p1/P5P1/3KN1PP/8/8 b - - 5 57
-		 * 
-			Eubos Dev Version:
-			 1/3	00:00	 3	166	+1.19	Bxg3 Nxd5
-			 2/3	00:00	 34	2k	+1.05	Bxg3 a5
-			 3/6	00:00	 267	9k	+0.51	Bxg3 Nf5 Bf2 Nxh6
-			 3/9	00:00	 656	18k	+0.91	h5 gxh5 Bxg3 Nxd5
-			 4/9	00:00	 1k	24k	+0.77	h5 gxh5 Bxg3 a5
-			 5/11	00:00	 4k	60k	+0.87	h5 gxh5 Bxg3 a5 Ke5 Nxd5
-			 6/11	00:00	 10k	124k	+0.73	h5 gxh5 Bxg3 a5 Ke5 a6
-			 7/14	00:00	 30k	235k	+0.73	h5 gxh5 Bxg3 h6 Be5 h7 f5 h8Q
-			 8/13	00:00	 83k	340k	+0.59	h5 gxh5 Bxg3 h6 Be5 h7 f5 a5
-			 9/15	00:00	 246k	440k	+0.72	h5 gxh5 Bxg3 a5 f5 a6 Bb8 Kd4 Ba7+ Kd3 Bxe3
-			 10/17	00:01	 655k	604k	+0.80	h5 gxh5 Bxg3 a5 f5 a6 Bb8 h6 f4 h7 fxe3
-			 11/19	00:01	 1,772k	941k	+0.58	h5 gxh5 Bxg3 Nc2 Be5 a5 Bc7 Nd4+ Ke5 h6 f5 a6
-			 12/21	00:03	 4,727k	1,316k	+0.53	h5 gxh5 Bxg3 Nc2 f5 Nd4+ Kf6 h6 Kg6 Nc6 Kxh6 Kd4 f4 Kxd5
-			 13/22	00:07	 11,217k	1,559k	+0.03	h5 gxh5
-			 13/23	00:16	 26,542k	1,622k	+0.34	Bxg3 a5 Bb8 Nf5 h5 Nd4+ Kf7 gxh5 Ba7
-			 14/24	00:28	 47,868k	1,693k	+0.25	Bxg3 a5 Bb8 Nf5 Ba7 a6 Bb6 Nxh6 Ke5 Nf7+
-			 15/27	01:54	 184,310k	1,609k	+0.25	Bxg3 a5 Bb8 Nf5 Ba7 a6 Bb6 Nxh6 Ke5 Nf5 d4 Ng3 Ke6 Ke4 Kd6
-			 16/29	04:56	 475,978k	1,604k	 0.00	Bxg3 a5 Bb8 Nf5 Ke5 a6 h5 Nd4 hxg4 hxg4 Kd6 Nb5+ Ke5 Nd4
-			 17/30	18:13	 1,728,005k	1,581k	 0.00	Bxg3 a5 Bb8 Nf5 Kd7 Nxh6 Ba7 Nf5 Bc5 Nd4 Kc7 Nb5+ Kc6 Nd4+ Kc7
-			*/
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/4kp1p/3pb1p1/P5P1/3KN1PP/8/8 b - - 5 57"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"13"+CMD_TERMINATOR, BEST_PREFIX+"e5g3"+CMD_TERMINATOR));
 		performTest(15000);
 	}
 	
 	@Test
 	public void test_hash_issue_losing_position() throws InterruptedException, IOException {
 		setupEngine();
-		commands.add(new commandPair(POS_FEN_PREFIX+"3r2k1/5p2/7p/3R2p1/p7/1q1Q1PP1/7P/3R2K1 b - - 1 42"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d8e8"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"3r2k1/5p2/7p/3R2p1/p7/1q1Q1PP1/7P/3R2K1 b - - 1 42"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d8d5"+CMD_TERMINATOR));
+		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d8e8"+CMD_TERMINATOR));
 
 		int hashMove = Move.valueOf(Position.b3, Piece.BLACK_QUEEN, Position.d1, Piece.WHITE_ROOK);
 		long hashEntry = Transposition.valueOf((byte)6, (short)0, Score.exact, hashMove);
@@ -355,7 +276,7 @@ public class EubosEngineMainTest {
 	@Test
 	public void test_hash_issue_threw_away_draw() throws InterruptedException, IOException {
 		setupEngine();
-		commands.add(new commandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves "
+		commands.add(new CommandPair(POS_FEN_PREFIX+"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves "
 				+ "e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f3d4 g8f6 b1c3 a7a6 c1e3 e7e6 g2g4 e6e5 d4f5 g7g6 "
 				+ "g4g5 g6f5 g5f6 f5f4 e3d2 b8d7 f1g2 d7f6 d1e2 h8g8 g2f3 f8h6 e1c1 c8e6 c3d5 f6d5 "
 				+ "e4d5 e6f5 f3e4 f5g6 h2h3 e8f8 c1b1 g6e4 e2e4 g8g6 h1e1 d8b6 e1e2 f8g8 a2a4 h6g5 "
@@ -370,8 +291,8 @@ public class EubosEngineMainTest {
 				+ "g6h5 g2e2 a7c7 e2d2 c7e7 d2d5 h5h6 d5d6 h6g5 d6d5 g5f6 d5d4 f6g6 d4d6 g6f5 d6d5 "
 				+ "f5e4 d5d2 e7a7 d2d6 e4e5 d6c6 e5f5 c6b6 f5g5 b6c6 a7b7 c6c4 g5h5 c4b4 h5g6 b4g4 "
 				+ "g6h6 g4h4 h6g6 h4g4 g6h6 g4h4 h6g6"+CMD_TERMINATOR, null));
-		//commands.add(new commandPair(GO_DEPTH_PREFIX+"20"+CMD_TERMINATOR, BEST_PREFIX+"a6a5"+CMD_TERMINATOR));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR, BEST_PREFIX+"h4g4"+CMD_TERMINATOR));
+		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"20"+CMD_TERMINATOR, BEST_PREFIX+"a6a5"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR, BEST_PREFIX+"h4g4"+CMD_TERMINATOR));
 		
 		int hashMove = Move.valueOf(Position.h4, Piece.BLACK_ROOK, Position.g4, Piece.NONE);
 		long hashEntry = Transposition.valueOf((byte)3, (short)0, Score.upperBound, hashMove);
@@ -381,8 +302,8 @@ public class EubosEngineMainTest {
 	@Test
 	public void test_hash_issue_best_move_changed_unexpectedly() throws InterruptedException, IOException {
 		setupEngine();
-		commands.add(new commandPair(POS_FEN_PREFIX+"2k5/1p3Rb1/p2pN3/P2P4/1P1P4/1K6/8/2r5 b - - 0 66"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(GO_DEPTH_PREFIX+"9"+CMD_TERMINATOR, BEST_PREFIX+"g7h6"+CMD_TERMINATOR));
+		commands.add(new CommandPair(POS_FEN_PREFIX+"2k5/1p3Rb1/p2pN3/P2P4/1P1P4/1K6/8/2r5 b - - 0 66"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"9"+CMD_TERMINATOR, BEST_PREFIX+"g7h6"+CMD_TERMINATOR));
 		
 		int hashMove = Move.valueOf(Position.g7, Piece.BLACK_BISHOP, Position.h6, Piece.NONE);
 		long hashEntry = Transposition.valueOf((byte)8, (short)-55, Score.lowerBound, hashMove);
@@ -440,151 +361,96 @@ public class EubosEngineMainTest {
 		 */
 	}
 	
-	private void performTest(int timeout) throws IOException, InterruptedException {
-		performTest(timeout, false);
-	}
-
-	private void performTest(int timeout, boolean checkInfoMsgs) throws IOException, InterruptedException {
-		performTestHelper(timeout, checkInfoMsgs, 0L, 0);
-	}
-	
-	private void performTestExpectMate(int timeout, int mateInX) throws IOException, InterruptedException {
-		performTestHelper(timeout, true, 0L, mateInX);
+	@Test
+	public void test_WAC_086_position() throws InterruptedException, IOException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/p7/1ppk1n2/5ppp/P1PP4/2P1K1P1/5N1P/8 b - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"10"+CMD_TERMINATOR, BEST_PREFIX+"f6g4"+CMD_TERMINATOR));
+		performTest(8000);
 	}
 	
-	private void pokeHashEntryAndPerformTest(int timeout, long hashEntry) throws IOException, InterruptedException {
-		performTestHelper(timeout, false, hashEntry, 0);
-	}
-	
-	private void performTestHelper(int timeout, boolean checkInfoMsgs, long hashEntry, int mateInX) throws IOException, InterruptedException {
-		boolean mateDetected = false;
-		String mateExpectation = String.format("mate %d", mateInX);
-		testOutput.flush();
-		inputToEngine.flush();
-		int commandNumber = 1;
-		for (commandPair currCmdPair: commands) {
-			String inputCmd = currCmdPair.getIn();
-			String expectedOutput = currCmdPair.getOut();
-			String parsedCmd= "";
-			// Pass command to engine
-			if (inputCmd != null) {
-				if (inputCmd.startsWith("go") && hashEntry != 0L) {
-					Thread.sleep(sleep_50ms);
-					// Seed hash table with problematic hash
-					long problemHash = classUnderTest.rootPosition.getHash();
-					//EubosEngineMain.logger.info(String.format("*************** using hash code %d", problemHash));
-					classUnderTest.hashMap.putTransposition(problemHash, hashEntry);
-				}
-				inputToEngine.write(inputCmd);
-				inputToEngine.flush();
-				//EubosEngineMain.logger.info(String.format("************* %s", inputCmd));
-			}
-			// Test expected command was received
-			if (expectedOutput != null) {
-				boolean received = false;
-				int timer = 0;
-				boolean accumulate = false;
-				String recievedCmd = "";
-				// Receive message or wait for timeout to expire.
-				while (!received && timer < timeout) {
-					// Give the engine thread some CPU time
-					Thread.sleep(sleep_50ms);
-					timer += sleep_50ms;
-					testOutput.flush();
-					if (accumulate) {
-						recievedCmd += testOutput.toString();
-					} else {
-						recievedCmd = testOutput.toString();
-					}
-					if (recievedCmd != null && !recievedCmd.isEmpty()) {
-						if (!accumulate)
-							System.err.println(recievedCmd);
-						testOutput.reset();
-						// Ignore any line starting with info, if not checking infos
-					    parsedCmd = parseReceivedCommandString(recievedCmd, checkInfoMsgs);
-					    if (!parsedCmd.isEmpty()) { // want to use isBlank(), but that is Java 11 only.
-							if (parsedCmd.endsWith(expectedOutput)) {
-								received = true;
-								accumulate = false;
-								if (parsedCmd.contains(mateExpectation)) {
-									mateDetected = true;
-								}
-							} else if (parsedCmd.contains(mateExpectation)) {
-								mateDetected = true;
-								accumulate = true;
-							} else {
-								//EubosEngineMain.logger.info(String.format("parsed '%s' != '%s'", parsedCmd, expectedOutput));
-								accumulate = false;
-							}
-					    }
-					}
-				}
-				if (!received) {
-					fail(inputCmd + expectedOutput + "command that failed " + (commandNumber-3));
-				}
-				commandNumber++;
-			} else {
-				Thread.sleep(sleep_50ms);
-			}
-		}
-		if (mateInX != 0) {
-			assertTrue(mateDetected);
+	@Test
+	public void test_WAC_100_position() throws InterruptedException, IOException {
+		if (EubosEngineMain.ENABLE_TEST_SUITES) {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/k1b5/P4p2/1Pp2p1p/K1P2P1P/8/3B4/8 w - - 0 1"+CMD_TERMINATOR, null));
+		String [] acceptable_best_move_commands = {
+				BEST_PREFIX+"b5b6"+CMD_TERMINATOR,
+				BEST_PREFIX+"d2e3"+CMD_TERMINATOR};
+		commands.add(new MultipleAcceptableCommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, acceptable_best_move_commands));
+		performTest(15000);
 		}
 	}
-
-	private void setupEngine() {
-		commands.add(new commandPair(UCI_CMD, ID_NAME_CMD+ID_AUTHOR_CMD+OPTION_HASH+OPTION_THREADS+OPTION_MOVE_OVERHEAD+UCI_OK_CMD));
-		commands.add(new commandPair("setoption name NumberOfWorkerThreads value 1"+CMD_TERMINATOR, null));
-		commands.add(new commandPair("setoption name Hash value 256"+CMD_TERMINATOR, null));
-		commands.add(new commandPair(ISREADY_CMD,READY_OK_CMD));
-		commands.add(new commandPair(NEWGAME_CMD,null));
-		commands.add(new commandPair(ISREADY_CMD,READY_OK_CMD));
+	
+	@Test
+	public void test_WAC_230_position() throws InterruptedException, IOException {
+		if (EubosEngineMain.ENABLE_TEST_SUITES) {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"2b5/1r6/2kBp1p1/p2pP1P1/2pP4/1pP3K1/1R3P2/8 b - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"b7b4"+CMD_TERMINATOR));
+		performTest(15000);
+		}
 	}
 	
-	private String parseReceivedCommandString(String recievedCmd, boolean checkInfoMessages) {
-		String parsedCmd = "";
-		String currLine = "";
-		Scanner scan = new Scanner(recievedCmd);
-		while (scan.hasNextLine()) {
-			currLine = scan.nextLine();
-			if (currLine.startsWith("#")) {
-				/* Silently consume JOL warnings like:
-				 * # WARNING: Unable to get Instrumentation. Dynamic Attach failed. You may add this JAR as -javaagent manually, or supply -Djdk.attach.allowAttachSelf
-				 * # WARNING: Unable to attach Serviceability Agent. Unable to attach even with module exceptions: [org.openjdk.jol.vm.sa.SASupportException: Sense failed., org.openjdk.jol.vm.sa.SASupportException: Sense failed., org.openjdk.jol.vm.sa.SASupportException: Sense failed.]
-				 */
-			} else if (!currLine.contains("info")) {
-				//EubosEngineMain.logger.info(String.format("raw text received was '%s'", currLine));
-				parsedCmd += (currLine + CMD_TERMINATOR);
-			} else if (checkInfoMessages) {
-				// parse to remove time from info messages
-				parsedCmd += (removeTimeFieldsFromUciInfoMessage(currLine) + CMD_TERMINATOR);
-			} else {
-				// omit line
-			}
+	@Test
+	public void test_WAC_243_position() throws InterruptedException, IOException {
+		if (EubosEngineMain.ENABLE_TEST_SUITES) {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"1r3r1k/3p4/1p1Nn1R1/4Pp1q/pP3P1p/P7/5Q1P/6RK w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"f2e2"+CMD_TERMINATOR));
+		performTest(15000);
 		}
-		scan.close();
-		return parsedCmd;
 	}
 	
-	private String removeTimeFieldsFromUciInfoMessage(String info) {
-		String [] array = info.split(" ");
-		String output = "";
-		boolean delete_next_token = false;
-		for (String token : array) {
-			if (delete_next_token) {
-				Integer.parseInt(token);
-				// skip this token
-				delete_next_token = false;
-			} else {
-				// reconstruct
-				output = String.join(" ", output, token);
-			}
-			if (token.equals("nps") || token.equals("time")) {
-				delete_next_token = true;
-			}
+	@Test
+	public void test_WAC_252_position() throws InterruptedException, IOException {
+		if (EubosEngineMain.ENABLE_TEST_SUITES) {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"1rb1r1k1/p1p2ppp/5n2/2pP4/5P2/2QB4/qNP3PP/2KRB2R b - - 0 1"+CMD_TERMINATOR, null));
+		String [] acceptable_best_move_commands = {
+				BEST_PREFIX+"e8e2"+CMD_TERMINATOR,
+				BEST_PREFIX+"c8g4"+CMD_TERMINATOR};
+		commands.add(new MultipleAcceptableCommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, acceptable_best_move_commands));
+		performTest(15000);
 		}
-		output = output.trim();
-		//EubosEngineMain.logger.info(String.format("parsed UCI Info was '%s'", output));
-		return output;
+	}
+	
+	@Test
+	public void test_WAC_264_position() throws InterruptedException, IOException {
+		if (EubosEngineMain.ENABLE_TEST_SUITES) {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"r2r2k1/1R2qp2/p5pp/2P5/b1PN1b2/P7/1Q3PPP/1B1R2K1 b - - 0 1"+CMD_TERMINATOR, null));
+		String [] acceptable_best_move_commands = {
+				BEST_PREFIX+"a8b8"+CMD_TERMINATOR,
+				BEST_PREFIX+"e7e5"+CMD_TERMINATOR};
+		commands.add(new MultipleAcceptableCommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, acceptable_best_move_commands));
+		performTest(15000);
+		}
+	}
+	
+	@Test
+	public void test_WAC_283_position() throws InterruptedException, IOException {
+		if (EubosEngineMain.ENABLE_TEST_SUITES) {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"3q1rk1/4bp1p/1n2P2Q/3p1p2/6r1/Pp2R2N/1B4PP/7K w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"h3g5"+CMD_TERMINATOR));
+		performTest(15000);
+		}
+	}
+	
+	@Test
+	public void test_aspiration_failure_processing() throws IOException, InterruptedException {
+		if (EubosEngineMain.ENABLE_TEST_SUITES) {
+		setupEngine();
+		commands.add(new CommandPair(POS_START_PREFIX+"moves e2e4 c7c6 d2d4 d7d5 b1d2 d5e4 d2e4"+
+		" b8d7 g1f3 g8f6 e4g3 g7g6 f1c4 f8g7 c1g5 d7b6 c4b3 h7h6 g5d2 a7a5 a2a4 h6h5 f3e5 b6d5 c2c4 d5c7 g3e2"+
+	    " c6c5 d4c5 f6e4 d2f4 d8d1 a1d1 c7e6 e5d3 e4c5 d3c5 e6c5 b3c2 g7b2 f4e3 b2a3 e2c3 a3b4 e1g1 b4c3 e3c5"+
+		" c8d7 c5d4 c3d4 d1d4 d7c6 f1d1 e8g8 c2b3 e7e6 d4d6 f8c8 f2f4 c6e8 g1f2 c8c6 g2g3 c6d6 d1d6 e8c6 c4c5"+
+	    " a8b8 f2e3 b8e8 h2h4 e8a8 e3d4 a8b8 d4e3 b8e8 e3d3 e8f8 d3e3 f8b8 e3d4 g8h7 b3c2 b8c8 c2b3 h7h8 d4e5"+
+		" h8g7 e5d4 g7h7 d4c3 c8e8 c3d3 e8a8 d3d4 h7g8 b3c2 a8c8 c2b3 g8g7 d4e3 g7h7 e3d4 h7h8 d4e5 c6d5 b3d5"+
+	    " c8c5 e5d4 c5d5 d6d5 e6d5 d4d5 h8g7 d5c5 g7f6 c5b6 f6e6 b6b7 e6e7 b7b6 e7d6 b6b5"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"25"+CMD_TERMINATOR, BEST_PREFIX+"d6d5"+CMD_TERMINATOR));
+		performTest(1000000000);
+		}
 	}
 }

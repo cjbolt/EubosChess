@@ -50,7 +50,7 @@ import java.util.logging.*;
 public class EubosEngineMain extends AbstractEngine {
 	
 	static final int EUBOS_MAJOR_VERSION = 2;
-	static final int EUBOS_MINOR_VERSION = 11;
+	static final int EUBOS_MINOR_VERSION = 12;
 	
 	public static final byte SEARCH_DEPTH_IN_PLY = Byte.MAX_VALUE;
 	public static final int DEFAULT_NUM_SEARCH_THREADS = 1;
@@ -60,6 +60,8 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_UCI_MOVE_NUMBER = false;
 	
 	public static final boolean ENABLE_ASSERTS = false;
+	public static final boolean ENABLE_PERFT = false;
+	public static final boolean ENABLE_TEST_SUITES = false;
 	
 	public static final boolean ENABLE_REPETITION_DETECTION = true;
 	public static final boolean ENABLE_TRANSPOSITION_TABLE = true;

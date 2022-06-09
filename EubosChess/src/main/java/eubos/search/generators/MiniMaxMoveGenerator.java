@@ -57,7 +57,8 @@ public class MiniMaxMoveGenerator implements
 			SearchMetricsReporter sr) {
 		PositionManager pm = new PositionManager(fen, dc);
 		commonInit(hashMap, pm, pm);
-		sr.register(sm);
+		if (sr != null)
+			sr.register(sm);
 	}
 
 	private void commonInit(FixedSizeTranspositionTable hashMap, IChangePosition pm, IPositionAccessors pos) {
@@ -87,7 +88,6 @@ public class MiniMaxMoveGenerator implements
 			SearchMetricsReporter sr)  {
 		boolean foundMate = false;
 		sm.setDepth(searchDepth);
-		sm.setPrincipalVariation(pc.toPvList(0));
 		ps = new PlySearcher(tta, pc, sm, sr, searchDepth, pm, pos, pe, killers, sda, ml);
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		try {
@@ -124,5 +124,9 @@ public class MiniMaxMoveGenerator implements
 	
 	public void reportLazyStatistics() {
 		this.ps.reportLazyStatistics();
+	}
+
+	public boolean lastAspirationFailed() {
+		return this.ps.lastAspirationFailed();
 	}
 }

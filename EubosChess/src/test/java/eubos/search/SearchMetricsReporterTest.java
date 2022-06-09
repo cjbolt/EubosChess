@@ -2,9 +2,6 @@ package eubos.search;
 
 import static org.junit.Assert.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -47,9 +44,8 @@ public class SearchMetricsReporterTest {
 		hashMap = new FixedSizeTranspositionTable();
 		sm = new SearchMetrics(searchDepth, pm);
 		// Minimal setup of the Search Metrics object
-		List<Integer> pv = new ArrayList<Integer>();
-		pv.add(Move.valueOf(Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE));
-		sm.setPrincipalVariation(pv);
+		int [] pv = { Move.valueOf(Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE) };
+		sm.setPrincipalVariation(pv, 1);
 		classUnderTest = new SearchMetricsReporter(eubos, hashMap, null);
 		classUnderTest.register(sm);
 	}

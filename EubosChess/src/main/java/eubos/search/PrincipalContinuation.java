@@ -1,35 +1,33 @@
 package eubos.search;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 
 public class PrincipalContinuation {
 
-	private List<List<Integer>> pc;
+	private int [][] pc;
+	public int [] length;
 	private SearchDebugAgent sda;
 
 	public PrincipalContinuation(int searchDepth, SearchDebugAgent sda) {
-		pc = new ArrayList<List<Integer>>(searchDepth);
-		for (int i=0; i<searchDepth; i++) {
-			pc.add(new ArrayList<Integer>(searchDepth));
+		// Create the pc list at each ply
+		pc = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY][];
+		for (int i = 0; i < EubosEngineMain.SEARCH_DEPTH_IN_PLY; i++) {
+			pc[i] = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY-i];
 		}
+		length = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		this.sda = sda;
 	}
 	
 	public int getBestMove(byte currPly) {
-		if (currPly < pc.size()) {
-			List<Integer> plyList = pc.get(currPly);
-			if (!plyList.isEmpty())
-				return plyList.get(0);
-		}
+		if (currPly < length[0])
+			return pc[0][currPly];
 		return Move.NULL_MOVE;
 	}
 	
 	public String toString() {
 		StringBuilder output = new StringBuilder();
-		for (int currPly = 0; currPly < pc.size(); currPly++) {
+		for (int currPly = 0; currPly < length[0]; currPly++) {
 			output.append(String.format("Ply %d (%s) ,", currPly, toStringAt(currPly)));
 		}
 		return output.toString();
@@ -37,12 +35,14 @@ public class PrincipalContinuation {
 
 	public String toStringAt(int currPly) {
 		StringBuilder output = new StringBuilder();
-		if (currPly < pc.size()) {
-			List<Integer> plyList = pc.get(currPly);
-			if (!plyList.isEmpty()) {
-				for (int currMove : plyList) {
-					//assert currMove != Move.NULL_MOVE;
-					output.append((Move.toString(currMove)));
+		if (currPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
+			if (length[currPly] != 0) {
+				for (int i=0; i<length[currPly]; i++) {
+					int currMove = pc[currPly][i];
+					if (EubosEngineMain.ENABLE_ASSERTS) {
+						assert currMove != Move.NULL_MOVE;
+					}
+					output.append(Move.toString(currMove));
 					output.append(' ');
 				}
 			}
@@ -50,46 +50,32 @@ public class PrincipalContinuation {
 		return output.toString();
 	}
 	
-	public static String pvToString(List<Integer> pv) {
-		StringBuilder output = new StringBuilder();
-		if (pv != null && !pv.isEmpty()) {
-			for (int currMove : pv) {
-				//assert currMove != Move.NULL_MOVE;
-				output.append((Move.toString(currMove)));
-				output.append(' ');
-			}
+	public int [] toPvList(int currPly) { 
+		if (currPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
+			return pc[currPly];
 		}
-		return output.toString();
-	}
-	
-	public List<Integer> toPvList(int currPly) { 
-		List<Integer> mv = new ArrayList<Integer>(pc.size());
-		if (currPly < pc.size()) {
-			for (int currMove : pc.get(currPly)) {
-				mv.add(currMove);
-			}
-		}
-		return mv;
+		return null;
 	}
 	
 	void initialise(int currPly, int currMove) {
-		if (currPly < pc.size()) {
-			List<Integer> plyToUpdatePc = pc.get(currPly);
-			plyToUpdatePc.clear();
-			plyToUpdatePc.add(currMove);
+		if (currPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
+			length[currPly] = 1;
+			pc[currPly][0] = currMove;
 		}
 	}
 	
 	// Bring down a pv from node further down the tree, with curr move added at the head
 	void update(int currPly, int currMove) {
-		if (currPly < pc.size()) {
-			List<Integer> plyToUpdatePc = pc.get(currPly);
-			plyToUpdatePc.clear();
-			plyToUpdatePc.add(currMove);
+		if (currPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
+			length[currPly] = 1;
+			pc[currPly][0] = currMove;
 			int nextPly = currPly+1;
-			if (nextPly < pc.size()) {
+			if (nextPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
 				// Bring down, if possible
-				plyToUpdatePc.addAll(pc.get(nextPly));
+				for (int i=0; i<length[nextPly]; i++) {
+					pc[currPly][i+1] = pc[nextPly][i];
+					length[currPly] += 1;
+				}
 			}
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPrincipalContinuation(this);
 		}
@@ -97,32 +83,19 @@ public class PrincipalContinuation {
 	
 	// Update a principal continuation from a Transposition hit where we don't have onwards pv
 	void set(int currPly, int currMove) {
-		if (currPly < pc.size()) {
-			List<Integer> plyToUpdatePc = pc.get(currPly);
-			plyToUpdatePc.clear();
-			plyToUpdatePc.add(currMove);
+		if (currPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
+			length[currPly] = 1;
+			pc[currPly][0] = currMove;
 			clearContinuationBeyondPly(currPly);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPrincipalContinuation(this);
-		}
-	}
-	
-	// Update a principal continuation from a Transposition hit where we do have an onwards pv
-	public void update(int currPly, List<Integer> onwards_pv) {
-		if (currPly < pc.size()) {
-			List<Integer> plyToUpdatePc = pc.get(currPly);
-			plyToUpdatePc.clear();
-			if (onwards_pv != null) {
-				plyToUpdatePc.addAll(onwards_pv);
-			}
-			clearContinuationBeyondPly(currPly);
 		}
 	}
 	
 	// Clear all downstream pv's, from the current ply
 	void clearContinuationBeyondPly(int currPly) {
 		int nextPly = currPly+1;
-		if (nextPly < pc.size()) {
-			pc.get(nextPly).clear();
+		if (nextPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
+			length[nextPly] = 0;
 		}
 	}
 }

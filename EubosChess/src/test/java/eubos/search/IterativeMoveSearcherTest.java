@@ -6,7 +6,6 @@ import java.util.logging.Level;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
@@ -94,9 +93,8 @@ public class IterativeMoveSearcherTest {
 	}
 	 
 	@Test
-	@Ignore // Eubos v1.1.0 needs 4mins to reliably find a reasonable continuation!
 	public void test_endgame_d()throws IllegalNotationException {
-		setupPosition("8/pp5p/8/PP2k3/2P2pp1/3K4/6PP/8 w - - 1 10", 4000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
+		setupPosition("8/pp5p/8/PP2k3/2P2pp1/3K4/6PP/8 w - - 1 10", 7000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
 		expectedMove = new GenericMove("c4c5"); // Levy
 		runSearcherAndTestBestMoveReturned();		
 	}
@@ -104,13 +102,11 @@ public class IterativeMoveSearcherTest {
 	@Test
 	public void test_endgame_e()throws IllegalNotationException {
 		setupPosition("6k1/7p/5P1K/8/8/8/7P/8 w - - 0 1", 4000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
-		expectedMove = new GenericMove("h6g5"); // Stockfish
+		expectedMove = new GenericMove("h6g5"); // Stockfish, mate in 18
 		runSearcherAndTestBestMoveReturned();		
 	}
 	
 	@Test
-	@Ignore // Because the move returned depends on the speed of the pc running the test too much. It adds little value.
-	// Eubos finds capture at about 19ply search, finds mate in 13 after 15 to 20 minutes
 	public void test_endgame_i()throws IllegalNotationException {
 		setupPosition("8/k7/3p4/p2P1p2/P2P1P2/8/8/K7 w - - 0 1", 1000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
 		expectedMove = new GenericMove("a1b1");

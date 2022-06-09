@@ -219,6 +219,33 @@ public final class BitBoard {
 		}
 	}
 	
+	static final long[][] PawnFrontSpan_Lut = new long[2][]; 
+	static {
+		long[] white_map = new long[128];
+		PawnFrontSpan_Lut[Colour.white.ordinal()] = white_map;
+		for (int atPos : Position.values) {
+			white_map[atPos] = buildFrontSpanMask(Position.getFile(atPos), Position.getRank(atPos), true);
+		}
+		long[] black_map = new long[128];
+		PawnFrontSpan_Lut[Colour.black.ordinal()] = black_map;
+		for (int atPos : Position.values) {
+			black_map[atPos] = buildFrontSpanMask(Position.getFile(atPos), Position.getRank(atPos), false);
+		}
+	}
+	private static long buildFrontSpanMask(int f, int r, boolean isWhite) {
+		long mask = 0;
+		if (isWhite) {
+			for (r=r+1; r < 7; r++) {
+				mask |= 1L << r*8+f;
+			}
+		} else {
+			for (r=r-1; r > 0; r--) {
+				mask |= 1L << r*8+f;	
+			}
+		}
+		return mask;
+	}
+	
 	static final long[][] PassedPawn_Lut = new long[2][]; 
 	static {
 		long[] white_map = new long[128];

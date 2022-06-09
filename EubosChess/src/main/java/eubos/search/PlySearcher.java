@@ -1,7 +1,6 @@
 package eubos.search;
 
 import java.util.IntSummaryStatistics;
-import java.util.List;
 import java.util.Arrays;
 
 import eubos.board.Piece;
@@ -23,8 +22,11 @@ public class PlySearcher {
 	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
 	running with the logging in TUNE_LAZY_EVAL for Eubos2.8 and post processing the logs.
 	It will need to be re-tuned if the evaluation function is altered significantly. */
-	private static final int LAZY_EVAL_THRESHOLD_IN_CP = 320;
+	private static final int LAZY_EVAL_THRESHOLD_IN_CP = 250;
 	private static final boolean TUNE_LAZY_EVAL = false;
+
+	private static final boolean ENABLE_EXTRA_EXTENSIONS = false;
+	
 	private class LazyEvalStatistics {
 		
 		static final int MAX_DELTA = Piece.MATERIAL_VALUE_QUEEN -LAZY_EVAL_THRESHOLD_IN_CP; 
@@ -83,7 +85,6 @@ public class PlySearcher {
 	
 	private volatile boolean terminate = false;
 	
-	private List<Integer> lastPc;
 	private ITranspositionAccessor tt;
 	private SearchMetricsReporter sr;
 	private KillerList killers;
@@ -95,6 +96,8 @@ public class PlySearcher {
 	private MoveList ml;
 	
 	private boolean hasSearchedPv = false;
+
+	private boolean lastAspirationFailed = false;
 	
 	public PlySearcher(
 			ITranspositionAccessor hashMap,
@@ -123,7 +126,6 @@ public class PlySearcher {
 		this.pos = pos;
 		this.pe = pe;
 		this.sr = sr;
-		this.lastPc = pc.toPvList(0);
 		this.sda = sda;
 		originalSearchDepthRequiredInPly = searchDepthPly;
 		
@@ -152,6 +154,7 @@ public class PlySearcher {
 	public int searchPly(short lastScore)  {
 		currPly = 0;
 		extendedSearchDeepestPly = 0;
+		lastAspirationFailed = false;
 		short score = 0;
 		int fail_count = 0;
 		
@@ -165,20 +168,20 @@ public class PlySearcher {
 		}
 		
 		while (!isTerminated()) {
-			boolean windowFailed = false;
 			this.alpha[0] = alpha;
 			this.beta[0] = beta;
 			
 			score = (short) searchRoot(originalSearchDepthRequiredInPly);
 	
 			if (Score.isProvisional(score)) {
+				lastAspirationFailed = true;
 				EubosEngineMain.logger.info("Aspiration Window failed - no score, illegal position");
 	            break;
         	} else if (isTerminated() && score ==0) {
         		// Early termination, didn't back up a score at the last ply			
         	} else if (score <= alpha) {
         		// Failed low, adjust window
-        		windowFailed = true;
+        		lastAspirationFailed = true;
         		fail_count++;
 	        	if (!Score.isMate(lastScore) && fail_count < ASPIRATION_WINDOW_FALLBACK.length-1) {
 	        		alpha = lastScore - ASPIRATION_WINDOW_FALLBACK[fail_count];
@@ -187,7 +190,7 @@ public class PlySearcher {
 	        	}
 	        } else if (score >= beta) {
 	        	// Failed high, adjust window
-	        	windowFailed = true;
+	        	lastAspirationFailed = true;
 	        	fail_count++;
 	        	if (!Score.isMate(lastScore) && fail_count < ASPIRATION_WINDOW_FALLBACK.length-1) {
 	        		beta = lastScore + ASPIRATION_WINDOW_FALLBACK[fail_count];
@@ -196,13 +199,14 @@ public class PlySearcher {
 	        	}
 	        } else {
 	        	// Exact score in window returned
+	        	lastAspirationFailed = false;
 	            break;
 	        }
-			if (windowFailed) {
+			if (lastAspirationFailed) {
 				EubosEngineMain.logger.info(String.format("Aspiration Window failed count=%d score=%d alpha=%d beta=%d depth=%d",
         				fail_count, score, alpha, beta, originalSearchDepthRequiredInPly));
-				sr.resetAfterWindowingFail();
-				windowFailed = false;
+				if (sr != null)
+					sr.resetAfterWindowingFail();
 			}
 		}
 		return score;
@@ -218,8 +222,7 @@ public class PlySearcher {
 		
 		// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
 		// It will deviate from the hash move when we start updating the hash during iterative deepening.
-		prevBestMove[0] = ((lastPc != null) && (lastPc.size() > 0)) ? lastPc.get(0) : Move.NULL_MOVE;
-		prevBestMove[0] =  Move.clearBest(prevBestMove[0]);
+		prevBestMove[0] = Move.clearBest(pc.getBestMove((byte)0));
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(0);
 		
 		if (SearchDebugAgent.DEBUG_ENABLED) {
@@ -232,13 +235,27 @@ public class PlySearcher {
 		if (needToEscapeCheck) {
 			++depth;
 		}
+		if (ENABLE_EXTRA_EXTENSIONS) {
+			if (currPly < originalSearchDepthRequiredInPly*2) {
+				boolean kingThreatened = pos.getTheBoard().kingInDanger(Piece.Colour.isWhite(pos.getOnMove()));
+				if (kingThreatened) {
+					++depth;
+				}
+			}
+			else if (currPly < originalSearchDepthRequiredInPly*2) {
+				if (pos.promotablePawnPresent()) {
+					++depth;
+				}
+			}
+		}
 		
 		long trans = tt.getTransposition();
 		if (trans != 0L) {
 			evaluateTransposition(trans, depth);
 			if (isCutOff[0]) {
-				sm.setPrincipalVariationDataFromHash(0, pc.toPvList(0), (short)hashScore[0]);
-				sr.reportPrincipalVariation(sm);
+				sm.setPrincipalVariationDataFromHash(0, (short)hashScore[0]);
+				if (sr != null)
+					sr.reportPrincipalVariation(sm);
 				return hashScore[0];
 			}
 		}
@@ -248,6 +265,7 @@ public class PlySearcher {
 		int currMove = Move.NULL_MOVE;
 		int positionScore = plyScore;
 		int moveNumber = 0;
+		int quietOffset = 0;
 		boolean refuted = false;
 		ml.initialiseAtPly(prevBestMove[0], killers.getMoves(0), needToEscapeCheck, false, 0);
 		do {
@@ -271,8 +289,11 @@ public class PlySearcher {
 					pc.initialise(0, currMove);
 					bestMove = currMove;
 				}
+				if (!Move.isRegular(currMove)) {
+					quietOffset = moveNumber;
+				}
 				if (EubosEngineMain.ENABLE_UCI_MOVE_NUMBER) {
-					sm.setCurrentMove(Move.toGenericMove(currMove), moveNumber);
+					sm.setCurrentMove(currMove, moveNumber);
 					if (originalSearchDepthRequiredInPly > 8)
 						sr.reportCurrentMove();
 				}
@@ -285,7 +306,7 @@ public class PlySearcher {
 				currPly++;
 				pm.performMove(currMove);
 				
-				positionScore = doLateMoveReductionSubTreeSearch(depth, needToEscapeCheck, currMove, moveNumber);
+				positionScore = doLateMoveReductionSubTreeSearch(depth, needToEscapeCheck, currMove, (moveNumber - quietOffset));
 				
 				pm.unperformMove();
 				currPly--;
@@ -300,6 +321,7 @@ public class PlySearcher {
 				if (positionScore > alpha[0]) {
 					alpha[0] = plyScore = positionScore;
 					bestMove = currMove;
+					pc.update(0, bestMove);
 					if (alpha[0] >= beta[0]) {
 						plyScore = beta[0]; // fail hard
 						killers.addMove(0, bestMove);
@@ -308,15 +330,10 @@ public class PlySearcher {
 						refuted = true;
 						break;
 					}
-					pc.update(0, bestMove);
 					trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) alpha[0], Score.upperBound);
 					reportPv((short) alpha[0]);
 				} 
 				else if (positionScore > plyScore) {
-					if (plyScore == Score.PROVISIONAL_ALPHA) {
-						pc.update(0, currMove);
-						reportPv((short) alpha[0]);
-					}
 					bestMove = currMove;
 					plyScore = positionScore;
 				}
@@ -347,8 +364,7 @@ public class PlySearcher {
 						
 		// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
 		// It will deviate from the hash move when we start updating the hash during iterative deepening.
-		prevBestMove[currPly] = ((lastPc != null) && (lastPc.size() > currPly)) ? lastPc.get(currPly) : Move.NULL_MOVE;
-		prevBestMove[currPly] =  Move.clearBest(prevBestMove[currPly]);
+		prevBestMove[currPly] = Move.clearBest(pc.getBestMove(currPly));
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
 		// Check for draws by three-fold repetition
@@ -380,6 +396,19 @@ public class PlySearcher {
 		boolean needToEscapeCheck = pos.isKingInCheck();
 		if (needToEscapeCheck) {
 			++depth;
+		}
+		if (ENABLE_EXTRA_EXTENSIONS) {
+			if (currPly < originalSearchDepthRequiredInPly*2) {
+				boolean kingThreatened = pos.getTheBoard().kingInDanger(Piece.Colour.isWhite(pos.getOnMove()));
+				if (kingThreatened) {
+					++depth;
+				}
+			}
+			else if (currPly < originalSearchDepthRequiredInPly*2) {
+				if (pos.promotablePawnPresent()) {
+					++depth;
+				}
+			}
 		}
 		
 		if (depth <= 0) {
@@ -420,6 +449,7 @@ public class PlySearcher {
 		int currMove = Move.NULL_MOVE;
 		int positionScore = plyScore;
 		int moveNumber = 0;
+		int quietOffset = 0;
 		boolean refuted = false;
 		ml.initialiseAtPly(prevBestMove[currPly], killers.getMoves(currPly), needToEscapeCheck, false, currPly);
 		do {
@@ -443,6 +473,9 @@ public class PlySearcher {
 					pc.initialise(currPly, currMove);
 					bestMove = currMove;
 				}
+				if (!Move.isRegular(currMove)) {
+					quietOffset = moveNumber;
+				}
 				
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(alpha[currPly], beta[currPly]);
 				if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
@@ -452,7 +485,7 @@ public class PlySearcher {
 				currPly++;
 				pm.performMove(currMove);
 				
-				positionScore = doLateMoveReductionSubTreeSearch(depth, needToEscapeCheck, currMove, moveNumber);
+				positionScore = doLateMoveReductionSubTreeSearch(depth, needToEscapeCheck, currMove, (moveNumber - quietOffset));
 				
 				pm.unperformMove();
 				currPly--;
@@ -683,9 +716,9 @@ public class PlySearcher {
 			// A beta cut-off, alpha raise was 'too good'
 			plyBound = Score.lowerBound;
 		} else {
-			// In exact window, searched all nodes...
-			plyBound = Score.exact;
-		}	
+			// because of LMR we can't be sure about depth for a non-PV node, so keep it as upper bound
+			plyBound = Score.upperBound;
+		}
 		return updateTranspositionTable(trans, depth, currMove, plyScore, plyBound);
 	}
 	
@@ -721,7 +754,7 @@ public class PlySearcher {
 
 	private void reportPv(short positionScore) {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
-			sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), positionScore);
+			sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), pc.length[0], positionScore);
 			sr.reportPrincipalVariation(sm);
 			extendedSearchDeepestPly = 0;
 		}
@@ -753,7 +786,8 @@ public class PlySearcher {
 	}
 	
 	private int doLateMoveReductionSubTreeSearch(int depth, boolean needToEscapeCheck, int currMove, int moveNumber) {
-		int positionScore;
+		int positionScore = 0;
+		boolean passedLmr = false;
 		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
 			!pe.goForMate() &&
 			depth > 3  && 
@@ -763,18 +797,26 @@ public class PlySearcher {
 			!pos.isKingInCheck()) {
 			
 			// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
-			int lmr = (moveNumber < 6) ? 1 : Math.max(1, depth/4);
+			int lmr = (moveNumber < 6) ? 1 : depth/3;
+//			if ((enemyPassedPawnPresent || isKingInDanger) && lmr > 1) {
+//				// Limit reduction in these circumstances
+//				lmr = 1;
+//			}
 			setAlphaBeta();
 			positionScore = -search(depth-1-lmr);
-			if (positionScore > alpha[currPly-1]) {
-				// Re-search if the reduced search increased alpha 
-				setAlphaBeta();
-				positionScore = -search(depth-1);
+			if (positionScore <= alpha[currPly-1]) {
+				passedLmr = true;
 			}
-		} else {
+		}
+		if (!passedLmr) {
+			// Re-search if the reduced search increased alpha 
 			setAlphaBeta();
 			positionScore = -search(depth-1);
 		}
 		return positionScore;
+	}
+
+	public boolean lastAspirationFailed() {
+		return lastAspirationFailed ;
 	}
 }

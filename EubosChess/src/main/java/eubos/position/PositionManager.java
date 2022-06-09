@@ -8,14 +8,14 @@ import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
 import eubos.board.Board;
-
+import eubos.board.IForEachPieceCallback;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.score.IEvaluate;
 import eubos.score.PositionEvaluator;
 import eubos.search.DrawChecker;
 
-public class PositionManager implements IChangePosition, IPositionAccessors {
+public class PositionManager implements IChangePosition, IPositionAccessors, IForEachPieceCallback {
 	
 	public PositionManager( String fenString, DrawChecker dc) {
 		moveTracker = new MoveTracker();
@@ -385,5 +385,42 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			s.insert(0, Move.toString(TrackedMove.getMove(moveTracker.pop())));
 		}
 		return s.toString();
+	}
+
+	Piece.Colour enemyColour = Colour.white;
+	int passedPawnPosition = Position.NOPOSITION;
+	
+	@Override
+	public void callback(int piece, int atPos) {
+		if (theBoard.isPassedPawn(atPos, enemyColour)) {
+			// get most advanced passed pawn
+			if (Colour.isBlack(enemyColour)) {
+				if (Position.getRank(atPos) < 4) {
+					if (passedPawnPosition == Position.NOPOSITION ||
+						Position.getRank(atPos) < Position.getRank(passedPawnPosition)) {
+						passedPawnPosition = atPos;
+					}
+				}
+			} else {
+				if (Position.getRank(atPos) > 3) {
+					if (passedPawnPosition == Position.NOPOSITION ||
+						Position.getRank(atPos) > Position.getRank(passedPawnPosition)) {
+						passedPawnPosition = atPos;
+					}
+				}
+			}
+		}
+	}
+	
+	@Override
+	public int enemyAdvancedPassedPawn() {
+		passedPawnPosition = Position.NOPOSITION;
+		enemyColour = Colour.getOpposite(onMove);
+		theBoard.forEachPawnOfSide(this, Colour.isWhite(onMove));
+		return passedPawnPosition;
+	}
+	
+	public boolean promotablePawnPresent() {
+		return theBoard.isPromotablePawnPresent(Colour.isWhite(onMove));
 	}
 }
