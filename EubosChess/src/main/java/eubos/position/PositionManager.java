@@ -396,13 +396,15 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 			// get most advanced passed pawn
 			if (Colour.isBlack(enemyColour)) {
 				if (Position.getRank(atPos) < 4) {
-					if (Position.getRank(atPos) < Position.getRank(passedPawnPosition)) {
+					if (passedPawnPosition == Position.NOPOSITION ||
+						Position.getRank(atPos) < Position.getRank(passedPawnPosition)) {
 						passedPawnPosition = atPos;
 					}
 				}
 			} else {
 				if (Position.getRank(atPos) > 3) {
-					if (Position.getRank(atPos) > Position.getRank(passedPawnPosition)) {
+					if (passedPawnPosition == Position.NOPOSITION ||
+						Position.getRank(atPos) > Position.getRank(passedPawnPosition)) {
 						passedPawnPosition = atPos;
 					}
 				}
