@@ -104,13 +104,23 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	
 	int evaluatePawnStructure() {
 		int pawnEvaluationScore = 0;
-		long pawnsToTest = pm.onMoveIsWhite() ? bd.getWhitePawns() : bd.getBlackPawns();
-		if (pawnsToTest != 0x0) {
-			pawnEvaluationScore = evaluatePawnsForColour(pm.getOnMove());
-		}
-		pawnsToTest = (!pm.onMoveIsWhite()) ? bd.getWhitePawns() : bd.getBlackPawns();
-		if (pawnsToTest != 0x0) {
-			pawnEvaluationScore -= evaluatePawnsForColour(Colour.getOpposite(pm.getOnMove()));
+		boolean isWhite = pm.onMoveIsWhite();
+		long pawnsToTest = isWhite ? bd.getWhitePawns() : bd.getBlackPawns();
+		long enemyPawns = isWhite ? bd.getBlackPawns() : bd.getWhitePawns();
+		if (pawnsToTest != 0x0 || enemyPawns != 0x0) {
+			white_pawn_attacks = bd.paa.getPawnAttacks(false);
+			black_pawn_attacks = bd.paa.getPawnAttacks(true);
+			own_pawn_attacks = isWhite ? white_pawn_attacks : black_pawn_attacks;
+			enemy_pawn_attacks = isWhite ? black_pawn_attacks : white_pawn_attacks;
+			if (pawnsToTest != 0x0) {
+				pawnEvaluationScore = evaluatePawnsForColour(pm.getOnMove());
+			}
+			long temp = own_pawn_attacks; 
+			own_pawn_attacks = enemy_pawn_attacks;
+			enemy_pawn_attacks = temp;
+			if (enemyPawns != 0x0) {
+				pawnEvaluationScore -= evaluatePawnsForColour(Colour.getOpposite(pm.getOnMove()));
+			}
 		}
 		return pawnEvaluationScore;
 	}
@@ -139,6 +149,8 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	int piecewisePawnScoreAccumulator = 0;
 	long enemy_pawn_attacks = 0L;
 	long own_pawn_attacks = 0L;
+	long white_pawn_attacks = 0L;
+	long black_pawn_attacks = 0L;
 	
 	@SuppressWarnings("unused")
 	@Override
@@ -212,11 +224,8 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	}
 	
 	private int evaluatePawnsForColour(Colour side) {
-		boolean isWhite = Colour.isWhite(side);
 		this.onMoveIs = side;
 		this.piecewisePawnScoreAccumulator = 0;
-		this.own_pawn_attacks = bd.paa.getPawnAttacks(!isWhite);
-		this.enemy_pawn_attacks = bd.paa.getPawnAttacks(isWhite);
 		int pawnHandicap = -bd.countDoubledPawnsForSide(side)*DOUBLED_PAWN_HANDICAP;
 		bd.forEachPawnOfSide(this, Colour.isBlack(side));
 		return pawnHandicap + piecewisePawnScoreAccumulator;
