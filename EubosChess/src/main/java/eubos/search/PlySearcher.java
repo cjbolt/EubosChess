@@ -17,7 +17,7 @@ import eubos.search.transposition.Transposition;
 public class PlySearcher {
 	
 	private static final int [] ASPIRATION_WINDOW_FALLBACK = 
-		{ Piece.MATERIAL_VALUE_PAWN/4, 2*Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
+		{ Piece.MATERIAL_VALUE_PAWN/2, 2*Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
 	
 	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
 	running with the logging in TUNE_LAZY_EVAL for Eubos2.8 and post processing the logs.
