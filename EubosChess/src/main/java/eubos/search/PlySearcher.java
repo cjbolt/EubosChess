@@ -10,6 +10,7 @@ import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.MoveListIterator;
+import eubos.position.Position;
 import eubos.score.IEvaluate;
 import eubos.search.transposition.ITranspositionAccessor;
 import eubos.search.transposition.Transposition;
@@ -17,7 +18,7 @@ import eubos.search.transposition.Transposition;
 public class PlySearcher {
 	
 	private static final int [] ASPIRATION_WINDOW_FALLBACK = 
-		{ Piece.MATERIAL_VALUE_PAWN/2, 2*Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
+		{ Piece.MATERIAL_VALUE_PAWN/4, 2*Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
 	
 	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
 	running with the logging in TUNE_LAZY_EVAL for Eubos2.8 and post processing the logs.
@@ -798,10 +799,10 @@ public class PlySearcher {
 			
 			// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
 			int lmr = (moveNumber < 6) ? 1 : depth/3;
-//			if ((enemyPassedPawnPresent || isKingInDanger) && lmr > 1) {
-//				// Limit reduction in these circumstances
-//				lmr = 1;
-//			}
+			if (lmr > 1 && (!pos.getTheBoard().me.isEndgame() && pos.enemyAdvancedPassedPawn() != Position.NOPOSITION)) {
+				// Limit reduction in these circumstances
+				lmr = 1;
+			}
 			setAlphaBeta();
 			positionScore = -search(depth-1-lmr);
 			if (positionScore <= alpha[currPly-1]) {

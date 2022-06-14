@@ -1442,7 +1442,7 @@ public class Board {
 
 		// King
 		long kingMask = isWhite ? getWhiteKing() : getBlackKing();
-		boolean isKingOnDarkSq = (kingMask & DARK_SQUARES_MASK) != 0;
+
 		// Attackers
 		long attackingQueensMask = isWhite ? getBlackQueens() : getWhiteQueens();
 		long attackingRooksMask = isWhite ? getBlackRooks() : getWhiteRooks();
@@ -1501,19 +1501,6 @@ public class Board {
 		
 		return evaluation;
 	}
-	
-//	public int evaluateKingSafety(Piece.Colour side) {
-//		int evaluation = 0;
-//		boolean isWhite = Piece.Colour.isWhite(side);
-//		int kingPos = pieceLists.getKingPos(isWhite);
-//
-//		// Then, do king tropism for queen as a bonus
-//		final int[] BLACK_ATTACKERS = {Piece.BLACK_QUEEN, Piece.BLACK_KNIGHT, Piece.BLACK_BISHOP, Piece.BLACK_ROOK};
-//		final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT, Piece.WHITE_BISHOP, Piece.WHITE_ROOK};
-//		evaluation += ktc.getScore(kingPos, isWhite ? BLACK_ATTACKERS: WHITE_ATTACKERS);
-//		
-//		return evaluation;
-//	}
 	
 	public boolean kingInDanger(boolean isWhite) {
 		if (this.me.isEndgame()) return false;

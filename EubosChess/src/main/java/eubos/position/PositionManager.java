@@ -394,7 +394,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 	public void callback(int piece, int atPos) {
 		if (theBoard.isPassedPawn(atPos, enemyColour)) {
 			// get most advanced passed pawn
-			if (Colour.isBlack(enemyColour)) {
+			if (Piece.isBlack(piece)) {
 				if (Position.getRank(atPos) < 4) {
 					if (passedPawnPosition == Position.NOPOSITION ||
 						Position.getRank(atPos) < Position.getRank(passedPawnPosition)) {
@@ -415,8 +415,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 	@Override
 	public int enemyAdvancedPassedPawn() {
 		passedPawnPosition = Position.NOPOSITION;
-		enemyColour = Colour.getOpposite(onMove);
-		theBoard.forEachPawnOfSide(this, Colour.isWhite(onMove));
+		enemyColour = onMove;
+		theBoard.forEachPawnOfSide(this, Colour.isBlack(onMove));
 		return passedPawnPosition;
 	}
 	
