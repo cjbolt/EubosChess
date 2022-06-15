@@ -1,9 +1,13 @@
 package eubos.search;
 
 import java.util.IntSummaryStatistics;
+
+import com.fluxchess.jcpi.models.GenericPiece;
+
 import java.util.Arrays;
 
 import eubos.board.Piece;
+import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
@@ -794,15 +798,15 @@ public class PlySearcher {
 			depth > 3  && 
 		    !needToEscapeCheck && 
 		    Move.isRegular(currMove) &&
-			!(Move.isPawnMove(currMove) && pos.getTheBoard().me.isEndgame()) &&
+			!(Move.isPawnMove(currMove) && 
+					(pos.getTheBoard().me.isEndgame() ||
+					 pos.getTheBoard().isPassedPawn(
+							 Move.getOriginPosition(currMove), 
+							 Piece.isWhite(Move.getOriginPiece(currMove)) ? Colour.white : Colour.black))) &&
 			!pos.isKingInCheck()) {
 			
 			// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
 			int lmr = (moveNumber < 6) ? 1 : depth/3;
-			if (lmr > 1 && (!pos.getTheBoard().me.isEndgame() && pos.enemyAdvancedPassedPawn() != Position.NOPOSITION)) {
-				// Limit reduction in these circumstances
-				lmr = 1;
-			}
 			setAlphaBeta();
 			positionScore = -search(depth-1-lmr);
 			if (positionScore <= alpha[currPly-1]) {
