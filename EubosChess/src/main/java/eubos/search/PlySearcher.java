@@ -793,11 +793,10 @@ public class PlySearcher {
 		int positionScore = 0;
 		boolean passedLmr = false;
 		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
+			moveNumber > 1 && /* Search at least one quiet move */
 			!pe.goForMate() &&
 			depth > 3  &&
-			//alpha[currPly-1] >= (refScore-ASPIRATION_WINDOW_FALLBACK[0]) && // the idea is that we don't do LMR if the position is deteriorating!!!! was (pe.getCrudeEvaluation() >= refScore)
 		    !needToEscapeCheck && 
-		    Move.isRegular(currMove) &&
 			!(Move.isPawnMove(currMove) && 
 					(pos.getTheBoard().me.isEndgame() ||
 					 pos.getTheBoard().isPassedPawn(
@@ -806,11 +805,16 @@ public class PlySearcher {
 			!pos.isKingInCheck()) {
 			
 			// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
-			int lmr = (moveNumber < 6 || (alpha[currPly-1] < (refScore-ASPIRATION_WINDOW_FALLBACK[0]))) ? 1 : depth/3;
-			setAlphaBeta();
-			positionScore = -search(depth-1-lmr);
-			if (positionScore <= alpha[currPly-1]) {
-				passedLmr = true;
+			int lmr = (moveNumber < 6) ? 1 : depth/3;
+			if ((((currPly-1) & 0x1) == 0) && (pe.getCrudeEvaluation() > refScore) && lmr > 1) {
+				lmr -= 1;
+			}
+			if (lmr > 0) {
+				setAlphaBeta();
+				positionScore = -search(depth-1-lmr);
+				if (positionScore <= alpha[currPly-1]) {
+					passedLmr = true;
+				}
 			}
 		}
 		if (!passedLmr) {
