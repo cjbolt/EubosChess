@@ -12,6 +12,7 @@ import eubos.position.MoveList;
 import eubos.position.PositionManager;
 import eubos.score.IEvaluate;
 import eubos.score.ReferenceScore;
+import eubos.score.ReferenceScore.Reference;
 import eubos.search.DrawChecker;
 import eubos.search.KillerList;
 
@@ -42,11 +43,14 @@ public class MiniMaxMoveGenerator implements
 	private KillerList killers;
 	private int alternativeMoveListOrderingScheme = 1;
 	public SearchDebugAgent sda;
+	private Reference ref;
 
 	// Used for unit tests
 	MiniMaxMoveGenerator( FixedSizeTranspositionTable hashMap,
 			IChangePosition pm,
 			IPositionAccessors pos) {
+		score = 0;
+		this.ref = new ReferenceScore(null).getReference();
 		commonInit(hashMap, pm, pos);
 	}
 
@@ -54,9 +58,12 @@ public class MiniMaxMoveGenerator implements
 	public MiniMaxMoveGenerator(FixedSizeTranspositionTable hashMap,
 			String fen,
 			DrawChecker dc,
-			SearchMetricsReporter sr) {
+			SearchMetricsReporter sr,
+			Reference ref) {
 		PositionManager pm = new PositionManager(fen, dc);
 		commonInit(hashMap, pm, pm);
+		this.ref = ref;
+		score = ref.score;
 		if (sr != null)
 			sr.register(sm);
 	}
@@ -67,7 +74,6 @@ public class MiniMaxMoveGenerator implements
 		
 		pe = pos.getPositionEvaluator();
 		sm = new SearchMetrics(pos);
-		score = 0;
 		killers = new KillerList();
 		sda = new SearchDebugAgent(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
 		tta = new TranspositionTableAccessor(hashMap, pos, sda);
@@ -87,15 +93,12 @@ public class MiniMaxMoveGenerator implements
 			byte searchDepth, 
 			SearchMetricsReporter sr)  {
 		boolean foundMate = false;
+		short scoreToUse = (searchDepth > ref.depth) ? score : ref.score;
 		sm.setDepth(searchDepth);
-		ps = new PlySearcher(tta, pc, sm, sr, searchDepth, pm, pos, pe, killers, sda, ml);
+		ps = new PlySearcher(tta, pc, sm, sr, searchDepth, pm, pos, pe, killers, sda, ml, scoreToUse);
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		try {
-			if (EubosEngineMain.ENABLE_ASPIRATION_WINDOWS) {
-				score = (short) ps.searchPly(score);
-			} else {
-				score = (short) ps.searchPly();
-			}
+			score = (short) ps.searchPly(scoreToUse);
 		} catch (Exception e) {
 			Writer buffer = new StringWriter();
 			PrintWriter pw = new PrintWriter(buffer);

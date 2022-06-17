@@ -1,9 +1,6 @@
 package eubos.search;
 
 import java.util.IntSummaryStatistics;
-
-import com.fluxchess.jcpi.models.GenericPiece;
-
 import java.util.Arrays;
 
 import eubos.board.Piece;
@@ -14,7 +11,6 @@ import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.MoveListIterator;
-import eubos.position.Position;
 import eubos.score.IEvaluate;
 import eubos.search.transposition.ITranspositionAccessor;
 import eubos.search.transposition.Transposition;
@@ -97,6 +93,7 @@ public class PlySearcher {
 	private byte currPly = 0;
 	private byte originalSearchDepthRequiredInPly = 0;
 	private byte extendedSearchDeepestPly = 0;
+	private short refScore;
 	
 	private MoveList ml;
 	
@@ -115,7 +112,8 @@ public class PlySearcher {
 			IEvaluate pe,
 			KillerList killers,
 			SearchDebugAgent sda,
-			MoveList ml) {
+			MoveList ml,
+			short refScore) {
 		currPly = 0;
 		
 		this.alpha = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
@@ -132,6 +130,7 @@ public class PlySearcher {
 		this.pe = pe;
 		this.sr = sr;
 		this.sda = sda;
+		this.refScore = refScore;
 		originalSearchDepthRequiredInPly = searchDepthPly;
 		
 		tt = hashMap;
@@ -148,71 +147,71 @@ public class PlySearcher {
 	}
 	private synchronized boolean isTerminated() { return terminate; }	
 	
-	public int searchPly()  {
-		currPly = 0;
-		extendedSearchDeepestPly = 0;
-		this.alpha[0] = Score.PROVISIONAL_ALPHA;
-		this.beta[0] = Score.PROVISIONAL_BETA;
-		return (short) searchRoot(originalSearchDepthRequiredInPly);
-	}
-	
 	public int searchPly(short lastScore)  {
 		currPly = 0;
 		extendedSearchDeepestPly = 0;
-		lastAspirationFailed = false;
 		short score = 0;
-		int fail_count = 0;
 		
-		// Adjust the aspiration window, according to the last score, if searching to sufficient depth
-		int alpha = Score.PROVISIONAL_ALPHA;
-		int beta = Score.PROVISIONAL_BETA;
-		if (originalSearchDepthRequiredInPly >= 5) {
-			int windowSize = Score.isMate(lastScore) ? 1 : ASPIRATION_WINDOW_FALLBACK[fail_count];
-			alpha = lastScore - windowSize;
-			beta = lastScore + windowSize;
-		}
-		
-		while (!isTerminated()) {
-			this.alpha[0] = alpha;
-			this.beta[0] = beta;
+		if (EubosEngineMain.ENABLE_ASPIRATION_WINDOWS) {
+			lastAspirationFailed = false;
+			int fail_count = 0;
 			
-			score = (short) searchRoot(originalSearchDepthRequiredInPly);
-	
-			if (Score.isProvisional(score)) {
-				lastAspirationFailed = true;
-				EubosEngineMain.logger.info("Aspiration Window failed - no score, illegal position");
-	            break;
-        	} else if (isTerminated() && score ==0) {
-        		// Early termination, didn't back up a score at the last ply			
-        	} else if (score <= alpha) {
-        		// Failed low, adjust window
-        		lastAspirationFailed = true;
-        		fail_count++;
-	        	if (!Score.isMate(lastScore) && fail_count < ASPIRATION_WINDOW_FALLBACK.length-1) {
-	        		alpha = lastScore - ASPIRATION_WINDOW_FALLBACK[fail_count];
-	        	} else {
-	        		alpha = Score.PROVISIONAL_ALPHA;
-	        	}
-	        } else if (score >= beta) {
-	        	// Failed high, adjust window
-	        	lastAspirationFailed = true;
-	        	fail_count++;
-	        	if (!Score.isMate(lastScore) && fail_count < ASPIRATION_WINDOW_FALLBACK.length-1) {
-	        		beta = lastScore + ASPIRATION_WINDOW_FALLBACK[fail_count];
-	        	} else {
-	        		beta = Score.PROVISIONAL_BETA;
-	        	}
-	        } else {
-	        	// Exact score in window returned
-	        	lastAspirationFailed = false;
-	            break;
-	        }
-			if (lastAspirationFailed) {
-				EubosEngineMain.logger.info(String.format("Aspiration Window failed count=%d score=%d alpha=%d beta=%d depth=%d",
-        				fail_count, score, alpha, beta, originalSearchDepthRequiredInPly));
-				if (sr != null)
-					sr.resetAfterWindowingFail();
+			// Adjust the aspiration window, according to the last score, if searching to sufficient depth
+			int alpha = Score.PROVISIONAL_ALPHA;
+			int beta = Score.PROVISIONAL_BETA;
+			if (originalSearchDepthRequiredInPly >= 5) {
+				int windowSize = Score.isMate(lastScore) ? 1 : ASPIRATION_WINDOW_FALLBACK[fail_count];
+				alpha = lastScore - windowSize;
+				beta = lastScore + windowSize;
 			}
+			
+			while (!isTerminated()) {
+				this.alpha[0] = alpha;
+				this.beta[0] = beta;
+				
+				score = (short) searchRoot(originalSearchDepthRequiredInPly);
+		
+				if (Score.isProvisional(score)) {
+					lastAspirationFailed = true;
+					EubosEngineMain.logger.info("Aspiration Window failed - no score, illegal position");
+		            break;
+	        	} else if (isTerminated() && score ==0) {
+	        		// Early termination, didn't back up a score at the last ply			
+	        	} else if (score <= alpha) {
+	        		// Failed low, adjust window
+	        		lastAspirationFailed = true;
+	        		fail_count++;
+		        	if (!Score.isMate(lastScore) && fail_count < ASPIRATION_WINDOW_FALLBACK.length-1) {
+		        		alpha = lastScore - ASPIRATION_WINDOW_FALLBACK[fail_count];
+		        	} else {
+		        		alpha = Score.PROVISIONAL_ALPHA;
+		        	}
+		        } else if (score >= beta) {
+		        	// Failed high, adjust window
+		        	lastAspirationFailed = true;
+		        	fail_count++;
+		        	if (!Score.isMate(lastScore) && fail_count < ASPIRATION_WINDOW_FALLBACK.length-1) {
+		        		beta = lastScore + ASPIRATION_WINDOW_FALLBACK[fail_count];
+		        	} else {
+		        		beta = Score.PROVISIONAL_BETA;
+		        	}
+		        } else {
+		        	// Exact score in window returned
+		        	lastAspirationFailed = false;
+		            break;
+		        }
+				if (lastAspirationFailed) {
+					EubosEngineMain.logger.info(String.format("Aspiration Window failed count=%d score=%d alpha=%d beta=%d depth=%d",
+	        				fail_count, score, alpha, beta, originalSearchDepthRequiredInPly));
+					if (sr != null)
+						sr.resetAfterWindowingFail();
+				}
+			}
+		} else {
+			// Not using aspiration windows
+			this.alpha[0] = Score.PROVISIONAL_ALPHA;
+			this.beta[0] = Score.PROVISIONAL_BETA;
+			score = (short) searchRoot(originalSearchDepthRequiredInPly);
 		}
 		return score;
 	}
@@ -795,7 +794,8 @@ public class PlySearcher {
 		boolean passedLmr = false;
 		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
 			!pe.goForMate() &&
-			depth > 3  && 
+			depth > 3  &&
+			//alpha[currPly-1] >= (refScore-ASPIRATION_WINDOW_FALLBACK[0]) && // the idea is that we don't do LMR if the position is deteriorating!!!! was (pe.getCrudeEvaluation() >= refScore)
 		    !needToEscapeCheck && 
 		    Move.isRegular(currMove) &&
 			!(Move.isPawnMove(currMove) && 
@@ -806,7 +806,7 @@ public class PlySearcher {
 			!pos.isKingInCheck()) {
 			
 			// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
-			int lmr = (moveNumber < 6) ? 1 : depth/3;
+			int lmr = (moveNumber < 6 || (alpha[currPly-1] < (refScore-ASPIRATION_WINDOW_FALLBACK[0]))) ? 1 : depth/3;
 			setAlphaBeta();
 			positionScore = -search(depth-1-lmr);
 			if (positionScore <= alpha[currPly-1]) {
