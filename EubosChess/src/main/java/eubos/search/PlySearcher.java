@@ -806,9 +806,9 @@ public class PlySearcher {
 			
 			// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
 			int lmr = (moveNumber < 6) ? 1 : depth/3;
-			if ((((currPly-1) & 0x1) == 0) && (pe.getCrudeEvaluation() > refScore) && lmr > 1) {
-				lmr -= 1;
-			}
+			//if ((((currPly-1) & 0x1) == 0) && (pe.getCrudeEvaluation() > refScore) && lmr > 1) {
+			//	lmr -= 1;
+			//}
 			if (lmr > 0) {
 				setAlphaBeta();
 				positionScore = -search(depth-1-lmr);
