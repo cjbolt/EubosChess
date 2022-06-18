@@ -78,7 +78,6 @@ public class PlySearcher {
 		boolean isCutOff;
 		int hashScore;
 		boolean inCheck;
-		boolean inCheckValid;
 	};
 	
 	private SearchState searchStateAtPly[];
@@ -239,9 +238,7 @@ public class PlySearcher {
 		}
 		
 		// Extend search for in-check scenarios, treated outside of quiescence search
-		if (!this.searchStateAtPly[currPly].inCheckValid) {
-			this.searchStateAtPly[0].inCheck = pos.isKingInCheck();
-		}
+		this.searchStateAtPly[0].inCheck = pos.isKingInCheck();
 		if (this.searchStateAtPly[0].inCheck) {
 			++depth;
 		}
@@ -403,9 +400,6 @@ public class PlySearcher {
 		}
 		
 		// Extend search for in-check scenarios, treated outside of quiescence search
-		if (!this.searchStateAtPly[currPly].inCheckValid) {
-			this.searchStateAtPly[currPly].inCheck = pos.isKingInCheck();
-		}
 		if (this.searchStateAtPly[currPly].inCheck) {
 			++depth;
 		}
@@ -625,7 +619,6 @@ public class PlySearcher {
 				pm.performMove(currMove);
 				
 				this.searchStateAtPly[currPly].inCheck = pos.isKingInCheck();
-				this.searchStateAtPly[currPly].inCheckValid = true;
 				positionScore = (short) -extendedSearch(-beta, -alpha);
 				
 				pm.unperformMove();
@@ -793,6 +786,7 @@ public class PlySearcher {
 		pm.performNullMove();
 		this.searchStateAtPly[currPly].alpha = -this.searchStateAtPly[currPly-1].beta;
 		this.searchStateAtPly[currPly].beta = -this.searchStateAtPly[currPly-1].beta+1;
+		this.searchStateAtPly[currPly].inCheck = this.searchStateAtPly[currPly].inCheck;
 		plyScore = -search(depth-1-R, false);
 		pm.unperformNullMove();
 		currPly--;
@@ -802,7 +796,8 @@ public class PlySearcher {
 	private int doLateMoveReductionSubTreeSearch(int depth, int currMove, int moveNumber) {
 		int positionScore = 0;
 		boolean passedLmr = false;
-		this.searchStateAtPly[currPly].inCheckValid = false;
+		this.searchStateAtPly[currPly].inCheck = pos.isKingInCheck();
+		
 		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
 			moveNumber > 1 && /* Search at least one quiet move */
 			!pe.goForMate() &&
@@ -812,22 +807,19 @@ public class PlySearcher {
 					(pos.getTheBoard().me.isEndgame() ||
 					 pos.getTheBoard().isPassedPawn(
 							 Move.getOriginPosition(currMove), 
-							 Piece.isWhite(Move.getOriginPiece(currMove)) ? Colour.white : Colour.black)))) {
+							 Piece.isWhite(Move.getOriginPiece(currMove)) ? Colour.white : Colour.black))) && 
+			!this.searchStateAtPly[currPly].inCheck) {		
 			
-			this.searchStateAtPly[currPly].inCheck = pos.isKingInCheck();
-			this.searchStateAtPly[currPly].inCheckValid = true;
-			if (!this.searchStateAtPly[currPly].inCheck) {				
-				// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
-				int lmr = (moveNumber < 6) ? 1 : depth/3;
-				//if ((((currPly-1) & 0x1) == 0) && (pe.getCrudeEvaluation() > refScore) && lmr > 1) {
-				//	lmr -= 1;
-				//}
-				if (lmr > 0) {
-					setAlphaBeta();
-					positionScore = -search(depth-1-lmr);
-					if (positionScore <= this.searchStateAtPly[currPly-1].alpha) {
-						passedLmr = true;
-					}
+			// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
+			int lmr = (moveNumber < 6) ? 1 : depth/3;
+			//if ((((currPly-1) & 0x1) == 0) && (pe.getCrudeEvaluation() > refScore) && lmr > 1) {
+			//	lmr -= 1;
+			//}
+			if (lmr > 0) {
+				setAlphaBeta();
+				positionScore = -search(depth-1-lmr);
+				if (positionScore <= this.searchStateAtPly[currPly-1].alpha) {
+					passedLmr = true;
 				}
 			}
 		}

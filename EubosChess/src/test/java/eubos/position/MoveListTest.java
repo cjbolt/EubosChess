@@ -9,6 +9,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.Piece;
+import eubos.main.EubosEngineMain;
 import eubos.search.KillerList;
 
 public class MoveListTest {
@@ -306,6 +307,11 @@ public class MoveListTest {
 		
 		// Promotion
 		assertEquals(new GenericMove("a7a8Q"), Move.toGenericMove(it.nextInt()));
+		if (EubosEngineMain.ENABLE_PERFT) {
+			assertEquals(new GenericMove("a7a8R"), Move.toGenericMove(it.nextInt()));
+			assertEquals(new GenericMove("a7a8B"), Move.toGenericMove(it.nextInt()));
+			assertEquals(new GenericMove("a7a8N"), Move.toGenericMove(it.nextInt()));
+		}
 		assertFalse(it.hasNext());
 		
 		it = classUnderTest.getNextMovesAtPly(1);
@@ -333,7 +339,7 @@ public class MoveListTest {
 			} while (normal_it.hasNext());
 			normal_it = classUnderTest.getNextMovesAtPly(1);
 		} while (normal_it.hasNext());
-		assertEquals(52, countOfStandardMoves); // Don't generate under promotions at ply 1, only at ply 0.
+		assertEquals(EubosEngineMain.ENABLE_PERFT ? 55 : 52, countOfStandardMoves); // Don't generate under promotions at ply 1, only at ply 0.
 	}
 	
 	@Test
