@@ -818,7 +818,7 @@ public class PlySearcher {
 			if (lmr > 0) {
 				setAlphaBeta();
 				positionScore = -search(depth-1-lmr);
-				if (positionScore <= this.searchStateAtPly[currPly-1].alpha) {
+				if (positionScore <= this.searchStateAtPly[currPly].alpha) {
 					passedLmr = true;
 				}
 			}
