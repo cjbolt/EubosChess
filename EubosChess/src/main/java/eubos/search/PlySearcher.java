@@ -786,7 +786,7 @@ public class PlySearcher {
 		pm.performNullMove();
 		this.searchStateAtPly[currPly].alpha = -this.searchStateAtPly[currPly-1].beta;
 		this.searchStateAtPly[currPly].beta = -this.searchStateAtPly[currPly-1].beta+1;
-		this.searchStateAtPly[currPly].inCheck = this.searchStateAtPly[currPly].inCheck;
+		this.searchStateAtPly[currPly].inCheck = this.searchStateAtPly[currPly-1].inCheck;
 		plyScore = -search(depth-1-R, false);
 		pm.unperformNullMove();
 		currPly--;
