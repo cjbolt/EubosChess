@@ -80,7 +80,7 @@ public class PlySearcher {
 		boolean inCheck;
 	};
 	
-	private SearchState searchStateAtPly[];
+	private SearchState state[];
 	
 	private IChangePosition pm;
 	private IPositionAccessors pos;
@@ -121,9 +121,9 @@ public class PlySearcher {
 			MoveList ml,
 			short refScore) {
 		currPly = 0;
-		searchStateAtPly = new SearchState[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
-		for (int i=0; i < searchStateAtPly.length; i++) {
-			searchStateAtPly[i] = new SearchState();
+		state = new SearchState[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
+		for (int i=0; i < state.length; i++) {
+			state[i] = new SearchState();
 		}
 		
 		this.pc = pc;
@@ -169,8 +169,8 @@ public class PlySearcher {
 			}
 			
 			while (!isTerminated()) {
-				this.searchStateAtPly[0].alpha = alpha;
-				this.searchStateAtPly[0].beta = beta;
+				state[0].alpha = alpha;
+				state[0].beta = beta;
 				
 				score = (short) searchRoot(originalSearchDepthRequiredInPly);
 		
@@ -212,8 +212,8 @@ public class PlySearcher {
 			}
 		} else {
 			// Not using aspiration windows
-			this.searchStateAtPly[0].alpha = Score.PROVISIONAL_ALPHA;
-			this.searchStateAtPly[0].beta = Score.PROVISIONAL_BETA;
+			state[0].alpha = Score.PROVISIONAL_ALPHA;
+			state[0].beta = Score.PROVISIONAL_BETA;
 			score = (short) searchRoot(originalSearchDepthRequiredInPly);
 		}
 		return score;
@@ -223,23 +223,23 @@ public class PlySearcher {
 		
 		int plyScore = Score.PROVISIONAL_ALPHA;
 		hasSearchedPv = false;
-		this.searchStateAtPly[0].isCutOff = false;
-		this.searchStateAtPly[0].hashScore = plyScore;
-		this.searchStateAtPly[0].alphaOriginal = this.searchStateAtPly[0].alpha;
+		state[0].isCutOff = false;
+		state[0].hashScore = plyScore;
+		state[0].alphaOriginal = state[0].alpha;
 		
 		// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
 		// It will deviate from the hash move when we start updating the hash during iterative deepening.
-		this.searchStateAtPly[0].prevBestMove = Move.clearBest(pc.getBestMove((byte)0));
+		state[0].prevBestMove = Move.clearBest(pc.getBestMove((byte)0));
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(0);
 		
 		if (SearchDebugAgent.DEBUG_ENABLED) {
 			sda.printStartPlyInfo(pos, originalSearchDepthRequiredInPly);
-			sda.printNormalSearch(this.searchStateAtPly[0].alpha, this.searchStateAtPly[0].beta);
+			sda.printNormalSearch(state[0].alpha, state[0].beta);
 		}
 		
 		// Extend search for in-check scenarios, treated outside of quiescence search
-		this.searchStateAtPly[0].inCheck = pos.isKingInCheck();
-		if (this.searchStateAtPly[0].inCheck) {
+		state[0].inCheck = pos.isKingInCheck();
+		if (state[0].inCheck) {
 			++depth;
 		}
 		if (ENABLE_EXTRA_EXTENSIONS) {
@@ -259,11 +259,11 @@ public class PlySearcher {
 		long trans = tt.getTransposition();
 		if (trans != 0L) {
 			evaluateTransposition(trans, depth);
-			if (this.searchStateAtPly[0].isCutOff) {
-				sm.setPrincipalVariationDataFromHash(0, (short)this.searchStateAtPly[0].hashScore);
+			if (state[0].isCutOff) {
+				sm.setPrincipalVariationDataFromHash(0, (short)state[0].hashScore);
 				if (sr != null)
 					sr.reportPrincipalVariation(sm);
-				return this.searchStateAtPly[0].hashScore;
+				return state[0].hashScore;
 			}
 		}
 			
@@ -274,13 +274,13 @@ public class PlySearcher {
 		int moveNumber = 0;
 		int quietOffset = 0;
 		boolean refuted = false;
-		ml.initialiseAtPly(this.searchStateAtPly[0].prevBestMove, killers.getMoves(0), this.searchStateAtPly[0].inCheck, false, 0);
+		ml.initialiseAtPly(state[0].prevBestMove, killers.getMoves(0), state[0].inCheck, false, 0);
 		do {
 			MoveListIterator move_iter = ml.getNextMovesAtPly(0);
 			if (!move_iter.hasNext()) {
 				if (moveNumber == 0) {
 					// No moves at this point means either a stalemate or checkmate has occurred
-					return this.searchStateAtPly[0].inCheck ? Score.getMateScore(0) : 0;
+					return state[0].inCheck ? Score.getMateScore(0) : 0;
 				} else {
 					// As soon as there are no more moves returned from staged move generation, break out, if we already searched a move
 					break;
@@ -305,7 +305,7 @@ public class PlySearcher {
 						sr.reportCurrentMove();
 				}
 				
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(this.searchStateAtPly[0].alpha, this.searchStateAtPly[0].beta);
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(state[0].alpha, state[0].beta);
 				if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(0);
 				
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
@@ -325,20 +325,20 @@ public class PlySearcher {
 				if (isTerminated()) { return 0;	} // don't update PV if out of time for search, instead return last fully searched PV.
 				
 				// Handle score backed up to this node
-				if (positionScore > this.searchStateAtPly[0].alpha) {
-					this.searchStateAtPly[0].alpha = plyScore = positionScore;
+				if (positionScore > state[0].alpha) {
+					state[0].alpha = plyScore = positionScore;
 					bestMove = currMove;
 					pc.update(0, bestMove);
-					if (this.searchStateAtPly[0].alpha >= this.searchStateAtPly[0].beta) {
-						plyScore = this.searchStateAtPly[0].beta; // fail hard
+					if (state[0].alpha >= state[0].beta) {
+						plyScore = state[0].beta; // fail hard
 						killers.addMove(0, bestMove);
-						reportPv((short) this.searchStateAtPly[0].beta);
+						reportPv((short) state[0].beta);
 						if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
 						refuted = true;
 						break;
 					}
-					trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) this.searchStateAtPly[0].alpha, Score.upperBound);
-					reportPv((short) this.searchStateAtPly[0].alpha);
+					trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[0].alpha, Score.upperBound);
+					reportPv((short) state[0].alpha);
 				} 
 				else if (positionScore > plyScore) {
 					bestMove = currMove;
@@ -355,7 +355,7 @@ public class PlySearcher {
 		}
 		
 		// fail hard, so don't return plyScore
-		return this.searchStateAtPly[0].alpha;
+		return state[0].alpha;
 	}
 	
 	int search(int depth)  {
@@ -365,13 +365,13 @@ public class PlySearcher {
 	int search(int depth, boolean nullCheckEnabled)  {
 		
 		int plyScore = Score.PROVISIONAL_ALPHA;
-		this.searchStateAtPly[currPly].alphaOriginal = this.searchStateAtPly[currPly].alpha;
-		this.searchStateAtPly[currPly].isCutOff = false;
-		this.searchStateAtPly[currPly].hashScore = plyScore;
+		state[currPly].alphaOriginal = state[currPly].alpha;
+		state[currPly].isCutOff = false;
+		state[currPly].hashScore = plyScore;
 						
 		// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
 		// It will deviate from the hash move when we start updating the hash during iterative deepening.
-		this.searchStateAtPly[currPly].prevBestMove = Move.clearBest(pc.getBestMove(currPly));
+		state[currPly].prevBestMove = Move.clearBest(pc.getBestMove(currPly));
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
 		// Check for draws by three-fold repetition
@@ -379,14 +379,14 @@ public class PlySearcher {
 		
 		// Mate distance pruning
 		int mating_value = Score.PROVISIONAL_BETA - currPly;
-		if (mating_value < this.searchStateAtPly[currPly].beta) {
-			this.searchStateAtPly[currPly].beta = mating_value;
-		    if (this.searchStateAtPly[currPly].alpha >= mating_value) return mating_value;
+		if (mating_value < state[currPly].beta) {
+			state[currPly].beta = mating_value;
+		    if (state[currPly].alpha >= mating_value) return mating_value;
 		}
 		mating_value = Score.PROVISIONAL_ALPHA + currPly;
-		if (mating_value > this.searchStateAtPly[currPly].alpha) {
-		    this.searchStateAtPly[currPly].alpha = mating_value;
-		    if (this.searchStateAtPly[currPly].beta <= mating_value) return mating_value;
+		if (mating_value > state[currPly].alpha) {
+		    state[currPly].alpha = mating_value;
+		    if (state[currPly].beta <= mating_value) return mating_value;
 		}
 
 		// Absolute depth limit
@@ -396,11 +396,11 @@ public class PlySearcher {
 		
 		if (SearchDebugAgent.DEBUG_ENABLED) {
 			sda.printStartPlyInfo(pos, originalSearchDepthRequiredInPly);
-			sda.printNormalSearch(this.searchStateAtPly[currPly].alpha, this.searchStateAtPly[currPly].beta);
+			sda.printNormalSearch(state[currPly].alpha, state[currPly].beta);
 		}
 		
 		// Extend search for in-check scenarios, treated outside of quiescence search
-		if (this.searchStateAtPly[currPly].inCheck) {
+		if (state[currPly].inCheck) {
 			++depth;
 		}
 		if (ENABLE_EXTRA_EXTENSIONS) {
@@ -418,14 +418,14 @@ public class PlySearcher {
 		}
 		
 		if (depth <= 0) {
-			return extendedSearch(this.searchStateAtPly[currPly].alpha, this.searchStateAtPly[currPly].beta);
+			return extendedSearch(state[currPly].alpha, state[currPly].beta);
 		}
 		
 		long trans = tt.getTransposition();
 		if (trans != 0L) {
 			evaluateTransposition(trans, depth);
-			if (this.searchStateAtPly[currPly].isCutOff) {
-				return this.searchStateAtPly[currPly].hashScore;
+			if (state[currPly].isCutOff) {
+				return state[currPly].hashScore;
 			}
 		}
 		
@@ -436,15 +436,15 @@ public class PlySearcher {
 			nullCheckEnabled &&
 			hasSearchedPv && 
 			!pos.getTheBoard().me.isEndgame() &&
-			!this.searchStateAtPly[currPly].inCheck &&
-			!(Score.isMate((short)this.searchStateAtPly[currPly].beta) || Score.isMate((short)this.searchStateAtPly[currPly].alpha)) && 
-			pe.getCrudeEvaluation()+LAZY_EVAL_THRESHOLD_IN_CP > this.searchStateAtPly[currPly].beta) {
+			!state[currPly].inCheck &&
+			!(Score.isMate((short)state[currPly].beta) || Score.isMate((short)state[currPly].alpha)) && 
+			pe.getCrudeEvaluation()+LAZY_EVAL_THRESHOLD_IN_CP > state[currPly].beta) {
 			
 			plyScore = doNullMoveSubTreeSearch(depth);
 			if (isTerminated()) { return 0; }
 			
-			if (plyScore >= this.searchStateAtPly[currPly].beta) {
-				return this.searchStateAtPly[currPly].beta;
+			if (plyScore >= state[currPly].beta) {
+				return state[currPly].beta;
 			} else {
 				plyScore = Score.PROVISIONAL_ALPHA;
 			}
@@ -457,13 +457,13 @@ public class PlySearcher {
 		int moveNumber = 0;
 		int quietOffset = 0;
 		boolean refuted = false;
-		ml.initialiseAtPly(this.searchStateAtPly[currPly].prevBestMove, killers.getMoves(currPly), this.searchStateAtPly[currPly].inCheck, false, currPly);
+		ml.initialiseAtPly(state[currPly].prevBestMove, killers.getMoves(currPly), state[currPly].inCheck, false, currPly);
 		do {
 			MoveListIterator move_iter = ml.getNextMovesAtPly(currPly);
 			if (!move_iter.hasNext()) {
 				if (moveNumber == 0) {
 					// No moves at this point means either a stalemate or checkmate has occurred
-					return this.searchStateAtPly[currPly].inCheck ? Score.getMateScore(currPly) : 0;
+					return state[currPly].inCheck ? Score.getMateScore(currPly) : 0;
 				} else {
 					// As soon as there are no more moves returned from staged move generation, break out, if we already searched a move
 					break;
@@ -483,7 +483,7 @@ public class PlySearcher {
 					quietOffset = moveNumber;
 				}
 				
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(this.searchStateAtPly[currPly].alpha, this.searchStateAtPly[currPly].beta);
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(state[currPly].alpha, state[currPly].beta);
 				if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 				
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
@@ -503,11 +503,11 @@ public class PlySearcher {
 				if (isTerminated()) { return 0;	} // don't update PV if out of time for search, instead return last fully searched PV.
 				
 				// Handle score backed up to this node
-				if (positionScore > this.searchStateAtPly[currPly].alpha) {
-					this.searchStateAtPly[currPly].alpha = plyScore = positionScore;
+				if (positionScore > state[currPly].alpha) {
+					state[currPly].alpha = plyScore = positionScore;
 					bestMove = currMove;
-					if (this.searchStateAtPly[currPly].alpha >= this.searchStateAtPly[currPly].beta) {
-						plyScore = this.searchStateAtPly[currPly].beta; // fail hard
+					if (state[currPly].alpha >= state[currPly].beta) {
+						plyScore = state[currPly].beta; // fail hard
 						killers.addMove(currPly, bestMove);
 						if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(plyScore);
 						refuted = true;
@@ -527,7 +527,7 @@ public class PlySearcher {
 		}
 		
 		// fail hard, so don't return plyScore
-		return this.searchStateAtPly[currPly].alpha;
+		return state[currPly].alpha;
 	}
 	
 	@SuppressWarnings("unused")
@@ -594,7 +594,7 @@ public class PlySearcher {
 		int currMove = Move.NULL_MOVE;
 		int positionScore = plyScore;
 		int moveNumber = 0;
-		ml.initialiseAtPly(prevBestMove, null, this.searchStateAtPly[currPly].inCheck, true, currPly);
+		ml.initialiseAtPly(prevBestMove, null, state[currPly].inCheck, true, currPly);
 		do {
 			MoveListIterator move_iter = ml.getNextMovesAtPly(currPly);
 			if (!move_iter.hasNext()) {
@@ -618,7 +618,7 @@ public class PlySearcher {
 				currPly++;
 				pm.performMove(currMove);
 				
-				this.searchStateAtPly[currPly].inCheck = pos.isKingInCheck();
+				state[currPly].inCheck = pos.isKingInCheck();
 				positionScore = (short) -extendedSearch(-beta, -alpha);
 				
 				pm.unperformMove();
@@ -662,7 +662,7 @@ public class PlySearcher {
 		
 		if (depth <= Transposition.getDepthSearchedInPly(trans)) {
 			int type = Transposition.getType(trans);
-			this.searchStateAtPly[currPly].isCutOff = false;
+			state[currPly].isCutOff = false;
 			override_trans_move = checkForRepetitionDueToPositionInSearchTree(Transposition.getBestMove(trans));
 			
 			if (!override_trans_move || (override_trans_move && type != Score.exact)) {
@@ -670,19 +670,19 @@ public class PlySearcher {
 				
 				// If the hashed data is now drawing, due to the position in the search tree, score it accordingly, but still check
 				// if it is good enough for a refutation.
-				this.searchStateAtPly[currPly].hashScore = !override_trans_move ? convertMateScoreForPositionInSearchTree(Transposition.getScore(trans)) : 0;
+				state[currPly].hashScore = !override_trans_move ? convertMateScoreForPositionInSearchTree(Transposition.getScore(trans)) : 0;
 				switch(type) {
 				case Score.exact:
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
-					this.searchStateAtPly[currPly].isCutOff = true;
+					state[currPly].isCutOff = true;
 					break;
 				case Score.upperBound:
-					this.searchStateAtPly[currPly].beta = Math.min(this.searchStateAtPly[currPly].beta, this.searchStateAtPly[currPly].hashScore);
+					state[currPly].beta = Math.min(state[currPly].beta, state[currPly].hashScore);
 					check_for_refutation = true;
 					break;
 				case Score.lowerBound:
-					this.searchStateAtPly[currPly].alpha = Math.max(this.searchStateAtPly[currPly].alpha, this.searchStateAtPly[currPly].hashScore);
-					this.searchStateAtPly[currPly].alphaOriginal = this.searchStateAtPly[currPly].alpha;
+					state[currPly].alpha = Math.max(state[currPly].alpha, state[currPly].hashScore);
+					state[currPly].alphaOriginal = state[currPly].alpha;
 					check_for_refutation = true;
 					break;
 				case Score.typeUnknown:
@@ -693,33 +693,33 @@ public class PlySearcher {
 				
 				if (check_for_refutation) {
 					// Determine if good enough for a refutation...
-					if (this.searchStateAtPly[currPly].alpha >= this.searchStateAtPly[currPly].beta) {
+					if (state[currPly].alpha >= state[currPly].beta) {
 						if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsRefutation(pos.getHash(), trans);
 						killers.addMove(currPly, Transposition.getBestMove(trans));
-						this.searchStateAtPly[currPly].isCutOff = true;
+						state[currPly].isCutOff = true;
 					}
 				}
-				if (this.searchStateAtPly[currPly].isCutOff) {
+				if (state[currPly].isCutOff) {
 					// Refutation or exact score already known to require search depth, cut off the Search
 					pc.set(currPly, Transposition.getBestMove(trans));
 				    if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
-				    if (SearchDebugAgent.DEBUG_ENABLED) sda.printCutOffWithScore(this.searchStateAtPly[currPly].hashScore);
+				    if (SearchDebugAgent.DEBUG_ENABLED) sda.printCutOffWithScore(state[currPly].hashScore);
 				}
 			}
 		}
 		// Transposition may still be useful to seed the move list, if not drawing.
-		if (!override_trans_move || (override_trans_move && this.searchStateAtPly[currPly].prevBestMove == Move.NULL_MOVE)) {
+		if (!override_trans_move || (override_trans_move && state[currPly].prevBestMove == Move.NULL_MOVE)) {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-			this.searchStateAtPly[currPly].prevBestMove = Transposition.getBestMove(trans);
+			state[currPly].prevBestMove = Transposition.getBestMove(trans);
 		}
 	}
 	
 	private long updateTranspositionTable(long trans, byte depth, int currMove, short plyScore) {
 		byte plyBound = Score.typeUnknown;
-		if (plyScore <= this.searchStateAtPly[currPly].alphaOriginal) {
+		if (plyScore <= state[currPly].alphaOriginal) {
 			// Didn't raise alpha
 			plyBound = Score.upperBound;
-		} else if (plyScore >= this.searchStateAtPly[currPly].beta) {
+		} else if (plyScore >= state[currPly].beta) {
 			// A beta cut-off, alpha raise was 'too good'
 			plyBound = Score.lowerBound;
 		} else {
@@ -774,8 +774,8 @@ public class PlySearcher {
 	}
 	
 	private void setAlphaBeta() {
-		this.searchStateAtPly[currPly].alpha = -this.searchStateAtPly[currPly-1].beta;
-		this.searchStateAtPly[currPly].beta = -this.searchStateAtPly[currPly-1].alpha;
+		state[currPly].alpha = -state[currPly-1].beta;
+		state[currPly].beta = -state[currPly-1].alpha;
 	}
 	
 	private int doNullMoveSubTreeSearch(int depth) {
@@ -784,9 +784,9 @@ public class PlySearcher {
 		if (depth > 6) R = 3;
 		currPly++;
 		pm.performNullMove();
-		this.searchStateAtPly[currPly].alpha = -this.searchStateAtPly[currPly-1].beta;
-		this.searchStateAtPly[currPly].beta = -this.searchStateAtPly[currPly-1].beta+1;
-		this.searchStateAtPly[currPly].inCheck = this.searchStateAtPly[currPly-1].inCheck;
+		state[currPly].alpha = -state[currPly-1].beta;
+		state[currPly].beta = -state[currPly-1].beta+1;
+		state[currPly].inCheck = state[currPly-1].inCheck;
 		plyScore = -search(depth-1-R, false);
 		pm.unperformNullMove();
 		currPly--;
@@ -796,19 +796,19 @@ public class PlySearcher {
 	private int doLateMoveReductionSubTreeSearch(int depth, int currMove, int moveNumber) {
 		int positionScore = 0;
 		boolean passedLmr = false;
-		this.searchStateAtPly[currPly].inCheck = pos.isKingInCheck();
+		state[currPly].inCheck = pos.isKingInCheck();
 		
 		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
 			moveNumber > 1 && /* Search at least one quiet move */
 			!pe.goForMate() &&
 			depth > 3  &&
-		    !this.searchStateAtPly[currPly-1].inCheck && 
+		    !state[currPly-1].inCheck && 
 			!(Move.isPawnMove(currMove) && 
 					(pos.getTheBoard().me.isEndgame() ||
 					 pos.getTheBoard().isPassedPawn(
 							 Move.getOriginPosition(currMove), 
 							 Piece.isWhite(Move.getOriginPiece(currMove)) ? Colour.white : Colour.black))) && 
-			!this.searchStateAtPly[currPly].inCheck) {		
+			!state[currPly].inCheck) {		
 			
 			// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
 			int lmr = (moveNumber < 6) ? 1 : depth/3;
@@ -818,7 +818,7 @@ public class PlySearcher {
 			if (lmr > 0) {
 				setAlphaBeta();
 				positionScore = -search(depth-1-lmr);
-				if (positionScore <= this.searchStateAtPly[currPly-1].alpha) {
+				if (positionScore <= state[currPly-1].alpha) {
 					passedLmr = true;
 				}
 			}
