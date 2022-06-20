@@ -78,6 +78,7 @@ public class PlySearcher {
 		int prevBestMove;
 		boolean isCutOff;
 		int hashScore;
+		int crudeEval;
 		boolean inCheck; // not initialised here for reasons of optimisation
 		
 		void initialise(int ply, int alpha, int beta) {
@@ -88,6 +89,11 @@ public class PlySearcher {
 			// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
 			// It will deviate from the hash move when we start updating the hash during iterative deepening.
 			prevBestMove = Move.clearBest(pc.getBestMove((byte)ply));
+		}
+		
+		void update() {
+			inCheck = pos.isKingInCheck();
+			crudeEval = pe.getCrudeEvaluation();
 		}
 	};
 	
@@ -165,7 +171,7 @@ public class PlySearcher {
 		currPly = 0;
 		extendedSearchDeepestPly = 0;
 		short score = 0;
-		state[0].inCheck = pos.isKingInCheck();
+		state[0].update();
 		
 		if (EubosEngineMain.ENABLE_ASPIRATION_WINDOWS) {
 			lastAspirationFailed = false;
@@ -430,7 +436,7 @@ public class PlySearcher {
 			!pos.getTheBoard().me.isEndgame() &&
 			!state[currPly].inCheck &&
 			!(Score.isMate((short)state[currPly].beta) || Score.isMate((short)state[currPly].alpha)) && 
-			pe.getCrudeEvaluation()+LAZY_EVAL_THRESHOLD_IN_CP > state[currPly].beta) {
+			state[currPly].crudeEval+LAZY_EVAL_THRESHOLD_IN_CP > state[currPly].beta) {
 			
 			state[currPly].plyScore = doNullMoveSubTreeSearch(depth);
 			if (isTerminated()) { return 0; }
@@ -537,7 +543,7 @@ public class PlySearcher {
 		state[currPly].plyScore = (short) 0;
 		if (EubosEngineMain.ENABLE_LAZY_EVALUATION && !pos.getTheBoard().me.isEndgame()) {
 			// Phase 1 - crude evaluation
-			state[currPly].plyScore = (short) pe.getCrudeEvaluation();
+			state[currPly].plyScore = (short) state[currPly].crudeEval;
 			if (TUNE_LAZY_EVAL) {
 				lazyStat.nodeCount++;
 			}
@@ -611,7 +617,7 @@ public class PlySearcher {
 				currPly++;
 				pm.performMove(currMove);
 				
-				state[currPly].inCheck = pos.isKingInCheck();
+				state[currPly].update();
 				positionScore = (short) -extendedSearch(-beta, -alpha);
 				
 				pm.unperformMove();
@@ -784,7 +790,7 @@ public class PlySearcher {
 	private int doLateMoveReductionSubTreeSearch(int depth, int currMove, int moveNumber) {
 		int positionScore = 0;
 		boolean passedLmr = false;
-		state[currPly].inCheck = pos.isKingInCheck();
+		state[currPly].update();
 		
 		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
 			moveNumber > 1 && /* Search at least one quiet move */
