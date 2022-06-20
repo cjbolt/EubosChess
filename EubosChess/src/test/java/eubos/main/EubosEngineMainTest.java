@@ -271,7 +271,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 
 		int hashMove = Move.valueOf(Position.b3, Piece.BLACK_QUEEN, Position.d1, Piece.WHITE_ROOK);
 		long hashEntry = Transposition.valueOf((byte)6, (short)0, Score.exact, hashMove);
-		pokeHashEntryAndPerformTest(10000, hashEntry);
+		pokeHashEntryAndPerformTest(12000, hashEntry);
 	}
 	
 	@Test
@@ -454,4 +454,12 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		performTest(1000000000);
 		}
 	}
+	
+//	@Test
+//	public void test_debug_position() throws InterruptedException, IOException {
+//		setupEngine();
+//		commands.add(new CommandPair(POS_FEN_PREFIX+"8/1p6/3KN3/7p/P1P2Pk1/1P6/6b1/8 w - - 0 66"+CMD_TERMINATOR, null));
+//		commands.add(new CommandPair(GO_DEPTH_PREFIX+"7"+CMD_TERMINATOR, BEST_PREFIX+"d6e5"+CMD_TERMINATOR));
+//		performTest(1000000);
+//	}
 }
