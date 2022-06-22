@@ -915,6 +915,30 @@ public class Board {
 		return isPassed;
 	}
 	
+	public boolean isPawnFrontspanBlocked(int atPos, Colour side, long own_attacks, long enemy_attacks) {
+		boolean isClear = true;
+		boolean isWhite = Colour.isWhite(side);
+		// Check frontspan is clear
+		long front_span_mask = BitBoard.PawnFrontSpan_Lut[side.ordinal()][atPos];
+		// Check for enemy pieces blockading
+		long enemy_pieces = isWhite ? blackPieces : whitePieces;
+		if ((enemy_pieces & front_span_mask) != 0L) {
+			isClear = false; 
+		}
+		if (isClear) {
+			// Check that no square in front span is attacked by more enemy pawns than defended by own pawns
+			// Note - could return a second long from paa for squares that are attacked twice by pawns
+			long enemy_attacks_on_frontspan = enemy_attacks & front_span_mask;
+			if (enemy_attacks_on_frontspan != 0L) {
+				long own_attacks_on_frontspan = own_attacks & front_span_mask;
+				if ((enemy_attacks_on_frontspan & own_attacks_on_frontspan) != enemy_attacks_on_frontspan) {
+					isClear = false;
+				}
+			}
+		}
+		return !isClear;
+	}
+	
 	public boolean isCandidatePassedPawn(int atPos, Colour side, long own_pawn_attacks, long enemy_pawn_attacks) {
 		boolean isWhite = Colour.isWhite(side);
 		boolean isCandidate = true;
@@ -1476,7 +1500,6 @@ public class Board {
 		long attackingQueensMask = isWhite ? getBlackQueens() : getWhiteQueens();
 		long attackingRooksMask = isWhite ? getBlackRooks() : getWhiteRooks();
 		long attackingBishopsMask = isWhite ? getBlackBishops() : getWhiteBishops();
-		long attackingKnightsMask = isWhite ? getBlackKnights() : getWhiteKnights();
 
 		// create masks of attackers
 		long pertinentBishopMask = attackingBishopsMask;//& ((isKingOnDarkSq) ? DARK_SQUARES_MASK : LIGHT_SQUARES_MASK);
@@ -1583,7 +1606,7 @@ public class Board {
 		// Knights
 		long knightAttacks = kaa.getAttacks(isBlack);
 		attacks[1] = knightAttacks;
-		attacks[3] |= pawnAttacks;
+		attacks[3] |= knightAttacks;
 		// King
 		long kingAttacks = SquareAttackEvaluator.KingMove_Lut[pieceLists.getKingPos(!isBlack)];
 		attacks[3] |= kingAttacks;

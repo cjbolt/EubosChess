@@ -38,7 +38,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_EvalPosB() {
 		setUpPosition("8/8/1B6/8/8/4Kpk1/8/b7 w - - - 85");
-		assertEquals(-209, SUT.getFullEvaluation());
+		assertEquals(-213, SUT.getFullEvaluation());
 	}
 	
 	@Test
@@ -65,9 +65,9 @@ public class PositionEvaluatorTest {
 		// black
 		int expectedScore = 0;
 		// white
-		expectedScore += 1*3*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP;
-		expectedScore += 2*3*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP;
-		expectedScore += 3*3*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP;
+		expectedScore += (1*3*PASSED_PAWN_BOOST)/2-ISOLATED_PAWN_HANDICAP;
+		expectedScore += (2*3*PASSED_PAWN_BOOST)/2-ISOLATED_PAWN_HANDICAP;
+		expectedScore += (3*3*PASSED_PAWN_BOOST)/2-ISOLATED_PAWN_HANDICAP;
 		expectedScore += -2*DOUBLED_PAWN_HANDICAP;
 		assertEquals(expectedScore, score);
 	}

@@ -109,16 +109,10 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		long pawnsToTest = isWhite ? bd.getWhitePawns() : bd.getBlackPawns();
 		long enemyPawns = isWhite ? bd.getBlackPawns() : bd.getWhitePawns();
 		if (pawnsToTest != 0x0 || enemyPawns != 0x0) {
-			white_pawn_attacks = attacks[0][0]; //bd.paa.getPawnAttacks(false);
-			black_pawn_attacks = attacks[1][0]; //bd.paa.getPawnAttacks(true);
-			own_pawn_attacks = isWhite ? white_pawn_attacks : black_pawn_attacks;
-			enemy_pawn_attacks = isWhite ? black_pawn_attacks : white_pawn_attacks;
+			this.attacks = attacks;
 			if (pawnsToTest != 0x0) {
 				pawnEvaluationScore = evaluatePawnsForColour(pm.getOnMove());
 			}
-			long temp = own_pawn_attacks; 
-			own_pawn_attacks = enemy_pawn_attacks;
-			enemy_pawn_attacks = temp;
 			if (enemyPawns != 0x0) {
 				pawnEvaluationScore -= evaluatePawnsForColour(Colour.getOpposite(pm.getOnMove()));
 			}
@@ -146,18 +140,18 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		return score;
 	}
 	
-	Colour onMoveIs;
 	int piecewisePawnScoreAccumulator = 0;
-	long enemy_pawn_attacks = 0L;
-	long own_pawn_attacks = 0L;
-	long white_pawn_attacks = 0L;
-	long black_pawn_attacks = 0L;
+	long[][] attacks;
 	
 	@SuppressWarnings("unused")
 	@Override
 	public void callback(int piece, int atPos) {
+		boolean isWhite = Piece.isWhite(piece);
+		Piece.Colour onMoveIs = isWhite ? Piece.Colour.white : Piece.Colour.black;
+		long[] enemy_attacks = attacks[isWhite ? 1:0];
+		long[] own_attacks = attacks[isWhite ? 0:1];
 		if (bd.isPassedPawn(atPos, onMoveIs)) {
-			boolean isBlack = Piece.isBlack(piece);
+			boolean isBlack = !isWhite;
 			int queeningDistance = Position.getRank(atPos);
 			int weighting = 1;
 			if (isBlack) {
@@ -192,29 +186,34 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 				// scale weighting for game phase as well as promotion proximity, up to 3x
 				int scale = 1 + ((bd.me.phase+640) / 4096) + ((bd.me.phase+320) / 4096);
 				weighting *= scale;
-				if (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) {
-					piecewisePawnScoreAccumulator += weighting*ROOK_FILE_PASSED_PAWN_BOOST;
-				} else {
-					piecewisePawnScoreAccumulator += weighting*PASSED_PAWN_BOOST;
+				boolean pawnIsBlocked = bd.isPawnFrontspanBlocked(atPos, onMoveIs, own_attacks[3], enemy_attacks[3]);
+				int value = (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) ?
+						ROOK_FILE_PASSED_PAWN_BOOST : PASSED_PAWN_BOOST;
+				int score = weighting*value;
+				if (pawnIsBlocked) {
+					score /= 2;
 				}
+				piecewisePawnScoreAccumulator += score;
 			}
-		} else if (ENABLE_CANDIDATE_PP_EVALUATION && bd.isCandidatePassedPawn(atPos, onMoveIs, own_pawn_attacks, enemy_pawn_attacks)) {
-			boolean isBlack = Piece.isBlack(piece);
-			int queeningDistance = Position.getRank(atPos);
-			int weighting = 1;
-			if (isBlack) {
-				weighting = 7-queeningDistance;
-			} else {
-				weighting = queeningDistance;
-				queeningDistance = 7-queeningDistance;
-			}
-			// scale weighting for game phase as well as promotion proximity, up to 3x
-			int scale = 1 + ((bd.me.phase+640) / 4096) + ((bd.me.phase+320) / 4096);
-			weighting *= scale;
-			if (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) {
-				piecewisePawnScoreAccumulator += weighting*ROOK_FILE_PASSED_PAWN_BOOST/2;
-			} else {
-				piecewisePawnScoreAccumulator += weighting*PASSED_PAWN_BOOST/2;
+		} else if (ENABLE_CANDIDATE_PP_EVALUATION) {
+			if (bd.isCandidatePassedPawn(atPos, onMoveIs, own_attacks[0], enemy_attacks[0])) {
+				boolean isBlack = Piece.isBlack(piece);
+				int queeningDistance = Position.getRank(atPos);
+				int weighting = 1;
+				if (isBlack) {
+					weighting = 7-queeningDistance;
+				} else {
+					weighting = queeningDistance;
+					queeningDistance = 7-queeningDistance;
+				}
+				// scale weighting for game phase as well as promotion proximity, up to 3x
+				int scale = 1 + ((bd.me.phase+640) / 4096) + ((bd.me.phase+320) / 4096);
+				weighting *= scale;
+				if (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) {
+					piecewisePawnScoreAccumulator += weighting*ROOK_FILE_PASSED_PAWN_BOOST/2;
+				} else {
+					piecewisePawnScoreAccumulator += weighting*PASSED_PAWN_BOOST/2;
+				}
 			}
 		}
 		if (bd.isIsolatedPawn(atPos, onMoveIs)) {
@@ -225,7 +224,6 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 	}
 	
 	private int evaluatePawnsForColour(Colour side) {
-		this.onMoveIs = side;
 		this.piecewisePawnScoreAccumulator = 0;
 		int pawnHandicap = -bd.countDoubledPawnsForSide(side)*DOUBLED_PAWN_HANDICAP;
 		bd.forEachPawnOfSide(this, Colour.isBlack(side));
