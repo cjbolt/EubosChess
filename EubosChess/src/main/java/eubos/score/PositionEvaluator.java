@@ -77,6 +77,7 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		int endgameScore = 0;
 		initialise();
 		if (!isDraw) {
+			long [][] attacks = pm.getAttacks();
 			// Score factors common to each phase, material, pawn structure and piece mobility
 			bd.me.dynamicPosition = 0;
 			score += evaluateBishopPair();
@@ -84,14 +85,14 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 				bd.calculateDynamicMobility(bd.me);
 			}
 			if (ENABLE_PAWN_EVALUATION) {
-				score += evaluatePawnStructure();
+				score += evaluatePawnStructure(attacks);
 			}
 			// Add phase specific static mobility (PSTs)
 			midgameScore = score + (pm.onMoveIsWhite() ? bd.me.getMiddleGameDelta() + bd.me.getPosition() : -(bd.me.getMiddleGameDelta() + bd.me.getPosition()));
 			endgameScore = score + (pm.onMoveIsWhite() ? bd.me.getEndGameDelta() + bd.me.getEndgamePosition() : -(bd.me.getEndGameDelta() + bd.me.getEndgamePosition()));
 			// Add King Safety in middle game
 			if (ENABLE_KING_SAFETY_EVALUATION && !goForMate) {
-				midgameScore += evaluateKingSafety();
+				midgameScore += evaluateKingSafety(attacks);
 			}
 			if (!goForMate) {
 				score = taperEvaluation(midgameScore, endgameScore);
@@ -102,14 +103,14 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		return score;
 	}
 	
-	int evaluatePawnStructure() {
+	int evaluatePawnStructure(long[][] attacks) {
 		int pawnEvaluationScore = 0;
 		boolean isWhite = pm.onMoveIsWhite();
 		long pawnsToTest = isWhite ? bd.getWhitePawns() : bd.getBlackPawns();
 		long enemyPawns = isWhite ? bd.getBlackPawns() : bd.getWhitePawns();
 		if (pawnsToTest != 0x0 || enemyPawns != 0x0) {
-			white_pawn_attacks = bd.paa.getPawnAttacks(false);
-			black_pawn_attacks = bd.paa.getPawnAttacks(true);
+			white_pawn_attacks = attacks[0][0]; //bd.paa.getPawnAttacks(false);
+			black_pawn_attacks = attacks[1][0]; //bd.paa.getPawnAttacks(true);
 			own_pawn_attacks = isWhite ? white_pawn_attacks : black_pawn_attacks;
 			enemy_pawn_attacks = isWhite ? black_pawn_attacks : white_pawn_attacks;
 			if (pawnsToTest != 0x0) {
@@ -125,10 +126,10 @@ public class PositionEvaluator implements IEvaluate, IForEachPieceCallback {
 		return pawnEvaluationScore;
 	}
 	
-	int evaluateKingSafety() {
+	int evaluateKingSafety(long[][] attacks) {
 		int kingSafetyScore = 0;
-		kingSafetyScore = pm.getTheBoard().evaluateKingSafety(pm.getOnMove());
-		kingSafetyScore -= pm.getTheBoard().evaluateKingSafety(Piece.Colour.getOpposite(pm.getOnMove()));
+		kingSafetyScore = pm.getTheBoard().evaluateKingSafety(attacks, pm.getOnMove());
+		kingSafetyScore -= pm.getTheBoard().evaluateKingSafety(attacks, Piece.Colour.getOpposite(pm.getOnMove()));
 		return kingSafetyScore;
 	}
 	

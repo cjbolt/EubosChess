@@ -17,7 +17,12 @@ import eubos.search.DrawChecker;
 
 public class PositionManager implements IChangePosition, IPositionAccessors, IForEachPieceCallback {
 	
+	long[][] attacks;
+	boolean attacksValid;
+	
 	public PositionManager( String fenString, DrawChecker dc) {
+		attacks = new long [2][4];
+		attacksValid = false;
 		moveTracker = new MoveTracker();
 		new fenParser( this, fenString );
 		hash = new ZobristHashCode(this, castling);
@@ -70,7 +75,15 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 	}
 
 	public boolean isKingInCheck() {
-		return theBoard.isKingInCheck(onMoveIsWhite());
+		boolean isWhite = onMoveIsWhite();
+		boolean inCheck = false;
+		if (attacksValid) {
+			long kingMask = isWhite ? theBoard.getWhiteKing() : theBoard.getBlackKing();
+			inCheck = (kingMask & attacks[isWhite ? 1 : 0][3]) != 0L;
+		} else {
+			inCheck = theBoard.isKingInCheck(onMoveIsWhite());
+		}
+		return inCheck;
 	}
 	
 	private ZobristHashCode hash;
@@ -123,7 +136,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 	}
 	
 	public void performMove( int move, boolean computeHash ) {
-
+		attacksValid = false;
+		
 		// Preserve state
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		int capturePosition = theBoard.doMove(move);
@@ -157,6 +171,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 	}
 	
 	public void unperformMove(boolean computeHash) {
+		attacksValid = false;
+		
 		long tm = moveTracker.pop();
 		int move = TrackedMove.getMove(tm);
 		int reversedMove = Move.reverse(move);
@@ -187,6 +203,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 	}
 	
 	public void performNullMove() {
+		
 		// Preserve state
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		theBoard.setEnPassantTargetSq(Position.NOPOSITION);
@@ -204,6 +221,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 	}
 	
 	public void unperformNullMove() {
+
 		long tm = moveTracker.pop();
 		// Restore castling
 		castling.setFlags(TrackedMove.getCastlingFlags(tm));
@@ -422,5 +440,13 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 	
 	public boolean promotablePawnPresent() {
 		return theBoard.isPromotablePawnPresent(Colour.isWhite(onMove));
+	}
+	
+	public long [][] getAttacks() {
+		if (!attacksValid) {
+			return theBoard.getAttackedSquares(attacks);
+		} else {
+			return attacks;
+		}
 	}
 }

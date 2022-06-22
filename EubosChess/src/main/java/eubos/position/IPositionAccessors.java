@@ -20,4 +20,5 @@ public interface IPositionAccessors {
 	public String unwindMoveStack();
 	public int enemyAdvancedPassedPawn();
 	public boolean promotablePawnPresent();
+	public long [][] getAttacks();
 }

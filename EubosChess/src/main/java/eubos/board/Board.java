@@ -58,9 +58,11 @@ public class Board {
 	
 	public PawnAttackAggregator paa;
 	public PawnKnightAttackAggregator pkaa;
+	public KnightAttackAggregator kaa;
 	
 	public Board( Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove ) {
 		paa = new PawnAttackAggregator();
+		kaa = new KnightAttackAggregator();
 		pkaa = new PawnKnightAttackAggregator();
 		ktc = new KingTropismChecker();
 		allPieces = 0x0;
@@ -1145,6 +1147,33 @@ public class Board {
 		}
 	}
 	
+	public class KnightAttackAggregator implements IForEachPieceCallback {
+		
+		public final int[] BLACK_ATTACKERS = {Piece.BLACK_KNIGHT};
+		public final int[] WHITE_ATTACKERS = {Piece.WHITE_KNIGHT};
+		
+		long attackMask = 0L;
+		
+		public void callback(int piece, int position) {
+			long mask = 0L;
+			switch(piece) {
+			case Piece.WHITE_KNIGHT:
+			case Piece.BLACK_KNIGHT:
+				mask = SquareAttackEvaluator.KnightMove_Lut[position];
+				break;
+			default:
+				break;
+			}
+			attackMask |= mask;
+		}
+		
+		public long getAttacks(boolean attackerIsBlack) {
+			attackMask = 0L;
+			pieceLists.forEachPieceOfTypeDoCallback(this, attackerIsBlack ? BLACK_ATTACKERS: WHITE_ATTACKERS);
+			return attackMask;
+		}
+	}
+	
 	public void getRegularPieceMoves(IAddMoves ml, boolean ownSideIsWhite) {
 		if (me.isEndgame()) {
 			if (ownSideIsWhite) {
@@ -1436,7 +1465,7 @@ public class Board {
 	
 	KingTropismChecker ktc;
 	
-	public int evaluateKingSafety(Piece.Colour side) {
+	public int evaluateKingSafety(long[][] attacks, Piece.Colour side) {
 		int evaluation = 0;
 		boolean isWhite = Piece.Colour.isWhite(side);
 
@@ -1491,13 +1520,24 @@ public class Board {
 		}
 		
 		// Then account for Knight proximity to the adjacent squares around the King
-		long pertintentKnightsMask = attackingKnightsMask & knightKingSafetyMask_Lut[kingPos];
-		evaluation += -8*Long.bitCount(pertintentKnightsMask);
+		//long pertintentKnightsMask = attackingKnightsMask & knightKingSafetyMask_Lut[kingPos];
+		//evaluation += -8*Long.bitCount(pertintentKnightsMask);
 		
 		// Then, do king tropism for queen and knight as a bonus
 		final int[] BLACK_ATTACKERS = {Piece.BLACK_QUEEN, Piece.BLACK_KNIGHT};
 		final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT};
 		evaluation += ktc.getScore(kingPos, isWhite ? BLACK_ATTACKERS: WHITE_ATTACKERS);
+		
+		// Then account for attacks on the squares around the king
+		long surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
+		int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3]);
+		int flightCount = Long.bitCount(surroundingSquares);
+		int fraction_attacked_q8 = (attackedCount * 256) / flightCount;
+		evaluation += ((-150 * fraction_attacked_q8) / 256);
+		if (attackedCount == flightCount) {
+			// there are no flight squares, high risk of mate
+			evaluation += -100;
+		}
 		
 		return evaluation;
 	}
@@ -1532,5 +1572,45 @@ public class Board {
 		} else {
 			return ((pieces[Piece.PAWN] & blackPieces & SecondRankMask) != 0x0);
 		}
+	}
+	
+	protected void getAttacksForSide(long [] attacks, boolean isBlack) {
+		attacks[0] = attacks[1] = attacks[2] = attacks[3] = 0L;
+		// Pawns
+		long pawnAttacks = paa.getPawnAttacks(isBlack);
+		attacks[0] = pawnAttacks;
+		attacks[3] |= pawnAttacks;
+		// Knights
+		long knightAttacks = kaa.getAttacks(isBlack);
+		attacks[1] = knightAttacks;
+		attacks[3] |= pawnAttacks;
+		// King
+		long kingAttacks = SquareAttackEvaluator.KingMove_Lut[pieceLists.getKingPos(!isBlack)];
+		attacks[3] |= kingAttacks;
+		// Sliders
+		long sliderAttacks = 0L;
+		long diagonalAttackersMask = isBlack ? getBlackDiagonal() : getWhiteDiagonal();
+		long rankFileAttackersMask = isBlack ? getBlackRankFile() : getWhiteRankFile();
+		long empty = getEmpty();
+		if (diagonalAttackersMask != 0x0L) {
+			sliderAttacks |= BitBoard.downLeftAttacks(diagonalAttackersMask, empty);
+			sliderAttacks |= BitBoard.downRightAttacks(diagonalAttackersMask, empty);
+			sliderAttacks |= BitBoard.upRightAttacks(diagonalAttackersMask, empty);
+			sliderAttacks |= BitBoard.upLeftAttacks(diagonalAttackersMask, empty);
+		}
+		if (rankFileAttackersMask != 0x0L) {
+			sliderAttacks |= BitBoard.downAttacks(rankFileAttackersMask, empty);
+			sliderAttacks |= BitBoard.rightAttacks(rankFileAttackersMask, empty);
+			sliderAttacks |= BitBoard.upAttacks(rankFileAttackersMask, empty);
+			sliderAttacks |= BitBoard.leftAttacks(rankFileAttackersMask, empty);
+		}
+		attacks[2] = sliderAttacks;
+		attacks[3] |= sliderAttacks;
+	}
+	
+	public long[][] getAttackedSquares(long [][] attacks) {
+		getAttacksForSide(attacks[0], false);
+		getAttacksForSide(attacks[1], true);
+		return attacks;
 	}
 }
