@@ -235,12 +235,16 @@ public final class BitBoard {
 	private static long buildFrontSpanMask(int f, int r, boolean isWhite) {
 		long mask = 0;
 		if (isWhite) {
-			for (r=r+1; r < 7; r++) {
-				mask |= 1L << r*8+f;
+			if (r!=7 && r!=0) {
+				for (r=r+1; r <= 7; r++) {
+					mask |= 1L << r*8+f;
+				}
 			}
 		} else {
-			for (r=r-1; r > 0; r--) {
-				mask |= 1L << r*8+f;	
+			if (r!=0 && r!=7) {
+				for (r=r-1; r >= 0; r--) {
+					mask |= 1L << r*8+f;	
+				}
 			}
 		}
 		return mask;
