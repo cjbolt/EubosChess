@@ -712,6 +712,30 @@ public class BoardTest {
 	}
 	
 	@Test
+	public void test_frontspan_isAttackedAndDefended() {
+		setUpPosition("8/1B1b4/8/8/2P5/3K4/8/8 w - - 1 10 ");
+		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, Piece.Colour.white, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
+	}
+	
+	@Test
+	public void test_frontspan_IsAttacked() {
+		setUpPosition("8/3b4/8/8/2P5/3K4/8/8 w - - 1 10 ");
+		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, Piece.Colour.white, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
+	}
+	
+	@Test
+	public void test_frontspan_IsAttackedTwiceDefendedOnce() {
+		setUpPosition("8/3b4/2P6/2P5/3K4/8/8 w - - 1 10 ");
+		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, Piece.Colour.white, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
+	}
+	
+	@Test
+	public void test_frontspan_IsAttackedTwiceDefendedTwice() {
+		setUpPosition("R7/3b4/8/1PP5/3K4/8/8 w - - 1 10 ");
+		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, Piece.Colour.white, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
+	}
+	
+	@Test
 	public void test_evaluateKingSafety_ScoreReporter()throws IllegalNotationException {
 		setUpPosition("4rbk1/1pr2p2/2p2Qp1/p2p4/6RP/2P1PN1q/PP3P2/2K3R1 b - - 9 30 ");
 		assertEquals(-196, classUnderTest.evaluateKingSafety(pm.getAttacks(), Piece.Colour.black));
