@@ -801,7 +801,7 @@ public class PlySearcher {
 					(pos.getTheBoard().me.isEndgame() ||
 					 pos.getTheBoard().isPassedPawn(
 							 Move.getOriginPosition(currMove), 
-							 Piece.isWhite(Move.getOriginPiece(currMove)) ? Colour.white : Colour.black))) && 
+							 Piece.isWhite(Move.getOriginPiece(currMove))))) && 
 			!state[currPly].inCheck) {		
 			
 			// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
