@@ -5,7 +5,6 @@ import com.fluxchess.jcpi.models.IntFile;
 import eubos.board.Board;
 import eubos.board.IForEachPieceCallback;
 import eubos.board.Piece;
-import eubos.board.Piece.Colour;
 import eubos.position.IPositionAccessors;
 import eubos.position.Position;
 
@@ -31,6 +30,9 @@ public class PositionEvaluator implements IEvaluate {
 
 	private static final int BISHOP_PAIR_BOOST = 25;
 	
+	boolean isWhite;
+	int midgameScore = 0;
+	int endgameScore = 0;
 	public boolean isDraw;
 	public short score;
 	public Board bd;
@@ -55,7 +57,10 @@ public class PositionEvaluator implements IEvaluate {
 		boolean insufficient = bd.isInsufficientMaterial();
 		
 		isDraw = (threeFold || insufficient);
+		isWhite = pm.onMoveIsWhite();
 		score = 0;
+		midgameScore = 0;
+		endgameScore = 0;
 	}
 	
 	private short taperEvaluation(int midgameScore, int endgameScore) {
@@ -64,22 +69,18 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	public int getCrudeEvaluation() {
-		int midgameScore = 0;
-		int endgameScore = 0;
 		initialise();
 		if (!isDraw) {
 			bd.me.dynamicPosition = 0;
 			score += evaluateBishopPair();
-			midgameScore = score + (pm.onMoveIsWhite() ? bd.me.getMiddleGameDelta() + bd.me.getPosition() : -(bd.me.getMiddleGameDelta() + bd.me.getPosition()));
-			endgameScore = score + (pm.onMoveIsWhite() ? bd.me.getEndGameDelta() + bd.me.getEndgamePosition() : -(bd.me.getEndGameDelta() + bd.me.getEndgamePosition()));
+			midgameScore = score + (isWhite ? bd.me.getMiddleGameDelta() + bd.me.getPosition() : -(bd.me.getMiddleGameDelta() + bd.me.getPosition()));
+			endgameScore = score + (isWhite ? bd.me.getEndGameDelta() + bd.me.getEndgamePosition() : -(bd.me.getEndGameDelta() + bd.me.getEndgamePosition()));
 			score = taperEvaluation(midgameScore, endgameScore);
 		}
 		return score;
 	}
 	
 	public int getFullEvaluation() {
-		int midgameScore = 0;
-		int endgameScore = 0;
 		initialise();
 		if (!isDraw) {
 			long [][] attacks = pm.getAttacks();
@@ -90,11 +91,11 @@ public class PositionEvaluator implements IEvaluate {
 				bd.calculateDynamicMobility(bd.me);
 			}
 			if (ENABLE_PAWN_EVALUATION) {
-				score += evaluatePawnStructure(attacks);
+				score += pawn_eval.evaluatePawnStructure(attacks);
 			}
 			// Add phase specific static mobility (PSTs)
-			midgameScore = score + (pm.onMoveIsWhite() ? bd.me.getMiddleGameDelta() + bd.me.getPosition() : -(bd.me.getMiddleGameDelta() + bd.me.getPosition()));
-			endgameScore = score + (pm.onMoveIsWhite() ? bd.me.getEndGameDelta() + bd.me.getEndgamePosition() : -(bd.me.getEndGameDelta() + bd.me.getEndgamePosition()));
+			midgameScore = score + (isWhite ? bd.me.getMiddleGameDelta() + bd.me.getPosition() : -(bd.me.getMiddleGameDelta() + bd.me.getPosition()));
+			endgameScore = score + (isWhite ? bd.me.getEndGameDelta() + bd.me.getEndgamePosition() : -(bd.me.getEndGameDelta() + bd.me.getEndgamePosition()));
 			// Add King Safety in middle game
 			if (ENABLE_KING_SAFETY_EVALUATION && !goForMate) {
 				midgameScore += evaluateKingSafety(attacks);
@@ -102,43 +103,26 @@ public class PositionEvaluator implements IEvaluate {
 			if (!goForMate) {
 				score = taperEvaluation(midgameScore, endgameScore);
 			} else {
-				score += pm.onMoveIsWhite() ? bd.me.getMiddleGameDelta() : -bd.me.getMiddleGameDelta();
+				score += isWhite ? bd.me.getMiddleGameDelta() : -bd.me.getMiddleGameDelta();
 			}
 		}
 		return score;
 	}
 	
-	int evaluatePawnStructure(long[][] attacks) {
-		int pawnEvaluationScore = 0;
-		boolean isWhite = pm.onMoveIsWhite();
-		long pawnsToTest = isWhite ? bd.getWhitePawns() : bd.getBlackPawns();
-		long enemyPawns = isWhite ? bd.getBlackPawns() : bd.getWhitePawns();
-		if (pawnsToTest != 0x0 || enemyPawns != 0x0) {
-			pawn_eval.attacks = attacks;
-			if (pawnsToTest != 0x0) {
-				pawnEvaluationScore = pawn_eval.getEvalForSide(pm.getOnMove());
-			}
-			if (enemyPawns != 0x0) {
-				pawnEvaluationScore -= pawn_eval.getEvalForSide(Colour.getOpposite(pm.getOnMove()));
-			}
-		}
-		return pawnEvaluationScore;
-	}
-	
 	int evaluateKingSafety(long[][] attacks) {
 		int kingSafetyScore = 0;
-		kingSafetyScore = pm.getTheBoard().evaluateKingSafety(attacks, pm.getOnMove());
-		kingSafetyScore -= pm.getTheBoard().evaluateKingSafety(attacks, Piece.Colour.getOpposite(pm.getOnMove()));
+		kingSafetyScore = pm.getTheBoard().evaluateKingSafety(attacks, isWhite ? Piece.Colour.white : Piece.Colour.black);
+		kingSafetyScore -= pm.getTheBoard().evaluateKingSafety(attacks, !isWhite ? Piece.Colour.white : Piece.Colour.black);
 		return kingSafetyScore;
 	}
 	
 	int evaluateBishopPair() {
 		int score = 0;
-		int onMoveBishopCount = pm.onMoveIsWhite() ? bd.me.numberOfPieces[Piece.WHITE_BISHOP] : bd.me.numberOfPieces[Piece.BLACK_BISHOP];
+		int onMoveBishopCount = isWhite ? bd.me.numberOfPieces[Piece.WHITE_BISHOP] : bd.me.numberOfPieces[Piece.BLACK_BISHOP];
 		if (onMoveBishopCount >= 2) {
 			score += BISHOP_PAIR_BOOST;
 		}
-		int opponentBishopCount = pm.onMoveIsWhite() ? bd.me.numberOfPieces[Piece.BLACK_BISHOP] : bd.me.numberOfPieces[Piece.WHITE_BISHOP];
+		int opponentBishopCount = isWhite ? bd.me.numberOfPieces[Piece.BLACK_BISHOP] : bd.me.numberOfPieces[Piece.WHITE_BISHOP];
 		if (opponentBishopCount >= 2) {
 			score -= BISHOP_PAIR_BOOST;
 		}
@@ -151,36 +135,36 @@ public class PositionEvaluator implements IEvaluate {
 		public long[][] attacks;
 		protected int queeningDistance;
 		protected int weighting;
-		protected boolean isBlack;
+		protected boolean pawnIsBlack;
 		
-		protected void setQueeningDistance(int atPos, boolean isWhite) {
-			isBlack = !isWhite;
-			queeningDistance = Position.getRank(atPos);
-			weighting = 1;
-			if (isBlack) {
+		protected void setQueeningDistance(int atPos, boolean pawnIsWhite) {
+			pawnIsBlack = !pawnIsWhite;
+			int rank = Position.getRank(atPos);
+			if (pawnIsBlack) {
+				queeningDistance = rank;
 				weighting = 7-queeningDistance;
 			} else {
-				weighting = queeningDistance;
-				queeningDistance = 7-queeningDistance;
+				queeningDistance = 7-rank;
+				weighting = rank;
 			}
 		}
 		
 		@SuppressWarnings("unused")
 		@Override
 		public void callback(int piece, int atPos) {
-			boolean isWhite = Piece.isWhite(piece);
-			Piece.Colour onMoveIs = isWhite ? Piece.Colour.white : Piece.Colour.black;
-			long[] enemy_attacks = attacks[isWhite ? 1:0];
-			long[] own_attacks = attacks[isWhite ? 0:1];
-			if (bd.isPassedPawn(atPos, onMoveIs)) {
-				setQueeningDistance(atPos, isWhite);
+			boolean pawnIsWhite = Piece.isWhite(piece);
+			long[] enemy_attacks = attacks[pawnIsWhite ? 1:0];
+			long[] own_attacks = attacks[pawnIsWhite ? 0:1];
+			
+			if (bd.isPassedPawn(atPos, pawnIsWhite)) {
+				setQueeningDistance(atPos, pawnIsWhite);
 				if (ENABLE_KPK_EVALUATION && bd.me.phase == 4096) {
 					// Special case, it is a KPK endgame
 					int file = Position.getFile(atPos);
-					int queeningSquare = isBlack ? Position.valueOf(file, 0) : Position.valueOf(file, 7);
-					int oppoKingPos = bd.getKingPosition(isBlack);
+					int queeningSquare = pawnIsBlack ? Position.valueOf(file, 0) : Position.valueOf(file, 7);
+					int oppoKingPos = bd.getKingPosition(pawnIsBlack);
 					int oppoDistance = Position.distance(queeningSquare, oppoKingPos);
-					if ((Piece.Colour.isWhite(pm.getOnMove()) && isBlack) || (Piece.Colour.isBlack(pm.getOnMove()) && !isBlack)) {
+					if ((isWhite && pawnIsBlack) || (!isWhite && !pawnIsBlack)) {
 						// if king is on move, assume it can get towards the square of the pawn
 						oppoDistance -= 1;
 					}
@@ -189,7 +173,7 @@ public class PositionEvaluator implements IEvaluate {
 						piecewisePawnScoreAccumulator += 700;
 					} else {
 						// Add code to increase score also if the pawn can be defended by own king
-						int ownKingPos = bd.getKingPosition(!isBlack);
+						int ownKingPos = bd.getKingPosition(!pawnIsBlack);
 						int ownDistance = Position.distance(queeningSquare, ownKingPos);
 						if (ownDistance-1 <= oppoDistance) {
 							// Rationale is queen square can be blocked off from opposite King by own King
@@ -200,7 +184,7 @@ public class PositionEvaluator implements IEvaluate {
 					// scale weighting for game phase as well as promotion proximity, up to 3x
 					int scale = 1 + ((bd.me.phase+640) / 4096) + ((bd.me.phase+320) / 4096);
 					weighting *= scale;
-					boolean pawnIsBlocked = bd.isPawnFrontspanBlocked(atPos, onMoveIs, own_attacks[3], enemy_attacks[3]);
+					boolean pawnIsBlocked = bd.isPawnFrontspanBlocked(atPos, pawnIsWhite, own_attacks[3], enemy_attacks[3]);
 					int value = (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) ?
 							ROOK_FILE_PASSED_PAWN_BOOST : PASSED_PAWN_BOOST;
 					int score = weighting*value;
@@ -210,8 +194,8 @@ public class PositionEvaluator implements IEvaluate {
 					piecewisePawnScoreAccumulator += score;
 				}
 			} else if (ENABLE_CANDIDATE_PP_EVALUATION) {
-				if (bd.isCandidatePassedPawn(atPos, onMoveIs, own_attacks[0], enemy_attacks[0])) {
-					setQueeningDistance(atPos, isWhite);
+				if (bd.isCandidatePassedPawn(atPos, pawnIsWhite, own_attacks[0], enemy_attacks[0])) {
+					setQueeningDistance(atPos, pawnIsWhite);
 					// scale weighting for game phase as well as promotion proximity, up to 3x
 					int scale = 1 + ((bd.me.phase+640) / 4096) + ((bd.me.phase+320) / 4096);
 					weighting *= scale;
@@ -222,18 +206,32 @@ public class PositionEvaluator implements IEvaluate {
 					}
 				}
 			}
-			if (bd.isIsolatedPawn(atPos, onMoveIs)) {
+			if (bd.isIsolatedPawn(atPos, pawnIsWhite)) {
 				piecewisePawnScoreAccumulator -= ISOLATED_PAWN_HANDICAP;
-			} else if (bd.isBackwardsPawn(atPos, onMoveIs)) {
+			} else if (bd.isBackwardsPawn(atPos, pawnIsWhite)) {
 				piecewisePawnScoreAccumulator -= BACKWARD_PAWN_HANDICAP;
 			}
 		}
 		
-		int getEvalForSide(Colour side) {
-			piecewisePawnScoreAccumulator = 0;
-			int pawnHandicap = -bd.countDoubledPawnsForSide(side)*DOUBLED_PAWN_HANDICAP;
-			bd.forEachPawnOfSide(pawn_eval, Colour.isBlack(side));
-			return pawnHandicap + piecewisePawnScoreAccumulator;
+		int evaluatePawnStructure(long[][] attacks) {
+			int pawnEvaluationScore = 0;
+			isWhite = pm.onMoveIsWhite();
+			long pawnsToTest = isWhite ? bd.getWhitePawns() : bd.getBlackPawns();
+			long enemyPawns = isWhite ? bd.getBlackPawns() : bd.getWhitePawns();
+			pawn_eval.attacks = attacks;
+			if (pawnsToTest != 0x0) {
+				piecewisePawnScoreAccumulator = 0;
+				int pawnHandicap = -bd.countDoubledPawnsForSide(isWhite)*DOUBLED_PAWN_HANDICAP;
+				bd.forEachPawnOfSide(this, !isWhite);
+				pawnEvaluationScore = pawnHandicap + piecewisePawnScoreAccumulator;
+			}
+			if (enemyPawns != 0x0) {
+				piecewisePawnScoreAccumulator = 0;
+				int pawnHandicap = -bd.countDoubledPawnsForSide(!isWhite)*DOUBLED_PAWN_HANDICAP;
+				bd.forEachPawnOfSide(this, isWhite);
+				pawnEvaluationScore -= (pawnHandicap + piecewisePawnScoreAccumulator);
+			}
+			return pawnEvaluationScore;
 		}
 	}
 }

@@ -702,37 +702,37 @@ public class BoardTest {
 	@Test
 	public void test_frontspan_isBlocked() {
 		setUpPosition("2k5/8/8/8/2P5/3K4/8/8 w - - 1 10 ");
-		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, Piece.Colour.white, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
+		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
 	}
 	
 	@Test
 	public void test_frontspan_NotBlocked() {
 		setUpPosition("8/k7/8/8/2P5/3K4/8/8 w - - 1 10 ");
-		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, Piece.Colour.white, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
+		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
 	}
 	
 	@Test
 	public void test_frontspan_isAttackedAndDefended() {
 		setUpPosition("8/1B1b4/8/8/2P5/3K4/8/8 w - - 1 10 ");
-		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, Piece.Colour.white, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
+		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttacked() {
 		setUpPosition("8/3b4/8/8/2P5/3K4/8/8 w - - 1 10 ");
-		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, Piece.Colour.white, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
+		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttackedTwiceDefendedOnce() {
 		setUpPosition("8/3b4/2P6/2P5/3K4/8/8 w - - 1 10 ");
-		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, Piece.Colour.white, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
+		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttackedTwiceDefendedTwice() {
 		setUpPosition("R7/3b4/8/1PP5/3K4/8/8 w - - 1 10 ");
-		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, Piece.Colour.white, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
+		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
 	}
 	
 	@Test

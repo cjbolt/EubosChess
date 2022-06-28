@@ -405,12 +405,12 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 		return s.toString();
 	}
 
-	Piece.Colour enemyColour = Colour.white;
+	boolean enemyIsWhite;
 	int passedPawnPosition = Position.NOPOSITION;
 	
 	@Override
 	public void callback(int piece, int atPos) {
-		if (theBoard.isPassedPawn(atPos, enemyColour)) {
+		if (theBoard.isPassedPawn(atPos, enemyIsWhite)) {
 			// get most advanced passed pawn
 			if (Piece.isBlack(piece)) {
 				if (Position.getRank(atPos) < 4) {
@@ -433,7 +433,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 	@Override
 	public int enemyAdvancedPassedPawn() {
 		passedPawnPosition = Position.NOPOSITION;
-		enemyColour = onMove;
+		enemyIsWhite = onMoveIsWhite();
 		theBoard.forEachPawnOfSide(this, Colour.isBlack(onMove));
 		return passedPawnPosition;
 	}
@@ -444,6 +444,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 	
 	public long [][] getAttacks() {
 		if (!attacksValid) {
+			attacksValid = true;
 			return theBoard.getAttackedSquares(attacks);
 		} else {
 			return attacks;

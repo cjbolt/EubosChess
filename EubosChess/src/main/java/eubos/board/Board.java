@@ -891,9 +891,9 @@ public class Board {
 		return piece;
 	}
 	
-	public int countDoubledPawnsForSide(Colour side) {
+	public int countDoubledPawnsForSide(boolean isWhite) {
 		int doubledCount = 0;
-		long pawns = Colour.isWhite(side) ? getWhitePawns() : getBlackPawns();
+		long pawns = isWhite ? getWhitePawns() : getBlackPawns();
 		for (int file : IntFile.values) {
 			long mask = BitBoard.FileMask_Lut[file];
 			long fileMask = pawns & mask;
@@ -905,21 +905,20 @@ public class Board {
 		return doubledCount;
 	}
 	
-	public boolean isPassedPawn(int atPos, Colour side) {
+	public boolean isPassedPawn(int atPos, boolean isWhite) {
 		boolean isPassed = true;
-		long mask = BitBoard.PassedPawn_Lut[side.ordinal()][atPos];
-		long otherSidePawns = Colour.isWhite(side) ? getBlackPawns() : getWhitePawns();
+		long mask = BitBoard.PassedPawn_Lut[isWhite ? 0 : 1][atPos];
+		long otherSidePawns = isWhite ? getBlackPawns() : getWhitePawns();
 		if ((mask & otherSidePawns) != 0) {
 			isPassed  = false;
 		}
 		return isPassed;
 	}
 	
-	public boolean isPawnFrontspanBlocked(int atPos, Colour side, long own_attacks, long enemy_attacks) {
+	public boolean isPawnFrontspanBlocked(int atPos, boolean isWhite, long own_attacks, long enemy_attacks) {
 		boolean isClear = true;
-		boolean isWhite = Colour.isWhite(side);
 		// Check frontspan is clear
-		long front_span_mask = BitBoard.PawnFrontSpan_Lut[side.ordinal()][atPos];
+		long front_span_mask = BitBoard.PawnFrontSpan_Lut[isWhite ? 0 : 1][atPos];
 		// Check for enemy pieces blockading
 		long enemy_pieces = isWhite ? blackPieces : whitePieces;
 		if ((enemy_pieces & front_span_mask) != 0L) {
@@ -939,11 +938,10 @@ public class Board {
 		return !isClear;
 	}
 	
-	public boolean isCandidatePassedPawn(int atPos, Colour side, long own_pawn_attacks, long enemy_pawn_attacks) {
-		boolean isWhite = Colour.isWhite(side);
+	public boolean isCandidatePassedPawn(int atPos, boolean isWhite, long own_pawn_attacks, long enemy_pawn_attacks) {
 		boolean isCandidate = true;
 		// Check frontspan is clear
-		long front_span_mask = BitBoard.PawnFrontSpan_Lut[side.ordinal()][atPos];
+		long front_span_mask = BitBoard.PawnFrontSpan_Lut[isWhite ? 0 : 1][atPos];
 		long otherSidePawns = isWhite ? getBlackPawns() : getWhitePawns();
 		if ((front_span_mask & otherSidePawns) != 0) {
 			isCandidate  = false;
@@ -962,20 +960,20 @@ public class Board {
 		return isCandidate;
 	}
 	
-	public boolean isBackwardsPawn(int atPos, Colour side) {
+	public boolean isBackwardsPawn(int atPos, boolean isWhite) {
 		boolean isBackwards = true;
-		long mask = BitBoard.BackwardsPawn_Lut[side.ordinal()][atPos];
-		long ownSidePawns = Colour.isBlack(side) ? getBlackPawns() : getWhitePawns();
+		long mask = BitBoard.BackwardsPawn_Lut[isWhite ? 0 : 1][atPos];
+		long ownSidePawns = isWhite ? getWhitePawns() : getBlackPawns();
 		if ((mask & ownSidePawns) != 0) {
 			isBackwards  = false;
 		}
 		return isBackwards;
 	}
 	
-	public boolean isIsolatedPawn(int atPos, Colour side) {
+	public boolean isIsolatedPawn(int atPos, boolean isWhite) {
 		boolean isIsolated = true;
 		long mask = BitBoard.IsolatedPawn_Lut[atPos];
-		long ownSidePawns = Colour.isBlack(side) ? getBlackPawns() : getWhitePawns();
+		long ownSidePawns = !isWhite ? getBlackPawns() : getWhitePawns();
 		if ((mask & ownSidePawns) != 0) {
 			isIsolated  = false;
 		}
@@ -1454,6 +1452,7 @@ public class Board {
 		public final int[] KNIGHT_DIST_LUT = {0, -25, -50, -25, -12, 0, 0, 0, 0};
 		public final int[] BISHOP_DIST_LUT = {0, -20, -15, -12, -8, -4, -2, -1, 0};
 		public final int[] ROOK_DIST_LUT = {0, -50, -30, -20, -10, -8, -4, -2, 0};
+		public final int[] PAWN_DIST_LUT = {0, -20, -10, -3, 0, 0, 0, 0, 0};
 		
 		int score = 0;
 		int kingSquare = Position.NOPOSITION;
