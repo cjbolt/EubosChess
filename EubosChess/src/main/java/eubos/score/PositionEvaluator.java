@@ -88,7 +88,9 @@ public class PositionEvaluator implements IEvaluate {
 			bd.me.dynamicPosition = 0;
 			score += evaluateBishopPair();
 			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !goForMate) {
-				bd.calculateDynamicMobility(bd.me);
+				//bd.calculateDynamicMobility(bd.me);
+				bd.me.dynamicPosition += Long.bitCount(attacks[0][3])*2;
+				bd.me.dynamicPosition -= Long.bitCount(attacks[1][3])*2;
 			}
 			if (ENABLE_PAWN_EVALUATION) {
 				score += pawn_eval.evaluatePawnStructure(attacks);

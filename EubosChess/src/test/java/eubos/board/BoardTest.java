@@ -501,21 +501,21 @@ public class BoardTest {
 	@Test
 	public void test_evaluateKingSafety_No_opposingBishopWrongColour()throws IllegalNotationException {
 		setUpPosition("r4rk1/1p3p2/p7/P2P1p1B/4p3/2b5/3R1PPP/4K2R b K - 13 1 ");
-		assertEquals(-54, classUnderTest.evaluateKingSafety(pm.getAttacks(), Piece.Colour.white)); // 7*2*2 rnf 0 diag = 28
-		assertEquals(-46, classUnderTest.evaluateKingSafety(pm.getAttacks(), Piece.Colour.black)); // 7*2*2 rnf 1*2*1 = 30
+		assertEquals(-74, classUnderTest.evaluateKingSafety(pm.getAttacks(), Piece.Colour.white)); // 7*2*2 rnf 0 diag = 28
+		assertEquals(-66, classUnderTest.evaluateKingSafety(pm.getAttacks(), Piece.Colour.black)); // 7*2*2 rnf 1*2*1 = 30
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_Yes_opposingBishopRightColour()throws IllegalNotationException {
 		setUpPosition("r4rk1/1p6/p7/P2P1p1B/4p3/2b5/3R1PPP/2K4R b - - 13 1 ");
-		assertEquals(-84, classUnderTest.evaluateKingSafety(pm.getAttacks(), Piece.Colour.white));
+		assertEquals(-100, classUnderTest.evaluateKingSafety(pm.getAttacks(), Piece.Colour.white));
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_Yes_opposingQueenBishop()throws IllegalNotationException {
 		setUpPosition("r4rk1/1p6/p7/P2P1p1B/4p3/2b5/3R1PPP/Q1K4R b - - 13 1 ");
-		assertEquals(-84, classUnderTest.evaluateKingSafety(pm.getAttacks(), Piece.Colour.white));  // (5 up right + 2 up left) *2 *1bish = 14; (7 up + 2 left + 5 right) * 2 *2rooks = 28*2; 56+14 = 70
-		assertEquals(-67, classUnderTest.evaluateKingSafety(pm.getAttacks(), Piece.Colour.black));  // 1*2*2 diag = 4; 7*2*3 = 42 r'n'f; 4+42 = 46 
+		assertEquals(-100, classUnderTest.evaluateKingSafety(pm.getAttacks(), Piece.Colour.white));  // (5 up right + 2 up left) *2 *1bish = 14; (7 up + 2 left + 5 right) * 2 *2rooks = 28*2; 56+14 = 70
+		assertEquals(-75, classUnderTest.evaluateKingSafety(pm.getAttacks(), Piece.Colour.black));  // 1*2*2 diag = 4; 7*2*3 = 42 r'n'f; 4+42 = 46 
 	}
 	
 	@Test
@@ -738,6 +738,6 @@ public class BoardTest {
 	@Test
 	public void test_evaluateKingSafety_ScoreReporter()throws IllegalNotationException {
 		setUpPosition("4rbk1/1pr2p2/2p2Qp1/p2p4/6RP/2P1PN1q/PP3P2/2K3R1 b - - 9 30 ");
-		assertEquals(-196, classUnderTest.evaluateKingSafety(pm.getAttacks(), Piece.Colour.black));
+		assertEquals(-257, classUnderTest.evaluateKingSafety(pm.getAttacks(), Piece.Colour.black));
 	}
 }
