@@ -18,6 +18,8 @@ public class PositionEvaluator implements IEvaluate {
 	
 	public static final int PASSED_PAWN_BOOST = 12;
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 8;
+	public static final int CANDIDATE_PAWN = 8;
+	public static final int ROOK_FILE_CANDIDATE_PAWN = 5;
 	public static final int CONNECTED_PASSED_PAWN_BOOST = 75;
 	
 	public static final boolean ENABLE_PAWN_EVALUATION = true;
@@ -202,9 +204,9 @@ public class PositionEvaluator implements IEvaluate {
 					int scale = 1 + ((bd.me.phase+640) / 4096) + ((bd.me.phase+320) / 4096);
 					weighting *= scale;
 					if (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) {
-						piecewisePawnScoreAccumulator += weighting*ROOK_FILE_PASSED_PAWN_BOOST/2;
+						piecewisePawnScoreAccumulator += weighting*ROOK_FILE_CANDIDATE_PAWN;
 					} else {
-						piecewisePawnScoreAccumulator += weighting*PASSED_PAWN_BOOST/2;
+						piecewisePawnScoreAccumulator += weighting*CANDIDATE_PAWN;
 					}
 				}
 			}
