@@ -4,7 +4,6 @@ import java.util.IntSummaryStatistics;
 import java.util.Arrays;
 
 import eubos.board.Piece;
-import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
