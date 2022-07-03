@@ -38,7 +38,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_EvalPosB() {
 		setUpPosition("8/8/1B6/8/8/4Kpk1/8/b7 w - - - 85");
-		assertEquals(-226, SUT.getFullEvaluation());
+		assertEquals(-211, SUT.getFullEvaluation());
 	}
 	
 	@Test
@@ -48,7 +48,7 @@ public class PositionEvaluatorTest {
 		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
 		// pp imbalance
 		int expectedScore = DOUBLED_PAWN_HANDICAP-3*ROOK_FILE_PASSED_PAWN_BOOST+2*ISOLATED_PAWN_HANDICAP+3*BACKWARD_PAWN_HANDICAP-6*BACKWARD_PAWN_HANDICAP;
-		expectedScore -= 15;
+		//expectedScore -= 15;
 		assertEquals(expectedScore, score);
 	}
 	
@@ -57,7 +57,7 @@ public class PositionEvaluatorTest {
 		// addition of a knight means it doesn't count as KPK endgame
 		setUpPosition("n7/pp2p1p1/3p2p1/8/8/8/2PPPPPP/8 w - - 0 1 ");
 		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
-		assertEquals(-15+DOUBLED_PAWN_HANDICAP-3*ROOK_FILE_PASSED_PAWN_BOOST+2*ISOLATED_PAWN_HANDICAP+3*BACKWARD_PAWN_HANDICAP-6*BACKWARD_PAWN_HANDICAP, score);
+		assertEquals(DOUBLED_PAWN_HANDICAP-3*ROOK_FILE_PASSED_PAWN_BOOST+2*ISOLATED_PAWN_HANDICAP+3*BACKWARD_PAWN_HANDICAP-6*BACKWARD_PAWN_HANDICAP, score);
 	}
 	
 	@Test
@@ -73,7 +73,7 @@ public class PositionEvaluatorTest {
 		expectedScore += (3*3*PASSED_PAWN_BOOST)/2-ISOLATED_PAWN_HANDICAP;
 		expectedScore += -2*DOUBLED_PAWN_HANDICAP;
 		// pp imbalance
-		expectedScore += 400;
+		//expectedScore += 400;
 		assertEquals(expectedScore, score);
 	}
 
@@ -89,7 +89,7 @@ public class PositionEvaluatorTest {
 		expectedScore -= ((7-3)*3*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP);
 		expectedScore -= -2*DOUBLED_PAWN_HANDICAP;
 		// pp imbalance
-		expectedScore -= 400;
+		//expectedScore -= 400;
 		assertEquals(expectedScore, score);
 	}
 	
@@ -107,7 +107,7 @@ public class PositionEvaluatorTest {
 		// white
 		expectedScore -= -ISOLATED_PAWN_HANDICAP;
 		// pp imbalance
-		expectedScore += 15;
+		//expectedScore += 15;
 		assertEquals(expectedScore, score);
 	}
 	
@@ -125,7 +125,7 @@ public class PositionEvaluatorTest {
 		// white
 		expectedScore += ISOLATED_PAWN_HANDICAP;
 		// pp imbalance
-		expectedScore += 200;
+		//expectedScore += 200;
 		assertEquals(expectedScore, score);
 	}
 	
@@ -143,7 +143,7 @@ public class PositionEvaluatorTest {
 		expectedScore -= -ISOLATED_PAWN_HANDICAP;
 		expectedScore -= -ISOLATED_PAWN_HANDICAP;
 		// pp imbalance
-		expectedScore += 15;		
+		//expectedScore += 15;		
 		assertEquals(expectedScore, score);
 	}
 	 
@@ -161,7 +161,7 @@ public class PositionEvaluatorTest {
 		expectedScore -= -ISOLATED_PAWN_HANDICAP;
 		expectedScore -= -ISOLATED_PAWN_HANDICAP;
 		// pp imbalance
-		expectedScore += 15;
+		//expectedScore += 15;
 		assertEquals(expectedScore, score);
 	}
 	
@@ -179,7 +179,7 @@ public class PositionEvaluatorTest {
 		// white
 		expectedScore -= -ISOLATED_PAWN_HANDICAP;
 		// pp imbalance
-		expectedScore += 200;
+		//expectedScore += 200;
 		assertEquals(expectedScore, score);
 	}
 	
@@ -196,7 +196,7 @@ public class PositionEvaluatorTest {
 	public void test_encouragePassedPawns_NotPassedPawn() {
 		setUpPosition("8/8/8/8/8/5p2/6P1/8 w - - 0 1 ");
 		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
-		assertEquals(-96 /* two candidate passed pawns, blacks is more valuable, but white can take it on the next move! */, score);
+		assertEquals(-72 /* two candidate passed pawns, blacks is more valuable, but white can take it on the next move! */, score);
 	}
 	
 	@Test
@@ -234,7 +234,7 @@ public class PositionEvaluatorTest {
 	public void test_encouragePassedPawns_CandidatePasserAtB5() {
 		setUpPosition("8/p7/8/PP6/8/8/8/8 w - - 0 1");
 		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
-		assertEquals(105 /* b5 pawn will queen, not including material */, score);
+		assertEquals(81 /* b5 pawn will queen, not including material */, score);
 	}
 	
 	@Test

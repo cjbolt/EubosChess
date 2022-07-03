@@ -12,6 +12,7 @@ import eubos.position.IAddMoves;
 import eubos.position.Move;
 import eubos.position.Position;
 import eubos.score.PiecewiseEvaluation;
+import eubos.score.PositionEvaluator;
 
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.GenericPosition;
@@ -1546,19 +1547,33 @@ public class Board {
 		final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT};
 		evaluation += ktc.getScore(kingPos, isWhite ? BLACK_ATTACKERS : WHITE_ATTACKERS);
 		
-		// Then account for attacks on the squares around the king
-		long surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
-		int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3]);
-		int flightCount = Long.bitCount(surroundingSquares & ~allPieces); // perhaps just own pieces?
-		
-		int fraction_attacked_q8 = 256;
-		if (flightCount != 0 && attackedCount < flightCount) {
-		    fraction_attacked_q8 = (attackedCount * 256) / flightCount;
+		if (PositionEvaluator.ENABLE_TWEAKED_KING_FLIGHT_SQUARES) {
+			// V2 Then account for attacks on the squares around the king
+			long surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
+			int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3]);
+			int flightCount = Long.bitCount(surroundingSquares & ~allPieces); // perhaps just own pieces?
+			
+			int fraction_attacked_q8 = 256;
+			if (flightCount != 0 && attackedCount < flightCount) {
+			    fraction_attacked_q8 = (attackedCount * 256) / flightCount;
+			}
+			evaluation += ((-150 * fraction_attacked_q8) / 256);
+			if (flightCount == 0) {
+				// there are no flight squares, high risk of mate
+				evaluation += -100;
+			}
 		}
-		evaluation += ((-150 * fraction_attacked_q8) / 256);
-		if (flightCount == 0) {
-			// there are no flight squares, high risk of mate
-			evaluation += -100;
+		else {
+			// V1 Then account for attacks on the squares around the king
+			long surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
+			int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3]);
+			int flightCount = Long.bitCount(surroundingSquares);
+			int fraction_attacked_q8 = (attackedCount * 256) / flightCount;
+			evaluation += ((-150 * fraction_attacked_q8) / 256);
+			if (attackedCount == flightCount) {
+				// there are no flight squares, high risk of mate
+				evaluation += -100;
+			}
 		}
 		
 		return evaluation;

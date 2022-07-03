@@ -18,15 +18,17 @@ public class PositionEvaluator implements IEvaluate {
 	
 	public static final int PASSED_PAWN_BOOST = 12;
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 8;
-	public static final int CANDIDATE_PAWN = 8;
-	public static final int ROOK_FILE_CANDIDATE_PAWN = 5;
+	public static final int CANDIDATE_PAWN = 6;
+	public static final int ROOK_FILE_CANDIDATE_PAWN = 4;
 	public static final int CONNECTED_PASSED_PAWN_BOOST = 75;
 	
 	public static final boolean ENABLE_PAWN_EVALUATION = true;
 	public static final boolean ENABLE_KPK_EVALUATION = false;
 	public static final boolean ENABLE_CANDIDATE_PP_EVALUATION = true;
+	public static final boolean ENABLE_PP_IMBALANCE_EVALUATION = false;
 	
 	public static final boolean ENABLE_KING_SAFETY_EVALUATION = true;
+	public static final boolean ENABLE_TWEAKED_KING_FLIGHT_SQUARES = false;
 	
 	public static final boolean ENABLE_DYNAMIC_POSITIONAL_EVALUATION = true;
 
@@ -222,6 +224,7 @@ public class PositionEvaluator implements IEvaluate {
 			}
 		}
 		
+		@SuppressWarnings("unused")
 		int evaluatePawnStructure(long[][] attacks) {
 			int pawnEvaluationScore = 0;
 			ppCount[0] = ppCount[1] = 0;
@@ -241,7 +244,7 @@ public class PositionEvaluator implements IEvaluate {
 				pawnEvaluationScore -= (pawnHandicap + piecewisePawnScoreAccumulator);
 			}
 			// Add a modification according to the imbalance of passed pawns in the position
-			if (bd.me.phase > 2048) {
+			if (ENABLE_PP_IMBALANCE_EVALUATION && bd.me.phase > 2048) {
 				int lookupIndex = ppCount[0] - ppCount[1];
 				int ppImbalanceFactor = ppImbalanceTable[Math.abs(lookupIndex)];
 				if (lookupIndex < 0) {

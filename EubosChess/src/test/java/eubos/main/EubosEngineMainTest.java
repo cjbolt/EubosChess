@@ -21,6 +21,7 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 import eubos.board.Piece;
 import eubos.position.Move;
 import eubos.position.Position;
+import eubos.score.PositionEvaluator;
 import eubos.search.Score;
 import eubos.search.SearchMetrics;
 import eubos.search.transposition.Transposition;
@@ -93,9 +94,9 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	@Test
 	public void test_infoMessageSending_clearsPreviousPvMoves() throws InterruptedException, IOException {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && !SearchMetrics.ENABLE_SINGLE_MOVE_PV) {
-			String expectedOutput = "info depth 1 seldepth 6 score cp -230 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
-						"info depth 1 seldepth 6 score cp 386 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 45"+CMD_TERMINATOR+
-	                    "info depth 2 seldepth 6 score cp 246 pv c7c2 c1g5 d7e5 hashfull 0 nps 0 time 0 nodes 190"+CMD_TERMINATOR
+			String expectedOutput = "info depth 1 seldepth 6 score cp -178 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
+						"info depth 1 seldepth 5 score cp 358 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 43"+CMD_TERMINATOR+
+	                    "info depth 2 seldepth 7 score cp 149 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 189"+CMD_TERMINATOR
 	                    +BEST_PREFIX+"c7c2";
 			setupEngine();
 			// Setup Commands specific to this test
@@ -265,8 +266,12 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_hash_issue_losing_position() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"3r2k1/5p2/7p/3R2p1/p7/1q1Q1PP1/7P/3R2K1 b - - 1 42"+CMD_TERMINATOR, null));
-		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d8d5"+CMD_TERMINATOR));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d8e8"+CMD_TERMINATOR));
+
+		if (PositionEvaluator.ENABLE_TWEAKED_KING_FLIGHT_SQUARES) {
+			commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d8e8"+CMD_TERMINATOR));
+		} else {
+			commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d8d5"+CMD_TERMINATOR));
+		}
 		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"b3b6"+CMD_TERMINATOR));
 
 		int hashMove = Move.valueOf(Position.b3, Piece.BLACK_QUEEN, Position.d1, Piece.WHITE_ROOK);
