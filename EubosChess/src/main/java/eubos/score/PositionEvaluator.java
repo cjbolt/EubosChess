@@ -118,8 +118,8 @@ public class PositionEvaluator implements IEvaluate {
 	
 	int evaluateKingSafety(long[][] attacks) {
 		int kingSafetyScore = 0;
-		kingSafetyScore = pm.getTheBoard().evaluateKingSafety(attacks, onMoveIsWhite ? Piece.Colour.white : Piece.Colour.black);
-		kingSafetyScore -= pm.getTheBoard().evaluateKingSafety(attacks, !onMoveIsWhite ? Piece.Colour.white : Piece.Colour.black);
+		kingSafetyScore = pm.getTheBoard().evaluateKingSafety(attacks, onMoveIsWhite);
+		kingSafetyScore -= pm.getTheBoard().evaluateKingSafety(attacks, !onMoveIsWhite);
 		return kingSafetyScore;
 	}
 	
@@ -159,6 +159,30 @@ public class PositionEvaluator implements IEvaluate {
 			}
 		}
 		
+		protected void evaluateKpkEndgame(int atPos, boolean isOwnPawn) {
+			// Special case, it is a KPK endgame
+			int file = Position.getFile(atPos);
+			int queeningSquare = pawnIsBlack ? Position.valueOf(file, 0) : Position.valueOf(file, 7);
+			int oppoKingPos = bd.getKingPosition(pawnIsBlack);
+			int oppoDistance = Position.distance(queeningSquare, oppoKingPos);
+			if (!isOwnPawn) {
+				// if king is on move, assume it can get towards the square of the pawn
+				oppoDistance -= 1;
+			}
+			if (oppoDistance > queeningDistance) {
+				// can't be caught by opposite king
+				piecewisePawnScoreAccumulator += 700;
+			} else {
+				// Add code to increase score also if the pawn can be defended by own king
+				int ownKingPos = bd.getKingPosition(!pawnIsBlack);
+				int ownDistance = Position.distance(queeningSquare, ownKingPos);
+				if (ownDistance-1 <= oppoDistance) {
+					// Rationale is queen square can be blocked off from opposite King by own King
+					piecewisePawnScoreAccumulator += 700;
+				}
+			}
+		}
+		
 		@SuppressWarnings("unused")
 		@Override
 		public void callback(int piece, int atPos) {
@@ -167,30 +191,11 @@ public class PositionEvaluator implements IEvaluate {
 			long[] own_attacks = attacks[pawnIsWhite ? 0:1];
 			
 			if (bd.isPassedPawn(atPos, pawnIsWhite)) {
-				ppCount[((onMoveIsWhite && pawnIsWhite) || (!onMoveIsWhite && !pawnIsWhite)) ? 0:1] += 1;
+				boolean isOwnPawn = (onMoveIsWhite && pawnIsWhite) || (!onMoveIsWhite && !pawnIsWhite);
+				ppCount[isOwnPawn ? 0:1] += 1;
 				setQueeningDistance(atPos, pawnIsWhite);
 				if (ENABLE_KPK_EVALUATION && bd.me.phase == 4096) {
-					// Special case, it is a KPK endgame
-					int file = Position.getFile(atPos);
-					int queeningSquare = pawnIsBlack ? Position.valueOf(file, 0) : Position.valueOf(file, 7);
-					int oppoKingPos = bd.getKingPosition(pawnIsBlack);
-					int oppoDistance = Position.distance(queeningSquare, oppoKingPos);
-					if ((onMoveIsWhite && pawnIsBlack) || (!onMoveIsWhite && !pawnIsBlack)) {
-						// if king is on move, assume it can get towards the square of the pawn
-						oppoDistance -= 1;
-					}
-					if (oppoDistance > queeningDistance) {
-						// can't be caught by opposite king
-						piecewisePawnScoreAccumulator += 700;
-					} else {
-						// Add code to increase score also if the pawn can be defended by own king
-						int ownKingPos = bd.getKingPosition(!pawnIsBlack);
-						int ownDistance = Position.distance(queeningSquare, ownKingPos);
-						if (ownDistance-1 <= oppoDistance) {
-							// Rationale is queen square can be blocked off from opposite King by own King
-							piecewisePawnScoreAccumulator += 700;
-						}
-					}
+					evaluateKpkEndgame(atPos, isOwnPawn);
 				} else {
 					// scale weighting for game phase as well as promotion proximity, up to 3x
 					int scale = 1 + ((bd.me.phase+640) / 4096) + ((bd.me.phase+320) / 4096);

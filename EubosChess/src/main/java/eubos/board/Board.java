@@ -1489,9 +1489,8 @@ public class Board {
 	
 	KingTropismChecker ktc;
 	
-	public int evaluateKingSafety(long[][] attacks, Piece.Colour side) {
+	public int evaluateKingSafety(long[][] attacks, boolean isWhite) {
 		int evaluation = 0;
-		boolean isWhite = Piece.Colour.isWhite(side);
 
 		// King
 		long kingMask = isWhite ? getWhiteKing() : getBlackKing();
