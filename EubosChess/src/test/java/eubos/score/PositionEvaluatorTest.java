@@ -38,7 +38,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_EvalPosB() {
 		setUpPosition("8/8/1B6/8/8/4Kpk1/8/b7 w - - - 85");
-		assertEquals(-211, SUT.getFullEvaluation());
+		assertEquals(-226, SUT.getFullEvaluation());
 	}
 	
 	@Test
@@ -46,9 +46,10 @@ public class PositionEvaluatorTest {
 		// addition of a knight means it doesn't count as KPK endgame
 		setUpPosition("n7/pppppp2/8/8/8/1P2P3/1P1P2PP/8 b - - 0 1");
 		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
-		// pp imbalance
 		int expectedScore = DOUBLED_PAWN_HANDICAP-3*ROOK_FILE_PASSED_PAWN_BOOST+2*ISOLATED_PAWN_HANDICAP+3*BACKWARD_PAWN_HANDICAP-6*BACKWARD_PAWN_HANDICAP;
-		//expectedScore -= 15;
+		if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
+			expectedScore -= 15;
+		}
 		assertEquals(expectedScore, score);
 	}
 	
@@ -57,7 +58,16 @@ public class PositionEvaluatorTest {
 		// addition of a knight means it doesn't count as KPK endgame
 		setUpPosition("n7/pp2p1p1/3p2p1/8/8/8/2PPPPPP/8 w - - 0 1 ");
 		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
-		assertEquals(DOUBLED_PAWN_HANDICAP-3*ROOK_FILE_PASSED_PAWN_BOOST+2*ISOLATED_PAWN_HANDICAP+3*BACKWARD_PAWN_HANDICAP-6*BACKWARD_PAWN_HANDICAP, score);
+		int expectedScore = 0;
+		expectedScore += DOUBLED_PAWN_HANDICAP;
+		expectedScore += -3*ROOK_FILE_PASSED_PAWN_BOOST;
+	    expectedScore += 2*ISOLATED_PAWN_HANDICAP;
+	    expectedScore += 3*BACKWARD_PAWN_HANDICAP;
+	    expectedScore += -6*BACKWARD_PAWN_HANDICAP;
+	    if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
+			expectedScore += -15;
+		}
+		assertEquals(expectedScore, score);
 	}
 	
 	@Test
@@ -72,8 +82,9 @@ public class PositionEvaluatorTest {
 		expectedScore += (2*3*PASSED_PAWN_BOOST)/2-ISOLATED_PAWN_HANDICAP;
 		expectedScore += (3*3*PASSED_PAWN_BOOST)/2-ISOLATED_PAWN_HANDICAP;
 		expectedScore += -2*DOUBLED_PAWN_HANDICAP;
-		// pp imbalance
-		//expectedScore += 400;
+		if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
+			expectedScore += 400;
+		}
 		assertEquals(expectedScore, score);
 	}
 
@@ -88,8 +99,9 @@ public class PositionEvaluatorTest {
 		expectedScore -= ((7-2)*3*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP);
 		expectedScore -= ((7-3)*3*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP);
 		expectedScore -= -2*DOUBLED_PAWN_HANDICAP;
-		// pp imbalance
-		//expectedScore -= 400;
+		if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
+			expectedScore -= 400;
+		}
 		assertEquals(expectedScore, score);
 	}
 	
@@ -106,8 +118,9 @@ public class PositionEvaluatorTest {
 		expectedScore += -DOUBLED_PAWN_HANDICAP; // black doubled pawns
 		// white
 		expectedScore -= -ISOLATED_PAWN_HANDICAP;
-		// pp imbalance
-		//expectedScore += 15;
+		if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
+			expectedScore += 15;
+		}
 		assertEquals(expectedScore, score);
 	}
 	
@@ -124,8 +137,9 @@ public class PositionEvaluatorTest {
 		expectedScore += -DOUBLED_PAWN_HANDICAP; // black doubled pawns
 		// white
 		expectedScore += ISOLATED_PAWN_HANDICAP;
-		// pp imbalance
-		//expectedScore += 200;
+		if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
+			expectedScore += 200;
+		}
 		assertEquals(expectedScore, score);
 	}
 	
@@ -142,8 +156,9 @@ public class PositionEvaluatorTest {
 		// white
 		expectedScore -= -ISOLATED_PAWN_HANDICAP;
 		expectedScore -= -ISOLATED_PAWN_HANDICAP;
-		// pp imbalance
-		//expectedScore += 15;		
+		if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
+			expectedScore += 15;
+		}
 		assertEquals(expectedScore, score);
 	}
 	 
@@ -160,8 +175,9 @@ public class PositionEvaluatorTest {
 		// white
 		expectedScore -= -ISOLATED_PAWN_HANDICAP;
 		expectedScore -= -ISOLATED_PAWN_HANDICAP;
-		// pp imbalance
-		//expectedScore += 15;
+		if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
+			expectedScore += 15;
+		}
 		assertEquals(expectedScore, score);
 	}
 	
@@ -178,8 +194,9 @@ public class PositionEvaluatorTest {
 		expectedScore += -DOUBLED_PAWN_HANDICAP; // black doubled pawns
 		// white
 		expectedScore -= -ISOLATED_PAWN_HANDICAP;
-		// pp imbalance
-		//expectedScore += 200;
+		if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
+			expectedScore += 200;
+		}
 		assertEquals(expectedScore, score);
 	}
 	
