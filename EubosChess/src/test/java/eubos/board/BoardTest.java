@@ -776,5 +776,36 @@ public class BoardTest {
 		// rook attacks 4 pawns
 		assertEquals(4, Long.bitCount(classUnderTest.attacks[0][2]));
 	}
+	
+	@Test
+	public void test_Attacks() throws IllegalNotationException {
+		setUpPosition("1b2r1k1/5ppp/1qb1p3/p1p5/2P3rP/P5P1/1PQ1NP2/R1B1R1K1 w - - 9 28 ");
+		classUnderTest.calculateAttacksAndMobility(classUnderTest.me);
+		// white sliders
+		int [] positions = {Position.a2, Position.a3, Position.b1, Position.c1, // rook
+				Position.b2, Position.d2, Position.e3, Position.f4, Position.g5, Position.h6, // bishop
+				Position.c1, Position.d1, Position.f1, Position.g1, Position.e2, // rook
+				Position.c1, Position.b1, Position.d1, Position.b2, Position.d2, Position.e2, Position.b3, Position.a4, 
+				Position.c3, Position.c4, Position.d3, Position.e4, Position.f5, Position.g6, Position.h7 // queen
+		}; 
+		long expectedMask = BitBoard.valueOf(positions);
+		assertEquals(expectedMask, classUnderTest.attacks[0][2]);
+		// white pawns
+		positions = new int[] {Position.b4, Position.a3, Position.c3, Position.b5,
+				Position.d5, Position.e3, Position.g3, Position.f4, Position.h4, Position.g5,
+		}; 
+		expectedMask = BitBoard.valueOf(positions);
+		assertEquals(expectedMask, classUnderTest.attacks[0][0]);
+		// white knight
+		positions = new int[] {Position.c1, Position.c3, Position.d4, Position.f4,
+				Position.g3, Position.g1
+		}; 
+		expectedMask = BitBoard.valueOf(positions);
+		assertEquals(expectedMask, classUnderTest.attacks[0][1]);
+//		// white king
+//		positions = new int[] {Position.f1, Position.f2, Position.g2, Position.h2, Position.h1}; 
+//		expectedMask = BitBoard.valueOf(positions);
+//		assertEquals(expectedMask, classUnderTest.attacks[0][3]);
+	}	
 }
 

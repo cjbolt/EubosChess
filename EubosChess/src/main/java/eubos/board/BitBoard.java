@@ -11,6 +11,14 @@ import com.fluxchess.jcpi.models.IntRank;
 
 public final class BitBoard {
 	
+	public static long valueOf(int [] positions) {
+		long bitboard = 0L;
+		for (int pos : positions) {
+			bitboard |= positionToMask_Lut[pos];
+		}
+		return bitboard; 
+	}
+	
 	private static final long not_a_file = 0xfefefefefefefefeL;
 	private static final long not_h_file = 0x7f7f7f7f7f7f7f7fL;
 	

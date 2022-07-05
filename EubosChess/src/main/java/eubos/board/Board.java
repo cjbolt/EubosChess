@@ -1543,22 +1543,26 @@ public class Board {
 		long sliderAttacks = 0L;
 		if (queens != 0) {
 			if (bishops != 0) {
-				long mobility_mask_1 = BitBoard.downLeftOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
+				long mobility_mask_1 = BitBoard.downLeftOccludedEmpty(diagonal_sliders, empty);
 				sliderAttacks = BitBoard.downLeftAttacks(mobility_mask_1);
-				long mobility_mask_2 = BitBoard.upRightOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
+				long mobility_mask_2 = BitBoard.upRightOccludedEmpty(diagonal_sliders, empty);
 				sliderAttacks |= BitBoard.upRightAttacks(mobility_mask_2);
 				
+				mobility_mask_1 ^= diagonal_sliders;
+				mobility_mask_2 ^= diagonal_sliders;
 				if ((mobility_mask_1 & mobility_mask_2) == 0x0) {
 					mobility_score = Long.bitCount(mobility_mask_1 | mobility_mask_2);
 				} else {
 					mobility_score = Long.bitCount(mobility_mask_1) + Long.bitCount(mobility_mask_2);
 				}
 				
-				mobility_mask_1 = BitBoard.downRightOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
+				mobility_mask_1 = BitBoard.downRightOccludedEmpty(diagonal_sliders, empty);
 				sliderAttacks |= BitBoard.downRightAttacks(mobility_mask_1);
-				mobility_mask_2 = BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty) ^ diagonal_sliders;
+				mobility_mask_2 = BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty);
 				sliderAttacks |= BitBoard.upLeftAttacks(mobility_mask_2);
 				
+				mobility_mask_1 ^= diagonal_sliders;
+				mobility_mask_2 ^= diagonal_sliders;
 				if ((mobility_mask_1 & mobility_mask_2) == 0x0) {
 					mobility_score += Long.bitCount(mobility_mask_1 | mobility_mask_2);
 				} else {
@@ -1607,20 +1611,26 @@ public class Board {
 		long rank_file_sliders = rooks | queens;
 		long sliderAttacks = 0L;
 		if (rooks != 0) {
-			long mobility_mask_1 = BitBoard.leftOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;
+			long mobility_mask_1 = BitBoard.leftOccludedEmpty(rank_file_sliders, empty);
 			sliderAttacks = BitBoard.leftAttacks(mobility_mask_1);
-			long mobility_mask_2 = BitBoard.rightOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;
-			sliderAttacks |= BitBoard.rightAttacks(mobility_mask_1);
+			long mobility_mask_2 = BitBoard.rightOccludedEmpty(rank_file_sliders, empty);
+			sliderAttacks |= BitBoard.rightAttacks(mobility_mask_2);
+			
+			mobility_mask_1 ^= rank_file_sliders;
+			mobility_mask_2 ^= rank_file_sliders;
 			if ((mobility_mask_1 & mobility_mask_2) == 0x0) {
 				mobility_score = Long.bitCount(mobility_mask_1 | mobility_mask_2);
 			} else {
 				mobility_score = Long.bitCount(mobility_mask_1) + Long.bitCount(mobility_mask_2);
 			}
 			
-			mobility_mask_1 = BitBoard.upOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;
+			mobility_mask_1 = BitBoard.upOccludedEmpty(rank_file_sliders, empty);
 			sliderAttacks |= BitBoard.upAttacks(mobility_mask_1);
-			mobility_mask_2 = BitBoard.downOccludedEmpty(rank_file_sliders, empty) ^ rank_file_sliders;
-			sliderAttacks |= BitBoard.downAttacks(mobility_mask_1);
+			mobility_mask_2 = BitBoard.downOccludedEmpty(rank_file_sliders, empty);
+			sliderAttacks |= BitBoard.downAttacks(mobility_mask_2);
+			
+			mobility_mask_1 ^= rank_file_sliders;
+			mobility_mask_2 ^= rank_file_sliders;
 			if ((mobility_mask_1 & mobility_mask_2) == 0x0) {
 				mobility_score += Long.bitCount(mobility_mask_1 | mobility_mask_2);
 			} else {
