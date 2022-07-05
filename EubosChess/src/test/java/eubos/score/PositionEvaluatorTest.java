@@ -280,7 +280,7 @@ public class PositionEvaluatorTest {
 	public void test_won_KP_endgame_oppo_outside_square_of_pawn() {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 		setUpPosition("8/8/k7/6K1/8/4p3/8/8 w - - 0 1");
-		assertEquals(-767 /* passed pawn on second rank, can't be caught */, SUT.getFullEvaluation());
+		assertEquals(-782 /* passed pawn on second rank, can't be caught */, SUT.getFullEvaluation());
 		}
 	}
 	
@@ -289,7 +289,7 @@ public class PositionEvaluatorTest {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/8/k7/8/7K/4p3/8/8 w - - 0 1 ");
 			System.out.println(SUT.getFullEvaluation());
-			assertEquals(-67 /* passed pawn on second rank, can be caught */, SUT.getFullEvaluation());
+			assertEquals(-82 /* passed pawn on second rank, can be caught */, SUT.getFullEvaluation());
 		}
 	}
 	
@@ -297,7 +297,7 @@ public class PositionEvaluatorTest {
 	public void test_drawn_KP_endgame() {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/8/k7/8/8/4p1K1/8/8 w - - 0 1");
-			assertEquals(-67 /* passed pawn on second rank, can be caught */, SUT.getFullEvaluation());
+			assertEquals(-82 /* passed pawn on second rank, can be caught */, SUT.getFullEvaluation());
 		}
 	}
 	
@@ -305,7 +305,7 @@ public class PositionEvaluatorTest {
 	public void test_won_KP_endgame_defended_by_own_king() {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/8/8/8/7K/4p3/5k2/8 w - - 0 1");
-			assertEquals(-767 /* own king can block enemy king */, SUT.getFullEvaluation());
+			assertEquals(-782 /* own king can block enemy king */, SUT.getFullEvaluation());
 		}
 	}
 	
@@ -315,7 +315,7 @@ public class PositionEvaluatorTest {
 			setUpPosition("8/8/8/8/8/2k1p1K1/8/8 w - - 44 1");
 			/* In this test, the white king cannot get to the queening square in time,
 			   because it is blocked by the square that the pawn is attacking, at f2. */
-			assertEquals(-767 /* passed pawn */, SUT.getFullEvaluation());
+			assertEquals(-382 /* probably unstoppable passer */, SUT.getFullEvaluation());
 		}
 	}
 	
@@ -323,7 +323,7 @@ public class PositionEvaluatorTest {
 	public void test_won_KP_endgame_two() {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/8/8/8/8/2k1p3/6K1/8 w - - 44 1");
-			assertEquals(-767 /* passed pawn */, SUT.getFullEvaluation());
+			assertEquals(-382 /* probably unstoppable passer */, SUT.getFullEvaluation());
 		}
 	}
 	
@@ -331,7 +331,7 @@ public class PositionEvaluatorTest {
 	public void test_won_KP_endgame_three() {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/8/8/8/8/1k2p3/6K1/8 b - - 44 1");
-			assertEquals(767 /* passed pawn */, SUT.getFullEvaluation());
+			assertEquals(382 /* passed pawn */, SUT.getFullEvaluation());
 		}
 	}
 	
@@ -339,7 +339,7 @@ public class PositionEvaluatorTest {
 	public void test_drawn_KP_endgame_one() {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/8/8/8/8/2k1p3/8/5K2 w - - 44 1");
-			assertEquals(-67 /* passed pawn */, SUT.getFullEvaluation());
+			assertEquals(-82 /* passed pawn */, SUT.getFullEvaluation());
 		}
 	}
 	
@@ -347,7 +347,7 @@ public class PositionEvaluatorTest {
 	public void test_drawn_KP_endgame_two() {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/8/8/8/8/1k2p3/6K1/8 w - - 44 1");
-			assertEquals(-67 /* passed pawn */, SUT.getFullEvaluation());
+			assertEquals(-82 /* passed pawn */, SUT.getFullEvaluation());
 		}
 	}
 	
@@ -355,7 +355,7 @@ public class PositionEvaluatorTest {
 	public void test_won_KP_endgame_oppo_outside_square_of_pawn_white() {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/8/4P3/8/6k1/K7/8/8 b - - 0 1 ");
-			assertEquals(-767 /* passed pawn on second rank, can't be caught */, SUT.getFullEvaluation());
+			assertEquals(-782 /* passed pawn on second rank, can't be caught */, SUT.getFullEvaluation());
 		}
 	}
 	
@@ -364,7 +364,7 @@ public class PositionEvaluatorTest {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/8/4P3/7k/8/K7/8/8 b - - 0 1 ");
 			System.out.println(SUT.getFullEvaluation());
-			assertEquals(-67 /* passed pawn on second rank, can be caught */, SUT.getFullEvaluation());
+			assertEquals(-82 /* passed pawn on second rank, can be caught */, SUT.getFullEvaluation());
 		}
 	}
 	
@@ -372,7 +372,7 @@ public class PositionEvaluatorTest {
 	public void test_drawn_KP_endgame_white() {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/8/4P1k1/8/8/K7/8/8 b - - 0 1 ");
-			assertEquals(-67 /* passed pawn on second rank, can be caught */, SUT.getFullEvaluation());
+			assertEquals(-82 /* passed pawn on second rank, can be caught */, SUT.getFullEvaluation());
 		}
 	}
 	
@@ -380,7 +380,7 @@ public class PositionEvaluatorTest {
 	public void test_won_KP_endgame_defended_by_own_king_white() {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/5K2/4P3/7k/8/8/8/8 b - - 0 1 ");
-			assertEquals(-767 /* own king can block enemy king */, SUT.getFullEvaluation());
+			assertEquals(-782 /* own king can block enemy king */, SUT.getFullEvaluation());
 		}
 	}
 }

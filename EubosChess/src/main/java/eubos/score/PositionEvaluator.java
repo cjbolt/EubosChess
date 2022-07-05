@@ -23,7 +23,7 @@ public class PositionEvaluator implements IEvaluate {
 	public static final int CONNECTED_PASSED_PAWN_BOOST = 75;
 	
 	public static final boolean ENABLE_PAWN_EVALUATION = true;
-	public static final boolean ENABLE_KPK_EVALUATION = false;
+	public static final boolean ENABLE_KPK_EVALUATION = true;
 	public static final boolean ENABLE_CANDIDATE_PP_EVALUATION = true;
 	public static final boolean ENABLE_PP_IMBALANCE_EVALUATION = true;
 	
@@ -156,7 +156,7 @@ public class PositionEvaluator implements IEvaluate {
 			}
 		}
 		
-		protected void evaluateKpkEndgame(int atPos, boolean isOwnPawn) {
+		protected void evaluateKpkEndgame(int atPos, boolean isOwnPawn, long[] ownAttacks) {
 			// Special case, it is a KPK endgame
 			int file = Position.getFile(atPos);
 			int queeningSquare = pawnIsBlack ? Position.valueOf(file, 0) : Position.valueOf(file, 7);
@@ -167,15 +167,19 @@ public class PositionEvaluator implements IEvaluate {
 				oppoDistance -= 1;
 			}
 			if (oppoDistance > queeningDistance) {
-				// can't be caught by opposite king
+				// can't be caught by opposite king, as outside square of pawn
 				piecewisePawnScoreAccumulator += 700;
 			} else {
-				// Add code to increase score also if the pawn can be defended by own king
-				int ownKingPos = bd.getKingPosition(!pawnIsBlack);
-				int ownDistance = Position.distance(queeningSquare, ownKingPos);
-				if (ownDistance-1 <= oppoDistance) {
-					// Rationale is queen square can be blocked off from opposite King by own King
+				if (bd.isFrontspanControlledInKpk(atPos, !pawnIsBlack, ownAttacks[3])) {
+					// Rationale is whole frontspan can be blocked off from opposite King by own King
 					piecewisePawnScoreAccumulator += 700;
+				} else {
+					// increase score also if we think the pawn can be defended by own king
+					int ownKingPos = bd.getKingPosition(!pawnIsBlack);
+					int ownDistance = Position.distance(queeningSquare, ownKingPos);
+					if (ownDistance-1 <= oppoDistance) {
+						piecewisePawnScoreAccumulator += 300;
+					}
 				}
 			}
 		}
@@ -192,7 +196,7 @@ public class PositionEvaluator implements IEvaluate {
 				ppCount[isOwnPawn ? 0:1] += 1;
 				setQueeningDistance(atPos, pawnIsWhite);
 				if (ENABLE_KPK_EVALUATION && bd.me.phase == 4096) {
-					evaluateKpkEndgame(atPos, isOwnPawn);
+					evaluateKpkEndgame(atPos, isOwnPawn, own_attacks);
 				} else {
 					// scale weighting for game phase as well as promotion proximity, up to 3x
 					int scale = 1 + ((bd.me.phase+640) / 4096) + ((bd.me.phase+320) / 4096);

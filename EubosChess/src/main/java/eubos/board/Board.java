@@ -931,6 +931,16 @@ public class Board {
 		return isPassed;
 	}
 	
+	public boolean isFrontspanControlledInKpk(int atPos, boolean isWhite, long own_attacks) {
+		boolean isControlled = false;
+		long front_span_mask = BitBoard.PawnFrontSpan_Lut[isWhite ? 0 : 1][atPos];
+		if (((front_span_mask & own_attacks) ^ front_span_mask) == 0L) {
+			// Don't need to check opponent attacks, because they can't attack the frontspan, ONLY VALID for KPK
+			isControlled = true;
+		}
+		return isControlled;
+	}
+	
 	public boolean isPawnFrontspanBlocked(int atPos, boolean isWhite, long own_attacks, long enemy_attacks) {
 		boolean isClear = true;
 		// Check frontspan is clear

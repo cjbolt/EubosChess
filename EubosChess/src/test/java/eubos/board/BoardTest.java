@@ -802,10 +802,30 @@ public class BoardTest {
 		}; 
 		expectedMask = BitBoard.valueOf(positions);
 		assertEquals(expectedMask, classUnderTest.attacks[0][1]);
-//		// white king
-//		positions = new int[] {Position.f1, Position.f2, Position.g2, Position.h2, Position.h1}; 
-//		expectedMask = BitBoard.valueOf(positions);
-//		assertEquals(expectedMask, classUnderTest.attacks[0][3]);
+
+		// black sliders
+		positions = new int[] {Position.a5, Position.b5, Position.c5, Position.a6, Position.c6, Position.b4, Position.b3, Position.b2, 
+				Position.a7, Position.b7, Position.c7, Position.a8, Position.d8, Position.b8, // queen
+				Position.h4, Position.g3, Position.g5, Position.g6, Position.g7, // rook
+				Position.f4, Position.e4, Position.d4, Position.c4,
+			
+				Position.b8, Position.c8, Position.d8, Position.f8, Position.g8, Position.e7, Position.e6, // other rook
+				
+				Position.a7, Position.c7, Position.d6, Position.e5, Position.f4, Position.g3, // bishop
+				
+				Position.a8, Position.b7, Position.d7, Position.e8, Position.b5, Position.a4, 
+				Position.d5, Position.e4, Position.f3, Position.g2, Position.h1 // bishop
+		}; 
+		expectedMask = BitBoard.valueOf(positions);
+		assertEquals(expectedMask, classUnderTest.attacks[1][2]);
+		// black pawns
+		positions = new int[] {Position.b4, Position.d4, Position.d5, Position.f5,
+				Position.h6, Position.g6, Position.f6, Position.e6
+		}; 
+		expectedMask = BitBoard.valueOf(positions);
+		assertEquals(expectedMask, classUnderTest.attacks[1][0]);
+		// black knight
+		assertEquals(0, classUnderTest.attacks[1][1]);
 	}	
 }
 
