@@ -17,12 +17,7 @@ import eubos.search.DrawChecker;
 
 public class PositionManager implements IChangePosition, IPositionAccessors, IForEachPieceCallback {
 	
-	long[][] attacks;
-	boolean attacksValid;
-	
 	public PositionManager( String fenString, DrawChecker dc) {
-		attacks = new long [2][4];
-		attacksValid = false;
 		moveTracker = new MoveTracker();
 		new fenParser( this, fenString );
 		hash = new ZobristHashCode(this, castling);
@@ -75,15 +70,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 	}
 
 	public boolean isKingInCheck() {
-		boolean isWhite = onMoveIsWhite();
-		boolean inCheck = false;
-		if (attacksValid) {
-			long kingMask = isWhite ? theBoard.getWhiteKing() : theBoard.getBlackKing();
-			inCheck = (kingMask & attacks[isWhite ? 1 : 0][3]) != 0L;
-		} else {
-			inCheck = theBoard.isKingInCheck(onMoveIsWhite());
-		}
-		return inCheck;
+		return theBoard.isKingInCheck(onMoveIsWhite());
 	}
 	
 	private ZobristHashCode hash;
@@ -135,9 +122,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 		performMove(move, true);
 	}
 	
-	public void performMove( int move, boolean computeHash ) {
-		attacksValid = false;
-		
+	public void performMove( int move, boolean computeHash ) {		
 		// Preserve state
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		int capturePosition = theBoard.doMove(move);
@@ -171,8 +156,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 	}
 	
 	public void unperformMove(boolean computeHash) {
-		attacksValid = false;
-		
+
 		long tm = moveTracker.pop();
 		int move = TrackedMove.getMove(tm);
 		int reversedMove = Move.reverse(move);
@@ -440,14 +424,5 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 	
 	public boolean promotablePawnPresent() {
 		return theBoard.isPromotablePawnPresent(Colour.isWhite(onMove));
-	}
-	
-	public long [][] getAttacks() {
-		if (!attacksValid) {
-			attacksValid = true;
-			return theBoard.getAttackedSquares(attacks);
-		} else {
-			return attacks;
-		}
 	}
 }

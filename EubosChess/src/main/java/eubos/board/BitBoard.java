@@ -207,6 +207,38 @@ public final class BitBoard {
 		return (downRightOccludedEmpty(board, empty) >>> 7) & not_a_file;
 	}
 	
+	public static long upAttacks(long mobility) {
+		return mobility << 8;
+	}
+	
+	public static long downAttacks(long mobility) {
+		return mobility >>> 8;
+	}
+	
+	public static long leftAttacks(long mobility) {
+		return (mobility >>> 1) & not_h_file;
+	}
+	
+	public static long rightAttacks(long mobility) {
+		return (mobility << 1) & not_a_file;
+	}
+	
+	public static long upLeftAttacks(long mobility) {
+	   return (mobility << 7) & not_h_file;
+	}
+	
+	public static long upRightAttacks(long mobility) {
+		return (mobility << 9) & not_a_file;
+	}
+	
+	public static long downLeftAttacks(long mobility) {
+		return (mobility >>> 9) & not_h_file;
+	}
+	
+	public static long downRightAttacks(long mobility) {
+		return (mobility >>> 7) & not_a_file;
+	}
+	
 	static final long[] FileMask_Lut = new long[8];
 	static {
 		for (int file : IntFile.values) {

@@ -94,9 +94,9 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	@Test
 	public void test_infoMessageSending_clearsPreviousPvMoves() throws InterruptedException, IOException {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && !SearchMetrics.ENABLE_SINGLE_MOVE_PV) {
-			String expectedOutput = "info depth 1 seldepth 6 score cp -178 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
-						"info depth 1 seldepth 5 score cp 358 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 43"+CMD_TERMINATOR+
-	                    "info depth 2 seldepth 7 score cp 149 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 189"+CMD_TERMINATOR
+			String expectedOutput = "info depth 1 seldepth 6 score cp -288 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
+						"info depth 1 seldepth 6 score cp 238 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 45"+CMD_TERMINATOR+
+	                    "info depth 2 seldepth 7 score cp 109 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 231"+CMD_TERMINATOR
 	                    +BEST_PREFIX+"c7c2";
 			setupEngine();
 			// Setup Commands specific to this test

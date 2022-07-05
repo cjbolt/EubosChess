@@ -88,15 +88,12 @@ public class PositionEvaluator implements IEvaluate {
 	public int getFullEvaluation() {
 		initialise();
 		if (!isDraw) {
-			long [][] attacks = pm.getAttacks();
 			// Score factors common to each phase, material, pawn structure and piece mobility
 			bd.me.dynamicPosition = 0;
+			long [][] attacks = bd.calculateAttacksAndMobility(bd.me);
+			
 			score += evaluateBishopPair();
-			if (PositionEvaluator.ENABLE_DYNAMIC_POSITIONAL_EVALUATION && !goForMate) {
-				//bd.calculateDynamicMobility(bd.me);
-				bd.me.dynamicPosition += Long.bitCount(attacks[0][2])*2;
-				bd.me.dynamicPosition -= Long.bitCount(attacks[1][2])*2;
-			}
+			
 			if (ENABLE_PAWN_EVALUATION) {
 				score += pawn_eval.evaluatePawnStructure(attacks);
 			}

@@ -32,20 +32,20 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_evalPosA() {
 		setUpPosition("rn2k1nr/1pp2p1p/p7/8/6b1/2P2N2/PPP2PP1/R1BB1RK1 b kq - 0 12");
-		assertEquals(-233, SUT.getFullEvaluation()); // Knight good pos, pawn up, doubled pawns, isolated pawn, not endgame, some danger to black king (open file)
+		assertEquals(-227, SUT.getFullEvaluation()); // Knight good pos, pawn up, doubled pawns, isolated pawn, not endgame, some danger to black king (open file)
 	}
 	
 	@Test
 	public void test_EvalPosB() {
 		setUpPosition("8/8/1B6/8/8/4Kpk1/8/b7 w - - - 85");
-		assertEquals(-226, SUT.getFullEvaluation());
+		assertEquals(-229, SUT.getFullEvaluation());
 	}
 	
 	@Test
 	public void test_DiscourageDoubledPawns_w() {
 		// addition of a knight means it doesn't count as KPK endgame
 		setUpPosition("n7/pppppp2/8/8/8/1P2P3/1P1P2PP/8 b - - 0 1");
-		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
+		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getTheBoard().getAttackedSquares());
 		int expectedScore = DOUBLED_PAWN_HANDICAP-3*ROOK_FILE_PASSED_PAWN_BOOST+2*ISOLATED_PAWN_HANDICAP+3*BACKWARD_PAWN_HANDICAP-6*BACKWARD_PAWN_HANDICAP;
 		if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore -= 15;
@@ -57,7 +57,7 @@ public class PositionEvaluatorTest {
 	public void test_DiscourageDoubledPawns_b() {
 		// addition of a knight means it doesn't count as KPK endgame
 		setUpPosition("n7/pp2p1p1/3p2p1/8/8/8/2PPPPPP/8 w - - 0 1 ");
-		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
+		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getTheBoard().getAttackedSquares());
 		int expectedScore = 0;
 		expectedScore += DOUBLED_PAWN_HANDICAP;
 		expectedScore += -3*ROOK_FILE_PASSED_PAWN_BOOST;
@@ -74,7 +74,7 @@ public class PositionEvaluatorTest {
 	public void test_DiscourageTripledPawns_w() {
 		// addition of a knight means it doesn't count as KPK endgame
 		setUpPosition("n7/8/8/8/2P5/2P5/2P5/8 w - - 0 38 ");
-		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
+		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getTheBoard().getAttackedSquares());
 		// black
 		int expectedScore = 0;
 		// white
@@ -92,7 +92,7 @@ public class PositionEvaluatorTest {
 	public void test_DiscourageTripledPawns_b() {
 		// addition of a knight means it doesn't count as KPK endgame
 		setUpPosition("n7/8/8/8/2p5/2p5/2p5/8 w - - 0 38 ");
-		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
+		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getTheBoard().getAttackedSquares());
 		// black
 		int expectedScore = 0;
 		expectedScore -= ((7-1)*3*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP);
@@ -109,7 +109,7 @@ public class PositionEvaluatorTest {
 	public void test_encouragePassedPawns_PassedPawn() {
 		// addition of a knight means it doesn't count as KPK endgame
 		setUpPosition("n7/8/3pp3/8/3p4/8/2P5/8 b - - 0 1 ");
-		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
+		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getTheBoard().getAttackedSquares());
 		// black
 		int expectedScore = 0;
 		expectedScore += -BACKWARD_PAWN_HANDICAP; // black d pawn about to queen
@@ -128,7 +128,7 @@ public class PositionEvaluatorTest {
 	public void test_encouragePassedPawns_TwoPassedPawnsForBlack() {
 		// addition of a knight means it doesn't count as KPK endgame
 		setUpPosition("n7/8/3pp3/8/8/8/2Pp4/8 b - - 0 1");
-		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
+		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getTheBoard().getAttackedSquares());
 		// black
 		int expectedScore = 0;
 		expectedScore += (7-1)*3*PASSED_PAWN_BOOST; // black d pawn about to queen
@@ -147,7 +147,7 @@ public class PositionEvaluatorTest {
 	public void test_encouragePassedPawns_PassedPawnForWhite() {
 		// addition of a knight means it doesn't count as KPK endgame
 		setUpPosition("8/2pPp3/8/2P1P3/8/8/8/7n w - - 0 1 ");
-		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
+		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getTheBoard().getAttackedSquares());
 		// white
 		int expectedScore = 0;
 		expectedScore += 6*3*PASSED_PAWN_BOOST;
@@ -166,7 +166,7 @@ public class PositionEvaluatorTest {
 	public void test_encouragePassedPawns_PassedPawnForBlack1() {
 		// addition of a knight means it doesn't count as KPK endgame
 		setUpPosition("n7/8/8/8/8/2p1p3/2PpP3/8 b - - 0 1 ");
-		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
+		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getTheBoard().getAttackedSquares());
 		// black
 		int expectedScore = 0;
 		expectedScore += (7-1)*3*PASSED_PAWN_BOOST;
@@ -185,7 +185,7 @@ public class PositionEvaluatorTest {
 	public void test_encouragePassedPawns_TwoPassedPawnsForBlackOneRookFile() {
 		// addition of a knight means it doesn't count as KPK endgame
 		setUpPosition("n7/8/3p3p/8/8/8/2Pp4/8 b - - 0 1");
-		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
+		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getTheBoard().getAttackedSquares());
 		// black
 		int expectedScore = 0;
 		expectedScore += ((7-1)*3*PASSED_PAWN_BOOST - ISOLATED_PAWN_HANDICAP); // black d pawn about to queen
@@ -203,7 +203,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_crazyPassedPawnScenario() {
 		setUpPosition("3r2k1/1Nr2pp1/1n3n2/1P1P2q1/3P4/1pP2p1p/1K6/R3QB1R b - - 0 29 ");
-		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
+		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getTheBoard().getAttackedSquares());
 		assertEquals(-25, score);
 	} 
 	
@@ -212,28 +212,28 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_encouragePassedPawns_NotPassedPawn() {
 		setUpPosition("8/8/8/8/8/5p2/6P1/8 w - - 0 1 ");
-		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
+		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getTheBoard().getAttackedSquares());
 		assertEquals(-72 /* two candidate passed pawns, blacks is more valuable, but white can take it on the next move! */, score);
 	}
 	
 	@Test
 	public void test_encouragePassedPawns_NotPassedPawn1() {
 		setUpPosition("8/8/8/8/5p2/8/6P1/8 w - - 0 1 ");
-		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
+		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getTheBoard().getAttackedSquares());
 		assertEquals(0 /* no passed f pawn, fully passed */, score);
 	}
 	
 	@Test
 	public void test_encouragePassedPawns_NotPassedPawn2() {
 		setUpPosition("8/8/8/8/6p1/8/6P1/8 w - - 0 1 ");
-		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
+		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getTheBoard().getAttackedSquares());
 		assertEquals(0 /* blocked g pawn not passed */, score);
 	}
 	
 	@Test
 	public void test_encouragePassedPawns_NotPassedPawn2_w() {
 		setUpPosition("8/8/8/8/6p1/8/6P1/8 b - - 0 1 ");
-		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
+		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getTheBoard().getAttackedSquares());
 		assertEquals(0 /* blocked g pawn not passed */, score);
 	}
 	
@@ -241,7 +241,7 @@ public class PositionEvaluatorTest {
 	public void test_encouragePassedPawns_BothPassedPawns() {
 		// addition of a knight means it doesn't count as KPK endgame
 		setUpPosition("n7/8/8/8/6P1/8/6p1/8 b - - 0 1 ");
-		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
+		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getTheBoard().getAttackedSquares());
 		/* both pawns on the same file, passed, white at 3rd rank, black at 1st rank. */
 		int expected_eval = (((7-3)*3*PASSED_PAWN_BOOST)-ISOLATED_PAWN_HANDICAP)-(1*3*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP);
 		assertEquals(expected_eval, score);
@@ -250,14 +250,14 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_encouragePassedPawns_CandidatePasserAtB5() {
 		setUpPosition("8/p7/8/PP6/8/8/8/8 w - - 0 1");
-		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
+		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getTheBoard().getAttackedSquares());
 		assertEquals(81 /* b5 pawn will queen, not including material */, score);
 	}
 	
 	@Test
 	public void test_encouragePassedPawns_CandidatePasserAtB5NotSupportedByDefender() {
 		setUpPosition("8/p7/8/1P6/8/8/8/8 w - - 0 1");
-		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getAttacks());
+		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getTheBoard().getAttackedSquares());
 		assertEquals(0 /* b5 pawn will not queen, because b6 is not defended by our pawn, not including material */, score);
 	}
 	

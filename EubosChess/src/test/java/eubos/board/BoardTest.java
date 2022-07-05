@@ -311,7 +311,7 @@ public class BoardTest {
 	public void testRookandQueenMobility_ExcludeBlackPawnandKnightAttacks_2() {	
 		setUpPosition("5K1k/2n5/2n5/8/2n5/2nn4/5pp1/R3Q2R w - - 0 1");
 		classUnderTest.me.dynamicPosition = 0;
-		classUnderTest.calculateDynamicMobility(classUnderTest.me);
+		classUnderTest.calculateAttacksAndMobility(classUnderTest.me);
 		assertEquals(62, classUnderTest.me.dynamicPosition);
 	}
 		
@@ -482,32 +482,32 @@ public class BoardTest {
 	@Test
 	public void test_evaluateKingSafety_safe()throws IllegalNotationException {
 		setUpPosition("5krr/4pppp/6bq/8/8/6BQ/4PPPP/5KRR b - - 13 1");
-		assertEquals(-25, classUnderTest.evaluateKingSafety(pm.getAttacks(), true)); // 5 squares, can be attacked by three pieces
-		assertEquals(-25, classUnderTest.evaluateKingSafety(pm.getAttacks(), false));
+		assertEquals(-25, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true)); // 5 squares, can be attacked by three pieces
+		assertEquals(-25, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false));
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_notVerySafe()throws IllegalNotationException {
 		setUpPosition("6rr/5ppp/1k4bq/8/8/1K4BQ/5PPP/6RR b - - 13 1 ");
-		assertEquals(-78, classUnderTest.evaluateKingSafety(pm.getAttacks(), false)); // diagonals 7 squares, can be attacked by two pieces; r'n'f 9 squares can be attacked by three pieces
-		assertEquals(-78, classUnderTest.evaluateKingSafety(pm.getAttacks(), true));
+		assertEquals(-78, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false)); // diagonals 7 squares, can be attacked by two pieces; r'n'f 9 squares can be attacked by three pieces
+		assertEquals(-78, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true));
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_No_inEndgame()throws IllegalNotationException {
 		setUpPosition("8/8/8/8/8/8/8/K7 w - - 0 1");
-		assertEquals(0, classUnderTest.evaluateKingSafety(pm.getAttacks(), true));
+		assertEquals(0, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true));
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_No_opposingBishopWrongColour()throws IllegalNotationException {
 		setUpPosition("r4rk1/1p3p2/p7/P2P1p1B/4p3/2b5/3R1PPP/4K2R b K - 13 1 ");
 		if (PositionEvaluator.ENABLE_TWEAKED_KING_FLIGHT_SQUARES) {
-			assertEquals(-74, classUnderTest.evaluateKingSafety(pm.getAttacks(), true)); // 7*2*2 rnf 0 diag = 28
-			assertEquals(-66, classUnderTest.evaluateKingSafety(pm.getAttacks(), false)); // 7*2*2 rnf 1*2*1 = 30
+			assertEquals(-74, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true)); // 7*2*2 rnf 0 diag = 28
+			assertEquals(-66, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false)); // 7*2*2 rnf 1*2*1 = 30
 		} else {
-			assertEquals(-54, classUnderTest.evaluateKingSafety(pm.getAttacks(), true)); // 7*2*2 rnf 0 diag = 28
-			assertEquals(-46, classUnderTest.evaluateKingSafety(pm.getAttacks(), false)); // 7*2*2 rnf 1*2*1 = 30
+			assertEquals(-54, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true)); // 7*2*2 rnf 0 diag = 28
+			assertEquals(-46, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false)); // 7*2*2 rnf 1*2*1 = 30
 		}
 
 	}
@@ -516,9 +516,9 @@ public class BoardTest {
 	public void test_evaluateKingSafety_Yes_opposingBishopRightColour()throws IllegalNotationException {
 		setUpPosition("r4rk1/1p6/p7/P2P1p1B/4p3/2b5/3R1PPP/2K4R b - - 13 1 ");
 		if (PositionEvaluator.ENABLE_TWEAKED_KING_FLIGHT_SQUARES) {
-			assertEquals(-100, classUnderTest.evaluateKingSafety(pm.getAttacks(), true));
+			assertEquals(-100, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true));
 		} else {
-			assertEquals(-84, classUnderTest.evaluateKingSafety(pm.getAttacks(), true));
+			assertEquals(-84, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true));
 		}
 	}
 	
@@ -526,40 +526,40 @@ public class BoardTest {
 	public void test_evaluateKingSafety_Yes_opposingQueenBishop()throws IllegalNotationException {
 		setUpPosition("r4rk1/1p6/p7/P2P1p1B/4p3/2b5/3R1PPP/Q1K4R b - - 13 1 ");
 		if (PositionEvaluator.ENABLE_TWEAKED_KING_FLIGHT_SQUARES) {
-		assertEquals(-100, classUnderTest.evaluateKingSafety(pm.getAttacks(), true));  // (5 up right + 2 up left) *2 *1bish = 14; (7 up + 2 left + 5 right) * 2 *2rooks = 28*2; 56+14 = 70
-		assertEquals(-75, classUnderTest.evaluateKingSafety(pm.getAttacks(), false));  // 1*2*2 diag = 4; 7*2*3 = 42 r'n'f; 4+42 = 46 
+		assertEquals(-100, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true));  // (5 up right + 2 up left) *2 *1bish = 14; (7 up + 2 left + 5 right) * 2 *2rooks = 28*2; 56+14 = 70
+		assertEquals(-75, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false));  // 1*2*2 diag = 4; 7*2*3 = 42 r'n'f; 4+42 = 46 
 		} else {
-			assertEquals(-84, classUnderTest.evaluateKingSafety(pm.getAttacks(), true));  // (5 up right + 2 up left) *2 *1bish = 14; (7 up + 2 left + 5 right) * 2 *2rooks = 28*2; 56+14 = 70
-			assertEquals(-67, classUnderTest.evaluateKingSafety(pm.getAttacks(), false));  // 1*2*2 diag = 4; 7*2*3 = 42 r'n'f; 4+42 = 46 
+			assertEquals(-84, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true));  // (5 up right + 2 up left) *2 *1bish = 14; (7 up + 2 left + 5 right) * 2 *2rooks = 28*2; 56+14 = 70
+			assertEquals(-67, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false));  // 1*2*2 diag = 4; 7*2*3 = 42 r'n'f; 4+42 = 46 
 		}
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_OneKnight_attackBlack()throws IllegalNotationException {
 		setUpPosition("K7/8/4k3/8/8/1N4N1/8/8 w - - 1 1 ");
-		assertEquals(0, classUnderTest.evaluateKingSafety(pm.getAttacks(), true));
-		assertEquals(-68, classUnderTest.evaluateKingSafety(pm.getAttacks(), false)); // One knight attacks the black king zone
+		assertEquals(0, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true));
+		assertEquals(-68, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false)); // One knight attacks the black king zone
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_TwoKnights_attackBlack()throws IllegalNotationException {
 		setUpPosition("K7/8/4k3/8/8/2N3N1/8/8 w - - 1 1 ");
-		assertEquals(0, classUnderTest.evaluateKingSafety(pm.getAttacks(), true));
-		assertEquals(-87, classUnderTest.evaluateKingSafety(pm.getAttacks(), false)); // One knight attacks the black king zone
+		assertEquals(0, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true));
+		assertEquals(-87, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false)); // One knight attacks the black king zone
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_OneKnight_attackWhite()throws IllegalNotationException {
 		setUpPosition("k7/8/4K3/8/8/1n4n1/8/8 b - - 1 1 ");
-		assertEquals(-68, classUnderTest.evaluateKingSafety(pm.getAttacks(), true));
-		assertEquals(0, classUnderTest.evaluateKingSafety(pm.getAttacks(), false)); // One knight attacks the black king zone
+		assertEquals(-68, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true));
+		assertEquals(0, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false)); // One knight attacks the black king zone
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_TwoKnights_attackWhite()throws IllegalNotationException {
 		setUpPosition("k7/8/4K3/8/8/2n3n1/8/8 b - - 1 1 ");
-		assertEquals(-87, classUnderTest.evaluateKingSafety(pm.getAttacks(), true));
-		assertEquals(0, classUnderTest.evaluateKingSafety(pm.getAttacks(), false)); // One knight attacks the black king zone
+		assertEquals(-87, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true));
+		assertEquals(0, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false)); // One knight attacks the black king zone
 	}
 	
 	@Test
@@ -584,7 +584,7 @@ public class BoardTest {
 	public void test_slider_refactor_eval() {
 		setUpPosition("r1b1kb1r/ppq1pppp/8/3pN3/3Q4/8/PPP2PPP/RNB1K2R b KQkq - 0 1");
 		PiecewiseEvaluation me = new PiecewiseEvaluation();
-		classUnderTest.calculateDynamicMobility(me);
+		classUnderTest.calculateAttacksAndMobility(me);
 		assertEquals(8, me.getPosition());
 	}
 	
@@ -600,8 +600,8 @@ public class BoardTest {
 						PiecewiseEvaluation me = new PiecewiseEvaluation();
 						PiecewiseEvaluation old_me = new PiecewiseEvaluation();
 						classUnderTest.setPieceAtSquare(atPos, Piece.WHITE_BISHOP);
-						classUnderTest.calculateDynamicMobility(me);
-						classUnderTest.calculateDynamicMobility(old_me);
+						classUnderTest.calculateAttacksAndMobility(me);
+						classUnderTest.calculateAttacksAndMobility(old_me);
 						assertEquals(old_me.getPosition(), me.getPosition());
 						classUnderTest.pickUpPieceAtSquare(atPos, Piece.WHITE_BISHOP);
 					}
@@ -619,8 +619,8 @@ public class BoardTest {
 						PiecewiseEvaluation me = new PiecewiseEvaluation();
 						PiecewiseEvaluation old_me = new PiecewiseEvaluation();
 						classUnderTest.setPieceAtSquare(atPos, Piece.WHITE_ROOK);
-						classUnderTest.calculateDynamicMobility(me);
-						classUnderTest.calculateDynamicMobility(old_me);
+						classUnderTest.calculateAttacksAndMobility(me);
+						classUnderTest.calculateAttacksAndMobility(old_me);
 						assertEquals(old_me.getPosition(), me.getPosition());
 						classUnderTest.pickUpPieceAtSquare(atPos, Piece.WHITE_ROOK);
 					}
@@ -718,46 +718,63 @@ public class BoardTest {
 	@Test
 	public void test_frontspan_isBlocked() {
 		setUpPosition("2k5/8/8/8/2P5/3K4/8/8 w - - 1 10 ");
-		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
+		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3], pm.getTheBoard().getAttackedSquares()[1][3]));
 	}
 	
 	@Test
 	public void test_frontspan_NotBlocked() {
 		setUpPosition("8/k7/8/8/2P5/3K4/8/8 w - - 1 10 ");
-		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
+		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3], pm.getTheBoard().getAttackedSquares()[1][3]));
 	}
 	
 	@Test
 	public void test_frontspan_isAttackedAndDefended() {
 		setUpPosition("8/1B1b4/8/8/2P5/3K4/8/8 w - - 1 10 ");
-		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
+		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3], pm.getTheBoard().getAttackedSquares()[1][3]));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttacked() {
 		setUpPosition("8/3b4/8/8/2P5/3K4/8/8 w - - 1 10 ");
-		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
+		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3], pm.getTheBoard().getAttackedSquares()[1][3]));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttackedTwiceDefendedOnce() {
 		setUpPosition("8/3b4/2P6/2P5/3K4/8/8 w - - 1 10 ");
-		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
+		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3], pm.getTheBoard().getAttackedSquares()[1][3]));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttackedTwiceDefendedTwice() {
 		setUpPosition("R7/3b4/8/1PP5/3K4/8/8 w - - 1 10 ");
-		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getAttacks()[0][3], pm.getAttacks()[1][3]));
+		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3], pm.getTheBoard().getAttackedSquares()[1][3]));
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_ScoreReporter()throws IllegalNotationException {
 		setUpPosition("4rbk1/1pr2p2/2p2Qp1/p2p4/6RP/2P1PN1q/PP3P2/2K3R1 b - - 9 30 ");
 		if (PositionEvaluator.ENABLE_TWEAKED_KING_FLIGHT_SQUARES) {
-			assertEquals(-257, classUnderTest.evaluateKingSafety(pm.getAttacks(), false));
+			assertEquals(-257, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false));
 		} else {
-			assertEquals(-196, classUnderTest.evaluateKingSafety(pm.getAttacks(), false));
+			assertEquals(-196, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false));
 		}
 	}
+	
+	@Test
+	public void test_blockedBishopAttacksOwnPieces() throws IllegalNotationException {
+		setUpPosition("7k/8/8/2P1P3/3B4/2P1P3/8/7K w - - 0 1");
+		classUnderTest.getAttackedSquares();
+		// bishop attacks 4 pawns
+		assertEquals(4, Long.bitCount(classUnderTest.attacks[0][2]));
+	}
+	
+	@Test
+	public void test_blockedRookAttacksOwnPieces() throws IllegalNotationException {
+		setUpPosition("7k/8/8/3P4/2PRP3/3P4/8/7K w - - 0 1");
+		classUnderTest.getAttackedSquares();
+		// rook attacks 4 pawns
+		assertEquals(4, Long.bitCount(classUnderTest.attacks[0][2]));
+	}
 }
+
