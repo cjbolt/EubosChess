@@ -20,9 +20,9 @@ public class PlySearcher {
 		{ Piece.MATERIAL_VALUE_PAWN/4, 2*Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
 	
 	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
-	running with the logging in TUNE_LAZY_EVAL for Eubos2.8 and post processing the logs.
+	running with the logging in TUNE_LAZY_EVAL for Eubos2.13 and post processing the logs.
 	It will need to be re-tuned if the evaluation function is altered significantly. */
-	private static final int LAZY_EVAL_THRESHOLD_IN_CP = 250;
+	private static final int LAZY_EVAL_THRESHOLD_IN_CP = 375;
 	private static final boolean TUNE_LAZY_EVAL = false;
 
 	private static final boolean ENABLE_EXTRA_EXTENSIONS = false;
@@ -646,6 +646,7 @@ public class PlySearcher {
 		int delta = Math.abs(plyScore-pe.getFullEvaluation());
 		if (delta > LAZY_EVAL_THRESHOLD_IN_CP) {
 			delta -= LAZY_EVAL_THRESHOLD_IN_CP;
+			assert delta < 1500 : String.format("LazyFail delta=%d stack=%s", delta, pos.unwindMoveStack());
 			if (delta < LazyEvalStatistics.MAX_DELTA) {
 				lazyStat.lazyThreshFailedCount[delta]++;
 			} else {
@@ -779,6 +780,7 @@ public class PlySearcher {
 		pm.performNullMove();
 		
 		state[currPly].inCheck = state[currPly-1].inCheck;
+		state[currPly].crudeEval = -state[currPly-1].crudeEval;
 		plyScore = -search(depth-1-R, false, -state[currPly-1].beta, -state[currPly-1].beta+1);
 		
 		pm.unperformNullMove();

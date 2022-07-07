@@ -25,7 +25,7 @@ public class PositionEvaluator implements IEvaluate {
 	public static final boolean ENABLE_PAWN_EVALUATION = true;
 	public static final boolean ENABLE_KPK_EVALUATION = true;
 	public static final boolean ENABLE_CANDIDATE_PP_EVALUATION = true;
-	public static final boolean ENABLE_PP_IMBALANCE_EVALUATION = true;
+	public static final boolean ENABLE_PP_IMBALANCE_EVALUATION = false;
 	
 	public static final boolean ENABLE_KING_SAFETY_EVALUATION = true;
 	public static final boolean ENABLE_TWEAKED_KING_FLIGHT_SQUARES = false;
