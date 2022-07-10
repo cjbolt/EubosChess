@@ -22,14 +22,14 @@ public class PlySearcher {
 	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
 	running with the logging in TUNE_LAZY_EVAL for Eubos2.13 and post processing the logs.
 	It will need to be re-tuned if the evaluation function is altered significantly. */
-	private static final int LAZY_EVAL_THRESHOLD_IN_CP = 275;
+	public static int lazy_eval_threshold_cp = 275;
 	private static final boolean TUNE_LAZY_EVAL = false;
 
 	private static final boolean ENABLE_EXTRA_EXTENSIONS = false;
 	
 	private class LazyEvalStatistics {
 		
-		static final int MAX_DELTA = Piece.MATERIAL_VALUE_QUEEN -LAZY_EVAL_THRESHOLD_IN_CP; 
+		int MAX_DELTA = Piece.MATERIAL_VALUE_QUEEN - lazy_eval_threshold_cp; 
 		long lazySavedCountAlpha;
 		long lazySavedCountBeta;
 		long nodeCount;
@@ -435,7 +435,7 @@ public class PlySearcher {
 			!pos.getTheBoard().me.isEndgame() &&
 			!state[currPly].inCheck &&
 			!(Score.isMate((short)state[currPly].beta) || Score.isMate((short)state[currPly].alpha)) && 
-			state[currPly].crudeEval+LAZY_EVAL_THRESHOLD_IN_CP > state[currPly].beta) {
+			state[currPly].crudeEval+lazy_eval_threshold_cp > state[currPly].beta) {
 			
 			state[currPly].plyScore = doNullMoveSubTreeSearch(depth);
 			if (isTerminated()) { return 0; }
@@ -546,7 +546,7 @@ public class PlySearcher {
 			if (TUNE_LAZY_EVAL) {
 				lazyStat.nodeCount++;
 			}
-			if (state[currPly].plyScore-LAZY_EVAL_THRESHOLD_IN_CP >= beta) {
+			if (state[currPly].plyScore-lazy_eval_threshold_cp >= beta) {
 				// There is no move to put in the killer table when we stand Pat
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(state[currPly].plyScore);
 				// According to lazy eval, we probably can't reach beta
@@ -557,7 +557,7 @@ public class PlySearcher {
 				return beta;
 			}
 			/* Note call to quiescence check is last as it could be very computationally heavy! */
-			if (state[currPly].plyScore+LAZY_EVAL_THRESHOLD_IN_CP <= alpha && pos.isQuiescent()) {
+			if (state[currPly].plyScore+lazy_eval_threshold_cp <= alpha && pos.isQuiescent()) {
 				// According to lazy eval, we probably can't increase alpha
 				if (TUNE_LAZY_EVAL) {
 					lazyStat.lazySavedCountAlpha++;
@@ -644,10 +644,10 @@ public class PlySearcher {
 	
 	private void updateLazyStatistics(short plyScore) {
 		int delta = Math.abs(plyScore-pe.getFullEvaluation());
-		if (delta > LAZY_EVAL_THRESHOLD_IN_CP) {
-			delta -= LAZY_EVAL_THRESHOLD_IN_CP;
+		if (delta > lazy_eval_threshold_cp) {
+			delta -= lazy_eval_threshold_cp;
 			assert delta < 1500 : String.format("LazyFail delta=%d stack=%s", delta, pos.unwindMoveStack());
-			if (delta < LazyEvalStatistics.MAX_DELTA) {
+			if (delta < lazyStat.MAX_DELTA) {
 				lazyStat.lazyThreshFailedCount[delta]++;
 			} else {
 				lazyStat.maxFailureCount++;
