@@ -5,6 +5,7 @@ import static eubos.score.PositionEvaluator.PASSED_PAWN_BOOST;
 import static eubos.score.PositionEvaluator.ROOK_FILE_PASSED_PAWN_BOOST;
 import static eubos.score.PositionEvaluator.ISOLATED_PAWN_HANDICAP;
 import static eubos.score.PositionEvaluator.BACKWARD_PAWN_HANDICAP;
+import static eubos.score.PositionEvaluator.NO_PAWNS_HANDICAP;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
@@ -38,7 +39,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_EvalPosB() {
 		setUpPosition("8/8/1B6/8/8/4Kpk1/8/b7 w - - - 85");
-		assertEquals(-214, SUT.getFullEvaluation());
+		assertEquals(-264, SUT.getFullEvaluation());
 	}
 	
 	@Test
@@ -77,6 +78,7 @@ public class PositionEvaluatorTest {
 		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getTheBoard().getAttackedSquares());
 		// black
 		int expectedScore = 0;
+		expectedScore += NO_PAWNS_HANDICAP;
 		// white
 		expectedScore += (1*3*PASSED_PAWN_BOOST)/2-ISOLATED_PAWN_HANDICAP;
 		expectedScore += (2*3*PASSED_PAWN_BOOST)/2-ISOLATED_PAWN_HANDICAP;
@@ -99,6 +101,7 @@ public class PositionEvaluatorTest {
 		expectedScore -= ((7-2)*3*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP);
 		expectedScore -= ((7-3)*3*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP);
 		expectedScore -= -2*DOUBLED_PAWN_HANDICAP;
+		expectedScore -= NO_PAWNS_HANDICAP;
 		if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore -= 400;
 		}
@@ -280,7 +283,7 @@ public class PositionEvaluatorTest {
 	public void test_won_KP_endgame_oppo_outside_square_of_pawn() {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/8/k7/6K1/8/4p3/8/8 w - - 0 1");
-			int expectedScore = -767;
+			int expectedScore = -817;
 			if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 				expectedScore -= 15;
 			}
@@ -293,7 +296,7 @@ public class PositionEvaluatorTest {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/8/k7/8/7K/4p3/8/8 w - - 0 1 ");
 			System.out.println(SUT.getFullEvaluation());
-			int expectedScore = -67;
+			int expectedScore = -117;
 			if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 				expectedScore -= 15;
 			}
@@ -305,7 +308,7 @@ public class PositionEvaluatorTest {
 	public void test_drawn_KP_endgame() {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/8/k7/8/8/4p1K1/8/8 w - - 0 1");
-			int expectedScore = -67;
+			int expectedScore = -117;
 			if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 				expectedScore -= 15;
 			}
@@ -317,7 +320,7 @@ public class PositionEvaluatorTest {
 	public void test_won_KP_endgame_defended_by_own_king() {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/8/8/8/7K/4p3/5k2/8 w - - 0 1");
-			int expectedScore = -767;
+			int expectedScore = -817;
 			if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 				expectedScore -= 15;
 			}
@@ -331,7 +334,7 @@ public class PositionEvaluatorTest {
 			setUpPosition("8/8/8/8/8/2k1p1K1/8/8 w - - 44 1");
 			/* In this test, the white king cannot get to the queening square in time,
 			   because it is blocked by the square that the pawn is attacking, at f2. */
-			int expectedScore = -367;
+			int expectedScore = -417;
 			if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 				expectedScore -= 15;
 			}
@@ -343,7 +346,7 @@ public class PositionEvaluatorTest {
 	public void test_won_KP_endgame_two() {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/8/8/8/8/2k1p3/6K1/8 w - - 44 1");
-			int expectedScore = -367;
+			int expectedScore = -417;
 			if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 				expectedScore -= 15;
 			}
@@ -355,7 +358,7 @@ public class PositionEvaluatorTest {
 	public void test_won_KP_endgame_three() {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/8/8/8/8/1k2p3/6K1/8 b - - 44 1");
-			int expectedScore = 367;
+			int expectedScore = 417;
 			if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 				expectedScore += 15;
 			}
@@ -367,7 +370,7 @@ public class PositionEvaluatorTest {
 	public void test_drawn_KP_endgame_one() {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/8/8/8/8/2k1p3/8/5K2 w - - 44 1");
-			int expectedScore = -67;
+			int expectedScore = -117;
 			if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 				expectedScore -= 15;
 			}
@@ -379,7 +382,7 @@ public class PositionEvaluatorTest {
 	public void test_drawn_KP_endgame_two() {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/8/8/8/8/1k2p3/6K1/8 w - - 44 1");
-			int expectedScore = -67;
+			int expectedScore = -117;
 			if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 				expectedScore -= 15;
 			}
@@ -391,7 +394,7 @@ public class PositionEvaluatorTest {
 	public void test_won_KP_endgame_oppo_outside_square_of_pawn_white() {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/8/4P3/8/6k1/K7/8/8 b - - 0 1 ");
-			int expectedScore = -767;
+			int expectedScore = -817;
 			if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 				expectedScore -= 15;
 			}
@@ -404,7 +407,7 @@ public class PositionEvaluatorTest {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/8/4P3/7k/8/K7/8/8 b - - 0 1 ");
 			System.out.println(SUT.getFullEvaluation());
-			int expectedScore = -67;
+			int expectedScore = -117;
 			if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 				expectedScore -= 15;
 			}
@@ -416,7 +419,7 @@ public class PositionEvaluatorTest {
 	public void test_drawn_KP_endgame_white() {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/8/4P1k1/8/8/K7/8/8 b - - 0 1 ");
-			int expectedScore = -67;
+			int expectedScore = -117;
 			if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 				expectedScore -= 15;
 			}
@@ -428,7 +431,7 @@ public class PositionEvaluatorTest {
 	public void test_won_KP_endgame_defended_by_own_king_white() {
 		if (PositionEvaluator.ENABLE_KPK_EVALUATION) {
 			setUpPosition("8/5K2/4P3/7k/8/8/8/8 b - - 0 1 ");
-			int expectedScore = -767;
+			int expectedScore = -817;
 			if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 				expectedScore -= 15;
 			}

@@ -15,6 +15,7 @@ public class PositionEvaluator implements IEvaluate {
 	public static final int DOUBLED_PAWN_HANDICAP = 12;
 	public static final int ISOLATED_PAWN_HANDICAP = 33;
 	public static final int BACKWARD_PAWN_HANDICAP = 12;
+	public static final int NO_PAWNS_HANDICAP = 50;
 	
 	public static final int PASSED_PAWN_BOOST = 12;
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 8;
@@ -242,12 +243,16 @@ public class PositionEvaluator implements IEvaluate {
 				int pawnHandicap = -bd.countDoubledPawnsForSide(onMoveIsWhite)*DOUBLED_PAWN_HANDICAP;
 				bd.forEachPawnOfSide(this, !onMoveIsWhite);
 				pawnEvaluationScore = pawnHandicap + piecewisePawnScoreAccumulator;
+			} else {
+				pawnEvaluationScore -= NO_PAWNS_HANDICAP;
 			}
 			if (enemyPawns != 0x0) {
 				piecewisePawnScoreAccumulator = 0;
 				int pawnHandicap = -bd.countDoubledPawnsForSide(!onMoveIsWhite)*DOUBLED_PAWN_HANDICAP;
 				bd.forEachPawnOfSide(this, onMoveIsWhite);
 				pawnEvaluationScore -= (pawnHandicap + piecewisePawnScoreAccumulator);
+			} else {
+				pawnEvaluationScore += NO_PAWNS_HANDICAP;
 			}
 			// Add a modification according to the imbalance of passed pawns in the position
 			if (ENABLE_PP_IMBALANCE_EVALUATION && bd.me.phase > 2048) {
