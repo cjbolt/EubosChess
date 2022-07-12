@@ -165,7 +165,7 @@ public class PawnEvaluatorTest {
 	public void test_crazyPassedPawnScenario() {
 		setUpPosition("3r2k1/1Nr2pp1/1n3n2/1P1P2q1/3P4/1pP2p1p/1K6/R3QB1R b - - 0 29 ");
 		int score = SUT.pawn_eval.evaluatePawnStructure(attacks);
-		assertEquals(-25, score);
+		assertEquals(-21, score);
 	} 
 	
 	@Test
@@ -441,7 +441,7 @@ public class PawnEvaluatorTest {
 		setUpPosition("8/8/8/3p4/8/8/3p4/3r4 b - - 0 1");
 		SUT.pawn_eval.initialise(attacks);
 		SUT.pawn_eval.callback(Piece.BLACK_PAWN, Position.d2);
-		int expectedScore = (7-1)*3*PASSED_PAWN_BOOST - ISOLATED_PAWN_HANDICAP;
+		int expectedScore = (7-1)*3*PASSED_PAWN_BOOST/2 - ISOLATED_PAWN_HANDICAP;
 		assertEquals(expectedScore, SUT.pawn_eval.piecewisePawnScoreAccumulator);
 	}
 	
@@ -566,7 +566,7 @@ public class PawnEvaluatorTest {
 		SUT.pawn_eval.initialise(attacks);
 		SUT.pawn_eval.callback(Piece.WHITE_PAWN, Position.b5);
 		// Rook blocks the pawn
-		int expectedScore = 4*3*PASSED_PAWN_BOOST/2 - ISOLATED_PAWN_HANDICAP;
+		int expectedScore = 4*3*PASSED_PAWN_BOOST*2/3 - ISOLATED_PAWN_HANDICAP;
 		assertEquals(expectedScore, SUT.pawn_eval.piecewisePawnScoreAccumulator);
 	}
 	
@@ -579,7 +579,7 @@ public class PawnEvaluatorTest {
 		SUT.pawn_eval.callback(Piece.WHITE_PAWN, Position.b5);
 		// two rooks so phase scaling is 2...
 		// Rook blocks the pawn
-		int expectedScore = 4*2*PASSED_PAWN_BOOST/2 - ISOLATED_PAWN_HANDICAP;
+		int expectedScore = 4*2*PASSED_PAWN_BOOST*2/3 - ISOLATED_PAWN_HANDICAP;
 		assertEquals(expectedScore, SUT.pawn_eval.piecewisePawnScoreAccumulator);
 	}
 }

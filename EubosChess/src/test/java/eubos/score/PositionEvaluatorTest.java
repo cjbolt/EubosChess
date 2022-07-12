@@ -80,9 +80,9 @@ public class PositionEvaluatorTest {
 		int expectedScore = 0;
 		expectedScore += NO_PAWNS_HANDICAP;
 		// white
-		expectedScore += (1*3*PASSED_PAWN_BOOST)/2-ISOLATED_PAWN_HANDICAP;
-		expectedScore += (2*3*PASSED_PAWN_BOOST)/2-ISOLATED_PAWN_HANDICAP;
-		expectedScore += (3*3*PASSED_PAWN_BOOST)/2-ISOLATED_PAWN_HANDICAP;
+		expectedScore += (1*3*PASSED_PAWN_BOOST)/2-ISOLATED_PAWN_HANDICAP; // blockaded
+		expectedScore += (2*3*PASSED_PAWN_BOOST)/2-ISOLATED_PAWN_HANDICAP; // blockaded
+		expectedScore += 2*(3*3*PASSED_PAWN_BOOST)/3-ISOLATED_PAWN_HANDICAP; // blocked
 		expectedScore += -2*DOUBLED_PAWN_HANDICAP;
 		if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += 400;
@@ -98,8 +98,8 @@ public class PositionEvaluatorTest {
 		// black
 		int expectedScore = 0;
 		expectedScore -= ((7-1)*3*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP);
-		expectedScore -= ((7-2)*3*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP);
-		expectedScore -= ((7-3)*3*PASSED_PAWN_BOOST-ISOLATED_PAWN_HANDICAP);
+		expectedScore -= ((7-2)*3*PASSED_PAWN_BOOST/2-ISOLATED_PAWN_HANDICAP);
+		expectedScore -= ((7-3)*3*PASSED_PAWN_BOOST/2-ISOLATED_PAWN_HANDICAP);
 		expectedScore -= -2*DOUBLED_PAWN_HANDICAP;
 		expectedScore -= NO_PAWNS_HANDICAP;
 		if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
@@ -207,7 +207,7 @@ public class PositionEvaluatorTest {
 	public void test_crazyPassedPawnScenario() {
 		setUpPosition("3r2k1/1Nr2pp1/1n3n2/1P1P2q1/3P4/1pP2p1p/1K6/R3QB1R b - - 0 29 ");
 		int score = SUT.pawn_eval.evaluatePawnStructure(pm.getTheBoard().getAttackedSquares());
-		assertEquals(-25, score);
+		assertEquals(-21, score);
 	} 
 	
 	

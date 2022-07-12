@@ -941,7 +941,18 @@ public class Board {
 		return isControlled;
 	}
 	
-	public boolean isPawnFrontspanBlocked(int atPos, boolean isWhite, long own_attacks, long enemy_attacks) {
+	public boolean isPawnBlockaded(int atPos, boolean isWhite) {
+		// Check for enemy pieces blockading
+		long pawnMask = BitBoard.positionToMask_Lut[atPos];
+		if (isWhite) {
+			 pawnMask <<= 8;
+		} else {
+			pawnMask >>= 8;
+		}
+		return (pawnMask & allPieces) != 0L;
+	}
+	
+	public boolean isPawnFrontspanBlocked(int atPos, boolean isWhite, long own_attacks, long enemy_attacks, boolean heavySupport) {
 		boolean isClear = true;
 		// Check frontspan is clear
 		long front_span_mask = BitBoard.PawnFrontSpan_Lut[isWhite ? 0 : 1][atPos];
@@ -956,7 +967,9 @@ public class Board {
 			long enemy_attacks_on_frontspan = enemy_attacks & front_span_mask;
 			if (enemy_attacks_on_frontspan != 0L) {
 				long own_attacks_on_frontspan = own_attacks & front_span_mask;
-				if ((enemy_attacks_on_frontspan & own_attacks_on_frontspan) != enemy_attacks_on_frontspan) {
+				// If we don't counter attacks and there is no heavy support
+				if (((enemy_attacks_on_frontspan & own_attacks_on_frontspan) != enemy_attacks_on_frontspan) 
+						&& !heavySupport) {
 					isClear = false;
 				}
 			}

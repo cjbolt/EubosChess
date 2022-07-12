@@ -791,19 +791,19 @@ public class PlySearcher {
 	private int doLateMoveReductionSubTreeSearch(int depth, int currMove, int moveNumber) {
 		int positionScore = 0;
 		boolean passedLmr = false;
-		state[currPly].update();
+		state[currPly].update(); /* Update inCheck at this ply and static evaluation. */
 		
 		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
 			moveNumber > 1 && /* Search at least one quiet move */
-			!pe.goForMate() &&
-			depth > 3  &&
-		    !state[currPly-1].inCheck && 
-			!(Move.isPawnMove(currMove) && 
+			!pe.goForMate() && /* Ignore reductions in a mate search */
+			depth > 3 &&
+		    !state[currPly-1].inCheck && /* Neither king is in check */ 
+			!state[currPly].inCheck &&
+			!(Move.isPawnMove(currMove) &&  /* Not a passed pawn move or a pawn move in endgame */
 					(pos.getTheBoard().me.isEndgame() ||
 					 pos.getTheBoard().isPassedPawn(
 							 Move.getOriginPosition(currMove), 
-							 Piece.isWhite(Move.getOriginPiece(currMove))))) && 
-			!state[currPly].inCheck) {		
+							 Piece.isWhite(Move.getOriginPiece(currMove)))))) {		
 			
 			// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
 			int lmr = (moveNumber < 6) ? 1 : depth/3;

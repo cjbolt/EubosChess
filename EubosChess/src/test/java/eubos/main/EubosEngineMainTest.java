@@ -9,6 +9,7 @@ import java.util.ArrayList;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.commands.EngineAnalyzeCommand;
@@ -243,6 +244,15 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/2p5/P4p2/Q1N2k1P/2P2P2/3PK2P/5R2/2B2R2 w - - 1 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"7"+CMD_TERMINATOR, BEST_PREFIX+"f2d2"+CMD_TERMINATOR));
 		performTestExpectMate(4000, 4);
+	}
+	
+	@Test
+	@Ignore
+	public void test_won_position_need_to_push_pp() throws InterruptedException, IOException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/6r1/8/R5p1/3K4/1P4Pk/7P/8 w - - 3 49"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"10"+CMD_TERMINATOR, BEST_PREFIX+"b3b4"+CMD_TERMINATOR));
+		performTest(5000);
 	}
 	
 	@Test

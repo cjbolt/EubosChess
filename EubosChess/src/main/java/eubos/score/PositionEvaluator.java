@@ -190,6 +190,31 @@ public class PositionEvaluator implements IEvaluate {
 			}
 		}
 		
+		protected void evaluatePassedPawn(int atPos, boolean pawnIsWhite, long[] own_attacks, long [] enemy_attacks) {
+			weighting *= getScaleFactorForGamePhase();
+			int value = (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) ?
+					ROOK_FILE_PASSED_PAWN_BOOST : PASSED_PAWN_BOOST;
+			int score = weighting*value;
+			
+			if (bd.isPawnBlockaded(atPos, pawnIsWhite)) {
+				score /= 2;
+			} else {
+				int heavySupportIndication = bd.checkForHeavyPieceBehindPassedPawn(atPos, pawnIsWhite);
+				if (heavySupportIndication > 0) {
+					score += HEAVY_PIECE_BEHIND_PASSED_PAWN;
+				} else if (heavySupportIndication < 0) {
+					score -= HEAVY_PIECE_BEHIND_PASSED_PAWN;
+				} else {
+					// neither attacked or defended along the rear span
+				}
+				boolean pawnIsBlocked = bd.isPawnFrontspanBlocked(atPos, pawnIsWhite, own_attacks[3], enemy_attacks[3], heavySupportIndication > 0);
+				if (pawnIsBlocked) {
+					score = 2*score/3;
+				}
+			}
+			piecewisePawnScoreAccumulator += score;
+		}
+		
 		@SuppressWarnings("unused")
 		@Override
 		public void callback(int piece, int atPos) {
@@ -204,24 +229,7 @@ public class PositionEvaluator implements IEvaluate {
 				if (ENABLE_KPK_EVALUATION && bd.me.phase == 4096) {
 					evaluateKpkEndgame(atPos, isOwnPawn, own_attacks);
 				} else {
-					weighting *= getScaleFactorForGamePhase();
-					int value = (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) ?
-							ROOK_FILE_PASSED_PAWN_BOOST : PASSED_PAWN_BOOST;
-					int score = weighting*value;
-					boolean pawnIsBlocked = bd.isPawnFrontspanBlocked(atPos, pawnIsWhite, own_attacks[3], enemy_attacks[3]);
-					if (pawnIsBlocked) {
-						score /= 2;
-					} else {
-						int heavySupportIndication = bd.checkForHeavyPieceBehindPassedPawn(atPos, pawnIsWhite);
-						if (heavySupportIndication > 0) {
-							score += HEAVY_PIECE_BEHIND_PASSED_PAWN;
-						} else if (heavySupportIndication < 0) {
-							score -= HEAVY_PIECE_BEHIND_PASSED_PAWN;
-						} else {
-							// neither attacked or defended along the rear span
-						}
-					}
-					piecewisePawnScoreAccumulator += score;
+					evaluatePassedPawn(atPos, pawnIsWhite, own_attacks, enemy_attacks);
 				}
 			} else if (ENABLE_CANDIDATE_PP_EVALUATION) {
 				if (bd.isCandidatePassedPawn(atPos, pawnIsWhite, own_attacks[0], enemy_attacks[0])) {
