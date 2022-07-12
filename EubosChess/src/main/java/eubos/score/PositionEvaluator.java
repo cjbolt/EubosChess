@@ -22,6 +22,7 @@ public class PositionEvaluator implements IEvaluate {
 	public static final int CANDIDATE_PAWN = 6;
 	public static final int ROOK_FILE_CANDIDATE_PAWN = 4;
 	public static final int CONNECTED_PASSED_PAWN_BOOST = 75;
+	public static final int HEAVY_PIECE_SUPPORTS_PASSED_PAWN_BOOST = 20;
 	
 	public static final boolean ENABLE_PAWN_EVALUATION = true;
 	public static final boolean ENABLE_KPK_EVALUATION = true;
@@ -210,6 +211,15 @@ public class PositionEvaluator implements IEvaluate {
 					boolean pawnIsBlocked = bd.isPawnFrontspanBlocked(atPos, pawnIsWhite, own_attacks[3], enemy_attacks[3]);
 					if (pawnIsBlocked) {
 						score /= 2;
+					} else {
+						int heavySupportIndication = bd.isHeavyPieceBehindPassedPawn(atPos, pawnIsWhite);
+						if (heavySupportIndication > 0) {
+							score += HEAVY_PIECE_SUPPORTS_PASSED_PAWN_BOOST;
+						} else if (heavySupportIndication < 0) {
+							score -= HEAVY_PIECE_SUPPORTS_PASSED_PAWN_BOOST;
+						} else {
+							// neither attacked or defended along the rear span
+						}
 					}
 					piecewisePawnScoreAccumulator += score;
 				}
@@ -231,16 +241,24 @@ public class PositionEvaluator implements IEvaluate {
 			}
 		}
 		
+		public int getDoubledPawnsHandicap(long pawns) {
+			return -bd.countDoubledPawns(pawns)*DOUBLED_PAWN_HANDICAP;
+		}
+		
+		void initialise(long[][] attacks) {
+			ppCount[0] = ppCount[1] = 0;
+			pawn_eval.attacks = attacks;
+		}
+		
 		@SuppressWarnings("unused")
 		int evaluatePawnStructure(long[][] attacks) {
+			initialise(attacks);
 			int pawnEvaluationScore = 0;
-			ppCount[0] = ppCount[1] = 0;
 			long ownPawns = onMoveIsWhite ? bd.getWhitePawns() : bd.getBlackPawns();
 			long enemyPawns = onMoveIsWhite ? bd.getBlackPawns() : bd.getWhitePawns();
-			pawn_eval.attacks = attacks;
 			if (ownPawns != 0x0) {
 				piecewisePawnScoreAccumulator = 0;
-				int pawnHandicap = -bd.countDoubledPawnsForSide(onMoveIsWhite)*DOUBLED_PAWN_HANDICAP;
+				int pawnHandicap = getDoubledPawnsHandicap(ownPawns);
 				bd.forEachPawnOfSide(this, !onMoveIsWhite);
 				pawnEvaluationScore = pawnHandicap + piecewisePawnScoreAccumulator;
 			} else {
@@ -248,7 +266,7 @@ public class PositionEvaluator implements IEvaluate {
 			}
 			if (enemyPawns != 0x0) {
 				piecewisePawnScoreAccumulator = 0;
-				int pawnHandicap = -bd.countDoubledPawnsForSide(!onMoveIsWhite)*DOUBLED_PAWN_HANDICAP;
+				int pawnHandicap = getDoubledPawnsHandicap(enemyPawns);
 				bd.forEachPawnOfSide(this, onMoveIsWhite);
 				pawnEvaluationScore -= (pawnHandicap + piecewisePawnScoreAccumulator);
 			} else {
