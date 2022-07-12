@@ -145,6 +145,10 @@ public class PositionEvaluator implements IEvaluate {
 		
 		public final int[] ppImbalanceTable = {0, 15, 200, 400, 700, 900, 900, 900, 900};
 		
+		protected int getScaleFactorForGamePhase() {
+			return 1 + ((bd.me.phase+640) / 4096) + ((bd.me.phase+320) / 4096);
+		}
+		
 		protected void setQueeningDistance(int atPos, boolean pawnIsWhite) {
 			pawnIsBlack = !pawnIsWhite;
 			int rank = Position.getRank(atPos);
@@ -199,13 +203,11 @@ public class PositionEvaluator implements IEvaluate {
 				if (ENABLE_KPK_EVALUATION && bd.me.phase == 4096) {
 					evaluateKpkEndgame(atPos, isOwnPawn, own_attacks);
 				} else {
-					// scale weighting for game phase as well as promotion proximity, up to 3x
-					int scale = 1 + ((bd.me.phase+640) / 4096) + ((bd.me.phase+320) / 4096);
-					weighting *= scale;
-					boolean pawnIsBlocked = bd.isPawnFrontspanBlocked(atPos, pawnIsWhite, own_attacks[3], enemy_attacks[3]);
+					weighting *= getScaleFactorForGamePhase();
 					int value = (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) ?
 							ROOK_FILE_PASSED_PAWN_BOOST : PASSED_PAWN_BOOST;
 					int score = weighting*value;
+					boolean pawnIsBlocked = bd.isPawnFrontspanBlocked(atPos, pawnIsWhite, own_attacks[3], enemy_attacks[3]);
 					if (pawnIsBlocked) {
 						score /= 2;
 					}
@@ -214,9 +216,7 @@ public class PositionEvaluator implements IEvaluate {
 			} else if (ENABLE_CANDIDATE_PP_EVALUATION) {
 				if (bd.isCandidatePassedPawn(atPos, pawnIsWhite, own_attacks[0], enemy_attacks[0])) {
 					setQueeningDistance(atPos, pawnIsWhite);
-					// scale weighting for game phase as well as promotion proximity, up to 3x
-					int scale = 1 + ((bd.me.phase+640) / 4096) + ((bd.me.phase+320) / 4096);
-					weighting *= scale;
+					weighting *= getScaleFactorForGamePhase();
 					if (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) {
 						piecewisePawnScoreAccumulator += weighting*ROOK_FILE_CANDIDATE_PAWN;
 					} else {
