@@ -22,7 +22,7 @@ public class PositionEvaluator implements IEvaluate {
 	public static final int CANDIDATE_PAWN = 6;
 	public static final int ROOK_FILE_CANDIDATE_PAWN = 4;
 	public static final int CONNECTED_PASSED_PAWN_BOOST = 75;
-	public static final int HEAVY_PIECE_SUPPORTS_PASSED_PAWN_BOOST = 20;
+	public static final int HEAVY_PIECE_BEHIND_PASSED_PAWN = 20;
 	
 	public static final boolean ENABLE_PAWN_EVALUATION = true;
 	public static final boolean ENABLE_KPK_EVALUATION = true;
@@ -212,11 +212,11 @@ public class PositionEvaluator implements IEvaluate {
 					if (pawnIsBlocked) {
 						score /= 2;
 					} else {
-						int heavySupportIndication = bd.isHeavyPieceBehindPassedPawn(atPos, pawnIsWhite);
+						int heavySupportIndication = bd.checkForHeavyPieceBehindPassedPawn(atPos, pawnIsWhite);
 						if (heavySupportIndication > 0) {
-							score += HEAVY_PIECE_SUPPORTS_PASSED_PAWN_BOOST;
+							score += HEAVY_PIECE_BEHIND_PASSED_PAWN;
 						} else if (heavySupportIndication < 0) {
-							score -= HEAVY_PIECE_SUPPORTS_PASSED_PAWN_BOOST;
+							score -= HEAVY_PIECE_BEHIND_PASSED_PAWN;
 						} else {
 							// neither attacked or defended along the rear span
 						}

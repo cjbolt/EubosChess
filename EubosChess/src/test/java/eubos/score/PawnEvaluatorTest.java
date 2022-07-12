@@ -6,7 +6,7 @@ import static eubos.score.PositionEvaluator.ROOK_FILE_PASSED_PAWN_BOOST;
 import static eubos.score.PositionEvaluator.ISOLATED_PAWN_HANDICAP;
 import static eubos.score.PositionEvaluator.BACKWARD_PAWN_HANDICAP;
 import static eubos.score.PositionEvaluator.NO_PAWNS_HANDICAP;
-import static eubos.score.PositionEvaluator.HEAVY_PIECE_SUPPORTS_PASSED_PAWN_BOOST;
+import static eubos.score.PositionEvaluator.HEAVY_PIECE_BEHIND_PASSED_PAWN;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
@@ -414,7 +414,7 @@ public class PawnEvaluatorTest {
 		setUpPosition("3r4/8/8/8/8/8/3p4/8 b - - 0 1");
 		SUT.pawn_eval.initialise(attacks);
 		SUT.pawn_eval.callback(Piece.BLACK_PAWN, Position.d2);
-		int expectedScore = (7-1)*3*PASSED_PAWN_BOOST + HEAVY_PIECE_SUPPORTS_PASSED_PAWN_BOOST - ISOLATED_PAWN_HANDICAP;
+		int expectedScore = (7-1)*3*PASSED_PAWN_BOOST + HEAVY_PIECE_BEHIND_PASSED_PAWN - ISOLATED_PAWN_HANDICAP;
 		assertEquals(expectedScore, SUT.pawn_eval.piecewisePawnScoreAccumulator);
 	}
 	
@@ -450,7 +450,7 @@ public class PawnEvaluatorTest {
 		setUpPosition("8/8/8/1P6/1R6/8/8/8 b - - 0 1");
 		SUT.pawn_eval.initialise(attacks);
 		SUT.pawn_eval.callback(Piece.WHITE_PAWN, Position.b5);
-		int expectedScore = 4*3*PASSED_PAWN_BOOST + HEAVY_PIECE_SUPPORTS_PASSED_PAWN_BOOST - ISOLATED_PAWN_HANDICAP;
+		int expectedScore = 4*3*PASSED_PAWN_BOOST + HEAVY_PIECE_BEHIND_PASSED_PAWN - ISOLATED_PAWN_HANDICAP;
 		assertEquals(expectedScore, SUT.pawn_eval.piecewisePawnScoreAccumulator);
 	}
 	
@@ -501,7 +501,7 @@ public class PawnEvaluatorTest {
 		setUpPosition("3R4/8/8/8/8/8/3p4/8 b - - 0 1");
 		SUT.pawn_eval.initialise(attacks);
 		SUT.pawn_eval.callback(Piece.BLACK_PAWN, Position.d2);
-		int expectedScore = (7-1)*3*PASSED_PAWN_BOOST - HEAVY_PIECE_SUPPORTS_PASSED_PAWN_BOOST - ISOLATED_PAWN_HANDICAP;
+		int expectedScore = (7-1)*3*PASSED_PAWN_BOOST - HEAVY_PIECE_BEHIND_PASSED_PAWN - ISOLATED_PAWN_HANDICAP;
 		assertEquals(expectedScore, SUT.pawn_eval.piecewisePawnScoreAccumulator);
 	}
 	
@@ -538,7 +538,7 @@ public class PawnEvaluatorTest {
 		setUpPosition("8/8/8/1P6/1r6/8/8/8 b - - 0 1");
 		SUT.pawn_eval.initialise(attacks);
 		SUT.pawn_eval.callback(Piece.WHITE_PAWN, Position.b5);
-		int expectedScore = 4*3*PASSED_PAWN_BOOST - HEAVY_PIECE_SUPPORTS_PASSED_PAWN_BOOST - ISOLATED_PAWN_HANDICAP;
+		int expectedScore = 4*3*PASSED_PAWN_BOOST - HEAVY_PIECE_BEHIND_PASSED_PAWN - ISOLATED_PAWN_HANDICAP;
 		assertEquals(expectedScore, SUT.pawn_eval.piecewisePawnScoreAccumulator);
 	}
 	

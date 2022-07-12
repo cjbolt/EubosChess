@@ -964,45 +964,42 @@ public class Board {
 		return !isClear;
 	}
 	
-	public int isHeavyPieceBehindPassedPawn(int atPos, boolean isWhite) {
+	private boolean eval(boolean isWhite, long attacksOnRearSpanMask, long pawnMask) {
+		// Evaluate the attacks for the rear span defender to see if it directly defends the pawn
+		long attackerMask = 0L;
+		if (isWhite) {
+			attackerMask = BitBoard.upAttacks(attacksOnRearSpanMask, getEmpty());
+		} else {
+			attackerMask = BitBoard.downAttacks(attacksOnRearSpanMask, getEmpty());
+		}
+		if ((attackerMask & pawnMask) != 0L) {
+			return true;
+		}
+		return false;
+	}
+	
+	public int checkForHeavyPieceBehindPassedPawn(int atPos, boolean isWhite) {
+		// The pawn may be attacked/defended by a rook or queen, directly along the rear span
 		boolean isDefended = false;
 		boolean isAttacked = false;
-		int file = Position.getFile(atPos);
-		long fileMask = BitBoard.FileMask_Lut[file];
-		long ownHeavyPieces = isWhite ? getWhiteRankFile() : getBlackRankFile();
-		// The pawn should be defended by our own rook or queen directly along the rear span
 		long ownPawnMask = BitBoard.positionToMask_Lut[atPos];
-		long heavyPiecesOnFileMask = fileMask & ownHeavyPieces;
-		boolean isOwnPieceOnFile = heavyPiecesOnFileMask != 0L;
 		// Use the opposite colours' front span mask as a rear span mask
 	    long rearSpanMask = BitBoard.PawnFrontSpan_Lut[!isWhite ? 0 : 1][atPos];
-		if (isOwnPieceOnFile) {
+	    
+		long ownHeavyPiecesInRearSpanMask = rearSpanMask & (isWhite ? getWhiteRankFile() : getBlackRankFile());
+		if (ownHeavyPiecesInRearSpanMask != 0L) {
 			// Evaluate the attacks for the rear span defender to see if it directly defends the pawn
-			long defenderMask = 0L;
-			if (isWhite) {
-				defenderMask = BitBoard.upAttacks((heavyPiecesOnFileMask & rearSpanMask), getEmpty());
-			} else {
-				defenderMask = BitBoard.downAttacks((heavyPiecesOnFileMask & rearSpanMask), getEmpty());
-			}
-			if ((defenderMask & ownPawnMask) != 0L) {
-				isDefended = true;
-			}
+			isDefended = eval(isWhite, ownHeavyPiecesInRearSpanMask, ownPawnMask);
 		} else {
-			long enemyHeavyPieces = !isWhite ? getWhiteRankFile() : getBlackRankFile();
-			long enemyHeavyPiecesOnFileMask = fileMask & enemyHeavyPieces;
-			boolean isEnemyPieceOnFile = enemyHeavyPiecesOnFileMask != 0L;
-			if (isEnemyPieceOnFile) {
-				// Evaluate the attacks for the rear span defender to see if it directly defends the pawn
-				long attackerMask = 0L;
-				if (isWhite) {
-					attackerMask = BitBoard.upAttacks((enemyHeavyPiecesOnFileMask & rearSpanMask), getEmpty());
-				} else {
-					attackerMask = BitBoard.downAttacks((enemyHeavyPiecesOnFileMask & rearSpanMask), getEmpty());
-				}
-				if ((attackerMask & ownPawnMask) != 0L) {
-					isAttacked = true;
-				}
+			long enemyHeavyPiecesInRearSpanMask = rearSpanMask & (!isWhite ? getWhiteRankFile() : getBlackRankFile());
+			if (enemyHeavyPiecesInRearSpanMask != 0L) {
+				// Evaluate the attacks for the rear span attacker to see if it directly attacks the pawn
+				isAttacked = eval(isWhite, enemyHeavyPiecesInRearSpanMask, ownPawnMask);
 			}
+		}
+		
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			assert !(isAttacked && isDefended) : "Passed pawn can't be simultaneously attacked and defended";
 		}
 		if (isAttacked) {
 			return -1;
