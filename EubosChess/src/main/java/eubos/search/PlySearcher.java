@@ -115,6 +115,7 @@ public class PlySearcher {
 	private byte currPly = 0;
 	private byte originalSearchDepthRequiredInPly = 0;
 	private byte extendedSearchDeepestPly = 0;
+	@SuppressWarnings("unused")
 	private short refScore;
 	
 	private MoveList ml;
@@ -366,6 +367,7 @@ public class PlySearcher {
 		return search(depth, true, alpha, beta);
 	}
 	
+	@SuppressWarnings("unused")
 	int search(int depth, boolean nullCheckEnabled, int alpha, int beta)  {
 		
 		state[currPly].initialise(currPly, alpha, beta);
