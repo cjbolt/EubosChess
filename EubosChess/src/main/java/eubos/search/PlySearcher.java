@@ -77,7 +77,7 @@ public class PlySearcher {
 		int prevBestMove;
 		boolean isCutOff;
 		int hashScore;
-		int crudeEval;
+		int crudeEval;   // not initialised here for reasons of optimisation
 		boolean inCheck; // not initialised here for reasons of optimisation
 		
 		void initialise(int ply, int alpha, int beta) {
@@ -428,26 +428,9 @@ public class PlySearcher {
 			}
 		}
 		
-		// Null move pruning
-		if (EubosEngineMain.ENABLE_NULL_MOVE_PRUNING &&
-			!isTerminated() &&
-			depth > 2 &&
-			nullCheckEnabled &&
-			hasSearchedPv && 
-			!pos.getTheBoard().me.isEndgame() &&
-			!state[currPly].inCheck &&
-			!(Score.isMate((short)state[currPly].beta) || Score.isMate((short)state[currPly].alpha)) && 
-			state[currPly].crudeEval+lazy_eval_threshold_cp > state[currPly].beta) {
-			
-			state[currPly].plyScore = doNullMoveSubTreeSearch(depth);
-			if (isTerminated()) { return 0; }
-			
-			if (state[currPly].plyScore >= state[currPly].beta) {
-				return state[currPly].beta;
-			} else {
-				state[currPly].plyScore = Score.PROVISIONAL_ALPHA;
-			}
-		}
+		// Null move pruning, updates the search stack, can cause early cut-off 	
+		boolean isCutOff = doNullMoveSubTreeSearch(depth, nullCheckEnabled);
+		if (isCutOff) { return state[currPly].plyScore; }
 		
 		// Main search loop for this ply
 		int bestMove = Move.NULL_MOVE;
@@ -774,20 +757,42 @@ public class PlySearcher {
 		}
 	}
 	
-	private int doNullMoveSubTreeSearch(int depth) {
-		int plyScore;
-		int R = 2;
-		if (depth > 6) R = 3;
-		currPly++;
-		pm.performNullMove();
-		
-		state[currPly].inCheck = state[currPly-1].inCheck;
-		state[currPly].crudeEval = -state[currPly-1].crudeEval;
-		plyScore = -search(depth-1-R, false, -state[currPly-1].beta, -state[currPly-1].beta+1);
-		
-		pm.unperformNullMove();
-		currPly--;
-		return plyScore;
+	private boolean doNullMoveSubTreeSearch(int depth, boolean nullCheckEnabled) {
+		if (EubosEngineMain.ENABLE_NULL_MOVE_PRUNING &&
+				!isTerminated() &&
+				depth > 2 &&
+				nullCheckEnabled &&
+				hasSearchedPv && 
+				!pos.getTheBoard().me.isEndgame() &&
+				!state[currPly].inCheck &&
+				!(Score.isMate((short)state[currPly].beta) || Score.isMate((short)state[currPly].alpha)) && 
+				state[currPly].crudeEval+lazy_eval_threshold_cp > state[currPly].beta) {
+			
+			boolean isCutOff = false;
+			int plyScore;
+			int R = 2;
+			if (depth > 6) R = 3;
+			
+			currPly++;
+			pm.performNullMove();
+			
+			state[currPly].inCheck = state[currPly-1].inCheck;
+			state[currPly].crudeEval = -state[currPly-1].crudeEval;
+			plyScore = -search(depth-1-R, false, -state[currPly-1].beta, -state[currPly-1].beta+1);
+			
+			pm.unperformNullMove();
+			currPly--;
+			
+			if (isTerminated()) {
+				state[currPly].plyScore = 0;
+				isCutOff = true;
+			} else if (plyScore >= state[currPly].beta) {
+				state[currPly].plyScore = state[currPly].beta;
+				isCutOff = true;
+			}
+			return isCutOff;
+		}
+		return false;
 	}
 	
 	private int doLateMoveReductionSubTreeSearch(int depth, int currMove, int moveNumber) {
