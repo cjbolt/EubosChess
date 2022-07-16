@@ -1800,8 +1800,10 @@ public class Board {
 	}
 	
 	public long[][] getAttackedSquares() {
-		getAttacksForSide(attacks[0], false);
-		getAttacksForSide(attacks[1], true);
+		if (!isAttacksMaskValid) {
+			getAttacksForSide(attacks[0], false);
+			getAttacksForSide(attacks[1], true);
+		}
 		return attacks;
 	}
 }

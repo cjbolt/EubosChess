@@ -766,7 +766,7 @@ public class PlySearcher {
 				!pos.getTheBoard().me.isEndgame() &&
 				!state[currPly].inCheck &&
 				!(Score.isMate((short)state[currPly].beta) || Score.isMate((short)state[currPly].alpha)) && 
-				state[currPly].crudeEval+lazy_eval_threshold_cp > state[currPly].beta) {
+				pe.getFullEvaluation() > state[currPly].beta) {
 			
 			boolean isCutOff = false;
 			int plyScore;

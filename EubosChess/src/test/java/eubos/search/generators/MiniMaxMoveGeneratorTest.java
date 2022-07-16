@@ -440,7 +440,7 @@ public class MiniMaxMoveGeneratorTest {
 	public void test_findMove_bugPromotingPawn_Arena_6ply()throws IllegalNotationException  {
 		// N.b. as per test_findMove_bugPromotingPawn_Arena_5ply
 		setupPosition( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
-		expectedMove = new GenericMove("h8g7");
+		expectedMove = new GenericMove("h8g8");
 		
 		classUnderTest.findMove((byte)4);
 		classUnderTest.findMove((byte)5, sr_stub);
