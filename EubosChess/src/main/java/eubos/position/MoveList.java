@@ -50,7 +50,7 @@ public class MoveList implements Iterable<Integer> {
 
 	private int[] bestMove;
 	private int[][] killers;
-	private long[] attackMask;
+	private long[][] attackMasks;
 	
 	private MoveListIterator[] ml;
 
@@ -76,7 +76,7 @@ public class MoveList implements Iterable<Integer> {
 		extendedSearch = new boolean[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		isWhite = new boolean[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		killers = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY][3];
-		attackMask = new long[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
+		attackMasks = new long[EubosEngineMain.SEARCH_DEPTH_IN_PLY][4];
 		nextCheckPoint = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		
 		this.pm = pm;
@@ -230,13 +230,13 @@ public class MoveList implements Iterable<Integer> {
 				pm.getTheBoard().getCapturesExcludingPromotions(ma_captures, isWhite[ply]);
 			} else {
 				long [] enemy_attacks = pm.getTheBoard().getAttackedSquares()[isWhite[ply] ? 1 : 0];
-				attackMask[ply] = enemy_attacks[1] | enemy_attacks[0];
+				attackMasks[ply] = enemy_attacks;
 				if (killers[ply] == null) {
-					ma_captures_regular_NoKillers.attackMask = attackMask[ply];
+					ma_captures_regular_NoKillers.attackMasks = attackMasks[ply];
 					pm.getTheBoard().getCapturesBufferRegularExcludingPromotions(ma_captures_regular_NoKillers,
 							isWhite[ply]);
 				} else {
-					ma_captures_regular_ConsumeKillers.attackMask = attackMask[ply];
+					ma_captures_regular_ConsumeKillers.attackMasks = attackMasks[ply];
 					pm.getTheBoard().getCapturesBufferRegularExcludingPromotions(ma_captures_regular_ConsumeKillers,
 							isWhite[ply]);
 				}
@@ -251,15 +251,15 @@ public class MoveList implements Iterable<Integer> {
 		priority_fill_index[ply] = 0;
 		IAddMoves moveAdder = null;
 		long [] enemy_attacks = pm.getTheBoard().getAttackedSquares()[isWhite[ply] ? 1 : 0];
-		attackMask[ply] = enemy_attacks[1] | enemy_attacks[0];
+		attackMasks[ply] = enemy_attacks;
 		if (killers[ply] == null) {
 			moveAdder = ma_quietNoKillers;
-			ma_quietNoKillers.attackMask = attackMask[ply];
+			ma_quietNoKillers.attackMasks = attackMasks[ply];
 		} else {
 			// Set-up move adder to filter the moves from attacked pieces into the priority
 			// part of the move list
 			moveAdder = ma_quietConsumeKillers;
-			ma_quietConsumeKillers.attackMask = attackMask[ply];
+			ma_quietConsumeKillers.attackMasks = attackMasks[ply];
 		}
 		if (ALTERNATE) {
 			pm.getTheBoard().getLeftoverRegularExcludingPromotions(moveAdder, isWhite[ply]);
@@ -384,7 +384,7 @@ public class MoveList implements Iterable<Integer> {
 	}
 
 	public class MoveAdderCapturesAndSomeRegularConsumeKillers extends MoveAdderPromotions implements IAddMoves {
-		long attackMask = 0L;
+		long[] attackMasks;
 		boolean attacked = false;
 		boolean attackedDetermined = false;
 
@@ -405,7 +405,8 @@ public class MoveList implements Iterable<Integer> {
 			if (KillerList.isMoveOnListAtPly(killers[ply], move))
 				return;
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
-				if (attacked || (!attackedDetermined && isMoveOriginSquareAttacked(move))) {
+				if ((attacked && isTargetSquareSafe(move)) ||
+					(!attackedDetermined && isMoveOriginSquareAttackedByEqualOrLesserPiece(move))) {
 					scratchpad[ply][scratchpad_fill_index[ply]++] = move;
 					attacked = true;
 				} else {
@@ -416,9 +417,40 @@ public class MoveList implements Iterable<Integer> {
 			}
 		}
 
-		protected boolean isMoveOriginSquareAttacked(int move) {
+		protected boolean isMoveOriginSquareAttackedByEqualOrLesserPiece(int move) {
 			long orginSquare = BitBoard.positionToMask_Lut[Move.getOriginPosition(move)];
-			if ((orginSquare & attackMask) == orginSquare)
+			int piece = Move.getOriginPieceNoColour(move);
+			long relevantAttackMask = 0L;
+			switch(piece) {
+			case Piece.PAWN:
+				relevantAttackMask = attackMasks[0];
+				break;
+			case Piece.KNIGHT:
+				relevantAttackMask = attackMasks[0] | attackMasks[1];
+				break;
+			case Piece.BISHOP:
+				relevantAttackMask = attackMasks[0] | attackMasks[1];
+				break;
+			case Piece.ROOK:
+				relevantAttackMask = attackMasks[0] | attackMasks[1];
+				break;
+			case Piece.QUEEN:
+				relevantAttackMask = attackMasks[3];
+				break;
+			case Piece.KING:
+				return false;
+			default:
+				if (EubosEngineMain.ENABLE_ASSERTS) assert false;
+				break;
+			}
+			if ((orginSquare & relevantAttackMask) == orginSquare)
+				return true;
+			return false;
+		}
+		
+		protected boolean isTargetSquareSafe(int move) {
+			long targetSquare = BitBoard.positionToMask_Lut[Move.getTargetPosition(move)];
+			if ((targetSquare & attackMasks[3]) != targetSquare)
 				return true;
 			return false;
 		}
@@ -446,7 +478,8 @@ public class MoveList implements Iterable<Integer> {
 			if (Move.areEqualForBestKiller(move, bestMove[ply]))
 				return;
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
-				if (attacked || (!attackedDetermined && isMoveOriginSquareAttacked(move))) {
+				if ((attacked && isTargetSquareSafe(move)) ||
+						(!attackedDetermined && isMoveOriginSquareAttackedByEqualOrLesserPiece(move))) {
 					scratchpad[ply][scratchpad_fill_index[ply]++] = move;
 					attacked = true;
 				} else {
@@ -468,7 +501,8 @@ public class MoveList implements Iterable<Integer> {
 			if (Move.areEqualForBestKiller(move, bestMove[ply]))
 				return;
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
-				if (attacked || (!attackedDetermined && isMoveOriginSquareAttacked(move))) {
+				if ((attacked && isTargetSquareSafe(move)) ||
+						(!attackedDetermined && isMoveOriginSquareAttackedByEqualOrLesserPiece(move))) {
 					priority_moves[ply][priority_fill_index[ply]++] = move;
 					attacked = true;
 				} else {
@@ -488,7 +522,8 @@ public class MoveList implements Iterable<Integer> {
 			if (KillerList.isMoveOnListAtPly(killers[ply], move))
 				return;
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
-				if (attacked || (!attackedDetermined && isMoveOriginSquareAttacked(move))) {
+				if ((attacked && isTargetSquareSafe(move)) ||
+						(!attackedDetermined && isMoveOriginSquareAttackedByEqualOrLesserPiece(move))) {
 					priority_moves[ply][priority_fill_index[ply]++] = move;
 					attacked = true;
 				} else {
