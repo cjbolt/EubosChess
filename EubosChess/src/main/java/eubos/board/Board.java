@@ -1639,28 +1639,42 @@ public class Board {
 				}
 			} else {
 				// Assume that if it is just queens, then material is so unbalanced that it doesn't matter that they can intersect
+				long temp = 0L;
 				long mobility_mask = BitBoard.downLeftOccludedEmpty(diagonal_sliders, empty);
 				sliderAttacks = BitBoard.downLeftAttacks(mobility_mask);
-				mobility_mask |= BitBoard.upRightOccludedEmpty(diagonal_sliders, empty);
-				sliderAttacks |= BitBoard.upRightAttacks(mobility_mask);
-				mobility_mask |= BitBoard.downRightOccludedEmpty(diagonal_sliders, empty);
-				sliderAttacks |= BitBoard.downRightAttacks(mobility_mask);
-				mobility_mask |= BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty);
-				sliderAttacks |= BitBoard.upLeftAttacks(mobility_mask);
+				
+				temp = BitBoard.upRightOccludedEmpty(diagonal_sliders, empty);
+				mobility_mask |= temp;
+				sliderAttacks |= BitBoard.upRightAttacks(temp);
+				
+				temp = BitBoard.downRightOccludedEmpty(diagonal_sliders, empty);
+				mobility_mask |= temp;
+				sliderAttacks |= BitBoard.downRightAttacks(temp);
+				
+				temp = BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty);
+				mobility_mask |= temp;
+				sliderAttacks |= BitBoard.upLeftAttacks(temp);
 				
 				mobility_score = Long.bitCount(mobility_mask ^ diagonal_sliders);
 			}
 		} else if (bishops != 0) {
 			// Assume that if it is just bishops, they can't intersect, which allows optimisation
 			if (diagonal_sliders != 0) {
+				long temp = 0L;
 				long mobility_mask = BitBoard.downLeftOccludedEmpty(diagonal_sliders, empty);
 				sliderAttacks = BitBoard.downLeftAttacks(mobility_mask);
-				mobility_mask |= BitBoard.upRightOccludedEmpty(diagonal_sliders, empty);
-				sliderAttacks |= BitBoard.upRightAttacks(mobility_mask);
-				mobility_mask |= BitBoard.downRightOccludedEmpty(diagonal_sliders, empty);
-				sliderAttacks |= BitBoard.downRightAttacks(mobility_mask);
-				mobility_mask |= BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty);
-				sliderAttacks |= BitBoard.upLeftAttacks(mobility_mask);
+				
+				temp = BitBoard.upRightOccludedEmpty(diagonal_sliders, empty);
+				mobility_mask |= temp;
+				sliderAttacks |= BitBoard.upRightAttacks(temp);
+				
+				temp = BitBoard.downRightOccludedEmpty(diagonal_sliders, empty);
+				mobility_mask |= temp;
+				sliderAttacks |= BitBoard.downRightAttacks(temp);
+				
+				temp = BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty);
+				mobility_mask |= temp;
+				sliderAttacks |= BitBoard.upLeftAttacks(temp);
 				
 				mobility_score = Long.bitCount(mobility_mask ^ diagonal_sliders);
 			}
@@ -1707,15 +1721,26 @@ public class Board {
 			}
 		}
 		else if (rank_file_sliders != 0) {
-			// Assume single queen, as material likely unbalanced, this optimisation should be fine
-			long mobility_mask = BitBoard.leftOccludedEmpty(rank_file_sliders, empty);
+			// Assume that if it is just queens, then material is so unbalanced that it doesn't matter that they can intersect
+			long temp = 0L;
+			long mobility_mask = 0L; 
+			
+			temp = BitBoard.leftOccludedEmpty(rank_file_sliders, empty);
+			mobility_mask |= temp;
 			sliderAttacks = BitBoard.leftAttacks(mobility_mask);
-			mobility_mask |= BitBoard.rightOccludedEmpty(rank_file_sliders, empty);
-			sliderAttacks |= BitBoard.rightAttacks(mobility_mask);
-			mobility_mask |= BitBoard.downOccludedEmpty(rank_file_sliders, empty);
-			sliderAttacks |= BitBoard.downAttacks(mobility_mask);
-			mobility_mask |= BitBoard.upOccludedEmpty(rank_file_sliders, empty);
-			sliderAttacks |= BitBoard.upAttacks(mobility_mask);
+			
+			temp = BitBoard.rightOccludedEmpty(rank_file_sliders, empty);
+			mobility_mask |= temp;
+			sliderAttacks |= BitBoard.rightAttacks(temp);
+			
+			temp = BitBoard.downOccludedEmpty(rank_file_sliders, empty);
+			mobility_mask |= temp;
+			sliderAttacks |= BitBoard.downAttacks(temp);
+			
+			temp = BitBoard.upOccludedEmpty(rank_file_sliders, empty);
+			mobility_mask |= temp;
+			sliderAttacks |= BitBoard.upAttacks(temp);
+			
 			mobility_score = Long.bitCount(mobility_mask ^ rank_file_sliders);
 		}
 		attacks[2] |= sliderAttacks;
@@ -1803,6 +1828,7 @@ public class Board {
 		if (!isAttacksMaskValid) {
 			getAttacksForSide(attacks[0], false);
 			getAttacksForSide(attacks[1], true);
+			isAttacksMaskValid = true;
 		}
 		return attacks;
 	}
