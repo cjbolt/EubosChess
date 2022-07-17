@@ -124,7 +124,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 .P......
 		// 1 k.......
 		//   abcdefgh
-		setupPosition( "8/8/8/8/8/1pp5/1p6/K7 w - - - 1" );
+		setupPosition( "7k/8/8/8/8/1pp5/1p6/K7 w - - - 1" );
 		expectedMove = new GenericMove("a1b1");
 		doFindMoveTest(true);
 	}
@@ -140,7 +140,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 PPP.....
 		// 1 kP......
 		//   abcdefgh
-		setupPosition( "8/8/8/8/8/1pp5/ppp5/Kp6 w - - - 1" );
+		setupPosition( "k7/8/8/8/8/1pp5/ppp5/Kp6 w - - - 1" );
 		assertEquals(Move.NULL_MOVE, classUnderTest.findMove(SEARCH_DEPTH_IN_PLY).bestMove);
 	}
 	
@@ -440,7 +440,7 @@ public class MiniMaxMoveGeneratorTest {
 	public void test_findMove_bugPromotingPawn_Arena_6ply()throws IllegalNotationException  {
 		// N.b. as per test_findMove_bugPromotingPawn_Arena_5ply
 		setupPosition( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
-		expectedMove = new GenericMove("h8g8");
+		expectedMove = new GenericMove("h8g7");
 		
 		classUnderTest.findMove((byte)4);
 		classUnderTest.findMove((byte)5, sr_stub);

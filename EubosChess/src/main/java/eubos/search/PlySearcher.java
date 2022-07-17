@@ -77,7 +77,7 @@ public class PlySearcher {
 		int prevBestMove;
 		boolean isCutOff;
 		int hashScore;
-		int crudeEval;   // not initialised here for reasons of optimisation
+		int fullEval;   // not initialised here for reasons of optimisation
 		boolean inCheck; // not initialised here for reasons of optimisation
 		
 		void initialise(int ply, int alpha, int beta) {
@@ -91,8 +91,8 @@ public class PlySearcher {
 		}
 		
 		void update() {
+			fullEval = pe.getFullEvaluation();
 			inCheck = pos.isKingInCheck();
-			crudeEval = pe.getCrudeEvaluation();
 		}
 	};
 	
@@ -524,10 +524,10 @@ public class PlySearcher {
 		int prevBestMove = Move.NULL_MOVE;
 		
 		// Stand Pat in extended search
-		state[currPly].plyScore = (short) 0;
+		state[currPly].plyScore = (short) state[currPly].fullEval;
 		if (EubosEngineMain.ENABLE_LAZY_EVALUATION && !pos.getTheBoard().me.isEndgame()) {
 			// Phase 1 - crude evaluation
-			state[currPly].plyScore = (short) state[currPly].crudeEval;
+			state[currPly].plyScore = (short) state[currPly].fullEval;
 			if (TUNE_LAZY_EVAL) {
 				lazyStat.nodeCount++;
 			}
@@ -552,7 +552,7 @@ public class PlySearcher {
 			}
 		}	
 		// Phase 2 full evaluation
-		state[currPly].plyScore = (short) pe.getFullEvaluation();
+		//state[currPly].plyScore = (short) pe.getFullEvaluation();
 		if (state[currPly].plyScore >= beta) {
 			// There is no move to put in the killer table when we stand Pat
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(state[currPly].plyScore);
@@ -766,7 +766,7 @@ public class PlySearcher {
 				!pos.getTheBoard().me.isEndgame() &&
 				!state[currPly].inCheck &&
 				!(Score.isMate((short)state[currPly].beta) || Score.isMate((short)state[currPly].alpha)) && 
-				pe.getFullEvaluation() > state[currPly].beta) {
+				state[currPly].fullEval > state[currPly].beta) {
 			
 			boolean isCutOff = false;
 			int plyScore;
@@ -777,7 +777,7 @@ public class PlySearcher {
 			pm.performNullMove();
 			
 			state[currPly].inCheck = state[currPly-1].inCheck;
-			state[currPly].crudeEval = -state[currPly-1].crudeEval;
+			state[currPly].fullEval = -state[currPly-1].fullEval;
 			plyScore = -search(depth-1-R, false, -state[currPly-1].beta, -state[currPly-1].beta+1);
 			
 			pm.unperformNullMove();

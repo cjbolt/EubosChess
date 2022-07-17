@@ -1,5 +1,6 @@
 package eubos.board;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator;
@@ -13,6 +14,7 @@ import eubos.position.Move;
 import eubos.position.Position;
 import eubos.score.PiecewiseEvaluation;
 import eubos.score.PositionEvaluator;
+import it.unimi.dsi.fastutil.longs.LongArrays;
 
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.GenericPosition;
@@ -61,7 +63,7 @@ public class Board {
 	public PawnKnightAttackAggregator pkaa;
 	public KnightAttackAggregator kaa;
 	
-	private boolean isAttacksMaskValid = false;
+	public boolean isAttacksMaskValid = false;
 	public long [][] attacks;
 	
 	public Board( Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove ) {
@@ -69,6 +71,7 @@ public class Board {
 		kaa = new KnightAttackAggregator();
 		pkaa = new PawnKnightAttackAggregator();
 		ktc = new KingTropismChecker();
+		isAttacksMaskValid = false;
 		attacks = new long [2][4];
 		allPieces = 0x0;
 		whitePieces = 0x0;
@@ -874,7 +877,11 @@ public class Board {
 		boolean inCheck = false;
 		if (isAttacksMaskValid) {
 			long kingMask = isWhite ? getWhiteKing() : getBlackKing();
-			inCheck = (kingMask & attacks[isWhite ? 1 : 0][3]) != 0L;
+			inCheck = (kingMask & attacks[isWhite ? 1 : 0][3]) == kingMask;
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				int kingSquare = getKingPosition(isWhite);
+				assert inCheck == squareIsAttacked(kingSquare, isWhite);
+			}
 		} else {
 			int kingSquare = getKingPosition(isWhite);
 			inCheck = squareIsAttacked(kingSquare, isWhite);
@@ -1639,28 +1646,42 @@ public class Board {
 				}
 			} else {
 				// Assume that if it is just queens, then material is so unbalanced that it doesn't matter that they can intersect
+				long temp = 0L;
 				long mobility_mask = BitBoard.downLeftOccludedEmpty(diagonal_sliders, empty);
 				sliderAttacks = BitBoard.downLeftAttacks(mobility_mask);
-				mobility_mask |= BitBoard.upRightOccludedEmpty(diagonal_sliders, empty);
-				sliderAttacks |= BitBoard.upRightAttacks(mobility_mask);
-				mobility_mask |= BitBoard.downRightOccludedEmpty(diagonal_sliders, empty);
-				sliderAttacks |= BitBoard.downRightAttacks(mobility_mask);
-				mobility_mask |= BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty);
-				sliderAttacks |= BitBoard.upLeftAttacks(mobility_mask);
+				
+				temp = BitBoard.upRightOccludedEmpty(diagonal_sliders, empty);
+				mobility_mask |= temp;
+				sliderAttacks |= BitBoard.upRightAttacks(temp);
+				
+				temp = BitBoard.downRightOccludedEmpty(diagonal_sliders, empty);
+				mobility_mask |= temp;
+				sliderAttacks |= BitBoard.downRightAttacks(temp);
+				
+				temp = BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty);
+				mobility_mask |= temp;
+				sliderAttacks |= BitBoard.upLeftAttacks(temp);
 				
 				mobility_score = Long.bitCount(mobility_mask ^ diagonal_sliders);
 			}
 		} else if (bishops != 0) {
 			// Assume that if it is just bishops, they can't intersect, which allows optimisation
 			if (diagonal_sliders != 0) {
+				long temp = 0L;
 				long mobility_mask = BitBoard.downLeftOccludedEmpty(diagonal_sliders, empty);
 				sliderAttacks = BitBoard.downLeftAttacks(mobility_mask);
-				mobility_mask |= BitBoard.upRightOccludedEmpty(diagonal_sliders, empty);
-				sliderAttacks |= BitBoard.upRightAttacks(mobility_mask);
-				mobility_mask |= BitBoard.downRightOccludedEmpty(diagonal_sliders, empty);
-				sliderAttacks |= BitBoard.downRightAttacks(mobility_mask);
-				mobility_mask |= BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty);
-				sliderAttacks |= BitBoard.upLeftAttacks(mobility_mask);
+				
+				temp = BitBoard.upRightOccludedEmpty(diagonal_sliders, empty);
+				mobility_mask |= temp;
+				sliderAttacks |= BitBoard.upRightAttacks(temp);
+				
+				temp = BitBoard.downRightOccludedEmpty(diagonal_sliders, empty);
+				mobility_mask |= temp;
+				sliderAttacks |= BitBoard.downRightAttacks(temp);
+				
+				temp = BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty);
+				mobility_mask |= temp;
+				sliderAttacks |= BitBoard.upLeftAttacks(temp);
 				
 				mobility_score = Long.bitCount(mobility_mask ^ diagonal_sliders);
 			}
@@ -1707,15 +1728,26 @@ public class Board {
 			}
 		}
 		else if (rank_file_sliders != 0) {
-			// Assume single queen, as material likely unbalanced, this optimisation should be fine
-			long mobility_mask = BitBoard.leftOccludedEmpty(rank_file_sliders, empty);
+			// Assume that if it is just queens, then material is so unbalanced that it doesn't matter that they can intersect
+			long temp = 0L;
+			long mobility_mask = 0L; 
+			
+			temp = BitBoard.leftOccludedEmpty(rank_file_sliders, empty);
+			mobility_mask |= temp;
 			sliderAttacks = BitBoard.leftAttacks(mobility_mask);
-			mobility_mask |= BitBoard.rightOccludedEmpty(rank_file_sliders, empty);
-			sliderAttacks |= BitBoard.rightAttacks(mobility_mask);
-			mobility_mask |= BitBoard.downOccludedEmpty(rank_file_sliders, empty);
-			sliderAttacks |= BitBoard.downAttacks(mobility_mask);
-			mobility_mask |= BitBoard.upOccludedEmpty(rank_file_sliders, empty);
-			sliderAttacks |= BitBoard.upAttacks(mobility_mask);
+			
+			temp = BitBoard.rightOccludedEmpty(rank_file_sliders, empty);
+			mobility_mask |= temp;
+			sliderAttacks |= BitBoard.rightAttacks(temp);
+			
+			temp = BitBoard.downOccludedEmpty(rank_file_sliders, empty);
+			mobility_mask |= temp;
+			sliderAttacks |= BitBoard.downAttacks(temp);
+			
+			temp = BitBoard.upOccludedEmpty(rank_file_sliders, empty);
+			mobility_mask |= temp;
+			sliderAttacks |= BitBoard.upAttacks(temp);
+			
 			mobility_score = Long.bitCount(mobility_mask ^ rank_file_sliders);
 		}
 		attacks[2] |= sliderAttacks;
@@ -1803,6 +1835,7 @@ public class Board {
 		if (!isAttacksMaskValid) {
 			getAttacksForSide(attacks[0], false);
 			getAttacksForSide(attacks[1], true);
+			isAttacksMaskValid = true;
 		}
 		return attacks;
 	}

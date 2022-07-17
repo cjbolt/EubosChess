@@ -68,7 +68,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_TRANSPOSITION_TABLE = true;
 	public static final boolean ENABLE_QUIESCENCE_CHECK = true;
 	public static final boolean ENABLE_ASPIRATION_WINDOWS = true;
-	public static final boolean ENABLE_LAZY_EVALUATION = true;	
+	public static final boolean ENABLE_LAZY_EVALUATION = false;	
 	public static final boolean ENABLE_LATE_MOVE_REDUCTION = true;
 	public static final boolean ENABLE_NULL_MOVE_PRUNING = true;
 	public static final boolean ENABLE_STAGED_MOVE_GENERATION = true;

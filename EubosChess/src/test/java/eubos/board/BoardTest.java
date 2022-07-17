@@ -2,6 +2,7 @@ package eubos.board;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,6 +20,7 @@ import eubos.position.PositionManager;
 import eubos.score.PiecewiseEvaluation;
 import eubos.score.PositionEvaluator;
 import eubos.search.DrawChecker;
+import it.unimi.dsi.fastutil.longs.LongArrays;
 
 public class BoardTest {
 	
@@ -833,5 +835,17 @@ public class BoardTest {
 		// black knight
 		assertEquals(0, classUnderTest.attacks[1][1]);
 	}	
+	
+	@Test
+	public void test_attacks_both_ways_are_the_same() {
+		setUpPosition("K3Q2k/8/3p4/8/8/8/8/8 b - - - 1");
+		classUnderTest.calculateAttacksAndMobility(classUnderTest.me);
+		long [] tempWhite = LongArrays.copy(classUnderTest.attacks[0]);
+		long [] tempBlack = LongArrays.copy(classUnderTest.attacks[1]);
+		classUnderTest.isAttacksMaskValid = false;
+		classUnderTest.getAttackedSquares();
+		assertArrayEquals(tempWhite, classUnderTest.attacks[0]);
+		assertArrayEquals(tempBlack, classUnderTest.attacks[1]);
+	}
 }
 
