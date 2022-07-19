@@ -1204,18 +1204,25 @@ public class Board {
 	}
 	
 	public class PawnAttackAggregator implements IForEachPieceCallback {
-		long attackMask = 0L;
+		long attackMask[] = {0L, 0L};
 		boolean attackerIsBlack = false;
 		
 		public void callback(int piece, int position) {
-			attackMask |= (attackerIsBlack ?
+			long pawnAttacks = (attackerIsBlack ?
 					SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[position] : 
 						SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[position]);
+			long bitsAlreadySetInFirstMask = pawnAttacks & attackMask[0];
+			if (bitsAlreadySetInFirstMask != 0L) {
+				// Need to find which square(s) are attacked twice and set them in the second mask,
+				// optimised for pawns, where only two squares can be simultaneously attacked by a side
+				attackMask[1] |= bitsAlreadySetInFirstMask;
+			}
+			attackMask[0] |= pawnAttacks;
 		}
 		
-		public long getPawnAttacks(boolean attackerIsBlack) {
+		public long [] getPawnAttacks(boolean attackerIsBlack) {
 			this.attackerIsBlack = attackerIsBlack;
-			this.attackMask = 0L;
+			attackMask[0] = attackMask[1] = 0L;
 			forEachPawnOfSide(this, attackerIsBlack);
 			return attackMask;
 		}
@@ -1778,7 +1785,7 @@ public class Board {
 	protected void getBasicAttacksForSide(long [] attacks, boolean isBlack) {
 		attacks[0] = attacks[1] = attacks[2] = attacks[3] = 0L;
 		// Pawns
-		long pawnAttacks = paa.getPawnAttacks(isBlack);
+		long pawnAttacks = paa.getPawnAttacks(isBlack)[0];
 		attacks[0] = pawnAttacks;
 		attacks[3] |= pawnAttacks;
 		// Knights
@@ -1793,7 +1800,7 @@ public class Board {
 	protected void getAttacksForSide(long [] attacks, boolean isBlack) {
 		attacks[0] = attacks[1] = attacks[2] = attacks[3] = 0L;
 		// Pawns
-		long pawnAttacks = paa.getPawnAttacks(isBlack);
+		long pawnAttacks = paa.getPawnAttacks(isBlack)[0];
 		attacks[0] = pawnAttacks;
 		attacks[3] |= pawnAttacks;
 		// Knights
