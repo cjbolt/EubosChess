@@ -92,7 +92,7 @@ public class PositionEvaluator implements IEvaluate {
 		if (!isDraw) {
 			// Score factors common to each phase, material, pawn structure and piece mobility
 			bd.me.dynamicPosition = 0;
-			long [][] attacks = bd.calculateAttacksAndMobility(bd.me);
+			long [][][] attacks = bd.calculateAttacksAndMobility(bd.me);
 			
 			score += evaluateBishopPair();
 			
@@ -115,7 +115,7 @@ public class PositionEvaluator implements IEvaluate {
 		return score;
 	}
 	
-	int evaluateKingSafety(long[][] attacks) {
+	int evaluateKingSafety(long[][][] attacks) {
 		int kingSafetyScore = 0;
 		kingSafetyScore = pm.getTheBoard().evaluateKingSafety(attacks, onMoveIsWhite);
 		kingSafetyScore -= pm.getTheBoard().evaluateKingSafety(attacks, !onMoveIsWhite);
@@ -138,7 +138,7 @@ public class PositionEvaluator implements IEvaluate {
 	public class PawnEvaluator implements IForEachPieceCallback{
 		
 		public int piecewisePawnScoreAccumulator = 0;
-		public long[][] attacks;
+		public long[][][] attacks;
 		protected int queeningDistance;
 		protected int weighting;
 		protected boolean pawnIsBlack;
@@ -162,7 +162,7 @@ public class PositionEvaluator implements IEvaluate {
 			}
 		}
 		
-		protected void evaluateKpkEndgame(int atPos, boolean isOwnPawn, long[] ownAttacks) {
+		protected void evaluateKpkEndgame(int atPos, boolean isOwnPawn, long[][] ownAttacks) {
 			// Special case, it is a KPK endgame
 			int file = Position.getFile(atPos);
 			int queeningSquare = pawnIsBlack ? Position.valueOf(file, 0) : Position.valueOf(file, 7);
@@ -190,7 +190,7 @@ public class PositionEvaluator implements IEvaluate {
 			}
 		}
 		
-		protected void evaluatePassedPawn(int atPos, boolean pawnIsWhite, long[] own_attacks, long [] enemy_attacks) {
+		protected void evaluatePassedPawn(int atPos, boolean pawnIsWhite, long[][] own_attacks, long [][] enemy_attacks) {
 			weighting *= getScaleFactorForGamePhase();
 			int value = (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) ?
 					ROOK_FILE_PASSED_PAWN_BOOST : PASSED_PAWN_BOOST;
@@ -207,7 +207,7 @@ public class PositionEvaluator implements IEvaluate {
 				} else {
 					// neither attacked or defended along the rear span
 				}
-				boolean pawnIsBlocked = bd.isPawnFrontspanBlocked(atPos, pawnIsWhite, own_attacks[3], enemy_attacks[3], heavySupportIndication > 0);
+				boolean pawnIsBlocked = bd.isPawnFrontspanBlocked(atPos, pawnIsWhite, own_attacks[3][0], enemy_attacks[3][0], heavySupportIndication > 0);
 				if (pawnIsBlocked) {
 					score = 2*score/3;
 				}
@@ -219,8 +219,8 @@ public class PositionEvaluator implements IEvaluate {
 		@Override
 		public void callback(int piece, int atPos) {
 			boolean pawnIsWhite = Piece.isWhite(piece);
-			long[] enemy_attacks = attacks[pawnIsWhite ? 1:0];
-			long[] own_attacks = attacks[pawnIsWhite ? 0:1];
+			long[][] enemy_attacks = attacks[pawnIsWhite ? 1:0];
+			long[][] own_attacks = attacks[pawnIsWhite ? 0:1];
 			
 			if (bd.isPassedPawn(atPos, pawnIsWhite)) {
 				boolean isOwnPawn = (onMoveIsWhite && pawnIsWhite) || (!onMoveIsWhite && !pawnIsWhite);
@@ -232,7 +232,8 @@ public class PositionEvaluator implements IEvaluate {
 					evaluatePassedPawn(atPos, pawnIsWhite, own_attacks, enemy_attacks);
 				}
 			} else if (ENABLE_CANDIDATE_PP_EVALUATION) {
-				if (bd.isCandidatePassedPawn(atPos, pawnIsWhite, own_attacks[0], enemy_attacks[0])) {
+				// TODO make it resolve the number of attacks...
+				if (bd.isCandidatePassedPawn(atPos, pawnIsWhite, own_attacks[0][0], enemy_attacks[0][0])) {
 					setQueeningDistance(atPos, pawnIsWhite);
 					weighting *= getScaleFactorForGamePhase();
 					if (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) {
@@ -253,13 +254,13 @@ public class PositionEvaluator implements IEvaluate {
 			return -bd.countDoubledPawns(pawns)*DOUBLED_PAWN_HANDICAP;
 		}
 		
-		void initialise(long[][] attacks) {
+		void initialise(long[][][] attacks) {
 			ppCount[0] = ppCount[1] = 0;
 			pawn_eval.attacks = attacks;
 		}
 		
 		@SuppressWarnings("unused")
-		int evaluatePawnStructure(long[][] attacks) {
+		int evaluatePawnStructure(long[][][] attacks) {
 			initialise(attacks);
 			int pawnEvaluationScore = 0;
 			long ownPawns = onMoveIsWhite ? bd.getWhitePawns() : bd.getBlackPawns();

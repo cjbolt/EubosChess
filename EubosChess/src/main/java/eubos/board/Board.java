@@ -62,14 +62,15 @@ public class Board {
 	public KnightAttackAggregator kaa;
 	
 	private boolean isAttacksMaskValid = false;
-	public long [][] attacks;
+	// Dimensions are [Colour][AttackType][CountedBitBoard]
+	public long [][][] attacks;
 	
 	public Board( Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove ) {
 		paa = new PawnAttackAggregator();
 		kaa = new KnightAttackAggregator();
 		pkaa = new PawnKnightAttackAggregator();
 		ktc = new KingTropismChecker();
-		attacks = new long [2][4];
+		attacks = new long [2][4][8];
 		allPieces = 0x0;
 		whitePieces = 0x0;
 		blackPieces = 0x0;
@@ -874,7 +875,7 @@ public class Board {
 		boolean inCheck = false;
 		if (isAttacksMaskValid) {
 			long kingMask = isWhite ? getWhiteKing() : getBlackKing();
-			inCheck = (kingMask & attacks[isWhite ? 1 : 0][3]) != 0L;
+			inCheck = (kingMask & attacks[isWhite ? 1 : 0][3][0]) != 0L;
 		} else {
 			int kingSquare = getKingPosition(isWhite);
 			inCheck = squareIsAttacked(kingSquare, isWhite);
@@ -931,10 +932,10 @@ public class Board {
 		return isPassed;
 	}
 	
-	public boolean isFrontspanControlledInKpk(int atPos, boolean isWhite, long own_attacks) {
+	public boolean isFrontspanControlledInKpk(int atPos, boolean isWhite, long [] own_attacks) {
 		boolean isControlled = false;
 		long front_span_mask = BitBoard.PawnFrontSpan_Lut[isWhite ? 0 : 1][atPos];
-		if (((front_span_mask & own_attacks) ^ front_span_mask) == 0L) {
+		if (((front_span_mask & own_attacks[0]) ^ front_span_mask) == 0L) {
 			// Don't need to check opponent attacks, because they can't attack the frontspan, ONLY VALID for KPK
 			isControlled = true;
 		}
@@ -1204,7 +1205,7 @@ public class Board {
 	}
 	
 	public class PawnAttackAggregator implements IForEachPieceCallback {
-		long attackMask[] = {0L, 0L};
+		long attackMask[];
 		boolean attackerIsBlack = false;
 		
 		public void callback(int piece, int position) {
@@ -1220,11 +1221,11 @@ public class Board {
 			attackMask[0] |= pawnAttacks;
 		}
 		
-		public long [] getPawnAttacks(boolean attackerIsBlack) {
+		public void getPawnAttacks(long[] attacksMask ,boolean attackerIsBlack) {
+			this.attackMask = attacksMask;
 			this.attackerIsBlack = attackerIsBlack;
-			attackMask[0] = attackMask[1] = 0L;
+			CountedBitBoard.clear(attackMask);
 			forEachPawnOfSide(this, attackerIsBlack);
-			return attackMask;
 		}
 	}
 	
@@ -1233,7 +1234,7 @@ public class Board {
 		public final int[] BLACK_ATTACKERS = {Piece.BLACK_PAWN, Piece.BLACK_KNIGHT};
 		public final int[] WHITE_ATTACKERS = {Piece.WHITE_PAWN, Piece.WHITE_KNIGHT};
 		
-		long [] attackMask = {0L, 0L, 0L, 0L, 0L};
+		long [] attackMask;
 		
 		public void callback(int piece, int position) {
 			long mask = 0L;
@@ -1254,10 +1255,10 @@ public class Board {
 			CountedBitBoard.setBits(attackMask, mask);
 		}
 		
-		public long[] getAttacks(boolean attackerIsBlack) {
-			attackMask[0] = attackMask[1] = attackMask[2] = attackMask[3] = attackMask[4] = 0L;
+		public void getAttacks(long[] attacks, boolean attackerIsBlack) {
+			this.attackMask = attacks;
+			CountedBitBoard.clear(attackMask);
 			pieceLists.forEachPieceOfTypeDoCallback(this, attackerIsBlack ? BLACK_ATTACKERS: WHITE_ATTACKERS);
-			return attackMask;
 		}
 	}
 	
@@ -1281,10 +1282,10 @@ public class Board {
 			CountedBitBoard.setBits(attackMask, mask);
 		}
 		
-		public long [] getAttacks(boolean attackerIsBlack) {
-			attackMask[0] = attackMask[1] = attackMask[2] = attackMask[3] = attackMask[4] = 0L;
+		public void getAttacks(long[] attacks, boolean attackerIsBlack) {
+			this.attackMask = attacks;
+			CountedBitBoard.clear(attackMask);
 			pieceLists.forEachPieceOfTypeDoCallback(this, attackerIsBlack ? BLACK_ATTACKERS: WHITE_ATTACKERS);
-			return attackMask;
 		}
 	}
 	
@@ -1487,7 +1488,7 @@ public class Board {
 	
 	KingTropismChecker ktc;
 	
-	public int evaluateKingSafety(long[][] attacks, boolean isWhite) {
+	public int evaluateKingSafety(long[][][] attacks, boolean isWhite) {
 		int evaluation = 0;
 
 		// King
@@ -1547,7 +1548,7 @@ public class Board {
 		if (PositionEvaluator.ENABLE_TWEAKED_KING_FLIGHT_SQUARES) {
 			// V2 Then account for attacks on the squares around the king
 			long surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
-			int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3]);
+			int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3][0]);
 			int flightCount = Long.bitCount(surroundingSquares & ~allPieces); // perhaps just own pieces?
 			
 			int fraction_attacked_q8 = 256;
@@ -1563,7 +1564,7 @@ public class Board {
 		else {
 			// V1 Then account for attacks on the squares around the king
 			long surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
-			int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3]);
+			int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3][0]);
 			int flightCount = Long.bitCount(surroundingSquares);
 			int fraction_attacked_q8 = (attackedCount * 256) / flightCount;
 			evaluation += ((-150 * fraction_attacked_q8) / 256);
@@ -1612,7 +1613,7 @@ public class Board {
 		return calculateDiagonalMobility(bishops, queens, attacks[0]);
 	}
 
-	int calculateDiagonalMobility(long bishops, long queens, long [] attacks) {
+	int calculateDiagonalMobility(long bishops, long queens, long [][] attacks) {
 		long empty = ~allPieces;
 		int mobility_score = 0x0;
 		long diagonal_sliders = bishops | queens;
@@ -1686,8 +1687,8 @@ public class Board {
 				mobility_score = Long.bitCount(mobility_mask ^ diagonal_sliders);
 			}
 		}
-		attacks[2] |= sliderAttacks;
-		attacks[3] |= sliderAttacks;
+		CountedBitBoard.setBits(attacks[2], sliderAttacks);
+		CountedBitBoard.setBits(attacks[3], sliderAttacks);
 		return mobility_score;
 	}
 	
@@ -1695,7 +1696,7 @@ public class Board {
 		return calculateRankFileMobility(rooks, queens, attacks[0]);
 	}
 	
-	int calculateRankFileMobility(long rooks, long queens, long [] attacks) {
+	int calculateRankFileMobility(long rooks, long queens, long [][] attacks) {
 		long empty = ~allPieces;
 		int mobility_score = 0x0;
 		long rank_file_sliders = rooks | queens;
@@ -1750,12 +1751,12 @@ public class Board {
 			
 			mobility_score = Long.bitCount(mobility_mask ^ rank_file_sliders);
 		}
-		attacks[2] |= sliderAttacks;
-		attacks[3] |= sliderAttacks;
+		CountedBitBoard.setBits(attacks[2], sliderAttacks);
+		CountedBitBoard.setBits(attacks[3], sliderAttacks);
 		return mobility_score;
 	}
 	
-	public long [][] calculateAttacksAndMobility(PiecewiseEvaluation me) {
+	public long [][][] calculateAttacksAndMobility(PiecewiseEvaluation me) {
 		int mobility_score = 0x0;
 		
 		getBasicAttacksForSide(attacks[0], false);
@@ -1782,34 +1783,24 @@ public class Board {
 		return attacks;
 	}
 	
-	protected void getBasicAttacksForSide(long [] attacks, boolean isBlack) {
-		attacks[0] = attacks[1] = attacks[2] = attacks[3] = 0L;
+	protected void getBasicAttacksForSide(long [][] attacks, boolean isBlack) {
+		CountedBitBoard.clear(attacks[0]);
+		CountedBitBoard.clear(attacks[1]);
+		CountedBitBoard.clear(attacks[2]);
+		CountedBitBoard.clear(attacks[3]);
 		// Pawns
-		long pawnAttacks = paa.getPawnAttacks(isBlack)[0];
-		attacks[0] = pawnAttacks;
-		attacks[3] |= pawnAttacks;
+		paa.getPawnAttacks(attacks[0], isBlack);
+		CountedBitBoard.setBitArrays(attacks[3], attacks[0]);
 		// Knights
-		long knightAttacks = kaa.getAttacks(isBlack)[0];
-		attacks[1] = knightAttacks;
-		attacks[3] |= knightAttacks;
+		kaa.getAttacks(attacks[1], isBlack);
+		CountedBitBoard.setBitArrays(attacks[3], attacks[1]);
 		// King
 		long kingAttacks = SquareAttackEvaluator.KingMove_Lut[pieceLists.getKingPos(!isBlack)];
-		attacks[3] |= kingAttacks;
+		CountedBitBoard.setBits(attacks[3], kingAttacks);
 	}
 	
-	protected void getAttacksForSide(long [] attacks, boolean isBlack) {
-		attacks[0] = attacks[1] = attacks[2] = attacks[3] = 0L;
-		// Pawns
-		long pawnAttacks = paa.getPawnAttacks(isBlack)[0];
-		attacks[0] = pawnAttacks;
-		attacks[3] |= pawnAttacks;
-		// Knights
-		long knightAttacks = kaa.getAttacks(isBlack)[0];
-		attacks[1] = knightAttacks;
-		attacks[3] |= knightAttacks;
-		// King
-		long kingAttacks = SquareAttackEvaluator.KingMove_Lut[pieceLists.getKingPos(!isBlack)];
-		attacks[3] |= kingAttacks;
+	protected void getAttacksForSide(long [][] attacks, boolean isBlack) {
+		getBasicAttacksForSide(attacks, isBlack);
 		// Sliders
 		long sliderAttacks = 0L;
 		long diagonalAttackersMask = isBlack ? getBlackDiagonal() : getWhiteDiagonal();
@@ -1827,11 +1818,11 @@ public class Board {
 			sliderAttacks |= BitBoard.upAttacks(rankFileAttackersMask, empty);
 			sliderAttacks |= BitBoard.leftAttacks(rankFileAttackersMask, empty);
 		}
-		attacks[2] = sliderAttacks;
-		attacks[3] |= sliderAttacks;
+		CountedBitBoard.setBits(attacks[2], sliderAttacks);
+		CountedBitBoard.setBits(attacks[3], sliderAttacks);
 	}
 	
-	public long[][] getAttackedSquares() {
+	public long[][][] getAttackedSquares() {
 		if (!isAttacksMaskValid) {
 			getAttacksForSide(attacks[0], false);
 			getAttacksForSide(attacks[1], true);

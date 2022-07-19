@@ -21,7 +21,7 @@ public class PawnEvaluatorTest {
 
 	PositionEvaluator SUT;
 	PositionManager pm;
-	long [][] attacks;
+	long [][][] attacks;
 	long whitePawns;
 	long blackPawns;
 	

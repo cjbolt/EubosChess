@@ -6,19 +6,19 @@ public final class CountedBitBoard {
 	
 	static void setBits(long [] cbb, long mask) {
 		int i=0;
-		do {
-			long bitsAlreadySet = mask & cbb[i];
-			cbb[i] |= mask; // Don't care if already set...
-			i += 1;
+		long bitsAlreadySet = mask & cbb[i];
+		cbb[i] |= mask; // Don't care if it was already set for depth 0...
+		for (i=1; i < cbb.length; i++) {
 			if (bitsAlreadySet != 0L) {
 				long beforeSet = cbb[i];
 				cbb[i] |= bitsAlreadySet;
-				// Need to clear the bit that we just set, in the mask
-				mask &= beforeSet;
+				mask &= beforeSet; // Need to clear the bit that we just set, in the mask
 			} else {
 				mask = 0L;
 			}
-		} while (mask != 0L && i < (cbb.length-1));
+			if (mask == 0L) break;
+			bitsAlreadySet = mask & cbb[i];
+		}
 	}
 	
 	static void setBitArrays(long [] cbb, long[] masks) {
