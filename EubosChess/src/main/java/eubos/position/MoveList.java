@@ -229,7 +229,7 @@ public class MoveList implements Iterable<Integer> {
 				// moves
 				pm.getTheBoard().getCapturesExcludingPromotions(ma_captures, isWhite[ply]);
 			} else {
-				attackMask[ply] = pm.getTheBoard().pkaa.getAttacks(isWhite[ply]);
+				attackMask[ply] = pm.getTheBoard().pkaa.getAttacks(isWhite[ply])[0];
 				if (killers[ply] == null) {
 					ma_captures_regular_NoKillers.attackMask = attackMask[ply];
 					pm.getTheBoard().getCapturesBufferRegularExcludingPromotions(ma_captures_regular_NoKillers,
@@ -249,7 +249,7 @@ public class MoveList implements Iterable<Integer> {
 		moveCount[ply] = normal_fill_index[ply] + scratchpad_fill_index[ply];
 		priority_fill_index[ply] = 0;
 		IAddMoves moveAdder = null;
-		attackMask[ply] = pm.getTheBoard().pkaa.getAttacks(isWhite[ply]);
+		attackMask[ply] = pm.getTheBoard().pkaa.getAttacks(isWhite[ply])[0];
 		if (killers[ply] == null) {
 			moveAdder = ma_quietNoKillers;
 			ma_quietNoKillers.attackMask = attackMask[ply];

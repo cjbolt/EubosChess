@@ -1233,7 +1233,7 @@ public class Board {
 		public final int[] BLACK_ATTACKERS = {Piece.BLACK_PAWN, Piece.BLACK_KNIGHT};
 		public final int[] WHITE_ATTACKERS = {Piece.WHITE_PAWN, Piece.WHITE_KNIGHT};
 		
-		long attackMask = 0L;
+		long [] attackMask = {0L, 0L, 0L, 0L, 0L};
 		
 		public void callback(int piece, int position) {
 			long mask = 0L;
@@ -1251,11 +1251,25 @@ public class Board {
 			default:
 				break;
 			}
-			attackMask |= mask;
+			int i=0;
+			long bitsAlreadySet = 0L;
+			do {
+				bitsAlreadySet = mask & attackMask[i];
+				attackMask[i] |= mask; // Don't care if already set...
+				i += 1;
+				if (bitsAlreadySet != 0L) {
+					long beforeSet = attackMask[i];
+					attackMask[i] |= bitsAlreadySet;
+					// Need to clear the bit that we just set, in the mask
+					mask &= beforeSet;
+				} else {
+					mask = 0L;
+				}
+			} while (mask != 0L && i < (attackMask.length-1));
 		}
 		
-		public long getAttacks(boolean attackerIsBlack) {
-			attackMask = 0L;
+		public long[] getAttacks(boolean attackerIsBlack) {
+			attackMask[0] = attackMask[1] = attackMask[2] = attackMask[3] = attackMask[4] = 0L;
 			pieceLists.forEachPieceOfTypeDoCallback(this, attackerIsBlack ? BLACK_ATTACKERS: WHITE_ATTACKERS);
 			return attackMask;
 		}
