@@ -718,43 +718,49 @@ public class BoardTest {
 	@Test
 	public void test_frontspan_isBlocked() {
 		setUpPosition("2k5/8/8/8/2P5/3K4/8/8 w - - 1 10 ");
-		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3][0], pm.getTheBoard().getAttackedSquares()[1][3][0], false));
+		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3], pm.getTheBoard().getAttackedSquares()[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_NotBlocked() {
 		setUpPosition("8/k7/8/8/2P5/3K4/8/8 w - - 1 10 ");
-		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3][0], pm.getTheBoard().getAttackedSquares()[1][3][0], false));
+		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3], pm.getTheBoard().getAttackedSquares()[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_isAttackedAndDefended() {
 		setUpPosition("8/1B1b4/8/8/2P5/3K4/8/8 w - - 1 10 ");
-		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3][0], pm.getTheBoard().getAttackedSquares()[1][3][0], false));
+		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3], pm.getTheBoard().getAttackedSquares()[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttacked() {
 		setUpPosition("8/3b4/8/8/2P5/3K4/8/8 w - - 1 10 ");
-		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3][0], pm.getTheBoard().getAttackedSquares()[1][3][0], false));
+		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3], pm.getTheBoard().getAttackedSquares()[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttackedTwiceDefendedOnce() {
 		setUpPosition("8/3b4/2P6/2P5/3K4/8/8 w - - 1 10 ");
-		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3][0], pm.getTheBoard().getAttackedSquares()[1][3][0], false));
+		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3], pm.getTheBoard().getAttackedSquares()[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttackedTwiceDefendedTwice() {
 		setUpPosition("R7/3b4/8/1PP5/3K4/8/8 w - - 1 10 ");
-		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3][0], pm.getTheBoard().getAttackedSquares()[1][3][0], false));
+		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3], pm.getTheBoard().getAttackedSquares()[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttackedOnceDefendedOnceByRookToRear() {
 		setUpPosition("8/3b4/8/2P5/7K/8/2R5 w - - 1 10 ");
-		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3][0], pm.getTheBoard().getAttackedSquares()[1][3][0], true));
+		assertFalse(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3], pm.getTheBoard().getAttackedSquares()[1][3], true));
+	}
+	
+	@Test
+	public void test_frontspan_IsAttackedOnceDefendedTwice_soBlocked() {
+		setUpPosition("4B2K/8/1b1Bn3/8/2P5/8/8/7k w - - 1 1");
+		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3], pm.getTheBoard().getAttackedSquares()[1][3], false));
 	}
 	
 	@Test

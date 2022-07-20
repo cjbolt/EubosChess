@@ -207,7 +207,7 @@ public class PositionEvaluator implements IEvaluate {
 				} else {
 					// neither attacked or defended along the rear span
 				}
-				boolean pawnIsBlocked = bd.isPawnFrontspanBlocked(atPos, pawnIsWhite, own_attacks[3][0], enemy_attacks[3][0], heavySupportIndication > 0);
+				boolean pawnIsBlocked = bd.isPawnFrontspanBlocked(atPos, pawnIsWhite, own_attacks[3], enemy_attacks[3], heavySupportIndication > 0);
 				if (pawnIsBlocked) {
 					score = 2*score/3;
 				}

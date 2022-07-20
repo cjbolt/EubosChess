@@ -1,5 +1,6 @@
 package eubos.board;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator;
@@ -953,7 +954,7 @@ public class Board {
 		return (pawnMask & allPieces) != 0L;
 	}
 	
-	public boolean isPawnFrontspanBlocked(int atPos, boolean isWhite, long own_attacks, long enemy_attacks, boolean heavySupport) {
+	public boolean isPawnFrontspanBlocked(int atPos, boolean isWhite, long[] own_attacks, long[] enemy_attacks, boolean heavySupport) {
 		boolean isClear = true;
 		// Check frontspan is clear
 		long front_span_mask = BitBoard.PawnFrontSpan_Lut[isWhite ? 0 : 1][atPos];
@@ -963,16 +964,15 @@ public class Board {
 			isClear = false; 
 		}
 		if (isClear) {
-			// Check that no square in front span is attacked by more enemy pawns than defended by own pawns
-			// Note - could return a second long from paa for squares that are attacked twice by pawns
-			long enemy_attacks_on_frontspan = enemy_attacks & front_span_mask;
-			if (enemy_attacks_on_frontspan != 0L) {
-				long own_attacks_on_frontspan = own_attacks & front_span_mask;
-				// If we don't counter attacks and there is no heavy support
-				if (((enemy_attacks_on_frontspan & own_attacks_on_frontspan) != enemy_attacks_on_frontspan) 
-						&& !heavySupport) {
+			if (heavySupport) {
+				// assume full x-ray control of the front span
+				long [] own_xray = Arrays.copyOf(own_attacks, own_attacks.length);
+				CountedBitBoard.setBits(own_xray, front_span_mask);
+				if (!CountedBitBoard.weControlContestedSquares(own_xray, enemy_attacks, front_span_mask)) {
 					isClear = false;
 				}
+			} else if (!CountedBitBoard.weControlContestedSquares(own_attacks, enemy_attacks, front_span_mask)) {
+				isClear = false;
 			}
 		}
 		return !isClear;
