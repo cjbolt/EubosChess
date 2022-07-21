@@ -1578,36 +1578,36 @@ public class Board {
 		final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT};
 		evaluation += ktc.getScore(kingPos, isWhite ? BLACK_ATTACKERS : WHITE_ATTACKERS);
 		
-		if (PositionEvaluator.ENABLE_TWEAKED_KING_FLIGHT_SQUARES) {
-			// V2 Then account for attacks on the squares around the king
-			long surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
-			int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3][0]);
-			int flightCount = Long.bitCount(surroundingSquares & ~allPieces); // perhaps just own pieces?
-			
-			int fraction_attacked_q8 = 256;
-			if (flightCount != 0 && attackedCount < flightCount) {
-			    fraction_attacked_q8 = (attackedCount * 256) / flightCount;
-			}
-			evaluation += ((-150 * fraction_attacked_q8) / 256);
-			if (flightCount == 0) {
-				// there are no flight squares, high risk of mate
-				evaluation += -100;
-			}
-		}
-		else {
-			// V1 Then account for attacks on the squares around the king
-			long surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
-			int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3][0]);
-			int flightCount = Long.bitCount(surroundingSquares);
-			int fraction_attacked_q8 = (attackedCount * 256) / flightCount;
-			evaluation += ((-150 * fraction_attacked_q8) / 256);
-			if (attackedCount == flightCount) {
-				// there are no flight squares, high risk of mate
-				evaluation += -100;
-			}
+		// Then account for attacks on the squares around the king
+		long surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
+		int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3][0]);
+		int flightCount = Long.bitCount(surroundingSquares & ~(isWhite?whitePieces:blackPieces));
+		int fraction_squares_controlled_by_enemy_q8 = evaluateSquareControlRoundKing(attacks[isWhite ? 0 : 1][3], attacks[isWhite ? 1 : 0][3], surroundingSquares);
+		evaluation += ((-150 * fraction_squares_controlled_by_enemy_q8) / 256);
+		// Then evaluate the check mate threat
+		if (flightCount-attackedCount <= 1) {
+			// There are no flight squares, high risk of mate
+			// TODO make penalty function of material? or function of fraction_squares_controlled_by_enemy_q8
+			evaluation += ((-500 * fraction_squares_controlled_by_enemy_q8) / 256); 
 		}
 		
 		return evaluation;
+	}
+	
+	public int evaluateSquareControlRoundKing(long[] own_attacks, long[] enemy_attacks, long squares) {
+		int enemy_control_count = 0;
+		int total_squares = 0;
+		while (squares != 0L) {
+			// Get square to analyse
+			long square = Long.lowestOneBit(squares);
+			if (!CountedBitBoard.weControlContestedSquares(own_attacks, enemy_attacks, square)) {
+				enemy_control_count++;
+			}
+			// unset LSB
+			squares ^= square;
+			total_squares++;
+		}
+		return (256 * enemy_control_count) / total_squares;
 	}
 	
 	public boolean kingInDanger(boolean isWhite) {
