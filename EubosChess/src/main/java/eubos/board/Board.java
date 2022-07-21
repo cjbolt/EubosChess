@@ -61,6 +61,7 @@ public class Board {
 	public PawnAttackAggregator paa;
 	public PawnKnightAttackAggregator pkaa;
 	public KnightAttackAggregator kaa;
+	public CountedPawnKnightAttackAggregator cpkaa;
 	
 	private boolean isAttacksMaskValid = false;
 	// Dimensions are [Colour][AttackType][CountedBitBoard]
@@ -70,6 +71,7 @@ public class Board {
 		paa = new PawnAttackAggregator();
 		kaa = new KnightAttackAggregator();
 		pkaa = new PawnKnightAttackAggregator();
+		cpkaa = new CountedPawnKnightAttackAggregator();
 		ktc = new KingTropismChecker();
 		attacks = new long [2][4][8];
 		allPieces = 0x0;
@@ -1224,12 +1226,44 @@ public class Board {
 		public void getPawnAttacks(long[] attacksMask ,boolean attackerIsBlack) {
 			this.attackMask = attacksMask;
 			this.attackerIsBlack = attackerIsBlack;
-			CountedBitBoard.clear(attackMask);
 			forEachPawnOfSide(this, attackerIsBlack);
 		}
 	}
 	
 	public class PawnKnightAttackAggregator implements IForEachPieceCallback {
+		
+		public final int[] BLACK_ATTACKERS = {Piece.BLACK_PAWN, Piece.BLACK_KNIGHT};
+		public final int[] WHITE_ATTACKERS = {Piece.WHITE_PAWN, Piece.WHITE_KNIGHT};
+		
+		long attackMask = 0L;
+		
+		public void callback(int piece, int position) {
+			long mask = 0L;
+			switch(piece) {
+			case Piece.WHITE_PAWN:
+				mask = SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[position];
+				break;
+			case Piece.BLACK_PAWN:
+				mask = SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[position];
+				break;
+			case Piece.WHITE_KNIGHT:
+			case Piece.BLACK_KNIGHT:
+				mask = SquareAttackEvaluator.KnightMove_Lut[position];
+				break;
+			default:
+				break;
+			}
+			attackMask |= mask;
+		}
+		
+		public long getAttacks(boolean attackerIsBlack) {
+			attackMask = 0L;
+			pieceLists.forEachPieceOfTypeDoCallback(this, attackerIsBlack ? BLACK_ATTACKERS: WHITE_ATTACKERS);
+			return attackMask;
+		}
+	}
+	
+	public class CountedPawnKnightAttackAggregator implements IForEachPieceCallback {
 		
 		public final int[] BLACK_ATTACKERS = {Piece.BLACK_PAWN, Piece.BLACK_KNIGHT};
 		public final int[] WHITE_ATTACKERS = {Piece.WHITE_PAWN, Piece.WHITE_KNIGHT};
@@ -1284,7 +1318,6 @@ public class Board {
 		
 		public void getAttacks(long[] attacks, boolean attackerIsBlack) {
 			this.attackMask = attacks;
-			CountedBitBoard.clear(attackMask);
 			pieceLists.forEachPieceOfTypeDoCallback(this, attackerIsBlack ? BLACK_ATTACKERS: WHITE_ATTACKERS);
 		}
 	}

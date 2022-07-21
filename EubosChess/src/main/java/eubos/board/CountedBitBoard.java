@@ -7,6 +7,7 @@ import eubos.main.EubosEngineMain;
 public final class CountedBitBoard {
 	
 	static void setBits(long [] cbb, long mask) {
+		if (mask == 0) return;
 		int i=0;
 		long bitsAlreadySet = mask & cbb[i];
 		cbb[i] |= mask; // Don't care if it was already set for depth 0...
@@ -25,6 +26,7 @@ public final class CountedBitBoard {
 	
 	static void setBitArrays(long [] cbb, long[] masks) {
 		for (long mask : masks) {
+			if (mask == 0) break;
 			setBits(cbb, mask);
 		}
 	}

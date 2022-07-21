@@ -50,7 +50,7 @@ public class MoveList implements Iterable<Integer> {
 
 	private int[] bestMove;
 	private int[][] killers;
-	private long[][] attackMask;
+	private long[] attackMask;
 	
 	private MoveListIterator[] ml;
 
@@ -76,7 +76,7 @@ public class MoveList implements Iterable<Integer> {
 		extendedSearch = new boolean[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		isWhite = new boolean[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		killers = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY][3];
-		attackMask = new long[EubosEngineMain.SEARCH_DEPTH_IN_PLY][1];
+		attackMask = new long[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		nextCheckPoint = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		
 		this.pm = pm;
@@ -229,13 +229,13 @@ public class MoveList implements Iterable<Integer> {
 				// moves
 				pm.getTheBoard().getCapturesExcludingPromotions(ma_captures, isWhite[ply]);
 			} else {
-				pm.getTheBoard().pkaa.getAttacks(attackMask[ply], isWhite[ply]);
+				attackMask[ply] = pm.getTheBoard().pkaa.getAttacks(isWhite[ply]);
 				if (killers[ply] == null) {
-					ma_captures_regular_NoKillers.attackMask = attackMask[ply][0];
+					ma_captures_regular_NoKillers.attackMask = attackMask[ply];
 					pm.getTheBoard().getCapturesBufferRegularExcludingPromotions(ma_captures_regular_NoKillers,
 							isWhite[ply]);
 				} else {
-					ma_captures_regular_ConsumeKillers.attackMask = attackMask[ply][0];
+					ma_captures_regular_ConsumeKillers.attackMask = attackMask[ply];
 					pm.getTheBoard().getCapturesBufferRegularExcludingPromotions(ma_captures_regular_ConsumeKillers,
 							isWhite[ply]);
 				}
@@ -249,15 +249,15 @@ public class MoveList implements Iterable<Integer> {
 		moveCount[ply] = normal_fill_index[ply] + scratchpad_fill_index[ply];
 		priority_fill_index[ply] = 0;
 		IAddMoves moveAdder = null;
-		pm.getTheBoard().pkaa.getAttacks(attackMask[ply], isWhite[ply]);
+		attackMask[ply] = pm.getTheBoard().pkaa.getAttacks(isWhite[ply]);
 		if (killers[ply] == null) {
 			moveAdder = ma_quietNoKillers;
-			ma_quietNoKillers.attackMask = attackMask[ply][0];
+			ma_quietNoKillers.attackMask = attackMask[ply];
 		} else {
 			// Set-up move adder to filter the moves from attacked pieces into the priority
 			// part of the move list
 			moveAdder = ma_quietConsumeKillers;
-			ma_quietConsumeKillers.attackMask = attackMask[ply][0];
+			ma_quietConsumeKillers.attackMask = attackMask[ply];
 		}
 		if (ALTERNATE) {
 			pm.getTheBoard().getLeftoverRegularExcludingPromotions(moveAdder, isWhite[ply]);

@@ -4,14 +4,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
-import eubos.board.Board.PawnKnightAttackAggregator;
+import eubos.board.Board.CountedPawnKnightAttackAggregator;
 import eubos.position.Position;
 import eubos.position.PositionManager;
 import eubos.search.DrawChecker;
 
 class PawnKnightAttackAggregatorTest {
 	
-	private PawnKnightAttackAggregator classUnderTest;		
+	private CountedPawnKnightAttackAggregator classUnderTest;		
 	PositionManager pm;
 	
 	private boolean attackerIsBlack = false;
@@ -19,7 +19,7 @@ class PawnKnightAttackAggregatorTest {
 	
 	protected void setUpPosition(String fen) {
 		pm = new PositionManager(fen, new DrawChecker());
-		classUnderTest = pm.getTheBoard().pkaa;
+		classUnderTest = pm.getTheBoard().cpkaa;
 	}
 
 	@Test
