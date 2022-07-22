@@ -73,7 +73,15 @@ public class Board {
 		pkaa = new PawnKnightAttackAggregator();
 		cpkaa = new CountedPawnKnightAttackAggregator();
 		ktc = new KingTropismChecker();
-		attacks = new long [2][4][8];
+		attacks = new long [2][4][];
+		attacks[0][0] = new long [2];
+		attacks[1][0] = new long [2];
+		attacks[0][1] = new long [3];
+		attacks[1][1] = new long [3];
+		attacks[0][2] = new long [8];
+		attacks[1][2] = new long [8];
+		attacks[0][3] = new long [10];
+		attacks[1][3] = new long [10];
 		allPieces = 0x0;
 		whitePieces = 0x0;
 		blackPieces = 0x0;
