@@ -1849,17 +1849,24 @@ public class Board {
 		long diagonalAttackersMask = isBlack ? getBlackDiagonal() : getWhiteDiagonal();
 		long rankFileAttackersMask = isBlack ? getBlackRankFile() : getWhiteRankFile();
 		long empty = getEmpty();
-		if (diagonalAttackersMask != 0x0L) {
-			CountedBitBoard.setBits(attacks[2], BitBoard.downLeftAttacks(diagonalAttackersMask, empty));
-			CountedBitBoard.setBits(attacks[2], BitBoard.downRightAttacks(diagonalAttackersMask, empty));
-			CountedBitBoard.setBits(attacks[2], BitBoard.upRightAttacks(diagonalAttackersMask, empty));
-			CountedBitBoard.setBits(attacks[2], BitBoard.upLeftAttacks(diagonalAttackersMask, empty));
+		long individualAttacker = 0L;
+		long tailored_empty = empty | diagonalAttackersMask;
+		while (diagonalAttackersMask != 0x0L) {
+			individualAttacker = Long.lowestOneBit(diagonalAttackersMask);
+			CountedBitBoard.setBits(attacks[2], BitBoard.downLeftAttacks(individualAttacker, tailored_empty));
+			CountedBitBoard.setBits(attacks[2], BitBoard.downRightAttacks(individualAttacker, tailored_empty));
+			CountedBitBoard.setBits(attacks[2], BitBoard.upRightAttacks(individualAttacker, tailored_empty));
+			CountedBitBoard.setBits(attacks[2], BitBoard.upLeftAttacks(individualAttacker, tailored_empty));
+			diagonalAttackersMask ^= individualAttacker;
 		}
-		if (rankFileAttackersMask != 0x0L) {
-			CountedBitBoard.setBits(attacks[2], BitBoard.downAttacks(rankFileAttackersMask, empty));
-			CountedBitBoard.setBits(attacks[2], BitBoard.rightAttacks(rankFileAttackersMask, empty));
-			CountedBitBoard.setBits(attacks[2], BitBoard.upAttacks(rankFileAttackersMask, empty));
-			CountedBitBoard.setBits(attacks[2], BitBoard.leftAttacks(rankFileAttackersMask, empty));
+		tailored_empty = empty | rankFileAttackersMask;
+		while (rankFileAttackersMask != 0x0L) {
+			individualAttacker = Long.lowestOneBit(rankFileAttackersMask);
+			CountedBitBoard.setBits(attacks[2], BitBoard.downAttacks(individualAttacker, tailored_empty));
+			CountedBitBoard.setBits(attacks[2], BitBoard.rightAttacks(individualAttacker, tailored_empty));
+			CountedBitBoard.setBits(attacks[2], BitBoard.upAttacks(individualAttacker, tailored_empty));
+			CountedBitBoard.setBits(attacks[2], BitBoard.leftAttacks(individualAttacker, tailored_empty));
+			rankFileAttackersMask ^= individualAttacker;
 		}
 		CountedBitBoard.setBitArrays(attacks[3], attacks[2]);
 	}

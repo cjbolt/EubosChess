@@ -853,7 +853,7 @@ public class BoardTest {
 		setUpPosition("6k1/8/8/7R/4BR1Q/8/8/6K1 b - - 0 1 ");
 		long [][][] attacks = classUnderTest.getAttackedSquares();
 		int evaluation = classUnderTest.evaluateSquareControlRoundKing(attacks[1][3], attacks[0][3], SquareAttackEvaluator.KingMove_Lut[Position.g8]);
-		assertEquals(-29, evaluation);
+		assertEquals(-59, evaluation);
 	}
 }
 
