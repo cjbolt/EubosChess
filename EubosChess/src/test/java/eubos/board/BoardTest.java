@@ -839,5 +839,21 @@ public class BoardTest {
 		// black knight
 		assertEquals(0, classUnderTest.attacks[1][1][0]);
 	}	
+	
+	@Test
+	public void test_evaluateSquareControlRoundKing() {
+		setUpPosition("4q1k1/5ppp/4N3/7Q/4B3/8/8/6K1 b - - 0 1 ");
+		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me);
+		int evaluation = classUnderTest.evaluateSquareControlRoundKing(attacks[1][3], attacks[0][3], SquareAttackEvaluator.KingMove_Lut[Position.g8]);
+		assertEquals(-29, evaluation);
+	}
+	
+	@Test
+	public void test_evaluateSquareControlRoundKing_NoPawns() {
+		setUpPosition("6k1/8/8/7R/4BR1Q/8/8/6K1 b - - 0 1 ");
+		long [][][] attacks = classUnderTest.getAttackedSquares();
+		int evaluation = classUnderTest.evaluateSquareControlRoundKing(attacks[1][3], attacks[0][3], SquareAttackEvaluator.KingMove_Lut[Position.g8]);
+		assertEquals(-29, evaluation);
+	}
 }
 

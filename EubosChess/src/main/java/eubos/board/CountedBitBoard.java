@@ -62,6 +62,8 @@ public final class CountedBitBoard {
 					we_have_control = false;
 					break;
 				}
+			} else {
+				break;
 			}
 		}
 		return we_have_control;

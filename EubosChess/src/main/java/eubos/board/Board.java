@@ -1590,7 +1590,7 @@ public class Board {
 		long surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
 		int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3][0]);
 		int flightCount = Long.bitCount(surroundingSquares & ~(isWhite?whitePieces:blackPieces));
-		int fraction_squares_controlled_by_enemy_q8 = evaluateSquareControlRoundKing(attacks[isWhite ? 0 : 1][3], attacks[isWhite ? 1 : 0][3], surroundingSquares);
+		int fraction_squares_controlled_by_enemy_q8 = getQ8SquareControlRoundKing(attacks[isWhite ? 0 : 1][3], attacks[isWhite ? 1 : 0][3], surroundingSquares);
 		evaluation += ((-150 * fraction_squares_controlled_by_enemy_q8) / 256);
 		// Then evaluate the check mate threat
 		if (flightCount-attackedCount <= 1) {
@@ -1598,11 +1598,10 @@ public class Board {
 			// TODO make penalty function of material? or function of fraction_squares_controlled_by_enemy_q8
 			evaluation += ((-500 * fraction_squares_controlled_by_enemy_q8) / 256); 
 		}
-		
 		return evaluation;
 	}
 	
-	public int evaluateSquareControlRoundKing(long[] own_attacks, long[] enemy_attacks, long squares) {
+	private int getQ8SquareControlRoundKing(long[] own_attacks, long[] enemy_attacks, long squares) {
 		int enemy_control_count = 0;
 		int total_squares = 0;
 		while (squares != 0L) {
@@ -1615,7 +1614,13 @@ public class Board {
 			squares ^= square;
 			total_squares++;
 		}
-		return (256 * enemy_control_count) / total_squares;
+		int fraction_squares_controlled_by_enemy_q8 = (256 * enemy_control_count) / total_squares;
+		return fraction_squares_controlled_by_enemy_q8;
+	}
+	
+	public int evaluateSquareControlRoundKing(long[] own_attacks, long[] enemy_attacks, long squares) {
+		int fraction_squares_controlled_by_enemy_q8 = getQ8SquareControlRoundKing(own_attacks, enemy_attacks, squares);
+		return ((-150 * fraction_squares_controlled_by_enemy_q8) / 256);
 	}
 	
 	public boolean kingInDanger(boolean isWhite) {
@@ -1841,24 +1846,22 @@ public class Board {
 	protected void getAttacksForSide(long [][] attacks, boolean isBlack) {
 		getBasicAttacksForSide(attacks, isBlack);
 		// Sliders
-		long sliderAttacks = 0L;
 		long diagonalAttackersMask = isBlack ? getBlackDiagonal() : getWhiteDiagonal();
 		long rankFileAttackersMask = isBlack ? getBlackRankFile() : getWhiteRankFile();
 		long empty = getEmpty();
 		if (diagonalAttackersMask != 0x0L) {
-			sliderAttacks |= BitBoard.downLeftAttacks(diagonalAttackersMask, empty);
-			sliderAttacks |= BitBoard.downRightAttacks(diagonalAttackersMask, empty);
-			sliderAttacks |= BitBoard.upRightAttacks(diagonalAttackersMask, empty);
-			sliderAttacks |= BitBoard.upLeftAttacks(diagonalAttackersMask, empty);
+			CountedBitBoard.setBits(attacks[2], BitBoard.downLeftAttacks(diagonalAttackersMask, empty));
+			CountedBitBoard.setBits(attacks[2], BitBoard.downRightAttacks(diagonalAttackersMask, empty));
+			CountedBitBoard.setBits(attacks[2], BitBoard.upRightAttacks(diagonalAttackersMask, empty));
+			CountedBitBoard.setBits(attacks[2], BitBoard.upLeftAttacks(diagonalAttackersMask, empty));
 		}
 		if (rankFileAttackersMask != 0x0L) {
-			sliderAttacks |= BitBoard.downAttacks(rankFileAttackersMask, empty);
-			sliderAttacks |= BitBoard.rightAttacks(rankFileAttackersMask, empty);
-			sliderAttacks |= BitBoard.upAttacks(rankFileAttackersMask, empty);
-			sliderAttacks |= BitBoard.leftAttacks(rankFileAttackersMask, empty);
+			CountedBitBoard.setBits(attacks[2], BitBoard.downAttacks(rankFileAttackersMask, empty));
+			CountedBitBoard.setBits(attacks[2], BitBoard.rightAttacks(rankFileAttackersMask, empty));
+			CountedBitBoard.setBits(attacks[2], BitBoard.upAttacks(rankFileAttackersMask, empty));
+			CountedBitBoard.setBits(attacks[2], BitBoard.leftAttacks(rankFileAttackersMask, empty));
 		}
-		CountedBitBoard.setBits(attacks[2], sliderAttacks);
-		CountedBitBoard.setBits(attacks[3], sliderAttacks);
+		CountedBitBoard.setBitArrays(attacks[3], attacks[2]);
 	}
 	
 	public long[][][] getAttackedSquares() {
