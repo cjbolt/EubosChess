@@ -851,7 +851,15 @@ public class BoardTest {
 	@Test
 	public void test_evaluateSquareControlRoundKing_NoPawns() {
 		setUpPosition("6k1/8/8/7R/4BR1Q/8/8/6K1 b - - 0 1 ");
-		long [][][] attacks = classUnderTest.getAttackedSquares();
+		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me);
+		int evaluation = classUnderTest.evaluateSquareControlRoundKing(attacks[1][3], attacks[0][3], SquareAttackEvaluator.KingMove_Lut[Position.g8]);
+		assertEquals(-59, evaluation);
+	}
+	
+	@Test
+	public void test_evaluateSquareControlRoundKing_NoPawnsCrazy() {
+		setUpPosition("6k1/8/5PP1/4N2P/4B3/3Q4/8/1K3R2 w - - 99 1");
+		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me);
 		int evaluation = classUnderTest.evaluateSquareControlRoundKing(attacks[1][3], attacks[0][3], SquareAttackEvaluator.KingMove_Lut[Position.g8]);
 		assertEquals(-59, evaluation);
 	}

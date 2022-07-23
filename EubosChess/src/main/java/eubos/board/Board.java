@@ -1590,7 +1590,13 @@ public class Board {
 		long surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
 		int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3][0]);
 		int flightCount = Long.bitCount(surroundingSquares & ~(isWhite?whitePieces:blackPieces));
-		int fraction_squares_controlled_by_enemy_q8 = getQ8SquareControlRoundKing(attacks[isWhite ? 0 : 1][3], attacks[isWhite ? 1 : 0][3], surroundingSquares);
+		long [] our_attacks = Arrays.copyOf(attacks[isWhite ? 0 : 1][2], 10);
+		CountedBitBoard.setBitArrays(our_attacks, attacks[isWhite ? 0 : 1][0]);
+		CountedBitBoard.setBitArrays(our_attacks, attacks[isWhite ? 0 : 1][1]);
+		long [] enemy_attacks = Arrays.copyOf(attacks[isWhite ? 1 : 0][2], 10);
+		CountedBitBoard.setBitArrays(enemy_attacks, attacks[isWhite ? 1 : 0][0]);
+		CountedBitBoard.setBitArrays(enemy_attacks, attacks[isWhite ? 1 : 0][1]);
+		int fraction_squares_controlled_by_enemy_q8 = getQ8SquareControlRoundKing(our_attacks, enemy_attacks, surroundingSquares);
 		evaluation += ((-150 * fraction_squares_controlled_by_enemy_q8) / 256);
 		// Then evaluate the check mate threat
 		if (flightCount-attackedCount <= 1) {
@@ -1667,9 +1673,9 @@ public class Board {
 		if (queens != 0) {
 			if (bishops != 0) {
 				long mobility_mask_1 = BitBoard.downLeftOccludedEmpty(diagonal_sliders, empty);
-				CountedBitBoard.setBits(attacks[2], BitBoard.downLeftAttacks(mobility_mask_1));
+				//CountedBitBoard.setBits(attacks[2], BitBoard.downLeftAttacks(mobility_mask_1));
 				long mobility_mask_2 = BitBoard.upRightOccludedEmpty(diagonal_sliders, empty);
-				CountedBitBoard.setBits(attacks[2], BitBoard.upRightAttacks(mobility_mask_2));
+				//CountedBitBoard.setBits(attacks[2], BitBoard.upRightAttacks(mobility_mask_2));
 				
 				mobility_mask_1 ^= diagonal_sliders;
 				mobility_mask_2 ^= diagonal_sliders;
@@ -1680,9 +1686,9 @@ public class Board {
 				}
 				
 				mobility_mask_1 = BitBoard.downRightOccludedEmpty(diagonal_sliders, empty);
-				CountedBitBoard.setBits(attacks[2], BitBoard.downRightAttacks(mobility_mask_1));
+				//CountedBitBoard.setBits(attacks[2], BitBoard.downRightAttacks(mobility_mask_1));
 				mobility_mask_2 = BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty);
-				CountedBitBoard.setBits(attacks[2], BitBoard.upLeftAttacks(mobility_mask_2));
+				//CountedBitBoard.setBits(attacks[2], BitBoard.upLeftAttacks(mobility_mask_2));
 				
 				mobility_mask_1 ^= diagonal_sliders;
 				mobility_mask_2 ^= diagonal_sliders;
@@ -1690,6 +1696,17 @@ public class Board {
 					mobility_score += Long.bitCount(mobility_mask_1 | mobility_mask_2);
 				} else {
 					mobility_score += Long.bitCount(mobility_mask_1) + Long.bitCount(mobility_mask_2);
+				}
+				
+				long individualAttacker = 0L;
+				long tailored_empty = empty | diagonal_sliders;
+				while (diagonal_sliders != 0x0L) {
+					individualAttacker = Long.lowestOneBit(diagonal_sliders);
+					CountedBitBoard.setBits(attacks[2], BitBoard.downLeftAttacks(individualAttacker, tailored_empty));
+					CountedBitBoard.setBits(attacks[2], BitBoard.downRightAttacks(individualAttacker, tailored_empty));
+					CountedBitBoard.setBits(attacks[2], BitBoard.upRightAttacks(individualAttacker, tailored_empty));
+					CountedBitBoard.setBits(attacks[2], BitBoard.upLeftAttacks(individualAttacker, tailored_empty));
+					diagonal_sliders ^= individualAttacker;
 				}
 			} else {
 				// Assume that if it is just queens, then material is so unbalanced that it doesn't matter that they can intersect
@@ -1748,9 +1765,9 @@ public class Board {
 		
 		if (rooks != 0) {
 			long mobility_mask_1 = BitBoard.leftOccludedEmpty(rank_file_sliders, empty);
-			CountedBitBoard.setBits(attacks[2], BitBoard.leftAttacks(mobility_mask_1));
+			//CountedBitBoard.setBits(attacks[2], BitBoard.leftAttacks(mobility_mask_1));
 			long mobility_mask_2 = BitBoard.rightOccludedEmpty(rank_file_sliders, empty);
-			CountedBitBoard.setBits(attacks[2], BitBoard.rightAttacks(mobility_mask_2));
+			//CountedBitBoard.setBits(attacks[2], BitBoard.rightAttacks(mobility_mask_2));
 			
 			mobility_mask_1 ^= rank_file_sliders;
 			mobility_mask_2 ^= rank_file_sliders;
@@ -1761,9 +1778,9 @@ public class Board {
 			}
 			
 			mobility_mask_1 = BitBoard.upOccludedEmpty(rank_file_sliders, empty);
-			CountedBitBoard.setBits(attacks[2], BitBoard.upAttacks(mobility_mask_1));
+			//CountedBitBoard.setBits(attacks[2], BitBoard.upAttacks(mobility_mask_1));
 			mobility_mask_2 = BitBoard.downOccludedEmpty(rank_file_sliders, empty);
-			CountedBitBoard.setBits(attacks[2], BitBoard.downAttacks(mobility_mask_2));
+			//CountedBitBoard.setBits(attacks[2], BitBoard.downAttacks(mobility_mask_2));
 			
 			mobility_mask_1 ^= rank_file_sliders;
 			mobility_mask_2 ^= rank_file_sliders;
@@ -1771,6 +1788,17 @@ public class Board {
 				mobility_score += Long.bitCount(mobility_mask_1 | mobility_mask_2);
 			} else {
 				mobility_score += Long.bitCount(mobility_mask_1) + Long.bitCount(mobility_mask_2);
+			}
+			
+			long individualAttacker = 0L;
+			long tailored_empty = empty | rank_file_sliders;
+			while (rank_file_sliders != 0x0L) {
+				individualAttacker = Long.lowestOneBit(rank_file_sliders);
+				CountedBitBoard.setBits(attacks[2], BitBoard.downAttacks(individualAttacker, tailored_empty));
+				CountedBitBoard.setBits(attacks[2], BitBoard.rightAttacks(individualAttacker, tailored_empty));
+				CountedBitBoard.setBits(attacks[2], BitBoard.upAttacks(individualAttacker, tailored_empty));
+				CountedBitBoard.setBits(attacks[2], BitBoard.leftAttacks(individualAttacker, tailored_empty));
+				rank_file_sliders ^= individualAttacker;
 			}
 		}
 		else if (rank_file_sliders != 0) {
