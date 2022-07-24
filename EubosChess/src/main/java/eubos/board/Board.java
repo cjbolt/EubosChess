@@ -1713,24 +1713,36 @@ public class Board {
 				}
 
 				// Check for batteries
-				long individualAttacker = 0L;
-				long sliders_on_dark = diagonal_sliders & DARK_SQUARES_MASK;
-				if ((slider_attacks & sliders_on_dark) != 0L) {
-					int count = 0;
-					for (int diagonal : IntDarkDiagonal.values) {
-						while (sliders_on_dark != 0L) {
-							individualAttacker = Long.lowestOneBit(sliders_on_dark);
-							if (count > 0) {
-								CountedBitBoard.setBits(attacks[2], slider_attacks & IntDarkDiagonal.DarkDiagonalMasks[diagonal]);
+				// If one slider attacks another then this denotes a battery
+				diagonal_sliders &= slider_attacks; // consider just sliders attacked by another slider
+				if (diagonal_sliders != 0L) {
+					for (int diag : IntUpRightDiagonal.values) {
+						long sliders_in_diagonal = diagonal_sliders & IntUpRightDiagonal.upRightDiagonals[diag];
+						if (sliders_in_diagonal == 0) continue;
+						int num = Long.bitCount(sliders_in_diagonal);
+						for (int i=0; i<num; i++) {
+							if (i > 0) {
+								// Need to create a new mask to set here as there may be another slider in the original mask
+								long new_mask = BitBoard.downLeftAttacks(sliders_in_diagonal, empty);
+								new_mask |= BitBoard.upRightAttacks(sliders_in_diagonal, empty);
+								CountedBitBoard.setBits(attacks[2], new_mask & IntUpRightDiagonal.upRightDiagonals[diag]);
 							}
-							sliders_on_dark ^= individualAttacker;
-							count++;
+	
 						}
 					}
-				}
-				
-				long sliders_on_light = diagonal_sliders & LIGHT_SQUARES_MASK;
-				if ((slider_attacks & sliders_on_light) != 0L) {
+					for (int diag : IntUpLeftDiagonal.values) {
+						long sliders_in_diagonal = diagonal_sliders & IntUpLeftDiagonal.upLeftDiagonals[diag];
+						if (sliders_in_diagonal == 0) continue;
+						int num = Long.bitCount(sliders_in_diagonal);
+						for (int i=0; i<num; i++) {
+							if (i > 0) {
+								// Need to create a new mask to set here as there may be another slider in the original mask
+								long new_mask = BitBoard.upLeftAttacks(sliders_in_diagonal, empty);
+								new_mask |= BitBoard.downRightAttacks(sliders_in_diagonal, empty);
+								CountedBitBoard.setBits(attacks[2], new_mask & IntUpLeftDiagonal.upLeftDiagonals[diag]);
+							}
+						}
+					}
 				}
 			} else {
 				// Assume that if it is just queens, then material is so unbalanced that it doesn't matter that they can intersect
@@ -1826,7 +1838,7 @@ public class Board {
 			}
 			
 			// Check for batteries
-			rank_file_sliders &= slider_attacks; // just sliders attacked by another slider
+			rank_file_sliders &= slider_attacks; // consider just sliders attacked by another slider
 			if (rank_file_sliders != 0L) {
 				// If one slider attacks another then this denotes a battery
 				// look for attackers on the same rank or file, and, if found, add that rank/files attacked squares again
