@@ -1588,17 +1588,20 @@ public class Board {
 		
 		// Then account for attacks on the squares around the king
 		long surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
-		int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3][0]);
-		int flightCount = Long.bitCount(surroundingSquares & ~(isWhite?whitePieces:blackPieces));
-		long [] our_attacks = Arrays.copyOf(attacks[isWhite ? 0 : 1][2], 10);
-		CountedBitBoard.setBitArrays(our_attacks, attacks[isWhite ? 0 : 1][0]);
-		CountedBitBoard.setBitArrays(our_attacks, attacks[isWhite ? 0 : 1][1]);
-		long [] enemy_attacks = Arrays.copyOf(attacks[isWhite ? 1 : 0][2], 10);
-		CountedBitBoard.setBitArrays(enemy_attacks, attacks[isWhite ? 1 : 0][0]);
-		CountedBitBoard.setBitArrays(enemy_attacks, attacks[isWhite ? 1 : 0][1]);
+//		long [] our_attacks = Arrays.copyOf(attacks[isWhite ? 0 : 1][2], 10);
+//		CountedBitBoard.setBitArrays(our_attacks, attacks[isWhite ? 0 : 1][0]);
+//		CountedBitBoard.setBitArrays(our_attacks, attacks[isWhite ? 0 : 1][1]);
+//		long [] enemy_attacks = Arrays.copyOf(attacks[isWhite ? 1 : 0][2], 10);
+//		CountedBitBoard.setBitArrays(enemy_attacks, attacks[isWhite ? 1 : 0][0]);
+//		CountedBitBoard.setBitArrays(enemy_attacks, attacks[isWhite ? 1 : 0][1]);
+		long [] our_attacks = attacks[isWhite ? 0 : 1][3];
+		long [] enemy_attacks = attacks[isWhite ? 1 : 0][3];
 		int fraction_squares_controlled_by_enemy_q8 = getQ8SquareControlRoundKing(our_attacks, enemy_attacks, surroundingSquares);
 		evaluation += ((-150 * fraction_squares_controlled_by_enemy_q8) / 256);
+		
 		// Then evaluate the check mate threat
+		int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3][0]);
+		int flightCount = Long.bitCount(surroundingSquares & ~(isWhite?whitePieces:blackPieces));
 		if (flightCount-attackedCount <= 1) {
 			// There are no flight squares, high risk of mate
 			// TODO make penalty function of material? or function of fraction_squares_controlled_by_enemy_q8
