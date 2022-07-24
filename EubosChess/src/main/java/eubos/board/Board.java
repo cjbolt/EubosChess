@@ -1672,10 +1672,16 @@ public class Board {
 
 		if (queens != 0) {
 			if (bishops != 0) {
+				long slider_attacks = 0L;
 				long mobility_mask_1 = BitBoard.downLeftOccludedEmpty(diagonal_sliders, empty);
-				//CountedBitBoard.setBits(attacks[2], BitBoard.downLeftAttacks(mobility_mask_1));
+				long direction_attacks = BitBoard.downLeftAttacks(mobility_mask_1);
+				slider_attacks |= direction_attacks;
+				CountedBitBoard.setBits(attacks[2], direction_attacks);
+				
 				long mobility_mask_2 = BitBoard.upRightOccludedEmpty(diagonal_sliders, empty);
-				//CountedBitBoard.setBits(attacks[2], BitBoard.upRightAttacks(mobility_mask_2));
+				direction_attacks = BitBoard.upRightAttacks(mobility_mask_2);
+				slider_attacks |= direction_attacks;
+				CountedBitBoard.setBits(attacks[2], direction_attacks);
 				
 				mobility_mask_1 ^= diagonal_sliders;
 				mobility_mask_2 ^= diagonal_sliders;
@@ -1686,9 +1692,14 @@ public class Board {
 				}
 				
 				mobility_mask_1 = BitBoard.downRightOccludedEmpty(diagonal_sliders, empty);
-				//CountedBitBoard.setBits(attacks[2], BitBoard.downRightAttacks(mobility_mask_1));
+				direction_attacks = BitBoard.downRightAttacks(mobility_mask_1);
+				slider_attacks |= direction_attacks;
+				CountedBitBoard.setBits(attacks[2], direction_attacks);
+				
 				mobility_mask_2 = BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty);
-				//CountedBitBoard.setBits(attacks[2], BitBoard.upLeftAttacks(mobility_mask_2));
+				direction_attacks = BitBoard.upLeftAttacks(mobility_mask_2);
+				slider_attacks |= direction_attacks;
+				CountedBitBoard.setBits(attacks[2], direction_attacks);
 				
 				mobility_mask_1 ^= diagonal_sliders;
 				mobility_mask_2 ^= diagonal_sliders;
@@ -1697,16 +1708,29 @@ public class Board {
 				} else {
 					mobility_score += Long.bitCount(mobility_mask_1) + Long.bitCount(mobility_mask_2);
 				}
-				
-				long individualAttacker = 0L;
-				long tailored_empty = empty | diagonal_sliders;
-				while (diagonal_sliders != 0x0L) {
-					individualAttacker = Long.lowestOneBit(diagonal_sliders);
-					CountedBitBoard.setBits(attacks[2], BitBoard.downLeftAttacks(individualAttacker, tailored_empty));
-					CountedBitBoard.setBits(attacks[2], BitBoard.downRightAttacks(individualAttacker, tailored_empty));
-					CountedBitBoard.setBits(attacks[2], BitBoard.upRightAttacks(individualAttacker, tailored_empty));
-					CountedBitBoard.setBits(attacks[2], BitBoard.upLeftAttacks(individualAttacker, tailored_empty));
-					diagonal_sliders ^= individualAttacker;
+
+				// Check for batteries
+				//long individualAttacker = 0L;
+				if ((slider_attacks & diagonal_sliders) != 0L) {
+					// If one slider attacks another then this denotes a battery
+					// for diagonals they must both be on the light or dark squares
+					// TODO need to create diagonal masks for this
+				// for (int rank : IntRank.values) {
+//						long sliders_in_rank = diagonal_sliders & BitBoard.RankMask_Lut[rank];
+//						while (sliders_in_rank != 0L) {
+//							individualAttacker = Long.lowestOneBit(sliders_in_rank);
+//							CountedBitBoard.setBits(attacks[2], direction_attacks & BitBoard.RankMask_Lut[rank]);
+//							sliders_in_rank ^= individualAttacker;
+//						}
+//					}
+//					for (int file : IntFile.values) {
+//						long sliders_in_file = diagonal_sliders & BitBoard.FileMask_Lut[file];
+//						while (sliders_in_file != 0L) {
+//							individualAttacker = Long.lowestOneBit(sliders_in_file);
+//							CountedBitBoard.setBits(attacks[2], direction_attacks & BitBoard.FileMask_Lut[file]);
+//							sliders_in_file ^= individualAttacker;
+//						}
+//					}
 				}
 			} else {
 				// Assume that if it is just queens, then material is so unbalanced that it doesn't matter that they can intersect
