@@ -81,6 +81,17 @@ public final class BitBoard {
 		return new MaskIterator(bitBoard);
 	}
 	
+	public static int getSparseBitCount(long mask) {
+		int num = 0;
+		while (mask != 0L) {
+			// optimisation: unset the bits in the word to count a sparsely populated long...
+			long square = Long.lowestOneBit(mask);
+			mask ^= square;
+			num++;
+		}
+		return num;
+	}
+	
 	public static long upOccludedEmpty(long board, long empty) {
 	   long flood = board;
 	   flood |= board = (board << 8) & empty;

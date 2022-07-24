@@ -1672,28 +1672,21 @@ public class Board {
 			for (int diag : IntUpRightDiagonal.values) {
 				long sliders_in_diagonal = diagonal_sliders & IntUpRightDiagonal.upRightDiagonals[diag];
 				if (sliders_in_diagonal == 0) continue;
-				int num = Long.bitCount(sliders_in_diagonal);
-				for (int i=0; i<num; i++) {
-					if (i > 0) {
-						// Need to create a new mask to set here as there may be another slider in the original mask
-						long new_mask = BitBoard.downLeftAttacks(sliders_in_diagonal, empty);
-						new_mask |= BitBoard.upRightAttacks(sliders_in_diagonal, empty);
-						CountedBitBoard.setBits(attacks[2], new_mask & IntUpRightDiagonal.upRightDiagonals[diag]);
-					}
-	
+				for (int i=1; i<BitBoard.getSparseBitCount(sliders_in_diagonal); i++) {
+					// Need to create a new mask to set here as there may be another slider in the original mask
+					long new_mask = BitBoard.downLeftAttacks(sliders_in_diagonal, empty);
+					new_mask |= BitBoard.upRightAttacks(sliders_in_diagonal, empty);
+					CountedBitBoard.setBits(attacks[2], new_mask & IntUpRightDiagonal.upRightDiagonals[diag]);
 				}
 			}
 			for (int diag : IntUpLeftDiagonal.values) {
 				long sliders_in_diagonal = diagonal_sliders & IntUpLeftDiagonal.upLeftDiagonals[diag];
 				if (sliders_in_diagonal == 0) continue;
-				int num = Long.bitCount(sliders_in_diagonal);
-				for (int i=0; i<num; i++) {
-					if (i > 0) {
-						// Need to create a new mask to set here as there may be another slider in the original mask
-						long new_mask = BitBoard.upLeftAttacks(sliders_in_diagonal, empty);
-						new_mask |= BitBoard.downRightAttacks(sliders_in_diagonal, empty);
-						CountedBitBoard.setBits(attacks[2], new_mask & IntUpLeftDiagonal.upLeftDiagonals[diag]);
-					}
+				for (int i=1; i<BitBoard.getSparseBitCount(sliders_in_diagonal); i++) {
+					// Need to create a new mask to set here as there may be another slider in the original mask
+					long new_mask = BitBoard.upLeftAttacks(sliders_in_diagonal, empty);
+					new_mask |= BitBoard.downRightAttacks(sliders_in_diagonal, empty);
+					CountedBitBoard.setBits(attacks[2], new_mask & IntUpLeftDiagonal.upLeftDiagonals[diag]);
 				}
 			}
 		}
@@ -1781,7 +1774,8 @@ public class Board {
 		return mobility_score;
 	}
 	
-	public void handleRankAndFileBattereiesForAttacks (long[][] attacks, long rank_file_sliders, long slider_attacks) {
+	
+	public void handleRankAndFileBatteriesForAttacks(long[][] attacks, long rank_file_sliders, long slider_attacks) {
 		long empty = ~allPieces;
 		// Check for batteries
 		rank_file_sliders &= slider_attacks; // consider just sliders attacked by another slider
@@ -1791,28 +1785,21 @@ public class Board {
 			for (int rank : IntRank.values) {
 				long sliders_in_rank = rank_file_sliders & BitBoard.RankMask_Lut[rank];
 				if (sliders_in_rank == 0) continue;
-				int num = Long.bitCount(sliders_in_rank);
-				for (int i=0; i<num; i++) {
-					if (i > 0) {
-						// Need to create a new mask to set here as there may be another slider in the original mask
-						long new_mask = BitBoard.leftAttacks(sliders_in_rank, empty);
-						new_mask |= BitBoard.rightAttacks(sliders_in_rank, empty);
-						CountedBitBoard.setBits(attacks[2], new_mask & BitBoard.RankMask_Lut[rank]);
-					}
-
+				for (int i=1; i<BitBoard.getSparseBitCount(sliders_in_rank); i++) {
+					// Need to create a new mask to set here as there may be another slider in the original mask
+					long new_mask = BitBoard.leftAttacks(sliders_in_rank, empty);
+					new_mask |= BitBoard.rightAttacks(sliders_in_rank, empty);
+					CountedBitBoard.setBits(attacks[2], new_mask & BitBoard.RankMask_Lut[rank]);
 				}
 			}
 			for (int file : IntFile.values) {
 				long sliders_in_file = rank_file_sliders & BitBoard.FileMask_Lut[file];
 				if (sliders_in_file == 0) continue;
-				int num = Long.bitCount(sliders_in_file);
-				for (int i=0; i<num; i++) {
-					if (i > 0) {
-						// Need to create a new mask to set here as there may be another slider in the original mask
-						long new_mask = BitBoard.upAttacks(sliders_in_file, empty);
-						new_mask |= BitBoard.downAttacks(sliders_in_file, empty);
-						CountedBitBoard.setBits(attacks[2], new_mask & BitBoard.FileMask_Lut[file]);
-					}
+				for (int i=1; i<BitBoard.getSparseBitCount(sliders_in_file); i++) {
+					// Need to create a new mask to set here as there may be another slider in the original mask
+					long new_mask = BitBoard.upAttacks(sliders_in_file, empty);
+					new_mask |= BitBoard.downAttacks(sliders_in_file, empty);
+					CountedBitBoard.setBits(attacks[2], new_mask & BitBoard.FileMask_Lut[file]);
 				}
 			}
 		}
@@ -1865,7 +1852,7 @@ public class Board {
 			
 			mobility_score = getMobility(mobility_score, mobility_mask_1, mobility_mask_2, rank_file_sliders);
 			
-			handleRankAndFileBattereiesForAttacks(attacks, rank_file_sliders, slider_attacks);
+			handleRankAndFileBatteriesForAttacks(attacks, rank_file_sliders, slider_attacks);
 		}
 		else if (rank_file_sliders != 0) {
 			// Assume that if it is just queens, then material is so unbalanced that it doesn't matter that they can intersect
