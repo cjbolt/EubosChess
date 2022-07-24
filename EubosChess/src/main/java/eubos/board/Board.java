@@ -1713,27 +1713,24 @@ public class Board {
 				}
 
 				// Check for batteries
-				//long individualAttacker = 0L;
-				if ((slider_attacks & diagonal_sliders) != 0L) {
-					// If one slider attacks another then this denotes a battery
-					// for diagonals they must both be on the light or dark squares
-					// TODO need to create diagonal masks for this
-				// for (int rank : IntRank.values) {
-//						long sliders_in_rank = diagonal_sliders & BitBoard.RankMask_Lut[rank];
-//						while (sliders_in_rank != 0L) {
-//							individualAttacker = Long.lowestOneBit(sliders_in_rank);
-//							CountedBitBoard.setBits(attacks[2], direction_attacks & BitBoard.RankMask_Lut[rank]);
-//							sliders_in_rank ^= individualAttacker;
-//						}
-//					}
-//					for (int file : IntFile.values) {
-//						long sliders_in_file = diagonal_sliders & BitBoard.FileMask_Lut[file];
-//						while (sliders_in_file != 0L) {
-//							individualAttacker = Long.lowestOneBit(sliders_in_file);
-//							CountedBitBoard.setBits(attacks[2], direction_attacks & BitBoard.FileMask_Lut[file]);
-//							sliders_in_file ^= individualAttacker;
-//						}
-//					}
+				long individualAttacker = 0L;
+				long sliders_on_dark = diagonal_sliders & DARK_SQUARES_MASK;
+				if ((slider_attacks & sliders_on_dark) != 0L) {
+					int count = 0;
+					for (int diagonal : IntDarkDiagonal.values) {
+						while (sliders_on_dark != 0L) {
+							individualAttacker = Long.lowestOneBit(sliders_on_dark);
+							if (count > 0) {
+								CountedBitBoard.setBits(attacks[2], slider_attacks & IntDarkDiagonal.DarkDiagonalMasks[diagonal]);
+							}
+							sliders_on_dark ^= individualAttacker;
+							count++;
+						}
+					}
+				}
+				
+				long sliders_on_light = diagonal_sliders & LIGHT_SQUARES_MASK;
+				if ((slider_attacks & sliders_on_light) != 0L) {
 				}
 			} else {
 				// Assume that if it is just queens, then material is so unbalanced that it doesn't matter that they can intersect
@@ -1829,33 +1826,35 @@ public class Board {
 			}
 			
 			// Check for batteries
-			long individualAttacker = 0L;
-			if ((slider_attacks & rank_file_sliders) != 0L) {
+			rank_file_sliders &= slider_attacks; // just sliders attacked by another slider
+			if (rank_file_sliders != 0L) {
 				// If one slider attacks another then this denotes a battery
-				rank_file_sliders &= slider_attacks; // just sliders attacked by another slider
 				// look for attackers on the same rank or file, and, if found, add that rank/files attacked squares again
 				for (int rank : IntRank.values) {
 					long sliders_in_rank = rank_file_sliders & BitBoard.RankMask_Lut[rank];
-					int count = 0;
-					while (sliders_in_rank != 0L) {
-						individualAttacker = Long.lowestOneBit(sliders_in_rank);
-						if (count > 0) {
-							CountedBitBoard.setBits(attacks[2], slider_attacks & BitBoard.RankMask_Lut[rank]);
+					if (sliders_in_rank == 0) continue;
+					int num = Long.bitCount(sliders_in_rank);
+					for (int i=0; i<num; i++) {
+						if (i > 0) {
+							// Need to create a new mask to set here as there may be another slider in the original mask
+							long new_mask = BitBoard.leftAttacks(sliders_in_rank, empty);
+							new_mask |= BitBoard.rightAttacks(sliders_in_rank, empty);
+							CountedBitBoard.setBits(attacks[2], new_mask & BitBoard.RankMask_Lut[rank]);
 						}
-						sliders_in_rank ^= individualAttacker;
-						count++;
+
 					}
 				}
 				for (int file : IntFile.values) {
 					long sliders_in_file = rank_file_sliders & BitBoard.FileMask_Lut[file];
-					int count = 0;
-					while (sliders_in_file != 0L) {
-						individualAttacker = Long.lowestOneBit(sliders_in_file);
-						if (count > 0) {
-							CountedBitBoard.setBits(attacks[2], slider_attacks & BitBoard.FileMask_Lut[file]);
+					if (sliders_in_file == 0) continue;
+					int num = Long.bitCount(sliders_in_file);
+					for (int i=0; i<num; i++) {
+						if (i > 0) {
+							// Need to create a new mask to set here as there may be another slider in the original mask
+							long new_mask = BitBoard.upAttacks(sliders_in_file, empty);
+							new_mask |= BitBoard.downAttacks(sliders_in_file, empty);
+							CountedBitBoard.setBits(attacks[2], new_mask & BitBoard.FileMask_Lut[file]);
 						}
-						sliders_in_file ^= individualAttacker;
-						count++;
 					}
 				}
 			}
