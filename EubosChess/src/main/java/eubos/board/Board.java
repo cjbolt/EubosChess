@@ -13,7 +13,6 @@ import eubos.position.IAddMoves;
 import eubos.position.Move;
 import eubos.position.Position;
 import eubos.score.PiecewiseEvaluation;
-import eubos.score.PositionEvaluator;
 
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.GenericPosition;
