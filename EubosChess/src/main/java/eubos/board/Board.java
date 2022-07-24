@@ -1777,7 +1777,6 @@ public class Board {
 				mobility_score = Long.bitCount(mobility_mask ^ diagonal_sliders);
 			}
 		}
-		CountedBitBoard.setBitArrays(attacks[3], attacks[2]);
 		return mobility_score;
 	}
 	
@@ -1797,6 +1796,7 @@ public class Board {
 			direction_attacks = BitBoard.leftAttacks(mobility_mask_1);
 			slider_attacks |= direction_attacks;
 			CountedBitBoard.setBits(attacks[2], direction_attacks);
+			
 			long mobility_mask_2 = BitBoard.rightOccludedEmpty(rank_file_sliders, empty);
 			direction_attacks = BitBoard.rightAttacks(mobility_mask_2);
 			slider_attacks |= direction_attacks;
@@ -1814,6 +1814,7 @@ public class Board {
 			direction_attacks = BitBoard.upAttacks(mobility_mask_1);
 			slider_attacks |= direction_attacks;
 			CountedBitBoard.setBits(attacks[2], direction_attacks);
+			
 			mobility_mask_2 = BitBoard.downOccludedEmpty(rank_file_sliders, empty);
 			direction_attacks = BitBoard.downAttacks(mobility_mask_2);
 			slider_attacks |= direction_attacks;
@@ -1831,21 +1832,30 @@ public class Board {
 			long individualAttacker = 0L;
 			if ((slider_attacks & rank_file_sliders) != 0L) {
 				// If one slider attacks another then this denotes a battery
+				rank_file_sliders &= slider_attacks; // just sliders attacked by another slider
 				// look for attackers on the same rank or file, and, if found, add that rank/files attacked squares again
 				for (int rank : IntRank.values) {
 					long sliders_in_rank = rank_file_sliders & BitBoard.RankMask_Lut[rank];
+					int count = 0;
 					while (sliders_in_rank != 0L) {
 						individualAttacker = Long.lowestOneBit(sliders_in_rank);
-						CountedBitBoard.setBits(attacks[2], direction_attacks & BitBoard.RankMask_Lut[rank]);
+						if (count > 0) {
+							CountedBitBoard.setBits(attacks[2], slider_attacks & BitBoard.RankMask_Lut[rank]);
+						}
 						sliders_in_rank ^= individualAttacker;
+						count++;
 					}
 				}
 				for (int file : IntFile.values) {
 					long sliders_in_file = rank_file_sliders & BitBoard.FileMask_Lut[file];
+					int count = 0;
 					while (sliders_in_file != 0L) {
 						individualAttacker = Long.lowestOneBit(sliders_in_file);
-						CountedBitBoard.setBits(attacks[2], direction_attacks & BitBoard.FileMask_Lut[file]);
+						if (count > 0) {
+							CountedBitBoard.setBits(attacks[2], slider_attacks & BitBoard.FileMask_Lut[file]);
+						}
 						sliders_in_file ^= individualAttacker;
+						count++;
 					}
 				}
 			}
@@ -1873,7 +1883,6 @@ public class Board {
 			
 			mobility_score = Long.bitCount(mobility_mask ^ rank_file_sliders);
 		}
-		CountedBitBoard.setBitArrays(attacks[3], attacks[2]);
 		return mobility_score;
 	}
 	
@@ -1890,6 +1899,8 @@ public class Board {
 		mobility_score = calculateRankFileMobility(getWhiteRooks(), white_queens, attacks[0]);
 		me.dynamicPosition += (short)(mobility_score*2);
 		
+		CountedBitBoard.setBitArrays(attacks[0][3], attacks[0][2]);
+		
 		getBasicAttacksForSide(attacks[1], true);
 		// Black Bishop and Queen
 		long black_queens = getBlackQueens();
@@ -1899,6 +1910,8 @@ public class Board {
 		// Black Rook and Queen
 		mobility_score = calculateRankFileMobility(getBlackRooks(), black_queens, attacks[1]);
 		me.dynamicPosition -= (short)(mobility_score*2);
+		
+		CountedBitBoard.setBitArrays(attacks[1][3], attacks[1][2]);
 		
 		isAttacksMaskValid = true;
 		return attacks;
