@@ -1540,16 +1540,18 @@ public class Board {
 		long attackingBishopsMask = isWhite ? getBlackBishops() : getWhiteBishops();
 
 		// create masks of attackers
-		long pertinentBishopMask = attackingBishopsMask;//& ((isKingOnDarkSq) ? DARK_SQUARES_MASK : LIGHT_SQUARES_MASK);
+		long pertinentBishopMask = attackingBishopsMask;
 		long diagonalAttackersMask = attackingQueensMask | pertinentBishopMask;
 		long rankFileAttackersMask = attackingQueensMask | attackingRooksMask;
+		
+		// Defenders
+		long blockers = isWhite ? getWhitePawns() : getBlackPawns();
 		
 		// First score according to King exposure on open diagonals
 		int numPotentialAttackers = Long.bitCount(diagonalAttackersMask);
 		int kingPos = pieceLists.getKingPos(isWhite);
 		long mobility_mask = 0x0;
 		if (numPotentialAttackers > 0) {
-			long blockers = isWhite ? getWhitePawns() : getBlackPawns();
 			long defendingBishopsMask = isWhite ? getWhiteBishops() : getBlackBishops();
 			// only own side pawns should block an attack ray, not any piece, so don't use empty mask as propagator
 			long inDirection = BitBoard.downLeftOccludedEmpty(kingMask, ~blockers);
@@ -1567,7 +1569,6 @@ public class Board {
 		numPotentialAttackers = Long.bitCount(rankFileAttackersMask);
 		if (numPotentialAttackers > 0) {
 			mobility_mask = 0x0;
-			long blockers = isWhite ? getWhitePawns() : getBlackPawns();
 			long defendingRooksMask = isWhite ? getWhiteRooks() : getBlackRooks();
 			long inDirection = BitBoard.downOccludedEmpty(kingMask, ~blockers);
 			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
@@ -1586,28 +1587,31 @@ public class Board {
 		evaluation += ktc.getScore(kingPos, isWhite ? BLACK_ATTACKERS : WHITE_ATTACKERS);
 		
 		// Then account for attacks on the squares around the king
-		long surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
-//		long [] our_attacks = Arrays.copyOf(attacks[isWhite ? 0 : 1][2], 10);
-//		CountedBitBoard.setBitArrays(our_attacks, attacks[isWhite ? 0 : 1][0]);
-//		CountedBitBoard.setBitArrays(our_attacks, attacks[isWhite ? 0 : 1][1]);
-//		long [] enemy_attacks = Arrays.copyOf(attacks[isWhite ? 1 : 0][2], 10);
-//		CountedBitBoard.setBitArrays(enemy_attacks, attacks[isWhite ? 1 : 0][0]);
-//		CountedBitBoard.setBitArrays(enemy_attacks, attacks[isWhite ? 1 : 0][1]);
 		long [] our_attacks = attacks[isWhite ? 0 : 1][3];
 		long [] enemy_attacks = attacks[isWhite ? 1 : 0][3];
-		int fraction_squares_controlled_by_enemy_q8 = getQ8SquareControlRoundKing(our_attacks, enemy_attacks, surroundingSquares);
-		evaluation += ((-150 * fraction_squares_controlled_by_enemy_q8) / 256);
+		long surroundingSquares = SquareAttackEvaluator.KingZone_Lut[isWhite ? 0 : 1][kingPos];
+		int num_squares_controlled_by_enemy = CountedBitBoard.evaluate(our_attacks, enemy_attacks, surroundingSquares);
+		evaluation -= ENEMY_SQUARE_CONTROL_LUT[num_squares_controlled_by_enemy];
+		
+		// Hit with a penalty if few defending pawns in the king zone
+		evaluation += PAWN_SHELTER_LUT[BitBoard.getSparseBitCount(surroundingSquares & blockers)];
 		
 		// Then evaluate the check mate threat
-		int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3][0]);
-		int flightCount = Long.bitCount(surroundingSquares & ~(isWhite?whitePieces:blackPieces));
-		if (flightCount-attackedCount <= 1) {
-			// There are no flight squares, high risk of mate
-			// TODO make penalty function of material? or function of fraction_squares_controlled_by_enemy_q8
-			evaluation += ((-500 * fraction_squares_controlled_by_enemy_q8) / 256); 
-		}
+//		surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
+//		int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3][0]);
+//		int flightCount = Long.bitCount(surroundingSquares & ~(isWhite?whitePieces:blackPieces));
+//		if (flightCount-attackedCount <= 1) {
+//			// There are no flight squares, high risk of mate
+//			// TODO make penalty function of material? or function of fraction_squares_controlled_by_enemy_q8
+//			evaluation += ((-500 * fraction_squares_controlled_by_enemy_q8) / 256); 
+//		}
 		return evaluation;
 	}
+	
+	public final int[] PAWN_SHELTER_LUT = {-100, -50, -15, 2, 4, 4, 0, 0, 0, 0};
+	
+	public final int[] ENEMY_SQUARE_CONTROL_LUT = {0, 1, 3, 5, 8, 16, 35, 50, 100, 150,
+			250, 350, 450, 500, 500, 500, 500, 500, 500};
 	
 	private int getQ8SquareControlRoundKing(long[] own_attacks, long[] enemy_attacks, long squares) {
 		int enemy_control_count = 0;

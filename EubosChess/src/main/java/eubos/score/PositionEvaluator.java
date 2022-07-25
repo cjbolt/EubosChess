@@ -17,8 +17,8 @@ public class PositionEvaluator implements IEvaluate {
 	public static final int BACKWARD_PAWN_HANDICAP = 12;
 	public static final int NO_PAWNS_HANDICAP = 50;
 	
-	public static final int PASSED_PAWN_BOOST = 12;
-	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 8;
+	public static final int PASSED_PAWN_BOOST = 15;
+	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 10;
 	public static final int CANDIDATE_PAWN = 6;
 	public static final int ROOK_FILE_CANDIDATE_PAWN = 4;
 	public static final int CONNECTED_PASSED_PAWN_BOOST = 75;

@@ -68,4 +68,20 @@ public final class CountedBitBoard {
 		}
 		return we_have_control;
 	}
+
+	public static int evaluate(long[] own, long[] enemy, long areaMask) {
+		long enemy_control_mask = 0L;
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			assert own.length == enemy.length;
+		}
+		for (int i=0; i < own.length; i++) {
+			long enemy_control_at_count = enemy[i] & areaMask;
+			if (enemy_control_at_count == 0L) {
+				break;
+			}
+			long own_control_at_count = own[i] & areaMask;
+			enemy_control_mask |= (own_control_at_count ^ enemy_control_at_count) & enemy_control_at_count; 
+		}
+		return Long.bitCount(enemy_control_mask);
+	}
 }

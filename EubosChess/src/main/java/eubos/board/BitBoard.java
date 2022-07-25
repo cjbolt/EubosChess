@@ -83,12 +83,11 @@ public final class BitBoard {
 	
 	public static int getSparseBitCount(long mask) {
 		int num = 0;
-		while (mask != 0L) {
+		do {
 			// optimisation: unset the bits in the word to count a sparsely populated long...
-			long square = Long.lowestOneBit(mask);
-			mask ^= square;
+			mask ^= Long.lowestOneBit(mask);
 			num++;
-		}
+		} while (mask != 0L);
 		return num;
 	}
 	
