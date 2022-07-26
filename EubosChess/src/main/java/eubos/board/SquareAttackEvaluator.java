@@ -443,11 +443,11 @@ public class SquareAttackEvaluator {
 		if (isWhite) {
 			mask |= mask << 8;
 			mask |= mask << 8;
-			mask |= mask << 8;
+			//mask |= mask << 8;
 		} else {
 			mask |= mask >>> 8;
 			mask |= mask >>> 8;
-			mask |= mask >>> 8;
+			//mask |= mask >>> 8;
 		}
 		return mask;
 	}
