@@ -77,10 +77,10 @@ public class Board {
 		attacks[1][0] = new long [2];
 		attacks[0][1] = new long [3];
 		attacks[1][1] = new long [3];
-		attacks[0][2] = new long [8];
-		attacks[1][2] = new long [8];
-		attacks[0][3] = new long [10];
-		attacks[1][3] = new long [10];
+		attacks[0][2] = new long [5];
+		attacks[1][2] = new long [5];
+		attacks[0][3] = new long [8];
+		attacks[1][3] = new long [8];
 		allPieces = 0x0;
 		whitePieces = 0x0;
 		blackPieces = 0x0;
@@ -960,29 +960,23 @@ public class Board {
 		} else {
 			pawnMask >>= 8;
 		}
-		return (pawnMask & allPieces) != 0L;
+		long enemy_pieces = isWhite ? blackPieces : whitePieces;
+		return (pawnMask & enemy_pieces) != 0L;
 	}
 	
 	public boolean isPawnFrontspanBlocked(int atPos, boolean isWhite, long[] own_attacks, long[] enemy_attacks, boolean heavySupport) {
 		boolean isClear = true;
-		// Check frontspan is clear
+		// Check frontspan is controlled
 		long front_span_mask = BitBoard.PawnFrontSpan_Lut[isWhite ? 0 : 1][atPos];
-		// Check for enemy pieces blockading
-		long enemy_pieces = isWhite ? blackPieces : whitePieces;
-		if ((enemy_pieces & front_span_mask) != 0L) {
-			isClear = false; 
-		}
-		if (isClear) {
-			if (heavySupport) {
-				// assume full x-ray control of the front span
-				long [] own_xray = Arrays.copyOf(own_attacks, own_attacks.length);
-				CountedBitBoard.setBits(own_xray, front_span_mask);
-				if (!CountedBitBoard.weControlContestedSquares(own_xray, enemy_attacks, front_span_mask)) {
-					isClear = false;
-				}
-			} else if (!CountedBitBoard.weControlContestedSquares(own_attacks, enemy_attacks, front_span_mask)) {
+		if (heavySupport) {
+			// assume full x-ray control of the front span, simplification
+			long [] own_xray = Arrays.copyOf(own_attacks, own_attacks.length);
+			CountedBitBoard.setBits(own_xray, front_span_mask);
+			if (!CountedBitBoard.weControlContestedSquares(own_xray, enemy_attacks, front_span_mask)) {
 				isClear = false;
 			}
+		} else if (!CountedBitBoard.weControlContestedSquares(own_attacks, enemy_attacks, front_span_mask)) {
+			isClear = false;
 		}
 		return !isClear;
 	}
@@ -1013,7 +1007,8 @@ public class Board {
 		if (ownHeavyPiecesInRearSpanMask != 0L) {
 			// Evaluate the attacks for the rear span defender to see if it directly defends the pawn
 			isDefended = eval(isWhite, ownHeavyPiecesInRearSpanMask, ownPawnMask);
-		} else {
+		}
+		if (!isDefended) {
 			long enemyHeavyPiecesInRearSpanMask = rearSpanMask & (!isWhite ? getWhiteRankFile() : getBlackRankFile());
 			if (enemyHeavyPiecesInRearSpanMask != 0L) {
 				// Evaluate the attacks for the rear span attacker to see if it directly attacks the pawn
@@ -1033,7 +1028,7 @@ public class Board {
 		}
 	}
 	
-	public boolean isCandidatePassedPawn(int atPos, boolean isWhite, long own_pawn_attacks, long enemy_pawn_attacks) {
+	public boolean isCandidatePassedPawn(int atPos, boolean isWhite, long[] own_pawn_attacks, long[] enemy_pawn_attacks) {
 		boolean isCandidate = true;
 		// Check frontspan is clear
 		long front_span_mask = BitBoard.PawnFrontSpan_Lut[isWhite ? 0 : 1][atPos];
@@ -1042,15 +1037,7 @@ public class Board {
 			isCandidate  = false;
 		}
 		if (isCandidate) {
-			// Check that no square in front span is attacked by more enemy pawns than defended by own pawns
-			// Note - could return a second long from paa for squares that are attacked twice by pawns
-			long enemy_attacks_on_frontspan = enemy_pawn_attacks & front_span_mask;
-			if (enemy_attacks_on_frontspan != 0L) {
-				long own_attacks_on_frontspan = own_pawn_attacks & front_span_mask;
-				if ((enemy_attacks_on_frontspan & own_attacks_on_frontspan) != enemy_attacks_on_frontspan) {
-					isCandidate  = false;
-				}
-			}
+			isCandidate = CountedBitBoard.weControlContestedSquares(own_pawn_attacks, enemy_pawn_attacks, front_span_mask);
 		}
 		return isCandidate;
 	}
@@ -1594,7 +1581,8 @@ public class Board {
 		evaluation -= ENEMY_SQUARE_CONTROL_LUT[num_squares_controlled_by_enemy];
 		
 		// Hit with a penalty if few defending pawns in the king zone
-		evaluation += PAWN_SHELTER_LUT[BitBoard.getSparseBitCount(surroundingSquares & blockers)];
+		long pawnShieldMask =  isWhite ? surroundingSquares >>> 8 : surroundingSquares >> 8;
+		evaluation += PAWN_SHELTER_LUT[BitBoard.getSparseBitCount(pawnShieldMask & blockers)];
 		
 		// Then evaluate the check mate threat
 //		surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
@@ -1610,8 +1598,11 @@ public class Board {
 	
 	public final int[] PAWN_SHELTER_LUT = {-100, -50, -15, 2, 4, 4, 0, 0, 0, 0};
 	
-	public final int[] ENEMY_SQUARE_CONTROL_LUT = {0, 1, 3, 5, 8, 16, 35, 50, 100, 150,
-			250, 350, 450, 500, 500, 500, 500, 500, 500};
+	public final int[] ENEMY_SQUARE_CONTROL_LUT = {
+			0, 5, 10, 30, 
+			60, 120, 240, 350, 
+			400, 450, 500, 550,
+			600, 600, 600, 600};
 	
 	private int getQ8SquareControlRoundKing(long[] own_attacks, long[] enemy_attacks, long squares) {
 		int enemy_control_count = 0;

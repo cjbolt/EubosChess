@@ -210,6 +210,8 @@ public class PositionEvaluator implements IEvaluate {
 				boolean pawnIsBlocked = bd.isPawnFrontspanBlocked(atPos, pawnIsWhite, own_attacks[3], enemy_attacks[3], heavySupportIndication > 0);
 				if (pawnIsBlocked) {
 					score = 2*score/3;
+				} else {
+					score *=2;
 				}
 			}
 			piecewisePawnScoreAccumulator += score;
@@ -233,7 +235,7 @@ public class PositionEvaluator implements IEvaluate {
 				}
 			} else if (ENABLE_CANDIDATE_PP_EVALUATION) {
 				// TODO make it resolve the number of attacks...
-				if (bd.isCandidatePassedPawn(atPos, pawnIsWhite, own_attacks[0][0], enemy_attacks[0][0])) {
+				if (bd.isCandidatePassedPawn(atPos, pawnIsWhite, own_attacks[0], enemy_attacks[0])) {
 					setQueeningDistance(atPos, pawnIsWhite);
 					weighting *= getScaleFactorForGamePhase();
 					if (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) {
