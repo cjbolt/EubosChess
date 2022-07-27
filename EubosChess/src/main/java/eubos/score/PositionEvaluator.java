@@ -19,15 +19,15 @@ public class PositionEvaluator implements IEvaluate {
 	
 	public static final int PASSED_PAWN_BOOST = 15;
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 10;
-	public static final int CANDIDATE_PAWN = 6;
-	public static final int ROOK_FILE_CANDIDATE_PAWN = 4;
+	public static final int CANDIDATE_PAWN = 8;
+	public static final int ROOK_FILE_CANDIDATE_PAWN = 5;
 	public static final int CONNECTED_PASSED_PAWN_BOOST = 75;
 	public static final int HEAVY_PIECE_BEHIND_PASSED_PAWN = 20;
 	
 	public static final boolean ENABLE_PAWN_EVALUATION = true;
 	public static final boolean ENABLE_KPK_EVALUATION = true;
 	public static final boolean ENABLE_CANDIDATE_PP_EVALUATION = true;
-	public static final boolean ENABLE_PP_IMBALANCE_EVALUATION = false;
+	public static final boolean ENABLE_PP_IMBALANCE_EVALUATION = true;
 	
 	public static final boolean ENABLE_KING_SAFETY_EVALUATION = true;
 	public static final boolean ENABLE_TWEAKED_KING_FLIGHT_SQUARES = false;

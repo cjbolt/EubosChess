@@ -1600,7 +1600,7 @@ public class Board {
 	
 	public final int[] ENEMY_SQUARE_CONTROL_LUT = {
 			0, 5, 10, 30, 
-			60, 120, 240, 350, 
+			75, 150, 240, 350, 
 			400, 450, 500, 550,
 			600, 600, 600, 600};
 	
