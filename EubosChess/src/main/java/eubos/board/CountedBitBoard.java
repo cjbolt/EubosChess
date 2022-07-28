@@ -5,29 +5,37 @@ import java.util.Arrays;
 import eubos.main.EubosEngineMain;
 
 public final class CountedBitBoard {
-	
+	public static final boolean BYPASS_MODE = true;
 	static void setBits(long [] cbb, long mask) {
-		if (mask == 0) return;
-		int i=0;
-		long bitsAlreadySet = mask & cbb[i];
-		cbb[i] |= mask; // Don't care if it was already set for depth 0...
-		for (i=1; i < cbb.length; i++) {
-			if (bitsAlreadySet != 0L) {
-				long beforeSet = cbb[i];
-				cbb[i] |= bitsAlreadySet;
-				mask &= beforeSet; // Need to clear the bit that we just set, in the mask
-			} else {
-				mask = 0L;
+		if (BYPASS_MODE) {
+			cbb[0] |= mask;
+		} else {
+			if (mask == 0) return;
+			int i=0;
+			long bitsAlreadySet = mask & cbb[i];
+			cbb[i] |= mask; // Don't care if it was already set for depth 0...
+			for (i=1; i < cbb.length; i++) {
+				if (bitsAlreadySet != 0L) {
+					long beforeSet = cbb[i];
+					cbb[i] |= bitsAlreadySet;
+					mask &= beforeSet; // Need to clear the bit that we just set, in the mask
+				} else {
+					mask = 0L;
+				}
+				if (mask == 0L) break;
+				bitsAlreadySet = mask & cbb[i];
 			}
-			if (mask == 0L) break;
-			bitsAlreadySet = mask & cbb[i];
 		}
 	}
 	
 	static void setBitArrays(long [] cbb, long[] masks) {
-		for (long mask : masks) {
-			if (mask == 0) break;
-			setBits(cbb, mask);
+		if (BYPASS_MODE) {
+			cbb[0] |= masks[0];
+		} else {
+			for (long mask : masks) {
+				if (mask == 0) break;
+				setBits(cbb, mask);
+			}
 		}
 	}
 	
@@ -45,7 +53,11 @@ public final class CountedBitBoard {
 	}
 	
 	static void clear(long[] cbb) {
-		Arrays.fill(cbb, 0L);
+		if (BYPASS_MODE) {
+			cbb[0] = 0L;
+		} else {
+			Arrays.fill(cbb, 0L);
+		}
 	}
 	
 	static boolean weControlContestedSquares(long[] own, long[] enemy, long contestedMask) {

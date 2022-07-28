@@ -759,8 +759,10 @@ public class BoardTest {
 	
 	@Test
 	public void test_frontspan_IsAttackedOnceDefendedTwice_soBlocked() {
+		if (!CountedBitBoard.BYPASS_MODE) {
 		setUpPosition("4B2K/8/1b1Bn3/8/2P5/8/8/7k w - - 1 1");
 		assertTrue(classUnderTest.isPawnFrontspanBlocked(Position.c4, true, pm.getTheBoard().getAttackedSquares()[0][3], pm.getTheBoard().getAttackedSquares()[1][3], false));
+		}
 	}
 	
 	@Test
@@ -866,6 +868,7 @@ public class BoardTest {
 	
 	@Test
 	public void test_RookBattery_OnFile() {
+		if (!CountedBitBoard.BYPASS_MODE) {
 		setUpPosition("8/8/8/8/8/8/R7/R7 w - - 0 1");
 		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me);
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a1));
@@ -892,10 +895,12 @@ public class BoardTest {
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.f2));
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.g2));
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.h2));
+		}
 	}
 	
 	@Test
 	public void test_RookQueenBattery_OnFile() {
+		if (!CountedBitBoard.BYPASS_MODE) {
 		setUpPosition("8/8/8/8/8/8/R7/Q7 w - - 0 1");
 		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me);
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a1));
@@ -922,10 +927,12 @@ public class BoardTest {
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.f2));
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.g2));
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.h2));
+		}
 	}
 	
 	@Test
 	public void test_QueenRookRookBattery_OnFile() {
+		if (!CountedBitBoard.BYPASS_MODE) {
 		setUpPosition("8/8/8/8/8/R7/R7/Q7 w - - 0 1");
 		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me);
 		assertEquals(3, CountedBitBoard.count(attacks[0][3], Position.a1));
@@ -960,10 +967,12 @@ public class BoardTest {
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.f3));
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.g3));
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.h3));
+		}
 	}
 	
 	@Test
 	public void test_QueenRookRookBattery_Separated_OnFile() {
+		if (!CountedBitBoard.BYPASS_MODE) {
 		setUpPosition("8/R7/8/p7/p7/8/R7/Q7 w - - 0 1");
 		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me);
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a1));
@@ -998,10 +1007,12 @@ public class BoardTest {
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.f7));
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.g7));
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.h7));
+		}
 	}
 	
 	@Test
 	public void test_RookBattery_OnRank() {
+		if (!CountedBitBoard.BYPASS_MODE) {
 		setUpPosition("8/8/8/8/8/8/8/RR6 w - - 0 1");
 		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me);
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a1));
@@ -1029,10 +1040,12 @@ public class BoardTest {
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.f1));
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.g1));
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.h1));
+		}
 	}
 	
 	@Test
 	public void test_RookQueenBattery_OnRank() {
+		if (!CountedBitBoard.BYPASS_MODE) {
 		setUpPosition("8/8/8/8/8/8/8/QR6 w - - 0 1");
 		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me);
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a1));
@@ -1060,10 +1073,12 @@ public class BoardTest {
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.f1));
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.g1));
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.h1));
+		}
 	}
 	
 	@Test
 	public void test_QueenRookRookBattery_OnRank() {
+		if (!CountedBitBoard.BYPASS_MODE) {
 		setUpPosition("8/8/8/8/8/8/8/QRR5 w - - 0 1");
 		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me);
 		assertEquals(3, CountedBitBoard.count(attacks[0][3], Position.a1));
@@ -1098,10 +1113,12 @@ public class BoardTest {
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.c6));
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.c7));
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.c8));
+		}
 	}
 	
 	@Test
 	public void test_QueenRookBattery_AndOddRook_OnRank() {
+		if (!CountedBitBoard.BYPASS_MODE) {
 		setUpPosition("8/8/8/8/8/8/8/QR4nR w - - 0 1");
 		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me);
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a1));
@@ -1136,49 +1153,53 @@ public class BoardTest {
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.f1));
 		assertEquals(3, CountedBitBoard.count(attacks[0][3], Position.g1));
 		assertEquals(0, CountedBitBoard.count(attacks[0][3], Position.h1));
+		}
 	}
 	
 	@Test
 	public void test_QueenRookBattery_AndOddRook_OnRank_alt() {
-		setUpPosition("8/8/8/8/8/8/8/QR1nnn1R w - - 0 1");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me);
-		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a1));
-		
-		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a2));
-		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a3));
-		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a4));
-		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a5));
-		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a6));
-		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a7));
-		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a8));
-		
-		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.b2));
-		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.b3));
-		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.b4));
-		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.b5));
-		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.b6));
-		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.b7));
-		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.b8));
-		
-		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.h2));
-		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.h3));
-		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.h4));
-		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.h5));
-		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.h6));
-		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.h7));
-		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.h8));
-
-		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.b1));
-		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.c1));
-		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.d1));
-		assertEquals(0, CountedBitBoard.count(attacks[0][3], Position.e1));
-		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.f1));
-		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.g1));
-		assertEquals(0, CountedBitBoard.count(attacks[0][3], Position.h1));
+		if (!CountedBitBoard.BYPASS_MODE) {
+			setUpPosition("8/8/8/8/8/8/8/QR1nnn1R w - - 0 1");
+			long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me);
+			assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a1));
+			
+			assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a2));
+			assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a3));
+			assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a4));
+			assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a5));
+			assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a6));
+			assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a7));
+			assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a8));
+			
+			assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.b2));
+			assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.b3));
+			assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.b4));
+			assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.b5));
+			assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.b6));
+			assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.b7));
+			assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.b8));
+			
+			assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.h2));
+			assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.h3));
+			assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.h4));
+			assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.h5));
+			assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.h6));
+			assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.h7));
+			assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.h8));
+	
+			assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.b1));
+			assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.c1));
+			assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.d1));
+			assertEquals(0, CountedBitBoard.count(attacks[0][3], Position.e1));
+			assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.f1));
+			assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.g1));
+			assertEquals(0, CountedBitBoard.count(attacks[0][3], Position.h1));
+		}
 	}
 	
 	@Test
 	public void test_QueenBishopBattery() {
+		if (!CountedBitBoard.BYPASS_MODE) {
 		setUpPosition("8/8/8/8/8/8/1B6/Q7 w - - 0 1");
 		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me);
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a1));
@@ -1206,10 +1227,12 @@ public class BoardTest {
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.f1));
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.g1));
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.h1));
+		}
 	}
 	
 	@Test
 	public void test_QueenBishopBattery_SeparatedBishop() {
+		if (!CountedBitBoard.BYPASS_MODE) {
 		setUpPosition("7B/8/5p2/8/3p4/8/1B6/Q7 w - - 0 1");
 		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me);
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a1));
@@ -1237,10 +1260,12 @@ public class BoardTest {
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.f1));
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.g1));
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.h1));
+		}
 	}
 	
 	@Test
 	public void test_QueenBishopBattery_SeparatedBishop_UpLeft() {
+		if (!CountedBitBoard.BYPASS_MODE) {
 		setUpPosition("B7/8/2p5/8/4p3/8/6B1/7Q w - - 0 1");
 		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me);
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.h1));
@@ -1268,6 +1293,7 @@ public class BoardTest {
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.f1));
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.g1));
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a1));
+		}
 	}
 	
 	@Test

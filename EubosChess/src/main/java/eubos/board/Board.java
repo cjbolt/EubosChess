@@ -73,14 +73,25 @@ public class Board {
 		cpkaa = new CountedPawnKnightAttackAggregator();
 		ktc = new KingTropismChecker();
 		attacks = new long [2][4][];
-		attacks[0][0] = new long [2];
-		attacks[1][0] = new long [2];
-		attacks[0][1] = new long [3];
-		attacks[1][1] = new long [3];
-		attacks[0][2] = new long [5];
-		attacks[1][2] = new long [5];
-		attacks[0][3] = new long [8];
-		attacks[1][3] = new long [8];
+		if (CountedBitBoard.BYPASS_MODE) {
+			attacks[0][0] = new long [1];
+			attacks[1][0] = new long [1];
+			attacks[0][1] = new long [1];
+			attacks[1][1] = new long [1];
+			attacks[0][2] = new long [1];
+			attacks[1][2] = new long [1];
+			attacks[0][3] = new long [1];
+			attacks[1][3] = new long [1];
+		} else {
+			attacks[0][0] = new long [2];
+			attacks[1][0] = new long [2];
+			attacks[0][1] = new long [3];
+			attacks[1][1] = new long [3];
+			attacks[0][2] = new long [5];
+			attacks[1][2] = new long [5];
+			attacks[0][3] = new long [8];
+			attacks[1][3] = new long [8];
+		}
 		allPieces = 0x0;
 		whitePieces = 0x0;
 		blackPieces = 0x0;
@@ -1209,10 +1220,12 @@ public class Board {
 					SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[position] : 
 						SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[position]);
 			long bitsAlreadySetInFirstMask = pawnAttacks & attackMask[0];
-			if (bitsAlreadySetInFirstMask != 0L) {
-				// Need to find which square(s) are attacked twice and set them in the second mask,
-				// optimised for pawns, where only two squares can be simultaneously attacked by a side
-				attackMask[1] |= bitsAlreadySetInFirstMask;
+			if (!CountedBitBoard.BYPASS_MODE) {
+				if (bitsAlreadySetInFirstMask != 0L) {
+					// Need to find which square(s) are attacked twice and set them in the second mask,
+					// optimised for pawns, where only two squares can be simultaneously attacked by a side
+					attackMask[1] |= bitsAlreadySetInFirstMask;
+				}
 			}
 			attackMask[0] |= pawnAttacks;
 		}
@@ -1527,6 +1540,77 @@ public class Board {
 		long attackingBishopsMask = isWhite ? getBlackBishops() : getWhiteBishops();
 
 		// create masks of attackers
+		long pertinentBishopMask = attackingBishopsMask;//& ((isKingOnDarkSq) ? DARK_SQUARES_MASK : LIGHT_SQUARES_MASK);
+		long diagonalAttackersMask = attackingQueensMask | pertinentBishopMask;
+		long rankFileAttackersMask = attackingQueensMask | attackingRooksMask;
+		
+		// First score according to King exposure on open diagonals
+		int numPotentialAttackers = Long.bitCount(diagonalAttackersMask);
+		int kingPos = pieceLists.getKingPos(isWhite);
+		long mobility_mask = 0x0;
+		if (numPotentialAttackers > 0) {
+			long blockers = isWhite ? getWhitePawns() : getBlackPawns();
+			long defendingBishopsMask = isWhite ? getWhiteBishops() : getBlackBishops();
+			// only own side pawns should block an attack ray, not any piece, so don't use empty mask as propagator
+			long inDirection = BitBoard.downLeftOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
+			inDirection = BitBoard.upLeftOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
+			inDirection = BitBoard.upRightOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
+			inDirection = BitBoard.downRightOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
+			evaluation = Long.bitCount(mobility_mask ^ kingMask) * -numPotentialAttackers;
+		}
+		
+		// Then score according to King exposure on open rank/files
+		numPotentialAttackers = Long.bitCount(rankFileAttackersMask);
+		if (numPotentialAttackers > 0) {
+			mobility_mask = 0x0;
+			long blockers = isWhite ? getWhitePawns() : getBlackPawns();
+			long defendingRooksMask = isWhite ? getWhiteRooks() : getBlackRooks();
+			long inDirection = BitBoard.downOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
+			inDirection = BitBoard.upOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
+			inDirection = BitBoard.rightOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
+			inDirection = BitBoard.leftOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
+			evaluation += Long.bitCount(mobility_mask ^ kingMask) * -numPotentialAttackers;
+		}
+		
+		// Then, do king tropism for queen and knight as a bonus
+		final int[] BLACK_ATTACKERS = {Piece.BLACK_QUEEN, Piece.BLACK_KNIGHT};
+		final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT};
+		evaluation += ktc.getScore(kingPos, isWhite ? BLACK_ATTACKERS : WHITE_ATTACKERS);
+		
+		// Then account for attacks on the squares around the king
+		long surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
+		int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3][0]);
+		int flightCount = Long.bitCount(surroundingSquares);
+		int fraction_attacked_q8 = (attackedCount * 256) / flightCount;
+		evaluation += ((-150 * fraction_attacked_q8) / 256);
+		if (attackedCount == flightCount) {
+			// there are no flight squares, high risk of mate
+			evaluation += -100;
+		}
+		
+		return evaluation;
+	}
+	
+	public int evaluateKingSafetyV2(long[][][] attacks, boolean isWhite) {
+		int evaluation = 0;
+
+		// King
+		long kingMask = isWhite ? getWhiteKing() : getBlackKing();
+
+		// Attackers
+		long attackingQueensMask = isWhite ? getBlackQueens() : getWhiteQueens();
+		long attackingRooksMask = isWhite ? getBlackRooks() : getWhiteRooks();
+		long attackingBishopsMask = isWhite ? getBlackBishops() : getWhiteBishops();
+
+		// create masks of attackers
 		long pertinentBishopMask = attackingBishopsMask;
 		long diagonalAttackersMask = attackingQueensMask | pertinentBishopMask;
 		long rankFileAttackersMask = attackingQueensMask | attackingRooksMask;
@@ -1659,29 +1743,31 @@ public class Board {
 	}
 	
 	public void handleDiagonalBatteriesInAttacks(long[][] attacks, long diagonal_sliders, long slider_attacks) {
-		long empty = ~allPieces;
-		// Check for batteries
-		// If one slider attacks another then this denotes a battery
-		diagonal_sliders &= slider_attacks; // consider just sliders attacked by another slider
-		if (diagonal_sliders != 0L) {
-			for (int diag : IntUpRightDiagonal.values) {
-				long sliders_in_diagonal = diagonal_sliders & IntUpRightDiagonal.upRightDiagonals[diag];
-				if (sliders_in_diagonal == 0) continue;
-				for (int i=1; i<BitBoard.getSparseBitCount(sliders_in_diagonal); i++) {
-					// Need to create a new mask to set here as there may be another slider in the original mask
-					long new_mask = BitBoard.downLeftAttacks(sliders_in_diagonal, empty);
-					new_mask |= BitBoard.upRightAttacks(sliders_in_diagonal, empty);
-					CountedBitBoard.setBits(attacks[2], new_mask & IntUpRightDiagonal.upRightDiagonals[diag]);
+		if (!CountedBitBoard.BYPASS_MODE) {
+			long empty = ~allPieces;
+			// Check for batteries
+			// If one slider attacks another then this denotes a battery
+			diagonal_sliders &= slider_attacks; // consider just sliders attacked by another slider
+			if (diagonal_sliders != 0L) {
+				for (int diag : IntUpRightDiagonal.values) {
+					long sliders_in_diagonal = diagonal_sliders & IntUpRightDiagonal.upRightDiagonals[diag];
+					if (sliders_in_diagonal == 0) continue;
+					for (int i=1; i<BitBoard.getSparseBitCount(sliders_in_diagonal); i++) {
+						// Need to create a new mask to set here as there may be another slider in the original mask
+						long new_mask = BitBoard.downLeftAttacks(sliders_in_diagonal, empty);
+						new_mask |= BitBoard.upRightAttacks(sliders_in_diagonal, empty);
+						CountedBitBoard.setBits(attacks[2], new_mask & IntUpRightDiagonal.upRightDiagonals[diag]);
+					}
 				}
-			}
-			for (int diag : IntUpLeftDiagonal.values) {
-				long sliders_in_diagonal = diagonal_sliders & IntUpLeftDiagonal.upLeftDiagonals[diag];
-				if (sliders_in_diagonal == 0) continue;
-				for (int i=1; i<BitBoard.getSparseBitCount(sliders_in_diagonal); i++) {
-					// Need to create a new mask to set here as there may be another slider in the original mask
-					long new_mask = BitBoard.upLeftAttacks(sliders_in_diagonal, empty);
-					new_mask |= BitBoard.downRightAttacks(sliders_in_diagonal, empty);
-					CountedBitBoard.setBits(attacks[2], new_mask & IntUpLeftDiagonal.upLeftDiagonals[diag]);
+				for (int diag : IntUpLeftDiagonal.values) {
+					long sliders_in_diagonal = diagonal_sliders & IntUpLeftDiagonal.upLeftDiagonals[diag];
+					if (sliders_in_diagonal == 0) continue;
+					for (int i=1; i<BitBoard.getSparseBitCount(sliders_in_diagonal); i++) {
+						// Need to create a new mask to set here as there may be another slider in the original mask
+						long new_mask = BitBoard.upLeftAttacks(sliders_in_diagonal, empty);
+						new_mask |= BitBoard.downRightAttacks(sliders_in_diagonal, empty);
+						CountedBitBoard.setBits(attacks[2], new_mask & IntUpLeftDiagonal.upLeftDiagonals[diag]);
+					}
 				}
 			}
 		}
@@ -1771,30 +1857,32 @@ public class Board {
 	
 	
 	public void handleRankAndFileBatteriesForAttacks(long[][] attacks, long rank_file_sliders, long slider_attacks) {
-		long empty = ~allPieces;
-		// Check for batteries
-		rank_file_sliders &= slider_attacks; // consider just sliders attacked by another slider
-		if (rank_file_sliders != 0L) {
-			// If one slider attacks another then this denotes a battery
-			// look for attackers on the same rank or file, and, if found, add that rank/files attacked squares again
-			for (int rank : IntRank.values) {
-				long sliders_in_rank = rank_file_sliders & BitBoard.RankMask_Lut[rank];
-				if (sliders_in_rank == 0) continue;
-				for (int i=1; i<BitBoard.getSparseBitCount(sliders_in_rank); i++) {
-					// Need to create a new mask to set here as there may be another slider in the original mask
-					long new_mask = BitBoard.leftAttacks(sliders_in_rank, empty);
-					new_mask |= BitBoard.rightAttacks(sliders_in_rank, empty);
-					CountedBitBoard.setBits(attacks[2], new_mask & BitBoard.RankMask_Lut[rank]);
+		if (!CountedBitBoard.BYPASS_MODE) {
+			long empty = ~allPieces;
+			// Check for batteries
+			rank_file_sliders &= slider_attacks; // consider just sliders attacked by another slider
+			if (rank_file_sliders != 0L) {
+				// If one slider attacks another then this denotes a battery
+				// look for attackers on the same rank or file, and, if found, add that rank/files attacked squares again
+				for (int rank : IntRank.values) {
+					long sliders_in_rank = rank_file_sliders & BitBoard.RankMask_Lut[rank];
+					if (sliders_in_rank == 0) continue;
+					for (int i=1; i<BitBoard.getSparseBitCount(sliders_in_rank); i++) {
+						// Need to create a new mask to set here as there may be another slider in the original mask
+						long new_mask = BitBoard.leftAttacks(sliders_in_rank, empty);
+						new_mask |= BitBoard.rightAttacks(sliders_in_rank, empty);
+						CountedBitBoard.setBits(attacks[2], new_mask & BitBoard.RankMask_Lut[rank]);
+					}
 				}
-			}
-			for (int file : IntFile.values) {
-				long sliders_in_file = rank_file_sliders & BitBoard.FileMask_Lut[file];
-				if (sliders_in_file == 0) continue;
-				for (int i=1; i<BitBoard.getSparseBitCount(sliders_in_file); i++) {
-					// Need to create a new mask to set here as there may be another slider in the original mask
-					long new_mask = BitBoard.upAttacks(sliders_in_file, empty);
-					new_mask |= BitBoard.downAttacks(sliders_in_file, empty);
-					CountedBitBoard.setBits(attacks[2], new_mask & BitBoard.FileMask_Lut[file]);
+				for (int file : IntFile.values) {
+					long sliders_in_file = rank_file_sliders & BitBoard.FileMask_Lut[file];
+					if (sliders_in_file == 0) continue;
+					for (int i=1; i<BitBoard.getSparseBitCount(sliders_in_file); i++) {
+						// Need to create a new mask to set here as there may be another slider in the original mask
+						long new_mask = BitBoard.upAttacks(sliders_in_file, empty);
+						new_mask |= BitBoard.downAttacks(sliders_in_file, empty);
+						CountedBitBoard.setBits(attacks[2], new_mask & BitBoard.FileMask_Lut[file]);
+					}
 				}
 			}
 		}
@@ -1914,7 +2002,9 @@ public class Board {
 		// Pawns
 		paa.getPawnAttacks(attacks[0], isBlack);
 		attacks[3][0] = attacks[0][0];
-		attacks[3][1] = attacks[0][1];
+		if (!CountedBitBoard.BYPASS_MODE) {
+			attacks[3][1] = attacks[0][1];
+		}
 		// Knights
 		kaa.getAttacks(attacks[1], isBlack);
 		CountedBitBoard.setBitArrays(attacks[3], attacks[1]);
