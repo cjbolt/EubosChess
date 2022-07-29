@@ -92,7 +92,10 @@ public class PositionEvaluator implements IEvaluate {
 		if (!isDraw) {
 			// Score factors common to each phase, material, pawn structure and piece mobility
 			bd.me.dynamicPosition = 0;
-			long [][][] attacks = bd.calculateAttacksAndMobility(bd.me);
+			
+			// Only generate full attack mask if passed pawn present and past opening stage
+			boolean isPassedPawnPresent = bd.me.phase > 600 && bd.isPassedPawnPresent();
+			long [][][] attacks = bd.calculateAttacksAndMobility(bd.me, isPassedPawnPresent);
 			
 			score += evaluateBishopPair();
 			

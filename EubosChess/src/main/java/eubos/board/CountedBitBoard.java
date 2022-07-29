@@ -5,7 +5,7 @@ import java.util.Arrays;
 import eubos.main.EubosEngineMain;
 
 public final class CountedBitBoard {
-	public static final boolean BYPASS_MODE = true;
+	public static final boolean BYPASS_MODE = false;
 	static void setBits(long [] cbb, long mask) {
 		if (BYPASS_MODE) {
 			cbb[0] |= mask;
