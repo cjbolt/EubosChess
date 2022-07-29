@@ -1668,7 +1668,7 @@ public class Board {
 		
 		// Hit with a penalty if few defending pawns in the king zone
 		long pawnShieldMask =  isWhite ? surroundingSquares >>> 8 : surroundingSquares >> 8;
-		evaluation += PAWN_SHELTER_LUT[BitBoard.getSparseBitCount(pawnShieldMask & blockers)];
+		evaluation += PAWN_SHELTER_LUT[Long.bitCount(pawnShieldMask & blockers)];
 		
 		// Then evaluate the check mate threat
 //		surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
@@ -1753,7 +1753,7 @@ public class Board {
 			for (int diag : IntUpRightDiagonal.values) {
 				long sliders_in_diagonal = diagonal_sliders & IntUpRightDiagonal.upRightDiagonals[diag];
 				if (sliders_in_diagonal == 0) continue;
-				for (int i=1; i<BitBoard.getSparseBitCount(sliders_in_diagonal); i++) {
+				for (int i=1; i<Long.bitCount(sliders_in_diagonal); i++) {
 					// Need to create a new mask to set here as there may be another slider in the original mask
 					long new_mask = BitBoard.downLeftAttacks(sliders_in_diagonal, empty);
 					new_mask |= BitBoard.upRightAttacks(sliders_in_diagonal, empty);
@@ -1763,7 +1763,7 @@ public class Board {
 			for (int diag : IntUpLeftDiagonal.values) {
 				long sliders_in_diagonal = diagonal_sliders & IntUpLeftDiagonal.upLeftDiagonals[diag];
 				if (sliders_in_diagonal == 0) continue;
-				for (int i=1; i<BitBoard.getSparseBitCount(sliders_in_diagonal); i++) {
+				for (int i=1; i<Long.bitCount(sliders_in_diagonal); i++) {
 					// Need to create a new mask to set here as there may be another slider in the original mask
 					long new_mask = BitBoard.upLeftAttacks(sliders_in_diagonal, empty);
 					new_mask |= BitBoard.downRightAttacks(sliders_in_diagonal, empty);
@@ -1868,7 +1868,7 @@ public class Board {
 			for (int rank : IntRank.values) {
 				long sliders_in_rank = rank_file_sliders & BitBoard.RankMask_Lut[rank];
 				if (sliders_in_rank == 0) continue;
-				for (int i=1; i<BitBoard.getSparseBitCount(sliders_in_rank); i++) {
+				for (int i=1; i<Long.bitCount(sliders_in_rank); i++) {
 					// Need to create a new mask to set here as there may be another slider in the original mask
 					long new_mask = BitBoard.leftAttacks(sliders_in_rank, empty);
 					new_mask |= BitBoard.rightAttacks(sliders_in_rank, empty);
@@ -1878,7 +1878,7 @@ public class Board {
 			for (int file : IntFile.values) {
 				long sliders_in_file = rank_file_sliders & BitBoard.FileMask_Lut[file];
 				if (sliders_in_file == 0) continue;
-				for (int i=1; i<BitBoard.getSparseBitCount(sliders_in_file); i++) {
+				for (int i=1; i<Long.bitCount(sliders_in_file); i++) {
 					// Need to create a new mask to set here as there may be another slider in the original mask
 					long new_mask = BitBoard.upAttacks(sliders_in_file, empty);
 					new_mask |= BitBoard.downAttacks(sliders_in_file, empty);
