@@ -21,6 +21,8 @@ public class PositionEvaluator implements IEvaluate {
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 10;
 	public static final int CANDIDATE_PAWN = 8;
 	public static final int ROOK_FILE_CANDIDATE_PAWN = 5;
+	public static final int SAFE_MOBILE_PASSED_PAWN = 10;
+	public static final int MOBILE_PASSED_PAWN = 5;
 	public static final int CONNECTED_PASSED_PAWN_BOOST = 75;
 	public static final int HEAVY_PIECE_BEHIND_PASSED_PAWN = 20;
 	
@@ -197,11 +199,9 @@ public class PositionEvaluator implements IEvaluate {
 			weighting *= getScaleFactorForGamePhase();
 			int value = (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) ?
 					ROOK_FILE_PASSED_PAWN_BOOST : PASSED_PAWN_BOOST;
-			int score = weighting*value;
 			
-			if (bd.isPawnBlockaded(atPos, pawnIsWhite)) {
-				score /= 2;
-			} else {
+			int score = 0;
+			if (!bd.isPawnBlockaded(atPos, pawnIsWhite)) {
 				int heavySupportIndication = bd.checkForHeavyPieceBehindPassedPawn(atPos, pawnIsWhite);
 				if (heavySupportIndication > 0) {
 					score += HEAVY_PIECE_BEHIND_PASSED_PAWN;
@@ -210,13 +210,13 @@ public class PositionEvaluator implements IEvaluate {
 				} else {
 					// neither attacked or defended along the rear span
 				}
-				boolean pawnIsBlocked = bd.isPawnFrontspanBlocked(atPos, pawnIsWhite, own_attacks[3], enemy_attacks[3], heavySupportIndication > 0);
-				if (pawnIsBlocked) {
-					score = 2*score/3;
-				} else {
-					score *=2;
+				if (bd.isPawnFrontspanSafe(atPos, pawnIsWhite, own_attacks[3], enemy_attacks[3], heavySupportIndication > 0)) {
+					value += SAFE_MOBILE_PASSED_PAWN;
+				} else if (bd.canPawnAdvance(atPos, pawnIsWhite, own_attacks[3], enemy_attacks[3])) {
+					value += MOBILE_PASSED_PAWN;
 				}
 			}
+			score += weighting*value;
 			piecewisePawnScoreAccumulator += score;
 		}
 		

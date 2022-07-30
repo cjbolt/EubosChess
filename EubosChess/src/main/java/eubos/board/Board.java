@@ -87,12 +87,12 @@ public class Board {
 		counted_attacks = new long [2][4][];
 		counted_attacks[0][0] = new long [2];
 		counted_attacks[1][0] = new long [2];
-		counted_attacks[0][1] = new long [3];
-		counted_attacks[1][1] = new long [3];
-		counted_attacks[0][2] = new long [5];
-		counted_attacks[1][2] = new long [5];
-		counted_attacks[0][3] = new long [8];
-		counted_attacks[1][3] = new long [8];
+		counted_attacks[0][1] = new long [2];
+		counted_attacks[1][1] = new long [2];
+		counted_attacks[0][2] = new long [4];
+		counted_attacks[1][2] = new long [4];
+		counted_attacks[0][3] = new long [5];
+		counted_attacks[1][3] = new long [5];
 		
 		allPieces = 0x0;
 		whitePieces = 0x0;
@@ -977,7 +977,7 @@ public class Board {
 		return (pawnMask & enemy_pieces) != 0L;
 	}
 	
-	public boolean isPawnFrontspanBlocked(int atPos, boolean isWhite, long[] own_attacks, long[] enemy_attacks, boolean heavySupport) {
+	public boolean isPawnFrontspanSafe(int atPos, boolean isWhite, long[] own_attacks, long[] enemy_attacks, boolean heavySupport) {
 		boolean isClear = true;
 		// Check frontspan is controlled
 		long front_span_mask = BitBoard.PawnFrontSpan_Lut[isWhite ? 0 : 1][atPos];
@@ -991,7 +991,17 @@ public class Board {
 		} else if (!CountedBitBoard.weControlContestedSquares(own_attacks, enemy_attacks, front_span_mask)) {
 			isClear = false;
 		}
-		return !isClear;
+		return isClear;
+	}
+	
+	public boolean canPawnAdvance(int atPos, boolean isWhite, long[] own_attacks, long[] enemy_attacks) {
+		long pawnMask = BitBoard.positionToMask_Lut[atPos];
+		if (isWhite) {
+			 pawnMask <<= 8;
+		} else {
+			pawnMask >>= 8;
+		}
+		return CountedBitBoard.weControlContestedSquares(own_attacks, enemy_attacks, pawnMask);
 	}
 	
 	private boolean eval(boolean isWhite, long attacksOnRearSpanMask, long pawnMask) {
