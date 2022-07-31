@@ -38,8 +38,16 @@ public class PositionEvaluatorTest {
 	
 	@Test
 	public void test_custom_position_score_reporter()throws IllegalNotationException {
-		setUpPosition("8/7p/1P6/2pk4/8/4Kp2/7P/8 w - - 0 16");
+		setUpPosition("5rk1/4Rppp/p3bB2/8/4p3/Ppq3Q1/6pP/1K3B1R w - - - 23");
 		System.out.println(SUT.getFullEvaluation());
+		System.out.println(SUT.getCrudeEvaluation());
+		// Dynamics
+		long [][][] attacks = pm.getTheBoard().calculateAttacksAndMobility(pm.getTheBoard().me,false);
+		System.out.println(pm.getTheBoard().me.getPosition());
+		// KS
+		System.out.println(SUT.evaluateKingSafety(attacks));
+		// Pawns
+		System.out.println(SUT.pawn_eval.evaluatePawnStructure(attacks));
 	}
 	
 	@Test

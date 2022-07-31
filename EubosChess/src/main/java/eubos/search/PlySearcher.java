@@ -36,9 +36,12 @@ public class PlySearcher {
 		int lazyThreshFailedCount[];
 		int maxFailure;
 		int maxFailureCount;
+		String max_fen;
+		int biggestError;
 		
 		public LazyEvalStatistics() {
 			lazyThreshFailedCount = new int [MAX_DELTA];
+			biggestError = 0;
 		}
 		
 		public void report() {
@@ -61,8 +64,8 @@ public class PlySearcher {
 			
 			IntSummaryStatistics stats = Arrays.stream(lazyThreshFailedCount).summaryStatistics();
 			EubosEngineMain.logger.info(String.format(
-					"LazyStats A=%d B=%d nodes=%d failSum=%d exceededCount=%d maxExceeded=%d",
-					lazySavedCountAlpha, lazySavedCountBeta, nodeCount, stats.getSum(), max_count, max_threshold));
+					"LazyStats A=%d B=%d nodes=%d failSum=%d exceededCount=%d maxExceeded=%d maxFen=%s",
+					lazySavedCountAlpha, lazySavedCountBeta, nodeCount, stats.getSum(), max_count, max_threshold, max_fen));
 		}
 	}
 	
@@ -651,6 +654,10 @@ public class PlySearcher {
 			assert delta < 1500 : String.format("LazyFail delta=%d stack=%s", delta, pos.unwindMoveStack());
 			if (delta < lazyStat.MAX_DELTA) {
 				lazyStat.lazyThreshFailedCount[delta]++;
+				if (delta > lazyStat.biggestError) {
+					lazyStat.max_fen = pos.getFen();
+					lazyStat.biggestError = delta;
+				}
 			} else {
 				lazyStat.maxFailureCount++;
 				lazyStat.maxFailure = Math.max(delta, lazyStat.maxFailure);
