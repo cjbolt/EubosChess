@@ -1992,7 +1992,11 @@ public class Board {
 		mobility_score = calculateRankFileMobility(getWhiteRooks(), white_queens, attacks[0]);
 		me.dynamicPosition += (short)(mobility_score*2);
 		
-		CountedBitBoard.setBitArrays(attacks[0][3], attacks[0][2]);
+		if (passedPawnPresent) {
+			CountedBitBoard.setBitArrays(attacks[0][3], attacks[0][2]);
+		} else {
+			attacks[0][3][0] |= attacks[0][2][0];
+		}
 		
 		getBasicAttacksForSide(attacks[1], true, passedPawnPresent);
 		// Black Bishop and Queen
@@ -2004,8 +2008,12 @@ public class Board {
 		mobility_score = calculateRankFileMobility(getBlackRooks(), black_queens, attacks[1]);
 		me.dynamicPosition -= (short)(mobility_score*2);
 		
-		CountedBitBoard.setBitArrays(attacks[1][3], attacks[1][2]);
-		
+		if (passedPawnPresent) {
+			CountedBitBoard.setBitArrays(attacks[1][3], attacks[1][2]);
+		} else {
+			attacks[1][3][0] |= attacks[1][2][0];
+		}
+	
 		// Need to assign king mask in basic attacks if using pp attacks masks for isKingInCheck() function
 		if (passedPawnPresent) {
 			basic_attacks[0][3][0] = counted_attacks[0][3][0];
@@ -2017,10 +2025,14 @@ public class Board {
 	}
 	
 	protected void getBasicAttacksForSide(long [][] attacks, boolean isBlack, boolean useCountedAttacks) {
-		CountedBitBoard.clear(attacks[0]);
-		CountedBitBoard.clear(attacks[1]);
-		CountedBitBoard.clear(attacks[2]);
-		CountedBitBoard.clear(attacks[3]);
+		if (useCountedAttacks) {
+			CountedBitBoard.clear(attacks[0]);
+			CountedBitBoard.clear(attacks[1]);
+			CountedBitBoard.clear(attacks[2]);
+			CountedBitBoard.clear(attacks[3]);
+		} else {
+			attacks[0][0] = attacks[1][0] = attacks[2][0] = 0L;
+		}
 		// Pawns
 		paa.getPawnAttacks(attacks[0], isBlack);
 		attacks[3][0] = attacks[0][0];
@@ -2029,10 +2041,15 @@ public class Board {
 		}
 		// Knights
 		kaa.getAttacks(attacks[1], isBlack);
-		CountedBitBoard.setBitArrays(attacks[3], attacks[1]);
 		// King
 		long kingAttacks = SquareAttackEvaluator.KingMove_Lut[pieceLists.getKingPos(!isBlack)];
-		CountedBitBoard.setBits(attacks[3], kingAttacks);
+
+		if (useCountedAttacks) {
+			CountedBitBoard.setBitArrays(attacks[3], attacks[1]);
+			CountedBitBoard.setBits(attacks[3], kingAttacks);
+		} else {
+			attacks[3][0] |= (attacks[1][0] | kingAttacks);
+		}
 	}
 	
 	protected void getAttacksForSide(long [][] attacks, boolean isBlack) {
