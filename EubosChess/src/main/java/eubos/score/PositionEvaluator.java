@@ -96,8 +96,8 @@ public class PositionEvaluator implements IEvaluate {
 			bd.me.dynamicPosition = 0;
 			
 			// Only generate full attack mask if passed pawn present and past opening stage
-			//boolean isPassedPawnPresent = bd.me.phase > 600 && bd.isPassedPawnPresent();
-			long [][][] attacks = bd.calculateAttacksAndMobility(bd.me, false);
+			boolean isPassedPawnPresent = bd.me.phase > 1000 && bd.isPassedPawnPresent();
+			long [][][] attacks = bd.calculateAttacksAndMobility(bd.me, isPassedPawnPresent);
 			
 			score += evaluateBishopPair();
 			
