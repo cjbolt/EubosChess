@@ -1680,7 +1680,7 @@ public class Board {
 		evaluation -= ENEMY_SQUARE_CONTROL_LUT[num_squares_controlled_by_enemy];
 		
 		// Hit with a penalty if few defending pawns in the king zone
-		long pawnShieldMask =  isWhite ? surroundingSquares >>> 8 : surroundingSquares >> 8;
+		long pawnShieldMask =  isWhite ? surroundingSquares >>> 8 : surroundingSquares << 8;
 		evaluation += PAWN_SHELTER_LUT[Long.bitCount(pawnShieldMask & blockers)];
 		
 		// Then evaluate the check mate threat
