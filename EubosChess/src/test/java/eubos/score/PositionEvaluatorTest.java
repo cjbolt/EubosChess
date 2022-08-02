@@ -38,16 +38,20 @@ public class PositionEvaluatorTest {
 	
 	@Test
 	public void test_custom_position_score_reporter()throws IllegalNotationException {
-		setUpPosition("5rk1/4Rppp/p3bB2/8/4p3/Ppq3Q1/6pP/1K3B1R w - - - 23");
-		System.out.println(SUT.getFullEvaluation());
-		System.out.println(SUT.getCrudeEvaluation());
+		setUpPosition("r3k2r/pp3p1p/1n6/3p1Q2/3q4/2N1P3/PP6/2K2RR1 b kq - 0 20");
+		int full = SUT.getFullEvaluation();
+		int crude = SUT.getCrudeEvaluation();
+		int delta = full-crude;
+		System.out.println("Full:"+full);
+		System.out.println("Crude:"+crude);
+		System.out.println("Delta:"+delta);
 		// Dynamics
 		long [][][] attacks = pm.getTheBoard().calculateAttacksAndMobility(pm.getTheBoard().me,false);
-		System.out.println(pm.getTheBoard().me.getPosition());
+		System.out.println("MG Mobility+PST:"+pm.getTheBoard().me.getPosition());
 		// KS
-		System.out.println(SUT.evaluateKingSafety(attacks));
+		System.out.println("KS:"+SUT.evaluateKingSafety(attacks));
 		// Pawns
-		System.out.println(SUT.pawn_eval.evaluatePawnStructure(attacks));
+		System.out.println("Pawns:"+SUT.pawn_eval.evaluatePawnStructure(attacks));
 	}
 	
 	@Test
