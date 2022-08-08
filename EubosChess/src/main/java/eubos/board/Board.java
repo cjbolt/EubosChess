@@ -1548,7 +1548,8 @@ public class Board {
 
 		// King
 		long kingMask = isWhite ? getWhiteKing() : getBlackKing();
-
+		long blockers = isWhite ? getWhitePawns() : getBlackPawns();
+		
 		// Attackers
 		long attackingQueensMask = isWhite ? getBlackQueens() : getWhiteQueens();
 		long attackingRooksMask = isWhite ? getBlackRooks() : getWhiteRooks();
@@ -1564,7 +1565,6 @@ public class Board {
 		int kingPos = pieceLists.getKingPos(isWhite);
 		long mobility_mask = 0x0;
 		if (numPotentialAttackers > 0) {
-			long blockers = isWhite ? getWhitePawns() : getBlackPawns();
 			long defendingBishopsMask = isWhite ? getWhiteBishops() : getBlackBishops();
 			// only own side pawns should block an attack ray, not any piece, so don't use empty mask as propagator
 			long inDirection = BitBoard.downLeftOccludedEmpty(kingMask, ~blockers);
@@ -1582,7 +1582,6 @@ public class Board {
 		numPotentialAttackers = Long.bitCount(rankFileAttackersMask);
 		if (numPotentialAttackers > 0) {
 			mobility_mask = 0x0;
-			long blockers = isWhite ? getWhitePawns() : getBlackPawns();
 			long defendingRooksMask = isWhite ? getWhiteRooks() : getBlackRooks();
 			long inDirection = BitBoard.downOccludedEmpty(kingMask, ~blockers);
 			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
@@ -1610,6 +1609,11 @@ public class Board {
 			// there are no flight squares, high risk of mate
 			evaluation += -100;
 		}
+		
+		// Hit with a penalty if few defending pawns in the king zone
+		surroundingSquares = SquareAttackEvaluator.KingZone_Lut[isWhite ? 0 : 1][kingPos];		
+		long pawnShieldMask =  isWhite ? surroundingSquares >>> 8 : surroundingSquares << 8;
+		evaluation += PAWN_SHELTER_LUT[Long.bitCount(pawnShieldMask & blockers)];
 		
 		return evaluation;
 	}
