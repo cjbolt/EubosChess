@@ -31,7 +31,7 @@ public class MoveList implements Iterable<Integer> {
 	
 	private static MoveListIterator empty = new MoveListIterator(new int [] {}, 0);
 	
-	public static final boolean ALTERNATE = false;
+	public static final boolean ALTERNATE = true;
 
 	private int[][] normal_search_moves;
 	private int[][] priority_moves;
@@ -249,7 +249,6 @@ public class MoveList implements Iterable<Integer> {
 		moveCount[ply] = normal_fill_index[ply] + scratchpad_fill_index[ply];
 		priority_fill_index[ply] = 0;
 		IAddMoves moveAdder = null;
-		attackMask[ply] = pm.getTheBoard().pkaa.getAttacks(isWhite[ply]);
 		if (killers[ply] == null) {
 			moveAdder = ma_quietNoKillers;
 			ma_quietNoKillers.attackMask = attackMask[ply];
