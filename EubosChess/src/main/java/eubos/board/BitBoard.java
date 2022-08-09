@@ -259,6 +259,13 @@ public final class BitBoard {
 		}
 	}
 	
+	static final long[] RankMask_Lut = new long[8];
+	static {
+		for (int rank : IntRank.values) {
+			RankMask_Lut[rank] = 0xFFL << rank*8;
+		}
+	}
+	
 	static final long[][] PawnFrontSpan_Lut = new long[2][]; 
 	static {
 		long[] white_map = new long[128];

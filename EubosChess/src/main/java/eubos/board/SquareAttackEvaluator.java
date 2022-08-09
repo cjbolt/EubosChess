@@ -424,4 +424,32 @@ public class SquareAttackEvaluator {
 		}
 		return mask;
 	}
+	
+	public static final long[][] KingZone_Lut = new long[2][128];
+	static {
+		for (int square : Position.values) {
+			KingZone_Lut[0][square] = createKingZoneAtSq(true, square);
+			KingZone_Lut[1][square] = createKingZoneAtSq(false, square);
+		}
+	}
+	static long createKingZoneAtSq(boolean isWhite, int atPos) {
+		long mask = 0;
+		for (Direction dir: Direction.values()) {
+			int sq = Direction.getDirectMoveSq(dir, atPos);
+			if (sq != Position.NOPOSITION) {
+				mask |= BitBoard.positionToMask_Lut[sq];
+			}
+		}
+		if (isWhite) {
+			mask |= mask << 8;
+			mask |= mask << 8;
+			//mask |= mask << 8;
+		} else {
+			mask |= mask >>> 8;
+			mask |= mask >>> 8;
+			//mask |= mask >>> 8;
+		}
+		return mask;
+	}
+	
 }

@@ -22,7 +22,7 @@ public class PlySearcher {
 	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
 	running with the logging in TUNE_LAZY_EVAL for Eubos2.13 and post processing the logs.
 	It will need to be re-tuned if the evaluation function is altered significantly. */
-	public static int lazy_eval_threshold_cp = 275;
+	public static int lazy_eval_threshold_cp = 450;
 	private static final boolean TUNE_LAZY_EVAL = false;
 
 	private static final boolean ENABLE_EXTRA_EXTENSIONS = false;
@@ -36,9 +36,12 @@ public class PlySearcher {
 		int lazyThreshFailedCount[];
 		int maxFailure;
 		int maxFailureCount;
+		String max_fen;
+		int biggestError;
 		
 		public LazyEvalStatistics() {
 			lazyThreshFailedCount = new int [MAX_DELTA];
+			biggestError = 0;
 		}
 		
 		public void report() {
@@ -61,8 +64,8 @@ public class PlySearcher {
 			
 			IntSummaryStatistics stats = Arrays.stream(lazyThreshFailedCount).summaryStatistics();
 			EubosEngineMain.logger.info(String.format(
-					"LazyStats A=%d B=%d nodes=%d failSum=%d exceededCount=%d maxExceeded=%d",
-					lazySavedCountAlpha, lazySavedCountBeta, nodeCount, stats.getSum(), max_count, max_threshold));
+					"LazyStats A=%d B=%d nodes=%d failSum=%d exceededCount=%d maxExceeded=%d maxFen=%s",
+					lazySavedCountAlpha, lazySavedCountBeta, nodeCount, stats.getSum(), max_count, max_threshold, max_fen));
 		}
 	}
 	
@@ -77,6 +80,7 @@ public class PlySearcher {
 		int prevBestMove;
 		boolean isCutOff;
 		int hashScore;
+		int moveNumber;
 		int crudeEval;
 		boolean inCheck; // not initialised here for reasons of optimisation
 		
@@ -85,6 +89,7 @@ public class PlySearcher {
 			alphaOriginal = this.alpha = alpha;
 			this.beta = beta;
 			isCutOff = false;
+			moveNumber = 0;
 			// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
 			// It will deviate from the hash move when we start updating the hash during iterative deepening.
 			prevBestMove = Move.clearBest(pc.getBestMove((byte)ply));
@@ -276,14 +281,13 @@ public class PlySearcher {
 		int bestMove = Move.NULL_MOVE;
 		int currMove = Move.NULL_MOVE;
 		int positionScore = state[0].plyScore;
-		int moveNumber = 0;
 		int quietOffset = 0;
 		boolean refuted = false;
 		ml.initialiseAtPly(state[0].prevBestMove, killers.getMoves(0), state[0].inCheck, false, 0);
 		do {
 			MoveListIterator move_iter = ml.getNextMovesAtPly(0);
 			if (!move_iter.hasNext()) {
-				if (moveNumber == 0) {
+				if (state[0].moveNumber == 0) {
 					// No moves at this point means either a stalemate or checkmate has occurred
 					return state[0].inCheck ? Score.getMateScore(0) : 0;
 				} else {
@@ -296,16 +300,16 @@ public class PlySearcher {
 				if (EubosEngineMain.ENABLE_ASSERTS) {
 					assert currMove != Move.NULL_MOVE: "Null move found in MoveList";
 				}
-				moveNumber += 1;
-				if (moveNumber == 1) {
+				state[0].moveNumber += 1;
+				if (state[0].moveNumber == 1) {
 					pc.initialise(0, currMove);
 					bestMove = currMove;
 				}
 				if (!Move.isRegular(currMove)) {
-					quietOffset = moveNumber;
+					quietOffset = state[0].moveNumber;
 				}
 				if (EubosEngineMain.ENABLE_UCI_MOVE_NUMBER) {
-					sm.setCurrentMove(currMove, moveNumber);
+					sm.setCurrentMove(currMove, state[0].moveNumber);
 					if (originalSearchDepthRequiredInPly > 8)
 						sr.reportCurrentMove();
 				}
@@ -318,7 +322,7 @@ public class PlySearcher {
 				currPly++;
 				pm.performMove(currMove);
 				
-				positionScore = doLateMoveReductionSubTreeSearch(depth, currMove, (moveNumber - quietOffset));
+				positionScore = doLateMoveReductionSubTreeSearch(depth, currMove, (state[0].moveNumber - quietOffset));
 				
 				pm.unperformMove();
 				currPly--;
@@ -453,14 +457,13 @@ public class PlySearcher {
 		int bestMove = Move.NULL_MOVE;
 		int currMove = Move.NULL_MOVE;
 		int positionScore = state[currPly].plyScore;
-		int moveNumber = 0;
 		int quietOffset = 0;
 		boolean refuted = false;
 		ml.initialiseAtPly(state[currPly].prevBestMove, killers.getMoves(currPly), state[currPly].inCheck, false, currPly);
 		do {
 			MoveListIterator move_iter = ml.getNextMovesAtPly(currPly);
 			if (!move_iter.hasNext()) {
-				if (moveNumber == 0) {
+				if (state[currPly].moveNumber == 0) {
 					// No moves at this point means either a stalemate or checkmate has occurred
 					return state[currPly].inCheck ? Score.getMateScore(currPly) : 0;
 				} else {
@@ -470,16 +473,16 @@ public class PlySearcher {
 			}
 			do {
 				currMove = move_iter.nextInt();
-				moveNumber += 1;
+				state[currPly].moveNumber += 1;
 				if (EubosEngineMain.ENABLE_ASSERTS) {
 					assert currMove != Move.NULL_MOVE: "Null move found in MoveList";
 				}
-				if (moveNumber == 1) {
+				if (state[currPly].moveNumber == 1) {
 					pc.initialise(currPly, currMove);
 					bestMove = currMove;
 				}
 				if (!Move.isRegular(currMove)) {
-					quietOffset = moveNumber;
+					quietOffset = state[currPly].moveNumber;
 				}
 				
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(state[currPly].alpha, state[currPly].beta);
@@ -490,7 +493,7 @@ public class PlySearcher {
 				currPly++;
 				pm.performMove(currMove);
 				
-				positionScore = doLateMoveReductionSubTreeSearch(depth, currMove, (moveNumber - quietOffset));
+				positionScore = doLateMoveReductionSubTreeSearch(depth, currMove, (state[currPly-1].moveNumber - quietOffset));
 				
 				pm.unperformMove();
 				currPly--;
@@ -593,22 +596,21 @@ public class PlySearcher {
 		
 		int currMove = Move.NULL_MOVE;
 		int positionScore = state[currPly].plyScore;
-		int moveNumber = 0;
 		ml.initialiseAtPly(prevBestMove, null, state[currPly].inCheck, true, currPly);
 		do {
 			MoveListIterator move_iter = ml.getNextMovesAtPly(currPly);
 			if (!move_iter.hasNext()) {
-				if (SearchDebugAgent.DEBUG_ENABLED && moveNumber == 0) sda.printExtSearchNoMoves(alpha);
+				if (SearchDebugAgent.DEBUG_ENABLED && state[currPly].moveNumber == 0) sda.printExtSearchNoMoves(alpha);
 				// As soon as there are no more moves returned from staged move generation, break out in extended search
 				return alpha;
 			}
 			do {
 				currMove = move_iter.nextInt();
-				moveNumber += 1;
+				state[currPly].moveNumber += 1;
 				if (EubosEngineMain.ENABLE_ASSERTS) {
 					assert currMove != Move.NULL_MOVE: "Null move found in MoveList";
 				}
-				if (moveNumber == 1) {
+				if (state[currPly].moveNumber == 1) {
 					pc.initialise(currPly, currMove);
 				}
 
@@ -651,6 +653,10 @@ public class PlySearcher {
 			assert delta < 1500 : String.format("LazyFail delta=%d stack=%s", delta, pos.unwindMoveStack());
 			if (delta < lazyStat.MAX_DELTA) {
 				lazyStat.lazyThreshFailedCount[delta]++;
+				if (delta > lazyStat.biggestError) {
+					lazyStat.max_fen = pos.getFen();
+					lazyStat.biggestError = delta;
+				}
 			} else {
 				lazyStat.maxFailureCount++;
 				lazyStat.maxFailure = Math.max(delta, lazyStat.maxFailure);
@@ -798,7 +804,7 @@ public class PlySearcher {
 		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
 			moveNumber > 1 && /* Search at least one quiet move */
 			!pe.goForMate() && /* Ignore reductions in a mate search */
-			depth > 3 &&
+			depth > 2 &&
 		    !state[currPly-1].inCheck && /* Neither king is in check */ 
 			!state[currPly].inCheck &&
 			!(Move.isPawnMove(currMove) &&  /* Not a passed pawn move or a pawn move in endgame */
@@ -808,7 +814,12 @@ public class PlySearcher {
 							 Piece.isWhite(Move.getOriginPiece(currMove)))))) {		
 			
 			// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
-			int lmr = (moveNumber < 6) ? 1 : depth/3;
+			int lmr = (moveNumber < 6) ? 1 : Math.max(1, depth/4);
+			
+			// Decrease reduction if we searched more moves at the previous ply
+			//if (state[currPly-1].moveNumber > 6) {
+				//lmr -= 1;
+			//}
 			//if ((((currPly-1) & 0x1) == 0) && (pe.getCrudeEvaluation() > refScore) && lmr > 1) {
 			//	lmr -= 1;
 			//}

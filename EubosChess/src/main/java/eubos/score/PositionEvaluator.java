@@ -17,10 +17,12 @@ public class PositionEvaluator implements IEvaluate {
 	public static final int BACKWARD_PAWN_HANDICAP = 12;
 	public static final int NO_PAWNS_HANDICAP = 50;
 	
-	public static final int PASSED_PAWN_BOOST = 12;
-	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 8;
-	public static final int CANDIDATE_PAWN = 6;
-	public static final int ROOK_FILE_CANDIDATE_PAWN = 4;
+	public static final int PASSED_PAWN_BOOST = 15;
+	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 10;
+	public static final int CANDIDATE_PAWN = 8;
+	public static final int ROOK_FILE_CANDIDATE_PAWN = 5;
+	public static final int SAFE_MOBILE_PASSED_PAWN = 10;
+	public static final int MOBILE_PASSED_PAWN = 5;
 	public static final int CONNECTED_PASSED_PAWN_BOOST = 75;
 	public static final int HEAVY_PIECE_BEHIND_PASSED_PAWN = 20;
 	
@@ -92,7 +94,10 @@ public class PositionEvaluator implements IEvaluate {
 		if (!isDraw) {
 			// Score factors common to each phase, material, pawn structure and piece mobility
 			bd.me.dynamicPosition = 0;
-			long [][] attacks = bd.calculateAttacksAndMobility(bd.me);
+			
+			// Only generate full attack mask if passed pawn present and past opening stage
+			boolean isPassedPawnPresent = bd.me.phase > 1000 && bd.isPassedPawnPresent();
+			long [][][] attacks = bd.calculateAttacksAndMobility(bd.me, isPassedPawnPresent);
 			
 			score += evaluateBishopPair();
 			
@@ -115,7 +120,7 @@ public class PositionEvaluator implements IEvaluate {
 		return score;
 	}
 	
-	int evaluateKingSafety(long[][] attacks) {
+	int evaluateKingSafety(long[][][] attacks) {
 		int kingSafetyScore = 0;
 		kingSafetyScore = pm.getTheBoard().evaluateKingSafety(attacks, onMoveIsWhite);
 		kingSafetyScore -= pm.getTheBoard().evaluateKingSafety(attacks, !onMoveIsWhite);
@@ -138,7 +143,7 @@ public class PositionEvaluator implements IEvaluate {
 	public class PawnEvaluator implements IForEachPieceCallback{
 		
 		public int piecewisePawnScoreAccumulator = 0;
-		public long[][] attacks;
+		public long[][][] attacks;
 		protected int queeningDistance;
 		protected int weighting;
 		protected boolean pawnIsBlack;
@@ -162,7 +167,7 @@ public class PositionEvaluator implements IEvaluate {
 			}
 		}
 		
-		protected void evaluateKpkEndgame(int atPos, boolean isOwnPawn, long[] ownAttacks) {
+		protected void evaluateKpkEndgame(int atPos, boolean isOwnPawn, long[][] ownAttacks) {
 			// Special case, it is a KPK endgame
 			int file = Position.getFile(atPos);
 			int queeningSquare = pawnIsBlack ? Position.valueOf(file, 0) : Position.valueOf(file, 7);
@@ -190,15 +195,13 @@ public class PositionEvaluator implements IEvaluate {
 			}
 		}
 		
-		protected void evaluatePassedPawn(int atPos, boolean pawnIsWhite, long[] own_attacks, long [] enemy_attacks) {
+		protected void evaluatePassedPawn(int atPos, boolean pawnIsWhite, long[][] own_attacks, long [][] enemy_attacks) {
 			weighting *= getScaleFactorForGamePhase();
 			int value = (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) ?
 					ROOK_FILE_PASSED_PAWN_BOOST : PASSED_PAWN_BOOST;
-			int score = weighting*value;
 			
-			if (bd.isPawnBlockaded(atPos, pawnIsWhite)) {
-				score /= 2;
-			} else {
+			int score = 0;
+			if (!bd.isPawnBlockaded(atPos, pawnIsWhite)) {
 				int heavySupportIndication = bd.checkForHeavyPieceBehindPassedPawn(atPos, pawnIsWhite);
 				if (heavySupportIndication > 0) {
 					score += HEAVY_PIECE_BEHIND_PASSED_PAWN;
@@ -207,11 +210,13 @@ public class PositionEvaluator implements IEvaluate {
 				} else {
 					// neither attacked or defended along the rear span
 				}
-				boolean pawnIsBlocked = bd.isPawnFrontspanBlocked(atPos, pawnIsWhite, own_attacks[3], enemy_attacks[3], heavySupportIndication > 0);
-				if (pawnIsBlocked) {
-					score = 2*score/3;
+				if (bd.isPawnFrontspanSafe(atPos, pawnIsWhite, own_attacks[3], enemy_attacks[3], heavySupportIndication > 0)) {
+					value += SAFE_MOBILE_PASSED_PAWN;
+				} else if (bd.canPawnAdvance(atPos, pawnIsWhite, own_attacks[3], enemy_attacks[3])) {
+					value += MOBILE_PASSED_PAWN;
 				}
 			}
+			score += weighting*value;
 			piecewisePawnScoreAccumulator += score;
 		}
 		
@@ -219,8 +224,8 @@ public class PositionEvaluator implements IEvaluate {
 		@Override
 		public void callback(int piece, int atPos) {
 			boolean pawnIsWhite = Piece.isWhite(piece);
-			long[] enemy_attacks = attacks[pawnIsWhite ? 1:0];
-			long[] own_attacks = attacks[pawnIsWhite ? 0:1];
+			long[][] enemy_attacks = attacks[pawnIsWhite ? 1:0];
+			long[][] own_attacks = attacks[pawnIsWhite ? 0:1];
 			
 			if (bd.isPassedPawn(atPos, pawnIsWhite)) {
 				boolean isOwnPawn = (onMoveIsWhite && pawnIsWhite) || (!onMoveIsWhite && !pawnIsWhite);
@@ -232,6 +237,7 @@ public class PositionEvaluator implements IEvaluate {
 					evaluatePassedPawn(atPos, pawnIsWhite, own_attacks, enemy_attacks);
 				}
 			} else if (ENABLE_CANDIDATE_PP_EVALUATION) {
+				// TODO make it resolve the number of attacks...
 				if (bd.isCandidatePassedPawn(atPos, pawnIsWhite, own_attacks[0], enemy_attacks[0])) {
 					setQueeningDistance(atPos, pawnIsWhite);
 					weighting *= getScaleFactorForGamePhase();
@@ -253,13 +259,13 @@ public class PositionEvaluator implements IEvaluate {
 			return -bd.countDoubledPawns(pawns)*DOUBLED_PAWN_HANDICAP;
 		}
 		
-		void initialise(long[][] attacks) {
+		void initialise(long[][][] attacks) {
 			ppCount[0] = ppCount[1] = 0;
 			pawn_eval.attacks = attacks;
 		}
 		
 		@SuppressWarnings("unused")
-		int evaluatePawnStructure(long[][] attacks) {
+		int evaluatePawnStructure(long[][][] attacks) {
 			initialise(attacks);
 			int pawnEvaluationScore = 0;
 			long ownPawns = onMoveIsWhite ? bd.getWhitePawns() : bd.getBlackPawns();

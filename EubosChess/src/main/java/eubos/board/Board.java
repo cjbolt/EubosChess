@@ -1,5 +1,6 @@
 package eubos.board;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator;
@@ -12,7 +13,6 @@ import eubos.position.IAddMoves;
 import eubos.position.Move;
 import eubos.position.Position;
 import eubos.score.PiecewiseEvaluation;
-import eubos.score.PositionEvaluator;
 
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.GenericPosition;
@@ -53,23 +53,50 @@ public class Board {
 			Piece.MATERIAL_VALUE_BISHOP +
 			(4 * Piece.MATERIAL_VALUE_PAWN);
 	
-	private PieceList pieceLists = new PieceList(this);
+	PieceList pieceLists = new PieceList(this);
 	
 	public PiecewiseEvaluation me;
 	
 	public PawnAttackAggregator paa;
 	public PawnKnightAttackAggregator pkaa;
 	public KnightAttackAggregator kaa;
+	public CountedPawnKnightAttackAggregator cpkaa;
 	
-	private boolean isAttacksMaskValid = false;
-	public long [][] attacks;
+	MobilityAttacksEvaluator mae;
+	
+	boolean isAttacksMaskValid = false;
+	// Dimensions are [Colour][AttackType][CountedBitBoard]
+	public long [][][] basic_attacks;
+	public long [][][] counted_attacks;
 	
 	public Board( Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove ) {
 		paa = new PawnAttackAggregator();
 		kaa = new KnightAttackAggregator();
 		pkaa = new PawnKnightAttackAggregator();
+		cpkaa = new CountedPawnKnightAttackAggregator();
 		ktc = new KingTropismChecker();
-		attacks = new long [2][4];
+		mae = new MobilityAttacksEvaluator(this);
+		
+		basic_attacks = new long [2][4][];
+		basic_attacks[0][0] = new long [1];
+		basic_attacks[1][0] = new long [1];
+		basic_attacks[0][1] = new long [1];
+		basic_attacks[1][1] = new long [1];
+		basic_attacks[0][2] = new long [1];
+		basic_attacks[1][2] = new long [1];
+		basic_attacks[0][3] = new long [1];
+		basic_attacks[1][3] = new long [1];
+		
+		counted_attacks = new long [2][4][];
+		counted_attacks[0][0] = new long [2];
+		counted_attacks[1][0] = new long [2];
+		counted_attacks[0][1] = new long [2];
+		counted_attacks[1][1] = new long [2];
+		counted_attacks[0][2] = new long [4];
+		counted_attacks[1][2] = new long [4];
+		counted_attacks[0][3] = new long [5];
+		counted_attacks[1][3] = new long [5];
+		
 		allPieces = 0x0;
 		whitePieces = 0x0;
 		blackPieces = 0x0;
@@ -874,7 +901,7 @@ public class Board {
 		boolean inCheck = false;
 		if (isAttacksMaskValid) {
 			long kingMask = isWhite ? getWhiteKing() : getBlackKing();
-			inCheck = (kingMask & attacks[isWhite ? 1 : 0][3]) != 0L;
+			inCheck = (kingMask & basic_attacks[isWhite ? 1 : 0][3][0]) != 0L;
 		} else {
 			int kingSquare = getKingPosition(isWhite);
 			inCheck = squareIsAttacked(kingSquare, isWhite);
@@ -931,10 +958,10 @@ public class Board {
 		return isPassed;
 	}
 	
-	public boolean isFrontspanControlledInKpk(int atPos, boolean isWhite, long own_attacks) {
+	public boolean isFrontspanControlledInKpk(int atPos, boolean isWhite, long [] own_attacks) {
 		boolean isControlled = false;
 		long front_span_mask = BitBoard.PawnFrontSpan_Lut[isWhite ? 0 : 1][atPos];
-		if (((front_span_mask & own_attacks) ^ front_span_mask) == 0L) {
+		if (((front_span_mask & own_attacks[0]) ^ front_span_mask) == 0L) {
 			// Don't need to check opponent attacks, because they can't attack the frontspan, ONLY VALID for KPK
 			isControlled = true;
 		}
@@ -949,32 +976,35 @@ public class Board {
 		} else {
 			pawnMask >>= 8;
 		}
-		return (pawnMask & allPieces) != 0L;
+		long enemy_pieces = isWhite ? blackPieces : whitePieces;
+		return (pawnMask & enemy_pieces) != 0L;
 	}
 	
-	public boolean isPawnFrontspanBlocked(int atPos, boolean isWhite, long own_attacks, long enemy_attacks, boolean heavySupport) {
+	public boolean isPawnFrontspanSafe(int atPos, boolean isWhite, long[] own_attacks, long[] enemy_attacks, boolean heavySupport) {
 		boolean isClear = true;
-		// Check frontspan is clear
+		// Check frontspan is controlled
 		long front_span_mask = BitBoard.PawnFrontSpan_Lut[isWhite ? 0 : 1][atPos];
-		// Check for enemy pieces blockading
-		long enemy_pieces = isWhite ? blackPieces : whitePieces;
-		if ((enemy_pieces & front_span_mask) != 0L) {
-			isClear = false; 
-		}
-		if (isClear) {
-			// Check that no square in front span is attacked by more enemy pawns than defended by own pawns
-			// Note - could return a second long from paa for squares that are attacked twice by pawns
-			long enemy_attacks_on_frontspan = enemy_attacks & front_span_mask;
-			if (enemy_attacks_on_frontspan != 0L) {
-				long own_attacks_on_frontspan = own_attacks & front_span_mask;
-				// If we don't counter attacks and there is no heavy support
-				if (((enemy_attacks_on_frontspan & own_attacks_on_frontspan) != enemy_attacks_on_frontspan) 
-						&& !heavySupport) {
-					isClear = false;
-				}
+		if (heavySupport) {
+			// assume full x-ray control of the front span, simplification
+			long [] own_xray = Arrays.copyOf(own_attacks, own_attacks.length);
+			CountedBitBoard.setBits(own_xray, front_span_mask);
+			if (!CountedBitBoard.weControlContestedSquares(own_xray, enemy_attacks, front_span_mask)) {
+				isClear = false;
 			}
+		} else if (!CountedBitBoard.weControlContestedSquares(own_attacks, enemy_attacks, front_span_mask)) {
+			isClear = false;
 		}
-		return !isClear;
+		return isClear;
+	}
+	
+	public boolean canPawnAdvance(int atPos, boolean isWhite, long[] own_attacks, long[] enemy_attacks) {
+		long pawnMask = BitBoard.positionToMask_Lut[atPos];
+		if (isWhite) {
+			 pawnMask <<= 8;
+		} else {
+			pawnMask >>= 8;
+		}
+		return CountedBitBoard.weControlContestedSquares(own_attacks, enemy_attacks, pawnMask);
 	}
 	
 	private boolean eval(boolean isWhite, long attacksOnRearSpanMask, long pawnMask) {
@@ -1003,7 +1033,8 @@ public class Board {
 		if (ownHeavyPiecesInRearSpanMask != 0L) {
 			// Evaluate the attacks for the rear span defender to see if it directly defends the pawn
 			isDefended = eval(isWhite, ownHeavyPiecesInRearSpanMask, ownPawnMask);
-		} else {
+		}
+		if (!isDefended) {
 			long enemyHeavyPiecesInRearSpanMask = rearSpanMask & (!isWhite ? getWhiteRankFile() : getBlackRankFile());
 			if (enemyHeavyPiecesInRearSpanMask != 0L) {
 				// Evaluate the attacks for the rear span attacker to see if it directly attacks the pawn
@@ -1023,7 +1054,7 @@ public class Board {
 		}
 	}
 	
-	public boolean isCandidatePassedPawn(int atPos, boolean isWhite, long own_pawn_attacks, long enemy_pawn_attacks) {
+	public boolean isCandidatePassedPawn(int atPos, boolean isWhite, long[] own_pawn_attacks, long[] enemy_pawn_attacks) {
 		boolean isCandidate = true;
 		// Check frontspan is clear
 		long front_span_mask = BitBoard.PawnFrontSpan_Lut[isWhite ? 0 : 1][atPos];
@@ -1032,15 +1063,7 @@ public class Board {
 			isCandidate  = false;
 		}
 		if (isCandidate) {
-			// Check that no square in front span is attacked by more enemy pawns than defended by own pawns
-			// Note - could return a second long from paa for squares that are attacked twice by pawns
-			long enemy_attacks_on_frontspan = enemy_pawn_attacks & front_span_mask;
-			if (enemy_attacks_on_frontspan != 0L) {
-				long own_attacks_on_frontspan = own_pawn_attacks & front_span_mask;
-				if ((enemy_attacks_on_frontspan & own_attacks_on_frontspan) != enemy_attacks_on_frontspan) {
-					isCandidate  = false;
-				}
-			}
+			isCandidate = CountedBitBoard.weControlContestedSquares(own_pawn_attacks, enemy_pawn_attacks, front_span_mask);
 		}
 		return isCandidate;
 	}
@@ -1204,20 +1227,28 @@ public class Board {
 	}
 	
 	public class PawnAttackAggregator implements IForEachPieceCallback {
-		long attackMask = 0L;
+		long attackMask[];
 		boolean attackerIsBlack = false;
 		
 		public void callback(int piece, int position) {
-			attackMask |= (attackerIsBlack ?
+			long pawnAttacks = (attackerIsBlack ?
 					SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[position] : 
 						SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[position]);
+			long bitsAlreadySetInFirstMask = pawnAttacks & attackMask[0];
+			if (attackMask.length > 1) {
+				if (bitsAlreadySetInFirstMask != 0L) {
+					// Need to find which square(s) are attacked twice and set them in the second mask,
+					// optimised for pawns, where only two squares can be simultaneously attacked by a side
+					attackMask[1] |= bitsAlreadySetInFirstMask;
+				}
+			}
+			attackMask[0] |= pawnAttacks;
 		}
 		
-		public long getPawnAttacks(boolean attackerIsBlack) {
+		public void getPawnAttacks(long[] attacksMask ,boolean attackerIsBlack) {
+			this.attackMask = attacksMask;
 			this.attackerIsBlack = attackerIsBlack;
-			this.attackMask = 0L;
 			forEachPawnOfSide(this, attackerIsBlack);
-			return attackMask;
 		}
 	}
 	
@@ -1254,12 +1285,45 @@ public class Board {
 		}
 	}
 	
+	public class CountedPawnKnightAttackAggregator implements IForEachPieceCallback {
+		
+		public final int[] BLACK_ATTACKERS = {Piece.BLACK_PAWN, Piece.BLACK_KNIGHT};
+		public final int[] WHITE_ATTACKERS = {Piece.WHITE_PAWN, Piece.WHITE_KNIGHT};
+		
+		long [] attackMask;
+		
+		public void callback(int piece, int position) {
+			long mask = 0L;
+			switch(piece) {
+			case Piece.WHITE_PAWN:
+				mask = SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[position];
+				break;
+			case Piece.BLACK_PAWN:
+				mask = SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[position];
+				break;
+			case Piece.WHITE_KNIGHT:
+			case Piece.BLACK_KNIGHT:
+				mask = SquareAttackEvaluator.KnightMove_Lut[position];
+				break;
+			default:
+				break;
+			}
+			CountedBitBoard.setBits(attackMask, mask);
+		}
+		
+		public void getAttacks(long[] attacks, boolean attackerIsBlack) {
+			this.attackMask = attacks;
+			CountedBitBoard.clear(attackMask);
+			pieceLists.forEachPieceOfTypeDoCallback(this, attackerIsBlack ? BLACK_ATTACKERS: WHITE_ATTACKERS);
+		}
+	}
+	
 	public class KnightAttackAggregator implements IForEachPieceCallback {
 		
 		public final int[] BLACK_ATTACKERS = {Piece.BLACK_KNIGHT};
 		public final int[] WHITE_ATTACKERS = {Piece.WHITE_KNIGHT};
 		
-		long attackMask = 0L;
+		long [] attackMask = {0L, 0L, 0L, 0L, 0L};
 		
 		public void callback(int piece, int position) {
 			long mask = 0L;
@@ -1271,13 +1335,12 @@ public class Board {
 			default:
 				break;
 			}
-			attackMask |= mask;
+			CountedBitBoard.setBits(attackMask, mask);
 		}
 		
-		public long getAttacks(boolean attackerIsBlack) {
-			attackMask = 0L;
+		public void getAttacks(long[] attacks, boolean attackerIsBlack) {
+			this.attackMask = attacks;
 			pieceLists.forEachPieceOfTypeDoCallback(this, attackerIsBlack ? BLACK_ATTACKERS: WHITE_ATTACKERS);
-			return attackMask;
 		}
 	}
 	
@@ -1480,12 +1543,13 @@ public class Board {
 	
 	KingTropismChecker ktc;
 	
-	public int evaluateKingSafety(long[][] attacks, boolean isWhite) {
+	public int evaluateKingSafety(long[][][] attacks, boolean isWhite) {
 		int evaluation = 0;
 
 		// King
 		long kingMask = isWhite ? getWhiteKing() : getBlackKing();
-
+		long blockers = isWhite ? getWhitePawns() : getBlackPawns();
+		
 		// Attackers
 		long attackingQueensMask = isWhite ? getBlackQueens() : getWhiteQueens();
 		long attackingRooksMask = isWhite ? getBlackRooks() : getWhiteRooks();
@@ -1501,7 +1565,6 @@ public class Board {
 		int kingPos = pieceLists.getKingPos(isWhite);
 		long mobility_mask = 0x0;
 		if (numPotentialAttackers > 0) {
-			long blockers = isWhite ? getWhitePawns() : getBlackPawns();
 			long defendingBishopsMask = isWhite ? getWhiteBishops() : getBlackBishops();
 			// only own side pawns should block an attack ray, not any piece, so don't use empty mask as propagator
 			long inDirection = BitBoard.downLeftOccludedEmpty(kingMask, ~blockers);
@@ -1519,7 +1582,6 @@ public class Board {
 		numPotentialAttackers = Long.bitCount(rankFileAttackersMask);
 		if (numPotentialAttackers > 0) {
 			mobility_mask = 0x0;
-			long blockers = isWhite ? getWhitePawns() : getBlackPawns();
 			long defendingRooksMask = isWhite ? getWhiteRooks() : getBlackRooks();
 			long inDirection = BitBoard.downOccludedEmpty(kingMask, ~blockers);
 			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
@@ -1537,36 +1599,134 @@ public class Board {
 		final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT};
 		evaluation += ktc.getScore(kingPos, isWhite ? BLACK_ATTACKERS : WHITE_ATTACKERS);
 		
-		if (PositionEvaluator.ENABLE_TWEAKED_KING_FLIGHT_SQUARES) {
-			// V2 Then account for attacks on the squares around the king
-			long surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
-			int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3]);
-			int flightCount = Long.bitCount(surroundingSquares & ~allPieces); // perhaps just own pieces?
-			
-			int fraction_attacked_q8 = 256;
-			if (flightCount != 0 && attackedCount < flightCount) {
-			    fraction_attacked_q8 = (attackedCount * 256) / flightCount;
-			}
-			evaluation += ((-150 * fraction_attacked_q8) / 256);
-			if (flightCount == 0) {
-				// there are no flight squares, high risk of mate
-				evaluation += -100;
-			}
-		}
-		else {
-			// V1 Then account for attacks on the squares around the king
-			long surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
-			int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3]);
-			int flightCount = Long.bitCount(surroundingSquares);
-			int fraction_attacked_q8 = (attackedCount * 256) / flightCount;
-			evaluation += ((-150 * fraction_attacked_q8) / 256);
-			if (attackedCount == flightCount) {
-				// there are no flight squares, high risk of mate
-				evaluation += -100;
-			}
+		// Then account for attacks on the squares around the king
+		long surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
+		int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3][0]);
+		int flightCount = Long.bitCount(surroundingSquares);
+		int fraction_attacked_q8 = (attackedCount * 256) / flightCount;
+		evaluation += ((-150 * fraction_attacked_q8) / 256);
+		if (attackedCount == flightCount) {
+			// there are no flight squares, high risk of mate
+			evaluation += -100;
 		}
 		
+		// Hit with a penalty if few defending pawns in the king zone
+		surroundingSquares = SquareAttackEvaluator.KingZone_Lut[isWhite ? 0 : 1][kingPos];		
+		long pawnShieldMask =  isWhite ? surroundingSquares >>> 8 : surroundingSquares << 8;
+		evaluation += PAWN_SHELTER_LUT[Long.bitCount(pawnShieldMask & blockers)];
+		
 		return evaluation;
+	}
+	
+	public int evaluateKingSafetyV2(long[][][] attacks, boolean isWhite) {
+		int evaluation = 0;
+
+		// King
+		long kingMask = isWhite ? getWhiteKing() : getBlackKing();
+
+		// Attackers
+		long attackingQueensMask = isWhite ? getBlackQueens() : getWhiteQueens();
+		long attackingRooksMask = isWhite ? getBlackRooks() : getWhiteRooks();
+		long attackingBishopsMask = isWhite ? getBlackBishops() : getWhiteBishops();
+
+		// create masks of attackers
+		long pertinentBishopMask = attackingBishopsMask;
+		long diagonalAttackersMask = attackingQueensMask | pertinentBishopMask;
+		long rankFileAttackersMask = attackingQueensMask | attackingRooksMask;
+		
+		// Defenders
+		long blockers = isWhite ? getWhitePawns() : getBlackPawns();
+		
+		// First score according to King exposure on open diagonals
+		int numPotentialAttackers = Long.bitCount(diagonalAttackersMask);
+		int kingPos = pieceLists.getKingPos(isWhite);
+		long mobility_mask = 0x0;
+		if (numPotentialAttackers > 0) {
+			long defendingBishopsMask = isWhite ? getWhiteBishops() : getBlackBishops();
+			// only own side pawns should block an attack ray, not any piece, so don't use empty mask as propagator
+			long inDirection = BitBoard.downLeftOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
+			inDirection = BitBoard.upLeftOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
+			inDirection = BitBoard.upRightOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
+			inDirection = BitBoard.downRightOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
+			evaluation = Long.bitCount(mobility_mask ^ kingMask) * -numPotentialAttackers;
+		}
+		
+		// Then score according to King exposure on open rank/files
+		numPotentialAttackers = Long.bitCount(rankFileAttackersMask);
+		if (numPotentialAttackers > 0) {
+			mobility_mask = 0x0;
+			long defendingRooksMask = isWhite ? getWhiteRooks() : getBlackRooks();
+			long inDirection = BitBoard.downOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
+			inDirection = BitBoard.upOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
+			inDirection = BitBoard.rightOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
+			inDirection = BitBoard.leftOccludedEmpty(kingMask, ~blockers);
+			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
+			evaluation += Long.bitCount(mobility_mask ^ kingMask) * -numPotentialAttackers;
+		}
+		
+		// Then, do king tropism for queen and knight as a bonus
+		final int[] BLACK_ATTACKERS = {Piece.BLACK_QUEEN, Piece.BLACK_KNIGHT};
+		final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT};
+		evaluation += ktc.getScore(kingPos, isWhite ? BLACK_ATTACKERS : WHITE_ATTACKERS);
+		
+		// Then account for attacks on the squares around the king
+		long [] our_attacks = attacks[isWhite ? 0 : 1][3];
+		long [] enemy_attacks = attacks[isWhite ? 1 : 0][3];
+		long surroundingSquares = SquareAttackEvaluator.KingZone_Lut[isWhite ? 0 : 1][kingPos];
+		int num_squares_controlled_by_enemy = CountedBitBoard.evaluate(our_attacks, enemy_attacks, surroundingSquares);
+		evaluation -= ENEMY_SQUARE_CONTROL_LUT[num_squares_controlled_by_enemy];
+		
+		// Hit with a penalty if few defending pawns in the king zone
+		long pawnShieldMask =  isWhite ? surroundingSquares >>> 8 : surroundingSquares << 8;
+		evaluation += PAWN_SHELTER_LUT[Long.bitCount(pawnShieldMask & blockers)];
+		
+		// Then evaluate the check mate threat
+//		surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
+//		int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3][0]);
+//		int flightCount = Long.bitCount(surroundingSquares & ~(isWhite?whitePieces:blackPieces));
+//		if (flightCount-attackedCount <= 1) {
+//			// There are no flight squares, high risk of mate
+//			// TODO make penalty function of material? or function of fraction_squares_controlled_by_enemy_q8
+//			evaluation += ((-500 * fraction_squares_controlled_by_enemy_q8) / 256); 
+//		}
+		return evaluation;
+	}
+	
+	public final int[] PAWN_SHELTER_LUT = {-100, -50, -15, 2, 4, 4, 0, 0, 0, 0};
+	
+	public final int[] ENEMY_SQUARE_CONTROL_LUT = {
+			0, 5, 10, 30, 
+			75, 150, 240, 350, 
+			400, 450, 500, 550,
+			600, 600, 600, 600};
+	
+	private int getQ8SquareControlRoundKing(long[] own_attacks, long[] enemy_attacks, long squares) {
+		int enemy_control_count = 0;
+		int total_squares = 0;
+		while (squares != 0L) {
+			// Get square to analyse
+			long square = Long.lowestOneBit(squares);
+			if (!CountedBitBoard.weControlContestedSquares(own_attacks, enemy_attacks, square)) {
+				enemy_control_count++;
+			}
+			// unset LSB
+			squares ^= square;
+			total_squares++;
+		}
+		int fraction_squares_controlled_by_enemy_q8 = (256 * enemy_control_count) / total_squares;
+		return fraction_squares_controlled_by_enemy_q8;
+	}
+	
+	public int evaluateSquareControlRoundKing(long[] own_attacks, long[] enemy_attacks, long squares) {
+		int fraction_squares_controlled_by_enemy_q8 = getQ8SquareControlRoundKing(own_attacks, enemy_attacks, squares);
+		return ((-150 * fraction_squares_controlled_by_enemy_q8) / 256);
 	}
 	
 	public boolean kingInDanger(boolean isWhite) {
@@ -1600,236 +1760,131 @@ public class Board {
 			return ((pieces[Piece.PAWN] & blackPieces & SecondRankMask) != 0x0);
 		}
 	}
-	
-	int calculateDiagonalMobility(long bishops, long queens) {
-		return calculateDiagonalMobility(bishops, queens, attacks[0]);
-	}
-
-	int calculateDiagonalMobility(long bishops, long queens, long [] attacks) {
-		long empty = ~allPieces;
-		int mobility_score = 0x0;
-		long diagonal_sliders = bishops | queens;
-		long sliderAttacks = 0L;
-		if (queens != 0) {
-			if (bishops != 0) {
-				long mobility_mask_1 = BitBoard.downLeftOccludedEmpty(diagonal_sliders, empty);
-				sliderAttacks = BitBoard.downLeftAttacks(mobility_mask_1);
-				long mobility_mask_2 = BitBoard.upRightOccludedEmpty(diagonal_sliders, empty);
-				sliderAttacks |= BitBoard.upRightAttacks(mobility_mask_2);
-				
-				mobility_mask_1 ^= diagonal_sliders;
-				mobility_mask_2 ^= diagonal_sliders;
-				if ((mobility_mask_1 & mobility_mask_2) == 0x0) {
-					mobility_score = Long.bitCount(mobility_mask_1 | mobility_mask_2);
-				} else {
-					mobility_score = Long.bitCount(mobility_mask_1) + Long.bitCount(mobility_mask_2);
-				}
-				
-				mobility_mask_1 = BitBoard.downRightOccludedEmpty(diagonal_sliders, empty);
-				sliderAttacks |= BitBoard.downRightAttacks(mobility_mask_1);
-				mobility_mask_2 = BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty);
-				sliderAttacks |= BitBoard.upLeftAttacks(mobility_mask_2);
-				
-				mobility_mask_1 ^= diagonal_sliders;
-				mobility_mask_2 ^= diagonal_sliders;
-				if ((mobility_mask_1 & mobility_mask_2) == 0x0) {
-					mobility_score += Long.bitCount(mobility_mask_1 | mobility_mask_2);
-				} else {
-					mobility_score += Long.bitCount(mobility_mask_1) + Long.bitCount(mobility_mask_2);
-				}
-			} else {
-				// Assume that if it is just queens, then material is so unbalanced that it doesn't matter that they can intersect
-				long temp = 0L;
-				long mobility_mask = BitBoard.downLeftOccludedEmpty(diagonal_sliders, empty);
-				sliderAttacks = BitBoard.downLeftAttacks(mobility_mask);
-				
-				temp = BitBoard.upRightOccludedEmpty(diagonal_sliders, empty);
-				mobility_mask |= temp;
-				sliderAttacks |= BitBoard.upRightAttacks(temp);
-				
-				temp = BitBoard.downRightOccludedEmpty(diagonal_sliders, empty);
-				mobility_mask |= temp;
-				sliderAttacks |= BitBoard.downRightAttacks(temp);
-				
-				temp = BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty);
-				mobility_mask |= temp;
-				sliderAttacks |= BitBoard.upLeftAttacks(temp);
-				
-				mobility_score = Long.bitCount(mobility_mask ^ diagonal_sliders);
-			}
-		} else if (bishops != 0) {
-			// Assume that if it is just bishops, they can't intersect, which allows optimisation
-			if (diagonal_sliders != 0) {
-				long temp = 0L;
-				long mobility_mask = BitBoard.downLeftOccludedEmpty(diagonal_sliders, empty);
-				sliderAttacks = BitBoard.downLeftAttacks(mobility_mask);
-				
-				temp = BitBoard.upRightOccludedEmpty(diagonal_sliders, empty);
-				mobility_mask |= temp;
-				sliderAttacks |= BitBoard.upRightAttacks(temp);
-				
-				temp = BitBoard.downRightOccludedEmpty(diagonal_sliders, empty);
-				mobility_mask |= temp;
-				sliderAttacks |= BitBoard.downRightAttacks(temp);
-				
-				temp = BitBoard.upLeftOccludedEmpty(diagonal_sliders, empty);
-				mobility_mask |= temp;
-				sliderAttacks |= BitBoard.upLeftAttacks(temp);
-				
-				mobility_score = Long.bitCount(mobility_mask ^ diagonal_sliders);
-			}
-		}
-		attacks[2] |= sliderAttacks;
-		attacks[3] |= sliderAttacks;
-		return mobility_score;
-	}
-	
-	int calculateRankFileMobility(long rooks, long queens) {
-		return calculateRankFileMobility(rooks, queens, attacks[0]);
-	}
-	
-	int calculateRankFileMobility(long rooks, long queens, long [] attacks) {
-		long empty = ~allPieces;
-		int mobility_score = 0x0;
-		long rank_file_sliders = rooks | queens;
-		long sliderAttacks = 0L;
-		if (rooks != 0) {
-			long mobility_mask_1 = BitBoard.leftOccludedEmpty(rank_file_sliders, empty);
-			sliderAttacks = BitBoard.leftAttacks(mobility_mask_1);
-			long mobility_mask_2 = BitBoard.rightOccludedEmpty(rank_file_sliders, empty);
-			sliderAttacks |= BitBoard.rightAttacks(mobility_mask_2);
-			
-			mobility_mask_1 ^= rank_file_sliders;
-			mobility_mask_2 ^= rank_file_sliders;
-			if ((mobility_mask_1 & mobility_mask_2) == 0x0) {
-				mobility_score = Long.bitCount(mobility_mask_1 | mobility_mask_2);
-			} else {
-				mobility_score = Long.bitCount(mobility_mask_1) + Long.bitCount(mobility_mask_2);
-			}
-			
-			mobility_mask_1 = BitBoard.upOccludedEmpty(rank_file_sliders, empty);
-			sliderAttacks |= BitBoard.upAttacks(mobility_mask_1);
-			mobility_mask_2 = BitBoard.downOccludedEmpty(rank_file_sliders, empty);
-			sliderAttacks |= BitBoard.downAttacks(mobility_mask_2);
-			
-			mobility_mask_1 ^= rank_file_sliders;
-			mobility_mask_2 ^= rank_file_sliders;
-			if ((mobility_mask_1 & mobility_mask_2) == 0x0) {
-				mobility_score += Long.bitCount(mobility_mask_1 | mobility_mask_2);
-			} else {
-				mobility_score += Long.bitCount(mobility_mask_1) + Long.bitCount(mobility_mask_2);
-			}
-		}
-		else if (rank_file_sliders != 0) {
-			// Assume that if it is just queens, then material is so unbalanced that it doesn't matter that they can intersect
-			long temp = 0L;
-			long mobility_mask = 0L; 
-			
-			temp = BitBoard.leftOccludedEmpty(rank_file_sliders, empty);
-			mobility_mask |= temp;
-			sliderAttacks = BitBoard.leftAttacks(mobility_mask);
-			
-			temp = BitBoard.rightOccludedEmpty(rank_file_sliders, empty);
-			mobility_mask |= temp;
-			sliderAttacks |= BitBoard.rightAttacks(temp);
-			
-			temp = BitBoard.downOccludedEmpty(rank_file_sliders, empty);
-			mobility_mask |= temp;
-			sliderAttacks |= BitBoard.downAttacks(temp);
-			
-			temp = BitBoard.upOccludedEmpty(rank_file_sliders, empty);
-			mobility_mask |= temp;
-			sliderAttacks |= BitBoard.upAttacks(temp);
-			
-			mobility_score = Long.bitCount(mobility_mask ^ rank_file_sliders);
-		}
-		attacks[2] |= sliderAttacks;
-		attacks[3] |= sliderAttacks;
-		return mobility_score;
-	}
-	
-	public long [][] calculateAttacksAndMobility(PiecewiseEvaluation me) {
-		int mobility_score = 0x0;
 		
-		getBasicAttacksForSide(attacks[0], false);
-		// White Bishop and Queen
-		long white_queens = getWhiteQueens();
-		mobility_score = calculateDiagonalMobility(getWhiteBishops(), white_queens, attacks[0]);
-		me.dynamicPosition += (short)(mobility_score*2);
-
-		// White Rook and Queen
-		mobility_score = calculateRankFileMobility(getWhiteRooks(), white_queens, attacks[0]);
-		me.dynamicPosition += (short)(mobility_score*2);
-		
-		getBasicAttacksForSide(attacks[1], true);
-		// Black Bishop and Queen
-		long black_queens = getBlackQueens();
-		mobility_score = calculateDiagonalMobility(getBlackBishops(), black_queens, attacks[1]);
-		me.dynamicPosition -= (short)(mobility_score*2);
-		
-		// Black Rook and Queen
-		mobility_score = calculateRankFileMobility(getBlackRooks(), black_queens, attacks[1]);
-		me.dynamicPosition -= (short)(mobility_score*2);
-		
-		isAttacksMaskValid = true;
-		return attacks;
-	}
-	
-	protected void getBasicAttacksForSide(long [] attacks, boolean isBlack) {
-		attacks[0] = attacks[1] = attacks[2] = attacks[3] = 0L;
-		// Pawns
-		long pawnAttacks = paa.getPawnAttacks(isBlack);
-		attacks[0] = pawnAttacks;
-		attacks[3] |= pawnAttacks;
-		// Knights
-		long knightAttacks = kaa.getAttacks(isBlack);
-		attacks[1] = knightAttacks;
-		attacks[3] |= knightAttacks;
-		// King
-		long kingAttacks = SquareAttackEvaluator.KingMove_Lut[pieceLists.getKingPos(!isBlack)];
-		attacks[3] |= kingAttacks;
-	}
-	
-	protected void getAttacksForSide(long [] attacks, boolean isBlack) {
-		attacks[0] = attacks[1] = attacks[2] = attacks[3] = 0L;
-		// Pawns
-		long pawnAttacks = paa.getPawnAttacks(isBlack);
-		attacks[0] = pawnAttacks;
-		attacks[3] |= pawnAttacks;
-		// Knights
-		long knightAttacks = kaa.getAttacks(isBlack);
-		attacks[1] = knightAttacks;
-		attacks[3] |= knightAttacks;
-		// King
-		long kingAttacks = SquareAttackEvaluator.KingMove_Lut[pieceLists.getKingPos(!isBlack)];
-		attacks[3] |= kingAttacks;
+	protected void getAttacksForSide(long [][] attacks, boolean isBlack) {
+		mae.getBasicAttacksForSide(attacks, isBlack, true);
 		// Sliders
-		long sliderAttacks = 0L;
 		long diagonalAttackersMask = isBlack ? getBlackDiagonal() : getWhiteDiagonal();
 		long rankFileAttackersMask = isBlack ? getBlackRankFile() : getWhiteRankFile();
 		long empty = getEmpty();
-		if (diagonalAttackersMask != 0x0L) {
-			sliderAttacks |= BitBoard.downLeftAttacks(diagonalAttackersMask, empty);
-			sliderAttacks |= BitBoard.downRightAttacks(diagonalAttackersMask, empty);
-			sliderAttacks |= BitBoard.upRightAttacks(diagonalAttackersMask, empty);
-			sliderAttacks |= BitBoard.upLeftAttacks(diagonalAttackersMask, empty);
+		long individualAttacker = 0L;
+		long tailored_empty = empty | diagonalAttackersMask;
+		while (diagonalAttackersMask != 0x0L) {
+			individualAttacker = Long.lowestOneBit(diagonalAttackersMask);
+			CountedBitBoard.setBits(attacks[2], BitBoard.downLeftAttacks(individualAttacker, tailored_empty));
+			CountedBitBoard.setBits(attacks[2], BitBoard.downRightAttacks(individualAttacker, tailored_empty));
+			CountedBitBoard.setBits(attacks[2], BitBoard.upRightAttacks(individualAttacker, tailored_empty));
+			CountedBitBoard.setBits(attacks[2], BitBoard.upLeftAttacks(individualAttacker, tailored_empty));
+			diagonalAttackersMask ^= individualAttacker;
 		}
-		if (rankFileAttackersMask != 0x0L) {
-			sliderAttacks |= BitBoard.downAttacks(rankFileAttackersMask, empty);
-			sliderAttacks |= BitBoard.rightAttacks(rankFileAttackersMask, empty);
-			sliderAttacks |= BitBoard.upAttacks(rankFileAttackersMask, empty);
-			sliderAttacks |= BitBoard.leftAttacks(rankFileAttackersMask, empty);
+		tailored_empty = empty | rankFileAttackersMask;
+		while (rankFileAttackersMask != 0x0L) {
+			individualAttacker = Long.lowestOneBit(rankFileAttackersMask);
+			CountedBitBoard.setBits(attacks[2], BitBoard.downAttacks(individualAttacker, tailored_empty));
+			CountedBitBoard.setBits(attacks[2], BitBoard.rightAttacks(individualAttacker, tailored_empty));
+			CountedBitBoard.setBits(attacks[2], BitBoard.upAttacks(individualAttacker, tailored_empty));
+			CountedBitBoard.setBits(attacks[2], BitBoard.leftAttacks(individualAttacker, tailored_empty));
+			rankFileAttackersMask ^= individualAttacker;
 		}
-		attacks[2] = sliderAttacks;
-		attacks[3] |= sliderAttacks;
+		CountedBitBoard.setBitArrays(attacks[3], attacks[2]);
 	}
 	
-	public long[][] getAttackedSquares() {
+	public long[][][] getAttackedSquares() {
 		if (!isAttacksMaskValid) {
-			getAttacksForSide(attacks[0], false);
-			getAttacksForSide(attacks[1], true);
+			getAttacksForSide(counted_attacks[0], false);
+			getAttacksForSide(counted_attacks[1], true);
 			isAttacksMaskValid = true;
 		}
+		return counted_attacks;
+	}
+	
+	public long [][][] calculateAttacksAndMobility(PiecewiseEvaluation me, boolean passedPawnPresent) {
+		int mobility_score = 0x0;
+		long [][][] attacks = basic_attacks;
+		if (passedPawnPresent) {
+			attacks = counted_attacks;
+		}
+		
+		mae.getBasicAttacksForSide(attacks[0], false, passedPawnPresent);
+		// White Bishop and Queen
+		long white_queens = getWhiteQueens();
+		mobility_score = mae.calculateDiagonalMobility(getWhiteBishops(), white_queens, attacks[0][2], passedPawnPresent);
+		me.dynamicPosition += (short)(mobility_score*2);
+
+		// White Rook and Queen
+		mobility_score = mae.calculateRankFileMobility(getWhiteRooks(), white_queens, attacks[0][2], passedPawnPresent);
+		me.dynamicPosition += (short)(mobility_score*2);
+		
+		if (passedPawnPresent) {
+			CountedBitBoard.setBitArrays(attacks[0][3], attacks[0][2]);
+		} else {
+			attacks[0][3][0] |= attacks[0][2][0];
+		}
+		
+		mae.getBasicAttacksForSide(attacks[1], true, passedPawnPresent);
+		// Black Bishop and Queen
+		long black_queens = getBlackQueens();
+		mobility_score = mae.calculateDiagonalMobility(getBlackBishops(), black_queens, attacks[1][2], passedPawnPresent);
+		me.dynamicPosition -= (short)(mobility_score*2);
+		
+		// Black Rook and Queen
+		mobility_score = mae.calculateRankFileMobility(getBlackRooks(), black_queens, attacks[1][2], passedPawnPresent);
+		me.dynamicPosition -= (short)(mobility_score*2);
+		
+		if (passedPawnPresent) {
+			CountedBitBoard.setBitArrays(attacks[1][3], attacks[1][2]);
+		} else {
+			attacks[1][3][0] |= attacks[1][2][0];
+		}
+	
+		// Need to assign king mask in basic attacks if using pp attacks masks for isKingInCheck() function
+		if (passedPawnPresent) {
+			basic_attacks[0][3][0] = counted_attacks[0][3][0];
+			basic_attacks[1][3][0] = counted_attacks[1][3][0]; 
+		}
+		isAttacksMaskValid = true;
+		
 		return attacks;
+	}
+	
+	public boolean isPassedPawnPresent() {
+		if (pieces[Piece.PAWN] == 0) return false;
+		
+		long blackPawns = this.getBlackPawns();
+		long whitePawns = this.getWhitePawns();
+		if (whitePawns == 0L || blackPawns == 0L) {
+			// if there is one or more pawns and none of the opposite side, then is passed
+			return true;
+		}
+		
+		for (int file : IntFile.values ) {
+			long us_mask = whitePawns & BitBoard.FileMask_Lut[file];
+			if (us_mask != 0L) {
+				long them_mask = blackPawns & BitBoard.FileMask_Lut[file];
+				long them_right = (file < 7) ? blackPawns & BitBoard.FileMask_Lut[file+1] : 0L;
+				long them_left = (file > 0) ? blackPawns & BitBoard.FileMask_Lut[file-1] : 0L;
+				if (them_mask == 0L && them_right == 0L && them_left == 0L) {
+					return true;
+				} else if (them_mask < us_mask && them_right < us_mask && them_left < us_mask) {
+					// behind us, so passed
+					return true;
+				}
+			}
+		}
+		for (int file : IntFile.values ) {
+			long us_mask = blackPawns & BitBoard.FileMask_Lut[file];
+			if (us_mask != 0L) {
+				long them_mask = whitePawns & BitBoard.FileMask_Lut[file];
+				long them_right = (file < 7) ? whitePawns & BitBoard.FileMask_Lut[file+1] : 0L;
+				long them_left = (file > 0) ? whitePawns & BitBoard.FileMask_Lut[file-1] : 0L;
+				if (them_mask == 0L && them_right == 0L && them_left == 0L) {
+					return true;
+				} else if (them_mask > us_mask && them_right > us_mask && them_left > us_mask) {
+					// behind us, so passed
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }
