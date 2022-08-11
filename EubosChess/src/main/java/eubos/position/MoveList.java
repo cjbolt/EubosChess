@@ -50,7 +50,6 @@ public class MoveList implements Iterable<Integer> {
 
 	private int[] bestMove;
 	private int[][] killers;
-	private long[] attackMask;
 	
 	private MoveListIterator[] ml;
 
@@ -76,7 +75,6 @@ public class MoveList implements Iterable<Integer> {
 		extendedSearch = new boolean[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		isWhite = new boolean[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		killers = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY][3];
-		attackMask = new long[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		nextCheckPoint = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		
 		this.pm = pm;
@@ -223,47 +221,21 @@ public class MoveList implements Iterable<Integer> {
 	private void getNonPawnPromotionCaptures() {
 		moveCount[ply] = 0;
 		priority_fill_index[ply] = 0;
-		if (ALTERNATE) {
-			if (extendedSearch[ply]) {
-				// N.b. In extended search, we have no killers and we don't check for regular
-				// moves
-				pm.getTheBoard().getCapturesExcludingPromotions(ma_captures, isWhite[ply]);
-			} else {
-				attackMask[ply] = pm.getTheBoard().pkaa.getAttacks(isWhite[ply]);
-				if (killers[ply] == null) {
-					ma_captures_regular_NoKillers.attackMask = attackMask[ply];
-					pm.getTheBoard().getCapturesBufferRegularExcludingPromotions(ma_captures_regular_NoKillers,
-							isWhite[ply]);
-				} else {
-					ma_captures_regular_ConsumeKillers.attackMask = attackMask[ply];
-					pm.getTheBoard().getCapturesBufferRegularExcludingPromotions(ma_captures_regular_ConsumeKillers,
-							isWhite[ply]);
-				}
-			}
-		} else {
-			pm.getTheBoard().getCapturesExcludingPromotions(ma_captures, isWhite[ply]);
-		}
+		pm.getTheBoard().getCapturesExcludingPromotions(ma_captures, isWhite[ply]);
 	}
 
 	private void getQuietMoves() {
 		moveCount[ply] = normal_fill_index[ply] + scratchpad_fill_index[ply];
 		priority_fill_index[ply] = 0;
 		IAddMoves moveAdder = null;
-		attackMask[ply] = pm.getTheBoard().pkaa.getAttacks(isWhite[ply]);
 		if (killers[ply] == null) {
 			moveAdder = ma_quietNoKillers;
-			ma_quietNoKillers.attackMask = attackMask[ply];
 		} else {
 			// Set-up move adder to filter the moves from attacked pieces into the priority
 			// part of the move list
 			moveAdder = ma_quietConsumeKillers;
-			ma_quietConsumeKillers.attackMask = attackMask[ply];
 		}
-		if (ALTERNATE) {
-			pm.getTheBoard().getLeftoverRegularExcludingPromotions(moveAdder, isWhite[ply]);
-		} else {
-			pm.getTheBoard().getRegularPieceMoves(moveAdder, isWhite[ply]);
-		}
+		pm.getTheBoard().getRegularPieceMoves(moveAdder, isWhite[ply]);
 		if (!needToEscapeMate[ply]) {
 			// Can't castle out of check and don't care in extended search
 			pm.castling.addCastlingMoves(isWhite[ply], moveAdder);
@@ -382,10 +354,6 @@ public class MoveList implements Iterable<Integer> {
 	}
 
 	public class MoveAdderCapturesAndSomeRegularConsumeKillers extends MoveAdderPromotions implements IAddMoves {
-		long attackMask = 0L;
-		boolean attacked = false;
-		boolean attackedDetermined = false;
-
 		@Override
 		public void addPrio(int move) {
 			if (Move.areEqualForBestKiller(move, bestMove[ply]))
@@ -403,28 +371,9 @@ public class MoveList implements Iterable<Integer> {
 			if (KillerList.isMoveOnListAtPly(killers[ply], move))
 				return;
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
-				if (attacked || (!attackedDetermined && isMoveOriginSquareAttacked(move))) {
-					scratchpad[ply][scratchpad_fill_index[ply]++] = move;
-					attacked = true;
-				} else {
-					normal_search_moves[ply][normal_fill_index[ply]++] = move;
-				}
-				attackedDetermined = true;
+				normal_search_moves[ply][normal_fill_index[ply]++] = move;
 				moveCount[ply]++;
 			}
-		}
-
-		protected boolean isMoveOriginSquareAttacked(int move) {
-			long orginSquare = BitBoard.positionToMask_Lut[Move.getOriginPosition(move)];
-			if ((orginSquare & attackMask) == orginSquare)
-				return true;
-			return false;
-		}
-
-		@Override
-		public void clearAttackedCache() {
-			attackedDetermined = false;
-			attacked = false;
 		}
 	}
 
@@ -444,13 +393,7 @@ public class MoveList implements Iterable<Integer> {
 			if (Move.areEqualForBestKiller(move, bestMove[ply]))
 				return;
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
-				if (attacked || (!attackedDetermined && isMoveOriginSquareAttacked(move))) {
-					scratchpad[ply][scratchpad_fill_index[ply]++] = move;
-					attacked = true;
-				} else {
-					normal_search_moves[ply][normal_fill_index[ply]++] = move;
-				}
-				attackedDetermined = true;
+				normal_search_moves[ply][normal_fill_index[ply]++] = move;
 				moveCount[ply]++;
 			}
 		}
@@ -466,13 +409,7 @@ public class MoveList implements Iterable<Integer> {
 			if (Move.areEqualForBestKiller(move, bestMove[ply]))
 				return;
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
-				if (attacked || (!attackedDetermined && isMoveOriginSquareAttacked(move))) {
-					priority_moves[ply][priority_fill_index[ply]++] = move;
-					attacked = true;
-				} else {
-					normal_search_moves[ply][normal_fill_index[ply]++] = move;
-				}
-				attackedDetermined = true;
+				normal_search_moves[ply][normal_fill_index[ply]++] = move;
 				moveCount[ply]++;
 			}
 		}
@@ -486,13 +423,7 @@ public class MoveList implements Iterable<Integer> {
 			if (KillerList.isMoveOnListAtPly(killers[ply], move))
 				return;
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
-				if (attacked || (!attackedDetermined && isMoveOriginSquareAttacked(move))) {
-					priority_moves[ply][priority_fill_index[ply]++] = move;
-					attacked = true;
-				} else {
-					normal_search_moves[ply][normal_fill_index[ply]++] = move;
-				}
-				attackedDetermined = true;
+				normal_search_moves[ply][normal_fill_index[ply]++] = move;
 				moveCount[ply]++;
 			}
 		}
