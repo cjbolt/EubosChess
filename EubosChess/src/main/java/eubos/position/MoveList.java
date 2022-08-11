@@ -8,7 +8,6 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericRank;
 import com.fluxchess.jcpi.models.IntFile;
 
-import eubos.board.BitBoard;
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.search.KillerList;
@@ -30,8 +29,6 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	private static MoveListIterator empty = new MoveListIterator(new int [] {}, 0);
-	
-	public static final boolean ALTERNATE = false;
 
 	private int[][] normal_search_moves;
 	private int[][] priority_moves;
@@ -60,8 +57,6 @@ public class MoveList implements Iterable<Integer> {
 
 	public MoveAdderPromotions ma_promotions;
 	public MoveAdderCaptures ma_captures;
-	public MoveAdderCapturesAndSomeRegularConsumeKillers ma_captures_regular_ConsumeKillers;
-	public MoveAdderCapturesAndSomeRegularNoKillers ma_captures_regular_NoKillers;
 
 	public QuietMovesWithNoKillers ma_quietNoKillers;
 	public QuietMovesConsumingKillers ma_quietConsumeKillers;
@@ -83,8 +78,6 @@ public class MoveList implements Iterable<Integer> {
 		// Create Move Adders
 		ma_promotions = new MoveAdderPromotions();
 		ma_captures = new MoveAdderCaptures();
-		ma_captures_regular_ConsumeKillers = new MoveAdderCapturesAndSomeRegularConsumeKillers();
-		ma_captures_regular_NoKillers = new MoveAdderCapturesAndSomeRegularNoKillers();
 		ma_quietNoKillers = new QuietMovesWithNoKillers();
 		ma_quietConsumeKillers = new QuietMovesConsumingKillers();
 	}
@@ -321,10 +314,8 @@ public class MoveList implements Iterable<Integer> {
 		} // Doesn't deal with quiet moves by design
 
 		public boolean isLegalMoveFound() {
+			// This is only used by the legal move checker, which is for detecting quiescent positions
 			return false;
-		}
-
-		public void clearAttackedCache() {
 		}
 
 		@SuppressWarnings("unused")
@@ -344,8 +335,6 @@ public class MoveList implements Iterable<Integer> {
 	public class MoveAdderCaptures extends MoveAdderPromotions implements IAddMoves {
 		@Override
 		public void addPrio(int move) {
-			if (Move.areEqualForBestKiller(move, bestMove[ply]))
-				return;
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
 				priority_moves[ply][priority_fill_index[ply]++] = move;
 				moveCount[ply]++;
@@ -353,53 +342,7 @@ public class MoveList implements Iterable<Integer> {
 		}
 	}
 
-	public class MoveAdderCapturesAndSomeRegularConsumeKillers extends MoveAdderPromotions implements IAddMoves {
-		@Override
-		public void addPrio(int move) {
-			if (Move.areEqualForBestKiller(move, bestMove[ply]))
-				return;
-			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
-				priority_moves[ply][priority_fill_index[ply]++] = move;
-				moveCount[ply]++;
-			}
-		}
-
-		@Override
-		public void addNormal(int move) {
-			if (Move.areEqualForBestKiller(move, bestMove[ply]))
-				return;
-			if (KillerList.isMoveOnListAtPly(killers[ply], move))
-				return;
-			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
-				normal_search_moves[ply][normal_fill_index[ply]++] = move;
-				moveCount[ply]++;
-			}
-		}
-	}
-
-	public class MoveAdderCapturesAndSomeRegularNoKillers extends MoveAdderCapturesAndSomeRegularConsumeKillers implements IAddMoves {
-		@Override
-		public void addPrio(int move) {
-			if (Move.areEqualForBestKiller(move, bestMove[ply]))
-				return;
-			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
-				priority_moves[ply][priority_fill_index[ply]++] = move;
-				moveCount[ply]++;
-			}
-		}
-
-		@Override
-		public void addNormal(int move) {
-			if (Move.areEqualForBestKiller(move, bestMove[ply]))
-				return;
-			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
-				normal_search_moves[ply][normal_fill_index[ply]++] = move;
-				moveCount[ply]++;
-			}
-		}
-	}
-
-	public class QuietMovesWithNoKillers extends MoveAdderCapturesAndSomeRegularConsumeKillers implements IAddMoves {
+	public class QuietMovesWithNoKillers extends MoveAdderPromotions implements IAddMoves {
 		@Override
 		public void addPrio(int move) {
 		} // Doesn't deal with tactical moves by design

@@ -1376,22 +1376,6 @@ public class Board {
 		}
 	}
 	
-	public void getCapturesBufferRegularExcludingPromotions(IAddMoves ml, boolean isWhite) {
-		if (isWhite) {
-			pieceLists.addMoves_AllMovesForPiecesThatCouldCaptureExcludingPawnPromotions_White(ml, me.isEndgame());
-		} else {
-			pieceLists.addMoves_AllMovesForPiecesThatCouldCaptureExcludingPawnPromotions_Black(ml, me.isEndgame());
-		}
-	}
-	
-	public void getLeftoverRegularExcludingPromotions(IAddMoves ml, boolean isWhite) {
-		if (isWhite) {
-			pieceLists.addMoves_AllMovesForPiecesThatCannotCaptureExcludingPawnPromotions_White(ml, me.isEndgame());
-		} else {
-			pieceLists.addMoves_AllMovesForPiecesThatCannotCaptureExcludingPawnPromotions_Black(ml, me.isEndgame());
-		}
-	}
-	
 	public class LegalMoveChecker implements IAddMoves {
 		
 		boolean legalMoveFound = false;
@@ -1431,8 +1415,7 @@ public class Board {
 		pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(true, the_me);
 		pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(false, the_me);
 		the_me.setPhase();
-	}
-	
+	}	
 	
 	public boolean isInsufficientMaterial() {
 		// Major pieces

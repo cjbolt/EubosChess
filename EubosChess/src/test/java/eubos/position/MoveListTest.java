@@ -361,25 +361,6 @@ public class MoveListTest {
 	}
 	
 	@Test
-	public void test_attacked_piece_is_ordered_before_other_quiet_moves() throws IllegalNotationException {
-		setup("7k/8/8/5n2/8/1PPPP3/8/7K w - - 0 1 ");
-		classUnderTest.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
-		MoveListIterator it = classUnderTest.getNextMovesAtPly(0);
-		//assertEquals(new GenericMove("e3e4"), Move.toGenericMove(it.nextInt())); // Attacked pawn is ordered first
-	}
-	
-	@Test
-	public void test_attacked_piece_is_ordered_before_other_quiet_moves_alt() throws IllegalNotationException {
-		setup("7k/8/8/5n2/p7/1PPPP3/8/7K w - - 0 1 ");
-		classUnderTest.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
-		MoveListIterator it = classUnderTest.getNextMovesAtPly(0);
-		assertEquals(new GenericMove("b3a4"), Move.toGenericMove(it.nextInt())); // PxP
-		it = classUnderTest.getNextMovesAtPly(0);
-		//assertEquals(new GenericMove("b3b4"), Move.toGenericMove(it.nextInt())); // Pawn attacked by pawn
-		//assertEquals(new GenericMove("e3e4"), Move.toGenericMove(it.nextInt())); // Attacked pawn is ordered first
-	}
-
-	@Test
 	public void test_staged_best_move_valid() {
 		PositionManager pm = new PositionManager("5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113");
 		int best = Move.valueOf(Position.f8, Piece.WHITE_QUEEN, Position.b4, Piece.NONE);
