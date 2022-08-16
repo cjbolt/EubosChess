@@ -1744,87 +1744,67 @@ public class Board {
 		}
 	}
 		
-	protected void getAttacksForSide(long [][] attacks, boolean isBlack) {
-		mae.getBasicAttacksForSide(attacks, isBlack, true);
-		// Sliders
-		long diagonalAttackersMask = isBlack ? getBlackDiagonal() : getWhiteDiagonal();
-		long rankFileAttackersMask = isBlack ? getBlackRankFile() : getWhiteRankFile();
-		long empty = getEmpty();
-		long individualAttacker = 0L;
-		long tailored_empty = empty | diagonalAttackersMask;
-		while (diagonalAttackersMask != 0x0L) {
-			individualAttacker = Long.lowestOneBit(diagonalAttackersMask);
-			CountedBitBoard.setBits(attacks[2], BitBoard.downLeftAttacks(individualAttacker, tailored_empty));
-			CountedBitBoard.setBits(attacks[2], BitBoard.downRightAttacks(individualAttacker, tailored_empty));
-			CountedBitBoard.setBits(attacks[2], BitBoard.upRightAttacks(individualAttacker, tailored_empty));
-			CountedBitBoard.setBits(attacks[2], BitBoard.upLeftAttacks(individualAttacker, tailored_empty));
-			diagonalAttackersMask ^= individualAttacker;
-		}
-		tailored_empty = empty | rankFileAttackersMask;
-		while (rankFileAttackersMask != 0x0L) {
-			individualAttacker = Long.lowestOneBit(rankFileAttackersMask);
-			CountedBitBoard.setBits(attacks[2], BitBoard.downAttacks(individualAttacker, tailored_empty));
-			CountedBitBoard.setBits(attacks[2], BitBoard.rightAttacks(individualAttacker, tailored_empty));
-			CountedBitBoard.setBits(attacks[2], BitBoard.upAttacks(individualAttacker, tailored_empty));
-			CountedBitBoard.setBits(attacks[2], BitBoard.leftAttacks(individualAttacker, tailored_empty));
-			rankFileAttackersMask ^= individualAttacker;
-		}
-		CountedBitBoard.setBitArrays(attacks[3], attacks[2]);
-	}
-	
-	public long[][][] getAttackedSquares() {
-		if (!isAttacksMaskValid) {
-			getAttacksForSide(counted_attacks[0], false);
-			getAttacksForSide(counted_attacks[1], true);
-			isAttacksMaskValid = true;
-		}
-		return counted_attacks;
-	}
-	
-	public long [][][] calculateAttacksAndMobility(PiecewiseEvaluation me, boolean passedPawnPresent) {
+	public long [][][] calculateBasicAttacksAndMobility(PiecewiseEvaluation me) {
 		int mobility_score = 0x0;
 		long [][][] attacks = basic_attacks;
-		if (passedPawnPresent) {
-			attacks = counted_attacks;
-		}
 		
-		mae.getBasicAttacksForSide(attacks[0], false, passedPawnPresent);
+		mae.getBasicAttacksForWhite(attacks[0]);
 		// White Bishop and Queen
 		long white_queens = getWhiteQueens();
-		mobility_score = mae.calculateDiagonalMobility(getWhiteBishops(), white_queens, attacks[0][2], passedPawnPresent);
+		mobility_score = mae.calculateBasicDiagonalMobility(getWhiteBishops(), white_queens, attacks[0][2]);
 		me.dynamicPosition += (short)(mobility_score*2);
 
 		// White Rook and Queen
-		mobility_score = mae.calculateRankFileMobility(getWhiteRooks(), white_queens, attacks[0][2], passedPawnPresent);
+		mobility_score = mae.calculateBasicRankFileMobility(getWhiteRooks(), white_queens, attacks[0][2]);
 		me.dynamicPosition += (short)(mobility_score*2);
+		attacks[0][3][0] |= attacks[0][2][0];
 		
-		if (passedPawnPresent) {
-			CountedBitBoard.setBitArrays(attacks[0][3], attacks[0][2]);
-		} else {
-			attacks[0][3][0] |= attacks[0][2][0];
-		}
-		
-		mae.getBasicAttacksForSide(attacks[1], true, passedPawnPresent);
+		mae.getBasicAttacksForBlack(attacks[1]);
 		// Black Bishop and Queen
 		long black_queens = getBlackQueens();
-		mobility_score = mae.calculateDiagonalMobility(getBlackBishops(), black_queens, attacks[1][2], passedPawnPresent);
+		mobility_score = mae.calculateBasicDiagonalMobility(getBlackBishops(), black_queens, attacks[1][2]);
 		me.dynamicPosition -= (short)(mobility_score*2);
 		
 		// Black Rook and Queen
-		mobility_score = mae.calculateRankFileMobility(getBlackRooks(), black_queens, attacks[1][2], passedPawnPresent);
+		mobility_score = mae.calculateBasicRankFileMobility(getBlackRooks(), black_queens, attacks[1][2]);
 		me.dynamicPosition -= (short)(mobility_score*2);
 		
-		if (passedPawnPresent) {
-			CountedBitBoard.setBitArrays(attacks[1][3], attacks[1][2]);
-		} else {
-			attacks[1][3][0] |= attacks[1][2][0];
-		}
+		attacks[1][3][0] |= attacks[1][2][0];
+		isAttacksMaskValid = true;
+		
+		return attacks;
+	}
+	
+	public long [][][] calculateCountedAttacksAndMobility(PiecewiseEvaluation me) {
+		int mobility_score = 0x0;
+		long [][][] attacks = counted_attacks;
+		
+		mae.getCountedAttacksForWhite(attacks[0]);
+		// White Bishop and Queen
+		long white_queens = getWhiteQueens();
+		mobility_score = mae.calculateCountedDiagonalMobility(getWhiteBishops(), white_queens, attacks[0][2]);
+		me.dynamicPosition += (short)(mobility_score*2);
+
+		// White Rook and Queen
+		mobility_score = mae.calculateCountedRankFileMobility(getWhiteRooks(), white_queens, attacks[0][2]);
+		me.dynamicPosition += (short)(mobility_score*2);
+		CountedBitBoard.setBitArrays(attacks[0][3], attacks[0][2]);
+		
+		mae.getCountedAttacksForBlack(attacks[1]);
+		// Black Bishop and Queen
+		long black_queens = getBlackQueens();
+		mobility_score = mae.calculateCountedDiagonalMobility(getBlackBishops(), black_queens, attacks[1][2]);
+		me.dynamicPosition -= (short)(mobility_score*2);
+		
+		// Black Rook and Queen
+		mobility_score = mae.calculateCountedRankFileMobility(getBlackRooks(), black_queens, attacks[1][2]);
+		me.dynamicPosition -= (short)(mobility_score*2);
+		
+		CountedBitBoard.setBitArrays(attacks[1][3], attacks[1][2]);
 	
 		// Need to assign king mask in basic attacks if using pp attacks masks for isKingInCheck() function
-		if (passedPawnPresent) {
-			basic_attacks[0][3][0] = counted_attacks[0][3][0];
-			basic_attacks[1][3][0] = counted_attacks[1][3][0]; 
-		}
+		basic_attacks[0][3][0] = counted_attacks[0][3][0];
+		basic_attacks[1][3][0] = counted_attacks[1][3][0]; 
 		isAttacksMaskValid = true;
 		
 		return attacks;

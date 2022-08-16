@@ -33,7 +33,7 @@ public class PawnEvaluatorTest {
 	protected void setUpPosition(String fen) {
 		pm = new PositionManager(fen, new DrawChecker());
 		SUT = (PositionEvaluator) pm.getPositionEvaluator();
-		attacks = pm.getTheBoard().getAttackedSquares();
+		attacks = pm.getTheBoard().calculateCountedAttacksAndMobility(pm.getTheBoard().me);
 		whitePawns = pm.getTheBoard().getWhitePawns();
 		blackPawns = pm.getTheBoard().getBlackPawns();
 	}

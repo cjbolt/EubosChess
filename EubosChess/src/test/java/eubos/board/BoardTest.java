@@ -311,7 +311,7 @@ public class BoardTest {
 	public void testRookandQueenMobility_ExcludeBlackPawnandKnightAttacks_2() {	
 		setUpPosition("5K1k/2n5/2n5/8/2n5/2nn4/5pp1/R3Q2R w - - 0 1");
 		classUnderTest.me.dynamicPosition = 0;
-		classUnderTest.calculateAttacksAndMobility(classUnderTest.me, false);
+		classUnderTest.calculateBasicAttacksAndMobility(classUnderTest.me);
 		assertEquals(62, classUnderTest.me.dynamicPosition);
 	}
 		
@@ -482,32 +482,32 @@ public class BoardTest {
 	@Test
 	public void test_evaluateKingSafety_safe()throws IllegalNotationException {
 		setUpPosition("5krr/4pppp/6bq/8/8/6BQ/4PPPP/5KRR b - - 13 1");
-		assertEquals(-23, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true)); // 5 squares, can be attacked by three pieces
-		assertEquals(-23, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false));
+		assertEquals(-23, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), true)); // 5 squares, can be attacked by three pieces
+		assertEquals(-23, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), false));
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_notVerySafe()throws IllegalNotationException {
 		setUpPosition("6rr/5ppp/1k4bq/8/8/1K4BQ/5PPP/6RR b - - 13 1 ");
-		assertEquals(-178, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false)); // diagonals 7 squares, can be attacked by two pieces; r'n'f 9 squares can be attacked by three pieces
-		assertEquals(-178, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true));
+		assertEquals(-178, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), false)); // diagonals 7 squares, can be attacked by two pieces; r'n'f 9 squares can be attacked by three pieces
+		assertEquals(-178, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), true));
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_No_inEndgame()throws IllegalNotationException {
 		setUpPosition("8/8/8/8/8/8/8/K7 w - - 0 1");
-		assertEquals(-100, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true));
+		assertEquals(-100, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), true));
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_No_opposingBishopWrongColour()throws IllegalNotationException {
 		setUpPosition("r4rk1/1p3p2/p7/P2P1p1B/4p3/2b5/3R1PPP/4K2R b K - 13 1 ");
 		if (PositionEvaluator.ENABLE_TWEAKED_KING_FLIGHT_SQUARES) {
-			assertEquals(-74, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true)); // 7*2*2 rnf 0 diag = 28
-			assertEquals(-66, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false)); // 7*2*2 rnf 1*2*1 = 30
+			assertEquals(-74, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), true)); // 7*2*2 rnf 0 diag = 28
+			assertEquals(-66, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), false)); // 7*2*2 rnf 1*2*1 = 30
 		} else {
-			assertEquals(-104, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true)); // 7*2*2 rnf 0 diag = 28
-			assertEquals(-96, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false)); // 7*2*2 rnf 1*2*1 = 30
+			assertEquals(-104, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), true)); // 7*2*2 rnf 0 diag = 28
+			assertEquals(-96, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), false)); // 7*2*2 rnf 1*2*1 = 30
 		}
 
 	}
@@ -516,9 +516,9 @@ public class BoardTest {
 	public void test_evaluateKingSafety_Yes_opposingBishopRightColour()throws IllegalNotationException {
 		setUpPosition("r4rk1/1p6/p7/P2P1p1B/4p3/2b5/3R1PPP/2K4R b - - 13 1 ");
 		if (PositionEvaluator.ENABLE_TWEAKED_KING_FLIGHT_SQUARES) {
-			assertEquals(-100, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true));
+			assertEquals(-100, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), true));
 		} else {
-			assertEquals(-184, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true));
+			assertEquals(-184, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), true));
 		}
 	}
 	
@@ -526,40 +526,40 @@ public class BoardTest {
 	public void test_evaluateKingSafety_Yes_opposingQueenBishop()throws IllegalNotationException {
 		setUpPosition("r4rk1/1p6/p7/P2P1p1B/4p3/2b5/3R1PPP/Q1K4R b - - 13 1 ");
 		if (PositionEvaluator.ENABLE_TWEAKED_KING_FLIGHT_SQUARES) {
-		assertEquals(-100, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true));  // (5 up right + 2 up left) *2 *1bish = 14; (7 up + 2 left + 5 right) * 2 *2rooks = 28*2; 56+14 = 70
-		assertEquals(-75, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false));  // 1*2*2 diag = 4; 7*2*3 = 42 r'n'f; 4+42 = 46 
+		assertEquals(-100, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), true));  // (5 up right + 2 up left) *2 *1bish = 14; (7 up + 2 left + 5 right) * 2 *2rooks = 28*2; 56+14 = 70
+		assertEquals(-75, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), false));  // 1*2*2 diag = 4; 7*2*3 = 42 r'n'f; 4+42 = 46 
 		} else {
-			assertEquals(-184, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true));  // (5 up right + 2 up left) *2 *1bish = 14; (7 up + 2 left + 5 right) * 2 *2rooks = 28*2; 56+14 = 70
-			assertEquals(-167, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false));  // 1*2*2 diag = 4; 7*2*3 = 42 r'n'f; 4+42 = 46 
+			assertEquals(-184, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), true));  // (5 up right + 2 up left) *2 *1bish = 14; (7 up + 2 left + 5 right) * 2 *2rooks = 28*2; 56+14 = 70
+			assertEquals(-167, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), false));  // 1*2*2 diag = 4; 7*2*3 = 42 r'n'f; 4+42 = 46 
 		}
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_OneKnight_attackBlack()throws IllegalNotationException {
 		setUpPosition("K7/8/4k3/8/8/1N4N1/8/8 w - - 1 1 ");
-		assertEquals(-100, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true));
-		assertEquals(-168, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false)); // One knight attacks the black king zone
+		assertEquals(-100, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), true));
+		assertEquals(-168, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), false)); // One knight attacks the black king zone
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_TwoKnights_attackBlack()throws IllegalNotationException {
 		setUpPosition("K7/8/4k3/8/8/2N3N1/8/8 w - - 1 1 ");
-		assertEquals(-100, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true));
-		assertEquals(-187, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false)); // One knight attacks the black king zone
+		assertEquals(-100, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), true));
+		assertEquals(-187, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), false)); // One knight attacks the black king zone
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_OneKnight_attackWhite()throws IllegalNotationException {
 		setUpPosition("k7/8/4K3/8/8/1n4n1/8/8 b - - 1 1 ");
-		assertEquals(-168, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true));
-		assertEquals(-100, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false)); // One knight attacks the black king zone
+		assertEquals(-168, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), true));
+		assertEquals(-100, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), false)); // One knight attacks the black king zone
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_TwoKnights_attackWhite()throws IllegalNotationException {
 		setUpPosition("k7/8/4K3/8/8/2n3n1/8/8 b - - 1 1 ");
-		assertEquals(-187, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), true));
-		assertEquals(-100, classUnderTest.evaluateKingSafety(pm.getTheBoard().getAttackedSquares(), false)); // One knight attacks the black king zone
+		assertEquals(-187, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), true));
+		assertEquals(-100, classUnderTest.evaluateKingSafety(classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me), false)); // One knight attacks the black king zone
 	}
 	
 	@Test
@@ -584,7 +584,7 @@ public class BoardTest {
 	public void test_slider_refactor_eval() {
 		setUpPosition("r1b1kb1r/ppq1pppp/8/3pN3/3Q4/8/PPP2PPP/RNB1K2R b KQkq - 0 1");
 		PiecewiseEvaluation me = new PiecewiseEvaluation();
-		classUnderTest.calculateAttacksAndMobility(me, false);
+		classUnderTest.calculateBasicAttacksAndMobility(me);
 		assertEquals(8, me.getPosition());
 	}
 	
@@ -600,8 +600,8 @@ public class BoardTest {
 						PiecewiseEvaluation me = new PiecewiseEvaluation();
 						PiecewiseEvaluation old_me = new PiecewiseEvaluation();
 						classUnderTest.setPieceAtSquare(atPos, Piece.WHITE_BISHOP);
-						classUnderTest.calculateAttacksAndMobility(me, false);
-						classUnderTest.calculateAttacksAndMobility(old_me, false);
+						classUnderTest.calculateBasicAttacksAndMobility(me);
+						classUnderTest.calculateBasicAttacksAndMobility(old_me);
 						assertEquals(old_me.getPosition(), me.getPosition());
 						classUnderTest.pickUpPieceAtSquare(atPos, Piece.WHITE_BISHOP);
 					}
@@ -619,8 +619,8 @@ public class BoardTest {
 						PiecewiseEvaluation me = new PiecewiseEvaluation();
 						PiecewiseEvaluation old_me = new PiecewiseEvaluation();
 						classUnderTest.setPieceAtSquare(atPos, Piece.WHITE_ROOK);
-						classUnderTest.calculateAttacksAndMobility(me, false);
-						classUnderTest.calculateAttacksAndMobility(old_me, false);
+						classUnderTest.calculateBasicAttacksAndMobility(me);
+						classUnderTest.calculateBasicAttacksAndMobility(old_me);
 						assertEquals(old_me.getPosition(), me.getPosition());
 						classUnderTest.pickUpPieceAtSquare(atPos, Piece.WHITE_ROOK);
 					}
@@ -718,63 +718,63 @@ public class BoardTest {
 	@Test
 	public void test_frontspan_isBlocked() {
 		setUpPosition("2k5/8/8/8/2P5/3K4/8/8 w - - 1 10 ");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		assertFalse(classUnderTest.isPawnFrontspanSafe(Position.c4, true, attacks[0][3], attacks[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_NotBlocked() {
 		setUpPosition("8/k7/8/8/2P5/3K4/8/8 w - - 1 10 ");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		assertTrue(classUnderTest.isPawnFrontspanSafe(Position.c4, true, attacks[0][3], attacks[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_isAttackedAndDefended() {
 		setUpPosition("8/1B1b4/8/8/2P5/3K4/8/8 w - - 1 10 ");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		assertTrue(classUnderTest.isPawnFrontspanSafe(Position.c4, true, attacks[0][3], attacks[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttacked() {
 		setUpPosition("8/3b4/8/8/2P5/3K4/8/8 w - - 1 10 ");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		assertFalse(classUnderTest.isPawnFrontspanSafe(Position.c4, true, attacks[0][3], attacks[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttackedTwiceDefendedOnce() {
 		setUpPosition("8/3b4/2P6/2P5/3K4/8/8 w - - 1 10 ");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		assertFalse(classUnderTest.isPawnFrontspanSafe(Position.c4, true, attacks[0][3], attacks[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttackedTwiceDefendedTwice() {
 		setUpPosition("R7/3b4/8/1PP5/3K4/8/8 w - - 1 10 ");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		assertTrue(classUnderTest.isPawnFrontspanSafe(Position.c4, true, attacks[0][3], attacks[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttackedOnceDefendedOnceByRookToRear() {
 		setUpPosition("8/3b4/8/2P5/7K/8/2R5 w - - 1 10 ");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		assertTrue(classUnderTest.isPawnFrontspanSafe(Position.c4, true, attacks[0][3], attacks[1][3], true));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttackedOnceDefendedTwice_soBlocked() {
 		setUpPosition("4B2K/8/1b1Bn3/8/2P5/8/8/7k w - - 1 1");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		assertFalse(classUnderTest.isPawnFrontspanSafe(Position.c4, true, attacks[0][3], attacks[1][3], false));
 	}
 	
 	@Test
 	public void test_evaluateKingSafety_ScoreReporter()throws IllegalNotationException {
 		setUpPosition("4rbk1/1pr2p2/2p2Qp1/p2p4/6RP/2P1PN1q/PP3P2/2K3R1 b - - 9 30 ");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		if (PositionEvaluator.ENABLE_TWEAKED_KING_FLIGHT_SQUARES) {
 			assertEquals(-257, classUnderTest.evaluateKingSafety(attacks, false));
 		} else {
@@ -785,7 +785,7 @@ public class BoardTest {
 	@Test
 	public void test_blockedBishopAttacksOwnPieces() throws IllegalNotationException {
 		setUpPosition("7k/8/8/2P1P3/3B4/2P1P3/8/7K w - - 0 1");
-		long [][][] attacks = classUnderTest.getAttackedSquares();
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		// bishop attacks 4 pawns
 		assertEquals(4, Long.bitCount(attacks[0][2][0]));
 	}
@@ -793,7 +793,7 @@ public class BoardTest {
 	@Test
 	public void test_blockedRookAttacksOwnPieces() throws IllegalNotationException {
 		setUpPosition("7k/8/8/3P4/2PRP3/3P4/8/7K w - - 0 1");
-		long [][][] attacks = classUnderTest.getAttackedSquares();
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		// rook attacks 4 pawns
 		assertEquals(4, Long.bitCount(attacks[0][2][0]));
 	}
@@ -801,7 +801,7 @@ public class BoardTest {
 	@Test
 	public void test_Attacks() throws IllegalNotationException {
 		setUpPosition("1b2r1k1/5ppp/1qb1p3/p1p5/2P3rP/P5P1/1PQ1NP2/R1B1R1K1 w - - 9 28 ");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, false);
+		long [][][] attacks = classUnderTest.calculateBasicAttacksAndMobility(classUnderTest.me);
 		// white sliders
 		int [] positions = {Position.a2, Position.a3, Position.b1, Position.c1, // rook
 				Position.b2, Position.d2, Position.e3, Position.f4, Position.g5, Position.h6, // bishop
@@ -852,7 +852,7 @@ public class BoardTest {
 	@Test
 	public void test_evaluateSquareControlRoundKing() {
 		setUpPosition("4q1k1/5ppp/4N3/7Q/4B3/8/8/6K1 b - - 0 1 ");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		int numSquares = CountedBitBoard.evaluate(attacks[1][3], attacks[0][3], SquareAttackEvaluator.KingZone_Lut[1][Position.g8]);
 		assertEquals(3, numSquares);
 	}
@@ -860,7 +860,7 @@ public class BoardTest {
 	@Test
 	public void test_evaluateSquareControlRoundKing_NoPawns() {
 		setUpPosition("6k1/8/8/7R/4BR1Q/8/8/6K1 b - - 0 1 ");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		int numSquares = CountedBitBoard.evaluate(attacks[1][3], attacks[0][3], SquareAttackEvaluator.KingZone_Lut[1][Position.g8]);
 		assertEquals(8, numSquares);
 	}
@@ -868,7 +868,7 @@ public class BoardTest {
 	@Test
 	public void test_evaluateSquareControlRoundKing_NoPawnsCrazy() {
 		setUpPosition("6k1/8/5PP1/4N2P/4B3/3Q4/8/1K3R2 w - - 99 1");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		int numSquares = CountedBitBoard.evaluate(attacks[1][3], attacks[0][3], SquareAttackEvaluator.KingZone_Lut[1][Position.g8]);
 		assertEquals(4, numSquares);
 	}
@@ -876,7 +876,7 @@ public class BoardTest {
 	@Test
 	public void test_RookBattery_OnFile() {
 		setUpPosition("8/8/8/8/8/8/R7/R7 w - - 0 1");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a1));
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a2));
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a3));
@@ -906,7 +906,7 @@ public class BoardTest {
 	@Test
 	public void test_RookQueenBattery_OnFile() {
 		setUpPosition("8/8/8/8/8/8/R7/Q7 w - - 0 1");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a1));
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a2));
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a3));
@@ -936,7 +936,7 @@ public class BoardTest {
 	@Test
 	public void test_QueenRookRookBattery_OnFile() {
 		setUpPosition("8/8/8/8/8/R7/R7/Q7 w - - 0 1");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		assertEquals(3, CountedBitBoard.count(attacks[0][3], Position.a1));
 		assertEquals(4, CountedBitBoard.count(attacks[0][3], Position.a2)); // overcounting up and down adjacent attacks?
 		assertEquals(3, CountedBitBoard.count(attacks[0][3], Position.a3));
@@ -974,7 +974,7 @@ public class BoardTest {
 	@Test
 	public void test_QueenRookRookBattery_Separated_OnFile() {
 		setUpPosition("8/R7/8/p7/p7/8/R7/Q7 w - - 0 1");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a1));
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a2)); // overcounting up and down adjacent attacks?
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a3));
@@ -1012,7 +1012,7 @@ public class BoardTest {
 	@Test
 	public void test_RookBattery_OnRank() {
 		setUpPosition("8/8/8/8/8/8/8/RR6 w - - 0 1");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a1));
 		
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a2));
@@ -1043,7 +1043,7 @@ public class BoardTest {
 	@Test
 	public void test_RookQueenBattery_OnRank() {
 		setUpPosition("8/8/8/8/8/8/8/QR6 w - - 0 1");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a1));
 		
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a2));
@@ -1074,7 +1074,7 @@ public class BoardTest {
 	@Test
 	public void test_QueenRookRookBattery_OnRank() {
 		setUpPosition("8/8/8/8/8/8/8/QRR5 w - - 0 1");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		assertEquals(3, CountedBitBoard.count(attacks[0][3], Position.a1));
 		assertEquals(4, CountedBitBoard.count(attacks[0][3], Position.b1)); // comes as 4! overcounting L and R
 		assertEquals(3, CountedBitBoard.count(attacks[0][3], Position.c1));
@@ -1112,7 +1112,7 @@ public class BoardTest {
 	@Test
 	public void test_QueenRookBattery_AndOddRook_OnRank() {
 		setUpPosition("8/8/8/8/8/8/8/QR4nR w - - 0 1");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a1));
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a2));
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a3));
@@ -1150,7 +1150,7 @@ public class BoardTest {
 	@Test
 	public void test_QueenRookBattery_AndOddRook_OnRank_alt() {
 		setUpPosition("8/8/8/8/8/8/8/QR1nnn1R w - - 0 1");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a1));
 		
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a2));
@@ -1189,7 +1189,7 @@ public class BoardTest {
 	@Test
 	public void test_QueenBishopBattery() {
 		setUpPosition("8/8/8/8/8/8/1B6/Q7 w - - 0 1");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a1));
 		
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a2));
@@ -1220,7 +1220,7 @@ public class BoardTest {
 	@Test
 	public void test_QueenBishopBattery_SeparatedBishop() {
 		setUpPosition("7B/8/5p2/8/3p4/8/1B6/Q7 w - - 0 1");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.a1));
 		
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.a2));
@@ -1251,7 +1251,7 @@ public class BoardTest {
 	@Test
 	public void test_QueenBishopBattery_SeparatedBishop_UpLeft() {
 		setUpPosition("B7/8/2p5/8/4p3/8/6B1/7Q w - - 0 1");
-		long [][][] attacks = classUnderTest.calculateAttacksAndMobility(classUnderTest.me, true);
+		long [][][] attacks = classUnderTest.calculateCountedAttacksAndMobility(classUnderTest.me);
 		assertEquals(2, CountedBitBoard.count(attacks[0][3], Position.h1));
 		
 		assertEquals(1, CountedBitBoard.count(attacks[0][3], Position.h2));

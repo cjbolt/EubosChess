@@ -152,8 +152,9 @@ public class PositionEvaluator implements IEvaluate {
 		score = 0;
 		midgameScore = 0;
 		endgameScore = 0;
-		
-		passedPawnPresent = bd.isPassedPawnPresent();
+		if (!isDraw) {
+			passedPawnPresent = bd.isPassedPawnPresent();
+		}
 	}
 	
 	private short taperEvaluation(int midgameScore, int endgameScore) {
@@ -215,8 +216,12 @@ public class PositionEvaluator implements IEvaluate {
 			bd.me.dynamicPosition = 0;
 			
 			// Only generate full attack mask if passed pawn present and past opening stage
-			boolean isPassedPawnPresent = bd.me.phase > 1000 && passedPawnPresent;
-			long [][][] attacks = bd.calculateAttacksAndMobility(bd.me, isPassedPawnPresent);
+			long [][][] attacks;
+			if (bd.me.phase > 1000 && passedPawnPresent) {
+				attacks = bd.calculateCountedAttacksAndMobility(bd.me);
+			} else {
+				attacks = bd.calculateBasicAttacksAndMobility(bd.me);
+			}
 			
 			score += evaluateBishopPair();
 			
