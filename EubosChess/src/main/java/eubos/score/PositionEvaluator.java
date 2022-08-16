@@ -1,10 +1,14 @@
 package eubos.score;
 
+import java.util.Arrays;
+import java.util.IntSummaryStatistics;
+
 import com.fluxchess.jcpi.models.IntFile;
 
 import eubos.board.Board;
 import eubos.board.IForEachPieceCallback;
 import eubos.board.Piece;
+import eubos.main.EubosEngineMain;
 import eubos.position.IPositionAccessors;
 import eubos.position.Position;
 
@@ -46,6 +50,80 @@ public class PositionEvaluator implements IEvaluate {
 	public Board bd;
 	PawnEvaluator pawn_eval;
 	
+	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
+	running with the logging in TUNE_LAZY_EVAL for Eubos2.13 and post processing the logs.
+	It will need to be re-tuned if the evaluation function is altered significantly. */
+	public static int lazy_eval_threshold_cp = 450;
+	private static final boolean TUNE_LAZY_EVAL = false;
+	
+	private class LazyEvalStatistics {
+		
+		int MAX_DELTA = Piece.MATERIAL_VALUE_QUEEN - lazy_eval_threshold_cp; 
+		long lazySavedCountAlpha;
+		long lazySavedCountBeta;
+		long nodeCount;
+		int lazyThreshFailedCount[];
+		int maxFailure;
+		int maxFailureCount;
+		String max_fen;
+		int biggestError;
+		
+		public LazyEvalStatistics() {
+			lazyThreshFailedCount = new int [MAX_DELTA];
+			biggestError = 0;
+		}
+		
+		public void report() {
+			// We want to know the bin that corresponds to the max error, this is the average threshold exceeded
+			// We also want to know the last non-zero array element
+			int max_threshold = 0;
+			int max_count = 0;
+			if (maxFailureCount == 0) {
+				for (int i=lazyThreshFailedCount.length-1; i >= 0; i--) {
+					if (lazyThreshFailedCount[i] != 0) {
+						max_threshold = i;
+						max_count = lazyThreshFailedCount[i];
+						break;
+					}
+				}
+			} else {
+				max_threshold = maxFailure;
+				max_count = maxFailureCount;
+			}
+			
+			IntSummaryStatistics stats = Arrays.stream(lazyThreshFailedCount).summaryStatistics();
+			EubosEngineMain.logger.info(String.format(
+					"LazyStats A=%d B=%d nodes=%d failSum=%d exceededCount=%d maxExceeded=%d maxFen=%s",
+					lazySavedCountAlpha, lazySavedCountBeta, nodeCount, stats.getSum(), max_count, max_threshold, max_fen));
+		}
+	}
+	
+	private void updateLazyStatistics(int plyScore) {
+		int delta = Math.abs(plyScore-getFullEvaluation());
+		if (delta > lazy_eval_threshold_cp) {
+			delta -= lazy_eval_threshold_cp;
+			assert delta < 1500 : String.format("LazyFail delta=%d stack=%s", delta, pm.unwindMoveStack());
+			if (delta < lazyStat.MAX_DELTA) {
+				lazyStat.lazyThreshFailedCount[delta]++;
+				if (delta > lazyStat.biggestError) {
+					lazyStat.max_fen = pm.getFen();
+					lazyStat.biggestError = delta;
+				}
+			} else {
+				lazyStat.maxFailureCount++;
+				lazyStat.maxFailure = Math.max(delta, lazyStat.maxFailure);
+			}
+		}
+	}
+	
+	public void reportLazyStatistics() {
+		if (TUNE_LAZY_EVAL) {
+			lazyStat.report();
+		}
+	}
+	
+	LazyEvalStatistics lazyStat = null;
+	
 	public boolean goForMate;
 	public boolean goForMate() {
 		return goForMate;
@@ -59,6 +137,9 @@ public class PositionEvaluator implements IEvaluate {
 		goForMate = ((Long.bitCount(bd.getBlackPieces()) == 1) || 
 				     (Long.bitCount(bd.getWhitePieces()) == 1));
 		initialise();
+		if (TUNE_LAZY_EVAL) {
+			lazyStat = new LazyEvalStatistics();
+		}
 	}
 	
 	private void initialise() {
@@ -75,6 +156,36 @@ public class PositionEvaluator implements IEvaluate {
 	private short taperEvaluation(int midgameScore, int endgameScore) {
 		int phase = bd.me.getPhase();
 		return (short)(((midgameScore * (4096 - phase)) + (endgameScore * phase)) / 4096);
+	}
+	
+	public int lazyEvaluation(int crudeEval, int alpha, int beta) {
+		if (EubosEngineMain.ENABLE_LAZY_EVALUATION && !bd.me.isEndgame()) {
+			// Phase 1 - crude evaluation
+			int plyScore = crudeEval;
+			if (TUNE_LAZY_EVAL) {
+				lazyStat.nodeCount++;
+			}
+			if (plyScore-lazy_eval_threshold_cp >= beta) {
+				// There is no move to put in the killer table when we stand Pat
+				// According to lazy eval, we probably can't reach beta
+				if (TUNE_LAZY_EVAL) {
+					lazyStat.lazySavedCountBeta++;
+					updateLazyStatistics(plyScore);
+				}
+				return Short.MAX_VALUE;
+			}
+			/* Note call to quiescence check is last as it could be very computationally heavy! */
+			if (plyScore+lazy_eval_threshold_cp <= alpha && pm.isQuiescent()) {
+				// According to lazy eval, we probably can't increase alpha
+				if (TUNE_LAZY_EVAL) {
+					lazyStat.lazySavedCountAlpha++;
+					updateLazyStatistics(plyScore);
+				}
+				return Short.MIN_VALUE;
+			}
+		}
+		// Phase 2 full evaluation
+		return getFullEvaluation();
 	}
 	
 	public int getCrudeEvaluation() {

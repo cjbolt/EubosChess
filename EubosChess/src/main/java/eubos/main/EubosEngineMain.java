@@ -36,9 +36,9 @@ import eubos.board.Piece.Colour;
 import eubos.board.SquareAttackEvaluator;
 import eubos.position.Move;
 import eubos.position.PositionManager;
+import eubos.score.PositionEvaluator;
 import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
-import eubos.search.PlySearcher;
 import eubos.search.searchers.AbstractMoveSearcher;
 import eubos.search.searchers.FixedDepthMoveSearcher;
 import eubos.search.searchers.FixedTimeMoveSearcher;
@@ -152,7 +152,7 @@ public class EubosEngineMain extends AbstractEngine {
 		reply.addOption(Options.newHashOption((int)DEFAULT_HASH_SIZE, MIN_HASH_SIZE, MAX_HASH_SIZE));
 		reply.addOption(new SpinnerOption("Threads", defaultNumberOfWorkerThreads, 1, numCores));
 		reply.addOption(new SpinnerOption("Move Overhead", 10, 0, 5000));
-		reply.addOption(new SpinnerOption("Lazy Threshold", PlySearcher.lazy_eval_threshold_cp, 0, 500));
+		reply.addOption(new SpinnerOption("Lazy Threshold", PositionEvaluator.lazy_eval_threshold_cp, 0, 500));
 		logger.fine(String.format("Cores available=%d", numCores));
 		this.getProtocol().send( reply );
 		lastOnMove = null;
@@ -179,8 +179,8 @@ public class EubosEngineMain extends AbstractEngine {
 			logger.fine(String.format("Move Overhead=%d", move_overhead));
 		}
 		if (command.name.startsWith("Lazy Threshold")) {
-			PlySearcher.lazy_eval_threshold_cp = Integer.parseInt(command.value);
-			logger.fine(String.format("Lazy Threshold=%d", PlySearcher.lazy_eval_threshold_cp));
+			PositionEvaluator.lazy_eval_threshold_cp = Integer.parseInt(command.value);
+			logger.fine(String.format("Lazy Threshold=%d", PositionEvaluator.lazy_eval_threshold_cp));
 		}
 	}
 
