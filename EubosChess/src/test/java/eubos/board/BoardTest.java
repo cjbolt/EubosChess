@@ -1338,41 +1338,5 @@ public class BoardTest {
 		setUpPosition("8/8/8/P7/8/8/8/q7 w - - 0 1");
 		assertEquals(-1, classUnderTest.checkForHeavyPieceBehindPassedPawn(Position.a5, true));
 	}
-	
-	@Test
-	public void test_is_a_passed_pawn_present_1() {
-		setUpPosition("8/8/8/P7/8/8/8/8 w - - 0 1");
-		assertTrue(classUnderTest.isPassedPawnPresent());
-	}
-	@Test
-	public void test_is_a_passed_pawn_present_2() {
-		setUpPosition("8/8/p7/P7/8/8/8/8 w - - 0 1");
-		assertFalse(classUnderTest.isPassedPawnPresent());
-	}
-	@Test
-	public void test_is_a_passed_pawn_present_3() {
-		setUpPosition("8/8/8/P7/8/p7/8/8 w - - 0 1");
-		assertTrue(classUnderTest.isPassedPawnPresent());
-	}
-	@Test
-	public void test_is_a_passed_pawn_present_4() {
-		setUpPosition("8/8/1p6/P7/8/8/8/8 w - - 0 1");
-		assertFalse(classUnderTest.isPassedPawnPresent());
-	}
-	@Test
-	public void test_is_a_passed_pawn_present_5() {
-		setUpPosition("8/8/8/3pP3/8/8/8/8 w - - 0 1");
-		assertTrue(classUnderTest.isPassedPawnPresent());
-	}
-	@Test
-	public void test_is_a_passed_pawn_present_6() {
-		setUpPosition("8/8/8/4p3/5P2/8/8/8 w - - 0 1");
-		assertFalse(classUnderTest.isPassedPawnPresent());
-	}
-	@Test
-	public void test_is_a_passed_pawn_present_7() {
-		setUpPosition("8/8/8/p7/8/8/8/8 w - - 0 1");
-		assertTrue(classUnderTest.isPassedPawnPresent());
-	}
 }
 

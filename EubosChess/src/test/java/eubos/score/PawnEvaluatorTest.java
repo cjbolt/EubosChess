@@ -583,4 +583,45 @@ public class PawnEvaluatorTest {
 		int expectedScore = 4*2*PASSED_PAWN_BOOST - ISOLATED_PAWN_HANDICAP;
 		assertEquals(expectedScore, SUT.pawn_eval.piecewisePawnScoreAccumulator);
 	}
+	
+	@Test
+	public void test_is_a_passed_pawn_present_1() {
+		setUpPosition("8/8/8/P7/8/8/8/8 w - - 0 1");
+		assertTrue(pm.getTheBoard().isPassedPawnPresent(SUT.pawn_eval));
+	}
+	
+	@Test
+	public void test_is_a_passed_pawn_present_2() {
+		setUpPosition("8/8/p7/P7/8/8/8/8 w - - 0 1");
+		assertFalse(pm.getTheBoard().isPassedPawnPresent(SUT.pawn_eval));
+	}
+	@Test
+	public void test_is_a_passed_pawn_present_3() {
+		setUpPosition("8/8/8/P7/8/p7/8/8 w - - 0 1");
+		assertTrue(pm.getTheBoard().isPassedPawnPresent(SUT.pawn_eval));
+	}
+	
+	@Test
+	public void test_is_a_passed_pawn_present_4() {
+		setUpPosition("8/8/1p6/P7/8/8/8/8 w - - 0 1");
+		assertFalse(pm.getTheBoard().isPassedPawnPresent(SUT.pawn_eval));
+	}
+	
+	@Test
+	public void test_is_a_passed_pawn_present_5() {
+		setUpPosition("8/8/8/3pP3/8/8/8/8 w - - 0 1");
+		assertTrue(pm.getTheBoard().isPassedPawnPresent(SUT.pawn_eval));
+	}
+	
+	@Test
+	public void test_is_a_passed_pawn_present_6() {
+		setUpPosition("8/8/8/4p3/5P2/8/8/8 w - - 0 1");
+		assertFalse(pm.getTheBoard().isPassedPawnPresent(SUT.pawn_eval));
+	}
+	
+	@Test
+	public void test_is_a_passed_pawn_present_7() {
+		setUpPosition("8/8/8/p7/8/8/8/8 w - - 0 1");
+		assertTrue(pm.getTheBoard().isPassedPawnPresent(SUT.pawn_eval));
+	}
 }

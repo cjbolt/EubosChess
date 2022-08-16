@@ -356,6 +356,22 @@ public class PieceList {
 		forEachPieceOfTypeHelper(pawns, caller, pawn);		
 	}
 	
+	public boolean forAllPawnsDoConditionalCallback(IForEachPieceCallback caller) {
+		for (int atPos : piece_list[Piece.BLACK_PAWN]) {
+			if (atPos != Position.NOPOSITION) {
+				if (caller.condition_callback(Piece.BLACK_PAWN, atPos))
+					return true;
+			} else break;
+		}
+		for (int atPos : piece_list[Piece.WHITE_PAWN]) {
+			if (atPos != Position.NOPOSITION) {
+				if (caller.condition_callback(Piece.WHITE_PAWN, atPos))
+					return true;
+			} else break;
+		}
+		return false;
+	}
+	
 	public int getKingPos(boolean sideIsWhite) {
 		int piece = sideIsWhite ? Piece.WHITE_KING : Piece.BLACK_KING;
 		return piece_list[piece][0];

@@ -153,7 +153,7 @@ public class PositionEvaluator implements IEvaluate {
 		midgameScore = 0;
 		endgameScore = 0;
 		if (!isDraw) {
-			passedPawnPresent = bd.isPassedPawnPresent();
+			passedPawnPresent = bd.isPassedPawnPresent(pawn_eval);
 		}
 	}
 	
@@ -382,6 +382,11 @@ public class PositionEvaluator implements IEvaluate {
 			} else if (bd.isBackwardsPawn(atPos, pawnIsWhite)) {
 				piecewisePawnScoreAccumulator -= BACKWARD_PAWN_HANDICAP;
 			}
+		}
+		
+		@Override
+		public boolean condition_callback(int piece, int atPos) {
+			return bd.isPassedPawn(atPos, Piece.isWhite(piece));
 		}
 		
 		public int getDoubledPawnsHandicap(long pawns) {

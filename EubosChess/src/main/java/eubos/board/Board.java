@@ -1245,6 +1245,11 @@ public class Board {
 			attackMask[0] |= pawnAttacks;
 		}
 		
+		@Override
+		public boolean condition_callback(int piece, int atPos) {
+			return false;
+		}
+		
 		public void getPawnAttacks(long[] attacksMask ,boolean attackerIsBlack) {
 			this.attackMask = attacksMask;
 			this.attackerIsBlack = attackerIsBlack;
@@ -1276,6 +1281,11 @@ public class Board {
 				break;
 			}
 			attackMask |= mask;
+		}
+		
+		@Override
+		public boolean condition_callback(int piece, int atPos) {
+			return false;
 		}
 		
 		public long getAttacks(boolean attackerIsBlack) {
@@ -1311,6 +1321,11 @@ public class Board {
 			CountedBitBoard.setBits(attackMask, mask);
 		}
 		
+		@Override
+		public boolean condition_callback(int piece, int atPos) {
+			return false;
+		}
+		
 		public void getAttacks(long[] attacks, boolean attackerIsBlack) {
 			this.attackMask = attacks;
 			CountedBitBoard.clear(attackMask);
@@ -1336,6 +1351,11 @@ public class Board {
 				break;
 			}
 			CountedBitBoard.setBits(attackMask, mask);
+		}
+		
+		@Override
+		public boolean condition_callback(int piece, int atPos) {
+			return false;
 		}
 		
 		public void getAttacks(long[] attacks, boolean attackerIsBlack) {
@@ -1514,6 +1534,11 @@ public class Board {
 			default:
 				break;
 			}
+		}
+		
+		@Override
+		public boolean condition_callback(int piece, int atPos) {
+			return false;
 		}
 		
 		public int getScore(int kingPos, int [] attackers) {
@@ -1810,7 +1835,7 @@ public class Board {
 		return attacks;
 	}
 	
-	public boolean isPassedPawnPresent() {
+	public boolean isPassedPawnPresent(IForEachPieceCallback passedPawnChecker) {
 		if (pieces[Piece.PAWN] == 0) return false;
 		
 		long blackPawns = this.getBlackPawns();
@@ -1820,34 +1845,6 @@ public class Board {
 			return true;
 		}
 		
-		for (int file : IntFile.values ) {
-			long us_mask = whitePawns & BitBoard.FileMask_Lut[file];
-			if (us_mask != 0L) {
-				long them_mask = blackPawns & BitBoard.FileMask_Lut[file];
-				long them_right = (file < 7) ? blackPawns & BitBoard.FileMask_Lut[file+1] : 0L;
-				long them_left = (file > 0) ? blackPawns & BitBoard.FileMask_Lut[file-1] : 0L;
-				if (them_mask == 0L && them_right == 0L && them_left == 0L) {
-					return true;
-				} else if (them_mask < us_mask && them_right < us_mask && them_left < us_mask) {
-					// behind us, so passed
-					return true;
-				}
-			}
-		}
-		for (int file : IntFile.values ) {
-			long us_mask = blackPawns & BitBoard.FileMask_Lut[file];
-			if (us_mask != 0L) {
-				long them_mask = whitePawns & BitBoard.FileMask_Lut[file];
-				long them_right = (file < 7) ? whitePawns & BitBoard.FileMask_Lut[file+1] : 0L;
-				long them_left = (file > 0) ? whitePawns & BitBoard.FileMask_Lut[file-1] : 0L;
-				if (them_mask == 0L && them_right == 0L && them_left == 0L) {
-					return true;
-				} else if (them_mask > us_mask && them_right > us_mask && them_left > us_mask) {
-					// behind us, so passed
-					return true;
-				}
-			}
-		}
-		return false;
+		return pieceLists.forAllPawnsDoConditionalCallback(passedPawnChecker);
 	}
 }

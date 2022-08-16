@@ -415,6 +415,11 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 	}
 	
 	@Override
+	public boolean condition_callback(int piece, int atPos) {
+		return theBoard.isPassedPawn(atPos, Piece.isWhite(piece));
+	}
+	
+	@Override
 	public int enemyAdvancedPassedPawn() {
 		passedPawnPosition = Position.NOPOSITION;
 		enemyIsWhite = onMoveIsWhite();

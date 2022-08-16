@@ -69,6 +69,11 @@ public class ZobristHashCode implements IForEachPieceCallback {
 		hashCode ^= getPrnForPiece(atPos, piece);
 	}
 	
+	@Override
+	public boolean condition_callback(int piece, int atPos) {
+		return false;
+	}
+	
 	// Generate a hash code for a position from scratch
 	private long generate() {
 		// add pieces
