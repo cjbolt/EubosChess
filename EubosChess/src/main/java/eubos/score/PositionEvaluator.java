@@ -46,6 +46,7 @@ public class PositionEvaluator implements IEvaluate {
 	int midgameScore = 0;
 	int endgameScore = 0;
 	public boolean isDraw;
+	public boolean passedPawnPresent;
 	public short score;
 	public Board bd;
 	PawnEvaluator pawn_eval;
@@ -99,7 +100,7 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	private void updateLazyStatistics(int plyScore) {
-		int delta = Math.abs(plyScore-getFullEvaluation());
+		int delta = Math.abs(plyScore-internalFullEval());
 		if (delta > lazy_eval_threshold_cp) {
 			delta -= lazy_eval_threshold_cp;
 			assert delta < 1500 : String.format("LazyFail delta=%d stack=%s", delta, pm.unwindMoveStack());
@@ -151,6 +152,8 @@ public class PositionEvaluator implements IEvaluate {
 		score = 0;
 		midgameScore = 0;
 		endgameScore = 0;
+		
+		passedPawnPresent = bd.isPassedPawnPresent();
 	}
 	
 	private short taperEvaluation(int midgameScore, int endgameScore) {
@@ -158,38 +161,40 @@ public class PositionEvaluator implements IEvaluate {
 		return (short)(((midgameScore * (4096 - phase)) + (endgameScore * phase)) / 4096);
 	}
 	
-	public int lazyEvaluation(int crudeEval, int alpha, int beta) {
-		if (EubosEngineMain.ENABLE_LAZY_EVALUATION && !bd.me.isEndgame()) {
+	public int lazyEvaluation(int alpha, int beta) {
+		initialise();
+		if (EubosEngineMain.ENABLE_LAZY_EVALUATION) {
 			// Phase 1 - crude evaluation
-			int plyScore = crudeEval;
+			int crudeEval = getCrudeEvaluation();
+			int lazyThresh = bd.me.isEndgame() ? 750 : passedPawnPresent ? 500 : 250;
 			if (TUNE_LAZY_EVAL) {
 				lazyStat.nodeCount++;
 			}
-			if (plyScore-lazy_eval_threshold_cp >= beta) {
+			if (crudeEval-lazyThresh >= beta) {
 				// There is no move to put in the killer table when we stand Pat
 				// According to lazy eval, we probably can't reach beta
 				if (TUNE_LAZY_EVAL) {
 					lazyStat.lazySavedCountBeta++;
-					updateLazyStatistics(plyScore);
+					updateLazyStatistics(crudeEval);
 				}
-				return Short.MAX_VALUE;
+				return beta;
 			}
 			/* Note call to quiescence check is last as it could be very computationally heavy! */
-			if (plyScore+lazy_eval_threshold_cp <= alpha && pm.isQuiescent()) {
+			if (crudeEval+lazyThresh <= alpha && pm.isQuiescent()) {
 				// According to lazy eval, we probably can't increase alpha
 				if (TUNE_LAZY_EVAL) {
 					lazyStat.lazySavedCountAlpha++;
-					updateLazyStatistics(plyScore);
+					updateLazyStatistics(crudeEval);
 				}
 				return Short.MIN_VALUE;
 			}
 		}
 		// Phase 2 full evaluation
-		return getFullEvaluation();
+		return internalFullEval();
 	}
 	
 	public int getCrudeEvaluation() {
-		initialise();
+		// Initialised in lazyEvaluation function
 		if (!isDraw) {
 			bd.me.dynamicPosition = 0;
 			score += evaluateBishopPair();
@@ -200,14 +205,17 @@ public class PositionEvaluator implements IEvaluate {
 		return score;
 	}
 	
-	public int getFullEvaluation() {
-		initialise();
+	public int internalFullEval() {
+		// Initialised in lazyEvaluation function
+		score = 0;
+		midgameScore = 0;
+		endgameScore = 0;
 		if (!isDraw) {
 			// Score factors common to each phase, material, pawn structure and piece mobility
 			bd.me.dynamicPosition = 0;
 			
 			// Only generate full attack mask if passed pawn present and past opening stage
-			boolean isPassedPawnPresent = bd.me.phase > 1000 && bd.isPassedPawnPresent();
+			boolean isPassedPawnPresent = bd.me.phase > 1000 && passedPawnPresent;
 			long [][][] attacks = bd.calculateAttacksAndMobility(bd.me, isPassedPawnPresent);
 			
 			score += evaluateBishopPair();
@@ -229,6 +237,11 @@ public class PositionEvaluator implements IEvaluate {
 			}
 		}
 		return score;
+	}
+	
+	public int getFullEvaluation() {
+		initialise();
+		return internalFullEval();
 	}
 	
 	int evaluateKingSafety(long[][][] attacks) {

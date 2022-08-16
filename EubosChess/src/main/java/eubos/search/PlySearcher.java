@@ -8,7 +8,7 @@ import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.MoveListIterator;
 import eubos.score.IEvaluate;
-import eubos.score.PositionEvaluator;
+//import eubos.score.PositionEvaluator;
 import eubos.search.transposition.ITranspositionAccessor;
 import eubos.search.transposition.Transposition;
 
@@ -28,7 +28,6 @@ public class PlySearcher {
 		boolean isCutOff;
 		int hashScore;
 		int moveNumber;
-		int crudeEval;
 		boolean inCheck; // not initialised here for reasons of optimisation
 		
 		void initialise(int ply, int alpha, int beta) {
@@ -44,7 +43,6 @@ public class PlySearcher {
 		
 		void update() {
 			inCheck = pos.isKingInCheck();
-			crudeEval = pe.getCrudeEvaluation();
 		}
 	};
 	
@@ -385,7 +383,7 @@ public class PlySearcher {
 			!pos.getTheBoard().me.isEndgame() &&
 			!state[currPly].inCheck &&
 			!(Score.isMate((short)state[currPly].beta) || Score.isMate((short)state[currPly].alpha)) && 
-			state[currPly].crudeEval+PositionEvaluator.lazy_eval_threshold_cp > state[currPly].beta) {
+			pe.getFullEvaluation() > state[currPly].beta) {
 			
 			state[currPly].plyScore = doNullMoveSubTreeSearch(depth);
 			if (isTerminated()) { return 0; }
@@ -485,7 +483,7 @@ public class PlySearcher {
 		}
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
-		state[currPly].plyScore = pe.lazyEvaluation(state[currPly].crudeEval, alpha, beta);
+		state[currPly].plyScore = pe.lazyEvaluation(alpha, beta);
 		if (state[currPly].plyScore == Short.MIN_VALUE) {
 			// We are standing PAT, so values less than alpha can be increased, that is why 
 			// this threashold is not plyScore <= alpha!
@@ -683,7 +681,6 @@ public class PlySearcher {
 		pm.performNullMove();
 		
 		state[currPly].inCheck = state[currPly-1].inCheck;
-		state[currPly].crudeEval = -state[currPly-1].crudeEval;
 		plyScore = -search(depth-1-R, false, -state[currPly-1].beta, -state[currPly-1].beta+1);
 		
 		pm.unperformNullMove();
