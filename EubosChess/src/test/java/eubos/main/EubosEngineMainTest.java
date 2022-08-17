@@ -474,8 +474,8 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 //	@Test
 //	public void test_debug_position() throws InterruptedException, IOException {
 //		setupEngine();
-//		commands.add(new CommandPair(POS_FEN_PREFIX+"8/1p6/3KN3/7p/P1P2Pk1/1P6/6b1/8 w - - 0 66"+CMD_TERMINATOR, null));
-//		commands.add(new CommandPair(GO_DEPTH_PREFIX+"7"+CMD_TERMINATOR, BEST_PREFIX+"d6e5"+CMD_TERMINATOR));
-//		performTest(1000000);
+//		commands.add(new CommandPair(POS_FEN_PREFIX+"8/5Rpp/p1k2n2/5b2/1B6/5P2/r2p2PP/6RK w - - 2 41"+CMD_TERMINATOR, null));
+//		commands.add(new CommandPair(GO_DEPTH_PREFIX+"11"+CMD_TERMINATOR, BEST_PREFIX+"d6e5"+CMD_TERMINATOR));
+//		performTest(7000);
 //	}
 }
