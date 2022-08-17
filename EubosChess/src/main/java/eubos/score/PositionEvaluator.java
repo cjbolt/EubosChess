@@ -144,17 +144,21 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	private void initialise() {
-		boolean threeFold = pm.isThreefoldRepetitionPossible();
-		boolean insufficient = bd.isInsufficientMaterial();
-		
-		isDraw = (threeFold || insufficient);
+		isDraw = pm.isThreefoldRepetitionPossible();
+		if (!isDraw) {
+			isDraw = bd.isInsufficientMaterial();
+		}
+		if (EubosEngineMain.ENABLE_COUNTED_PASSED_PAWN_MASKS) {
+			if (!isDraw) {
+				passedPawnPresent = bd.isPassedPawnPresent(pawn_eval);
+			}
+		} else {
+			passedPawnPresent = false;
+		}
 		onMoveIsWhite = pm.onMoveIsWhite();
 		score = 0;
 		midgameScore = 0;
 		endgameScore = 0;
-		if (!isDraw) {
-			passedPawnPresent = bd.isPassedPawnPresent(pawn_eval);
-		}
 	}
 	
 	private short taperEvaluation(int midgameScore, int endgameScore) {
@@ -167,7 +171,7 @@ public class PositionEvaluator implements IEvaluate {
 		if (EubosEngineMain.ENABLE_LAZY_EVALUATION) {
 			// Phase 1 - crude evaluation
 			int crudeEval = getCrudeEvaluation();
-			int lazyThresh = bd.me.isEndgame() ? 750 : passedPawnPresent ? 500 : 250;
+			int lazyThresh = bd.me.isEndgame() ? 750 : passedPawnPresent ? 450 : 275;
 			if (TUNE_LAZY_EVAL) {
 				lazyStat.nodeCount++;
 			}
@@ -217,7 +221,7 @@ public class PositionEvaluator implements IEvaluate {
 			
 			// Only generate full attack mask if passed pawn present and past opening stage
 			long [][][] attacks;
-			if (bd.me.phase > 1000 && passedPawnPresent) {
+			if (passedPawnPresent) {
 				attacks = bd.calculateCountedAttacksAndMobility(bd.me);
 			} else {
 				attacks = bd.calculateBasicAttacksAndMobility(bd.me);

@@ -1841,8 +1841,14 @@ public class Board {
 		long blackPawns = this.getBlackPawns();
 		long whitePawns = this.getWhitePawns();
 		if (whitePawns == 0L || blackPawns == 0L) {
-			// if there is one or more pawns and none of the opposite side, then is passed
+			// if there is one or more pawns and none of the opposite side, then it is passed
 			return true;
+		}
+		
+		if ((me.numberOfPieces[Piece.WHITE_PAWN] >= 6 && ((blackPawns & 0xFFFFFFFFL) != 0L)) &&
+			(me.numberOfPieces[Piece.BLACK_PAWN] >= 6 && ((whitePawns & 0xFFFFFFFF00000000L) != 0L))) {
+			// Assume that if there are lots of pawns left and not crossed over to other side of board, then not passed
+			return false;
 		}
 		
 		return pieceLists.forAllPawnsDoConditionalCallback(passedPawnChecker);
