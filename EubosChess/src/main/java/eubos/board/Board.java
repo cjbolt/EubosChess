@@ -1845,9 +1845,9 @@ public class Board {
 			return true;
 		}
 		
-		if ((me.numberOfPieces[Piece.WHITE_PAWN] >= 6 && ((blackPawns & 0xFFFFFFFFL) != 0L)) &&
-			(me.numberOfPieces[Piece.BLACK_PAWN] >= 6 && ((whitePawns & 0xFFFFFFFF00000000L) != 0L))) {
-			// Assume that if there are lots of pawns left and not crossed over to other side of board, then not passed
+		if ((me.numberOfPieces[Piece.WHITE_PAWN] >= 6 && ((blackPawns & 0xFFFFFFFFL) == 0L)) &&
+			(me.numberOfPieces[Piece.BLACK_PAWN] >= 6 && ((whitePawns & 0xFFFFFFFF00000000L) == 0L))) {
+			// Assume none passed if there are lots of pawns left and none crossed to other side of board
 			return false;
 		}
 		

@@ -624,4 +624,16 @@ public class PawnEvaluatorTest {
 		setUpPosition("8/8/8/p7/8/8/8/8 w - - 0 1");
 		assertTrue(pm.getTheBoard().isPassedPawnPresent(SUT.pawn_eval));
 	}
+	
+	@Test
+	public void test_is_a_passed_pawn_present_8() {
+		setUpPosition("8/p3pppp/p7/p7/8/8/PPPPPPPP/8 w - - 0 1");
+		assertFalse(pm.getTheBoard().isPassedPawnPresent(SUT.pawn_eval));
+	}
+	
+	@Test
+	public void test_is_a_passed_pawn_present_9() {
+		setUpPosition("8/pppppppp/8/8/P7/P7/P3PPPP/8 w - - 0 1");
+		assertFalse(pm.getTheBoard().isPassedPawnPresent(SUT.pawn_eval));
+	}
 }
