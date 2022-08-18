@@ -170,7 +170,7 @@ public class PositionEvaluator implements IEvaluate {
 		initialise();
 		if (EubosEngineMain.ENABLE_LAZY_EVALUATION) {
 			// Phase 1 - crude evaluation
-			int crudeEval = getCrudeEvaluation();
+			int crudeEval = internalCrudeEval();
 			int lazyThresh = bd.me.isEndgame() ? 750 : passedPawnPresent ? 450 : 275;
 			if (TUNE_LAZY_EVAL) {
 				lazyStat.nodeCount++;
@@ -199,6 +199,26 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	public int getCrudeEvaluation() {
+		isDraw = pm.isThreefoldRepetitionPossible();
+		if (!isDraw) {
+			isDraw = bd.isInsufficientMaterial();
+		}
+		onMoveIsWhite = pm.onMoveIsWhite();
+		score = 0;
+		midgameScore = 0;
+		endgameScore = 0;
+		
+		if (!isDraw) {
+			bd.me.dynamicPosition = 0;
+			score += evaluateBishopPair();
+			midgameScore = score + (onMoveIsWhite ? bd.me.getMiddleGameDelta() + bd.me.getPosition() : -(bd.me.getMiddleGameDelta() + bd.me.getPosition()));
+			endgameScore = score + (onMoveIsWhite ? bd.me.getEndGameDelta() + bd.me.getEndgamePosition() : -(bd.me.getEndGameDelta() + bd.me.getEndgamePosition()));
+			score = taperEvaluation(midgameScore, endgameScore);
+		}
+		return score;
+	}
+	
+	private int internalCrudeEval() {
 		// Initialised in lazyEvaluation function
 		if (!isDraw) {
 			bd.me.dynamicPosition = 0;
@@ -210,7 +230,7 @@ public class PositionEvaluator implements IEvaluate {
 		return score;
 	}
 	
-	public int internalFullEval() {
+	private int internalFullEval() {
 		// Initialised in lazyEvaluation function
 		score = 0;
 		midgameScore = 0;
@@ -222,9 +242,9 @@ public class PositionEvaluator implements IEvaluate {
 			// Only generate full attack mask if passed pawn present and past opening stage
 			long [][][] attacks;
 			if (passedPawnPresent) {
-				attacks = bd.calculateCountedAttacksAndMobility(bd.me);
+				attacks = bd.mae.calculateCountedAttacksAndMobility(bd.me);
 			} else {
-				attacks = bd.calculateBasicAttacksAndMobility(bd.me);
+				attacks = bd.mae.calculateBasicAttacksAndMobility(bd.me);
 			}
 			
 			score += evaluateBishopPair();

@@ -383,8 +383,9 @@ public class PlySearcher {
 			!pos.getTheBoard().me.isEndgame() &&
 			!state[currPly].inCheck &&
 			!(Score.isMate((short)state[currPly].beta) || Score.isMate((short)state[currPly].alpha)) && 
-			(state[currPly].hashScore > state[currPly].beta ||
-			pe.lazyEvaluation(state[currPly].alpha, state[currPly].beta) > state[currPly].beta)) {
+			//(state[currPly].hashScore >= state[currPly].beta ||
+			//pe.lazyEvaluation(state[currPly].alpha, state[currPly].beta) > state[currPly].beta)) {
+			pe.getCrudeEvaluation() >= state[currPly].beta) {
 			
 			state[currPly].plyScore = doNullMoveSubTreeSearch(depth);
 			if (isTerminated()) { return 0; }

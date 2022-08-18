@@ -3,11 +3,37 @@ package eubos.board;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
+import eubos.score.PiecewiseEvaluation;
+
 public class MobilityAttacksEvaluator {
 	private Board theBoard;
 	
+	// Dimensions are [Colour][AttackType][CountedBitBoard]
+	public long [][][] basic_attacks;
+	public long [][][] counted_attacks;
+	
 	public MobilityAttacksEvaluator(Board board) {
-		theBoard = board;		
+		theBoard = board;
+		
+		basic_attacks = new long [2][4][];
+		basic_attacks[0][0] = new long [1];
+		basic_attacks[1][0] = new long [1];
+		basic_attacks[0][1] = new long [1];
+		basic_attacks[1][1] = new long [1];
+		basic_attacks[0][2] = new long [1];
+		basic_attacks[1][2] = new long [1];
+		basic_attacks[0][3] = new long [1];
+		basic_attacks[1][3] = new long [1];
+		
+		counted_attacks = new long [2][4][];
+		counted_attacks[0][0] = new long [2];
+		counted_attacks[1][0] = new long [2];
+		counted_attacks[0][1] = new long [2];
+		counted_attacks[1][1] = new long [2];
+		counted_attacks[0][2] = new long [4];
+		counted_attacks[1][2] = new long [4];
+		counted_attacks[0][3] = new long [5];
+		counted_attacks[1][3] = new long [5];
 	}
 	
 	public void handleDiagonalBatteriesInAttacks(long[] attacks, long diagonal_sliders, long slider_attacks) {
@@ -149,7 +175,7 @@ public class MobilityAttacksEvaluator {
 	}
 	
 	int calculateDiagonalMobility(long bishops, long queens) {
-		return calculateBasicDiagonalMobility(bishops, queens, theBoard.basic_attacks[0][2]);
+		return calculateBasicDiagonalMobility(bishops, queens, basic_attacks[0][2]);
 	}
 
 	int calculateBasicDiagonalMobility(long bishops, long queens, long [] attacks) {
@@ -225,7 +251,7 @@ public class MobilityAttacksEvaluator {
 	}
 	
 	int calculateRankFileMobility(long rooks, long queens) {
-		return calculateBasicRankFileMobility(rooks, queens, theBoard.basic_attacks[0][2]);
+		return calculateBasicRankFileMobility(rooks, queens, basic_attacks[0][2]);
 	}
 	
 	public int getMobility(int mobility_score, long mobility_mask_1, long mobility_mask_2, long sliders) {
@@ -422,4 +448,69 @@ public class MobilityAttacksEvaluator {
 		CountedBitBoard.setBits(attacks[3], kingAttacks);
 	}
 
+	public long [][][] calculateBasicAttacksAndMobility(PiecewiseEvaluation me) {
+		int mobility_score = 0x0;
+		long [][][] attacks = basic_attacks;
+		
+		getBasicAttacksForWhite(attacks[0]);
+		// White Bishop and Queen
+		long white_queens = theBoard.getWhiteQueens();
+		mobility_score = calculateBasicDiagonalMobility(theBoard.getWhiteBishops(), white_queens, attacks[0][2]);
+		me.dynamicPosition += (short)(mobility_score*2);
+
+		// White Rook and Queen
+		mobility_score = calculateBasicRankFileMobility(theBoard.getWhiteRooks(), white_queens, attacks[0][2]);
+		me.dynamicPosition += (short)(mobility_score*2);
+		attacks[0][3][0] |= attacks[0][2][0];
+		
+		getBasicAttacksForBlack(attacks[1]);
+		// Black Bishop and Queen
+		long black_queens = theBoard.getBlackQueens();
+		mobility_score = calculateBasicDiagonalMobility(theBoard.getBlackBishops(), black_queens, attacks[1][2]);
+		me.dynamicPosition -= (short)(mobility_score*2);
+		
+		// Black Rook and Queen
+		mobility_score = calculateBasicRankFileMobility(theBoard.getBlackRooks(), black_queens, attacks[1][2]);
+		me.dynamicPosition -= (short)(mobility_score*2);
+		
+		attacks[1][3][0] |= attacks[1][2][0];
+		theBoard.isAttacksMaskValid = true;
+		
+		return attacks;
+	}
+	
+	public long [][][] calculateCountedAttacksAndMobility(PiecewiseEvaluation me) {
+		int mobility_score = 0x0;
+		long [][][] attacks = counted_attacks;
+		
+		getCountedAttacksForWhite(attacks[0]);
+		// White Bishop and Queen
+		long white_queens = theBoard.getWhiteQueens();
+		mobility_score = calculateCountedDiagonalMobility(theBoard.getWhiteBishops(), white_queens, attacks[0][2]);
+		me.dynamicPosition += (short)(mobility_score*2);
+
+		// White Rook and Queen
+		mobility_score = calculateCountedRankFileMobility(theBoard.getWhiteRooks(), white_queens, attacks[0][2]);
+		me.dynamicPosition += (short)(mobility_score*2);
+		CountedBitBoard.setBitArrays(attacks[0][3], attacks[0][2]);
+		
+		getCountedAttacksForBlack(attacks[1]);
+		// Black Bishop and Queen
+		long black_queens = theBoard.getBlackQueens();
+		mobility_score = calculateCountedDiagonalMobility(theBoard.getBlackBishops(), black_queens, attacks[1][2]);
+		me.dynamicPosition -= (short)(mobility_score*2);
+		
+		// Black Rook and Queen
+		mobility_score = calculateCountedRankFileMobility(theBoard.getBlackRooks(), black_queens, attacks[1][2]);
+		me.dynamicPosition -= (short)(mobility_score*2);
+		
+		CountedBitBoard.setBitArrays(attacks[1][3], attacks[1][2]);
+	
+		// Need to assign king mask in basic attacks if using pp attacks masks for isKingInCheck() function
+		basic_attacks[0][3][0] = counted_attacks[0][3][0];
+		basic_attacks[1][3][0] = counted_attacks[1][3][0]; 
+		theBoard.isAttacksMaskValid = true;
+		
+		return attacks;
+	}
 }

@@ -56,18 +56,14 @@ public class Board {
 	PieceList pieceLists = new PieceList(this);
 	
 	public PiecewiseEvaluation me;
+	public MobilityAttacksEvaluator mae;
 	
 	public PawnAttackAggregator paa;
 	public PawnKnightAttackAggregator pkaa;
 	public KnightAttackAggregator kaa;
 	public CountedPawnKnightAttackAggregator cpkaa;
 	
-	MobilityAttacksEvaluator mae;
-	
 	boolean isAttacksMaskValid = false;
-	// Dimensions are [Colour][AttackType][CountedBitBoard]
-	public long [][][] basic_attacks;
-	public long [][][] counted_attacks;
 	
 	public Board( Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove ) {
 		paa = new PawnAttackAggregator();
@@ -76,26 +72,6 @@ public class Board {
 		cpkaa = new CountedPawnKnightAttackAggregator();
 		ktc = new KingTropismChecker();
 		mae = new MobilityAttacksEvaluator(this);
-		
-		basic_attacks = new long [2][4][];
-		basic_attacks[0][0] = new long [1];
-		basic_attacks[1][0] = new long [1];
-		basic_attacks[0][1] = new long [1];
-		basic_attacks[1][1] = new long [1];
-		basic_attacks[0][2] = new long [1];
-		basic_attacks[1][2] = new long [1];
-		basic_attacks[0][3] = new long [1];
-		basic_attacks[1][3] = new long [1];
-		
-		counted_attacks = new long [2][4][];
-		counted_attacks[0][0] = new long [2];
-		counted_attacks[1][0] = new long [2];
-		counted_attacks[0][1] = new long [2];
-		counted_attacks[1][1] = new long [2];
-		counted_attacks[0][2] = new long [4];
-		counted_attacks[1][2] = new long [4];
-		counted_attacks[0][3] = new long [5];
-		counted_attacks[1][3] = new long [5];
 		
 		allPieces = 0x0;
 		whitePieces = 0x0;
@@ -901,7 +877,7 @@ public class Board {
 		boolean inCheck = false;
 		if (isAttacksMaskValid) {
 			long kingMask = isWhite ? getWhiteKing() : getBlackKing();
-			inCheck = (kingMask & basic_attacks[isWhite ? 1 : 0][3][0]) != 0L;
+			inCheck = (kingMask & mae.basic_attacks[isWhite ? 1 : 0][3][0]) != 0L;
 		} else {
 			int kingSquare = getKingPosition(isWhite);
 			inCheck = squareIsAttacked(kingSquare, isWhite);
@@ -1768,72 +1744,6 @@ public class Board {
 			return ((pieces[Piece.PAWN] & blackPieces & SecondRankMask) != 0x0);
 		}
 	}
-		
-	public long [][][] calculateBasicAttacksAndMobility(PiecewiseEvaluation me) {
-		int mobility_score = 0x0;
-		long [][][] attacks = basic_attacks;
-		
-		mae.getBasicAttacksForWhite(attacks[0]);
-		// White Bishop and Queen
-		long white_queens = getWhiteQueens();
-		mobility_score = mae.calculateBasicDiagonalMobility(getWhiteBishops(), white_queens, attacks[0][2]);
-		me.dynamicPosition += (short)(mobility_score*2);
-
-		// White Rook and Queen
-		mobility_score = mae.calculateBasicRankFileMobility(getWhiteRooks(), white_queens, attacks[0][2]);
-		me.dynamicPosition += (short)(mobility_score*2);
-		attacks[0][3][0] |= attacks[0][2][0];
-		
-		mae.getBasicAttacksForBlack(attacks[1]);
-		// Black Bishop and Queen
-		long black_queens = getBlackQueens();
-		mobility_score = mae.calculateBasicDiagonalMobility(getBlackBishops(), black_queens, attacks[1][2]);
-		me.dynamicPosition -= (short)(mobility_score*2);
-		
-		// Black Rook and Queen
-		mobility_score = mae.calculateBasicRankFileMobility(getBlackRooks(), black_queens, attacks[1][2]);
-		me.dynamicPosition -= (short)(mobility_score*2);
-		
-		attacks[1][3][0] |= attacks[1][2][0];
-		isAttacksMaskValid = true;
-		
-		return attacks;
-	}
-	
-	public long [][][] calculateCountedAttacksAndMobility(PiecewiseEvaluation me) {
-		int mobility_score = 0x0;
-		long [][][] attacks = counted_attacks;
-		
-		mae.getCountedAttacksForWhite(attacks[0]);
-		// White Bishop and Queen
-		long white_queens = getWhiteQueens();
-		mobility_score = mae.calculateCountedDiagonalMobility(getWhiteBishops(), white_queens, attacks[0][2]);
-		me.dynamicPosition += (short)(mobility_score*2);
-
-		// White Rook and Queen
-		mobility_score = mae.calculateCountedRankFileMobility(getWhiteRooks(), white_queens, attacks[0][2]);
-		me.dynamicPosition += (short)(mobility_score*2);
-		CountedBitBoard.setBitArrays(attacks[0][3], attacks[0][2]);
-		
-		mae.getCountedAttacksForBlack(attacks[1]);
-		// Black Bishop and Queen
-		long black_queens = getBlackQueens();
-		mobility_score = mae.calculateCountedDiagonalMobility(getBlackBishops(), black_queens, attacks[1][2]);
-		me.dynamicPosition -= (short)(mobility_score*2);
-		
-		// Black Rook and Queen
-		mobility_score = mae.calculateCountedRankFileMobility(getBlackRooks(), black_queens, attacks[1][2]);
-		me.dynamicPosition -= (short)(mobility_score*2);
-		
-		CountedBitBoard.setBitArrays(attacks[1][3], attacks[1][2]);
-	
-		// Need to assign king mask in basic attacks if using pp attacks masks for isKingInCheck() function
-		basic_attacks[0][3][0] = counted_attacks[0][3][0];
-		basic_attacks[1][3][0] = counted_attacks[1][3][0]; 
-		isAttacksMaskValid = true;
-		
-		return attacks;
-	}
 	
 	public boolean isPassedPawnPresent(IForEachPieceCallback passedPawnChecker) {
 		if (pieces[Piece.PAWN] == 0) return false;
@@ -1841,7 +1751,6 @@ public class Board {
 		long blackPawns = this.getBlackPawns();
 		long whitePawns = this.getWhitePawns();
 		if (whitePawns == 0L || blackPawns == 0L) {
-			// if there is one or more pawns and none of the opposite side, then it is passed
 			return true;
 		}
 		

@@ -46,7 +46,7 @@ public class PositionEvaluatorTest {
 		System.out.println("Crude:"+crude);
 		System.out.println("Delta:"+delta);
 		// Dynamics
-		long [][][] attacks = pm.getTheBoard().calculateBasicAttacksAndMobility(pm.getTheBoard().me);
+		long [][][] attacks = pm.getTheBoard().mae.calculateBasicAttacksAndMobility(pm.getTheBoard().me);
 		System.out.println("MG Mobility+PST:"+pm.getTheBoard().me.getPosition());
 		// KS
 		System.out.println("KS:"+SUT.evaluateKingSafety(attacks));

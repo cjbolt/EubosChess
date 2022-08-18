@@ -259,8 +259,8 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_defect_en_passant_treated_as_playable_move_regardless_of_board_state() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"r3qrk1/pbpp1ppp/np1b1n2/8/2PPp3/P1N1P1PP/1P2NPB1/R1BQK2R w KQ - 1 10"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d1c2"+CMD_TERMINATOR));
-		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"9"+CMD_TERMINATOR, BEST_PREFIX+"e1g1"+CMD_TERMINATOR));
+		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d1c2"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e1g1"+CMD_TERMINATOR));
 		performTest(5000);
 	}
 	
