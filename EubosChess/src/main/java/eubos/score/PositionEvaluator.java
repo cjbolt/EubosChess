@@ -184,15 +184,15 @@ public class PositionEvaluator implements IEvaluate {
 				}
 				return beta;
 			}
-			/* Note call to quiescence check is last as it could be very computationally heavy! */
-			if (crudeEval+lazyThresh <= alpha && pm.isQuiescent()) {
-				// According to lazy eval, we probably can't increase alpha
-				if (TUNE_LAZY_EVAL) {
-					lazyStat.lazySavedCountAlpha++;
-					updateLazyStatistics(crudeEval);
-				}
-				return Short.MIN_VALUE;
-			}
+//			/* Note call to quiescence check is last as it could be very computationally heavy! */
+//			if (crudeEval+lazyThresh <= alpha && pm.isQuiescent()) {
+//				// According to lazy eval, we probably can't increase alpha
+//				if (TUNE_LAZY_EVAL) {
+//					lazyStat.lazySavedCountAlpha++;
+//					updateLazyStatistics(crudeEval);
+//				}
+//				return Short.MIN_VALUE;
+//			}
 		}
 		// Phase 2 full evaluation
 		return internalFullEval();
