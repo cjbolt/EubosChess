@@ -149,12 +149,9 @@ public class PositionEvaluatorTest {
 	
 	@Test
 	public void test_evaluateKingSafety_ScoreReporter()throws IllegalNotationException {
-		setUpPosition("4rbk1/1pr2p2/2p2Qp1/p2p4/6RP/2P1PN1q/PP3P2/2K3R1 b - - 9 30 ");
+		setUpPosition("r1bq1r1k/1p1pn2p/p4ppQ/b3pN2/2B1PN2/2P5/PP3PPP/R2R2K1 b - - 10 21");
+		SUT.passedPawnPresent = true;
 		long [][][] attacks = SUT.bd.mae.calculateCountedAttacksAndMobility(SUT.bd.me);
-		if (PositionEvaluator.ENABLE_TWEAKED_KING_FLIGHT_SQUARES) {
-			assertEquals(-257, SUT.evaluateKingSafety(attacks, false));
-		} else {
-			assertEquals(-211, SUT.evaluateKingSafety(attacks, false));
-		}
+		assertEquals(-211, SUT.evaluateKingSafetyV2(attacks, false));
 	}
 }
