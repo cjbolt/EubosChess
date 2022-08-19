@@ -246,7 +246,7 @@ public class SquareAttackEvaluator {
 	/* 1-dimensional array:
 	 * 1st index is a position integer, this is the origin square
 	 * indexes a bit mask of the squares that the origin square can attack by a King move */
-	static final long[] KingMove_Lut = new long[128];
+	public static final long[] KingMove_Lut = new long[128];
 	static {
 		for (int square : Position.values) {
 			KingMove_Lut[square] = createKingMovesAtSq(square);

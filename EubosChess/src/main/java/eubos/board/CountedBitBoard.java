@@ -39,7 +39,7 @@ public final class CountedBitBoard {
 		Arrays.fill(cbb, 0L);
 	}
 	
-	static boolean weControlContestedSquares(long[] own, long[] enemy, long contestedMask) {
+	public static boolean weControlContestedSquares(long[] own, long[] enemy, long contestedMask) {
 		boolean we_have_control = true;
 		if (EubosEngineMain.ENABLE_ASSERTS) {
 			assert own.length == enemy.length;

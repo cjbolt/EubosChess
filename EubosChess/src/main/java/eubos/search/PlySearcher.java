@@ -17,8 +17,6 @@ public class PlySearcher {
 	private static final int [] ASPIRATION_WINDOW_FALLBACK = 
 		{ Piece.MATERIAL_VALUE_PAWN/4, 2*Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
 
-	private static final boolean ENABLE_EXTRA_EXTENSIONS = false;
-	
 	class SearchState {
 		int plyScore;
 		int alpha;
@@ -194,19 +192,6 @@ public class PlySearcher {
 		if (state[0].inCheck) {
 			++depth;
 		}
-		if (ENABLE_EXTRA_EXTENSIONS) {
-			if (currPly < originalSearchDepthRequiredInPly*2) {
-				boolean kingThreatened = pos.getTheBoard().kingInDanger(Piece.Colour.isWhite(pos.getOnMove()));
-				if (kingThreatened) {
-					++depth;
-				}
-			}
-			else if (currPly < originalSearchDepthRequiredInPly*2) {
-				if (pos.promotablePawnPresent()) {
-					++depth;
-				}
-			}
-		}
 		
 		long trans = tt.getTransposition();
 		if (trans != 0L) {
@@ -347,19 +332,6 @@ public class PlySearcher {
 		// Extend search for in-check scenarios, treated outside of quiescence search
 		if (state[currPly].inCheck) {
 			++depth;
-		}
-		if (ENABLE_EXTRA_EXTENSIONS) {
-			if (currPly < originalSearchDepthRequiredInPly*2) {
-				boolean kingThreatened = pos.getTheBoard().kingInDanger(Piece.Colour.isWhite(pos.getOnMove()));
-				if (kingThreatened) {
-					++depth;
-				}
-			}
-			else if (currPly < originalSearchDepthRequiredInPly*2) {
-				if (pos.promotablePawnPresent()) {
-					++depth;
-				}
-			}
 		}
 		
 		if (depth <= 0) {

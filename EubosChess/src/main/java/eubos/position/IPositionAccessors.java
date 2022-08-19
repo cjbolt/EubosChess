@@ -19,5 +19,4 @@ public interface IPositionAccessors {
 	public boolean moveLeadsToThreefold(int move);
 	public String unwindMoveStack();
 	public int enemyAdvancedPassedPawn();
-	public boolean promotablePawnPresent();
 }

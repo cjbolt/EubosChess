@@ -17,7 +17,6 @@ import eubos.position.Move;
 import eubos.position.Position;
 import eubos.position.PositionManager;
 import eubos.score.PiecewiseEvaluation;
-import eubos.score.PositionEvaluator;
 import eubos.search.DrawChecker;
 
 public class BoardTest {
@@ -480,89 +479,6 @@ public class BoardTest {
 	}
 	
 	@Test
-	public void test_evaluateKingSafety_safe()throws IllegalNotationException {
-		setUpPosition("5krr/4pppp/6bq/8/8/6BQ/4PPPP/5KRR b - - 13 1");
-		assertEquals(-23, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), true)); // 5 squares, can be attacked by three pieces
-		assertEquals(-23, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), false));
-	}
-	
-	@Test
-	public void test_evaluateKingSafety_notVerySafe()throws IllegalNotationException {
-		setUpPosition("6rr/5ppp/1k4bq/8/8/1K4BQ/5PPP/6RR b - - 13 1 ");
-		assertEquals(-178, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), false)); // diagonals 7 squares, can be attacked by two pieces; r'n'f 9 squares can be attacked by three pieces
-		assertEquals(-178, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), true));
-	}
-	
-	@Test
-	public void test_evaluateKingSafety_No_inEndgame()throws IllegalNotationException {
-		setUpPosition("8/8/8/8/8/8/8/K7 w - - 0 1");
-		assertEquals(-100, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), true));
-	}
-	
-	@Test
-	public void test_evaluateKingSafety_No_opposingBishopWrongColour()throws IllegalNotationException {
-		setUpPosition("r4rk1/1p3p2/p7/P2P1p1B/4p3/2b5/3R1PPP/4K2R b K - 13 1 ");
-		if (PositionEvaluator.ENABLE_TWEAKED_KING_FLIGHT_SQUARES) {
-			assertEquals(-74, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), true)); // 7*2*2 rnf 0 diag = 28
-			assertEquals(-66, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), false)); // 7*2*2 rnf 1*2*1 = 30
-		} else {
-			assertEquals(-104, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), true)); // 7*2*2 rnf 0 diag = 28
-			assertEquals(-96, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), false)); // 7*2*2 rnf 1*2*1 = 30
-		}
-
-	}
-	
-	@Test
-	public void test_evaluateKingSafety_Yes_opposingBishopRightColour()throws IllegalNotationException {
-		setUpPosition("r4rk1/1p6/p7/P2P1p1B/4p3/2b5/3R1PPP/2K4R b - - 13 1 ");
-		if (PositionEvaluator.ENABLE_TWEAKED_KING_FLIGHT_SQUARES) {
-			assertEquals(-100, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), true));
-		} else {
-			assertEquals(-184, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), true));
-		}
-	}
-	
-	@Test
-	public void test_evaluateKingSafety_Yes_opposingQueenBishop()throws IllegalNotationException {
-		setUpPosition("r4rk1/1p6/p7/P2P1p1B/4p3/2b5/3R1PPP/Q1K4R b - - 13 1 ");
-		if (PositionEvaluator.ENABLE_TWEAKED_KING_FLIGHT_SQUARES) {
-		assertEquals(-100, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), true));  // (5 up right + 2 up left) *2 *1bish = 14; (7 up + 2 left + 5 right) * 2 *2rooks = 28*2; 56+14 = 70
-		assertEquals(-75, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), false));  // 1*2*2 diag = 4; 7*2*3 = 42 r'n'f; 4+42 = 46 
-		} else {
-			assertEquals(-184, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), true));  // (5 up right + 2 up left) *2 *1bish = 14; (7 up + 2 left + 5 right) * 2 *2rooks = 28*2; 56+14 = 70
-			assertEquals(-167, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), false));  // 1*2*2 diag = 4; 7*2*3 = 42 r'n'f; 4+42 = 46 
-		}
-	}
-	
-	@Test
-	public void test_evaluateKingSafety_OneKnight_attackBlack()throws IllegalNotationException {
-		setUpPosition("K7/8/4k3/8/8/1N4N1/8/8 w - - 1 1 ");
-		assertEquals(-100, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), true));
-		assertEquals(-168, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), false)); // One knight attacks the black king zone
-	}
-	
-	@Test
-	public void test_evaluateKingSafety_TwoKnights_attackBlack()throws IllegalNotationException {
-		setUpPosition("K7/8/4k3/8/8/2N3N1/8/8 w - - 1 1 ");
-		assertEquals(-100, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), true));
-		assertEquals(-187, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), false)); // One knight attacks the black king zone
-	}
-	
-	@Test
-	public void test_evaluateKingSafety_OneKnight_attackWhite()throws IllegalNotationException {
-		setUpPosition("k7/8/4K3/8/8/1n4n1/8/8 b - - 1 1 ");
-		assertEquals(-168, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), true));
-		assertEquals(-100, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), false)); // One knight attacks the black king zone
-	}
-	
-	@Test
-	public void test_evaluateKingSafety_TwoKnights_attackWhite()throws IllegalNotationException {
-		setUpPosition("k7/8/4K3/8/8/2n3n1/8/8 b - - 1 1 ");
-		assertEquals(-187, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), true));
-		assertEquals(-100, classUnderTest.evaluateKingSafety(classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me), false)); // One knight attacks the black king zone
-	}
-	
-	@Test
 	public void test_verify_empty_squares_mask_lut() {
 		int j=0, k=0;
 		for (int i : Position.values) {
@@ -769,17 +685,6 @@ public class BoardTest {
 		setUpPosition("4B2K/8/1b1Bn3/8/2P5/8/8/7k w - - 1 1");
 		long [][][] attacks = classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me);
 		assertFalse(classUnderTest.isPawnFrontspanSafe(Position.c4, true, attacks[0][3], attacks[1][3], false));
-	}
-	
-	@Test
-	public void test_evaluateKingSafety_ScoreReporter()throws IllegalNotationException {
-		setUpPosition("4rbk1/1pr2p2/2p2Qp1/p2p4/6RP/2P1PN1q/PP3P2/2K3R1 b - - 9 30 ");
-		long [][][] attacks = classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me);
-		if (PositionEvaluator.ENABLE_TWEAKED_KING_FLIGHT_SQUARES) {
-			assertEquals(-257, classUnderTest.evaluateKingSafety(attacks, false));
-		} else {
-			assertEquals(-211, classUnderTest.evaluateKingSafety(attacks, false));
-		}
 	}
 	
 	@Test
