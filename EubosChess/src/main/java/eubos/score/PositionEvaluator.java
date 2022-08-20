@@ -566,15 +566,18 @@ public class PositionEvaluator implements IEvaluate {
 			evaluation += Long.bitCount(mobility_mask ^ kingMask) * -numPotentialAttackers;
 		}
 		
-		// Then, do king tropism for proximity, including pawn storm
-		final int[] BLACK_ATTACKERS = {Piece.BLACK_QUEEN, Piece.BLACK_KNIGHT, Piece.BLACK_PAWN};
-		final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT, Piece.WHITE_PAWN};
+		// Then, do king tropism for proximity
+		final int[] BLACK_ATTACKERS = {Piece.BLACK_QUEEN, Piece.BLACK_KNIGHT};
+		final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT};
 		evaluation += ktc.getScore(kingPos, isWhite ? BLACK_ATTACKERS : WHITE_ATTACKERS);
 		
-		// Hit with a penalty if few defending pawns in the king zone
+		// Hit with a penalty if few defending pawns in the king zone and/or pawn storm
 		long surroundingSquares = SquareAttackEvaluator.KingZone_Lut[isWhite ? 0 : 1][kingPos];		
 		long pawnShieldMask =  isWhite ? surroundingSquares >>> 8 : surroundingSquares << 8;
 		evaluation += PAWN_SHELTER_LUT[Long.bitCount(pawnShieldMask & blockers)];
+		
+		long attacking_pawns = isWhite ? bd.getBlackPawns() : bd.getWhitePawns();
+		evaluation += PAWN_STORM_LUT[Long.bitCount(surroundingSquares & attacking_pawns)];
 		
 		// Then account for attacks on the squares around the king
 		surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
@@ -625,7 +628,8 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	// Make function of game phase?
-	public final int[] PAWN_SHELTER_LUT = {-100, -50, -15, 2, 4, 4, 0, 0, 0, 0};
+	public final int[] PAWN_SHELTER_LUT = {-100, -50, -15, 2, 4, 4, 0, 0, 0};
+	public final int[] PAWN_STORM_LUT = {0, -12, -30, -75, -150, -250, 0, 0, 0};
 	
 	public final int[] ENEMY_SQUARE_CONTROL_LUT = {
 			0, 5, 10, 30, 

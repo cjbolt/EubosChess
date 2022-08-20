@@ -1499,9 +1499,8 @@ public class Board {
 			return true;
 		}
 		
-		if ((me.numberOfPieces[Piece.WHITE_PAWN] >= 6 && ((blackPawns & 0xFFFFFFFFL) == 0L)) &&
-			(me.numberOfPieces[Piece.BLACK_PAWN] >= 6 && ((whitePawns & 0xFFFFFFFF00000000L) == 0L))) {
-			// Assume none passed if there are lots of pawns left and none crossed to other side of board
+		if (!me.isEndgame() && (blackPawns & 0x00FFFFFFL) == 0L && (whitePawns & 0xFFFFFF0000000000L) == 0L) {
+			// Assume no passed pawns if not the endgame and none have crossed to other side of board
 			return false;
 		}
 		

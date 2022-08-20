@@ -33,7 +33,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_EvalPosB() {
 		setUpPosition("8/8/1B6/8/8/4Kpk1/8/b7 w - - - 85");
-		assertEquals(-397, SUT.getFullEvaluation());
+		assertEquals(-398, SUT.getFullEvaluation());
 	}
 	
 	@Test
@@ -63,12 +63,11 @@ public class PositionEvaluatorTest {
 		System.out.println(String.format("%d %d %d", phase1, phase2, phase2 - phase1));
 	}
 	
-	
 	@Test
 	public void test_evaluateKingSafety_safe()throws IllegalNotationException {
 		setUpPosition("5krr/4pppp/6bq/8/8/6BQ/4PPPP/5KRR b - - 13 1");
-		assertEquals(-23, SUT.evaluateKingSafety(SUT.bd.mae.calculateCountedAttacksAndMobility(SUT.bd.me), true)); // 5 squares, can be attacked by three pieces
-		assertEquals(-23, SUT.evaluateKingSafety(SUT.bd.mae.calculateCountedAttacksAndMobility(SUT.bd.me), false));
+		assertEquals(-18, SUT.evaluateKingSafety(SUT.bd.mae.calculateCountedAttacksAndMobility(SUT.bd.me), true)); // 5 squares, can be attacked by three pieces
+		assertEquals(-18, SUT.evaluateKingSafety(SUT.bd.mae.calculateCountedAttacksAndMobility(SUT.bd.me), false));
 	}
 	
 	@Test
@@ -91,7 +90,7 @@ public class PositionEvaluatorTest {
 			assertEquals(-74, SUT.evaluateKingSafety(SUT.bd.mae.calculateCountedAttacksAndMobility(SUT.bd.me), true)); // 7*2*2 rnf 0 diag = 28
 			assertEquals(-66, SUT.evaluateKingSafety(SUT.bd.mae.calculateCountedAttacksAndMobility(SUT.bd.me), false)); // 7*2*2 rnf 1*2*1 = 30
 		} else {
-			assertEquals(-104, SUT.evaluateKingSafety(SUT.bd.mae.calculateCountedAttacksAndMobility(SUT.bd.me), true)); // 7*2*2 rnf 0 diag = 28
+			assertEquals(-116, SUT.evaluateKingSafety(SUT.bd.mae.calculateCountedAttacksAndMobility(SUT.bd.me), true)); // 7*2*2 rnf 0 diag = 28
 			assertEquals(-96, SUT.evaluateKingSafety(SUT.bd.mae.calculateCountedAttacksAndMobility(SUT.bd.me), false)); // 7*2*2 rnf 1*2*1 = 30
 		}
 
@@ -152,6 +151,6 @@ public class PositionEvaluatorTest {
 		setUpPosition("r1bq1r1k/1p1pn2p/p4ppQ/b3pN2/2B1PN2/2P5/PP3PPP/R2R2K1 b - - 10 21");
 		SUT.passedPawnPresent = true;
 		long [][][] attacks = SUT.bd.mae.calculateCountedAttacksAndMobility(SUT.bd.me);
-		assertEquals(-211, SUT.evaluateKingSafetyV2(attacks, false));
+		assertEquals(-404, SUT.evaluateKingSafety(attacks, false));
 	}
 }
