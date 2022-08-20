@@ -78,4 +78,47 @@ class CountedBitBoardTest {
 		long [] theirs = new long[] { 7L, 3L, 1L, 0L, 0L};
 		assertEquals(0, CountedBitBoard.evaluate(cbb, theirs, 0xFL));
 	}
+	
+	@Test
+	void test_control_front_span() {
+		long frontspan = BitBoard.valueOf(new int [] {Position.e5, Position.e6, Position.e7, Position.e8});
+		long [] ours = new long[] { 
+				frontspan,
+				frontspan,
+				BitBoard.valueOf(new int [] {Position.e5, Position.e6, Position.e8})};
+		long [] theirs = new long[] { 
+				frontspan,
+				frontspan,
+				frontspan };
+		// We don't control e7 three times, they do
+		assertFalse(CountedBitBoard.weControlContestedSquares(ours, theirs, frontspan));
+	}
+	
+	@Test
+	void test_control_front_span_1() {
+		long frontspan = BitBoard.valueOf(new int [] {Position.e5, Position.e6, Position.e7, Position.e8});
+		long [] ours = new long[] { 
+				frontspan,
+				frontspan,
+				frontspan};
+		long [] theirs = new long[] { 
+				frontspan,
+				frontspan,
+				frontspan };
+		// when attacks are equal, then we control frontspan
+		assertTrue(CountedBitBoard.weControlContestedSquares(ours, theirs, frontspan));
+	}
+	
+	@Test
+	void test_control_front_span_2() {
+		long frontspan = BitBoard.valueOf(new int [] {Position.e5, Position.e6, Position.e7, Position.e8});
+		long [] ours = new long[] { 
+				frontspan,
+				BitBoard.valueOf(new int [] {Position.e5, Position.e6, Position.e8})};
+		long [] theirs = new long[] { 
+				frontspan,
+				frontspan,
+				frontspan };
+		assertFalse(CountedBitBoard.weControlContestedSquares(ours, theirs, frontspan));
+	}
 }
