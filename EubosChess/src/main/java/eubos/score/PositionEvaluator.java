@@ -520,6 +520,7 @@ public class PositionEvaluator implements IEvaluate {
 
 		// King
 		long kingMask = isWhite ? bd.getWhiteKing() : bd.getBlackKing();
+		int kingPos = bd.pieceLists.getKingPos(isWhite);
 		long blockers = isWhite ? bd.getWhitePawns() : bd.getBlackPawns();
 		
 		// Attackers
@@ -534,7 +535,6 @@ public class PositionEvaluator implements IEvaluate {
 		
 		// First score according to King exposure on open diagonals
 		int numPotentialAttackers = Long.bitCount(diagonalAttackersMask);
-		int kingPos = bd.pieceLists.getKingPos(isWhite);
 		long mobility_mask = 0x0;
 		if (numPotentialAttackers > 0) {
 			long defendingBishopsMask = isWhite ? bd.getWhiteBishops() : bd.getBlackBishops();

@@ -8,6 +8,8 @@ import eubos.score.PiecewiseEvaluation;
 public class MobilityAttacksEvaluator {
 	private Board theBoard;
 	
+	private static final int MOBILITY_MULTIPLIER = 8;
+	
 	// Dimensions are [Colour][AttackType][CountedBitBoard]
 	public long [][][] basic_attacks;
 	public long [][][] counted_attacks;
@@ -456,22 +458,22 @@ public class MobilityAttacksEvaluator {
 		// White Bishop and Queen
 		long white_queens = theBoard.getWhiteQueens();
 		mobility_score = calculateBasicDiagonalMobility(theBoard.getWhiteBishops(), white_queens, attacks[0][2]);
-		me.dynamicPosition += (short)(mobility_score*2);
+		me.dynamicPosition += (short)(mobility_score*MOBILITY_MULTIPLIER);
 
 		// White Rook and Queen
 		mobility_score = calculateBasicRankFileMobility(theBoard.getWhiteRooks(), white_queens, attacks[0][2]);
-		me.dynamicPosition += (short)(mobility_score*2);
+		me.dynamicPosition += (short)(mobility_score*MOBILITY_MULTIPLIER);
 		attacks[0][3][0] |= attacks[0][2][0];
 		
 		getBasicAttacksForBlack(attacks[1]);
 		// Black Bishop and Queen
 		long black_queens = theBoard.getBlackQueens();
 		mobility_score = calculateBasicDiagonalMobility(theBoard.getBlackBishops(), black_queens, attacks[1][2]);
-		me.dynamicPosition -= (short)(mobility_score*2);
+		me.dynamicPosition -= (short)(mobility_score*MOBILITY_MULTIPLIER);
 		
 		// Black Rook and Queen
 		mobility_score = calculateBasicRankFileMobility(theBoard.getBlackRooks(), black_queens, attacks[1][2]);
-		me.dynamicPosition -= (short)(mobility_score*2);
+		me.dynamicPosition -= (short)(mobility_score*MOBILITY_MULTIPLIER);
 		
 		attacks[1][3][0] |= attacks[1][2][0];
 		theBoard.isAttacksMaskValid = true;
@@ -487,22 +489,22 @@ public class MobilityAttacksEvaluator {
 		// White Bishop and Queen
 		long white_queens = theBoard.getWhiteQueens();
 		mobility_score = calculateCountedDiagonalMobility(theBoard.getWhiteBishops(), white_queens, attacks[0][2]);
-		me.dynamicPosition += (short)(mobility_score*2);
+		me.dynamicPosition += (short)(mobility_score*MOBILITY_MULTIPLIER);
 
 		// White Rook and Queen
 		mobility_score = calculateCountedRankFileMobility(theBoard.getWhiteRooks(), white_queens, attacks[0][2]);
-		me.dynamicPosition += (short)(mobility_score*2);
+		me.dynamicPosition += (short)(mobility_score*MOBILITY_MULTIPLIER);
 		CountedBitBoard.setBitArrays(attacks[0][3], attacks[0][2]);
 		
 		getCountedAttacksForBlack(attacks[1]);
 		// Black Bishop and Queen
 		long black_queens = theBoard.getBlackQueens();
 		mobility_score = calculateCountedDiagonalMobility(theBoard.getBlackBishops(), black_queens, attacks[1][2]);
-		me.dynamicPosition -= (short)(mobility_score*2);
+		me.dynamicPosition -= (short)(mobility_score*MOBILITY_MULTIPLIER);
 		
 		// Black Rook and Queen
 		mobility_score = calculateCountedRankFileMobility(theBoard.getBlackRooks(), black_queens, attacks[1][2]);
-		me.dynamicPosition -= (short)(mobility_score*2);
+		me.dynamicPosition -= (short)(mobility_score*MOBILITY_MULTIPLIER);
 		
 		CountedBitBoard.setBitArrays(attacks[1][3], attacks[1][2]);
 	

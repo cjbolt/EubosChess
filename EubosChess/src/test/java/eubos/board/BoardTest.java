@@ -305,14 +305,6 @@ public class BoardTest {
 		setUpPosition("5K1k/2n5/2n5/8/2n5/2nn4/5pp1/R3Q2R w - - 0 1");
 		assertEquals(30, classUnderTest.mae.calculateRankFileMobility(classUnderTest.getWhiteRooks(), classUnderTest.getWhiteQueens()));
 	}
-	
-	@Test
-	public void testRookandQueenMobility_ExcludeBlackPawnandKnightAttacks_2() {	
-		setUpPosition("5K1k/2n5/2n5/8/2n5/2nn4/5pp1/R3Q2R w - - 0 1");
-		classUnderTest.me.dynamicPosition = 0;
-		classUnderTest.mae.calculateBasicAttacksAndMobility(classUnderTest.me);
-		assertEquals(62, classUnderTest.me.dynamicPosition);
-	}
 		
 	@Test
 	public void testisHalfOpenFile_isHalfOpen() {
@@ -494,14 +486,6 @@ public class BoardTest {
 				j++;
 			}
 		}
-	}
-	
-	@Test
-	public void test_slider_refactor_eval() {
-		setUpPosition("r1b1kb1r/ppq1pppp/8/3pN3/3Q4/8/PPP2PPP/RNB1K2R b KQkq - 0 1");
-		PiecewiseEvaluation me = new PiecewiseEvaluation();
-		classUnderTest.mae.calculateBasicAttacksAndMobility(me);
-		assertEquals(8, me.getPosition());
 	}
 	
 	@Test

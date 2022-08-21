@@ -943,14 +943,19 @@ public class Board {
 		return isControlled;
 	}
 	
-	public boolean isPawnBlockaded(int atPos, boolean isWhite) {
-		// Check for enemy pieces blockading
+	private long generatePawnPushMask(int atPos, boolean isWhite) {
 		long pawnMask = BitBoard.positionToMask_Lut[atPos];
 		if (isWhite) {
 			 pawnMask <<= 8;
 		} else {
 			pawnMask >>= 8;
 		}
+		return pawnMask;
+	}
+	
+	public boolean isPawnBlockaded(int atPos, boolean isWhite) {
+		// Check for enemy pieces blockading
+		long pawnMask = generatePawnPushMask(atPos, isWhite);
 		long enemy_pieces = isWhite ? blackPieces : whitePieces;
 		return (pawnMask & enemy_pieces) != 0L;
 	}
@@ -973,12 +978,7 @@ public class Board {
 	}
 	
 	public boolean canPawnAdvance(int atPos, boolean isWhite, long[] own_attacks, long[] enemy_attacks) {
-		long pawnMask = BitBoard.positionToMask_Lut[atPos];
-		if (isWhite) {
-			 pawnMask <<= 8;
-		} else {
-			pawnMask >>= 8;
-		}
+		long pawnMask = generatePawnPushMask(atPos, isWhite);
 		return CountedBitBoard.weControlContestedSquares(own_attacks, enemy_attacks, pawnMask);
 	}
 	
