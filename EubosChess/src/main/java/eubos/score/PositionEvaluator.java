@@ -57,8 +57,8 @@ public class PositionEvaluator implements IEvaluate {
 	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
 	running with the logging in TUNE_LAZY_EVAL for Eubos2.13 and post processing the logs.
 	It will need to be re-tuned if the evaluation function is altered significantly. */
-	public static int lazy_eval_threshold_cp = 450;
-	private static final boolean TUNE_LAZY_EVAL = false;
+	public static int lazy_eval_threshold_cp = 275;
+	private static final boolean TUNE_LAZY_EVAL = true;
 	
 	private class LazyEvalStatistics {
 		
@@ -71,6 +71,7 @@ public class PositionEvaluator implements IEvaluate {
 		int maxFailureCount;
 		String max_fen;
 		int biggestError;
+		int maxThreshUsed;
 		
 		public LazyEvalStatistics() {
 			lazyThreshFailedCount = new int [MAX_DELTA];
@@ -79,11 +80,12 @@ public class PositionEvaluator implements IEvaluate {
 		
 		public void report() {
 			// We want to know the bin that corresponds to the max error, this is the average threshold exceeded
-			// We also want to know the last non-zero array element
 			int max_threshold = 0;
 			int max_count = 0;
+			boolean overflowed = false;
 			if (maxFailureCount == 0) {
 				for (int i=lazyThreshFailedCount.length-1; i >= 0; i--) {
+					// We also want to know the last non-zero array element
 					if (lazyThreshFailedCount[i] != 0) {
 						max_threshold = i;
 						max_count = lazyThreshFailedCount[i];
@@ -93,20 +95,21 @@ public class PositionEvaluator implements IEvaluate {
 			} else {
 				max_threshold = maxFailure;
 				max_count = maxFailureCount;
+				overflowed = true;
 			}
 			
 			IntSummaryStatistics stats = Arrays.stream(lazyThreshFailedCount).summaryStatistics();
 			EubosEngineMain.logger.info(String.format(
-					"LazyStats A=%d B=%d nodes=%d failSum=%d exceededCount=%d maxExceeded=%d maxFen=%s",
-					lazySavedCountAlpha, lazySavedCountBeta, nodeCount, stats.getSum(), max_count, max_threshold, max_fen));
+					"LazyStats A=%d B=%d maxLazyThresh=%d nodes=%d failSum=%d overflowed=%s maxOverLazy=%d maxOverLazyN=%d maxFen=%s",
+					lazySavedCountAlpha, lazySavedCountBeta, maxThreshUsed, nodeCount, stats.getSum(), overflowed, max_threshold, max_count, max_fen));
 		}
 	}
 	
-	private void updateLazyStatistics(int plyScore) {
+	private void updateLazyStatistics(int plyScore, int lazyThresh) {
 		int delta = Math.abs(plyScore-internalFullEval());
 		if (delta > lazy_eval_threshold_cp) {
 			delta -= lazy_eval_threshold_cp;
-			assert delta < 1500 : String.format("LazyFail delta=%d stack=%s", delta, pm.unwindMoveStack());
+			//assert delta < 1500 : String.format("LazyFail delta=%d stack=%s", delta, pm.unwindMoveStack());
 			if (delta < lazyStat.MAX_DELTA) {
 				lazyStat.lazyThreshFailedCount[delta]++;
 				if (delta > lazyStat.biggestError) {
@@ -117,6 +120,9 @@ public class PositionEvaluator implements IEvaluate {
 				lazyStat.maxFailureCount++;
 				lazyStat.maxFailure = Math.max(delta, lazyStat.maxFailure);
 			}
+		}
+		if (lazyThresh > lazyStat.maxThreshUsed) {
+			lazyStat.maxThreshUsed = lazyThresh;
 		}
 	}
 	
@@ -155,12 +161,7 @@ public class PositionEvaluator implements IEvaluate {
 		}
 		if (EubosEngineMain.ENABLE_COUNTED_PASSED_PAWN_MASKS) {
 			if (!isDraw) {
-				// check for king danger or passed pawn
-//				int kingPos = bd.pieceLists.getKingPos(onMoveIsWhite);
-//				long enemy_pieces = onMoveIsWhite ? bd.getBlackPieces(): bd.getWhitePieces();
-//				long surroundingSquares = SquareAttackEvaluator.KingZone_Lut[onMoveIsWhite ? 0 : 1][kingPos];
-//				boolean enemyNearKing = ((enemy_pieces & surroundingSquares) != 0L) && !bd.me.isEndgame();
-				passedPawnPresent = /*enemyNearKing ||*/ bd.isPassedPawnPresent(pawn_eval);
+				passedPawnPresent = bd.isPassedPawnPresent(pawn_eval);
 			}
 		} else {
 			passedPawnPresent = false;
@@ -180,7 +181,15 @@ public class PositionEvaluator implements IEvaluate {
 		if (EubosEngineMain.ENABLE_LAZY_EVALUATION) {
 			// Phase 1 - crude evaluation
 			int crudeEval = internalCrudeEval();
-			int lazyThresh = bd.me.isEndgame() ? 750 : passedPawnPresent ? 450 : 275;
+			int lazyThresh = lazy_eval_threshold_cp;
+			int multiplier = 1;
+			if (bd.me.isEndgame()) {
+				multiplier += 1;
+			}
+			if (passedPawnPresent) {
+				multiplier += 1;
+			}
+			lazyThresh *= multiplier;
 			if (TUNE_LAZY_EVAL) {
 				lazyStat.nodeCount++;
 			}
@@ -189,19 +198,10 @@ public class PositionEvaluator implements IEvaluate {
 				// According to lazy eval, we probably can't reach beta
 				if (TUNE_LAZY_EVAL) {
 					lazyStat.lazySavedCountBeta++;
-					updateLazyStatistics(crudeEval);
+					updateLazyStatistics(crudeEval, lazyThresh);
 				}
 				return beta;
 			}
-//			/* Note call to quiescence check is last as it could be very computationally heavy! */
-//			if (crudeEval+lazyThresh <= alpha && pm.isQuiescent()) {
-//				// According to lazy eval, we probably can't increase alpha
-//				if (TUNE_LAZY_EVAL) {
-//					lazyStat.lazySavedCountAlpha++;
-//					updateLazyStatistics(crudeEval);
-//				}
-//				return Short.MIN_VALUE;
-//			}
 		}
 		// Phase 2 full evaluation
 		return internalFullEval();
