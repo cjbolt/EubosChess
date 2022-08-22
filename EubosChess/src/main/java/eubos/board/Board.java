@@ -1499,7 +1499,7 @@ public class Board {
 			return true;
 		}
 		
-		if (!me.isEndgame() && (blackPawns & 0x00FFFFFFL) == 0L && (whitePawns & 0xFFFFFF0000000000L) == 0L) {
+		if (!me.isEndgame() && (blackPawns & 0xFFFFFFFFL) == 0L && (whitePawns & 0xFFFFFFFF00000000L) == 0L) {
 			// Assume no passed pawns if not the endgame and none have crossed to other side of board
 			return false;
 		}

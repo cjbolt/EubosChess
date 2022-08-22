@@ -57,8 +57,8 @@ public class PositionEvaluator implements IEvaluate {
 	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
 	running with the logging in TUNE_LAZY_EVAL for Eubos2.13 and post processing the logs.
 	It will need to be re-tuned if the evaluation function is altered significantly. */
-	public static int lazy_eval_threshold_cp = 275;
-	private static final boolean TUNE_LAZY_EVAL = true;
+	public static int lazy_eval_threshold_cp = 450;
+	private static final boolean TUNE_LAZY_EVAL = false;
 	
 	private class LazyEvalStatistics {
 		
@@ -105,20 +105,25 @@ public class PositionEvaluator implements IEvaluate {
 		}
 	}
 	
-	private void updateLazyStatistics(int plyScore, int lazyThresh) {
-		int delta = Math.abs(plyScore-internalFullEval());
-		if (delta > lazy_eval_threshold_cp) {
-			delta -= lazy_eval_threshold_cp;
-			//assert delta < 1500 : String.format("LazyFail delta=%d stack=%s", delta, pm.unwindMoveStack());
-			if (delta < lazyStat.MAX_DELTA) {
-				lazyStat.lazyThreshFailedCount[delta]++;
-				if (delta > lazyStat.biggestError) {
-					lazyStat.max_fen = pm.getFen();
-					lazyStat.biggestError = delta;
+	private void updateLazyStatistics(int crude, int lazyThresh) {
+		int full = internalFullEval();
+		int delta = full-crude;
+		// We don't care if the score is better, only if it is worse
+		if (delta < 0) {
+			delta = Math.abs(delta);
+			if (Math.abs(delta) > lazy_eval_threshold_cp) {
+				delta -= lazy_eval_threshold_cp;
+				//assert delta < 1500 : String.format("LazyFail delta=%d stack=%s", delta, pm.unwindMoveStack());
+				if (delta < lazyStat.MAX_DELTA) {
+					lazyStat.lazyThreshFailedCount[delta]++;
+					if (delta > lazyStat.biggestError) {
+						lazyStat.max_fen = pm.getFen();
+						lazyStat.biggestError = delta;
+					}
+				} else {
+					lazyStat.maxFailureCount++;
+					lazyStat.maxFailure = Math.max(delta, lazyStat.maxFailure);
 				}
-			} else {
-				lazyStat.maxFailureCount++;
-				lazyStat.maxFailure = Math.max(delta, lazyStat.maxFailure);
 			}
 		}
 		if (lazyThresh > lazyStat.maxThreshUsed) {
@@ -178,18 +183,15 @@ public class PositionEvaluator implements IEvaluate {
 	
 	public int lazyEvaluation(int alpha, int beta) {
 		initialise();
-		if (EubosEngineMain.ENABLE_LAZY_EVALUATION) {
+		if (EubosEngineMain.ENABLE_LAZY_EVALUATION && bd.me.phase != 4096) {
 			// Phase 1 - crude evaluation
 			int crudeEval = internalCrudeEval();
 			int lazyThresh = lazy_eval_threshold_cp;
-			int multiplier = 1;
-			if (bd.me.isEndgame()) {
-				multiplier += 1;
-			}
 			if (passedPawnPresent) {
-				multiplier += 1;
+				int numEnemyPawns = bd.me.numberOfPieces[onMoveIsWhite?Piece.BLACK_PAWN:Piece.WHITE_PAWN];
+				int numOwnPawns = bd.me.numberOfPieces[onMoveIsWhite?Piece.WHITE_PAWN:Piece.BLACK_PAWN];
+				lazyThresh += (Math.max(1, numEnemyPawns-numOwnPawns) * 250 * bd.me.getPhase()) / 4096;
 			}
-			lazyThresh *= multiplier;
 			if (TUNE_LAZY_EVAL) {
 				lazyStat.nodeCount++;
 			}

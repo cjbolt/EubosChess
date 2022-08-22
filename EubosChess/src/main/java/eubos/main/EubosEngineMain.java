@@ -56,7 +56,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final byte SEARCH_DEPTH_IN_PLY = Byte.MAX_VALUE;
 	public static final int DEFAULT_NUM_SEARCH_THREADS = 1;
 	
-	public static final boolean ENABLE_LOGGING = true;
+	public static final boolean ENABLE_LOGGING = false;
 	public static final boolean ENABLE_UCI_INFO_SENDING = true;
 	public static final boolean ENABLE_UCI_MOVE_NUMBER = false;
 	
@@ -153,7 +153,7 @@ public class EubosEngineMain extends AbstractEngine {
 		reply.addOption(Options.newHashOption((int)DEFAULT_HASH_SIZE, MIN_HASH_SIZE, MAX_HASH_SIZE));
 		reply.addOption(new SpinnerOption("Threads", defaultNumberOfWorkerThreads, 1, numCores));
 		reply.addOption(new SpinnerOption("Move Overhead", 10, 0, 5000));
-		reply.addOption(new SpinnerOption("Lazy Threshold", PositionEvaluator.lazy_eval_threshold_cp, 0, 500));
+		reply.addOption(new SpinnerOption("Lazy Threshold", PositionEvaluator.lazy_eval_threshold_cp, 0, 1000));
 		logger.fine(String.format("Cores available=%d", numCores));
 		this.getProtocol().send( reply );
 		lastOnMove = null;
