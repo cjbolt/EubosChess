@@ -148,8 +148,8 @@ public class MoveListTest {
 		assertEquals(new GenericMove("d7e6"), Move.toGenericMove(it.nextInt())); // BxP delta -2 loses 2
 		assertEquals(new GenericMove("g4f3"), Move.toGenericMove(it.nextInt())); // BxP delta -2 loses 2
 		assertEquals(new GenericMove("e3f3"), Move.toGenericMove(it.nextInt())); // RxP delta -3 loses 4 losing material but checks
-		assertEquals(new GenericMove("e3e6"), Move.toGenericMove(it.nextInt())); // RxP delta -3 loses 4
 		assertEquals(new GenericMove("a6b5"), Move.toGenericMove(it.nextInt())); // QxR delta -1 loses 4
+		assertEquals(new GenericMove("e3e6"), Move.toGenericMove(it.nextInt())); // RxP delta -3 loses 4
 		assertEquals(new GenericMove("a6e6"), Move.toGenericMove(it.nextInt())); // QxP delta -4 loses 8 losing material but checks
 		
 		// add more losing moves???
