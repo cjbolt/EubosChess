@@ -27,18 +27,30 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_evalPosA() {
 		setUpPosition("rn2k1nr/1pp2p1p/p7/8/6b1/2P2N2/PPP2PP1/R1BB1RK1 b kq - 0 12");
-		assertEquals(-234, SUT.getFullEvaluation()); // Knight good pos, pawn up, doubled pawns, isolated pawn, not endgame, some danger to black king (open file)
+		assertEquals(-254, SUT.getFullEvaluation()); // Knight good pos, pawn up, doubled pawns, isolated pawn, not endgame, some danger to black king (open file)
 	}
 	
 	@Test
 	public void test_EvalPosB() {
 		setUpPosition("8/8/1B6/8/8/4Kpk1/8/b7 w - - - 85");
-		assertEquals(-398, SUT.getFullEvaluation());
+		assertEquals(-404, SUT.getFullEvaluation());
 	}
 	
 	@Test
+	public void test_kingExposure() {
+		setUpPosition("r1nq1rkb/pp1npp2/4b2Q/3p4/3P1R2/P2BP1BP/1PPN2P1/R5K1 b - - - 17");
+		assertTrue(SUT.isKingExposed());
+	}
+	
+	// Interesting lazy tune positions
+	// rrn2k2/pqb5/2n3Q1/4p1B1/8/2P2NP1/1P1R1P1P/R5K1 b - - - 31
+	// r1nq1rkb/pp1npp2/4b2Q/3p4/3P1R2/P2BP1BP/1PPN2P1/R5K1 b - - - 17
+	// 1nk5/3r1p2/b1pQ4/1R4B1/p1p3B1/2P5/P4PP1/2K4R b - - - 27
+	// 1r3r1k/qb6/pbn3Qp/3pPP2/n6P/2PBB3/N5PK/1R5R b - - - 28
+	// r1bq1r2/pppp4/1bn2P1p/5k2/2B4B/6Q1/P4PPP/qN2R1K1 b - - - 17
+	@Test
 	public void test_custom_position_score_reporter()throws IllegalNotationException {
-		setUpPosition("r1bq2k1/pppp1p2/1b3P1p/1B1N4/Q2Nr2p/8/PP3PPP/R4RK1 w - - 1 15 ");
+		setUpPosition("r1bq1r2/pppp4/1bn2P1p/5k2/2B4B/6Q1/P4PPP/qN2R1K1 b - - - 17");
 		int full = SUT.getFullEvaluation();
 		int crude = SUT.getCrudeEvaluation();
 		int delta = full-crude;
@@ -48,9 +60,11 @@ public class PositionEvaluatorTest {
 		// Dynamics
 		long [][][] attacks = pm.getTheBoard().mae.calculateBasicAttacksAndMobility(pm.getTheBoard().me);
 		System.out.println("MG Mobility+PST:"+pm.getTheBoard().me.getPosition());
+		System.out.println("EG Mobility+PST:"+pm.getTheBoard().me.getEndgamePosition());
 		// KS
 		System.out.println("KS:"+SUT.evaluateKingSafety(attacks));
 		// Pawns
+		System.out.println("PpPresent:"+SUT.passedPawnPresent);
 		System.out.println("Pawns:"+SUT.pawn_eval.evaluatePawnStructure(attacks));
 	}
 	

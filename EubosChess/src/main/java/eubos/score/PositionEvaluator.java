@@ -55,9 +55,9 @@ public class PositionEvaluator implements IEvaluate {
 	PawnEvaluator pawn_eval;
 	
 	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
-	running with the logging in TUNE_LAZY_EVAL for Eubos2.13 and post processing the logs.
+	running with the logging in TUNE_LAZY_EVAL for Eubos2.14 and post processing the logs.
 	It will need to be re-tuned if the evaluation function is altered significantly. */
-	public static int lazy_eval_threshold_cp = 450;
+	public static int lazy_eval_threshold_cp = 475;
 	private static final boolean TUNE_LAZY_EVAL = false;
 	
 	private class LazyEvalStatistics {
@@ -111,23 +111,22 @@ public class PositionEvaluator implements IEvaluate {
 		// We don't care if the score is better, only if it is worse
 		if (delta < 0) {
 			delta = Math.abs(delta);
-			if (Math.abs(delta) > lazy_eval_threshold_cp) {
-				delta -= lazy_eval_threshold_cp;
+			if (Math.abs(delta) > lazyThresh) {
+				delta -= lazyThresh;
 				//assert delta < 1500 : String.format("LazyFail delta=%d stack=%s", delta, pm.unwindMoveStack());
 				if (delta < lazyStat.MAX_DELTA) {
-					lazyStat.lazyThreshFailedCount[delta]++;
+					lazyStat.lazyThreshFailedCount[delta]++; /// can be double incremented on aspiration window failure?
 					if (delta > lazyStat.biggestError) {
 						lazyStat.max_fen = pm.getFen();
 						lazyStat.biggestError = delta;
+						lazyStat.maxThreshUsed = lazyThresh;
 					}
 				} else {
 					lazyStat.maxFailureCount++;
 					lazyStat.maxFailure = Math.max(delta, lazyStat.maxFailure);
+					lazyStat.max_fen = pm.getFen();
 				}
 			}
-		}
-		if (lazyThresh > lazyStat.maxThreshUsed) {
-			lazyStat.maxThreshUsed = lazyThresh;
 		}
 	}
 	
@@ -181,6 +180,23 @@ public class PositionEvaluator implements IEvaluate {
 		return (short)(((midgameScore * (4096 - phase)) + (endgameScore * phase)) / 4096);
 	}
 	
+	public boolean isKingExposed() {
+		int kingPos = bd.pieceLists.getKingPos(onMoveIsWhite);
+		// Only meant to cater for quite extreme situations
+		long kingZone = SquareAttackEvaluator.KingZone_Lut[onMoveIsWhite ? 0 : 1][kingPos];
+		kingZone =  onMoveIsWhite ? kingZone >>> 8 : kingZone << 8;
+		long defenders = onMoveIsWhite ? bd.getWhitePieces() : bd.getBlackPieces();
+		int defenderCount = Long.bitCount(kingZone&defenders);
+
+		int attackingQueenPos = bd.pieceLists.getQueenPos(!onMoveIsWhite);
+		if (attackingQueenPos != Position.NOPOSITION) {
+			int attackingQueenDistance = Position.distance(attackingQueenPos, kingPos);
+			return (defenderCount < 3 || attackingQueenDistance < 3);
+		} else {
+			return defenderCount < 3;
+		}
+	}
+	
 	public int lazyEvaluation(int alpha, int beta) {
 		initialise();
 		if (EubosEngineMain.ENABLE_LAZY_EVALUATION && bd.me.phase != 4096) {
@@ -191,6 +207,9 @@ public class PositionEvaluator implements IEvaluate {
 				int numEnemyPawns = bd.me.numberOfPieces[onMoveIsWhite?Piece.BLACK_PAWN:Piece.WHITE_PAWN];
 				int numOwnPawns = bd.me.numberOfPieces[onMoveIsWhite?Piece.WHITE_PAWN:Piece.BLACK_PAWN];
 				lazyThresh += (Math.max(1, numEnemyPawns-numOwnPawns) * 250 * bd.me.getPhase()) / 4096;
+			}
+			if (!bd.me.isEndgame() && isKingExposed()) {
+				lazyThresh += 300;
 			}
 			if (TUNE_LAZY_EVAL) {
 				lazyStat.nodeCount++;

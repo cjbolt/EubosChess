@@ -106,8 +106,8 @@ public class MoveListTest {
 		assertEquals(new GenericMove("f5e6"), Move.toGenericMove(it.nextInt())); // PxQ delta 4 gains 8
 		assertEquals(new GenericMove("g5e6"), Move.toGenericMove(it.nextInt())); // NxQ delta 2 gains 6
 		assertEquals(new GenericMove("d7e6"), Move.toGenericMove(it.nextInt())); // BxQ delta 2 gains 6
-		assertEquals(new GenericMove("c4b5"), Move.toGenericMove(it.nextInt())); // PxR delta 3 gains 4
 		assertEquals(new GenericMove("e3e6"), Move.toGenericMove(it.nextInt())); // RxQ delta 1 gains 4
+		assertEquals(new GenericMove("c4b5"), Move.toGenericMove(it.nextInt())); // PxR delta 3 gains 4
 		assertEquals(new GenericMove("a7b5"), Move.toGenericMove(it.nextInt())); // NxR delta 2 gains 2
 		assertEquals(new GenericMove("d7b5"), Move.toGenericMove(it.nextInt())); // BxR delta 1 gains 2
 		
@@ -119,8 +119,8 @@ public class MoveListTest {
 		// losing material
 		assertEquals(new GenericMove("g5f3"), Move.toGenericMove(it.nextInt())); // NxP delta -1 loses 2
 		assertEquals(new GenericMove("g4f3"), Move.toGenericMove(it.nextInt())); // BxP delta -2 loses 2
-		assertEquals(new GenericMove("a6b5"), Move.toGenericMove(it.nextInt())); // QxR delta -1 loses 4
 		assertEquals(new GenericMove("e3f3"), Move.toGenericMove(it.nextInt())); // RxP delta -3 loses 4
+		assertEquals(new GenericMove("a6b5"), Move.toGenericMove(it.nextInt())); // QxR delta -1 loses 4
 		
 		// add more losing moves???
 	}
@@ -147,9 +147,9 @@ public class MoveListTest {
 		assertEquals(new GenericMove("g5e6"), Move.toGenericMove(it.nextInt())); // NxP delta -1 loses 2
 		assertEquals(new GenericMove("d7e6"), Move.toGenericMove(it.nextInt())); // BxP delta -2 loses 2
 		assertEquals(new GenericMove("g4f3"), Move.toGenericMove(it.nextInt())); // BxP delta -2 loses 2
-		assertEquals(new GenericMove("a6b5"), Move.toGenericMove(it.nextInt())); // QxR delta -1 loses 4
 		assertEquals(new GenericMove("e3f3"), Move.toGenericMove(it.nextInt())); // RxP delta -3 loses 4 losing material but checks
 		assertEquals(new GenericMove("e3e6"), Move.toGenericMove(it.nextInt())); // RxP delta -3 loses 4
+		assertEquals(new GenericMove("a6b5"), Move.toGenericMove(it.nextInt())); // QxR delta -1 loses 4
 		assertEquals(new GenericMove("a6e6"), Move.toGenericMove(it.nextInt())); // QxP delta -4 loses 8 losing material but checks
 		
 		// add more losing moves???

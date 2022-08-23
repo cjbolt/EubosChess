@@ -377,6 +377,11 @@ public class PieceList {
 		return piece_list[piece][0];
 	}
 	
+	public int getQueenPos(boolean sideIsWhite) {
+		int piece = sideIsWhite ? Piece.WHITE_QUEEN : Piece.BLACK_QUEEN;
+		return piece_list[piece][0];
+	}
+	
 	public boolean validCaptureMoveExistsBlack(IAddMoves ml) {
 		for(int atSquare : piece_list[Piece.BLACK_KNIGHT]) {
 			if (atSquare != Position.NOPOSITION) {			
