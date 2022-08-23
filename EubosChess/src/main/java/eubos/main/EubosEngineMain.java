@@ -180,7 +180,7 @@ public class EubosEngineMain extends AbstractEngine {
 			logger.fine(String.format("Move Overhead=%d", move_overhead));
 		}
 		if (command.name.startsWith("Lazy Threshold")) {
-			PositionEvaluator.lazy_eval_threshold_cp = Integer.parseInt(command.value);
+			//PositionEvaluator.lazy_eval_threshold_cp = Integer.parseInt(command.value);
 			logger.fine(String.format("Lazy Threshold=%d", PositionEvaluator.lazy_eval_threshold_cp));
 		}
 	}

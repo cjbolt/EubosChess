@@ -48,9 +48,10 @@ public class PositionEvaluatorTest {
 	// 1nk5/3r1p2/b1pQ4/1R4B1/p1p3B1/2P5/P4PP1/2K4R b - - - 27
 	// 1r3r1k/qb6/pbn3Qp/3pPP2/n6P/2PBB3/N5PK/1R5R b - - - 28
 	// r1bq1r2/pppp4/1bn2P1p/5k2/2B4B/6Q1/P4PPP/qN2R1K1 b - - - 17
+	// r2qk2r/2p1b2p/p1n4p/2nQ4/R7/2P3PB/1P3P1P/1N2R1K1 b kq - - 20
 	@Test
 	public void test_custom_position_score_reporter()throws IllegalNotationException {
-		setUpPosition("r1bq1r2/pppp4/1bn2P1p/5k2/2B4B/6Q1/P4PPP/qN2R1K1 b - - - 17");
+		setUpPosition("r2qk2r/2p1b2p/p1n4p/2nQ4/R7/2P3PB/1P3P1P/1N2R1K1 b kq - - 20");
 		int full = SUT.getFullEvaluation();
 		int crude = SUT.getCrudeEvaluation();
 		int delta = full-crude;
@@ -62,6 +63,7 @@ public class PositionEvaluatorTest {
 		System.out.println("MG Mobility+PST:"+pm.getTheBoard().me.getPosition());
 		System.out.println("EG Mobility+PST:"+pm.getTheBoard().me.getEndgamePosition());
 		// KS
+		System.out.println("kingExposed?:"+SUT.isKingExposed());
 		System.out.println("KS:"+SUT.evaluateKingSafety(attacks));
 		// Pawns
 		System.out.println("PpPresent:"+SUT.passedPawnPresent);
