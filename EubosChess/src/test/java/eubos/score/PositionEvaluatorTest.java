@@ -49,9 +49,14 @@ public class PositionEvaluatorTest {
 	// 1r3r1k/qb6/pbn3Qp/3pPP2/n6P/2PBB3/N5PK/1R5R b - - - 28
 	// r1bq1r2/pppp4/1bn2P1p/5k2/2B4B/6Q1/P4PPP/qN2R1K1 b - - - 17
 	// r2qk2r/2p1b2p/p1n4p/2nQ4/R7/2P3PB/1P3P1P/1N2R1K1 b kq - - 20
+	
+	// passed pawn evaluation - original: k3b2b/1p5P/p3p3/3R1pP1/8/1P2KN2/P3B3/8 b - - 0 38
+	// k6b/1p3B1P/p1b3P1/8/3p1p1N/1P6/P4K2/8 w - - 2 44 beowulf terminal
+	// k7/1p6/p7/3pNKP1/3b4/1P6/P7/8 w - - 3 44 eubos terminal
+	// 
 	@Test
 	public void test_custom_position_score_reporter()throws IllegalNotationException {
-		setUpPosition("r2qk2r/2p1b2p/p1n4p/2nQ4/R7/2P3PB/1P3P1P/1N2R1K1 b kq - - 20");
+		setUpPosition("k6b/1p3B1P/p1b3P1/8/3p1p1N/1P6/P4K2/8 w - - 2 44");
 		int full = SUT.getFullEvaluation();
 		int crude = SUT.getCrudeEvaluation();
 		int delta = full-crude;
