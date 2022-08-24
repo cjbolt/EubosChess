@@ -54,12 +54,6 @@ public class PositionEvaluator implements IEvaluate {
 	public Board bd;
 	PawnEvaluator pawn_eval;
 	
-	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
-	running with the logging in TUNE_LAZY_EVAL for Eubos2.14 and post processing the logs.
-	It will need to be re-tuned if the evaluation function is altered significantly. */
-	public static int lazy_eval_threshold_cp = 475;
-	private static final boolean TUNE_LAZY_EVAL = false;
-	
 	private class LazyEvalStatistics {
 		
 		int MAX_DELTA = Piece.MATERIAL_VALUE_QUEEN - lazy_eval_threshold_cp; 
@@ -137,6 +131,12 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	LazyEvalStatistics lazyStat = null;
+	
+	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
+	running with the logging in TUNE_LAZY_EVAL for Eubos2.14 and post processing the logs.
+	It will need to be re-tuned if the evaluation function is altered significantly. */
+	public static int lazy_eval_threshold_cp = 350;
+	private static final boolean TUNE_LAZY_EVAL = false;
 	
 	public boolean goForMate;
 	public boolean goForMate() {
