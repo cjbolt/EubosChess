@@ -135,7 +135,7 @@ public class PositionEvaluator implements IEvaluate {
 	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
 	running with the logging in TUNE_LAZY_EVAL for Eubos2.14 and post processing the logs.
 	It will need to be re-tuned if the evaluation function is altered significantly. */
-	public static int lazy_eval_threshold_cp = 275;
+	public static int lazy_eval_threshold_cp = 500;
 	private static final boolean TUNE_LAZY_EVAL = false;
 	
 	public boolean goForMate;
@@ -331,6 +331,7 @@ public class PositionEvaluator implements IEvaluate {
 		protected int weighting;
 		protected boolean pawnIsBlack;
 		protected int[] ppCount = {0,0};
+		protected int ppFileMask = 0;
 		
 		public final int[] ppImbalanceTable = {0, 15, 200, 400, 700, 900, 900, 900, 900};
 		
@@ -413,6 +414,7 @@ public class PositionEvaluator implements IEvaluate {
 			if (bd.isPassedPawn(atPos, pawnIsWhite)) {
 				boolean isOwnPawn = (onMoveIsWhite && pawnIsWhite) || (!onMoveIsWhite && !pawnIsWhite);
 				ppCount[isOwnPawn ? 0:1] += 1;
+				ppFileMask |= (1 << Position.getFile(atPos));
 				setQueeningDistance(atPos, pawnIsWhite);
 				if (ENABLE_KPK_EVALUATION && bd.me.phase == 4096) {
 					evaluateKpkEndgame(atPos, isOwnPawn, own_attacks);
@@ -447,6 +449,16 @@ public class PositionEvaluator implements IEvaluate {
 			return -bd.countDoubledPawns(pawns)*DOUBLED_PAWN_HANDICAP;
 		}
 		
+		public int getNumAdjacentPassedPawns(int fileMask) {
+			if (fileMask == 0) return 0;
+			int left = ((fileMask & 0xAA) >> 1) + (fileMask & 0x55);
+			int right = (fileMask & 0x54) + ((fileMask & 0x2A) << 1);
+			right &= 0xA8;
+			right >>= 1;
+			left &= 0xAA;
+			return Long.bitCount(left | right);
+		}
+		
 		void initialise(long[][][] attacks) {
 			ppCount[0] = ppCount[1] = 0;
 			pawn_eval.attacks = attacks;
@@ -458,19 +470,23 @@ public class PositionEvaluator implements IEvaluate {
 			int pawnEvaluationScore = 0;
 			long ownPawns = onMoveIsWhite ? bd.getWhitePawns() : bd.getBlackPawns();
 			long enemyPawns = onMoveIsWhite ? bd.getBlackPawns() : bd.getWhitePawns();
+			ppFileMask = 0;
 			if (ownPawns != 0x0) {
 				piecewisePawnScoreAccumulator = 0;
 				int pawnHandicap = getDoubledPawnsHandicap(ownPawns);
 				bd.forEachPawnOfSide(this, !onMoveIsWhite);
 				pawnEvaluationScore = pawnHandicap + piecewisePawnScoreAccumulator;
+				pawnEvaluationScore += getNumAdjacentPassedPawns(ppFileMask) * CONNECTED_PASSED_PAWN_BOOST;
 			} else {
 				pawnEvaluationScore -= NO_PAWNS_HANDICAP;
 			}
+			ppFileMask = 0;
 			if (enemyPawns != 0x0) {
 				piecewisePawnScoreAccumulator = 0;
 				int pawnHandicap = getDoubledPawnsHandicap(enemyPawns);
 				bd.forEachPawnOfSide(this, onMoveIsWhite);
 				pawnEvaluationScore -= (pawnHandicap + piecewisePawnScoreAccumulator);
+				pawnEvaluationScore -= getNumAdjacentPassedPawns(ppFileMask) * CONNECTED_PASSED_PAWN_BOOST;
 			} else {
 				pawnEvaluationScore += NO_PAWNS_HANDICAP;
 			}

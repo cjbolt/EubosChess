@@ -636,4 +636,16 @@ public class PawnEvaluatorTest {
 		setUpPosition("8/pppppppp/8/8/P7/P7/P3PPPP/8 w - - 0 1");
 		assertTrue(pm.getTheBoard().isPassedPawnPresent(SUT.pawn_eval));
 	}
+	
+	@Test
+	public void test_adjacent() {
+		setUpPosition("K7/8/8/8/8/8/8/k7 w - - 0 1");
+		assertEquals(0, SUT.pawn_eval.getNumAdjacentPassedPawns(0x0));
+		assertEquals(2, SUT.pawn_eval.getNumAdjacentPassedPawns(0xE));
+		assertEquals(0, SUT.pawn_eval.getNumAdjacentPassedPawns(0xA));
+		assertEquals(1, SUT.pawn_eval.getNumAdjacentPassedPawns(0xC));
+		assertEquals(7, SUT.pawn_eval.getNumAdjacentPassedPawns(0xFF));
+		assertEquals(2, SUT.pawn_eval.getNumAdjacentPassedPawns(0xCC));
+		assertEquals(2, SUT.pawn_eval.getNumAdjacentPassedPawns(0x66));
+	}
 }
