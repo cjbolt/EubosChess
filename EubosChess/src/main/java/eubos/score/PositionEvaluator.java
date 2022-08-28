@@ -332,6 +332,7 @@ public class PositionEvaluator implements IEvaluate {
 		protected boolean pawnIsBlack;
 		protected int[] ppCount = {0,0};
 		protected int ppFileMask = 0;
+		protected int ppRankMask = 0;
 		
 		public final int[] ppImbalanceTable = {0, 15, 200, 400, 700, 900, 900, 900, 900};
 		
@@ -415,6 +416,7 @@ public class PositionEvaluator implements IEvaluate {
 				boolean isOwnPawn = (onMoveIsWhite && pawnIsWhite) || (!onMoveIsWhite && !pawnIsWhite);
 				ppCount[isOwnPawn ? 0:1] += 1;
 				ppFileMask |= (1 << Position.getFile(atPos));
+				ppRankMask |= (1 << Position.getRank(atPos));
 				setQueeningDistance(atPos, pawnIsWhite);
 				if (ENABLE_KPK_EVALUATION && bd.me.phase == 4096) {
 					evaluateKpkEndgame(atPos, isOwnPawn, own_attacks);
@@ -459,6 +461,35 @@ public class PositionEvaluator implements IEvaluate {
 			return Long.bitCount(left | right);
 		}
 		
+		public int evaluateConnectedPassedPawns()
+		{
+			int score = 0;
+			int numAdjacentPassedPawns = getNumAdjacentPassedPawns(ppFileMask);
+			if (numAdjacentPassedPawns > 0) {
+				// Simplification, if many passed pawns it can fail 
+				int adjacentRanks = getNumAdjacentPassedPawns(ppRankMask);
+				if (adjacentRanks > 0 || Long.bitCount(ppRankMask) == 1) {
+					score = numAdjacentPassedPawns * CONNECTED_PASSED_PAWN_BOOST;
+				}
+			}
+			return score;
+		}
+		
+		public int evaluatePawnsForSide(long pawns, boolean isBlack) {
+			int pawnEvaluationScore = 0;
+			ppFileMask = ppRankMask = 0;
+			if (pawns != 0x0) {
+				piecewisePawnScoreAccumulator = 0;
+				int pawnHandicap = getDoubledPawnsHandicap(pawns);
+				bd.forEachPawnOfSide(this, isBlack);
+				pawnEvaluationScore = pawnHandicap + piecewisePawnScoreAccumulator;
+				pawnEvaluationScore += evaluateConnectedPassedPawns();
+			} else {
+				pawnEvaluationScore -= NO_PAWNS_HANDICAP;
+			}
+			return pawnEvaluationScore;
+		}
+		
 		void initialise(long[][][] attacks) {
 			ppCount[0] = ppCount[1] = 0;
 			pawn_eval.attacks = attacks;
@@ -466,30 +497,11 @@ public class PositionEvaluator implements IEvaluate {
 		
 		@SuppressWarnings("unused")
 		int evaluatePawnStructure(long[][][] attacks) {
-			initialise(attacks);
-			int pawnEvaluationScore = 0;
 			long ownPawns = onMoveIsWhite ? bd.getWhitePawns() : bd.getBlackPawns();
 			long enemyPawns = onMoveIsWhite ? bd.getBlackPawns() : bd.getWhitePawns();
-			ppFileMask = 0;
-			if (ownPawns != 0x0) {
-				piecewisePawnScoreAccumulator = 0;
-				int pawnHandicap = getDoubledPawnsHandicap(ownPawns);
-				bd.forEachPawnOfSide(this, !onMoveIsWhite);
-				pawnEvaluationScore = pawnHandicap + piecewisePawnScoreAccumulator;
-				pawnEvaluationScore += getNumAdjacentPassedPawns(ppFileMask) * CONNECTED_PASSED_PAWN_BOOST;
-			} else {
-				pawnEvaluationScore -= NO_PAWNS_HANDICAP;
-			}
-			ppFileMask = 0;
-			if (enemyPawns != 0x0) {
-				piecewisePawnScoreAccumulator = 0;
-				int pawnHandicap = getDoubledPawnsHandicap(enemyPawns);
-				bd.forEachPawnOfSide(this, onMoveIsWhite);
-				pawnEvaluationScore -= (pawnHandicap + piecewisePawnScoreAccumulator);
-				pawnEvaluationScore -= getNumAdjacentPassedPawns(ppFileMask) * CONNECTED_PASSED_PAWN_BOOST;
-			} else {
-				pawnEvaluationScore += NO_PAWNS_HANDICAP;
-			}
+			initialise(attacks);
+			int pawnEvaluationScore = evaluatePawnsForSide(ownPawns, !onMoveIsWhite);
+			pawnEvaluationScore -= evaluatePawnsForSide(enemyPawns, onMoveIsWhite);
 			// Add a modification according to the imbalance of passed pawns in the position
 			if (ENABLE_PP_IMBALANCE_EVALUATION && bd.me.phase > 2048) {
 				int lookupIndex = ppCount[0] - ppCount[1];

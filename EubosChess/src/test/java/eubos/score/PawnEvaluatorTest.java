@@ -8,6 +8,7 @@ import static eubos.score.PositionEvaluator.BACKWARD_PAWN_HANDICAP;
 import static eubos.score.PositionEvaluator.NO_PAWNS_HANDICAP;
 import static eubos.score.PositionEvaluator.HEAVY_PIECE_BEHIND_PASSED_PAWN;
 import static eubos.score.PositionEvaluator.SAFE_MOBILE_PASSED_PAWN;
+import static eubos.score.PositionEvaluator.CONNECTED_PASSED_PAWN_BOOST;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
@@ -115,6 +116,7 @@ public class PawnEvaluatorTest {
 		expectedScore += ((7-5)*3*(PASSED_PAWN_BOOST+SAFE_MOBILE_PASSED_PAWN) - BACKWARD_PAWN_HANDICAP); // black e pawn 6th rank
 		expectedScore += -BACKWARD_PAWN_HANDICAP; // black d pawn 6th rank
 		expectedScore += -DOUBLED_PAWN_HANDICAP; // black doubled pawns
+		expectedScore += CONNECTED_PASSED_PAWN_BOOST;
 		// white
 		expectedScore += ISOLATED_PAWN_HANDICAP;
 		if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
@@ -647,5 +649,29 @@ public class PawnEvaluatorTest {
 		assertEquals(7, SUT.pawn_eval.getNumAdjacentPassedPawns(0xFF));
 		assertEquals(2, SUT.pawn_eval.getNumAdjacentPassedPawns(0xCC));
 		assertEquals(2, SUT.pawn_eval.getNumAdjacentPassedPawns(0x66));
+	}
+	
+	@Test
+	public void test_evaluate_connected_passed_pawns() {
+		setUpPosition("N7/8/6PP/8/8/8/8/n7 w - - 0 1");
+		SUT.pawn_eval.initialise(attacks);
+		// both pawns are backwards(?) and connected 
+		assertEquals(501, SUT.pawn_eval.evaluatePawnsForSide(SUT.bd.getWhitePawns(), false));
+	}
+	
+	@Test
+	public void test_evaluate_connected_passed_pawns_2() {
+		setUpPosition("8/8/1P5P/8/8/8/8/n6N w - - 0 1");
+		SUT.pawn_eval.initialise(attacks);
+		// as above but both pawns are isolated and their is no connected bonus
+		assertEquals(384, SUT.pawn_eval.evaluatePawnsForSide(SUT.bd.getWhitePawns(), false));
+	}
+	
+	@Test
+	public void test_evaluate_connected_passed_pawns_1() {
+		setUpPosition("N7/8/7P/8/8/6P1/8/n7 w - - 0 1");
+		SUT.pawn_eval.initialise(attacks);
+		assertEquals(288, SUT.pawn_eval.evaluatePawnsForSide(SUT.bd.getWhitePawns(), false));
+		assertEquals(0, SUT.pawn_eval.evaluateConnectedPassedPawns());
 	}
 }
