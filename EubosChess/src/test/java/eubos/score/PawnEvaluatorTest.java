@@ -116,7 +116,7 @@ public class PawnEvaluatorTest {
 		expectedScore += ((7-5)*3*(PASSED_PAWN_BOOST+SAFE_MOBILE_PASSED_PAWN) - BACKWARD_PAWN_HANDICAP); // black e pawn 6th rank
 		expectedScore += -BACKWARD_PAWN_HANDICAP; // black d pawn 6th rank
 		expectedScore += -DOUBLED_PAWN_HANDICAP; // black doubled pawns
-		expectedScore += CONNECTED_PASSED_PAWN_BOOST;
+		expectedScore += CONNECTED_PASSED_PAWN_BOOST/2;
 		// white
 		expectedScore += ISOLATED_PAWN_HANDICAP;
 		if (PositionEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
@@ -168,7 +168,7 @@ public class PawnEvaluatorTest {
 	public void test_crazyPassedPawnScenario() {
 		setUpPosition("3r2k1/1Nr2pp1/1n3n2/1P1P2q1/3P4/1pP2p1p/1K6/R3QB1R b - - 0 29 ");
 		int score = SUT.pawn_eval.evaluatePawnStructure(attacks);
-		assertEquals(-15, score);
+		assertEquals(-90, score);
 	} 
 	
 	@Test
@@ -656,7 +656,7 @@ public class PawnEvaluatorTest {
 		setUpPosition("N7/8/6PP/8/8/8/8/n7 w - - 0 1");
 		SUT.pawn_eval.initialise(attacks);
 		// both pawns are backwards(?) and connected 
-		assertEquals(501, SUT.pawn_eval.evaluatePawnsForSide(SUT.bd.getWhitePawns(), false));
+		assertEquals(476, SUT.pawn_eval.evaluatePawnsForSide(SUT.bd.getWhitePawns(), false));
 	}
 	
 	@Test
@@ -671,7 +671,7 @@ public class PawnEvaluatorTest {
 	public void test_evaluate_connected_passed_pawns_1() {
 		setUpPosition("N7/8/7P/8/8/6P1/8/n7 w - - 0 1");
 		SUT.pawn_eval.initialise(attacks);
-		assertEquals(288, SUT.pawn_eval.evaluatePawnsForSide(SUT.bd.getWhitePawns(), false));
-		assertEquals(0, SUT.pawn_eval.evaluateConnectedPassedPawns());
+		assertEquals(313, SUT.pawn_eval.evaluatePawnsForSide(SUT.bd.getWhitePawns(), false));
+		assertEquals(25, SUT.pawn_eval.evaluateConnectedPassedPawns());
 	}
 }

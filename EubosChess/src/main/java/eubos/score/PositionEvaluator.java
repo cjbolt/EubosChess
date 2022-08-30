@@ -135,7 +135,7 @@ public class PositionEvaluator implements IEvaluate {
 	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
 	running with the logging in TUNE_LAZY_EVAL for Eubos2.14 and post processing the logs.
 	It will need to be re-tuned if the evaluation function is altered significantly. */
-	public static int lazy_eval_threshold_cp = 500;
+	public static int lazy_eval_threshold_cp = 275;
 	private static final boolean TUNE_LAZY_EVAL = false;
 	
 	public boolean goForMate;
