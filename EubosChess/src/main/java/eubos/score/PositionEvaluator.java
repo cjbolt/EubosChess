@@ -30,7 +30,7 @@ public class PositionEvaluator implements IEvaluate {
 	public static final int ROOK_FILE_CANDIDATE_PAWN = 5;
 	public static final int SAFE_MOBILE_PASSED_PAWN = 10;
 	public static final int MOBILE_PASSED_PAWN = 5;
-	public static final int CONNECTED_PASSED_PAWN_BOOST = 75;
+	public static final int CONNECTED_PASSED_PAWN_BOOST = 50;
 	public static final int HEAVY_PIECE_BEHIND_PASSED_PAWN = 20;
 	
 	public static final boolean ENABLE_PAWN_EVALUATION = true;
@@ -470,6 +470,8 @@ public class PositionEvaluator implements IEvaluate {
 				int adjacentRanks = getNumAdjacentPassedPawns(ppRankMask);
 				if (adjacentRanks > 0 || Long.bitCount(ppRankMask) == 1) {
 					score = numAdjacentPassedPawns * CONNECTED_PASSED_PAWN_BOOST;
+				} else {
+					score = CONNECTED_PASSED_PAWN_BOOST/2;
 				}
 			}
 			return score;
