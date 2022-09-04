@@ -133,36 +133,43 @@ public class MoveList implements Iterable<Integer> {
 			// Note fall-through to next stage if no captures
 		case 3:
 			if (extendedSearch[ply]) {
+				// Quiescent search shall terminate here
 				return emptyIterator();
+			} else if (killers[ply] == null) {
+				// Fall-through into quiet moves if there are no killers
+				return doQuiet();
+			} else {
+				nextCheckPoint[ply] = 4;
+				iter = checkKiller(0);
+				if (iter != null) {
+					return iter;
+				}
 			}
-			nextCheckPoint[ply] = 4;
-			iter = checkKiller(0);
-			if (iter != null) {
-				return iter;
-			}
+			// Note fall-through to try next killer
 		case 4:
 			nextCheckPoint[ply] = 5;
 			iter = checkKiller(1);
 			if (iter != null) {
 				return iter;
 			}
+			// Note fall-through to try next killer
 		case 5:
 			nextCheckPoint[ply] = 6;
 			iter = checkKiller(2);
 			if (iter != null) {
 				return iter;
 			}
+			// Note fall-through to quiet moves
 		case 6:
 			// Lastly, generate all quiet moves (i.e. that aren't best, killers, or tactical moves)
-			nextCheckPoint[ply] = 7;
-			getQuietMoves();
-			if (moveCount[ply] != 0) {
-				collateMoveList();
-				return iterator();
-			}
-			// Note fall-through to empty iterator if there are no quiet moves in the position
+			return doQuiet();
 		case 7:
+			nextCheckPoint[ply] = 8;
+			return emptyIterator();
 		default:
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert false : "Staged move generation called too many times";
+			}
 			return emptyIterator();
 		}
 	}
@@ -186,14 +193,22 @@ public class MoveList implements Iterable<Integer> {
 		priority_fill_index = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		scratchpad_fill_index = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 	}
+	
+	private MoveListIterator doQuiet() {
+		nextCheckPoint[ply] = 7;
+		getQuietMoves();
+		if (moveCount[ply] != 0) {
+			collateMoveList();
+			return iterator();
+		}
+		return empty;
+	}
 
 	private MoveListIterator checkKiller(int killerNum) {
 		MoveListIterator iter = null;
-		if (killers[ply] != null) {
-			if (!Move.areEqualForBestKiller(bestMove[ply], killers[ply][killerNum])
-					&& pm.getTheBoard().isPlayableMove(killers[ply][killerNum], needToEscapeMate[ply], pm.castling)) {
-				iter = singleMoveIterator(killers[ply][killerNum]);
-			}
+		if (!Move.areEqualForBestKiller(bestMove[ply], killers[ply][killerNum])
+				&& pm.getTheBoard().isPlayableMove(killers[ply][killerNum], needToEscapeMate[ply], pm.castling)) {
+			iter = singleMoveIterator(killers[ply][killerNum]);
 		}
 		return iter;
 	}

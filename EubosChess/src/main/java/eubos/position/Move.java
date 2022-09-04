@@ -239,18 +239,6 @@ public final class Move {
 		return originPosition;
 	}
 	
-	private static int setOriginPosition(int move, int originPosition) {
-		// Zero out origin position
-		move &= ~ORIGINPOSITION_MASK;
-
-		// Encode origin position
-		if (EubosEngineMain.ENABLE_ASSERTS)
-			assert (originPosition & 0x88) == 0;
-		move |= originPosition << ORIGINPOSITION_SHIFT;
-
-		return move;
-	}
-
 	public static int getTargetPosition(int move) {
 		int targetPosition = (move & TARGETPOSITION_MASK) >>> TARGETPOSITION_SHIFT;
 		if (EubosEngineMain.ENABLE_ASSERTS)
@@ -433,9 +421,8 @@ public final class Move {
 	}
 	
 	public static int reverse(int move) {
-		int reversedMove = move;
-		reversedMove = Move.setTargetPosition(reversedMove, Move.getOriginPosition(move));
-		reversedMove = Move.setOriginPosition(reversedMove, Move.getTargetPosition(move));
+		int reversedMove = move & ~(ORIGINPOSITION_MASK | TARGETPOSITION_MASK);
+		reversedMove |= ((move & ORIGINPOSITION_MASK) >>> 7) | ((move & TARGETPOSITION_MASK) << 7);
 		return reversedMove;
 	}
 
