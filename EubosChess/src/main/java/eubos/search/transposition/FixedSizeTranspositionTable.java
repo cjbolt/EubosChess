@@ -14,13 +14,13 @@ public class FixedSizeTranspositionTable {
 	public static final long BYTES_PER_MEGABYTE = 1_000_000L;
 	public static final long MBYTES_DEFAULT_HASH_SIZE = 256L;
 	
-	private static final int RANGE_TO_SEARCH = 10; 
+	static final int RANGE_TO_SEARCH = 10; 
 			
 	private long [] transposition_table = null;
 	private long [] hashes = null;
 	private long tableSize = 0;
-	private long maxTableSize = 0;
-	private long mask = 0;
+	long maxTableSize = 0;
+//	private long mask = 0;
 	
 	public FixedSizeTranspositionTable() {
 		this(MBYTES_DEFAULT_HASH_SIZE, 1);
@@ -35,71 +35,69 @@ public class FixedSizeTranspositionTable {
 					hashSizeMBytes, BYTES_PER_TRANSPOSITION, hashSizeElements));
 		}
 		
-		assert hashSizeElements < Integer.MAX_VALUE;
+		hashSizeElements &= Integer.MAX_VALUE;
 		
-		int highestBit = (int)Long.highestOneBit(hashSizeElements);
-		mask = highestBit - 1;
-		
-		transposition_table = new long[highestBit];
-		hashes = new long[highestBit];
-		tableSize = 0;
-		maxTableSize = highestBit;
-		
-//		transposition_table = new long[(int)hashSizeElements];
-//		hashes = new long[(int)hashSizeElements];
+//		int highestBit = (int)Long.highestOneBit(hashSizeElements);
+//		mask = highestBit - 1;
+//		transposition_table = new long[highestBit];
+//		hashes = new long[highestBit];
 //		tableSize = 0;
-//		maxTableSize = hashSizeElements;
+//		maxTableSize = highestBit;
+		
+		transposition_table = new long[(int)hashSizeElements];
+		hashes = new long[(int)hashSizeElements];
+		tableSize = 0;
+		maxTableSize = hashSizeElements;
 	}
 	
 	public synchronized long getTransposition(long hashCode) {
-		int index = (int)(hashCode & mask);
-		//int index = (int)(hashCode % maxTableSize);
-		if (maxTableSize - index > RANGE_TO_SEARCH) {
-			for (int i=0; i < RANGE_TO_SEARCH; i++) {
-				if (hashes[index+i] == hashCode) {
-					return transposition_table[index+i];
-				}
+		//int index = (int)(hashCode & mask);
+		int index = (int)(Math.abs(hashCode % maxTableSize));
+		for (int i=index; i >= 0 && i > (index-RANGE_TO_SEARCH); i--) {
+			if (hashes[i] == hashCode) {
+				return transposition_table[i];
 			}
 		}
 		return 0L;
 	}
 	
 	public synchronized void putTransposition(long hashCode, long trans) {
-		int index = (int)(hashCode & mask);
-		//int index = (int)(hashCode % maxTableSize);
+		//int index = (int)(hashCode & mask);
+		int index = (int)(Math.abs(hashCode % maxTableSize));
+		// Ideal case
+		if (hashes[index] == hashCode) {
+			transposition_table[index] = trans;
+			return;
+		}
 		boolean found_slot = false;
-    	// Try to find a free slot near the hash index
-		if (maxTableSize - index > RANGE_TO_SEARCH) {				
-			for (int i=0; i < RANGE_TO_SEARCH; i++) {
-				if (transposition_table[index+i] == 0L) {
-					tableSize++;
+		// Try to find a free slot near the hash index
+		for (int i=index; i >= 0 && i > (index-RANGE_TO_SEARCH); i--) {
+			if (transposition_table[i] == 0L || hashes[i] == hashCode) {
+				tableSize++;
+				
+				transposition_table[i] = trans;
+				hashes[i] = hashCode;
+				
+				found_slot = true;
+				break;
+			}
+		}
+		// failing that, overwrite based on age
+		if (!found_slot) {
+			int new_age = Transposition.getAge(trans);
+			for (int i=index; i >= 0 && i > (index-RANGE_TO_SEARCH); i--) {
+				int index_age = Transposition.getAge(transposition_table[i]);
+				if ((index_age+(16 >> 2)) < new_age) {
 					
-					transposition_table[index+i] = trans;
-					hashes[index+i] = hashCode;
+					transposition_table[i] = trans;
+					hashes[i] = hashCode;
 					
 					found_slot = true;
 					break;
 				}
 			}
 		}
-		// failing that, overwrite based on age
-		if (!found_slot) {
-			int new_age = Transposition.getAge(trans);
-			if (maxTableSize - index > RANGE_TO_SEARCH) {
-				for (int i=0; i < RANGE_TO_SEARCH; i++) {
-					int index_age = Transposition.getAge(transposition_table[index+i]);
-					if ((index_age+(16 >> 2)) < new_age) {
-						
-						transposition_table[index+i] = trans;
-						hashes[index+i] = hashCode;
-						
-						found_slot = true;
-						break;
-					}
-				}
-			}
-		}
-		// failing that, overwrite
+		// failing that, always overwrite
 		if (!found_slot) {
 			transposition_table[index] = trans;
 			hashes[index] = hashCode;
