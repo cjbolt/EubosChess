@@ -27,7 +27,7 @@ class TranspositionTest {
 	@Test
 	void test_ValueOf_Depth_Score_Bound_BestMove() {
 		int bestMove = Move.valueOf(Position.a1, Piece.WHITE_ROOK, Position.b1, Piece.NONE);
-		long trans = Transposition.valueOf((byte) 4, (short)-10, Score.upperBound, bestMove);
+		long trans = Transposition.valueOf((byte) 4, (short)-10, Score.upperBound, bestMove, 0);
 		assertEquals(4, Transposition.getDepthSearchedInPly(trans));
 		assertEquals(-10, Transposition.getScore(trans));
 		assertEquals(Score.upperBound, Transposition.getType(trans));

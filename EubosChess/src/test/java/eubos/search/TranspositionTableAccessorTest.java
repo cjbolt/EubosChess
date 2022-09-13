@@ -60,7 +60,7 @@ public class TranspositionTableAccessorTest {
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
 		
-		sut.setTransposition(0L, (byte)1, (short)105, Score.exact, Move.toMove(pc.get(0), pm.getTheBoard()));
+		sut.setTransposition(0L, (byte)1, (short)105, Score.exact, Move.toMove(pc.get(0), pm.getTheBoard()), 0);
 		
 		trans = sut.getTransposition();
 		
@@ -74,7 +74,7 @@ public class TranspositionTableAccessorTest {
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
 		
-		sut.setTransposition(0L, (byte)1, (short)105, Score.exact, Move.toMove(pc.get(0)));
+		sut.setTransposition(0L, (byte)1, (short)105, Score.exact, Move.toMove(pc.get(0)), 0);
 		
 		trans = sut.getTransposition();
 		
@@ -88,7 +88,7 @@ public class TranspositionTableAccessorTest {
 		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		
-		sut.setTransposition(0L, (byte)1, (short)105, Score.exact, Move.toMove(pc.get(0)));
+		sut.setTransposition(0L, (byte)1, (short)105, Score.exact, Move.toMove(pc.get(0)), 0);
 		
 		trans = sut.getTransposition();
 		
@@ -102,7 +102,7 @@ public class TranspositionTableAccessorTest {
 		List<GenericMove> pc = new ArrayList<GenericMove>();
 		pc.add(new GenericMove("e2e4"));
 		
-		sut.setTransposition(0L, (byte)1, (short)18, Score.upperBound, Move.toMove(pc.get(0)));
+		sut.setTransposition(0L, (byte)1, (short)18, Score.upperBound, Move.toMove(pc.get(0)), 0);
 		
 		// Set up score tracker according to diagram
 		trans = sut.getTransposition();
@@ -119,7 +119,7 @@ public class TranspositionTableAccessorTest {
 		pc.add(new GenericMove("e2e4"));
 
 		currPly = 3;
-		sut.setTransposition(0L, (byte)1, (short)18, Score.upperBound, Move.toMove(pc.get(0), pm.getTheBoard()));
+		sut.setTransposition(0L, (byte)1, (short)18, Score.upperBound, Move.toMove(pc.get(0), pm.getTheBoard()), 0);
 		
 		// Set up score tracker according to diagram
 		trans = sut.getTransposition();
@@ -134,7 +134,7 @@ public class TranspositionTableAccessorTest {
 		pc.add(new GenericMove("e2e4"));
 
 		currPly = 2;
-		sut.setTransposition(0L, (byte)1, (short)105, Score.lowerBound, Move.toMove(pc.get(0)));
+		sut.setTransposition(0L, (byte)1, (short)105, Score.lowerBound, Move.toMove(pc.get(0)), 0);
 		}
 	}
 	
@@ -147,9 +147,9 @@ public class TranspositionTableAccessorTest {
 		pc.add(move1);
 
 		currPly = 2;
-		long stored_trans = sut.setTransposition(0L, (byte)1, (short)105, Score.lowerBound, Move.toMove(move1, pm.getTheBoard()));
+		long stored_trans = sut.setTransposition(0L, (byte)1, (short)105, Score.lowerBound, Move.toMove(move1, pm.getTheBoard()), 0);
 		
-		stored_trans = sut.setTransposition(stored_trans, (byte)1, (short)110, Score.exact, Move.toMove(move2, pm.getTheBoard()));
+		stored_trans = sut.setTransposition(stored_trans, (byte)1, (short)110, Score.exact, Move.toMove(move2, pm.getTheBoard()), 0);
 		
 		assertEquals(Score.exact, Transposition.getType(stored_trans));
 		assertEquals(110, Transposition.getScore(stored_trans));
@@ -176,9 +176,9 @@ public class TranspositionTableAccessorTest {
 		pc.add(move1);
 		
 		currPly = 0;
-		long stored_trans = sut.setTransposition(0L, (byte)9, (short)25, Score.lowerBound, Move.toMove(move1));
+		long stored_trans = sut.setTransposition(0L, (byte)9, (short)25, Score.lowerBound, Move.toMove(move1), 0);
 		
-		stored_trans = sut.setTransposition(stored_trans, (byte)9, (short)72, Score.lowerBound, Move.toMove(move2));
+		stored_trans = sut.setTransposition(stored_trans, (byte)9, (short)72, Score.lowerBound, Move.toMove(move2), 0);
 		
 		assertEquals(Score.lowerBound, Transposition.getType(stored_trans));
 		assertEquals(72, Transposition.getScore(stored_trans));

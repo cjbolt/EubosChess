@@ -2,6 +2,7 @@ package eubos.main;
 
 import static org.junit.Assert.*;
 
+import java.awt.PopupMenu;
 import java.io.IOException;
 import java.io.PipedWriter;
 import java.io.PrintStream;
@@ -286,7 +287,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"b3b6"+CMD_TERMINATOR));
 
 		int hashMove = Move.valueOf(Position.b3, Piece.BLACK_QUEEN, Position.d1, Piece.WHITE_ROOK);
-		long hashEntry = Transposition.valueOf((byte)6, (short)0, Score.exact, hashMove);
+		long hashEntry = Transposition.valueOf((byte)6, (short)0, Score.exact, hashMove, 42 >> 2);
 		pokeHashEntryAndPerformTest(12000, hashEntry);
 	}
 	
@@ -312,7 +313,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR, BEST_PREFIX+"h4g4"+CMD_TERMINATOR));
 		
 		int hashMove = Move.valueOf(Position.h4, Piece.BLACK_ROOK, Position.g4, Piece.NONE);
-		long hashEntry = Transposition.valueOf((byte)3, (short)0, Score.upperBound, hashMove);
+		long hashEntry = Transposition.valueOf((byte)3, (short)0, Score.upperBound, hashMove, 107 >> 2);
 		pokeHashEntryAndPerformTest(10000, hashEntry);
 	}
 	
@@ -323,7 +324,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"9"+CMD_TERMINATOR, BEST_PREFIX+"g7h6"+CMD_TERMINATOR));
 		
 		int hashMove = Move.valueOf(Position.g7, Piece.BLACK_BISHOP, Position.h6, Piece.NONE);
-		long hashEntry = Transposition.valueOf((byte)8, (short)-55, Score.lowerBound, hashMove);
+		long hashEntry = Transposition.valueOf((byte)8, (short)-55, Score.lowerBound, hashMove, 66 >> 2);
 		pokeHashEntryAndPerformTest(10000, hashEntry);
 	}
 	

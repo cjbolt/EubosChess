@@ -616,7 +616,7 @@ public class PlySearcher {
 		if (Score.isMate(plyScore)) {
 			scoreFromDownTree = (short) ((plyScore < 0) ? plyScore - currPly : plyScore + currPly);
 		}
-		trans = tt.setTransposition(trans, depth, scoreFromDownTree, plyBound, currMove);
+		trans = tt.setTransposition(trans, depth, scoreFromDownTree, plyBound, currMove, pos.getMoveNumber());
 		return trans;
 	}
 	
