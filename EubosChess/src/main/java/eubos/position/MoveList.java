@@ -263,29 +263,35 @@ public class MoveList implements Iterable<Integer> {
 	}
 
 	private void sortPriorityList() {
-		switch (ordering) {
-		case 0:
-			/* Don't order the move list in this case. */
-			break;
-		case 1:
+		if (ply == 0) {
+			// At the root node use different mechanisms for move ordering in different threads
+			switch (ordering) {
+			case 0:
+				/* Don't order the move list in this case. */
+				break;
+			case 1:
+				IntArrays.quickSort(priority_moves[ply], 0, priority_fill_index[ply], Move.mvvLvaComparator);
+				break;
+			case 2:
+				IntArrays.reverse(priority_moves[ply], 0, priority_fill_index[ply]);
+				IntArrays.quickSort(priority_moves[ply], 0, priority_fill_index[ply], moveTypeComparator);
+				break;
+			case 3:
+				IntArrays.reverse(priority_moves[ply], 0, priority_fill_index[ply]);
+				IntArrays.quickSort(priority_moves[ply], 0, priority_fill_index[ply], Move.mvvLvaComparator);
+				break;
+			case 4:
+				IntArrays.quickSort(priority_moves[ply], 0, priority_fill_index[ply], moveTypeComparator);
+				break;
+			default:
+				EubosEngineMain.logger.severe(String.format("Bad move ordering scheme %d!", ordering));
+				if (EubosEngineMain.ENABLE_ASSERTS)
+					assert false;
+				break;
+			}
+		} else {
+			// At all other nodes use MVV/LVA
 			IntArrays.quickSort(priority_moves[ply], 0, priority_fill_index[ply], Move.mvvLvaComparator);
-			break;
-		case 2:
-			IntArrays.reverse(priority_moves[ply], 0, priority_fill_index[ply]);
-			IntArrays.quickSort(priority_moves[ply], 0, priority_fill_index[ply], moveTypeComparator);
-			break;
-		case 3:
-			IntArrays.reverse(priority_moves[ply], 0, priority_fill_index[ply]);
-			IntArrays.quickSort(priority_moves[ply], 0, priority_fill_index[ply], Move.mvvLvaComparator);
-			break;
-		case 4:
-			IntArrays.quickSort(priority_moves[ply], 0, priority_fill_index[ply], moveTypeComparator);
-			break;
-		default:
-			EubosEngineMain.logger.severe(String.format("Bad move ordering scheme %d!", ordering));
-			if (EubosEngineMain.ENABLE_ASSERTS)
-				assert false;
-			break;
 		}
 	}
 
