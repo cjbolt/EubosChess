@@ -14,7 +14,7 @@ public class FixedSizeTranspositionTable {
 	public static final long BYTES_PER_MEGABYTE = 1_000_000L;
 	public static final long MBYTES_DEFAULT_HASH_SIZE = 256L;
 	
-	static final int RANGE_TO_SEARCH = 10; 
+	static final int RANGE_TO_SEARCH = 30; 
 			
 	private long [] transposition_table = null;
 	private long [] hashes = null;
@@ -43,16 +43,10 @@ public class FixedSizeTranspositionTable {
 		hashes = new long[highestBit];
 		tableSize = 0;
 		maxTableSize = highestBit;
-		
-//		transposition_table = new long[(int)hashSizeElements];
-//		hashes = new long[(int)hashSizeElements];
-//		tableSize = 0;
-//		maxTableSize = hashSizeElements;
 	}
 	
 	public synchronized long getTransposition(long hashCode) {
 		int index = (int)(hashCode & mask);
-		//int index = (int)(Math.abs(hashCode % maxTableSize));
 		for (int i=index; i >= 0 && i > (index-RANGE_TO_SEARCH); i--) {
 			if (hashes[i] == hashCode) {
 				return transposition_table[i];
@@ -63,7 +57,6 @@ public class FixedSizeTranspositionTable {
 	
 	public synchronized void putTransposition(long hashCode, long trans) {
 		int index = (int)(hashCode & mask);
-		//int index = (int)(Math.abs(hashCode % maxTableSize));
 		// Ideal case
 		if (hashes[index] == hashCode) {
 			transposition_table[index] = trans;
@@ -87,21 +80,18 @@ public class FixedSizeTranspositionTable {
 		}
 		// failing that, overwrite based on age
 		if (!found_slot) {
-			int new_age = Transposition.getAge(trans);
+			int oldest_age = Transposition.getAge(trans);
+			int oldest_index = index;
 			for (int i=index; i >= 0 && i > (index-RANGE_TO_SEARCH); i--) {
 				int index_age = Transposition.getAge(transposition_table[i]);
-				if ((index_age+(16 >> 2)) < new_age) {
-					transposition_table[i] = trans;
-					hashes[i] = hashCode;
-					found_slot = true;
-					break;
+				if (index_age < oldest_age) {
+					oldest_age = index_age;
+					oldest_index = i;
 				}
 			}
-		}
-		// failing that, always overwrite
-		if (!found_slot) {
-			transposition_table[index] = trans;
-			hashes[index] = hashCode;
+			transposition_table[oldest_index] = trans;
+			hashes[oldest_index] = hashCode;
+			found_slot = true;
 		}
 	}
 	
