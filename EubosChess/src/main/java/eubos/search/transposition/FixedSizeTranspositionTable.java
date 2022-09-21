@@ -11,10 +11,10 @@ public class FixedSizeTranspositionTable {
 	public static final long BYTES_PER_TRANSPOSITION =
 			BYTES_TRANSPOSTION_ELEMENT + BYTES_HASHMAP_ZOBRIST_KEY;
 	
-	public static final long BYTES_PER_MEGABYTE = 1_000_000L;
+	public static final long BYTES_PER_MEGABYTE = 1_024_000L;
 	public static final long MBYTES_DEFAULT_HASH_SIZE = 256L;
 	
-	static final int RANGE_TO_SEARCH = 2;
+	static final int RANGE_TO_SEARCH = 5;
 	static final boolean USE_ALWAYS_REPLACE = (RANGE_TO_SEARCH <= 1);
 			
 	private long [] transposition_table = null;
@@ -40,6 +40,16 @@ public class FixedSizeTranspositionTable {
 		
 		int highestBit = (int)Long.highestOneBit(hashSizeElements);
 		mask = highestBit - 1;
+		
+		float used_percentage = (((float)mask) / hashSizeElements)*100;
+		if (DEBUG_LOGGING) {
+			EubosEngineMain.logger.info(String.format("Hash utilised %2.2f, extending", used_percentage));
+		}
+		if (used_percentage < 75.0f) {
+			highestBit <<= 1;
+			mask = highestBit - 1;
+		}
+		
 		transposition_table = new long[highestBit];
 		hashes = new long[highestBit];
 		tableSize = 0;
@@ -72,8 +82,7 @@ public class FixedSizeTranspositionTable {
 			for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
 				// If exact hash match, overwrite entry in table
 				if (hashes[i] == hashCode) {
-					if (transposition_table[i] == 0L)
-						tableSize++;
+					if (EubosEngineMain.ENABLE_ASSERTS) assert (transposition_table[i] != 0L);
 					transposition_table[i] = trans;
 					found_slot = true;
 				}
@@ -98,7 +107,6 @@ public class FixedSizeTranspositionTable {
 				}
 				transposition_table[oldest_index] = trans;
 				hashes[oldest_index] = hashCode;
-				found_slot = true;
 			}
 		}
 	}
