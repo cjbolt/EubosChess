@@ -14,7 +14,8 @@ public class FixedSizeTranspositionTable {
 	public static final long BYTES_PER_MEGABYTE = 1_000_000L;
 	public static final long MBYTES_DEFAULT_HASH_SIZE = 256L;
 	
-	static final int RANGE_TO_SEARCH = 30; 
+	static final int RANGE_TO_SEARCH = 2;
+	static final boolean USE_ALWAYS_REPLACE = (RANGE_TO_SEARCH <= 1);
 			
 	private long [] transposition_table = null;
 	private long [] hashes = null;
@@ -47,9 +48,15 @@ public class FixedSizeTranspositionTable {
 	
 	public synchronized long getTransposition(long hashCode) {
 		int index = (int)(hashCode & mask);
-		for (int i=index; i >= 0 && i > (index-RANGE_TO_SEARCH); i--) {
-			if (hashes[i] == hashCode) {
-				return transposition_table[i];
+		if (USE_ALWAYS_REPLACE) {
+			if (hashes[index] == hashCode) {
+				return transposition_table[index];
+			}
+		} else {
+			for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
+				if (hashes[i] == hashCode) {
+					return transposition_table[i];
+				}
 			}
 		}
 		return 0L;
@@ -57,41 +64,42 @@ public class FixedSizeTranspositionTable {
 	
 	public synchronized void putTransposition(long hashCode, long trans) {
 		int index = (int)(hashCode & mask);
-		// Ideal case
-		if (hashes[index] == hashCode) {
-			transposition_table[index] = trans;
-			return;
-		}
 		boolean found_slot = false;
-		// Try to find a free slot near the hash index
-		for (int i=index; i >= 0 && i > (index-RANGE_TO_SEARCH); i--) {
-			if (transposition_table[i] == 0L) {
-				tableSize++;
-				transposition_table[i] = trans;
-				hashes[i] = hashCode;
-				found_slot = true;
-				break;
-			}
-			if (hashes[i] == hashCode) {
-				transposition_table[i] = trans;
-				found_slot = true;
-				break;
-			}
-		}
-		// failing that, overwrite based on age
-		if (!found_slot) {
-			int oldest_age = Transposition.getAge(trans);
-			int oldest_index = index;
-			for (int i=index; i >= 0 && i > (index-RANGE_TO_SEARCH); i--) {
-				int index_age = Transposition.getAge(transposition_table[i]);
-				if (index_age < oldest_age) {
-					oldest_age = index_age;
-					oldest_index = i;
+		if (USE_ALWAYS_REPLACE) {
+			hashes[index] = hashCode;
+			transposition_table[index] = trans;
+		} else {
+			for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
+				// If exact hash match, overwrite entry in table
+				if (hashes[i] == hashCode) {
+					if (transposition_table[i] == 0L)
+						tableSize++;
+					transposition_table[i] = trans;
+					found_slot = true;
+				}
+				// Try to find a free slot near the hash index
+				else if (transposition_table[i] == 0L) {
+					tableSize++;
+					hashes[i] = hashCode;
+					transposition_table[i] = trans;
+					found_slot = true;
 				}
 			}
-			transposition_table[oldest_index] = trans;
-			hashes[oldest_index] = hashCode;
-			found_slot = true;
+			// failing that, overwrite based on age
+			if (!found_slot) {
+				int oldest_age = Transposition.getAge(trans);
+				int oldest_index = index;
+				for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
+					int index_age = Transposition.getAge(transposition_table[i]);
+					if (index_age < oldest_age) {
+						oldest_age = index_age;
+						oldest_index = i;
+					}
+				}
+				transposition_table[oldest_index] = trans;
+				hashes[oldest_index] = hashCode;
+				found_slot = true;
+			}
 		}
 	}
 	
