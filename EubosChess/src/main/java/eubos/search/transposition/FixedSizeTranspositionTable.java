@@ -7,9 +7,9 @@ public class FixedSizeTranspositionTable {
 	private static final boolean DEBUG_LOGGING = true;
 
 	public static final long BYTES_HASHMAP_ZOBRIST_KEY = 8L;
-	public static final long BYTES_TRANSPOSTION_ELEMENT = 8L;
+	public static final long BYTES_TRANSPOSTION_ELEMENT = 5L;
 	public static final long BYTES_PER_TRANSPOSITION =
-			BYTES_TRANSPOSTION_ELEMENT + BYTES_HASHMAP_ZOBRIST_KEY/2;
+			BYTES_TRANSPOSTION_ELEMENT + BYTES_HASHMAP_ZOBRIST_KEY;
 	
 	public static final long BYTES_PER_MEGABYTE = 1_024_000L;
 	public static final long MBYTES_DEFAULT_HASH_SIZE = 256L;
@@ -19,6 +19,7 @@ public class FixedSizeTranspositionTable {
 			
 	private long [] transposition_table = null;
 	private int [] hashes = null;
+	private byte [] hashes2 = null;
 	private long tableSize = 0;
 	long maxTableSize = 0;
 	private long mask = 0;
@@ -42,6 +43,7 @@ public class FixedSizeTranspositionTable {
 		mask = highestBit - 1;		
 		transposition_table = new long[highestBit];
 		hashes = new int[highestBit];
+		hashes2 = new byte[highestBit];
 		tableSize = 0;
 		maxTableSize = highestBit;
 	}
@@ -49,13 +51,14 @@ public class FixedSizeTranspositionTable {
 	public synchronized long getTransposition(long hashCode) {
 		int index = (int)(hashCode & mask);
 		int hash_ms_fragment = (int)(hashCode>>>32);
+		byte hash_ls_fragment = (byte)(hashCode>>>24);
 		if (USE_ALWAYS_REPLACE) {
-			if (hashes[index] == hash_ms_fragment) {
+			if (hashes[index] == hash_ms_fragment && hashes2[index] == hash_ls_fragment) {
 				return transposition_table[index];
 			}
 		} else {
 			for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
-				if (hashes[i] == hash_ms_fragment) {
+				if (hashes[i] == hash_ms_fragment && hashes2[i] == hash_ls_fragment) {
 					return transposition_table[i];
 				}
 			}
@@ -66,14 +69,16 @@ public class FixedSizeTranspositionTable {
 	public synchronized void putTransposition(long hashCode, long trans) {
 		int index = (int)(hashCode & mask);
 		int hash_ms_fragment = (int)(hashCode>>>32);
+		byte hash_ls_fragment = (byte)(hashCode>>>24);
 		boolean found_slot = false;
 		if (USE_ALWAYS_REPLACE) {
 			hashes[index] = hash_ms_fragment;
+			hashes2[index] = hash_ls_fragment;
 			transposition_table[index] = trans;
 		} else {
 			for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
 				// If exact hash match, overwrite entry in table
-				if (hashes[i] == hash_ms_fragment) {
+				if (hashes[i] == hash_ms_fragment && hashes2[i] == hash_ls_fragment) {
 					if (EubosEngineMain.ENABLE_ASSERTS) assert (transposition_table[i] != 0L);
 					transposition_table[i] = trans;
 					found_slot = true;
@@ -83,6 +88,7 @@ public class FixedSizeTranspositionTable {
 				else if (transposition_table[i] == 0L) {
 					tableSize++;
 					hashes[i] = hash_ms_fragment;
+					hashes2[i] = hash_ls_fragment;
 					transposition_table[i] = trans;
 					found_slot = true;
 					break;
@@ -100,6 +106,7 @@ public class FixedSizeTranspositionTable {
 					}
 				}
 				hashes[oldest_index] = hash_ms_fragment;
+				hashes2[oldest_index] = hash_ls_fragment;
 				transposition_table[oldest_index] = trans;
 			}
 		}
