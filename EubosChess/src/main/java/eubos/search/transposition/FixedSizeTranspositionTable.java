@@ -14,7 +14,7 @@ public class FixedSizeTranspositionTable {
 	public static final long BYTES_PER_MEGABYTE = 1_024_000L;
 	public static final long MBYTES_DEFAULT_HASH_SIZE = 256L;
 	
-	static final int RANGE_TO_SEARCH = 5;
+	static final int RANGE_TO_SEARCH = 20;
 	static final boolean USE_ALWAYS_REPLACE = (RANGE_TO_SEARCH <= 1);
 			
 	private long [] transposition_table = null;
@@ -97,12 +97,16 @@ public class FixedSizeTranspositionTable {
 			// failing that, overwrite based on age
 			if (!found_slot) {
 				int oldest_age = Transposition.getAge(trans);
+				int threshold_age = oldest_age - 4;
 				int oldest_index = index;
 				for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
 					int index_age = Transposition.getAge(transposition_table[i]);
 					if (index_age < oldest_age) {
 						oldest_age = index_age;
 						oldest_index = i;
+					}
+					if (oldest_age <= threshold_age) {
+						break;
 					}
 				}
 				hashes[oldest_index] = hash_ms_fragment;
