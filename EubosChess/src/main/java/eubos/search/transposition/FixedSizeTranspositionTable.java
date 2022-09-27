@@ -93,7 +93,7 @@ public class FixedSizeTranspositionTable {
 			}
 			// failing that, overwrite based on age
 			int oldest_age = Transposition.getAge(trans);
-			int threshold_age = oldest_age - 4;
+			int threshold_age = Math.max(0, oldest_age - 4);
 			int oldest_index = index;
 			for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
 				int index_age = Transposition.getAge(transposition_table[i]);
@@ -101,7 +101,7 @@ public class FixedSizeTranspositionTable {
 					oldest_age = index_age;
 					oldest_index = i;
 				}
-				if (oldest_age <= threshold_age) {
+				if (oldest_age < threshold_age) {
 					break;
 				}
 			}
