@@ -12,25 +12,26 @@ import eubos.board.IForEachPieceCallback;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.score.IEvaluate;
+import eubos.score.PawnEvalHashTable;
 import eubos.score.PositionEvaluator;
 import eubos.search.DrawChecker;
 
 public class PositionManager implements IChangePosition, IPositionAccessors, IForEachPieceCallback {
 	
-	public PositionManager( String fenString, DrawChecker dc) {
+	public PositionManager( String fenString, DrawChecker dc, PawnEvalHashTable pawnHash) {
 		moveTracker = new MoveTracker();
 		new fenParser( this, fenString );
 		hash = new ZobristHashCode(this, castling);
 		this.dc = dc;
-		pe = new PositionEvaluator(this);
+		pe = new PositionEvaluator(this, pawnHash);
 	}
 	
-	public PositionManager( String fenString) {
-		this(fenString, new DrawChecker());
+	public PositionManager(String fenString) {
+		this(fenString, new DrawChecker(), new PawnEvalHashTable());
 	}
 	
 	public PositionManager() {
-		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", new DrawChecker());
+		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", new DrawChecker(), new PawnEvalHashTable());
 	}
 
 	public CastlingManager castling;
@@ -425,5 +426,13 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 		enemyIsWhite = onMoveIsWhite();
 		theBoard.forEachPawnOfSide(this, Colour.isBlack(onMove));
 		return passedPawnPosition;
+	}
+
+	@Override
+	public int getPawnHash() {
+		long pawns = theBoard.getPawns();
+		long temp = (pawns >>> 32) ^ (pawns & 0xFFFF_FFFFL);
+		long pawnHash = (temp >>> 16) ^ (temp & 0xFFFFL);
+		return (int)pawnHash;
 	}
 }

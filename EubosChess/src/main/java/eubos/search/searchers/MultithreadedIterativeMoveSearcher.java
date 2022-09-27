@@ -9,6 +9,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
+import eubos.score.PawnEvalHashTable;
 import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
 
@@ -32,7 +33,8 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	protected List<MiniMaxMoveGenerator> moveGenerators;
 	
 	public MultithreadedIterativeMoveSearcher(EubosEngineMain eubos, 
-			FixedSizeTranspositionTable hashMap, 
+			FixedSizeTranspositionTable hashMap,
+			PawnEvalHashTable pawnHash,
 			String fen,  
 			DrawChecker dc, 
 			long time,
@@ -40,23 +42,23 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			int threads,
 			ReferenceScore refScore,
 			int move_overhead) {
-		super(eubos, hashMap, fen, dc, time, increment, refScore, move_overhead);
+		super(eubos, hashMap, pawnHash, fen, dc, time, increment, refScore, move_overhead);
 		this.setName("MultithreadedIterativeMoveSearcher");
 		this.threads = threads;
 		this.tt = hashMap;
 		rootPositionHash = mg.pos.getHash();
 		workers = new ArrayList<MultithreadedSearchWorkerThread>(threads);
-		createMoveGenerators(hashMap, fen, dc, threads);
+		createMoveGenerators(hashMap, pawnHash, fen, dc, threads);
 		stopper = new IterativeMoveSearchStopper();
 	}
 
-	private void createMoveGenerators(FixedSizeTranspositionTable hashMap, String fen, DrawChecker dc, int threads) {
+	private void createMoveGenerators(FixedSizeTranspositionTable hashMap, PawnEvalHashTable pawnHash, String fen, DrawChecker dc, int threads) {
 		moveGenerators = new ArrayList<MiniMaxMoveGenerator>(threads);
 		// The first move generator shall be that constructed by the abstract MoveSearcher
 		moveGenerators.add(mg);
 		// Create subsequent move generators using cloned DrawCheckers
 		for (int i=1; i < threads; i++) {
-			MiniMaxMoveGenerator thisMg = new MiniMaxMoveGenerator(hashMap, fen, new DrawChecker(dc), sr, refScore.getReference());
+			MiniMaxMoveGenerator thisMg = new MiniMaxMoveGenerator(hashMap, pawnHash, fen, new DrawChecker(dc), sr, refScore.getReference());
 			moveGenerators.add(thisMg);
 		}
 		// Set move ordering scheme to use, if in operation

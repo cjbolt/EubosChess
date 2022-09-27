@@ -7,7 +7,6 @@ import java.util.logging.*;
 import org.junit.Before;
 import org.junit.Test;
 
-
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
@@ -19,7 +18,7 @@ public class DrawCheckerTest {
 	private PositionManager pm;
 
 	private void setupPosition(String fen) {
-		pm = new PositionManager(fen, sut);
+		pm = new PositionManager(fen, sut, new eubos.score.PawnEvalHashTable());
 	}
 	
 	@Before

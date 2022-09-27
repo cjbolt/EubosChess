@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import eubos.board.Board.PawnAttackAggregator;
 import eubos.position.PositionManager;
+import eubos.score.PawnEvalHashTable;
 import eubos.search.DrawChecker;
 
 class PawnAttackAggregatorTest {
@@ -17,7 +18,7 @@ class PawnAttackAggregatorTest {
 	private long[] attacksMask = {0L, 0L};
 	
 	protected void setUpPosition(String fen) {
-		pm = new PositionManager(fen, new DrawChecker());
+		pm = new PositionManager(fen, new DrawChecker(), new PawnEvalHashTable());
 		classUnderTest = pm.getTheBoard().paa;
 	}
 

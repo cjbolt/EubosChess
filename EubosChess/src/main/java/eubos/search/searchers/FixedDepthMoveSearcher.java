@@ -4,6 +4,7 @@ import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
+import eubos.score.PawnEvalHashTable;
 import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
 import eubos.search.SearchResult;
@@ -19,7 +20,7 @@ public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 			String fen,  
 			DrawChecker dc, 
 			byte searchDepth) {
-		super(eubos, fen, dc, hashMap, new ReferenceScore(hashMap));
+		super(eubos, fen, dc, hashMap, new ReferenceScore(hashMap), new PawnEvalHashTable());
 		this.searchDepth = searchDepth;
 		this.setName("FixedDepthMoveSearcher");
 	}

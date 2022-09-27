@@ -20,7 +20,7 @@ public class PositionEvaluatorTest {
 	}
 
 	protected void setUpPosition(String fen) {
-		pm = new PositionManager(fen, new DrawChecker());
+		pm = new PositionManager(fen, new DrawChecker(), new PawnEvalHashTable());
 		SUT = (PositionEvaluator) pm.getPositionEvaluator();
 	}
 	

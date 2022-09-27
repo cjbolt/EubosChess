@@ -36,6 +36,7 @@ import eubos.board.Piece.Colour;
 import eubos.board.SquareAttackEvaluator;
 import eubos.position.Move;
 import eubos.position.PositionManager;
+import eubos.score.PawnEvalHashTable;
 import eubos.score.PositionEvaluator;
 import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
@@ -78,6 +79,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	// Permanent data structures - static for the duration of a single game
 	FixedSizeTranspositionTable hashMap = null;
+	PawnEvalHashTable pawnHash = null;
 	DrawChecker dc;
 	ReferenceScore whiteRefScore;
 	ReferenceScore blackRefScore;
@@ -141,6 +143,7 @@ public class EubosEngineMain extends AbstractEngine {
         	}
         }
 		dc = new DrawChecker();
+		pawnHash = new PawnEvalHashTable();
 		whiteRefScore = new ReferenceScore(hashMap);
 		blackRefScore = new ReferenceScore(hashMap);
 	}
@@ -206,7 +209,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	void createPositionFromAnalyseCommand(EngineAnalyzeCommand command) {
 		String fen_to_use = getActualFenStringForPosition(command);
-		rootPosition = new PositionManager(fen_to_use, dc);
+		rootPosition = new PositionManager(fen_to_use, dc, pawnHash);
 		long hashCode = rootPosition.getHash();
 		Piece.Colour nowOnMove = rootPosition.getOnMove();
 		if (lastOnMove == null || (lastOnMove == nowOnMove && !fen_to_use.equals(lastFen))) {
@@ -230,7 +233,7 @@ public class EubosEngineMain extends AbstractEngine {
 		if (!command.moves.isEmpty()) {
 			// This temporary pm is to ensure that the correct position is used to initialise the search 
 			// context of the position evaluator, required when we get a position and move list to apply to it.
-			rootPosition = new PositionManager(uci_fen_string, dc);
+			rootPosition = new PositionManager(uci_fen_string, dc, pawnHash);
 			for (GenericMove nextMove : command.moves) {
 				int move = Move.toMove(nextMove, rootPosition.getTheBoard());
 				rootPosition.performMove(move);
@@ -273,12 +276,12 @@ public class EubosEngineMain extends AbstractEngine {
 		// Create Move Searcher
 		if (clockTimeValid) {
 			logger.info("Search move, clock time " + clockTime);
-			ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, clockTime, clockInc,
+			ms = new MultithreadedIterativeMoveSearcher(this, hashMap, pawnHash, lastFen, dc, clockTime, clockInc,
 					numberOfWorkerThreads, refScore, move_overhead);
 		}
 		else if (command.getMoveTime() != null) {
 			logger.info("Search move, fixed time " + command.getMoveTime());
-			ms = new FixedTimeMoveSearcher(this, hashMap, lastFen, dc, command.getMoveTime());
+			ms = new FixedTimeMoveSearcher(this, hashMap, pawnHash, lastFen, dc, command.getMoveTime());
 		} else {
 			// Analyse mode
 			byte searchDepth = 0;
@@ -293,7 +296,7 @@ public class EubosEngineMain extends AbstractEngine {
 				ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth);
 			} else {
 				logger.info(String.format("Search move, infinite search, threads %d", numberOfWorkerThreads));
-				ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, Long.MAX_VALUE, clockInc,
+				ms = new MultithreadedIterativeMoveSearcher(this, hashMap, pawnHash, lastFen, dc, Long.MAX_VALUE, clockInc,
 						numberOfWorkerThreads, refScore, move_overhead);
 			}
 		}
