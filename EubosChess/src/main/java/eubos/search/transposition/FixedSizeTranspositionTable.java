@@ -70,7 +70,6 @@ public class FixedSizeTranspositionTable {
 		int index = (int)(hashCode & mask);
 		int hash_ms_fragment = (int)(hashCode>>>32);
 		byte hash_ls_fragment = (byte)(hashCode>>>24);
-		boolean found_slot = false;
 		if (USE_ALWAYS_REPLACE) {
 			hashes[index] = hash_ms_fragment;
 			hashes2[index] = hash_ls_fragment;
@@ -81,8 +80,7 @@ public class FixedSizeTranspositionTable {
 				if (hashes[i] == hash_ms_fragment && hashes2[i] == hash_ls_fragment) {
 					if (EubosEngineMain.ENABLE_ASSERTS) assert (transposition_table[i] != 0L);
 					transposition_table[i] = trans;
-					found_slot = true;
-					break;
+					return;
 				}
 				// Try to find a free slot near the hash index
 				else if (transposition_table[i] == 0L) {
@@ -90,29 +88,26 @@ public class FixedSizeTranspositionTable {
 					hashes[i] = hash_ms_fragment;
 					hashes2[i] = hash_ls_fragment;
 					transposition_table[i] = trans;
-					found_slot = true;
-					break;
+					return;
 				}
 			}
 			// failing that, overwrite based on age
-			if (!found_slot) {
-				int oldest_age = Transposition.getAge(trans);
-				int threshold_age = oldest_age - 4;
-				int oldest_index = index;
-				for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
-					int index_age = Transposition.getAge(transposition_table[i]);
-					if (index_age < oldest_age) {
-						oldest_age = index_age;
-						oldest_index = i;
-					}
-					if (oldest_age <= threshold_age) {
-						break;
-					}
+			int oldest_age = Transposition.getAge(trans);
+			int threshold_age = oldest_age - 4;
+			int oldest_index = index;
+			for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
+				int index_age = Transposition.getAge(transposition_table[i]);
+				if (index_age < oldest_age) {
+					oldest_age = index_age;
+					oldest_index = i;
 				}
-				hashes[oldest_index] = hash_ms_fragment;
-				hashes2[oldest_index] = hash_ls_fragment;
-				transposition_table[oldest_index] = trans;
+				if (oldest_age <= threshold_age) {
+					break;
+				}
 			}
+			hashes[oldest_index] = hash_ms_fragment;
+			hashes2[oldest_index] = hash_ls_fragment;
+			transposition_table[oldest_index] = trans;
 		}
 	}
 	
