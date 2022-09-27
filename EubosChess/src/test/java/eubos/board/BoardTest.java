@@ -16,6 +16,7 @@ import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.Position;
 import eubos.position.PositionManager;
+import eubos.score.PawnEvalHashTable;
 import eubos.score.PiecewiseEvaluation;
 import eubos.search.DrawChecker;
 
@@ -406,7 +407,7 @@ public class BoardTest {
 	
 	PositionManager pm;
 	protected void setUpPosition(String fen) {
-		pm = new PositionManager(fen, new DrawChecker());
+		pm = new PositionManager(fen, new DrawChecker(), new PawnEvalHashTable());
 		classUnderTest = pm.getTheBoard();
 	}
 	

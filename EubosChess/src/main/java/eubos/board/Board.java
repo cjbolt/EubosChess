@@ -1121,6 +1121,10 @@ public class Board {
 		// default iterator returns all the pieces on the board, not all positions
 		return new allPiecesOnBoardIterator( );
 	}
+	
+	public long getPawns() {
+		return pieces[INDEX_PAWN];
+	}
 		
 	public long getBlackPawns() {
 		return blackPieces & (pieces[INDEX_PAWN]);
@@ -1491,7 +1495,7 @@ public class Board {
 	}
 	
 	public boolean isPassedPawnPresent(IForEachPieceCallback passedPawnChecker) {
-		if (pieces[Piece.PAWN] == 0) return false;
+		if (pieces[Piece.PAWN] == 0L) return false;
 		
 		long blackPawns = this.getBlackPawns();
 		long whitePawns = this.getWhitePawns();
@@ -1499,8 +1503,8 @@ public class Board {
 			return true;
 		}
 		
-		if (!me.isEndgame() && (blackPawns & 0x00FFFFFFL) == 0L && (whitePawns & 0xFFFFFF0000000000L) == 0L) {
-			// Assume no passed pawns if not the endgame and none have crossed to other side of board
+		if (!me.isEndgame() && (blackPawns & 0xFFFF_FF00L) == 0L && (whitePawns & 0x00FF_FFFF_0000_0000L) == 0L) {
+			// Assume no passed pawns if middlegame and no pawns have crossed to other side of board
 			return false;
 		}
 		

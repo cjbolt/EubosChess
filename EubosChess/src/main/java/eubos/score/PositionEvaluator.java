@@ -53,6 +53,7 @@ public class PositionEvaluator implements IEvaluate {
 	public short score;
 	public Board bd;
 	PawnEvaluator pawn_eval;
+	PawnEvalHashTable pawnHash;
 	
 	private class LazyEvalStatistics {
 		
@@ -143,8 +144,9 @@ public class PositionEvaluator implements IEvaluate {
 		return goForMate;
 	}
 	
-	public PositionEvaluator(IPositionAccessors pm) {	
+	public PositionEvaluator(IPositionAccessors pm, PawnEvalHashTable pawnHash) {	
 		this.pm = pm;
+		this.pawnHash = pawnHash;
 		bd = pm.getTheBoard();
 		ktc = new KingTropismChecker();
 		pawn_eval = new PawnEvaluator();
@@ -499,11 +501,33 @@ public class PositionEvaluator implements IEvaluate {
 		
 		@SuppressWarnings("unused")
 		int evaluatePawnStructure(long[][][] attacks) {
-			long ownPawns = onMoveIsWhite ? bd.getWhitePawns() : bd.getBlackPawns();
-			long enemyPawns = onMoveIsWhite ? bd.getBlackPawns() : bd.getWhitePawns();
+			long white = bd.getWhitePawns();
+			long black = bd.getBlackPawns();
+			if (white == 0L && black == 0L)
+				return 0;
+			
+			short hashEval = 0;
+			int pawnHashvalue = 0;
+			if (!passedPawnPresent) {
+				pawnHashvalue = pm.getPawnHash();
+				hashEval = pawnHash.get(pawnHashvalue, white, black, onMoveIsWhite);
+				// Have to cater for scenarios where the following can be different from the pawn hash
+				// * blockaded passer
+				// * heavy piece behind passer
+				// * game phase weighting for passer
+				// * whether front span is attacked by enemy
+				// * candidate passed pawns use game phase in scoring
+				if (hashEval != Short.MAX_VALUE) {
+					return hashEval;
+				}
+			}
+			
+			long ownPawns = onMoveIsWhite ? white : black;
+			long enemyPawns = onMoveIsWhite ? black : white;
 			initialise(attacks);
 			int pawnEvaluationScore = evaluatePawnsForSide(ownPawns, !onMoveIsWhite);
 			pawnEvaluationScore -= evaluatePawnsForSide(enemyPawns, onMoveIsWhite);
+			
 			// Add a modification according to the imbalance of passed pawns in the position
 			if (ENABLE_PP_IMBALANCE_EVALUATION && bd.me.phase > 2048) {
 				int lookupIndex = ppCount[0] - ppCount[1];
@@ -513,6 +537,10 @@ public class PositionEvaluator implements IEvaluate {
 					ppImbalanceFactor = -ppImbalanceFactor;
 				}
 				pawnEvaluationScore += ppImbalanceFactor;
+			}
+			
+			if (!passedPawnPresent) {
+				pawnHash.put(pawnHashvalue, pawnEvaluationScore, white, black, onMoveIsWhite);
 			}
 			return pawnEvaluationScore;
 		}

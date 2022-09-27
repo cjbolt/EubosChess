@@ -4,6 +4,7 @@ import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
+import eubos.score.PawnEvalHashTable;
 import eubos.score.ReferenceScore;
 import eubos.score.ReferenceScore.Reference;
 import eubos.search.DrawChecker;
@@ -25,14 +26,15 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	public static final boolean EXPLICIT_GARBAGE_COLLECTION = false;
 
 	public IterativeMoveSearcher(EubosEngineMain eubos, 
-			FixedSizeTranspositionTable hashMap, 
+			FixedSizeTranspositionTable hashMap,
+			PawnEvalHashTable pawnHash,
 			String fen,  
 			DrawChecker dc, 
 			long time,
 			long increment,
 			ReferenceScore refScore,
 			int moveOverhead) {
-		super(eubos, fen, dc, hashMap, refScore);
+		super(eubos, fen, dc, hashMap, refScore, pawnHash);
 		this.move_overhead = moveOverhead;
 		this.setName("IterativeMoveSearcher");
 		if (time == Long.MAX_VALUE) {
