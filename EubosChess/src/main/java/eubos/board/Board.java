@@ -39,6 +39,7 @@ public class Board {
 	//private static final int INDEX_NONE = Piece.NONE;
 	
 	private long[] pieces = new long[7]; // N.b. INDEX_NONE is an empty long at index 0.
+	private long passedPawns = 0L;
 	
 	static final int ENDGAME_MATERIAL_THRESHOLD = 
 			Piece.MATERIAL_VALUE_KING + 
@@ -83,6 +84,25 @@ public class Board {
 		}
 		me = new PiecewiseEvaluation();
 		evaluateMaterial(me);
+		
+		createPassedPawnsBoard();
+	}
+	
+	public void createPassedPawnsBoard() {
+		long pawns = getPawns(); 
+		long scratchBitBoard = pawns;
+		while ( scratchBitBoard != 0x0L ) {
+			int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
+			int pawn_position = BitBoard.bitToPosition_Lut[bit_offset];
+			long bit_mask = Long.lowestOneBit(scratchBitBoard);
+			boolean isWhite = ((whitePieces & bit_mask) != 0L);
+			if (isPassedPawn(pawn_position, isWhite)) {
+	    		// ...target square becomes pp for piece to move!
+	    		passedPawns |= (1L << bit_offset);
+	    	}
+			// clear the lssb
+			scratchBitBoard &= scratchBitBoard-1;
+		}
 	}
 	
 	public static String reportStaticDataSizes() {
@@ -220,6 +240,62 @@ public class Board {
 		}
 		// Switch all pieces bitboard
 		allPieces ^= positionsMask;
+		
+		// Note: this needs to be done after piece bit boards are updated
+		if (Piece.isPawn(pieceToMove) || Piece.isPawn(targetPiece)) {
+			// build up significant file masks, should be three or four consecutive files
+			long file_masks = 0L;
+			int file = Position.getFile(originSquare);
+			file_masks |= BitBoard.FileMask_Lut[file];
+			if (file > 0) {
+				int prev_file = file - 1;
+				file_masks |= BitBoard.FileMask_Lut[prev_file];
+			}
+			if (file < 7) {
+				int next_file = file + 1;
+				file_masks |= BitBoard.FileMask_Lut[next_file];
+			}
+			file = Position.getFile(targetSquare);
+			file_masks |= BitBoard.FileMask_Lut[file];
+			if (file > 0) {
+				int prev_file = file - 1;
+				file_masks |= BitBoard.FileMask_Lut[prev_file];
+			}
+			if (file < 7) {
+				int next_file = file + 1;
+				file_masks |= BitBoard.FileMask_Lut[next_file];
+			}
+			// clear passed pawns in concerned files before re-evaluating
+			passedPawns &= ~file_masks;
+			// re-evaluate enemy
+			long enemy_pawns = isWhite ? getBlackPawns() : getWhitePawns(); 
+			enemy_pawns &= file_masks;
+			long scratchBitBoard = enemy_pawns;
+			while ( scratchBitBoard != 0x0L ) {
+				int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
+				int enemy_position = BitBoard.bitToPosition_Lut[bit_offset];
+				if (isPassedPawn(enemy_position, !isWhite)) {
+		    		// ...target square becomes pp for piece to move!
+		    		passedPawns |= (1L << bit_offset);
+		    	}
+				// clear the lssb
+				scratchBitBoard &= scratchBitBoard-1;
+			}
+			// re-evaluate own
+			long own_pawns = isWhite ? getWhitePawns() : getBlackPawns(); 
+			own_pawns &= file_masks;
+			scratchBitBoard = own_pawns;
+			while ( scratchBitBoard != 0x0L ) {
+				int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
+				int own_position = BitBoard.bitToPosition_Lut[bit_offset];
+				if (isPassedPawn(own_position, isWhite)) {
+		    		// ...target square becomes pp for piece to move!
+		    		passedPawns |= (1L << bit_offset);
+		    	}
+				// clear the lssb
+				scratchBitBoard &= scratchBitBoard-1;
+			}
+		}
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {
 			// check material incrementally updated against from scratch
@@ -1495,19 +1571,28 @@ public class Board {
 	}
 	
 	public boolean isPassedPawnPresent(IForEachPieceCallback passedPawnChecker) {
-		if (pieces[Piece.PAWN] == 0L) return false;
-		
-		long blackPawns = this.getBlackPawns();
-		long whitePawns = this.getWhitePawns();
-		if (whitePawns == 0L || blackPawns == 0L) {
-			return true;
-		}
-		
-		if (!me.isEndgame() && (blackPawns & 0xFFFF_FF00L) == 0L && (whitePawns & 0x00FF_FFFF_0000_0000L) == 0L) {
-			// Assume no passed pawns if middlegame and no pawns have crossed to other side of board
-			return false;
-		}
-		
-		return pieceLists.forAllPawnsDoConditionalCallback(passedPawnChecker);
+//		if (pieces[Piece.PAWN] == 0L) return false;
+//		
+//		long blackPawns = this.getBlackPawns();
+//		long whitePawns = this.getWhitePawns();
+//		if (whitePawns == 0L || blackPawns == 0L) {
+//			return true;
+//		}
+//		
+//		if (!me.isEndgame() && (blackPawns & 0xFFFF_FF00L) == 0L && (whitePawns & 0x00FF_FFFF_0000_0000L) == 0L) {
+//			// Assume no passed pawns if middlegame and no pawns have crossed to other side of board
+//			return false;
+//		}
+//		
+//		return pieceLists.forAllPawnsDoConditionalCallback(passedPawnChecker);
+		return passedPawns != 0L;
+	}
+	
+	public long getPassedPawns() {
+		return passedPawns;
+	}
+	
+	public void setPassedPawns(long ppBitBoard) {
+		passedPawns = ppBitBoard;
 	}
 }
