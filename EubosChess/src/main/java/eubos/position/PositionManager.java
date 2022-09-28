@@ -46,6 +46,42 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 	
 	private MoveTracker moveTracker = new MoveTracker();
 	
+	class PassedPawnTracker {
+		private static final int CAPACITY = 400;
+		private long[] stack;
+		private int index = 0;
+		
+		PassedPawnTracker() {
+			stack = new long[CAPACITY];
+			for (int i = 0; i < CAPACITY; i++) {
+				stack[i] = 0L;
+			}
+			index = 0;
+		}
+		
+		public void push(long tm) {
+			if (index < CAPACITY) {
+				stack[index] = tm;
+				index += 1;
+			}
+		}
+		
+		public long pop() {
+			long tm = TrackedMove.NULL_TRACKED_MOVE;
+			if (!isEmpty()) {
+				index -= 1;
+				tm = stack[index];
+			}
+			return tm;
+		}
+		
+		public boolean isEmpty() {
+			return index == 0;
+		}
+	}
+	
+	private PassedPawnTracker ppTracker = new PassedPawnTracker();
+	
 	// No public setter, because onMove is only changed by performing a move on the board.
 	private Colour onMove;
 	public Colour getOnMove() {
@@ -126,9 +162,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 	public void performMove( int move, boolean computeHash ) {		
 		// Preserve state
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
+		ppTracker.push(theBoard.getPassedPawns());
 		int capturePosition = theBoard.doMove(move);
 		moveTracker.push(TrackedMove.valueOf(move, prevEnPassantTargetSq, castling.getFlags()));
-		
 		// update state
 		castling.updateFlags(move);
 		
@@ -166,6 +202,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 		
 		// Restore castling
 		castling.setFlags(TrackedMove.getCastlingFlags(tm));
+		
+		// Restore Passed pawn mask
+		theBoard.setPassedPawns(ppTracker.pop());
 		
 		// Restore en passant target
 		int enPasTargetSq = TrackedMove.getEnPassantTarget(tm);

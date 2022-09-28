@@ -1228,5 +1228,47 @@ public class BoardTest {
 		setUpPosition("8/8/8/P7/8/8/8/q7 w - - 0 1");
 		assertEquals(-1, classUnderTest.checkForHeavyPieceBehindPassedPawn(Position.a5, true));
 	}
+	
+	@Test
+	public void pawn_double_move_creates_passed_pawns() {
+		setUpPosition("k7/8/8/8/4p3/8/3P4/K7 w - - 11 1");
+		classUnderTest.doMove(Move.valueOf(Position.d2, Piece.WHITE_PAWN, Position.d4, Piece.NONE));
+		assertEquals(BitBoard.valueOf(new int [] {Position.d4, Position.e4}), classUnderTest.getPassedPawns());
+	}
+	
+	@Test
+	public void pawn_single_move_creates_passed_pawn() {
+		setUpPosition("k7/8/8/8/4p3/3P4/8/K7 w - - 11 1");
+		classUnderTest.doMove(Move.valueOf(Position.d3, Piece.WHITE_PAWN, Position.d4, Piece.NONE));
+		assertEquals(BitBoard.valueOf(new int [] {Position.d4, Position.e4}), classUnderTest.getPassedPawns());
+	}
+	
+	@Test
+	public void pawn_capture_creates_passed_pawn() {
+		setUpPosition("k7/8/8/8/4p3/3P4/8/K7 w - - 11 1");
+		classUnderTest.doMove(Move.valueOf(Position.d3, Piece.WHITE_PAWN, Position.e4, Piece.BLACK_PAWN));
+		assertEquals(BitBoard.valueOf(new int [] {Position.e4}), classUnderTest.getPassedPawns());
+	}
+	
+	@Test
+	public void enpassant_capture_creates_passed_pawn_and_removes_passed_pawns() {
+		setUpPosition("k7/8/8/8/3Pp3/8/8/K7 b - d3 11 1");
+		classUnderTest.doMove(Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.e4, Piece.BLACK_PAWN, Position.d3, Piece.WHITE_PAWN, Piece.NONE));
+		assertEquals(BitBoard.valueOf(new int [] {Position.d3}), classUnderTest.getPassedPawns());
+	}
+	
+	@Test
+	public void capture_creates_enemy_passed_pawn_due_to_file_change() {
+		setUpPosition("k7/2p5/8/8/4p3/3P4/8/K7 w - - 11 1");
+		classUnderTest.doMove(Move.valueOf(Position.d3, Piece.WHITE_PAWN, Position.e4, Piece.BLACK_PAWN));
+		assertEquals(BitBoard.valueOf(new int [] {Position.e4, Position.c7}), classUnderTest.getPassedPawns());
+	}
+	
+	@Test
+	public void promotion_removes_passed_pawn() {
+		setUpPosition("k7/4P3/8/8/8/8/8/K7 w - - 1 1");
+		classUnderTest.doMove(Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e7, Piece.WHITE_PAWN, Position.e8, Piece.NONE, Piece.QUEEN));
+		assertEquals(0L, classUnderTest.getPassedPawns());
+	}
 }
 
