@@ -55,7 +55,7 @@ public final class BitBoard {
 		return sb.toString();
 	}
 	
-	static final int[] bitToPosition_Lut = new int[64];
+	public static final int[] bitToPosition_Lut = new int[64];
 	static {
 		int bit_index = 0;
 		for (int square : Position.values) {

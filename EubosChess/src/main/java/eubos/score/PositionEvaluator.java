@@ -419,12 +419,6 @@ public class PositionEvaluator implements IEvaluate {
 				ppCount[isOwnPawn ? 0:1] += 1;
 				ppFileMask |= (1 << Position.getFile(atPos));
 				ppRankMask |= (1 << Position.getRank(atPos));
-				setQueeningDistance(atPos, pawnIsWhite);
-				if (ENABLE_KPK_EVALUATION && bd.me.phase == 4096) {
-					evaluateKpkEndgame(atPos, isOwnPawn, own_attacks);
-				} else {
-					evaluatePassedPawn(atPos, pawnIsWhite, own_attacks, enemy_attacks);
-				}
 			} else if (ENABLE_CANDIDATE_PP_EVALUATION) {
 				// TODO make it resolve the number of attacks...
 				if (bd.isCandidatePassedPawn(atPos, pawnIsWhite, own_attacks[0], enemy_attacks[0])) {
@@ -499,6 +493,69 @@ public class PositionEvaluator implements IEvaluate {
 			pawn_eval.attacks = attacks;
 		}
 		
+		int computePassedPawnContribution(boolean isForWhite) {
+			int scoreForPassedPawns = 0;
+			long whitePawns = bd.getWhitePawns();
+			long scratchBitBoard = bd.getPassedPawns() & whitePawns;
+			
+			// White
+			piecewisePawnScoreAccumulator = 0;
+			while ( scratchBitBoard != 0x0L ) {
+				int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
+				int pawn_position = BitBoard.bitToPosition_Lut[bit_offset];
+				boolean pawnIsWhite = true;
+				
+				long[][] enemy_attacks = attacks[pawnIsWhite ? 1:0];
+				long[][] own_attacks = attacks[pawnIsWhite ? 0:1];
+				
+				setQueeningDistance(pawn_position, pawnIsWhite);
+				if (ENABLE_KPK_EVALUATION && bd.me.phase == 4096) {
+					evaluateKpkEndgame(pawn_position, (pawnIsWhite == isForWhite), own_attacks);
+				} else {
+					evaluatePassedPawn(pawn_position, pawnIsWhite, own_attacks, enemy_attacks);
+				}
+				
+				// clear the lssb
+				scratchBitBoard &= scratchBitBoard-1;
+			}
+			if (isForWhite) {
+				scoreForPassedPawns += piecewisePawnScoreAccumulator;
+			} else {
+				scoreForPassedPawns -= piecewisePawnScoreAccumulator;
+			}
+			
+			long blackPawns = bd.getBlackPawns();
+			scratchBitBoard = bd.getPassedPawns() & blackPawns;
+			
+			// Black
+			piecewisePawnScoreAccumulator = 0;
+			while ( scratchBitBoard != 0x0L ) {
+				int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
+				int pawn_position = BitBoard.bitToPosition_Lut[bit_offset];
+				boolean pawnIsWhite = false;
+				
+				long[][] enemy_attacks = attacks[pawnIsWhite ? 1:0];
+				long[][] own_attacks = attacks[pawnIsWhite ? 0:1];
+				
+				setQueeningDistance(pawn_position, pawnIsWhite);
+				if (ENABLE_KPK_EVALUATION && bd.me.phase == 4096) {
+					evaluateKpkEndgame(pawn_position, (pawnIsWhite != isForWhite), own_attacks);
+				} else {
+					evaluatePassedPawn(pawn_position, pawnIsWhite, own_attacks, enemy_attacks);
+				}
+				
+				// clear the lssb
+				scratchBitBoard &= scratchBitBoard-1;
+			}
+			if (isForWhite) {
+				scoreForPassedPawns -= piecewisePawnScoreAccumulator;
+			} else {
+				scoreForPassedPawns += piecewisePawnScoreAccumulator;
+			}
+			
+			return scoreForPassedPawns;
+		}
+		
 		@SuppressWarnings("unused")
 		int evaluatePawnStructure(long[][][] attacks) {
 			long white = bd.getWhitePawns();
@@ -506,25 +563,21 @@ public class PositionEvaluator implements IEvaluate {
 			if (white == 0L && black == 0L)
 				return 0;
 			
-			short hashEval = 0;
-			int pawnHashvalue = 0;
-			if (!passedPawnPresent) {
-				pawnHashvalue = pm.getPawnHash();
-				hashEval = pawnHash.get(pawnHashvalue, white, black, onMoveIsWhite);
-				// Have to cater for scenarios where the following can be different from the pawn hash
-				// * blockaded passer
-				// * heavy piece behind passer
-				// * game phase weighting for passer
-				// * whether front span is attacked by enemy
-				// * candidate passed pawns use game phase in scoring
-				if (hashEval != Short.MAX_VALUE) {
-					return hashEval;
-				}
-			}
-			
 			long ownPawns = onMoveIsWhite ? white : black;
 			long enemyPawns = onMoveIsWhite ? black : white;
 			initialise(attacks);
+			
+			short hashEval = 0;
+			int pawnHashvalue = 0;
+			pawnHashvalue = pm.getPawnHash();
+			hashEval = pawnHash.get(pawnHashvalue, white, black, onMoveIsWhite);
+			if (hashEval != Short.MAX_VALUE) {
+				// Recompute value of passed pawns in this position
+				hashEval += computePassedPawnContribution(onMoveIsWhite);
+				return hashEval;
+			}
+			
+			// If no valid hash, recompute from scratch...
 			int pawnEvaluationScore = evaluatePawnsForSide(ownPawns, !onMoveIsWhite);
 			pawnEvaluationScore -= evaluatePawnsForSide(enemyPawns, onMoveIsWhite);
 			
@@ -539,9 +592,12 @@ public class PositionEvaluator implements IEvaluate {
 				pawnEvaluationScore += ppImbalanceFactor;
 			}
 			
-			if (!passedPawnPresent) {
-				pawnHash.put(pawnHashvalue, pawnEvaluationScore, white, black, onMoveIsWhite);
-			}
+			pawnHash.put(pawnHashvalue, pawnEvaluationScore, white, black, onMoveIsWhite);
+			
+			// Compute passed pawn positional contribution after storing the basic eval to the hash table
+			piecewisePawnScoreAccumulator = 0;
+			pawnEvaluationScore += computePassedPawnContribution(onMoveIsWhite);
+			
 			return pawnEvaluationScore;
 		}
 	}

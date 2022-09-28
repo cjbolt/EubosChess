@@ -480,6 +480,8 @@ public class PawnEvaluatorTest {
 		setUpPosition("1R6/8/8/1P6/8/8/8/8 b - - 0 1");
 		SUT.pawn_eval.initialise(attacks);
 		SUT.pawn_eval.callback(Piece.WHITE_PAWN, Position.b5);
+		SUT.pawn_eval.setQueeningDistance(Position.b5, true);
+		SUT.pawn_eval.evaluatePassedPawn(Position.b5, true, attacks[0], attacks[1]);
 		int expectedScore = 4*3*(PASSED_PAWN_BOOST+SAFE_MOBILE_PASSED_PAWN) - ISOLATED_PAWN_HANDICAP;
 		assertEquals(expectedScore, SUT.pawn_eval.piecewisePawnScoreAccumulator);
 	}
