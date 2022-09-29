@@ -241,59 +241,67 @@ public class Board {
 		// Switch all pieces bitboard
 		allPieces ^= positionsMask;
 		
-		// Note: this needs to be done after piece bit boards are updated
-		if (Piece.isPawn(pieceToMove) || Piece.isPawn(targetPiece)) {
-			// build up significant file masks, should be three or four consecutive files
+		// Note: this needs to be done after the piece bit boards are updated
+		if (promotedPiece != Piece.NONE) {
+			// pawn promotions need to clear the promoted pawn (it must have been passed if it could promote)
+			passedPawns &= ~initialSquareMask;
+		} else {
+			// build up significant file masks, should be three or four consecutive files, re-evaluate passed pawns in those files
 			long file_masks = 0L;
-			int file = Position.getFile(originSquare);
-			file_masks |= BitBoard.FileMask_Lut[file];
-			if (file > 0) {
-				int prev_file = file - 1;
-				file_masks |= BitBoard.FileMask_Lut[prev_file];
+			if (Piece.isPawn(pieceToMove)) {
+				// pawn pushes can make the pawn a passer and also create opponent passed pawns in the adjacent files
+				int file = Position.getFile(originSquare);
+				file_masks |= BitBoard.FileMask_Lut[file];
+				if (file > 0) {
+					int prev_file = file - 1;
+					file_masks |= BitBoard.FileMask_Lut[prev_file];
+				}
+				if (file < 7) {
+					int next_file = file + 1;
+					file_masks |= BitBoard.FileMask_Lut[next_file];
+				}
 			}
-			if (file < 7) {
-				int next_file = file + 1;
-				file_masks |= BitBoard.FileMask_Lut[next_file];
+			if (Piece.isPawn(targetPiece)) {
+				int file = Position.getFile(targetSquare);
+				file_masks |= BitBoard.FileMask_Lut[file];
+				if (file > 0) {
+					int prev_file = file - 1;
+					file_masks |= BitBoard.FileMask_Lut[prev_file];
+				}
+				if (file < 7) {
+					int next_file = file + 1;
+					file_masks |= BitBoard.FileMask_Lut[next_file];
+				}
 			}
-			file = Position.getFile(targetSquare);
-			file_masks |= BitBoard.FileMask_Lut[file];
-			if (file > 0) {
-				int prev_file = file - 1;
-				file_masks |= BitBoard.FileMask_Lut[prev_file];
-			}
-			if (file < 7) {
-				int next_file = file + 1;
-				file_masks |= BitBoard.FileMask_Lut[next_file];
-			}
-			// clear passed pawns in concerned files before re-evaluating
-			passedPawns &= ~file_masks;
-			// re-evaluate enemy
-			long enemy_pawns = isWhite ? getBlackPawns() : getWhitePawns(); 
-			enemy_pawns &= file_masks;
-			long scratchBitBoard = enemy_pawns;
-			while ( scratchBitBoard != 0x0L ) {
-				int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
-				int enemy_position = BitBoard.bitToPosition_Lut[bit_offset];
-				if (isPassedPawn(enemy_position, !isWhite)) {
-		    		// ...target square becomes pp for piece to move!
-		    		passedPawns |= (1L << bit_offset);
-		    	}
-				// clear the lssb
-				scratchBitBoard &= scratchBitBoard-1;
-			}
-			// re-evaluate own
-			long own_pawns = isWhite ? getWhitePawns() : getBlackPawns(); 
-			own_pawns &= file_masks;
-			scratchBitBoard = own_pawns;
-			while ( scratchBitBoard != 0x0L ) {
-				int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
-				int own_position = BitBoard.bitToPosition_Lut[bit_offset];
-				if (isPassedPawn(own_position, isWhite)) {
-		    		// ...target square becomes pp for piece to move!
-		    		passedPawns |= (1L << bit_offset);
-		    	}
-				// clear the lssb
-				scratchBitBoard &= scratchBitBoard-1;
+			if (file_masks != 0L) {
+				// clear passed pawns in concerned files before re-evaluating
+				passedPawns &= ~file_masks;
+				// re-evaluate enemy
+				long enemy_pawns = isWhite ? getBlackPawns() : getWhitePawns();
+				enemy_pawns &= file_masks;
+				long scratchBitBoard = enemy_pawns;
+				while ( scratchBitBoard != 0x0L ) {
+					int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
+					int enemy_position = BitBoard.bitToPosition_Lut[bit_offset];
+					if (isPassedPawn(enemy_position, !isWhite)) {
+						passedPawns |= (1L << bit_offset);
+					}
+					// clear the lssb
+					scratchBitBoard &= scratchBitBoard-1;
+				}
+				// re-evaluate own
+				long own_pawns = isWhite ? getWhitePawns() : getBlackPawns();
+				own_pawns &= file_masks;
+				scratchBitBoard = own_pawns;
+				while ( scratchBitBoard != 0x0L ) {
+					int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
+					int own_position = BitBoard.bitToPosition_Lut[bit_offset];
+					if (isPassedPawn(own_position, isWhite)) {
+						passedPawns |= (1L << bit_offset);
+					}
+					// clear the lssb
+					scratchBitBoard &= scratchBitBoard-1;
+				}
 			}
 		}
 		
