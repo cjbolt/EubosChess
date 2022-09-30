@@ -378,7 +378,7 @@ public final class BitBoard {
 		return mask;
 	}
 	
-	static final long[] IsolatedPawn_Lut = new long[128]; 
+	static final long[] IsolatedPawn_Lut = new long[128];
 	static {
 		for (int atPos : Position.values) {
 			IsolatedPawn_Lut[atPos] = buildIsolatedPawnFileMask(Position.getFile(atPos));
@@ -395,5 +395,58 @@ public final class BitBoard {
 			mask |= FileMask_Lut[f+1];
 		}
 		return mask;
+	}
+	
+	// Dimensions colour, position
+	static final long[][] IterativePassedPawnNonCapture = new long[2][]; 
+	static {
+		long[] white_map = new long[128];
+		for (int atPos : Position.values) {
+			int rank = Position.getRank(atPos);
+			if (rank >= 1 && rank <= 6) {
+				long mask = 0L;
+				int sq = Direction.getDirectMoveSq(Direction.upRight, atPos);
+				if (sq != Position.NOPOSITION) {
+					mask |= positionToMask_Lut[sq];
+				}
+				sq = Direction.getDirectMoveSq(Direction.up, atPos);
+				if (sq != Position.NOPOSITION) {
+					mask |= positionToMask_Lut[sq];
+				} 
+				sq = Direction.getDirectMoveSq(Direction.upLeft, atPos);
+				if (sq != Position.NOPOSITION) {
+					mask |= positionToMask_Lut[sq];
+				}
+				if (rank == 1) {
+					mask <<= 8; // Cater for double moves for white
+				}
+				white_map[atPos] = mask;
+			}
+		}
+		IterativePassedPawnNonCapture[Colour.white.ordinal()] = white_map; 
+		long[] black_map = new long[128];
+		for (int atPos : Position.values) {
+			int rank = Position.getRank(atPos);
+			if (rank >= 2 && rank <= 6) { 
+				long mask = 0L;
+				int sq = Direction.getDirectMoveSq(Direction.downRight, atPos);
+				if (sq != Position.NOPOSITION) {
+					mask |= positionToMask_Lut[sq];
+				}
+				sq = Direction.getDirectMoveSq(Direction.down, atPos);
+				if (sq != Position.NOPOSITION) {
+					mask |= positionToMask_Lut[sq];
+				} 
+				sq = Direction.getDirectMoveSq(Direction.downLeft, atPos);
+				if (sq != Position.NOPOSITION) {
+					mask |= positionToMask_Lut[sq];
+				} 
+				if (rank == 6) {
+					mask >>= 8; // cater for double moves for black
+				}
+				black_map[atPos] = mask;
+			}
+		}
+		IterativePassedPawnNonCapture[Colour.black.ordinal()] = black_map;
 	}
 }
