@@ -249,29 +249,44 @@ public class Board {
 			// build up significant file masks, should be three or four consecutive files, re-evaluate passed pawns in those files
 			long file_masks = 0L;
 			if (Piece.isPawn(pieceToMove)) {
-				// pawn pushes can make the pawn a passer and also create opponent passed pawns in the adjacent files
-				int file = Position.getFile(originSquare);
-				file_masks |= BitBoard.FileMask_Lut[file];
-				if (file > 0) {
-					int prev_file = file - 1;
-					file_masks |= BitBoard.FileMask_Lut[prev_file];
+				if (targetPiece == Piece.NONE) {
+					// pawn pushes can make the pawn a passer and also create opponent passed pawns in the adjacent files
+					file_masks |= BitBoard.IterativePassedPawnNonCapture[isWhite?0:1][originSquare];
+				} else {
+					boolean capture_left = false;
+					int origin_file = Position.getFile(originSquare);
+					int target_file = Position.getFile(targetSquare);
+					if (origin_file > target_file) {
+						capture_left = true;
+					}
+					if (Piece.isPawn(targetPiece)) {
+						// Pawn takes pawn, clears whole frontspan of enemy pawn (note negation of colour)
+						file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][targetSquare];
+					}
+					// manage file transition of capturing pawn
+					if (capture_left && target_file > 0) {
+						int left_file_from_target = target_file - 1;
+						file_masks |= BitBoard.FileMask_Lut[left_file_from_target];
+					}
+					if (capture_left && origin_file < 7) {
+						int right_file_from_origin = origin_file + 1;
+						file_masks |= BitBoard.FileMask_Lut[right_file_from_origin];
+					}
+					if (!capture_left && target_file < 7) {
+						int right_file_from_target = target_file + 1;
+						file_masks |= BitBoard.FileMask_Lut[right_file_from_target];
+					}
+					if (!capture_left && origin_file > 0) {
+						int left_file_from_origin = origin_file - 1;
+						file_masks |= BitBoard.FileMask_Lut[left_file_from_origin];
+					}
+					file_masks |= targetSquareMask;
 				}
-				if (file < 7) {
-					int next_file = file + 1;
-					file_masks |= BitBoard.FileMask_Lut[next_file];
-				}
-			}
-			if (Piece.isPawn(targetPiece)) {
-				int file = Position.getFile(targetSquare);
-				file_masks |= BitBoard.FileMask_Lut[file];
-				if (file > 0) {
-					int prev_file = file - 1;
-					file_masks |= BitBoard.FileMask_Lut[prev_file];
-				}
-				if (file < 7) {
-					int next_file = file + 1;
-					file_masks |= BitBoard.FileMask_Lut[next_file];
-				}
+			} else if (Piece.isPawn(targetPiece)) {
+				// Piece takes pawn, potentially opens capture and adjacent files
+				file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][targetSquare];
+			} else {
+				// doesn't need to be handled
 			}
 			if (file_masks != 0L) {
 				// clear passed pawns in concerned files before re-evaluating
