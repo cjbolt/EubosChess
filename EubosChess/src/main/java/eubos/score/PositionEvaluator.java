@@ -34,6 +34,7 @@ public class PositionEvaluator implements IEvaluate {
 	public static final int HEAVY_PIECE_BEHIND_PASSED_PAWN = 20;
 	
 	public static final boolean ENABLE_PAWN_EVALUATION = true;
+	public static final boolean ENABLE_PAWN_HASH_TABLE = true;
 	public static final boolean ENABLE_KPK_EVALUATION = true;
 	public static final boolean ENABLE_CANDIDATE_PP_EVALUATION = true;
 	public static final boolean ENABLE_PP_IMBALANCE_EVALUATION = false;
@@ -566,15 +567,16 @@ public class PositionEvaluator implements IEvaluate {
 			long ownPawns = onMoveIsWhite ? white : black;
 			long enemyPawns = onMoveIsWhite ? black : white;
 			initialise(attacks);
-			
+		
 			short hashEval = 0;
-			int pawnHashvalue = 0;
-			pawnHashvalue = pm.getPawnHash();
-			hashEval = pawnHash.get(pawnHashvalue, white, black, onMoveIsWhite);
-			if (hashEval != Short.MAX_VALUE) {
-				// Recompute value of passed pawns in this position
-				hashEval += computePassedPawnContribution(onMoveIsWhite);
-				return hashEval;
+			int passedPawnScoreAtPosition = 0;
+			if (ENABLE_PAWN_HASH_TABLE) {
+				hashEval = pawnHash.get(pm.getPawnHash(), white, black, onMoveIsWhite);
+				if (hashEval != Short.MAX_VALUE) {
+					// Recompute value of passed pawns in this position
+					passedPawnScoreAtPosition = computePassedPawnContribution(onMoveIsWhite);
+					return hashEval + passedPawnScoreAtPosition;
+				}
 			}
 			
 			// If no valid hash, recompute from scratch...
@@ -592,11 +594,25 @@ public class PositionEvaluator implements IEvaluate {
 				pawnEvaluationScore += ppImbalanceFactor;
 			}
 			
-			pawnHash.put(pawnHashvalue, pawnEvaluationScore, white, black, onMoveIsWhite);
+			if (ENABLE_PAWN_HASH_TABLE) {
+				pawnHash.put(pm.getPawnHash(), pawnEvaluationScore, white, black, onMoveIsWhite);
+			}
+			
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				if (hashEval != Short.MAX_VALUE)
+					assert pawnEvaluationScore == hashEval : 
+						String.format("pawn score before passed pawn positions: %d != %d", pawnEvaluationScore, hashEval);
+			}
 			
 			// Compute passed pawn positional contribution after storing the basic eval to the hash table
 			piecewisePawnScoreAccumulator = 0;
 			pawnEvaluationScore += computePassedPawnContribution(onMoveIsWhite);
+			
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				if (hashEval != Short.MAX_VALUE)
+					assert pawnEvaluationScore == hashEval+passedPawnScoreAtPosition :
+						String.format("pawn score after pp position: %d != %d", pawnEvaluationScore, hashEval+passedPawnScoreAtPosition);
+			}
 			
 			return pawnEvaluationScore;
 		}
