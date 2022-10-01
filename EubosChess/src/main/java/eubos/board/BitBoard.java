@@ -418,7 +418,9 @@ public final class BitBoard {
 					mask |= positionToMask_Lut[sq];
 				}
 				if (rank == 1) {
-					mask <<= 8; // Cater for double moves for white
+					long temp = mask;
+					temp <<= 8; // Cater for double moves for white
+					mask |= temp;
 				}
 				white_map[atPos] = mask;
 			}
@@ -442,7 +444,9 @@ public final class BitBoard {
 					mask |= positionToMask_Lut[sq];
 				} 
 				if (rank == 6) {
+					long temp = mask;
 					mask >>= 8; // cater for double moves for black
+					mask |= temp;
 				}
 				black_map[atPos] = mask;
 			}
