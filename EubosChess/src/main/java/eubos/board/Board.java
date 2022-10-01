@@ -249,21 +249,22 @@ public class Board {
 			// build up significant file masks, should be three or four consecutive files, re-evaluate passed pawns in those files
 			long file_masks = 0L;
 			if (Piece.isPawn(pieceToMove)) {
-				if (targetPiece == Piece.NONE) {
-					// pawn pushes can make the pawn a passer and also create opponent passed pawns in the adjacent files
-					file_masks |= BitBoard.IterativePassedPawnNonCapture[isWhite?0:1][originSquare];
-				} else {
+				// Handle regular pawn pushes
+				file_masks |= BitBoard.IterativePassedPawnNonCapture[isWhite?0:1][originSquare];
+				
+				// Handle pawn captures
+				if (targetPiece != Piece.NONE) {
+					if (Piece.isPawn(targetPiece)) {
+						// Pawn takes pawn, clears whole front-span of target pawn (note negation of colour)
+						file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][targetSquare];
+					}
+					// manage file transition of capturing pawn moves
 					boolean capture_left = false;
 					int origin_file = Position.getFile(originSquare);
 					int target_file = Position.getFile(targetSquare);
 					if (origin_file > target_file) {
 						capture_left = true;
 					}
-					if (Piece.isPawn(targetPiece)) {
-						// Pawn takes pawn, clears whole frontspan of enemy pawn (note negation of colour)
-						file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][targetSquare];
-					}
-					// manage file transition of capturing pawn
 					if (capture_left && target_file > 0) {
 						int left_file_from_target = target_file - 1;
 						file_masks |= BitBoard.FileMask_Lut[left_file_from_target];
@@ -286,10 +287,11 @@ public class Board {
 				// Piece takes pawn, potentially opens capture and adjacent files
 				file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][targetSquare];
 			} else {
-				// doesn't need to be handled
+				// doesn't need to be handled - can't change passed pawn bit board
 			}
 			if (file_masks != 0L) {
 				// clear passed pawns in concerned files before re-evaluating
+				passedPawns &= ~initialSquareMask;
 				passedPawns &= ~file_masks;
 				// re-evaluate enemy
 				long enemy_pawns = isWhite ? getBlackPawns() : getWhitePawns();
@@ -324,6 +326,12 @@ public class Board {
 			// check material incrementally updated against from scratch
 			PiecewiseEvaluation scratch_me = new PiecewiseEvaluation();
 			evaluateMaterial(scratch_me);
+			long iterativeUpdatePassedPawns = passedPawns;
+			createPassedPawnsBoard();
+			assert iterativeUpdatePassedPawns == passedPawns :
+				String.format("Passed Pawns error iterative %s != scratch %s move = %s pawns = %s", 
+					BitBoard.toString(iterativeUpdatePassedPawns), BitBoard.toString(passedPawns), 
+					Move.toString(move), BitBoard.toString(this.getPawns()));
 			assert scratch_me != me;
 			assert scratch_me.mg_material == me.mg_material;
 			assert scratch_me.eg_material == me.eg_material;

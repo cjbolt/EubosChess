@@ -1270,5 +1270,12 @@ public class BoardTest {
 		classUnderTest.doMove(Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e7, Piece.WHITE_PAWN, Position.e8, Piece.NONE, Piece.QUEEN));
 		assertEquals(0L, classUnderTest.getPassedPawns());
 	}
+	
+	@Test
+	public void createPassedPawns_1() {
+		setUpPosition("8/ppp4p/8/8/1P6/8/2PP4/8 b - - 0 1");
+		classUnderTest.doMove(Move.valueOf(Position.h7, Piece.BLACK_PAWN, Position.h6, Piece.NONE));
+		assertEquals(BitBoard.valueOf(new int[] {Position.h6}), classUnderTest.getPassedPawns());
+	}
 }
 
