@@ -2,26 +2,26 @@ package eubos.score;
 
 import java.util.Arrays;
 
-import eubos.main.EubosEngineMain;
-
 public class PawnEvalHashTable {	
 	private short [] eval = null;
 	private long [] black = null;
 	private long [] white = null;
+	private byte [] weight = null;
 	
-	static final int RANGE_TO_SEARCH = 20;
+	static final int RANGE_TO_SEARCH = 3;
 	
 	public PawnEvalHashTable() {
 		eval = new short[65536];
 		black = new long[65536];
 		white = new long[65536];
+		weight = new byte[65536];
 		Arrays.fill(eval, Short.MAX_VALUE);
 	}
 	
-	public synchronized short get(int hash, long white_pawns, long black_pawns, boolean onMoveIsWhite) {
+	public synchronized short get(int hash, int phase_weighting, long white_pawns, long black_pawns, boolean onMoveIsWhite) {
 		int index = hash & 0xFFFF;
 		for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < 0xFFFF); i++) {
-			if (black[i] == black_pawns && white[i] == white_pawns) {
+			if (black[i] == black_pawns && white[i] == white_pawns && weight[i] == phase_weighting) {
 				int score = eval[i];
 				// Score saved in table is from white point of view
 				if (!onMoveIsWhite) {
@@ -33,7 +33,7 @@ public class PawnEvalHashTable {
 		return Short.MAX_VALUE;
 	}
 	
-	public synchronized void put(int hash, int score, long white_pawns, long black_pawns, boolean onMoveIsWhite) {
+	public synchronized void put(int hash, int phase_weighting, int score, long white_pawns, long black_pawns, boolean onMoveIsWhite) {
 		int index = hash & 0xFFFF;
 		// Score saved in table is from white point of view
 		if (!onMoveIsWhite) {
@@ -42,6 +42,8 @@ public class PawnEvalHashTable {
 		for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < 0xFFFF); i++) {
 			// If exact hash match, overwrite entry in table
 			if (black[i] == black_pawns && white[i] == white_pawns) {
+				// always update for game phase
+				weight[i] = (byte)phase_weighting;
 				eval[i] = (short)score;
 				return;
 			}
@@ -50,12 +52,14 @@ public class PawnEvalHashTable {
 				// Store
 				black[i] = black_pawns;
 				white[i] = white_pawns;
+				weight[i] = (byte)phase_weighting;
 				eval[i] = (short)score;
 				return;
 			}
 		}
 		black[index] = black_pawns;
 		white[index] = white_pawns;
+		weight[index] = (byte)phase_weighting;
 		eval[index] = (short)score;
 	}
 }

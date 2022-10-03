@@ -421,10 +421,9 @@ public class PositionEvaluator implements IEvaluate {
 				ppFileMask |= (1 << Position.getFile(atPos));
 				ppRankMask |= (1 << Position.getRank(atPos));
 			} else if (ENABLE_CANDIDATE_PP_EVALUATION) {
-				// TODO make it resolve the number of attacks...
 				if (bd.isCandidatePassedPawn(atPos, pawnIsWhite, own_attacks[0], enemy_attacks[0])) {
 					setQueeningDistance(atPos, pawnIsWhite);
-					//weighting *= getScaleFactorForGamePhase();
+					weighting *= getScaleFactorForGamePhase();
 					if (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) {
 						piecewisePawnScoreAccumulator += weighting*ROOK_FILE_CANDIDATE_PAWN;
 					} else {
@@ -571,11 +570,11 @@ public class PositionEvaluator implements IEvaluate {
 			short hashEval = 0;
 			int passedPawnScoreAtPosition = 0;
 			if (ENABLE_PAWN_HASH_TABLE) {
-				hashEval = pawnHash.get(pm.getPawnHash(), white, black, onMoveIsWhite);
+				hashEval = pawnHash.get(pm.getPawnHash(), getScaleFactorForGamePhase(), white, black, onMoveIsWhite);
 				if (hashEval != Short.MAX_VALUE) {
 					// Recompute value of passed pawns in this position
 					passedPawnScoreAtPosition = computePassedPawnContribution(onMoveIsWhite);
-					//return hashEval + passedPawnScoreAtPosition;
+					return hashEval + passedPawnScoreAtPosition;
 				}
 			}
 			
@@ -595,7 +594,7 @@ public class PositionEvaluator implements IEvaluate {
 			}
 			
 			if (ENABLE_PAWN_HASH_TABLE) {
-				pawnHash.put(pm.getPawnHash(), pawnEvaluationScore, white, black, onMoveIsWhite);
+				pawnHash.put(pm.getPawnHash(), getScaleFactorForGamePhase(), pawnEvaluationScore, white, black, onMoveIsWhite);
 			}
 			
 			if (EubosEngineMain.ENABLE_ASSERTS) {
