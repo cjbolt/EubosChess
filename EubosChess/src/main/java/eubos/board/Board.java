@@ -65,6 +65,7 @@ public class Board {
 	public CountedPawnKnightAttackAggregator cpkaa;
 	
 	boolean isAttacksMaskValid = false;
+	boolean doIterativePassedPawnsUpdate = false;
 	
 	public Board( Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove ) {
 		paa = new PawnAttackAggregator();
@@ -85,7 +86,11 @@ public class Board {
 		me = new PiecewiseEvaluation();
 		evaluateMaterial(me);
 		
-		createPassedPawnsBoard();
+		doIterativePassedPawnsUpdate = false;
+		if (me.phase > 2000) {
+			doIterativePassedPawnsUpdate = true;
+			createPassedPawnsBoard();
+		}
 	}
 	
 	public void createPassedPawnsBoard() {
@@ -242,82 +247,84 @@ public class Board {
 		allPieces ^= positionsMask;
 		
 		// Note: this needs to be done after the piece bit boards are updated
-		if (promotedPiece != Piece.NONE) {
-			// pawn promotions need to clear the promoted pawn (it must have been passed if it could promote)
-			passedPawns &= ~initialSquareMask;
-		} else {
-			// build up significant file masks, should be three or four consecutive files, re-evaluate passed pawns in those files
-			long file_masks = 0L;
-			if (Piece.isPawn(pieceToMove)) {
-				// Handle regular pawn pushes
-				file_masks |= BitBoard.IterativePassedPawnNonCapture[isWhite?0:1][originSquare];
-				
-				// Handle pawn captures
-				if (targetPiece != Piece.NONE) {
-					if (Piece.isPawn(targetPiece)) {
-						// Pawn takes pawn, clears whole front-span of target pawn (note negation of colour)
-						file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][targetSquare];
-					}
-					// manage file transition of capturing pawn moves
-					boolean capture_left = false;
-					int origin_file = Position.getFile(originSquare);
-					int target_file = Position.getFile(targetSquare);
-					if (origin_file > target_file) {
-						capture_left = true;
-					}
-					if (capture_left && target_file > 0) {
-						int left_file_from_target = target_file - 1;
-						file_masks |= BitBoard.FileMask_Lut[left_file_from_target];
-					}
-					if (capture_left && origin_file < 7) {
-						int right_file_from_origin = origin_file + 1;
-						file_masks |= BitBoard.FileMask_Lut[right_file_from_origin];
-					}
-					if (!capture_left && target_file < 7) {
-						int right_file_from_target = target_file + 1;
-						file_masks |= BitBoard.FileMask_Lut[right_file_from_target];
-					}
-					if (!capture_left && origin_file > 0) {
-						int left_file_from_origin = origin_file - 1;
-						file_masks |= BitBoard.FileMask_Lut[left_file_from_origin];
-					}
-					file_masks |= targetSquareMask;
-				}
-			} else if (Piece.isPawn(targetPiece)) {
-				// Piece takes pawn, potentially opens capture and adjacent files
-				file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][targetSquare];
-			} else {
-				// doesn't need to be handled - can't change passed pawn bit board
-			}
-			if (file_masks != 0L) {
-				// clear passed pawns in concerned files before re-evaluating
+		if (doIterativePassedPawnsUpdate) {
+			if (promotedPiece != Piece.NONE) {
+				// pawn promotions need to clear the promoted pawn (it must have been passed if it could promote)
 				passedPawns &= ~initialSquareMask;
-				passedPawns &= ~file_masks;
-				// re-evaluate enemy
-				long enemy_pawns = isWhite ? getBlackPawns() : getWhitePawns();
-				enemy_pawns &= file_masks;
-				long scratchBitBoard = enemy_pawns;
-				while ( scratchBitBoard != 0x0L ) {
-					int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
-					int enemy_position = BitBoard.bitToPosition_Lut[bit_offset];
-					if (isPassedPawn(enemy_position, !isWhite)) {
-						passedPawns |= (1L << bit_offset);
+			} else {
+				// build up significant file masks, should be three or four consecutive files, re-evaluate passed pawns in those files
+				long file_masks = 0L;
+				if (Piece.isPawn(pieceToMove)) {
+					// Handle regular pawn pushes
+					file_masks |= BitBoard.IterativePassedPawnNonCapture[isWhite?0:1][originSquare];
+					
+					// Handle pawn captures
+					if (targetPiece != Piece.NONE) {
+						if (Piece.isPawn(targetPiece)) {
+							// Pawn takes pawn, clears whole front-span of target pawn (note negation of colour)
+							file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][targetSquare];
+						}
+						// manage file transition of capturing pawn moves
+						boolean capture_left = false;
+						int origin_file = Position.getFile(originSquare);
+						int target_file = Position.getFile(targetSquare);
+						if (origin_file > target_file) {
+							capture_left = true;
+						}
+						if (capture_left && target_file > 0) {
+							int left_file_from_target = target_file - 1;
+							file_masks |= BitBoard.FileMask_Lut[left_file_from_target];
+						}
+						if (capture_left && origin_file < 7) {
+							int right_file_from_origin = origin_file + 1;
+							file_masks |= BitBoard.FileMask_Lut[right_file_from_origin];
+						}
+						if (!capture_left && target_file < 7) {
+							int right_file_from_target = target_file + 1;
+							file_masks |= BitBoard.FileMask_Lut[right_file_from_target];
+						}
+						if (!capture_left && origin_file > 0) {
+							int left_file_from_origin = origin_file - 1;
+							file_masks |= BitBoard.FileMask_Lut[left_file_from_origin];
+						}
+						file_masks |= targetSquareMask;
 					}
-					// clear the lssb
-					scratchBitBoard &= scratchBitBoard-1;
+				} else if (Piece.isPawn(targetPiece)) {
+					// Piece takes pawn, potentially opens capture and adjacent files
+					file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][targetSquare];
+				} else {
+					// doesn't need to be handled - can't change passed pawn bit board
 				}
-				// re-evaluate own
-				long own_pawns = isWhite ? getWhitePawns() : getBlackPawns();
-				own_pawns &= file_masks;
-				scratchBitBoard = own_pawns;
-				while ( scratchBitBoard != 0x0L ) {
-					int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
-					int own_position = BitBoard.bitToPosition_Lut[bit_offset];
-					if (isPassedPawn(own_position, isWhite)) {
-						passedPawns |= (1L << bit_offset);
+				if (file_masks != 0L) {
+					// clear passed pawns in concerned files before re-evaluating
+					passedPawns &= ~initialSquareMask;
+					passedPawns &= ~file_masks;
+					// re-evaluate enemy
+					long enemy_pawns = isWhite ? getBlackPawns() : getWhitePawns();
+					enemy_pawns &= file_masks;
+					long scratchBitBoard = enemy_pawns;
+					while ( scratchBitBoard != 0x0L ) {
+						int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
+						int enemy_position = BitBoard.bitToPosition_Lut[bit_offset];
+						if (isPassedPawn(enemy_position, !isWhite)) {
+							passedPawns |= (1L << bit_offset);
+						}
+						// clear the lssb
+						scratchBitBoard &= scratchBitBoard-1;
 					}
-					// clear the lssb
-					scratchBitBoard &= scratchBitBoard-1;
+					// re-evaluate own
+					long own_pawns = isWhite ? getWhitePawns() : getBlackPawns();
+					own_pawns &= file_masks;
+					scratchBitBoard = own_pawns;
+					while ( scratchBitBoard != 0x0L ) {
+						int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
+						int own_position = BitBoard.bitToPosition_Lut[bit_offset];
+						if (isPassedPawn(own_position, isWhite)) {
+							passedPawns |= (1L << bit_offset);
+						}
+						// clear the lssb
+						scratchBitBoard &= scratchBitBoard-1;
+					}
 				}
 			}
 		}
@@ -1602,18 +1609,18 @@ public class Board {
 	}
 	
 	public boolean isPassedPawnPresent(IForEachPieceCallback passedPawnChecker) {
-//		if (pieces[Piece.PAWN] == 0L) return false;
-//		
-//		long blackPawns = this.getBlackPawns();
-//		long whitePawns = this.getWhitePawns();
-//		if (whitePawns == 0L || blackPawns == 0L) {
-//			return true;
-//		}
-//		
-//		if (!me.isEndgame() && (blackPawns & 0xFFFF_FF00L) == 0L && (whitePawns & 0x00FF_FFFF_0000_0000L) == 0L) {
-//			// Assume no passed pawns if middlegame and no pawns have crossed to other side of board
-//			return false;
-//		}
+		if (pieces[Piece.PAWN] == 0L) return false;
+		
+		long blackPawns = this.getBlackPawns();
+		long whitePawns = this.getWhitePawns();
+		if (whitePawns == 0L || blackPawns == 0L) {
+			return true;
+		}
+		
+		if (!me.isEndgame() && (blackPawns & 0xFFFF_FF00L) == 0L && (whitePawns & 0x00FF_FFFF_0000_0000L) == 0L) {
+			// Assume no passed pawns if middlegame and no pawns have crossed to other side of board
+			return false;
+		}
 //		
 //		return pieceLists.forAllPawnsDoConditionalCallback(passedPawnChecker);
 		return passedPawns != 0L;
