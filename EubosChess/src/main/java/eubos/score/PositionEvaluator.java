@@ -36,7 +36,7 @@ public class PositionEvaluator implements IEvaluate {
 	public static final boolean ENABLE_PAWN_EVALUATION = true;
 	public static final boolean ENABLE_PAWN_HASH_TABLE = true;
 	public static final boolean ENABLE_KPK_EVALUATION = true;
-	public static final boolean ENABLE_CANDIDATE_PP_EVALUATION = false;
+	public static final boolean ENABLE_CANDIDATE_PP_EVALUATION = true;
 	public static final boolean ENABLE_PP_IMBALANCE_EVALUATION = false;
 	
 	public static final boolean ENABLE_KING_SAFETY_EVALUATION = true;
@@ -424,7 +424,7 @@ public class PositionEvaluator implements IEvaluate {
 				// TODO make it resolve the number of attacks...
 				if (bd.isCandidatePassedPawn(atPos, pawnIsWhite, own_attacks[0], enemy_attacks[0])) {
 					setQueeningDistance(atPos, pawnIsWhite);
-					weighting *= getScaleFactorForGamePhase();
+					//weighting *= getScaleFactorForGamePhase();
 					if (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) {
 						piecewisePawnScoreAccumulator += weighting*ROOK_FILE_CANDIDATE_PAWN;
 					} else {
@@ -575,7 +575,7 @@ public class PositionEvaluator implements IEvaluate {
 				if (hashEval != Short.MAX_VALUE) {
 					// Recompute value of passed pawns in this position
 					passedPawnScoreAtPosition = computePassedPawnContribution(onMoveIsWhite);
-					return hashEval + passedPawnScoreAtPosition;
+					//return hashEval + passedPawnScoreAtPosition;
 				}
 			}
 			
@@ -601,7 +601,7 @@ public class PositionEvaluator implements IEvaluate {
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				if (hashEval != Short.MAX_VALUE)
 					assert pawnEvaluationScore == hashEval : 
-						String.format("pawn score before passed pawn positions: %d != %d", pawnEvaluationScore, hashEval);
+						String.format("pawn score before passed pawn positions: %d != %d %s", pawnEvaluationScore, hashEval, pm.unwindMoveStack());
 			}
 			
 			// Compute passed pawn positional contribution after storing the basic eval to the hash table

@@ -96,6 +96,7 @@ public class Board {
 	public void createPassedPawnsBoard() {
 		long pawns = getPawns(); 
 		long scratchBitBoard = pawns;
+		passedPawns = 0L;
 		while ( scratchBitBoard != 0x0L ) {
 			int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
 			int pawn_position = BitBoard.bitToPosition_Lut[bit_offset];
@@ -291,6 +292,7 @@ public class Board {
 					}
 				} else if (Piece.isPawn(targetPiece)) {
 					// Piece takes pawn, potentially opens capture and adjacent files
+					file_masks |= targetSquareMask;
 					file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][targetSquare];
 				} else {
 					// doesn't need to be handled - can't change passed pawn bit board
@@ -333,12 +335,14 @@ public class Board {
 			// check material incrementally updated against from scratch
 			PiecewiseEvaluation scratch_me = new PiecewiseEvaluation();
 			evaluateMaterial(scratch_me);
-			long iterativeUpdatePassedPawns = passedPawns;
-			createPassedPawnsBoard();
-			assert iterativeUpdatePassedPawns == passedPawns :
-				String.format("Passed Pawns error iterative %s != scratch %s move = %s pawns = %s", 
-					BitBoard.toString(iterativeUpdatePassedPawns), BitBoard.toString(passedPawns), 
-					Move.toString(move), BitBoard.toString(this.getPawns()));
+			if (doIterativePassedPawnsUpdate) {
+				long iterativeUpdatePassedPawns = passedPawns;
+				createPassedPawnsBoard();
+				assert iterativeUpdatePassedPawns == passedPawns :
+					String.format("Passed Pawns error iterative %s != scratch %s move = %s pawns = %s", 
+						BitBoard.toString(iterativeUpdatePassedPawns), BitBoard.toString(passedPawns), 
+						Move.toString(move), BitBoard.toString(this.getPawns()));
+			}
 			assert scratch_me != me;
 			assert scratch_me.mg_material == me.mg_material;
 			assert scratch_me.eg_material == me.eg_material;

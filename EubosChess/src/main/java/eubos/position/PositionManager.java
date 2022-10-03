@@ -53,26 +53,22 @@ public class PositionManager implements IChangePosition, IPositionAccessors, IFo
 		
 		PassedPawnTracker() {
 			stack = new long[CAPACITY];
-			for (int i = 0; i < CAPACITY; i++) {
-				stack[i] = 0L;
-			}
 			index = 0;
 		}
 		
-		public void push(long tm) {
+		public void push(long pawnBB) {
 			if (index < CAPACITY) {
-				stack[index] = tm;
+				stack[index] = pawnBB;
 				index += 1;
 			}
 		}
 		
 		public long pop() {
-			long tm = TrackedMove.NULL_TRACKED_MOVE;
 			if (!isEmpty()) {
 				index -= 1;
-				tm = stack[index];
+				return stack[index];
 			}
-			return tm;
+			return 0L;
 		}
 		
 		public boolean isEmpty() {

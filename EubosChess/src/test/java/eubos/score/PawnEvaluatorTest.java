@@ -676,4 +676,13 @@ public class PawnEvaluatorTest {
 		assertEquals(313, SUT.pawn_eval.evaluatePawnsForSide(SUT.bd.getWhitePawns(), false));
 		assertEquals(25, SUT.pawn_eval.evaluateConnectedPassedPawns());
 	}
+	
+	@Test
+	public void test_candidate_passer()  {
+		// In this position there are no passed pawns present, so have to work out how we came to store a hash score where we though a passed pawn was present
+		setUpPosition("8/pp5p/8/PqP5/3k4/7P/3K4/8 w - - 0 17");
+		assertEquals(-42, SUT.pawn_eval.evaluatePawnStructure(attacks)); // counted bit board, white attacks frontspan twice, so not a candidate
+		// basic attacks, we think that there is a candidate passer.
+		assertEquals(-50, SUT.pawn_eval.evaluatePawnStructure(pm.getTheBoard().mae.calculateBasicAttacksAndMobility(pm.getTheBoard().me)));	
+	}
 }
