@@ -87,10 +87,10 @@ public class Board {
 		evaluateMaterial(me);
 		
 		doIterativePassedPawnsUpdate = false;
-		//if (me.phase > 2000) {
+		if (me.phase > 1200) {
 			doIterativePassedPawnsUpdate = true;
 			createPassedPawnsBoard();
-		//}
+		}
 	}
 	
 	public void createPassedPawnsBoard() {
@@ -1613,18 +1613,18 @@ public class Board {
 	}
 	
 	public boolean isPassedPawnPresent(IForEachPieceCallback passedPawnChecker) {
-//		if (pieces[Piece.PAWN] == 0L) return false;
-//		
-//		long blackPawns = this.getBlackPawns();
-//		long whitePawns = this.getWhitePawns();
-//		if (whitePawns == 0L || blackPawns == 0L) {
-//			return true;
-//		}
-//		
-//		if (!me.isEndgame() && (blackPawns & 0xFFFF_FF00L) == 0L && (whitePawns & 0x00FF_FFFF_0000_0000L) == 0L) {
-//			// Assume no passed pawns if middlegame and no pawns have crossed to other side of board
-//			return false;
-//		}
+		if (pieces[Piece.PAWN] == 0L) return false;
+		
+		long blackPawns = this.getBlackPawns();
+		long whitePawns = this.getWhitePawns();
+		if (whitePawns == 0L || blackPawns == 0L) {
+			return true;
+		}
+		
+		if (!me.isEndgame() && (blackPawns & 0xFFFF_FF00L) == 0L && (whitePawns & 0x00FF_FFFF_0000_0000L) == 0L) {
+			// Assume no passed pawns if middlegame and no pawns have crossed to other side of board
+			return false;
+		}
 
 		return passedPawns != 0L;
 	}
