@@ -18,7 +18,7 @@ public class FixedSizeTranspositionTable {
 	public static final long BYTES_PER_TRANSPOSITION =
 			BYTES_TRANSPOSTION_ELEMENT + BYTES_HASHMAP_ENTRY + BYTES_HASHMAP_ZOBRIST_KEY;
 	
-	public static final long BYTES_PER_MEGABYTE = 1_000_000L;
+	public static final long BYTES_PER_MEGABYTE = 1_024_000L;
 	
 	public static final long MBYTES_DEFAULT_HASH_SIZE = 256L;
 			
