@@ -1612,7 +1612,7 @@ public class Board {
 		return ~allPieces;
 	}
 	
-	public boolean isPassedPawnPresent(IForEachPieceCallback passedPawnChecker) {
+	public boolean isPassedPawnPresent() {
 //		if (pieces[Piece.PAWN] == 0L) return false;
 //		
 //		long blackPawns = this.getBlackPawns();
