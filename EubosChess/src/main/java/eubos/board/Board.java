@@ -516,26 +516,96 @@ public class Board {
 	}
 	
 	public boolean moveCouldLeadToOwnKingDiscoveredCheck(int move, int kingPosition, boolean isWhite) {
+		boolean isPinned = false;
 		// Attackers
 		long attackingQueensMask = isWhite ? getBlackQueens() : getWhiteQueens();
 		long attackingRooksMask = isWhite ? getBlackRooks() : getWhiteRooks();
 		long attackingBishopsMask = isWhite ? getBlackBishops() : getWhiteBishops();
 
 		// Create masks of attackers
-		boolean isKingOnDarkSq = (BitBoard.positionToMask_Lut[kingPosition] & DARK_SQUARES_MASK) != 0;
+		long kingMask = BitBoard.positionToMask_Lut[kingPosition];
+		boolean isKingOnDarkSq = (kingMask & DARK_SQUARES_MASK) != 0;
 		long pertinentBishopMask = attackingBishopsMask & ((isKingOnDarkSq) ? DARK_SQUARES_MASK : LIGHT_SQUARES_MASK);
 		long diagonalAttackersMask = attackingQueensMask | pertinentBishopMask;
 		long rankFileAttackersMask = attackingQueensMask | attackingRooksMask;
 		
 		// Establish if the initial square is on a multiple square slider mask from the king position, for which there is a potential pin
+		boolean checkForPin = false;
 		long pinSquare = BitBoard.positionToMask_Lut[Move.getOriginPosition(move)];
+		long targetSquare = BitBoard.positionToMask_Lut[Move.getTargetPosition(move)];
 		long diagonalAttacksOnKing = SquareAttackEvaluator.directDiagonalAttacksOnPosition_Lut[kingPosition];
 		if ((diagonalAttackersMask & diagonalAttacksOnKing) != 0L) {
-			if ((pinSquare & diagonalAttacksOnKing) != 0L) return true;
+			if ((pinSquare & diagonalAttacksOnKing) != 0L) checkForPin = true;
+		}
+		if (checkForPin) {
+			// temporarily move piece
+			allPieces &= ~pinSquare;
+			//allPieces |= targetSquare;
+			if (kingMask == Long.MIN_VALUE) {
+				isPinned = (diagonalAttackersMask & BitBoard.downLeftAttacks(kingMask, this.getEmpty())) != 0L;
+			} else {
+				if (pinSquare > kingMask) {
+					// indicates either up left or upright direction
+					long dirMask = SquareAttackEvaluator.directAttacksOnPositionUpLeft_Lut[kingPosition];			
+					if ((dirMask & pinSquare) != 0L) {
+						isPinned = (diagonalAttackersMask & BitBoard.upLeftAttacks(kingMask, this.getEmpty())) != 0L;
+					} else {
+						isPinned = (diagonalAttackersMask & BitBoard.upRightAttacks(kingMask, this.getEmpty())) != 0L;
+					}
+				} else {
+					// indicates either down left or down right direction
+					long dirMask = SquareAttackEvaluator.directAttacksOnPositionDownLeft_Lut[kingPosition];			
+					if ((dirMask & pinSquare) != 0L) {
+						isPinned = (diagonalAttackersMask & BitBoard.downLeftAttacks(kingMask, this.getEmpty())) != 0L;
+					} else {
+						isPinned = (diagonalAttackersMask & BitBoard.downRightAttacks(kingMask, this.getEmpty())) != 0L;
+					}
+				}
+			}
+			// replace piece
+			allPieces |= pinSquare;
+			//allPieces &= ~targetSquare;
+			return isPinned;
 		}
 		long rankFileAttacksOnKing = SquareAttackEvaluator.directRankFileAttacksOnPosition_Lut[kingPosition];
 		if ((rankFileAttackersMask & rankFileAttacksOnKing) != 0L) {
-			if ((pinSquare & rankFileAttacksOnKing) != 0L) return true;
+			if ((pinSquare & rankFileAttacksOnKing) != 0L) checkForPin = true;
+		}
+		if (checkForPin) {
+			// temporarily remove piece
+			allPieces &= ~pinSquare;
+			//allPieces |= targetSquare;
+			if (kingMask == Long.MIN_VALUE) {
+				// Special case, indicates either left or down direction
+				long dirMask = SquareAttackEvaluator.directAttacksOnPositionLeft_Lut[kingPosition];			
+				if ((dirMask & pinSquare) != 0L) {
+					isPinned = (rankFileAttackersMask & BitBoard.leftAttacks(kingMask, this.getEmpty())) != 0L;
+				} else {
+					isPinned = (rankFileAttackersMask & BitBoard.downAttacks(kingMask, this.getEmpty())) != 0L;
+				}
+			} else {
+				if (pinSquare > kingMask) {
+					// indicates either up or right direction
+					long dirMask = SquareAttackEvaluator.directAttacksOnPositionRight_Lut[kingPosition];			
+					if ((dirMask & pinSquare) != 0L) {
+						isPinned = (rankFileAttackersMask & BitBoard.rightAttacks(kingMask, this.getEmpty())) != 0L;
+					} else {
+						isPinned = (rankFileAttackersMask & BitBoard.upAttacks(kingMask, this.getEmpty())) != 0L;
+					}
+				} else {
+					// indicates either left or down direction
+					long dirMask = SquareAttackEvaluator.directAttacksOnPositionLeft_Lut[kingPosition];			
+					if ((dirMask & pinSquare) != 0L) {
+						isPinned = (rankFileAttackersMask & BitBoard.leftAttacks(kingMask, this.getEmpty())) != 0L;
+					} else {
+						isPinned = (rankFileAttackersMask & BitBoard.downAttacks(kingMask, this.getEmpty())) != 0L;
+					}
+				}
+			}
+			// replace piece
+			allPieces |= pinSquare;
+			//allPieces &= ~targetSquare;
+			return isPinned;
 		}
 		return false;
 	}

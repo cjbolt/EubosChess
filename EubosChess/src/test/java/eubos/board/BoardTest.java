@@ -403,6 +403,125 @@ public class BoardTest {
 		assertFalse(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.e4, true));
 	}
 	
+	@Test
+	public void testCouldLeadToCheck_PinnedUpLeft() {
+		setUpPosition("8/8/1q6/2P5/8/4K3/8/8 w - - 0 1");
+		int move = Move.valueOf(Position.c5, Piece.WHITE_PAWN, Position.c6, Piece.NONE);
+		assertTrue(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.e3, true));
+	}
+	
+	@Test
+	public void testCouldLeadToCheck_NotPinnedUpLeft() {
+		setUpPosition("8/8/1q6/2P5/3P4/4K3/8/8 w - - 0 1 ");
+		int move = Move.valueOf(Position.c5, Piece.WHITE_PAWN, Position.c6, Piece.NONE);
+		assertFalse(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.e3, true));
+	}
+	
+	@Test
+	public void testCouldLeadToCheck_PinnedUpRight() {
+		setUpPosition("8/8/7q/6P1/8/4K3/8/8 w - - 0 1 ");
+		int move = Move.valueOf(Position.g5, Piece.WHITE_PAWN, Position.g6, Piece.NONE);
+		assertTrue(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.e3, true));
+	}
+	
+	@Test
+	public void testCouldLeadToCheck_NotPinnedUpRight() {
+		setUpPosition("8/8/7q/6P1/5P2/4K3/8/8 w - - 0 1 ");
+		int move = Move.valueOf(Position.g5, Piece.WHITE_PAWN, Position.g6, Piece.NONE);
+		assertFalse(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.e3, true));
+	}
+	
+	@Test
+	public void testCouldLeadToCheck_PinnedDownLeft() {
+		setUpPosition("8/8/3K4/8/1P6/q7/8/8 w - - 0 1 ");
+		int move = Move.valueOf(Position.b4, Piece.WHITE_PAWN, Position.b5, Piece.NONE);
+		assertTrue(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d6, true));
+	}
+	
+	@Test
+	public void testCouldLeadToCheck_NotPinnedDownLeft() {
+		setUpPosition("8/8/3K4/2P5/1P6/q7/8/8 w - - 0 1 ");
+		int move = Move.valueOf(Position.b4, Piece.WHITE_PAWN, Position.b5, Piece.NONE);
+		assertFalse(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d6, true));
+	}
+	
+	@Test
+	public void testCouldLeadToCheck_PinnedDownRight() {
+		setUpPosition("8/8/3K4/8/5P2/6q1/8/8 w - - 0 1 ");
+		int move = Move.valueOf(Position.f4, Piece.WHITE_PAWN, Position.f5, Piece.NONE);
+		assertTrue(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d6, true));
+	}
+	
+	@Test
+	public void testCouldLeadToCheck_NotPinnedDownRight() {
+		setUpPosition("8/8/3K4/4P3/5P2/6q1/8/8 w - - 0 1 ");
+		int move = Move.valueOf(Position.f4, Piece.WHITE_PAWN, Position.f5, Piece.NONE);
+		assertFalse(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d6, true));
+	}
+	
+	@Test
+	public void testCouldLeadToCheck_PinnedUp() {
+		setUpPosition("3q4/3R4/8/8/3K4/8/8/8 w - - 0 1");
+		int move = Move.valueOf(Position.d7, Piece.WHITE_ROOK, Position.e7, Piece.NONE);
+		assertTrue(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d4, true));
+	}
+	
+	@Test
+	public void testCouldLeadToCheck_NotPinnedUp() {
+		setUpPosition("3q4/3R4/8/3P4/3K4/8/8/8 w - - 0 1");
+		int move = Move.valueOf(Position.d7, Piece.WHITE_ROOK, Position.e7, Piece.NONE);
+		assertFalse(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d4, true));
+	}
+	
+	@Test
+	public void testCouldLeadToCheck_NotPinnedRight() {
+		setUpPosition("8/8/8/8/3KP1Rq/8/8/8 w - - 0 1 ");
+		int move = Move.valueOf(Position.g4, Piece.WHITE_ROOK, Position.g5, Piece.NONE);
+		assertFalse(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d4, true));
+	}
+	
+	@Test
+	public void testCouldLeadToCheck_PinnedRight() {
+		setUpPosition("8/8/8/8/3K2Rq/8/8/8 w - - 0 1 ");
+		int move = Move.valueOf(Position.g4, Piece.WHITE_ROOK, Position.g5, Piece.NONE);
+		assertTrue(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d4, true));
+	}
+	
+	@Test
+	public void testCouldLeadToCheck_NotPinnedLeft() {
+		setUpPosition("8/8/8/8/qRPK4/8/8/8 w - - 0 1 ");
+		int move = Move.valueOf(Position.b4, Piece.WHITE_ROOK, Position.b5, Piece.NONE);
+		assertFalse(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d4, true));
+	}
+	
+	@Test
+	public void testCouldLeadToCheck_PinnedLeft() {
+		setUpPosition("8/8/8/8/qR1K4/8/8/8 w - - 0 1 ");
+		int move = Move.valueOf(Position.b4, Piece.WHITE_ROOK, Position.b5, Piece.NONE);
+		assertTrue(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d4, true));
+	}
+	
+	@Test
+	public void testCouldLeadToCheck_NotPinnedDown() {
+		setUpPosition("8/8/8/8/3K4/3P4/3R4/3q4 w - - 0 1 ");
+		int move = Move.valueOf(Position.d2, Piece.WHITE_ROOK, Position.e2, Piece.NONE);
+		assertFalse(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d4, true));
+	}
+	
+	@Test
+	public void testCouldLeadToCheck_PinnedDown() {
+		setUpPosition("8/8/8/8/3K4/8/3R4/3q4 w - - 0 1 ");
+		int move = Move.valueOf(Position.d2, Piece.WHITE_ROOK, Position.e2, Piece.NONE);
+		assertTrue(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d4, true));
+	}
+	 
+	@Test
+	public void testCouldLeadToCheck_FromGame() {
+		setUpPosition("7k/8/5p1p/6R1/3Q4/5PP1/6KP/1r6 b - - 0 47 ");
+		int move = Move.valueOf(Position.f6, Piece.BLACK_PAWN, Position.g5, Piece.WHITE_ROOK);
+		assertTrue(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.h8, false));
+	}
+	
 	PositionManager pm;
 	protected void setUpPosition(String fen) {
 		pm = new PositionManager(fen, new DrawChecker(), new PawnEvalHashTable());
