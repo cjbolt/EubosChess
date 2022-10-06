@@ -3,8 +3,6 @@ package eubos.board;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.PrimitiveIterator;
-import java.util.function.IntConsumer;
 
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
@@ -19,6 +17,10 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntRank;
 
 public class Board {
+	
+	private static final long LIGHT_SQUARES_MASK = 0x55AA55AA55AA55AAL;
+	private static final long DARK_SQUARES_MASK = 0xAA55AA55AA55AA55L; 
+	
 	private long allPieces = 0x0;
 	private long whitePieces = 0x0;
 	private long blackPieces = 0x0;
@@ -65,7 +67,6 @@ public class Board {
 	public CountedPawnKnightAttackAggregator cpkaa;
 	
 	boolean isAttacksMaskValid = false;
-	boolean doIterativePassedPawnsUpdate = false;
 	
 	public Board( Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove ) {
 		paa = new PawnAttackAggregator();
@@ -85,12 +86,13 @@ public class Board {
 		}
 		me = new PiecewiseEvaluation();
 		evaluateMaterial(me);
-		
-		doIterativePassedPawnsUpdate = false;
-		//if (me.phase > 2000) {
-			doIterativePassedPawnsUpdate = true;
-			createPassedPawnsBoard();
-		//}
+		createPassedPawnsBoard();
+	}
+	
+	private void evaluateMaterial(PiecewiseEvaluation the_me) {
+		pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(true, the_me);
+		pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(false, the_me);
+		the_me.setPhase();
 	}
 	
 	public void createPassedPawnsBoard() {
@@ -248,85 +250,83 @@ public class Board {
 		allPieces ^= positionsMask;
 		
 		// Note: this needs to be done after the piece bit boards are updated
-		if (doIterativePassedPawnsUpdate) {
-			if (promotedPiece != Piece.NONE) {
-				// pawn promotions need to clear the promoted pawn (it must have been passed if it could promote)
-				passedPawns &= ~initialSquareMask;
-			} else {
-				// build up significant file masks, should be three or four consecutive files, re-evaluate passed pawns in those files
-				long file_masks = 0L;
-				if (Piece.isPawn(pieceToMove)) {
-					// Handle regular pawn pushes
-					file_masks |= BitBoard.IterativePassedPawnNonCapture[isWhite?0:1][originSquare];
-					
-					// Handle pawn captures
-					if (targetPiece != Piece.NONE) {
-						if (Piece.isPawn(targetPiece)) {
-							// Pawn takes pawn, clears whole front-span of target pawn (note negation of colour)
-							file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][targetSquare];
-						}
-						// manage file transition of capturing pawn moves
-						boolean capture_left = false;
-						int origin_file = Position.getFile(originSquare);
-						int target_file = Position.getFile(targetSquare);
-						if (origin_file > target_file) {
-							capture_left = true;
-						}
-						if (capture_left && target_file > 0) {
-							int left_file_from_target = target_file - 1;
-							file_masks |= BitBoard.FileMask_Lut[left_file_from_target];
-						}
-						if (capture_left && origin_file < 7) {
-							int right_file_from_origin = origin_file + 1;
-							file_masks |= BitBoard.FileMask_Lut[right_file_from_origin];
-						}
-						if (!capture_left && target_file < 7) {
-							int right_file_from_target = target_file + 1;
-							file_masks |= BitBoard.FileMask_Lut[right_file_from_target];
-						}
-						if (!capture_left && origin_file > 0) {
-							int left_file_from_origin = origin_file - 1;
-							file_masks |= BitBoard.FileMask_Lut[left_file_from_origin];
-						}
-						file_masks |= targetSquareMask;
+		if (promotedPiece != Piece.NONE) {
+			// pawn promotions need to clear the promoted pawn (it must have been passed if it could promote)
+			passedPawns &= ~initialSquareMask;
+		} else {
+			// build up significant file masks, should be three or four consecutive files, re-evaluate passed pawns in those files
+			long file_masks = 0L;
+			if (Piece.isPawn(pieceToMove)) {
+				// Handle regular pawn pushes
+				file_masks |= BitBoard.IterativePassedPawnNonCapture[isWhite?0:1][originSquare];
+				
+				// Handle pawn captures
+				if (targetPiece != Piece.NONE) {
+					if (Piece.isPawn(targetPiece)) {
+						// Pawn takes pawn, clears whole front-span of target pawn (note negation of colour)
+						file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][targetSquare];
 					}
-				} else if (Piece.isPawn(targetPiece)) {
-					// Piece takes pawn, potentially opens capture and adjacent files
+					// manage file transition of capturing pawn moves
+					boolean capture_left = false;
+					int origin_file = Position.getFile(originSquare);
+					int target_file = Position.getFile(targetSquare);
+					if (origin_file > target_file) {
+						capture_left = true;
+					}
+					if (capture_left && target_file > 0) {
+						int left_file_from_target = target_file - 1;
+						file_masks |= BitBoard.FileMask_Lut[left_file_from_target];
+					}
+					if (capture_left && origin_file < 7) {
+						int right_file_from_origin = origin_file + 1;
+						file_masks |= BitBoard.FileMask_Lut[right_file_from_origin];
+					}
+					if (!capture_left && target_file < 7) {
+						int right_file_from_target = target_file + 1;
+						file_masks |= BitBoard.FileMask_Lut[right_file_from_target];
+					}
+					if (!capture_left && origin_file > 0) {
+						int left_file_from_origin = origin_file - 1;
+						file_masks |= BitBoard.FileMask_Lut[left_file_from_origin];
+					}
 					file_masks |= targetSquareMask;
-					file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][targetSquare];
-				} else {
-					// doesn't need to be handled - can't change passed pawn bit board
 				}
-				if (file_masks != 0L) {
-					// clear passed pawns in concerned files before re-evaluating
-					passedPawns &= ~initialSquareMask;
-					passedPawns &= ~file_masks;
-					// re-evaluate enemy
-					long enemy_pawns = isWhite ? getBlackPawns() : getWhitePawns();
-					enemy_pawns &= file_masks;
-					long scratchBitBoard = enemy_pawns;
-					while ( scratchBitBoard != 0x0L ) {
-						int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
-						int enemy_position = BitBoard.bitToPosition_Lut[bit_offset];
-						if (isPassedPawn(enemy_position, !isWhite)) {
-							passedPawns |= (1L << bit_offset);
-						}
-						// clear the lssb
-						scratchBitBoard &= scratchBitBoard-1;
+			} else if (Piece.isPawn(targetPiece)) {
+				// Piece takes pawn, potentially opens capture and adjacent files
+				file_masks |= targetSquareMask;
+				file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][targetSquare];
+			} else {
+				// doesn't need to be handled - can't change passed pawn bit board
+			}
+			if (file_masks != 0L) {
+				// clear passed pawns in concerned files before re-evaluating
+				passedPawns &= ~initialSquareMask;
+				passedPawns &= ~file_masks;
+				// re-evaluate enemy
+				long enemy_pawns = isWhite ? getBlackPawns() : getWhitePawns();
+				enemy_pawns &= file_masks;
+				long scratchBitBoard = enemy_pawns;
+				while ( scratchBitBoard != 0x0L ) {
+					int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
+					int enemy_position = BitBoard.bitToPosition_Lut[bit_offset];
+					if (isPassedPawn(enemy_position, !isWhite)) {
+						passedPawns |= (1L << bit_offset);
 					}
-					// re-evaluate own
-					long own_pawns = isWhite ? getWhitePawns() : getBlackPawns();
-					own_pawns &= file_masks;
-					scratchBitBoard = own_pawns;
-					while ( scratchBitBoard != 0x0L ) {
-						int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
-						int own_position = BitBoard.bitToPosition_Lut[bit_offset];
-						if (isPassedPawn(own_position, isWhite)) {
-							passedPawns |= (1L << bit_offset);
-						}
-						// clear the lssb
-						scratchBitBoard &= scratchBitBoard-1;
+					// clear the lssb
+					scratchBitBoard &= scratchBitBoard-1;
+				}
+				// re-evaluate own
+				long own_pawns = isWhite ? getWhitePawns() : getBlackPawns();
+				own_pawns &= file_masks;
+				scratchBitBoard = own_pawns;
+				while ( scratchBitBoard != 0x0L ) {
+					int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
+					int own_position = BitBoard.bitToPosition_Lut[bit_offset];
+					if (isPassedPawn(own_position, isWhite)) {
+						passedPawns |= (1L << bit_offset);
 					}
+					// clear the lssb
+					scratchBitBoard &= scratchBitBoard-1;
 				}
 			}
 		}
@@ -335,14 +335,12 @@ public class Board {
 			// check material incrementally updated against from scratch
 			PiecewiseEvaluation scratch_me = new PiecewiseEvaluation();
 			evaluateMaterial(scratch_me);
-			if (doIterativePassedPawnsUpdate) {
-				long iterativeUpdatePassedPawns = passedPawns;
-				createPassedPawnsBoard();
-				assert iterativeUpdatePassedPawns == passedPawns :
-					String.format("Passed Pawns error iterative %s != scratch %s move = %s pawns = %s", 
-						BitBoard.toString(iterativeUpdatePassedPawns), BitBoard.toString(passedPawns), 
-						Move.toString(move), BitBoard.toString(this.getPawns()));
-			}
+			long iterativeUpdatePassedPawns = passedPawns;
+			createPassedPawnsBoard();
+			assert iterativeUpdatePassedPawns == passedPawns :
+				String.format("Passed Pawns error iterative %s != scratch %s move = %s pawns = %s", 
+					BitBoard.toString(iterativeUpdatePassedPawns), BitBoard.toString(passedPawns), 
+					Move.toString(move), BitBoard.toString(this.getPawns()));
 			assert scratch_me != me;
 			assert scratch_me.mg_material == me.mg_material;
 			assert scratch_me.eg_material == me.eg_material;
@@ -1180,66 +1178,7 @@ public class Board {
 		}
 		return isIsolated;
 	}
-	
-	class allPiecesOnBoardIterator implements PrimitiveIterator.OfInt {	
-		private int[] pieces = null;
-		private int count = 0;
-		private int next = 0;
 
-		allPiecesOnBoardIterator()  {
-			pieces = new int[64];
-			buildIterList(allPieces);
-		}
-
-		allPiecesOnBoardIterator( int typeToIterate )  {
-			pieces = new int[64];
-			long bitBoardToIterate;
-			if (typeToIterate == Piece.WHITE_PAWN) {
-				bitBoardToIterate = getWhitePawns();
-			} else if (typeToIterate == Piece.BLACK_PAWN) {
-				bitBoardToIterate = getBlackPawns();
-			} else {
-				bitBoardToIterate = 0x0;
-			}
-			buildIterList(bitBoardToIterate);
-		}
-
-		private void buildIterList(long bitBoardToIterate) {
-			PrimitiveIterator.OfInt iter = BitBoard.iterator(bitBoardToIterate);
-			while (iter.hasNext()) {
-				int bit_index = iter.nextInt();
-				pieces[count++] = BitBoard.bitToPosition_Lut[bit_index];
-			}
-		}	
-
-		public boolean hasNext() {
-			return next < pieces.length && next < count;
-		}
-
-		public Integer next() {
-			assert false; // should always use nextInt()
-			return pieces[next++];
-		}
-
-		@Override
-		public void remove() {
-		}
-
-		@Override
-		public void forEachRemaining(IntConsumer action) {
-		}
-
-		@Override
-		public int nextInt() {
-			return pieces[next++];
-		}
-	}
-
-	public PrimitiveIterator.OfInt iterator() {
-		// default iterator returns all the pieces on the board, not all positions
-		return new allPiecesOnBoardIterator( );
-	}
-	
 	public long getPawns() {
 		return pieces[INDEX_PAWN];
 	}
@@ -1493,47 +1432,6 @@ public class Board {
 		}
 	}
 	
-	public class LegalMoveChecker implements IAddMoves {
-		
-		boolean legalMoveFound = false;
-				
-		public void addPrio(int move) {
-			if (!isIllegalMove(move, true)) {
-				legalMoveFound = true;
-			}
-		}
-		
-		public void addNormal(int move) {
-			assert false;
-		}
-		
-		public boolean isLegalMoveFound() {
-			return legalMoveFound;
-		}
-
-		public void clearAttackedCache() {
-		}
-	}
-	
-	LegalMoveChecker lmc = new LegalMoveChecker();
-	
-	public boolean validPriorityMoveExists(boolean ownSideIsWhite) {
-		boolean legalMoveExists = false;
-		lmc.legalMoveFound = false;
-		if (ownSideIsWhite) {
-			legalMoveExists = pieceLists.validCaptureMoveExistsWhite(lmc);
-		} else {
-			legalMoveExists = pieceLists.validCaptureMoveExistsBlack(lmc);
-		}
-		return legalMoveExists;
-	}
-	
-	public void evaluateMaterial(PiecewiseEvaluation the_me) {
-		pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(true, the_me);
-		pieceLists.evaluateMaterialBalanceAndStaticPieceMobility(false, the_me);
-		the_me.setPhase();
-	}	
-	
 	public boolean isInsufficientMaterial() {
 		// Major pieces
 		if (pieces[Piece.QUEEN] != 0)
@@ -1563,43 +1461,6 @@ public class Board {
 		return true;
 	}
 	
-	private static final long LIGHT_SQUARES_MASK = 0x55AA55AA55AA55AAL;
-	private static final long DARK_SQUARES_MASK = 0xAA55AA55AA55AA55L; 
-	
-	private static long[] knightKingSafetyMask_Lut = new long[128];
-	static {
-		for (int atPos : Position.values) {
-			knightKingSafetyMask_Lut[atPos] = buildKnightAttacksForKingZone(atPos);
-		}
-	}
-	private static long buildKnightAttacksForKingZone(int atPos) {
-		long mask = 0;
-		long kingZone = SquareAttackEvaluator.KingMove_Lut[atPos];
-		for (int knightPos : Position.values) {
-			long knightMask = SquareAttackEvaluator.KnightMove_Lut[knightPos];
-			if ((knightMask & kingZone) != 0) {
-				mask |= BitBoard.positionToMask_Lut[knightPos];
-			}
-		}
-		return mask;
-	}
-	
-	static final long[][][] emptySquareMask_Lut = new long[128][SquareAttackEvaluator.allDirect.length][];
-	static {
-		for (int square : Position.values) {
-			int [][] forSqArray = SquareAttackEvaluator.directPieceMove_Lut[square];
-			int j=0;
-			for (int[] dir : forSqArray) {
-				long [] mask = new long[dir.length];
-				int i=0;
-				for (int sq : dir) {
-					mask[i++] = BitBoard.positionToMask_Lut[sq];
-				}
-				emptySquareMask_Lut[square][j++] = mask;
-			}
-		}
-	}
-	
 	public void forEachPiece(IForEachPieceCallback caller) {
 		pieceLists.forEachPieceDoCallback(caller);
 	}
@@ -1613,19 +1474,6 @@ public class Board {
 	}
 	
 	public boolean isPassedPawnPresent() {
-//		if (pieces[Piece.PAWN] == 0L) return false;
-//		
-//		long blackPawns = this.getBlackPawns();
-//		long whitePawns = this.getWhitePawns();
-//		if (whitePawns == 0L || blackPawns == 0L) {
-//			return true;
-//		}
-//		
-//		if (!me.isEndgame() && (blackPawns & 0xFFFF_FF00L) == 0L && (whitePawns & 0x00FF_FFFF_0000_0000L) == 0L) {
-//			// Assume no passed pawns if middlegame and no pawns have crossed to other side of board
-//			return false;
-//		}
-
 		return passedPawns != 0L;
 	}
 	

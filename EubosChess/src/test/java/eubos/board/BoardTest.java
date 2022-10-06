@@ -374,7 +374,6 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.d8, Piece.BLACK_ROOK);
 		classUnderTest.setPieceAtSquare(Position.d2, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KING);
-		classUnderTest.evaluateMaterial(classUnderTest.me);
 		int move = Move.valueOf(Position.d2, Piece.WHITE_PAWN, Position.d4, Piece.NONE);
 		assertTrue(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d1, true));
 	}
@@ -384,7 +383,6 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.h5, Piece.BLACK_BISHOP);
 		classUnderTest.setPieceAtSquare(Position.e2, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KING);
-		classUnderTest.evaluateMaterial(classUnderTest.me);
 		int move = Move.valueOf(Position.e2, Piece.WHITE_PAWN, Position.d3, Piece.NONE);
 		assertTrue(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d1, true));
 	}
@@ -469,24 +467,6 @@ public class BoardTest {
 	public void test_isInsufficientMaterial_PawnOnBoard()throws IllegalNotationException {
 		setUpPosition("8/P/8/8/8/8/k/7K w - - 0 1");
 		assertFalse(classUnderTest.isInsufficientMaterial());
-	}
-	
-	@Test
-	public void test_verify_empty_squares_mask_lut() {
-		int j=0, k=0;
-		for (int i : Position.values) {
-			long [][] atSquare = Board.emptySquareMask_Lut[i];
-			j = 0;
-			for (long [] inDirection : atSquare) {
-				k = 0;
-				for (long mask : inDirection) {
-					int position = SquareAttackEvaluator.directPieceMove_Lut[i][j][k];
-					assertEquals(BitBoard.positionToMask_Lut[position], mask);
-					k++;
-				}
-				j++;
-			}
-		}
 	}
 	
 	@Test

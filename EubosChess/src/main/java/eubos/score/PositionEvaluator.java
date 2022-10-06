@@ -5,7 +5,6 @@ import java.util.IntSummaryStatistics;
 
 import eubos.board.BitBoard;
 import eubos.board.Board;
-import eubos.board.CountedBitBoard;
 import eubos.board.IForEachPieceCallback;
 import eubos.board.Piece;
 import eubos.board.SquareAttackEvaluator;
@@ -138,7 +137,6 @@ public class PositionEvaluator implements IEvaluate {
 	
 	private void initialise() {
 		onMoveIsWhite = pm.onMoveIsWhite();
-		pawn_eval.onMoveIsWhite = onMoveIsWhite;
 		isDraw = pm.isThreefoldRepetitionPossible();
 		if (!isDraw) {
 			isDraw = bd.isInsufficientMaterial();
@@ -258,7 +256,6 @@ public class PositionEvaluator implements IEvaluate {
 			}
 			
 			score += evaluateBishopPair();
-			
 			score += pawn_eval.evaluatePawnStructure(attacks);
 			
 			// Add phase specific static mobility (PSTs)
@@ -350,6 +347,10 @@ public class PositionEvaluator implements IEvaluate {
 	
 	KingTropismChecker ktc;
 	
+	// Make function of game phase?
+	public final int[] PAWN_SHELTER_LUT = {-100, -50, -15, 2, 4, 4, 0, 0, 0};
+	public final int[] PAWN_STORM_LUT = {0, -12, -30, -75, -150, -250, 0, 0, 0};
+	
 	public int evaluateKingSafety(long[][][] attacks, boolean isWhite) {
 		int evaluation = 0;
 
@@ -426,71 +427,5 @@ public class PositionEvaluator implements IEvaluate {
 		}
 		
 		return evaluation;
-	}
-	
-	public int evaluateKingSafetyV2(long[][][] attacks, boolean isWhite) {
-		int evaluation = 0;
-		int kingPos = bd.pieceLists.getKingPos(isWhite);
-		
-		// Then account for attacks on the squares around the king
-		long [] our_attacks = attacks[isWhite ? 0 : 1][3];
-		long [] enemy_attacks = attacks[isWhite ? 1 : 0][3];
-		long surroundingSquares = SquareAttackEvaluator.KingZone_Lut[isWhite ? 0 : 1][kingPos];
-		 
-		int num_squares_controlled_by_enemy = passedPawnPresent ? 
-				CountedBitBoard.evaluate(our_attacks, enemy_attacks, surroundingSquares) :
-				Long.bitCount((our_attacks[0]^enemy_attacks[0]) & surroundingSquares);
-		evaluation -= ENEMY_SQUARE_CONTROL_LUT[num_squares_controlled_by_enemy];
-		
-		// Then evaluate the check mate threat
-		if (num_squares_controlled_by_enemy >= 2) {
-			surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
-			int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3][0]);
-			int flightCount = Long.bitCount(surroundingSquares & bd.getEmpty());
-			if (flightCount-attackedCount <= 1) {
-				// There are no flight squares, high risk of mate
-				int fraction_squares_controlled_by_enemy_q8 = (256 * attackedCount) / Math.max(flightCount, 1);
-				evaluation += ((-250 * fraction_squares_controlled_by_enemy_q8) / 256); 
-			}
-		}
-		
-		// Hit with a penalty if few defending pawns in the king zone
-		long blockers = isWhite ? bd.getWhitePawns() : bd.getBlackPawns();
-		long pawnShieldMask =  isWhite ? surroundingSquares >>> 8 : surroundingSquares << 8;
-		evaluation += PAWN_SHELTER_LUT[Long.bitCount(pawnShieldMask & blockers)];
-		
-		return evaluation;
-	}
-	
-	// Make function of game phase?
-	public final int[] PAWN_SHELTER_LUT = {-100, -50, -15, 2, 4, 4, 0, 0, 0};
-	public final int[] PAWN_STORM_LUT = {0, -12, -30, -75, -150, -250, 0, 0, 0};
-	
-	public final int[] ENEMY_SQUARE_CONTROL_LUT = {
-			0, 5, 10, 30, 
-			75, 150, 240, 350, 
-			400, 450, 500, 550,
-			600, 600, 600, 600};
-	
-	private int getQ8SquareControlRoundKing(long[] own_attacks, long[] enemy_attacks, long squares) {
-		int enemy_control_count = 0;
-		int total_squares = 0;
-		while (squares != 0L) {
-			// Get square to analyse
-			long square = Long.lowestOneBit(squares);
-			if (!CountedBitBoard.weControlContestedSquares(own_attacks, enemy_attacks, square)) {
-				enemy_control_count++;
-			}
-			// unset LSB
-			squares ^= square;
-			total_squares++;
-		}
-		int fraction_squares_controlled_by_enemy_q8 = (256 * enemy_control_count) / total_squares;
-		return fraction_squares_controlled_by_enemy_q8;
-	}
-	
-	public int evaluateSquareControlRoundKing(long[] own_attacks, long[] enemy_attacks, long squares) {
-		int fraction_squares_controlled_by_enemy_q8 = getQ8SquareControlRoundKing(own_attacks, enemy_attacks, squares);
-		return ((-150 * fraction_squares_controlled_by_enemy_q8) / 256);
 	}
 }

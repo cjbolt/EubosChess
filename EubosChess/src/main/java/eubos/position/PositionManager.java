@@ -407,12 +407,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public IEvaluate getPositionEvaluator() {
 		return pe;
 	}
-
-	@Override
-	public boolean isQuiescent() {
-		// This function will return false on finding an attacked piece or promotable pawn on the board.
-		return !theBoard.validPriorityMoveExists(onMoveIsWhite());
-	}
 	
 	public String unwindMoveStack() {
 		StringBuilder s = new StringBuilder();

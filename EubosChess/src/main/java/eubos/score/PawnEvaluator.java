@@ -31,7 +31,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	public static final boolean ENABLE_CANDIDATE_PP_EVALUATION = true;
 	public static final boolean ENABLE_PP_IMBALANCE_EVALUATION = false;
 	
-	public boolean onMoveIsWhite;
+	private boolean onMoveIsWhite;
 	public int piecewisePawnScoreAccumulator = 0;
 	public long[][][] attacks;
 	protected int queeningDistance;
@@ -150,6 +150,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	}
 	
 	void initialise(long[][][] attacks) {
+		onMoveIsWhite = pm.onMoveIsWhite();
 		ppCount[0] = ppCount[1] = 0;
 		this.attacks = attacks;
 	}

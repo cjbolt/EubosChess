@@ -16,7 +16,6 @@ public interface IPositionAccessors {
 	public String getFen();
 	public boolean isThreefoldRepetitionPossible();
 	public IEvaluate getPositionEvaluator();
-	public boolean isQuiescent();
 	public boolean moveLeadsToThreefold(int move);
 	public String unwindMoveStack();
 }
