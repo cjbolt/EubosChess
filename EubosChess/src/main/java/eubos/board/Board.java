@@ -520,24 +520,22 @@ public class Board {
 		long diagonalAttacksOnKing = SquareAttackEvaluator.directDiagonalAttacksOnPosition_Lut[kingPosition];
 		if ((pinSquare & diagonalAttacksOnKing) != 0L) {
 			// We know that the pinned piece is on a diagonal with the king
-			long attackingQueensMask = isWhite ? getBlackQueens() : getWhiteQueens();
-			long attackingBishopsMask = isWhite ? getBlackBishops() : getWhiteBishops();
-			long diagonalAttackersMask = attackingQueensMask | attackingBishopsMask;
-			long targetSquare = BitBoard.positionToMask_Lut[Move.getTargetPosition(move)];
+			long diagonalAttackersMask = isWhite ? getBlackDiagonal() : getWhiteDiagonal();
+			int targetPosition = Move.getTargetPosition(move);
+			long targetSquare = BitBoard.positionToMask_Lut[targetPosition];
 			// what if move is capturing the pinning piece? then it is ok
 			diagonalAttackersMask &= ~targetSquare;
 			
-			// Handle en passant captures
+			// temporarily move piece
 			long enPassantCaptureMask = 0L;
 			if (Move.isEnPassantCapture(move)) {
-				enPassantCaptureMask = BitBoard.positionToMask_Lut[generateCapturePositionForEnPassant(Move.getOriginPiece(move), Move.getTargetPosition(move))];
+				// Handle en passant captures
+				enPassantCaptureMask = BitBoard.positionToMask_Lut[generateCapturePositionForEnPassant(Move.getOriginPiece(move), targetPosition)];
+				allPieces &= ~enPassantCaptureMask;
 			}
-			
-			// check for which direction it is
-			// temporarily move piece
 			allPieces &= ~pinSquare;
-			allPieces &= ~enPassantCaptureMask;
 			allPieces |= targetSquare;
+			
 			// first - special case; King on h8
 			if (kingMask == Long.MIN_VALUE) {
 				long downLeftMask = SquareAttackEvaluator.directAttacksOnPositionDownLeft_Lut[kingPosition];
@@ -548,9 +546,9 @@ public class Board {
 				if (pinSquare > kingMask) {
 					// indicates either up left or upright direction
 					long upLeftMask = SquareAttackEvaluator.directAttacksOnPositionUpLeft_Lut[kingPosition];			
-					if (((upLeftMask & targetSquare) == 0L) && (upLeftMask & pinSquare) != 0L) {
+					if ((upLeftMask & pinSquare) != 0L) {
 						// Up left, is attacker on that line?
-						if ((upLeftMask & diagonalAttackersMask) != 0L) {
+						if (((upLeftMask & targetSquare) == 0L) && (upLeftMask & diagonalAttackersMask) != 0L) {
 							isPinned = (diagonalAttackersMask & BitBoard.upLeftAttacks(kingMask, this.getEmpty())) != 0L;
 						}
 					} else {
@@ -589,25 +587,23 @@ public class Board {
 		long rankFileAttacksOnKing = SquareAttackEvaluator.directRankFileAttacksOnPosition_Lut[kingPosition];
 		if ((pinSquare & rankFileAttacksOnKing) != 0L) {
 			// We know that the pinned piece is on a rank file with the king
-			long attackingQueensMask = isWhite ? getBlackQueens() : getWhiteQueens();
-			long attackingRooksMask = isWhite ? getBlackRooks() : getWhiteRooks();
-			long rankFileAttackersMask = attackingQueensMask | attackingRooksMask;
+			long rankFileAttackersMask = isWhite ? getBlackRankFile() : getWhiteRankFile();
 			
 			// what if move is capturing the pinning piece? then it is ok
-			long targetSquare = BitBoard.positionToMask_Lut[Move.getTargetPosition(move)];
+			int targetPosition = Move.getTargetPosition(move);
+			long targetSquare = BitBoard.positionToMask_Lut[targetPosition];
 			rankFileAttackersMask &= ~targetSquare;
 			
-			// Handle en passant captures
+			// temporarily move piece
 			long enPassantCaptureMask = 0L;
 			if (Move.isEnPassantCapture(move)) {
-				enPassantCaptureMask = BitBoard.positionToMask_Lut[generateCapturePositionForEnPassant(Move.getOriginPiece(move), Move.getTargetPosition(move))];
+				// Handle en passant captures
+				enPassantCaptureMask = BitBoard.positionToMask_Lut[generateCapturePositionForEnPassant(Move.getOriginPiece(move), targetPosition)];
+				allPieces &= ~enPassantCaptureMask;
 			}
-			
-			// check for which direction it is
-			// temporarily move piece
 			allPieces &= ~pinSquare;
-			allPieces &= ~enPassantCaptureMask;
 			allPieces |= targetSquare;
+			
 			// first - special case; King on h8
 			if (kingMask == Long.MIN_VALUE) {
 				// Indicates either left or down direction
