@@ -264,27 +264,28 @@ public class Board {
 						file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][targetSquare];
 					}
 					// manage file transition of capturing pawn moves
-					boolean capture_left = false;
 					int origin_file = Position.getFile(originSquare);
 					int target_file = Position.getFile(targetSquare);
 					if (origin_file > target_file) {
-						capture_left = true;
-					}
-					if (capture_left && target_file > 0) {
-						int left_file_from_target = target_file - 1;
-						file_masks |= BitBoard.FileMask_Lut[left_file_from_target];
-					}
-					if (capture_left && origin_file < 7) {
-						int right_file_from_origin = origin_file + 1;
-						file_masks |= BitBoard.FileMask_Lut[right_file_from_origin];
-					}
-					if (!capture_left && target_file < 7) {
-						int right_file_from_target = target_file + 1;
-						file_masks |= BitBoard.FileMask_Lut[right_file_from_target];
-					}
-					if (!capture_left && origin_file > 0) {
-						int left_file_from_origin = origin_file - 1;
-						file_masks |= BitBoard.FileMask_Lut[left_file_from_origin];
+						// Capture left
+						if (target_file > 0) {
+							int left_file_from_target = target_file - 1;
+							file_masks |= BitBoard.FileMask_Lut[left_file_from_target];
+						}
+						if (origin_file < 7) {
+							int right_file_from_origin = origin_file + 1;
+							file_masks |= BitBoard.FileMask_Lut[right_file_from_origin];
+						}
+					} else {
+						// Capture right
+						if (target_file < 7) {
+							int right_file_from_target = target_file + 1;
+							file_masks |= BitBoard.FileMask_Lut[right_file_from_target];
+						}
+						if (origin_file > 0) {
+							int left_file_from_origin = origin_file - 1;
+							file_masks |= BitBoard.FileMask_Lut[left_file_from_origin];
+						}
 					}
 					file_masks |= targetSquareMask;
 				}
@@ -295,35 +296,19 @@ public class Board {
 			} else {
 				// doesn't need to be handled - can't change passed pawn bit board
 			}
+			// clear passed pawns in concerned files before re-evaluating
+			passedPawns &= ~(initialSquareMask|file_masks);
 			if (file_masks != 0L) {
-				// clear passed pawns in concerned files before re-evaluating
-				passedPawns &= ~initialSquareMask;
-				passedPawns &= ~file_masks;
-				// re-evaluate enemy
-				long enemy_pawns = isWhite ? getBlackPawns() : getWhitePawns();
-				enemy_pawns &= file_masks;
-				long scratchBitBoard = enemy_pawns;
+				// re-evaluate
+				long scratchBitBoard = getPawns() & file_masks;
 				while ( scratchBitBoard != 0x0L ) {
 					int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
-					int enemy_position = BitBoard.bitToPosition_Lut[bit_offset];
-					if (isPassedPawn(enemy_position, !isWhite)) {
-						passedPawns |= (1L << bit_offset);
+					long pawn_mask = Long.lowestOneBit(scratchBitBoard);
+					int pawn_position = BitBoard.bitToPosition_Lut[bit_offset];
+					if (isPassedPawn(pawn_position, (pawn_mask & whitePieces) != 0L)) {
+						passedPawns |= pawn_mask;
 					}
-					// clear the lssb
-					scratchBitBoard &= scratchBitBoard-1;
-				}
-				// re-evaluate own
-				long own_pawns = isWhite ? getWhitePawns() : getBlackPawns();
-				own_pawns &= file_masks;
-				scratchBitBoard = own_pawns;
-				while ( scratchBitBoard != 0x0L ) {
-					int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
-					int own_position = BitBoard.bitToPosition_Lut[bit_offset];
-					if (isPassedPawn(own_position, isWhite)) {
-						passedPawns |= (1L << bit_offset);
-					}
-					// clear the lssb
-					scratchBitBoard &= scratchBitBoard-1;
+					scratchBitBoard ^= pawn_mask;
 				}
 			}
 		}
