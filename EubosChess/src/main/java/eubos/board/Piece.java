@@ -868,12 +868,12 @@ public abstract class Piece {
 		return moveTo;
 	}
 	
-	private static int pawn_genLeftCaptureTargetWhite(int atSquare) {
+	static int pawn_genLeftCaptureTargetWhite(int atSquare) {
 		// Needs off board check
 		return Direction.getDirectMoveSq(Direction.upLeft, atSquare);
 	}
 	
-	private static int pawn_genRightCaptureTargetWhite(int atSquare) {
+	static int pawn_genRightCaptureTargetWhite(int atSquare) {
 		// Needs off board check
 		return Direction.getDirectMoveSq(Direction.upRight, atSquare);	
 	}
@@ -907,12 +907,12 @@ public abstract class Piece {
 		}
 	}
 	
-	private static int pawn_genLeftCaptureTargetBlack(int atSquare) {
+	static int pawn_genLeftCaptureTargetBlack(int atSquare) {
 		// Needs off board check
 		return Direction.getDirectMoveSq(Direction.downRight, atSquare);
 	}
 	
-	private static int pawn_genRightCaptureTargetBlack(int atSquare) {
+	static int pawn_genRightCaptureTargetBlack(int atSquare) {
 		// Needs off board check
 		return Direction.getDirectMoveSq(Direction.downLeft, atSquare);	
 	}

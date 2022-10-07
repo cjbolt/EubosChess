@@ -264,30 +264,8 @@ public class Board {
 						file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][targetSquare];
 					}
 					// manage file transition of capturing pawn moves
-					int origin_file = Position.getFile(originSquare);
-					int target_file = Position.getFile(targetSquare);
-					if (origin_file > target_file) {
-						// Capture left
-						if (target_file > 0) {
-							int left_file_from_target = target_file - 1;
-							file_masks |= BitBoard.FileMask_Lut[left_file_from_target];
-						}
-						if (origin_file < 7) {
-							int right_file_from_origin = origin_file + 1;
-							file_masks |= BitBoard.FileMask_Lut[right_file_from_origin];
-						}
-					} else {
-						// Capture right
-						if (target_file < 7) {
-							int right_file_from_target = target_file + 1;
-							file_masks |= BitBoard.FileMask_Lut[right_file_from_target];
-						}
-						if (origin_file > 0) {
-							int left_file_from_origin = origin_file - 1;
-							file_masks |= BitBoard.FileMask_Lut[left_file_from_origin];
-						}
-					}
-					file_masks |= targetSquareMask;
+					boolean isLeft = Position.getFile(targetSquare) < Position.getFile(originSquare);
+					file_masks |= BitBoard.IterativePassedPawnUpdateCaptures_Lut[originSquare][isWhite ? 0 : 1][isLeft ? 0 : 1];
 				}
 			} else if (Piece.isPawn(targetPiece)) {
 				// Piece takes pawn, potentially opens capture and adjacent files
@@ -296,9 +274,9 @@ public class Board {
 			} else {
 				// doesn't need to be handled - can't change passed pawn bit board
 			}
-			// clear passed pawns in concerned files before re-evaluating
-			passedPawns &= ~(initialSquareMask|file_masks);
 			if (file_masks != 0L) {
+				// clear passed pawns in concerned files before re-evaluating
+				passedPawns &= ~(initialSquareMask|file_masks);
 				// re-evaluate
 				long scratchBitBoard = getPawns() & file_masks;
 				while ( scratchBitBoard != 0x0L ) {
