@@ -525,6 +525,7 @@ public class Board {
 			long targetSquare = BitBoard.positionToMask_Lut[targetPosition];
 			// what if move is capturing the pinning piece? then it is ok
 			diagonalAttackersMask &= ~targetSquare;
+			if (diagonalAttackersMask == 0L) return isPinned;
 			
 			// temporarily move piece
 			long enPassantCaptureMask = 0L;
@@ -593,6 +594,7 @@ public class Board {
 			int targetPosition = Move.getTargetPosition(move);
 			long targetSquare = BitBoard.positionToMask_Lut[targetPosition];
 			rankFileAttackersMask &= ~targetSquare;
+			if (rankFileAttackersMask == 0L) return isPinned;
 			
 			// temporarily move piece
 			long enPassantCaptureMask = 0L;
