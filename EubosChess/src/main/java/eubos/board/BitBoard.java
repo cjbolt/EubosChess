@@ -339,6 +339,85 @@ public final class BitBoard {
 		return mask;
 	}
 	
+	// Dimensions position, colour of attacker, direction
+	static final long[][][] IterativePassedPawnUpdateCaptures_Lut = new long[128][2][]; 
+	static {
+		for (int atPos : Position.values) {
+			IterativePassedPawnUpdateCaptures_Lut[atPos][0] = addBoardForCapturingPassedPawn(atPos, true);
+			IterativePassedPawnUpdateCaptures_Lut[atPos][1] = addBoardForCapturingPassedPawn(atPos, false);
+		}
+	}
+	private static long[] addBoardForCapturingPassedPawn(int position, boolean isWhite) {
+		long[] masks = new long[2];
+		// manage file transition of capturing pawn moves
+		long mask = 0L;
+		int origin_file = Position.getFile(position);
+		if (origin_file > 0) {
+			// do left capture
+			int target_file = origin_file - 1;
+			if (target_file > 0) {
+				int left_file_from_target = target_file - 1;
+				mask |= BitBoard.FileMask_Lut[left_file_from_target];
+			}
+			if (origin_file < 7) {
+				int right_file_from_origin = origin_file + 1;
+				mask |= BitBoard.FileMask_Lut[right_file_from_origin];
+			}
+			mask |= getCaptureTargetMask(position, isWhite, true);
+			masks[0] = mask;
+		}
+		mask = 0L;
+		if (origin_file < 7) {
+			// do right capture
+			int target_file = origin_file + 1;
+			if (target_file < 7) {
+				int right_file_from_target = target_file + 1;
+				mask |= BitBoard.FileMask_Lut[right_file_from_target];
+			}
+			if (origin_file > 0) {
+				int left_file_from_origin = origin_file - 1;
+				mask |= BitBoard.FileMask_Lut[left_file_from_origin];
+			}
+			mask |= getCaptureTargetMask(position, isWhite, false);
+			masks[1] = mask;
+		}
+		// Mask off bits that are behind the pawn
+		if (isWhite) {
+			for (int i=0; i < Position.getRank(position); i++) {
+				masks[0] &= ~BitBoard.RankMask_Lut[i];
+				masks[1] &= ~BitBoard.RankMask_Lut[i];
+			}
+		} else {
+			
+			for (int i=7; i > Position.getRank(position); i--) {
+				masks[0] &= ~BitBoard.RankMask_Lut[i];
+				masks[1] &= ~BitBoard.RankMask_Lut[i];
+			}
+		}
+		return masks;
+	}
+	static long getCaptureTargetMask(int position, boolean isWhite, boolean isLeft) {
+		int targetPos = 0;
+		if (isWhite) {
+			if (isLeft) {
+				targetPos = Piece.pawn_genLeftCaptureTargetWhite(position);
+			} else {
+				targetPos = Piece.pawn_genRightCaptureTargetWhite(position);
+			}
+		} else {
+			if (isLeft) {
+				targetPos = Piece.pawn_genLeftCaptureTargetBlack(position);
+			} else {
+				targetPos = Piece.pawn_genRightCaptureTargetBlack(position);
+			}
+		}
+		if (targetPos != Position.NOPOSITION) {
+			return BitBoard.positionToMask_Lut[targetPos];
+		} else {
+			return 0L;
+		}
+	}
+	
 	static final long[][] BackwardsPawn_Lut = new long[2][]; 
 	static {
 		long[] white_map = new long[128];
