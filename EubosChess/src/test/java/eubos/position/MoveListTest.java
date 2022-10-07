@@ -343,6 +343,33 @@ public class MoveListTest {
 	}
 	
 	@Test
+	public void test_crash_too_many_moves() throws IllegalNotationException {
+		PositionManager pm = new PositionManager("5r1k/ppp4p/2n5/8/1P6/P4b1K/2P1q3/1R6 b - - 1 35");
+		classUnderTest = new MoveList(pm, 1);
+		classUnderTest.initialiseAtPly(Move.NULL_MOVE, null, pm.isKingInCheck(), true, 1);
+		MoveListIterator it = classUnderTest.getNextMovesAtPly(1);
+		do {
+			do {
+				System.out.println(Move.toString(it.nextInt()));
+			} while (it.hasNext());
+			it = classUnderTest.getNextMovesAtPly(1);
+		} while (it.hasNext());
+		
+		// Check expected normal moves number
+		int countOfStandardMoves = 0;
+		classUnderTest.initialiseAtPly(Move.NULL_MOVE, null, pm.isKingInCheck(), false, 1);
+		MoveListIterator normal_it = classUnderTest.getNextMovesAtPly(1);
+		do {
+			do {
+				System.out.println(Move.toString(normal_it.nextInt()));
+				countOfStandardMoves++;
+			} while (normal_it.hasNext());
+			normal_it = classUnderTest.getNextMovesAtPly(1);
+		} while (normal_it.hasNext());
+		assertEquals(49, countOfStandardMoves); // Don't generate under promotions at ply 1, only at ply 0.
+	}
+	
+	@Test
 	public void test_mate_in_7_best_move() throws IllegalNotationException {
 		PositionManager pm = new PositionManager("5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113");
 		int best = Move.valueOf(Position.f8, Piece.WHITE_QUEEN, Position.b4, Piece.NONE);

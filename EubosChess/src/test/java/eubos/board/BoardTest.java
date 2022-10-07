@@ -375,7 +375,7 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.d2, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KING);
 		int move = Move.valueOf(Position.d2, Piece.WHITE_PAWN, Position.d4, Piece.NONE);
-		assertTrue(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d1, true));
+		assertFalse(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d1, true));
 	}
 	
 	@Test
@@ -464,6 +464,13 @@ public class BoardTest {
 		setUpPosition("3q4/3R4/8/8/3K4/8/8/8 w - - 0 1");
 		int move = Move.valueOf(Position.d7, Piece.WHITE_ROOK, Position.e7, Piece.NONE);
 		assertTrue(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d4, true));
+	}
+	
+	@Test
+	public void testCouldLeadToCheck_CapturePinningPieceUp() {
+		setUpPosition("3q4/3R4/8/8/3K4/8/8/8 w - - 0 1");
+		int move = Move.valueOf(Position.d7, Piece.WHITE_ROOK, Position.d8, Piece.BLACK_QUEEN);
+		assertFalse(classUnderTest.moveCouldLeadToOwnKingDiscoveredCheck(move, Position.d4, true));
 	}
 	
 	@Test

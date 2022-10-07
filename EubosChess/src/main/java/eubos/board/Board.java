@@ -533,6 +533,9 @@ public class Board {
 		boolean checkForPin = false;
 		long pinSquare = BitBoard.positionToMask_Lut[Move.getOriginPosition(move)];
 		long targetSquare = BitBoard.positionToMask_Lut[Move.getTargetPosition(move)];
+		// what if move is capturing the pinning piece? then it is ok
+		diagonalAttackersMask &= ~targetSquare;
+		rankFileAttackersMask &= ~targetSquare;
 		long diagonalAttacksOnKing = SquareAttackEvaluator.directDiagonalAttacksOnPosition_Lut[kingPosition];
 		if ((diagonalAttackersMask & diagonalAttacksOnKing) != 0L) {
 			if ((pinSquare & diagonalAttacksOnKing) != 0L) checkForPin = true;
@@ -540,7 +543,7 @@ public class Board {
 		if (checkForPin) {
 			// temporarily move piece
 			allPieces &= ~pinSquare;
-			//allPieces |= targetSquare;
+			allPieces |= targetSquare;
 			if (kingMask == Long.MIN_VALUE) {
 				isPinned = (diagonalAttackersMask & BitBoard.downLeftAttacks(kingMask, this.getEmpty())) != 0L;
 			} else {
@@ -563,8 +566,10 @@ public class Board {
 				}
 			}
 			// replace piece
+			if (!Move.isCapture(move)) {
+				allPieces &= ~targetSquare;
+			}
 			allPieces |= pinSquare;
-			//allPieces &= ~targetSquare;
 			return isPinned;
 		}
 		long rankFileAttacksOnKing = SquareAttackEvaluator.directRankFileAttacksOnPosition_Lut[kingPosition];
@@ -574,7 +579,7 @@ public class Board {
 		if (checkForPin) {
 			// temporarily remove piece
 			allPieces &= ~pinSquare;
-			//allPieces |= targetSquare;
+			allPieces |= targetSquare;
 			if (kingMask == Long.MIN_VALUE) {
 				// Special case, indicates either left or down direction
 				long dirMask = SquareAttackEvaluator.directAttacksOnPositionLeft_Lut[kingPosition];			
@@ -603,8 +608,10 @@ public class Board {
 				}
 			}
 			// replace piece
+			if (!Move.isCapture(move)) {
+				allPieces &= ~targetSquare;
+			}
 			allPieces |= pinSquare;
-			//allPieces &= ~targetSquare;
 			return isPinned;
 		}
 		return false;
@@ -624,8 +631,10 @@ public class Board {
 		boolean isIllegal = false;
 		boolean isKing = Piece.isKing(pieceToMove);
 		int kingPosition = getKingPosition(isWhite);
-		if (needToEscapeMate || isKing || moveCouldLeadToOwnKingDiscoveredCheck(move, kingPosition, isWhite)) {
-		
+		boolean doCheck = (needToEscapeMate || isKing || Move.isEnPassantCapture(move));
+		if (!doCheck && moveCouldLeadToOwnKingDiscoveredCheck(move, kingPosition, isWhite))
+			return true;
+		if (doCheck) {
 			int capturePosition = Position.NOPOSITION;
 			int originSquare = Move.getOriginPosition(move);
 			int targetSquare = Move.getTargetPosition(move);
