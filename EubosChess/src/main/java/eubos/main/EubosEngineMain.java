@@ -75,6 +75,8 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_STAGED_MOVE_GENERATION = true;
 	public static final boolean ENABLE_COUNTED_PASSED_PAWN_MASKS = true;
 	
+	public static final boolean ENABLE_PINNED_TO_KING_CHECK_IN_ILLEGAL_DETECTION = true;
+	
 	public static final int MAXIMUM_PLIES_IN_GAME = 250;
 	
 	// Permanent data structures - static for the duration of a single game
@@ -108,6 +110,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final int MIN_HASH_SIZE = 32;
 	public static final int MAX_HASH_SIZE = 4*1000;
 	public static final long DEFAULT_HASH_SIZE = FixedSizeTranspositionTable.MBYTES_DEFAULT_HASH_SIZE;
+
 	public static long hashSize = DEFAULT_HASH_SIZE;
 
     public static Logger logger = Logger.getLogger("eubos.main");
