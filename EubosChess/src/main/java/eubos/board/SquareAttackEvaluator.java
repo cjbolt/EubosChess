@@ -380,7 +380,7 @@ public class SquareAttackEvaluator {
 	/* 1-dimensional array:
 	 * 1st index is a position integer, this is the origin square
 	 * indexes a bit mask of the squares that the origin square can attack by a Black Pawn capture */
-	static final long[] BlackPawnAttacksFromPosition_Lut = new long[128];
+	public static final long[] BlackPawnAttacksFromPosition_Lut = new long[128];
 	static {
 		for (int square : Position.values) {
 			BlackPawnAttacksFromPosition_Lut[square] = createBlackPawnMovesFromSq(square);
@@ -404,7 +404,7 @@ public class SquareAttackEvaluator {
 	/* 1-dimensional array:
 	 * 1st index is a position integer, this is the origin square
 	 * indexes a bit mask of the squares that the origin square can attack by a White Pawn capture */
-	static final long[] WhitePawnAttacksFromPosition_Lut = new long[128];
+	public static final long[] WhitePawnAttacksFromPosition_Lut = new long[128];
 	static {
 		for (int square : Position.values) {
 			WhitePawnAttacksFromPosition_Lut[square] = createWhitePawnMovesFromSq(square);

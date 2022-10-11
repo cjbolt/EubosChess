@@ -4,8 +4,10 @@ import com.fluxchess.jcpi.models.IntFile;
 
 import eubos.board.BitBoard;
 import eubos.board.Board;
+import eubos.board.Direction;
 import eubos.board.IForEachPieceCallback;
 import eubos.board.Piece;
+import eubos.board.SquareAttackEvaluator;
 import eubos.main.EubosEngineMain;
 import eubos.position.IPositionAccessors;
 import eubos.position.Position;
@@ -31,20 +33,22 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	public static final boolean ENABLE_CANDIDATE_PP_EVALUATION = true;
 	public static final boolean ENABLE_PP_IMBALANCE_EVALUATION = false;
 	
-	private boolean onMoveIsWhite;
-	public int piecewisePawnScoreAccumulator = 0;
-	public long[][][] attacks;
-	protected int queeningDistance;
-	protected int weighting;
-	protected boolean pawnIsBlack;
-	protected int[] ppCount = {0,0};
-	protected int ppFileMask = 0;
-	protected int ppRankMask = 0;
+	public final int[] ppImbalanceTable = {0, 15, 200, 400, 700, 900, 900, 900, 900};
+	
+	// Static for lifetime of object
 	IPositionAccessors pm;
 	Board bd;
 	private PawnEvalHashTable pawnHash;
 	
-	public final int[] ppImbalanceTable = {0, 15, 200, 400, 700, 900, 900, 900, 900};
+	// Variables updated whilst considering each pawn of side, i.e. valid for side to move
+	protected int queeningDistance;
+	protected int weighting;
+	public int piecewisePawnScoreAccumulator = 0;
+	
+	// Scope is for each call to evaluatePawnStructure
+	private boolean onMoveIsWhite;
+	public long[][][] attacks;
+	
 	
 	public PawnEvaluator(IPositionAccessors pm, PawnEvalHashTable pawnHash) {
 		bd = pm.getTheBoard();
@@ -58,14 +62,13 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	}
 	
 	protected void setQueeningDistance(int atPos, boolean pawnIsWhite) {
-		pawnIsBlack = !pawnIsWhite;
 		int rank = Position.getRank(atPos);
-		if (pawnIsBlack) {
-			queeningDistance = rank;
-			weighting = 7-queeningDistance;
-		} else {
+		if (pawnIsWhite) {
 			queeningDistance = 7-rank;
 			weighting = rank;
+		} else {
+			queeningDistance = rank;
+			weighting = 7-queeningDistance;
 		}
 	}
 	
@@ -76,11 +79,17 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		long[][] enemy_attacks = attacks[pawnIsWhite ? 1:0];
 		long[][] own_attacks = attacks[pawnIsWhite ? 0:1];
 		
-		if (bd.isPassedPawn(atPos, pawnIsWhite)) {
-			boolean isOwnPawn = (onMoveIsWhite && pawnIsWhite) || (!onMoveIsWhite && !pawnIsWhite);
-			ppCount[isOwnPawn ? 0:1] += 1;
-			ppFileMask |= (1 << Position.getFile(atPos));
-			ppRankMask |= (1 << Position.getRank(atPos));
+		long passers = bd.getPassedPawns();
+		long mask = BitBoard.positionToMask_Lut[atPos];
+		if ((passers & mask) != 0L) {
+			// check for directly supported passed pawns
+			long attacks = pawnIsWhite ? SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[atPos] : 
+				                         SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[atPos];
+			long ownPassers = passers & (pawnIsWhite ? bd.getWhitePawns() : bd.getBlackPawns());
+			piecewisePawnScoreAccumulator += (Long.bitCount(ownPassers & attacks) * CONNECTED_PASSED_PAWN_BOOST);
+				
+			// check for otherwise connected passed pawns, which could be supported, including adjacent
+			piecewisePawnScoreAccumulator += (Long.bitCount(ownPassers & BitBoard.PasserSupport_Lut[pawnIsWhite ? 0 : 1][atPos]) * CONNECTED_PASSED_PAWN_BOOST/2);
 		} else if (ENABLE_CANDIDATE_PP_EVALUATION) {
 			if (bd.isCandidatePassedPawn(atPos, pawnIsWhite, own_attacks[0], enemy_attacks[0])) {
 				setQueeningDistance(atPos, pawnIsWhite);
@@ -107,42 +116,14 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	public int getDoubledPawnsHandicap(long pawns) {
 		return -bd.countDoubledPawns(pawns)*DOUBLED_PAWN_HANDICAP;
 	}
-	
-	public int getNumAdjacentPassedPawns(int fileMask) {
-		if (fileMask == 0) return 0;
-		int left = ((fileMask & 0xAA) >> 1) + (fileMask & 0x55);
-		int right = (fileMask & 0x54) + ((fileMask & 0x2A) << 1);
-		right &= 0xA8;
-		right >>= 1;
-		left &= 0xAA;
-		return Long.bitCount(left | right);
-	}
-	
-	public int evaluateConnectedPassedPawns()
-	{
-		int score = 0;
-		int numAdjacentPassedPawns = getNumAdjacentPassedPawns(ppFileMask);
-		if (numAdjacentPassedPawns > 0) {
-			// Simplification, if many passed pawns it can fail 
-			int adjacentRanks = getNumAdjacentPassedPawns(ppRankMask);
-			if (adjacentRanks > 0 || Long.bitCount(ppRankMask) == 1) {
-				score = numAdjacentPassedPawns * CONNECTED_PASSED_PAWN_BOOST;
-			} else {
-				score = CONNECTED_PASSED_PAWN_BOOST/2;
-			}
-		}
-		return score;
-	}
-	
+		
 	public int evaluatePawnsForSide(long pawns, boolean isBlack) {
 		int pawnEvaluationScore = 0;
-		ppFileMask = ppRankMask = 0;
+		piecewisePawnScoreAccumulator = 0;
 		if (pawns != 0x0) {
-			piecewisePawnScoreAccumulator = 0;
 			int pawnHandicap = getDoubledPawnsHandicap(pawns);
 			bd.forEachPawnOfSide(this, isBlack);
 			pawnEvaluationScore = pawnHandicap + piecewisePawnScoreAccumulator;
-			pawnEvaluationScore += evaluateConnectedPassedPawns();
 		} else {
 			pawnEvaluationScore -= NO_PAWNS_HANDICAP;
 		}
@@ -151,16 +132,15 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	
 	void initialise(long[][][] attacks) {
 		onMoveIsWhite = pm.onMoveIsWhite();
-		ppCount[0] = ppCount[1] = 0;
 		this.attacks = attacks;
 	}
 	
-	protected int evaluateKpkEndgame(int atPos, boolean isOwnPawn, long[][] ownAttacks) {
+	protected int evaluateKpkEndgame(int atPos, boolean pawnIsWhite, boolean isOwnPawn, long[][] ownAttacks) {
 		// Special case, it is a KPK endgame
 		int score = 0;
 		int file = Position.getFile(atPos);
-		int queeningSquare = pawnIsBlack ? Position.valueOf(file, 0) : Position.valueOf(file, 7);
-		int oppoKingPos = bd.getKingPosition(pawnIsBlack);
+		int queeningSquare = pawnIsWhite ? Position.valueOf(file, 7) : Position.valueOf(file, 0);
+		int oppoKingPos = bd.getKingPosition(!pawnIsWhite);
 		int oppoDistance = Position.distance(queeningSquare, oppoKingPos);
 		if (!isOwnPawn) {
 			// if king is on move, assume it can get towards the square of the pawn
@@ -170,12 +150,12 @@ public class PawnEvaluator implements IForEachPieceCallback {
 			// can't be caught by opposite king, as outside square of pawn
 			score = 700;
 		} else {
-			if (bd.isFrontspanControlledInKpk(atPos, !pawnIsBlack, ownAttacks[3])) {
+			if (bd.isFrontspanControlledInKpk(atPos, pawnIsWhite, ownAttacks[3])) {
 				// Rationale is whole frontspan can be blocked off from opposite King by own King
 				score = 700;
 			} else {
 				// increase score also if we think the pawn can be defended by own king
-				int ownKingPos = bd.getKingPosition(!pawnIsBlack);
+				int ownKingPos = bd.getKingPosition(pawnIsWhite);
 				int ownDistance = Position.distance(queeningSquare, ownKingPos);
 				if (ownDistance-1 <= oppoDistance) {
 					score = 300;
@@ -210,7 +190,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		return score;
 	}
 	
-	int computePassedPawnContribution(boolean isForWhite) {
+	int computePassedPawnContribution() {
 		int scoreForPassedPawns = 0;
 		long white = bd.getWhitePawns();
 		long scratchBitBoard = bd.getPassedPawns();
@@ -228,11 +208,11 @@ public class PawnEvaluator implements IForEachPieceCallback {
 			
 			setQueeningDistance(pawn_position, pawnIsWhite);
 			if (ENABLE_KPK_EVALUATION && bd.me.phase == 4096) {
-				score = evaluateKpkEndgame(pawn_position, (pawnIsWhite == isForWhite), own_attacks);
+				score = evaluateKpkEndgame(pawn_position, pawnIsWhite, (pawnIsWhite == onMoveIsWhite), own_attacks);
 			} else {
 				score = evaluatePassedPawn(pawn_position, pawnIsWhite, own_attacks, enemy_attacks);
 			}
-			if (pawnIsWhite == isForWhite) {
+			if (pawnIsWhite == onMoveIsWhite) {
 				scoreForPassedPawns += score;
 			} else {
 				scoreForPassedPawns -= score;
@@ -260,7 +240,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 			hashEval = pawnHash.get(pm.getPawnHash(), getScaleFactorForGamePhase(), white, black, onMoveIsWhite);
 			if (hashEval != Short.MAX_VALUE) {
 				// Recompute value of passed pawns in this position
-				passedPawnScoreAtPosition = computePassedPawnContribution(onMoveIsWhite);
+				passedPawnScoreAtPosition = computePassedPawnContribution();
 				return hashEval + passedPawnScoreAtPosition;
 			}
 		}
@@ -273,7 +253,10 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		
 		// Add a modification according to the imbalance of passed pawns in the position
 		if (ENABLE_PP_IMBALANCE_EVALUATION && bd.me.phase > 2048) {
-			int lookupIndex = ppCount[0] - ppCount[1];
+			long passers = bd.getPassedPawns();
+			int ownPasserCount = Long.bitCount(passers & ownPawns);
+			int enemyPasserCount = Long.bitCount(passers & enemyPawns);
+			int lookupIndex = ownPasserCount - enemyPasserCount;
 			int ppImbalanceFactor = ppImbalanceTable[Math.abs(lookupIndex)];
 			if (lookupIndex < 0) {
 				// If negative, on move has fewer passed pawns, so subtract from score
@@ -294,7 +277,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		
 		// Compute passed pawn positional contribution after storing the basic eval to the hash table
 		piecewisePawnScoreAccumulator = 0;
-		pawnEvaluationScore += computePassedPawnContribution(onMoveIsWhite);
+		pawnEvaluationScore += computePassedPawnContribution();
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {
 			if (hashEval != Short.MAX_VALUE)
@@ -303,5 +286,29 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		}
 		
 		return pawnEvaluationScore;
+	}
+	
+	/* 1-dimensional array:
+	 * 1st index is a position integer, this is the origin square
+	 * indexes a bit mask of the squares that the origin square can attack by a Black Pawn capture */
+	public static final long[] AdjacentPawnFromPosition_Lut = new long[128];
+	static {
+		for (int square : Position.values) {
+			AdjacentPawnFromPosition_Lut[square] = createAdjacentPawnsFromSq(square);
+		}
+	}
+	static long createAdjacentPawnsFromSq(int atPos) {
+		long mask = 0;
+		if (Position.getRank(atPos) != 7 && Position.getRank(atPos) != 0) {
+			int sq = Direction.getDirectMoveSq(Direction.right, atPos);
+			if (sq != Position.NOPOSITION) {
+				mask |= BitBoard.positionToMask_Lut[sq];
+			}
+			sq = Direction.getDirectMoveSq(Direction.left, atPos);
+			if (sq != Position.NOPOSITION) {
+				mask |= BitBoard.positionToMask_Lut[sq];
+			}
+		}
+		return mask;
 	}
 }

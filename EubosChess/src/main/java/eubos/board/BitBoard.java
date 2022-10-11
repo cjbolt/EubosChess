@@ -266,7 +266,7 @@ public final class BitBoard {
 		}
 	}
 	
-	static final long[][] PawnFrontSpan_Lut = new long[2][]; 
+	public static final long[][] PawnFrontSpan_Lut = new long[2][]; 
 	static {
 		long[] white_map = new long[128];
 		PawnFrontSpan_Lut[Colour.white.ordinal()] = white_map;
@@ -297,7 +297,7 @@ public final class BitBoard {
 		return mask;
 	}
 	
-	static final long[][] PassedPawn_Lut = new long[2][]; 
+	public static final long[][] PassedPawn_Lut = new long[2][]; 
 	static {
 		long[] white_map = new long[128];
 		PassedPawn_Lut[Colour.white.ordinal()] = white_map;
@@ -531,5 +531,35 @@ public final class BitBoard {
 			}
 		}
 		IterativePassedPawnNonCapture[Colour.black.ordinal()] = black_map;
+	}
+	
+	public static final long[][] PasserSupport_Lut = new long[2][];
+	static {
+		long[] white_map = new long[128];
+		for (int atPos : Position.values) {
+			white_map[atPos] = BitBoard.PassedPawn_Lut[0][atPos] & ~BitBoard.PawnFrontSpan_Lut[0][atPos];
+			white_map[atPos] |= createAdjacentPawnsFromSq(atPos);
+		}
+		PasserSupport_Lut[Colour.white.ordinal()] = white_map;
+		long[] black_map = new long[128];
+		for (int atPos : Position.values) {
+			black_map[atPos] = BitBoard.PassedPawn_Lut[1][atPos] & ~BitBoard.PawnFrontSpan_Lut[1][atPos];
+			black_map[atPos] |= createAdjacentPawnsFromSq(atPos);
+		}
+		PasserSupport_Lut[Colour.black.ordinal()] = black_map;
+	}
+	static long createAdjacentPawnsFromSq(int atPos) {
+		long mask = 0;
+		if (Position.getRank(atPos) != 7 && Position.getRank(atPos) != 0) {
+			int sq = Direction.getDirectMoveSq(Direction.right, atPos);
+			if (sq != Position.NOPOSITION) {
+				mask |= BitBoard.positionToMask_Lut[sq];
+			}
+			sq = Direction.getDirectMoveSq(Direction.left, atPos);
+			if (sq != Position.NOPOSITION) {
+				mask |= BitBoard.positionToMask_Lut[sq];
+			}
+		}
+		return mask;
 	}
 }
