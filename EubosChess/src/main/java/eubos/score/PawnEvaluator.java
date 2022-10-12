@@ -41,8 +41,8 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	private PawnEvalHashTable pawnHash;
 	
 	// Variables updated whilst considering each pawn of side, i.e. valid for side to move
-	protected int queeningDistance;
-	protected int weighting;
+	protected int queeningDistance; // initialised in setQueeningDistance()
+	protected int weighting; 		// initialised in setQueeningDistance()
 	public int piecewisePawnScoreAccumulator = 0;
 	
 	// Scope is for each call to evaluatePawnStructure
@@ -128,11 +128,6 @@ public class PawnEvaluator implements IForEachPieceCallback {
 			pawnEvaluationScore -= NO_PAWNS_HANDICAP;
 		}
 		return pawnEvaluationScore;
-	}
-	
-	void initialise(long[][][] attacks) {
-		onMoveIsWhite = pm.onMoveIsWhite();
-		this.attacks = attacks;
 	}
 	
 	protected int evaluateKpkEndgame(int atPos, boolean pawnIsWhite, boolean isOwnPawn, long[][] ownAttacks) {
@@ -232,7 +227,8 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		if (white == 0L && black == 0L)
 			return 0;
 		
-		initialise(attacks);
+		onMoveIsWhite = pm.onMoveIsWhite();
+		this.attacks = attacks;
 	
 		short hashEval = 0;
 		int passedPawnScoreAtPosition = 0;
@@ -275,8 +271,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 					String.format("pawn score before passed pawn positions: %d != %d %s", pawnEvaluationScore, hashEval, pm.unwindMoveStack());
 		}
 		
-		// Compute passed pawn positional contribution after storing the basic eval to the hash table
-		piecewisePawnScoreAccumulator = 0;
+		// Compute passed pawn positional contribution after storing the non-positional basic evaluation to the hash table
 		pawnEvaluationScore += computePassedPawnContribution();
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {

@@ -215,15 +215,8 @@ public class PositionEvaluator implements IEvaluate {
 		score = 0;
 		midgameScore = 0;
 		endgameScore = 0;
-		
-		if (!isDraw) {
-			bd.me.dynamicPosition = 0;
-			score += evaluateBishopPair();
-			midgameScore = score + (onMoveIsWhite ? bd.me.getMiddleGameDelta() + bd.me.getPosition() : -(bd.me.getMiddleGameDelta() + bd.me.getPosition()));
-			endgameScore = score + (onMoveIsWhite ? bd.me.getEndGameDelta() + bd.me.getEndgamePosition() : -(bd.me.getEndGameDelta() + bd.me.getEndgamePosition()));
-			score = taperEvaluation(midgameScore, endgameScore);
-		}
-		return score;
+
+		return internalCrudeEval();
 	}
 	
 	private int internalCrudeEval() {
