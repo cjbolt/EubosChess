@@ -49,12 +49,37 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	private boolean onMoveIsWhite;
 	public long[][][] attacks;
 	
+	private class PawnHashStatistics {
+		
+		long nodeCount;
+		long skippedCount;
+		
+		public PawnHashStatistics() {}
+		
+		public void report() {
+			//EubosEngineMain.logger.info(String.format("PawnStats nodes=%d skipped=%d percentage=%.5f",
+			//        nodeCount, skippedCount, ((double)skippedCount)*100.0d/((double)nodeCount)));
+			System.out.println(String.format("PawnStats nodes=%d skipped=%d percentage=%.5f",
+					nodeCount, skippedCount, ((double)skippedCount)*100.0d/((double)nodeCount)));
+		}
+	}
+	
+	public void reportPawnHashStatistics() {
+		if (MEASURE_PAWN_HASH) {
+			pawnStat.report();
+		}
+	}
+	
+	PawnHashStatistics pawnStat = null;
+	
+	private static final boolean MEASURE_PAWN_HASH = true;
 	
 	public PawnEvaluator(IPositionAccessors pm, PawnEvalHashTable pawnHash) {
 		bd = pm.getTheBoard();
 		this.pm = pm;
 		this.pawnHash = pawnHash;
 		this.onMoveIsWhite = pm.onMoveIsWhite();
+		pawnStat = new PawnHashStatistics();
 	}
 	
 	protected int getScaleFactorForGamePhase() {
@@ -229,15 +254,19 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		
 		onMoveIsWhite = pm.onMoveIsWhite();
 		this.attacks = attacks;
-	
+		pawnStat.nodeCount++;
+		
 		short hashEval = 0;
 		int passedPawnScoreAtPosition = 0;
 		if (ENABLE_PAWN_HASH_TABLE) {
 			hashEval = pawnHash.get(pm.getPawnHash(), getScaleFactorForGamePhase(), white, black, onMoveIsWhite);
 			if (hashEval != Short.MAX_VALUE) {
+				pawnStat.skippedCount++;
 				// Recompute value of passed pawns in this position
 				passedPawnScoreAtPosition = computePassedPawnContribution();
-				return hashEval + passedPawnScoreAtPosition;
+				if (!EubosEngineMain.ENABLE_ASSERTS) {
+					return hashEval + passedPawnScoreAtPosition;
+				}
 			}
 		}
 		

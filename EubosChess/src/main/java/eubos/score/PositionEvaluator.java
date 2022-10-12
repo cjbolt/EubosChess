@@ -116,6 +116,10 @@ public class PositionEvaluator implements IEvaluate {
 	public static int lazy_eval_threshold_cp = 275;
 	private static final boolean TUNE_LAZY_EVAL = false;
 	
+	public void reportPawnStatistics() {
+		pawn_eval.reportPawnHashStatistics();
+	}
+	
 	public boolean goForMate;
 	public boolean goForMate() {
 		return goForMate;

@@ -5,29 +5,29 @@ import java.util.Arrays;
 public class PawnEvalHashTable {	
 	private short [] eval = null;
 	private long [] black = null;
-	private long [] white = null;
+	private int [] white = null;
 	private byte [] weight = null;
-	
-	static final int RANGE_TO_SEARCH = 3;
-	
+		
 	public PawnEvalHashTable() {
 		eval = new short[65536];
 		black = new long[65536];
-		white = new long[65536];
+		white = new int[65536];
 		weight = new byte[65536];
 		Arrays.fill(eval, Short.MAX_VALUE);
 	}
 	
 	public synchronized short get(int hash, int phase_weighting, long white_pawns, long black_pawns, boolean onMoveIsWhite) {
 		int index = hash & 0xFFFF;
-		for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < 0xFFFF); i++) {
-			if (black[i] == black_pawns && white[i] == white_pawns && weight[i] == phase_weighting) {
-				int score = eval[i];
-				// Score saved in table is from white point of view
-				if (!onMoveIsWhite) {
-					score = -score;
+		if (weight[index] == phase_weighting) {
+			if (white[index] == ((int)(white_pawns >>> ((4*8)-8)))) { 
+				if (black[index] == ((black_pawns >>> 8) | (white_pawns << ((6*8)-8)))) {
+					int score = eval[index];
+					// Score saved in table is from white point of view
+					if (!onMoveIsWhite) {
+						score = -score;
+					}
+					return (short)score;
 				}
-				return (short)score;
 			}
 		}
 		return Short.MAX_VALUE;
@@ -39,26 +39,8 @@ public class PawnEvalHashTable {
 		if (!onMoveIsWhite) {
 			score = -score;
 		}
-		for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < 0xFFFF); i++) {
-			// If exact hash match, overwrite entry in table
-			if (black[i] == black_pawns && white[i] == white_pawns) {
-				// always update for game phase
-				weight[i] = (byte)phase_weighting;
-				eval[i] = (short)score;
-				return;
-			}
-			// Try to find a free slot near the hash index
-			else if (eval[i] == Short.MAX_VALUE) {
-				// Store
-				black[i] = black_pawns;
-				white[i] = white_pawns;
-				weight[i] = (byte)phase_weighting;
-				eval[i] = (short)score;
-				return;
-			}
-		}
-		black[index] = black_pawns;
-		white[index] = white_pawns;
+		black[index] = (black_pawns >>> 8) | (white_pawns << ((6*8)-8));
+		white[index] = (int)(white_pawns >>> ((4*8)-8));
 		weight[index] = (byte)phase_weighting;
 		eval[index] = (short)score;
 	}

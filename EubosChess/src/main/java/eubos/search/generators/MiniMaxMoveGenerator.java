@@ -127,8 +127,9 @@ public class MiniMaxMoveGenerator implements
 		ml = new MoveList((PositionManager)pm, alternativeMoveListOrderingScheme);		
 	}
 	
-	public void reportLazyStatistics() {
+	public void reportStatistics() {
 		this.pe.reportLazyStatistics();
+		this.pe.reportPawnStatistics();
 	}
 
 	public boolean lastAspirationFailed() {
