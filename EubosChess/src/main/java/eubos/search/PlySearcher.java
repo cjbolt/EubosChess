@@ -193,7 +193,7 @@ public class PlySearcher {
 			++depth;
 		}
 		
-		long trans = tt.getTransposition();
+		long trans = tt.getTransposition(pos.getHash());
 		if (trans != 0L) {
 			evaluateTransposition(trans, depth);
 			if (state[0].isCutOff) {
@@ -338,7 +338,7 @@ public class PlySearcher {
 			return extendedSearch(state[currPly].alpha, state[currPly].beta);
 		}
 		
-		long trans = tt.getTransposition();
+		long trans = tt.getTransposition(pos.getHash());
 		if (trans != 0L) {
 			evaluateTransposition(trans, depth);
 			if (state[currPly].isCutOff) {
@@ -478,7 +478,7 @@ public class PlySearcher {
 			alpha = state[currPly].plyScore;
 		}
 		
-		long trans = tt.getTransposition();
+		long trans = tt.getTransposition(pos.getHash());
 		int prevBestMove = Move.NULL_MOVE;
 		if (trans != 0L) {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
@@ -616,7 +616,7 @@ public class PlySearcher {
 		if (Score.isMate(plyScore)) {
 			scoreFromDownTree = (short) ((plyScore < 0) ? plyScore - currPly : plyScore + currPly);
 		}
-		trans = tt.setTransposition(trans, depth, scoreFromDownTree, plyBound, currMove, pos.getMoveNumber());
+		trans = tt.setTransposition(pos.getHash(), trans, depth, scoreFromDownTree, plyBound, currMove, pos.getMoveNumber());
 		return trans;
 	}
 	

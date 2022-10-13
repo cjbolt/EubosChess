@@ -24,8 +24,7 @@ import eubos.search.SearchDebugAgent;
 import eubos.search.SearchMetrics;
 import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
-import eubos.search.transposition.FixedSizeTranspositionTable;
-import eubos.search.transposition.TranspositionTableAccessor;
+import eubos.search.transposition.ITranspositionAccessor;
 
 public class MiniMaxMoveGenerator implements
 		IMoveGenerator {
@@ -38,7 +37,7 @@ public class MiniMaxMoveGenerator implements
 
 	private PlySearcher ps;
 	private IEvaluate pe;
-	private TranspositionTableAccessor tta;
+	private ITranspositionAccessor tta;
 	private short score;
 	
 	private KillerList killers;
@@ -47,7 +46,7 @@ public class MiniMaxMoveGenerator implements
 	private Reference ref;
 
 	// Used for unit tests
-	MiniMaxMoveGenerator( FixedSizeTranspositionTable hashMap,
+	MiniMaxMoveGenerator(ITranspositionAccessor hashMap,
 			IChangePosition pm,
 			IPositionAccessors pos) {
 		score = 0;
@@ -56,7 +55,7 @@ public class MiniMaxMoveGenerator implements
 	}
 
 	// Used with Arena, Lichess
-	public MiniMaxMoveGenerator(FixedSizeTranspositionTable hashMap,
+	public MiniMaxMoveGenerator(ITranspositionAccessor hashMap,
 			PawnEvalHashTable pawnHash,
 			String fen,
 			DrawChecker dc,
@@ -70,15 +69,15 @@ public class MiniMaxMoveGenerator implements
 			sr.register(sm);
 	}
 
-	private void commonInit(FixedSizeTranspositionTable hashMap, IChangePosition pm, IPositionAccessors pos) {
+	private void commonInit(ITranspositionAccessor hashMap, IChangePosition pm, IPositionAccessors pos) {
 		this.pm = pm;
 		this.pos = pos;
 		
+		tta = hashMap;
 		pe = pos.getPositionEvaluator();
 		sm = new SearchMetrics(pos);
 		killers = new KillerList();
 		sda = new SearchDebugAgent(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
-		tta = new TranspositionTableAccessor(hashMap, pos, sda);
 		pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
 		ml = new MoveList((PositionManager)pm, alternativeMoveListOrderingScheme);
 	}

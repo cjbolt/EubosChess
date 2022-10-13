@@ -2,7 +2,7 @@ package eubos.search.transposition;
 
 import eubos.main.EubosEngineMain;
 
-public class FixedSizeTranspositionTable {
+public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	
 	private static final boolean DEBUG_LOGGING = true;
 
@@ -23,6 +23,8 @@ public class FixedSizeTranspositionTable {
 	private long tableSize = 0;
 	long maxTableSize = 0;
 	private long mask = 0;
+	
+	boolean isSinglethreaded = true;
 	
 	public FixedSizeTranspositionTable() {
 		this(MBYTES_DEFAULT_HASH_SIZE, 1);
@@ -46,6 +48,10 @@ public class FixedSizeTranspositionTable {
 		hashes2 = new byte[highestBit];
 		tableSize = 0;
 		maxTableSize = highestBit;
+		
+		if (numThreads > 1) {
+			isSinglethreaded = false;
+		}
 	}
 	
 	public synchronized long getTransposition(long hashCode) {
@@ -58,6 +64,7 @@ public class FixedSizeTranspositionTable {
 			}
 		} else {
 			for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
+				if (hashes[i] == 0 && hashes2[i] == 0) break;
 				if (hashes[i] == hash_ms_fragment && hashes2[i] == hash_ls_fragment) {
 					return transposition_table[i];
 				}
@@ -111,7 +118,36 @@ public class FixedSizeTranspositionTable {
 		}
 	}
 	
+	public long setTransposition(long hash, long trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove, int new_age) {
+		boolean is_created = false;
+		boolean is_updated = false;
+		
+		// Quantise move count to 6 bits for age 
+		new_age >>= 2;
+		
+		if (trans == 0L) {
+			// Needed, because we want to merge this transposition with that of other threads, not to lose their effort.
+			// Read, modify, write, otherwise we blindly update the transposition table, potentially overwriting other thread's Transposition object.
+			if (!isSinglethreaded) {
+				trans = getTransposition(hash);
+			}
+			if (trans == 0L) {
+				trans = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, new_age);
+				is_created = true;
+			}
+		}
+		if (!is_created) {
+			long old_trans = trans;
+			trans = Transposition.checkUpdate(trans, new_Depth, new_score, new_bound, new_bestMove, new_age);
+			is_updated = (old_trans != trans);
+		}
+		if (is_created || is_updated) {
+			putTransposition(hash, trans);
+		}
+		return trans;
+	}
+	
 	public synchronized short getHashUtilisation() {
 		return (short) ((tableSize*1000L)/maxTableSize);
-	}	
+	}
 }
