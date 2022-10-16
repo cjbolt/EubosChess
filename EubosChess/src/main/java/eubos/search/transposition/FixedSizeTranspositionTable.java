@@ -14,7 +14,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	public static final long BYTES_PER_MEGABYTE = 1_024_000L;
 	public static final long MBYTES_DEFAULT_HASH_SIZE = 256L;
 	
-	static final int RANGE_TO_SEARCH = 20;
+	static final int RANGE_TO_SEARCH = 10;
 	static final boolean USE_ALWAYS_REPLACE = (RANGE_TO_SEARCH <= 1);
 			
 	private long [] transposition_table = null;
@@ -64,7 +64,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 			}
 		} else {
 			for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
-				if (hashes[i] == 0 && hashes2[i] == 0) break;
+				if (transposition_table[i] == 0L) break;
 				if (hashes[i] == hash_ms_fragment && hashes2[i] == hash_ls_fragment) {
 					return transposition_table[i];
 				}

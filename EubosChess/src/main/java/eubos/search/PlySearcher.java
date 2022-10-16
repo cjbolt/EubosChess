@@ -1,5 +1,6 @@
 package eubos.search;
 
+import eubos.board.BitBoard;
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
@@ -675,9 +676,7 @@ public class PlySearcher {
 			!state[currPly].inCheck &&
 			!(Move.isPawnMove(currMove) &&  /* Not a passed pawn move or a pawn move in endgame */
 					(pos.getTheBoard().me.isEndgame() ||
-					 pos.getTheBoard().isPassedPawn(
-							 Move.getOriginPosition(currMove), 
-							 Piece.isWhite(Move.getOriginPiece(currMove)))))) {		
+					(pos.getTheBoard().getPassedPawns() & BitBoard.positionToMask_Lut[Move.getOriginPosition(currMove)]) != 0L))) {		
 			
 			// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
 			int lmr = (moveNumber < 6) ? 1 : Math.max(1, depth/4);
@@ -688,6 +687,9 @@ public class PlySearcher {
 			//}
 			//if ((((currPly-1) & 0x1) == 0) && (pe.getCrudeEvaluation() > refScore) && lmr > 1) {
 			//	lmr -= 1;
+			//}
+			//if (!pos.getTheBoard().isPassedPawnPresent()) {
+			//	lmr += 1;
 			//}
 			if (lmr > 0) {
 				positionScore = -search(depth-1-lmr, -state[currPly-1].beta, -state[currPly-1].alpha);
