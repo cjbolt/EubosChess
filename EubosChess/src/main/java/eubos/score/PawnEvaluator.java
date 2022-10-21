@@ -31,9 +31,9 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	public static final boolean ENABLE_PAWN_HASH_TABLE = true;
 	public static final boolean ENABLE_KPK_EVALUATION = true;
 	public static final boolean ENABLE_CANDIDATE_PP_EVALUATION = true;
-	public static final boolean ENABLE_PP_IMBALANCE_EVALUATION = false;
+	public static final boolean ENABLE_PP_IMBALANCE_EVALUATION = true;
 	
-	public final int[] ppImbalanceTable = {0, 15, 200, 400, 700, 900, 900, 900, 900};
+	public final int[] ppImbalanceTable = {0, 15, 65, 110, 220, 400, 700, 800, 900};
 	
 	// Static for lifetime of object
 	IPositionAccessors pm;
@@ -43,7 +43,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	// Variables updated whilst considering each pawn of side, i.e. valid for side to move
 	protected int queeningDistance; // initialised in setQueeningDistance()
 	protected int weighting; 		// initialised in setQueeningDistance()
-	public int piecewisePawnScoreAccumulator = 0;
+	public int piecewisePawnScoreAccumulator = 0; // initialised when starting evaluatePawnsForSide()
 	
 	// Scope is for each call to evaluatePawnStructure
 	private boolean onMoveIsWhite;
@@ -101,21 +101,23 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	@Override
 	public void callback(int piece, int atPos) {
 		boolean pawnIsWhite = Piece.isWhite(piece);
-		long[][] enemy_attacks = attacks[pawnIsWhite ? 1:0];
-		long[][] own_attacks = attacks[pawnIsWhite ? 0:1];
 		
 		long passers = bd.getPassedPawns();
 		long mask = BitBoard.positionToMask_Lut[atPos];
 		if ((passers & mask) != 0L) {
-			// check for directly supported passed pawns
-			long attacks = pawnIsWhite ? SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[atPos] : 
-				                         SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[atPos];
+			// check for directly supported and adjacent passed pawns
+			long directConnectedPawns = pawnIsWhite ? SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[atPos] : 
+				                                SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[atPos];
+			directConnectedPawns |= AdjacentPawnFromPosition_Lut[atPos];
 			long ownPassers = passers & (pawnIsWhite ? bd.getWhitePawns() : bd.getBlackPawns());
-			piecewisePawnScoreAccumulator += (Long.bitCount(ownPassers & attacks) * CONNECTED_PASSED_PAWN_BOOST);
+			piecewisePawnScoreAccumulator += (Long.bitCount(ownPassers & directConnectedPawns) * CONNECTED_PASSED_PAWN_BOOST);
 				
-			// check for otherwise connected passed pawns, which could be supported, including adjacent
+			// check for otherwise connected passed pawns, which could be supported
 			piecewisePawnScoreAccumulator += (Long.bitCount(ownPassers & BitBoard.PasserSupport_Lut[pawnIsWhite ? 0 : 1][atPos]) * CONNECTED_PASSED_PAWN_BOOST/2);
 		} else if (ENABLE_CANDIDATE_PP_EVALUATION) {
+			long[][] enemy_attacks = attacks[pawnIsWhite ? 1:0];
+			long[][] own_attacks = attacks[pawnIsWhite ? 0:1];
+			
 			if (bd.isCandidatePassedPawn(atPos, pawnIsWhite, own_attacks[0], enemy_attacks[0])) {
 				setQueeningDistance(atPos, pawnIsWhite);
 				weighting *= getScaleFactorForGamePhase();
@@ -277,7 +279,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		pawnEvaluationScore -= evaluatePawnsForSide(enemyPawns, onMoveIsWhite);
 		
 		// Add a modification according to the imbalance of passed pawns in the position
-		if (ENABLE_PP_IMBALANCE_EVALUATION && bd.me.phase > 2048) {
+		if (ENABLE_PP_IMBALANCE_EVALUATION /*&& bd.me.phase > 2048*/) {
 			long passers = bd.getPassedPawns();
 			int ownPasserCount = Long.bitCount(passers & ownPawns);
 			int enemyPasserCount = Long.bitCount(passers & enemyPawns);

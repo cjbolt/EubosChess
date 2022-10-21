@@ -538,13 +538,13 @@ public final class BitBoard {
 		long[] white_map = new long[128];
 		for (int atPos : Position.values) {
 			white_map[atPos] = BitBoard.PassedPawn_Lut[0][atPos] & ~BitBoard.PawnFrontSpan_Lut[0][atPos];
-			white_map[atPos] |= createAdjacentPawnsFromSq(atPos);
+			//white_map[atPos] |= createAdjacentPawnsFromSq(atPos);
 		}
 		PasserSupport_Lut[Colour.white.ordinal()] = white_map;
 		long[] black_map = new long[128];
 		for (int atPos : Position.values) {
 			black_map[atPos] = BitBoard.PassedPawn_Lut[1][atPos] & ~BitBoard.PawnFrontSpan_Lut[1][atPos];
-			black_map[atPos] |= createAdjacentPawnsFromSq(atPos);
+			//black_map[atPos] |= createAdjacentPawnsFromSq(atPos);
 		}
 		PasserSupport_Lut[Colour.black.ordinal()] = black_map;
 	}
