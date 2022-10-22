@@ -150,14 +150,14 @@ public class PawnEvaluatorTest {
 	public void test_crazyPassedPawnScenario() {
 		setUpPosition("3r2k1/1Nr2pp1/1n3n2/1P1P2q1/3P4/1pP2p1p/1K6/R3QB1R b - - 0 29 ");
 		int score = SUT.evaluatePawnStructure(attacks);
-		assertEquals(25, score);
+		assertEquals(8, score);
 	} 
 	
 	@Test
 	public void test_encouragePassedPawns_NotPassedPawn() {
 		setUpPosition("n7/8/8/8/8/5p2/6P1/8 w - - 0 1 ");
 		int score = SUT.evaluatePawnStructure(attacks);
-		assertEquals(-96 /* two candidate passed pawns, blacks is more valuable, but white can take it on the next move! */, score);
+		assertEquals(-60 /* two candidate passed pawns, blacks is more valuable, but white can take it on the next move! */, score);
 	}
 	
 	@Test
@@ -195,7 +195,7 @@ public class PawnEvaluatorTest {
 	public void test_encouragePassedPawns_CandidatePasserAtB5() {
 		setUpPosition("8/p7/8/PP6/8/8/8/8 w - - 0 1");
 		int score = SUT.evaluatePawnStructure(attacks);
-		assertEquals(105 /* b5 pawn will queen, not including material */, score);
+		assertEquals(69 /* b5 pawn will queen, not including material */, score);
 	}
 	
 	@Test
@@ -723,6 +723,6 @@ public class PawnEvaluatorTest {
 		// basic attacks, we think that there is a candidate passer.
 		SUT = new PawnEvaluator(pm, new PawnEvalHashTable());
 		long [][][] basic_attacks = pm.getTheBoard().mae.calculateBasicAttacksAndMobility(pm.getTheBoard().me);
-		assertEquals(-58, SUT.evaluatePawnStructure(basic_attacks));	
+		assertEquals(-52, SUT.evaluatePawnStructure(basic_attacks));	
 	}
 }

@@ -33,7 +33,7 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_EvalPosB() {
 		setUpPosition("8/8/1B6/8/8/4Kpk1/8/b7 w - - - 85");
-		int expectedScore = -404;
+		int expectedScore = -374;
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore -= 15;
 		}

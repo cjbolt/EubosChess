@@ -101,9 +101,9 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
                     "info depth 2 seldepth 7 score cp 106 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 187"+CMD_TERMINATOR
                     +BEST_PREFIX+"c7c2";
 			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-				expectedOutput = "info depth 1 seldepth 6 score cp -103 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
-							     "info depth 1 seldepth 5 score cp 391 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 43"+CMD_TERMINATOR+
-							     "info depth 2 seldepth 7 score cp 121 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 187"+CMD_TERMINATOR
+				expectedOutput = "info depth 1 seldepth 6 score cp -112 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
+							     "info depth 1 seldepth 5 score cp 382 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 43"+CMD_TERMINATOR+
+							     "info depth 2 seldepth 7 score cp 112 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 187"+CMD_TERMINATOR
 								 +BEST_PREFIX+"c7c2";
 			}
 			setupEngine();
@@ -386,7 +386,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_WAC_086_position() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/p7/1ppk1n2/5ppp/P1PP4/2P1K1P1/5N1P/8 b - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"10"+CMD_TERMINATOR, BEST_PREFIX+"f6g4"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"11"+CMD_TERMINATOR, BEST_PREFIX+"f6g4"+CMD_TERMINATOR));
 		performTest(8000);
 	}
 	
