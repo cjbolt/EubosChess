@@ -23,17 +23,17 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 8;
 	public static final int CANDIDATE_PAWN = 5;
 	public static final int ROOK_FILE_CANDIDATE_PAWN = 3;
-	public static final int SAFE_MOBILE_PASSED_PAWN = 10;
+	public static final int SAFE_MOBILE_PASSED_PAWN = 15;
 	public static final int MOBILE_PASSED_PAWN = 5;
 	public static final int CONNECTED_PASSED_PAWN_BOOST = 30;
-	public static final int HEAVY_PIECE_BEHIND_PASSED_PAWN = 20;
+	public static final int HEAVY_PIECE_BEHIND_PASSED_PAWN = 50;
 	
 	public static final boolean ENABLE_PAWN_HASH_TABLE = true;
 	public static final boolean ENABLE_KPK_EVALUATION = true;
 	public static final boolean ENABLE_CANDIDATE_PP_EVALUATION = true;
 	public static final boolean ENABLE_PP_IMBALANCE_EVALUATION = true;
 	
-	public final int[] ppImbalanceTable = {0, 15, 65, 110, 220, 400, 700, 800, 900};
+	public final int[] ppImbalanceTable = {0, 15, 65, 110, 160, 300, 450, 700, 900};
 	
 	// Static for lifetime of object
 	IPositionAccessors pm;
