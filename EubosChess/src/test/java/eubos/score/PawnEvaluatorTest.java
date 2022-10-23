@@ -150,7 +150,7 @@ public class PawnEvaluatorTest {
 	public void test_crazyPassedPawnScenario() {
 		setUpPosition("3r2k1/1Nr2pp1/1n3n2/1P1P2q1/3P4/1pP2p1p/1K6/R3QB1R b - - 0 29 ");
 		int score = SUT.evaluatePawnStructure(attacks);
-		assertEquals(8, score);
+		assertEquals(13, score);
 	} 
 	
 	@Test
