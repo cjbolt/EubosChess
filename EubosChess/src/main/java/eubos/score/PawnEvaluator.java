@@ -19,11 +19,11 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	public static final int BACKWARD_PAWN_HANDICAP = 12;
 	public static final int NO_PAWNS_HANDICAP = 50;
 	
-	public static final int PASSED_PAWN_BOOST = 12;
+	public static final int PASSED_PAWN_BOOST = 10;
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 8;
 	public static final int CANDIDATE_PAWN = 5;
 	public static final int ROOK_FILE_CANDIDATE_PAWN = 3;
-	public static final int SAFE_MOBILE_PASSED_PAWN = 15;
+	public static final int SAFE_MOBILE_PASSED_PAWN = 17;
 	public static final int MOBILE_PASSED_PAWN = 5;
 	public static final int CONNECTED_PASSED_PAWN_BOOST = 30;
 	public static final int HEAVY_PIECE_BEHIND_PASSED_PAWN = 50;
