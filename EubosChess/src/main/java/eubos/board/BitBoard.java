@@ -347,19 +347,19 @@ public final class BitBoard {
 		return mask;
 	}
 	
-	// Dimensions position, colour of attacker, direction
-	static final long[][][] IterativePassedPawnUpdateCaptures_Lut = new long[128][2][]; 
+	// Dimensions bit offset, colour of attacker, direction
+	static final long[][][] IterativePassedPawnUpdateCaptures_Lut = new long[64][2][]; 
 	static {
-		for (int atPos : Position.values) {
-			IterativePassedPawnUpdateCaptures_Lut[atPos][0] = addBoardForCapturingPassedPawn(atPos, true);
-			IterativePassedPawnUpdateCaptures_Lut[atPos][1] = addBoardForCapturingPassedPawn(atPos, false);
+		for (int bitOffset = 0; bitOffset < 64; bitOffset++) {
+			IterativePassedPawnUpdateCaptures_Lut[bitOffset][0] = addBoardForCapturingPassedPawn(bitOffset, true);
+			IterativePassedPawnUpdateCaptures_Lut[bitOffset][1] = addBoardForCapturingPassedPawn(bitOffset, false);
 		}
 	}
-	private static long[] addBoardForCapturingPassedPawn(int position, boolean isWhite) {
+	private static long[] addBoardForCapturingPassedPawn(int bitOffset, boolean isWhite) {
 		long[] masks = new long[2];
 		// manage file transition of capturing pawn moves
 		long mask = 0L;
-		int origin_file = Position.getFile(position);
+		int origin_file = BitBoard.getFile(bitOffset);
 		if (origin_file > 0) {
 			// do left capture
 			int target_file = origin_file - 1;
@@ -371,7 +371,7 @@ public final class BitBoard {
 				int right_file_from_origin = origin_file + 1;
 				mask |= BitBoard.FileMask_Lut[right_file_from_origin];
 			}
-			mask |= getCaptureTargetMask(position, isWhite, true);
+			mask |= getCaptureTargetMask(BitBoard.bitToPosition_Lut[bitOffset], isWhite, true);
 			masks[0] = mask;
 		}
 		mask = 0L;
@@ -386,18 +386,18 @@ public final class BitBoard {
 				int left_file_from_origin = origin_file - 1;
 				mask |= BitBoard.FileMask_Lut[left_file_from_origin];
 			}
-			mask |= getCaptureTargetMask(position, isWhite, false);
+			mask |= getCaptureTargetMask(BitBoard.bitToPosition_Lut[bitOffset], isWhite, false);
 			masks[1] = mask;
 		}
 		// Mask off bits that are behind the pawn
 		if (isWhite) {
-			for (int i=0; i < Position.getRank(position); i++) {
+			for (int i=0; i < BitBoard.getRank(bitOffset); i++) {
 				masks[0] &= ~BitBoard.RankMask_Lut[i];
 				masks[1] &= ~BitBoard.RankMask_Lut[i];
 			}
 		} else {
 			
-			for (int i=7; i > Position.getRank(position); i--) {
+			for (int i=7; i > BitBoard.getRank(bitOffset); i--) {
 				masks[0] &= ~BitBoard.RankMask_Lut[i];
 				masks[1] &= ~BitBoard.RankMask_Lut[i];
 			}
@@ -484,10 +484,10 @@ public final class BitBoard {
 		return mask;
 	}
 	
-	// Dimensions colour, position
+	// Dimensions colour, bit offset
 	static final long[][] IterativePassedPawnNonCapture = new long[2][]; 
 	static {
-		long[] white_map = new long[128];
+		long[] white_map = new long[64];
 		for (int atPos : Position.values) {
 			int rank = Position.getRank(atPos);
 			if (rank >= 1 && rank <= 6) {
@@ -509,11 +509,11 @@ public final class BitBoard {
 					temp <<= 8; // Cater for double moves for white
 					mask |= temp;
 				}
-				white_map[atPos] = mask;
+				white_map[BitBoard.positionToBit_Lut[atPos]] = mask;
 			}
 		}
 		IterativePassedPawnNonCapture[Colour.white.ordinal()] = white_map; 
-		long[] black_map = new long[128];
+		long[] black_map = new long[64];
 		for (int atPos : Position.values) {
 			int rank = Position.getRank(atPos);
 			if (rank >= 2 && rank <= 6) { 
@@ -535,7 +535,7 @@ public final class BitBoard {
 					mask >>= 8; // cater for double moves for black
 					mask |= temp;
 				}
-				black_map[atPos] = mask;
+				black_map[BitBoard.positionToBit_Lut[atPos]] = mask;
 			}
 		}
 		IterativePassedPawnNonCapture[Colour.black.ordinal()] = black_map;

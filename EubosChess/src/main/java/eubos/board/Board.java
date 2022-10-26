@@ -160,6 +160,8 @@ public class Board {
 		long initialSquareMask = BitBoard.positionToMask_Lut[originSquare];
 		long targetSquareMask = BitBoard.positionToMask_Lut[targetSquare];
 		long positionsMask = initialSquareMask | targetSquareMask;
+		int originBitOffset = BitBoard.positionToBit_Lut[originSquare];
+		int targetBitOffset = BitBoard.positionToBit_Lut[targetSquare];
 		
 		// Check assertions, if enabled in build
 		if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -209,7 +211,7 @@ public class Board {
 		    subtractMaterialAndPositionForCapture(targetPiece, BitBoard.positionToBit_Lut[capturePosition]);
 		} else {
 			// Check whether the move sets the En Passant target square
-			if (!moveEnablesEnPassantCapture(pieceToMove, originSquare, targetSquare)) {
+			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
 				// Handle castling secondary rook moves...
 				if (Piece.isKing(pieceToMove)) {
 					performSecondaryCastlingMove(move);
@@ -224,16 +226,16 @@ public class Board {
 			pieces[promotedPiece] |= targetSquareMask;
 			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
 			pieceLists.updatePiece(pieceToMove, fullPromotedPiece, originSquare, targetSquare);
-			updateMaterialAndPositionForDoingPromotion(fullPromotedPiece, BitBoard.positionToBit_Lut[originSquare], BitBoard.positionToBit_Lut[targetSquare]);
+			updateMaterialAndPositionForDoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
 		} else {
 			// Piece type doesn't change across boards
 			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
 			pieceLists.updatePiece(pieceToMove, originSquare, targetSquare);
 			// Update PST
-			me.position -= Piece.PIECE_SQUARE_TABLES[pieceToMove][BitBoard.positionToBit_Lut[originSquare]];
-			me.position += Piece.PIECE_SQUARE_TABLES[pieceToMove][BitBoard.positionToBit_Lut[targetSquare]];
-			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[pieceToMove][BitBoard.positionToBit_Lut[originSquare]];
-			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[pieceToMove][BitBoard.positionToBit_Lut[targetSquare]];
+			me.position -= Piece.PIECE_SQUARE_TABLES[pieceToMove][originBitOffset];
+			me.position += Piece.PIECE_SQUARE_TABLES[pieceToMove][targetBitOffset];
+			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[pieceToMove][originBitOffset];
+			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[pieceToMove][targetBitOffset];
 		}
 		// Switch colour bitboard
 		if (isWhite) {
@@ -253,22 +255,22 @@ public class Board {
 			long file_masks = 0L;
 			if (Piece.isPawn(pieceToMove)) {
 				// Handle regular pawn pushes
-				file_masks |= BitBoard.IterativePassedPawnNonCapture[isWhite?0:1][originSquare];
+				file_masks |= BitBoard.IterativePassedPawnNonCapture[isWhite?0:1][originBitOffset];
 				
 				// Handle pawn captures
 				if (targetPiece != Piece.NONE) {
 					if (Piece.isPawn(targetPiece)) {
 						// Pawn takes pawn, clears whole front-span of target pawn (note negation of colour)
-						file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][BitBoard.positionToBit_Lut[targetSquare]];
+						file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][targetBitOffset];
 					}
 					// manage file transition of capturing pawn moves
-					boolean isLeft = Position.getFile(targetSquare) < Position.getFile(originSquare);
-					file_masks |= BitBoard.IterativePassedPawnUpdateCaptures_Lut[originSquare][isWhite ? 0 : 1][isLeft ? 0 : 1];
+					boolean isLeft = BitBoard.getFile(targetBitOffset) < BitBoard.getFile(originBitOffset);
+					file_masks |= BitBoard.IterativePassedPawnUpdateCaptures_Lut[originBitOffset][isWhite ? 0 : 1][isLeft ? 0 : 1];
 				}
 			} else if (Piece.isPawn(targetPiece)) {
 				// Piece takes pawn, potentially opens capture and adjacent files
 				file_masks |= targetSquareMask;
-				file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][BitBoard.positionToBit_Lut[targetSquare]];
+				file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][targetBitOffset];
 			} else {
 				// doesn't need to be handled - can't change passed pawn bit board
 			}
@@ -450,18 +452,18 @@ public class Board {
 		return targetSquare;
 	}
 	
-	private boolean moveEnablesEnPassantCapture(int originPiece, int originSquare, int targetSquare) {
+	private boolean moveEnablesEnPassantCapture(int originPiece, int originBitOffset, int targetBitOffset) {
 		boolean isEnPassantCapturePossible = false;
 		if (Piece.isPawn(originPiece)) {
-			if (Position.getRank(originSquare) == IntRank.R2) {
-				if (Position.getRank(targetSquare) == IntRank.R4) {
+			if (BitBoard.getRank(originBitOffset) == IntRank.R2) {
+				if (BitBoard.getRank(targetBitOffset) == IntRank.R4) {
 					isEnPassantCapturePossible = true;
-					setEnPassantTargetSq(targetSquare-16);
+					setEnPassantTargetSq(BitBoard.bitToPosition_Lut[targetBitOffset-8]);
 				}
-			} else if (Position.getRank(originSquare) == IntRank.R7) {
-				if (Position.getRank(targetSquare) == IntRank.R5) {
+			} else if (BitBoard.getRank(originBitOffset) == IntRank.R7) {
+				if (BitBoard.getRank(targetBitOffset) == IntRank.R5) {
 					isEnPassantCapturePossible = true;
-					setEnPassantTargetSq(targetSquare+16);
+					setEnPassantTargetSq(BitBoard.bitToPosition_Lut[targetBitOffset+8]);
 				}
 			}
 		}
