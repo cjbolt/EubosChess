@@ -299,8 +299,8 @@ public class PieceList {
 			if (atSquare != Position.NOPOSITION) {	
 				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.KING];
 				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.KING];
-				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.KING][atSquare];
-				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.KING][atSquare];
+				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.KING][BitBoard.positionToBit_Lut[atSquare]];
+				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.KING][BitBoard.positionToBit_Lut[atSquare]];
 			}
 		}
 		for(int atSquare : piece_list[side+Piece.QUEEN]) {
@@ -314,8 +314,8 @@ public class PieceList {
 			if (atSquare != Position.NOPOSITION) {			
 				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.ROOK];
 				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.ROOK];
-				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.ROOK][atSquare];
-				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.ROOK][atSquare];
+				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.ROOK][BitBoard.positionToBit_Lut[atSquare]];
+				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.ROOK][BitBoard.positionToBit_Lut[atSquare]];
 				me.numberOfPieces[side+Piece.ROOK]++;
 			} else break;
 		}
@@ -330,8 +330,8 @@ public class PieceList {
 			if (atSquare != Position.NOPOSITION) {			
 				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.KNIGHT];
 				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.KNIGHT];
-				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.KNIGHT][atSquare];
-				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.KNIGHT][atSquare];
+				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.KNIGHT][BitBoard.positionToBit_Lut[atSquare]];
+				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.KNIGHT][BitBoard.positionToBit_Lut[atSquare]];
 				me.numberOfPieces[side+Piece.KNIGHT]++;
 			} else break;
 		}
@@ -343,8 +343,8 @@ public class PieceList {
 				}
 				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.PAWN];
 				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.PAWN];
-				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.PAWN][atSquare];
-				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.PAWN][atSquare];
+				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.PAWN][BitBoard.positionToBit_Lut[atSquare]];
+				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.PAWN][BitBoard.positionToBit_Lut[atSquare]];
 				me.numberOfPieces[side+Piece.PAWN]++;
 			} else break;
 		}
