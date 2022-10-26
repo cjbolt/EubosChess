@@ -100,7 +100,7 @@ public class Board {
 			int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
 			long bit_mask = 1L << bit_offset;
 			boolean isWhite = ((whitePieces & bit_mask) != 0L);
-			if (isPassedPawn(bit_offset, isWhite)) {
+			if (isPassedPawn(bit_offset)) {
 	    		// ...target square becomes pp for piece to move!
 	    		passedPawns |= (1L << bit_offset);
 	    	}
@@ -281,7 +281,7 @@ public class Board {
 				while ( scratchBitBoard != 0x0L ) {
 					int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
 					long pawn_mask = 1L << bit_offset;
-					if (isPassedPawn(bit_offset, (pawn_mask & whitePieces) != 0L)) {
+					if (isPassedPawn(bit_offset)) {
 						passedPawns |= pawn_mask;
 					}
 					scratchBitBoard ^= pawn_mask;
@@ -1160,8 +1160,9 @@ public class Board {
 		return doubledCount;
 	}
 	
-	public boolean isPassedPawn(int bitOffset, boolean isWhite) {
+	public boolean isPassedPawn(int bitOffset) {
 		boolean isPassed = true;
+		boolean isWhite = (whitePieces & (1L << bitOffset)) != 0L;
 		long mask = BitBoard.PassedPawn_Lut[isWhite ? 0 : 1][bitOffset];
 		long otherSidePawns = isWhite ? getBlackPawns() : getWhitePawns();
 		if ((mask & otherSidePawns) != 0) {

@@ -140,7 +140,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	
 	@Override
 	public boolean condition_callback(int piece, int atPos) {
-		return bd.isPassedPawn(atPos, Piece.isWhite(piece));
+		return bd.isPassedPawn(atPos);
 	}
 	
 	public int getDoubledPawnsHandicap(long pawns) {
