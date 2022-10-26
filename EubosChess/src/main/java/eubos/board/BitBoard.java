@@ -63,6 +63,14 @@ public final class BitBoard {
 		}
 	}
 	
+	public static final int[] positionToBit_Lut = new int[128];
+	static {
+		int bit = 0;
+		for (int square : Position.values) {
+			positionToBit_Lut[square] = bit++;
+		}
+	}
+	
 	public static final long[] positionToMask_Lut = new long[128];
 	static {
 		int bit_index = 0;
@@ -561,5 +569,13 @@ public final class BitBoard {
 			}
 		}
 		return mask;
+	}
+
+	public static int getRank(int bit) {
+		return bit/8;
+	}
+	
+	public static int getFile(int bit) {
+		return bit%8;
 	}
 }

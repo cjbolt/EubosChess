@@ -359,4 +359,28 @@ public class BitBoardTest {
 				BitBoard.positionToMask_Lut[Position.a2];
 		assertEquals(expect_nearly_all_diagonal_set, attack_mask);
 	}
+	
+	@Test
+	public void test_mapping_between_bits_and_position() {
+		for (int square : Position.values) {
+			assertEquals(square, BitBoard.bitToPosition_Lut[BitBoard.positionToBit_Lut[square]]);
+		}
+		assertEquals(0, BitBoard.positionToBit_Lut[Position.a1]);
+		assertEquals(8, BitBoard.positionToBit_Lut[Position.a2]);
+		assertEquals(63, BitBoard.positionToBit_Lut[Position.h8]);
+	}
+	
+	public void test_mapping_of_bit_rank_to_position_rank() {
+		int bit = 0;
+		for (int square : Position.values) {
+			assertEquals(Position.getRank(square), BitBoard.getRank(bit));
+		}
+	}
+	
+	public void test_mapping_of_bit_file_to_position_file() {
+		int bit = 0;
+		for (int square : Position.values) {
+			assertEquals(Position.getFile(square), BitBoard.getFile(bit));
+		}
+	}
 }

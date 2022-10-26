@@ -1172,9 +1172,9 @@ public class Board {
 		return isPassed;
 	}
 	
-	public boolean isFrontspanControlledInKpk(int atPos, boolean isWhite, long [] own_attacks) {
+	public boolean isFrontspanControlledInKpk(int bitOffset, boolean isWhite, long [] own_attacks) {
 		boolean isControlled = false;
-		long front_span_mask = BitBoard.PawnFrontSpan_Lut[isWhite ? 0 : 1][atPos];
+		long front_span_mask = BitBoard.PawnFrontSpan_Lut[isWhite ? 0 : 1][BitBoard.bitToPosition_Lut[bitOffset]];
 		if (((front_span_mask & own_attacks[0]) ^ front_span_mask) == 0L) {
 			// Don't need to check opponent attacks, because they can't attack the frontspan, ONLY VALID for KPK
 			isControlled = true;
@@ -1182,8 +1182,8 @@ public class Board {
 		return isControlled;
 	}
 	
-	private long generatePawnPushMask(int atPos, boolean isWhite) {
-		long pawnMask = BitBoard.positionToMask_Lut[atPos];
+	private long generatePawnPushMask(int bitOffset, boolean isWhite) {
+		long pawnMask = 1L << bitOffset;
 		if (isWhite) {
 			 pawnMask <<= 8;
 		} else {
@@ -1192,17 +1192,17 @@ public class Board {
 		return pawnMask;
 	}
 	
-	public boolean isPawnBlockaded(int atPos, boolean isWhite) {
+	public boolean isPawnBlockaded(int bitOffset, boolean isWhite) {
 		// Check for enemy pieces blockading
-		long pawnMask = generatePawnPushMask(atPos, isWhite);
+		long pawnMask = generatePawnPushMask(bitOffset, isWhite);
 		long enemy_pieces = isWhite ? blackPieces : whitePieces;
 		return (pawnMask & enemy_pieces) != 0L;
 	}
 	
-	public boolean isPawnFrontspanSafe(int atPos, boolean isWhite, long[] own_attacks, long[] enemy_attacks, boolean heavySupport) {
+	public boolean isPawnFrontspanSafe(int bitOffset, boolean isWhite, long[] own_attacks, long[] enemy_attacks, boolean heavySupport) {
 		boolean isClear = true;
 		// Check frontspan is controlled
-		long front_span_mask = BitBoard.PawnFrontSpan_Lut[isWhite ? 0 : 1][atPos];
+		long front_span_mask = BitBoard.PawnFrontSpan_Lut[isWhite ? 0 : 1][BitBoard.bitToPosition_Lut[bitOffset]];
 		if (heavySupport) {
 			// assume full x-ray control of the front span, simplification
 			long [] own_xray = Arrays.copyOf(own_attacks, own_attacks.length);
@@ -1216,8 +1216,8 @@ public class Board {
 		return isClear;
 	}
 	
-	public boolean canPawnAdvance(int atPos, boolean isWhite, long[] own_attacks, long[] enemy_attacks) {
-		long pawnMask = generatePawnPushMask(atPos, isWhite);
+	public boolean canPawnAdvance(int bitOffset, boolean isWhite, long[] own_attacks, long[] enemy_attacks) {
+		long pawnMask = generatePawnPushMask(bitOffset, isWhite);
 		return CountedBitBoard.weControlContestedSquares(own_attacks, enemy_attacks, pawnMask);
 	}
 	
@@ -1235,13 +1235,13 @@ public class Board {
 		return false;
 	}
 	
-	public int checkForHeavyPieceBehindPassedPawn(int atPos, boolean isWhite) {
+	public int checkForHeavyPieceBehindPassedPawn(int bitOffset, boolean isWhite) {
 		// The pawn may be attacked/defended by a rook or queen, directly along the rear span
 		boolean isDefended = false;
 		boolean isAttacked = false;
-		long ownPawnMask = BitBoard.positionToMask_Lut[atPos];
+		long ownPawnMask = 1L << bitOffset;
 		// Use the opposite colours' front span mask as a rear span mask
-	    long rearSpanMask = BitBoard.PawnFrontSpan_Lut[!isWhite ? 0 : 1][atPos];
+	    long rearSpanMask = BitBoard.PawnFrontSpan_Lut[!isWhite ? 0 : 1][BitBoard.bitToPosition_Lut[bitOffset]];
 	    
 		long ownHeavyPiecesInRearSpanMask = rearSpanMask & (isWhite ? getWhiteRankFile() : getBlackRankFile());
 		if (ownHeavyPiecesInRearSpanMask != 0L) {

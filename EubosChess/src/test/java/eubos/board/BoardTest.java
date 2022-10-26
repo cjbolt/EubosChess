@@ -756,56 +756,56 @@ public class BoardTest {
 	public void test_frontspan_isBlocked() {
 		setUpPosition("2k5/8/8/8/2P5/3K4/8/8 w - - 1 10 ");
 		long [][][] attacks = classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me);
-		assertFalse(classUnderTest.isPawnFrontspanSafe(Position.c4, true, attacks[0][3], attacks[1][3], false));
+		assertFalse(classUnderTest.isPawnFrontspanSafe(BitBoard.positionToBit_Lut[Position.c4], true, attacks[0][3], attacks[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_NotBlocked() {
 		setUpPosition("8/k7/8/8/2P5/3K4/8/8 w - - 1 10 ");
 		long [][][] attacks = classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me);
-		assertTrue(classUnderTest.isPawnFrontspanSafe(Position.c4, true, attacks[0][3], attacks[1][3], false));
+		assertTrue(classUnderTest.isPawnFrontspanSafe(BitBoard.positionToBit_Lut[Position.c4], true, attacks[0][3], attacks[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_isAttackedAndDefended() {
 		setUpPosition("8/1B1b4/8/8/2P5/3K4/8/8 w - - 1 10 ");
 		long [][][] attacks = classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me);
-		assertTrue(classUnderTest.isPawnFrontspanSafe(Position.c4, true, attacks[0][3], attacks[1][3], false));
+		assertTrue(classUnderTest.isPawnFrontspanSafe(BitBoard.positionToBit_Lut[Position.c4], true, attacks[0][3], attacks[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttacked() {
 		setUpPosition("8/3b4/8/8/2P5/3K4/8/8 w - - 1 10 ");
 		long [][][] attacks = classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me);
-		assertFalse(classUnderTest.isPawnFrontspanSafe(Position.c4, true, attacks[0][3], attacks[1][3], false));
+		assertFalse(classUnderTest.isPawnFrontspanSafe(BitBoard.positionToBit_Lut[Position.c4], true, attacks[0][3], attacks[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttackedTwiceDefendedOnce() {
 		setUpPosition("8/3b4/2P6/2P5/3K4/8/8 w - - 1 10 ");
 		long [][][] attacks = classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me);
-		assertFalse(classUnderTest.isPawnFrontspanSafe(Position.c4, true, attacks[0][3], attacks[1][3], false));
+		assertFalse(classUnderTest.isPawnFrontspanSafe(BitBoard.positionToBit_Lut[Position.c4], true, attacks[0][3], attacks[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttackedTwiceDefendedTwice() {
 		setUpPosition("R7/3b4/8/1PP5/3K4/8/8 w - - 1 10 ");
 		long [][][] attacks = classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me);
-		assertTrue(classUnderTest.isPawnFrontspanSafe(Position.c4, true, attacks[0][3], attacks[1][3], false));
+		assertTrue(classUnderTest.isPawnFrontspanSafe(BitBoard.positionToBit_Lut[Position.c4], true, attacks[0][3], attacks[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttackedOnceDefendedOnceByRookToRear() {
 		setUpPosition("8/3b4/8/2P5/7K/8/2R5 w - - 1 10 ");
 		long [][][] attacks = classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me);
-		assertTrue(classUnderTest.isPawnFrontspanSafe(Position.c4, true, attacks[0][3], attacks[1][3], true));
+		assertTrue(classUnderTest.isPawnFrontspanSafe(BitBoard.positionToBit_Lut[Position.c4], true, attacks[0][3], attacks[1][3], true));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttackedOnceDefendedTwice_soBlocked() {
 		setUpPosition("4B2K/8/1b1Bn3/8/2P5/8/8/7k w - - 1 1");
 		long [][][] attacks = classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me);
-		assertFalse(classUnderTest.isPawnFrontspanSafe(Position.c4, true, attacks[0][3], attacks[1][3], false));
+		assertFalse(classUnderTest.isPawnFrontspanSafe(BitBoard.positionToBit_Lut[Position.c4], true, attacks[0][3], attacks[1][3], false));
 	}
 	
 	@Test
@@ -1308,19 +1308,19 @@ public class BoardTest {
 	@Test
 	public void test_pawnIsBlockaded() {
 		setUpPosition("8/8/8/8/8/8/1p6/1N6 w - - 0 1");
-		assertTrue(classUnderTest.isPawnBlockaded(Position.b2, false));
+		assertTrue(classUnderTest.isPawnBlockaded(BitBoard.positionToBit_Lut[Position.b2], false));
 	}
 	
 	@Test
 	public void test_pawnIsNotBlockaded() {
 		setUpPosition("8/8/8/8/8/8/1p6/8 w - - 0 1");
-		assertFalse(classUnderTest.isPawnBlockaded(Position.b2, false));
+		assertFalse(classUnderTest.isPawnBlockaded(BitBoard.positionToBit_Lut[Position.b2], false));
 	}
 	
 	@Test
 	public void test_pawnIsBlockaded_white() {
 		setUpPosition("8/8/8/8/8/1n6/1P6/8 w - - 0 1");
-		assertTrue(classUnderTest.isPawnBlockaded(Position.b2, true));
+		assertTrue(classUnderTest.isPawnBlockaded(BitBoard.positionToBit_Lut[Position.b2], true));
 	}
 	
 	@Test
@@ -1338,31 +1338,31 @@ public class BoardTest {
 	@Test
 	public void test_pawnIsNotBlockaded_ownColour_white() {
 		setUpPosition("8/8/8/8/8/1N6/1P6/8 w - - 0 1");
-		assertFalse(classUnderTest.isPawnBlockaded(Position.b2, true));
+		assertFalse(classUnderTest.isPawnBlockaded(BitBoard.positionToBit_Lut[Position.b2], true));
 	}
 	
 	@Test
 	public void test_heavy_behind_pawn() {
 		setUpPosition("8/8/8/P7/8/8/8/Q7 w - - 0 1");
-		assertEquals(1, classUnderTest.checkForHeavyPieceBehindPassedPawn(Position.a5, true));
+		assertEquals(1, classUnderTest.checkForHeavyPieceBehindPassedPawn(BitBoard.positionToBit_Lut[Position.a5], true));
 	}
 	
 	@Test
 	public void test_heavy_behind_pawn_but_blocked_by_enemy() {
 		setUpPosition("8/8/8/P7/8/n7/8/Q7 w - - 0 1");
-		assertEquals(0, classUnderTest.checkForHeavyPieceBehindPassedPawn(Position.a5, true));
+		assertEquals(0, classUnderTest.checkForHeavyPieceBehindPassedPawn(BitBoard.positionToBit_Lut[Position.a5], true));
 	}
 	
 	@Test
 	public void test_enemy_heavy_behind_pawn_() {
 		setUpPosition("8/8/8/P7/r7/n7/8/R7 w - - 0 1");
-		assertEquals(-1, classUnderTest.checkForHeavyPieceBehindPassedPawn(Position.a5, true));
+		assertEquals(-1, classUnderTest.checkForHeavyPieceBehindPassedPawn(BitBoard.positionToBit_Lut[Position.a5], true));
 	}
 	
 	@Test
 	public void test_enemy_heavy_behind_pawn_simple() {
 		setUpPosition("8/8/8/P7/8/8/8/q7 w - - 0 1");
-		assertEquals(-1, classUnderTest.checkForHeavyPieceBehindPassedPawn(Position.a5, true));
+		assertEquals(-1, classUnderTest.checkForHeavyPieceBehindPassedPawn(BitBoard.positionToBit_Lut[Position.a5], true));
 	}
 	
 	@Test

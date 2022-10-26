@@ -100,6 +100,9 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	@SuppressWarnings("unused")
 	@Override
 	public void callback(int piece, int atPos) {
+		/* All of the evaluation performed in this callback doesn't depend on the wider position or attacks mask,
+		 * it can only be based on the pawn bitboard. This is because the result of this evaluation is stored in
+		 * the pawn eval hash table and as such has to be valid for any position with the same pawn structure. */
 		boolean pawnIsWhite = Piece.isWhite(piece);
 		
 		long passers = bd.getPassedPawns();
@@ -157,10 +160,10 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		return pawnEvaluationScore;
 	}
 	
-	protected int evaluateKpkEndgame(int atPos, boolean pawnIsWhite, boolean isOwnPawn, long[][] ownAttacks) {
+	protected int evaluateKpkEndgame(int bitOffset, boolean pawnIsWhite, boolean isOwnPawn, long[][] ownAttacks) {
 		// Special case, it is a KPK endgame
 		int score = 0;
-		int file = Position.getFile(atPos);
+		int file = BitBoard.getFile(bitOffset);
 		int queeningSquare = pawnIsWhite ? Position.valueOf(file, 7) : Position.valueOf(file, 0);
 		int oppoKingPos = bd.getKingPosition(!pawnIsWhite);
 		int oppoDistance = Position.distance(queeningSquare, oppoKingPos);
@@ -172,7 +175,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 			// can't be caught by opposite king, as outside square of pawn
 			score = 700;
 		} else {
-			if (bd.isFrontspanControlledInKpk(atPos, pawnIsWhite, ownAttacks[3])) {
+			if (bd.isFrontspanControlledInKpk(bitOffset, pawnIsWhite, ownAttacks[3])) {
 				// Rationale is whole frontspan can be blocked off from opposite King by own King
 				score = 700;
 			} else {
@@ -187,14 +190,14 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		return score;
 	}
 	
-	protected int evaluatePassedPawn(int atPos, boolean pawnIsWhite, long[][] own_attacks, long [][] enemy_attacks) {
+	protected int evaluatePassedPawn(int bitOffset, boolean pawnIsWhite, long[][] own_attacks, long [][] enemy_attacks) {
 		int score = 0;
 		weighting *= getScaleFactorForGamePhase();
-		int value = (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) ?
+		int value = (BitBoard.getFile(bitOffset) == IntFile.Fa || BitBoard.getFile(bitOffset) == IntFile.Fh) ?
 				ROOK_FILE_PASSED_PAWN_BOOST : PASSED_PAWN_BOOST;
 		
-		if (!bd.isPawnBlockaded(atPos, pawnIsWhite)) {
-			int heavySupportIndication = bd.checkForHeavyPieceBehindPassedPawn(atPos, pawnIsWhite);
+		if (!bd.isPawnBlockaded(bitOffset, pawnIsWhite)) {
+			int heavySupportIndication = bd.checkForHeavyPieceBehindPassedPawn(bitOffset, pawnIsWhite);
 			if (heavySupportIndication > 0) {
 				score += HEAVY_PIECE_BEHIND_PASSED_PAWN;
 			} else if (heavySupportIndication < 0) {
@@ -202,9 +205,9 @@ public class PawnEvaluator implements IForEachPieceCallback {
 			} else {
 				// neither attacked or defended along the rear span
 			}
-			if (bd.isPawnFrontspanSafe(atPos, pawnIsWhite, own_attacks[3], enemy_attacks[3], heavySupportIndication > 0)) {
+			if (bd.isPawnFrontspanSafe(bitOffset, pawnIsWhite, own_attacks[3], enemy_attacks[3], heavySupportIndication > 0)) {
 				value += SAFE_MOBILE_PASSED_PAWN;
-			} else if (bd.canPawnAdvance(atPos, pawnIsWhite, own_attacks[3], enemy_attacks[3])) {
+			} else if (bd.canPawnAdvance(bitOffset, pawnIsWhite, own_attacks[3], enemy_attacks[3])) {
 				value += MOBILE_PASSED_PAWN;
 			}
 		}
@@ -222,17 +225,16 @@ public class PawnEvaluator implements IForEachPieceCallback {
 			
 			int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
 			long bitMask = 1L << bit_offset;
-			int pawn_position = BitBoard.bitToPosition_Lut[bit_offset];
 			
 			boolean pawnIsWhite = (white & bitMask) == bitMask;
 			long[][] enemy_attacks = attacks[pawnIsWhite ? 1:0];
 			long[][] own_attacks = attacks[pawnIsWhite ? 0:1];
 			
-			setQueeningDistance(pawn_position, pawnIsWhite);
+			setQueeningDistance(BitBoard.bitToPosition_Lut[bit_offset], pawnIsWhite);
 			if (ENABLE_KPK_EVALUATION && bd.me.phase == 4096) {
-				score = evaluateKpkEndgame(pawn_position, pawnIsWhite, (pawnIsWhite == onMoveIsWhite), own_attacks);
+				score = evaluateKpkEndgame(bit_offset, pawnIsWhite, (pawnIsWhite == onMoveIsWhite), own_attacks);
 			} else {
-				score = evaluatePassedPawn(pawn_position, pawnIsWhite, own_attacks, enemy_attacks);
+				score = evaluatePassedPawn(bit_offset, pawnIsWhite, own_attacks, enemy_attacks);
 			}
 			if (pawnIsWhite == onMoveIsWhite) {
 				scoreForPassedPawns += score;
