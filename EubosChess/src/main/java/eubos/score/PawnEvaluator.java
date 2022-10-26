@@ -140,7 +140,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	
 	@Override
 	public boolean condition_callback(int piece, int atPos) {
-		return bd.isPassedPawn(atPos);
+		return bd.isPassedPawn(BitBoard.positionToBit_Lut[atPos], BitBoard.positionToMask_Lut[atPos]);
 	}
 	
 	public int getDoubledPawnsHandicap(long pawns) {
@@ -243,7 +243,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 			}
 			
 			// clear the lssb
-			scratchBitBoard &= scratchBitBoard-1;
+			scratchBitBoard ^= bitMask;
 		}
 
 		return scoreForPassedPawns;
