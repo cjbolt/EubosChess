@@ -98,7 +98,7 @@ public class Board {
 		passedPawns = 0L;
 		while ( scratchBitBoard != 0x0L ) {
 			int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
-			long bit_mask = Long.lowestOneBit(scratchBitBoard);
+			long bit_mask = 1L << bit_offset;
 			boolean isWhite = ((whitePieces & bit_mask) != 0L);
 			if (isPassedPawn(bit_offset, isWhite)) {
 	    		// ...target square becomes pp for piece to move!
@@ -280,7 +280,7 @@ public class Board {
 				long scratchBitBoard = getPawns() & file_masks;
 				while ( scratchBitBoard != 0x0L ) {
 					int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
-					long pawn_mask = Long.lowestOneBit(scratchBitBoard);
+					long pawn_mask = 1L << bit_offset;
 					if (isPassedPawn(bit_offset, (pawn_mask & whitePieces) != 0L)) {
 						passedPawns |= pawn_mask;
 					}
