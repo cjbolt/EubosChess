@@ -7,6 +7,7 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
+import eubos.board.BitBoard;
 import eubos.board.Board;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
@@ -122,7 +123,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		boolean isDrawing = false;
 		int capturePosition = Position.NOPOSITION;
 		int pieceToMove = Move.getOriginPiece(move);
-		int targetSquare = Move.getTargetPosition(move);
+		int targetSquare = BitBoard.bitToPosition_Lut[Move.getTargetPosition(move)];
 		int targetPiece = Move.getTargetPiece(move);
 		int enPassantFile = IntFile.NOFILE;
 		

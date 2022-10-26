@@ -702,7 +702,7 @@ public abstract class Piece {
 	private static void multidirect_addMoves_White(IAddMoves ml, Board theBoard, int[][] moves) {
 		for (int[] movesInDirection : moves) {
 			for (int new_move : movesInDirection) {
-				int targetPiece = theBoard.getPieceAtSquareEnemyBlack(Move.getTargetPosition(new_move));
+				int targetPiece = theBoard.getPieceAtSquareEnemyBlack(1L << Move.getTargetPosition(new_move));
 				switch(targetPiece) {
 				case Piece.NONE:
 					ml.addNormal(new_move);
@@ -722,7 +722,7 @@ public abstract class Piece {
 	private static void multidirect_addMoves_Black(IAddMoves ml, Board theBoard, int[][] moves) {
 		for (int[] movesInDirection : moves) {
 			for (int new_move : movesInDirection) {
-				int targetPiece = theBoard.getPieceAtSquareEnemyWhite(Move.getTargetPosition(new_move));
+				int targetPiece = theBoard.getPieceAtSquareEnemyWhite(1L << Move.getTargetPosition(new_move));
 				switch(targetPiece) {
 				case Piece.NONE:
 					ml.addNormal(new_move);
@@ -742,7 +742,7 @@ public abstract class Piece {
 	private static void multidirect_addCapturesForBlack(IAddMoves ml, Board theBoard, int[][] moves) {
 		for (int[] movesInDirection : moves) {
 			for (int new_move : movesInDirection) {
-				int targetPiece = theBoard.getPieceAtSquareEnemyWhite(Move.getTargetPosition(new_move));
+				int targetPiece = theBoard.getPieceAtSquareEnemyWhite(1L << Move.getTargetPosition(new_move));
 				switch(targetPiece) {
 				case Piece.NONE:
 					continue;
@@ -761,7 +761,7 @@ public abstract class Piece {
 	private static void multidirect_addCapturesForWhite(IAddMoves ml, Board theBoard, int[][] moves) {
 		for (int[] movesInDirection : moves) {
 			for (int new_move : movesInDirection) {
-				int targetPiece = theBoard.getPieceAtSquareEnemyBlack(Move.getTargetPosition(new_move));
+				int targetPiece = theBoard.getPieceAtSquareEnemyBlack(1L << Move.getTargetPosition(new_move));
 				switch(targetPiece) {
 				case Piece.NONE:
 					continue;
@@ -779,7 +779,7 @@ public abstract class Piece {
 	
 	private static void single_addMoves_White(IAddMoves ml, Board theBoard, int[] moves) {
 		for (int new_move : moves) {
-			int targetPiece = theBoard.getPieceAtSquareEnemyBlack(Move.getTargetPosition(new_move));
+			int targetPiece = theBoard.getPieceAtSquareEnemyBlack(1L << Move.getTargetPosition(new_move));
 			switch(targetPiece) {
 			case Piece.NONE:
 				ml.addNormal(new_move);
@@ -796,7 +796,7 @@ public abstract class Piece {
 	
 	private static void single_addMoves_Black(IAddMoves ml, Board theBoard, int[] moves) {
 		for (int new_move : moves) {
-			int targetPiece = theBoard.getPieceAtSquareEnemyWhite(Move.getTargetPosition(new_move));
+			int targetPiece = theBoard.getPieceAtSquareEnemyWhite(1L << Move.getTargetPosition(new_move));
 			switch(targetPiece) {
 			case Piece.NONE:
 				ml.addNormal(new_move);
@@ -813,7 +813,7 @@ public abstract class Piece {
 	
 	private static void single_addCaptures_White(IAddMoves ml, Board theBoard, int[] moves) {
 		for (int new_move : moves) {
-			int targetPiece = theBoard.getPieceAtSquareEnemyBlack(Move.getTargetPosition(new_move));
+			int targetPiece = theBoard.getPieceAtSquareEnemyBlack(1L << Move.getTargetPosition(new_move));
 			switch(targetPiece) {
 			case Piece.NONE:
 				continue;
@@ -829,7 +829,7 @@ public abstract class Piece {
 	
 	private static void single_addCaptures_Black(IAddMoves ml, Board theBoard, int[] moves) {
 		for (int new_move : moves) {
-			int targetPiece = theBoard.getPieceAtSquareEnemyWhite(Move.getTargetPosition(new_move));
+			int targetPiece = theBoard.getPieceAtSquareEnemyWhite(1L << Move.getTargetPosition(new_move));
 			switch(targetPiece) {
 			case Piece.NONE:
 				continue;

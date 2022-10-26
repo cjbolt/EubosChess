@@ -8,6 +8,7 @@ import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.GenericRank;
 import com.fluxchess.jcpi.models.IntFile;
 
+import eubos.board.BitBoard;
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.search.KillerList;
@@ -428,9 +429,9 @@ public class MoveList implements Iterable<Integer> {
 			GenericFile file = GenericFile.valueOf(notation.charAt(0));
 			int targetSquare = getPosition(notation.substring(1));
 			for (int move : moveList) {
-		    	if ((Move.getTargetPosition(move) == targetSquare) &&
+		    	if ((BitBoard.bitToPosition_Lut[Move.getTargetPosition(move)] == targetSquare) &&
 		    		(Move.getOriginPiece(move) == originPiece) && 
-		    		(Position.getFile(Move.getOriginPosition(move)) == IntFile.valueOf(file)))
+		    		(BitBoard.getFile(Move.getOriginPosition(move)) == IntFile.valueOf(file)))
 		    		return move;
 		    }
 		}
@@ -440,7 +441,7 @@ public class MoveList implements Iterable<Integer> {
 	static private int getMove(String notation, List<Integer> moveList, int originPiece) {
 		int targetSquare = getPosition(notation);
 	    for (int move : moveList) {
-	    	if ((Move.getTargetPosition(move) == targetSquare) &&
+	    	if ((BitBoard.bitToPosition_Lut[Move.getTargetPosition(move)] == targetSquare) &&
 	    		(Move.getOriginPiece(move) == originPiece))
 	    		return move;
 	    }
@@ -468,7 +469,7 @@ public class MoveList implements Iterable<Integer> {
 			break;
 		}
 		for (int move : moveList) {
-	    	if ((Move.getTargetPosition(move) == targetSquare) &&
+	    	if ((BitBoard.bitToPosition_Lut[Move.getTargetPosition(move)] == targetSquare) &&
 	    		(Move.getOriginPiece(move) == originPiece) && 
 	    		(Move.getPromotion(move) == promo))
 	    		return move;

@@ -1,5 +1,7 @@
 package eubos.position;
 
+import eubos.board.BitBoard;
+
 class MoveTracker {
 	
 	private static final int CAPACITY = 400;
@@ -28,14 +30,6 @@ class MoveTracker {
 			tm = stack[index];
 		}
 		return tm;
-	}
-	
-	public int lastMoveTargetSquare() {
-		int targetSq = Position.NOPOSITION;
-		if (!isEmpty()) {
-			targetSq = Move.getTargetPosition(TrackedMove.getMove(stack[index-1]));
-		}
-		return targetSq;
 	}
 	
 	public boolean isEmpty() {

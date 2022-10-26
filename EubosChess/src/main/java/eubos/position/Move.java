@@ -3,6 +3,7 @@ package eubos.position;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IntChessman;
 
+import eubos.board.BitBoard;
 import eubos.board.Board;
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
@@ -71,7 +72,7 @@ public final class Move {
 		// Encode origin position
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (originPosition & 0x88) == 0;
-		move |= originPosition << ORIGINPOSITION_SHIFT;
+		move |= BitBoard.positionToBit_Lut[originPosition] << ORIGINPOSITION_SHIFT;
 		
 		// Encode Origin Piece
 		if (EubosEngineMain.ENABLE_ASSERTS)
@@ -81,7 +82,7 @@ public final class Move {
 		// Encode target position
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (targetPosition & 0x88) == 0;
-		move |= targetPosition << TARGETPOSITION_SHIFT;
+		move |= BitBoard.positionToBit_Lut[targetPosition] << TARGETPOSITION_SHIFT;
 		
 		return move;
 	}
@@ -119,12 +120,12 @@ public final class Move {
 		// Encode Origin position
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (originPosition & 0x88) == 0;
-		move |= originPosition << ORIGINPOSITION_SHIFT;
+		move |= BitBoard.positionToBit_Lut[originPosition] << ORIGINPOSITION_SHIFT;
 		
 		// Encode target position
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (targetPosition & 0x88) == 0;
-		move |= targetPosition << TARGETPOSITION_SHIFT;
+		move |= BitBoard.positionToBit_Lut[targetPosition] << TARGETPOSITION_SHIFT;
 				
 		// Encode promotion
 		if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -200,8 +201,8 @@ public final class Move {
 		if (move == Move.NULL_MOVE)
 			return null;
 		
-		int originPosition = getOriginPosition(move);
-		int targetPosition = getTargetPosition(move);
+		int originPosition = BitBoard.bitToPosition_Lut[getOriginPosition(move)];
+		int targetPosition = BitBoard.bitToPosition_Lut[getTargetPosition(move)];
 
 		if (isPromotion(move)) {
 			return new GenericMove(
@@ -254,7 +255,7 @@ public final class Move {
 		// Encode target position
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (targetPosition & 0x88) == 0;
-		move |= targetPosition << TARGETPOSITION_SHIFT;
+		move |= BitBoard.positionToBit_Lut[targetPosition] << TARGETPOSITION_SHIFT;
 
 		return move;
 	}

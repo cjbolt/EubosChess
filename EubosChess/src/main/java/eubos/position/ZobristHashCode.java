@@ -6,6 +6,7 @@ import java.util.Stack;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
+import eubos.board.BitBoard;
 import eubos.board.IForEachPieceCallback;
 import eubos.board.Piece;
 
@@ -128,8 +129,8 @@ public class ZobristHashCode implements IForEachPieceCallback {
 	public void update(int move, int capturedPieceSquare, int enPassantFile) {
 		// Unpack move
 		piece = Move.getOriginPiece(move);
-		originSquare = Move.getOriginPosition(move);
-		targetSquare = Move.getTargetPosition(move);
+		originSquare = BitBoard.bitToPosition_Lut[Move.getOriginPosition(move)];
+		targetSquare = BitBoard.bitToPosition_Lut[Move.getTargetPosition(move)];
 		targetPiece = Move.getTargetPiece(move);
 		promotedPiece = Move.getPromotion(move);
 		// Update

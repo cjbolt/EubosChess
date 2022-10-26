@@ -153,15 +153,15 @@ public class Board {
 		int capturePosition = Position.NOPOSITION;
 		int pieceToMove = Move.getOriginPiece(move);
 		boolean isWhite = Piece.isWhite(pieceToMove);
-		int originSquare = Move.getOriginPosition(move);
-		int targetSquare = Move.getTargetPosition(move);
+		int originBitOffset = Move.getOriginPosition(move);
+		int targetBitOffset = Move.getTargetPosition(move);
 		int targetPiece = Move.getTargetPiece(move);
 		int promotedPiece = Move.getPromotion(move);
-		long initialSquareMask = BitBoard.positionToMask_Lut[originSquare];
-		long targetSquareMask = BitBoard.positionToMask_Lut[targetSquare];
+		long initialSquareMask = 1L << originBitOffset;
+		long targetSquareMask = 1L << targetBitOffset;
 		long positionsMask = initialSquareMask | targetSquareMask;
-		int originBitOffset = BitBoard.positionToBit_Lut[originSquare];
-		int targetBitOffset = BitBoard.positionToBit_Lut[targetSquare];
+		int originSquare = BitBoard.bitToPosition_Lut[originBitOffset];
+		int targetSquare = BitBoard.bitToPosition_Lut[targetBitOffset];
 		
 		// Check assertions, if enabled in build
 		if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -317,14 +317,16 @@ public class Board {
 		int capturedPieceSquare = Position.NOPOSITION;
 		int originPiece = Move.getOriginPiece(moveToUndo);
 		boolean isWhite = Piece.isWhite(originPiece);
-		int originSquare = Move.getOriginPosition(moveToUndo);
-		int targetSquare = Move.getTargetPosition(moveToUndo);
+		int originBitOffset = Move.getOriginPosition(moveToUndo);
+		int targetBitOffset = Move.getTargetPosition(moveToUndo);
 		int targetPiece = Move.getTargetPiece(moveToUndo);
 		int promotedPiece = Move.getPromotion(moveToUndo);
-		long initialSquareMask = BitBoard.positionToMask_Lut[originSquare];
-		long targetSquareMask = BitBoard.positionToMask_Lut[targetSquare];
+		long initialSquareMask = 1L << originBitOffset;
+		long targetSquareMask = 1L << targetBitOffset;
 		long positionsMask = initialSquareMask | targetSquareMask;
 		boolean isCapture = targetPiece != Piece.NONE;
+		int originSquare = BitBoard.bitToPosition_Lut[originBitOffset];
+		int targetSquare = BitBoard.bitToPosition_Lut[targetBitOffset];
 		
 		// Check assertions, if enabled in build
 		if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -477,7 +479,7 @@ public class Board {
 	public boolean moveCausesDiscoveredCheck(int move, int kingPosition, boolean isWhite) {
 		boolean isPinned = false;
 		long kingMask = BitBoard.positionToMask_Lut[kingPosition];
-		long pinSquare = BitBoard.positionToMask_Lut[Move.getOriginPosition(move)];
+		long pinSquare = 1L << Move.getOriginPosition(move);
 
 		long diagonalAttacksOnKing = SquareAttackEvaluator.directDiagonalAttacksOnPosition_Lut[kingPosition];
 		if ((pinSquare & diagonalAttacksOnKing) != 0L) {
@@ -486,7 +488,7 @@ public class Board {
 			if ((diagonalAttackersMask & diagonalAttacksOnKing) == 0L) return isPinned;
 			
 			// what if move is capturing the pinning piece? then it is ok
-			int targetPosition = Move.getTargetPosition(move);
+			int targetPosition = BitBoard.bitToPosition_Lut[Move.getTargetPosition(move)];
 			long targetSquare = BitBoard.positionToMask_Lut[targetPosition];
 			diagonalAttackersMask &= ~targetSquare;
 			if ((diagonalAttackersMask & diagonalAttacksOnKing) == 0L) return isPinned;
@@ -554,7 +556,7 @@ public class Board {
 				if ((rankFileAttackersMask & rankFileAttacksOnKing) == 0L) return isPinned;
 				
 				// what if move is capturing the pinning piece? then it is ok
-				int targetPosition = Move.getTargetPosition(move);
+				int targetPosition = BitBoard.bitToPosition_Lut[Move.getTargetPosition(move)];
 				long targetSquare = BitBoard.positionToMask_Lut[targetPosition];
 				rankFileAttackersMask &= ~targetSquare;
 				if ((rankFileAttackersMask & rankFileAttacksOnKing) == 0L) return isPinned;
@@ -642,7 +644,7 @@ public class Board {
 		long rankFileAttackersMask = attackingQueensMask | attackingRooksMask;
 		
 		// Establish if the initial square is on a multiple square slider mask from the king position, for which there is a potential pin
-		long pinSquare = BitBoard.positionToMask_Lut[Move.getOriginPosition(move)];
+		long pinSquare = 1L << Move.getOriginPosition(move);
 		long diagonalAttacksOnKing = SquareAttackEvaluator.directDiagonalAttacksOnPosition_Lut[kingPosition];
 		if ((diagonalAttackersMask & diagonalAttacksOnKing) != 0L) {
 			if ((pinSquare & diagonalAttacksOnKing) != 0L) return true;
@@ -679,12 +681,14 @@ public class Board {
 		}
 		if (doCheck) {		
 			int capturePosition = Position.NOPOSITION;
-			int originSquare = Move.getOriginPosition(move);
-			int targetSquare = Move.getTargetPosition(move);
+			int originBitOffset = Move.getOriginPosition(move);
+			int targetBitOffset = Move.getTargetPosition(move);
+			int originSquare = BitBoard.bitToPosition_Lut[originBitOffset];
+			int targetSquare = BitBoard.bitToPosition_Lut[targetBitOffset];
 			int targetPiece = Move.getTargetPiece(move);
 			boolean isCapture = targetPiece != Piece.NONE;
-			long initialSquareMask = BitBoard.positionToMask_Lut[originSquare];
-			long targetSquareMask = BitBoard.positionToMask_Lut[targetSquare];
+			long initialSquareMask = 1L << originBitOffset;
+			long targetSquareMask = 1L << targetBitOffset;
 			long positionsMask = initialSquareMask | targetSquareMask;
 			
 			long pieceToPickUp = Position.NOPOSITION;
@@ -803,8 +807,8 @@ public class Board {
 	
 	public boolean isPlayableMove(int move, boolean needToEscapeMate, CastlingManager castling) {
 		int pieceToMove = Move.getOriginPiece(move);
-		int originSquare = Move.getOriginPosition(move);
-		int targetSquare = Move.getTargetPosition(move);
+		int originSquare = BitBoard.bitToPosition_Lut[Move.getOriginPosition(move)];
+		int targetSquare = BitBoard.bitToPosition_Lut[Move.getTargetPosition(move)];
 		int targetPiece = Move.getTargetPiece(move);
 		
 		if (getPieceAtSquare(originSquare) != pieceToMove) {
@@ -1062,9 +1066,64 @@ public class Board {
 		return type;
 	}
 	
+	public int getPieceAtSquareEnemyWhite(long pieceToGet) {
+		int type = Piece.NONE;
+		if ((allPieces & pieceToGet) != 0) {	
+			if ((blackPieces & pieceToGet) != 0) {
+				return Piece.DONT_CARE;
+			} else {
+				if (EubosEngineMain.ENABLE_ASSERTS)
+					assert (whitePieces & pieceToGet) != 0;
+			}
+			// Sorted in order of frequency of piece on the chess board, for efficiency
+			if ((pieces[INDEX_PAWN] & pieceToGet) != 0) {
+				type |= Piece.PAWN;
+			} else if ((pieces[INDEX_ROOK] & pieceToGet) != 0) {
+				type |= Piece.ROOK;
+			} else if ((pieces[INDEX_BISHOP] & pieceToGet) != 0) {
+				type |= Piece.BISHOP;
+			} else if ((pieces[INDEX_KNIGHT] & pieceToGet) != 0) {
+				type |= Piece.KNIGHT;
+			} else if ((pieces[INDEX_KING] & pieceToGet) != 0) {
+				type |= Piece.KING;
+			} else if ((pieces[INDEX_QUEEN] & pieceToGet) != 0) {
+				type |= Piece.QUEEN;
+			}
+		}
+		return type;
+	}
+	
 	public int getPieceAtSquareEnemyBlack(int atPos) {
 		int type = Piece.NONE;
 		long pieceToGet = BitBoard.positionToMask_Lut[atPos];
+		if ((allPieces & pieceToGet) != 0) {	
+			if ((blackPieces & pieceToGet) != 0) {
+				type |= Piece.BLACK;
+			} else {
+				if (EubosEngineMain.ENABLE_ASSERTS)
+					assert (whitePieces & pieceToGet) != 0;
+				return Piece.DONT_CARE;
+			}
+			// Sorted in order of frequency of piece on the chess board, for efficiency
+			if ((pieces[INDEX_PAWN] & pieceToGet) != 0) {
+				type |= Piece.PAWN;
+			} else if ((pieces[INDEX_ROOK] & pieceToGet) != 0) {
+				type |= Piece.ROOK;
+			} else if ((pieces[INDEX_BISHOP] & pieceToGet) != 0) {
+				type |= Piece.BISHOP;
+			} else if ((pieces[INDEX_KNIGHT] & pieceToGet) != 0) {
+				type |= Piece.KNIGHT;
+			} else if ((pieces[INDEX_KING] & pieceToGet) != 0) {
+				type |= Piece.KING;
+			} else if ((pieces[INDEX_QUEEN] & pieceToGet) != 0) {
+				type |= Piece.QUEEN;
+			}
+		}
+		return type;
+	}
+	
+	public int getPieceAtSquareEnemyBlack(long pieceToGet) {
+		int type = Piece.NONE;
 		if ((allPieces & pieceToGet) != 0) {	
 			if ((blackPieces & pieceToGet) != 0) {
 				type |= Piece.BLACK;

@@ -2,6 +2,7 @@ package eubos.position;
 
 import com.fluxchess.jcpi.models.IntFile;
 
+import eubos.board.BitBoard;
 import eubos.board.Board;
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
@@ -182,11 +183,11 @@ public class CastlingManager {
 			case Piece.WHITE_ROOK:
 				{
 					// Rook moved
-					int originPosition = Move.getOriginPosition(lastMove);
-					if (Position.getFile(originPosition)==IntFile.Fa) {
+					int originBitOffset = Move.getOriginPosition(lastMove);
+					if (BitBoard.getFile(originBitOffset)==IntFile.Fa) {
 						flags &= ~WHITE_QUEENSIDE;
 					} 
-					if (Position.getFile(originPosition)==IntFile.Fh) {
+					if (BitBoard.getFile(originBitOffset)==IntFile.Fh) {
 						flags &= ~WHITE_KINGSIDE;
 					}
 				}
@@ -194,10 +195,10 @@ public class CastlingManager {
 			case Piece.BLACK_ROOK:
 				{
 					// Rook moved
-					int originPosition = Move.getOriginPosition(lastMove);
-					if (Position.getFile(originPosition)==IntFile.Fa) {
+					int originBitOffset = Move.getOriginPosition(lastMove);
+					if (BitBoard.getFile(originBitOffset)==IntFile.Fa) {
 						flags &= ~BLACK_QUEENSIDE;
-					} else if (Position.getFile(originPosition)==IntFile.Fh) {
+					} else if (BitBoard.getFile(originBitOffset)==IntFile.Fh) {
 						flags &= ~BLACK_KINGSIDE;
 					}
 				}
@@ -208,13 +209,13 @@ public class CastlingManager {
 			// After this, the move wasn't castling, but may have caused castling to be no longer possible
 			// If a rook got captured
 			int targetPosition = Move.getTargetPosition(lastMove);
-			if (targetPosition == Position.a8) {
+			if (targetPosition == BitBoard.positionToBit_Lut[Position.a8]) {
 				flags &= ~BLACK_QUEENSIDE;
-			} else if (targetPosition == Position.h8) {
+			} else if (targetPosition == BitBoard.positionToBit_Lut[Position.h8]) {
 				flags &= ~BLACK_KINGSIDE;
-			} else if (targetPosition == Position.a1) {
+			} else if (targetPosition == BitBoard.positionToBit_Lut[Position.a1]) {
 				flags &= ~WHITE_QUEENSIDE;
-			} else if (targetPosition == Position.h1) {
+			} else if (targetPosition == BitBoard.positionToBit_Lut[Position.h1]) {
 				flags &= ~WHITE_KINGSIDE;
 			}
 		}
