@@ -276,15 +276,15 @@ public final class BitBoard {
 	
 	public static final long[][] PawnFrontSpan_Lut = new long[2][]; 
 	static {
-		long[] white_map = new long[128];
+		long[] white_map = new long[64];
 		PawnFrontSpan_Lut[Colour.white.ordinal()] = white_map;
-		for (int atPos : Position.values) {
-			white_map[atPos] = buildFrontSpanMask(Position.getFile(atPos), Position.getRank(atPos), true);
+		for (int bitOffset=0; bitOffset<64; bitOffset++) {
+			white_map[bitOffset] = buildFrontSpanMask(BitBoard.getFile(bitOffset), BitBoard.getRank(bitOffset), true);
 		}
-		long[] black_map = new long[128];
+		long[] black_map = new long[64];
 		PawnFrontSpan_Lut[Colour.black.ordinal()] = black_map;
-		for (int atPos : Position.values) {
-			black_map[atPos] = buildFrontSpanMask(Position.getFile(atPos), Position.getRank(atPos), false);
+		for (int bitOffset=0; bitOffset<64; bitOffset++) {
+			black_map[bitOffset] = buildFrontSpanMask(BitBoard.getFile(bitOffset), BitBoard.getRank(bitOffset), false);
 		}
 	}
 	private static long buildFrontSpanMask(int f, int r, boolean isWhite) {
@@ -307,15 +307,15 @@ public final class BitBoard {
 	
 	public static final long[][] PassedPawn_Lut = new long[2][]; 
 	static {
-		long[] white_map = new long[128];
+		long[] white_map = new long[64];
 		PassedPawn_Lut[Colour.white.ordinal()] = white_map;
-		for (int atPos : Position.values) {
-			white_map[atPos] = buildPassedPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), true);
+		for (int bitOffset=0; bitOffset<64; bitOffset++) {
+			white_map[bitOffset] = buildPassedPawnFileMask(BitBoard.getFile(bitOffset), BitBoard.getRank(bitOffset), true);
 		}
-		long[] black_map = new long[128];
+		long[] black_map = new long[64];
 		PassedPawn_Lut[Colour.black.ordinal()] = black_map;
-		for (int atPos : Position.values) {
-			black_map[atPos] = buildPassedPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), false);
+		for (int bitOffset=0; bitOffset<64; bitOffset++) {
+			black_map[bitOffset] = buildPassedPawnFileMask(BitBoard.getFile(bitOffset), BitBoard.getRank(bitOffset), false);
 		}
 	}
 	private static long buildPassedPawnFileMask(int f, int r, boolean isWhite) {
@@ -543,16 +543,14 @@ public final class BitBoard {
 	
 	public static final long[][] PasserSupport_Lut = new long[2][];
 	static {
-		long[] white_map = new long[128];
-		for (int atPos : Position.values) {
-			white_map[atPos] = BitBoard.PassedPawn_Lut[0][atPos] & ~BitBoard.PawnFrontSpan_Lut[0][atPos];
-			//white_map[atPos] |= createAdjacentPawnsFromSq(atPos);
+		long[] white_map = new long[64];
+		for (int bitOffset=0; bitOffset<64; bitOffset++) {
+			white_map[bitOffset] = BitBoard.PassedPawn_Lut[0][bitOffset] & ~BitBoard.PawnFrontSpan_Lut[0][bitOffset];
 		}
 		PasserSupport_Lut[Colour.white.ordinal()] = white_map;
-		long[] black_map = new long[128];
-		for (int atPos : Position.values) {
-			black_map[atPos] = BitBoard.PassedPawn_Lut[1][atPos] & ~BitBoard.PawnFrontSpan_Lut[1][atPos];
-			//black_map[atPos] |= createAdjacentPawnsFromSq(atPos);
+		long[] black_map = new long[64];
+		for (int bitOffset=0; bitOffset<64; bitOffset++) {
+			black_map[bitOffset] = BitBoard.PassedPawn_Lut[1][bitOffset] & ~BitBoard.PawnFrontSpan_Lut[1][bitOffset];
 		}
 		PasserSupport_Lut[Colour.black.ordinal()] = black_map;
 	}

@@ -116,12 +116,12 @@ public class PawnEvaluator implements IForEachPieceCallback {
 			piecewisePawnScoreAccumulator += (Long.bitCount(ownPassers & directConnectedPawns) * CONNECTED_PASSED_PAWN_BOOST);
 				
 			// check for otherwise connected passed pawns, which could be supported
-			piecewisePawnScoreAccumulator += (Long.bitCount(ownPassers & BitBoard.PasserSupport_Lut[pawnIsWhite ? 0 : 1][atPos]) * CONNECTED_PASSED_PAWN_BOOST/2);
+			piecewisePawnScoreAccumulator += (Long.bitCount(ownPassers & BitBoard.PasserSupport_Lut[pawnIsWhite ? 0 : 1][BitBoard.positionToBit_Lut[atPos]]) * CONNECTED_PASSED_PAWN_BOOST/2);
 		} else if (ENABLE_CANDIDATE_PP_EVALUATION) {
 			long[][] enemy_attacks = attacks[pawnIsWhite ? 1:0];
 			long[][] own_attacks = attacks[pawnIsWhite ? 0:1];
 			
-			if (bd.isCandidatePassedPawn(atPos, pawnIsWhite, own_attacks[0], enemy_attacks[0])) {
+			if (bd.isCandidatePassedPawn(BitBoard.positionToBit_Lut[atPos], pawnIsWhite, own_attacks[0], enemy_attacks[0])) {
 				setQueeningDistance(atPos, pawnIsWhite);
 				weighting *= getScaleFactorForGamePhase();
 				if (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) {
