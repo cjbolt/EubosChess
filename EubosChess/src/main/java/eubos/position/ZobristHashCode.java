@@ -67,7 +67,7 @@ public class ZobristHashCode implements IForEachPieceCallback {
 	
 	@Override
 	public void callback(int piece, int atPos) { 
-		hashCode ^= getPrnForPiece(atPos, piece);
+		hashCode ^= getPrnForPiece(BitBoard.positionToBit_Lut[atPos], piece);
 	}
 	
 	@Override
@@ -97,28 +97,28 @@ public class ZobristHashCode implements IForEachPieceCallback {
 		return hashCode;
 	}
 	
-	static final int [] positionToZobristIndex_Lut = new int[128];
+	static final int [] positionToZobristIndex_Lut = new int[64];
 	static {
 		for (int pos : Position.values) {
 			int atFile = Position.getFile(pos);
 			int atRank = Position.getRank(pos);
 			int lookupIndex = atFile + atRank * 8;
-			positionToZobristIndex_Lut[pos] = lookupIndex;
+			positionToZobristIndex_Lut[BitBoard.positionToBit_Lut[pos]] = lookupIndex;
 		}
 	}
 			
-	protected long getPrnForPiece(int pos, int currPiece) {
+	protected long getPrnForPiece(int bitOffset, int currPiece) {
 		// compute prnLookup index to use, based on piece type, colour and square.
 		int pieceType = (currPiece & Piece.PIECE_NO_COLOUR_MASK) - 1; // convert piece type to Zobrist index
-		int lookupIndex = positionToZobristIndex_Lut[pos] + pieceType * NUM_SQUARES;
+		int lookupIndex = positionToZobristIndex_Lut[bitOffset] + pieceType * NUM_SQUARES;
 		if (Piece.isBlack(currPiece)) {
 			lookupIndex += INDEX_BLACK;
 		}		
 		return prnLookupTable[lookupIndex];
 	}
 	
-	protected long getPrnForRook(int pos, boolean isBlack) {
-		int lookupIndex = positionToZobristIndex_Lut[pos] + (Piece.ROOK - 1) * NUM_SQUARES;
+	protected long getPrnForRook(int bitOffset, boolean isBlack) {
+		int lookupIndex = positionToZobristIndex_Lut[bitOffset] + (Piece.ROOK - 1) * NUM_SQUARES;
 		if (isBlack) {
 			lookupIndex += INDEX_BLACK;
 		}		
@@ -129,8 +129,8 @@ public class ZobristHashCode implements IForEachPieceCallback {
 	public void update(int move, int capturedPieceSquare, int enPassantFile) {
 		// Unpack move
 		piece = Move.getOriginPiece(move);
-		originSquare = BitBoard.bitToPosition_Lut[Move.getOriginPosition(move)];
-		targetSquare = BitBoard.bitToPosition_Lut[Move.getTargetPosition(move)];
+		originSquare = Move.getOriginPosition(move);
+		targetSquare = Move.getTargetPosition(move);
 		targetPiece = Move.getTargetPiece(move);
 		promotedPiece = Move.getPromotion(move);
 		// Update
@@ -157,8 +157,8 @@ public class ZobristHashCode implements IForEachPieceCallback {
 		} else {
 			// Promotion - first set the colour bit flag
 			promotedPiece = Piece.isWhite(piece) ? promotedPiece : Piece.BLACK|promotedPiece;
-			if ((Position.getRank(targetSquare) == IntRank.R1) ||
-				(Position.getRank(targetSquare) == IntRank.R8)) {
+			if ((BitBoard.getRank(targetSquare) == IntRank.R1) ||
+				(BitBoard.getRank(targetSquare) == IntRank.R8)) {
 				// is doing a promotion
 				hashCode ^= getPrnForPiece(targetSquare, promotedPiece);
 				hashCode ^= getPrnForPiece(originSquare, piece);
@@ -172,7 +172,7 @@ public class ZobristHashCode implements IForEachPieceCallback {
 
 	protected void doCapturedPiece(int capturedPieceSquare) {
 		if (targetPiece != Piece.NONE)
-			hashCode ^= getPrnForPiece(capturedPieceSquare, targetPiece);
+			hashCode ^= getPrnForPiece(BitBoard.positionToBit_Lut[capturedPieceSquare], targetPiece);
 	}
 
 	private void setTargetFile(int enPasFile) {
@@ -227,43 +227,43 @@ public class ZobristHashCode implements IForEachPieceCallback {
 
 	protected void doSecondaryMove(int move) {
 		if (piece == Piece.WHITE_KING) {
-			if (originSquare == Position.e1) {
+			if (originSquare == BitBoard.positionToBit_Lut[Position.e1]) {
 				if (Move.areEqual(move, CastlingManager.wksc)) {
-					hashCode ^= getPrnForRook(Position.f1, false); // to
-					hashCode ^= getPrnForRook(Position.h1, false); // from
+					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.f1], false); // to
+					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.h1], false); // from
 				} else if (Move.areEqual(move, CastlingManager.wqsc)) {
-					hashCode ^= getPrnForRook(Position.d1, false); // to
-					hashCode ^= getPrnForRook(Position.a1, false); // from
+					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.d1], false); // to
+					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.a1], false); // from
 				}
-			} else if (originSquare == Position.g1) {
+			} else if (originSquare == BitBoard.positionToBit_Lut[Position.g1]) {
 				if (Move.areEqual(move, CastlingManager.undo_wksc)) {
-					hashCode ^= getPrnForRook(Position.h1, false); // to
-					hashCode ^= getPrnForRook(Position.f1, false); // from
+					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.h1], false); // to
+					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.f1], false); // from
 				}
-			} else if (originSquare == Position.c1) {
+			} else if (originSquare == BitBoard.positionToBit_Lut[Position.c1]) {
 				if (Move.areEqual(move, CastlingManager.undo_wqsc)) {
-					hashCode ^= getPrnForRook(Position.a1, false); // to
-					hashCode ^= getPrnForRook(Position.d1, false); // from
+					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.a1], false); // to
+					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.d1], false); // from
 				}
 			}
 		} else if (piece == Piece.BLACK_KING) {
-			if (originSquare == Position.e8) {
+			if (originSquare == BitBoard.positionToBit_Lut[Position.e8]) {
 				if (Move.areEqual(move, CastlingManager.bksc)) {
-					hashCode ^= getPrnForRook(Position.f8, true); // to
-					hashCode ^= getPrnForRook(Position.h8, true); // from
+					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.f8], true); // to
+					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.h8], true); // from
 				} else if (Move.areEqual(move, CastlingManager.bqsc)) {
-					hashCode ^= getPrnForRook(Position.d8, true); // to
-					hashCode ^= getPrnForRook(Position.a8, true); // from
+					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.d8], true); // to
+					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.a8], true); // from
 				} 
-			} else if (originSquare == Position.g8) {
+			} else if (originSquare == BitBoard.positionToBit_Lut[Position.g8]) {
 				if (Move.areEqual(move, CastlingManager.undo_bksc)) {
-					hashCode ^= getPrnForRook(Position.h8, true); // to
-					hashCode ^= getPrnForRook(Position.f8, true); // from
+					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.h8], true); // to
+					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.f8], true); // from
 				}
-			} else if (originSquare == Position.c8) {
+			} else if (originSquare == BitBoard.positionToBit_Lut[Position.c8]) {
 				if (Move.areEqual(move,CastlingManager.undo_bqsc)) {
-					hashCode ^= getPrnForRook(Position.a8, true); // to
-					hashCode ^= getPrnForRook(Position.d8, true); // from
+					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.a8], true); // to
+					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.d8], true); // from
 				}
 			}
 		} else {
