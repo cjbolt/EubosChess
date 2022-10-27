@@ -149,7 +149,7 @@ public final class Move {
 			originPiece = theBoard.getPieceAtSquare(originPosition);
 			if (Piece.isPawn(originPiece) && targetPosition==theBoard.getEnPassantTargetSq()) {
 				// En Passant capture move
-				int enPassantCaptureSquare = theBoard.generateCaptureBitOffsetForEnPassant(originPiece, targetPosition);
+				int enPassantCaptureSquare = BitBoard.bitToPosition_Lut[theBoard.generateCaptureBitOffsetForEnPassant(originPiece, BitBoard.positionToBit_Lut[targetPosition])];
 				targetPiece = theBoard.getPieceAtSquare(enPassantCaptureSquare);
 				if (Piece.isPawn(targetPiece)) {
 					misc |= Move.MISC_EN_PASSANT_CAPTURE_MASK;

@@ -494,7 +494,7 @@ public class Board {
 			long enPassantCaptureMask = 0L;
 			if (Move.isEnPassantCapture(move)) {
 				// Handle en passant captures
-				enPassantCaptureMask = 1L << generateCaptureBitOffsetForEnPassant(Move.getOriginPiece(move), targetPosition);
+				enPassantCaptureMask = 1L << generateCaptureBitOffsetForEnPassant(Move.getOriginPiece(move), targetBitOffset);
 				allPieces &= ~enPassantCaptureMask;
 			}
 			allPieces &= ~pinSquare;
