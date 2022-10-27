@@ -1,6 +1,5 @@
 package eubos.search;
 
-import eubos.board.BitBoard;
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;

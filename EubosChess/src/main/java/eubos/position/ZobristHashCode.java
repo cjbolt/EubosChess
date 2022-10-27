@@ -172,7 +172,7 @@ public class ZobristHashCode implements IForEachPieceCallback {
 
 	protected void doCapturedPiece(int capturedPieceSquare) {
 		if (targetPiece != Piece.NONE)
-			hashCode ^= getPrnForPiece(BitBoard.positionToBit_Lut[capturedPieceSquare], targetPiece);
+			hashCode ^= getPrnForPiece(capturedPieceSquare, targetPiece);
 	}
 
 	private void setTargetFile(int enPasFile) {

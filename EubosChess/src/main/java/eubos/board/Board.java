@@ -150,7 +150,7 @@ public class Board {
 	public int doMove(int move) {
 		isAttacksMaskValid = false;
 		
-		int capturePosition = Position.NOPOSITION;
+		int captureBitOffset = Position.NOPOSITION;
 		int pieceToMove = Move.getOriginPiece(move);
 		boolean isWhite = Piece.isWhite(pieceToMove);
 		int originBitOffset = Move.getOriginPosition(move);
@@ -160,22 +160,20 @@ public class Board {
 		long initialSquareMask = 1L << originBitOffset;
 		long targetSquareMask = 1L << targetBitOffset;
 		long positionsMask = initialSquareMask | targetSquareMask;
-		int originSquare = BitBoard.bitToPosition_Lut[originBitOffset];
-		int targetSquare = BitBoard.bitToPosition_Lut[targetBitOffset];
 		
 		// Check assertions, if enabled in build
 		if (EubosEngineMain.ENABLE_ASSERTS) {
 			// Check piece to move is on the bitboard, and is correct side
 			assert (pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] & initialSquareMask) != 0: 
 				String.format("Non-existant piece %s at %s for move %s", 
-						Piece.toFenChar(pieceToMove), Position.toGenericPosition(originSquare), Move.toString(move));
+						Piece.toFenChar(pieceToMove), Position.toGenericPosition(BitBoard.bitToPosition_Lut[originBitOffset]), Move.toString(move));
 			assert ((isWhite ? whitePieces : blackPieces) & initialSquareMask) != 0: 
 				String.format("Piece %s not on colour board for move %s", 
 						Piece.toFenChar(pieceToMove), Move.toString(move));
 			assert (allPieces & initialSquareMask) != 0: 
 				String.format("Piece %s not on all pieces board for move %s", 
 						Piece.toFenChar(pieceToMove), Move.toString(move));
-			assert pieceLists.isPresent(pieceToMove, originSquare) :
+			assert pieceLists.isPresent(pieceToMove, originBitOffset) :
 				String.format("Piece %s is not present in PieceList for move %s", 
 					Piece.toFenChar(pieceToMove), Move.toString(move));
 		}
@@ -187,28 +185,28 @@ public class Board {
 			// Handle captures
 			if (Move.isEnPassantCapture(move)) {
 				// Handle en passant captures, don't need to do other checks in this case
-				capturePosition = generateCapturePositionForEnPassant(pieceToMove, targetSquare);
+				captureBitOffset = generateCaptureBitOffsetForEnPassant(pieceToMove, targetBitOffset);
 			} else {
-				capturePosition = targetSquare;
+				captureBitOffset = targetBitOffset;
 			}
 			if (EubosEngineMain.ENABLE_ASSERTS) {
-				long captureMask = BitBoard.positionToMask_Lut[capturePosition];
+				long captureMask = 1L << captureBitOffset;
 				assert (pieces[Piece.PIECE_NO_COLOUR_MASK & targetPiece] & captureMask) != 0: 
 					String.format("Non-existant target piece %s at %s for move %s", 
-							Piece.toFenChar(targetPiece), Position.toGenericPosition(capturePosition), Move.toString(move));
+							Piece.toFenChar(targetPiece), Position.toGenericPosition(captureBitOffset), Move.toString(move));
 				assert ((isWhite ? blackPieces : whitePieces) & captureMask) != 0: 
 					String.format("Piece %s not on colour board for move %s", 
 							Piece.toFenChar(targetPiece), Move.toString(move));
 				assert (allPieces & captureMask) != 0: 
 					String.format("Piece %s not on all pieces board for move %s", 
 							Piece.toFenChar(targetPiece), Move.toString(move));
-				assert pieceLists.isPresent(targetPiece, capturePosition) :
+				assert pieceLists.isPresent(targetPiece, captureBitOffset) :
 					String.format("Non-existant target piece %c at %s for move %s",
-						Piece.toFenChar(targetPiece), Position.toGenericPosition(capturePosition), Move.toString(move));
+						Piece.toFenChar(targetPiece), Position.toGenericPosition(captureBitOffset), Move.toString(move));
 			}
-			pickUpPieceAtSquare(capturePosition, targetPiece);
+			pickUpPieceAtSquare(1L << captureBitOffset, captureBitOffset, targetPiece);
 			// Incrementally update opponent material after capture, at the correct capturePosition
-		    subtractMaterialAndPositionForCapture(targetPiece, BitBoard.positionToBit_Lut[capturePosition]);
+		    subtractMaterialAndPositionForCapture(targetPiece, captureBitOffset);
 		} else {
 			// Check whether the move sets the En Passant target square
 			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
@@ -225,12 +223,12 @@ public class Board {
 			pieces[INDEX_PAWN] &= ~initialSquareMask;
 			pieces[promotedPiece] |= targetSquareMask;
 			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
-			pieceLists.updatePiece(pieceToMove, fullPromotedPiece, originSquare, targetSquare);
+			pieceLists.updatePiece(pieceToMove, fullPromotedPiece, originBitOffset, targetBitOffset);
 			updateMaterialAndPositionForDoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
 		} else {
 			// Piece type doesn't change across boards
 			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
-			pieceLists.updatePiece(pieceToMove, originSquare, targetSquare);
+			pieceLists.updatePiece(pieceToMove, originBitOffset, targetBitOffset);
 			// Update PST
 			me.position -= Piece.PIECE_SQUARE_TABLES[pieceToMove][originBitOffset];
 			me.position += Piece.PIECE_SQUARE_TABLES[pieceToMove][targetBitOffset];
@@ -308,7 +306,7 @@ public class Board {
 			assert scratch_me.phase == me.phase;
 		}
 		
-		return capturePosition;
+		return captureBitOffset;
 	}
 	
 	public int undoMove(int moveToUndo) {
@@ -325,14 +323,12 @@ public class Board {
 		long targetSquareMask = 1L << targetBitOffset;
 		long positionsMask = initialSquareMask | targetSquareMask;
 		boolean isCapture = targetPiece != Piece.NONE;
-		int originSquare = BitBoard.bitToPosition_Lut[originBitOffset];
-		int targetSquare = BitBoard.bitToPosition_Lut[targetBitOffset];
 		
 		// Check assertions, if enabled in build
 		if (EubosEngineMain.ENABLE_ASSERTS) {
 			long pieceMask = (promotedPiece != Piece.NONE) ? pieces[promotedPiece] : pieces[Piece.PIECE_NO_COLOUR_MASK & originPiece];
 			assert (pieceMask & initialSquareMask) != 0: String.format("Non-existant piece at %s, %s",
-					Position.toGenericPosition(originSquare), Move.toString(moveToUndo));
+					Position.toGenericPosition(BitBoard.bitToPosition_Lut[originBitOffset]), Move.toString(moveToUndo));
 		}
 		
 		// Handle reversal of any castling secondary rook moves on the board
@@ -346,16 +342,16 @@ public class Board {
 			pieces[INDEX_PAWN] |= targetSquareMask;
 			// and update piece list
 			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
-			pieceLists.updatePiece(fullPromotedPiece, originPiece, originSquare, targetSquare);
-			updateMaterialAndPositionForUndoingPromotion(fullPromotedPiece, BitBoard.positionToBit_Lut[originSquare], BitBoard.positionToBit_Lut[targetSquare]);
+			pieceLists.updatePiece(fullPromotedPiece, originPiece, originBitOffset, targetBitOffset);
+			updateMaterialAndPositionForUndoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
 		} else {
 			// Piece type doesn't change across boards
 			pieces[Piece.PIECE_NO_COLOUR_MASK & originPiece] ^= positionsMask;
-			pieceLists.updatePiece(originPiece, originSquare, targetSquare);
-			me.position -= Piece.PIECE_SQUARE_TABLES[originPiece][BitBoard.positionToBit_Lut[originSquare]];
-			me.position += Piece.PIECE_SQUARE_TABLES[originPiece][BitBoard.positionToBit_Lut[targetSquare]];
-			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[originPiece][BitBoard.positionToBit_Lut[originSquare]];
-			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[originPiece][BitBoard.positionToBit_Lut[targetSquare]];
+			pieceLists.updatePiece(originPiece, originBitOffset, targetBitOffset);
+			me.position -= Piece.PIECE_SQUARE_TABLES[originPiece][originBitOffset];
+			me.position += Piece.PIECE_SQUARE_TABLES[originPiece][targetBitOffset];
+			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[originPiece][originBitOffset];
+			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[originPiece][targetBitOffset];
 		}
 		// Switch colour bitboard
 		if (isWhite) {
@@ -370,10 +366,10 @@ public class Board {
 		if (isCapture) {
 			// Origin square because the move has been reversed and origin square is the original target square
 			capturedPieceSquare = Move.isEnPassantCapture(moveToUndo) ? 
-					generateCapturePositionForEnPassant(originPiece, originSquare) : originSquare;
-			setPieceAtSquare(capturedPieceSquare, targetPiece);
+					generateCaptureBitOffsetForEnPassant(originPiece, originBitOffset) : originBitOffset;
+			setPieceAtSquare(1L << capturedPieceSquare, capturedPieceSquare, targetPiece);
 			// Replace captured piece in incremental material update, at the correct capture square
-			addMaterialAndPositionForReplacedCapture(targetPiece, BitBoard.positionToBit_Lut[capturedPieceSquare]);
+			addMaterialAndPositionForReplacedCapture(targetPiece, capturedPieceSquare);
 		}
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -445,13 +441,13 @@ public class Board {
 		me.phase += Piece.PIECE_PHASE[promoPiece];
 	}
 	
-	public int generateCapturePositionForEnPassant(int pieceToMove, int targetSquare) {
+	public int generateCaptureBitOffsetForEnPassant(int pieceToMove, int targetBitOffset) {
 		if (pieceToMove == Piece.WHITE_PAWN) {
-			targetSquare -= 16;
+			targetBitOffset -= 8;
 		} else if (pieceToMove == Piece.BLACK_PAWN){
-			targetSquare += 16;
+			targetBitOffset += 8;
 		}
-		return targetSquare;
+		return targetBitOffset;
 	}
 	
 	private boolean moveEnablesEnPassantCapture(int originPiece, int originBitOffset, int targetBitOffset) {
@@ -488,7 +484,8 @@ public class Board {
 			if ((diagonalAttackersMask & diagonalAttacksOnKing) == 0L) return isPinned;
 			
 			// what if move is capturing the pinning piece? then it is ok
-			int targetPosition = BitBoard.bitToPosition_Lut[Move.getTargetPosition(move)];
+			int targetBitOffset = Move.getTargetPosition(move);
+			int targetPosition = BitBoard.bitToPosition_Lut[targetBitOffset];
 			long targetSquare = BitBoard.positionToMask_Lut[targetPosition];
 			diagonalAttackersMask &= ~targetSquare;
 			if ((diagonalAttackersMask & diagonalAttacksOnKing) == 0L) return isPinned;
@@ -497,7 +494,7 @@ public class Board {
 			long enPassantCaptureMask = 0L;
 			if (Move.isEnPassantCapture(move)) {
 				// Handle en passant captures
-				enPassantCaptureMask = BitBoard.positionToMask_Lut[generateCapturePositionForEnPassant(Move.getOriginPiece(move), targetPosition)];
+				enPassantCaptureMask = 1L << generateCaptureBitOffsetForEnPassant(Move.getOriginPiece(move), targetPosition);
 				allPieces &= ~enPassantCaptureMask;
 			}
 			allPieces &= ~pinSquare;
@@ -556,7 +553,8 @@ public class Board {
 				if ((rankFileAttackersMask & rankFileAttacksOnKing) == 0L) return isPinned;
 				
 				// what if move is capturing the pinning piece? then it is ok
-				int targetPosition = BitBoard.bitToPosition_Lut[Move.getTargetPosition(move)];
+				int targetBitOffset = Move.getTargetPosition(move);
+				int targetPosition = BitBoard.bitToPosition_Lut[targetBitOffset];
 				long targetSquare = BitBoard.positionToMask_Lut[targetPosition];
 				rankFileAttackersMask &= ~targetSquare;
 				if ((rankFileAttackersMask & rankFileAttacksOnKing) == 0L) return isPinned;
@@ -565,7 +563,7 @@ public class Board {
 				long enPassantCaptureMask = 0L;
 				if (Move.isEnPassantCapture(move)) {
 					// Handle en passant captures
-					enPassantCaptureMask = BitBoard.positionToMask_Lut[generateCapturePositionForEnPassant(Move.getOriginPiece(move), targetPosition)];
+					enPassantCaptureMask = 1L << generateCaptureBitOffsetForEnPassant(Move.getOriginPiece(move), targetBitOffset);
 					allPieces &= ~enPassantCaptureMask;
 				}
 				allPieces &= ~pinSquare;
@@ -680,11 +678,11 @@ public class Board {
 			}
 		}
 		if (doCheck) {		
-			int capturePosition = Position.NOPOSITION;
+			int captureBitOffset = Position.NOPOSITION;
 			int originBitOffset = Move.getOriginPosition(move);
 			int targetBitOffset = Move.getTargetPosition(move);
-			int originSquare = BitBoard.bitToPosition_Lut[originBitOffset];
-			int targetSquare = BitBoard.bitToPosition_Lut[targetBitOffset];
+			//int originSquare = BitBoard.bitToPosition_Lut[originBitOffset];
+			//int targetSquare = BitBoard.bitToPosition_Lut[targetBitOffset];
 			int targetPiece = Move.getTargetPiece(move);
 			boolean isCapture = targetPiece != Piece.NONE;
 			long initialSquareMask = 1L << originBitOffset;
@@ -697,11 +695,11 @@ public class Board {
 				// Handle captures
 				if (Move.isEnPassantCapture(move)) {
 					// Handle en passant captures, don't need to do other checks in this case
-					capturePosition = generateCapturePositionForEnPassant(pieceToMove, targetSquare);
+					captureBitOffset = generateCaptureBitOffsetForEnPassant(pieceToMove, targetBitOffset);
 				} else {
-					capturePosition = targetSquare;
+					captureBitOffset = targetBitOffset;
 				}
-				pieceToPickUp = BitBoard.positionToMask_Lut[capturePosition];
+				pieceToPickUp = 1L << captureBitOffset;
 				// Remove from relevant colour bitboard
 				if (isWhite) {
 					blackPieces &= ~pieceToPickUp;
@@ -726,8 +724,8 @@ public class Board {
 			allPieces ^= positionsMask;
 			// Because of need to check if in check, need to update for King only
 			if (isKing) {
-				pieceLists.updatePiece(pieceToMove, originSquare, targetSquare);
-				kingPosition = targetSquare; // King moved!
+				pieceLists.updatePiece(pieceToMove, originBitOffset, targetBitOffset);
+				kingPosition = BitBoard.bitToPosition_Lut[targetBitOffset]; // King moved!
 			}
 			
 			isIllegal = squareIsAttacked(kingPosition, isWhite);
@@ -745,7 +743,7 @@ public class Board {
 			allPieces ^= positionsMask;
 			// Because of need to check if in check, need to update for King only
 			if (isKing) {
-				pieceLists.updatePiece(pieceToMove, targetSquare, originSquare);
+				pieceLists.updatePiece(pieceToMove, targetBitOffset, originBitOffset);
 			}
 			// Undo any capture that had been previously performed.
 			if (isCapture) {
@@ -807,22 +805,22 @@ public class Board {
 	
 	public boolean isPlayableMove(int move, boolean needToEscapeMate, CastlingManager castling) {
 		int pieceToMove = Move.getOriginPiece(move);
-		int originSquare = BitBoard.bitToPosition_Lut[Move.getOriginPosition(move)];
-		int targetSquare = BitBoard.bitToPosition_Lut[Move.getTargetPosition(move)];
+		int originBitShift = Move.getOriginPosition(move);
+		int targetBitShift = Move.getTargetPosition(move);
 		int targetPiece = Move.getTargetPiece(move);
 		
-		if (getPieceAtSquare(originSquare) != pieceToMove) {
+		if (getPieceAtSquare(1L << originBitShift) != pieceToMove) {
 			return false;
 		}
-		if (getPieceAtSquare(targetSquare) != targetPiece && !Move.isEnPassantCapture(move)) {
+		if (getPieceAtSquare(1L << targetBitShift) != targetPiece && !Move.isEnPassantCapture(move)) {
 			return false;
 		}
-		if (Move.isEnPassantCapture(move) && (getEnPassantTargetSq() != targetSquare)) {
+		if (Move.isEnPassantCapture(move) && (getEnPassantTargetSq() != BitBoard.bitToPosition_Lut[targetBitShift])) {
 			return false;
 		}
 		
 		boolean isWhite = Piece.isWhite(pieceToMove);
-		
+		int originSquare = BitBoard.bitToPosition_Lut[originBitShift];
 		// Check move can be made, i.e. it isn't blocked Pawn two square, slider
 		pmc.setup(move);
 		switch (pieceToMove) {
@@ -888,7 +886,7 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (wksc_mask);
 			whitePieces ^= (wksc_mask);
 			allPieces ^= (wksc_mask);
-			pieceLists.updatePiece(Piece.WHITE_ROOK, Position.h1, Position.f1);
+			pieceLists.updatePiece(Piece.WHITE_ROOK, BitBoard.positionToBit_Lut[Position.h1], BitBoard.positionToBit_Lut[Position.f1]);
 			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.positionToBit_Lut[Position.h1]];
 			me.position += Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.positionToBit_Lut[Position.f1]];
 			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.positionToBit_Lut[Position.h1]];
@@ -897,7 +895,7 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
-			pieceLists.updatePiece(Piece.WHITE_ROOK, Position.a1, Position.d1);
+			pieceLists.updatePiece(Piece.WHITE_ROOK, BitBoard.positionToBit_Lut[Position.a1], BitBoard.positionToBit_Lut[Position.d1]);
 			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.positionToBit_Lut[Position.a1]];
 			me.position += Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.positionToBit_Lut[Position.d1]];
 			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.positionToBit_Lut[Position.a1]];
@@ -906,7 +904,7 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
-			pieceLists.updatePiece(Piece.BLACK_ROOK, Position.h8, Position.f8);
+			pieceLists.updatePiece(Piece.BLACK_ROOK, BitBoard.positionToBit_Lut[Position.h8], BitBoard.positionToBit_Lut[Position.f8]);
 			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.positionToBit_Lut[Position.h8]];
 			me.position += Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.positionToBit_Lut[Position.f8]];
 			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.positionToBit_Lut[Position.h8]];
@@ -915,7 +913,7 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
 			allPieces ^= (bqsc_mask);
-			pieceLists.updatePiece(Piece.BLACK_ROOK, Position.a8, Position.d8);
+			pieceLists.updatePiece(Piece.BLACK_ROOK, BitBoard.positionToBit_Lut[Position.a8], BitBoard.positionToBit_Lut[Position.d8]);
 			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.positionToBit_Lut[Position.a8]];
 			me.position += Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.positionToBit_Lut[Position.d8]];
 			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.positionToBit_Lut[Position.a8]];
@@ -928,7 +926,7 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (wksc_mask);
 			whitePieces ^= (wksc_mask);
 			allPieces ^= (wksc_mask);
-			pieceLists.updatePiece(Piece.WHITE_ROOK, Position.f1, Position.h1);
+			pieceLists.updatePiece(Piece.WHITE_ROOK, BitBoard.positionToBit_Lut[Position.f1], BitBoard.positionToBit_Lut[Position.h1]);
 			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.positionToBit_Lut[Position.f1]];
 			me.position += Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.positionToBit_Lut[Position.h1]];
 			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.positionToBit_Lut[Position.f1]];
@@ -937,7 +935,7 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
-			pieceLists.updatePiece(Piece.WHITE_ROOK, Position.d1, Position.a1);
+			pieceLists.updatePiece(Piece.WHITE_ROOK, BitBoard.positionToBit_Lut[Position.d1], BitBoard.positionToBit_Lut[Position.a1]);
 			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.positionToBit_Lut[Position.d1]];
 			me.position += Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.positionToBit_Lut[Position.a1]];
 			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.positionToBit_Lut[Position.d1]];
@@ -946,7 +944,7 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
-			pieceLists.updatePiece(Piece.BLACK_ROOK, Position.f8, Position.h8);
+			pieceLists.updatePiece(Piece.BLACK_ROOK, BitBoard.positionToBit_Lut[Position.f8], BitBoard.positionToBit_Lut[Position.h8]);
 			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.positionToBit_Lut[Position.f8]];
 			me.position += Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.positionToBit_Lut[Position.h8]];
 			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.positionToBit_Lut[Position.f8]];
@@ -955,7 +953,7 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
 			allPieces ^= (bqsc_mask);
-			pieceLists.updatePiece(Piece.BLACK_ROOK, Position.d8, Position.a8);
+			pieceLists.updatePiece(Piece.BLACK_ROOK, BitBoard.positionToBit_Lut[Position.d8], BitBoard.positionToBit_Lut[Position.a8]);
 			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.positionToBit_Lut[Position.d8]];
 			me.position += Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.positionToBit_Lut[Position.a8]];
 			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.positionToBit_Lut[Position.d8]];
@@ -983,6 +981,33 @@ public class Board {
 	public int getPieceAtSquare( int atPos ) {
 		int type = Piece.NONE;
 		long pieceToGet = BitBoard.positionToMask_Lut[atPos];;
+		if ((allPieces & pieceToGet) != 0) {	
+			if ((blackPieces & pieceToGet) != 0) {
+				type |= Piece.BLACK;
+			} else {
+				if (EubosEngineMain.ENABLE_ASSERTS)
+					assert (whitePieces & pieceToGet) != 0;
+			}
+			// Sorted in order of frequency of piece on the chess board, for efficiency
+			if ((pieces[INDEX_PAWN] & pieceToGet) != 0) {
+				type |= Piece.PAWN;
+			} else if ((pieces[INDEX_ROOK] & pieceToGet) != 0) {
+				type |= Piece.ROOK;
+			} else if ((pieces[INDEX_BISHOP] & pieceToGet) != 0) {
+				type |= Piece.BISHOP;
+			} else if ((pieces[INDEX_KNIGHT] & pieceToGet) != 0) {
+				type |= Piece.KNIGHT;
+			} else if ((pieces[INDEX_KING] & pieceToGet) != 0) {
+				type |= Piece.KING;
+			} else if ((pieces[INDEX_QUEEN] & pieceToGet) != 0) {
+				type |= Piece.QUEEN;
+			}
+		}
+		return type;
+	}
+	
+	public int getPieceAtSquare(long pieceToGet) {
+		int type = Piece.NONE;
 		if ((allPieces & pieceToGet) != 0) {	
 			if ((blackPieces & pieceToGet) != 0) {
 				type |= Piece.BLACK;
@@ -1155,8 +1180,26 @@ public class Board {
 			assert atPos != Position.NOPOSITION;
 			assert pieceToPlace != Piece.NONE;
 		}
-		pieceLists.addPiece(pieceToPlace, atPos);
+		pieceLists.addPiece(pieceToPlace, BitBoard.positionToBit_Lut[atPos]);
 		long mask = BitBoard.positionToMask_Lut[atPos];
+		// Set on piece-specific bitboard
+		pieces[pieceToPlace & Piece.PIECE_NO_COLOUR_MASK] |= mask;
+		// Set on colour bitboard
+		if (Piece.isBlack(pieceToPlace)) {
+			blackPieces |= (mask);
+		} else {
+			whitePieces |= (mask);
+		}
+		// Set on all pieces bitboard
+		allPieces |= (mask);
+	}
+	
+	public void setPieceAtSquare(long mask, int bitOffset, int pieceToPlace) {
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			assert bitOffset != Position.NOPOSITION;
+			assert pieceToPlace != Piece.NONE;
+		}
+		pieceLists.addPiece(pieceToPlace, bitOffset);
 		// Set on piece-specific bitboard
 		pieces[pieceToPlace & Piece.PIECE_NO_COLOUR_MASK] |= mask;
 		// Set on colour bitboard
@@ -1195,11 +1238,35 @@ public class Board {
 			// Remove from all pieces bitboard
 			allPieces &= ~pieceToPickUp;
 			// Remove from piece list
-			pieceLists.removePiece(piece, atPos);
+			pieceLists.removePiece(piece, BitBoard.positionToBit_Lut[atPos]);
 		} else {
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert false : String.format("Non-existant target piece %c at %s",
 						Piece.toFenChar(piece), Position.toGenericPosition(atPos));
+			}
+			piece = Piece.NONE;
+		}
+		return piece;
+	}
+	
+	public int pickUpPieceAtSquare(long pieceToPickUp, int bitOffset, int piece) {
+		if ((allPieces & pieceToPickUp) != 0) {
+			// Remove from relevant colour bitboard
+			if (Piece.isBlack(piece)) {
+				blackPieces &= ~pieceToPickUp;
+			} else {
+				whitePieces &= ~pieceToPickUp;
+			}
+			// remove from specific bitboard
+			pieces[piece & Piece.PIECE_NO_COLOUR_MASK] &= ~pieceToPickUp;
+			// Remove from all pieces bitboard
+			allPieces &= ~pieceToPickUp;
+			// Remove from piece list
+			pieceLists.removePiece(piece, bitOffset);
+		} else {
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert false : String.format("Non-existant target piece %c at %s",
+						Piece.toFenChar(piece), Position.toGenericPosition(bitOffset));
 			}
 			piece = Piece.NONE;
 		}

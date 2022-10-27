@@ -149,7 +149,7 @@ public final class Move {
 			originPiece = theBoard.getPieceAtSquare(originPosition);
 			if (Piece.isPawn(originPiece) && targetPosition==theBoard.getEnPassantTargetSq()) {
 				// En Passant capture move
-				int enPassantCaptureSquare = theBoard.generateCapturePositionForEnPassant(originPiece, targetPosition);
+				int enPassantCaptureSquare = theBoard.generateCaptureBitOffsetForEnPassant(originPiece, targetPosition);
 				targetPiece = theBoard.getPieceAtSquare(enPassantCaptureSquare);
 				if (Piece.isPawn(targetPiece)) {
 					misc |= Move.MISC_EN_PASSANT_CAPTURE_MASK;
@@ -235,7 +235,7 @@ public final class Move {
 	public static int getOriginPosition(int move) {
 		int originPosition = (move & ORIGINPOSITION_MASK) >>> ORIGINPOSITION_SHIFT;
 		if (EubosEngineMain.ENABLE_ASSERTS)
-			assert (originPosition & 0x88) == 0;
+			assert originPosition < 64;
 
 		return originPosition;
 	}
@@ -243,7 +243,7 @@ public final class Move {
 	public static int getTargetPosition(int move) {
 		int targetPosition = (move & TARGETPOSITION_MASK) >>> TARGETPOSITION_SHIFT;
 		if (EubosEngineMain.ENABLE_ASSERTS)
-			assert (targetPosition & 0x88) == 0;
+			assert targetPosition < 64;
 
 		return targetPosition;
 	}

@@ -434,5 +434,5 @@ public class MoveListTest {
 		
 	    it = classUnderTest.getNextMovesAtPly(0);
 	    assertNotEquals(best, it.nextInt());
-	}
+	}	
 }

@@ -114,7 +114,8 @@ class CountedBitBoardTest {
 		long frontspan = BitBoard.valueOf(new int [] {Position.e5, Position.e6, Position.e7, Position.e8});
 		long [] ours = new long[] { 
 				frontspan,
-				BitBoard.valueOf(new int [] {Position.e5, Position.e6, Position.e8})};
+				BitBoard.valueOf(new int [] {Position.e5, Position.e6, Position.e8}),
+				0L};
 		long [] theirs = new long[] { 
 				frontspan,
 				frontspan,

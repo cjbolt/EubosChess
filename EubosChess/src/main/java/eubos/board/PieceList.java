@@ -151,7 +151,7 @@ public class PieceList {
 	private void forEachPieceOfTypeHelper(int [] piece_array, IForEachPieceCallback caller, int piece) {
 		for (int atPos : piece_array) {
 			if (atPos != Position.NOPOSITION) {
-				caller.callback(piece, atPos);
+				caller.callback(piece, BitBoard.bitToPosition_Lut[atPos]);
 			} else break;
 		}
 	}
@@ -160,32 +160,32 @@ public class PieceList {
 		{
 			int atSquare = piece_list[Piece.WHITE_KING][0];
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.king_generateMoves_White(ml, theBoard, atSquare);
+				Piece.king_generateMoves_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			}
 		}
 		for(int atSquare : piece_list[Piece.WHITE_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.pawn_generateMoves_White(ml, theBoard, atSquare);
+				Piece.pawn_generateMoves_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.WHITE_QUEEN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.queen_generateMoves_White(ml, theBoard, atSquare);
+				Piece.queen_generateMoves_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.WHITE_ROOK]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.rook_generateMoves_White(ml, theBoard, atSquare);
+				Piece.rook_generateMoves_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.WHITE_BISHOP]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.bishop_generateMoves_White(ml, theBoard, atSquare);
+				Piece.bishop_generateMoves_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.WHITE_KNIGHT]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.knight_generateMoves_White(ml, theBoard, atSquare);
+				Piece.knight_generateMoves_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			} else break;
 		}
 	}
@@ -194,32 +194,32 @@ public class PieceList {
 		{
 			int atSquare = piece_list[Piece.BLACK_KING][0];
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.king_generateMoves_Black(ml, theBoard, atSquare);
+				Piece.king_generateMoves_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			}
 		}
 		for(int atSquare : piece_list[Piece.BLACK_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.pawn_generateMoves_Black(ml, theBoard, atSquare);
+				Piece.pawn_generateMoves_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.BLACK_QUEEN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.queen_generateMoves_Black(ml, theBoard, atSquare);
+				Piece.queen_generateMoves_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.BLACK_ROOK]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.rook_generateMoves_Black(ml, theBoard, atSquare);
+				Piece.rook_generateMoves_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.BLACK_BISHOP]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.bishop_generateMoves_Black(ml, theBoard, atSquare);
+				Piece.bishop_generateMoves_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.BLACK_KNIGHT]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.knight_generateMoves_Black(ml, theBoard, atSquare);
+				Piece.knight_generateMoves_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			} else break;
 		}
 	}
@@ -227,33 +227,33 @@ public class PieceList {
 	public void addMovesMiddlegame_White(IAddMoves ml) {
 		for(int atSquare : piece_list[Piece.WHITE_BISHOP]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.bishop_generateMoves_White(ml, theBoard, atSquare);
+				Piece.bishop_generateMoves_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.WHITE_KNIGHT]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.knight_generateMoves_White(ml, theBoard, atSquare);
+				Piece.knight_generateMoves_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.WHITE_QUEEN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.queen_generateMoves_White(ml, theBoard, atSquare);
+				Piece.queen_generateMoves_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.WHITE_ROOK]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.rook_generateMoves_White(ml, theBoard, atSquare);
+				Piece.rook_generateMoves_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.WHITE_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.pawn_generateMoves_White(ml, theBoard, atSquare);
+				Piece.pawn_generateMoves_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			} else break;
 		}
 		{
 			int atSquare = piece_list[Piece.WHITE_KING][0];
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.king_generateMoves_White(ml, theBoard, atSquare);
+				Piece.king_generateMoves_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			}
 		}
 	}
@@ -261,33 +261,33 @@ public class PieceList {
 	public void addMovesMiddlegame_Black(IAddMoves ml) {
 		for(int atSquare : piece_list[Piece.BLACK_BISHOP]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.bishop_generateMoves_Black(ml, theBoard, atSquare);
+				Piece.bishop_generateMoves_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.BLACK_KNIGHT]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.knight_generateMoves_Black(ml, theBoard, atSquare);
+				Piece.knight_generateMoves_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.BLACK_QUEEN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.queen_generateMoves_Black(ml, theBoard, atSquare);
+				Piece.queen_generateMoves_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.BLACK_ROOK]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.rook_generateMoves_Black(ml, theBoard, atSquare);
+				Piece.rook_generateMoves_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.BLACK_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.pawn_generateMoves_Black(ml, theBoard, atSquare);
+				Piece.pawn_generateMoves_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			} else break;
 		}
 		{
 			int atSquare = piece_list[Piece.BLACK_KING][0];
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.king_generateMoves_Black(ml, theBoard, atSquare);
+				Piece.king_generateMoves_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 			}
 		}
 	}
@@ -295,27 +295,27 @@ public class PieceList {
 	public void evaluateMaterialBalanceAndStaticPieceMobility(boolean isWhite, PiecewiseEvaluation me) {
 		int side = isWhite ? 0 : Piece.BLACK;
 		{
-			int atSquare = piece_list[side+Piece.KING][0];
-			if (atSquare != Position.NOPOSITION) {	
+			int bitOffset = piece_list[side+Piece.KING][0];
+			if (bitOffset != Position.NOPOSITION) {	
 				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.KING];
 				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.KING];
-				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.KING][BitBoard.positionToBit_Lut[atSquare]];
-				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.KING][BitBoard.positionToBit_Lut[atSquare]];
+				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.KING][bitOffset];
+				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.KING][bitOffset];
 			}
 		}
-		for(int atSquare : piece_list[side+Piece.QUEEN]) {
-			if (atSquare != Position.NOPOSITION) {
+		for(int bitOffset : piece_list[side+Piece.QUEEN]) {
+			if (bitOffset != Position.NOPOSITION) {
 				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.QUEEN];
 				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.QUEEN];
 				me.numberOfPieces[side+Piece.QUEEN]++;
 			} else break;
 		}
-		for(int atSquare : piece_list[side+Piece.ROOK]) {
-			if (atSquare != Position.NOPOSITION) {			
+		for(int bitOffset : piece_list[side+Piece.ROOK]) {
+			if (bitOffset != Position.NOPOSITION) {			
 				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.ROOK];
 				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.ROOK];
-				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.ROOK][BitBoard.positionToBit_Lut[atSquare]];
-				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.ROOK][BitBoard.positionToBit_Lut[atSquare]];
+				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.ROOK][bitOffset];
+				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.ROOK][bitOffset];
 				me.numberOfPieces[side+Piece.ROOK]++;
 			} else break;
 		}
@@ -330,21 +330,21 @@ public class PieceList {
 			if (atSquare != Position.NOPOSITION) {			
 				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.KNIGHT];
 				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.KNIGHT];
-				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.KNIGHT][BitBoard.positionToBit_Lut[atSquare]];
-				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.KNIGHT][BitBoard.positionToBit_Lut[atSquare]];
+				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.KNIGHT][atSquare];
+				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.KNIGHT][atSquare];
 				me.numberOfPieces[side+Piece.KNIGHT]++;
 			} else break;
 		}
 		for(int atSquare : piece_list[side+Piece.PAWN]) {
 			if (atSquare != Position.NOPOSITION) {
 				if (EubosEngineMain.ENABLE_ASSERTS) {
-					assert theBoard.getPieceAtSquare(atSquare) != Piece.NONE :
+					assert theBoard.getPieceAtSquare(BitBoard.bitToPosition_Lut[atSquare]) != Piece.NONE :
 						String.format("Found a Pawn at %s that isn't on Board", Position.toGenericPosition(atSquare));
 				}
 				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.PAWN];
 				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.PAWN];
-				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.PAWN][BitBoard.positionToBit_Lut[atSquare]];
-				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.PAWN][BitBoard.positionToBit_Lut[atSquare]];
+				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.PAWN][atSquare];
+				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.PAWN][atSquare];
 				me.numberOfPieces[side+Piece.PAWN]++;
 			} else break;
 		}
@@ -359,13 +359,13 @@ public class PieceList {
 	public boolean forAllPawnsDoConditionalCallback(IForEachPieceCallback caller) {
 		for (int atPos : piece_list[Piece.BLACK_PAWN]) {
 			if (atPos != Position.NOPOSITION) {
-				if (caller.condition_callback(Piece.BLACK_PAWN, atPos))
+				if (caller.condition_callback(Piece.BLACK_PAWN, BitBoard.bitToPosition_Lut[atPos]))
 					return true;
 			} else break;
 		}
 		for (int atPos : piece_list[Piece.WHITE_PAWN]) {
 			if (atPos != Position.NOPOSITION) {
-				if (caller.condition_callback(Piece.WHITE_PAWN, atPos))
+				if (caller.condition_callback(Piece.WHITE_PAWN, BitBoard.bitToPosition_Lut[atPos]))
 					return true;
 			} else break;
 		}
@@ -374,49 +374,51 @@ public class PieceList {
 	
 	public int getKingPos(boolean sideIsWhite) {
 		int piece = sideIsWhite ? Piece.WHITE_KING : Piece.BLACK_KING;
-		return piece_list[piece][0];
+		int pos = piece_list[piece][0];
+		return pos != Position.NOPOSITION ? BitBoard.bitToPosition_Lut[pos] : Position.NOPOSITION;
 	}
 	
 	public int getQueenPos(boolean sideIsWhite) {
 		int piece = sideIsWhite ? Piece.WHITE_QUEEN : Piece.BLACK_QUEEN;
-		return piece_list[piece][0];
+		int pos = piece_list[piece][0];
+		return pos != Position.NOPOSITION ? BitBoard.bitToPosition_Lut[pos] : Position.NOPOSITION;
 	}
 	
 	public boolean validCaptureMoveExistsBlack(IAddMoves ml) {
 		for(int atSquare : piece_list[Piece.BLACK_KNIGHT]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.knight_generateMovesExtSearch_Black(ml, theBoard, atSquare);
+				Piece.knight_generateMovesExtSearch_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 				if (ml.isLegalMoveFound()) return true;
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.BLACK_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.pawn_generateMovesForExtendedSearch_Black(ml, theBoard, atSquare);
+				Piece.pawn_generateMovesForExtendedSearch_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 				if (ml.isLegalMoveFound()) return true;
 			} else break;
 		}
 		{
 			int atSquare = piece_list[Piece.BLACK_KING][0];
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.king_generateMovesExtSearch_Black(ml, theBoard, atSquare);
+				Piece.king_generateMovesExtSearch_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 				if (ml.isLegalMoveFound()) return true;
 			}
 		}
 		for(int atSquare : piece_list[Piece.BLACK_QUEEN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.queen_generateMovesExtSearch_Black(ml, theBoard, atSquare);
+				Piece.queen_generateMovesExtSearch_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 				if (ml.isLegalMoveFound()) return true;
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.BLACK_BISHOP]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.bishop_generateMovesExtSearch_Black(ml, theBoard, atSquare);
+				Piece.bishop_generateMovesExtSearch_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 				if (ml.isLegalMoveFound()) return true;
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.BLACK_ROOK]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.rook_generateMovesExtSearch_Black(ml, theBoard, atSquare);
+				Piece.rook_generateMovesExtSearch_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 				if (ml.isLegalMoveFound()) return true;
 			} else break;
 		}
@@ -426,38 +428,38 @@ public class PieceList {
 	public boolean validCaptureMoveExistsWhite(IAddMoves ml) {
 		for(int atSquare : piece_list[Piece.WHITE_KNIGHT]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.knight_generateMovesExtSearch_White(ml, theBoard, atSquare);
+				Piece.knight_generateMovesExtSearch_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 				if (ml.isLegalMoveFound()) return true;
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.WHITE_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.pawn_generateMovesForExtendedSearch_White(ml, theBoard, atSquare);
+				Piece.pawn_generateMovesForExtendedSearch_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 				if (ml.isLegalMoveFound()) return true;
 			} else break;
 		}
 		{
 			int atSquare = piece_list[Piece.WHITE_KING][0];
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.king_generateMovesExtSearch_White(ml, theBoard, atSquare);
+				Piece.king_generateMovesExtSearch_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 				if (ml.isLegalMoveFound()) return true;
 			}
 		}
 		for(int atSquare : piece_list[Piece.WHITE_QUEEN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.queen_generateMovesExtSearch_White(ml, theBoard, atSquare);
+				Piece.queen_generateMovesExtSearch_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 				if (ml.isLegalMoveFound()) return true;
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.WHITE_BISHOP]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.bishop_generateMovesExtSearch_White(ml, theBoard, atSquare);
+				Piece.bishop_generateMovesExtSearch_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 				if (ml.isLegalMoveFound()) return true;
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.WHITE_ROOK]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.rook_generateMovesExtSearch_White(ml, theBoard, atSquare);
+				Piece.rook_generateMovesExtSearch_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 				if (ml.isLegalMoveFound()) return true;
 			} else break;
 		}
@@ -467,8 +469,8 @@ public class PieceList {
 	public void addMoves_PawnPromotions_White(IAddMoves ml) {
 		for (int atSquare : piece_list[Piece.WHITE_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {
-				if (Position.getRank(atSquare) == IntRank.R7) {
-					Piece.pawn_generatePromotionMoves_White(ml, theBoard, atSquare);
+				if (BitBoard.getRank(atSquare) == IntRank.R7) {
+					Piece.pawn_generatePromotionMoves_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 				}
 			} else break;
 		}
@@ -477,8 +479,8 @@ public class PieceList {
 	public void addMoves_PawnPromotions_Black(IAddMoves ml) {
 		for (int atSquare : piece_list[Piece.BLACK_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {
-				if (Position.getRank(atSquare) == IntRank.R2) {
-					Piece.pawn_generatePromotionMoves_Black(ml, theBoard, atSquare);
+				if (BitBoard.getRank(atSquare) == IntRank.R2) {
+					Piece.pawn_generatePromotionMoves_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 				}
 			} else break;
 		}
@@ -491,99 +493,99 @@ public class PieceList {
 			{
 				int atSquare = piece_list[Piece.WHITE_KING][0];
 				if (atSquare != Position.NOPOSITION) {
-					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[atSquare];
+					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[BitBoard.bitToPosition_Lut[atSquare]];
 					if ((opponentPieces & kingAttacksMask) != 0) {
-						Piece.king_generateMovesExtSearch_White(ml, theBoard, atSquare);
+						Piece.king_generateMovesExtSearch_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				}
 			}
 			// Only search pawn moves that cannot be a promotion
 			for(int atSquare : piece_list[Piece.WHITE_PAWN]) {
 				if (atSquare != Position.NOPOSITION) {
-					if (IntRank.R7 != Position.getRank(atSquare)) {
-						Piece.pawn_generateMovesForExtendedSearch_White(ml, theBoard, atSquare);
+					if (IntRank.R7 != BitBoard.getRank(atSquare)) {
+						Piece.pawn_generateMovesForExtendedSearch_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				} else break;
 			}
 			for(int atSquare : piece_list[Piece.WHITE_QUEEN]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
 					if ((opponentPieces & attacksMask) != 0) {
-						Piece.queen_generateMovesExtSearch_White(ml, theBoard, atSquare);
+						Piece.queen_generateMovesExtSearch_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				} else break;
 			}
 			for(int atSquare : piece_list[Piece.WHITE_ROOK]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
 					if ((opponentPieces & attacksMask) != 0) {	
-						Piece.rook_generateMovesExtSearch_White(ml, theBoard, atSquare);
+						Piece.rook_generateMovesExtSearch_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				} else break;
 			}
 			for(int atSquare : piece_list[Piece.WHITE_BISHOP]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
 					if ((opponentPieces & attacksMask) != 0) {			
-						Piece.bishop_generateMovesExtSearch_White(ml, theBoard, atSquare);
+						Piece.bishop_generateMovesExtSearch_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				} else break;
 			}
 			for(int atSquare : piece_list[Piece.WHITE_KNIGHT]) {
 				if (atSquare != Position.NOPOSITION) {	
-					long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[atSquare];
+					long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[BitBoard.bitToPosition_Lut[atSquare]];
 					if ((opponentPieces & knightAttacksMask) != 0) {
-						Piece.knight_generateMovesExtSearch_White(ml, theBoard, atSquare);
+						Piece.knight_generateMovesExtSearch_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				} else break;
 			}
 		} else {
 			for(int atSquare : piece_list[Piece.WHITE_BISHOP]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
 					if ((opponentPieces & attacksMask) != 0) {			
-						Piece.bishop_generateMovesExtSearch_White(ml, theBoard, atSquare);
+						Piece.bishop_generateMovesExtSearch_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				} else break;
 			}
 			for(int atSquare : piece_list[Piece.WHITE_KNIGHT]) {
 				if (atSquare != Position.NOPOSITION) {	
-					long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[atSquare];
+					long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[BitBoard.bitToPosition_Lut[atSquare]];
 					if ((opponentPieces & knightAttacksMask) != 0) {
-						Piece.knight_generateMovesExtSearch_White(ml, theBoard, atSquare);
+						Piece.knight_generateMovesExtSearch_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				} else break;
 			}
 			for(int atSquare : piece_list[Piece.WHITE_QUEEN]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
 					if ((opponentPieces & attacksMask) != 0) {
-						Piece.queen_generateMovesExtSearch_White(ml, theBoard, atSquare);
+						Piece.queen_generateMovesExtSearch_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				} else break;
 			}
 			for(int atSquare : piece_list[Piece.WHITE_ROOK]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
 					if ((opponentPieces & attacksMask) != 0) {	
-						Piece.rook_generateMovesExtSearch_White(ml, theBoard, atSquare);
+						Piece.rook_generateMovesExtSearch_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				} else break;
 			}
 			// Only search pawn moves that cannot be a promotion
 			for(int atSquare : piece_list[Piece.WHITE_PAWN]) {
 				if (atSquare != Position.NOPOSITION) {
-					if (IntRank.R7 != Position.getRank(atSquare)) {
-						Piece.pawn_generateMovesForExtendedSearch_White(ml, theBoard, atSquare);
+					if (IntRank.R7 != BitBoard.getRank(atSquare)) {
+						Piece.pawn_generateMovesForExtendedSearch_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				} else break;
 			}
 			{
 				int atSquare = piece_list[Piece.WHITE_KING][0];
 				if (atSquare != Position.NOPOSITION) {
-					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[atSquare];
+					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[BitBoard.bitToPosition_Lut[atSquare]];
 					if ((opponentPieces & kingAttacksMask) != 0) {
-						Piece.king_generateMovesExtSearch_White(ml, theBoard, atSquare);
+						Piece.king_generateMovesExtSearch_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				}
 			}
@@ -597,99 +599,99 @@ public class PieceList {
 			{
 				int atSquare = piece_list[Piece.BLACK_KING][0];
 				if (atSquare != Position.NOPOSITION) {
-					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[atSquare];
+					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[BitBoard.bitToPosition_Lut[atSquare]];
 					if ((opponentPieces & kingAttacksMask) != 0) {
-						Piece.king_generateMovesExtSearch_Black(ml, theBoard, atSquare);
+						Piece.king_generateMovesExtSearch_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				}
 			}
 			// Only search pawn moves that cannot be a promotion
 			for(int atSquare : piece_list[Piece.BLACK_PAWN]) {
 				if (atSquare != Position.NOPOSITION) {
-					if (IntRank.R2 != Position.getRank(atSquare)) {
-						Piece.pawn_generateMovesForExtendedSearch_Black(ml, theBoard, atSquare);
+					if (IntRank.R2 != BitBoard.getRank(atSquare)) {
+						Piece.pawn_generateMovesForExtendedSearch_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				} else break;
 			}
 			for(int atSquare : piece_list[Piece.BLACK_QUEEN]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
 					if ((opponentPieces & attacksMask) != 0) {
-						Piece.queen_generateMovesExtSearch_Black(ml, theBoard, atSquare);
+						Piece.queen_generateMovesExtSearch_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				} else break;
 			}
 			for(int atSquare : piece_list[Piece.BLACK_ROOK]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
 					if ((opponentPieces & attacksMask) != 0) {	
-						Piece.rook_generateMovesExtSearch_Black(ml, theBoard, atSquare);
+						Piece.rook_generateMovesExtSearch_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				} else break;
 			}
 			for(int atSquare : piece_list[Piece.BLACK_BISHOP]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
 					if ((opponentPieces & attacksMask) != 0) {			
-						Piece.bishop_generateMovesExtSearch_Black(ml, theBoard, atSquare);
+						Piece.bishop_generateMovesExtSearch_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				} else break;
 			}
 			for(int atSquare : piece_list[Piece.BLACK_KNIGHT]) {
 				if (atSquare != Position.NOPOSITION) {	
-					long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[atSquare];
+					long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[BitBoard.bitToPosition_Lut[atSquare]];
 					if ((opponentPieces & knightAttacksMask) != 0) {
-						Piece.knight_generateMovesExtSearch_Black(ml, theBoard, atSquare);
+						Piece.knight_generateMovesExtSearch_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				} else break;
 			}
 		} else {
 			for(int atSquare : piece_list[Piece.BLACK_BISHOP]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
 					if ((opponentPieces & attacksMask) != 0) {			
-						Piece.bishop_generateMovesExtSearch_Black(ml, theBoard, atSquare);
+						Piece.bishop_generateMovesExtSearch_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				} else break;
 			}
 			for(int atSquare : piece_list[Piece.BLACK_KNIGHT]) {
 				if (atSquare != Position.NOPOSITION) {	
-					long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[atSquare];
+					long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[BitBoard.bitToPosition_Lut[atSquare]];
 					if ((opponentPieces & knightAttacksMask) != 0) {
-						Piece.knight_generateMovesExtSearch_Black(ml, theBoard, atSquare);
+						Piece.knight_generateMovesExtSearch_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				} else break;
 			}
 			for(int atSquare : piece_list[Piece.BLACK_QUEEN]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
 					if ((opponentPieces & attacksMask) != 0) {
-						Piece.queen_generateMovesExtSearch_Black(ml, theBoard, atSquare);
+						Piece.queen_generateMovesExtSearch_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				} else break;
 			}
 			for(int atSquare : piece_list[Piece.BLACK_ROOK]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
 					if ((opponentPieces & attacksMask) != 0) {	
-						Piece.rook_generateMovesExtSearch_Black(ml, theBoard, atSquare);
+						Piece.rook_generateMovesExtSearch_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				} else break;
 			}
 			// Only search pawn moves that cannot be a promotion
 			for(int atSquare : piece_list[Piece.BLACK_PAWN]) {
 				if (atSquare != Position.NOPOSITION) {
-					if (IntRank.R2 != Position.getRank(atSquare)) {
-						Piece.pawn_generateMovesForExtendedSearch_Black(ml, theBoard, atSquare);
+					if (IntRank.R2 != BitBoard.getRank(atSquare)) {
+						Piece.pawn_generateMovesForExtendedSearch_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				} else break;
 			}
 			{
 				int atSquare = piece_list[Piece.BLACK_KING][0];
 				if (atSquare != Position.NOPOSITION) {
-					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[atSquare];
+					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[BitBoard.bitToPosition_Lut[atSquare]];
 					if ((opponentPieces & kingAttacksMask) != 0) {
-						Piece.king_generateMovesExtSearch_Black(ml, theBoard, atSquare);
+						Piece.king_generateMovesExtSearch_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
 					}
 				}
 			}

@@ -1,7 +1,5 @@
 package eubos.position;
 
-import eubos.board.BitBoard;
-
 class MoveTracker {
 	
 	private static final int CAPACITY = 400;

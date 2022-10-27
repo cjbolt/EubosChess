@@ -121,9 +121,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public boolean moveLeadsToThreefold(int move) {
 		boolean isDrawing = false;
-		int capturePosition = Position.NOPOSITION;
+		int captureBitOffset = Position.NOPOSITION;
 		int pieceToMove = Move.getOriginPiece(move);
-		int targetSquare = BitBoard.bitToPosition_Lut[Move.getTargetPosition(move)];
+		int targetBitOffset = Move.getTargetPosition(move);
 		int targetPiece = Move.getTargetPiece(move);
 		int enPassantFile = IntFile.NOFILE;
 		
@@ -131,22 +131,22 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		if (targetPiece != Piece.NONE) {
 			// Handle captures
 			if (Move.isEnPassantCapture(move)) {
-				capturePosition = theBoard.generateCapturePositionForEnPassant(pieceToMove, targetSquare);
-				enPassantFile = Position.getFile(capturePosition);
+				captureBitOffset = theBoard.generateCaptureBitOffsetForEnPassant(pieceToMove, targetBitOffset);
+				enPassantFile = BitBoard.getFile(captureBitOffset);
 			} else {
-				capturePosition = targetSquare;
+				captureBitOffset = targetBitOffset;
 			}
 		}	
 		
 		// Generate hash code
-		hash.update(move, capturePosition, enPassantFile);
+		hash.update(move, captureBitOffset, enPassantFile);
 
 		// Update the draw checker - do we need to change ply number?
 		isDrawing = dc.setPositionReached(getHash(), getPlyNumber());
 		
 		// Undo the change
 		int reversedMove = Move.reverse(move);
-		hash.update(reversedMove, capturePosition, enPassantFile);
+		hash.update(reversedMove, captureBitOffset, enPassantFile);
 		
 		return isDrawing;
 	}
@@ -159,7 +159,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Preserve state
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		ppTracker.push(theBoard.getPassedPawns());
-		int capturePosition = theBoard.doMove(move);
+		int captureBitOffset = theBoard.doMove(move);
 		moveTracker.push(TrackedMove.valueOf(move, prevEnPassantTargetSq, castling.getFlags()));
 		// update state
 		castling.updateFlags(move);
@@ -171,7 +171,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			if (enPasTargetSq != Position.NOPOSITION)
 				enPassantFile = Position.getFile(enPasTargetSq);
 			
-			hash.update(move, capturePosition, enPassantFile);
+			hash.update(move, captureBitOffset, enPassantFile);
 
 			// Update the draw checker
 			repetitionPossible = dc.setPositionReached(getHash(), getPlyNumber());			
@@ -194,7 +194,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int move = TrackedMove.getMove(tm);
 		int reversedMove = Move.reverse(move);
 		
-		int capturePosition = theBoard.undoMove(reversedMove);
+		int captureBitOffset = theBoard.undoMove(reversedMove);
 		
 		// Restore castling
 		castling.setFlags(TrackedMove.getCastlingFlags(tm));
@@ -209,7 +209,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		if (computeHash) {
 
 			int enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? Position.getFile(enPasTargetSq) : IntFile.NOFILE;
-			hash.update(reversedMove, capturePosition, enPassantFile);
+			hash.update(reversedMove, captureBitOffset, enPassantFile);
 			
 			// Clear draw indicator flag
 			repetitionPossible = false;
