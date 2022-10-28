@@ -668,10 +668,6 @@ public class Board {
 	private boolean isIllegalCheckHelper(int move, boolean needToEscapeMate, int pieceToMove, boolean isWhite) {
 		boolean isIllegal = false;
 		int kingBitOffset = getKingPosition(isWhite);
-		if (kingBitOffset == Position.NOPOSITION) {
-			return isIllegal;
-		}
-		
 		boolean isKing = Piece.isKing(pieceToMove);
 		boolean doCheck = needToEscapeMate || isKing;
 		if (EubosEngineMain.ENABLE_PINNED_TO_KING_CHECK_IN_ILLEGAL_DETECTION) {
@@ -686,8 +682,6 @@ public class Board {
 			int captureBitOffset = Position.NOPOSITION;
 			int originBitOffset = Move.getOriginPosition(move);
 			int targetBitOffset = Move.getTargetPosition(move);
-			//int originSquare = BitBoard.bitToPosition_Lut[originBitOffset];
-			//int targetSquare = BitBoard.bitToPosition_Lut[targetBitOffset];
 			int targetPiece = Move.getTargetPiece(move);
 			boolean isCapture = targetPiece != Piece.NONE;
 			long initialSquareMask = 1L << originBitOffset;
@@ -863,11 +857,10 @@ public class Board {
 			break;
 		case Piece.WHITE_PAWN:
 		case Piece.BLACK_PAWN:
-			int originSquare = BitBoard.bitToPosition_Lut[originBitShift];
-			if ((Position.getRank(originSquare) == (isWhite ? IntRank.R2 : IntRank.R7))) {
+			if ((BitBoard.getRank(originBitShift) == (isWhite ? IntRank.R2 : IntRank.R7))) {
 				// two square pawn moves need to be checked if intermediate square is empty
-				int checkSquare = isWhite ? originSquare+16: originSquare-16;
-				pmc.moveIsPlayable = squareIsEmpty(checkSquare);
+				int checkAtOffset = isWhite ? originBitShift+8: originBitShift-8;
+				pmc.moveIsPlayable = squareIsEmpty(1L << checkAtOffset);
 			} else {
 				pmc.moveIsPlayable = true;
 			}
@@ -977,6 +970,10 @@ public class Board {
 	
 	public boolean squareIsEmpty( int atPos ) {
 		return (allPieces & BitBoard.positionToMask_Lut[atPos]) == 0;		
+	}
+	
+	public boolean squareIsEmpty(long mask) {
+		return (allPieces & mask) == 0;		
 	}
 	
 	public boolean squareIsAttacked(int bitOffset, boolean isBlackAttacking) {
@@ -1224,36 +1221,9 @@ public class Board {
 			inCheck = (kingMask & mae.basic_attacks[isWhite ? 1 : 0][3][0]) != 0L;
 		} else {
 			int kingBitOffset = getKingPosition(isWhite);
-			if (kingBitOffset != Position.NOPOSITION) {
-				inCheck = squareIsAttacked(kingBitOffset, isWhite);
-			}
+			inCheck = squareIsAttacked(kingBitOffset, isWhite);
 		}
 		return inCheck;
-	}
-	
-	public int pickUpPieceAtSquare( int atPos, int piece ) {
-		long pieceToPickUp = BitBoard.positionToMask_Lut[atPos];
-		if ((allPieces & pieceToPickUp) != 0) {
-			// Remove from relevant colour bitboard
-			if (Piece.isBlack(piece)) {
-				blackPieces &= ~pieceToPickUp;
-			} else {
-				whitePieces &= ~pieceToPickUp;
-			}
-			// remove from specific bitboard
-			pieces[piece & Piece.PIECE_NO_COLOUR_MASK] &= ~pieceToPickUp;
-			// Remove from all pieces bitboard
-			allPieces &= ~pieceToPickUp;
-			// Remove from piece list
-			pieceLists.removePiece(piece, BitBoard.positionToBit_Lut[atPos]);
-		} else {
-			if (EubosEngineMain.ENABLE_ASSERTS) {
-				assert false : String.format("Non-existant target piece %c at %s",
-						Piece.toFenChar(piece), Position.toGenericPosition(atPos));
-			}
-			piece = Piece.NONE;
-		}
-		return piece;
 	}
 	
 	public int pickUpPieceAtSquare(long pieceToPickUp, int bitOffset, int piece) {

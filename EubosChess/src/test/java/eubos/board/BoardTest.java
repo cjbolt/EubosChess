@@ -67,7 +67,7 @@ public class BoardTest {
 		assertTrue(classUnderTest.squareIsEmpty(testSq));
 		classUnderTest.setPieceAtSquare(testSq, Piece.WHITE_PAWN);
 		assertFalse(classUnderTest.squareIsEmpty(testSq));
-		int pickedUpPiece = classUnderTest.pickUpPieceAtSquare(testSq, Piece.WHITE_PAWN);
+		int pickedUpPiece = classUnderTest.pickUpPieceAtSquare(BitBoard.positionToMask_Lut[testSq], BitBoard.positionToBit_Lut[testSq], Piece.WHITE_PAWN);
 		assertTrue(classUnderTest.squareIsEmpty(testSq));
 		assertEquals(Piece.WHITE_PAWN, pickedUpPiece);
 	}
@@ -75,7 +75,7 @@ public class BoardTest {
 	@Test
 	public void testPickUpPieceAtSquare_DoesntExist()  {
 		if (!EubosEngineMain.ENABLE_ASSERTS) {
-			assertEquals(Piece.NONE, classUnderTest.pickUpPieceAtSquare(testSq, Piece.NONE));
+			assertEquals(Piece.NONE, classUnderTest.pickUpPieceAtSquare(BitBoard.positionToMask_Lut[testSq], BitBoard.positionToBit_Lut[testSq], Piece.NONE));
 		}
 	}	
 
@@ -640,10 +640,10 @@ public class BoardTest {
 						classUnderTest.mae.calculateBasicAttacksAndMobility(me);
 						classUnderTest.mae.calculateBasicAttacksAndMobility(old_me);
 						assertEquals(old_me.getPosition(), me.getPosition());
-						classUnderTest.pickUpPieceAtSquare(atPos, Piece.WHITE_BISHOP);
+						classUnderTest.pickUpPieceAtSquare(BitBoard.positionToMask_Lut[atPos], BitBoard.positionToBit_Lut[atPos], Piece.WHITE_BISHOP);
 					}
 				}
-				classUnderTest.pickUpPieceAtSquare(Position.valueOf(outer_file, outer_rank), Piece.WHITE_QUEEN);
+				classUnderTest.pickUpPieceAtSquare(BitBoard.positionToMask_Lut[Position.valueOf(outer_file, outer_rank)], BitBoard.positionToBit_Lut[Position.valueOf(outer_file, outer_rank)], Piece.WHITE_QUEEN);
 			}
 		}
 		for (int outer_rank=0; outer_rank<8; outer_rank++) {
@@ -659,10 +659,10 @@ public class BoardTest {
 						classUnderTest.mae.calculateBasicAttacksAndMobility(me);
 						classUnderTest.mae.calculateBasicAttacksAndMobility(old_me);
 						assertEquals(old_me.getPosition(), me.getPosition());
-						classUnderTest.pickUpPieceAtSquare(atPos, Piece.WHITE_ROOK);
+						classUnderTest.pickUpPieceAtSquare(BitBoard.positionToMask_Lut[atPos], BitBoard.positionToBit_Lut[atPos], Piece.WHITE_ROOK);
 					}
 				}
-				classUnderTest.pickUpPieceAtSquare(Position.valueOf(outer_file, outer_rank), Piece.WHITE_QUEEN);
+				classUnderTest.pickUpPieceAtSquare(BitBoard.positionToMask_Lut[Position.valueOf(outer_file, outer_rank)], BitBoard.positionToBit_Lut[Position.valueOf(outer_file, outer_rank)], Piece.WHITE_QUEEN);
 			}
 		}
 	}

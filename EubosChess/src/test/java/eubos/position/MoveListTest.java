@@ -98,7 +98,7 @@ public class MoveListTest {
 	
 	@Test
 	public void test_mvv_lva_order()throws IllegalNotationException {
-		setup("8/N2B4/Q3q3/1r3PN1/2P3B1/4Rp2/6P1/1R6 w - - 0 1 ");
+		setup("7K/N2B4/Q3q3/1r3PN1/2P3B1/4Rp2/6P1/1R6 w - - 0 1");
 		classUnderTest.initialiseAtPly(Move.NULL_MOVE, null, true, false, 0);
 		MoveListIterator it = classUnderTest.getNextMovesAtPly(0);
 		
@@ -128,7 +128,7 @@ public class MoveListTest {
 	@Test
 	public void test_mvv_lva_order_for_captures_with_check()throws IllegalNotationException {
 		// as prior test but adds a king into the mix
-		setup("8/N2Bk3/Q3p3/1r3PN1/2P3B1/4Rp2/6P1/1R6 w - - 0 1 ");
+		setup("7K/N2Bk3/Q3p3/1r3PN1/2P3B1/4Rp2/6P1/1R6 w - - 0 1");
 		classUnderTest.initialiseAtPly(Move.NULL_MOVE, null, true, false, 0);
 		MoveListIterator it = classUnderTest.getNextMovesAtPly(0);
 		
@@ -158,7 +158,7 @@ public class MoveListTest {
 	@Test
 	public void test_move_ordering_when_mix_of_captures_and_checks()throws IllegalNotationException {
 		// as prior test but adds a king into the mix
-		setup("8/4k3/4p3/5PN1/8/4R1q1/8/8 w - - 0 1");
+		setup("7K/4k3/4p3/5PN1/8/4R1q1/8/8 w - - 0 1");
 		classUnderTest.initialiseAtPly(Move.NULL_MOVE, null, true, false, 0);
 		MoveListIterator it = classUnderTest.getNextMovesAtPly(0);
 		
@@ -183,7 +183,7 @@ public class MoveListTest {
 	@Test
 	public void test_move_ordering_when_mix_of_promotions_captures_and_checks()throws IllegalNotationException {
 		// as prior test but adds a king into the mix
-		setup("1n6/P3kP2/8/1Pp2P2/8/8/8/8 w - c6 0 1");
+		setup("1n5K/P3kP2/8/1Pp2P2/8/8/8/8 w - c6 0 1");
 		classUnderTest.initialiseAtPly(Move.NULL_MOVE, null, true, false, 0);
 		MoveListIterator it = classUnderTest.getNextMovesAtPly(0);
 		
@@ -207,6 +207,9 @@ public class MoveListTest {
 		
 		it = classUnderTest.getNextMovesAtPly(0);
 		// Regular moves
+		assertEquals(new GenericMove("h8h7"), Move.toGenericMove(it.nextInt()));
+		assertEquals(new GenericMove("h8g7"), Move.toGenericMove(it.nextInt()));
+		assertEquals(new GenericMove("h8g8"), Move.toGenericMove(it.nextInt()));
 		assertEquals(new GenericMove("b5b6"), Move.toGenericMove(it.nextInt())); // Regular pawn move
 		assertEquals(new GenericMove("f5f6"), Move.toGenericMove(it.nextInt())); // Pawn check
 		

@@ -22,13 +22,13 @@ public class CastlingManager {
 	// Optimisation - King cannot be in check when we call castling manager, so we don't check King square.
 	private static final int [] kscWhiteCheckSqs = {BitBoard.positionToBit_Lut[Position.f1], BitBoard.positionToBit_Lut[Position.g1]};
 	private static final int [] kscBlackCheckSqs = {BitBoard.positionToBit_Lut[Position.f8], BitBoard.positionToBit_Lut[Position.g8]};
-	private static final int [] kscWhiteEmptySqs = {Position.f1, Position.g1};
-	private static final int [] kscBlackEmptySqs = {Position.f8, Position.g8};
+	private static final long [] kscWhiteEmptySqs = {1L << BitBoard.positionToBit_Lut[Position.f1], 1L << BitBoard.positionToBit_Lut[Position.g1]};
+	private static final long [] kscBlackEmptySqs = {1L << BitBoard.positionToBit_Lut[Position.f8], 1L << BitBoard.positionToBit_Lut[Position.g8]};
 
 	private static final int [] qscWhiteCheckSqs = {BitBoard.positionToBit_Lut[Position.c1], BitBoard.positionToBit_Lut[Position.d1]};
 	private static final int [] qscBlackCheckSqs = {BitBoard.positionToBit_Lut[Position.c8], BitBoard.positionToBit_Lut[Position.d8]};
-	private static final int [] qscWhiteEmptySqs = {Position.c1, Position.d1, Position.b1};
-	private static final int [] qscBlackEmptySqs = {Position.c8, Position.d8, Position.b8};
+	private static final long [] qscWhiteEmptySqs = {1L << BitBoard.positionToBit_Lut[Position.c1], 1L << BitBoard.positionToBit_Lut[Position.d1], 1L << BitBoard.positionToBit_Lut[Position.b1]};
+	private static final long [] qscBlackEmptySqs = {1L << BitBoard.positionToBit_Lut[Position.c8], 1L << BitBoard.positionToBit_Lut[Position.d8], 1L << BitBoard.positionToBit_Lut[Position.b8]};
 
 	public static final int bksc = Move.valueOf(Move.TYPE_REGULAR_NONE, Position.e8, (Piece.BLACK | Piece.KING), Position.g8, Piece.NONE, Piece.NONE);
 	public static final int wksc = Move.valueOf(Move.TYPE_REGULAR_NONE, Position.e1, Piece.KING, Position.g1, Piece.NONE, Piece.NONE);
@@ -132,14 +132,14 @@ public class CastlingManager {
 	
 	private boolean castleMoveLegal(int rookSq,
 			int [] checkSqs,
-			int [] emptySqs) {
+			long [] emptySqs) {
 		Board theBoard = pm.getTheBoard();
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert Piece.isRook(theBoard.getPieceAtSquare(rookSq));
 		
 		// All the intervening squares between King and Rook should be empty
-		for ( int emptySq : emptySqs ) {
-			if ( !theBoard.squareIsEmpty(emptySq))
+		for (long emptyOffset : emptySqs) {
+			if ( !theBoard.squareIsEmpty(emptyOffset))
 				return false;
 		}
 		// King cannot move through an attacked square
