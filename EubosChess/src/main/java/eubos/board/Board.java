@@ -818,7 +818,6 @@ public class Board {
 		}
 		
 		boolean isWhite = Piece.isWhite(pieceToMove);
-		int originSquare = BitBoard.bitToPosition_Lut[originBitShift];
 		// Check move can be made, i.e. it isn't blocked Pawn two square, slider
 		pmc.setup(move);
 		switch (pieceToMove) {
@@ -834,22 +833,22 @@ public class Board {
 			}
 			break;
 		case Piece.WHITE_QUEEN:
-			Piece.queen_generateMoves_White(pmc, this, originSquare);
+			Piece.queen_generateMoves_White(pmc, this, originBitShift);
 			break;
 		case Piece.WHITE_ROOK:
-			Piece.rook_generateMoves_White(pmc, this, originSquare);
+			Piece.rook_generateMoves_White(pmc, this, originBitShift);
 			break;
 		case Piece.WHITE_BISHOP:
-			Piece.bishop_generateMoves_White(pmc, this, originSquare);
+			Piece.bishop_generateMoves_White(pmc, this, originBitShift);
 			break;
 		case Piece.BLACK_QUEEN:
-			Piece.queen_generateMoves_Black(pmc, this, originSquare);
+			Piece.queen_generateMoves_Black(pmc, this, originBitShift);
 			break;
 		case Piece.BLACK_ROOK:
-			Piece.rook_generateMoves_Black(pmc, this, originSquare);
+			Piece.rook_generateMoves_Black(pmc, this, originBitShift);
 			break;
 		case Piece.BLACK_BISHOP:
-			Piece.bishop_generateMoves_Black(pmc, this, originSquare);
+			Piece.bishop_generateMoves_Black(pmc, this, originBitShift);
 			break;
 		case Piece.WHITE_KNIGHT:
 		case Piece.BLACK_KNIGHT:
@@ -857,6 +856,7 @@ public class Board {
 			break;
 		case Piece.WHITE_PAWN:
 		case Piece.BLACK_PAWN:
+			int originSquare = BitBoard.bitToPosition_Lut[originBitShift];
 			if ((Position.getRank(originSquare) == (isWhite ? IntRank.R2 : IntRank.R7))) {
 				// two square pawn moves need to be checked if intermediate square is empty
 				int checkSquare = isWhite ? originSquare+16: originSquare-16;

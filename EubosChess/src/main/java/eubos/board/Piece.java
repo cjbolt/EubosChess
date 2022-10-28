@@ -400,16 +400,18 @@ public abstract class Piece {
 	}
 	
 	static int KnightMove_Lut_Size = 0;
-	static final int[][] WhiteKnightMove_Lut = new int[128][];
+	static final int[][] WhiteKnightMove_Lut = new int[64][];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
-			WhiteKnightMove_Lut[square] = createKnightMovesFromOriginPosition(square, true);
+			WhiteKnightMove_Lut[bitOffset++] = createKnightMovesFromOriginPosition(square, true);
 		}
 	}
-	static final int[][] BlackKnightMove_Lut = new int[128][];
+	static final int[][] BlackKnightMove_Lut = new int[64][];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
-			BlackKnightMove_Lut[square] = createKnightMovesFromOriginPosition(square, false);
+			BlackKnightMove_Lut[bitOffset++] = createKnightMovesFromOriginPosition(square, false);
 		}
 	}
 	static int [] createKnightMovesFromOriginPosition(int originPosition, boolean isWhite) {
@@ -431,16 +433,18 @@ public abstract class Piece {
 	}
 	
 	static int KingMove_Lut_Size = 0;
-	static final int[][] WhiteKingMove_Lut = new int[128][];
+	static final int[][] WhiteKingMove_Lut = new int[64][];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
-			WhiteKingMove_Lut[square] = createKingMovesFromOriginPosition(square, true);
+			WhiteKingMove_Lut[bitOffset++] = createKingMovesFromOriginPosition(square, true);
 		}
 	}
-	static final int[][] BlackKingMove_Lut = new int[128][];
+	static final int[][] BlackKingMove_Lut = new int[64][];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
-			BlackKingMove_Lut[square] = createKingMovesFromOriginPosition(square, false);
+			BlackKingMove_Lut[bitOffset++] = createKingMovesFromOriginPosition(square, false);
 		}
 	}
 	static int [] createKingMovesFromOriginPosition(int originPosition, boolean isWhite) {
@@ -503,16 +507,18 @@ public abstract class Piece {
 	}
 	
 	static int RookMove_Lut_Size = 0;
-	static final int[][][] WhiteRookMove_Lut = new int[128][][]; // Position by direction by moves in that direction
+	static final int[][][] WhiteRookMove_Lut = new int[64][][]; // Position by direction by moves in that direction
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
-			WhiteRookMove_Lut[square] = createRookMovesFromOriginPosition(square, true);
+			WhiteRookMove_Lut[bitOffset++] = createRookMovesFromOriginPosition(square, true);
 		}
 	}
-	static final int[][][] BlackRookMove_Lut = new int[128][][];
+	static final int[][][] BlackRookMove_Lut = new int[64][][];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
-			BlackRookMove_Lut[square] = createRookMovesFromOriginPosition(square, false);
+			BlackRookMove_Lut[bitOffset++] = createRookMovesFromOriginPosition(square, false);
 		}
 	}
 	static int [][] createRookMovesFromOriginPosition(int originPosition, boolean isWhite) {
@@ -542,16 +548,18 @@ public abstract class Piece {
 	}
 	
 	static int BishopMove_Lut_Size = 0;
-	static final int[][][] WhiteBishopMove_Lut = new int[128][][]; // Position by direction by moves in that direction
+	static final int[][][] WhiteBishopMove_Lut = new int[64][][]; // Position by direction by moves in that direction
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
-			WhiteBishopMove_Lut[square] = createBishopMovesFromOriginPosition(square, true);
+			WhiteBishopMove_Lut[bitOffset++] = createBishopMovesFromOriginPosition(square, true);
 		}
 	}
-	static final int[][][] BlackBishopMove_Lut = new int[128][][];
+	static final int[][][] BlackBishopMove_Lut = new int[64][][];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
-			BlackBishopMove_Lut[square] = createBishopMovesFromOriginPosition(square, false);
+			BlackBishopMove_Lut[bitOffset++] = createBishopMovesFromOriginPosition(square, false);
 		}
 	}
 	static int [][] createBishopMovesFromOriginPosition(int originPosition, boolean isWhite) {
@@ -581,16 +589,18 @@ public abstract class Piece {
 	}
 	
 	static int QueenMove_Lut_Size = 0;
-	static final int[][][] WhiteQueenMove_Lut = new int[128][][]; // Position by direction by moves in that direction
+	static final int[][][] WhiteQueenMove_Lut = new int[64][][]; // Position by direction by moves in that direction
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
-			WhiteQueenMove_Lut[square] = createQueenMovesFromOriginPosition(square, true);
+			WhiteQueenMove_Lut[bitOffset++] = createQueenMovesFromOriginPosition(square, true);
 		}
 	}
-	static final int[][][] BlackQueenMove_Lut = new int[128][][];
+	static final int[][][] BlackQueenMove_Lut = new int[64][][];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
-			BlackQueenMove_Lut[square] = createQueenMovesFromOriginPosition(square, false);
+			BlackQueenMove_Lut[bitOffset++] = createQueenMovesFromOriginPosition(square, false);
 		}
 	}
 	static int [][] createQueenMovesFromOriginPosition(int originPosition, boolean isWhite) {
@@ -639,12 +649,12 @@ public abstract class Piece {
 		single_addCaptures_White(ml, theBoard, WhiteKingMove_Lut[atSquare]);
 	}
 	
-	static void king_generateMovesExtSearch_Black(IAddMoves ml, Board theBoard, int atSquare) {
-		single_addCaptures_Black(ml, theBoard, BlackKingMove_Lut[atSquare]);
+	static void king_generateMovesExtSearch_Black(IAddMoves ml, Board theBoard, int bitOffset) {
+		single_addCaptures_Black(ml, theBoard, BlackKingMove_Lut[bitOffset]);
 	}
 		
-	static void knight_generateMovesExtSearch_White(IAddMoves ml, Board theBoard, int atSquare) {
-		single_addCaptures_White(ml, theBoard, WhiteKnightMove_Lut[atSquare]);
+	static void knight_generateMovesExtSearch_White(IAddMoves ml, Board theBoard, int bitOffset) {
+		single_addCaptures_White(ml, theBoard, WhiteKnightMove_Lut[bitOffset]);
 	}
 	
 	static void knight_generateMovesExtSearch_Black(IAddMoves ml, Board theBoard, int atSquare) {
