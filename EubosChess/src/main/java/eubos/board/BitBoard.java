@@ -428,15 +428,17 @@ public final class BitBoard {
 	
 	static final long[][] BackwardsPawn_Lut = new long[2][]; 
 	static {
-		long[] white_map = new long[128];
+		long[] white_map = new long[64];
 		BackwardsPawn_Lut[Colour.white.ordinal()] = white_map;
+		int bitOffset = 0;
 		for (int atPos : Position.values) {
-			white_map[atPos] = buildBackwardPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), true);
+			white_map[bitOffset++] = buildBackwardPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), true);
 		}
-		long[] black_map = new long[128];
+		long[] black_map = new long[64];
+		bitOffset = 0;
 		BackwardsPawn_Lut[Colour.black.ordinal()] = black_map;
 		for (int atPos : Position.values) {
-			black_map[atPos] = buildBackwardPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), false);
+			black_map[bitOffset++] = buildBackwardPawnFileMask(Position.getFile(atPos), Position.getRank(atPos), false);
 		}
 	}
 	private static long buildBackwardPawnFileMask(int f, int r, boolean isWhite) {
@@ -465,10 +467,11 @@ public final class BitBoard {
 		return mask;
 	}
 	
-	static final long[] IsolatedPawn_Lut = new long[128];
+	static final long[] IsolatedPawn_Lut = new long[64];
 	static {
+		int bitOffset = 0;
 		for (int atPos : Position.values) {
-			IsolatedPawn_Lut[atPos] = buildIsolatedPawnFileMask(Position.getFile(atPos));
+			IsolatedPawn_Lut[bitOffset++] = buildIsolatedPawnFileMask(Position.getFile(atPos));
 		}
 	}
 	private static long buildIsolatedPawnFileMask(int f) {

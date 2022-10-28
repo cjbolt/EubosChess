@@ -149,9 +149,9 @@ public class PieceList {
 	}
 	
 	private void forEachPieceOfTypeHelper(int [] piece_array, IForEachPieceCallback caller, int piece) {
-		for (int atPos : piece_array) {
-			if (atPos != Position.NOPOSITION) {
-				caller.callback(piece, BitBoard.bitToPosition_Lut[atPos]);
+		for (int bitOffset : piece_array) {
+			if (bitOffset != Position.NOPOSITION) {
+				caller.callback(piece, bitOffset);
 			} else break;
 		}
 	}
@@ -359,7 +359,7 @@ public class PieceList {
 	public int getKingPos(boolean sideIsWhite) {
 		int piece = sideIsWhite ? Piece.WHITE_KING : Piece.BLACK_KING;
 		int pos = piece_list[piece][0];
-		return pos != Position.NOPOSITION ? BitBoard.bitToPosition_Lut[pos] : Position.NOPOSITION;
+		return pos != Position.NOPOSITION ? pos : Position.NOPOSITION;
 	}
 	
 	public int getQueenPos(boolean sideIsWhite) {
@@ -477,7 +477,7 @@ public class PieceList {
 			{
 				int atSquare = piece_list[Piece.WHITE_KING][0];
 				if (atSquare != Position.NOPOSITION) {
-					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[BitBoard.bitToPosition_Lut[atSquare]];
+					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[atSquare];
 					if ((opponentPieces & kingAttacksMask) != 0) {
 						Piece.king_generateMovesExtSearch_White(ml, theBoard, atSquare);
 					}
@@ -493,7 +493,7 @@ public class PieceList {
 			}
 			for(int atSquare : piece_list[Piece.WHITE_QUEEN]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
 					if ((opponentPieces & attacksMask) != 0) {
 						Piece.queen_generateMovesExtSearch_White(ml, theBoard, atSquare);
 					}
@@ -501,7 +501,7 @@ public class PieceList {
 			}
 			for(int atSquare : piece_list[Piece.WHITE_ROOK]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
 					if ((opponentPieces & attacksMask) != 0) {	
 						Piece.rook_generateMovesExtSearch_White(ml, theBoard, atSquare);
 					}
@@ -509,7 +509,7 @@ public class PieceList {
 			}
 			for(int atSquare : piece_list[Piece.WHITE_BISHOP]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
 					if ((opponentPieces & attacksMask) != 0) {			
 						Piece.bishop_generateMovesExtSearch_White(ml, theBoard, atSquare);
 					}
@@ -517,7 +517,7 @@ public class PieceList {
 			}
 			for(int atSquare : piece_list[Piece.WHITE_KNIGHT]) {
 				if (atSquare != Position.NOPOSITION) {	
-					long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[BitBoard.bitToPosition_Lut[atSquare]];
+					long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[atSquare];
 					if ((opponentPieces & knightAttacksMask) != 0) {
 						Piece.knight_generateMovesExtSearch_White(ml, theBoard, atSquare);
 					}
@@ -526,7 +526,7 @@ public class PieceList {
 		} else {
 			for(int atSquare : piece_list[Piece.WHITE_BISHOP]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
 					if ((opponentPieces & attacksMask) != 0) {			
 						Piece.bishop_generateMovesExtSearch_White(ml, theBoard, atSquare);
 					}
@@ -534,7 +534,7 @@ public class PieceList {
 			}
 			for(int atSquare : piece_list[Piece.WHITE_KNIGHT]) {
 				if (atSquare != Position.NOPOSITION) {	
-					long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[BitBoard.bitToPosition_Lut[atSquare]];
+					long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[atSquare];
 					if ((opponentPieces & knightAttacksMask) != 0) {
 						Piece.knight_generateMovesExtSearch_White(ml, theBoard, atSquare);
 					}
@@ -542,7 +542,7 @@ public class PieceList {
 			}
 			for(int atSquare : piece_list[Piece.WHITE_QUEEN]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
 					if ((opponentPieces & attacksMask) != 0) {
 						Piece.queen_generateMovesExtSearch_White(ml, theBoard, atSquare);
 					}
@@ -550,7 +550,7 @@ public class PieceList {
 			}
 			for(int atSquare : piece_list[Piece.WHITE_ROOK]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
 					if ((opponentPieces & attacksMask) != 0) {	
 						Piece.rook_generateMovesExtSearch_White(ml, theBoard, atSquare);
 					}
@@ -567,7 +567,7 @@ public class PieceList {
 			{
 				int atSquare = piece_list[Piece.WHITE_KING][0];
 				if (atSquare != Position.NOPOSITION) {
-					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[BitBoard.bitToPosition_Lut[atSquare]];
+					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[atSquare];
 					if ((opponentPieces & kingAttacksMask) != 0) {
 						Piece.king_generateMovesExtSearch_White(ml, theBoard, atSquare);
 					}
@@ -583,7 +583,7 @@ public class PieceList {
 			{
 				int atSquare = piece_list[Piece.BLACK_KING][0];
 				if (atSquare != Position.NOPOSITION) {
-					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[BitBoard.bitToPosition_Lut[atSquare]];
+					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[atSquare];
 					if ((opponentPieces & kingAttacksMask) != 0) {
 						Piece.king_generateMovesExtSearch_Black(ml, theBoard, atSquare);
 					}
@@ -599,7 +599,7 @@ public class PieceList {
 			}
 			for(int atSquare : piece_list[Piece.BLACK_QUEEN]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
 					if ((opponentPieces & attacksMask) != 0) {
 						Piece.queen_generateMovesExtSearch_Black(ml, theBoard, atSquare);
 					}
@@ -607,7 +607,7 @@ public class PieceList {
 			}
 			for(int atSquare : piece_list[Piece.BLACK_ROOK]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
 					if ((opponentPieces & attacksMask) != 0) {	
 						Piece.rook_generateMovesExtSearch_Black(ml, theBoard, atSquare);
 					}
@@ -615,7 +615,7 @@ public class PieceList {
 			}
 			for(int atSquare : piece_list[Piece.BLACK_BISHOP]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
 					if ((opponentPieces & attacksMask) != 0) {			
 						Piece.bishop_generateMovesExtSearch_Black(ml, theBoard, atSquare);
 					}
@@ -623,7 +623,7 @@ public class PieceList {
 			}
 			for(int atSquare : piece_list[Piece.BLACK_KNIGHT]) {
 				if (atSquare != Position.NOPOSITION) {	
-					long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[BitBoard.bitToPosition_Lut[atSquare]];
+					long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[atSquare];
 					if ((opponentPieces & knightAttacksMask) != 0) {
 						Piece.knight_generateMovesExtSearch_Black(ml, theBoard, atSquare);
 					}
@@ -632,7 +632,7 @@ public class PieceList {
 		} else {
 			for(int atSquare : piece_list[Piece.BLACK_BISHOP]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
 					if ((opponentPieces & attacksMask) != 0) {			
 						Piece.bishop_generateMovesExtSearch_Black(ml, theBoard, atSquare);
 					}
@@ -640,7 +640,7 @@ public class PieceList {
 			}
 			for(int atSquare : piece_list[Piece.BLACK_KNIGHT]) {
 				if (atSquare != Position.NOPOSITION) {	
-					long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[BitBoard.bitToPosition_Lut[atSquare]];
+					long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[atSquare];
 					if ((opponentPieces & knightAttacksMask) != 0) {
 						Piece.knight_generateMovesExtSearch_Black(ml, theBoard, atSquare);
 					}
@@ -648,7 +648,7 @@ public class PieceList {
 			}
 			for(int atSquare : piece_list[Piece.BLACK_QUEEN]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
 					if ((opponentPieces & attacksMask) != 0) {
 						Piece.queen_generateMovesExtSearch_Black(ml, theBoard, atSquare);
 					}
@@ -656,7 +656,7 @@ public class PieceList {
 			}
 			for(int atSquare : piece_list[Piece.BLACK_ROOK]) {
 				if (atSquare != Position.NOPOSITION) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[BitBoard.bitToPosition_Lut[atSquare]];
+					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[atSquare];
 					if ((opponentPieces & attacksMask) != 0) {	
 						Piece.rook_generateMovesExtSearch_Black(ml, theBoard, atSquare);
 					}
@@ -673,7 +673,7 @@ public class PieceList {
 			{
 				int atSquare = piece_list[Piece.BLACK_KING][0];
 				if (atSquare != Position.NOPOSITION) {
-					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[BitBoard.bitToPosition_Lut[atSquare]];
+					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[atSquare];
 					if ((opponentPieces & kingAttacksMask) != 0) {
 						Piece.king_generateMovesExtSearch_Black(ml, theBoard, atSquare);
 					}

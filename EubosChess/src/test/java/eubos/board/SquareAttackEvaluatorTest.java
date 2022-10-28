@@ -16,7 +16,7 @@ public class SquareAttackEvaluatorTest {
 	// In all the following unit tests, d5 is used as the test square. i.e. each
 	// test revolves around evaluating whether or not this particular square is 
 	// attacked.
-	private int testSq = Position.d5;
+	int testBitOffset = BitBoard.positionToBit_Lut[Position.d5];
 	
 	private void createClassUnderTest(String fenString) {
 		bm = new PositionManager(fenString);
@@ -24,17 +24,17 @@ public class SquareAttackEvaluatorTest {
 	
 	private void assertTestSqIsNotAttacked(String fenString) {
 		createClassUnderTest(fenString);
-		assertFalse(SquareAttackEvaluator.isAttacked(bm.getTheBoard(), testSq, bm.onMoveIsWhite()));
+		assertFalse(SquareAttackEvaluator.isAttacked(bm.getTheBoard(), testBitOffset, bm.onMoveIsWhite()));
 	}
 	
 	private void assertTestSqIsAttacked(String fenString) {
 		createClassUnderTest(fenString);
-		assertTrue(SquareAttackEvaluator.isAttacked(bm.getTheBoard(), testSq, bm.onMoveIsWhite()));
+		assertTrue(SquareAttackEvaluator.isAttacked(bm.getTheBoard(), testBitOffset,  bm.onMoveIsWhite()));
 	}
 	
 	@Before
 	public void setUp() {
-		this.testSq = Position.d5;
+		this.testBitOffset = BitBoard.positionToBit_Lut[Position.d5];
 	}
 	
 	// Pawn
@@ -153,6 +153,6 @@ public class SquareAttackEvaluatorTest {
 	@Test
 	public void testIsAttacked_MateInOne() {
 		PositionManager pm = new PositionManager("5r1k/p2R3Q/1pp2p1p/8/5q2/5bN1/PP3P2/6K1 b - - - 0");
-		assertTrue(SquareAttackEvaluator.isAttacked(pm.getTheBoard(), Position.g8, !pm.onMoveIsWhite()));
+		assertTrue(SquareAttackEvaluator.isAttacked(pm.getTheBoard(), BitBoard.positionToBit_Lut[Position.g8], !pm.onMoveIsWhite()));
 	}
 }

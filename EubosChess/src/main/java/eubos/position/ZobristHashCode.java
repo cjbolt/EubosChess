@@ -66,8 +66,8 @@ public class ZobristHashCode implements IForEachPieceCallback {
 	}
 	
 	@Override
-	public void callback(int piece, int atPos) { 
-		hashCode ^= getPrnForPiece(BitBoard.positionToBit_Lut[atPos], piece);
+	public void callback(int piece, int bitOffset) { 
+		hashCode ^= getPrnForPiece(bitOffset, piece);
 	}
 	
 	@Override

@@ -30,13 +30,13 @@ public class SquareAttackEvaluator {
 	public static String reportStaticDataSizes() {
 		StringBuilder s = new StringBuilder();
 		s.append(String.format("DirectPieceMove_Lut_Size %d bytes\n", directPieceMove_Lut_Size*4));
-		s.append(String.format("All In Direction Masks %d bytes\n", 8*128*8));
-		s.append(String.format("Knight, King, Pawn W/B All + Direct masks %d bytes\n", 6*128*8));
+		s.append(String.format("All In Direction Masks %d bytes\n", 8*64*8));
+		s.append(String.format("Knight, King, Pawn W/B All + Direct masks %d bytes\n", 6*64*8));
 		return s.toString();
 	}
 	
 	public static int getStaticDataSize() {
-		return (directPieceMove_Lut_Size * 4) + ((6+8)*128*8);
+		return (directPieceMove_Lut_Size * 4) + ((6+8)*64*8);
 	}
 	
 	/* 3-dimensional array:
@@ -44,10 +44,11 @@ public class SquareAttackEvaluator {
 	 * 2nd is a direction from the origin square (diagonal/rank+file) i.e all direct attack directions from origin square
 	 * 3rd is a position integer, representing all the squares on the board in that direction */
 	static int directPieceMove_Lut_Size = 0;
-	static final int[][][] directPieceMove_Lut = new int[128][allDirect.length][];
+	static final int[][][] directPieceMove_Lut = new int[64][allDirect.length][];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
-			directPieceMove_Lut[square] = createLinesFromSq(square);
+			directPieceMove_Lut[bitOffset++] = createLinesFromSq(square);
 		}
 	}
 	static private int [][] createLinesFromSq(int square) {
@@ -84,10 +85,11 @@ public class SquareAttackEvaluator {
 	/* 1-dimensional array:
 	 * 1st index is a position integer, this is the target square
 	 * indexes a bit mask of the squares that attack the target square by a Knight (indirect) move */
-	static final long[] KnightMove_Lut = new long[128];
+	static final long[] KnightMove_Lut = new long[64];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
-			KnightMove_Lut[square] = createKnightMovesAtSq(square);
+			KnightMove_Lut[bitOffset++] = createKnightMovesAtSq(square);
 		}
 	}
 	static long createKnightMovesAtSq(int atPos) {
@@ -104,8 +106,9 @@ public class SquareAttackEvaluator {
 	/* 1-dimensional array:
 	 * 1st index is a position integer, this is the target square
 	 * indexes a bit mask of all the squares on the board that can attack the target square by either a direct or indirect move */
-	static final long[] allAttacksOnPosition_Lut = new long[128];
+	static final long[] allAttacksOnPosition_Lut = new long[64];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
 			Long allAttacksMask = 0L;
 			// Add direct attacks
@@ -113,121 +116,133 @@ public class SquareAttackEvaluator {
 				allAttacksMask = setAllInDirection(dir, square, allAttacksMask, 8);
 			}
 			// Add indirect attacks
-			allAttacksMask |= KnightMove_Lut[square];
-			allAttacksOnPosition_Lut[square] = allAttacksMask;
+			allAttacksMask |= KnightMove_Lut[bitOffset];
+			allAttacksOnPosition_Lut[bitOffset] = allAttacksMask;
+			bitOffset++;
 		}
 	}
 	
 	/* The following 1-dimensional arrays provide bit masks of all the squares that can directly attack the target square:
 	 * 1st index is a position integer, this is the target square */	
-	static final long[] directAttacksOnPosition_Lut = new long[128];
+	static final long[] directAttacksOnPosition_Lut = new long[64];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
 			Long allAttacksMask = 0L;
 			for (Direction dir: allDirect) {
 				allAttacksMask = setAllInDirection(dir, square, allAttacksMask, 8);
 			}
-			directAttacksOnPosition_Lut[square] = allAttacksMask;
+			directAttacksOnPosition_Lut[bitOffset++] = allAttacksMask;
 		}
 	}
 	
 	/* The following 1-dimensional arrays provide bit masks of all the squares that can directly attack the target square:
 	 * 1st index is a position integer, this is the target square */	
-	static final long[] directRankFileAttacksOnPosition_Lut = new long[128];
+	static final long[] directRankFileAttacksOnPosition_Lut = new long[64];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
 			Long allAttacksMask = 0L;
 			for (Direction dir: rankFile) {
 				allAttacksMask = setAllInDirection(dir, square, allAttacksMask, 8);
 			}
-			directRankFileAttacksOnPosition_Lut[square] = allAttacksMask;
+			directRankFileAttacksOnPosition_Lut[bitOffset++] = allAttacksMask;
 		}
 	}
 	
 	/* The following 1-dimensional arrays provide bit masks of all the squares that can directly attack the target square:
 	 * 1st index is a position integer, this is the target square */	
-	static final long[] directDiagonalAttacksOnPosition_Lut = new long[128];
+	static final long[] directDiagonalAttacksOnPosition_Lut = new long[64];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
 			Long allAttacksMask = 0L;
 			for (Direction dir: diagonals) {
 				allAttacksMask = setAllInDirection(dir, square, allAttacksMask, 8);
 			}
-			directDiagonalAttacksOnPosition_Lut[square] = allAttacksMask;
+			directDiagonalAttacksOnPosition_Lut[bitOffset++] = allAttacksMask;
 		}
 	}
 	
 	/* The following 1-dimensional arrays provide bit masks of all the squares in a direction that can attack the target square:
 	 * 1st index is a position integer, this is the target square */
-	static final long[] directAttacksOnPositionUp_Lut = new long[128];
+	static final long[] directAttacksOnPositionUp_Lut = new long[64];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
 			long mask = 0L;
 			Long finalMask = setAllInDirection(Direction.up, square, mask, 8);
-			directAttacksOnPositionUp_Lut[square] = finalMask;
+			directAttacksOnPositionUp_Lut[bitOffset++] = finalMask;
 		}
 	}
 	
-	static final long[] directAttacksOnPositionUpLeft_Lut = new long[128];
+	static final long[] directAttacksOnPositionUpLeft_Lut = new long[64];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
 			long mask = 0L;
 			Long finalMask = setAllInDirection(Direction.upLeft, square, mask, 8);
-			directAttacksOnPositionUpLeft_Lut[square] = finalMask;
+			directAttacksOnPositionUpLeft_Lut[bitOffset++] = finalMask;
 		}
 	}
 	
-	static final long[] directAttacksOnPositionLeft_Lut = new long[128];
+	static final long[] directAttacksOnPositionLeft_Lut = new long[64];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
 			long mask = 0L;
 			Long finalMask = setAllInDirection(Direction.left, square, mask, 8);
-			directAttacksOnPositionLeft_Lut[square] = finalMask;
+			directAttacksOnPositionLeft_Lut[bitOffset++] = finalMask;
 		}
 	}
 	
-	static final long[] directAttacksOnPositionDownLeft_Lut = new long[128];
+	static final long[] directAttacksOnPositionDownLeft_Lut = new long[64];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
 			long mask = 0L;
 			Long finalMask = setAllInDirection(Direction.downLeft, square, mask, 8);
-			directAttacksOnPositionDownLeft_Lut[square] = finalMask;
+			directAttacksOnPositionDownLeft_Lut[bitOffset++] = finalMask;
 		}
 	}
 	
-	static final long[] directAttacksOnPositionDown_Lut = new long[128];
+	static final long[] directAttacksOnPositionDown_Lut = new long[64];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
 			long mask = 0L;
 			Long finalMask = setAllInDirection(Direction.down, square, mask, 8);
-			directAttacksOnPositionDown_Lut[square] = finalMask;
+			directAttacksOnPositionDown_Lut[bitOffset++] = finalMask;
 		}
 	}
 	
-	static final long[] directAttacksOnPositionDownRight_Lut = new long[128];
+	static final long[] directAttacksOnPositionDownRight_Lut = new long[64];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
 			long mask = 0L;
 			Long finalMask = setAllInDirection(Direction.downRight, square, mask, 8);
-			directAttacksOnPositionDownRight_Lut[square] = finalMask;
+			directAttacksOnPositionDownRight_Lut[bitOffset++] = finalMask;
 		}
 	}
 	
-	static final long[] directAttacksOnPositionRight_Lut = new long[128];
+	static final long[] directAttacksOnPositionRight_Lut = new long[64];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
 			long mask = 0L;
 			Long finalMask = setAllInDirection(Direction.right, square, mask, 8);
-			directAttacksOnPositionRight_Lut[square] = finalMask;
+			directAttacksOnPositionRight_Lut[bitOffset++] = finalMask;
 		}
 	}
 	
-	static final long[] directAttacksOnPositionUpRight_Lut = new long[128];
+	static final long[] directAttacksOnPositionUpRight_Lut = new long[64];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
 			long mask = 0L;
 			Long finalMask = setAllInDirection(Direction.upRight, square, mask, 8);
-			directAttacksOnPositionUpRight_Lut[square] = finalMask;
+			directAttacksOnPositionUpRight_Lut[bitOffset++] = finalMask;
 		}
 	}
 	
@@ -246,10 +261,11 @@ public class SquareAttackEvaluator {
 	/* 1-dimensional array:
 	 * 1st index is a position integer, this is the origin square
 	 * indexes a bit mask of the squares that the origin square can attack by a King move */
-	public static final long[] KingMove_Lut = new long[128];
+	public static final long[] KingMove_Lut = new long[64];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
-			KingMove_Lut[square] = createKingMovesAtSq(square);
+			KingMove_Lut[bitOffset++] = createKingMovesAtSq(square);
 		}
 	}
 	static long createKingMovesAtSq(int atPos) {
@@ -266,10 +282,11 @@ public class SquareAttackEvaluator {
 	/* 1-dimensional array:
 	 * 1st index is a position integer, this is the origin square
 	 * indexes a bit mask of the squares that the origin square can attack by a Black Pawn capture */
-	static final long[] BlackPawnAttacks_Lut = new long[128];
+	static final long[] BlackPawnAttacks_Lut = new long[64];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
-			BlackPawnAttacks_Lut[square] = createBlackPawnMovesAtSq(square);
+			BlackPawnAttacks_Lut[bitOffset++] = createBlackPawnMovesAtSq(square);
 		}
 	}
 	static long createBlackPawnMovesAtSq(int atPos) {
@@ -290,10 +307,11 @@ public class SquareAttackEvaluator {
 	/* 1-dimensional array:
 	 * 1st index is a position integer, this is the origin square
 	 * indexes a bit mask of the squares that the origin square can attack by a White Pawn capture */
-	static final long[] WhitePawnAttacks_Lut = new long[128];
+	static final long[] WhitePawnAttacks_Lut = new long[64];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
-			WhitePawnAttacks_Lut[square] = createWhitePawnMovesAtSq(square);
+			WhitePawnAttacks_Lut[bitOffset++] = createWhitePawnMovesAtSq(square);
 		}
 	}
 	static long createWhitePawnMovesAtSq(int atPos) {
@@ -311,22 +329,22 @@ public class SquareAttackEvaluator {
 		return mask;
 	}
 	
-	public static boolean isAttacked( Board bd, int attackedSq, boolean isBlackAttacking) {
+	public static boolean isAttacked( Board bd, int attackedBitOffset, boolean isBlackAttacking) {
 		boolean attacked = false;
 		
 		// Knights
 		long attackingKnightsMask = isBlackAttacking ? bd.getBlackKnights() : bd.getWhiteKnights();
-		attacked = (attackingKnightsMask & KnightMove_Lut[attackedSq]) != 0;
+		attacked = (attackingKnightsMask & KnightMove_Lut[attackedBitOffset]) != 0;
 		if (attacked) return true;
 		
 		// Pawns
 		long attackingPawnsMask = isBlackAttacking ? bd.getBlackPawns() : bd.getWhitePawns();
-		attacked = (attackingPawnsMask & (isBlackAttacking ? BlackPawnAttacks_Lut[attackedSq] : WhitePawnAttacks_Lut[attackedSq])) != 0;
+		attacked = (attackingPawnsMask & (isBlackAttacking ? BlackPawnAttacks_Lut[attackedBitOffset] : WhitePawnAttacks_Lut[attackedBitOffset])) != 0;
 		if (attacked) return true;
 		
 		// Kings
 		long attackingKingMask = isBlackAttacking ? bd.getBlackKing() : bd.getWhiteKing();
-		attacked = (attackingKingMask & KingMove_Lut[attackedSq]) != 0;
+		attacked = (attackingKingMask & KingMove_Lut[attackedBitOffset]) != 0;
 		if (attacked) return true;
 		
 		// Sliders
@@ -334,41 +352,41 @@ public class SquareAttackEvaluator {
 		long rankFileAttackersMask = isBlackAttacking ? bd.getBlackRankFile() : bd.getWhiteRankFile();
 		
 		long empty = bd.getEmpty();
-		long target = BitBoard.positionToMask_Lut[attackedSq];
+		long target = 1L << attackedBitOffset;
 		long attackMask = 0L;
 		
-		if ((directDiagonalAttacksOnPosition_Lut[attackedSq] & diagonalAttackersMask) != 0) {
-			if ((directAttacksOnPositionUpRight_Lut[attackedSq] & diagonalAttackersMask) != 0) {
+		if ((directDiagonalAttacksOnPosition_Lut[attackedBitOffset] & diagonalAttackersMask) != 0) {
+			if ((directAttacksOnPositionUpRight_Lut[attackedBitOffset] & diagonalAttackersMask) != 0) {
 				attackMask = BitBoard.downLeftAttacks(diagonalAttackersMask, empty);
 				if ((attackMask & target) != 0) return true;
 			}
-			if ((directAttacksOnPositionUpLeft_Lut[attackedSq] & diagonalAttackersMask) != 0) {
+			if ((directAttacksOnPositionUpLeft_Lut[attackedBitOffset] & diagonalAttackersMask) != 0) {
 				attackMask = BitBoard.downRightAttacks(diagonalAttackersMask, empty);
 				if ((attackMask & target) != 0) return true;
 			}
-			if ((directAttacksOnPositionDownLeft_Lut[attackedSq] & diagonalAttackersMask) != 0) {
+			if ((directAttacksOnPositionDownLeft_Lut[attackedBitOffset] & diagonalAttackersMask) != 0) {
 				attackMask = BitBoard.upRightAttacks(diagonalAttackersMask, empty);
 				if ((attackMask & target) != 0) return true;
 			}
-			if ((directAttacksOnPositionDownRight_Lut[attackedSq] & diagonalAttackersMask) != 0) {
+			if ((directAttacksOnPositionDownRight_Lut[attackedBitOffset] & diagonalAttackersMask) != 0) {
 				attackMask = BitBoard.upLeftAttacks(diagonalAttackersMask, empty);
 				if ((attackMask & target) != 0) return true;
 			}
 		}
-		if ((directRankFileAttacksOnPosition_Lut[attackedSq] & rankFileAttackersMask) != 0) {
-			if ((directAttacksOnPositionUp_Lut[attackedSq] & rankFileAttackersMask) != 0) {
+		if ((directRankFileAttacksOnPosition_Lut[attackedBitOffset] & rankFileAttackersMask) != 0) {
+			if ((directAttacksOnPositionUp_Lut[attackedBitOffset] & rankFileAttackersMask) != 0) {
 				attackMask = BitBoard.downAttacks(rankFileAttackersMask, empty);
 				if ((attackMask & target) != 0) return true;
 			}
-			if ((directAttacksOnPositionLeft_Lut[attackedSq] & rankFileAttackersMask) != 0) {
+			if ((directAttacksOnPositionLeft_Lut[attackedBitOffset] & rankFileAttackersMask) != 0) {
 				attackMask = BitBoard.rightAttacks(rankFileAttackersMask, empty);
 				if ((attackMask & target) != 0) return true;
 			}
-			if ((directAttacksOnPositionDown_Lut[attackedSq] & rankFileAttackersMask) != 0) {
+			if ((directAttacksOnPositionDown_Lut[attackedBitOffset] & rankFileAttackersMask) != 0) {
 				attackMask = BitBoard.upAttacks(rankFileAttackersMask, empty);
 				if ((attackMask & target) != 0) return true;
 			}
-			if ((directAttacksOnPositionRight_Lut[attackedSq] & rankFileAttackersMask) != 0) {
+			if ((directAttacksOnPositionRight_Lut[attackedBitOffset] & rankFileAttackersMask) != 0) {
 				attackMask = BitBoard.leftAttacks(rankFileAttackersMask, empty);
 				if ((attackMask & target) != 0) return true;
 			}
@@ -380,10 +398,11 @@ public class SquareAttackEvaluator {
 	/* 1-dimensional array:
 	 * 1st index is a position integer, this is the origin square
 	 * indexes a bit mask of the squares that the origin square can attack by a Black Pawn capture */
-	public static final long[] BlackPawnAttacksFromPosition_Lut = new long[128];
+	public static final long[] BlackPawnAttacksFromPosition_Lut = new long[64];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
-			BlackPawnAttacksFromPosition_Lut[square] = createBlackPawnMovesFromSq(square);
+			BlackPawnAttacksFromPosition_Lut[bitOffset++] = createBlackPawnMovesFromSq(square);
 		}
 	}
 	static long createBlackPawnMovesFromSq(int atPos) {
@@ -404,10 +423,11 @@ public class SquareAttackEvaluator {
 	/* 1-dimensional array:
 	 * 1st index is a position integer, this is the origin square
 	 * indexes a bit mask of the squares that the origin square can attack by a White Pawn capture */
-	public static final long[] WhitePawnAttacksFromPosition_Lut = new long[128];
+	public static final long[] WhitePawnAttacksFromPosition_Lut = new long[64];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
-			WhitePawnAttacksFromPosition_Lut[square] = createWhitePawnMovesFromSq(square);
+			WhitePawnAttacksFromPosition_Lut[bitOffset++] = createWhitePawnMovesFromSq(square);
 		}
 	}
 	static long createWhitePawnMovesFromSq(int atPos) {
@@ -425,11 +445,13 @@ public class SquareAttackEvaluator {
 		return mask;
 	}
 	
-	public static final long[][] KingZone_Lut = new long[2][128];
+	public static final long[][] KingZone_Lut = new long[2][64];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
-			KingZone_Lut[0][square] = createKingZoneAtSq(true, square);
-			KingZone_Lut[1][square] = createKingZoneAtSq(false, square);
+			KingZone_Lut[0][bitOffset] = createKingZoneAtSq(true, square);
+			KingZone_Lut[1][bitOffset] = createKingZoneAtSq(false, square);
+			bitOffset++;
 		}
 	}
 	static long createKingZoneAtSq(boolean isWhite, int atPos) {

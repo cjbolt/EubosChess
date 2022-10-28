@@ -472,12 +472,15 @@ public class Board {
 		return pieceLists.getKingPos(isWhite);
 	}
 	
-	public boolean moveCausesDiscoveredCheck(int move, int kingPosition, boolean isWhite) {
+	public boolean moveCausesDiscoveredCheck(int move, int kingBitOffset, boolean isWhite) {
 		boolean isPinned = false;
-		long kingMask = BitBoard.positionToMask_Lut[kingPosition];
+		if (kingBitOffset == Position.NOPOSITION)
+			return isPinned;
+		
+		long kingMask = 1L << kingBitOffset;
 		long pinSquare = 1L << Move.getOriginPosition(move);
 
-		long diagonalAttacksOnKing = SquareAttackEvaluator.directDiagonalAttacksOnPosition_Lut[kingPosition];
+		long diagonalAttacksOnKing = SquareAttackEvaluator.directDiagonalAttacksOnPosition_Lut[kingBitOffset];
 		if ((pinSquare & diagonalAttacksOnKing) != 0L) {
 			// We know that the pinned piece is on a diagonal with the king
 			long diagonalAttackersMask = isWhite ? getBlackDiagonal() : getWhiteDiagonal();
@@ -502,13 +505,13 @@ public class Board {
 			if (pinSquare > kingMask) {
 				// first - special case; King on h8
 				if (kingMask == Long.MIN_VALUE) {
-					long downLeftMask = SquareAttackEvaluator.directAttacksOnPositionDownLeft_Lut[kingPosition];
+					long downLeftMask = SquareAttackEvaluator.directAttacksOnPositionDownLeft_Lut[kingBitOffset];
 					if (((downLeftMask & targetMask) == 0L) && (downLeftMask & diagonalAttackersMask) != 0L) {
 						isPinned = (diagonalAttackersMask & BitBoard.downLeftAttacks(kingMask, this.getEmpty())) != 0L;
 					}
 				} else {
 					// indicates either up left or upright direction
-					long upLeftMask = SquareAttackEvaluator.directAttacksOnPositionUpLeft_Lut[kingPosition];			
+					long upLeftMask = SquareAttackEvaluator.directAttacksOnPositionUpLeft_Lut[kingBitOffset];			
 					if ((upLeftMask & pinSquare) != 0L) {
 						// Up left, is attacker on that line?
 						if (((upLeftMask & targetMask) == 0L) && (upLeftMask & diagonalAttackersMask) != 0L) {
@@ -516,7 +519,7 @@ public class Board {
 						}
 					} else {
 						// must be up right
-						long upRightMask = SquareAttackEvaluator.directAttacksOnPositionUpRight_Lut[kingPosition];
+						long upRightMask = SquareAttackEvaluator.directAttacksOnPositionUpRight_Lut[kingBitOffset];
 						if (((upRightMask & targetMask) == 0L) && (upRightMask & diagonalAttackersMask) != 0L) {
 							isPinned = (diagonalAttackersMask & BitBoard.upRightAttacks(kingMask, this.getEmpty())) != 0L;
 						}
@@ -524,7 +527,7 @@ public class Board {
 				}
 			} else {
 				// indicates either down left or down right direction
-				long downLeftMask = SquareAttackEvaluator.directAttacksOnPositionDownLeft_Lut[kingPosition];			
+				long downLeftMask = SquareAttackEvaluator.directAttacksOnPositionDownLeft_Lut[kingBitOffset];			
 				if ((downLeftMask & pinSquare) != 0L) {
 					// Down left, is attacker on that line?
 					if (((downLeftMask & targetMask) == 0L) && (downLeftMask & diagonalAttackersMask) != 0L) {
@@ -532,7 +535,7 @@ public class Board {
 					}
 				} else {
 					// must be down right		
-					long downRightMask = SquareAttackEvaluator.directAttacksOnPositionDownRight_Lut[kingPosition];
+					long downRightMask = SquareAttackEvaluator.directAttacksOnPositionDownRight_Lut[kingBitOffset];
 					if (((downRightMask & targetMask) == 0L) && (downRightMask & diagonalAttackersMask) != 0L) {
 						isPinned = (diagonalAttackersMask & BitBoard.downRightAttacks(kingMask, this.getEmpty())) != 0L;
 					}
@@ -545,7 +548,7 @@ public class Board {
 			allPieces |= enPassantCaptureMask;
 			allPieces |= pinSquare;
 		} else {
-			long rankFileAttacksOnKing = SquareAttackEvaluator.directRankFileAttacksOnPosition_Lut[kingPosition];
+			long rankFileAttacksOnKing = SquareAttackEvaluator.directRankFileAttacksOnPosition_Lut[kingBitOffset];
 			if ((pinSquare & rankFileAttacksOnKing) != 0L) {
 				// We know that the pinned piece is on a rank file with the king
 				long rankFileAttackersMask = isWhite ? getBlackRankFile() : getWhiteRankFile();
@@ -571,7 +574,7 @@ public class Board {
 					// first - special case; King on h8
 					if (kingMask == Long.MIN_VALUE) {
 						// Indicates either left or down direction
-						long leftMask = SquareAttackEvaluator.directAttacksOnPositionLeft_Lut[kingPosition];			
+						long leftMask = SquareAttackEvaluator.directAttacksOnPositionLeft_Lut[kingBitOffset];			
 						if ((leftMask & pinSquare) != 0L) {
 							// Left
 							if (((leftMask & targetMask) == 0L) && (leftMask & rankFileAttackersMask) != 0L) {
@@ -579,20 +582,20 @@ public class Board {
 							}
 						} else {
 							// Down
-							long downMask = SquareAttackEvaluator.directAttacksOnPositionDown_Lut[kingPosition];
+							long downMask = SquareAttackEvaluator.directAttacksOnPositionDown_Lut[kingBitOffset];
 							if (((downMask & targetMask) == 0L) && (downMask & rankFileAttackersMask) != 0L) {
 								isPinned = (rankFileAttackersMask & BitBoard.downAttacks(kingMask, this.getEmpty())) != 0L;
 							}
 						}
 					} else {
 						// indicates either up or right direction
-						long rightMask = SquareAttackEvaluator.directAttacksOnPositionRight_Lut[kingPosition];			
+						long rightMask = SquareAttackEvaluator.directAttacksOnPositionRight_Lut[kingBitOffset];			
 						if ((rightMask & pinSquare) != 0L) {
 							if (((rightMask & targetMask) == 0L) && (rightMask & rankFileAttackersMask) != 0L) {
 								isPinned = (rankFileAttackersMask & BitBoard.rightAttacks(kingMask, this.getEmpty())) != 0L;
 							}
 						} else {
-							long upMask = SquareAttackEvaluator.directAttacksOnPositionUp_Lut[kingPosition];
+							long upMask = SquareAttackEvaluator.directAttacksOnPositionUp_Lut[kingBitOffset];
 							if (((upMask & targetMask) == 0L) && (upMask & rankFileAttackersMask) != 0L) {
 								isPinned = (rankFileAttackersMask & BitBoard.upAttacks(kingMask, this.getEmpty())) != 0L;
 							}
@@ -600,14 +603,14 @@ public class Board {
 					}
 				} else {
 					// indicates either left or down direction
-					long leftMask = SquareAttackEvaluator.directAttacksOnPositionLeft_Lut[kingPosition];			
+					long leftMask = SquareAttackEvaluator.directAttacksOnPositionLeft_Lut[kingBitOffset];			
 					if ((leftMask & pinSquare) != 0L) {
 						if (((leftMask & targetMask) == 0L) && (leftMask & rankFileAttackersMask) != 0L) {
 							isPinned = (rankFileAttackersMask & BitBoard.leftAttacks(kingMask, this.getEmpty())) != 0L;
 						}
 					} else {
 						// Down
-						long downMask = SquareAttackEvaluator.directAttacksOnPositionDown_Lut[kingPosition];
+						long downMask = SquareAttackEvaluator.directAttacksOnPositionDown_Lut[kingBitOffset];
 						if (((downMask & targetMask) == 0L) && (downMask & rankFileAttackersMask) != 0L) {
 							isPinned = (rankFileAttackersMask & BitBoard.downAttacks(kingMask, this.getEmpty())) != 0L;
 						}
@@ -627,25 +630,25 @@ public class Board {
 	private static final long LIGHT_SQUARES_MASK = 0x55AA55AA55AA55AAL;
 	private static final long DARK_SQUARES_MASK = 0xAA55AA55AA55AA55L; 
 	
-	public boolean moveCouldLeadToOwnKingDiscoveredCheck(int move, int kingPosition, boolean isWhite) {
+	public boolean moveCouldLeadToOwnKingDiscoveredCheck(int move, int kingBitOffset, boolean isWhite) {
 		// Attackers
 		long attackingQueensMask = isWhite ? getBlackQueens() : getWhiteQueens();
 		long attackingRooksMask = isWhite ? getBlackRooks() : getWhiteRooks();
 		long attackingBishopsMask = isWhite ? getBlackBishops() : getWhiteBishops();
 
 		// Create masks of attackers
-		boolean isKingOnDarkSq = (BitBoard.positionToMask_Lut[kingPosition] & DARK_SQUARES_MASK) != 0;
+		boolean isKingOnDarkSq = ((1L << kingBitOffset) & DARK_SQUARES_MASK) != 0;
 		long pertinentBishopMask = attackingBishopsMask & ((isKingOnDarkSq) ? DARK_SQUARES_MASK : LIGHT_SQUARES_MASK);
 		long diagonalAttackersMask = attackingQueensMask | pertinentBishopMask;
 		long rankFileAttackersMask = attackingQueensMask | attackingRooksMask;
 		
 		// Establish if the initial square is on a multiple square slider mask from the king position, for which there is a potential pin
 		long pinSquare = 1L << Move.getOriginPosition(move);
-		long diagonalAttacksOnKing = SquareAttackEvaluator.directDiagonalAttacksOnPosition_Lut[kingPosition];
+		long diagonalAttacksOnKing = SquareAttackEvaluator.directDiagonalAttacksOnPosition_Lut[kingBitOffset];
 		if ((diagonalAttackersMask & diagonalAttacksOnKing) != 0L) {
 			if ((pinSquare & diagonalAttacksOnKing) != 0L) return true;
 		}
-		long rankFileAttacksOnKing = SquareAttackEvaluator.directRankFileAttacksOnPosition_Lut[kingPosition];
+		long rankFileAttacksOnKing = SquareAttackEvaluator.directRankFileAttacksOnPosition_Lut[kingBitOffset];
 		if ((rankFileAttackersMask & rankFileAttacksOnKing) != 0L) {
 			if ((pinSquare & rankFileAttacksOnKing) != 0L) return true;
 		}
@@ -664,15 +667,19 @@ public class Board {
 	
 	private boolean isIllegalCheckHelper(int move, boolean needToEscapeMate, int pieceToMove, boolean isWhite) {
 		boolean isIllegal = false;
+		int kingBitOffset = getKingPosition(isWhite);
+		if (kingBitOffset == Position.NOPOSITION) {
+			return isIllegal;
+		}
+		
 		boolean isKing = Piece.isKing(pieceToMove);
-		int kingPosition = getKingPosition(isWhite);
 		boolean doCheck = needToEscapeMate || isKing;
 		if (EubosEngineMain.ENABLE_PINNED_TO_KING_CHECK_IN_ILLEGAL_DETECTION) {
-			if (!doCheck && moveCausesDiscoveredCheck(move, kingPosition, isWhite))
+			if (!doCheck && moveCausesDiscoveredCheck(move, kingBitOffset, isWhite))
 				return true;
 		} else {
 			if (!doCheck) {
-				doCheck = moveCouldLeadToOwnKingDiscoveredCheck(move, kingPosition, isWhite);
+				doCheck = moveCouldLeadToOwnKingDiscoveredCheck(move, kingBitOffset, isWhite);
 			}
 		}
 		if (doCheck) {		
@@ -723,10 +730,10 @@ public class Board {
 			// Because of need to check if in check, need to update for King only
 			if (isKing) {
 				pieceLists.updatePiece(pieceToMove, originBitOffset, targetBitOffset);
-				kingPosition = BitBoard.bitToPosition_Lut[targetBitOffset]; // King moved!
+				kingBitOffset = targetBitOffset; // King moved!
 			}
 			
-			isIllegal = squareIsAttacked(kingPosition, isWhite);
+			isIllegal = squareIsAttacked(kingBitOffset, isWhite);
 			
 			// Switch piece bitboard
 			// Piece type doesn't change across boards
@@ -972,8 +979,8 @@ public class Board {
 		return (allPieces & BitBoard.positionToMask_Lut[atPos]) == 0;		
 	}
 	
-	public boolean squareIsAttacked( int atPos, boolean isBlackAttacking ) {
-		return SquareAttackEvaluator.isAttacked(this, atPos, isBlackAttacking);
+	public boolean squareIsAttacked(int bitOffset, boolean isBlackAttacking) {
+		return SquareAttackEvaluator.isAttacked(this, bitOffset, isBlackAttacking);
 	}
 	
 	public int getPieceAtSquare( int atPos ) {
@@ -1216,8 +1223,10 @@ public class Board {
 			long kingMask = isWhite ? getWhiteKing() : getBlackKing();
 			inCheck = (kingMask & mae.basic_attacks[isWhite ? 1 : 0][3][0]) != 0L;
 		} else {
-			int kingSquare = getKingPosition(isWhite);
-			inCheck = squareIsAttacked(kingSquare, isWhite);
+			int kingBitOffset = getKingPosition(isWhite);
+			if (kingBitOffset != Position.NOPOSITION) {
+				inCheck = squareIsAttacked(kingBitOffset, isWhite);
+			}
 		}
 		return inCheck;
 	}
@@ -1406,9 +1415,9 @@ public class Board {
 		return isCandidate;
 	}
 	
-	public boolean isBackwardsPawn(int atPos, boolean isWhite) {
+	public boolean isBackwardsPawn(int bitOffset, boolean isWhite) {
 		boolean isBackwards = true;
-		long mask = BitBoard.BackwardsPawn_Lut[isWhite ? 0 : 1][atPos];
+		long mask = BitBoard.BackwardsPawn_Lut[isWhite ? 0 : 1][bitOffset];
 		long ownSidePawns = isWhite ? getWhitePawns() : getBlackPawns();
 		if ((mask & ownSidePawns) != 0) {
 			isBackwards  = false;
@@ -1416,9 +1425,9 @@ public class Board {
 		return isBackwards;
 	}
 	
-	public boolean isIsolatedPawn(int atPos, boolean isWhite) {
+	public boolean isIsolatedPawn(int bitOffset, boolean isWhite) {
 		boolean isIsolated = true;
-		long mask = BitBoard.IsolatedPawn_Lut[atPos];
+		long mask = BitBoard.IsolatedPawn_Lut[bitOffset];
 		long ownSidePawns = !isWhite ? getBlackPawns() : getWhitePawns();
 		if ((mask & ownSidePawns) != 0) {
 			isIsolated  = false;
@@ -1513,10 +1522,10 @@ public class Board {
 		long attackMask[];
 		boolean attackerIsBlack = false;
 		
-		public void callback(int piece, int position) {
+		public void callback(int piece, int bitOffset) {
 			long pawnAttacks = (attackerIsBlack ?
-					SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[position] : 
-						SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[position]);
+					SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[bitOffset] : 
+						SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[bitOffset]);
 			long bitsAlreadySetInFirstMask = pawnAttacks & attackMask[0];
 			if (attackMask.length > 1) {
 				if (bitsAlreadySetInFirstMask != 0L) {
@@ -1547,18 +1556,18 @@ public class Board {
 		
 		long attackMask = 0L;
 		
-		public void callback(int piece, int position) {
+		public void callback(int piece, int bitOffset) {
 			long mask = 0L;
 			switch(piece) {
 			case Piece.WHITE_PAWN:
-				mask = SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[position];
+				mask = SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[bitOffset];
 				break;
 			case Piece.BLACK_PAWN:
-				mask = SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[position];
+				mask = SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[bitOffset];
 				break;
 			case Piece.WHITE_KNIGHT:
 			case Piece.BLACK_KNIGHT:
-				mask = SquareAttackEvaluator.KnightMove_Lut[position];
+				mask = SquareAttackEvaluator.KnightMove_Lut[bitOffset];
 				break;
 			default:
 				break;
@@ -1585,18 +1594,18 @@ public class Board {
 		
 		long [] attackMask;
 		
-		public void callback(int piece, int position) {
+		public void callback(int piece, int bitOffset) {
 			long mask = 0L;
 			switch(piece) {
 			case Piece.WHITE_PAWN:
-				mask = SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[position];
+				mask = SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[bitOffset];
 				break;
 			case Piece.BLACK_PAWN:
-				mask = SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[position];
+				mask = SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[bitOffset];
 				break;
 			case Piece.WHITE_KNIGHT:
 			case Piece.BLACK_KNIGHT:
-				mask = SquareAttackEvaluator.KnightMove_Lut[position];
+				mask = SquareAttackEvaluator.KnightMove_Lut[bitOffset];
 				break;
 			default:
 				break;

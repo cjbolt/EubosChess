@@ -163,16 +163,16 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	public boolean isKingExposed() {
-		int kingPos = bd.pieceLists.getKingPos(onMoveIsWhite);
+		int kingBitOffset = bd.pieceLists.getKingPos(onMoveIsWhite);
 		// Only meant to cater for quite extreme situations
-		long kingZone = SquareAttackEvaluator.KingZone_Lut[onMoveIsWhite ? 0 : 1][kingPos];
+		long kingZone = SquareAttackEvaluator.KingZone_Lut[onMoveIsWhite ? 0 : 1][kingBitOffset];
 		kingZone =  onMoveIsWhite ? kingZone >>> 8 : kingZone << 8;
 		long defenders = onMoveIsWhite ? bd.getWhitePieces() : bd.getBlackPieces();
 		int defenderCount = Long.bitCount(kingZone&defenders);
 
 		int attackingQueenPos = bd.pieceLists.getQueenPos(!onMoveIsWhite);
 		if (attackingQueenPos != Position.NOPOSITION) {
-			int attackingQueenDistance = Position.distance(attackingQueenPos, kingPos);
+			int attackingQueenDistance = Position.distance(attackingQueenPos, BitBoard.bitToPosition_Lut[kingBitOffset]);
 			return (defenderCount < 3 || attackingQueenDistance < 3);
 		} else {
 			return defenderCount < 3;
@@ -308,8 +308,8 @@ public class PositionEvaluator implements IEvaluate {
 		int score = 0;
 		int kingSquare = Position.NOPOSITION;
 		
-		public void callback(int piece, int position) {
-			int distance = Position.distance(position, kingSquare);
+		public void callback(int piece, int bitOffset) {
+			int distance = Position.distance(BitBoard.bitToPosition_Lut[bitOffset], kingSquare);
 			piece &= ~Piece.BLACK;
 			switch(piece) {
 			case Piece.QUEEN:
@@ -334,9 +334,9 @@ public class PositionEvaluator implements IEvaluate {
 			return false;
 		}
 		
-		public int getScore(int kingPos, int [] attackers) {
+		public int getScore(int kingBitOffset, int [] attackers) {
 			score = 0;
-			kingSquare = kingPos;
+			kingSquare = BitBoard.bitToPosition_Lut[kingBitOffset];
 			bd.pieceLists.forEachPieceOfTypeDoCallback(this, attackers);
 			return score;
 		}
@@ -353,7 +353,7 @@ public class PositionEvaluator implements IEvaluate {
 
 		// King
 		long kingMask = isWhite ? bd.getWhiteKing() : bd.getBlackKing();
-		int kingPos = bd.pieceLists.getKingPos(isWhite);
+		int kingBitOffset = bd.pieceLists.getKingPos(isWhite);
 		long blockers = isWhite ? bd.getWhitePawns() : bd.getBlackPawns();
 		
 		// Attackers
@@ -402,10 +402,10 @@ public class PositionEvaluator implements IEvaluate {
 		// Then, do king tropism for proximity
 		final int[] BLACK_ATTACKERS = {Piece.BLACK_QUEEN, Piece.BLACK_KNIGHT};
 		final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT};
-		evaluation += ktc.getScore(kingPos, isWhite ? BLACK_ATTACKERS : WHITE_ATTACKERS);
+		evaluation += ktc.getScore(kingBitOffset, isWhite ? BLACK_ATTACKERS : WHITE_ATTACKERS);
 		
 		// Hit with a penalty if few defending pawns in the king zone and/or pawn storm
-		long surroundingSquares = SquareAttackEvaluator.KingZone_Lut[isWhite ? 0 : 1][kingPos];		
+		long surroundingSquares = SquareAttackEvaluator.KingZone_Lut[isWhite ? 0 : 1][kingBitOffset];		
 		long pawnShieldMask =  isWhite ? surroundingSquares >>> 8 : surroundingSquares << 8;
 		evaluation += PAWN_SHELTER_LUT[Long.bitCount(pawnShieldMask & blockers)];
 		
@@ -413,7 +413,7 @@ public class PositionEvaluator implements IEvaluate {
 		evaluation += PAWN_STORM_LUT[Long.bitCount(surroundingSquares & attacking_pawns)];
 		
 		// Then account for attacks on the squares around the king
-		surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingPos];
+		surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingBitOffset];
 		int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3][0]);
 		int flightCount = Long.bitCount(surroundingSquares);
 		int fraction_attacked_q8 = (attackedCount * 256) / flightCount;

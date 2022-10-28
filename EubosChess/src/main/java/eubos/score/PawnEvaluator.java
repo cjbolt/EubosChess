@@ -86,8 +86,8 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		return 1 + ((bd.me.phase+640) / 4096) + ((bd.me.phase+320) / 4096);
 	}
 	
-	protected void setQueeningDistance(int atPos, boolean pawnIsWhite) {
-		int rank = Position.getRank(atPos);
+	protected void setQueeningDistance(int bitOffset, boolean pawnIsWhite) {
+		int rank = BitBoard.getRank(bitOffset);
 		if (pawnIsWhite) {
 			queeningDistance = 7-rank;
 			weighting = rank;
@@ -99,41 +99,41 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	
 	@SuppressWarnings("unused")
 	@Override
-	public void callback(int piece, int atPos) {
+	public void callback(int piece, int bitOffset) {
 		/* All of the evaluation performed in this callback doesn't depend on the wider position or attacks mask,
 		 * it can only be based on the pawn bitboard. This is because the result of this evaluation is stored in
 		 * the pawn eval hash table and as such has to be valid for any position with the same pawn structure. */
 		boolean pawnIsWhite = Piece.isWhite(piece);
 		
 		long passers = bd.getPassedPawns();
-		long mask = BitBoard.positionToMask_Lut[atPos];
+		long mask = 1L << bitOffset;
 		if ((passers & mask) != 0L) {
 			// check for directly supported and adjacent passed pawns
-			long directConnectedPawns = pawnIsWhite ? SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[atPos] : 
-				                                SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[atPos];
-			directConnectedPawns |= AdjacentPawnFromPosition_Lut[atPos];
+			long directConnectedPawns = pawnIsWhite ? SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[bitOffset] : 
+				                                SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[bitOffset];
+			directConnectedPawns |= AdjacentPawnFromPosition_Lut[bitOffset];
 			long ownPassers = passers & (pawnIsWhite ? bd.getWhitePawns() : bd.getBlackPawns());
-			piecewisePawnScoreAccumulator += (Long.bitCount(ownPassers & directConnectedPawns) * CONNECTED_PASSED_PAWN_BOOST);
+			piecewisePawnScoreAccumulator += Long.bitCount(ownPassers & directConnectedPawns) * CONNECTED_PASSED_PAWN_BOOST;
 				
 			// check for otherwise connected passed pawns, which could be supported
-			piecewisePawnScoreAccumulator += (Long.bitCount(ownPassers & BitBoard.PasserSupport_Lut[pawnIsWhite ? 0 : 1][BitBoard.positionToBit_Lut[atPos]]) * CONNECTED_PASSED_PAWN_BOOST/2);
+			piecewisePawnScoreAccumulator += Long.bitCount(ownPassers & BitBoard.PasserSupport_Lut[pawnIsWhite ? 0 : 1][bitOffset]) * CONNECTED_PASSED_PAWN_BOOST/2;
 		} else if (ENABLE_CANDIDATE_PP_EVALUATION) {
 			long[][] enemy_attacks = attacks[pawnIsWhite ? 1:0];
 			long[][] own_attacks = attacks[pawnIsWhite ? 0:1];
 			
-			if (bd.isCandidatePassedPawn(BitBoard.positionToBit_Lut[atPos], pawnIsWhite, own_attacks[0], enemy_attacks[0])) {
-				setQueeningDistance(atPos, pawnIsWhite);
+			if (bd.isCandidatePassedPawn(bitOffset, pawnIsWhite, own_attacks[0], enemy_attacks[0])) {
+				setQueeningDistance(bitOffset, pawnIsWhite);
 				weighting *= getScaleFactorForGamePhase();
-				if (Position.getFile(atPos) == IntFile.Fa || Position.getFile(atPos) == IntFile.Fh) {
+				if (BitBoard.getFile(bitOffset) == IntFile.Fa || BitBoard.getFile(bitOffset) == IntFile.Fh) {
 					piecewisePawnScoreAccumulator += weighting*ROOK_FILE_CANDIDATE_PAWN;
 				} else {
 					piecewisePawnScoreAccumulator += weighting*CANDIDATE_PAWN;
 				}
 			}
 		}
-		if (bd.isIsolatedPawn(atPos, pawnIsWhite)) {
+		if (bd.isIsolatedPawn(bitOffset, pawnIsWhite)) {
 			piecewisePawnScoreAccumulator -= ISOLATED_PAWN_HANDICAP;
-		} else if (bd.isBackwardsPawn(atPos, pawnIsWhite)) {
+		} else if (bd.isBackwardsPawn(bitOffset, pawnIsWhite)) {
 			piecewisePawnScoreAccumulator -= BACKWARD_PAWN_HANDICAP;
 		}
 	}
@@ -165,7 +165,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		int score = 0;
 		int file = BitBoard.getFile(bitOffset);
 		int queeningSquare = pawnIsWhite ? Position.valueOf(file, 7) : Position.valueOf(file, 0);
-		int oppoKingPos = bd.getKingPosition(!pawnIsWhite);
+		int oppoKingPos = BitBoard.bitToPosition_Lut[bd.getKingPosition(!pawnIsWhite)];
 		int oppoDistance = Position.distance(queeningSquare, oppoKingPos);
 		if (!isOwnPawn) {
 			// if king is on move, assume it can get towards the square of the pawn
@@ -180,7 +180,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 				score = 700;
 			} else {
 				// increase score also if we think the pawn can be defended by own king
-				int ownKingPos = bd.getKingPosition(pawnIsWhite);
+				int ownKingPos = BitBoard.bitToPosition_Lut[bd.getKingPosition(pawnIsWhite)];
 				int ownDistance = Position.distance(queeningSquare, ownKingPos);
 				if (ownDistance-1 <= oppoDistance) {
 					score = 300;
@@ -230,7 +230,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 			long[][] enemy_attacks = attacks[pawnIsWhite ? 1:0];
 			long[][] own_attacks = attacks[pawnIsWhite ? 0:1];
 			
-			setQueeningDistance(BitBoard.bitToPosition_Lut[bit_offset], pawnIsWhite);
+			setQueeningDistance(bit_offset, pawnIsWhite);
 			if (ENABLE_KPK_EVALUATION && bd.me.phase == 4096) {
 				score = evaluateKpkEndgame(bit_offset, pawnIsWhite, (pawnIsWhite == onMoveIsWhite), own_attacks);
 			} else {
@@ -319,10 +319,11 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	/* 1-dimensional array:
 	 * 1st index is a position integer, this is the origin square
 	 * indexes a bit mask of the squares that the origin square can attack by a Black Pawn capture */
-	public static final long[] AdjacentPawnFromPosition_Lut = new long[128];
+	public static final long[] AdjacentPawnFromPosition_Lut = new long[64];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
-			AdjacentPawnFromPosition_Lut[square] = createAdjacentPawnsFromSq(square);
+			AdjacentPawnFromPosition_Lut[bitOffset++] = createAdjacentPawnsFromSq(square);
 		}
 	}
 	static long createAdjacentPawnsFromSq(int atPos) {
