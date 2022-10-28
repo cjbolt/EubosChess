@@ -456,12 +456,12 @@ public class Board {
 			if (BitBoard.getRank(originBitOffset) == IntRank.R2) {
 				if (BitBoard.getRank(targetBitOffset) == IntRank.R4) {
 					isEnPassantCapturePossible = true;
-					setEnPassantTargetSq(BitBoard.bitToPosition_Lut[targetBitOffset-8]);
+					setEnPassantTargetSq(targetBitOffset-8);
 				}
 			} else if (BitBoard.getRank(originBitOffset) == IntRank.R7) {
 				if (BitBoard.getRank(targetBitOffset) == IntRank.R5) {
 					isEnPassantCapturePossible = true;
-					setEnPassantTargetSq(BitBoard.bitToPosition_Lut[targetBitOffset+8]);
+					setEnPassantTargetSq(targetBitOffset+8);
 				}
 			}
 		}
@@ -485,9 +485,8 @@ public class Board {
 			
 			// what if move is capturing the pinning piece? then it is ok
 			int targetBitOffset = Move.getTargetPosition(move);
-			int targetPosition = BitBoard.bitToPosition_Lut[targetBitOffset];
-			long targetSquare = BitBoard.positionToMask_Lut[targetPosition];
-			diagonalAttackersMask &= ~targetSquare;
+			long targetMask = 1L << targetBitOffset;
+			diagonalAttackersMask &= ~targetMask;
 			if ((diagonalAttackersMask & diagonalAttacksOnKing) == 0L) return isPinned;
 			
 			// temporarily move piece
@@ -498,13 +497,13 @@ public class Board {
 				allPieces &= ~enPassantCaptureMask;
 			}
 			allPieces &= ~pinSquare;
-			allPieces |= targetSquare;
+			allPieces |= targetMask;
 			
 			if (pinSquare > kingMask) {
 				// first - special case; King on h8
 				if (kingMask == Long.MIN_VALUE) {
 					long downLeftMask = SquareAttackEvaluator.directAttacksOnPositionDownLeft_Lut[kingPosition];
-					if (((downLeftMask & targetSquare) == 0L) && (downLeftMask & diagonalAttackersMask) != 0L) {
+					if (((downLeftMask & targetMask) == 0L) && (downLeftMask & diagonalAttackersMask) != 0L) {
 						isPinned = (diagonalAttackersMask & BitBoard.downLeftAttacks(kingMask, this.getEmpty())) != 0L;
 					}
 				} else {
@@ -512,13 +511,13 @@ public class Board {
 					long upLeftMask = SquareAttackEvaluator.directAttacksOnPositionUpLeft_Lut[kingPosition];			
 					if ((upLeftMask & pinSquare) != 0L) {
 						// Up left, is attacker on that line?
-						if (((upLeftMask & targetSquare) == 0L) && (upLeftMask & diagonalAttackersMask) != 0L) {
+						if (((upLeftMask & targetMask) == 0L) && (upLeftMask & diagonalAttackersMask) != 0L) {
 							isPinned = (diagonalAttackersMask & BitBoard.upLeftAttacks(kingMask, this.getEmpty())) != 0L;
 						}
 					} else {
 						// must be up right
 						long upRightMask = SquareAttackEvaluator.directAttacksOnPositionUpRight_Lut[kingPosition];
-						if (((upRightMask & targetSquare) == 0L) && (upRightMask & diagonalAttackersMask) != 0L) {
+						if (((upRightMask & targetMask) == 0L) && (upRightMask & diagonalAttackersMask) != 0L) {
 							isPinned = (diagonalAttackersMask & BitBoard.upRightAttacks(kingMask, this.getEmpty())) != 0L;
 						}
 					}
@@ -528,20 +527,20 @@ public class Board {
 				long downLeftMask = SquareAttackEvaluator.directAttacksOnPositionDownLeft_Lut[kingPosition];			
 				if ((downLeftMask & pinSquare) != 0L) {
 					// Down left, is attacker on that line?
-					if (((downLeftMask & targetSquare) == 0L) && (downLeftMask & diagonalAttackersMask) != 0L) {
+					if (((downLeftMask & targetMask) == 0L) && (downLeftMask & diagonalAttackersMask) != 0L) {
 						isPinned = (diagonalAttackersMask & BitBoard.downLeftAttacks(kingMask, this.getEmpty())) != 0L;
 					}
 				} else {
 					// must be down right		
 					long downRightMask = SquareAttackEvaluator.directAttacksOnPositionDownRight_Lut[kingPosition];
-					if (((downRightMask & targetSquare) == 0L) && (downRightMask & diagonalAttackersMask) != 0L) {
+					if (((downRightMask & targetMask) == 0L) && (downRightMask & diagonalAttackersMask) != 0L) {
 						isPinned = (diagonalAttackersMask & BitBoard.downRightAttacks(kingMask, this.getEmpty())) != 0L;
 					}
 				}
 			}
 			// replace piece
 			if (!Move.isCapture(move) || enPassantCaptureMask != 0L) {
-				allPieces &= ~targetSquare;
+				allPieces &= ~targetMask;
 			}
 			allPieces |= enPassantCaptureMask;
 			allPieces |= pinSquare;
@@ -554,9 +553,8 @@ public class Board {
 				
 				// what if move is capturing the pinning piece? then it is ok
 				int targetBitOffset = Move.getTargetPosition(move);
-				int targetPosition = BitBoard.bitToPosition_Lut[targetBitOffset];
-				long targetSquare = BitBoard.positionToMask_Lut[targetPosition];
-				rankFileAttackersMask &= ~targetSquare;
+				long targetMask = 1L << targetBitOffset;
+				rankFileAttackersMask &= ~targetMask;
 				if ((rankFileAttackersMask & rankFileAttacksOnKing) == 0L) return isPinned;
 				
 				// temporarily move piece
@@ -567,7 +565,7 @@ public class Board {
 					allPieces &= ~enPassantCaptureMask;
 				}
 				allPieces &= ~pinSquare;
-				allPieces |= targetSquare;
+				allPieces |= targetMask;
 				
 				if (pinSquare > kingMask) {
 					// first - special case; King on h8
@@ -576,13 +574,13 @@ public class Board {
 						long leftMask = SquareAttackEvaluator.directAttacksOnPositionLeft_Lut[kingPosition];			
 						if ((leftMask & pinSquare) != 0L) {
 							// Left
-							if (((leftMask & targetSquare) == 0L) && (leftMask & rankFileAttackersMask) != 0L) {
+							if (((leftMask & targetMask) == 0L) && (leftMask & rankFileAttackersMask) != 0L) {
 								isPinned = (rankFileAttackersMask & BitBoard.leftAttacks(kingMask, this.getEmpty())) != 0L;
 							}
 						} else {
 							// Down
 							long downMask = SquareAttackEvaluator.directAttacksOnPositionDown_Lut[kingPosition];
-							if (((downMask & targetSquare) == 0L) && (downMask & rankFileAttackersMask) != 0L) {
+							if (((downMask & targetMask) == 0L) && (downMask & rankFileAttackersMask) != 0L) {
 								isPinned = (rankFileAttackersMask & BitBoard.downAttacks(kingMask, this.getEmpty())) != 0L;
 							}
 						}
@@ -590,12 +588,12 @@ public class Board {
 						// indicates either up or right direction
 						long rightMask = SquareAttackEvaluator.directAttacksOnPositionRight_Lut[kingPosition];			
 						if ((rightMask & pinSquare) != 0L) {
-							if (((rightMask & targetSquare) == 0L) && (rightMask & rankFileAttackersMask) != 0L) {
+							if (((rightMask & targetMask) == 0L) && (rightMask & rankFileAttackersMask) != 0L) {
 								isPinned = (rankFileAttackersMask & BitBoard.rightAttacks(kingMask, this.getEmpty())) != 0L;
 							}
 						} else {
 							long upMask = SquareAttackEvaluator.directAttacksOnPositionUp_Lut[kingPosition];
-							if (((upMask & targetSquare) == 0L) && (upMask & rankFileAttackersMask) != 0L) {
+							if (((upMask & targetMask) == 0L) && (upMask & rankFileAttackersMask) != 0L) {
 								isPinned = (rankFileAttackersMask & BitBoard.upAttacks(kingMask, this.getEmpty())) != 0L;
 							}
 						}
@@ -604,20 +602,20 @@ public class Board {
 					// indicates either left or down direction
 					long leftMask = SquareAttackEvaluator.directAttacksOnPositionLeft_Lut[kingPosition];			
 					if ((leftMask & pinSquare) != 0L) {
-						if (((leftMask & targetSquare) == 0L) && (leftMask & rankFileAttackersMask) != 0L) {
+						if (((leftMask & targetMask) == 0L) && (leftMask & rankFileAttackersMask) != 0L) {
 							isPinned = (rankFileAttackersMask & BitBoard.leftAttacks(kingMask, this.getEmpty())) != 0L;
 						}
 					} else {
 						// Down
 						long downMask = SquareAttackEvaluator.directAttacksOnPositionDown_Lut[kingPosition];
-						if (((downMask & targetSquare) == 0L) && (downMask & rankFileAttackersMask) != 0L) {
+						if (((downMask & targetMask) == 0L) && (downMask & rankFileAttackersMask) != 0L) {
 							isPinned = (rankFileAttackersMask & BitBoard.downAttacks(kingMask, this.getEmpty())) != 0L;
 						}
 					}
 				}
 				// replace piece
 				if (!Move.isCapture(move) || enPassantCaptureMask != 0L) {
-					allPieces &= ~targetSquare;
+					allPieces &= ~targetMask;
 				}
 				allPieces |= enPassantCaptureMask;
 				allPieces |= pinSquare;
@@ -815,7 +813,7 @@ public class Board {
 		if (getPieceAtSquare(1L << targetBitShift) != targetPiece && !Move.isEnPassantCapture(move)) {
 			return false;
 		}
-		if (Move.isEnPassantCapture(move) && (getEnPassantTargetSq() != BitBoard.bitToPosition_Lut[targetBitShift])) {
+		if (Move.isEnPassantCapture(move) && (getEnPassantTargetSq() != targetBitShift)) {
 			return false;
 		}
 		

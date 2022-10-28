@@ -90,7 +90,7 @@ public class ZobristHashCode implements IForEachPieceCallback {
 		// add en passant
 		int enPassant = pos.getTheBoard().getEnPassantTargetSq();
 		if (enPassant!=Position.NOPOSITION) {
-			int enPassantFile = Position.getFile(enPassant);
+			int enPassantFile = BitBoard.getFile(enPassant);
 			prevEnPassantFile.push(enPassantFile);
 			hashCode ^= prnLookupTable[(INDEX_ENP_A+enPassantFile)];
 		}

@@ -169,7 +169,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			int enPassantFile = IntFile.NOFILE;
 			int enPasTargetSq = theBoard.getEnPassantTargetSq();
 			if (enPasTargetSq != Position.NOPOSITION)
-				enPassantFile = Position.getFile(enPasTargetSq);
+				enPassantFile = BitBoard.getFile(enPasTargetSq);
 			
 			hash.update(move, captureBitOffset, enPassantFile);
 
@@ -208,7 +208,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		
 		if (computeHash) {
 
-			int enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? Position.getFile(enPasTargetSq) : IntFile.NOFILE;
+			int enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? BitBoard.getFile(enPasTargetSq) : IntFile.NOFILE;
 			hash.update(reversedMove, captureBitOffset, enPassantFile);
 			
 			// Clear draw indicator flag
@@ -249,7 +249,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int enPasTargetSq = TrackedMove.getEnPassantTarget(tm);
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		
-		int enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? Position.getFile(enPasTargetSq) : IntFile.NOFILE;
+		int enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? BitBoard.getFile(enPasTargetSq) : IntFile.NOFILE;
 		hash.updateNullMove(enPassantFile);
 		
 		// Clear draw indicator flag
@@ -270,7 +270,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		fen.append(castling.getFenFlags());
 		fen.append(' ');
 		// en passant square
-		GenericPosition pos = (theBoard.getEnPassantTargetSq() == Position.NOPOSITION) ? null : Position.toGenericPosition(theBoard.getEnPassantTargetSq());
+		GenericPosition pos = (theBoard.getEnPassantTargetSq() == Position.NOPOSITION) ? 
+				null : Position.toGenericPosition(BitBoard.bitToPosition_Lut[theBoard.getEnPassantTargetSq()]);
 		if (pos != null) {
 			fen.append(pos.toString());
 		} else {
@@ -387,7 +388,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		}
 		private void parseEnPassant(String targetSq) {
 			if (!targetSq.contentEquals("-")) {
-				theBoard.setEnPassantTargetSq(Position.valueOf(GenericPosition.valueOf(targetSq)));
+				theBoard.setEnPassantTargetSq(BitBoard.positionToBit_Lut[Position.valueOf(GenericPosition.valueOf(targetSq))]);
 			} else {
 				theBoard.setEnPassantTargetSq(Position.NOPOSITION);
 			}

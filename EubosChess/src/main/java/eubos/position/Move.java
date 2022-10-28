@@ -147,7 +147,7 @@ public final class Move {
 		if (theBoard != null) {
 			// Some unit tests don't specify the board, when we don't care about some move field content
 			originPiece = theBoard.getPieceAtSquare(originPosition);
-			if (Piece.isPawn(originPiece) && targetPosition==theBoard.getEnPassantTargetSq()) {
+			if (Piece.isPawn(originPiece) && theBoard.getEnPassantTargetSq() != Position.NOPOSITION && targetPosition==BitBoard.bitToPosition_Lut[theBoard.getEnPassantTargetSq()]) {
 				// En Passant capture move
 				int enPassantCaptureSquare = BitBoard.bitToPosition_Lut[theBoard.generateCaptureBitOffsetForEnPassant(originPiece, BitBoard.positionToBit_Lut[targetPosition])];
 				targetPiece = theBoard.getPieceAtSquare(enPassantCaptureSquare);
