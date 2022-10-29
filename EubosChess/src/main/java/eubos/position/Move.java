@@ -136,6 +136,99 @@ public final class Move {
 		return move;
 	}
 	
+	
+	
+	
+	
+	
+	
+	public static int valueOfBit(int originBit, int originPiece, int targetBit, int targetPiece) {
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
+		int move = targetPiece;
+		
+		// Encode Target Piece and classification if a capture
+		if (targetPiece != Piece.NONE) {
+			move |= Move.TYPE_CAPTURE_MASK << TYPE_SHIFT;
+		}
+
+		// Encode origin position
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert originBit < 64;
+		move |= originBit << ORIGINPOSITION_SHIFT;
+		
+		// Encode Origin Piece
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert (originPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
+		move |= originPiece << ORIGIN_PIECE_SHIFT;
+		
+		// Encode target position
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert targetBit < 64;
+		move |= targetBit << TARGETPOSITION_SHIFT;
+		
+		return move;
+	}
+	
+	public static int valueOfEnPassantBit(int enPassant, int type, int originBit, int originPiece, int targetBit, int targetPiece, int promotion) {
+		int move = Move.valueOfBit(type, originBit, originPiece, targetBit, targetPiece, promotion);
+		
+		// Encode enPassant - single bit, doesn't need masking
+		move |= enPassant;
+		
+		return move;
+	}
+
+	public static int valueOfBit(int type, int originBit, int originPiece, int targetBit, int targetPiece, int promotion) {
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
+		int move = targetPiece;
+
+		// Encode Target Piece and classification if a capture
+		if (targetPiece != Piece.NONE) {
+			move |= (type | Move.TYPE_CAPTURE_MASK) << TYPE_SHIFT;
+
+		} else {
+			// Encode move classification
+			if (EubosEngineMain.ENABLE_ASSERTS)
+				assert (type & ~(Move.TYPE_MASK >>> TYPE_SHIFT)) == 0;
+			move |= type << TYPE_SHIFT;
+		}
+			
+		// Encode Origin Piece
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert (originPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
+		move |= originPiece << ORIGIN_PIECE_SHIFT;
+
+		// Encode Origin position
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert (originBit < 64);
+		move |= originBit << ORIGINPOSITION_SHIFT;
+		
+		// Encode target position
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert (targetBit < 64);
+		move |= targetBit << TARGETPOSITION_SHIFT;
+				
+		// Encode promotion
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			assert promotion != Piece.KING && promotion != Piece.PAWN && (promotion & ~Piece.PIECE_NO_COLOUR_MASK) == 0;
+		}
+		move |= promotion << PROMOTION_SHIFT;
+
+		return move;
+	}
+	
+	
+	
+	
+
+	
+	
+	
+	
+	
+	
 	public static int toMove(GenericMove move, Board theBoard, int type) {
 		int intMove = 0;
 		int targetPosition = Position.valueOf(move.to);

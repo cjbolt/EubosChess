@@ -370,17 +370,39 @@ public class BitBoardTest {
 		assertEquals(63, BitBoard.positionToBit_Lut[Position.h8]);
 	}
 	
+	@Test
 	public void test_mapping_of_bit_rank_to_position_rank() {
 		int bit = 0;
 		for (int square : Position.values) {
-			assertEquals(Position.getRank(square), BitBoard.getRank(bit));
+			assertEquals(Position.getRank(square), BitBoard.getRank(bit++));
 		}
 	}
 	
+	@Test
 	public void test_mapping_of_bit_file_to_position_file() {
 		int bit = 0;
 		for (int square : Position.values) {
-			assertEquals(Position.getFile(square), BitBoard.getFile(bit));
+			assertEquals(Position.getFile(square), BitBoard.getFile(bit++));
 		}
+	}
+	
+	@Test
+	public void test_pawn_capture_target_generation_up_left() {
+		assertEquals(0L, BitBoard.generatePawnCaptureTargetBoardUpLeft(BitBoard.positionToBit_Lut[Position.a1]));
+	}
+	
+	@Test
+	public void test_pawn_capture_target_generation_up_right() {
+		assertEquals((1L << BitBoard.positionToBit_Lut[Position.b2]), BitBoard.generatePawnCaptureTargetBoardUpRight(BitBoard.positionToBit_Lut[Position.a1]));
+	}
+	
+	@Test
+	public void test_pawn_capture_target_generation_down_left() {
+		assertEquals(0L, BitBoard.generatePawnCaptureTargetBoardDownLeft(BitBoard.positionToBit_Lut[Position.a8]));
+	}
+	
+	@Test
+	public void test_pawn_capture_target_generation_down_right() {
+		assertEquals((1L << BitBoard.positionToBit_Lut[Position.b7]), BitBoard.generatePawnCaptureTargetBoardDownRight(BitBoard.positionToBit_Lut[Position.a8]));
 	}
 }

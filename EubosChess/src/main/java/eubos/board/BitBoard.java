@@ -371,7 +371,7 @@ public final class BitBoard {
 				int right_file_from_origin = origin_file + 1;
 				mask |= BitBoard.FileMask_Lut[right_file_from_origin];
 			}
-			mask |= getCaptureTargetMask(BitBoard.bitToPosition_Lut[bitOffset], isWhite, true);
+			mask |= getCaptureTargetMask(bitOffset, isWhite, true);
 			masks[0] = mask;
 		}
 		mask = 0L;
@@ -386,7 +386,7 @@ public final class BitBoard {
 				int left_file_from_origin = origin_file - 1;
 				mask |= BitBoard.FileMask_Lut[left_file_from_origin];
 			}
-			mask |= getCaptureTargetMask(BitBoard.bitToPosition_Lut[bitOffset], isWhite, false);
+			mask |= getCaptureTargetMask(bitOffset, isWhite, false);
 			masks[1] = mask;
 		}
 		// Mask off bits that are behind the pawn
@@ -404,26 +404,22 @@ public final class BitBoard {
 		}
 		return masks;
 	}
-	static long getCaptureTargetMask(int position, boolean isWhite, boolean isLeft) {
-		int targetPos = 0;
+	static long getCaptureTargetMask(int bitOffset, boolean isWhite, boolean isLeft) {
+		long targetMask = 0;
 		if (isWhite) {
 			if (isLeft) {
-				targetPos = Piece.pawn_genLeftCaptureTargetWhite(position);
+				targetMask = Piece.pawn_genLeftCaptureTargetWhite(bitOffset);
 			} else {
-				targetPos = Piece.pawn_genRightCaptureTargetWhite(position);
+				targetMask = Piece.pawn_genRightCaptureTargetWhite(bitOffset);
 			}
 		} else {
 			if (isLeft) {
-				targetPos = Piece.pawn_genLeftCaptureTargetBlack(position);
+				targetMask = Piece.pawn_genLeftCaptureTargetBlack(bitOffset);
 			} else {
-				targetPos = Piece.pawn_genRightCaptureTargetBlack(position);
+				targetMask = Piece.pawn_genRightCaptureTargetBlack(bitOffset);
 			}
 		}
-		if (targetPos != Position.NOPOSITION) {
-			return BitBoard.positionToMask_Lut[targetPos];
-		} else {
-			return 0L;
-		}
+		return targetMask;
 	}
 	
 	static final long[][] BackwardsPawn_Lut = new long[2][]; 
@@ -602,5 +598,21 @@ public final class BitBoard {
 	   rankDistance = Math.abs(rank2 - rank1);
 	   fileDistance = Math.abs(file2 - file1);
 	   return Math.max(rankDistance, fileDistance);
+	}
+	
+	static long generatePawnCaptureTargetBoardUpRight(int bitOffset) {
+		return ((1L << bitOffset) << 9) & not_a_file;
+	}
+	
+	static long generatePawnCaptureTargetBoardUpLeft(int bitOffset) {
+ 		return ((1L << bitOffset) << 7) & not_h_file;
+	}
+	
+	static long generatePawnCaptureTargetBoardDownRight(int bitOffset) {
+		return ((1L << bitOffset) >>> 7) & not_a_file;
+	}
+	
+	static long generatePawnCaptureTargetBoardDownLeft(int bitOffset) {
+		return ((1L << bitOffset) >>> 9) & not_h_file;
 	}
 }

@@ -466,12 +466,14 @@ public abstract class Piece {
 		return ref_moves;
 	}
 	
-	static final int[][] BlackPawnPromotionMove_Lut = new int[128][];
+	static final int[][] BlackPawnPromotionMove_Lut = new int[64][];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
 			if (Position.getRank(square) == IntRank.R2) {
-				BlackPawnPromotionMove_Lut[square] = createBlackPawnPromotionMovesFromOriginPosition(square);
+				BlackPawnPromotionMove_Lut[bitOffset] = createBlackPawnPromotionMovesFromOriginPosition(square);
 			}
+			bitOffset++;
 		}
 	}
 	static int [] createBlackPawnPromotionMovesFromOriginPosition(int originPosition) {
@@ -486,12 +488,14 @@ public abstract class Piece {
 		return moves;
 	}
 	
-	static final int[][] WhitePawnPromotionMove_Lut = new int[128][];
+	static final int[][] WhitePawnPromotionMove_Lut = new int[64][];
 	static {
+		int bitOffset = 0;
 		for (int square : Position.values) {
 			if (Position.getRank(square) == IntRank.R7) {
-				WhitePawnPromotionMove_Lut[square] = createWhitePawnPromotionMovesFromOriginPosition(square);
+				WhitePawnPromotionMove_Lut[bitOffset] = createWhitePawnPromotionMovesFromOriginPosition(square);
 			}
+			bitOffset++;
 		}
 	}
 	static int [] createWhitePawnPromotionMovesFromOriginPosition(int originPosition) {
@@ -853,322 +857,318 @@ public abstract class Piece {
 		}
 	}
 	
-	private static int pawn_genOneSqTargetWhite(int atSquare) {
-		return atSquare+16;
+	private static int pawn_genOneSqTargetWhite(int bitOffset) {
+		return bitOffset+8;
 	}
-	private static int pawn_genOneSqTargetBlack(int atSquare) {
-		return atSquare-16;
+	private static int pawn_genOneSqTargetBlack(int bitOffset) {
+		return bitOffset-8;
 	}	
 	
-	private static int pawn_genTwoSqTargetWhite(int atSquare) {
+	private static int pawn_genTwoSqTargetWhite(int bitOffset) {
 		int moveTo = Position.NOPOSITION;
-		if (Position.getRank(atSquare) == IntRank.R2) {
+		if (BitBoard.getRank(bitOffset) == IntRank.R2) {
 			// bound checking is implicit from start position check
-			moveTo = atSquare+32;
+			moveTo = bitOffset+16;
 		}
 		return moveTo;
 	}
 	
-	private static int pawn_genTwoSqTargetBlack(int atSquare) {
+	private static int pawn_genTwoSqTargetBlack(int bitOffset) {
 		int moveTo = Position.NOPOSITION;
-		if (Position.getRank(atSquare) == IntRank.R7) {
+		if (BitBoard.getRank(bitOffset) == IntRank.R7) {
 			// bound checking is implicit from start position check
-			moveTo = atSquare-32;
+			moveTo = bitOffset-16;
 		}
 		return moveTo;
 	}
 	
-	static int pawn_genLeftCaptureTargetWhite(int atSquare) {
-		// Needs off board check
-		return Direction.getDirectMoveSq(Direction.upLeft, atSquare);
+	static long pawn_genLeftCaptureTargetWhite(int bitOffset) {
+		return BitBoard.generatePawnCaptureTargetBoardUpLeft(bitOffset);
 	}
 	
-	static int pawn_genRightCaptureTargetWhite(int atSquare) {
-		// Needs off board check
-		return Direction.getDirectMoveSq(Direction.upRight, atSquare);	
+	static long pawn_genRightCaptureTargetWhite(int bitOffset) {
+		return BitBoard.generatePawnCaptureTargetBoardUpRight(bitOffset);
 	}
 	
-	private static int pawn_isCapturableWhite(Board theBoard, int captureAt) {
+	private static int pawn_isCapturableWhite(Board theBoard, long captureMask) {
 		int capturePiece = Piece.NONE;
-		int queryPiece = theBoard.getPieceAtSquareEnemyBlack(captureAt);
+		int queryPiece = theBoard.getPieceAtSquareEnemyBlack(captureMask);
 		if (queryPiece != Piece.NONE && queryPiece != Piece.DONT_CARE) {
 			capturePiece = queryPiece;
 		}
 		return capturePiece;
 	}
 	
-	private static boolean pawn_checkPromotionPossibleWhite(int targetSquare ) {
-		return Position.getRank(targetSquare) == IntRank.R8;
+	private static boolean pawn_checkPromotionPossibleWhite(int targetBitOffset) {
+		return BitBoard.getRank(targetBitOffset) == IntRank.R8;
 	}
 	
-	private static void pawn_checkPromotionAddMoveWhite(int atSquare, IAddMoves ml, int targetSquare) {
-		if (pawn_checkPromotionPossibleWhite(targetSquare)) {
-			ml.addPrio(WhitePawnPromotionMove_Lut[atSquare][0]);
+	private static void pawn_checkPromotionAddMoveWhite(int originBitOffset, IAddMoves ml, int targetBitOffset) {
+		if (pawn_checkPromotionPossibleWhite(targetBitOffset)) {
+			ml.addPrio(WhitePawnPromotionMove_Lut[originBitOffset][0]);
 		} else {
-			ml.addNormal(Move.valueOf(atSquare, Piece.WHITE_PAWN, targetSquare, Piece.NONE));
+			ml.addNormal(Move.valueOfBit(originBitOffset, Piece.WHITE_PAWN, targetBitOffset, Piece.NONE));
 		}
 	}
 	
-	private static void pawn_checkPromotionAddCaptureMoveWhite(int ownPiece, int atSquare, IAddMoves ml,	int targetSquare, int targetPiece) {
-		if (pawn_checkPromotionPossibleWhite(targetSquare)) {
-			ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.QUEEN ));
+	private static void pawn_checkPromotionAddCaptureMoveWhite(int ownPiece, int originBitOffset, IAddMoves ml,	int targetBitOffset, int targetPiece) {
+		if (pawn_checkPromotionPossibleWhite(targetBitOffset)) {
+			ml.addPrio(Move.valueOfBit(Move.TYPE_PROMOTION_MASK, originBitOffset, ownPiece, targetBitOffset, targetPiece, Piece.QUEEN ));
 		} else {
-			ml.addPrio(Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
+			ml.addPrio(Move.valueOfBit(originBitOffset, ownPiece, targetBitOffset, targetPiece));
 		}
 	}
 	
-	static int pawn_genLeftCaptureTargetBlack(int atSquare) {
-		// Needs off board check
-		return Direction.getDirectMoveSq(Direction.downRight, atSquare);
+	static long pawn_genLeftCaptureTargetBlack(int bitOffset) {
+		return BitBoard.generatePawnCaptureTargetBoardDownRight(bitOffset);
 	}
 	
-	static int pawn_genRightCaptureTargetBlack(int atSquare) {
-		// Needs off board check
-		return Direction.getDirectMoveSq(Direction.downLeft, atSquare);	
+	static long pawn_genRightCaptureTargetBlack(int bitOffset) {
+		return BitBoard.generatePawnCaptureTargetBoardDownLeft(bitOffset);
 	}
 	
-	private static int pawn_isCapturableBlack(Board theBoard, int captureAt ) {
+	private static int pawn_isCapturableBlack(Board theBoard, long captureMask) {
 		int capturePiece = Piece.NONE;
-		int queryPiece = theBoard.getPieceAtSquareEnemyWhite(captureAt);
+		int queryPiece = theBoard.getPieceAtSquareEnemyWhite(captureMask);
 		if (queryPiece != Piece.NONE && queryPiece != Piece.DONT_CARE) {
 			capturePiece = queryPiece;
 		}
 		return capturePiece;
 	}
 	
-	private static boolean pawn_checkPromotionPossibleBlack(int targetSquare ) {
-		return Position.getRank(targetSquare) == IntRank.R1;
+	private static boolean pawn_checkPromotionPossibleBlack(int targetBitOffset ) {
+		return BitBoard.getRank(targetBitOffset) == IntRank.R1;
 	}
 	
-	private static void pawn_checkPromotionAddMoveBlack(int atSquare, IAddMoves ml, int targetSquare) {
-		if (pawn_checkPromotionPossibleBlack(targetSquare)) {
-			ml.addPrio(BlackPawnPromotionMove_Lut[atSquare][0]);
+	private static void pawn_checkPromotionAddMoveBlack(int originBitOffset, IAddMoves ml, int targetBitOffset) {
+		if (pawn_checkPromotionPossibleBlack(targetBitOffset)) {
+			ml.addPrio(BlackPawnPromotionMove_Lut[originBitOffset][0]);
 		} else {
-			ml.addNormal(Move.valueOf(atSquare, Piece.BLACK_PAWN, targetSquare, Piece.NONE));
+			ml.addNormal(Move.valueOfBit(originBitOffset, Piece.BLACK_PAWN, targetBitOffset, Piece.NONE));
 		}
 	}
 	
-	private static void pawn_checkPromotionAddCaptureMoveBlack(int ownPiece, int atSquare, IAddMoves ml,
-			int targetSquare, int targetPiece) {
-		if (pawn_checkPromotionPossibleBlack(targetSquare)) {
-			ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, targetSquare, targetPiece, Piece.QUEEN ));
+	private static void pawn_checkPromotionAddCaptureMoveBlack(int ownPiece, int originBitOffset, IAddMoves ml,
+			int targetBitOffset, int targetPiece) {
+		if (pawn_checkPromotionPossibleBlack(targetBitOffset)) {
+			ml.addPrio(Move.valueOfBit(Move.TYPE_PROMOTION_MASK, originBitOffset, ownPiece, targetBitOffset, targetPiece, Piece.QUEEN ));
 		} else {
-			ml.addPrio(Move.valueOf(atSquare, ownPiece, targetSquare, targetPiece));
+			ml.addPrio(Move.valueOfBit(originBitOffset, ownPiece, targetBitOffset, targetPiece));
 		}
 	}
 	
-	static void pawn_generateMoves_White(IAddMoves ml, Board theBoard, int atSquare) {
+	static void pawn_generateMoves_White(IAddMoves ml, Board theBoard, int bitOffset) {
 		int ownPiece = Piece.WHITE_PAWN;
 		int capturePiece = Piece.NONE;
 		// Check for standard one and two square moves
-		int moveTo = pawn_genOneSqTargetWhite(atSquare);
-		if (theBoard.squareIsEmpty(moveTo)) {
-			pawn_checkPromotionAddMoveWhite(atSquare, ml, moveTo);
-			moveTo = pawn_genTwoSqTargetWhite(atSquare);
-			if (moveTo != Position.NOPOSITION && theBoard.squareIsEmpty(moveTo)) {
+		int targetBitOffset = pawn_genOneSqTargetWhite(bitOffset);
+		if (theBoard.squareIsEmpty(targetBitOffset)) {
+			pawn_checkPromotionAddMoveWhite(bitOffset, ml, targetBitOffset);
+			targetBitOffset = pawn_genTwoSqTargetWhite(bitOffset);
+			if (targetBitOffset != Position.NOPOSITION && theBoard.squareIsEmpty(targetBitOffset)) {
 				// Can't be a promotion or capture
-				ml.addNormal(Move.valueOf(atSquare, ownPiece, moveTo , Piece.NONE));
+				ml.addNormal(Move.valueOfBit(bitOffset, ownPiece, targetBitOffset , Piece.NONE));
 			}	
 		}
 		// Check for capture moves, includes en passant
-		int captureAt = pawn_genLeftCaptureTargetWhite(atSquare);
-		if (captureAt != Position.NOPOSITION) {
-			capturePiece = pawn_isCapturableWhite(theBoard, captureAt);
+		long captureMask = pawn_genLeftCaptureTargetWhite(bitOffset);
+		if (captureMask != 0L) {
+			capturePiece = pawn_isCapturableWhite(theBoard, captureMask);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkPromotionAddCaptureMoveWhite(ownPiece, atSquare, ml, captureAt, capturePiece);
+				pawn_checkPromotionAddCaptureMoveWhite(ownPiece, bitOffset, ml, Long.numberOfTrailingZeros(captureMask), capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
-				if (enPassant != Position.NOPOSITION && captureAt == BitBoard.bitToPosition_Lut[enPassant]) {
+				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.BLACK_PAWN;
 					// promotion can't be possible if en passant capture
-					ml.addPrio(Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
+					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.NONE));
 				}
 			}
 		}
-		captureAt = pawn_genRightCaptureTargetWhite(atSquare);
-		if ( captureAt != Position.NOPOSITION ) {
-			capturePiece = pawn_isCapturableWhite(theBoard, captureAt);
+		captureMask = pawn_genRightCaptureTargetWhite(bitOffset);
+		if (captureMask != 0L) {
+			capturePiece = pawn_isCapturableWhite(theBoard, captureMask);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkPromotionAddCaptureMoveWhite(ownPiece, atSquare, ml, captureAt, capturePiece);
+				pawn_checkPromotionAddCaptureMoveWhite(ownPiece, bitOffset, ml, Long.numberOfTrailingZeros(captureMask), capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
-				if (enPassant != Position.NOPOSITION && captureAt == BitBoard.bitToPosition_Lut[enPassant]) {
+				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.BLACK_PAWN;
 					// promotion can't be possible if en passant capture
-					ml.addPrio(Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
+					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.NONE));
 				}
 			}
 		}
 	}
 	
-	static void pawn_generateMoves_Black(IAddMoves ml, Board theBoard, int atSquare) {
+	static void pawn_generateMoves_Black(IAddMoves ml, Board theBoard, int bitOffset) {
 		int ownPiece = Piece.BLACK_PAWN;
 		int capturePiece = Piece.NONE;
 		// Check for standard one and two square moves
-		int moveTo = pawn_genOneSqTargetBlack(atSquare);
-		if (theBoard.squareIsEmpty(moveTo)) {
-			pawn_checkPromotionAddMoveBlack(atSquare, ml, moveTo);
-			moveTo = pawn_genTwoSqTargetBlack(atSquare);
-			if (moveTo != Position.NOPOSITION && theBoard.squareIsEmpty(moveTo)) {
+		int targetBitOffset = pawn_genOneSqTargetBlack(bitOffset);
+		if (theBoard.squareIsEmpty(targetBitOffset)) {
+			pawn_checkPromotionAddMoveBlack(bitOffset, ml, targetBitOffset);
+			targetBitOffset = pawn_genTwoSqTargetBlack(bitOffset);
+			if (targetBitOffset != Position.NOPOSITION && theBoard.squareIsEmpty(targetBitOffset)) {
 				// Can't be a promotion or capture
-				ml.addNormal(Move.valueOf(atSquare, ownPiece, moveTo , Piece.NONE));
+				ml.addNormal(Move.valueOfBit(bitOffset, ownPiece, targetBitOffset , Piece.NONE));
 			}	
 		}
 		// Check for capture moves, includes en passant
-		int captureAt = pawn_genLeftCaptureTargetBlack(atSquare);
-		if (captureAt != Position.NOPOSITION) {
-			capturePiece = pawn_isCapturableBlack(theBoard, captureAt);
+		long captureMask = pawn_genLeftCaptureTargetBlack(bitOffset);
+		if (captureMask != 0L) {
+			capturePiece = pawn_isCapturableBlack(theBoard, captureMask);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkPromotionAddCaptureMoveBlack(ownPiece, atSquare, ml, captureAt, capturePiece);
+				pawn_checkPromotionAddCaptureMoveBlack(ownPiece, bitOffset, ml, Long.numberOfTrailingZeros(captureMask), capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
-				if (enPassant != Position.NOPOSITION && captureAt == BitBoard.bitToPosition_Lut[enPassant]) {
+				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.WHITE_PAWN;
 					// promotion can't be possible if en passant capture
-					ml.addPrio(Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
+					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.NONE));
 				}
 			}
 		}
-		captureAt = pawn_genRightCaptureTargetBlack(atSquare);
-		if ( captureAt != Position.NOPOSITION ) {
-			capturePiece = pawn_isCapturableBlack(theBoard, captureAt);
+		captureMask = pawn_genRightCaptureTargetBlack(bitOffset);
+		if (captureMask != 0L) {
+			capturePiece = pawn_isCapturableBlack(theBoard, captureMask);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkPromotionAddCaptureMoveBlack(ownPiece, atSquare, ml, captureAt, capturePiece);
+				pawn_checkPromotionAddCaptureMoveBlack(ownPiece, bitOffset, ml, Long.numberOfTrailingZeros(captureMask), capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
-				if (enPassant != Position.NOPOSITION && captureAt == BitBoard.bitToPosition_Lut[enPassant]) {
+				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.WHITE_PAWN;
 					// promotion can't be possible if en passant capture
-					ml.addPrio(Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
+					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.NONE));
 				}
 			}
 		}
 	}
 	
-	static void pawn_generateMovesForExtendedSearch_White(IAddMoves ml, Board theBoard, int atSquare) {
+	static void pawn_generateMovesForExtendedSearch_White(IAddMoves ml, Board theBoard, int bitOffset) {
 		// Standard move
-		int moveTo = pawn_genOneSqTargetWhite(atSquare);
-		if (pawn_checkPromotionPossibleWhite(moveTo) && theBoard.squareIsEmpty(moveTo)) {
-			ml.addPrio(WhitePawnPromotionMove_Lut[atSquare][0]);
+		int targetOffset = pawn_genOneSqTargetWhite(bitOffset);
+		if (pawn_checkPromotionPossibleWhite(targetOffset) && theBoard.squareIsEmpty(targetOffset)) {
+			ml.addPrio(WhitePawnPromotionMove_Lut[bitOffset][0]);
 		}
 		// Capture moves
 		int ownPiece = Piece.WHITE_PAWN;
 		int capturePiece = Piece.NONE;
-		int captureAt = pawn_genLeftCaptureTargetWhite(atSquare);
-		if (captureAt != Position.NOPOSITION) {
-			capturePiece = pawn_isCapturableWhite(theBoard, captureAt);
+		long captureMask = pawn_genLeftCaptureTargetWhite(bitOffset);
+		if (captureMask != 0L) {
+			capturePiece = pawn_isCapturableWhite(theBoard, captureMask);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkPromotionAddCaptureMoveWhite(ownPiece, atSquare, ml, captureAt, capturePiece);
+				pawn_checkPromotionAddCaptureMoveWhite(ownPiece, bitOffset, ml, Long.numberOfTrailingZeros(captureMask), capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
-				if (enPassant != Position.NOPOSITION && captureAt == BitBoard.bitToPosition_Lut[enPassant]) {
+				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.BLACK_PAWN;
 					// promotion can't be possible if en passant capture
-					ml.addPrio(Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
+					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.NONE));
 				}
 			}
 		}
-		captureAt = pawn_genRightCaptureTargetWhite(atSquare);
-		if (captureAt != Position.NOPOSITION) {
-			capturePiece = pawn_isCapturableWhite(theBoard, captureAt);
+		captureMask = pawn_genRightCaptureTargetWhite(bitOffset);
+		if (captureMask != 0L) {
+			capturePiece = pawn_isCapturableWhite(theBoard, captureMask);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkPromotionAddCaptureMoveWhite(ownPiece, atSquare, ml, captureAt, capturePiece);
+				pawn_checkPromotionAddCaptureMoveWhite(ownPiece, bitOffset, ml, Long.numberOfTrailingZeros(captureMask), capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
-				if (enPassant != Position.NOPOSITION && captureAt == BitBoard.bitToPosition_Lut[enPassant]) {
+				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.BLACK_PAWN;
 					// promotion can't be possible if en passant capture
-					ml.addPrio(Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
+					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.NONE));
 				}
 			}
 		}
 	}
 	
-	static void pawn_generateMovesForExtendedSearch_Black(IAddMoves ml, Board theBoard, int atSquare) {
+	static void pawn_generateMovesForExtendedSearch_Black(IAddMoves ml, Board theBoard, int bitOffset) {
 		// Standard move
-		int moveTo = pawn_genOneSqTargetBlack(atSquare);
-		if (pawn_checkPromotionPossibleBlack(moveTo) && theBoard.squareIsEmpty(moveTo)) {
-			ml.addPrio(BlackPawnPromotionMove_Lut[atSquare][0]);
+		int targetOffset = pawn_genOneSqTargetBlack(bitOffset);
+		if (pawn_checkPromotionPossibleBlack(targetOffset) && theBoard.squareIsEmpty(targetOffset)) {
+			ml.addPrio(BlackPawnPromotionMove_Lut[bitOffset][0]);
 		}
 		// Capture moves
 		int ownPiece = Piece.BLACK_PAWN;
 		int capturePiece = Piece.NONE;
-		int captureAt = pawn_genLeftCaptureTargetBlack(atSquare);
-		if (captureAt != Position.NOPOSITION) {
-			capturePiece = pawn_isCapturableBlack(theBoard, captureAt);
+		long captureMask = pawn_genLeftCaptureTargetBlack(bitOffset);
+		if (captureMask != 0L) {
+			capturePiece = pawn_isCapturableBlack(theBoard, captureMask);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkPromotionAddCaptureMoveBlack(ownPiece, atSquare, ml, captureAt, capturePiece);
+				pawn_checkPromotionAddCaptureMoveBlack(ownPiece, bitOffset, ml, Long.numberOfTrailingZeros(captureMask), capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
-				if (enPassant != Position.NOPOSITION && captureAt == BitBoard.bitToPosition_Lut[enPassant]) {
+				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.WHITE_PAWN;
 					// promotion can't be possible if en passant capture
-					ml.addPrio(Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
+					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.NONE));
 				}
 			}
 		}
-		captureAt = pawn_genRightCaptureTargetBlack(atSquare);
-		if (captureAt != Position.NOPOSITION) {
-			capturePiece = pawn_isCapturableBlack(theBoard, captureAt);
+		captureMask = pawn_genRightCaptureTargetBlack(bitOffset);
+		if (captureMask != 0L) {
+			capturePiece = pawn_isCapturableBlack(theBoard, captureMask);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkPromotionAddCaptureMoveBlack(ownPiece, atSquare, ml, captureAt, capturePiece);
+				pawn_checkPromotionAddCaptureMoveBlack(ownPiece, bitOffset, ml, Long.numberOfTrailingZeros(captureMask), capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
-				if (enPassant != Position.NOPOSITION && captureAt == BitBoard.bitToPosition_Lut[enPassant]) {
+				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.WHITE_PAWN;
 					// promotion can't be possible if en passant capture
-					ml.addPrio(Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, atSquare, ownPiece, captureAt, capturePiece, Piece.NONE));
+					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.NONE));
 				}
 			}
 		}
 	}
 	
-	static void pawn_generatePromotionMoves_White(IAddMoves ml, Board theBoard, int atSquare) {
+	static void pawn_generatePromotionMoves_White(IAddMoves ml, Board theBoard, int bitOffset) {
 		// Standard move
-		int moveTo = pawn_genOneSqTargetWhite(atSquare);
-		if (pawn_checkPromotionPossibleWhite(moveTo) && theBoard.squareIsEmpty(moveTo)) {
-			ml.addPrio(WhitePawnPromotionMove_Lut[atSquare][0]);
+		int targetOffset = pawn_genOneSqTargetWhite(bitOffset);
+		if (pawn_checkPromotionPossibleWhite(targetOffset) && theBoard.squareIsEmpty(targetOffset)) {
+			ml.addPrio(WhitePawnPromotionMove_Lut[bitOffset][0]);
 		}
 		// Capture moves
 		int ownPiece = Piece.WHITE_PAWN;
 		int capturePiece = Piece.NONE;
-		int captureAt = pawn_genLeftCaptureTargetWhite(atSquare);
-		if (captureAt != Position.NOPOSITION) {
-			capturePiece = pawn_isCapturableWhite(theBoard, captureAt);
+		long captureMask = pawn_genLeftCaptureTargetWhite(bitOffset);
+		if (captureMask !=0L) {
+			capturePiece = pawn_isCapturableWhite(theBoard, captureMask);
 			if (capturePiece != Piece.NONE) {
-				ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, captureAt, capturePiece, Piece.QUEEN ));
+				ml.addPrio(Move.valueOfBit(Move.TYPE_PROMOTION_MASK, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.QUEEN));
 			}
 		}
-		captureAt = pawn_genRightCaptureTargetWhite(atSquare);
-		if (captureAt != Position.NOPOSITION) {
-			capturePiece = pawn_isCapturableWhite(theBoard, captureAt);
+		captureMask = pawn_genRightCaptureTargetWhite(bitOffset);
+		if (captureMask != Position.NOPOSITION) {
+			capturePiece = pawn_isCapturableWhite(theBoard, captureMask);
 			if (capturePiece != Piece.NONE) {
-				ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, captureAt, capturePiece, Piece.QUEEN ));
+				ml.addPrio(Move.valueOfBit(Move.TYPE_PROMOTION_MASK, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.QUEEN));
 			}
 		}
 	}
 	
-	static void pawn_generatePromotionMoves_Black(IAddMoves ml, Board theBoard, int atSquare) {
+	static void pawn_generatePromotionMoves_Black(IAddMoves ml, Board theBoard, int bitOffset) {
 		// Standard move
-		int moveTo = pawn_genOneSqTargetBlack(atSquare);
-		if (pawn_checkPromotionPossibleBlack(moveTo) && theBoard.squareIsEmpty(moveTo)) {
-			ml.addPrio(BlackPawnPromotionMove_Lut[atSquare][0]);
+		int targetOffset = pawn_genOneSqTargetBlack(bitOffset);
+		if (pawn_checkPromotionPossibleBlack(targetOffset) && theBoard.squareIsEmpty(targetOffset)) {
+			ml.addPrio(BlackPawnPromotionMove_Lut[bitOffset][0]);
 		}
 		// Capture moves
 		int ownPiece = Piece.BLACK_PAWN;
 		int capturePiece = Piece.NONE;
-		int captureAt = pawn_genLeftCaptureTargetBlack(atSquare);
-		if (captureAt != Position.NOPOSITION) {
-			capturePiece = pawn_isCapturableBlack(theBoard, captureAt);
+		long captureMask = pawn_genLeftCaptureTargetBlack(bitOffset);
+		if (captureMask != Position.NOPOSITION) {
+			capturePiece = pawn_isCapturableBlack(theBoard, captureMask);
 			if (capturePiece != Piece.NONE) {
-				ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, captureAt, capturePiece, Piece.QUEEN ));
+				ml.addPrio(Move.valueOfBit(Move.TYPE_PROMOTION_MASK, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.QUEEN));
 			}
 		}
-		captureAt = pawn_genRightCaptureTargetBlack(atSquare);
-		if (captureAt != Position.NOPOSITION) {
-			capturePiece = pawn_isCapturableBlack(theBoard, captureAt);
+		captureMask = pawn_genRightCaptureTargetBlack(bitOffset);
+		if (captureMask != Position.NOPOSITION) {
+			capturePiece = pawn_isCapturableBlack(theBoard, captureMask);
 			if (capturePiece != Piece.NONE) {
-				ml.addPrio(Move.valueOf(Move.TYPE_PROMOTION_MASK, atSquare, ownPiece, captureAt, capturePiece, Piece.QUEEN ));
+				ml.addPrio(Move.valueOfBit(Move.TYPE_PROMOTION_MASK, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.QUEEN));
 			}
 		}
 	}

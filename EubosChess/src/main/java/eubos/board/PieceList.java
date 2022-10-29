@@ -165,7 +165,7 @@ public class PieceList {
 		}
 		for(int atSquare : piece_list[Piece.WHITE_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.pawn_generateMoves_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
+				Piece.pawn_generateMoves_White(ml, theBoard, atSquare);
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.WHITE_QUEEN]) {
@@ -199,7 +199,7 @@ public class PieceList {
 		}
 		for(int atSquare : piece_list[Piece.BLACK_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.pawn_generateMoves_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
+				Piece.pawn_generateMoves_Black(ml, theBoard, atSquare);
 			} else break;
 		}
 		for(int atSquare : piece_list[Piece.BLACK_QUEEN]) {
@@ -247,7 +247,7 @@ public class PieceList {
 		}
 		for(int atSquare : piece_list[Piece.WHITE_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.pawn_generateMoves_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
+				Piece.pawn_generateMoves_White(ml, theBoard, atSquare);
 			} else break;
 		}
 		{
@@ -281,7 +281,7 @@ public class PieceList {
 		}
 		for(int atSquare : piece_list[Piece.BLACK_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.pawn_generateMoves_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
+				Piece.pawn_generateMoves_Black(ml, theBoard, atSquare);
 			} else break;
 		}
 		{
@@ -377,7 +377,7 @@ public class PieceList {
 		}
 		for(int atSquare : piece_list[Piece.BLACK_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.pawn_generateMovesForExtendedSearch_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
+				Piece.pawn_generateMovesForExtendedSearch_Black(ml, theBoard, atSquare);
 				if (ml.isLegalMoveFound()) return true;
 			} else break;
 		}
@@ -418,7 +418,7 @@ public class PieceList {
 		}
 		for(int atSquare : piece_list[Piece.WHITE_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {			
-				Piece.pawn_generateMovesForExtendedSearch_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
+				Piece.pawn_generateMovesForExtendedSearch_White(ml, theBoard, atSquare);
 				if (ml.isLegalMoveFound()) return true;
 			} else break;
 		}
@@ -454,7 +454,7 @@ public class PieceList {
 		for (int atSquare : piece_list[Piece.WHITE_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {
 				if (BitBoard.getRank(atSquare) == IntRank.R7) {
-					Piece.pawn_generatePromotionMoves_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
+					Piece.pawn_generatePromotionMoves_White(ml, theBoard, atSquare);
 				}
 			} else break;
 		}
@@ -464,7 +464,7 @@ public class PieceList {
 		for (int atSquare : piece_list[Piece.BLACK_PAWN]) {
 			if (atSquare != Position.NOPOSITION) {
 				if (BitBoard.getRank(atSquare) == IntRank.R2) {
-					Piece.pawn_generatePromotionMoves_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
+					Piece.pawn_generatePromotionMoves_Black(ml, theBoard, atSquare);
 				}
 			} else break;
 		}
@@ -487,7 +487,7 @@ public class PieceList {
 			for(int atSquare : piece_list[Piece.WHITE_PAWN]) {
 				if (atSquare != Position.NOPOSITION) {
 					if (IntRank.R7 != BitBoard.getRank(atSquare)) {
-						Piece.pawn_generateMovesForExtendedSearch_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
+						Piece.pawn_generateMovesForExtendedSearch_White(ml, theBoard, atSquare);
 					}
 				} else break;
 			}
@@ -560,7 +560,7 @@ public class PieceList {
 			for(int atSquare : piece_list[Piece.WHITE_PAWN]) {
 				if (atSquare != Position.NOPOSITION) {
 					if (IntRank.R7 != BitBoard.getRank(atSquare)) {
-						Piece.pawn_generateMovesForExtendedSearch_White(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
+						Piece.pawn_generateMovesForExtendedSearch_White(ml, theBoard, atSquare);
 					}
 				} else break;
 			}
@@ -593,7 +593,7 @@ public class PieceList {
 			for(int atSquare : piece_list[Piece.BLACK_PAWN]) {
 				if (atSquare != Position.NOPOSITION) {
 					if (IntRank.R2 != BitBoard.getRank(atSquare)) {
-						Piece.pawn_generateMovesForExtendedSearch_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
+						Piece.pawn_generateMovesForExtendedSearch_Black(ml, theBoard, atSquare);
 					}
 				} else break;
 			}
@@ -666,7 +666,7 @@ public class PieceList {
 			for(int atSquare : piece_list[Piece.BLACK_PAWN]) {
 				if (atSquare != Position.NOPOSITION) {
 					if (IntRank.R2 != BitBoard.getRank(atSquare)) {
-						Piece.pawn_generateMovesForExtendedSearch_Black(ml, theBoard, BitBoard.bitToPosition_Lut[atSquare]);
+						Piece.pawn_generateMovesForExtendedSearch_Black(ml, theBoard, atSquare);
 					}
 				} else break;
 			}

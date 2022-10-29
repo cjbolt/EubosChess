@@ -968,8 +968,8 @@ public class Board {
 		this.enPassantTargetSq = enPassantTargetSq;
 	}
 	
-	public boolean squareIsEmpty( int atPos ) {
-		return (allPieces & BitBoard.positionToMask_Lut[atPos]) == 0;		
+	public boolean squareIsEmpty(int bitOffset) {
+		return (allPieces & (1L << bitOffset)) == 0;		
 	}
 	
 	public boolean squareIsEmpty(long mask) {
