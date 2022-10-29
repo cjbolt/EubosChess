@@ -971,31 +971,33 @@ public abstract class Piece {
 			}	
 		}
 		// Check for capture moves, includes en passant
-		long captureMask = pawn_genLeftCaptureTargetWhite(bitOffset);
-		if (captureMask != 0L) {
+		int captureOffset = whitePawnLeftAttacksAsOffset_Lut[bitOffset];
+		if (captureOffset != Position.NOPOSITION) {
+			long captureMask = 1L << captureOffset;
 			capturePiece = pawn_isCapturableWhite(theBoard, captureMask);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkPromotionAddCaptureMoveWhite(ownPiece, bitOffset, ml, Long.numberOfTrailingZeros(captureMask), capturePiece);
+				pawn_checkPromotionAddCaptureMoveWhite(ownPiece, bitOffset, ml, captureOffset, capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
 				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.BLACK_PAWN;
 					// promotion can't be possible if en passant capture
-					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.NONE));
+					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, captureOffset, capturePiece, Piece.NONE));
 				}
 			}
 		}
-		captureMask = pawn_genRightCaptureTargetWhite(bitOffset);
-		if (captureMask != 0L) {
+		captureOffset = whitePawnRightAttacksAsOffset_Lut[bitOffset];
+		if (captureOffset != Position.NOPOSITION) {
+			long captureMask = 1L << captureOffset;
 			capturePiece = pawn_isCapturableWhite(theBoard, captureMask);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkPromotionAddCaptureMoveWhite(ownPiece, bitOffset, ml, Long.numberOfTrailingZeros(captureMask), capturePiece);
+				pawn_checkPromotionAddCaptureMoveWhite(ownPiece, bitOffset, ml, captureOffset, capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
 				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.BLACK_PAWN;
 					// promotion can't be possible if en passant capture
-					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.NONE));
+					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, captureOffset, capturePiece, Piece.NONE));
 				}
 			}
 		}
@@ -1015,31 +1017,33 @@ public abstract class Piece {
 			}	
 		}
 		// Check for capture moves, includes en passant
-		long captureMask = pawn_genLeftCaptureTargetBlack(bitOffset);
-		if (captureMask != 0L) {
+		int captureOffset = blackPawnLeftAttacksAsOffset_Lut[bitOffset];
+		if (captureOffset != Position.NOPOSITION) {
+			long captureMask = 1L << captureOffset;
 			capturePiece = pawn_isCapturableBlack(theBoard, captureMask);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkPromotionAddCaptureMoveBlack(ownPiece, bitOffset, ml, Long.numberOfTrailingZeros(captureMask), capturePiece);
+				pawn_checkPromotionAddCaptureMoveBlack(ownPiece, bitOffset, ml, captureOffset, capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
 				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.WHITE_PAWN;
 					// promotion can't be possible if en passant capture
-					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.NONE));
+					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, captureOffset, capturePiece, Piece.NONE));
 				}
 			}
 		}
-		captureMask = pawn_genRightCaptureTargetBlack(bitOffset);
-		if (captureMask != 0L) {
+		captureOffset = blackPawnRightAttacksAsOffset_Lut[bitOffset];
+		if (captureOffset != Position.NOPOSITION) {
+			long captureMask = 1L << captureOffset;
 			capturePiece = pawn_isCapturableBlack(theBoard, captureMask);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkPromotionAddCaptureMoveBlack(ownPiece, bitOffset, ml, Long.numberOfTrailingZeros(captureMask), capturePiece);
+				pawn_checkPromotionAddCaptureMoveBlack(ownPiece, bitOffset, ml, captureOffset, capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
 				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.WHITE_PAWN;
 					// promotion can't be possible if en passant capture
-					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.NONE));
+					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, captureOffset, capturePiece, Piece.NONE));
 				}
 			}
 		}
@@ -1054,31 +1058,33 @@ public abstract class Piece {
 		// Capture moves
 		int ownPiece = Piece.WHITE_PAWN;
 		int capturePiece = Piece.NONE;
-		long captureMask = pawn_genLeftCaptureTargetWhite(bitOffset);
-		if (captureMask != 0L) {
+		int captureOffset = whitePawnLeftAttacksAsOffset_Lut[bitOffset];
+		if (captureOffset != Position.NOPOSITION) {
+			long captureMask = 1L << captureOffset;
 			capturePiece = pawn_isCapturableWhite(theBoard, captureMask);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkPromotionAddCaptureMoveWhite(ownPiece, bitOffset, ml, Long.numberOfTrailingZeros(captureMask), capturePiece);
+				pawn_checkPromotionAddCaptureMoveWhite(ownPiece, bitOffset, ml, captureOffset, capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
 				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.BLACK_PAWN;
 					// promotion can't be possible if en passant capture
-					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.NONE));
+					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, captureOffset, capturePiece, Piece.NONE));
 				}
 			}
 		}
-		captureMask = pawn_genRightCaptureTargetWhite(bitOffset);
-		if (captureMask != 0L) {
+		captureOffset = whitePawnRightAttacksAsOffset_Lut[bitOffset];
+		if (captureOffset != Position.NOPOSITION) {
+			long captureMask = 1L << captureOffset;
 			capturePiece = pawn_isCapturableWhite(theBoard, captureMask);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkPromotionAddCaptureMoveWhite(ownPiece, bitOffset, ml, Long.numberOfTrailingZeros(captureMask), capturePiece);
+				pawn_checkPromotionAddCaptureMoveWhite(ownPiece, bitOffset, ml, captureOffset, capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
 				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.BLACK_PAWN;
 					// promotion can't be possible if en passant capture
-					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.NONE));
+					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, captureOffset, capturePiece, Piece.NONE));
 				}
 			}
 		}
@@ -1093,31 +1099,33 @@ public abstract class Piece {
 		// Capture moves
 		int ownPiece = Piece.BLACK_PAWN;
 		int capturePiece = Piece.NONE;
-		long captureMask = pawn_genLeftCaptureTargetBlack(bitOffset);
-		if (captureMask != 0L) {
+		int captureOffset = blackPawnLeftAttacksAsOffset_Lut[bitOffset];
+		if (captureOffset != Position.NOPOSITION) {
+			long captureMask = 1L << captureOffset;
 			capturePiece = pawn_isCapturableBlack(theBoard, captureMask);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkPromotionAddCaptureMoveBlack(ownPiece, bitOffset, ml, Long.numberOfTrailingZeros(captureMask), capturePiece);
+				pawn_checkPromotionAddCaptureMoveBlack(ownPiece, bitOffset, ml, captureOffset, capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
 				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.WHITE_PAWN;
 					// promotion can't be possible if en passant capture
-					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.NONE));
+					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, captureOffset, capturePiece, Piece.NONE));
 				}
 			}
 		}
-		captureMask = pawn_genRightCaptureTargetBlack(bitOffset);
-		if (captureMask != 0L) {
+		captureOffset = blackPawnRightAttacksAsOffset_Lut[bitOffset];
+		if (captureOffset != Position.NOPOSITION) {
+			long captureMask = 1L << captureOffset;
 			capturePiece = pawn_isCapturableBlack(theBoard, captureMask);
 			if (capturePiece != Piece.NONE) {
-				pawn_checkPromotionAddCaptureMoveBlack(ownPiece, bitOffset, ml, Long.numberOfTrailingZeros(captureMask), capturePiece);
+				pawn_checkPromotionAddCaptureMoveBlack(ownPiece, bitOffset, ml, captureOffset, capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
 				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.WHITE_PAWN;
 					// promotion can't be possible if en passant capture
-					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.NONE));
+					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, captureOffset, capturePiece, Piece.NONE));
 				}
 			}
 		}
@@ -1132,18 +1140,18 @@ public abstract class Piece {
 		// Capture moves
 		int ownPiece = Piece.WHITE_PAWN;
 		int capturePiece = Piece.NONE;
-		long captureMask = pawn_genLeftCaptureTargetWhite(bitOffset);
-		if (captureMask !=0L) {
-			capturePiece = pawn_isCapturableWhite(theBoard, captureMask);
+		int captureOffset = whitePawnLeftAttacksAsOffset_Lut[bitOffset];
+		if (captureOffset != Position.NOPOSITION) {
+			capturePiece = pawn_isCapturableWhite(theBoard, 1L << captureOffset);
 			if (capturePiece != Piece.NONE) {
-				ml.addPrio(Move.valueOfBit(Move.TYPE_PROMOTION_MASK, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.QUEEN));
+				ml.addPrio(Move.valueOfBit(Move.TYPE_PROMOTION_MASK, bitOffset, ownPiece, captureOffset, capturePiece, Piece.QUEEN));
 			}
 		}
-		captureMask = pawn_genRightCaptureTargetWhite(bitOffset);
-		if (captureMask != Position.NOPOSITION) {
-			capturePiece = pawn_isCapturableWhite(theBoard, captureMask);
+		captureOffset = whitePawnRightAttacksAsOffset_Lut[bitOffset];
+		if (captureOffset != Position.NOPOSITION) {
+			capturePiece = pawn_isCapturableWhite(theBoard, 1L << captureOffset);
 			if (capturePiece != Piece.NONE) {
-				ml.addPrio(Move.valueOfBit(Move.TYPE_PROMOTION_MASK, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.QUEEN));
+				ml.addPrio(Move.valueOfBit(Move.TYPE_PROMOTION_MASK, bitOffset, ownPiece, captureOffset, capturePiece, Piece.QUEEN));
 			}
 		}
 	}
@@ -1157,19 +1165,103 @@ public abstract class Piece {
 		// Capture moves
 		int ownPiece = Piece.BLACK_PAWN;
 		int capturePiece = Piece.NONE;
-		long captureMask = pawn_genLeftCaptureTargetBlack(bitOffset);
-		if (captureMask != Position.NOPOSITION) {
-			capturePiece = pawn_isCapturableBlack(theBoard, captureMask);
+		int captureOffset = blackPawnLeftAttacksAsOffset_Lut[bitOffset];
+		if (captureOffset != Position.NOPOSITION) {
+			capturePiece = pawn_isCapturableBlack(theBoard, 1L << captureOffset);
 			if (capturePiece != Piece.NONE) {
-				ml.addPrio(Move.valueOfBit(Move.TYPE_PROMOTION_MASK, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.QUEEN));
+				ml.addPrio(Move.valueOfBit(Move.TYPE_PROMOTION_MASK, bitOffset, ownPiece, captureOffset, capturePiece, Piece.QUEEN));
 			}
 		}
-		captureMask = pawn_genRightCaptureTargetBlack(bitOffset);
-		if (captureMask != Position.NOPOSITION) {
-			capturePiece = pawn_isCapturableBlack(theBoard, captureMask);
+		captureOffset = blackPawnRightAttacksAsOffset_Lut[bitOffset];
+		if (captureOffset != Position.NOPOSITION) {
+			capturePiece = pawn_isCapturableBlack(theBoard, 1L << captureOffset);
 			if (capturePiece != Piece.NONE) {
-				ml.addPrio(Move.valueOfBit(Move.TYPE_PROMOTION_MASK, bitOffset, ownPiece, Long.numberOfTrailingZeros(captureMask), capturePiece, Piece.QUEEN));
+				ml.addPrio(Move.valueOfBit(Move.TYPE_PROMOTION_MASK, bitOffset, ownPiece, captureOffset, capturePiece, Piece.QUEEN));
 			}
 		}
+	}
+	
+	/* 1-dimensional array:
+	 * 1st index is a position integer, this is the origin square
+	 * indexes a bit mask of the squares that the origin square can attack by a White Pawn capture */
+	public static final int[] whitePawnLeftAttacksAsOffset_Lut = new int[64];
+	static {
+		int bitOffset = 0;
+		for (int square : Position.values) {
+			whitePawnLeftAttacksAsOffset_Lut[bitOffset++] = createWhitePawnLeftCaptureMovesFromSq(square);
+		}
+	}
+	static int createWhitePawnLeftCaptureMovesFromSq(int atPos) {
+		int targetOffset = Position.NOPOSITION;
+		if (Position.getRank(atPos) != 0) {
+			int targetPosition = Direction.getDirectMoveSq(Direction.upLeft, atPos);
+			if (targetPosition != Position.NOPOSITION) {
+				targetOffset = BitBoard.positionToBit_Lut[targetPosition];
+			}
+		}
+		return targetOffset;
+	}
+	
+	/* 1-dimensional array:
+	 * 1st index is a position integer, this is the origin square
+	 * indexes a bit mask of the squares that the origin square can attack by a White Pawn capture */
+	public static final int[] whitePawnRightAttacksAsOffset_Lut = new int[64];
+	static {
+		int bitOffset = 0;
+		for (int square : Position.values) {
+			whitePawnRightAttacksAsOffset_Lut[bitOffset++] = createWhitePawnRightCaptureMovesFromSq(square);
+		}
+	}
+	static int createWhitePawnRightCaptureMovesFromSq(int atPos) {
+		int targetOffset = Position.NOPOSITION;
+		if (Position.getRank(atPos) != 0) {
+			int targetPosition = Direction.getDirectMoveSq(Direction.upRight, atPos);
+			if (targetPosition != Position.NOPOSITION) {
+				targetOffset = BitBoard.positionToBit_Lut[targetPosition];
+			}
+		}
+		return targetOffset;
+	}
+	
+	/* 1-dimensional array:
+	 * 1st index is a position integer, this is the origin square
+	 * indexes a bit mask of the squares that the origin square can attack by a White Pawn capture */
+	public static final int[] blackPawnLeftAttacksAsOffset_Lut = new int[64];
+	static {
+		int bitOffset = 0;
+		for (int square : Position.values) {
+			blackPawnLeftAttacksAsOffset_Lut[bitOffset++] = createBlackPawnLeftCaptureMovesFromSq(square);
+		}
+	}
+	static int createBlackPawnLeftCaptureMovesFromSq(int atPos) {
+		int targetOffset = Position.NOPOSITION;
+		if (Position.getRank(atPos) != 7) {
+			int targetPosition = Direction.getDirectMoveSq(Direction.downRight, atPos);
+			if (targetPosition != Position.NOPOSITION) {
+				targetOffset = BitBoard.positionToBit_Lut[targetPosition];
+			}
+		}
+		return targetOffset;
+	}
+	
+	/* 1-dimensional array:
+	 * 1st index is a position integer, this is the origin square
+	 * indexes a bit mask of the squares that the origin square can attack by a White Pawn capture */
+	public static final int[] blackPawnRightAttacksAsOffset_Lut = new int[64];
+	static {
+		int bitOffset = 0;
+		for (int square : Position.values) {
+			blackPawnRightAttacksAsOffset_Lut[bitOffset++] = createblackPawnRightCaptureMovesFromSq(square);
+		}
+	}
+	static int createblackPawnRightCaptureMovesFromSq(int atPos) {
+		int targetOffset = Position.NOPOSITION;
+		if (Position.getRank(atPos) != 7) {
+			int targetPosition = Direction.getDirectMoveSq(Direction.downLeft, atPos);
+			if (targetPosition != Position.NOPOSITION) {
+				targetOffset = BitBoard.positionToBit_Lut[targetPosition];
+			}
+		}
+		return targetOffset;
 	}
 }
