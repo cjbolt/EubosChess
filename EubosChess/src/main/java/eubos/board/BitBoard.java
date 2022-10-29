@@ -579,4 +579,28 @@ public final class BitBoard {
 	public static int getFile(int bit) {
 		return bit%8;
 	}
+	
+	public static int[][] ManhattanDistance;
+	static {
+		ManhattanDistance = new int[64][64];
+		int bit1 = 0;
+		for (int sq1 : Position.values) {
+			int bit2 = 0;
+			for (int sq2 : Position.values) {
+				ManhattanDistance[bit1][bit2++] = precalcDistance(sq1, sq2);
+			}
+			bit1++;
+		}
+	}
+	static int precalcDistance(int sq1, int sq2) {
+	   int file1, file2, rank1, rank2;
+	   int rankDistance, fileDistance;
+	   file1 = sq1  & 7;
+	   file2 = sq2  & 7;
+	   rank1 = sq1 >> 4;
+	   rank2 = sq2 >> 4;
+	   rankDistance = Math.abs(rank2 - rank1);
+	   fileDistance = Math.abs(file2 - file1);
+	   return Math.max(rankDistance, fileDistance);
+	}
 }

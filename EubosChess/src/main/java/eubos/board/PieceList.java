@@ -365,7 +365,7 @@ public class PieceList {
 	public int getQueenPos(boolean sideIsWhite) {
 		int piece = sideIsWhite ? Piece.WHITE_QUEEN : Piece.BLACK_QUEEN;
 		int pos = piece_list[piece][0];
-		return pos != Position.NOPOSITION ? BitBoard.bitToPosition_Lut[pos] : Position.NOPOSITION;
+		return pos != Position.NOPOSITION ? pos : Position.NOPOSITION;
 	}
 	
 	public boolean validCaptureMoveExistsBlack(IAddMoves ml) {

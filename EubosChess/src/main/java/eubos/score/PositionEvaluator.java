@@ -170,9 +170,9 @@ public class PositionEvaluator implements IEvaluate {
 		long defenders = onMoveIsWhite ? bd.getWhitePieces() : bd.getBlackPieces();
 		int defenderCount = Long.bitCount(kingZone&defenders);
 
-		int attackingQueenPos = bd.pieceLists.getQueenPos(!onMoveIsWhite);
-		if (attackingQueenPos != Position.NOPOSITION) {
-			int attackingQueenDistance = Position.distance(attackingQueenPos, BitBoard.bitToPosition_Lut[kingBitOffset]);
+		int attackQueenOffset = bd.pieceLists.getQueenPos(!onMoveIsWhite);
+		if (attackQueenOffset != Position.NOPOSITION) {
+			int attackingQueenDistance = BitBoard.ManhattanDistance[attackQueenOffset][kingBitOffset];
 			return (defenderCount < 3 || attackingQueenDistance < 3);
 		} else {
 			return defenderCount < 3;
@@ -306,10 +306,10 @@ public class PositionEvaluator implements IEvaluate {
 		public final int[] PAWN_DIST_LUT = {0, -20, -10, -3, 0, 0, 0, 0, 0};
 		
 		int score = 0;
-		int kingSquare = Position.NOPOSITION;
+		int kingOffset = Position.NOPOSITION;
 		
 		public void callback(int piece, int bitOffset) {
-			int distance = Position.distance(BitBoard.bitToPosition_Lut[bitOffset], kingSquare);
+			int distance = BitBoard.ManhattanDistance[bitOffset][kingOffset];
 			piece &= ~Piece.BLACK;
 			switch(piece) {
 			case Piece.QUEEN:
@@ -336,7 +336,7 @@ public class PositionEvaluator implements IEvaluate {
 		
 		public int getScore(int kingBitOffset, int [] attackers) {
 			score = 0;
-			kingSquare = BitBoard.bitToPosition_Lut[kingBitOffset];
+			kingOffset = kingBitOffset;
 			bd.pieceLists.forEachPieceOfTypeDoCallback(this, attackers);
 			return score;
 		}

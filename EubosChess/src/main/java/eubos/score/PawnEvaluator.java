@@ -164,9 +164,9 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		// Special case, it is a KPK endgame
 		int score = 0;
 		int file = BitBoard.getFile(bitOffset);
-		int queeningSquare = pawnIsWhite ? Position.valueOf(file, 7) : Position.valueOf(file, 0);
-		int oppoKingPos = BitBoard.bitToPosition_Lut[bd.getKingPosition(!pawnIsWhite)];
-		int oppoDistance = Position.distance(queeningSquare, oppoKingPos);
+		int queeningSquare = pawnIsWhite ? file+56 : file;
+		int oppoKingPos = bd.getKingPosition(!pawnIsWhite);
+		int oppoDistance = BitBoard.ManhattanDistance[queeningSquare][oppoKingPos];
 		if (!isOwnPawn) {
 			// if king is on move, assume it can get towards the square of the pawn
 			oppoDistance -= 1;
@@ -180,8 +180,8 @@ public class PawnEvaluator implements IForEachPieceCallback {
 				score = 700;
 			} else {
 				// increase score also if we think the pawn can be defended by own king
-				int ownKingPos = BitBoard.bitToPosition_Lut[bd.getKingPosition(pawnIsWhite)];
-				int ownDistance = Position.distance(queeningSquare, ownKingPos);
+				int ownKingPos = bd.getKingPosition(pawnIsWhite);
+				int ownDistance = BitBoard.ManhattanDistance[queeningSquare][ownKingPos];
 				if (ownDistance-1 <= oppoDistance) {
 					score = 300;
 				}
