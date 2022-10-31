@@ -72,7 +72,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	
 	PawnHashStatistics pawnStat = null;
 	
-	private static final boolean MEASURE_PAWN_HASH = true;
+	private static final boolean MEASURE_PAWN_HASH = false;
 	
 	public PawnEvaluator(IPositionAccessors pm, PawnEvalHashTable pawnHash) {
 		bd = pm.getTheBoard();

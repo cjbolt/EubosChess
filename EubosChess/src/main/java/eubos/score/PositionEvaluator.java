@@ -18,6 +18,7 @@ public class PositionEvaluator implements IEvaluate {
 	
 	public static final boolean ENABLE_KING_SAFETY_EVALUATION = true;
 	public static final boolean ENABLE_TWEAKED_KING_FLIGHT_SQUARES = false;
+	public static final boolean ENABLE_KING_TROPISM = false;
 	
 	public static final boolean ENABLE_DYNAMIC_POSITIONAL_EVALUATION = true;
 
@@ -400,9 +401,11 @@ public class PositionEvaluator implements IEvaluate {
 		}
 		
 		// Then, do king tropism for proximity
-		final int[] BLACK_ATTACKERS = {Piece.BLACK_QUEEN, Piece.BLACK_KNIGHT};
-		final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT};
-		evaluation += ktc.getScore(kingBitOffset, isWhite ? BLACK_ATTACKERS : WHITE_ATTACKERS);
+		if (ENABLE_KING_TROPISM) {
+			final int[] BLACK_ATTACKERS = {Piece.BLACK_QUEEN, Piece.BLACK_KNIGHT};
+			final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT};
+			evaluation += ktc.getScore(kingBitOffset, isWhite ? BLACK_ATTACKERS : WHITE_ATTACKERS);
+		}
 		
 		// Hit with a penalty if few defending pawns in the king zone and/or pawn storm
 		long surroundingSquares = SquareAttackEvaluator.KingZone_Lut[isWhite ? 0 : 1][kingBitOffset];		
