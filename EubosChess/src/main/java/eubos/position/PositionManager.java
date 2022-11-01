@@ -46,38 +46,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	private MoveTracker moveTracker = new MoveTracker();
 	
-	class PassedPawnTracker {
-		private static final int CAPACITY = 400;
-		private long[] stack;
-		private int index = 0;
-		
-		PassedPawnTracker() {
-			stack = new long[CAPACITY];
-			index = 0;
-		}
-		
-		public void push(long pawnBB) {
-			if (index < CAPACITY) {
-				stack[index] = pawnBB;
-				index += 1;
-			}
-		}
-		
-		public long pop() {
-			if (!isEmpty()) {
-				index -= 1;
-				return stack[index];
-			}
-			return 0L;
-		}
-		
-		public boolean isEmpty() {
-			return index == 0;
-		}
-	}
-	
-	private PassedPawnTracker ppTracker = new PassedPawnTracker();
-	
 	// No public setter, because onMove is only changed by performing a move on the board.
 	private Colour onMove;
 	public Colour getOnMove() {
@@ -158,9 +126,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public void performMove( int move, boolean computeHash ) {		
 		// Preserve state
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
-		ppTracker.push(theBoard.getPassedPawns());
+		long pp = theBoard.getPassedPawns();
 		int captureBitOffset = theBoard.doMove(move);
-		moveTracker.push(TrackedMove.valueOf(move, prevEnPassantTargetSq, castling.getFlags()));
+		moveTracker.push(pp, move, castling.getFlags(), prevEnPassantTargetSq);
+		
 		// update state
 		castling.updateFlags(move);
 		
@@ -190,20 +159,22 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public void unperformMove(boolean computeHash) {
 
-		long tm = moveTracker.pop();
-		int move = TrackedMove.getMove(tm);
+		moveTracker.pop();
+		int move = moveTracker.getMove();
+		int castlingFlags = moveTracker.getCastling();
+		long pp = moveTracker.getPassedPawns();
+		int enPasTargetSq = moveTracker.getEnPassant();
 		int reversedMove = Move.reverse(move);
 		
 		int captureBitOffset = theBoard.undoMove(reversedMove);
 		
 		// Restore castling
-		castling.setFlags(TrackedMove.getCastlingFlags(tm));
+		castling.setFlags(castlingFlags);
 		
 		// Restore Passed pawn mask
-		theBoard.setPassedPawns(ppTracker.pop());
+		theBoard.setPassedPawns(pp);
 		
 		// Restore en passant target
-		int enPasTargetSq = TrackedMove.getEnPassantTarget(tm);
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		
 		if (computeHash) {
@@ -227,7 +198,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Preserve state
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		theBoard.setEnPassantTargetSq(Position.NOPOSITION);
-		moveTracker.push(TrackedMove.valueOf(Move.NULL_MOVE, prevEnPassantTargetSq, castling.getFlags()));
+		moveTracker.push(0L, Move.NULL_MOVE, castling.getFlags(), prevEnPassantTargetSq);
 		hash.updateNullMove(IntFile.NOFILE);
 
 		// Update the draw checker
@@ -242,11 +213,11 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public void unperformNullMove() {
 
-		long tm = moveTracker.pop();
+		moveTracker.pop();
 		// Restore castling
-		castling.setFlags(TrackedMove.getCastlingFlags(tm));
+		castling.setFlags(moveTracker.getCastling());
 		// Restore en passant target
-		int enPasTargetSq = TrackedMove.getEnPassantTarget(tm);
+		int enPasTargetSq = moveTracker.getEnPassant();
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		
 		int enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? BitBoard.getFile(enPasTargetSq) : IntFile.NOFILE;
@@ -415,7 +386,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		while (!moveTracker.isEmpty()) {
 			// build the movelist backwards, the first move popped shall be the end of the list
 			s.insert(0, ' ');
-			s.insert(0, Move.toString(TrackedMove.getMove(moveTracker.pop())));
+			moveTracker.pop();
+			s.insert(0, Move.toString(moveTracker.getMove()));
 		}
 		return s.toString();
 	}

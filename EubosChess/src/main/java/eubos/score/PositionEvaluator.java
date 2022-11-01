@@ -18,7 +18,7 @@ public class PositionEvaluator implements IEvaluate {
 	
 	public static final boolean ENABLE_KING_SAFETY_EVALUATION = true;
 	public static final boolean ENABLE_TWEAKED_KING_FLIGHT_SQUARES = false;
-	public static final boolean ENABLE_KING_TROPISM = false;
+	public static final boolean ENABLE_KING_TROPISM = true;
 	
 	public static final boolean ENABLE_DYNAMIC_POSITIONAL_EVALUATION = true;
 
