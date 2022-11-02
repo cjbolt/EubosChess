@@ -18,19 +18,15 @@ class MoveTracker {
 	}
 	
 	public void push(long pp, int move, int castling, int enPassant) {
-		if (index < CAPACITY) {
-			passed_pawn_stack[index] = pp;
-			move_stack[index] = move;
-			en_passant_square_stack[index] = (byte) enPassant;
-			castling_stack[index] = (byte) castling;
-			index += 1;
-		}
+		passed_pawn_stack[index] = pp;
+		move_stack[index] = move;
+		en_passant_square_stack[index] = (byte) enPassant;
+		castling_stack[index] = (byte) castling;
+		index += 1;
 	}
 	
 	public void pop() {
-		if (!isEmpty()) {
-			index -= 1;
-		}
+		index -= 1;
 	}
 	
 	public long getPassedPawns() {
