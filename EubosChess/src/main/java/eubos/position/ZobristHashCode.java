@@ -1,7 +1,7 @@
 package eubos.position;
 
+import java.util.Arrays;
 import java.util.Random;
-import java.util.Stack;
 
 import com.fluxchess.jcpi.models.IntRank;
 
@@ -39,7 +39,8 @@ public class ZobristHashCode implements IForEachPieceCallback {
 	private IPositionAccessors pos;
 	private CastlingManager castling;
 	
-	private Stack<Integer> prevEnPassantFile = null;
+	int index = 0;
+	private byte[] prevEnPassantFile;
 	private int prevCastlingMask = 0;
 	
 	private int piece;
@@ -60,7 +61,8 @@ public class ZobristHashCode implements IForEachPieceCallback {
 	public ZobristHashCode(IPositionAccessors pm, CastlingManager castling) {
 		pos = pm;
 		this.castling = castling;
-		prevEnPassantFile = new Stack<Integer>();
+		prevEnPassantFile = new byte[16];
+		Arrays.fill(prevEnPassantFile, (byte)8);
 		generate();
 	}
 	
@@ -78,6 +80,7 @@ public class ZobristHashCode implements IForEachPieceCallback {
 	private long generate() {
 		// add pieces
 		hashCode = 0;
+		index = 0;
 		pos.getTheBoard().forEachPiece(this);
 		// add castling
 		prevCastlingMask = castling.getFlags();
@@ -90,7 +93,7 @@ public class ZobristHashCode implements IForEachPieceCallback {
 		int enPassant = pos.getTheBoard().getEnPassantTargetSq();
 		if (enPassant != BitBoard.INVALID) {
 			int enPassantFile = BitBoard.getFile(enPassant);
-			prevEnPassantFile.push(enPassantFile);
+			prevEnPassantFile[++index] = (byte)enPassantFile;
 			hashCode ^= prnLookupTable[(INDEX_ENP_A+enPassantFile)];
 		}
 		return hashCode;
@@ -125,7 +128,7 @@ public class ZobristHashCode implements IForEachPieceCallback {
 	}
 	
 	// Used to update the Zobrist hash code whenever a position changes due to a move being performed
-	public void update(int move, int capturedPieceSquare, int enPassantOffset) {
+	public void update(int move, int capturedPieceSquare, byte enPassantOffset) {
 		// Unpack move
 		piece = Move.getOriginPiece(move);
 		originSquare = Move.getOriginPosition(move);
@@ -142,7 +145,7 @@ public class ZobristHashCode implements IForEachPieceCallback {
 	}
 	
 	// Used to update the Zobrist hash code whenever a position changes due to a move being performed
-	public void updateNullMove(int enPassantOffset) {
+	public void updateNullMove(byte enPassantOffset) {
 		// Update
 		doEnPassant(enPassantOffset);
 		doOnMove();
@@ -174,22 +177,22 @@ public class ZobristHashCode implements IForEachPieceCallback {
 			hashCode ^= getPrnForPiece(capturedPieceSquare, targetPiece);
 	}
 
-	private void setTargetFile(int enPasFile) {
-		if (!prevEnPassantFile.isEmpty()) {
+	private void setTargetFile(byte enPasFile) {
+		if (index > 0) {
 			clearTargetFile();
 		}
-		prevEnPassantFile.push(enPasFile);
+		prevEnPassantFile[++index] = enPasFile;
 		hashCode ^= prnLookupTable[INDEX_ENP_A+enPasFile];
 	}
 	
 	private void clearTargetFile() {
-		hashCode ^= prnLookupTable[INDEX_ENP_A+prevEnPassantFile.pop()];
+		hashCode ^= prnLookupTable[INDEX_ENP_A+prevEnPassantFile[index--]];
 	}
 	
-	protected void doEnPassant(int enPassantOffset) {
+	protected void doEnPassant(byte enPassantOffset) {
 		if (enPassantOffset != BitBoard.INVALID) {
 			setTargetFile(BitBoard.getFile(enPassantOffset));
-		} else if (!prevEnPassantFile.isEmpty()) {
+		} else if (index > 0) {
 			clearTargetFile();
 		} else {
 			// no action needed

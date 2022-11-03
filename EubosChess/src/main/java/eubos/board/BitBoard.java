@@ -570,12 +570,12 @@ public final class BitBoard {
 		return mask;
 	}
 
-	public static int getRank(int bit) {
-		return bit>>3;
+	public static byte getRank(int bit) {
+		return (byte) (bit >> 3);
 	}
 	
-	public static int getFile(int bit) {
-		return bit&0x7;
+	public static byte getFile(int bit) {
+		return (byte) (bit & 0x7);
 	}
 	
 	public static int[][] ManhattanDistance;

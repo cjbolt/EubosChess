@@ -93,7 +93,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int pieceToMove = Move.getOriginPiece(move);
 		int targetBitOffset = Move.getTargetPosition(move);
 		int targetPiece = Move.getTargetPiece(move);
-		int enPassantFile = IntFile.NOFILE;
+		byte enPassantFile = IntFile.NOFILE;
 		
 		// Calculate targetSquare and en passant file, needed for hash code update
 		if (targetPiece != Piece.NONE) {
@@ -134,7 +134,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		castling.updateFlags(move);
 		
 		if (computeHash) {
-			hash.update(move, captureBitOffset, theBoard.getEnPassantTargetSq());
+			hash.update(move, captureBitOffset, (byte)theBoard.getEnPassantTargetSq());
 
 			// Update the draw checker
 			repetitionPossible = dc.setPositionReached(getHash(), getPlyNumber());			
@@ -172,8 +172,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		
 		if (computeHash) {
-
-			hash.update(reversedMove, captureBitOffset, enPasTargetSq);
+			hash.update(reversedMove, captureBitOffset, (byte)enPasTargetSq);
 			
 			// Clear draw indicator flag
 			repetitionPossible = false;
@@ -192,7 +191,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		theBoard.setEnPassantTargetSq(BitBoard.INVALID);
 		moveTracker.push(0L, Move.NULL_MOVE, castling.getFlags(), prevEnPassantTargetSq);
-		hash.updateNullMove(BitBoard.INVALID);
+
+		hash.updateNullMove((byte)BitBoard.INVALID);
 
 		// Update the draw checker
 		repetitionPossible = dc.setPositionReached(getHash(), getPlyNumber());
@@ -213,7 +213,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int enPasTargetSq = moveTracker.getEnPassant();
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		
-		hash.updateNullMove(enPasTargetSq);
+		hash.updateNullMove((byte)enPasTargetSq);
 		
 		// Clear draw indicator flag
 		repetitionPossible = false;
