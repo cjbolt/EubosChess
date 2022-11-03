@@ -569,11 +569,11 @@ public final class BitBoard {
 	}
 
 	public static int getRank(int bit) {
-		return bit/8;
+		return bit>>3;
 	}
 	
 	public static int getFile(int bit) {
-		return bit%8;
+		return bit&0x7;
 	}
 	
 	public static int[][] ManhattanDistance;
