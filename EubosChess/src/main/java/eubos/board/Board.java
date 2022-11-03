@@ -179,7 +179,7 @@ public class Board {
 		}
 		
 		// Initialise En Passant target square
-		setEnPassantTargetSq(Position.NOPOSITION);
+		setEnPassantTargetSq(BitBoard.INVALID);
 		
 		if (targetPiece != Piece.NONE) {
 			// Handle captures
@@ -959,7 +959,7 @@ public class Board {
 		}
 	}
 	
-	private int enPassantTargetSq = Position.NOPOSITION;
+	private int enPassantTargetSq = BitBoard.INVALID;
 	public int getEnPassantTargetSq() {
 		return enPassantTargetSq;
 	}

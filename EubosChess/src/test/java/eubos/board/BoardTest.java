@@ -45,7 +45,7 @@ public class BoardTest {
 	@Test
 	public void testGetEnPassantTargetSq_uninitialised() {
 		int square = classUnderTest.getEnPassantTargetSq();
-		assertTrue(square == Position.NOPOSITION);
+		assertTrue(square == BitBoard.INVALID);
 	}
 
 	@Test

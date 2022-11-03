@@ -134,13 +134,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		castling.updateFlags(move);
 		
 		if (computeHash) {
-			// Determine whether move set en Passant file
-			int enPassantFile = IntFile.NOFILE;
-			int enPasTargetSq = theBoard.getEnPassantTargetSq();
-			if (enPasTargetSq != Position.NOPOSITION)
-				enPassantFile = BitBoard.getFile(enPasTargetSq);
-			
-			hash.update(move, captureBitOffset, enPassantFile);
+			hash.update(move, captureBitOffset, theBoard.getEnPassantTargetSq());
 
 			// Update the draw checker
 			repetitionPossible = dc.setPositionReached(getHash(), getPlyNumber());			
@@ -179,8 +173,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		
 		if (computeHash) {
 
-			int enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? BitBoard.getFile(enPasTargetSq) : IntFile.NOFILE;
-			hash.update(reversedMove, captureBitOffset, enPassantFile);
+			hash.update(reversedMove, captureBitOffset, enPasTargetSq);
 			
 			// Clear draw indicator flag
 			repetitionPossible = false;
@@ -197,9 +190,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		
 		// Preserve state
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
-		theBoard.setEnPassantTargetSq(Position.NOPOSITION);
+		theBoard.setEnPassantTargetSq(BitBoard.INVALID);
 		moveTracker.push(0L, Move.NULL_MOVE, castling.getFlags(), prevEnPassantTargetSq);
-		hash.updateNullMove(IntFile.NOFILE);
+		hash.updateNullMove(BitBoard.INVALID);
 
 		// Update the draw checker
 		repetitionPossible = dc.setPositionReached(getHash(), getPlyNumber());
@@ -220,8 +213,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int enPasTargetSq = moveTracker.getEnPassant();
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		
-		int enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? BitBoard.getFile(enPasTargetSq) : IntFile.NOFILE;
-		hash.updateNullMove(enPassantFile);
+		hash.updateNullMove(enPasTargetSq);
 		
 		// Clear draw indicator flag
 		repetitionPossible = false;
@@ -241,7 +233,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		fen.append(castling.getFenFlags());
 		fen.append(' ');
 		// en passant square
-		GenericPosition pos = (theBoard.getEnPassantTargetSq() == Position.NOPOSITION) ? 
+		GenericPosition pos = (theBoard.getEnPassantTargetSq() == BitBoard.INVALID) ? 
 				null : Position.toGenericPosition(BitBoard.bitToPosition_Lut[theBoard.getEnPassantTargetSq()]);
 		if (pos != null) {
 			fen.append(pos.toString());
@@ -361,7 +353,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			if (!targetSq.contentEquals("-")) {
 				theBoard.setEnPassantTargetSq(BitBoard.positionToBit_Lut[Position.valueOf(GenericPosition.valueOf(targetSq))]);
 			} else {
-				theBoard.setEnPassantTargetSq(Position.NOPOSITION);
+				theBoard.setEnPassantTargetSq(BitBoard.INVALID);
 			}
 		}
 		private int advanceFile(int f) {

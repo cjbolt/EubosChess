@@ -979,7 +979,7 @@ public abstract class Piece {
 				pawn_checkPromotionAddCaptureMoveWhite(ownPiece, bitOffset, ml, captureOffset, capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
-				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
+				if (enPassant != BitBoard.INVALID && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.BLACK_PAWN;
 					// promotion can't be possible if en passant capture
 					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, captureOffset, capturePiece, Piece.NONE));
@@ -994,7 +994,7 @@ public abstract class Piece {
 				pawn_checkPromotionAddCaptureMoveWhite(ownPiece, bitOffset, ml, captureOffset, capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
-				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
+				if (enPassant != BitBoard.INVALID && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.BLACK_PAWN;
 					// promotion can't be possible if en passant capture
 					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, captureOffset, capturePiece, Piece.NONE));
@@ -1025,7 +1025,7 @@ public abstract class Piece {
 				pawn_checkPromotionAddCaptureMoveBlack(ownPiece, bitOffset, ml, captureOffset, capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
-				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
+				if (enPassant != BitBoard.INVALID && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.WHITE_PAWN;
 					// promotion can't be possible if en passant capture
 					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, captureOffset, capturePiece, Piece.NONE));
@@ -1040,7 +1040,7 @@ public abstract class Piece {
 				pawn_checkPromotionAddCaptureMoveBlack(ownPiece, bitOffset, ml, captureOffset, capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
-				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
+				if (enPassant != BitBoard.INVALID && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.WHITE_PAWN;
 					// promotion can't be possible if en passant capture
 					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, captureOffset, capturePiece, Piece.NONE));
@@ -1066,7 +1066,7 @@ public abstract class Piece {
 				pawn_checkPromotionAddCaptureMoveWhite(ownPiece, bitOffset, ml, captureOffset, capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
-				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
+				if (enPassant != BitBoard.INVALID && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.BLACK_PAWN;
 					// promotion can't be possible if en passant capture
 					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, captureOffset, capturePiece, Piece.NONE));
@@ -1081,7 +1081,7 @@ public abstract class Piece {
 				pawn_checkPromotionAddCaptureMoveWhite(ownPiece, bitOffset, ml, captureOffset, capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
-				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
+				if (enPassant != BitBoard.INVALID && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.BLACK_PAWN;
 					// promotion can't be possible if en passant capture
 					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, captureOffset, capturePiece, Piece.NONE));
@@ -1107,7 +1107,7 @@ public abstract class Piece {
 				pawn_checkPromotionAddCaptureMoveBlack(ownPiece, bitOffset, ml, captureOffset, capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
-				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
+				if (enPassant != BitBoard.INVALID && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.WHITE_PAWN;
 					// promotion can't be possible if en passant capture
 					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, captureOffset, capturePiece, Piece.NONE));
@@ -1122,7 +1122,7 @@ public abstract class Piece {
 				pawn_checkPromotionAddCaptureMoveBlack(ownPiece, bitOffset, ml, captureOffset, capturePiece);
 			} else {
 				int enPassant = theBoard.getEnPassantTargetSq();
-				if (enPassant != Position.NOPOSITION && captureMask == (1L << enPassant)) {
+				if (enPassant != BitBoard.INVALID && captureMask == (1L << enPassant)) {
 					capturePiece = Piece.WHITE_PAWN;
 					// promotion can't be possible if en passant capture
 					ml.addPrio(Move.valueOfEnPassantBit(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, bitOffset, ownPiece, captureOffset, capturePiece, Piece.NONE));

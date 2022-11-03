@@ -11,6 +11,8 @@ import com.fluxchess.jcpi.models.IntRank;
 
 public final class BitBoard {
 	
+	public static final int INVALID = 64;
+	
 	public static long valueOf(int [] positions) {
 		long bitboard = 0L;
 		for (int pos : positions) {

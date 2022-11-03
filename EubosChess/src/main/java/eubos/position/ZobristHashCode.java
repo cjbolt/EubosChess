@@ -3,7 +3,6 @@ package eubos.position;
 import java.util.Random;
 import java.util.Stack;
 
-import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
 import eubos.board.BitBoard;
@@ -89,7 +88,7 @@ public class ZobristHashCode implements IForEachPieceCallback {
 		}
 		// add en passant
 		int enPassant = pos.getTheBoard().getEnPassantTargetSq();
-		if (enPassant!=Position.NOPOSITION) {
+		if (enPassant != BitBoard.INVALID) {
 			int enPassantFile = BitBoard.getFile(enPassant);
 			prevEnPassantFile.push(enPassantFile);
 			hashCode ^= prnLookupTable[(INDEX_ENP_A+enPassantFile)];
@@ -126,7 +125,7 @@ public class ZobristHashCode implements IForEachPieceCallback {
 	}
 	
 	// Used to update the Zobrist hash code whenever a position changes due to a move being performed
-	public void update(int move, int capturedPieceSquare, int enPassantFile) {
+	public void update(int move, int capturedPieceSquare, int enPassantOffset) {
 		// Unpack move
 		piece = Move.getOriginPiece(move);
 		originSquare = Move.getOriginPosition(move);
@@ -136,16 +135,16 @@ public class ZobristHashCode implements IForEachPieceCallback {
 		// Update
 		doBasicMove();
 		doCapturedPiece(capturedPieceSquare);
-		doEnPassant(enPassantFile);
+		doEnPassant(enPassantOffset);
      	doSecondaryMove(move);
 		doCastlingFlags();
 		doOnMove();
 	}
 	
 	// Used to update the Zobrist hash code whenever a position changes due to a move being performed
-	public void updateNullMove(int enPassantFile) {
+	public void updateNullMove(int enPassantOffset) {
 		// Update
-		doEnPassant(enPassantFile);
+		doEnPassant(enPassantOffset);
 		doOnMove();
 	}
 	
@@ -187,9 +186,9 @@ public class ZobristHashCode implements IForEachPieceCallback {
 		hashCode ^= prnLookupTable[INDEX_ENP_A+prevEnPassantFile.pop()];
 	}
 	
-	protected void doEnPassant(int enPassantFile) {
-		if (enPassantFile != IntFile.NOFILE) {
-			setTargetFile(enPassantFile);
+	protected void doEnPassant(int enPassantOffset) {
+		if (enPassantOffset != BitBoard.INVALID) {
+			setTargetFile(BitBoard.getFile(enPassantOffset));
 		} else if (!prevEnPassantFile.isEmpty()) {
 			clearTargetFile();
 		} else {
