@@ -93,7 +93,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int pieceToMove = Move.getOriginPiece(move);
 		int targetBitOffset = Move.getTargetPosition(move);
 		int targetPiece = Move.getTargetPiece(move);
-		int enPassantFile = IntFile.NOFILE;
+		byte enPassantFile = IntFile.NOFILE;
 		
 		// Calculate targetSquare and en passant file, needed for hash code update
 		if (targetPiece != Piece.NONE) {
@@ -135,7 +135,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		
 		if (computeHash) {
 			// Determine whether move set en Passant file
-			int enPassantFile = IntFile.NOFILE;
+			byte enPassantFile = IntFile.NOFILE;
 			int enPasTargetSq = theBoard.getEnPassantTargetSq();
 			if (enPasTargetSq != Position.NOPOSITION)
 				enPassantFile = BitBoard.getFile(enPasTargetSq);
@@ -179,7 +179,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		
 		if (computeHash) {
 
-			int enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? BitBoard.getFile(enPasTargetSq) : IntFile.NOFILE;
+			byte enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? BitBoard.getFile(enPasTargetSq) : IntFile.NOFILE;
 			hash.update(reversedMove, captureBitOffset, enPassantFile);
 			
 			// Clear draw indicator flag
@@ -199,7 +199,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		theBoard.setEnPassantTargetSq(Position.NOPOSITION);
 		moveTracker.push(0L, Move.NULL_MOVE, castling.getFlags(), prevEnPassantTargetSq);
-		hash.updateNullMove(IntFile.NOFILE);
+		hash.updateNullMove((byte)IntFile.NOFILE);
 
 		// Update the draw checker
 		repetitionPossible = dc.setPositionReached(getHash(), getPlyNumber());
@@ -220,7 +220,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int enPasTargetSq = moveTracker.getEnPassant();
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		
-		int enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? BitBoard.getFile(enPasTargetSq) : IntFile.NOFILE;
+		byte enPassantFile = (enPasTargetSq != Position.NOPOSITION) ? BitBoard.getFile(enPasTargetSq) : IntFile.NOFILE;
 		hash.updateNullMove(enPassantFile);
 		
 		// Clear draw indicator flag
