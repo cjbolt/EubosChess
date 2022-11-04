@@ -16,13 +16,13 @@ public final class Move {
 	private static final int TARGET_PIECE_MASK = Piece.PIECE_WHOLE_MASK << TARGET_PIECE_SHIFT;
 	private static final int TARGET_PIECE_NO_COLOUR_MASK = Piece.PIECE_NO_COLOUR_MASK << TARGET_PIECE_SHIFT;
 	
-	private static final int TARGETPOSITION_SHIFT = TARGET_PIECE_SHIFT+Long.bitCount(Piece.PIECE_WHOLE_MASK);
-	private static final int TARGETPOSITION_MASK = Position.MASK << TARGETPOSITION_SHIFT;
+	private static final int TARGET_OFFSET_SHIFT = TARGET_PIECE_SHIFT+Long.bitCount(Piece.PIECE_WHOLE_MASK);
+	private static final int TARGET_OFFSET_MASK = (0x3F) << TARGET_OFFSET_SHIFT;
 	
-	private static final int ORIGINPOSITION_SHIFT = TARGETPOSITION_SHIFT+Long.bitCount(Position.MASK);
-	private static final int ORIGINPOSITION_MASK = Position.MASK << ORIGINPOSITION_SHIFT;
+	private static final int ORIGIN_OFFSET_SHIFT = TARGET_OFFSET_SHIFT+Long.bitCount(0x3F);
+	private static final int ORIGIN_OFFSET_MASK = (0x3F) << ORIGIN_OFFSET_SHIFT;
 	
-	private static final int PROMOTION_SHIFT = ORIGINPOSITION_SHIFT+Long.bitCount(Position.MASK);
+	private static final int PROMOTION_SHIFT = ORIGIN_OFFSET_SHIFT+Long.bitCount(0x3F);
 	private static final int PROMOTION_MASK = Piece.PIECE_NO_COLOUR_MASK << PROMOTION_SHIFT;
 	
 	private static final int ORIGIN_PIECE_SHIFT = PROMOTION_SHIFT+Long.bitCount(Piece.PIECE_NO_COLOUR_MASK);
@@ -50,14 +50,16 @@ public final class Move {
 	
 	// Misc flags
 	public static final int MISC_EN_PASSANT_CAPTURE_BIT = 0;
+	public static final int MISC_CASTLING_CAPTURE_BIT = 1;
 	private static final int MISC_SHIFT = TYPE_SHIFT + Long.bitCount(TYPE_MASK);
-	public static final int MISC_EN_PASSANT_CAPTURE_MASK = (0x1 << (MISC_EN_PASSANT_CAPTURE_BIT+ MISC_SHIFT));
+	public static final int MISC_EN_PASSANT_CAPTURE_MASK = (0x1 << (MISC_EN_PASSANT_CAPTURE_BIT + MISC_SHIFT));
+	public static final int MISC_CASTLING_MASK = (0x1 << (MISC_CASTLING_CAPTURE_BIT + MISC_SHIFT));
 	
 	public static final int NULL_MOVE =
 			valueOf(TYPE_REGULAR_NONE, Position.a1, Piece.NONE, Position.a1, Piece.NONE, Piece.NONE);
 	
-	public static final int EQUALITY_MASK = ORIGINPOSITION_MASK | TARGETPOSITION_MASK | PROMOTION_MASK;
-	public static final int BEST_KILLER_EQUALITY_MASK = ORIGINPOSITION_MASK | ORIGIN_PIECE_MASK | TARGETPOSITION_MASK | TARGET_PIECE_MASK | PROMOTION_MASK;
+	public static final int EQUALITY_MASK = ORIGIN_OFFSET_MASK | TARGET_OFFSET_MASK | PROMOTION_MASK;
+	public static final int BEST_KILLER_EQUALITY_MASK = ORIGIN_OFFSET_MASK | ORIGIN_PIECE_MASK | TARGET_OFFSET_MASK | TARGET_PIECE_MASK | PROMOTION_MASK;
 	
 	public static int valueOf(int originPosition, int originPiece, int targetPosition, int targetPiece) {
 		if (EubosEngineMain.ENABLE_ASSERTS)
@@ -72,7 +74,7 @@ public final class Move {
 		// Encode origin position
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (originPosition & 0x88) == 0;
-		move |= BitBoard.positionToBit_Lut[originPosition] << ORIGINPOSITION_SHIFT;
+		move |= BitBoard.positionToBit_Lut[originPosition] << ORIGIN_OFFSET_SHIFT;
 		
 		// Encode Origin Piece
 		if (EubosEngineMain.ENABLE_ASSERTS)
@@ -82,7 +84,7 @@ public final class Move {
 		// Encode target position
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (targetPosition & 0x88) == 0;
-		move |= BitBoard.positionToBit_Lut[targetPosition] << TARGETPOSITION_SHIFT;
+		move |= BitBoard.positionToBit_Lut[targetPosition] << TARGET_OFFSET_SHIFT;
 		
 		return move;
 	}
@@ -92,6 +94,15 @@ public final class Move {
 		
 		// Encode enPassant - single bit, doesn't need masking
 		move |= enPassant;
+		
+		return move;
+	}
+	
+	public static int valueOfCastling(int type, int originPosition, int originPiece, int targetPosition, int targetPiece, int promotion) {
+		int move = Move.valueOf(type, originPosition, originPiece, targetPosition, targetPiece, promotion);
+		
+		// Encode enPassant - single bit, doesn't need masking
+		move |= Move.MISC_CASTLING_MASK;
 		
 		return move;
 	}
@@ -120,12 +131,12 @@ public final class Move {
 		// Encode Origin position
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (originPosition & 0x88) == 0;
-		move |= BitBoard.positionToBit_Lut[originPosition] << ORIGINPOSITION_SHIFT;
+		move |= BitBoard.positionToBit_Lut[originPosition] << ORIGIN_OFFSET_SHIFT;
 		
 		// Encode target position
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (targetPosition & 0x88) == 0;
-		move |= BitBoard.positionToBit_Lut[targetPosition] << TARGETPOSITION_SHIFT;
+		move |= BitBoard.positionToBit_Lut[targetPosition] << TARGET_OFFSET_SHIFT;
 				
 		// Encode promotion
 		if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -135,12 +146,6 @@ public final class Move {
 
 		return move;
 	}
-	
-	
-	
-	
-	
-	
 	
 	public static int valueOfBit(int originBit, int originPiece, int targetBit, int targetPiece) {
 		if (EubosEngineMain.ENABLE_ASSERTS)
@@ -155,7 +160,7 @@ public final class Move {
 		// Encode origin position
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert originBit < 64;
-		move |= originBit << ORIGINPOSITION_SHIFT;
+		move |= originBit << ORIGIN_OFFSET_SHIFT;
 		
 		// Encode Origin Piece
 		if (EubosEngineMain.ENABLE_ASSERTS)
@@ -165,17 +170,20 @@ public final class Move {
 		// Encode target position
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert targetBit < 64;
-		move |= targetBit << TARGETPOSITION_SHIFT;
+		move |= targetBit << TARGET_OFFSET_SHIFT;
 		
 		return move;
 	}
 	
-	public static int valueOfEnPassantBit(int enPassant, int type, int originBit, int originPiece, int targetBit, int targetPiece, int promotion) {
+	public static int valueOfEnPassantBit(int type, int originBit, int originPiece, int targetBit, int targetPiece, int promotion) {
 		int move = Move.valueOfBit(type, originBit, originPiece, targetBit, targetPiece, promotion);
-		
-		// Encode enPassant - single bit, doesn't need masking
-		move |= enPassant;
-		
+		move |= Move.MISC_EN_PASSANT_CAPTURE_MASK;
+		return move;
+	}
+	
+	public static int valueOfCastlingBit(int type, int originBit, int originPiece, int targetBit, int targetPiece, int promotion) {
+		int move = Move.valueOfBit(type, originBit, originPiece, targetBit, targetPiece, promotion);
+		move |= Move.MISC_CASTLING_MASK;
 		return move;
 	}
 
@@ -203,12 +211,12 @@ public final class Move {
 		// Encode Origin position
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (originBit < 64);
-		move |= originBit << ORIGINPOSITION_SHIFT;
+		move |= originBit << ORIGIN_OFFSET_SHIFT;
 		
 		// Encode target position
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (targetBit < 64);
-		move |= targetBit << TARGETPOSITION_SHIFT;
+		move |= targetBit << TARGET_OFFSET_SHIFT;
 				
 		// Encode promotion
 		if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -218,16 +226,6 @@ public final class Move {
 
 		return move;
 	}
-	
-	
-	
-	
-
-	
-	
-	
-	
-	
 	
 	public static int toMove(GenericMove move, Board theBoard, int type) {
 		int intMove = 0;
@@ -326,7 +324,7 @@ public final class Move {
 	}
 
 	public static int getOriginPosition(int move) {
-		int originPosition = (move & ORIGINPOSITION_MASK) >>> ORIGINPOSITION_SHIFT;
+		int originPosition = (move & ORIGIN_OFFSET_MASK) >>> ORIGIN_OFFSET_SHIFT;
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert originPosition < 64;
 
@@ -334,7 +332,7 @@ public final class Move {
 	}
 	
 	public static int getTargetPosition(int move) {
-		int targetPosition = (move & TARGETPOSITION_MASK) >>> TARGETPOSITION_SHIFT;
+		int targetPosition = (move & TARGET_OFFSET_MASK) >>> TARGET_OFFSET_SHIFT;
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert targetPosition < 64;
 
@@ -343,12 +341,12 @@ public final class Move {
 
 	public static int setTargetPosition(int move, int targetPosition) {
 		// Zero out target position
-		move &= ~TARGETPOSITION_MASK;
+		move &= ~TARGET_OFFSET_MASK;
 
 		// Encode target position
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (targetPosition & 0x88) == 0;
-		move |= BitBoard.positionToBit_Lut[targetPosition] << TARGETPOSITION_SHIFT;
+		move |= BitBoard.positionToBit_Lut[targetPosition] << TARGET_OFFSET_SHIFT;
 
 		return move;
 	}
@@ -515,8 +513,8 @@ public final class Move {
 	}
 	
 	public static int reverse(int move) {
-		int reversedMove = move & ~(ORIGINPOSITION_MASK | TARGETPOSITION_MASK);
-		reversedMove |= ((move & ORIGINPOSITION_MASK) >>> 7) | ((move & TARGETPOSITION_MASK) << 7);
+		int reversedMove = move & ~(ORIGIN_OFFSET_MASK | TARGET_OFFSET_MASK);
+		reversedMove |= ((move & ORIGIN_OFFSET_MASK) >>> 6) | ((move & TARGET_OFFSET_MASK) << 6);
 		return reversedMove;
 	}
 
@@ -546,6 +544,10 @@ public final class Move {
 
 	public static boolean isEnPassantCapture(int move) {
 		return (move & Move.MISC_EN_PASSANT_CAPTURE_MASK) != 0;
+	}
+	
+	public static boolean isCastling(int move) {
+		return (move & Move.MISC_CASTLING_MASK) != 0;
 	}
 
 	public static boolean isNotCaptureOrPromotion(int move) {

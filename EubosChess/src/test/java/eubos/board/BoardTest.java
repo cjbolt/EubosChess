@@ -691,7 +691,7 @@ public class BoardTest {
 		boolean inCheck = false;
 		assertTrue(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
 		// Castle move not valid
-		move = Move.valueOf(Position.e1, Piece.WHITE_KING, Position.c1, Piece.NONE);
+		move = Move.valueOfCastling(Position.e1, Piece.WHITE_KING, Position.c1, Piece.NONE, Piece.NONE, Piece.NONE);
 		assertFalse(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
 	}
 	
@@ -706,7 +706,7 @@ public class BoardTest {
 	@Test
 	public void test_is_playable_castling_king_in_check() {
 		setUpPosition("8/8/8/1b1k4/8/8/8/R3K2R w K - 1 10");
-		int move = Move.valueOf(Position.e1, Piece.WHITE_KING, Position.g1, Piece.NONE);
+		int move = Move.valueOfCastling(Position.e1, Piece.WHITE_KING, Position.g1, Piece.NONE, Piece.NONE, Piece.NONE);
 		boolean inCheck = false;
 		assertFalse(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
 	}

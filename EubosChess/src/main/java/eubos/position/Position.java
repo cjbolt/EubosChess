@@ -24,8 +24,6 @@ import eubos.main.EubosEngineMain;
 
 public final class Position {
 
-  public static final int MASK = 0x7F;
-
   public static final int a1 = 0;   public static final int a2 = 16;
   public static final int b1 = 1;   public static final int b2 = 17;
   public static final int c1 = 2;   public static final int c2 = 18;

@@ -230,43 +230,43 @@ public class ZobristHashCode implements IForEachPieceCallback {
 
 	protected void doSecondaryMove(int move) {
 		if (piece == Piece.WHITE_KING) {
-			if (originSquare == BitBoard.positionToBit_Lut[Position.e1]) {
-				if (Move.areEqual(move, CastlingManager.wksc)) {
-					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.f1], false); // to
-					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.h1], false); // from
-				} else if (Move.areEqual(move, CastlingManager.wqsc)) {
-					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.d1], false); // to
-					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.a1], false); // from
+			if (originSquare == BitBoard.e1) {
+				if (targetSquare == BitBoard.g1) {
+					hashCode ^= getPrnForRook(BitBoard.f1, false); // to
+					hashCode ^= getPrnForRook(BitBoard.h1, false); // from
+				} else if (targetSquare == BitBoard.c1) {
+					hashCode ^= getPrnForRook(BitBoard.d1, false); // to
+					hashCode ^= getPrnForRook(BitBoard.a1, false); // from
 				}
-			} else if (originSquare == BitBoard.positionToBit_Lut[Position.g1]) {
-				if (Move.areEqual(move, CastlingManager.undo_wksc)) {
-					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.h1], false); // to
-					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.f1], false); // from
+			} else if (originSquare == BitBoard.g1) {
+				if (targetSquare == BitBoard.e1) {
+					hashCode ^= getPrnForRook(BitBoard.h1, false); // to
+					hashCode ^= getPrnForRook(BitBoard.f1, false); // from
 				}
-			} else if (originSquare == BitBoard.positionToBit_Lut[Position.c1]) {
-				if (Move.areEqual(move, CastlingManager.undo_wqsc)) {
-					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.a1], false); // to
-					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.d1], false); // from
+			} else if (originSquare == BitBoard.c1) {
+				if (targetSquare == BitBoard.e1) {
+					hashCode ^= getPrnForRook(BitBoard.a1, false); // to
+					hashCode ^= getPrnForRook(BitBoard.d1, false); // from
 				}
 			}
 		} else if (piece == Piece.BLACK_KING) {
-			if (originSquare == BitBoard.positionToBit_Lut[Position.e8]) {
-				if (Move.areEqual(move, CastlingManager.bksc)) {
-					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.f8], true); // to
-					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.h8], true); // from
-				} else if (Move.areEqual(move, CastlingManager.bqsc)) {
-					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.d8], true); // to
-					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.a8], true); // from
+			if (originSquare == BitBoard.e8) {
+				if (targetSquare == BitBoard.g8) {
+					hashCode ^= getPrnForRook(BitBoard.f8, true); // to
+					hashCode ^= getPrnForRook(BitBoard.h8, true); // from
+				} else if (targetSquare == BitBoard.c8) {
+					hashCode ^= getPrnForRook(BitBoard.d8, true); // to
+					hashCode ^= getPrnForRook(BitBoard.a8, true); // from
 				} 
-			} else if (originSquare == BitBoard.positionToBit_Lut[Position.g8]) {
-				if (Move.areEqual(move, CastlingManager.undo_bksc)) {
-					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.h8], true); // to
-					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.f8], true); // from
+			} else if (originSquare == BitBoard.g8) {
+				if (targetSquare == BitBoard.e8) {
+					hashCode ^= getPrnForRook(BitBoard.h8, true); // to
+					hashCode ^= getPrnForRook(BitBoard.f8, true); // from
 				}
-			} else if (originSquare == BitBoard.positionToBit_Lut[Position.c8]) {
-				if (Move.areEqual(move,CastlingManager.undo_bqsc)) {
-					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.a8], true); // to
-					hashCode ^= getPrnForRook(BitBoard.positionToBit_Lut[Position.d8], true); // from
+			} else if (originSquare == BitBoard.c8) {
+				if (targetSquare == BitBoard.e8) {
+					hashCode ^= getPrnForRook(BitBoard.a8, true); // to
+					hashCode ^= getPrnForRook(BitBoard.d8, true); // from
 				}
 			}
 		} else {

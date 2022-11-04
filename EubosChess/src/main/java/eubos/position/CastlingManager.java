@@ -17,25 +17,25 @@ public class CastlingManager {
 	private PositionManager pm;
 
 	// Optimisation - King cannot be in check when we call castling manager, so we don't check King square.
-	private static final int [] kscWhiteCheckSqs = {BitBoard.positionToBit_Lut[Position.f1], BitBoard.positionToBit_Lut[Position.g1]};
-	private static final int [] kscBlackCheckSqs = {BitBoard.positionToBit_Lut[Position.f8], BitBoard.positionToBit_Lut[Position.g8]};
-	private static final long [] kscWhiteEmptySqs = {1L << BitBoard.positionToBit_Lut[Position.f1], 1L << BitBoard.positionToBit_Lut[Position.g1]};
-	private static final long [] kscBlackEmptySqs = {1L << BitBoard.positionToBit_Lut[Position.f8], 1L << BitBoard.positionToBit_Lut[Position.g8]};
+	private static final int [] kscWhiteCheckSqs = {BitBoard.f1, BitBoard.g1};
+	private static final int [] kscBlackCheckSqs = {BitBoard.f8, BitBoard.g8};
+	private static final long [] kscWhiteEmptySqs = {1L << BitBoard.f1, 1L << BitBoard.g1};
+	private static final long [] kscBlackEmptySqs = {1L << BitBoard.f8, 1L << BitBoard.g8};
 
-	private static final int [] qscWhiteCheckSqs = {BitBoard.positionToBit_Lut[Position.c1], BitBoard.positionToBit_Lut[Position.d1]};
-	private static final int [] qscBlackCheckSqs = {BitBoard.positionToBit_Lut[Position.c8], BitBoard.positionToBit_Lut[Position.d8]};
-	private static final long [] qscWhiteEmptySqs = {1L << BitBoard.positionToBit_Lut[Position.c1], 1L << BitBoard.positionToBit_Lut[Position.d1], 1L << BitBoard.positionToBit_Lut[Position.b1]};
-	private static final long [] qscBlackEmptySqs = {1L << BitBoard.positionToBit_Lut[Position.c8], 1L << BitBoard.positionToBit_Lut[Position.d8], 1L << BitBoard.positionToBit_Lut[Position.b8]};
+	private static final int [] qscWhiteCheckSqs = {BitBoard.c1, BitBoard.d1};
+	private static final int [] qscBlackCheckSqs = {BitBoard.c8, BitBoard.d8};
+	private static final long [] qscWhiteEmptySqs = {1L << BitBoard.c1, 1L << BitBoard.d1, 1L << BitBoard.b1};
+	private static final long [] qscBlackEmptySqs = {1L << BitBoard.c8, 1L << BitBoard.d8, 1L << BitBoard.b8};
 
-	public static final int bksc = Move.valueOf(Move.TYPE_REGULAR_NONE, Position.e8, (Piece.BLACK | Piece.KING), Position.g8, Piece.NONE, Piece.NONE);
-	public static final int wksc = Move.valueOf(Move.TYPE_REGULAR_NONE, Position.e1, Piece.KING, Position.g1, Piece.NONE, Piece.NONE);
-	public static final int bqsc = Move.valueOf(Move.TYPE_REGULAR_NONE, Position.e8, (Piece.BLACK | Piece.KING), Position.c8, Piece.NONE, Piece.NONE);
-	public static final int wqsc = Move.valueOf(Move.TYPE_REGULAR_NONE, Position.e1, Piece.KING, Position.c1, Piece.NONE, Piece.NONE);
+	public static final int bksc = Move.valueOfCastlingBit(Move.TYPE_REGULAR_NONE, BitBoard.e8, (Piece.BLACK | Piece.KING), BitBoard.g8, Piece.NONE, Piece.NONE);
+	public static final int wksc = Move.valueOfCastlingBit(Move.TYPE_REGULAR_NONE, BitBoard.e1, Piece.KING, BitBoard.g1, Piece.NONE, Piece.NONE);
+	public static final int bqsc = Move.valueOfCastlingBit(Move.TYPE_REGULAR_NONE, BitBoard.e8, (Piece.BLACK | Piece.KING), BitBoard.c8, Piece.NONE, Piece.NONE);
+	public static final int wqsc = Move.valueOfCastlingBit(Move.TYPE_REGULAR_NONE, BitBoard.e1, Piece.KING, BitBoard.c1, Piece.NONE, Piece.NONE);
 
-	public static final int undo_bksc = Move.valueOf(Move.TYPE_REGULAR_NONE, Position.g8, (Piece.BLACK | Piece.KING), Position.e8, Piece.NONE, Piece.NONE);
-	public static final int undo_wksc = Move.valueOf(Move.TYPE_REGULAR_NONE, Position.g1, Piece.KING, Position.e1, Piece.NONE, Piece.NONE);
-	public static final int undo_bqsc = Move.valueOf(Move.TYPE_REGULAR_NONE, Position.c8, (Piece.BLACK | Piece.KING), Position.e8, Piece.NONE, Piece.NONE);
-	public static final int undo_wqsc = Move.valueOf(Move.TYPE_REGULAR_NONE, Position.c1, Piece.KING, Position.e1, Piece.NONE, Piece.NONE);
+	public static final int undo_bksc = Move.valueOfCastlingBit(Move.TYPE_REGULAR_NONE, BitBoard.g8, (Piece.BLACK | Piece.KING), BitBoard.e8, Piece.NONE, Piece.NONE);
+	public static final int undo_wksc = Move.valueOfCastlingBit(Move.TYPE_REGULAR_NONE, BitBoard.g1, Piece.KING, BitBoard.e1, Piece.NONE, Piece.NONE);
+	public static final int undo_bqsc = Move.valueOfCastlingBit(Move.TYPE_REGULAR_NONE, BitBoard.c8, (Piece.BLACK | Piece.KING), BitBoard.e8, Piece.NONE, Piece.NONE);
+	public static final int undo_wqsc = Move.valueOfCastlingBit(Move.TYPE_REGULAR_NONE, BitBoard.c1, Piece.KING, BitBoard.e1, Piece.NONE, Piece.NONE);
 
 	CastlingManager(PositionManager Pm) { this( Pm, "-"); }
 
@@ -84,16 +84,6 @@ public class CastlingManager {
 		this.flags = flags;
 	}
 	
-	public boolean isCastlingMove(int move) {
-		if (Move.areEqualForBestKiller(move, wksc) ||
-			Move.areEqualForBestKiller(move, bksc) ||
-			Move.areEqualForBestKiller(move, wqsc) ||
-			Move.areEqualForBestKiller(move, bqsc)) {
-			return true;
-		}
-		return false;
-	}
-
 	public void addCastlingMoves(boolean isWhiteOnMove, IAddMoves ml) {
 		// The side on move should not have previously castled
 		if (!castlingAvaillable(isWhiteOnMove))
@@ -177,9 +167,9 @@ public class CastlingManager {
 				{
 					// Rook moved
 					int originBitOffset = Move.getOriginPosition(lastMove);
-					if (originBitOffset==BitBoard.positionToBit_Lut[Position.a1]) {
+					if (originBitOffset==BitBoard.a1) {
 						flags &= ~WHITE_QUEENSIDE;
-					} else if (originBitOffset==BitBoard.positionToBit_Lut[Position.h1]) {
+					} else if (originBitOffset==BitBoard.h1) {
 						flags &= ~WHITE_KINGSIDE;
 					}
 				}
@@ -188,9 +178,9 @@ public class CastlingManager {
 				{
 					// Rook moved
 					int originBitOffset = Move.getOriginPosition(lastMove);
-					if (originBitOffset==BitBoard.positionToBit_Lut[Position.a8]) {
+					if (originBitOffset==BitBoard.a8) {
 						flags &= ~BLACK_QUEENSIDE;
-					} else if (originBitOffset==BitBoard.positionToBit_Lut[Position.h8]) {
+					} else if (originBitOffset==BitBoard.h8) {
 						flags &= ~BLACK_KINGSIDE;
 					}
 				}
@@ -201,13 +191,13 @@ public class CastlingManager {
 			// After this, the move wasn't castling, but may have caused castling to be no longer possible
 			// If a rook got captured
 			int targetPosition = Move.getTargetPosition(lastMove);
-			if (targetPosition == BitBoard.positionToBit_Lut[Position.a8]) {
+			if (targetPosition == BitBoard.a8) {
 				flags &= ~BLACK_QUEENSIDE;
-			} else if (targetPosition == BitBoard.positionToBit_Lut[Position.h8]) {
+			} else if (targetPosition == BitBoard.h8) {
 				flags &= ~BLACK_KINGSIDE;
-			} else if (targetPosition == BitBoard.positionToBit_Lut[Position.a1]) {
+			} else if (targetPosition == BitBoard.a1) {
 				flags &= ~WHITE_QUEENSIDE;
-			} else if (targetPosition == BitBoard.positionToBit_Lut[Position.h1]) {
+			} else if (targetPosition == BitBoard.h1) {
 				flags &= ~WHITE_KINGSIDE;
 			}
 		}
