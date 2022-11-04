@@ -1,11 +1,8 @@
 package eubos.position;
 
-import com.fluxchess.jcpi.models.IntFile;
-
 import eubos.board.BitBoard;
 import eubos.board.Board;
 import eubos.board.Piece;
-import eubos.main.EubosEngineMain;
 
 public class CastlingManager {
 	
@@ -99,7 +96,7 @@ public class CastlingManager {
 
 	public void addCastlingMoves(boolean isWhiteOnMove, IAddMoves ml) {
 		// The side on move should not have previously castled
-		if ( !castlingAvaillable(isWhiteOnMove))
+		if (!castlingAvaillable(isWhiteOnMove))
 			return;
 		
 		int ksc = Move.NULL_MOVE;
@@ -120,9 +117,9 @@ public class CastlingManager {
 				qsc = getBlackQueensideCastleMove();
 			}
 		}
-		if ( ksc != Move.NULL_MOVE )
+		if (ksc != Move.NULL_MOVE)
 			ml.addNormal(ksc);
-		if ( qsc != Move.NULL_MOVE )
+		if (qsc != Move.NULL_MOVE)
 			ml.addNormal(qsc);
 	}
 
@@ -130,13 +127,9 @@ public class CastlingManager {
 		return whiteOnMove ? (flags & WHITE_CAN_CASTLE) != 0 : (flags & BLACK_CAN_CASTLE) != 0;
 	}
 	
-	private boolean castleMoveLegal(int rookSq,
-			int [] checkSqs,
+	private boolean castleMoveLegal(int [] checkSqs,
 			long [] emptySqs) {
 		Board theBoard = pm.getTheBoard();
-		if (EubosEngineMain.ENABLE_ASSERTS)
-			assert Piece.isRook(theBoard.getPieceAtSquare(rookSq));
-		
 		// All the intervening squares between King and Rook should be empty
 		for (long emptyOffset : emptySqs) {
 			if ( !theBoard.squareIsEmpty(emptyOffset))
@@ -152,19 +145,19 @@ public class CastlingManager {
 	}
 
 	private int getWhiteKingsideCastleMove() {
-		return (castleMoveLegal(Position.h1, kscWhiteCheckSqs, kscWhiteEmptySqs)) ? wksc : 0;
+		return (castleMoveLegal(kscWhiteCheckSqs, kscWhiteEmptySqs)) ? wksc : 0;
 	}
 
 	private int getBlackKingsideCastleMove() {
-		return (castleMoveLegal(Position.h8, kscBlackCheckSqs, kscBlackEmptySqs)) ? bksc : 0;
+		return (castleMoveLegal(kscBlackCheckSqs, kscBlackEmptySqs)) ? bksc : 0;
 	}
 
 	private int getWhiteQueensideCastleMove() {
-		return (castleMoveLegal(Position.a1, qscWhiteCheckSqs, qscWhiteEmptySqs)) ? wqsc : 0;
+		return (castleMoveLegal(qscWhiteCheckSqs, qscWhiteEmptySqs)) ? wqsc : 0;
 	}
 
 	private int getBlackQueensideCastleMove() {
-		return (castleMoveLegal(Position.a8, qscBlackCheckSqs, qscBlackEmptySqs)) ? bqsc : 0;
+		return (castleMoveLegal(qscBlackCheckSqs, qscBlackEmptySqs)) ? bqsc : 0;
 	}
 
 	public void updateFlags(int lastMove) {
@@ -184,10 +177,9 @@ public class CastlingManager {
 				{
 					// Rook moved
 					int originBitOffset = Move.getOriginPosition(lastMove);
-					if (BitBoard.getFile(originBitOffset)==IntFile.Fa) {
+					if (originBitOffset==BitBoard.positionToBit_Lut[Position.a1]) {
 						flags &= ~WHITE_QUEENSIDE;
-					} 
-					if (BitBoard.getFile(originBitOffset)==IntFile.Fh) {
+					} else if (originBitOffset==BitBoard.positionToBit_Lut[Position.h1]) {
 						flags &= ~WHITE_KINGSIDE;
 					}
 				}
@@ -196,9 +188,9 @@ public class CastlingManager {
 				{
 					// Rook moved
 					int originBitOffset = Move.getOriginPosition(lastMove);
-					if (BitBoard.getFile(originBitOffset)==IntFile.Fa) {
+					if (originBitOffset==BitBoard.positionToBit_Lut[Position.a8]) {
 						flags &= ~BLACK_QUEENSIDE;
-					} else if (BitBoard.getFile(originBitOffset)==IntFile.Fh) {
+					} else if (originBitOffset==BitBoard.positionToBit_Lut[Position.h8]) {
 						flags &= ~BLACK_KINGSIDE;
 					}
 				}
