@@ -375,7 +375,7 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.d2, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KING);
 		int move = Move.valueOf(Position.d2, Piece.WHITE_PAWN, Position.d4, Piece.NONE);
-		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.d1], true));
+		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.d1, true));
 	}
 	
 	@Test
@@ -384,7 +384,7 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.e2, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KING);
 		int move = Move.valueOf(Position.e2, Piece.WHITE_PAWN, Position.d3, Piece.NONE);
-		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.d1], true));
+		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.d1, true));
 	}
 	
 	@Test
@@ -392,7 +392,7 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.e3, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KING);
 		int move = Move.valueOf(Position.e3, Piece.WHITE_PAWN, Position.e4, Piece.NONE);
-		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.d1], true));
+		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.d1, true));
 	}
 	
 	@Test
@@ -400,154 +400,154 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KNIGHT);
 		classUnderTest.setPieceAtSquare(Position.e4, Piece.WHITE_KING);
 		int move = Move.valueOf(Position.d1, Piece.WHITE_KNIGHT, Position.c3, Piece.NONE);
-		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.e4], true));
+		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.e4, true));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_PinnedUpLeft() {
 		setUpPosition("8/8/1q6/2P5/8/4K3/8/8 w - - 0 1");
 		int move = Move.valueOf(Position.c5, Piece.WHITE_PAWN, Position.c6, Piece.NONE);
-		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.e3], true));
+		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.e3, true));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_NotPinnedUpLeft() {
 		setUpPosition("8/8/1q6/2P5/3P4/4K3/8/8 w - - 0 1 ");
 		int move = Move.valueOf(Position.c5, Piece.WHITE_PAWN, Position.c6, Piece.NONE);
-		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.e3], true));
+		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.e3, true));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_PinnedUpRight() {
 		setUpPosition("8/8/7q/6P1/8/4K3/8/8 w - - 0 1 ");
 		int move = Move.valueOf(Position.g5, Piece.WHITE_PAWN, Position.g6, Piece.NONE);
-		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.e3], true));
+		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.e3, true));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_NotPinnedUpRight() {
 		setUpPosition("8/8/7q/6P1/5P2/4K3/8/8 w - - 0 1 ");
 		int move = Move.valueOf(Position.g5, Piece.WHITE_PAWN, Position.g6, Piece.NONE);
-		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.e3], true));
+		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.e3, true));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_PinnedDownLeft() {
 		setUpPosition("8/8/3K4/8/1P6/q7/8/8 w - - 0 1 ");
 		int move = Move.valueOf(Position.b4, Piece.WHITE_PAWN, Position.b5, Piece.NONE);
-		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.d6], true));
+		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.d6, true));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_NotPinnedDownLeft() {
 		setUpPosition("8/8/3K4/2P5/1P6/q7/8/8 w - - 0 1 ");
 		int move = Move.valueOf(Position.b4, Piece.WHITE_PAWN, Position.b5, Piece.NONE);
-		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.d6], true));
+		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.d6, true));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_PinnedDownRight() {
 		setUpPosition("8/8/3K4/8/5P2/6q1/8/8 w - - 0 1 ");
 		int move = Move.valueOf(Position.f4, Piece.WHITE_PAWN, Position.f5, Piece.NONE);
-		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.d6], true));
+		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.d6, true));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_NotPinnedDownRight() {
 		setUpPosition("8/8/3K4/4P3/5P2/6q1/8/8 w - - 0 1 ");
 		int move = Move.valueOf(Position.f4, Piece.WHITE_PAWN, Position.f5, Piece.NONE);
-		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.d6], true));
+		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.d6, true));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_PinnedUp() {
 		setUpPosition("3q4/3R4/8/8/3K4/8/8/8 w - - 0 1");
 		int move = Move.valueOf(Position.d7, Piece.WHITE_ROOK, Position.e7, Piece.NONE);
-		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.d4], true));
+		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.d4, true));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_CapturePinningPieceUp() {
 		setUpPosition("3q4/3R4/8/8/3K4/8/8/8 w - - 0 1");
 		int move = Move.valueOf(Position.d7, Piece.WHITE_ROOK, Position.d8, Piece.BLACK_QUEEN);
-		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.d4], true));
+		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.d4, true));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_NotPinnedUp() {
 		setUpPosition("3q4/3R4/8/3P4/3K4/8/8/8 w - - 0 1");
 		int move = Move.valueOf(Position.d7, Piece.WHITE_ROOK, Position.e7, Piece.NONE);
-		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.d4], true));
+		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.d4, true));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_NotPinnedRight() {
 		setUpPosition("8/8/8/8/3KP1Rq/8/8/8 w - - 0 1 ");
 		int move = Move.valueOf(Position.g4, Piece.WHITE_ROOK, Position.g5, Piece.NONE);
-		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.d4], true));
+		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.d4, true));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_PinnedRight() {
 		setUpPosition("8/8/8/8/3K2Rq/8/8/8 w - - 0 1 ");
 		int move = Move.valueOf(Position.g4, Piece.WHITE_ROOK, Position.g5, Piece.NONE);
-		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.d4], true));
+		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.d4, true));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_NotPinnedLeft() {
 		setUpPosition("8/8/8/8/qRPK4/8/8/8 w - - 0 1 ");
 		int move = Move.valueOf(Position.b4, Piece.WHITE_ROOK, Position.b5, Piece.NONE);
-		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.d4], true));
+		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.d4, true));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_PinnedLeft() {
 		setUpPosition("8/8/8/8/qR1K4/8/8/8 w - - 0 1 ");
 		int move = Move.valueOf(Position.b4, Piece.WHITE_ROOK, Position.b5, Piece.NONE);
-		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.d4], true));
+		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.d4, true));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_NotPinnedDown() {
 		setUpPosition("8/8/8/8/3K4/3P4/3R4/3q4 w - - 0 1 ");
 		int move = Move.valueOf(Position.d2, Piece.WHITE_ROOK, Position.e2, Piece.NONE);
-		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.d4], true));
+		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.d4, true));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_PinnedDown() {
 		setUpPosition("8/8/8/8/3K4/8/3R4/3q4 w - - 0 1 ");
 		int move = Move.valueOf(Position.d2, Piece.WHITE_ROOK, Position.e2, Piece.NONE);
-		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.d4], true));
+		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.d4, true));
 	}
 	 
 	@Test
 	public void testCouldLeadToCheck_FromGame() {
 		setUpPosition("7k/8/5p1p/6R1/3Q4/5PP1/6KP/1r6 b - - 0 47 ");
 		int move = Move.valueOf(Position.f6, Piece.BLACK_PAWN, Position.g5, Piece.WHITE_ROOK);
-		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.h8], false));
+		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.h8, false));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_Position3EnPassant() {
 		setUpPosition("8/2p5/3p4/KP5r/1R3pPk/8/4P3/8 b - g3 0 1 ");
 		int move = Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.f4, Piece.BLACK_PAWN, Position.g3, Piece.WHITE_PAWN, Piece.NONE);
-		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.h4], false));
+		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.h4, false));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_EnPassantDiagonal() {
 		setUpPosition("8/B7/8/8/3pP3/8/8/6k1 b - e3 0 1");
 		int move = Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.d4, Piece.BLACK_PAWN, Position.e3, Piece.WHITE_PAWN, Piece.NONE);
-		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.g1], false));
+		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.g1, false));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_EnPassantDiagonalOtherSide() {
 		setUpPosition("8/B7/8/8/2Pp4/8/8/6k1 b - c3 0 1 ");
 		int move = Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.d4, Piece.BLACK_PAWN, Position.c3, Piece.WHITE_PAWN, Piece.NONE);
-		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.g1], false));
+		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.g1, false));
 	}
 	
 	@Test
@@ -555,7 +555,7 @@ public class BoardTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		setUpPosition("1rk2N2/1p6/8/B1Pp4/B6Q/K7/8/2R5 w - d6 0 1");
 		int move = Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.c5, Piece.WHITE_PAWN, Position.d6, Piece.BLACK_PAWN, Piece.NONE);
-		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.positionToBit_Lut[Position.c8], true));
+		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.c8, true));
 		assertEquals(Piece.NONE, classUnderTest.getPieceAtSquare(Position.d6));
 	}
 	
@@ -643,7 +643,7 @@ public class BoardTest {
 						classUnderTest.pickUpPieceAtSquare(BitBoard.positionToMask_Lut[atPos], BitBoard.positionToBit_Lut[atPos], Piece.WHITE_BISHOP);
 					}
 				}
-				classUnderTest.pickUpPieceAtSquare(BitBoard.positionToMask_Lut[Position.valueOf(outer_file, outer_rank)], BitBoard.positionToBit_Lut[Position.valueOf(outer_file, outer_rank)], Piece.WHITE_QUEEN);
+				classUnderTest.pickUpPieceAtSquare(BitBoard.positionToMask_Lut[Position.valueOf(outer_file, outer_rank)], Position.valueOf(outer_file, outer_rank), Piece.WHITE_QUEEN);
 			}
 		}
 		for (int outer_rank=0; outer_rank<8; outer_rank++) {
@@ -662,7 +662,7 @@ public class BoardTest {
 						classUnderTest.pickUpPieceAtSquare(BitBoard.positionToMask_Lut[atPos], BitBoard.positionToBit_Lut[atPos], Piece.WHITE_ROOK);
 					}
 				}
-				classUnderTest.pickUpPieceAtSquare(BitBoard.positionToMask_Lut[Position.valueOf(outer_file, outer_rank)], BitBoard.positionToBit_Lut[Position.valueOf(outer_file, outer_rank)], Piece.WHITE_QUEEN);
+				classUnderTest.pickUpPieceAtSquare(BitBoard.positionToMask_Lut[Position.valueOf(outer_file, outer_rank)], Position.valueOf(outer_file, outer_rank), Piece.WHITE_QUEEN);
 			}
 		}
 	}
@@ -756,56 +756,56 @@ public class BoardTest {
 	public void test_frontspan_isBlocked() {
 		setUpPosition("2k5/8/8/8/2P5/3K4/8/8 w - - 1 10 ");
 		long [][][] attacks = classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me);
-		assertFalse(classUnderTest.isPawnFrontspanSafe(BitBoard.positionToBit_Lut[Position.c4], true, attacks[0][3], attacks[1][3], false));
+		assertFalse(classUnderTest.isPawnFrontspanSafe(BitBoard.c4, true, attacks[0][3], attacks[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_NotBlocked() {
 		setUpPosition("8/k7/8/8/2P5/3K4/8/8 w - - 1 10 ");
 		long [][][] attacks = classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me);
-		assertTrue(classUnderTest.isPawnFrontspanSafe(BitBoard.positionToBit_Lut[Position.c4], true, attacks[0][3], attacks[1][3], false));
+		assertTrue(classUnderTest.isPawnFrontspanSafe(BitBoard.c4, true, attacks[0][3], attacks[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_isAttackedAndDefended() {
 		setUpPosition("8/1B1b4/8/8/2P5/3K4/8/8 w - - 1 10 ");
 		long [][][] attacks = classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me);
-		assertTrue(classUnderTest.isPawnFrontspanSafe(BitBoard.positionToBit_Lut[Position.c4], true, attacks[0][3], attacks[1][3], false));
+		assertTrue(classUnderTest.isPawnFrontspanSafe(BitBoard.c4, true, attacks[0][3], attacks[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttacked() {
 		setUpPosition("8/3b4/8/8/2P5/3K4/8/8 w - - 1 10 ");
 		long [][][] attacks = classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me);
-		assertFalse(classUnderTest.isPawnFrontspanSafe(BitBoard.positionToBit_Lut[Position.c4], true, attacks[0][3], attacks[1][3], false));
+		assertFalse(classUnderTest.isPawnFrontspanSafe(BitBoard.c4, true, attacks[0][3], attacks[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttackedTwiceDefendedOnce() {
 		setUpPosition("8/3b4/2P6/2P5/3K4/8/8 w - - 1 10 ");
 		long [][][] attacks = classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me);
-		assertFalse(classUnderTest.isPawnFrontspanSafe(BitBoard.positionToBit_Lut[Position.c4], true, attacks[0][3], attacks[1][3], false));
+		assertFalse(classUnderTest.isPawnFrontspanSafe(BitBoard.c4, true, attacks[0][3], attacks[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttackedTwiceDefendedTwice() {
 		setUpPosition("R7/3b4/8/1PP5/3K4/8/8 w - - 1 10 ");
 		long [][][] attacks = classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me);
-		assertTrue(classUnderTest.isPawnFrontspanSafe(BitBoard.positionToBit_Lut[Position.c4], true, attacks[0][3], attacks[1][3], false));
+		assertTrue(classUnderTest.isPawnFrontspanSafe(BitBoard.c4, true, attacks[0][3], attacks[1][3], false));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttackedOnceDefendedOnceByRookToRear() {
 		setUpPosition("8/3b4/8/2P5/7K/8/2R5 w - - 1 10 ");
 		long [][][] attacks = classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me);
-		assertTrue(classUnderTest.isPawnFrontspanSafe(BitBoard.positionToBit_Lut[Position.c4], true, attacks[0][3], attacks[1][3], true));
+		assertTrue(classUnderTest.isPawnFrontspanSafe(BitBoard.c4, true, attacks[0][3], attacks[1][3], true));
 	}
 	
 	@Test
 	public void test_frontspan_IsAttackedOnceDefendedTwice_soBlocked() {
 		setUpPosition("4B2K/8/1b1Bn3/8/2P5/8/8/7k w - - 1 1");
 		long [][][] attacks = classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me);
-		assertFalse(classUnderTest.isPawnFrontspanSafe(BitBoard.positionToBit_Lut[Position.c4], true, attacks[0][3], attacks[1][3], false));
+		assertFalse(classUnderTest.isPawnFrontspanSafe(BitBoard.c4, true, attacks[0][3], attacks[1][3], false));
 	}
 	
 	@Test
@@ -879,7 +879,7 @@ public class BoardTest {
 	public void test_evaluateSquareControlRoundKing() {
 		setUpPosition("4q1k1/5ppp/4N3/7Q/4B3/8/8/6K1 b - - 0 1 ");
 		long [][][] attacks = classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me);
-		int numSquares = CountedBitBoard.evaluate(attacks[1][3], attacks[0][3], SquareAttackEvaluator.KingZone_Lut[1][BitBoard.positionToBit_Lut[Position.g8]]);
+		int numSquares = CountedBitBoard.evaluate(attacks[1][3], attacks[0][3], SquareAttackEvaluator.KingZone_Lut[1][BitBoard.g8]);
 		assertEquals(3, numSquares);
 	}
 	
@@ -887,7 +887,7 @@ public class BoardTest {
 	public void test_evaluateSquareControlRoundKing_NoPawns() {
 		setUpPosition("6k1/8/8/7R/4BR1Q/8/8/6K1 b - - 0 1 ");
 		long [][][] attacks = classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me);
-		int numSquares = CountedBitBoard.evaluate(attacks[1][3], attacks[0][3], SquareAttackEvaluator.KingZone_Lut[1][BitBoard.positionToBit_Lut[Position.g8]]);
+		int numSquares = CountedBitBoard.evaluate(attacks[1][3], attacks[0][3], SquareAttackEvaluator.KingZone_Lut[1][BitBoard.g8]);
 		assertEquals(8, numSquares);
 	}
 	
@@ -895,7 +895,7 @@ public class BoardTest {
 	public void test_evaluateSquareControlRoundKing_NoPawnsCrazy() {
 		setUpPosition("6k1/8/5PP1/4N2P/4B3/3Q4/8/1K3R2 w - - 99 1");
 		long [][][] attacks = classUnderTest.mae.calculateCountedAttacksAndMobility(classUnderTest.me);
-		int numSquares = CountedBitBoard.evaluate(attacks[1][3], attacks[0][3], SquareAttackEvaluator.KingZone_Lut[1][BitBoard.positionToBit_Lut[Position.g8]]);
+		int numSquares = CountedBitBoard.evaluate(attacks[1][3], attacks[0][3], SquareAttackEvaluator.KingZone_Lut[1][BitBoard.g8]);
 		assertEquals(4, numSquares);
 	}
 	
@@ -1308,19 +1308,19 @@ public class BoardTest {
 	@Test
 	public void test_pawnIsBlockaded() {
 		setUpPosition("8/8/8/8/8/8/1p6/1N6 w - - 0 1");
-		assertTrue(classUnderTest.isPawnBlockaded(BitBoard.positionToBit_Lut[Position.b2], false));
+		assertTrue(classUnderTest.isPawnBlockaded(BitBoard.b2, false));
 	}
 	
 	@Test
 	public void test_pawnIsNotBlockaded() {
 		setUpPosition("8/8/8/8/8/8/1p6/8 w - - 0 1");
-		assertFalse(classUnderTest.isPawnBlockaded(BitBoard.positionToBit_Lut[Position.b2], false));
+		assertFalse(classUnderTest.isPawnBlockaded(BitBoard.b2, false));
 	}
 	
 	@Test
 	public void test_pawnIsBlockaded_white() {
 		setUpPosition("8/8/8/8/8/1n6/1P6/8 w - - 0 1");
-		assertTrue(classUnderTest.isPawnBlockaded(BitBoard.positionToBit_Lut[Position.b2], true));
+		assertTrue(classUnderTest.isPawnBlockaded(BitBoard.b2, true));
 	}
 	
 	@Test
@@ -1338,31 +1338,31 @@ public class BoardTest {
 	@Test
 	public void test_pawnIsNotBlockaded_ownColour_white() {
 		setUpPosition("8/8/8/8/8/1N6/1P6/8 w - - 0 1");
-		assertFalse(classUnderTest.isPawnBlockaded(BitBoard.positionToBit_Lut[Position.b2], true));
+		assertFalse(classUnderTest.isPawnBlockaded(BitBoard.b2, true));
 	}
 	
 	@Test
 	public void test_heavy_behind_pawn() {
 		setUpPosition("8/8/8/P7/8/8/8/Q7 w - - 0 1");
-		assertEquals(1, classUnderTest.checkForHeavyPieceBehindPassedPawn(BitBoard.positionToBit_Lut[Position.a5], true));
+		assertEquals(1, classUnderTest.checkForHeavyPieceBehindPassedPawn(BitBoard.a5, true));
 	}
 	
 	@Test
 	public void test_heavy_behind_pawn_but_blocked_by_enemy() {
 		setUpPosition("8/8/8/P7/8/n7/8/Q7 w - - 0 1");
-		assertEquals(0, classUnderTest.checkForHeavyPieceBehindPassedPawn(BitBoard.positionToBit_Lut[Position.a5], true));
+		assertEquals(0, classUnderTest.checkForHeavyPieceBehindPassedPawn(BitBoard.a5, true));
 	}
 	
 	@Test
 	public void test_enemy_heavy_behind_pawn_() {
 		setUpPosition("8/8/8/P7/r7/n7/8/R7 w - - 0 1");
-		assertEquals(-1, classUnderTest.checkForHeavyPieceBehindPassedPawn(BitBoard.positionToBit_Lut[Position.a5], true));
+		assertEquals(-1, classUnderTest.checkForHeavyPieceBehindPassedPawn(BitBoard.a5, true));
 	}
 	
 	@Test
 	public void test_enemy_heavy_behind_pawn_simple() {
 		setUpPosition("8/8/8/P7/8/8/8/q7 w - - 0 1");
-		assertEquals(-1, classUnderTest.checkForHeavyPieceBehindPassedPawn(BitBoard.positionToBit_Lut[Position.a5], true));
+		assertEquals(-1, classUnderTest.checkForHeavyPieceBehindPassedPawn(BitBoard.a5, true));
 	}
 	
 	@Test

@@ -332,31 +332,31 @@ public class BitBoardTest {
 	
 	@Test
 	public void test_fill_up_left_none() {
-		long all_pieces = BitBoard.positionToMask_Lut[Position.h8];
+		long all_pieces = 1L<<BitBoard.h8;
 		long empty_mask = BitBoard.upLeftOccludedEmpty(all_pieces, ~all_pieces);
-		long expect_inital_sq_set = BitBoard.positionToMask_Lut[Position.h8];
+		long expect_inital_sq_set = 1L<<BitBoard.h8;
 		assertEquals(expect_inital_sq_set, empty_mask);
 	}
 	
 	@Test
 	public void test_up_left_attacks_not_wrapped() {
-		long all_pieces = BitBoard.positionToMask_Lut[Position.h1] |
-				BitBoard.positionToMask_Lut[Position.b7] |
-				BitBoard.positionToMask_Lut[Position.b1];
+		long all_pieces = 1L<<Position.h1 |
+				1L<<BitBoard.b7 |
+				1L<<BitBoard.b1;
 		
-		long our_pieces = BitBoard.positionToMask_Lut[Position.h1] |
-				BitBoard.positionToMask_Lut[Position.b1];
+		long our_pieces = 1L<<BitBoard.h1 |
+				1L<<BitBoard.b1;
 		long attack_mask = BitBoard.upLeftAttacks(our_pieces, ~all_pieces);
 		long expect_nearly_all_diagonal_set =
 				// attacks from h1
-				BitBoard.positionToMask_Lut[Position.g2] | 
-				BitBoard.positionToMask_Lut[Position.f3] |
-				BitBoard.positionToMask_Lut[Position.e4] |
-				BitBoard.positionToMask_Lut[Position.d5] |
-				BitBoard.positionToMask_Lut[Position.c6] |
-				BitBoard.positionToMask_Lut[Position.b7] | // Piece is attacked
+				1L<<BitBoard.g2 | 
+				1L<<BitBoard.f3 |
+				1L<<BitBoard.e4 |
+				1L<<BitBoard.d5 |
+				1L<<BitBoard.c6 |
+				1L<<BitBoard.b7 | // Piece is attacked
 				// attacks from b1
-				BitBoard.positionToMask_Lut[Position.a2];
+				1L<<BitBoard.a2;
 		assertEquals(expect_nearly_all_diagonal_set, attack_mask);
 	}
 	
@@ -365,9 +365,9 @@ public class BitBoardTest {
 		for (int square : Position.values) {
 			assertEquals(square, BitBoard.bitToPosition_Lut[BitBoard.positionToBit_Lut[square]]);
 		}
-		assertEquals(0, BitBoard.positionToBit_Lut[Position.a1]);
-		assertEquals(8, BitBoard.positionToBit_Lut[Position.a2]);
-		assertEquals(63, BitBoard.positionToBit_Lut[Position.h8]);
+		assertEquals(0, BitBoard.a1);
+		assertEquals(8, BitBoard.a2);
+		assertEquals(63, BitBoard.h8);
 	}
 	
 	@Test
