@@ -186,7 +186,8 @@ public class ZobristHashCode implements IForEachPieceCallback {
 	}
 	
 	private void clearTargetFile() {
-		hashCode ^= prnLookupTable[INDEX_ENP_A+prevEnPassantFile[index--]];
+		int enPasFile = prevEnPassantFile[index--];
+		hashCode ^= prnLookupTable[INDEX_ENP_A+enPasFile];
 	}
 	
 	protected void doEnPassant(byte enPassantOffset) {

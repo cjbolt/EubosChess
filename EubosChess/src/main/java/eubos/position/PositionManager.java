@@ -93,28 +93,28 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int pieceToMove = Move.getOriginPiece(move);
 		int targetBitOffset = Move.getTargetPosition(move);
 		int targetPiece = Move.getTargetPiece(move);
-		byte enPassantFile = IntFile.NOFILE;
+		byte enPassantOffset = BitBoard.INVALID;
 		
 		// Calculate targetSquare and en passant file, needed for hash code update
 		if (targetPiece != Piece.NONE) {
 			// Handle captures
 			if (Move.isEnPassantCapture(move)) {
 				captureBitOffset = theBoard.generateCaptureBitOffsetForEnPassant(pieceToMove, targetBitOffset);
-				enPassantFile = BitBoard.getFile(captureBitOffset);
+				enPassantOffset = BitBoard.getFile(captureBitOffset);
 			} else {
 				captureBitOffset = targetBitOffset;
 			}
 		}	
 		
 		// Generate hash code
-		hash.update(move, captureBitOffset, enPassantFile);
+		hash.update(move, captureBitOffset, enPassantOffset);
 
 		// Update the draw checker - do we need to change ply number?
 		isDrawing = dc.setPositionReached(getHash(), getPlyNumber());
 		
 		// Undo the change
 		int reversedMove = Move.reverse(move);
-		hash.update(reversedMove, captureBitOffset, enPassantFile);
+		hash.update(reversedMove, captureBitOffset, enPassantOffset);
 		
 		return isDrawing;
 	}
