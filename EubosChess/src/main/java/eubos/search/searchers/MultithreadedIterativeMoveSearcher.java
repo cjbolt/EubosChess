@@ -130,7 +130,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		int pcBestMove = workers.get(0).result.bestMove;
 		if (mg.getRootTransposition() != 0L) {
 			int transBestMove = Transposition.getBestMove(trans);
-			if (transBestMove != pcBestMove) {
+			if (!Move.areEqualForBestKiller(pcBestMove, transBestMove)) {
 				EubosEngineMain.logger.warning(String.format("Warning: pc best=%s != trans best=%s", 
 						Move.toString(pcBestMove), Move.toString(transBestMove)));
 			}
