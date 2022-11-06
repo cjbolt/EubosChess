@@ -97,11 +97,12 @@ public final class Transposition {
 	}
 	
 	public static String report(long trans) {
-		String output = String.format("trans best=%s, dep=%d, sc=%s, type=%s", 
+		String output = String.format("trans best=%s, dep=%d, sc=%s, type=%s age=%d", 
 				Move.toGenericMove(Transposition.getBestMove(trans)),
 				getDepthSearchedInPly(trans),
 				Score.toString((short)(trans >>> 32)),
-				getType(trans));
+				getType(trans),
+				getAge(trans));
 		return output;
 	}
 	

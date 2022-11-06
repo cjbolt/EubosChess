@@ -186,10 +186,11 @@ public class PositionEvaluator implements IEvaluate {
 			// Phase 1 - crude evaluation
 			int crudeEval = internalCrudeEval();
 			int lazyThresh = lazy_eval_threshold_cp;
-			if (passedPawnPresent) {
-				int numEnemyPawns = bd.me.numberOfPieces[onMoveIsWhite?Piece.BLACK_PAWN:Piece.WHITE_PAWN];
-				int numOwnPawns = bd.me.numberOfPieces[onMoveIsWhite?Piece.WHITE_PAWN:Piece.BLACK_PAWN];
-				lazyThresh += (Math.max(1, numEnemyPawns-numOwnPawns) * 250 * bd.me.getPhase()) / 4096;
+			long pp = bd.getPassedPawns();
+			if (pp != 0L) {
+				// increase threshold by a function of the number of passers
+				int numPassers = Long.bitCount(pp);
+				lazyThresh += (numPassers * 300 * bd.me.getPhase()) / 4096;
 			}
 			if (!bd.me.isEndgame() && isKingExposed()) {
 				lazyThresh += 300;
