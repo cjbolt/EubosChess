@@ -15,6 +15,7 @@ import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.Position;
 import eubos.position.PositionManager;
+import eubos.score.ReferenceScore;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 
 public class SearchMetricsReporterTest {
@@ -46,7 +47,8 @@ public class SearchMetricsReporterTest {
 		// Minimal setup of the Search Metrics object
 		int [] pv = { Move.valueOf(Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE) };
 		sm.setPrincipalVariation(pv, 1);
-		classUnderTest = new SearchMetricsReporter(eubos, hashMap, null);
+		classUnderTest = new SearchMetricsReporter(eubos, hashMap, new ReferenceScore(hashMap)
+				);
 		classUnderTest.register(sm);
 	}
 	

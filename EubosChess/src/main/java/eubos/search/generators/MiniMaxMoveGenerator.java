@@ -11,10 +11,8 @@ import eubos.position.IPositionAccessors;
 import eubos.position.MoveList;
 import eubos.position.PositionManager;
 import eubos.score.IEvaluate;
-import eubos.score.PawnEvalHashTable;
 import eubos.score.ReferenceScore;
 import eubos.score.ReferenceScore.Reference;
-import eubos.search.DrawChecker;
 import eubos.search.KillerList;
 
 import eubos.search.PlySearcher;
@@ -56,12 +54,9 @@ public class MiniMaxMoveGenerator implements
 
 	// Used with Arena, Lichess
 	public MiniMaxMoveGenerator(ITranspositionAccessor hashMap,
-			PawnEvalHashTable pawnHash,
-			String fen,
-			DrawChecker dc,
+			PositionManager pm,
 			SearchMetricsReporter sr,
 			Reference ref) {
-		PositionManager pm = new PositionManager(fen, dc, pawnHash);
 		commonInit(hashMap, pm, pm);
 		this.ref = ref;
 		score = ref.score;

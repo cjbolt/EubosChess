@@ -31,8 +31,8 @@ public class ReferenceScore {
 		checkLastScoreValidity();
 		
 		long trans = hashMap.getTransposition(rootPos.getHash());		
-		if (trans != 0L && Transposition.getType(trans) == Score.exact) {
-			// Set reference score from previous Transposition table, if an exact entry exists 
+		if (trans != 0L) {
+			// Set reference score from previous Transposition table, if it exists 
 			reference.origin = Transposition.report(trans);
 			reference.score = Transposition.getScore(trans);
 			reference.depth = Transposition.getDepthSearchedInPly(trans);

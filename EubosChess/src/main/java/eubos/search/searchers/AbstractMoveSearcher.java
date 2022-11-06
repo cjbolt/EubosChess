@@ -3,6 +3,7 @@ package eubos.search.searchers;
 import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.main.EubosEngineMain;
+import eubos.position.PositionManager;
 import eubos.score.PawnEvalHashTable;
 import eubos.score.ReferenceScore;
 import eubos.score.ReferenceScore.Reference;
@@ -25,16 +26,18 @@ public abstract class AbstractMoveSearcher extends Thread {
 
 	public AbstractMoveSearcher(EubosEngineMain eng, String fen, DrawChecker dc, FixedSizeTranspositionTable hashMap, ReferenceScore refScore, PawnEvalHashTable pawnHash) {
 		super();
+		PositionManager pm = new PositionManager(fen, dc, pawnHash);
+		refScore.updateReference(pm); // Setup the reference score that shall be used by any IterativeSearchStopper
+		this.refScore = refScore;				
 		this.eubosEngine = eng;
+		
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			sendInfo = true;
 			sr = new SearchMetricsReporter(eubosEngine, hashMap, refScore);
 		}
-		this.mg = new MiniMaxMoveGenerator(hashMap, pawnHash, fen, dc, sr, refScore.getReference());
+		this.mg = new MiniMaxMoveGenerator(hashMap, pm, sr, refScore.getReference());
 		
-		// Setup the reference score that shall be used by any IterativeSearchStopper
-		this.refScore = refScore;
-		refScore.updateReference(mg.pos);
+		
 		Reference ref = refScore.getReference();
 		EubosEngineMain.logger.info(String.format("refScore %s, depth %d %s phase=%d",
 				Score.toString(ref.score), ref.depth, ref.origin, mg.pos.getTheBoard().me.phase));

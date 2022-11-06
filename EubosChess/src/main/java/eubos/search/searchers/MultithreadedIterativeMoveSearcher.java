@@ -9,6 +9,7 @@ import com.fluxchess.jcpi.models.GenericMove;
 
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
+import eubos.position.PositionManager;
 import eubos.score.PawnEvalHashTable;
 import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
@@ -52,9 +53,11 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		moveGenerators = new ArrayList<MiniMaxMoveGenerator>(threads);
 		// The first move generator shall be that constructed by the abstract MoveSearcher
 		moveGenerators.add(mg);
-		// Create subsequent move generators using cloned DrawCheckers
+		// Create subsequent move generators using cloned DrawCheckers and distinct PositionManagers
 		for (int i=1; i < threads; i++) {
-			MiniMaxMoveGenerator thisMg = new MiniMaxMoveGenerator(hashMap, pawnHash, fen, new DrawChecker(dc), sr, refScore.getReference());
+			DrawChecker cloned_dc = new DrawChecker(dc);
+			PositionManager pm = new PositionManager(fen, cloned_dc, pawnHash);
+			MiniMaxMoveGenerator thisMg = new MiniMaxMoveGenerator(hashMap, pm, sr, refScore.getReference());
 			moveGenerators.add(thisMg);
 		}
 		// Set move ordering scheme to use, if in operation
@@ -131,7 +134,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		if (mg.getRootTransposition() != 0L) {
 			int transBestMove = Transposition.getBestMove(trans);
 			if (!Move.areEqualForBestKiller(pcBestMove, transBestMove)) {
-				EubosEngineMain.logger.warning(String.format("Warning: pc best=%s != trans best=%s", 
+				EubosEngineMain.logger.warning(String.format("Check for draw? pc best=%s != trans best=%s", 
 						Move.toString(pcBestMove), Move.toString(transBestMove)));
 			}
 			EubosEngineMain.logger.info(String.format("best is trans=%s", Transposition.report(trans)));
