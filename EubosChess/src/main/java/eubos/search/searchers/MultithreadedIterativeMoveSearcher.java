@@ -26,8 +26,6 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	
 	protected IterativeMoveSearchStopper stopper;
 	protected int threads = 0;
-	private long rootPositionHash = 0;
-	private FixedSizeTranspositionTable tt;
 	
 	protected List<MultithreadedSearchWorkerThread> workers;
 	protected List<MiniMaxMoveGenerator> moveGenerators;
@@ -45,8 +43,6 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		super(eubos, hashMap, pawnHash, fen, dc, time, increment, refScore, move_overhead);
 		this.setName("MultithreadedIterativeMoveSearcher");
 		this.threads = threads;
-		this.tt = hashMap;
-		rootPositionHash = mg.pos.getHash();
 		workers = new ArrayList<MultithreadedSearchWorkerThread>(threads);
 		createMoveGenerators(hashMap, pawnHash, fen, dc, threads);
 		stopper = new IterativeMoveSearchStopper();
@@ -130,23 +126,24 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 
 	private void sendBestMove() {
 		GenericMove bestMove = null;
-		long trans = tt.getTransposition(this.rootPositionHash);
-		if (trans != 0L && Transposition.getType(trans) == Score.exact) {
+		long trans = mg.getRootTransposition();
+		int pcBestMove = workers.get(0).result.bestMove;
+		if (mg.getRootTransposition() != 0L) {
+			int transBestMove = Transposition.getBestMove(trans);
+			if (transBestMove != pcBestMove) {
+				EubosEngineMain.logger.warning(String.format("Warning: pc best=%s != trans best=%s", 
+						Move.toString(pcBestMove), Move.toString(transBestMove)));
+			}
 			EubosEngineMain.logger.info(String.format("best is trans=%s", Transposition.report(trans)));
 			if (Score.isMate(Transposition.getScore(trans))) {
 				// it is possible that we didn't send a uci info pv message, so update the last score
 				refScore.updateLastScore(trans);
 			}
-			bestMove = Move.toGenericMove(Transposition.getBestMove(trans));
-		} else if (workers.get(0).result.bestMove != Move.NULL_MOVE) {
-			EubosEngineMain.logger.warning(
-					String.format("Can't find bestMove with exact score (trans=%s), use principal continuation.",
-					(trans != 0L) ? Transposition.report(trans) : "null"));
-			bestMove = Move.toGenericMove(workers.get(0).result.bestMove);
-		} else if (trans != 0L) {
-			EubosEngineMain.logger.warning(
-					String.format("Can't find bestMove in principal continuation, using trans=%s", Transposition.report(trans)));
-			bestMove = Move.toGenericMove(Transposition.getBestMove(trans));
+			bestMove = Move.toGenericMove(transBestMove);
+		} else if (pcBestMove != Move.NULL_MOVE) {
+			EubosEngineMain.logger.severe(
+					String.format("Can't find root transpositon, use principal continuation."));
+			bestMove = Move.toGenericMove(pcBestMove);
 		} else {
 			// we will send null, it will be a rules infraction and Eubos will lose.
 		}

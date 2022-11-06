@@ -65,7 +65,7 @@ public class PlySearcher {
 	private byte extendedSearchDeepestPly = 0;
 	@SuppressWarnings("unused")
 	private short refScore;
-	private long rootTransposition = 0L;
+	public long rootTransposition = 0L;
 	
 	private MoveList ml;
 	

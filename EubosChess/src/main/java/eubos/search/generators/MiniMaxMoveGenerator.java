@@ -134,4 +134,8 @@ public class MiniMaxMoveGenerator implements
 	public boolean lastAspirationFailed() {
 		return this.ps.lastAspirationFailed();
 	}
+
+	public long getRootTransposition() {
+		return ps.rootTransposition;
+	}
 }
