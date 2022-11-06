@@ -274,7 +274,8 @@ public class PlySearcher {
 					if (state[0].alpha >= state[0].beta) {
 						state[0].plyScore = state[0].beta; // fail hard
 						killers.addMove(0, bestMove);
-						reportPv((short) state[0].beta);
+						// Don't report a beta failure PV at the root as this means an aspiration window failure
+						// and we don't want to spoil the PV in the SMR with the aspiration fail line
 						if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(state[0].plyScore);
 						refuted = true;
 						break;
