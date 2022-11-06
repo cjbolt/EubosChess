@@ -65,6 +65,7 @@ public class PlySearcher {
 	private byte extendedSearchDeepestPly = 0;
 	@SuppressWarnings("unused")
 	private short refScore;
+	private long rootTransposition = 0L;
 	
 	private MoveList ml;
 	
@@ -104,6 +105,8 @@ public class PlySearcher {
 		tt = hashMap;
 		this.killers = killers;
 		this.ml = ml;
+		
+		rootTransposition = tt.getTransposition(pos.getHash());
 	}
 
 	public synchronized void terminateFindMove() { 
@@ -194,6 +197,9 @@ public class PlySearcher {
 		}
 		
 		long trans = tt.getTransposition(pos.getHash());
+		if (trans == 0L) {
+			trans = rootTransposition;
+		}
 		if (trans != 0L) {
 			evaluateTransposition(trans, depth);
 			if (state[0].isCutOff) {
@@ -288,6 +294,7 @@ public class PlySearcher {
 		
 		if (!isTerminated()) {
 			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[0].plyScore);
+			rootTransposition = trans;
 		}
 		
 		// fail hard, so don't return plyScore
