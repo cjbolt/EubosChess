@@ -52,14 +52,14 @@ import java.util.logging.*;
 public class EubosEngineMain extends AbstractEngine {
 	
 	static final int EUBOS_MAJOR_VERSION = 2;
-	static final int EUBOS_MINOR_VERSION = 15;
+	static final int EUBOS_MINOR_VERSION = 16;
 	
 	public static final byte SEARCH_DEPTH_IN_PLY = Byte.MAX_VALUE;
 	public static final int DEFAULT_NUM_SEARCH_THREADS = 1;
 	
-	public static final boolean ENABLE_LOGGING = true;
+	public static final boolean ENABLE_LOGGING = false;
 	public static final boolean ENABLE_UCI_INFO_SENDING = true;
-	public static final boolean ENABLE_UCI_MOVE_NUMBER = true;
+	public static final boolean ENABLE_UCI_MOVE_NUMBER = false;
 	
 	public static final boolean ENABLE_ASSERTS = false;
 	public static final boolean ENABLE_PERFT = false;
