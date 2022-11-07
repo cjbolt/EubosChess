@@ -473,11 +473,23 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		}
 	}
 	
-//	@Test
-//	public void test_debug_position() throws InterruptedException, IOException {
-//		setupEngine();
-//		commands.add(new CommandPair(POS_FEN_PREFIX+"8/5Rpp/p1k2n2/5b2/1B6/5P2/r2p2PP/6RK w - - 2 41"+CMD_TERMINATOR, null));
-//		commands.add(new CommandPair(GO_DEPTH_PREFIX+"11"+CMD_TERMINATOR, BEST_PREFIX+"d6e5"+CMD_TERMINATOR));
-//		performTest(7000);
-//	}
+	@Test
+	public void test_lichess_pi_crash() throws IOException, InterruptedException {
+		setupEngine();
+		commands.add(new CommandPair(POS_START_PREFIX+"moves g2g3 e7e5 c2c4 f8c5 e2e3 b8c6 b1c3 d7d6 a2a3 g8f6"+
+		" b2b4 c5b6 c3d5 f6d5 c4d5 c6e7 d1f3 c7c6 d5c6 b7c6 c1b2 c8e6 a3a4 e7d5 b4b5 d5b4 a1c1 e6b3 b5c6 e8g8 f1e2"+
+		" d8c7 f3f5 b3a4 e2f3 g7g6 f5e4 a7a5 e4c4 a8c8 b2a3 a4c6 f3c6 b4c6 c4e4 f8d8 g1f3 d6d5 e4a4 d8e8 a4b5 e5e4"+
+		" a3b4 a5b4 f3g5 d5d4 h2h4 h7h6 g5h3 e8e5 b5a4 g6g5 h4g5 h6g5 a4d1 c7d7 d1h5 f7f6 h3g1 d7g7 h5g4 f6f5 g4d1"+
+		" g7f7 d1h5 f7g7 h5d1 g7f7 d1h5 f7h5 h1h5 g5g4 g1e2 d4e3 d2e3 b4b3 e1f1 b6c5 f1g1 c8d8 h5h6 c6e7 c1b1 d8d2"+
+		" e2f4 b3b2 h6a6 d2c2 a6a8 g8f7 a8d8 e7d5 b1b2 c2b2 d8d5 e5d5 f4d5 f7e6 d5f4 e6d6 g1f1 c5b4 f4e2 d6e5 e2f4"+
+		" b4c3 f4e2 c3a5 e2d4 b2b1 f1g2 a5e1 d4e2 b1b2 g2f1 e1b4 e2f4 b2a2 f4e2 a2a1 f1g2 a1a2 g2f1 a2a1 f1g2 b4e1"+
+		" g2g1 e1d2 g1g2 a1a2 g2f1 d2b4 e2d4 b4c3 d4e2 c3b2 f1g1 e5d5 e2f4 d5e5 f4e2 e5d5 e2f4 d5d6 g1g2 b2c3 g2f1"+
+		" a2b2 f4e2 c3e5 e2f4 e5c3 f4e2 c3f6 e2f4 d6e5 f1g2 e5d6 g2f1 b2a2 f1g2 f6e5 f4g6 e5c3 g2f1 a2b2 g6f4 b2a2"+
+		" f4g6 c3b4 g6h4 d6e5 h4g6 e5d5 g6f4 d5d6 f4e2 d6e6 e2d4 e6f6 d4e2 b4d2 e2f4 f6e5 f4e2 a2a1 f1g2 d2e1 g2g1"+
+		" e5d5 g1f1 e1c3 f1g2 c3e5 e2f4 e5f4 g3f4 d5d6 g2g3 a1a2 g3g2 a2b2 g2g3 d6d5 g3g2 b2a2 g2g3 a2b2 g3g2 b2a2"+
+		" g2g3 a2c2 g3g2 d5d6 g2g3 d6d5 g3g2 c2b2 g2g3 d5d6 g3g2 d6d5 g2g3 d5e6 g3g2 e6d7 g2g1 d7d6 g1g2 d6e6 g2g3"+
+		" b2a2 g3g2 e6d6 g2g1 d6d5 g1g2 a2e2 g2f1 e2a2 f1g2 d5d6"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR, BEST_PREFIX+"g2g1"+CMD_TERMINATOR));
+		performTest(500);
+	}
 }
