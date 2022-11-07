@@ -23,12 +23,14 @@ public class DrawChecker {
 		
 	public boolean setPositionReached(long posHash, int gamePly) {
 		boolean repetitionPossible = false;
+		// Check for array overflow before reading/writing array
+		if (gamePly > reachedPositions.length - 1) {
+			reachedPositions = LongArrays.grow(reachedPositions, reachedPositions.length+50);
+		}
+		
 		if (isPositionReachedBefore(posHash, gamePly)) {
 			repetitionPossible = true;
 		} else {
-			if (gamePly > reachedPositions.length - 1) {
-				reachedPositions = LongArrays.grow(reachedPositions, reachedPositions.length+50);
-			}
 			reachedPositions[gamePly] = posHash;
 		}
 		return repetitionPossible;
