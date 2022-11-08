@@ -857,7 +857,8 @@ public class Board {
 			break;
 		case Piece.WHITE_PAWN:
 		case Piece.BLACK_PAWN:
-			if ((BitBoard.getRank(originBitShift) == (isWhite ? IntRank.R2 : IntRank.R7))) {
+			if ((BitBoard.getRank(originBitShift) == (isWhite ? IntRank.R2 : IntRank.R7)) &&
+				(BitBoard.getRank(targetBitShift) == (isWhite ? IntRank.R4 : IntRank.R5))) {
 				// two square pawn moves need to be checked if intermediate square is empty
 				int checkAtOffset = isWhite ? originBitShift+8: originBitShift-8;
 				pmc.moveIsPlayable = squareIsEmpty(1L << checkAtOffset);
