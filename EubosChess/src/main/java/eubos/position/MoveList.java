@@ -1,5 +1,7 @@
 package eubos.position;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -321,6 +323,9 @@ public class MoveList implements Iterable<Integer> {
 
 	public class MoveAdderPromotions implements IAddMoves {
 		public void addPrio(int move) {
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert !Piece.isKing(Move.getTargetPiece(move));
+			}
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
 				if (Move.areEqualForBestKiller(move, bestMove[ply])) {
 					// Silently consume
@@ -357,6 +362,9 @@ public class MoveList implements Iterable<Integer> {
 	public class MoveAdderCaptures extends MoveAdderPromotions implements IAddMoves {
 		@Override
 		public void addPrio(int move) {
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert !Piece.isKing(Move.getTargetPiece(move));
+			}
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
 				priority_moves[ply][priority_fill_index[ply]++] = move;
 				moveCount[ply]++;
