@@ -745,6 +745,15 @@ public class BoardTest {
 	}
 	
 	@Test 
+	public void test_is_playable_weird_fen() {
+		setUpPosition("r3k2r/1p1n1pp1/2p1p2p/3pP1b1/1R1P1P2/P1Nq2BP/2P3P1/5RK1 w kq - - 19");
+		int move = Move.valueOf(Position.c2, Piece.WHITE_PAWN, Position.d3, Piece.BLACK_QUEEN);
+		boolean inCheck = false;
+		assertTrue(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+	}
+	
+	
+	@Test 
 	public void test_is_playable_initial_pawn_move_blocked() {
 		setUpPosition("r1b1kb1r/ppq1pppp/P7/3pN3/3Q4/8/PPP2PPP/RNB1K2R b KQkq - 0 1");
 		int move = Move.valueOf(Position.a7, Piece.BLACK_PAWN, Position.a5, Piece.NONE);
