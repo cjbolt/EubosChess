@@ -1,7 +1,5 @@
 package eubos.position;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-
 import java.util.ArrayList;
 import java.util.List;
 
