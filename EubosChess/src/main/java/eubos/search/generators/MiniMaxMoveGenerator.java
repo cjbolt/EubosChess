@@ -145,14 +145,7 @@ public class MiniMaxMoveGenerator implements
 		int searchDepth = Transposition.getDepthSearchedInPly(root_trans);
 		short theScore = Transposition.getScore(root_trans);
 		long trans = root_trans;
-		int move = pc.getBestMove(i);
-		
-		if (EubosEngineMain.ENABLE_ASSERTS) {
-			assert Move.areEqualForBestKiller(move, Transposition.getBestMove(root_trans)):
-				String.format("%s from pc not equal to %s from hash after %s fen=%s", 
-						Move.toString(move), Move.toString(Transposition.getBestMove(root_trans)), pos.unwindMoveStack(), pos.getFen());
-		}
-		
+		int move = pc.getBestMove(i);		
 		pm.performMove(move);
 		int movesApplied = 1;
 		
@@ -177,8 +170,8 @@ public class MiniMaxMoveGenerator implements
 						"At ply %d, hash table entry lost, regenerating with bestMove from pc=%s",
 						i, Move.toString(move), Transposition.report(trans)));
 			} else if (!Move.areEqualForBestKiller(move, Transposition.getBestMove(trans))) {
-				EubosEngineMain.logger.info(String.format("%s from pc not equal to %s from hash after %s fen=%s", 
-						Move.toString(move), Move.toString(Transposition.getBestMove(trans)), pos.unwindMoveStack(), pos.getFen()));
+				EubosEngineMain.logger.info(String.format("%s from pc not equal to %s from hash fen=%s", 
+						Move.toString(move), Move.toString(Transposition.getBestMove(trans)), pos.getFen()));
 				byte depth = (byte)(searchDepth-i);
 				trans = tta.setTransposition(new_hash, trans, depth, theScore, Score.upperBound, move, pos.getMoveNumber());
 			} else {

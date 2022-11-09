@@ -134,15 +134,16 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		if (mg.getRootTransposition() != 0L) {
 			int transBestMove = Transposition.getBestMove(trans);
 			if (!Move.areEqualForBestKiller(pcBestMove, transBestMove)) {
-				EubosEngineMain.logger.warning(String.format("Check for draw? pc best=%s != trans best=%s", 
+				EubosEngineMain.logger.warning(String.format("At root, pc best=%s != trans best=%s, will not preserve PV in hash...", 
 						Move.toString(pcBestMove), Move.toString(transBestMove)));
+			} else {
+				moveGenerators.get(0).preservePvInHashTable();
 			}
 			EubosEngineMain.logger.info(String.format("best is trans=%s", Transposition.report(trans)));
 			if (Score.isMate(Transposition.getScore(trans))) {
 				// it is possible that we didn't send a uci info pv message, so update the last score
 				refScore.updateLastScore(trans);
 			}
-			moveGenerators.get(0).preservePvInHashTable();
 			bestMove = Move.toGenericMove(transBestMove);
 		} else if (pcBestMove != Move.NULL_MOVE) {
 			EubosEngineMain.logger.severe(
