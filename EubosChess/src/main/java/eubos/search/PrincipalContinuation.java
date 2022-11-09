@@ -98,4 +98,11 @@ public class PrincipalContinuation {
 			length[nextPly] = 0;
 		}
 	}
+	
+	//-------------------------------------------------------------------------
+	// Test API
+	public void setArray(int [] array) {
+		pc[0] = array;
+		length[0] = array.length;
+	}
 }

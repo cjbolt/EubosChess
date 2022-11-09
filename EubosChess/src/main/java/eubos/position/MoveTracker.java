@@ -1,5 +1,7 @@
 package eubos.position;
 
+import eubos.main.EubosEngineMain;
+
 class MoveTracker {
 	
 	private static final int CAPACITY = 400;
@@ -26,6 +28,9 @@ class MoveTracker {
 	}
 	
 	public void pop() {
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			assert index > 0 : String.format("%s %s %s", Move.toString(move_stack[0]), Move.toString(move_stack[1]), Move.toString(move_stack[2]));
+		}
 		index -= 1;
 	}
 	

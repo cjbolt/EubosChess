@@ -754,6 +754,14 @@ public class BoardTest {
 	
 	
 	@Test 
+	public void test_is_playable_handles_castling() {
+		setUpPosition("r1bqkb1r/1p1n1ppp/p2ppn2/6B1/3NP3/2N2Q2/PPP2PPP/2KR1B1R b kq - - 8");
+		int move = Move.valueOfCastlingBit(Move.TYPE_REGULAR_NONE, Position.e1, Piece.WHITE_KING, Position.c1, Piece.NONE, Piece.NONE);
+		boolean inCheck = false;
+		assertTrue(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+	}
+	
+	@Test 
 	public void test_is_playable_initial_pawn_move_blocked() {
 		setUpPosition("r1b1kb1r/ppq1pppp/P7/3pN3/3Q4/8/PPP2PPP/RNB1K2R b KQkq - 0 1");
 		int move = Move.valueOf(Position.a7, Piece.BLACK_PAWN, Position.a5, Piece.NONE);

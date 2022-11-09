@@ -57,11 +57,11 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final byte SEARCH_DEPTH_IN_PLY = Byte.MAX_VALUE;
 	public static final int DEFAULT_NUM_SEARCH_THREADS = 1;
 	
-	public static final boolean ENABLE_LOGGING = false;
+	public static final boolean ENABLE_LOGGING = true;
 	public static final boolean ENABLE_UCI_INFO_SENDING = true;
 	public static final boolean ENABLE_UCI_MOVE_NUMBER = false;
 	
-	public static final boolean ENABLE_ASSERTS = false;
+	public static final boolean ENABLE_ASSERTS = true;
 	public static final boolean ENABLE_PERFT = false;
 	public static final boolean ENABLE_TEST_SUITES = false;
 	
@@ -71,7 +71,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_ASPIRATION_WINDOWS = true;
 	public static final boolean ENABLE_LAZY_EVALUATION = true;	
 	public static final boolean ENABLE_LATE_MOVE_REDUCTION = true;
-	public static final boolean ENABLE_NULL_MOVE_PRUNING = true;
+	public static final boolean ENABLE_NULL_MOVE_PRUNING = false;
 	public static final boolean ENABLE_STAGED_MOVE_GENERATION = true;
 	public static final boolean ENABLE_COUNTED_PASSED_PAWN_MASKS = true;
 	
@@ -268,12 +268,19 @@ public class EubosEngineMain extends AbstractEngine {
 		boolean clockTimeValid = true;
 		long clockTime = 0;
 		long clockInc = 0;
+		GenericColor side = rootPosition.onMoveIsWhite() ? GenericColor.WHITE : GenericColor.BLACK;
 		try {
-			GenericColor side = rootPosition.onMoveIsWhite() ? GenericColor.WHITE : GenericColor.BLACK;
 			clockTime = command.getClock(side);
-			clockInc = command.getClockIncrement(side);
 		} catch (NullPointerException e) {
 			clockTimeValid = false;
+		}
+		if (clockTimeValid) {
+			try {
+				clockInc = command.getClockIncrement(side);
+			} catch (NullPointerException e) {
+				clockTimeValid = true;
+				clockInc = 0;
+			}
 		}
 		analysisMode = false;
 		// Create Move Searcher

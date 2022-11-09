@@ -18,4 +18,5 @@ public interface IPositionAccessors {
 	public IEvaluate getPositionEvaluator();
 	public boolean moveLeadsToThreefold(int move);
 	public String unwindMoveStack();
+	public CastlingManager getCastling();
 }

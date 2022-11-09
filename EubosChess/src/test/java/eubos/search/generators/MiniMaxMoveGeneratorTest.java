@@ -16,10 +16,12 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
+import eubos.position.Position;
 import eubos.position.PositionManager;
 import eubos.score.ReferenceScore;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 import eubos.search.transposition.Transposition;
+import eubos.search.Score;
 import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
 
@@ -530,5 +532,19 @@ public class MiniMaxMoveGeneratorTest {
 		expectedMove = new GenericMove("g5g4");
 		assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
 		assertEquals(157, classUnderTest.getScore());
+	}
+	
+	@Test
+	public void test() {
+		setupPosition("r1bqkb1r/pp3pp1/1np1p2p/3pP3/3P1P2/2PB1N2/P1P1Q1PP/R1B2RK1 w kq - 0 1");
+		byte depth = 5;
+		int[] moves = {
+			Move.valueOf(Position.c1, Piece.WHITE_BISHOP, Position.a3, Piece.NONE),
+			Move.valueOf(Position.f8, Piece.BLACK_BISHOP, Position.a3, Piece.WHITE_BISHOP),
+		};
+		hashMap.setTransposition(pm.getHash(), 0L, depth, (short)0, Score.upperBound, moves[0], 0);
+		
+		classUnderTest.pc.setArray(moves);
+		classUnderTest.preservePvInHashTable();
 	}
 }

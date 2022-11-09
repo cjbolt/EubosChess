@@ -8,6 +8,7 @@ import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
+import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.PositionManager;
 import eubos.score.IEvaluate;
@@ -23,6 +24,7 @@ import eubos.search.SearchMetrics;
 import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
 import eubos.search.transposition.ITranspositionAccessor;
+import eubos.search.transposition.Transposition;
 
 public class MiniMaxMoveGenerator implements
 		IMoveGenerator {
@@ -132,5 +134,66 @@ public class MiniMaxMoveGenerator implements
 
 	public long getRootTransposition() {
 		return ps.rootTransposition;
+	}
+	
+	public void preservePvInHashTable() {
+		// Apply all the moves in the pv and check they are in the hash table
+		byte i=0;
+		long root_trans = tta.getTransposition(pos.getHash());
+		if (root_trans == 0) return;
+		
+		int searchDepth = Transposition.getDepthSearchedInPly(root_trans);
+		short theScore = Transposition.getScore(root_trans);
+		long trans = root_trans;
+		int move = pc.getBestMove(i);
+		
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			assert Move.areEqualForBestKiller(move, Transposition.getBestMove(root_trans)):
+				String.format("%s from pc not equal to %s from hash after %s fen=%s", 
+						Move.toString(move), Move.toString(Transposition.getBestMove(root_trans)), pos.unwindMoveStack(), pos.getFen());
+		}
+		
+		pm.performMove(move);
+		int movesApplied = 1;
+		
+		// new hash following best move being applied, now need to check all transposition moves are equal to PV
+		long new_hash = pos.getHash();
+		trans = tta.getTransposition(new_hash);
+				
+		for (i=1; i < pc.length[0]; i++) {
+
+			move = pc.getBestMove(i);
+			if (move == Move.NULL_MOVE) break;
+			
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert pos.getTheBoard().isPlayableMove(move, pos.isKingInCheck(), pos.getCastling()):
+					String.format("%s not playable after %s fen=%s", Move.toString(move), pos.unwindMoveStack(), pos.getFen());
+			}
+			
+			if (trans == 0L) {
+				byte depth = (byte)(searchDepth-i);
+				trans = tta.setTransposition(new_hash, trans, depth, theScore, Score.upperBound, move, pos.getMoveNumber());
+				EubosEngineMain.logger.info(String.format(
+						"At ply %d, hash table entry lost, regenerating with bestMove from pc=%s",
+						i, Move.toString(move), Transposition.report(trans)));
+			} else if (!Move.areEqualForBestKiller(move, Transposition.getBestMove(trans))) {
+				EubosEngineMain.logger.info(String.format("%s from pc not equal to %s from hash after %s fen=%s", 
+						Move.toString(move), Move.toString(Transposition.getBestMove(trans)), pos.unwindMoveStack(), pos.getFen()));
+				byte depth = (byte)(searchDepth-i);
+				trans = tta.setTransposition(new_hash, trans, depth, theScore, Score.upperBound, move, pos.getMoveNumber());
+			} else {
+				// Nothing to do, hash move is ok
+			}
+			
+			pm.performMove(move);
+			movesApplied += 1;
+			new_hash = pos.getHash();
+			trans = tta.getTransposition(new_hash);
+		}
+		while (movesApplied > 0) {
+			// Find out why this causes an error with unperforming too many moves so move stack index becomes less than 0
+			pm.unperformMove();
+			movesApplied--;
+		}
 	}
 }

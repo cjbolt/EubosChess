@@ -39,6 +39,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public Board getTheBoard() {
 		return theBoard;
 	}
+	public CastlingManager getCastling() {
+		return castling;
+	}
 		
 	public String toString() {
 		return this.theBoard.getAsFenString();
