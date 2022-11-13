@@ -40,11 +40,13 @@ import eubos.score.PawnEvalHashTable;
 import eubos.score.PositionEvaluator;
 import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
+import eubos.search.Score;
 import eubos.search.searchers.AbstractMoveSearcher;
 import eubos.search.searchers.FixedDepthMoveSearcher;
 import eubos.search.searchers.FixedTimeMoveSearcher;
 import eubos.search.searchers.MultithreadedIterativeMoveSearcher;
 import eubos.search.transposition.FixedSizeTranspositionTable;
+import eubos.search.transposition.Transposition;
 
 import java.text.SimpleDateFormat;
 import java.util.logging.*;
@@ -257,8 +259,14 @@ public class EubosEngineMain extends AbstractEngine {
 	public void receive(EngineStartCalculatingCommand command) {
 		// The move searcher will report the best move found via a callback to this object, 
 		// this will occur when the tree search is concluded and the thread completes execution.
-		moveSearcherFactory(command);
-		ms.start();
+		long rootHash = rootPosition.getHash();
+		long rootTrans = hashMap.getTransposition(rootHash);
+		if (Score.isMate(Transposition.getScore(rootTrans))) {
+			sendBestMoveCommand(new ProtocolBestMoveCommand(Move.toGenericMove(Transposition.getBestMove(rootTrans)), null));
+		} else {
+			moveSearcherFactory(command);
+			ms.start();
+		}
 	}
 	
 	private void moveSearcherFactory(EngineStartCalculatingCommand command) {
@@ -272,6 +280,7 @@ public class EubosEngineMain extends AbstractEngine {
 		try {
 			clockTime = command.getClock(side);
 		} catch (NullPointerException e) {
+			logger.warning(String.format("go clock time %d invalid for %c", clockTime, side.toChar()));
 			clockTimeValid = false;
 		}
 		if (clockTimeValid) {
@@ -279,6 +288,7 @@ public class EubosEngineMain extends AbstractEngine {
 				clockInc = command.getClockIncrement(side);
 			} catch (NullPointerException e) {
 				clockTimeValid = true;
+				logger.warning("No clock increment");
 				clockInc = 0;
 			}
 		}
@@ -304,10 +314,14 @@ public class EubosEngineMain extends AbstractEngine {
 			if (searchDepth != 0) {
 				logger.info(String.format("Search move, fixed depth %d", searchDepth));
 				ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth);
-			} else {
+			} else if (analysisMode) {
 				logger.info(String.format("Search move, infinite search, threads %d", numberOfWorkerThreads));
 				ms = new MultithreadedIterativeMoveSearcher(this, hashMap, pawnHash, lastFen, dc, Long.MAX_VALUE, clockInc,
 						numberOfWorkerThreads, refScore, move_overhead);
+			} else {
+				searchDepth = 8;
+				logger.info(String.format("DEFAULT: Search move, fixed depth %d", searchDepth));
+				ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth);	
 			}
 		}
 	}
