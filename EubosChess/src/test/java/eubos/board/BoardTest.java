@@ -755,7 +755,7 @@ public class BoardTest {
 	
 	@Test 
 	public void test_is_playable_handles_castling() {
-		setUpPosition("r1bqkb1r/1p1n1ppp/p2ppn2/6B1/3NP3/2N2Q2/PPP2PPP/2KR1B1R b kq - - 8");
+		setUpPosition("r1bqkb1r/1p1n1ppp/p2ppn2/6B1/3NP3/2N2Q2/PPP2PPP/R3KB1R w KQkq - 0 1 ");
 		int move = Move.valueOfCastlingBit(Move.TYPE_REGULAR_NONE, Position.e1, Piece.WHITE_KING, Position.c1, Piece.NONE, Piece.NONE);
 		boolean inCheck = false;
 		assertTrue(classUnderTest.isPlayableMove(move, inCheck, pm.castling));

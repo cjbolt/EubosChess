@@ -223,7 +223,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		while ( scratchBitBoard != 0x0L ) {
 			int score = 0;
 			
-			int bit_offset = Long.numberOfTrailingZeros(scratchBitBoard);
+			int bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
 			long bitMask = 1L << bit_offset;
 			
 			boolean pawnIsWhite = (white & bitMask) == bitMask;
