@@ -405,4 +405,16 @@ public class BitBoardTest {
 	public void test_pawn_capture_target_generation_down_right() {
 		assertEquals((1L << BitBoard.positionToBit_Lut[Position.b7]), BitBoard.generatePawnCaptureTargetBoardDownRight(BitBoard.positionToBit_Lut[Position.a8]));
 	}
+	
+	@Test
+	public void test_convert_to_bit_offset() {
+		for (int i=0; i<64; i++) {
+			assertEquals(Long.numberOfTrailingZeros(1L << i), BitBoard.convertToBitOffset(1L << i));
+		}
+		assertEquals(Long.numberOfTrailingZeros(0x8000_0000_0000_0001L), BitBoard.convertToBitOffset(0x8000_0000_0000_0001L));
+		assertEquals(Long.numberOfTrailingZeros(0x8080_0000_0000_0000L), BitBoard.convertToBitOffset(0x8080_0000_0000_0000L));
+		assertEquals(Long.numberOfTrailingZeros(0x8000_0000_0000_1001L), BitBoard.convertToBitOffset(0x8000_0000_0000_1001L));
+		assertEquals(Long.numberOfTrailingZeros(0x0000_0000_00C0_0000L), BitBoard.convertToBitOffset(0x0000_0000_00C0_0000L));
+	}
+	
 }

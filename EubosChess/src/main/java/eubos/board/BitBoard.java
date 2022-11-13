@@ -12,42 +12,45 @@ import com.fluxchess.jcpi.models.IntRank;
 public final class BitBoard {
 	
 	public static final int INVALID = 64;
+
+	public static final boolean USE_SEAL_NUMBER_OF_TRAILING_ZEROS = false;
+	public static final boolean USE_GAUD_NUMBER_OF_TRAILING_ZEROS = false;
 	
-	  public static final int a1 = 0;   public static final int a2 = 8;
-	  public static final int b1 = 1;   public static final int b2 = 9;
-	  public static final int c1 = 2;   public static final int c2 = 10;
-	  public static final int d1 = 3;   public static final int d2 = 11;
-	  public static final int e1 = 4;   public static final int e2 = 12;
-	  public static final int f1 = 5;   public static final int f2 = 13;
-	  public static final int g1 = 6;   public static final int g2 = 14;
-	  public static final int h1 = 7;   public static final int h2 = 15;
+	public static final int a1 = 0;   public static final int a2 = 8;
+	public static final int b1 = 1;   public static final int b2 = 9;
+	public static final int c1 = 2;   public static final int c2 = 10;
+	public static final int d1 = 3;   public static final int d2 = 11;
+	public static final int e1 = 4;   public static final int e2 = 12;
+	public static final int f1 = 5;   public static final int f2 = 13;
+	public static final int g1 = 6;   public static final int g2 = 14;
+	public static final int h1 = 7;   public static final int h2 = 15;
 
-	  public static final int a3 = 16;  public static final int a4 = 24;
-	  public static final int b3 = 17;  public static final int b4 = 25;
-	  public static final int c3 = 18;  public static final int c4 = 26;
-	  public static final int d3 = 19;  public static final int d4 = 27;
-	  public static final int e3 = 20;  public static final int e4 = 28;
-	  public static final int f3 = 21;  public static final int f4 = 29;
-	  public static final int g3 = 22;  public static final int g4 = 30;
-	  public static final int h3 = 23;  public static final int h4 = 31;
+	public static final int a3 = 16;  public static final int a4 = 24;
+	public static final int b3 = 17;  public static final int b4 = 25;
+	public static final int c3 = 18;  public static final int c4 = 26;
+	public static final int d3 = 19;  public static final int d4 = 27;
+	public static final int e3 = 20;  public static final int e4 = 28;
+	public static final int f3 = 21;  public static final int f4 = 29;
+	public static final int g3 = 22;  public static final int g4 = 30;
+	public static final int h3 = 23;  public static final int h4 = 31;
 
-	  public static final int a5 = 32;  public static final int a6 = 40;
-	  public static final int b5 = 33;  public static final int b6 = 41;
-	  public static final int c5 = 34;  public static final int c6 = 42;
-	  public static final int d5 = 35;  public static final int d6 = 43;
-	  public static final int e5 = 36;  public static final int e6 = 44;
-	  public static final int f5 = 37;  public static final int f6 = 45;
-	  public static final int g5 = 38;  public static final int g6 = 46;
-	  public static final int h5 = 39;  public static final int h6 = 47;
+	public static final int a5 = 32;  public static final int a6 = 40;
+	public static final int b5 = 33;  public static final int b6 = 41;
+	public static final int c5 = 34;  public static final int c6 = 42;
+	public static final int d5 = 35;  public static final int d6 = 43;
+	public static final int e5 = 36;  public static final int e6 = 44;
+	public static final int f5 = 37;  public static final int f6 = 45;
+	public static final int g5 = 38;  public static final int g6 = 46;
+	public static final int h5 = 39;  public static final int h6 = 47;
 
-	  public static final int a7 = 48;  public static final int a8 = 56;
-	  public static final int b7 = 49;  public static final int b8 = 57;
-	  public static final int c7 = 50;  public static final int c8 = 58;
-	  public static final int d7 = 51;  public static final int d8 = 59;
-	  public static final int e7 = 52;  public static final int e8 = 60;
-	  public static final int f7 = 53;  public static final int f8 = 61;
-	  public static final int g7 = 54;  public static final int g8 = 62;
-	  public static final int h7 = 55;  public static final int h8 = 63;
+	public static final int a7 = 48;  public static final int a8 = 56;
+	public static final int b7 = 49;  public static final int b8 = 57;
+	public static final int c7 = 50;  public static final int c8 = 58;
+	public static final int d7 = 51;  public static final int d8 = 59;
+	public static final int e7 = 52;  public static final int e8 = 60;
+	public static final int f7 = 53;  public static final int f8 = 61;
+	public static final int g7 = 54;  public static final int g8 = 62;
+	public static final int h7 = 55;  public static final int h8 = 63;
 	
 	public static long valueOf(int [] positions) {
 		long bitboard = 0L;
@@ -653,4 +656,40 @@ public final class BitBoard {
 	static long generatePawnCaptureTargetBoardDownLeft(int bitOffset) {
 		return ((1L << bitOffset) >>> 9) & not_h_file;
 	}
+	
+    private static final int table[] = {
+    	32, 0, 1, 12, 2, 6, -1, 13, 3, -1, 7, -1, -1, -1, -1, 14,
+    	10, 4, -1, -1, 8, -1, -1, 25, -1, -1, -1, -1, -1, 21, 27, 15,
+    	31, 11, 5, -1, -1, -1, -1 ,-1, 9, -1, -1, 24, -1, -1, 20, 26,
+    	30, -1, -1, -1, -1, 23, -1, 19, 29, -1, 22, 18, 28, 17, 16, -1
+    };
+    
+    public static int convertToBitOffset(long x) {
+    	if (USE_SEAL_NUMBER_OF_TRAILING_ZEROS) {
+	    	int offset = 0;
+	    	int y=0;
+	    	if ((x & 0xFFFF_FFFFL) == 0) {
+	    		y = (int)(x >>> 32);
+	    		if (y == 0x8000_0000) return 63; // deal with sign bit
+	 			offset = 32;
+	    	} else {
+	    		y = (int) x;
+	    	}
+	    	y = (y & -y) * 0x0450FBAF;
+	        return table[y >>> 26] + offset;
+    	} else if (USE_GAUD_NUMBER_OF_TRAILING_ZEROS) {
+    		long y, bz, b5, b4, b3, b2, b1, b0;
+    		y = x & -x;
+    		bz = y != 0 ? 0 : 1;
+    		b5 = ((y & 0x0000_0000_FFFF_FFFFL) != 0) ? 0 : 32;
+    		b4 = ((y & 0x0000_FFFF_0000_FFFFL) != 0) ? 0 : 16;
+    		b3 = ((y & 0x00FF_00FF_00FF_00FFL) != 0) ? 0 : 8;
+    		b2 = ((y & 0x0F0F_0F0F_0F0F_0F0FL) != 0) ? 0 : 4;
+    		b1 = ((y & 0x3333_3333_3333_3333L) != 0) ? 0 : 2;
+    		b0 = ((y & 0x5555_5555_5555_5555L) != 0) ? 0 : 1;
+    		return (int)(bz + b5 + b4 + b3 + b2 + b1 + b0);
+    	} else {
+    		return Long.numberOfTrailingZeros(x);
+    	}
+    }
 }
