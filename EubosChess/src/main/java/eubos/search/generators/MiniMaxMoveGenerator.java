@@ -169,13 +169,6 @@ public class MiniMaxMoveGenerator implements
 				EubosEngineMain.logger.info(String.format(
 						"At ply %d, hash table entry lost, regenerating with bestMove from pc=%s",
 						i, Move.toString(move), Transposition.report(trans)));
-			} else if (!Move.areEqualForBestKiller(move, Transposition.getBestMove(trans))) {
-				EubosEngineMain.logger.info(String.format("%s from pc not equal to %s from hash fen=%s", 
-						Move.toString(move), Move.toString(Transposition.getBestMove(trans)), pos.getFen()));
-				byte depth = (byte)(searchDepth-i);
-				trans = tta.setTransposition(new_hash, trans, depth, theScore, Score.upperBound, move, pos.getMoveNumber());
-			} else {
-				// Nothing to do, hash move is ok
 			}
 			
 			pm.performMove(move);
@@ -184,7 +177,6 @@ public class MiniMaxMoveGenerator implements
 			trans = tta.getTransposition(new_hash);
 		}
 		while (movesApplied > 0) {
-			// Find out why this causes an error with unperforming too many moves so move stack index becomes less than 0
 			pm.unperformMove();
 			movesApplied--;
 		}
