@@ -188,9 +188,11 @@ public class PositionEvaluator implements IEvaluate {
 			int lazyThresh = lazy_eval_threshold_cp;
 			long pp = bd.getPassedPawns();
 			if (pp != 0L) {
-				// increase threshold by a function of the number of passers
-				int numPassers = Long.bitCount(pp);
-				lazyThresh += (numPassers * 300 * bd.me.getPhase()) / 4096;
+				// increase threshold as a function of the passed pawn imbalance
+				int numWhitePassers = Long.bitCount(pp&bd.getWhitePieces());
+				int numBlackPassers = Long.bitCount(pp&bd.getBlackPieces());
+				int ppDelta = Math.abs(numBlackPassers-numWhitePassers);
+				lazyThresh += pawn_eval.ppImbalanceTable[ppDelta] + (ppDelta * 250 * bd.me.getPhase()) / 4096;
 			}
 			if (!bd.me.isEndgame() && isKingExposed()) {
 				lazyThresh += 300;
