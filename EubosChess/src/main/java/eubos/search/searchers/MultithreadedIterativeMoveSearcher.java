@@ -129,6 +129,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 
 	private void sendBestMove() {
 		GenericMove bestMove = null;
+		EubosEngineMain.logger.fine("Getting root transposition table entry after search");
 		long trans = mg.getRootTransposition();
 		int pcBestMove = workers.get(0).result.bestMove;
 		if (mg.getRootTransposition() != 0L) {
