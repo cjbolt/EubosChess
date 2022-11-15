@@ -114,7 +114,7 @@ public class MiniMaxMoveGenerator implements
 		return new SearchResult(pc.getBestMove((byte)0), foundMate);
 	}
 	
-	public synchronized void terminateFindMove() {
+	public void terminateFindMove() {
 		if (ps != null)
 			ps.terminateFindMove();
 	}
