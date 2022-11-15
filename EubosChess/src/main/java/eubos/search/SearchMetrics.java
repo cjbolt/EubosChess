@@ -46,8 +46,8 @@ public class SearchMetrics {
 		this(1, pos);
 	}
 	
-	synchronized void incrementNodesSearched() { nodesSearched.incrementAndGet(); }
-	synchronized long getNodesSearched() { return nodesSearched.get(); }
+	void incrementNodesSearched() { nodesSearched.incrementAndGet(); }
+	long getNodesSearched() { return nodesSearched.get(); }
 	
 	synchronized void incrementTime() {
 		long currentTimestamp = System.currentTimeMillis();
