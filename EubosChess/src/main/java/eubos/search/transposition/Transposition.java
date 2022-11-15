@@ -106,7 +106,7 @@ public final class Transposition {
 		return output;
 	}
 	
-	public static synchronized long checkUpdate(long trans,
+	public static long checkUpdate(long trans,
 			byte new_Depth, 
 			short new_score,
 			byte new_bound,
