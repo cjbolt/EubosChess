@@ -103,8 +103,8 @@ public class SearchMetrics {
 		this.cpScore = positionScore;
 	}
 	
-	public synchronized short getCpScore() { return cpScore; }
-	synchronized void setCpScore(short positionScore) { 
+	public short getCpScore() { return cpScore; }
+	void setCpScore(short positionScore) { 
 		if (Colour.isBlack(pos.getOnMove())) {
 			if (Score.isMate(positionScore)) {
 				positionScore += 1; // out by one error due to negation of mate scores?
@@ -113,11 +113,11 @@ public class SearchMetrics {
 		this.cpScore = positionScore;
 	}
 	
-	public synchronized int getDepth() { return depth; }
-	public synchronized void setDepth(int depth) { this.depth = depth; }
+	public int getDepth() { return depth; }
+	public void setDepth(int depth) { this.depth = depth; }
 	
-	synchronized int getPartialDepth() { return partialDepth; }
-	synchronized void setPartialDepth(int depth ) { this.partialDepth = depth; }
+	int getPartialDepth() { return partialDepth; }
+	void setPartialDepth(int depth ) { this.partialDepth = depth; }
 
 	public int getCurrentMoveNum() {
 		return moveNum;
