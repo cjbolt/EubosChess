@@ -110,7 +110,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	class IterativeMoveSearchStopper extends Thread {
 		
 		private volatile boolean stopperActive = false;
-		boolean extraTime = false;
+		volatile boolean extraTime = false;
 		private int checkPoint = 0;
 		long timeRanFor = 0;
 		long timeIntoWait = 0;
@@ -220,6 +220,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		
 		private long sleepAndReportDuration(long timeQuanta) {
 			timeIntoWait = System.currentTimeMillis();
+			EubosEngineMain.logger.fine(String.format("IterativeMoveSearchStopper into sleep @ %d for %d", timeIntoWait, timeQuanta));
 			try {
 				Thread.sleep(timeQuanta);
 			} catch (InterruptedException e) {
@@ -227,6 +228,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				Thread.currentThread().interrupt();
 			}
 			timeOutOfWait = System.currentTimeMillis();
+			EubosEngineMain.logger.fine(String.format("IterativeMoveSearchStopper out of sleep @ %d", timeOutOfWait));
 			return timeOutOfWait - timeIntoWait;
 		}
 		
