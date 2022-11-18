@@ -69,7 +69,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		return 0L;
 	}
 	
-	public void putTransposition(long hashCode, long trans) {
+	public synchronized void putTransposition(long hashCode, long trans) {
 		int index = (int)(hashCode & mask);
 		if (USE_ALWAYS_REPLACE) {
 			hashes[index] = hashCode;
@@ -109,7 +109,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		}
 	}
 	
-	public synchronized long setTransposition(long hash, long trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove, int new_age) {
+	public long setTransposition(long hash, long trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove, int new_age) {
 		boolean is_created = false;
 		boolean is_updated = false;
 		
