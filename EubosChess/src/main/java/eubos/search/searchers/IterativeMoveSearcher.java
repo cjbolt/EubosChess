@@ -168,25 +168,37 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		
 		private boolean shouldTerminateIfEvalAboveThreshold(int threshold) {
 			boolean canTerminate = false;
-			
-			short currentScore = mg.sm.getCpScore();
-			byte currDepth = (byte)mg.sm.getDepth();
-			boolean hasBackedUpAScore = mg.sm.isScoreBackedUpFromSearch();
+			short currentScore;
+			byte currDepth;
+			boolean hasBackedUpAScore;
+			short ref_score;
+			byte ref_depth;
 			boolean isResearchingAspirationFail = mg.lastAspirationFailed();
-			Reference ref = refScore.getReference();
 			
+			synchronized(mg.sm) {
+				currentScore = mg.sm.getCpScore();
+				currDepth = (byte)mg.sm.getDepth();
+				hasBackedUpAScore = mg.sm.isScoreBackedUpFromSearch();			
+			}
+			
+			Reference ref = refScore.getReference();
+			synchronized(ref) {
+				ref_score = ref.score;	
+				ref_depth = ref.depth;
+			}
+						
 			canTerminate =
 					hasBackedUpAScore && 
 					!isResearchingAspirationFail && 
-					currentScore >= (ref.score - threshold) && 
-					currDepth >= ref.depth;
+					currentScore >= (ref_score - threshold) && 
+					currDepth >= ref_depth;
 			
 			if (DEBUG_LOGGING) {
 				EubosEngineMain.logger.info(String.format(
 						"checkPoint=%d hasBackedUpAScore=%s research_asp=%s currentScore=%s refScore=%s"+
 						" depth=%d refDepth=%d SearchStopped=%s StopperActive=%s ranFor=%d",
 						checkPoint, hasBackedUpAScore, isResearchingAspirationFail, Score.toString(currentScore),
-						Score.toString(ref.score), currDepth, ref.depth, searchStopped, stopperActive, timeRanFor));
+						Score.toString(ref_score), currDepth, ref_depth, searchStopped, stopperActive, timeRanFor));
 			}
 			
 			return canTerminate;
