@@ -17,12 +17,12 @@ public class SearchMetrics {
 	
 	private IPositionAccessors pos;
 	private AtomicLong nodesSearched;
-	private long time;
+	private AtomicLong time;
 	private int[] pv;
-	public boolean pvValid = false;
-	private short cpScore;
-	private int depth;
-	private int partialDepth;
+	public volatile boolean pvValid = false;
+	private volatile short cpScore;
+	private volatile int depth;
+	private volatile int partialDepth;
 	private long initialTimestamp;
 	private int moveNum;
 	private int move;
@@ -30,7 +30,7 @@ public class SearchMetrics {
 	
 	public SearchMetrics(int searchDepth, IPositionAccessors pos) {
 		nodesSearched = new AtomicLong(0);
-		time = 0;
+		time = new AtomicLong(0);
 		cpScore = 0;
 		isScoreBackedUpFromSearch = false;
 		pvValid = false;
@@ -49,21 +49,22 @@ public class SearchMetrics {
 	void incrementNodesSearched() { nodesSearched.incrementAndGet(); }
 	long getNodesSearched() { return nodesSearched.get(); }
 	
-	synchronized void incrementTime() {
+	void incrementTime() {
 		long currentTimestamp = System.currentTimeMillis();
-		time = currentTimestamp - initialTimestamp;
+		time.set(currentTimestamp - initialTimestamp);
 	}
-	synchronized long getTime() { return time; }
+	long getTime() { return time.get(); }
 	
-	synchronized int getNodesPerSecond() {
+	int getNodesPerSecond() {
 		int nps = 0;
-		if (time != 0) {
-			nps = (int)(nodesSearched.get()*1000/time);
+		long time_copy = time.get();
+		if (time_copy != 0) {
+			nps = (int)(nodesSearched.get()*1000/time_copy);
 		}
 		return nps;
 	}
 	
-	public synchronized void setPrincipalVariation(int [] pc, int length_pc) {
+	public void setPrincipalVariation(int [] pc, int length_pc) {
 		if (pc != null && length_pc != 0) {
 			pvValid = true;
 			pv = IntArrays.trim(pc, length_pc);
@@ -72,7 +73,7 @@ public class SearchMetrics {
 		}
 	}
 	
-	synchronized List<GenericMove> getPrincipalVariation() {
+	List<GenericMove> getPrincipalVariation() {
 		List<GenericMove> thePv = null;
 		if (pvValid) {
 			if (ENABLE_SINGLE_MOVE_PV) {
@@ -91,14 +92,14 @@ public class SearchMetrics {
 		return thePv;
 	}
 	
-	synchronized void setPrincipalVariationData(int extendedSearchDeepestPly, int[] pc, int pc_length, short positionScore) {
+	void setPrincipalVariationData(int extendedSearchDeepestPly, int[] pc, int pc_length, short positionScore) {
 		setPartialDepth(extendedSearchDeepestPly);
 		setPrincipalVariation(pc, pc_length);
 		setCpScore(positionScore);
 		isScoreBackedUpFromSearch = true;
 	}
 	
-	synchronized void setPrincipalVariationDataFromHash(int extendedSearchDeepestPly, short positionScore) {
+	void setPrincipalVariationDataFromHash(int extendedSearchDeepestPly, short positionScore) {
 		setCpScore(positionScore);
 		this.cpScore = positionScore;
 	}
