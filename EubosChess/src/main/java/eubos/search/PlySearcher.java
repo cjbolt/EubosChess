@@ -109,11 +109,11 @@ public class PlySearcher {
 		rootTransposition = tt.getTransposition(pos.getHash());
 	}
 
-	public synchronized void terminateFindMove() { 
+	public void terminateFindMove() { 
 		EubosEngineMain.logger.info("Terminating PlySearcher");
 		terminate = true;
 	}
-	private synchronized boolean isTerminated() { return terminate; }	
+	private boolean isTerminated() { return terminate; }	
 	
 	public int searchPly(short lastScore)  {
 		currPly = 0;
