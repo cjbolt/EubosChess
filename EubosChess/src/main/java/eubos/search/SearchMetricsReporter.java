@@ -33,7 +33,7 @@ public class SearchMetricsReporter extends Thread {
 		this.setName("SearchMetricsReporter");
 	}
 	
-	public synchronized void register(SearchMetrics registering_sm) {
+	public void register(SearchMetrics registering_sm) {
 		sm.add(registering_sm);
 	}
 	
@@ -64,16 +64,24 @@ public class SearchMetricsReporter extends Thread {
 		}
 	}
 	
-	synchronized void reportPrincipalVariation(SearchMetrics pv) {
-		if (sendInfo && pv != null) {
-			int currDepth = pv.getDepth();
-			int score = pv.getCpScore();
-			if (currDepth > lastDepth || (currDepth == lastDepth && score > lastScore)) {
+	void reportPrincipalVariation(SearchMetrics sm) {
+		if (sendInfo && sm != null) {
+			boolean sendPv = false;
+			// Doesn't need to be synchronised as only written by PlySearcher thread (i.e this thread)
+			int currDepth = sm.getDepth();
+			int score = sm.getCpScore();
+			synchronized (this) {
+				if (currDepth > lastDepth || (currDepth == lastDepth && score > lastScore)) {
+					lastDepth = currDepth;
+					lastScore = score;
+					sendPv = true;
+				}
+			}
+			if (sendPv) {
 				ProtocolInformationCommand info = new ProtocolInformationCommand();
-				generatePvInfoCommand(info, pv);
+				// Doesn't need to be synchronised as only written by PlySearcher thread (i.e this thread)
+				generatePvInfoCommand(info, sm);
 				eubosEngine.sendInfoCommand(info);
-				lastDepth = currDepth;
-				lastScore = score;
 			}
 		}
 	}
