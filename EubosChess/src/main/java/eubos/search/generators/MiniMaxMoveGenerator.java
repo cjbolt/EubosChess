@@ -166,9 +166,11 @@ public class MiniMaxMoveGenerator implements
 			if (trans == 0L) {
 				byte depth = (byte)(searchDepth-i);
 				trans = tta.setTransposition(new_hash, trans, depth, theScore, Score.upperBound, move, pos.getMoveNumber());
-				EubosEngineMain.logger.info(String.format(
-						"At ply %d, hash table entry lost, regenerating with bestMove from pc=%s",
-						i, Move.toString(move), Transposition.report(trans)));
+				if (EubosEngineMain.ENABLE_LOGGING) {
+					EubosEngineMain.logger.info(
+							String.format("At ply %d, hash table entry lost, regenerating with bestMove from pc=%s",
+							i, Move.toString(move), Transposition.report(trans)));
+				}
 			}
 			
 			pm.performMove(move);

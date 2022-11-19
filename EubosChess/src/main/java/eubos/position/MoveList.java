@@ -285,9 +285,8 @@ public class MoveList implements Iterable<Integer> {
 				IntArrays.quickSort(priority_moves[ply], 0, priority_fill_index[ply], moveTypeComparator);
 				break;
 			default:
-				EubosEngineMain.logger.severe(String.format("Bad move ordering scheme %d!", ordering));
 				if (EubosEngineMain.ENABLE_ASSERTS)
-					assert false;
+					assert false : String.format("Bad move ordering scheme %d!", ordering);
 				break;
 			}
 		} else {

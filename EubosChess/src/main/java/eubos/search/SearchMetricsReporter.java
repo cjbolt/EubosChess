@@ -13,7 +13,7 @@ public class SearchMetricsReporter extends Thread {
 	
 	private boolean sendInfo = false;
 	private volatile boolean reporterActive;
-	private List<SearchMetrics> sm;
+	private List<SearchMetrics> sm_list;
 	private EubosEngineMain eubosEngine;
 	private FixedSizeTranspositionTable tt;
 	private ReferenceScore refScore;
@@ -27,14 +27,14 @@ public class SearchMetricsReporter extends Thread {
 		eubosEngine = eubos;
 		this.tt = tt;
 		this.refScore = refScore;
-		sm = new ArrayList<SearchMetrics>(EubosEngineMain.DEFAULT_NUM_SEARCH_THREADS);
+		sm_list = new ArrayList<SearchMetrics>(EubosEngineMain.DEFAULT_NUM_SEARCH_THREADS);
 		lastScore = refScore.getReference().score;
 		lastDepth = refScore.getReference().depth;
 		this.setName("SearchMetricsReporter");
 	}
 	
 	public void register(SearchMetrics registering_sm) {
-		sm.add(registering_sm);
+		sm_list.add(registering_sm);
 	}
 	
 	public void setSendInfo(boolean enable) {
@@ -86,12 +86,12 @@ public class SearchMetricsReporter extends Thread {
 		}
 	}
 	
-	void resetAfterWindowingFail() {
+	synchronized void resetAfterWindowingFail() {
 		lastScore = Score.PROVISIONAL_ALPHA;
 	}
 	
 	private void reportNodeData() {
-		if (sendInfo && !sm.isEmpty()) {
+		if (sendInfo && !sm_list.isEmpty()) {
 			ProtocolInformationCommand info = new ProtocolInformationCommand();
 			generatePeriodicInfoCommand(info); 
 			eubosEngine.sendInfoCommand(info);
@@ -103,7 +103,7 @@ public class SearchMetricsReporter extends Thread {
 		long nodes = 0;
 		int nps = 0;
 		
-		for (SearchMetrics thread : sm) {
+		for (SearchMetrics thread : sm_list) {
 			thread.incrementTime();
 			nodes += thread.getNodesSearched();
 			nps += thread.getNodesPerSecond();
@@ -140,7 +140,7 @@ public class SearchMetricsReporter extends Thread {
 		
 		int nps = 0;
 		long nodes = 0;
-		for (SearchMetrics thread : sm) {
+		for (SearchMetrics thread : sm_list) {
 			// collate NPS from all registered SMs
 			nps += thread.getNodesPerSecond();
 			nodes += thread.getNodesSearched();
@@ -153,11 +153,11 @@ public class SearchMetricsReporter extends Thread {
 
 	public void reportCurrentMove() {
 		if (sendInfo) {
-			if (sm.size() == 1) {
+			if (sm_list.size() == 1) {
 				// The current move being searched is only meaningful for single threaded search
 				ProtocolInformationCommand info = new ProtocolInformationCommand();
-				info.setCurrentMove(sm.get(0).getCurrentMove());
-				info.setCurrentMoveNumber(sm.get(0).getCurrentMoveNum());
+				info.setCurrentMove(sm_list.get(0).getCurrentMove());
+				info.setCurrentMoveNumber(sm_list.get(0).getCurrentMoveNum());
 				eubosEngine.sendInfoCommand(info);
 			}
 		}

@@ -39,8 +39,10 @@ public abstract class AbstractMoveSearcher extends Thread {
 		
 		
 		Reference ref = refScore.getReference();
-		EubosEngineMain.logger.info(String.format("refScore %s, depth %d %s phase=%d",
-				Score.toString(ref.score), ref.depth, ref.origin, mg.pos.getTheBoard().me.phase));
+		if (EubosEngineMain.ENABLE_LOGGING) {
+			EubosEngineMain.logger.info(String.format("refScore %s, depth %d %s phase=%d",
+					Score.toString(ref.score), ref.depth, ref.origin, mg.pos.getTheBoard().me.phase));
+		}
 		
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sr.start();
 	}

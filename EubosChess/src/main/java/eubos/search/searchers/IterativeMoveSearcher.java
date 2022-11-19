@@ -174,13 +174,13 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			short ref_score;
 			byte ref_depth;
 			boolean isResearchingAspirationFail = mg.lastAspirationFailed();
-			
+			EubosEngineMain.logger.info("Stopper getting lock for mg.sm");
 			synchronized(mg.sm) {
 				currentScore = mg.sm.getCpScore();
 				currDepth = (byte)mg.sm.getDepth();
 				hasBackedUpAScore = mg.sm.isScoreBackedUpFromSearch();			
 			}
-			
+			EubosEngineMain.logger.info("Stopper getting lock for ref score");
 			Reference ref = refScore.getReference();
 			synchronized(ref) {
 				ref_score = ref.score;	

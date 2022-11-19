@@ -22,8 +22,8 @@ import eubos.search.transposition.Transposition;
 
 public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	
-	private static final int STAGGERED_START_TIME_FOR_THREADS = 25;
-	private static final boolean ALTERNATIVE_MOVE_LIST_ORDERING_IN_WORKER_THREADS = true;
+	private static final int STAGGERED_START_TIME_FOR_THREADS = 0;
+	private static final boolean ALTERNATIVE_MOVE_LIST_ORDERING_IN_WORKER_THREADS = false;
 	
 	protected IterativeMoveSearchStopper stopper;
 	protected int threads = 0;
@@ -51,7 +51,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 
 	private void createMoveGenerators(FixedSizeTranspositionTable hashMap, PawnEvalHashTable pawnHash, String fen, DrawChecker dc, int threads) {
 		moveGenerators = new ArrayList<MiniMaxMoveGenerator>(threads);
-		// The first move generator shall be that constructed by the abstract MoveSearcher
+		// The first move generator shall be that constructed by the abstract MoveSearcher, this one shall be accessed by the stopper thread
 		moveGenerators.add(mg);
 		// Create subsequent move generators using cloned DrawCheckers and distinct PositionManagers
 		for (int i=1; i < threads; i++) {

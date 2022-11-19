@@ -57,10 +57,9 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		public PawnHashStatistics() {}
 		
 		public void report() {
-			//EubosEngineMain.logger.info(String.format("PawnStats nodes=%d skipped=%d percentage=%.5f",
-			//        nodeCount, skippedCount, ((double)skippedCount)*100.0d/((double)nodeCount)));
-			System.out.println(String.format("PawnStats nodes=%d skipped=%d percentage=%.5f",
-					nodeCount, skippedCount, ((double)skippedCount)*100.0d/((double)nodeCount)));
+			if (EubosEngineMain.ENABLE_LOGGING)
+				EubosEngineMain.logger.info(String.format("PawnStats nodes=%d skipped=%d percentage=%.5f",
+				        nodeCount, skippedCount, ((double)skippedCount)*100.0d/((double)nodeCount)));
 		}
 	}
 	
