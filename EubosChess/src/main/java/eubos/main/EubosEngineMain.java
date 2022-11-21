@@ -472,6 +472,18 @@ public class EubosEngineMain extends AbstractEngine {
 	@Override
 	protected void quit() {
 		logger.info("Quitting Eubos");
+		// Request an early terminate of the move searcher.
+		if (ms != null)
+			ms.halt();
+		try {
+			Thread.sleep(3000);
+		} catch (InterruptedException e) {
+			
+		}
+		if (ms.isAlive()) {
+			logger.severe("failed to stop moveSearcher, killing VM.");
+			System.exit(0);
+		}
 	}
 
 	public static void main(String[] args) {

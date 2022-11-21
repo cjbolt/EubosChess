@@ -85,6 +85,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		}		
 	}
 
+	@SuppressWarnings("unused")
 	@Override
 	public void run() {
 		enableSearchMetricsReporter(true);
@@ -161,7 +162,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		for (MultithreadedSearchWorkerThread worker : workers) {
 			if (!worker.halted) {
 				isAtLeastOneWorkerStillAlive = true;
-				EubosEngineMain.logger.info(String.format("Worker still active %s", worker.getName()));
+				EubosEngineMain.logger.info(String.format("Worker still active %s %d", worker.getName(), worker.getId()));
 				break;
 			}
 		}
@@ -181,7 +182,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		public MultithreadedSearchWorkerThread( MiniMaxMoveGenerator moveGen, AbstractMoveSearcher main ) {
 			this.myMg = moveGen;
 			this.main = main;
-			this.setName("MultithreadedSearchWorkerThread");
+			this.setName(String.format("MultithreadedSearchWorkerThread=%d",this.getId()));
 		}
 		
 		public void run() {
