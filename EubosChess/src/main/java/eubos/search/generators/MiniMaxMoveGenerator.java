@@ -139,8 +139,9 @@ public class MiniMaxMoveGenerator implements
 	public void preservePvInHashTable() {
 		// Apply all the moves in the pv and check they are in the hash table
 		byte i=0;
+		//EubosEngineMain.printStackTrace();
 		long root_trans = tta.getTransposition(pos.getHash());
-		if (root_trans == 0) return;
+		if (root_trans == 0L) return;
 		
 		int searchDepth = Transposition.getDepthSearchedInPly(root_trans);
 		short theScore = Transposition.getScore(root_trans);

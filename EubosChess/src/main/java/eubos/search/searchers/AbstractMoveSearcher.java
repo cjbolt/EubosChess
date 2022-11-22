@@ -20,7 +20,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 	protected EubosEngineMain eubosEngine;
 	protected MiniMaxMoveGenerator mg;
 	
-	protected boolean sendInfo = false;
+	protected volatile boolean sendInfo = false;
 	protected SearchMetricsReporter sr;
 	protected ReferenceScore refScore;
 
@@ -91,7 +91,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 	}
 	
 	public void terminateSearchMetricsReporter() {
-		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && sendInfo)
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING)
 			sr.end();
 	}
 

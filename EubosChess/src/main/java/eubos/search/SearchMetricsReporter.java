@@ -11,7 +11,7 @@ import eubos.search.transposition.FixedSizeTranspositionTable;
 
 public class SearchMetricsReporter extends Thread {
 	
-	private boolean sendInfo = false;
+	private volatile boolean sendInfo = false;
 	private volatile boolean reporterActive;
 	private List<SearchMetrics> sm_list;
 	private EubosEngineMain eubosEngine;

@@ -50,6 +50,7 @@ import eubos.search.transposition.Transposition;
 
 import java.text.SimpleDateFormat;
 import java.util.logging.*;
+import java.util.Set;
 
 public class EubosEngineMain extends AbstractEngine {
 	
@@ -514,5 +515,32 @@ public class EubosEngineMain extends AbstractEngine {
 		logger.addHandler(fh);
 		logger.setLevel(Level.ALL);
 		logger.setUseParentHandlers(false);
+	}
+	
+	public static void printStackTrace() {
+		// Get all threads in Java.
+		Set<Thread> threads = Thread.getAllStackTraces().keySet();
+		Writer buffer = new StringWriter();
+		PrintWriter pw = new PrintWriter(buffer);
+		for (Thread thread : threads) {
+			// Print the thread name and current state of thread.
+			pw.append("Thread Name: ");
+			pw.append(thread.getName());
+			pw.append("\n");
+			pw.append("Thread State: ");
+			pw.append(thread.getState().toString());
+			pw.append("\n");
+
+			// Get the stack trace for the thread and print it.
+			StackTraceElement[] stackTraceElements = thread.getStackTrace();
+			for (StackTraceElement stackTraceElement : stackTraceElements) {
+				pw.append("\t");
+				pw.append(stackTraceElement.toString());
+				pw.append("\n");
+			}
+			pw.append("\n");
+		}
+		String dump = String.format("Thread dump: %s", buffer.toString());
+		logger.info(dump);
 	}
 }
