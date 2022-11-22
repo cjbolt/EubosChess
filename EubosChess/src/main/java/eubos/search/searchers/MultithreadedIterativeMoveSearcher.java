@@ -34,6 +34,10 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	protected List<MultithreadedSearchWorkerThread> workers;
 	protected List<MiniMaxMoveGenerator> moveGenerators;
 	
+	private long rootHash = 0L;
+	private FixedSizeTranspositionTable hashMap;
+	
+	
 	public MultithreadedIterativeMoveSearcher(EubosEngineMain eubos, 
 			FixedSizeTranspositionTable hashMap,
 			PawnEvalHashTable pawnHash,
@@ -47,6 +51,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		super(eubos, hashMap, pawnHash, fen, dc, time, increment, refScore, move_overhead);
 		this.setName("MultithreadedIterativeMoveSearcher");
 		this.threads = threads;
+		this.hashMap = hashMap;
 		workers = new ArrayList<MultithreadedSearchWorkerThread>(threads);
 		createMoveGenerators(hashMap, pawnHash, fen, dc, threads);
 		stopper = new IterativeMoveSearchStopper();
@@ -56,6 +61,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		moveGenerators = new ArrayList<MiniMaxMoveGenerator>(threads);
 		// The first move generator shall be that constructed by the abstract MoveSearcher, this one shall be accessed by the stopper thread
 		moveGenerators.add(mg);
+		rootHash = mg.pos.getHash();
 		// Create subsequent move generators using cloned DrawCheckers and distinct PositionManagers
 		for (int i=1; i < threads; i++) {
 			DrawChecker cloned_dc = new DrawChecker(dc);
@@ -146,6 +152,19 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		SearchResult result = workers.get(0).result;
 		long trans = result.rootTrans;
 		int pcBestMove = result.bestMove;
+		
+		long rootHashInTable = hashMap.getTransposition(rootHash);
+		if (rootHashInTable == 0L) {
+			// The transposition in the table could have been removed - If it has been removed we should rewrite it using the best we have.
+			hashMap.putTransposition(rootHash, trans);
+			rootHashInTable = trans;
+		}
+		if (trans == 0L && rootHashInTable != 0L) {
+			trans = rootHashInTable;
+		}
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			assert rootHashInTable == trans : "Tranposition mismatch between table and search result";
+		}
 		if (trans != 0L) {
 			int transBestMove = Transposition.getBestMove(trans);
 			if (!Move.areEqualForBestKiller(pcBestMove, transBestMove)) {

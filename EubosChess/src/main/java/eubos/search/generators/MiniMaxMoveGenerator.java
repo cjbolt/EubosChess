@@ -129,22 +129,28 @@ public class MiniMaxMoveGenerator implements
 	}
 
 	public boolean lastAspirationFailed() {
-		return this.ps.lastAspirationFailed();
-	}
-
-	public long getRootTransposition() {
-		return ps.rootTransposition;
+		if (ps != null) {
+			return ps.lastAspirationFailed();
+		}
+		return false;
 	}
 	
 	public void preservePvInHashTable(long root_trans) {
 		// Apply all the moves in the pv and check they are in the hash table
 		byte i=0;
+		
+		// If an error occurred in the search due to waking the stopper thread, ps can be null and we may
+		// not have run the search, in that case just return.
 		if (root_trans == 0L) return;
+		if (ps == null) return;
+		
+		int move = pc.getBestMove(i);
+		if (move == Move.NULL_MOVE)
+			return;
 		
 		int searchDepth = Transposition.getDepthSearchedInPly(root_trans);
 		short theScore = Transposition.getScore(root_trans);
 		long trans = root_trans;
-		int move = pc.getBestMove(i);		
 		pm.performMove(move);
 		int movesApplied = 1;
 		
