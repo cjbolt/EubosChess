@@ -32,7 +32,7 @@ public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 	@Override
 	public void run() {
 		byte currentDepth = 1;
-		SearchResult res = new SearchResult(Move.NULL_MOVE, false);
+		SearchResult res = new SearchResult(Move.NULL_MOVE, false, 0L);
 		enableSearchMetricsReporter(true);
 		Timestamp msTargetEndTime = new Timestamp(System.currentTimeMillis() + moveTime);
 		MoveSearchStopper stopper = new MoveSearchStopper(msTargetEndTime);

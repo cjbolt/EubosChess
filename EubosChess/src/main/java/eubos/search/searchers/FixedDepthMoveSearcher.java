@@ -33,7 +33,7 @@ public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 	
 	@Override
 	public void run() {
-		SearchResult res = new SearchResult(Move.NULL_MOVE, false);
+		SearchResult res = new SearchResult(Move.NULL_MOVE, false, 0L);
 		enableSearchMetricsReporter(true);
 		for (byte depth=1; depth<=searchDepth && !searchStopped; depth++) {
 			res = doFindMove(Move.toGenericMove(res.bestMove), depth);

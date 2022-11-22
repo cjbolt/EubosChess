@@ -542,9 +542,9 @@ public class MiniMaxMoveGeneratorTest {
 			Move.valueOf(Position.c1, Piece.WHITE_BISHOP, Position.a3, Piece.NONE),
 			Move.valueOf(Position.f8, Piece.BLACK_BISHOP, Position.a3, Piece.WHITE_BISHOP),
 		};
-		hashMap.setTransposition(pm.getHash(), 0L, depth, (short)0, Score.upperBound, moves[0], 0);
+		long trans = hashMap.setTransposition(pm.getHash(), 0L, depth, (short)0, Score.upperBound, moves[0], 0);
 		
 		classUnderTest.pc.setArray(moves);
-		classUnderTest.preservePvInHashTable();
+		classUnderTest.preservePvInHashTable(trans);
 	}
 }

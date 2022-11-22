@@ -1,5 +1,8 @@
 package eubos.search.searchers;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -125,21 +128,32 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		enableSearchMetricsReporter(false);
 		stopper.end();
 		terminateSearchMetricsReporter();
-		sendBestMove();
+		try {
+			sendBestMove();
+		} catch (Exception e) {
+			Writer buffer = new StringWriter();
+			PrintWriter pw = new PrintWriter(buffer);
+			e.printStackTrace(pw);
+			String error = String.format("MultithreadedIterativeMoveSearcher crashed with: %s\n%s",
+					e.getMessage(), buffer.toString());
+			System.err.println(error);
+			EubosEngineMain.logger.severe(error);
+		}
 	}
 
 	private void sendBestMove() {
 		GenericMove bestMove = null;
-		EubosEngineMain.logger.fine("Getting root transposition table entry after search");
-		long trans = mg.getRootTransposition();
-		int pcBestMove = workers.get(0).result.bestMove;
-		if (mg.getRootTransposition() != 0L) {
+		SearchResult result = workers.get(0).result;
+		long trans = result.rootTrans;
+		int pcBestMove = result.bestMove;
+		if (trans != 0L) {
 			int transBestMove = Transposition.getBestMove(trans);
 			if (!Move.areEqualForBestKiller(pcBestMove, transBestMove)) {
 				EubosEngineMain.logger.warning(String.format("At root, pc best=%s != trans best=%s, will not preserve PV in hash...", 
 						Move.toString(pcBestMove), Move.toString(transBestMove)));
 			} else {
-				moveGenerators.get(0).preservePvInHashTable();
+				EubosEngineMain.logger.fine("preservePvInHashTable");
+				moveGenerators.get(0).preservePvInHashTable(trans);
 			}
 			EubosEngineMain.logger.info(String.format("best is trans=%s", Transposition.report(trans)));
 			if (Score.isMate(Transposition.getScore(trans))) {
@@ -187,7 +201,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		
 		public void run() {
 			byte currentDepth = 1;
-			result = new SearchResult(Move.NULL_MOVE, false);
+			result = new SearchResult(Move.NULL_MOVE, false, 0L);
 		
 			while (!searchStopped && !halted) {
 				result = myMg.findMove(currentDepth, sr);

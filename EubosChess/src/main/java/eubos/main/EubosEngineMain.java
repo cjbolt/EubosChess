@@ -60,7 +60,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final byte SEARCH_DEPTH_IN_PLY = Byte.MAX_VALUE;
 	public static final int DEFAULT_NUM_SEARCH_THREADS = 1;
 	
-	public static final boolean ENABLE_LOGGING = false;
+	public static final boolean ENABLE_LOGGING = true;
 	public static final boolean ENABLE_UCI_INFO_SENDING = true;
 	public static final boolean ENABLE_UCI_MOVE_NUMBER = false;
 	
@@ -481,7 +481,7 @@ public class EubosEngineMain extends AbstractEngine {
 		} catch (InterruptedException e) {
 			
 		}
-		if (ms.isAlive()) {
+		if (ms != null && ms.isAlive()) {
 			logger.severe("failed to stop moveSearcher, killing VM.");
 			System.exit(0);
 		}

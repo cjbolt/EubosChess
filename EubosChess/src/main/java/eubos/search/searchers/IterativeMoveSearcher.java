@@ -68,7 +68,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	@Override
 	public void run() {
 		byte currentDepth = 1;
-		SearchResult res = new SearchResult(Move.NULL_MOVE, false);
+		SearchResult res = new SearchResult(Move.NULL_MOVE, false, 0L);
 		enableSearchMetricsReporter(true);
 		IterativeMoveSearchStopper stopper = new IterativeMoveSearchStopper();
 		stopper.start();

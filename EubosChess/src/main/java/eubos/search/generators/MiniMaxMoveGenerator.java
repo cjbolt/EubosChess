@@ -111,7 +111,7 @@ public class MiniMaxMoveGenerator implements
 			foundMate = true;
 		}
 		// Select the best move
-		return new SearchResult(pc.getBestMove((byte)0), foundMate);
+		return new SearchResult(pc.getBestMove((byte)0), foundMate, ps.rootTransposition);
 	}
 	
 	public void terminateFindMove() {
@@ -136,11 +136,9 @@ public class MiniMaxMoveGenerator implements
 		return ps.rootTransposition;
 	}
 	
-	public void preservePvInHashTable() {
+	public void preservePvInHashTable(long root_trans) {
 		// Apply all the moves in the pv and check they are in the hash table
 		byte i=0;
-		//EubosEngineMain.printStackTrace();
-		long root_trans = tta.getTransposition(pos.getHash());
 		if (root_trans == 0L) return;
 		
 		int searchDepth = Transposition.getDepthSearchedInPly(root_trans);
