@@ -52,6 +52,7 @@ public class MiniMaxMoveGenerator implements
 		score = 0;
 		this.ref = new ReferenceScore(null).getReference();
 		commonInit(hashMap, pm, pos);
+		ps = new PlySearcher(tta, pc, sm, null, (byte)0, pm, pos, pe, killers, sda, ml, (short)0);
 	}
 
 	// Used with Arena, Lichess
@@ -64,6 +65,7 @@ public class MiniMaxMoveGenerator implements
 		score = ref.score;
 		if (sr != null)
 			sr.register(sm);
+		ps = new PlySearcher(tta, pc, sm, sr, (byte)0, pm, pos, pe, killers, sda, ml, (short)0);
 	}
 
 	private void commonInit(ITranspositionAccessor hashMap, IChangePosition pm, IPositionAccessors pos) {
@@ -77,7 +79,6 @@ public class MiniMaxMoveGenerator implements
 		sda = new SearchDebugAgent(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
 		pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
 		ml = new MoveList((PositionManager)pm, alternativeMoveListOrderingScheme);
-		ps = new PlySearcher(tta, pc, sm, null, (byte) 0, pm, pos, pe, killers, sda, ml, (short)0);
 	}
 	
 	public short getScore() { return score; }
@@ -116,8 +117,7 @@ public class MiniMaxMoveGenerator implements
 	}
 	
 	public void terminateFindMove() {
-		if (ps != null)
-			ps.terminateFindMove();
+		ps.terminateFindMove();
 	}
 
 	public void alternativeMoveListOrdering(int schemeToUse) {
@@ -130,21 +130,14 @@ public class MiniMaxMoveGenerator implements
 	}
 
 	public boolean lastAspirationFailed() {
-		if (ps != null) {
-			return ps.lastAspirationFailed();
-		}
-		return false;
+		return ps.lastAspirationFailed();
 	}
 	
 	public void preservePvInHashTable(long root_trans) {
-		// Apply all the moves in the pv and check they are in the hash table
+		// Apply all the moves in the pv and check the resulting position is in the hash table
 		byte i=0;
 		
-		// If an error occurred in the search due to waking the stopper thread, ps can be null and we may
-		// not have run the search, in that case just return.
 		if (root_trans == 0L) return;
-		if (ps == null) return;
-		
 		int move = pc.getBestMove(i);
 		if (move == Move.NULL_MOVE)
 			return;
@@ -155,7 +148,10 @@ public class MiniMaxMoveGenerator implements
 		pm.performMove(move);
 		int movesApplied = 1;
 		
-		// new hash following best move being applied, now need to check all transposition moves are equal to PV
+		// new hash is following best move having been applied, now need to check we still have
+		// transposition entries for the PV move positions. If they are not present create them.
+		// If they are different, leave it be (the Transposition could be based on a deeper search)
+		// and abort the checking.
 		long new_hash = pos.getHash();
 		trans = tta.getTransposition(new_hash);
 				
@@ -163,6 +159,7 @@ public class MiniMaxMoveGenerator implements
 
 			move = pc.getBestMove(i);
 			if (move == Move.NULL_MOVE) break;
+			if (!Move.areEqualForBestKiller(move, Transposition.getBestMove(trans))) break;
 			
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert pos.getTheBoard().isPlayableMove(move, pos.isKingInCheck(), pos.getCastling()):

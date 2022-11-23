@@ -150,34 +150,30 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	private void sendBestMove() {
 		GenericMove bestMove = null;
 		SearchResult result = workers.get(0).result;
-		long trans = result.rootTrans;
+		long cachedRootTrans = result.rootTrans;
 		int pcBestMove = result.bestMove;
 		
-		long rootHashInTable = hashMap.getTransposition(rootHash);
-		if (rootHashInTable == 0L) {
-			// The transposition in the table could have been removed - If it has been removed we should rewrite it using the best we have.
-			hashMap.putTransposition(rootHash, trans);
-			rootHashInTable = trans;
+		// The transposition in the table could have been overwritten during the search;
+		// If it has been removed we should rewrite it using the best we have, i.e. the cached version.
+		long tableRootTrans = hashMap.getTransposition(rootHash);
+		if (tableRootTrans == 0L) {
+			hashMap.putTransposition(rootHash, cachedRootTrans);
+			tableRootTrans = cachedRootTrans;
 		}
-		if (trans == 0L && rootHashInTable != 0L) {
-			trans = rootHashInTable;
-		}
-		if (EubosEngineMain.ENABLE_ASSERTS) {
-			assert rootHashInTable == trans : "Tranposition mismatch between table and search result";
-		}
-		if (trans != 0L) {
-			int transBestMove = Transposition.getBestMove(trans);
+		
+		if (tableRootTrans != 0L) {
+			int transBestMove = Transposition.getBestMove(tableRootTrans);
 			if (!Move.areEqualForBestKiller(pcBestMove, transBestMove)) {
 				EubosEngineMain.logger.warning(String.format("At root, pc best=%s != trans best=%s, will not preserve PV in hash...", 
 						Move.toString(pcBestMove), Move.toString(transBestMove)));
 			} else {
 				EubosEngineMain.logger.fine("preservePvInHashTable");
-				moveGenerators.get(0).preservePvInHashTable(trans);
+				moveGenerators.get(0).preservePvInHashTable(tableRootTrans);
 			}
-			EubosEngineMain.logger.info(String.format("best is trans=%s", Transposition.report(trans)));
-			if (Score.isMate(Transposition.getScore(trans))) {
+			EubosEngineMain.logger.info(String.format("best is trans=%s", Transposition.report(tableRootTrans)));
+			if (Score.isMate(Transposition.getScore(tableRootTrans))) {
 				// it is possible that we didn't send a uci info pv message, so update the last score
-				refScore.updateLastScore(trans);
+				refScore.updateLastScore(tableRootTrans);
 			}
 			bestMove = Move.toGenericMove(transBestMove);
 		} else if (pcBestMove != Move.NULL_MOVE) {
@@ -185,7 +181,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 					String.format("Can't find root transpositon, use principal continuation."));
 			bestMove = Move.toGenericMove(pcBestMove);
 		} else {
-			// we will send null, it will be a rules infraction and Eubos will lose.
+			// we will send null, it will lead to a rules infraction and Eubos will lose.
 		}
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand(bestMove, null ));
 	}
