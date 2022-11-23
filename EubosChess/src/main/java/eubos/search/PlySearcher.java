@@ -116,6 +116,10 @@ public class PlySearcher {
 		hasSearchedPv = false;
 		lastAspirationFailed = false;
 		terminate = false;
+		
+		// Back up the root transposition, because it can be lost in the search
+		// if it is overwritten and that is very costly for performance.
+		rootTransposition = tt.getTransposition(pos.getHash());
 	}
 
 	public void terminateFindMove() { 
