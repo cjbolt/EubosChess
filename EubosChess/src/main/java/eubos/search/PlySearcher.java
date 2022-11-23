@@ -70,7 +70,6 @@ public class PlySearcher {
 	private MoveList ml;
 	
 	private boolean hasSearchedPv = false;
-
 	private boolean lastAspirationFailed = false;
 	
 	public PlySearcher(
@@ -107,6 +106,16 @@ public class PlySearcher {
 		this.ml = ml;
 		
 		rootTransposition = tt.getTransposition(pos.getHash());
+	}
+	
+	public void reinitialise(byte searchDepthPly, SearchMetricsReporter sr, short refScore) {
+		this.sr = sr;
+		this.refScore = refScore;
+		originalSearchDepthRequiredInPly = searchDepthPly;
+		
+		hasSearchedPv = false;
+		lastAspirationFailed = false;
+		terminate = false;
 	}
 
 	public void terminateFindMove() { 

@@ -77,6 +77,7 @@ public class MiniMaxMoveGenerator implements
 		sda = new SearchDebugAgent(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
 		pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
 		ml = new MoveList((PositionManager)pm, alternativeMoveListOrderingScheme);
+		ps = new PlySearcher(tta, pc, sm, null, (byte) 0, pm, pos, pe, killers, sda, ml, (short)0);
 	}
 	
 	public short getScore() { return score; }
@@ -93,7 +94,7 @@ public class MiniMaxMoveGenerator implements
 		boolean foundMate = false;
 		short scoreToUse = (searchDepth > ref.depth) ? score : ref.score;
 		sm.setDepth(searchDepth);
-		ps = new PlySearcher(tta, pc, sm, sr, searchDepth, pm, pos, pe, killers, sda, ml, scoreToUse);
+		ps.reinitialise(searchDepth, sr, scoreToUse);
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		try {
 			score = (short) ps.searchPly(scoreToUse);
