@@ -157,6 +157,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		// If it has been removed we should rewrite it using the best we have, i.e. the cached version.
 		long tableRootTrans = hashMap.getTransposition(rootHash);
 		if (tableRootTrans == 0L) {
+			EubosEngineMain.logger.fine(String.format("rootTrans overwritten replacing with %s", Transposition.report(cachedRootTrans)));
 			hashMap.putTransposition(rootHash, cachedRootTrans);
 			tableRootTrans = cachedRootTrans;
 		}

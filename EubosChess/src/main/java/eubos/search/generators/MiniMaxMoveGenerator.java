@@ -159,7 +159,7 @@ public class MiniMaxMoveGenerator implements
 
 			move = pc.getBestMove(i);
 			if (move == Move.NULL_MOVE) break;
-			if (!Move.areEqualForBestKiller(move, Transposition.getBestMove(trans))) break;
+			if (trans != 0L && !Move.areEqualForBestKiller(move, Transposition.getBestMove(trans))) break;
 			
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert pos.getTheBoard().isPlayableMove(move, pos.isKingInCheck(), pos.getCastling()):

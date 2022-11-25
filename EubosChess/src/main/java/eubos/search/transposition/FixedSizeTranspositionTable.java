@@ -1,6 +1,7 @@
 package eubos.search.transposition;
 
 import eubos.main.EubosEngineMain;
+import eubos.position.Move;
 
 public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	
@@ -115,6 +116,10 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		
 		// Quantise move count to 6 bits for age 
 		new_age >>= 2;
+				
+		if (EubosEngineMain.ENABLE_ASSERTS) {		
+			assert new_bestMove != Move.NULL_MOVE : "setTransposition best move is null";
+		}
 		
 		if (trans == 0L) {
 			// Needed, because we want to merge this transposition with that of other threads, not to lose their effort.
