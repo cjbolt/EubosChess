@@ -587,6 +587,7 @@ public class PlySearcher {
 					check_for_refutation = true;
 					break;
 				case Score.typeUnknown:
+					break;
 				default:
 					if (EubosEngineMain.ENABLE_ASSERTS) assert false;
 					break;

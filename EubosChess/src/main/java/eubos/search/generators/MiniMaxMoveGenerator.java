@@ -144,6 +144,7 @@ public class MiniMaxMoveGenerator implements
 		
 		int searchDepth = Transposition.getDepthSearchedInPly(root_trans);
 		short theScore = Transposition.getScore(root_trans);
+		int bestMove = Transposition.getBestMove(root_trans);
 		long trans = root_trans;
 		pm.performMove(move);
 		int movesApplied = 1;
@@ -159,7 +160,7 @@ public class MiniMaxMoveGenerator implements
 
 			move = pc.getBestMove(i);
 			if (move == Move.NULL_MOVE) break;
-			if (trans != 0L && !Move.areEqualForBestKiller(move, Transposition.getBestMove(trans))) break;
+			if (trans != 0L && !Move.areEqualForBestKiller(move, bestMove)) break;
 			
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert pos.getTheBoard().isPlayableMove(move, pos.isKingInCheck(), pos.getCastling()):
@@ -168,7 +169,7 @@ public class MiniMaxMoveGenerator implements
 			
 			if (trans == 0L) {
 				byte depth = (byte)(searchDepth-i);
-				trans = tta.setTransposition(new_hash, trans, depth, theScore, Score.upperBound, move, pos.getMoveNumber());
+				trans = tta.setTransposition(new_hash, trans, depth, theScore, Score.typeUnknown, move, pos.getMoveNumber());
 				if (EubosEngineMain.ENABLE_LOGGING) {
 					EubosEngineMain.logger.info(
 							String.format("At ply %d, hash table entry lost, regenerating with bestMove from pc=%s",
@@ -180,6 +181,15 @@ public class MiniMaxMoveGenerator implements
 			movesApplied += 1;
 			new_hash = pos.getHash();
 			trans = tta.getTransposition(new_hash);
+			
+			bestMove = Transposition.getBestMove(trans);
+			
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				if (trans != 0L) {
+					assert !Move.areEqualForBestKiller(bestMove, Move.NULL_MOVE) :
+						"Best Move is Null in Trans which is not 0L";
+				}
+			}
 		}
 		while (movesApplied > 0) {
 			pm.unperformMove();

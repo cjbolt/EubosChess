@@ -5,6 +5,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import com.fluxchess.jcpi.models.GenericMove;
@@ -93,12 +94,22 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			worker.halt();
 		}		
 	}
+	
+	private boolean alWorkersFinished() {
+		for (MultithreadedSearchWorkerThread worker : workers) {
+			if (!worker.finished.get()) {
+				EubosEngineMain.logger.info(
+						String.format("%s not finished.", worker.getName()));
+				return false;
+			}
+		}
+		return true;
+	}
 
 	@SuppressWarnings("unused")
 	@Override
 	public void run() {
 		enableSearchMetricsReporter(true);
-		boolean isSearchCompleted = false;
 		stopper.start();
 		
 		// Create workers and let them run
@@ -114,23 +125,18 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 				}
 			}
 		}
-		do {
+		// Wait for multithreaded search to complete, all threads must finish
+		synchronized (this) {
 			try {
-				synchronized (this) {
-					if (isAtLeastOneWorkerStillAlive()) {
-						// Conditional, because if a mate is found from the hash table, the worker(s) might return before we hit the wait
-						wait();
-						EubosEngineMain.logger.info("MultithreadedIterativeMoveSearcher got notified.");
-					} else {
-						EubosEngineMain.logger.info("MultithreadedIterativeMoveSearcher dropthrough, already finished!");
-						isSearchCompleted = true;
-					}
+				while (!alWorkersFinished()) {
+					wait();
+					EubosEngineMain.logger.info("MultithreadedIterativeMoveSearcher got notified.");
 				}
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 				EubosEngineMain.logger.info("MultithreadedIterativeMoveSearcher got an InterruptedException.");
 			}
-		} while (!isSearchCompleted && isAtLeastOneWorkerStillAlive());
+		}
 		enableSearchMetricsReporter(false);
 		stopper.end();
 		terminateSearchMetricsReporter();
@@ -186,28 +192,14 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		}
 		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand(bestMove, null ));
 	}
-	
-	private boolean isAtLeastOneWorkerStillAlive() {
-		boolean isAtLeastOneWorkerStillAlive = false;
-		for (MultithreadedSearchWorkerThread worker : workers) {
-			if (!worker.halted) {
-				isAtLeastOneWorkerStillAlive = true;
-				EubosEngineMain.logger.info(String.format("Worker still active %s %d", worker.getName(), worker.getId()));
-				break;
-			}
-		}
-		if (!isAtLeastOneWorkerStillAlive) {
-			EubosEngineMain.logger.info("All workers halted, stopping MultithreadedIterativeMoveSearcher");
-		}
-		return isAtLeastOneWorkerStillAlive;
-	}
 
 	class MultithreadedSearchWorkerThread extends Thread {
 		
 		private AbstractMoveSearcher main;
 		private MiniMaxMoveGenerator myMg;
 		public SearchResult result;
-		volatile boolean halted = false;
+		private volatile boolean halted = false;
+		final AtomicBoolean finished = new AtomicBoolean(false);
 		
 		public MultithreadedSearchWorkerThread( MiniMaxMoveGenerator moveGen, AbstractMoveSearcher main ) {
 			this.myMg = moveGen;
@@ -250,11 +242,12 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			// The result can be read by reading the result member of this object or by reading the shared transposition table
 			halted = true;
 			myMg.reportStatistics();
-			EubosEngineMain.logger.info(String.format("Worker %s halted, notifying", this.getName()));
+			myMg.sda.close();
+			EubosEngineMain.logger.info(String.format("Worker %s halted, notifying", getName()));
 			synchronized(main) {
+				finished.set(true);
 				main.notify();
 			}
-			myMg.sda.close();
 		}
 		
 		public void halt() {
