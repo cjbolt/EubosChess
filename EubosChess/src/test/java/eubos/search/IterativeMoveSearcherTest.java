@@ -15,6 +15,7 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 
 
 import eubos.main.EubosEngineMain;
+import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.score.PawnEvalHashTable;
 import eubos.score.ReferenceScore;
@@ -41,9 +42,9 @@ public class IterativeMoveSearcherTest {
 		}
 		
 		@Override
-		public void sendBestMoveCommand(ProtocolBestMoveCommand command) {
+		public void sendBestMoveCommand(SearchResult result) {
 			bestMoveCommandReceived = true;
-			last_bestMove = command;
+			last_bestMove = new ProtocolBestMoveCommand(Move.toGenericMove(result.pv[0]), null);
 		}
 	}
 	private EubosMock eubos;

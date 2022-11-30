@@ -1,7 +1,5 @@
 package eubos.search.searchers;
 
-import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
-
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.score.PawnEvalHashTable;
@@ -19,8 +17,9 @@ public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 			FixedSizeTranspositionTable hashMap, 
 			String fen,  
 			DrawChecker dc, 
-			byte searchDepth) {
-		super(eubos, fen, dc, hashMap, new ReferenceScore(hashMap), new PawnEvalHashTable());
+			byte searchDepth,
+			ReferenceScore refScore) {
+		super(eubos, fen, dc, hashMap, refScore, new PawnEvalHashTable());
 		this.searchDepth = searchDepth;
 		this.setName("FixedDepthMoveSearcher");
 	}
@@ -33,13 +32,13 @@ public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 	
 	@Override
 	public void run() {
-		SearchResult res = new SearchResult(Move.NULL_MOVE, false, 0L);
+		SearchResult res = new SearchResult();
 		enableSearchMetricsReporter(true);
 		for (byte depth=1; depth<=searchDepth && !searchStopped; depth++) {
-			res = doFindMove(Move.toGenericMove(res.bestMove), depth);
+			res = doFindMove(Move.toGenericMove(res.pv[0]), depth);
 		}
 		enableSearchMetricsReporter(false);
-		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( Move.toGenericMove(res.bestMove), null ));
+		eubosEngine.sendBestMoveCommand(res);
 		terminateSearchMetricsReporter();
 		mg.sda.close();
 	}

@@ -2,8 +2,6 @@ package eubos.search.searchers;
 
 import java.sql.Timestamp;
 
-import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
-
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.score.PawnEvalHashTable;
@@ -18,8 +16,8 @@ public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 	long moveTime;
 	volatile boolean searchStopped = false;
 
-	public FixedTimeMoveSearcher(EubosEngineMain eubos, FixedSizeTranspositionTable hashMap, PawnEvalHashTable pawnHash, String fen, DrawChecker dc, long time) {
-		super(eubos, fen, dc, hashMap, new ReferenceScore(hashMap), pawnHash);
+	public FixedTimeMoveSearcher(EubosEngineMain eubos, FixedSizeTranspositionTable hashMap, PawnEvalHashTable pawnHash, String fen, DrawChecker dc, long time, ReferenceScore refScore) {
+		super(eubos, fen, dc, hashMap, refScore, pawnHash);
 		moveTime = time;
 		this.setName("FixedTimeMoveSearcher");
 	}
@@ -32,7 +30,7 @@ public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 	@Override
 	public void run() {
 		byte currentDepth = 1;
-		SearchResult res = new SearchResult(Move.NULL_MOVE, false, 0L);
+		SearchResult res = new SearchResult();
 		enableSearchMetricsReporter(true);
 		Timestamp msTargetEndTime = new Timestamp(System.currentTimeMillis() + moveTime);
 		MoveSearchStopper stopper = new MoveSearchStopper(msTargetEndTime);
@@ -46,7 +44,7 @@ public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 				if (res.foundMate) {
 					EubosEngineMain.logger.info("FixedTimeMoveSearcher found mate");
 					searchStopped = true;
-				} else if (res.bestMove == Move.NULL_MOVE) {
+				} else if (res.pv[0] == Move.NULL_MOVE) {
 					EubosEngineMain.logger.info("FixedTimeMoveSearcher out of legal moves");
 					searchStopped = true;
 				}
@@ -60,7 +58,7 @@ public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 		}
 		stopper.end();
 		enableSearchMetricsReporter(false);
-		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( Move.toGenericMove(res.bestMove), null ));
+		eubosEngine.sendBestMoveCommand(res);
 		terminateSearchMetricsReporter();
 		mg.sda.close();
 	}

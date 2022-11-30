@@ -4,8 +4,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 
-import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
-
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.score.PawnEvalHashTable;
@@ -68,7 +66,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	@Override
 	public void run() {
 		byte currentDepth = 1;
-		SearchResult res = new SearchResult(Move.NULL_MOVE, false, 0L);
+		SearchResult res = new SearchResult();
 		enableSearchMetricsReporter(true);
 		IterativeMoveSearchStopper stopper = new IterativeMoveSearchStopper();
 		stopper.start();
@@ -78,7 +76,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				if (res.foundMate && !analyse) {
 					EubosEngineMain.logger.info("IterativeMoveSearcher found mate");
 					searchStopped = true;
-				} else if (res.bestMove == Move.NULL_MOVE) {
+				} else if (res.pv[0] == Move.NULL_MOVE) {
 					EubosEngineMain.logger.info("IterativeMoveSearcher out of legal moves");
 					searchStopped = true;
 				}
@@ -99,10 +97,10 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			}
 		}
 		EubosEngineMain.logger.info(
-			String.format("IterativeMoveSearcher ended best=%s gameTimeRemaining=%d", res.bestMove, gameTimeRemaining));
+			String.format("IterativeMoveSearcher ended best=%s gameTimeRemaining=%d", res.pv[0], gameTimeRemaining));
 		stopper.end();
 		enableSearchMetricsReporter(false);
-		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand( Move.toGenericMove(res.bestMove), null ));
+		eubosEngine.sendBestMoveCommand(res);
 		terminateSearchMetricsReporter();
 		mg.sda.close();
 		if (EXPLICIT_GARBAGE_COLLECTION) {

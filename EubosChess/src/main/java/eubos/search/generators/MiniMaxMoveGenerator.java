@@ -8,7 +8,6 @@ import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
-import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.PositionManager;
 import eubos.score.IEvaluate;
@@ -24,7 +23,6 @@ import eubos.search.SearchMetrics;
 import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
 import eubos.search.transposition.ITranspositionAccessor;
-import eubos.search.transposition.Transposition;
 
 public class MiniMaxMoveGenerator implements
 		IMoveGenerator {
@@ -113,7 +111,7 @@ public class MiniMaxMoveGenerator implements
 			foundMate = true;
 		}
 		// Select the best move
-		return new SearchResult(pc.getBestMove((byte)0), foundMate, ps.rootTransposition);
+		return new SearchResult(pc.toPvList(0), foundMate, ps.rootTransposition, searchDepth);
 	}
 	
 	public void terminateFindMove() {
@@ -131,69 +129,5 @@ public class MiniMaxMoveGenerator implements
 
 	public boolean lastAspirationFailed() {
 		return ps.lastAspirationFailed();
-	}
-	
-	public void preservePvInHashTable(long root_trans) {
-		// Apply all the moves in the pv and check the resulting position is in the hash table
-		byte i=0;
-		
-		if (root_trans == 0L) return;
-		int move = pc.getBestMove(i);
-		if (move == Move.NULL_MOVE)
-			return;
-		
-		int searchDepth = Transposition.getDepthSearchedInPly(root_trans);
-		short theScore = Transposition.getScore(root_trans);
-		int bestMove = Transposition.getBestMove(root_trans);
-		long trans = root_trans;
-		pm.performMove(move);
-		int movesApplied = 1;
-		
-		// new hash is following best move having been applied, now need to check we still have
-		// transposition entries for the PV move positions. If they are not present create them.
-		// If they are different, leave it be (the Transposition could be based on a deeper search)
-		// and abort the checking.
-		long new_hash = pos.getHash();
-		trans = tta.getTransposition(new_hash);
-				
-		for (i=1; i < pc.length[0]; i++) {
-
-			move = pc.getBestMove(i);
-			if (move == Move.NULL_MOVE) break;
-			if (trans != 0L && !Move.areEqualForBestKiller(move, bestMove)) break;
-			
-			if (EubosEngineMain.ENABLE_ASSERTS) {
-				assert pos.getTheBoard().isPlayableMove(move, pos.isKingInCheck(), pos.getCastling()):
-					String.format("%s not playable after %s fen=%s", Move.toString(move), pos.unwindMoveStack(), pos.getFen());
-			}
-			
-			if (trans == 0L) {
-				byte depth = (byte)(searchDepth-i);
-				trans = tta.setTransposition(new_hash, trans, depth, theScore, Score.typeUnknown, move, pos.getMoveNumber());
-				if (EubosEngineMain.ENABLE_LOGGING) {
-					EubosEngineMain.logger.info(
-							String.format("At ply %d, hash table entry lost, regenerating with bestMove from pc=%s",
-							i, Move.toString(move), Transposition.report(trans)));
-				}
-			}
-			
-			pm.performMove(move);
-			movesApplied += 1;
-			new_hash = pos.getHash();
-			trans = tta.getTransposition(new_hash);
-			
-			bestMove = Transposition.getBestMove(trans);
-			
-			if (EubosEngineMain.ENABLE_ASSERTS) {
-				if (trans != 0L) {
-					assert !Move.areEqualForBestKiller(bestMove, Move.NULL_MOVE) :
-						"Best Move is Null in Trans which is not 0L";
-				}
-			}
-		}
-		while (movesApplied > 0) {
-			pm.unperformMove();
-			movesApplied--;
-		}
 	}
 }

@@ -16,12 +16,10 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
-import eubos.position.Position;
 import eubos.position.PositionManager;
 import eubos.score.ReferenceScore;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 import eubos.search.transposition.Transposition;
-import eubos.search.Score;
 import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
 
@@ -57,9 +55,9 @@ public class MiniMaxMoveGeneratorTest {
 	private void doFindMoveTest( byte searchDepth, boolean expectMove ) {
 		SearchResult res = classUnderTest.findMove(searchDepth);
 		if ( expectMove )
-			assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
+			assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
 		else
-			assertFalse(Move.toGenericMove(res.bestMove).equals(expectedMove));
+			assertFalse(Move.toGenericMove(res.pv[0]).equals(expectedMove));
 	}
 
 	@Test
@@ -143,7 +141,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 1 kP......
 		//   abcdefgh
 		setupPosition( "8/8/8/8/8/1pp5/ppp5/Kp6 w - - - 1" );
-		assertEquals(Move.NULL_MOVE, classUnderTest.findMove(SEARCH_DEPTH_IN_PLY).bestMove);
+		assertEquals(Move.NULL_MOVE, classUnderTest.findMove(SEARCH_DEPTH_IN_PLY).pv[0]);
 	}
 	
 	@Test
@@ -415,7 +413,7 @@ public class MiniMaxMoveGeneratorTest {
 		setupPosition( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
 		expectedMove = new GenericMove("h8g7");
 		SearchResult res = classUnderTest.findMove((byte)4);
-		assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
+		assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
 	}
 		
 	@Test
@@ -427,7 +425,7 @@ public class MiniMaxMoveGeneratorTest {
 		expectedMove = new GenericMove("h8g7");
 		
 		SearchResult res = classUnderTest.findMove((byte)4);
-		assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
+		assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
 		
 		// changed to safest move in extended search changed the move used here 21st August 2020
 		//expectedMove = new GenericMove("h8g8");
@@ -435,7 +433,7 @@ public class MiniMaxMoveGeneratorTest {
 		expectedMove = new GenericMove("h8g7");
 		res = classUnderTest.findMove((byte)5, sr_stub);
 		
-		assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
+		assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
 	}
 	
 	@Test
@@ -448,7 +446,7 @@ public class MiniMaxMoveGeneratorTest {
 		classUnderTest.findMove((byte)5, sr_stub);
 		SearchResult res = classUnderTest.findMove((byte)6, sr_stub);
 		
-	    assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
+	    assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
 	}
 	
 	@Test
@@ -459,7 +457,7 @@ public class MiniMaxMoveGeneratorTest {
 		
 		SearchResult res = classUnderTest.findMove((byte)2);
 		
-		assertEquals(expectedMove, res.bestMove);
+		assertEquals(expectedMove, res.pv[0]);
 	}
 	
 	@Test
@@ -468,7 +466,7 @@ public class MiniMaxMoveGeneratorTest {
 		expectedMove = new GenericMove("g2g7"); // queen sac leads to mate in 1
 		SearchResult res = classUnderTest.findMove((byte)3);
 		
-		assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
+		assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
 	}
 	
 	@Test
@@ -480,7 +478,7 @@ public class MiniMaxMoveGeneratorTest {
 			
 			SearchResult res = classUnderTest.findMove((byte)1);
 			// Leads to stalemate
-			assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
+			assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
 		}
 	}
 	
@@ -492,7 +490,7 @@ public class MiniMaxMoveGeneratorTest {
 		
 		SearchResult res = classUnderTest.findMove((byte)1);
 		
-		assertNotEquals(expectedMove, res.bestMove);
+		assertNotEquals(expectedMove, res.pv[0]);
 	}
 	
 	@Test
@@ -503,7 +501,7 @@ public class MiniMaxMoveGeneratorTest {
 		
 		SearchResult res = classUnderTest.findMove((byte)3);
 		
-		assertEquals(expectedMove, res.bestMove);
+		assertEquals(expectedMove, res.pv[0]);
 	}
 	
 	@Test
@@ -514,11 +512,11 @@ public class MiniMaxMoveGeneratorTest {
 		
 		// Check the move and score are as expected
 		expectedMove = new GenericMove("d5e4");
-		assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
+		assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
 		assertEquals(-139, classUnderTest.getScore());
 		
 		// Check the hash score is updated properly, negated for white POV
-		pm.performMove(res.bestMove);
+		pm.performMove(res.pv[0]);
 		assertEquals(139,Transposition.getScore(hashMap.getTransposition(pm.getHash())));
 	}
 	
@@ -530,21 +528,7 @@ public class MiniMaxMoveGeneratorTest {
 		
 		// Check the move and score are as expected
 		expectedMove = new GenericMove("g5g4");
-		assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
+		assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
 		assertEquals(157, classUnderTest.getScore());
-	}
-	
-	@Test
-	public void test() {
-		setupPosition("r1bqkb1r/pp3pp1/1np1p2p/3pP3/3P1P2/2PB1N2/P1P1Q1PP/R1B2RK1 w kq - 0 1");
-		byte depth = 5;
-		int[] moves = {
-			Move.valueOf(Position.c1, Piece.WHITE_BISHOP, Position.a3, Piece.NONE),
-			Move.valueOf(Position.f8, Piece.BLACK_BISHOP, Position.a3, Piece.WHITE_BISHOP),
-		};
-		long trans = hashMap.setTransposition(pm.getHash(), 0L, depth, (short)0, Score.upperBound, moves[0], 0);
-		
-		classUnderTest.pc.setArray(moves);
-		classUnderTest.preservePvInHashTable(trans);
 	}
 }

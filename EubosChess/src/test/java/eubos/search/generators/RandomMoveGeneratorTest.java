@@ -38,9 +38,9 @@ public class RandomMoveGeneratorTest {
 	private void performTest( boolean assertSense ) {
 		SearchResult res = classUnderTest.findMove((byte)0);
 		if ( assertSense )
-			assertEquals(expectedMove, Move.toGenericMove(res.bestMove));
+			assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
 		else
-			assertNotEquals(expectedMove, Move.toGenericMove(res.bestMove));
+			assertNotEquals(expectedMove, Move.toGenericMove(res.pv[0]));
 	}
 	
 	@Test
@@ -111,6 +111,6 @@ public class RandomMoveGeneratorTest {
 		//   abcdefgh
 		PositionManager bm = createPm("8/8/8/8/8/1pp5/ppp5/Kp6 w - - 0 1");
 		classUnderTest = new RandomMoveGenerator( bm, Colour.white );
-		assertEquals(Move.NULL_MOVE, classUnderTest.findMove((byte)0).bestMove);
+		assertEquals(Move.NULL_MOVE, classUnderTest.findMove((byte)0).pv[0]);
 	}
 }

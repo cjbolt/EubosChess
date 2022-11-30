@@ -24,9 +24,7 @@ class RandomMoveGenerator implements IMoveGenerator {
 	@Override
 	// Find a random legal move for the colour "on move"
 	public SearchResult findMove(byte searchDepth)  {
-		int bestMove = ml.getRandomMove();
-		boolean isMate = bestMove == Move.NULL_MOVE;
-		return new SearchResult(bestMove, isMate, 0L);
+		return new SearchResult();
 	}
 
 	@Override

@@ -7,10 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
-import com.fluxchess.jcpi.models.GenericMove;
-
-
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.PositionManager;
@@ -18,11 +14,9 @@ import eubos.score.PawnEvalHashTable;
 import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
 
-import eubos.search.Score;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.FixedSizeTranspositionTable;
-import eubos.search.transposition.Transposition;
 
 public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	
@@ -34,10 +28,6 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	
 	protected List<MultithreadedSearchWorkerThread> workers;
 	protected List<MiniMaxMoveGenerator> moveGenerators;
-	
-	private long rootHash = 0L;
-	private FixedSizeTranspositionTable hashMap;
-	
 	
 	public MultithreadedIterativeMoveSearcher(EubosEngineMain eubos, 
 			FixedSizeTranspositionTable hashMap,
@@ -52,7 +42,6 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		super(eubos, hashMap, pawnHash, fen, dc, time, increment, refScore, move_overhead);
 		this.setName("MultithreadedIterativeMoveSearcher");
 		this.threads = threads;
-		this.hashMap = hashMap;
 		workers = new ArrayList<MultithreadedSearchWorkerThread>(threads);
 		createMoveGenerators(hashMap, pawnHash, fen, dc, threads);
 		stopper = new IterativeMoveSearchStopper();
@@ -62,7 +51,6 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		moveGenerators = new ArrayList<MiniMaxMoveGenerator>(threads);
 		// The first move generator shall be that constructed by the abstract MoveSearcher, this one shall be accessed by the stopper thread
 		moveGenerators.add(mg);
-		rootHash = mg.pos.getHash();
 		// Create subsequent move generators using cloned DrawCheckers and distinct PositionManagers
 		for (int i=1; i < threads; i++) {
 			DrawChecker cloned_dc = new DrawChecker(dc);
@@ -141,7 +129,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		stopper.end();
 		terminateSearchMetricsReporter();
 		try {
-			sendBestMove();
+			eubosEngine.sendBestMoveCommand(getFavouredWorkerResult());
 		} catch (Exception e) {
 			Writer buffer = new StringWriter();
 			PrintWriter pw = new PrintWriter(buffer);
@@ -152,45 +140,32 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			EubosEngineMain.logger.severe(error);
 		}
 	}
-
-	private void sendBestMove() {
-		GenericMove bestMove = null;
-		SearchResult result = workers.get(0).result;
-		long cachedRootTrans = result.rootTrans;
-		int pcBestMove = result.bestMove;
-		
-		// The transposition in the table could have been overwritten during the search;
-		// If it has been removed we should rewrite it using the best we have, i.e. the cached version.
-		long tableRootTrans = hashMap.getTransposition(rootHash);
-		if (tableRootTrans == 0L) {
-			EubosEngineMain.logger.fine(String.format("rootTrans overwritten replacing with %s", Transposition.report(cachedRootTrans)));
-			hashMap.putTransposition(rootHash, cachedRootTrans);
-			tableRootTrans = cachedRootTrans;
-		}
-		
-		if (tableRootTrans != 0L) {
-			int transBestMove = Transposition.getBestMove(tableRootTrans);
-			if (!Move.areEqualForBestKiller(pcBestMove, transBestMove)) {
-				EubosEngineMain.logger.warning(String.format("At root, pc best=%s != trans best=%s, will not preserve PV in hash...", 
-						Move.toString(pcBestMove), Move.toString(transBestMove)));
-			} else {
-				EubosEngineMain.logger.fine("preservePvInHashTable");
-				moveGenerators.get(0).preservePvInHashTable(tableRootTrans);
+	
+	private SearchResult getFavouredWorkerResult() {
+		SearchResult result = null;
+		int ply = 1000;
+		boolean anyFoundMate = false;
+		for (MultithreadedSearchWorkerThread worker : workers) {
+			// If there is a mate, give shortest pv to mate
+			if (worker.result.foundMate) {
+				anyFoundMate = true;
+				if (worker.result.depth < ply) {
+					ply = worker.result.depth;
+					result = worker.result;
+				}
 			}
-			EubosEngineMain.logger.info(String.format("best is trans=%s", Transposition.report(tableRootTrans)));
-			if (Score.isMate(Transposition.getScore(tableRootTrans))) {
-				// it is possible that we didn't send a uci info pv message, so update the last score
-				refScore.updateLastScore(tableRootTrans);
-			}
-			bestMove = Move.toGenericMove(transBestMove);
-		} else if (pcBestMove != Move.NULL_MOVE) {
-			EubosEngineMain.logger.severe(
-					String.format("Can't find root transpositon, use principal continuation."));
-			bestMove = Move.toGenericMove(pcBestMove);
-		} else {
-			// we will send null, it will lead to a rules infraction and Eubos will lose.
 		}
-		eubosEngine.sendBestMoveCommand(new ProtocolBestMoveCommand(bestMove, null ));
+		if (!anyFoundMate) {
+			// else favour deepest pv
+			ply = 0;
+			for (MultithreadedSearchWorkerThread worker : workers) {
+				if (worker.result.depth > ply) {
+					ply = worker.result.depth;
+					result = worker.result;
+				}
+			}
+		}
+		return result;
 	}
 
 	class MultithreadedSearchWorkerThread extends Thread {
@@ -209,7 +184,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		
 		public void run() {
 			byte currentDepth = 1;
-			result = new SearchResult(Move.NULL_MOVE, false, 0L);
+			result = new SearchResult(new int [] {Move.NULL_MOVE}, false, 0L, currentDepth);
 		
 			while (!searchStopped && !halted) {
 				result = myMg.findMove(currentDepth, sr);
@@ -218,7 +193,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 						EubosEngineMain.logger.info("IterativeMoveSearcher found mate");
 						searchStopped = true;
 						halted = true;
-					} else if (result.bestMove == Move.NULL_MOVE) {
+					} else if (result.pv[0] == Move.NULL_MOVE) {
 						EubosEngineMain.logger.info("IterativeMoveSearcher out of legal moves");
 						searchStopped = true;
 						halted = true;
