@@ -450,6 +450,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	private void convertToGenericAndSendBestMove(int nativeBestMove) {
 		GenericMove bestMove = Move.toGenericMove(nativeBestMove);
+		logger.info(String.format("Best Move %s", bestMove));
 		ProtocolBestMoveCommand protocolBestMoveCommand = new ProtocolBestMoveCommand(bestMove, null);
 		try {
 			this.getProtocol().send(protocolBestMoveCommand);
@@ -485,7 +486,7 @@ public class EubosEngineMain extends AbstractEngine {
 		// The transposition in the table could have been overwritten during the search;
 		// If it has been removed we should rewrite it using the best we have, i.e. the cached version.
 		if (tableRootTrans == 0L) {
-			EubosEngineMain.logger.fine(String.format("rootTrans overwritten replacing with %s", Transposition.report(cachedRootTrans)));
+			logger.fine(String.format("rootTrans overwritten replacing with %s", Transposition.report(cachedRootTrans)));
 			hashMap.putTransposition(rootPosition.getHash(), cachedRootTrans);
 			tableRootTrans = cachedRootTrans;
 		}
@@ -505,6 +506,7 @@ public class EubosEngineMain extends AbstractEngine {
 		updateReferenceScoreWhenMateFound(tableRootTrans);
 		
 		// The search depth and the score to put in any created transpositions are derived from the root transposition
+		logger.info(String.format("tableRootTrans %s", Transposition.report(tableRootTrans)));
 		int searchDepth = Transposition.getDepthSearchedInPly(tableRootTrans);
 		short theScore = Transposition.getScore(tableRootTrans);
 		int transBestMove = Transposition.getBestMove(tableRootTrans);
@@ -516,7 +518,7 @@ public class EubosEngineMain extends AbstractEngine {
 		
 		boolean preservePvInHashTable = true;
 		if (!Move.areEqualForBestKiller(pcBestMove, transBestMove)) {
-			EubosEngineMain.logger.warning(String.format("At root, pc best=%s != trans best=%s, will not preserve PV in hash...", 
+			logger.warning(String.format("At root, pc best=%s != trans best=%s, will not preserve PV in hash...", 
 					Move.toString(pcBestMove), Move.toString(transBestMove)));
 			preservePvInHashTable = false;
 		}
@@ -534,16 +536,15 @@ public class EubosEngineMain extends AbstractEngine {
 				if (currMove == Move.NULL_MOVE) break;
 				if (trans != 0L && !Move.areEqualForBestKiller(currMove, Transposition.getBestMove(trans))) break;
 				
-				if (EubosEngineMain.ENABLE_ASSERTS) {
+				if (ENABLE_ASSERTS) {
 					assert rootPosition.getTheBoard().isPlayableMove(currMove, rootPosition.isKingInCheck(), rootPosition.getCastling()):
 						String.format("%s not playable after %s fen=%s", Move.toString(currMove), rootPosition.unwindMoveStack(), rootPosition.getFen());
 				}
 				if (trans == 0L) {
 					byte depth = (byte)(searchDepth-i);
 					trans = hashMap.setTransposition(new_hash, trans, depth, theScore, Score.typeUnknown, currMove, rootPosition.getMoveNumber());
-					if (EubosEngineMain.ENABLE_LOGGING) {
-						EubosEngineMain.logger.info(
-								String.format("At ply %d, hash table entry lost, regenerating with bestMove from pc=%s",
+					if (ENABLE_LOGGING) {
+						logger.info(String.format("At ply %d, hash table entry lost, regenerating with bestMove from pc=%s",
 								i, Move.toString(currMove), Transposition.report(trans)));
 					}
 				}

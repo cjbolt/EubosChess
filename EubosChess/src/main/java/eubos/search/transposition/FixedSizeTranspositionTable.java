@@ -15,7 +15,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	public static final long BYTES_PER_MEGABYTE = 1_024_000L;
 	public static final long MBYTES_DEFAULT_HASH_SIZE = 256L;
 	
-	static final int RANGE_TO_SEARCH = 10;
+	static final int RANGE_TO_SEARCH = 20;
 	static final boolean USE_ALWAYS_REPLACE = (RANGE_TO_SEARCH <= 1);
 			
 	private long [] transposition_table = null;
@@ -93,7 +93,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 			}
 			// failing that, overwrite based on age
 			int oldest_age = Transposition.getAge(trans);
-			int threshold_age = Math.max(0, oldest_age - 4);
+			int threshold_age = Math.max(0, oldest_age - 6);
 			int oldest_index = index;
 			for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
 				int index_age = Transposition.getAge(transposition_table[i]);
