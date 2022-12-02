@@ -267,6 +267,7 @@ public class EubosEngineMain extends AbstractEngine {
 			int [] pv = new int[] { Transposition.getBestMove(rootTrans) };
 			ReferenceScore refScore = Colour.isWhite(rootPosition.getOnMove()) ? whiteRefScore : blackRefScore;
 			refScore.updateReference(rootPosition);
+			logger.info(String.format("EngineStartCalculatingCommand - Mate in transposition %s", Transposition.report(rootTrans)));
 			SearchResult result = new SearchResult(pv, true, rootTrans, Transposition.getDepthSearchedInPly(rootTrans));
 			sendBestMoveCommand(result);
 		} else {
