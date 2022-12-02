@@ -15,7 +15,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	public static final long BYTES_PER_MEGABYTE = 1_024_000L;
 	public static final long MBYTES_DEFAULT_HASH_SIZE = 256L;
 	
-	static final int RANGE_TO_SEARCH = 20;
+	static final int RANGE_TO_SEARCH = 10;
 	static final boolean USE_ALWAYS_REPLACE = (RANGE_TO_SEARCH <= 1);
 			
 	private long [] transposition_table = null;
