@@ -45,7 +45,7 @@ public class FixedTimeMoveSearcher extends AbstractMoveSearcher {
 					EubosEngineMain.logger.info("FixedTimeMoveSearcher found mate");
 					searchStopped = true;
 				} else if (res.pv[0] == Move.NULL_MOVE) {
-					EubosEngineMain.logger.info("FixedTimeMoveSearcher out of legal moves");
+					EubosEngineMain.logger.severe("FixedTimeMoveSearcher out of legal moves");
 					searchStopped = true;
 				}
 			}

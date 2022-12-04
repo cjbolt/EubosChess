@@ -21,7 +21,7 @@ import eubos.search.transposition.FixedSizeTranspositionTable;
 public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	
 	private static final int STAGGERED_START_TIME_FOR_THREADS = 0;
-	private static final boolean ALTERNATIVE_MOVE_LIST_ORDERING_IN_WORKER_THREADS = false;
+	private static final boolean ALTERNATIVE_MOVE_LIST_ORDERING_IN_WORKER_THREADS = true;
 	
 	protected IterativeMoveSearchStopper stopper;
 	protected int threads = 0;
@@ -64,7 +64,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			for (MiniMaxMoveGenerator thisMg : moveGenerators) {
 				int useOrderingScheme = (i%4)+1;
 				thisMg.alternativeMoveListOrdering(useOrderingScheme);
-				EubosEngineMain.logger.info(String.format("MoveGenerator %d using ordering scheme %d", i, useOrderingScheme));
+				EubosEngineMain.logger.fine(String.format("MoveGenerator %d using ordering scheme %d", i, useOrderingScheme));
 				i++;
 			}
 		}
@@ -86,7 +86,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	private boolean alWorkersFinished() {
 		for (MultithreadedSearchWorkerThread worker : workers) {
 			if (!worker.finished.get()) {
-				EubosEngineMain.logger.info(
+				EubosEngineMain.logger.fine(
 						String.format("%s not finished.", worker.getName()));
 				return false;
 			}
@@ -118,7 +118,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			try {
 				while (!alWorkersFinished()) {
 					wait();
-					EubosEngineMain.logger.info("MultithreadedIterativeMoveSearcher got notified.");
+					EubosEngineMain.logger.finer("MultithreadedIterativeMoveSearcher got notified.");
 				}
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
@@ -194,7 +194,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 						searchStopped = true;
 						halted = true;
 					} else if (result.pv[0] == Move.NULL_MOVE) {
-						EubosEngineMain.logger.info("IterativeMoveSearcher out of legal moves");
+						EubosEngineMain.logger.severe("IterativeMoveSearcher out of legal moves");
 						searchStopped = true;
 						halted = true;
 					}
@@ -204,7 +204,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 						// don't start a new iteration, we were only allowing time to complete the search at the current ply
 						searchStopped = true;
 						if (DEBUG_LOGGING) {
-							EubosEngineMain.logger.info(String.format(
+							EubosEngineMain.logger.fine(String.format(
 									"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
 						}
 					}
@@ -218,7 +218,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			halted = true;
 			myMg.reportStatistics();
 			myMg.sda.close();
-			EubosEngineMain.logger.info(String.format("Worker %s halted, notifying", getName()));
+			EubosEngineMain.logger.fine(String.format("Worker %s halted, notifying", getName()));
 			synchronized(main) {
 				finished.set(true);
 				main.notify();

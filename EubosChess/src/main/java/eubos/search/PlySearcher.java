@@ -123,7 +123,7 @@ public class PlySearcher {
 	}
 
 	public void terminateFindMove() { 
-		EubosEngineMain.logger.info("Terminating PlySearcher");
+		EubosEngineMain.logger.fine("Terminating PlySearcher");
 		terminate = true;
 	}
 	private boolean isTerminated() { return terminate; }	
@@ -152,7 +152,7 @@ public class PlySearcher {
 		
 				if (Score.isProvisional(score)) {
 					lastAspirationFailed = true;
-					EubosEngineMain.logger.info("Aspiration Window failed - no score, illegal position");
+					EubosEngineMain.logger.severe("Aspiration Window failed - no score, illegal position");
 		            break;
 	        	} else if (isTerminated() && score ==0) {
 	        		// Early termination, didn't back up a score at the last ply			

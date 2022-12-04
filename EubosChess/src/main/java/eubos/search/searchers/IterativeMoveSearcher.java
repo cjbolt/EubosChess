@@ -77,7 +77,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 					EubosEngineMain.logger.info("IterativeMoveSearcher found mate");
 					searchStopped = true;
 				} else if (res.pv[0] == Move.NULL_MOVE) {
-					EubosEngineMain.logger.info("IterativeMoveSearcher out of legal moves");
+					EubosEngineMain.logger.severe("IterativeMoveSearcher out of legal moves");
 					searchStopped = true;
 				}
 			}
@@ -86,7 +86,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 					// don't start a new iteration, we were only allowing time to complete the search at the current ply
 					searchStopped = true;
 					if (DEBUG_LOGGING) {
-						EubosEngineMain.logger.info(String.format(
+						EubosEngineMain.logger.finer(String.format(
 								"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
 					}
 				}
@@ -126,7 +126,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		public void run() {
 			stopperActive = true;
 			boolean hasWaitedOnce = false;
-			EubosEngineMain.logger.fine(String.format("IterativeMoveSearchStopper is now running"));
+			EubosEngineMain.logger.finer(String.format("IterativeMoveSearchStopper is now running"));
 			try {
 				do {
 					long timeQuantaForCheckPoint = calculateSearchTimeQuanta();
@@ -162,7 +162,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				EubosEngineMain.logger.severe(error);
 				stopMoveSearcher();
 			}
-			EubosEngineMain.logger.fine(String.format("IterativeMoveSearchStopper has now stopped running"));
+			EubosEngineMain.logger.finer(String.format("IterativeMoveSearchStopper has now stopped running"));
 		}
 		
 		public void end() {
@@ -187,13 +187,13 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			short ref_score;
 			byte ref_depth;
 			boolean isResearchingAspirationFail = mg.lastAspirationFailed();
-			EubosEngineMain.logger.info("Stopper getting lock for mg.sm");
+			EubosEngineMain.logger.finer("Stopper getting lock for mg.sm");
 			synchronized(mg.sm) {
 				currentScore = mg.sm.getCpScore();
 				currDepth = (byte)mg.sm.getDepth();
 				hasBackedUpAScore = mg.sm.isScoreBackedUpFromSearch();			
 			}
-			EubosEngineMain.logger.info("Stopper getting lock for ref score");
+			EubosEngineMain.logger.finer("Stopper getting lock for ref score");
 			Reference ref = refScore.getReference();
 			synchronized(ref) {
 				ref_score = ref.score;	
@@ -250,7 +250,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		
 		private long sleepAndReportDuration(long timeQuanta) {
 			timeIntoWait = System.currentTimeMillis();
-			EubosEngineMain.logger.fine(String.format("IterativeMoveSearchStopper CP=%d into sleep @ %d for %d", checkPoint, timeIntoWait, timeQuanta));
+			EubosEngineMain.logger.finer(String.format("IterativeMoveSearchStopper CP=%d into sleep @ %d for %d", checkPoint, timeIntoWait, timeQuanta));
 			try {
 				Thread.sleep(timeQuanta);
 			} catch (InterruptedException e) {
@@ -258,7 +258,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				Thread.currentThread().interrupt();
 			}
 			timeOutOfWait = System.currentTimeMillis();
-			EubosEngineMain.logger.fine(String.format("IterativeMoveSearchStopper CP=%d out of sleep @ %d", checkPoint, timeOutOfWait));
+			EubosEngineMain.logger.finer(String.format("IterativeMoveSearchStopper CP=%d out of sleep @ %d", checkPoint, timeOutOfWait));
 			return timeOutOfWait - timeIntoWait;
 		}
 		
