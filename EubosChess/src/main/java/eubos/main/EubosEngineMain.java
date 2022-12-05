@@ -65,7 +65,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_UCI_INFO_SENDING = true;
 	public static final boolean ENABLE_UCI_MOVE_NUMBER = false;
 	
-	public static final boolean ENABLE_ASSERTS = true;
+	public static final boolean ENABLE_ASSERTS = false;
 	public static final boolean ENABLE_PERFT = false;
 	public static final boolean ENABLE_TEST_SUITES = false;
 	
@@ -488,14 +488,21 @@ public class EubosEngineMain extends AbstractEngine {
 		// The transposition in the table could have been overwritten during the search;
 		// If it has been removed we should rewrite it using the best we have, i.e. the cached version.
 		if (tableRootTrans == 0L) {
-			logger.info(String.format("rootTrans overwritten replacing with %s", Transposition.report(cachedRootTrans)));
-			hashMap.putTransposition(rootPosition.getHash(), cachedRootTrans);
-			tableRootTrans = cachedRootTrans;
+			if (cachedRootTrans != 0) {
+				logger.info(String.format("rootTrans overwritten replacing with %s", Transposition.report(cachedRootTrans)));
+				hashMap.putTransposition(rootPosition.getHash(), cachedRootTrans);
+				tableRootTrans = cachedRootTrans;
+			} else {
+				logger.severe("repopulateRootTransFromCacheIfItWasOverwritten cache was null!");
+			}
 		}
 		return tableRootTrans;
 	}
 	
 	public void sendBestMoveCommand(SearchResult result) {
+		if (ENABLE_LOGGING) {
+			logger.info(String.format("Search %s", result.report()));
+		}
 		int pcBestMove = result.pv[0];
 		long tableRootTrans = repopulateRootTransFromCacheIfItWasOverwritten(result);
 		if (tableRootTrans == 0L) {
