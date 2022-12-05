@@ -1,5 +1,7 @@
 package eubos.search;
 
+import java.util.Arrays;
+
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 
@@ -51,8 +53,8 @@ public class PrincipalContinuation {
 	}
 	
 	public int [] toPvList(int currPly) { 
-		if (currPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
-			return pc[currPly];
+		if (currPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY && length[currPly] != 0) {
+			return Arrays.copyOfRange(pc[currPly], 0, length[0]);
 		}
 		return null;
 	}
@@ -97,6 +99,10 @@ public class PrincipalContinuation {
 		if (nextPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
 			length[nextPly] = 0;
 		}
+	}
+	
+	void clearPvOnAspFail() {
+		Arrays.fill(pc[0],0);
 	}
 	
 	//-------------------------------------------------------------------------
