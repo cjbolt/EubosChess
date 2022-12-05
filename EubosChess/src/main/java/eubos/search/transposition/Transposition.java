@@ -117,8 +117,9 @@ public final class Transposition {
 		if (currentDepth < new_Depth) {
 			updateTransposition = true;	
 		} else if (currentDepth == new_Depth) {
-			short currentScore = Transposition.getScore(trans);
-			if (getType(trans) != Score.exact && new_score > currentScore) {
+			// Don't insist on a higher score than transposition to update because of aspiration
+			// windows and multi-threaded search?
+			if (getType(trans) != Score.exact) {
 				updateTransposition = true;
 			} else {
 				// don't update, already have an exact score
