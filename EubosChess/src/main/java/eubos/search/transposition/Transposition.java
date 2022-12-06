@@ -105,31 +105,4 @@ public final class Transposition {
 				getAge(trans));
 		return output;
 	}
-	
-	public static long checkUpdate(long trans,
-			byte new_Depth, 
-			short new_score,
-			byte new_bound,
-			int new_bestMove,
-			int new_age) {	
-		boolean updateTransposition = false;
-		int currentDepth = getDepthSearchedInPly(trans);
-		if (currentDepth < new_Depth) {
-			updateTransposition = true;	
-		} else if (currentDepth == new_Depth) {
-			// Don't insist on a higher score than transposition to update because of aspiration
-			// windows and multi-threaded search?
-			if (getType(trans) != Score.exact) {
-				updateTransposition = true;
-			} else {
-				// don't update, already have an exact score
-			}
-		} else {
-			// don't update, depth is less than what we have
-		}
-		if (updateTransposition) {
-			trans = valueOf(new_Depth, new_score, new_bound, new_bestMove, new_age);
-		}
-		return trans;
-	}
 }
