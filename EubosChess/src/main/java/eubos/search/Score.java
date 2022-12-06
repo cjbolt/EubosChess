@@ -2,8 +2,16 @@ package eubos.search;
 
 public final class Score {
 	public static final byte typeUnknown = 0;
+	// An Exact Score is a score returned from an alpha-beta search, if alpha, the max so far, was
+	// improved, while the min-player improved his score as well (score < beta).
+	// The current node searched was an expected PV-Node, which was confirmed by the search in finding
+	// and collecting a principal variation
 	public static final byte exact = 1;
+	// An Upper Bound is returned from an Alpha-Beta like search, if it fails low.
+	// All moves were searched, but none improved alpha. The node searched was a confirmed All-Node.
 	public static final byte upperBound = 2;
+	// A Lower Bound is returned from an Alpha-Beta like search, if it fails high.
+	// The node searched was a confirmed Cut-Node.
 	public static final byte lowerBound = 3;
 	
 	public static final int PROVISIONAL_ALPHA = (Short.MIN_VALUE + 1);
