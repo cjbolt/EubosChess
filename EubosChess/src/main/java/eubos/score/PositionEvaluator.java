@@ -303,7 +303,7 @@ public class PositionEvaluator implements IEvaluate {
 	public class KingTropismChecker implements IForEachPieceCallback {
 		
 		// by distance, in centipawns.
-		public final int[] QUEEN_DIST_LUT = {0, -100, -100, -25, -12, -5, 0, 0, 0};
+		public final int[] QUEEN_DIST_LUT = {0, -100, -50, -12, -7, -5, 0, 0, 0};
 		public final int[] KNIGHT_DIST_LUT = {0, -25, -50, -25, -12, 0, 0, 0, 0};
 		public final int[] BISHOP_DIST_LUT = {0, -20, -15, -12, -8, -4, -2, -1, 0};
 		public final int[] ROOK_DIST_LUT = {0, -50, -30, -20, -10, -8, -4, -2, 0};

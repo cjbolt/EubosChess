@@ -176,6 +176,6 @@ public class PositionEvaluatorTest {
 		setUpPosition("r1bq1r1k/1p1pn2p/p4ppQ/b3pN2/2B1PN2/2P5/PP3PPP/R2R2K1 b - - 10 21");
 		SUT.passedPawnPresent = true;
 		long [][][] attacks = SUT.bd.mae.calculateCountedAttacksAndMobility(SUT.bd.me);
-		assertEquals(-404, SUT.evaluateKingSafety(attacks, false));
+		assertEquals(-354, SUT.evaluateKingSafety(attacks, false));
 	}
 }
