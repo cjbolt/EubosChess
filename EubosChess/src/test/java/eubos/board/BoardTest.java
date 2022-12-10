@@ -1430,5 +1430,65 @@ public class BoardTest {
 		classUnderTest.doMove(Move.valueOf(Position.h7, Piece.BLACK_PAWN, Position.h6, Piece.NONE));
 		assertEquals(BitBoard.valueOf(new int[] {Position.h6}), classUnderTest.getPassedPawns());
 	}
+	
+	@Test
+	public void test_drawn_endgame_RN_vs_B() {
+		setUpPosition("RN6/8/b7/8/8/8/K7/7k b - - 0 1");
+		assertTrue(classUnderTest.isLikelyPawnlessDrawnEndgame());
+	}
+	
+	@Test
+	public void test_drawn_endgame_RN_vs_RB_notdrawn() {
+		setUpPosition("RN6/8/b7/8/8/8/K7/rk b - - 0 1");
+		assertFalse(classUnderTest.isLikelyPawnlessDrawnEndgame());
+	}
+	
+	@Test
+	public void test_drawn_endgame_R_vs_B() {
+		setUpPosition("R7/8/b7/8/8/8/K7/7k b - - 0 1");
+		assertTrue(classUnderTest.isLikelyPawnlessDrawnEndgame());
+	}
+	
+	@Test
+	public void test_drawn_endgame_R_vs_RB_drawn() {
+		setUpPosition("R7/8/b7/8/8/8/K7/rk b - - 0 1");
+		assertTrue(classUnderTest.isLikelyPawnlessDrawnEndgame());
+	}
+	
+	@Test
+	public void test_drawn_endgame_R_vs_N() {
+		setUpPosition("R7/8/n7/8/8/8/K7/7k b - - 0 1");
+		assertTrue(classUnderTest.isLikelyPawnlessDrawnEndgame());
+	}
+	
+	@Test
+	public void test_drawn_endgame_R_vs_RN_drawn() {
+		setUpPosition("R7/8/n7/8/8/8/K7/rk b - - 0 1");
+		assertTrue(classUnderTest.isLikelyPawnlessDrawnEndgame());
+	}
+	
+	@Test
+	public void test_drawn_endgame_R_vs_3minor_notdrawn() {
+		setUpPosition("R7/8/bnn5/8/8/8/K7/rk b - - 0 1");
+		assertFalse(classUnderTest.isLikelyPawnlessDrawnEndgame());
+	}
+	
+	@Test
+	public void test_drawn_endgame_RR_vs_R_notdrawn() {
+		setUpPosition("RR6/8/7r/8/8/8/K7/rk b - - 0 1");
+		assertFalse(classUnderTest.isLikelyPawnlessDrawnEndgame());
+	}
+	
+	@Test
+	public void test_drawn_endgame_3minor_vs_minor_notdrawn() {
+		setUpPosition("bbb5/8/7N/8/8/8/K7/rk b - - 0 1");
+		assertFalse(classUnderTest.isLikelyPawnlessDrawnEndgame());
+	}
+	
+	@Test
+	public void test_drawn_endgame_contains_pawn_notdrawn() {
+		setUpPosition("8/8/P6N/8/8/8/K7/rk b - - 0 1");
+		assertFalse(classUnderTest.isLikelyPawnlessDrawnEndgame());
+	}
 }
 

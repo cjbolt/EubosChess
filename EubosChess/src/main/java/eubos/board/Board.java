@@ -1702,11 +1702,18 @@ public class Board {
 		int numBlackKnights = me.numberOfPieces[Piece.BLACK_KNIGHT];
 		int numBlackMinor = numBlackBishops + numBlackKnights;
 		
+		// (R vs 2 minor) or (R Minor vs Minor)
 		if (numWhiteRooks == 1 && numWhiteMinor < 2 && numBlackRooks == 0 && numBlackMinor >= 1) {
-			// (R vs 2 minor) or (R Minor vs Minor)
 			return true;
 		}
 		if (numBlackRooks == 1 && numBlackMinor < 2 && numWhiteRooks == 0 && numWhiteMinor >= 1) {
+			return true;
+		}
+		// R vs R Minor
+		if (numWhiteRooks == 1 && numWhiteMinor < 2 && numBlackRooks == 1 && numBlackMinor == 0) {
+			return true;
+		}
+		if (numBlackRooks == 1 && numBlackMinor < 2 && numWhiteRooks == 1 && numWhiteMinor == 0) {
 			return true;
 		}
 		return false;
