@@ -1688,6 +1688,30 @@ public class Board {
 		return true;
 	}
 	
+	public boolean isLikelyPawnlessDrawnEndgame() {
+		if (pieces[Piece.PAWN] != 0)
+			return false;
+		
+		int numWhiteRooks = me.numberOfPieces[Piece.WHITE_ROOK];
+		int numWhiteBishops = me.numberOfPieces[Piece.WHITE_BISHOP];
+		int numWhiteKnights = me.numberOfPieces[Piece.WHITE_KNIGHT];
+		int numWhiteMinor = numWhiteBishops + numWhiteKnights;
+		
+		int numBlackRooks = me.numberOfPieces[Piece.BLACK_ROOK];
+		int numBlackBishops = me.numberOfPieces[Piece.BLACK_BISHOP];
+		int numBlackKnights = me.numberOfPieces[Piece.BLACK_KNIGHT];
+		int numBlackMinor = numBlackBishops + numBlackKnights;
+		
+		if (numWhiteRooks == 1 && numWhiteMinor < 2 && numBlackRooks == 0 && numBlackMinor >= 1) {
+			// (R vs 2 minor) or (R Minor vs Minor)
+			return true;
+		}
+		if (numBlackRooks == 1 && numBlackMinor < 2 && numWhiteRooks == 0 && numWhiteMinor >= 1) {
+			return true;
+		}
+		return false;
+	}
+	
 	public void forEachPiece(IForEachPieceCallback caller) {
 		pieceLists.forEachPieceDoCallback(caller);
 	}
