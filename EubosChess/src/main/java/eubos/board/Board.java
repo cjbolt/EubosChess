@@ -1692,29 +1692,57 @@ public class Board {
 		if (pieces[Piece.PAWN] != 0)
 			return false;
 		
-		int numWhiteRooks = me.numberOfPieces[Piece.WHITE_ROOK];
 		int numWhiteBishops = me.numberOfPieces[Piece.WHITE_BISHOP];
 		int numWhiteKnights = me.numberOfPieces[Piece.WHITE_KNIGHT];
 		int numWhiteMinor = numWhiteBishops + numWhiteKnights;
-		
-		int numBlackRooks = me.numberOfPieces[Piece.BLACK_ROOK];
 		int numBlackBishops = me.numberOfPieces[Piece.BLACK_BISHOP];
 		int numBlackKnights = me.numberOfPieces[Piece.BLACK_KNIGHT];
 		int numBlackMinor = numBlackBishops + numBlackKnights;
 		
-		// (R vs 2 minor) or (R Minor vs Minor)
-		if (numWhiteRooks == 1 && numWhiteMinor < 2 && numBlackRooks == 0 && numBlackMinor >= 1) {
-			return true;
-		}
-		if (numBlackRooks == 1 && numBlackMinor < 2 && numWhiteRooks == 0 && numWhiteMinor >= 1) {
-			return true;
-		}
-		// R vs R Minor
-		if (numWhiteRooks == 1 && numWhiteMinor < 2 && numBlackRooks == 1 && numBlackMinor == 0) {
-			return true;
-		}
-		if (numBlackRooks == 1 && numBlackMinor < 2 && numWhiteRooks == 1 && numWhiteMinor == 0) {
-			return true;
+		if (pieces[Piece.QUEEN] == 0) {
+			int numWhiteRooks = me.numberOfPieces[Piece.WHITE_ROOK];
+			int numBlackRooks = me.numberOfPieces[Piece.BLACK_ROOK];
+			// (R vs 2 minor) or (R Minor vs Minor)
+			if (numWhiteRooks == 1 && numWhiteMinor < 2) {
+				// (R vs 2 minor) or (R Minor vs Minor)
+				if (numBlackRooks == 0 && numBlackMinor >= 1) {
+					return true;
+				}
+				// R vs R Minor
+				if (numBlackRooks == 1 && numBlackMinor == 0) {
+					return true;
+				}
+			}
+			if (numBlackRooks == 1 && numBlackMinor < 2) {
+				// (R vs 2 minor) or (R Minor vs Minor)
+				if (numWhiteRooks == 0 && numWhiteMinor >= 1) {
+					return true;
+				}
+				// R vs R Minor
+				if (numWhiteRooks == 1 && numWhiteMinor == 0) {
+					return true;
+				}
+			}			
+		} else {
+			if (pieces[Piece.ROOK] == 0) {
+				
+				int numWhiteQueens = me.numberOfPieces[Piece.WHITE_QUEEN];		
+				int numBlackQueens = me.numberOfPieces[Piece.BLACK_QUEEN];
+				// Q vs 2 minor
+				if (numWhiteQueens == 1 && numBlackQueens == 0 && numBlackMinor >= 2) {
+					return true;
+				}
+				if (numBlackQueens == 1 && numWhiteQueens == 0 && numWhiteMinor >= 2) {
+					return true;
+				}
+				// Q minor vs Q
+				if (numWhiteQueens == 1 && numBlackQueens == 1 && numBlackMinor == 0 && numWhiteMinor == 1) {
+					return true;
+				}
+				if (numBlackQueens == 1 && numWhiteQueens == 1 && numWhiteMinor == 0 && numBlackMinor == 1) {
+					return true;
+				}
+			}
 		}
 		return false;
 	}
