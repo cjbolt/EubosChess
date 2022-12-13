@@ -1668,6 +1668,15 @@ public class Board {
 	}
 	
 	public boolean isLikelyDrawnEndgame() {
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			assert (Long.bitCount(pieces[Piece.PAWN]) == (me.numberOfPieces[Piece.WHITE_PAWN] + me.numberOfPieces[Piece.BLACK_PAWN])) : "Pawn mismatch";
+			assert (Long.bitCount(pieces[Piece.ROOK]) == (me.numberOfPieces[Piece.WHITE_ROOK] + me.numberOfPieces[Piece.BLACK_ROOK])) : "Rook mismatch";
+			assert (Long.bitCount(pieces[Piece.QUEEN]) == (me.numberOfPieces[Piece.WHITE_QUEEN] + me.numberOfPieces[Piece.BLACK_QUEEN])) : "Queen mismatch";
+			assert (Long.bitCount(pieces[Piece.BISHOP]) == (me.numberOfPieces[Piece.WHITE_BISHOP] + me.numberOfPieces[Piece.BLACK_BISHOP])) : "Bishop mismatch";
+			assert (Long.bitCount(pieces[Piece.KNIGHT]) == (me.numberOfPieces[Piece.WHITE_KNIGHT] + me.numberOfPieces[Piece.BLACK_KNIGHT])) : "Knight mismatch";
+			//assert (Long.bitCount(pieces[Piece.KING]) == (me.numberOfPieces[Piece.WHITE_KING] + me.numberOfPieces[Piece.BLACK_KING])) : "King mismatch";
+		}
+		
 		// Possible promotions
 		if (pieces[Piece.PAWN] != 0)
 			return false;
