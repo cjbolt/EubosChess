@@ -144,7 +144,10 @@ public class PositionEvaluator implements IEvaluate {
 		onMoveIsWhite = pm.onMoveIsWhite();
 		isDraw = pm.isThreefoldRepetitionPossible();
 		if (!isDraw) {
-			isDraw = bd.isLikelyDrawnEndgame();
+			isDraw = bd.isInsufficientMaterial();
+			if (!isDraw) {
+				isDraw = bd.isLikelyPawnlessDrawnEndgame();
+			}
 		}
 		if (EubosEngineMain.ENABLE_COUNTED_PASSED_PAWN_MASKS) {
 			if (!isDraw) {
