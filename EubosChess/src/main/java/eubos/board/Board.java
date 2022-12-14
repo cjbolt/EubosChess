@@ -1660,14 +1660,11 @@ public class Board {
 	}
 	
 	public boolean isInsufficientMaterial() {
-		return isLikelyDrawnEndgame();
-	}
-	
-	public boolean isLikelyPawnlessDrawnEndgame() {
-		return isLikelyDrawnEndgame();
-	}
-	
-	public boolean isLikelyDrawnEndgame() {
+		// Major pieces
+		if (pieces[Piece.QUEEN] != 0)
+			return false;
+		if (pieces[Piece.ROOK] != 0)
+			return false;
 		// Possible promotions
 		if (pieces[Piece.PAWN] != 0)
 			return false;
@@ -1677,7 +1674,29 @@ public class Board {
 		int numWhiteKnights = me.numberOfPieces[Piece.WHITE_KNIGHT];
 		int numBlackBishops = me.numberOfPieces[Piece.BLACK_BISHOP];
 		int numBlackKnights = me.numberOfPieces[Piece.BLACK_KNIGHT];
+		
+		if (numWhiteBishops >= 2 || numBlackBishops >= 2) {
+			// One side has at least two bishops
+			return false;
+		}
+		if ((numWhiteBishops == 1 && numWhiteKnights >= 1) ||
+		    (numBlackBishops == 1 && numBlackKnights >= 1))
+			// One side has Knight and Bishop
+			return false;
+		
+		// else insufficient
+		return true;
+	}
+	
+	public boolean isLikelyPawnlessDrawnEndgame() {
+		if (pieces[Piece.PAWN] != 0)
+			return false;
+		
+		int numWhiteBishops = me.numberOfPieces[Piece.WHITE_BISHOP];
+		int numWhiteKnights = me.numberOfPieces[Piece.WHITE_KNIGHT];
 		int numWhiteMinor = numWhiteBishops + numWhiteKnights;
+		int numBlackBishops = me.numberOfPieces[Piece.BLACK_BISHOP];
+		int numBlackKnights = me.numberOfPieces[Piece.BLACK_KNIGHT];
 		int numBlackMinor = numBlackBishops + numBlackKnights;
 		
 		if (pieces[Piece.QUEEN] == 0) {
@@ -1703,11 +1722,7 @@ public class Board {
 				if (numWhiteRooks == 1 && numWhiteMinor == 0) {
 					return true;
 				}
-			}	
-			if (numWhiteRooks != 0 || numBlackRooks != 0) {
-				// at least one rook on the board
-				return false;
-			}
+			}			
 		} else {
 			if (pieces[Piece.ROOK] == 0) {
 				
@@ -1728,20 +1743,8 @@ public class Board {
 					return true;
 				}
 			}
-			// At least one queen on the board
-			return false;
 		}
-		if (numWhiteBishops >= 2 || numBlackBishops >= 2) {
-			// One side has at least two bishops
-			return false;
-		}
-		if ((numWhiteBishops == 1 && numWhiteKnights >= 1) ||
-		    (numBlackBishops == 1 && numBlackKnights >= 1))
-			// One side has Knight and Bishop
-			return false;
-		
-		// else insufficient material
-		return true;
+		return false;
 	}
 	
 	public void forEachPiece(IForEachPieceCallback caller) {
