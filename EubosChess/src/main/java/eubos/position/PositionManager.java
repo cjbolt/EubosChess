@@ -11,6 +11,7 @@ import eubos.board.BitBoard;
 import eubos.board.Board;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
+import eubos.main.EubosEngineMain;
 import eubos.score.IEvaluate;
 import eubos.score.PawnEvalHashTable;
 import eubos.score.PositionEvaluator;
@@ -126,7 +127,15 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		performMove(move, true);
 	}
 	
-	public void performMove( int move, boolean computeHash ) {		
+	public void performMove( int move, boolean computeHash ) {
+		boolean kingInCheckBeforeMove = false;
+		boolean initialOnMoveIsWhite = onMoveIsWhite();
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			if ((initialOnMoveIsWhite ? theBoard.getWhiteKing():theBoard.getBlackKing()) != 0L) {
+				kingInCheckBeforeMove = theBoard.isKingInCheck(initialOnMoveIsWhite);
+			}
+		}
+		
 		// Preserve state
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		long pp = theBoard.getPassedPawns();
@@ -147,6 +156,13 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		onMove = Colour.getOpposite(onMove);
 		if (Colour.isWhite(onMove)) {
 			moveNumber++;
+		}
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			if (kingInCheckBeforeMove && computeHash) {
+				// need to have moved out of check!!!
+				assert !theBoard.isKingInCheck(initialOnMoveIsWhite) :
+					String.format("%s %s", this.unwindMoveStack(), getFen());
+			}
 		}
 	}
 

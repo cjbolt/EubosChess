@@ -390,6 +390,32 @@ public class PlySearcher {
 			}
 		}
 		
+		// Internal Iterative Deepening
+		if (EubosEngineMain.ENABLE_ITERATIVE_DEEPENING && 
+			state[currPly].prevBestMove == Move.NULL_MOVE && 
+			depth >= 4) {
+
+			state[currPly].update();
+			int score = search(depth-3, false, state[currPly].alpha, state[currPly].beta);
+			state[currPly].initialise(currPly, alpha, beta);
+		    if (score <= state[currPly].alpha || score >= state[currPly].beta) {
+		    	score = search(depth-3, false, Score.PROVISIONAL_ALPHA, state[currPly].alpha+1);
+		    }
+
+		    if (EubosEngineMain.ENABLE_ASSERTS) {
+			    if (!Score.isMate((short)score) && score != 0) {
+				    assert score != Score.PROVISIONAL_ALPHA;
+				    assert score != Score.PROVISIONAL_BETA;
+			    	assert pc.getBestMoveAtPly((byte)(currPly)) != Move.NULL_MOVE :
+			    		String.format("score=%d %s %s", score, pos.unwindMoveStack(), pos.getFen());
+			    }
+		    }
+		  
+		     /* Get the suggested best move that was returned and use it as a hashmove */ 		    
+		    state[currPly].prevBestMove = pc.getBestMove((byte)(currPly));
+		    state[currPly].initialise(currPly, alpha, beta);
+		}
+		
 		// Main search loop for this ply
 		int bestMove = Move.NULL_MOVE;
 		int currMove = Move.NULL_MOVE;

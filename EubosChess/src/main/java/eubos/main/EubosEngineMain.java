@@ -79,6 +79,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_STAGED_MOVE_GENERATION = true;
 	public static final boolean ENABLE_COUNTED_PASSED_PAWN_MASKS = true;
 	public static final boolean ENABLE_STORE_PV_IN_TRANS_TABLE = true;
+	public static final boolean ENABLE_ITERATIVE_DEEPENING = true;
 	
 	public static final boolean ENABLE_PINNED_TO_KING_CHECK_IN_ILLEGAL_DETECTION = true;
 	

@@ -27,6 +27,12 @@ public class PrincipalContinuation {
 		return Move.NULL_MOVE;
 	}
 	
+	public int getBestMoveAtPly(byte currPly) {
+		if (length[currPly] >= 1)
+			return pc[currPly][0];
+		return Move.NULL_MOVE;
+	}
+	
 	public String toString() {
 		StringBuilder output = new StringBuilder();
 		for (int currPly = 0; currPly < length[0]; currPly++) {
