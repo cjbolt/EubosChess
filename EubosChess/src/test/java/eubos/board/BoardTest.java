@@ -1451,7 +1451,7 @@ public class BoardTest {
 	
 	@Test
 	public void test_drawn_endgame_R_vs_RB_drawn() {
-		setUpPosition("R7/8/b7/8/8/8/K7/6rk b - - 0 1");
+		setUpPosition("R7/8/b7/8/8/8/K7/rk b - - 0 1");
 		assertTrue(classUnderTest.isLikelyPawnlessDrawnEndgame());
 	}
 	
@@ -1463,73 +1463,31 @@ public class BoardTest {
 	
 	@Test
 	public void test_drawn_endgame_R_vs_RN_drawn() {
-		setUpPosition("R7/8/n7/8/8/8/K7/6rk b - - 0 1");
+		setUpPosition("R7/8/n7/8/8/8/K7/rk b - - 0 1");
 		assertTrue(classUnderTest.isLikelyPawnlessDrawnEndgame());
 	}
 	
 	@Test
 	public void test_drawn_endgame_R_vs_3minor_notdrawn() {
-		setUpPosition("R7/8/bnn5/8/8/8/K7/6rk b - - 0 1");
+		setUpPosition("R7/8/bnn5/8/8/8/K7/rk b - - 0 1");
 		assertFalse(classUnderTest.isLikelyPawnlessDrawnEndgame());
 	}
 	
 	@Test
 	public void test_drawn_endgame_RR_vs_R_notdrawn() {
-		setUpPosition("RR6/8/7r/8/8/8/K7/6rk b - - 0 1");
+		setUpPosition("RR6/8/7r/8/8/8/K7/rk b - - 0 1");
 		assertFalse(classUnderTest.isLikelyPawnlessDrawnEndgame());
 	}
 	
 	@Test
 	public void test_drawn_endgame_3minor_vs_minor_notdrawn() {
-		setUpPosition("bbb5/8/7N/8/8/8/K7/6rk b - - 0 1");
+		setUpPosition("bbb5/8/7N/8/8/8/K7/rk b - - 0 1");
 		assertFalse(classUnderTest.isLikelyPawnlessDrawnEndgame());
 	}
 	
 	@Test
 	public void test_drawn_endgame_contains_pawn_notdrawn() {
-		setUpPosition("8/8/P6N/8/8/8/K7/6rk b - - 0 1");
-		assertFalse(classUnderTest.isLikelyPawnlessDrawnEndgame());
-	}
-	
-	@Test
-	public void test_drawn_endgame_Q_vs2minor_drawn() {
-		setUpPosition("Q7/8/8/bn6/8/8/K7/7k b - - 0 1");
-		assertTrue(classUnderTest.isLikelyPawnlessDrawnEndgame());
-	}
-	
-	@Test
-	public void test_drawn_endgame_Q_vsR2minor_notdrawn() {
-		setUpPosition("Q7/8/8/bn6/8/8/K7/rk b - - 0 1");
-		assertFalse(classUnderTest.isLikelyPawnlessDrawnEndgame());
-	}
-	
-	@Test
-	public void test_drawn_endgame_Q_minor_vs_Q_drawn() {
-		setUpPosition("Q7/8/8/qN6/8/8/K7/7k b - - 0 1");
-		assertTrue(classUnderTest.isLikelyPawnlessDrawnEndgame());
-	}
-	
-	@Test
-	public void test_drawn_endgame_Q_2minor_vs_Q_not_drawn() {
-		setUpPosition("QB6/8/8/qN6/8/8/K7/7k b - - 0 1");
-		assertFalse(classUnderTest.isLikelyPawnlessDrawnEndgame());
-	}
-	
-	@Test
-	public void test_drawn_endgame_QR_vs_N() {
-		setUpPosition("RQ6/8/n7/8/8/8/K7/7k b - - 0 1");
-		assertFalse(classUnderTest.isLikelyPawnlessDrawnEndgame());
-	}
-	
-	@Test
-	public void test_drawn_endgame_QR_vs_RN_not_drawn() {
-		setUpPosition("RQ6/8/n7/8/8/8/K7/6rk b - - 0 1");
-		assertFalse(classUnderTest.isLikelyPawnlessDrawnEndgame());
-	}
-	
-	@Test
-	public void test_drawn_endgame_QR_vs_3minor_not_drawn() {
-		setUpPosition("RQ6/8/bnn5/8/8/8/K7/6rk b - - 0 1");
+		setUpPosition("8/8/P6N/8/8/8/K7/rk b - - 0 1");
 		assertFalse(classUnderTest.isLikelyPawnlessDrawnEndgame());
 	}
 }
