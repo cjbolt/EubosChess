@@ -393,12 +393,13 @@ public class PlySearcher {
 		// Internal Iterative Deepening
 		if (EubosEngineMain.ENABLE_ITERATIVE_DEEPENING && 
 			state[currPly].prevBestMove == Move.NULL_MOVE && 
-			depth >= 4) {
+			depth >= 6 &&
+			!hasSearchedPv) {
 
 			state[currPly].update();
 			int score = search(depth-3, false, state[currPly].alpha, state[currPly].beta);
-			state[currPly].initialise(currPly, alpha, beta);
-		    if (score <= state[currPly].alpha || score >= state[currPly].beta) {
+
+		    if (score <= state[currPly].alpha) {
 		    	score = search(depth-3, false, Score.PROVISIONAL_ALPHA, state[currPly].alpha+1);
 		    }
 
