@@ -1,7 +1,7 @@
 <a href="https://github.com/cjbolt/EubosChess/releases/latest" alt="Latest release">
     <img src="https://img.shields.io/github/v/release/cjbolt/EubosChess?include_prereleases" alt="Latest release">
 </a>
-<img src="https://img.shields.io/github/actions/workflow/status/cjbolt/EubosChess/.github/workflows/maven.yml?branch=master" alt="GitHub Workflow Status">
+<img src="https://img.shields.io/github/actions/workflow/status/cjbolt/EubosChess/.github/workflows/maven.yml?branch=main" alt="GitHub Workflow Status">
 
 # EubosChess
 Eubos chess is a multi-threaded Java chess engine. It was self-built and is playable online 24/7 via lichess (https://lichess.org/@/eubos - it is hosted on Heroku). It is rated around 2098 ELO against other engines, not humans (this is at blitz 2+1 time control, see  http://ccrl.chessdom.com/ccrl/404/). It uses the UCI protocol.
