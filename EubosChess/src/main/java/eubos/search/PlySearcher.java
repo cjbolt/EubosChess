@@ -393,8 +393,8 @@ public class PlySearcher {
 		// Internal Iterative Deepening
 		if (EubosEngineMain.ENABLE_ITERATIVE_DEEPENING && 
 			state[currPly].prevBestMove == Move.NULL_MOVE && 
-			depth >= 6 &&
-			!hasSearchedPv) {
+			depth >= 6 /*&&
+			!hasSearchedPv*/) {
 
 			state[currPly].update();
 			int score = search(depth-3, false, state[currPly].alpha, state[currPly].beta);
@@ -411,10 +411,11 @@ public class PlySearcher {
 			    		String.format("score=%d %s %s", score, pos.unwindMoveStack(), pos.getFen());
 			    }
 		    }
-		  
-		     /* Get the suggested best move that was returned and use it as a hashmove */ 		    
-		    state[currPly].prevBestMove = pc.getBestMove((byte)(currPly));
+
 		    state[currPly].initialise(currPly, alpha, beta);
+		    /* Get the suggested best move that was returned and use it as the hash move */		    
+		    state[currPly].prevBestMove = pc.getBestMoveAtPly((byte)(currPly));
+		    
 		}
 		
 		// Main search loop for this ply
