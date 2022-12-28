@@ -730,16 +730,9 @@ public class PlySearcher {
 			// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
 			int lmr = (moveNumber < 6) ? 1 : Math.max(1, depth/4);
 			
-			// Decrease reduction if we searched more moves at the previous ply
-			//if (state[currPly-1].moveNumber > 6) {
-				//lmr -= 1;
-			//}
-			//if ((((currPly-1) & 0x1) == 0) && (pe.getCrudeEvaluation() > refScore) && lmr > 1) {
-			//	lmr -= 1;
-			//}
-			//if (!pos.getTheBoard().isPassedPawnPresent()) {
-			//	lmr += 1;
-			//}
+			if (pos.getTheBoard().isAdvancedPassedPawnPresent()) {
+				lmr = 0;
+			}
 			if (lmr > 0) {
 				positionScore = -search(depth-1-lmr, -state[currPly-1].beta, -state[currPly-1].alpha);
 				if (positionScore <= state[currPly-1].alpha) {

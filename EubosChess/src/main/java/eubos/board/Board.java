@@ -1711,4 +1711,14 @@ public class Board {
 	public void setPassedPawns(long ppBitBoard) {
 		passedPawns = ppBitBoard;
 	}
+	
+	public boolean isAdvancedPassedPawnPresent() {
+		long advanced_white = 0x00FF_FFFF_0000_0000L;
+		boolean advanced_passer = (passedPawns & whitePieces & advanced_white) != 0L;
+		if (!advanced_passer) {
+			long advanced_black = 0x0000_0000_FFFF_FF00L;
+			advanced_passer = (passedPawns & blackPieces & advanced_black) != 0L;
+		}
+		return advanced_passer;
+	}
 }

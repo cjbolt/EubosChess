@@ -1430,5 +1430,29 @@ public class BoardTest {
 		classUnderTest.doMove(Move.valueOf(Position.h7, Piece.BLACK_PAWN, Position.h6, Piece.NONE));
 		assertEquals(BitBoard.valueOf(new int[] {Position.h6}), classUnderTest.getPassedPawns());
 	}
+	
+	@Test
+	public void advanced_passer_black() {
+		setUpPosition("8/8/8/8/p7/8/8/8 b - - 0 1");
+		assertTrue(classUnderTest.isAdvancedPassedPawnPresent());
+	}
+	
+	@Test
+	public void advanced_passer_white() {
+		setUpPosition("8/8/8/P7/8/8/8/8 b - - 0 1");
+		assertTrue(classUnderTest.isAdvancedPassedPawnPresent());
+	}
+	
+	@Test
+	public void advanced_passer_black1() {
+		setUpPosition("8/8/8/p7/8/8/8/8 b - - 0 1");
+		assertFalse(classUnderTest.isAdvancedPassedPawnPresent());
+	}
+	
+	@Test
+	public void advanced_passer_white1() {
+		setUpPosition("8/8/8/8/7P/8/8/8 b - - 0 1");
+		assertFalse(classUnderTest.isAdvancedPassedPawnPresent());
+	}
 }
 
