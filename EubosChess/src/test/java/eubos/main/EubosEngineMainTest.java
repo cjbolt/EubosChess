@@ -493,4 +493,12 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR, BEST_PREFIX+"g2g1"+CMD_TERMINATOR));
 		performTest(500);
 	}
+	 
+	@Test
+	public void test_try_to_draw_KBB_kr_EG() throws InterruptedException, IOException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"7r/8/7B/5p1P/1pB5/6P1/2k4K/8 w - - 3 88"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"13"+CMD_TERMINATOR, BEST_PREFIX+"h6g7"+CMD_TERMINATOR));
+		performTest(18000);
+	}
 }
