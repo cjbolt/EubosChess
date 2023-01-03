@@ -718,6 +718,7 @@ public class PlySearcher {
 		state[currPly].update(); /* Update inCheck at this ply and static evaluation. */
 		
 		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
+			!lmrApplied &&
 			moveNumber > 1 && /* Search at least one quiet move */
 			!pe.goForMate() && /* Ignore reductions in a mate search */
 			depth > 2 &&
