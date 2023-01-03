@@ -718,7 +718,7 @@ public class PlySearcher {
 		state[currPly].update(); /* Update inCheck at this ply and static evaluation. */
 		
 		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
-			!lmrApplied &&
+			!lmrApplied && /* Only apply LMR once per branch of tree */
 			moveNumber > 1 && /* Search at least one quiet move */
 			!pe.goForMate() && /* Ignore reductions in a mate search */
 			depth > 2 &&
@@ -729,11 +729,7 @@ public class PlySearcher {
 					(pos.getTheBoard().getPassedPawns() & (1L << Move.getOriginPosition(currMove))) != 0L))) {		
 			
 			// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
-			int lmr = (/*lmrApplied || */moveNumber < 6) ? 1 : Math.max(1, depth/4);
-			
-//			if (pos.getTheBoard().isAdvancedPassedPawnPresent() && lmrApplied) {
-//				lmr = 0;
-//			}
+			int lmr = ( moveNumber < 6) ? 1 : Math.max(1, depth/4);
 			if (lmr > 0) {
 				positionScore = -search(depth-1-lmr, -state[currPly-1].beta, -state[currPly-1].alpha);
 				if (positionScore <= state[currPly-1].alpha) {
