@@ -325,8 +325,14 @@ public class PlySearcher {
 		state[currPly].initialise(currPly, alpha, beta);
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
+		// Check for draws based on material
+		if (pos.getTheBoard().isLikelyDrawnEndgame()) {
+			return 0;
+		}
 		// Check for draws by three-fold repetition
-		if (pos.isThreefoldRepetitionPossible()) return 0;
+		if (pos.isThreefoldRepetitionPossible()) {
+			return 0;
+		}
 		
 		// Mate distance pruning
 		int mating_value = Score.PROVISIONAL_BETA - currPly;

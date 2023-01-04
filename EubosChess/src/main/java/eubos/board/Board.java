@@ -1660,11 +1660,14 @@ public class Board {
 	}
 	
 	public boolean isInsufficientMaterial() {
-		// Major pieces
-		if (pieces[Piece.QUEEN] != 0)
-			return false;
-		if (pieces[Piece.ROOK] != 0)
-			return false;
+		return isLikelyDrawnEndgame();
+	}
+	
+	public boolean isLikelyPawnlessDrawnEndgame() {
+		return isLikelyDrawnEndgame();
+	}
+	
+	public boolean isLikelyDrawnEndgame() {
 		// Possible promotions
 		if (pieces[Piece.PAWN] != 0)
 			return false;
@@ -1674,7 +1677,60 @@ public class Board {
 		int numWhiteKnights = me.numberOfPieces[Piece.WHITE_KNIGHT];
 		int numBlackBishops = me.numberOfPieces[Piece.BLACK_BISHOP];
 		int numBlackKnights = me.numberOfPieces[Piece.BLACK_KNIGHT];
+		int numWhiteMinor = numWhiteBishops + numWhiteKnights;
+		int numBlackMinor = numBlackBishops + numBlackKnights;
 		
+		if (pieces[Piece.QUEEN] == 0) {
+			int numWhiteRooks = me.numberOfPieces[Piece.WHITE_ROOK];
+			int numBlackRooks = me.numberOfPieces[Piece.BLACK_ROOK];
+			// (R vs 2 minor) or (R Minor vs Minor)
+			if (numWhiteRooks == 1 && numWhiteMinor < 2) {
+				// (R vs 2 minor) or (R Minor vs Minor)
+				if (numBlackRooks == 0 && numBlackMinor >= 1) {
+					return true;
+				}
+				// R vs R Minor
+				if (numBlackRooks == 1 && numBlackMinor == 0) {
+					return true;
+				}
+			}
+			if (numBlackRooks == 1 && numBlackMinor < 2) {
+				// (R vs 2 minor) or (R Minor vs Minor)
+				if (numWhiteRooks == 0 && numWhiteMinor >= 1) {
+					return true;
+				}
+				// R vs R Minor
+				if (numWhiteRooks == 1 && numWhiteMinor == 0) {
+					return true;
+				}
+			}	
+			if (numWhiteRooks != 0 || numBlackRooks != 0) {
+				// at least one rook on the board
+				return false;
+			}
+		} else {
+			if (pieces[Piece.ROOK] == 0) {
+				
+				int numWhiteQueens = me.numberOfPieces[Piece.WHITE_QUEEN];		
+				int numBlackQueens = me.numberOfPieces[Piece.BLACK_QUEEN];
+				// Q vs 2 minor
+				if (numWhiteQueens == 1 && numBlackQueens == 0 && numBlackMinor >= 2) {
+					return true;
+				}
+				if (numBlackQueens == 1 && numWhiteQueens == 0 && numWhiteMinor >= 2) {
+					return true;
+				}
+				// Q minor vs Q
+				if (numWhiteQueens == 1 && numBlackQueens == 1 && numBlackMinor == 0 && numWhiteMinor == 1) {
+					return true;
+				}
+				if (numBlackQueens == 1 && numWhiteQueens == 1 && numWhiteMinor == 0 && numBlackMinor == 1) {
+					return true;
+				}
+			}
+			// At least one queen on the board
+			return false;
+		}
 		if (numWhiteBishops >= 2 || numBlackBishops >= 2) {
 			// One side has at least two bishops
 			return false;
@@ -1684,7 +1740,7 @@ public class Board {
 			// One side has Knight and Bishop
 			return false;
 		
-		// else insufficient
+		// else insufficient material
 		return true;
 	}
 	
