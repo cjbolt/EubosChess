@@ -1713,6 +1713,8 @@ public class Board {
 	}
 	
 	public boolean isAdvancedPassedPawnPresent() {
+		if (passedPawns == 0L)
+			return false;
 		long advanced_white = 0x00FF_FFFF_0000_0000L;
 		boolean advanced_passer = (passedPawns & whitePieces & advanced_white) != 0L;
 		if (!advanced_passer) {

@@ -14,6 +14,9 @@ import eubos.position.Position;
 
 public class PawnEvaluator implements IForEachPieceCallback {
 	
+	private static final boolean MEASURE_PAWN_HASH = false;
+	private static final boolean ENABLE_MAJOR_SUPPORT_EVAL_FOR_PASSED_PAWN = true;
+	
 	public static final int DOUBLED_PAWN_HANDICAP = 12;
 	public static final int ISOLATED_PAWN_HANDICAP = 33;
 	public static final int BACKWARD_PAWN_HANDICAP = 12;
@@ -70,8 +73,6 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	}
 	
 	PawnHashStatistics pawnStat = null;
-	
-	private static final boolean MEASURE_PAWN_HASH = false;
 	
 	public PawnEvaluator(IPositionAccessors pm, PawnEvalHashTable pawnHash) {
 		bd = pm.getTheBoard();
@@ -196,18 +197,26 @@ public class PawnEvaluator implements IForEachPieceCallback {
 				ROOK_FILE_PASSED_PAWN_BOOST : PASSED_PAWN_BOOST;
 		
 		if (!bd.isPawnBlockaded(bitOffset, pawnIsWhite)) {
-			int heavySupportIndication = bd.checkForHeavyPieceBehindPassedPawn(bitOffset, pawnIsWhite);
-			if (heavySupportIndication > 0) {
-				score += HEAVY_PIECE_BEHIND_PASSED_PAWN;
-			} else if (heavySupportIndication < 0) {
-				score -= HEAVY_PIECE_BEHIND_PASSED_PAWN;
+			if (ENABLE_MAJOR_SUPPORT_EVAL_FOR_PASSED_PAWN) {
+				int heavySupportIndication = bd.checkForHeavyPieceBehindPassedPawn(bitOffset, pawnIsWhite);
+				if (heavySupportIndication > 0) {
+					score += HEAVY_PIECE_BEHIND_PASSED_PAWN;
+				} else if (heavySupportIndication < 0) {
+					score -= HEAVY_PIECE_BEHIND_PASSED_PAWN;
+				} else {
+					// neither attacked or defended along the rear span
+				}
+				if (bd.isPawnFrontspanSafe(bitOffset, pawnIsWhite, own_attacks[3], enemy_attacks[3], heavySupportIndication > 0)) {
+					value += SAFE_MOBILE_PASSED_PAWN;
+				} else if (bd.canPawnAdvance(bitOffset, pawnIsWhite, own_attacks[3], enemy_attacks[3])) {
+					value += MOBILE_PASSED_PAWN;
+				}
 			} else {
-				// neither attacked or defended along the rear span
-			}
-			if (bd.isPawnFrontspanSafe(bitOffset, pawnIsWhite, own_attacks[3], enemy_attacks[3], heavySupportIndication > 0)) {
-				value += SAFE_MOBILE_PASSED_PAWN;
-			} else if (bd.canPawnAdvance(bitOffset, pawnIsWhite, own_attacks[3], enemy_attacks[3])) {
-				value += MOBILE_PASSED_PAWN;
+				if (bd.isPawnFrontspanSafe(bitOffset, pawnIsWhite, own_attacks[3], enemy_attacks[3], false)) {
+					value += SAFE_MOBILE_PASSED_PAWN;
+				} else if (bd.canPawnAdvance(bitOffset, pawnIsWhite, own_attacks[3], enemy_attacks[3])) {
+					value += MOBILE_PASSED_PAWN;
+				}
 			}
 		}
 		score += weighting*value;
