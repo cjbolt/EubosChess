@@ -79,7 +79,7 @@ public class Board {
 			pieces[i] = 0x0;
 		}
 		for ( Entry<Integer, Integer> nextPiece : pieceMap.entrySet() ) {
-			setPieceAtSquare( nextPiece.getKey(), nextPiece.getValue() );
+			setPieceAtSquare( BitBoard.positionToBit_Lut[nextPiece.getKey()], nextPiece.getValue());
 		}
 		me = new PiecewiseEvaluation();
 		evaluateMaterial(me);
@@ -150,7 +150,7 @@ public class Board {
 	public int doMove(int move) {
 		isAttacksMaskValid = false;
 		
-		int captureBitOffset = Position.NOPOSITION;
+		int captureBitOffset = BitBoard.INVALID;
 		int pieceToMove = Move.getOriginPiece(move);
 		boolean isWhite = Piece.isWhite(pieceToMove);
 		int originBitOffset = Move.getOriginPosition(move);
@@ -312,7 +312,7 @@ public class Board {
 	public int undoMove(int moveToUndo) {
 		isAttacksMaskValid = false;
 		
-		int capturedPieceSquare = Position.NOPOSITION;
+		int capturedPieceSquare = BitBoard.INVALID;
 		int originPiece = Move.getOriginPiece(moveToUndo);
 		boolean isWhite = Piece.isWhite(originPiece);
 		int originBitOffset = Move.getOriginPosition(moveToUndo);
@@ -474,7 +474,7 @@ public class Board {
 	
 	public boolean moveCausesDiscoveredCheck(int move, int kingBitOffset, boolean isWhite) {
 		boolean isPinned = false;
-		if (kingBitOffset == Position.NOPOSITION)
+		if (kingBitOffset == BitBoard.INVALID)
 			return isPinned;
 		
 		long kingMask = 1L << kingBitOffset;
@@ -679,7 +679,7 @@ public class Board {
 			}
 		}
 		if (doCheck) {		
-			int captureBitOffset = Position.NOPOSITION;
+			int captureBitOffset = BitBoard.INVALID;
 			int originBitOffset = Move.getOriginPosition(move);
 			int targetBitOffset = Move.getTargetPosition(move);
 			int targetPiece = Move.getTargetPiece(move);
@@ -688,7 +688,7 @@ public class Board {
 			long targetSquareMask = 1L << targetBitOffset;
 			long positionsMask = initialSquareMask | targetSquareMask;
 			
-			long pieceToPickUp = Position.NOPOSITION;
+			long pieceToPickUp = BitBoard.INVALID;
 			
 			if (isCapture) {
 				// Handle captures
@@ -1178,13 +1178,13 @@ public class Board {
 		return type;
 	}
 
-	public void setPieceAtSquare( int atPos, int pieceToPlace ) {
+	public void setPieceAtSquare( int bitOffset, int pieceToPlace ) {
 		if (EubosEngineMain.ENABLE_ASSERTS) {
-			assert atPos != Position.NOPOSITION;
+			assert bitOffset != BitBoard.INVALID;
 			assert pieceToPlace != Piece.NONE;
 		}
-		pieceLists.addPiece(pieceToPlace, BitBoard.positionToBit_Lut[atPos]);
-		long mask = BitBoard.positionToMask_Lut[atPos];
+		pieceLists.addPiece(pieceToPlace, bitOffset);
+		long mask = 1L << bitOffset;
 		// Set on piece-specific bitboard
 		pieces[pieceToPlace & Piece.PIECE_NO_COLOUR_MASK] |= mask;
 		// Set on colour bitboard
@@ -1199,7 +1199,7 @@ public class Board {
 	
 	public void setPieceAtSquare(long mask, int bitOffset, int pieceToPlace) {
 		if (EubosEngineMain.ENABLE_ASSERTS) {
-			assert bitOffset != Position.NOPOSITION;
+			assert bitOffset != BitBoard.INVALID;
 			assert pieceToPlace != Piece.NONE;
 		}
 		pieceLists.addPiece(pieceToPlace, bitOffset);
@@ -1244,7 +1244,7 @@ public class Board {
 		} else {
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert false : String.format("Non-existant target piece %c at %s",
-						Piece.toFenChar(piece), Position.toGenericPosition(bitOffset));
+						Piece.toFenChar(piece), Position.toGenericPosition(BitBoard.bitToPosition_Lut[bitOffset]));
 			}
 			piece = Piece.NONE;
 		}

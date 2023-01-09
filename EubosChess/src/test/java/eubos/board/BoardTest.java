@@ -103,195 +103,195 @@ public class BoardTest {
 	@Test
 	public void testGetAsFenString1() {
 		classUnderTest.setPieceAtSquare(testSq, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.c1, Piece.WHITE_KING);
+		classUnderTest.setPieceAtSquare(BitBoard.c1, Piece.WHITE_KING);
 		assertEquals("8/8/8/8/8/8/8/P1K5",classUnderTest.getAsFenString());
 	}
 	
 	@Test
 	public void testGetAsFenString2() {
-		classUnderTest.setPieceAtSquare(Position.h1, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.g1, Piece.WHITE_KING);
+		classUnderTest.setPieceAtSquare(BitBoard.h1, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.g1, Piece.WHITE_KING);
 		assertEquals("8/8/8/8/8/8/8/6KP",classUnderTest.getAsFenString());
 	}
 	
 	@Test
 	public void testGetAsFenString3() {
-		classUnderTest.setPieceAtSquare(Position.h1, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.g1, Piece.BLACK_KING);
+		classUnderTest.setPieceAtSquare(BitBoard.h1, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.g1, Piece.BLACK_KING);
 		assertEquals("8/8/8/8/8/8/8/6kp",classUnderTest.getAsFenString());
 	}
 	
 	@Test
 	public void testGetAsFenString4() {
-		classUnderTest.setPieceAtSquare(Position.h8, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.g8, Piece.BLACK_KING);
+		classUnderTest.setPieceAtSquare(BitBoard.h8, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.g8, Piece.BLACK_KING);
 		assertEquals("6kp/8/8/8/8/8/8/8",classUnderTest.getAsFenString());
 	}
 	
 	@Test
 	public void testOpenFile_isOpen() {
-		classUnderTest.setPieceAtSquare(Position.h8, Piece.WHITE_ROOK);
+		classUnderTest.setPieceAtSquare(BitBoard.h8, Piece.WHITE_ROOK);
 		assertEquals(14, classUnderTest.mae.calculateRankFileMobility(classUnderTest.getWhiteRooks(), 0));
 	}
 	
 	@Test
 	public void testOpenFile_isClosed() {
-		classUnderTest.setPieceAtSquare(Position.h7, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.h2, Piece.WHITE_ROOK);
+		classUnderTest.setPieceAtSquare(BitBoard.h7, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.h2, Piece.WHITE_ROOK);
 		assertEquals(12, classUnderTest.mae.calculateRankFileMobility(classUnderTest.getWhiteRooks(), 0));
 	}
 	
 	@Test
 	public void testOpenFile_isOpen1() {
-		classUnderTest.setPieceAtSquare(Position.d7, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.e2, Piece.WHITE_ROOK);
+		classUnderTest.setPieceAtSquare(BitBoard.d7, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.e2, Piece.WHITE_ROOK);
 		assertEquals(14, classUnderTest.mae.calculateRankFileMobility(classUnderTest.getWhiteRooks(), 0));
 	}
 	
 	@Test
 	public void testRookMobility_ExcludePawnAttacks() {
-		classUnderTest.setPieceAtSquare(Position.d4, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.a3, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.b3, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.c3, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.d3, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.f3, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.g3, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.h3, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.e2, Piece.WHITE_ROOK);
+		classUnderTest.setPieceAtSquare(BitBoard.d4, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.a3, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.b3, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.c3, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d3, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.f3, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.g3, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.h3, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.e2, Piece.WHITE_ROOK);
 		assertEquals(14, classUnderTest.mae.calculateRankFileMobility(classUnderTest.getWhiteRooks(), 0));
 	}
 	
 	@Test
 	public void testRookMobility_ExcludePawnAttacks_1() {
-		classUnderTest.setPieceAtSquare(Position.d7, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.d6, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.d5, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.d4, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.d3, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.d2, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.e2, Piece.WHITE_ROOK);
+		classUnderTest.setPieceAtSquare(BitBoard.d7, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d6, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d5, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d4, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d3, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d2, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.e2, Piece.WHITE_ROOK);
 		assertEquals(10, classUnderTest.mae.calculateRankFileMobility(classUnderTest.getWhiteRooks(), 0));
 	}
 	
 	@Test
 	public void testRookMobility_ExcludeWhitePawnAttacks() {
 		// Max 8 pawns in the PieceList limitation
-		classUnderTest.setPieceAtSquare(Position.d5, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.a6, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.b6, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.c6, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.d6, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.f6, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.g6, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.h6, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.e7, Piece.BLACK_ROOK);
+		classUnderTest.setPieceAtSquare(BitBoard.d5, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.a6, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.b6, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.c6, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d6, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.f6, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.g6, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.h6, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.e7, Piece.BLACK_ROOK);
 		assertEquals(14, classUnderTest.mae.calculateRankFileMobility(classUnderTest.getBlackRooks(), 0));
 	}
 	
 	@Test
 	public void testRookMobility_ExcludeWhitePawnAttacks_1() {
 		// Max 8 pawns in the PieceLit limitation
-		classUnderTest.setPieceAtSquare(Position.d2, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.d3, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.d4, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.d5, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.d6, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.d7, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.e7, Piece.BLACK_ROOK);
+		classUnderTest.setPieceAtSquare(BitBoard.d2, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d3, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d4, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d5, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d6, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d7, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.e7, Piece.BLACK_ROOK);
 		assertEquals(10, classUnderTest.mae.calculateRankFileMobility(classUnderTest.getBlackRooks(), 0));
 	}
 	
 	@Test
 	public void testRookMobility_ExcludeWhiteKnightAttacks() {
-		classUnderTest.setPieceAtSquare(Position.f6, Piece.WHITE_KNIGHT);
-		classUnderTest.setPieceAtSquare(Position.h8, Piece.BLACK_ROOK);
+		classUnderTest.setPieceAtSquare(BitBoard.f6, Piece.WHITE_KNIGHT);
+		classUnderTest.setPieceAtSquare(BitBoard.h8, Piece.BLACK_ROOK);
 		assertEquals(14, classUnderTest.mae.calculateRankFileMobility(classUnderTest.getBlackRooks(), 0));
 	}
 	
 	@Test
 	public void testRookMobility_ExcludeWhiteKnightAndPawnAttacks() {
-		classUnderTest.setPieceAtSquare(Position.f6, Piece.WHITE_KNIGHT);
-		classUnderTest.setPieceAtSquare(Position.b7, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.g2, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.h8, Piece.BLACK_ROOK);
+		classUnderTest.setPieceAtSquare(BitBoard.f6, Piece.WHITE_KNIGHT);
+		classUnderTest.setPieceAtSquare(BitBoard.b7, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.g2, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.h8, Piece.BLACK_ROOK);
 		assertEquals(14, classUnderTest.mae.calculateRankFileMobility(classUnderTest.getBlackRooks(), 0));
 	}
 	
 	@Test
 	public void testRookMobility_ExcludeBlackKnightAttacks() {
-		classUnderTest.setPieceAtSquare(Position.c3, Piece.BLACK_KNIGHT);
-		classUnderTest.setPieceAtSquare(Position.a1, Piece.WHITE_ROOK);
+		classUnderTest.setPieceAtSquare(BitBoard.c3, Piece.BLACK_KNIGHT);
+		classUnderTest.setPieceAtSquare(BitBoard.a1, Piece.WHITE_ROOK);
 		assertEquals(14, classUnderTest.mae.calculateRankFileMobility(classUnderTest.getWhiteRooks(), 0));
 	}
 	
 	@Test
 	public void testRookMobility_IgnoreOwnKnight() {
-		classUnderTest.setPieceAtSquare(Position.f6, Piece.BLACK_KNIGHT);
-		classUnderTest.setPieceAtSquare(Position.h8, Piece.BLACK_ROOK);
+		classUnderTest.setPieceAtSquare(BitBoard.f6, Piece.BLACK_KNIGHT);
+		classUnderTest.setPieceAtSquare(BitBoard.h8, Piece.BLACK_ROOK);
 		assertEquals(14, classUnderTest.mae.calculateRankFileMobility(classUnderTest.getBlackRooks(), 0));
 	}
 	
 	@Test
 	public void testRookMobility_IgnoreOwnKnight_1() {
-		classUnderTest.setPieceAtSquare(Position.c3, Piece.WHITE_KNIGHT);
-		classUnderTest.setPieceAtSquare(Position.a1, Piece.WHITE_ROOK);
+		classUnderTest.setPieceAtSquare(BitBoard.c3, Piece.WHITE_KNIGHT);
+		classUnderTest.setPieceAtSquare(BitBoard.a1, Piece.WHITE_ROOK);
 		assertEquals(14, classUnderTest.mae.calculateRankFileMobility(classUnderTest.getWhiteRooks(), 0));
 	}
 	
 	@Test
 	public void testBishopMobility_ExcludePawnAttacks() {
-		classUnderTest.setPieceAtSquare(Position.e7, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.d6, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.c5, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.b4, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.a3, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.a1, Piece.WHITE_BISHOP);
+		classUnderTest.setPieceAtSquare(BitBoard.e7, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d6, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.c5, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.b4, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.a3, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.a1, Piece.WHITE_BISHOP);
 		// Can move to g7 and h8, that can't be attacked by a black pawn
 		assertEquals(7, classUnderTest.mae.calculateDiagonalMobility(classUnderTest.getWhiteBishops(), 0));
 	}
 	
 	@Test
 	public void testBishopMobility_ExcludePawnAttacks_1() {
-		classUnderTest.setPieceAtSquare(Position.e7, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.c5, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.a3, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.a1, Piece.WHITE_BISHOP);
+		classUnderTest.setPieceAtSquare(BitBoard.e7, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.c5, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.a3, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.a1, Piece.WHITE_BISHOP);
 		// Can move to g7 and h8, that can't be attacked by a black pawn, and c3 and e5 which aren't attacked
 		assertEquals(7, classUnderTest.mae.calculateDiagonalMobility(classUnderTest.getWhiteBishops(), 0));
 	}
 	
 	@Test
 	public void testBishopQueenMobility_ExcludePawnAttacks() {
-		classUnderTest.setPieceAtSquare(Position.e7, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.c5, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.a3, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.a1, Piece.WHITE_BISHOP);
-		classUnderTest.setPieceAtSquare(Position.e6, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.b1, Piece.WHITE_QUEEN);
+		classUnderTest.setPieceAtSquare(BitBoard.e7, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.c5, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.a3, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.a1, Piece.WHITE_BISHOP);
+		classUnderTest.setPieceAtSquare(BitBoard.e6, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.b1, Piece.WHITE_QUEEN);
 		assertEquals(14, classUnderTest.mae.calculateDiagonalMobility(classUnderTest.getWhiteBishops(), classUnderTest.getWhiteQueens()));
 	}
 	
 	@Test
 	public void testBishopMobility_ExcludeWhitePawnAttacks() {
-		classUnderTest.setPieceAtSquare(Position.a6, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.b5, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.c4, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.d3, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.e2, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.a8, Piece.BLACK_BISHOP);
+		classUnderTest.setPieceAtSquare(BitBoard.a6, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.b5, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.c4, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d3, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.e2, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.a8, Piece.BLACK_BISHOP);
 		assertEquals(7, classUnderTest.mae.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0));
 	}
 	
 	@Test
 	public void testBishopMobility_ExcludeWhitePawnAttacks_1() {
 		// Max 8 pawns in the PieceList limitation
-		classUnderTest.setPieceAtSquare(Position.d2, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.e3, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.f4, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.g5, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.h6, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.h8, Piece.BLACK_BISHOP);
+		classUnderTest.setPieceAtSquare(BitBoard.d2, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.e3, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.f4, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.g5, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.h6, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.h8, Piece.BLACK_BISHOP);
 		assertEquals(7, classUnderTest.mae.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0));
 	}
 	
@@ -309,96 +309,96 @@ public class BoardTest {
 		
 	@Test
 	public void testisHalfOpenFile_isHalfOpen() {
-		classUnderTest.setPieceAtSquare(Position.e7, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.e2, Piece.WHITE_ROOK);
+		classUnderTest.setPieceAtSquare(BitBoard.e7, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.e2, Piece.WHITE_ROOK);
 		assertTrue(classUnderTest.isOnHalfOpenFile(GenericPosition.e2, Piece.WHITE_ROOK));
 	}
 	
 	@Test
 	public void testisHalfOpenFile_isNotHalfOpen() {
-		classUnderTest.setPieceAtSquare(Position.e7, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.e2, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.e1, Piece.WHITE_ROOK);
+		classUnderTest.setPieceAtSquare(BitBoard.e7, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.e2, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.e1, Piece.WHITE_ROOK);
 		assertFalse(classUnderTest.isOnHalfOpenFile(GenericPosition.e1, Piece.WHITE_ROOK));
 	}
 	
 	@Test
 	@Ignore
 	public void testisHalfOpenFile_isNotHalfOpen1() {
-		classUnderTest.setPieceAtSquare(Position.e7, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.e2, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(Position.e1, Piece.WHITE_ROOK);
+		classUnderTest.setPieceAtSquare(BitBoard.e7, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.e2, Piece.BLACK_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.e1, Piece.WHITE_ROOK);
 		assertTrue(classUnderTest.isOnHalfOpenFile(GenericPosition.e1, Piece.WHITE_ROOK));
 	}
 	
 	@Test
 	public void testisOnOpenDiagonal_Yes() {
-		classUnderTest.setPieceAtSquare(Position.d5, Piece.BLACK_BISHOP);
-		classUnderTest.setPieceAtSquare(Position.e5, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d5, Piece.BLACK_BISHOP);
+		classUnderTest.setPieceAtSquare(BitBoard.e5, Piece.WHITE_PAWN);
 		assertEquals(13, classUnderTest.mae.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0));
 	}
 	
 	@Test
 	public void testisOnOpenDiagonal_No() {
-		classUnderTest.setPieceAtSquare(Position.d5, Piece.BLACK_BISHOP);
-		classUnderTest.setPieceAtSquare(Position.e6, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d5, Piece.BLACK_BISHOP);
+		classUnderTest.setPieceAtSquare(BitBoard.e6, Piece.WHITE_PAWN);
 		assertEquals(10, classUnderTest.mae.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0));
 	}
 	
 	@Test
 	public void testisOnOpenDiagonal_Yes1() {
-		classUnderTest.setPieceAtSquare(Position.d5, Piece.BLACK_BISHOP);
-		classUnderTest.setPieceAtSquare(Position.e5, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.d6, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.d4, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.c5, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d5, Piece.BLACK_BISHOP);
+		classUnderTest.setPieceAtSquare(BitBoard.e5, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d6, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d4, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.c5, Piece.WHITE_PAWN);
 		assertEquals(13, classUnderTest.mae.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0));
 	}
 	
 	@Test
 	public void testisOnOpenDiagonal_No1() {
-		classUnderTest.setPieceAtSquare(Position.a1, Piece.BLACK_BISHOP);
-		classUnderTest.setPieceAtSquare(Position.h8, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.a1, Piece.BLACK_BISHOP);
+		classUnderTest.setPieceAtSquare(BitBoard.h8, Piece.WHITE_PAWN);
 		assertEquals(6, classUnderTest.mae.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0));
 	}
 	
 	@Test
 	public void testisOnOpenDiagonal_Yes2() {
-		classUnderTest.setPieceAtSquare(Position.a1, Piece.BLACK_BISHOP);
-		classUnderTest.setPieceAtSquare(Position.a8, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.a1, Piece.BLACK_BISHOP);
+		classUnderTest.setPieceAtSquare(BitBoard.a8, Piece.WHITE_PAWN);
 		assertEquals(7, classUnderTest.mae.calculateDiagonalMobility(classUnderTest.getBlackBishops(), 0));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_Yes() {
-		classUnderTest.setPieceAtSquare(Position.d8, Piece.BLACK_ROOK);
-		classUnderTest.setPieceAtSquare(Position.d2, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KING);
+		classUnderTest.setPieceAtSquare(BitBoard.d8, Piece.BLACK_ROOK);
+		classUnderTest.setPieceAtSquare(BitBoard.d2, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d1, Piece.WHITE_KING);
 		int move = Move.valueOf(Position.d2, Piece.WHITE_PAWN, Position.d4, Piece.NONE);
 		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.d1, true));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_Yes1() {
-		classUnderTest.setPieceAtSquare(Position.h5, Piece.BLACK_BISHOP);
-		classUnderTest.setPieceAtSquare(Position.e2, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KING);
+		classUnderTest.setPieceAtSquare(BitBoard.h5, Piece.BLACK_BISHOP);
+		classUnderTest.setPieceAtSquare(BitBoard.e2, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d1, Piece.WHITE_KING);
 		int move = Move.valueOf(Position.e2, Piece.WHITE_PAWN, Position.d3, Piece.NONE);
 		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.d1, true));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_No() {
-		classUnderTest.setPieceAtSquare(Position.e3, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KING);
+		classUnderTest.setPieceAtSquare(BitBoard.e3, Piece.WHITE_PAWN);
+		classUnderTest.setPieceAtSquare(BitBoard.d1, Piece.WHITE_KING);
 		int move = Move.valueOf(Position.e3, Piece.WHITE_PAWN, Position.e4, Piece.NONE);
 		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.d1, true));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_No1() {
-		classUnderTest.setPieceAtSquare(Position.d1, Piece.WHITE_KNIGHT);
-		classUnderTest.setPieceAtSquare(Position.e4, Piece.WHITE_KING);
+		classUnderTest.setPieceAtSquare(BitBoard.d1, Piece.WHITE_KNIGHT);
+		classUnderTest.setPieceAtSquare(BitBoard.e4, Piece.WHITE_KING);
 		int move = Move.valueOf(Position.d1, Piece.WHITE_KNIGHT, Position.c3, Piece.NONE);
 		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.e4, true));
 	}
@@ -643,7 +643,7 @@ public class BoardTest {
 						classUnderTest.pickUpPieceAtSquare(BitBoard.positionToMask_Lut[atPos], BitBoard.positionToBit_Lut[atPos], Piece.WHITE_BISHOP);
 					}
 				}
-				classUnderTest.pickUpPieceAtSquare(BitBoard.positionToMask_Lut[Position.valueOf(outer_file, outer_rank)], Position.valueOf(outer_file, outer_rank), Piece.WHITE_QUEEN);
+				classUnderTest.pickUpPieceAtSquare(BitBoard.positionToMask_Lut[Position.valueOf(outer_file, outer_rank)], BitBoard.positionToBit_Lut[Position.valueOf(outer_file, outer_rank)], Piece.WHITE_QUEEN);
 			}
 		}
 		for (int outer_rank=0; outer_rank<8; outer_rank++) {
@@ -662,7 +662,7 @@ public class BoardTest {
 						classUnderTest.pickUpPieceAtSquare(BitBoard.positionToMask_Lut[atPos], BitBoard.positionToBit_Lut[atPos], Piece.WHITE_ROOK);
 					}
 				}
-				classUnderTest.pickUpPieceAtSquare(BitBoard.positionToMask_Lut[Position.valueOf(outer_file, outer_rank)], Position.valueOf(outer_file, outer_rank), Piece.WHITE_QUEEN);
+				classUnderTest.pickUpPieceAtSquare(BitBoard.positionToMask_Lut[Position.valueOf(outer_file, outer_rank)], BitBoard.positionToBit_Lut[Position.valueOf(outer_file, outer_rank)], Piece.WHITE_QUEEN);
 			}
 		}
 	}

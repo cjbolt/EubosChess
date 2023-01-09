@@ -93,7 +93,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public boolean moveLeadsToThreefold(int move) {
 		boolean isDrawing = false;
-		int captureBitOffset = Position.NOPOSITION;
+		int captureBitOffset = BitBoard.INVALID;
 		int pieceToMove = Move.getOriginPiece(move);
 		int targetBitOffset = Move.getTargetPosition(move);
 		int targetPiece = Move.getTargetPiece(move);
