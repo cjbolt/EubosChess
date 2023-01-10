@@ -238,6 +238,7 @@ public class PositionEvaluator implements IEvaluate {
 		return score;
 	}
 	
+	public final int[] GO_FOR_MATE_KING_PROXIMITY_LUT = {0, 0, 40, 30, 20, 10, 0, -10, -20};
 	private int internalFullEval() {
 		// Initialised in lazyEvaluation function
 		score = 0;
@@ -269,6 +270,12 @@ public class PositionEvaluator implements IEvaluate {
 				score = taperEvaluation(midgameScore, endgameScore);
 			} else {
 				score += onMoveIsWhite ? bd.me.getMiddleGameDelta() : -bd.me.getMiddleGameDelta();
+				int ownKingPos = bd.getKingPosition(onMoveIsWhite);
+				int enemyKingPos = bd.getKingPosition(!onMoveIsWhite);
+				if (ownKingPos != BitBoard.INVALID && enemyKingPos != BitBoard.INVALID) {
+					int distance = BitBoard.ManhattanDistance[enemyKingPos][ownKingPos];
+					score += GO_FOR_MATE_KING_PROXIMITY_LUT[distance];
+				}
 			}
 		}
 		return score;

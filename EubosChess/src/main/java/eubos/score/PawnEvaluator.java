@@ -190,7 +190,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		return score;
 	}
 	
-	public final int[] KING_DIST_LUT = {0, 3, 2, 1, 0, -1, -2, -3, -4};
+	//public final int[] KING_DIST_LUT = {0, 3, 2, 1, 0, -1, -2, -3, -4};
 	//public final int[] KING_DIST_LUT = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 	protected int evaluatePassedPawn(int bitOffset, boolean pawnIsWhite, long[][] own_attacks, long [][] enemy_attacks) {
 		int score = 0;
@@ -221,11 +221,11 @@ public class PawnEvaluator implements IForEachPieceCallback {
 				}
 			}
 		}
-		int ownKingPos = bd.getKingPosition(pawnIsWhite);
-		if (ownKingPos != BitBoard.INVALID) {
-			int ownDistance = BitBoard.ManhattanDistance[bitOffset][ownKingPos];
-			value += KING_DIST_LUT[ownDistance];
-		}
+//		int ownKingPos = bd.getKingPosition(pawnIsWhite);
+//		if (ownKingPos != BitBoard.INVALID) {
+//			int ownDistance = BitBoard.ManhattanDistance[bitOffset][ownKingPos];
+//			value += KING_DIST_LUT[ownDistance];
+//		}
 		score += weighting*value;
 		return score;
 	}
