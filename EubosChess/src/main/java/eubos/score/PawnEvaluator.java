@@ -194,6 +194,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	//public final int[] KING_DIST_LUT = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 	protected int evaluatePassedPawn(int bitOffset, boolean pawnIsWhite, long[][] own_attacks, long [][] enemy_attacks) {
 		int score = 0;
+		boolean heavySupport = false;
 		weighting *= getScaleFactorForGamePhase();
 		int value = (BitBoard.getFile(bitOffset) == IntFile.Fa || BitBoard.getFile(bitOffset) == IntFile.Fh) ?
 				ROOK_FILE_PASSED_PAWN_BOOST : PASSED_PAWN_BOOST;
@@ -203,24 +204,20 @@ public class PawnEvaluator implements IForEachPieceCallback {
 				int heavySupportIndication = bd.checkForHeavyPieceBehindPassedPawn(bitOffset, pawnIsWhite);
 				if (heavySupportIndication > 0) {
 					score += HEAVY_PIECE_BEHIND_PASSED_PAWN;
+					heavySupport = true;
 				} else if (heavySupportIndication < 0) {
 					score -= HEAVY_PIECE_BEHIND_PASSED_PAWN;
 				} else {
 					// neither attacked or defended along the rear span
 				}
-				if (bd.isPawnFrontspanSafe(bitOffset, pawnIsWhite, own_attacks[3], enemy_attacks[3], heavySupportIndication > 0)) {
-					value += SAFE_MOBILE_PASSED_PAWN;
-				} else if (bd.canPawnAdvance(bitOffset, pawnIsWhite, own_attacks[3], enemy_attacks[3])) {
-					value += MOBILE_PASSED_PAWN;
-				}
-			} else {
-				if (bd.isPawnFrontspanSafe(bitOffset, pawnIsWhite, own_attacks[3], enemy_attacks[3], false)) {
-					value += SAFE_MOBILE_PASSED_PAWN;
-				} else if (bd.canPawnAdvance(bitOffset, pawnIsWhite, own_attacks[3], enemy_attacks[3])) {
-					value += MOBILE_PASSED_PAWN;
-				}
+			}
+			if (bd.isPawnFrontspanSafe(bitOffset, pawnIsWhite, own_attacks[3], enemy_attacks[3], heavySupport)) {
+				value += SAFE_MOBILE_PASSED_PAWN;
+			} else if (bd.canPawnAdvance(bitOffset, pawnIsWhite, own_attacks[3], enemy_attacks[3])) {
+				value += MOBILE_PASSED_PAWN;
 			}
 		}
+// Experimental King proximity to passed pawn evalution
 //		int ownKingPos = bd.getKingPosition(pawnIsWhite);
 //		if (ownKingPos != BitBoard.INVALID) {
 //			int ownDistance = BitBoard.ManhattanDistance[bitOffset][ownKingPos];
