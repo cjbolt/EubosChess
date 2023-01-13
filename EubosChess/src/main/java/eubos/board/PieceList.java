@@ -314,8 +314,8 @@ public class PieceList {
 			if (bitOffset != BitBoard.INVALID) {			
 				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.ROOK];
 				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.ROOK];
-				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.ROOK][bitOffset];
-				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.ROOK][bitOffset];
+//				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.ROOK][bitOffset];
+//				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.ROOK][bitOffset];
 				me.numberOfPieces[side+Piece.ROOK]++;
 			} else break;
 		}
