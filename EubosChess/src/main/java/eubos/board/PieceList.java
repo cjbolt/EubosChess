@@ -131,9 +131,9 @@ public class PieceList {
 	
 	public void forEachPieceDoCallback(IForEachPieceCallback caller) {
 		// white pieces
-		forEachPieceTypeOfSideHelper(caller, Piece.WHITE_KING);
+		forEachPieceTypeOfSideHelper(caller, Piece.WHITE_QUEEN);
 		// black pieces
-		forEachPieceTypeOfSideHelper(caller, Piece.BLACK_KING);
+		forEachPieceTypeOfSideHelper(caller, Piece.BLACK_QUEEN);
 	}
 	
 	public void forEachPieceOfTypeDoCallback(IForEachPieceCallback caller, int[] pieceTypesToIterate) {

@@ -231,7 +231,7 @@ public class Board {
 			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
 			pieceLists.updatePiece(pieceToMove, originBitOffset, targetBitOffset);
 			// Update PST
-			if (pieceType == Piece.KING || pieceType == Piece.PAWN || pieceType == Piece.KNIGHT) {
+			if (pieceType >= Piece.KNIGHT) {
 				me.position -= Piece.PIECE_SQUARE_TABLES[pieceToMove][originBitOffset];
 				me.position += Piece.PIECE_SQUARE_TABLES[pieceToMove][targetBitOffset];
 				me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[pieceToMove][originBitOffset];
@@ -352,7 +352,7 @@ public class Board {
 			int pieceType = Piece.PIECE_NO_COLOUR_MASK & originPiece;
 			pieces[Piece.PIECE_NO_COLOUR_MASK & originPiece] ^= positionsMask;
 			pieceLists.updatePiece(originPiece, originBitOffset, targetBitOffset);
-			if (pieceType == Piece.KING || pieceType == Piece.PAWN || pieceType == Piece.KNIGHT) {
+			if (pieceType >= Piece.KNIGHT) {
 				me.position -= Piece.PIECE_SQUARE_TABLES[originPiece][originBitOffset];
 				me.position += Piece.PIECE_SQUARE_TABLES[originPiece][targetBitOffset];
 				me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[originPiece][originBitOffset];
@@ -398,7 +398,7 @@ public class Board {
 		me.mg_material -= Piece.PIECE_TO_MATERIAL_LUT[0][currPiece];
 		me.eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
 		int pieceType = currPiece & Piece.PIECE_NO_COLOUR_MASK;
-		if (pieceType == Piece.KING || pieceType == Piece.PAWN || pieceType == Piece.KNIGHT) {
+		if (pieceType >= Piece.KNIGHT) {
 			me.position -= Piece.PIECE_SQUARE_TABLES[currPiece][bitOffset];
 			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[currPiece][bitOffset];
 		}
@@ -410,7 +410,7 @@ public class Board {
 		me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][currPiece];
 		me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
 		int pieceType = currPiece & Piece.PIECE_NO_COLOUR_MASK;
-		if (pieceType == Piece.KING || pieceType == Piece.PAWN || pieceType == Piece.KNIGHT) {
+		if (pieceType >= Piece.KNIGHT) {
 			me.position += Piece.PIECE_SQUARE_TABLES[currPiece][bitOffset];
 			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[currPiece][bitOffset];
 		}
