@@ -317,11 +317,6 @@ public class PieceList {
 			if (bitOffset != BitBoard.INVALID) {			
 				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.ROOK];
 				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.ROOK];
-				int x = me.combinedPosition;
-				int y = Piece.COMBINED_PIECE_SQUARE_TABLES[side+Piece.ROOK][bitOffset];
-				int s = x + y;
-				int c = (s ^ x ^ y) & 0x0001_0000;
-				me.combinedPosition = s - c;
 				me.numberOfPieces[side+Piece.ROOK]++;
 			} else break;
 		}

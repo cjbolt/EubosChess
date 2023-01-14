@@ -228,7 +228,7 @@ public class Board {
 		} else {
 			// Piece type doesn't change across boards
 			int pieceType = Piece.PIECE_NO_COLOUR_MASK & pieceToMove;
-			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
+			pieces[pieceType] ^= positionsMask;
 			pieceLists.updatePiece(pieceToMove, originBitOffset, targetBitOffset);
 			// Update PST
 			if (pieceType >= Piece.KNIGHT) {
@@ -312,8 +312,8 @@ public class Board {
 			assert scratch_me != me;
 			assert scratch_me.mg_material == me.mg_material;
 			assert scratch_me.eg_material == me.eg_material;
-			//assert scratch_me.position == me.position;
-			//assert scratch_me.positionEndgame == me.positionEndgame;
+			assert scratch_me.combinedPosition == me.combinedPosition : 
+				String.format("combined_scratch=%x iterative=%x", scratch_me.combinedPosition, me.combinedPosition);
 			assert scratch_me.phase == me.phase;
 		}
 		
@@ -401,8 +401,7 @@ public class Board {
 			assert scratch_me != me;
 			assert scratch_me.mg_material == me.mg_material;
 			assert scratch_me.eg_material == me.eg_material;
-			//assert scratch_me.position == me.position;
-			//assert scratch_me.positionEndgame == me.positionEndgame;
+			assert scratch_me.combinedPosition == me.combinedPosition;
 			assert scratch_me.phase == me.phase;
 		}
 		
