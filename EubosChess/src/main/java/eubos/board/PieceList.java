@@ -131,9 +131,9 @@ public class PieceList {
 	
 	public void forEachPieceDoCallback(IForEachPieceCallback caller) {
 		// white pieces
-		forEachPieceTypeOfSideHelper(caller, Piece.WHITE_QUEEN);
+		forEachPieceTypeOfSideHelper(caller, Piece.WHITE_KING);
 		// black pieces
-		forEachPieceTypeOfSideHelper(caller, Piece.BLACK_QUEEN);
+		forEachPieceTypeOfSideHelper(caller, Piece.BLACK_KING);
 	}
 	
 	public void forEachPieceOfTypeDoCallback(IForEachPieceCallback caller, int[] pieceTypesToIterate) {
@@ -299,11 +299,7 @@ public class PieceList {
 			if (bitOffset != BitBoard.INVALID) {	
 				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.KING];
 				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.KING];
-				int x = me.combinedPosition;
-				int y = Piece.COMBINED_PIECE_SQUARE_TABLES[side+Piece.KING][bitOffset];
-				int s = x + y;
-				int c = (s ^ x ^ y) & 0x0001_0000;
-				me.combinedPosition = s - c;
+				me.addPst(side+Piece.KING, bitOffset);
 			}
 		}
 		for(int bitOffset : piece_list[side+Piece.QUEEN]) {
@@ -331,11 +327,7 @@ public class PieceList {
 			if (atSquare != BitBoard.INVALID) {			
 				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.KNIGHT];
 				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.KNIGHT];
-				int x = me.combinedPosition;
-				int y = Piece.COMBINED_PIECE_SQUARE_TABLES[side+Piece.KNIGHT][atSquare];
-				int s = x + y;
-				int c = (s ^ x ^ y) & 0x0001_0000;
-				me.combinedPosition = s - c;
+				me.addPst(side+Piece.KNIGHT, atSquare);
 				me.numberOfPieces[side+Piece.KNIGHT]++;
 			} else break;
 		}
@@ -347,11 +339,7 @@ public class PieceList {
 				}
 				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.PAWN];
 				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.PAWN];
-				int x = me.combinedPosition;
-				int y = Piece.COMBINED_PIECE_SQUARE_TABLES[side+Piece.PAWN][atSquare];
-				int s = x + y;
-				int c = (s ^ x ^ y) & 0x0001_0000;
-				me.combinedPosition = s - c;
+				me.addPst(side+Piece.PAWN, atSquare);
 				me.numberOfPieces[side+Piece.PAWN]++;
 			} else break;
 		}

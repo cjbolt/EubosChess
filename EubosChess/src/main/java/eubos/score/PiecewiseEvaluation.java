@@ -50,4 +50,85 @@ public class PiecewiseEvaluation {
 		phase -= numberOfPieces[Piece.BLACK_QUEEN] * QUEEN_PHASE;
 		// Phase is now a 10 bit fixed point fraction of the total phase
 	}
+
+	public void addPst(int piece, int bitOffset) {
+		int x = combinedPosition;
+		int y = Piece.COMBINED_PIECE_SQUARE_TABLES[piece][bitOffset];
+		int s = x + y;
+		int c = (s ^ x ^ y) & 0x0001_0000;
+		combinedPosition = s - c;
+	}
+	
+	public void subtractPst(int piece, int bitOffset) {
+		int x = combinedPosition;
+		int y = Piece.COMBINED_PIECE_SQUARE_TABLES[piece][bitOffset];
+		int d = x - y;
+		int b = (d ^ x ^ y) & 0x0001_0000;
+		combinedPosition = d + b;
+	}
+	
+	public void updateRegular(int pieceType, int originPiece, int originBitOffset, int targetBitOffset) {
+		if (pieceType >= Piece.KNIGHT || pieceType == Piece.KING) {
+			addPst(originPiece, targetBitOffset);
+			subtractPst(originPiece,originBitOffset);
+		}
+	}
+	
+	public void updateWhenUndoingPromotion(int promoPiece, int oldBitOffset, int newBitOffset) {
+		int pawnToReplace = (promoPiece & Piece.BLACK)+Piece.PAWN;
+		numberOfPieces[pawnToReplace]++;
+		numberOfPieces[promoPiece]--;
+		
+		mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][pawnToReplace];
+		mg_material -= Piece.PIECE_TO_MATERIAL_LUT[0][promoPiece];
+		eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][pawnToReplace];
+		eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][promoPiece];
+		
+		addPst(pawnToReplace, newBitOffset);
+		if (promoPiece == Piece.KNIGHT) {
+			subtractPst(promoPiece, oldBitOffset);
+		}
+		
+		phase += Piece.PIECE_PHASE[promoPiece];
+	}
+	
+	public void updateWhenDoingPromotion(int promoPiece, int oldBitOffset, int newBitOffset) {
+		int pawnToRemove = (promoPiece & Piece.BLACK)+Piece.PAWN;
+		numberOfPieces[pawnToRemove]--;
+		numberOfPieces[promoPiece]++;
+		
+		mg_material -= Piece.PIECE_TO_MATERIAL_LUT[0][pawnToRemove];
+		mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][promoPiece];
+		eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][pawnToRemove];
+		eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][promoPiece];
+
+		subtractPst(pawnToRemove,oldBitOffset);
+		if (promoPiece == Piece.KNIGHT) {
+			addPst(promoPiece, newBitOffset);
+		}
+		
+		phase -= Piece.PIECE_PHASE[promoPiece];
+	}
+	
+	public void updateForCapture(int currPiece, int bitOffset) {
+		numberOfPieces[currPiece]--;
+		mg_material -= Piece.PIECE_TO_MATERIAL_LUT[0][currPiece];
+		eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
+		int pieceType = currPiece & Piece.PIECE_NO_COLOUR_MASK;
+		if (pieceType >= Piece.KNIGHT /* King can't be captured */) {
+			subtractPst(currPiece, bitOffset);
+		}
+		phase += Piece.PIECE_PHASE[currPiece];
+	}
+	
+	public void updateForReplacedCapture(int currPiece, int bitOffset) {
+		numberOfPieces[currPiece]++;
+		mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][currPiece];
+		eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
+		int pieceType = currPiece & Piece.PIECE_NO_COLOUR_MASK;
+		if (pieceType >= Piece.KNIGHT /* King can't be captured */) {
+			addPst(currPiece, bitOffset);
+		}
+		phase -= Piece.PIECE_PHASE[currPiece];
+	}
 }

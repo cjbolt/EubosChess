@@ -206,7 +206,7 @@ public class Board {
 			}
 			pickUpPieceAtSquare(1L << captureBitOffset, captureBitOffset, targetPiece);
 			// Incrementally update opponent material after capture, at the correct capturePosition
-		    subtractMaterialAndPositionForCapture(targetPiece, captureBitOffset);
+			me.updateForCapture(targetPiece, captureBitOffset);
 		} else {
 			// Check whether the move sets the En Passant target square
 			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
@@ -224,27 +224,13 @@ public class Board {
 			pieces[promotedPiece] |= targetSquareMask;
 			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
 			pieceLists.updatePiece(pieceToMove, fullPromotedPiece, originBitOffset, targetBitOffset);
-			updateMaterialAndPositionForDoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
+			me.updateWhenDoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
 		} else {
-			// Piece type doesn't change across boards
+			// Piece type doesn't change across boards, update piece-specific bitboard, pieceList and PST score
 			int pieceType = Piece.PIECE_NO_COLOUR_MASK & pieceToMove;
 			pieces[pieceType] ^= positionsMask;
 			pieceLists.updatePiece(pieceToMove, originBitOffset, targetBitOffset);
-			// Update PST
-			if (pieceType >= Piece.KNIGHT) {
-				// addition
-				int x = me.combinedPosition;
-				int y = Piece.COMBINED_PIECE_SQUARE_TABLES[pieceToMove][targetBitOffset];
-				int s = x + y;
-				int c = (s ^ x ^ y) & 0x0001_0000;
-				me.combinedPosition = s - c;
-				// subtraction
-				x = me.combinedPosition;
-				y = Piece.COMBINED_PIECE_SQUARE_TABLES[pieceToMove][originBitOffset];
-				int d = x - y;
-				int b = (d ^ x ^ y) & 0x0001_0000;
-				me.combinedPosition = d + b;
-			}
+			me.updateRegular(pieceType, pieceToMove, originBitOffset, targetBitOffset);
 		}
 		// Switch colour bitboard
 		if (isWhite) {
@@ -354,26 +340,13 @@ public class Board {
 			// and update piece list
 			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
 			pieceLists.updatePiece(fullPromotedPiece, originPiece, originBitOffset, targetBitOffset);
-			updateMaterialAndPositionForUndoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
+			me.updateWhenUndoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
 		} else {
-			// Piece type doesn't change across boards
+			// Piece type doesn't change across boards, update piece-specific bitboard, pieceLists and PST score
 			int pieceType = Piece.PIECE_NO_COLOUR_MASK & originPiece;
-			pieces[Piece.PIECE_NO_COLOUR_MASK & originPiece] ^= positionsMask;
+			pieces[pieceType] ^= positionsMask;
 			pieceLists.updatePiece(originPiece, originBitOffset, targetBitOffset);
-			if (pieceType >= Piece.KNIGHT) {
-				// addition
-				int x = me.combinedPosition;
-				int y = Piece.COMBINED_PIECE_SQUARE_TABLES[originPiece][targetBitOffset];
-				int s = x + y;
-				int c = (s ^ x ^ y) & 0x0001_0000;
-				me.combinedPosition = s - c;
-				// subtraction
-				x = me.combinedPosition;
-				y = Piece.COMBINED_PIECE_SQUARE_TABLES[originPiece][originBitOffset];
-				int d = x - y;
-				int b = (d ^ x ^ y) & 0x0001_0000;
-				me.combinedPosition = d + b;
-			}
+			me.updateRegular(pieceType, originPiece, originBitOffset, targetBitOffset);
 		}
 		// Switch colour bitboard
 		if (isWhite) {
@@ -389,9 +362,10 @@ public class Board {
 			// Origin square because the move has been reversed and origin square is the original target square
 			capturedPieceSquare = Move.isEnPassantCapture(moveToUndo) ? 
 					generateCaptureBitOffsetForEnPassant(originPiece, originBitOffset) : originBitOffset;
+			// Update bitboards and pieceLists
 			setPieceAtSquare(1L << capturedPieceSquare, capturedPieceSquare, targetPiece);
 			// Replace captured piece in incremental material update, at the correct capture square
-			addMaterialAndPositionForReplacedCapture(targetPiece, capturedPieceSquare);
+			me.updateForReplacedCapture(targetPiece, capturedPieceSquare);
 		}
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -406,88 +380,6 @@ public class Board {
 		}
 		
 		return capturedPieceSquare;
-	}
-	
-	private void subtractMaterialAndPositionForCapture(int currPiece, int bitOffset) {
-		me.numberOfPieces[currPiece]--;
-		me.mg_material -= Piece.PIECE_TO_MATERIAL_LUT[0][currPiece];
-		me.eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
-		int pieceType = currPiece & Piece.PIECE_NO_COLOUR_MASK;
-		if (pieceType >= Piece.KNIGHT) {
-			int x = me.combinedPosition;
-			int y = Piece.COMBINED_PIECE_SQUARE_TABLES[currPiece][bitOffset];
-			int d = x - y;
-			int b = (d ^ x ^ y) & 0x0001_0000;
-			me.combinedPosition = d + b;
-		}
-		me.phase += Piece.PIECE_PHASE[currPiece];
-	}
-	
-	private void addMaterialAndPositionForReplacedCapture(int currPiece, int bitOffset) {
-		me.numberOfPieces[currPiece]++;
-		me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][currPiece];
-		me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
-		int pieceType = currPiece & Piece.PIECE_NO_COLOUR_MASK;
-		if (pieceType >= Piece.KNIGHT) {
-			int x = me.combinedPosition;
-			int y = Piece.COMBINED_PIECE_SQUARE_TABLES[currPiece][bitOffset];
-			int s = x + y;
-			int c = (s ^ x ^ y) & 0x0001_0000;
-			me.combinedPosition = s - c;
-		}
-		me.phase -= Piece.PIECE_PHASE[currPiece];
-	}
-	
-	private void updateMaterialAndPositionForDoingPromotion(int promoPiece, int oldBitOffset, int newBitOffset) {
-		int pawnToRemove = (promoPiece & Piece.BLACK)+Piece.PAWN;
-		me.numberOfPieces[pawnToRemove]--;
-		me.numberOfPieces[promoPiece]++;
-		
-		me.mg_material -= Piece.PIECE_TO_MATERIAL_LUT[0][pawnToRemove];
-		me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][promoPiece];
-		me.eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][pawnToRemove];
-		me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][promoPiece];
-		// subtraction
-		int x = me.combinedPosition;
-		int y = Piece.COMBINED_PIECE_SQUARE_TABLES[pawnToRemove][oldBitOffset];
-		int d = x - y;
-		int b = (d ^ x ^ y) & 0x0001_0000;
-		me.combinedPosition = d + b;
-		if (promoPiece == Piece.KNIGHT) {
-			x = me.combinedPosition;
-			y = Piece.COMBINED_PIECE_SQUARE_TABLES[promoPiece][newBitOffset];
-			int s = x + y;
-			int c = (s ^ x ^ y) & 0x0001_0000;
-			me.combinedPosition = s - c;
-		}
-		
-		me.phase -= Piece.PIECE_PHASE[promoPiece];
-	}
-	
-	private void updateMaterialAndPositionForUndoingPromotion(int promoPiece, int oldBitOffset, int newBitOffset) {
-		int pawnToReplace = (promoPiece & Piece.BLACK)+Piece.PAWN;
-		me.numberOfPieces[pawnToReplace]++;
-		me.numberOfPieces[promoPiece]--;
-		
-		me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][pawnToReplace];
-		me.mg_material -= Piece.PIECE_TO_MATERIAL_LUT[0][promoPiece];
-		me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][pawnToReplace];
-		me.eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][promoPiece];
-		
-		int x = me.combinedPosition;
-		int y = Piece.COMBINED_PIECE_SQUARE_TABLES[pawnToReplace][newBitOffset];
-		int s = x + y;
-		int c = (s ^ x ^ y) & 0x0001_0000;
-		me.combinedPosition = s - c;
-		if (promoPiece == Piece.KNIGHT) {
-			x = me.combinedPosition;
-			y = Piece.COMBINED_PIECE_SQUARE_TABLES[promoPiece][oldBitOffset];
-			int d = x - y;
-			int b = (d ^ x ^ y) & 0x0001_0000;
-			me.combinedPosition = d + b;
-		}
-		
-		me.phase += Piece.PIECE_PHASE[promoPiece];
 	}
 	
 	public int generateCaptureBitOffsetForEnPassant(int pieceToMove, int targetBitOffset) {
