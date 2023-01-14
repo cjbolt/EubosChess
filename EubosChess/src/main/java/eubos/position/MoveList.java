@@ -405,12 +405,14 @@ public class MoveList implements Iterable<Integer> {
 	public List<Integer> getList() {
 		List<Integer> ml = new ArrayList<Integer>();
 		MoveListIterator it = getNextMovesAtPly(0);
-		do {
-			while (it.hasNext()) {
-				ml.add(it.nextInt());
-			}
-			it = getNextMovesAtPly(0);
-		} while (it.hasNext());
+		if (it.hasNext()) {
+			do {
+				while (it.hasNext()) {
+					ml.add(it.nextInt());
+				}
+				it = getNextMovesAtPly(0);
+			} while (it.hasNext());
+		}
 		return ml;
 	}
 	

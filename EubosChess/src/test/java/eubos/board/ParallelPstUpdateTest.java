@@ -356,9 +356,37 @@ class ParallelPstUpdateTest {
 	}
 	
 	@Test
+	void latestVersion() {
+		int [] pieces = { WHITE_KING, WHITE_KNIGHT, WHITE_PAWN, BLACK_KING, BLACK_KNIGHT, BLACK_PAWN };
+		int count = 30000;
+		while (count > 0) {
+			for (int originBitOffset = 0; originBitOffset < 64; originBitOffset++) {
+				for (int targetBitOffset = 0; targetBitOffset < 64; targetBitOffset++) {
+					for (int pieceToMove : pieces) {
+						// addition
+						int x = combinedPosition;
+						int y = COMBINED_PIECE_SQUARE_TABLES[pieceToMove][targetBitOffset];
+						int s = x + y;
+						int c = (s ^ x ^ y) & 0x0001_0000;
+						combinedPosition = s - c;
+						// subtraction
+						x = combinedPosition;
+						y = COMBINED_PIECE_SQUARE_TABLES[pieceToMove][originBitOffset];
+						int d = x - y;
+						int b = (d ^ x ^ y) & 0x0001_0000;
+						combinedPosition = d + b;
+					}
+				}
+				//System.out.print(String.format("pos=%d eg_pos=%d\n", (short)(combinedPosition & 0xFFFF), combinedPosition >> 16));
+			}
+			count--;
+		}
+	}
+	
+	@Test
 	void oldVersion() {
 		int [] pieces = { WHITE_KING, WHITE_KNIGHT, WHITE_PAWN, BLACK_KING, BLACK_KNIGHT, BLACK_PAWN };
-		int count = 1; //30000;
+		int count = 30000;
 		while (count > 0) {
 			for (int originBitOffset = 0; originBitOffset < 64; originBitOffset++) {
 				for (int targetBitOffset = 0; targetBitOffset < 64; targetBitOffset++) {
@@ -369,7 +397,7 @@ class ParallelPstUpdateTest {
 						positionEndgame += ENDGAME_PIECE_SQUARE_TABLES[pieceToMove][targetBitOffset];
 					}
 				}
-				System.out.print(String.format("pos=%d eg_pos=%d\n", position, positionEndgame));
+				//System.out.print(String.format("pos=%d eg_pos=%d\n", position, positionEndgame));
 			}
 			count--;
 		}
