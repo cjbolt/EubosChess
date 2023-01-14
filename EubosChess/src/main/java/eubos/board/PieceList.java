@@ -299,8 +299,11 @@ public class PieceList {
 			if (bitOffset != BitBoard.INVALID) {	
 				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.KING];
 				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.KING];
-				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.KING][bitOffset];
-				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.KING][bitOffset];
+				int x = me.combinedPosition;
+				int y = Piece.COMBINED_PIECE_SQUARE_TABLES[side+Piece.KING][bitOffset];
+				int s = x + y;
+				int c = (s ^ x ^ y) & 0x0001_0000;
+				me.combinedPosition = s - c;
 			}
 		}
 		for(int bitOffset : piece_list[side+Piece.QUEEN]) {
@@ -314,8 +317,11 @@ public class PieceList {
 			if (bitOffset != BitBoard.INVALID) {			
 				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.ROOK];
 				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.ROOK];
-//				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.ROOK][bitOffset];
-//				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.ROOK][bitOffset];
+				int x = me.combinedPosition;
+				int y = Piece.COMBINED_PIECE_SQUARE_TABLES[side+Piece.ROOK][bitOffset];
+				int s = x + y;
+				int c = (s ^ x ^ y) & 0x0001_0000;
+				me.combinedPosition = s - c;
 				me.numberOfPieces[side+Piece.ROOK]++;
 			} else break;
 		}
@@ -330,8 +336,11 @@ public class PieceList {
 			if (atSquare != BitBoard.INVALID) {			
 				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.KNIGHT];
 				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.KNIGHT];
-				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.KNIGHT][atSquare];
-				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.KNIGHT][atSquare];
+				int x = me.combinedPosition;
+				int y = Piece.COMBINED_PIECE_SQUARE_TABLES[side+Piece.KNIGHT][atSquare];
+				int s = x + y;
+				int c = (s ^ x ^ y) & 0x0001_0000;
+				me.combinedPosition = s - c;
 				me.numberOfPieces[side+Piece.KNIGHT]++;
 			} else break;
 		}
@@ -343,8 +352,11 @@ public class PieceList {
 				}
 				me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.PAWN];
 				me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.PAWN];
-				me.position += Piece.PIECE_SQUARE_TABLES[side+Piece.PAWN][atSquare];
-				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[side+Piece.PAWN][atSquare];
+				int x = me.combinedPosition;
+				int y = Piece.COMBINED_PIECE_SQUARE_TABLES[side+Piece.PAWN][atSquare];
+				int s = x + y;
+				int c = (s ^ x ^ y) & 0x0001_0000;
+				me.combinedPosition = s - c;
 				me.numberOfPieces[side+Piece.PAWN]++;
 			} else break;
 		}

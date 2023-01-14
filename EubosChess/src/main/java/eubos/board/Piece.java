@@ -1271,4 +1271,35 @@ public abstract class Piece {
         }
         return targetOffset;
     }
+    
+    static int [] createCombinedTable(byte [] mg_table, byte[] eg_table) {
+    	int [] combined_table = new int [64];
+    	for (int i=0; i < 64; i++) {
+    		int mg = mg_table[i];
+    		int eg = eg_table[i];
+    		combined_table[i] = mg;
+    		combined_table[i] &= 0x0000_FFFF;
+    		combined_table[i] |= (eg << 16);
+    	}
+    	return combined_table;
+    }
+    
+    public static final int [][] COMBINED_PIECE_SQUARE_TABLES;
+    static {
+    	COMBINED_PIECE_SQUARE_TABLES = new int[15][64];
+        
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.WHITE_PAWN] = createCombinedTable(PAWN_WHITE_WEIGHTINGS, PAWN_WHITE_ENDGAME_WEIGHTINGS);
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.WHITE_KING] = createCombinedTable(KING_WHITE_MIDGAME_WEIGHTINGS, KING_WHITE_ENDGAME_WEIGHTINGS);
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.WHITE_QUEEN] = createCombinedTable(ZERO_WEIGHTING, ZERO_WEIGHTING);
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK] = createCombinedTable(ROOK_WHITE_WEIGHTINGS, ZERO_WEIGHTING);
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.WHITE_BISHOP] = createCombinedTable(ZERO_WEIGHTING, ZERO_WEIGHTING);
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.WHITE_KNIGHT] = createCombinedTable(KNIGHT_WHITE_WEIGHTINGS, KNIGHT_WHITE_WEIGHTINGS);
+        
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.BLACK_PAWN] = createCombinedTable(PAWN_BLACK_WEIGHTINGS, PAWN_BLACK_ENDGAME_WEIGHTINGS);
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.BLACK_KING] = createCombinedTable(KING_BLACK_MIDGAME_WEIGHTINGS, KING_BLACK_ENDGAME_WEIGHTINGS);
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.BLACK_QUEEN] = createCombinedTable(ZERO_WEIGHTING, ZERO_WEIGHTING);
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK] = createCombinedTable(ROOK_BLACK_WEIGHTINGS, ZERO_WEIGHTING);
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.BLACK_BISHOP] = createCombinedTable(ZERO_WEIGHTING, ZERO_WEIGHTING);
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.BLACK_KNIGHT] = createCombinedTable(KNIGHT_BLACK_WEIGHTINGS, KNIGHT_BLACK_WEIGHTINGS);
+    }
 }

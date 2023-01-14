@@ -232,10 +232,18 @@ public class Board {
 			pieceLists.updatePiece(pieceToMove, originBitOffset, targetBitOffset);
 			// Update PST
 			if (pieceType >= Piece.KNIGHT) {
-				me.position -= Piece.PIECE_SQUARE_TABLES[pieceToMove][originBitOffset];
-				me.position += Piece.PIECE_SQUARE_TABLES[pieceToMove][targetBitOffset];
-				me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[pieceToMove][originBitOffset];
-				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[pieceToMove][targetBitOffset];
+				// addition
+				int x = me.combinedPosition;
+				int y = Piece.COMBINED_PIECE_SQUARE_TABLES[pieceToMove][targetBitOffset];
+				int s = x + y;
+				int c = (s ^ x ^ y) & 0x0001_0000;
+				me.combinedPosition = s - c;
+				// subtraction
+				x = me.combinedPosition;
+				y = Piece.COMBINED_PIECE_SQUARE_TABLES[pieceToMove][originBitOffset];
+				int d = x - y;
+				int b = (d ^ x ^ y) & 0x0001_0000;
+				me.combinedPosition = d + b;
 			}
 		}
 		// Switch colour bitboard
@@ -304,8 +312,8 @@ public class Board {
 			assert scratch_me != me;
 			assert scratch_me.mg_material == me.mg_material;
 			assert scratch_me.eg_material == me.eg_material;
-			assert scratch_me.position == me.position;
-			assert scratch_me.positionEndgame == me.positionEndgame;
+			//assert scratch_me.position == me.position;
+			//assert scratch_me.positionEndgame == me.positionEndgame;
 			assert scratch_me.phase == me.phase;
 		}
 		
@@ -353,10 +361,18 @@ public class Board {
 			pieces[Piece.PIECE_NO_COLOUR_MASK & originPiece] ^= positionsMask;
 			pieceLists.updatePiece(originPiece, originBitOffset, targetBitOffset);
 			if (pieceType >= Piece.KNIGHT) {
-				me.position -= Piece.PIECE_SQUARE_TABLES[originPiece][originBitOffset];
-				me.position += Piece.PIECE_SQUARE_TABLES[originPiece][targetBitOffset];
-				me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[originPiece][originBitOffset];
-				me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[originPiece][targetBitOffset];
+				// addition
+				int x = me.combinedPosition;
+				int y = Piece.COMBINED_PIECE_SQUARE_TABLES[originPiece][targetBitOffset];
+				int s = x + y;
+				int c = (s ^ x ^ y) & 0x0001_0000;
+				me.combinedPosition = s - c;
+				// subtraction
+				x = me.combinedPosition;
+				y = Piece.COMBINED_PIECE_SQUARE_TABLES[originPiece][originBitOffset];
+				int d = x - y;
+				int b = (d ^ x ^ y) & 0x0001_0000;
+				me.combinedPosition = d + b;
 			}
 		}
 		// Switch colour bitboard
@@ -385,8 +401,8 @@ public class Board {
 			assert scratch_me != me;
 			assert scratch_me.mg_material == me.mg_material;
 			assert scratch_me.eg_material == me.eg_material;
-			assert scratch_me.position == me.position;
-			assert scratch_me.positionEndgame == me.positionEndgame;
+			//assert scratch_me.position == me.position;
+			//assert scratch_me.positionEndgame == me.positionEndgame;
 			assert scratch_me.phase == me.phase;
 		}
 		
@@ -399,8 +415,11 @@ public class Board {
 		me.eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
 		int pieceType = currPiece & Piece.PIECE_NO_COLOUR_MASK;
 		if (pieceType >= Piece.KNIGHT) {
-			me.position -= Piece.PIECE_SQUARE_TABLES[currPiece][bitOffset];
-			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[currPiece][bitOffset];
+			int x = me.combinedPosition;
+			int y = Piece.COMBINED_PIECE_SQUARE_TABLES[currPiece][bitOffset];
+			int d = x - y;
+			int b = (d ^ x ^ y) & 0x0001_0000;
+			me.combinedPosition = d + b;
 		}
 		me.phase += Piece.PIECE_PHASE[currPiece];
 	}
@@ -411,8 +430,11 @@ public class Board {
 		me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
 		int pieceType = currPiece & Piece.PIECE_NO_COLOUR_MASK;
 		if (pieceType >= Piece.KNIGHT) {
-			me.position += Piece.PIECE_SQUARE_TABLES[currPiece][bitOffset];
-			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[currPiece][bitOffset];
+			int x = me.combinedPosition;
+			int y = Piece.COMBINED_PIECE_SQUARE_TABLES[currPiece][bitOffset];
+			int s = x + y;
+			int c = (s ^ x ^ y) & 0x0001_0000;
+			me.combinedPosition = s - c;
 		}
 		me.phase -= Piece.PIECE_PHASE[currPiece];
 	}
@@ -426,12 +448,18 @@ public class Board {
 		me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][promoPiece];
 		me.eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][pawnToRemove];
 		me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][promoPiece];
-		
-		me.position -= Piece.PIECE_SQUARE_TABLES[pawnToRemove][oldBitOffset];
-		me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[pawnToRemove][oldBitOffset];
+		// subtraction
+		int x = me.combinedPosition;
+		int y = Piece.COMBINED_PIECE_SQUARE_TABLES[pawnToRemove][oldBitOffset];
+		int d = x - y;
+		int b = (d ^ x ^ y) & 0x0001_0000;
+		me.combinedPosition = d + b;
 		if (promoPiece == Piece.KNIGHT) {
-			me.position += Piece.PIECE_SQUARE_TABLES[promoPiece][newBitOffset];
-			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[promoPiece][newBitOffset];
+			x = me.combinedPosition;
+			y = Piece.COMBINED_PIECE_SQUARE_TABLES[promoPiece][newBitOffset];
+			int s = x + y;
+			int c = (s ^ x ^ y) & 0x0001_0000;
+			me.combinedPosition = s - c;
 		}
 		
 		me.phase -= Piece.PIECE_PHASE[promoPiece];
@@ -447,11 +475,17 @@ public class Board {
 		me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][pawnToReplace];
 		me.eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][promoPiece];
 		
-		me.position += Piece.PIECE_SQUARE_TABLES[pawnToReplace][newBitOffset];
-		me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[pawnToReplace][newBitOffset];
+		int x = me.combinedPosition;
+		int y = Piece.COMBINED_PIECE_SQUARE_TABLES[pawnToReplace][newBitOffset];
+		int s = x + y;
+		int c = (s ^ x ^ y) & 0x0001_0000;
+		me.combinedPosition = s - c;
 		if (promoPiece == Piece.KNIGHT) {
-			me.position -= Piece.PIECE_SQUARE_TABLES[promoPiece][oldBitOffset];
-			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[promoPiece][oldBitOffset];
+			x = me.combinedPosition;
+			y = Piece.COMBINED_PIECE_SQUARE_TABLES[promoPiece][oldBitOffset];
+			int d = x - y;
+			int b = (d ^ x ^ y) & 0x0001_0000;
+			me.combinedPosition = d + b;
 		}
 		
 		me.phase += Piece.PIECE_PHASE[promoPiece];

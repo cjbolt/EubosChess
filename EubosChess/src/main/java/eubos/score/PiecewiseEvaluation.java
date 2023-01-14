@@ -11,9 +11,8 @@ public class PiecewiseEvaluation {
 	
 	public short mg_material = 0;
 	public short eg_material = 0;
-	public short position = 0;
-	public short positionEndgame = 0;
 	public short dynamicPosition = 0;
+	public int combinedPosition = 0;
 	
 	public int phase = 0;
 	public int [] numberOfPieces;
@@ -30,9 +29,9 @@ public class PiecewiseEvaluation {
 	
 	public short getEndGameDelta() { return eg_material; }
 	
-	public short getPosition() { return (short)(position + dynamicPosition); }
+	public short getPosition() { return (short)((short)(combinedPosition & 0xFFFF) + dynamicPosition); }
 	
-	public short getEndgamePosition() { return (short)(positionEndgame + dynamicPosition); }
+	public short getEndgamePosition() { return (short)((short)(combinedPosition >> 16) + dynamicPosition); }
 
 	public int getPhase() {
 		return phase;
