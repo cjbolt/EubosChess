@@ -70,7 +70,7 @@ public class PiecewiseEvaluation {
 	public void updateRegular(int pieceType, int originPiece, int originBitOffset, int targetBitOffset) {
 		if (pieceType >= Piece.KNIGHT || pieceType == Piece.KING) {
 			addPst(originPiece, targetBitOffset);
-			subtractPst(originPiece,originBitOffset);
+			subtractPst(originPiece, originBitOffset);
 		}
 	}
 	
@@ -102,7 +102,7 @@ public class PiecewiseEvaluation {
 		eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][pawnToRemove];
 		eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][promoPiece];
 
-		subtractPst(pawnToRemove,oldBitOffset);
+		subtractPst(pawnToRemove, oldBitOffset);
 		if (promoPiece == Piece.KNIGHT) {
 			addPst(promoPiece, newBitOffset);
 		}
