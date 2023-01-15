@@ -176,6 +176,7 @@ public class Board {
 			assert pieceLists.isPresent(pieceToMove, originBitOffset) :
 				String.format("Piece %s is not present in PieceList for move %s", 
 					Piece.toFenChar(pieceToMove), Move.toString(move));
+			assert (targetPiece & Piece.PIECE_NO_COLOUR_MASK) != Piece.DONT_CARE;
 		}
 		
 		// Initialise En Passant target square
@@ -299,7 +300,8 @@ public class Board {
 			assert scratch_me.mg_material == me.mg_material;
 			assert scratch_me.eg_material == me.eg_material;
 			assert scratch_me.combinedPosition == me.combinedPosition : 
-				String.format("combined_scratch=%x iterative=%x", scratch_me.combinedPosition, me.combinedPosition);
+				String.format("combined_scratch=%08x iterative=%08x %s", 
+						scratch_me.combinedPosition, me.combinedPosition, Move.toString(move));
 			assert scratch_me.phase == me.phase;
 		}
 		
@@ -375,7 +377,9 @@ public class Board {
 			assert scratch_me != me;
 			assert scratch_me.mg_material == me.mg_material;
 			assert scratch_me.eg_material == me.eg_material;
-			assert scratch_me.combinedPosition == me.combinedPosition;
+			assert scratch_me.combinedPosition == me.combinedPosition : 
+				String.format("combined_scratch=%08x iterative=%08x %s",
+						scratch_me.combinedPosition, me.combinedPosition, Move.toString(moveToUndo));
 			assert scratch_me.phase == me.phase;
 		}
 		
