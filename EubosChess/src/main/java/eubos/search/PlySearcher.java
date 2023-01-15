@@ -397,18 +397,18 @@ public class PlySearcher {
 			!hasSearchedPv*/) {
 
 			state[currPly].update();
-			int score = search(depth-3, true, state[currPly].alpha, state[currPly].beta, false);
+			int score = search(depth-3, false, state[currPly].alpha, state[currPly].beta, true);
 
 		    if (score <= state[currPly].alpha) {
-		    	score = search(depth-3, true, Score.PROVISIONAL_ALPHA, state[currPly].alpha+1, false);
+		    	score = search(depth-3, false, Score.PROVISIONAL_ALPHA, state[currPly].alpha+1, true);
 		    }
 
 		    if (EubosEngineMain.ENABLE_ASSERTS) {
-			    if (!Score.isMate((short)score) && score != 0) {
+			    if (!Score.isMate((short)score) && score != 0 && !isTerminated()) {
 				    assert score != Score.PROVISIONAL_ALPHA;
 				    assert score != Score.PROVISIONAL_BETA;
 			    	assert pc.getBestMoveAtPly((byte)(currPly)) != Move.NULL_MOVE :
-			    		String.format("score=%d %s %s", score, pos.unwindMoveStack(), pos.getFen());
+			    		String.format("score=%d %s %s next_pc=%s", score, pos.unwindMoveStack(), pos.getFen(), pc.toStringAt(currPly+1));
 			    }
 		    }
 
