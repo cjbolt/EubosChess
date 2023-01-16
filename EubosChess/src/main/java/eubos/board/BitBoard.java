@@ -3,6 +3,7 @@ package eubos.board;
 import java.util.PrimitiveIterator;
 
 import eubos.board.Piece.Colour;
+import eubos.main.EubosEngineMain;
 import eubos.position.Position;
 
 import com.fluxchess.jcpi.models.GenericPosition;
@@ -615,6 +616,14 @@ public final class BitBoard {
 	
 	public static byte getFile(int bit) {
 		return (byte) (bit & 0x7);
+	}
+	
+	public static int bitValueOf(int file, int rank) {
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			assert file >= 0 && file < 8;
+			assert rank >= 0 && rank < 8;
+		}
+		return (rank << 3) | file;
 	}
 	
 	public static int[][] ManhattanDistance;

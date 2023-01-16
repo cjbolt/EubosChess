@@ -79,7 +79,7 @@ public class Board {
 			pieces[i] = 0x0;
 		}
 		for ( Entry<Integer, Integer> nextPiece : pieceMap.entrySet() ) {
-			setPieceAtSquare( BitBoard.positionToBit_Lut[nextPiece.getKey()], nextPiece.getValue());
+			setPieceAtSquare( nextPiece.getKey(), nextPiece.getValue());
 		}
 		me = new PiecewiseEvaluation();
 		evaluateMaterial(me);
@@ -128,7 +128,7 @@ public class Board {
 		StringBuilder fen = new StringBuilder();
 		for (int rank=7; rank>=0; rank--) {
 			for (int file=0; file<8; file++) {
-				currPiece = this.getPieceAtSquare(Position.valueOf(file,rank));
+				currPiece = getPieceAtSquare(BitBoard.positionToMask_Lut[Position.valueOf(file,rank)]);
 				if (currPiece != Piece.NONE) {
 					if (spaceCounter != 0)
 						fen.append(spaceCounter);
@@ -911,6 +911,11 @@ public class Board {
 	}
 	public void setEnPassantTargetSq(int enPassantTargetSq) {
 		// TODO: add bounds checking - only certain en passant squares can be legal.
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			assert (enPassantTargetSq > BitBoard.h2 && enPassantTargetSq < BitBoard.a4) ||
+				   (enPassantTargetSq > BitBoard.h5 && enPassantTargetSq < BitBoard.a7) ||
+				   enPassantTargetSq == BitBoard.INVALID;
+		}
 		this.enPassantTargetSq = enPassantTargetSq;
 	}
 	
@@ -926,32 +931,9 @@ public class Board {
 		return SquareAttackEvaluator.isAttacked(this, bitOffset, isBlackAttacking);
 	}
 	
-	public int getPieceAtSquare( int atPos ) {
-		int type = Piece.NONE;
-		long pieceToGet = BitBoard.positionToMask_Lut[atPos];;
-		if ((allPieces & pieceToGet) != 0) {	
-			if ((blackPieces & pieceToGet) != 0) {
-				type |= Piece.BLACK;
-			} else {
-				if (EubosEngineMain.ENABLE_ASSERTS)
-					assert (whitePieces & pieceToGet) != 0;
-			}
-			// Sorted in order of frequency of piece on the chess board, for efficiency
-			if ((pieces[INDEX_PAWN] & pieceToGet) != 0) {
-				type |= Piece.PAWN;
-			} else if ((pieces[INDEX_ROOK] & pieceToGet) != 0) {
-				type |= Piece.ROOK;
-			} else if ((pieces[INDEX_BISHOP] & pieceToGet) != 0) {
-				type |= Piece.BISHOP;
-			} else if ((pieces[INDEX_KNIGHT] & pieceToGet) != 0) {
-				type |= Piece.KNIGHT;
-			} else if ((pieces[INDEX_KING] & pieceToGet) != 0) {
-				type |= Piece.KING;
-			} else if ((pieces[INDEX_QUEEN] & pieceToGet) != 0) {
-				type |= Piece.QUEEN;
-			}
-		}
-		return type;
+	public int getPieceAtSquare(int atPos) {
+		assert false;
+		return 0;
 	}
 	
 	public int getPieceAtSquare(long pieceToGet) {
@@ -963,78 +945,7 @@ public class Board {
 				if (EubosEngineMain.ENABLE_ASSERTS)
 					assert (whitePieces & pieceToGet) != 0;
 			}
-			// Sorted in order of frequency of piece on the chess board, for efficiency
-			if ((pieces[INDEX_PAWN] & pieceToGet) != 0) {
-				type |= Piece.PAWN;
-			} else if ((pieces[INDEX_ROOK] & pieceToGet) != 0) {
-				type |= Piece.ROOK;
-			} else if ((pieces[INDEX_BISHOP] & pieceToGet) != 0) {
-				type |= Piece.BISHOP;
-			} else if ((pieces[INDEX_KNIGHT] & pieceToGet) != 0) {
-				type |= Piece.KNIGHT;
-			} else if ((pieces[INDEX_KING] & pieceToGet) != 0) {
-				type |= Piece.KING;
-			} else if ((pieces[INDEX_QUEEN] & pieceToGet) != 0) {
-				type |= Piece.QUEEN;
-			}
-		}
-		return type;
-	}
-	
-	public int getPieceAtSquareIfEnemy( int atPos, boolean ownSideIsWhite ) {
-		int type = Piece.NONE;
-		long pieceToGet = BitBoard.positionToMask_Lut[atPos];
-		if ((allPieces & pieceToGet) != 0) {	
-			if ((blackPieces & pieceToGet) != 0) {
-				if (!ownSideIsWhite) return Piece.DONT_CARE;
-				type |= Piece.BLACK;
-			} else {
-				if (EubosEngineMain.ENABLE_ASSERTS)
-					assert (whitePieces & pieceToGet) != 0;
-				if (ownSideIsWhite) return Piece.DONT_CARE;
-			}
-			// Sorted in order of frequency of piece on the chess board, for efficiency
-			if ((pieces[INDEX_PAWN] & pieceToGet) != 0) {
-				type |= Piece.PAWN;
-			} else if ((pieces[INDEX_ROOK] & pieceToGet) != 0) {
-				type |= Piece.ROOK;
-			} else if ((pieces[INDEX_BISHOP] & pieceToGet) != 0) {
-				type |= Piece.BISHOP;
-			} else if ((pieces[INDEX_KNIGHT] & pieceToGet) != 0) {
-				type |= Piece.KNIGHT;
-			} else if ((pieces[INDEX_KING] & pieceToGet) != 0) {
-				type |= Piece.KING;
-			} else if ((pieces[INDEX_QUEEN] & pieceToGet) != 0) {
-				type |= Piece.QUEEN;
-			}
-		}
-		return type;
-	}
-	
-	public int getPieceAtSquareEnemyWhite(int atPos) {
-		int type = Piece.NONE;
-		long pieceToGet = BitBoard.positionToMask_Lut[atPos];
-		if ((allPieces & pieceToGet) != 0) {	
-			if ((blackPieces & pieceToGet) != 0) {
-				return Piece.DONT_CARE;
-			} else {
-				if (EubosEngineMain.ENABLE_ASSERTS)
-					assert (whitePieces & pieceToGet) != 0;
-			}
-			// Sorted in order of frequency of piece on the chess board, for efficiency
-			if ((pieces[INDEX_PAWN] & pieceToGet) != 0) {
-				type |= Piece.PAWN;
-			} else if ((pieces[INDEX_ROOK] & pieceToGet) != 0) {
-				type |= Piece.ROOK;
-			} else if ((pieces[INDEX_BISHOP] & pieceToGet) != 0) {
-				type |= Piece.BISHOP;
-			} else if ((pieces[INDEX_KNIGHT] & pieceToGet) != 0) {
-				type |= Piece.KNIGHT;
-			} else if ((pieces[INDEX_KING] & pieceToGet) != 0) {
-				type |= Piece.KING;
-			} else if ((pieces[INDEX_QUEEN] & pieceToGet) != 0) {
-				type |= Piece.QUEEN;
-			}
+			type = helper(type, pieceToGet);
 		}
 		return type;
 	}
@@ -1048,49 +959,7 @@ public class Board {
 				if (EubosEngineMain.ENABLE_ASSERTS)
 					assert (whitePieces & pieceToGet) != 0;
 			}
-			// Sorted in order of frequency of piece on the chess board, for efficiency
-			if ((pieces[INDEX_PAWN] & pieceToGet) != 0) {
-				type |= Piece.PAWN;
-			} else if ((pieces[INDEX_ROOK] & pieceToGet) != 0) {
-				type |= Piece.ROOK;
-			} else if ((pieces[INDEX_BISHOP] & pieceToGet) != 0) {
-				type |= Piece.BISHOP;
-			} else if ((pieces[INDEX_KNIGHT] & pieceToGet) != 0) {
-				type |= Piece.KNIGHT;
-			} else if ((pieces[INDEX_KING] & pieceToGet) != 0) {
-				type |= Piece.KING;
-			} else if ((pieces[INDEX_QUEEN] & pieceToGet) != 0) {
-				type |= Piece.QUEEN;
-			}
-		}
-		return type;
-	}
-	
-	public int getPieceAtSquareEnemyBlack(int atPos) {
-		int type = Piece.NONE;
-		long pieceToGet = BitBoard.positionToMask_Lut[atPos];
-		if ((allPieces & pieceToGet) != 0) {	
-			if ((blackPieces & pieceToGet) != 0) {
-				type |= Piece.BLACK;
-			} else {
-				if (EubosEngineMain.ENABLE_ASSERTS)
-					assert (whitePieces & pieceToGet) != 0;
-				return Piece.DONT_CARE;
-			}
-			// Sorted in order of frequency of piece on the chess board, for efficiency
-			if ((pieces[INDEX_PAWN] & pieceToGet) != 0) {
-				type |= Piece.PAWN;
-			} else if ((pieces[INDEX_ROOK] & pieceToGet) != 0) {
-				type |= Piece.ROOK;
-			} else if ((pieces[INDEX_BISHOP] & pieceToGet) != 0) {
-				type |= Piece.BISHOP;
-			} else if ((pieces[INDEX_KNIGHT] & pieceToGet) != 0) {
-				type |= Piece.KNIGHT;
-			} else if ((pieces[INDEX_KING] & pieceToGet) != 0) {
-				type |= Piece.KING;
-			} else if ((pieces[INDEX_QUEEN] & pieceToGet) != 0) {
-				type |= Piece.QUEEN;
-			}
+			type = helper(type, pieceToGet);
 		}
 		return type;
 	}
@@ -1105,41 +974,31 @@ public class Board {
 					assert (whitePieces & pieceToGet) != 0;
 				return Piece.DONT_CARE;
 			}
-			// Sorted in order of frequency of piece on the chess board, for efficiency
-			if ((pieces[INDEX_PAWN] & pieceToGet) != 0) {
-				type |= Piece.PAWN;
-			} else if ((pieces[INDEX_ROOK] & pieceToGet) != 0) {
-				type |= Piece.ROOK;
-			} else if ((pieces[INDEX_BISHOP] & pieceToGet) != 0) {
-				type |= Piece.BISHOP;
-			} else if ((pieces[INDEX_KNIGHT] & pieceToGet) != 0) {
-				type |= Piece.KNIGHT;
-			} else if ((pieces[INDEX_KING] & pieceToGet) != 0) {
-				type |= Piece.KING;
-			} else if ((pieces[INDEX_QUEEN] & pieceToGet) != 0) {
-				type |= Piece.QUEEN;
-			}
+			type = helper(type, pieceToGet);
 		}
 		return type;
 	}
-
-	public void setPieceAtSquare( int bitOffset, int pieceToPlace ) {
-		if (EubosEngineMain.ENABLE_ASSERTS) {
-			assert bitOffset != BitBoard.INVALID;
-			assert pieceToPlace != Piece.NONE;
+	
+	private int helper(int type, long pieceToGet) {
+		// Sorted in order of frequency of piece on the chess board, for efficiency
+		if ((pieces[INDEX_PAWN] & pieceToGet) != 0) {
+			type |= Piece.PAWN;
+		} else if ((pieces[INDEX_ROOK] & pieceToGet) != 0) {
+			type |= Piece.ROOK;
+		} else if ((pieces[INDEX_BISHOP] & pieceToGet) != 0) {
+			type |= Piece.BISHOP;
+		} else if ((pieces[INDEX_KNIGHT] & pieceToGet) != 0) {
+			type |= Piece.KNIGHT;
+		} else if ((pieces[INDEX_KING] & pieceToGet) != 0) {
+			type |= Piece.KING;
+		} else if ((pieces[INDEX_QUEEN] & pieceToGet) != 0) {
+			type |= Piece.QUEEN;
 		}
-		pieceLists.addPiece(pieceToPlace, bitOffset);
-		long mask = 1L << bitOffset;
-		// Set on piece-specific bitboard
-		pieces[pieceToPlace & Piece.PIECE_NO_COLOUR_MASK] |= mask;
-		// Set on colour bitboard
-		if (Piece.isBlack(pieceToPlace)) {
-			blackPieces |= (mask);
-		} else {
-			whitePieces |= (mask);
-		}
-		// Set on all pieces bitboard
-		allPieces |= (mask);
+		return type;
+	}
+	
+	public void setPieceAtSquare(int bitOffset, int pieceToPlace) {
+		setPieceAtSquare(1L << bitOffset, bitOffset, pieceToPlace);
 	}
 	
 	public void setPieceAtSquare(long mask, int bitOffset, int pieceToPlace) {

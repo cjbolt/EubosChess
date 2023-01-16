@@ -39,7 +39,7 @@ public class BoardTest {
 
 	@Test
 	public void testSetEnPassantTargetSq() {
-		classUnderTest.setEnPassantTargetSq( testSq );
+		classUnderTest.setEnPassantTargetSq(BitBoard.d3);
 	}
 	
 	@Test
@@ -50,9 +50,9 @@ public class BoardTest {
 
 	@Test
 	public void testGetEnPassantTargetSq_initialised() {
-		classUnderTest.setEnPassantTargetSq(testSq);
+		classUnderTest.setEnPassantTargetSq(BitBoard.d3);
 		int square = classUnderTest.getEnPassantTargetSq();
-		assertTrue(square == Position.a1);
+		assertTrue(square == BitBoard.d3);
 	}	
 
 	@Test
@@ -84,14 +84,14 @@ public class BoardTest {
 		assertTrue(classUnderTest.squareIsEmpty(testSq));
 		classUnderTest.setPieceAtSquare(testSq, Piece.WHITE_PAWN);
 		assertFalse(classUnderTest.squareIsEmpty(testSq));
-		int gotPiece = classUnderTest.getPieceAtSquare(testSq);
+		int gotPiece = classUnderTest.getPieceAtSquare(1L << testSq);
 		assertFalse(classUnderTest.squareIsEmpty(testSq));
 		assertTrue(gotPiece==Piece.BLACK_PAWN || gotPiece==Piece.WHITE_PAWN);
 	}
 	
 	@Test
 	public void testGetPieceAtSquare_DoesntExist() {
-		assertTrue(classUnderTest.getPieceAtSquare(testSq)==Piece.NONE);
+		assertTrue(classUnderTest.getPieceAtSquare(1L << testSq)==Piece.NONE);
 	}
 	
 	@Test
@@ -556,7 +556,7 @@ public class BoardTest {
 		setUpPosition("1rk2N2/1p6/8/B1Pp4/B6Q/K7/8/2R5 w - d6 0 1");
 		int move = Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.c5, Piece.WHITE_PAWN, Position.d6, Piece.BLACK_PAWN, Piece.NONE);
 		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.c8, true));
-		assertEquals(Piece.NONE, classUnderTest.getPieceAtSquare(Position.d6));
+		assertEquals(Piece.NONE, classUnderTest.getPieceAtSquare(1L << BitBoard.d6));
 	}
 	
 	PositionManager pm;

@@ -297,8 +297,8 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		setupPosition("8/4N3/7Q/4k3/8/4KP2/3P4/8 w - - 0 1" );
 		// Two possible pawn mates
-		//expectedMove = new GenericMove("f3f4");
-		expectedMove = new GenericMove("d2d4");
+		expectedMove = new GenericMove("f3f4");
+		//expectedMove = new GenericMove("d2d4");
 		doFindMoveTest((byte)2, true);
 	}
 	

@@ -229,43 +229,47 @@ public final class Move {
 	
 	public static int toMove(GenericMove move, Board theBoard, int type) {
 		int intMove = 0;
-		int targetPosition = Position.valueOf(move.to);
-		int originPosition = Position.valueOf(move.from);
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			assert Position.valueOf(move.to) != Position.NOPOSITION;
+			assert Position.valueOf(move.from) != Position.NOPOSITION;
+		}
+		int targetBitOffset = BitBoard.positionToBit_Lut[Position.valueOf(move.to)];
+		int originBitOffset = BitBoard.positionToBit_Lut[Position.valueOf(move.from)];
 		int promotion = Piece.NONE;
 		int originPiece = Piece.NONE;
 		int targetPiece = Piece.NONE;
-		int misc = 0;
+		boolean isEnPassant = false;
 		if (theBoard != null) {
 			// Some unit tests don't specify the board, when we don't care about some move field content
-			originPiece = theBoard.getPieceAtSquare(originPosition);
-			if (Piece.isPawn(originPiece) && theBoard.getEnPassantTargetSq() != BitBoard.INVALID && targetPosition==BitBoard.bitToPosition_Lut[theBoard.getEnPassantTargetSq()]) {
+			originPiece = theBoard.getPieceAtSquare(1L << originBitOffset);
+			if (Piece.isPawn(originPiece) && theBoard.getEnPassantTargetSq() != BitBoard.INVALID && targetBitOffset==theBoard.getEnPassantTargetSq()) {
 				// En Passant capture move
-				int enPassantCaptureSquare = BitBoard.bitToPosition_Lut[theBoard.generateCaptureBitOffsetForEnPassant(originPiece, BitBoard.positionToBit_Lut[targetPosition])];
-				targetPiece = theBoard.getPieceAtSquare(enPassantCaptureSquare);
+				int enPassantCaptureSquare = theBoard.generateCaptureBitOffsetForEnPassant(originPiece, targetBitOffset);
+				targetPiece = theBoard.getPieceAtSquare(1L << enPassantCaptureSquare);
 				if (Piece.isPawn(targetPiece)) {
-					misc |= Move.MISC_EN_PASSANT_CAPTURE_MASK;
+					isEnPassant = true;
 				}
 			} else {
 				// Normal move
-				targetPiece = theBoard.getPieceAtSquare(targetPosition);
+				targetPiece = theBoard.getPieceAtSquare(1L << targetBitOffset);
 			}
 		}
 		if (move.promotion != null) {
 			promotion = Piece.convertChessmanToPiece(IntChessman.valueOf(move.promotion), false);
 			promotion &= Piece.PIECE_NO_COLOUR_MASK;
-			intMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, originPosition, originPiece, targetPosition, targetPiece, promotion);
+			intMove = Move.valueOfBit(Move.TYPE_PROMOTION_MASK, originBitOffset, originPiece, targetBitOffset, targetPiece, promotion);
 		} else {
-			intMove = Move.valueOfEnPassant(misc, type, originPosition, originPiece, targetPosition, targetPiece, promotion);
+			if (isEnPassant) {
+				intMove = Move.valueOfEnPassantBit(type, originBitOffset, originPiece, targetBitOffset, targetPiece, promotion);
+			} else {
+				intMove = Move.valueOfBit(type, originBitOffset, originPiece, targetBitOffset, targetPiece, Piece.NONE);
+			}
 		}
 		return intMove;
 	}
 	
 	public static int toMove(GenericMove move, Board theBoard) {
 		return Move.toMove(move, theBoard, Move.TYPE_REGULAR_NONE);
-	}
-	
-	public static int toMove(GenericMove move) {
-		return Move.toMove(move, null, Move.TYPE_REGULAR_NONE);
 	}
 	
 	public static boolean isPromotion(int move) {
