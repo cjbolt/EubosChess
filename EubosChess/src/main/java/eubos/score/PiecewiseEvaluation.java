@@ -1,6 +1,7 @@
 package eubos.score;
 
 import eubos.board.Piece;
+import eubos.main.EubosEngineMain;
 
 public class PiecewiseEvaluation {
 	
@@ -67,8 +68,9 @@ public class PiecewiseEvaluation {
 		combinedPosition = d + b;
 	}
 	
-	public void updateRegular(int pieceType, int originPiece, int originBitOffset, int targetBitOffset) {
-		if (pieceType >= Piece.KNIGHT || pieceType == Piece.KING) {
+	public void updateRegular(int pieceTypeWithoutColour, int originPiece, int originBitOffset, int targetBitOffset) {
+		if (EubosEngineMain.ENABLE_ASSERTS) assert (pieceTypeWithoutColour & Piece.BLACK) == 0;
+		if (pieceTypeWithoutColour >= Piece.KNIGHT || pieceTypeWithoutColour == Piece.KING) {
 			addPst(originPiece, targetBitOffset);
 			subtractPst(originPiece, originBitOffset);
 		}
@@ -85,7 +87,8 @@ public class PiecewiseEvaluation {
 		eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][promoPiece];
 		
 		addPst(pawnToReplace, newBitOffset);
-		if (promoPiece == Piece.KNIGHT) {
+		int pieceType = promoPiece & Piece.PIECE_NO_COLOUR_MASK;
+		if (pieceType == Piece.KNIGHT) {
 			subtractPst(promoPiece, oldBitOffset);
 		}
 		
@@ -103,7 +106,8 @@ public class PiecewiseEvaluation {
 		eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][promoPiece];
 
 		subtractPst(pawnToRemove, oldBitOffset);
-		if (promoPiece == Piece.KNIGHT) {
+		int pieceType = promoPiece & Piece.PIECE_NO_COLOUR_MASK;
+		if (pieceType == Piece.KNIGHT) {
 			addPst(promoPiece, newBitOffset);
 		}
 		

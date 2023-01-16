@@ -1454,5 +1454,12 @@ public class BoardTest {
 		setUpPosition("8/8/8/8/7P/8/8/8 b - - 0 1");
 		assertFalse(classUnderTest.isAdvancedPassedPawnPresent());
 	}
+	
+	@Test
+	public void knightUnderPromotion() {
+		// Caused an error in assert builds as the combined position wasn't updated properly
+		setUpPosition("8/8/8/8/8/k7/4p1K1/8 b - - 1 1");
+		classUnderTest.doMove(Move.valueOfBit(Move.TYPE_PROMOTION_MASK, BitBoard.e2, Piece.BLACK_PAWN, BitBoard.e1, Piece.NONE, Piece.KNIGHT));
+	}
 }
 
