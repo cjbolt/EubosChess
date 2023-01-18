@@ -12,7 +12,7 @@ import eubos.score.PiecewiseEvaluation;
 public class PieceList {
 	
 	private static final int NUM_COLOURS = 2;
-	private static final int NUM_PIECE_TYPES = 7;
+	private static final int NUM_PIECE_TYPES = 7; // NONE is encoded as a piece value
 	private static final int MAX_NUM_PIECES = 8; // based on max number of pawns
 	
 	// Piece lists
@@ -129,21 +129,22 @@ public class PieceList {
 		}
 	}
 	
+	private static final int[] ALL_PIECES = {
+			Piece.WHITE_PAWN, Piece.WHITE_KNIGHT,
+			Piece.WHITE_ROOK, Piece.WHITE_BISHOP,
+			Piece.WHITE_QUEEN, Piece.WHITE_KING,
+			Piece.BLACK_PAWN, Piece.BLACK_KNIGHT,
+			Piece.BLACK_ROOK, Piece.BLACK_BISHOP,
+			Piece.BLACK_QUEEN, Piece.BLACK_KING 
+	};
 	public void forEachPieceDoCallback(IForEachPieceCallback caller) {
-		// white pieces
-		forEachPieceTypeOfSideHelper(caller, Piece.WHITE_KING);
-		// black pieces
-		forEachPieceTypeOfSideHelper(caller, Piece.BLACK_KING);
-	}
-	
-	public void forEachPieceOfTypeDoCallback(IForEachPieceCallback caller, int[] pieceTypesToIterate) {
-		for(int piece : pieceTypesToIterate) {
+		for(int piece : ALL_PIECES) {
 			forEachPieceOfTypeHelper(piece_list[piece], caller, piece);
 		}
 	}
 	
-	private void forEachPieceTypeOfSideHelper(IForEachPieceCallback caller, int currPiece) {
-		for (int piece = currPiece; piece < currPiece+NUM_PIECE_TYPES; piece++) {
+	public void forEachPieceOfTypeDoCallback(IForEachPieceCallback caller, int[] pieceTypesToIterate) {
+		for(int piece : pieceTypesToIterate) {
 			forEachPieceOfTypeHelper(piece_list[piece], caller, piece);
 		}
 	}

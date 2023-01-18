@@ -61,7 +61,7 @@ public class ZobristHashCode implements IForEachPieceCallback {
 	public ZobristHashCode(IPositionAccessors pm, CastlingManager castling) {
 		pos = pm;
 		this.castling = castling;
-		prevEnPassantFile = new byte[16];
+		prevEnPassantFile = new byte[16]; // can't be more en passant moves than the number of pawns!
 		Arrays.fill(prevEnPassantFile, (byte)8);
 		generate();
 	}
@@ -99,20 +99,20 @@ public class ZobristHashCode implements IForEachPieceCallback {
 		return hashCode;
 	}
 	
-	static final int [] positionToZobristIndex_Lut = new int[64];
+	static final int [] bitOffsetToZobristIndex_Lut = new int[64];
 	static {
 		for (int pos : Position.values) {
 			int atFile = Position.getFile(pos);
 			int atRank = Position.getRank(pos);
 			int lookupIndex = atFile + atRank * 8;
-			positionToZobristIndex_Lut[BitBoard.positionToBit_Lut[pos]] = lookupIndex;
+			bitOffsetToZobristIndex_Lut[BitBoard.positionToBit_Lut[pos]] = lookupIndex;
 		}
 	}
 			
 	protected long getPrnForPiece(int bitOffset, int currPiece) {
 		// compute prnLookup index to use, based on piece type, colour and square.
 		int pieceType = (currPiece & Piece.PIECE_NO_COLOUR_MASK) - 1; // convert piece type to Zobrist index
-		int lookupIndex = positionToZobristIndex_Lut[bitOffset] + pieceType * NUM_SQUARES;
+		int lookupIndex = bitOffsetToZobristIndex_Lut[bitOffset] + pieceType * NUM_SQUARES;
 		if (Piece.isBlack(currPiece)) {
 			lookupIndex += INDEX_BLACK;
 		}		
@@ -120,7 +120,7 @@ public class ZobristHashCode implements IForEachPieceCallback {
 	}
 	
 	protected long getPrnForRook(int bitOffset, boolean isBlack) {
-		int lookupIndex = positionToZobristIndex_Lut[bitOffset] + (Piece.ROOK - 1) * NUM_SQUARES;
+		int lookupIndex = bitOffsetToZobristIndex_Lut[bitOffset] + (Piece.ROOK - 1) * NUM_SQUARES;
 		if (isBlack) {
 			lookupIndex += INDEX_BLACK;
 		}		

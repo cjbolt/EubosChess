@@ -70,7 +70,7 @@ public class PiecewiseEvaluation {
 	
 	public void updateRegular(int pieceTypeWithoutColour, int originPiece, int originBitOffset, int targetBitOffset) {
 		if (EubosEngineMain.ENABLE_ASSERTS) assert (pieceTypeWithoutColour & Piece.BLACK) == 0;
-		if (pieceTypeWithoutColour >= Piece.KNIGHT || pieceTypeWithoutColour == Piece.KING) {
+		if (pieceTypeWithoutColour >= Piece.KNIGHT) {
 			addPst(originPiece, targetBitOffset);
 			subtractPst(originPiece, originBitOffset);
 		}
@@ -119,7 +119,7 @@ public class PiecewiseEvaluation {
 		mg_material -= Piece.PIECE_TO_MATERIAL_LUT[0][currPiece];
 		eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
 		int pieceType = currPiece & Piece.PIECE_NO_COLOUR_MASK;
-		if (pieceType >= Piece.KNIGHT /* King can't be captured */) {
+		if (pieceType >= Piece.KNIGHT) {
 			subtractPst(currPiece, bitOffset);
 		}
 		phase += Piece.PIECE_PHASE[currPiece];
@@ -130,7 +130,7 @@ public class PiecewiseEvaluation {
 		mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][currPiece];
 		eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
 		int pieceType = currPiece & Piece.PIECE_NO_COLOUR_MASK;
-		if (pieceType >= Piece.KNIGHT /* King can't be captured */) {
+		if (pieceType >= Piece.KNIGHT) {
 			addPst(currPiece, bitOffset);
 		}
 		phase -= Piece.PIECE_PHASE[currPiece];

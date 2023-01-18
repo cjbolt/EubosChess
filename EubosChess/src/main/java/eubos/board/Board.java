@@ -65,7 +65,7 @@ public class Board {
 	
 	boolean isAttacksMaskValid = false;
 	
-	public Board( Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove ) {
+	public Board(Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove) {
 		paa = new PawnAttackAggregator();
 		kaa = new KnightAttackAggregator();
 		pkaa = new PawnKnightAttackAggregator();
@@ -78,7 +78,7 @@ public class Board {
 		for (int i=0; i<=INDEX_PAWN; i++) {
 			pieces[i] = 0x0;
 		}
-		for ( Entry<Integer, Integer> nextPiece : pieceMap.entrySet() ) {
+		for (Entry<Integer, Integer> nextPiece : pieceMap.entrySet()) {
 			setPieceAtSquare( nextPiece.getKey(), nextPiece.getValue());
 		}
 		me = new PiecewiseEvaluation();
@@ -218,21 +218,6 @@ public class Board {
 			}
 		}
 		
-		// Switch piece-specific bitboards and piece lists
-		if (promotedPiece != Piece.NONE) {
-			// For a promotion, need to resolve piece-specific across multiple bitboards
-			pieces[INDEX_PAWN] &= ~initialSquareMask;
-			pieces[promotedPiece] |= targetSquareMask;
-			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
-			pieceLists.updatePiece(pieceToMove, fullPromotedPiece, originBitOffset, targetBitOffset);
-			me.updateWhenDoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
-		} else {
-			// Piece type doesn't change across boards, update piece-specific bitboard, pieceList and PST score
-			int pieceType = Piece.PIECE_NO_COLOUR_MASK & pieceToMove;
-			pieces[pieceType] ^= positionsMask;
-			pieceLists.updatePiece(pieceToMove, originBitOffset, targetBitOffset);
-			me.updateRegular(pieceType, pieceToMove, originBitOffset, targetBitOffset);
-		}
 		// Switch colour bitboard
 		if (isWhite) {
 			whitePieces ^= positionsMask;
@@ -241,37 +226,53 @@ public class Board {
 		}
 		// Switch all pieces bitboard
 		allPieces ^= positionsMask;
-		
-		// Note: this needs to be done after the piece bit boards are updated
+		// Switch piece-specific bitboards and piece lists
 		if (promotedPiece != Piece.NONE) {
-			// pawn promotions need to clear the promoted pawn (it must have been passed if it could promote)
+			// For a promotion, need to resolve piece-specific across multiple bitboards
+			pieces[INDEX_PAWN] &= ~initialSquareMask;
+			pieces[promotedPiece] |= targetSquareMask;
+			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
+			pieceLists.updatePiece(pieceToMove, fullPromotedPiece, originBitOffset, targetBitOffset);
+			me.updateWhenDoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
 			passedPawns &= ~initialSquareMask;
 		} else {
+			// Piece type doesn't change across boards, update piece-specific bitboard, pieceList and PST score
+			int pieceType = Piece.PIECE_NO_COLOUR_MASK & pieceToMove;
+			pieces[pieceType] ^= positionsMask;
+			pieceLists.updatePiece(pieceToMove, originBitOffset, targetBitOffset);
+			me.updateRegular(pieceType, pieceToMove, originBitOffset, targetBitOffset);
+			
+			// Iterative update of passed pawns bitboard
+			// Note: this needs to be done after the piece bit boards are updated
 			// build up significant file masks, should be three or four consecutive files, re-evaluate passed pawns in those files
 			long file_masks = 0L;
-			if (Piece.isPawn(pieceToMove)) {
+			if (pieceType == Piece.PAWN) {
+				int ownLutColourIndex = isWhite ? 0 : 1;
 				// Handle regular pawn pushes
-				file_masks |= BitBoard.IterativePassedPawnNonCapture[isWhite?0:1][originBitOffset];
+				file_masks |= BitBoard.IterativePassedPawnNonCapture[ownLutColourIndex][originBitOffset];
 				
 				// Handle pawn captures
 				if (targetPiece != Piece.NONE) {
 					if (Piece.isPawn(targetPiece)) {
 						// Pawn takes pawn, clears whole front-span of target pawn (note negation of colour)
-						file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][targetBitOffset];
+						int enemyLutColourIndex = isWhite ? 1 : 0;
+						file_masks |= BitBoard.PassedPawn_Lut[enemyLutColourIndex][targetBitOffset];
 					}
 					// manage file transition of capturing pawn moves
 					boolean isLeft = BitBoard.getFile(targetBitOffset) < BitBoard.getFile(originBitOffset);
-					file_masks |= BitBoard.IterativePassedPawnUpdateCaptures_Lut[originBitOffset][isWhite ? 0 : 1][isLeft ? 0 : 1];
+					file_masks |= BitBoard.IterativePassedPawnUpdateCaptures_Lut[originBitOffset][ownLutColourIndex][isLeft ? 0 : 1];
 				}
 			} else if (Piece.isPawn(targetPiece)) {
 				// Piece takes pawn, potentially opens capture and adjacent files
+				int enemyLutColourIndex = isWhite ? 1 : 0;
 				file_masks |= targetSquareMask;
-				file_masks |= BitBoard.PassedPawn_Lut[isWhite ? 1 : 0][targetBitOffset];
+				file_masks |= BitBoard.PassedPawn_Lut[enemyLutColourIndex][targetBitOffset];
 			} else {
 				// doesn't need to be handled - can't change passed pawn bit board
 			}
 			if (file_masks != 0L) {
 				// clear passed pawns in concerned files before re-evaluating
+				// Note: vacated initial square
 				passedPawns &= ~(initialSquareMask|file_masks);
 				// re-evaluate
 				long scratchBitBoard = getPawns() & file_masks;
@@ -931,11 +932,6 @@ public class Board {
 		return SquareAttackEvaluator.isAttacked(this, bitOffset, isBlackAttacking);
 	}
 	
-	public int getPieceAtSquare(int atPos) {
-		assert false;
-		return 0;
-	}
-	
 	public int getPieceAtSquare(long pieceToGet) {
 		int type = Piece.NONE;
 		if ((allPieces & pieceToGet) != 0) {	
@@ -1031,28 +1027,23 @@ public class Board {
 		return inCheck;
 	}
 	
-	public int pickUpPieceAtSquare(long pieceToPickUp, int bitOffset, int piece) {
-		if ((allPieces & pieceToPickUp) != 0) {
-			// Remove from relevant colour bitboard
-			if (Piece.isBlack(piece)) {
-				blackPieces &= ~pieceToPickUp;
-			} else {
-				whitePieces &= ~pieceToPickUp;
-			}
-			// remove from specific bitboard
-			pieces[piece & Piece.PIECE_NO_COLOUR_MASK] &= ~pieceToPickUp;
-			// Remove from all pieces bitboard
-			allPieces &= ~pieceToPickUp;
-			// Remove from piece list
-			pieceLists.removePiece(piece, bitOffset);
-		} else {
-			if (EubosEngineMain.ENABLE_ASSERTS) {
-				assert false : String.format("Non-existant target piece %c at %s",
-						Piece.toFenChar(piece), Position.toGenericPosition(BitBoard.bitToPosition_Lut[bitOffset]));
-			}
-			piece = Piece.NONE;
+	public void pickUpPieceAtSquare(long pieceToPickUp, int bitOffset, int piece) {
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			assert ((allPieces & pieceToPickUp) != 0) : String.format("Non-existant target piece %c at %s",
+					Piece.toFenChar(piece), Position.toGenericPosition(BitBoard.bitToPosition_Lut[bitOffset]));
 		}
-		return piece;
+		// Remove from relevant colour bitboard
+		if (Piece.isBlack(piece)) {
+			blackPieces &= ~pieceToPickUp;
+		} else {
+			whitePieces &= ~pieceToPickUp;
+		}
+		// remove from specific bitboard
+		pieces[piece & Piece.PIECE_NO_COLOUR_MASK] &= ~pieceToPickUp;
+		// Remove from all pieces bitboard
+		allPieces &= ~pieceToPickUp;
+		// Remove from piece list
+		pieceLists.removePiece(piece, bitOffset);
 	}
 	
 	public int countDoubledPawns(long pawns) {

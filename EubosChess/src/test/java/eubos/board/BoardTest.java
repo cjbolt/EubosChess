@@ -12,7 +12,6 @@ import org.junit.Test;
 import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
-import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.Position;
 import eubos.position.PositionManager;
@@ -67,18 +66,10 @@ public class BoardTest {
 		assertTrue(classUnderTest.squareIsEmpty(testSq));
 		classUnderTest.setPieceAtSquare(testSq, Piece.WHITE_PAWN);
 		assertFalse(classUnderTest.squareIsEmpty(testSq));
-		int pickedUpPiece = classUnderTest.pickUpPieceAtSquare(BitBoard.positionToMask_Lut[testSq], BitBoard.positionToBit_Lut[testSq], Piece.WHITE_PAWN);
+		classUnderTest.pickUpPieceAtSquare(BitBoard.positionToMask_Lut[testSq], BitBoard.positionToBit_Lut[testSq], Piece.WHITE_PAWN);
 		assertTrue(classUnderTest.squareIsEmpty(testSq));
-		assertEquals(Piece.WHITE_PAWN, pickedUpPiece);
 	}
 	
-	@Test
-	public void testPickUpPieceAtSquare_DoesntExist()  {
-		if (!EubosEngineMain.ENABLE_ASSERTS) {
-			assertEquals(Piece.NONE, classUnderTest.pickUpPieceAtSquare(BitBoard.positionToMask_Lut[testSq], BitBoard.positionToBit_Lut[testSq], Piece.NONE));
-		}
-	}	
-
 	@Test
 	public void testGetPieceAtSquare_Exists() {
 		assertTrue(classUnderTest.squareIsEmpty(testSq));
