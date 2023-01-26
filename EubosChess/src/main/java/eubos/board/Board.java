@@ -832,37 +832,25 @@ public class Board {
 			whitePieces ^= (wksc_mask);
 			allPieces ^= (wksc_mask);
 			pieceLists.updatePiece(Piece.WHITE_ROOK, BitBoard.h1, BitBoard.f1);
-			//me.position -= Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.h1];
-			//me.position += Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.f1];
-			//me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.h1];
-			//me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.f1];
+			me.updateRegular(Piece.ROOK, Piece.WHITE_ROOK, BitBoard.h1, BitBoard.f1);
 		} else if (Move.areEqual(move, CastlingManager.wqsc)) {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
 			pieceLists.updatePiece(Piece.WHITE_ROOK, BitBoard.a1, BitBoard.d1);
-//			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.a1];
-//			me.position += Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.d1];
-//			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.a1];
-//			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.d1];
+			me.updateRegular(Piece.ROOK, Piece.WHITE_ROOK, BitBoard.a1, BitBoard.d1);
 		} else if (Move.areEqual(move, CastlingManager.bksc)) {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
 			pieceLists.updatePiece(Piece.BLACK_ROOK, BitBoard.h8, BitBoard.f8);
-//			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.h8];
-//			me.position += Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.f8];
-//			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.h8];
-//			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.f8];
+			me.updateRegular(Piece.ROOK, Piece.BLACK_ROOK, BitBoard.f8, BitBoard.h8);
 		} else if (Move.areEqual(move, CastlingManager.bqsc)) {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
 			allPieces ^= (bqsc_mask);
 			pieceLists.updatePiece(Piece.BLACK_ROOK, BitBoard.a8, BitBoard.d8);
-//			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.a8];
-//			me.position += Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.d8];
-//			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.a8];
-//			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.d8];
+			me.updateRegular(Piece.ROOK, Piece.BLACK_ROOK, BitBoard.a8, BitBoard.d8);
 		}
 	}
 	
@@ -872,37 +860,25 @@ public class Board {
 			whitePieces ^= (wksc_mask);
 			allPieces ^= (wksc_mask);
 			pieceLists.updatePiece(Piece.WHITE_ROOK, BitBoard.f1, BitBoard.h1);
-//			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.f1];
-//			me.position += Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.h1];
-//			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.f1];
-//			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.h1];
+			me.updateRegular(Piece.ROOK, Piece.WHITE_ROOK, BitBoard.f1, BitBoard.h1);
 		} else if (Move.areEqual(move, CastlingManager.undo_wqsc)) {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
 			pieceLists.updatePiece(Piece.WHITE_ROOK, BitBoard.d1, BitBoard.a1);
-//			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.d1];
-//			me.position += Piece.PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.a1];
-//			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.d1];
-//			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][BitBoard.a1];
+			me.updateRegular(Piece.ROOK, Piece.WHITE_ROOK, BitBoard.d1, BitBoard.a1);
 		} else if (Move.areEqual(move, CastlingManager.undo_bksc)) {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
 			pieceLists.updatePiece(Piece.BLACK_ROOK, BitBoard.f8, BitBoard.h8);
-//			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.f8];
-//			me.position += Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.h8];
-//			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.f8];
-//			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.h8];
+			me.updateRegular(Piece.ROOK, Piece.BLACK_ROOK, BitBoard.f8, BitBoard.h8);
 		} else if (Move.areEqual(move, CastlingManager.undo_bqsc)) {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
 			allPieces ^= (bqsc_mask);
 			pieceLists.updatePiece(Piece.BLACK_ROOK, BitBoard.d8, BitBoard.a8);
-//			me.position -= Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.d8];
-//			me.position += Piece.PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.a8];
-//			me.positionEndgame -= Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.d8];
-//			me.positionEndgame += Piece.ENDGAME_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][BitBoard.a8];
+			me.updateRegular(Piece.ROOK, Piece.BLACK_ROOK, BitBoard.d8, BitBoard.a8);
 		}
 	}
 	

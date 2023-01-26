@@ -88,7 +88,7 @@ public class PiecewiseEvaluation {
 		
 		addPst(pawnToReplace, newBitOffset);
 		int pieceType = promoPiece & Piece.PIECE_NO_COLOUR_MASK;
-		if (pieceType == Piece.KNIGHT) {
+		if (pieceType >= Piece.KNIGHT) {
 			subtractPst(promoPiece, oldBitOffset);
 		}
 		
@@ -107,7 +107,7 @@ public class PiecewiseEvaluation {
 
 		subtractPst(pawnToRemove, oldBitOffset);
 		int pieceType = promoPiece & Piece.PIECE_NO_COLOUR_MASK;
-		if (pieceType == Piece.KNIGHT) {
+		if (pieceType >= Piece.KNIGHT) {
 			addPst(promoPiece, newBitOffset);
 		}
 		
