@@ -844,7 +844,7 @@ public class Board {
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
 			pieceLists.updatePiece(Piece.BLACK_ROOK, BitBoard.h8, BitBoard.f8);
-			me.updateRegular(Piece.ROOK, Piece.BLACK_ROOK, BitBoard.f8, BitBoard.h8);
+			me.updateRegular(Piece.ROOK, Piece.BLACK_ROOK, BitBoard.h8, BitBoard.f8);
 		} else if (Move.areEqual(move, CastlingManager.bqsc)) {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
