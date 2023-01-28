@@ -140,18 +140,23 @@ public abstract class Piece {
     static final byte[] P_W_MG_PST;
     static {
         P_W_MG_PST = new byte[64];
-        P_W_MG_PST[BitBoard.c3] = 0; P_W_MG_PST[BitBoard.d3] = 5; P_W_MG_PST[BitBoard.e3] = 5; P_W_MG_PST[BitBoard.f3] = 0;
-        P_W_MG_PST[BitBoard.c4] = 3; P_W_MG_PST[BitBoard.d4] = 10; P_W_MG_PST[BitBoard.e4] = 10; P_W_MG_PST[BitBoard.f4] = 3;
+        P_W_MG_PST[BitBoard.a2] = 1; P_W_MG_PST[BitBoard.b2] = 3;  P_W_MG_PST[BitBoard.c2] = 9;  P_W_MG_PST[BitBoard.d2] = 15; P_W_MG_PST[BitBoard.e2] = 14; P_W_MG_PST[BitBoard.f2] = 19; P_W_MG_PST[BitBoard.g2] = 7;  P_W_MG_PST[BitBoard.h2] = -2;
+        P_W_MG_PST[BitBoard.a3] = -7;P_W_MG_PST[BitBoard.b3] = -12;P_W_MG_PST[BitBoard.c3] = 9;  P_W_MG_PST[BitBoard.d3] = 14; P_W_MG_PST[BitBoard.e3] = 27; P_W_MG_PST[BitBoard.f3] = 21; P_W_MG_PST[BitBoard.g3] = 4;  P_W_MG_PST[BitBoard.h3] = -18;
+        P_W_MG_PST[BitBoard.a4] = -1;P_W_MG_PST[BitBoard.b4] = -18;P_W_MG_PST[BitBoard.c4] = 6;  P_W_MG_PST[BitBoard.d4] = 17; P_W_MG_PST[BitBoard.e4] = 35; P_W_MG_PST[BitBoard.f4] = 15; P_W_MG_PST[BitBoard.g4] = 0;  P_W_MG_PST[BitBoard.h4] = -3;
+        P_W_MG_PST[BitBoard.a5] = 9; P_W_MG_PST[BitBoard.b5] = -2; P_W_MG_PST[BitBoard.c5] = -9; P_W_MG_PST[BitBoard.d5] = 1;  P_W_MG_PST[BitBoard.e5] = 1;  P_W_MG_PST[BitBoard.f5] = 0;  P_W_MG_PST[BitBoard.g5] = -10;P_W_MG_PST[BitBoard.h5] = 4;
+        P_W_MG_PST[BitBoard.a6] = 2; P_W_MG_PST[BitBoard.b6] = -9; P_W_MG_PST[BitBoard.c6] = -4; P_W_MG_PST[BitBoard.d6] = 20; P_W_MG_PST[BitBoard.e6] = 20; P_W_MG_PST[BitBoard.f6] = -4; P_W_MG_PST[BitBoard.g6] = -11;P_W_MG_PST[BitBoard.h6] = -9;
+        P_W_MG_PST[BitBoard.a7] = -5;P_W_MG_PST[BitBoard.b7] = 4;  P_W_MG_PST[BitBoard.c7] = -1; P_W_MG_PST[BitBoard.d7] = -10;P_W_MG_PST[BitBoard.e7] = -9; P_W_MG_PST[BitBoard.f7] = -11;P_W_MG_PST[BitBoard.g7] = 8;  P_W_MG_PST[BitBoard.h7] = -6;
     }
     
     static final byte[] P_W_EG_PST;
     static {
         P_W_EG_PST = new byte[64];
-        P_W_EG_PST[BitBoard.a3] = 0; P_W_EG_PST[BitBoard.b3] = 0; P_W_EG_PST[BitBoard.c3] = 0; P_W_EG_PST[BitBoard.d3] = 5; P_W_EG_PST[BitBoard.e3] = 5; P_W_EG_PST[BitBoard.f3] = 0; P_W_EG_PST[BitBoard.g3] = 0; P_W_EG_PST[BitBoard.h3] = 0;
-        P_W_EG_PST[BitBoard.a4] = 0; P_W_EG_PST[BitBoard.b4] = 0; P_W_EG_PST[BitBoard.c4] = 3; P_W_EG_PST[BitBoard.d4] = 8; P_W_EG_PST[BitBoard.e4] = 8;P_W_EG_PST[BitBoard.f4] = 3; P_W_EG_PST[BitBoard.g4] = 0; P_W_EG_PST[BitBoard.h4] = 0;
-        P_W_EG_PST[BitBoard.a5] = 2; P_W_EG_PST[BitBoard.b5] = 3; P_W_EG_PST[BitBoard.c5] = 8; P_W_EG_PST[BitBoard.d5] = 12; P_W_EG_PST[BitBoard.e5] = 12; P_W_EG_PST[BitBoard.f5] = 8; P_W_EG_PST[BitBoard.g5] = 3; P_W_EG_PST[BitBoard.h5] = 2;
-        P_W_EG_PST[BitBoard.a6] = 4; P_W_EG_PST[BitBoard.b6] = 8; P_W_EG_PST[BitBoard.c6] = 12; P_W_EG_PST[BitBoard.d6] = 16; P_W_EG_PST[BitBoard.e6] = 16; P_W_EG_PST[BitBoard.f6] = 12; P_W_EG_PST[BitBoard.g6] = 8; P_W_EG_PST[BitBoard.h6] = 4;
-        P_W_EG_PST[BitBoard.a7] = 5; P_W_EG_PST[BitBoard.b7] = 10; P_W_EG_PST[BitBoard.c7] = 15; P_W_EG_PST[BitBoard.d7] = 20; P_W_EG_PST[BitBoard.e7] = 20; P_W_EG_PST[BitBoard.f7] = 15; P_W_EG_PST[BitBoard.g7] = 10; P_W_EG_PST[BitBoard.h7] = 5;
+        P_W_EG_PST[BitBoard.a2] = -5; P_W_EG_PST[BitBoard.b2] = -5; P_W_EG_PST[BitBoard.c2] = 5;  P_W_EG_PST[BitBoard.d2] = 4;  P_W_EG_PST[BitBoard.e2] = 10; P_W_EG_PST[BitBoard.f2] = 4; P_W_EG_PST[BitBoard.g2] = -3; P_W_EG_PST[BitBoard.h2] = -15;
+        P_W_EG_PST[BitBoard.a3] = -5; P_W_EG_PST[BitBoard.b3] = -6; P_W_EG_PST[BitBoard.c3] = -8; P_W_EG_PST[BitBoard.d3] = 4;  P_W_EG_PST[BitBoard.e3] = 0;  P_W_EG_PST[BitBoard.f3] = 1; P_W_EG_PST[BitBoard.g3] = -5; P_W_EG_PST[BitBoard.h3] = -3;
+        P_W_EG_PST[BitBoard.a4] = 5;  P_W_EG_PST[BitBoard.b4] = 0;  P_W_EG_PST[BitBoard.c4] = -5; P_W_EG_PST[BitBoard.d4] = 0;  P_W_EG_PST[BitBoard.e4] = -10;P_W_EG_PST[BitBoard.f4] = -9;P_W_EG_PST[BitBoard.g4] = -8; P_W_EG_PST[BitBoard.h4] = -5;
+        P_W_EG_PST[BitBoard.a5] = 8;  P_W_EG_PST[BitBoard.b5] = 3;  P_W_EG_PST[BitBoard.c5] = 0;  P_W_EG_PST[BitBoard.d5] = -5; P_W_EG_PST[BitBoard.e5] = -3; P_W_EG_PST[BitBoard.f5] = -2;P_W_EG_PST[BitBoard.g5] = 12; P_W_EG_PST[BitBoard.h5] = 7;
+        P_W_EG_PST[BitBoard.a6] = 23; P_W_EG_PST[BitBoard.b6] = 14; P_W_EG_PST[BitBoard.c6] = 17; P_W_EG_PST[BitBoard.d6] = 27; P_W_EG_PST[BitBoard.e6] = 28; P_W_EG_PST[BitBoard.f6] = 7; P_W_EG_PST[BitBoard.g6] = 8;  P_W_EG_PST[BitBoard.h6] = 10;
+        P_W_EG_PST[BitBoard.a7] = 5;  P_W_EG_PST[BitBoard.b7] = -7; P_W_EG_PST[BitBoard.c7] = 11; P_W_EG_PST[BitBoard.d7] = 22; P_W_EG_PST[BitBoard.e7] = 21; P_W_EG_PST[BitBoard.f7] = 15;P_W_EG_PST[BitBoard.g7] = 5;  P_W_EG_PST[BitBoard.h7] = 5;
     } 
     
     static final byte[] R_W_MG_PST;

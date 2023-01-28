@@ -27,13 +27,13 @@ public class PositionEvaluatorTest {
 	@Test
 	public void test_evalPosA() {
 		setUpPosition("rn2k1nr/1pp2p1p/p7/8/6b1/2P2N2/PPP2PP1/R1BB1RK1 b kq - 0 12");
-		assertEquals(-316, SUT.getFullEvaluation()); // Knight good pos, pawn up, doubled pawns, isolated pawn, not endgame, some danger to black king (open file)
+		assertEquals(-333, SUT.getFullEvaluation()); // Knight good pos, pawn up, doubled pawns, isolated pawn, not endgame, some danger to black king (open file)
 	}
 	
 	@Test
 	public void test_EvalPosB() {
 		setUpPosition("8/8/1B6/8/8/4Kpk1/8/b7 w - - - 85");
-		int expectedScore = -424;
+		int expectedScore = -420;
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore -= 15;
 		}
