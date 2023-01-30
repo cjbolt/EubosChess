@@ -14,6 +14,9 @@ import eubos.position.Position;
 
 public class PawnEvaluator implements IForEachPieceCallback {
 	
+	private static final boolean MEASURE_PAWN_HASH = false;
+	private static final boolean ENABLE_MAJOR_SUPPORT_EVAL_FOR_PASSED_PAWN = true;
+	
 	public static final int DOUBLED_PAWN_HANDICAP = 12;
 	public static final int ISOLATED_PAWN_HANDICAP = 33;
 	public static final int BACKWARD_PAWN_HANDICAP = 12;
@@ -70,8 +73,6 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	}
 	
 	PawnHashStatistics pawnStat = null;
-	
-	private static final boolean MEASURE_PAWN_HASH = false;
 	
 	public PawnEvaluator(IPositionAccessors pm, PawnEvalHashTable pawnHash) {
 		bd = pm.getTheBoard();
@@ -189,27 +190,39 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		return score;
 	}
 	
+	//public final int[] KING_DIST_LUT = {0, 3, 2, 1, 0, -1, -2, -3, -4};
+	//public final int[] KING_DIST_LUT = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 	protected int evaluatePassedPawn(int bitOffset, boolean pawnIsWhite, long[][] own_attacks, long [][] enemy_attacks) {
 		int score = 0;
+		boolean heavySupport = false;
 		weighting *= getScaleFactorForGamePhase();
 		int value = (BitBoard.getFile(bitOffset) == IntFile.Fa || BitBoard.getFile(bitOffset) == IntFile.Fh) ?
 				ROOK_FILE_PASSED_PAWN_BOOST : PASSED_PAWN_BOOST;
 		
 		if (!bd.isPawnBlockaded(bitOffset, pawnIsWhite)) {
-			int heavySupportIndication = bd.checkForHeavyPieceBehindPassedPawn(bitOffset, pawnIsWhite);
-			if (heavySupportIndication > 0) {
-				score += HEAVY_PIECE_BEHIND_PASSED_PAWN;
-			} else if (heavySupportIndication < 0) {
-				score -= HEAVY_PIECE_BEHIND_PASSED_PAWN;
-			} else {
-				// neither attacked or defended along the rear span
+			if (ENABLE_MAJOR_SUPPORT_EVAL_FOR_PASSED_PAWN) {
+				int heavySupportIndication = bd.checkForHeavyPieceBehindPassedPawn(bitOffset, pawnIsWhite);
+				if (heavySupportIndication > 0) {
+					score += HEAVY_PIECE_BEHIND_PASSED_PAWN;
+					heavySupport = true;
+				} else if (heavySupportIndication < 0) {
+					score -= HEAVY_PIECE_BEHIND_PASSED_PAWN;
+				} else {
+					// neither attacked or defended along the rear span
+				}
 			}
-			if (bd.isPawnFrontspanSafe(bitOffset, pawnIsWhite, own_attacks[3], enemy_attacks[3], heavySupportIndication > 0)) {
+			if (bd.isPawnFrontspanSafe(bitOffset, pawnIsWhite, own_attacks[3], enemy_attacks[3], heavySupport)) {
 				value += SAFE_MOBILE_PASSED_PAWN;
 			} else if (bd.canPawnAdvance(bitOffset, pawnIsWhite, own_attacks[3], enemy_attacks[3])) {
 				value += MOBILE_PASSED_PAWN;
 			}
 		}
+// Experimental King proximity to passed pawn evalution
+//		int ownKingPos = bd.getKingPosition(pawnIsWhite);
+//		if (ownKingPos != BitBoard.INVALID) {
+//			int ownDistance = BitBoard.ManhattanDistance[bitOffset][ownKingPos];
+//			value += KING_DIST_LUT[ownDistance];
+//		}
 		score += weighting*value;
 		return score;
 	}
@@ -247,6 +260,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 
 		return scoreForPassedPawns;
 	}
+	
 	
 	@SuppressWarnings("unused")
 	int evaluatePawnStructure(long[][][] attacks) {

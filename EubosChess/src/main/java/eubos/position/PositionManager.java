@@ -93,7 +93,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public boolean moveLeadsToThreefold(int move) {
 		boolean isDrawing = false;
-		int captureBitOffset = Position.NOPOSITION;
+		int captureBitOffset = BitBoard.INVALID;
 		int pieceToMove = Move.getOriginPiece(move);
 		int targetBitOffset = Move.getTargetPosition(move);
 		int targetPiece = Move.getTargetPiece(move);
@@ -301,51 +301,51 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 				switch(c)
 				{
 				case 'r':
-					pl.put(Position.valueOf(f,r), Piece.BLACK_ROOK);
+					pl.put(BitBoard.bitValueOf(f, r), Piece.BLACK_ROOK);
 					f = advanceFile(f);
 					break;
 				case 'R':
-					pl.put(Position.valueOf(f,r), Piece.WHITE_ROOK);
+					pl.put(BitBoard.bitValueOf(f, r), Piece.WHITE_ROOK);
 					f = advanceFile(f);
 					break;
 				case 'n':
-					pl.put(Position.valueOf(f,r), Piece.BLACK_KNIGHT);
+					pl.put(BitBoard.bitValueOf(f, r), Piece.BLACK_KNIGHT);
 					f = advanceFile(f);
 					break;
 				case 'N':
-					pl.put(Position.valueOf(f,r), Piece.WHITE_KNIGHT);
+					pl.put(BitBoard.bitValueOf(f, r), Piece.WHITE_KNIGHT);
 					f = advanceFile(f);
 					break;
 				case 'b':
-					pl.put(Position.valueOf(f,r), Piece.BLACK_BISHOP);
+					pl.put(BitBoard.bitValueOf(f, r), Piece.BLACK_BISHOP);
 					f = advanceFile(f);
 					break;
 				case 'B':
-					pl.put(Position.valueOf(f,r), Piece.WHITE_BISHOP);
+					pl.put(BitBoard.bitValueOf(f, r), Piece.WHITE_BISHOP);
 					f = advanceFile(f);
 					break;
 				case 'q':
-					pl.put(Position.valueOf(f,r), Piece.BLACK_QUEEN);
+					pl.put(BitBoard.bitValueOf(f, r), Piece.BLACK_QUEEN);
 					f = advanceFile(f);
 					break;
 				case 'Q':
-					pl.put(Position.valueOf(f,r), Piece.WHITE_QUEEN);
+					pl.put(BitBoard.bitValueOf(f, r), Piece.WHITE_QUEEN);
 					f = advanceFile(f);
 					break;
 				case 'k':
-					pl.put(Position.valueOf(f,r), Piece.BLACK_KING);
+					pl.put(BitBoard.bitValueOf(f, r), Piece.BLACK_KING);
 					f = advanceFile(f);
 					break;
 				case 'K':
-					pl.put(Position.valueOf(f,r), Piece.WHITE_KING);
+					pl.put(BitBoard.bitValueOf(f, r), Piece.WHITE_KING);
 					f = advanceFile(f);
 					break;
 				case 'p':
-					pl.put(Position.valueOf(f,r), Piece.BLACK_PAWN);
+					pl.put(BitBoard.bitValueOf(f, r), Piece.BLACK_PAWN);
 					f = advanceFile(f);
 					break;
 				case 'P':
-					pl.put(Position.valueOf(f,r), Piece.WHITE_PAWN);
+					pl.put(BitBoard.bitValueOf(f, r), Piece.WHITE_PAWN);
 					f = advanceFile(f);
 					break;
 				case '1':

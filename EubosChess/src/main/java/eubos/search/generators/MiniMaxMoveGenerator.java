@@ -98,20 +98,26 @@ public class MiniMaxMoveGenerator implements
 		try {
 			score = (short) ps.searchPly(scoreToUse);
 		} catch (Exception e) {
-			Writer buffer = new StringWriter();
-			PrintWriter pw = new PrintWriter(buffer);
-			e.printStackTrace(pw);
-			String error = String.format("PlySearcher threw an exception: %s\n%s\n%s",
-					e.getMessage(), pos.unwindMoveStack(), buffer.toString());
-			System.err.println(error);
-			EubosEngineMain.logger.severe(error);
-			System.exit(0);
+			handleFatalError(e, "PlySearcher threw an exception");
+		} catch (AssertionError e) {
+			handleFatalError(e, "PlySearcher hit an assertion error");
 		}
 		if (Score.isMate(score)) {
 			foundMate = true;
 		}
 		// Select the best move
 		return new SearchResult(pc.toPvList(0), foundMate, ps.rootTransposition, searchDepth);
+	}
+	
+	private void handleFatalError(Throwable e, String err) {
+		Writer buffer = new StringWriter();
+		PrintWriter pw = new PrintWriter(buffer);
+		e.printStackTrace(pw);
+		String error = String.format("%s: %s\n%s\n%s",
+				err, e.getMessage(), pos.unwindMoveStack(), buffer.toString());
+		System.err.println(error);
+		EubosEngineMain.logger.severe(error);
+		System.exit(0);
 	}
 	
 	public void terminateFindMove() {

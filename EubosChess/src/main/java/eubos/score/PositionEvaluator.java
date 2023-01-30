@@ -10,7 +10,6 @@ import eubos.board.Piece;
 import eubos.board.SquareAttackEvaluator;
 import eubos.main.EubosEngineMain;
 import eubos.position.IPositionAccessors;
-import eubos.position.Position;
 
 public class PositionEvaluator implements IEvaluate {
 
@@ -172,7 +171,7 @@ public class PositionEvaluator implements IEvaluate {
 		int defenderCount = Long.bitCount(kingZone&defenders);
 
 		int attackQueenOffset = bd.pieceLists.getQueenPos(!onMoveIsWhite);
-		if (attackQueenOffset != Position.NOPOSITION) {
+		if (attackQueenOffset != BitBoard.INVALID) {
 			int attackingQueenDistance = BitBoard.ManhattanDistance[attackQueenOffset][kingBitOffset];
 			return (defenderCount < 3 || attackingQueenDistance < 3);
 		} else {
@@ -239,6 +238,7 @@ public class PositionEvaluator implements IEvaluate {
 		return score;
 	}
 	
+	public final int[] GO_FOR_MATE_KING_PROXIMITY_LUT = {0, 0, 40, 30, 20, 10, 0, -10, -20};
 	private int internalFullEval() {
 		// Initialised in lazyEvaluation function
 		score = 0;
@@ -270,6 +270,12 @@ public class PositionEvaluator implements IEvaluate {
 				score = taperEvaluation(midgameScore, endgameScore);
 			} else {
 				score += onMoveIsWhite ? bd.me.getMiddleGameDelta() : -bd.me.getMiddleGameDelta();
+				int ownKingPos = bd.getKingPosition(onMoveIsWhite);
+				int enemyKingPos = bd.getKingPosition(!onMoveIsWhite);
+				if (ownKingPos != BitBoard.INVALID && enemyKingPos != BitBoard.INVALID) {
+					int distance = BitBoard.ManhattanDistance[enemyKingPos][ownKingPos];
+					score += GO_FOR_MATE_KING_PROXIMITY_LUT[distance];
+				}
 			}
 		}
 		return score;
@@ -310,7 +316,7 @@ public class PositionEvaluator implements IEvaluate {
 		public final int[] PAWN_DIST_LUT = {0, -20, -10, -3, 0, 0, 0, 0, 0};
 		
 		int score = 0;
-		int kingOffset = Position.NOPOSITION;
+		int kingOffset = BitBoard.INVALID;
 		
 		public void callback(int piece, int bitOffset) {
 			int distance = BitBoard.ManhattanDistance[bitOffset][kingOffset];

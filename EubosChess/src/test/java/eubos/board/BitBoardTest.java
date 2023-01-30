@@ -371,6 +371,12 @@ public class BitBoardTest {
 	}
 	
 	@Test
+	public void test_bitValueOf() {
+		assertEquals(BitBoard.h8, BitBoard.bitValueOf(7, 7));
+		assertEquals(BitBoard.a1, BitBoard.bitValueOf(0, 0));
+	}
+	
+	@Test
 	public void test_mapping_of_bit_rank_to_position_rank() {
 		int bit = 0;
 		for (int square : Position.values) {

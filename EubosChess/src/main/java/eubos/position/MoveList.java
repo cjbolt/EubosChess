@@ -345,9 +345,10 @@ public class MoveList implements Iterable<Integer> {
 		@SuppressWarnings("unused")
 		protected void handleUnderPromotions(int move) {
 			if ((EubosEngineMain.ENABLE_PERFT || ply == 0) && Move.isQueenPromotion(move)) {
-				int under1 = Move.setPromotion(move, Piece.ROOK);
-				int under2 = Move.setPromotion(move, Piece.BISHOP);
-				int under3 = Move.setPromotion(move, Piece.KNIGHT);
+				// Add them in the order they will be sorted into
+				int under1 = Move.setPromotion(move, Piece.BISHOP);
+				int under2 = Move.setPromotion(move, Piece.KNIGHT);
+				int under3 = Move.setPromotion(move, Piece.ROOK);
 				priority_moves[ply][priority_fill_index[ply]++] = under1;
 				priority_moves[ply][priority_fill_index[ply]++] = under2;
 				priority_moves[ply][priority_fill_index[ply]++] = under3;
@@ -405,12 +406,14 @@ public class MoveList implements Iterable<Integer> {
 	public List<Integer> getList() {
 		List<Integer> ml = new ArrayList<Integer>();
 		MoveListIterator it = getNextMovesAtPly(0);
-		do {
-			while (it.hasNext()) {
-				ml.add(it.nextInt());
-			}
-			it = getNextMovesAtPly(0);
-		} while (it.hasNext());
+		if (it.hasNext()) {
+			do {
+				while (it.hasNext()) {
+					ml.add(it.nextInt());
+				}
+				it = getNextMovesAtPly(0);
+			} while (it.hasNext());
+		}
 		return ml;
 	}
 	

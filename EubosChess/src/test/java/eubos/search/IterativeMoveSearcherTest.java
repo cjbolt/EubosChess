@@ -2,6 +2,7 @@ package eubos.search;
 
 import static org.junit.Assert.*;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import org.junit.After;
@@ -31,8 +32,14 @@ public class IterativeMoveSearcherTest {
 	PositionManager pm;
 	
 	private class EubosMock extends EubosEngineMain {
-		boolean bestMoveCommandReceived = false;
-		ProtocolBestMoveCommand last_bestMove;
+		ProtocolBestMoveCommand last_bestMove = null;
+		final AtomicBoolean finished = new AtomicBoolean(false);
+		IterativeMoveSearcherTest testObject;
+		
+		public EubosMock(IterativeMoveSearcherTest test) {
+			super();
+			testObject = test;
+		}
 		
 		@Override
 		public void sendInfoCommand(ProtocolInformationCommand command) {
@@ -43,8 +50,11 @@ public class IterativeMoveSearcherTest {
 		
 		@Override
 		public void sendBestMoveCommand(SearchResult result) {
-			bestMoveCommandReceived = true;
 			last_bestMove = new ProtocolBestMoveCommand(Move.toGenericMove(result.pv[0]), null);
+			synchronized(testObject) {
+				finished.set(true);
+				testObject.notify();
+			}
 		}
 	}
 	private EubosMock eubos;
@@ -55,7 +65,7 @@ public class IterativeMoveSearcherTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		eubos = new EubosMock();
+		eubos = new EubosMock(this);
 		killers = new KillerList();
 		hashMap = new FixedSizeTranspositionTable();
 		EubosEngineMain.logger.setLevel(Level.OFF);
@@ -68,13 +78,15 @@ public class IterativeMoveSearcherTest {
 	}
 
 	private void runSearcherAndTestBestMoveReturned() {
-		eubos.bestMoveCommandReceived = false;
-		eubos.last_bestMove = null;
-		sut.start(); // need to wait for result
-		while (!eubos.bestMoveCommandReceived) {
+		sut.start();
+		// need to wait for result
+		synchronized(this) {
 			try {
-				Thread.sleep(10);
+				while (!eubos.finished.get()) {
+					wait();
+				}
 			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 			}
 		}
 		assertEquals(expectedMove, eubos.last_bestMove.bestMove);

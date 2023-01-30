@@ -3,7 +3,6 @@ package eubos.board;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
-import eubos.position.Position;
 import eubos.score.PiecewiseEvaluation;
 
 public class MobilityAttacksEvaluator {
@@ -402,7 +401,7 @@ public class MobilityAttacksEvaluator {
 		theBoard.kaa.getAttacks(attacks[1], true);
 		// King
 		int blackKingOffset = theBoard.pieceLists.getKingPos(false);
-		if (blackKingOffset != Position.NOPOSITION) {
+		if (blackKingOffset != BitBoard.INVALID) {
 			long kingAttacks = SquareAttackEvaluator.KingMove_Lut[blackKingOffset];
 			attacks[3][0] |= (attacks[1][0] | kingAttacks);
 		}
@@ -417,7 +416,7 @@ public class MobilityAttacksEvaluator {
 		theBoard.kaa.getAttacks(attacks[1], false);
 		// King
 		int whiteKingOffset = theBoard.pieceLists.getKingPos(true);
-		if (whiteKingOffset != Position.NOPOSITION) {
+		if (whiteKingOffset != BitBoard.INVALID) {
 			long kingAttacks = SquareAttackEvaluator.KingMove_Lut[whiteKingOffset];
 			attacks[3][0] |= (attacks[1][0] | kingAttacks);
 		}
@@ -437,7 +436,7 @@ public class MobilityAttacksEvaluator {
 		CountedBitBoard.setBitArrays(attacks[3], attacks[1]);
 		// King
 		int blackKingOffset = theBoard.pieceLists.getKingPos(false);
-		if (blackKingOffset != Position.NOPOSITION) {
+		if (blackKingOffset != BitBoard.INVALID) {
 			long kingAttacks = SquareAttackEvaluator.KingMove_Lut[blackKingOffset];
 			CountedBitBoard.setBits(attacks[3], kingAttacks);
 		}
@@ -457,7 +456,7 @@ public class MobilityAttacksEvaluator {
 		CountedBitBoard.setBitArrays(attacks[3], attacks[1]);
 		// King
 		int whiteKingOffset = theBoard.pieceLists.getKingPos(true);
-		if (whiteKingOffset != Position.NOPOSITION) {
+		if (whiteKingOffset != BitBoard.INVALID) {
 			long kingAttacks = SquareAttackEvaluator.KingMove_Lut[whiteKingOffset];
 			CountedBitBoard.setBits(attacks[3], kingAttacks);
 		}

@@ -1,6 +1,7 @@
 package eubos.score;
 
 import eubos.board.Piece;
+import eubos.main.EubosEngineMain;
 
 public class PiecewiseEvaluation {
 	
@@ -11,9 +12,8 @@ public class PiecewiseEvaluation {
 	
 	public short mg_material = 0;
 	public short eg_material = 0;
-	public short position = 0;
-	public short positionEndgame = 0;
 	public short dynamicPosition = 0;
+	public int combinedPosition = 0;
 	
 	public int phase = 0;
 	public int [] numberOfPieces;
@@ -30,9 +30,9 @@ public class PiecewiseEvaluation {
 	
 	public short getEndGameDelta() { return eg_material; }
 	
-	public short getPosition() { return (short)(position + dynamicPosition); }
+	public short getPosition() { return (short)((short)(combinedPosition & 0xFFFF) + dynamicPosition); }
 	
-	public short getEndgamePosition() { return (short)(positionEndgame + dynamicPosition); }
+	public short getEndgamePosition() { return (short)((short)(combinedPosition >> 16) + dynamicPosition); }
 
 	public int getPhase() {
 		return phase;
@@ -50,5 +50,89 @@ public class PiecewiseEvaluation {
 		phase -= numberOfPieces[Piece.BLACK_ROOK] * ROOK_PHASE;
 		phase -= numberOfPieces[Piece.BLACK_QUEEN] * QUEEN_PHASE;
 		// Phase is now a 10 bit fixed point fraction of the total phase
+	}
+
+	public void addPst(int piece, int bitOffset) {
+		int x = combinedPosition;
+		int y = Piece.COMBINED_PIECE_SQUARE_TABLES[piece][bitOffset];
+		int s = x + y;
+		int c = (s ^ x ^ y) & 0x0001_0000;
+		combinedPosition = s - c;
+	}
+	
+	public void subtractPst(int piece, int bitOffset) {
+		int x = combinedPosition;
+		int y = Piece.COMBINED_PIECE_SQUARE_TABLES[piece][bitOffset];
+		int d = x - y;
+		int b = (d ^ x ^ y) & 0x0001_0000;
+		combinedPosition = d + b;
+	}
+	
+	public void updateRegular(int pieceTypeWithoutColour, int originPiece, int originBitOffset, int targetBitOffset) {
+		if (EubosEngineMain.ENABLE_ASSERTS) assert (pieceTypeWithoutColour & Piece.BLACK) == 0;
+		if (pieceTypeWithoutColour >= Piece.KNIGHT) {
+			addPst(originPiece, targetBitOffset);
+			subtractPst(originPiece, originBitOffset);
+		}
+	}
+	
+	public void updateWhenUndoingPromotion(int promoPiece, int oldBitOffset, int newBitOffset) {
+		int pawnToReplace = (promoPiece & Piece.BLACK)+Piece.PAWN;
+		numberOfPieces[pawnToReplace]++;
+		numberOfPieces[promoPiece]--;
+		
+		mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][pawnToReplace];
+		mg_material -= Piece.PIECE_TO_MATERIAL_LUT[0][promoPiece];
+		eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][pawnToReplace];
+		eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][promoPiece];
+		
+		addPst(pawnToReplace, newBitOffset);
+		int pieceType = promoPiece & Piece.PIECE_NO_COLOUR_MASK;
+		if (pieceType >= Piece.KNIGHT) {
+			subtractPst(promoPiece, oldBitOffset);
+		}
+		
+		phase += Piece.PIECE_PHASE[promoPiece];
+	}
+	
+	public void updateWhenDoingPromotion(int promoPiece, int oldBitOffset, int newBitOffset) {
+		int pawnToRemove = (promoPiece & Piece.BLACK)+Piece.PAWN;
+		numberOfPieces[pawnToRemove]--;
+		numberOfPieces[promoPiece]++;
+		
+		mg_material -= Piece.PIECE_TO_MATERIAL_LUT[0][pawnToRemove];
+		mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][promoPiece];
+		eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][pawnToRemove];
+		eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][promoPiece];
+
+		subtractPst(pawnToRemove, oldBitOffset);
+		int pieceType = promoPiece & Piece.PIECE_NO_COLOUR_MASK;
+		if (pieceType >= Piece.KNIGHT) {
+			addPst(promoPiece, newBitOffset);
+		}
+		
+		phase -= Piece.PIECE_PHASE[promoPiece];
+	}
+	
+	public void updateForCapture(int currPiece, int bitOffset) {
+		numberOfPieces[currPiece]--;
+		mg_material -= Piece.PIECE_TO_MATERIAL_LUT[0][currPiece];
+		eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
+		int pieceType = currPiece & Piece.PIECE_NO_COLOUR_MASK;
+		if (pieceType >= Piece.KNIGHT) {
+			subtractPst(currPiece, bitOffset);
+		}
+		phase += Piece.PIECE_PHASE[currPiece];
+	}
+	
+	public void updateForReplacedCapture(int currPiece, int bitOffset) {
+		numberOfPieces[currPiece]++;
+		mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][currPiece];
+		eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
+		int pieceType = currPiece & Piece.PIECE_NO_COLOUR_MASK;
+		if (pieceType >= Piece.KNIGHT) {
+			addPst(currPiece, bitOffset);
+		}
+		phase -= Piece.PIECE_PHASE[currPiece];
 	}
 }

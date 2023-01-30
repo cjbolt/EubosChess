@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
+import eubos.board.BitBoard;
 import eubos.board.Piece;
 
 import com.fluxchess.jcpi.models.GenericMove;
@@ -69,7 +70,7 @@ public class PositionManagerTest {
 		createSutAndRegisterPe("8/8/8/8/8/8/4P3/8 w - - - 1");
 		classUnderTest.performMove(Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE ));
 		classUnderTest.unperformMove();
-		int expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( Position.e2 );
+		int expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( 1L << BitBoard.e2 );
 		assertTrue( expectPawn==Piece.WHITE_PAWN );		
 	}
 	
@@ -87,7 +88,7 @@ public class PositionManagerTest {
 		createSutAndRegisterPe("8/8/8/8/8/8/4p3/8 b - - - 1");
 		classUnderTest.performMove( Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.QUEEN));
 		classUnderTest.unperformMove();
-		int expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( Position.e2 );
+		int expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( 1L << BitBoard.e2 );
 		assertEquals( Piece.BLACK_PAWN, expectPawn );
 	}
 	
@@ -105,9 +106,9 @@ public class PositionManagerTest {
 		createSutAndRegisterPe("8/8/8/8/8/3p4/4P3/8 w - - - 1");
 		classUnderTest.performMove( Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.d3, Piece.BLACK_PAWN ));
 		classUnderTest.unperformMove();
-		int expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( Position.d3 );
+		int expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( 1L << BitBoard.d3 );
 		assertTrue( expectPawn==Piece.BLACK_PAWN );
-		expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( Position.e2 );
+		expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( 1L << BitBoard.e2 );
 		assertTrue( expectPawn==Piece.WHITE_PAWN );
 	}
 	
@@ -117,7 +118,7 @@ public class PositionManagerTest {
 		int en_passant_move =  Move.valueOf( Position.b4, Piece.BLACK_PAWN, Position.c3, Piece.WHITE_PAWN );
 		en_passant_move |= Move.MISC_EN_PASSANT_CAPTURE_MASK;
 		classUnderTest.performMove(en_passant_move);
-		int expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( Position.c3 );
+		int expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( 1L << BitBoard.c3 );
 		assertEquals( Piece.BLACK_PAWN, expectPawn );
 	}
 	
@@ -134,9 +135,9 @@ public class PositionManagerTest {
 		//   abcdefgh
 		createSutAndRegisterPe("8/8/8/8/8/8/8/4K2R w K - - 1");
 		classUnderTest.performMove( Move.valueOf(Move.TYPE_REGULAR_NONE, Position.e1, Piece.KING, Position.g1, Piece.NONE, Piece.NONE));
-		int whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.h1);
+		int whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(1L << BitBoard.h1);
 		assertTrue(whiteRook == Piece.NONE);
-		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.f1);
+		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(1L << BitBoard.f1);
 		assertTrue( whiteRook==Piece.WHITE_ROOK );
 		assertTrue(classUnderTest.castling.getFenFlags().equals("-"));
 	}
@@ -155,16 +156,16 @@ public class PositionManagerTest {
 		createSutAndRegisterPe("8/8/8/8/8/8/8/4K2R w K - - 1");
 		int expectedMove = Move.valueOf( Move.TYPE_REGULAR_NONE, Position.e1, Piece.WHITE_KING, Position.g1, Piece.NONE, Piece.NONE );
 		classUnderTest.performMove(expectedMove);
-		int whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.h1);
+		int whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(1L << BitBoard.h1);
 		assertTrue(whiteRook == Piece.NONE);
-		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.f1);
+		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(1L << BitBoard.f1);
 		assertTrue( whiteRook==Piece.WHITE_ROOK );
 		classUnderTest.unperformMove();
-		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.f1);
+		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(1L << BitBoard.f1);
 		assertTrue(whiteRook == Piece.NONE);
-		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(Position.h1);
+		whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(1L << BitBoard.h1);
 		assertTrue( whiteRook==Piece.WHITE_ROOK );
-		int whiteKing = classUnderTest.getTheBoard().getPieceAtSquare(Position.e1);
+		int whiteKing = classUnderTest.getTheBoard().getPieceAtSquare(1L << BitBoard.e1);
 		assertTrue( whiteKing==Piece.WHITE_KING );
 		assertTrue(classUnderTest.castling.getFenFlags().equals("K"));
 	}

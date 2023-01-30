@@ -268,7 +268,7 @@ public class PlySearcher {
 				currPly++;
 				pm.performMove(currMove);
 				
-				positionScore = doLateMoveReductionSubTreeSearch(depth, currMove, (state[0].moveNumber - quietOffset));
+				positionScore = doLateMoveReductionSubTreeSearch(depth, currMove, (state[0].moveNumber - quietOffset), false);
 				
 				pm.unperformMove();
 				currPly--;
@@ -316,11 +316,11 @@ public class PlySearcher {
 	}
 	
 	int search(int depth, int alpha, int beta)  {
-		return search(depth, true, alpha, beta);
+		return search(depth, true, alpha, beta, true);
 	}
 	
 	@SuppressWarnings("unused")
-	int search(int depth, boolean nullCheckEnabled, int alpha, int beta)  {
+	int search(int depth, boolean nullCheckEnabled, int alpha, int beta, boolean lmrApplied)  {
 		
 		state[currPly].initialise(currPly, alpha, beta);
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
@@ -397,18 +397,18 @@ public class PlySearcher {
 			!hasSearchedPv*/) {
 
 			state[currPly].update();
-			int score = search(depth-3, false, state[currPly].alpha, state[currPly].beta);
+			int score = search(depth-3, false, state[currPly].alpha, state[currPly].beta, true);
 
 		    if (score <= state[currPly].alpha) {
-		    	score = search(depth-3, false, Score.PROVISIONAL_ALPHA, state[currPly].alpha+1);
+		    	score = search(depth-3, false, Score.PROVISIONAL_ALPHA, state[currPly].alpha+1, true);
 		    }
 
 		    if (EubosEngineMain.ENABLE_ASSERTS) {
-			    if (!Score.isMate((short)score) && score != 0) {
+			    if (!Score.isMate((short)score) && score != 0 && !isTerminated()) {
 				    assert score != Score.PROVISIONAL_ALPHA;
 				    assert score != Score.PROVISIONAL_BETA;
 			    	assert pc.getBestMoveAtPly((byte)(currPly)) != Move.NULL_MOVE :
-			    		String.format("score=%d %s %s", score, pos.unwindMoveStack(), pos.getFen());
+			    		String.format("score=%d %s %s next_pc=%s", score, pos.unwindMoveStack(), pos.getFen(), pc.toStringAt(currPly+1));
 			    }
 		    }
 
@@ -458,7 +458,7 @@ public class PlySearcher {
 				currPly++;
 				pm.performMove(currMove);
 				
-				positionScore = doLateMoveReductionSubTreeSearch(depth, currMove, (state[currPly-1].moveNumber - quietOffset));
+				positionScore = doLateMoveReductionSubTreeSearch(depth, currMove, (state[currPly-1].moveNumber - quietOffset), lmrApplied);
 				
 				pm.unperformMove();
 				currPly--;
@@ -705,19 +705,20 @@ public class PlySearcher {
 		pm.performNullMove();
 		
 		state[currPly].inCheck = state[currPly-1].inCheck;
-		plyScore = -search(depth-1-R, false, -state[currPly-1].beta, -state[currPly-1].beta+1);
+		plyScore = -search(depth-1-R, false, -state[currPly-1].beta, -state[currPly-1].beta+1, false);
 		
 		pm.unperformNullMove();
 		currPly--;
 		return plyScore;
 	}
 	
-	private int doLateMoveReductionSubTreeSearch(int depth, int currMove, int moveNumber) {
+	private int doLateMoveReductionSubTreeSearch(int depth, int currMove, int moveNumber, boolean lmrApplied) {
 		int positionScore = 0;
 		boolean passedLmr = false;
 		state[currPly].update(); /* Update inCheck at this ply and static evaluation. */
 		
 		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
+			//!lmrApplied && /* Only apply LMR once per branch of tree */
 			moveNumber > 1 && /* Search at least one quiet move */
 			!pe.goForMate() && /* Ignore reductions in a mate search */
 			depth > 2 &&
@@ -728,18 +729,7 @@ public class PlySearcher {
 					(pos.getTheBoard().getPassedPawns() & (1L << Move.getOriginPosition(currMove))) != 0L))) {		
 			
 			// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
-			int lmr = (moveNumber < 6) ? 1 : Math.max(1, depth/4);
-			
-			// Decrease reduction if we searched more moves at the previous ply
-			//if (state[currPly-1].moveNumber > 6) {
-				//lmr -= 1;
-			//}
-			//if ((((currPly-1) & 0x1) == 0) && (pe.getCrudeEvaluation() > refScore) && lmr > 1) {
-			//	lmr -= 1;
-			//}
-			//if (!pos.getTheBoard().isPassedPawnPresent()) {
-			//	lmr += 1;
-			//}
+			int lmr = ( moveNumber < 6) ? 1 : Math.max(1, depth/4);
 			if (lmr > 0) {
 				positionScore = -search(depth-1-lmr, -state[currPly-1].beta, -state[currPly-1].alpha);
 				if (positionScore <= state[currPly-1].alpha) {
@@ -749,7 +739,7 @@ public class PlySearcher {
 		}
 		if (!passedLmr) {
 			// Re-search if the reduced search increased alpha 
-			positionScore = -search(depth-1, -state[currPly-1].beta, -state[currPly-1].alpha);
+			positionScore = -search(depth-1, true, -state[currPly-1].beta, -state[currPly-1].alpha, false);
 		}
 		return positionScore;
 	}

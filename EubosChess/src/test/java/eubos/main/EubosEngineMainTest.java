@@ -101,9 +101,9 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
                     "info depth 2 seldepth 7 score cp 106 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 187"+CMD_TERMINATOR
                     +BEST_PREFIX+"c7c2";
 			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-				expectedOutput = "info depth 1 seldepth 6 score cp -156 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
-							     "info depth 1 seldepth 5 score cp 335 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 43"+CMD_TERMINATOR+
-							     "info depth 2 seldepth 7 score cp 106 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 189"+CMD_TERMINATOR
+				expectedOutput = "info depth 1 seldepth 6 score cp -134 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
+							     "info depth 1 seldepth 5 score cp 372 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 43"+CMD_TERMINATOR+
+							     "info depth 2 seldepth 7 score cp 135 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 195"+CMD_TERMINATOR
 								 +BEST_PREFIX+"c7c2";
 			}
 			setupEngine();
@@ -209,7 +209,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/6K1/8/3k4/1Q6/8/8/8 b - - 1 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"11"+CMD_TERMINATOR, BEST_PREFIX+"d5c6"+CMD_TERMINATOR));
-		performTestExpectMate(5000, -6);
+		performTestExpectMate(5000, -7);
 	} 
 	
 	@Test
@@ -239,8 +239,8 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		int mateDepth = 0;
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1d1"+CMD_TERMINATOR));
-		mateDepth = 16;
+		commands.add(new CommandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1h4"+CMD_TERMINATOR));
+		mateDepth = 14;
 		performTestExpectMate(14000, mateDepth);
 	}
 	
@@ -266,7 +266,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_defect_en_passant_treated_as_playable_move_regardless_of_board_state() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"r3qrk1/pbpp1ppp/np1b1n2/8/2PPp3/P1N1P1PP/1P2NPB1/R1BQK2R w KQ - 1 10"+CMD_TERMINATOR, null));
-		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d1c2"+CMD_TERMINATOR));
+		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d1b3"+CMD_TERMINATOR));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e1g1"+CMD_TERMINATOR));
 		performTest(5000);
 	}
@@ -492,5 +492,14 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		" b2a2 g3g2 e6d6 g2g1 d6d5 g1g2 a2e2 g2f1 e2a2 f1g2 d5d6"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR, BEST_PREFIX+"g2g1"+CMD_TERMINATOR));
 		performTest(500);
+	}
+	 
+	@Test
+	@Ignore // Takes a 17 ply search with LMR on to find the correct move? Check evaluation
+	public void test_try_to_draw_KBB_kr_EG() throws InterruptedException, IOException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"7r/8/7B/5p1P/1pB5/6P1/2k4K/8 w - - 3 88"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"17"+CMD_TERMINATOR, BEST_PREFIX+"h6g7"+CMD_TERMINATOR));
+		performTest(18000);
 	}
 }

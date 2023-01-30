@@ -198,19 +198,19 @@ public class ZobristHashCodeTest {
 		PositionManager pm = new PositionManager("8/8/p6p/1p3kp1/1P6/P4PKP/5P2/8 w - - 0 1");
 		long originalHashCode = pm.getHash();
 		
-		pm.performMove(Move.toMove(new GenericMove("g3g2")));
-		pm.performMove(Move.toMove(new GenericMove("f5f6")));
-		pm.performMove(Move.toMove(new GenericMove("g2g3")));
-		pm.performMove(Move.toMove(new GenericMove("f6f5")));
-		pm.performMove(Move.toMove(new GenericMove("a3a4")));
-		pm.performMove(Move.toMove(new GenericMove("b5a4")));
-		pm.performMove(Move.toMove(new GenericMove("g3g2")));
-		pm.performMove(Move.toMove(new GenericMove("a4a3")));
-		pm.performMove(Move.toMove(new GenericMove("g2g3")));
-		pm.performMove(Move.toMove(new GenericMove("a3a2")));
-		pm.performMove(Move.toMove(new GenericMove("g3g2")));
-		pm.performMove(Move.toMove(new GenericMove("a2a1Q")));
-		pm.performMove(Move.toMove(new GenericMove("g2h2")));
+		pm.performMove(Move.toMove(new GenericMove("g3g2"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("f5f6"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("g2g3"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("f6f5"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("a3a4"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("b5a4"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("g3g2"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("a4a3"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("g2g3"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("a3a2"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("g3g2"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("a2a1Q"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("g2h2"), pm.getTheBoard()));
 		for (int i=0; i<13; i++)
 			pm.unperformMove();
 
@@ -224,17 +224,17 @@ public class ZobristHashCodeTest {
 		PositionManager pm = new PositionManager("8/8/p6p/1p3kp1/1P6/P4PKP/5P2/8 w - - 0 1");
 		long originalHashCode = pm.getHash();
 		
-		pm.performMove(Move.toMove(new GenericMove("g3g2")));
-		pm.performMove(Move.toMove(new GenericMove("f5f6")));
-		pm.performMove(Move.toMove(new GenericMove("g2g3")));
-		pm.performMove(Move.toMove(new GenericMove("f6f5")));
-		pm.performMove(Move.toMove(new GenericMove("a3a4")));
-		pm.performMove(Move.toMove(new GenericMove("b5a4")));
-		pm.performMove(Move.toMove(new GenericMove("g3g2")));
-		pm.performMove(Move.toMove(new GenericMove("a4a3")));
-		pm.performMove(Move.toMove(new GenericMove("g2g3")));
-		pm.performMove(Move.toMove(new GenericMove("a3a2")));
-		pm.performMove(Move.toMove(new GenericMove("g3g2")));
+		pm.performMove(Move.toMove(new GenericMove("g3g2"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("f5f6"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("g2g3"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("f6f5"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("a3a4"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("b5a4"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("g3g2"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("a4a3"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("g2g3"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("a3a2"), pm.getTheBoard()));
+		pm.performMove(Move.toMove(new GenericMove("g3g2"), pm.getTheBoard()));
 		for (int i=0; i<11; i++)
 			pm.unperformMove();
 
@@ -259,7 +259,7 @@ public class ZobristHashCodeTest {
 		PositionManager pm = new PositionManager("8/8/p6p/5kp1/1P6/5P1P/5PK1/q7 w - - 0 7 ");
 		long afterHashCode = after_pm.getHash();
 		// There is no easy way to undo a promotion without first performing a promotion
-		pm.performMove(Move.toMove(new GenericMove("a1a2")));
+		pm.performMove(Move.toMove(new GenericMove("a1a2"), pm.getTheBoard()));
 
 		assertEquals(afterHashCode, pm.getHash());	
 	}
