@@ -379,7 +379,7 @@ public class PawnEvaluatorTest {
 		// white
 		int expectedScore = 0;
 		expectedScore += -(1*3*(PawnEvaluator.ROOK_FILE_PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) + -PawnEvaluator.ISOLATED_PAWN_HANDICAP); // white has an h file passed pawn
-		expectedScore += -PawnEvaluator.NO_PAWNS_HANDICAP; // black has no pawns
+		expectedScore += -PawnEvaluator.NO_PAWNS_HANDICAP[1]; // black has no pawns
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore -= SUT.ppImbalanceTable[1];
 		}
@@ -393,7 +393,7 @@ public class PawnEvaluatorTest {
 		// white
 		int expectedScore = 0;
 		expectedScore += (1*3*(PawnEvaluator.ROOK_FILE_PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) + -PawnEvaluator.ISOLATED_PAWN_HANDICAP); // black has an h file passed pawn
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP; // white has no pawns
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[1]; // white has no pawns
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[1];
 		}
@@ -404,7 +404,7 @@ public class PawnEvaluatorTest {
 	public void test_encouragePassedPawns_forBlack_ppOnD2_rookSupport() {
 		setUpPosition("3r4/8/8/8/8/8/3p4/8 b - - 0 1");
 		int expectedScore = (7-1)*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) + PawnEvaluator.HEAVY_PIECE_BEHIND_PASSED_PAWN - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP;
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[1];
 		}
@@ -417,7 +417,7 @@ public class PawnEvaluatorTest {
 		int expectedScore = (7-1)*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore += ((7-4)*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN)) + PawnEvaluator.HEAVY_PIECE_BEHIND_PASSED_PAWN - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore -= PawnEvaluator.DOUBLED_PAWN_HANDICAP;
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP;
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[2];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[2];
 		}
@@ -430,7 +430,7 @@ public class PawnEvaluatorTest {
 		int expectedScore = (7-1)*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore += ((7-4)*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN)) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore -= PawnEvaluator.DOUBLED_PAWN_HANDICAP;
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP;
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[2];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[2];
 		}
@@ -443,7 +443,7 @@ public class PawnEvaluatorTest {
 		int expectedScore = (7-1)*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore += ((7-4)*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN)) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore -= PawnEvaluator.DOUBLED_PAWN_HANDICAP;
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP;
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[2];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[2];
 		}
@@ -454,7 +454,7 @@ public class PawnEvaluatorTest {
 	public void test_encouragePassedPawns_forWhite_ppOnB5_rookSupport() {
 		setUpPosition("8/8/8/1P6/1R6/8/8/8 b - - 0 1");
 		int expectedScore = 4*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) + PawnEvaluator.HEAVY_PIECE_BEHIND_PASSED_PAWN - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP;
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[1];
 		}
@@ -465,7 +465,7 @@ public class PawnEvaluatorTest {
 	public void test_encouragePassedPawns_forWhite_ppOnB5_rookSupportBlocked() {
 		setUpPosition("8/8/8/1P6/1K6/8/8/1R6 b - - 0 1");
 		int expectedScore = 4*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP;
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[1];
 		}
@@ -476,7 +476,7 @@ public class PawnEvaluatorTest {
 	public void test_encouragePassedPawns_forWhite_ppOnB5_rookSupportNotBehindPawn() {
 		setUpPosition("8/8/8/1P5R/8/8/8/8 b - - 0 1");
 		int expectedScore = 4*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP;
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[1];
 		}
@@ -487,7 +487,7 @@ public class PawnEvaluatorTest {
 	public void test_encouragePassedPawns_forWhite_ppOnB5_rookSupportInFront() {
 		setUpPosition("1R6/8/8/1P6/8/8/8/8 b - - 0 1");
 		int expectedScore = 4*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP;
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[1];
 		}
@@ -501,7 +501,7 @@ public class PawnEvaluatorTest {
 		// so pawn is not directly defended by rook behind pawn
 		// two rooks so phase scaling is 2...
 		int expectedScore = 4*2*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP;
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[1];
 		}
@@ -512,7 +512,7 @@ public class PawnEvaluatorTest {
 	public void test_encouragePassedPawns_forBlack_ppOnD2_rookAttack() {
 		setUpPosition("3R4/8/8/8/8/8/3p4/8 b - - 0 1");
 		int expectedScore = (7-1)*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.HEAVY_PIECE_BEHIND_PASSED_PAWN - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP;
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[1];
 		}
@@ -525,7 +525,7 @@ public class PawnEvaluatorTest {
 		int expectedScore = ((7-1)*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN)) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore += ((7-4)*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN)) - PawnEvaluator.HEAVY_PIECE_BEHIND_PASSED_PAWN - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore -= PawnEvaluator.DOUBLED_PAWN_HANDICAP;
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP;
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[2];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[2];
 		}
@@ -538,7 +538,7 @@ public class PawnEvaluatorTest {
 		int expectedScore = (7-1)*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore += ((7-4)*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.MOBILE_PASSED_PAWN)) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore -= PawnEvaluator.DOUBLED_PAWN_HANDICAP;
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP;
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[2];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[2];
 		}
@@ -552,7 +552,7 @@ public class PawnEvaluatorTest {
 		int expectedScore = ((7-1)*3*PawnEvaluator.PASSED_PAWN_BOOST) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore += ((7-4)*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.MOBILE_PASSED_PAWN)) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore -= PawnEvaluator.DOUBLED_PAWN_HANDICAP;
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP;
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[2];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[2];
 		}
@@ -563,7 +563,7 @@ public class PawnEvaluatorTest {
 	public void test_encouragePassedPawns_forWhite_ppOnB5_rookAttack() {
 		setUpPosition("8/8/8/1P6/1r6/8/8/8 b - - 0 1");
 		int expectedScore = 4*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.HEAVY_PIECE_BEHIND_PASSED_PAWN - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP;
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[1];
 		}
@@ -574,7 +574,7 @@ public class PawnEvaluatorTest {
 	public void test_encouragePassedPawns_forWhite_ppOnB5_rookAttackBlocked() {
 		setUpPosition("8/8/8/1P6/1K6/8/8/1r6 b - - 0 1");
 		int expectedScore = 4*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP;
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[1];
 		}
@@ -585,7 +585,7 @@ public class PawnEvaluatorTest {
 	public void test_encouragePassedPawns_forWhite_ppOnB5_rookAttackNotBehindPawn() {
 		setUpPosition("8/8/8/1P5r/8/8/8/8 b - - 0 1");
 		int expectedScore = 4*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP;
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[1];
 		}
@@ -597,7 +597,7 @@ public class PawnEvaluatorTest {
 		setUpPosition("1r6/8/8/1P6/8/8/8/8 b - - 0 1");
 		// Rook blocks the pawn
 		int expectedScore = 4*3*PawnEvaluator.PASSED_PAWN_BOOST - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP;
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[1];
 		}
@@ -612,7 +612,7 @@ public class PawnEvaluatorTest {
 		// two rooks so phase scaling is 2...
 		// Rook blocks the pawn
 		int expectedScore = 4*2*PawnEvaluator.PASSED_PAWN_BOOST - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP;
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[1];
 		}
@@ -680,7 +680,7 @@ public class PawnEvaluatorTest {
 		expectedScore += 5*2*(PawnEvaluator.ROOK_FILE_PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.BACKWARD_PAWN_HANDICAP;
 		expectedScore += PawnEvaluator.CONNECTED_PASSED_PAWN_BOOST*2;
 		// black has no pawns
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP;
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[2];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[2];
 		}
@@ -694,7 +694,7 @@ public class PawnEvaluatorTest {
 		int expectedScore = 5*2*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore += 5*2*(PawnEvaluator.ROOK_FILE_PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		// black has no pawns
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP;
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[2];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[2];
 		}
@@ -708,7 +708,7 @@ public class PawnEvaluatorTest {
 		expectedScore += PawnEvaluator.CONNECTED_PASSED_PAWN_BOOST/2;
 		expectedScore += 5*2*(PawnEvaluator.ROOK_FILE_PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN);
 		// black has no pawns
-		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP;
+		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP[2];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 			expectedScore += SUT.ppImbalanceTable[2];
 		}

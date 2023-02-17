@@ -20,7 +20,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	public static final int DOUBLED_PAWN_HANDICAP = 12;
 	public static final int ISOLATED_PAWN_HANDICAP = 33;
 	public static final int BACKWARD_PAWN_HANDICAP = 12;
-	public static final int NO_PAWNS_HANDICAP = 50;
+	public static final int[] NO_PAWNS_HANDICAP = {0, 50, 75, 100, 200, 300, 500, 500, 500};
 	
 	public static final int PASSED_PAWN_BOOST = 10;
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 8;
@@ -155,7 +155,8 @@ public class PawnEvaluator implements IForEachPieceCallback {
 			bd.forEachPawnOfSide(this, isBlack);
 			pawnEvaluationScore = pawnHandicap + piecewisePawnScoreAccumulator;
 		} else {
-			pawnEvaluationScore -= NO_PAWNS_HANDICAP;
+			int num_enemy_pawns = bd.me.numberOfPieces[isBlack ? Piece.WHITE_PAWN : Piece.BLACK_PAWN];
+			pawnEvaluationScore -= NO_PAWNS_HANDICAP[num_enemy_pawns];
 		}
 		return pawnEvaluationScore;
 	}
