@@ -22,18 +22,12 @@ public class DrawChecker {
 	}
 		
 	public boolean setPositionReached(long posHash, int gamePly) {
-		boolean repetitionPossible = false;
 		// Check for array overflow before reading/writing array
 		if (gamePly > reachedPositions.length - 1) {
 			reachedPositions = LongArrays.grow(reachedPositions, reachedPositions.length+50);
 		}
-		
-		if (isPositionReachedBefore(posHash, gamePly)) {
-			repetitionPossible = true;
-		} else {
-			reachedPositions[gamePly] = posHash;
-		}
-		return repetitionPossible;
+		reachedPositions[gamePly] = posHash;
+		return isPositionReachedBefore(posHash, gamePly);
 	}
 	
 	private boolean isPositionReachedBefore(long posHash, int currentPly) {
