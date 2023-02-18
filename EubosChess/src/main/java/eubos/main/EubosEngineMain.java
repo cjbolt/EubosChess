@@ -246,14 +246,13 @@ public class EubosEngineMain extends AbstractEngine {
 			for (GenericMove nextMove : command.moves) {
 				int move = Move.toMove(nextMove, rootPosition.getTheBoard());
 				rootPosition.performMove(move);
-				lastMoveWasCaptureOrPawnMove = Move.isCapture(move) || Move.isPawnMove(move);
+				
+				if (Move.isCapture(move) || Move.isPawnMove(move)) {
+					// Pawn moves and captures are irreversible so we can clear the draw checker
+					dc.reset(rootPosition.getPlyNumber());
+				}
 			}
 			fen_to_use = rootPosition.getFen();
-
-			if (lastMoveWasCaptureOrPawnMove) {
-				// Pawn moves and captures are irreversible, so if needed, clear the draw checker
-				dc.reset(rootPosition.getPlyNumber());
-			}
 		} else {
 			fen_to_use = uci_fen_string;
 		}
