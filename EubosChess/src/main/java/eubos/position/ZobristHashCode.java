@@ -49,7 +49,7 @@ public class ZobristHashCode implements IForEachPieceCallback {
 	static private final long prnLookupTable[] = new long[LENGTH_TABLE];
 	static {
 		// Set up the pseudo random number lookup table that shall be used
-		Random randGen = new Random();
+		Random randGen = new Random(0xDEAD);
 		for (int index = 0; index < prnLookupTable.length; index++) {
 			prnLookupTable[index] = randGen.nextLong();
 		}
