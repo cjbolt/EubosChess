@@ -70,7 +70,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	public int getPlyNumber() {
 		// Index checker from 0
 		int plyNumber = (moveNumber-1) * 2;
-		plyNumber += (!onMoveIsWhite()) ? 1 : 0;
+		plyNumber += onMoveIsWhite() ? 0 : 1;
 		return plyNumber;
 	}
 
