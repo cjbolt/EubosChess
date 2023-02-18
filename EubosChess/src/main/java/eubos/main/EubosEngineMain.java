@@ -95,7 +95,6 @@ public class EubosEngineMain extends AbstractEngine {
 	// Temporary data structures - created and deleted at each analyse/find move instance
 	PositionManager rootPosition;
 	private AbstractMoveSearcher ms;
-	private Piece.Colour lastOnMove = null;
 	String lastFen = null;
 	private boolean createdHashTable = false;
 	private boolean analysisMode = false;
@@ -168,7 +167,6 @@ public class EubosEngineMain extends AbstractEngine {
 		reply.addOption(new SpinnerOption("Lazy Threshold", PositionEvaluator.lazy_eval_threshold_cp, 0, 1000));
 		logger.fine(String.format("Cores available=%d", numCores));
 		this.getProtocol().send( reply );
-		lastOnMove = null;
 	}
 
 	public void receive(EngineSetOptionCommand command) {
@@ -217,46 +215,23 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	void createPositionFromAnalyseCommand(EngineAnalyzeCommand command) {
-		String fen_to_use = getActualFenStringForPosition(command);
-		rootPosition = new PositionManager(fen_to_use, dc, pawnHash);
-		long hashCode = rootPosition.getHash();
-		Piece.Colour nowOnMove = rootPosition.getOnMove();
-		if (lastOnMove == null || (lastOnMove == nowOnMove && !fen_to_use.equals(lastFen))) {
-			// Update the draw checker with the position following the opponents last move
-			dc.setPositionReached(hashCode, rootPosition.getPlyNumber());
-		} else {
-			/* Don't increment the position reached count, because it will have already been incremented 
-			 * in the previous send move command (when Eubos is analysing both sides positions). */
-			logger.fine("Not incrementing drawchecker reached count for initial position");
-		}
-		lastOnMove = nowOnMove;
-		lastFen = fen_to_use;
-		logger.info(String.format("positionReceived fen=%s hashCode=%d",
-				fen_to_use, hashCode));
-	}
-
-	private String getActualFenStringForPosition(EngineAnalyzeCommand command) {
 		String uci_fen_string = command.board.toString();
-		String fen_to_use = null;
-		boolean lastMoveWasCaptureOrPawnMove = false;
+		rootPosition = new PositionManager(uci_fen_string, dc, pawnHash);
+		// If there is a move history, apply those moves to ensure correct state in draw checker
 		if (!command.moves.isEmpty()) {
-			// This temporary pm is to ensure that the correct position is used to initialise the search 
-			// context of the position evaluator, required when we get a position and move list to apply to it.
-			rootPosition = new PositionManager(uci_fen_string, dc, pawnHash);
 			for (GenericMove nextMove : command.moves) {
 				int move = Move.toMove(nextMove, rootPosition.getTheBoard());
 				rootPosition.performMove(move);
-				
 				if (Move.isCapture(move) || Move.isPawnMove(move)) {
-					// Pawn moves and captures are irreversible so we can clear the draw checker
+					// Pawn moves and captures are irreversible so we can reset the draw checker
 					dc.reset(rootPosition.getPlyNumber());
 				}
 			}
-			fen_to_use = rootPosition.getFen();
-		} else {
-			fen_to_use = uci_fen_string;
 		}
-		return fen_to_use;
+		lastFen = rootPosition.getFen();
+		long hashCode = rootPosition.getHash();
+		logger.info(String.format("positionReceived fen=%s hashCode=%d",
+				lastFen, hashCode));
 	}
 
 	public void receive(EngineStartCalculatingCommand command) {
