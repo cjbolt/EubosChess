@@ -20,13 +20,10 @@ public class ZobristHashCode implements IForEachPieceCallback {
 	private static final int INDEX_BLACK = (NUM_PIECES*NUM_SQUARES);
 	// One entry indicating that the side to move is black
 	private static final int INDEX_SIDE_TO_MOVE = (NUM_COLOURS*NUM_PIECES*NUM_SQUARES);
-	// Four entries for castling rights
-	private static final int INDEX_WHITE_KSC = INDEX_SIDE_TO_MOVE+1;
-	private static final int INDEX_WHITE_QSC = INDEX_WHITE_KSC+1;
-	private static final int INDEX_BLACK_KSC = INDEX_WHITE_QSC+1;
-	private static final int INDEX_BLACK_QSC = INDEX_BLACK_KSC+1;
+	// 16 entries for castling rights
+	private static final int INDEX_COMBINED_CASTLING = INDEX_SIDE_TO_MOVE+1;
     // Right entries for the en passant file, if en passant move is legal
-	private static final int INDEX_ENP_A = INDEX_BLACK_QSC+1;
+	private static final int INDEX_ENP_A = INDEX_COMBINED_CASTLING+16;
 	private static final int INDEX_ENP_B = INDEX_ENP_A+1;
 	private static final int INDEX_ENP_C = INDEX_ENP_B+1;
 	private static final int INDEX_ENP_D = INDEX_ENP_C+1;
@@ -56,6 +53,9 @@ public class ZobristHashCode implements IForEachPieceCallback {
 		for (int index = 0; index < prnLookupTable.length; index++) {
 			prnLookupTable[index] = randGen.nextLong();
 		}
+		// Note: If there is no delta in the castling flags, then an xor with zero will result in no change
+		// to the hash code
+		prnLookupTable[INDEX_COMBINED_CASTLING] = 0;
 	};
 
 	public ZobristHashCode(IPositionAccessors pm, CastlingManager castling) {
@@ -84,7 +84,7 @@ public class ZobristHashCode implements IForEachPieceCallback {
 		pos.getTheBoard().forEachPiece(this);
 		// add castling
 		prevCastlingMask = castling.getFlags();
-		updateCastling(prevCastlingMask);
+		hashCode ^= prnLookupTable[INDEX_COMBINED_CASTLING+prevCastlingMask];
 		// add on move
 		if (!pos.onMoveIsWhite()) {
 			doOnMove();
@@ -207,25 +207,8 @@ public class ZobristHashCode implements IForEachPieceCallback {
 	protected void doCastlingFlags() {
 		int currentCastlingFlags = castling.getFlags();
 		int delta = currentCastlingFlags ^ this.prevCastlingMask;
-		if (delta != 0) {
-			updateCastling(delta);
-		}
+		hashCode ^= prnLookupTable[INDEX_COMBINED_CASTLING+delta];
 		this.prevCastlingMask = currentCastlingFlags;
-	}
-
-	private void updateCastling(int delta) {
-		if ((delta & CastlingManager.WHITE_KINGSIDE)==CastlingManager.WHITE_KINGSIDE) {
-			hashCode ^= prnLookupTable[INDEX_WHITE_KSC];
-		}
-		if ((delta & CastlingManager.WHITE_QUEENSIDE)==CastlingManager.WHITE_QUEENSIDE) {
-			hashCode ^= prnLookupTable[INDEX_WHITE_QSC];
-		}
-		if ((delta & CastlingManager.BLACK_KINGSIDE)==CastlingManager.BLACK_KINGSIDE) {
-			hashCode ^= prnLookupTable[INDEX_BLACK_KSC];
-		}
-		if ((delta & CastlingManager.BLACK_QUEENSIDE)==CastlingManager.BLACK_QUEENSIDE) {
-			hashCode ^= prnLookupTable[INDEX_BLACK_QSC];
-		}
 	}
 
 	protected void doSecondaryMove(int move) {
