@@ -93,7 +93,7 @@ public class EubosEngineMain extends AbstractEngine {
 	ReferenceScore blackRefScore;
 	
 	// Temporary data structures - created and deleted at each analyse/find move instance
-	PositionManager rootPosition;
+	public PositionManager rootPosition;
 	private AbstractMoveSearcher ms;
 	String lastFen = null;
 	private boolean createdHashTable = false;

@@ -39,6 +39,7 @@ public class IterativeMoveSearcherTest {
 		public EubosMock(IterativeMoveSearcherTest test) {
 			super();
 			testObject = test;
+			this.rootPosition = new PositionManager();
 		}
 		
 		@Override

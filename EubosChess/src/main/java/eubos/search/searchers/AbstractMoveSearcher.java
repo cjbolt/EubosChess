@@ -26,7 +26,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 
 	public AbstractMoveSearcher(EubosEngineMain eng, String fen, DrawChecker dc, FixedSizeTranspositionTable hashMap, ReferenceScore refScore, PawnEvalHashTable pawnHash) {
 		super();
-		PositionManager pm = new PositionManager(fen, dc, pawnHash);
+		PositionManager pm = new PositionManager(fen, eng.rootPosition.getHash(), dc, pawnHash);
 		refScore.updateReference(pm); // Setup the reference score that shall be used by any IterativeSearchStopper
 		this.refScore = refScore;				
 		this.eubosEngine = eng;

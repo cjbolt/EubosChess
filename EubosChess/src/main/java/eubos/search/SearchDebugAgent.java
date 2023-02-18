@@ -205,4 +205,16 @@ public class SearchDebugAgent {
 			printOutput(String.format("%sext search cut-off score:%s", indent, Score.toString((short)plyScore)));
 		}		
 	}
+
+	public void printNullMove(int R) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%strying null move reduction %d", indent, R));
+		}
+	}
+	
+	public void printHash(long hash) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%shash=0x%X", indent, hash));
+		}
+	}
 }

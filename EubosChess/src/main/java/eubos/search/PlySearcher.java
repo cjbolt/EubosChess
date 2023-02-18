@@ -701,6 +701,9 @@ public class PlySearcher {
 		int plyScore;
 		int R = 2;
 		if (depth > 6) R = 3;
+		
+		if (SearchDebugAgent.DEBUG_ENABLED) { sda.printNullMove(R);	}
+		
 		currPly++;
 		pm.performNullMove();
 		

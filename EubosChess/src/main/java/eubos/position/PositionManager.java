@@ -27,6 +27,11 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		pe = new PositionEvaluator(this, pawnHash);
 	}
 	
+	public PositionManager( String fenString, long hashCode, DrawChecker dc, PawnEvalHashTable pawnHash) {
+		this(fenString, dc, pawnHash);
+		hash.hashCode = hashCode;
+	}
+	
 	public PositionManager(String fenString) {
 		this(fenString, new DrawChecker(), new PawnEvalHashTable());
 	}
