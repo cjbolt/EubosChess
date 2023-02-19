@@ -9,7 +9,7 @@ import eubos.board.BitBoard;
 import eubos.board.IForEachPieceCallback;
 import eubos.board.Piece;
 
-public class ZobristHashCode implements IForEachPieceCallback {
+public class ZobristHashCode implements IForEachPieceCallback, IZobristUpdate {
 	
 	public long hashCode;
 	
@@ -39,12 +39,6 @@ public class ZobristHashCode implements IForEachPieceCallback {
 	int index = 0;
 	private byte[] prevEnPassantFile;
 	private int prevCastlingMask = 0;
-	
-	private int piece;
-	private int originSquare;
-	private int targetSquare;
-	private int targetPiece;
-	private int promotedPiece;
 		
 	static private final long prnLookupTable[] = new long[LENGTH_TABLE];
 	static {
@@ -119,27 +113,10 @@ public class ZobristHashCode implements IForEachPieceCallback {
 		return prnLookupTable[lookupIndex];
 	}
 	
-	protected long getPrnForRook(int bitOffset, boolean isBlack) {
-		int lookupIndex = bitOffsetToZobristIndex_Lut[bitOffset] + (Piece.ROOK - 1) * NUM_SQUARES;
-		if (isBlack) {
-			lookupIndex += INDEX_BLACK;
-		}		
-		return prnLookupTable[lookupIndex];
-	}
-	
 	// Used to update the Zobrist hash code whenever a position changes due to a move being performed
-	public void update(int move, int capturedPieceSquare, byte enPassantOffset) {
-		// Unpack move
-		piece = Move.getOriginPiece(move);
-		originSquare = Move.getOriginPosition(move);
-		targetSquare = Move.getTargetPosition(move);
-		targetPiece = Move.getTargetPiece(move);
-		promotedPiece = Move.getPromotion(move);
+	public void update(byte enPassantOffset) {
 		// Update
-		doBasicMove();
-		doCapturedPiece(capturedPieceSquare);
 		doEnPassant(enPassantOffset);
-     	doSecondaryMove(move);
 		doCastlingFlags();
 		doOnMove();
 	}
@@ -149,32 +126,6 @@ public class ZobristHashCode implements IForEachPieceCallback {
 		// Update
 		doEnPassant(enPassantOffset);
 		doOnMove();
-	}
-	
-	protected void doBasicMove() {
-		if (promotedPiece == Piece.NONE) {
-			// Basic move only
-			hashCode ^= getPrnForPiece(targetSquare, piece);
-			hashCode ^= getPrnForPiece(originSquare, piece);
-		} else {
-			// Promotion - first set the colour bit flag
-			promotedPiece = Piece.isWhite(piece) ? promotedPiece : Piece.BLACK|promotedPiece;
-			if ((BitBoard.getRank(targetSquare) == IntRank.R1) ||
-				(BitBoard.getRank(targetSquare) == IntRank.R8)) {
-				// is doing a promotion
-				hashCode ^= getPrnForPiece(targetSquare, promotedPiece);
-				hashCode ^= getPrnForPiece(originSquare, piece);
-			} else {
-				// is undoing promotion
-				hashCode ^= getPrnForPiece(targetSquare, piece);
-				hashCode ^= getPrnForPiece(originSquare, promotedPiece);
-			}
-		}
-	}
-
-	protected void doCapturedPiece(int capturedPieceSquare) {
-		if (targetPiece != Piece.NONE)
-			hashCode ^= getPrnForPiece(capturedPieceSquare, targetPiece);
 	}
 
 	private void setTargetFile(byte enPasFile) {
@@ -211,49 +162,28 @@ public class ZobristHashCode implements IForEachPieceCallback {
 		this.prevCastlingMask = currentCastlingFlags;
 	}
 
-	protected void doSecondaryMove(int move) {
-		if (piece == Piece.WHITE_KING) {
-			if (originSquare == BitBoard.e1) {
-				if (targetSquare == BitBoard.g1) {
-					hashCode ^= getPrnForRook(BitBoard.f1, false); // to
-					hashCode ^= getPrnForRook(BitBoard.h1, false); // from
-				} else if (targetSquare == BitBoard.c1) {
-					hashCode ^= getPrnForRook(BitBoard.d1, false); // to
-					hashCode ^= getPrnForRook(BitBoard.a1, false); // from
-				}
-			} else if (originSquare == BitBoard.g1) {
-				if (targetSquare == BitBoard.e1) {
-					hashCode ^= getPrnForRook(BitBoard.h1, false); // to
-					hashCode ^= getPrnForRook(BitBoard.f1, false); // from
-				}
-			} else if (originSquare == BitBoard.c1) {
-				if (targetSquare == BitBoard.e1) {
-					hashCode ^= getPrnForRook(BitBoard.a1, false); // to
-					hashCode ^= getPrnForRook(BitBoard.d1, false); // from
-				}
-			}
-		} else if (piece == Piece.BLACK_KING) {
-			if (originSquare == BitBoard.e8) {
-				if (targetSquare == BitBoard.g8) {
-					hashCode ^= getPrnForRook(BitBoard.f8, true); // to
-					hashCode ^= getPrnForRook(BitBoard.h8, true); // from
-				} else if (targetSquare == BitBoard.c8) {
-					hashCode ^= getPrnForRook(BitBoard.d8, true); // to
-					hashCode ^= getPrnForRook(BitBoard.a8, true); // from
-				} 
-			} else if (originSquare == BitBoard.g8) {
-				if (targetSquare == BitBoard.e8) {
-					hashCode ^= getPrnForRook(BitBoard.h8, true); // to
-					hashCode ^= getPrnForRook(BitBoard.f8, true); // from
-				}
-			} else if (originSquare == BitBoard.c8) {
-				if (targetSquare == BitBoard.e8) {
-					hashCode ^= getPrnForRook(BitBoard.a8, true); // to
-					hashCode ^= getPrnForRook(BitBoard.d8, true); // from
-				}
-			}
+	@Override
+	public void doBasicMove(int targetSquare, int originSquare, int piece) {
+		hashCode ^= getPrnForPiece(targetSquare, piece);
+		hashCode ^= getPrnForPiece(originSquare, piece);
+	}
+
+	@Override
+	public void doPromotionMove(int targetSquare, int originSquare, int piece, int promotedPiece) {
+		if ((BitBoard.getRank(targetSquare) == IntRank.R1) ||
+			(BitBoard.getRank(targetSquare) == IntRank.R8)) {
+			// is doing a promotion
+			hashCode ^= getPrnForPiece(targetSquare, promotedPiece);
+			hashCode ^= getPrnForPiece(originSquare, piece);
 		} else {
-			// cannot be a castling move
+			// is undoing promotion
+			hashCode ^= getPrnForPiece(targetSquare, piece);
+			hashCode ^= getPrnForPiece(originSquare, promotedPiece);
 		}
+	}
+	
+	@Override
+	public void doCapturedPiece(int capturedPieceSquare, int targetPiece) {
+		hashCode ^= getPrnForPiece(capturedPieceSquare, targetPiece);
 	}
 }

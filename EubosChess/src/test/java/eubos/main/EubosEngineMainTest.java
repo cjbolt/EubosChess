@@ -208,8 +208,8 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_KQk_mated_in_6_NEW() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/6K1/8/3k4/1Q6/8/8/8 b - - 1 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"11"+CMD_TERMINATOR, BEST_PREFIX+"d5c6"+CMD_TERMINATOR));
-		performTestExpectMate(5000, -7);
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"d5c6"+CMD_TERMINATOR));
+		performTestExpectMate(5000, -6);
 	} 
 	
 	@Test

@@ -23,6 +23,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		moveTracker = new MoveTracker();
 		new fenParser( this, fenString );
 		hash = new ZobristHashCode(this, castling);
+		theBoard.setHash(hash);
 		this.dc = dc;
 		pe = new PositionEvaluator(this, pawnHash);
 	}
@@ -98,32 +99,35 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public boolean moveLeadsToThreefold(int move) {
 		boolean isDrawing = false;
-		int captureBitOffset = BitBoard.INVALID;
-		int pieceToMove = Move.getOriginPiece(move);
-		int targetBitOffset = Move.getTargetPosition(move);
-		int targetPiece = Move.getTargetPiece(move);
 		byte enPassantOffset = BitBoard.INVALID;
-		
-		// Calculate targetSquare and en passant file, needed for hash code update
-		if (targetPiece != Piece.NONE) {
-			// Handle captures
-			if (Move.isEnPassantCapture(move)) {
-				captureBitOffset = theBoard.generateCaptureBitOffsetForEnPassant(pieceToMove, targetBitOffset);
-				enPassantOffset = BitBoard.getFile(captureBitOffset);
-			} else {
-				captureBitOffset = targetBitOffset;
-			}
-		}	
+//		int captureBitOffset = BitBoard.INVALID;
+//		int pieceToMove = Move.getOriginPiece(move);
+//		int targetBitOffset = Move.getTargetPosition(move);
+//		int targetPiece = Move.getTargetPiece(move);
+//		byte enPassantOffset = BitBoard.INVALID;
+//		
+//		// Calculate targetSquare and en passant file, needed for hash code update
+//		if (targetPiece != Piece.NONE) {
+//			// Handle captures
+//			if (Move.isEnPassantCapture(move)) {
+//				captureBitOffset = theBoard.generateCaptureBitOffsetForEnPassant(pieceToMove, targetBitOffset);
+//				enPassantOffset = BitBoard.getFile(captureBitOffset);
+//			} else {
+//				captureBitOffset = targetBitOffset;
+//			}
+//		}
 		
 		// Generate hash code
-		hash.update(move, captureBitOffset, enPassantOffset);
+		//hash.update(enPassantOffset);
+		
+		this.performMove(move);
 
 		// Update the draw checker - do we need to change ply number?
 		isDrawing = dc.setPositionReached(getHash(), getPlyNumber());
 		
-		// Undo the change
-		int reversedMove = Move.reverse(move);
-		hash.update(reversedMove, captureBitOffset, enPassantOffset);
+//		// Undo the change
+		this.unperformMove();
+		//hash.update(enPassantOffset);
 		
 		return isDrawing;
 	}
@@ -144,14 +148,14 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Preserve state
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		long pp = theBoard.getPassedPawns();
-		int captureBitOffset = theBoard.doMove(move);
+		theBoard.doMove(move);
 		moveTracker.push(pp, move, castling.getFlags(), prevEnPassantTargetSq);
 		
 		// update state
 		castling.updateFlags(move);
 		
 		if (computeHash) {
-			hash.update(move, captureBitOffset, (byte)theBoard.getEnPassantTargetSq());
+			hash.update((byte)theBoard.getEnPassantTargetSq());
 
 			// Update the draw checker
 			repetitionPossible = dc.setPositionReached(getHash(), getPlyNumber());			
@@ -184,7 +188,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int enPasTargetSq = moveTracker.getEnPassant();
 		int reversedMove = Move.reverse(move);
 		
-		int captureBitOffset = theBoard.undoMove(reversedMove);
+		theBoard.undoMove(reversedMove);
 		
 		// Restore castling
 		castling.setFlags(castlingFlags);
@@ -196,7 +200,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		
 		if (computeHash) {
-			hash.update(reversedMove, captureBitOffset, (byte)enPasTargetSq);
+			hash.update((byte)enPasTargetSq);
 			
 			// Clear draw indicator flag
 			repetitionPossible = false;

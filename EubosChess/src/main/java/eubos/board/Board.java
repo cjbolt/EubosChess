@@ -8,6 +8,7 @@ import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.CastlingManager;
 import eubos.position.IAddMoves;
+import eubos.position.IZobristUpdate;
 import eubos.position.Move;
 import eubos.position.Position;
 import eubos.score.PiecewiseEvaluation;
@@ -18,6 +19,8 @@ import com.fluxchess.jcpi.models.IntRank;
 
 public class Board {
 
+	private IZobristUpdate hashUpdater;
+	
 	private long allPieces = 0x0;
 	private long whitePieces = 0x0;
 	private long blackPieces = 0x0;
@@ -208,6 +211,7 @@ public class Board {
 			pickUpPieceAtSquare(1L << captureBitOffset, captureBitOffset, targetPiece);
 			// Incrementally update opponent material after capture, at the correct capturePosition
 			me.updateForCapture(targetPiece, captureBitOffset);
+			hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
 		} else {
 			// Check whether the move sets the En Passant target square
 			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
@@ -235,12 +239,14 @@ public class Board {
 			pieceLists.updatePiece(pieceToMove, fullPromotedPiece, originBitOffset, targetBitOffset);
 			me.updateWhenDoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
 			passedPawns &= ~initialSquareMask;
+			hashUpdater.doPromotionMove(targetBitOffset, originBitOffset, pieceToMove, fullPromotedPiece);
 		} else {
 			// Piece type doesn't change across boards, update piece-specific bitboard, pieceList and PST score
 			int pieceType = Piece.PIECE_NO_COLOUR_MASK & pieceToMove;
 			pieces[pieceType] ^= positionsMask;
 			pieceLists.updatePiece(pieceToMove, originBitOffset, targetBitOffset);
 			me.updateRegular(pieceType, pieceToMove, originBitOffset, targetBitOffset);
+			hashUpdater.doBasicMove(targetBitOffset, originBitOffset, pieceToMove);
 			
 			// Iterative update of passed pawns bitboard
 			// Note: this needs to be done after the piece bit boards are updated
@@ -344,12 +350,14 @@ public class Board {
 			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
 			pieceLists.updatePiece(fullPromotedPiece, originPiece, originBitOffset, targetBitOffset);
 			me.updateWhenUndoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
+			hashUpdater.doPromotionMove(targetBitOffset, originBitOffset, originPiece, fullPromotedPiece);
 		} else {
 			// Piece type doesn't change across boards, update piece-specific bitboard, pieceLists and PST score
 			int pieceType = Piece.PIECE_NO_COLOUR_MASK & originPiece;
 			pieces[pieceType] ^= positionsMask;
 			pieceLists.updatePiece(originPiece, originBitOffset, targetBitOffset);
 			me.updateRegular(pieceType, originPiece, originBitOffset, targetBitOffset);
+			hashUpdater.doBasicMove(targetBitOffset, originBitOffset, originPiece);
 		}
 		// Switch colour bitboard
 		if (isWhite) {
@@ -369,6 +377,7 @@ public class Board {
 			setPieceAtSquare(1L << capturedPieceSquare, capturedPieceSquare, targetPiece);
 			// Replace captured piece in incremental material update, at the correct capture square
 			me.updateForReplacedCapture(targetPiece, capturedPieceSquare);
+			hashUpdater.doCapturedPiece(capturedPieceSquare, targetPiece);
 		}
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -833,24 +842,28 @@ public class Board {
 			allPieces ^= (wksc_mask);
 			pieceLists.updatePiece(Piece.WHITE_ROOK, BitBoard.h1, BitBoard.f1);
 			me.updateRegular(Piece.ROOK, Piece.WHITE_ROOK, BitBoard.h1, BitBoard.f1);
+			hashUpdater.doBasicMove(BitBoard.f1, BitBoard.h1, Piece.WHITE_ROOK);
 		} else if (Move.areEqual(move, CastlingManager.wqsc)) {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
 			pieceLists.updatePiece(Piece.WHITE_ROOK, BitBoard.a1, BitBoard.d1);
 			me.updateRegular(Piece.ROOK, Piece.WHITE_ROOK, BitBoard.a1, BitBoard.d1);
+			hashUpdater.doBasicMove(BitBoard.d1, BitBoard.a1, Piece.WHITE_ROOK);
 		} else if (Move.areEqual(move, CastlingManager.bksc)) {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
 			pieceLists.updatePiece(Piece.BLACK_ROOK, BitBoard.h8, BitBoard.f8);
 			me.updateRegular(Piece.ROOK, Piece.BLACK_ROOK, BitBoard.h8, BitBoard.f8);
+			hashUpdater.doBasicMove(BitBoard.f8, BitBoard.h8, Piece.BLACK_ROOK);
 		} else if (Move.areEqual(move, CastlingManager.bqsc)) {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
 			allPieces ^= (bqsc_mask);
 			pieceLists.updatePiece(Piece.BLACK_ROOK, BitBoard.a8, BitBoard.d8);
 			me.updateRegular(Piece.ROOK, Piece.BLACK_ROOK, BitBoard.a8, BitBoard.d8);
+			hashUpdater.doBasicMove(BitBoard.d8, BitBoard.a8, Piece.BLACK_ROOK);
 		}
 	}
 	
@@ -861,24 +874,28 @@ public class Board {
 			allPieces ^= (wksc_mask);
 			pieceLists.updatePiece(Piece.WHITE_ROOK, BitBoard.f1, BitBoard.h1);
 			me.updateRegular(Piece.ROOK, Piece.WHITE_ROOK, BitBoard.f1, BitBoard.h1);
+			hashUpdater.doBasicMove(BitBoard.h1, BitBoard.f1, Piece.WHITE_ROOK);
 		} else if (Move.areEqual(move, CastlingManager.undo_wqsc)) {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
 			pieceLists.updatePiece(Piece.WHITE_ROOK, BitBoard.d1, BitBoard.a1);
 			me.updateRegular(Piece.ROOK, Piece.WHITE_ROOK, BitBoard.d1, BitBoard.a1);
+			hashUpdater.doBasicMove(BitBoard.a1, BitBoard.d1, Piece.WHITE_ROOK);
 		} else if (Move.areEqual(move, CastlingManager.undo_bksc)) {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
 			pieceLists.updatePiece(Piece.BLACK_ROOK, BitBoard.f8, BitBoard.h8);
 			me.updateRegular(Piece.ROOK, Piece.BLACK_ROOK, BitBoard.f8, BitBoard.h8);
+			hashUpdater.doBasicMove(BitBoard.h8, BitBoard.f8, Piece.BLACK_ROOK);
 		} else if (Move.areEqual(move, CastlingManager.undo_bqsc)) {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
 			allPieces ^= (bqsc_mask);
 			pieceLists.updatePiece(Piece.BLACK_ROOK, BitBoard.d8, BitBoard.a8);
 			me.updateRegular(Piece.ROOK, Piece.BLACK_ROOK, BitBoard.d8, BitBoard.a8);
+			hashUpdater.doBasicMove(BitBoard.a8, BitBoard.d8, Piece.BLACK_ROOK);
 		}
 	}
 	
@@ -1493,5 +1510,9 @@ public class Board {
 			advanced_passer = (passedPawns & blackPieces & advanced_black) != 0L;
 		}
 		return advanced_passer;
+	}
+	
+	public void setHash(IZobristUpdate hash) {
+		this.hashUpdater = hash;
 	}
 }
