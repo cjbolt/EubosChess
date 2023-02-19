@@ -99,35 +99,36 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public boolean moveLeadsToThreefold(int move) {
 		boolean isDrawing = false;
-		byte enPassantOffset = BitBoard.INVALID;
-//		int captureBitOffset = BitBoard.INVALID;
-//		int pieceToMove = Move.getOriginPiece(move);
-//		int targetBitOffset = Move.getTargetPosition(move);
-//		int targetPiece = Move.getTargetPiece(move);
-//		byte enPassantOffset = BitBoard.INVALID;
-//		
-//		// Calculate targetSquare and en passant file, needed for hash code update
-//		if (targetPiece != Piece.NONE) {
-//			// Handle captures
-//			if (Move.isEnPassantCapture(move)) {
-//				captureBitOffset = theBoard.generateCaptureBitOffsetForEnPassant(pieceToMove, targetBitOffset);
-//				enPassantOffset = BitBoard.getFile(captureBitOffset);
-//			} else {
-//				captureBitOffset = targetBitOffset;
-//			}
-//		}
 		
 		// Generate hash code
-		//hash.update(enPassantOffset);
+		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
+		long pp = theBoard.getPassedPawns();
+		int old_flags = castling.getFlags();
+		theBoard.doMove(move);
+		castling.updateFlags(move);
+		byte enPassantTargetBitOffs = (byte)theBoard.getEnPassantTargetSq();
+		hash.update(enPassantTargetBitOffs);
 		
-		this.performMove(move);
-
-		// Update the draw checker - do we need to change ply number?
+		// Update onMove
+		onMove = Colour.getOpposite(onMove);
+		if (Colour.isWhite(onMove)) {
+			moveNumber++;
+		}
+		// Update the draw checker
 		isDrawing = dc.setPositionReached(getHash(), getPlyNumber());
 		
-//		// Undo the change
-		this.unperformMove();
-		//hash.update(enPassantOffset);
+		theBoard.undoMove(Move.reverse(move));
+		// Restore state
+		castling.setFlags(old_flags);
+		theBoard.setPassedPawns(pp);
+		theBoard.setEnPassantTargetSq(prevEnPassantTargetSq);
+		hash.update(enPassantTargetBitOffs);
+		
+		// Update onMove flag
+		onMove = Piece.Colour.getOpposite(onMove);
+		if (Colour.isBlack(onMove)) {
+			moveNumber--;
+		}
 		
 		return isDrawing;
 	}
