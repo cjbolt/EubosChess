@@ -102,9 +102,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		
 		// Generate hash code
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
-		long pp = theBoard.getPassedPawns();
 		int old_flags = castling.getFlags();
-		theBoard.doMove(move);
+		theBoard.doMoveForThreefoldCheck(move);
 		castling.updateFlags(move);
 		byte enPassantTargetBitOffs = (byte)theBoard.getEnPassantTargetSq();
 		hash.update(enPassantTargetBitOffs);
@@ -117,10 +116,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Update the draw checker
 		isDrawing = dc.setPositionReached(getHash(), getPlyNumber());
 		
-		theBoard.undoMove(Move.reverse(move));
+		theBoard.undoMoveThreefoldCheck(Move.reverse(move));
 		// Restore state
 		castling.setFlags(old_flags);
-		theBoard.setPassedPawns(pp);
 		theBoard.setEnPassantTargetSq(prevEnPassantTargetSq);
 		hash.update(enPassantTargetBitOffs);
 		

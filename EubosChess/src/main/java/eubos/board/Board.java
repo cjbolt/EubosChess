@@ -315,6 +315,44 @@ public class Board {
 		return captureBitOffset;
 	}
 	
+	public void doMoveForThreefoldCheck(int move) {
+		int captureBitOffset = BitBoard.INVALID;
+		int pieceToMove = Move.getOriginPiece(move);
+		int originBitOffset = Move.getOriginPosition(move);
+		int targetBitOffset = Move.getTargetPosition(move);
+		int targetPiece = Move.getTargetPiece(move);
+		int promotedPiece = Move.getPromotion(move);
+		
+		// Initialise En Passant target square
+		setEnPassantTargetSq(BitBoard.INVALID);
+		
+		if (targetPiece != Piece.NONE) {
+			// Handle captures
+			if (Move.isEnPassantCapture(move)) {
+				// Handle en passant captures, don't need to do other checks in this case
+				captureBitOffset = generateCaptureBitOffsetForEnPassant(pieceToMove, targetBitOffset);
+			} else {
+				captureBitOffset = targetBitOffset;
+			}
+			hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
+		} else {
+			// Check whether the move sets the En Passant target square
+			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
+				// Handle castling secondary rook moves...
+				if (Piece.isKing(pieceToMove)) {
+					performSecondaryCastlingMove(move);
+				}
+			}
+		}
+		
+		if (promotedPiece != Piece.NONE) {
+			int fullPromotedPiece = Piece.isWhite(pieceToMove) ? promotedPiece : promotedPiece|Piece.BLACK;
+			hashUpdater.doPromotionMove(targetBitOffset, originBitOffset, pieceToMove, fullPromotedPiece);
+		} else {
+			hashUpdater.doBasicMove(targetBitOffset, originBitOffset, pieceToMove);
+		}
+	}
+	
 	public int undoMove(int moveToUndo) {
 		isAttacksMaskValid = false;
 		
@@ -394,6 +432,35 @@ public class Board {
 		}
 		
 		return capturedPieceSquare;
+	}
+	
+	public void undoMoveThreefoldCheck(int moveToUndo) {
+		int capturedPieceSquare = BitBoard.INVALID;
+		int originPiece = Move.getOriginPiece(moveToUndo);
+		int originBitOffset = Move.getOriginPosition(moveToUndo);
+		int targetBitOffset = Move.getTargetPosition(moveToUndo);
+		int targetPiece = Move.getTargetPiece(moveToUndo);
+		int promotedPiece = Move.getPromotion(moveToUndo);
+		boolean isCapture = targetPiece != Piece.NONE;
+		
+		// Handle reversal of any castling secondary rook moves on the board
+		if (Piece.isKing(originPiece)) {
+			unperformSecondaryCastlingMove(moveToUndo);
+		}
+		// Switch piece bitboard
+		if (promotedPiece != Piece.NONE) {
+			int fullPromotedPiece = Piece.isWhite(originPiece) ? promotedPiece : promotedPiece|Piece.BLACK;
+			hashUpdater.doPromotionMove(targetBitOffset, originBitOffset, originPiece, fullPromotedPiece);
+		} else {
+			hashUpdater.doBasicMove(targetBitOffset, originBitOffset, originPiece);
+		}
+		// Undo any capture that had been previously performed.
+		if (isCapture) {
+			// Origin square because the move has been reversed and origin square is the original target square
+			capturedPieceSquare = Move.isEnPassantCapture(moveToUndo) ? 
+					generateCaptureBitOffsetForEnPassant(originPiece, originBitOffset) : originBitOffset;
+			hashUpdater.doCapturedPiece(capturedPieceSquare, targetPiece);
+		}
 	}
 	
 	public int generateCaptureBitOffsetForEnPassant(int pieceToMove, int targetBitOffset) {
