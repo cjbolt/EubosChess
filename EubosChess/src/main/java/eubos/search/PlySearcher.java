@@ -593,48 +593,45 @@ public class PlySearcher {
 			int type = Transposition.getType(trans);
 			state[currPly].isCutOff = false;
 			override_trans_move = checkForRepetitionDueToPositionInSearchTree(Transposition.getBestMove(trans));
+			boolean check_for_refutation = false;
 			
-			if (!override_trans_move || (override_trans_move && type != Score.exact)) {
-				boolean check_for_refutation = false;
-				
-				// If the hashed data is now drawing, due to the position in the search tree, score it accordingly, but still check
-				// if it is good enough for a refutation.
-				state[currPly].hashScore = !override_trans_move ? convertMateScoreForPositionInSearchTree(Transposition.getScore(trans)) : 0;
-				switch(type) {
-				case Score.exact:
-					if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
+			// If the hash move is drawing due to the position in the search tree, score accordingly, but still check
+			// if it is good enough for a refutation.
+			state[currPly].hashScore = override_trans_move ? 0 : convertMateScoreForPositionInSearchTree(Transposition.getScore(trans));
+			switch(type) {
+			case Score.exact:
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
+				state[currPly].isCutOff = !override_trans_move;
+				break;
+			case Score.upperBound:
+				state[currPly].beta = Math.min(state[currPly].beta, state[currPly].hashScore);
+				check_for_refutation = true;
+				break;
+			case Score.lowerBound:
+				state[currPly].alpha = Math.max(state[currPly].alpha, state[currPly].hashScore);
+				state[currPly].alphaOriginal = state[currPly].alpha;
+				check_for_refutation = true;
+				break;
+			case Score.typeUnknown:
+				break;
+			default:
+				if (EubosEngineMain.ENABLE_ASSERTS) assert false;
+				break;
+			}
+			
+			if (check_for_refutation) {
+				// Determine if good enough for a refutation...
+				if (state[currPly].alpha >= state[currPly].beta) {
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsRefutation(pos.getHash(), trans);
+					killers.addMove(currPly, Transposition.getBestMove(trans));
 					state[currPly].isCutOff = true;
-					break;
-				case Score.upperBound:
-					state[currPly].beta = Math.min(state[currPly].beta, state[currPly].hashScore);
-					check_for_refutation = true;
-					break;
-				case Score.lowerBound:
-					state[currPly].alpha = Math.max(state[currPly].alpha, state[currPly].hashScore);
-					state[currPly].alphaOriginal = state[currPly].alpha;
-					check_for_refutation = true;
-					break;
-				case Score.typeUnknown:
-					break;
-				default:
-					if (EubosEngineMain.ENABLE_ASSERTS) assert false;
-					break;
 				}
-				
-				if (check_for_refutation) {
-					// Determine if good enough for a refutation...
-					if (state[currPly].alpha >= state[currPly].beta) {
-						if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsRefutation(pos.getHash(), trans);
-						killers.addMove(currPly, Transposition.getBestMove(trans));
-						state[currPly].isCutOff = true;
-					}
-				}
-				if (state[currPly].isCutOff) {
-					// Refutation or exact score already known to require search depth, cut off the Search
-					pc.set(currPly, Transposition.getBestMove(trans));
-				    if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
-				    if (SearchDebugAgent.DEBUG_ENABLED) sda.printCutOffWithScore(state[currPly].hashScore);
-				}
+			}
+			if (state[currPly].isCutOff) {
+				// Refutation or exact score already known to required search depth, cut off the Search
+				pc.set(currPly, Transposition.getBestMove(trans));
+			    if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
+			    if (SearchDebugAgent.DEBUG_ENABLED) sda.printCutOffWithScore(state[currPly].hashScore);
 			}
 		}
 		// Transposition may still be useful to seed the move list, if not drawing.
