@@ -67,7 +67,7 @@ public class PawnEvaluatorTest {
 		// White pawn
 		expectedScore -= (3*3*(0)) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 		}
 		assertEquals(expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -85,7 +85,7 @@ public class PawnEvaluatorTest {
 		// White pawn
 		expectedScore -= -PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[2];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[2];
 		}
 		assertEquals(expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -105,7 +105,7 @@ public class PawnEvaluatorTest {
 		// white
 		expectedScore += PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[2];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[2];
 		}
 		assertEquals(expectedScore, score);
 	}
@@ -124,7 +124,7 @@ public class PawnEvaluatorTest {
 		expectedScore -= -PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore -= -PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 		}
 		assertEquals(expectedScore, score);
 	}
@@ -141,7 +141,7 @@ public class PawnEvaluatorTest {
 		// white
 		expectedScore += PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[2];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[2];
 		}
 		assertEquals(expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -211,7 +211,7 @@ public class PawnEvaluatorTest {
 			setUpPosition("8/8/k7/6K1/8/4p3/8/8 w - - 0 1");
 			int expectedScore = -717;
 			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-				expectedScore -= SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+				expectedScore -= PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 			}
 			assertEquals(expectedScore /* passed pawn on second rank, can't be caught */, SUT.evaluatePawnStructure(attacks));
 		}
@@ -224,7 +224,7 @@ public class PawnEvaluatorTest {
 			System.out.println(SUT.evaluatePawnStructure(attacks));
 			int expectedScore = -17;
 			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-				expectedScore -= SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+				expectedScore -= PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 			}
 			assertEquals(expectedScore /* passed pawn on second rank, can be caught */, SUT.evaluatePawnStructure(attacks));
 		}
@@ -236,7 +236,7 @@ public class PawnEvaluatorTest {
 			setUpPosition("8/8/k7/8/8/4p1K1/8/8 w - - 0 1");
 			int expectedScore = -17;
 			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-				expectedScore -= SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+				expectedScore -= PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 			}
 			assertEquals(expectedScore /* passed pawn on second rank, can be caught */, SUT.evaluatePawnStructure(attacks));
 		}
@@ -248,7 +248,7 @@ public class PawnEvaluatorTest {
 			setUpPosition("8/8/8/8/7K/4p3/5k2/8 w - - 0 1");
 			int expectedScore = -717;
 			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-				expectedScore -= SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+				expectedScore -= PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 			}
 			assertEquals(expectedScore /* own king can block enemy king */, SUT.evaluatePawnStructure(attacks));
 		}
@@ -262,7 +262,7 @@ public class PawnEvaluatorTest {
 			   because it is blocked by the square that the pawn is attacking, at f2. */
 			int expectedScore = -317;
 			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-				expectedScore -= SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+				expectedScore -= PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 			}
 			assertEquals(expectedScore /* probably unstoppable passer */, SUT.evaluatePawnStructure(attacks));
 		}
@@ -274,7 +274,7 @@ public class PawnEvaluatorTest {
 			setUpPosition("8/8/8/8/8/2k1p3/6K1/8 w - - 44 1");
 			int expectedScore = -317;
 			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-				expectedScore -= SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+				expectedScore -= PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 			}
 			assertEquals(expectedScore /* probably unstoppable passer */, SUT.evaluatePawnStructure(attacks));
 		}
@@ -286,7 +286,7 @@ public class PawnEvaluatorTest {
 			setUpPosition("8/8/8/8/8/1k2p3/6K1/8 b - - 44 1");
 			int expectedScore = 317;
 			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-				expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+				expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 			}
 			assertEquals(expectedScore /* passed pawn */, SUT.evaluatePawnStructure(attacks));
 		}
@@ -298,7 +298,7 @@ public class PawnEvaluatorTest {
 			setUpPosition("8/8/8/8/8/2k1p3/8/5K2 w - - 44 1");
 			int expectedScore = -17;
 			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-				expectedScore -= SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+				expectedScore -= PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 			}
 			assertEquals(expectedScore /* passed pawn */, SUT.evaluatePawnStructure(attacks));
 		}
@@ -310,7 +310,7 @@ public class PawnEvaluatorTest {
 			setUpPosition("8/8/8/8/8/1k2p3/6K1/8 w - - 44 1");
 			int expectedScore = -17;
 			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-				expectedScore -= SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+				expectedScore -= PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 			}
 			assertEquals(expectedScore /* passed pawn */, SUT.evaluatePawnStructure(attacks));
 		}
@@ -322,7 +322,7 @@ public class PawnEvaluatorTest {
 			setUpPosition("8/8/4P3/8/6k1/K7/8/8 b - - 0 1 ");
 			int expectedScore = -717;
 			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-				expectedScore -= SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+				expectedScore -= PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 			}
 			assertEquals(expectedScore /* passed pawn on second rank, can't be caught */, SUT.evaluatePawnStructure(attacks));
 		}
@@ -335,7 +335,7 @@ public class PawnEvaluatorTest {
 			System.out.println(SUT.evaluatePawnStructure(attacks));
 			int expectedScore = -17;
 			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-				expectedScore -= SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+				expectedScore -= PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 			}
 			assertEquals(expectedScore /* passed pawn on second rank, can be caught */, SUT.evaluatePawnStructure(attacks));
 		}
@@ -347,7 +347,7 @@ public class PawnEvaluatorTest {
 			setUpPosition("8/8/4P1k1/8/8/K7/8/8 b - - 0 1 ");
 			int expectedScore = -17;
 			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-				expectedScore -= SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+				expectedScore -= PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 			}
 			assertEquals(expectedScore /* passed pawn on second rank, can be caught */, SUT.evaluatePawnStructure(attacks));
 		}
@@ -359,7 +359,7 @@ public class PawnEvaluatorTest {
 			setUpPosition("8/5K2/4P3/7k/8/8/8/8 b - - 0 1 ");
 			int expectedScore = -717;
 			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-				expectedScore -= SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+				expectedScore -= PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 			}
 			assertEquals(expectedScore /* own king can block enemy king */, SUT.evaluatePawnStructure(attacks));
 		}
@@ -381,7 +381,7 @@ public class PawnEvaluatorTest {
 		expectedScore += -(1*3*(PawnEvaluator.ROOK_FILE_PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) + -PawnEvaluator.ISOLATED_PAWN_HANDICAP); // white has an h file passed pawn
 		expectedScore += -PawnEvaluator.NO_PAWNS_HANDICAP_LUT[1]; // black has no pawns
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore -= SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+			expectedScore -= PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 		}
 		assertEquals(expectedScore, score);
 	}
@@ -395,7 +395,7 @@ public class PawnEvaluatorTest {
 		expectedScore += (1*3*(PawnEvaluator.ROOK_FILE_PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) + -PawnEvaluator.ISOLATED_PAWN_HANDICAP); // black has an h file passed pawn
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[1]; // white has no pawns
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 		}
 		assertEquals(expectedScore, score);
 	}
@@ -406,7 +406,7 @@ public class PawnEvaluatorTest {
 		int expectedScore = (7-1)*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) + PawnEvaluator.HEAVY_PIECE_BEHIND_PASSED_PAWN - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 		}
 		assertEquals(expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -419,7 +419,7 @@ public class PawnEvaluatorTest {
 		expectedScore -= PawnEvaluator.DOUBLED_PAWN_HANDICAP;
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[2];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[2];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[2];
 		}
 		assertEquals(expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -432,7 +432,7 @@ public class PawnEvaluatorTest {
 		expectedScore -= PawnEvaluator.DOUBLED_PAWN_HANDICAP;
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[2];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[2];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[2];
 		}
 		assertEquals(expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -445,7 +445,7 @@ public class PawnEvaluatorTest {
 		expectedScore -= PawnEvaluator.DOUBLED_PAWN_HANDICAP;
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[2];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[2];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[2];
 		}
 		assertEquals(expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -456,7 +456,7 @@ public class PawnEvaluatorTest {
 		int expectedScore = 4*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) + PawnEvaluator.HEAVY_PIECE_BEHIND_PASSED_PAWN - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 		}
 		assertEquals(-expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -467,7 +467,7 @@ public class PawnEvaluatorTest {
 		int expectedScore = 4*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 		}
 		assertEquals(-expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -478,7 +478,7 @@ public class PawnEvaluatorTest {
 		int expectedScore = 4*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 		}
 		assertEquals(-expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -489,7 +489,7 @@ public class PawnEvaluatorTest {
 		int expectedScore = 4*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 		}
 		assertEquals(-expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -503,7 +503,7 @@ public class PawnEvaluatorTest {
 		int expectedScore = 4*2*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 		}
 		assertEquals(-expectedScore, SUT.evaluatePawnStructure(attacks));
 	}	
@@ -514,7 +514,7 @@ public class PawnEvaluatorTest {
 		int expectedScore = (7-1)*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.HEAVY_PIECE_BEHIND_PASSED_PAWN - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 		}
 		assertEquals(expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -527,7 +527,7 @@ public class PawnEvaluatorTest {
 		expectedScore -= PawnEvaluator.DOUBLED_PAWN_HANDICAP;
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[2];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[2];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[2];
 		}
 		assertEquals(expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -540,7 +540,7 @@ public class PawnEvaluatorTest {
 		expectedScore -= PawnEvaluator.DOUBLED_PAWN_HANDICAP;
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[2];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[2];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[2];
 		}
 		assertEquals(expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -554,7 +554,7 @@ public class PawnEvaluatorTest {
 		expectedScore -= PawnEvaluator.DOUBLED_PAWN_HANDICAP;
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[2];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[2];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[2];
 		}
 		assertEquals(expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -565,7 +565,7 @@ public class PawnEvaluatorTest {
 		int expectedScore = 4*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.HEAVY_PIECE_BEHIND_PASSED_PAWN - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 		}
 		assertEquals(-expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -576,7 +576,7 @@ public class PawnEvaluatorTest {
 		int expectedScore = 4*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 		}
 		assertEquals(-expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -587,7 +587,7 @@ public class PawnEvaluatorTest {
 		int expectedScore = 4*3*(PawnEvaluator.PASSED_PAWN_BOOST+PawnEvaluator.SAFE_MOBILE_PASSED_PAWN) - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 		}
 		assertEquals(-expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -599,7 +599,7 @@ public class PawnEvaluatorTest {
 		int expectedScore = 4*3*PawnEvaluator.PASSED_PAWN_BOOST - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 		}
 		assertEquals(-expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -614,7 +614,7 @@ public class PawnEvaluatorTest {
 		int expectedScore = 4*2*PawnEvaluator.PASSED_PAWN_BOOST - PawnEvaluator.ISOLATED_PAWN_HANDICAP;
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[1];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[1];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[1];
 		}
 		assertEquals(-expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -682,7 +682,7 @@ public class PawnEvaluatorTest {
 		// black has no pawns
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[2];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[2];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[2];
 		}
 		assertEquals(expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -696,7 +696,7 @@ public class PawnEvaluatorTest {
 		// black has no pawns
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[2];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[2];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[2];
 		}
 		assertEquals(expectedScore, SUT.evaluatePawnStructure(attacks));
 	}
@@ -710,7 +710,7 @@ public class PawnEvaluatorTest {
 		// black has no pawns
 		expectedScore += PawnEvaluator.NO_PAWNS_HANDICAP_LUT[2];
 		if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-			expectedScore += SUT.PASSED_PAWN_IMBALANCE_LUT[2];
+			expectedScore += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[2];
 		}
 		assertEquals(expectedScore, SUT.evaluatePawnStructure(attacks));
 	}

@@ -687,11 +687,48 @@ public class Board {
 		return isIllegalCheckHelper(move, needToEscapeMate, pieceToMove, isWhite);
 	}
 	
+	private void switchBitBoards(int originPiece, long positionsMask, boolean isWhite) {
+		pieces[originPiece] ^= positionsMask;
+		// Switch colour bitboard
+		if (isWhite) {
+			whitePieces ^= positionsMask;
+		} else {
+			blackPieces ^= positionsMask;
+		}
+		// Switch all pieces bitboard
+		allPieces ^= positionsMask;
+	}
+	
+	private void removeFromBitBoards(int targetPieceNoColour, long pieceToPickUp, boolean isWhite) {
+		// Remove from relevant colour bitboard
+		if (isWhite) {
+			blackPieces &= ~pieceToPickUp;
+		} else {
+			whitePieces &= ~pieceToPickUp;
+		}
+		// remove from specific bitboard
+		pieces[targetPieceNoColour] &= ~pieceToPickUp;
+		// Remove from all pieces bitboard
+		allPieces &= ~pieceToPickUp;
+	}
+	
+	public void replaceOnBitBoards(int targetPieceNoColour, long pieceToPickUp, boolean isWhite) {
+		pieces[targetPieceNoColour] |= pieceToPickUp;
+		// Set on colour bitboard
+		if (isWhite) {
+			blackPieces |= pieceToPickUp;
+		} else {
+			whitePieces |= pieceToPickUp;
+		}
+		// Set on all pieces bitboard
+		allPieces |= pieceToPickUp;
+	}
+	
 	private boolean isIllegalCheckHelper(int move, boolean needToEscapeMate, int pieceToMove, boolean isWhite) {
 		boolean isIllegal = false;
 		int kingBitOffset = getKingPosition(isWhite);
-		boolean isKing = Piece.isKing(pieceToMove);
-		boolean doCheck = needToEscapeMate || isKing;
+		boolean isKingMoving = Piece.isKing(pieceToMove);
+		boolean doCheck = needToEscapeMate || isKingMoving;
 		if (EubosEngineMain.ENABLE_PINNED_TO_KING_CHECK_IN_ILLEGAL_DETECTION) {
 			if (!doCheck && moveCausesDiscoveredCheck(move, kingBitOffset, isWhite))
 				return true;
@@ -704,12 +741,10 @@ public class Board {
 			int captureBitOffset = BitBoard.INVALID;
 			int originBitOffset = Move.getOriginPosition(move);
 			int targetBitOffset = Move.getTargetPosition(move);
-			int targetPiece = Move.getTargetPiece(move);
+			int targetPiece = Move.getTargetPiece(move) & Piece.PIECE_NO_COLOUR_MASK;
+			int originPiece = pieceToMove & Piece.PIECE_NO_COLOUR_MASK;
 			boolean isCapture = targetPiece != Piece.NONE;
-			long initialSquareMask = 1L << originBitOffset;
-			long targetSquareMask = 1L << targetBitOffset;
-			long positionsMask = initialSquareMask | targetSquareMask;
-			
+			long positionsMask = 1L << originBitOffset | 1L << targetBitOffset;
 			long pieceToPickUp = BitBoard.INVALID;
 			
 			if (isCapture) {
@@ -721,63 +756,25 @@ public class Board {
 					captureBitOffset = targetBitOffset;
 				}
 				pieceToPickUp = 1L << captureBitOffset;
-				// Remove from relevant colour bitboard
-				if (isWhite) {
-					blackPieces &= ~pieceToPickUp;
-				} else {
-					whitePieces &= ~pieceToPickUp;
-				}
-				// remove from specific bitboard
-				pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] &= ~pieceToPickUp;
-				// Remove from all pieces bitboard
-				allPieces &= ~pieceToPickUp;
+				removeFromBitBoards(targetPiece, pieceToPickUp, isWhite);
 			}
-			
-			// Simplification don't consider promotions between piece-specific bitboards and piece lists
-			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
-			// Switch colour bitboard
-			if (isWhite) {
-				whitePieces ^= positionsMask;
-			} else {
-				blackPieces ^= positionsMask;
-			}
-			// Switch all pieces bitboard
-			allPieces ^= positionsMask;
+			switchBitBoards(originPiece, positionsMask, isWhite);
 			// Because of need to check if in check, need to update for King only
-			if (isKing) {
+			if (isKingMoving) {
 				pieceLists.updatePiece(pieceToMove, originBitOffset, targetBitOffset);
 				kingBitOffset = targetBitOffset; // King moved!
 			}
 			
 			isIllegal = squareIsAttacked(kingBitOffset, isWhite);
 			
-			// Switch piece bitboard
-			// Piece type doesn't change across boards
-			pieces[Piece.PIECE_NO_COLOUR_MASK & pieceToMove] ^= positionsMask;
-			// Switch colour bitboard
-			if (isWhite) {
-				whitePieces ^= positionsMask;
-			} else {
-				blackPieces ^= positionsMask;
-			}
-			// Switch all pieces bitboard
-			allPieces ^= positionsMask;
+			switchBitBoards(originPiece, positionsMask, isWhite);
 			// Because of need to check if in check, need to update for King only
-			if (isKing) {
+			if (isKingMoving) {
 				pieceLists.updatePiece(pieceToMove, targetBitOffset, originBitOffset);
 			}
 			// Undo any capture that had been previously performed.
 			if (isCapture) {
-				// Set on piece-specific bitboard
-				pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] |= pieceToPickUp;
-				// Set on colour bitboard
-				if (isWhite) {
-					blackPieces |= pieceToPickUp;
-				} else {
-					whitePieces |= pieceToPickUp;
-				}
-				// Set on all pieces bitboard
-				allPieces |= pieceToPickUp;
+				replaceOnBitBoards(targetPiece, pieceToPickUp, isWhite);
 			}
 		}
 		return isIllegal;
