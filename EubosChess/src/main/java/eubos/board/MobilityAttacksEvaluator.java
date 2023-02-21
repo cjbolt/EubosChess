@@ -395,10 +395,10 @@ public class MobilityAttacksEvaluator {
 	protected void getBasicAttacksForBlack(long [][] attacks) {
 		attacks[0][0] = attacks[1][0] = attacks[2][0] = 0L;
 		// Pawns
-		theBoard.paa.getPawnAttacks(attacks[0], true);
+		attacks[0][0] = theBoard.bpaa.getPawnAttacks(true);
 		attacks[3][0] = attacks[0][0];
 		// Knights
-		theBoard.kaa.getAttacks(attacks[1], true);
+		attacks[1][0] = theBoard.bkaa.getAttacks(true);
 		// King
 		int blackKingOffset = theBoard.pieceLists.getKingPos(false);
 		if (blackKingOffset != BitBoard.INVALID) {
@@ -410,10 +410,10 @@ public class MobilityAttacksEvaluator {
 	protected void getBasicAttacksForWhite(long [][] attacks) {
 		attacks[0][0] = attacks[1][0] = attacks[2][0] = 0L;
 		// Pawns
-		theBoard.paa.getPawnAttacks(attacks[0], false);
+		attacks[0][0] = theBoard.bpaa.getPawnAttacks(false);
 		attacks[3][0] = attacks[0][0];
 		// Knights
-		theBoard.kaa.getAttacks(attacks[1], false);
+		attacks[1][0] = theBoard.bkaa.getAttacks(false);
 		// King
 		int whiteKingOffset = theBoard.pieceLists.getKingPos(true);
 		if (whiteKingOffset != BitBoard.INVALID) {

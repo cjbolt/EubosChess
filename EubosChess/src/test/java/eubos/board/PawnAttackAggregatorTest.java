@@ -4,14 +4,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
-import eubos.board.Board.PawnAttackAggregator;
+import eubos.board.Board.CountedPawnAttackAggregator;
 import eubos.position.PositionManager;
 import eubos.score.PawnEvalHashTable;
 import eubos.search.DrawChecker;
 
 class PawnAttackAggregatorTest {
 	
-	private PawnAttackAggregator classUnderTest;		
+	private CountedPawnAttackAggregator classUnderTest;		
 	PositionManager pm;
 	
 	private boolean attackerIsBlack = false;

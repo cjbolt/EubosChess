@@ -61,16 +61,20 @@ public class Board {
 	public PiecewiseEvaluation me;
 	public MobilityAttacksEvaluator mae;
 	
-	public PawnAttackAggregator paa;
+	public BasicPawnAttackAggregator bpaa;
+	public CountedPawnAttackAggregator paa;
 	public PawnKnightAttackAggregator pkaa;
-	public KnightAttackAggregator kaa;
+	public BasicKnightAttackAggregator bkaa;
+	public CountedKnightAttackAggregator kaa;
 	public CountedPawnKnightAttackAggregator cpkaa;
 	
 	boolean isAttacksMaskValid = false;
 	
 	public Board(Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove) {
-		paa = new PawnAttackAggregator();
-		kaa = new KnightAttackAggregator();
+		bpaa = new BasicPawnAttackAggregator();
+		paa = new CountedPawnAttackAggregator();
+		bkaa = new BasicKnightAttackAggregator();
+		kaa = new CountedKnightAttackAggregator();
 		pkaa = new PawnKnightAttackAggregator();
 		cpkaa = new CountedPawnKnightAttackAggregator();
 		mae = new MobilityAttacksEvaluator(this);
@@ -1342,7 +1346,30 @@ public class Board {
 		return isHalfOpen;
 	}
 	
-	public class PawnAttackAggregator implements IForEachPieceCallback {
+	public class BasicPawnAttackAggregator implements IForEachPieceCallback {
+		long attackMask;
+		long[] pawnAttacksFromPositionForSide;
+		
+		public void callback(int piece, int bitOffset) {
+			attackMask |= pawnAttacksFromPositionForSide[bitOffset];
+		}
+		
+		@Override
+		public boolean condition_callback(int piece, int atPos) {
+			return false;
+		}
+		
+		public long getPawnAttacks(boolean attackerIsBlack) {
+			attackMask = 0L;
+			pawnAttacksFromPositionForSide = attackerIsBlack ?
+					SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut : 
+					SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut;
+			forEachPawnOfSide(this, attackerIsBlack);
+			return attackMask;
+		}
+	}
+	
+	public class CountedPawnAttackAggregator implements IForEachPieceCallback {
 		long attackMask[];
 		boolean attackerIsBlack = false;
 		
@@ -1449,7 +1476,30 @@ public class Board {
 		}
 	}
 	
-	public class KnightAttackAggregator implements IForEachPieceCallback {
+	public class BasicKnightAttackAggregator implements IForEachPieceCallback {
+		
+		public final int[] BLACK_ATTACKERS = {Piece.BLACK_KNIGHT};
+		public final int[] WHITE_ATTACKERS = {Piece.WHITE_KNIGHT};
+		
+		long attackMask = 0L;
+		
+		public void callback(int piece, int position) {
+			attackMask |= SquareAttackEvaluator.KnightMove_Lut[position];
+		}
+		
+		@Override
+		public boolean condition_callback(int piece, int atPos) {
+			return false;
+		}
+		
+		public long getAttacks(boolean attackerIsBlack) {
+			attackMask = 0L;
+			pieceLists.forEachPieceOfTypeDoCallback(this, attackerIsBlack ? BLACK_ATTACKERS: WHITE_ATTACKERS);
+			return attackMask;
+		}
+	}
+	
+	public class CountedKnightAttackAggregator implements IForEachPieceCallback {
 		
 		public final int[] BLACK_ATTACKERS = {Piece.BLACK_KNIGHT};
 		public final int[] WHITE_ATTACKERS = {Piece.WHITE_KNIGHT};
