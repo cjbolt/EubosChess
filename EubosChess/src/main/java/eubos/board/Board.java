@@ -724,6 +724,17 @@ public class Board {
 		allPieces |= pieceToPickUp;
 	}
 	
+	private long getCaptureSquareMask(int move, int pieceToMove, int targetBitOffset) {
+		int captureBitOffset = BitBoard.INVALID;
+		if (Move.isEnPassantCapture(move)) {
+			// Handle en passant captures, don't need to do other checks in this case
+			captureBitOffset = generateCaptureBitOffsetForEnPassant(pieceToMove, targetBitOffset);
+		} else {
+			captureBitOffset = targetBitOffset;
+		}
+		return 1L << captureBitOffset;
+	}
+	
 	private boolean isIllegalCheckHelper(int move, boolean needToEscapeMate, int pieceToMove, boolean isWhite) {
 		boolean isIllegal = false;
 		int kingBitOffset = getKingPosition(isWhite);
@@ -738,28 +749,20 @@ public class Board {
 			}
 		}
 		if (doCheck) {		
-			int captureBitOffset = BitBoard.INVALID;
 			int originBitOffset = Move.getOriginPosition(move);
 			int targetBitOffset = Move.getTargetPosition(move);
-			int targetPiece = Move.getTargetPiece(move) & Piece.PIECE_NO_COLOUR_MASK;
-			int originPiece = pieceToMove & Piece.PIECE_NO_COLOUR_MASK;
-			boolean isCapture = targetPiece != Piece.NONE;
+			int targetPieceNoColour = Move.getTargetPiece(move) & Piece.PIECE_NO_COLOUR_MASK;
+			int originPieceNoColour = pieceToMove & Piece.PIECE_NO_COLOUR_MASK;
+			boolean isCapture = targetPieceNoColour != Piece.NONE;
 			long positionsMask = 1L << originBitOffset | 1L << targetBitOffset;
 			long pieceToPickUp = BitBoard.INVALID;
 			
 			if (isCapture) {
-				// Handle captures
-				if (Move.isEnPassantCapture(move)) {
-					// Handle en passant captures, don't need to do other checks in this case
-					captureBitOffset = generateCaptureBitOffsetForEnPassant(pieceToMove, targetBitOffset);
-				} else {
-					captureBitOffset = targetBitOffset;
-				}
-				pieceToPickUp = 1L << captureBitOffset;
-				removeFromBitBoards(targetPiece, pieceToPickUp, isWhite);
+				pieceToPickUp = getCaptureSquareMask(move, pieceToMove, targetBitOffset);
+				removeFromBitBoards(targetPieceNoColour, pieceToPickUp, isWhite);
 			}
-			switchBitBoards(originPiece, positionsMask, isWhite);
-			// Because of need to check if in check, need to update for King only
+			switchBitBoards(originPieceNoColour, positionsMask, isWhite);
+			// Because of need to decide if in check, need to update when the King has moved only
 			if (isKingMoving) {
 				pieceLists.updatePiece(pieceToMove, originBitOffset, targetBitOffset);
 				kingBitOffset = targetBitOffset; // King moved!
@@ -767,14 +770,12 @@ public class Board {
 			
 			isIllegal = squareIsAttacked(kingBitOffset, isWhite);
 			
-			switchBitBoards(originPiece, positionsMask, isWhite);
-			// Because of need to check if in check, need to update for King only
+			switchBitBoards(originPieceNoColour, positionsMask, isWhite);
 			if (isKingMoving) {
 				pieceLists.updatePiece(pieceToMove, targetBitOffset, originBitOffset);
 			}
-			// Undo any capture that had been previously performed.
 			if (isCapture) {
-				replaceOnBitBoards(targetPiece, pieceToPickUp, isWhite);
+				replaceOnBitBoards(targetPieceNoColour, pieceToPickUp, isWhite);
 			}
 		}
 		return isIllegal;
