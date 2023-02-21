@@ -20,7 +20,8 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	public static final int DOUBLED_PAWN_HANDICAP = 12;
 	public static final int ISOLATED_PAWN_HANDICAP = 33;
 	public static final int BACKWARD_PAWN_HANDICAP = 12;
-	public static final int[] NO_PAWNS_HANDICAP = {0, 50, 75, 100, 200, 300, 500, 500, 500};
+	public static final int[] NO_PAWNS_HANDICAP_LUT = {0, 75, 100, 150, 250, 350, 500, 700, 900};
+	public static final int[] PASSED_PAWN_IMBALANCE_LUT = {0, 15, 65, 110, 160, 300, 450, 700, 900};
 	
 	public static final int PASSED_PAWN_BOOST = 10;
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 8;
@@ -34,9 +35,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	public static final boolean ENABLE_PAWN_HASH_TABLE = true;
 	public static final boolean ENABLE_KPK_EVALUATION = true;
 	public static final boolean ENABLE_CANDIDATE_PP_EVALUATION = true;
-	public static final boolean ENABLE_PP_IMBALANCE_EVALUATION = true;
-	
-	public final int[] ppImbalanceTable = {0, 15, 65, 110, 160, 300, 450, 700, 900};
+	public static final boolean ENABLE_PP_IMBALANCE_EVALUATION = true;	
 	
 	// Static for lifetime of object
 	IPositionAccessors pm;
@@ -156,7 +155,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 			pawnEvaluationScore = pawnHandicap + piecewisePawnScoreAccumulator;
 		} else {
 			int num_enemy_pawns = bd.me.numberOfPieces[isBlack ? Piece.WHITE_PAWN : Piece.BLACK_PAWN];
-			pawnEvaluationScore -= NO_PAWNS_HANDICAP[num_enemy_pawns];
+			pawnEvaluationScore -= NO_PAWNS_HANDICAP_LUT[num_enemy_pawns];
 		}
 		return pawnEvaluationScore;
 	}
@@ -300,7 +299,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 			int ownPasserCount = Long.bitCount(passers & ownPawns);
 			int enemyPasserCount = Long.bitCount(passers & enemyPawns);
 			int lookupIndex = ownPasserCount - enemyPasserCount;
-			int ppImbalanceFactor = ppImbalanceTable[Math.abs(lookupIndex)];
+			int ppImbalanceFactor = PASSED_PAWN_IMBALANCE_LUT[Math.abs(lookupIndex)];
 			if (lookupIndex < 0) {
 				// If negative, on move has fewer passed pawns, so subtract from score
 				ppImbalanceFactor = -ppImbalanceFactor;
