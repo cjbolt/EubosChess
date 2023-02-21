@@ -504,7 +504,8 @@ public class Board {
 			return isPinned;
 		
 		long kingMask = 1L << kingBitOffset;
-		long pinSquare = 1L << Move.getOriginPosition(move);
+		int pinOffset = Move.getOriginPosition(move);
+		long pinSquare = 1L << pinOffset;
 
 		long diagonalAttacksOnKing = SquareAttackEvaluator.directDiagonalAttacksOnPosition_Lut[kingBitOffset];
 		if ((pinSquare & diagonalAttacksOnKing) != 0L) {
@@ -528,27 +529,19 @@ public class Board {
 			allPieces &= ~pinSquare;
 			allPieces |= targetMask;
 			
-			if (pinSquare > kingMask) {
-				// first - special case; King on h8
-				if (kingMask == Long.MIN_VALUE) {
-					long downLeftMask = SquareAttackEvaluator.directAttacksOnPositionDownLeft_Lut[kingBitOffset];
-					if (((downLeftMask & targetMask) == 0L) && (downLeftMask & diagonalAttackersMask) != 0L) {
-						isPinned = (diagonalAttackersMask & BitBoard.downLeftAttacks(kingMask, this.getEmpty())) != 0L;
+			if (pinOffset > kingBitOffset) {
+				// indicates either up left or upright direction
+				long upLeftMask = SquareAttackEvaluator.directAttacksOnPositionUpLeft_Lut[kingBitOffset];			
+				if ((upLeftMask & pinSquare) != 0L) {
+					// Up left, is attacker on that line?
+					if (((upLeftMask & targetMask) == 0L) && (upLeftMask & diagonalAttackersMask) != 0L) {
+						isPinned = (diagonalAttackersMask & BitBoard.upLeftAttacks(kingMask, this.getEmpty())) != 0L;
 					}
 				} else {
-					// indicates either up left or upright direction
-					long upLeftMask = SquareAttackEvaluator.directAttacksOnPositionUpLeft_Lut[kingBitOffset];			
-					if ((upLeftMask & pinSquare) != 0L) {
-						// Up left, is attacker on that line?
-						if (((upLeftMask & targetMask) == 0L) && (upLeftMask & diagonalAttackersMask) != 0L) {
-							isPinned = (diagonalAttackersMask & BitBoard.upLeftAttacks(kingMask, this.getEmpty())) != 0L;
-						}
-					} else {
-						// must be up right
-						long upRightMask = SquareAttackEvaluator.directAttacksOnPositionUpRight_Lut[kingBitOffset];
-						if (((upRightMask & targetMask) == 0L) && (upRightMask & diagonalAttackersMask) != 0L) {
-							isPinned = (diagonalAttackersMask & BitBoard.upRightAttacks(kingMask, this.getEmpty())) != 0L;
-						}
+					// must be up right
+					long upRightMask = SquareAttackEvaluator.directAttacksOnPositionUpRight_Lut[kingBitOffset];
+					if (((upRightMask & targetMask) == 0L) && (upRightMask & diagonalAttackersMask) != 0L) {
+						isPinned = (diagonalAttackersMask & BitBoard.upRightAttacks(kingMask, this.getEmpty())) != 0L;
 					}
 				}
 			} else {
@@ -596,35 +589,17 @@ public class Board {
 				allPieces &= ~pinSquare;
 				allPieces |= targetMask;
 				
-				if (pinSquare > kingMask) {
-					// first - special case; King on h8
-					if (kingMask == Long.MIN_VALUE) {
-						// Indicates either left or down direction
-						long leftMask = SquareAttackEvaluator.directAttacksOnPositionLeft_Lut[kingBitOffset];			
-						if ((leftMask & pinSquare) != 0L) {
-							// Left
-							if (((leftMask & targetMask) == 0L) && (leftMask & rankFileAttackersMask) != 0L) {
-								isPinned = (rankFileAttackersMask & BitBoard.leftAttacks(kingMask, this.getEmpty())) != 0L;
-							}
-						} else {
-							// Down
-							long downMask = SquareAttackEvaluator.directAttacksOnPositionDown_Lut[kingBitOffset];
-							if (((downMask & targetMask) == 0L) && (downMask & rankFileAttackersMask) != 0L) {
-								isPinned = (rankFileAttackersMask & BitBoard.downAttacks(kingMask, this.getEmpty())) != 0L;
-							}
+				if (pinOffset > kingBitOffset) {
+					// indicates either up or right direction
+					long rightMask = SquareAttackEvaluator.directAttacksOnPositionRight_Lut[kingBitOffset];			
+					if ((rightMask & pinSquare) != 0L) {
+						if (((rightMask & targetMask) == 0L) && (rightMask & rankFileAttackersMask) != 0L) {
+							isPinned = (rankFileAttackersMask & BitBoard.rightAttacks(kingMask, this.getEmpty())) != 0L;
 						}
 					} else {
-						// indicates either up or right direction
-						long rightMask = SquareAttackEvaluator.directAttacksOnPositionRight_Lut[kingBitOffset];			
-						if ((rightMask & pinSquare) != 0L) {
-							if (((rightMask & targetMask) == 0L) && (rightMask & rankFileAttackersMask) != 0L) {
-								isPinned = (rankFileAttackersMask & BitBoard.rightAttacks(kingMask, this.getEmpty())) != 0L;
-							}
-						} else {
-							long upMask = SquareAttackEvaluator.directAttacksOnPositionUp_Lut[kingBitOffset];
-							if (((upMask & targetMask) == 0L) && (upMask & rankFileAttackersMask) != 0L) {
-								isPinned = (rankFileAttackersMask & BitBoard.upAttacks(kingMask, this.getEmpty())) != 0L;
-							}
+						long upMask = SquareAttackEvaluator.directAttacksOnPositionUp_Lut[kingBitOffset];
+						if (((upMask & targetMask) == 0L) && (upMask & rankFileAttackersMask) != 0L) {
+							isPinned = (rankFileAttackersMask & BitBoard.upAttacks(kingMask, this.getEmpty())) != 0L;
 						}
 					}
 				} else {
