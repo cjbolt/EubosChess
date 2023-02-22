@@ -20,7 +20,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	public static final int DOUBLED_PAWN_HANDICAP = 12;
 	public static final int ISOLATED_PAWN_HANDICAP = 33;
 	public static final int BACKWARD_PAWN_HANDICAP = 12;
-	public static final int[] NO_PAWNS_HANDICAP_LUT = {0, 75, 100, 150, 250, 350, 500, 700, 900};
+	public static final int[] NO_PAWNS_HANDICAP_LUT = {0, 50, 75, 100, 200, 300, 500, 500, 500};
 	public static final int[] PASSED_PAWN_IMBALANCE_LUT = {0, 15, 65, 110, 160, 300, 450, 700, 900};
 	
 	public static final int PASSED_PAWN_BOOST = 10;
