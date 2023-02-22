@@ -149,8 +149,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Preserve state
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		long pp = theBoard.getPassedPawns();
+		long old_hash = getHash();
 		theBoard.doMove(move);
-		moveTracker.push(pp, move, castling.getFlags(), prevEnPassantTargetSq, getHash());
+		moveTracker.push(pp, move, castling.getFlags(), prevEnPassantTargetSq, old_hash);
 		
 		// update state
 		castling.updateFlags(move);
