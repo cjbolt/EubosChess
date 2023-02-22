@@ -32,11 +32,11 @@ public class PerformanceTest {
 		            if (!iter.hasNext()) break;
 		            do {
 		            	int move = iter.nextInt();
-						pm.performMove(move, false);
+						pm.performMove(move);
 		                currPly+=1;
 		                perft();
 		                currPly-=1;
-		                pm.unperformMove(false);
+		                pm.unperformMove();
 		            } while (iter.hasNext());
 	        	} while(true);
 	        } else {

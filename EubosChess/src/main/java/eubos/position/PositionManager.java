@@ -133,11 +133,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return isDrawing;
 	}
 	
-	public void performMove( int move )  {
-		performMove(move, true);
-	}
-	
-	public void performMove( int move, boolean computeHash ) {
+	public void performMove(int move) {
 		boolean kingInCheckBeforeMove = false;
 		boolean initialOnMoveIsWhite = onMoveIsWhite();
 		if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -156,12 +152,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// update state
 		castling.updateFlags(move);
 		
-		if (computeHash) {
-			hash.update((byte)theBoard.getEnPassantTargetSq());
+		hash.update((byte)theBoard.getEnPassantTargetSq());
 
-			// Update the draw checker
-			repetitionPossible = dc.setPositionReached(getHash(), getPlyNumber());			
-		}
+		// Update the draw checker
+		repetitionPossible = dc.setPositionReached(getHash(), getPlyNumber());			
 		
 		// Update onMove
 		onMove = Colour.getOpposite(onMove);
@@ -169,7 +163,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			moveNumber++;
 		}
 		if (EubosEngineMain.ENABLE_ASSERTS) {
-			if (kingInCheckBeforeMove && computeHash) {
+			if (kingInCheckBeforeMove) {
 				// need to have moved out of check!!!
 				assert !theBoard.isKingInCheck(initialOnMoveIsWhite) :
 					String.format("%s %s", this.unwindMoveStack(), getFen());
@@ -178,10 +172,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 
 	public void unperformMove() {
-		unperformMove(true);
-	}
-	
-	public void unperformMove(boolean computeHash) {
 
 		moveTracker.pop();
 		int move = moveTracker.getMove();
@@ -203,13 +193,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		
 		hash.hashCode = prev_hash;
-		
-		if (computeHash) {
-			hash.updateInternalState((byte)enPasTargetSq);
+		hash.updateInternalState((byte)enPasTargetSq);
 			
-			// Clear draw indicator flag
-			repetitionPossible = false;
-		}
+		// Clear draw indicator flag
+		repetitionPossible = false;
 		
 		// Update onMove flag
 		onMove = Piece.Colour.getOpposite(onMove);
