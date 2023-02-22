@@ -65,7 +65,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_UCI_INFO_SENDING = true;
 	public static final boolean ENABLE_UCI_MOVE_NUMBER = false;
 	
-	public static final boolean ENABLE_ASSERTS = true;
+	public static final boolean ENABLE_ASSERTS = false;
 	public static final boolean ENABLE_PERFT = false;
 	public static final boolean ENABLE_TEST_SUITES = false;
 	
@@ -335,11 +335,11 @@ public class EubosEngineMain extends AbstractEngine {
 					int moves_applied = 0;
 					for (GenericMove move : command.getMoveList()) {
 						int eubos_move = Move.toMove(move, rootPosition.getTheBoard());
-						rootPosition.performMove(eubos_move, false); // don't update draw checker or hash
+						rootPosition.performMove(eubos_move);
 						++moves_applied;
 					}
 					for (int i=0; i<moves_applied; i++) {
-						rootPosition.unperformMove(false);
+						rootPosition.unperformMove();
 					}
 				}
 			} catch (AssertionError e) {
