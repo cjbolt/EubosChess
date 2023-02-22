@@ -121,6 +121,23 @@ public class ZobristHashCode implements IForEachPieceCallback, IZobristUpdate {
 		doOnMove();
 	}
 	
+	public void updateInternalState(byte enPassantOffset) {
+		// Revert en passant
+		if (enPassantOffset != BitBoard.INVALID) {
+			byte file = BitBoard.getFile(enPassantOffset);
+			if (index > 0) {
+				index--;
+			}
+			prevEnPassantFile[++index] = file;
+		} else if (index > 0) {
+			index--;
+		} else {
+			// no action needed
+		}
+		// Revert castling
+		this.prevCastlingMask = castling.getFlags();
+	}
+	
 	// Used to update the Zobrist hash code whenever a position changes due to a move being performed
 	public void updateNullMove(byte enPassantOffset) {
 		// Update

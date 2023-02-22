@@ -320,6 +320,7 @@ public class Board {
 	}
 	
 	public void doMoveForThreefoldCheck(int move) {
+		// Just need to do sufficient actions to generate the hash code we need
 		int captureBitOffset = BitBoard.INVALID;
 		int pieceToMove = Move.getOriginPiece(move);
 		int originBitOffset = Move.getOriginPosition(move);
@@ -392,14 +393,12 @@ public class Board {
 			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
 			pieceLists.updatePiece(fullPromotedPiece, originPiece, originBitOffset, targetBitOffset);
 			me.updateWhenUndoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
-			hashUpdater.doPromotionMove(targetBitOffset, originBitOffset, originPiece, fullPromotedPiece);
 		} else {
 			// Piece type doesn't change across boards, update piece-specific bitboard, pieceLists and PST score
 			int pieceType = Piece.PIECE_NO_COLOUR_MASK & originPiece;
 			pieces[pieceType] ^= positionsMask;
 			pieceLists.updatePiece(originPiece, originBitOffset, targetBitOffset);
 			me.updateRegular(pieceType, originPiece, originBitOffset, targetBitOffset);
-			hashUpdater.doBasicMove(targetBitOffset, originBitOffset, originPiece);
 		}
 		// Switch colour bitboard
 		if (isWhite) {
@@ -419,7 +418,6 @@ public class Board {
 			setPieceAtSquare(1L << capturedPieceSquare, capturedPieceSquare, targetPiece);
 			// Replace captured piece in incremental material update, at the correct capture square
 			me.updateForReplacedCapture(targetPiece, capturedPieceSquare);
-			hashUpdater.doCapturedPiece(capturedPieceSquare, targetPiece);
 		}
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -439,31 +437,11 @@ public class Board {
 	}
 	
 	public void undoMoveThreefoldCheck(int moveToUndo) {
-		int capturedPieceSquare = BitBoard.INVALID;
 		int originPiece = Move.getOriginPiece(moveToUndo);
-		int originBitOffset = Move.getOriginPosition(moveToUndo);
-		int targetBitOffset = Move.getTargetPosition(moveToUndo);
-		int targetPiece = Move.getTargetPiece(moveToUndo);
-		int promotedPiece = Move.getPromotion(moveToUndo);
-		boolean isCapture = targetPiece != Piece.NONE;
-		
-		// Handle reversal of any castling secondary rook moves on the board
+		// Handle reversal of any castling secondary rook move on the board, this is the only state change
+		// that needs to be undone, the hash code is restored from a temporary variable.		
 		if (Piece.isKing(originPiece)) {
 			unperformSecondaryCastlingMove(moveToUndo);
-		}
-		// Switch piece bitboard
-		if (promotedPiece != Piece.NONE) {
-			int fullPromotedPiece = Piece.isWhite(originPiece) ? promotedPiece : promotedPiece|Piece.BLACK;
-			hashUpdater.doPromotionMove(targetBitOffset, originBitOffset, originPiece, fullPromotedPiece);
-		} else {
-			hashUpdater.doBasicMove(targetBitOffset, originBitOffset, originPiece);
-		}
-		// Undo any capture that had been previously performed.
-		if (isCapture) {
-			// Origin square because the move has been reversed and origin square is the original target square
-			capturedPieceSquare = Move.isEnPassantCapture(moveToUndo) ? 
-					generateCaptureBitOffsetForEnPassant(originPiece, originBitOffset) : originBitOffset;
-			hashUpdater.doCapturedPiece(capturedPieceSquare, targetPiece);
 		}
 	}
 	
@@ -509,15 +487,17 @@ public class Board {
 
 		long diagonalAttacksOnKing = SquareAttackEvaluator.directDiagonalAttacksOnPosition_Lut[kingBitOffset];
 		if ((pinSquare & diagonalAttacksOnKing) != 0L) {
-			// We know that the pinned piece is on a diagonal with the king
+			// We know that the pinned piece is on a diagonal with the king, but what if there is no attacker on the ray with king?
 			long diagonalAttackersMask = isWhite ? getBlackDiagonal() : getWhiteDiagonal();
-			if ((diagonalAttackersMask & diagonalAttacksOnKing) == 0L) return isPinned;
+			if ((diagonalAttackersMask & diagonalAttacksOnKing) == 0L) return false;
 			
-			// what if move is capturing the pinning piece? then it is ok
+			// What if the move is capturing the pinning piece? then it is no longer pinned...
 			int targetBitOffset = Move.getTargetPosition(move);
 			long targetMask = 1L << targetBitOffset;
 			diagonalAttackersMask &= ~targetMask;
-			if ((diagonalAttackersMask & diagonalAttacksOnKing) == 0L) return isPinned;
+			// This isn't very good, it will only return here if there are no other diagonal attackers on other rays, we are only
+			// really concerned with the attacker on the same ray as the pinned piece.
+			if ((diagonalAttackersMask & diagonalAttacksOnKing) == 0L) return false;
 			
 			// temporarily move piece
 			long enPassantCaptureMask = 0L;

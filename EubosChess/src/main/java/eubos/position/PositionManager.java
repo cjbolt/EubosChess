@@ -99,8 +99,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public boolean moveLeadsToThreefold(int move) {
 		boolean isDrawing = false;
+		long old_hash = getHash();
 		
-		// Generate hash code
+		// Generate new position hash code
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		int old_flags = castling.getFlags();
 		theBoard.doMoveForThreefoldCheck(move);
@@ -120,7 +121,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Restore state
 		castling.setFlags(old_flags);
 		theBoard.setEnPassantTargetSq(prevEnPassantTargetSq);
-		hash.update(enPassantTargetBitOffs);
+		hash.updateInternalState(enPassantTargetBitOffs);
+		hash.hashCode = old_hash;
 		
 		// Update onMove flag
 		onMove = Piece.Colour.getOpposite(onMove);
@@ -148,7 +150,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		long pp = theBoard.getPassedPawns();
 		theBoard.doMove(move);
-		moveTracker.push(pp, move, castling.getFlags(), prevEnPassantTargetSq);
+		moveTracker.push(pp, move, castling.getFlags(), prevEnPassantTargetSq, getHash());
 		
 		// update state
 		castling.updateFlags(move);
@@ -185,6 +187,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int castlingFlags = moveTracker.getCastling();
 		long pp = moveTracker.getPassedPawns();
 		int enPasTargetSq = moveTracker.getEnPassant();
+		long prev_hash = moveTracker.getHash();
 		int reversedMove = Move.reverse(move);
 		
 		theBoard.undoMove(reversedMove);
@@ -198,8 +201,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Restore en passant target
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		
+		hash.hashCode = prev_hash;
+		
 		if (computeHash) {
-			hash.update((byte)enPasTargetSq);
+			hash.updateInternalState((byte)enPasTargetSq);
 			
 			// Clear draw indicator flag
 			repetitionPossible = false;
@@ -217,7 +222,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Preserve state
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		theBoard.setEnPassantTargetSq(BitBoard.INVALID);
-		moveTracker.push(0L, Move.NULL_MOVE, castling.getFlags(), prevEnPassantTargetSq);
+		moveTracker.push(0L, Move.NULL_MOVE, castling.getFlags(), prevEnPassantTargetSq, 0L);
 
 		hash.updateNullMove((byte)BitBoard.INVALID);
 

@@ -6,6 +6,7 @@ class MoveTracker {
 	
 	private static final int CAPACITY = 400;
 	private long[] passed_pawn_stack;
+	private long[] hash_stack;
 	private byte[] en_passant_square_stack;
 	private byte[] castling_stack;
 	private int[] move_stack;
@@ -16,14 +17,16 @@ class MoveTracker {
 		en_passant_square_stack = new byte[CAPACITY];
 		castling_stack = new byte[CAPACITY];
 		move_stack = new int[CAPACITY];
+		hash_stack = new long[CAPACITY];
 		index = 0;
 	}
 	
-	public void push(long pp, int move, int castling, int enPassant) {
+	public void push(long pp, int move, int castling, int enPassant, long hash) {
 		passed_pawn_stack[index] = pp;
 		move_stack[index] = move;
 		en_passant_square_stack[index] = (byte) enPassant;
 		castling_stack[index] = (byte) castling;
+		hash_stack[index] = hash;
 		index += 1;
 	}
 	
@@ -36,6 +39,10 @@ class MoveTracker {
 	
 	public long getPassedPawns() {
 		return passed_pawn_stack[index];
+	}
+	
+	public long getHash() {
+		return hash_stack[index];
 	}
 	
 	public int getMove() {
