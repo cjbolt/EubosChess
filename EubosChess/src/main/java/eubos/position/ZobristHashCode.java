@@ -1,6 +1,5 @@
 package eubos.position;
 
-import java.util.Arrays;
 import java.util.Random;
 
 import com.fluxchess.jcpi.models.IntRank;
@@ -33,13 +32,6 @@ public class ZobristHashCode implements IForEachPieceCallback, IZobristUpdate {
 	private static final int INDEX_ENP_H = INDEX_ENP_G+1;
 	private static final int LENGTH_TABLE = INDEX_ENP_H+1;
 	
-	private IPositionAccessors pos;
-	private CastlingManager castling;
-	
-	int index = 0;
-	private byte[] prevEnPassantFile;
-	private int prevCastlingMask = 0;
-		
 	static private final long prnLookupTable[] = new long[LENGTH_TABLE];
 	static {
 		// Set up the pseudo random number lookup table that shall be used
@@ -52,12 +44,21 @@ public class ZobristHashCode implements IForEachPieceCallback, IZobristUpdate {
 		prnLookupTable[INDEX_COMBINED_CASTLING] = 0;
 	};
 
-	public ZobristHashCode(IPositionAccessors pm, CastlingManager castling) {
-		pos = pm;
-		this.castling = castling;
-		prevEnPassantFile = new byte[16]; // can't be more en passant moves than the number of pawns!
-		Arrays.fill(prevEnPassantFile, (byte)8);
-		generate();
+	public ZobristHashCode(IPositionAccessors pos, CastlingManager castling) {
+		// Add Pieces
+		hashCode = 0;
+		pos.getTheBoard().forEachPiece(this);
+		// Add Castling
+		hashCode ^= prnLookupTable[INDEX_COMBINED_CASTLING+castling.getFlags()];
+		// add on move
+		if (!pos.onMoveIsWhite()) {
+			doOnMove();
+		}
+		// Add En passant
+		int enPassant = pos.getTheBoard().getEnPassantTargetSq();
+		if (enPassant != BitBoard.INVALID) {
+			hashCode ^= prnLookupTable[INDEX_ENP_A+BitBoard.getFile(enPassant)];
+		}
 	}
 	
 	@Override
@@ -68,29 +69,6 @@ public class ZobristHashCode implements IForEachPieceCallback, IZobristUpdate {
 	@Override
 	public boolean condition_callback(int piece, int atPos) {
 		return false;
-	}
-	
-	// Generate a hash code for a position from scratch
-	private long generate() {
-		// add pieces
-		hashCode = 0;
-		index = 0;
-		pos.getTheBoard().forEachPiece(this);
-		// add castling
-		prevCastlingMask = castling.getFlags();
-		hashCode ^= prnLookupTable[INDEX_COMBINED_CASTLING+prevCastlingMask];
-		// add on move
-		if (!pos.onMoveIsWhite()) {
-			doOnMove();
-		}
-		// add en passant
-		int enPassant = pos.getTheBoard().getEnPassantTargetSq();
-		if (enPassant != BitBoard.INVALID) {
-			int enPassantFile = BitBoard.getFile(enPassant);
-			prevEnPassantFile[++index] = (byte)enPassantFile;
-			hashCode ^= prnLookupTable[(INDEX_ENP_A+enPassantFile)];
-		}
-		return hashCode;
 	}
 	
 	static final int [] bitOffsetToZobristIndex_Lut = new int[64];
@@ -112,71 +90,23 @@ public class ZobristHashCode implements IForEachPieceCallback, IZobristUpdate {
 		}		
 		return prnLookupTable[lookupIndex];
 	}
-	
-	// Used to update the Zobrist hash code whenever a position changes due to a move being performed
-	public void update(byte enPassantOffset) {
-		// Update
-		doEnPassant(enPassantOffset);
-		doCastlingFlags();
-		doOnMove();
-	}
-	
-	public void updateInternalState(byte enPassantOffset) {
-		// Revert en passant
-		if (enPassantOffset != BitBoard.INVALID) {
-			byte file = BitBoard.getFile(enPassantOffset);
-			if (index > 0) {
-				index--;
-			}
-			prevEnPassantFile[++index] = file;
-		} else if (index > 0) {
-			index--;
-		} else {
-			// no action needed
-		}
-		// Revert castling
-		this.prevCastlingMask = castling.getFlags();
-	}
-	
-	// Used to update the Zobrist hash code whenever a position changes due to a move being performed
-	public void updateNullMove(byte enPassantOffset) {
-		// Update
-		doEnPassant(enPassantOffset);
-		doOnMove();
-	}
 
-	private void setTargetFile(byte enPasFile) {
-		if (index > 0) {
-			clearTargetFile();
+	public void doEnPassant(int oldEnPassantOffset, int newEnPassantOffset) {
+		if (oldEnPassantOffset != BitBoard.INVALID) {
+			hashCode ^= prnLookupTable[INDEX_ENP_A+BitBoard.getFile(oldEnPassantOffset)];
 		}
-		prevEnPassantFile[++index] = enPasFile;
-		hashCode ^= prnLookupTable[INDEX_ENP_A+enPasFile];
-	}
-	
-	private void clearTargetFile() {
-		int enPasFile = prevEnPassantFile[index--];
-		hashCode ^= prnLookupTable[INDEX_ENP_A+enPasFile];
-	}
-	
-	protected void doEnPassant(byte enPassantOffset) {
-		if (enPassantOffset != BitBoard.INVALID) {
-			setTargetFile(BitBoard.getFile(enPassantOffset));
-		} else if (index > 0) {
-			clearTargetFile();
-		} else {
-			// no action needed
+		if (newEnPassantOffset != BitBoard.INVALID) {
+			hashCode ^= prnLookupTable[INDEX_ENP_A+BitBoard.getFile(newEnPassantOffset)];
 		}
 	}
 
-	protected void doOnMove() {
+	public void doOnMove() {
 	    hashCode ^= prnLookupTable[INDEX_SIDE_TO_MOVE];
 	}
 
-	protected void doCastlingFlags() {
-		int currentCastlingFlags = castling.getFlags();
-		int delta = currentCastlingFlags ^ this.prevCastlingMask;
+	public void doCastlingFlags(int oldFlags, int newFlags) {
+		int delta = oldFlags ^ newFlags;
 		hashCode ^= prnLookupTable[INDEX_COMBINED_CASTLING+delta];
-		this.prevCastlingMask = currentCastlingFlags;
 	}
 
 	@Override

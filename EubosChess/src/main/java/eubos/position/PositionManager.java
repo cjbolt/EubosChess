@@ -107,7 +107,11 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		theBoard.doMoveForThreefoldCheck(move);
 		castling.updateFlags(move);
 		byte enPassantTargetBitOffs = (byte)theBoard.getEnPassantTargetSq();
-		hash.update(enPassantTargetBitOffs);
+		
+		// Update Hash
+		hash.doEnPassant(prevEnPassantTargetSq, enPassantTargetBitOffs);
+		hash.doCastlingFlags(old_flags, castling.getFlags());
+		hash.doOnMove();
 		
 		// Update onMove
 		onMove = Colour.getOpposite(onMove);
@@ -121,7 +125,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Restore state
 		castling.setFlags(old_flags);
 		theBoard.setEnPassantTargetSq(prevEnPassantTargetSq);
-		hash.updateInternalState(enPassantTargetBitOffs);
 		hash.hashCode = old_hash;
 		
 		// Update onMove flag
@@ -146,13 +149,17 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		long pp = theBoard.getPassedPawns();
 		long old_hash = getHash();
+		int old_flags = castling.getFlags();
 		theBoard.doMove(move);
-		moveTracker.push(pp, move, castling.getFlags(), prevEnPassantTargetSq, old_hash);
+		moveTracker.push(pp, move, old_flags, prevEnPassantTargetSq, old_hash);
 		
-		// update state
+		// Update state
 		castling.updateFlags(move);
 		
-		hash.update((byte)theBoard.getEnPassantTargetSq());
+		// Update Hash
+		hash.doEnPassant(prevEnPassantTargetSq, theBoard.getEnPassantTargetSq());
+		hash.doCastlingFlags(old_flags, castling.getFlags());
+		hash.doOnMove();
 
 		// Update the draw checker
 		repetitionPossible = dc.setPositionReached(getHash(), getPlyNumber());			
@@ -192,8 +199,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Restore en passant target
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		
+		// Restore Hash
 		hash.hashCode = prev_hash;
-		hash.updateInternalState((byte)enPasTargetSq);
 			
 		// Clear draw indicator flag
 		repetitionPossible = false;
@@ -212,7 +219,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		theBoard.setEnPassantTargetSq(BitBoard.INVALID);
 		moveTracker.push(0L, Move.NULL_MOVE, castling.getFlags(), prevEnPassantTargetSq, 0L);
 
-		hash.updateNullMove((byte)BitBoard.INVALID);
+		hash.doEnPassant(prevEnPassantTargetSq, BitBoard.INVALID);
+		hash.doOnMove();
 
 		// Update the draw checker
 		repetitionPossible = dc.setPositionReached(getHash(), getPlyNumber());
@@ -233,7 +241,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int enPasTargetSq = moveTracker.getEnPassant();
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		
-		hash.updateNullMove((byte)enPasTargetSq);
+		hash.doEnPassant(BitBoard.INVALID, enPasTargetSq);
+		hash.doOnMove();
 		
 		// Clear draw indicator flag
 		repetitionPossible = false;
