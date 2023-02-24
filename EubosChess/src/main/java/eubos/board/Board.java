@@ -63,9 +63,8 @@ public class Board {
 	
 	public BasicPawnAttackAggregator bpaa;
 	public CountedPawnAttackAggregator paa;
-	public PawnKnightAttackAggregator pkaa;
-	public BasicKnightAttackAggregator bkaa;
-	public CountedKnightAttackAggregator kaa;
+	
+	// Only used for testing!
 	public CountedPawnKnightAttackAggregator cpkaa;
 	
 	boolean isAttacksMaskValid = false;
@@ -73,9 +72,6 @@ public class Board {
 	public Board(Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove) {
 		bpaa = new BasicPawnAttackAggregator();
 		paa = new CountedPawnAttackAggregator();
-		bkaa = new BasicKnightAttackAggregator();
-		kaa = new CountedKnightAttackAggregator();
-		pkaa = new PawnKnightAttackAggregator();
 		cpkaa = new CountedPawnKnightAttackAggregator();
 		mae = new MobilityAttacksEvaluator(this);
 		
@@ -1355,44 +1351,6 @@ public class Board {
 		}
 	}
 	
-	public class PawnKnightAttackAggregator implements IForEachPieceCallback {
-		
-		public final int[] BLACK_ATTACKERS = {Piece.BLACK_PAWN, Piece.BLACK_KNIGHT};
-		public final int[] WHITE_ATTACKERS = {Piece.WHITE_PAWN, Piece.WHITE_KNIGHT};
-		
-		long attackMask = 0L;
-		
-		public void callback(int piece, int bitOffset) {
-			long mask = 0L;
-			switch(piece) {
-			case Piece.WHITE_PAWN:
-				mask = SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[bitOffset];
-				break;
-			case Piece.BLACK_PAWN:
-				mask = SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[bitOffset];
-				break;
-			case Piece.WHITE_KNIGHT:
-			case Piece.BLACK_KNIGHT:
-				mask = SquareAttackEvaluator.KnightMove_Lut[bitOffset];
-				break;
-			default:
-				break;
-			}
-			attackMask |= mask;
-		}
-		
-		@Override
-		public boolean condition_callback(int piece, int atPos) {
-			return false;
-		}
-		
-		public long getAttacks(boolean attackerIsBlack) {
-			attackMask = 0L;
-			pieceLists.forEachPieceOfTypeDoCallback(this, attackerIsBlack ? BLACK_ATTACKERS: WHITE_ATTACKERS);
-			return attackMask;
-		}
-	}
-	
 	public class CountedPawnKnightAttackAggregator implements IForEachPieceCallback {
 		
 		public final int[] BLACK_ATTACKERS = {Piece.BLACK_PAWN, Piece.BLACK_KNIGHT};
@@ -1431,57 +1389,25 @@ public class Board {
 		}
 	}
 	
-	public class BasicKnightAttackAggregator implements IForEachPieceCallback {
-		
-		public final int[] BLACK_ATTACKERS = {Piece.BLACK_KNIGHT};
-		public final int[] WHITE_ATTACKERS = {Piece.WHITE_KNIGHT};
-		
+	public long getBasicKnightAttacks(boolean attackerIsBlack) {
 		long attackMask = 0L;
-		
-		public void callback(int piece, int position) {
-			attackMask |= SquareAttackEvaluator.KnightMove_Lut[position];
+		long scratchBitBoard = attackerIsBlack ? getBlackKnights() : getWhiteKnights();
+		while (scratchBitBoard != 0x0L) {
+			int bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
+			long mask = SquareAttackEvaluator.KnightMove_Lut[bit_offset];
+			attackMask |= mask;
+			scratchBitBoard ^= (1L << bit_offset);
 		}
-		
-		@Override
-		public boolean condition_callback(int piece, int atPos) {
-			return false;
-		}
-		
-		public long getAttacks(boolean attackerIsBlack) {
-			attackMask = 0L;
-			pieceLists.forEachPieceOfTypeDoCallback(this, attackerIsBlack ? BLACK_ATTACKERS: WHITE_ATTACKERS);
-			return attackMask;
-		}
+		return attackMask;
 	}
-	
-	public class CountedKnightAttackAggregator implements IForEachPieceCallback {
-		
-		public final int[] BLACK_ATTACKERS = {Piece.BLACK_KNIGHT};
-		public final int[] WHITE_ATTACKERS = {Piece.WHITE_KNIGHT};
-		
-		long [] attackMask = {0L, 0L, 0L, 0L, 0L};
-		
-		public void callback(int piece, int position) {
-			long mask = 0L;
-			switch(piece) {
-			case Piece.WHITE_KNIGHT:
-			case Piece.BLACK_KNIGHT:
-				mask = SquareAttackEvaluator.KnightMove_Lut[position];
-				break;
-			default:
-				break;
-			}
-			CountedBitBoard.setBits(attackMask, mask);
-		}
-		
-		@Override
-		public boolean condition_callback(int piece, int atPos) {
-			return false;
-		}
-		
-		public void getAttacks(long[] attacks, boolean attackerIsBlack) {
-			this.attackMask = attacks;
-			pieceLists.forEachPieceOfTypeDoCallback(this, attackerIsBlack ? BLACK_ATTACKERS: WHITE_ATTACKERS);
+
+	public void getCountedKnightAttacks(long[] attacks, boolean attackerIsBlack) {
+		long scratchBitBoard = attackerIsBlack ? getBlackKnights() : getWhiteKnights();
+		while (scratchBitBoard != 0x0L) {
+			int bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
+			long mask = SquareAttackEvaluator.KnightMove_Lut[bit_offset];
+			CountedBitBoard.setBits(attacks, mask);
+			scratchBitBoard ^= (1L << bit_offset);
 		}
 	}
 	

@@ -411,9 +411,22 @@ public class PositionEvaluator implements IEvaluate {
 		
 		// Then, do king tropism for proximity
 		if (ENABLE_KING_TROPISM) {
-			final int[] BLACK_ATTACKERS = {Piece.BLACK_QUEEN, Piece.BLACK_KNIGHT};
-			final int[] WHITE_ATTACKERS = {Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT};
-			evaluation += ktc.getScore(kingBitOffset, isWhite ? BLACK_ATTACKERS : WHITE_ATTACKERS);
+			int kt_score = 0;
+			long scratchBitBoard = isWhite ? bd.getBlackKnights() : bd.getWhiteKnights();
+			while (scratchBitBoard != 0x0L) {
+				int bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
+				int distance = BitBoard.ManhattanDistance[bit_offset][kingBitOffset];
+				kt_score += ktc.KNIGHT_DIST_LUT[distance];
+				scratchBitBoard ^= (1L << bit_offset);
+			}
+			scratchBitBoard = isWhite ? bd.getBlackQueens() : bd.getWhiteQueens();
+			while (scratchBitBoard != 0x0L) {
+				int bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
+				int distance = BitBoard.ManhattanDistance[bit_offset][kingBitOffset];
+				kt_score += ktc.QUEEN_DIST_LUT[distance];
+				scratchBitBoard ^= (1L << bit_offset);
+			}
+			evaluation += kt_score;
 		}
 		
 		// Hit with a penalty if few defending pawns in the king zone and/or pawn storm
