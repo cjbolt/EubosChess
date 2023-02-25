@@ -138,8 +138,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public void performMove(int move) {
 		boolean kingInCheckBeforeMove = false;
-		boolean initialOnMoveIsWhite = onMoveIsWhite();
 		if (EubosEngineMain.ENABLE_ASSERTS) {
+			boolean initialOnMoveIsWhite = onMoveIsWhite();
 			if ((initialOnMoveIsWhite ? theBoard.getWhiteKing():theBoard.getBlackKing()) != 0L) {
 				kingInCheckBeforeMove = theBoard.isKingInCheck(initialOnMoveIsWhite);
 			}
@@ -151,7 +151,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		long old_hash = getHash();
 		int old_flags = castling.getFlags();
 		theBoard.doMove(move);
-		moveTracker.push(pp, move, old_flags, prevEnPassantTargetSq, old_hash);
+		moveTracker.push(pp, move, old_flags, prevEnPassantTargetSq, old_hash, dc.checkFromPly);
 		
 		// Update state
 		castling.updateFlags(move);
@@ -162,7 +162,11 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		hash.doOnMove();
 
 		// Update the draw checker
-		repetitionPossible = dc.setPositionReached(getHash(), getPlyNumber());			
+		int ply = getPlyNumber();
+		if (Move.isCapture(move) || Move.isPawnMove(move)) {
+			dc.reset(ply);
+		}
+		repetitionPossible = dc.setPositionReached(getHash(), ply);			
 		
 		// Update onMove
 		onMove = Colour.getOpposite(onMove);
@@ -172,7 +176,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		if (EubosEngineMain.ENABLE_ASSERTS) {
 			if (kingInCheckBeforeMove) {
 				// need to have moved out of check!!!
-				assert !theBoard.isKingInCheck(initialOnMoveIsWhite) :
+				assert !theBoard.isKingInCheck(!onMoveIsWhite()) :
 					String.format("%s %s", this.unwindMoveStack(), getFen());
 			}
 		}
@@ -186,6 +190,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		long pp = moveTracker.getPassedPawns();
 		int enPasTargetSq = moveTracker.getEnPassant();
 		long prev_hash = moveTracker.getHash();
+		int dc_index = moveTracker.getDrawCheckPly();
 		int reversedMove = Move.reverse(move);
 		
 		theBoard.undoMove(reversedMove);
@@ -201,6 +206,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		
 		// Restore Hash
 		hash.hashCode = prev_hash;
+		
+		dc.checkFromPly = dc_index;
 			
 		// Clear draw indicator flag
 		repetitionPossible = false;
@@ -217,13 +224,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Preserve state
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		theBoard.setEnPassantTargetSq(BitBoard.INVALID);
-		moveTracker.push(0L, Move.NULL_MOVE, castling.getFlags(), prevEnPassantTargetSq, 0L);
+		moveTracker.push(0L, Move.NULL_MOVE, castling.getFlags(), prevEnPassantTargetSq, 0L, 0);
 
 		hash.doEnPassant(prevEnPassantTargetSq, BitBoard.INVALID);
 		hash.doOnMove();
-
-		// Update the draw checker
-		repetitionPossible = dc.setPositionReached(getHash(), getPlyNumber());
 		
 		// Update onMove
 		onMove = Colour.getOpposite(onMove);

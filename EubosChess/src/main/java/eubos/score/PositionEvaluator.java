@@ -128,7 +128,6 @@ public class PositionEvaluator implements IEvaluate {
 	public PositionEvaluator(IPositionAccessors pm, PawnEvalHashTable pawnHash) {	
 		this.pm = pm;
 		bd = pm.getTheBoard();
-		ktc = new KingTropismChecker();
 		pawn_eval = new PawnEvaluator(pm, pawnHash);
 		// If either side can't win (e.g. bare King) then do a mate search.
 		goForMate = ((Long.bitCount(bd.getBlackPieces()) == 1) || 
@@ -306,53 +305,9 @@ public class PositionEvaluator implements IEvaluate {
 		return score;
 	}
 	
-	public class KingTropismChecker implements IForEachPieceCallback {
-		
-		// by distance, in centipawns.
-		public final int[] QUEEN_DIST_LUT = {0, -100, -50, -12, -7, -5, 0, 0, 0};
-		public final int[] KNIGHT_DIST_LUT = {0, -25, -50, -25, -12, 0, 0, 0, 0};
-		public final int[] BISHOP_DIST_LUT = {0, -20, -15, -12, -8, -4, -2, -1, 0};
-		public final int[] ROOK_DIST_LUT = {0, -50, -30, -20, -10, -8, -4, -2, 0};
-		public final int[] PAWN_DIST_LUT = {0, -20, -10, -3, 0, 0, 0, 0, 0};
-		
-		int score = 0;
-		int kingOffset = BitBoard.INVALID;
-		
-		public void callback(int piece, int bitOffset) {
-			int distance = BitBoard.ManhattanDistance[bitOffset][kingOffset];
-			piece &= ~Piece.BLACK;
-			switch(piece) {
-			case Piece.QUEEN:
-				score += QUEEN_DIST_LUT[distance];
-				break;
-			case Piece.KNIGHT:
-				score += KNIGHT_DIST_LUT[distance];
-				break;
-			case Piece.BISHOP:
-				score += BISHOP_DIST_LUT[distance];
-				break;
-			case Piece.ROOK:
-				score += ROOK_DIST_LUT[distance];
-				break;
-			default:
-				break;
-			}
-		}
-		
-		@Override
-		public boolean condition_callback(int piece, int atPos) {
-			return false;
-		}
-		
-		public int getScore(int kingBitOffset, int [] attackers) {
-			score = 0;
-			kingOffset = kingBitOffset;
-			bd.pieceLists.forEachPieceOfTypeDoCallback(this, attackers);
-			return score;
-		}
-	}
-	
-	KingTropismChecker ktc;
+	// King Tropism by distance, in centipawns.
+	public final int[] KT_QUEEN_DIST_LUT = {0, -100, -50, -12, -7, -5, 0, 0, 0};
+	public final int[] KT_KNIGHT_DIST_LUT = {0, -25, -50, -25, -12, 0, 0, 0, 0};
 	
 	// Make function of game phase?
 	public final int[] PAWN_SHELTER_LUT = {-100, -50, -15, 2, 4, 4, 0, 0, 0};
@@ -416,14 +371,14 @@ public class PositionEvaluator implements IEvaluate {
 			while (scratchBitBoard != 0x0L) {
 				int bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
 				int distance = BitBoard.ManhattanDistance[bit_offset][kingBitOffset];
-				kt_score += ktc.KNIGHT_DIST_LUT[distance];
+				kt_score += KT_KNIGHT_DIST_LUT[distance];
 				scratchBitBoard ^= (1L << bit_offset);
 			}
 			scratchBitBoard = isWhite ? bd.getBlackQueens() : bd.getWhiteQueens();
 			while (scratchBitBoard != 0x0L) {
 				int bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
 				int distance = BitBoard.ManhattanDistance[bit_offset][kingBitOffset];
-				kt_score += ktc.QUEEN_DIST_LUT[distance];
+				kt_score += KT_QUEEN_DIST_LUT[distance];
 				scratchBitBoard ^= (1L << bit_offset);
 			}
 			evaluation += kt_score;

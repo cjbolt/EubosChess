@@ -10,6 +10,7 @@ class MoveTracker {
 	private byte[] en_passant_square_stack;
 	private byte[] castling_stack;
 	private int[] move_stack;
+	private int[] draw_check_ply;
 	private int index = 0;
 	
 	MoveTracker() {
@@ -18,15 +19,17 @@ class MoveTracker {
 		castling_stack = new byte[CAPACITY];
 		move_stack = new int[CAPACITY];
 		hash_stack = new long[CAPACITY];
+		draw_check_ply = new int[CAPACITY];
 		index = 0;
 	}
 	
-	public void push(long pp, int move, int castling, int enPassant, long hash) {
+	public void push(long pp, int move, int castling, int enPassant, long hash, int dc_index) {
 		passed_pawn_stack[index] = pp;
 		move_stack[index] = move;
 		en_passant_square_stack[index] = (byte) enPassant;
 		castling_stack[index] = (byte) castling;
 		hash_stack[index] = hash;
+		draw_check_ply[index] = dc_index;
 		index += 1;
 	}
 	
@@ -55,6 +58,10 @@ class MoveTracker {
 	
 	public int getCastling() {
 		return castling_stack[index];
+	}
+	
+	public int getDrawCheckPly() {
+		return draw_check_ply[index];
 	}
 	
 	public boolean isEmpty() {

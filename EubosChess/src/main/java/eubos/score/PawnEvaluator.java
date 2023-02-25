@@ -146,7 +146,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		return -bd.countDoubledPawns(pawns)*DOUBLED_PAWN_HANDICAP;
 	}
 		
-	public int evaluatePawnsForSide(long pawns, boolean isBlack) {
+	int evaluatePawnsForSide(long pawns, boolean isBlack) {
 		int pawnEvaluationScore = 0;
 		piecewisePawnScoreAccumulator = 0;
 		if (pawns != 0x0) {

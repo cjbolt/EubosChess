@@ -289,7 +289,7 @@ public final class Move {
 	}
 	
 	public static boolean isPawnMove(int move) {
-		return Piece.isPawn(getOriginPiece(move));
+		return (move & (Piece.PIECE_NO_COLOUR_MASK << ORIGIN_PIECE_SHIFT)) == (Piece.PAWN << ORIGIN_PIECE_SHIFT);
 	}
 
 	public static GenericMove toGenericMove(int move) {
