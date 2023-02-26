@@ -1,67 +1,77 @@
 package eubos.position;
 
+import eubos.board.BitBoard;
 import eubos.main.EubosEngineMain;
 
 class MoveTracker {
-	
+	class MoveStack {
+		long passed_pawn;
+		long hash;
+		byte en_passant_square;
+		byte castling;
+		int move;
+		int draw_check_ply;
+		
+		MoveStack() {
+			passed_pawn = 0L;
+			hash = 0L;
+			en_passant_square = BitBoard.INVALID;
+			castling = 0;
+			move = Move.NULL_MOVE;
+			draw_check_ply = 0;
+		}
+	}
 	private static final int CAPACITY = 400;
-	private long[] passed_pawn_stack;
-	private long[] hash_stack;
-	private byte[] en_passant_square_stack;
-	private byte[] castling_stack;
-	private int[] move_stack;
-	private int[] draw_check_ply;
+	private MoveStack[] stack;
 	private int index = 0;
 	
 	MoveTracker() {
-		passed_pawn_stack = new long[CAPACITY];
-		en_passant_square_stack = new byte[CAPACITY];
-		castling_stack = new byte[CAPACITY];
-		move_stack = new int[CAPACITY];
-		hash_stack = new long[CAPACITY];
-		draw_check_ply = new int[CAPACITY];
+		stack = new MoveStack[CAPACITY];
+		for (int i=0; i < stack.length; i++) {
+			stack[i] = new MoveStack();
+		}
 		index = 0;
 	}
 	
 	public void push(long pp, int move, int castling, int enPassant, long hash, int dc_index) {
-		passed_pawn_stack[index] = pp;
-		move_stack[index] = move;
-		en_passant_square_stack[index] = (byte) enPassant;
-		castling_stack[index] = (byte) castling;
-		hash_stack[index] = hash;
-		draw_check_ply[index] = dc_index;
+		stack[index].passed_pawn = pp;
+		stack[index].move = move;
+		stack[index].en_passant_square = (byte) enPassant;
+		stack[index].castling = (byte) castling;
+		stack[index].hash = hash;
+		stack[index].draw_check_ply = dc_index;
 		index += 1;
 	}
 	
 	public void pop() {
 		if (EubosEngineMain.ENABLE_ASSERTS) {
-			assert index > 0 : String.format("%s %s %s", Move.toString(move_stack[0]), Move.toString(move_stack[1]), Move.toString(move_stack[2]));
+			assert index > 0 : String.format("%s %s %s", Move.toString(stack[0].move), Move.toString(stack[1].move), Move.toString(stack[2].move));
 		}
 		index -= 1;
 	}
 	
 	public long getPassedPawns() {
-		return passed_pawn_stack[index];
+		return stack[index].passed_pawn;
 	}
 	
 	public long getHash() {
-		return hash_stack[index];
+		return stack[index].hash;
 	}
 	
 	public int getMove() {
-		return move_stack[index];
+		return stack[index].move;
 	}
 	
 	public int getEnPassant() {
-		return en_passant_square_stack[index];
+		return stack[index].en_passant_square;
 	}
 	
 	public int getCastling() {
-		return castling_stack[index];
+		return stack[index].castling;
 	}
 	
 	public int getDrawCheckPly() {
-		return draw_check_ply[index];
+		return stack[index].draw_check_ply;
 	}
 	
 	public boolean isEmpty() {

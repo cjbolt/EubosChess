@@ -5,7 +5,6 @@ import java.util.IntSummaryStatistics;
 
 import eubos.board.BitBoard;
 import eubos.board.Board;
-import eubos.board.IForEachPieceCallback;
 import eubos.board.Piece;
 import eubos.board.SquareAttackEvaluator;
 import eubos.main.EubosEngineMain;

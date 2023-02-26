@@ -66,7 +66,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_UCI_MOVE_NUMBER = false;
 	
 	public static final boolean ENABLE_ASSERTS = false;
-	public static final boolean ENABLE_PERFT = false;
+	public static final boolean ENABLE_PERFT = true;
 	public static final boolean ENABLE_TEST_SUITES = false;
 	
 	public static final boolean ENABLE_REPETITION_DETECTION = true;
