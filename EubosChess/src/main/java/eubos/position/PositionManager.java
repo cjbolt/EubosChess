@@ -12,6 +12,7 @@ import eubos.board.Board;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
+import eubos.position.MoveTracker.MoveStack;
 import eubos.score.IEvaluate;
 import eubos.score.PawnEvalHashTable;
 import eubos.score.PositionEvaluator;
@@ -183,31 +184,16 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 
 	public void unperformMove() {
-
-		moveTracker.pop();
-		int move = moveTracker.getMove();
-		int castlingFlags = moveTracker.getCastling();
-		long pp = moveTracker.getPassedPawns();
-		int enPasTargetSq = moveTracker.getEnPassant();
-		long prev_hash = moveTracker.getHash();
-		int dc_index = moveTracker.getDrawCheckPly();
-		int reversedMove = Move.reverse(move);
-		
+		MoveStack stack = moveTracker.pop();
+		int reversedMove = Move.reverse(stack.move);
 		theBoard.undoMove(reversedMove);
 		
-		// Restore castling
-		castling.setFlags(castlingFlags);
-		
-		// Restore Passed pawn mask
-		theBoard.setPassedPawns(pp);
-		
-		// Restore en passant target
-		theBoard.setEnPassantTargetSq(enPasTargetSq);
-		
-		// Restore Hash
-		hash.hashCode = prev_hash;
-		
-		dc.checkFromPly = dc_index;
+		// Restore state from move stack
+		castling.setFlags(stack.castling);
+		theBoard.setPassedPawns(stack.passed_pawn);
+		theBoard.setEnPassantTargetSq(stack.en_passant_square);
+		hash.hashCode = stack.hash;
+		dc.checkFromPly = stack.draw_check_ply;
 			
 		// Clear draw indicator flag
 		repetitionPossible = false;
@@ -237,12 +223,11 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	public void unperformNullMove() {
-
-		moveTracker.pop();
-		// Restore castling
-		castling.setFlags(moveTracker.getCastling());
-		// Restore en passant target
-		int enPasTargetSq = moveTracker.getEnPassant();
+		MoveStack stack = moveTracker.pop();
+		
+		// Restore state
+		castling.setFlags(stack.castling);
+		int enPasTargetSq = stack.en_passant_square;
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
 		
 		hash.doEnPassant(BitBoard.INVALID, enPasTargetSq);

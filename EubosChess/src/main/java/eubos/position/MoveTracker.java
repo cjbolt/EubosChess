@@ -43,11 +43,12 @@ class MoveTracker {
 		index += 1;
 	}
 	
-	public void pop() {
+	public MoveStack pop() {
 		if (EubosEngineMain.ENABLE_ASSERTS) {
 			assert index > 0 : String.format("%s %s %s", Move.toString(stack[0].move), Move.toString(stack[1].move), Move.toString(stack[2].move));
 		}
 		index -= 1;
+		return stack[index];
 	}
 	
 	public long getPassedPawns() {
