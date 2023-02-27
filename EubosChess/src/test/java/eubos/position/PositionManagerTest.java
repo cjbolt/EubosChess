@@ -188,14 +188,14 @@ public class PositionManagerTest {
 	
 	@Test
 	public void test_FenString() {
-		String fenString = "7r/8/8/8/8/8/8/4K2R b K - - 0";
+		String fenString = "7r/8/8/8/8/8/8/4K2R b K - - 1";
 		createSutAndRegisterPe(fenString);
 		assertEquals(fenString, classUnderTest.getFen());
 	}
 	
 	@Test
 	public void test_FenString1() {
-		String fenString = "7r/8/8/8/8/4P3/8/4K2R b K e3 - 0";
+		String fenString = "7r/8/8/8/8/4P3/8/4K2R b K e3 - 1";
 		createSutAndRegisterPe(fenString);
 		assertEquals(fenString, classUnderTest.getFen());
 	}

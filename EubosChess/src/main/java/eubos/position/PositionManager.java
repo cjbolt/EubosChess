@@ -66,18 +66,18 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return Colour.isWhite(onMove);
 	}
 	
+	private int plyNumber;
 	private int moveNumber;
 	public int getMoveNumber() {
-		return moveNumber;
+		return (plyNumber/2) + 1;
 	}
 	private void setMoveNumber(int move) {
 		moveNumber = move;
+		plyNumber = (moveNumber-1) * 2;
+		plyNumber += onMoveIsWhite() ? 0 : 1;
 	}
 	
 	public int getPlyNumber() {
-		// Index checker from 0
-		int plyNumber = (moveNumber-1) * 2;
-		plyNumber += onMoveIsWhite() ? 0 : 1;
 		return plyNumber;
 	}
 
@@ -116,9 +116,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		
 		// Update onMove
 		onMove = Colour.getOpposite(onMove);
-		if (Colour.isWhite(onMove)) {
-			moveNumber++;
-		}
+		plyNumber++;
+		
 		// Update the draw checker
 		isDrawing = dc.setPositionReached(getHash(), getPlyNumber());
 		
@@ -130,9 +129,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		
 		// Update onMove flag
 		onMove = Piece.Colour.getOpposite(onMove);
-		if (Colour.isBlack(onMove)) {
-			moveNumber--;
-		}
+		plyNumber--;
 		
 		return isDrawing;
 	}
@@ -163,17 +160,15 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		hash.doOnMove();
 
 		// Update the draw checker
-		int ply = getPlyNumber();
 		if (Move.isCapture(move) || Move.isPawnMove(move)) {
-			dc.reset(ply);
+			dc.reset(plyNumber);
 		}
-		repetitionPossible = dc.setPositionReached(getHash(), ply);			
+		repetitionPossible = dc.setPositionReached(getHash(), plyNumber);			
 		
 		// Update onMove
 		onMove = Colour.getOpposite(onMove);
-		if (Colour.isWhite(onMove)) {
-			moveNumber++;
-		}
+		plyNumber++;
+
 		if (EubosEngineMain.ENABLE_ASSERTS) {
 			if (kingInCheckBeforeMove) {
 				// need to have moved out of check!!!
@@ -200,9 +195,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		
 		// Update onMove flag
 		onMove = Piece.Colour.getOpposite(onMove);
-		if (Colour.isBlack(onMove)) {
-			moveNumber--;
-		}
+		plyNumber--;
 	}
 	
 	public void performNullMove() {
@@ -217,9 +210,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		
 		// Update onMove
 		onMove = Colour.getOpposite(onMove);
-		if (Colour.isWhite(onMove)) {
-			moveNumber++;
-		}
+		plyNumber+=1;
 	}
 	
 	public void unperformNullMove() {
@@ -238,9 +229,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		
 		// Update onMove flag
 		onMove = Piece.Colour.getOpposite(onMove);
-		if (Colour.isBlack(onMove)) {
-			moveNumber--;
-		}
+		plyNumber-=1;
 	}
 		
 	public String getFen() {
@@ -258,7 +247,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		} else {
 			fen.append('-');
 		}
-		fen.append(" - " + moveNumber);
+		fen.append(" - " + getMoveNumber());
 		return fen.toString();
 	}
 	
@@ -287,7 +276,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 				onMove = Colour.black;
 		}
 		private void parseMoveNumber(PositionManager pm, String moveNumber) {
-			int moveNum = 0;
+			int moveNum = 1;
 			if (!moveNumber.equals("-")) {
 				moveNum = Integer.parseInt(moveNumber);
 			}
