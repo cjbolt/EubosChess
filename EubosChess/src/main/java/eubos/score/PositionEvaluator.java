@@ -261,7 +261,7 @@ public class PositionEvaluator implements IEvaluate {
 			midgameScore = score + (onMoveIsWhite ? bd.me.getMiddleGameDelta() + bd.me.getPosition() : -(bd.me.getMiddleGameDelta() + bd.me.getPosition()));
 			endgameScore = score + (onMoveIsWhite ? bd.me.getEndGameDelta() + bd.me.getEndgamePosition() : -(bd.me.getEndGameDelta() + bd.me.getEndgamePosition()));
 			// Add King Safety in middle game
-			if (ENABLE_KING_SAFETY_EVALUATION && !goForMate) {
+			if (ENABLE_KING_SAFETY_EVALUATION && !bd.me.isEndgame()) {
 				midgameScore += evaluateKingSafety(attacks);
 			}
 			if (!goForMate) {

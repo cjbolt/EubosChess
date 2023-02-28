@@ -477,7 +477,6 @@ public class Board {
 		if (kingBitOffset == BitBoard.INVALID)
 			return isPinned;
 		
-		long kingMask = 1L << kingBitOffset;
 		int pinOffset = Move.getOriginPosition(move);
 		long pinSquare = 1L << pinOffset;
 
@@ -505,6 +504,7 @@ public class Board {
 			allPieces &= ~pinSquare;
 			allPieces |= targetMask;
 			
+			long kingMask = 1L << kingBitOffset;
 			if (pinOffset > kingBitOffset) {
 				// indicates either up left or upright direction
 				long upLeftMask = SquareAttackEvaluator.directAttacksOnPositionUpLeft_Lut[kingBitOffset];			
@@ -565,6 +565,7 @@ public class Board {
 				allPieces &= ~pinSquare;
 				allPieces |= targetMask;
 				
+				long kingMask = 1L << kingBitOffset;
 				if (pinOffset > kingBitOffset) {
 					// indicates either up or right direction
 					long rightMask = SquareAttackEvaluator.directAttacksOnPositionRight_Lut[kingBitOffset];			
