@@ -210,7 +210,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		
 		// Update onMove
 		onMove = Colour.getOpposite(onMove);
-		plyNumber+=1;
+		plyNumber+=2;
 	}
 	
 	public void unperformNullMove() {
@@ -229,7 +229,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		
 		// Update onMove flag
 		onMove = Piece.Colour.getOpposite(onMove);
-		plyNumber-=1;
+		plyNumber-=2;
 	}
 		
 	public String getFen() {
