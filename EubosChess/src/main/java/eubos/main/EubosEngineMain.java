@@ -82,6 +82,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_ITERATIVE_DEEPENING = true;
 	
 	public static final boolean ENABLE_PINNED_TO_KING_CHECK_IN_ILLEGAL_DETECTION = true;
+	public static final boolean ENABLE_PIECE_LISTS = false;
 	
 	public static final int MAXIMUM_PLIES_IN_GAME = 250;
 	
