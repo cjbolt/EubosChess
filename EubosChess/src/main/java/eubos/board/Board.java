@@ -2041,29 +2041,27 @@ public class Board {
 				scratchBitBoard ^= (1L << bit_offset);
 			}
 			scratchBitBoard = pieces[Piece.ROOK] & side;
-			while (scratchBitBoard != 0x0L) {
-				int bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
-				if (bit_offset != BitBoard.INVALID) {
-					long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
-					if ((opponentPieces & attacksMask) != 0) {	
-						Piece.rook_generateMovesExtSearch_Black(ml, this, bit_offset);
-					}
-				} else break;
+			int bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
+			while (bit_offset != BitBoard.INVALID) {
+				long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
+				if ((opponentPieces & attacksMask) != 0) {	
+					Piece.rook_generateMovesExtSearch_Black(ml, this, bit_offset);
+				}
 				scratchBitBoard ^= (1L << bit_offset);
+				bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
 			}
 			scratchBitBoard = pieces[Piece.PAWN] & side;
-			while (scratchBitBoard != 0x0L) {
-				int bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
-				if (bit_offset != BitBoard.INVALID) {
-					if (IntRank.R2 != BitBoard.getRank(bit_offset)) {
-						Piece.pawn_generateMovesForExtendedSearch_Black(ml, this, bit_offset);
-					}
-				} else break;
+			bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
+			while (bit_offset != BitBoard.INVALID) {	
+				if (IntRank.R2 != BitBoard.getRank(bit_offset)) {
+					Piece.pawn_generateMovesForExtendedSearch_Black(ml, this, bit_offset);
+				}
 				scratchBitBoard ^= (1L << bit_offset);
+				bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
 			}
 			{
 				scratchBitBoard = pieces[Piece.KING] & side;
-				int bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
+				bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
 				if (bit_offset != BitBoard.INVALID) {			
 					long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[bit_offset];
 					if ((opponentPieces & kingAttacksMask) != 0) {
