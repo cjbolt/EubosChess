@@ -400,7 +400,7 @@ public class MobilityAttacksEvaluator {
 		// Knights
 		attacks[1][0] = theBoard.getBasicKnightAttacks(true);
 		// King
-		int blackKingOffset = theBoard.pieceLists.getKingPos(false);
+		int blackKingOffset = theBoard.getKingPosition(false);
 		if (blackKingOffset != BitBoard.INVALID) {
 			long kingAttacks = SquareAttackEvaluator.KingMove_Lut[blackKingOffset];
 			attacks[3][0] |= (attacks[1][0] | kingAttacks);
@@ -415,7 +415,7 @@ public class MobilityAttacksEvaluator {
 		// Knights
 		attacks[1][0] = theBoard.getBasicKnightAttacks(false);
 		// King
-		int whiteKingOffset = theBoard.pieceLists.getKingPos(true);
+		int whiteKingOffset = theBoard.getKingPosition(true);
 		if (whiteKingOffset != BitBoard.INVALID) {
 			long kingAttacks = SquareAttackEvaluator.KingMove_Lut[whiteKingOffset];
 			attacks[3][0] |= (attacks[1][0] | kingAttacks);
