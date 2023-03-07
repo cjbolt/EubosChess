@@ -168,7 +168,7 @@ public class PositionEvaluator implements IEvaluate {
 		long defenders = onMoveIsWhite ? bd.getWhitePieces() : bd.getBlackPieces();
 		int defenderCount = Long.bitCount(kingZone&defenders);
 
-		int attackQueenOffset = bd.pieceLists.getQueenPos(!onMoveIsWhite);
+		int attackQueenOffset = bd.getQueenPosition(!onMoveIsWhite);
 		if (attackQueenOffset != BitBoard.INVALID) {
 			int attackingQueenDistance = BitBoard.ManhattanDistance[attackQueenOffset][kingBitOffset];
 			return (defenderCount < 3 || attackingQueenDistance < 3);
@@ -317,7 +317,7 @@ public class PositionEvaluator implements IEvaluate {
 
 		// King
 		long kingMask = isWhite ? bd.getWhiteKing() : bd.getBlackKing();
-		int kingBitOffset = bd.pieceLists.getKingPos(isWhite);
+		int kingBitOffset = bd.getKingPosition(isWhite);
 		long blockers = isWhite ? bd.getWhitePawns() : bd.getBlackPawns();
 		
 		// Attackers

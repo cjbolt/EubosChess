@@ -25,106 +25,116 @@ public class PieceList {
 	private Board theBoard;
 	
 	public PieceList(Board theBoard) {
-		for (int [] piece : piece_list) {
-			Arrays.fill(piece, BitBoard.INVALID);
+		if (EubosEngineMain.ENABLE_PIECE_LISTS) {
+			for (int [] piece : piece_list) {
+				Arrays.fill(piece, BitBoard.INVALID);
+			}
+			this.theBoard = theBoard;
 		}
-		this.theBoard = theBoard;
 	}
 	
 	public void addPiece(int piece, int atPos) {
-		if (EubosEngineMain.ENABLE_ASSERTS) {
-			assert piece != Piece.NONE;
-			assert atPos != BitBoard.INVALID;
-		}
-		
-		for (int piece_number = 0; piece_number < MAX_NUM_PIECES; piece_number++) {
-			if (piece_list[piece][piece_number] == BitBoard.INVALID) {
-				piece_list[piece][piece_number] = atPos;
-				break;
+		if (EubosEngineMain.ENABLE_PIECE_LISTS) {
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert piece != Piece.NONE;
+				assert atPos != BitBoard.INVALID;
+			}
+			
+			for (int piece_number = 0; piece_number < MAX_NUM_PIECES; piece_number++) {
+				if (piece_list[piece][piece_number] == BitBoard.INVALID) {
+					piece_list[piece][piece_number] = atPos;
+					break;
+				}
 			}
 		}
 	}
 	
 	public void removePiece(int piece, int atPos) {
-		if (EubosEngineMain.ENABLE_ASSERTS) {
-			assert piece != Piece.NONE;
-			assert atPos != BitBoard.INVALID;
-		}
-		
-		// find the index into the relevant piece list to clear
-		int [] the_list = piece_list[piece];
-		boolean found = false;
-		for (int i=0; i < MAX_NUM_PIECES; i++) {
-			if (the_list[i] == atPos) {
-				found = true;
+		if (EubosEngineMain.ENABLE_PIECE_LISTS) {
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert piece != Piece.NONE;
+				assert atPos != BitBoard.INVALID;
 			}
-			if (found) {
-				// Bring down next entry 
-				the_list[i] = the_list[i+1];
-				// Break out ASAP
-				if (the_list[i+1] == BitBoard.INVALID) {
-					break;
+			
+			// find the index into the relevant piece list to clear
+			int [] the_list = piece_list[piece];
+			boolean found = false;
+			for (int i=0; i < MAX_NUM_PIECES; i++) {
+				if (the_list[i] == atPos) {
+					found = true;
+				}
+				if (found) {
+					// Bring down next entry 
+					the_list[i] = the_list[i+1];
+					// Break out ASAP
+					if (the_list[i+1] == BitBoard.INVALID) {
+						break;
+					}
 				}
 			}
-		}
-		
-		if (EubosEngineMain.ENABLE_ASSERTS) {
-			assert found;
+			
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert found;
+			}
 		}
 	}
 	
 	public void updatePiece(int piece, int atPos, int targetPos) {
-		if (EubosEngineMain.ENABLE_ASSERTS) {
-			assert piece != Piece.NONE;
-			assert atPos != BitBoard.INVALID;
-		}
-		
-		// find the piece to update
-		for (int piece_number = 0; piece_number < MAX_NUM_PIECES; piece_number++) {
-			if (piece_list[piece][piece_number] == atPos) {
-				piece_list[piece][piece_number] = targetPos;
-				break;
+		if (EubosEngineMain.ENABLE_PIECE_LISTS) {
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert piece != Piece.NONE;
+				assert atPos != BitBoard.INVALID;
 			}
-		}
-		
-		if (EubosEngineMain.ENABLE_ASSERTS) {
-			// error check to ensure consistency of piece list with bitboard!
-			boolean found = false;
+			
+			// find the piece to update
 			for (int piece_number = 0; piece_number < MAX_NUM_PIECES; piece_number++) {
-				if (piece_list[piece][piece_number] == targetPos) {
-					found = true;
+				if (piece_list[piece][piece_number] == atPos) {
+					piece_list[piece][piece_number] = targetPos;
 					break;
 				}
 			}
-			assert found : String.format("PieceList out of sync with Board for %d at %s",
-					piece, Position.toGenericPosition(targetPos));
+			
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				// error check to ensure consistency of piece list with bitboard!
+				boolean found = false;
+				for (int piece_number = 0; piece_number < MAX_NUM_PIECES; piece_number++) {
+					if (piece_list[piece][piece_number] == targetPos) {
+						found = true;
+						break;
+					}
+				}
+				assert found : String.format("PieceList out of sync with Board for %d at %s",
+						piece, Position.toGenericPosition(targetPos));
+			}
 		}
 	}
 	
 	public void updatePiece(int oldPiece, int piece, int atPos, int targetPos) {
-		// find the index into the relevant piece list to clear
-		int [] the_list = piece_list[oldPiece];
-		boolean found = false;
-		for (int i=0; i < MAX_NUM_PIECES; i++) {
-			if (the_list[i] == atPos) {
-				found = true;
-			} else {
-				// Continue search or bringing down other positions...
-			}
-			if (found) {
-				// Bring down next entry 
-				the_list[i] = the_list[i+1];
-				// Break out ASAP
-				if (the_list[i] == BitBoard.INVALID) {
-					break;
+		if (EubosEngineMain.ENABLE_PIECE_LISTS) {
+			// find the index into the relevant piece list to clear
+			int [] the_list = piece_list[oldPiece];
+			boolean found = false;
+			for (int i=0; i < MAX_NUM_PIECES; i++) {
+				if (the_list[i] == atPos) {
+					found = true;
+				} else {
+					// Continue search or bringing down other positions...
+				}
+				if (found) {
+					// Bring down next entry 
+					the_list[i] = the_list[i+1];
+					// Break out ASAP
+					if (the_list[i] == BitBoard.INVALID) {
+						break;
+					}
 				}
 			}
-		}
-		// find the piece to update
-		for (int piece_number = 0; piece_number < MAX_NUM_PIECES; piece_number++) {
-			if (piece_list[piece][piece_number] == BitBoard.INVALID) {
-				piece_list[piece][piece_number] = targetPos;
-				break;
+			// find the piece to update
+			for (int piece_number = 0; piece_number < MAX_NUM_PIECES; piece_number++) {
+				if (piece_list[piece][piece_number] == BitBoard.INVALID) {
+					piece_list[piece][piece_number] = targetPos;
+					break;
+				}
 			}
 		}
 	}
@@ -138,14 +148,18 @@ public class PieceList {
 			Piece.BLACK_QUEEN, Piece.BLACK_KING 
 	};
 	public void forEachPieceDoCallback(IForEachPieceCallback caller) {
-		for(int piece : ALL_PIECES) {
-			forEachPieceOfTypeHelper(piece_list[piece], caller, piece);
+		if (EubosEngineMain.ENABLE_PIECE_LISTS) {
+			for(int piece : ALL_PIECES) {
+				forEachPieceOfTypeHelper(piece_list[piece], caller, piece);
+			}
 		}
 	}
 	
 	public void forEachPieceOfTypeDoCallback(IForEachPieceCallback caller, int[] pieceTypesToIterate) {
-		for(int piece : pieceTypesToIterate) {
-			forEachPieceOfTypeHelper(piece_list[piece], caller, piece);
+		if (EubosEngineMain.ENABLE_PIECE_LISTS) {
+			for(int piece : pieceTypesToIterate) {
+				forEachPieceOfTypeHelper(piece_list[piece], caller, piece);
+			}
 		}
 	}
 	
@@ -348,9 +362,11 @@ public class PieceList {
 	}
 	
 	public void forEachPawnOfSideDoCallback(IForEachPieceCallback caller, boolean sideIsBlack) {
-		int pawn = sideIsBlack ? Piece.BLACK_PAWN : Piece.WHITE_PAWN;
-		int [] pawns = piece_list[pawn];
-		forEachPieceOfTypeHelper(pawns, caller, pawn);		
+		if (EubosEngineMain.ENABLE_PIECE_LISTS) {
+			int pawn = sideIsBlack ? Piece.BLACK_PAWN : Piece.WHITE_PAWN;
+			int [] pawns = piece_list[pawn];
+			forEachPieceOfTypeHelper(pawns, caller, pawn);	
+		}
 	}
 	
 	public int getKingPos(boolean sideIsWhite) {

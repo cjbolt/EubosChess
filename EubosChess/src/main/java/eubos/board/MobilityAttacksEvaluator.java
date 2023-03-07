@@ -435,7 +435,7 @@ public class MobilityAttacksEvaluator {
 		theBoard.getCountedKnightAttacks(attacks[1], true);
 		CountedBitBoard.setBitArrays(attacks[3], attacks[1]);
 		// King
-		int blackKingOffset = theBoard.pieceLists.getKingPos(false);
+		int blackKingOffset = theBoard.getKingPosition(false);
 		if (blackKingOffset != BitBoard.INVALID) {
 			long kingAttacks = SquareAttackEvaluator.KingMove_Lut[blackKingOffset];
 			CountedBitBoard.setBits(attacks[3], kingAttacks);
@@ -455,7 +455,7 @@ public class MobilityAttacksEvaluator {
 		theBoard.getCountedKnightAttacks(attacks[1], false);
 		CountedBitBoard.setBitArrays(attacks[3], attacks[1]);
 		// King
-		int whiteKingOffset = theBoard.pieceLists.getKingPos(true);
+		int whiteKingOffset = theBoard.getKingPosition(true);
 		if (whiteKingOffset != BitBoard.INVALID) {
 			long kingAttacks = SquareAttackEvaluator.KingMove_Lut[whiteKingOffset];
 			CountedBitBoard.setBits(attacks[3], kingAttacks);
