@@ -101,14 +101,14 @@ public class Board {
 		}
 		scratchBitBoard = pieces[Piece.QUEEN] & ownPieces;
 		bitOffset = BitBoard.convertToBitOffset(scratchBitBoard);
-		while (scratchBitBoard != 0L && (bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.QUEEN];
 			me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.QUEEN];
 			me.numberOfPieces[side+Piece.QUEEN]++;
 			scratchBitBoard ^= (1L << bitOffset);
 		}
 		scratchBitBoard = pieces[Piece.ROOK] & ownPieces;
-		while (scratchBitBoard != 0L && (bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.ROOK];
 			me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.ROOK];
 			me.numberOfPieces[side+Piece.ROOK]++;
@@ -116,14 +116,14 @@ public class Board {
 			scratchBitBoard ^= (1L << bitOffset);
 		}
 		scratchBitBoard = pieces[Piece.BISHOP] & ownPieces;
-		while (scratchBitBoard != 0L && (bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {			
+		while ((bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {			
 			me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.BISHOP];
 			me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.BISHOP];
 			me.numberOfPieces[side+Piece.BISHOP]++;
 			scratchBitBoard ^= (1L << bitOffset);
 		}
 		scratchBitBoard = pieces[Piece.KNIGHT] & ownPieces;
-		while (scratchBitBoard != 0L && (bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.KNIGHT];
 			me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.KNIGHT];
 			me.addPst(side+Piece.KNIGHT, bitOffset);
@@ -131,7 +131,7 @@ public class Board {
 			scratchBitBoard ^= (1L << bitOffset);
 		}
 		scratchBitBoard = pieces[Piece.PAWN] & ownPieces;
-		while (scratchBitBoard != 0L && (bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert getPieceAtSquare(1L << bitOffset) != Piece.NONE :
 					String.format("Found a Pawn at %s that isn't on Board", Position.toGenericPosition(bitOffset));
@@ -1393,7 +1393,7 @@ public class Board {
 			long side = attackerIsBlack ? blackPieces : whitePieces;
 			long scratchBitBoard = pieces[Piece.PAWN] & side;
 			int bit_offset = BitBoard.INVALID;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 				attackMask |= pawnAttacksFromPositionForSide[bit_offset];
 				scratchBitBoard ^= (1L << bit_offset);
 			}
@@ -1403,21 +1403,18 @@ public class Board {
 	
 	public class CountedPawnAttackAggregator implements IForEachPieceCallback {
 		long attackMask[];
-		boolean attackerIsBlack = false;
+
+		long pawnAttacksForSide[];
 		
 		public void callback(int piece, int bitOffset) {
-			long pawnAttacks = (attackerIsBlack ?
-					SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[bitOffset] : 
-						SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[bitOffset]);
-			long bitsAlreadySetInFirstMask = pawnAttacks & attackMask[0];
-			if (attackMask.length > 1) {
-				if (bitsAlreadySetInFirstMask != 0L) {
-					// Need to find which square(s) are attacked twice and set them in the second mask,
-					// optimised for pawns, where only two squares can be simultaneously attacked by a side
-					attackMask[1] |= bitsAlreadySetInFirstMask;
-				}
+			long attacks = pawnAttacksForSide[bitOffset];
+			long bitsAlreadySetInFirstMask = attacks & attackMask[0];
+			if (bitsAlreadySetInFirstMask != 0L) {
+				// Need to find which square(s) are attacked twice and set them in the second mask,
+				// optimised for pawns, where only two squares can be simultaneously attacked by a side
+				attackMask[1] |= bitsAlreadySetInFirstMask;
 			}
-			attackMask[0] |= pawnAttacks;
+			attackMask[0] |= attacks;
 		}
 		
 		@Override
@@ -1427,11 +1424,12 @@ public class Board {
 		
 		public void getPawnAttacks(long[] attacksMask ,boolean attackerIsBlack) {
 			this.attackMask = attacksMask;
-			this.attackerIsBlack = attackerIsBlack;
-			long side = attackerIsBlack ? blackPieces : whitePieces;
-			long scratchBitBoard = pieces[Piece.PAWN] & side;
+			this.pawnAttacksForSide = attackerIsBlack ?
+					SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut: 
+					SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut;
+			long scratchBitBoard = pieces[Piece.PAWN] & (attackerIsBlack ? blackPieces : whitePieces);
 			int bit_offset = BitBoard.INVALID;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 				callback(Piece.NONE, bit_offset);
 				scratchBitBoard ^= (1L << bit_offset);
 			}
@@ -1480,7 +1478,7 @@ public class Board {
 					long scratchBitBoard = pieces[piece] & side;
 					
 					int bit_offset = BitBoard.INVALID;
-					while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+					while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 						this.callback(piece, bit_offset);
 						scratchBitBoard ^= (1L << bit_offset);
 					}
@@ -1493,7 +1491,7 @@ public class Board {
 		long attackMask = 0L;
 		long scratchBitBoard = attackerIsBlack ? getBlackKnights() : getWhiteKnights();
 		int bit_offset = BitBoard.INVALID;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			attackMask |= SquareAttackEvaluator.KnightMove_Lut[bit_offset];
 			scratchBitBoard ^= (1L << bit_offset);
 		}
@@ -1518,27 +1516,27 @@ public class Board {
 			Piece.king_generateMoves_White(ml, this, bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.PAWN] & side & (~BitBoard.RankMask_Lut[IntRank.R7]);
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.pawn_generateMoves_White(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.QUEEN] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.queen_generateMoves_White(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.ROOK] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.rook_generateMoves_White(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.BISHOP] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.bishop_generateMoves_White(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.KNIGHT] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.knight_generateMoves_White(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
@@ -1552,27 +1550,27 @@ public class Board {
 			Piece.king_generateMoves_Black(ml, this, bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.PAWN] & side & (~BitBoard.RankMask_Lut[IntRank.R2]);;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.pawn_generateMoves_Black(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.QUEEN] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.queen_generateMoves_Black(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.ROOK] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.rook_generateMoves_Black(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.BISHOP] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.bishop_generateMoves_Black(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.KNIGHT] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.knight_generateMoves_Black(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
@@ -1582,27 +1580,27 @@ public class Board {
 		long side = whitePieces;
 		long scratchBitBoard = pieces[Piece.BISHOP] & side;
 		int bit_offset = BitBoard.INVALID;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.bishop_generateMoves_White(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.KNIGHT] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.knight_generateMoves_White(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.QUEEN] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.queen_generateMoves_White(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.ROOK] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.rook_generateMoves_White(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.PAWN] & side & (~BitBoard.RankMask_Lut[IntRank.R7]);;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.pawn_generateMoves_White(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
@@ -1616,27 +1614,27 @@ public class Board {
 		long side = blackPieces;
 		long scratchBitBoard = pieces[Piece.BISHOP] & side;
 		int bit_offset = BitBoard.INVALID;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.bishop_generateMoves_Black(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.KNIGHT] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.knight_generateMoves_Black(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.QUEEN] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.queen_generateMoves_Black(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.ROOK] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.rook_generateMoves_Black(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.PAWN] & side & (~BitBoard.RankMask_Lut[IntRank.R2]);
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.pawn_generateMoves_Black(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
@@ -1681,7 +1679,7 @@ public class Board {
 	public void addMoves_PawnPromotions_White(IAddMoves ml) {
 		long scratchBitBoard = pieces[Piece.PAWN] & whitePieces & BitBoard.RankMask_Lut[IntRank.R7];
 		int bit_offset = BitBoard.INVALID;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.pawn_generatePromotionMoves_White(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
@@ -1690,7 +1688,7 @@ public class Board {
 	public void addMoves_PawnPromotions_Black(IAddMoves ml) {
 		long scratchBitBoard = pieces[Piece.PAWN] & blackPieces & BitBoard.RankMask_Lut[IntRank.R2];
 		int bit_offset = BitBoard.INVALID;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			Piece.pawn_generatePromotionMoves_Black(ml, this, bit_offset);
 			scratchBitBoard ^= (1L << bit_offset);
 		}
@@ -1712,203 +1710,212 @@ public class Board {
 		}
 	}
 	
-	public void addMoves_CapturesExcludingPawnPromotions_White(IAddMoves ml, boolean isEndgame) {
+	public void addMoves_CapturesExcludingPawnPromotions_White_Endgame(IAddMoves ml) {
 		// Optimisations for generating move lists in extended search
 		long opponentPieces = blackPieces;
 		long side = whitePieces;
 		long scratchBitBoard;
 		int bit_offset = BitBoard.INVALID;
-		if (isEndgame) {
-			scratchBitBoard = pieces[Piece.KING] & side;
-			if (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {			
-				long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[bit_offset];
-				if ((opponentPieces & kingAttacksMask) != 0) {
-					Piece.king_generateMovesExtSearch_White(ml, this, bit_offset);
-				}
+		scratchBitBoard = pieces[Piece.KING] & side;
+		if (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {			
+			long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[bit_offset];
+			if ((opponentPieces & kingAttacksMask) != 0) {
+				Piece.king_generateMovesExtSearch_White(ml, this, bit_offset);
 			}
-			// Only search pawn moves that cannot be a promotion
-			scratchBitBoard = pieces[Piece.PAWN] & side & (~BitBoard.RankMask_Lut[IntRank.R7]);
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {		
-				Piece.pawn_generateMovesForExtendedSearch_White(ml, this, bit_offset);
-				scratchBitBoard ^= (1L << bit_offset);
+		}
+		// Only search pawn moves that cannot be a promotion
+		scratchBitBoard = pieces[Piece.PAWN] & side & (~BitBoard.RankMask_Lut[IntRank.R7]);
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {		
+			Piece.pawn_generateMovesForExtendedSearch_White(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+		scratchBitBoard = pieces[Piece.QUEEN] & side;
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {	
+			long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
+			if ((opponentPieces & attacksMask) != 0) {
+				Piece.queen_generateMovesExtSearch_White(ml, this, bit_offset);
 			}
-			scratchBitBoard = pieces[Piece.QUEEN] & side;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {	
-				long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
-				if ((opponentPieces & attacksMask) != 0) {
-					Piece.queen_generateMovesExtSearch_White(ml, this, bit_offset);
-				}
-				scratchBitBoard ^= (1L << bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+		scratchBitBoard = pieces[Piece.ROOK] & side;
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
+			if ((opponentPieces & attacksMask) != 0) {	
+				Piece.rook_generateMovesExtSearch_White(ml, this, bit_offset);
 			}
-			scratchBitBoard = pieces[Piece.ROOK] & side;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-				long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
-				if ((opponentPieces & attacksMask) != 0) {	
-					Piece.rook_generateMovesExtSearch_White(ml, this, bit_offset);
-				}
-				scratchBitBoard ^= (1L << bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+		scratchBitBoard = pieces[Piece.BISHOP] & side;
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
+			if ((opponentPieces & attacksMask) != 0) {			
+				Piece.bishop_generateMovesExtSearch_White(ml, this, bit_offset);
 			}
-			scratchBitBoard = pieces[Piece.BISHOP] & side;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-				long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
-				if ((opponentPieces & attacksMask) != 0) {			
-					Piece.bishop_generateMovesExtSearch_White(ml, this, bit_offset);
-				}
-				scratchBitBoard ^= (1L << bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+		scratchBitBoard = pieces[Piece.KNIGHT] & side;
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[bit_offset];
+			if ((opponentPieces & knightAttacksMask) != 0) {
+				Piece.knight_generateMovesExtSearch_White(ml, this, bit_offset);
 			}
-			scratchBitBoard = pieces[Piece.KNIGHT] & side;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-				long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[bit_offset];
-				if ((opponentPieces & knightAttacksMask) != 0) {
-					Piece.knight_generateMovesExtSearch_White(ml, this, bit_offset);
-				}
-				scratchBitBoard ^= (1L << bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+	}
+
+	public void addMoves_CapturesExcludingPawnPromotions_White(IAddMoves ml) {
+		// Optimisations for generating move lists in extended search
+		long opponentPieces = blackPieces;
+		long side = whitePieces;
+		long scratchBitBoard;
+		int bit_offset = BitBoard.INVALID;
+		scratchBitBoard = pieces[Piece.BISHOP] & side;
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
+			if ((opponentPieces & attacksMask) != 0) {			
+				Piece.bishop_generateMovesExtSearch_White(ml, this, bit_offset);
 			}
-		} else {
-			scratchBitBoard = pieces[Piece.BISHOP] & side;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-				long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
-				if ((opponentPieces & attacksMask) != 0) {			
-					Piece.bishop_generateMovesExtSearch_White(ml, this, bit_offset);
-				}
-				scratchBitBoard ^= (1L << bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+		scratchBitBoard = pieces[Piece.KNIGHT] & side;
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[bit_offset];
+			if ((opponentPieces & knightAttacksMask) != 0) {
+				Piece.knight_generateMovesExtSearch_White(ml, this, bit_offset);
 			}
-			scratchBitBoard = pieces[Piece.KNIGHT] & side;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-				long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[bit_offset];
-				if ((opponentPieces & knightAttacksMask) != 0) {
-					Piece.knight_generateMovesExtSearch_White(ml, this, bit_offset);
-				}
-				scratchBitBoard ^= (1L << bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+		scratchBitBoard = pieces[Piece.QUEEN] & side;
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
+			if ((opponentPieces & attacksMask) != 0) {
+				Piece.queen_generateMovesExtSearch_White(ml, this, bit_offset);
 			}
-			scratchBitBoard = pieces[Piece.QUEEN] & side;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-				long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
-				if ((opponentPieces & attacksMask) != 0) {
-					Piece.queen_generateMovesExtSearch_White(ml, this, bit_offset);
-				}
-				scratchBitBoard ^= (1L << bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+		scratchBitBoard = pieces[Piece.ROOK] & side;
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
+			if ((opponentPieces & attacksMask) != 0) {	
+				Piece.rook_generateMovesExtSearch_White(ml, this, bit_offset);
 			}
-			scratchBitBoard = pieces[Piece.ROOK] & side;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-				long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
-				if ((opponentPieces & attacksMask) != 0) {	
-					Piece.rook_generateMovesExtSearch_White(ml, this, bit_offset);
-				}
-				scratchBitBoard ^= (1L << bit_offset);
-			}
-			// Only search pawn moves that cannot be a promotion
-			scratchBitBoard = pieces[Piece.PAWN] & side & (~BitBoard.RankMask_Lut[IntRank.R7]);
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-				Piece.pawn_generateMovesForExtendedSearch_White(ml, this, bit_offset);
-				scratchBitBoard ^= (1L << bit_offset);
-			}		
-			scratchBitBoard = pieces[Piece.KING] & side;
-			if (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-				long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[bit_offset];
-				if ((opponentPieces & kingAttacksMask) != 0) {
-					Piece.king_generateMovesExtSearch_White(ml, this, bit_offset);
-				}
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+		// Only search pawn moves that cannot be a promotion
+		scratchBitBoard = pieces[Piece.PAWN] & side & (~BitBoard.RankMask_Lut[IntRank.R7]);
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.pawn_generateMovesForExtendedSearch_White(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+		}		
+		scratchBitBoard = pieces[Piece.KING] & side;
+		if (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[bit_offset];
+			if ((opponentPieces & kingAttacksMask) != 0) {
+				Piece.king_generateMovesExtSearch_White(ml, this, bit_offset);
 			}
 		}
 	}
 	
-	public void addMoves_CapturesExcludingPawnPromotions_Black(IAddMoves ml, boolean isEndgame) {
+	public void addMoves_CapturesExcludingPawnPromotions_Black_Endgame(IAddMoves ml) {
 		// Optimisations for generating move lists in extended search
 		long opponentPieces = whitePieces;
 		long side = blackPieces;
 		long scratchBitBoard;
 		int bit_offset = BitBoard.INVALID;
-		if (isEndgame) {
-			scratchBitBoard = pieces[Piece.KING] & side;
-			if (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {		
-				long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[bit_offset];
-				if ((opponentPieces & kingAttacksMask) != 0) {
-					Piece.king_generateMovesExtSearch_Black(ml, this, bit_offset);
-				}
-				scratchBitBoard ^= (1L << bit_offset);
+		scratchBitBoard = pieces[Piece.KING] & side;
+		if (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {		
+			long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[bit_offset];
+			if ((opponentPieces & kingAttacksMask) != 0) {
+				Piece.king_generateMovesExtSearch_Black(ml, this, bit_offset);
 			}
-			scratchBitBoard = pieces[Piece.PAWN] & side & (~BitBoard.RankMask_Lut[IntRank.R2]);
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-				Piece.pawn_generateMovesForExtendedSearch_Black(ml, this, bit_offset);
-				scratchBitBoard ^= (1L << bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+		scratchBitBoard = pieces[Piece.PAWN] & side & (~BitBoard.RankMask_Lut[IntRank.R2]);
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.pawn_generateMovesForExtendedSearch_Black(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+		scratchBitBoard = pieces[Piece.QUEEN] & side;
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
+			if ((opponentPieces & attacksMask) != 0) {
+				Piece.queen_generateMovesExtSearch_Black(ml, this, bit_offset);
 			}
-			scratchBitBoard = pieces[Piece.QUEEN] & side;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-				long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
-				if ((opponentPieces & attacksMask) != 0) {
-					Piece.queen_generateMovesExtSearch_Black(ml, this, bit_offset);
-				}
-				scratchBitBoard ^= (1L << bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+		scratchBitBoard = pieces[Piece.ROOK] & side;
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
+			if ((opponentPieces & attacksMask) != 0) {	
+				Piece.rook_generateMovesExtSearch_Black(ml, this, bit_offset);
 			}
-			scratchBitBoard = pieces[Piece.ROOK] & side;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-				long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
-				if ((opponentPieces & attacksMask) != 0) {	
-					Piece.rook_generateMovesExtSearch_Black(ml, this, bit_offset);
-				}
-				scratchBitBoard ^= (1L << bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+		scratchBitBoard = pieces[Piece.BISHOP] & side;
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
+			if ((opponentPieces & attacksMask) != 0) {			
+				Piece.bishop_generateMovesExtSearch_Black(ml, this, bit_offset);
 			}
-			scratchBitBoard = pieces[Piece.BISHOP] & side;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-				long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
-				if ((opponentPieces & attacksMask) != 0) {			
-					Piece.bishop_generateMovesExtSearch_Black(ml, this, bit_offset);
-				}
-				scratchBitBoard ^= (1L << bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+		scratchBitBoard = pieces[Piece.KNIGHT] & side;
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[bit_offset];
+			if ((opponentPieces & knightAttacksMask) != 0) {
+				Piece.knight_generateMovesExtSearch_Black(ml, this, bit_offset);
 			}
-			scratchBitBoard = pieces[Piece.KNIGHT] & side;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-				long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[bit_offset];
-				if ((opponentPieces & knightAttacksMask) != 0) {
-					Piece.knight_generateMovesExtSearch_Black(ml, this, bit_offset);
-				}
-				scratchBitBoard ^= (1L << bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+	}
+		
+	public void addMoves_CapturesExcludingPawnPromotions_Black(IAddMoves ml) {
+		long opponentPieces = whitePieces;
+		long side = blackPieces;
+		long scratchBitBoard;
+		int bit_offset = BitBoard.INVALID;
+		scratchBitBoard = pieces[Piece.BISHOP] & side;
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
+			if ((opponentPieces & attacksMask) != 0) {			
+				Piece.bishop_generateMovesExtSearch_Black(ml, this, bit_offset);
 			}
-		} else {
-			scratchBitBoard = pieces[Piece.BISHOP] & side;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-				long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
-				if ((opponentPieces & attacksMask) != 0) {			
-					Piece.bishop_generateMovesExtSearch_Black(ml, this, bit_offset);
-				}
-				scratchBitBoard ^= (1L << bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+		scratchBitBoard = pieces[Piece.KNIGHT] & side;
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[bit_offset];
+			if ((opponentPieces & knightAttacksMask) != 0) {
+				Piece.knight_generateMovesExtSearch_Black(ml, this, bit_offset);
 			}
-			scratchBitBoard = pieces[Piece.KNIGHT] & side;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-				long knightAttacksMask = SquareAttackEvaluator.KnightMove_Lut[bit_offset];
-				if ((opponentPieces & knightAttacksMask) != 0) {
-					Piece.knight_generateMovesExtSearch_Black(ml, this, bit_offset);
-				}
-				scratchBitBoard ^= (1L << bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+		scratchBitBoard = pieces[Piece.QUEEN] & side;
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
+			if ((opponentPieces & attacksMask) != 0) {
+				Piece.queen_generateMovesExtSearch_Black(ml, this, bit_offset);
 			}
-			scratchBitBoard = pieces[Piece.QUEEN] & side;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-				long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
-				if ((opponentPieces & attacksMask) != 0) {
-					Piece.queen_generateMovesExtSearch_Black(ml, this, bit_offset);
-				}
-				scratchBitBoard ^= (1L << bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+		scratchBitBoard = pieces[Piece.ROOK] & side;
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
+			if ((opponentPieces & attacksMask) != 0) {	
+				Piece.rook_generateMovesExtSearch_Black(ml, this, bit_offset);
 			}
-			scratchBitBoard = pieces[Piece.ROOK] & side;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-				long attacksMask = SquareAttackEvaluator.directAttacksOnPosition_Lut[bit_offset];
-				if ((opponentPieces & attacksMask) != 0) {	
-					Piece.rook_generateMovesExtSearch_Black(ml, this, bit_offset);
-				}
-				scratchBitBoard ^= (1L << bit_offset);
-			}
-			scratchBitBoard = pieces[Piece.PAWN] & side & (~BitBoard.RankMask_Lut[IntRank.R2]);
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {	
-				Piece.pawn_generateMovesForExtendedSearch_Black(ml, this, bit_offset);
-				scratchBitBoard ^= (1L << bit_offset);
-			}
-			scratchBitBoard = pieces[Piece.KING] & side;
-			if (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {			
-				long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[bit_offset];
-				if ((opponentPieces & kingAttacksMask) != 0) {
-					Piece.king_generateMovesExtSearch_Black(ml, this, bit_offset);
-				}
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+		scratchBitBoard = pieces[Piece.PAWN] & side & (~BitBoard.RankMask_Lut[IntRank.R2]);
+		while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {	
+			Piece.pawn_generateMovesForExtendedSearch_Black(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+		scratchBitBoard = pieces[Piece.KING] & side;
+		if (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {			
+			long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[bit_offset];
+			if ((opponentPieces & kingAttacksMask) != 0) {
+				Piece.king_generateMovesExtSearch_Black(ml, this, bit_offset);
 			}
 		}
 	}
@@ -1921,10 +1928,18 @@ public class Board {
 				pieceLists.addMoves_CapturesExcludingPawnPromotions_Black(ml, me.isEndgame());
 			}
 		} else {
-			if (isWhite) {
-				addMoves_CapturesExcludingPawnPromotions_White(ml, me.isEndgame());
+			if (me.isEndgame()) {
+				if (isWhite) {
+					addMoves_CapturesExcludingPawnPromotions_White_Endgame(ml);
+				} else {
+					addMoves_CapturesExcludingPawnPromotions_Black_Endgame(ml);
+				}
 			} else {
-				addMoves_CapturesExcludingPawnPromotions_Black(ml, me.isEndgame());
+				if (isWhite) {
+					addMoves_CapturesExcludingPawnPromotions_White(ml);
+				} else {
+					addMoves_CapturesExcludingPawnPromotions_Black(ml);
+				}
 			}
 		}
 	}
@@ -1964,7 +1979,7 @@ public class Board {
 		} else {
 			long scratchBitBoard = allPieces;
 			int bit_offset = BitBoard.INVALID;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 				long mask = 1L << bit_offset;
 				int piece = getPieceAtSquare(mask);
 				caller.callback(piece, bit_offset);
@@ -1981,7 +1996,7 @@ public class Board {
 			int piece = isBlack ? Piece.BLACK_PAWN : Piece.WHITE_PAWN;
 			long scratchBitBoard = pieces[Piece.PAWN] & side;
 			int bit_offset = BitBoard.INVALID;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			while ((bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 				caller.callback(piece, bit_offset);
 				scratchBitBoard ^= (1L << bit_offset);
 			}
