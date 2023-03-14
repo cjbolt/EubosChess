@@ -14,10 +14,6 @@ public class PositionEvaluator implements IEvaluate {
 
 	IPositionAccessors pm;
 	
-	public static final boolean ENABLE_KING_SAFETY_EVALUATION = true;
-	public static final boolean ENABLE_TWEAKED_KING_FLIGHT_SQUARES = false;
-	public static final boolean ENABLE_KING_TROPISM = true;
-	
 	public static final boolean ENABLE_DYNAMIC_POSITIONAL_EVALUATION = true;
 
 	private static final int BISHOP_PAIR_BOOST = 25;
@@ -30,6 +26,7 @@ public class PositionEvaluator implements IEvaluate {
 	public short score;
 	public Board bd;
 	PawnEvaluator pawn_eval;
+	KingSafetyEvaluator ks_eval;
 	
 	private class LazyEvalStatistics {
 		
@@ -128,6 +125,7 @@ public class PositionEvaluator implements IEvaluate {
 		this.pm = pm;
 		bd = pm.getTheBoard();
 		pawn_eval = new PawnEvaluator(pm, pawnHash);
+		ks_eval = new KingSafetyEvaluator(pm);
 		// If either side can't win (e.g. bare King) then do a mate search.
 		goForMate = ((Long.bitCount(bd.getBlackPieces()) == 1) || 
 				     (Long.bitCount(bd.getWhitePieces()) == 1));
@@ -261,9 +259,7 @@ public class PositionEvaluator implements IEvaluate {
 			midgameScore = score + (onMoveIsWhite ? bd.me.getMiddleGameDelta() + bd.me.getPosition() : -(bd.me.getMiddleGameDelta() + bd.me.getPosition()));
 			endgameScore = score + (onMoveIsWhite ? bd.me.getEndGameDelta() + bd.me.getEndgamePosition() : -(bd.me.getEndGameDelta() + bd.me.getEndgamePosition()));
 			// Add King Safety in middle game
-			if (ENABLE_KING_SAFETY_EVALUATION && !bd.me.isEndgame()) {
-				midgameScore += evaluateKingSafety(attacks);
-			}
+			midgameScore += ks_eval.evaluateKingSafety(attacks, onMoveIsWhite);
 			if (!goForMate) {
 				score = taperEvaluation(midgameScore, endgameScore);
 			} else {
@@ -284,13 +280,6 @@ public class PositionEvaluator implements IEvaluate {
 		return internalFullEval();
 	}
 	
-	int evaluateKingSafety(long[][][] attacks) {
-		int kingSafetyScore = 0;
-		kingSafetyScore = evaluateKingSafety(attacks, onMoveIsWhite);
-		kingSafetyScore -= evaluateKingSafety(attacks, !onMoveIsWhite);
-		return kingSafetyScore;
-	}
-	
 	int evaluateBishopPair() {
 		int score = 0;
 		int onMoveBishopCount = onMoveIsWhite ? bd.me.numberOfPieces[Piece.WHITE_BISHOP] : bd.me.numberOfPieces[Piece.BLACK_BISHOP];
@@ -304,104 +293,4 @@ public class PositionEvaluator implements IEvaluate {
 		return score;
 	}
 	
-	// King Tropism by distance, in centipawns.
-	public final int[] KT_QUEEN_DIST_LUT = {0, -100, -50, -12, -7, -5, 0, 0, 0};
-	public final int[] KT_KNIGHT_DIST_LUT = {0, -25, -50, -25, -12, 0, 0, 0, 0};
-	
-	// Make function of game phase?
-	public final int[] PAWN_SHELTER_LUT = {-100, -50, -15, 2, 4, 4, 0, 0, 0};
-	public final int[] PAWN_STORM_LUT = {0, -12, -30, -75, -150, -250, 0, 0, 0};
-	
-	public int evaluateKingSafety(long[][][] attacks, boolean isWhite) {
-		int evaluation = 0;
-
-		// King
-		long kingMask = isWhite ? bd.getWhiteKing() : bd.getBlackKing();
-		int kingBitOffset = bd.getKingPosition(isWhite);
-		long blockers = isWhite ? bd.getWhitePawns() : bd.getBlackPawns();
-		
-		// Attackers
-		long attackingQueensMask = isWhite ? bd.getBlackQueens() : bd.getWhiteQueens();
-		long attackingRooksMask = isWhite ? bd.getBlackRooks() : bd.getWhiteRooks();
-		long attackingBishopsMask = isWhite ? bd.getBlackBishops() : bd.getWhiteBishops();
-
-		// create masks of attackers
-		long pertinentBishopMask = attackingBishopsMask;//& ((isKingOnDarkSq) ? DARK_SQUARES_MASK : LIGHT_SQUARES_MASK);
-		long diagonalAttackersMask = attackingQueensMask | pertinentBishopMask;
-		long rankFileAttackersMask = attackingQueensMask | attackingRooksMask;
-		
-		// First score according to King exposure on open diagonals
-		int numPotentialAttackers = Long.bitCount(diagonalAttackersMask);
-		long mobility_mask = 0x0;
-		if (numPotentialAttackers > 0) {
-			long defendingBishopsMask = isWhite ? bd.getWhiteBishops() : bd.getBlackBishops();
-			// only own side pawns should block an attack ray, not any piece, so don't use empty mask as propagator
-			long inDirection = BitBoard.downLeftOccludedEmpty(kingMask, ~blockers);
-			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
-			inDirection = BitBoard.upLeftOccludedEmpty(kingMask, ~blockers);
-			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
-			inDirection = BitBoard.upRightOccludedEmpty(kingMask, ~blockers);
-			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
-			inDirection = BitBoard.downRightOccludedEmpty(kingMask, ~blockers);
-			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
-			evaluation = Long.bitCount(mobility_mask ^ kingMask) * -numPotentialAttackers;
-		}
-		
-		// Then score according to King exposure on open rank/files
-		numPotentialAttackers = Long.bitCount(rankFileAttackersMask);
-		if (numPotentialAttackers > 0) {
-			mobility_mask = 0x0;
-			long defendingRooksMask = isWhite ? bd.getWhiteRooks() : bd.getBlackRooks();
-			long inDirection = BitBoard.downOccludedEmpty(kingMask, ~blockers);
-			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
-			inDirection = BitBoard.upOccludedEmpty(kingMask, ~blockers);
-			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
-			inDirection = BitBoard.rightOccludedEmpty(kingMask, ~blockers);
-			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
-			inDirection = BitBoard.leftOccludedEmpty(kingMask, ~blockers);
-			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
-			evaluation += Long.bitCount(mobility_mask ^ kingMask) * -numPotentialAttackers;
-		}
-		
-		// Then, do king tropism for proximity
-		if (ENABLE_KING_TROPISM) {
-			int kt_score = 0;
-			long scratchBitBoard = isWhite ? bd.getBlackKnights() : bd.getWhiteKnights();
-			while (scratchBitBoard != 0x0L) {
-				int bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
-				int distance = BitBoard.ManhattanDistance[bit_offset][kingBitOffset];
-				kt_score += KT_KNIGHT_DIST_LUT[distance];
-				scratchBitBoard ^= (1L << bit_offset);
-			}
-			scratchBitBoard = isWhite ? bd.getBlackQueens() : bd.getWhiteQueens();
-			while (scratchBitBoard != 0x0L) {
-				int bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
-				int distance = BitBoard.ManhattanDistance[bit_offset][kingBitOffset];
-				kt_score += KT_QUEEN_DIST_LUT[distance];
-				scratchBitBoard ^= (1L << bit_offset);
-			}
-			evaluation += kt_score;
-		}
-		
-		// Hit with a penalty if few defending pawns in the king zone and/or pawn storm
-		long surroundingSquares = SquareAttackEvaluator.KingZone_Lut[isWhite ? 0 : 1][kingBitOffset];		
-		long pawnShieldMask =  isWhite ? surroundingSquares >>> 8 : surroundingSquares << 8;
-		evaluation += PAWN_SHELTER_LUT[Long.bitCount(pawnShieldMask & blockers)];
-		
-		long attacking_pawns = isWhite ? bd.getBlackPawns() : bd.getWhitePawns();
-		evaluation += PAWN_STORM_LUT[Long.bitCount(surroundingSquares & attacking_pawns)];
-		
-		// Then account for attacks on the squares around the king
-		surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingBitOffset];
-		int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3][0]);
-		int flightCount = Long.bitCount(surroundingSquares);
-		int fraction_attacked_q8 = (attackedCount * 256) / flightCount;
-		evaluation += ((-150 * fraction_attacked_q8) / 256);
-		if (attackedCount == flightCount) {
-			// there are no flight squares, high risk of mate
-			evaluation += -100;
-		}
-		
-		return evaluation;
-	}
 }

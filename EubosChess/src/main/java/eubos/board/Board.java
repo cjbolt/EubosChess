@@ -40,7 +40,7 @@ public class Board {
 	private static final int INDEX_KING = Piece.KING;
 	//private static final int INDEX_NONE = Piece.NONE;
 	
-	private long[] pieces = new long[7]; // N.b. INDEX_NONE is an empty long at index 0.
+	public long[] pieces = new long[7]; // N.b. INDEX_NONE is an empty long at index 0.
 	private long passedPawns = 0L;
 	
 	static final int ENDGAME_MATERIAL_THRESHOLD = 
