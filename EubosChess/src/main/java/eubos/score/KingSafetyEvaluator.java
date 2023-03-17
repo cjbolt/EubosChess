@@ -68,7 +68,7 @@ public class KingSafetyEvaluator {
 		int evaluation = 0;
 		initialiseForSide(isWhite);
 
-		evaluation = EvaluateExposureOnOpenLines();
+		//evaluation += EvaluateExposureOnOpenLines();
 		evaluation += EvaluateKingTropism();
 		evaluation += EvaluatePawnShelterAndStorm(isWhite);
 		evaluation += EvaluateSquareControlRoundKing(isWhite);
