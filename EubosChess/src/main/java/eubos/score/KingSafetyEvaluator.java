@@ -23,11 +23,16 @@ public class KingSafetyEvaluator {
 	public final int[] PAWN_SHELTER_LUT = {-100, -50, -15, 2, 4, 4, 0, 0, 0};
 	public final int[] PAWN_STORM_LUT = {0, -12, -30, -75, -150, -250, 0, 0, 0};
 	
+	public final int[] EXPOSURE_NUM_ATTACKERS_MODIFIER_LUT = {0, 2, 2, 3, 4, 6, 6, 6, 6, 8, 8, 8, 8, 8, 8, 8, 8};
+	
 	long own, enemy;
 	long kingMask, blockers;
 	long attackingQueensMask, attackingRooksMask, attackingBishopsMask;
 	int kingBitOffset;	
 	long[][][] attacks;
+	
+	long black;
+	long white;
 	
 	public KingSafetyEvaluator(IPositionAccessors pm) {
 		this.pm = pm;
@@ -37,6 +42,8 @@ public class KingSafetyEvaluator {
 	public int evaluateKingSafety(long[][][] attacks, boolean onMoveIsWhite) {
 		int kingSafetyScore = 0;
 		this.attacks = attacks;
+		white = bd.getWhitePieces();
+		black = bd.getBlackPieces();
 		if (ENABLE_KING_SAFETY_EVALUATION && !bd.me.isEndgame()) {
 			kingSafetyScore = evaluateKingSafetyForSide(attacks, onMoveIsWhite);
 			kingSafetyScore -= evaluateKingSafetyForSide(attacks, !onMoveIsWhite);
@@ -46,11 +53,11 @@ public class KingSafetyEvaluator {
 	
 	private void initialiseForSide(boolean isWhite) {
 		if (isWhite) {
-			own = bd.getWhitePieces();
-			enemy = bd.getBlackPieces();
+			own = white;
+			enemy = black;
 		} else {
-			enemy = bd.getWhitePieces();
-			own = bd.getBlackPieces();
+			enemy = white;
+			own = black;
 		}
 		
 		// King
@@ -68,7 +75,7 @@ public class KingSafetyEvaluator {
 		int evaluation = 0;
 		initialiseForSide(isWhite);
 
-		//evaluation += EvaluateExposureOnOpenLines();
+		evaluation += EvaluateExposureOnOpenLines();
 		evaluation += EvaluateKingTropism();
 		evaluation += EvaluatePawnShelterAndStorm(isWhite);
 		evaluation += EvaluateSquareControlRoundKing(isWhite);
@@ -100,6 +107,7 @@ public class KingSafetyEvaluator {
 			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
 			evaluation = Long.bitCount(mobility_mask ^ kingMask) * -numPotentialAttackers;
 		}
+		int totalAttackers = numPotentialAttackers;
 		
 		// Then score according to King exposure on open rank/files
 		numPotentialAttackers = Long.bitCount(rankFileAttackersMask);
@@ -116,8 +124,9 @@ public class KingSafetyEvaluator {
 			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
 			evaluation += Long.bitCount(mobility_mask ^ kingMask) * -numPotentialAttackers;
 		}
+		totalAttackers += numPotentialAttackers;
 		
-		return evaluation;
+		return (evaluation * EXPOSURE_NUM_ATTACKERS_MODIFIER_LUT[totalAttackers]) / 2;
 	}
 	
 	private int EvaluateKingTropism() {
