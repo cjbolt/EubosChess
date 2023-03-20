@@ -1,5 +1,8 @@
 package eubos.score;
 
+import com.fluxchess.jcpi.models.IntFile;
+import com.fluxchess.jcpi.models.IntRank;
+
 import eubos.board.BitBoard;
 import eubos.board.Board;
 import eubos.board.Piece;
@@ -55,7 +58,13 @@ public class KingSafetyEvaluator {
 		return kingSafetyScore;
 	}
 	
-	private void initialiseForSide(boolean isWhite) {
+	void testInitForSide(boolean isWhite) {
+		white = bd.getWhitePieces();
+		black = bd.getBlackPieces();
+		initialiseForSide(isWhite);
+	}
+	
+	void initialiseForSide(boolean isWhite) {
 		if (isWhite) {
 			own = white;
 			enemy = black;
@@ -90,8 +99,13 @@ public class KingSafetyEvaluator {
 		return evaluation;
 	}
 	
-	private int EvaluateExposureOnOpenLines() {
+	int EvaluateExposureOnOpenLines() {
 		int evaluation = 0;
+		
+		boolean canBeAttackedFromLeft = (kingMask & BitBoard.FileMask_Lut[IntFile.Fa]) == 0L;
+		boolean canBeAttackedFromRight = (kingMask & BitBoard.FileMask_Lut[IntFile.Fh]) == 0L;
+		boolean canBeAttackedFromUp = (kingMask & BitBoard.RankMask_Lut[IntRank.R8]) == 0L;
+		boolean canBeAttackedFromDown = (kingMask & BitBoard.RankMask_Lut[IntRank.R1]) == 0L;
 		
 		// First score according to King exposure on open diagonals
 		int numPotentialAttackers = attackingQueenCount + attackingBishopCount;
@@ -99,13 +113,13 @@ public class KingSafetyEvaluator {
 		if (numPotentialAttackers > 0) {
 			long defendingBishopsMask = bd.pieces[Piece.BISHOP] & own;
 			// only own side pawns should block an attack ray, not any piece, so don't use empty mask as propagator
-			long inDirection = BitBoard.downLeftOccludedEmpty(kingMask, ~blockers);
+			long inDirection = (canBeAttackedFromLeft && canBeAttackedFromDown) ? BitBoard.downLeftOccludedEmpty(kingMask, ~blockers) : 0L;
 			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
-			inDirection = BitBoard.upLeftOccludedEmpty(kingMask, ~blockers);
+			inDirection = (canBeAttackedFromLeft & canBeAttackedFromUp) ? BitBoard.upLeftOccludedEmpty(kingMask, ~blockers) : 0L;
 			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
-			inDirection = BitBoard.upRightOccludedEmpty(kingMask, ~blockers);
+			inDirection = (canBeAttackedFromRight & canBeAttackedFromUp) ? BitBoard.upRightOccludedEmpty(kingMask, ~blockers) : 0L;
 			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
-			inDirection = BitBoard.downRightOccludedEmpty(kingMask, ~blockers);
+			inDirection = (canBeAttackedFromRight & canBeAttackedFromDown) ? BitBoard.downRightOccludedEmpty(kingMask, ~blockers) : 0L;
 			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
 			evaluation = Long.bitCount(mobility_mask ^ kingMask) * -numPotentialAttackers;
 		}
@@ -116,13 +130,13 @@ public class KingSafetyEvaluator {
 		if (numPotentialAttackers > 0) {
 			mobility_mask = 0x0;
 			long defendingRooksMask = bd.pieces[Piece.ROOK] & own;
-			long inDirection = BitBoard.downOccludedEmpty(kingMask, ~blockers);
+			long inDirection = canBeAttackedFromDown ? BitBoard.downOccludedEmpty(kingMask, ~blockers) : 0L;
 			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
-			inDirection = BitBoard.upOccludedEmpty(kingMask, ~blockers);
+			inDirection = canBeAttackedFromUp ? BitBoard.upOccludedEmpty(kingMask, ~blockers) : 0L;
 			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
-			inDirection = BitBoard.rightOccludedEmpty(kingMask, ~blockers);
+			inDirection = canBeAttackedFromRight ? BitBoard.rightOccludedEmpty(kingMask, ~blockers) : 0L;
 			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
-			inDirection = BitBoard.leftOccludedEmpty(kingMask, ~blockers);
+			inDirection = canBeAttackedFromLeft ? BitBoard.leftOccludedEmpty(kingMask, ~blockers) : 0L;
 			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
 			evaluation += Long.bitCount(mobility_mask ^ kingMask) * -numPotentialAttackers;
 		}
@@ -133,7 +147,7 @@ public class KingSafetyEvaluator {
 		return (evaluation * EXPOSURE_NUM_ATTACKERS_MODIFIER_LUT[totalAttackers]) / 2;
 	}
 	
-	private int EvaluateKingTropism() {
+	int EvaluateKingTropism() {
 		int evaluation = 0;
 		
 		// Then, do king tropism for proximity
@@ -159,7 +173,7 @@ public class KingSafetyEvaluator {
 		return evaluation;
 	}
 	
-	private int EvaluatePawnShelterAndStorm(boolean isWhite) {
+	int EvaluatePawnShelterAndStorm(boolean isWhite) {
 		int evaluation = 0;
 		// Hit with a penalty if few defending pawns in the king zone and/or pawn storm
 		long surroundingSquares = SquareAttackEvaluator.KingZone_Lut[isWhite ? 0 : 1][kingBitOffset];		
@@ -172,7 +186,7 @@ public class KingSafetyEvaluator {
 		return evaluation;
 	}
 	
-	private int EvaluateSquareControlRoundKing(boolean isWhite) {
+	int EvaluateSquareControlRoundKing(boolean isWhite) {
 		int evaluation = 0;
 		// Then account for attacks on the squares around the king
 		long surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingBitOffset];
