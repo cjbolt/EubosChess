@@ -23,16 +23,20 @@ public class KingSafetyEvaluator {
 	public final int[] PAWN_SHELTER_LUT = {-100, -50, -15, 2, 4, 4, 0, 0, 0};
 	public final int[] PAWN_STORM_LUT = {0, -12, -30, -75, -150, -250, 0, 0, 0};
 	
-	public final int[] EXPOSURE_NUM_ATTACKERS_MODIFIER_LUT = {0, 2, 2, 3, 4, 6, 6, 6, 6, 8, 8, 8, 8, 8, 8, 8, 8};
+	public final int[] EXPOSURE_NUM_ATTACKERS_MODIFIER_LUT = {0, 2, 2, 3, 3, 4, 5, 6, 7, 8, 8, 8, 8, 8, 8, 8, 8};
 	
 	long own, enemy;
 	long kingMask, blockers;
-	long attackingQueensMask, attackingRooksMask, attackingBishopsMask;
 	int kingBitOffset;	
 	long[][][] attacks;
 	
 	long black;
 	long white;
+	
+	int attackingQueenCount;
+	int attackingBishopCount;
+	int attackingRookCount;
+	int attackingKnightCount;
 	
 	public KingSafetyEvaluator(IPositionAccessors pm) {
 		this.pm = pm;
@@ -55,20 +59,23 @@ public class KingSafetyEvaluator {
 		if (isWhite) {
 			own = white;
 			enemy = black;
+			attackingQueenCount = bd.me.numberOfPieces[Piece.BLACK_QUEEN];
+			attackingBishopCount = bd.me.numberOfPieces[Piece.BLACK_BISHOP];
+			attackingRookCount = bd.me.numberOfPieces[Piece.BLACK_ROOK];
+			attackingKnightCount = bd.me.numberOfPieces[Piece.BLACK_KNIGHT];
 		} else {
 			enemy = white;
 			own = black;
+			attackingQueenCount = bd.me.numberOfPieces[Piece.WHITE_QUEEN];
+			attackingBishopCount = bd.me.numberOfPieces[Piece.WHITE_BISHOP];
+			attackingRookCount = bd.me.numberOfPieces[Piece.WHITE_ROOK];
+			attackingKnightCount = bd.me.numberOfPieces[Piece.WHITE_KNIGHT];
 		}
 		
 		// King
 		kingMask = bd.pieces[Piece.KING] & own;
 		kingBitOffset = BitBoard.convertToBitOffset(kingMask);
 		blockers = bd.pieces[Piece.PAWN] & own;
-		
-		// Attackers
-		attackingQueensMask = bd.pieces[Piece.QUEEN] & enemy;
-		attackingRooksMask = bd.pieces[Piece.ROOK] & enemy;
-		attackingBishopsMask = bd.pieces[Piece.BISHOP] & enemy;
 	}
 	
 	private int evaluateKingSafetyForSide(long[][][] attacks, boolean isWhite) {
@@ -86,13 +93,8 @@ public class KingSafetyEvaluator {
 	private int EvaluateExposureOnOpenLines() {
 		int evaluation = 0;
 		
-		// create masks of attackers
-		long pertinentBishopMask = attackingBishopsMask;//& ((isKingOnDarkSq) ? DARK_SQUARES_MASK : LIGHT_SQUARES_MASK);
-		long diagonalAttackersMask = attackingQueensMask | pertinentBishopMask;
-		long rankFileAttackersMask = attackingQueensMask | attackingRooksMask;
-		
 		// First score according to King exposure on open diagonals
-		int numPotentialAttackers = Long.bitCount(diagonalAttackersMask);
+		int numPotentialAttackers = attackingQueenCount + attackingBishopCount;
 		long mobility_mask = 0x0;
 		if (numPotentialAttackers > 0) {
 			long defendingBishopsMask = bd.pieces[Piece.BISHOP] & own;
@@ -110,7 +112,7 @@ public class KingSafetyEvaluator {
 		int totalAttackers = numPotentialAttackers;
 		
 		// Then score according to King exposure on open rank/files
-		numPotentialAttackers = Long.bitCount(rankFileAttackersMask);
+		numPotentialAttackers = attackingQueenCount + attackingRookCount;
 		if (numPotentialAttackers > 0) {
 			mobility_mask = 0x0;
 			long defendingRooksMask = bd.pieces[Piece.ROOK] & own;
@@ -125,6 +127,8 @@ public class KingSafetyEvaluator {
 			evaluation += Long.bitCount(mobility_mask ^ kingMask) * -numPotentialAttackers;
 		}
 		totalAttackers += numPotentialAttackers;
+		totalAttackers += attackingKnightCount;
+		totalAttackers -= attackingQueenCount; // Don't double count queens
 		
 		return (evaluation * EXPOSURE_NUM_ATTACKERS_MODIFIER_LUT[totalAttackers]) / 2;
 	}
@@ -142,7 +146,7 @@ public class KingSafetyEvaluator {
 				kt_score += KT_KNIGHT_DIST_LUT[distance];
 				scratchBitBoard ^= (1L << bit_offset);
 			}
-			scratchBitBoard = attackingQueensMask;
+			scratchBitBoard = bd.pieces[Piece.QUEEN] & enemy;;
 			while (scratchBitBoard != 0x0L) {
 				int bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
 				int distance = BitBoard.ManhattanDistance[bit_offset][kingBitOffset];
