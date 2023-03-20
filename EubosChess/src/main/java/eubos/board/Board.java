@@ -60,18 +60,13 @@ public class Board {
 	
 	public PiecewiseEvaluation me;
 	public MobilityAttacksEvaluator mae;
-	
-	public BasicPawnAttackAggregator bpaa;
-	public CountedPawnAttackAggregator paa;
-	
+		
 	// Only used for testing!
 	public CountedPawnKnightAttackAggregator cpkaa;
 	
 	boolean isAttacksMaskValid = false;
 	
 	public Board(Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove) {
-		bpaa = new BasicPawnAttackAggregator();
-		paa = new CountedPawnAttackAggregator();
 		cpkaa = new CountedPawnKnightAttackAggregator();
 		mae = new MobilityAttacksEvaluator(this);
 		
@@ -1372,68 +1367,35 @@ public class Board {
 		return isHalfOpen;
 	}
 	
-	public class BasicPawnAttackAggregator implements IForEachPieceCallback {
-		long attackMask;
-		long[] pawnAttacksFromPositionForSide;
-		
-		public void callback(int piece, int bitOffset) {
-			attackMask |= pawnAttacksFromPositionForSide[bitOffset];
+	public long getBasicPawnAttacks(boolean attackerIsBlack) {
+		long attackMask = 0L;
+		long side = attackerIsBlack ? blackPieces : whitePieces;
+		long scratchBitBoard = pieces[Piece.PAWN] & side;
+		if (attackerIsBlack) {
+			attackMask |= BitBoard.downRightAttacks(scratchBitBoard);
+			attackMask |= BitBoard.downLeftAttacks(scratchBitBoard);
+		} else {
+			attackMask |= BitBoard.upRightAttacks(scratchBitBoard);
+			attackMask |= BitBoard.upLeftAttacks(scratchBitBoard);
 		}
-		
-		@Override
-		public boolean condition_callback(int piece, int atPos) {
-			return false;
-		}
-		
-		public long getPawnAttacks(boolean attackerIsBlack) {
-			attackMask = 0L;
-			pawnAttacksFromPositionForSide = attackerIsBlack ?
-					SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut : 
-					SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut;
-			long side = attackerIsBlack ? blackPieces : whitePieces;
-			long scratchBitBoard = pieces[Piece.PAWN] & side;
-			int bit_offset = BitBoard.INVALID;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-				attackMask |= pawnAttacksFromPositionForSide[bit_offset];
-				scratchBitBoard ^= (1L << bit_offset);
-			}
-			return attackMask;
-		}
+		return attackMask;
 	}
 	
-	public class CountedPawnAttackAggregator implements IForEachPieceCallback {
-		long attackMask[];
-
-		long pawnAttacksForSide[];
-		
-		public void callback(int piece, int bitOffset) {
-			long attacks = pawnAttacksForSide[bitOffset];
-			long bitsAlreadySetInFirstMask = attacks & attackMask[0];
-			if (bitsAlreadySetInFirstMask != 0L) {
-				// Need to find which square(s) are attacked twice and set them in the second mask,
-				// optimised for pawns, where only two squares can be simultaneously attacked by a side
-				attackMask[1] |= bitsAlreadySetInFirstMask;
-			}
-			attackMask[0] |= attacks;
+	public void getCountedPawnAttacks(long[] attacksMask, boolean attackerIsBlack) {
+		long side = attackerIsBlack ? blackPieces : whitePieces;
+		long scratchBitBoard = pieces[Piece.PAWN] & side;
+		long attacks = 0L;
+		if (attackerIsBlack) {
+			attacksMask[0] |= BitBoard.downRightAttacks(scratchBitBoard);
+			attacks = BitBoard.downLeftAttacks(scratchBitBoard);
+		} else {
+			attacksMask[0] |= BitBoard.upRightAttacks(scratchBitBoard);
+			attacks = BitBoard.upLeftAttacks(scratchBitBoard);
 		}
-		
-		@Override
-		public boolean condition_callback(int piece, int atPos) {
-			return false;
-		}
-		
-		public void getPawnAttacks(long[] attacksMask ,boolean attackerIsBlack) {
-			this.attackMask = attacksMask;
-			this.pawnAttacksForSide = attackerIsBlack ?
-					SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut: 
-					SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut;
-			long scratchBitBoard = pieces[Piece.PAWN] & (attackerIsBlack ? blackPieces : whitePieces);
-			int bit_offset = BitBoard.INVALID;
-			while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-				callback(Piece.NONE, bit_offset);
-				scratchBitBoard ^= (1L << bit_offset);
-			}
-		}
+		// Need to find which square(s) are attacked twice and set them in the second mask,
+		// optimised for pawns, where only two squares can be simultaneously attacked by a side
+		attacksMask[1] |= attacks & attacksMask[0];
+		attacksMask[0] |= attacks;
 	}
 	
 	public class CountedPawnKnightAttackAggregator implements IForEachPieceCallback {

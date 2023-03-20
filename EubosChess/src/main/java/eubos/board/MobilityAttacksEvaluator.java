@@ -395,7 +395,7 @@ public class MobilityAttacksEvaluator {
 	protected void getBasicAttacksForBlack(long [][] attacks) {
 		attacks[0][0] = attacks[1][0] = attacks[2][0] = 0L;
 		// Pawns
-		attacks[0][0] = theBoard.bpaa.getPawnAttacks(true);
+		attacks[0][0] = theBoard.getBasicPawnAttacks(true);
 		attacks[3][0] = attacks[0][0];
 		// Knights
 		attacks[1][0] = theBoard.getBasicKnightAttacks(true);
@@ -410,7 +410,7 @@ public class MobilityAttacksEvaluator {
 	protected void getBasicAttacksForWhite(long [][] attacks) {
 		attacks[0][0] = attacks[1][0] = attacks[2][0] = 0L;
 		// Pawns
-		attacks[0][0] = theBoard.bpaa.getPawnAttacks(false);
+		attacks[0][0] = theBoard.getBasicPawnAttacks(false);
 		attacks[3][0] = attacks[0][0];
 		// Knights
 		attacks[1][0] = theBoard.getBasicKnightAttacks(false);
@@ -428,7 +428,7 @@ public class MobilityAttacksEvaluator {
 		CountedBitBoard.clear(attacks[2]);
 		CountedBitBoard.clear(attacks[3]);
 		// Pawns
-		theBoard.paa.getPawnAttacks(attacks[0], true);
+		theBoard.getCountedPawnAttacks(attacks[0], true);
 		attacks[3][0] = attacks[0][0];
 		attacks[3][1] = attacks[0][1]; // Optimisation, rationale - can be attacked by a maximum of two pawns
 		// Knights
@@ -448,7 +448,7 @@ public class MobilityAttacksEvaluator {
 		CountedBitBoard.clear(attacks[2]);
 		CountedBitBoard.clear(attacks[3]);
 		// Pawns
-		theBoard.paa.getPawnAttacks(attacks[0], false);
+		theBoard.getCountedPawnAttacks(attacks[0], false);
 		attacks[3][0] = attacks[0][0];
 		attacks[3][1] = attacks[0][1]; // Optimisation, rationale - can be attacked by a maximum of two pawns
 		// Knights

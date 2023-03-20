@@ -297,7 +297,7 @@ public final class BitBoard {
 		return (mobility >>> 7) & not_a_file;
 	}
 	
-	static final long[] FileMask_Lut = new long[8];
+	public static final long[] FileMask_Lut = new long[8];
 	static {
 		for (int file : IntFile.values) {
 			long mask = 0;
@@ -309,7 +309,7 @@ public final class BitBoard {
 		}
 	}
 	
-	static final long[] RankMask_Lut = new long[8];
+	public static final long[] RankMask_Lut = new long[8];
 	static {
 		for (int rank : IntRank.values) {
 			RankMask_Lut[rank] = 0xFFL << rank*8;
