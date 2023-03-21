@@ -1,8 +1,5 @@
 package eubos.score;
 
-import com.fluxchess.jcpi.models.IntFile;
-import com.fluxchess.jcpi.models.IntRank;
-
 import eubos.board.BitBoard;
 import eubos.board.Board;
 import eubos.board.Piece;
@@ -87,7 +84,7 @@ public class KingSafetyEvaluator {
 		blockers = bd.pieces[Piece.PAWN] & own;
 	}
 	
-	private int evaluateKingSafetyForSide(long[][][] attacks, boolean isWhite) {
+	int evaluateKingSafetyForSide(long[][][] attacks, boolean isWhite) {
 		int evaluation = 0;
 		initialiseForSide(isWhite);
 
@@ -102,24 +99,19 @@ public class KingSafetyEvaluator {
 	int EvaluateExposureOnOpenLines() {
 		int evaluation = 0;
 		
-		boolean canBeAttackedFromLeft = (kingMask & BitBoard.FileMask_Lut[IntFile.Fa]) == 0L;
-		boolean canBeAttackedFromRight = (kingMask & BitBoard.FileMask_Lut[IntFile.Fh]) == 0L;
-		boolean canBeAttackedFromUp = (kingMask & BitBoard.RankMask_Lut[IntRank.R8]) == 0L;
-		boolean canBeAttackedFromDown = (kingMask & BitBoard.RankMask_Lut[IntRank.R1]) == 0L;
-		
 		// First score according to King exposure on open diagonals
 		int numPotentialAttackers = attackingQueenCount + attackingBishopCount;
 		long mobility_mask = 0x0;
 		if (numPotentialAttackers > 0) {
 			long defendingBishopsMask = bd.pieces[Piece.BISHOP] & own;
 			// only own side pawns should block an attack ray, not any piece, so don't use empty mask as propagator
-			long inDirection = (canBeAttackedFromLeft && canBeAttackedFromDown) ? BitBoard.downLeftOccludedEmpty(kingMask, ~blockers) : 0L;
+			long inDirection = BitBoard.downLeftOccludedEmpty(kingMask, ~blockers);
 			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
-			inDirection = (canBeAttackedFromLeft & canBeAttackedFromUp) ? BitBoard.upLeftOccludedEmpty(kingMask, ~blockers) : 0L;
+			inDirection = BitBoard.upLeftOccludedEmpty(kingMask, ~blockers);
 			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
-			inDirection = (canBeAttackedFromRight & canBeAttackedFromUp) ? BitBoard.upRightOccludedEmpty(kingMask, ~blockers) : 0L;
+			inDirection = BitBoard.upRightOccludedEmpty(kingMask, ~blockers);
 			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
-			inDirection = (canBeAttackedFromRight & canBeAttackedFromDown) ? BitBoard.downRightOccludedEmpty(kingMask, ~blockers) : 0L;
+			inDirection = BitBoard.downRightOccludedEmpty(kingMask, ~blockers);
 			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
 			evaluation = Long.bitCount(mobility_mask ^ kingMask) * -numPotentialAttackers;
 		}
@@ -130,13 +122,13 @@ public class KingSafetyEvaluator {
 		if (numPotentialAttackers > 0) {
 			mobility_mask = 0x0;
 			long defendingRooksMask = bd.pieces[Piece.ROOK] & own;
-			long inDirection = canBeAttackedFromDown ? BitBoard.downOccludedEmpty(kingMask, ~blockers) : 0L;
+			long inDirection = BitBoard.downOccludedEmpty(kingMask, ~blockers);
 			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
-			inDirection = canBeAttackedFromUp ? BitBoard.upOccludedEmpty(kingMask, ~blockers) : 0L;
+			inDirection = BitBoard.upOccludedEmpty(kingMask, ~blockers);
 			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
-			inDirection = canBeAttackedFromRight ? BitBoard.rightOccludedEmpty(kingMask, ~blockers) : 0L;
+			inDirection = BitBoard.rightOccludedEmpty(kingMask, ~blockers);
 			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
-			inDirection = canBeAttackedFromLeft ? BitBoard.leftOccludedEmpty(kingMask, ~blockers) : 0L;
+			inDirection = BitBoard.leftOccludedEmpty(kingMask, ~blockers);
 			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
 			evaluation += Long.bitCount(mobility_mask ^ kingMask) * -numPotentialAttackers;
 		}
