@@ -23,7 +23,11 @@ public class KingSafetyEvaluator {
 	public final int[] PAWN_SHELTER_LUT = {-100, -50, -15, 2, 4, 4, 0, 0, 0};
 	public final int[] PAWN_STORM_LUT = {0, -12, -30, -75, -150, -250, 0, 0, 0};
 	
-	public final int[] EXPOSURE_NUM_ATTACKERS_MODIFIER_LUT = {0, 2, 2, 3, 3, 4, 5, 6, 7, 8, 8, 8, 8, 8, 8, 8, 8};
+	public final int[] EXPOSURE_NUM_ATTACKERS_MODIFIER_LUT = {0, 2, 2, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+	
+	public final int EXPOSURE_MAX_PENALTY = -300;
+	public final int SQUARES_CONTROL_ROUND_KING_PENALTY = -200;
+	public final int NO_FLIGHT_SQUARES_PENALTY = -200;
 	
 	long own, enemy;
 	long kingMask, blockers;
@@ -136,7 +140,8 @@ public class KingSafetyEvaluator {
 		totalAttackers += attackingKnightCount;
 		totalAttackers -= attackingQueenCount; // Don't double count queens
 		
-		return (evaluation * EXPOSURE_NUM_ATTACKERS_MODIFIER_LUT[totalAttackers]) / 2;
+		int forceOfAttackCoeff = evaluation * EXPOSURE_NUM_ATTACKERS_MODIFIER_LUT[totalAttackers];
+		return Math.max(EXPOSURE_MAX_PENALTY, forceOfAttackCoeff / 2);
 	}
 	
 	int EvaluateKingTropism() {
@@ -185,12 +190,11 @@ public class KingSafetyEvaluator {
 		int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3][0]);
 		int flightCount = Long.bitCount(surroundingSquares);
 		int fraction_attacked_q8 = (attackedCount * 256) / flightCount;
-		evaluation += ((-150 * fraction_attacked_q8) / 256);
+		evaluation += ((SQUARES_CONTROL_ROUND_KING_PENALTY * fraction_attacked_q8) / 256);
 		if (attackedCount == flightCount) {
 			// there are no flight squares, high risk of mate
-			evaluation += -100;
+			evaluation += NO_FLIGHT_SQUARES_PENALTY;
 		}
-		
 		return evaluation;
 	}
 }

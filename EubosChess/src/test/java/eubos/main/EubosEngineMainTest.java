@@ -101,9 +101,9 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
                     "info depth 2 seldepth 7 score cp 106 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 187"+CMD_TERMINATOR
                     +BEST_PREFIX+"c7c2";
 			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-				expectedOutput = "info depth 1 seldepth 6 score cp -116 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
-							     "info depth 1 seldepth 5 score cp 389 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 43"+CMD_TERMINATOR+
-							     "info depth 2 seldepth 7 score cp 128 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 189"+CMD_TERMINATOR
+				expectedOutput = "info depth 1 seldepth 6 score cp -98 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
+							     "info depth 1 seldepth 5 score cp 425 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 43"+CMD_TERMINATOR+
+							     "info depth 2 seldepth 7 score cp 137 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 189"+CMD_TERMINATOR
 								 +BEST_PREFIX+"c7c2";
 			}
 			setupEngine();
@@ -399,6 +399,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 				BEST_PREFIX+"d2e3"+CMD_TERMINATOR};
 		commands.add(new MultipleAcceptableCommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, acceptable_best_move_commands));
 		performTest(15000);
+		// 21st March 2023, 2mins+ for 22 ply to find b6+, which is winning move
 		}
 	}
 	
@@ -407,8 +408,9 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		if (EubosEngineMain.ENABLE_TEST_SUITES) {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"2b5/1r6/2kBp1p1/p2pP1P1/2pP4/1pP3K1/1R3P2/8 b - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"b7b4"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"25"+CMD_TERMINATOR, BEST_PREFIX+"b7b4"+CMD_TERMINATOR));
 		performTest(15000);
+		// 21st March 2023, takes SF 25 plies to see Rb4, 3 to 4 seconds. Eubos is going over 19 minutes just to get to 19 ply - no idea
 		}
 	}
 	
