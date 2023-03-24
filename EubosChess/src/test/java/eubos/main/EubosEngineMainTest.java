@@ -101,9 +101,9 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
                     "info depth 2 seldepth 7 score cp 106 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 187"+CMD_TERMINATOR
                     +BEST_PREFIX+"c7c2";
 			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-				expectedOutput = "info depth 1 seldepth 6 score cp -98 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
-							     "info depth 1 seldepth 5 score cp 425 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 43"+CMD_TERMINATOR+
-							     "info depth 2 seldepth 7 score cp 137 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 189"+CMD_TERMINATOR
+				expectedOutput = "info depth 1 seldepth 6 score cp -45 pv d7e5 d4e5 c7c2 hashfull 0 nps 0 time 0 nodes 32"+CMD_TERMINATOR+
+							     "info depth 1 seldepth 3 score cp 462 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 41"+CMD_TERMINATOR+
+							     "info depth 2 seldepth 6 score cp 273 pv c7c2 c1g5 d7e5 hashfull 0 nps 0 time 0 nodes 163"+CMD_TERMINATOR
 								 +BEST_PREFIX+"c7c2";
 			}
 			setupEngine();
@@ -268,6 +268,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(POS_FEN_PREFIX+"r3qrk1/pbpp1ppp/np1b1n2/8/2PPp3/P1N1P1PP/1P2NPB1/R1BQK2R w KQ - 1 10"+CMD_TERMINATOR, null));
 		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d1b3"+CMD_TERMINATOR));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e1g1"+CMD_TERMINATOR));
+		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e2f4"+CMD_TERMINATOR));
 		performTest(5000);
 	}
 	

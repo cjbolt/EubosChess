@@ -59,7 +59,8 @@ public class KingSafetyEvaluator {
 		return kingSafetyScore;
 	}
 	
-	void testInitForSide(boolean isWhite) {
+	void testInitForSide(long[][][] attacks, boolean isWhite) {
+		this.attacks = attacks;
 		white = bd.getWhitePieces();
 		black = bd.getBlackPieces();
 		initialiseForSide(isWhite);
@@ -95,7 +96,7 @@ public class KingSafetyEvaluator {
 		evaluation += EvaluateExposureOnOpenLines();
 		evaluation += EvaluateKingTropism();
 		evaluation += EvaluatePawnShelterAndStorm(isWhite);
-		evaluation += EvaluateSquareControlRoundKing(isWhite);
+		evaluation += EvaluateSquareControlRoundKing(isWhite, evaluation);
 		
 		return evaluation;
 	}
@@ -183,18 +184,47 @@ public class KingSafetyEvaluator {
 		return evaluation;
 	}
 	
-	int EvaluateSquareControlRoundKing(boolean isWhite) {
+	int flightCount(boolean isWhite) {
+		long surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingBitOffset];
+		// not attacked
+		long flightMask = surroundingSquares & ~attacks[isWhite ? 1 : 0][3][0];
+		// not blocked by own pieces
+		flightMask &= ~own;
+		int flightCount = Long.bitCount(flightMask);
+		return flightCount;
+	}
+	
+	int EvaluateSquareControlRoundKing(boolean isWhite, int evalSoFar) {
 		int evaluation = 0;
 		// Then account for attacks on the squares around the king
 		long surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingBitOffset];
+		
+		// attacked squares round the king
 		int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3][0]);
-		int flightCount = Long.bitCount(surroundingSquares);
-		int fraction_attacked_q8 = (attackedCount * 256) / flightCount;
-		evaluation += ((SQUARES_CONTROL_ROUND_KING_PENALTY * fraction_attacked_q8) / 256);
-		if (attackedCount == flightCount) {
-			// there are no flight squares, high risk of mate
-			evaluation += NO_FLIGHT_SQUARES_PENALTY;
-		}
+
+		// not attacked
+		long flightMask = surroundingSquares & ~attacks[isWhite ? 1 : 0][3][0];
+		// not blocked by own pieces
+		flightMask &= ~own;
+		int flightCount = Long.bitCount(flightMask);
+		if (flightCount == 0) {
+			// Deemed a high risk of mate, assuming is developed and greater than one attack nearby
+			if (pm.getMoveNumber() > 6) {
+				if (attackedCount > 1) { 
+					return SQUARES_CONTROL_ROUND_KING_PENALTY + NO_FLIGHT_SQUARES_PENALTY;
+				} else {
+					return NO_FLIGHT_SQUARES_PENALTY / 4;
+				}
+			}
+		} else if (attackedCount <= flightCount) {
+			int fraction_attacked_q8 = (attackedCount * 256) / flightCount;
+			evaluation += ((SQUARES_CONTROL_ROUND_KING_PENALTY * fraction_attacked_q8) / 256);
+		} else {
+			if ((flightCount == 1 && evalSoFar < -100) || (flightCount < 3 && evalSoFar < -160)) {
+				// higher risk of mate
+				evaluation += NO_FLIGHT_SQUARES_PENALTY;
+			}
+		}		
 		return evaluation;
 	}
 }

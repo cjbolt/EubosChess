@@ -117,11 +117,20 @@ class KingSafetyEvaluatorTest {
 	@Test
 	public void test_getKingExposure()throws IllegalNotationException {
 		setUpPosition("K7/5r2/4b3/8/8/3B4/2R5/7k w - - 0 1");
-		SUT.testInitForSide(true);
+		long [][][] attacks = null;
+		SUT.testInitForSide(attacks, true);
 		int evaluation = SUT.EvaluateExposureOnOpenLines();
 		assertEquals(-21, evaluation); // white is exposed on one diagonal, one rank and one file = 3 * 7 = 21 squares (2 attackers)
-		SUT.testInitForSide(false);
+		SUT.testInitForSide(attacks, false);
 		evaluation = SUT.EvaluateExposureOnOpenLines();
 		assertEquals(-21, evaluation); // black is also exposed on one diagonal, one rank and one file = 3 * 7 = 21 squares (2 attackers)
+	}
+	
+	@Test
+	public void testNumFlightSquares() throws IllegalNotationException {
+		setUpPosition("k7/8/8/5p2/8/6PK/6P1/8 w - - 0 1");
+		long [][][] attacks = pm.getTheBoard().mae.calculateBasicAttacksAndMobility(pm.getTheBoard().me);
+		SUT.testInitForSide(attacks, true);
+		assertEquals(2, SUT.flightCount(true));
 	}
 }
