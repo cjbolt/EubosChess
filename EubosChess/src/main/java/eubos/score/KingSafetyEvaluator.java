@@ -26,8 +26,8 @@ public class KingSafetyEvaluator {
 	public final int[] EXPOSURE_NUM_ATTACKERS_MODIFIER_LUT = {0, 2, 2, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 	
 	public final int EXPOSURE_MAX_PENALTY = -300;
-	public final int SQUARES_CONTROL_ROUND_KING_PENALTY = -200;
-	public final int NO_FLIGHT_SQUARES_PENALTY = -200;
+	public final int SQUARES_CONTROL_ROUND_KING_PENALTY = -150;
+	public final int NO_FLIGHT_SQUARES_PENALTY = -100;
 	
 	long own, enemy;
 	long kingMask, blockers;
@@ -194,37 +194,40 @@ public class KingSafetyEvaluator {
 		return flightCount;
 	}
 	
+    static final int[] FLIGHT_COUNT_LUT;
+    static {
+        FLIGHT_COUNT_LUT = new int[64];
+        for (int i=0; i < 64; i++) {
+        	FLIGHT_COUNT_LUT[i] = Long.bitCount(SquareAttackEvaluator.KingMove_Lut[i]);
+        }
+    }
+	
 	int EvaluateSquareControlRoundKing(boolean isWhite, int evalSoFar) {
 		int evaluation = 0;
-		// Then account for attacks on the squares around the king
-		long surroundingSquares = SquareAttackEvaluator.KingMove_Lut[kingBitOffset];
+		long kingZoneMask = SquareAttackEvaluator.KingMove_Lut[kingBitOffset];
+		long aggregatedEnemyAttacksMask = attacks[isWhite ? 1 : 0][3][0];
 		
-		// attacked squares round the king
-		int attackedCount = Long.bitCount(surroundingSquares & attacks[isWhite ? 1 : 0][3][0]);
-
-		// not attacked
-		long flightMask = surroundingSquares & ~attacks[isWhite ? 1 : 0][3][0];
-		// not blocked by own pieces
-		flightMask &= ~own;
-		int flightCount = Long.bitCount(flightMask);
-		if (flightCount == 0) {
-			// Deemed a high risk of mate, assuming is developed and greater than one attack nearby
-			if (pm.getMoveNumber() > 6) {
-				if (attackedCount > 1) { 
-					return SQUARES_CONTROL_ROUND_KING_PENALTY + NO_FLIGHT_SQUARES_PENALTY;
-				} else {
-					return NO_FLIGHT_SQUARES_PENALTY / 4;
-				}
-			}
-		} else if (attackedCount <= flightCount) {
-			int fraction_attacked_q8 = (attackedCount * 256) / flightCount;
+		int attackedCount = Long.bitCount(kingZoneMask & aggregatedEnemyAttacksMask);
+		if (attackedCount != 0) {
+			// Flight squares are not attacked by enemy and not blocked by own pieces
+			long flightMask = kingZoneMask & ~aggregatedEnemyAttacksMask;
+			flightMask &= ~own;
+			int flightCount = Long.bitCount(flightMask);
+			
+			int kingZoneCount = FLIGHT_COUNT_LUT[kingBitOffset];
+			int fraction_attacked_q8 = (attackedCount * 256) / kingZoneCount;
 			evaluation += ((SQUARES_CONTROL_ROUND_KING_PENALTY * fraction_attacked_q8) / 256);
-		} else {
-			if ((flightCount == 1 && evalSoFar < -100) || (flightCount < 3 && evalSoFar < -160)) {
-				// higher risk of mate
-				evaluation += NO_FLIGHT_SQUARES_PENALTY;
+			
+			if (flightCount == 0) {
+				// Deemed a high risk of mate, assuming is developed and greater than one attack nearby
+				if (pm.getMoveNumber() > 10 && evalSoFar < -250) { 
+					evaluation += NO_FLIGHT_SQUARES_PENALTY;
+				}
+			} else {
+				int ratio_attacked_cf_flight_q8 = (attackedCount * 256) / flightCount;
+				evaluation += ((NO_FLIGHT_SQUARES_PENALTY * ratio_attacked_cf_flight_q8) / 256);
 			}
-		}		
+		}
 		return evaluation;
 	}
 }

@@ -101,9 +101,9 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
                     "info depth 2 seldepth 7 score cp 106 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 187"+CMD_TERMINATOR
                     +BEST_PREFIX+"c7c2";
 			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-				expectedOutput = "info depth 1 seldepth 6 score cp -45 pv d7e5 d4e5 c7c2 hashfull 0 nps 0 time 0 nodes 32"+CMD_TERMINATOR+
-							     "info depth 1 seldepth 3 score cp 462 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 41"+CMD_TERMINATOR+
-							     "info depth 2 seldepth 6 score cp 273 pv c7c2 c1g5 d7e5 hashfull 0 nps 0 time 0 nodes 163"+CMD_TERMINATOR
+				expectedOutput = "info depth 1 seldepth 6 score cp 55 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 22"+CMD_TERMINATOR+
+							     "info depth 1 seldepth 5 score cp 658 pv c7c2 d4d5 c2c1 hashfull 0 nps 0 time 0 nodes 39"+CMD_TERMINATOR+
+							     "info depth 2 seldepth 6 score cp 219 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 170"+CMD_TERMINATOR
 								 +BEST_PREFIX+"c7c2";
 			}
 			setupEngine();
