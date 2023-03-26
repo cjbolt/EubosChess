@@ -16,6 +16,8 @@ public class PlySearcher {
 	
 	private static final int [] ASPIRATION_WINDOW_FALLBACK = 
 		{ Piece.MATERIAL_VALUE_PAWN/4, 2*Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
+	
+	public static final int FUTILITY_MARGIN = 200;
 
 	class SearchState {
 		int plyScore;
@@ -268,6 +270,7 @@ public class PlySearcher {
 				currPly++;
 				pm.performMove(currMove);
 				
+				state[currPly].update(); /* Update inCheck */
 				positionScore = doLateMoveReductionSubTreeSearch(depth, currMove, (state[0].moveNumber - quietOffset), false);
 				
 				pm.unperformMove();
@@ -455,10 +458,24 @@ public class PlySearcher {
 				
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
+				
+				int eval = (depth == 1) ? pe.getCrudeEvaluation() : 0;
+				
 				currPly++;
 				pm.performMove(currMove);
 				
-				positionScore = doLateMoveReductionSubTreeSearch(depth, currMove, (state[currPly-1].moveNumber - quietOffset), lmrApplied);
+				state[currPly].update(); /* Update inCheck */
+				// Futility pruning
+				if (depth == 1 && 
+					(state[currPly-1].moveNumber - quietOffset) > 1 &&
+					!state[currPly-1].inCheck && 
+					!state[currPly].inCheck && 
+					(eval + FUTILITY_MARGIN) < state[currPly-1].alpha) {
+					// Assume cannot raise alpha
+					positionScore = state[currPly-1].alpha; //Score.PROVISIONAL_ALPHA;
+				} else {
+					positionScore = doLateMoveReductionSubTreeSearch(depth, currMove, (state[currPly-1].moveNumber - quietOffset), lmrApplied);
+				}
 				
 				pm.unperformMove();
 				currPly--;
@@ -715,7 +732,6 @@ public class PlySearcher {
 	private int doLateMoveReductionSubTreeSearch(int depth, int currMove, int moveNumber, boolean lmrApplied) {
 		int positionScore = 0;
 		boolean passedLmr = false;
-		state[currPly].update(); /* Update inCheck at this ply and static evaluation. */
 		
 		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
 			//!lmrApplied && /* Only apply LMR once per branch of tree */
