@@ -229,7 +229,7 @@ public class PlySearcher {
 		int bestMove = Move.NULL_MOVE;
 		int currMove = Move.NULL_MOVE;
 		int positionScore = state[0].plyScore;
-		int quietOffset = 0;
+		int quietMoveNumber = 0;
 		boolean refuted = false;
 		ml.initialiseAtPly(state[0].prevBestMove, killers.getMoves(0), state[0].inCheck, false, 0);
 		do {
@@ -253,8 +253,8 @@ public class PlySearcher {
 					pc.initialise(0, currMove);
 					bestMove = currMove;
 				}
-				if (!Move.isRegular(currMove)) {
-					quietOffset = state[0].moveNumber;
+				if (Move.isRegular(currMove)) {
+					quietMoveNumber++;
 				}
 				if (EubosEngineMain.ENABLE_UCI_MOVE_NUMBER) {
 					sm.setCurrentMove(currMove, state[0].moveNumber);
@@ -271,7 +271,7 @@ public class PlySearcher {
 				pm.performMove(currMove);
 				
 				state[currPly].update(); /* Update inCheck */
-				positionScore = doLateMoveReductionSubTreeSearch(depth, currMove, (state[0].moveNumber - quietOffset), false);
+				positionScore = doLateMoveReductionSubTreeSearch(depth, currMove, quietMoveNumber, false);
 				
 				pm.unperformMove();
 				currPly--;
@@ -425,8 +425,10 @@ public class PlySearcher {
 		int bestMove = Move.NULL_MOVE;
 		int currMove = Move.NULL_MOVE;
 		int positionScore = state[currPly].plyScore;
-		int quietOffset = 0;
 		boolean refuted = false;
+		int quietMoveNumber = 0;
+		int eval = (depth == 1) ? pe.getCrudeEvaluation() : 0;
+		
 		ml.initialiseAtPly(state[currPly].prevBestMove, killers.getMoves(currPly), state[currPly].inCheck, false, currPly);
 		do {
 			MoveListIterator move_iter = ml.getNextMovesAtPly(currPly);
@@ -449,8 +451,8 @@ public class PlySearcher {
 					pc.initialise(currPly, currMove);
 					bestMove = currMove;
 				}
-				if (!Move.isRegular(currMove)) {
-					quietOffset = state[currPly].moveNumber;
+				if (Move.isRegular(currMove)) {
+					quietMoveNumber++;
 				}
 				
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(state[currPly].alpha, state[currPly].beta);
@@ -459,22 +461,22 @@ public class PlySearcher {
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
 				
-				int eval = (depth == 1) ? pe.getCrudeEvaluation() : 0;
-				
 				currPly++;
 				pm.performMove(currMove);
 				
 				state[currPly].update(); /* Update inCheck */
 				// Futility pruning
 				if (depth == 1 && 
-					(state[currPly-1].moveNumber - quietOffset) > 1 &&
+					quietMoveNumber > 1 && // one move has been searched
 					!state[currPly-1].inCheck && 
 					!state[currPly].inCheck && 
+					Score.isMate((short)state[currPly-1].alpha) &&
+					Score.isMate((short)state[currPly-1].beta) &&
 					(eval + FUTILITY_MARGIN) < state[currPly-1].alpha) {
 					// Assume cannot raise alpha
-					positionScore = state[currPly-1].alpha; //Score.PROVISIONAL_ALPHA;
+					positionScore = Score.PROVISIONAL_ALPHA;
 				} else {
-					positionScore = doLateMoveReductionSubTreeSearch(depth, currMove, (state[currPly-1].moveNumber - quietOffset), lmrApplied);
+					positionScore = doLateMoveReductionSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied);
 				}
 				
 				pm.unperformMove();
