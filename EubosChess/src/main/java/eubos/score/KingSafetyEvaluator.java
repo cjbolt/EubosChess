@@ -27,7 +27,7 @@ public class KingSafetyEvaluator {
 	
 	public final int EXPOSURE_MAX_PENALTY = -300;
 	public final int SQUARES_CONTROL_ROUND_KING_PENALTY = -150;
-	public final int NO_FLIGHT_SQUARES_PENALTY = -100;
+	public final int NO_FLIGHT_SQUARES_PENALTY = -50;
 	
 	long own, enemy;
 	long kingMask, blockers;
@@ -41,6 +41,7 @@ public class KingSafetyEvaluator {
 	int attackingBishopCount;
 	int attackingRookCount;
 	int attackingKnightCount;
+	int totalAttackingPieces;
 	
 	public KingSafetyEvaluator(IPositionAccessors pm) {
 		this.pm = pm;
@@ -92,10 +93,11 @@ public class KingSafetyEvaluator {
 	int evaluateKingSafetyForSide(long[][][] attacks, boolean isWhite) {
 		int evaluation = 0;
 		initialiseForSide(isWhite);
-
 		evaluation += EvaluateExposureOnOpenLines();
-		evaluation += EvaluateKingTropism();
-		evaluation += EvaluatePawnShelterAndStorm(isWhite);
+		if ( totalAttackingPieces != 0) {
+			evaluation += EvaluateKingTropism();
+			evaluation += EvaluatePawnShelterAndStorm(isWhite);
+		}
 		evaluation += EvaluateSquareControlRoundKing(isWhite, evaluation);
 		
 		return evaluation;
@@ -120,7 +122,7 @@ public class KingSafetyEvaluator {
 			mobility_mask |= ((inDirection & defendingBishopsMask) == 0) ? inDirection : 0;
 			evaluation = Long.bitCount(mobility_mask ^ kingMask) * -numPotentialAttackers;
 		}
-		int totalAttackers = numPotentialAttackers;
+		totalAttackingPieces = numPotentialAttackers;
 		
 		// Then score according to King exposure on open rank/files
 		numPotentialAttackers = attackingQueenCount + attackingRookCount;
@@ -137,11 +139,11 @@ public class KingSafetyEvaluator {
 			mobility_mask |= ((inDirection & defendingRooksMask) == 0) ? inDirection : 0;
 			evaluation += Long.bitCount(mobility_mask ^ kingMask) * -numPotentialAttackers;
 		}
-		totalAttackers += numPotentialAttackers;
-		totalAttackers += attackingKnightCount;
-		totalAttackers -= attackingQueenCount; // Don't double count queens
+		totalAttackingPieces += numPotentialAttackers;
+		totalAttackingPieces += attackingKnightCount;
+		totalAttackingPieces -= attackingQueenCount; // Don't double count queens
 		
-		int forceOfAttackCoeff = evaluation * EXPOSURE_NUM_ATTACKERS_MODIFIER_LUT[totalAttackers];
+		int forceOfAttackCoeff = evaluation * EXPOSURE_NUM_ATTACKERS_MODIFIER_LUT[totalAttackingPieces];
 		return Math.max(EXPOSURE_MAX_PENALTY, forceOfAttackCoeff / 2);
 	}
 	
@@ -175,7 +177,7 @@ public class KingSafetyEvaluator {
 		int evaluation = 0;
 		// Hit with a penalty if few defending pawns in the king zone and/or pawn storm
 		long surroundingSquares = SquareAttackEvaluator.KingZone_Lut[isWhite ? 0 : 1][kingBitOffset];		
-		long pawnShieldMask =  isWhite ? surroundingSquares >>> 8 : surroundingSquares << 8;
+		long pawnShieldMask = isWhite ? surroundingSquares >>> 8 : surroundingSquares << 8;
 		evaluation += PAWN_SHELTER_LUT[Long.bitCount(pawnShieldMask & blockers)];
 		
 		long attacking_pawns = bd.pieces[Piece.PAWN] & enemy;
