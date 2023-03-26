@@ -231,6 +231,7 @@ public class PlySearcher {
 		int positionScore = state[0].plyScore;
 		int quietMoveNumber = 0;
 		boolean refuted = false;
+		int crudeEval = (depth == 1) ? pe.getCrudeEvaluation() : 0;
 		ml.initialiseAtPly(state[0].prevBestMove, killers.getMoves(0), state[0].inCheck, false, 0);
 		do {
 			MoveListIterator move_iter = ml.getNextMovesAtPly(0);
@@ -270,8 +271,7 @@ public class PlySearcher {
 				currPly++;
 				pm.performMove(currMove);
 				
-				state[currPly].update(); /* Update inCheck */
-				positionScore = doLateMoveReductionSubTreeSearch(depth, currMove, quietMoveNumber, false);
+				positionScore = doFutilityAndLmrSubTreeSearch(depth, currMove, quietMoveNumber, false, crudeEval);
 				
 				pm.unperformMove();
 				currPly--;
@@ -427,7 +427,7 @@ public class PlySearcher {
 		int positionScore = state[currPly].plyScore;
 		boolean refuted = false;
 		int quietMoveNumber = 0;
-		int eval = (depth == 1) ? pe.getCrudeEvaluation() : 0;
+		int crudeEval = (depth == 1) ? pe.getCrudeEvaluation() : 0;
 		
 		ml.initialiseAtPly(state[currPly].prevBestMove, killers.getMoves(currPly), state[currPly].inCheck, false, currPly);
 		do {
@@ -464,20 +464,7 @@ public class PlySearcher {
 				currPly++;
 				pm.performMove(currMove);
 				
-				state[currPly].update(); /* Update inCheck */
-				// Futility pruning
-				if (depth == 1 && 
-					quietMoveNumber > 1 && // one move has been searched
-					!state[currPly-1].inCheck && 
-					!state[currPly].inCheck && 
-					Score.isMate((short)state[currPly-1].alpha) &&
-					Score.isMate((short)state[currPly-1].beta) &&
-					(eval + FUTILITY_MARGIN) < state[currPly-1].alpha) {
-					// Assume cannot raise alpha
-					positionScore = Score.PROVISIONAL_ALPHA;
-				} else {
-					positionScore = doLateMoveReductionSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied);
-				}
+				positionScore = doFutilityAndLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, crudeEval);
 				
 				pm.unperformMove();
 				currPly--;
@@ -731,29 +718,38 @@ public class PlySearcher {
 		return plyScore;
 	}
 	
-	private int doLateMoveReductionSubTreeSearch(int depth, int currMove, int moveNumber, boolean lmrApplied) {
+	private int doFutilityAndLmrSubTreeSearch(int depth, int currMove, int moveNumber, boolean lmrApplied, int crudeEval) {
 		int positionScore = 0;
 		boolean passedLmr = false;
 		
-		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
-			//!lmrApplied && /* Only apply LMR once per branch of tree */
-			moveNumber > 1 && /* Search at least one quiet move */
-			!pe.goForMate() && /* Ignore reductions in a mate search */
-			depth > 2 &&
-		    !state[currPly-1].inCheck && /* Neither king is in check */ 
-			!state[currPly].inCheck &&
-			!(Move.isPawnMove(currMove) &&  /* Not a passed pawn move or a pawn move in endgame */
-					(pos.getTheBoard().me.isEndgame() ||
-					(pos.getTheBoard().getPassedPawns() & (1L << Move.getOriginPosition(currMove))) != 0L))) {		
-			
-			// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
-			int lmr = ( moveNumber < 6) ? 1 : Math.max(1, depth/4);
-			if (lmr > 0) {
-				positionScore = -search(depth-1-lmr, -state[currPly-1].beta, -state[currPly-1].alpha);
-				if (positionScore <= state[currPly-1].alpha) {
-					passedLmr = true;
-				}
-			}
+		state[currPly].update(); /* Update inCheck */
+		// Futility pruning
+		if (moveNumber > 1 && /* Full search for at least one quiet move */
+			!state[currPly-1].inCheck && 
+			!state[currPly].inCheck) {
+			if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
+					//!lmrApplied && /* Only apply LMR once per branch of tree */
+					!pe.goForMate() && /* Ignore reductions in a mate search */
+					depth > 2 &&
+					!(Move.isPawnMove(currMove) &&  /* Not a passed pawn move or a pawn move in endgame */
+							(pos.getTheBoard().me.isEndgame() ||
+							(pos.getTheBoard().getPassedPawns() & (1L << Move.getOriginPosition(currMove))) != 0L))) {		
+				
+				// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
+				int lmr = ( moveNumber < 6) ? 1 : Math.max(1, depth/4);
+				if (lmr > 0) {
+					positionScore = -search(depth-1-lmr, -state[currPly-1].beta, -state[currPly-1].alpha);
+					if (positionScore <= state[currPly-1].alpha) {
+						passedLmr = true;
+					}
+				}	
+			} else if (depth == 1 &&
+				Score.isMate((short)state[currPly-1].alpha) &&
+				Score.isMate((short)state[currPly-1].beta) &&
+				(crudeEval + FUTILITY_MARGIN) < state[currPly-1].alpha) {
+				// Assume cannot raise alpha
+				positionScore = Score.PROVISIONAL_ALPHA;
+			} 
 		}
 		if (!passedLmr) {
 			// Re-search if the reduced search increased alpha 
