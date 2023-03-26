@@ -21,7 +21,7 @@ public class MoveListTest {
 	
 	private void setup(String fen)  {
 		PositionManager pm = new PositionManager( fen );
-		classUnderTest = new MoveList(pm, 1);;
+		classUnderTest = new MoveList(pm, 1);
 	}
 	
 	@Before

@@ -50,10 +50,10 @@ public final class Move {
 	
 	// Misc flags
 	public static final int MISC_EN_PASSANT_CAPTURE_BIT = 0;
-	public static final int MISC_CASTLING_CAPTURE_BIT = 1;
+	public static final int MISC_CASTLING_BIT = 1;
 	private static final int MISC_SHIFT = TYPE_SHIFT + Long.bitCount(TYPE_MASK);
 	public static final int MISC_EN_PASSANT_CAPTURE_MASK = (0x1 << (MISC_EN_PASSANT_CAPTURE_BIT + MISC_SHIFT));
-	public static final int MISC_CASTLING_MASK = (0x1 << (MISC_CASTLING_CAPTURE_BIT + MISC_SHIFT));
+	public static final int MISC_CASTLING_MASK = (0x1 << (MISC_CASTLING_BIT + MISC_SHIFT));
 	
 	public static final int NULL_MOVE =
 			valueOf(TYPE_REGULAR_NONE, Position.a1, Piece.NONE, Position.a1, Piece.NONE, Piece.NONE);
