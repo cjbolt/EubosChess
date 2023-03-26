@@ -30,7 +30,7 @@ public class MoveTest {
 		MoveListIterator normal_it = ml.getNextMovesAtPly(0);
 		do {
 			do {
-				//int move = normal_it.nextInt();
+				normal_it.nextInt();
 			} while (normal_it.hasNext());
 			normal_it = ml.getNextMovesAtPly(0);
 		} while (normal_it.hasNext());
