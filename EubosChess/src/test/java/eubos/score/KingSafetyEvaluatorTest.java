@@ -142,4 +142,13 @@ class KingSafetyEvaluatorTest {
 		assertEquals(-164, SUT.evaluateKingSafetyForSide(attacks, true));
 		assertEquals(-185, SUT.evaluateKingSafetyForSide(attacks, false));
 	}
+	
+	@Test
+	public void test2() throws IllegalNotationException {
+		setUpPosition("r3k2r/1p1bbp2/pq2p3/4P3/3NN1n1/6n1/PPP1B1P1/R1QR2K1 w kq - 0 25");
+		long [][][] attacks = pm.getTheBoard().mae.calculateBasicAttacksAndMobility(pm.getTheBoard().me);
+		SUT.testInitForSide(attacks, true);
+		assertEquals(-321, SUT.evaluateKingSafetyForSide(attacks, true));
+		assertEquals(-58, SUT.evaluateKingSafetyForSide(attacks, false));
+	} 
 }

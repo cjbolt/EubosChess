@@ -26,8 +26,9 @@ public class KingSafetyEvaluator {
 	public final int[] EXPOSURE_NUM_ATTACKERS_MODIFIER_LUT = {0, 2, 2, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 	
 	public final int EXPOSURE_MAX_PENALTY = -300;
-	public final int SQUARES_CONTROL_ROUND_KING_PENALTY = -150;
-	public final int NO_FLIGHT_SQUARES_PENALTY = -50;
+	public final int ATTACKED_SQS_TO_KING_ZONE_PENALTY = -150;
+	public final int NO_FLIGHT_SQUARES_PENALTY = -100;
+	public final int FLIGHT_SQS_TO_ATTACKED_SQS_PENALTY = -50;
 	
 	long own, enemy;
 	long kingMask, blockers;
@@ -94,7 +95,7 @@ public class KingSafetyEvaluator {
 		int evaluation = 0;
 		initialiseForSide(isWhite);
 		evaluation += EvaluateExposureOnOpenLines();
-		if ( totalAttackingPieces != 0) {
+		if (totalAttackingPieces != 0) {
 			evaluation += EvaluateKingTropism();
 			evaluation += EvaluatePawnShelterAndStorm(isWhite);
 		}
@@ -218,16 +219,17 @@ public class KingSafetyEvaluator {
 			
 			int kingZoneCount = FLIGHT_COUNT_LUT[kingBitOffset];
 			int fraction_attacked_q8 = (attackedCount * 256) / kingZoneCount;
-			evaluation += ((SQUARES_CONTROL_ROUND_KING_PENALTY * fraction_attacked_q8) / 256);
+			evaluation += ((ATTACKED_SQS_TO_KING_ZONE_PENALTY * fraction_attacked_q8) / 256);
 			
 			if (flightCount == 0) {
-				// Deemed a high risk of mate, assuming is developed and greater than one attack nearby
-				if (pm.getMoveNumber() > 10 && evalSoFar < -250) { 
-					evaluation += NO_FLIGHT_SQUARES_PENALTY;
+				// Deemed a high risk of mate, assuming development has occurred
+				if (pm.getMoveNumber() > 10) {
+					int fraction_no_flight_q8 = (evalSoFar * 256) / -130;
+					evaluation += ((NO_FLIGHT_SQUARES_PENALTY * fraction_no_flight_q8) / 256);
 				}
 			} else {
 				int ratio_attacked_cf_flight_q8 = (attackedCount * 256) / flightCount;
-				evaluation += ((NO_FLIGHT_SQUARES_PENALTY * ratio_attacked_cf_flight_q8) / 256);
+				evaluation += ((FLIGHT_SQS_TO_ATTACKED_SQS_PENALTY * ratio_attacked_cf_flight_q8) / 256);
 			}
 		}
 		return evaluation;
