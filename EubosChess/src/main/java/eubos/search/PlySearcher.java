@@ -514,8 +514,8 @@ public class PlySearcher {
 		
 		state[currPly].plyScore = pe.lazyEvaluation(alpha, beta);
 		if (state[currPly].plyScore == Short.MIN_VALUE) {
-			// We are standing PAT, so values less than alpha can be increased, that is why 
-			// this threashold is not plyScore <= alpha!
+			// We are just establinshing stand PAT score, so values less than alpha can be increased, that is why 
+			// this threshold is not plyScore <= alpha! N.b. Short.MIN_VALUE was indicating an alpha cut.
 			return alpha;
 		}
 		if (state[currPly].plyScore >= beta) {
