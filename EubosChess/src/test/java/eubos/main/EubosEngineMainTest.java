@@ -504,4 +504,174 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"17"+CMD_TERMINATOR, BEST_PREFIX+"h6g7"+CMD_TERMINATOR));
 		performTest(18000);
 	}
+	
+	@Test
+	public void test_endgame_e() throws IllegalNotationException, IOException, InterruptedException {
+		// Fine: problem 25
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"6k1/7p/5P1K/8/8/8/7P/8 w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"19"+CMD_TERMINATOR, BEST_PREFIX+"h6g5"+CMD_TERMINATOR));
+		performTest(3000);	
+	}
+	
+	@Test
+	public void test_endgame_k() throws IllegalNotationException, IOException, InterruptedException {
+		// Fine: problem 26
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/2k5/p1P5/P1K5/8/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"22"+CMD_TERMINATOR, BEST_PREFIX+"c5d5"+CMD_TERMINATOR));
+		performTest(1000);
+	}
+	
+	@Test
+	public void test_endgame_o() throws IllegalNotationException, IOException, InterruptedException {
+		// Fine: problem 29
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"4k3/4Pp2/5P2/4K3/8/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"17"+CMD_TERMINATOR, BEST_PREFIX+"e5f5"+CMD_TERMINATOR));
+		performTest(1000);
+	}
+	
+	@Test
+	public void test_endgame_a() throws IllegalNotationException, IOException, InterruptedException {
+		// Fine: problem 51
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/2pp3k/8/1P1P3K/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"17"+CMD_TERMINATOR, BEST_PREFIX+"d4d5"+CMD_TERMINATOR));
+		performTest(4000);
+	}
+	
+	@Test
+	public void test_endgame_b() throws IllegalNotationException, IOException, InterruptedException {
+		// Fine: problem 61
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/ppp5/8/PPP5/6kp/8/6KP/8 w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"11"+CMD_TERMINATOR, BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
+		performTest(2000);		
+	}
+	
+	@Test
+	public void test_endgame_i() throws IllegalNotationException, IOException, InterruptedException {
+		// Fine: problem 70
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/k7/3p4/p2P1p2/P2P1P2/8/8/K7 w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"21"+CMD_TERMINATOR, BEST_PREFIX+"a1b1"+CMD_TERMINATOR));
+		performTest(1000);
+	}
+	
+	@Test
+	public void test_endgame_Fine_80() throws IllegalNotationException, IOException, InterruptedException {
+		// Fine: problem 80
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/1ppk4/p4pp1/P1PP2p1/2P1K1P1/7P/8 b - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"13"+CMD_TERMINATOR, BEST_PREFIX+"b6b5"+CMD_TERMINATOR));
+		performTest(4000);
+	}
+	
+	@Test
+	public void test_endgame_Fine_53() throws IllegalNotationException, IOException, InterruptedException {
+		// Fine: problem 53
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/3pkp2/8/8/3PK3/5P2/8 w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"20"+CMD_TERMINATOR, BEST_PREFIX+"e3e4"+CMD_TERMINATOR));
+		performTest(3000);	
+	}
+	
+	@Test
+	public void test_endgame_Fine_58() throws IllegalNotationException, IOException, InterruptedException {
+		// Fine: problem 58
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/2ppk3/8/2PPK3/2P5/8/8 w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"15"+CMD_TERMINATOR, BEST_PREFIX+"d4d5"+CMD_TERMINATOR));
+		performTest(1000);	
+	}
+	
+	@Test
+	public void test_endgame_Fine_67() throws IllegalNotationException, IOException, InterruptedException {
+		// Fine: problem 67
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/2p5/3k4/1p1p1K2/8/1P1P4/2P5/8 w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"18"+CMD_TERMINATOR, BEST_PREFIX+"b3b4"+CMD_TERMINATOR));
+		performTest(2000);		
+	}
+	
+	@Test
+	public void test_endgame_Fine_76() throws IllegalNotationException, IOException, InterruptedException {
+		// Fine: problem 76
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/p6p/1p3kp1/1P6/P4PKP/5P2/8 w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"7"+CMD_TERMINATOR, BEST_PREFIX+"f3f4"+CMD_TERMINATOR));
+		performTest(1000);	
+	}
+	
+	@Test
+	public void test_endgame_Fine_42() throws IllegalNotationException, IOException, InterruptedException {
+		// Fine: problem 42
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/5p2/8/4K1P1/5Pk1/8/8/8 w - - 2 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"16"+CMD_TERMINATOR, BEST_PREFIX+"e5e4"+CMD_TERMINATOR));
+		performTest(1000);		
+	}
+	
+	@Test
+	public void test_endgame_Fine_90() throws IllegalNotationException, IOException, InterruptedException {
+		// Fine: problem 90
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/7p/2k1Pp2/pp1p2p1/3P2P1/4P3/P3K2P/8 w - - 2 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"13"+CMD_TERMINATOR, BEST_PREFIX+"e3e4"+CMD_TERMINATOR));
+		performTest(2000);		
+	}
+	
+	@Test
+	public void test_endgame_Fine_100A() throws IllegalNotationException, IOException, InterruptedException {
+		// Fine: problem 100A
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/6p1/3k1p2/2p2Pp1/2P1p1P1/1P4P1/4K3/8 w - - 2 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"21"+CMD_TERMINATOR, BEST_PREFIX+"e2f2"+CMD_TERMINATOR));
+		performTest(4000);		
+	}
+	
+	@Test
+	public void test_endgame_Fine_66() throws IllegalNotationException, IOException, InterruptedException {
+		// Fine: problem 66
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/1k3ppp/8/3K4/7P/5PP1/8/8 w - - 2 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"14"+CMD_TERMINATOR, BEST_PREFIX+"d5d6"+CMD_TERMINATOR));
+		performTest(2000);		
+	}
+	 
+	@Test
+	public void test_endgame_d() throws IllegalNotationException, IOException, InterruptedException {
+		// Fine: problem 82
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/pp5p/8/PP2k3/2P2pp1/3K4/6PP/8 w - - 1 10"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"c4c5"+CMD_TERMINATOR));
+		performTest(3000);		
+	}
+	
+	@Test
+	public void test_mateInFour() throws IllegalNotationException, IOException, InterruptedException {
+		// chess.com Problem ID: 0102832
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"r1r3k1/pb1p1p2/1p2p1p1/2pPP1B1/1nP4Q/1Pq2NP1/P4PBP/b2R2K1 w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"7"+CMD_TERMINATOR, BEST_PREFIX+"g5f6"+CMD_TERMINATOR));
+		performTest(1000);
+	}
+	
+	@Test
+	public void test_findMove_mateInTwo() throws IllegalNotationException, IOException, InterruptedException {
+		// chess.com Problem ID: 0551140
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"rnbq1rk1/p4ppN/4p2n/1pbp4/8/2PQP2P/PPB2PP1/RNB1K2R w - - 0 1"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR, BEST_PREFIX+"h7f6"+CMD_TERMINATOR));
+		performTest(1000);
+	}
+	
+	@Test
+	public void test_findMove_mateInThree() throws IllegalNotationException, IOException, InterruptedException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"2kr3r/ppp2ppp/8/8/1P5P/1K1b1P1N/P3P1P1/4qB1R b - - 3 24"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR, BEST_PREFIX+"e1b1"+CMD_TERMINATOR));
+		performTest(1000);
+	}
 }
