@@ -8,7 +8,6 @@ import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.MoveListIterator;
 import eubos.score.IEvaluate;
-//import eubos.score.PositionEvaluator;
 import eubos.search.transposition.ITranspositionAccessor;
 import eubos.search.transposition.Transposition;
 
@@ -16,8 +15,6 @@ public class PlySearcher {
 	
 	private static final int [] ASPIRATION_WINDOW_FALLBACK = 
 		{ Piece.MATERIAL_VALUE_PAWN/4, 2*Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
-	
-	public static final int FUTILITY_MARGIN = 200;
 
 	class SearchState {
 		int plyScore;
@@ -231,7 +228,7 @@ public class PlySearcher {
 		int positionScore = state[0].plyScore;
 		int quietMoveNumber = 0;
 		boolean refuted = false;
-		int crudeEval = (depth == 1) ? pe.getCrudeEvaluation() : 0;
+		int staticEval = (depth == 1) ? refScore : 0;
 		ml.initialiseAtPly(state[0].prevBestMove, killers.getMoves(0), state[0].inCheck, false, 0);
 		do {
 			MoveListIterator move_iter = ml.getNextMovesAtPly(0);
@@ -271,7 +268,7 @@ public class PlySearcher {
 				currPly++;
 				pm.performMove(currMove);
 				
-				positionScore = doFutilityAndLmrSubTreeSearch(depth, currMove, quietMoveNumber, false, crudeEval);
+				positionScore = doFutilityAndLmrSubTreeSearch(depth, currMove, quietMoveNumber, false, staticEval);
 				
 				pm.unperformMove();
 				currPly--;
@@ -427,7 +424,7 @@ public class PlySearcher {
 		int positionScore = state[currPly].plyScore;
 		boolean refuted = false;
 		int quietMoveNumber = 0;
-		int crudeEval = (depth == 1) ? pe.getCrudeEvaluation() : 0;
+		int staticEval = (depth == 1) ? pe.getFullEvaluation() : 0;
 		
 		ml.initialiseAtPly(state[currPly].prevBestMove, killers.getMoves(currPly), state[currPly].inCheck, false, currPly);
 		do {
@@ -464,7 +461,7 @@ public class PlySearcher {
 				currPly++;
 				pm.performMove(currMove);
 				
-				positionScore = doFutilityAndLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, crudeEval);
+				positionScore = doFutilityAndLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, staticEval);
 				
 				pm.unperformMove();
 				currPly--;
@@ -718,7 +715,7 @@ public class PlySearcher {
 		return plyScore;
 	}
 	
-	private int doFutilityAndLmrSubTreeSearch(int depth, int currMove, int moveNumber, boolean lmrApplied, int crudeEval) {
+	private int doFutilityAndLmrSubTreeSearch(int depth, int currMove, int moveNumber, boolean lmrApplied, int eval) {
 		int positionScore = 0;
 		boolean passedLmr = false;
 		
@@ -746,9 +743,9 @@ public class PlySearcher {
 			} else if (depth == 1 &&
 				Score.isMate((short)state[currPly-1].alpha) &&
 				Score.isMate((short)state[currPly-1].beta) &&
-				(crudeEval + FUTILITY_MARGIN) < state[currPly-1].alpha) {
+				(eval + pe.estimateMovePositionalContribution(currMove)) < state[currPly-1].alpha) {
 				// Assume cannot raise alpha
-				positionScore = Score.PROVISIONAL_ALPHA;
+				positionScore = eval;
 			} 
 		}
 		if (!passedLmr) {
@@ -757,7 +754,7 @@ public class PlySearcher {
 		}
 		return positionScore;
 	}
-
+	
 	public boolean lastAspirationFailed() {
 		return lastAspirationFailed;
 	}

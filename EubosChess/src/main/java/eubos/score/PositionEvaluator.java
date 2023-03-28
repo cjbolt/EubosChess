@@ -9,6 +9,7 @@ import eubos.board.Piece;
 import eubos.board.SquareAttackEvaluator;
 import eubos.main.EubosEngineMain;
 import eubos.position.IPositionAccessors;
+import eubos.position.Move;
 
 public class PositionEvaluator implements IEvaluate {
 
@@ -291,6 +292,33 @@ public class PositionEvaluator implements IEvaluate {
 			score -= BISHOP_PAIR_BOOST;
 		}
 		return score;
+	}
+	
+	public static final int FUTILITY_MARGIN = 75;
+	
+	public int estimateMovePositionalContribution(int move) {
+		int futility = FUTILITY_MARGIN;
+		int originPiece = Move.getOriginPiece(move);
+		int originNoColour = originPiece & Piece.PIECE_NO_COLOUR_MASK;
+		boolean ownSideIsWhite = Piece.isWhite(originPiece);
+		if (originNoColour == Piece.PAWN) {
+			int pawnIsAt = Move.getTargetPosition(move);
+			long pawnMask = 1L << pawnIsAt;
+			long pp = pm.getTheBoard().getPassedPawns();
+			if ((pp & pawnMask) != 0L) {
+				/* If pawn is passed, inflate futility. */
+				futility += 50;
+			}
+		} else if (originNoColour == Piece.KNIGHT || originPiece == Piece.QUEEN) {
+			/* could effects King tropism strongly */
+			int enemyKingBit = pm.getTheBoard().getKingPosition(!ownSideIsWhite);
+			int distBefore = BitBoard.ManhattanDistance[Move.getOriginPosition(move)][enemyKingBit];
+			int distAfter = BitBoard.ManhattanDistance[Move.getTargetPosition(move)][enemyKingBit];
+			if (distBefore > 3 && distAfter < 3) {
+				futility += 50;
+			}
+		}
+		return futility;
 	}
 	
 }

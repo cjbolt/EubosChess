@@ -7,4 +7,5 @@ public interface IEvaluate {
 	void reportLazyStatistics();
 	void reportPawnStatistics();
 	boolean goForMate();
+	int estimateMovePositionalContribution(int move);
 }
