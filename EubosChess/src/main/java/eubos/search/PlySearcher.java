@@ -424,7 +424,7 @@ public class PlySearcher {
 		int positionScore = state[currPly].plyScore;
 		boolean refuted = false;
 		int quietMoveNumber = 0;
-		int staticEval = (depth == 1) ? pe.getFullEvaluation() : 0;
+		int staticEval = (depth == 1) ? pe.getCrudeEvaluation() : 0;
 		
 		ml.initialiseAtPly(state[currPly].prevBestMove, killers.getMoves(currPly), state[currPly].inCheck, false, currPly);
 		do {
@@ -745,7 +745,7 @@ public class PlySearcher {
 				Score.isMate((short)state[currPly-1].beta) &&
 				(eval + pe.estimateMovePositionalContribution(currMove)) < state[currPly-1].alpha) {
 				// Assume cannot raise alpha
-				positionScore = eval;
+				positionScore = Score.PROVISIONAL_ALPHA;
 			} 
 		}
 		if (!passedLmr) {
