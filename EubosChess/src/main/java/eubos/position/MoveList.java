@@ -104,8 +104,10 @@ public class MoveList implements Iterable<Integer> {
 		case 0:
 			// Return best Move if valid
 			nextCheckPoint[ply] = 1;
+			//if (!Move.areEqualForBestKiller(bestMove[ply], Move.NULL_MOVE)) {
 			if (bestMove[ply] != Move.NULL_MOVE) {
 				if (Move.isBest(bestMove[ply]) || bestMoveIsValid()) {
+					bestMove[ply] = Move.setBest(bestMove[ply]);
 					if (!extendedSearch[ply] || isValidBestMoveForExtendedSearch()) {
 						return singleMoveIterator(bestMove[ply]);
 					}
@@ -209,7 +211,7 @@ public class MoveList implements Iterable<Integer> {
 		MoveListIterator iter = null;
 		if (!Move.areEqualForBestKiller(bestMove[ply], killers[ply][killerNum])
 				&& pm.getTheBoard().isPlayableMove(killers[ply][killerNum], needToEscapeMate[ply], pm.castling)) {
-			iter = singleMoveIterator(killers[ply][killerNum]);
+			iter = singleMoveIterator(Move.setKiller(killers[ply][killerNum]));
 		}
 		return iter;
 	}

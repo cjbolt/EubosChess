@@ -246,7 +246,7 @@ public class PlySearcher {
 			do {
 				currMove = move_iter.nextInt();
 				if (EubosEngineMain.ENABLE_ASSERTS) {
-					assert currMove != Move.NULL_MOVE: "Null move found in MoveList";
+					assert !Move.areEqualForBestKiller(currMove, Move.NULL_MOVE): "Null move found in MoveList";
 				}
 				state[0].moveNumber += 1;
 				if (state[0].moveNumber == 1) {
@@ -443,7 +443,7 @@ public class PlySearcher {
 				currMove = move_iter.nextInt();
 				state[currPly].moveNumber += 1;
 				if (EubosEngineMain.ENABLE_ASSERTS) {
-					assert currMove != Move.NULL_MOVE: "Null move found in MoveList";
+					assert !Move.areEqualForBestKiller(currMove, Move.NULL_MOVE): "Null move found in MoveList";
 				}
 				if (state[currPly].moveNumber == 1) {
 					pc.initialise(currPly, currMove);
@@ -451,9 +451,15 @@ public class PlySearcher {
 				}
 				if (Move.isRegular(currMove)) {
 					quietMoveNumber++;
+				} else {
+					if (EubosEngineMain.ENABLE_ASSERTS) {
+						assert quietMoveNumber == 0 : String.format("Out_of_order move %s num=%d quiet=%d best=%s", Move.toString(currMove), state[currPly].moveNumber, quietMoveNumber, Move.toString(bestMove));
+					}
 				}
-				if (quietMoveNumber == 1 && depth == 1) {
-					state[currPly].staticEval = (short)pe.getFullEvaluation();
+				if (quietMoveNumber == 1) {
+					if (depth == 1) {
+						state[currPly].staticEval = (short)pe.getFullEvaluation();
+					}
 				}
 //				if (quietMoveNumber == 1 && depth == 1) {
 //					if (!Score.isMate((short)state[currPly].alpha) &&
