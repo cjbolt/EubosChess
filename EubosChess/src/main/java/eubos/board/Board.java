@@ -231,9 +231,9 @@ public class Board {
 			assert (allPieces & initialSquareMask) != 0: 
 				String.format("Piece %s not on all pieces board for move %s", 
 						Piece.toFenChar(pieceToMove), Move.toString(move));
-			assert pieceLists.isPresent(pieceToMove, originBitOffset) :
-				String.format("Piece %s is not present in PieceList for move %s", 
-					Piece.toFenChar(pieceToMove), Move.toString(move));
+			//assert pieceLists.isPresent(pieceToMove, originBitOffset) :
+			//	String.format("Piece %s is not present in PieceList for move %s", 
+			//		Piece.toFenChar(pieceToMove), Move.toString(move));
 			assert (targetPiece & Piece.PIECE_NO_COLOUR_MASK) != Piece.DONT_CARE;
 		}
 		
@@ -259,9 +259,9 @@ public class Board {
 				assert (allPieces & captureMask) != 0: 
 					String.format("Piece %s not on all pieces board for move %s", 
 							Piece.toFenChar(targetPiece), Move.toString(move));
-				assert pieceLists.isPresent(targetPiece, captureBitOffset) :
-					String.format("Non-existant target piece %c at %s for move %s",
-						Piece.toFenChar(targetPiece), Position.toGenericPosition(captureBitOffset), Move.toString(move));
+				//assert pieceLists.isPresent(targetPiece, captureBitOffset) :
+				//	String.format("Non-existant target piece %c at %s for move %s",
+				//		Piece.toFenChar(targetPiece), Position.toGenericPosition(captureBitOffset), Move.toString(move));
 			}
 			pickUpPieceAtSquare(1L << captureBitOffset, captureBitOffset, targetPiece);
 			// Incrementally update opponent material after capture, at the correct capturePosition

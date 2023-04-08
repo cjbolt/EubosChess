@@ -294,7 +294,7 @@ public class PositionEvaluator implements IEvaluate {
 		return score;
 	}
 	
-	public static final int FUTILITY_MARGIN = 250; //125
+	public static final int FUTILITY_MARGIN = 50; //250; //125
 	
 	int futilityC(int move) {
 		int futility = FUTILITY_MARGIN;

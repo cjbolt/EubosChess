@@ -26,6 +26,7 @@ public class PlySearcher {
 		int hashScore;
 		int moveNumber;
 		boolean inCheck; // not initialised here for reasons of optimisation
+		short staticEval;
 		
 		void initialise(int ply, int alpha, int beta) {
 			hashScore = plyScore = Score.PROVISIONAL_ALPHA;
@@ -33,6 +34,7 @@ public class PlySearcher {
 			this.beta = beta;
 			isCutOff = false;
 			moveNumber = 0;
+			staticEval = 0;
 			// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
 			// It will deviate from the hash move when we start updating the hash during iterative deepening.
 			prevBestMove = Move.clearBest(pc.getBestMove((byte)ply));
@@ -228,7 +230,7 @@ public class PlySearcher {
 		int positionScore = state[0].plyScore;
 		int quietMoveNumber = 0;
 		boolean refuted = false;
-		int staticEval = (depth == 1) ? refScore : 0;
+		state[0].staticEval = (depth == 1) ? refScore : 0;
 		ml.initialiseAtPly(state[0].prevBestMove, killers.getMoves(0), state[0].inCheck, false, 0);
 		do {
 			MoveListIterator move_iter = ml.getNextMovesAtPly(0);
@@ -268,7 +270,7 @@ public class PlySearcher {
 				currPly++;
 				pm.performMove(currMove);
 				
-				positionScore = doFutilityAndLmrSubTreeSearch(depth, currMove, quietMoveNumber, false, staticEval);
+				positionScore = doFutilityAndLmrSubTreeSearch(depth, currMove, quietMoveNumber, false);
 				
 				pm.unperformMove();
 				currPly--;
@@ -424,7 +426,6 @@ public class PlySearcher {
 		int positionScore = state[currPly].plyScore;
 		boolean refuted = false;
 		int quietMoveNumber = 0;
-		int staticEval = (depth == 1) ? pe.getCrudeEvaluation() : 0;
 		
 		ml.initialiseAtPly(state[currPly].prevBestMove, killers.getMoves(currPly), state[currPly].inCheck, false, currPly);
 		do {
@@ -451,6 +452,22 @@ public class PlySearcher {
 				if (Move.isRegular(currMove)) {
 					quietMoveNumber++;
 				}
+				if (quietMoveNumber == 1 && depth == 1) {
+					state[currPly].staticEval = (short)pe.getFullEvaluation();
+				}
+//				if (quietMoveNumber == 1 && depth == 1) {
+//					if (!Score.isMate((short)state[currPly].alpha) &&
+//						!Score.isMate((short)state[currPly].beta))
+//					{
+//						if ((pe.getCrudeEvaluation() + Piece.MATERIAL_VALUE_ROOK) < state[currPly].alpha) {
+//							return state[currPly].alpha;
+//						}
+//						state[currPly].staticEval = (short)pe.getFullEvaluation();
+//						if ((state[currPly].staticEval + pe.estimateMovePositionalContribution(currMove)) < state[currPly].alpha) {
+//							return state[currPly].alpha;
+//						}
+//					}
+//				}
 				
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(state[currPly].alpha, state[currPly].beta);
 				if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
@@ -461,7 +478,7 @@ public class PlySearcher {
 				currPly++;
 				pm.performMove(currMove);
 				
-				positionScore = doFutilityAndLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, staticEval);
+				positionScore = doFutilityAndLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied);
 				
 				pm.unperformMove();
 				currPly--;
@@ -715,15 +732,12 @@ public class PlySearcher {
 		return plyScore;
 	}
 	
-	private int doFutilityAndLmrSubTreeSearch(int depth, int currMove, int moveNumber, boolean lmrApplied, int eval) {
+	private int doFutilityAndLmrSubTreeSearch(int depth, int currMove, int moveNumber, boolean lmrApplied) {
 		int positionScore = 0;
 		boolean passedLmr = false;
 		
 		state[currPly].update(); /* Update inCheck */
-		// Futility pruning
-		if (moveNumber > 1 && /* Full search for at least one quiet move */
-			!state[currPly-1].inCheck && 
-			!state[currPly].inCheck) {
+		if (moveNumber > 1) { /* Full search for at least one quiet move */
 			if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
 					//!lmrApplied && /* Only apply LMR once per branch of tree */
 					!pe.goForMate() && /* Ignore reductions in a mate search */
@@ -741,10 +755,10 @@ public class PlySearcher {
 					}
 				}	
 			} else if (depth == 1 &&
-				Score.isMate((short)state[currPly-1].alpha) &&
-				Score.isMate((short)state[currPly-1].beta) &&
-				(eval + pe.estimateMovePositionalContribution(currMove)) < state[currPly-1].alpha) {
-				// Assume cannot raise alpha
+					!Score.isMate((short)state[currPly-1].alpha) &&
+					!Score.isMate((short)state[currPly-1].beta) &&
+					(state[currPly-1].staticEval + pe.estimateMovePositionalContribution(currMove)) < state[currPly-1].alpha) {
+				// Futility pruning - assume cannot raise alpha
 				positionScore = Score.PROVISIONAL_ALPHA;
 			} 
 		}
