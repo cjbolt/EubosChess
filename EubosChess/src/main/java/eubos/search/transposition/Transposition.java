@@ -92,6 +92,7 @@ public final class Transposition {
 	protected static long setBestMove(long trans, int bestMove) {
 		// Is always best move, but killer flag could be different
 		bestMove = Move.setBest(bestMove);
+		bestMove = Move.clearKiller(bestMove);
 		trans |= bestMove;
 		return trans;
 	}

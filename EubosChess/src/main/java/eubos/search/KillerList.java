@@ -40,7 +40,7 @@ public class KillerList {
 				if (!isMoveOnListAtPly(killerList[ply], move)) {
 					// update the move and change the index to update next time
 					int indexToUpdate = replaceIndex[ply];
-					killerList[ply][indexToUpdate] = move;
+					killerList[ply][indexToUpdate] = Move.setKiller(Move.clearBest(move));
 					indexToUpdate++;
 					if (indexToUpdate >= NUM_KILLERS_AT_PLY) {
 						indexToUpdate = 0;

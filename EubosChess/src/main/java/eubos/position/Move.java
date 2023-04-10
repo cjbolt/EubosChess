@@ -538,6 +538,10 @@ public final class Move {
 		return (move |= (Move.TYPE_KILLER_MASK << TYPE_SHIFT));
 	}
 	
+	public static int clearKiller(int move) {
+		return (move &= ~(Move.TYPE_KILLER_MASK << TYPE_SHIFT));
+	}
+	
 	public static int setBest(int move) {
 		return (move |= (Move.TYPE_BEST_MASK << TYPE_SHIFT));
 	}

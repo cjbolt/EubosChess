@@ -211,7 +211,7 @@ public class MoveList implements Iterable<Integer> {
 		MoveListIterator iter = null;
 		if (!Move.areEqualForBestKiller(bestMove[ply], killers[ply][killerNum])
 				&& pm.getTheBoard().isPlayableMove(killers[ply][killerNum], needToEscapeMate[ply], pm.castling)) {
-			iter = singleMoveIterator(Move.setKiller(killers[ply][killerNum]));
+			iter = singleMoveIterator(killers[ply][killerNum]);
 		}
 		return iter;
 	}
