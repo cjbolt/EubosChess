@@ -456,21 +456,19 @@ public class PlySearcher {
 						assert quietMoveNumber == 0 : String.format("Out_of_order move %s num=%d quiet=%d best=%s", Move.toString(currMove), state[currPly].moveNumber, quietMoveNumber, Move.toString(bestMove));
 					}
 				}
-//				if (quietMoveNumber == 1) {
-//					if (depth == 1) {
-//						state[currPly].staticEval = (short)pe.getFullEvaluation();
-//					}
-//				}
-				if (quietMoveNumber == 1 && depth == 1) {
-					if (!Score.isMate((short)state[currPly].alpha) &&
-						!Score.isMate((short)state[currPly].beta))
-					{
-						if ((pe.getCrudeEvaluation() + Piece.MATERIAL_VALUE_ROOK) < state[currPly].alpha) {
+
+				// Futility pruning
+				boolean notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
+				if (depth == 1 && notMate) {
+					if (quietMoveNumber == 1) {
+						if ((pe.getCrudeEvaluation() + Piece.MATERIAL_VALUE_QUEEN) < state[currPly].alpha) {
 							return state[currPly].alpha;
 						}
 						state[currPly].staticEval = (short)pe.getFullEvaluation();
+					}
+					if (quietMoveNumber >= 1) {
 						if ((state[currPly].staticEval + pe.estimateMovePositionalContribution(currMove)) < state[currPly].alpha) {
-							return state[currPly].alpha;
+							continue;
 						}
 					}
 				}

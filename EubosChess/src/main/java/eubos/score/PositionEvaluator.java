@@ -294,78 +294,42 @@ public class PositionEvaluator implements IEvaluate {
 		return score;
 	}
 	
-	public static final int FUTILITY_MARGIN = 50; //250; //125
+	public static final int FUTILITY_MARGIN = 50;
 	
 	int futilityC(int move) {
 		int futility = FUTILITY_MARGIN;
 		int originPiece = Move.getOriginPiece(move);
 		int originNoColour = originPiece & Piece.PIECE_NO_COLOUR_MASK;
-		boolean ownSideIsWhite = Piece.isWhite(originPiece);
+		
 		if (originNoColour == Piece.PAWN) {
-			int pawnIsAt = Move.getTargetPosition(move);
+			int pawnIsAt = Move.getOriginPosition(move);
 			long pawnMask = 1L << pawnIsAt;
 			long pp = pm.getTheBoard().getPassedPawns();
 			if ((pp & pawnMask) != 0L) {
-				/* If pawn is passed, inflate futility. */
+				/* If the moving pawn is already passed, inflate futility. */
 				futility += 50;
-			}
-		} else {
-			if (originNoColour == Piece.KNIGHT || originPiece == Piece.QUEEN) {
-				/* could effects King tropism strongly */
-				int enemyKingBit = pm.getTheBoard().getKingPosition(!ownSideIsWhite);
-				int distBefore = BitBoard.ManhattanDistance[Move.getOriginPosition(move)][enemyKingBit];
-				int distAfter = BitBoard.ManhattanDistance[Move.getTargetPosition(move)][enemyKingBit];
-				if (distBefore > 3 && distAfter < 3) {
-					futility += 50;
+			} else {
+			int pawnWillBeAt = Move.getOriginPosition(move);
+				if (bd.isPassedPawn(pawnWillBeAt, pawnMask)) {
+					/* If the moving pawn is becoming passed, inflate futility. */
+					futility += 75;
 				}
 			}
-		}
-		return futility;
-	}
-	
-	int futilityB(int move) {
-		int futility = FUTILITY_MARGIN;
-		int originPiece = Move.getOriginPiece(move);
-		int originNoColour = originPiece & Piece.PIECE_NO_COLOUR_MASK;
-		boolean ownSideIsWhite = Piece.isWhite(originPiece);
-		if (originNoColour == Piece.PAWN) {
-			int pawnIsAt = Move.getTargetPosition(move);
-			long pawnMask = 1L << pawnIsAt;
-			long pp = pm.getTheBoard().getPassedPawns();
-			if ((pp & pawnMask) != 0L) {
-				/* If pawn is passed, inflate futility. */
+			
+		} else if (!bd.me.isEndgame() && (originNoColour == Piece.KNIGHT || originNoColour == Piece.QUEEN)) {
+			/* Theory; move could likely effect King tropism score. */
+			boolean ownSideIsWhite = Piece.isWhite(originPiece);
+			int enemyKingBit = pm.getTheBoard().getKingPosition(!ownSideIsWhite);
+			int distBefore = BitBoard.ManhattanDistance[Move.getOriginPosition(move)][enemyKingBit];
+			int distAfter = BitBoard.ManhattanDistance[Move.getTargetPosition(move)][enemyKingBit];
+			if (distBefore > 3 && distAfter < 3) {
 				futility += 50;
 			}
-		} else {
-			onMoveIsWhite = ownSideIsWhite;
-			if (!bd.me.isEndgame() && isKingExposed())
-			{
-				futility += 250;
-			} 
-		}
-		return futility;
-	}
-	
-	int futilityA(int move) {
-		int futility = FUTILITY_MARGIN;
-		int originPiece = Move.getOriginPiece(move);
-		boolean ownSideIsWhite = Piece.isWhite(originPiece);
-		onMoveIsWhite = ownSideIsWhite;
-		long pp = bd.getPassedPawns();
-		if (pp != 0L) {
-			// increase threshold as a function of the passed pawn imbalance
-			int numWhitePassers = Long.bitCount(pp&bd.getWhitePieces());
-			int numBlackPassers = Long.bitCount(pp&bd.getBlackPieces());
-			int ppDelta = Math.abs(numBlackPassers-numWhitePassers);
-			futility += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[ppDelta] + (ppDelta * 250 * bd.me.getPhase()) / 4096;
-		}
-		if (!bd.me.isEndgame() && isKingExposed()) {
-			futility += 250;
 		}
 		return futility;
 	}
 	
 	public int estimateMovePositionalContribution(int move) {
-		return FUTILITY_MARGIN;
+		return futilityC(move);
 	}
 }
