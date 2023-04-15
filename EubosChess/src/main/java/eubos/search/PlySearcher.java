@@ -458,18 +458,23 @@ public class PlySearcher {
 				}
 
 				// Futility pruning
-				boolean notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
-				if (depth == 1 && notMate) {
-					if (quietMoveNumber == 1) {
-						if ((pe.getCrudeEvaluation() + Piece.MATERIAL_VALUE_QUEEN) < state[currPly].alpha) {
-							return state[currPly].alpha;
+				if (EubosEngineMain.ENABLE_FUTILITY_PRUNING) {
+					boolean notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
+					if (depth == 1 && notMate && !pe.goForMate()) {
+						if (quietMoveNumber == 1) {
+							if ((pe.getCrudeEvaluation() + Piece.MATERIAL_VALUE_QUEEN) < state[currPly].alpha) {
+								return state[currPly].alpha;
+							}
+							state[currPly].staticEval = (short)pe.getFullEvaluation();
+							if ((state[currPly].staticEval + 50) < state[currPly].alpha) {
+								return state[currPly].alpha;
+							}
 						}
-						state[currPly].staticEval = (short)pe.getFullEvaluation();
-					}
-					if (quietMoveNumber >= 1) {
-						if ((state[currPly].staticEval + pe.estimateMovePositionalContribution(currMove)) < state[currPly].alpha) {
-							continue;
-						}
+	//					if (quietMoveNumber >= 1) {
+	//						if ((state[currPly].staticEval + pe.estimateMovePositionalContribution(currMove)) < state[currPly].alpha) {
+	//							continue;
+	//						}
+	//					}
 					}
 				}
 				
