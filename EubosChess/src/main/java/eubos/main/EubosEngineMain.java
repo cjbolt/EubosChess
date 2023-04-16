@@ -80,7 +80,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_COUNTED_PASSED_PAWN_MASKS = true;
 	public static final boolean ENABLE_STORE_PV_IN_TRANS_TABLE = true;
 	public static final boolean ENABLE_ITERATIVE_DEEPENING = true;
-	public static final boolean ENABLE_FUTILITY_PRUNING = false;
+	public static final boolean ENABLE_FUTILITY_PRUNING = true;
 	
 	public static final boolean ENABLE_PINNED_TO_KING_CHECK_IN_ILLEGAL_DETECTION = true;
 	public static final boolean ENABLE_PIECE_LISTS = false;

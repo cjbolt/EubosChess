@@ -466,15 +466,15 @@ public class PlySearcher {
 								return state[currPly].alpha;
 							}
 							state[currPly].staticEval = (short)pe.getFullEvaluation();
-							if ((state[currPly].staticEval + 50) < state[currPly].alpha) {
+							if ((state[currPly].staticEval + Piece.MATERIAL_VALUE_KNIGHT) < state[currPly].alpha) {
 								return state[currPly].alpha;
 							}
 						}
-	//					if (quietMoveNumber >= 1) {
-	//						if ((state[currPly].staticEval + pe.estimateMovePositionalContribution(currMove)) < state[currPly].alpha) {
-	//							continue;
-	//						}
-	//					}
+//						if (quietMoveNumber >= 1) {
+//							if ((state[currPly].staticEval + pe.estimateMovePositionalContribution(currMove)) < state[currPly].alpha) {
+//								continue;
+//							}
+//						}
 					}
 				}
 				
