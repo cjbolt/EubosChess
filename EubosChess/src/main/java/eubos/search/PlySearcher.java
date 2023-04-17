@@ -1,5 +1,7 @@
 package eubos.search;
 
+import java.util.Arrays;
+
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
@@ -123,9 +125,23 @@ public class PlySearcher {
 				}
 			}
 			
+			// Histogram binning
+			int num_bins = pos_saved_score.length / 100;
+			int pos_bin[] = new int[num_bins+2];
+			for (int i=0; i < num_bins; i += 1) {
+				for (int j=0; j < num_bins; j++) {
+					pos_bin[i] += pos_saved_score[(i*num_bins)+j];
+				}
+			}
+			int pertinent_length = best_score_delta/num_bins;
+			double pos_percentage[] = new double[pertinent_length+2];
+			for (int i=0; i<pertinent_length; i++) {
+				pos_percentage[i] = (pos_bin[i] / pos_count) * 100; 
+			}
+			
 			EubosEngineMain.logger.info(String.format(
-					"FutilityStats num_quiet=%d best=%d worst=%d pos_mean=%f pos_mode=%d", 
-					quiet_moves, best_score_delta, worst_score_delta, pos_average, mode_pos_score_index));
+					"FutilityStats num_quiet=%d best=%d worst=%d pos_mean=%f pos_mode=%d pos_zero=%d pos_bin=%s", 
+					quiet_moves, best_score_delta, worst_score_delta, pos_average, mode_pos_score_index, pos_saved_score[0], Arrays.toString(pos_percentage)));
 		}
 	};
 	
