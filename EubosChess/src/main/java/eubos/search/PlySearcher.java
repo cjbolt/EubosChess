@@ -45,6 +45,90 @@ public class PlySearcher {
 		}
 	};
 	
+	class FutilityStatistics {
+		private int neg_saved_score[];
+		private int pos_saved_score[];
+		private long quiet_moves;
+		
+		public FutilityStatistics() {
+			neg_saved_score = new int[4001];
+			pos_saved_score = new int[4001];
+			quiet_moves = 0;
+		}
+		
+		void update(int currMove) {
+			if (quiet_moves < Integer.MAX_VALUE) {
+				currPly++;
+				pm.performMove(currMove);
+				
+				ml.initialiseAtPly(Move.NULL_MOVE, null, pos.isKingInCheck(), false, currPly);
+				MoveListIterator iter = ml.getNextMovesAtPly(currPly);
+				if (iter.hasNext()) { // Not mate
+					int checkScore = -pe.getFullEvalNotCheckingForDraws(); // check score after applying move, negate due to pov of on move
+					int delta = checkScore - state[currPly-1].staticEval;
+					
+					if (delta < 0) {
+						delta = Math.abs(delta);
+						if (delta < 4000) {
+							neg_saved_score[delta] += 1;
+						}
+					} else {
+						delta = Math.min(delta, 4000);
+						if (delta < 4000) {
+							pos_saved_score[delta] += 1;
+						}
+					}
+					quiet_moves++;
+				}
+
+				pm.unperformMove();
+				currPly--;
+			}
+		}
+		
+		void report() {
+			int best_score_delta = 0;
+			int worst_score_delta = 0;
+
+			for (int i=neg_saved_score.length-1; i >= 0; i--) {
+				// We also want to know the last non-zero array element
+				if (neg_saved_score[i] != 0) {
+					worst_score_delta = i;
+					break;
+				}
+			}
+			
+			int mode_pos_score = 0;
+			int mode_pos_score_index = 0;
+			long pos_sum = 0;
+			double pos_count = 0;
+			for (int i=0; i < pos_saved_score.length; i++) {
+				pos_sum += i*pos_saved_score[i];
+				pos_count += pos_saved_score[i];
+				if (pos_saved_score[i] > mode_pos_score) {
+					mode_pos_score = pos_saved_score[i];
+					mode_pos_score_index = i;
+				}
+			}
+			double pos_average = 0.0;
+			if (pos_count > 0) {
+				pos_average = pos_sum / pos_count;
+			}
+			
+			for (int i=pos_saved_score.length-1; i >= 0; i--) {
+				// We also want to know the last non-zero array element
+				if (pos_saved_score[i] != 0) {
+					best_score_delta = i;
+					break;
+				}
+			}
+			
+			EubosEngineMain.logger.info(String.format(
+					"FutilityStats num_quiet=%d best=%d worst=%d pos_mean=%f pos_mode=%d", 
+					quiet_moves, best_score_delta, worst_score_delta, pos_average, mode_pos_score_index));
+		}
+	};
+	
 	private SearchState state[];
 	
 	private IChangePosition pm;
@@ -72,6 +156,8 @@ public class PlySearcher {
 	
 	private boolean hasSearchedPv = false;
 	private boolean lastAspirationFailed = false;
+	
+	private FutilityStatistics futilityStats;
 	
 	public PlySearcher(
 			ITranspositionAccessor hashMap,
@@ -107,6 +193,8 @@ public class PlySearcher {
 		this.ml = ml;
 		
 		rootTransposition = tt.getTransposition(pos.getHash());
+		
+		futilityStats = new FutilityStatistics();
 	}
 	
 	public void reinitialise(byte searchDepthPly, SearchMetricsReporter sr, short refScore) {
@@ -121,6 +209,10 @@ public class PlySearcher {
 		// Back up the root transposition, because it can be lost in the search
 		// if it is overwritten and that is very costly for performance.
 		rootTransposition = tt.getTransposition(pos.getHash());
+	}
+	
+	public void reportFutilityStatistics() {
+		futilityStats.report();
 	}
 
 	public void terminateFindMove() { 
@@ -457,24 +549,15 @@ public class PlySearcher {
 					}
 				}
 
-				// Futility pruning
 				if (EubosEngineMain.ENABLE_FUTILITY_PRUNING) {
 					boolean notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
 					if (depth == 1 && notMate && !pe.goForMate()) {
 						if (quietMoveNumber == 1) {
-							if ((pe.getCrudeEvaluation() + Piece.MATERIAL_VALUE_QUEEN) < state[currPly].alpha) {
-								return state[currPly].alpha;
-							}
-							state[currPly].staticEval = (short)pe.getFullEvaluation();
-							if ((state[currPly].staticEval + Piece.MATERIAL_VALUE_KNIGHT) < state[currPly].alpha) {
-								return state[currPly].alpha;
-							}
+							state[currPly].staticEval = (short)pe.getFullEvalNotCheckingForDraws();
 						}
-//						if (quietMoveNumber >= 1) {
-//							if ((state[currPly].staticEval + pe.estimateMovePositionalContribution(currMove)) < state[currPly].alpha) {
-//								continue;
-//							}
-//						}
+						if (quietMoveNumber >= 1) {
+							futilityStats.update(currMove);
+						}
 					}
 				}
 				
