@@ -51,23 +51,32 @@ public class PlySearcher {
 		private int neg_saved_score[];
 		private int pos_saved_score[];
 		private long quiet_moves;
-		
+		private String positionStack[];
+		private int moveStack[];
+		private int deltaStack[];
+		private int stackIndex = 0;
+		private static final int STACK_SIZE = 32; 
 		public FutilityStatistics() {
 			neg_saved_score = new int[4001];
 			pos_saved_score = new int[4001];
+			positionStack = new String[STACK_SIZE];
+			moveStack = new int[STACK_SIZE];
+			deltaStack = new int[STACK_SIZE];
+			stackIndex = 0;
 			quiet_moves = 0;
 		}
 		
 		void update(int currMove) {
-			if (quiet_moves < Integer.MAX_VALUE) {
+			if (quiet_moves < Integer.MAX_VALUE && hasSearchedPv) {
+				int delta = 0;
 				currPly++;
 				pm.performMove(currMove);
-				
+				boolean storeMove = false;
 				ml.initialiseAtPly(Move.NULL_MOVE, null, pos.isKingInCheck(), false, currPly);
 				MoveListIterator iter = ml.getNextMovesAtPly(currPly);
 				if (iter.hasNext()) { // Not mate
 					int checkScore = -pe.getFullEvalNotCheckingForDraws(); // check score after applying move, negate due to pov of on move
-					int delta = checkScore - state[currPly-1].staticEval;
+					delta = checkScore - state[currPly-1].staticEval;
 					
 					if (delta < 0) {
 						delta = Math.abs(delta);
@@ -79,12 +88,20 @@ public class PlySearcher {
 						if (delta < 4000) {
 							pos_saved_score[delta] += 1;
 						}
+						storeMove = delta > 500; 
 					}
 					quiet_moves++;
 				}
 
 				pm.unperformMove();
 				currPly--;
+				
+				if (storeMove) {
+					positionStack[stackIndex] = pos.getFen();
+					moveStack[stackIndex] = currMove;
+					deltaStack[stackIndex] = delta;
+					stackIndex &= (STACK_SIZE - 1);
+				}
 			}
 		}
 		
@@ -137,11 +154,33 @@ public class PlySearcher {
 			double pos_percentage[] = new double[pertinent_length+2];
 			for (int i=0; i<pertinent_length; i++) {
 				pos_percentage[i] = (pos_bin[i] / pos_count) * 100; 
+				if (i > 0) {
+					pos_percentage[i] += pos_percentage[i-1];
+				}
 			}
 			
 			EubosEngineMain.logger.info(String.format(
-					"FutilityStats num_quiet=%d best=%d worst=%d pos_mean=%f pos_mode=%d pos_zero=%d pos_bin=%s", 
-					quiet_moves, best_score_delta, worst_score_delta, pos_average, mode_pos_score_index, pos_saved_score[0], Arrays.toString(pos_percentage)));
+					"FutilityStats num_quiet=%d best=%d worst=%d", 
+					quiet_moves, best_score_delta, worst_score_delta));
+			
+			EubosEngineMain.logger.info(String.format(
+					"FutilityStats2 pos_mean=%f pos_mode=%d pos_zero=%d", 
+					pos_average, mode_pos_score_index, pos_saved_score[0]));
+			
+			StringBuilder sb = new StringBuilder();
+			for (double f: pos_percentage) {
+				sb.append(String.format(" %.2f", f));
+			}
+			EubosEngineMain.logger.info(String.format("FutilityStats3 %s", sb.toString()));
+			
+			EubosEngineMain.logger.info(String.format("FutilityStats4%s", Arrays.toString(pos_bin)));
+			
+			// Dump out the most significant moves
+			sb = new StringBuilder();
+			for (int i=0; i < STACK_SIZE; i++) {
+				sb.append(String.format("%d, %s, %s\n", deltaStack[i], Move.toString(moveStack[i]), positionStack[i]));
+			}
+			EubosEngineMain.logger.info(String.format("FutilityStats5\n%s", sb.toString()));
 		}
 	};
 	
@@ -567,7 +606,7 @@ public class PlySearcher {
 
 				if (EubosEngineMain.ENABLE_FUTILITY_PRUNING) {
 					boolean notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
-					if (depth == 1 && notMate && !pe.goForMate()) {
+					if (depth == 1) /*&& notMate && !pe.goForMate())*/ {
 						if (quietMoveNumber == 1) {
 							state[currPly].staticEval = (short)pe.getFullEvalNotCheckingForDraws();
 						}

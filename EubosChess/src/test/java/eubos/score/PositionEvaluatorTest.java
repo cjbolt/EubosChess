@@ -58,9 +58,11 @@ public class PositionEvaluatorTest {
 	// k6b/1p3B1P/p1b3P1/8/3p1p1N/1P6/P4K2/8 w - - 2 44 beowulf terminal
 	// k7/1p6/p7/3pNKP1/3b4/1P6/P7/8 w - - 3 44 eubos terminal
 	// 
+	// Interesting futility tune positions
+	// 4k3/1p3p1p/5p2/P3P3/1bP5/2PQB1q1/8/4R1K1 w - - - 34
 	@Test
 	public void test_custom_position_score_reporter()throws IllegalNotationException {
-		setUpPosition("k6b/1p3B1P/p1b3P1/8/3p1p1N/1P6/P4K2/8 w - - 2 44");
+		setUpPosition("4k3/1p3p1p/5p2/P3P3/1bP5/2PQB1q1/8/4RK2 b - - 1 1 ");
 		int full = SUT.getFullEvaluation();
 		int crude = SUT.getCrudeEvaluation();
 		int delta = full-crude;
