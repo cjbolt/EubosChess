@@ -88,7 +88,7 @@ public class PlySearcher {
 						if (delta < 4000) {
 							pos_saved_score[delta] += 1;
 						}
-						storeMove = delta > 500; 
+						storeMove = delta > 400; 
 					}
 					quiet_moves++;
 				}
@@ -100,6 +100,7 @@ public class PlySearcher {
 					positionStack[stackIndex] = pos.getFen();
 					moveStack[stackIndex] = currMove;
 					deltaStack[stackIndex] = delta;
+					stackIndex += 1;
 					stackIndex &= (STACK_SIZE - 1);
 				}
 			}
@@ -178,9 +179,13 @@ public class PlySearcher {
 			// Dump out the most significant moves
 			sb = new StringBuilder();
 			for (int i=0; i < STACK_SIZE; i++) {
-				sb.append(String.format("%d, %s, %s\n", deltaStack[i], Move.toString(moveStack[i]), positionStack[i]));
+				if (deltaStack[i] != 0) {
+					sb.append(String.format("%d, %s, %s\n", deltaStack[i], Move.toString(moveStack[i]), positionStack[i]));
+				}
 			}
-			EubosEngineMain.logger.info(String.format("FutilityStats5\n%s", sb.toString()));
+			if (sb.length() != 0) {
+				EubosEngineMain.logger.info(String.format("FutilityStats5\n%s", sb.toString()));
+			}
 		}
 	};
 	
@@ -604,15 +609,30 @@ public class PlySearcher {
 					}
 				}
 
+				// Futility pruning
 				if (EubosEngineMain.ENABLE_FUTILITY_PRUNING) {
-					boolean notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
-					if (depth == 1) /*&& notMate && !pe.goForMate())*/ {
+					if (depth == 1) {
+						boolean notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
 						if (quietMoveNumber == 1) {
+//							if (notMate && !pe.goForMate()) {
+//								if ((pe.getCrudeEvaluation() + Piece.MATERIAL_VALUE_QUEEN) < state[currPly].alpha) {
+//									return state[currPly].alpha;
+//								}	
+//							}
 							state[currPly].staticEval = (short)pe.getFullEvalNotCheckingForDraws();
-						}
-						if (quietMoveNumber >= 1) {
+						} else if (quietMoveNumber >= 1) {
+//							if (notMate && !pe.goForMate()) {
+//								if ((state[currPly].staticEval + 160) < state[currPly].alpha) {
+//									return state[currPly].alpha;
+//								}
+//							}
 							futilityStats.update(currMove);
 						}
+//						if (quietMoveNumber >= 1) {
+//							if ((state[currPly].staticEval + pe.estimateMovePositionalContribution(currMove)) < state[currPly].alpha) {
+//								continue;
+//							}
+//						}
 					}
 				}
 				
