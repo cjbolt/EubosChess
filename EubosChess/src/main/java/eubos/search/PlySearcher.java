@@ -469,7 +469,8 @@ public class PlySearcher {
 								
 							}
 							state[currPly].staticEval = (short)pe.getFullEvaluation();
-						} else if (quietMoveNumber >= 1) {
+						}
+						if (quietMoveNumber >= 1) {
 							if (notMate && !pe.goForMate()) {
 								if ((state[currPly].staticEval + 160) < state[currPly].alpha) {
 									return state[currPly].alpha;
