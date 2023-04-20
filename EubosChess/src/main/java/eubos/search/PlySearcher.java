@@ -458,17 +458,18 @@ public class PlySearcher {
 				}
 
 				// Futility pruning
+				// Could modify to not prune moves that give check
 				if (EubosEngineMain.ENABLE_FUTILITY_PRUNING) {
-					if (depth == 1) {
+					if (depth == 1 && !state[currPly].inCheck) {
 						boolean notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
 						if (quietMoveNumber == 1) {
 							if (notMate && !pe.goForMate()) {
-								if ((pe.getCrudeEvaluation() + Piece.MATERIAL_VALUE_QUEEN) < state[currPly].alpha) {
+								if ((pe.getCrudeEvaluation() + 1000) < state[currPly].alpha) {
 									return state[currPly].alpha;
 								}
 								
 							}
-							state[currPly].staticEval = (short)pe.getFullEvaluation();
+							state[currPly].staticEval = (short)pe.getFullEvalNotCheckingForDraws();
 						}
 						if (quietMoveNumber >= 1) {
 							if (notMate && !pe.goForMate()) {

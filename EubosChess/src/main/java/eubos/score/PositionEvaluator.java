@@ -281,6 +281,16 @@ public class PositionEvaluator implements IEvaluate {
 		return internalFullEval();
 	}
 	
+	public int getFullEvalNotCheckingForDraws() {
+		onMoveIsWhite = pm.onMoveIsWhite();
+		isDraw = false;
+		passedPawnPresent = bd.isPassedPawnPresent();
+		score = 0;
+		midgameScore = 0;
+		endgameScore = 0;
+		return internalFullEval();
+	}
+	
 	int evaluateBishopPair() {
 		int score = 0;
 		int onMoveBishopCount = onMoveIsWhite ? bd.me.numberOfPieces[Piece.WHITE_BISHOP] : bd.me.numberOfPieces[Piece.BLACK_BISHOP];
