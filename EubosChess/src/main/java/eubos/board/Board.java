@@ -822,12 +822,14 @@ public class Board {
 				moveIsPlayable = true;
 			}
 		}
-		public void addPrio(int move) {
+		public boolean addPrio(int move) {
 			testMove(move);
+			return false;
 		}
 		
-		public void addNormal(int move) {
+		public boolean addNormal(int move) {
 			testMove(move);
+			return false;
 		}
 		
 		public boolean isPlayableMoveFound() {
@@ -1470,6 +1472,221 @@ public class Board {
 		}
 	}
 	
+	public boolean whiteSingleMoveEndgame(IAddMoves ml) {
+		long side = whitePieces;
+		long scratchBitBoard = pieces[Piece.KING] & side;
+		int bit_offset = BitBoard.INVALID;
+		if (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {			
+			Piece.king_generateMoves_White(ml, this, bit_offset);
+		}
+		if (ml.isLegalMoveFound()) {
+			return true;
+		}
+		scratchBitBoard = pieces[Piece.PAWN] & side & (~BitBoard.RankMask_Lut[IntRank.R7]);
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.pawn_generateMoves_White(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+			if (ml.isLegalMoveFound()) {
+				return true;
+			}
+		}
+		scratchBitBoard = pieces[Piece.QUEEN] & side;
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.queen_generateMoves_White(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+			if (ml.isLegalMoveFound()) {
+				return true;
+			}
+		}
+		scratchBitBoard = pieces[Piece.ROOK] & side;
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.rook_generateMoves_White(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+			if (ml.isLegalMoveFound()) {
+				return true;
+			}
+		}
+		scratchBitBoard = pieces[Piece.BISHOP] & side;
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.bishop_generateMoves_White(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+			if (ml.isLegalMoveFound()) {
+				return true;
+			}
+		}
+		scratchBitBoard = pieces[Piece.KNIGHT] & side;
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.knight_generateMoves_White(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+			if (ml.isLegalMoveFound()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean blackSingleMoveEndgame(IAddMoves ml) {
+		long side = blackPieces;
+		long scratchBitBoard = pieces[Piece.KING] & side;
+		int bit_offset = BitBoard.INVALID;
+		if (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {			
+			Piece.king_generateMoves_Black(ml, this, bit_offset);
+		}
+		if (ml.isLegalMoveFound()) {
+			return true;
+		}
+		scratchBitBoard = pieces[Piece.PAWN] & side & (~BitBoard.RankMask_Lut[IntRank.R2]);;
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.pawn_generateMoves_Black(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+			if (ml.isLegalMoveFound()) {
+				return true;
+			}
+		}
+		scratchBitBoard = pieces[Piece.QUEEN] & side;
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.queen_generateMoves_Black(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+			if (ml.isLegalMoveFound()) {
+				return true;
+			}
+		}
+		scratchBitBoard = pieces[Piece.ROOK] & side;
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.rook_generateMoves_Black(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+			if (ml.isLegalMoveFound()) {
+				return true;
+			}
+		}
+		scratchBitBoard = pieces[Piece.BISHOP] & side;
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.bishop_generateMoves_Black(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+			if (ml.isLegalMoveFound()) {
+				return true;
+			}
+		}
+		scratchBitBoard = pieces[Piece.KNIGHT] & side;
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.knight_generateMoves_Black(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+			if (ml.isLegalMoveFound()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean whiteSingleMoveMidgame(IAddMoves ml) {
+		long side = whitePieces;
+		long scratchBitBoard = pieces[Piece.BISHOP] & side;
+		int bit_offset = BitBoard.INVALID;
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.bishop_generateMoves_White(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+			if (ml.isLegalMoveFound()) {
+				return true;
+			}
+		}
+		scratchBitBoard = pieces[Piece.KNIGHT] & side;
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.knight_generateMoves_White(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+			if (ml.isLegalMoveFound()) {
+				return true;
+			}
+		}
+		scratchBitBoard = pieces[Piece.QUEEN] & side;
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.queen_generateMoves_White(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+			if (ml.isLegalMoveFound()) {
+				return true;
+			}
+		}
+		scratchBitBoard = pieces[Piece.ROOK] & side;
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.rook_generateMoves_White(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+			if (ml.isLegalMoveFound()) {
+				return true;
+			}
+		}
+		scratchBitBoard = pieces[Piece.PAWN] & side & (~BitBoard.RankMask_Lut[IntRank.R7]);;
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.pawn_generateMoves_White(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+			if (ml.isLegalMoveFound()) {
+				return true;
+			}
+		}
+		scratchBitBoard = pieces[Piece.KING] & side;
+		if (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.king_generateMoves_White(ml, this, bit_offset);
+		}
+		if (ml.isLegalMoveFound()) {
+			return true;
+		} else {
+			return false;
+		}
+		
+	}
+	
+	public boolean blackSingleMoveMidgame(IAddMoves ml) {
+		long side = blackPieces;
+		long scratchBitBoard = pieces[Piece.BISHOP] & side;
+		int bit_offset = BitBoard.INVALID;
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.bishop_generateMoves_Black(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+			if (ml.isLegalMoveFound()) {
+				return true;
+			}
+		}
+		scratchBitBoard = pieces[Piece.KNIGHT] & side;
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.knight_generateMoves_Black(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+			if (ml.isLegalMoveFound()) {
+				return true;
+			}
+		}
+		scratchBitBoard = pieces[Piece.QUEEN] & side;
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.queen_generateMoves_Black(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+			if (ml.isLegalMoveFound()) {
+				return true;
+			}
+		}
+		scratchBitBoard = pieces[Piece.ROOK] & side;
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.rook_generateMoves_Black(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+			if (ml.isLegalMoveFound()) {
+				return true;
+			}
+		}
+		scratchBitBoard = pieces[Piece.PAWN] & side & (~BitBoard.RankMask_Lut[IntRank.R2]);
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			Piece.pawn_generateMoves_Black(ml, this, bit_offset);
+			scratchBitBoard ^= (1L << bit_offset);
+			if (ml.isLegalMoveFound()) {
+				return true;
+			}
+		}
+		scratchBitBoard = pieces[Piece.KING] & side;
+		if (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {			
+			Piece.king_generateMoves_Black(ml, this, bit_offset);
+		}
+		if (ml.isLegalMoveFound()) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
 	public void whiteEndgame(IAddMoves ml) {
 		long side = whitePieces;
 		long scratchBitBoard = pieces[Piece.KING] & side;
@@ -1604,6 +1821,24 @@ public class Board {
 		if (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {			
 			Piece.king_generateMoves_Black(ml, this, bit_offset);
 		}
+	}
+	
+	public boolean getSingleQuietMove(IAddMoves ml, boolean ownSideIsWhite) {
+		boolean quietMoveFound = false;
+		if (me.isEndgame()) {
+			if (ownSideIsWhite) {
+				quietMoveFound = whiteSingleMoveEndgame(ml);
+			} else {
+				quietMoveFound = blackSingleMoveEndgame(ml);
+			}
+		} else {
+			if (ownSideIsWhite) {
+				quietMoveFound = whiteSingleMoveMidgame(ml);
+			} else {
+				quietMoveFound = blackSingleMoveMidgame(ml);
+			}
+		}
+		return quietMoveFound;
 	}
 	
 	public void getRegularPieceMoves(IAddMoves ml, boolean ownSideIsWhite) {

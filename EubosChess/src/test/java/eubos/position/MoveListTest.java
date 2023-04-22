@@ -177,7 +177,10 @@ public class MoveListTest {
 		// regular moves
 		//assertEquals(new GenericMove("f5f6"), Move.toGenericMove(it.nextInt())); // piece is attacked, regular move
 		assertEquals(new GenericMove("g5h7"), Move.toGenericMove(it.nextInt())); // Regular move
+		
+		it = classUnderTest.getNextMovesAtPly(0);
 		assertEquals(new GenericMove("g5h3"), Move.toGenericMove(it.nextInt())); // Regular move
+		assertEquals(new GenericMove("g5f3"), Move.toGenericMove(it.nextInt())); // Regular move
 	}
 	
 	@Test
@@ -208,6 +211,8 @@ public class MoveListTest {
 		it = classUnderTest.getNextMovesAtPly(0);
 		// Regular moves
 		assertEquals(new GenericMove("h8h7"), Move.toGenericMove(it.nextInt()));
+		
+		it = classUnderTest.getNextMovesAtPly(0);
 		assertEquals(new GenericMove("h8g7"), Move.toGenericMove(it.nextInt()));
 		assertEquals(new GenericMove("h8g8"), Move.toGenericMove(it.nextInt()));
 		assertEquals(new GenericMove("b5b6"), Move.toGenericMove(it.nextInt())); // Regular pawn move
@@ -437,5 +442,19 @@ public class MoveListTest {
 		
 	    it = classUnderTest.getNextMovesAtPly(0);
 	    assertNotEquals(best, it.nextInt());
+	}
+	
+	@Test
+	public void test_staged_single_quiet_move() {
+		PositionManager pm = new PositionManager("8/8/8/8/8/8/PP6/KN6 w - - 1 1");
+		classUnderTest = new MoveList(pm, 1);
+		classUnderTest.initialiseAtPly(Move.NULL_MOVE, null, pm.isKingInCheck(), false, 0);
+		MoveListIterator it = classUnderTest.getNextMovesAtPly(0);
+		
+		//assertEquals(new GenericMove("a1b2"), Move.toGenericMove(it.nextInt())); // PxP
+		//assertEquals(best, it.nextInt());
+		
+	    it = classUnderTest.getNextMovesAtPly(0);
+	    //assertNotEquals(best, it.nextInt());
 	}	
 }

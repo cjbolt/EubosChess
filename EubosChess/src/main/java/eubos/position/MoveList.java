@@ -45,6 +45,7 @@ public class MoveList implements Iterable<Integer> {
 	private boolean[] needToEscapeMate;
 	private boolean[] extendedSearch;
 	private boolean[] isWhite;
+	private boolean[] did_single;
 
 	private int[] bestMove;
 	private int[][] killers;
@@ -69,6 +70,7 @@ public class MoveList implements Iterable<Integer> {
 		bestMove = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		needToEscapeMate = new boolean[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		extendedSearch = new boolean[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
+		did_single = new boolean[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		isWhite = new boolean[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		killers = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY][3];
 		nextCheckPoint = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
@@ -94,6 +96,7 @@ public class MoveList implements Iterable<Integer> {
 		normal_fill_index[ply] = 0;
 		priority_fill_index[ply] = 0;
 		scratchpad_fill_index[ply] = 0;
+		did_single[ply] = false;
 	}
 	
 	public MoveListIterator getNextMovesAtPly(int ply) {
@@ -140,7 +143,7 @@ public class MoveList implements Iterable<Integer> {
 				return emptyIterator();
 			} else if (killers[ply] == null) {
 				// Fall-through into quiet moves if there are no killers
-				return doQuiet();
+				return doSingleQuietMove();
 			} else {
 				nextCheckPoint[ply] = 4;
 				iter = checkKiller(0);
@@ -164,11 +167,12 @@ public class MoveList implements Iterable<Integer> {
 			}
 			// Note fall-through to quiet moves
 		case 6:
-			// Lastly, generate all quiet moves (i.e. that aren't best, killers, or tactical moves)
-			return doQuiet();
+			nextCheckPoint[ply] = 7;
+			return doSingleQuietMove();
 		case 7:
+			// Lastly, generate all quiet moves (i.e. that aren't best, killers, or tactical moves)
 			nextCheckPoint[ply] = 8;
-			return emptyIterator();
+			return doQuiet();
 		default:
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert false : "Staged move generation called too many times";
@@ -197,8 +201,19 @@ public class MoveList implements Iterable<Integer> {
 		scratchpad_fill_index = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 	}
 	
+	private MoveListIterator doSingleQuietMove() {
+		if (getSingleQuietMove()) {
+			nextCheckPoint[ply] = 7;
+			did_single[ply] = true;
+			return singleMoveIterator(normal_search_moves[ply][0]);
+		} else {
+			nextCheckPoint[ply] = 8;
+			return emptyIterator();
+		}
+	}
+	
 	private MoveListIterator doQuiet() {
-		nextCheckPoint[ply] = 7;
+		nextCheckPoint[ply] = 8;
 		getQuietMoves();
 		if (moveCount[ply] != 0) {
 			collateMoveList();
@@ -234,16 +249,35 @@ public class MoveList implements Iterable<Integer> {
 		priority_fill_index[ply] = 0;
 		pm.getTheBoard().getCapturesExcludingPromotions(ma_captures, isWhite[ply]);
 	}
-
-	private void getQuietMoves() {
+	
+	private boolean getSingleQuietMove() {
 		moveCount[ply] = normal_fill_index[ply] + scratchpad_fill_index[ply];
 		priority_fill_index[ply] = 0;
 		IAddMoves moveAdder = null;
 		if (killers[ply] == null) {
+			ma_quietNoKillers.reset();
 			moveAdder = ma_quietNoKillers;
 		} else {
 			// Set-up move adder to filter the moves from attacked pieces into the priority
 			// part of the move list
+			ma_quietConsumeKillers.reset();
+			moveAdder = ma_quietConsumeKillers;
+		}
+		return pm.getTheBoard().getSingleQuietMove(moveAdder, isWhite[ply]);
+	}
+
+	private void getQuietMoves() {
+		normal_fill_index[ply] = 0;
+		moveCount[ply] = normal_fill_index[ply] + scratchpad_fill_index[ply];
+		priority_fill_index[ply] = 0;
+		IAddMoves moveAdder = null;
+		if (killers[ply] == null) {
+			ma_quietNoKillers.reset();
+			moveAdder = ma_quietNoKillers;
+		} else {
+			// Set-up move adder to filter the moves from attacked pieces into the priority
+			// part of the move list
+			ma_quietConsumeKillers.reset();
 			moveAdder = ma_quietConsumeKillers;
 		}
 		pm.getTheBoard().getRegularPieceMoves(moveAdder, isWhite[ply]);
@@ -299,7 +333,11 @@ public class MoveList implements Iterable<Integer> {
 
 	@Override
 	public MoveListIterator iterator() {
-		return ml[ply].set(scratchpad[ply], moveCount[ply]);
+		MoveListIterator iter = ml[ply].set(scratchpad[ply], moveCount[ply]);
+		if (did_single[ply] && iter.hasNext()) {
+			iter.nextInt();
+		}
+		return iter;
 	}
 	
 	public MoveListIterator emptyIterator() {
@@ -321,7 +359,7 @@ public class MoveList implements Iterable<Integer> {
 	}
 
 	public class MoveAdderPromotions implements IAddMoves {
-		public void addPrio(int move) {
+		public boolean addPrio(int move) {
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert !Piece.isKing(Move.getTargetPiece(move));
 			}
@@ -334,9 +372,11 @@ public class MoveList implements Iterable<Integer> {
 				}
 				handleUnderPromotions(move);
 			}
+			return false;
 		}
 
-		public void addNormal(int move) {
+		public boolean addNormal(int move) {
+			return false;
 		} // Doesn't deal with quiet moves by design
 
 		public boolean isLegalMoveFound() {
@@ -361,7 +401,7 @@ public class MoveList implements Iterable<Integer> {
 
 	public class MoveAdderCaptures extends MoveAdderPromotions implements IAddMoves {
 		@Override
-		public void addPrio(int move) {
+		public boolean addPrio(int move) {
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert !Piece.isKing(Move.getTargetPiece(move));
 			}
@@ -369,36 +409,55 @@ public class MoveList implements Iterable<Integer> {
 				priority_moves[ply][priority_fill_index[ply]++] = move;
 				moveCount[ply]++;
 			}
+			return false;
 		}
 	}
 
 	public class QuietMovesWithNoKillers extends MoveAdderPromotions implements IAddMoves {
+		protected boolean legalQuietMoveAdded = false;
+		
 		@Override
-		public void addPrio(int move) {
+		public boolean addPrio(int move) {
+			return false;
 		} // Doesn't deal with tactical moves by design
 
 		@Override
-		public void addNormal(int move) {
+		public boolean addNormal(int move) {
 			if (Move.areEqualForBestKiller(move, bestMove[ply]))
-				return;
+				return false;
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
 				normal_search_moves[ply][normal_fill_index[ply]++] = move;
 				moveCount[ply]++;
+				legalQuietMoveAdded = true;
 			}
+			return false;
+		}
+		
+		public void reset() {
+			legalQuietMoveAdded = false;
+			// Need to set move count correctly when we reset?
+		}
+		
+		@Override
+		public boolean isLegalMoveFound() {
+			return legalQuietMoveAdded;
 		}
 	}
 
 	public class QuietMovesConsumingKillers extends QuietMovesWithNoKillers implements IAddMoves {
 		@Override
-		public void addNormal(int move) {
+		public boolean addNormal(int move) {
 			if (Move.areEqualForBestKiller(move, bestMove[ply]))
-				return;
+				return false;
 			if (KillerList.isMoveOnListAtPly(killers[ply], move))
-				return;
+				return false;
 			if (!pm.getTheBoard().isIllegalMove(move, needToEscapeMate[ply])) {
 				normal_search_moves[ply][normal_fill_index[ply]++] = move;
 				moveCount[ply]++;
+				legalQuietMoveAdded = true;
+				return true;
 			}
+			return false;
 		}
 	}
 
@@ -411,7 +470,8 @@ public class MoveList implements Iterable<Integer> {
 		if (it.hasNext()) {
 			do {
 				while (it.hasNext()) {
-					ml.add(it.nextInt());
+					int currMove = it.nextInt();
+					ml.add(currMove);
 				}
 				it = getNextMovesAtPly(0);
 			} while (it.hasNext());
