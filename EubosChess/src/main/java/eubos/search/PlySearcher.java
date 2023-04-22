@@ -460,7 +460,7 @@ public class PlySearcher {
 				// Futility pruning
 				// Could modify to not prune moves that give check
 				if (EubosEngineMain.ENABLE_FUTILITY_PRUNING) {
-					if (depth == 1 && !state[currPly].inCheck) {
+					if (depth == 1 /*&& !state[currPly].inCheck*/) {
 						boolean notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
 						if (quietMoveNumber == 1) {
 							if (notMate && !pe.goForMate()) {
