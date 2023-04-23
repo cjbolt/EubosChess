@@ -45,7 +45,7 @@ public class MoveList implements Iterable<Integer> {
 	private boolean[] needToEscapeMate;
 	private boolean[] extendedSearch;
 	private boolean[] isWhite;
-	private boolean[] did_single;
+	private int[] generated_piece;
 
 	private int[] bestMove;
 	private int[][] killers;
@@ -70,7 +70,7 @@ public class MoveList implements Iterable<Integer> {
 		bestMove = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		needToEscapeMate = new boolean[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		extendedSearch = new boolean[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
-		did_single = new boolean[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
+		generated_piece = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		isWhite = new boolean[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		killers = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY][3];
 		nextCheckPoint = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
@@ -96,7 +96,7 @@ public class MoveList implements Iterable<Integer> {
 		normal_fill_index[ply] = 0;
 		priority_fill_index[ply] = 0;
 		scratchpad_fill_index[ply] = 0;
-		did_single[ply] = false;
+		generated_piece[ply] = BitBoard.INVALID;
 	}
 	
 	public MoveListIterator getNextMovesAtPly(int ply) {
@@ -204,8 +204,10 @@ public class MoveList implements Iterable<Integer> {
 	private MoveListIterator doSingleQuietMove() {
 		if (getSingleQuietMove()) {
 			nextCheckPoint[ply] = 7;
-			did_single[ply] = true;
-			return singleMoveIterator(normal_search_moves[ply][0]);
+			generated_piece[ply] = Move.getOriginPosition(normal_search_moves[ply][0]);
+			//return singleMoveIterator(normal_search_moves[ply][0]);
+			collateMoveList();
+			return iterator();
 		} else {
 			nextCheckPoint[ply] = 8;
 			return emptyIterator();
@@ -268,6 +270,7 @@ public class MoveList implements Iterable<Integer> {
 
 	private void getQuietMoves() {
 		normal_fill_index[ply] = 0;
+		scratchpad_fill_index[ply] = 0;
 		moveCount[ply] = normal_fill_index[ply] + scratchpad_fill_index[ply];
 		priority_fill_index[ply] = 0;
 		IAddMoves moveAdder = null;
@@ -280,7 +283,11 @@ public class MoveList implements Iterable<Integer> {
 			ma_quietConsumeKillers.reset();
 			moveAdder = ma_quietConsumeKillers;
 		}
-		pm.getTheBoard().getRegularPieceMoves(moveAdder, isWhite[ply]);
+		if (generated_piece[ply] == BitBoard.INVALID) {
+			pm.getTheBoard().getRegularPieceMoves(moveAdder, isWhite[ply]);
+		} else {
+			pm.getTheBoard().getRegularPieceMovesExceptingOnePiece(moveAdder, isWhite[ply], generated_piece[ply]);
+		}
 		if (!needToEscapeMate[ply]) {
 			// Can't castle out of check and don't care in extended search
 			pm.castling.addCastlingMoves(isWhite[ply], moveAdder);
@@ -334,9 +341,9 @@ public class MoveList implements Iterable<Integer> {
 	@Override
 	public MoveListIterator iterator() {
 		MoveListIterator iter = ml[ply].set(scratchpad[ply], moveCount[ply]);
-		if (did_single[ply] && iter.hasNext()) {
-			iter.nextInt();
-		}
+//		if (generated_piece[ply] != BitBoard.INVALID && iter.hasNext()) {
+//			iter.nextInt();
+//		}
 		return iter;
 	}
 	
