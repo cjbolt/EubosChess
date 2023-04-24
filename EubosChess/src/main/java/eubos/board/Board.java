@@ -822,14 +822,12 @@ public class Board {
 				moveIsPlayable = true;
 			}
 		}
-		public boolean addPrio(int move) {
+		public void addPrio(int move) {
 			testMove(move);
-			return false;
 		}
 		
-		public boolean addNormal(int move) {
+		public void addNormal(int move) {
 			testMove(move);
-			return false;
 		}
 		
 		public boolean isPlayableMoveFound() {

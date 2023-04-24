@@ -443,19 +443,5 @@ public class MoveListTest {
 		
 	    it = classUnderTest.getNextMovesAtPly(0);
 	    assertNotEquals(best, it.nextInt());
-	}
-	
-	@Test
-	public void test_staged_single_quiet_move() {
-		PositionManager pm = new PositionManager("8/8/8/8/8/8/PP6/KN6 w - - 1 1");
-		classUnderTest = new MoveList(pm, 1);
-		classUnderTest.initialiseAtPly(Move.NULL_MOVE, null, pm.isKingInCheck(), false, 0);
-		MoveListIterator it = classUnderTest.getNextMovesAtPly(0);
-		
-		//assertEquals(new GenericMove("a1b2"), Move.toGenericMove(it.nextInt())); // PxP
-		//assertEquals(best, it.nextInt());
-		
-	    it = classUnderTest.getNextMovesAtPly(0);
-	    //assertNotEquals(best, it.nextInt());
 	}	
 }
