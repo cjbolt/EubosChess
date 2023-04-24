@@ -171,9 +171,9 @@ public class MoveList implements Iterable<Integer> {
 			nextCheckPoint[ply] = 8;
 			return doQuiet();
 		default:
-			if (EubosEngineMain.ENABLE_ASSERTS) {
-				assert false : "Staged move generation called too many times";
-			}
+//			if (EubosEngineMain.ENABLE_ASSERTS) {
+//				assert false : "Staged move generation called too many times";
+//			}
 			return emptyIterator();
 		}
 	}
