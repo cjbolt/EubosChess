@@ -33,11 +33,9 @@ public class MoveList implements Iterable<Integer> {
 
 	private int[][] normal_search_moves;
 	private int[][] priority_moves;
-	private int[][] scratchpad;
 
 	private int[] normal_fill_index;
 	private int[] priority_fill_index;
-	private int[] scratchpad_fill_index;
 	
 	private int[] moveCount;
 	private int[] nextCheckPoint;
@@ -95,7 +93,6 @@ public class MoveList implements Iterable<Integer> {
 		moveCount[ply] = 0;
 		normal_fill_index[ply] = 0;
 		priority_fill_index[ply] = 0;
-		scratchpad_fill_index[ply] = 0;
 		generated_piece[ply] = BitBoard.INVALID;
 	}
 	
@@ -132,7 +129,7 @@ public class MoveList implements Iterable<Integer> {
 			// Generate all captures other than pawn promotions
 			nextCheckPoint[ply] = 3;
 			getNonPawnPromotionCaptures();
-			if ((moveCount[ply] - normal_fill_index[ply] - scratchpad_fill_index[ply]) != 0) {
+			if ((moveCount[ply] - normal_fill_index[ply]) != 0) {
 				sortPriorityList();
 				return priorityIterator();
 			}
@@ -185,27 +182,23 @@ public class MoveList implements Iterable<Integer> {
 		// Create the move list arrays for this threads move list
 		normal_search_moves = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY][];
 		priority_moves = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY][];
-		scratchpad = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY][];
 		ml = new MoveListIterator[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 	
 		// Create the list at each ply
 		for (int i = 0; i < EubosEngineMain.SEARCH_DEPTH_IN_PLY; i++) {
 			normal_search_moves[i] = new int[110];
 			priority_moves[i] = new int[100];
-			scratchpad[i] = new int[100];
-			ml[i] = new MoveListIterator(null, 0);
+			ml[i] = new MoveListIterator();
 		}
 		
 		normal_fill_index = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 		priority_fill_index = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
-		scratchpad_fill_index = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
 	}
 	
 	private MoveListIterator doSingleQuietMove() {
 		if (getSingleQuietMove()) {
 			nextCheckPoint[ply] = 7;
 			generated_piece[ply] = Move.getOriginPosition(normal_search_moves[ply][0]);
-			collateMoveList();
 			return iterator();
 		} else {
 			nextCheckPoint[ply] = 8;
@@ -217,7 +210,6 @@ public class MoveList implements Iterable<Integer> {
 		nextCheckPoint[ply] = 8;
 		getQuietMoves();
 		if (moveCount[ply] != 0) {
-			collateMoveList();
 			return iterator();
 		}
 		return empty;
@@ -252,7 +244,7 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	private boolean getSingleQuietMove() {
-		moveCount[ply] = normal_fill_index[ply] + scratchpad_fill_index[ply];
+		moveCount[ply] = normal_fill_index[ply];
 		priority_fill_index[ply] = 0;
 		IAddMoves moveAdder = null;
 		if (killers[ply] == null) {
@@ -269,8 +261,7 @@ public class MoveList implements Iterable<Integer> {
 
 	private void getQuietMoves() {
 		normal_fill_index[ply] = 0;
-		scratchpad_fill_index[ply] = 0;
-		moveCount[ply] = normal_fill_index[ply] + scratchpad_fill_index[ply];
+		moveCount[ply] = normal_fill_index[ply];
 		priority_fill_index[ply] = 0;
 		IAddMoves moveAdder = null;
 		if (killers[ply] == null) {
@@ -290,18 +281,6 @@ public class MoveList implements Iterable<Integer> {
 		if (!needToEscapeMate[ply]) {
 			// Can't castle out of check and don't care in extended search
 			pm.castling.addCastlingMoves(isWhite[ply], moveAdder);
-		}
-	}
-
-	private void collateMoveList() {
-		if (EubosEngineMain.ENABLE_ASSERTS) {
-			assert scratchpad_fill_index[ply] <= 1 : "Scratchpad too long";
-		}
-		for (int j = 0; j < priority_fill_index[ply]; j++) {
-			scratchpad[ply][scratchpad_fill_index[ply]++] = priority_moves[ply][j];
-		}
-		for (int j = 0; j < normal_fill_index[ply]; j++) {
-			scratchpad[ply][scratchpad_fill_index[ply]++] = normal_search_moves[ply][j];
 		}
 	}
 
@@ -339,11 +318,7 @@ public class MoveList implements Iterable<Integer> {
 
 	@Override
 	public MoveListIterator iterator() {
-		MoveListIterator iter = ml[ply].set(scratchpad[ply], moveCount[ply]);
-//		if (generated_piece[ply] != BitBoard.INVALID && iter.hasNext()) {
-//			iter.nextInt();
-//		}
-		return iter;
+		return ml[ply].set(normal_search_moves[ply], moveCount[ply]);
 	}
 	
 	public MoveListIterator emptyIterator() {
@@ -355,8 +330,7 @@ public class MoveList implements Iterable<Integer> {
 	}
 
 	public MoveListIterator singleMoveIterator(int move) {
-		scratchpad[ply][0] = move;
-		return ml[ply].set(scratchpad[ply], 1);
+		return ml[ply].set(move);
 	}
 
 	public int getRandomMove() {
