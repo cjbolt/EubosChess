@@ -20,11 +20,8 @@ public class MoveList implements Iterable<Integer> {
 	
 	public class MoveListPly {
 		// Internal state
-		int[] normal_search_moves;
-		int[] priority_moves;
-		int normal_fill_index;
-		int priority_fill_index;
-		int moveCount;
+		int[] moves;
+		int moves_index;
 		int nextCheckPoint;
 		int generated_piece;
 		boolean isWhite;
@@ -37,8 +34,7 @@ public class MoveList implements Iterable<Integer> {
 		
 		public MoveListPly()
 		{
-			normal_search_moves = new int[110];
-			priority_moves = new int[100];
+			moves = new int[110];
 			generated_piece = BitBoard.INVALID;
 		}
 		
@@ -50,9 +46,7 @@ public class MoveList implements Iterable<Integer> {
 			bestMove = best;
 			
 			nextCheckPoint = 0;
-			moveCount = 0;
-			normal_fill_index = 0;
-			priority_fill_index = 0;
+			moves_index = 0;
 			generated_piece = BitBoard.INVALID;
 		}
 	}
@@ -101,9 +95,7 @@ public class MoveList implements Iterable<Integer> {
 	public MoveListIterator getNextMovesAtPly(int ply) {
 		MoveListIterator iter = null;
 		this.ply = ply;
-		state[ply].normal_fill_index = 0;
-		state[ply].priority_fill_index = 0;
-		state[ply].moveCount = 0;
+		state[ply].moves_index = 0;
 
 		switch (state[ply].nextCheckPoint) {
 		case 0:
@@ -119,22 +111,22 @@ public class MoveList implements Iterable<Integer> {
 			state[ply].isWhite = pm.onMoveIsWhite();
 			state[ply].nextCheckPoint = 2;
 			getPawnPromotions();
-			if (state[ply].moveCount != 0) {
-				return priorityIterator();
+			if (state[ply].moves_index != 0) {
+				return sortedIterator();
 			}
 			// Note fall-through to next stage if no promotions
 		case 2:
 			// Generate all captures other than pawn promotions
 			state[ply].nextCheckPoint = 3;
 			getNonPawnPromotionCaptures();
-			if (state[ply].moveCount != 0) {
-				return priorityIterator();
+			if (state[ply].moves_index != 0) {
+				return sortedIterator();
 			}
 			// Note fall-through to next stage if no captures
 		case 3:
 			if (state[ply].extendedSearch) {
 				// Quiescent search shall terminate here
-				return emptyIterator();
+				return empty;
 			} else if (state[ply].killers == null) {
 				// Fall-through into quiet moves if there are no killers
 				return doSingleQuietMove();
@@ -168,7 +160,7 @@ public class MoveList implements Iterable<Integer> {
 			state[ply].nextCheckPoint = 8;
 			return doQuiet();
 		default:
-			return emptyIterator();
+			return empty;
 		}
 	}
 	
@@ -185,20 +177,20 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	private MoveListIterator doSingleQuietMove() {
-		if (getSingleQuietMove()) {
+		getSingleQuietMove();
+		if (state[ply].moves_index != 0) {
 			state[ply].nextCheckPoint = 7;
-			state[ply].generated_piece = Move.getOriginPosition(state[ply].normal_search_moves[0]);
+			state[ply].generated_piece = Move.getOriginPosition(state[ply].moves[0]);
 			return iterator();
-		} else {
-			state[ply].nextCheckPoint = 8;
-			return emptyIterator();
 		}
+		state[ply].nextCheckPoint = 8;
+		return empty;
 	}
 	
 	private MoveListIterator doQuiet() {
 		state[ply].nextCheckPoint = 8;
 		getQuietMoves();
-		if (state[ply].moveCount != 0) {
+		if (state[ply].moves_index != 0) {
 			return iterator();
 		}
 		return empty;
@@ -206,8 +198,8 @@ public class MoveList implements Iterable<Integer> {
 
 	private MoveListIterator checkKiller(int killerNum) {
 		MoveListIterator iter = null;
-		if (!Move.areEqualForBestKiller(state[ply].bestMove, state[ply].killers[killerNum])
-				&& pm.getTheBoard().isPlayableMove(state[ply].killers[killerNum], state[ply].needToEscapeMate, pm.castling)) {
+		if (!Move.areEqualForBestKiller(state[ply].bestMove, state[ply].killers[killerNum]) && 
+			pm.getTheBoard().isPlayableMove(state[ply].killers[killerNum], state[ply].needToEscapeMate, pm.castling)) {
 			iter = singleMoveIterator(state[ply].killers[killerNum]);
 		}
 		return iter;
@@ -233,6 +225,18 @@ public class MoveList implements Iterable<Integer> {
 			(Move.isQueenPromotion(state[ply].bestMove) || Move.isCapture(state[ply].bestMove));
 	}
 
+	private IAddMoves setupQuietMoveAdder() {
+		IAddMoves moveAdder = null;
+		if (state[ply].killers == null) {
+			ma_quietNoKillers.reset();
+			moveAdder = ma_quietNoKillers;
+		} else {
+			ma_quietConsumeKillers.reset();
+			moveAdder = ma_quietConsumeKillers;
+		}
+		return moveAdder;
+	}
+	
 	private void getPawnPromotions() {
 		pm.getTheBoard().getPawnPromotionMovesForSide(ma_promotions, state[ply].isWhite);
 	}
@@ -241,43 +245,21 @@ public class MoveList implements Iterable<Integer> {
 		pm.getTheBoard().getCapturesExcludingPromotions(ma_captures, state[ply].isWhite);
 	}
 	
-	private boolean getSingleQuietMove() {
-		IAddMoves moveAdder = null;
-		if (state[ply].killers == null) {
-			ma_quietNoKillers.reset();
-			moveAdder = ma_quietNoKillers;
-		} else {
-			// Set-up move adder to filter the moves from attacked pieces into the priority
-			// part of the move list
-			ma_quietConsumeKillers.reset();
-			moveAdder = ma_quietConsumeKillers;
-		}
-		return pm.getTheBoard().getSingleQuietMove(moveAdder, state[ply].isWhite);
+	private void getSingleQuietMove() {
+		IAddMoves moveAdder = setupQuietMoveAdder();
+		pm.getTheBoard().getSingleQuietMove(moveAdder, state[ply].isWhite);
 	}
 
 	private void getQuietMoves() {
-		IAddMoves moveAdder = null;
-		if (state[ply].killers == null) {
-			ma_quietNoKillers.reset();
-			moveAdder = ma_quietNoKillers;
-		} else {
-			// Set-up move adder to filter the moves from attacked pieces into the priority
-			// part of the move list
-			ma_quietConsumeKillers.reset();
-			moveAdder = ma_quietConsumeKillers;
-		}
-		if (state[ply].generated_piece == BitBoard.INVALID) {
-			pm.getTheBoard().getRegularPieceMoves(moveAdder, state[ply].isWhite);
-		} else {
-			pm.getTheBoard().getRegularPieceMovesExceptingOnePiece(moveAdder, state[ply].isWhite, state[ply].generated_piece);
-		}
+		IAddMoves moveAdder = setupQuietMoveAdder();
+		pm.getTheBoard().getRegularPieceMovesExceptingOnePiece(moveAdder, state[ply].isWhite, state[ply].generated_piece);
 		if (!state[ply].needToEscapeMate) {
 			// Can't castle out of check and don't care in extended search
 			pm.castling.addCastlingMoves(state[ply].isWhite, moveAdder);
 		}
 	}
 
-	private void sortPriorityList() {
+	private void sortMoveList() {
 		if (ply == 0) {
 			// At the root node use different mechanisms for move ordering in different threads
 			switch (ordering) {
@@ -285,18 +267,18 @@ public class MoveList implements Iterable<Integer> {
 				/* Don't order the move list in this case. */
 				break;
 			case 1:
-				IntArrays.quickSort(state[ply].priority_moves, 0, state[ply].priority_fill_index, Move.mvvLvaComparator);
+				IntArrays.quickSort(state[ply].moves, 0, state[ply].moves_index, Move.mvvLvaComparator);
 				break;
 			case 2:
-				IntArrays.reverse(state[ply].priority_moves, 0, state[ply].priority_fill_index);
-				IntArrays.quickSort(state[ply].priority_moves, 0, state[ply].priority_fill_index, moveTypeComparator);
+				IntArrays.reverse(state[ply].moves, 0, state[ply].moves_index);
+				IntArrays.quickSort(state[ply].moves, 0, state[ply].moves_index, moveTypeComparator);
 				break;
 			case 3:
-				IntArrays.reverse(state[ply].priority_moves, 0, state[ply].priority_fill_index);
-				IntArrays.quickSort(state[ply].priority_moves, 0, state[ply].priority_fill_index, Move.mvvLvaComparator);
+				IntArrays.reverse(state[ply].moves, 0, state[ply].moves_index);
+				IntArrays.quickSort(state[ply].moves, 0, state[ply].moves_index, Move.mvvLvaComparator);
 				break;
 			case 4:
-				IntArrays.quickSort(state[ply].priority_moves, 0, state[ply].priority_fill_index, moveTypeComparator);
+				IntArrays.quickSort(state[ply].moves, 0, state[ply].moves_index, moveTypeComparator);
 				break;
 			default:
 				if (EubosEngineMain.ENABLE_ASSERTS)
@@ -305,22 +287,18 @@ public class MoveList implements Iterable<Integer> {
 			}
 		} else {
 			// At all other nodes use MVV/LVA
-			IntArrays.quickSort(state[ply].priority_moves, 0, state[ply].priority_fill_index, Move.mvvLvaComparator);
+			IntArrays.quickSort(state[ply].moves, 0, state[ply].moves_index, Move.mvvLvaComparator);
 		}
 	}
 
 	@Override
 	public MoveListIterator iterator() {
-		return ml[ply].set(state[ply].normal_search_moves, state[ply].moveCount);
+		return ml[ply].set(state[ply].moves, state[ply].moves_index);
 	}
 	
-	public MoveListIterator emptyIterator() {
-		return empty;
-	}
-	
-	public MoveListIterator priorityIterator() {
-		sortPriorityList();
-		return ml[ply].set(state[ply].priority_moves, state[ply].priority_fill_index);
+	public MoveListIterator sortedIterator() {
+		sortMoveList();
+		return iterator();
 	}
 
 	public MoveListIterator singleMoveIterator(int move) {
@@ -341,8 +319,7 @@ public class MoveList implements Iterable<Integer> {
 				if (Move.areEqualForBestKiller(move, state[ply].bestMove)) {
 					// Silently consume
 				} else {
-					state[ply].priority_moves[state[ply].priority_fill_index++] = move;
-					state[ply].moveCount++;
+					state[ply].moves[state[ply].moves_index++] = move;
 				}
 				handleUnderPromotions(move);
 			}
@@ -363,10 +340,9 @@ public class MoveList implements Iterable<Integer> {
 				int under1 = Move.setPromotion(move, Piece.BISHOP);
 				int under2 = Move.setPromotion(move, Piece.KNIGHT);
 				int under3 = Move.setPromotion(move, Piece.ROOK);
-				state[ply].priority_moves[state[ply].priority_fill_index++] = under1;
-				state[ply].priority_moves[state[ply].priority_fill_index++] = under2;
-				state[ply].priority_moves[state[ply].priority_fill_index++] = under3;
-				state[ply].moveCount += 3;
+				state[ply].moves[state[ply].moves_index++] = under1;
+				state[ply].moves[state[ply].moves_index++] = under2;
+				state[ply].moves[state[ply].moves_index++] = under3;
 			}
 		}
 	}
@@ -378,8 +354,7 @@ public class MoveList implements Iterable<Integer> {
 				assert !Piece.isKing(Move.getTargetPiece(move));
 			}
 			if (!pm.getTheBoard().isIllegalMove(move, state[ply].needToEscapeMate)) {
-				state[ply].priority_moves[state[ply].priority_fill_index++] = move;
-				state[ply].moveCount++;
+				state[ply].moves[state[ply].moves_index++] = move;
 			}
 		}
 	}
@@ -396,8 +371,7 @@ public class MoveList implements Iterable<Integer> {
 			if (Move.areEqualForBestKiller(move, state[ply].bestMove))
 				return;
 			if (!pm.getTheBoard().isIllegalMove(move, state[ply].needToEscapeMate)) {
-				state[ply].normal_search_moves[state[ply].normal_fill_index++] = move;
-				state[ply].moveCount++;
+				state[ply].moves[state[ply].moves_index++] = move;
 				legalQuietMoveAdded = true;
 			}
 		}
@@ -421,8 +395,7 @@ public class MoveList implements Iterable<Integer> {
 			if (KillerList.isMoveOnListAtPly(state[ply].killers, move))
 				return;
 			if (!pm.getTheBoard().isIllegalMove(move, state[ply].needToEscapeMate)) {
-				state[ply].normal_search_moves[state[ply].normal_fill_index++] = move;
-				state[ply].moveCount++;
+				state[ply].moves[state[ply].moves_index++] = move;
 				legalQuietMoveAdded = true;
 			}
 		}

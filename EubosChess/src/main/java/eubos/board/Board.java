@@ -1981,22 +1981,20 @@ public class Board {
 		}
 	}
 	
-	public boolean getSingleQuietMove(IAddMoves ml, boolean ownSideIsWhite) {
-		boolean quietMoveFound = false;
+	public void getSingleQuietMove(IAddMoves ml, boolean ownSideIsWhite) {
 		if (me.isEndgame()) {
 			if (ownSideIsWhite) {
-				quietMoveFound = whiteSingleMoveEndgame(ml);
+				whiteSingleMoveEndgame(ml);
 			} else {
-				quietMoveFound = blackSingleMoveEndgame(ml);
+				blackSingleMoveEndgame(ml);
 			}
 		} else {
 			if (ownSideIsWhite) {
-				quietMoveFound = whiteSingleMoveMidgame(ml);
+				whiteSingleMoveMidgame(ml);
 			} else {
-				quietMoveFound = blackSingleMoveMidgame(ml);
+				blackSingleMoveMidgame(ml);
 			}
 		}
-		return quietMoveFound;
 	}
 	
 	public void getRegularPieceMoves(IAddMoves ml, boolean ownSideIsWhite) {
