@@ -101,20 +101,17 @@ public class MoveList implements Iterable<Integer> {
 	public MoveListIterator getNextMovesAtPly(int ply) {
 		MoveListIterator iter = null;
 		this.ply = ply;
+		state[ply].normal_fill_index = 0;
+		state[ply].priority_fill_index = 0;
+		state[ply].moveCount = 0;
 
 		switch (state[ply].nextCheckPoint) {
 		case 0:
 			// Return best Move if valid
 			state[ply].nextCheckPoint = 1;
-			//if (!Move.areEqualForBestKiller(state_at_ply[ply].bestMove, Move.NULL_MOVE)) {
-			if (state[ply].bestMove != Move.NULL_MOVE) {
-				if (Move.isBest(state[ply].bestMove) || bestMoveIsValid()) {
-					state[ply].bestMove = Move.setBest(state[ply].bestMove);
-					if (!state[ply].extendedSearch || isValidBestMoveForExtendedSearch()) {
-						return singleMoveIterator(state[ply].bestMove);
-					}
-				}
-				state[ply].bestMove = Move.NULL_MOVE; // If it wasn't valid, invalidate it
+			if (isBestMoveValid()) {
+				state[ply].bestMove = Move.setBest(state[ply].bestMove);
+				return singleMoveIterator(state[ply].bestMove);
 			}
 			// Note fall-through to next stage if no valid best move
 		case 1:
@@ -123,7 +120,6 @@ public class MoveList implements Iterable<Integer> {
 			state[ply].nextCheckPoint = 2;
 			getPawnPromotions();
 			if (state[ply].moveCount != 0) {
-				sortPriorityList();
 				return priorityIterator();
 			}
 			// Note fall-through to next stage if no promotions
@@ -131,8 +127,7 @@ public class MoveList implements Iterable<Integer> {
 			// Generate all captures other than pawn promotions
 			state[ply].nextCheckPoint = 3;
 			getNonPawnPromotionCaptures();
-			if ((state[ply].moveCount - state[ply].normal_fill_index) != 0) {
-				sortPriorityList();
+			if (state[ply].moveCount != 0) {
 				return priorityIterator();
 			}
 			// Note fall-through to next stage if no captures
@@ -173,9 +168,6 @@ public class MoveList implements Iterable<Integer> {
 			state[ply].nextCheckPoint = 8;
 			return doQuiet();
 		default:
-//			if (EubosEngineMain.ENABLE_ASSERTS) {
-//				assert false : "Staged move generation called too many times";
-//			}
 			return emptyIterator();
 		}
 	}
@@ -221,7 +213,18 @@ public class MoveList implements Iterable<Integer> {
 		return iter;
 	}
 
-	private boolean bestMoveIsValid() {
+	private boolean isBestMoveValid() {
+		if (state[ply].bestMove != Move.NULL_MOVE) { 
+			if ((!state[ply].extendedSearch || isValidBestMoveForExtendedSearch()) &&
+				(Move.isBest(state[ply].bestMove) || bestMoveIsPlayable())) {
+				return true;
+			}
+			state[ply].bestMove = Move.NULL_MOVE; // If it wasn't valid, invalidate it
+		}
+		return false;
+	}
+	
+	private boolean bestMoveIsPlayable() {
 		return pm.getTheBoard().isPlayableMove(state[ply].bestMove, state[ply].needToEscapeMate, pm.castling);
 	}
 	
@@ -235,14 +238,10 @@ public class MoveList implements Iterable<Integer> {
 	}
 
 	private void getNonPawnPromotionCaptures() {
-		state[ply].moveCount = 0;
-		state[ply].priority_fill_index = 0;
 		pm.getTheBoard().getCapturesExcludingPromotions(ma_captures, state[ply].isWhite);
 	}
 	
 	private boolean getSingleQuietMove() {
-		state[ply].moveCount = state[ply].normal_fill_index;
-		state[ply].priority_fill_index = 0;
 		IAddMoves moveAdder = null;
 		if (state[ply].killers == null) {
 			ma_quietNoKillers.reset();
@@ -257,9 +256,6 @@ public class MoveList implements Iterable<Integer> {
 	}
 
 	private void getQuietMoves() {
-		state[ply].normal_fill_index = 0;
-		state[ply].moveCount = state[ply].normal_fill_index;
-		state[ply].priority_fill_index = 0;
 		IAddMoves moveAdder = null;
 		if (state[ply].killers == null) {
 			ma_quietNoKillers.reset();
@@ -323,6 +319,7 @@ public class MoveList implements Iterable<Integer> {
 	}
 	
 	public MoveListIterator priorityIterator() {
+		sortPriorityList();
 		return ml[ply].set(state[ply].priority_moves, state[ply].priority_fill_index);
 	}
 
