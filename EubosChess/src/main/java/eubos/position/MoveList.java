@@ -129,7 +129,7 @@ public class MoveList implements Iterable<Integer> {
 				return empty;
 			} else if (state[ply].killers == null) {
 				// Fall-through into quiet moves if there are no killers
-				return doSingleQuietMove();
+				return doQuiet();
 			} else {
 				state[ply].nextCheckPoint = 4;
 				iter = checkKiller(0);
@@ -154,7 +154,8 @@ public class MoveList implements Iterable<Integer> {
 			// Note fall-through to quiet moves
 		case 6:
 			state[ply].nextCheckPoint = 7;
-			return doSingleQuietMove();
+			//return doSingleQuietMove();
+			
 		case 7:
 			// Lastly, generate all quiet moves (i.e. that aren't best, killers, or tactical moves)
 			state[ply].nextCheckPoint = 8;
@@ -252,7 +253,8 @@ public class MoveList implements Iterable<Integer> {
 
 	private void getQuietMoves() {
 		IAddMoves moveAdder = setupQuietMoveAdder();
-		pm.getTheBoard().getRegularPieceMovesExceptingOnePiece(moveAdder, state[ply].isWhite, state[ply].generated_piece);
+		//pm.getTheBoard().getRegularPieceMovesExceptingOnePiece(moveAdder, state[ply].isWhite, state[ply].generated_piece);
+		pm.getTheBoard().getRegularPieceMoves(moveAdder, state[ply].isWhite);
 		if (!state[ply].needToEscapeMate) {
 			// Can't castle out of check and don't care in extended search
 			pm.castling.addCastlingMoves(state[ply].isWhite, moveAdder);
