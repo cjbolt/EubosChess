@@ -29,6 +29,7 @@ public class MoveList implements Iterable<Integer> {
 		// Cached data provided from PlySearcher
 		boolean needToEscapeMate;
 		boolean extendedSearch;
+		boolean frontierNode;
 		int bestMove;
 		int[] killers;
 		
@@ -38,12 +39,13 @@ public class MoveList implements Iterable<Integer> {
 			generated_piece = BitBoard.INVALID;
 		}
 		
-		public void initialise(int best, int[] killer_list, boolean inCheck, boolean extended) {
+		public void initialise(int best, int[] killer_list, boolean inCheck, boolean extended, boolean frontier) {
 			// Initialise working variables for building the MoveList at this ply
 			needToEscapeMate = inCheck;
 			extendedSearch = extended;
 			killers = killer_list;
 			bestMove = best;
+			frontierNode = frontier;
 			
 			nextCheckPoint = 0;
 			moves_index = 0;
@@ -87,9 +89,13 @@ public class MoveList implements Iterable<Integer> {
 		ma_quietNoKillers = new QuietMovesWithNoKillers();
 		ma_quietConsumeKillers = new QuietMovesConsumingKillers();
 	}
-
+	
 	public void initialiseAtPly(int bestMove, int[] killers, boolean inCheck, boolean extended, int ply) {
-		state[ply].initialise(bestMove, killers, inCheck, extended);
+		state[ply].initialise(bestMove, killers, inCheck, extended, false);
+	}
+
+	public void initialiseAtPly(int bestMove, int[] killers, boolean inCheck, boolean extended, int ply, boolean frontier) {
+		state[ply].initialise(bestMove, killers, inCheck, extended, frontier);
 	}
 	
 	public MoveListIterator getNextMovesAtPly(int ply) {
@@ -129,7 +135,11 @@ public class MoveList implements Iterable<Integer> {
 				return empty;
 			} else if (state[ply].killers == null) {
 				// Fall-through into quiet moves if there are no killers
-				return doQuiet();
+				if (state[ply].frontierNode) {
+					return doSingleQuietMove();
+				} else {
+					return doQuiet();
+				}
 			} else {
 				state[ply].nextCheckPoint = 4;
 				iter = checkKiller(0);
@@ -154,8 +164,9 @@ public class MoveList implements Iterable<Integer> {
 			// Note fall-through to quiet moves
 		case 6:
 			state[ply].nextCheckPoint = 7;
-			//return doSingleQuietMove();
-			
+			if (state[ply].frontierNode) {
+				return doSingleQuietMove();
+			}
 		case 7:
 			// Lastly, generate all quiet moves (i.e. that aren't best, killers, or tactical moves)
 			state[ply].nextCheckPoint = 8;
@@ -253,8 +264,11 @@ public class MoveList implements Iterable<Integer> {
 
 	private void getQuietMoves() {
 		IAddMoves moveAdder = setupQuietMoveAdder();
-		//pm.getTheBoard().getRegularPieceMovesExceptingOnePiece(moveAdder, state[ply].isWhite, state[ply].generated_piece);
-		pm.getTheBoard().getRegularPieceMoves(moveAdder, state[ply].isWhite);
+		if (state[ply].frontierNode) {
+			pm.getTheBoard().getRegularPieceMovesExceptingOnePiece(moveAdder, state[ply].isWhite, state[ply].generated_piece);
+		} else {
+			pm.getTheBoard().getRegularPieceMoves(moveAdder, state[ply].isWhite);
+		}
 		if (!state[ply].needToEscapeMate) {
 			// Can't castle out of check and don't care in extended search
 			pm.castling.addCastlingMoves(state[ply].isWhite, moveAdder);
