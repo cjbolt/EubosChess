@@ -1105,6 +1105,7 @@ public class Board {
 			inCheck = (kingMask & mae.basic_attacks[isWhite ? 1 : 0][3][0]) != 0L;
 		} else {
 			int kingBitOffset = getKingPosition(isWhite);
+			if (kingBitOffset == BitBoard.INVALID) return false;
 			inCheck = squareIsAttacked(kingBitOffset, isWhite);
 		}
 		return inCheck;

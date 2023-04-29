@@ -134,22 +134,36 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return isDrawing;
 	}
 	
-	public void performMove(int move) {
-		boolean kingInCheckBeforeMove = false;
-		if (EubosEngineMain.ENABLE_ASSERTS) {
-			boolean initialOnMoveIsWhite = onMoveIsWhite();
-			if ((initialOnMoveIsWhite ? theBoard.getWhiteKing():theBoard.getBlackKing()) != 0L) {
-				kingInCheckBeforeMove = theBoard.isKingInCheck(initialOnMoveIsWhite);
-			}
-		}
-		
+	public boolean performMove(int move) {
 		// Preserve state
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		long pp = theBoard.getPassedPawns();
 		long old_hash = getHash();
 		int old_flags = castling.getFlags();
-		theBoard.doMove(move);
+		
+		// Store old state
 		moveTracker.push(pp, move, old_flags, prevEnPassantTargetSq, old_hash, dc.checkFromPly);
+		
+		theBoard.doMove(move);
+		// Legal move check
+		if (theBoard.isKingInCheck(onMoveIsWhite())) {
+			
+			MoveStack stack = moveTracker.pop();
+			int reversedMove = Move.reverse(stack.move);
+			theBoard.undoMove(reversedMove);
+			
+			// Restore state from move stack
+			castling.setFlags(stack.castling);
+			theBoard.setPassedPawns(stack.passed_pawn);
+			theBoard.setEnPassantTargetSq(stack.en_passant_square);
+			hash.hashCode = stack.hash;
+			dc.checkFromPly = stack.draw_check_ply;
+				
+			// Clear draw indicator flag
+			repetitionPossible = false;
+			
+			return false;
+		}		
 		
 		// Update state
 		castling.updateFlags(move);
@@ -168,14 +182,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Update onMove
 		onMove = Colour.getOpposite(onMove);
 		plyNumber++;
-
-		if (EubosEngineMain.ENABLE_ASSERTS) {
-			if (kingInCheckBeforeMove) {
-				// need to have moved out of check!!!
-				assert !theBoard.isKingInCheck(!onMoveIsWhite()) :
-					String.format("%s %s", this.unwindMoveStack(), getFen());
-			}
-		}
+		
+		return true;
 	}
 
 	public void unperformMove() {

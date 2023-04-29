@@ -244,13 +244,15 @@ public class PlySearcher {
 				}
 			}
 			do {
-				currMove = move_iter.nextInt();
+				// Legal move check
+				currMove = move_iter.nextInt();				
+				if (!pm.performMove(currMove)) {
+					continue;
+				}
+				
 				if (EubosEngineMain.ENABLE_ASSERTS) {
 					assert !Move.areEqualForBestKiller(currMove, Move.NULL_MOVE): "Null move found in MoveList";
 				}
-				// Burn illegal moves
-				if (pos.getTheBoard().isIllegalMove(currMove, state[currPly].inCheck))
-					continue;
 				
 				state[0].moveNumber += 1;
 				if (state[0].moveNumber == 1) {
@@ -273,7 +275,6 @@ public class PlySearcher {
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
 				
 				currPly++;
-				pm.performMove(currMove);
 				
 				positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, false);
 				
@@ -445,31 +446,10 @@ public class PlySearcher {
 				}
 			}
 			do {
-				currMove = move_iter.nextInt();
-				// Burn illegal moves
-				if (pos.getTheBoard().isIllegalMove(currMove, state[currPly].inCheck))
-					continue;
-				
-				state[currPly].moveNumber += 1;
-				if (EubosEngineMain.ENABLE_ASSERTS) {
-					assert !Move.areEqualForBestKiller(currMove, Move.NULL_MOVE): "Null move found in MoveList";
-				}
-				if (state[currPly].moveNumber == 1) {
-					pc.initialise(currPly, currMove);
-					bestMove = currMove;
-				}
-				if (Move.isRegular(currMove)) {
-					quietMoveNumber++;
-				} else {
-					if (EubosEngineMain.ENABLE_ASSERTS) {
-						assert quietMoveNumber == 0 : String.format("Out_of_order move %s num=%d quiet=%d best=%s", Move.toString(currMove), state[currPly].moveNumber, quietMoveNumber, Move.toString(bestMove));
-					}
-				}
-
 				// Futility pruning
 				// Could modify to not prune moves that give check
 				if (EubosEngineMain.ENABLE_FUTILITY_PRUNING) {
-					if (depth == 1 /*&& !state[currPly].inCheck*/) {
+					if (depth == 1) {
 						boolean notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
 						if (quietMoveNumber == 1) {
 							if (notMate && !pe.goForMate()) {
@@ -487,11 +467,27 @@ public class PlySearcher {
 								}
 							}
 						}
-//						if (quietMoveNumber >= 1) {
-//							if ((state[currPly].staticEval + pe.estimateMovePositionalContribution(currMove)) < state[currPly].alpha) {
-//								continue;
-//							}
-//						}
+					}
+				}
+				
+				currMove = move_iter.nextInt();
+				if (!pm.performMove(currMove)) {
+					continue;
+				}
+				
+				state[currPly].moveNumber += 1;
+				if (EubosEngineMain.ENABLE_ASSERTS) {
+					assert !Move.areEqualForBestKiller(currMove, Move.NULL_MOVE): "Null move found in MoveList";
+				}
+				if (state[currPly].moveNumber == 1) {
+					pc.initialise(currPly, currMove);
+					bestMove = currMove;
+				}
+				if (Move.isRegular(currMove)) {
+					quietMoveNumber++;
+				} else {
+					if (EubosEngineMain.ENABLE_ASSERTS) {
+						assert quietMoveNumber == 0 : String.format("Out_of_order move %s num=%d quiet=%d best=%s", Move.toString(currMove), state[currPly].moveNumber, quietMoveNumber, Move.toString(bestMove));
 					}
 				}
 				
@@ -500,10 +496,8 @@ public class PlySearcher {
 				
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
-				
+			
 				currPly++;
-				pm.performMove(currMove);
-				
 				positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied);
 				
 				pm.unperformMove();
@@ -591,11 +585,13 @@ public class PlySearcher {
 				return alpha;
 			}
 			do {
-				currMove = move_iter.nextInt();
-				// Burn illegal moves
-				if (pos.getTheBoard().isIllegalMove(currMove, state[currPly].inCheck))
+				// Legal move check
+				currMove = move_iter.nextInt();				
+				if (!pm.performMove(currMove)) {
 					continue;
+				}
 				
+				currPly++;
 				state[currPly].moveNumber += 1;
 				if (EubosEngineMain.ENABLE_ASSERTS) {
 					assert currMove != Move.NULL_MOVE: "Null move found in MoveList";
@@ -606,10 +602,7 @@ public class PlySearcher {
 
 				if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();				
-				
-				currPly++;
-				pm.performMove(currMove);
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
 				
 				state[currPly].update();
 				positionScore = (short) -extendedSearch(-beta, -alpha);
