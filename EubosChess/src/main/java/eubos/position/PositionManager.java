@@ -141,29 +141,22 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		long old_hash = getHash();
 		int old_flags = castling.getFlags();
 		
-		// Store old state
-		moveTracker.push(pp, move, old_flags, prevEnPassantTargetSq, old_hash, dc.checkFromPly);
-		
 		theBoard.doMove(move);
 		// Legal move check
 		if (theBoard.isKingInCheck(onMoveIsWhite())) {
 			
-			MoveStack stack = moveTracker.pop();
-			int reversedMove = Move.reverse(stack.move);
+			int reversedMove = Move.reverse(move);
 			theBoard.undoMove(reversedMove);
 			
-			// Restore state from move stack
-			castling.setFlags(stack.castling);
-			theBoard.setPassedPawns(stack.passed_pawn);
-			theBoard.setEnPassantTargetSq(stack.en_passant_square);
-			hash.hashCode = stack.hash;
-			dc.checkFromPly = stack.draw_check_ply;
-				
-			// Clear draw indicator flag
-			repetitionPossible = false;
-			
+			castling.setFlags(old_flags);
+			theBoard.setPassedPawns(pp);
+			theBoard.setEnPassantTargetSq(prevEnPassantTargetSq);
+			hash.hashCode = old_hash;			
 			return false;
-		}		
+		}	
+
+		// Store old state
+		moveTracker.push(pp, move, old_flags, prevEnPassantTargetSq, old_hash, dc.checkFromPly);
 		
 		// Update state
 		castling.updateFlags(move);
