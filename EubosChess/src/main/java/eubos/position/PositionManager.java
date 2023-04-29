@@ -143,8 +143,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		
 		theBoard.doMove(move);
 		// Legal move check
-		if (theBoard.isKingInCheck(onMoveIsWhite())) {
-			
+		if (theBoard.last_move_was_illegal) {
 			int reversedMove = Move.reverse(move);
 			theBoard.undoMove(reversedMove);
 			

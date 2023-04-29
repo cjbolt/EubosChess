@@ -205,8 +205,11 @@ public class Board {
 		return fen.toString();
 	}
 	
+	public boolean last_move_was_illegal = false;
+	
 	public int doMove(int move) {
 		isAttacksMaskValid = false;
+		last_move_was_illegal = false;
 		
 		int captureBitOffset = BitBoard.INVALID;
 		int pieceToMove = Move.getOriginPiece(move);
@@ -291,16 +294,32 @@ public class Board {
 			pieces[INDEX_PAWN] &= ~initialSquareMask;
 			pieces[promotedPiece] |= targetSquareMask;
 			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
+			
+			last_move_was_illegal = isKingInCheck(isWhite);
+			
 			pieceLists.updatePiece(pieceToMove, fullPromotedPiece, originBitOffset, targetBitOffset);
 			me.updateWhenDoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
+			
+			if (last_move_was_illegal) {
+				return captureBitOffset;
+			}
+			
 			passedPawns &= ~initialSquareMask;
 			hashUpdater.doPromotionMove(targetBitOffset, originBitOffset, pieceToMove, fullPromotedPiece);
 		} else {
 			// Piece type doesn't change across boards, update piece-specific bitboard, pieceList and PST score
 			int pieceType = Piece.PIECE_NO_COLOUR_MASK & pieceToMove;
 			pieces[pieceType] ^= positionsMask;
+			
+			last_move_was_illegal = isKingInCheck(isWhite);
+			
 			pieceLists.updatePiece(pieceToMove, originBitOffset, targetBitOffset);
 			me.updateRegular(pieceType, pieceToMove, originBitOffset, targetBitOffset);
+			
+			if (last_move_was_illegal) {
+				return captureBitOffset;
+			}
+			
 			hashUpdater.doBasicMove(targetBitOffset, originBitOffset, pieceToMove);
 			
 			// Iterative update of passed pawns bitboard
@@ -411,6 +430,7 @@ public class Board {
 	
 	public int undoMove(int moveToUndo) {
 		isAttacksMaskValid = false;
+		last_move_was_illegal = false;
 		
 		int capturedPieceSquare = BitBoard.INVALID;
 		int originPiece = Move.getOriginPiece(moveToUndo);
