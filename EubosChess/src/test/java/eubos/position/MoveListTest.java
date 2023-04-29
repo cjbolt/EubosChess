@@ -289,6 +289,7 @@ public class MoveListTest {
 		assertEquals(new GenericMove("c3d5"), Move.toGenericMove(it.nextInt()));
 		assertEquals(new GenericMove("d2h6"), Move.toGenericMove(it.nextInt()));
 		assertEquals(new GenericMove("d3d5"), Move.toGenericMove(it.nextInt()));
+		assertEquals(new GenericMove("h1h2"), Move.toGenericMove(it.nextInt())); // The move is illegal, but it is caught when applied
 		assertFalse(it.hasNext());
 	}
 	

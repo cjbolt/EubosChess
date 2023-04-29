@@ -11,7 +11,6 @@ import eubos.board.BitBoard;
 import eubos.board.Board;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
-import eubos.main.EubosEngineMain;
 import eubos.position.MoveTracker.MoveStack;
 import eubos.score.IEvaluate;
 import eubos.score.PawnEvalHashTable;
