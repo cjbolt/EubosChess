@@ -248,6 +248,10 @@ public class PlySearcher {
 				if (EubosEngineMain.ENABLE_ASSERTS) {
 					assert !Move.areEqualForBestKiller(currMove, Move.NULL_MOVE): "Null move found in MoveList";
 				}
+				// Burn illegal moves
+				if (pos.getTheBoard().isIllegalMove(currMove, state[currPly].inCheck))
+					continue;
+				
 				state[0].moveNumber += 1;
 				if (state[0].moveNumber == 1) {
 					pc.initialise(0, currMove);
@@ -267,6 +271,7 @@ public class PlySearcher {
 				
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
+				
 				currPly++;
 				pm.performMove(currMove);
 				
@@ -441,6 +446,10 @@ public class PlySearcher {
 			}
 			do {
 				currMove = move_iter.nextInt();
+				// Burn illegal moves
+				if (pos.getTheBoard().isIllegalMove(currMove, state[currPly].inCheck))
+					continue;
+				
 				state[currPly].moveNumber += 1;
 				if (EubosEngineMain.ENABLE_ASSERTS) {
 					assert !Move.areEqualForBestKiller(currMove, Move.NULL_MOVE): "Null move found in MoveList";
@@ -583,6 +592,10 @@ public class PlySearcher {
 			}
 			do {
 				currMove = move_iter.nextInt();
+				// Burn illegal moves
+				if (pos.getTheBoard().isIllegalMove(currMove, state[currPly].inCheck))
+					continue;
+				
 				state[currPly].moveNumber += 1;
 				if (EubosEngineMain.ENABLE_ASSERTS) {
 					assert currMove != Move.NULL_MOVE: "Null move found in MoveList";
@@ -593,7 +606,8 @@ public class PlySearcher {
 
 				if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();				
+				
 				currPly++;
 				pm.performMove(currMove);
 				
