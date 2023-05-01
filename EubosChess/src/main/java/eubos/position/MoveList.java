@@ -138,11 +138,11 @@ public class MoveList implements Iterable<Integer> {
 				return empty;
 			} else if (state[ply].killers == null) {
 				// Fall-through into quiet moves if there are no killers
-				if (state[ply].frontierNode) {
-					return doSingleQuietMove();
-				} else {
+//				if (state[ply].frontierNode) {
+//					return doSingleQuietMove();
+//				} else {
 					return doQuiet();
-				}
+//				}
 			} else {
 				state[ply].nextCheckPoint = 4;
 				iter = checkKiller(0);
@@ -166,13 +166,13 @@ public class MoveList implements Iterable<Integer> {
 			}
 			// Note fall-through to quiet moves
 		case 6:
-			state[ply].nextCheckPoint = 7;
-			if (state[ply].frontierNode) {
-				return doSingleQuietMove();
-			}
-		case 7:
+//			state[ply].nextCheckPoint = 7;
+//			if (state[ply].frontierNode) {
+//				return doSingleQuietMove();
+//			}
+//		case 7:
 			// Lastly, generate all quiet moves (i.e. that aren't best, killers, or tactical moves)
-			state[ply].nextCheckPoint = 8;
+			state[ply].nextCheckPoint = 7;
 			return doQuiet();
 		default:
 			return empty;
@@ -191,16 +191,16 @@ public class MoveList implements Iterable<Integer> {
 		}
 	}
 	
-	private MoveListIterator doSingleQuietMove() {
-		getSingleQuietMove();
-		if (state[ply].moves_index != 0) {
-			state[ply].nextCheckPoint = 7;
-			state[ply].generated_piece = Move.getOriginPosition(state[ply].moves[0]);
-			return iterator();
-		}
-		state[ply].nextCheckPoint = 8;
-		return empty;
-	}
+//	private MoveListIterator doSingleQuietMove() {
+//		getSingleQuietMove();
+//		if (state[ply].moves_index != 0) {
+//			state[ply].nextCheckPoint = 7;
+//			state[ply].generated_piece = Move.getOriginPosition(state[ply].moves[0]);
+//			return iterator();
+//		}
+//		state[ply].nextCheckPoint = 8;
+//		return empty;
+//	}
 	
 	private MoveListIterator doQuiet() {
 		state[ply].nextCheckPoint = 8;
@@ -243,10 +243,8 @@ public class MoveList implements Iterable<Integer> {
 	private IAddMoves setupQuietMoveAdder() {
 		IAddMoves moveAdder = null;
 		if (state[ply].killers == null) {
-			ma_quietNoKillers.reset();
 			moveAdder = ma_quietNoKillers;
 		} else {
-			ma_quietConsumeKillers.reset();
 			moveAdder = ma_quietConsumeKillers;
 		}
 		return moveAdder;
@@ -260,18 +258,9 @@ public class MoveList implements Iterable<Integer> {
 		pm.getTheBoard().getCapturesExcludingPromotions(ma_captures, state[ply].isWhite);
 	}
 	
-	private void getSingleQuietMove() {
-		IAddMoves moveAdder = setupQuietMoveAdder();
-		pm.getTheBoard().getSingleQuietMove(moveAdder, state[ply].isWhite);
-	}
-
 	private void getQuietMoves() {
 		IAddMoves moveAdder = setupQuietMoveAdder();
-		if (state[ply].frontierNode) {
-			pm.getTheBoard().getRegularPieceMovesExceptingOnePiece(moveAdder, state[ply].isWhite, state[ply].generated_piece);
-		} else {
-			pm.getTheBoard().getRegularPieceMoves(moveAdder, state[ply].isWhite);
-		}
+		pm.getTheBoard().getRegularPieceMoves(moveAdder, state[ply].isWhite);
 		if (!state[ply].needToEscapeMate) {
 			// Can't castle out of check and don't care in extended search
 			pm.castling.addCastlingMoves(state[ply].isWhite, moveAdder);
@@ -390,17 +379,12 @@ public class MoveList implements Iterable<Integer> {
 			if (Move.areEqualForBestKiller(move, state[ply].bestMove))
 				return;
 			state[ply].moves[state[ply].moves_index++] = move;
-			legalQuietMoveAdded = true;
 		}
-		
-		public void reset() {
-			legalQuietMoveAdded = false;
-			// Need to set move count correctly when we reset?
-		}
+
 		
 		@Override
 		public boolean isLegalMoveFound() {
-			return legalQuietMoveAdded;
+			return true;
 		}
 	}
 
@@ -412,7 +396,6 @@ public class MoveList implements Iterable<Integer> {
 			if (KillerList.isMoveOnListAtPly(state[ply].killers, move))
 				return;
 			state[ply].moves[state[ply].moves_index++] = move;
-			legalQuietMoveAdded = true;
 		}
 	}
 

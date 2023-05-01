@@ -433,7 +433,7 @@ public class PlySearcher {
 		boolean refuted = false;
 		int quietMoveNumber = 0;
 		
-		ml.initialiseAtPly(state[currPly].prevBestMove, killers.getMoves(currPly), state[currPly].inCheck, false, currPly, depth == 1);
+		ml.initialiseAtPly(state[currPly].prevBestMove, killers.getMoves(currPly), state[currPly].inCheck, false, currPly);
 		do {
 			MoveListIterator move_iter = ml.getNextMovesAtPly(currPly);
 			if (!move_iter.hasNext()) {
