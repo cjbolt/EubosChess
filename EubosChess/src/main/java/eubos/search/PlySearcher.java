@@ -591,7 +591,6 @@ public class PlySearcher {
 					continue;
 				}
 				
-				currPly++;
 				state[currPly].moveNumber += 1;
 				if (EubosEngineMain.ENABLE_ASSERTS) {
 					assert currMove != Move.NULL_MOVE: "Null move found in MoveList";
@@ -603,6 +602,7 @@ public class PlySearcher {
 				if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
+				currPly++;
 				
 				state[currPly].update();
 				positionScore = (short) -extendedSearch(-beta, -alpha);

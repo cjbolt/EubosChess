@@ -394,7 +394,7 @@ public class MoveListTest {
 		setup("8/8/8/8/8/1pp5/ppp5/Kp6 w - - - -"); // is_stalemate
 		classUnderTest.initialiseAtPly(Move.NULL_MOVE, null, false, true, 0);
 		MoveListIterator it = classUnderTest.getNextMovesAtPly(0);
-		assertFalse(it.hasNext());
+		assertTrue(it.hasNext()); // Now has pseudo legal capture
 	}
 	
 	@Test

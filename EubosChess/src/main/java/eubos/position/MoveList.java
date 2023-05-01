@@ -107,14 +107,17 @@ public class MoveList implements Iterable<Integer> {
 		case 0:
 			// Return best Move if valid
 			state[ply].nextCheckPoint = 1;
+			state[ply].isWhite = pm.onMoveIsWhite();
 			if (isBestMoveValid()) {
 				state[ply].bestMove = Move.setBest(state[ply].bestMove);
+				if (EubosEngineMain.ENABLE_ASSERTS) {
+					assert state[ply].isWhite == Piece.isWhite(Move.getOriginPiece(state[ply].bestMove));
+				}
 				return singleMoveIterator(state[ply].bestMove);
 			}
 			// Note fall-through to next stage if no valid best move
 		case 1:
 			// Generate pawn promotions
-			state[ply].isWhite = pm.onMoveIsWhite();
 			state[ply].nextCheckPoint = 2;
 			getPawnPromotions();
 			if (state[ply].moves_index != 0) {
@@ -331,14 +334,12 @@ public class MoveList implements Iterable<Integer> {
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert !Piece.isKing(Move.getTargetPiece(move));
 			}
-			//if (!pm.getTheBoard().isIllegalMove(move, state[ply].needToEscapeMate)) {
-				if (Move.areEqualForBestKiller(move, state[ply].bestMove)) {
-					// Silently consume
-				} else {
-					state[ply].moves[state[ply].moves_index++] = move;
-				}
-				handleUnderPromotions(move);
-			//}
+			if (Move.areEqualForBestKiller(move, state[ply].bestMove)) {
+				// Silently consume
+			} else {
+				state[ply].moves[state[ply].moves_index++] = move;
+			}
+			handleUnderPromotions(move);
 		}
 
 		public void addNormal(int move) {
@@ -369,9 +370,11 @@ public class MoveList implements Iterable<Integer> {
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert !Piece.isKing(Move.getTargetPiece(move));
 			}
-			//if (!pm.getTheBoard().isIllegalMove(move, state[ply].needToEscapeMate)) {
+			if (Move.areEqualForBestKiller(move, state[ply].bestMove)) {
+				// Silently consume
+			} else {
 				state[ply].moves[state[ply].moves_index++] = move;
-			//}
+			}
 		}
 	}
 
@@ -386,10 +389,8 @@ public class MoveList implements Iterable<Integer> {
 		public void addNormal(int move) {
 			if (Move.areEqualForBestKiller(move, state[ply].bestMove))
 				return;
-			//if (!pm.getTheBoard().isIllegalMove(move, state[ply].needToEscapeMate)) {
-				state[ply].moves[state[ply].moves_index++] = move;
-				legalQuietMoveAdded = true;
-			//}
+			state[ply].moves[state[ply].moves_index++] = move;
+			legalQuietMoveAdded = true;
 		}
 		
 		public void reset() {
@@ -410,10 +411,8 @@ public class MoveList implements Iterable<Integer> {
 				return;
 			if (KillerList.isMoveOnListAtPly(state[ply].killers, move))
 				return;
-			//if (!pm.getTheBoard().isIllegalMove(move, state[ply].needToEscapeMate)) {
-				state[ply].moves[state[ply].moves_index++] = move;
-				legalQuietMoveAdded = true;
-			//}
+			state[ply].moves[state[ply].moves_index++] = move;
+			legalQuietMoveAdded = true;
 		}
 	}
 
