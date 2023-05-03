@@ -16,6 +16,8 @@ public class PlySearcher {
 	private static final int [] ASPIRATION_WINDOW_FALLBACK = 
 		{ Piece.MATERIAL_VALUE_PAWN/4, 2*Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
 
+	public static final int FUTILITY_THRESHOLD = 120;
+	
 	class SearchState {
 		int plyScore;
 		int alpha;
@@ -462,7 +464,7 @@ public class PlySearcher {
 						}
 						if (quietMoveNumber >= 1) {
 							if (notMate && !pe.goForMate()) {
-								if ((state[currPly].staticEval + 160) < state[currPly].alpha) {
+								if ((state[currPly].staticEval + FUTILITY_THRESHOLD) < state[currPly].alpha) {
 									return state[currPly].alpha;
 								}
 							}
