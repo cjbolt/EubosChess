@@ -290,7 +290,7 @@ public class PositionEvaluator implements IEvaluate {
 		endgameScore = 0;
 		return internalFullEval();
 	}
-	
+
 	int evaluateBishopPair() {
 		int score = 0;
 		int onMoveBishopCount = onMoveIsWhite ? bd.me.numberOfPieces[Piece.WHITE_BISHOP] : bd.me.numberOfPieces[Piece.BLACK_BISHOP];

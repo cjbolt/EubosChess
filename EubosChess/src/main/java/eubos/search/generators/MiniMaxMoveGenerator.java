@@ -129,6 +129,7 @@ public class MiniMaxMoveGenerator implements
 	}
 	
 	public void reportStatistics() {
+		this.ps.reportFutilityStatistics();
 		this.pe.reportLazyStatistics();
 		this.pe.reportPawnStatistics();
 	}

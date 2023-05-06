@@ -1,5 +1,7 @@
 package eubos.search;
 
+import java.util.Arrays;
+
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
@@ -17,6 +19,7 @@ public class PlySearcher {
 		{ Piece.MATERIAL_VALUE_PAWN/4, 2*Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
 
 	public static final int FUTILITY_THRESHOLD = 160;
+	public static final boolean ENABLE_FUTILITY_TUNING = true; 
 	
 	class SearchState {
 		int plyScore;
@@ -49,6 +52,143 @@ public class PlySearcher {
 	
 	private SearchState state[];
 	
+	
+	class FutilityStatistics {
+		private int neg_saved_score[];
+		private int pos_saved_score[];
+		private long quiet_moves;
+		private String positionStack[];
+		private int moveStack[];
+		private int deltaStack[];
+		private int stackIndex = 0;
+		private static final int STACK_SIZE = 32; 
+		public FutilityStatistics() {
+			neg_saved_score = new int[4001];
+			pos_saved_score = new int[4001];
+			positionStack = new String[STACK_SIZE];
+			moveStack = new int[STACK_SIZE];
+			deltaStack = new int[STACK_SIZE];
+			stackIndex = 0;
+			quiet_moves = 0;
+		}
+		
+		void update(int currMove) {
+			if (quiet_moves < Integer.MAX_VALUE && hasSearchedPv) {
+				int delta = 0;
+				boolean storeMove = false;
+				int checkScore = -pe.getFullEvalNotCheckingForDraws(); // check score after applying move, negate due to pov of on move
+				delta = checkScore - state[currPly-1].staticEval;
+				
+				if (delta < 0) {
+					delta = Math.abs(delta);
+					if (delta < 4000) {
+						neg_saved_score[delta] += 1;
+					}
+				} else {
+					delta = Math.min(delta, 4000);
+					if (delta < 4000) {
+						pos_saved_score[delta] += 1;
+					}
+					storeMove = delta > 400; 
+				}
+				quiet_moves++;
+				
+				if (storeMove) {
+					positionStack[stackIndex] = pos.getFen();
+					moveStack[stackIndex] = currMove;
+					deltaStack[stackIndex] = delta;
+					stackIndex += 1;
+					stackIndex &= (STACK_SIZE - 1);
+				}
+			}
+		}
+		
+		void report() {
+			if (!ENABLE_FUTILITY_TUNING) {
+				return;
+			}
+			int best_score_delta = 0;
+			int worst_score_delta = 0;
+
+			for (int i=neg_saved_score.length-1; i >= 0; i--) {
+				// We also want to know the last non-zero array element
+				if (neg_saved_score[i] != 0) {
+					worst_score_delta = i;
+					break;
+				}
+			}
+			
+			int mode_pos_score = 0;
+			int mode_pos_score_index = 0;
+			long pos_sum = 0;
+			double pos_count = 0;
+			for (int i=0; i < pos_saved_score.length; i++) {
+				pos_sum += i*pos_saved_score[i];
+				pos_count += pos_saved_score[i];
+				if (pos_saved_score[i] > mode_pos_score) {
+					mode_pos_score = pos_saved_score[i];
+					mode_pos_score_index = i;
+				}
+			}
+			double pos_average = 0.0;
+			if (pos_count > 0) {
+				pos_average = pos_sum / pos_count;
+			}
+			
+			for (int i=pos_saved_score.length-1; i >= 0; i--) {
+				// We also want to know the last non-zero array element
+				if (pos_saved_score[i] != 0) {
+					best_score_delta = i;
+					break;
+				}
+			}
+			
+			// Histogram binning
+			int num_bins = pos_saved_score.length / 100;
+			int pos_bin[] = new int[num_bins+2];
+			for (int i=0; i < num_bins; i += 1) {
+				for (int j=0; j < num_bins; j++) {
+					pos_bin[i] += pos_saved_score[(i*num_bins)+j];
+				}
+			}
+			int pertinent_length = best_score_delta/num_bins;
+			double pos_percentage[] = new double[pertinent_length+2];
+			for (int i=0; i<pertinent_length; i++) {
+				pos_percentage[i] = (pos_bin[i] / pos_count) * 100; 
+				if (i > 0) {
+					pos_percentage[i] += pos_percentage[i-1];
+				}
+			}
+			
+			EubosEngineMain.logger.info(String.format(
+					"FutilityStats num_quiet=%d best=%d worst=%d", 
+					quiet_moves, best_score_delta, worst_score_delta));
+			
+			EubosEngineMain.logger.info(String.format(
+					"FutilityStats2 pos_mean=%f pos_mode=%d pos_zero=%d", 
+					pos_average, mode_pos_score_index, pos_saved_score[0]));
+			
+			StringBuilder sb = new StringBuilder();
+			for (double f: pos_percentage) {
+				sb.append(String.format(" %.2f", f));
+			}
+			EubosEngineMain.logger.info(String.format("FutilityStats3 %s", sb.toString()));
+			
+			EubosEngineMain.logger.info(String.format("FutilityStats4%s", Arrays.toString(pos_bin)));
+			
+			// Dump out the most significant moves
+			sb = new StringBuilder();
+			for (int i=0; i < STACK_SIZE; i++) {
+				if (deltaStack[i] != 0) {
+					sb.append(String.format("%d, %s, %s\n", deltaStack[i], Move.toString(moveStack[i]), positionStack[i]));
+				}
+			}
+			if (sb.length() != 0) {
+				EubosEngineMain.logger.info(String.format("FutilityStats5\n%s", sb.toString()));
+			}
+		}
+	};
+	
 	private IChangePosition pm;
 	private IPositionAccessors pos;
 	private IEvaluate pe;
@@ -74,6 +214,8 @@ public class PlySearcher {
 	
 	private boolean hasSearchedPv = false;
 	private boolean lastAspirationFailed = false;
+	
+	private FutilityStatistics futilityStats;
 	
 	public PlySearcher(
 			ITranspositionAccessor hashMap,
@@ -109,6 +251,12 @@ public class PlySearcher {
 		this.ml = ml;
 		
 		rootTransposition = tt.getTransposition(pos.getHash());
+		
+		futilityStats = new FutilityStatistics();
+	}
+	
+	public void reportFutilityStatistics() {
+		futilityStats.report();
 	}
 	
 	public void reinitialise(byte searchDepthPly, SearchMetricsReporter sr, short refScore) {
@@ -490,6 +638,12 @@ public class PlySearcher {
 				} else {
 					if (EubosEngineMain.ENABLE_ASSERTS) {
 						assert quietMoveNumber == 0 : String.format("Out_of_order move %s num=%d quiet=%d best=%s", Move.toString(currMove), state[currPly].moveNumber, quietMoveNumber, Move.toString(bestMove));
+					}
+				}
+				
+				if (ENABLE_FUTILITY_TUNING) {
+					if (depth == 1 && quietMoveNumber >= 1) {
+						futilityStats.update(currMove);
 					}
 				}
 				

@@ -8,5 +8,5 @@ public interface IEvaluate {
 	void reportPawnStatistics();
 	boolean goForMate();
 	int estimateMovePositionalContribution(int move);
-	public int getFullEvalNotCheckingForDraws();
+	int getFullEvalNotCheckingForDraws();
 }
