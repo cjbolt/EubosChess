@@ -16,6 +16,7 @@ public class PositionEvaluator implements IEvaluate {
 	IPositionAccessors pm;
 	
 	public static final boolean ENABLE_DYNAMIC_POSITIONAL_EVALUATION = true;
+	public static final boolean ENABLE_THREAT_EVALUATION = true;
 
 	private static final int BISHOP_PAIR_BOOST = 25;
 	
@@ -261,6 +262,8 @@ public class PositionEvaluator implements IEvaluate {
 			endgameScore = score + (onMoveIsWhite ? bd.me.getEndGameDelta() + bd.me.getEndgamePosition() : -(bd.me.getEndGameDelta() + bd.me.getEndgamePosition()));
 			// Add King Safety in middle game
 			midgameScore += ks_eval.evaluateKingSafety(attacks, onMoveIsWhite);
+			midgameScore += evaluateThreats(attacks, onMoveIsWhite);
+			
 			if (!goForMate) {
 				score = taperEvaluation(midgameScore, endgameScore);
 			} else {
@@ -289,6 +292,33 @@ public class PositionEvaluator implements IEvaluate {
 		midgameScore = 0;
 		endgameScore = 0;
 		return internalFullEval();
+	}
+	
+	public int evaluateThreatsForSide(long[][][] attacks, boolean onMoveIsWhite) {
+		int threatScore = 0;
+		long own = onMoveIsWhite ? bd.getWhitePieces() : bd.getBlackPieces();
+		own &= ~(onMoveIsWhite ? bd.getWhiteKing() : bd.getBlackKing()); // Don't include King in this evaluation
+		// if a piece is attacked and not defended, add a penalty
+		long enemyAttacks = attacks[onMoveIsWhite ? 1 : 0][3][0];
+		long ownAttacks = attacks[onMoveIsWhite ? 0 : 1][3][0];
+		long attackedOnlyByEnemy = enemyAttacks & ~ownAttacks;
+		long scratchBitBoard = own & attackedOnlyByEnemy;
+		int bit_offset;
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {		
+			// Add a penalty based on the value of the piece not defended, 10% of piece value
+			threatScore -= Math.abs((Piece.PIECE_TO_MATERIAL_LUT[0][bd.getPieceAtSquare(scratchBitBoard)] / 10));
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+		return threatScore;
+	}
+	
+	public int evaluateThreats(long[][][] attacks, boolean onMoveIsWhite) {
+		int threatScore = 0;
+		if (ENABLE_THREAT_EVALUATION) {
+			threatScore = evaluateThreatsForSide(attacks, onMoveIsWhite);
+			threatScore -= evaluateThreatsForSide(attacks, !onMoveIsWhite);
+		}
+		return threatScore;
 	}
 	
 	int evaluateBishopPair() {
