@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
+import eubos.board.Piece;
 import eubos.position.PositionManager;
 import eubos.search.DrawChecker;
 
@@ -86,5 +87,19 @@ public class PositionEvaluatorTest {
 		setUpPosition("4r1k1/2p2pb1/4Q3/8/3pP3/1p1P3p/1P3P2/R5K1 b - - 0 42");
 		int phase2 = pm.getTheBoard().me.getPhase();
 		System.out.println(String.format("%d %d %d", phase1, phase2, phase2 - phase1));
+	}
+	
+	@Test
+	public void test_threatsWhite() {
+		setUpPosition("kr3b2/4ppQ1/8/8/2P5/1P6/P7/7K w - - 1 1 ");
+		long [][][] attacks = pm.getTheBoard().mae.calculateBasicAttacksAndMobility(pm.getTheBoard().me);
+		assertEquals(-(Piece.MATERIAL_VALUE_QUEEN/10)+Piece.MATERIAL_VALUE_PAWN/10, SUT.evaluateThreats(attacks, true)); // W Queen is attacked, B Pawn is attacked
+	}
+	
+	@Test
+	public void test_threatsBlack() {
+		setUpPosition("kr3b2/4ppQ1/8/8/2P5/1P6/P7/7K w - - 1 1 ");
+		long [][][] attacks = pm.getTheBoard().mae.calculateBasicAttacksAndMobility(pm.getTheBoard().me);
+		assertEquals((Piece.MATERIAL_VALUE_QUEEN/10)-Piece.MATERIAL_VALUE_PAWN/10, SUT.evaluateThreats(attacks, false)); // W Queen is attacked, B Pawn is attacked
 	}
 }
