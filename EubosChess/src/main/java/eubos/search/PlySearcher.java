@@ -16,7 +16,7 @@ public class PlySearcher {
 	private static final int [] ASPIRATION_WINDOW_FALLBACK = 
 		{ Piece.MATERIAL_VALUE_PAWN/4, 2*Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
 
-	public static final int FUTILITY_THRESHOLD = 160;
+	public static final int FUTILITY_THRESHOLD = 120;
 	
 	class SearchState {
 		int plyScore;
