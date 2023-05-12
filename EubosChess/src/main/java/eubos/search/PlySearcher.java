@@ -460,15 +460,15 @@ public class PlySearcher {
 								}
 								
 							}
-							state[currPly].staticEval = (short)pe.getFullEvalNotCheckingForDraws();
+							//state[currPly].staticEval = (short)pe.getFullEvalNotCheckingForDraws();
 						}
-						if (quietMoveNumber >= 1) {
-							if (notMate && !pe.goForMate()) {
-								if ((state[currPly].staticEval + FUTILITY_THRESHOLD) < state[currPly].alpha) {
-									return state[currPly].alpha;
-								}
-							}
-						}
+//						if (quietMoveNumber >= 1) {
+//							if (notMate && !pe.goForMate()) {
+//								if ((state[currPly].staticEval + FUTILITY_THRESHOLD) < state[currPly].alpha) {
+//									return state[currPly].alpha;
+//								}
+//							}
+//						}
 					}
 				}
 				
