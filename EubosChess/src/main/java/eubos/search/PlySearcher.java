@@ -377,6 +377,8 @@ public class PlySearcher {
 			}
 		}
 		
+		state[currPly].staticEval = (short) pe.getCrudeEvaluation();
+		
 		// Null move pruning
 		if (EubosEngineMain.ENABLE_NULL_MOVE_PRUNING &&
 			!isTerminated() &&
@@ -386,9 +388,7 @@ public class PlySearcher {
 			!pos.getTheBoard().me.isEndgame() &&
 			!state[currPly].inCheck &&
 			!(Score.isMate((short)state[currPly].beta) || Score.isMate((short)state[currPly].alpha)) && 
-			//(state[currPly].hashScore >= state[currPly].beta ||
-			//pe.lazyEvaluation(state[currPly].alpha, state[currPly].beta) > state[currPly].beta)) {
-			pe.getCrudeEvaluation() >= state[currPly].beta) {
+			state[currPly].staticEval >= state[currPly].beta) {
 			
 			state[currPly].plyScore = doNullMoveSubTreeSearch(depth);
 			if (isTerminated()) { return 0; }
@@ -403,8 +403,7 @@ public class PlySearcher {
 		// Internal Iterative Deepening
 		if (EubosEngineMain.ENABLE_ITERATIVE_DEEPENING && 
 			state[currPly].prevBestMove == Move.NULL_MOVE && 
-			depth >= 6 /*&&
-			!hasSearchedPv*/) {
+			depth >= 6) {
 
 			state[currPly].update();
 			int score = search(depth-3, false, state[currPly].alpha, state[currPly].beta, true);
@@ -452,9 +451,7 @@ public class PlySearcher {
 					if (depth <= 2) {
 						boolean notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
 						if (quietMoveNumber == 1) {
-							state[currPly].staticEval = (short) pe.getCrudeEvaluation();
-							int thresh = (depth == 1) ? (Piece.MATERIAL_VALUE_ROOK + 100) : Piece.MATERIAL_VALUE_QUEEN;
-							
+							int thresh = (depth == 1) ? Piece.MATERIAL_VALUE_ROOK : Piece.MATERIAL_VALUE_QUEEN;
 							if (notMate && !pe.goForMate()) {
 								if ((state[currPly].staticEval + thresh) < state[currPly].alpha) {
 									return state[currPly].alpha;
