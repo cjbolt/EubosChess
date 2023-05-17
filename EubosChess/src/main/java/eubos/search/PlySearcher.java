@@ -731,8 +731,7 @@ public class PlySearcher {
 	
 	private int doNullMoveSubTreeSearch(int depth) {
 		int plyScore;
-		int R = 2;
-		if (depth > 6) R = 3;
+		int R = (depth/2) + 1;
 		
 		if (SearchDebugAgent.DEBUG_ENABLED) { sda.printNullMove(R);	}
 		
