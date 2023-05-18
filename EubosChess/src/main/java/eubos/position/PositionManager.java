@@ -90,11 +90,15 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return hash.hashCode;
 	}
 	
+	public boolean isInsufficientMaterial() {
+		return theBoard.insufficient;
+	}
+	
 	boolean repetitionPossible = false;
 	public boolean isThreefoldRepetitionPossible() {
 		return repetitionPossible;
 	}
-	
+		
 	DrawChecker dc;
 	
 	public boolean moveLeadsToThreefold(int move) {

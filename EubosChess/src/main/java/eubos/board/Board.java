@@ -66,6 +66,8 @@ public class Board {
 	
 	boolean isAttacksMaskValid = false;
 	
+	public boolean insufficient = false;
+	
 	public Board(Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove) {
 		cpkaa = new CountedPawnKnightAttackAggregator();
 		mae = new MobilityAttacksEvaluator(this);
@@ -82,6 +84,7 @@ public class Board {
 		me = new PiecewiseEvaluation();
 		evaluateMaterial(me);
 		createPassedPawnsBoard();
+		insufficient = isInsufficientMaterial();
 	}
 	
 	private void evaluateMaterialBalanceAndStaticPieceMobility(boolean isWhite, PiecewiseEvaluation me) {
@@ -270,6 +273,7 @@ public class Board {
 			// Incrementally update opponent material after capture, at the correct capturePosition
 			me.updateForCapture(targetPiece, captureBitOffset);
 			hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
+			insufficient = isInsufficientMaterial();
 		} else {
 			// Check whether the move sets the En Passant target square
 			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
@@ -492,6 +496,7 @@ public class Board {
 			setPieceAtSquare(1L << capturedPieceSquare, capturedPieceSquare, targetPiece);
 			// Replace captured piece in incremental material update, at the correct capture square
 			me.updateForReplacedCapture(targetPiece, capturedPieceSquare);
+			insufficient = false;//isInsufficientMaterial();
 		}
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -2342,13 +2347,14 @@ public class Board {
 	}
 	
 	public boolean isInsufficientMaterial() {
+		// Possible promotions
+		if (pieces[Piece.PAWN] != 0)
+			return false;
+		
 		// Major pieces
 		if (pieces[Piece.QUEEN] != 0)
 			return false;
 		if (pieces[Piece.ROOK] != 0)
-			return false;
-		// Possible promotions
-		if (pieces[Piece.PAWN] != 0)
 			return false;
 		
 		// Minor pieces

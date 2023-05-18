@@ -141,7 +141,7 @@ public class PositionEvaluator implements IEvaluate {
 		onMoveIsWhite = pm.onMoveIsWhite();
 		isDraw = pm.isThreefoldRepetitionPossible();
 		if (!isDraw) {
-			isDraw = bd.isInsufficientMaterial();
+			isDraw = pm.isInsufficientMaterial();
 		}
 		if (EubosEngineMain.ENABLE_COUNTED_PASSED_PAWN_MASKS) {
 			if (!isDraw) {
@@ -214,7 +214,7 @@ public class PositionEvaluator implements IEvaluate {
 	public int getCrudeEvaluation() {
 		isDraw = pm.isThreefoldRepetitionPossible();
 		if (!isDraw) {
-			isDraw = bd.isInsufficientMaterial();
+			isDraw = pm.isInsufficientMaterial();
 		}
 		onMoveIsWhite = pm.onMoveIsWhite();
 		score = 0;

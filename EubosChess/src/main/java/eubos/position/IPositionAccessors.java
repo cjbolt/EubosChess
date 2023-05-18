@@ -15,6 +15,7 @@ public interface IPositionAccessors {
 	public int getPawnHash();
 	public String getFen();
 	public boolean isThreefoldRepetitionPossible();
+	public boolean isInsufficientMaterial();
 	public IEvaluate getPositionEvaluator();
 	public boolean moveLeadsToThreefold(int move);
 	public String unwindMoveStack();
