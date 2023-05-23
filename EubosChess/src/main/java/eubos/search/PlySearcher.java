@@ -382,7 +382,7 @@ public class PlySearcher {
 			!isTerminated() &&
 			depth > 2 &&
 			nullCheckEnabled && 
-			!pos.getTheBoard().me.isEndgame() &&
+			(pos.getTheBoard().me.phase < 4000 && !pe.goForMate()) &&
 			!state[currPly].inCheck &&
 			!(Score.isMate((short)state[currPly].beta) || Score.isMate((short)state[currPly].alpha))) {
 			
