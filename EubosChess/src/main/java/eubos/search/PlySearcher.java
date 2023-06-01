@@ -390,7 +390,7 @@ public class PlySearcher {
 			
 			state[currPly].staticEval = (short) pe.getCrudeEvaluation();
 			state[currPly].staticEvalValid = true;
-			if ((state[currPly].staticEval + Piece.MATERIAL_VALUE_ROOK) > state[currPly].alpha) {
+			if ((state[currPly].staticEval + pe.estimateMovePositionalContribution(0)) >= state[currPly].beta) {
 				state[currPly].plyScore = doNullMoveSubTreeSearch(depth);
 				if (isTerminated()) { return 0; }
 				
