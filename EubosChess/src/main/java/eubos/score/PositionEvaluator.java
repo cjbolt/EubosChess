@@ -373,11 +373,8 @@ public class PositionEvaluator implements IEvaluate {
 		int lazyThresh = lazy_eval_threshold_cp;
 		long pp = bd.getPassedPawns();
 		if (pp != 0L) {
-			// increase threshold as a function of the passed pawn imbalance
-			int numWhitePassers = Long.bitCount(pp&bd.getWhitePieces());
-			int numBlackPassers = Long.bitCount(pp&bd.getBlackPieces());
-			int ppDelta = Math.abs(numBlackPassers-numWhitePassers);
-			lazyThresh += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[ppDelta] + (ppDelta * 250 * bd.me.getPhase()) / 4096;
+			// worst case, min processing
+			lazyThresh += (Long.bitCount(pp) * 250 * bd.me.getPhase()) / 4096;
 		}
 		// pessimistic king safety factor
 		lazyThresh += (300 * (4096 - bd.me.getPhase())) / 4096;
