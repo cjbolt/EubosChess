@@ -29,7 +29,6 @@ public class PlySearcher {
 		int moveNumber;
 		boolean inCheck; // not initialised here for reasons of optimisation
 		short staticEval;
-		boolean staticEvalValid;
 		
 		void initialise(int ply, int alpha, int beta) {
 			hashScore = plyScore = Score.PROVISIONAL_ALPHA;
@@ -38,7 +37,6 @@ public class PlySearcher {
 			isCutOff = false;
 			moveNumber = 0;
 			staticEval = 0;
-			staticEvalValid = false;
 			// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
 			// It will deviate from the hash move when we start updating the hash during iterative deepening.
 			prevBestMove = Move.clearBest(pc.getBestMove((byte)ply));
@@ -388,17 +386,13 @@ public class PlySearcher {
 			!state[currPly].inCheck &&
 			!(Score.isMate((short)state[currPly].beta) || Score.isMate((short)state[currPly].alpha))) {
 			
-			state[currPly].staticEval = (short) pe.getCrudeEvaluation();
-			state[currPly].staticEvalValid = true;
-			if ((state[currPly].staticEval + pe.estimateMovePositionalContribution(0)) >= state[currPly].beta) {
-				state[currPly].plyScore = doNullMoveSubTreeSearch(depth);
-				if (isTerminated()) { return 0; }
-				
-				if (state[currPly].plyScore >= state[currPly].beta) {
-					return state[currPly].beta;
-				} else {
-					state[currPly].plyScore = Score.PROVISIONAL_ALPHA;
-				}
+			state[currPly].plyScore = doNullMoveSubTreeSearch(depth);
+			if (isTerminated()) { return 0; }
+			
+			if (state[currPly].plyScore >= state[currPly].beta) {
+				return state[currPly].beta;
+			} else {
+				state[currPly].plyScore = Score.PROVISIONAL_ALPHA;
 			}
 		}
 		
@@ -452,10 +446,7 @@ public class PlySearcher {
 					if (depth <= 2) {
 						boolean notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
 						if (quietMoveNumber == 1) {
-							if (!state[currPly].staticEvalValid) {
-								state[currPly].staticEval = (short) pe.getCrudeEvaluation();
-								state[currPly].staticEvalValid = true;
-							}
+							state[currPly].staticEval = (short) pe.getCrudeEvaluation();
 							int thresh = (depth == 1) ? (Piece.MATERIAL_VALUE_ROOK + 100) : Piece.MATERIAL_VALUE_QUEEN;
 							
 							if (notMate && !pe.goForMate()) {

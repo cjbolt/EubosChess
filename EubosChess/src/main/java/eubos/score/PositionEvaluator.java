@@ -370,14 +370,6 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	public int estimateMovePositionalContribution(int move) {
-		int lazyThresh = lazy_eval_threshold_cp;
-		long pp = bd.getPassedPawns();
-		if (pp != 0L) {
-			// worst case, min processing
-			lazyThresh += (Long.bitCount(pp) * 250 * bd.me.getPhase()) / 4096;
-		}
-		// pessimistic king safety factor
-		lazyThresh += (300 * (4096 - bd.me.getPhase())) / 4096;
-		return lazyThresh;
+		return 0;
 	}
 }
