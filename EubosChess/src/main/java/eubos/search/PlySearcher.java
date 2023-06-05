@@ -384,21 +384,6 @@ public class PlySearcher {
 			}
 		}
 		
-		// Razoring
-	    if (hasSearchedPv && 
-	    	depth <= 7) {
-	    	state[currPly].staticEval = (short) pe.getCrudeEvaluation();
-	    	if (!Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta) &&
-	    		state[currPly].staticEval < (state[currPly].alpha - 400 - (65 * depth * depth))) {
-	            int value = extendedSearch(state[currPly].alpha - 1, state[currPly].alpha);
-	            if (value < state[currPly].alpha) {
-	                return state[currPly].alpha;
-	            } else {
-	            	state[currPly].reinitialise(state[currPly].alpha, state[currPly].beta);
-	            }
-	        }
-	    }
-		
 		// Null move pruning
 		if (EubosEngineMain.ENABLE_NULL_MOVE_PRUNING &&
 			!isTerminated() &&
@@ -468,17 +453,29 @@ public class PlySearcher {
 			}
 			do {
 				if (EubosEngineMain.ENABLE_FUTILITY_PRUNING) {
-					if (depth <= 2) {
+					if (quietMoveNumber == 1) {
 						boolean notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
-						if (quietMoveNumber == 1) {
-							state[currPly].staticEval = (short) pe.getCrudeEvaluation();
-							int thresh = (depth == 1) ? (Piece.MATERIAL_VALUE_ROOK + 100) : Piece.MATERIAL_VALUE_QUEEN;
-							
-							if (notMate && !pe.goForMate()) {
-								if ((state[currPly].staticEval + thresh) < state[currPly].alpha) {
-									return state[currPly].alpha;
+						if (hasSearchedPv && state[currPly].alpha > state[currPly].alphaOriginal) {
+							// Alpha was raised during the tactical search, so don't razor
+						} else if (notMate && !pe.goForMate()) {
+							boolean razor = (hasSearchedPv && depth <= 7);
+							boolean futility = depth <= 2;
+							if (razor || futility) {
+								state[currPly].staticEval = (short) pe.getCrudeEvaluation();
+								// Razoring
+								if (razor && state[currPly].staticEval < (state[currPly].alpha - 400 - (65 * depth * depth))) {
+						            return state[currPly].alpha;
+								}
+								// Futility pruning
+								if (futility) {
+									int thresh = (depth == 1) ? (Piece.MATERIAL_VALUE_ROOK + 100) : Piece.MATERIAL_VALUE_QUEEN;
+									if ((state[currPly].staticEval + thresh) < state[currPly].alpha) {
+										return state[currPly].alpha;
+									}
 								}
 							}
+						} else {
+							/* Can't do razoring or futility pruning based on depth/pv search */
 						}
 					}
 				}
@@ -560,11 +557,6 @@ public class PlySearcher {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
 		state[currPly].plyScore = pe.lazyEvaluation(alpha, beta);
-//		if (state[currPly].plyScore == Short.MIN_VALUE) {
-//			// We are just establishing stand PAT score, so values less than alpha can be increased, that is why 
-//			// this threshold is not plyScore <= alpha! N.b. Short.MIN_VALUE was indicating an alpha cut.
-//			return alpha;
-//		}
 		if (state[currPly].plyScore >= beta) {
 			// There is no move to put in the killer table when we stand Pat
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(state[currPly].plyScore);
