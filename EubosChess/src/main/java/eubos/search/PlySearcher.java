@@ -42,6 +42,13 @@ public class PlySearcher {
 			prevBestMove = Move.clearBest(pc.getBestMove((byte)ply));
 		}
 		
+		void reinitialise(int alpha, int beta) {
+			plyScore = Score.PROVISIONAL_ALPHA;
+			this.alpha = alpha;
+			this.beta = beta;
+			moveNumber = 0;
+		}
+		
 		void update() {
 			inCheck = pos.isKingInCheck();
 		}
@@ -377,6 +384,21 @@ public class PlySearcher {
 			}
 		}
 		
+		// Razoring
+	    if (hasSearchedPv && 
+	    	depth <= 7) {
+	    	state[currPly].staticEval = (short) pe.getCrudeEvaluation();
+	    	if (!Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta) &&
+	    		state[currPly].staticEval < (state[currPly].alpha - 400 - (65 * depth * depth))) {
+	            int value = extendedSearch(state[currPly].alpha - 1, state[currPly].alpha);
+	            if (value < state[currPly].alpha) {
+	                return state[currPly].alpha;
+	            } else {
+	            	state[currPly].reinitialise(state[currPly].alpha, state[currPly].beta);
+	            }
+	        }
+	    }
+		
 		// Null move pruning
 		if (EubosEngineMain.ENABLE_NULL_MOVE_PRUNING &&
 			!isTerminated() &&
@@ -417,7 +439,10 @@ public class PlySearcher {
 			    }
 		    }
 
-		    state[currPly].initialise(currPly, alpha, beta);
+		    /* The rationale for not using alpha and beta on the search stack here is
+		       that we already had a hash miss, so can't have reduced the window with
+		       a hash hit. */
+		    state[currPly].reinitialise(alpha, beta);
 		    /* Get the suggested best move that was returned and use it as the hash move */		    
 		    state[currPly].prevBestMove = pc.getBestMoveAtPly((byte)(currPly));
 		}
@@ -535,11 +560,11 @@ public class PlySearcher {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
 		state[currPly].plyScore = pe.lazyEvaluation(alpha, beta);
-		if (state[currPly].plyScore == Short.MIN_VALUE) {
-			// We are just establinshing stand PAT score, so values less than alpha can be increased, that is why 
-			// this threshold is not plyScore <= alpha! N.b. Short.MIN_VALUE was indicating an alpha cut.
-			return alpha;
-		}
+//		if (state[currPly].plyScore == Short.MIN_VALUE) {
+//			// We are just establishing stand PAT score, so values less than alpha can be increased, that is why 
+//			// this threshold is not plyScore <= alpha! N.b. Short.MIN_VALUE was indicating an alpha cut.
+//			return alpha;
+//		}
 		if (state[currPly].plyScore >= beta) {
 			// There is no move to put in the killer table when we stand Pat
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(state[currPly].plyScore);
