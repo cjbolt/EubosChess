@@ -458,20 +458,13 @@ public class PlySearcher {
 						if (hasSearchedPv && state[currPly].alpha > state[currPly].alphaOriginal) {
 							// Alpha was raised during the tactical search, so don't razor
 						} else if (notMate && !pe.goForMate()) {
-							boolean razor = (hasSearchedPv && depth <= 7);
+							boolean razor = (hasSearchedPv && depth <= 4);
 							boolean futility = depth <= 2;
 							if (razor || futility) {
 								state[currPly].staticEval = (short) pe.getCrudeEvaluation();
-								// Razoring
-								if (razor && state[currPly].staticEval < (state[currPly].alpha - 400 - (65 * depth * depth))) {
+								int thresh = state[currPly].staticEval + 800 + (200 * depth * depth);
+								if (state[currPly].staticEval + thresh < state[currPly].alpha) {
 						            return state[currPly].alpha;
-								}
-								// Futility pruning
-								if (futility) {
-									int thresh = (depth == 1) ? (Piece.MATERIAL_VALUE_ROOK + 100) : Piece.MATERIAL_VALUE_QUEEN;
-									if ((state[currPly].staticEval + thresh) < state[currPly].alpha) {
-										return state[currPly].alpha;
-									}
 								}
 							}
 						} else {
