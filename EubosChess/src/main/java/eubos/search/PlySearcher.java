@@ -455,20 +455,19 @@ public class PlySearcher {
 				if (EubosEngineMain.ENABLE_FUTILITY_PRUNING) {
 					if (quietMoveNumber == 1) {
 						boolean notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
-						if (hasSearchedPv && state[currPly].alpha > state[currPly].alphaOriginal) {
-							// Alpha was raised during the tactical search, so don't razor
-						} else if (notMate && !pe.goForMate()) {
-							boolean razor = (hasSearchedPv && depth <= 4);
+						if (notMate && !pe.goForMate()) {
+							boolean razor = (hasSearchedPv && depth <= 4 && state[currPly].alpha > state[currPly].alphaOriginal);
 							boolean futility = depth <= 2;
 							if (razor || futility) {
 								state[currPly].staticEval = (short) pe.getCrudeEvaluation();
 								int thresh = state[currPly].staticEval + 800 + (200 * depth * depth);
-								if (state[currPly].staticEval + thresh < state[currPly].alpha) {
+								if (razor && state[currPly].staticEval + thresh < state[currPly].alpha) {
 						            return state[currPly].alpha;
 								}
+								if (futility && state[currPly].staticEval + thresh + (depth == 2 ? 200 : 0) < state[currPly].alpha) {
+									return state[currPly].alpha;
+								}
 							}
-						} else {
-							/* Can't do razoring or futility pruning based on depth/pv search */
 						}
 					}
 				}
