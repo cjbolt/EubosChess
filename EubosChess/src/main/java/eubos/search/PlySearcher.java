@@ -29,6 +29,7 @@ public class PlySearcher {
 		int moveNumber;
 		boolean inCheck; // not initialised here for reasons of optimisation
 		short staticEval;
+		boolean isStaticValid;
 		
 		void initialise(int ply, int alpha, int beta) {
 			hashScore = plyScore = Score.PROVISIONAL_ALPHA;
@@ -37,6 +38,7 @@ public class PlySearcher {
 			isCutOff = false;
 			moveNumber = 0;
 			staticEval = 0;
+			isStaticValid = false;
 			// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
 			// It will deviate from the hash move when we start updating the hash during iterative deepening.
 			prevBestMove = Move.clearBest(pc.getBestMove((byte)ply));
@@ -459,7 +461,19 @@ public class PlySearcher {
 							boolean razor = (hasSearchedPv && depth <= 4 && state[currPly].alpha > state[currPly].alphaOriginal);
 							boolean futility = depth <= 2;
 							if (razor || futility) {
-								state[currPly].staticEval = (short) pe.getCrudeEvaluation();
+								int crude = pe.getCrudeEvaluation();
+								if (state[currPly].isStaticValid) {
+									// Match the scope for improvement of the static score with the bound type in the hash entry
+									byte boundScope = (state[currPly].staticEval > crude) ? Score.lowerBound : Score.upperBound;
+									if (Transposition.getType(trans) == boundScope) {
+										// If they match, hone the static eval.
+										state[currPly].staticEval = (short) crude;
+									} else {
+										// use static eval as is...
+									}
+								} else {
+									state[currPly].staticEval = (short) crude;
+								}
 								int thresh = state[currPly].staticEval + 800 + (200 * depth * depth);
 								if (razor && state[currPly].staticEval + thresh < state[currPly].alpha) {
 						            return state[currPly].alpha;
@@ -666,6 +680,9 @@ public class PlySearcher {
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsRefutation(pos.getHash(), trans);
 					killers.addMove(currPly, Transposition.getBestMove(trans));
 					state[currPly].isCutOff = true;
+				} else {
+					state[currPly].staticEval = (short)state[currPly].hashScore;
+					state[currPly].isStaticValid = true;
 				}
 			}
 			if (state[currPly].isCutOff) {
