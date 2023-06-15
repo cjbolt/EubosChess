@@ -386,6 +386,30 @@ public class PlySearcher {
 			}
 		}
 		
+		boolean notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
+		// Reverse futility pruning
+		if (depth < 8) {
+			int crude = pe.getCrudeEvaluation();
+			if (state[currPly].isStaticValid) {
+				// Match the scope for improvement of the static score with the bound type in the hash entry
+				byte boundScope = (state[currPly].staticEval > crude) ? Score.lowerBound : Score.upperBound;
+				if (Transposition.getType(trans) == boundScope) {
+					// If they match, hone the static eval.
+					state[currPly].staticEval = (short) crude;
+				} else {
+					// use static eval as is...
+				}
+			} else {
+				state[currPly].staticEval = (short) crude;
+			}
+			state[currPly].isStaticValid = true;
+			if (hasSearchedPv &&
+				notMate &&
+				state[currPly].staticEval - 300 * depth > beta) {
+				return beta;
+			}
+		}
+		
 		// Null move pruning
 		if (EubosEngineMain.ENABLE_NULL_MOVE_PRUNING &&
 			!isTerminated() &&
@@ -393,7 +417,7 @@ public class PlySearcher {
 			nullCheckEnabled && 
 			(pos.getTheBoard().me.phase < 4000 && !pe.goForMate()) &&
 			!state[currPly].inCheck &&
-			!(Score.isMate((short)state[currPly].beta) || Score.isMate((short)state[currPly].alpha))) {
+			notMate) {
 			
 			state[currPly].plyScore = doNullMoveSubTreeSearch(depth);
 			if (isTerminated()) { return 0; }
@@ -456,25 +480,12 @@ public class PlySearcher {
 			do {
 				if (EubosEngineMain.ENABLE_FUTILITY_PRUNING) {
 					if (quietMoveNumber == 1) {
-						boolean notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
+						notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
 						if (notMate && !pe.goForMate()) {
 							boolean razor = (hasSearchedPv && depth <= 4 && state[currPly].alpha > state[currPly].alphaOriginal);
 							boolean futility = depth <= 2;
 							if (razor || futility) {
-								int crude = pe.getCrudeEvaluation();
-								if (state[currPly].isStaticValid) {
-									// Match the scope for improvement of the static score with the bound type in the hash entry
-									byte boundScope = (state[currPly].staticEval > crude) ? Score.lowerBound : Score.upperBound;
-									if (Transposition.getType(trans) == boundScope) {
-										// If they match, hone the static eval.
-										state[currPly].staticEval = (short) crude;
-									} else {
-										// use static eval as is...
-									}
-								} else {
-									state[currPly].staticEval = (short) crude;
-								}
-								int thresh = state[currPly].staticEval + 800 + (200 * depth * depth);
+								int thresh = state[currPly].staticEval + 800 + (150 * depth * depth);
 								if (razor && state[currPly].staticEval + thresh < state[currPly].alpha) {
 						            return state[currPly].alpha;
 								}
