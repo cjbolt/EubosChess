@@ -386,26 +386,13 @@ public class PlySearcher {
 			}
 		}
 		
-		boolean notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
 		// Reverse futility pruning
+		boolean notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
 		if (depth < 8) {
-			int crude = pe.getCrudeEvaluation();
-			if (state[currPly].isStaticValid) {
-				// Match the scope for improvement of the static score with the bound type in the hash entry
-				byte boundScope = (state[currPly].staticEval > crude) ? Score.lowerBound : Score.upperBound;
-				if (Transposition.getType(trans) == boundScope) {
-					// If they match, hone the static eval.
-					state[currPly].staticEval = (short) crude;
-				} else {
-					// use static eval as is...
-				}
-			} else {
-				state[currPly].staticEval = (short) crude;
-			}
-			state[currPly].isStaticValid = true;
+			setStaticEvaluation(trans);
 			if (hasSearchedPv &&
 				notMate &&
-				state[currPly].staticEval - 300 * depth > beta) {
+				state[currPly].staticEval - 330 * depth > state[currPly].beta) {
 				return beta;
 			}
 		}
@@ -813,5 +800,22 @@ public class PlySearcher {
 	
 	public boolean lastAspirationFailed() {
 		return lastAspirationFailed;
+	}
+	
+	void setStaticEvaluation(long trans) {
+		int crude = pe.getCrudeEvaluation();
+		if (state[currPly].isStaticValid) {
+			// Match the scope for improvement of the static score with the bound type in the hash entry
+			byte boundScope = (state[currPly].staticEval > crude) ? Score.lowerBound : Score.upperBound;
+			if (Transposition.getType(trans) == boundScope) {
+				// If they match, hone the static eval.
+				state[currPly].staticEval = (short) crude;
+			} else {
+				// use static eval as is...
+			}
+		} else {
+			state[currPly].staticEval = (short) crude;
+		}
+		state[currPly].isStaticValid = true;
 	}
 }
