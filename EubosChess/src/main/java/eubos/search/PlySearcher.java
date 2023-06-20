@@ -393,9 +393,24 @@ public class PlySearcher {
 			if (hasSearchedPv &&
 				notMate &&
 				state[currPly].staticEval - 330 * depth > state[currPly].beta) {
-				return beta;
+				return state[currPly].beta;
 			}
 		}
+		
+		// Razoring
+	    if (EubosEngineMain.ENABLE_RAZORING_ON_QUIESCENCE &&
+	    	hasSearchedPv && 
+	    	depth <= 5) {
+	    	int thresh = state[currPly].staticEval + 800 + (150 * depth * depth);
+	    	if (notMate && thresh < state[currPly].alpha) {
+	            int value = extendedSearch(state[currPly].alpha - 1, state[currPly].alpha);
+	            if (value < state[currPly].alpha) {
+	                return state[currPly].alpha;
+	            } else {
+	            	state[currPly].reinitialise(state[currPly].alpha, state[currPly].beta);
+	            }
+	        }
+	    }
 		
 		// Null move pruning
 		if (EubosEngineMain.ENABLE_NULL_MOVE_PRUNING &&
@@ -468,17 +483,10 @@ public class PlySearcher {
 				if (EubosEngineMain.ENABLE_FUTILITY_PRUNING) {
 					if (quietMoveNumber == 1) {
 						notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
-						if (notMate && !pe.goForMate()) {
-							boolean razor = (hasSearchedPv && depth <= 4 && state[currPly].alpha > state[currPly].alphaOriginal);
-							boolean futility = depth <= 2;
-							if (razor || futility) {
-								int thresh = state[currPly].staticEval + 800 + (150 * depth * depth);
-								if (razor && state[currPly].staticEval + thresh < state[currPly].alpha) {
-						            return state[currPly].alpha;
-								}
-								if (futility && state[currPly].staticEval + thresh + (depth == 2 ? 200 : 0) < state[currPly].alpha) {
-									return state[currPly].alpha;
-								}
+						if (notMate && !pe.goForMate() && depth <= 2) {
+							state[currPly].staticEval = (short)pe.getFullEvalNotCheckingForDraws(); 
+							if (state[currPly].staticEval + (depth == 2 ? 600 : 300) < state[currPly].alpha) {
+								return state[currPly].alpha;
 							}
 						}
 					}

@@ -286,8 +286,8 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"3r2k1/5p2/7p/3R2p1/p7/1q1Q1PP1/7P/3R2K1 b - - 1 42"+CMD_TERMINATOR, null));
 
-		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d8d5"+CMD_TERMINATOR));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"9"+CMD_TERMINATOR, BEST_PREFIX+"b3b6"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d8d5"+CMD_TERMINATOR));
+		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"9"+CMD_TERMINATOR, BEST_PREFIX+"b3b6"+CMD_TERMINATOR));
 
 		int hashMove = Move.valueOf(Position.b3, Piece.BLACK_QUEEN, Position.d1, Piece.WHITE_ROOK);
 		long hashEntry = Transposition.valueOf((byte)6, (short)0, Score.exact, hashMove, 42 >> 2);
@@ -565,7 +565,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Fine: problem 80
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/1ppk4/p4pp1/P1PP2p1/2P1K1P1/7P/8 b - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"14"+CMD_TERMINATOR, BEST_PREFIX+"b6b5"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"15"+CMD_TERMINATOR, BEST_PREFIX+"b6b5"+CMD_TERMINATOR));
 		performTest(4000);
 	}
 	
@@ -672,7 +672,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_findMove_mateInThree() throws IllegalNotationException, IOException, InterruptedException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"2kr3r/ppp2ppp/8/8/1P5P/1K1b1P1N/P3P1P1/4qB1R b - - 3 24"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR, BEST_PREFIX+"e1b1"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"7"+CMD_TERMINATOR, BEST_PREFIX+"e1b1"+CMD_TERMINATOR));
 		performTest(1000);
 	}
 }
