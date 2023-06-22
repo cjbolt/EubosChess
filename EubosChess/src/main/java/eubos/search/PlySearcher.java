@@ -484,7 +484,9 @@ public class PlySearcher {
 					if (quietMoveNumber == 1) {
 						notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
 						if (notMate && !pe.goForMate() && depth <= 2) {
-							state[currPly].staticEval = (short)pe.getFullEvalNotCheckingForDraws(); 
+							if (pos.getTheBoard().getPassedPawns() != 0L /*|| pe.isKingExposed()*/) {
+								state[currPly].staticEval = (short)pe.getFullEvalNotCheckingForDraws(); 
+							}
 							if (state[currPly].staticEval + (depth == 2 ? 600 : 300) < state[currPly].alpha) {
 								return state[currPly].alpha;
 							}
