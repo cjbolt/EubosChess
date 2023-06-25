@@ -26,6 +26,7 @@ public class PlySearcher {
 		int prevBestMove;
 		boolean isCutOff;
 		int hashScore;
+		boolean isHashScoreValid;
 		int moveNumber;
 		boolean inCheck; // not initialised here for reasons of optimisation
 		short staticEval;
@@ -38,7 +39,7 @@ public class PlySearcher {
 			isCutOff = false;
 			moveNumber = 0;
 			staticEval = 0;
-			isStaticValid = false;
+			isHashScoreValid = isStaticValid = false;
 			// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
 			// It will deviate from the hash move when we start updating the hash during iterative deepening.
 			prevBestMove = Move.clearBest(pc.getBestMove((byte)ply));
@@ -388,11 +389,9 @@ public class PlySearcher {
 		
 		// Reverse futility pruning
 		boolean notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
-		if (depth < 8) {
+		if (depth < 8 && hasSearchedPv && notMate) {
 			setStaticEvaluation(trans);
-			if (hasSearchedPv &&
-				notMate &&
-				state[currPly].staticEval - 330 * depth > state[currPly].beta) {
+			if (state[currPly].staticEval - 330 * depth > state[currPly].beta) {
 				return state[currPly].beta;
 			}
 		}
@@ -484,8 +483,14 @@ public class PlySearcher {
 					if (quietMoveNumber == 1) {
 						notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
 						if (notMate && !pe.goForMate() && depth <= 2) {
-							if (pos.getTheBoard().getPassedPawns() != 0L /*|| pe.isKingExposed()*/) {
-								state[currPly].staticEval = (short)pe.getFullEvalNotCheckingForDraws(); 
+							if (!state[currPly].isStaticValid) {
+								int evaluation = 0;
+								if (pos.getTheBoard().getPassedPawns() != 0L /*|| pe.isKingExposed()*/) {
+									evaluation = pe.getFullEvalNotCheckingForDraws(); 
+								} else {
+									evaluation = pe.getCrudeEvaluation();
+								}
+								state[currPly].staticEval = (short)evaluation;
 							}
 							if (state[currPly].staticEval + (depth == 2 ? 600 : 300) < state[currPly].alpha) {
 								return state[currPly].alpha;
@@ -689,8 +694,7 @@ public class PlySearcher {
 					killers.addMove(currPly, Transposition.getBestMove(trans));
 					state[currPly].isCutOff = true;
 				} else {
-					state[currPly].staticEval = (short)state[currPly].hashScore;
-					state[currPly].isStaticValid = true;
+					state[currPly].isHashScoreValid = true;
 				}
 			}
 			if (state[currPly].isCutOff) {
@@ -813,18 +817,24 @@ public class PlySearcher {
 	}
 	
 	void setStaticEvaluation(long trans) {
-		int crude = pe.getCrudeEvaluation();
-		if (state[currPly].isStaticValid) {
+		int evaluation = 0;
+		if (pos.getTheBoard().getPassedPawns() != 0L /*|| pe.isKingExposed()*/) {
+			evaluation = pe.getFullEvalNotCheckingForDraws(); 
+		} else {
+			evaluation = pe.getCrudeEvaluation();
+		}
+		if (state[currPly].isHashScoreValid) {
 			// Match the scope for improvement of the static score with the bound type in the hash entry
-			byte boundScope = (state[currPly].staticEval > crude) ? Score.lowerBound : Score.upperBound;
+			byte boundScope = (state[currPly].hashScore > evaluation) ? Score.lowerBound : Score.upperBound;
 			if (Transposition.getType(trans) == boundScope) {
 				// If they match, hone the static eval.
-				state[currPly].staticEval = (short) crude;
+				state[currPly].staticEval = (short) evaluation;
 			} else {
 				// use static eval as is...
+				state[currPly].staticEval = (short)state[currPly].hashScore;
 			}
 		} else {
-			state[currPly].staticEval = (short) crude;
+			state[currPly].staticEval = (short) evaluation;
 		}
 		state[currPly].isStaticValid = true;
 	}
