@@ -387,46 +387,49 @@ public class PlySearcher {
 			}
 		}
 		
-		// Reverse futility pruning
 		boolean notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
-		if (depth < 8 && hasSearchedPv && notMate) {
-			setStaticEvaluation(trans);
-			if (state[currPly].staticEval - 330 * depth > state[currPly].beta) {
-				return state[currPly].beta;
+		if (!state[currPly].inCheck) {
+			// Reverse futility pruning
+			if (depth < 8 &&
+				hasSearchedPv && 
+				notMate) {
+				setStaticEvaluation(trans);
+				if (state[currPly].staticEval - 330 * depth >= state[currPly].beta) {
+					return state[currPly].beta;
+				}
 			}
-		}
-		
-		// Razoring
-	    if (EubosEngineMain.ENABLE_RAZORING_ON_QUIESCENCE &&
-	    	hasSearchedPv && 
-	    	depth <= 5) {
-	    	int thresh = state[currPly].staticEval + 800 + (150 * depth * depth);
-	    	if (notMate && thresh < state[currPly].alpha) {
-	            int value = extendedSearch(state[currPly].alpha - 1, state[currPly].alpha);
-	            if (value < state[currPly].alpha) {
-	                return state[currPly].alpha;
-	            } else {
-	            	state[currPly].reinitialise(state[currPly].alpha, state[currPly].beta);
-	            }
-	        }
-	    }
-		
-		// Null move pruning
-		if (EubosEngineMain.ENABLE_NULL_MOVE_PRUNING &&
-			!isTerminated() &&
-			depth > 2 &&
-			nullCheckEnabled && 
-			(pos.getTheBoard().me.phase < 4000 && !pe.goForMate()) &&
-			!state[currPly].inCheck &&
-			notMate) {
 			
-			state[currPly].plyScore = doNullMoveSubTreeSearch(depth);
-			if (isTerminated()) { return 0; }
+			// Razoring
+		    if (EubosEngineMain.ENABLE_RAZORING_ON_QUIESCENCE &&
+		    	hasSearchedPv && 
+		    	depth <= 5) {
+		    	int thresh = state[currPly].staticEval + 800 + (150 * depth * depth);
+		    	if (notMate && thresh < state[currPly].alpha) {
+		            int value = extendedSearch(state[currPly].alpha - 1, state[currPly].alpha);
+		            if (value < state[currPly].alpha) {
+		                return state[currPly].alpha;
+		            } else {
+		            	state[currPly].reinitialise(state[currPly].alpha, state[currPly].beta);
+		            }
+		        }
+		    }
 			
-			if (state[currPly].plyScore >= state[currPly].beta) {
-				return state[currPly].beta;
-			} else {
-				state[currPly].plyScore = Score.PROVISIONAL_ALPHA;
+			// Null move pruning
+			if (EubosEngineMain.ENABLE_NULL_MOVE_PRUNING &&
+				!isTerminated() &&
+				depth > 2 &&
+				nullCheckEnabled && 
+				(pos.getTheBoard().me.phase < 4000 && !pe.goForMate()) &&
+				notMate) {
+				
+				state[currPly].plyScore = doNullMoveSubTreeSearch(depth);
+				if (isTerminated()) { return 0; }
+				
+				if (state[currPly].plyScore >= state[currPly].beta) {
+					return state[currPly].beta;
+				} else {
+					state[currPly].plyScore = Score.PROVISIONAL_ALPHA;
+				}
 			}
 		}
 		
@@ -484,13 +487,7 @@ public class PlySearcher {
 						notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
 						if (notMate && !pe.goForMate() && depth <= 2) {
 							if (!state[currPly].isStaticValid) {
-								int evaluation = 0;
-								if (pos.getTheBoard().getPassedPawns() != 0L /*|| pe.isKingExposed()*/) {
-									evaluation = pe.getFullEvalNotCheckingForDraws(); 
-								} else {
-									evaluation = pe.getCrudeEvaluation();
-								}
-								state[currPly].staticEval = (short)evaluation;
+								state[currPly].staticEval = (short)getStaticEvaluation();
 							}
 							if (state[currPly].staticEval + (depth == 2 ? 600 : 300) < state[currPly].alpha) {
 								return state[currPly].alpha;
@@ -817,25 +814,29 @@ public class PlySearcher {
 	}
 	
 	void setStaticEvaluation(long trans) {
+		state[currPly].staticEval = (short) getStaticEvaluation();
+		refineStaticEvalWithHashScore(trans);
+		state[currPly].isStaticValid = true;
+	}
+	
+	private void refineStaticEvalWithHashScore(long trans) {
+		if (state[currPly].isHashScoreValid) {
+			// Match the scope for improvement of the static score with the bound type in the hash entry
+			byte boundScope = (state[currPly].hashScore > state[currPly].staticEval) ? Score.lowerBound : Score.upperBound;
+			if (Transposition.getType(trans) == boundScope) {
+				// If the bound type matches, then we can improve the static evaluation using the has score.
+				state[currPly].staticEval = (short) state[currPly].hashScore;
+			}
+		}
+	}
+	
+	private int getStaticEvaluation() {
 		int evaluation = 0;
 		if (pos.getTheBoard().getPassedPawns() != 0L /*|| pe.isKingExposed()*/) {
 			evaluation = pe.getFullEvalNotCheckingForDraws(); 
 		} else {
 			evaluation = pe.getCrudeEvaluation();
 		}
-		if (state[currPly].isHashScoreValid) {
-			// Match the scope for improvement of the static score with the bound type in the hash entry
-			byte boundScope = (state[currPly].hashScore > evaluation) ? Score.lowerBound : Score.upperBound;
-			if (Transposition.getType(trans) == boundScope) {
-				// If they match, hone the static eval.
-				state[currPly].staticEval = (short) evaluation;
-			} else {
-				// use static eval as is...
-				state[currPly].staticEval = (short)state[currPly].hashScore;
-			}
-		} else {
-			state[currPly].staticEval = (short) evaluation;
-		}
-		state[currPly].isStaticValid = true;
+		return evaluation;
 	}
 }
