@@ -547,7 +547,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Fine: problem 61
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/ppp5/8/PPP5/6kp/8/6KP/8 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"11"+CMD_TERMINATOR, BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
 		performTest(2000);		
 	}
 	

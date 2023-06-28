@@ -482,21 +482,27 @@ public class PlySearcher {
 				}
 			}
 			do {
+				currMove = move_iter.nextInt();
+				
 				if (EubosEngineMain.ENABLE_FUTILITY_PRUNING) {
-					if (quietMoveNumber == 1) {
+					if (quietMoveNumber >= 1) {
 						notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
 						if (notMate && !pe.goForMate() && depth <= 2) {
 							if (!state[currPly].isStaticValid) {
-								state[currPly].staticEval = (short)getStaticEvaluation();
+								setStaticEvaluation(trans);
 							}
-							if (state[currPly].staticEval + (depth == 2 ? 600 : 300) < state[currPly].alpha) {
-								return state[currPly].alpha;
+							int threshold = (depth == 2 ? 600 : 300);
+							if (Move.isPawnMove(currMove)) {
+								threshold *= 3;
+							}
+							if (state[currPly].staticEval + threshold < state[currPly].alpha) {
+								continue;
+								//return state[currPly].alpha;
 							}
 						}
 					}
 				}
 				
-				currMove = move_iter.nextInt();
 				if (!pm.performMove(currMove)) {
 					continue;
 				}
