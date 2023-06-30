@@ -496,8 +496,8 @@ public class PlySearcher {
 								threshold *= 3;
 							}
 							if (state[currPly].staticEval + threshold < state[currPly].alpha) {
-								continue;
-								//return state[currPly].alpha;
+								//continue;
+								return state[currPly].alpha;
 							}
 						}
 					}
