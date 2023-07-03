@@ -820,7 +820,7 @@ public class PlySearcher {
 	}
 	
 	void setStaticEvaluation(long trans) {
-		state[currPly].staticEval = (short) getStaticEvaluation();
+		state[currPly].staticEval = (short) pe.getStaticEvaluation();
 		refineStaticEvalWithHashScore(trans);
 		state[currPly].isStaticValid = true;
 	}
@@ -834,15 +834,5 @@ public class PlySearcher {
 				state[currPly].staticEval = (short) state[currPly].hashScore;
 			}
 		}
-	}
-	
-	private int getStaticEvaluation() {
-		int evaluation = 0;
-		if (pos.getTheBoard().getPassedPawns() != 0L /*|| pe.isKingExposed()*/) {
-			evaluation = pe.getFullEvalNotCheckingForDraws(); 
-		} else {
-			evaluation = pe.getCrudeEvaluation();
-		}
-		return evaluation;
 	}
 }

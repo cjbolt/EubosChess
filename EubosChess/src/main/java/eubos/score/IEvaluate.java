@@ -9,4 +9,5 @@ public interface IEvaluate {
 	boolean goForMate();
 	int estimateMovePositionalContribution(int move);
 	public int getFullEvalNotCheckingForDraws();
+	public int getStaticEvaluation();
 }

@@ -372,4 +372,14 @@ public class PositionEvaluator implements IEvaluate {
 	public int estimateMovePositionalContribution(int move) {
 		return 0;
 	}
+	
+	public int getStaticEvaluation() {
+		int evaluation = 0;
+		if (pm.getTheBoard().getPassedPawns() != 0L || isKingExposed()) {
+			evaluation = getFullEvalNotCheckingForDraws(); 
+		} else {
+			evaluation = getCrudeEvaluation();
+		}
+		return evaluation;
+	}
 }
