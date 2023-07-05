@@ -160,7 +160,7 @@ public class PositionEvaluator implements IEvaluate {
 		return (short)(((midgameScore * (4096 - phase)) + (endgameScore * phase)) / 4096);
 	}
 	
-	public boolean isKingExposed() {
+	boolean isKingExposed() {
 		int kingBitOffset = bd.pieceLists.getKingPos(onMoveIsWhite);
 		// Only meant to cater for quite extreme situations
 		long kingZone = SquareAttackEvaluator.KingZone_Lut[onMoveIsWhite ? 0 : 1][kingBitOffset];

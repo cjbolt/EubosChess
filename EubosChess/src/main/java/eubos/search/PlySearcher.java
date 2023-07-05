@@ -387,12 +387,10 @@ public class PlySearcher {
 			}
 		}
 		
-		boolean notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
 		if (!state[currPly].inCheck) {
 			// Reverse futility pruning
 			if (depth < 8 &&
-				hasSearchedPv && 
-				notMate) {
+				hasSearchedPv) {
 				setStaticEvaluation(trans);
 				if (state[currPly].staticEval - 330 * depth >= state[currPly].beta) {
 					return state[currPly].beta;
@@ -404,7 +402,7 @@ public class PlySearcher {
 		    	hasSearchedPv && 
 		    	depth <= 5) {
 		    	int thresh = state[currPly].staticEval + 800 + (150 * depth * depth);
-		    	if (notMate && thresh < state[currPly].alpha) {
+		    	if (thresh < state[currPly].alpha) {
 		            int value = extendedSearch(state[currPly].alpha - 1, state[currPly].alpha);
 		            if (value < state[currPly].alpha) {
 		                return state[currPly].alpha;
@@ -419,8 +417,7 @@ public class PlySearcher {
 				!isTerminated() &&
 				depth > 2 &&
 				nullCheckEnabled && 
-				(pos.getTheBoard().me.phase < 4000 && !pe.goForMate()) &&
-				notMate) {
+				(pos.getTheBoard().me.phase < 4000 && !pe.goForMate())) {
 				
 				state[currPly].plyScore = doNullMoveSubTreeSearch(depth);
 				if (isTerminated()) { return 0; }
@@ -486,15 +483,14 @@ public class PlySearcher {
 				
 				if (EubosEngineMain.ENABLE_FUTILITY_PRUNING) {
 					if (quietMoveNumber >= 1) {
-						notMate = !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
-						if (notMate && !pe.goForMate() && depth <= 2) {
+						if (neitherAlphaBetaIsMate() && !pe.goForMate() && depth <= 2) {
 							if (!state[currPly].isStaticValid) {
 								setStaticEvaluation(trans);
 							}
 							int threshold = (depth == 2 ? 600 : 300);
-							if (Move.isPawnMove(currMove)) {
-								threshold *= 3;
-							}
+//							if (Move.isPawnMove(currMove)) {
+//								threshold *= 3;
+//							}
 							if (state[currPly].staticEval + threshold < state[currPly].alpha) {
 								//continue;
 								return state[currPly].alpha;
@@ -834,5 +830,9 @@ public class PlySearcher {
 				state[currPly].staticEval = (short) state[currPly].hashScore;
 			}
 		}
+	}
+	
+	private boolean neitherAlphaBetaIsMate() {
+		return !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
 	}
 }
