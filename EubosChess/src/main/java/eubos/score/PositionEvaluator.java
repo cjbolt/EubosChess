@@ -334,12 +334,21 @@ public class PositionEvaluator implements IEvaluate {
 		return score;
 	}
 	
-	public static final int FUTILITY_MARGIN = 250;
+	public static final int FUTILITY_MARGIN_BY_PIECE[] = new int[8];
+    static {
+    	FUTILITY_MARGIN_BY_PIECE[Piece.QUEEN] = 175;
+    	FUTILITY_MARGIN_BY_PIECE[Piece.ROOK] = 150;
+    	FUTILITY_MARGIN_BY_PIECE[Piece.BISHOP] = 130;
+    	FUTILITY_MARGIN_BY_PIECE[Piece.KNIGHT] = 175;
+    	FUTILITY_MARGIN_BY_PIECE[Piece.KING] = 150;
+    	FUTILITY_MARGIN_BY_PIECE[Piece.PAWN] = 200;
+    }
 	
 	int futilityC(int move) {
-		int futility = FUTILITY_MARGIN;
+		
 		int originPiece = Move.getOriginPiece(move);
 		int originNoColour = originPiece & Piece.PIECE_NO_COLOUR_MASK;
+		int futility = FUTILITY_MARGIN_BY_PIECE[originNoColour];
 		
 		if (originNoColour == Piece.PAWN) {
 			int pawnIsAt = Move.getOriginPosition(move);
@@ -352,7 +361,7 @@ public class PositionEvaluator implements IEvaluate {
 				int pawnWillBeAt = Move.getTargetPosition(move);
 				if (bd.isPassedPawn(pawnWillBeAt, pawnMask)) {
 					/* If the moving pawn is becoming passed, inflate futility. */
-					futility += 125;
+					futility += 100;
 				}
 			}
 			
