@@ -334,7 +334,7 @@ public class PositionEvaluator implements IEvaluate {
 		return score;
 	}
 	
-	public static final int FUTILITY_MARGIN = 50;
+	public static final int FUTILITY_MARGIN = 250;
 	
 	int futilityC(int move) {
 		int futility = FUTILITY_MARGIN;
@@ -347,30 +347,31 @@ public class PositionEvaluator implements IEvaluate {
 			long pp = pm.getTheBoard().getPassedPawns();
 			if ((pp & pawnMask) != 0L) {
 				/* If the moving pawn is already passed, inflate futility. */
-				futility += 50;
+				futility += 100;
 			} else {
-			int pawnWillBeAt = Move.getOriginPosition(move);
+				int pawnWillBeAt = Move.getTargetPosition(move);
 				if (bd.isPassedPawn(pawnWillBeAt, pawnMask)) {
 					/* If the moving pawn is becoming passed, inflate futility. */
-					futility += 75;
+					futility += 125;
 				}
 			}
 			
-		} else if (!bd.me.isEndgame() && (originNoColour == Piece.KNIGHT || originNoColour == Piece.QUEEN)) {
-			/* Theory; move could likely effect King tropism score. */
-			boolean ownSideIsWhite = Piece.isWhite(originPiece);
-			int enemyKingBit = pm.getTheBoard().getKingPosition(!ownSideIsWhite);
-			int distBefore = BitBoard.ManhattanDistance[Move.getOriginPosition(move)][enemyKingBit];
-			int distAfter = BitBoard.ManhattanDistance[Move.getTargetPosition(move)][enemyKingBit];
-			if (distBefore > 3 && distAfter < 3) {
-				futility += 50;
-			}
-		}
+		} 
+//		else if (!bd.me.isEndgame() && (originNoColour == Piece.KNIGHT || originNoColour == Piece.QUEEN)) {
+//			/* Theory; move could likely effect King tropism score. */
+//			boolean ownSideIsWhite = Piece.isWhite(originPiece);
+//			int enemyKingBit = pm.getTheBoard().getKingPosition(!ownSideIsWhite);
+//			int distBefore = BitBoard.ManhattanDistance[Move.getOriginPosition(move)][enemyKingBit];
+//			int distAfter = BitBoard.ManhattanDistance[Move.getTargetPosition(move)][enemyKingBit];
+//			if (distBefore > 3 && distAfter < 3) {
+//				futility += 50;
+//			}
+//		}
 		return futility;
 	}
 	
 	public int estimateMovePositionalContribution(int move) {
-		return 0;
+		return futilityC(move);
 	}
 	
 	public int getStaticEvaluation() {

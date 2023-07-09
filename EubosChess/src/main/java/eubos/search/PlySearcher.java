@@ -487,13 +487,9 @@ public class PlySearcher {
 							if (!state[currPly].isStaticValid) {
 								setStaticEvaluation(trans);
 							}
-							int threshold = (depth == 2 ? 600 : 300);
-//							if (Move.isPawnMove(currMove)) {
-//								threshold *= 3;
-//							}
+							int threshold = pe.estimateMovePositionalContribution(currMove) * depth;
 							if (state[currPly].staticEval + threshold < state[currPly].alpha) {
-								//continue;
-								return state[currPly].alpha;
+								continue;
 							}
 						}
 					}
