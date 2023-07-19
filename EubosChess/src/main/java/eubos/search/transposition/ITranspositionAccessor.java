@@ -3,5 +3,5 @@ package eubos.search.transposition;
 public interface ITranspositionAccessor {
 	
 	long getTransposition(long hash);
-	long setTransposition(long hash, long trans, byte depth, short new_score, byte new_bound, int new_bestMove, int new_age);
+	long setTransposition(long hash, long trans, byte depth, short new_score, byte new_bound, int new_bestMove, int new_age, short new_static_eval);
 }

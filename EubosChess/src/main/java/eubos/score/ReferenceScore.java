@@ -33,12 +33,12 @@ public class ReferenceScore {
 		long trans = hashMap.getTransposition(rootPos.getHash());		
 		if (trans != 0L) {
 			// Set reference score from previous Transposition table, if it exists 
-			reference.origin = Transposition.report(trans);
+			reference.origin = Transposition.report(trans, rootPosition.getTheBoard());
 			reference.score = Transposition.getScore(trans);
 			reference.depth = Transposition.getDepthSearchedInPly(trans);
 		} else if (lastScoreIsValid) {
 			// Use the last reported score (from previous Search) as the reference score
-			reference.origin = String.format("set from last score because %s", (trans != 0L) ? Transposition.report(trans) : "trans is null");
+			reference.origin = String.format("set from last score because %s", (trans != 0L) ? Transposition.report(trans, rootPosition.getTheBoard()) : "trans is null");
 			reference.score = lastScore;
 			reference.depth = (byte)(lastDepth - Score.PLIES_PER_MOVE);
 		} else {

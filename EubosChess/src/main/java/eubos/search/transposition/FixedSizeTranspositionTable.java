@@ -111,7 +111,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		}
 	}
 	
-	public long setTransposition(long hash, long trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove, int move_number) {
+	public long setTransposition(long hash, long trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove, int move_number, short static_eval) {
 		boolean is_created = false;
 		boolean is_updated = false;
 		
@@ -150,6 +150,9 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 			}
 			if (is_updated) {
 				trans = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, new_age);
+				if (static_eval != Short.MAX_VALUE) {
+					trans = Transposition.setStaticEval(trans, static_eval);
+				}
 			}
 		}
 		if (is_created || is_updated) {

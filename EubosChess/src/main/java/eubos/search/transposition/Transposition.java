@@ -2,15 +2,44 @@ package eubos.search.transposition;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
+import eubos.board.Board;
+import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
+import eubos.position.CastlingManager;
 import eubos.position.Move;
 import eubos.search.Score;
 
 public final class Transposition {
-	private static final int BESTMOVE_BITS = 32;
+	
+	private static final int BESTMOVE_BITS = 16;
 	private static final long BESTMOVE_GUARD_MASK = (1L << BESTMOVE_BITS) - 1;
 	private static final int BESTMOVE_SHIFT = 0;
 	private static final long BESTMOVE_MASK = BESTMOVE_GUARD_MASK << BESTMOVE_SHIFT;
+	
+	private static final int ORIGIN_BITS = 6;
+	private static final long ORIGIN_GUARD_MASK = (1L << ORIGIN_BITS) - 1;
+	private static final int ORIGIN_SHIFT = 0;
+	private static final long ORIGIN_MASK = ORIGIN_GUARD_MASK << ORIGIN_SHIFT;
+	
+	private static final int TARGET_BITS = 6;
+	private static final long TARGET_GUARD_MASK = (1L << TARGET_BITS) - 1;
+	private static final int TARGET_SHIFT = 6;
+	private static final long TARGET_MASK = TARGET_GUARD_MASK << TARGET_SHIFT;
+	
+	private static final int PROMOTION_BITS = 3;
+	private static final long PROMOTION_GUARD_MASK = (1L << PROMOTION_BITS) - 1;
+	private static final int PROMOTION_SHIFT = 12;
+	private static final long PROMOTION_MASK = PROMOTION_GUARD_MASK << PROMOTION_SHIFT;
+	
+	private static final int EN_PASSANT_BITS = 1;
+	private static final long EN_PASSANT_GUARD_MASK = (1L << EN_PASSANT_BITS) - 1;
+	private static final int EN_PASSANT_SHIFT = 15;
+	private static final long EN_PASSANT_MASK = EN_PASSANT_GUARD_MASK << EN_PASSANT_SHIFT;
+	
+	private static final int EVAL_BITS = 16;
+	private static final long EVAL_GUARD_MASK = (1L << EVAL_BITS) - 1;
+	private static final int EVAL_SHIFT = 16;
+	private static final long EVAL_MASK = EVAL_GUARD_MASK << EVAL_SHIFT;
 	
 	private static final int SCORE_BITS = 16;
 	private static final long SCORE_GUARD_MASK = (1L << SCORE_BITS) - 1;
@@ -40,6 +69,7 @@ public final class Transposition {
 		trans = setType(trans, bound);
 		trans = setBestMove(trans, bestMove);
 		trans = setAge(trans, age);
+		trans = setStaticEval(trans, Short.MAX_VALUE);
 		return trans;
 	}
 	
@@ -81,25 +111,72 @@ public final class Transposition {
 		return trans;
 	}
 
-	public static int getBestMove(long trans) {
-		int trans_move = (int) (trans & BESTMOVE_MASK);
+	public static int getBestMove(long trans, Board theBoard) {
+		int trans_move = 0;
+		int orig = (int)((trans >>> ORIGIN_SHIFT) & ORIGIN_GUARD_MASK);
+		int target = (int)((trans >>> TARGET_SHIFT) & TARGET_GUARD_MASK);
+		int promo = (int)((trans >>> PROMOTION_SHIFT) & PROMOTION_GUARD_MASK);
+		boolean is_en_passant_capture = ((trans & EN_PASSANT_MASK) == EN_PASSANT_MASK);
+
+		int originPiece = theBoard.getPieceAtSquare(1L << orig);
+		int targetPiece = is_en_passant_capture ? (Piece.isWhite(originPiece)?Piece.BLACK_PAWN:Piece.WHITE_PAWN): theBoard.getPieceAtSquare(1L << target);
+		trans_move = Move.valueOfBit(orig, originPiece, target, targetPiece);
+		if (promo != Piece.NONE) {
+			trans_move = Move.setPromotion(trans_move, promo);
+		} else if (is_en_passant_capture) {
+			trans_move |= Move.MISC_EN_PASSANT_CAPTURE_MASK;
+		} else if (Piece.isKing(originPiece) && targetPiece == Piece.NONE) {
+			if (Move.areEqualForBestKiller(CastlingManager.bksc, trans_move) ||
+				Move.areEqualForBestKiller(CastlingManager.wksc, trans_move) ||
+				Move.areEqualForBestKiller(CastlingManager.bqsc, trans_move) ||
+				Move.areEqualForBestKiller(CastlingManager.wqsc, trans_move)) {
+				trans_move |= Move.MISC_CASTLING_MASK;
+			}
+		}
 		if (EubosEngineMain.ENABLE_ASSERTS) {
 			assert trans_move != Move.NULL_MOVE : "Tranposition move was null.";
 		}
-		return trans_move;
+		
+		return Move.setBest(trans_move);
 	}
 	
 	protected static long setBestMove(long trans, int bestMove) {
-		// Is always best move, but killer flag could be different
-		bestMove = Move.setBest(bestMove);
-		bestMove = Move.clearKiller(bestMove);
-		trans |= bestMove;
+		// Extract just the parts of move we need to store in the table
+		trans &= ~BESTMOVE_MASK;
+		int orig = Move.getOriginPosition(bestMove);
+		trans |= orig << ORIGIN_SHIFT;
+		int target = Move.getTargetPosition(bestMove);
+		trans |= target << TARGET_SHIFT;
+		int promo = Move.getPromotion(bestMove);
+		trans |= promo << PROMOTION_SHIFT;
+		if (Move.isEnPassantCapture(bestMove)) {
+			trans |= EN_PASSANT_MASK;
+		}
 		return trans;
 	}
 	
-	public static String report(long trans) {
+	public static short getStaticEval(long trans) {
+		return (short) ((trans >>> EVAL_SHIFT) & EVAL_GUARD_MASK);
+	}
+
+	public static long setStaticEval(long trans, int eval) {
+		trans &= ~EVAL_MASK;
+		trans |= (eval & EVAL_GUARD_MASK) << EVAL_SHIFT;
+		return trans;
+	}
+	
+	public static String report(long trans, Board theBoard) {
 		String output = String.format("trans best=%s, dep=%d, sc=%s, type=%s age=%d", 
-				Move.toGenericMove(Transposition.getBestMove(trans)),
+				Move.toGenericMove(Transposition.getBestMove(trans, theBoard)),
+				getDepthSearchedInPly(trans),
+				Score.toString((short)(trans >>> 32)),
+				getType(trans),
+				getAge(trans));
+		return output;
+	}
+	
+	public static String report(long trans) {
+		String output = String.format("trans dep=%d, sc=%s, type=%s age=%d", 
 				getDepthSearchedInPly(trans),
 				Score.toString((short)(trans >>> 32)),
 				getType(trans),

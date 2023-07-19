@@ -243,10 +243,10 @@ public class EubosEngineMain extends AbstractEngine {
 		long rootHash = rootPosition.getHash();
 		long rootTrans = hashMap.getTransposition(rootHash);
 		if (Score.isMate(Transposition.getScore(rootTrans))) {
-			int [] pv = new int[] { Transposition.getBestMove(rootTrans) };
+			int [] pv = new int[] { Transposition.getBestMove(rootTrans, rootPosition.getTheBoard()) };
 			ReferenceScore refScore = Colour.isWhite(rootPosition.getOnMove()) ? whiteRefScore : blackRefScore;
 			refScore.updateReference(rootPosition);
-			logger.info(String.format("EngineStartCalculatingCommand - Mate in transposition %s", Transposition.report(rootTrans)));
+			logger.info(String.format("EngineStartCalculatingCommand - Mate in transposition %s", Transposition.report(rootTrans, rootPosition.getTheBoard())));
 			SearchResult result = new SearchResult(pv, true, rootTrans, Transposition.getDepthSearchedInPly(rootTrans));
 			sendBestMoveCommand(result);
 		} else {
@@ -467,7 +467,7 @@ public class EubosEngineMain extends AbstractEngine {
 		// If it has been removed we should rewrite it using the best we have, i.e. the cached version.
 		if (tableRootTrans == 0L) {
 			if (cachedRootTrans != 0) {
-				logger.info(String.format("rootTrans overwritten replacing with %s", Transposition.report(cachedRootTrans)));
+				logger.info(String.format("rootTrans overwritten replacing with %s", Transposition.report(cachedRootTrans, rootPosition.getTheBoard())));
 				hashMap.putTransposition(rootPosition.getHash(), cachedRootTrans);
 				tableRootTrans = cachedRootTrans;
 			} else {
@@ -494,7 +494,7 @@ public class EubosEngineMain extends AbstractEngine {
 			// If the Transposition doesn't tally with the search depth reported, suspect unspecified 
 			// defect occurred, we should use the PV move.
 			logger.info(String.format("rootTrans %s inconsistent with search depth %d, ignoring hash",
-					Transposition.report(tableRootTrans), result.depth));
+					Transposition.report(tableRootTrans, rootPosition.getTheBoard()), result.depth));
 			convertToGenericAndSendBestMove(pcBestMove);
 			return;
 		}
@@ -502,8 +502,8 @@ public class EubosEngineMain extends AbstractEngine {
 		updateReferenceScoreWhenMateFound(tableRootTrans);
 		
 		// The search depth and the score to put in any created transpositions are derived from the root transposition
-		logger.info(String.format("tableRootTrans %s", Transposition.report(tableRootTrans)));
-		int transBestMove = Transposition.getBestMove(tableRootTrans);
+		logger.info(String.format("tableRootTrans %s", Transposition.report(tableRootTrans, rootPosition.getTheBoard())));
+		int transBestMove = Transposition.getBestMove(tableRootTrans, rootPosition.getTheBoard());
 		
 		// Always check to reset the drawchecker
 		rootPosition.performMove(transBestMove);
@@ -530,7 +530,7 @@ public class EubosEngineMain extends AbstractEngine {
 				for (i=1; i < Math.min(result.pv.length, result.depth-1); i++) {
 					int currMove = result.pv[i];
 					if (currMove == Move.NULL_MOVE) break;
-					if (trans != 0L && !Move.areEqualForBestKiller(currMove, Transposition.getBestMove(trans))) break;
+					if (trans != 0L && !Move.areEqualForBestKiller(currMove, Transposition.getBestMove(trans, rootPosition.getTheBoard()))) break;
 					
 					if (ENABLE_ASSERTS) {
 						assert rootPosition.getTheBoard().isPlayableMove(currMove, rootPosition.isKingInCheck(), rootPosition.getCastling()):
@@ -538,10 +538,10 @@ public class EubosEngineMain extends AbstractEngine {
 					}
 					if (trans == 0L) {
 						byte depth = (byte)(transDepth-i);
-						trans = hashMap.setTransposition(new_hash, trans, depth, theScore, Score.typeUnknown, currMove, rootPosition.getMoveNumber());
+						trans = hashMap.setTransposition(new_hash, trans, depth, theScore, Score.typeUnknown, currMove, rootPosition.getMoveNumber(), Short.MAX_VALUE);
 						if (ENABLE_LOGGING) {
 							logger.info(String.format("At ply %d, hash table entry lost, regenerating with bestMove from pc=%s",
-									i, Move.toString(currMove), Transposition.report(trans)));
+									i, Move.toString(currMove), Transposition.report(trans, rootPosition.getTheBoard())));
 						}
 					}
 					
