@@ -120,10 +120,8 @@ public final class Transposition {
 
 		int originPiece = theBoard.getPieceAtSquare(1L << orig);
 		int targetPiece = is_en_passant_capture ? (Piece.isWhite(originPiece)?Piece.BLACK_PAWN:Piece.WHITE_PAWN): theBoard.getPieceAtSquare(1L << target);
-		trans_move = Move.valueOfBit(orig, originPiece, target, targetPiece);
-		if (promo != Piece.NONE) {
-			trans_move = Move.setPromotion(trans_move, promo);
-		} else if (is_en_passant_capture) {
+		trans_move = Move.valueOfBit(promo != Piece.NONE ? Move.TYPE_PROMOTION_MASK: Move.TYPE_REGULAR_NONE, orig, originPiece, target, targetPiece, promo);
+		if (is_en_passant_capture) {
 			trans_move |= Move.MISC_EN_PASSANT_CAPTURE_MASK;
 		} else if (Piece.isKing(originPiece) && targetPiece == Piece.NONE) {
 			if (Move.areEqualForBestKiller(CastlingManager.bksc, trans_move) ||

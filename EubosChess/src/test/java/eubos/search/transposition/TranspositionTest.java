@@ -73,6 +73,24 @@ class TranspositionTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		move = Move.setBest(move);
+		long trans = 0L;
+		trans = Transposition.setBestMove(trans, move);
+		
+		assertEquals(move, Transposition.getBestMove(trans, pm.getTheBoard()));
+	}
+	
+	@Test
+	void test_canRebuildBestMoveFromBoardWhenPromotion() {
+		setUpPosition("k7/7P/8/8/8/8/8/4K2R w K - - 1");
+		int move = Move.NULL_MOVE;
+		try {
+			move = Move.toMove(new GenericMove("h7h8=Q"), pm.getTheBoard());
+		} catch (IllegalNotationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		move = Move.setBest(move);
 		long trans = 0L;
 		trans = Transposition.setBestMove(trans, move);
 		
