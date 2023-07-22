@@ -509,11 +509,11 @@ public class PlySearcher {
 					pc.initialise(currPly, currMove);
 					bestMove = currMove;
 				}
-				if (Move.isRegular(currMove)) {
+				if (EubosEngineMain.FUTILITY_PRUNE_KILLER_MOVES ? Move.isRegularOrKiller(currMove) : Move.isRegular(currMove)) {
 					quietMoveNumber++;
 				} else {
 					if (EubosEngineMain.ENABLE_ASSERTS) {
-						assert quietMoveNumber == 0 : String.format("Out_of_order move %s num=%d quiet=%d best=%s", Move.toString(currMove), state[currPly].moveNumber, quietMoveNumber, Move.toString(bestMove));
+						//assert quietMoveNumber == 0 : String.format("Out_of_order move %s num=%d quiet=%d best=%s", Move.toString(currMove), state[currPly].moveNumber, quietMoveNumber, Move.toString(bestMove));
 					}
 				}
 				

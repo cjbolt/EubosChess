@@ -18,12 +18,12 @@ public final class Transposition {
 	
 	private static final int ORIGIN_BITS = 6;
 	private static final long ORIGIN_GUARD_MASK = (1L << ORIGIN_BITS) - 1;
-	private static final int ORIGIN_SHIFT = 0;
+	private static final int ORIGIN_SHIFT = 6;
 	private static final long ORIGIN_MASK = ORIGIN_GUARD_MASK << ORIGIN_SHIFT;
 	
 	private static final int TARGET_BITS = 6;
 	private static final long TARGET_GUARD_MASK = (1L << TARGET_BITS) - 1;
-	private static final int TARGET_SHIFT = 6;
+	private static final int TARGET_SHIFT = 0;
 	private static final long TARGET_MASK = TARGET_GUARD_MASK << TARGET_SHIFT;
 	
 	private static final int PROMOTION_BITS = 3;
@@ -141,15 +141,17 @@ public final class Transposition {
 	protected static long setBestMove(long trans, int bestMove) {
 		// Extract just the parts of move we need to store in the table
 		trans &= ~BESTMOVE_MASK;
-		int orig = Move.getOriginPosition(bestMove);
-		trans |= orig << ORIGIN_SHIFT;
-		int target = Move.getTargetPosition(bestMove);
-		trans |= target << TARGET_SHIFT;
-		int promo = Move.getPromotion(bestMove);
-		trans |= promo << PROMOTION_SHIFT;
-		if (Move.isEnPassantCapture(bestMove)) {
-			trans |= EN_PASSANT_MASK;
-		}
+//		int orig = Move.getOriginPosition(bestMove);
+//		trans |= orig << ORIGIN_SHIFT;
+//		int target = Move.getTargetPosition(bestMove);
+//		trans |= target << TARGET_SHIFT;
+//		int promo = Move.getPromotion(bestMove);
+//		trans |= promo << PROMOTION_SHIFT;
+//		if (Move.isEnPassantCapture(bestMove)) {
+//			trans |= EN_PASSANT_MASK;
+//		}
+		bestMove &= BESTMOVE_MASK;
+		trans |= bestMove;
 		return trans;
 	}
 	

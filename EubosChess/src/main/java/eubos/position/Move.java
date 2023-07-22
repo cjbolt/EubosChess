@@ -11,32 +11,13 @@ import it.unimi.dsi.fastutil.ints.IntComparator;
 
 /* This class represents a move as a integer primitive value. */
 public final class Move {
-	
-	private static final int TARGET_PIECE_SHIFT = 0;
-	private static final int TARGET_PIECE_MASK = Piece.PIECE_WHOLE_MASK << TARGET_PIECE_SHIFT;
-	private static final int TARGET_PIECE_NO_COLOUR_MASK = Piece.PIECE_NO_COLOUR_MASK << TARGET_PIECE_SHIFT;
-	
-	private static final int TARGET_OFFSET_SHIFT = TARGET_PIECE_SHIFT+Long.bitCount(Piece.PIECE_WHOLE_MASK);
-	private static final int TARGET_OFFSET_MASK = (0x3F) << TARGET_OFFSET_SHIFT;
-	
-	private static final int ORIGIN_OFFSET_SHIFT = TARGET_OFFSET_SHIFT+Long.bitCount(0x3F);
-	private static final int ORIGIN_OFFSET_MASK = (0x3F) << ORIGIN_OFFSET_SHIFT;
-	
-	private static final int PROMOTION_SHIFT = ORIGIN_OFFSET_SHIFT+Long.bitCount(0x3F);
-	private static final int PROMOTION_MASK = Piece.PIECE_NO_COLOUR_MASK << PROMOTION_SHIFT;
-	
-	private static final int ORIGIN_PIECE_SHIFT = PROMOTION_SHIFT+Long.bitCount(Piece.PIECE_NO_COLOUR_MASK);
-	private static final int ORIGIN_PIECE_MASK = Piece.PIECE_WHOLE_MASK << ORIGIN_PIECE_SHIFT;
-	private static final int ORIGIN_PIECE_MASK_NO_COLOUR = Piece.PIECE_NO_COLOUR_MASK << ORIGIN_PIECE_SHIFT;
-	
 	// Move ordering
 	public static final int TYPE_REGULAR_NONE = 0;
 	public static final int TYPE_KILLER_BIT = 0;
 	public static final int TYPE_CAPTURE_BIT = 1;
 	public static final int TYPE_PROMOTION_BIT = 2;
 	public static final int TYPE_BEST_BIT = 3;
-	public static final int TYPE_WIDTH = TYPE_BEST_BIT + 1;
-
+	
 	public static final int TYPE_KILLER_MASK = (0x1 << TYPE_KILLER_BIT);
 	public static final int TYPE_CAPTURE_MASK = (0x1 << TYPE_CAPTURE_BIT);
 	public static final int TYPE_PROMOTION_MASK = (0x1 << TYPE_PROMOTION_BIT);
@@ -45,26 +26,46 @@ public final class Move {
 	public static final int MOVE_ORDERING_MASK = (TYPE_KILLER_MASK | TYPE_CAPTURE_MASK | TYPE_PROMOTION_MASK | TYPE_BEST_MASK);
 	public static final int KILLER_EXCLUSION_MASK = (TYPE_CAPTURE_MASK | TYPE_PROMOTION_MASK);
 	
-	public static final int TYPE_SHIFT = ORIGIN_PIECE_SHIFT + Long.bitCount(Piece.PIECE_WHOLE_MASK);
+	private static final int TARGET_OFFSET_WIDTH = Long.bitCount(0x3F);
+	private static final int ORIGIN_OFFSET_WIDTH = Long.bitCount(0x3F);
+	private static final int PROMOTION_WIDTH = Long.bitCount(Piece.PIECE_NO_COLOUR_MASK);
+	private static final int EN_PASSANT_WIDTH = 1;
+	private static final int TARGET_PIECE_WIDTH = Long.bitCount(Piece.PIECE_WHOLE_MASK);
+	private static final int ORIGIN_PIECE_WIDTH = Long.bitCount(Piece.PIECE_WHOLE_MASK);
+	public static final int TYPE_WIDTH = Long.bitCount(((1<<TYPE_BEST_BIT)-1));
+	private static final int CASTLING_WIDTH = 1;
+	
+	private static final int TARGET_OFFSET_SHIFT = 0;
+	private static final int ORIGIN_OFFSET_SHIFT = TARGET_OFFSET_SHIFT + TARGET_OFFSET_WIDTH;
+	private static final int PROMOTION_SHIFT = ORIGIN_OFFSET_SHIFT + ORIGIN_OFFSET_WIDTH;
+	private static final int EN_PASSANT_SHIFT = PROMOTION_SHIFT + PROMOTION_WIDTH;
+	private static final int TARGET_PIECE_SHIFT = EN_PASSANT_SHIFT + EN_PASSANT_WIDTH;
+	private static final int ORIGIN_PIECE_SHIFT = TARGET_PIECE_SHIFT + TARGET_PIECE_WIDTH;
+	public static final int TYPE_SHIFT = ORIGIN_PIECE_SHIFT + ORIGIN_PIECE_WIDTH;
+	private static final int CASTLING_SHIFT = TYPE_SHIFT + TYPE_WIDTH;
+	
+	private static final int TARGET_OFFSET_MASK = (0x3F) << TARGET_OFFSET_SHIFT;
+	private static final int ORIGIN_OFFSET_MASK = (0x3F) << ORIGIN_OFFSET_SHIFT;
+	private static final int PROMOTION_MASK = Piece.PIECE_NO_COLOUR_MASK << PROMOTION_SHIFT;
+	public static final int MISC_EN_PASSANT_CAPTURE_MASK = (0x1 << EN_PASSANT_SHIFT);
+	private static final int TARGET_PIECE_MASK = Piece.PIECE_WHOLE_MASK << TARGET_PIECE_SHIFT;
+	private static final int TARGET_PIECE_NO_COLOUR_MASK = Piece.PIECE_NO_COLOUR_MASK << TARGET_PIECE_SHIFT;
+	private static final int ORIGIN_PIECE_MASK = Piece.PIECE_WHOLE_MASK << ORIGIN_PIECE_SHIFT;
+	private static final int ORIGIN_PIECE_MASK_NO_COLOUR = Piece.PIECE_NO_COLOUR_MASK << ORIGIN_PIECE_SHIFT;
 	private static final int TYPE_MASK = ((1<<TYPE_WIDTH)-1) << TYPE_SHIFT;
-	
-	// Misc flags
-	public static final int MISC_EN_PASSANT_CAPTURE_BIT = 0;
-	public static final int MISC_CASTLING_BIT = 1;
-	private static final int MISC_SHIFT = TYPE_SHIFT + Long.bitCount(TYPE_MASK);
-	public static final int MISC_EN_PASSANT_CAPTURE_MASK = (0x1 << (MISC_EN_PASSANT_CAPTURE_BIT + MISC_SHIFT));
-	public static final int MISC_CASTLING_MASK = (0x1 << (MISC_CASTLING_BIT + MISC_SHIFT));
-	
+	public static final int MISC_CASTLING_MASK = (0x1 << CASTLING_SHIFT);
+
 	public static final int NULL_MOVE =
 			valueOf(TYPE_REGULAR_NONE, Position.a1, Piece.NONE, Position.a1, Piece.NONE, Piece.NONE);
 	
 	public static final int EQUALITY_MASK = ORIGIN_OFFSET_MASK | TARGET_OFFSET_MASK | PROMOTION_MASK;
 	public static final int BEST_KILLER_EQUALITY_MASK = ORIGIN_OFFSET_MASK | ORIGIN_PIECE_MASK | TARGET_OFFSET_MASK | TARGET_PIECE_MASK | PROMOTION_MASK;
 	
+	
 	public static int valueOf(int originPosition, int originPiece, int targetPosition, int targetPiece) {
 		if (EubosEngineMain.ENABLE_ASSERTS)
-			assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
-		int move = targetPiece;
+			assert (targetPosition & 0x88) == 0;
+		int move = BitBoard.positionToBit_Lut[targetPosition] << Move.TARGET_OFFSET_SHIFT;
 		
 		// Encode Target Piece and classification if a capture
 		if (targetPiece != Piece.NONE) {
@@ -83,8 +84,8 @@ public final class Move {
 		
 		// Encode target position
 		if (EubosEngineMain.ENABLE_ASSERTS)
-			assert (targetPosition & 0x88) == 0;
-		move |= BitBoard.positionToBit_Lut[targetPosition] << TARGET_OFFSET_SHIFT;
+			assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
+		move |= targetPiece << TARGET_PIECE_SHIFT;
 		
 		return move;
 	}
@@ -108,20 +109,25 @@ public final class Move {
 	}
 
 	public static int valueOf(int type, int originPosition, int originPiece, int targetPosition, int targetPiece, int promotion) {
+		// Encode target position
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert (targetPosition & 0x88) == 0;
+		int move = BitBoard.positionToBit_Lut[targetPosition] << Move.TARGET_OFFSET_SHIFT;
+
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
-		int move = targetPiece;
-
+		move |= targetPiece << TARGET_PIECE_SHIFT;
+		
 		// Encode Target Piece and classification if a capture
 		if (targetPiece != Piece.NONE) {
 			move |= (type | Move.TYPE_CAPTURE_MASK) << TYPE_SHIFT;
-
-		} else {
-			// Encode move classification
-			if (EubosEngineMain.ENABLE_ASSERTS)
-				assert (type & ~(Move.TYPE_MASK >>> TYPE_SHIFT)) == 0;
-			move |= type << TYPE_SHIFT;
 		}
+		
+		// Encode move classification
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert (type & ~(Move.TYPE_MASK >>> TYPE_SHIFT)) == 0;
+		move |= type << TYPE_SHIFT;
+
 			
 		// Encode Origin Piece
 		if (EubosEngineMain.ENABLE_ASSERTS)
@@ -132,11 +138,6 @@ public final class Move {
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (originPosition & 0x88) == 0;
 		move |= BitBoard.positionToBit_Lut[originPosition] << ORIGIN_OFFSET_SHIFT;
-		
-		// Encode target position
-		if (EubosEngineMain.ENABLE_ASSERTS)
-			assert (targetPosition & 0x88) == 0;
-		move |= BitBoard.positionToBit_Lut[targetPosition] << TARGET_OFFSET_SHIFT;
 				
 		// Encode promotion
 		if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -148,11 +149,16 @@ public final class Move {
 	}
 	
 	public static int valueOfBit(int originBit, int originPiece, int targetBit, int targetPiece) {
+		// Encode target position
 		if (EubosEngineMain.ENABLE_ASSERTS)
-			assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
-		int move = targetPiece;
+			assert targetBit < 64;
+		int move = targetBit << TARGET_OFFSET_SHIFT;
 		
 		// Encode Target Piece and classification if a capture
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
+		move |= targetPiece << TARGET_PIECE_SHIFT;
+		
 		if (targetPiece != Piece.NONE) {
 			move |= Move.TYPE_CAPTURE_MASK << TYPE_SHIFT;
 		}
@@ -166,11 +172,6 @@ public final class Move {
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (originPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
 		move |= originPiece << ORIGIN_PIECE_SHIFT;
-		
-		// Encode target position
-		if (EubosEngineMain.ENABLE_ASSERTS)
-			assert targetBit < 64;
-		move |= targetBit << TARGET_OFFSET_SHIFT;
 		
 		return move;
 	}
@@ -188,20 +189,24 @@ public final class Move {
 	}
 
 	public static int valueOfBit(int type, int originBit, int originPiece, int targetBit, int targetPiece, int promotion) {
+		// Encode target position
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert targetBit < 64;
+		int move = targetBit << TARGET_OFFSET_SHIFT;
+		
+		// Encode Target Piece and classification if a capture
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
-		int move = targetPiece;
-
-		// Encode Target Piece and classification if a capture
+		move |= targetPiece << TARGET_PIECE_SHIFT;
+		
 		if (targetPiece != Piece.NONE) {
-			move |= (type | Move.TYPE_CAPTURE_MASK) << TYPE_SHIFT;
-
-		} else {
-			// Encode move classification
-			if (EubosEngineMain.ENABLE_ASSERTS)
-				assert (type & ~(Move.TYPE_MASK >>> TYPE_SHIFT)) == 0;
-			move |= type << TYPE_SHIFT;
-		}
+			move |= Move.TYPE_CAPTURE_MASK << TYPE_SHIFT;
+		} 
+		
+		// Encode move classification
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert (type & ~(Move.TYPE_MASK >>> TYPE_SHIFT)) == 0;
+		move |= type << TYPE_SHIFT;
 			
 		// Encode Origin Piece
 		if (EubosEngineMain.ENABLE_ASSERTS)
@@ -212,11 +217,6 @@ public final class Move {
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (originBit < 64);
 		move |= originBit << ORIGIN_OFFSET_SHIFT;
-		
-		// Encode target position
-		if (EubosEngineMain.ENABLE_ASSERTS)
-			assert (targetBit < 64);
-		move |= targetBit << TARGET_OFFSET_SHIFT;
 				
 		// Encode promotion
 		if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -285,7 +285,12 @@ public final class Move {
 	}
 	
 	public static boolean isRegular(int move) { 
-		return (getType(move) == 0);
+		return (getType(move) == TYPE_REGULAR_NONE);
+	}
+	
+	public static boolean isRegularOrKiller(int move) { 
+		int type = getType(move);
+		return (type == TYPE_REGULAR_NONE || type == TYPE_KILLER_MASK);
 	}
 	
 	public static boolean isPawnMove(int move) {

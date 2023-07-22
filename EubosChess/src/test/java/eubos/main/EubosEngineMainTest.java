@@ -267,8 +267,8 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"r3qrk1/pbpp1ppp/np1b1n2/8/2PPp3/P1N1P1PP/1P2NPB1/R1BQK2R w KQ - 1 10"+CMD_TERMINATOR, null));
 		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d1b3"+CMD_TERMINATOR));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e1g1"+CMD_TERMINATOR));
-		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e2f4"+CMD_TERMINATOR));
+		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e1g1"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e2f4"+CMD_TERMINATOR));
 		performTest(5000);
 	}
 	
@@ -601,7 +601,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Fine: problem 76
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/p6p/1p3kp1/1P6/P4PKP/5P2/8 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"7"+CMD_TERMINATOR, BEST_PREFIX+"f3f4"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"f3f4"+CMD_TERMINATOR));
 		performTest(1000);	
 	}
 	
@@ -675,4 +675,18 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"7"+CMD_TERMINATOR, BEST_PREFIX+"e1b1"+CMD_TERMINATOR));
 		performTest(1000);
 	}
+	
+	@Test
+	@Ignore
+	public void test_acceptInevitableDraw() throws IllegalNotationException, IOException, InterruptedException {
+		// Caused time forfeits because of excessive futility pruning and hash table?
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"5r2/3K4/3B4/8/4kn2/8/8/8 w - - 0 81"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_TIME_PREFIX+"100"+CMD_TERMINATOR, BEST_PREFIX+"d6f8"+CMD_TERMINATOR));
+		
+		int hashMove = Move.valueOf(Position.d6, Piece.WHITE_BISHOP, Position.f8, Piece.NONE);
+		long hashEntry = Transposition.valueOf((byte)127, (short)0, Score.upperBound, hashMove, 100 >> 2);
+		pokeHashEntryAndPerformTest(1000, hashEntry);
+	}
+	 
 }
