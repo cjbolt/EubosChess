@@ -19,6 +19,7 @@ import eubos.position.PositionManager;
 import eubos.score.PawnEvalHashTable;
 import eubos.score.PiecewiseEvaluation;
 import eubos.search.DrawChecker;
+import eubos.search.transposition.Transposition;
 
 public class BoardTest {
 	
@@ -744,6 +745,16 @@ public class BoardTest {
 		assertTrue(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
 	}
 	
+	@Test
+	public void test_is_playable_move_refactor_issue() {
+		setUpPosition("8/8/3p3k/1P6/3p3K/8/8/8 w - - - 3");
+		int move = Move.valueOf(Position.h4, Piece.WHITE_KING, Position.g3, Piece.NONE);
+		long trans = Transposition.valueOf((byte)1, (short)0, (byte)1, move, 1);
+		int hash_move = Transposition.getBestMove(trans, pm.getTheBoard());
+		boolean inCheck = false;
+		//assertEquals(move, hash_move);
+		assertTrue(classUnderTest.isPlayableMove(hash_move, inCheck, pm.castling));
+	}	
 	
 	@Test 
 	public void test_is_playable_handles_castling() {

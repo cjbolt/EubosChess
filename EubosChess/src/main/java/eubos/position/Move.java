@@ -42,7 +42,7 @@ public final class Move {
 	private static final int TARGET_PIECE_SHIFT = EN_PASSANT_SHIFT + EN_PASSANT_WIDTH;
 	private static final int ORIGIN_PIECE_SHIFT = TARGET_PIECE_SHIFT + TARGET_PIECE_WIDTH;
 	public static final int TYPE_SHIFT = ORIGIN_PIECE_SHIFT + ORIGIN_PIECE_WIDTH;
-	private static final int CASTLING_SHIFT = TYPE_SHIFT + TYPE_WIDTH;
+	private static final int CASTLING_SHIFT = TYPE_SHIFT + TYPE_WIDTH + 1;
 	
 	private static final int TARGET_OFFSET_MASK = (0x3F) << TARGET_OFFSET_SHIFT;
 	private static final int ORIGIN_OFFSET_MASK = (0x3F) << ORIGIN_OFFSET_SHIFT;
@@ -223,6 +223,32 @@ public final class Move {
 			assert promotion != Piece.KING && promotion != Piece.PAWN && (promotion & ~Piece.PIECE_NO_COLOUR_MASK) == 0;
 		}
 		move |= promotion << PROMOTION_SHIFT;
+
+		return move;
+	}
+	
+	public static int valueOfBitFromTransposition(int trans_move, int type, int originPiece, int targetPiece) {
+		// Handles origin, target offsets, promotion and en passant flag
+		int move = trans_move;
+		
+		// Encode Target Piece and classification if a capture
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
+		move |= targetPiece << TARGET_PIECE_SHIFT;
+		
+		if (targetPiece != Piece.NONE) {
+			move |= Move.TYPE_CAPTURE_MASK << TYPE_SHIFT;
+		} 
+		
+		// Encode move classification
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert (type & ~(Move.TYPE_MASK >>> TYPE_SHIFT)) == 0;
+		move |= type << TYPE_SHIFT;
+			
+		// Encode Origin Piece
+		if (EubosEngineMain.ENABLE_ASSERTS)
+			assert (originPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
+		move |= originPiece << ORIGIN_PIECE_SHIFT;
 
 		return move;
 	}

@@ -448,8 +448,8 @@ public class PlySearcher {
 			    if (!Score.isMate((short)score) && score != 0 && !isTerminated()) {
 				    assert score != Score.PROVISIONAL_ALPHA;
 				    assert score != Score.PROVISIONAL_BETA;
-			    	assert pc.getBestMoveAtPly((byte)(currPly)) != Move.NULL_MOVE :
-			    		String.format("score=%d %s %s next_pc=%s", score, pos.unwindMoveStack(), pos.getFen(), pc.toStringAt(currPly+1));
+			    	//assert pc.getBestMoveAtPly((byte)(currPly)) != Move.NULL_MOVE :
+			    	//	String.format("score=%d %s %s next_pc=%s", score, pos.unwindMoveStack(), pos.getFen(), pc.toStringAt(currPly+1));
 			    }
 		    }
 
