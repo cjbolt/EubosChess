@@ -26,13 +26,13 @@ public final class Move {
 	public static final int MOVE_ORDERING_MASK = (TYPE_KILLER_MASK | TYPE_CAPTURE_MASK | TYPE_PROMOTION_MASK | TYPE_BEST_MASK);
 	public static final int KILLER_EXCLUSION_MASK = (TYPE_CAPTURE_MASK | TYPE_PROMOTION_MASK);
 	
-	private static final int TARGET_OFFSET_WIDTH = Long.bitCount(0x3F);
-	private static final int ORIGIN_OFFSET_WIDTH = Long.bitCount(0x3F);
-	private static final int PROMOTION_WIDTH = Long.bitCount(Piece.PIECE_NO_COLOUR_MASK);
+	private static final int TARGET_OFFSET_WIDTH = 6; //Long.bitCount(0x3F);
+	private static final int ORIGIN_OFFSET_WIDTH = 6; //Long.bitCount(0x3F);
+	private static final int PROMOTION_WIDTH = 3; //Long.bitCount(Piece.PIECE_NO_COLOUR_MASK);
 	private static final int EN_PASSANT_WIDTH = 1;
-	private static final int TARGET_PIECE_WIDTH = Long.bitCount(Piece.PIECE_WHOLE_MASK);
-	private static final int ORIGIN_PIECE_WIDTH = Long.bitCount(Piece.PIECE_WHOLE_MASK);
-	public static final int TYPE_WIDTH = Long.bitCount(((1<<TYPE_BEST_BIT)-1));
+	private static final int TARGET_PIECE_WIDTH = 4; //Long.bitCount(Piece.PIECE_WHOLE_MASK);
+	private static final int ORIGIN_PIECE_WIDTH = 4; //Long.bitCount(Piece.PIECE_WHOLE_MASK);
+	public static final int TYPE_WIDTH = 4; //Long.bitCount(((1<<TYPE_BEST_BIT)-1));
 	private static final int CASTLING_WIDTH = 1;
 	
 	private static final int TARGET_OFFSET_SHIFT = 0;
@@ -42,7 +42,7 @@ public final class Move {
 	private static final int TARGET_PIECE_SHIFT = EN_PASSANT_SHIFT + EN_PASSANT_WIDTH;
 	private static final int ORIGIN_PIECE_SHIFT = TARGET_PIECE_SHIFT + TARGET_PIECE_WIDTH;
 	public static final int TYPE_SHIFT = ORIGIN_PIECE_SHIFT + ORIGIN_PIECE_WIDTH;
-	private static final int CASTLING_SHIFT = TYPE_SHIFT + TYPE_WIDTH + 1;
+	private static final int CASTLING_SHIFT = TYPE_SHIFT + TYPE_WIDTH;
 	
 	private static final int TARGET_OFFSET_MASK = (0x3F) << TARGET_OFFSET_SHIFT;
 	private static final int ORIGIN_OFFSET_MASK = (0x3F) << ORIGIN_OFFSET_SHIFT;
