@@ -592,7 +592,7 @@ public class PlySearcher {
 		int prevBestMove = Move.NULL_MOVE;
 		if (trans != 0L) {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-			prevBestMove = Transposition.getBestMove(trans, pos.getTheBoard());
+			prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
 		}
 		
 		int currMove = Move.NULL_MOVE;
@@ -653,7 +653,7 @@ public class PlySearcher {
 	
 	void evaluateTransposition(long trans, int depth) {
 		boolean override_trans_move = false;
-		int trans_move = Transposition.getBestMove(trans, pos.getTheBoard());
+		int trans_move = Move.valueOfFromTransposition(trans, pos.getTheBoard());
 		short static_eval = Transposition.getStaticEval(trans);
 		if (static_eval != Short.MAX_VALUE) {
 			state[currPly].staticEval = static_eval;
@@ -710,7 +710,7 @@ public class PlySearcher {
 		// Transposition may still be useful to seed the move list, if not drawing.
 		if (!override_trans_move || (override_trans_move && state[currPly].prevBestMove == Move.NULL_MOVE)) {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-			state[currPly].prevBestMove = Transposition.getBestMove(trans, pos.getTheBoard());
+			state[currPly].prevBestMove = trans_move;
 		}
 	}
 	

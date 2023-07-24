@@ -7,6 +7,7 @@ import eubos.board.BitBoard;
 import eubos.board.Board;
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
+import eubos.search.transposition.Transposition;
 import it.unimi.dsi.fastutil.ints.IntComparator;
 
 /* This class represents a move as a integer primitive value. */
@@ -33,7 +34,6 @@ public final class Move {
 	private static final int TARGET_PIECE_WIDTH = 4; //Long.bitCount(Piece.PIECE_WHOLE_MASK);
 	private static final int ORIGIN_PIECE_WIDTH = 4; //Long.bitCount(Piece.PIECE_WHOLE_MASK);
 	public static final int TYPE_WIDTH = 4; //Long.bitCount(((1<<TYPE_BEST_BIT)-1));
-	private static final int CASTLING_WIDTH = 1;
 	
 	private static final int TARGET_OFFSET_SHIFT = 0;
 	private static final int ORIGIN_OFFSET_SHIFT = TARGET_OFFSET_SHIFT + TARGET_OFFSET_WIDTH;
@@ -227,29 +227,48 @@ public final class Move {
 		return move;
 	}
 	
-	public static int valueOfBitFromTransposition(int trans_move, int type, int originPiece, int targetPiece) {
-		// Handles origin, target offsets, promotion and en passant flag
-		int move = trans_move;
+	public static int valueOfFromTransposition(long trans, Board theBoard) {
+		int move = Transposition.getBestMove(trans);
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			assert move != Move.NULL_MOVE : "Tranposition move was null.";
+		}
 		
-		// Encode Target Piece and classification if a capture
+		// Extract fields required from LSW
+		int originPiece = theBoard.getPieceAtSquare(1L << getOriginPosition(move));
+		int targetPiece = isEnPassantCapture(move) ? 
+				(Piece.isWhite(originPiece) ? Piece.BLACK_PAWN : Piece.WHITE_PAWN) :
+				theBoard.getPieceAtSquare(1L << getTargetPosition(move));		
+		
+		// Encode Target Piece
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (targetPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
 		move |= targetPiece << TARGET_PIECE_SHIFT;
 		
-		if (targetPiece != Piece.NONE) {
-			move |= Move.TYPE_CAPTURE_MASK << TYPE_SHIFT;
-		} 
-		
-		// Encode move classification
-		if (EubosEngineMain.ENABLE_ASSERTS)
-			assert (type & ~(Move.TYPE_MASK >>> TYPE_SHIFT)) == 0;
-		move |= type << TYPE_SHIFT;
-			
 		// Encode Origin Piece
 		if (EubosEngineMain.ENABLE_ASSERTS)
 			assert (originPiece & ~Piece.PIECE_WHOLE_MASK) == 0;
 		move |= originPiece << ORIGIN_PIECE_SHIFT;
-
+		
+		// Encode move classification. Note: always best, never killer
+		int type = Move.TYPE_BEST_MASK;
+		if (getPromotion(move) != Piece.NONE) {
+			type |= Move.TYPE_PROMOTION_MASK;
+		}
+		if (targetPiece != Piece.NONE) {
+			type |= Move.TYPE_CAPTURE_MASK;
+		}		
+		move |= type << TYPE_SHIFT;
+		
+		// Check to set castling flag
+		if (Piece.isKing(originPiece) && targetPiece == Piece.NONE) {
+			if (Move.areEqualForBestKiller(CastlingManager.bksc, move) ||
+				Move.areEqualForBestKiller(CastlingManager.wksc, move) ||
+				Move.areEqualForBestKiller(CastlingManager.bqsc, move) ||
+				Move.areEqualForBestKiller(CastlingManager.wqsc, move)) {
+				move |= Move.MISC_CASTLING_MASK;
+			}
+		}
+		
 		return move;
 	}
 	

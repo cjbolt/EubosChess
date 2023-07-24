@@ -244,7 +244,7 @@ public class EubosEngineMain extends AbstractEngine {
 		long rootHash = rootPosition.getHash();
 		long rootTrans = hashMap.getTransposition(rootHash);
 		if (Score.isMate(Transposition.getScore(rootTrans))) {
-			int [] pv = new int[] { Transposition.getBestMove(rootTrans, rootPosition.getTheBoard()) };
+			int [] pv = new int[] { Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard()) };
 			ReferenceScore refScore = Colour.isWhite(rootPosition.getOnMove()) ? whiteRefScore : blackRefScore;
 			refScore.updateReference(rootPosition);
 			logger.info(String.format("EngineStartCalculatingCommand - Mate in transposition %s", Transposition.report(rootTrans, rootPosition.getTheBoard())));
@@ -504,7 +504,7 @@ public class EubosEngineMain extends AbstractEngine {
 		
 		// The search depth and the score to put in any created transpositions are derived from the root transposition
 		logger.info(String.format("tableRootTrans %s", Transposition.report(tableRootTrans, rootPosition.getTheBoard())));
-		int transBestMove = Transposition.getBestMove(tableRootTrans, rootPosition.getTheBoard());
+		int transBestMove = Move.valueOfFromTransposition(tableRootTrans, rootPosition.getTheBoard());
 		
 		// Always check to reset the drawchecker
 		rootPosition.performMove(transBestMove);
@@ -531,7 +531,7 @@ public class EubosEngineMain extends AbstractEngine {
 				for (i=1; i < Math.min(result.pv.length, result.depth-1); i++) {
 					int currMove = result.pv[i];
 					if (currMove == Move.NULL_MOVE) break;
-					if (trans != 0L && !Move.areEqualForBestKiller(currMove, Transposition.getBestMove(trans, rootPosition.getTheBoard()))) break;
+					if (trans != 0L && !Move.areEqualForBestKiller(currMove, Move.valueOfFromTransposition(trans, rootPosition.getTheBoard()))) break;
 					
 					if (ENABLE_ASSERTS) {
 						assert rootPosition.getTheBoard().isPlayableMove(currMove, rootPosition.isKingInCheck(), rootPosition.getCastling()):
