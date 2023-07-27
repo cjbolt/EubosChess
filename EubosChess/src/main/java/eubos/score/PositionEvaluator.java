@@ -344,8 +344,7 @@ public class PositionEvaluator implements IEvaluate {
     	FUTILITY_MARGIN_BY_PIECE[Piece.PAWN] = 125;
     }
 	
-	int futilityC(int move) {
-		
+	public int estimateMovePositionalContribution(int move) {
 		int originPiece = Move.getOriginPiece(move);
 		int originNoColour = originPiece & Piece.PIECE_NO_COLOUR_MASK;
 		int futility = FUTILITY_MARGIN_BY_PIECE[originNoColour];
@@ -364,32 +363,11 @@ public class PositionEvaluator implements IEvaluate {
 					futility += 125;
 				}
 			}
-			
-		} 
-//		else if (!bd.me.isEndgame() && (originNoColour == Piece.KNIGHT || originNoColour == Piece.QUEEN)) {
-//			/* Theory; move could likely effect King tropism score. */
-//			boolean ownSideIsWhite = Piece.isWhite(originPiece);
-//			int enemyKingBit = pm.getTheBoard().getKingPosition(!ownSideIsWhite);
-//			int distBefore = BitBoard.ManhattanDistance[Move.getOriginPosition(move)][enemyKingBit];
-//			int distAfter = BitBoard.ManhattanDistance[Move.getTargetPosition(move)][enemyKingBit];
-//			if (distBefore > 3 && distAfter < 3) {
-//				futility += 50;
-//			}
-//		}
+		}
 		return futility;
 	}
 	
-	public int estimateMovePositionalContribution(int move) {
-		return futilityC(move);
-	}
-	
 	public int getStaticEvaluation() {
-		int evaluation = 0;
-		if (pm.getTheBoard().getPassedPawns() != 0L || isKingExposed()) {
-			evaluation = getFullEvalNotCheckingForDraws(); 
-		} else {
-			evaluation = getCrudeEvaluation();
-		}
-		return evaluation;
+		return getFullEvalNotCheckingForDraws();
 	}
 }
