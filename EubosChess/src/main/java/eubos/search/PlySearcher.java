@@ -495,7 +495,7 @@ public class PlySearcher {
 									continue;
 								}
 							} else {
-								if (state[currPly].staticEval + ((depth == 1) ? 0 : 250) < state[currPly].alpha) {
+								if (state[currPly].staticEval + ((depth == 1) ? 250 : 500) < state[currPly].alpha) {
 									break;
 								}
 							}
