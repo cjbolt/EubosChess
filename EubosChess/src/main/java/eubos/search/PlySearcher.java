@@ -489,9 +489,15 @@ public class PlySearcher {
 							if (!state[currPly].isStaticValid) {
 								setStaticEvaluation(trans);
 							}
-							int threshold = pe.estimateMovePositionalContribution(currMove) + ((depth == 1) ? 0 : 250);
-							if (state[currPly].staticEval + threshold < state[currPly].alpha) {
-								continue;
+							if (EubosEngineMain.ENABLE_PER_MOVE_FUTILITY_PRUNING) {
+								int threshold = pe.estimateMovePositionalContribution(currMove) + ((depth == 1) ? 0 : 250);
+								if (state[currPly].staticEval + threshold < state[currPly].alpha) {
+									continue;
+								}
+							} else {
+								if (state[currPly].staticEval + ((depth == 1) ? 0 : 250) < state[currPly].alpha) {
+									break;
+								}
 							}
 						}
 					}
@@ -509,7 +515,7 @@ public class PlySearcher {
 					pc.initialise(currPly, currMove);
 					bestMove = currMove;
 				}
-				if (EubosEngineMain.FUTILITY_PRUNE_KILLER_MOVES ? Move.isRegularOrKiller(currMove) : Move.isRegular(currMove)) {
+				if (EubosEngineMain.ENABLE_FUTILITY_PRUNING_OF_KILLER_MOVES ? Move.isRegularOrKiller(currMove) : Move.isRegular(currMove)) {
 					quietMoveNumber++;
 				} else {
 					if (EubosEngineMain.ENABLE_ASSERTS) {
