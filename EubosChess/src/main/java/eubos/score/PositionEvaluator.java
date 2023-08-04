@@ -385,11 +385,11 @@ public class PositionEvaluator implements IEvaluate {
 	
 	public int getStaticEvaluation() {
 		int evaluation = 0;
-		if (pm.getTheBoard().getPassedPawns() != 0L || isKingExposed()) {
+//		if (pm.getTheBoard().getPassedPawns() != 0L || isKingExposed()) {
 			evaluation = getFullEvalNotCheckingForDraws(); 
-		} else {
-			evaluation = getCrudeEvaluation();
-		}
+//		} else {
+//			evaluation = getCrudeEvaluation();
+//		}
 		return evaluation;
 	}
 }
