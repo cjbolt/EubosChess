@@ -78,12 +78,13 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_NULL_MOVE_PRUNING = true;
 	public static final boolean ENABLE_STAGED_MOVE_GENERATION = true;
 	public static final boolean ENABLE_COUNTED_PASSED_PAWN_MASKS = true;
-	public static final boolean ENABLE_STORE_PV_IN_TRANS_TABLE = true;
+	public static final boolean ENABLE_STORE_PV_IN_TRANS_TABLE = false;
 	public static final boolean ENABLE_ITERATIVE_DEEPENING = true;
 	public static final boolean ENABLE_FUTILITY_PRUNING = true;
 	public static final boolean ENABLE_RAZORING_ON_QUIESCENCE = false;
 	public static final boolean ENABLE_FUTILITY_PRUNING_OF_KILLER_MOVES = false;
-	public static final boolean ENABLE_PER_MOVE_FUTILITY_PRUNING = false;
+	public static final boolean ENABLE_PER_MOVE_FUTILITY_PRUNING = true;
+	public static final boolean ENABLE_INSTANT_REPLY = false;
 	
 	public static final boolean ENABLE_PINNED_TO_KING_CHECK_IN_ILLEGAL_DETECTION = true;
 	public static final boolean ENABLE_PIECE_LISTS = false;
@@ -244,7 +245,7 @@ public class EubosEngineMain extends AbstractEngine {
 		// this will occur when the tree search is concluded and the thread completes execution.
 		long rootHash = rootPosition.getHash();
 		long rootTrans = hashMap.getTransposition(rootHash);
-		if (Score.isMate(Transposition.getScore(rootTrans))) {
+		if (ENABLE_INSTANT_REPLY && Score.isMate(Transposition.getScore(rootTrans))) {
 			int [] pv = new int[] { Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard()) };
 			ReferenceScore refScore = Colour.isWhite(rootPosition.getOnMove()) ? whiteRefScore : blackRefScore;
 			refScore.updateReference(rootPosition);
