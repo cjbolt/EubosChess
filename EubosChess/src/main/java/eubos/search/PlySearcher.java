@@ -31,6 +31,7 @@ public class PlySearcher {
 		boolean inCheck; // not initialised here for reasons of optimisation
 		short staticEval;
 		boolean isStaticValid;
+		boolean isImproving;
 		
 		void initialise(int ply, int alpha, int beta) {
 			hashScore = plyScore = Score.PROVISIONAL_ALPHA;
@@ -39,7 +40,7 @@ public class PlySearcher {
 			isCutOff = false;
 			moveNumber = 0;
 			staticEval = 0;
-			isHashScoreValid = isStaticValid = false;
+			isHashScoreValid = isStaticValid = isImproving = false;
 			// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
 			// It will deviate from the hash move when we start updating the hash during iterative deepening.
 			prevBestMove = Move.clearBest(pc.getBestMove((byte)ply));
@@ -664,6 +665,7 @@ public class PlySearcher {
 		if (static_eval != Short.MAX_VALUE) {
 			state[currPly].staticEval = static_eval;
 			state[currPly].isStaticValid = true;
+			isPositionImproving();
 		}
 		
 		if (depth <= Transposition.getDepthSearchedInPly(trans)) {
@@ -779,6 +781,8 @@ public class PlySearcher {
 		int R = 2;
 		if (depth > 6) R = 3;
 		
+		//if (state[currPly].isImproving) R++;
+		
 		if (SearchDebugAgent.DEBUG_ENABLED) { sda.printNullMove(R);	}
 		
 		currPly++;
@@ -807,7 +811,12 @@ public class PlySearcher {
 					(pos.getTheBoard().getPassedPawns() & (1L << Move.getOriginPosition(currMove))) != 0L))) {		
 		
 			// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
-			int lmr = ( moveNumber < 6) ? 1 : Math.max(1, depth/4);
+			int lmr = 0;
+			if (state[currPly-1].isImproving) {
+				lmr = (moveNumber < (depth * depth)) ? 1 : Math.max(1, depth/5);
+			} else {
+				lmr = (moveNumber < 6) ? 1 : Math.max(1, depth/4);
+			}
 			if (lmr > 0) {
 				positionScore = -search(depth-1-lmr, -state[currPly-1].beta, -state[currPly-1].alpha);
 				if (positionScore <= state[currPly-1].alpha) {
@@ -826,10 +835,17 @@ public class PlySearcher {
 		return lastAspirationFailed;
 	}
 	
+	private void isPositionImproving() {
+		if (currPly >= 2 && state[currPly-2].isStaticValid && state[currPly].isStaticValid) {
+			state[currPly].isImproving = state[currPly].staticEval > (state[currPly-2].staticEval + 100);
+		}
+	}
+	
 	void setStaticEvaluation(long trans) {
 		state[currPly].staticEval = (short) pe.getStaticEvaluation();
 		refineStaticEvalWithHashScore(trans);
 		state[currPly].isStaticValid = true;
+		isPositionImproving();
 	}
 	
 	private void refineStaticEvalWithHashScore(long trans) {
