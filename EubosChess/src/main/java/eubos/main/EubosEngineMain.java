@@ -56,14 +56,14 @@ import java.util.Set;
 public class EubosEngineMain extends AbstractEngine {
 	
 	static final int EUBOS_MAJOR_VERSION = 2;
-	static final int EUBOS_MINOR_VERSION = 23;
+	static final int EUBOS_MINOR_VERSION = 24;
 	
 	public static final byte SEARCH_DEPTH_IN_PLY = Byte.MAX_VALUE;
 	public static final int DEFAULT_NUM_SEARCH_THREADS = 1;
 	
-	public static final boolean ENABLE_LOGGING = false;
+	public static final boolean ENABLE_LOGGING = true;
 	public static final boolean ENABLE_UCI_INFO_SENDING = true;
-	public static final boolean ENABLE_UCI_MOVE_NUMBER = false;
+	public static final boolean ENABLE_UCI_MOVE_NUMBER = true;
 	
 	public static final boolean ENABLE_ASSERTS = false;
 	public static final boolean ENABLE_PERFT = false;
@@ -599,7 +599,7 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	private static void logStart() {
-		String timeStamp = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new java.util.Date());
+		String timeStamp = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSSS").format(new java.util.Date());
 		try {
 			fh = new FileHandler(timeStamp+"_eubos_uci_log.txt");
 		} catch (SecurityException e) {
