@@ -56,7 +56,7 @@ import java.util.Set;
 public class EubosEngineMain extends AbstractEngine {
 	
 	static final int EUBOS_MAJOR_VERSION = 2;
-	static final int EUBOS_MINOR_VERSION = 22;
+	static final int EUBOS_MINOR_VERSION = 23;
 	
 	public static final byte SEARCH_DEPTH_IN_PLY = Byte.MAX_VALUE;
 	public static final int DEFAULT_NUM_SEARCH_THREADS = 1;
@@ -245,13 +245,16 @@ public class EubosEngineMain extends AbstractEngine {
 		// this will occur when the tree search is concluded and the thread completes execution.
 		long rootHash = rootPosition.getHash();
 		long rootTrans = hashMap.getTransposition(rootHash);
-		if (ENABLE_INSTANT_REPLY && Score.isMate(Transposition.getScore(rootTrans))) {
-			int [] pv = new int[] { Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard()) };
-			ReferenceScore refScore = Colour.isWhite(rootPosition.getOnMove()) ? whiteRefScore : blackRefScore;
-			refScore.updateReference(rootPosition);
-			logger.info(String.format("EngineStartCalculatingCommand - Mate in transposition %s", Transposition.report(rootTrans, rootPosition.getTheBoard())));
-			SearchResult result = new SearchResult(pv, true, rootTrans, Transposition.getDepthSearchedInPly(rootTrans));
-			sendBestMoveCommand(result);
+		if (ENABLE_INSTANT_REPLY) {
+			if (Score.isMate(Transposition.getScore(rootTrans))) {
+				int [] pv = new int[] { Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard()) };
+				ReferenceScore refScore = Colour.isWhite(rootPosition.getOnMove()) ? whiteRefScore : blackRefScore;
+				refScore.updateReference(rootPosition);
+				logger.info(String.format("EngineStartCalculatingCommand - Mate in transposition %s", 
+						Transposition.report(rootTrans, rootPosition.getTheBoard())));
+				SearchResult result = new SearchResult(pv, true, rootTrans, Transposition.getDepthSearchedInPly(rootTrans));
+				sendBestMoveCommand(result);
+			}
 		} else {
 			moveSearcherFactory(command);
 			ms.start();
