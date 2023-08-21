@@ -485,11 +485,11 @@ public class PlySearcher {
 				currMove = move_iter.nextInt();
 				
 				if (EubosEngineMain.ENABLE_FUTILITY_PRUNING) {
-					if (quietMoveNumber >= 1) {
-						if (neitherAlphaBetaIsMate() && !pe.goForMate() && depth <= 2) {
-							if (!state[currPly].isStaticValid) {
-								setStaticEvaluation(trans);
-							}
+					if (quietMoveNumber >= 1 && neitherAlphaBetaIsMate() && !pe.goForMate()) {
+						if (!state[currPly].isStaticValid) {
+							setStaticEvaluation(trans);
+						}
+						if (depth <= 2) {
 							if (EubosEngineMain.ENABLE_PER_MOVE_FUTILITY_PRUNING) {
 								int threshold = pe.estimateMovePositionalContribution(currMove) + ((depth == 1) ? 0 : 250);
 								if (state[currPly].staticEval + threshold < state[currPly].alpha) {
