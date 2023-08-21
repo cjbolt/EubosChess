@@ -365,73 +365,63 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	private void logInfo(ProtocolInformationCommand command){
-		String uciInfo = "info";
+		StringBuilder sb = new StringBuilder();
+		sb.append("info");
 
 		if (command.getPvNumber() != null) {
-			uciInfo += " multipv " + command.getPvNumber().toString();
+			sb.append(String.format(" multipv %d", command.getPvNumber()));
 		}
 		if (command.getDepth() != null) {
-			uciInfo += " depth " + command.getDepth().toString();
+			sb.append(String.format(" depth %d", command.getDepth()));
 
 			if (command.getMaxDepth() != null) {
-				uciInfo += " seldepth " + command.getMaxDepth().toString();
+				sb.append(String.format(" seldepth %d", command.getMaxDepth()));
 			}
 		}
 		if (command.getMate() != null) {
-			uciInfo += " score mate " + command.getMate().toString();
+			sb.append(String.format(" score mate %s", command.getMate().toString()));
 		} else if (command.getCentipawns() != null) {
-			uciInfo += " score cp " + command.getCentipawns().toString();
+			sb.append(String.format(" score cp %d", command.getCentipawns()));
 		}
 		if (command.getValue() != null) {
 			switch (command.getValue()) {
 			case EXACT:
 				break;
 			case ALPHA:
-				uciInfo += " upperbound";
+				sb.append(" upperbound");
 				break;
 			case BETA:
-				uciInfo += " lowerbound";
+				sb.append(" lowerbound");
 				break;
 			default:
 				assert false : command.getValue();
 			}
 		}
 		if (command.getMoveList() != null) {
-			uciInfo += " pv";
+			sb.append(" pv");
 			for (GenericMove move : command.getMoveList()) {
-				uciInfo += " ";
-				uciInfo += move.toString();
-			}
-		}
-		if (command.getRefutationList() != null) {
-			uciInfo += " refutation";
-			for (GenericMove move : command.getRefutationList()) {
-				uciInfo += " ";
-				uciInfo += move.toString();
+				sb.append(String.format(" %s", move.toString()));
 			}
 		}
 		if (command.getCurrentMove() != null) {
-			uciInfo += " currmove " + command.getCurrentMove().toString();
+			sb.append(String.format(" currmove " + command.getCurrentMove().toString()));
 		}
 		if (command.getCurrentMoveNumber() != null) {
-			uciInfo += " currmovenumber " + command.getCurrentMoveNumber().toString();
+			sb.append(String.format(" currmovenumber %d", command.getCurrentMoveNumber()));
 		}
 		if (command.getHash() != null) {
-			uciInfo += " hashfull " + command.getHash().toString();
+			sb.append(String.format(" hashfull %d", command.getHash()));
 		}
 		if (command.getNps() != null) {
-			uciInfo += " nps " + command.getNps().toString();
+			sb.append(String.format(" nps %d", command.getNps()));
 		}
 		if (command.getTime() != null) {
-			uciInfo += " time " + command.getTime().toString();
+			sb.append(String.format(" time %d", command.getTime()));
 		}
 		if (command.getNodes() != null) {
-			uciInfo += " nodes " + command.getNodes().toString();
+			sb.append(String.format(" nodes %d", command.getNodes()));
 		}
-		if (command.getString() != null) {
-			uciInfo += " string " + command.getString();
-		}
-		logger.info(uciInfo);
+		logger.info(sb.toString());
 	}
 	
 	private void convertToGenericAndSendBestMove(int nativeBestMove) {
@@ -499,7 +489,7 @@ public class EubosEngineMain extends AbstractEngine {
 		if ((result.depth-1) > transDepth) {
 			// If the Transposition doesn't tally with the search depth reported, suspect unspecified 
 			// defect occurred, we should use the PV move.
-			logger.info(String.format("rootTrans %s inconsistent with search depth %d, ignoring hash",
+			logger.warning(String.format("rootTrans %s inconsistent with search depth %d, ignoring hash",
 					Transposition.report(tableRootTrans, rootPosition.getTheBoard()), result.depth));
 			convertToGenericAndSendBestMove(pcBestMove);
 			return;
@@ -636,6 +626,6 @@ public class EubosEngineMain extends AbstractEngine {
 			pw.append("\n");
 		}
 		String dump = String.format("Thread dump: %s", buffer.toString());
-		logger.info(dump);
+		logger.severe(dump);
 	}
 }
