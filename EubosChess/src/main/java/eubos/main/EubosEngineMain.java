@@ -590,8 +590,10 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	private static void logStart() {
 		String timeStamp = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSSS").format(new java.util.Date());
+		String computerName = System.getenv("EUBOS_HOST_NAME");
+		String logFileName = timeStamp + ((computerName != null)?"_"+computerName:"") + "_eubos_uci_log.txt";
 		try {
-			fh = new FileHandler(timeStamp+"_eubos_uci_log.txt");
+			fh = new FileHandler(logFileName);
 		} catch (SecurityException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

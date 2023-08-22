@@ -139,7 +139,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 						gameTimeRemaining -= duration;
 						timeRanFor += duration;
 						if (duration > 3*timeQuantaForCheckPoint) {
-							EubosEngineMain.logger.warning(String.format(
+							EubosEngineMain.logger.severe(String.format(
 									"Problem with waking stopper, quitting! checkPoint=%d ranFor=%d timeQuanta=%d duration=%d",
 									checkPoint, timeRanFor, timeQuantaForCheckPoint, duration));
 							stopMoveSearcher();
@@ -254,7 +254,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			try {
 				Thread.sleep(timeQuanta);
 			} catch (InterruptedException e) {
-				EubosEngineMain.logger.warning("IterativeMoveSearchStopper interrupted");
+				EubosEngineMain.logger.info("IterativeMoveSearchStopper interrupted");
 				Thread.currentThread().interrupt();
 			}
 			timeOutOfWait = System.currentTimeMillis();
