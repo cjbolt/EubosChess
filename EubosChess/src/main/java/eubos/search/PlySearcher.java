@@ -436,7 +436,8 @@ public class PlySearcher {
 		// Internal Iterative Deepening
 		if (EubosEngineMain.ENABLE_ITERATIVE_DEEPENING && 
 			state[currPly].prevBestMove == Move.NULL_MOVE && 
-			depth >= 6) {
+			depth >= 6 &&
+			!isTerminated()) {
 
 			state[currPly].update();
 			int score = search(depth-3, false, state[currPly].alpha, state[currPly].beta, true);
@@ -483,6 +484,8 @@ public class PlySearcher {
 			}
 			do {
 				currMove = move_iter.nextInt();
+				
+				if (isTerminated()) { return 0;	} // don't update PV if out of time for search, instead return last fully searched PV.
 				
 				if (EubosEngineMain.ENABLE_FUTILITY_PRUNING) {
 					if (quietMoveNumber >= 1) {
