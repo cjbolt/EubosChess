@@ -61,7 +61,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final byte SEARCH_DEPTH_IN_PLY = Byte.MAX_VALUE;
 	public static final int DEFAULT_NUM_SEARCH_THREADS = 1;
 	
-	public static final boolean ENABLE_LOGGING = false;
+	public static final boolean ENABLE_LOGGING = true;
 	public static final boolean ENABLE_UCI_INFO_SENDING = true;
 	public static final boolean ENABLE_UCI_MOVE_NUMBER = false;
 	
@@ -81,9 +81,10 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_ITERATIVE_DEEPENING = true;
 	public static final boolean ENABLE_FUTILITY_PRUNING = true;
 	public static final boolean ENABLE_RAZORING_ON_QUIESCENCE = false;
-	public static final boolean ENABLE_FUTILITY_PRUNING_OF_KILLER_MOVES = true;
+	public static final boolean ENABLE_FUTILITY_PRUNING_OF_KILLER_MOVES = false;
 	public static final boolean ENABLE_PER_MOVE_FUTILITY_PRUNING = true;
 	public static final boolean ENABLE_INSTANT_REPLY = false;
+	public static final boolean ENABLE_OVERWRITE_TRANS_WITH_SEARCH = false;
 	
 	public static final boolean ENABLE_PINNED_TO_KING_CHECK_IN_ILLEGAL_DETECTION = true;
 	public static final boolean ENABLE_PIECE_LISTS = false;
@@ -456,13 +457,15 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	private long compareTransWithSearchResult(SearchResult result, long trans) {
-		int cachedBestMove = Transposition.getBestMove(trans);
-		int cachedDepth = Transposition.getDepthSearchedInPly(trans);
-		if (cachedDepth < result.depth && !Move.areEqualForBestKiller(cachedBestMove, result.pv[0])) {
-			logger.warning(String.format("rootTrans %s inconsistent with search depth %d, updating hash",
-					Transposition.report(trans, rootPosition.getTheBoard()), result.depth));
-			trans = Transposition.setBestMove(trans, result.pv[0]);
-			trans = Transposition.setDepthSearchedInPly(trans, (byte)result.depth);
+		int transBestMove = Transposition.getBestMove(trans);
+		int transDepth = Transposition.getDepthSearchedInPly(trans);
+		if (transDepth <= result.depth && !Move.areEqualForTrans(transBestMove, result.pv[0])) {
+			logger.warning(String.format("rootTrans %s inconsistent with search %s, updating hash",
+					Transposition.report(trans, rootPosition.getTheBoard()), result.report()));
+			if (ENABLE_OVERWRITE_TRANS_WITH_SEARCH) {
+				trans = Transposition.setBestMove(trans, result.pv[0]);
+				trans = Transposition.setDepthSearchedInPly(trans, (byte)result.depth);
+			}
 		}
 		return trans;
 	}

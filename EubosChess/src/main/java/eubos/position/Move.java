@@ -369,6 +369,10 @@ public final class Move {
 		return ((move1 ^ move2) & BEST_KILLER_EQUALITY_MASK) == 0;
 	}
 	
+	public static boolean areEqualForTrans(int move1, int move2) {
+		return ((move1 ^ move2) & 0xFFFF) == 0;
+	}
+	
 	public static int getType(int move) {
 		int type = (move & TYPE_MASK) >>> TYPE_SHIFT;
 		if (EubosEngineMain.ENABLE_ASSERTS)
