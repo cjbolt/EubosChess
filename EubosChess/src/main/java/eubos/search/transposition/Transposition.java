@@ -54,7 +54,7 @@ public final class Transposition {
 		return (byte)((trans >>> DEPTH_SHIFT) & DEPTH_GUARD_MASK);
 	}
 
-	protected static long setDepthSearchedInPly(long trans, byte depthSearchedInPly) {
+	public static long setDepthSearchedInPly(long trans, byte depthSearchedInPly) {
 		long limitedDepth = depthSearchedInPly & DEPTH_GUARD_MASK;
 		trans |= limitedDepth << DEPTH_SHIFT;
 		return trans;
@@ -92,7 +92,7 @@ public final class Transposition {
 		return (int)(trans & BESTMOVE_MASK);
 	}
 	
-	protected static long setBestMove(long trans, int bestMove) {
+	public static long setBestMove(long trans, int bestMove) {
 		bestMove &= BESTMOVE_MASK;
 		trans &= ~BESTMOVE_MASK;
 		trans |= bestMove;

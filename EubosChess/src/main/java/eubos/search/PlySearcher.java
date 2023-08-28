@@ -100,7 +100,7 @@ public class PlySearcher {
 			MoveList ml,
 			short refScore) {
 		currPly = 0;
-		state = new SearchState[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
+		state = new SearchState[EubosEngineMain.SEARCH_DEPTH_IN_PLY+1]; // Lengthened to prevent out by one errors in LMR update
 		for (int i=0; i < state.length; i++) {
 			state[i] = new SearchState();
 		}

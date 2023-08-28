@@ -78,11 +78,10 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_NULL_MOVE_PRUNING = true;
 	public static final boolean ENABLE_STAGED_MOVE_GENERATION = true;
 	public static final boolean ENABLE_COUNTED_PASSED_PAWN_MASKS = true;
-	public static final boolean ENABLE_STORE_PV_IN_TRANS_TABLE = false;
 	public static final boolean ENABLE_ITERATIVE_DEEPENING = true;
 	public static final boolean ENABLE_FUTILITY_PRUNING = true;
 	public static final boolean ENABLE_RAZORING_ON_QUIESCENCE = false;
-	public static final boolean ENABLE_FUTILITY_PRUNING_OF_KILLER_MOVES = false;
+	public static final boolean ENABLE_FUTILITY_PRUNING_OF_KILLER_MOVES = true;
 	public static final boolean ENABLE_PER_MOVE_FUTILITY_PRUNING = true;
 	public static final boolean ENABLE_INSTANT_REPLY = false;
 	
@@ -456,14 +455,27 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 	}
 	
+	private long compareTransWithSearchResult(SearchResult result, long trans) {
+		int cachedBestMove = Transposition.getBestMove(trans);
+		int cachedDepth = Transposition.getDepthSearchedInPly(trans);
+		if (cachedDepth < result.depth && !Move.areEqualForBestKiller(cachedBestMove, result.pv[0])) {
+			logger.warning(String.format("rootTrans %s inconsistent with search depth %d, updating hash",
+					Transposition.report(trans, rootPosition.getTheBoard()), result.depth));
+			trans = Transposition.setBestMove(trans, result.pv[0]);
+			trans = Transposition.setDepthSearchedInPly(trans, (byte)result.depth);
+		}
+		return trans;
+	}
+	
 	private long repopulateRootTransFromCacheIfItWasOverwritten(SearchResult result) {
 		long cachedRootTrans = result.rootTrans;
 		long tableRootTrans = hashMap.getTransposition(rootPosition.getHash());
 		// The transposition in the table could have been overwritten during the search;
 		// If it has been removed we should rewrite it using the best we have, i.e. the cached version.
 		if (tableRootTrans == 0L) {
-			if (cachedRootTrans != 0) {
-				logger.info(String.format("rootTrans overwritten replacing with %s", Transposition.report(cachedRootTrans, rootPosition.getTheBoard())));
+			if (cachedRootTrans != 0L) {	
+				logger.info(String.format("rootTrans overwritten replacing with %s",
+						Transposition.report(cachedRootTrans, rootPosition.getTheBoard())));
 				hashMap.putTransposition(rootPosition.getHash(), cachedRootTrans);
 				tableRootTrans = cachedRootTrans;
 			} else {
@@ -474,85 +486,25 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	public void sendBestMoveCommand(SearchResult result) {
-		if (ENABLE_LOGGING) {
-			logger.info(String.format("Search %s", result.report()));
-		}
-		int pcBestMove = result.pv[0];
+		logger.info(String.format("Search %s", result.report()));
+		
+		int trustedMove = Move.NULL_MOVE;
 		long tableRootTrans = repopulateRootTransFromCacheIfItWasOverwritten(result);
 		if (tableRootTrans == 0L) {
 			// In extremely rare cases, if the Zobrist matches 0L, we can't use the Transposition,
 			// in that case, return the PV move from the search result.
-			convertToGenericAndSendBestMove(pcBestMove);
-			return;
-		}
-		int transDepth = Transposition.getDepthSearchedInPly(tableRootTrans);
-		if ((result.depth-1) > transDepth) {
-			// If the Transposition doesn't tally with the search depth reported, suspect unspecified 
-			// defect occurred, we should use the PV move.
-			logger.warning(String.format("rootTrans %s inconsistent with search depth %d, ignoring hash",
-					Transposition.report(tableRootTrans, rootPosition.getTheBoard()), result.depth));
-			convertToGenericAndSendBestMove(pcBestMove);
-			return;
+			trustedMove = result.pv[0];
+		} else {
+			tableRootTrans = compareTransWithSearchResult(result, tableRootTrans);
+			updateReferenceScoreWhenMateFound(tableRootTrans);
+			logger.info(String.format("tableRootTrans %s",
+					Transposition.report(tableRootTrans, rootPosition.getTheBoard())));
+			trustedMove = Move.valueOfFromTransposition(tableRootTrans, rootPosition.getTheBoard());
 		}
 		
-		updateReferenceScoreWhenMateFound(tableRootTrans);
-		
-		// The search depth and the score to put in any created transpositions are derived from the root transposition
-		logger.info(String.format("tableRootTrans %s", Transposition.report(tableRootTrans, rootPosition.getTheBoard())));
-		int transBestMove = Move.valueOfFromTransposition(tableRootTrans, rootPosition.getTheBoard());
-		
-		// Always check to reset the drawchecker
-		rootPosition.performMove(transBestMove);
-		int movesApplied = 1;
-		resetDrawCheckerIfBestMoveIsAPawnMoveOrCapture(transBestMove);
-		
-		if (ENABLE_STORE_PV_IN_TRANS_TABLE) {
-			boolean preservePvInHashTable = true;
-			if (!Move.areEqualForBestKiller(pcBestMove, transBestMove)) {
-				logger.warning(String.format("At root, pc best=%s != trans best=%s, will not preserve PV in hash...", 
-						Move.toString(pcBestMove), Move.toString(transBestMove)));
-				preservePvInHashTable = false;
-			}
-			if (preservePvInHashTable) {
-				short theScore = Transposition.getScore(tableRootTrans);
-				// Apply all the moves in the pv and check the resulting position is in the hash table
-				byte i=0;
-				// The new hash code is *following* the best move at the ply having been applied
-				long new_hash = rootPosition.getHash();
-				long trans = hashMap.getTransposition(new_hash);
-				
-				// Check we still have transposition entries for the PV move positions. If they are not present create them.
-				// If they are different, leave it be (the Transposition could be based on a deeper search) and abort the checking.
-				for (i=1; i < Math.min(result.pv.length, result.depth-1); i++) {
-					int currMove = result.pv[i];
-					if (currMove == Move.NULL_MOVE) break;
-					if (trans != 0L && !Move.areEqualForBestKiller(currMove, Move.valueOfFromTransposition(trans, rootPosition.getTheBoard()))) break;
-					
-					if (ENABLE_ASSERTS) {
-						assert rootPosition.getTheBoard().isPlayableMove(currMove, rootPosition.isKingInCheck(), rootPosition.getCastling()):
-							String.format("%s not playable after %s fen=%s", Move.toString(currMove), rootPosition.unwindMoveStack(), rootPosition.getFen());
-					}
-					if (trans == 0L) {
-						byte depth = (byte)(transDepth-i);
-						trans = hashMap.setTransposition(new_hash, trans, depth, theScore, Score.typeUnknown, currMove, rootPosition.getMoveNumber(), Short.MAX_VALUE);
-						if (ENABLE_LOGGING) {
-							logger.info(String.format("At ply %d, hash table entry lost, regenerating with bestMove from pc=%s",
-									i, Move.toString(currMove), Transposition.report(trans, rootPosition.getTheBoard())));
-						}
-					}
-					
-					rootPosition.performMove(currMove);
-					movesApplied += 1;
-					new_hash = rootPosition.getHash();
-					trans = hashMap.getTransposition(new_hash);
-				}
-			}
-			while (movesApplied > 0) {
-				rootPosition.unperformMove();
-				movesApplied--;
-			}
-		}
-		convertToGenericAndSendBestMove(transBestMove);
+		rootPosition.performMove(trustedMove);
+		resetDrawCheckerIfBestMoveIsAPawnMoveOrCapture(trustedMove);
+		convertToGenericAndSendBestMove(trustedMove);
 	}
 	
 	@Override
