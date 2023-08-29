@@ -45,8 +45,10 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		} else {
 			setGameTimeRemaining(time, increment);
 		}
-		EubosEngineMain.logger.info(
-				String.format("Starting search gameTimeRemaining=%d", gameTimeRemaining));
+		if (EubosEngineMain.ENABLE_LOGGING) {
+			EubosEngineMain.logger.info(
+					String.format("Starting search gameTimeRemaining=%d", gameTimeRemaining));
+		}
 	}
 
 	private void setGameTimeRemaining(long time, long increment) {
@@ -207,11 +209,13 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 					currDepth >= ref_depth;
 			
 			if (DEBUG_LOGGING) {
-				EubosEngineMain.logger.info(String.format(
-						"checkPoint=%d hasBackedUpAScore=%s research_asp=%s currentScore=%s refScore=%s"+
-						" depth=%d refDepth=%d SearchStopped=%s StopperActive=%s ranFor=%d",
-						checkPoint, hasBackedUpAScore, isResearchingAspirationFail, Score.toString(currentScore),
-						Score.toString(ref_score), currDepth, ref_depth, searchStopped, stopperActive, timeRanFor));
+				if (EubosEngineMain.ENABLE_LOGGING) {
+					EubosEngineMain.logger.info(String.format(
+							"checkPoint=%d hasBackedUpAScore=%s research_asp=%s currentScore=%s refScore=%s"+
+							" depth=%d refDepth=%d SearchStopped=%s StopperActive=%s ranFor=%d",
+							checkPoint, hasBackedUpAScore, isResearchingAspirationFail, Score.toString(currentScore),
+							Score.toString(ref_score), currDepth, ref_depth, searchStopped, stopperActive, timeRanFor));
+				}
 			}
 			
 			return canTerminate;
@@ -250,15 +254,23 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		
 		private long sleepAndReportDuration(long timeQuanta) {
 			timeIntoWait = System.currentTimeMillis();
-			EubosEngineMain.logger.finer(String.format("IterativeMoveSearchStopper CP=%d into sleep @ %d for %d", checkPoint, timeIntoWait, timeQuanta));
+			if (EubosEngineMain.ENABLE_LOGGING) {
+				EubosEngineMain.logger.finer(String.format("IterativeMoveSearchStopper CP=%d into sleep @ %d for %d",
+						checkPoint, timeIntoWait, timeQuanta));
+			}
 			try {
 				Thread.sleep(timeQuanta);
 			} catch (InterruptedException e) {
-				EubosEngineMain.logger.info("IterativeMoveSearchStopper interrupted");
+				if (EubosEngineMain.ENABLE_LOGGING) {
+					EubosEngineMain.logger.info("IterativeMoveSearchStopper interrupted");
+				}
 				Thread.currentThread().interrupt();
 			}
 			timeOutOfWait = System.currentTimeMillis();
-			EubosEngineMain.logger.finer(String.format("IterativeMoveSearchStopper CP=%d out of sleep @ %d", checkPoint, timeOutOfWait));
+			if (EubosEngineMain.ENABLE_LOGGING) {
+				EubosEngineMain.logger.finer(String.format("IterativeMoveSearchStopper CP=%d out of sleep @ %d",
+						checkPoint, timeOutOfWait));
+			}
 			return timeOutOfWait - timeIntoWait;
 		}
 		

@@ -35,9 +35,11 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		long hashSizeElements = (hashSizeMBytes * BYTES_PER_MEGABYTE) / BYTES_PER_TRANSPOSITION;
 		
 		if (DEBUG_LOGGING) {
-			EubosEngineMain.logger.fine(String.format(
-					"Hash dimensions requestedSizeMBytes=%d BYTES_PER_TRANSPOSITION=%d, maxSizeElements=%d", 
-					hashSizeMBytes, BYTES_PER_TRANSPOSITION, hashSizeElements));
+			if (EubosEngineMain.ENABLE_LOGGING) {
+				EubosEngineMain.logger.fine(String.format(
+						"Hash dimensions requestedSizeMBytes=%d BYTES_PER_TRANSPOSITION=%d, maxSizeElements=%d", 
+						hashSizeMBytes, BYTES_PER_TRANSPOSITION, hashSizeElements));
+			}
 		}
 		
 		hashSizeElements &= Integer.MAX_VALUE;

@@ -61,7 +61,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final byte SEARCH_DEPTH_IN_PLY = Byte.MAX_VALUE;
 	public static final int DEFAULT_NUM_SEARCH_THREADS = 1;
 	
-	public static final boolean ENABLE_LOGGING = true;
+	public static final boolean ENABLE_LOGGING = false;
 	public static final boolean ENABLE_UCI_INFO_SENDING = true;
 	public static final boolean ENABLE_UCI_MOVE_NUMBER = false;
 	
@@ -214,8 +214,10 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 
 	public void receive(EngineAnalyzeCommand command) {
-		logger.fine(String.format("Analysing position: %s with moves %s",
-				command.board.toString(), command.moves));
+		if (ENABLE_LOGGING) {
+			logger.fine(String.format("Analysing position: %s with moves %s",
+					command.board.toString(), command.moves));
+		}
 		checkToCreateEnginePermanentDataStructures();
 		createPositionFromAnalyseCommand(command);
 	}
@@ -236,8 +238,10 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		lastFen = rootPosition.getFen();
 		long hashCode = rootPosition.getHash();
-		logger.info(String.format("positionReceived fen=%s hashCode=%d",
-				lastFen, hashCode));
+		if (ENABLE_LOGGING) {
+			logger.info(String.format("positionReceived fen=%s hashCode=%d",
+					lastFen, hashCode));
+		}
 	}
 
 	public void receive(EngineStartCalculatingCommand command) {
@@ -250,8 +254,10 @@ public class EubosEngineMain extends AbstractEngine {
 				int [] pv = new int[] { Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard()) };
 				ReferenceScore refScore = Colour.isWhite(rootPosition.getOnMove()) ? whiteRefScore : blackRefScore;
 				refScore.updateReference(rootPosition);
-				logger.info(String.format("EngineStartCalculatingCommand - Mate in transposition %s", 
-						Transposition.report(rootTrans, rootPosition.getTheBoard())));
+				if (ENABLE_LOGGING) {
+					logger.info(String.format("EngineStartCalculatingCommand - Mate in transposition %s", 
+							Transposition.report(rootTrans, rootPosition.getTheBoard())));
+				}
 				SearchResult result = new SearchResult(pv, true, rootTrans, Transposition.getDepthSearchedInPly(rootTrans));
 				sendBestMoveCommand(result);
 			}
@@ -426,7 +432,9 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	private void convertToGenericAndSendBestMove(int nativeBestMove) {
 		GenericMove bestMove = Move.toGenericMove(nativeBestMove);
-		logger.info(String.format("Best Move %s", bestMove));
+		if (ENABLE_LOGGING) {
+			logger.info(String.format("Best Move %s", bestMove));
+		}
 		ProtocolBestMoveCommand protocolBestMoveCommand = new ProtocolBestMoveCommand(bestMove, null);
 		try {
 			this.getProtocol().send(protocolBestMoveCommand);
@@ -460,9 +468,11 @@ public class EubosEngineMain extends AbstractEngine {
 		int transBestMove = Transposition.getBestMove(trans);
 		int transDepth = Transposition.getDepthSearchedInPly(trans);
 		if (transDepth <= result.depth && !Move.areEqualForTrans(transBestMove, result.pv[0])) {
-			logger.warning(String.format("rootTrans %s inconsistent with search %s, updating hash",
-					Transposition.report(trans, rootPosition.getTheBoard()),
-					result.report(rootPosition.getTheBoard())));
+			if (ENABLE_LOGGING) {
+				logger.warning(String.format("rootTrans %s inconsistent with search %s, updating hash",
+						Transposition.report(trans, rootPosition.getTheBoard()),
+						result.report(rootPosition.getTheBoard())));
+			}
 			if (ENABLE_OVERWRITE_TRANS_WITH_SEARCH) {
 				trans = Transposition.setBestMove(trans, result.pv[0]);
 				trans = Transposition.setDepthSearchedInPly(trans, (byte)result.depth);
@@ -478,8 +488,10 @@ public class EubosEngineMain extends AbstractEngine {
 		// If it has been removed we should rewrite it using the best we have, i.e. the cached version.
 		if (tableRootTrans == 0L) {
 			if (cachedRootTrans != 0L) {	
-				logger.info(String.format("rootTrans overwritten replacing with %s",
-						Transposition.report(cachedRootTrans, rootPosition.getTheBoard())));
+				if (ENABLE_LOGGING) {
+					logger.info(String.format("rootTrans overwritten replacing with %s",
+							Transposition.report(cachedRootTrans, rootPosition.getTheBoard())));
+				}
 				hashMap.putTransposition(rootPosition.getHash(), cachedRootTrans);
 				tableRootTrans = cachedRootTrans;
 			} else {
@@ -492,7 +504,9 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	public void sendBestMoveCommand(SearchResult result) {
-		logger.info(String.format("Search %s", result.report(rootPosition.getTheBoard())));
+		if (ENABLE_LOGGING) {
+			logger.info(String.format("Search %s", result.report(rootPosition.getTheBoard())));
+		}
 		
 		int trustedMove = Move.NULL_MOVE;
 		long tableRootTrans = repopulateRootTransFromCacheIfItWasOverwritten(result);
@@ -502,8 +516,6 @@ public class EubosEngineMain extends AbstractEngine {
 			trustedMove = result.pv[0];
 		} else {
 			tableRootTrans = compareTransWithSearchResult(result, tableRootTrans);
-			logger.info(String.format("tableRootTrans %s",
-					Transposition.report(tableRootTrans, rootPosition.getTheBoard())));
 			trustedMove = Move.valueOfFromTransposition(tableRootTrans, rootPosition.getTheBoard());
 		}
 		

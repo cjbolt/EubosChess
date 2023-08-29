@@ -136,8 +136,10 @@ public class PlySearcher {
 		rootTransposition = tt.getTransposition(pos.getHash());
 	}
 
-	public void terminateFindMove() { 
-		EubosEngineMain.logger.fine("Terminating PlySearcher");
+	public void terminateFindMove() {
+		if (EubosEngineMain.ENABLE_LOGGING) {
+			EubosEngineMain.logger.fine("Terminating PlySearcher");
+		}
 		terminate = true;
 	}
 	private boolean isTerminated() { return terminate; }	
@@ -194,8 +196,10 @@ public class PlySearcher {
 		            break;
 		        }
 				if (lastAspirationFailed) {
-					EubosEngineMain.logger.info(String.format("Aspiration Window failed count=%d score=%d alpha=%d beta=%d depth=%d",
-	        				fail_count, score, alpha, beta, originalSearchDepthRequiredInPly));
+					if (EubosEngineMain.ENABLE_LOGGING) {
+						EubosEngineMain.logger.info(String.format("Aspiration Window failed count=%d score=%d alpha=%d beta=%d depth=%d",
+		        				fail_count, score, alpha, beta, originalSearchDepthRequiredInPly));
+					}
 					if (sr != null)
 						sr.resetAfterWindowingFail();
 				}

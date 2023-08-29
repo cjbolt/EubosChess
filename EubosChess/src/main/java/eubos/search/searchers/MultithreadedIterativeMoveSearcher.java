@@ -64,7 +64,9 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			for (MiniMaxMoveGenerator thisMg : moveGenerators) {
 				int useOrderingScheme = (i%4)+1;
 				thisMg.alternativeMoveListOrdering(useOrderingScheme);
-				EubosEngineMain.logger.fine(String.format("MoveGenerator %d using ordering scheme %d", i, useOrderingScheme));
+				if (EubosEngineMain.ENABLE_LOGGING) {
+					EubosEngineMain.logger.fine(String.format("MoveGenerator %d using ordering scheme %d", i, useOrderingScheme));
+				}
 				i++;
 			}
 		}
@@ -77,7 +79,9 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	}
 	
 	private void haltAllWorkers() {
-		EubosEngineMain.logger.info(String.format("Halting all workers"));
+		if (EubosEngineMain.ENABLE_LOGGING) {
+			EubosEngineMain.logger.info("Halting all workers");
+		}
 		for (MultithreadedSearchWorkerThread worker : workers) {
 			worker.halt();
 		}		
@@ -86,8 +90,10 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	private boolean alWorkersFinished() {
 		for (MultithreadedSearchWorkerThread worker : workers) {
 			if (!worker.finished.get()) {
-				EubosEngineMain.logger.fine(
-						String.format("%s not finished.", worker.getName()));
+				if (EubosEngineMain.ENABLE_LOGGING) {
+					EubosEngineMain.logger.fine(
+							String.format("%s not finished.", worker.getName()));
+				}
 				return false;
 			}
 		}
@@ -204,8 +210,10 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 						// don't start a new iteration, we were only allowing time to complete the search at the current ply
 						searchStopped = true;
 						if (DEBUG_LOGGING) {
-							EubosEngineMain.logger.fine(String.format(
-									"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
+							if (EubosEngineMain.ENABLE_LOGGING) {
+								EubosEngineMain.logger.fine(String.format(
+										"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
+							}
 						}
 					}
 					currentDepth++;
@@ -218,7 +226,9 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			halted = true;
 			myMg.reportStatistics();
 			myMg.sda.close();
-			EubosEngineMain.logger.fine(String.format("Worker %s halted, notifying", getName()));
+			if (EubosEngineMain.ENABLE_LOGGING) {
+				EubosEngineMain.logger.fine(String.format("Worker %s halted, notifying", getName()));
+			}
 			synchronized(main) {
 				finished.set(true);
 				main.notify();
