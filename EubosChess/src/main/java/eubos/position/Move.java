@@ -227,6 +227,22 @@ public final class Move {
 		return move;
 	}
 	
+	public static int valueOfFromTransposition(long trans) {
+		int move = Transposition.getBestMove(trans);
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			assert move != Move.NULL_MOVE : "Tranposition move was null.";
+		}	
+		
+		// Encode move classification. Note: always best, never killer
+		int type = Move.TYPE_BEST_MASK;
+		if (getPromotion(move) != Piece.NONE) {
+			type |= Move.TYPE_PROMOTION_MASK;
+		}		
+		move |= type << TYPE_SHIFT;
+		
+		return move;
+	}
+	
 	public static int valueOfFromTransposition(long trans, Board theBoard) {
 		int move = Transposition.getBestMove(trans);
 		if (EubosEngineMain.ENABLE_ASSERTS) {

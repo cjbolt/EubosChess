@@ -84,7 +84,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_FUTILITY_PRUNING_OF_KILLER_MOVES = false;
 	public static final boolean ENABLE_PER_MOVE_FUTILITY_PRUNING = true;
 	public static final boolean ENABLE_INSTANT_REPLY = false;
-	public static final boolean ENABLE_OVERWRITE_TRANS_WITH_SEARCH = false;
+	public static final boolean ENABLE_OVERWRITE_TRANS_WITH_SEARCH = true;
 	
 	public static final boolean ENABLE_PINNED_TO_KING_CHECK_IN_ILLEGAL_DETECTION = true;
 	public static final boolean ENABLE_PIECE_LISTS = false;
@@ -461,7 +461,8 @@ public class EubosEngineMain extends AbstractEngine {
 		int transDepth = Transposition.getDepthSearchedInPly(trans);
 		if (transDepth <= result.depth && !Move.areEqualForTrans(transBestMove, result.pv[0])) {
 			logger.warning(String.format("rootTrans %s inconsistent with search %s, updating hash",
-					Transposition.report(trans, rootPosition.getTheBoard()), result.report()));
+					Transposition.report(trans, rootPosition.getTheBoard()),
+					result.report(rootPosition.getTheBoard())));
 			if (ENABLE_OVERWRITE_TRANS_WITH_SEARCH) {
 				trans = Transposition.setBestMove(trans, result.pv[0]);
 				trans = Transposition.setDepthSearchedInPly(trans, (byte)result.depth);
@@ -484,12 +485,14 @@ public class EubosEngineMain extends AbstractEngine {
 			} else {
 				logger.severe("repopulateRootTransFromCacheIfItWasOverwritten cache was null!");
 			}
+		} else {
+			updateReferenceScoreWhenMateFound(tableRootTrans);
 		}
 		return tableRootTrans;
 	}
 	
 	public void sendBestMoveCommand(SearchResult result) {
-		logger.info(String.format("Search %s", result.report()));
+		logger.info(String.format("Search %s", result.report(rootPosition.getTheBoard())));
 		
 		int trustedMove = Move.NULL_MOVE;
 		long tableRootTrans = repopulateRootTransFromCacheIfItWasOverwritten(result);
@@ -499,7 +502,6 @@ public class EubosEngineMain extends AbstractEngine {
 			trustedMove = result.pv[0];
 		} else {
 			tableRootTrans = compareTransWithSearchResult(result, tableRootTrans);
-			updateReferenceScoreWhenMateFound(tableRootTrans);
 			logger.info(String.format("tableRootTrans %s",
 					Transposition.report(tableRootTrans, rootPosition.getTheBoard())));
 			trustedMove = Move.valueOfFromTransposition(tableRootTrans, rootPosition.getTheBoard());
