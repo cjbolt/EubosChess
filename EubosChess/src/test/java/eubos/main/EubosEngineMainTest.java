@@ -688,5 +688,17 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		long hashEntry = Transposition.valueOf((byte)127, (short)0, Score.upperBound, hashMove, 100 >> 2);
 		pokeHashEntryAndPerformTest(1000, hashEntry);
 	}
+	
+	@Test
+	@Ignore
+	public void test_underPromotionWeirdness() throws IllegalNotationException, IOException, InterruptedException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/4K3/8/8/8/2k1p3/8 b - - 0 89"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR, BEST_PREFIX+"e2e1q"+CMD_TERMINATOR));
+		
+		int hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.WHITE_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
+		long hashEntry = Transposition.valueOf((byte)1, (short)1831, Score.lowerBound, hashMove, 88 >> 2);
+		pokeHashEntryAndPerformTest(8000000, hashEntry);
+	}
 	 
 }

@@ -64,7 +64,7 @@ public final class Transposition {
 		return (byte)((trans >>> TYPE_SHIFT) & TYPE_GUARD_MASK);
 	}
 
-	protected static long setType(long trans, byte type) {
+	public static long setType(long trans, byte type) {
 		long temp = ((long)type) << TYPE_SHIFT;
 		trans |= temp;
 		return trans;

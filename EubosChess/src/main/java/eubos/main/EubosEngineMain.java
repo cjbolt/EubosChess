@@ -476,6 +476,7 @@ public class EubosEngineMain extends AbstractEngine {
 			if (ENABLE_OVERWRITE_TRANS_WITH_SEARCH) {
 				trans = Transposition.setBestMove(trans, result.pv[0]);
 				trans = Transposition.setDepthSearchedInPly(trans, (byte)result.depth);
+				trans = Transposition.setType(trans, Score.typeUnknown); // We can't be sure which it was
 			}
 		}
 		return trans;
@@ -484,6 +485,7 @@ public class EubosEngineMain extends AbstractEngine {
 	private long repopulateRootTransFromCacheIfItWasOverwritten(SearchResult result) {
 		long cachedRootTrans = result.rootTrans;
 		long tableRootTrans = hashMap.getTransposition(rootPosition.getHash());
+		long checkedTrans = 0L;
 		// The transposition in the table could have been overwritten during the search;
 		// If it has been removed we should rewrite it using the best we have, i.e. the cached version.
 		if (tableRootTrans == 0L) {
@@ -492,15 +494,18 @@ public class EubosEngineMain extends AbstractEngine {
 					logger.info(String.format("rootTrans overwritten replacing with %s",
 							Transposition.report(cachedRootTrans, rootPosition.getTheBoard())));
 				}
-				hashMap.putTransposition(rootPosition.getHash(), cachedRootTrans);
-				tableRootTrans = cachedRootTrans;
+				checkedTrans = compareTransWithSearchResult(result, cachedRootTrans);
 			} else {
 				logger.severe("repopulateRootTransFromCacheIfItWasOverwritten cache was null!");
 			}
 		} else {
 			updateReferenceScoreWhenMateFound(tableRootTrans);
+			checkedTrans = compareTransWithSearchResult(result, tableRootTrans);
 		}
-		return tableRootTrans;
+		if (checkedTrans != tableRootTrans) {
+			hashMap.putTransposition(rootPosition.getHash(), checkedTrans);
+		}
+		return checkedTrans;
 	}
 	
 	public void sendBestMoveCommand(SearchResult result) {
@@ -515,7 +520,6 @@ public class EubosEngineMain extends AbstractEngine {
 			// in that case, return the PV move from the search result.
 			trustedMove = result.pv[0];
 		} else {
-			tableRootTrans = compareTransWithSearchResult(result, tableRootTrans);
 			trustedMove = Move.valueOfFromTransposition(tableRootTrans, rootPosition.getTheBoard());
 		}
 		
