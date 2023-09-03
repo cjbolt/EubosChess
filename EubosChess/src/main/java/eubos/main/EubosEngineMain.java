@@ -84,7 +84,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_FUTILITY_PRUNING_OF_KILLER_MOVES = false;
 	public static final boolean ENABLE_PER_MOVE_FUTILITY_PRUNING = true;
 	public static final boolean ENABLE_INSTANT_REPLY = false;
-	public static final boolean ENABLE_OVERWRITE_TRANS_WITH_SEARCH = true;
+	public static final boolean ENABLE_OVERWRITE_TRANS_WITH_SEARCH = false;
 	
 	public static final boolean ENABLE_PINNED_TO_KING_CHECK_IN_ILLEGAL_DETECTION = true;
 	public static final boolean ENABLE_PIECE_LISTS = false;
@@ -477,6 +477,8 @@ public class EubosEngineMain extends AbstractEngine {
 				trans = Transposition.setBestMove(trans, result.pv[0]);
 				trans = Transposition.setDepthSearchedInPly(trans, (byte)result.depth);
 				trans = Transposition.setType(trans, Score.typeUnknown); // We can't be sure which it was
+			} else {
+				trans = 0L;
 			}
 		}
 		return trans;
@@ -502,7 +504,7 @@ public class EubosEngineMain extends AbstractEngine {
 			updateReferenceScoreWhenMateFound(tableRootTrans);
 			checkedTrans = compareTransWithSearchResult(result, tableRootTrans);
 		}
-		if (checkedTrans != tableRootTrans) {
+		if (checkedTrans != tableRootTrans && checkedTrans != 0L) {
 			hashMap.putTransposition(rootPosition.getHash(), checkedTrans);
 		}
 		return checkedTrans;
