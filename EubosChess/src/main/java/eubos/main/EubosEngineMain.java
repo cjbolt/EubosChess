@@ -465,9 +465,9 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	private long compareTransWithSearchResult(SearchResult result, long trans) {
-		int transBestMove = Transposition.getBestMove(trans);
+		//int transBestMove = Transposition.getBestMove(trans);
 		int transDepth = Transposition.getDepthSearchedInPly(trans);
-		if (transDepth <= result.depth && !Move.areEqualForTrans(transBestMove, result.pv[0])) {
+		if (transDepth <= result.depth /*&& !Move.areEqualForTrans(transBestMove, result.pv[0])*/) {
 			if (ENABLE_LOGGING) {
 				logger.warning(String.format("rootTrans %s inconsistent with search %s, updating hash",
 						Transposition.report(trans, rootPosition.getTheBoard()),
@@ -518,8 +518,6 @@ public class EubosEngineMain extends AbstractEngine {
 		int trustedMove = Move.NULL_MOVE;
 		long tableRootTrans = repopulateRootTransFromCacheIfItWasOverwritten(result);
 		if (tableRootTrans == 0L) {
-			// In extremely rare cases, if the Zobrist matches 0L, we can't use the Transposition,
-			// in that case, return the PV move from the search result.
 			trustedMove = result.pv[0];
 		} else {
 			trustedMove = Move.valueOfFromTransposition(tableRootTrans, rootPosition.getTheBoard());

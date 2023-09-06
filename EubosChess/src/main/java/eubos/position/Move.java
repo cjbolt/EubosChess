@@ -251,8 +251,9 @@ public final class Move {
 		
 		// Extract fields required from LSW
 		int originPiece = theBoard.getPieceAtSquare(1L << getOriginPosition(move));
+		boolean isWhite = Piece.isWhite(originPiece);
 		int targetPiece = isEnPassantCapture(move) ? 
-				(Piece.isWhite(originPiece) ? Piece.BLACK_PAWN : Piece.WHITE_PAWN) :
+				(isWhite ? Piece.BLACK_PAWN : Piece.WHITE_PAWN) :
 				theBoard.getPieceAtSquare(1L << getTargetPosition(move));		
 		
 		// Encode Target Piece
@@ -272,18 +273,23 @@ public final class Move {
 		}
 		if (targetPiece != Piece.NONE) {
 			type |= Move.TYPE_CAPTURE_MASK;
-		}		
-		move |= type << TYPE_SHIFT;
-		
-		// Check to set castling flag
-		if (Piece.isKing(originPiece) && targetPiece == Piece.NONE) {
-			if (Move.areEqualForBestKiller(CastlingManager.bksc, move) ||
-				Move.areEqualForBestKiller(CastlingManager.wksc, move) ||
-				Move.areEqualForBestKiller(CastlingManager.bqsc, move) ||
-				Move.areEqualForBestKiller(CastlingManager.wqsc, move)) {
-				move |= Move.MISC_CASTLING_MASK;
+		} else {
+			// Check to set castling flag here for optimisation
+			if (Piece.isKing(originPiece)) {
+				if (isWhite) {
+					if (Move.areEqualForBestKiller(CastlingManager.wksc, move) ||
+						Move.areEqualForBestKiller(CastlingManager.wqsc, move)) {
+						move |= Move.MISC_CASTLING_MASK;
+					}
+				} else {
+					if (Move.areEqualForBestKiller(CastlingManager.bksc, move) ||
+						Move.areEqualForBestKiller(CastlingManager.bqsc, move)) {
+						move |= Move.MISC_CASTLING_MASK;
+					}
+				}
 			}
 		}
+		move |= type << TYPE_SHIFT;
 		
 		return move;
 	}
@@ -386,7 +392,7 @@ public final class Move {
 	}
 	
 	public static boolean areEqualForTrans(int move1, int move2) {
-		return ((move1 ^ move2) & 0xFFFF) == 0;
+		return ((move1 ^ move2) & 0x7FFF) == 0;
 	}
 	
 	public static int getType(int move) {
