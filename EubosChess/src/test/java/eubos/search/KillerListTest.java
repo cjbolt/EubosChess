@@ -29,9 +29,9 @@ public class KillerListTest {
 			int ply = 0;
 			sut.addMove(ply, moveKingPawn);
 			int [] moves = sut.getMoves(ply);
-			assertTrue(Move.areEqualForBestKiller(moveKingPawn, moves[0]));
-			assertTrue(Move.areEqualForBestKiller(Move.NULL_MOVE, moves[1]));
-			assertTrue(Move.areEqualForBestKiller(Move.NULL_MOVE, moves[2]));
+			assertTrue(Move.areEqual(moveKingPawn, moves[0]));
+			assertTrue(Move.areEqual(Move.NULL_MOVE, moves[1]));
+			assertTrue(Move.areEqual(Move.NULL_MOVE, moves[2]));
 		}
 	}
 	
@@ -42,8 +42,8 @@ public class KillerListTest {
 			sut.addMove(ply, moveKingPawn);
 			sut.addMove(ply, moveQueenPawn);
 			int [] moves = sut.getMoves(ply);
-			assertTrue(Move.areEqualForBestKiller(moveKingPawn, moves[0]));
-			assertTrue(Move.areEqualForBestKiller(moveQueenPawn, moves[1]));
+			assertTrue(Move.areEqual(moveKingPawn, moves[0]));
+			assertTrue(Move.areEqual(moveQueenPawn, moves[1]));
 		}
 	}
 	
@@ -56,9 +56,9 @@ public class KillerListTest {
 			sut.addMove(ply, moveRookPawn);
 			// Rook pawn move should replace oldest move
 			int [] moves = sut.getMoves(ply);
-			assertTrue(Move.areEqualForBestKiller(moveKingPawn, moves[0]));
-			assertTrue(Move.areEqualForBestKiller(moveQueenPawn, moves[1]));
-			assertTrue(Move.areEqualForBestKiller(moveRookPawn, moves[2]));
+			assertTrue(Move.areEqual(moveKingPawn, moves[0]));
+			assertTrue(Move.areEqual(moveQueenPawn, moves[1]));
+			assertTrue(Move.areEqual(moveRookPawn, moves[2]));
 		}
 	}
 	
@@ -72,8 +72,8 @@ public class KillerListTest {
 			sut.addMove(ply, moveKnightPawn);
 			// Rook pawn move should replace oldest move
 			int [] moves = sut.getMoves(ply);
-			assertTrue(Move.areEqualForBestKiller(moveKnightPawn, moves[0]));
-			assertTrue(Move.areEqualForBestKiller(moveQueenPawn, moves[1]));
+			assertTrue(Move.areEqual(moveKnightPawn, moves[0]));
+			assertTrue(Move.areEqual(moveQueenPawn, moves[1]));
 		}
 	}
 
@@ -88,8 +88,8 @@ public class KillerListTest {
 			// Rook pawn move should replace oldest move
 			
 			int [] moves = sut.getMoves(ply);
-			assertTrue(Move.areEqualForBestKiller(moveKingPawn, moves[0]));
-			assertTrue(Move.areEqualForBestKiller(Move.NULL_MOVE, moves[1]));
+			assertTrue(Move.areEqual(moveKingPawn, moves[0]));
+			assertTrue(Move.areEqual(Move.NULL_MOVE, moves[1]));
 		}
 	}
 	
@@ -103,8 +103,8 @@ public class KillerListTest {
 			sut.addMove(ply, moveKingPawn);
 			
 			int [] moves = sut.getMoves(ply);
-			assertTrue(Move.areEqualForBestKiller(moveKingPawn, moves[0]));
-			assertTrue(Move.areEqualForBestKiller(moveQueenPawn, moves[1]));
+			assertTrue(Move.areEqual(moveKingPawn, moves[0]));
+			assertTrue(Move.areEqual(moveQueenPawn, moves[1]));
 		}
 	}
 	
@@ -119,9 +119,9 @@ public class KillerListTest {
 			sut.addMove(ply, moveRookPawn);
 			
 			int [] moves = sut.getMoves(ply);
-			assertTrue(Move.areEqualForBestKiller(moveKingPawn, moves[0]));
-			assertTrue(Move.areEqualForBestKiller(moveQueenPawn, moves[1]));
-			assertTrue(Move.areEqualForBestKiller(moveRookPawn, moves[2]));
+			assertTrue(Move.areEqual(moveKingPawn, moves[0]));
+			assertTrue(Move.areEqual(moveQueenPawn, moves[1]));
+			assertTrue(Move.areEqual(moveRookPawn, moves[2]));
 		}
 	}
 	
@@ -137,8 +137,8 @@ public class KillerListTest {
 			sut.addMove(ply, moveKnightPawn);
 
 			int [] moves = sut.getMoves(ply);
-			assertTrue(Move.areEqualForBestKiller(moveKnightPawn, moves[0]));
-			assertTrue(Move.areEqualForBestKiller(moveQueenPawn, moves[1]));
+			assertTrue(Move.areEqual(moveKnightPawn, moves[0]));
+			assertTrue(Move.areEqual(moveQueenPawn, moves[1]));
 		}
 	}
 }

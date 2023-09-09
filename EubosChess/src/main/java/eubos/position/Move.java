@@ -58,8 +58,8 @@ public final class Move {
 	public static final int NULL_MOVE =
 			valueOf(TYPE_REGULAR_NONE, Position.a1, Piece.NONE, Position.a1, Piece.NONE, Piece.NONE);
 	
-	public static final int EQUALITY_MASK = ORIGIN_OFFSET_MASK | TARGET_OFFSET_MASK | PROMOTION_MASK | MISC_EN_PASSANT_CAPTURE_MASK;
-	public static final int BEST_KILLER_EQUALITY_MASK = ORIGIN_OFFSET_MASK | ORIGIN_PIECE_MASK | TARGET_OFFSET_MASK | TARGET_PIECE_MASK | PROMOTION_MASK;
+	public static final int EQUALITY_OF_POSITIONS_PROMO_EP_MASK = ORIGIN_OFFSET_MASK | TARGET_OFFSET_MASK | PROMOTION_MASK | MISC_EN_PASSANT_CAPTURE_MASK;
+	public static final int EQUALITY_OF_PIECES_POSITIONS_PROMO_MASK = ORIGIN_OFFSET_MASK | ORIGIN_PIECE_MASK | TARGET_OFFSET_MASK | TARGET_PIECE_MASK | PROMOTION_MASK;
 	
 	
 	public static int valueOf(int originPosition, int originPiece, int targetPosition, int targetPiece) {
@@ -277,13 +277,13 @@ public final class Move {
 			// Check to set castling flag here for optimisation
 			if (Piece.isKing(originPiece)) {
 				if (isWhite) {
-					if (Move.areEqualForBestKiller(CastlingManager.wksc, move) ||
-						Move.areEqualForBestKiller(CastlingManager.wqsc, move)) {
+					if (Move.areEqual(CastlingManager.wksc, move) ||
+						Move.areEqual(CastlingManager.wqsc, move)) {
 						move |= Move.MISC_CASTLING_MASK;
 					}
 				} else {
-					if (Move.areEqualForBestKiller(CastlingManager.bksc, move) ||
-						Move.areEqualForBestKiller(CastlingManager.bqsc, move)) {
+					if (Move.areEqual(CastlingManager.bksc, move) ||
+						Move.areEqual(CastlingManager.bqsc, move)) {
 						move |= Move.MISC_CASTLING_MASK;
 					}
 				}
@@ -383,12 +383,12 @@ public final class Move {
 		}
 	}
 	
-	public static boolean areEqualForBestKiller(int move1, int move2) {
-		return ((move1 ^ move2) & BEST_KILLER_EQUALITY_MASK) == 0;
+	public static boolean areEqual(int move1, int move2) {
+		return ((move1 ^ move2) & EQUALITY_OF_PIECES_POSITIONS_PROMO_MASK) == 0;
 	}
 	
 	public static boolean areEqualForTrans(int move1, int move2) {
-		return ((move1 ^ move2) & EQUALITY_MASK) == 0;
+		return ((move1 ^ move2) & EQUALITY_OF_POSITIONS_PROMO_EP_MASK) == 0;
 	}
 	
 	public static int getType(int move) {

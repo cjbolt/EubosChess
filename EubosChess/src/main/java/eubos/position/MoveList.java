@@ -213,7 +213,7 @@ public class MoveList implements Iterable<Integer> {
 
 	private MoveListIterator checkKiller(int killerNum) {
 		MoveListIterator iter = null;
-		if (!Move.areEqualForBestKiller(state[ply].bestMove, state[ply].killers[killerNum]) && 
+		if (!Move.areEqual(state[ply].bestMove, state[ply].killers[killerNum]) && 
 			pm.getTheBoard().isPlayableMove(state[ply].killers[killerNum], state[ply].needToEscapeMate, pm.castling)) {
 			iter = singleMoveIterator(state[ply].killers[killerNum]);
 		}
@@ -334,7 +334,7 @@ public class MoveList implements Iterable<Integer> {
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert !Piece.isKing(Move.getTargetPiece(move));
 			}
-			if (Move.areEqualForBestKiller(move, state[ply].bestMove)) {
+			if (Move.areEqual(move, state[ply].bestMove)) {
 				// Silently consume
 			} else {
 				state[ply].moves[state[ply].moves_index++] = move;
@@ -370,7 +370,7 @@ public class MoveList implements Iterable<Integer> {
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert !Piece.isKing(Move.getTargetPiece(move));
 			}
-			if (Move.areEqualForBestKiller(move, state[ply].bestMove)) {
+			if (Move.areEqual(move, state[ply].bestMove)) {
 				// Silently consume
 			} else {
 				state[ply].moves[state[ply].moves_index++] = move;
@@ -387,7 +387,7 @@ public class MoveList implements Iterable<Integer> {
 
 		@Override
 		public void addNormal(int move) {
-			if (Move.areEqualForBestKiller(move, state[ply].bestMove))
+			if (Move.areEqual(move, state[ply].bestMove))
 				return;
 			state[ply].moves[state[ply].moves_index++] = move;
 			legalQuietMoveAdded = true;
@@ -407,7 +407,7 @@ public class MoveList implements Iterable<Integer> {
 	public class QuietMovesConsumingKillers extends QuietMovesWithNoKillers implements IAddMoves {
 		@Override
 		public void addNormal(int move) {
-			if (Move.areEqualForBestKiller(move, state[ply].bestMove))
+			if (Move.areEqual(move, state[ply].bestMove))
 				return;
 			if (KillerList.isMoveOnListAtPly(state[ply].killers, move))
 				return;

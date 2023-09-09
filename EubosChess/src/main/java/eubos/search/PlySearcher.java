@@ -268,7 +268,7 @@ public class PlySearcher {
 				}
 				
 				if (EubosEngineMain.ENABLE_ASSERTS) {
-					assert !Move.areEqualForBestKiller(currMove, Move.NULL_MOVE): "Null move found in MoveList";
+					assert !Move.areEqual(currMove, Move.NULL_MOVE): "Null move found in MoveList";
 				}
 				
 				state[0].moveNumber += 1;
@@ -518,7 +518,7 @@ public class PlySearcher {
 				
 				state[currPly].moveNumber += 1;
 				if (EubosEngineMain.ENABLE_ASSERTS) {
-					assert !Move.areEqualForBestKiller(currMove, Move.NULL_MOVE): "Null move found in MoveList";
+					assert !Move.areEqual(currMove, Move.NULL_MOVE): "Null move found in MoveList";
 				}
 				if (state[currPly].moveNumber == 1) {
 					pc.initialise(currPly, currMove);
