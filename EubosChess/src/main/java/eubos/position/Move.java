@@ -58,7 +58,7 @@ public final class Move {
 	public static final int NULL_MOVE =
 			valueOf(TYPE_REGULAR_NONE, Position.a1, Piece.NONE, Position.a1, Piece.NONE, Piece.NONE);
 	
-	public static final int EQUALITY_MASK = ORIGIN_OFFSET_MASK | TARGET_OFFSET_MASK | PROMOTION_MASK;
+	public static final int EQUALITY_MASK = ORIGIN_OFFSET_MASK | TARGET_OFFSET_MASK | PROMOTION_MASK | MISC_EN_PASSANT_CAPTURE_MASK;
 	public static final int BEST_KILLER_EQUALITY_MASK = ORIGIN_OFFSET_MASK | ORIGIN_PIECE_MASK | TARGET_OFFSET_MASK | TARGET_PIECE_MASK | PROMOTION_MASK;
 	
 	
@@ -383,16 +383,12 @@ public final class Move {
 		}
 	}
 	
-	public static boolean areEqual(int move1, int move2) {
-		return ((move1 ^ move2) & EQUALITY_MASK) == 0;
-	}
-	
 	public static boolean areEqualForBestKiller(int move1, int move2) {
 		return ((move1 ^ move2) & BEST_KILLER_EQUALITY_MASK) == 0;
 	}
 	
 	public static boolean areEqualForTrans(int move1, int move2) {
-		return ((move1 ^ move2) & 0x7FFF) == 0;
+		return ((move1 ^ move2) & EQUALITY_MASK) == 0;
 	}
 	
 	public static int getType(int move) {

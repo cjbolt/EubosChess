@@ -319,6 +319,7 @@ public class PlySearcher {
 						break;
 					}
 					trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[0].alpha, Score.upperBound);
+					rootTransposition = trans;
 					reportPv((short) state[0].alpha);
 				} 
 				else if (positionScore > state[0].plyScore) {
