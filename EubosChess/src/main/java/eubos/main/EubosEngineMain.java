@@ -258,7 +258,7 @@ public class EubosEngineMain extends AbstractEngine {
 					logger.info(String.format("EngineStartCalculatingCommand - Mate in transposition %s", 
 							Transposition.report(rootTrans, rootPosition.getTheBoard())));
 				}
-				SearchResult result = new SearchResult(pv, true, rootTrans, Transposition.getDepthSearchedInPly(rootTrans));
+				SearchResult result = new SearchResult(pv, true, rootTrans, Transposition.getDepthSearchedInPly(rootTrans), true);
 				sendBestMoveCommand(result);
 			}
 		} else {
@@ -467,7 +467,7 @@ public class EubosEngineMain extends AbstractEngine {
 	private long compareTransWithSearchResult(SearchResult result, long trans) {
 		int transBestMove = Transposition.getBestMove(trans);
 		int transDepth = Transposition.getDepthSearchedInPly(trans);
-		if (transDepth <= result.depth && !Move.areEqualForTrans(transBestMove, result.pv[0])) {
+		if (result.trusted && transDepth <= result.depth && !Move.areEqualForTrans(transBestMove, result.pv[0])) {
 			if (ENABLE_LOGGING) {
 				logger.warning(String.format("rootTrans %s inconsistent with search %s, updating hash",
 						Transposition.report(trans, rootPosition.getTheBoard()),

@@ -85,6 +85,7 @@ public class PlySearcher {
 	
 	private boolean hasSearchedPv = false;
 	private boolean lastAspirationFailed = false;
+	public boolean certain = false;
 	
 	public PlySearcher(
 			ITranspositionAccessor hashMap,
@@ -129,6 +130,7 @@ public class PlySearcher {
 		
 		hasSearchedPv = false;
 		lastAspirationFailed = false;
+		certain = false;
 		terminate = false;
 		
 		// Back up the root transposition, because it can be lost in the search
@@ -170,8 +172,9 @@ public class PlySearcher {
 					lastAspirationFailed = true;
 					EubosEngineMain.logger.severe("Aspiration Window failed - no score, illegal position");
 		            break;
-	        	} else if (isTerminated() && score ==0) {
-	        		// Early termination, didn't back up a score at the last ply			
+	        	} else if (isTerminated() && score == 0) {
+	        		// Early termination, possibly didn't back up a score at the last ply
+	        		certain = false;
 	        	} else if (score <= alpha) {
 	        		// Failed low, adjust window
 	        		lastAspirationFailed = true;
@@ -193,6 +196,7 @@ public class PlySearcher {
 		        } else {
 		        	// Exact score in window returned
 		        	lastAspirationFailed = false;
+		        	certain = true;
 		            break;
 		        }
 				if (lastAspirationFailed) {
@@ -200,6 +204,7 @@ public class PlySearcher {
 						EubosEngineMain.logger.info(String.format("Aspiration Window failed count=%d score=%d alpha=%d beta=%d depth=%d",
 		        				fail_count, score, alpha, beta, originalSearchDepthRequiredInPly));
 					}
+					certain = false;
 					if (sr != null)
 						sr.resetAfterWindowingFail();
 				}
@@ -207,6 +212,7 @@ public class PlySearcher {
 		} else {
 			// Not using aspiration windows
 			score = (short) searchRoot(originalSearchDepthRequiredInPly, Score.PROVISIONAL_ALPHA, Score.PROVISIONAL_BETA);
+			certain = !(isTerminated() && score == 0);
 		}
 		return score;
 	}

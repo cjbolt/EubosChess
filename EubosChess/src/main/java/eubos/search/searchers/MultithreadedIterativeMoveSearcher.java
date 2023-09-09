@@ -190,7 +190,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		
 		public void run() {
 			byte currentDepth = 1;
-			result = new SearchResult(new int [] {Move.NULL_MOVE}, false, 0L, currentDepth);
+			result = new SearchResult(new int [] {Move.NULL_MOVE}, false, 0L, currentDepth, true);
 		
 			while (!searchStopped && !halted) {
 				result = myMg.findMove(currentDepth, sr);
