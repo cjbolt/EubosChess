@@ -130,7 +130,7 @@ public class PlySearcher {
 		
 		hasSearchedPv = false;
 		lastAspirationFailed = false;
-		certain = false;
+		//certain = false;
 		terminate = false;
 		
 		// Back up the root transposition, because it can be lost in the search
