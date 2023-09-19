@@ -146,6 +146,14 @@ public class PlySearcher {
 	}
 	private boolean isTerminated() { return terminate; }	
 	
+	private int getCoefficientAlpha(int lastScore, int windowSize) {
+		return Math.max(Score.PROVISIONAL_ALPHA, lastScore - (windowSize+(windowSize*(Math.abs(lastScore/100)))));
+	}
+	
+	private int getCoefficientBeta(int lastScore, int windowSize) {
+		return Math.min(Score.PROVISIONAL_BETA, lastScore + (windowSize+(windowSize*(Math.abs(lastScore/100)))));
+	}
+	
 	public int searchPly(short lastScore)  {
 		currPly = 0;
 		extendedSearchDeepestPly = 0;
@@ -160,9 +168,9 @@ public class PlySearcher {
 			int alpha = Score.PROVISIONAL_ALPHA;
 			int beta = Score.PROVISIONAL_BETA;
 			if (originalSearchDepthRequiredInPly >= 5) {
-				int windowSize = Score.isMate(lastScore) ? 1 : ASPIRATION_WINDOW_FALLBACK[fail_count];
-				alpha = Math.max(Score.PROVISIONAL_ALPHA, lastScore - windowSize);
-				beta = Math.min(Score.PROVISIONAL_BETA, lastScore + windowSize);
+				int windowSize = ASPIRATION_WINDOW_FALLBACK[fail_count];
+				alpha = getCoefficientAlpha(lastScore, Score.isMate(lastScore) ? 1 : windowSize);
+				beta = getCoefficientBeta(lastScore, Score.isMate(lastScore) ? 1 : windowSize);
 			}
 			
 			while (!isTerminated()) {		
@@ -180,7 +188,8 @@ public class PlySearcher {
 	        		lastAspirationFailed = true;
 	        		fail_count++;
 		        	if (!Score.isMate(lastScore) && fail_count < ASPIRATION_WINDOW_FALLBACK.length-1) {
-		        		alpha = Math.max(Score.PROVISIONAL_ALPHA, lastScore - ASPIRATION_WINDOW_FALLBACK[fail_count]);
+		        		int windowSize = ASPIRATION_WINDOW_FALLBACK[fail_count];
+		        		alpha = getCoefficientAlpha(lastScore, windowSize);
 		        	} else {
 		        		alpha = Score.PROVISIONAL_ALPHA;
 		        	}
@@ -189,7 +198,8 @@ public class PlySearcher {
 		        	lastAspirationFailed = true;
 		        	fail_count++;
 		        	if (!Score.isMate(lastScore) && fail_count < ASPIRATION_WINDOW_FALLBACK.length-1) {
-		        		beta = Math.min(Score.PROVISIONAL_BETA, lastScore + ASPIRATION_WINDOW_FALLBACK[fail_count]);
+		        		int windowSize = ASPIRATION_WINDOW_FALLBACK[fail_count];
+		        		beta = getCoefficientBeta(lastScore, windowSize);
 		        	} else {
 		        		beta = Score.PROVISIONAL_BETA;
 		        	}
