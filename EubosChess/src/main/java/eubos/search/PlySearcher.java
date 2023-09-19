@@ -161,8 +161,8 @@ public class PlySearcher {
 			int beta = Score.PROVISIONAL_BETA;
 			if (originalSearchDepthRequiredInPly >= 5) {
 				int windowSize = Score.isMate(lastScore) ? 1 : ASPIRATION_WINDOW_FALLBACK[fail_count];
-				alpha = lastScore - windowSize;
-				beta = lastScore + windowSize;
+				alpha = Math.max(Score.PROVISIONAL_ALPHA, lastScore - windowSize);
+				beta = Math.min(Score.PROVISIONAL_BETA, lastScore + windowSize);
 			}
 			
 			while (!isTerminated()) {		
@@ -180,7 +180,7 @@ public class PlySearcher {
 	        		lastAspirationFailed = true;
 	        		fail_count++;
 		        	if (!Score.isMate(lastScore) && fail_count < ASPIRATION_WINDOW_FALLBACK.length-1) {
-		        		alpha = lastScore - ASPIRATION_WINDOW_FALLBACK[fail_count];
+		        		alpha = Math.max(Score.PROVISIONAL_ALPHA, lastScore - ASPIRATION_WINDOW_FALLBACK[fail_count]);
 		        	} else {
 		        		alpha = Score.PROVISIONAL_ALPHA;
 		        	}
@@ -189,7 +189,7 @@ public class PlySearcher {
 		        	lastAspirationFailed = true;
 		        	fail_count++;
 		        	if (!Score.isMate(lastScore) && fail_count < ASPIRATION_WINDOW_FALLBACK.length-1) {
-		        		beta = lastScore + ASPIRATION_WINDOW_FALLBACK[fail_count];
+		        		beta = Math.min(Score.PROVISIONAL_BETA, lastScore + ASPIRATION_WINDOW_FALLBACK[fail_count]);
 		        	} else {
 		        		beta = Score.PROVISIONAL_BETA;
 		        	}
