@@ -130,7 +130,8 @@ public class PositionEvaluator implements IEvaluate {
 		ks_eval = new KingSafetyEvaluator(pm);
 		// If either side can't win (e.g. bare King) then do a mate search.
 		goForMate = ((Long.bitCount(bd.getBlackPieces()) == 1) || 
-				     (Long.bitCount(bd.getWhitePieces()) == 1));
+				     (Long.bitCount(bd.getWhitePieces()) == 1)) ||
+				Math.abs(bd.me.getMiddleGameDelta()) > 4000;
 		initialise();
 		if (TUNE_LAZY_EVAL) {
 			lazyStat = new LazyEvalStatistics();

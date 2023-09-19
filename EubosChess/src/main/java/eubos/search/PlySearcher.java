@@ -147,11 +147,20 @@ public class PlySearcher {
 	private boolean isTerminated() { return terminate; }	
 	
 	private int getCoefficientAlpha(int lastScore, int windowSize) {
-		return Math.max(Score.PROVISIONAL_ALPHA, lastScore - (windowSize+(windowSize*((lastScore > 0) ? Math.abs(lastScore/100) : 0))));
+		//return Math.max(Score.PROVISIONAL_ALPHA, lastScore - Math.max(1, (windowSize/(lastScore >= 100 ? lastScore/100 : 1))));
+		int windowOffset = lastScore >= 50 ? lastScore/50 : 0;
+		if (windowOffset > windowSize)
+			windowSize += windowOffset/2;
+		return Math.max(Score.PROVISIONAL_ALPHA, lastScore + windowOffset - windowSize);
 	}
 	
 	private int getCoefficientBeta(int lastScore, int windowSize) {
-		return Math.min(Score.PROVISIONAL_BETA, lastScore + (windowSize+(windowSize*((lastScore > 0) ? 0 : Math.abs(lastScore/100)))));
+		//return Math.min(Score.PROVISIONAL_BETA, lastScore + Math.max(1, (windowSize/(lastScore <= -200 ? (-lastScore)/200 : 1))));
+		//return Math.min(Score.PROVISIONAL_BETA, lastScore + windowSize);
+		int windowOffset = lastScore <= -50 ? -lastScore/50 : 0;
+		if (windowOffset > windowSize)
+			windowSize += windowOffset/2;
+		return Math.min(Score.PROVISIONAL_BETA, lastScore - windowOffset + windowSize);
 	}
 	
 	public int searchPly(short lastScore)  {
@@ -168,8 +177,10 @@ public class PlySearcher {
 			int alpha = Score.PROVISIONAL_ALPHA;
 			int beta = Score.PROVISIONAL_BETA;
 			if (originalSearchDepthRequiredInPly >= 5) {
-				alpha = getCoefficientAlpha(lastScore, Score.isMate(lastScore) ? 1 : ASPIRATION_WINDOW_FALLBACK[0]);
-				beta = getCoefficientBeta(lastScore, Score.isMate(lastScore) ? 1 : ASPIRATION_WINDOW_FALLBACK[0]);
+				if (!pe.goForMate()) {
+					alpha = getCoefficientAlpha(lastScore, ASPIRATION_WINDOW_FALLBACK[0]);
+				}
+				beta = getCoefficientBeta(lastScore, ASPIRATION_WINDOW_FALLBACK[0]);
 			}
 			
 			while (!isTerminated()) {		
