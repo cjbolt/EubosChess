@@ -14,6 +14,7 @@ import eubos.search.transposition.Transposition;
 public class PlySearcher {
 	
 	private static final int [] ASPIRATION_WINDOW_FALLBACK = 
+		//{ Piece.MATERIAL_VALUE_PAWN/6, Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
 		{ Piece.MATERIAL_VALUE_PAWN/4, 2*Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
 
 	public static final int FUTILITY_THRESHOLD = 200;
@@ -147,20 +148,17 @@ public class PlySearcher {
 	private boolean isTerminated() { return terminate; }	
 	
 	private int getCoefficientAlpha(int lastScore, int windowSize) {
-		//return Math.max(Score.PROVISIONAL_ALPHA, lastScore - Math.max(1, (windowSize/(lastScore >= 100 ? lastScore/100 : 1))));
 		int windowOffset = lastScore >= 50 ? lastScore/50 : 0;
 		if (windowOffset > windowSize)
 			windowSize += windowOffset/2;
-		return Math.max(Score.PROVISIONAL_ALPHA, lastScore + windowOffset - windowSize);
+		return Math.max(Score.PROVISIONAL_ALPHA, Math.min(Score.PROVISIONAL_BETA-1, lastScore + windowOffset - windowSize));
 	}
 	
 	private int getCoefficientBeta(int lastScore, int windowSize) {
-		//return Math.min(Score.PROVISIONAL_BETA, lastScore + Math.max(1, (windowSize/(lastScore <= -200 ? (-lastScore)/200 : 1))));
-		//return Math.min(Score.PROVISIONAL_BETA, lastScore + windowSize);
 		int windowOffset = lastScore <= -50 ? -lastScore/50 : 0;
 		if (windowOffset > windowSize)
 			windowSize += windowOffset/2;
-		return Math.min(Score.PROVISIONAL_BETA, lastScore - windowOffset + windowSize);
+		return Math.min(Score.PROVISIONAL_BETA, Math.max(Score.PROVISIONAL_ALPHA+1, lastScore - windowOffset + windowSize));
 	}
 	
 	public int searchPly(short lastScore)  {
@@ -176,12 +174,13 @@ public class PlySearcher {
 			// Adjust the aspiration window, according to the last score, if searching to sufficient depth
 			int alpha = Score.PROVISIONAL_ALPHA;
 			int beta = Score.PROVISIONAL_BETA;
-			if (originalSearchDepthRequiredInPly >= 5) {
+			//if (originalSearchDepthRequiredInPly >= 3) {
 				if (!pe.goForMate()) {
 					alpha = getCoefficientAlpha(lastScore, ASPIRATION_WINDOW_FALLBACK[0]);
+				//}
+					beta = getCoefficientBeta(lastScore, ASPIRATION_WINDOW_FALLBACK[0]);
 				}
-				beta = getCoefficientBeta(lastScore, ASPIRATION_WINDOW_FALLBACK[0]);
-			}
+			//}
 			
 			while (!isTerminated()) {		
 				score = (short) searchRoot(originalSearchDepthRequiredInPly, alpha, beta);

@@ -333,7 +333,8 @@ public class MiniMaxMoveGeneratorTest {
 		// chess.com Problem ID: 0022190
 		setupPosition("k1K5/b7/R7/1P6/1n6/8/8/8 w - - - 1" );
 		expectedMove = new GenericMove("b5b6");
-		doFindMoveTest(true);
+		//doFindMoveTest(true);
+		doFindMoveTest((byte)5, true);
 	}
 
 	@Test
