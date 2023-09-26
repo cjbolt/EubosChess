@@ -166,72 +166,49 @@ public class PlySearcher {
 		extendedSearchDeepestPly = 0;
 		short score = 0;
 		state[0].update();
+		boolean doAspiratedSearch = !pe.goForMate(); /*&& Long.bitCount((pos.getTheBoard().getBlackPieces()|pos.getTheBoard().getWhitePieces())) > 5*/
+		boolean doFullWidthSearch = !doAspiratedSearch;
 		
-		if (EubosEngineMain.ENABLE_ASPIRATION_WINDOWS) {
-			lastAspirationFailed = false;
-			int fail_count = 0;
-			
-			// Adjust the aspiration window, according to the last score, if searching to sufficient depth
-			int alpha = Score.PROVISIONAL_ALPHA;
-			int beta = Score.PROVISIONAL_BETA;
-			//if (originalSearchDepthRequiredInPly >= 3) {
-				if (!pe.goForMate()) {
-					alpha = getCoefficientAlpha(lastScore, ASPIRATION_WINDOW_FALLBACK[0]);
-				//}
-					beta = getCoefficientBeta(lastScore, ASPIRATION_WINDOW_FALLBACK[0]);
-				}
-			//}
-			
-			while (!isTerminated()) {		
+		if (doAspiratedSearch) {
+			for (int aspiration_window : ASPIRATION_WINDOW_FALLBACK) {
+				// Adjust the aspiration window, according to the last score, if searching to sufficient depth
+				int alpha = getCoefficientAlpha(lastScore, aspiration_window);
+				int beta = getCoefficientBeta(lastScore, aspiration_window);
 				score = (short) searchRoot(originalSearchDepthRequiredInPly, alpha, beta);
 		
 				if (Score.isProvisional(score)) {
-					lastAspirationFailed = true;
 					EubosEngineMain.logger.severe("Aspiration Window failed - no score, illegal position");
-		            break;
+		            return score;
 	        	} else if (isTerminated() && score == 0) {
 	        		// Early termination, possibly didn't back up a score at the last ply
+	        		lastAspirationFailed = false;
 	        		certain = false;
-	        	} else if (score <= alpha) {
-	        		// Failed low, adjust window
-	        		lastAspirationFailed = true;
-	        		fail_count++;
-		        	if (!Score.isMate(lastScore) && fail_count < ASPIRATION_WINDOW_FALLBACK.length-1) {
-		        		int windowSize = ASPIRATION_WINDOW_FALLBACK[fail_count];
-		        		alpha = getCoefficientAlpha(lastScore, windowSize);
-		        	} else {
-		        		alpha = Score.PROVISIONAL_ALPHA;
-		        	}
-		        } else if (score >= beta) {
-		        	// Failed high, adjust window
-		        	lastAspirationFailed = true;
-		        	fail_count++;
-		        	if (!Score.isMate(lastScore) && fail_count < ASPIRATION_WINDOW_FALLBACK.length-1) {
-		        		int windowSize = ASPIRATION_WINDOW_FALLBACK[fail_count];
-		        		beta = getCoefficientBeta(lastScore, windowSize);
-		        	} else {
-		        		beta = Score.PROVISIONAL_BETA;
-		        	}
-		        } else {
+	        		break;
+	        	} else if (score > alpha && score < beta) {
 		        	// Exact score in window returned
 		        	lastAspirationFailed = false;
 		        	certain = true;
 		            break;
-		        }
-				if (lastAspirationFailed) {
-					if (EubosEngineMain.ENABLE_LOGGING) {
-						EubosEngineMain.logger.info(String.format("Aspiration Window failed count=%d score=%d alpha=%d beta=%d depth=%d",
-		        				fail_count, score, alpha, beta, originalSearchDepthRequiredInPly));
-					}
+		        } else {
+		        	// Score returned was outside aspiration window
+		        	lastAspirationFailed = true;
 					certain = false;
+					if (EubosEngineMain.ENABLE_LOGGING) {
+						EubosEngineMain.logger.info(String.format("Aspiration Window window=%d score=%d alpha=%d beta=%d depth=%d",
+								aspiration_window, score, alpha, beta, originalSearchDepthRequiredInPly));
+					}
 					if (sr != null)
 						sr.resetAfterWindowingFail();
-				}
+		        }
 			}
-		} else {
-			// Not using aspiration windows
+			if (lastAspirationFailed) {
+				doFullWidthSearch = true;
+			}
+		}
+		if (doFullWidthSearch) {
 			score = (short) searchRoot(originalSearchDepthRequiredInPly, Score.PROVISIONAL_ALPHA, Score.PROVISIONAL_BETA);
 			certain = !(isTerminated() && score == 0);
+			lastAspirationFailed = !certain;
 		}
 		return score;
 	}
