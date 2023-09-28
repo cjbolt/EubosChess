@@ -14,8 +14,8 @@ import eubos.search.transposition.Transposition;
 public class PlySearcher {
 	
 	private static final int [] ASPIRATION_WINDOW_FALLBACK = 
-		//{ Piece.MATERIAL_VALUE_PAWN/6, Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
-		{ Piece.MATERIAL_VALUE_PAWN/4, 2*Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
+		{ Piece.MATERIAL_VALUE_PAWN/6, (3*Piece.MATERIAL_VALUE_PAWN)/2, Piece.MATERIAL_VALUE_KNIGHT/*, Piece.MATERIAL_VALUE_ROOK */};
+		//{ Piece.MATERIAL_VALUE_PAWN/4, 2*Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
 
 	public static final int FUTILITY_THRESHOLD = 200;
 	
@@ -398,7 +398,8 @@ public class PlySearcher {
 		if (!state[currPly].inCheck) {
 			// Reverse futility pruning
 			if (depth < 8 &&
-				hasSearchedPv) {
+				hasSearchedPv &&
+				!pe.goForMate()) {
 				if (!state[currPly].isStaticValid) {
 					setStaticEvaluation(trans);
 				}
