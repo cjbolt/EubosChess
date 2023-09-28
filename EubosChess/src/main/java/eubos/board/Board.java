@@ -2437,4 +2437,8 @@ public class Board {
 	public void setHash(IZobristUpdate hash) {
 		this.hashUpdater = hash;
 	}
+	
+	public int getPieces() {
+		return Long.bitCount(allPieces);
+	}
 }

@@ -166,7 +166,9 @@ public class PlySearcher {
 		extendedSearchDeepestPly = 0;
 		short score = 0;
 		state[0].update();
-		boolean doAspiratedSearch = !pe.goForMate(); /*&& Long.bitCount((pos.getTheBoard().getBlackPieces()|pos.getTheBoard().getWhitePieces())) > 5*/
+		boolean doAspiratedSearch = !pe.goForMate() &&
+				pos.getTheBoard().me.getPhase() != 4000 &&
+				Long.bitCount((pos.getTheBoard().getPieces())) > 6; // Maybe use different aspiration windows in this scenario?
 		boolean doFullWidthSearch = !doAspiratedSearch;
 		
 		if (doAspiratedSearch) {
