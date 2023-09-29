@@ -14,9 +14,11 @@ import eubos.search.transposition.Transposition;
 public class PlySearcher {
 	
 	private static final int [] ASPIRATION_WINDOW_FALLBACK = 
-		{ Piece.MATERIAL_VALUE_PAWN/6, (3*Piece.MATERIAL_VALUE_PAWN)/2, Piece.MATERIAL_VALUE_KNIGHT/*, Piece.MATERIAL_VALUE_ROOK */};
-		//{ Piece.MATERIAL_VALUE_PAWN/4, 2*Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
+		{ Piece.MATERIAL_VALUE_PAWN/6, (3*Piece.MATERIAL_VALUE_PAWN)/2, Piece.MATERIAL_VALUE_KNIGHT };
 
+	private static final int [] ASPIRATION_WINDOW_ENDGAME_FALLBACK = 
+		{ Piece.MATERIAL_VALUE_PAWN/2, Piece.MATERIAL_VALUE_ROOK };
+	
 	public static final int FUTILITY_THRESHOLD = 200;
 	
 	class SearchState {
@@ -166,13 +168,13 @@ public class PlySearcher {
 		extendedSearchDeepestPly = 0;
 		short score = 0;
 		state[0].update();
-		boolean doAspiratedSearch = !pe.goForMate() &&
-				pos.getTheBoard().me.getPhase() != 4000 &&
-				Long.bitCount((pos.getTheBoard().getPieces())) > 6; // Maybe use different aspiration windows in this scenario?
+		boolean doAspiratedSearch = !pe.goForMate(); //&&
+				//pos.getTheBoard().me.getPhase() != 4000 &&
+				//Long.bitCount((pos.getTheBoard().getPieces())) > 6; // Maybe use different aspiration windows in this scenario?
 		boolean doFullWidthSearch = !doAspiratedSearch;
 		
 		if (doAspiratedSearch) {
-			for (int aspiration_window : ASPIRATION_WINDOW_FALLBACK) {
+			for (int aspiration_window : pos.getTheBoard().me.isEndgame() ? ASPIRATION_WINDOW_ENDGAME_FALLBACK : ASPIRATION_WINDOW_FALLBACK) {
 				// Adjust the aspiration window, according to the last score, if searching to sufficient depth
 				int alpha = getCoefficientAlpha(lastScore, aspiration_window);
 				int beta = getCoefficientBeta(lastScore, aspiration_window);
