@@ -166,19 +166,29 @@ public class PlySearcher {
 	public int searchPly(short lastScore)  {
 		currPly = 0;
 		extendedSearchDeepestPly = 0;
-		short score = 0;
+		int score = 0;
+		lastAspirationFailed = false;
 		state[0].update();
-		boolean doAspiratedSearch = !pe.goForMate(); //&&
-				//pos.getTheBoard().me.getPhase() != 4000 &&
-				//Long.bitCount((pos.getTheBoard().getPieces())) > 6; // Maybe use different aspiration windows in this scenario?
+		boolean doAspiratedSearch = !pe.goForMate();
 		boolean doFullWidthSearch = !doAspiratedSearch;
-		
+
 		if (doAspiratedSearch) {
-			for (int aspiration_window : pos.getTheBoard().me.isEndgame() ? ASPIRATION_WINDOW_ENDGAME_FALLBACK : ASPIRATION_WINDOW_FALLBACK) {
+			int [] aspirations = pos.getTheBoard().me.isEndgame() ? ASPIRATION_WINDOW_ENDGAME_FALLBACK : ASPIRATION_WINDOW_FALLBACK;
+			int alpha = Score.PROVISIONAL_ALPHA;
+			int beta = Score.PROVISIONAL_BETA;
+			boolean alphaFail = false;
+			boolean betaFail = false;
+			boolean initialised = false;
+			
+			for (int aspiration_window : aspirations) {
 				// Adjust the aspiration window, according to the last score, if searching to sufficient depth
-				int alpha = getCoefficientAlpha(lastScore, aspiration_window);
-				int beta = getCoefficientBeta(lastScore, aspiration_window);
-				score = (short) searchRoot(originalSearchDepthRequiredInPly, alpha, beta);
+				if (!initialised || alphaFail)
+					alpha = getCoefficientAlpha(lastScore, aspiration_window);
+				if (!initialised || betaFail)
+					beta = getCoefficientBeta(lastScore, aspiration_window);
+				initialised = true;
+				
+				score = searchRoot(originalSearchDepthRequiredInPly, alpha, beta);
 		
 				if (Score.isProvisional(score)) {
 					EubosEngineMain.logger.severe("Aspiration Window failed - no score, illegal position");
@@ -197,6 +207,8 @@ public class PlySearcher {
 		        	// Score returned was outside aspiration window
 		        	lastAspirationFailed = true;
 					certain = false;
+					alphaFail = score <= alpha;
+					betaFail = score >= beta;
 					if (EubosEngineMain.ENABLE_LOGGING) {
 						EubosEngineMain.logger.info(String.format("Aspiration Window window=%d score=%d alpha=%d beta=%d depth=%d",
 								aspiration_window, score, alpha, beta, originalSearchDepthRequiredInPly));
@@ -210,7 +222,7 @@ public class PlySearcher {
 			}
 		}
 		if (doFullWidthSearch) {
-			score = (short) searchRoot(originalSearchDepthRequiredInPly, Score.PROVISIONAL_ALPHA, Score.PROVISIONAL_BETA);
+			score = searchRoot(originalSearchDepthRequiredInPly, Score.PROVISIONAL_ALPHA, Score.PROVISIONAL_BETA);
 			certain = !(isTerminated() && score == 0);
 			lastAspirationFailed = !certain;
 		}
