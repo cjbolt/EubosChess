@@ -173,14 +173,14 @@ public class PlySearcher {
 		boolean doFullWidthSearch = !doAspiratedSearch;
 
 		if (doAspiratedSearch) {
-			int [] aspirations = pos.getTheBoard().me.isEndgame() ? ASPIRATION_WINDOW_ENDGAME_FALLBACK : ASPIRATION_WINDOW_FALLBACK;
+			//int [] aspirations = pos.getTheBoard().me.isEndgame() ? ASPIRATION_WINDOW_ENDGAME_FALLBACK : ASPIRATION_WINDOW_FALLBACK;
 			int alpha = Score.PROVISIONAL_ALPHA;
 			int beta = Score.PROVISIONAL_BETA;
 			boolean alphaFail = false;
 			boolean betaFail = false;
 			boolean initialised = false;
 			
-			for (int aspiration_window : aspirations) {
+			for (int aspiration_window : ASPIRATION_WINDOW_FALLBACK) {
 				// Adjust the aspiration window, according to the last score, if searching to sufficient depth
 				if (!initialised || alphaFail)
 					alpha = getCoefficientAlpha(lastScore, aspiration_window);
