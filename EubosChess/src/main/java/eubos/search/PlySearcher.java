@@ -14,7 +14,8 @@ import eubos.search.transposition.Transposition;
 public class PlySearcher {
 	
 	private static final int [] ASPIRATION_WINDOW_FALLBACK = 
-		{ Piece.MATERIAL_VALUE_PAWN/6, (3*Piece.MATERIAL_VALUE_PAWN)/2, Piece.MATERIAL_VALUE_KNIGHT };
+		//{ Piece.MATERIAL_VALUE_PAWN/6, (3*Piece.MATERIAL_VALUE_PAWN)/2, Piece.MATERIAL_VALUE_KNIGHT };
+		{ Piece.MATERIAL_VALUE_PAWN/4, (3*Piece.MATERIAL_VALUE_PAWN)/2, Piece.MATERIAL_VALUE_ROOK };
 
 	private static final int [] ASPIRATION_WINDOW_ENDGAME_FALLBACK = 
 		{ Piece.MATERIAL_VALUE_PAWN/2, Piece.MATERIAL_VALUE_ROOK };
@@ -150,16 +151,16 @@ public class PlySearcher {
 	private boolean isTerminated() { return terminate; }	
 	
 	private int getCoefficientAlpha(int lastScore, int windowSize) {
-		int windowOffset = lastScore >= 50 ? lastScore/50 : 0;
-		if (windowOffset > windowSize)
-			windowSize += windowOffset/2;
+		int windowOffset =0;//lastScore >= 50 ? lastScore/50 : 0;
+		//if (windowOffset > windowSize)
+		//	windowSize += windowOffset/2;
 		return Math.max(Score.PROVISIONAL_ALPHA, Math.min(Score.PROVISIONAL_BETA-1, lastScore + windowOffset - windowSize));
 	}
 	
 	private int getCoefficientBeta(int lastScore, int windowSize) {
-		int windowOffset = lastScore <= -50 ? -lastScore/50 : 0;
-		if (windowOffset > windowSize)
-			windowSize += windowOffset/2;
+		int windowOffset = 0;//lastScore <= -50 ? -lastScore/50 : 0;
+		//if (windowOffset > windowSize)
+		//	windowSize += windowOffset/2;
 		return Math.min(Score.PROVISIONAL_BETA, Math.max(Score.PROVISIONAL_ALPHA+1, lastScore - windowOffset + windowSize));
 	}
 	
