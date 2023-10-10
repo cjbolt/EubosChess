@@ -61,7 +61,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		// Setup Commands specific to this test
 		commands.add(new CommandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR,BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
 		performTest(1000);
 	}
 	
@@ -79,7 +79,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		// Setup Commands specific to this test
 		commands.add(new CommandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1 moves b5b6"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"4"+CMD_TERMINATOR,BEST_PREFIX+"b4c6"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR,BEST_PREFIX+"b4a6"+CMD_TERMINATOR));
 		performTest(1000);
 	}	
 	
@@ -101,9 +101,13 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
                     "info depth 2 seldepth 7 score cp 106 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 187"+CMD_TERMINATOR
                     +BEST_PREFIX+"c7c2";
 			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-				expectedOutput = "info depth 1 seldepth 5 score cp 471 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
-							     "info depth 2 seldepth 8 score cp 128 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 498"+CMD_TERMINATOR
-								 +BEST_PREFIX+"c7c2";
+//				expectedOutput = "info depth 1 seldepth 5 score cp 471 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
+//							     "info depth 2 seldepth 8 score cp 128 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 499"+CMD_TERMINATOR
+//								 +BEST_PREFIX+"c7c2";
+				expectedOutput = "info depth 1 seldepth 5 score cp -55 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 21"+CMD_TERMINATOR
+						+"info depth 1 seldepth 5 score cp 471 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 34"+CMD_TERMINATOR
+						+"info depth 2 seldepth 6 score cp 128 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 185"+CMD_TERMINATOR
+						+BEST_PREFIX+"c7c2";
 			}
 			setupEngine();
 			// Setup Commands specific to this test

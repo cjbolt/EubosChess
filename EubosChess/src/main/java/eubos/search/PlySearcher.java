@@ -15,10 +15,10 @@ public class PlySearcher {
 	
 	private static final int [] ASPIRATION_WINDOW_FALLBACK = 
 		//{ Piece.MATERIAL_VALUE_PAWN/6, (3*Piece.MATERIAL_VALUE_PAWN)/2, Piece.MATERIAL_VALUE_KNIGHT };
-		{ Piece.MATERIAL_VALUE_PAWN/4, (3*Piece.MATERIAL_VALUE_PAWN)/2, Piece.MATERIAL_VALUE_ROOK };
+		{ Piece.MATERIAL_VALUE_PAWN/4, 2*Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
 
-	private static final int [] ASPIRATION_WINDOW_ENDGAME_FALLBACK = 
-		{ Piece.MATERIAL_VALUE_PAWN/2, Piece.MATERIAL_VALUE_ROOK };
+	private static final int [] ASPIRATION_WINDOW_MATE_FALLBACK = 
+		{ 1 };
 	
 	public static final int FUTILITY_THRESHOLD = 200;
 	
@@ -151,17 +151,17 @@ public class PlySearcher {
 	private boolean isTerminated() { return terminate; }	
 	
 	private int getCoefficientAlpha(int lastScore, int windowSize) {
-		int windowOffset =0;//lastScore >= 50 ? lastScore/50 : 0;
-		//if (windowOffset > windowSize)
-		//	windowSize += windowOffset/2;
+		int windowOffset = lastScore >= 50 ? lastScore/50 : 0;
+		if (windowOffset > windowSize)
+			windowSize += windowOffset/2;
 		return Math.max(Score.PROVISIONAL_ALPHA, Math.min(Score.PROVISIONAL_BETA-1, lastScore + windowOffset - windowSize));
 	}
 	
 	private int getCoefficientBeta(int lastScore, int windowSize) {
-		int windowOffset = 0;//lastScore <= -50 ? -lastScore/50 : 0;
-		//if (windowOffset > windowSize)
-		//	windowSize += windowOffset/2;
-		return Math.min(Score.PROVISIONAL_BETA, Math.max(Score.PROVISIONAL_ALPHA+1, lastScore - windowOffset + windowSize));
+		int windowOffset = lastScore <= -50 ? lastScore/50 : 0;
+		if (windowOffset > windowSize)
+			windowSize += windowOffset/2;
+		return Math.min(Score.PROVISIONAL_BETA, Math.max(Score.PROVISIONAL_ALPHA+1, lastScore + windowOffset + windowSize));
 	}
 	
 	public int searchPly(short lastScore)  {
@@ -170,18 +170,18 @@ public class PlySearcher {
 		int score = 0;
 		lastAspirationFailed = false;
 		state[0].update();
-		boolean doAspiratedSearch = !pe.goForMate();
+		boolean doAspiratedSearch = !pe.goForMate() && originalSearchDepthRequiredInPly >= 5;
 		boolean doFullWidthSearch = !doAspiratedSearch;
 
 		if (doAspiratedSearch) {
-			//int [] aspirations = pos.getTheBoard().me.isEndgame() ? ASPIRATION_WINDOW_ENDGAME_FALLBACK : ASPIRATION_WINDOW_FALLBACK;
+			int [] aspirations = Score.isMate(lastScore) ? ASPIRATION_WINDOW_MATE_FALLBACK : ASPIRATION_WINDOW_FALLBACK;
 			int alpha = Score.PROVISIONAL_ALPHA;
 			int beta = Score.PROVISIONAL_BETA;
 			boolean alphaFail = false;
 			boolean betaFail = false;
 			boolean initialised = false;
 			
-			for (int aspiration_window : ASPIRATION_WINDOW_FALLBACK) {
+			for (int aspiration_window : aspirations) {
 				// Adjust the aspiration window, according to the last score, if searching to sufficient depth
 				if (!initialised || alphaFail)
 					alpha = getCoefficientAlpha(lastScore, aspiration_window);
