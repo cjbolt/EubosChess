@@ -18,7 +18,7 @@ public class PlySearcher {
 		{ Piece.MATERIAL_VALUE_PAWN/4, 2*Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
 
 	private static final int [] ASPIRATION_WINDOW_MATE_FALLBACK = 
-		{ 1 };
+		{ 1, 10 };
 	
 	public static final int FUTILITY_THRESHOLD = 200;
 	
@@ -151,14 +151,14 @@ public class PlySearcher {
 	private boolean isTerminated() { return terminate; }	
 	
 	private int getCoefficientAlpha(int lastScore, int windowSize) {
-		int windowOffset = lastScore >= 50 ? lastScore/50 : 0;
+		int windowOffset = EubosEngineMain.ENABLE_SKEWED_ASPIRATION_WINDOWS ? (lastScore >= 50 ? lastScore/50 : 0) : 0;
 		if (windowOffset > windowSize)
 			windowSize += windowOffset/2;
 		return Math.max(Score.PROVISIONAL_ALPHA, Math.min(Score.PROVISIONAL_BETA-1, lastScore + windowOffset - windowSize));
 	}
 	
 	private int getCoefficientBeta(int lastScore, int windowSize) {
-		int windowOffset = lastScore <= -50 ? lastScore/50 : 0;
+		int windowOffset = EubosEngineMain.ENABLE_SKEWED_ASPIRATION_WINDOWS ? (lastScore <= -50 ? lastScore/50 : 0) : 0;
 		if (windowOffset > windowSize)
 			windowSize += windowOffset/2;
 		return Math.min(Score.PROVISIONAL_BETA, Math.max(Score.PROVISIONAL_ALPHA+1, lastScore + windowOffset + windowSize));
