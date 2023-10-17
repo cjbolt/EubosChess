@@ -255,6 +255,10 @@ public class PositionEvaluator implements IEvaluate {
 				attacks = bd.mae.calculateBasicAttacksAndMobility(bd.me);
 			}
 			
+			if (bd.isLikelyDrawnEndgame(attacks[0][3][0], attacks[1][3][0])) {
+				return score;
+			}
+			
 			score += evaluateBishopPair();
 			score += pawn_eval.evaluatePawnStructure(attacks);
 			
@@ -293,6 +297,16 @@ public class PositionEvaluator implements IEvaluate {
 		midgameScore = 0;
 		endgameScore = 0;
 		return internalFullEval();
+	}
+	
+	public int getCrudeEvalNotCheckingForDraws() {
+		onMoveIsWhite = pm.onMoveIsWhite();
+		isDraw = false;
+		passedPawnPresent = bd.isPassedPawnPresent();
+		score = 0;
+		midgameScore = 0;
+		endgameScore = 0;
+		return internalCrudeEval();
 	}
 	
 	public int evaluateThreatsForSide(long[][][] attacks, boolean onMoveIsWhite) {
@@ -387,9 +401,12 @@ public class PositionEvaluator implements IEvaluate {
 	public int getStaticEvaluation() {
 		int evaluation = 0;
 		if (pm.getTheBoard().getPassedPawns() != 0L || isKingExposed()) {
+			// No point checking for draws, because we terminate search as soon as a likely draw is detected
+			// and return draw score, so we can't get here if the position is a likely draw, the check would
+			// be redundant
 			evaluation = getFullEvalNotCheckingForDraws(); 
 		} else {
-			evaluation = getCrudeEvaluation();
+			evaluation = getCrudeEvalNotCheckingForDraws();
 		}
 		return evaluation;
 	}

@@ -619,6 +619,26 @@ public class BoardTest {
 	}
 	
 	@Test
+	public void test_isInsufficientMaterial_RvsKK()throws IllegalNotationException {
+		setUpPosition("7K/8/8/5N2/8/r5N1/8/k7 w - - 0 1 ");
+		assertTrue(classUnderTest.isLikelyDrawnEndgame(0L,0L));
+		setUpPosition("K7/8/R5n1/8/5n2/8/8/7k b - - 0 1 ");
+		assertTrue(classUnderTest.isLikelyDrawnEndgame(0L,0L));
+		setUpPosition("K7/8/Q7/8/5q2/3n4/8/7k b - - 0 1 ");
+		assertTrue(classUnderTest.isLikelyDrawnEndgame(0L,0L));
+	}
+	
+	@Test
+	public void test_isInsufficientMaterial_RRvsKK()throws IllegalNotationException {
+		setUpPosition("K7/8/R5n1/8/R4n2/8/8/7k b - - 0 1 ");
+		assertFalse(classUnderTest.isLikelyDrawnEndgame(0L,0L));
+		setUpPosition("K7/8/Q7/8/5r2/8/8/7k b - - 0 1 ");
+		assertFalse(classUnderTest.isLikelyDrawnEndgame(0L,0L));
+		setUpPosition("K7/8/Q7/8/5q2/3n4/8/7k b - - 0 1 ");
+		assertTrue(classUnderTest.isLikelyDrawnEndgame(0L,0L));
+	}
+	
+	@Test
 	public void test_optimised_mobility_func() {
 		for (int outer_rank=0; outer_rank<8; outer_rank++) {
 			for (int outer_file=0; outer_file<8; outer_file++) {
