@@ -84,7 +84,7 @@ public class Board {
 		me = new PiecewiseEvaluation();
 		evaluateMaterial(me);
 		createPassedPawnsBoard();
-		insufficient = isInsufficientMaterial();
+		insufficient = isLikelyDrawnEndgame(Piece.Colour.isWhite(initialOnMove));
 	}
 	
 	private void evaluateMaterialBalanceAndStaticPieceMobility(boolean isWhite, PiecewiseEvaluation me) {
@@ -273,7 +273,6 @@ public class Board {
 			// Incrementally update opponent material after capture, at the correct capturePosition
 			me.updateForCapture(targetPiece, captureBitOffset);
 			hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
-			insufficient = isInsufficientMaterial();
 		} else {
 			// Check whether the move sets the En Passant target square
 			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
@@ -299,6 +298,11 @@ public class Board {
 			pieces[promotedPiece] |= targetSquareMask;
 			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
 			
+			if (targetPiece != Piece.NONE) {
+				// Can update the attacks mask, and therefore needs to happen prior to legality check
+				insufficient = isLikelyDrawnEndgame(isWhite);
+			}
+			
 			last_move_was_illegal = isKingInCheck(isWhite);
 			
 			pieceLists.updatePiece(pieceToMove, fullPromotedPiece, originBitOffset, targetBitOffset);
@@ -314,6 +318,11 @@ public class Board {
 			// Piece type doesn't change across boards, update piece-specific bitboard, pieceList and PST score
 			int pieceType = Piece.PIECE_NO_COLOUR_MASK & pieceToMove;
 			pieces[pieceType] ^= positionsMask;
+			
+			if (targetPiece != Piece.NONE) {
+				// Can update the attacks mask, and therefore needs to happen prior to legality check
+				insufficient = isLikelyDrawnEndgame(isWhite);
+			}
 			
 			last_move_was_illegal = isKingInCheck(isWhite);
 			
@@ -2346,12 +2355,13 @@ public class Board {
 		}
 	}
 	
-	public boolean isLikelyDrawnEndgame(long whiteAttacks, long blackAttacks) {
-		if ((whiteAttacks & blackPieces) != 0L || (blackAttacks & whitePieces) != 0L)
-			return false;
-		
+	public boolean isLikelyDrawnEndgame(boolean onMoveIsWhite) {
+		boolean possiblyDrawn = false;
 		// Possible promotions
 		if (pieces[Piece.PAWN] != 0)
+			return false;
+		
+		if (me.phase < 2624)
 			return false;
 		
 		// Minor pieces
@@ -2367,26 +2377,26 @@ public class Board {
 			int numBlackRooks = me.numberOfPieces[Piece.BLACK_ROOK];
 			// (R vs 2 minor) or (R Minor vs Minor)
 			if (numWhiteRooks == 1 && numWhiteMinor < 2) {
-				// (R vs 2 minor) or (R Minor vs Minor)
-				if (numBlackRooks == 0 && numBlackMinor >= 1) {
-					return true;
+				// (R vs 2 minor)
+				if (numBlackRooks == 0 && numBlackMinor > 1) {
+					possiblyDrawn = true;
 				}
 				// R vs R Minor
 				if (numBlackRooks == 1 && numBlackMinor == 0) {
-					return true;
+					possiblyDrawn = true;
 				}
 			}
 			if (numBlackRooks == 1 && numBlackMinor < 2) {
-				// (R vs 2 minor) or (R Minor vs Minor)
-				if (numWhiteRooks == 0 && numWhiteMinor >= 1) {
-					return true;
-				}
+				// (R vs 2 minor)
+				if (numWhiteRooks == 0 && numWhiteMinor > 1) {
+					possiblyDrawn = true;
+				}				
 				// R vs R Minor
 				if (numWhiteRooks == 1 && numWhiteMinor == 0) {
-					return true;
+					possiblyDrawn = true;
 				}
 			}	
-			if (numWhiteRooks != 0 || numBlackRooks != 0) {
+			if (!possiblyDrawn && (numWhiteRooks != 0 || numBlackRooks != 0)) {
 				// at least one rook on the board
 				return false;
 			}
@@ -2397,21 +2407,22 @@ public class Board {
 				int numBlackQueens = me.numberOfPieces[Piece.BLACK_QUEEN];
 				// Q vs 2 minor
 				if (numWhiteQueens == 1 && numBlackQueens == 0 && numBlackMinor >= 2) {
-					return true;
+					possiblyDrawn = true;
 				}
 				if (numBlackQueens == 1 && numWhiteQueens == 0 && numWhiteMinor >= 2) {
-					return true;
+					possiblyDrawn = true;
 				}
 				// Q minor vs Q
 				if (numWhiteQueens == 1 && numBlackQueens == 1 && numBlackMinor == 0 && numWhiteMinor == 1) {
-					return true;
+					possiblyDrawn = true;
 				}
 				if (numBlackQueens == 1 && numWhiteQueens == 1 && numWhiteMinor == 0 && numBlackMinor == 1) {
-					return true;
+					possiblyDrawn = true;
 				}
 			}
 			// At least one queen on the board
-			return false;
+			if (!possiblyDrawn)
+				return false;
 		}
 		if (numWhiteBishops >= 2 || numBlackBishops >= 2) {
 			// One side has at least two bishops
@@ -2421,6 +2432,17 @@ public class Board {
 		    (numBlackBishops == 1 && numBlackKnights >= 1))
 			// One side has Knight and Bishop
 			return false;
+		
+		if (possiblyDrawn) {
+			long [][][] attacks = mae.calculateBasicAttacksAndMobility(me);
+			if(onMoveIsWhite) {
+				if ((attacks[0][3][0] & blackPieces) != 0L)
+					return false;
+			} else {
+				if ((attacks[1][3][0] & whitePieces) != 0L)
+					return false;
+			}
+		}
 		
 		// else insufficient material
 		return true;

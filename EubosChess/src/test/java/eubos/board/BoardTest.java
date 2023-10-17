@@ -620,22 +620,24 @@ public class BoardTest {
 	
 	@Test
 	public void test_isInsufficientMaterial_RvsKK()throws IllegalNotationException {
-		setUpPosition("7K/8/8/5N2/8/r5N1/8/k7 w - - 0 1 ");
-		assertTrue(classUnderTest.isLikelyDrawnEndgame(0L,0L));
+		setUpPosition("7K/8/8/5N2/8/r5N1/8/k7 w - - 0 1");
+		assertTrue(classUnderTest.isLikelyDrawnEndgame(true));
+		setUpPosition("7K/8/8/5N2/8/r5N1/8/k7 b - - 0 1");
+		assertFalse(classUnderTest.isLikelyDrawnEndgame(false));
 		setUpPosition("K7/8/R5n1/8/5n2/8/8/7k b - - 0 1 ");
-		assertTrue(classUnderTest.isLikelyDrawnEndgame(0L,0L));
+		assertTrue(classUnderTest.isLikelyDrawnEndgame(false));
 		setUpPosition("K7/8/Q7/8/5q2/3n4/8/7k b - - 0 1 ");
-		assertTrue(classUnderTest.isLikelyDrawnEndgame(0L,0L));
+		assertTrue(classUnderTest.isLikelyDrawnEndgame(false));
 	}
 	
 	@Test
 	public void test_isInsufficientMaterial_RRvsKK()throws IllegalNotationException {
 		setUpPosition("K7/8/R5n1/8/R4n2/8/8/7k b - - 0 1 ");
-		assertFalse(classUnderTest.isLikelyDrawnEndgame(0L,0L));
+		assertFalse(classUnderTest.isLikelyDrawnEndgame(false));
 		setUpPosition("K7/8/Q7/8/5r2/8/8/7k b - - 0 1 ");
-		assertFalse(classUnderTest.isLikelyDrawnEndgame(0L,0L));
+		assertFalse(classUnderTest.isLikelyDrawnEndgame(false));
 		setUpPosition("K7/8/Q7/8/5q2/3n4/8/7k b - - 0 1 ");
-		assertTrue(classUnderTest.isLikelyDrawnEndgame(0L,0L));
+		assertTrue(classUnderTest.isLikelyDrawnEndgame(false));
 	}
 	
 	@Test

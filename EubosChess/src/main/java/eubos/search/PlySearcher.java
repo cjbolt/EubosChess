@@ -172,6 +172,11 @@ public class PlySearcher {
 		state[0].update();
 		boolean doAspiratedSearch = !pe.goForMate() && originalSearchDepthRequiredInPly >= 5;
 		boolean doFullWidthSearch = !doAspiratedSearch;
+		
+		if (EubosEngineMain.ENABLE_LOGGING) {
+			EubosEngineMain.logger.info(String.format("Aspiration Window start lastScore=%d depth=%d",
+					lastScore, originalSearchDepthRequiredInPly));
+		}
 
 		if (doAspiratedSearch) {
 			int [] aspirations = Score.isMate(lastScore) ? ASPIRATION_WINDOW_MATE_FALLBACK : ASPIRATION_WINDOW_FALLBACK;

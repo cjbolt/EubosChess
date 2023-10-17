@@ -113,8 +113,10 @@ public class MiniMaxMoveGenerator implements
 		Writer buffer = new StringWriter();
 		PrintWriter pw = new PrintWriter(buffer);
 		e.printStackTrace(pw);
-		String error = String.format("%s: %s\n%s\n%s",
-				err, e.getMessage(), pos.unwindMoveStack(), buffer.toString());
+		String errorFen = pos.getFen();
+		String error = String.format("%s: %s\n%s\n%s\n%s",
+				err, e.getMessage(), 
+				errorFen, pos.unwindMoveStack(), buffer.toString());
 		System.err.println(error);
 		EubosEngineMain.logger.severe(error);
 		System.exit(0);
