@@ -167,16 +167,11 @@ public class PlySearcher {
 	public int searchPly(short lastScore)  {
 		currPly = 0;
 		extendedSearchDeepestPly = 0;
-		int score = 0;
+		int score = lastScore;
 		lastAspirationFailed = false;
 		state[0].update();
 		boolean doAspiratedSearch = !pe.goForMate() && originalSearchDepthRequiredInPly >= 5;
 		boolean doFullWidthSearch = !doAspiratedSearch;
-		
-		if (EubosEngineMain.ENABLE_LOGGING) {
-			EubosEngineMain.logger.info(String.format("Aspiration Window start lastScore=%d depth=%d",
-					lastScore, originalSearchDepthRequiredInPly));
-		}
 
 		if (doAspiratedSearch) {
 			int [] aspirations = Score.isMate(lastScore) ? ASPIRATION_WINDOW_MATE_FALLBACK : ASPIRATION_WINDOW_FALLBACK;
@@ -194,6 +189,11 @@ public class PlySearcher {
 					beta = getCoefficientBeta(lastScore, aspiration_window);
 				initialised = true;
 				
+				if (EubosEngineMain.ENABLE_LOGGING) {
+					EubosEngineMain.logger.info(String.format("Aspiration Window window=%d score=%d alpha=%d beta=%d depth=%d",
+							aspiration_window, score, alpha, beta, originalSearchDepthRequiredInPly));
+				}
+				
 				score = searchRoot(originalSearchDepthRequiredInPly, alpha, beta);
 		
 				if (Score.isProvisional(score)) {
@@ -208,6 +208,11 @@ public class PlySearcher {
 		        	// Exact score in window returned
 		        	lastAspirationFailed = false;
 		        	certain = true;
+		        	if (EubosEngineMain.ENABLE_LOGGING) {
+						EubosEngineMain.logger.fine(String.format("Aspiration returned window=%d score=%d in alpha=%d beta=%d for depth=%d",
+								aspiration_window, score, alpha, beta, originalSearchDepthRequiredInPly));
+					}
+		        	reportPv((short) state[0].alpha);
 		            break;
 		        } else {
 		        	// Score returned was outside aspiration window
@@ -215,10 +220,6 @@ public class PlySearcher {
 					certain = false;
 					alphaFail = score <= alpha;
 					betaFail = score >= beta;
-					if (EubosEngineMain.ENABLE_LOGGING) {
-						EubosEngineMain.logger.info(String.format("Aspiration Window window=%d score=%d alpha=%d beta=%d depth=%d",
-								aspiration_window, score, alpha, beta, originalSearchDepthRequiredInPly));
-					}
 					if (sr != null)
 						sr.resetAfterWindowingFail();
 		        }
@@ -231,6 +232,7 @@ public class PlySearcher {
 			score = searchRoot(originalSearchDepthRequiredInPly, Score.PROVISIONAL_ALPHA, Score.PROVISIONAL_BETA);
 			certain = !(isTerminated() && score == 0);
 			lastAspirationFailed = !certain;
+			reportPv((short) state[0].alpha);
 		}
 		return score;
 	}
@@ -340,6 +342,10 @@ public class PlySearcher {
 						// and we don't want to spoil the PV in the SMR with the aspiration fail line
 						if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(state[0].plyScore);
 						refuted = true;
+			        	if (EubosEngineMain.ENABLE_LOGGING) {
+							EubosEngineMain.logger.fine(String.format("BETA FAIL AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
+									state[0].plyScore, state[0].alpha, state[0].beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
+						}
 						break;
 					}
 					trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[0].alpha, Score.upperBound);
@@ -362,7 +368,7 @@ public class PlySearcher {
 		}
 		
 		// fail hard, so don't return plyScore
-		return state[0].alpha;
+		return refuted ? state[0].beta : state[0].alpha;
 	}
 	
 	int search(int depth, int alpha, int beta)  {
@@ -717,11 +723,21 @@ public class PlySearcher {
 				break;
 			case Score.upperBound:
 				state[currPly].beta = Math.min(state[currPly].beta, state[currPly].hashScore);
+	        	if (EubosEngineMain.ENABLE_LOGGING) {
+	        		if (currPly == 0)
+						EubosEngineMain.logger.fine(String.format("Trans upperBound reducing beta=%d hashScore=%d",
+								state[0].beta, state[0].hashScore));
+				}
 				check_for_refutation = true;
 				break;
 			case Score.lowerBound:
 				state[currPly].alpha = Math.max(state[currPly].alpha, state[currPly].hashScore);
 				state[currPly].alphaOriginal = state[currPly].alpha;
+	        	if (EubosEngineMain.ENABLE_LOGGING) {
+	        		if (currPly == 0)
+						EubosEngineMain.logger.fine(String.format("Trans lowerBound increasing alpha=%d hashScore=%d",
+								state[0].alpha, state[0].hashScore));
+				}
 				check_for_refutation = true;
 				break;
 			case Score.typeUnknown:
@@ -734,6 +750,11 @@ public class PlySearcher {
 			if (check_for_refutation) {
 				// Determine if good enough for a refutation...
 				if (state[currPly].alpha >= state[currPly].beta) {
+		        	if (EubosEngineMain.ENABLE_LOGGING) {
+		        		if (currPly == 0)
+							EubosEngineMain.logger.fine(String.format("Trans cut-off as alpha=%d >= beta=%d",
+									state[0].alpha, state[0].beta));
+					}
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsRefutation(pos.getHash(), trans);
 					killers.addMove(currPly, trans_move);
 					state[currPly].isCutOff = true;
