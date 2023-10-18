@@ -105,6 +105,35 @@ public class SquareAttackEvaluator {
 	
 	/* 1-dimensional array:
 	 * 1st index is a position integer, this is the target square
+	 * indexes a bit mask of the squares that can attack the target square by two Knight (indirect) moves */
+	static final long[] KnightForks_Lut = new long[64];
+	static {
+		int bitOffset = 0;
+		for (int square : Position.values) {
+			KnightForks_Lut[bitOffset++] = createPotentialKnightForksOfSq(square);
+		}
+	}
+	static long createPotentialKnightForksOfSq(int atPos) {
+		long mask = 0;
+		// Outer loop
+		for (Direction dir: Direction.values()) {
+			int sq = Direction.getIndirectMoveSq(dir, atPos);
+			if (sq != Position.NOPOSITION) {
+				// Inner loop
+				for (Direction dir2: Direction.values()) {
+					int sq2 = Direction.getIndirectMoveSq(dir2, sq);
+					if (sq2 != Position.NOPOSITION) {
+						mask |= BitBoard.positionToMask_Lut[sq2];
+					}
+				}
+			}
+		}
+		mask ^= BitBoard.positionToBit_Lut[atPos];
+		return mask;
+	}
+	
+	/* 1-dimensional array:
+	 * 1st index is a position integer, this is the target square
 	 * indexes a bit mask of all the squares on the board that can attack the target square by either a direct or indirect move */
 	static final long[] allAttacksOnPosition_Lut = new long[64];
 	static {

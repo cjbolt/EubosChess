@@ -620,14 +620,18 @@ public class BoardTest {
 	
 	@Test
 	public void test_isInsufficientMaterial_RvsKK()throws IllegalNotationException {
-		setUpPosition("7K/8/8/5N2/8/r5N1/8/k7 w - - 0 1");
+		setUpPosition("7K/8/8/5N2/8/r5N1/k7/8 w - - 0 1");
 		assertTrue(classUnderTest.isLikelyDrawnEndgame(true));
 		setUpPosition("7K/8/8/5N2/8/r5N1/8/k7 b - - 0 1");
 		assertFalse(classUnderTest.isLikelyDrawnEndgame(false));
+		
+		// white rook is en prise, could be knight forked with King, so return false
 		setUpPosition("K7/8/R5n1/8/5n2/8/8/7k b - - 0 1 ");
-		assertTrue(classUnderTest.isLikelyDrawnEndgame(false));
-		setUpPosition("K7/8/Q7/8/5q2/3n4/8/7k b - - 0 1 ");
-		assertTrue(classUnderTest.isLikelyDrawnEndgame(false));
+		assertFalse(classUnderTest.isLikelyDrawnEndgame(false));
+		
+		// white queen can be picked up by Knight forked with King
+		setUpPosition("8/1K6/Q7/8/5q2/3n4/8/7k b - - 0 1 ");
+		assertFalse(classUnderTest.isLikelyDrawnEndgame(false));
 	}
 	
 	@Test
@@ -636,8 +640,12 @@ public class BoardTest {
 		assertFalse(classUnderTest.isLikelyDrawnEndgame(false));
 		setUpPosition("K7/8/Q7/8/5r2/8/8/7k b - - 0 1 ");
 		assertFalse(classUnderTest.isLikelyDrawnEndgame(false));
+		
+		// white queen is en prise, could be knight forked with King, so return false
 		setUpPosition("K7/8/Q7/8/5q2/3n4/8/7k b - - 0 1 ");
-		assertTrue(classUnderTest.isLikelyDrawnEndgame(false));
+		assertFalse(classUnderTest.isLikelyDrawnEndgame(false));
+		setUpPosition("k7/b7/8/5n2/8/8/3Q4/7K w - - 0 1 ");
+		assertFalse(classUnderTest.isLikelyDrawnEndgame(true));
 	}
 	
 	@Test
