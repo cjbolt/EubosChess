@@ -71,20 +71,13 @@ public class ZobristHashCode implements IForEachPieceCallback, IZobristUpdate {
 		return false;
 	}
 	
-	static final int [] bitOffsetToZobristIndex_Lut = new int[64];
-	static {
-		for (int pos : Position.values) {
-			int atFile = Position.getFile(pos);
-			int atRank = Position.getRank(pos);
-			int lookupIndex = atFile + atRank * 8;
-			bitOffsetToZobristIndex_Lut[BitBoard.positionToBit_Lut[pos]] = lookupIndex;
-		}
-	}
-			
 	protected long getPrnForPiece(int bitOffset, int currPiece) {
-		// compute prnLookup index to use, based on piece type, colour and square.
-		int pieceType = (currPiece & Piece.PIECE_NO_COLOUR_MASK) - 1; // convert piece type to Zobrist index
-		int lookupIndex = bitOffsetToZobristIndex_Lut[bitOffset] + pieceType * NUM_SQUARES;
+		/* Compute prnLookup index to use, based on piece type, colour and square.
+		 * Note: convert piece type to Zobrist index, which is 0 to 5. The max is not 
+		 * theoretically required, but I suspect hash collisions can cause very 
+		 * infrequent crashes in this code otherwise. */
+		int pieceType = Math.max(0, (currPiece & Piece.PIECE_NO_COLOUR_MASK) - 1);
+		int lookupIndex = pieceType * NUM_SQUARES + bitOffset;
 		if (Piece.isBlack(currPiece)) {
 			lookupIndex += INDEX_BLACK;
 		}		
