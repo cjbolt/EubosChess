@@ -398,6 +398,12 @@ public class Board {
 				String.format("combined_scratch=%08x iterative=%08x %s", 
 						scratch_me.combinedPosition, me.combinedPosition, Move.toString(move));
 			assert scratch_me.phase == me.phase;
+			// Check piece bit boards to me num pieces consistency
+			assert (me.numberOfPieces[Piece.WHITE_KNIGHT]+me.numberOfPieces[Piece.BLACK_KNIGHT]) == Long.bitCount(pieces[INDEX_KNIGHT]);
+			assert (me.numberOfPieces[Piece.WHITE_BISHOP]+me.numberOfPieces[Piece.BLACK_BISHOP]) == Long.bitCount(pieces[INDEX_BISHOP]);
+			assert (me.numberOfPieces[Piece.WHITE_ROOK]+me.numberOfPieces[Piece.BLACK_ROOK]) == Long.bitCount(pieces[INDEX_ROOK]);
+			assert (me.numberOfPieces[Piece.WHITE_QUEEN]+me.numberOfPieces[Piece.BLACK_QUEEN]) == Long.bitCount(pieces[INDEX_QUEEN]);
+			assert (me.numberOfPieces[Piece.WHITE_PAWN]+me.numberOfPieces[Piece.BLACK_PAWN]) == Long.bitCount(pieces[INDEX_PAWN]);
 		}
 		
 		return captureBitOffset;
@@ -2366,9 +2372,15 @@ public class Board {
 		return (whites_pieces_except_king & ~whiteAttacks) != 0L;
 	}
 	
-	private boolean potentialKnightForkOnEnemyKing(boolean onMoveIsWhite) {
+	public boolean potentialKnightForkOnEnemyKing(boolean onMoveIsWhite) {
 		int kingBitOffset = this.getKingPosition(!onMoveIsWhite);
 		long enemyKnights = pieces[Piece.KNIGHT] & (onMoveIsWhite ? whitePieces : blackPieces);
+		return (enemyKnights & SquareAttackEvaluator.KnightForks_Lut[kingBitOffset]) != 0L;
+	}
+	
+	public boolean potentialKnightCheck(boolean onMoveIsWhite) {
+		int kingBitOffset = this.getKingPosition(onMoveIsWhite);
+		long enemyKnights = pieces[Piece.KNIGHT] & (onMoveIsWhite ? blackPieces : whitePieces);
 		return (enemyKnights & SquareAttackEvaluator.KnightForks_Lut[kingBitOffset]) != 0L;
 	}
 	
@@ -2475,8 +2487,9 @@ public class Board {
 		if (pieces[Piece.PAWN] != 0)
 			return false;
 		
-//		if (me.phase < 2624)
-//			return false;
+		if (me.phase < 2624)
+			return false;
+		
 		boolean possiblyDrawn = false;
 		
 		// Minor pieces
@@ -2552,7 +2565,7 @@ public class Board {
 					return false;
 			}
 		}
-		return true;
+		return possiblyDrawn;
 	}
 	
 	public boolean isInsufficientMaterial() {

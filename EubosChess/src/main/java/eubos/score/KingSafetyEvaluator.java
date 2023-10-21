@@ -28,6 +28,7 @@ public class KingSafetyEvaluator {
 	public final int EXPOSURE_MAX_PENALTY = -300;
 	public final int SQUARES_CONTROL_ROUND_KING_PENALTY = -200;
 	public final int NO_FLIGHT_SQUARES_PENALTY = -200;
+	public final int KNIGHT_CHECK_THREAT_PENALTY = -50; 
 	
 	long own, enemy;
 	long kingMask, blockers;
@@ -89,6 +90,9 @@ public class KingSafetyEvaluator {
 	}
 	
 	int evaluateKingSafetyForSide(long[][][] attacks, boolean isWhite) {
+		/* Score is for the King being attacked, so isWhite means black is attacking. We 
+		 * therefore generate a negative value in this function, representing a penalty to
+		 *  the side's score. */
 		int evaluation = 0;
 		initialiseForSide(isWhite);
 
@@ -96,6 +100,7 @@ public class KingSafetyEvaluator {
 		evaluation += EvaluateKingTropism();
 		evaluation += EvaluatePawnShelterAndStorm(isWhite);
 		evaluation += EvaluateSquareControlRoundKing(isWhite);
+		//evaluation += EvaluateKnightCheckThreat(isWhite);
 		
 		return evaluation;
 	}
@@ -196,5 +201,9 @@ public class KingSafetyEvaluator {
 			evaluation += NO_FLIGHT_SQUARES_PENALTY;
 		}
 		return evaluation;
+	}
+	
+	int EvaluateKnightCheckThreat(boolean isWhite) {
+		return bd.potentialKnightCheck(isWhite) ? KNIGHT_CHECK_THREAT_PENALTY : 0;
 	}
 }

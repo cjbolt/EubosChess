@@ -871,6 +871,7 @@ public class PlySearcher {
 			} else {
 				lmr = (moveNumber < 6) ? 1 : Math.max(1, depth/4);
 			}
+			if (state[currPly].inCheck) lmr = 1;
 			if (lmr > 0) {
 				positionScore = -search(depth-1-lmr, -state[currPly-1].beta, -state[currPly-1].alpha);
 				if (positionScore <= state[currPly-1].alpha) {
