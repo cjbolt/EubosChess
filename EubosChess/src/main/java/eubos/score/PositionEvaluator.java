@@ -255,6 +255,10 @@ public class PositionEvaluator implements IEvaluate {
 				attacks = bd.mae.calculateBasicAttacksAndMobility(bd.me);
 			}
 			
+			if (bd.isLikelyDrawnEndgame(onMoveIsWhite, attacks)) {
+				return score;
+			}
+			
 			score += evaluateBishopPair();
 			score += pawn_eval.evaluatePawnStructure(attacks);
 			
