@@ -93,13 +93,21 @@ public class PositionEvaluatorTest {
 	public void test_threatsWhite() {
 		setUpPosition("kr3b2/4ppQ1/8/8/2P5/1P6/P7/7K w - - 1 1 ");
 		long [][][] attacks = pm.getTheBoard().mae.calculateBasicAttacksAndMobility(pm.getTheBoard().me);
-		assertEquals(-(Piece.MATERIAL_VALUE_QUEEN/10)+Piece.MATERIAL_VALUE_PAWN/10, SUT.evaluateThreats(attacks, true)); // W Queen is attacked, B Pawn is attacked
+		assertEquals(-(Piece.MATERIAL_VALUE_QUEEN/10)+Piece.MATERIAL_VALUE_PAWN/10, SUT.evaluateThreats(attacks, true)); // W Queen is attacked, B Pawn is attacked, white on move
 	}
 	
 	@Test
 	public void test_threatsBlack() {
 		setUpPosition("kr3b2/4ppQ1/8/8/2P5/1P6/P7/7K w - - 1 1 ");
 		long [][][] attacks = pm.getTheBoard().mae.calculateBasicAttacksAndMobility(pm.getTheBoard().me);
-		assertEquals((Piece.MATERIAL_VALUE_QUEEN/10)-Piece.MATERIAL_VALUE_PAWN/10, SUT.evaluateThreats(attacks, false)); // W Queen is attacked, B Pawn is attacked
+		assertEquals((Piece.MATERIAL_VALUE_QUEEN/10)-Piece.MATERIAL_VALUE_PAWN/10, SUT.evaluateThreats(attacks, false)); // W Queen is attacked, B Pawn is attacked, black on move
+	}
+	
+	@Test
+	public void test_knightCheckThreatBlack() {
+		setUpPosition("k7/3R4/4n3/8/b3K3/8/8/8 b - - 0 1");
+		long [][][] attacks = pm.getTheBoard().mae.calculateBasicAttacksAndMobility(pm.getTheBoard().me);
+		assertEquals(-50 + -Piece.MATERIAL_VALUE_ROOK/10, SUT.evaluateThreats(attacks, true)); // Black Knight is potentially forking White King and Rook, White Rook en prise
+		assertEquals(50 + Piece.MATERIAL_VALUE_ROOK/10, SUT.evaluateThreats(attacks, false));
 	}
 }

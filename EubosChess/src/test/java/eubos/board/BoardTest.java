@@ -619,36 +619,6 @@ public class BoardTest {
 	}
 	
 	@Test
-	public void test_isInsufficientMaterial_RvsKK()throws IllegalNotationException {
-		setUpPosition("7K/8/8/5N2/8/r5N1/k7/8 w - - 0 1");
-		assertTrue(classUnderTest.isLikelyDrawnEndgame(true));
-		setUpPosition("7K/8/8/5N2/8/r5N1/8/k7 b - - 0 1");
-		assertFalse(classUnderTest.isLikelyDrawnEndgame(false));
-		
-		// white rook is en prise, could be knight forked with King, so return false
-		setUpPosition("K7/8/R5n1/8/5n2/8/8/7k b - - 0 1 ");
-		assertFalse(classUnderTest.isLikelyDrawnEndgame(false));
-		
-		// white queen can be picked up by Knight forked with King
-		setUpPosition("8/1K6/Q7/8/5q2/3n4/8/7k b - - 0 1 ");
-		assertFalse(classUnderTest.isLikelyDrawnEndgame(false));
-	}
-	
-	@Test
-	public void test_isInsufficientMaterial_RRvsKK()throws IllegalNotationException {
-		setUpPosition("K7/8/R5n1/8/R4n2/8/8/7k b - - 0 1 ");
-		assertFalse(classUnderTest.isLikelyDrawnEndgame(false));
-		setUpPosition("K7/8/Q7/8/5r2/8/8/7k b - - 0 1 ");
-		assertFalse(classUnderTest.isLikelyDrawnEndgame(false));
-		
-		// white queen is en prise, could be knight forked with King, so return false
-		setUpPosition("K7/8/Q7/8/5q2/3n4/8/7k b - - 0 1 ");
-		assertFalse(classUnderTest.isLikelyDrawnEndgame(false));
-		setUpPosition("k7/b7/8/5n2/8/8/3Q4/7K w - - 0 1 ");
-		assertFalse(classUnderTest.isLikelyDrawnEndgame(true));
-	}
-	
-	@Test
 	public void test_optimised_mobility_func() {
 		for (int outer_rank=0; outer_rank<8; outer_rank++) {
 			for (int outer_file=0; outer_file<8; outer_file++) {
@@ -1546,6 +1516,19 @@ public class BoardTest {
 		assertTrue(classUnderTest.potentialKnightCheck(true));
 		setUpPosition("k7/8/4n3/8/3K4/8/8/8 b - - 0 1 ");
 		assertFalse(classUnderTest.potentialKnightCheck(true));
+	}
+	
+	@Test
+	public void test_knight_fork_check() {
+		setUpPosition("k7/3R4/4n3/8/4K3/8/8/8 b - - 0 1");
+		assertTrue(classUnderTest.hasKnightCheckForkThreat(true));
+		setUpPosition("k7/2R5/4n3/8/4K3/8/8/8 b - - 0 1");
+		assertFalse(classUnderTest.hasKnightCheckForkThreat(true));
+		// Neither knight can fork the king and the rook
+		setUpPosition("k7/2R5/4n3/6n1/4K3/8/8/8 b - - 0 1");
+		assertFalse(classUnderTest.hasKnightCheckForkThreat(true));
+		setUpPosition("k7/8/4n3/6n1/4K3/8/8/6R1 b - - 0 1");
+		assertFalse(classUnderTest.hasKnightCheckForkThreat(true));
 	}
 }
 

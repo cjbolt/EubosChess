@@ -19,6 +19,7 @@ public class PositionEvaluator implements IEvaluate {
 	public static final boolean ENABLE_THREAT_EVALUATION = true;
 
 	private static final int BISHOP_PAIR_BOOST = 25;
+	public final int KNIGHT_CHECK_THREAT_PENALTY = -50;
 	
 	boolean onMoveIsWhite;
 	int midgameScore = 0;
@@ -254,11 +255,7 @@ public class PositionEvaluator implements IEvaluate {
 			} else {
 				attacks = bd.mae.calculateBasicAttacksAndMobility(bd.me);
 			}
-			
-			if (bd.isLikelyDrawnEndgame(onMoveIsWhite, attacks)) {
-				return score;
-			}
-			
+						
 			score += evaluateBishopPair();
 			score += pawn_eval.evaluatePawnStructure(attacks);
 			
@@ -312,8 +309,9 @@ public class PositionEvaluator implements IEvaluate {
 	public int evaluateThreatsForSide(long[][][] attacks, boolean onMoveIsWhite) {
 		int threatScore = 0;
 		long own = onMoveIsWhite ? bd.getWhitePieces() : bd.getBlackPieces();
-		own &= ~(onMoveIsWhite ? bd.getWhiteKing() : bd.getBlackKing()); // Don't include King in this evaluation
-		// if a piece is attacked and not defended, add a penalty
+		long ownKing = bd.pieces[Piece.KING] & own;
+		own &= ~(ownKing); // Don't include King in this evaluation
+		// En prise - if a piece is attacked and not defended, add a penalty
 		long enemyAttacks = attacks[onMoveIsWhite ? 1 : 0][3][0];
 		long ownAttacks = attacks[onMoveIsWhite ? 0 : 1][3][0];
 		long attackedOnlyByEnemy = enemyAttacks & ~ownAttacks;
@@ -323,6 +321,10 @@ public class PositionEvaluator implements IEvaluate {
 			// Add a penalty based on the value of the piece not defended, 10% of piece value
 			threatScore -= Math.abs((Piece.PIECE_TO_MATERIAL_LUT[0][bd.getPieceAtSquare(scratchBitBoard)] / 10));
 			scratchBitBoard ^= (1L << bit_offset);
+		}
+		// Knight Checks - potential knight fork of King and more valuable piece
+		if (bd.hasKnightCheckForkThreat(onMoveIsWhite)) {
+			threatScore += KNIGHT_CHECK_THREAT_PENALTY;
 		}
 		return threatScore;
 	}
