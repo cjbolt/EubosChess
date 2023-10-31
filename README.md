@@ -3,17 +3,26 @@
 </a>
 <img src="https://img.shields.io/github/actions/workflow/status/cjbolt/EubosChess/maven.yml?branch=master" alt="GitHub Workflow Status">
 
+![Eubos Logo](logo.png)
+
 # EubosChess
-Eubos chess is a multi-threaded Java chess engine. It was self-built and is playable online 24/7 via lichess (https://lichess.org/@/eubos - it is hosted on Heroku). It is rated around 2098 ELO against other engines, not humans (this is at blitz 2+1 time control, see  http://ccrl.chessdom.com/ccrl/404/). It uses the UCI protocol.
+Eubos chess is a multi-threaded Java chess engine.
+
+You can play it online, 24/7, via lichess: (https://lichess.org/@/eubos or https://lichess.org/@/baby_eubos). 
+
+Eubos started out as an entirely original engine, based on rather idiosyncratic move generation and an inefficient alpha-beta implementation, but later versions utilise standard algorithms, like negamax search, in order to make it a bit more competitive! The move generation and evaluation is still mostly original work.
+
+It is currently rated around 2350 Elo against other engines, not humans (this is at blitz 2+1 time control, see  http://ccrl.chessdom.com/ccrl/404/).
 
 ## Features
-Eubos uses a standard alpha beta negamax algorithm with transposition hashing and quiescence search extension.
+Eubos uses a standard alpha-beta negamax algorithm with transposition hashing and quiescence search extension. It utilises lazy move generation and lazy evaluation.
 
 The evaluation function takes account of the following factors
 * material balance
 * piece mobility
 * pawn structure
 * king safety
+* tactical threats
 
 It knows about draws by 3-fold repetition and insufficient material.
 
