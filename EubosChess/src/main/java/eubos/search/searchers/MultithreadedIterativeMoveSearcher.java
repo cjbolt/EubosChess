@@ -149,7 +149,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	
 	private SearchResult getFavouredWorkerResult() {
 		SearchResult result = null;
-		int ply = 1000;
+		int ply = 1000; // set to large value so we back-up the best mate score
 		boolean anyFoundMate = false;
 		for (MultithreadedSearchWorkerThread worker : workers) {
 			// If there is a mate, give shortest pv to mate
@@ -165,9 +165,21 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			// else favour deepest pv
 			ply = 0;
 			for (MultithreadedSearchWorkerThread worker : workers) {
-				if (worker.result.depth > ply) {
-					ply = worker.result.depth;
-					result = worker.result;
+				// Find deepest trusted PV
+				if (worker.result.trusted) {
+					if (worker.result.depth > ply) {
+						ply = worker.result.depth;
+						result = worker.result;
+					}
+				}
+			}
+			if (ply == 0) {
+				// If no trusted PVs, find deepest
+				for (MultithreadedSearchWorkerThread worker : workers) {
+					if (worker.result.depth > ply) {
+						ply = worker.result.depth;
+						result = worker.result;
+					}
 				}
 			}
 		}
