@@ -10,21 +10,23 @@ public class SearchResult {
 	public long rootTrans;
 	public int depth;
 	public boolean trusted;
+	public int score;
 	
 	public SearchResult() {
-		this(new int [] {Move.NULL_MOVE}, false, 0L, 0, true);
+		this(new int [] {Move.NULL_MOVE}, false, 0L, 0, true, 0);
 	}
 	
-	public SearchResult(int bestMove) {
-		this(new int [] {bestMove}, false, 0L, 0, true);
+	public SearchResult(int bestMove, int score) {
+		this(new int [] {bestMove}, false, 0L, 0, true, score);
 	}
 	
-	public SearchResult(int[] pv, boolean foundMate, long rootTransposition, int depth, boolean trusted) {
+	public SearchResult(int[] pv, boolean foundMate, long rootTransposition, int depth, boolean trusted, int score) {
 		this.pv = pv;
 		this.foundMate = foundMate;
 		this.rootTrans = rootTransposition;
 		this.depth = depth;
 		this.trusted = trusted;
+		this.score = score;
 	}
 
 	public String report(Board theBoard) {
@@ -34,8 +36,9 @@ public class SearchResult {
 			sb.append(Move.toString(move));
 			sb.append(' ');
 		}
-		String output = String.format("result: pv=%s, mate=%s, depth=%d, trusted=%d rootTrans=(%s)", 
+		String output = String.format("result: pv=%s, score=%d mate=%s, depth=%d, trusted=%d rootTrans=(%s)", 
 				sb.toString(),
+				score,
 				foundMate,
 				depth,
 				trusted ? 1 : 0,

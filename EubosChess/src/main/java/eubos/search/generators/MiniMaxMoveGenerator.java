@@ -106,7 +106,7 @@ public class MiniMaxMoveGenerator implements
 			foundMate = true;
 		}
 		// Select the best move
-		return new SearchResult(pc.toPvList(0), foundMate, ps.rootTransposition, searchDepth, ps.certain);
+		return new SearchResult(pc.toPvList(0), foundMate, ps.rootTransposition, searchDepth, ps.certain, score);
 	}
 	
 	private void handleFatalError(Throwable e, String err) {

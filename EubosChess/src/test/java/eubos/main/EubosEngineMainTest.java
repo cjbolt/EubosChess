@@ -352,25 +352,25 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Black move 62
 		ArrayList<GenericMove> applyMoveList = new ArrayList<GenericMove>();
 		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
-		classUnderTest.sendBestMoveCommand(new SearchResult(Move.valueOfBit(BitBoard.b3, Piece.BLACK_KING, BitBoard.b4, Piece.NONE)));
+		classUnderTest.sendBestMoveCommand(new SearchResult(Move.valueOfBit(BitBoard.b3, Piece.BLACK_KING, BitBoard.b4, Piece.NONE), 162));
 		// White move 63
 		applyMoveList = new ArrayList<GenericMove>();
 		applyMoveList.add(new GenericMove("b3b4"));
 		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
-		classUnderTest.sendBestMoveCommand(new SearchResult(Move.valueOfBit(BitBoard.a1, Piece.WHITE_KING, BitBoard.a2, Piece.NONE)));
+		classUnderTest.sendBestMoveCommand(new SearchResult(Move.valueOfBit(BitBoard.a1, Piece.WHITE_KING, BitBoard.a2, Piece.NONE), -92));
 		// Black move 63
 		applyMoveList = new ArrayList<GenericMove>();
 		applyMoveList.add(new GenericMove("b3b4"));
 		applyMoveList.add(new GenericMove("a1a2"));
 		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
-		classUnderTest.sendBestMoveCommand(new SearchResult(Move.valueOfBit(BitBoard.b4, Piece.BLACK_KING, BitBoard.a4, Piece.NONE)));
+		classUnderTest.sendBestMoveCommand(new SearchResult(Move.valueOfBit(BitBoard.b4, Piece.BLACK_KING, BitBoard.a4, Piece.NONE), 162));
 		// White move 64
 		applyMoveList = new ArrayList<GenericMove>();
 		applyMoveList.add(new GenericMove("b3b4"));
 		applyMoveList.add(new GenericMove("a1a2"));
 		applyMoveList.add(new GenericMove("b4a4"));
 		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
-		classUnderTest.sendBestMoveCommand(new SearchResult(Move.valueOfBit(BitBoard.a2, Piece.WHITE_KING, BitBoard.b1, Piece.NONE)));
+		classUnderTest.sendBestMoveCommand(new SearchResult(Move.valueOfBit(BitBoard.a2, Piece.WHITE_KING, BitBoard.b1, Piece.NONE), -112));
 		//  Black move 64
 		applyMoveList = new ArrayList<GenericMove>();
 		applyMoveList.add(new GenericMove("b3b4"));
@@ -378,7 +378,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		applyMoveList.add(new GenericMove("b4a4"));
 		applyMoveList.add(new GenericMove("a2b1"));
 		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
-		classUnderTest.sendBestMoveCommand(new SearchResult(Move.valueOfBit(BitBoard.a4, Piece.BLACK_KING, BitBoard.a5, Piece.NONE)));
+		classUnderTest.sendBestMoveCommand(new SearchResult(Move.valueOfBit(BitBoard.a4, Piece.BLACK_KING, BitBoard.a5, Piece.NONE), 152));
 		/* The positions are getting double incremented in test_avoidDraw_lichess_hash_table_draw_kpK_rook_pawn_alt
 		 * because Eubos is calculating moves for both black and white. Therefore we double count, once when the 
 		 * bestmove is sent, the again on the next ply when the analyse is received!

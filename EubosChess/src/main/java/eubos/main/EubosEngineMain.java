@@ -35,12 +35,18 @@ import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.board.SquareAttackEvaluator;
 import eubos.position.Move;
+import eubos.position.MoveList;
 import eubos.position.PositionManager;
 import eubos.score.PawnEvalHashTable;
 import eubos.score.PositionEvaluator;
 import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
+import eubos.search.KillerList;
+import eubos.search.PlySearcher;
+import eubos.search.PrincipalContinuation;
 import eubos.search.Score;
+import eubos.search.SearchDebugAgent;
+import eubos.search.SearchMetrics;
 import eubos.search.SearchResult;
 import eubos.search.searchers.AbstractMoveSearcher;
 import eubos.search.searchers.FixedDepthMoveSearcher;
@@ -259,7 +265,7 @@ public class EubosEngineMain extends AbstractEngine {
 					logger.info(String.format("EngineStartCalculatingCommand - Mate in transposition %s", 
 							Transposition.report(rootTrans, rootPosition.getTheBoard())));
 				}
-				SearchResult result = new SearchResult(pv, true, rootTrans, Transposition.getDepthSearchedInPly(rootTrans), true);
+				SearchResult result = new SearchResult(pv, true, rootTrans, Transposition.getDepthSearchedInPly(rootTrans), true, 0);
 				sendBestMoveCommand(result);
 			}
 		} else {
@@ -523,10 +529,41 @@ public class EubosEngineMain extends AbstractEngine {
 		} else {
 			trustedMove = Move.valueOfFromTransposition(tableRootTrans, rootPosition.getTheBoard());
 		}
-		
+
 		rootPosition.performMove(trustedMove);
-		resetDrawCheckerIfBestMoveIsAPawnMoveOrCapture(trustedMove);
+		resetDrawCheckerIfBestMoveIsAPawnMoveOrCapture(trustedMove);		
 		convertToGenericAndSendBestMove(trustedMove);
+		
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			// do a validation search to the same depth to check the PV move
+			SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.getOnMove() == Piece.Colour.white);
+			PrincipalContinuation pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
+			ReferenceScore refScore = Colour.isWhite(rootPosition.getOnMove()) ? whiteRefScore : blackRefScore;
+			PlySearcher ps = new PlySearcher(
+					hashMap, 
+					pc, 
+					new SearchMetrics(rootPosition), 
+					null, 
+					(byte)(result.depth-1), 
+					rootPosition,
+					rootPosition,
+					rootPosition.getPositionEvaluator(),
+					new KillerList(),
+					sda,
+					new MoveList((PositionManager)rootPosition, 0),
+					refScore.getReference().score);
+			int validation_score = ps.searchPly(refScore.getReference().score);
+			if (result.trusted) {
+				// Does Killer ordering affect determinism of move selected???
+				// addition as result is from one side, validation is from the other (so don't do subtraction)
+				assert Math.abs(result.score+validation_score) < 10 :
+					String.format("Validation_score %d != result_score %d, where PV moves are validation(%s), result(%s)",
+							validation_score, result.score,
+							Move.toString(pc.toPvList(0)[0]), Move.toString(result.pv.length > 1 ? result.pv[1] : Move.NULL_MOVE));
+				// Need to print the whole PV here
+				// Need to handle the case where we got a beta cut for some reason and therefore have a single move in PV.
+			}
+		}
 	}
 	
 	@Override
