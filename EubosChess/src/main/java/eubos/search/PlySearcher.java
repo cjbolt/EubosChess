@@ -134,7 +134,7 @@ public class PlySearcher {
 		
 		hasSearchedPv = false;
 		lastAspirationFailed = false;
-		//certain = false;
+		certain = false;
 		terminate = false;
 		
 		// Back up the root transposition, because it can be lost in the search
@@ -207,7 +207,6 @@ public class PlySearcher {
 	        	} else if (score > alpha && score < beta) {
 		        	// Exact score in window returned
 		        	lastAspirationFailed = false;
-		        	certain = true;
 		        	if (EubosEngineMain.ENABLE_LOGGING) {
 						EubosEngineMain.logger.fine(String.format("Aspiration returned window=%d score=%d in alpha=%d beta=%d for depth=%d",
 								aspiration_window, score, alpha, beta, originalSearchDepthRequiredInPly));
@@ -230,7 +229,6 @@ public class PlySearcher {
 		}
 		if (doFullWidthSearch) {
 			score = searchRoot(originalSearchDepthRequiredInPly, Score.PROVISIONAL_ALPHA, Score.PROVISIONAL_BETA);
-			certain = !(isTerminated() && score == 0);
 			lastAspirationFailed = !certain;
 			reportPv((short) state[0].alpha);
 		}
@@ -828,6 +826,7 @@ public class PlySearcher {
 			sr.reportPrincipalVariation(sm);
 			extendedSearchDeepestPly = 0;
 		}
+		certain = !(isTerminated() && positionScore == 0);
 	}
 	
 	private int doNullMoveSubTreeSearch(int depth) {
