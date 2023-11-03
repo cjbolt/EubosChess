@@ -536,9 +536,9 @@ public class EubosEngineMain extends AbstractEngine {
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {
 			// do a validation search to the same depth to check the PV move
+			short expected_score = (short)-result.score;
 			SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.getOnMove() == Piece.Colour.white);
 			PrincipalContinuation pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
-			ReferenceScore refScore = Colour.isWhite(rootPosition.getOnMove()) ? whiteRefScore : blackRefScore;
 			PlySearcher ps = new PlySearcher(
 					hashMap, 
 					pc, 
@@ -551,15 +551,17 @@ public class EubosEngineMain extends AbstractEngine {
 					new KillerList(),
 					sda,
 					new MoveList((PositionManager)rootPosition, 0),
-					refScore.getReference().score);
-			int validation_score = ps.searchPly(refScore.getReference().score);
+					expected_score);
+			int validation_score = ps.searchPly((short)-result.score);
 			if (result.trusted) {
-				// Does Killer ordering affect determinism of move selected???
-				// addition as result is from one side, validation is from the other (so don't do subtraction)
-				assert Math.abs(result.score+validation_score) < 10 :
-					String.format("Validation_score %d != result_score %d, where PV moves are validation(%s), result(%s)",
+				// Does Killer ordering affect determinism of move selected?
+				// Or is it to do with the moves that are not searched due to reductions?
+				// Often seen when there was a beta cut???
+				assert Math.abs(expected_score-validation_score) < 10 :
+					String.format("DELTA=%d: Validation_score(%d) != result_score(%d), where PV moves are validation(%s), result(%s)",
+							Math.abs(expected_score-validation_score),
 							validation_score, result.score,
-							Move.toString(pc.toPvList(0)[0]), Move.toString(result.pv.length > 1 ? result.pv[1] : Move.NULL_MOVE));
+							pc.toStringAt(0), Move.toString(result.pv.length > 1 ? result.pv[1] : Move.NULL_MOVE));
 				// Need to print the whole PV here
 				// Need to handle the case where we got a beta cut for some reason and therefore have a single move in PV.
 			}
