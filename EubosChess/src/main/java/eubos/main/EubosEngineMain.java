@@ -34,6 +34,7 @@ import eubos.board.Board;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
 import eubos.board.SquareAttackEvaluator;
+import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.PositionManager;
@@ -57,6 +58,7 @@ import eubos.search.transposition.Transposition;
 
 import java.text.SimpleDateFormat;
 import java.util.logging.*;
+import java.util.Arrays;
 import java.util.Set;
 
 public class EubosEngineMain extends AbstractEngine {
@@ -67,13 +69,14 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final byte SEARCH_DEPTH_IN_PLY = Byte.MAX_VALUE;
 	public static final int DEFAULT_NUM_SEARCH_THREADS = 1;
 	
-	public static final boolean ENABLE_LOGGING = false;
+	public static final boolean ENABLE_LOGGING = true;
 	public static final boolean ENABLE_UCI_INFO_SENDING = true;
 	public static final boolean ENABLE_UCI_MOVE_NUMBER = false;
 	
 	public static final boolean ENABLE_ASSERTS = false;
 	public static final boolean ENABLE_PERFT = false;
 	public static final boolean ENABLE_TEST_SUITES = false;
+	public static final boolean ENABLE_DEBUG_VALIDATION_SEARCH = true;
 	
 	public static final boolean ENABLE_REPETITION_DETECTION = true;
 	public static final boolean ENABLE_TRANSPOSITION_TABLE = true;
@@ -530,11 +533,13 @@ public class EubosEngineMain extends AbstractEngine {
 			trustedMove = Move.valueOfFromTransposition(tableRootTrans, rootPosition.getTheBoard());
 		}
 
+		String rootFen = EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH ? rootPosition.getFen() : "";
+		String rootReport = EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH ? result.report(rootPosition.getTheBoard()) : "";
 		rootPosition.performMove(trustedMove);
 		resetDrawCheckerIfBestMoveIsAPawnMoveOrCapture(trustedMove);		
 		convertToGenericAndSendBestMove(trustedMove);
 		
-		if (EubosEngineMain.ENABLE_ASSERTS) {
+		if (EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH) {
 			// do a validation search to the same depth to check the PV move
 			short expected_score = (short)-result.score;
 			SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.getOnMove() == Piece.Colour.white);
@@ -552,19 +557,46 @@ public class EubosEngineMain extends AbstractEngine {
 					sda,
 					new MoveList((PositionManager)rootPosition, 0),
 					expected_score);
-			int validation_score = ps.searchPly((short)-result.score);
-			if (result.trusted) {
+			int validation_score = ps.searchPly(expected_score);
+			if (result.trusted && expected_score != 0 && !Score.isMate(expected_score)) {
 				// Does Killer ordering affect determinism of move selected?
 				// Or is it to do with the moves that are not searched due to reductions?
 				// Often seen when there was a beta cut???
-				assert Math.abs(expected_score-validation_score) < 10 :
-					String.format("DELTA=%d: Validation_score(%d) != result_score(%d), where PV moves are validation(%s), result(%s)",
-							Math.abs(expected_score-validation_score),
+				if (Math.abs(expected_score-validation_score) >= 100) {
+					logger.severe(String.format(
+							"At root: %s\nSearch result is %s\nDELTA=%d: Validation_score(%d) != result_score(%d), where PV moves are validation(%s), result(%s)",
+							rootFen, rootReport, Math.abs(expected_score-validation_score),
 							validation_score, result.score,
-							pc.toStringAt(0), Move.toString(result.pv.length > 1 ? result.pv[1] : Move.NULL_MOVE));
-				// Need to print the whole PV here
+							pc.toStringAt(0), Move.toString(result.pv.length > 1 ? result.pv[1] : Move.NULL_MOVE)));
+					int [] result_pv_excluding_best_move = Arrays.copyOfRange(result.pv, 1, result.pv.length);
+					validateEubosPv(result_pv_excluding_best_move);
+					validateEubosPv(pc.toPvList(0));
 				// Need to handle the case where we got a beta cut for some reason and therefore have a single move in PV.
+				}
 			}
+		}
+	}
+	
+	private void validateEubosPv(int[] pv) {
+		try {
+			if (pv != null) {
+				int moves_applied = 0;
+				for (int move : pv) {
+					rootPosition.performMove(move);
+					++moves_applied;
+				}
+				
+				// Now, at this point, get a full evaluation from pe and report it
+				int eval = rootPosition.getPositionEvaluator().getFullEvaluation();
+				logger.severe(String.format("getFullEvaluation of PV is %d at %s", eval, rootPosition.getFen()));
+				
+				for (int i=0; i<moves_applied; i++) {
+					rootPosition.unperformMove();
+				}
+			}
+		} catch (AssertionError e) {
+			handleFatalError(e, "Error validating PV", rootPosition);
+			System.exit(0);
 		}
 	}
 	
@@ -613,7 +645,7 @@ public class EubosEngineMain extends AbstractEngine {
 			e.printStackTrace();
 		}
 		logger.addHandler(fh);
-		logger.setLevel(Level.INFO);
+		logger.setLevel(ENABLE_DEBUG_VALIDATION_SEARCH ? Level.SEVERE : Level.INFO);
 		logger.setUseParentHandlers(false);
 	}
 	
@@ -642,5 +674,17 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		String dump = String.format("Thread dump: %s", buffer.toString());
 		logger.severe(dump);
+	}
+	
+	public static void handleFatalError(Throwable e, String err, IPositionAccessors pos) {
+		Writer buffer = new StringWriter();
+		PrintWriter pw = new PrintWriter(buffer);
+		e.printStackTrace(pw);
+		String errorFen = pos.getFen();
+		String error = String.format("%s: %s\n%s\n%s\n%s",
+				err, e.getMessage(), 
+				errorFen, pos.unwindMoveStack(), buffer.toString());
+		System.err.println(error);
+		EubosEngineMain.logger.severe(error);
 	}
 }

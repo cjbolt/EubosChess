@@ -1,9 +1,5 @@
 package eubos.search.generators;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.Writer;
-
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
@@ -98,28 +94,17 @@ public class MiniMaxMoveGenerator implements
 		try {
 			score = (short) ps.searchPly(scoreToUse);
 		} catch (Exception e) {
-			handleFatalError(e, "PlySearcher threw an exception");
+			EubosEngineMain.handleFatalError(e, "PlySearcher threw an exception", pos);
+			System.exit(0);
 		} catch (AssertionError e) {
-			handleFatalError(e, "PlySearcher hit an assertion error");
+			EubosEngineMain.handleFatalError(e, "PlySearcher hit an assertion error", pos);
+			System.exit(0);
 		}
 		if (Score.isMate(score)) {
 			foundMate = true;
 		}
 		// Select the best move
 		return new SearchResult(pc.toPvList(0), foundMate, ps.rootTransposition, searchDepth, ps.certain, score);
-	}
-	
-	private void handleFatalError(Throwable e, String err) {
-		Writer buffer = new StringWriter();
-		PrintWriter pw = new PrintWriter(buffer);
-		e.printStackTrace(pw);
-		String errorFen = pos.getFen();
-		String error = String.format("%s: %s\n%s\n%s\n%s",
-				err, e.getMessage(), 
-				errorFen, pos.unwindMoveStack(), buffer.toString());
-		System.err.println(error);
-		EubosEngineMain.logger.severe(error);
-		System.exit(0);
 	}
 	
 	public void terminateFindMove() {

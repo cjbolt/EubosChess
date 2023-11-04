@@ -1,8 +1,5 @@
 package eubos.search.searchers;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -137,13 +134,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		try {
 			eubosEngine.sendBestMoveCommand(getFavouredWorkerResult());
 		} catch (Exception e) {
-			Writer buffer = new StringWriter();
-			PrintWriter pw = new PrintWriter(buffer);
-			e.printStackTrace(pw);
-			String error = String.format("MultithreadedIterativeMoveSearcher crashed with: %s\n%s",
-					e.getMessage(), buffer.toString());
-			System.err.println(error);
-			EubosEngineMain.logger.severe(error);
+			EubosEngineMain.handleFatalError(e, "Exception during sendBestMoveCommand", moveGenerators.get(0).pos);
 		}
 	}
 	
