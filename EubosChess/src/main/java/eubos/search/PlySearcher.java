@@ -81,8 +81,6 @@ public class PlySearcher {
 	private byte currPly = 0;
 	private byte originalSearchDepthRequiredInPly = 0;
 	private byte extendedSearchDeepestPly = 0;
-	@SuppressWarnings("unused")
-	private short refScore;
 	public long rootTransposition = 0L;
 	
 	private MoveList ml;
@@ -102,8 +100,7 @@ public class PlySearcher {
 			IEvaluate pe,
 			KillerList killers,
 			SearchDebugAgent sda,
-			MoveList ml,
-			short refScore) {
+			MoveList ml) {
 		currPly = 0;
 		state = new SearchState[EubosEngineMain.SEARCH_DEPTH_IN_PLY+1]; // Lengthened to prevent out by one errors in LMR update
 		for (int i=0; i < state.length; i++) {
@@ -117,7 +114,6 @@ public class PlySearcher {
 		this.pe = pe;
 		this.sr = sr;
 		this.sda = sda;
-		this.refScore = refScore;
 		originalSearchDepthRequiredInPly = searchDepthPly;
 		
 		tt = hashMap;
@@ -127,9 +123,8 @@ public class PlySearcher {
 		rootTransposition = tt.getTransposition(pos.getHash());
 	}
 	
-	public void reinitialise(byte searchDepthPly, SearchMetricsReporter sr, short refScore) {
+	public void reinitialise(byte searchDepthPly, SearchMetricsReporter sr) {
 		this.sr = sr;
-		this.refScore = refScore;
 		originalSearchDepthRequiredInPly = searchDepthPly;
 		
 		hasSearchedPv = false;
@@ -271,7 +266,6 @@ public class PlySearcher {
 		int positionScore = state[0].plyScore;
 		int quietMoveNumber = 0;
 		boolean refuted = false;
-		state[0].staticEval = (depth == 1) ? refScore : 0;
 		ml.initialiseAtPly(state[0].prevBestMove, killers.getMoves(0), state[0].inCheck, false, 0);
 		do {
 			MoveListIterator move_iter = ml.getNextMovesAtPly(0);

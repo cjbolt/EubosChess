@@ -73,7 +73,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_UCI_INFO_SENDING = true;
 	public static final boolean ENABLE_UCI_MOVE_NUMBER = false;
 	
-	public static final boolean ENABLE_ASSERTS = false;
+	public static final boolean ENABLE_ASSERTS = true;
 	public static final boolean ENABLE_PERFT = false;
 	public static final boolean ENABLE_TEST_SUITES = false;
 	public static final boolean ENABLE_DEBUG_VALIDATION_SEARCH = true;
@@ -461,18 +461,18 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 	}
 	
-	private void resetDrawCheckerIfBestMoveIsAPawnMoveOrCapture(int bestMove)
-	{
-		boolean bestMoveWasCaptureOrPawnMove = Move.isCapture(bestMove) || Move.isPawnMove(bestMove);
-		int plyAfterMove = rootPosition.getPlyNumber();
-		if (bestMoveWasCaptureOrPawnMove) {
-			dc.reset(plyAfterMove);
-			dc.setPositionReached(rootPosition.getHash(), plyAfterMove);
-		}
-		if (analysisMode) {
-			dc.reset(plyAfterMove);
-		}
-	}
+//	private void resetDrawCheckerIfBestMoveIsAPawnMoveOrCapture(int bestMove)
+//	{
+//		boolean bestMoveWasCaptureOrPawnMove = Move.isCapture(bestMove) || Move.isPawnMove(bestMove);
+//		int plyAfterMove = rootPosition.getPlyNumber();
+//		if (bestMoveWasCaptureOrPawnMove) {
+//			dc.reset(plyAfterMove);
+//			dc.setPositionReached(rootPosition.getHash(), plyAfterMove);
+//		}
+//		if (analysisMode) {
+//			dc.reset(plyAfterMove);
+//		}
+//	}
 	
 	private long compareTransWithSearchResult(SearchResult result, long trans) {
 		int transBestMove = Transposition.getBestMove(trans);
@@ -526,9 +526,11 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		
 		int trustedMove = Move.NULL_MOVE;
+		boolean trustedMoveWasFromTrans = true;
 		long tableRootTrans = repopulateRootTransFromCacheIfItWasOverwritten(result);
 		if (tableRootTrans == 0L) {
 			trustedMove = result.pv[0];
+			trustedMoveWasFromTrans = false;
 		} else {
 			trustedMove = Move.valueOfFromTransposition(tableRootTrans, rootPosition.getTheBoard());
 		}
@@ -536,59 +538,68 @@ public class EubosEngineMain extends AbstractEngine {
 		String rootFen = EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH ? rootPosition.getFen() : "";
 		String rootReport = EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH ? result.report(rootPosition.getTheBoard()) : "";
 		rootPosition.performMove(trustedMove);
-		resetDrawCheckerIfBestMoveIsAPawnMoveOrCapture(trustedMove);		
+		//resetDrawCheckerIfBestMoveIsAPawnMoveOrCapture(trustedMove); // done during perform move now
+
 		convertToGenericAndSendBestMove(trustedMove);
 		
 		if (EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH) {
+			// Operate on a copy of the rootPosition to prevent re-entrancy issues at tight time controls
+			PositionManager pm = new PositionManager(rootPosition.getFen(), rootPosition.getHash(), dc, pawnHash);
 			// do a validation search to the same depth to check the PV move
-			short expected_score = (short)-result.score;
+			short trusted_score = (short)(trustedMoveWasFromTrans ? -Transposition.getScore(tableRootTrans): -result.score);
+			int trusted_depth = trustedMoveWasFromTrans ? Transposition.getDepthSearchedInPly(tableRootTrans) : result.depth;
+			int[] empty_pv = { Move.NULL_MOVE };
+			int[] trusted_pv = trustedMoveWasFromTrans ? empty_pv : Arrays.copyOfRange(result.pv, 1, result.pv.length);
+			
 			SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.getOnMove() == Piece.Colour.white);
 			PrincipalContinuation pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
 			PlySearcher ps = new PlySearcher(
 					hashMap, 
 					pc, 
-					new SearchMetrics(rootPosition), 
+					new SearchMetrics(pm), 
 					null, 
-					(byte)(result.depth-1), 
-					rootPosition,
-					rootPosition,
-					rootPosition.getPositionEvaluator(),
+					(byte)(trusted_depth-1), 
+					pm,
+					pm,
+					pm.getPositionEvaluator(),
 					new KillerList(),
 					sda,
-					new MoveList((PositionManager)rootPosition, 0),
-					expected_score);
-			int validation_score = ps.searchPly(expected_score);
-			if (result.trusted && expected_score != 0 && !Score.isMate(expected_score)) {
+					new MoveList(pm, 0));
+			int validation_score = ps.searchPly(trusted_score);
+			if (trusted_score != 0 && !Score.isMate(trusted_score)) {
 				// Does Killer ordering affect determinism of move selected?
 				// Or is it to do with the moves that are not searched due to reductions?
 				// Often seen when there was a beta cut???
-				if (Math.abs(expected_score-validation_score) >= 100) {
+				if (Math.abs(trusted_score-validation_score) >= 50) {
 					logger.severe(String.format(
-							"At root: %s\nSearch result is %s\nDELTA=%d: Validation_score(%d) != result_score(%d), where PV moves are validation(%s), result(%s)",
-							rootFen, rootReport, Math.abs(expected_score-validation_score),
-							validation_score, result.score,
-							pc.toStringAt(0), Move.toString(result.pv.length > 1 ? result.pv[1] : Move.NULL_MOVE)));
-					int [] result_pv_excluding_best_move = Arrays.copyOfRange(result.pv, 1, result.pv.length);
-					validateEubosPv(result_pv_excluding_best_move);
-					validateEubosPv(pc.toPvList(0));
+							"\n\nDELTA=%d\n\nRoot fen is %s\n%s\nvalidation_score=%d trusted_score=%d, where PV moves are validation(%s), result(%s)",
+							Math.abs(trusted_score-validation_score),
+							rootFen, rootReport,
+							validation_score, trusted_score,
+							pc.toStringAt(0),
+							Move.toString(trusted_pv[0])));
+					if (!trustedMoveWasFromTrans) {
+						validateEubosPv("Trusted PV", trusted_pv);
+					}
+					validateEubosPv("Validation PV", pc.toPvList(0));
 				// Need to handle the case where we got a beta cut for some reason and therefore have a single move in PV.
 				}
 			}
 		}
 	}
 	
-	private void validateEubosPv(int[] pv) {
+	private void validateEubosPv(String str, int[] pv) {
 		try {
 			if (pv != null) {
 				int moves_applied = 0;
 				for (int move : pv) {
-					rootPosition.performMove(move);
+					assert rootPosition.performMove(move);
 					++moves_applied;
 				}
 				
 				// Now, at this point, get a full evaluation from pe and report it
 				int eval = rootPosition.getPositionEvaluator().getFullEvaluation();
-				logger.severe(String.format("getFullEvaluation of PV is %d at %s", eval, rootPosition.getFen()));
+				logger.severe(String.format("%s getFullEvaluation of PV is %d at %s", str, eval, rootPosition.getFen()));
 				
 				for (int i=0; i<moves_applied; i++) {
 					rootPosition.unperformMove();

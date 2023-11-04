@@ -67,7 +67,7 @@ public class PositionManagerTest {
 		// 2 ....P...
 		// 1 ........
 		//   abcdefgh
-		createSutAndRegisterPe("8/8/8/8/8/8/4P3/8 w - - - 1");
+		createSutAndRegisterPe("k6K/8/8/8/8/8/4P3/8 w - - - 1");
 		classUnderTest.performMove(Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE ));
 		classUnderTest.unperformMove();
 		int expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( 1L << BitBoard.e2 );
@@ -85,7 +85,7 @@ public class PositionManagerTest {
 		// 2 ....p...
 		// 1 ........
 		//   abcdefgh
-		createSutAndRegisterPe("8/8/8/8/8/8/4p3/8 b - - - 1");
+		createSutAndRegisterPe("k6K/8/8/8/8/8/4p3/8 b - - - 1");
 		classUnderTest.performMove( Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.QUEEN));
 		classUnderTest.unperformMove();
 		int expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( 1L << BitBoard.e2 );
@@ -103,7 +103,7 @@ public class PositionManagerTest {
 		// 2 ....P...
 		// 1 ........
 		//   abcdefgh
-		createSutAndRegisterPe("8/8/8/8/8/3p4/4P3/8 w - - - 1");
+		createSutAndRegisterPe("k6K/8/8/8/8/3p4/4P3/8 w - - - 1");
 		classUnderTest.performMove( Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.d3, Piece.BLACK_PAWN ));
 		classUnderTest.unperformMove();
 		int expectPawn = classUnderTest.getTheBoard().getPieceAtSquare( 1L << BitBoard.d3 );
@@ -133,7 +133,7 @@ public class PositionManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		createSutAndRegisterPe("8/8/8/8/8/8/8/4K2R w K - - 1");
+		createSutAndRegisterPe("k7/8/8/8/8/8/8/4K2R w K - - 1");
 		classUnderTest.performMove( Move.valueOf(Move.TYPE_REGULAR_NONE, Position.e1, Piece.KING, Position.g1, Piece.NONE, Piece.NONE));
 		int whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(1L << BitBoard.h1);
 		assertTrue(whiteRook == Piece.NONE);
@@ -153,7 +153,7 @@ public class PositionManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		createSutAndRegisterPe("8/8/8/8/8/8/8/4K2R w K - - 1");
+		createSutAndRegisterPe("k7/8/8/8/8/8/8/4K2R w K - - 1");
 		int expectedMove = Move.valueOf( Move.TYPE_REGULAR_NONE, Position.e1, Piece.WHITE_KING, Position.g1, Piece.NONE, Piece.NONE );
 		classUnderTest.performMove(expectedMove);
 		int whiteRook = classUnderTest.getTheBoard().getPieceAtSquare(1L << BitBoard.h1);
@@ -181,7 +181,7 @@ public class PositionManagerTest {
 		// 2 ........
 		// 1 ....K..R
 		//   abcdefgh
-		createSutAndRegisterPe("7r/8/8/8/8/8/8/4K2R b K - - 1");
+		createSutAndRegisterPe("k6r/8/8/8/8/8/8/4K2R b K - - 1");
 		classUnderTest.performMove(Move.valueOf( Position.h8, Piece.BLACK_ROOK, Position.h1, Piece.WHITE_ROOK ));
 		assertTrue(classUnderTest.castling.getFenFlags().equals("-"));
 	}
@@ -240,7 +240,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_BlackPawn_MoveGen_CaptureEnPassantLeft()  {
 		// Black is on e4, white moves f4, then black ml contains capture en passant, exf
-		createSutAndRegisterPe("8/8/8/8/4p3/8/5P2/8 w - - 0 1");
+		createSutAndRegisterPe("k6K/8/8/8/4p3/8/5P2/8 w - - 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.f2, Piece.WHITE_PAWN, Position.f4, Piece.NONE ));
 		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
 		expectedMove = Move.valueOfEnPassant( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.e4, Piece.BLACK_PAWN, Position.f3, Piece.WHITE_PAWN, Piece.NONE );
@@ -250,7 +250,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_BlackPawn_MoveGen_CaptureEnPassantLeftFalse()  {
 		// Black is on e4, white moves a knight to f4, check black ml doesn't contain a capture en passant, exf
-		createSutAndRegisterPe("8/8/8/8/4p3/8/5N2/8 w - - 0 1 ");
+		createSutAndRegisterPe("k6K/8/8/8/4p3/8/5N2/8 w - - 0 1 ");
 		classUnderTest.performMove( Move.valueOf( Position.f2, Piece.WHITE_KNIGHT, Position.f4, Piece.NONE ));
 		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
 		expectedMove = Move.valueOf( Position.e4, Piece.BLACK_PAWN, Position.f3, Piece.WHITE_PAWN );
@@ -260,7 +260,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_BlackPawn_MoveGen_CaptureEnPassantRight()  {
 		// Black is on e4, white moves d4, then black ml contains capture en passant, exd
-		createSutAndRegisterPe("8/8/8/8/4p3/8/3P4/8 w - - 0 1 ");
+		createSutAndRegisterPe("k6K/8/8/8/4p3/8/3P4/8 w - - 0 1 ");
 		classUnderTest.performMove( Move.valueOf( Position.d2, Piece.WHITE_PAWN, Position.d4, Piece.NONE ));
 		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
 		expectedMove = Move.valueOfEnPassant( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.e4, Piece.BLACK_PAWN, Position.d3, Piece.WHITE_PAWN, Piece.NONE );
@@ -270,7 +270,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_BlackPawn_MoveGen_CaptureEnPassantRightFalse()  {
 		// Black is on e4, white moves a knight to d4, check black ml doesn't contain a capture en passant, exd
-		createSutAndRegisterPe("8/8/8/8/4p3/8/3N4/8 w - - 0 1 ");
+		createSutAndRegisterPe("k6K/8/8/8/4p3/8/3N4/8 w - - 0 1 ");
 		classUnderTest.performMove( Move.valueOf( Position.d2, Piece.WHITE_KNIGHT, Position.d4, Piece.NONE ));
 		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
 		expectedMove = Move.valueOf( Position.e4, Piece.BLACK_PAWN, Position.d3, Piece.WHITE_PAWN );
@@ -280,7 +280,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_BlackPawn_MoveGen_CaptureEnPassantFromAFile()  {
 		// Black is on a4, white moves b4, then black ml contains capture en passant, axb
-		createSutAndRegisterPe("8/8/8/8/p7/8/1P6/8 w - - 0 1 ");
+		createSutAndRegisterPe("k6K/8/8/8/p7/8/1P6/8 w - - 0 1 ");
 		classUnderTest.performMove( Move.valueOf( Position.b2, Piece.WHITE_PAWN, Position.b4, Piece.NONE ));
 		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
 		expectedMove = Move.valueOfEnPassant( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.a4, Piece.BLACK_PAWN, Position.b3, Piece.WHITE_PAWN, Piece.NONE );
@@ -290,7 +290,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_BlackPawn_MoveGen_CaptureEnPassantFromAFile_1()  {
 		// Black is on a4, white moves b4, then black ml contains capture en passant, axb
-		createSutAndRegisterPe("8/8/8/8/pP6/8/8/8 w - - 0 1 ");
+		createSutAndRegisterPe("k6K/8/8/8/pP6/8/8/8 w - - 0 1 ");
 		classUnderTest.performMove( Move.valueOf( Position.b4, Piece.WHITE_PAWN, Position.b5, Piece.NONE ));
 		
 		expectedMove = Move.valueOfEnPassant( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.a4, Piece.BLACK_PAWN, Position.b3, Piece.WHITE_PAWN, Piece.NONE );
@@ -300,7 +300,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_BlackPawn_MoveGen_CaptureEnPassantFromHFile()  {
 		// Black is on h4, white moves g4, then black ml contains capture en passant, hxg
-		createSutAndRegisterPe("8/8/8/8/7p/8/6P1/8 w - - 0 1 ");
+		createSutAndRegisterPe("k6K/8/8/8/7p/8/6P1/8 w - - 0 1 ");
 		classUnderTest.performMove( Move.valueOf( Position.g2, Piece.WHITE_PAWN, Position.g4, Piece.NONE ));
 		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
 		expectedMove = Move.valueOfEnPassant( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.h4, Piece.BLACK_PAWN, Position.g3, Piece.WHITE_PAWN, Piece.NONE );
@@ -310,19 +310,19 @@ public class PositionManagerTest {
 	@Test
 	public void test_BlackPawn_MoveGen_MoveOneSquare()  {
 		// After initial move, ensure that a pawn can't move 2 any longer
-		createSutAndRegisterPe("8/4p3/8/8/8/8/4P3/8 b - - 0 1 ");
+		createSutAndRegisterPe("8/4p3/8/8/8/8/4P3/K6k b - - 0 1 ");
 		classUnderTest.performMove( Move.valueOf( Position.e7, Piece.BLACK_PAWN, Position.e6, Piece.NONE ));
 		classUnderTest.performMove( Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE ));
 		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
 		
 		expectedMove = Move.valueOf( Position.e6, Piece.BLACK_PAWN, Position.e5, Piece.NONE );
-		assertTrue( ml.getList().size() == 1 );
+		assertTrue( ml.getList().size() == 4 );
 		contains( expectedMove );		
 	}	
 
 	@Test
 	public void test_BlackPawn_MoveGen_CaptureLeft() {
-		createSutAndRegisterPe("8/4p3/5P2/8/8/8/8/8 b - - 0 1 ");
+		createSutAndRegisterPe("8/4p3/5P2/8/8/8/8/k6K b - - 0 1 ");
 		
 		expectedMove = Move.valueOf( Position.e7, Piece.BLACK_PAWN, Position.f6, Piece.WHITE_PAWN );
 		contains( expectedMove );
@@ -417,7 +417,7 @@ public class PositionManagerTest {
 
 	@Test
 	public void test_WhitePawn_MoveGen_CaptureEnPassantLeft()  {
-		createSutAndRegisterPe("8/3p4/8/4P3/8/8/8/8 b - - 0 1");
+		createSutAndRegisterPe("8/3p4/8/4P3/8/8/8/k6K b - - 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.d7, Piece.BLACK_PAWN, Position.d5, Piece.NONE ));
 		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
 		expectedMove = Move.valueOfEnPassant( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.e5, Piece.WHITE_PAWN, Position.d6, Piece.BLACK_PAWN, Piece.NONE );
@@ -426,7 +426,7 @@ public class PositionManagerTest {
 	
 	@Test
 	public void test_WhitePawn_MoveGen_CaptureEnPassantLeftFalse()  {
-		createSutAndRegisterPe("8/5r2/8/4P3/8/8/8/8 b - - 0 1");
+		createSutAndRegisterPe("8/5r2/8/4P3/8/8/8/k6K b - - 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.f7, Piece.BLACK_ROOK, Position.f5, Piece.NONE ));
 		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
 		expectedMove = Move.valueOf( Position.e5, Piece.WHITE_PAWN, Position.f6, Piece.BLACK_PAWN );
@@ -435,7 +435,7 @@ public class PositionManagerTest {
 	
 	@Test
 	public void test_WhitePawn_MoveGen_CaptureEnPassantRight()  {
-		createSutAndRegisterPe("8/5p2/8/4P3/8/8/8/8 b - - 0 1");
+		createSutAndRegisterPe("8/5p2/8/4P3/8/8/8/k6K b - - 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.f7, Piece.BLACK_PAWN, Position.f5, Piece.NONE ));
 		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
 		expectedMove = Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.e5, Piece.WHITE_PAWN, Position.f6, Piece.BLACK_PAWN, Piece.NONE );
@@ -444,7 +444,7 @@ public class PositionManagerTest {
 	
 	@Test
 	public void test_WhitePawn_MoveGen_CaptureEnPassantRightFalse()  {
-		createSutAndRegisterPe("8/5r2/8/4P3/8/8/8/8 b - - 0 1");
+		createSutAndRegisterPe("8/5r2/8/4P3/8/8/8/k6K b - - 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.f7, Piece.BLACK_ROOK, Position.f5, Piece.NONE ));
 		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
 		expectedMove = Move.valueOf( Position.e5, Piece.WHITE_PAWN, Position.f6, Piece.BLACK_PAWN );
@@ -454,7 +454,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_WhitePawn_MoveGen_CaptureEnPassantFromAFile()  {
 		// white is on a5, black moves b5, then black ml contains capture en passant, axb
-		createSutAndRegisterPe("8/1p6/8/P7/8/8/8/8 b - - 0 1");
+		createSutAndRegisterPe("8/1p6/8/P7/8/8/8/k6K b - - 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.b7, Piece.BLACK_PAWN, Position.b5, Piece.NONE ));
 		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
 		expectedMove = Move.valueOfEnPassant( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.a5, Piece.WHITE_PAWN, Position.b6, Piece.BLACK_PAWN, Piece.NONE );
@@ -464,7 +464,7 @@ public class PositionManagerTest {
 	@Test
 	public void test_WhitePawn_MoveGen_CaptureEnPassantFromHFile()  {
 		// Black is on h4, white moves g4, then black ml contains capture en passant, hxg
-		createSutAndRegisterPe("8/6p1/8/7P/8/8/8/8 b - - 0 1");
+		createSutAndRegisterPe("8/6p1/8/7P/8/8/8/k6K b - - 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.g7, Piece.BLACK_PAWN, Position.g5, Piece.NONE ));
 		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
 		expectedMove = Move.valueOfEnPassant( Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.h5, Piece.WHITE_PAWN, Position.g6, Piece.BLACK_PAWN, Piece.NONE );
@@ -474,13 +474,13 @@ public class PositionManagerTest {
 	@Test
 	public void test_WhitePawn_MoveGen_MoveOneSquare()  {
 		// After initial move, ensure that a pawn can't move 2 any longer
-		createSutAndRegisterPe("8/5p2/8/8/8/8/4P3/8 w - - 0 1");
+		createSutAndRegisterPe("k6K/5p2/8/8/8/8/4P3/8 w - - 0 1");
 		classUnderTest.performMove( Move.valueOf( Position.e2, Piece.WHITE_PAWN, Position.e4, Piece.NONE ));
 		classUnderTest.performMove( Move.valueOf( Position.f7, Piece.BLACK_PAWN, Position.f6, Piece.NONE ));
 		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0); // regenerate movelist following move
 		
 		expectedMove = Move.valueOf( Position.e4, Piece.WHITE_PAWN, Position.e5, Piece.NONE );
-		assertTrue( ml.getList().size() == 1 );
+		assertTrue( ml.getList().size() == 4 );
 		contains( expectedMove );		
 	}	
 

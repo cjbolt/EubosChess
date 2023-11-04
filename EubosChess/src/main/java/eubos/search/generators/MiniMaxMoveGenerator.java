@@ -46,7 +46,7 @@ public class MiniMaxMoveGenerator implements
 		score = 0;
 		this.ref = new ReferenceScore(null).getReference();
 		commonInit(hashMap, pm, pos);
-		ps = new PlySearcher(tta, pc, sm, null, (byte)0, pm, pos, pe, killers, sda, ml, (short)0);
+		ps = new PlySearcher(tta, pc, sm, null, (byte)0, pm, pos, pe, killers, sda, ml);
 	}
 
 	// Used with Arena, Lichess
@@ -59,7 +59,7 @@ public class MiniMaxMoveGenerator implements
 		score = ref.score;
 		if (sr != null)
 			sr.register(sm);
-		ps = new PlySearcher(tta, pc, sm, sr, (byte)0, pm, pos, pe, killers, sda, ml, (short)0);
+		ps = new PlySearcher(tta, pc, sm, sr, (byte)0, pm, pos, pe, killers, sda, ml);
 	}
 
 	private void commonInit(ITranspositionAccessor hashMap, IChangePosition pm, IPositionAccessors pos) {
@@ -89,7 +89,7 @@ public class MiniMaxMoveGenerator implements
 		boolean foundMate = false;
 		short scoreToUse = (searchDepth > ref.depth) ? score : ref.score;
 		sm.setDepth(searchDepth);
-		ps.reinitialise(searchDepth, sr, scoreToUse);
+		ps.reinitialise(searchDepth, sr);
 		// Descend the plies in the search tree, to full depth, updating board and scoring positions
 		try {
 			score = (short) ps.searchPly(scoreToUse);

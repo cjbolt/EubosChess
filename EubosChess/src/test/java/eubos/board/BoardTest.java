@@ -1459,7 +1459,7 @@ public class BoardTest {
 	
 	@Test
 	public void createPassedPawns_1() {
-		setUpPosition("8/ppp4p/8/8/1P6/8/2PP4/8 b - - 0 1");
+		setUpPosition("7k/ppp4p/8/8/1P6/8/2PP4/7K b - - 0 1");
 		classUnderTest.doMove(Move.valueOf(Position.h7, Piece.BLACK_PAWN, Position.h6, Piece.NONE));
 		assertEquals(BitBoard.valueOf(new int[] {Position.h6}), classUnderTest.getPassedPawns());
 	}
