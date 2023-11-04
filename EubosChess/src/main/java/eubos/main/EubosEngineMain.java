@@ -64,7 +64,7 @@ import java.util.Set;
 public class EubosEngineMain extends AbstractEngine {
 	
 	static final int EUBOS_MAJOR_VERSION = 2;
-	static final int EUBOS_MINOR_VERSION = 24;
+	static final int EUBOS_MINOR_VERSION = 25;
 	
 	public static final byte SEARCH_DEPTH_IN_PLY = Byte.MAX_VALUE;
 	public static final int DEFAULT_NUM_SEARCH_THREADS = 1;
@@ -73,7 +73,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_UCI_INFO_SENDING = true;
 	public static final boolean ENABLE_UCI_MOVE_NUMBER = false;
 	
-	public static final boolean ENABLE_ASSERTS = true;
+	public static final boolean ENABLE_ASSERTS = false;
 	public static final boolean ENABLE_PERFT = false;
 	public static final boolean ENABLE_TEST_SUITES = false;
 	public static final boolean ENABLE_DEBUG_VALIDATION_SEARCH = true;
@@ -461,19 +461,6 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 	}
 	
-//	private void resetDrawCheckerIfBestMoveIsAPawnMoveOrCapture(int bestMove)
-//	{
-//		boolean bestMoveWasCaptureOrPawnMove = Move.isCapture(bestMove) || Move.isPawnMove(bestMove);
-//		int plyAfterMove = rootPosition.getPlyNumber();
-//		if (bestMoveWasCaptureOrPawnMove) {
-//			dc.reset(plyAfterMove);
-//			dc.setPositionReached(rootPosition.getHash(), plyAfterMove);
-//		}
-//		if (analysisMode) {
-//			dc.reset(plyAfterMove);
-//		}
-//	}
-	
 	private long compareTransWithSearchResult(SearchResult result, long trans) {
 		int transBestMove = Transposition.getBestMove(trans);
 		int transDepth = Transposition.getDepthSearchedInPly(trans);
@@ -535,22 +522,19 @@ public class EubosEngineMain extends AbstractEngine {
 			trustedMove = Move.valueOfFromTransposition(tableRootTrans, rootPosition.getTheBoard());
 		}
 
-		String rootFen = EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH ? rootPosition.getFen() : "";
 		String rootReport = EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH ? result.report(rootPosition.getTheBoard()) : "";
 		rootPosition.performMove(trustedMove);
-		//resetDrawCheckerIfBestMoveIsAPawnMoveOrCapture(trustedMove); // done during perform move now
-
 		convertToGenericAndSendBestMove(trustedMove);
 		
 		if (EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH) {
-			// Operate on a copy of the rootPosition to prevent re-entrancy issues at tight time controls
-			PositionManager pm = new PositionManager(rootPosition.getFen(), rootPosition.getHash(), dc, pawnHash);
 			// do a validation search to the same depth to check the PV move
 			short trusted_score = (short)(trustedMoveWasFromTrans ? -Transposition.getScore(tableRootTrans): -result.score);
 			int trusted_depth = trustedMoveWasFromTrans ? Transposition.getDepthSearchedInPly(tableRootTrans) : result.depth;
 			int[] empty_pv = { Move.NULL_MOVE };
 			int[] trusted_pv = trustedMoveWasFromTrans ? empty_pv : Arrays.copyOfRange(result.pv, 1, result.pv.length);
 			
+			// Operate on a copy of the rootPosition to prevent re-entrancy issues at tight time controls
+			PositionManager pm = new PositionManager(rootPosition.getFen(), rootPosition.getHash(), dc, pawnHash);
 			SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.getOnMove() == Piece.Colour.white);
 			PrincipalContinuation pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
 			PlySearcher ps = new PlySearcher(
@@ -572,41 +556,41 @@ public class EubosEngineMain extends AbstractEngine {
 				// Often seen when there was a beta cut???
 				if (Math.abs(trusted_score-validation_score) >= 50) {
 					logger.severe(String.format(
-							"\n\nDELTA=%d\n\nRoot fen is %s\n%s\nvalidation_score=%d trusted_score=%d, where PV moves are validation(%s), result(%s)",
+							"\n\nDELTA=%d\n\nfen after best move is %s\n%s\nvalidation_score=%d trusted_score=%d, where PV moves are validation(%s), result(%s)",
 							Math.abs(trusted_score-validation_score),
-							rootFen, rootReport,
+							pm.getFen(), rootReport,
 							validation_score, trusted_score,
 							pc.toStringAt(0),
 							Move.toString(trusted_pv[0])));
 					if (!trustedMoveWasFromTrans) {
-						validateEubosPv("Trusted PV", trusted_pv);
+						validateEubosPv(pm, "Trusted PV", trusted_pv);
 					}
-					validateEubosPv("Validation PV", pc.toPvList(0));
-				// Need to handle the case where we got a beta cut for some reason and therefore have a single move in PV.
+					validateEubosPv(pm, "Validation PV", pc.toPvList(0));
+					// Need to handle the case where we got a beta cut for some reason and therefore have a single move in PV.
 				}
 			}
 		}
 	}
 	
-	private void validateEubosPv(String str, int[] pv) {
+	private void validateEubosPv(PositionManager pm, String str, int[] pv) {
 		try {
 			if (pv != null) {
 				int moves_applied = 0;
 				for (int move : pv) {
-					assert rootPosition.performMove(move);
+					assert pm.performMove(move);
 					++moves_applied;
 				}
 				
 				// Now, at this point, get a full evaluation from pe and report it
-				int eval = rootPosition.getPositionEvaluator().getFullEvaluation();
-				logger.severe(String.format("%s getFullEvaluation of PV is %d at %s", str, eval, rootPosition.getFen()));
+				int eval = pm.getPositionEvaluator().getFullEvaluation();
+				logger.severe(String.format("%s getFullEvaluation of PV is %d at %s", str, eval, pm.getFen()));
 				
 				for (int i=0; i<moves_applied; i++) {
-					rootPosition.unperformMove();
+					pm.unperformMove();
 				}
 			}
 		} catch (AssertionError e) {
-			handleFatalError(e, "Error validating PV", rootPosition);
+			handleFatalError(e, "Error validating PV", pm);
 			System.exit(0);
 		}
 	}
