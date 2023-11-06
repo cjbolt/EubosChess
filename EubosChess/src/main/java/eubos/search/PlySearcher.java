@@ -778,7 +778,7 @@ public class PlySearcher {
 			plyBound = Score.lowerBound;
 		} else {
 			// because of LMR we can't be sure about depth for a non-PV node, so keep it as upper bound
-			plyBound = Score.exact;
+			plyBound = Score.upperBound;
 		}
 		return updateTranspositionTable(trans, depth, currMove, plyScore, plyBound);
 	}
