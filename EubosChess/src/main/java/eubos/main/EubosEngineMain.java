@@ -69,14 +69,14 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final byte SEARCH_DEPTH_IN_PLY = Byte.MAX_VALUE;
 	public static final int DEFAULT_NUM_SEARCH_THREADS = 1;
 	
-	public static final boolean ENABLE_LOGGING = true;
+	public static final boolean ENABLE_LOGGING = false;
 	public static final boolean ENABLE_UCI_INFO_SENDING = true;
 	public static final boolean ENABLE_UCI_MOVE_NUMBER = false;
 	
 	public static final boolean ENABLE_ASSERTS = false;
 	public static final boolean ENABLE_PERFT = false;
 	public static final boolean ENABLE_TEST_SUITES = false;
-	public static final boolean ENABLE_DEBUG_VALIDATION_SEARCH = true;
+	public static final boolean ENABLE_DEBUG_VALIDATION_SEARCH = false;
 	
 	public static final boolean ENABLE_REPETITION_DETECTION = true;
 	public static final boolean ENABLE_TRANSPOSITION_TABLE = true;
@@ -550,7 +550,7 @@ public class EubosEngineMain extends AbstractEngine {
 					sda,
 					new MoveList(pm, 0));
 			int validation_score = ps.searchPly(trusted_score);
-			if (trusted_score != 0 && validation_score != 0 && !Score.isMate(trusted_score)) {
+			if (trusted_score != 0 && validation_score != 0 && !Score.isMate(trusted_score) && !Score.isMate((short)validation_score)) {
 				// Does Killer ordering affect determinism of move selected?
 				// Or is it to do with the moves that are not searched due to reductions?
 				// Often seen when there was a beta cut???

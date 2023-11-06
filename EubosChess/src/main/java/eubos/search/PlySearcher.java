@@ -354,7 +354,7 @@ public class PlySearcher {
 			} while (move_iter.hasNext());
 		} while (!isTerminated() && !refuted);
 		
-		if (!isTerminated()) {
+		if (!isTerminated() /*&& !refuted*/) {
 			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[0].plyScore);
 			rootTransposition = trans;
 		}
@@ -593,7 +593,7 @@ public class PlySearcher {
 			} while (move_iter.hasNext());
 		} while (!isTerminated() && !refuted);
 		
-		if (!isTerminated()) {
+		if (!isTerminated() /*&& !refuted*/) {
 			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[currPly].plyScore);
 		}
 		
@@ -778,7 +778,7 @@ public class PlySearcher {
 			plyBound = Score.lowerBound;
 		} else {
 			// because of LMR we can't be sure about depth for a non-PV node, so keep it as upper bound
-			plyBound = Score.upperBound;
+			plyBound = Score.exact;
 		}
 		return updateTranspositionTable(trans, depth, currMove, plyScore, plyBound);
 	}
