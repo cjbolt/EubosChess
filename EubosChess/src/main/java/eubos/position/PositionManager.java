@@ -168,7 +168,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		hash.doCastlingFlags(old_flags, castling.getFlags());
 		hash.doOnMove();
 		
-		plyNumber++;
 		// Update the draw checker
 		if (Move.isCapture(move) || Move.isPawnMove(move)) {
 			dc.reset(plyNumber);
@@ -177,7 +176,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		
 		// Update onMove
 		onMove = Colour.getOpposite(onMove);
-
+		plyNumber++;
+		
 		return true;
 	}
 

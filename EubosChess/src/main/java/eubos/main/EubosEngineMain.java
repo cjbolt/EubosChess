@@ -532,6 +532,7 @@ public class EubosEngineMain extends AbstractEngine {
 			int trusted_depth = trustedMoveWasFromTrans ? Transposition.getDepthSearchedInPly(tableRootTrans) : result.depth;
 			int[] empty_pv = { Move.NULL_MOVE };
 			int[] trusted_pv = trustedMoveWasFromTrans ? empty_pv : Arrays.copyOfRange(result.pv, 1, result.pv.length);
+			boolean beta_cut = trustedMoveWasFromTrans && Transposition.getType(tableRootTrans) == Score.lowerBound;
 			
 			// Operate on a copy of the rootPosition to prevent re-entrancy issues at tight time controls
 			PositionManager pm = new PositionManager(rootPosition.getFen(), rootPosition.getHash(), dc, pawnHash);
@@ -550,10 +551,11 @@ public class EubosEngineMain extends AbstractEngine {
 					sda,
 					new MoveList(pm, 0));
 			int validation_score = ps.searchPly(trusted_score);
-			if (trusted_score != 0 && validation_score != 0 && !Score.isMate(trusted_score) && !Score.isMate((short)validation_score)) {
+			if (trusted_score != 0 && validation_score != 0 &&
+				!Score.isMate(trusted_score) && !Score.isMate((short)validation_score) &&
+				!beta_cut) {
 				// Does Killer ordering affect determinism of move selected?
 				// Or is it to do with the moves that are not searched due to reductions?
-				// Often seen when there was a beta cut???
 				if (Math.abs(trusted_score-validation_score) >= 100) {
 					logger.severe(String.format(
 							"\n\nDELTA=%d\n\nfen after best move is %s\n%s\nvalidation_score=%d trusted_score=%d, where PV moves are validation(%s), result(%s)",
