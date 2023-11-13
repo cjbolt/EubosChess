@@ -610,7 +610,35 @@ public class PlySearcher {
 		}
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
-		state[currPly].plyScore = pe.lazyEvaluation(alpha, beta);
+		long trans = tt.getTransposition(pos.getHash());
+		int prevBestMove = Move.NULL_MOVE;
+		if (trans != 0L) {	
+			state[currPly].isCutOff = false;
+			state[currPly].hashScore = convertMateScoreForPositionInSearchTree(Transposition.getScore(trans));
+			int type = Transposition.getType(trans);
+			if (type == Score.exact) {
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
+				state[currPly].isCutOff = true;
+				return state[currPly].hashScore;
+			} else {
+				if (hasSearchedPv && type == (state[currPly].hashScore >= beta ? Score.lowerBound : Score.upperBound)) {
+					return state[currPly].hashScore;
+				}
+				state[currPly].plyScore = Transposition.getStaticEval(trans);
+				if (state[currPly].plyScore == Short.MAX_VALUE) {
+					state[currPly].plyScore = pe.lazyEvaluation(alpha, beta);
+				}
+				byte boundScope = (state[currPly].hashScore > state[currPly].plyScore) ? Score.lowerBound : Score.upperBound;
+				if (type == boundScope) {
+					state[currPly].plyScore = state[currPly].hashScore;
+				}
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
+				prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
+			}
+		} else {
+			state[currPly].plyScore = pe.lazyEvaluation(alpha, beta);
+		}
+		
 		if (state[currPly].plyScore >= beta) {
 			// There is no move to put in the killer table when we stand Pat
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(state[currPly].plyScore);
@@ -624,22 +652,6 @@ public class PlySearcher {
 		if (state[currPly].plyScore > alpha) {
 			// Null move hypothesis
 			alpha = state[currPly].plyScore;
-		}
-		
-		long trans = tt.getTransposition(pos.getHash());
-		int prevBestMove = Move.NULL_MOVE;
-		if (trans != 0L) {	
-			state[currPly].isCutOff = false;
-			state[currPly].hashScore = convertMateScoreForPositionInSearchTree(Transposition.getScore(trans));
-			int type = Transposition.getType(trans);
-			if (type == Score.exact) {
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
-				state[currPly].isCutOff = true;
-				return state[currPly].hashScore;
-			} else {
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-				prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
-			}
 		}
 		
 		int currMove = Move.NULL_MOVE;
