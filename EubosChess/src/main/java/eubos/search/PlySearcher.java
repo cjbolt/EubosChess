@@ -354,7 +354,7 @@ public class PlySearcher {
 			} while (move_iter.hasNext());
 		} while (!isTerminated() && !refuted);
 		
-		if (!isTerminated() /*&& !refuted*/) {
+		if (!isTerminated()) {
 			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[0].plyScore);
 			rootTransposition = trans;
 		}
@@ -593,7 +593,7 @@ public class PlySearcher {
 			} while (move_iter.hasNext());
 		} while (!isTerminated() && !refuted);
 		
-		if (!isTerminated() /*&& !refuted*/) {
+		if (!isTerminated()) {
 			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[currPly].plyScore);
 		}
 		
@@ -628,9 +628,18 @@ public class PlySearcher {
 		
 		long trans = tt.getTransposition(pos.getHash());
 		int prevBestMove = Move.NULL_MOVE;
-		if (trans != 0L) {
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-			prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
+		if (trans != 0L) {	
+			state[currPly].isCutOff = false;
+			state[currPly].hashScore = convertMateScoreForPositionInSearchTree(Transposition.getScore(trans));
+			int type = Transposition.getType(trans);
+			if (type == Score.exact) {
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
+				state[currPly].isCutOff = true;
+				return state[currPly].hashScore;
+			} else {
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
+				prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
+			}
 		}
 		
 		int currMove = Move.NULL_MOVE;
@@ -778,7 +787,7 @@ public class PlySearcher {
 			plyBound = Score.lowerBound;
 		} else {
 			// because of LMR we can't be sure about depth for a non-PV node, so keep it as upper bound
-			plyBound = Score.upperBound;
+			plyBound = depth < 3 ? Score.exact : Score.upperBound;
 		}
 		return updateTranspositionTable(trans, depth, currMove, plyScore, plyBound);
 	}
