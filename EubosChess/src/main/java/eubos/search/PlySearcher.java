@@ -610,6 +610,9 @@ public class PlySearcher {
 		}
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
+		//state[currPly].isStaticValid = false;
+		state[currPly].initialise(currPly, alpha, beta);
+		
 		long trans = tt.getTransposition(pos.getHash());
 		int prevBestMove = Move.NULL_MOVE;
 		if (trans != 0L) {	
@@ -699,9 +702,11 @@ public class PlySearcher {
 				if (positionScore > alpha) {
 					if (positionScore >= beta) {
 						if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(positionScore);
+						trans = updateTranspositionTable(trans, (byte) 1, currMove, (short) positionScore, Score.lowerBound);
 						return beta;
 					}
 					alpha = positionScore;
+					//trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) positionScore, Score.upperBound);
 					pc.update(currPly, currMove);
 				}
 			} while (move_iter.hasNext());
