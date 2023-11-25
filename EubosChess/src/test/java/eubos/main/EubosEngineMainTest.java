@@ -104,9 +104,9 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 //				expectedOutput = "info depth 1 seldepth 5 score cp 471 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
 //							     "info depth 2 seldepth 8 score cp 128 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 499"+CMD_TERMINATOR
 //								 +BEST_PREFIX+"c7c2";
-				expectedOutput = "info depth 1 seldepth 5 score cp -55 pv d7e5 f3e5 c7c2 e5f7 hashfull 0 nps 0 time 0 nodes 21"+CMD_TERMINATOR
-						+"info depth 1 seldepth 5 score cp 471 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 34"+CMD_TERMINATOR
-						+"info depth 2 seldepth 6 score cp 128 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 180"+CMD_TERMINATOR
+				expectedOutput = "info depth 1 seldepth 5 score cp -55 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 21"+CMD_TERMINATOR
+						+"info depth 1 seldepth 5 score cp 471 pv c7c2 hashfull 0 nps 0 time 0 nodes 34"+CMD_TERMINATOR
+						+"info depth 2 seldepth 6 score cp 128 pv c7c2 e1g1 hashfull 0 nps 0 time 0 nodes 180"+CMD_TERMINATOR
 						+BEST_PREFIX+"c7c2";
 			}
 			setupEngine();
