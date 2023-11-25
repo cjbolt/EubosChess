@@ -72,6 +72,13 @@ public class PrincipalContinuation {
 		}
 	}
 	
+	void initialise(int currPly) {
+		if (currPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
+			length[currPly] = 0;
+			//pc[currPly][0] = Move.NULL_MOVE;
+		}
+	}
+	
 	// Bring down a pv from node further down the tree, with curr move added at the head
 	void update(int currPly, int currMove) {
 		if (currPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {

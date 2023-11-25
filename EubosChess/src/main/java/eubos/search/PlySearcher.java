@@ -610,8 +610,8 @@ public class PlySearcher {
 		}
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
-		//state[currPly].isStaticValid = false;
 		state[currPly].initialise(currPly, alpha, beta);
+		pc.initialise(currPly);
 		
 		long trans = tt.getTransposition(pos.getHash());
 		int prevBestMove = Move.NULL_MOVE;
@@ -677,9 +677,6 @@ public class PlySearcher {
 				state[currPly].moveNumber += 1;
 				if (EubosEngineMain.ENABLE_ASSERTS) {
 					assert currMove != Move.NULL_MOVE: "Null move found in MoveList";
-				}
-				if (state[currPly].moveNumber == 1) {
-					pc.initialise(currPly, currMove);
 				}
 
 				if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
@@ -803,8 +800,9 @@ public class PlySearcher {
 			// A beta cut-off, alpha raise was 'too good'
 			plyBound = Score.lowerBound;
 		} else {
-			// because of LMR we can't be sure about depth for a non-PV node, so keep it as upper bound
-			plyBound = depth < 3 ? Score.exact : Score.upperBound;
+			// Because of LMR we can't be sure about depth for a non-PV node, unless it is within the minimum depth.
+			// Also beware of alpha PAT scores returned from the extended search, that is the reason for > 0 check
+			plyBound = (depth < 3 && depth > 0) ? Score.exact : Score.upperBound;
 		}
 		return updateTranspositionTable(trans, depth, currMove, plyScore, plyBound);
 	}
