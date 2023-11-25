@@ -703,7 +703,7 @@ public class PlySearcher {
 						return beta;
 					}
 					alpha = positionScore;
-					//trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) positionScore, Score.upperBound);
+					trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) positionScore, Score.upperBound);
 					pc.update(currPly, currMove);
 				}
 			} while (move_iter.hasNext());
