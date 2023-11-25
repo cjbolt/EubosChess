@@ -13,11 +13,12 @@ public class PrincipalContinuation {
 
 	public PrincipalContinuation(int searchDepth, SearchDebugAgent sda) {
 		// Create the pc list at each ply
-		pc = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY][];
-		for (int i = 0; i < EubosEngineMain.SEARCH_DEPTH_IN_PLY; i++) {
-			pc[i] = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY-i];
+		int max_length = EubosEngineMain.SEARCH_DEPTH_IN_PLY + 1;
+		pc = new int[max_length][];
+		for (int i = 0; i < max_length; i++) {
+			pc[i] = new int[max_length-i];
 		}
-		length = new int[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
+		length = new int[max_length];
 		this.sda = sda;
 	}
 	
@@ -59,59 +60,47 @@ public class PrincipalContinuation {
 	}
 	
 	public int [] toPvList(int currPly) { 
-		if (currPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY && length[currPly] != 0) {
+		if (length[currPly] != 0) {
 			return Arrays.copyOfRange(pc[currPly], 0, length[0]);
 		}
 		return null;
 	}
 	
 	void initialise(int currPly, int currMove) {
-		if (currPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
-			length[currPly] = 1;
-			pc[currPly][0] = currMove;
-		}
+		length[currPly] = 1;
+		pc[currPly][0] = currMove;
 	}
 	
 	void initialise(int currPly) {
-		if (currPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
-			length[currPly] = 0;
-			//pc[currPly][0] = Move.NULL_MOVE;
-		}
+		length[currPly] = 0;
 	}
 	
 	// Bring down a pv from node further down the tree, with curr move added at the head
 	void update(int currPly, int currMove) {
-		if (currPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
-			length[currPly] = 1;
-			pc[currPly][0] = currMove;
-			int nextPly = currPly+1;
-			if (nextPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
-				// Bring down, if possible
-				for (int i=0; i<length[nextPly]; i++) {
-					pc[currPly][i+1] = pc[nextPly][i];
-					length[currPly] += 1;
-				}
+		length[currPly] = 1;
+		pc[currPly][0] = currMove;
+		int nextPly = currPly+1;
+		if (nextPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
+			// Bring down, if possible
+			for (int i=0; i<length[nextPly]; i++) {
+				pc[currPly][i+1] = pc[nextPly][i];
+				length[currPly] += 1;
 			}
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPrincipalContinuation(this);
 		}
+		if (SearchDebugAgent.DEBUG_ENABLED) sda.printPrincipalContinuation(this);
 	}
 	
 	// Update a principal continuation from a Transposition hit where we don't have onwards pv
 	void set(int currPly, int currMove) {
-		if (currPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
-			length[currPly] = 1;
-			pc[currPly][0] = currMove;
-			clearContinuationBeyondPly(currPly);
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPrincipalContinuation(this);
-		}
+		length[currPly] = 1;
+		pc[currPly][0] = currMove;
+		clearContinuationBeyondPly(currPly);
+		if (SearchDebugAgent.DEBUG_ENABLED) sda.printPrincipalContinuation(this);
 	}
 	
 	// Clear all downstream pv's, from the current ply
 	void clearContinuationBeyondPly(int currPly) {
-		int nextPly = currPly+1;
-		if (nextPly < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
-			length[nextPly] = 0;
-		}
+		length[currPly+1] = 0;
 	}
 	
 	void clearPvOnAspFail() {
