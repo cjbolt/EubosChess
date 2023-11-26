@@ -76,17 +76,14 @@ public class PrincipalContinuation {
 	}
 	
 	// Bring down a pv from node further down the tree, with curr move added at the head
-	boolean update(int currPly, int currMove) {
-		boolean bought_down_pv = false;
+	void update(int currPly, int currMove) {
 		initialise(currPly, currMove);
 		int nextPly = currPly+1;
 		for (int i=0; i<length[nextPly]; i++) {
 			pc[currPly][i+1] = pc[nextPly][i];
 			length[currPly] += 1;
-			bought_down_pv = true;
 		}
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printPrincipalContinuation(this);
-		return bought_down_pv;
 	}
 	
 	// Update a principal continuation from a Transposition hit where we don't have onwards pv

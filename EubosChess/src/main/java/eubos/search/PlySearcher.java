@@ -703,9 +703,7 @@ public class PlySearcher {
 						return beta;
 					}
 					alpha = positionScore;
-					if (pc.update(currPly, currMove)) {
-						trans = updateTranspositionTable(trans, (byte) 1, currMove, (short) positionScore, Score.upperBound);
-					}
+					pc.update(currPly, currMove);
 				}
 			} while (move_iter.hasNext());
 		} while (!isTerminated());
@@ -802,7 +800,7 @@ public class PlySearcher {
 			plyBound = Score.lowerBound;
 		} else {
 			// Because of LMR we can't be sure about depth for a non-PV node, unless it is within the minimum depth.
-			plyBound = depth < 3 ? Score.exact : Score.upperBound;
+			plyBound = Score.upperBound;
 		}
 		return updateTranspositionTable(trans, depth, currMove, plyScore, plyBound);
 	}
