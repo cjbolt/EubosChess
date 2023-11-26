@@ -703,8 +703,9 @@ public class PlySearcher {
 						return beta;
 					}
 					alpha = positionScore;
-					trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) positionScore, Score.upperBound);
-					pc.update(currPly, currMove);
+					if (pc.update(currPly, currMove)) {
+						trans = updateTranspositionTable(trans, (byte) 1, currMove, (short) positionScore, Score.upperBound);
+					}
 				}
 			} while (move_iter.hasNext());
 		} while (!isTerminated());
@@ -801,8 +802,7 @@ public class PlySearcher {
 			plyBound = Score.lowerBound;
 		} else {
 			// Because of LMR we can't be sure about depth for a non-PV node, unless it is within the minimum depth.
-			// Also beware of alpha PAT scores returned from the extended search, that is the reason for > 0 check
-			plyBound = (depth < 3 && depth > 0) ? Score.exact : Score.upperBound;
+			plyBound = depth < 3 ? Score.exact : Score.upperBound;
 		}
 		return updateTranspositionTable(trans, depth, currMove, plyScore, plyBound);
 	}
