@@ -514,13 +514,13 @@ public class EubosEngineMain extends AbstractEngine {
 		
 		int trustedMove = Move.NULL_MOVE;
 		boolean trustedMoveWasFromTrans = true;
-		long tableRootTrans = repopulateRootTransFromCacheIfItWasOverwritten(result);
-		if (tableRootTrans == 0L) {
+		long tableRootTrans = 0L; //repopulateRootTransFromCacheIfItWasOverwritten(result);
+		//if (tableRootTrans == 0L) {
 			trustedMove = result.pv[0];
 			trustedMoveWasFromTrans = false;
-		} else {
-			trustedMove = Move.valueOfFromTransposition(tableRootTrans, rootPosition.getTheBoard());
-		}
+		//} else {
+		//	trustedMove = Move.valueOfFromTransposition(tableRootTrans, rootPosition.getTheBoard());
+		//}
 
 		String rootReport = EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH ? result.report(rootPosition.getTheBoard()) : "";
 		rootPosition.performMove(trustedMove);
