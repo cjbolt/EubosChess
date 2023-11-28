@@ -464,7 +464,12 @@ public class EubosEngineMain extends AbstractEngine {
 	private long compareTransWithSearchResult(SearchResult result, long trans) {
 		int transBestMove = Transposition.getBestMove(trans);
 		int transDepth = Transposition.getDepthSearchedInPly(trans);
-		if (result.trusted && transDepth <= result.depth && !Move.areEqualForTrans(transBestMove, result.pv[0])) {
+		short transScore = Transposition.getScore(trans);
+		if (result.trusted &&
+			result.depth > transDepth &&
+			result.score > transScore &&
+			result.pv[0] != Move.NULL_MOVE &&
+			!Move.areEqualForTrans(transBestMove, result.pv[0])) {
 			if (ENABLE_LOGGING) {
 				logger.warning(String.format("rootTrans %s inconsistent with search %s, updating hash",
 						Transposition.report(trans, rootPosition.getTheBoard()),
@@ -475,6 +480,7 @@ public class EubosEngineMain extends AbstractEngine {
 				trans = Transposition.setDepthSearchedInPly(trans, (byte)result.depth);
 				trans = Transposition.setType(trans, Score.typeUnknown); // We can't be sure which it was
 			} else {
+				// Use the PV, not the hash move.
 				trans = 0L;
 			}
 		}
@@ -514,13 +520,13 @@ public class EubosEngineMain extends AbstractEngine {
 		
 		int trustedMove = Move.NULL_MOVE;
 		boolean trustedMoveWasFromTrans = true;
-		long tableRootTrans = 0L; //repopulateRootTransFromCacheIfItWasOverwritten(result);
-		//if (tableRootTrans == 0L) {
+		long tableRootTrans = repopulateRootTransFromCacheIfItWasOverwritten(result);
+		if (tableRootTrans == 0L) {
 			trustedMove = result.pv[0];
 			trustedMoveWasFromTrans = false;
-		//} else {
-		//	trustedMove = Move.valueOfFromTransposition(tableRootTrans, rootPosition.getTheBoard());
-		//}
+		} else {
+			trustedMove = Move.valueOfFromTransposition(tableRootTrans, rootPosition.getTheBoard());
+		}
 
 		String rootReport = EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH ? result.report(rootPosition.getTheBoard()) : "";
 		rootPosition.performMove(trustedMove);
