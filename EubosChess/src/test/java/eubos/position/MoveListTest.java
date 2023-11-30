@@ -309,6 +309,29 @@ public class MoveListTest {
 	}
 	
 	@Test
+	public void test_amateur_104th_defect() throws IllegalNotationException {
+		PositionManager pm = new PositionManager("2kr3r/pbppb3/4p3/n1P5/5qPp/P1P5/2QNBB1P/R4RK1 b - - 0 21");
+		classUnderTest = new MoveList(pm, 1);
+		
+		classUnderTest.initialiseAtPly(Move.NULL_MOVE, null, pm.isKingInCheck(), false, 0);
+		MoveListIterator it = classUnderTest.getNextMovesAtPly(0);
+		
+		// Captures
+		assertEquals(new GenericMove("e7c5"), Move.toGenericMove(it.nextInt())); /* Losing bishop captures pawn */
+		assertEquals(new GenericMove("f4f2"), Move.toGenericMove(it.nextInt())); /* Losing queen captures bishop */
+		assertEquals(new GenericMove("f4d2"), Move.toGenericMove(it.nextInt())); /* Losing queen captures knight */
+		assertEquals(new GenericMove("f4h2"), Move.toGenericMove(it.nextInt())); /* Losing queen captures pawn */
+		assertEquals(new GenericMove("f4g4"), Move.toGenericMove(it.nextInt())); /* Losing queen captures pawn */
+		assertFalse(it.hasNext());
+		
+		// Quiet
+		it = classUnderTest.getNextMovesAtPly(0);
+		assertEquals(new GenericMove("b7a6"), Move.toGenericMove(it.nextInt())); /* puts bishop en prise, not good */
+		assertEquals(new GenericMove("b7a8"), Move.toGenericMove(it.nextInt()));
+		assertTrue(it.hasNext());
+	}
+	
+	@Test
 	public void test_check_extended_search_moves_contain_only_promotions_and_captures_all()throws IllegalNotationException {
 		PositionManager pm = new PositionManager("6k1/PBN5/8/2Kp4/2P5/5Q2/8/3R4 w - - 0 1 ");
 		classUnderTest = new MoveList(pm, 1);

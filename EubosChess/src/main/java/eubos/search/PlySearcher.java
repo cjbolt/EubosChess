@@ -602,7 +602,7 @@ public class PlySearcher {
 	}
 	
 	@SuppressWarnings("unused")
-	private int extendedSearch(int alpha, int beta)  {
+	int extendedSearch(int alpha, int beta)  {
 		
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearch(alpha, beta);
 		if (currPly > extendedSearchDeepestPly) {
@@ -699,7 +699,7 @@ public class PlySearcher {
 				if (positionScore > alpha) {
 					if (positionScore >= beta) {
 						if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(positionScore);
-						trans = updateTranspositionTable(trans, (byte) 1, currMove, (short) positionScore, Score.lowerBound);
+						trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) positionScore, Score.lowerBound);
 						return beta;
 					}
 					alpha = positionScore;
