@@ -206,7 +206,7 @@ public class PlySearcher {
 						EubosEngineMain.logger.fine(String.format("Aspiration returned window=%d score=%d in alpha=%d beta=%d for depth=%d",
 								aspiration_window, score, alpha, beta, originalSearchDepthRequiredInPly));
 					}
-		        	reportPv((short) state[0].alpha);
+		        	reportPv((short) score);
 		            break;
 		        } else {
 		        	// Score returned was outside aspiration window
@@ -225,7 +225,7 @@ public class PlySearcher {
 		if (doFullWidthSearch) {
 			score = searchRoot(originalSearchDepthRequiredInPly, Score.PROVISIONAL_ALPHA, Score.PROVISIONAL_BETA);
 			lastAspirationFailed = !certain;
-			reportPv((short) state[0].alpha);
+			reportPv((short) score);
 		}
 		return score;
 	}
@@ -597,8 +597,8 @@ public class PlySearcher {
 			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[currPly].plyScore);
 		}
 		
-		// fail hard, so don't return plyScore
-		return state[currPly].alpha;
+		// fail hard
+		return refuted ? state[currPly].beta : state[currPly].alpha;
 	}
 	
 	@SuppressWarnings("unused")
