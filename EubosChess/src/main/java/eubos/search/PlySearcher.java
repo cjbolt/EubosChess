@@ -404,7 +404,7 @@ public class PlySearcher {
 		}
 		
 		if (depth <= 0) {
-			return extendedSearch(state[currPly].alpha, state[currPly].beta, depth-1);
+			return extendedSearch(state[currPly].alpha, state[currPly].beta, depth);
 		}
 		
 		long trans = tt.getTransposition(pos.getHash());
@@ -623,10 +623,12 @@ public class PlySearcher {
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
 				state[currPly].isCutOff = true;
 				return state[currPly].hashScore;
+				
 			} else {
 				if (hasSearchedPv && type == (state[currPly].hashScore >= beta ? Score.lowerBound : Score.upperBound)) {
 					return state[currPly].hashScore;
 				}
+				
 				state[currPly].plyScore = Transposition.getStaticEval(trans);
 				if (state[currPly].plyScore == Short.MAX_VALUE) {
 					state[currPly].plyScore = pe.lazyEvaluation(alpha, beta);
@@ -658,6 +660,7 @@ public class PlySearcher {
 		}
 		
 		int currMove = Move.NULL_MOVE;
+		int bestMove = Move.NULL_MOVE;
 		int positionScore = state[currPly].plyScore;
 		ml.initialiseAtPly(prevBestMove, null, state[currPly].inCheck, true, currPly);
 		do {
@@ -702,13 +705,15 @@ public class PlySearcher {
 						trans = updateTranspositionTable(trans, (byte) depth, currMove, (short) positionScore, Score.lowerBound);
 						return beta;
 					}
+					bestMove = currMove;
 					alpha = positionScore;
 					pc.update(currPly, currMove);
-					trans = updateTranspositionTable(trans, (byte) depth, currMove, (short) positionScore, Score.upperBound);
 				}
 			} while (move_iter.hasNext());
 		} while (!isTerminated());
 
+		if (!isTerminated() && bestMove != Move.NULL_MOVE)
+			trans = updateTranspositionTable(trans, (byte) depth, currMove, (short) alpha, Score.exact);
 		return alpha;
 	}
 	
@@ -800,8 +805,9 @@ public class PlySearcher {
 			// A beta cut-off, alpha raise was 'too good'
 			plyBound = Score.lowerBound;
 		} else {
-			// Because of LMR we can't be sure about depth for a non-PV node, unless it is within the minimum depth.
-			plyBound = Score.upperBound;
+			// Because of LMR we can't be sure about depth for a non-PV node, unless it is in extended search
+			// in which case it is just exact for extended search cut-offs
+			plyBound = (depth < 0) ? Score.exact : Score.upperBound;
 		}
 		return updateTranspositionTable(trans, depth, currMove, plyScore, plyBound);
 	}
