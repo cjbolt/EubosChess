@@ -700,20 +700,20 @@ public class PlySearcher {
 				
 				// Handle score backed up to this node
 				if (positionScore > alpha) {
-					if (positionScore >= beta) {
-						if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(positionScore);
-						trans = updateTranspositionTable(trans, (byte) depth, currMove, (short) positionScore, Score.lowerBound);
-						return beta;
-					}
 					bestMove = currMove;
 					alpha = positionScore;
-					pc.update(currPly, currMove);
+					if (positionScore >= beta) {
+						if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(positionScore);
+						trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) positionScore, Score.lowerBound);
+						return beta;
+					}
+					pc.update(currPly, bestMove);
 				}
 			} while (move_iter.hasNext());
 		} while (!isTerminated());
 
 		if (!isTerminated() && bestMove != Move.NULL_MOVE)
-			trans = updateTranspositionTable(trans, (byte) depth, currMove, (short) alpha, Score.exact);
+			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) alpha, Score.exact);
 		return alpha;
 	}
 	
