@@ -404,7 +404,7 @@ public class PlySearcher {
 		}
 		
 		if (depth <= 0) {
-			return extendedSearch(state[currPly].alpha, state[currPly].beta);
+			return extendedSearch(state[currPly].alpha, state[currPly].beta, depth-1);
 		}
 		
 		long trans = tt.getTransposition(pos.getHash());
@@ -434,7 +434,7 @@ public class PlySearcher {
 		    	depth <= 5) {
 		    	int thresh = state[currPly].staticEval + 800 + (150 * depth * depth);
 		    	if (thresh < state[currPly].alpha) {
-		            int value = extendedSearch(state[currPly].alpha - 1, state[currPly].alpha);
+		            int value = extendedSearch(state[currPly].alpha - 1, state[currPly].alpha, depth-1);
 		            if (value < state[currPly].alpha) {
 		                return state[currPly].alpha;
 		            } else {
@@ -602,7 +602,7 @@ public class PlySearcher {
 	}
 	
 	@SuppressWarnings("unused")
-	private int extendedSearch(int alpha, int beta)  {
+	private int extendedSearch(int alpha, int beta, int depth)  {
 		
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearch(alpha, beta);
 		if (currPly > extendedSearchDeepestPly) {
@@ -685,7 +685,7 @@ public class PlySearcher {
 				currPly++;
 				
 				state[currPly].update();
-				positionScore = (short) -extendedSearch(-beta, -alpha);
+				positionScore = (short) -extendedSearch(-beta, -alpha, depth-1);
 				
 				pm.unperformMove();
 				currPly--;
@@ -699,11 +699,12 @@ public class PlySearcher {
 				if (positionScore > alpha) {
 					if (positionScore >= beta) {
 						if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(positionScore);
-						trans = updateTranspositionTable(trans, (byte) 1, currMove, (short) positionScore, Score.lowerBound);
+						trans = updateTranspositionTable(trans, (byte) depth, currMove, (short) positionScore, Score.lowerBound);
 						return beta;
 					}
 					alpha = positionScore;
 					pc.update(currPly, currMove);
+					trans = updateTranspositionTable(trans, (byte) depth, currMove, (short) positionScore, Score.upperBound);
 				}
 			} while (move_iter.hasNext());
 		} while (!isTerminated());
