@@ -656,12 +656,13 @@ public class PlySearcher {
 		
 		if (state[currPly].plyScore > alpha) {
 			// Null move hypothesis
-			alpha = state[currPly].plyScore;
+			alpha = state[currPly].alphaOriginal = state[currPly].plyScore;
 		}
 		
 		int currMove = Move.NULL_MOVE;
 		int bestMove = Move.NULL_MOVE;
 		int positionScore = state[currPly].plyScore;
+		boolean refuted = false;
 		ml.initialiseAtPly(prevBestMove, null, state[currPly].inCheck, true, currPly);
 		do {
 			MoveListIterator move_iter = ml.getNextMovesAtPly(currPly);
@@ -701,20 +702,21 @@ public class PlySearcher {
 				// Handle score backed up to this node
 				if (positionScore > alpha) {
 					bestMove = currMove;
-					alpha = positionScore;
+					state[currPly].plyScore = alpha = positionScore;
 					if (positionScore >= beta) {
 						if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(positionScore);
-						trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) positionScore, Score.lowerBound);
-						return beta;
+						refuted = true;
+						break;
 					}
 					pc.update(currPly, bestMove);
 				}
 			} while (move_iter.hasNext());
-		} while (!isTerminated());
+		} while (!isTerminated() && !refuted);
 
-		if (!isTerminated() && bestMove != Move.NULL_MOVE)
-			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) alpha, Score.exact);
-		return alpha;
+		if (!isTerminated() && bestMove != Move.NULL_MOVE) {
+			updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[currPly].plyScore);
+		}
+		return state[currPly].plyScore;
 	}
 	
 	void evaluateTransposition(long trans, int depth) {
