@@ -373,6 +373,20 @@ public class PlySearcher {
 		state[currPly].initialise(currPly, alpha, beta);
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
+		if (SearchDebugAgent.DEBUG_ENABLED) {
+			sda.printStartPlyInfo(pos, originalSearchDepthRequiredInPly);
+			sda.printNormalSearch(state[currPly].alpha, state[currPly].beta);
+		}
+		
+		// Extend search for in-check scenarios, treated outside of quiescence search
+		if (state[currPly].inCheck) {
+			++depth;
+		}
+		
+		if (depth <= 0) {
+			return extendedSearch(state[currPly].alpha, state[currPly].beta, depth);
+		}
+		
 		// Check for absolute draws
 		if (pos.isThreefoldRepetitionPossible() || pos.isInsufficientMaterial()) return 0;
 		
@@ -391,20 +405,6 @@ public class PlySearcher {
 		// Absolute depth limit
 		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
 			return pe.getFullEvaluation();
-		}
-		
-		if (SearchDebugAgent.DEBUG_ENABLED) {
-			sda.printStartPlyInfo(pos, originalSearchDepthRequiredInPly);
-			sda.printNormalSearch(state[currPly].alpha, state[currPly].beta);
-		}
-		
-		// Extend search for in-check scenarios, treated outside of quiescence search
-		if (state[currPly].inCheck) {
-			++depth;
-		}
-		
-		if (depth <= 0) {
-			return extendedSearch(state[currPly].alpha, state[currPly].beta, depth);
 		}
 		
 		long trans = tt.getTransposition(pos.getHash());
@@ -603,7 +603,7 @@ public class PlySearcher {
 	
 	@SuppressWarnings("unused")
 	private int extendedSearch(int alpha, int beta, int depth)  {
-		
+
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearch(alpha, beta);
 		if (currPly > extendedSearchDeepestPly) {
 			extendedSearchDeepestPly = currPly;
@@ -614,6 +614,9 @@ public class PlySearcher {
 		}
 		
 		state[currPly].initialise(currPly, alpha, beta);
+		
+		// Check for absolute draws
+		if (pos.isThreefoldRepetitionPossible() || pos.isInsufficientMaterial()) return 0;
 		
 		long trans = tt.getTransposition(pos.getHash());
 		int prevBestMove = Move.NULL_MOVE;
