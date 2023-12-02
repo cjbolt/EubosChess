@@ -608,27 +608,30 @@ public class PlySearcher {
 		if (currPly > extendedSearchDeepestPly) {
 			extendedSearchDeepestPly = currPly;
 		}
-		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
+			pc.initialise(currPly);
+			pc.clearContinuationBeyondPly(currPly);
+		}
 		
 		state[currPly].initialise(currPly, alpha, beta);
-		pc.initialise(currPly);
 		
 		long trans = tt.getTransposition(pos.getHash());
 		int prevBestMove = Move.NULL_MOVE;
 		if (trans != 0L) {	
-			state[currPly].isCutOff = false;
 			state[currPly].hashScore = convertMateScoreForPositionInSearchTree(Transposition.getScore(trans));
 			int type = Transposition.getType(trans);
-			if (type == Score.exact) {
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
-				state[currPly].isCutOff = true;
-				return state[currPly].hashScore;
-				
-			} else {
+//			if (type == Score.exact) {
+//				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
+//				state[currPly].isCutOff = true;
+//				return state[currPly].hashScore;
+//				
+//			} else {
 				if (hasSearchedPv && type == (state[currPly].hashScore >= beta ? Score.lowerBound : Score.upperBound)) {
+					// Early return if we can see that it is a cut-off
 					return state[currPly].hashScore;
 				}
 				
+				// If hash score is indicates an alpha or beta cut wrt to static evaluation at this node, then use that as the PAT score, plyScore
 				state[currPly].plyScore = Transposition.getStaticEval(trans);
 				if (state[currPly].plyScore == Short.MAX_VALUE) {
 					state[currPly].plyScore = pe.lazyEvaluation(alpha, beta);
@@ -639,13 +642,13 @@ public class PlySearcher {
 				}
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
 				prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
-			}
+//			}
 		} else {
 			state[currPly].plyScore = pe.lazyEvaluation(alpha, beta);
 		}
 		
 		if (state[currPly].plyScore >= beta) {
-			// There is no move to put in the killer table when we stand Pat
+			// There is no move to put in the killer table when we stand Pat with a beta cut-off
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(state[currPly].plyScore);
 			return beta;
 		}
@@ -716,7 +719,7 @@ public class PlySearcher {
 		if (!isTerminated() && bestMove != Move.NULL_MOVE) {
 			updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[currPly].plyScore);
 		}
-		return state[currPly].plyScore;
+		return refuted ? beta : alpha; //state[currPly].plyScore;
 	}
 	
 	void evaluateTransposition(long trans, int depth) {
@@ -809,7 +812,7 @@ public class PlySearcher {
 		} else {
 			// Because of LMR we can't be sure about depth for a non-PV node, unless it is in extended search
 			// in which case it is just exact for extended search cut-offs
-			plyBound = (depth < 0) ? Score.exact : Score.upperBound;
+			plyBound = /*(depth < 0) ? Score.exact :*/ Score.upperBound;
 		}
 		return updateTranspositionTable(trans, depth, currMove, plyScore, plyBound);
 	}
