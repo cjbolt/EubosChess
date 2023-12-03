@@ -11,18 +11,10 @@ import com.fluxchess.jcpi.models.IntFile;
 import eubos.board.BitBoard;
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
-import eubos.position.MoveListIterator.MoveListPly;
-import eubos.search.KillerList;
 
 public class MoveList {
 
-	private int ply;
 	private MoveListIterator[] ml;
-
-	public MoveAdderPromotions ma_promotions;
-	public MoveAdderCaptures ma_captures;
-	public QuietMovesWithNoKillers ma_quietNoKillers;
-	public QuietMovesConsumingKillers ma_quietConsumeKillers;
 
 	public MoveList(PositionManager pm, int orderMoveList) {
 		// Create the move list arrays for this threads move list
@@ -32,119 +24,19 @@ public class MoveList {
 		for (int i = 0; i < EubosEngineMain.SEARCH_DEPTH_IN_PLY; i++) {
 			ml[i] = new MoveListIterator(this, pm, orderMoveList, i);
 		}
-
-		// Create Move Adders
-		ma_promotions = new MoveAdderPromotions();
-		ma_captures = new MoveAdderCaptures();
-		ma_quietNoKillers = new QuietMovesWithNoKillers();
-		ma_quietConsumeKillers = new QuietMovesConsumingKillers();
 	}
 	
 	public MoveListIterator initialiseAtPly(int bestMove, int[] killers, boolean inCheck, boolean extended, int ply) {
-		this.ply = ply;
 		return ml[ply].initialise(bestMove, killers, inCheck, extended, false);
 	}
 
 	public MoveListIterator initialiseAtPly(int bestMove, int[] killers, boolean inCheck, boolean extended, int ply, boolean frontier) {
-		this.ply = ply;
 		return ml[ply].initialise(bestMove, killers, inCheck, extended, frontier);
 	}
 	
 	public int getRandomMove() {
 		int randomMove = Move.NULL_MOVE;
 		return randomMove;
-	}
-
-	public class MoveAdderPromotions implements IAddMoves {
-		MoveListPly iterState = null; 
-		public void linkIteratorState(MoveListPly iterState) {
-			this.iterState = iterState;
-		}
-		
-		public void addPrio(int move) {
-			if (EubosEngineMain.ENABLE_ASSERTS) {
-				assert !Piece.isKing(Move.getTargetPiece(move));
-			}
-			if (Move.areEqual(move, iterState.bestMove)) {
-				// Silently consume
-			} else {
-				iterState.moves[iterState.moves_index++] = move;
-			}
-			handleUnderPromotions(move);
-		}
-
-		public void addNormal(int move) {
-		} // Doesn't deal with quiet moves by design
-
-		public boolean isLegalMoveFound() {
-			// This is only used by the legal move checker, which is for detecting quiescent positions
-			return false;
-		}
-
-		@SuppressWarnings("unused")
-		protected void handleUnderPromotions(int move) {
-			if ((EubosEngineMain.ENABLE_PERFT || ply == 0) && Move.isQueenPromotion(move)) {
-				// Add them in the order they will be sorted into
-				int under1 = Move.setPromotion(move, Piece.BISHOP);
-				int under2 = Move.setPromotion(move, Piece.KNIGHT);
-				int under3 = Move.setPromotion(move, Piece.ROOK);
-				iterState.moves[iterState.moves_index++] = under1;
-				iterState.moves[iterState.moves_index++] = under2;
-				iterState.moves[iterState.moves_index++] = under3;
-			}
-		}
-	}
-
-	public class MoveAdderCaptures extends MoveAdderPromotions implements IAddMoves {
-		@Override
-		public void addPrio(int move) {
-			if (EubosEngineMain.ENABLE_ASSERTS) {
-				assert !Piece.isKing(Move.getTargetPiece(move));
-			}
-			if (Move.areEqual(move, iterState.bestMove)) {
-				// Silently consume
-			} else {
-				iterState.moves[iterState.moves_index++] = move;
-			}
-		}
-	}
-
-	public class QuietMovesWithNoKillers extends MoveAdderPromotions implements IAddMoves {
-		protected boolean legalQuietMoveAdded = false;
-		
-		@Override
-		public void addPrio(int move) {
-		} // Doesn't deal with tactical moves by design
-
-		@Override
-		public void addNormal(int move) {
-			if (Move.areEqual(move, iterState.bestMove))
-				return;
-			iterState.moves[iterState.moves_index++] = move;
-			legalQuietMoveAdded = true;
-		}
-		
-		public void reset() {
-			legalQuietMoveAdded = false;
-			// Need to set move count correctly when we reset?
-		}
-		
-		@Override
-		public boolean isLegalMoveFound() {
-			return legalQuietMoveAdded;
-		}
-	}
-
-	public class QuietMovesConsumingKillers extends QuietMovesWithNoKillers implements IAddMoves {
-		@Override
-		public void addNormal(int move) {
-			if (Move.areEqual(move, iterState.bestMove))
-				return;
-			if (KillerList.isMoveOnListAtPly(iterState.killers, move))
-				return;
-			iterState.moves[iterState.moves_index++] = move;
-			legalQuietMoveAdded = true;
-		}
 	}
 
 	// ---------------------------------------------------------------------------------------------

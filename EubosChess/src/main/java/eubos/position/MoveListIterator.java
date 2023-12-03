@@ -6,6 +6,7 @@ import java.util.function.IntConsumer;
 import eubos.board.BitBoard;
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
+import eubos.search.KillerList;
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.ints.IntComparator;
 
@@ -14,6 +15,11 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 	private int [] moves = { Move.NULL_MOVE };
 	private int next = 0;
 	private int count = 0;
+	
+	public MoveAdderPromotions ma_promotions;
+	public MoveAdderCaptures ma_captures;
+	public QuietMovesWithNoKillers ma_quietNoKillers;
+	public QuietMovesConsumingKillers ma_quietConsumeKillers;
 		
 	public class MoveListPly {
 		// Internal state
@@ -65,14 +71,18 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 	private int ordering;
 	MoveListPly state;
 	int ply;
-	MoveList ml;
 	
 	public MoveListIterator(MoveList ml, PositionManager pm, int orderMoveList, int ply) {
 		this.pm = pm;
 		ordering = orderMoveList;
 		this.ply = ply;
-		this.ml = ml;
 		state = new MoveListPly();
+		
+		// Create Move Adders
+		ma_promotions = new MoveAdderPromotions();
+		ma_captures = new MoveAdderCaptures();
+		ma_quietNoKillers = new QuietMovesWithNoKillers();
+		ma_quietConsumeKillers = new QuietMovesConsumingKillers();
 	}
 	
 	public MoveListIterator initialise(int best, int[] killer_list, boolean inCheck, boolean extended, boolean frontier) {
@@ -271,25 +281,21 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 	private IAddMoves setupQuietMoveAdder() {
 		IAddMoves moveAdder = null;
 		if (state.killers == null) {
-			ml.ma_quietNoKillers.reset();
-			ml.ma_quietNoKillers.linkIteratorState(this.state);
-			moveAdder = ml.ma_quietNoKillers;
+			ma_quietNoKillers.reset();
+			moveAdder = ma_quietNoKillers;
 		} else {
-			ml.ma_quietConsumeKillers.reset();
-			ml.ma_quietConsumeKillers.linkIteratorState(this.state);
-			moveAdder = ml.ma_quietConsumeKillers;
+			ma_quietConsumeKillers.reset();
+			moveAdder = ma_quietConsumeKillers;
 		}
 		return moveAdder;
 	}
 	
 	private void getPawnPromotions() {
-		ml.ma_promotions.linkIteratorState(state);
-		pm.getTheBoard().getPawnPromotionMovesForSide(ml.ma_promotions, state.isWhite);
+		pm.getTheBoard().getPawnPromotionMovesForSide(ma_promotions, state.isWhite);
 	}
 
 	private void getNonPawnPromotionCaptures() {
-		ml.ma_captures.linkIteratorState(state);
-		pm.getTheBoard().getCapturesExcludingPromotions(ml.ma_captures, state.isWhite);
+		pm.getTheBoard().getCapturesExcludingPromotions(ma_captures, state.isWhite);
 	}
 	
 	private void getSingleQuietMove() {
@@ -341,4 +347,91 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 			IntArrays.quickSort(state.moves, 0, state.moves_index, Move.mvvLvaComparator);
 		}
 	}	
+	
+	public class MoveAdderPromotions implements IAddMoves {
+		public void addPrio(int move) {
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert !Piece.isKing(Move.getTargetPiece(move));
+			}
+			if (Move.areEqual(move, state.bestMove)) {
+				// Silently consume
+			} else {
+				state.moves[state.moves_index++] = move;
+			}
+			handleUnderPromotions(move);
+		}
+
+		public void addNormal(int move) {
+		} // Doesn't deal with quiet moves by design
+
+		public boolean isLegalMoveFound() {
+			// This is only used by the legal move checker, which is for detecting quiescent positions
+			return false;
+		}
+
+		@SuppressWarnings("unused")
+		protected void handleUnderPromotions(int move) {
+			if ((EubosEngineMain.ENABLE_PERFT || ply == 0) && Move.isQueenPromotion(move)) {
+				// Add them in the order they will be sorted into
+				int under1 = Move.setPromotion(move, Piece.BISHOP);
+				int under2 = Move.setPromotion(move, Piece.KNIGHT);
+				int under3 = Move.setPromotion(move, Piece.ROOK);
+				state.moves[state.moves_index++] = under1;
+				state.moves[state.moves_index++] = under2;
+				state.moves[state.moves_index++] = under3;
+			}
+		}
+	}
+
+	public class MoveAdderCaptures extends MoveAdderPromotions implements IAddMoves {
+		@Override
+		public void addPrio(int move) {
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert !Piece.isKing(Move.getTargetPiece(move));
+			}
+			if (Move.areEqual(move, state.bestMove)) {
+				// Silently consume
+			} else {
+				state.moves[state.moves_index++] = move;
+			}
+		}
+	}
+
+	public class QuietMovesWithNoKillers extends MoveAdderPromotions implements IAddMoves {
+		protected boolean legalQuietMoveAdded = false;
+		
+		@Override
+		public void addPrio(int move) {
+		} // Doesn't deal with tactical moves by design
+
+		@Override
+		public void addNormal(int move) {
+			if (Move.areEqual(move, state.bestMove))
+				return;
+			state.moves[state.moves_index++] = move;
+			legalQuietMoveAdded = true;
+		}
+		
+		public void reset() {
+			legalQuietMoveAdded = false;
+			// Need to set move count correctly when we reset?
+		}
+		
+		@Override
+		public boolean isLegalMoveFound() {
+			return legalQuietMoveAdded;
+		}
+	}
+
+	public class QuietMovesConsumingKillers extends QuietMovesWithNoKillers implements IAddMoves {
+		@Override
+		public void addNormal(int move) {
+			if (Move.areEqual(move, state.bestMove))
+				return;
+			if (KillerList.isMoveOnListAtPly(state.killers, move))
+				return;
+			state.moves[state.moves_index++] = move;
+			legalQuietMoveAdded = true;
+		}
+	}
 }
