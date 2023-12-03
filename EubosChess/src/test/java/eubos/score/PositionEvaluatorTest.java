@@ -61,7 +61,7 @@ public class PositionEvaluatorTest {
 	// 
 	@Test
 	public void test_custom_position_score_reporter()throws IllegalNotationException {
-		setUpPosition("r4rk1/pb2bppp/npqp1n2/1N6/2P1p3/P3P1PP/1P2NPB1/R1BQ1RK1 w - - 0 14 ");
+		setUpPosition("2kr3r/pbpp4/3Pp3/n7/5qPp/P1P5/2QNBB1P/R4RK1 b - - 0 22 ");
 		int full = SUT.getFullEvaluation();
 		int crude = SUT.getCrudeEvaluation();
 		int delta = full-crude;
