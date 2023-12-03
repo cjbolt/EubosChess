@@ -272,19 +272,23 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 		IAddMoves moveAdder = null;
 		if (state.killers == null) {
 			ml.ma_quietNoKillers.reset();
+			ml.ma_quietNoKillers.linkIteratorState(this.state);
 			moveAdder = ml.ma_quietNoKillers;
 		} else {
 			ml.ma_quietConsumeKillers.reset();
+			ml.ma_quietConsumeKillers.linkIteratorState(this.state);
 			moveAdder = ml.ma_quietConsumeKillers;
 		}
 		return moveAdder;
 	}
 	
 	private void getPawnPromotions() {
+		ml.ma_promotions.linkIteratorState(state);
 		pm.getTheBoard().getPawnPromotionMovesForSide(ml.ma_promotions, state.isWhite);
 	}
 
 	private void getNonPawnPromotionCaptures() {
+		ml.ma_captures.linkIteratorState(state);
 		pm.getTheBoard().getCapturesExcludingPromotions(ml.ma_captures, state.isWhite);
 	}
 	

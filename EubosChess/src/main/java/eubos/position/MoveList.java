@@ -11,6 +11,7 @@ import com.fluxchess.jcpi.models.IntFile;
 import eubos.board.BitBoard;
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
+import eubos.position.MoveListIterator.MoveListPly;
 import eubos.search.KillerList;
 
 public class MoveList {
@@ -55,14 +56,19 @@ public class MoveList {
 	}
 
 	public class MoveAdderPromotions implements IAddMoves {
+		MoveListPly iterState = null; 
+		public void linkIteratorState(MoveListPly iterState) {
+			this.iterState = iterState;
+		}
+		
 		public void addPrio(int move) {
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert !Piece.isKing(Move.getTargetPiece(move));
 			}
-			if (Move.areEqual(move, ml[ply].state.bestMove)) {
+			if (Move.areEqual(move, iterState.bestMove)) {
 				// Silently consume
 			} else {
-				ml[ply].state.moves[ml[ply].state.moves_index++] = move;
+				iterState.moves[iterState.moves_index++] = move;
 			}
 			handleUnderPromotions(move);
 		}
@@ -82,9 +88,9 @@ public class MoveList {
 				int under1 = Move.setPromotion(move, Piece.BISHOP);
 				int under2 = Move.setPromotion(move, Piece.KNIGHT);
 				int under3 = Move.setPromotion(move, Piece.ROOK);
-				ml[ply].state.moves[ml[ply].state.moves_index++] = under1;
-				ml[ply].state.moves[ml[ply].state.moves_index++] = under2;
-				ml[ply].state.moves[ml[ply].state.moves_index++] = under3;
+				iterState.moves[iterState.moves_index++] = under1;
+				iterState.moves[iterState.moves_index++] = under2;
+				iterState.moves[iterState.moves_index++] = under3;
 			}
 		}
 	}
@@ -95,10 +101,10 @@ public class MoveList {
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert !Piece.isKing(Move.getTargetPiece(move));
 			}
-			if (Move.areEqual(move, ml[ply].state.bestMove)) {
+			if (Move.areEqual(move, iterState.bestMove)) {
 				// Silently consume
 			} else {
-				ml[ply].state.moves[ml[ply].state.moves_index++] = move;
+				iterState.moves[iterState.moves_index++] = move;
 			}
 		}
 	}
@@ -112,9 +118,9 @@ public class MoveList {
 
 		@Override
 		public void addNormal(int move) {
-			if (Move.areEqual(move, ml[ply].state.bestMove))
+			if (Move.areEqual(move, iterState.bestMove))
 				return;
-			ml[ply].state.moves[ml[ply].state.moves_index++] = move;
+			iterState.moves[iterState.moves_index++] = move;
 			legalQuietMoveAdded = true;
 		}
 		
@@ -132,11 +138,11 @@ public class MoveList {
 	public class QuietMovesConsumingKillers extends QuietMovesWithNoKillers implements IAddMoves {
 		@Override
 		public void addNormal(int move) {
-			if (Move.areEqual(move, ml[ply].state.bestMove))
+			if (Move.areEqual(move, iterState.bestMove))
 				return;
-			if (KillerList.isMoveOnListAtPly(ml[ply].state.killers, move))
+			if (KillerList.isMoveOnListAtPly(iterState.killers, move))
 				return;
-			ml[ply].state.moves[ml[ply].state.moves_index++] = move;
+			iterState.moves[iterState.moves_index++] = move;
 			legalQuietMoveAdded = true;
 		}
 	}
