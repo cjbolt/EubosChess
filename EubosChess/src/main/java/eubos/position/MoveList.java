@@ -13,65 +13,10 @@ import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.search.KillerList;
 
-import it.unimi.dsi.fastutil.ints.IntArrays;
-import it.unimi.dsi.fastutil.ints.IntComparator;
+public class MoveList {
 
-public class MoveList implements Iterable<Integer> {
-	
-	public class MoveListPly {
-		// Internal state
-		int[] moves;
-		int moves_index;
-		int nextCheckPoint;
-		int generated_piece;
-		boolean isWhite;
-
-		// Cached data provided from PlySearcher
-		boolean needToEscapeMate;
-		boolean extendedSearch;
-		boolean frontierNode;
-		int bestMove;
-		int[] killers;
-		
-		public MoveListPly()
-		{
-			moves = new int[110];
-			generated_piece = BitBoard.INVALID;
-		}
-		
-		public void initialise(int best, int[] killer_list, boolean inCheck, boolean extended, boolean frontier) {
-			// Initialise working variables for building the MoveList at this ply
-			needToEscapeMate = inCheck;
-			extendedSearch = extended;
-			killers = killer_list;
-			bestMove = best;
-			frontierNode = frontier;
-			
-			nextCheckPoint = 0;
-			moves_index = 0;
-			generated_piece = BitBoard.INVALID;
-		}
-	}
-	
-	private static final MoveTypeComparator moveTypeComparator = new MoveTypeComparator();
-
-	static class MoveTypeComparator implements IntComparator {
-		@Override
-		public int compare(int move1, int move2) {
-			boolean gt = Move.getType(move1) < Move.getType(move2);
-			boolean eq = Move.getType(move1) == Move.getType(move2);
-			return gt ? 1 : (eq ? 0 : -1);
-		}
-	}
-	
-	private static MoveListIterator empty = new MoveListIterator(new int [] {}, 0);
-
-	private MoveListPly[] state;
 	private int ply;
 	private MoveListIterator[] ml;
-
-	private PositionManager pm;
-	private int ordering;
 
 	public MoveAdderPromotions ma_promotions;
 	public MoveAdderCaptures ma_captures;
@@ -79,9 +24,13 @@ public class MoveList implements Iterable<Integer> {
 	public QuietMovesConsumingKillers ma_quietConsumeKillers;
 
 	public MoveList(PositionManager pm, int orderMoveList) {
-		setupMoveListArrays();
-		this.pm = pm;
-		ordering = orderMoveList;
+		// Create the move list arrays for this threads move list
+		ml = new MoveListIterator[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
+	
+		// Create the list at each ply
+		for (int i = 0; i < EubosEngineMain.SEARCH_DEPTH_IN_PLY; i++) {
+			ml[i] = new MoveListIterator(this, pm, orderMoveList, i);
+		}
 
 		// Create Move Adders
 		ma_promotions = new MoveAdderPromotions();
@@ -90,240 +39,16 @@ public class MoveList implements Iterable<Integer> {
 		ma_quietConsumeKillers = new QuietMovesConsumingKillers();
 	}
 	
-	public void initialiseAtPly(int bestMove, int[] killers, boolean inCheck, boolean extended, int ply) {
-		state[ply].initialise(bestMove, killers, inCheck, extended, false);
-	}
-
-	public void initialiseAtPly(int bestMove, int[] killers, boolean inCheck, boolean extended, int ply, boolean frontier) {
-		state[ply].initialise(bestMove, killers, inCheck, extended, frontier);
-	}
-	
-	public MoveListIterator getNextMovesAtPly(int ply) {
-		MoveListIterator iter = null;
+	public MoveListIterator initialiseAtPly(int bestMove, int[] killers, boolean inCheck, boolean extended, int ply) {
 		this.ply = ply;
-		state[ply].moves_index = 0;
+		return ml[ply].initialise(bestMove, killers, inCheck, extended, false);
+	}
 
-		switch (state[ply].nextCheckPoint) {
-		case 0:
-			// Return best Move if valid
-			state[ply].nextCheckPoint = 1;
-			state[ply].isWhite = pm.onMoveIsWhite();
-			if (isBestMoveValid()) {
-				state[ply].bestMove = Move.setBest(state[ply].bestMove);
-				if (EubosEngineMain.ENABLE_ASSERTS) {
-					assert state[ply].isWhite == Piece.isWhite(Move.getOriginPiece(state[ply].bestMove));
-				}
-				return singleMoveIterator(state[ply].bestMove);
-			}
-			// Note fall-through to next stage if no valid best move
-		case 1:
-			// Generate pawn promotions
-			state[ply].nextCheckPoint = 2;
-			getPawnPromotions();
-			if (state[ply].moves_index != 0) {
-				return sortedIterator();
-			}
-			// Note fall-through to next stage if no promotions
-		case 2:
-			// Generate all captures other than pawn promotions
-			state[ply].nextCheckPoint = 3;
-			getNonPawnPromotionCaptures();
-			if (state[ply].moves_index != 0) {
-				return sortedIterator();
-			}
-			// Note fall-through to next stage if no captures
-		case 3:
-			if (state[ply].extendedSearch) {
-				// Quiescent search shall terminate here
-				return empty;
-			} else if (state[ply].killers == null) {
-				// Fall-through into quiet moves if there are no killers
-				if (state[ply].frontierNode) {
-					return doSingleQuietMove();
-				} else {
-					return doQuiet();
-				}
-			} else {
-				state[ply].nextCheckPoint = 4;
-				iter = checkKiller(0);
-				if (iter != null) {
-					return iter;
-				}
-			}
-			// Note fall-through to try next killer
-		case 4:
-			state[ply].nextCheckPoint = 5;
-			iter = checkKiller(1);
-			if (iter != null) {
-				return iter;
-			}
-			// Note fall-through to try next killer
-		case 5:
-			state[ply].nextCheckPoint = 6;
-			iter = checkKiller(2);
-			if (iter != null) {
-				return iter;
-			}
-			// Note fall-through to quiet moves
-		case 6:
-			state[ply].nextCheckPoint = 7;
-			if (state[ply].frontierNode) {
-				return doSingleQuietMove();
-			}
-		case 7:
-			// Lastly, generate all quiet moves (i.e. that aren't best, killers, or tactical moves)
-			state[ply].nextCheckPoint = 8;
-			return doQuiet();
-		default:
-			return empty;
-		}
+	public MoveListIterator initialiseAtPly(int bestMove, int[] killers, boolean inCheck, boolean extended, int ply, boolean frontier) {
+		this.ply = ply;
+		return ml[ply].initialise(bestMove, killers, inCheck, extended, frontier);
 	}
 	
-	private void setupMoveListArrays() {
-		// Create the move list arrays for this threads move list
-		state = new MoveListPly[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
-		ml = new MoveListIterator[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
-	
-		// Create the list at each ply
-		for (int i = 0; i < EubosEngineMain.SEARCH_DEPTH_IN_PLY; i++) {
-			state[i] = new MoveListPly();
-			ml[i] = new MoveListIterator();
-		}
-	}
-	
-	private MoveListIterator doSingleQuietMove() {
-		getSingleQuietMove();
-		if (state[ply].moves_index != 0) {
-			state[ply].nextCheckPoint = 7;
-			state[ply].generated_piece = Move.getOriginPosition(state[ply].moves[0]);
-			return iterator();
-		}
-		state[ply].nextCheckPoint = 8;
-		return empty;
-	}
-	
-	private MoveListIterator doQuiet() {
-		state[ply].nextCheckPoint = 8;
-		getQuietMoves();
-		if (state[ply].moves_index != 0) {
-			return iterator();
-		}
-		return empty;
-	}
-
-	private MoveListIterator checkKiller(int killerNum) {
-		MoveListIterator iter = null;
-		if (!Move.areEqual(state[ply].bestMove, state[ply].killers[killerNum]) && 
-			pm.getTheBoard().isPlayableMove(state[ply].killers[killerNum], state[ply].needToEscapeMate, pm.castling)) {
-			iter = singleMoveIterator(state[ply].killers[killerNum]);
-		}
-		return iter;
-	}
-
-	private boolean isBestMoveValid() {
-		if (state[ply].bestMove != Move.NULL_MOVE) { 
-			if ((!state[ply].extendedSearch || isValidBestMoveForExtendedSearch()) &&
-				(Move.isBest(state[ply].bestMove) || bestMoveIsPlayable())) {
-				return true;
-			}
-			state[ply].bestMove = Move.NULL_MOVE; // If it wasn't valid, invalidate it
-		}
-		return false;
-	}
-	
-	private boolean bestMoveIsPlayable() {
-		return pm.getTheBoard().isPlayableMove(state[ply].bestMove, state[ply].needToEscapeMate, pm.castling);
-	}
-	
-	private boolean isValidBestMoveForExtendedSearch() {
-		return state[ply].extendedSearch && 
-			(Move.isQueenPromotion(state[ply].bestMove) || Move.isCapture(state[ply].bestMove));
-	}
-
-	private IAddMoves setupQuietMoveAdder() {
-		IAddMoves moveAdder = null;
-		if (state[ply].killers == null) {
-			ma_quietNoKillers.reset();
-			moveAdder = ma_quietNoKillers;
-		} else {
-			ma_quietConsumeKillers.reset();
-			moveAdder = ma_quietConsumeKillers;
-		}
-		return moveAdder;
-	}
-	
-	private void getPawnPromotions() {
-		pm.getTheBoard().getPawnPromotionMovesForSide(ma_promotions, state[ply].isWhite);
-	}
-
-	private void getNonPawnPromotionCaptures() {
-		pm.getTheBoard().getCapturesExcludingPromotions(ma_captures, state[ply].isWhite);
-	}
-	
-	private void getSingleQuietMove() {
-		IAddMoves moveAdder = setupQuietMoveAdder();
-		pm.getTheBoard().getSingleQuietMove(moveAdder, state[ply].isWhite);
-	}
-
-	private void getQuietMoves() {
-		IAddMoves moveAdder = setupQuietMoveAdder();
-		if (state[ply].frontierNode) {
-			pm.getTheBoard().getRegularPieceMovesExceptingOnePiece(moveAdder, state[ply].isWhite, state[ply].generated_piece);
-		} else {
-			pm.getTheBoard().getRegularPieceMoves(moveAdder, state[ply].isWhite);
-		}
-		if (!state[ply].needToEscapeMate) {
-			// Can't castle out of check and don't care in extended search
-			pm.castling.addCastlingMoves(state[ply].isWhite, moveAdder);
-		}
-	}
-
-	private void sortMoveList() {
-		if (ply == 0) {
-			// At the root node use different mechanisms for move ordering in different threads
-			switch (ordering) {
-			case 0:
-				/* Don't order the move list in this case. */
-				break;
-			case 1:
-				IntArrays.quickSort(state[ply].moves, 0, state[ply].moves_index, Move.mvvLvaComparator);
-				break;
-			case 2:
-				IntArrays.reverse(state[ply].moves, 0, state[ply].moves_index);
-				IntArrays.quickSort(state[ply].moves, 0, state[ply].moves_index, moveTypeComparator);
-				break;
-			case 3:
-				IntArrays.reverse(state[ply].moves, 0, state[ply].moves_index);
-				IntArrays.quickSort(state[ply].moves, 0, state[ply].moves_index, Move.mvvLvaComparator);
-				break;
-			case 4:
-				IntArrays.quickSort(state[ply].moves, 0, state[ply].moves_index, moveTypeComparator);
-				break;
-			default:
-				if (EubosEngineMain.ENABLE_ASSERTS)
-					assert false : String.format("Bad move ordering scheme %d!", ordering);
-				break;
-			}
-		} else {
-			// At all other nodes use MVV/LVA
-			IntArrays.quickSort(state[ply].moves, 0, state[ply].moves_index, Move.mvvLvaComparator);
-		}
-	}
-
-	@Override
-	public MoveListIterator iterator() {
-		return ml[ply].set(state[ply].moves, state[ply].moves_index);
-	}
-	
-	public MoveListIterator sortedIterator() {
-		sortMoveList();
-		return iterator();
-	}
-
-	public MoveListIterator singleMoveIterator(int move) {
-		return ml[ply].set(move);
-	}
-
 	public int getRandomMove() {
 		int randomMove = Move.NULL_MOVE;
 		return randomMove;
@@ -334,10 +59,10 @@ public class MoveList implements Iterable<Integer> {
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert !Piece.isKing(Move.getTargetPiece(move));
 			}
-			if (Move.areEqual(move, state[ply].bestMove)) {
+			if (Move.areEqual(move, ml[ply].state.bestMove)) {
 				// Silently consume
 			} else {
-				state[ply].moves[state[ply].moves_index++] = move;
+				ml[ply].state.moves[ml[ply].state.moves_index++] = move;
 			}
 			handleUnderPromotions(move);
 		}
@@ -357,9 +82,9 @@ public class MoveList implements Iterable<Integer> {
 				int under1 = Move.setPromotion(move, Piece.BISHOP);
 				int under2 = Move.setPromotion(move, Piece.KNIGHT);
 				int under3 = Move.setPromotion(move, Piece.ROOK);
-				state[ply].moves[state[ply].moves_index++] = under1;
-				state[ply].moves[state[ply].moves_index++] = under2;
-				state[ply].moves[state[ply].moves_index++] = under3;
+				ml[ply].state.moves[ml[ply].state.moves_index++] = under1;
+				ml[ply].state.moves[ml[ply].state.moves_index++] = under2;
+				ml[ply].state.moves[ml[ply].state.moves_index++] = under3;
 			}
 		}
 	}
@@ -370,10 +95,10 @@ public class MoveList implements Iterable<Integer> {
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert !Piece.isKing(Move.getTargetPiece(move));
 			}
-			if (Move.areEqual(move, state[ply].bestMove)) {
+			if (Move.areEqual(move, ml[ply].state.bestMove)) {
 				// Silently consume
 			} else {
-				state[ply].moves[state[ply].moves_index++] = move;
+				ml[ply].state.moves[ml[ply].state.moves_index++] = move;
 			}
 		}
 	}
@@ -387,9 +112,9 @@ public class MoveList implements Iterable<Integer> {
 
 		@Override
 		public void addNormal(int move) {
-			if (Move.areEqual(move, state[ply].bestMove))
+			if (Move.areEqual(move, ml[ply].state.bestMove))
 				return;
-			state[ply].moves[state[ply].moves_index++] = move;
+			ml[ply].state.moves[ml[ply].state.moves_index++] = move;
 			legalQuietMoveAdded = true;
 		}
 		
@@ -407,11 +132,11 @@ public class MoveList implements Iterable<Integer> {
 	public class QuietMovesConsumingKillers extends QuietMovesWithNoKillers implements IAddMoves {
 		@Override
 		public void addNormal(int move) {
-			if (Move.areEqual(move, state[ply].bestMove))
+			if (Move.areEqual(move, ml[ply].state.bestMove))
 				return;
-			if (KillerList.isMoveOnListAtPly(state[ply].killers, move))
+			if (KillerList.isMoveOnListAtPly(ml[ply].state.killers, move))
 				return;
-			state[ply].moves[state[ply].moves_index++] = move;
+			ml[ply].state.moves[ml[ply].state.moves_index++] = move;
 			legalQuietMoveAdded = true;
 		}
 	}
@@ -419,17 +144,10 @@ public class MoveList implements Iterable<Integer> {
 	// ---------------------------------------------------------------------------------------------
 	// Test APIs
 	//
-	public List<Integer> getList() {
+	public List<Integer> getList(MoveListIterator it) {
 		List<Integer> ml = new ArrayList<Integer>();
-		MoveListIterator it = getNextMovesAtPly(0);
-		if (it.hasNext()) {
-			do {
-				while (it.hasNext()) {
-					int currMove = it.nextInt();
-					ml.add(currMove);
-				}
-				it = getNextMovesAtPly(0);
-			} while (it.hasNext());
+		while (it.hasNext()) {
+			ml.add(it.nextInt());
 		}
 		return ml;
 	}

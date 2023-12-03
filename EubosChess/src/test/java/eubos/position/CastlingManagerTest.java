@@ -18,7 +18,8 @@ public class CastlingManagerTest {
 
 	protected CastlingManager classUnderTest;
 	private PositionManager pm;
-	private MoveList ml; 
+	private MoveList ml;
+	private MoveListIterator it;
 	
 	@Before
 	public void setUp() {
@@ -27,8 +28,7 @@ public class CastlingManagerTest {
 	void setupPosition(String fen)  {
 		pm = new PositionManager(fen);
 		ml = new MoveList(pm, 0);
-		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
-		ml.getNextMovesAtPly(0);
+		it = ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
 	}
 	
 	@Test
@@ -64,10 +64,9 @@ public class CastlingManagerTest {
 		pm.performMove(Move.toMove(new GenericMove("b8a8"), pm.getTheBoard()));
 		classUnderTest = pm.castling;
 		ml = new MoveList(pm, 0);
-		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
-		ml.getNextMovesAtPly(0);
+		it = ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml.ma_quietNoKillers);
-		List<Integer> moves = ml.getList();
+		List<Integer> moves = ml.getList(it);
 		assertFalse(moves.contains(CastlingManager.wqsc));
 		assertFalse(moves.contains(CastlingManager.wksc));
 	}
@@ -90,10 +89,9 @@ public class CastlingManagerTest {
 		pm.performMove(Move.valueOf(Position.b8, Piece.BLACK_KING, Position.a8, Piece.NONE));
 		classUnderTest = pm.castling;	
 		ml = new MoveList(pm, 0);
-		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
-		ml.getNextMovesAtPly(0);
+		it = ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml.ma_quietNoKillers);
-		List<Integer> moves = ml.getList();
+		List<Integer> moves = ml.getList(it);
 		assertFalse(moves.contains(CastlingManager.wqsc));
 		assertFalse(moves.contains(CastlingManager.wksc));
 	}	
@@ -112,7 +110,7 @@ public class CastlingManagerTest {
 		setupPosition("8/8/8/8/8/8/8/4K2R w k - - -");
 		classUnderTest = pm.castling;
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml.ma_quietNoKillers);
-		List<Integer> moves = ml.getList();
+		List<Integer> moves = ml.getList(it);
 		assertFalse(moves.contains(CastlingManager.wqsc));
 		assertFalse(moves.contains(CastlingManager.wksc));
 	}
@@ -132,8 +130,9 @@ public class CastlingManagerTest {
 		setupPosition("8/8/8/8/8/2b5/8/4K2R w K - - -");
 		classUnderTest = pm.castling;
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml.ma_quietNoKillers);
-		assertFalse(ml.getList().contains(CastlingManager.wqsc));
-		assertFalse(ml.getList().contains(CastlingManager.wksc));
+		List<Integer> moves = ml.getList(it);
+		assertFalse(moves.contains(CastlingManager.wqsc));
+		assertFalse(moves.contains(CastlingManager.wksc));
 	}
 	
 	@Test
@@ -150,7 +149,7 @@ public class CastlingManagerTest {
 		setupPosition("8/8/8/8/8/3b4/8/4K2R w K - - -");
 		classUnderTest = pm.castling;
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml.ma_quietNoKillers);
-		List<Integer> moves = ml.getList();
+		List<Integer> moves = ml.getList(it);
 		assertFalse(moves.contains(CastlingManager.wqsc));
 		assertFalse(moves.contains(CastlingManager.wksc));
 	}
@@ -169,7 +168,7 @@ public class CastlingManagerTest {
 		setupPosition("8/8/8/8/8/4b3/8/4K2R w K - - -");
 		classUnderTest = pm.castling;
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml.ma_quietNoKillers);
-		List<Integer> moves = ml.getList();
+		List<Integer> moves = ml.getList(it);
 		assertFalse(moves.contains(CastlingManager.wqsc));
 		assertFalse(moves.contains(CastlingManager.wksc));
 	}
@@ -188,7 +187,7 @@ public class CastlingManagerTest {
 		setupPosition("8/8/8/8/8/8/8/4KB1R w K - - -");
 		classUnderTest = pm.castling;
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml.ma_quietNoKillers);
-		List<Integer> moves = ml.getList();
+		List<Integer> moves = ml.getList(it);
 		assertFalse(moves.contains(CastlingManager.wqsc));
 		assertFalse(moves.contains(CastlingManager.wksc));
 	}
@@ -207,7 +206,7 @@ public class CastlingManagerTest {
 		setupPosition("8/8/8/8/8/8/8/4K1BR w K - - -");
 		classUnderTest = pm.castling;
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml.ma_quietNoKillers);
-		List<Integer> moves = ml.getList();
+		List<Integer> moves = ml.getList(it);
 		assertFalse(moves.contains(CastlingManager.wqsc));
 		assertFalse(moves.contains(CastlingManager.wksc));
 	}	
@@ -257,8 +256,9 @@ public class CastlingManagerTest {
 		setupPosition("r3k3/8/6B1/8/8/8/8/8 b q - - -");
 		classUnderTest = pm.castling;
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml.ma_quietNoKillers);
-		assertFalse(ml.getList().contains(CastlingManager.bqsc));
-		assertFalse(ml.getList().contains(CastlingManager.bksc));
+		List<Integer> list = ml.getList(it);
+		assertFalse(list.contains(CastlingManager.bqsc));
+		assertFalse(list.contains(CastlingManager.bksc));
 	}
 	
 	@Test
@@ -275,7 +275,7 @@ public class CastlingManagerTest {
 		setupPosition("r3k3/8/8/8/8/8/8/8 b Q - - -");
 		classUnderTest = pm.castling;
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml.ma_quietNoKillers);
-		List<Integer> moves = ml.getList();
+		List<Integer> moves = ml.getList(it);
 		assertFalse(moves.contains(CastlingManager.bqsc));
 		assertFalse(moves.contains(CastlingManager.bksc));
 	}
@@ -292,10 +292,8 @@ public class CastlingManagerTest {
 		// 1 ........
 		//   abcdefgh
 		setupPosition("r3k3/8/8/8/8/8/8/8 b q - - -");
-		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
-		assertTrue(ml.getList().contains(CastlingManager.bqsc));
-		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
-		assertFalse(ml.getList().contains(CastlingManager.bksc));
+		assertTrue(ml.getList(it).contains(CastlingManager.bqsc));
+		assertFalse(ml.getList(it).contains(CastlingManager.bksc));
 	}	
 	
 	@Test
@@ -312,7 +310,7 @@ public class CastlingManagerTest {
 		setupPosition("r3k3/8/5B2/8/8/8/8/8 b q - - -");
 		classUnderTest = pm.castling;
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml.ma_quietNoKillers);
-		List<Integer> moves = ml.getList();
+		List<Integer> moves = ml.getList(it);
 		assertFalse(moves.contains(CastlingManager.bqsc));
 		assertFalse(moves.contains(CastlingManager.bksc));
 	}
@@ -331,7 +329,7 @@ public class CastlingManagerTest {
 		setupPosition("r3k3/8/4B3/8/8/8/8/8 b q - - -");
 		classUnderTest = pm.castling;
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml.ma_quietNoKillers);
-		List<Integer> moves = ml.getList();
+		List<Integer> moves = ml.getList(it);
 		assertFalse(moves.contains(CastlingManager.bqsc));
 		assertFalse(moves.contains(CastlingManager.bksc));
 	}
@@ -350,7 +348,7 @@ public class CastlingManagerTest {
 		setupPosition("r2qk3/8/8/8/8/8/8/8 b q - - -");
 		classUnderTest = pm.castling;
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml.ma_quietNoKillers);
-		List<Integer> moves = ml.getList();
+		List<Integer> moves = ml.getList(it);
 		assertFalse(moves.contains(CastlingManager.bqsc));
 		assertFalse(moves.contains(CastlingManager.bksc));
 	}
@@ -369,10 +367,8 @@ public class CastlingManagerTest {
 		setupPosition("r3k3/8/R7/8/8/8/8/8 b q - - -");
 		classUnderTest = pm.castling;
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml.ma_quietNoKillers);
-		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
-		assertTrue(ml.getList().contains(CastlingManager.bqsc));
-		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
-		assertFalse(ml.getList().contains(CastlingManager.bksc));
+		assertTrue(ml.getList(it).contains(CastlingManager.bqsc));
+		assertFalse(ml.getList(it).contains(CastlingManager.bksc));
 	}
 	
 	@Test
@@ -380,20 +376,18 @@ public class CastlingManagerTest {
 		pm = new PositionManager("rnb2bnr/1ppp1kpp/4pq2/8/p1BPP3/8/PPP2PPP/RNBQK2R w KQ - 1 7");
 		ml = new MoveList(pm, 0);
 		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
-		ml.getNextMovesAtPly(0);
-		ml.getNextMovesAtPly(0);
 		classUnderTest = pm.castling;
 		classUnderTest.addCastlingMoves(Piece.Colour.isWhite(pm.getOnMove()), ml.ma_quietNoKillers);
 		expectWkscMove();
 	}
 
 	private void expectBqscMove() throws IllegalNotationException {
-		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
-		assertTrue(ml.getList().contains(CastlingManager.bqsc));
+		it = ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
+		assertTrue(ml.getList(it).contains(CastlingManager.bqsc));
 	}
 	
 	private void expectWkscMove() throws IllegalNotationException {
-		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
-		assertTrue(ml.getList().contains(CastlingManager.wksc));
+		it = ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
+		assertTrue(ml.getList(it).contains(CastlingManager.wksc));
 	}
 }

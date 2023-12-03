@@ -26,13 +26,9 @@ public class MoveTest {
 	@Test
 	public void test_template() throws InterruptedException {
 		setUpPosition("k7/8/8/8/8/8/8/6RK w - - 0 25 ");
-		ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
-		MoveListIterator normal_it = ml.getNextMovesAtPly(0);
-		do {
-			do {
-				normal_it.nextInt();
-			} while (normal_it.hasNext());
-			normal_it = ml.getNextMovesAtPly(0);
-		} while (normal_it.hasNext());
+		MoveListIterator normal_it = ml.initialiseAtPly(Move.NULL_MOVE, null, false, false, 0);
+		while (normal_it.hasNext()) {
+			normal_it.nextInt();
+		}
 	}
 }

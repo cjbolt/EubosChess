@@ -20,6 +20,7 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 import eubos.board.Piece;
 import eubos.position.Move;
 import eubos.position.MoveList;
+import eubos.position.MoveListIterator;
 import eubos.position.PositionManager;
 
 public class EpdTestSuiteTest extends AbstractEubosIntegration{
@@ -74,8 +75,8 @@ public class EpdTestSuiteTest extends AbstractEubosIntegration{
 			
 			// Create a list of the valid moves in the position
 			MoveList ml = new MoveList(pm, 0);
-			ml.initialiseAtPly(Move.NULL_MOVE, null, pm.isKingInCheck(), false, 0);
-			List<Integer> moveList = ml.getList();
+			MoveListIterator it = ml.initialiseAtPly(Move.NULL_MOVE, null, pm.isKingInCheck(), false, 0);
+			List<Integer> moveList = ml.getList(it);
 			
 			for (String bestMove : bestMovesAsString) {
 				int current = MoveList.getNativeMove(isWhite, moveList, bestMove);
