@@ -118,12 +118,7 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 		if (hasNext()) {
 			return moves[next++];
 		} else {
-			getNextMovesAtPly();
-			if (hasNext()) {
-				return moves[next++];
-			} else {
-				return Move.NULL_MOVE;
-			}
+			return Move.NULL_MOVE;
 		}
 	}
 
@@ -225,7 +220,6 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 			break;
 		}
 	}
-	
 	
 	private void doSingleQuietMove() {
 		getSingleQuietMove();
