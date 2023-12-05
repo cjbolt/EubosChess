@@ -234,9 +234,6 @@ public class EubosEngineMain extends AbstractEngine {
 		createPositionFromAnalyseCommand(command);
 	}
 	
-	boolean lastMoveNumberIsSet = false;
-	int lastMoveNumber = 0;
-	
 	void createPositionFromAnalyseCommand(EngineAnalyzeCommand command) {
 		lastFen = command.board.toString();
 		rootPosition = new PositionManager(lastFen, dc, pawnHash);
@@ -252,16 +249,6 @@ public class EubosEngineMain extends AbstractEngine {
 			}
 		}
 		lastFen = rootPosition.getFen();
-		if (EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH) {
-			if (lastMoveNumberIsSet) {
-				assert lastMoveNumber + 1 == rootPosition.getMoveNumber() :
-					String.format("Incorrect move number %d %d %s", lastMoveNumber + 1, rootPosition.getMoveNumber(), lastFen);
-				lastMoveNumber++;	
-			} else {
-				lastMoveNumber = rootPosition.getMoveNumber();
-				lastMoveNumberIsSet = true;
-			}
-		}
 		long hashCode = rootPosition.getHash();
 		if (ENABLE_LOGGING) {
 			logger.info(String.format("positionReceived fen=%s hashCode=%d",
@@ -537,12 +524,9 @@ public class EubosEngineMain extends AbstractEngine {
 			trustedMove = Move.valueOfFromTransposition(tableRootTrans, rootPosition.getTheBoard());
 		}
 	
-		String rootReport = EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH ? result.report(rootPosition.getTheBoard()) : "";
-		String rootFen = EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH ? rootPosition.getFen() : "";
 		if (EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH) {
-			assert lastFen.equals(rootFen) : String.format("Fen mismatch after search.\n%s\n%s", rootFen, lastFen);
 			if (Move.isCapture(trustedMove)) {
-				trustedMove = validationSearch(trustedMoveWasFromTrans, tableRootTrans, result, rootReport, trustedMove, rootFen);
+				trustedMove = validationSearch(trustedMoveWasFromTrans, tableRootTrans, result, trustedMove);
 			}
 		}
 		
@@ -550,12 +534,16 @@ public class EubosEngineMain extends AbstractEngine {
 		convertToGenericAndSendBestMove(trustedMove);
 	}
 	
-	private int validationSearch(boolean trustedMoveWasFromTrans, long tableRootTrans, SearchResult result, String rootReport, int trusted_move, String rootFen) {
+	private int validationSearch(boolean trustedMoveWasFromTrans, long tableRootTrans, SearchResult result, int trusted_move) {
 		// do a validation search to the same depth to check the PV move
-		short trusted_score = (short)(trustedMoveWasFromTrans ? -Transposition.getScore(tableRootTrans): -result.score);
+		short trusted_score = (short)(trustedMoveWasFromTrans ? Transposition.getScore(tableRootTrans): result.score);
 		int trusted_depth = trustedMoveWasFromTrans ? Transposition.getDepthSearchedInPly(tableRootTrans) : result.depth;
 		int[] empty_pv = { Move.NULL_MOVE };
 		int[] trusted_pv = trustedMoveWasFromTrans ? empty_pv : Arrays.copyOfRange(result.pv, 1, result.pv.length);
+		
+		String rootReport = result.report(rootPosition.getTheBoard());
+		String rootFen = rootPosition.getFen();
+		assert lastFen.equals(rootFen) : String.format("Fen mismatch after search.\n%s\n%s", rootFen, lastFen);
 		
 		// Operate on a copy of the rootPosition to prevent reentrant issues at tight time controls
 		PositionManager pm = new PositionManager(rootPosition.getFen(), rootPosition.getHash(), new DrawChecker(), new PawnEvalHashTable());
