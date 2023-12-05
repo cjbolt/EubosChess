@@ -53,6 +53,7 @@ import eubos.search.searchers.AbstractMoveSearcher;
 import eubos.search.searchers.FixedDepthMoveSearcher;
 import eubos.search.searchers.FixedTimeMoveSearcher;
 import eubos.search.searchers.MultithreadedIterativeMoveSearcher;
+import eubos.search.transposition.DummyTranspositionTable;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 import eubos.search.transposition.Transposition;
 
@@ -305,9 +306,15 @@ public class EubosEngineMain extends AbstractEngine {
 		analysisMode = false;
 		// Create Move Searcher
 		if (clockTimeValid) {
-			logger.info("Search move, clock time " + clockTime);
-			ms = new MultithreadedIterativeMoveSearcher(this, hashMap, pawnHash, lastFen, dc, clockTime, clockInc,
-					numberOfWorkerThreads, refScore, move_overhead);
+			if (command.getDepth() != null) {
+				byte searchDepth = (byte)((int)command.getDepth());
+				logger.info(String.format("Search move, fixed depth %d", searchDepth));
+				ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth, refScore);
+			} else {
+				logger.info("Search move, clock time " + clockTime);
+				ms = new MultithreadedIterativeMoveSearcher(this, hashMap, pawnHash, lastFen, dc, clockTime, clockInc,
+						numberOfWorkerThreads, refScore, move_overhead);
+			}
 		}
 		else if (command.getMoveTime() != null) {
 			logger.info("Search move, fixed time " + command.getMoveTime());
@@ -539,7 +546,7 @@ public class EubosEngineMain extends AbstractEngine {
 		short trusted_score = (short)(trustedMoveWasFromTrans ? Transposition.getScore(tableRootTrans): result.score);
 		int trusted_depth = trustedMoveWasFromTrans ? Transposition.getDepthSearchedInPly(tableRootTrans) : result.depth;
 		int[] empty_pv = { Move.NULL_MOVE };
-		int[] trusted_pv = trustedMoveWasFromTrans ? empty_pv : Arrays.copyOfRange(result.pv, 1, result.pv.length);
+		int[] trusted_pv = trustedMoveWasFromTrans ? empty_pv : result.pv; //Arrays.copyOfRange(result.pv, 1, result.pv.length); // From when after move applied...
 		
 		String rootReport = result.report(rootPosition.getTheBoard());
 		String rootFen = rootPosition.getFen();
@@ -550,11 +557,11 @@ public class EubosEngineMain extends AbstractEngine {
 		SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.getOnMove() == Piece.Colour.white);
 		PrincipalContinuation pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
 		PlySearcher ps = new PlySearcher(
-				new FixedSizeTranspositionTable(32, 1), // Use a new hash table to prevent seeing same error, if error is present in data
+				new DummyTranspositionTable(),
 				pc, 
 				new SearchMetrics(pm), 
 				null, 
-				(byte)(trusted_depth/2),
+				(byte)(trusted_depth),
 				pm,
 				pm,
 				pm.getPositionEvaluator(),
@@ -568,7 +575,8 @@ public class EubosEngineMain extends AbstractEngine {
 			!Score.isMate(trusted_score) && !Score.isMate((short)validation_score)) {
 			
 			// For now this is meant to catch crude piece blunders only....
-			if (!Move.areEqual(pc.getBestMove((byte)0), trusted_move)) {
+			if (!Move.areEqual(pc.getBestMove((byte)0), trusted_move) &&
+				Math.abs(trusted_score-validation_score) > 100) {
 				createErrorLog();
 				error_logger.severe(String.format(
 						"DELTA=%d where validation_score=%d trusted_score=%d",
