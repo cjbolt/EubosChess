@@ -566,7 +566,7 @@ public class EubosEngineMain extends AbstractEngine {
 				pc, 
 				new SearchMetrics(pm), 
 				null, 
-				(byte)(trusted_depth-1),
+				(byte)(trusted_depth),
 				pm,
 				pm,
 				pm.getPositionEvaluator(),
