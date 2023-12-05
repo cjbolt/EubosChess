@@ -550,11 +550,11 @@ public class EubosEngineMain extends AbstractEngine {
 		SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.getOnMove() == Piece.Colour.white);
 		PrincipalContinuation pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
 		PlySearcher ps = new PlySearcher(
-				new FixedSizeTranspositionTable(1, 1), // Use a new hash table to prevent seeing same error, if error is present in data
+				new FixedSizeTranspositionTable(32, 1), // Use a new hash table to prevent seeing same error, if error is present in data
 				pc, 
 				new SearchMetrics(pm), 
 				null, 
-				(byte)(trusted_depth),
+				(byte)(trusted_depth/2),
 				pm,
 				pm,
 				pm.getPositionEvaluator(),
@@ -568,7 +568,7 @@ public class EubosEngineMain extends AbstractEngine {
 			!Score.isMate(trusted_score) && !Score.isMate((short)validation_score)) {
 			
 			// For now this is meant to catch crude piece blunders only....
-			if (Math.abs(trusted_score-validation_score) >= 250) {
+			if (!Move.areEqual(pc.getBestMove((byte)0), trusted_move)) {
 				createErrorLog();
 				error_logger.severe(String.format(
 						"DELTA=%d where validation_score=%d trusted_score=%d",
