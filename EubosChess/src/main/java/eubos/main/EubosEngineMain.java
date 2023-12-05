@@ -238,8 +238,8 @@ public class EubosEngineMain extends AbstractEngine {
 	int lastMoveNumber = 0;
 	
 	void createPositionFromAnalyseCommand(EngineAnalyzeCommand command) {
-		String uci_fen_string = command.board.toString();
-		rootPosition = new PositionManager(uci_fen_string, dc, pawnHash);
+		lastFen = command.board.toString();
+		rootPosition = new PositionManager(lastFen, dc, pawnHash);
 		// If there is a move history, apply those moves to ensure correct state in draw checker
 		if (!command.moves.isEmpty()) {
 			for (GenericMove nextMove : command.moves) {
@@ -252,13 +252,15 @@ public class EubosEngineMain extends AbstractEngine {
 			}
 		}
 		lastFen = rootPosition.getFen();
-		if (lastMoveNumberIsSet) {
-			assert lastMoveNumber + 1 == rootPosition.getMoveNumber() :
-				String.format("Incorrect move number %d %d %s", lastMoveNumber + 1, rootPosition.getMoveNumber(), lastFen);
-			lastMoveNumber++;	
-		} else {
-			lastMoveNumber = rootPosition.getMoveNumber();
-			lastMoveNumberIsSet = true;
+		if (EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH) {
+			if (lastMoveNumberIsSet) {
+				assert lastMoveNumber + 1 == rootPosition.getMoveNumber() :
+					String.format("Incorrect move number %d %d %s", lastMoveNumber + 1, rootPosition.getMoveNumber(), lastFen);
+				lastMoveNumber++;	
+			} else {
+				lastMoveNumber = rootPosition.getMoveNumber();
+				lastMoveNumberIsSet = true;
+			}
 		}
 		long hashCode = rootPosition.getHash();
 		if (ENABLE_LOGGING) {
@@ -534,27 +536,26 @@ public class EubosEngineMain extends AbstractEngine {
 		} else {
 			trustedMove = Move.valueOfFromTransposition(tableRootTrans, rootPosition.getTheBoard());
 		}
-
+	
 		String rootReport = EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH ? result.report(rootPosition.getTheBoard()) : "";
 		String rootFen = EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH ? rootPosition.getFen() : "";
-		
-		assert lastFen.equals(rootFen) : String.format("Fen mismatch after search. Uh oh\n\n%s\n%s", rootFen, lastFen);
+		if (EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH) {
+			assert lastFen.equals(rootFen) : String.format("Fen mismatch after search.\n%s\n%s", rootFen, lastFen);
+			if (Move.isCapture(trustedMove)) {
+				trustedMove = validationSearch(trustedMoveWasFromTrans, tableRootTrans, result, rootReport, trustedMove, rootFen);
+			}
+		}
 		
 		rootPosition.performMove(trustedMove);
 		convertToGenericAndSendBestMove(trustedMove);
-		
-		if (EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH) {
-			validationSearch(trustedMoveWasFromTrans, tableRootTrans, result, rootReport, trustedMove, rootFen);
-		}
 	}
 	
-	private void validationSearch(boolean trustedMoveWasFromTrans, long tableRootTrans, SearchResult result, String rootReport, int trusted_move, String rootFen) {
+	private int validationSearch(boolean trustedMoveWasFromTrans, long tableRootTrans, SearchResult result, String rootReport, int trusted_move, String rootFen) {
 		// do a validation search to the same depth to check the PV move
 		short trusted_score = (short)(trustedMoveWasFromTrans ? -Transposition.getScore(tableRootTrans): -result.score);
 		int trusted_depth = trustedMoveWasFromTrans ? Transposition.getDepthSearchedInPly(tableRootTrans) : result.depth;
 		int[] empty_pv = { Move.NULL_MOVE };
 		int[] trusted_pv = trustedMoveWasFromTrans ? empty_pv : Arrays.copyOfRange(result.pv, 1, result.pv.length);
-		boolean beta_cut = trustedMoveWasFromTrans && Transposition.getType(tableRootTrans) == Score.lowerBound;
 		
 		// Operate on a copy of the rootPosition to prevent reentrant issues at tight time controls
 		PositionManager pm = new PositionManager(rootPosition.getFen(), rootPosition.getHash(), new DrawChecker(), new PawnEvalHashTable());
@@ -565,7 +566,7 @@ public class EubosEngineMain extends AbstractEngine {
 				pc, 
 				new SearchMetrics(pm), 
 				null, 
-				(byte)(trusted_depth-1), // For now, use a half depth validation search - this is intended to catch crude errors
+				(byte)(trusted_depth-1),
 				pm,
 				pm,
 				pm.getPositionEvaluator(),
@@ -576,18 +577,17 @@ public class EubosEngineMain extends AbstractEngine {
 		
 		// Now compare the trusted and validation data
 		if (trusted_score != 0 && validation_score != 0 &&
-			!Score.isMate(trusted_score) && !Score.isMate((short)validation_score) &&
-			!beta_cut) {
-			// Does Killer ordering affect determinism of move selected?
-			// Or is it to do with the moves that are not searched due to reductions?
-			if (Math.abs(trusted_score-validation_score) >= 100) {
+			!Score.isMate(trusted_score) && !Score.isMate((short)validation_score)) {
+			
+			// For now this is meant to catch crude piece blunders only....
+			if (Math.abs(trusted_score-validation_score) >= 250) {
 				createErrorLog();
 				error_logger.severe(String.format(
 						"DELTA=%d where validation_score=%d trusted_score=%d",
 						Math.abs(trusted_score-validation_score), validation_score, trusted_score));
 				
 				error_logger.severe(String.format(
-						"The best move was %s at root position %s\nwhere report was %s",
+						"The best move was %s at root position %s\nsearch result is %s",
 						Move.toString(trusted_move),
 						rootFen, rootReport));
 				
@@ -595,18 +595,34 @@ public class EubosEngineMain extends AbstractEngine {
 						"Fen after best move applied is %s\nPV moves are\nvalidation(%s)\ntrusted_pv(%s)",
 						pm.getFen(),
 						pc.toStringAt(0),
-						Move.toString(trusted_pv[0])));
+						trustedMoveWasFromTrans ? "From Trans Table" : Move.toString(trusted_pv[0])));
 				
 				if (!trustedMoveWasFromTrans) {
 					validateEubosPv(pm, "Trusted PV", trusted_pv);
 				}
 				validateEubosPv(pm, "Validation PV", pc.toPvList(0));
-				// Need to handle the case where we got a beta cut for some reason and therefore have a single move in PV.
-				
-				// Now quit
-				quit();
 			}
 		}
+		return pc.getBestMove((byte)0);
+	}
+	
+	public int doValidationSearch(PositionManager pos, int prev_depth, int prev_score) {
+		PositionManager pm = new PositionManager(pos.getFen(), pos.getHash(), new DrawChecker(), new PawnEvalHashTable());
+		SearchDebugAgent sda = new SearchDebugAgent(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
+		PrincipalContinuation pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
+		PlySearcher ps = new PlySearcher(
+				new FixedSizeTranspositionTable(1, 1), // Use a new hash table to prevent seeing same error, if error is present in data
+				pc, 
+				new SearchMetrics(pm), 
+				null, 
+				(byte)(prev_depth),
+				pos,
+				pos,
+				pos.getPositionEvaluator(),
+				new KillerList(),
+				sda,
+				new MoveList(pos, 0));
+		return ps.searchPly((short)prev_score);
 	}
 	
 	private void validateEubosPv(PositionManager pm, String str, int[] pv) {
