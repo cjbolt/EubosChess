@@ -151,27 +151,27 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	private void checkToCreateEnginePermanentDataStructures() {
-		try {
-			if (!createdHashTable) {
-				hashMap = new FixedSizeTranspositionTable(hashSize, numberOfWorkerThreads);
-			}	
-		} catch (OutOfMemoryError oome) {
-			long heapFreeSize = Runtime.getRuntime().freeMemory()/1_000_000L;
-			logger.severe(String.format("Out of mem %s allocating hashMap=%d MB, trying %d free size",
-					oome.getMessage(), hashSize, heapFreeSize));
-			hashMap = new FixedSizeTranspositionTable(Math.max(heapFreeSize-1, 0), numberOfWorkerThreads);
-        } catch (Exception e) {
-        	logger.severe(String.format("Exception occurred allocating hashMap=%d MB: %s",
-        			hashSize, e.getMessage()));
-        } finally {
-        	if (hashMap != null) {
-        		createdHashTable = true;
-        	}
-        }
-		dc = new DrawChecker();
-		pawnHash = new PawnEvalHashTable();
-		whiteRefScore = new ReferenceScore(hashMap);
-		blackRefScore = new ReferenceScore(hashMap);
+		if (!createdHashTable) {
+			try {
+				hashMap = new FixedSizeTranspositionTable(hashSize, numberOfWorkerThreads);	
+			} catch (OutOfMemoryError oome) {
+				long heapFreeSize = Runtime.getRuntime().freeMemory()/1_000_000L;
+				logger.severe(String.format("Out of mem %s allocating hashMap=%d MB, trying %d free size",
+						oome.getMessage(), hashSize, heapFreeSize));
+				hashMap = new FixedSizeTranspositionTable(Math.max(heapFreeSize-1, 0), numberOfWorkerThreads);
+	        } catch (Exception e) {
+	        	logger.severe(String.format("Exception occurred allocating hashMap=%d MB: %s",
+	        			hashSize, e.getMessage()));
+	        } finally {
+	        	if (hashMap != null) {
+	        		createdHashTable = true;
+	        	}
+	        }
+			dc = new DrawChecker();
+			pawnHash = new PawnEvalHashTable();
+			whiteRefScore = new ReferenceScore(hashMap);
+			blackRefScore = new ReferenceScore(hashMap);
+		}
 	}
 
 	public void receive(EngineInitializeRequestCommand command) {
@@ -234,15 +234,17 @@ public class EubosEngineMain extends AbstractEngine {
 		createPositionFromAnalyseCommand(command);
 	}
 	
+	boolean lastMoveNumberIsSet = false;
+	int lastMoveNumber = 0;
+	
 	void createPositionFromAnalyseCommand(EngineAnalyzeCommand command) {
 		String uci_fen_string = command.board.toString();
-		dc = new DrawChecker();
 		rootPosition = new PositionManager(uci_fen_string, dc, pawnHash);
 		// If there is a move history, apply those moves to ensure correct state in draw checker
 		if (!command.moves.isEmpty()) {
 			for (GenericMove nextMove : command.moves) {
 				int move = Move.toMove(nextMove, rootPosition.getTheBoard());
-				rootPosition.performMove(move);
+				assert rootPosition.performMove(move) : String.format("Illegal move in position command: %s", nextMove.toString());
 				if (Move.isCapture(move) || Move.isPawnMove(move)) {
 					// Pawn moves and captures are irreversible so we can reset the draw checker
 					dc.reset(rootPosition.getPlyNumber());
@@ -250,6 +252,14 @@ public class EubosEngineMain extends AbstractEngine {
 			}
 		}
 		lastFen = rootPosition.getFen();
+		if (lastMoveNumberIsSet) {
+			assert lastMoveNumber + 1 == rootPosition.getMoveNumber() :
+				String.format("Incorrect move number %d %d %s", lastMoveNumber + 1, rootPosition.getMoveNumber(), lastFen);
+			lastMoveNumber++;	
+		} else {
+			lastMoveNumber = rootPosition.getMoveNumber();
+			lastMoveNumberIsSet = true;
+		}
 		long hashCode = rootPosition.getHash();
 		if (ENABLE_LOGGING) {
 			logger.info(String.format("positionReceived fen=%s hashCode=%d",
