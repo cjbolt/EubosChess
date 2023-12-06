@@ -59,7 +59,6 @@ import eubos.search.transposition.Transposition;
 
 import java.text.SimpleDateFormat;
 import java.util.logging.*;
-import java.util.Arrays;
 import java.util.Set;
 
 public class EubosEngineMain extends AbstractEngine {
