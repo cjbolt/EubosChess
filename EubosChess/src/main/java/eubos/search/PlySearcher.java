@@ -26,7 +26,6 @@ public class PlySearcher {
 		int bestScore;
 		int alpha;
 		int beta;
-		int alphaOriginal;
 		int prevBestMove;
 		boolean isCutOff;
 		int hashScore;
@@ -39,7 +38,7 @@ public class PlySearcher {
 		
 		void initialise(int ply, int alpha, int beta) {
 			hashScore = bestScore = Score.PROVISIONAL_ALPHA;
-			alphaOriginal = this.alpha = alpha;
+			this.alpha = alpha;
 			this.beta = beta;
 			isCutOff = false;
 			moveNumber = 0;
@@ -345,7 +344,7 @@ public class PlySearcher {
 				// No moves at this point means either a stalemate or checkmate has occurred
 				return state[0].inCheck ? Score.getMateScore(0) : 0;
 			}
-			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[0].bestScore);
+			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[0].bestScore, refuted ? Score.lowerBound : Score.upperBound);
 			rootTransposition = trans;
 		}
 		
@@ -572,7 +571,7 @@ public class PlySearcher {
 				// No moves searched at this point means either a stalemate or checkmate has occurred
 				return state[currPly].inCheck ? Score.getMateScore(currPly) : 0;
 			}
-			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[currPly].bestScore);
+			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[currPly].bestScore, refuted ? Score.lowerBound : Score.upperBound);
 		}
 		
 		// fail hard
@@ -715,7 +714,6 @@ public class PlySearcher {
 				break;
 			case Score.lowerBound:
 				state[currPly].alpha = Math.max(state[currPly].alpha, state[currPly].hashScore);
-				state[currPly].alphaOriginal = state[currPly].alpha;
 	        	if (EubosEngineMain.ENABLE_LOGGING) {
 	        		if (currPly == 0)
 						EubosEngineMain.logger.fine(String.format("Trans lowerBound increasing alpha=%d hashScore=%d",
@@ -757,21 +755,6 @@ public class PlySearcher {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
 			state[currPly].prevBestMove = trans_move;
 		}
-	}
-	
-	private long updateTranspositionTable(long trans, byte depth, int currMove, short plyScore) {
-		byte plyBound = Score.typeUnknown;
-		if (plyScore <= state[currPly].alphaOriginal) {
-			// Didn't raise alpha
-			plyBound = Score.upperBound;
-		} else if (plyScore >= state[currPly].beta) {
-			// A beta cut-off, alpha raise was 'too good'
-			plyBound = Score.lowerBound;
-		} else {
-			// Because of LMR we can't be sure about depth for a non-PV node, unless it is within the minimum depth.
-			plyBound = Score.upperBound;
-		}
-		return updateTranspositionTable(trans, depth, currMove, plyScore, plyBound);
 	}
 	
 	private long updateTranspositionTable(long trans, byte depth, int currMove, short plyScore, byte plyBound) {
