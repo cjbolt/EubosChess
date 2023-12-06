@@ -19,6 +19,16 @@ class TranspositionTest {
 		long trans = Transposition.setDepthSearchedInPly(0L, (byte)10);
 		assertEquals(10, Transposition.getDepthSearchedInPly(trans));
 	}
+	
+	@Test
+	void testReadbackDepthSearchedInPly_AdjacentValue() {
+		long trans = Transposition.setDepthSearchedInPly(0L, (byte)10);
+		trans = Transposition.setScore(trans, (short) 65535);
+		assertEquals(10, Transposition.getDepthSearchedInPly(trans));
+		// This means an overflow occurred, i.e. a large positive number became -1 as a signed short
+		// but at least it is guarded and doesn't impinge on adjacent bit field.
+		assertEquals(-1, Transposition.getScore(trans));
+	}
 
 	@Test
 	void testReadbackScore() {
