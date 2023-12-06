@@ -576,11 +576,12 @@ public class EubosEngineMain extends AbstractEngine {
 			
 			// For now this is meant to catch crude piece blunders only....
 			if (!Move.areEqual(pc.getBestMove((byte)0), trusted_move) &&
-				Math.abs(trusted_score-validation_score) > 100) {
+				Math.abs(trusted_score-validation_score) > 300) {
 				createErrorLog();
 				error_logger.severe(String.format(
-						"DELTA=%d where validation_score=%d trusted_score=%d",
-						Math.abs(trusted_score-validation_score), validation_score, trusted_score));
+						"DELTA=%d where validation_score=%d trusted_score=%d validation=%s trusted=%s",
+						Math.abs(trusted_score-validation_score), validation_score, trusted_score,
+						Move.toString(pc.getBestMove((byte)0)), Move.toString(trusted_move)));
 				
 				error_logger.severe(String.format(
 						"The best move was %s at root position %s\nsearch result is %s",

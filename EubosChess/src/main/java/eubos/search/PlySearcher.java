@@ -23,7 +23,7 @@ public class PlySearcher {
 	public static final int FUTILITY_THRESHOLD = 200;
 	
 	class SearchState {
-		int plyScore;
+		int bestScore;
 		int alpha;
 		int beta;
 		int alphaOriginal;
@@ -38,7 +38,7 @@ public class PlySearcher {
 		boolean isImproving;
 		
 		void initialise(int ply, int alpha, int beta) {
-			hashScore = plyScore = Score.PROVISIONAL_ALPHA;
+			hashScore = bestScore = Score.PROVISIONAL_ALPHA;
 			alphaOriginal = this.alpha = alpha;
 			this.beta = beta;
 			isCutOff = false;
@@ -51,7 +51,7 @@ public class PlySearcher {
 		}
 		
 		void reinitialise(int alpha, int beta) {
-			plyScore = Score.PROVISIONAL_ALPHA;
+			bestScore = Score.PROVISIONAL_ALPHA;
 			this.alpha = alpha;
 			this.beta = beta;
 			moveNumber = 0;
@@ -263,7 +263,7 @@ public class PlySearcher {
 		// Main search loop for root ply
 		int bestMove = Move.NULL_MOVE;
 		int currMove = Move.NULL_MOVE;
-		int positionScore = state[0].plyScore;
+		int positionScore = state[0].bestScore;
 		int quietMoveNumber = 0;
 		boolean refuted = false;
 		MoveListIterator move_iter = ml.initialiseAtPly(state[0].prevBestMove, killers.getMoves(0), state[0].inCheck, false, 0);
@@ -312,29 +312,29 @@ public class PlySearcher {
 			
 			// Handle score backed up to this node
 			if (positionScore > state[0].alpha) {
-				state[0].alpha = state[0].plyScore = positionScore;
+				state[0].alpha = state[0].bestScore = positionScore;
 				bestMove = currMove;
 				pc.update(0, bestMove);
 				if (state[0].alpha >= state[0].beta) {
-					state[0].plyScore = state[0].beta; // fail hard
+					state[0].bestScore = state[0].beta; // fail hard
 					killers.addMove(0, bestMove);
 					// Don't report a beta failure PV at the root as this means an aspiration window failure
 					// and we don't want to spoil the PV in the SMR with the aspiration fail line
-					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(state[0].plyScore);
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(state[0].bestScore);
 					refuted = true;
 		        	if (EubosEngineMain.ENABLE_LOGGING) {
 						EubosEngineMain.logger.fine(String.format("BETA FAIL AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
-								state[0].plyScore, state[0].alpha, state[0].beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
+								state[0].bestScore, state[0].alpha, state[0].beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
 					}
 					break;
 				}
-				trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[0].alpha, Score.upperBound);
+				trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[0].bestScore, Score.upperBound);
 				rootTransposition = trans;
 				reportPv((short) state[0].alpha);
 			} 
-			else if (positionScore > state[0].plyScore) {
+			else if (positionScore > state[0].bestScore) {
 				bestMove = currMove;
-				state[0].plyScore = positionScore;
+				state[0].bestScore = positionScore;
 			}
 			
 			hasSearchedPv = true;
@@ -345,7 +345,7 @@ public class PlySearcher {
 				// No moves at this point means either a stalemate or checkmate has occurred
 				return state[0].inCheck ? Score.getMateScore(0) : 0;
 			}
-			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[0].plyScore);
+			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[0].bestScore);
 			rootTransposition = trans;
 		}
 		
@@ -440,13 +440,13 @@ public class PlySearcher {
 				nullCheckEnabled && 
 				(pos.getTheBoard().me.phase < 4000 && !pe.goForMate())) {
 				
-				state[currPly].plyScore = doNullMoveSubTreeSearch(depth);
+				state[currPly].bestScore = doNullMoveSubTreeSearch(depth);
 				if (isTerminated()) { return 0; }
 				
-				if (state[currPly].plyScore >= state[currPly].beta) {
+				if (state[currPly].bestScore >= state[currPly].beta) {
 					return state[currPly].beta;
 				} else {
-					state[currPly].plyScore = Score.PROVISIONAL_ALPHA;
+					state[currPly].bestScore = Score.PROVISIONAL_ALPHA;
 				}
 			}
 		}
@@ -484,7 +484,7 @@ public class PlySearcher {
 		// Main search loop for this ply
 		int bestMove = Move.NULL_MOVE;
 		int currMove = Move.NULL_MOVE;
-		int positionScore = state[currPly].plyScore;
+		int positionScore = state[currPly].bestScore;
 		boolean refuted = false;
 		int quietMoveNumber = 0;
 		MoveListIterator move_iter = ml.initialiseAtPly(state[currPly].prevBestMove, killers.getMoves(currPly), state[currPly].inCheck, false, currPly, depth == 1);
@@ -550,20 +550,20 @@ public class PlySearcher {
 			
 			// Handle score backed up to this node
 			if (positionScore > state[currPly].alpha) {
-				state[currPly].alpha = state[currPly].plyScore = positionScore;
+				state[currPly].alpha = state[currPly].bestScore = positionScore;
 				bestMove = currMove;
 				if (state[currPly].alpha >= state[currPly].beta) {
-					state[currPly].plyScore = state[currPly].beta; // fail hard
+					state[currPly].bestScore = state[currPly].beta; // fail hard
 					killers.addMove(currPly, bestMove);
-					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(state[currPly].plyScore);
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(state[currPly].bestScore);
 					refuted = true;
 					break;
 				}
 				pc.update(currPly, bestMove);
 			} 
-			else if (positionScore > state[currPly].plyScore) {
+			else if (positionScore > state[currPly].bestScore) {
 				bestMove = currMove;
-				state[currPly].plyScore = positionScore;
+				state[currPly].bestScore = positionScore;
 			}
 		}
 		
@@ -572,11 +572,11 @@ public class PlySearcher {
 				// No moves searched at this point means either a stalemate or checkmate has occurred
 				return state[currPly].inCheck ? Score.getMateScore(currPly) : 0;
 			}
-			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[currPly].plyScore);
+			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[currPly].bestScore);
 		}
 		
 		// fail hard
-		return refuted ? state[currPly].beta : state[currPly].alpha;
+		return state[currPly].bestScore;
 	}
 	
 	@SuppressWarnings("unused")
@@ -605,38 +605,38 @@ public class PlySearcher {
 				if (hasSearchedPv && type == (state[currPly].hashScore >= beta ? Score.lowerBound : Score.upperBound)) {
 					return state[currPly].hashScore;
 				}
-				state[currPly].plyScore = Transposition.getStaticEval(trans);
-				if (state[currPly].plyScore == Short.MAX_VALUE) {
-					state[currPly].plyScore = pe.lazyEvaluation(alpha, beta);
+				state[currPly].bestScore = Transposition.getStaticEval(trans);
+				if (state[currPly].bestScore == Short.MAX_VALUE) {
+					state[currPly].bestScore = pe.lazyEvaluation(alpha, beta);
 				}
-				byte boundScope = (state[currPly].hashScore > state[currPly].plyScore) ? Score.lowerBound : Score.upperBound;
+				byte boundScope = (state[currPly].hashScore > state[currPly].bestScore) ? Score.lowerBound : Score.upperBound;
 				if (type == boundScope) {
-					state[currPly].plyScore = state[currPly].hashScore;
+					state[currPly].bestScore = state[currPly].hashScore;
 				}
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
 				prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
 			}
 		} else {
-			state[currPly].plyScore = pe.lazyEvaluation(alpha, beta);
+			state[currPly].bestScore = pe.lazyEvaluation(alpha, beta);
 		}
 		
-		if (state[currPly].plyScore >= beta) {
+		if (state[currPly].bestScore >= beta) {
 			// There is no move to put in the killer table when we stand Pat
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(state[currPly].plyScore);
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(state[currPly].bestScore);
 			return beta;
 		}
 		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
 			// Absolute depth limit, return full eval
-			return state[currPly].plyScore;
+			return state[currPly].bestScore;
 		}
 		
-		if (state[currPly].plyScore > alpha) {
+		if (state[currPly].bestScore > alpha) {
 			// Null move hypothesis
-			alpha = state[currPly].plyScore;
+			alpha = state[currPly].bestScore;
 		}
 		
 		int currMove = Move.NULL_MOVE;
-		int positionScore = state[currPly].plyScore;
+		int positionScore = state[currPly].bestScore;
 		MoveListIterator move_iter = ml.initialiseAtPly(prevBestMove, null, state[currPly].inCheck, true, currPly);
 		while ((currMove = move_iter.nextInt()) != Move.NULL_MOVE && !isTerminated()) {
 			// Legal move check	
