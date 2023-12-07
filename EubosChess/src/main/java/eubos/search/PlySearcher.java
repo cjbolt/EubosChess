@@ -198,12 +198,12 @@ public class PlySearcher {
 	        		lastAspirationFailed = false;
 	        		certain = false;
 	        		break;
-	        	} else if (score > alpha && score < beta) {
+	        	} else if ((score > state[0].alpha && score < state[0].beta) || isTerminated()) {
 		        	// Exact score in window returned
 		        	lastAspirationFailed = false;
 		        	if (EubosEngineMain.ENABLE_LOGGING) {
 						EubosEngineMain.logger.fine(String.format("Aspiration returned window=%d score=%d in alpha=%d beta=%d for depth=%d",
-								aspiration_window, score, alpha, beta, originalSearchDepthRequiredInPly));
+								aspiration_window, score, state[0].alpha, state[0].beta, originalSearchDepthRequiredInPly));
 					}
 		        	reportPv((short) score);
 		            break;
