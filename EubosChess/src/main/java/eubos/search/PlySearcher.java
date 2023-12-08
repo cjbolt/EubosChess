@@ -229,7 +229,7 @@ public class PlySearcher {
 		return score;
 	}
 		
-	int searchRoot(int depth, int alpha, int beta) {
+	public int searchRoot(int depth, int alpha, int beta) {
 		
 		hasSearchedPv = false;
 		state[0].initialise(0, alpha, beta);
@@ -277,17 +277,18 @@ public class PlySearcher {
 			}
 			
 			state[0].moveNumber += 1;
-			if (state[0].moveNumber == 1) {
-				pc.initialise(0, currMove);
-				bestMove = currMove;
-			}
-			if (Move.isRegular(currMove)) {
-				quietMoveNumber++;
-			}
 			if (EubosEngineMain.ENABLE_UCI_MOVE_NUMBER) {
 				sm.setCurrentMove(currMove, state[0].moveNumber);
 				if (originalSearchDepthRequiredInPly > 8)
 					sr.reportCurrentMove();
+			}
+			if (state[0].moveNumber == 1) {
+				// First legal move re-initialises the PV 
+				bestMove = currMove;
+				pc.initialise(0, bestMove);
+			}
+			if (Move.isRegular(currMove)) {
+				quietMoveNumber++;
 			}
 			
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(state[0].alpha, state[0].beta);
@@ -322,18 +323,26 @@ public class PlySearcher {
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(state[0].bestScore);
 					refuted = true;
 		        	if (EubosEngineMain.ENABLE_LOGGING) {
-						EubosEngineMain.logger.fine(String.format("BETA FAIL AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
+						EubosEngineMain.logger.info(String.format("BETA FAIL AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
 								state[0].bestScore, state[0].alpha, state[0].beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
 					}
 					break;
 				}
 				trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[0].bestScore, Score.upperBound);
 				rootTransposition = trans;
+				if (EubosEngineMain.ENABLE_LOGGING) {
+					EubosEngineMain.logger.info(String.format("ALPHA INCREASED AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
+							state[0].bestScore, state[0].alpha, state[0].beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
+				}
 				reportPv((short) state[0].alpha);
 			} 
 			else if (positionScore > state[0].bestScore) {
 				bestMove = currMove;
 				state[0].bestScore = positionScore;
+				if (EubosEngineMain.ENABLE_LOGGING) {
+					EubosEngineMain.logger.info(String.format("BEST_SCORE INCREASED AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
+							state[0].bestScore, state[0].alpha, state[0].beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
+				}
 			}
 			
 			hasSearchedPv = true;
@@ -346,6 +355,10 @@ public class PlySearcher {
 			}
 			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[0].bestScore, refuted ? Score.lowerBound : Score.upperBound);
 			rootTransposition = trans;
+			if (EubosEngineMain.ENABLE_LOGGING) {
+				EubosEngineMain.logger.info(String.format("TRANSPOSITION SAVED AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s (%s)",
+						state[0].bestScore, state[0].alpha, state[0].beta, depth, Move.toString(bestMove), Transposition.report(trans)));
+			}
 		}
 		
 		// fail hard, so don't return plyScore
