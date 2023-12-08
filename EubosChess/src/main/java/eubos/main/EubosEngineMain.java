@@ -472,6 +472,7 @@ public class EubosEngineMain extends AbstractEngine {
 	private long compareTransWithSearchResult(SearchResult result, long trans) {
 		int transBestMove = Transposition.getBestMove(trans);
 		int transDepth = Transposition.getDepthSearchedInPly(trans);
+		// Check against PV
 		if (result.trusted && transDepth <= result.depth && !Move.areEqualForTrans(transBestMove, result.pv[0])) {
 			if (ENABLE_LOGGING) {
 				logger.warning(String.format("rootTrans %s inconsistent with search PV %s, updating hash",
@@ -485,9 +486,10 @@ public class EubosEngineMain extends AbstractEngine {
 			} else {
 				trans = 0L;
 			}
-		} else if (result.rootTrans != 0L) {
+		// Check against Cached Trans
+		} else if (!isTranspositionEntryLost(result.rootTrans)) {
 			int cachedDepth = Transposition.getDepthSearchedInPly(result.rootTrans);
-			if (cachedDepth > transDepth) {
+			if (trans != result.rootTrans && cachedDepth > transDepth) {
 				if (ENABLE_LOGGING) {
 					logger.warning(String.format("tableTrans %s inconsistent with cachedTrans %s, updating",
 							Transposition.report(trans, rootPosition.getTheBoard()),
