@@ -486,9 +486,8 @@ public class EubosEngineMain extends AbstractEngine {
 				trans = 0L;
 			}
 		} else if (result.rootTrans != 0L) {
-			int cachedBestMove = Transposition.getBestMove(result.rootTrans);
 			int cachedDepth = Transposition.getDepthSearchedInPly(result.rootTrans);
-			if (/*!Move.areEqualForTrans(transBestMove, cachedBestMove) && */cachedDepth >= transDepth) {
+			if (cachedDepth > transDepth) {
 				if (ENABLE_LOGGING) {
 					logger.warning(String.format("tableTrans %s inconsistent with cachedTrans %s, updating",
 							Transposition.report(trans, rootPosition.getTheBoard()),
@@ -500,32 +499,37 @@ public class EubosEngineMain extends AbstractEngine {
 		return trans;
 	}
 	
+	private boolean isTranspositionEntryLost(long trans) {
+		return trans == 0L;
+	}
+	
 	private long repopulateRootTransFromCacheIfItWasOverwritten(SearchResult result) {
-		long cachedRootTrans = result.rootTrans;
-		
-		
-		
-		// Table root trans has problems the hash move can be overwritten by lower depth moves :(
-		long tableRootTrans = hashMap.getTransposition(rootPosition.getHash());
+		/* Table root trans has problems: the hash move can be overwritten by lower depth moves. 
+		   This can happen in deep searches if the root transposition is overwritten by aging
+		   replacement scheme and then added again at a lower depth as it appears again as a
+		   leaf in the search tree. */
+		long tableRoot = hashMap.getTransposition(rootPosition.getHash());
+		long cacheRoot = result.rootTrans;
 		
 		long checkedTrans = 0L;
 		// The transposition in the table could have been overwritten during the search;
 		// If it has been removed we should rewrite it using the best we have, i.e. the cached version.
-		if (tableRootTrans == 0L) {
-			if (cachedRootTrans != 0L) {	
+		if (isTranspositionEntryLost(tableRoot)) {
+			if (!isTranspositionEntryLost(cacheRoot)) {	
 				if (ENABLE_LOGGING) {
-					logger.info(String.format("rootTrans overwritten replacing with %s",
-							Transposition.report(cachedRootTrans, rootPosition.getTheBoard())));
+					logger.info(String.format("tableRoot transposition overwritten replacing with cache %s",
+							Transposition.report(cacheRoot, rootPosition.getTheBoard())));
 				}
-				checkedTrans = compareTransWithSearchResult(result, cachedRootTrans);
+				checkedTrans = compareTransWithSearchResult(result, cacheRoot);
 			} else {
 				logger.severe("repopulateRootTransFromCacheIfItWasOverwritten cache was null!");
 			}
 		} else {
-			updateReferenceScoreWhenMateFound(tableRootTrans);
-			checkedTrans = compareTransWithSearchResult(result, tableRootTrans);
+			// It could have been overwritten and then added back at a lower depth
+			updateReferenceScoreWhenMateFound(tableRoot);
+			checkedTrans = compareTransWithSearchResult(result, tableRoot);
 		}
-		if (checkedTrans != tableRootTrans && checkedTrans != 0L) {
+		if (checkedTrans != tableRoot && checkedTrans != 0L) {
 			if (ENABLE_LOGGING) {
 				logger.info(String.format("overwriting hashMap with %s",
 						Transposition.report(checkedTrans, rootPosition.getTheBoard())));
@@ -555,9 +559,7 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 	
 		if (EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH) {
-			//if (Move.isCapture(trustedMove)) {
-				trustedMove = validationSearch(trustedMoveWasFromTrans, tableRootTrans, result, trustedMove);
-			//}
+			trustedMove = validationSearch(trustedMoveWasFromTrans, tableRootTrans, result, trustedMove);
 		}
 		
 		rootPosition.performMove(trustedMove);
@@ -565,19 +567,54 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	private int validationSearch(boolean trustedMoveWasFromTrans, long tableRootTrans, SearchResult result, int trusted_move) {
-		// do a validation search to the same depth to check the PV move
+		boolean override_trusted_move = false;
+		/* Do a short validation search, it has to be shallow because at longer time controls we can't hope to match
+		   the main search depth without using a Transposition table, which we suspect may be corrupted.  */
 		short trusted_score = (short)(trustedMoveWasFromTrans ? Transposition.getScore(tableRootTrans): result.score);
-		//int trusted_depth = trustedMoveWasFromTrans ? Transposition.getDepthSearchedInPly(tableRootTrans) : result.depth;
-		int[] empty_pv = { Move.NULL_MOVE };
-		int[] trusted_pv = trustedMoveWasFromTrans ? empty_pv : result.pv; //Arrays.copyOfRange(result.pv, 1, result.pv.length); // From when after move applied...
 		
 		String rootReport = result.report(rootPosition.getTheBoard());
 		String rootFen = rootPosition.getFen();
 		assert lastFen.equals(rootFen) : String.format("Fen mismatch after search.\n%s\n%s", rootFen, lastFen);
 		
+		if (ENABLE_LOGGING) {
+			logger.info(String.format("Started validation search trusted_score=%d", trusted_score));
+		}
+		
 		// Operate on a copy of the rootPosition to prevent reentrant issues at tight time controls
 		PositionManager pm = new PositionManager(rootFen, rootPosition.getHash(), new DrawChecker(), new PawnEvalHashTable());
+		int validation_move = getValidationSearchMove(pm, trusted_score);
 		assert pm.performMove(trusted_move);
+		int validation_score = verifyTrustedMoveScore(pm, trusted_score);
+		
+		if (ENABLE_LOGGING) {
+			logger.info(String.format("Completed validation search validation_score=%d", validation_score));
+		}
+		
+		// For now this is meant to catch crude piece blunders only... like not moving en-prise attacked piece
+		if (!Move.areEqual(validation_move, trusted_move) &&
+			Math.abs(trusted_score-validation_score) > 300) {
+			createErrorLog();
+			error_logger.severe(String.format(
+					"DELTA=%d where validation_score=%d trusted_score=%d validation=%s trusted=%s",
+					Math.abs(trusted_score-validation_score),
+					validation_score, trusted_score,
+					Move.toString(validation_move), Move.toString(trusted_move)));
+			
+			error_logger.severe(String.format(
+					"The best move was %s at root position %s\nsearch result is %s",
+					Move.toString(trusted_move),
+					rootFen, rootReport));
+			
+			error_logger.severe(String.format(
+					"Fen after best move applied is %s",
+					pm.getFen()));
+		}
+		
+		return override_trusted_move ? validation_move : trusted_move;
+	}
+	
+	private int getValidationSearchMove(PositionManager pm, int trusted_score)
+	{
 		SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.getOnMove() == Piece.Colour.white);
 		PrincipalContinuation pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
 		PlySearcher ps = new PlySearcher(
@@ -593,93 +630,36 @@ public class EubosEngineMain extends AbstractEngine {
 				sda,
 				new MoveList(pm, 0));
 		
-		if (ENABLE_LOGGING) {
-			logger.info(String.format("Started validation search trusted=%d", trusted_score));
-		}
-		int validation_score = -ps.searchRoot(
-				6,
-				-Math.min(Score.PROVISIONAL_BETA, trusted_score+2200),
-				-Math.max(Score.PROVISIONAL_ALPHA, trusted_score-2200));
-		if (ENABLE_LOGGING) {
-			logger.info(String.format("Completed validation search validation=%d", validation_score));
-		}
+		ps.searchRoot(6,
+				Math.max(Score.PROVISIONAL_ALPHA, trusted_score-2200),
+				Math.min(Score.PROVISIONAL_BETA, trusted_score+2200));
 		
-		// Now compare the trusted and validation data
-		if (!Score.isMate(trusted_score) && !Score.isMate((short)validation_score)) {
-			
-			// For now this is meant to catch crude piece blunders only....
-			if (!Move.areEqual(pc.getBestMove((byte)0), trusted_move) &&
-				Math.abs(trusted_score-validation_score) > 300) {
-				createErrorLog();
-				error_logger.severe(String.format(
-						"DELTA=%d where validation_score=%d trusted_score=%d validation=%s trusted=%s",
-						Math.abs(trusted_score-validation_score), validation_score, trusted_score,
-						Move.toString(pc.getBestMove((byte)0)), Move.toString(trusted_move)));
-				
-				error_logger.severe(String.format(
-						"The best move was %s at root position %s\nsearch result is %s",
-						Move.toString(trusted_move),
-						rootFen, rootReport));
-				
-				error_logger.severe(String.format(
-						"Fen after best move applied is %s\nPV moves are\nvalidation(%s)\ntrusted_pv(%s)",
-						pm.getFen(),
-						pc.toStringAt(0),
-						trustedMoveWasFromTrans ? "From Trans Table" : Move.toString(trusted_pv[0])));
-				
-				if (!trustedMoveWasFromTrans) {
-					validateEubosPv(pm, "Trusted PV", trusted_pv);
-				}
-				validateEubosPv(pm, "Validation PV", pc.toPvList(0));
-				
-				// now generate a hopefully safe, legal move
-				pm = new PositionManager(rootFen, rootPosition.getHash(), new DrawChecker(), new PawnEvalHashTable());
-				sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.getOnMove() == Piece.Colour.white);
-				pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
-				ps = new PlySearcher(
-						new DummyTranspositionTable(),
-						pc, 
-						new SearchMetrics(pm), 
-						null, 
-						(byte)(6),
-						pm,
-						pm,
-						pm.getPositionEvaluator(),
-						new KillerList(),
-						sda,
-						new MoveList(pm, 0));
-				
-				validation_score = ps.searchRoot(
-						6,
-						Math.max(Score.PROVISIONAL_ALPHA, trusted_score-2200),
-						Math.min(Score.PROVISIONAL_BETA, trusted_score+2200));
-				
-				return pc.getBestMove((byte)0);
-			}
-		}
-		return trusted_move;
+		return pc.getBestMove((byte)0);
 	}
 	
-	public int doValidationSearch(PositionManager pos, int prev_depth, int prev_score) {
-		PositionManager pm = new PositionManager(pos.getFen(), pos.getHash(), new DrawChecker(), new PawnEvalHashTable());
-		SearchDebugAgent sda = new SearchDebugAgent(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
+	private int verifyTrustedMoveScore(PositionManager pm, int trusted_score) {
+		SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.getOnMove() == Piece.Colour.white);
 		PrincipalContinuation pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
 		PlySearcher ps = new PlySearcher(
-				new FixedSizeTranspositionTable(1, 1), // Use a new hash table to prevent seeing same error, if error is present in data
+				new DummyTranspositionTable(),
 				pc, 
 				new SearchMetrics(pm), 
 				null, 
-				(byte)(prev_depth),
-				pos,
-				pos,
-				pos.getPositionEvaluator(),
+				(byte)(6),
+				pm,
+				pm,
+				pm.getPositionEvaluator(),
 				new KillerList(),
 				sda,
-				new MoveList(pos, 0));
-		return ps.searchPly((short)prev_score);
+				new MoveList(pm, 0));
+		
+		return -ps.searchRoot(
+				6,
+				-Math.min(Score.PROVISIONAL_BETA, trusted_score+2200),
+				-Math.max(Score.PROVISIONAL_ALPHA, trusted_score-2200));
 	}
 	
-	private void validateEubosPv(PositionManager pm, String str, int[] pv) {
+	void validateEubosPv(PositionManager pm, String str, int[] pv) {
 		try {
 			if (pv != null) {
 				int moves_applied = 0;
