@@ -279,7 +279,7 @@ public class PlySearcher {
 			state[0].moveNumber += 1;
 			if (EubosEngineMain.ENABLE_UCI_MOVE_NUMBER) {
 				sm.setCurrentMove(currMove, state[0].moveNumber);
-				if (originalSearchDepthRequiredInPly > 8)
+				if (originalSearchDepthRequiredInPly > 8 && sr != null)
 					sr.reportCurrentMove();
 			}
 			if (state[0].moveNumber == 1) {

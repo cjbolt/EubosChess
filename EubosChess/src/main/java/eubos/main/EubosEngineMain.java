@@ -59,6 +59,7 @@ import eubos.search.transposition.Transposition;
 
 import java.text.SimpleDateFormat;
 import java.util.logging.*;
+import java.util.Arrays;
 import java.util.Set;
 
 public class EubosEngineMain extends AbstractEngine {
@@ -76,7 +77,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_ASSERTS = false;
 	public static final boolean ENABLE_PERFT = false;
 	public static final boolean ENABLE_TEST_SUITES = false;
-	public static final boolean ENABLE_DEBUG_VALIDATION_SEARCH = true;
+	public static final boolean ENABLE_DEBUG_VALIDATION_SEARCH = false;
 	
 	public static final boolean ENABLE_REPETITION_DETECTION = true;
 	public static final boolean ENABLE_TRANSPOSITION_TABLE = true;
@@ -572,6 +573,7 @@ public class EubosEngineMain extends AbstractEngine {
 		boolean override_trusted_move = false;
 		/* Do a short validation search, it has to be shallow because at longer time controls we can't hope to match
 		   the main search depth without using a Transposition table, which we suspect may be corrupted.  */
+		int trusted_depth = trustedMoveWasFromTrans ? Transposition.getDepthSearchedInPly(tableRootTrans): result.depth;
 		short trusted_score = (short)(trustedMoveWasFromTrans ? Transposition.getScore(tableRootTrans): result.score);
 		
 		String rootReport = result.report(rootPosition.getTheBoard());
@@ -584,22 +586,26 @@ public class EubosEngineMain extends AbstractEngine {
 		
 		// Operate on a copy of the rootPosition to prevent reentrant issues at tight time controls
 		PositionManager pm = new PositionManager(rootFen, rootPosition.getHash(), new DrawChecker(), new PawnEvalHashTable());
-		int validation_move = getValidationSearchMove(pm, trusted_score);
+		SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.getOnMove() == Piece.Colour.white);
+		PrincipalContinuation pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
+		int validation_move = getValidationSearchMove(pm, pc, sda, trusted_score);
 		assert pm.performMove(trusted_move);
-		int validation_score = verifyTrustedMoveScore(pm, trusted_score);
+		SearchResult validation_result = verifyTrustedMoveScore(pm, pc, sda, trusted_score, trusted_depth, trusted_move);
 		
 		if (ENABLE_LOGGING) {
-			logger.info(String.format("Completed validation search validation_score=%d", validation_score));
+			logger.info(String.format("Completed validation search validation_score=%d", validation_result.score));
 		}
 		
 		// For now this is meant to catch crude piece blunders only... like not moving en-prise attacked piece
+		// we can check this by checking opponents next move is not a capture, and there is not a high score delta
 		if (!Move.areEqual(validation_move, trusted_move) &&
-			Math.abs(trusted_score-validation_score) > 300) {
+			(Move.isCapture(validation_result.pv[0]) || Move.isCapture(trusted_move)) &&
+			Math.abs(trusted_score-validation_result.score) > 300) {
 			createErrorLog();
 			error_logger.severe(String.format(
 					"DELTA=%d where validation_score=%d trusted_score=%d validation=%s trusted=%s",
-					Math.abs(trusted_score-validation_score),
-					validation_score, trusted_score,
+					Math.abs(trusted_score-validation_result.score),
+					validation_result.score, trusted_score,
 					Move.toString(validation_move), Move.toString(trusted_move)));
 			
 			error_logger.severe(String.format(
@@ -615,16 +621,14 @@ public class EubosEngineMain extends AbstractEngine {
 		return override_trusted_move ? validation_move : trusted_move;
 	}
 	
-	private int getValidationSearchMove(PositionManager pm, int trusted_score)
+	private int getValidationSearchMove(PositionManager pm, PrincipalContinuation pc, SearchDebugAgent sda, int trusted_score)
 	{
-		SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.getOnMove() == Piece.Colour.white);
-		PrincipalContinuation pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
 		PlySearcher ps = new PlySearcher(
 				new DummyTranspositionTable(),
 				pc, 
 				new SearchMetrics(pm), 
 				null, 
-				(byte)(6),
+				(byte)(8),
 				pm,
 				pm,
 				pm.getPositionEvaluator(),
@@ -632,22 +636,30 @@ public class EubosEngineMain extends AbstractEngine {
 				sda,
 				new MoveList(pm, 0));
 		
-		ps.searchRoot(6,
+		ps.searchRoot(8,
 				Math.max(Score.PROVISIONAL_ALPHA, trusted_score-2200),
 				Math.min(Score.PROVISIONAL_BETA, trusted_score+2200));
 		
 		return pc.getBestMove((byte)0);
 	}
 	
-	private int verifyTrustedMoveScore(PositionManager pm, int trusted_score) {
-		SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.getOnMove() == Piece.Colour.white);
-		PrincipalContinuation pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
+	private SearchResult verifyTrustedMoveScore(PositionManager pm,  PrincipalContinuation pc, SearchDebugAgent sda, int trusted_score, int trusted_depth, int trusted_move) {
+		
+		// Set up a best move for each ply of validation search
+		PrincipalContinuation seeded_pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
+		int [] list = pc.toPvList(0);
+		if (list.length > 1) {
+			int [] next_ply_list = Arrays.copyOfRange(list, 1, EubosEngineMain.SEARCH_DEPTH_IN_PLY);
+			next_ply_list[0] = trusted_move;
+			seeded_pc.setArray(next_ply_list);
+		}
+		
 		PlySearcher ps = new PlySearcher(
 				new DummyTranspositionTable(),
-				pc, 
+				seeded_pc, 
 				new SearchMetrics(pm), 
 				null, 
-				(byte)(6),
+				(byte)(7),
 				pm,
 				pm,
 				pm.getPositionEvaluator(),
@@ -655,10 +667,13 @@ public class EubosEngineMain extends AbstractEngine {
 				sda,
 				new MoveList(pm, 0));
 		
-		return -ps.searchRoot(
-				6,
+		int score = -ps.searchRoot(
+				7,
 				-Math.min(Score.PROVISIONAL_BETA, trusted_score+2200),
 				-Math.max(Score.PROVISIONAL_ALPHA, trusted_score-2200));
+		int move = seeded_pc.getBestMove((byte)0);
+		
+		return new SearchResult(move, score);
 	}
 	
 	void validateEubosPv(PositionManager pm, String str, int[] pv) {
