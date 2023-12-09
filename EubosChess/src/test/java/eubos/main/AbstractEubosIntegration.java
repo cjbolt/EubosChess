@@ -135,16 +135,18 @@ public abstract class AbstractEubosIntegration {
 			String parsedCmd= "";
 			// Pass command to engine
 			if (inputCmd != null) {
-				if (inputCmd.startsWith("go") && hashEntry != 0L) {
-					Thread.sleep(sleep_50ms);
-					// Seed hash table with problematic hash
-					long problemHash = classUnderTest.rootPosition.getHash();
-					//EubosEngineMain.logger.info(String.format("*************** using hash code %d", problemHash));
-					classUnderTest.hashMap.putTransposition(problemHash, hashEntry);
-				}
 				inputToEngine.write(inputCmd);
 				inputToEngine.flush();
 				//EubosEngineMain.logger.info(String.format("************* %s", inputCmd));
+				if (inputCmd.startsWith("position") || inputCmd.startsWith("go")/*&& hashEntry != 0L*/) {
+					Thread.sleep(sleep_50ms);
+					// Seed hash table with problematic hash
+					if (classUnderTest.rootPosition != null) {
+						long problemHash = classUnderTest.rootPosition.getHash();
+						//EubosEngineMain.logger.info(String.format("*************** using hash code %d", problemHash));
+						classUnderTest.hashMap.putTransposition(problemHash, hashEntry);
+					}
+				}
 			}
 			// Test expected command was received
 			if (currCmdPair.expectOutput()) {

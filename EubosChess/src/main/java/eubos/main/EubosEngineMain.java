@@ -72,12 +72,12 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	public static final boolean ENABLE_LOGGING = false;
 	public static final boolean ENABLE_UCI_INFO_SENDING = true;
-	public static final boolean ENABLE_UCI_MOVE_NUMBER = true;
+	public static final boolean ENABLE_UCI_MOVE_NUMBER = false;
 	
 	public static final boolean ENABLE_ASSERTS = false;
 	public static final boolean ENABLE_PERFT = false;
 	public static final boolean ENABLE_TEST_SUITES = false;
-	public static final boolean ENABLE_DEBUG_VALIDATION_SEARCH = true;
+	public static final boolean ENABLE_DEBUG_VALIDATION_SEARCH = false;
 	
 	public static final boolean ENABLE_REPETITION_DETECTION = true;
 	public static final boolean ENABLE_TRANSPOSITION_TABLE = true;
@@ -462,7 +462,7 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 	}
 	
-	private void updateReferenceScoreWhenMateFound(long tableRootTrans) {
+	void updateReferenceScoreWhenMateFound(long tableRootTrans) {
 		if (Score.isMate(Transposition.getScore(tableRootTrans))) {
 			// It is likely we didn't send a uci info pv message, so we need to update the last score here
 			ReferenceScore refScore = Colour.isWhite(rootPosition.getOnMove()) ? whiteRefScore : blackRefScore;
@@ -470,80 +470,62 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 	}
 	
-	private long compareTransWithSearchResult(SearchResult result, long trans) {
-		int transBestMove = Transposition.getBestMove(trans);
-		int transDepth = Transposition.getDepthSearchedInPly(trans);
-		// Check against PV
-		if (result.trusted && transDepth <= result.depth && !Move.areEqualForTrans(transBestMove, result.pv[0])) {
-			if (ENABLE_LOGGING) {
-				logger.warning(String.format("rootTrans %s inconsistent with search PV %s, updating hash",
-						Transposition.report(trans, rootPosition.getTheBoard()),
-						result.report(rootPosition.getTheBoard())));
-			}
-			if (ENABLE_OVERWRITE_TRANS_WITH_SEARCH) {
-				// Order is important here to be sure we don't introduce a defect due to unprotected or of written values
-				trans = Transposition.setBestMove(trans, result.pv[0]);
-				trans = Transposition.setDepthSearchedInPly(trans, (byte)result.depth);
-				trans = Transposition.setType(trans, Score.typeUnknown); // We can't be sure which it was
-			} else {
-				trans = 0L;
-			}
-		// Check against Cached Trans
-		} else if (!isTranspositionEntryLost(result.rootTrans)) {
-			int cachedDepth = Transposition.getDepthSearchedInPly(result.rootTrans);
-			if (trans != result.rootTrans && cachedDepth > transDepth) {
-				if (ENABLE_LOGGING) {
-					logger.warning(String.format("tableTrans %s inconsistent with cachedTrans %s, updating",
-							Transposition.report(trans, rootPosition.getTheBoard()),
-							result.report(rootPosition.getTheBoard())));
-				}
-				trans = result.rootTrans;
-			}
-		}
-		return trans;
-	}
-	
-	private boolean isTranspositionEntryLost(long trans) {
+	private boolean isTranspositionEntryLostOrInvalidated(long trans) {
 		return trans == 0L;
 	}
 	
 	private long repopulateRootTransFromCacheIfItWasOverwritten(SearchResult result) {
-		/* Table root trans has problems: the hash move can be overwritten by lower depth moves. 
+		/* Table root trans has problems: the table hash move can be overwritten by lower depth moves. 
 		   This can happen in deep searches if the root transposition is overwritten by aging
 		   replacement scheme and then added again at a lower depth as it appears again as a
 		   leaf in the search tree. */
 		long tableRoot = hashMap.getTransposition(rootPosition.getHash());
 		long cacheRoot = result.rootTrans;
 		
-		long checkedTrans = 0L;
-		// The transposition in the table could have been overwritten during the search;
-		// If it has been removed we should rewrite it using the best we have, i.e. the cached version.
-		if (isTranspositionEntryLost(tableRoot)) {
-			if (!isTranspositionEntryLost(cacheRoot)) {	
-				if (ENABLE_LOGGING) {
-					logger.info(String.format("tableRoot transposition overwritten replacing with cache %s",
-							Transposition.report(cacheRoot, rootPosition.getTheBoard())));
-				}
-				checkedTrans = compareTransWithSearchResult(result, cacheRoot);
-			} else {
-				logger.severe("repopulateRootTransFromCacheIfItWasOverwritten cache was null!");
-			}
+		// Select Transposition to validate, note: cache should always be present
+		assert !isTranspositionEntryLostOrInvalidated(cacheRoot) : "Root trans cache was null!";
+		long transToValidate = 0L;
+		if (isTranspositionEntryLostOrInvalidated(tableRoot)) {
+			transToValidate = cacheRoot;
 		} else {
-			// It could have been overwritten and then added back at a lower depth
-			updateReferenceScoreWhenMateFound(tableRoot);
-			checkedTrans = compareTransWithSearchResult(result, tableRoot);
-		}
-		if (checkedTrans != tableRoot && checkedTrans != 0L) {
-			if (ENABLE_LOGGING) {
-				logger.info(String.format("overwriting hashMap with %s",
-						Transposition.report(checkedTrans, rootPosition.getTheBoard())));
+			int tableDepth = Transposition.getDepthSearchedInPly(tableRoot);
+			int cachedDepth = Transposition.getDepthSearchedInPly(cacheRoot);
+			if (cachedDepth > tableDepth) {
+				// Suggests table transposition was overwritten, replace with cache and invalidate
+				// table root transposition, will overwrite with cache below
+				transToValidate = cacheRoot;
+				tableRoot = 0L;
+			} else {
+				transToValidate = tableRoot;
 			}
+		}
+		
+		// Is the PV better than selected Transposition?
+		int transBestMove = Transposition.getBestMove(transToValidate);
+		int transDepth = Transposition.getDepthSearchedInPly(transToValidate);	
+		if (result.trusted && 
+			transDepth <= result.depth && 
+			!Move.areEqualForTrans(transBestMove, result.pv[0])) {
+			// Prefer the trusted PV to the transposition, in which case, invalidate the transposition
+			if (ENABLE_LOGGING) {
+				logger.warning(String.format("rootTrans %s inconsistent with search PV %s, updating hash",
+						Transposition.report(transToValidate, rootPosition.getTheBoard()),
+						result.report(rootPosition.getTheBoard())));
+			}
+			if (ENABLE_OVERWRITE_TRANS_WITH_SEARCH) {
+				transToValidate = Transposition.valueOf((byte)result.depth, (short)0, Score.typeUnknown, result.pv[0], rootPosition.getMoveNumber());
+			} else {
+				transToValidate = 0L;
+			}
+		}
+		
+		// Finally update the table with cached version, if required
+		long checkedTrans = transToValidate;
+		if (isTranspositionEntryLostOrInvalidated(tableRoot) && !isTranspositionEntryLostOrInvalidated(checkedTrans)) {
+			// Update the Transposition table if we needed to restore the cached version
 			hashMap.putTransposition(rootPosition.getHash(), checkedTrans);
 		}
-		if (ENABLE_LOGGING) {
-			logger.info(String.format("checked is %s",
-					Transposition.report(checkedTrans, rootPosition.getTheBoard())));
-		}
+		
 		return checkedTrans;
 	}
 	
@@ -554,16 +536,16 @@ public class EubosEngineMain extends AbstractEngine {
 		
 		int trustedMove = Move.NULL_MOVE;
 		boolean trustedMoveWasFromTrans = true;
-		long tableRootTrans = repopulateRootTransFromCacheIfItWasOverwritten(result);
-		if (tableRootTrans == 0L) {
+		long rootTrans = repopulateRootTransFromCacheIfItWasOverwritten(result);
+		if (isTranspositionEntryLostOrInvalidated(rootTrans)) {
 			trustedMove = result.pv[0];
 			trustedMoveWasFromTrans = false;
 		} else {
-			trustedMove = Move.valueOfFromTransposition(tableRootTrans, rootPosition.getTheBoard());
+			trustedMove = Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard());
 		}
 	
 		if (EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH) {
-			trustedMove = validationSearch(trustedMoveWasFromTrans, tableRootTrans, result, trustedMove);
+			trustedMove = validationSearch(trustedMoveWasFromTrans, rootTrans, result, trustedMove);
 		}
 		
 		rootPosition.performMove(trustedMove);

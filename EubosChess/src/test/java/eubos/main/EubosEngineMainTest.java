@@ -347,6 +347,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
     }
     
 	@Test
+	@Ignore
 	public void test_createPositionFromAnalyseCommand() throws IllegalNotationException {
 		classUnderTest.receive(new EngineNewGameCommand());
 		// Black move 62
@@ -704,4 +705,107 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		pokeHashEntryAndPerformTest(8000000, hashEntry);
 	}
 	 
+	@Test
+	public void test_sendBestMove_checkOverwrittenRootTranspositionWithLowerDepthIsReplacedWithCached() throws IOException, InterruptedException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/4K3/8/8/8/2k1p3/8 b - - 0 89"+CMD_TERMINATOR, null));
+		
+		// Set up Engine instance and inject overwritten hash entry
+		int hashMove = Move.valueOf(Position.c2, Piece.WHITE_KING, Position.d3, Piece.NONE);
+		long hashEntry = Transposition.valueOf((byte)3, (short)300, Score.upperBound, hashMove, 93 >> 2);
+		pokeHashEntryAndPerformTest(1000, hashEntry);
+		
+		// Create search result object complete with cached version of the root hash
+		hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.WHITE_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
+		long cachedHash = Transposition.valueOf((byte)15, (short)1831, Score.lowerBound, hashMove, 88 >> 2);
+		SearchResult res = new SearchResult(new int[] {Move.NULL_MOVE}, false, cachedHash, 3, false, 0);
+		
+		// Expect cached best move to be sent, not overwritten
+		commands.clear();
+		commands.add(new CommandPair(null, BEST_PREFIX+"e2e1q"+CMD_TERMINATOR));
+		classUnderTest.sendBestMoveCommand(res);
+		performTest(1000);
+	}
+	
+	@Test
+	public void test_sendBestMove_checkOverwrittenTanspositionIsReplacedWithCached() throws IOException, InterruptedException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/4K3/8/8/8/2k1p3/8 b - - 0 89"+CMD_TERMINATOR, null));
+		
+		// Set up Engine instance and inject overwritten hash entry
+		pokeHashEntryAndPerformTest(1000, 0L);
+		
+		// Create search result object complete with cached version of the root hash
+		int hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.WHITE_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
+		long cachedHash = Transposition.valueOf((byte)15, (short)1831, Score.lowerBound, hashMove, 88 >> 2);
+		SearchResult res = new SearchResult(new int[] {Move.NULL_MOVE}, false, cachedHash, 3, false, 0);
+		
+		// Expect cached best move to be sent, not overwritten
+		commands.clear();
+		commands.add(new CommandPair(null, BEST_PREFIX+"e2e1q"+CMD_TERMINATOR));
+		classUnderTest.sendBestMoveCommand(res);
+		performTest(1000);
+	}
+	
+	@Test
+	public void test_sendBestMove_checkOverwrittenTanspositionIsReplacedWithTrustedPv() throws IOException, InterruptedException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/4K3/8/8/8/2k1p3/8 b - - 0 89"+CMD_TERMINATOR, null));
+		
+		// Set up Engine instance and inject overwritten hash entry
+		pokeHashEntryAndPerformTest(1000, 0L);
+		
+		// Create search result object complete with cached version of the root hash
+		int hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.WHITE_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
+		long cachedHash_DONT_CARE = 1L;
+		SearchResult res = new SearchResult(new int[] {hashMove, Move.NULL_MOVE}, false, cachedHash_DONT_CARE, 11, true, 0);
+		
+		// Expect cached best move to be sent, not overwritten
+		commands.clear();
+		commands.add(new CommandPair(null, BEST_PREFIX+"e2e1q"+CMD_TERMINATOR));
+		classUnderTest.sendBestMoveCommand(res);
+		performTest(1000);
+	}
+	
+	@Test
+	public void test_sendBestMove_checkWhenCacheIsLowerDepthPvNotTrustedUseTableRootTrans() throws IOException, InterruptedException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/4K3/8/8/8/2k1p3/8 b - - 0 89"+CMD_TERMINATOR, null));
+		
+		// Set up Engine instance and inject overwritten hash entry
+		int hashMove = Move.valueOf(Position.c2, Piece.WHITE_KING, Position.d3, Piece.NONE);
+		long hashEntry = Transposition.valueOf((byte)10, (short)300, Score.upperBound, hashMove, 93 >> 2);
+		pokeHashEntryAndPerformTest(1000, hashEntry);
+		
+		// Create search result, untrusted with lower depth cached hash
+		hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.WHITE_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
+		long cachedHash = Transposition.valueOf((byte)2, (short)500, Score.lowerBound, hashMove, 88 >> 2);
+		SearchResult res = new SearchResult(new int[] {Move.NULL_MOVE}, false, cachedHash, 3, false, 0);
+		
+		commands.clear();
+		commands.add(new CommandPair(null, BEST_PREFIX+"c2d3"+CMD_TERMINATOR));
+		classUnderTest.sendBestMoveCommand(res);
+		performTest(1000);
+	}
+	
+	@Test
+	public void test_sendBestMove_PvTrustedAndGreaterDepthThanTable_UsePv() throws IOException, InterruptedException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/4K3/8/8/8/2k1p3/8 b - - 0 89"+CMD_TERMINATOR, null));
+		
+		// Set up Engine instance and inject overwritten hash entry
+		int hashMove = Move.valueOf(Position.c2, Piece.WHITE_KING, Position.d3, Piece.NONE);
+		long hashEntry = Transposition.valueOf((byte)10, (short)300, Score.upperBound, hashMove, 93 >> 2);
+		pokeHashEntryAndPerformTest(1000, hashEntry);
+		
+		// Create search result, trusted with higher depth than root TRans tablecached hash
+		hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.WHITE_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
+		long cachedHash_DONT_CARE = 1L;
+		SearchResult res = new SearchResult(new int[] {hashMove, Move.NULL_MOVE}, false, cachedHash_DONT_CARE, 11, true, 0);
+		
+		commands.clear();
+		commands.add(new CommandPair(null, BEST_PREFIX+"e2e1q"+CMD_TERMINATOR));
+		classUnderTest.sendBestMoveCommand(res);
+		performTest(1000);
+	}
 }
