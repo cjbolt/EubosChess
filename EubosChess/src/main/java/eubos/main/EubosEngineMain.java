@@ -77,7 +77,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_ASSERTS = false;
 	public static final boolean ENABLE_PERFT = false;
 	public static final boolean ENABLE_TEST_SUITES = false;
-	public static final boolean ENABLE_DEBUG_VALIDATION_SEARCH = false;
+	public static final boolean ENABLE_DEBUG_VALIDATION_SEARCH = true;
 	
 	public static final boolean ENABLE_REPETITION_DETECTION = true;
 	public static final boolean ENABLE_TRANSPOSITION_TABLE = true;
@@ -481,6 +481,7 @@ public class EubosEngineMain extends AbstractEngine {
 						result.report(rootPosition.getTheBoard())));
 			}
 			if (ENABLE_OVERWRITE_TRANS_WITH_SEARCH) {
+				// Order is important here to be sure we don't introduce a defect due to unprotected or of written values
 				trans = Transposition.setBestMove(trans, result.pv[0]);
 				trans = Transposition.setDepthSearchedInPly(trans, (byte)result.depth);
 				trans = Transposition.setType(trans, Score.typeUnknown); // We can't be sure which it was
@@ -588,47 +589,59 @@ public class EubosEngineMain extends AbstractEngine {
 		PositionManager pm = new PositionManager(rootFen, rootPosition.getHash(), new DrawChecker(), new PawnEvalHashTable());
 		SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.getOnMove() == Piece.Colour.white);
 		PrincipalContinuation pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
-		int validation_move = getValidationSearchMove(pm, pc, sda, trusted_score);
-		assert pm.performMove(trusted_move);
-		SearchResult validation_result = verifyTrustedMoveScore(pm, pc, sda, trusted_score, trusted_depth, trusted_move);
+		SearchResult validation_result = doValidationSearch(pm, pc, sda, trusted_score);
 		
 		if (ENABLE_LOGGING) {
-			logger.info(String.format("Completed validation search validation_score=%d", validation_result.score));
+			logger.info(String.format("Completed validation search %s", validation_result.report(pm.getTheBoard())));
 		}
+		
+		assert pm.performMove(trusted_move);
+		SearchResult opponent_result = verifyTrustedMoveScore(pm, pc, sda, trusted_score, trusted_depth, trusted_move);
+		
+		if (ENABLE_LOGGING) {
+			logger.info(String.format("Opponent result after trusted move %s", opponent_result.report(pm.getTheBoard())));
+		}
+		
+		int our_valid_move = validation_result.pv[0];
+		int our_valid_score = validation_result.score;
+		int delta = Math.abs(trusted_score-our_valid_score);
+		
+		// Note: these are for if we actually applied the trusted move
+		int opponent_next_move = opponent_result.pv[0];
+		int opponent_score = opponent_result.score;
 		
 		// For now this is meant to catch crude piece blunders only... like not moving en-prise attacked piece
 		// we can check this by checking opponents next move is not a capture, and there is not a high score delta
-		if (!Move.areEqual(validation_move, trusted_move) &&
-			(Move.isCapture(validation_result.pv[0]) || Move.isCapture(trusted_move)) &&
-			Math.abs(trusted_score-validation_result.score) > 300) {
-			createErrorLog();
+		if (!Move.areEqual(our_valid_move, trusted_move) &&
+			Move.isCapture(opponent_next_move) &&
+			(delta > 300 || opponent_score > (trusted_score+150))) {
+			
+			if (error_logger.getLevel() != Level.SEVERE) {
+				createErrorLog();
+			}
 			error_logger.severe(String.format(
 					"DELTA=%d where validation_score=%d trusted_score=%d validation=%s trusted=%s",
-					Math.abs(trusted_score-validation_result.score),
-					validation_result.score, trusted_score,
-					Move.toString(validation_move), Move.toString(trusted_move)));
+					delta, our_valid_score, trusted_score,
+					Move.toString(our_valid_move), Move.toString(trusted_move)));
 			
 			error_logger.severe(String.format(
 					"The best move was %s at root position %s\nsearch result is %s",
 					Move.toString(trusted_move),
 					rootFen, rootReport));
-			
-			error_logger.severe(String.format(
-					"Fen after best move applied is %s",
-					pm.getFen()));
 		}
 		
-		return override_trusted_move ? validation_move : trusted_move;
+		return override_trusted_move ? our_valid_move : trusted_move;
 	}
 	
-	private int getValidationSearchMove(PositionManager pm, PrincipalContinuation pc, SearchDebugAgent sda, int trusted_score)
+	private SearchResult doValidationSearch(PositionManager pm, PrincipalContinuation pc, SearchDebugAgent sda, int trusted_score)
 	{
+		byte search_depth = (byte)8;
 		PlySearcher ps = new PlySearcher(
 				new DummyTranspositionTable(),
 				pc, 
 				new SearchMetrics(pm), 
 				null, 
-				(byte)(8),
+				search_depth,
 				pm,
 				pm,
 				pm.getPositionEvaluator(),
@@ -636,14 +649,15 @@ public class EubosEngineMain extends AbstractEngine {
 				sda,
 				new MoveList(pm, 0));
 		
-		ps.searchRoot(8,
+		int score = ps.searchRoot(8,
 				Math.max(Score.PROVISIONAL_ALPHA, trusted_score-2200),
 				Math.min(Score.PROVISIONAL_BETA, trusted_score+2200));
 		
-		return pc.getBestMove((byte)0);
+		return new SearchResult(pc.toPvList(0), false, 0L, search_depth, true, score);
 	}
 	
 	private SearchResult verifyTrustedMoveScore(PositionManager pm,  PrincipalContinuation pc, SearchDebugAgent sda, int trusted_score, int trusted_depth, int trusted_move) {
+		byte search_depth = (byte)7;
 		
 		// Set up a best move for each ply of validation search
 		PrincipalContinuation seeded_pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
@@ -659,7 +673,7 @@ public class EubosEngineMain extends AbstractEngine {
 				seeded_pc, 
 				new SearchMetrics(pm), 
 				null, 
-				(byte)(7),
+				search_depth,
 				pm,
 				pm,
 				pm.getPositionEvaluator(),
@@ -668,12 +682,11 @@ public class EubosEngineMain extends AbstractEngine {
 				new MoveList(pm, 0));
 		
 		int score = -ps.searchRoot(
-				7,
+				search_depth,
 				-Math.min(Score.PROVISIONAL_BETA, trusted_score+2200),
 				-Math.max(Score.PROVISIONAL_ALPHA, trusted_score-2200));
-		int move = seeded_pc.getBestMove((byte)0);
 		
-		return new SearchResult(move, score);
+		return new SearchResult(seeded_pc.toPvList(0), false, 0L, search_depth, true, score);
 	}
 	
 	void validateEubosPv(PositionManager pm, String str, int[] pv) {
