@@ -77,7 +77,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_ASSERTS = false;
 	public static final boolean ENABLE_PERFT = false;
 	public static final boolean ENABLE_TEST_SUITES = false;
-	public static final boolean ENABLE_DEBUG_VALIDATION_SEARCH = false;
+	public static final boolean ENABLE_DEBUG_VALIDATION_SEARCH = true;
 	
 	public static final boolean ENABLE_REPETITION_DETECTION = true;
 	public static final boolean ENABLE_TRANSPOSITION_TABLE = true;
@@ -585,7 +585,7 @@ public class EubosEngineMain extends AbstractEngine {
 		if (ENABLE_LOGGING) {
 			logger.info(String.format("Opponent result after trusted move %s", opponent_result.report(pm.getTheBoard())));
 		}
-		if (opponent_result.foundMate) {
+		if (opponent_result.pv == null || opponent_result.foundMate) {
 			return trusted_move;
 		}
 		
