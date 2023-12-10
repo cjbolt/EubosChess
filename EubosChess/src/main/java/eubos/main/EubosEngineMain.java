@@ -572,7 +572,9 @@ public class EubosEngineMain extends AbstractEngine {
 		SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.getOnMove() == Piece.Colour.white);
 		PrincipalContinuation pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
 		SearchResult validation_result = doValidationSearch(pm, pc, sda, trusted_score);
-		
+		if (validation_result.foundMate) {
+			return trusted_move;
+		}
 		if (ENABLE_LOGGING) {
 			logger.info(String.format("Completed validation search %s", validation_result.report(pm.getTheBoard())));
 		}
@@ -582,6 +584,9 @@ public class EubosEngineMain extends AbstractEngine {
 		
 		if (ENABLE_LOGGING) {
 			logger.info(String.format("Opponent result after trusted move %s", opponent_result.report(pm.getTheBoard())));
+		}
+		if (opponent_result.foundMate) {
+			return trusted_move;
 		}
 		
 		int our_valid_move = validation_result.pv[0];
@@ -610,6 +615,12 @@ public class EubosEngineMain extends AbstractEngine {
 					"The best move was %s at root position %s\nsearch result is %s",
 					Move.toString(trusted_move),
 					rootFen, rootReport));
+			
+			error_logger.severe(String.format("Result of validation search %s",
+					validation_result.report(pm.getTheBoard())));
+			
+			error_logger.severe(String.format("Opponent's result after trusted move applied %s",
+					opponent_result.report(pm.getTheBoard())));
 		}
 		
 		return override_trusted_move ? our_valid_move : trusted_move;
