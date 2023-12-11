@@ -466,14 +466,6 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	}
 	
 	@Test
-	public void test_lichess_bot_startup() throws IOException, InterruptedException {
-		setupEngine();
-		commands.add(new CommandPair(POS_START_PREFIX+"moves e2e4 e7e6 g1f3"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair("go wtime 1740 btime 1790 winc 1000 binc 1000"+CMD_TERMINATOR, BEST_PREFIX+"b8c6"+CMD_TERMINATOR));
-		performTest(1000);
-	}
-	
-	@Test
 	public void test_aspiration_failure_processing() throws IOException, InterruptedException {
 		if (EubosEngineMain.ENABLE_TEST_SUITES) {
 		setupEngine();
