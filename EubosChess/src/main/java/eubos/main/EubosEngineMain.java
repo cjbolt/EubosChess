@@ -242,7 +242,8 @@ public class EubosEngineMain extends AbstractEngine {
 		if (!command.moves.isEmpty()) {
 			for (GenericMove nextMove : command.moves) {
 				int move = Move.toMove(nextMove, rootPosition.getTheBoard());
-				assert rootPosition.performMove(move) : String.format("Illegal move in position command: %s", nextMove.toString());
+				boolean valid = rootPosition.performMove(move);
+				assert valid : String.format("Illegal move in position command: %s", nextMove.toString());
 				if (Move.isCapture(move) || Move.isPawnMove(move)) {
 					// Pawn moves and captures are irreversible so we can reset the draw checker
 					dc.reset(rootPosition.getPlyNumber());
@@ -587,7 +588,8 @@ public class EubosEngineMain extends AbstractEngine {
 			logger.info(String.format("Completed validation search %s", validation_result.report(pm.getTheBoard())));
 		}
 		
-		assert pm.performMove(trusted_move);
+		boolean valid = pm.performMove(trusted_move);
+		assert valid;
 		SearchResult opponent_result = verifyTrustedMoveScore(pm, pc, sda, trusted_score, trusted_depth, trusted_move);
 		
 		if (ENABLE_LOGGING) {
@@ -695,7 +697,8 @@ public class EubosEngineMain extends AbstractEngine {
 			if (pv != null) {
 				int moves_applied = 0;
 				for (int move : pv) {
-					assert pm.performMove(move);
+					boolean valid = pm.performMove(move);
+					assert valid;
 					++moves_applied;
 				}
 				

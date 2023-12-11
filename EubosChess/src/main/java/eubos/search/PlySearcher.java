@@ -322,27 +322,27 @@ public class PlySearcher {
 					// and we don't want to spoil the PV in the SMR with the aspiration fail line
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(state[0].bestScore);
 					refuted = true;
-		        	if (EubosEngineMain.ENABLE_LOGGING) {
-						EubosEngineMain.logger.info(String.format("BETA FAIL AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
-								state[0].bestScore, state[0].alpha, state[0].beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
-					}
+//		        	if (EubosEngineMain.ENABLE_LOGGING) {
+//						EubosEngineMain.logger.info(String.format("BETA FAIL AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
+//								state[0].bestScore, state[0].alpha, state[0].beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
+//					}
 					break;
 				}
 				trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[0].bestScore, Score.upperBound);
 				rootTransposition = trans;
-				if (EubosEngineMain.ENABLE_LOGGING) {
-					EubosEngineMain.logger.info(String.format("ALPHA INCREASED AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
-							state[0].bestScore, state[0].alpha, state[0].beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
-				}
+//				if (EubosEngineMain.ENABLE_LOGGING) {
+//					EubosEngineMain.logger.info(String.format("ALPHA INCREASED AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
+//							state[0].bestScore, state[0].alpha, state[0].beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
+//				}
 				reportPv((short) state[0].alpha);
 			} 
 			else if (positionScore > state[0].bestScore) {
 				bestMove = currMove;
 				state[0].bestScore = positionScore;
-				if (EubosEngineMain.ENABLE_LOGGING) {
-					EubosEngineMain.logger.info(String.format("BEST_SCORE INCREASED AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
-							state[0].bestScore, state[0].alpha, state[0].beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
-				}
+//				if (EubosEngineMain.ENABLE_LOGGING) {
+//					EubosEngineMain.logger.info(String.format("BEST_SCORE INCREASED AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
+//							state[0].bestScore, state[0].alpha, state[0].beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
+//				}
 			}
 			
 			hasSearchedPv = true;
