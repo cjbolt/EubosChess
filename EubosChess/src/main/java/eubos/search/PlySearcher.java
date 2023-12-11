@@ -406,7 +406,7 @@ public class PlySearcher {
 		}
 		
 		if (depth <= 0) {
-			return extendedSearch(state[currPly].alpha, state[currPly].beta);
+			return extendedSearch(state[currPly].alpha, state[currPly].beta, depth-1);
 		}
 		
 		long trans = tt.getTransposition(pos.getHash());
@@ -436,7 +436,7 @@ public class PlySearcher {
 		    	depth <= 5) {
 		    	int thresh = state[currPly].staticEval + 800 + (150 * depth * depth);
 		    	if (thresh < state[currPly].alpha) {
-		            int value = extendedSearch(state[currPly].alpha - 1, state[currPly].alpha);
+		            int value = extendedSearch(state[currPly].alpha - 1, state[currPly].alpha, depth-1);
 		            if (value < state[currPly].alpha) {
 		                return state[currPly].alpha;
 		            } else {
@@ -592,7 +592,7 @@ public class PlySearcher {
 	}
 	
 	@SuppressWarnings("unused")
-	int extendedSearch(int alpha, int beta)  {
+	int extendedSearch(int alpha, int beta, int depth)  {
 		
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearch(alpha, beta);
 		if (currPly > extendedSearchDeepestPly) {
@@ -602,6 +602,9 @@ public class PlySearcher {
 		
 		state[currPly].initialise(currPly, alpha, beta);
 		pc.initialise(currPly);
+		
+		// Check for absolute draws
+		if (pos.isThreefoldRepetitionPossible() || pos.isInsufficientMaterial()) return 0;
 		
 		long trans = tt.getTransposition(pos.getHash());
 		int prevBestMove = Move.NULL_MOVE;
@@ -647,8 +650,10 @@ public class PlySearcher {
 			alpha = state[currPly].bestScore;
 		}
 		
+		int bestMove = Move.NULL_MOVE;
 		int currMove = Move.NULL_MOVE;
 		int positionScore = state[currPly].bestScore;
+		boolean refuted = false;
 		MoveListIterator move_iter = ml.initialiseAtPly(prevBestMove, null, state[currPly].inCheck, true, currPly);
 		while ((currMove = move_iter.nextInt()) != Move.NULL_MOVE && !isTerminated()) {
 			// Legal move check	
@@ -667,7 +672,7 @@ public class PlySearcher {
 			currPly++;
 			
 			state[currPly].update();
-			positionScore = (short) -extendedSearch(-beta, -alpha);
+			positionScore = (short) -extendedSearch(-beta, -alpha, depth-1);
 			
 			pm.unperformMove();
 			currPly--;
@@ -679,17 +684,23 @@ public class PlySearcher {
 			
 			// Handle score backed up to this node
 			if (positionScore > alpha) {
-				if (positionScore >= beta) {
+				alpha = state[currPly].bestScore = positionScore;
+				bestMove = currMove;
+				if (alpha >= beta) {
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(positionScore);
-					trans = updateTranspositionTable(trans, (byte) 0, currMove, (short) positionScore, Score.lowerBound);
-					return beta;
+					refuted = true;
+					break;
 				}
-				alpha = positionScore;
-				pc.update(currPly, currMove);
+				pc.update(currPly, bestMove);
 			}
 		}
 
-		return alpha;
+		if (!isTerminated() && bestMove != Move.NULL_MOVE) {
+			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) state[currPly].bestScore, refuted ? Score.lowerBound : Score.upperBound);
+		}
+		
+		// fail hard
+		return state[currPly].bestScore;
 	}
 	
 	void evaluateTransposition(long trans, int depth) {
