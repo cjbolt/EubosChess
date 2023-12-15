@@ -363,8 +363,7 @@ public class PlySearcher {
 			}
 		}
 		
-		// fail hard, so don't return plyScore
-		return refuted ? s.beta : s.alpha;
+		return s.bestScore;
 	}
 	
 	int search(int depth, int alpha, int beta)  {
@@ -459,7 +458,7 @@ public class PlySearcher {
 				if (isTerminated()) { return 0; }
 				
 				if (s.bestScore >= s.beta) {
-					return s.beta;
+					return s.bestScore;
 				} else {
 					s.bestScore = Score.PROVISIONAL_ALPHA;
 				}
@@ -568,7 +567,6 @@ public class PlySearcher {
 				s.alpha = s.bestScore = positionScore;
 				bestMove = currMove;
 				if (s.alpha >= s.beta) {
-					s.bestScore = s.beta; // fail hard
 					killers.addMove(currPly, bestMove);
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
 					refuted = true;
@@ -590,7 +588,6 @@ public class PlySearcher {
 			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
 		}
 		
-		// fail hard
 		return s.bestScore;
 	}
 	
@@ -639,13 +636,10 @@ public class PlySearcher {
 			s.bestScore = pe.lazyEvaluation(alpha, beta);
 		}
 		
-		if (s.bestScore >= beta) {
+		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY || s.bestScore >= beta) {
+			// Absolute depth limit, return full eval
 			// There is no move to put in the killer table when we stand Pat
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
-			return beta;
-		}
-		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
-			// Absolute depth limit, return full eval
 			return s.bestScore;
 		}
 		
@@ -702,8 +696,7 @@ public class PlySearcher {
 		if (!isTerminated() && bestMove != Move.NULL_MOVE) {
 			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
 		}
-		
-		// fail hard
+
 		return s.bestScore;
 	}
 	
