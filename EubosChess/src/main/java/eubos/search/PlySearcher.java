@@ -375,7 +375,6 @@ public class PlySearcher {
 		
 		SearchState s = state[currPly];
 		s.initialise(currPly, alpha, beta);
-		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
 		// Check for absolute draws
 		if (pos.isThreefoldRepetitionPossible() || pos.isInsufficientMaterial()) return 0;
@@ -397,6 +396,7 @@ public class PlySearcher {
 			return pe.getFullEvaluation();
 		}
 		
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		if (SearchDebugAgent.DEBUG_ENABLED) {
 			sda.printStartPlyInfo(pos, originalSearchDepthRequiredInPly);
 			sda.printNormalSearch(s.alpha, s.beta);
@@ -598,7 +598,6 @@ public class PlySearcher {
 		if (currPly > extendedSearchDeepestPly) {
 			extendedSearchDeepestPly = currPly;
 		}
-		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
 		SearchState s = state[currPly];
 		s.initialise(currPly, alpha, beta);
@@ -642,11 +641,12 @@ public class PlySearcher {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
 			return s.bestScore;
 		}
-		
 		if (s.bestScore > alpha) {
 			// Null move hypothesis
 			alpha = s.bestScore;
 		}
+		
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 		
 		int bestMove = Move.NULL_MOVE;
 		int currMove = Move.NULL_MOVE;

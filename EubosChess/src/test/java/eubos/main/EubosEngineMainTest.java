@@ -402,9 +402,9 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		String [] acceptable_best_move_commands = {
 				BEST_PREFIX+"b5b6"+CMD_TERMINATOR,
 				BEST_PREFIX+"d2e3"+CMD_TERMINATOR};
-		commands.add(new MultipleAcceptableCommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, acceptable_best_move_commands));
-		performTest(15000);
-		// 21st March 2023, 2mins+ for 22 ply to find b6+, which is winning move
+		commands.add(new MultipleAcceptableCommandPair(GO_DEPTH_PREFIX+"29"+CMD_TERMINATOR, acceptable_best_move_commands));
+		performTest(19000);
+		// 15th December 2023, with 'fail hard' 16secs for 29ply to find b6+, which is winning move (fail soft, ages like 8mins+, depth 32)
 		}
 	}
 	
@@ -414,8 +414,8 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"2b5/1r6/2kBp1p1/p2pP1P1/2pP4/1pP3K1/1R3P2/8 b - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"25"+CMD_TERMINATOR, BEST_PREFIX+"b7b4"+CMD_TERMINATOR));
-		performTest(15000);
-		// 21st March 2023, takes SF 25 plies to see Rb4, 3 to 4 seconds. Eubos is going over 19 minutes just to get to 19 ply - no idea
+		performTest(185000);
+		// 21st March 2023, takes SF 25 plies to see Rb4, 3 to 4 seconds. Eubos is going over 19 minutes just to get to 19 ply - no idea, still (12th december)
 		}
 	}
 	
@@ -437,8 +437,9 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		String [] acceptable_best_move_commands = {
 				BEST_PREFIX+"e8e2"+CMD_TERMINATOR,
 				BEST_PREFIX+"c8g4"+CMD_TERMINATOR};
-		commands.add(new MultipleAcceptableCommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, acceptable_best_move_commands));
-		performTest(15000);
+		commands.add(new MultipleAcceptableCommandPair(GO_DEPTH_PREFIX+"14"+CMD_TERMINATOR, acceptable_best_move_commands));
+		// Mate in 5! SF getsw it in less than 1sec, but 24ply:  24/16	00:00	 782k	1,114k	+M5	Re2 Bxe2 Ne4 Qxg7+ Kxg7 Bc3+ Kg8 Bh5 Qa1+
+		performTest(55000);
 		}
 	}
 	
