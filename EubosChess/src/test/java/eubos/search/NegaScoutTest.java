@@ -65,6 +65,7 @@ public class NegaScoutTest {
 		
 		int expectedMove = Move.valueOfBit(BitBoard.b5, Piece.WHITE_PAWN, BitBoard.b6, Piece.NONE);
 		int bestMove = pc.getBestMove((byte)0);
+		System.out.println(String.format("expected=%s best=%s", Move.toString(expectedMove), Move.toString(bestMove)));
 		assertTrue(Move.areEqual(expectedMove, bestMove));
 	}
 	
@@ -94,6 +95,7 @@ public class NegaScoutTest {
 		}
 				
 		// Main search loop for this ply
+		int adaptiveBeta = s.beta;
 		int bestMove = Move.NULL_MOVE;
 		int currMove = Move.NULL_MOVE;
 		int positionScore = s.bestScore;
@@ -115,8 +117,7 @@ public class NegaScoutTest {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
 			currPly++;
 			
-			//s.update();
-			positionScore = -negaScout(depth-1, -s.beta, -s.alpha);
+			positionScore = -negaScout(depth-1, -adaptiveBeta, -s.alpha);
 			
 			pm.unperformMove();
 			currPly--;
@@ -125,20 +126,29 @@ public class NegaScoutTest {
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
 			
 			// Handle score backed up to this node
-			if (positionScore > s.alpha) {
-				s.alpha = s.bestScore = positionScore;
-				bestMove = currMove;
+			if (positionScore > s.bestScore) {
+				if (adaptiveBeta == s.beta || depth < 2) {
+					s.bestScore = positionScore;
+					bestMove = currMove;
+				} else {
+					currPly++;
+					pm.performMove(currMove);
+					s.bestScore = -negaScout(depth-1, -s.beta, -positionScore);
+					bestMove = currMove;
+					pm.unperformMove();
+					currPly--;
+				}
+				if (s.bestScore > s.alpha) {
+					s.alpha = s.bestScore;
+					pc.update(currPly, bestMove);
+				}
 				if (s.alpha >= s.beta) {
 					killers.addMove(currPly, bestMove);
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
 					refuted = true;
 					break;
 				}
-				pc.update(currPly, bestMove);
-			} 
-			else if (positionScore > s.bestScore) {
-				bestMove = currMove;
-				s.bestScore = positionScore;
+				adaptiveBeta = s.bestScore + 1;
 			}
 		}
 
