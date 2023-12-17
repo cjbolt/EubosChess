@@ -3,6 +3,8 @@ package eubos.search;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.IllegalNotationException;
@@ -55,18 +57,41 @@ public class NegaScoutTest {
 		}
 	}
 	
+	private void debug(int score, int expectedMove, int bestMove) {
+		System.out.println(String.format("score=%d expected=%s best=%s", score, Move.toString(expectedMove), Move.toString(bestMove)));
+		
+		int [] pv = pc.toPvList(0);
+		for (int move: pv) {
+			System.out.println(String.format("%s\n", Move.toString(move)));
+		}
+	}
+	
 	@Test
 	public void test_mateInTwo() throws IllegalNotationException {
 		setupPosition( "k1K5/b7/R7/1P6/1n6/8/8/8 w - - - 1");
 		int score = negaScout(5, -Score.PROVISIONAL_BETA, -Score.PROVISIONAL_ALPHA);
 		
-		assertTrue(Score.isMate((short)score));
-		assertEquals(Score.PROVISIONAL_BETA-3, score); // Prov, Matein1, matein2
-		
 		int expectedMove = Move.valueOfBit(BitBoard.b5, Piece.WHITE_PAWN, BitBoard.b6, Piece.NONE);
 		int bestMove = pc.getBestMove((byte)0);
-		System.out.println(String.format("expected=%s best=%s", Move.toString(expectedMove), Move.toString(bestMove)));
+		debug(score, expectedMove, bestMove);
+		
 		assertTrue(Move.areEqual(expectedMove, bestMove));
+		assertTrue(Score.isMate((short)score));
+		assertEquals(Score.PROVISIONAL_BETA-3, score);
+	}
+	
+	@Test
+	public void test_KQk_mate_in_3() throws IllegalNotationException {
+		setupPosition( "2kr3r/ppp2ppp/8/8/1P5P/1K1b1P1N/P3P1P1/4qB1R b - - 3 24");
+		int score = negaScout(9, -Score.PROVISIONAL_BETA, -Score.PROVISIONAL_ALPHA);
+		
+		int expectedMove = Move.valueOfBit(BitBoard.e1, Piece.BLACK_QUEEN, BitBoard.b1, Piece.NONE);
+		int bestMove = pc.getBestMove((byte)0);
+		debug(score, expectedMove, bestMove);
+		
+		assertTrue(Move.areEqual(expectedMove, bestMove));
+		assertTrue(Score.isMate((short)score));
+		assertEquals(Score.PROVISIONAL_BETA-5, score);
 	}
 	
 	private int negaScout(int depth, int alpha, int beta) {
