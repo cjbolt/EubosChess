@@ -3,8 +3,6 @@ package eubos.search;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.List;
-
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.IllegalNotationException;
@@ -82,6 +80,20 @@ public class NegaScoutTest {
 	}
 	
 	@Test
+	public void test_mateInTwo_alt() throws IllegalNotationException {
+		setupPosition( "rnbq1rk1/p4ppN/4p2n/1pbp4/8/2PQP2P/PPB2PP1/RNB1K2R w - - 0 1");
+		int score = negaScout(5, -Score.PROVISIONAL_BETA, -Score.PROVISIONAL_ALPHA);
+		
+		int expectedMove = Move.valueOfBit(BitBoard.h7, Piece.WHITE_KNIGHT, BitBoard.f6, Piece.NONE);
+		int bestMove = pc.getBestMove((byte)0);
+		debug(score, expectedMove, bestMove);
+		
+		assertTrue(Move.areEqual(expectedMove, bestMove));
+		assertTrue(Score.isMate((short)score));
+		assertEquals(Score.PROVISIONAL_BETA-3, score);
+	}
+	
+	@Test
 	public void test_KQk_mate_in_3() throws IllegalNotationException {
 		setupPosition( "2kr3r/ppp2ppp/8/8/1P5P/1K1b1P1N/P3P1P1/4qB1R b - - 3 24");
 		int score = negaScout(7, -Score.PROVISIONAL_BETA, -Score.PROVISIONAL_ALPHA);
@@ -94,6 +106,18 @@ public class NegaScoutTest {
 		assertTrue(Score.isMate((short)score));
 		assertEquals(Score.PROVISIONAL_BETA-5, score);
 	}
+	
+	@Test
+	public void test_findMove_WhitePawnCapture() throws IllegalNotationException {
+		setupPosition("7k/8/3p2p1/2P5/8/8/8/7K w - - - 1");
+		int score = negaScout(7, -Score.PROVISIONAL_BETA, -Score.PROVISIONAL_ALPHA);
+		
+		int expectedMove = Move.valueOfBit(BitBoard.c5, Piece.WHITE_PAWN, BitBoard.d6, Piece.BLACK_PAWN);
+		int bestMove = pc.getBestMove((byte)0);
+		debug(score, expectedMove, bestMove);
+		assertTrue(Move.areEqual(expectedMove, bestMove));
+	}
+	
 	
 	private int negaScout(int depth, int alpha, int beta) {
 		

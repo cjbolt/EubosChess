@@ -26,6 +26,7 @@ public class PlySearcher {
 		int bestScore;
 		int alpha;
 		int beta;
+		int adaptiveBeta;
 		int prevBestMove;
 		boolean isCutOff;
 		int hashScore;
@@ -39,7 +40,7 @@ public class PlySearcher {
 		void initialise(int ply, int alpha, int beta) {
 			hashScore = bestScore = Score.PROVISIONAL_ALPHA;
 			this.alpha = alpha;
-			this.beta = beta;
+			adaptiveBeta = this.beta = beta;
 			isCutOff = false;
 			moveNumber = 0;
 			staticEval = 0;
@@ -52,7 +53,7 @@ public class PlySearcher {
 		void reinitialise(int alpha, int beta) {
 			bestScore = Score.PROVISIONAL_ALPHA;
 			this.alpha = alpha;
-			this.beta = beta;
+			adaptiveBeta = this.beta = beta;
 			moveNumber = 0;
 		}
 		
@@ -366,12 +367,12 @@ public class PlySearcher {
 		return s.bestScore;
 	}
 	
-	int search(int depth, int alpha, int beta)  {
-		return search(depth, true, alpha, beta, true);
+	int negaScout(int depth, int alpha, int beta)  {
+		return negaScout(depth, true, alpha, beta, true);
 	}
 	
 	@SuppressWarnings("unused")
-	int search(int depth, boolean nullCheckEnabled, int alpha, int beta, boolean lmrApplied)  {
+	int negaScout(int depth, boolean nullCheckEnabled, int alpha, int beta, boolean lmrApplied)  {
 		
 		SearchState s = state[currPly];
 		s.initialise(currPly, alpha, beta);
@@ -408,6 +409,7 @@ public class PlySearcher {
 		}
 		
 		if (depth <= 0) {
+			//return pe.getFullEvaluation();
 			return extendedSearch(s.alpha, s.beta, depth-1);
 		}
 		
@@ -421,7 +423,7 @@ public class PlySearcher {
 		
 		if (!s.inCheck) {
 			// Reverse futility pruning
-			if (depth < 8 &&
+			if (false && depth < 8 &&
 				hasSearchedPv &&
 				!pe.goForMate()) {
 				if (!s.isStaticValid) {
@@ -472,10 +474,10 @@ public class PlySearcher {
 			!isTerminated()) {
 
 			s.update();
-			int score = search(depth-3, false, s.alpha, s.beta, true);
+			int score = negaScout(depth-3, false, s.alpha, s.beta, true);
 
 		    if (score <= s.alpha) {
-		    	score = search(depth-3, false, Score.PROVISIONAL_ALPHA, s.alpha+1, true);
+		    	score = negaScout(depth-3, false, Score.PROVISIONAL_ALPHA, s.alpha+1, true);
 		    }
 
 		    if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -552,7 +554,6 @@ public class PlySearcher {
 		
 			currPly++;
 			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied);
-			
 			pm.unperformMove();
 			currPly--;
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
@@ -563,20 +564,28 @@ public class PlySearcher {
 			if (isTerminated()) { return 0;	} // don't update PV if out of time for search, instead return last fully searched PV.
 			
 			// Handle score backed up to this node
-			if (positionScore > s.alpha) {
-				s.alpha = s.bestScore = positionScore;
+			if (positionScore > s.bestScore) {
 				bestMove = currMove;
+				if (s.adaptiveBeta == s.beta || depth < 2) {
+					s.bestScore = positionScore;
+				} else {
+					currPly++;
+					pm.performMove(currMove);
+					s.bestScore = -negaScout(depth-1, -s.beta, -positionScore);
+					pm.unperformMove();
+					currPly--;
+				}
+				if (s.bestScore > s.alpha) {
+					s.alpha = s.bestScore;
+					pc.update(currPly, bestMove);
+				}
 				if (s.alpha >= s.beta) {
 					killers.addMove(currPly, bestMove);
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
 					refuted = true;
 					break;
 				}
-				pc.update(currPly, bestMove);
-			} 
-			else if (positionScore > s.bestScore) {
-				bestMove = currMove;
-				s.bestScore = positionScore;
+				s.adaptiveBeta = s.alpha + 1;
 			}
 		}
 		
@@ -726,7 +735,7 @@ public class PlySearcher {
 				s.isCutOff = !override_trans_move;
 				break;
 			case Score.upperBound:
-				s.beta = Math.min(s.beta, s.hashScore);
+				s.adaptiveBeta = s.beta = Math.min(s.beta, s.hashScore);
 	        	if (EubosEngineMain.ENABLE_LOGGING) {
 	        		if (currPly == 0)
 						EubosEngineMain.logger.fine(String.format("Trans upperBound reducing beta=%d hashScore=%d",
@@ -836,7 +845,7 @@ public class PlySearcher {
 		SearchState prev_s = state[currPly-1];
 		SearchState s = state[currPly];
 		s.inCheck = prev_s.inCheck;
-		plyScore = -search(depth-1-R, false, -prev_s.beta, -prev_s.beta+1, false);
+		plyScore = -negaScout(depth-1-R, false, -prev_s.beta, -prev_s.beta+1, false);
 		
 		pm.unperformNullMove();
 		currPly--;
@@ -867,7 +876,7 @@ public class PlySearcher {
 			}
 			if (s.inCheck) lmr = 1;
 			if (lmr > 0) {
-				positionScore = -search(depth-1-lmr, -prev_s.beta, -prev_s.alpha);
+				positionScore = -negaScout(depth-1-lmr, -prev_s.adaptiveBeta, -prev_s.alpha);
 				if (positionScore <= prev_s.alpha) {
 					passedLmr = true;
 				}
@@ -875,7 +884,7 @@ public class PlySearcher {
 		}
 		if (!passedLmr) {
 			// Re-search if the reduced search increased alpha 
-			positionScore = -search(depth-1, true, -prev_s.beta, -prev_s.alpha, false);
+			positionScore = -negaScout(depth-1, true, -prev_s.adaptiveBeta, -prev_s.alpha, false);
 		}
 		return positionScore;
 	}
