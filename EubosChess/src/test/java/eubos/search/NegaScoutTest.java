@@ -37,6 +37,7 @@ public class NegaScoutTest {
 	private KillerList killers;
 	public long rootTransposition = 0L;
 	private MoveList ml;
+	PlySearcher ps;
 	
 	protected void setupPosition(String fen) {
 		PositionManager posMgr = new PositionManager( fen );
@@ -49,7 +50,7 @@ public class NegaScoutTest {
 		ml = new MoveList((PositionManager)pm, 1);
 		tt = new FixedSizeTranspositionTable();
 		pe = posMgr.getPositionEvaluator();
-		PlySearcher ps = new PlySearcher(tt, pc, sm, null, (byte) 5, pm, pos, pe, killers, sda, ml);
+		ps = new PlySearcher(tt, pc, sm, null, (byte) 6, pm, pos, pe, killers, sda, ml);
 		currPly = 0;
 		state = new SearchState[EubosEngineMain.SEARCH_DEPTH_IN_PLY+1];
 		for (int i=0; i < state.length; i++) {
@@ -83,7 +84,7 @@ public class NegaScoutTest {
 	@Test
 	public void test_KQk_mate_in_3() throws IllegalNotationException {
 		setupPosition( "2kr3r/ppp2ppp/8/8/1P5P/1K1b1P1N/P3P1P1/4qB1R b - - 3 24");
-		int score = negaScout(9, -Score.PROVISIONAL_BETA, -Score.PROVISIONAL_ALPHA);
+		int score = negaScout(7, -Score.PROVISIONAL_BETA, -Score.PROVISIONAL_ALPHA);
 		
 		int expectedMove = Move.valueOfBit(BitBoard.e1, Piece.BLACK_QUEEN, BitBoard.b1, Piece.NONE);
 		int bestMove = pc.getBestMove((byte)0);
@@ -91,7 +92,7 @@ public class NegaScoutTest {
 		
 		assertTrue(Move.areEqual(expectedMove, bestMove));
 		assertTrue(Score.isMate((short)score));
-		assertEquals(Score.PROVISIONAL_BETA-5, score);
+		assertEquals(Score.PROVISIONAL_BETA-7, score);
 	}
 	
 	private int negaScout(int depth, int alpha, int beta) {
@@ -115,7 +116,7 @@ public class NegaScoutTest {
 		}
 		
 		if (depth <= 0) {
-			//return extendedSearch(s.alpha, s.beta, depth-1);
+			//return ps.extendedSearch(s.alpha, s.beta, depth-1);
 			return pe.getFullEvaluation();
 		}
 				
@@ -152,14 +153,13 @@ public class NegaScoutTest {
 			
 			// Handle score backed up to this node
 			if (positionScore > s.bestScore) {
+				bestMove = currMove;
 				if (adaptiveBeta == s.beta || depth < 2) {
 					s.bestScore = positionScore;
-					bestMove = currMove;
 				} else {
 					currPly++;
 					pm.performMove(currMove);
 					s.bestScore = -negaScout(depth-1, -s.beta, -positionScore);
-					bestMove = currMove;
 					pm.unperformMove();
 					currPly--;
 				}
@@ -173,16 +173,10 @@ public class NegaScoutTest {
 					refuted = true;
 					break;
 				}
-				adaptiveBeta = s.bestScore + 1;
+				//adaptiveBeta = Math.max(s.alpha, s.bestScore) + 1;
+				adaptiveBeta = s.alpha + 1;
 			}
-		}
-
-		if (s.moveNumber == 0) {
-			// No moves searched at this point means either a stalemate or checkmate has occurred
-			return s.inCheck ? Score.getMateScore(currPly) : 0;
-		}
-		
-		return s.bestScore;
+		}		
+		return s.moveNumber == 0 ? s.inCheck ? Score.getMateScore(currPly) : 0 : s.bestScore;
 	}
-	
 }
