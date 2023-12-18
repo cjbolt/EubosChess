@@ -423,7 +423,7 @@ public class PlySearcher {
 		
 		if (!s.inCheck) {
 			// Reverse futility pruning
-			if (false && depth < 8 &&
+			if (depth < 8 &&
 				hasSearchedPv &&
 				!pe.goForMate()) {
 				if (!s.isStaticValid) {
@@ -504,7 +504,7 @@ public class PlySearcher {
 		boolean refuted = false;
 		int quietMoveNumber = 0;
 		MoveListIterator move_iter = ml.initialiseAtPly(s.prevBestMove, killers.getMoves(currPly), s.inCheck, false, currPly, depth == 1);
-		while ((currMove = move_iter.nextInt()) != Move.NULL_MOVE && !isTerminated() && !refuted) {
+		while ((currMove = move_iter.nextInt()) != Move.NULL_MOVE && !isTerminated()) {
 			
 			if (EubosEngineMain.ENABLE_FUTILITY_PRUNING) {
 				if (quietMoveNumber >= 1) {
@@ -551,17 +551,15 @@ public class PlySearcher {
 			
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
-		
 			currPly++;
 			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied);
-			pm.unperformMove();
 			currPly--;
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
 			
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
 			
-			if (isTerminated()) { return 0;	} // don't update PV if out of time for search, instead return last fully searched PV.
+			if (isTerminated()) { pm.unperformMove(); return 0;	} // don't update PV if out of time for search, instead return last fully searched PV.
 			
 			// Handle score backed up to this node
 			if (positionScore > s.bestScore) {
@@ -570,9 +568,7 @@ public class PlySearcher {
 					s.bestScore = positionScore;
 				} else {
 					currPly++;
-					pm.performMove(currMove);
 					s.bestScore = -negaScout(depth-1, -s.beta, -positionScore);
-					pm.unperformMove();
 					currPly--;
 				}
 				if (s.bestScore > s.alpha) {
@@ -583,10 +579,12 @@ public class PlySearcher {
 					killers.addMove(currPly, bestMove);
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
 					refuted = true;
+					pm.unperformMove();
 					break;
 				}
 				s.adaptiveBeta = s.alpha + 1;
 			}
+			pm.unperformMove();
 		}
 		
 		if (!isTerminated()) {
