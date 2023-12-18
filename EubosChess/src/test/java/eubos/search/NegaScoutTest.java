@@ -92,7 +92,7 @@ public class NegaScoutTest {
 		
 		assertTrue(Move.areEqual(expectedMove, bestMove));
 		assertTrue(Score.isMate((short)score));
-		assertEquals(Score.PROVISIONAL_BETA-7, score);
+		assertEquals(Score.PROVISIONAL_BETA-5, score);
 	}
 	
 	private int negaScout(int depth, int alpha, int beta) {
@@ -103,6 +103,18 @@ public class NegaScoutTest {
 		
 		// Check for absolute draws
 		if (pos.isThreefoldRepetitionPossible() || pos.isInsufficientMaterial()) return 0;
+		
+		// Mate distance pruning
+		int mating_value = Score.PROVISIONAL_BETA - currPly;
+		if (mating_value < s.beta) {
+			s.beta = mating_value;
+		    if (s.alpha >= mating_value) return mating_value;
+		}
+		mating_value = Score.PROVISIONAL_ALPHA + currPly;
+		if (mating_value > s.alpha) {
+		    s.alpha = mating_value;
+		    if (s.beta <= mating_value) return mating_value;
+		}
 		
 		// Absolute depth limit
 		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
@@ -173,7 +185,6 @@ public class NegaScoutTest {
 					refuted = true;
 					break;
 				}
-				//adaptiveBeta = Math.max(s.alpha, s.bestScore) + 1;
 				adaptiveBeta = s.alpha + 1;
 			}
 		}		
