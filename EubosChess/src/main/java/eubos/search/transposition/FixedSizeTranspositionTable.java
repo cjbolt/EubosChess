@@ -178,10 +178,14 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	public String getDiagnostics() {
 		if (DIAGNOSTIC_LOGGING) {
 			String output = String.format("hits=%d misses=%d overwrites=%d", numHits, numMisses, numOverwritten);
-			numOverwritten = numHits = numMisses = 0;
+			resetDiagnostics();
 			return output;
 		} else {
 			return "";
 		}
+	}
+	
+	public void resetDiagnostics() {
+		numOverwritten = numHits = numMisses = 0;
 	}
 }

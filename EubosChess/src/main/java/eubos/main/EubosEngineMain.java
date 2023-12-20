@@ -263,6 +263,7 @@ public class EubosEngineMain extends AbstractEngine {
 		// this will occur when the tree search is concluded and the thread completes execution.
 		long rootHash = rootPosition.getHash();
 		long rootTrans = hashMap.getTransposition(rootHash);
+		hashMap.resetDiagnostics();
 		if (ENABLE_INSTANT_REPLY) {
 			if (Score.isMate(Transposition.getScore(rootTrans))) {
 				int [] pv = new int[] { Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard()) };
