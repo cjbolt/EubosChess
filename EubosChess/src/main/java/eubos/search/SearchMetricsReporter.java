@@ -114,7 +114,9 @@ public class SearchMetricsReporter extends Thread {
 		info.setNps(nps);
 		info.setTime(time);
 		info.setHash(tt.getHashUtilisation());
-		info.setString(tt.getDiagnostics());
+		if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) {
+			info.setString(tt.getDiagnostics());
+		}
 	}
 	
 	private void generatePvInfoCommand(ProtocolInformationCommand info, SearchMetrics pv) {

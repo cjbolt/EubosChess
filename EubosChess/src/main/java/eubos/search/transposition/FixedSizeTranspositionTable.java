@@ -5,8 +5,6 @@ import eubos.position.Move;
 import eubos.search.Score;
 
 public class FixedSizeTranspositionTable implements ITranspositionAccessor {
-	
-	private static final boolean DIAGNOSTIC_LOGGING = true;
 
 	public static final long BYTES_HASHMAP_ZOBRIST_KEY = 8L;
 	public static final long BYTES_TRANSPOSTION_ELEMENT = 8L;
@@ -38,7 +36,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	public FixedSizeTranspositionTable(long hashSizeMBytes, int numThreads) {
 		long hashSizeElements = (hashSizeMBytes * BYTES_PER_MEGABYTE) / BYTES_PER_TRANSPOSITION;
 		
-		if (DIAGNOSTIC_LOGGING) {
+		if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) {
 			if (EubosEngineMain.ENABLE_LOGGING) {
 				EubosEngineMain.logger.fine(String.format(
 						"Hash dimensions requestedSizeMBytes=%d BYTES_PER_TRANSPOSITION=%d, maxSizeElements=%d", 
@@ -64,19 +62,19 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		int index = (int)(hashCode & mask);
 		if (USE_ALWAYS_REPLACE) {
 			if (hashes[index] == hashCode ) {
-				if (DIAGNOSTIC_LOGGING) { numHits++; }
+				if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numHits++; }
 				return transposition_table[index];
 			}
 		} else {
 			for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
 				if (transposition_table[i] == 0L) break;
 				if (hashes[i] == hashCode) {
-					if (DIAGNOSTIC_LOGGING) { numHits++; }
+					if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numHits++; }
 					return transposition_table[i];
 				}
 			}
 		}
-		if (DIAGNOSTIC_LOGGING) { numMisses++; }
+		if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numMisses++; }
 		return 0L;
 	}
 	
@@ -85,6 +83,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		if (USE_ALWAYS_REPLACE) {
 			hashes[index] = hashCode;
 			transposition_table[index] = trans;
+			if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numOverwritten++; }
 		} else {
 			for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
 				// If exact hash match, overwrite entry in table
@@ -115,7 +114,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 					break;
 				}
 			}
-			if (DIAGNOSTIC_LOGGING) { numOverwritten++; }
+			if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numOverwritten++; }
 			hashes[oldest_index] = hashCode;
 			transposition_table[oldest_index] = trans;
 		}
@@ -175,8 +174,8 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		return (short) ((tableSize*1000L)/maxTableSize);
 	}
 	
-	public String getDiagnostics() {
-		if (DIAGNOSTIC_LOGGING) {
+	public synchronized String getDiagnostics() {
+		if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) {
 			String output = String.format("hits=%d misses=%d overwrites=%d", numHits, numMisses, numOverwritten);
 			resetDiagnostics();
 			return output;
@@ -185,7 +184,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		}
 	}
 	
-	public void resetDiagnostics() {
+	public synchronized void resetDiagnostics() {
 		numOverwritten = numHits = numMisses = 0;
 	}
 }
