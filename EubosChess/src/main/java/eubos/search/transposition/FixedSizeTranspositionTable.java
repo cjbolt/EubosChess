@@ -6,7 +6,7 @@ import eubos.search.Score;
 
 public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	
-	private static final boolean DEBUG_LOGGING = true;
+	private static final boolean DIAGNOSTIC_LOGGING = true;
 
 	public static final long BYTES_HASHMAP_ZOBRIST_KEY = 8L;
 	public static final long BYTES_TRANSPOSTION_ELEMENT = 8L;
@@ -25,6 +25,10 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	long maxTableSize = 0;
 	private long mask = 0;
 	
+	long numHits = 0;
+	long numMisses = 0;
+	long numOverwritten = 0;
+	
 	boolean isSinglethreaded = true;
 	
 	public FixedSizeTranspositionTable() {
@@ -34,7 +38,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	public FixedSizeTranspositionTable(long hashSizeMBytes, int numThreads) {
 		long hashSizeElements = (hashSizeMBytes * BYTES_PER_MEGABYTE) / BYTES_PER_TRANSPOSITION;
 		
-		if (DEBUG_LOGGING) {
+		if (DIAGNOSTIC_LOGGING) {
 			if (EubosEngineMain.ENABLE_LOGGING) {
 				EubosEngineMain.logger.fine(String.format(
 						"Hash dimensions requestedSizeMBytes=%d BYTES_PER_TRANSPOSITION=%d, maxSizeElements=%d", 
@@ -60,16 +64,19 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		int index = (int)(hashCode & mask);
 		if (USE_ALWAYS_REPLACE) {
 			if (hashes[index] == hashCode ) {
+				if (DIAGNOSTIC_LOGGING) { numHits++; }
 				return transposition_table[index];
 			}
 		} else {
 			for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
 				if (transposition_table[i] == 0L) break;
 				if (hashes[i] == hashCode) {
+					if (DIAGNOSTIC_LOGGING) { numHits++; }
 					return transposition_table[i];
 				}
 			}
 		}
+		if (DIAGNOSTIC_LOGGING) { numMisses++; }
 		return 0L;
 	}
 	
@@ -108,6 +115,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 					break;
 				}
 			}
+			if (DIAGNOSTIC_LOGGING) { numOverwritten++; }
 			hashes[oldest_index] = hashCode;
 			transposition_table[oldest_index] = trans;
 		}
@@ -165,5 +173,15 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	
 	public short getHashUtilisation() {
 		return (short) ((tableSize*1000L)/maxTableSize);
+	}
+	
+	public String getDiagnostics() {
+		if (DIAGNOSTIC_LOGGING) {
+			String output = String.format("hits=%d misses=%d overwrites=%d", numHits, numMisses, numOverwritten);
+			numOverwritten = numHits = numMisses = 0;
+			return output;
+		} else {
+			return "";
+		}
 	}
 }

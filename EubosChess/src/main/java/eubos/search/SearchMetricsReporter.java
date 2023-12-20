@@ -114,6 +114,7 @@ public class SearchMetricsReporter extends Thread {
 		info.setNps(nps);
 		info.setTime(time);
 		info.setHash(tt.getHashUtilisation());
+		info.setString(tt.getDiagnostics());
 	}
 	
 	private void generatePvInfoCommand(ProtocolInformationCommand info, SearchMetrics pv) {
@@ -155,10 +156,13 @@ public class SearchMetricsReporter extends Thread {
 		if (sendInfo) {
 			if (sm_list.size() == 1) {
 				// The current move being searched is only meaningful for single threaded search
-				ProtocolInformationCommand info = new ProtocolInformationCommand();
-				info.setCurrentMove(sm_list.get(0).getCurrentMove());
-				info.setCurrentMoveNumber(sm_list.get(0).getCurrentMoveNum());
-				eubosEngine.sendInfoCommand(info);
+				SearchMetrics sm = sm_list.get(0);
+				if (sm.getTime() > 1000) {
+					ProtocolInformationCommand info = new ProtocolInformationCommand();
+					info.setCurrentMove(sm.getCurrentMove());
+					info.setCurrentMoveNumber(sm.getCurrentMoveNum());
+					eubosEngine.sendInfoCommand(info);
+				}
 			}
 		}
 	}
