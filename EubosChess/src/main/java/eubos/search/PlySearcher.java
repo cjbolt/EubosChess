@@ -274,11 +274,7 @@ public class PlySearcher {
 			if (!pm.performMove(currMove)) {
 				continue;
 			}
-			
-			if (EubosEngineMain.ENABLE_ASSERTS) {
-				assert !Move.areEqual(currMove, Move.NULL_MOVE): "Null move found in MoveList";
-			}
-			
+						
 			s.moveNumber += 1;
 			if (EubosEngineMain.ENABLE_UCI_MOVE_NUMBER) {
 				sm.setCurrentMove(currMove, s.moveNumber);
@@ -295,59 +291,60 @@ public class PlySearcher {
 			}
 			
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(s.alpha, s.beta);
-			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(0);
+			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 			
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
-			
 			currPly++;
-			
 			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, false);
-			
-			pm.unperformMove();
 			currPly--;
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
 			
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
 			
-			if (isTerminated()) { return 0;	} // don't update PV if out of time for search, instead return last fully searched PV.
+			if (isTerminated()) { pm.unperformMove(); return 0;	} // don't update PV if out of time for search, instead return last fully searched PV.
 			
 			// Handle score backed up to this node
-			if (positionScore > s.alpha) {
-				s.alpha = s.bestScore = positionScore;
-				bestMove = currMove;
-				pc.update(0, bestMove);
-				if (s.alpha >= s.beta) {
-					s.bestScore = s.beta; // fail hard
-					killers.addMove(0, bestMove);
-					// Don't report a beta failure PV at the root as this means an aspiration window failure
-					// and we don't want to spoil the PV in the SMR with the aspiration fail line
-					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
-					refuted = true;
-		        	if (EubosEngineMain.ENABLE_LOGGING) {
-						EubosEngineMain.logger.fine(String.format("BETA FAIL AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
-								s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
-					}
-					break;
-				}
-				trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.upperBound);
-				rootTransposition = trans;
-				if (EubosEngineMain.ENABLE_LOGGING) {
-					EubosEngineMain.logger.fine(String.format("ALPHA INCREASED AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
-							s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
-				}
-				reportPv((short) s.alpha);
-			} 
-			else if (positionScore > s.bestScore) {
-				bestMove = currMove;
-				s.bestScore = positionScore;
+			if (positionScore > s.bestScore) {
 				if (EubosEngineMain.ENABLE_LOGGING) {
 					EubosEngineMain.logger.info(String.format("BEST_SCORE INCREASED AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
 							s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
 				}
+				bestMove = currMove;
+				pc.update(0, bestMove);
+				if (s.adaptiveBeta == s.beta || depth < 2) {
+					s.bestScore = positionScore;
+				} else {
+					currPly++;
+					s.bestScore = -negaScout(depth-1, -s.beta, -positionScore);
+					currPly--;
+				}
+				pm.unperformMove();
+				if (s.bestScore > s.alpha) {
+					s.alpha = s.bestScore;
+					trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.upperBound);
+					rootTransposition = trans;
+					if (EubosEngineMain.ENABLE_LOGGING) {
+						EubosEngineMain.logger.fine(String.format("ALPHA INCREASED AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
+								s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
+					}
+					reportPv((short) s.alpha);
+				}
+				if (s.alpha >= s.beta) {
+					killers.addMove(currPly, bestMove);
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
+					if (EubosEngineMain.ENABLE_LOGGING) {
+						EubosEngineMain.logger.fine(String.format("BETA FAIL AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
+								s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
+					}
+					refuted = true;
+					break;
+				}
+				s.adaptiveBeta = s.alpha + 1;
+			} else {
+				pm.unperformMove();
 			}
-			
 			hasSearchedPv = true;
 		}
 		
