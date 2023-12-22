@@ -130,7 +130,7 @@ public class EubosEngineMain extends AbstractEngine {
 	int move_overhead = 10;
 	
 	// Hash configuration
-	public static final int MIN_HASH_SIZE = 32;
+	public static final int MIN_HASH_SIZE = 4;
 	public static final int MAX_HASH_SIZE = 4*1000;
 	public static final long DEFAULT_HASH_SIZE = FixedSizeTranspositionTable.MBYTES_DEFAULT_HASH_SIZE;
 
