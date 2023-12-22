@@ -40,7 +40,7 @@ public abstract class AbstractEubosIntegration {
 	protected static final String ID_NAME_CMD = String.format("id name Eubos %d.%d%s", 
 			EubosEngineMain.EUBOS_MAJOR_VERSION, EubosEngineMain.EUBOS_MINOR_VERSION, CMD_TERMINATOR);
 	protected static final String ID_AUTHOR_CMD = "id author Chris Bolt"+CMD_TERMINATOR;
-	protected static final String OPTION_HASH = "option name Hash type spin default 256 min 32 max 4000"+CMD_TERMINATOR;
+	protected static final String OPTION_HASH = "option name Hash type spin default 256 min 4 max 4000"+CMD_TERMINATOR;
 	protected static final String OPTION_MOVE_OVERHEAD = "option name Move Overhead type spin default 10 min 0 max 5000"+CMD_TERMINATOR;
 	protected static final String OPTION_LAZY_THRESHOLD = "option name Lazy Threshold type spin default 275 min 0 max 1000"+CMD_TERMINATOR;
 	protected static final String OPTION_THREADS = String.format(
