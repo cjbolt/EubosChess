@@ -61,7 +61,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		// Setup Commands specific to this test
 		commands.add(new CommandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR,BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
 		performTest(1000);
 	}
 	
@@ -677,7 +677,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_findMove_mateInThree() throws IllegalNotationException, IOException, InterruptedException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"2kr3r/ppp2ppp/8/8/1P5P/1K1b1P1N/P3P1P1/4qB1R b - - 3 24"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e1b1"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"13"+CMD_TERMINATOR, BEST_PREFIX+"e1b1"+CMD_TERMINATOR));
 		performTest(1000);
 	}
 	

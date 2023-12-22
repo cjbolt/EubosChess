@@ -73,7 +73,7 @@ public class MiniMaxMoveGeneratorTest {
 		//   abcdefgh
 		setupPosition("7k/8/3p2p1/2P5/8/8/8/7K w - - - 1");
 		expectedMove = new GenericMove("c5d6");
-		doFindMoveTest(true);
+		doFindMoveTest((byte)5, true);
 	}
 
 	protected void setupPosition(String fen) {
@@ -173,10 +173,8 @@ public class MiniMaxMoveGeneratorTest {
 		//   abcdefgh
 		setupPosition( "3nkbnr/3p1ppp/8/1B1p4/R2N4/8/6PP/4R1K1 b - - - 1" );
 		//expectedMove = new GenericMove("d8e6");
-		expectedMove = new GenericMove("f8e7");
-		if (!EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
-			expectedMove = new GenericMove("g8e7");
-		}
+		//expectedMove = new GenericMove("f8e7");
+		expectedMove = new GenericMove("g8e7");
 		doFindMoveTest(true);
 	}	
 	
@@ -465,7 +463,7 @@ public class MiniMaxMoveGeneratorTest {
 	public void test_mate_in_2()throws IllegalNotationException  {
 		setupPosition("5bkr/5ppp/5P2/8/8/8/6Q1/R4KR1 w - - 0 38 ");
 		expectedMove = new GenericMove("g2g7"); // queen sac leads to mate in 1
-		SearchResult res = classUnderTest.findMove((byte)3);
+		SearchResult res = classUnderTest.findMove((byte)4);
 		
 		assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
 	}
