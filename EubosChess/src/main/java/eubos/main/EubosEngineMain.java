@@ -123,7 +123,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static int defaultNumberOfWorkerThreads;
 	static {
 		numCores = Runtime.getRuntime().availableProcessors();
-		defaultNumberOfWorkerThreads = Math.max(numCores-2, 1);
+		defaultNumberOfWorkerThreads = 1;
 		numberOfWorkerThreads = defaultNumberOfWorkerThreads;
 	}
 	

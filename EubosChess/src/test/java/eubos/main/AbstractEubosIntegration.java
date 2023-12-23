@@ -44,8 +44,7 @@ public abstract class AbstractEubosIntegration {
 	protected static final String OPTION_MOVE_OVERHEAD = "option name Move Overhead type spin default 10 min 0 max 5000"+CMD_TERMINATOR;
 	protected static final String OPTION_LAZY_THRESHOLD = "option name Lazy Threshold type spin default 275 min 0 max 1000"+CMD_TERMINATOR;
 	protected static final String OPTION_THREADS = String.format(
-			"option name Threads type spin default %s min 1 max %s%s",
-			Math.max(1, Runtime.getRuntime().availableProcessors()-2),
+			"option name Threads type spin default 1 min 1 max %s%s",
 			Runtime.getRuntime().availableProcessors(), CMD_TERMINATOR);
 	protected static final String UCI_OK_CMD = "uciok"+CMD_TERMINATOR;
 	protected static final String READY_OK_CMD = "readyok"+CMD_TERMINATOR;
