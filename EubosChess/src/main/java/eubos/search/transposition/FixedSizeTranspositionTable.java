@@ -80,6 +80,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	
 	public synchronized void putTransposition(long hashCode, long trans) {
 		int index = (int)(hashCode & mask);
+		if (EubosEngineMain.ENABLE_ASSERTS) assert (trans != 0L);
 		if (USE_ALWAYS_REPLACE) {
 			hashes[index] = hashCode;
 			transposition_table[index] = trans;

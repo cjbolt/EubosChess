@@ -269,7 +269,7 @@ public class PlySearcher {
 		int quietMoveNumber = 0;
 		boolean refuted = false;
 		MoveListIterator move_iter = ml.initialiseAtPly(s.prevBestMove, killers.getMoves(0), s.inCheck, false, 0);
-		while ((currMove = move_iter.nextInt()) != Move.NULL_MOVE && !isTerminated() && !refuted) {
+		while ((currMove = move_iter.nextInt()) != Move.NULL_MOVE && !isTerminated()) {
 			// Legal move check	
 			if (!pm.performMove(currMove)) {
 				continue;
@@ -406,7 +406,6 @@ public class PlySearcher {
 		}
 		
 		if (depth <= 0) {
-			//return pe.getFullEvaluation();
 			return extendedSearch(s.alpha, s.beta, depth-1);
 		}
 		
@@ -481,8 +480,11 @@ public class PlySearcher {
 			    if (!Score.isMate((short)score) && score != 0 && !isTerminated()) {
 				    assert score != Score.PROVISIONAL_ALPHA;
 				    assert score != Score.PROVISIONAL_BETA;
-			    	//assert pc.getBestMoveAtPly((byte)(currPly)) != Move.NULL_MOVE :
-			    	//	String.format("score=%d %s %s next_pc=%s", score, pos.unwindMoveStack(), pos.getFen(), pc.toStringAt(currPly+1));
+				    if (score < s.beta) {
+				    	assert pc.getBestMoveAtPly((byte)(currPly)) != Move.NULL_MOVE :
+				    		String.format("score=%d moves[%s] fen=%s next_pc=%s",
+				    				score, pos.unwindMoveStack(), pos.getFen(), pc.toStringAt(currPly+1));
+				    }
 			    }
 		    }
 
@@ -528,9 +530,6 @@ public class PlySearcher {
 			}
 			
 			s.moveNumber += 1;
-			if (EubosEngineMain.ENABLE_ASSERTS) {
-				assert !Move.areEqual(currMove, Move.NULL_MOVE): "Null move found in MoveList";
-			}
 			if (s.moveNumber == 1) {
 				pc.initialise(currPly, currMove);
 				bestMove = currMove;
@@ -539,7 +538,8 @@ public class PlySearcher {
 				quietMoveNumber++;
 			} else {
 				if (EubosEngineMain.ENABLE_ASSERTS) {
-					//assert quietMoveNumber == 0 : String.format("Out_of_order move %s num=%d quiet=%d best=%s", Move.toString(currMove), s.moveNumber, quietMoveNumber, Move.toString(bestMove));
+					assert quietMoveNumber == 0 : String.format("Out_of_order move %s num=%d quiet=%d best=%s", 
+							Move.toString(currMove), s.moveNumber, quietMoveNumber, Move.toString(bestMove));
 				}
 			}
 			
@@ -661,12 +661,8 @@ public class PlySearcher {
 			// Legal move check	
 			if (!pm.performMove(currMove)) {
 				continue;
-			}
-			
+			}			
 			s.moveNumber += 1;
-			if (EubosEngineMain.ENABLE_ASSERTS) {
-				assert currMove != Move.NULL_MOVE: "Null move found in MoveList";
-			}
 
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);

@@ -101,9 +101,6 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
                     "info depth 2 seldepth 7 score cp 106 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 187"+CMD_TERMINATOR
                     +BEST_PREFIX+"c7c2";
 			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-//				expectedOutput = "info depth 1 seldepth 5 score cp 471 pv c7c2 d4a7 hashfull 0 nps 0 time 0 nodes 24"+CMD_TERMINATOR+
-//							     "info depth 2 seldepth 8 score cp 128 pv c7c2 e1g1 d7e5 hashfull 0 nps 0 time 0 nodes 499"+CMD_TERMINATOR
-//								 +BEST_PREFIX+"c7c2";
 				expectedOutput = "info depth 1 seldepth 5 score cp -55 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 21"+CMD_TERMINATOR
 						+"info depth 1 seldepth 3 score cp 471 pv c7c2 hashfull 0 nps 0 time 0 nodes 27"+CMD_TERMINATOR
 						+"info depth 2 seldepth 5 score cp 128 pv c7c2 e1g1 hashfull 0 nps 0 time 0 nodes 133"+CMD_TERMINATOR
@@ -757,7 +754,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		pokeHashEntryAndPerformTest(1000, 0L);
 		
 		// Create search result object complete with cached version of the root hash
-		int hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.WHITE_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
+		int hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
 		long cachedHash_DONT_CARE = 1L;
 		SearchResult res = new SearchResult(new int[] {hashMove, Move.NULL_MOVE}, false, cachedHash_DONT_CARE, 11, true, 0);
 		
@@ -779,7 +776,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		pokeHashEntryAndPerformTest(1000, hashEntry);
 		
 		// Create search result, untrusted with lower depth cached hash
-		hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.WHITE_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
+		hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
 		long cachedHash = Transposition.valueOf((byte)2, (short)500, Score.lowerBound, hashMove, 88 >> 2);
 		SearchResult res = new SearchResult(new int[] {Move.NULL_MOVE}, false, cachedHash, 3, false, 0);
 		
@@ -800,7 +797,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		pokeHashEntryAndPerformTest(1000, hashEntry);
 		
 		// Create search result, trusted with higher depth than root TRans tablecached hash
-		hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.WHITE_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
+		hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
 		long cachedHash_DONT_CARE = 1L;
 		SearchResult res = new SearchResult(new int[] {hashMove, Move.NULL_MOVE}, false, cachedHash_DONT_CARE, 11, true, 0);
 		

@@ -141,7 +141,7 @@ public abstract class AbstractEubosIntegration {
 				if (inputCmd.startsWith("position") || inputCmd.startsWith("go")/*&& hashEntry != 0L*/) {
 					Thread.sleep(sleep_50ms);
 					// Seed hash table with problematic hash
-					if (classUnderTest.rootPosition != null) {
+					if (classUnderTest.rootPosition != null && hashEntry != 0L) {
 						long problemHash = classUnderTest.rootPosition.getHash();
 						//EubosEngineMain.logger.info(String.format("*************** using hash code %d", problemHash));
 						classUnderTest.hashMap.putTransposition(problemHash, hashEntry);
