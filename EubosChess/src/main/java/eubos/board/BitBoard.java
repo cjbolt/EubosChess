@@ -6,7 +6,6 @@ import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.Position;
 
-import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntFile;
 import com.fluxchess.jcpi.models.IntRank;
 
@@ -85,15 +84,15 @@ public final class BitBoard {
 				sb.append('/');
 			spaceCounter=0;
 		}
-		sb.append(" ");
-		PrimitiveIterator.OfInt iter = iterator(board);
-		while (iter.hasNext()) {
-			int bit_index = iter.nextInt();
-			int file = bit_index%8;
-			int rank = bit_index/8;
-			sb.append(GenericPosition.valueOf(IntFile.toGenericFile(file),IntRank.toGenericRank(rank)));
-			sb.append(", ");
-		}
+//		sb.append(" ");
+//		PrimitiveIterator.OfInt iter = iterator(board);
+//		while (iter.hasNext()) {
+//			int bit_index = iter.nextInt();
+//			int file = bit_index%8;
+//			int rank = bit_index/8;
+//			sb.append(GenericPosition.valueOf(IntFile.toGenericFile(file),IntRank.toGenericRank(rank)));
+//			sb.append(", ");
+//		}
 		return sb.toString();
 	}
 	
@@ -121,10 +120,6 @@ public final class BitBoard {
 			positionToMask_Lut[x88_square] = atPosMask;
 			bit_index++;
 		}
-	}
-	
-	public static PrimitiveIterator.OfInt iterator(Long bitBoard) {
-		return new SetBitsIterator(bitBoard);
 	}
 	
 	public static PrimitiveIterator.OfLong maskIterator(Long bitBoard) {
