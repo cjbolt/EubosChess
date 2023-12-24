@@ -200,7 +200,7 @@ public class PlySearcher {
 	        		lastAspirationFailed = false;
 	        		certain = false;
 	        		break;
-	        	} else if ((score > s.alpha && score < s.beta) || isTerminated()) {
+	        	} else if ((score > alpha && score < beta) || isTerminated()) {
 		        	// Exact score in window returned
 		        	lastAspirationFailed = false;
 		        	if (EubosEngineMain.ENABLE_LOGGING) {
@@ -323,23 +323,23 @@ public class PlySearcher {
 				pm.unperformMove();
 				if (s.bestScore > s.alpha) {
 					s.alpha = s.bestScore;
-					trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.upperBound);
-					rootTransposition = trans;
 					if (EubosEngineMain.ENABLE_LOGGING) {
 						EubosEngineMain.logger.fine(String.format("ALPHA INCREASED AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
 								s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
 					}
-					reportPv((short) s.alpha);
-				}
-				if (s.alpha >= s.beta) {
-					killers.addMove(currPly, bestMove);
-					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
-					if (EubosEngineMain.ENABLE_LOGGING) {
-						EubosEngineMain.logger.fine(String.format("BETA FAIL AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
-								s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
+					if (s.alpha >= s.beta) {
+						killers.addMove(currPly, bestMove);
+						if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
+						if (EubosEngineMain.ENABLE_LOGGING) {
+							EubosEngineMain.logger.fine(String.format("BETA FAIL AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
+									s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
+						}
+						refuted = true;
+						break;
 					}
-					refuted = true;
-					break;
+					trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.upperBound);
+					rootTransposition = trans;
+					reportPv((short) s.alpha);
 				}
 				s.adaptiveBeta = s.alpha + 1;
 			} else {

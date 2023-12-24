@@ -266,8 +266,8 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"r3qrk1/pbpp1ppp/np1b1n2/8/2PPp3/P1N1P1PP/1P2NPB1/R1BQK2R w KQ - 1 10"+CMD_TERMINATOR, null));
 		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d1b3"+CMD_TERMINATOR));
-		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e1g1"+CMD_TERMINATOR));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e2f4"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e1g1"+CMD_TERMINATOR));
+		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e2f4"+CMD_TERMINATOR));
 		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"c3b5"+CMD_TERMINATOR));
 		performTest(5000);
 	}
@@ -549,7 +549,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Fine: problem 61
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/ppp5/8/PPP5/6kp/8/6KP/8 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"13"+CMD_TERMINATOR, BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
 		performTest(2000);		
 	}
 	
@@ -657,7 +657,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// chess.com Problem ID: 0102832
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"r1r3k1/pb1p1p2/1p2p1p1/2pPP1B1/1nP4Q/1Pq2NP1/P4PBP/b2R2K1 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"7"+CMD_TERMINATOR, BEST_PREFIX+"g5f6"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"9"+CMD_TERMINATOR, BEST_PREFIX+"g5f6"+CMD_TERMINATOR));
 		performTest(3000);
 	}
 	
