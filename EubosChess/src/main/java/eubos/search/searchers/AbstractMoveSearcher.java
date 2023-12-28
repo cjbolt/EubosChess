@@ -1,7 +1,5 @@
 package eubos.search.searchers;
 
-import com.fluxchess.jcpi.models.GenericMove;
-
 import eubos.main.EubosEngineMain;
 import eubos.position.PositionManager;
 import eubos.score.PawnEvalHashTable;
@@ -63,7 +61,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 
 	public abstract void halt();
 
-	protected SearchResult doFindMove(GenericMove selectedMove, byte depth) {
+	protected SearchResult doFindMove(byte depth) {
 		return mg.findMove(depth, sr);
 	}
 
