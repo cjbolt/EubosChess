@@ -1,7 +1,6 @@
 package eubos.search.searchers;
 
 import eubos.main.EubosEngineMain;
-import eubos.position.Move;
 import eubos.score.PawnEvalHashTable;
 import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
@@ -35,7 +34,7 @@ public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 		SearchResult res = new SearchResult();
 		enableSearchMetricsReporter(true);
 		for (byte depth=1; depth<=searchDepth && !searchStopped; depth++) {
-			res = doFindMove(Move.toGenericMove(res.pv[0]), depth);
+			res = doFindMove(depth);
 		}
 		enableSearchMetricsReporter(false);
 		eubosEngine.sendBestMoveCommand(res);
