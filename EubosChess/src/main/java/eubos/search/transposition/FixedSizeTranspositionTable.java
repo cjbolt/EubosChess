@@ -18,7 +18,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	static final boolean USE_ALWAYS_REPLACE = (RANGE_TO_SEARCH <= 1);
 			
 	private long [] transposition_table = null;
-	private long [] hashes = null;
+	private int [] hashes = null;
 	private long tableSize = 0;
 	long maxTableSize = 0;
 	private long mask = 0;
@@ -49,7 +49,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		int highestBit = (int)Long.highestOneBit(hashSizeElements);
 		mask = highestBit - 1;		
 		transposition_table = new long[highestBit];
-		hashes = new long[highestBit];
+		hashes = new int[highestBit];
 		tableSize = 0;
 		maxTableSize = highestBit;
 		
@@ -61,14 +61,14 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	public synchronized long getTransposition(long hashCode) {
 		int index = (int)(hashCode & mask);
 		if (USE_ALWAYS_REPLACE) {
-			if (hashes[index] == hashCode ) {
+			if (hashes[index] == (int)(hashCode >>> 32)) {
 				if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numHits++; }
 				return transposition_table[index];
 			}
 		} else {
 			for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
 				if (transposition_table[i] == 0L) break;
-				if (hashes[i] == hashCode) {
+				if (hashes[i] == (int)(hashCode >>> 32)) {
 					if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numHits++; }
 					return transposition_table[i];
 				}
@@ -82,13 +82,13 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		int index = (int)(hashCode & mask);
 		if (EubosEngineMain.ENABLE_ASSERTS) assert (trans != 0L);
 		if (USE_ALWAYS_REPLACE) {
-			hashes[index] = hashCode;
+			hashes[index] = (int)(hashCode >>> 32);
 			transposition_table[index] = trans;
 			if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numOverwritten++; }
 		} else {
 			for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
 				// If exact hash match, overwrite entry in table
-				if (hashes[i] == hashCode) {
+				if (hashes[i] == (int)(hashCode >>> 32)) {
 					if (EubosEngineMain.ENABLE_ASSERTS) assert (transposition_table[i] != 0L);
 					transposition_table[i] = trans;
 					return;
@@ -96,7 +96,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 				// Try to find a free slot near the hash index
 				else if (transposition_table[i] == 0L) {
 					tableSize++;
-					hashes[i] = hashCode;
+					hashes[i] = (int)(hashCode >>> 32);
 					transposition_table[i] = trans;
 					return;
 				}
@@ -116,7 +116,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 				}
 			}
 			if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numOverwritten++; }
-			hashes[oldest_index] = hashCode;
+			hashes[oldest_index] = (int)(hashCode >>> 32);
 			transposition_table[oldest_index] = trans;
 		}
 	}
