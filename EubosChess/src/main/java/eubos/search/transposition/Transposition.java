@@ -1,7 +1,5 @@
 package eubos.search.transposition;
 
-import com.fluxchess.jcpi.models.GenericMove;
-
 import eubos.board.Board;
 import eubos.position.Move;
 import eubos.search.Score;
@@ -33,11 +31,6 @@ public final class Transposition {
 	private static final int AGE_BITS = 6;
 	private static final long AGE_GUARD_MASK = (1L << AGE_BITS) - 1;
 	private static final int AGE_SHIFT = 58;
-	
-	public static long valueOf(byte depth, short score, byte bound, GenericMove bestMove) {
-		// Only used by unit tests, when we don't care about value
-		return valueOf(depth, score, bound, Move.toMove(bestMove, null, Move.TYPE_REGULAR_NONE), 0);
-	}
 	
 	public static long valueOf(byte depth, short score, byte bound, int bestMove, int age) {
 		long trans = 0L;
