@@ -79,6 +79,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_TEST_SUITES = false;
 	public static final boolean ENABLE_DEBUG_VALIDATION_SEARCH = false;
 	public static final boolean ENABLE_TT_DIAGNOSTIC_LOGGING = false;
+	public static final boolean ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO = false;
 	
 	public static final boolean ENABLE_REPETITION_DETECTION = true;
 	public static final boolean ENABLE_TRANSPOSITION_TABLE = true;

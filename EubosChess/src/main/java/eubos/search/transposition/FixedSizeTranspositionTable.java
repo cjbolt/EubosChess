@@ -45,13 +45,20 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		}
 		
 		hashSizeElements &= Integer.MAX_VALUE;
-		
-		int highestBit = (int)Long.highestOneBit(hashSizeElements);
-		mask = highestBit - 1;		
-		transposition_table = new long[highestBit];
-		hashes = new long[highestBit];
-		tableSize = 0;
-		maxTableSize = highestBit;
+		if (EubosEngineMain.ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO) {
+			int highestBit = (int)Long.highestOneBit(hashSizeElements);
+			mask = highestBit - 1;
+			transposition_table = new long[highestBit];
+			hashes = new long[highestBit];
+			tableSize = 0;
+			maxTableSize = highestBit;
+		} else {
+			int length = (int)hashSizeElements;
+			transposition_table = new long[length];
+			hashes = new long[length];
+			tableSize = 0;
+			maxTableSize = length;
+		}
 		
 		if (numThreads > 1) {
 			isSinglethreaded = false;
@@ -59,7 +66,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	}
 	
 	public synchronized long getTransposition(long hashCode) {
-		int index = (int)(hashCode & mask);
+		int index = (int) (EubosEngineMain.ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO ? hashCode & mask : Long.remainderUnsigned(hashCode, maxTableSize));
 		if (USE_ALWAYS_REPLACE) {
 			if (hashes[index] == hashCode ) {
 				if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numHits++; }
@@ -79,7 +86,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	}
 	
 	public synchronized void putTransposition(long hashCode, long trans) {
-		int index = (int)(hashCode & mask);
+		int index = (int) (EubosEngineMain.ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO ? hashCode & mask : Long.remainderUnsigned(hashCode, maxTableSize));
 		if (EubosEngineMain.ENABLE_ASSERTS) assert (trans != 0L);
 		if (USE_ALWAYS_REPLACE) {
 			hashes[index] = hashCode;
