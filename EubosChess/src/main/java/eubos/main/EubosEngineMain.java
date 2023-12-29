@@ -97,6 +97,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_PER_MOVE_FUTILITY_PRUNING = true;
 	public static final boolean ENABLE_INSTANT_REPLY = false;
 	public static final boolean ENABLE_OVERWRITE_TRANS_WITH_SEARCH = false;
+	public static final boolean ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO = false;
 	
 	public static final boolean ENABLE_PINNED_TO_KING_CHECK_IN_ILLEGAL_DETECTION = true;
 	public static final boolean ENABLE_PIECE_LISTS = false;
