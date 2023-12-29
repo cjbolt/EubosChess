@@ -120,7 +120,7 @@ public class PlySearcher {
 		this.killers = killers;
 		this.ml = ml;
 		
-		rootTransposition = tt.getTransposition(pos.getHash());
+		rootTransposition = tt.getTransposition(pos.getHash(), pos.getTheBoard(), pos.isKingInCheck());
 	}
 	
 	public void reinitialise(byte searchDepthPly, SearchMetricsReporter sr) {
@@ -134,7 +134,7 @@ public class PlySearcher {
 		
 		// Back up the root transposition, because it can be lost in the search
 		// if it is overwritten and that is very costly for performance.
-		rootTransposition = tt.getTransposition(pos.getHash());
+		rootTransposition = tt.getTransposition(pos.getHash(), pos.getTheBoard(), pos.isKingInCheck());
 	}
 
 	public void terminateFindMove() {
@@ -248,7 +248,7 @@ public class PlySearcher {
 			++depth;
 		}
 		
-		long trans = tt.getTransposition(pos.getHash());
+		long trans = tt.getTransposition(pos.getHash(), pos.getTheBoard(), s.inCheck);
 		if (trans == 0L) {
 			trans = rootTransposition;
 		}
@@ -409,7 +409,7 @@ public class PlySearcher {
 			return extendedSearch(s.alpha, s.beta, depth-1);
 		}
 		
-		long trans = tt.getTransposition(pos.getHash());
+		long trans = tt.getTransposition(pos.getHash(), pos.getTheBoard(), s.inCheck);
 		if (trans != 0L) {
 			evaluateTransposition(trans, depth);
 			if (s.isCutOff) {
@@ -610,7 +610,7 @@ public class PlySearcher {
 		// Check for absolute draws
 		if (pos.isThreefoldRepetitionPossible() || pos.isInsufficientMaterial()) return 0;
 		
-		long trans = tt.getTransposition(pos.getHash());
+		long trans = tt.getTransposition(pos.getHash(), pos.getTheBoard(), s.inCheck);
 		int prevBestMove = Move.NULL_MOVE;
 		if (trans != 0L) {	
 			s.isCutOff = false;

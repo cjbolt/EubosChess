@@ -231,6 +231,7 @@ public class Board {
 				String.format("Piece %s not on all pieces board for move %s", 
 						Piece.toFenChar(pieceToMove), Move.toString(move));
 			assert (targetPiece & Piece.PIECE_NO_COLOUR_MASK) != Piece.DONT_CARE;
+			assert (targetPiece & Piece.PIECE_NO_COLOUR_MASK) != Piece.KING;
 		}
 		
 		// Initialise En Passant target square
@@ -889,6 +890,9 @@ public class Board {
 		case Piece.WHITE_KING:
 		case Piece.BLACK_KING:
 			if (Move.isCastling(move)) {
+				if (castling == null) {
+					return false;
+				}
 				if (!needToEscapeMate) {
 					castling.addCastlingMoves(isWhite, pmc);
 				}
