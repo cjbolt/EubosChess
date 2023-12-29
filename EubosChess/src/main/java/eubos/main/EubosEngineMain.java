@@ -74,7 +74,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_UCI_MOVE_NUMBER = true;
 	
 	public static final boolean ENABLE_LOGGING = false;
-	public static final boolean ENABLE_ASSERTS = false;
+	public static final boolean ENABLE_ASSERTS = true;
 	public static final boolean ENABLE_PERFT = false;
 	public static final boolean ENABLE_TEST_SUITES = false;
 	public static final boolean ENABLE_DEBUG_VALIDATION_SEARCH = false;
@@ -264,7 +264,7 @@ public class EubosEngineMain extends AbstractEngine {
 		// The move searcher will report the best move found via a callback to this object, 
 		// this will occur when the tree search is concluded and the thread completes execution.
 		long rootHash = rootPosition.getHash();
-		long rootTrans = hashMap.getTransposition(rootHash);
+		long rootTrans = hashMap.getTransposition(rootHash, rootPosition.getTheBoard(), rootPosition.isKingInCheck());
 		if (ENABLE_TT_DIAGNOSTIC_LOGGING) {
 			hashMap.resetDiagnostics();
 		}
@@ -504,7 +504,7 @@ public class EubosEngineMain extends AbstractEngine {
 		   This can happen in deep searches if the root transposition is overwritten by aging
 		   replacement scheme and then added again at a lower depth as it appears again as a
 		   leaf in the search tree. */
-		long tableRoot = hashMap.getTransposition(rootPosition.getHash());
+		long tableRoot = hashMap.getTransposition(rootPosition.getHash(), rootPosition.getTheBoard(), rootPosition.isKingInCheck());
 		long cacheRoot = result.rootTrans;
 		// Select Transposition to validate, note: cache should always be present
 		if (ENABLE_ASSERTS) {

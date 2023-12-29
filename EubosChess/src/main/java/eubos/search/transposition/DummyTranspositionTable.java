@@ -1,6 +1,6 @@
 package eubos.search.transposition;
 
-
+import eubos.board.Board;
 
 public class DummyTranspositionTable implements ITranspositionAccessor {
 	
@@ -10,6 +10,10 @@ public class DummyTranspositionTable implements ITranspositionAccessor {
 	}
 	
 	public synchronized long getTransposition(long hashCode) {
+		return 0L;
+	}
+	
+	public synchronized long getTransposition(long hashCode, Board theBoard, boolean inCheck) {
 		return 0L;
 	}
 	

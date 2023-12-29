@@ -1,5 +1,6 @@
 package eubos.search.transposition;
 
+import eubos.board.Board;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.search.Score;
@@ -77,7 +78,31 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 				if (transposition_table[i] == 0L) break;
 				if (hashes[i] == (int)(hashCode >>> 32)) {
 					if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numHits++; }
-					return transposition_table[i];
+					return transposition_table[index];
+				}
+			}
+		}
+		if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numMisses++; }
+		return 0L;
+	}
+	
+	public synchronized long getTransposition(long hashCode, Board theBoard, boolean isInCheck) {
+		int index = (int) (EubosEngineMain.ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO ? hashCode & mask : Long.remainderUnsigned(hashCode, maxTableSize));
+		if (USE_ALWAYS_REPLACE) {
+			if (hashes[index] == (int)(hashCode >>> 32)) {
+				if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numHits++; }
+				long trans = transposition_table[index];
+				if (theBoard.isPlayableMove(Move.valueOfFromTransposition(Transposition.getBestMove(trans), theBoard), isInCheck, null))
+					return trans;
+			}
+		} else {
+			for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
+				if (transposition_table[i] == 0L) break;
+				if (hashes[i] == (int)(hashCode >>> 32)) {
+					if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numHits++; }
+					long trans = transposition_table[index];
+					if (theBoard.isPlayableMove(Move.valueOfFromTransposition(Transposition.getBestMove(trans), theBoard), isInCheck, null))
+						return trans;
 				}
 			}
 		}
