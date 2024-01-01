@@ -104,7 +104,7 @@ public final class Transposition {
 	
 	public static String report(long trans, Board theBoard) {
 		String output = String.format("trans best=%s, dep=%d, sc=%s, type=%s age=%d", 
-				Move.toString(Move.valueOfFromTransposition(trans, theBoard)),
+				Move.toString(Move.valueOfFromTransposition(trans, theBoard, false)),
 				getDepthSearchedInPly(trans),
 				Score.toString((short)(trans >>> 32)),
 				getType(trans),

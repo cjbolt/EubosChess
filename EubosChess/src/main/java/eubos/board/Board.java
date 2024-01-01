@@ -868,6 +868,9 @@ public class Board {
 	PseudoPlayableMoveChecker pmc = new PseudoPlayableMoveChecker();
 	
 	public boolean isPlayableMove(int move, boolean needToEscapeMate, CastlingManager castling) {
+		
+		if (move == Move.NULL_MOVE) return false;
+		
 		int pieceToMove = Move.getOriginPiece(move);
 		int originBitShift = Move.getOriginPosition(move);
 		int targetBitShift = Move.getTargetPosition(move);

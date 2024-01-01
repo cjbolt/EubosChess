@@ -86,13 +86,13 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		return 0L;
 	}
 	
-	public synchronized long getTransposition(long hashCode, Board theBoard, boolean isInCheck) {
+	public synchronized long getTransposition(long hashCode, Board theBoard, boolean isInCheck, boolean onMoveIsWhite) {
 		int index = (int) (EubosEngineMain.ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO ? hashCode & mask : Long.remainderUnsigned(hashCode, maxTableSize));
 		if (USE_ALWAYS_REPLACE) {
 			if (hashes[index] == (int)(hashCode >>> 32)) {
 				if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numHits++; }
 				long trans = transposition_table[index];
-				if (theBoard.isPlayableMove(Move.valueOfFromTransposition(Transposition.getBestMove(trans), theBoard), isInCheck, null))
+				if (theBoard.isPlayableMove(Move.valueOfFromTransposition(Transposition.getBestMove(trans), theBoard, onMoveIsWhite), isInCheck, null))
 					return trans;
 			}
 		} else {
@@ -101,7 +101,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 				if (hashes[i] == (int)(hashCode >>> 32)) {
 					if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numHits++; }
 					long trans = transposition_table[index];
-					if (theBoard.isPlayableMove(Move.valueOfFromTransposition(Transposition.getBestMove(trans), theBoard), isInCheck, null))
+					if (theBoard.isPlayableMove(Move.valueOfFromTransposition(Transposition.getBestMove(trans), theBoard, onMoveIsWhite), isInCheck, null))
 						return trans;
 				}
 			}

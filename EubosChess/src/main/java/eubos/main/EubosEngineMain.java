@@ -262,13 +262,13 @@ public class EubosEngineMain extends AbstractEngine {
 		// The move searcher will report the best move found via a callback to this object, 
 		// this will occur when the tree search is concluded and the thread completes execution.
 		long rootHash = rootPosition.getHash();
-		long rootTrans = hashMap.getTransposition(rootHash, rootPosition.getTheBoard(), rootPosition.isKingInCheck());
+		long rootTrans = hashMap.getTransposition(rootHash, rootPosition.getTheBoard(), rootPosition.isKingInCheck(), rootPosition.onMoveIsWhite());
 		if (ENABLE_TT_DIAGNOSTIC_LOGGING) {
 			hashMap.resetDiagnostics();
 		}
 		if (ENABLE_INSTANT_REPLY) {
 			if (Score.isMate(Transposition.getScore(rootTrans))) {
-				int [] pv = new int[] { Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard()) };
+				int [] pv = new int[] { Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard(), rootPosition.onMoveIsWhite()) };
 				ReferenceScore refScore = Colour.isWhite(rootPosition.getOnMove()) ? whiteRefScore : blackRefScore;
 				refScore.updateReference(rootPosition);
 				if (ENABLE_LOGGING) {
@@ -502,7 +502,7 @@ public class EubosEngineMain extends AbstractEngine {
 		   This can happen in deep searches if the root transposition is overwritten by aging
 		   replacement scheme and then added again at a lower depth as it appears again as a
 		   leaf in the search tree. */
-		long tableRoot = hashMap.getTransposition(rootPosition.getHash(), rootPosition.getTheBoard(), rootPosition.isKingInCheck());
+		long tableRoot = hashMap.getTransposition(rootPosition.getHash(), rootPosition.getTheBoard(), rootPosition.isKingInCheck(), rootPosition.onMoveIsWhite());
 		long cacheRoot = result.rootTrans;
 		// Select Transposition to validate, note: cache should always be present
 		if (ENABLE_ASSERTS) {
@@ -551,7 +551,7 @@ public class EubosEngineMain extends AbstractEngine {
 			trustedMove = result.pv[0];
 			trustedMoveWasFromTrans = false;
 		} else {
-			trustedMove = Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard());
+			trustedMove = Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard(), rootPosition.onMoveIsWhite());
 		}
 	
 		if (EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH) {

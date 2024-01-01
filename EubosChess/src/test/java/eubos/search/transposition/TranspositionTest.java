@@ -63,7 +63,7 @@ class TranspositionTest {
 		long trans = 0L;
 		trans = Transposition.setBestMove(trans, move);
 		
-		assertEquals(move, Move.valueOfFromTransposition(trans, pm.getTheBoard()));
+		assertEquals(move, Move.valueOfFromTransposition(trans, pm.getTheBoard(), pm.onMoveIsWhite()));
 	}
 	
 	@Test
@@ -80,6 +80,6 @@ class TranspositionTest {
 		long trans = 0L;
 		trans = Transposition.setBestMove(trans, move);
 		
-		assertEquals(move, Move.valueOfFromTransposition(trans, pm.getTheBoard()));
+		assertEquals(move, Move.valueOfFromTransposition(trans, pm.getTheBoard(), pm.onMoveIsWhite()));
 	}
 }

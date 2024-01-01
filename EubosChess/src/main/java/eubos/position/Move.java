@@ -243,7 +243,7 @@ public final class Move {
 		return move;
 	}
 	
-	public static int valueOfFromTransposition(long trans, Board theBoard) {
+	public static int valueOfFromTransposition(long trans, Board theBoard, boolean onMoveIsWhite) {
 		int move = Transposition.getBestMove(trans);
 		if (EubosEngineMain.ENABLE_ASSERTS) {
 			assert move != Move.NULL_MOVE : "Tranposition move was null.";
@@ -254,7 +254,15 @@ public final class Move {
 		boolean isWhite = Piece.isWhite(originPiece);
 		int targetPiece = isEnPassantCapture(move) ? 
 				(isWhite ? Piece.BLACK_PAWN : Piece.WHITE_PAWN) :
-				theBoard.getPieceAtSquare(1L << getTargetPosition(move));		
+				theBoard.getPieceAtSquare(1L << getTargetPosition(move));
+		
+		// Indicates a bad hash move in all likeliness
+//		if (EubosEngineMain.ENABLE_ASSERTS)
+//			assert onMoveIsWhite == isWhite : 
+//				String.format("%s %s", onMoveIsWhite, Move.toString(move));
+		if (onMoveIsWhite != isWhite) {
+			return Move.NULL_MOVE;
+		}
 		
 		// Encode Target Piece
 		if (EubosEngineMain.ENABLE_ASSERTS)

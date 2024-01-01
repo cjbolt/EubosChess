@@ -13,7 +13,7 @@ public class DummyTranspositionTable implements ITranspositionAccessor {
 		return 0L;
 	}
 	
-	public synchronized long getTransposition(long hashCode, Board theBoard, boolean inCheck) {
+	public synchronized long getTransposition(long hashCode, Board theBoard, boolean inCheck, boolean onMoveIsWhite) {
 		return 0L;
 	}
 	

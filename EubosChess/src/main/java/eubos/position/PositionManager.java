@@ -144,6 +144,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		long old_hash = getHash();
 		int old_flags = castling.getFlags();
 		
+		assert onMoveIsWhite() == Piece.isWhite(Move.getOriginPiece(move));
+		
 		theBoard.doMove(move);
 		// Legal move check
 		if (theBoard.last_move_was_illegal) {

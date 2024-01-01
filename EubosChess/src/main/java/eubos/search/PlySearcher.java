@@ -120,7 +120,7 @@ public class PlySearcher {
 		this.killers = killers;
 		this.ml = ml;
 		
-		rootTransposition = tt.getTransposition(pos.getHash(), pos.getTheBoard(), pos.isKingInCheck());
+		rootTransposition = tt.getTransposition(pos.getHash(), pos.getTheBoard(), pos.isKingInCheck(), pos.onMoveIsWhite());
 	}
 	
 	public void reinitialise(byte searchDepthPly, SearchMetricsReporter sr) {
@@ -134,7 +134,7 @@ public class PlySearcher {
 		
 		// Back up the root transposition, because it can be lost in the search
 		// if it is overwritten and that is very costly for performance.
-		rootTransposition = tt.getTransposition(pos.getHash(), pos.getTheBoard(), pos.isKingInCheck());
+		rootTransposition = tt.getTransposition(pos.getHash(), pos.getTheBoard(), pos.isKingInCheck(), pos.onMoveIsWhite());
 	}
 
 	public void terminateFindMove() {
@@ -248,12 +248,12 @@ public class PlySearcher {
 			++depth;
 		}
 		
-		long trans = tt.getTransposition(pos.getHash(), pos.getTheBoard(), s.inCheck);
+		long trans = tt.getTransposition(pos.getHash(), pos.getTheBoard(), s.inCheck, pos.onMoveIsWhite());
 		if (trans == 0L) {
 			trans = rootTransposition;
 		}
 		if (trans != 0L) {
-			evaluateTransposition(trans, depth);
+			trans = evaluateTransposition(trans, depth);
 			if (s.isCutOff) {
 				sm.setPrincipalVariationDataFromHash(0, (short)s.hashScore);
 				if (sr != null)
@@ -409,9 +409,9 @@ public class PlySearcher {
 			return extendedSearch(s.alpha, s.beta, depth-1);
 		}
 		
-		long trans = tt.getTransposition(pos.getHash(), pos.getTheBoard(), s.inCheck);
+		long trans = tt.getTransposition(pos.getHash(), pos.getTheBoard(), s.inCheck, pos.onMoveIsWhite());
 		if (trans != 0L) {
-			evaluateTransposition(trans, depth);
+			trans = evaluateTransposition(trans, depth);
 			if (s.isCutOff) {
 				return s.hashScore;
 			}
@@ -610,7 +610,7 @@ public class PlySearcher {
 		// Check for absolute draws
 		if (pos.isThreefoldRepetitionPossible() || pos.isInsufficientMaterial()) return 0;
 		
-		long trans = tt.getTransposition(pos.getHash(), pos.getTheBoard(), s.inCheck);
+		long trans = tt.getTransposition(pos.getHash(), pos.getTheBoard(), s.inCheck, pos.onMoveIsWhite());
 		int prevBestMove = Move.NULL_MOVE;
 		if (trans != 0L) {	
 			s.isCutOff = false;
@@ -621,19 +621,22 @@ public class PlySearcher {
 				s.isCutOff = true;
 				return s.hashScore;
 			} else {
-				if (hasSearchedPv && type == (s.hashScore >= beta ? Score.lowerBound : Score.upperBound)) {
-					return s.hashScore;
+				prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard(), pos.onMoveIsWhite());
+				if (prevBestMove != Move.NULL_MOVE) {
+					if (hasSearchedPv && type == (s.hashScore >= beta ? Score.lowerBound : Score.upperBound)) {
+						return s.hashScore;
+					}
+					s.bestScore = Transposition.getStaticEval(trans);
+					if (s.bestScore == Short.MAX_VALUE) {
+						s.bestScore = pe.lazyEvaluation(alpha, beta);
+					}
+					byte boundScope = (s.hashScore > s.bestScore) ? Score.lowerBound : Score.upperBound;
+					if (type == boundScope) {
+						s.bestScore = s.hashScore;
+					}
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
+					prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard(), pos.onMoveIsWhite());
 				}
-				s.bestScore = Transposition.getStaticEval(trans);
-				if (s.bestScore == Short.MAX_VALUE) {
-					s.bestScore = pe.lazyEvaluation(alpha, beta);
-				}
-				byte boundScope = (s.hashScore > s.bestScore) ? Score.lowerBound : Score.upperBound;
-				if (type == boundScope) {
-					s.bestScore = s.hashScore;
-				}
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-				prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
 			}
 		} else {
 			s.bestScore = pe.lazyEvaluation(alpha, beta);
@@ -700,10 +703,14 @@ public class PlySearcher {
 		return s.bestScore;
 	}
 	
-	void evaluateTransposition(long trans, int depth) {
+	long evaluateTransposition(long trans, int depth) {
 		SearchState s = state[currPly];
 		boolean override_trans_move = false;
-		int trans_move = Move.valueOfFromTransposition(trans, pos.getTheBoard());
+		int trans_move = Move.valueOfFromTransposition(trans, pos.getTheBoard(), pos.onMoveIsWhite());
+		if (trans_move == Move.NULL_MOVE) {
+			s.isCutOff = s.isHashScoreValid = false;
+			return 0L;
+		}
 		short static_eval = Transposition.getStaticEval(trans);
 		if (static_eval != Short.MAX_VALUE) {
 			s.staticEval = static_eval;
@@ -775,9 +782,12 @@ public class PlySearcher {
 		// Transposition may still be useful to seed the move list, if not drawing.
 		if (!override_trans_move || (override_trans_move && s.prevBestMove == Move.NULL_MOVE)) {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-			assert pos.onMoveIsWhite() == Piece.isWhite(Move.getOriginPiece(s.prevBestMove));
 			s.prevBestMove = trans_move;
+			assert pos.onMoveIsWhite() == Piece.isWhite(Move.getOriginPiece(s.prevBestMove)) : 
+				String.format("%s %s", pos.onMoveIsWhite(), Move.toString(s.prevBestMove));
 		}
+		
+		return trans;
 	}
 	
 	private long updateTranspositionTable(long trans, byte depth, int currMove, short plyScore, byte plyBound) {
