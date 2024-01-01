@@ -775,6 +775,7 @@ public class PlySearcher {
 		// Transposition may still be useful to seed the move list, if not drawing.
 		if (!override_trans_move || (override_trans_move && s.prevBestMove == Move.NULL_MOVE)) {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
+			assert pos.onMoveIsWhite() == Piece.isWhite(Move.getOriginPiece(s.prevBestMove));
 			s.prevBestMove = trans_move;
 		}
 	}

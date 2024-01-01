@@ -151,7 +151,8 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 			if (isBestMoveValid()) {
 				state.bestMove = Move.setBest(state.bestMove);
 				if (EubosEngineMain.ENABLE_ASSERTS) {
-					assert state.isWhite == Piece.isWhite(Move.getOriginPiece(state.bestMove));
+					assert state.isWhite == Piece.isWhite(Move.getOriginPiece(state.bestMove)) : 
+						String.format("%s %s", state.isWhite, Move.toString(state.bestMove));
 				}
 				set(state.bestMove);
 				break;
