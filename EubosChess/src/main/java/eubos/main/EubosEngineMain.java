@@ -515,7 +515,8 @@ public class EubosEngineMain extends AbstractEngine {
 		int transBestMove = Transposition.getBestMove(trans);
 		int transDepth = Transposition.getDepthSearchedInPly(trans);	
 		if (result.trusted && 
-			transDepth <= result.depth && 
+			transDepth <= result.depth &&
+			result.pv != null &&
 			!Move.areEqualForTrans(transBestMove, result.pv[0])) {
 			// Prefer the trusted PV to the transposition, in which case, invalidate the transposition
 			if (ENABLE_LOGGING) {
