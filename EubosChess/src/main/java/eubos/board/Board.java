@@ -934,7 +934,18 @@ public class Board {
 				int checkAtOffset = isWhite ? originBitShift+8: originBitShift-8;
 				pmc.moveIsPlayable = squareIsEmpty(1L << checkAtOffset);
 			} else {
-				pmc.moveIsPlayable = true;
+				// Catch a pawn promotion being converted into an illegal move by trans look up.
+				/* The problem is that a hash collision and the condensed move format in the hash table can cause us
+				 * to look up an inappropriate full move from the board. That can result in illegal pawn moves and other bad best moves - like for example
+				 * We have a position with a best move for white which is pawn f4f5, then we get a hash clash with that position when black is on move.
+				 * The result is we convert f4f5 into a black pawn move and try to apply it on the board! That leads to bad state and illegal moves etc
+				 * This can obviously happen with non-pawn moves, though in that case they won't be illegal. They will just be bad.
+				 * Any hash score/static score in the trans will obviously be bad in that case. */ 
+				if ((BitBoard.getRank(targetBitShift) == (isWhite ? IntRank.R1 : IntRank.R8))) {
+					pmc.moveIsPlayable = false;
+				} else {
+					pmc.moveIsPlayable = true;
+				}
 			}
 			break;
 		}
