@@ -3,7 +3,7 @@
 </a>
 <img src="https://img.shields.io/github/actions/workflow/status/cjbolt/EubosChess/maven.yml?branch=master" alt="GitHub Workflow Status">
 
-![Eubos Logo](logo.png)
+![Eubos Logo, courtesy of Graham Banks](logo.png "Image Credit: Graham Banks")
 
 # EubosChess
 Eubos chess is a multi-threaded Java chess engine.
