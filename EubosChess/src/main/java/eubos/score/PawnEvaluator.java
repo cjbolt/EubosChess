@@ -35,7 +35,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	public static final boolean ENABLE_PAWN_HASH_TABLE = true;
 	public static final boolean ENABLE_KPK_EVALUATION = true;
 	public static final boolean ENABLE_CANDIDATE_PP_EVALUATION = true;
-	public static final boolean ENABLE_PP_IMBALANCE_EVALUATION = true;	
+	public static final boolean ENABLE_PP_IMBALANCE_EVALUATION = false;	
 	
 	// Static for lifetime of object
 	IPositionAccessors pm;
