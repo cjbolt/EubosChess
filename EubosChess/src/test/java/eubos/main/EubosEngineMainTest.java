@@ -97,8 +97,8 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_infoMessageSending_clearsPreviousPvMoves() throws InterruptedException, IOException {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && !SearchMetrics.ENABLE_SINGLE_MOVE_PV) {
 			String expectedOutput = "info depth 1 seldepth 5 score cp -70 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 21"+CMD_TERMINATOR+
-					"info depth 1 seldepth 3 score cp 456 pv c7c2 hashfull 0 nps 0 time 0 nodes 27"+CMD_TERMINATOR+
-                    "info depth 2 seldepth 5 score cp 113 pv c7c2 e1g1 hashfull 0 nps 0 time 0 nodes 133"+CMD_TERMINATOR
+					"info depth 1 seldepth 3 score cp 466 pv c7c2 hashfull 0 nps 0 time 0 nodes 27"+CMD_TERMINATOR+
+                    "info depth 2 seldepth 5 score cp 123 pv c7c2 e1g1 hashfull 0 nps 0 time 0 nodes 133"+CMD_TERMINATOR
                     +BEST_PREFIX+"c7c2";
 			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
 				expectedOutput = "info depth 1 seldepth 5 score cp -55 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 21"+CMD_TERMINATOR
@@ -137,7 +137,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 				+ " d8d5 f5f4 d5d6 f4e4 d6c6 e4d3 c6d5 g7d4 d5b3 d3e4 d1e2 e4e5 b3b8 d4d6 b8b2 e5f4 b2c1"
 				+ " f4f5 c1c2 f5f6 c2a4 d6h2 e2d3 h2h3 d3d2 h3h2 d2d3 h2h3 d3d2"+CMD_TERMINATOR, null));
 		// Need to insert a trans in the hash table for the root position with best score that is a draw at this new position!
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR,BEST_PREFIX+"h3g2"+CMD_TERMINATOR)); // i.e not h2h3
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR,BEST_PREFIX+"h6h7"+CMD_TERMINATOR)); // i.e not h2h3
 		performTest(5000);
 	}
 	
