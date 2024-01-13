@@ -8,7 +8,7 @@ import eubos.score.PiecewiseEvaluation;
 public class MobilityAttacksEvaluator {
 	private Board theBoard;
 	
-	private static final int MOBILITY_MULTIPLIER = 8;
+	private static final int MOBILITY_MULTIPLIER = 6;
 	
 	// Dimensions are [Colour][AttackType][CountedBitBoard]
 	public long [][][] basic_attacks;
