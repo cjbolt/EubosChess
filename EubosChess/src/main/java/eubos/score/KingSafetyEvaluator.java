@@ -11,6 +11,7 @@ public class KingSafetyEvaluator {
 	public static final boolean ENABLE_KING_SAFETY_EVALUATION = true;
 	public static final boolean ENABLE_TWEAKED_KING_FLIGHT_SQUARES = false;
 	public static final boolean ENABLE_KING_TROPISM = true;
+	public static final boolean ENABLE_KNIGHT_CHECK_THREAT = true;
 	
 	IPositionAccessors pm;
 	public Board bd;
@@ -28,7 +29,7 @@ public class KingSafetyEvaluator {
 	public final int EXPOSURE_MAX_PENALTY = -300;
 	public final int SQUARES_CONTROL_ROUND_KING_PENALTY = -200;
 	public final int NO_FLIGHT_SQUARES_PENALTY = -200;
-	public final int KNIGHT_CHECK_THREAT_PENALTY = -50; 
+	public final int KNIGHT_CHECK_THREAT_PENALTY = -25; 
 	
 	long own, enemy;
 	long kingMask, blockers;
@@ -100,7 +101,9 @@ public class KingSafetyEvaluator {
 		evaluation += EvaluateKingTropism();
 		evaluation += EvaluatePawnShelterAndStorm(isWhite);
 		evaluation += EvaluateSquareControlRoundKing(isWhite);
-		//evaluation += EvaluateKnightCheckThreat(isWhite);
+		if (ENABLE_KNIGHT_CHECK_THREAT) {
+			evaluation += EvaluateKnightCheckThreat(isWhite);
+		}
 		
 		return evaluation;
 	}
