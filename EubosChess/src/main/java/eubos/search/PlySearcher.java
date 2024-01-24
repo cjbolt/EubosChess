@@ -860,11 +860,11 @@ public class PlySearcher {
 		
 			// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
 			int lmr = 0;
-			if (prev_s.isImproving) {
-				lmr = (moveNumber < (depth * depth)) ? 1 : Math.max(1, depth/5);
-			} else {
+//			if (prev_s.isImproving) {
+//				lmr = (moveNumber < (depth * depth)) ? 1 : Math.max(1, depth/5);
+//			} else {
 				lmr = (moveNumber < 6) ? 1 : Math.max(1, depth/4);
-			}
+//			}
 			if (s.inCheck) lmr = 1;
 			if (lmr > 0) {
 				positionScore = -negaScout(depth-1-lmr, -prev_s.adaptiveBeta, -prev_s.alpha);
