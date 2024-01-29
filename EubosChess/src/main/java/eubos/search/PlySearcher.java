@@ -513,6 +513,9 @@ public class PlySearcher {
 						}
 						if (EubosEngineMain.ENABLE_PER_MOVE_FUTILITY_PRUNING) {
 							int threshold = pe.estimateMovePositionalContribution(currMove) + ((depth == 1) ? 0 : 250);
+							if (s.isImproving) {
+								threshold /= 2;
+							}
 							if (s.staticEval + threshold < s.alpha) {
 								continue;
 							}
@@ -860,11 +863,11 @@ public class PlySearcher {
 		
 			// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
 			int lmr = 0;
-//			if (prev_s.isImproving) {
-//				lmr = (moveNumber < (depth * depth)) ? 1 : Math.max(1, depth/5);
-//			} else {
+			//if (prev_s.isImproving) { // prev_s, because it is based on whether static was improving before applying the current move
+			//	lmr = (moveNumber < (depth * depth)) ? 1 : Math.max(1, depth/5);
+			//} else {
 				lmr = (moveNumber < 6) ? 1 : Math.max(1, depth/4);
-//			}
+			//}
 			if (s.inCheck) lmr = 1;
 			if (lmr > 0) {
 				positionScore = -negaScout(depth-1-lmr, -prev_s.adaptiveBeta, -prev_s.alpha);
