@@ -861,13 +861,8 @@ public class PlySearcher {
 					(pos.getTheBoard().me.isEndgame() ||
 					(pos.getTheBoard().getPassedPawns() & (1L << Move.getOriginPosition(currMove))) != 0L))) {		
 		
-			// Calculate reduction, 1 for the first 6 moves, then the closer to the root node, the more severe the reduction
-			int lmr = 0;
-			//if (prev_s.isImproving) { // prev_s, because it is based on whether static was improving before applying the current move
-			//	lmr = (moveNumber < (depth * depth)) ? 1 : Math.max(1, depth/5);
-			//} else {
-				lmr = (moveNumber < 6) ? 1 : Math.max(1, depth/4);
-			//}
+			// Calculate reduction, 1 for the first few moves, then the closer to the root node, the more severe the reduction
+			int lmr = (moveNumber < depth/2) ? 1 : Math.max(1, depth/4);
 			if (s.inCheck) lmr = 1;
 			if (lmr > 0) {
 				positionScore = -negaScout(depth-1-lmr, -prev_s.adaptiveBeta, -prev_s.alpha);
