@@ -329,6 +329,7 @@ public class PlySearcher {
 					}
 					if (s.alpha >= s.beta) {
 						killers.addMove(currPly, bestMove);
+						ml.history.updateMove(depth, bestMove);
 						if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
 						if (EubosEngineMain.ENABLE_LOGGING) {
 							EubosEngineMain.logger.fine(String.format("BETA FAIL AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
@@ -577,6 +578,7 @@ public class PlySearcher {
 				}
 				if (s.alpha >= s.beta) {
 					killers.addMove(currPly, bestMove);
+					ml.history.updateMove(depth, bestMove);
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
 					refuted = true;
 					pm.unperformMove();
@@ -763,6 +765,7 @@ public class PlySearcher {
 					}
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsRefutation(pos.getHash(), trans);
 					killers.addMove(currPly, trans_move);
+					ml.history.updateMove(depth, trans_move);
 					s.isCutOff = true;
 				} else {
 					s.isHashScoreValid = true;

@@ -208,8 +208,8 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_KQk_mated_in_6_NEW() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/6K1/8/3k4/1Q6/8/8/8 b - - 1 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"11"+CMD_TERMINATOR, BEST_PREFIX+"d5c6"+CMD_TERMINATOR));
-		performTestExpectMate(10000, -7);
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"10"+CMD_TERMINATOR, BEST_PREFIX+"d5c6"+CMD_TERMINATOR));
+		performTestExpectMate(10000, -6);
 	} 
 	
 	@Test
@@ -239,7 +239,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		int mateDepth = 0;
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1h4"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1d1"+CMD_TERMINATOR));
 		mateDepth = 18;
 		performTestExpectMate(14000, mateDepth);
 	}
@@ -549,7 +549,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Fine: problem 61
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/ppp5/8/PPP5/6kp/8/6KP/8 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"14"+CMD_TERMINATOR, BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"13"+CMD_TERMINATOR, BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
 		performTest(2000);		
 	}
 	

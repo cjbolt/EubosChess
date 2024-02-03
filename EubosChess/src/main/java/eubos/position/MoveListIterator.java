@@ -61,9 +61,9 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 	static class MoveTypeComparator implements IntComparator {
 		@Override
 		public int compare(int move1, int move2) {
-			boolean gt = Move.getType(move1) < Move.getType(move2);
+			boolean lt = Move.getType(move1) < Move.getType(move2);
 			boolean eq = Move.getType(move1) == Move.getType(move2);
-			return gt ? 1 : (eq ? 0 : -1);
+			return lt ? 1 : (eq ? 0 : -1); // want list in descending order, hence opposite return values
 		}
 	}
 	
@@ -71,12 +71,14 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 	private int ordering;
 	MoveListPly state;
 	int ply;
+	MoveList ml;
 	
 	public MoveListIterator(MoveList ml, PositionManager pm, int orderMoveList, int ply) {
 		this.pm = pm;
 		ordering = orderMoveList;
 		this.ply = ply;
 		state = new MoveListPly();
+		this.ml = ml;
 		
 		// Create Move Adders
 		ma_promotions = new MoveAdderPromotions();
@@ -162,7 +164,7 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 			state.nextCheckPoint = 2;
 			getPawnPromotions();
 			if (state.moves_index != 0) {
-				sortMoveList();
+				sortTacticalMoves();
 				set(state.moves, state.moves_index);
 				break;
 			}
@@ -172,7 +174,7 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 			state.nextCheckPoint = 3;
 			getNonPawnPromotionCaptures();
 			if (state.moves_index != 0) {
-				sortMoveList();
+				sortTacticalMoves();
 				set(state.moves, state.moves_index);
 				break;
 			}
@@ -308,9 +310,14 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 			// Can't castle out of check and don't care in extended search
 			pm.castling.addCastlingMoves(state.isWhite, moveAdder);
 		}
+		sortQuietMoves();
 	}
 
-	private void sortMoveList() {
+	private void sortQuietMoves() {
+		IntArrays.quickSort(state.moves, 0, state.moves_index, ml.history.moveHistoryComparator);
+	}
+	
+	private void sortTacticalMoves() {
 		if (ply == 0) {
 			// At the root node use different mechanisms for move ordering in different threads
 			switch (ordering) {

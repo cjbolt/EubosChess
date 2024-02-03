@@ -11,14 +11,20 @@ import com.fluxchess.jcpi.models.IntFile;
 import eubos.board.BitBoard;
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
+import eubos.search.History;
 
 public class MoveList {
 
 	private MoveListIterator[] ml;
+	
+	public History history;
 
 	public MoveList(PositionManager pm, int orderMoveList) {
 		// Create the move list arrays for this threads move list
 		ml = new MoveListIterator[EubosEngineMain.SEARCH_DEPTH_IN_PLY];
+		
+		// Create history array
+		history = new History();
 	
 		// Create the list at each ply
 		for (int i = 0; i < EubosEngineMain.SEARCH_DEPTH_IN_PLY; i++) {
