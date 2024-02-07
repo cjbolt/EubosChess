@@ -9,6 +9,8 @@ public class History {
 
 	private int[][] historyLut;
 	
+	private static final int MAX_HISTORY_SCORE = (Integer.MAX_VALUE - 1000);
+	
 	public History() {
 		historyLut = new int[Piece.PIECE_LENGTH][BitBoard.INVALID];
 	}
@@ -28,8 +30,14 @@ public class History {
     }
     
     public void updateMove(int depth, int move) {
-    	int piece = Move.getOriginPiece(move);
-    	int to = Move.getTargetPosition(move);
-    	historyLut[piece][to] += depth*depth;
+    	// Don't want to increment the history score for captures or promos
+    	// For example this affects the score for pawn push moves, which can't be distinguished
+    	// from adjacent captures, as only the piece type and target square are known.
+    	if (Move.isNotCaptureOrPromotion(move)) {
+	    	int piece = Move.getOriginPiece(move);
+	    	int to = Move.getTargetPosition(move);
+	    	int curr_score = historyLut[piece][to];
+	    	historyLut[piece][to] += curr_score < MAX_HISTORY_SCORE ? depth*depth : 0;
+    	}
     }
 }
