@@ -18,14 +18,37 @@ public class History {
 	public final MoveHistoryComparator moveHistoryComparator = new MoveHistoryComparator();
 	
     public class MoveHistoryComparator implements IntComparator {
+//    	private int cacheScore1;
+//    	private int cacheMove1;
+//    	private int cacheScore2;
+//    	private int cacheMove2;
+		int score1, score2;
+		int piece1, to1, piece2, to2;
     	@Override public int compare(int move1, int move2) {
-        	int piece1 = Move.getOriginPiece(move1);
-        	int to1 = Move.getTargetPosition(move1);
-        	int piece2 = Move.getOriginPiece(move2);
-        	int to2 = Move.getTargetPosition(move2);
-        	boolean gt = historyLut[piece1][to1] > historyLut[piece2][to2];
-        	boolean eq = historyLut[piece1][to1] == historyLut[piece2][to2];
-        	return gt ? -1 : (eq ? 0 : 1); // want list in descending order, hence opposite return values
+//    		if (move1 == cacheMove1) {
+//    			score1 = cacheScore1;
+//    		} else if (move1 == cacheMove2) {
+//    			score1 = cacheScore2;
+//    		} else {
+            	piece1 = Move.getOriginPiece(move1);
+            	to1 = Move.getTargetPosition(move1);
+            	score1 = historyLut[piece1][to1];
+//            	cacheScore1 = score1;
+//            	cacheMove1 = move1;
+//    		}
+//    		if (move2 == cacheMove1) {
+//    			score2 = cacheScore1;
+//    		} else if (move2 == cacheMove2) {
+//    			score2 = cacheScore2;
+//    		} else {
+            	piece2 = Move.getOriginPiece(move2);
+            	to2 = Move.getTargetPosition(move2);
+    			score2 = historyLut[piece2][to2];
+//    			cacheScore2 = score2;
+//    			cacheMove1 = move2;
+//    		}
+    		// want list in descending order, hence opposite return values
+        	return (score1 > score2) ? -1 : (score1 == score2 ? 0 : 1);
 	    }
     }
     

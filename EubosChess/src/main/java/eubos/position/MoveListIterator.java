@@ -185,14 +185,14 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 				empty();
 				break;
 			} else if (state.killers == null) {
-				// Fall-through into quiet moves if there are no killers
-				if (state.frontierNode) {
-					doSingleQuietMove();
-					break;
-				} else {
+//				// Fall-through into quiet moves if there are no killers
+//				if (state.frontierNode) {
+//					doSingleQuietMove();
+//					break;
+//				} else {
 					doQuiet();
 					break;
-				}
+//				}
 			} else {
 				state.nextCheckPoint = 4;
 				if (checkKiller(0)) break;
@@ -207,11 +207,11 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 			if (checkKiller(2)) break;
 			// Note fall-through to quiet moves
 		case 6:
-			state.nextCheckPoint = 7;
-			if (state.frontierNode) {
-				doSingleQuietMove();
-				break;
-			}
+//			state.nextCheckPoint = 7;
+//			if (state.frontierNode) {
+//				doSingleQuietMove();
+//				break;
+//			}
 		case 7:
 			// Lastly, generate all quiet moves (i.e. that aren't best, killers, or tactical moves)
 			state.nextCheckPoint = 8;
