@@ -503,7 +503,7 @@ public class PlySearcher {
 		int positionScore = s.bestScore;
 		boolean refuted = false;
 		int quietMoveNumber = 0;
-		MoveListIterator move_iter = ml.initialiseAtPly(s.prevBestMove, killers.getMoves(currPly), s.inCheck, false, currPly, depth == 1);
+		MoveListIterator move_iter = ml.initialiseAtPly(s.prevBestMove, killers.getMoves(currPly), s.inCheck, false, currPly);
 		while ((currMove = move_iter.nextInt()) != Move.NULL_MOVE && !isTerminated()) {
 			
 			if (EubosEngineMain.ENABLE_FUTILITY_PRUNING) {

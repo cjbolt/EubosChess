@@ -162,7 +162,7 @@ public class NegaScoutTest {
 		int currMove = Move.NULL_MOVE;
 		int positionScore = s.bestScore;
 		boolean refuted = false;
-		MoveListIterator move_iter = ml.initialiseAtPly(s.prevBestMove, killers.getMoves(currPly), s.inCheck, false, currPly, depth == 1);
+		MoveListIterator move_iter = ml.initialiseAtPly(s.prevBestMove, killers.getMoves(currPly), s.inCheck, false, currPly);
 		while ((currMove = move_iter.nextInt()) != Move.NULL_MOVE && !refuted) {
 			
 			if (!pm.performMove(currMove)) { continue; }

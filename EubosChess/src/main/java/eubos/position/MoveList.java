@@ -33,13 +33,9 @@ public class MoveList {
 	}
 	
 	public MoveListIterator initialiseAtPly(int bestMove, int[] killers, boolean inCheck, boolean extended, int ply) {
-		return ml[ply].initialise(bestMove, killers, inCheck, extended, false);
+		return ml[ply].initialise(bestMove, killers, inCheck, extended);
 	}
 
-	public MoveListIterator initialiseAtPly(int bestMove, int[] killers, boolean inCheck, boolean extended, int ply, boolean frontier) {
-		return ml[ply].initialise(bestMove, killers, inCheck, extended, frontier);
-	}
-	
 	public int getRandomMove() {
 		int randomMove = Move.NULL_MOVE;
 		return randomMove;

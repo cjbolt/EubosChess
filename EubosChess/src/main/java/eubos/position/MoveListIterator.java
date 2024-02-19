@@ -3,7 +3,6 @@ package eubos.position;
 import java.util.PrimitiveIterator;
 import java.util.function.IntConsumer;
 
-import eubos.board.BitBoard;
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.search.KillerList;
@@ -26,7 +25,6 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 		int[] moves;
 		int moves_index;
 		int nextCheckPoint;
-		int generated_piece;
 		boolean isWhite;
 
 		// Cached data provided from PlySearcher
@@ -39,20 +37,16 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 		public MoveListPly()
 		{
 			moves = new int[110];
-			generated_piece = BitBoard.INVALID;
 		}
 		
-		public void initialise(int best, int[] killer_list, boolean inCheck, boolean extended, boolean frontier) {
+		public void initialise(int best, int[] killer_list, boolean inCheck, boolean extended) {
 			// Initialise working variables for building the MoveList at this ply
 			needToEscapeMate = inCheck;
 			extendedSearch = extended;
 			killers = killer_list;
-			bestMove = best;
-			frontierNode = frontier;
-			
+			bestMove = best;			
 			nextCheckPoint = 0;
 			moves_index = 0;
-			generated_piece = BitBoard.INVALID;
 		}
 	}
 	
@@ -87,8 +81,8 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 		ma_quietConsumeKillers = new QuietMovesConsumingKillers();
 	}
 	
-	public MoveListIterator initialise(int best, int[] killer_list, boolean inCheck, boolean extended, boolean frontier) {
-		state.initialise(best, killer_list, inCheck, extended, frontier);
+	public MoveListIterator initialise(int best, int[] killer_list, boolean inCheck, boolean extended) {
+		state.initialise(best, killer_list, inCheck, extended);
 		getNextMovesAtPly();
 		return this;
 	}
@@ -185,14 +179,8 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 				empty();
 				break;
 			} else if (state.killers == null) {
-//				// Fall-through into quiet moves if there are no killers
-//				if (state.frontierNode) {
-//					doSingleQuietMove();
-//					break;
-//				} else {
-					doQuiet();
-					break;
-//				}
+				doQuiet();
+				break;
 			} else {
 				state.nextCheckPoint = 4;
 				if (checkKiller(0)) break;
@@ -207,11 +195,6 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 			if (checkKiller(2)) break;
 			// Note fall-through to quiet moves
 		case 6:
-//			state.nextCheckPoint = 7;
-//			if (state.frontierNode) {
-//				doSingleQuietMove();
-//				break;
-//			}
 		case 7:
 			// Lastly, generate all quiet moves (i.e. that aren't best, killers, or tactical moves)
 			state.nextCheckPoint = 8;
@@ -221,18 +204,6 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 			empty();
 			break;
 		}
-	}
-	
-	private void doSingleQuietMove() {
-		getSingleQuietMove();
-		if (state.moves_index != 0) {
-			state.nextCheckPoint = 7;
-			state.generated_piece = Move.getOriginPosition(state.moves[0]);
-			set(state.moves, state.moves_index);
-			return;
-		}
-		state.nextCheckPoint = 8;
-		empty();
 	}
 	
 	private void doQuiet() {
@@ -294,18 +265,9 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 		pm.getTheBoard().getCapturesExcludingPromotions(ma_captures, state.isWhite);
 	}
 	
-	private void getSingleQuietMove() {
-		IAddMoves moveAdder = setupQuietMoveAdder();
-		pm.getTheBoard().getSingleQuietMove(moveAdder, state.isWhite);
-	}
-
 	private void getQuietMoves() {
 		IAddMoves moveAdder = setupQuietMoveAdder();
-		if (state.frontierNode) {
-			pm.getTheBoard().getRegularPieceMovesExceptingOnePiece(moveAdder, state.isWhite, state.generated_piece);
-		} else {
-			pm.getTheBoard().getRegularPieceMoves(moveAdder, state.isWhite);
-		}
+		pm.getTheBoard().getRegularPieceMoves(moveAdder, state.isWhite);
 		if (!state.needToEscapeMate) {
 			// Can't castle out of check and don't care in extended search
 			pm.castling.addCastlingMoves(state.isWhite, moveAdder);
