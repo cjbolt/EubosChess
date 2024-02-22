@@ -1,11 +1,12 @@
 package eubos.main;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PipedWriter;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -35,6 +36,7 @@ public abstract class AbstractEubosIntegration {
 	protected static final String ISREADY_CMD = "isready"+CMD_TERMINATOR;
 	protected static final String NEWGAME_CMD = "ucinewgame"+CMD_TERMINATOR;
 	protected static final String GO_INF_CMD = "go infinite"+CMD_TERMINATOR;
+	protected static final String STOP_CMD = "stop"+CMD_TERMINATOR;
 	protected static final String QUIT_CMD = "quit"+CMD_TERMINATOR;
 	// Outputs
 	protected static final String ID_NAME_CMD = String.format("id name Eubos %d.%d%s", 
@@ -50,14 +52,33 @@ public abstract class AbstractEubosIntegration {
 	protected static final String READY_OK_CMD = "readyok"+CMD_TERMINATOR;
 	
 	protected static final int sleep_50ms = 50;
+	protected boolean failed = false;
 
 	protected void setupEngine() {
+		failed = false;
 		commands.add(new CommandPair(UCI_CMD, ID_NAME_CMD+ID_AUTHOR_CMD+OPTION_HASH+OPTION_THREADS+OPTION_MOVE_OVERHEAD+OPTION_LAZY_THRESHOLD+UCI_OK_CMD));
 		commands.add(new CommandPair("setoption name NumberOfWorkerThreads value 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair("setoption name Hash value 256"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(ISREADY_CMD,READY_OK_CMD));
 		commands.add(new CommandPair(NEWGAME_CMD,null));
 		commands.add(new CommandPair(ISREADY_CMD,READY_OK_CMD));
+	}
+	
+	protected void startupEngine(String threadName) throws IOException {
+		System.setOut(new PrintStream(testOutput));
+		inputToEngine = new PipedWriter();
+		classUnderTest = new EubosEngineMain(inputToEngine);
+		eubosThread = new Thread(classUnderTest);
+		eubosThread.setName(threadName);
+		eubosThread.start();
+	}
+	
+	protected void shutdownEngine() throws IOException, InterruptedException {
+		inputToEngine.write(QUIT_CMD);
+		inputToEngine.flush();
+		//Thread.sleep(10);
+		classUnderTest = null;
+		eubosThread = null;
 	}
 	
 	protected String parseReceivedCommandString(String recievedCmd, boolean checkInfoMessages) {
@@ -166,7 +187,7 @@ public abstract class AbstractEubosIntegration {
 					}
 					if (recievedCmd != null && !recievedCmd.isEmpty()) {
 						if (!accumulate)
-							System.err.println(recievedCmd);
+							System.out.println(recievedCmd);
 						testOutput.reset();
 						// Ignore any line starting with info, if not checking infos
 					    parsedCmd = parseReceivedCommandString(recievedCmd, checkInfoMsgs);
@@ -188,7 +209,8 @@ public abstract class AbstractEubosIntegration {
 					}
 				}
 				if (!received) {
-					fail(inputCmd + currCmdPair.getOut() + "command that failed " + (commandNumber-3));
+					failed = true;
+					System.err.println(inputCmd + currCmdPair.getOut() + "command that failed " + (commandNumber-3));
 				}
 				commandNumber++;
 			} else {
@@ -196,7 +218,14 @@ public abstract class AbstractEubosIntegration {
 			}
 		}
 		if (mateInX != 0) {
+			if (!mateDetected ) {
+				shutdownEngine();
+			}
 			assertTrue(mateDetected);
 		}
+		if (failed) {
+			shutdownEngine();
+		}
+		assertFalse(failed);
 	}
 }

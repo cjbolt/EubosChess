@@ -3,8 +3,6 @@ package eubos.main;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PipedWriter;
-import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -24,24 +22,7 @@ import eubos.position.MoveListIterator;
 import eubos.position.PositionManager;
 
 public class EpdTestSuiteTest extends AbstractEubosIntegration{
-	
-	public void createAndConnectEngine() throws IOException {
-		// Start engine
-		System.setOut(new PrintStream(testOutput));
-		inputToEngine = new PipedWriter();
-		classUnderTest = new EubosEngineMain(inputToEngine);
-		eubosThread = new Thread( classUnderTest );
-		eubosThread.start();
-	}
-	
-	public void disconnectAndDestroyEngine() throws IOException, InterruptedException {
-		inputToEngine.write(QUIT_CMD);
-		inputToEngine.flush();
-		Thread.sleep(10);
-		classUnderTest = null;
-		eubosThread = null;
-	}
-	
+			
 	public class IndividualTestPosition {
 		String fen;
 		List<Integer> bestMoves;
@@ -141,10 +122,11 @@ public class EpdTestSuiteTest extends AbstractEubosIntegration{
 		if (EubosEngineMain.ENABLE_TEST_SUITES) {
 			List<IndividualTestPosition> testSuite = loadTestSuiteFromEpd(filename);
 			for (IndividualTestPosition test : testSuite) {
-				System.err.println(test.testName);
-				createAndConnectEngine();
+				System.err.println(String.format("Starting %s", test.testName));
+				startupEngine(test.testName);
 				runTest(test);
-				disconnectAndDestroyEngine();
+				System.err.println(String.format("Completed %s", test.testName));
+				shutdownEngine();
 				commands.clear();
 			}
 		}

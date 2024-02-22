@@ -350,7 +350,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public void receive(EngineStopCalculatingCommand command) {
 		logger.info("UCI Stop command received");
 		// Request an early terminate of the move searcher.
-		ms.halt();
+		if (ms != null) ms.halt();
 	}
 
 	public void receive(EnginePonderHitCommand command) {
