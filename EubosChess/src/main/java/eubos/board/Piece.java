@@ -51,6 +51,11 @@ public abstract class Piece {
     public static final int BLACK_PAWN = (BLACK|PAWN);
     public static final int PIECE_LENGTH = (BLACK|DONT_CARE);
     
+    public static final int [] Indexes = {
+		WHITE_QUEEN, WHITE_BISHOP ,WHITE_KING, WHITE_KNIGHT, WHITE_ROOK, WHITE_PAWN, 
+		BLACK_QUEEN, BLACK_BISHOP, BLACK_KING, BLACK_KNIGHT, BLACK_ROOK, BLACK_PAWN
+    };
+    
     public static boolean isPawn(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == PAWN; }
     public static boolean isKing(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == KING; }
     public static boolean isQueen(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == QUEEN; }

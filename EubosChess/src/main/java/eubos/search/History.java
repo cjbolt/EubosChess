@@ -9,7 +9,7 @@ public class History {
 
 	private int[][] historyLut;
 	
-	private static final int MAX_HISTORY_SCORE = (Integer.MAX_VALUE - 1000);
+	private static final int MAX_HISTORY_SCORE = (Integer.MAX_VALUE - 10000);
 	
 	public History() {
 		historyLut = new int[Piece.PIECE_LENGTH][BitBoard.INVALID];
@@ -39,8 +39,14 @@ public class History {
     	if (Move.isNotCaptureOrPromotion(move)) {
 	    	int piece = Move.getOriginPiece(move);
 	    	int to = Move.getTargetPosition(move);
-	    	int curr_score = historyLut[piece][to];
-	    	historyLut[piece][to] += curr_score < MAX_HISTORY_SCORE ? depth*depth : 0;
+	    	historyLut[piece][to] += depth*depth;
+	    	if (historyLut[piece][to] >= MAX_HISTORY_SCORE) {
+	    		for (int i: Piece.Indexes) {
+	    			for (int j=0; j < BitBoard.INVALID; j++) {
+	    				historyLut[i][j] /= 2;
+	    			}
+	    		}
+	    	}
     	}
     }
 }
