@@ -45,7 +45,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	@Test
 	public void test_startEngine() throws InterruptedException, IOException {
 		setupEngine();
-		performTest(100);
+		assertTrue(performTest(100));
 	}
 	
 	@Test
@@ -54,7 +54,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Setup Commands specific to this test
 		commands.add(new CommandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR,BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
-		performTest(1000);
+		assertTrue(performTest(1000));
 	}
 	
 	@Test
@@ -63,7 +63,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Setup Commands specific to this test
 		commands.add(new CommandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_TIME_PREFIX+"1000"+CMD_TERMINATOR,BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
-		performTest(1000);
+		assertTrue(performTest(1000));
 	}
 	
 	@Test
@@ -72,7 +72,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Setup Commands specific to this test
 		commands.add(new CommandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1 moves b5b6"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR,BEST_PREFIX+"b4a6"+CMD_TERMINATOR));
-		performTest(1000);
+		assertTrue(performTest(1000));
 	}	
 	
 	@Test
@@ -81,7 +81,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Setup Commands specific to this test
 		commands.add(new CommandPair(POS_FEN_PREFIX+"5r1k/p2R4/1pp2p1p/8/5q2/3Q1bN1/PP3P2/6K1 w - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR,BEST_PREFIX+"d3h7"+CMD_TERMINATOR));
-		performTest(1000);
+		assertTrue(performTest(1000));
 	}
 	
 	@SuppressWarnings("unused")
@@ -108,7 +108,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 			info depth 1 seldepth 4 score cp -149 pv d7e5 f3e5 c7e5 nps 200 time 35 nodes 7
 			info depth 1 seldepth 4 score cp 135 pv c7c2 e1g1 nps 73 time 122 nodes 9
 			info depth 2 seldepth 0 score cp 24 pv c7c2 d4d5 e8d8 nps 562 time 151 nodes 85 */
-			performTest(2000, true); // check infos
+			assertTrue(performTest(2000, true)); // check infos
 		}
 	}
 	
@@ -130,7 +130,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 				+ " f4f5 c1c2 f5f6 c2a4 d6h2 e2d3 h2h3 d3d2 h3h2 d2d3 h2h3 d3d2"+CMD_TERMINATOR, null));
 		// Need to insert a trans in the hash table for the root position with best score that is a draw at this new position!
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR,BEST_PREFIX+"h6h7"+CMD_TERMINATOR)); // i.e not h2h3
-		performTest(5000);
+		assertTrue(performTest(5000));
 	}
 	
 	@Test
@@ -151,7 +151,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 				/* The repetition starts from here, when rook goes to c7 and gives check. */
 				+ "c4c7 f7g8 c7c8 g8f7 c8c7 f7g8 c7c8 g8f7"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"1"+CMD_TERMINATOR,BEST_PREFIX+"c8c7"+CMD_TERMINATOR));
-		performTest(5000);
+		assertTrue(performTest(5000));
 	}
 	
 	@Test
@@ -168,7 +168,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"a1h8"+CMD_TERMINATOR));
 		commands.add(new CommandPair(POS_FEN_PREFIX+"7q/1P6/8/8/8/8/2k3PQ/7K b - - 0 42 moves h8a1 h2g1 a1h8 g1h2 h8a1 h2g1 a1h8 g1h2"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h8a1"+CMD_TERMINATOR));
-		performTest(500);
+		assertTrue(performTest(500));
 	}
 	
 	@Test
@@ -185,7 +185,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"a8h1"+CMD_TERMINATOR));
 		commands.add(new CommandPair(POS_FEN_PREFIX+"7k/2K3pq/8/8/8/8/1p6/7Q w - - 0 1 moves h1a8 h7g8 a8h1 g8h7 h1a8 h7g8 a8h1 g8h7"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h1a8"+CMD_TERMINATOR));
-		performTest(500);
+		assertTrue(performTest(500));
 	}
 	
 	@Test
@@ -193,7 +193,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_TIME_PREFIX+"30000"+CMD_TERMINATOR, BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
-		performTestExpectMate(15000, 7);
+		assertTrue(performTestExpectMate(15000, 7));
 	}
 	
 	@Test
@@ -201,7 +201,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/6K1/8/3k4/1Q6/8/8/8 b - - 1 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"11"+CMD_TERMINATOR, BEST_PREFIX+"d5c6"+CMD_TERMINATOR));
-		performTestExpectMate(10000, -6);
+		assertTrue(performTestExpectMate(10000, -6));
 	} 
 	
 	@Test
@@ -223,7 +223,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1 moves d6h2 g1h1 h2g3 h1g1 h4h1 g1h1 d8h4 h1g1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h4h2"+CMD_TERMINATOR));
 
-		performTest(15000);
+		assertTrue(performTest(15000));
 	}
 	
 	@Test
@@ -233,7 +233,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1h4"+CMD_TERMINATOR));
 		mateDepth = 14;
-		performTestExpectMate(14000, mateDepth);
+		assertTrue(performTestExpectMate(14000, mateDepth));
 	}
 	 
 	@Test
@@ -241,7 +241,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/2p5/P4p2/Q1N2k1P/2P2P2/3PK2P/5R2/2B2R2 w - - 1 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR, BEST_PREFIX+"f2d2"+CMD_TERMINATOR));
-		performTestExpectMate(4000, 4);
+		assertTrue(performTestExpectMate(4000, 4));
 	}
 	
 	@Test
@@ -250,7 +250,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/6r1/8/R5p1/3K4/1P4Pk/7P/8 w - - 3 49"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"10"+CMD_TERMINATOR, BEST_PREFIX+"b3b4"+CMD_TERMINATOR));
-		performTest(5000);
+		assertTrue(performTest(5000));
 	}
 	
 	@Test
@@ -261,7 +261,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e1g1"+CMD_TERMINATOR));
 		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e2f4"+CMD_TERMINATOR));
 		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"c3b5"+CMD_TERMINATOR));
-		performTest(5000);
+		assertTrue(performTest(5000));
 	}
 	
 	@Test
@@ -269,7 +269,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/4kp1p/3pb1p1/P5P1/3KN1PP/8/8 b - - 5 57"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"13"+CMD_TERMINATOR, BEST_PREFIX+"e5g3"+CMD_TERMINATOR));
-		performTest(15000);
+		assertTrue(performTest(15000));
 	}
 	
 	@SuppressWarnings("unused")
@@ -283,7 +283,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 
 		int hashMove = Move.valueOf(Position.b3, Piece.BLACK_QUEEN, Position.d1, Piece.WHITE_ROOK);
 		long hashEntry = Transposition.valueOf((byte)6, (short)0, Score.lowerBound, hashMove, 42 >> 2);
-		pokeHashEntryAndPerformTest(12000, hashEntry);
+		assertTrue(pokeHashEntryAndPerformTest(12000, hashEntry));
 	}
 	
 	@Test
@@ -309,7 +309,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		
 		int hashMove = Move.valueOf(Position.h4, Piece.BLACK_ROOK, Position.g4, Piece.NONE);
 		long hashEntry = Transposition.valueOf((byte)3, (short)0, Score.upperBound, hashMove, 107 >> 2);
-		pokeHashEntryAndPerformTest(10000, hashEntry);
+		assertTrue(pokeHashEntryAndPerformTest(10000, hashEntry));
 	}
 	
 	@Test
@@ -320,7 +320,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		
 		int hashMove = Move.valueOf(Position.g7, Piece.BLACK_BISHOP, Position.h6, Piece.NONE);
 		long hashEntry = Transposition.valueOf((byte)8, (short)-55, Score.lowerBound, hashMove, 66 >> 2);
-		pokeHashEntryAndPerformTest(10000, hashEntry);
+		assertTrue(pokeHashEntryAndPerformTest(10000, hashEntry));
 	}
 	
     @Test
@@ -380,7 +380,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/p7/1ppk1n2/5ppp/P1PP4/2P1K1P1/5N1P/8 b - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"11"+CMD_TERMINATOR, BEST_PREFIX+"f6g4"+CMD_TERMINATOR));
-		performTest(8000);
+		assertTrue(performTest(8000));
 	}
 	
 	@Test
@@ -392,7 +392,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 				BEST_PREFIX+"b5b6"+CMD_TERMINATOR,
 				BEST_PREFIX+"d2e3"+CMD_TERMINATOR};
 		commands.add(new MultipleAcceptableCommandPair(GO_DEPTH_PREFIX+"29"+CMD_TERMINATOR, acceptable_best_move_commands));
-		performTest(19000);
+		assertTrue(performTest(19000));
 		// 15th December 2023, with 'fail hard' 16secs for 29ply to find b6+, which is winning move (fail soft, ages like 8mins+, depth 32)
 		}
 	}
@@ -404,7 +404,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 			setupEngine();
 			commands.add(new CommandPair(POS_FEN_PREFIX+"2b5/1r6/2kBp1p1/p2pP1P1/2pP4/1pP3K1/1R3P2/8 b - - 0 1"+CMD_TERMINATOR, null));
 			commands.add(new CommandPair(GO_DEPTH_PREFIX+"25"+CMD_TERMINATOR, BEST_PREFIX+"b7b4"+CMD_TERMINATOR));
-			performTest(185000);
+			assertTrue(performTest(185000));
 			// 21st March 2023, takes SF 25 plies to see Rb4, 3 to 4 seconds. Eubos is going over 19 minutes just to get to 19 ply - no idea, still (12th december)
 		}
 	}
@@ -415,7 +415,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 			setupEngine();
 			commands.add(new CommandPair(POS_FEN_PREFIX+"1r3r1k/3p4/1p1Nn1R1/4Pp1q/pP3P1p/P7/5Q1P/6RK w - - 0 1"+CMD_TERMINATOR, null));
 			commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"f2e2"+CMD_TERMINATOR));
-			performTest(15000);
+			assertTrue(performTest(15000));
 		}
 	}
 	
@@ -429,7 +429,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 					BEST_PREFIX+"c8g4"+CMD_TERMINATOR};
 			commands.add(new MultipleAcceptableCommandPair(GO_DEPTH_PREFIX+"14"+CMD_TERMINATOR, acceptable_best_move_commands));
 			// Mate in 5! SF getsw it in less than 1sec, but 24ply:  24/16	00:00	 782k	1,114k	+M5	Re2 Bxe2 Ne4 Qxg7+ Kxg7 Bc3+ Kg8 Bh5 Qa1+
-			performTest(55000);
+			assertTrue(performTest(55000));
 		}
 	}
 	
@@ -442,7 +442,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 					BEST_PREFIX+"a8b8"+CMD_TERMINATOR,
 					BEST_PREFIX+"e7e5"+CMD_TERMINATOR};
 			commands.add(new MultipleAcceptableCommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, acceptable_best_move_commands));
-			performTest(15000);
+			assertTrue(performTest(15000));
 		}
 	}
 	
@@ -452,7 +452,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 			setupEngine();
 			commands.add(new CommandPair(POS_FEN_PREFIX+"3q1rk1/4bp1p/1n2P2Q/3p1p2/6r1/Pp2R2N/1B4PP/7K w - - 0 1"+CMD_TERMINATOR, null));
 			commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"h3g5"+CMD_TERMINATOR));
-			performTest(15000);
+			assertTrue(performTest(15000));
 		}
 	}
 	
@@ -468,7 +468,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 			" h8g7 e5d4 g7h7 d4c3 c8e8 c3d3 e8a8 d3d4 h7g8 b3c2 a8c8 c2b3 g8g7 d4e3 g7h7 e3d4 h7h8 d4e5 c6d5 b3d5"+
 		    " c8c5 e5d4 c5d5 d6d5 e6d5 d4d5 h8g7 d5c5 g7f6 c5b6 f6e6 b6b7 e6e7 b7b6 e7d6 b6b5"+CMD_TERMINATOR, null));
 			commands.add(new CommandPair(GO_DEPTH_PREFIX+"25"+CMD_TERMINATOR, BEST_PREFIX+"d6d5"+CMD_TERMINATOR));
-			performTest(1000000000);
+			assertTrue(performTest(1000000000));
 		}
 	}
 	
@@ -489,7 +489,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		" g2g3 a2c2 g3g2 d5d6 g2g3 d6d5 g3g2 c2b2 g2g3 d5d6 g3g2 d6d5 g2g3 d5e6 g3g2 e6d7 g2g1 d7d6 g1g2 d6e6 g2g3"+
 		" b2a2 g3g2 e6d6 g2g1 d6d5 g1g2 a2e2 g2f1 e2a2 f1g2 d5d6"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR, BEST_PREFIX+"g2g1"+CMD_TERMINATOR));
-		performTest(500);
+		assertTrue(performTest(500));
 	}
 	 
 	@Test
@@ -498,7 +498,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"7r/8/7B/5p1P/1pB5/6P1/2k4K/8 w - - 3 88"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"17"+CMD_TERMINATOR, BEST_PREFIX+"h6g7"+CMD_TERMINATOR));
-		performTest(18000);
+		assertTrue(performTest(18000));
 	}
 	
 	@Test
@@ -507,7 +507,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"6k1/7p/5P1K/8/8/8/7P/8 w - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"21"+CMD_TERMINATOR, BEST_PREFIX+"h6g5"+CMD_TERMINATOR));
-		performTest(3000);	
+		assertTrue(performTest(3000));	
 	}
 	
 	@Test
@@ -516,7 +516,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/2k5/p1P5/P1K5/8/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"20"+CMD_TERMINATOR, BEST_PREFIX+"c5d5"+CMD_TERMINATOR));
-		performTest(1000);
+		assertTrue(performTest(1000));
 	}
 	
 	@Test
@@ -526,7 +526,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(POS_FEN_PREFIX+"4k3/4Pp2/5P2/4K3/8/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"18"+CMD_TERMINATOR, BEST_PREFIX+"e5f5"+CMD_TERMINATOR));
 		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"18"+CMD_TERMINATOR, BEST_PREFIX+"e5e4"+CMD_TERMINATOR));
-		performTest(1000);
+		assertTrue(performTest(1000));
 	}
 	
 	@Test
@@ -535,7 +535,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/2pp3k/8/1P1P3K/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"17"+CMD_TERMINATOR, BEST_PREFIX+"d4d5"+CMD_TERMINATOR));
-		performTest(4000);
+		assertTrue(performTest(4000));
 	}
 	
 	@Test
@@ -544,7 +544,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/ppp5/8/PPP5/6kp/8/6KP/8 w - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"13"+CMD_TERMINATOR, BEST_PREFIX+"b5b6"+CMD_TERMINATOR));
-		performTest(2000);		
+		assertTrue(performTest(2000));		
 	}
 	
 	@Test
@@ -553,7 +553,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/k7/3p4/p2P1p2/P2P1P2/8/8/K7 w - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"25"+CMD_TERMINATOR, BEST_PREFIX+"a1b1"+CMD_TERMINATOR));
-		performTest(10000);
+		assertTrue(performTest(10000));
 	}
 	
 	@Test
@@ -562,7 +562,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/1ppk4/p4pp1/P1PP2p1/2P1K1P1/7P/8 b - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"15"+CMD_TERMINATOR, BEST_PREFIX+"b6b5"+CMD_TERMINATOR));
-		performTest(4000);
+		assertTrue(performTest(4000));
 	}
 	
 	@Test
@@ -571,7 +571,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/3pkp2/8/8/3PK3/5P2/8 w - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"20"+CMD_TERMINATOR, BEST_PREFIX+"e3e4"+CMD_TERMINATOR));
-		performTest(3000);	
+		assertTrue(performTest(3000));	
 	}
 	
 	@Test
@@ -580,7 +580,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/2ppk3/8/2PPK3/2P5/8/8 w - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"15"+CMD_TERMINATOR, BEST_PREFIX+"d4d5"+CMD_TERMINATOR));
-		performTest(1000);	
+		assertTrue(performTest(1000));	
 	}
 	
 	@Test
@@ -589,7 +589,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/2p5/3k4/1p1p1K2/8/1P1P4/2P5/8 w - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"16"+CMD_TERMINATOR, BEST_PREFIX+"b3b4"+CMD_TERMINATOR));
-		performTest(2000);		
+		assertTrue(performTest(2000));		
 	}
 	
 	@Test
@@ -598,7 +598,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/p6p/1p3kp1/1P6/P4PKP/5P2/8 w - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"9"+CMD_TERMINATOR, BEST_PREFIX+"f3f4"+CMD_TERMINATOR));
-		performTest(1000);	
+		assertTrue(performTest(1000));	
 	}
 	
 	@Test
@@ -607,7 +607,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/5p2/8/4K1P1/5Pk1/8/8/8 w - - 2 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"16"+CMD_TERMINATOR, BEST_PREFIX+"e5e4"+CMD_TERMINATOR));
-		performTest(1000);		
+		assertTrue(performTest(1000));		
 	}
 	
 	@Test
@@ -616,7 +616,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/7p/2k1Pp2/pp1p2p1/3P2P1/4P3/P3K2P/8 w - - 2 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"13"+CMD_TERMINATOR, BEST_PREFIX+"e3e4"+CMD_TERMINATOR));
-		performTest(2000);		
+		assertTrue(performTest(2000));		
 	}
 	
 	@Test
@@ -625,7 +625,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/6p1/3k1p2/2p2Pp1/2P1p1P1/1P4P1/4K3/8 w - - 2 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"21"+CMD_TERMINATOR, BEST_PREFIX+"e2f2"+CMD_TERMINATOR)); // According to Stockfish e2d2
-		performTest(4000);		
+		assertTrue(performTest(4000));		
 	}
 	
 	@Test
@@ -634,7 +634,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/1k3ppp/8/3K4/7P/5PP1/8/8 w - - 2 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"14"+CMD_TERMINATOR, BEST_PREFIX+"d5d6"+CMD_TERMINATOR));
-		performTest(2000);		
+		assertTrue(performTest(2000));		
 	}
 	 
 	@Test
@@ -643,7 +643,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/pp5p/8/PP2k3/2P2pp1/3K4/6PP/8 w - - 1 10"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"c4c5"+CMD_TERMINATOR));
-		performTest(3000);		
+		assertTrue(performTest(3000));		
 	}
 	
 	@Test
@@ -652,7 +652,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"r1r3k1/pb1p1p2/1p2p1p1/2pPP1B1/1nP4Q/1Pq2NP1/P4PBP/b2R2K1 w - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"9"+CMD_TERMINATOR, BEST_PREFIX+"g5f6"+CMD_TERMINATOR));
-		performTest(3000);
+		assertTrue(performTest(3000));
 	}
 	
 	@Test
@@ -661,7 +661,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"rnbq1rk1/p4ppN/4p2n/1pbp4/8/2PQP2P/PPB2PP1/RNB1K2R w - - 0 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR, BEST_PREFIX+"h7f6"+CMD_TERMINATOR));
-		performTest(1000);
+		assertTrue(performTest(1000));
 	}
 	
 	@Test
@@ -669,7 +669,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"2kr3r/ppp2ppp/8/8/1P5P/1K1b1P1N/P3P1P1/4qB1R b - - 3 24"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"13"+CMD_TERMINATOR, BEST_PREFIX+"e1b1"+CMD_TERMINATOR));
-		performTest(1000);
+		assertTrue(performTest(1000));
 	}
 	
 	@Test
@@ -682,7 +682,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		
 		int hashMove = Move.valueOf(Position.d6, Piece.WHITE_BISHOP, Position.f8, Piece.NONE);
 		long hashEntry = Transposition.valueOf((byte)127, (short)0, Score.upperBound, hashMove, 100 >> 2);
-		pokeHashEntryAndPerformTest(1000, hashEntry);
+		assertTrue(pokeHashEntryAndPerformTest(1000, hashEntry));
 	}
 	
 	@Test
@@ -694,7 +694,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		
 		int hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.WHITE_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
 		long hashEntry = Transposition.valueOf((byte)1, (short)1831, Score.lowerBound, hashMove, 88 >> 2);
-		pokeHashEntryAndPerformTest(8000000, hashEntry);
+		assertTrue(pokeHashEntryAndPerformTest(8000000, hashEntry));
 	}
 	 
 	@Test
@@ -705,7 +705,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Set up Engine instance and inject overwritten hash entry
 		int hashMove = Move.valueOf(Position.c2, Piece.WHITE_KING, Position.d3, Piece.NONE);
 		long hashEntry = Transposition.valueOf((byte)3, (short)300, Score.upperBound, hashMove, 93 >> 2);
-		pokeHashEntryAndPerformTest(1000, hashEntry);
+		assertTrue(pokeHashEntryAndPerformTest(1000, hashEntry));
 		
 		// Create search result object complete with cached version of the root hash
 		hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.WHITE_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
@@ -716,7 +716,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.clear();
 		commands.add(new CommandPair(null, BEST_PREFIX+"e2e1q"+CMD_TERMINATOR));
 		classUnderTest.sendBestMoveCommand(res);
-		performTest(1000);
+		assertTrue(performTest(1000));
 	}
 	
 	@Test
@@ -725,7 +725,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/4K3/8/8/8/2k1p3/8 b - - 0 89"+CMD_TERMINATOR, null));
 		
 		// Set up Engine instance and inject overwritten hash entry
-		pokeHashEntryAndPerformTest(1000, 0L);
+		assertTrue(pokeHashEntryAndPerformTest(1000, 0L));
 		
 		// Create search result object complete with cached version of the root hash
 		int hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.WHITE_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
@@ -736,7 +736,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.clear();
 		commands.add(new CommandPair(null, BEST_PREFIX+"e2e1q"+CMD_TERMINATOR));
 		classUnderTest.sendBestMoveCommand(res);
-		performTest(1000);
+		assertTrue(performTest(1000));
 	}
 	
 	@Test
@@ -745,7 +745,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/4K3/8/8/8/2k1p3/8 b - - 0 89"+CMD_TERMINATOR, null));
 		
 		// Set up Engine instance and inject overwritten hash entry
-		pokeHashEntryAndPerformTest(1000, 0L);
+		assertTrue(pokeHashEntryAndPerformTest(1000, 0L));
 		
 		// Create search result object complete with cached version of the root hash
 		int hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
@@ -756,7 +756,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.clear();
 		commands.add(new CommandPair(null, BEST_PREFIX+"e2e1q"+CMD_TERMINATOR));
 		classUnderTest.sendBestMoveCommand(res);
-		performTest(1000);
+		assertTrue(performTest(1000));
 	}
 	
 	@Test
@@ -767,7 +767,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Set up Engine instance and inject overwritten hash entry
 		int hashMove = Move.valueOf(Position.c2, Piece.WHITE_KING, Position.d3, Piece.NONE);
 		long hashEntry = Transposition.valueOf((byte)10, (short)300, Score.upperBound, hashMove, 93 >> 2);
-		pokeHashEntryAndPerformTest(1000, hashEntry);
+		assertTrue(pokeHashEntryAndPerformTest(1000, hashEntry));
 		
 		// Create search result, untrusted with lower depth cached hash
 		hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
@@ -777,7 +777,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.clear();
 		commands.add(new CommandPair(null, BEST_PREFIX+"c2d3"+CMD_TERMINATOR));
 		classUnderTest.sendBestMoveCommand(res);
-		performTest(1000);
+		assertTrue(performTest(1000));
 	}
 	
 	@Test
@@ -788,7 +788,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Set up Engine instance and inject overwritten hash entry
 		int hashMove = Move.valueOf(Position.c2, Piece.WHITE_KING, Position.d3, Piece.NONE);
 		long hashEntry = Transposition.valueOf((byte)10, (short)300, Score.upperBound, hashMove, 93 >> 2);
-		pokeHashEntryAndPerformTest(1000, hashEntry);
+		assertTrue(pokeHashEntryAndPerformTest(1000, hashEntry));
 		
 		// Create search result, trusted with higher depth than root TRans tablecached hash
 		hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
@@ -798,6 +798,6 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.clear();
 		commands.add(new CommandPair(null, BEST_PREFIX+"e2e1q"+CMD_TERMINATOR));
 		classUnderTest.sendBestMoveCommand(res);
-		performTest(1000);
+		assertTrue(performTest(1000));
 	}
 }

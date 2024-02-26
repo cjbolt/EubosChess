@@ -34,7 +34,7 @@ public class EpdTestSuiteTest extends AbstractEubosIntegration{
 		String fen_regex =
 				"([KkQqRrBbNnPp1-8]+[/][KkQqRrBbNnPp1-8]+[/][KkQqRrBbNnPp1-8]+[/][KkQqRrBbNnPp1-8]+[/]" +
 				"[KkQqRrBbNnPp1-8]+[/][KkQqRrBbNnPp1-8]+[/][KkQqRrBbNnPp1-8]+[/][KkQqRrBbNnPp1-8]+ " +
-				"[bw] [KkQq-]+ [a-h1-8-])";
+				"[bw] [KkQq-]+ [a-h1-8-]+)";
 		
 		private void extractFen(String epd) throws IllegalNotationException {
 			Pattern pattern = Pattern.compile(fen_regex);
@@ -109,13 +109,13 @@ public class EpdTestSuiteTest extends AbstractEubosIntegration{
 		return testList;
 	}
 	
-	public void runTest(IndividualTestPosition test) throws IOException, InterruptedException {
+	public boolean runTest(IndividualTestPosition test) throws IOException, InterruptedException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+test.fen+CMD_TERMINATOR, null));
 		String[] myArray = new String[test.bestMoveCommands.size()];
 		myArray = test.bestMoveCommands.toArray(myArray);
 		commands.add(new MultipleAcceptableCommandPair(GO_TIME_PREFIX+"10000"+CMD_TERMINATOR, myArray));
-		performTest(12000);
+		return performTest(12000);
 	}
 	
 	public void runThroughTestSuite(String filename) throws IOException, InterruptedException, IllegalNotationException {
@@ -124,8 +124,8 @@ public class EpdTestSuiteTest extends AbstractEubosIntegration{
 			for (IndividualTestPosition test : testSuite) {
 				System.err.println(String.format("Starting %s", test.testName));
 				startupEngine(test.testName);
-				runTest(test);
-				System.err.println(String.format("Completed %s", test.testName));
+				boolean passed = runTest(test);
+				System.err.println(String.format("Completed %s %s", test.testName, passed ? "Passed":"Failed"));
 				shutdownEngine();
 				commands.clear();
 			}

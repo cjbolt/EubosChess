@@ -1,8 +1,5 @@
 package eubos.main;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PipedWriter;
@@ -128,23 +125,23 @@ public abstract class AbstractEubosIntegration {
 		return output;
 	}
 	
-	protected void performTest(int timeout) throws IOException, InterruptedException {
-		performTest(timeout, false);
+	protected boolean performTest(int timeout) throws IOException, InterruptedException {
+		return performTest(timeout, false);
 	}
 
-	protected void performTest(int timeout, boolean checkInfoMsgs) throws IOException, InterruptedException {
-		performTestHelper(timeout, checkInfoMsgs, 0L, 0);
+	protected boolean performTest(int timeout, boolean checkInfoMsgs) throws IOException, InterruptedException {
+		return performTestHelper(timeout, checkInfoMsgs, 0L, 0);
 	}
 	
-	protected void performTestExpectMate(int timeout, int mateInX) throws IOException, InterruptedException {
-		performTestHelper(timeout, true, 0L, mateInX);
+	protected boolean performTestExpectMate(int timeout, int mateInX) throws IOException, InterruptedException {
+		return performTestHelper(timeout, true, 0L, mateInX);
 	}
 	
-	protected void pokeHashEntryAndPerformTest(int timeout, long hashEntry) throws IOException, InterruptedException {
-		performTestHelper(timeout, false, hashEntry, 0);
+	protected boolean pokeHashEntryAndPerformTest(int timeout, long hashEntry) throws IOException, InterruptedException {
+		return performTestHelper(timeout, false, hashEntry, 0);
 	}
 	
-	protected void performTestHelper(int timeout, boolean checkInfoMsgs, long hashEntry, int mateInX) throws IOException, InterruptedException {
+	protected boolean performTestHelper(int timeout, boolean checkInfoMsgs, long hashEntry, int mateInX) throws IOException, InterruptedException {
 		boolean mateDetected = false;
 		String mateExpectation = String.format("mate %d", mateInX);
 		testOutput.flush();
@@ -217,15 +214,9 @@ public abstract class AbstractEubosIntegration {
 				Thread.sleep(sleep_50ms);
 			}
 		}
-		if (mateInX != 0) {
-			if (!mateDetected ) {
-				shutdownEngine();
-			}
-			assertTrue(mateDetected);
+		if (mateInX != 0 && !mateDetected) {
+			failed = true;
 		}
-		if (failed) {
-			shutdownEngine();
-		}
-		assertFalse(failed);
+		return !failed;
 	}
 }
