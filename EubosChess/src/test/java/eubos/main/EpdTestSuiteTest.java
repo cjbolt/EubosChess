@@ -119,13 +119,17 @@ public class EpdTestSuiteTest extends AbstractEubosIntegration{
 	}
 	
 	public void runThroughTestSuite(String filename) throws IOException, InterruptedException, IllegalNotationException {
+		int numPassed = 0, total = 0;
 		if (EubosEngineMain.ENABLE_TEST_SUITES) {
 			List<IndividualTestPosition> testSuite = loadTestSuiteFromEpd(filename);
 			for (IndividualTestPosition test : testSuite) {
 				System.err.println(String.format("Starting %s", test.testName));
 				startupEngine(test.testName);
 				boolean passed = runTest(test);
-				System.err.println(String.format("Completed %s %s", test.testName, passed ? "Passed":"Failed"));
+				if (passed) numPassed++;
+				total++;
+				System.err.println(String.format("%s %s --- overall pass rate is %2.1f%%",
+						test.testName, passed ? "Passed":"Failed", numPassed*100.0f/total));
 				shutdownEngine();
 				commands.clear();
 			}
