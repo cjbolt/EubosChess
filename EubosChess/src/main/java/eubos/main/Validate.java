@@ -61,11 +61,11 @@ public class Validate {
 		boolean valid = pm.performMove(trusted_move);
 		assert valid;
 		SearchResult opponent_result = verifyTrustedMoveScore(pm, pc, sda, trusted_score, trusted_depth, trusted_move);
-		
+
 		if (EubosEngineMain.ENABLE_LOGGING) {
 			EubosEngineMain.logger.info(String.format("Opponent result after trusted move %s", opponent_result.report(pm.getTheBoard())));
 		}
-		if (opponent_result.pv == null || opponent_result.foundMate) {
+		if (opponent_result.pv == null || opponent_result.pv[0] == Move.NULL_MOVE || opponent_result.foundMate) {
 			return trusted_move;
 		}
 		
@@ -86,21 +86,20 @@ public class Validate {
 			if (EubosEngineMain.error_logger.getLevel() != Level.SEVERE) {
 				EubosEngineMain.createErrorLog();
 			}
-			EubosEngineMain.error_logger.severe(String.format(
-					"DELTA=%d where validation_score=%d trusted_score=%d validation=%s trusted=%s",
+			StringBuilder string = new StringBuilder();
+			string.append(String.format(
+					"\nDELTA=%d where validation_score=%d trusted_score=%d validation=%s trusted=%s",
 					delta, our_valid_score, trusted_score,
-					Move.toString(our_valid_move), Move.toString(trusted_move)));
-			
-			EubosEngineMain.error_logger.severe(String.format(
-					"The best move was %s at root position %s\nsearch result is %s",
+					Move.toString(our_valid_move), Move.toString(trusted_move)));		
+			string.append(String.format(
+					"\nThe best move was %s at root position %s\nsearch result is %s",
 					Move.toString(trusted_move),
 					rootFen, rootReport));
-			
-			EubosEngineMain.error_logger.severe(String.format("Result of validation search %s",
+			string.append(String.format("\nResult of validation search %s",
 					validation_result.report(pm.getTheBoard())));
-			
-			EubosEngineMain.error_logger.severe(String.format("Opponent's result after trusted move applied %s",
+			string.append(String.format("\nOpponent's result after trusted move applied %s",
 					opponent_result.report(pm.getTheBoard())));
+			EubosEngineMain.error_logger.severe(string.toString());
 		}
 		
 		return override_trusted_move ? our_valid_move : trusted_move;

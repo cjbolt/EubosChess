@@ -31,10 +31,12 @@ public class SearchResult {
 
 	public String report(Board theBoard) {
 		StringBuilder sb = new StringBuilder();
-		for (int move: pv) {
-			if (move == Move.NULL_MOVE) break;
-			sb.append(Move.toString(move));
-			sb.append(' ');
+		if (pv != null) {
+			for (int move: pv) {
+				if (move == Move.NULL_MOVE) break;
+				sb.append(Move.toString(move));
+				sb.append(' ');
+			}
 		}
 		String output = String.format("result: pv=%s, score=%d mate=%s, depth=%d, trusted=%d rootTrans=(%s)", 
 				sb.toString(),
