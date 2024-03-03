@@ -21,7 +21,6 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	public static final int ISOLATED_PAWN_HANDICAP = 33;
 	public static final int BACKWARD_PAWN_HANDICAP = 12;
 	public static final int[] NO_PAWNS_HANDICAP_LUT = {0, 50, 75, 100, 200, 300, 500, 500, 500};
-	public static final int[] PASSED_PAWN_IMBALANCE_LUT = {0, 15, 65, 110, 160, 300, 450, 700, 900};
 	
 	public static final int PASSED_PAWN_BOOST = 10;
 	public static final int ROOK_FILE_PASSED_PAWN_BOOST = 8;
@@ -292,21 +291,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		long enemyPawns = onMoveIsWhite ? black : white;
 		int pawnEvaluationScore = evaluatePawnsForSide(ownPawns, !onMoveIsWhite);
 		pawnEvaluationScore -= evaluatePawnsForSide(enemyPawns, onMoveIsWhite);
-		
-		// Add a modification according to the imbalance of passed pawns in the position
-		if (ENABLE_PP_IMBALANCE_EVALUATION /*&& bd.me.phase > 2048*/) {
-			long passers = bd.getPassedPawns();
-			int ownPasserCount = Long.bitCount(passers & ownPawns);
-			int enemyPasserCount = Long.bitCount(passers & enemyPawns);
-			int lookupIndex = ownPasserCount - enemyPasserCount;
-			int ppImbalanceFactor = PASSED_PAWN_IMBALANCE_LUT[Math.abs(lookupIndex)];
-			if (lookupIndex < 0) {
-				// If negative, on move has fewer passed pawns, so subtract from score
-				ppImbalanceFactor = -ppImbalanceFactor;
-			}
-			pawnEvaluationScore += ppImbalanceFactor;
-		}
-		
+				
 		if (ENABLE_PAWN_HASH_TABLE) {
 			pawnHash.put(pm.getPawnHash(), getScaleFactorForGamePhase(), pawnEvaluationScore, white, black, onMoveIsWhite);
 		}

@@ -190,7 +190,7 @@ public class PositionEvaluator implements IEvaluate {
 				int numWhitePassers = Long.bitCount(pp&bd.getWhitePieces());
 				int numBlackPassers = Long.bitCount(pp&bd.getBlackPieces());
 				int ppDelta = Math.abs(numBlackPassers-numWhitePassers);
-				lazyThresh += PawnEvaluator.PASSED_PAWN_IMBALANCE_LUT[ppDelta] + (ppDelta * 250 * bd.me.getPhase()) / 4096;
+				lazyThresh += ppDelta * 250 * bd.me.getPhase() / 4096;
 			}
 			if (!bd.me.isEndgame() && isKingExposed()) {
 				lazyThresh += 300;
