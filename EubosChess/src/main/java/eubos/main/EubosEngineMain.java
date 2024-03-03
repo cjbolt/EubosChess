@@ -36,30 +36,22 @@ import eubos.board.Piece.Colour;
 import eubos.board.SquareAttackEvaluator;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
-import eubos.position.MoveList;
 import eubos.position.PositionManager;
 import eubos.score.PawnEvalHashTable;
 import eubos.score.PositionEvaluator;
 import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
-import eubos.search.KillerList;
-import eubos.search.PlySearcher;
-import eubos.search.PrincipalContinuation;
 import eubos.search.Score;
-import eubos.search.SearchDebugAgent;
-import eubos.search.SearchMetrics;
 import eubos.search.SearchResult;
 import eubos.search.searchers.AbstractMoveSearcher;
 import eubos.search.searchers.FixedDepthMoveSearcher;
 import eubos.search.searchers.FixedTimeMoveSearcher;
 import eubos.search.searchers.MultithreadedIterativeMoveSearcher;
-import eubos.search.transposition.DummyTranspositionTable;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 import eubos.search.transposition.Transposition;
 
 import java.text.SimpleDateFormat;
 import java.util.logging.*;
-import java.util.Arrays;
 import java.util.Set;
 
 public class EubosEngineMain extends AbstractEngine {
@@ -474,15 +466,13 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 	}
 	
-	private boolean isTranspositionEntryLostOrInvalidated(long trans) {
-		return trans == 0L;
+	private boolean transpositionIsValid(long trans) {
+		return trans != 0L;
 	}
 	
 	private long selectBestTranspositionData(long tableRoot, long cacheRoot) {
 		long transToValidate = 0L;
-		if (isTranspositionEntryLostOrInvalidated(tableRoot)) {
-			transToValidate = cacheRoot;
-		} else {
+		if (transpositionIsValid(tableRoot)) {
 			int tableDepth = Transposition.getDepthSearchedInPly(tableRoot);
 			int cachedDepth = Transposition.getDepthSearchedInPly(cacheRoot);
 			if (cachedDepth != 0 && cachedDepth > tableDepth) {
@@ -492,7 +482,9 @@ public class EubosEngineMain extends AbstractEngine {
 				tableRoot = 0L;
 			} else {
 				transToValidate = tableRoot;
-			} 
+			}
+		} else {
+			transToValidate = cacheRoot;
 		}
 		return transToValidate;
 	}
@@ -506,7 +498,7 @@ public class EubosEngineMain extends AbstractEngine {
 		long cacheRoot = result.rootTrans;
 		// Select Transposition to validate, note: cache should always be present
 		if (ENABLE_ASSERTS) {
-			assert !isTranspositionEntryLostOrInvalidated(cacheRoot) :
+			assert transpositionIsValid(cacheRoot) :
 				String.format("Root trans cache was null! %s", result.report(rootPosition.getTheBoard()));
 		}
 		long trans = selectBestTranspositionData(tableRoot, cacheRoot);
@@ -532,7 +524,7 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		
 		// Finally update the table with cached version, if required
-		if (isTranspositionEntryLostOrInvalidated(tableRoot) && !isTranspositionEntryLostOrInvalidated(trans)) {
+		if (!transpositionIsValid(tableRoot) && transpositionIsValid(trans)) {
 			// Update the Transposition table if we needed to restore the cached version
 			hashMap.putTransposition(rootPosition.getHash(), trans);
 		}
@@ -546,178 +538,21 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		
 		int trustedMove = Move.NULL_MOVE;
-		boolean trustedMoveWasFromTrans = true;
+		boolean trustedMoveWasFromTrans = false;
 		long rootTrans = repopulateRootTransFromCacheIfItWasOverwritten(result);
-		if (isTranspositionEntryLostOrInvalidated(rootTrans)) {
-			trustedMove = result.pv[0];
-			trustedMoveWasFromTrans = false;
-		} else {
+		if (transpositionIsValid(rootTrans)) {
 			trustedMove = Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard());
+			trustedMoveWasFromTrans = true;
+		} else {
+			trustedMove = result.pv[0];
 		}
 	
 		if (EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH) {
-			trustedMove = validationSearch(trustedMoveWasFromTrans, rootTrans, result, trustedMove);
+			trustedMove = new Validate(this).validate(trustedMoveWasFromTrans, rootTrans, result, trustedMove);
 		}
 		
 		rootPosition.performMove(trustedMove);
 		convertToGenericAndSendBestMove(trustedMove);
-	}
-	
-	private int validationSearch(boolean trustedMoveWasFromTrans, long tableRootTrans, SearchResult result, int trusted_move) {
-		boolean override_trusted_move = false;
-		/* Do a short validation search, it has to be shallow because at longer time controls we can't hope to match
-		   the main search depth without using a Transposition table, which we suspect may be corrupted.  */
-		int trusted_depth = trustedMoveWasFromTrans ? Transposition.getDepthSearchedInPly(tableRootTrans): result.depth;
-		short trusted_score = (short)(trustedMoveWasFromTrans ? Transposition.getScore(tableRootTrans): result.score);
-		
-		String rootReport = result.report(rootPosition.getTheBoard());
-		String rootFen = rootPosition.getFen();
-		if (ENABLE_ASSERTS) {
-			assert lastFen.equals(rootFen) : String.format("Fen mismatch after search.\n%s\n%s", rootFen, lastFen);
-		}
-		
-		if (ENABLE_LOGGING) {
-			logger.info(String.format("Started validation search trusted_score=%d", trusted_score));
-		}
-		
-		// Operate on a copy of the rootPosition to prevent reentrant issues at tight time controls
-		PositionManager pm = new PositionManager(rootFen, rootPosition.getHash(), new DrawChecker(), new PawnEvalHashTable());
-		SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.getOnMove() == Piece.Colour.white);
-		PrincipalContinuation pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
-		SearchResult validation_result = doValidationSearch(pm, pc, sda, trusted_score);
-		if (validation_result.foundMate) {
-			return trusted_move;
-		}
-		if (ENABLE_LOGGING) {
-			logger.info(String.format("Completed validation search %s", validation_result.report(pm.getTheBoard())));
-		}
-		
-		boolean valid = pm.performMove(trusted_move);
-		assert valid;
-		SearchResult opponent_result = verifyTrustedMoveScore(pm, pc, sda, trusted_score, trusted_depth, trusted_move);
-		
-		if (ENABLE_LOGGING) {
-			logger.info(String.format("Opponent result after trusted move %s", opponent_result.report(pm.getTheBoard())));
-		}
-		if (opponent_result.pv == null || opponent_result.foundMate) {
-			return trusted_move;
-		}
-		
-		int our_valid_move = validation_result.pv[0];
-		int our_valid_score = validation_result.score;
-		int delta = Math.abs(trusted_score-our_valid_score);
-		
-		// Note: these are for if we actually applied the trusted move
-		int opponent_next_move = opponent_result.pv[0];
-		int opponent_score = opponent_result.score;
-		
-		// For now this is meant to catch crude piece blunders only... like not moving en-prise attacked piece
-		// we can check this by checking opponents next move is not a capture, and there is not a high score delta
-		if (!Move.areEqual(our_valid_move, trusted_move) &&
-			Move.isCapture(opponent_next_move) &&
-			(delta > 300 || opponent_score > (trusted_score+150))) {
-			
-			if (error_logger.getLevel() != Level.SEVERE) {
-				createErrorLog();
-			}
-			error_logger.severe(String.format(
-					"DELTA=%d where validation_score=%d trusted_score=%d validation=%s trusted=%s",
-					delta, our_valid_score, trusted_score,
-					Move.toString(our_valid_move), Move.toString(trusted_move)));
-			
-			error_logger.severe(String.format(
-					"The best move was %s at root position %s\nsearch result is %s",
-					Move.toString(trusted_move),
-					rootFen, rootReport));
-			
-			error_logger.severe(String.format("Result of validation search %s",
-					validation_result.report(pm.getTheBoard())));
-			
-			error_logger.severe(String.format("Opponent's result after trusted move applied %s",
-					opponent_result.report(pm.getTheBoard())));
-		}
-		
-		return override_trusted_move ? our_valid_move : trusted_move;
-	}
-	
-	private SearchResult doValidationSearch(PositionManager pm, PrincipalContinuation pc, SearchDebugAgent sda, int trusted_score)
-	{
-		byte search_depth = (byte)8;
-		PlySearcher ps = new PlySearcher(
-				new DummyTranspositionTable(),
-				pc, 
-				new SearchMetrics(pm), 
-				null, 
-				search_depth,
-				pm,
-				pm,
-				pm.getPositionEvaluator(),
-				new KillerList(),
-				sda,
-				new MoveList(pm, 0));
-		
-		int score = ps.searchRoot(8,
-				Math.max(Score.PROVISIONAL_ALPHA, trusted_score-2200),
-				Math.min(Score.PROVISIONAL_BETA, trusted_score+2200));
-		
-		return new SearchResult(pc.toPvList(0), false, 0L, search_depth, true, score);
-	}
-	
-	private SearchResult verifyTrustedMoveScore(PositionManager pm,  PrincipalContinuation pc, SearchDebugAgent sda, int trusted_score, int trusted_depth, int trusted_move) {
-		byte search_depth = (byte)7;
-		
-		// Set up a best move for each ply of validation search
-		PrincipalContinuation seeded_pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
-		int [] list = pc.toPvList(0);
-		if (list.length > 1) {
-			int [] next_ply_list = Arrays.copyOfRange(list, 1, EubosEngineMain.SEARCH_DEPTH_IN_PLY);
-			next_ply_list[0] = trusted_move;
-			seeded_pc.setArray(next_ply_list);
-		}
-		
-		PlySearcher ps = new PlySearcher(
-				new DummyTranspositionTable(),
-				seeded_pc, 
-				new SearchMetrics(pm), 
-				null, 
-				search_depth,
-				pm,
-				pm,
-				pm.getPositionEvaluator(),
-				new KillerList(),
-				sda,
-				new MoveList(pm, 0));
-		
-		int score = -ps.searchRoot(
-				search_depth,
-				-Math.min(Score.PROVISIONAL_BETA, trusted_score+2200),
-				-Math.max(Score.PROVISIONAL_ALPHA, trusted_score-2200));
-		
-		return new SearchResult(seeded_pc.toPvList(0), false, 0L, search_depth, true, score);
-	}
-	
-	void validateEubosPv(PositionManager pm, String str, int[] pv) {
-		try {
-			if (pv != null) {
-				int moves_applied = 0;
-				for (int move : pv) {
-					boolean valid = pm.performMove(move);
-					assert valid;
-					++moves_applied;
-				}
-				
-				// Now, at this point, get a full evaluation from pe and report it
-				int eval = pm.getPositionEvaluator().getFullEvaluation();
-				error_logger.severe(String.format("%s getFullEvaluation of PV is %d at %s", str, eval, pm.getFen()));
-				
-				for (int i=0; i<moves_applied; i++) {
-					pm.unperformMove();
-				}
-			}
-		} catch (AssertionError e) {
-			handleFatalError(e, "Error validating PV", pm);
-			System.exit(0);
-		}
 	}
 	
 	@Override
@@ -736,22 +571,6 @@ public class EubosEngineMain extends AbstractEngine {
 			System.exit(0);
 		}
 	}
-
-	public static void main(String[] args) {
-		if (ENABLE_LOGGING) {
-			logStart();
-		} else {
-			logger.setLevel(Level.OFF);
-			logger.setUseParentHandlers(false);
-		}
-		logger.fine(String.format("Starting Eubos\n %s\n %s\n Total moves %d bytes\n %s Total masks %d\n",
-				Board.reportStaticDataSizes(), Piece.reportStaticDataSizes(), Piece.getStaticDataSize(),
-				SquareAttackEvaluator.reportStaticDataSizes(), SquareAttackEvaluator.getStaticDataSize()));
-		// start the Engine
-		Thread EubosThread = new Thread( new EubosEngineMain() );
-		EubosThread.setName("EubosMainThread");
-		EubosThread.start();
-	}
 	
 	private static void logStart() {
 		String timeStamp = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSSS").format(new java.util.Date());
@@ -769,7 +588,7 @@ public class EubosEngineMain extends AbstractEngine {
 		logger.setUseParentHandlers(false);
 	}
 	
-	private static void createErrorLog() {
+	public static void createErrorLog() {
 		String timeStamp = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSSS").format(new java.util.Date());
 		String computerName = System.getenv("EUBOS_HOST_NAME");
 		String logFileName = timeStamp + ((computerName != null)?"_"+computerName:"") + "_search_validation_failure.txt";
@@ -822,5 +641,21 @@ public class EubosEngineMain extends AbstractEngine {
 				errorFen, pos.unwindMoveStack(), buffer.toString());
 		System.err.println(error);
 		EubosEngineMain.logger.severe(error);
+	}
+	
+	public static void main(String[] args) {
+		if (ENABLE_LOGGING) {
+			logStart();
+		} else {
+			logger.setLevel(Level.OFF);
+			logger.setUseParentHandlers(false);
+		}
+		logger.fine(String.format("Starting Eubos\n %s\n %s\n Total moves %d bytes\n %s Total masks %d\n",
+				Board.reportStaticDataSizes(), Piece.reportStaticDataSizes(), Piece.getStaticDataSize(),
+				SquareAttackEvaluator.reportStaticDataSizes(), SquareAttackEvaluator.getStaticDataSize()));
+		// start the Engine
+		Thread EubosThread = new Thread( new EubosEngineMain() );
+		EubosThread.setName("EubosMainThread");
+		EubosThread.start();
 	}
 }

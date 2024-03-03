@@ -1,0 +1,188 @@
+package eubos.main;
+
+import java.util.Arrays;
+import java.util.logging.Level;
+
+import eubos.board.Piece;
+import eubos.position.Move;
+import eubos.position.MoveList;
+import eubos.position.PositionManager;
+import eubos.score.PawnEvalHashTable;
+import eubos.search.DrawChecker;
+import eubos.search.KillerList;
+import eubos.search.PlySearcher;
+import eubos.search.PrincipalContinuation;
+import eubos.search.Score;
+import eubos.search.SearchDebugAgent;
+import eubos.search.SearchMetrics;
+import eubos.search.SearchResult;
+import eubos.search.transposition.DummyTranspositionTable;
+import eubos.search.transposition.Transposition;
+
+public class Validate {
+	
+	PositionManager rootPosition;
+	EubosEngineMain eubos;
+	
+	public Validate(EubosEngineMain eubos) {
+		this.rootPosition = eubos.rootPosition;
+		this.eubos = eubos;
+	}
+	
+	public int validate(boolean trustedMoveWasFromTrans, long tableRootTrans, SearchResult result, int trusted_move) {
+		boolean override_trusted_move = false;
+		/* Do a short validation search, it has to be shallow because at longer time controls we can't hope to match
+		   the main search depth without using a Transposition table, which we suspect may be corrupted.  */
+		int trusted_depth = trustedMoveWasFromTrans ? Transposition.getDepthSearchedInPly(tableRootTrans): result.depth;
+		short trusted_score = (short)(trustedMoveWasFromTrans ? Transposition.getScore(tableRootTrans): result.score);
+		
+		String rootReport = result.report(rootPosition.getTheBoard());
+		String rootFen = rootPosition.getFen();
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			assert eubos.lastFen.equals(rootFen) : String.format("Fen mismatch after search.\n%s\n%s", rootFen, eubos.lastFen);
+		}
+		
+		if (EubosEngineMain.ENABLE_LOGGING) {
+			EubosEngineMain.logger.info(String.format("Started validation search trusted_score=%d", trusted_score));
+		}
+		
+		// Operate on a copy of the rootPosition to prevent reentrant issues at tight time controls
+		PositionManager pm = new PositionManager(rootFen, rootPosition.getHash(), new DrawChecker(), new PawnEvalHashTable());
+		SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.getOnMove() == Piece.Colour.white);
+		PrincipalContinuation pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
+		SearchResult validation_result = doValidationSearch(pm, pc, sda, trusted_score);
+		if (validation_result.foundMate) {
+			return trusted_move;
+		}
+		if (EubosEngineMain.ENABLE_LOGGING) {
+			EubosEngineMain.logger.info(String.format("Completed validation search %s", validation_result.report(pm.getTheBoard())));
+		}
+		
+		boolean valid = pm.performMove(trusted_move);
+		assert valid;
+		SearchResult opponent_result = verifyTrustedMoveScore(pm, pc, sda, trusted_score, trusted_depth, trusted_move);
+		
+		if (EubosEngineMain.ENABLE_LOGGING) {
+			EubosEngineMain.logger.info(String.format("Opponent result after trusted move %s", opponent_result.report(pm.getTheBoard())));
+		}
+		if (opponent_result.pv == null || opponent_result.foundMate) {
+			return trusted_move;
+		}
+		
+		int our_valid_move = validation_result.pv[0];
+		int our_valid_score = validation_result.score;
+		int delta = Math.abs(trusted_score-our_valid_score);
+		
+		// Note: these are for if we actually applied the trusted move
+		int opponent_next_move = opponent_result.pv[0];
+		int opponent_score = opponent_result.score;
+		
+		// For now this is meant to catch crude piece blunders only... like not moving en-prise attacked piece
+		// we can check this by checking opponents next move is not a capture, and there is not a high score delta
+		if (!Move.areEqual(our_valid_move, trusted_move) &&
+			Move.isCapture(opponent_next_move) &&
+			(delta > 300 || opponent_score > (trusted_score+150))) {
+			
+			if (EubosEngineMain.error_logger.getLevel() != Level.SEVERE) {
+				EubosEngineMain.createErrorLog();
+			}
+			EubosEngineMain.error_logger.severe(String.format(
+					"DELTA=%d where validation_score=%d trusted_score=%d validation=%s trusted=%s",
+					delta, our_valid_score, trusted_score,
+					Move.toString(our_valid_move), Move.toString(trusted_move)));
+			
+			EubosEngineMain.error_logger.severe(String.format(
+					"The best move was %s at root position %s\nsearch result is %s",
+					Move.toString(trusted_move),
+					rootFen, rootReport));
+			
+			EubosEngineMain.error_logger.severe(String.format("Result of validation search %s",
+					validation_result.report(pm.getTheBoard())));
+			
+			EubosEngineMain.error_logger.severe(String.format("Opponent's result after trusted move applied %s",
+					opponent_result.report(pm.getTheBoard())));
+		}
+		
+		return override_trusted_move ? our_valid_move : trusted_move;
+	}
+	
+	private SearchResult doValidationSearch(PositionManager pm, PrincipalContinuation pc, SearchDebugAgent sda, int trusted_score)
+	{
+		byte search_depth = (byte)8;
+		PlySearcher ps = new PlySearcher(
+				new DummyTranspositionTable(),
+				pc, 
+				new SearchMetrics(pm), 
+				null, 
+				search_depth,
+				pm,
+				pm,
+				pm.getPositionEvaluator(),
+				new KillerList(),
+				sda,
+				new MoveList(pm, 0));
+		
+		int score = ps.searchRoot(8,
+				Math.max(Score.PROVISIONAL_ALPHA, trusted_score-2200),
+				Math.min(Score.PROVISIONAL_BETA, trusted_score+2200));
+		
+		return new SearchResult(pc.toPvList(0), false, 0L, search_depth, true, score);
+	}
+	
+	private SearchResult verifyTrustedMoveScore(PositionManager pm,  PrincipalContinuation pc, SearchDebugAgent sda, int trusted_score, int trusted_depth, int trusted_move) {
+		byte search_depth = (byte)7;
+		
+		// Set up a best move for each ply of validation search
+		PrincipalContinuation seeded_pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
+		int [] list = pc.toPvList(0);
+		if (list.length > 1) {
+			int [] next_ply_list = Arrays.copyOfRange(list, 1, EubosEngineMain.SEARCH_DEPTH_IN_PLY);
+			next_ply_list[0] = trusted_move;
+			seeded_pc.setArray(next_ply_list);
+		}
+		
+		PlySearcher ps = new PlySearcher(
+				new DummyTranspositionTable(),
+				seeded_pc, 
+				new SearchMetrics(pm), 
+				null, 
+				search_depth,
+				pm,
+				pm,
+				pm.getPositionEvaluator(),
+				new KillerList(),
+				sda,
+				new MoveList(pm, 0));
+		
+		int score = -ps.searchRoot(
+				search_depth,
+				-Math.min(Score.PROVISIONAL_BETA, trusted_score+2200),
+				-Math.max(Score.PROVISIONAL_ALPHA, trusted_score-2200));
+		
+		return new SearchResult(seeded_pc.toPvList(0), false, 0L, search_depth, true, score);
+	}
+	
+	void validateEubosPv(PositionManager pm, String str, int[] pv) {
+		try {
+			if (pv != null) {
+				int moves_applied = 0;
+				for (int move : pv) {
+					boolean valid = pm.performMove(move);
+					assert valid;
+					++moves_applied;
+				}
+				
+				// Now, at this point, get a full evaluation from pe and report it
+				int eval = pm.getPositionEvaluator().getFullEvaluation();
+				EubosEngineMain.error_logger.severe(String.format("%s getFullEvaluation of PV is %d at %s", str, eval, pm.getFen()));
+				
+				for (int i=0; i<moves_applied; i++) {
+					pm.unperformMove();
+				}
+			}
+		} catch (AssertionError e) {
+			EubosEngineMain.handleFatalError(e, "Error validating PV", pm);
+			System.exit(0);
+		}
+	}
+}
