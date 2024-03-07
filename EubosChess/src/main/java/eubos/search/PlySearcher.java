@@ -321,6 +321,9 @@ public class PlySearcher {
 					currPly--;
 				}
 				pm.unperformMove();
+				
+				if (isTerminated()) { return 0;	} // could have timed out during research of negascout!
+				
 				if (s.bestScore > s.alpha) {
 					s.alpha = s.bestScore;
 					if (EubosEngineMain.ENABLE_LOGGING) {
