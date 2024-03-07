@@ -107,6 +107,7 @@ public class EubosEngineMain extends AbstractEngine {
 	String lastFen = null;
 	private boolean createdHashTable = false;
 	private boolean analysisMode = false;
+	private long lastOnMoveClock;
 	
 	// Multithreading configuration
 	public static int numberOfWorkerThreads;
@@ -133,7 +134,7 @@ public class EubosEngineMain extends AbstractEngine {
 	private static FileHandler fh;
 	private static FileHandler efh;
 	
-	long onMoveClock;
+	
     
 	public EubosEngineMain() {
 		// Attempt to use an auto-flushing output stream 
@@ -304,6 +305,7 @@ public class EubosEngineMain extends AbstractEngine {
 		analysisMode = false;
 		// Create Move Searcher
 		if (clockTimeValid) {
+			lastOnMoveClock = clockTime;
 			if (command.getDepth() != null) {
 				byte searchDepth = (byte)((int)command.getDepth());
 				logger.info(String.format("Search move, fixed depth %d", searchDepth));
@@ -312,7 +314,6 @@ public class EubosEngineMain extends AbstractEngine {
 				logger.info("Search move, clock time " + clockTime);
 				ms = new MultithreadedIterativeMoveSearcher(this, hashMap, pawnHash, lastFen, dc, clockTime, clockInc,
 						numberOfWorkerThreads, refScore, move_overhead);
-				onMoveClock = clockTime;
 			}
 		}
 		else if (command.getMoveTime() != null) {
@@ -553,7 +554,7 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 	
 		if (EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH) {
-			if (onMoveClock > 30000) {
+			if (lastOnMoveClock > 30000) {
 				trustedMove = new Validate(this).validate(trustedMoveWasFromTrans, rootTrans, result, trustedMove);
 			}
 		}
