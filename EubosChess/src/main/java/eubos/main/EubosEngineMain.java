@@ -132,6 +132,8 @@ public class EubosEngineMain extends AbstractEngine {
 
 	private static FileHandler fh;
 	private static FileHandler efh;
+	
+	long onMoveClock;
     
 	public EubosEngineMain() {
 		// Attempt to use an auto-flushing output stream 
@@ -310,6 +312,7 @@ public class EubosEngineMain extends AbstractEngine {
 				logger.info("Search move, clock time " + clockTime);
 				ms = new MultithreadedIterativeMoveSearcher(this, hashMap, pawnHash, lastFen, dc, clockTime, clockInc,
 						numberOfWorkerThreads, refScore, move_overhead);
+				onMoveClock = clockTime;
 			}
 		}
 		else if (command.getMoveTime() != null) {
@@ -505,8 +508,10 @@ public class EubosEngineMain extends AbstractEngine {
 		
 		// Is the PV better than selected Transposition?
 		int transBestMove = Transposition.getBestMove(trans);
-		int transDepth = Transposition.getDepthSearchedInPly(trans);	
+		int transDepth = Transposition.getDepthSearchedInPly(trans);
+		//int transScore = Transposition.getScore(trans);
 		if (result.trusted && 
+		    //(result.depth > transDepth || (transScore != -25 && transScore != 25)) && // Concerned about false draws, in asp search, due to LMP affecting TT
 			result.depth > transDepth &&
 			result.pv != null &&
 			!Move.areEqualForTrans(transBestMove, result.pv[0])) {
@@ -548,7 +553,9 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 	
 		if (EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH) {
-			trustedMove = new Validate(this).validate(trustedMoveWasFromTrans, rootTrans, result, trustedMove);
+			if (onMoveClock > 30000) {
+				trustedMove = new Validate(this).validate(trustedMoveWasFromTrans, rootTrans, result, trustedMove);
+			}
 		}
 		
 		rootPosition.performMove(trustedMove);
