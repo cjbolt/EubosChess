@@ -88,7 +88,6 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_RAZORING_ON_QUIESCENCE = false;
 	public static final boolean ENABLE_FUTILITY_PRUNING_OF_KILLER_MOVES = false;
 	public static final boolean ENABLE_PER_MOVE_FUTILITY_PRUNING = true;
-	public static final boolean ENABLE_INSTANT_REPLY = false;
 	public static final boolean ENABLE_OVERWRITE_TRANS_WITH_SEARCH = false;
 	public static final boolean ENABLE_PINNED_TO_KING_CHECK_IN_ILLEGAL_DETECTION = true;
 	
@@ -256,27 +255,11 @@ public class EubosEngineMain extends AbstractEngine {
 	public void receive(EngineStartCalculatingCommand command) {
 		// The move searcher will report the best move found via a callback to this object, 
 		// this will occur when the tree search is concluded and the thread completes execution.
-		long rootHash = rootPosition.getHash();
-		long rootTrans = hashMap.getTransposition(rootHash);
 		if (ENABLE_TT_DIAGNOSTIC_LOGGING) {
 			hashMap.resetDiagnostics();
 		}
-		if (ENABLE_INSTANT_REPLY) {
-			if (Score.isMate(Transposition.getScore(rootTrans))) {
-				int [] pv = new int[] { Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard()) };
-				ReferenceScore refScore = Colour.isWhite(rootPosition.getOnMove()) ? whiteRefScore : blackRefScore;
-				refScore.updateReference(rootPosition);
-				if (ENABLE_LOGGING) {
-					logger.info(String.format("EngineStartCalculatingCommand - Mate in transposition %s", 
-							Transposition.report(rootTrans, rootPosition.getTheBoard())));
-				}
-				SearchResult result = new SearchResult(pv, true, rootTrans, Transposition.getDepthSearchedInPly(rootTrans), true, 0);
-				sendBestMoveCommand(result);
-			}
-		} else {
-			moveSearcherFactory(command);
-			ms.start();
-		}
+		moveSearcherFactory(command);
+		ms.start();
 	}
 	
 	private void moveSearcherFactory(EngineStartCalculatingCommand command) {
@@ -459,14 +442,6 @@ public class EubosEngineMain extends AbstractEngine {
 			this.getProtocol().send(protocolBestMoveCommand);
 		} catch (NoProtocolException e) {
 			// In unit tests carry on without the protocol being connected
-		}
-	}
-	
-	void updateReferenceScoreWhenMateFound(long tableRootTrans) {
-		if (Score.isMate(Transposition.getScore(tableRootTrans))) {
-			// It is likely we didn't send a uci info pv message, so we need to update the last score here
-			ReferenceScore refScore = Colour.isWhite(rootPosition.getOnMove()) ? whiteRefScore : blackRefScore;
-			refScore.updateLastScore(tableRootTrans);
 		}
 	}
 	

@@ -26,12 +26,21 @@ public class ReferenceScore {
 		this.reference = new Reference();
 	}
 	
-	public void updateReference(IPositionAccessors rootPos) {
+	private void invalidateInAnalysisMode() {
+		if (lastScoreIsValid && (rootPosition.getMoveNumber() != (lastMoveNumber + 1))) {
+			lastScoreIsValid = false;
+			lastScore = 0;
+			lastMoveNumber = 0;
+			lastDepth = 0;
+		}
+	}
+	
+	public void setAtStartOfSearch(IPositionAccessors rootPos) {
 		this.rootPosition = rootPos;
-		checkLastScoreValidity();
+		invalidateInAnalysisMode();
 		
 		long trans = hashMap.getTransposition(rootPos.getHash());		
-		if (trans != 0L && Transposition.getType(trans) != Score.lowerBound) {
+		if (trans != 0L && Transposition.getType(trans) == Score.upperBound) {
 			// Set reference score from previous Transposition table, if it exists 
 			reference.origin = Transposition.report(trans, rootPosition.getTheBoard());
 			reference.score = Transposition.getScore(trans);
@@ -52,33 +61,16 @@ public class ReferenceScore {
 		lastScoreIsValid = false;
 	}
 	
-	private void checkLastScoreValidity() {
-		if (lastScoreIsValid && (rootPosition.getMoveNumber() != (lastMoveNumber + 1))) {
-			// This check is for when running from Arena in analyse mode, for example
-			lastScoreIsValid = false;
-			lastScore = 0;
-			lastMoveNumber = 0;
-			lastDepth = 0;
-		}
-	}
-	
 	public Reference getReference() {
 		return reference;
 	}
 	
-	public void updateLastScore(short uciScore, byte depth) {
+	public void update(short uciScore, byte depth) {
 		if (rootPosition != null) {
 			lastScoreIsValid = true; 
 			lastScore = uciScore;
 		    lastMoveNumber = rootPosition.getMoveNumber();
 		    lastDepth = depth;
 		}
-	}
-
-	public void updateLastScore(long trans) {
-		lastScoreIsValid = true;
-		lastScore = Transposition.getScore(trans);
-	    lastDepth = Transposition.getDepthSearchedInPly(trans);
-	    lastMoveNumber = rootPosition.getMoveNumber();
 	}
 }

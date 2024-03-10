@@ -17,7 +17,6 @@ import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.PositionManager;
-import eubos.score.ReferenceScore;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 import eubos.search.transposition.Transposition;
 import eubos.search.SearchMetricsReporter;
@@ -35,7 +34,7 @@ public class MiniMaxMoveGeneratorTest {
 	
 	@Before
 	public void setUp() {
-		sr_stub = new SearchMetricsReporter(null, null, new ReferenceScore(null));
+		sr_stub = new SearchMetricsReporter();
 		EubosEngineMain.logger.setLevel(Level.OFF);
 		pl = new LinkedList<Piece>();
 		hashMap = new FixedSizeTranspositionTable();

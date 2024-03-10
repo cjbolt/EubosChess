@@ -16,7 +16,6 @@ import eubos.search.Score;
 import eubos.search.SearchDebugAgent;
 import eubos.search.SearchMetrics;
 import eubos.search.SearchResult;
-import eubos.search.transposition.DummyTranspositionTable;
 import eubos.search.transposition.Transposition;
 
 public class Validate {

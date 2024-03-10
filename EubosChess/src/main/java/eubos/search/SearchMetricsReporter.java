@@ -22,7 +22,12 @@ public class SearchMetricsReporter extends Thread {
 	private int lastScore = 0;
 	private int lastDepth = 0;
 	
-	public SearchMetricsReporter( EubosEngineMain eubos, FixedSizeTranspositionTable tt, ReferenceScore refScore ) {
+	public SearchMetricsReporter() {
+		reporterActive = false;
+		this.setName("DummySearchMetricsReporter");
+	}
+	
+	public SearchMetricsReporter(EubosEngineMain eubos, FixedSizeTranspositionTable tt, ReferenceScore refScore) {
 		reporterActive = true;
 		eubosEngine = eubos;
 		this.tt = tt;
@@ -128,7 +133,7 @@ public class SearchMetricsReporter extends Thread {
 		
 		short score = pv.getCpScore();
 		if (refScore != null) {
-			refScore.updateLastScore(score, (byte)pv.getDepth());
+			refScore.update(score, (byte)pv.getDepth());
 		}
 		if (Score.isMate(score)) {
 			int matePly = (score > 0) ? Score.PROVISIONAL_BETA - score + 1 : Score.PROVISIONAL_ALPHA - score;

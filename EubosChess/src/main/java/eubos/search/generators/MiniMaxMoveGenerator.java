@@ -79,7 +79,7 @@ public class MiniMaxMoveGenerator implements
 	
 	@Override
 	public SearchResult findMove(byte searchDepth)  {
-		return this.findMove(searchDepth, new SearchMetricsReporter(null, null, new ReferenceScore(null)));
+		return this.findMove(searchDepth, new SearchMetricsReporter());
 	}
 	
 	@Override
