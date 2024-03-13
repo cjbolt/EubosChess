@@ -221,25 +221,24 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			return canTerminate;
 		}
 		
+		private final int checkpointScoreThreshold[] = {0, 0, -10, -25, -25, -150, -150, -300, -300, -500};
+		
 		private void evaluateSearchProgressAtCheckpoint() {
 			boolean terminateNow = false;
 			
 			/* Consider extending time for Search according to following... */
 			switch (checkPoint) {
-			case 1:
-				terminateNow = shouldTerminateIfEvalAboveThreshold(0);
-				extraTime = true;
-				break;
-			case 3:
-				terminateNow = shouldTerminateIfEvalAboveThreshold(-100);
-				break;
-			case 5:
-				terminateNow = shouldTerminateIfEvalAboveThreshold(-300);
-				break;
 			case 0:
+				break;
+			case 1:
+				extraTime = true;
+				// Deliberate drop-through
 			case 2:
+			case 3:
 			case 4:
+			case 5:
 			case 6:
+				terminateNow = shouldTerminateIfEvalAboveThreshold(checkpointScoreThreshold[checkPoint]);
 				break;
 			default:
 				terminateNow = true;
