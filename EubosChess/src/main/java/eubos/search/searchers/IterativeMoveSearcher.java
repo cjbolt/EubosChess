@@ -113,6 +113,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 
 	class IterativeMoveSearchStopper extends Thread {
 		
+		private final int checkpointScoreThreshold[] = {0, 0, -10, -25, -25, -150, -150, -300, -300, -500};
 		private volatile boolean stopperActive = false;
 		volatile boolean extraTime = false;
 		private int checkPoint = 0;
@@ -133,7 +134,10 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				do {
 					long timeQuantaForCheckPoint = calculateSearchTimeQuanta();
 					if (hasWaitedOnce) {
-						evaluateSearchProgressAtCheckpoint();
+						if (checkWhetherToStop()) { 
+							stopMoveSearcher(); 
+						}
+						checkPoint++;
 					}
 					if (stopperActive) {
 						// Handle sleeping and account for failure to wake up in a timely fashion
@@ -181,7 +185,8 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			return timeQuanta;
 		}
 		
-		private boolean shouldTerminateIfEvalAboveThreshold(int threshold) {
+		private boolean checkWhetherToStop() {
+			int threshold = checkpointScoreThreshold[checkPoint];
 			boolean canTerminate = false;
 			short currentScore;
 			byte currDepth;
@@ -189,6 +194,9 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			short ref_score;
 			byte ref_depth;
 			boolean isResearchingAspirationFail = mg.lastAspirationFailed();
+			
+			//if (checkPoint == 1) extraTime = true;
+			
 			EubosEngineMain.logger.finer("Stopper getting lock for mg.sm");
 			synchronized(mg.sm) {
 				currentScore = mg.sm.getCpScore();
@@ -205,7 +213,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			canTerminate =
 					hasBackedUpAScore && 
 					!isResearchingAspirationFail && 
-					currentScore >= (ref_score - threshold) && 
+					currentScore >= (ref_score + threshold) && 
 					currDepth >= ref_depth;
 			
 			if (DEBUG_LOGGING) {
@@ -219,36 +227,6 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			}
 			
 			return canTerminate;
-		}
-		
-		private final int checkpointScoreThreshold[] = {0, 0, -10, -25, -25, -150, -150, -300, -300, -500};
-		
-		private void evaluateSearchProgressAtCheckpoint() {
-			boolean terminateNow = false;
-			
-			/* Consider extending time for Search according to following... */
-			switch (checkPoint) {
-			case 0:
-				break;
-			case 1:
-				extraTime = true;
-				// Deliberate drop-through
-			case 2:
-			case 3:
-			case 4:
-			case 5:
-			case 6:
-				terminateNow = shouldTerminateIfEvalAboveThreshold(checkpointScoreThreshold[checkPoint]);
-				break;
-			default:
-				terminateNow = true;
-				break;
-			}
-			checkPoint++;
-			
-			if (terminateNow) { 
-				stopMoveSearcher(); 
-			}
 		}
 		
 		private long sleepAndReportDuration(long timeQuanta) {
