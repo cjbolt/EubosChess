@@ -84,14 +84,14 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				}
 			}
 			if (!searchStopped) {
-				if (stopper.extraTime) {
-					// don't start a new iteration, we were only allowing time to complete the search at the current ply
-					searchStopped = true;
-					if (DEBUG_LOGGING) {
-						EubosEngineMain.logger.finer(String.format(
-								"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
-					}
-				}
+//				if (stopper.extraTime) {
+//					// don't start a new iteration, we were only allowing time to complete the search at the current ply
+//					searchStopped = true;
+//					if (DEBUG_LOGGING) {
+//						EubosEngineMain.logger.finer(String.format(
+//								"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
+//					}
+//				}
 				currentDepth++;
 				if (currentDepth == EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
 					break;
@@ -113,7 +113,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 
 	class IterativeMoveSearchStopper extends Thread {
 		
-		private final int checkpointScoreThreshold[] = {0, 0, -10, -25, -25, -150, -150, -300, -300, -500};
+		private final int checkpointScoreThreshold[] = {10, 10, 10, 5, 0, -24, -100, -300, -500};
 		private volatile boolean stopperActive = false;
 		volatile boolean extraTime = false;
 		private int checkPoint = 0;
@@ -128,45 +128,24 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		
 		public void run() {
 			stopperActive = true;
-			boolean hasWaitedOnce = false;
 			EubosEngineMain.logger.finer(String.format("IterativeMoveSearchStopper is now running"));
 			try {
 				do {
 					long timeQuantaForCheckPoint = calculateSearchTimeQuanta();
-					if (hasWaitedOnce) {
-						if (checkWhetherToStop()) { 
-							stopMoveSearcher(); 
-						}
-						checkPoint++;
+					if (checkWhetherToStop()) { 
+						stopMoveSearcher(); 
 					}
 					if (stopperActive) {
 						// Handle sleeping and account for failure to wake up in a timely fashion
 						long duration = sleepAndReportDuration(timeQuantaForCheckPoint);
 						gameTimeRemaining -= duration;
 						timeRanFor += duration;
-						if (duration > 3*timeQuantaForCheckPoint) {
-							EubosEngineMain.logger.severe(String.format(
-									"Problem with waking stopper, quitting! checkPoint=%d ranFor=%d timeQuanta=%d duration=%d",
-									checkPoint, timeRanFor, timeQuantaForCheckPoint, duration));
-							stopMoveSearcher();
-						} else if (gameTimeRemaining < 500) {
-							/* Because we attempt to exceed the previous reference score depth, in some circumstances
-							   (high depth, drawing endgames) it is necessary to quit the search before the ref depth. */
-							EubosEngineMain.logger.warning(String.format("Stopping search as gameTimeRemaining=%d < 500ms", gameTimeRemaining));
-							stopMoveSearcher();
-						}
+						handleAnomalySituations(duration, timeQuantaForCheckPoint);
+						checkPoint++;
 					}
-					hasWaitedOnce = true;
 				} while (stopperActive);
 			} catch (Exception e) {
-				Writer buffer = new StringWriter();
-				PrintWriter pw = new PrintWriter(buffer);
-				e.printStackTrace(pw);
-				String error = String.format("Stopper crashed with: %s\n%s",
-						e.getMessage(), buffer.toString());
-				System.err.println(error);
-				EubosEngineMain.logger.severe(error);
-				stopMoveSearcher();
+				handleException(e);
 			}
 			EubosEngineMain.logger.finer(String.format("IterativeMoveSearchStopper has now stopped running"));
 		}
@@ -181,11 +160,12 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			int movesRemaining = Math.max(moveHypothesis, 10);
 			long msPerMove = Math.max((gameTimeRemaining/movesRemaining), 2);
 			msPerMove -= move_overhead;
-			long timeQuanta = Math.max((msPerMove/3), 3);
+			long timeQuanta = Math.max((msPerMove/4), 3);
 			return timeQuanta;
 		}
 		
 		private boolean checkWhetherToStop() {
+			if (checkPoint == checkpointScoreThreshold.length) return true;
 			int threshold = checkpointScoreThreshold[checkPoint];
 			boolean canTerminate = false;
 			short currentScore;
@@ -210,11 +190,10 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				ref_depth = ref.depth;
 			}
 						
-			canTerminate =
-					hasBackedUpAScore && 
-					!isResearchingAspirationFail && 
-					currentScore >= (ref_score + threshold) && 
-					currDepth >= ref_depth;
+			canTerminate = hasBackedUpAScore 
+					&& !isResearchingAspirationFail 
+					&& currentScore >= (ref_score + threshold); 
+					//&& currDepth >= ref_depth;
 			
 			if (DEBUG_LOGGING) {
 				if (EubosEngineMain.ENABLE_LOGGING) {
@@ -254,6 +233,31 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		private void stopMoveSearcher() {
 			halt();
 			stopperActive = false;
+		}
+		
+		private void handleException(Exception e) {
+			Writer buffer = new StringWriter();
+			PrintWriter pw = new PrintWriter(buffer);
+			e.printStackTrace(pw);
+			String error = String.format("Stopper crashed with: %s\n%s",
+					e.getMessage(), buffer.toString());
+			System.err.println(error);
+			EubosEngineMain.logger.severe(error);
+			stopMoveSearcher();
+		}
+		
+		private void handleAnomalySituations(long duration, long timeQuantaForCheckPoint) {
+			if (duration > 3*timeQuantaForCheckPoint) {
+				EubosEngineMain.logger.severe(String.format(
+						"Problem with waking stopper, quitting! checkPoint=%d ranFor=%d timeQuanta=%d duration=%d",
+						checkPoint, timeRanFor, timeQuantaForCheckPoint, duration));
+				stopMoveSearcher();
+			} else if (gameTimeRemaining < 500) {
+				/* Because we attempt to exceed the previous reference score depth, in some circumstances
+				   (high depth, drawing endgames) it is necessary to quit the search before the ref depth. */
+				EubosEngineMain.logger.warning(String.format("Stopping search as gameTimeRemaining=%d < 500ms", gameTimeRemaining));
+				stopMoveSearcher();
+			}
 		}
 	}
 

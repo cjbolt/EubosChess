@@ -209,16 +209,16 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 					}
 				}
 				if (!searchStopped) {
-					if (stopper.extraTime) {
-						// don't start a new iteration, we were only allowing time to complete the search at the current ply
-						searchStopped = true;
-						if (DEBUG_LOGGING) {
-							if (EubosEngineMain.ENABLE_LOGGING) {
-								EubosEngineMain.logger.fine(String.format(
-										"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
-							}
-						}
-					}
+//					if (stopper.extraTime) {
+//						// don't start a new iteration, we were only allowing time to complete the search at the current ply
+//						searchStopped = true;
+//						if (DEBUG_LOGGING) {
+//							if (EubosEngineMain.ENABLE_LOGGING) {
+//								EubosEngineMain.logger.fine(String.format(
+//										"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
+//							}
+//						}
+//					}
 					currentDepth++;
 					if (currentDepth == EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
 						break;
