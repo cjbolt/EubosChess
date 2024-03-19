@@ -166,6 +166,8 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		
 		private boolean checkWhetherToStop() {
 			if (checkPoint == checkpointScoreThreshold.length) return true;
+			if (checkPoint == 0) return false;
+			
 			int threshold = checkpointScoreThreshold[checkPoint];
 			boolean canTerminate = false;
 			short currentScore;
