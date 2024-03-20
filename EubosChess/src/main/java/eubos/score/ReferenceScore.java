@@ -40,14 +40,15 @@ public class ReferenceScore {
 		invalidateInAnalysisMode();
 		
 		long trans = hashMap.getTransposition(rootPos.getHash());		
-		if (trans != 0L && Transposition.getType(trans) == Score.upperBound) {
+		if (trans != 0L /*&& Transposition.getType(trans) == Score.upperBound*/) {
 			// Set reference score from previous Transposition table, if it exists 
 			reference.origin = Transposition.report(trans, rootPosition.getTheBoard());
 			reference.score = Transposition.getScore(trans);
 			reference.depth = Transposition.getDepthSearchedInPly(trans);
 		} else if (lastScoreIsValid) {
 			// Use the last reported score (from previous Search) as the reference score
-			reference.origin = String.format("set from last score because %s", (trans != 0L) ? Transposition.report(trans, rootPosition.getTheBoard()) : "trans is null");
+			reference.origin = String.format("set from last score because %s", 
+					(trans != 0L) ? Transposition.report(trans, rootPosition.getTheBoard()) : "trans is null");
 			reference.score = lastScore;
 			reference.depth = (byte)(lastDepth - Score.PLIES_PER_MOVE);
 		} else {
@@ -66,11 +67,9 @@ public class ReferenceScore {
 	}
 	
 	public void update(short uciScore, byte depth) {
-		if (rootPosition != null) {
-			lastScoreIsValid = true; 
-			lastScore = uciScore;
-		    lastMoveNumber = rootPosition.getMoveNumber();
-		    lastDepth = depth;
-		}
+		lastScoreIsValid = true; 
+		lastScore = uciScore;
+	    lastMoveNumber = (rootPosition == null) ? 0 : rootPosition.getMoveNumber();
+	    lastDepth = depth;
 	}
 }

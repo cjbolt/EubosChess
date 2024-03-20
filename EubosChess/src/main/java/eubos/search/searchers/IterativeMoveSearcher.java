@@ -26,6 +26,8 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	volatile boolean searchStopped = false;
 	public static final boolean DEBUG_LOGGING = true;
 	public static final boolean EXPLICIT_GARBAGE_COLLECTION = false;
+	private int [] scoreHistory;
+	private int [] deltaHistory;
 
 	public IterativeMoveSearcher(EubosEngineMain eubos, 
 			FixedSizeTranspositionTable hashMap,
@@ -39,6 +41,8 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		super(eubos, fen, dc, hashMap, refScore, pawnHash);
 		this.move_overhead = moveOverhead;
 		this.setName("IterativeMoveSearcher");
+		scoreHistory = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY+1];
+		deltaHistory = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY+1];
 		if (time == Long.MAX_VALUE) {
 			analyse = true;
 			gameTimeRemaining = time;
@@ -68,13 +72,21 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	@Override
 	public void run() {
 		byte currentDepth = 1;
+		int currentDelta = 0;
 		SearchResult res = new SearchResult();
 		enableSearchMetricsReporter(true);
 		IterativeMoveSearchStopper stopper = new IterativeMoveSearchStopper();
 		stopper.start();
 		while (!searchStopped) {
 			res = mg.findMove(currentDepth, sr);
+			boolean deteriorating = false;
 			if (res != null) {
+				scoreHistory[currentDepth] = res.score;
+				if (currentDepth > 1) {
+					currentDelta = scoreHistory[currentDepth-1] - res.score;
+				}
+				deltaHistory[currentDepth] = currentDelta;
+				deteriorating = (currentDelta < -90);
 				if (res.foundMate && !analyse) {
 					EubosEngineMain.logger.info("IterativeMoveSearcher found mate");
 					searchStopped = true;
@@ -84,7 +96,24 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				}
 			}
 			if (!searchStopped) {
-//				if (stopper.extraTime) {
+				int ref = refScore.getReference().score;
+				int sum = 0;
+				int count = 0;
+				for (int i = Math.max(0, currentDepth-5); i < currentDepth; i++) {
+					sum += scoreHistory[i];
+					count += 1;
+				}
+				int running_average = sum/count;
+				for (int i = Math.max(1, currentDepth-5); i < currentDepth; i++) {
+					sum += deltaHistory[i];
+					count += 1;
+				}
+				boolean plateaued = sum < 25; 
+				//if (Math.abs(ref-running_average) <=  
+				if (stopper.extraTime && plateaued) {
+					searchStopped = true;
+				}
+				//if (stopper.extraTime && deteriorating || Math.abs(ref - running_average) > 100 && !plateaued) break;
 //					// don't start a new iteration, we were only allowing time to complete the search at the current ply
 //					searchStopped = true;
 //					if (DEBUG_LOGGING) {
@@ -113,7 +142,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 
 	class IterativeMoveSearchStopper extends Thread {
 		
-		private final int checkpointScoreThreshold[] = {10, 10, 10, 5, 0, -24, -100, -300, -500};
+		private final int checkpointScoreThreshold[] = {24, 24, 0, 0, -24, -50, -100, -300, -500};
 		private volatile boolean stopperActive = false;
 		volatile boolean extraTime = false;
 		private int checkPoint = 0;
@@ -131,12 +160,12 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			EubosEngineMain.logger.finer(String.format("IterativeMoveSearchStopper is now running"));
 			try {
 				do {
-					long timeQuantaForCheckPoint = calculateSearchTimeQuanta();
 					if (checkWhetherToStop()) { 
 						stopMoveSearcher(); 
 					}
 					if (stopperActive) {
 						// Handle sleeping and account for failure to wake up in a timely fashion
+						long timeQuantaForCheckPoint = calculateSearchTimeQuanta();
 						long duration = sleepAndReportDuration(timeQuantaForCheckPoint);
 						gameTimeRemaining -= duration;
 						timeRanFor += duration;
@@ -177,7 +206,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			byte ref_depth;
 			boolean isResearchingAspirationFail = mg.lastAspirationFailed();
 			
-			//if (checkPoint == 1) extraTime = true;
+			if (checkPoint == 3) extraTime = true;
 			
 			EubosEngineMain.logger.finer("Stopper getting lock for mg.sm");
 			synchronized(mg.sm) {
@@ -194,8 +223,8 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 						
 			canTerminate = hasBackedUpAScore 
 					&& !isResearchingAspirationFail 
-					&& currentScore >= (ref_score + threshold); 
-					//&& currDepth >= ref_depth;
+					&& currentScore >= (ref_score + threshold) 
+					&& currDepth >= ref_depth;
 			
 			if (DEBUG_LOGGING) {
 				if (EubosEngineMain.ENABLE_LOGGING) {
