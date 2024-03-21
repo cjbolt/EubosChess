@@ -184,15 +184,20 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		public SearchResult result;
 		private volatile boolean halted = false;
 		final AtomicBoolean finished = new AtomicBoolean(false);
+		private int [] scoreHistory;
+		private int [] deltaHistory;
 		
 		public MultithreadedSearchWorkerThread( MiniMaxMoveGenerator moveGen, AbstractMoveSearcher main ) {
 			this.myMg = moveGen;
 			this.main = main;
 			this.setName(String.format("MultithreadedSearchWorkerThread=%d",this.getId()));
+			scoreHistory = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY+1];
+			deltaHistory = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY+1];
 		}
 		
 		public void run() {
 			byte currentDepth = 1;
+			int currentDelta = 0;
 			result = new SearchResult(new int [] {Move.NULL_MOVE}, false, 0L, currentDepth, true, 0);
 		
 			while (!searchStopped && !halted) {
@@ -207,8 +212,24 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 						searchStopped = true;
 						halted = true;
 					}
-				}
+					scoreHistory[currentDepth] = result.score;
+					if (currentDepth > 1) {
+						currentDelta = scoreHistory[currentDepth-1] - result.score;
+					}
+					deltaHistory[currentDepth] = currentDelta;
+				} 
+
 				if (!searchStopped) {
+					if (stopper.extraTime) {
+						int sum = 0;
+						for (int i = Math.max(1, currentDepth-5); i < currentDepth; i++) {
+							sum += deltaHistory[i];
+						}
+						boolean deteriorating = sum > 25; 
+						if (!deteriorating) {
+							searchStopped = true;
+						}
+					}
 //					if (stopper.extraTime) {
 //						// don't start a new iteration, we were only allowing time to complete the search at the current ply
 //						searchStopped = true;
