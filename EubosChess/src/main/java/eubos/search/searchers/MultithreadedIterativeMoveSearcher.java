@@ -220,26 +220,26 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 				} 
 
 				if (!searchStopped) {
-					if (stopper.extraTime) {
-						int sum = 0;
-						for (int i = Math.max(1, currentDepth-5); i < currentDepth; i++) {
-							sum += deltaHistory[i];
-						}
-						boolean deteriorating = sum > 25; 
-						if (!deteriorating) {
-							searchStopped = true;
-						}
-					}
 //					if (stopper.extraTime) {
-//						// don't start a new iteration, we were only allowing time to complete the search at the current ply
-//						searchStopped = true;
-//						if (DEBUG_LOGGING) {
-//							if (EubosEngineMain.ENABLE_LOGGING) {
-//								EubosEngineMain.logger.fine(String.format(
-//										"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
-//							}
+//						int sum = 0;
+//						for (int i = Math.max(1, currentDepth-5); i < currentDepth; i++) {
+//							sum += deltaHistory[i];
+//						}
+//						boolean deteriorating = sum > 25; 
+//						if (!deteriorating) {
+//							searchStopped = true;
 //						}
 //					}
+					if (stopper.extraTime) {
+						// don't start a new iteration, we were only allowing time to complete the search at the current ply
+						searchStopped = true;
+						if (DEBUG_LOGGING) {
+							if (EubosEngineMain.ENABLE_LOGGING) {
+								EubosEngineMain.logger.fine(String.format(
+										"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
+							}
+						}
+					}
 					currentDepth++;
 					if (currentDepth == EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
 						break;

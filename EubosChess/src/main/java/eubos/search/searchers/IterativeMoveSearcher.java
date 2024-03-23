@@ -94,24 +94,24 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				}
 			}
 			if (!searchStopped) {
-				if (stopper.extraTime) {
-					int sum = 0;
-					for (int i = Math.max(1, currentDepth-5); i < currentDepth; i++) {
-						sum += deltaHistory[i];
-					}
-					boolean deteriorating = sum > 25; 
-					if (!deteriorating) {
-						searchStopped = true;
-					}
-				}
-//              if (stopper.extraTime) {				
-//					// don't start a new iteration, we were only allowing time to complete the search at the current ply
-//					searchStopped = true;
-//					if (DEBUG_LOGGING) {
-//						EubosEngineMain.logger.finer(String.format(
-//								"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
+//				if (stopper.extraTime) {
+//					int sum = 0;
+//					for (int i = Math.max(1, currentDepth-5); i < currentDepth; i++) {
+//						sum += deltaHistory[i];
+//					}
+//					boolean deteriorating = sum > 25; 
+//					if (!deteriorating) {
+//						searchStopped = true;
 //					}
 //				}
+              if (stopper.extraTime) {				
+					// don't start a new iteration, we were only allowing time to complete the search at the current ply
+					searchStopped = true;
+					if (DEBUG_LOGGING) {
+						EubosEngineMain.logger.finer(String.format(
+								"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
+					}
+				}
 				currentDepth++;
 				if (currentDepth == EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
 					break;
@@ -133,7 +133,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 
 	class IterativeMoveSearchStopper extends Thread {
 		
-		private final int checkpointScoreThreshold[] = {0, 0, 0, 0, -100, -100, -300}; //{24, 24, 0, 0, -24, -50, -100, -300, -500};
+		private final int checkpointScoreThreshold[] = {0, 0, 0, 0, 100, 100, 300}; //{24, 24, 0, 0, -24, -50, -100, -300, -500};
 		private volatile boolean stopperActive = false;
 		volatile boolean extraTime = false;
 		private int checkPoint = 0;
