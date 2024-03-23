@@ -9,6 +9,7 @@ import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.score.PawnEvalHashTable;
 import eubos.score.ReferenceScore;
+import eubos.score.ReferenceScore.Reference;
 import eubos.search.DrawChecker;
 
 import eubos.search.SearchResult;
@@ -220,7 +221,17 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 				} 
 
 				if (!searchStopped) {
-//					if (stopper.extraTime) {
+					Reference ref = refScore.getReference();
+					boolean canTerminate = result.score >= (ref.score + stopper.checkpointScoreThreshold[stopper.checkPoint]) 
+							&& result.depth >= ref.depth;
+					if (stopper.extraTime && canTerminate) {
+						searchStopped = true;
+						if (EubosEngineMain.ENABLE_LOGGING) {
+							EubosEngineMain.logger.fine(String.format(
+									"findMove stopped, extraTime and (%d >= (%d + %d @checkPoint=%d) AND depth=%d >= %d ref.depth), ran for %d ms", 
+									result.score, ref.score, stopper.checkpointScoreThreshold[stopper.checkPoint], 
+									stopper.checkPoint, result.depth ,ref.depth, stopper.timeRanFor));
+						}
 //						int sum = 0;
 //						for (int i = Math.max(1, currentDepth-5); i < currentDepth; i++) {
 //							sum += deltaHistory[i];
@@ -229,17 +240,17 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 //						if (!deteriorating) {
 //							searchStopped = true;
 //						}
-//					}
-					if (stopper.extraTime) {
-						// don't start a new iteration, we were only allowing time to complete the search at the current ply
-						searchStopped = true;
-						if (DEBUG_LOGGING) {
-							if (EubosEngineMain.ENABLE_LOGGING) {
-								EubosEngineMain.logger.fine(String.format(
-										"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
-							}
-						}
 					}
+//					if (stopper.extraTime) {
+//						// don't start a new iteration, we were only allowing time to complete the search at the current ply
+//						searchStopped = true;
+//						if (DEBUG_LOGGING) {
+//							if (EubosEngineMain.ENABLE_LOGGING) {
+//								EubosEngineMain.logger.fine(String.format(
+//										"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
+//							}
+//						}
+//					}
 					currentDepth++;
 					if (currentDepth == EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
 						break;

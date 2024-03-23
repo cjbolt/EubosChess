@@ -94,6 +94,18 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				}
 			}
 			if (!searchStopped) {
+				Reference ref = refScore.getReference();
+				boolean canTerminate = res.score >= (ref.score + stopper.checkpointScoreThreshold[stopper.checkPoint]) 
+						&& res.depth >= ref.depth;
+				if (stopper.extraTime && canTerminate) {
+					searchStopped = true;
+					if (EubosEngineMain.ENABLE_LOGGING) {
+						EubosEngineMain.logger.fine(String.format(
+								"findMove stopped, extraTime and (%d >= (%d + %d @checkPoint=%d) AND depth=%d >= %d ref.depth), ran for %d ms", 
+								res.score, ref.score, stopper.checkpointScoreThreshold[stopper.checkPoint], 
+								stopper.checkPoint, res.depth ,ref.depth, stopper.timeRanFor));
+					}
+				}
 //				if (stopper.extraTime) {
 //					int sum = 0;
 //					for (int i = Math.max(1, currentDepth-5); i < currentDepth; i++) {
@@ -101,17 +113,21 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 //					}
 //					boolean deteriorating = sum > 25; 
 //					if (!deteriorating) {
+//						if (DEBUG_LOGGING) {
+//							EubosEngineMain.logger.finer(String.format(
+//									"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
+//						}
 //						searchStopped = true;
 //					}
 //				}
-              if (stopper.extraTime) {				
-					// don't start a new iteration, we were only allowing time to complete the search at the current ply
-					searchStopped = true;
-					if (DEBUG_LOGGING) {
-						EubosEngineMain.logger.finer(String.format(
-								"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
-					}
-				}
+//				if (stopper.extraTime) {				
+//					// don't start a new iteration, we were only allowing time to complete the search at the current ply
+//					searchStopped = true;
+//					if (DEBUG_LOGGING) {
+//						EubosEngineMain.logger.finer(String.format(
+//								"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
+//					}
+//				}
 				currentDepth++;
 				if (currentDepth == EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
 					break;
@@ -133,10 +149,10 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 
 	class IterativeMoveSearchStopper extends Thread {
 		
-		private final int checkpointScoreThreshold[] = {0, 0, 0, 0, 100, 100, 300}; //{24, 24, 0, 0, -24, -50, -100, -300, -500};
+		final int checkpointScoreThreshold[] = {50, 50, 24, 12, 4, 0, -24, -100, -500};
 		private volatile boolean stopperActive = false;
 		volatile boolean extraTime = false;
-		private int checkPoint = 0;
+		int checkPoint = 0;
 		long timeRanFor = 0;
 		long timeIntoWait = 0;
 		long timeOutOfWait = 0;
@@ -197,7 +213,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			byte ref_depth;
 			boolean isResearchingAspirationFail = mg.lastAspirationFailed();
 			
-			if (checkPoint == 1) extraTime = true;
+			if (checkPoint == 2) extraTime = true;
 			
 			EubosEngineMain.logger.finer("Stopper getting lock for mg.sm");
 			synchronized(mg.sm) {
@@ -220,10 +236,11 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			if (DEBUG_LOGGING) {
 				if (EubosEngineMain.ENABLE_LOGGING) {
 					EubosEngineMain.logger.info(String.format(
-							"checkPoint=%d hasBackedUpAScore=%s research_asp=%s currentScore=%s refScore=%s"+
-							" depth=%d refDepth=%d SearchStopped=%s StopperActive=%s ranFor=%d",
-							checkPoint, hasBackedUpAScore, isResearchingAspirationFail, Score.toString(currentScore),
-							Score.toString(ref_score), currDepth, ref_depth, searchStopped, stopperActive, timeRanFor));
+							"canTerminate=%s @ checkPoint=%d" +
+							"(hasBackedUp=%s AND !isAspFail=%s AND score=%s more (refScore=%s + thresh=%d) AND depth=%d more ref_depth=%d)"+
+							" ranFor=%d",
+							canTerminate, checkPoint,hasBackedUpAScore, isResearchingAspirationFail, Score.toString(currentScore),
+							Score.toString(ref_score), threshold, currDepth, ref_depth, timeRanFor));
 				}
 			}
 			
