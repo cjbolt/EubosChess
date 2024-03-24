@@ -215,42 +215,42 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 					}
 					scoreHistory[currentDepth] = result.score;
 					if (currentDepth > 1) {
-						currentDelta = scoreHistory[currentDepth-1] - result.score;
+						currentDelta = result.score - scoreHistory[currentDepth-1];
 					}
 					deltaHistory[currentDepth] = currentDelta;
 				} 
 
 				if (!searchStopped) {
-					Reference ref = refScore.getReference();
-					boolean canTerminate = result.score >= (ref.score + stopper.checkpointScoreThreshold[stopper.checkPoint]) 
-							&& result.depth >= ref.depth;
-					if (stopper.extraTime && canTerminate) {
-						searchStopped = true;
-						if (EubosEngineMain.ENABLE_LOGGING) {
-							EubosEngineMain.logger.fine(String.format(
-									"findMove stopped, extraTime and (%d >= (%d + %d @checkPoint=%d) AND depth=%d >= %d ref.depth), ran for %d ms", 
-									result.score, ref.score, stopper.checkpointScoreThreshold[stopper.checkPoint], 
-									stopper.checkPoint, result.depth ,ref.depth, stopper.timeRanFor));
+					if (stopper.extraTime) {
+						Reference ref = refScore.getReference();
+						boolean canTerminate = result.score >= (ref.score + stopper.checkpointScoreThreshold[stopper.checkPoint]) 
+								&& result.depth >= ref.depth;
+						if (canTerminate) {
+							searchStopped = true;
+							if (EubosEngineMain.ENABLE_LOGGING) {
+								EubosEngineMain.logger.info(String.format(
+										"_TM Stopping, extraTime and (%d >= (%d + %d @checkPoint=%d) AND depth=%d >= %d ref.depth), ran for %d ms", 
+										result.score, ref.score, stopper.checkpointScoreThreshold[stopper.checkPoint], 
+										stopper.checkPoint, result.depth ,ref.depth, stopper.timeRanFor));
+							}
+						} else {
+							int sum = 0;
+							int depthThresh = currentDepth/3;
+							for (int i = Math.max(1, currentDepth-depthThresh); i <= currentDepth; i++) {
+								sum += deltaHistory[i];
+							}
+							int deterioratingThresh = Math.max(16, Math.abs(result.score/8));
+							boolean deteriorating = sum < -deterioratingThresh; 
+							if (!deteriorating) {
+								searchStopped = true;
+								if (EubosEngineMain.ENABLE_LOGGING) {
+									EubosEngineMain.logger.info(String.format(
+											"_TM Stopping, extraTime and not deteriorating, delta_score_sum=%d over %d plies GT %d",
+											sum, depthThresh, -deterioratingThresh));
+								}
+							}
 						}
-//						int sum = 0;
-//						for (int i = Math.max(1, currentDepth-5); i < currentDepth; i++) {
-//							sum += deltaHistory[i];
-//						}
-//						boolean deteriorating = sum > 25; 
-//						if (!deteriorating) {
-//							searchStopped = true;
-//						}
 					}
-//					if (stopper.extraTime) {
-//						// don't start a new iteration, we were only allowing time to complete the search at the current ply
-//						searchStopped = true;
-//						if (DEBUG_LOGGING) {
-//							if (EubosEngineMain.ENABLE_LOGGING) {
-//								EubosEngineMain.logger.fine(String.format(
-//										"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
-//							}
-//						}
-//					}
 					currentDepth++;
 					if (currentDepth == EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
 						break;

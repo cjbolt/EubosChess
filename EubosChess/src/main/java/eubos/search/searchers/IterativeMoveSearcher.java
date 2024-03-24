@@ -82,7 +82,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			if (res != null) {
 				scoreHistory[currentDepth] = res.score;
 				if (currentDepth > 1) {
-					currentDelta = scoreHistory[currentDepth-1] - res.score;
+					currentDelta = res.score - scoreHistory[currentDepth-1];
 				}
 				deltaHistory[currentDepth] = currentDelta;
 				if (res.foundMate && !analyse) {
@@ -94,40 +94,36 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				}
 			}
 			if (!searchStopped) {
-				Reference ref = refScore.getReference();
-				boolean canTerminate = res.score >= (ref.score + stopper.checkpointScoreThreshold[stopper.checkPoint]) 
-						&& res.depth >= ref.depth;
-				if (stopper.extraTime && canTerminate) {
-					searchStopped = true;
-					if (EubosEngineMain.ENABLE_LOGGING) {
-						EubosEngineMain.logger.fine(String.format(
-								"findMove stopped, extraTime and (%d >= (%d + %d @checkPoint=%d) AND depth=%d >= %d ref.depth), ran for %d ms", 
-								res.score, ref.score, stopper.checkpointScoreThreshold[stopper.checkPoint], 
-								stopper.checkPoint, res.depth ,ref.depth, stopper.timeRanFor));
+				if (stopper.extraTime) {
+					Reference ref = refScore.getReference();
+					boolean canTerminate = res.score >= (ref.score + stopper.checkpointScoreThreshold[stopper.checkPoint]) 
+							&& res.depth >= ref.depth;
+					if (canTerminate) {
+						searchStopped = true;
+						if (EubosEngineMain.ENABLE_LOGGING) {
+							EubosEngineMain.logger.info(String.format(
+									"_TM Stopping, extraTime and (%d >= (%d + %d @checkPoint=%d) AND depth=%d >= %d ref.depth), ran for %d ms", 
+									res.score, ref.score, stopper.checkpointScoreThreshold[stopper.checkPoint], 
+									stopper.checkPoint, res.depth ,ref.depth, stopper.timeRanFor));
+						}
+					} else {
+						int sum = 0;
+						int depthThresh = currentDepth/3;
+						for (int i = Math.max(1, currentDepth-depthThresh); i <= currentDepth; i++) {
+							sum += deltaHistory[i];
+						}
+						int deterioratingThresh = Math.max(16, Math.abs(res.score/8));
+						boolean deteriorating = sum < -deterioratingThresh; 
+						if (!deteriorating) {
+							searchStopped = true;
+							if (EubosEngineMain.ENABLE_LOGGING) {
+								EubosEngineMain.logger.info(String.format(
+										"_TM Stopping, extra time and not deteriorating, delta_score_sum=%d over %d plies GT %d",
+										sum, depthThresh, -deterioratingThresh));
+							}
+						}
 					}
 				}
-//				if (stopper.extraTime) {
-//					int sum = 0;
-//					for (int i = Math.max(1, currentDepth-5); i < currentDepth; i++) {
-//						sum += deltaHistory[i];
-//					}
-//					boolean deteriorating = sum > 25; 
-//					if (!deteriorating) {
-//						if (DEBUG_LOGGING) {
-//							EubosEngineMain.logger.finer(String.format(
-//									"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
-//						}
-//						searchStopped = true;
-//					}
-//				}
-//				if (stopper.extraTime) {				
-//					// don't start a new iteration, we were only allowing time to complete the search at the current ply
-//					searchStopped = true;
-//					if (DEBUG_LOGGING) {
-//						EubosEngineMain.logger.finer(String.format(
-//								"findMove stopped, not time for a new iteration, ran for %d ms", stopper.timeRanFor));
-//					}
-//				}
 				currentDepth++;
 				if (currentDepth == EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
 					break;
@@ -236,11 +232,9 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 			if (DEBUG_LOGGING) {
 				if (EubosEngineMain.ENABLE_LOGGING) {
 					EubosEngineMain.logger.info(String.format(
-							"canTerminate=%s @ checkPoint=%d" +
-							"(hasBackedUp=%s AND !isAspFail=%s AND score=%s more (refScore=%s + thresh=%d) AND depth=%d more ref_depth=%d)"+
-							" ranFor=%d",
-							canTerminate, checkPoint,hasBackedUpAScore, isResearchingAspirationFail, Score.toString(currentScore),
-							Score.toString(ref_score), threshold, currDepth, ref_depth, timeRanFor));
+						"_TM term?=%s @ cp=%d (bUp=%s AND !asp=%s AND %s GTE (refScore=%s + %d) AND %d GTE refDepth=%d), dur=%dms",
+						canTerminate, checkPoint,hasBackedUpAScore, isResearchingAspirationFail, Score.toString(currentScore),
+						Score.toString(ref_score), threshold, currDepth, ref_depth, timeRanFor));
 				}
 			}
 			
