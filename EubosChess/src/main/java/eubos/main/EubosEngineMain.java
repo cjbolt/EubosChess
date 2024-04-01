@@ -36,6 +36,7 @@ import eubos.board.Piece.Colour;
 import eubos.board.SquareAttackEvaluator;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
+import eubos.position.MoveList;
 import eubos.position.PositionManager;
 import eubos.score.PawnEvalHashTable;
 import eubos.score.PositionEvaluator;
@@ -253,13 +254,23 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 
 	public void receive(EngineStartCalculatingCommand command) {
-		// The move searcher will report the best move found via a callback to this object, 
-		// this will occur when the tree search is concluded and the thread completes execution.
 		if (ENABLE_TT_DIAGNOSTIC_LOGGING) {
 			hashMap.resetDiagnostics();
 		}
-		moveSearcherFactory(command);
-		ms.start();
+		int forcedMove = MoveList.getForcedMove(rootPosition);
+		if (forcedMove != Move.NULL_MOVE) {
+			if (ENABLE_LOGGING) {
+				logger.info("Forced move so instant reply");
+			}
+			int [] pv = new int[] { forcedMove };
+			SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, 0);
+			sendBestMoveCommand(result);
+		} else {
+			// The move searcher will report the best move found via a callback to this object, 
+			// this will occur when the tree search is concluded and the thread completes execution.
+			moveSearcherFactory(command);
+			ms.start();
+		}
 	}
 	
 	private void moveSearcherFactory(EngineStartCalculatingCommand command) {

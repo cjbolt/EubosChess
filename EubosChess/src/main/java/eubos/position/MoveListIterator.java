@@ -5,6 +5,7 @@ import java.util.function.IntConsumer;
 
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
+import eubos.search.History;
 import eubos.search.KillerList;
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.ints.IntComparator;
@@ -65,14 +66,14 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 	private int ordering;
 	MoveListPly state;
 	int ply;
-	MoveList ml;
+	History history;
 	
-	public MoveListIterator(MoveList ml, PositionManager pm, int orderMoveList, int ply) {
+	public MoveListIterator(History history, PositionManager pm, int orderMoveList, int ply) {
 		this.pm = pm;
 		ordering = orderMoveList;
 		this.ply = ply;
 		state = new MoveListPly();
-		this.ml = ml;
+		this.history = history;
 		
 		// Create Move Adders
 		ma_promotions = new MoveAdderPromotions();
@@ -276,7 +277,7 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 	}
 
 	private void sortQuietMoves() {
-		IntArrays.quickSort(state.moves, 0, state.moves_index, ml.history.moveHistoryComparator);
+		IntArrays.quickSort(state.moves, 0, state.moves_index, history.moveHistoryComparator);
 	}
 	
 	private void sortTacticalMoves() {

@@ -28,7 +28,7 @@ public class MoveList {
 	
 		// Create the list at each ply
 		for (int i = 0; i < EubosEngineMain.SEARCH_DEPTH_IN_PLY; i++) {
-			ml[i] = new MoveListIterator(this, pm, orderMoveList, i);
+			ml[i] = new MoveListIterator(history, pm, orderMoveList, i);
 		}
 	}
 	
@@ -39,6 +39,20 @@ public class MoveList {
 	public int getRandomMove() {
 		int randomMove = Move.NULL_MOVE;
 		return randomMove;
+	}
+	
+	static public int getForcedMove(PositionManager pm) {
+		MoveListIterator it = new MoveListIterator(new History(), pm, 0, 0);
+		List<Integer> ml = new ArrayList<Integer>();
+		while (it.hasNext()) {
+			int currMove = it.nextInt();
+			if (!pm.performMove(currMove)) {
+				continue;
+			}
+			ml.add(currMove);
+			pm.unperformMove();
+		}
+		return ml.size() == 1 ? ml.get(0) : Move.NULL_MOVE;
 	}
 
 	// ---------------------------------------------------------------------------------------------

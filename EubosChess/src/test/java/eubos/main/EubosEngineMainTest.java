@@ -491,7 +491,15 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR, BEST_PREFIX+"g2g1"+CMD_TERMINATOR));
 		assertTrue(performTest(500));
 	}
-	 
+	
+	@Test
+	public void test_forcedMove_InstantReply() throws InterruptedException, IOException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"7k/8/8/3R4/8/8/5PPP/r5K1 w - - 0 1" +CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"1"+CMD_TERMINATOR, BEST_PREFIX+"d5d1"+CMD_TERMINATOR));
+		assertTrue(performTest(100));
+	}
+	
 	@Test
 	@Disabled // Takes a 17 ply search with LMR on to find the correct move? Check evaluation
 	public void test_try_to_draw_KBB_kr_EG() throws InterruptedException, IOException {
