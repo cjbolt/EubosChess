@@ -572,7 +572,7 @@ public class PlySearcher {
 					s.bestScore = positionScore;
 				} else {
 					currPly++;
-					s.bestScore = -negaScout(depth-1, -s.beta, -positionScore);
+					s.bestScore = redoLmrSubTreeSearch(depth, currMove, quietMoveNumber, positionScore); //-negaScout(depth-1, -s.beta, -positionScore);
 					currPly--;
 				}
 				if (s.bestScore > s.alpha) {
@@ -880,6 +880,38 @@ public class PlySearcher {
 		if (!passedLmr) {
 			// Re-search if the reduced search increased alpha 
 			positionScore = -negaScout(depth-1, true, -prev_s.adaptiveBeta, -prev_s.alpha, false);
+		}
+		return positionScore;
+	}
+	
+	private int redoLmrSubTreeSearch(int depth, int currMove, int moveNumber, int score) {
+		int positionScore = 0;
+		boolean passedLmr = false;
+		SearchState prev_s = state[currPly-1];
+		SearchState s = state[currPly];
+		//s.update(); /* Update inCheck */
+		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
+			moveNumber > 1 && /* Full search for at least one quiet move */
+			//!lmrApplied && /* Only apply LMR once per branch of tree */
+			!pe.goForMate() && /* Ignore reductions in a mate search */
+			depth > 2 &&
+			!(Move.isPawnMove(currMove) &&  /* Not a passed pawn move or a pawn move in endgame */
+					(pos.getTheBoard().me.isEndgame() ||
+					(pos.getTheBoard().getPassedPawns() & (1L << Move.getTargetPosition(currMove))) != 0L))) {
+		
+			// Calculate reduction, 1 for the first few moves, then the closer to the root node, the more severe the reduction
+			int lmr = (moveNumber < depth/2) ? 1 : Math.max(1, depth/4);
+			if (s.inCheck) lmr = 1;
+			if (lmr > 0) {
+				positionScore = -negaScout(depth-1-lmr, -prev_s.beta, -score);
+				if (positionScore <= score /*prev_s.alpha*/) {
+					passedLmr = true;
+				}
+			}
+		}
+		if (!passedLmr) {
+			// Re-search if the reduced search increased alpha 
+			positionScore = -negaScout(depth-1, true, -prev_s.beta, -score, false);
 		}
 		return positionScore;
 	}
