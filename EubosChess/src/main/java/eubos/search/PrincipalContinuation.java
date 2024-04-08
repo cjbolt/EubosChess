@@ -63,7 +63,7 @@ public class PrincipalContinuation {
 		if (length[currPly] != 0) {
 			return Arrays.copyOfRange(pc[currPly], 0, length[0]);
 		}
-		return null;
+		return new int[] {Move.NULL_MOVE};
 	}
 	
 	void initialise(int currPly, int currMove) {

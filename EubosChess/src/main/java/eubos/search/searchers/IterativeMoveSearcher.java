@@ -86,6 +86,10 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	
 	protected synchronized void handleTimeManagement(SearchResult res, int currentDepth) {
 		if (!stopper.extraTime) return;
+		if (stopper.checkPoint >= stopper.checkpointScoreThreshold.length-1) {
+			searchStopped = true;
+			return;
+		}
 		
 		Reference ref = refScore.getReference();
 		boolean canTerminate = res.score >= (ref.score + stopper.checkpointScoreThreshold[stopper.checkPoint]) 
@@ -213,7 +217,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		}
 		
 		private boolean checkWhetherToStop() {
-			if (checkPoint == checkpointScoreThreshold.length) return true;
+			if (checkPoint >= checkpointScoreThreshold.length-1) return true;
 			if (checkPoint == 0) return false;
 			
 			int threshold = checkpointScoreThreshold[checkPoint];
