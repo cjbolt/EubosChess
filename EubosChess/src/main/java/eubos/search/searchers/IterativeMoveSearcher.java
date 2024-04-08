@@ -25,9 +25,10 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	
 	volatile boolean searchStopped = false;
 	public static final boolean DEBUG_LOGGING = true;
-	public static final boolean EXPLICIT_GARBAGE_COLLECTION = false;
 	private int [] scoreHistory;
 	private int [] deltaHistory;
+	
+	protected IterativeMoveSearchStopper stopper;
 
 	public IterativeMoveSearcher(EubosEngineMain eubos, 
 			FixedSizeTranspositionTable hashMap,
@@ -63,6 +64,75 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		gameTimeRemaining = time + incrementTime;
 	}
 	
+	protected synchronized void updateScoreHistory(SearchResult res, int currentDepth) {
+		int currentDelta = 0;
+		scoreHistory[currentDepth] = res.score;
+		if (currentDepth > 1) {
+			currentDelta = res.score - scoreHistory[currentDepth-1];
+		}
+		deltaHistory[currentDepth] = currentDelta;
+	}
+	
+	protected boolean checkForImmediateHalt(SearchResult res) {
+		if (res.foundMate && !analyse) {
+			EubosEngineMain.logger.info("IterativeMoveSearcher found mate");
+			searchStopped = true;
+		} else if (res.pv[0] == Move.NULL_MOVE) {
+			EubosEngineMain.logger.severe("IterativeMoveSearcher out of legal moves");
+			searchStopped = true;
+		}
+		return searchStopped;
+	}
+	
+	protected synchronized void handleTimeManagement(SearchResult res, int currentDepth) {
+		if (!stopper.extraTime) return;
+		
+		Reference ref = refScore.getReference();
+		boolean canTerminate = res.score >= (ref.score + stopper.checkpointScoreThreshold[stopper.checkPoint]) 
+				&& res.depth >= ref.depth;
+		if (canTerminate) {
+			searchStopped = true;
+			if (EubosEngineMain.ENABLE_LOGGING) {
+				EubosEngineMain.logger.info(String.format(
+						"_TM Stopping, extraTime and (%d >= (%d + %d @checkPoint=%d) AND depth=%d >= %d ref.depth), ran for %d ms", 
+						res.score, ref.score, stopper.checkpointScoreThreshold[stopper.checkPoint], 
+						stopper.checkPoint, res.depth ,ref.depth, stopper.timeRanFor));
+			}
+		} else {
+			int sum = 0;
+			int depthThresh = currentDepth/3;
+			for (int i = Math.max(1, currentDepth-depthThresh); i <= currentDepth; i++) {
+				sum += deltaHistory[i];
+			}
+			int deterioratingThresh = Math.max(16, Math.abs(res.score/8));
+			boolean deteriorating = sum < -deterioratingThresh; 
+			if (!deteriorating) {
+				searchStopped = true;
+				if (EubosEngineMain.ENABLE_LOGGING) {
+					EubosEngineMain.logger.info(String.format(
+							"_TM Stopping, extra time and not deteriorating, delta_score_sum=%d over %d plies GT %d",
+							sum, depthThresh, -deterioratingThresh));
+				}
+			}
+		}
+	}
+	
+	protected void startSearch() {
+		enableSearchMetricsReporter(true);
+		stopper = new IterativeMoveSearchStopper();
+		stopper.start();
+	}
+	
+	protected void stopSearch(SearchResult res) {
+		EubosEngineMain.logger.info(
+				String.format("IterativeMoveSearcher ended best=%s gameTimeRemaining=%d", res.pv[0], gameTimeRemaining));
+		stopper.end();
+		enableSearchMetricsReporter(false);
+		eubosEngine.sendBestMoveCommand(res);
+		terminateSearchMetricsReporter();
+		mg.sda.close();
+	}
+	
 	@Override
 	public void halt() {
 		mg.terminateFindMove();
@@ -72,75 +142,20 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	@Override
 	public void run() {
 		byte currentDepth = 1;
-		int currentDelta = 0;
 		SearchResult res = new SearchResult();
-		enableSearchMetricsReporter(true);
-		IterativeMoveSearchStopper stopper = new IterativeMoveSearchStopper();
-		stopper.start();
-		while (!searchStopped) {
+		startSearch();
+		
+		while (!searchStopped && currentDepth < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
 			res = mg.findMove(currentDepth, sr);
-			if (res != null) {
-				scoreHistory[currentDepth] = res.score;
-				if (currentDepth > 1) {
-					currentDelta = res.score - scoreHistory[currentDepth-1];
-				}
-				deltaHistory[currentDepth] = currentDelta;
-				if (res.foundMate && !analyse) {
-					EubosEngineMain.logger.info("IterativeMoveSearcher found mate");
-					searchStopped = true;
-				} else if (res.pv[0] == Move.NULL_MOVE) {
-					EubosEngineMain.logger.severe("IterativeMoveSearcher out of legal moves");
-					searchStopped = true;
-				}
-			}
+			updateScoreHistory(res, currentDepth);
+			checkForImmediateHalt(res);
 			if (!searchStopped) {
-				if (stopper.extraTime) {
-					Reference ref = refScore.getReference();
-					boolean canTerminate = res.score >= (ref.score + stopper.checkpointScoreThreshold[stopper.checkPoint]) 
-							&& res.depth >= ref.depth;
-					if (canTerminate) {
-						searchStopped = true;
-						if (EubosEngineMain.ENABLE_LOGGING) {
-							EubosEngineMain.logger.info(String.format(
-									"_TM Stopping, extraTime and (%d >= (%d + %d @checkPoint=%d) AND depth=%d >= %d ref.depth), ran for %d ms", 
-									res.score, ref.score, stopper.checkpointScoreThreshold[stopper.checkPoint], 
-									stopper.checkPoint, res.depth ,ref.depth, stopper.timeRanFor));
-						}
-					} else {
-						int sum = 0;
-						int depthThresh = currentDepth/3;
-						for (int i = Math.max(1, currentDepth-depthThresh); i <= currentDepth; i++) {
-							sum += deltaHistory[i];
-						}
-						int deterioratingThresh = Math.max(16, Math.abs(res.score/8));
-						boolean deteriorating = sum < -deterioratingThresh; 
-						if (!deteriorating) {
-							searchStopped = true;
-							if (EubosEngineMain.ENABLE_LOGGING) {
-								EubosEngineMain.logger.info(String.format(
-										"_TM Stopping, extra time and not deteriorating, delta_score_sum=%d over %d plies GT %d",
-										sum, depthThresh, -deterioratingThresh));
-							}
-						}
-					}
-				}
+				handleTimeManagement(res, currentDepth);
 				currentDepth++;
-				if (currentDepth == EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
-					break;
-				}
 			}
 		}
-		EubosEngineMain.logger.info(
-			String.format("IterativeMoveSearcher ended best=%s gameTimeRemaining=%d", res.pv[0], gameTimeRemaining));
-		stopper.end();
-		enableSearchMetricsReporter(false);
-		eubosEngine.sendBestMoveCommand(res);
-		terminateSearchMetricsReporter();
-		mg.sda.close();
-		if (EXPLICIT_GARBAGE_COLLECTION) {
-			if (gameTimeRemaining > 60000)
-				System.gc();
-		}
+
+		stopSearch(res);
 	}
 
 	class IterativeMoveSearchStopper extends Thread {

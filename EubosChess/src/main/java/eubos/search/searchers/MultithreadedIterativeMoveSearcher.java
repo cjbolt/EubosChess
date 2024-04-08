@@ -5,11 +5,9 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import eubos.main.EubosEngineMain;
-import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.score.PawnEvalHashTable;
 import eubos.score.ReferenceScore;
-import eubos.score.ReferenceScore.Reference;
 import eubos.search.DrawChecker;
 
 import eubos.search.SearchResult;
@@ -42,7 +40,6 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		this.threads = threads;
 		workers = new ArrayList<MultithreadedSearchWorkerThread>(threads);
 		createMoveGenerators(hashMap, pawnHash, fen, dc, threads);
-		stopper = new IterativeMoveSearchStopper();
 	}
 
 	private void createMoveGenerators(FixedSizeTranspositionTable hashMap, PawnEvalHashTable pawnHash, String fen, DrawChecker dc, int threads) {
@@ -101,8 +98,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	@SuppressWarnings("unused")
 	@Override
 	public void run() {
-		enableSearchMetricsReporter(true);
-		stopper.start();
+		startSearch();
 		
 		// Create workers and let them run
 		for (int i=0; i < threads; i++) {
@@ -185,79 +181,14 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		public SearchResult result;
 		private volatile boolean halted = false;
 		final AtomicBoolean finished = new AtomicBoolean(false);
-		private int [] scoreHistory;
-		private int [] deltaHistory;
 		
-		public MultithreadedSearchWorkerThread( MiniMaxMoveGenerator moveGen, AbstractMoveSearcher main ) {
+		public MultithreadedSearchWorkerThread(MiniMaxMoveGenerator moveGen, AbstractMoveSearcher main) {
 			this.myMg = moveGen;
 			this.main = main;
 			this.setName(String.format("MultithreadedSearchWorkerThread=%d",this.getId()));
-			scoreHistory = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY+1];
-			deltaHistory = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY+1];
 		}
 		
-		public void run() {
-			byte currentDepth = 1;
-			int currentDelta = 0;
-			result = new SearchResult(new int [] {Move.NULL_MOVE}, false, 0L, currentDepth, true, 0);
-		
-			while (!searchStopped && !halted) {
-				result = myMg.findMove(currentDepth, sr);
-				if (result != null) {
-					if (result.foundMate && !analyse) {
-						EubosEngineMain.logger.info("IterativeMoveSearcher found mate");
-						searchStopped = true;
-						halted = true;
-					} else if (result.pv == null || result.pv[0] == Move.NULL_MOVE) {
-						EubosEngineMain.logger.severe("IterativeMoveSearcher out of legal moves");
-						searchStopped = true;
-						halted = true;
-					}
-					scoreHistory[currentDepth] = result.score;
-					if (currentDepth > 1) {
-						currentDelta = result.score - scoreHistory[currentDepth-1];
-					}
-					deltaHistory[currentDepth] = currentDelta;
-				} 
-
-				if (!searchStopped) {
-					if (stopper.extraTime) {
-						Reference ref = refScore.getReference();
-						boolean canTerminate = result.score >= (ref.score + stopper.checkpointScoreThreshold[stopper.checkPoint]) 
-								&& result.depth >= ref.depth;
-						if (canTerminate) {
-							searchStopped = true;
-							if (EubosEngineMain.ENABLE_LOGGING) {
-								EubosEngineMain.logger.info(String.format(
-										"_TM Stopping, extraTime and (%d >= (%d + %d @checkPoint=%d) AND depth=%d >= %d ref.depth), ran for %d ms", 
-										result.score, ref.score, stopper.checkpointScoreThreshold[stopper.checkPoint], 
-										stopper.checkPoint, result.depth ,ref.depth, stopper.timeRanFor));
-							}
-						} else {
-							int sum = 0;
-							int depthThresh = currentDepth/3;
-							for (int i = Math.max(1, currentDepth-depthThresh); i <= currentDepth; i++) {
-								sum += deltaHistory[i];
-							}
-							int deterioratingThresh = Math.max(16, Math.abs(result.score/8));
-							boolean deteriorating = sum < -deterioratingThresh; 
-							if (!deteriorating) {
-								searchStopped = true;
-								if (EubosEngineMain.ENABLE_LOGGING) {
-									EubosEngineMain.logger.info(String.format(
-											"_TM Stopping, extraTime and not deteriorating, delta_score_sum=%d over %d plies GT %d",
-											sum, depthThresh, -deterioratingThresh));
-								}
-							}
-						}
-					}
-					currentDepth++;
-					if (currentDepth == EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
-						break;
-					}
-				}			
-			}
-			// The result can be read by reading the result member of this object or by reading the shared transposition table
+		private void stopWorker() {
 			halted = true;
 			myMg.reportStatistics();
 			myMg.sda.close();
@@ -268,6 +199,25 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 				finished.set(true);
 				main.notify();
 			}
+		}
+		
+		public void run() {
+			byte currentDepth = 1;
+			result = new SearchResult();
+		
+			while (!searchStopped && !halted && currentDepth < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
+				result = myMg.findMove(currentDepth, sr);
+				updateScoreHistory(result, currentDepth);
+				halted = checkForImmediateHalt(result);
+				if (!searchStopped) {
+					handleTimeManagement(result, currentDepth);
+					currentDepth++;
+				}			
+			}
+			
+			// Note: The search result can be attained by directly reading the result member of this object
+			// or alternatively, indirectly, by reading the shared transposition table.
+			stopWorker();
 		}
 		
 		public void halt() {
