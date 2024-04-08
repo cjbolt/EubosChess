@@ -16,10 +16,8 @@ import eubos.search.transposition.FixedSizeTranspositionTable;
 
 public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	
-	private static final int STAGGERED_START_TIME_FOR_THREADS = 0;
 	private static final boolean ALTERNATIVE_MOVE_LIST_ORDERING_IN_WORKER_THREADS = true;
 	
-	protected IterativeMoveSearchStopper stopper;
 	protected int threads = 0;
 	
 	protected List<MultithreadedSearchWorkerThread> workers;
@@ -105,14 +103,8 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			MultithreadedSearchWorkerThread worker = new MultithreadedSearchWorkerThread(moveGenerators.get(i), this);
 			workers.add(worker);
 			worker.start();
-			if (STAGGERED_START_TIME_FOR_THREADS > 0 && gameTimeRemaining > STAGGERED_START_TIME_FOR_THREADS*100) {
-				try {
-					Thread.sleep(STAGGERED_START_TIME_FOR_THREADS);
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-			}
 		}
+		
 		// Wait for multithreaded search to complete, all threads must finish
 		synchronized (this) {
 			try {
@@ -125,11 +117,11 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 				EubosEngineMain.logger.info("MultithreadedIterativeMoveSearcher got an InterruptedException.");
 			}
 		}
-		enableSearchMetricsReporter(false);
-		stopper.end();
-		terminateSearchMetricsReporter();
+
+		SearchResult res = getFavouredWorkerResult();
+		stopSearch(res);
 		try {
-			eubosEngine.sendBestMoveCommand(getFavouredWorkerResult());
+			eubosEngine.sendBestMoveCommand(res);
 		} catch (Exception e) {
 			EubosEngineMain.handleFatalError(e, "Exception during sendBestMoveCommand", moveGenerators.get(0).pos);
 		}

@@ -128,9 +128,7 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 				String.format("IterativeMoveSearcher ended best=%s gameTimeRemaining=%d", res.pv[0], gameTimeRemaining));
 		stopper.end();
 		enableSearchMetricsReporter(false);
-		eubosEngine.sendBestMoveCommand(res);
 		terminateSearchMetricsReporter();
-		mg.sda.close();
 	}
 	
 	@Override
@@ -156,6 +154,8 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 		}
 
 		stopSearch(res);
+		eubosEngine.sendBestMoveCommand(res);
+		mg.sda.close();
 	}
 
 	class IterativeMoveSearchStopper extends Thread {
