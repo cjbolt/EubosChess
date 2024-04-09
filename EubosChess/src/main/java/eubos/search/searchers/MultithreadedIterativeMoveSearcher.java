@@ -177,6 +177,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		public MultithreadedSearchWorkerThread(MiniMaxMoveGenerator moveGen, AbstractMoveSearcher main) {
 			this.myMg = moveGen;
 			this.main = main;
+			result = new SearchResult();
 			this.setName(String.format("MultithreadedSearchWorkerThread=%d",this.getId()));
 		}
 		
@@ -195,7 +196,6 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		
 		public void run() {
 			byte currentDepth = 1;
-			result = new SearchResult();
 		
 			while (!searchStopped && !halted && currentDepth < EubosEngineMain.SEARCH_DEPTH_IN_PLY) {
 				result = myMg.findMove(currentDepth, sr);
