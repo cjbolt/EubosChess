@@ -632,7 +632,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Fine: problem 100A
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/6p1/3k1p2/2p2Pp1/2P1p1P1/1P4P1/4K3/8 w - - 2 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"21"+CMD_TERMINATOR, BEST_PREFIX+"e2f2"+CMD_TERMINATOR)); // According to Stockfish e2d2
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"21"+CMD_TERMINATOR, BEST_PREFIX+"e2d2"+CMD_TERMINATOR)); // According to Stockfish e2d2
 		assertTrue(performTest(4000));		
 	}
 	

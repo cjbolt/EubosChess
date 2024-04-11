@@ -274,7 +274,7 @@ public class PlySearcher {
 			if (!pm.performMove(currMove)) {
 				continue;
 			}
-						
+				
 			s.moveNumber += 1;
 			if (EubosEngineMain.ENABLE_UCI_MOVE_NUMBER) {
 				sm.setCurrentMove(currMove, s.moveNumber);
@@ -295,9 +295,9 @@ public class PlySearcher {
 			
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
-			currPly++;
-			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, false);
-			currPly--;
+			
+			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, false, -s.adaptiveBeta, -s.alpha);
+
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
 			
@@ -316,9 +316,7 @@ public class PlySearcher {
 				if (s.adaptiveBeta == s.beta || depth < 2) {
 					s.bestScore = positionScore;
 				} else {
-					currPly++;
-					s.bestScore = -negaScout(depth-1, -s.beta, -positionScore);
-					currPly--;
+					s.bestScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, false, -s.beta, -positionScore); 
 				}
 				pm.unperformMove();
 				
@@ -555,9 +553,7 @@ public class PlySearcher {
 			
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
-			currPly++;
-			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied);
-			currPly--;
+			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, -s.adaptiveBeta, -s.alpha);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
 			
@@ -571,9 +567,7 @@ public class PlySearcher {
 				if (s.adaptiveBeta == s.beta || depth < 2) {
 					s.bestScore = positionScore;
 				} else {
-					currPly++;
-					s.bestScore = redoLmrSubTreeSearch(depth, currMove, quietMoveNumber, positionScore); //-negaScout(depth-1, -s.beta, -positionScore);
-					currPly--;
+					s.bestScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, -s.beta, -positionScore); 
 				}
 				if (s.bestScore > s.alpha) {
 					s.alpha = s.bestScore;
@@ -852,12 +846,13 @@ public class PlySearcher {
 		return plyScore;
 	}
 	
-	private int doLmrSubTreeSearch(int depth, int currMove, int moveNumber, boolean lmrApplied) {
+	private int doLmrSubTreeSearch(int depth, int currMove, int moveNumber, boolean lmrApplied, int alpha, int beta) {
 		int positionScore = 0;
 		boolean passedLmr = false;
+		currPly++;
 		SearchState prev_s = state[currPly-1];
 		SearchState s = state[currPly];
-		s.update(); /* Update inCheck */
+		s.update();
 		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
 			moveNumber > 1 && /* Full search for at least one quiet move */
 			//!lmrApplied && /* Only apply LMR once per branch of tree */
@@ -871,7 +866,7 @@ public class PlySearcher {
 			int lmr = (moveNumber < depth/2) ? 1 : Math.max(1, depth/4);
 			if (s.inCheck) lmr = 1;
 			if (lmr > 0) {
-				positionScore = -negaScout(depth-1-lmr, -prev_s.adaptiveBeta, -prev_s.alpha);
+				positionScore = -negaScout(depth-1-lmr, alpha, beta);
 				if (positionScore <= prev_s.alpha) {
 					passedLmr = true;
 				}
@@ -879,40 +874,9 @@ public class PlySearcher {
 		}
 		if (!passedLmr) {
 			// Re-search if the reduced search increased alpha 
-			positionScore = -negaScout(depth-1, true, -prev_s.adaptiveBeta, -prev_s.alpha, false);
+			positionScore = -negaScout(depth-1, true, alpha, beta, false);
 		}
-		return positionScore;
-	}
-	
-	private int redoLmrSubTreeSearch(int depth, int currMove, int moveNumber, int score) {
-		int positionScore = 0;
-		boolean passedLmr = false;
-		SearchState prev_s = state[currPly-1];
-		SearchState s = state[currPly];
-		//s.update(); /* Update inCheck */
-		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
-			moveNumber > 1 && /* Full search for at least one quiet move */
-			//!lmrApplied && /* Only apply LMR once per branch of tree */
-			!pe.goForMate() && /* Ignore reductions in a mate search */
-			depth > 2 &&
-			!(Move.isPawnMove(currMove) &&  /* Not a passed pawn move or a pawn move in endgame */
-					(pos.getTheBoard().me.isEndgame() ||
-					(pos.getTheBoard().getPassedPawns() & (1L << Move.getTargetPosition(currMove))) != 0L))) {
-		
-			// Calculate reduction, 1 for the first few moves, then the closer to the root node, the more severe the reduction
-			int lmr = (moveNumber < depth/2) ? 1 : Math.max(1, depth/4);
-			if (s.inCheck) lmr = 1;
-			if (lmr > 0) {
-				positionScore = -negaScout(depth-1-lmr, -prev_s.beta, -score);
-				if (positionScore <= score /*prev_s.alpha*/) {
-					passedLmr = true;
-				}
-			}
-		}
-		if (!passedLmr) {
-			// Re-search if the reduced search increased alpha 
-			positionScore = -negaScout(depth-1, true, -prev_s.beta, -score, false);
-		}
+		currPly--;
 		return positionScore;
 	}
 	
