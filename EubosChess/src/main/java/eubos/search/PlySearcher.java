@@ -296,7 +296,7 @@ public class PlySearcher {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
 			
-			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, false, -s.adaptiveBeta, -s.alpha, false);
+			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, false, s.adaptiveBeta, s.alpha, false);
 
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
@@ -316,7 +316,7 @@ public class PlySearcher {
 				if (s.adaptiveBeta == s.beta || depth < 2) {
 					s.bestScore = positionScore;
 				} else {
-					s.bestScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, false, -s.beta, -positionScore, true); 
+					s.bestScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, false, s.beta, positionScore, true); 
 				}
 				pm.unperformMove();
 				
@@ -553,7 +553,7 @@ public class PlySearcher {
 			
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
-			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, -s.adaptiveBeta, -s.alpha, false);
+			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, s.adaptiveBeta, s.alpha, false);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
 			
@@ -567,7 +567,7 @@ public class PlySearcher {
 				if (s.adaptiveBeta == s.beta || depth < 2) {
 					s.bestScore = positionScore;
 				} else {
-					s.bestScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, -s.beta, -positionScore, true); 
+					s.bestScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, s.beta, positionScore, true); 
 				}
 				if (s.bestScore > s.alpha) {
 					s.alpha = s.bestScore;
@@ -867,7 +867,7 @@ public class PlySearcher {
 			int lmr = (moveNumber < depth/2) ? 1 : Math.max(1, depth/4);
 			if (s.inCheck) lmr = 1;
 			if (lmr > 0) {
-				positionScore = -negaScout(depth-1-lmr, alpha, beta);
+				positionScore = -negaScout(depth-1-lmr, -alpha, -beta);
 				if (positionScore <= alpha) {
 					passedLmr = true;
 				}
@@ -875,7 +875,7 @@ public class PlySearcher {
 		}
 		if (!passedLmr) {
 			// Re-search if the reduced search increased alpha 
-			positionScore = -negaScout(depth-1, true, alpha, beta, false);
+			positionScore = -negaScout(depth-1, true, -alpha, -beta, false);
 		}
 		currPly--;
 		return positionScore;
