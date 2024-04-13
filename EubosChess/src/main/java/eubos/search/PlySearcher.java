@@ -850,7 +850,6 @@ public class PlySearcher {
 		int positionScore = 0;
 		boolean passedLmr = false;
 		currPly++;
-		SearchState prev_s = state[currPly-1];
 		SearchState s = state[currPly];
 		if (!redo) {
 			s.update();
@@ -869,7 +868,7 @@ public class PlySearcher {
 			if (s.inCheck) lmr = 1;
 			if (lmr > 0) {
 				positionScore = -negaScout(depth-1-lmr, alpha, beta);
-				if (positionScore <= prev_s.alpha) {
+				if (positionScore <= alpha) {
 					passedLmr = true;
 				}
 			}
