@@ -199,7 +199,9 @@ public abstract class AbstractEubosIntegration {
 								mateDetected = true;
 								accumulate = true;
 							} else {
-								//EubosEngineMain.logger.info(String.format("parsed '%s' != '%s'", parsedCmd, expectedOutput));
+								if (parsedCmd.contains("bestmove")) {
+									System.err.println(String.format("received '%s'", parsedCmd));
+								}
 								accumulate = false;
 							}
 					    }
