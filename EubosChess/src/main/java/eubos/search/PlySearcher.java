@@ -296,7 +296,7 @@ public class PlySearcher {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
 			
-			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, false, s.adaptiveBeta, s.alpha, false);
+			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, false, s.alpha, s.adaptiveBeta, false);
 
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
@@ -316,9 +316,7 @@ public class PlySearcher {
 				if (s.adaptiveBeta == s.beta || depth < 2) {
 					s.bestScore = positionScore;
 				} else {
-					currPly++;
-					s.bestScore = -negaScout(depth-1, -s.beta, -positionScore); 
-					currPly--;
+					s.bestScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, false, positionScore, s.beta, true);
 				}
 				pm.unperformMove();
 				
@@ -555,7 +553,7 @@ public class PlySearcher {
 			
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
-			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, s.adaptiveBeta, s.alpha, false);
+			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, s.alpha, s.adaptiveBeta, false);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
 			
@@ -569,7 +567,7 @@ public class PlySearcher {
 				if (s.adaptiveBeta == s.beta || depth < 2) {
 					s.bestScore = positionScore;
 				} else {
-					s.bestScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, s.beta, positionScore, true); 
+					s.bestScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, positionScore, s.beta, true);
 				}
 				if (s.bestScore > s.alpha) {
 					s.alpha = s.bestScore;
@@ -859,6 +857,7 @@ public class PlySearcher {
 		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
 			moveNumber > 1 && /* Full search for at least one quiet move */
 			//!lmrApplied && /* Only apply LMR once per branch of tree */
+			!redo &&
 			!pe.goForMate() && /* Ignore reductions in a mate search */
 			depth > 2 &&
 			!(Move.isPawnMove(currMove) &&  /* Not a passed pawn move or a pawn move in endgame */
@@ -869,15 +868,15 @@ public class PlySearcher {
 			int lmr = (moveNumber < depth/2) ? 1 : Math.max(1, depth/4);
 			if (s.inCheck) lmr = 1;
 			if (lmr > 0) {
-				positionScore = -negaScout(depth-1-lmr, -alpha, -beta);
-				if (positionScore <= beta) {
+				positionScore = -negaScout(depth-1-lmr, -beta, -alpha);
+				if (positionScore <= alpha) {
 					passedLmr = true;
 				}
 			}
 		}
 		if (!passedLmr) {
 			// Re-search if the reduced search increased alpha 
-			positionScore = -negaScout(depth-1, true, -alpha, -beta, false);
+			positionScore = -negaScout(depth-1, true, -beta, -alpha, false);
 		}
 		currPly--;
 		return positionScore;
