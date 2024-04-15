@@ -870,7 +870,7 @@ public class PlySearcher {
 			if (s.inCheck) lmr = 1;
 			if (lmr > 0) {
 				positionScore = -negaScout(depth-1-lmr, -alpha, -beta);
-				if (positionScore <= alpha) {
+				if (positionScore <= beta) {
 					passedLmr = true;
 				}
 			}
