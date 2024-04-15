@@ -316,7 +316,9 @@ public class PlySearcher {
 				if (s.adaptiveBeta == s.beta || depth < 2) {
 					s.bestScore = positionScore;
 				} else {
-					s.bestScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, false, s.beta, positionScore, true); 
+					currPly++;
+					s.bestScore = -negaScout(depth-1, -s.beta, -positionScore); 
+					currPly--;
 				}
 				pm.unperformMove();
 				
