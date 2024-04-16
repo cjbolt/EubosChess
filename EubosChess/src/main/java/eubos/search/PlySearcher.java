@@ -296,7 +296,7 @@ public class PlySearcher {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
 			
-			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, false, s.alpha, s.adaptiveBeta, false);
+			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, false, s.alpha, s.adaptiveBeta, true);
 
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
@@ -316,7 +316,7 @@ public class PlySearcher {
 				if (s.adaptiveBeta == s.beta || depth < 2) {
 					s.bestScore = positionScore;
 				} else {
-					s.bestScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, false, positionScore, s.beta, true);
+					s.bestScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, false, positionScore, s.beta, false);
 				}
 				pm.unperformMove();
 				
@@ -553,7 +553,7 @@ public class PlySearcher {
 			
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
-			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, s.alpha, s.adaptiveBeta, false);
+			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, s.alpha, s.adaptiveBeta, true);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
 			
@@ -567,7 +567,7 @@ public class PlySearcher {
 				if (s.adaptiveBeta == s.beta || depth < 2) {
 					s.bestScore = positionScore;
 				} else {
-					s.bestScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, positionScore, s.beta, true);
+					s.bestScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, positionScore, s.beta, false);
 				}
 				if (s.bestScore > s.alpha) {
 					s.alpha = s.bestScore;
@@ -846,18 +846,18 @@ public class PlySearcher {
 		return plyScore;
 	}
 	
-	private int doLmrSubTreeSearch(int depth, int currMove, int moveNumber, boolean lmrApplied, int alpha, int beta, boolean redo) {
+	private int doLmrSubTreeSearch(int depth, int currMove, int moveNumber, boolean lmrApplied, int alpha, int beta, boolean scout) {
 		int positionScore = 0;
 		boolean passedLmr = false;
 		currPly++;
 		SearchState s = state[currPly];
-		if (!redo) {
+		if (scout) {
 			s.update();
 		}
 		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
 			moveNumber > 1 && /* Full search for at least one quiet move */
 			//!lmrApplied && /* Only apply LMR once per branch of tree */
-			!redo &&
+			//scout &&
 			!pe.goForMate() && /* Ignore reductions in a mate search */
 			depth > 2 &&
 			!(Move.isPawnMove(currMove) &&  /* Not a passed pawn move or a pawn move in endgame */
