@@ -86,7 +86,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_COUNTED_PASSED_PAWN_MASKS = true;
 	public static final boolean ENABLE_ITERATIVE_DEEPENING = true;
 	public static final boolean ENABLE_FUTILITY_PRUNING = true;
-	public static final boolean ENABLE_RAZORING_ON_QUIESCENCE = false;
+	public static final boolean ENABLE_RAZORING_ON_QUIESCENCE = true;
 	public static final boolean ENABLE_FUTILITY_PRUNING_OF_KILLER_MOVES = false;
 	public static final boolean ENABLE_PER_MOVE_FUTILITY_PRUNING = true;
 	public static final boolean ENABLE_OVERWRITE_TRANS_WITH_SEARCH = false;

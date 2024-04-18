@@ -419,11 +419,10 @@ public class PlySearcher {
 			}
 		}
 		
-		if (!s.inCheck) {
+		if (!s.inCheck && !pe.goForMate()) {
 			// Reverse futility pruning
 			if (depth < 8 &&
-				hasSearchedPv &&
-				!pe.goForMate()) {
+				hasSearchedPv) {
 				if (!s.isStaticValid) {
 					setStaticEvaluation(trans);
 				}
@@ -435,10 +434,10 @@ public class PlySearcher {
 			// Razoring
 		    if (EubosEngineMain.ENABLE_RAZORING_ON_QUIESCENCE &&
 		    	hasSearchedPv && 
-		    	depth <= 5) {
-		    	int thresh = s.staticEval + 800 + (150 * depth * depth);
-		    	if (thresh < s.alpha) {
-		            int value = extendedSearch(s.alpha - 1, s.alpha, depth-1);
+		    	depth <= 3) {
+		    	int thresh = 300 + (150 * depth * depth);
+		    	if (s.staticEval + thresh < s.alpha) {
+		            int value = extendedSearch(s.alpha - 1, s.alpha, -1);
 		            if (value < s.alpha) {
 		                return s.alpha;
 		            } else {
@@ -452,7 +451,7 @@ public class PlySearcher {
 				!isTerminated() &&
 				depth > 2 &&
 				nullCheckEnabled && 
-				(pos.getTheBoard().me.phase < 4000 && !pe.goForMate())) {
+				pos.getTheBoard().me.phase < 4000) {
 				
 				s.bestScore = doNullMoveSubTreeSearch(depth);
 				if (isTerminated()) { return 0; }

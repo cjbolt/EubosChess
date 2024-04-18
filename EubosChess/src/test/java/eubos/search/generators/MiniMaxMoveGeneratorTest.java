@@ -462,7 +462,7 @@ public class MiniMaxMoveGeneratorTest {
 	public void test_mate_in_2()throws IllegalNotationException  {
 		setupPosition("5bkr/5ppp/5P2/8/8/8/6Q1/R4KR1 w - - 0 38 ");
 		expectedMove = new GenericMove("g2g7"); // queen sac leads to mate in 1
-		SearchResult res = classUnderTest.findMove((byte)4);
+		SearchResult res = classUnderTest.findMove((byte)5);
 		
 		assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
 	}
