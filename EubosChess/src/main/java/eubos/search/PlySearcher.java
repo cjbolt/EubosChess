@@ -438,6 +438,8 @@ public class PlySearcher {
 		    	int thresh = 300 + (150 * depth * depth);
 		    	if (s.staticEval + thresh < s.alpha) {
 		            int value = extendedSearch(s.alpha - 1, s.alpha, -1);
+		            if (isTerminated()) { return 0; }
+		            
 		            if (value < s.alpha) {
 		                return s.alpha;
 		            } else {

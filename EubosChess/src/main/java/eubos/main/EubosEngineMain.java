@@ -78,7 +78,6 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_TRANSPOSITION_TABLE = true;
 	public static final boolean ENABLE_QUIESCENCE_CHECK = true;
 	public static final boolean ENABLE_ASPIRATION_WINDOWS = true;
-	public static final boolean ENABLE_SKEWED_ASPIRATION_WINDOWS = false;
 	public static final boolean ENABLE_LAZY_EVALUATION = true;	
 	public static final boolean ENABLE_LATE_MOVE_REDUCTION = true;
 	public static final boolean ENABLE_NULL_MOVE_PRUNING = true;
@@ -86,11 +85,13 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_COUNTED_PASSED_PAWN_MASKS = true;
 	public static final boolean ENABLE_ITERATIVE_DEEPENING = true;
 	public static final boolean ENABLE_FUTILITY_PRUNING = true;
-	public static final boolean ENABLE_RAZORING_ON_QUIESCENCE = true;
-	public static final boolean ENABLE_FUTILITY_PRUNING_OF_KILLER_MOVES = false;
-	public static final boolean ENABLE_PER_MOVE_FUTILITY_PRUNING = true;
-	public static final boolean ENABLE_OVERWRITE_TRANS_WITH_SEARCH = false;
 	public static final boolean ENABLE_PINNED_TO_KING_CHECK_IN_ILLEGAL_DETECTION = true;
+	public static final boolean ENABLE_PER_MOVE_FUTILITY_PRUNING = true;
+	
+	public static final boolean ENABLE_RAZORING_ON_QUIESCENCE = false;
+	public static final boolean ENABLE_FUTILITY_PRUNING_OF_KILLER_MOVES = false;
+	public static final boolean ENABLE_OVERWRITE_TRANS_WITH_SEARCH = false;
+	public static final boolean ENABLE_SKEWED_ASPIRATION_WINDOWS = false;
 	
 	public static final int MAXIMUM_PLIES_IN_GAME = 250;
 	
