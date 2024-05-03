@@ -7,7 +7,9 @@ import org.junit.Test;
 
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
+import eubos.board.BitBoard;
 import eubos.board.Piece;
+import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.search.DrawChecker;
 
@@ -101,5 +103,20 @@ public class PositionEvaluatorTest {
 		setUpPosition("kr3b2/4ppQ1/8/8/2P5/1P6/P7/7K w - - 1 1 ");
 		long [][][] attacks = pm.getTheBoard().mae.calculateBasicAttacksAndMobility(pm.getTheBoard().me);
 		assertEquals((Piece.MATERIAL_VALUE_QUEEN/10)-Piece.MATERIAL_VALUE_PAWN/10, SUT.evaluateThreats(attacks, false)); // W Queen is attacked, B Pawn is attacked
+	}
+	
+	@Test
+	public void test_futility_bad_knight_move() {
+		setUpPosition("7k/8/8/8/8/6N1/8/K7 w - - 0 1");
+		int futility_margin_bad_move = SUT.estimateMovePositionalContribution(Move.valueOfBit(BitBoard.g3, Piece.WHITE_KNIGHT, BitBoard.h1, 0));
+		assertEquals(150, futility_margin_bad_move);
+		int futility_margin_better_move = SUT.estimateMovePositionalContribution(Move.valueOfBit(BitBoard.g3, Piece.WHITE_KNIGHT, BitBoard.f5, 0));
+		assertTrue(futility_margin_bad_move < futility_margin_better_move);
+		
+		setUpPosition("7k/Q7/8/8/8/6N1/7q/K7 w - - 0 1");
+		futility_margin_bad_move = SUT.estimateMovePositionalContribution(Move.valueOfBit(BitBoard.g3, Piece.WHITE_KNIGHT, BitBoard.h1, 0));
+		assertEquals(108, futility_margin_bad_move);
+		futility_margin_better_move = SUT.estimateMovePositionalContribution(Move.valueOfBit(BitBoard.g3, Piece.WHITE_KNIGHT, BitBoard.f5, 0));
+		assertTrue(futility_margin_bad_move < futility_margin_better_move);
 	}
 }

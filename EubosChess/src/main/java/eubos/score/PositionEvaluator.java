@@ -351,12 +351,12 @@ public class PositionEvaluator implements IEvaluate {
 	
 	public static final int FUTILITY_MARGIN_BY_PIECE[] = new int[8];
     static {
-    	FUTILITY_MARGIN_BY_PIECE[Piece.QUEEN] = 175;
-    	FUTILITY_MARGIN_BY_PIECE[Piece.ROOK] = 150;
-    	FUTILITY_MARGIN_BY_PIECE[Piece.BISHOP] = 130;
-    	FUTILITY_MARGIN_BY_PIECE[Piece.KNIGHT] = 175;
+    	FUTILITY_MARGIN_BY_PIECE[Piece.QUEEN] = 200;
+    	FUTILITY_MARGIN_BY_PIECE[Piece.ROOK] = 175;
+    	FUTILITY_MARGIN_BY_PIECE[Piece.BISHOP] = 170;
+    	FUTILITY_MARGIN_BY_PIECE[Piece.KNIGHT] = 170;
     	FUTILITY_MARGIN_BY_PIECE[Piece.KING] = 150;
-    	FUTILITY_MARGIN_BY_PIECE[Piece.PAWN] = 125;
+    	FUTILITY_MARGIN_BY_PIECE[Piece.PAWN] = 150;
     }
 	
 	public int estimateMovePositionalContribution(int move) {
@@ -378,8 +378,19 @@ public class PositionEvaluator implements IEvaluate {
 					futility += 125;
 				}
 			}
-			
-		} 
+		}
+		if (EubosEngineMain.ENABLE_FUTILITY_PRUNING_PST_MARGIN) {
+			// move PST differential
+			int origin_offs = Move.getOriginPosition(move);
+			int target_offs = Move.getTargetPosition(move);
+			int combined = Piece.COMBINED_PIECE_SQUARE_TABLES[originPiece][origin_offs];
+			int target_combined = Piece.COMBINED_PIECE_SQUARE_TABLES[originPiece][target_offs];
+			if (this.bd.me.isEndgame()) {
+				futility += ((short)(target_combined >> 16) - (short)(combined >> 16));
+			} else {
+				futility += ((short)(target_combined & 0xFFFF) - (short)(combined & 0xFFFF));
+			}
+		}
 		return futility;
 	}
 	
