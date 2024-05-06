@@ -93,13 +93,13 @@ public class PositionEvaluatorTest {
 	public void test_threatsWhite() {
 		setUpPosition("kr3b2/4ppQ1/8/8/2P5/1P6/P7/7K w - - 1 1 ");
 		long [][][] attacks = pm.getTheBoard().mae.calculateBasicAttacksAndMobility(pm.getTheBoard().me);
-		assertEquals(-(Piece.MATERIAL_VALUE_QUEEN/10)+Piece.MATERIAL_VALUE_PAWN/10, SUT.evaluateThreats(attacks, true)); // W Queen is attacked, B Pawn is attacked
+		assertEquals(-(Piece.MATERIAL_VALUE_QUEEN/5)+Piece.MATERIAL_VALUE_PAWN/5, SUT.evaluateThreats(attacks, true)); // W Queen is attacked, B Pawn is attacked
 	}
 	
 	@Test
 	public void test_threatsBlack() {
 		setUpPosition("kr3b2/4ppQ1/8/8/2P5/1P6/P7/7K w - - 1 1 ");
 		long [][][] attacks = pm.getTheBoard().mae.calculateBasicAttacksAndMobility(pm.getTheBoard().me);
-		assertEquals((Piece.MATERIAL_VALUE_QUEEN/10)-Piece.MATERIAL_VALUE_PAWN/10, SUT.evaluateThreats(attacks, false)); // W Queen is attacked, B Pawn is attacked
+		assertEquals((Piece.MATERIAL_VALUE_QUEEN/5)-Piece.MATERIAL_VALUE_PAWN/5, SUT.evaluateThreats(attacks, false)); // W Queen is attacked, B Pawn is attacked
 	}
 }

@@ -88,16 +88,10 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	@Test
 	public void test_infoMessageSending_clearsPreviousPvMoves() throws InterruptedException, IOException {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && !SearchMetrics.ENABLE_SINGLE_MOVE_PV) {
-			String expectedOutput = "info depth 1 seldepth 5 score cp -70 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 21"+CMD_TERMINATOR+
-					"info depth 1 seldepth 3 score cp 466 pv c7c2 hashfull 0 nps 0 time 0 nodes 27"+CMD_TERMINATOR+
-                    "info depth 2 seldepth 5 score cp 123 pv c7c2 e1g1 hashfull 0 nps 0 time 0 nodes 133"+CMD_TERMINATOR
+			String expectedOutput = "info depth 1 seldepth 5 score cp -28 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 20"+CMD_TERMINATOR+
+					"info depth 1 seldepth 3 score cp 511 pv c7c2 hashfull 0 nps 0 time 0 nodes 26"+CMD_TERMINATOR+
+                    "info depth 2 seldepth 6 score cp 114 pv c7c2 e1g1 hashfull 0 nps 0 time 0 nodes 171"+CMD_TERMINATOR
                     +BEST_PREFIX+"c7c2";
-			if (PawnEvaluator.ENABLE_PP_IMBALANCE_EVALUATION) {
-				expectedOutput = "info depth 1 seldepth 5 score cp -55 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 21"+CMD_TERMINATOR
-						+"info depth 1 seldepth 3 score cp 471 pv c7c2 hashfull 0 nps 0 time 0 nodes 27"+CMD_TERMINATOR
-						+"info depth 2 seldepth 5 score cp 128 pv c7c2 e1g1 hashfull 0 nps 0 time 0 nodes 133"+CMD_TERMINATOR
-						+BEST_PREFIX+"c7c2";
-			}
 			setupEngine();
 			// Setup Commands specific to this test
 			commands.add(new CommandPair(POS_FEN_PREFIX+"r1b1kb1r/ppqnpppp/8/3pP3/3Q4/5N2/PPP2PPP/RNB1K2R b KQkq - 2 8"+CMD_TERMINATOR, null));
@@ -257,8 +251,8 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_defect_en_passant_treated_as_playable_move_regardless_of_board_state() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"r3qrk1/pbpp1ppp/np1b1n2/8/2PPp3/P1N1P1PP/1P2NPB1/R1BQK2R w KQ - 1 10"+CMD_TERMINATOR, null));
-		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d1b3"+CMD_TERMINATOR));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e1g1"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d1a4"+CMD_TERMINATOR));
+		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e1g1"+CMD_TERMINATOR));
 		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e2f4"+CMD_TERMINATOR));
 		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"c3b5"+CMD_TERMINATOR));
 		assertTrue(performTest(5000));
