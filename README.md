@@ -5,17 +5,17 @@
 
 ![Eubos Logo, courtesy of Graham Banks](logo.png "Image Credit: Graham Banks")
 
-# EubosChess
+# Eubos
 Eubos chess is a multi-threaded Java chess engine.
 
 You can play it online, 24/7, via lichess: (https://lichess.org/@/eubos or https://lichess.org/@/baby_eubos). 
 
-Eubos started out as an entirely original engine, based on rather idiosyncratic move generation and an inefficient alpha-beta implementation, but later versions utilise standard algorithms, like negamax search, in order to make it a bit more competitive! The move generation and evaluation is still mostly original work.
+Eubos started out as an entirely original engine, based on rather idiosyncratic move generation and an inefficient alpha-beta implementation, but later versions use standard algorithms, like negascout search, in order to make it a bit more competitive! The move generation and evaluation is still mostly original work.
 
 It is currently rated around 2350 Elo against other engines, not humans (this is at blitz 2+1 time control, see  http://ccrl.chessdom.com/ccrl/404/).
 
 ## Features
-Eubos uses a standard alpha-beta negamax algorithm with transposition hashing and quiescence search extension. It utilises lazy move generation and lazy evaluation.
+Eubos uses a standard alpha-beta negascout algorithm with transposition hashing and quiescence search extension. It uses lazy move generation and lazy evaluation.
 
 The evaluation function takes account of the following factors
 * material balance
@@ -26,6 +26,8 @@ The evaluation function takes account of the following factors
 
 It knows about draws by 3-fold repetition and insufficient material.
 
+Originally it was Shannon Type A, i.e brute force, searching every single move to a certain depth before searching deeper. Since around version 2.0 is is Type B, i.e. it uses a selective search. Not all moves are searched to the same depth. Some are considered relatively unimportant and ignored.
+
 ## Configuration
 UCI option | Eubos functionality
 ------------ | -------------
@@ -34,10 +36,11 @@ Hash | Sets the size of the hash table to use, in Megabytes. The hash table is s
 Move Overhead | Factor for this number of milliseconds on the clock each time a move must be made. This is useful for countering latency in internet games.
 
 ## Installation
-You can get a binary from the bin folder, alongside a batch file for running the Eubos engine in a GUI such as Arena.
+You can get a binary from the bin folder, alongside a batch file for running the Eubos engine in a GUI such as Arena or Cutechess.
 
 You must have installed either Java 8 or a later version of the JRE on the PC in order to run Eubos. I am currently running Eubos with Java 14 from https://adoptopenjdk.net/
 
+### Arena
 To install Eubos as a UCI engine in the popular Arena Chess GUI:
 
 1. From the MenuBar, Select Engines > Install New Engine
