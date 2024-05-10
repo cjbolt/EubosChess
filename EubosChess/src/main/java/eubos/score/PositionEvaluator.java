@@ -321,7 +321,7 @@ public class PositionEvaluator implements IEvaluate {
 		int bit_offset;
 		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {		
 			// Add a penalty based on the value of the piece not defended, 5% of piece value
-			threatScore -= Math.abs((Piece.PIECE_TO_MATERIAL_LUT[0][bd.getPieceAtSquare(scratchBitBoard)] / 5));
+			threatScore -= Math.abs((Piece.PIECE_TO_MATERIAL_LUT[0][bd.getPieceAtSquare(scratchBitBoard)] / 2));
 			scratchBitBoard ^= (1L << bit_offset);
 		}
 		return threatScore;

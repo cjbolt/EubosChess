@@ -88,10 +88,11 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	@Test
 	public void test_infoMessageSending_clearsPreviousPvMoves() throws InterruptedException, IOException {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && !SearchMetrics.ENABLE_SINGLE_MOVE_PV) {
-			String expectedOutput = "info depth 1 seldepth 5 score cp -28 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 20"+CMD_TERMINATOR+
-					"info depth 1 seldepth 3 score cp 511 pv c7c2 hashfull 0 nps 0 time 0 nodes 26"+CMD_TERMINATOR+
-                    "info depth 2 seldepth 6 score cp 114 pv c7c2 e1g1 hashfull 0 nps 0 time 0 nodes 171"+CMD_TERMINATOR
-                    +BEST_PREFIX+"c7c2";
+			String expectedOutput = "info depth 1 seldepth 5 score cp 100 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 20"+CMD_TERMINATOR+
+					"info depth 1 seldepth 3 score cp 647 pv c7c2 hashfull 0 nps 0 time 0 nodes 26"+CMD_TERMINATOR+
+                    "info depth 2 seldepth 6 score cp -139 pv c7c2 d4c3 hashfull 0 nps 0 time 0 nodes 141"+CMD_TERMINATOR+
+                    "info depth 2 seldepth 8 score cp 100 pv d7e5 f3e5 hashfull 0 nps 0 time 0 nodes 218"+CMD_TERMINATOR+
+                    BEST_PREFIX+"d7e5";
 			setupEngine();
 			// Setup Commands specific to this test
 			commands.add(new CommandPair(POS_FEN_PREFIX+"r1b1kb1r/ppqnpppp/8/3pP3/3Q4/5N2/PPP2PPP/RNB1K2R b KQkq - 2 8"+CMD_TERMINATOR, null));
@@ -251,10 +252,11 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_defect_en_passant_treated_as_playable_move_regardless_of_board_state() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"r3qrk1/pbpp1ppp/np1b1n2/8/2PPp3/P1N1P1PP/1P2NPB1/R1BQK2R w KQ - 1 10"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d1a4"+CMD_TERMINATOR));
+		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d1a4"+CMD_TERMINATOR));
 		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e1g1"+CMD_TERMINATOR));
 		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e2f4"+CMD_TERMINATOR));
 		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"c3b5"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d1c2"+CMD_TERMINATOR));
 		assertTrue(performTest(5000));
 	}
 	
@@ -272,8 +274,8 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"3r2k1/5p2/7p/3R2p1/p7/1q1Q1PP1/7P/3R2K1 b - - 1 42"+CMD_TERMINATOR, null));
 
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d8d5"+CMD_TERMINATOR));
-		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"b3d5"+CMD_TERMINATOR));
+		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d8d5"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"b3d5"+CMD_TERMINATOR));
 
 		int hashMove = Move.valueOf(Position.b3, Piece.BLACK_QUEEN, Position.d1, Piece.WHITE_ROOK);
 		long hashEntry = Transposition.valueOf((byte)6, (short)0, Score.lowerBound, hashMove, 42 >> 2);
