@@ -21,7 +21,6 @@ import eubos.board.BitBoard;
 import eubos.board.Piece;
 import eubos.position.Move;
 import eubos.position.Position;
-import eubos.score.PawnEvaluator;
 import eubos.search.Score;
 import eubos.search.SearchMetrics;
 import eubos.search.SearchResult;

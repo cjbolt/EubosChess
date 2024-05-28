@@ -85,14 +85,13 @@ public class PiecewiseEvaluation {
 		mg_material -= Piece.PIECE_TO_MATERIAL_LUT[0][promoPiece];
 		eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][pawnToReplace];
 		eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][promoPiece];
+		phase += Piece.PIECE_PHASE[promoPiece];
 		
 		addPst(pawnToReplace, newBitOffset);
 		int pieceType = promoPiece & Piece.PIECE_NO_COLOUR_MASK;
 		if (pieceType >= Piece.KNIGHT) {
 			subtractPst(promoPiece, oldBitOffset);
 		}
-		
-		phase += Piece.PIECE_PHASE[promoPiece];
 	}
 	
 	public void updateWhenDoingPromotion(int promoPiece, int oldBitOffset, int newBitOffset) {
@@ -104,35 +103,34 @@ public class PiecewiseEvaluation {
 		mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][promoPiece];
 		eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][pawnToRemove];
 		eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][promoPiece];
-
+		phase -= Piece.PIECE_PHASE[promoPiece];
+		
 		subtractPst(pawnToRemove, oldBitOffset);
 		int pieceType = promoPiece & Piece.PIECE_NO_COLOUR_MASK;
 		if (pieceType >= Piece.KNIGHT) {
 			addPst(promoPiece, newBitOffset);
 		}
-		
-		phase -= Piece.PIECE_PHASE[promoPiece];
 	}
 	
 	public void updateForCapture(int currPiece, int bitOffset) {
 		numberOfPieces[currPiece]--;
 		mg_material -= Piece.PIECE_TO_MATERIAL_LUT[0][currPiece];
 		eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
+		phase += Piece.PIECE_PHASE[currPiece];
 		int pieceType = currPiece & Piece.PIECE_NO_COLOUR_MASK;
 		if (pieceType >= Piece.KNIGHT) {
 			subtractPst(currPiece, bitOffset);
 		}
-		phase += Piece.PIECE_PHASE[currPiece];
 	}
 	
 	public void updateForReplacedCapture(int currPiece, int bitOffset) {
 		numberOfPieces[currPiece]++;
 		mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][currPiece];
 		eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
+		phase -= Piece.PIECE_PHASE[currPiece];
 		int pieceType = currPiece & Piece.PIECE_NO_COLOUR_MASK;
 		if (pieceType >= Piece.KNIGHT) {
 			addPst(currPiece, bitOffset);
 		}
-		phase -= Piece.PIECE_PHASE[currPiece];
 	}
 }

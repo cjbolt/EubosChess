@@ -180,32 +180,34 @@ public class PositionEvaluator implements IEvaluate {
 	
 	public int lazyEvaluation(int alpha, int beta) {
 		initialise();
-		if (EubosEngineMain.ENABLE_LAZY_EVALUATION && bd.me.phase != 4096) {
-			// Phase 1 - crude evaluation
-			int crudeEval = internalCrudeEval();
-			int lazyThresh = lazy_eval_threshold_cp;
-			long pp = bd.getPassedPawns();
-			if (pp != 0L) {
-				// increase threshold as a function of the passed pawn imbalance
-				int numWhitePassers = Long.bitCount(pp&bd.getWhitePieces());
-				int numBlackPassers = Long.bitCount(pp&bd.getBlackPieces());
-				int ppDelta = Math.abs(numBlackPassers-numWhitePassers);
-				lazyThresh += ppDelta * 250 * bd.me.getPhase() / 4096;
-			}
-			if (!bd.me.isEndgame() && isKingExposed()) {
-				lazyThresh += 300;
-			}
-			if (TUNE_LAZY_EVAL) {
-				lazyStat.nodeCount++;
-			}
-			if (crudeEval-lazyThresh >= beta) {
-				// There is no move to put in the killer table when we stand Pat
-				// According to lazy eval, we probably can't reach beta
-				if (TUNE_LAZY_EVAL) {
-					lazyStat.lazySavedCountBeta++;
-					updateLazyStatistics(crudeEval, lazyThresh);
+		if (EubosEngineMain.ENABLE_LAZY_EVALUATION) {
+			if (bd.me.phase != 4096) {
+				// Phase 1 - crude evaluation
+				int crudeEval = internalCrudeEval();
+				int lazyThresh = lazy_eval_threshold_cp;
+				long pp = bd.getPassedPawns();
+				if (pp != 0L) {
+					// increase threshold as a function of the passed pawn imbalance
+					int numWhitePassers = Long.bitCount(pp&bd.getWhitePieces());
+					int numBlackPassers = Long.bitCount(pp&bd.getBlackPieces());
+					int ppDelta = Math.abs(numBlackPassers-numWhitePassers);
+					lazyThresh += ppDelta * 250 * bd.me.getPhase() / 4096;
 				}
-				return beta;
+				if (!bd.me.isEndgame() && isKingExposed()) {
+					lazyThresh += 300;
+				}
+				if (TUNE_LAZY_EVAL) {
+					lazyStat.nodeCount++;
+				}
+				if (crudeEval-lazyThresh >= beta) {
+					// There is no move to put in the killer table when we stand Pat
+					// According to lazy eval, we probably can't reach beta
+					if (TUNE_LAZY_EVAL) {
+						lazyStat.lazySavedCountBeta++;
+						updateLazyStatistics(crudeEval, lazyThresh);
+					}
+					return beta;
+				}
 			}
 		}
 		// Phase 2 full evaluation
@@ -225,14 +227,33 @@ public class PositionEvaluator implements IEvaluate {
 		return internalCrudeEval();
 	}
 	
+	private void doMaterialAndPst() {
+		if (onMoveIsWhite) {
+			midgameScore = bd.me.getMiddleGameDelta() + bd.me.getPosition();
+			endgameScore = bd.me.getEndGameDelta() + bd.me.getEndgamePosition();
+		} else {
+			midgameScore = -(bd.me.getMiddleGameDelta() + bd.me.getPosition());
+			endgameScore = -(bd.me.getEndGameDelta() + bd.me.getEndgamePosition());
+		}
+	}
+	
+	private void doMateKingProximity() {
+		int ownKingPos = bd.getKingPosition(onMoveIsWhite);
+		int enemyKingPos = bd.getKingPosition(!onMoveIsWhite);
+		if (ownKingPos != BitBoard.INVALID && enemyKingPos != BitBoard.INVALID) {
+			int distance = BitBoard.ManhattanDistance[enemyKingPos][ownKingPos];
+			score += GO_FOR_MATE_KING_PROXIMITY_LUT[distance];
+		}
+	}
+	
 	private int internalCrudeEval() {
 		// Initialised in lazyEvaluation function
 		if (!isDraw) {
 			bd.me.dynamicPosition = 0;
-			score += evaluateBishopPair();
-			midgameScore = score + (onMoveIsWhite ? bd.me.getMiddleGameDelta() + bd.me.getPosition() : -(bd.me.getMiddleGameDelta() + bd.me.getPosition()));
-			endgameScore = score + (onMoveIsWhite ? bd.me.getEndGameDelta() + bd.me.getEndgamePosition() : -(bd.me.getEndGameDelta() + bd.me.getEndgamePosition()));
+			// Add phase specific static mobility (PSTs)
+			doMaterialAndPst();
 			score = taperEvaluation(midgameScore, endgameScore);
+			score += evaluateBishopPair();
 		}
 		return score;
 	}
@@ -244,41 +265,33 @@ public class PositionEvaluator implements IEvaluate {
 		midgameScore = 0;
 		endgameScore = 0;
 		if (!isDraw) {
-			// Score factors common to each phase, material, pawn structure and piece mobility
-			bd.me.dynamicPosition = 0;
-			
-			// Only generate full attack mask if passed pawn present and past opening stage
-			long [][][] attacks;
-			if (passedPawnPresent) {
-				attacks = bd.mae.calculateCountedAttacksAndMobility(bd.me);
-			} else {
-				attacks = bd.mae.calculateBasicAttacksAndMobility(bd.me);
-			}
-			
-			if (bd.isLikelyDrawnEndgame(onMoveIsWhite, attacks)) {
-				return score;
-			}
-			
-			score += evaluateBishopPair();
-			score += pawn_eval.evaluatePawnStructure(attacks);
-			
-			// Add phase specific static mobility (PSTs)
-			midgameScore = score + (onMoveIsWhite ? bd.me.getMiddleGameDelta() + bd.me.getPosition() : -(bd.me.getMiddleGameDelta() + bd.me.getPosition()));
-			endgameScore = score + (onMoveIsWhite ? bd.me.getEndGameDelta() + bd.me.getEndgamePosition() : -(bd.me.getEndGameDelta() + bd.me.getEndgamePosition()));
-			// Add King Safety in middle game
-			midgameScore += ks_eval.evaluateKingSafety(attacks, onMoveIsWhite);
-			midgameScore += evaluateThreats(attacks, onMoveIsWhite);
-			
-			if (!goForMate) {
-				score = taperEvaluation(midgameScore, endgameScore);
-			} else {
+			if (goForMate) {
 				score += onMoveIsWhite ? bd.me.getMiddleGameDelta() : -bd.me.getMiddleGameDelta();
-				int ownKingPos = bd.getKingPosition(onMoveIsWhite);
-				int enemyKingPos = bd.getKingPosition(!onMoveIsWhite);
-				if (ownKingPos != BitBoard.INVALID && enemyKingPos != BitBoard.INVALID) {
-					int distance = BitBoard.ManhattanDistance[enemyKingPos][ownKingPos];
-					score += GO_FOR_MATE_KING_PROXIMITY_LUT[distance];
+				doMateKingProximity();
+			} else {
+				// Only generate full attack mask if passed pawn present
+				bd.me.dynamicPosition = 0;
+				long [][][] attacks;
+				if (passedPawnPresent) {
+					attacks = bd.mae.calculateCountedAttacksAndMobility(bd.me);
+				} else {
+					attacks = bd.mae.calculateBasicAttacksAndMobility(bd.me);
 				}
+				
+				if (bd.isLikelyDrawnEndgame(onMoveIsWhite, attacks)) {
+					return score;
+				}
+				
+				// Add phase specific static mobility (PSTs)
+				doMaterialAndPst();
+
+				// Evaluate king safety, en prise threats in middle game
+				midgameScore += ks_eval.evaluateKingSafety(attacks, onMoveIsWhite);
+				midgameScore += evaluateThreats(attacks, onMoveIsWhite);
+				
+				score = taperEvaluation(midgameScore, endgameScore);
+				score += evaluateBishopPair();
+				score += pawn_eval.evaluatePawnStructure(attacks);
 			}
 		}
 		return score;
@@ -320,7 +333,7 @@ public class PositionEvaluator implements IEvaluate {
 		long scratchBitBoard = own & attackedOnlyByEnemy;
 		int bit_offset;
 		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {		
-			// Add a penalty based on the value of the piece not defended, 5% of piece value
+			// Add a penalty based on the value of the piece not defended, 50% of piece value
 			threatScore -= Math.abs((Piece.PIECE_TO_MATERIAL_LUT[0][bd.getPieceAtSquare(scratchBitBoard)] / 2));
 			scratchBitBoard ^= (1L << bit_offset);
 		}
