@@ -13,7 +13,8 @@ public class PiecewiseEvaluation {
 	public short mg_material = 0;
 	public short eg_material = 0;
 	public short dynamicPosition = 0;
-	public int combinedPosition = 0;
+	public int mg_position = 0;
+	public int eg_position = 0;
 	
 	public int phase = 0;
 	public int [] numberOfPieces;
@@ -30,9 +31,9 @@ public class PiecewiseEvaluation {
 	
 	public short getEndGameDelta() { return eg_material; }
 	
-	public short getPosition() { return (short)((short)(combinedPosition & 0xFFFF) + dynamicPosition); }
+	public short getPosition() { return (short)(mg_position + dynamicPosition); }
 	
-	public short getEndgamePosition() { return (short)((short)(combinedPosition >> 16) + dynamicPosition); }
+	public short getEndgamePosition() { return (short)(eg_position + dynamicPosition); }
 
 	public int getPhase() {
 		return phase;
@@ -53,19 +54,31 @@ public class PiecewiseEvaluation {
 	}
 
 	public void addPst(int piece, int bitOffset) {
-		int x = combinedPosition;
-		int y = Piece.COMBINED_PIECE_SQUARE_TABLES[piece][bitOffset];
-		int s = x + y;
-		int c = (s ^ x ^ y) & 0x0001_0000;
-		combinedPosition = s - c;
+//		int x = combinedPosition;
+//		int y = Piece.COMBINED_PIECE_SQUARE_TABLES[piece][bitOffset];
+//		int s = x + y;
+//		int c = (s ^ x ^ y) & 0x0001_0000;
+//		combinedPosition = s - c;
+		
+//		mg_position += Piece.PIECE_SQUARE_TABLES[piece][0][bitOffset];
+//		eg_position += Piece.PIECE_SQUARE_TABLES[piece][1][bitOffset];
+		
+		mg_position += Piece.COMBINED_PIECE_SQUARE_TABLES[piece][bitOffset] & 0xFFFF;
+		eg_position += Piece.COMBINED_PIECE_SQUARE_TABLES[piece][bitOffset] >> 16;
 	}
 	
 	public void subtractPst(int piece, int bitOffset) {
-		int x = combinedPosition;
-		int y = Piece.COMBINED_PIECE_SQUARE_TABLES[piece][bitOffset];
-		int d = x - y;
-		int b = (d ^ x ^ y) & 0x0001_0000;
-		combinedPosition = d + b;
+//		int x = combinedPosition;
+//		int y = Piece.COMBINED_PIECE_SQUARE_TABLES[piece][bitOffset];
+//		int d = x - y;
+//		int b = (d ^ x ^ y) & 0x0001_0000;
+//		combinedPosition = d + b;
+		
+//		mg_position -= Piece.PIECE_SQUARE_TABLES[piece][0][bitOffset];
+//		eg_position -= Piece.PIECE_SQUARE_TABLES[piece][1][bitOffset];
+		
+		mg_position -= Piece.COMBINED_PIECE_SQUARE_TABLES[piece][bitOffset] & 0xFFFF;
+		eg_position -= Piece.COMBINED_PIECE_SQUARE_TABLES[piece][bitOffset] >> 16;
 	}
 	
 	public void updateRegular(int pieceTypeWithoutColour, int originPiece, int originBitOffset, int targetBitOffset) {

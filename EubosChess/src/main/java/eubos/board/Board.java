@@ -82,7 +82,7 @@ public class Board {
 		me = new PiecewiseEvaluation();
 		evaluateMaterial(me);
 		createPassedPawnsBoard();
-		insufficient = isInsufficientMaterial(); //isLikelyDrawnEndgame(Piece.Colour.isWhite(initialOnMove));
+		insufficient = isLikelyDrawnEndgame(Piece.Colour.isWhite(initialOnMove));
 	}
 	
 	private void evaluateMaterialBalanceAndStaticPieceMobility(boolean isWhite, PiecewiseEvaluation me) {
@@ -255,15 +255,12 @@ public class Board {
 				assert (allPieces & captureMask) != 0: 
 					String.format("Piece %s not on all pieces board for move %s", 
 							Piece.toFenChar(targetPiece), Move.toString(move));
-				//assert pieceLists.isPresent(targetPiece, captureBitOffset) :
-				//	String.format("Non-existant target piece %c at %s for move %s",
-				//		Piece.toFenChar(targetPiece), Position.toGenericPosition(captureBitOffset), Move.toString(move));
 			}
 			pickUpPieceAtSquare(1L << captureBitOffset, captureBitOffset, targetPiece);
 			// Incrementally update opponent material after capture, at the correct capturePosition
 			me.updateForCapture(targetPiece, captureBitOffset);
 			hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
-			insufficient = isInsufficientMaterial();
+			//insufficient = isInsufficientMaterial();
 		} else {
 			// Check whether the move sets the En Passant target square
 			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
@@ -287,38 +284,28 @@ public class Board {
 			// For a promotion, need to resolve piece-specific across multiple bitboards
 			pieces[INDEX_PAWN] &= ~initialSquareMask;
 			pieces[promotedPiece] |= targetSquareMask;
-			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
-			
-//			if (targetPiece != Piece.NONE) {
-//				// Can update the attacks mask, and therefore needs to happen prior to legality check
-//				insufficient = isLikelyDrawnEndgame(isWhite);
-//			}
-			
-			last_move_was_illegal = isKingInCheck(isWhite);
-			
-			if (last_move_was_illegal) {
-				return captureBitOffset;
-			}
-			
-			me.updateWhenDoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
-			passedPawns &= ~initialSquareMask;
-			hashUpdater.doPromotionMove(targetBitOffset, originBitOffset, pieceToMove, fullPromotedPiece);
 		} else {
 			// Piece type doesn't change across boards, update piece-specific bitboard, pieceList and PST score
 			int pieceType = Piece.PIECE_NO_COLOUR_MASK & pieceToMove;
 			pieces[pieceType] ^= positionsMask;
-			
-//			if (targetPiece != Piece.NONE) {
-//				// Can update the attacks mask, and therefore needs to happen prior to legality check
-//				insufficient = isLikelyDrawnEndgame(isWhite);
-//			}
-			
-			last_move_was_illegal = isKingInCheck(isWhite);
-			
-			if (last_move_was_illegal) {
-				return captureBitOffset;
-			}
-			
+		}
+		
+		last_move_was_illegal = isKingInCheck(isWhite);
+		if (last_move_was_illegal) {
+			return captureBitOffset;
+		}
+		
+		if (targetPiece != Piece.NONE) {
+			insufficient = isLikelyDrawnEndgame(isWhite);
+		}
+		
+		if (promotedPiece != Piece.NONE) {
+			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
+			me.updateWhenDoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
+			passedPawns &= ~initialSquareMask;
+			hashUpdater.doPromotionMove(targetBitOffset, originBitOffset, pieceToMove, fullPromotedPiece);
+		} else {
+			int pieceType = Piece.PIECE_NO_COLOUR_MASK & pieceToMove;
 			me.updateRegular(pieceType, pieceToMove, originBitOffset, targetBitOffset);
 			hashUpdater.doBasicMove(targetBitOffset, originBitOffset, pieceToMove);
 			
@@ -380,9 +367,9 @@ public class Board {
 			assert scratch_me != me;
 			assert scratch_me.mg_material == me.mg_material;
 			assert scratch_me.eg_material == me.eg_material;
-			assert scratch_me.combinedPosition == me.combinedPosition : 
+			assert scratch_me.mg_position == me.mg_position : 
 				String.format("combined_scratch=%08x iterative=%08x %s", 
-						scratch_me.combinedPosition, me.combinedPosition, Move.toString(move));
+						scratch_me.mg_position, me.mg_position, Move.toString(move));
 			assert scratch_me.phase == me.phase;
 			// Check piece bit boards to me num pieces consistency
 			assert (me.numberOfPieces[Piece.WHITE_KNIGHT]+me.numberOfPieces[Piece.BLACK_KNIGHT]) == Long.bitCount(pieces[INDEX_KNIGHT]);
@@ -507,9 +494,9 @@ public class Board {
 			assert scratch_me != me;
 			assert scratch_me.mg_material == me.mg_material;
 			assert scratch_me.eg_material == me.eg_material;
-			assert scratch_me.combinedPosition == me.combinedPosition : 
+			assert scratch_me.mg_position == me.mg_position : 
 				String.format("combined_scratch=%08x iterative=%08x %s",
-						scratch_me.combinedPosition, me.combinedPosition, Move.toString(moveToUndo));
+						scratch_me.mg_position, me.mg_position, Move.toString(moveToUndo));
 			assert scratch_me.phase == me.phase;
 		}
 		

@@ -1211,4 +1211,36 @@ public abstract class Piece {
     	COMBINED_PIECE_SQUARE_TABLES[Piece.BLACK_KNIGHT] = createCombinedTable(makeBlackPstFromWhitePst(N_W_MG_PST), makeBlackPstFromWhitePst(N_EG_PST));
     }
  
+//    public static final byte [][][] PIECE_SQUARE_TABLES;
+//    static {
+//    	PIECE_SQUARE_TABLES = new byte[15][2][];
+//        byte [] zero_combined = new byte [64];
+//    	PIECE_SQUARE_TABLES[Piece.WHITE_PAWN][0] = P_W_MG_PST;
+//    	PIECE_SQUARE_TABLES[Piece.WHITE_KING][0] = K_W_MG_PST;
+//    	PIECE_SQUARE_TABLES[Piece.WHITE_QUEEN][0] = zero_combined;
+//    	PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][0] = R_W_MG_PST;
+//    	PIECE_SQUARE_TABLES[Piece.WHITE_BISHOP][0] = zero_combined;
+//    	PIECE_SQUARE_TABLES[Piece.WHITE_KNIGHT][0] = N_W_MG_PST;
+//    	
+//    	PIECE_SQUARE_TABLES[Piece.WHITE_PAWN][1] = P_W_EG_PST;
+//    	PIECE_SQUARE_TABLES[Piece.WHITE_KING][1] = K_W_EG_PST;
+//    	PIECE_SQUARE_TABLES[Piece.WHITE_QUEEN][1] = zero_combined;
+//    	PIECE_SQUARE_TABLES[Piece.WHITE_ROOK][1] = ZERO_WEIGHTING;
+//    	PIECE_SQUARE_TABLES[Piece.WHITE_BISHOP][1] = zero_combined;
+//    	PIECE_SQUARE_TABLES[Piece.WHITE_KNIGHT][1] = N_EG_PST;
+//        
+//    	PIECE_SQUARE_TABLES[Piece.BLACK_PAWN][0] = makeBlackPstFromWhitePst(P_W_MG_PST);
+//    	PIECE_SQUARE_TABLES[Piece.BLACK_KING][0] = makeBlackPstFromWhitePst(K_W_MG_PST);
+//    	PIECE_SQUARE_TABLES[Piece.BLACK_QUEEN][0] = zero_combined;
+//    	PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][0] = makeBlackPstFromWhitePst(R_W_MG_PST);
+//    	PIECE_SQUARE_TABLES[Piece.BLACK_BISHOP][0] = zero_combined;
+//    	PIECE_SQUARE_TABLES[Piece.BLACK_KNIGHT][0] = makeBlackPstFromWhitePst(N_W_MG_PST);
+//    	
+//    	PIECE_SQUARE_TABLES[Piece.BLACK_PAWN][1] = makeBlackPstFromWhitePst(P_W_EG_PST);
+//    	PIECE_SQUARE_TABLES[Piece.BLACK_KING][1] = makeBlackPstFromWhitePst(K_W_EG_PST);
+//    	PIECE_SQUARE_TABLES[Piece.BLACK_QUEEN][1] = zero_combined;
+//    	PIECE_SQUARE_TABLES[Piece.BLACK_ROOK][1] = ZERO_WEIGHTING;
+//    	PIECE_SQUARE_TABLES[Piece.BLACK_BISHOP][1] = zero_combined;
+//    	PIECE_SQUARE_TABLES[Piece.BLACK_KNIGHT][1] = makeBlackPstFromWhitePst(N_EG_PST);
+//    }
 }
