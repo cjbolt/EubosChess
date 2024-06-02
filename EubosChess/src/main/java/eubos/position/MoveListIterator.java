@@ -273,7 +273,9 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 			// Can't castle out of check and don't care in extended search
 			pm.castling.addCastlingMoves(state.isWhite, moveAdder);
 		}
-		sortQuietMoves();
+		if (!EubosEngineMain.ENABLE_PERFT) {
+			sortQuietMoves();
+		}
 	}
 
 	private void sortQuietMoves() {

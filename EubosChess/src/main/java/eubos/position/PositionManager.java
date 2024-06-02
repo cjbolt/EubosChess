@@ -148,7 +148,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Legal move check
 		if (theBoard.last_move_was_illegal) {
 			int reversedMove = Move.reverse(move);
-			theBoard.undoMove(reversedMove);
+			theBoard.undoIllegalMove(reversedMove);
 			
 			castling.setFlags(old_flags);
 			theBoard.setPassedPawns(pp);
