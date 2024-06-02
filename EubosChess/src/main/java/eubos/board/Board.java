@@ -255,20 +255,14 @@ public class Board {
 				assert (allPieces & captureMask) != 0: 
 					String.format("Piece %s not on all pieces board for move %s", 
 							Piece.toFenChar(targetPiece), Move.toString(move));
-				//assert pieceLists.isPresent(targetPiece, captureBitOffset) :
-				//	String.format("Non-existant target piece %c at %s for move %s",
-				//		Piece.toFenChar(targetPiece), Position.toGenericPosition(captureBitOffset), Move.toString(move));
 			}
 			pickUpPieceAtSquare(1L << captureBitOffset, captureBitOffset, targetPiece);
-			// Incrementally update opponent material after capture, at the correct capturePosition
-			me.updateForCapture(targetPiece, captureBitOffset);
-			hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
-			insufficient = isInsufficientMaterial();
+			
 		} else {
 			// Check whether the move sets the En Passant target square
 			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
 				// Handle castling secondary rook moves...
-				if (Piece.isKing(pieceToMove)) {
+				if (Move.isCastling(move)) {
 					performSecondaryCastlingMove(move);
 				}
 			}
@@ -287,38 +281,31 @@ public class Board {
 			// For a promotion, need to resolve piece-specific across multiple bitboards
 			pieces[INDEX_PAWN] &= ~initialSquareMask;
 			pieces[promotedPiece] |= targetSquareMask;
-			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
-			
-//			if (targetPiece != Piece.NONE) {
-//				// Can update the attacks mask, and therefore needs to happen prior to legality check
-//				insufficient = isLikelyDrawnEndgame(isWhite);
-//			}
-			
-			last_move_was_illegal = isKingInCheck(isWhite);
-			
-			if (last_move_was_illegal) {
-				return captureBitOffset;
-			}
-			
-			me.updateWhenDoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
-			passedPawns &= ~initialSquareMask;
-			hashUpdater.doPromotionMove(targetBitOffset, originBitOffset, pieceToMove, fullPromotedPiece);
 		} else {
 			// Piece type doesn't change across boards, update piece-specific bitboard, pieceList and PST score
 			int pieceType = Piece.PIECE_NO_COLOUR_MASK & pieceToMove;
 			pieces[pieceType] ^= positionsMask;
-			
-//			if (targetPiece != Piece.NONE) {
-//				// Can update the attacks mask, and therefore needs to happen prior to legality check
-//				insufficient = isLikelyDrawnEndgame(isWhite);
-//			}
-			
-			last_move_was_illegal = isKingInCheck(isWhite);
-			
-			if (last_move_was_illegal) {
-				return captureBitOffset;
-			}
-			
+		}
+		
+		last_move_was_illegal = isKingInCheck(isWhite);
+		if (last_move_was_illegal) {
+			return captureBitOffset;
+		}
+		
+		if (targetPiece != Piece.NONE) {
+			// Incrementally update opponent material after capture, at the correct capturePosition
+			me.updateForCapture(targetPiece, captureBitOffset);
+			hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
+			insufficient = isInsufficientMaterial();
+		}
+		
+		if (promotedPiece != Piece.NONE) {
+			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
+			me.updateWhenDoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
+			passedPawns &= ~initialSquareMask;
+			hashUpdater.doPromotionMove(targetBitOffset, originBitOffset, pieceToMove, fullPromotedPiece);
+		} else {
+			int pieceType = Piece.PIECE_NO_COLOUR_MASK & pieceToMove;
 			me.updateRegular(pieceType, pieceToMove, originBitOffset, targetBitOffset);
 			hashUpdater.doBasicMove(targetBitOffset, originBitOffset, pieceToMove);
 			
@@ -458,7 +445,7 @@ public class Board {
 		}
 		
 		// Handle reversal of any castling secondary rook moves on the board
-		if (Piece.isKing(originPiece)) {
+		if (Move.isCastling(moveToUndo)) {
 			unperformSecondaryCastlingMove(moveToUndo);
 		}
 		// Switch piece bitboard
@@ -496,7 +483,9 @@ public class Board {
 			// Update bitboards and pieceLists
 			setPieceAtSquare(1L << capturedPieceSquare, capturedPieceSquare, targetPiece);
 			// Replace captured piece in incremental material update, at the correct capture square
-			me.updateForReplacedCapture(targetPiece, capturedPieceSquare);
+			if (!last_move_was_illegal) {
+				me.updateForReplacedCapture(targetPiece, capturedPieceSquare);
+			}
 			insufficient = false;//isInsufficientMaterial();
 		}
 		

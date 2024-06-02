@@ -1,6 +1,7 @@
 package eubos.position;
 
 import com.fluxchess.jcpi.models.GenericMove;
+import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntChessman;
 
 import eubos.board.BitBoard;
@@ -329,7 +330,16 @@ public final class Move {
 			if (isEnPassant) {
 				intMove = Move.valueOfEnPassantBit(type, originBitOffset, originPiece, targetBitOffset, targetPiece, promotion);
 			} else {
-				intMove = Move.valueOfBit(type, originBitOffset, originPiece, targetBitOffset, targetPiece, Piece.NONE);
+				if (Piece.isKing(originPiece) && 
+					((move.from == GenericPosition.e1 && move.to == GenericPosition.g1) ||
+					 (move.from == GenericPosition.e1 && move.to == GenericPosition.c1) ||
+					 (move.from == GenericPosition.e8 && move.to == GenericPosition.g8) ||
+					 (move.from == GenericPosition.e8 && move.to == GenericPosition.c8))
+					) {
+					intMove = Move.valueOfCastlingBit(type, originBitOffset, originPiece, targetBitOffset, targetPiece, Piece.NONE);
+				} else {
+					intMove = Move.valueOfBit(type, originBitOffset, originPiece, targetBitOffset, targetPiece, Piece.NONE);
+				}
 			}
 		}
 		return intMove;
