@@ -276,6 +276,7 @@ public class Board {
 			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
 				// Handle castling secondary rook moves...
 				if (Move.isCastling(move)) {
+				//if (Piece.isKing(pieceToMove)) {
 					performSecondaryCastlingMove(move);
 				}
 			}
@@ -419,7 +420,8 @@ public class Board {
 			// Check whether the move sets the En Passant target square
 			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
 				// Handle castling secondary rook moves...
-				if (Move.isCastling(pieceToMove)) {
+				if (Move.isCastling(move)) {
+				//if (Piece.isKing(pieceToMove)) {
 					performSecondaryCastlingMove(move);
 				}
 			}
@@ -458,6 +460,7 @@ public class Board {
 		
 		// Handle reversal of any castling secondary rook moves on the board
 		if (Move.isCastling(moveToUndo)) {
+		//if (Piece.isKing(originPiece)) {
 			unperformSecondaryCastlingMove(moveToUndo);
 		}
 		// Switch piece bitboard
@@ -542,6 +545,7 @@ public class Board {
 		
 		// Handle reversal of any castling secondary rook moves on the board
 		if (Move.isCastling(moveToUndo)) {
+		//if (Piece.isKing(originPiece)) {
 			unperformSecondaryCastlingMove(moveToUndo);
 		}
 		// Switch piece bitboard
@@ -596,10 +600,10 @@ public class Board {
 	}
 	
 	public void undoMoveThreefoldCheck(int moveToUndo) {
-		int originPiece = Move.getOriginPiece(moveToUndo);
 		// Handle reversal of any castling secondary rook move on the board, this is the only state change
 		// that needs to be undone, the hash code is restored from a temporary variable.		
-		if (Piece.isKing(originPiece)) {
+		if (Move.isCastling(moveToUndo)) {
+		//if (Piece.isKing(originPiece)) {
 			unperformSecondaryCastlingMove(moveToUndo);
 		}
 	}
@@ -1023,57 +1027,69 @@ public class Board {
 	
 	private void performSecondaryCastlingMove(int move) {
 		if (Move.areEqual(move, CastlingManager.wksc)) {
+			//assert Move.isCastling(move);
 			pieces[INDEX_ROOK] ^= (wksc_mask);
 			whitePieces ^= (wksc_mask);
 			allPieces ^= (wksc_mask);
 			me.updateRegular(Piece.ROOK, Piece.WHITE_ROOK, BitBoard.h1, BitBoard.f1);
 			hashUpdater.doBasicMove(BitBoard.f1, BitBoard.h1, Piece.WHITE_ROOK);
 		} else if (Move.areEqual(move, CastlingManager.wqsc)) {
+			//assert Move.isCastling(move);
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
 			me.updateRegular(Piece.ROOK, Piece.WHITE_ROOK, BitBoard.a1, BitBoard.d1);
 			hashUpdater.doBasicMove(BitBoard.d1, BitBoard.a1, Piece.WHITE_ROOK);
 		} else if (Move.areEqual(move, CastlingManager.bksc)) {
+			//assert Move.isCastling(move);
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
 			me.updateRegular(Piece.ROOK, Piece.BLACK_ROOK, BitBoard.h8, BitBoard.f8);
 			hashUpdater.doBasicMove(BitBoard.f8, BitBoard.h8, Piece.BLACK_ROOK);
 		} else if (Move.areEqual(move, CastlingManager.bqsc)) {
+			//assert Move.isCastling(move);
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
 			allPieces ^= (bqsc_mask);
 			me.updateRegular(Piece.ROOK, Piece.BLACK_ROOK, BitBoard.a8, BitBoard.d8);
 			hashUpdater.doBasicMove(BitBoard.d8, BitBoard.a8, Piece.BLACK_ROOK);
+		} else {
+			assert !Move.isCastling(move) : Move.toString(move);
 		}
 	}
 	
 	private void unperformSecondaryCastlingMove(int move) {
 		if (Move.areEqual(move, CastlingManager.undo_wksc)) {
+			//assert Move.isCastling(move);
 			pieces[INDEX_ROOK] ^= (wksc_mask);
 			whitePieces ^= (wksc_mask);
 			allPieces ^= (wksc_mask);
 			me.updateRegular(Piece.ROOK, Piece.WHITE_ROOK, BitBoard.f1, BitBoard.h1);
 			hashUpdater.doBasicMove(BitBoard.h1, BitBoard.f1, Piece.WHITE_ROOK);
 		} else if (Move.areEqual(move, CastlingManager.undo_wqsc)) {
+			//assert Move.isCastling(move);
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
 			me.updateRegular(Piece.ROOK, Piece.WHITE_ROOK, BitBoard.d1, BitBoard.a1);
 			hashUpdater.doBasicMove(BitBoard.a1, BitBoard.d1, Piece.WHITE_ROOK);
 		} else if (Move.areEqual(move, CastlingManager.undo_bksc)) {
+			//assert Move.isCastling(move);
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
 			me.updateRegular(Piece.ROOK, Piece.BLACK_ROOK, BitBoard.f8, BitBoard.h8);
 			hashUpdater.doBasicMove(BitBoard.h8, BitBoard.f8, Piece.BLACK_ROOK);
 		} else if (Move.areEqual(move, CastlingManager.undo_bqsc)) {
+			//assert Move.isCastling(move);
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
 			allPieces ^= (bqsc_mask);
 			me.updateRegular(Piece.ROOK, Piece.BLACK_ROOK, BitBoard.d8, BitBoard.a8);
 			hashUpdater.doBasicMove(BitBoard.a8, BitBoard.d8, Piece.BLACK_ROOK);
+		} else {
+			assert !Move.isCastling(move) : Move.toString(move);
 		}
 	}
 	
