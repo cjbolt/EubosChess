@@ -1040,7 +1040,7 @@ public class Board {
 			allPieces ^= (bksc_mask);
 			me.updateRegular(Piece.ROOK, Piece.BLACK_ROOK, BitBoard.h8, BitBoard.f8);
 			hashUpdater.doBasicMove(BitBoard.f8, BitBoard.h8, Piece.BLACK_ROOK);
-		} else {
+		} else if (Move.areEqual(move, CastlingManager.bqsc)) {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
 			allPieces ^= (bqsc_mask);
@@ -1068,7 +1068,7 @@ public class Board {
 			allPieces ^= (bksc_mask);
 			me.updateRegular(Piece.ROOK, Piece.BLACK_ROOK, BitBoard.f8, BitBoard.h8);
 			hashUpdater.doBasicMove(BitBoard.h8, BitBoard.f8, Piece.BLACK_ROOK);
-		} else {
+		} else if (Move.areEqual(move, CastlingManager.undo_bqsc)) {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
 			allPieces ^= (bqsc_mask);
