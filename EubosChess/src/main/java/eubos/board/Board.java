@@ -276,7 +276,7 @@ public class Board {
 			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
 				// Handle castling secondary rook moves...
 				if (Move.isCastling(move)) {
-					performSecondaryCastlingMove(move);
+					performSecondaryCastlingMove(targetBitOffset);
 				}
 			}
 		}
@@ -420,7 +420,7 @@ public class Board {
 			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
 				// Handle castling secondary rook moves...
 				if (Move.isCastling(move)) {
-					performSecondaryCastlingMove(move);
+					performSecondaryCastlingMove(targetBitOffset);
 				}
 			}
 		}
@@ -458,7 +458,7 @@ public class Board {
 		
 		// Handle reversal of any castling secondary rook moves on the board
 		if (Move.isCastling(moveToUndo)) {
-			unperformSecondaryCastlingMove(moveToUndo);
+			unperformSecondaryCastlingMove(originBitOffset);
 		}
 		// Switch piece bitboard
 		if (promotedPiece != Piece.NONE) {
@@ -542,7 +542,7 @@ public class Board {
 		
 		// Handle reversal of any castling secondary rook moves on the board
 		if (Move.isCastling(moveToUndo)) {
-			unperformSecondaryCastlingMove(moveToUndo);
+			unperformSecondaryCastlingMove(originBitOffset);
 		}
 		// Switch piece bitboard
 		if (promotedPiece != Piece.NONE) {
@@ -599,7 +599,7 @@ public class Board {
 		// Handle reversal of any castling secondary rook move on the board, this is the only state change
 		// that needs to be undone, the hash code is restored from a temporary variable.		
 		if (Move.isCastling(moveToUndo)) {
-			unperformSecondaryCastlingMove(moveToUndo);
+			unperformSecondaryCastlingMove(Move.getOriginPosition(moveToUndo));
 		}
 	}
 	
@@ -1020,20 +1020,20 @@ public class Board {
 	private static final long bksc_mask = BitBoard.positionToMask_Lut[Position.h8] | BitBoard.positionToMask_Lut[Position.f8];
 	private static final long bqsc_mask = BitBoard.positionToMask_Lut[Position.a8] | BitBoard.positionToMask_Lut[Position.d8];
 	
-	private void performSecondaryCastlingMove(int move) {
-		if (Move.areEqual(move, CastlingManager.wksc)) {
+	private void performSecondaryCastlingMove(int target) {
+		if (target == BitBoard.g1) {
 			pieces[INDEX_ROOK] ^= (wksc_mask);
 			whitePieces ^= (wksc_mask);
 			allPieces ^= (wksc_mask);
 			me.updateRegular(Piece.ROOK, Piece.WHITE_ROOK, BitBoard.h1, BitBoard.f1);
 			hashUpdater.doBasicMove(BitBoard.f1, BitBoard.h1, Piece.WHITE_ROOK);
-		} else if (Move.areEqual(move, CastlingManager.wqsc)) {
+		} else if (target == BitBoard.c1) {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
 			me.updateRegular(Piece.ROOK, Piece.WHITE_ROOK, BitBoard.a1, BitBoard.d1);
 			hashUpdater.doBasicMove(BitBoard.d1, BitBoard.a1, Piece.WHITE_ROOK);
-		} else if (Move.areEqual(move, CastlingManager.bksc)) {
+		} else if (target == BitBoard.g8) {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
@@ -1048,20 +1048,20 @@ public class Board {
 		}
 	}
 	
-	private void unperformSecondaryCastlingMove(int move) {
-		if (Move.areEqual(move, CastlingManager.undo_wksc)) {
+	private void unperformSecondaryCastlingMove(int origin) {
+		if (origin == BitBoard.g1) {
 			pieces[INDEX_ROOK] ^= (wksc_mask);
 			whitePieces ^= (wksc_mask);
 			allPieces ^= (wksc_mask);
 			me.updateRegular(Piece.ROOK, Piece.WHITE_ROOK, BitBoard.f1, BitBoard.h1);
 			hashUpdater.doBasicMove(BitBoard.h1, BitBoard.f1, Piece.WHITE_ROOK);
-		} else if (Move.areEqual(move, CastlingManager.undo_wqsc)) {
+		} else if (origin == BitBoard.c1) {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
 			me.updateRegular(Piece.ROOK, Piece.WHITE_ROOK, BitBoard.d1, BitBoard.a1);
 			hashUpdater.doBasicMove(BitBoard.a1, BitBoard.d1, Piece.WHITE_ROOK);
-		} else if (Move.areEqual(move, CastlingManager.undo_bksc)) {
+		} else if (origin == BitBoard.g8) {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
