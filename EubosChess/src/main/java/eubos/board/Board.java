@@ -439,8 +439,8 @@ public class Board {
 		int capturedPieceSquare = BitBoard.INVALID;
 		int originPiece = Move.getOriginPiece(moveToUndo);
 		boolean isWhite = Piece.isWhite(originPiece);
-		int originBitOffset = Move.getOriginPosition(moveToUndo);
-		int targetBitOffset = Move.getTargetPosition(moveToUndo);
+		int originBitOffset = Move.getTargetPosition(moveToUndo);
+		int targetBitOffset = Move.getOriginPosition(moveToUndo);
 		int targetPiece = Move.getTargetPiece(moveToUndo);
 		int promotedPiece = Move.getPromotion(moveToUndo);
 		long initialSquareMask = 1L << originBitOffset;
@@ -523,8 +523,8 @@ public class Board {
 		int capturedPieceSquare = BitBoard.INVALID;
 		int originPiece = Move.getOriginPiece(moveToUndo);
 		boolean isWhite = Piece.isWhite(originPiece);
-		int originBitOffset = Move.getOriginPosition(moveToUndo);
-		int targetBitOffset = Move.getTargetPosition(moveToUndo);
+		int originBitOffset = Move.getTargetPosition(moveToUndo);
+		int targetBitOffset = Move.getOriginPosition(moveToUndo);
 		int targetPiece = Move.getTargetPiece(moveToUndo);
 		int promotedPiece = Move.getPromotion(moveToUndo);
 		long initialSquareMask = 1L << originBitOffset;
@@ -599,7 +599,7 @@ public class Board {
 		// Handle reversal of any castling secondary rook move on the board, this is the only state change
 		// that needs to be undone, the hash code is restored from a temporary variable.		
 		if (Move.isCastling(moveToUndo)) {
-			unperformSecondaryCastlingMove(Move.getOriginPosition(moveToUndo));
+			unperformSecondaryCastlingMove(Move.getTargetPosition(moveToUndo));
 		}
 	}
 	

@@ -124,7 +124,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Update the draw checker
 		isDrawing = dc.setPositionReached(getHash(), getPlyNumber());
 		
-		theBoard.undoMoveThreefoldCheck(Move.reverse(move));
+		theBoard.undoMoveThreefoldCheck(move);
 		// Restore state
 		castling.setFlags(old_flags);
 		theBoard.setEnPassantTargetSq(prevEnPassantTargetSq);
@@ -147,8 +147,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		theBoard.doMove(move);
 		// Legal move check
 		if (theBoard.last_move_was_illegal) {
-			int reversedMove = Move.reverse(move);
-			theBoard.undoIllegalMove(reversedMove);
+			theBoard.undoIllegalMove(move);
 			
 			castling.setFlags(old_flags);
 			theBoard.setPassedPawns(pp);
@@ -183,8 +182,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 
 	public void unperformMove() {
 		MoveStack stack = moveTracker.pop();
-		int reversedMove = Move.reverse(stack.move);
-		theBoard.undoMove(reversedMove);
+		theBoard.undoMove(stack.move);
 		
 		// Restore state from move stack
 		castling.setFlags(stack.castling);

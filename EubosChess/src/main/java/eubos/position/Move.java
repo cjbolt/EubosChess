@@ -598,12 +598,6 @@ public final class Move {
 		return move |= type << TYPE_SHIFT;
 	}
 	
-	public static int reverse(int move) {
-		int reversedMove = move & ~(ORIGIN_OFFSET_MASK | TARGET_OFFSET_MASK);
-		reversedMove |= ((move & ORIGIN_OFFSET_MASK) >>> 6) | ((move & TARGET_OFFSET_MASK) << 6);
-		return reversedMove;
-	}
-
 	public static boolean isQueenPromotion(int move) {
 		return (((move & (Move.TYPE_PROMOTION_MASK) << TYPE_SHIFT) != 0) && Piece.isQueen(Move.getPromotion(move)));
 	}
