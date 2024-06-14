@@ -776,11 +776,8 @@ public class PlySearcher {
 			    if (SearchDebugAgent.DEBUG_ENABLED) sda.printCutOffWithScore(s.hashScore);
 			}
 		}
-		// Transposition may still be useful to seed the move list, if not drawing.
-		if (!override_trans_move || (override_trans_move && s.prevBestMove == Move.NULL_MOVE)) {
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-			s.prevBestMove = trans_move;
-		}
+		if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
+		s.prevBestMove = trans_move;
 	}
 	
 	private long updateTranspositionTable(long trans, byte depth, int currMove, short plyScore, byte plyBound) {
