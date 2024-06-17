@@ -17,7 +17,6 @@ public interface IPositionAccessors {
 	public boolean isThreefoldRepetitionPossible();
 	public boolean isInsufficientMaterial();
 	public IEvaluate getPositionEvaluator();
-	public boolean moveLeadsToThreefold(int move);
 	public String unwindMoveStack();
 	public CastlingManager getCastling();
 }

@@ -101,42 +101,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		
 	DrawChecker dc;
 	
-	public boolean moveLeadsToThreefold(int move) {
-		boolean isDrawing = false;
-		long old_hash = getHash();
-		
-		// Generate new position hash code
-		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
-		int old_flags = castling.getFlags();
-		theBoard.doMoveForThreefoldCheck(move);
-		castling.updateFlags(move);
-		byte enPassantTargetBitOffs = (byte)theBoard.getEnPassantTargetSq();
-		
-		// Update Hash
-		hash.doEnPassant(prevEnPassantTargetSq, enPassantTargetBitOffs);
-		hash.doCastlingFlags(old_flags, castling.getFlags());
-		hash.doOnMove();
-		
-		// Update onMove
-		onMove = Colour.getOpposite(onMove);
-		plyNumber++;
-		
-		// Update the draw checker
-		isDrawing = dc.setPositionReached(getHash(), getPlyNumber());
-		
-		theBoard.undoMoveThreefoldCheck(move);
-		// Restore state
-		castling.setFlags(old_flags);
-		theBoard.setEnPassantTargetSq(prevEnPassantTargetSq);
-		hash.hashCode = old_hash;
-		
-		// Update onMove flag
-		onMove = Piece.Colour.getOpposite(onMove);
-		plyNumber--;
-		
-		return isDrawing;
-	}
-	
 	public boolean performMove(int move) {
 		// Preserve state
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();

@@ -705,7 +705,6 @@ public class PlySearcher {
 	
 	void evaluateTransposition(long trans, int depth) {
 		SearchState s = state[currPly];
-		boolean override_trans_move = false;
 		int trans_move = Move.valueOfFromTransposition(trans, pos.getTheBoard());
 		short static_eval = Transposition.getStaticEval(trans);
 		if (static_eval != Short.MAX_VALUE) {
@@ -717,16 +716,15 @@ public class PlySearcher {
 		if (depth <= Transposition.getDepthSearchedInPly(trans)) {
 			int type = Transposition.getType(trans);
 			s.isCutOff = false;
-			override_trans_move = checkForRepetitionDueToPositionInSearchTree(trans_move);
 			boolean check_for_refutation = false;
 			
 			// If the hash move is drawing due to the position in the search tree, score accordingly, but still check
 			// if it is good enough for a refutation.
-			s.hashScore = override_trans_move ? 0 : convertMateScoreForPositionInSearchTree(Transposition.getScore(trans));
+			s.hashScore = convertMateScoreForPositionInSearchTree(Transposition.getScore(trans));
 			switch(type) {
 			case Score.exact:
 				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
-				s.isCutOff = !override_trans_move;
+				s.isCutOff = true;
 				break;
 			case Score.upperBound:
 				s.adaptiveBeta = s.beta = Math.min(s.beta, s.hashScore);
@@ -801,15 +799,6 @@ public class PlySearcher {
 			adjustedScoreForThisPositionInTree = (short) ((trans_score < 0 ) ? trans_score+currPly : trans_score-currPly);
 		}
 		return adjustedScoreForThisPositionInTree;
-	}
-
-	private boolean checkForRepetitionDueToPositionInSearchTree(int move)  {
-		boolean retVal = false;
-		if (pos.moveLeadsToThreefold(move)) {
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRepeatedPositionHash(pos.getHash(), pos.getFen());
-			retVal = true;
-		}
-		return retVal;
 	}
 
 	private void reportPv(short positionScore) {

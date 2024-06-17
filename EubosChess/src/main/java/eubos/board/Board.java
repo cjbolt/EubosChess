@@ -394,45 +394,6 @@ public class Board {
 		return captureBitOffset;
 	}
 	
-	public void doMoveForThreefoldCheck(int move) {
-		// Just need to do sufficient actions to generate the hash code we need
-		int captureBitOffset = BitBoard.INVALID;
-		int pieceToMove = Move.getOriginPiece(move);
-		int originBitOffset = Move.getOriginPosition(move);
-		int targetBitOffset = Move.getTargetPosition(move);
-		int targetPiece = Move.getTargetPiece(move);
-		int promotedPiece = Move.getPromotion(move);
-		
-		// Initialise En Passant target square
-		setEnPassantTargetSq(BitBoard.INVALID);
-		
-		if (targetPiece != Piece.NONE) {
-			// Handle captures
-			if (Move.isEnPassantCapture(move)) {
-				// Handle en passant captures, don't need to do other checks in this case
-				captureBitOffset = generateCaptureBitOffsetForEnPassant(pieceToMove, targetBitOffset);
-			} else {
-				captureBitOffset = targetBitOffset;
-			}
-			hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
-		} else {
-			// Check whether the move sets the En Passant target square
-			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
-				// Handle castling secondary rook moves...
-				if (Move.isCastling(move)) {
-					performSecondaryCastlingMove(targetBitOffset);
-				}
-			}
-		}
-		
-		if (promotedPiece != Piece.NONE) {
-			int fullPromotedPiece = Piece.isWhite(pieceToMove) ? promotedPiece : promotedPiece|Piece.BLACK;
-			hashUpdater.doPromotionMove(targetBitOffset, originBitOffset, pieceToMove, fullPromotedPiece);
-		} else {
-			hashUpdater.doBasicMove(targetBitOffset, originBitOffset, pieceToMove);
-		}
-	}
-	
 	public int undoMove(int moveToUndo) {
 		isAttacksMaskValid = false;
 		
@@ -593,14 +554,6 @@ public class Board {
 		last_move_was_illegal = false;
 		
 		return capturedPieceSquare;
-	}
-	
-	public void undoMoveThreefoldCheck(int moveToUndo) {
-		// Handle reversal of any castling secondary rook move on the board, this is the only state change
-		// that needs to be undone, the hash code is restored from a temporary variable.		
-		if (Move.isCastling(moveToUndo)) {
-			unperformSecondaryCastlingMove(Move.getTargetPosition(moveToUndo));
-		}
 	}
 	
 	public int generateCaptureBitOffsetForEnPassant(int pieceToMove, int targetBitOffset) {
