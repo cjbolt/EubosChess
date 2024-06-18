@@ -2,7 +2,6 @@ package eubos.search.transposition;
 
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
-import eubos.search.Score;
 
 public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 
@@ -152,18 +151,8 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		}
 		if (!is_created) {
 			int currentDepth = Transposition.getDepthSearchedInPly(trans);
-			if (currentDepth < new_Depth) {
+			if (currentDepth <= new_Depth) {
 				is_updated = true;	
-			} else if (currentDepth == new_Depth) {
-				// Don't insist on a higher score than transposition to update because of aspiration
-				// windows and multi-threaded search.
-				if (Transposition.getType(trans) != Score.exact) {
-					is_updated = true;
-				} else {
-					// don't update, already have an exact score
-				}
-			} else {
-				// don't update, depth is less than we currently have
 			}
 			if (is_updated) {
 				trans = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, new_age);

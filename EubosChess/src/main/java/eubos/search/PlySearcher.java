@@ -619,25 +619,18 @@ public class PlySearcher {
 			s.isCutOff = false;
 			s.hashScore = convertMateScoreForPositionInSearchTree(Transposition.getScore(trans));
 			int type = Transposition.getType(trans);
-			if (type == Score.exact) {
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
-				s.isCutOff = true;
+			if (hasSearchedPv && type == (s.hashScore >= beta ? Score.lowerBound : Score.upperBound)) {
 				return s.hashScore;
-			} else {
-				if (hasSearchedPv && type == (s.hashScore >= beta ? Score.lowerBound : Score.upperBound)) {
-					return s.hashScore;
-				}
-				s.bestScore = Transposition.getStaticEval(trans);
-				if (s.bestScore == Short.MAX_VALUE) {
-					s.bestScore = pe.lazyEvaluation(alpha, beta);
-				}
-				byte boundScope = (s.hashScore > s.bestScore) ? Score.lowerBound : Score.upperBound;
-				if (type == boundScope) {
-					s.bestScore = s.hashScore;
-				}
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-				prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
 			}
+			s.bestScore = Transposition.getStaticEval(trans);
+			if (s.bestScore == Short.MAX_VALUE) {
+				s.bestScore = pe.lazyEvaluation(alpha, beta);
+			}
+			byte boundScope = (s.hashScore > s.bestScore) ? Score.lowerBound : Score.upperBound;
+			if (type == boundScope) {
+				s.bestScore = s.hashScore;
+			}
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
 		} else {
 			s.bestScore = pe.lazyEvaluation(alpha, beta);
 		}
@@ -659,6 +652,9 @@ public class PlySearcher {
 		int currMove = Move.NULL_MOVE;
 		int positionScore = s.bestScore;
 		boolean refuted = false;
+		if (trans != 0L) {
+			prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
+		}
 		MoveListIterator move_iter = ml.initialiseAtPly(prevBestMove, null, s.inCheck, true, currPly);
 		while ((currMove = move_iter.nextInt()) != Move.NULL_MOVE && !isTerminated()) {
 			// Legal move check	
@@ -721,12 +717,7 @@ public class PlySearcher {
 			// If the hash move is drawing due to the position in the search tree, score accordingly, but still check
 			// if it is good enough for a refutation.
 			s.hashScore = convertMateScoreForPositionInSearchTree(Transposition.getScore(trans));
-			switch(type) {
-			case Score.exact:
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsTerminalNode(trans, pos.getHash());
-				s.isCutOff = true;
-				break;
-			case Score.upperBound:
+			if (type == Score.upperBound) {
 				s.adaptiveBeta = s.beta = Math.min(s.beta, s.hashScore);
 	        	if (EubosEngineMain.ENABLE_LOGGING) {
 	        		if (currPly == 0)
@@ -734,8 +725,7 @@ public class PlySearcher {
 								s.beta, s.hashScore));
 				}
 				check_for_refutation = true;
-				break;
-			case Score.lowerBound:
+			} else if (type == Score.lowerBound) {
 				s.alpha = Math.max(s.alpha, s.hashScore);
 	        	if (EubosEngineMain.ENABLE_LOGGING) {
 	        		if (currPly == 0)
@@ -743,12 +733,8 @@ public class PlySearcher {
 								s.alpha, s.hashScore));
 				}
 				check_for_refutation = true;
-				break;
-			case Score.typeUnknown:
-				break;
-			default:
-				if (EubosEngineMain.ENABLE_ASSERTS) assert false;
-				break;
+			} else {
+				// Type unknown or exact
 			}
 			
 			if (check_for_refutation) {

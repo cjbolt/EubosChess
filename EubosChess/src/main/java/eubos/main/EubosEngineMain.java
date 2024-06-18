@@ -510,7 +510,7 @@ public class EubosEngineMain extends AbstractEngine {
 						result.report(rootPosition.getTheBoard())));
 			}
 			if (ENABLE_OVERWRITE_TRANS_WITH_SEARCH) {
-				trans = Transposition.valueOf((byte)result.depth, (short)0, Score.typeUnknown, result.pv[0], rootPosition.getMoveNumber());
+				trans = Transposition.valueOf((byte)result.depth, (short)0, Score.lowerBound, result.pv[0], rootPosition.getMoveNumber());
 			} else {
 				trans = 0L;
 			}
