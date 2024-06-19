@@ -146,17 +146,11 @@ public class PlySearcher {
 	private boolean isTerminated() { return terminate; }	
 	
 	private int getCoefficientAlpha(int lastScore, int windowSize) {
-		int windowOffset = EubosEngineMain.ENABLE_SKEWED_ASPIRATION_WINDOWS ? (lastScore >= 50 ? lastScore/50 : 0) : 0;
-		if (windowOffset > windowSize)
-			windowSize += windowOffset/2;
-		return Math.max(Score.PROVISIONAL_ALPHA, Math.min(Score.PROVISIONAL_BETA-1, lastScore + windowOffset - windowSize));
+		return Math.max(Score.PROVISIONAL_ALPHA, Math.min(Score.PROVISIONAL_BETA-1, lastScore - windowSize));
 	}
 	
 	private int getCoefficientBeta(int lastScore, int windowSize) {
-		int windowOffset = EubosEngineMain.ENABLE_SKEWED_ASPIRATION_WINDOWS ? (lastScore <= -50 ? lastScore/50 : 0) : 0;
-		if (windowOffset > windowSize)
-			windowSize += windowOffset/2;
-		return Math.min(Score.PROVISIONAL_BETA, Math.max(Score.PROVISIONAL_ALPHA+1, lastScore + windowOffset + windowSize));
+		return Math.min(Score.PROVISIONAL_BETA, Math.max(Score.PROVISIONAL_ALPHA+1, lastScore + windowSize));
 	}
 	
 	public int searchPly(short lastScore)  {
@@ -268,6 +262,9 @@ public class PlySearcher {
 		int positionScore = s.bestScore;
 		int quietMoveNumber = 0;
 		boolean refuted = false;
+		if (trans != 0L) {
+			s.prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
+		}
 		MoveListIterator move_iter = ml.initialiseAtPly(s.prevBestMove, killers.getMoves(0), s.inCheck, false, 0);
 		while ((currMove = move_iter.nextInt()) != Move.NULL_MOVE && !isTerminated()) {
 			// Legal move check	
@@ -430,24 +427,7 @@ public class PlySearcher {
 					return s.beta;
 				}
 			}
-			
-			// Razoring
-		    if (EubosEngineMain.ENABLE_RAZORING_ON_QUIESCENCE &&
-		    	hasSearchedPv && 
-		    	depth <= 3) {
-		    	int thresh = 300 + (150 * depth * depth);
-		    	if (s.staticEval + thresh < s.alpha) {
-		            int value = extendedSearch(s.alpha - 1, s.alpha, -1);
-		            if (isTerminated()) { return 0; }
-		            
-		            if (value < s.alpha) {
-		                return s.alpha;
-		            } else {
-		            	s.reinitialise(s.alpha, s.beta);
-		            }
-		        }
-		    }
-			
+	
 			// Null move pruning
 			if (EubosEngineMain.ENABLE_NULL_MOVE_PRUNING &&
 				!isTerminated() &&
@@ -466,45 +446,15 @@ public class PlySearcher {
 			}
 		}
 		
-		// Internal Iterative Deepening
-		if (EubosEngineMain.ENABLE_ITERATIVE_DEEPENING && 
-			s.prevBestMove == Move.NULL_MOVE && 
-			depth >= 6 &&
-			!isTerminated()) {
-
-			s.update();
-			int score = negaScout(depth-3, false, s.alpha, s.beta, true);
-
-		    if (score <= s.alpha) {
-		    	score = negaScout(depth-3, false, Score.PROVISIONAL_ALPHA, s.alpha+1, true);
-		    }
-
-		    if (EubosEngineMain.ENABLE_ASSERTS) {
-			    if (!Score.isMate((short)score) && score != 0 && !isTerminated()) {
-				    assert score != Score.PROVISIONAL_ALPHA;
-				    assert score != Score.PROVISIONAL_BETA;
-				    if (score < s.beta) {
-				    	assert pc.getBestMoveAtPly((byte)(currPly)) != Move.NULL_MOVE :
-				    		String.format("score=%d moves[%s] fen=%s next_pc=%s",
-				    				score, pos.unwindMoveStack(), pos.getFen(), pc.toStringAt(currPly+1));
-				    }
-			    }
-		    }
-
-		    /* The rationale for not using alpha and beta on the search stack here is
-		       that we already had a hash miss, so can't have reduced the window with
-		       a hash hit. */
-		    s.reinitialise(alpha, beta);
-		    /* Get the suggested best move that was returned and use it as the hash move */		    
-		    s.prevBestMove = pc.getBestMoveAtPly((byte)(currPly));
-		}
-		
 		// Main search loop for this ply
 		int bestMove = Move.NULL_MOVE;
 		int currMove = Move.NULL_MOVE;
 		int positionScore = s.bestScore;
 		boolean refuted = false;
 		int quietMoveNumber = 0;
+		if (trans != 0L) {
+			s.prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
+		}
 		MoveListIterator move_iter = ml.initialiseAtPly(s.prevBestMove, killers.getMoves(currPly), s.inCheck, false, currPly);
 		while ((currMove = move_iter.nextInt()) != Move.NULL_MOVE && !isTerminated()) {
 			
@@ -701,7 +651,6 @@ public class PlySearcher {
 	
 	void evaluateTransposition(long trans, int depth) {
 		SearchState s = state[currPly];
-		int trans_move = Move.valueOfFromTransposition(trans, pos.getTheBoard());
 		short static_eval = Transposition.getStaticEval(trans);
 		if (static_eval != Short.MAX_VALUE) {
 			s.staticEval = static_eval;
@@ -746,22 +695,19 @@ public class PlySearcher {
 									s.alpha, s.beta));
 					}
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsRefutation(pos.getHash(), trans);
+					int trans_move = Move.valueOfFromTransposition(trans, pos.getTheBoard());
+					// Refutation at required search depth, cut off the Search
 					killers.addMove(currPly, trans_move);
 					ml.history.updateMove(depth, trans_move);
 					s.isCutOff = true;
+					pc.set(currPly, trans_move);
+				    if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
+				    if (SearchDebugAgent.DEBUG_ENABLED) sda.printCutOffWithScore(s.hashScore);
 				} else {
 					s.isHashScoreValid = true;
 				}
 			}
-			if (s.isCutOff) {
-				// Refutation or exact score already known to required search depth, cut off the Search
-				pc.set(currPly, trans_move);
-			    if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
-			    if (SearchDebugAgent.DEBUG_ENABLED) sda.printCutOffWithScore(s.hashScore);
-			}
 		}
-		if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-		s.prevBestMove = trans_move;
 	}
 	
 	private long updateTranspositionTable(long trans, byte depth, int currMove, short plyScore, byte plyBound) {
