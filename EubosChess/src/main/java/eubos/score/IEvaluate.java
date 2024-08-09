@@ -10,4 +10,5 @@ public interface IEvaluate {
 	
 	boolean goForMate();
 	int estimateMovePositionalContribution(int move);
+	void updateCorrectionHistory(short score);
 }

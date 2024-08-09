@@ -36,6 +36,7 @@ public class PositionEvaluator implements IEvaluate {
 	boolean passedPawnPresent;
 	PawnEvaluator pawn_eval;
 	KingSafetyEvaluator ks_eval;
+	CorrectionHistory corrHist;
 	
 	private final int[] GO_FOR_MATE_KING_PROXIMITY_LUT = {0, 0, 40, 30, 20, 10, 0, -10, -20};
 	
@@ -298,8 +299,17 @@ public class PositionEvaluator implements IEvaluate {
 		if (passedPawnPresent) {
 			return internalFullEval(); 
 		} else {
-			return internalCrudeEval();
+			int evaluation = internalCrudeEval();
+			short correction = corrHist.get(pm.getPawnHash(), pm.getOnMove() == Piece.Colour.white);
+			if (correction != Short.MAX_VALUE) {
+				evaluation += correction;
+			}
+			return evaluation;
 		}
+	}
+	
+	public void updateCorrectionHistory(short correction) {
+		corrHist.put(pm.getPawnHash(), correction, pm.getOnMove() == Piece.Colour.white);
 	}
 	
 	public int evaluateThreats(long[][][] attacks, boolean onMoveIsWhite) {
@@ -380,5 +390,6 @@ public class PositionEvaluator implements IEvaluate {
 		if (TUNE_LAZY_EVAL) {
 			lazyStat = new LazyEvalStatistics();
 		}
+		corrHist = new CorrectionHistory();
 	}
 }

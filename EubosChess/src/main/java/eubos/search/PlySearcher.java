@@ -354,6 +354,9 @@ public class PlySearcher {
 			}
 			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
 			rootTransposition = trans;
+			if (!refuted && !Score.isMate((short)s.bestScore) && s.isStaticValid && s.staticEval != Short.MAX_VALUE && s.bestScore > alpha) {
+				pe.updateCorrectionHistory((short)(s.bestScore - s.staticEval));
+			}
 			if (EubosEngineMain.ENABLE_LOGGING) {
 				EubosEngineMain.logger.info(String.format("TRANSPOSITION SAVED AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s (%s)",
 						s.bestScore, s.alpha, s.beta, depth, Move.toString(bestMove), Transposition.report(trans)));
@@ -543,6 +546,9 @@ public class PlySearcher {
 				return s.inCheck ? Score.getMateScore(currPly) : 0;
 			}
 			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
+			if (!refuted && !Score.isMate((short)s.bestScore) && s.isStaticValid && s.staticEval != Short.MAX_VALUE && s.bestScore > alpha) {
+				pe.updateCorrectionHistory((short)(s.bestScore - s.staticEval));
+			}
 		}
 		
 		return s.bestScore;
