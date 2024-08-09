@@ -29,6 +29,7 @@ public class PositionEvaluator implements IEvaluate {
 	public Board bd;
 	PawnEvaluator pawn_eval;
 	KingSafetyEvaluator ks_eval;
+	CorrectionHistory corrHist;
 	
 	private class LazyEvalStatistics {
 		
@@ -76,7 +77,7 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	private void updateLazyStatistics(int crude, int lazyThresh) {
-		int full = internalFullEval();
+		int full = internalFullEval(Short.MAX_VALUE);
 		int delta = full-crude;
 		// We don't care if the score is better, only if it is worse
 		if (delta < 0) {
@@ -136,6 +137,7 @@ public class PositionEvaluator implements IEvaluate {
 		if (TUNE_LAZY_EVAL) {
 			lazyStat = new LazyEvalStatistics();
 		}
+		corrHist = new CorrectionHistory();
 	}
 	
 	private void initialise() {
@@ -178,7 +180,7 @@ public class PositionEvaluator implements IEvaluate {
 		}
 	}
 	
-	public int lazyEvaluation(int alpha, int beta) {
+	public int lazyEvaluation(int alpha, int beta, short staticEval) {
 		initialise();
 		if (EubosEngineMain.ENABLE_LAZY_EVALUATION) {
 			if (bd.me.phase != 4096) {
@@ -211,7 +213,7 @@ public class PositionEvaluator implements IEvaluate {
 			}
 		}
 		// Phase 2 full evaluation
-		return internalFullEval();
+		return internalFullEval(staticEval);
 	}
 	
 	public int getCrudeEvaluation() {
@@ -259,7 +261,7 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	public final int[] GO_FOR_MATE_KING_PROXIMITY_LUT = {0, 0, 40, 30, 20, 10, 0, -10, -20};
-	private int internalFullEval() {
+	private int internalFullEval(short staticEval) {
 		// Initialised in lazyEvaluation function
 		score = 0;
 		midgameScore = 0;
@@ -293,13 +295,16 @@ public class PositionEvaluator implements IEvaluate {
 				score += evaluateBishopPair();
 				score += pawn_eval.evaluatePawnStructure(attacks);
 			}
+			if (staticEval != Short.MAX_VALUE) {
+				updateCorrectionHistory((short)(score - staticEval));
+			}
 		}
 		return score;
 	}
 	
 	public int getFullEvaluation() {
 		initialise();
-		return internalFullEval();
+		return internalFullEval(Short.MAX_VALUE);
 	}
 	
 	public int getFullEvalNotCheckingForDraws() {
@@ -309,7 +314,7 @@ public class PositionEvaluator implements IEvaluate {
 		score = 0;
 		midgameScore = 0;
 		endgameScore = 0;
-		return internalFullEval();
+		return internalFullEval(Short.MAX_VALUE);
 	}
 	
 	public int getCrudeEvalNotCheckingForDraws() {
@@ -405,7 +410,15 @@ public class PositionEvaluator implements IEvaluate {
 			evaluation = getFullEvalNotCheckingForDraws(); 
 		} else {
 			evaluation = getCrudeEvalNotCheckingForDraws();
+			short correction = corrHist.get(pm.getPawnHash(), pm.getOnMove() == Piece.Colour.white);
+			if (correction != Short.MAX_VALUE) {
+				evaluation += correction;
+			}
 		}
 		return evaluation;
+	}
+	
+	public void updateCorrectionHistory(short correction) {
+		corrHist.put(pm.getPawnHash(), correction, pm.getOnMove() == Piece.Colour.white);
 	}
 }

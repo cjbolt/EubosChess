@@ -574,7 +574,7 @@ public class PlySearcher {
 			}
 			s.bestScore = Transposition.getStaticEval(trans);
 			if (s.bestScore == Short.MAX_VALUE) {
-				s.bestScore = pe.lazyEvaluation(alpha, beta);
+				s.bestScore = pe.lazyEvaluation(alpha, beta, s.isStaticValid ? s.staticEval : Short.MAX_VALUE);
 			}
 			byte boundScope = (s.hashScore > s.bestScore) ? Score.lowerBound : Score.upperBound;
 			if (type == boundScope) {
@@ -582,7 +582,7 @@ public class PlySearcher {
 			}
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
 		} else {
-			s.bestScore = pe.lazyEvaluation(alpha, beta);
+			s.bestScore = pe.lazyEvaluation(alpha, beta, s.isStaticValid ? s.staticEval : Short.MAX_VALUE);
 		}
 		
 		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY || s.bestScore >= beta) {
