@@ -18,9 +18,16 @@ public class PositionEvaluator implements IEvaluate {
 	public static final boolean ENABLE_DYNAMIC_POSITIONAL_EVALUATION = true;
 	public static final boolean ENABLE_THREAT_EVALUATION = true;
 
+	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
+	running with the logging in TUNE_LAZY_EVAL for Eubos2.14 and post processing the logs.
+	It will need to be re-tuned if the evaluation function is altered significantly. */
+	public static int lazy_eval_threshold_cp = 275;
+	
+	private static final boolean TUNE_LAZY_EVAL = false;
 	private static final int BISHOP_PAIR_BOOST = 25;
 	
 	boolean onMoveIsWhite;
+	private boolean goForMate;
 	int midgameScore = 0;
 	int endgameScore = 0;
 	public boolean isDraw;
@@ -29,6 +36,7 @@ public class PositionEvaluator implements IEvaluate {
 	public Board bd;
 	PawnEvaluator pawn_eval;
 	KingSafetyEvaluator ks_eval;
+	LazyEvalStatistics lazyStat = null;
 	
 	private class LazyEvalStatistics {
 		
@@ -100,131 +108,26 @@ public class PositionEvaluator implements IEvaluate {
 		}
 	}
 	
-	public void reportLazyStatistics() {
-		if (TUNE_LAZY_EVAL) {
-			lazyStat.report();
-		}
-	}
-	
-	LazyEvalStatistics lazyStat = null;
-	
-	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
-	running with the logging in TUNE_LAZY_EVAL for Eubos2.14 and post processing the logs.
-	It will need to be re-tuned if the evaluation function is altered significantly. */
-	public static int lazy_eval_threshold_cp = 275;
-	private static final boolean TUNE_LAZY_EVAL = false;
-	
-	public void reportPawnStatistics() {
-		pawn_eval.reportPawnHashStatistics();
-	}
-	
-	public boolean goForMate;
-	public boolean goForMate() {
-		return goForMate;
-	}
-	
-	public PositionEvaluator(IPositionAccessors pm, PawnEvalHashTable pawnHash) {	
-		this.pm = pm;
-		bd = pm.getTheBoard();
-		pawn_eval = new PawnEvaluator(pm, pawnHash);
-		ks_eval = new KingSafetyEvaluator(pm);
-		// If either side can't win (e.g. bare King) then do a mate search.
-		goForMate = ((Long.bitCount(bd.getBlackPieces()) == 1) || 
-				     (Long.bitCount(bd.getWhitePieces()) == 1)) ||
-				Math.abs(bd.me.getMiddleGameDelta()) > 4000;
-		initialise();
-		if (TUNE_LAZY_EVAL) {
-			lazyStat = new LazyEvalStatistics();
-		}
+	private void basicInit() {
+		onMoveIsWhite = pm.onMoveIsWhite();
+		isDraw = false;
+		passedPawnPresent = bd.isPassedPawnPresent();
+		score = 0;
+		midgameScore = 0;
+		endgameScore = 0;
 	}
 	
 	private void initialise() {
-		onMoveIsWhite = pm.onMoveIsWhite();
+		basicInit();
 		isDraw = pm.isThreefoldRepetitionPossible();
 		if (!isDraw) {
 			isDraw = pm.isInsufficientMaterial();
 		}
-		if (EubosEngineMain.ENABLE_COUNTED_PASSED_PAWN_MASKS) {
-			if (!isDraw) {
-				passedPawnPresent = bd.isPassedPawnPresent();
-			}
-		} else {
-			passedPawnPresent = false;
-		}
-		score = 0;
-		midgameScore = 0;
-		endgameScore = 0;
 	}
 	
 	private short taperEvaluation(int midgameScore, int endgameScore) {
 		int phase = bd.me.getPhase();
 		return (short)(((midgameScore * (4096 - phase)) + (endgameScore * phase)) / 4096);
-	}
-	
-	boolean isKingExposed() {
-		int kingBitOffset = bd.getKingPosition(onMoveIsWhite);
-		// Only meant to cater for quite extreme situations
-		long kingZone = SquareAttackEvaluator.KingZone_Lut[onMoveIsWhite ? 0 : 1][kingBitOffset];
-		kingZone =  onMoveIsWhite ? kingZone >>> 8 : kingZone << 8;
-		long defenders = onMoveIsWhite ? bd.getWhitePieces() : bd.getBlackPieces();
-		int defenderCount = Long.bitCount(kingZone&defenders);
-
-		int attackQueenOffset = bd.getQueenPosition(!onMoveIsWhite);
-		if (attackQueenOffset != BitBoard.INVALID) {
-			int attackingQueenDistance = BitBoard.ManhattanDistance[attackQueenOffset][kingBitOffset];
-			return (defenderCount < 3 || attackingQueenDistance < 3);
-		} else {
-			return defenderCount < 3;
-		}
-	}
-	
-	public int lazyEvaluation(int alpha, int beta) {
-		initialise();
-		if (EubosEngineMain.ENABLE_LAZY_EVALUATION) {
-			if (bd.me.phase != 4096) {
-				// Phase 1 - crude evaluation
-				int crudeEval = internalCrudeEval();
-				int lazyThresh = lazy_eval_threshold_cp;
-				long pp = bd.getPassedPawns();
-				if (pp != 0L) {
-					// increase threshold as a function of the passed pawn imbalance
-					int numWhitePassers = Long.bitCount(pp&bd.getWhitePieces());
-					int numBlackPassers = Long.bitCount(pp&bd.getBlackPieces());
-					int ppDelta = Math.abs(numBlackPassers-numWhitePassers);
-					lazyThresh += ppDelta * 250 * bd.me.getPhase() / 4096;
-				}
-				if (!bd.me.isEndgame() && isKingExposed()) {
-					lazyThresh += 300;
-				}
-				if (TUNE_LAZY_EVAL) {
-					lazyStat.nodeCount++;
-				}
-				if (crudeEval-lazyThresh >= beta) {
-					// There is no move to put in the killer table when we stand Pat
-					// According to lazy eval, we probably can't reach beta
-					if (TUNE_LAZY_EVAL) {
-						lazyStat.lazySavedCountBeta++;
-						updateLazyStatistics(crudeEval, lazyThresh);
-					}
-					return beta;
-				}
-			}
-		}
-		// Phase 2 full evaluation
-		return internalFullEval();
-	}
-	
-	public int getCrudeEvaluation() {
-		isDraw = pm.isThreefoldRepetitionPossible();
-		if (!isDraw) {
-			isDraw = pm.isInsufficientMaterial();
-		}
-		onMoveIsWhite = pm.onMoveIsWhite();
-		score = 0;
-		midgameScore = 0;
-		endgameScore = 0;
-
-		return internalCrudeEval();
 	}
 	
 	private void doMaterialAndPst() {
@@ -297,29 +200,62 @@ public class PositionEvaluator implements IEvaluate {
 		return score;
 	}
 	
+	public int lazyEvaluation(int alpha, int beta) {
+		initialise();
+		if (EubosEngineMain.ENABLE_LAZY_EVALUATION) {
+			if (bd.me.phase != 4096) {
+				// Phase 1 - crude evaluation
+				int crudeEval = internalCrudeEval();
+				int lazyThresh = lazy_eval_threshold_cp;
+				long pp = bd.getPassedPawns();
+				if (pp != 0L) {
+					// increase threshold as a function of the passed pawn imbalance
+					int numWhitePassers = Long.bitCount(pp&bd.getWhitePieces());
+					int numBlackPassers = Long.bitCount(pp&bd.getBlackPieces());
+					int ppDelta = Math.abs(numBlackPassers-numWhitePassers);
+					lazyThresh += ppDelta * 250 * bd.me.getPhase() / 4096;
+				}
+				if (!bd.me.isEndgame() && isKingExposed()) {
+					lazyThresh += 300;
+				}
+				if (TUNE_LAZY_EVAL) {
+					lazyStat.nodeCount++;
+				}
+				if (crudeEval-lazyThresh >= beta) {
+					// There is no move to put in the killer table when we stand Pat
+					// According to lazy eval, we probably can't reach beta
+					if (TUNE_LAZY_EVAL) {
+						lazyStat.lazySavedCountBeta++;
+						updateLazyStatistics(crudeEval, lazyThresh);
+					}
+					return beta;
+				}
+			}
+		}
+		// Phase 2 full evaluation
+		return internalFullEval();
+	}
+	
+	public int getCrudeEvaluation() {
+		initialise();
+		return internalCrudeEval();
+	}
+	
 	public int getFullEvaluation() {
 		initialise();
 		return internalFullEval();
 	}
 	
-	public int getFullEvalNotCheckingForDraws() {
-		onMoveIsWhite = pm.onMoveIsWhite();
-		isDraw = false;
-		passedPawnPresent = bd.isPassedPawnPresent();
-		score = 0;
-		midgameScore = 0;
-		endgameScore = 0;
-		return internalFullEval();
-	}
-	
-	public int getCrudeEvalNotCheckingForDraws() {
-		onMoveIsWhite = pm.onMoveIsWhite();
-		isDraw = false;
-		passedPawnPresent = bd.isPassedPawnPresent();
-		score = 0;
-		midgameScore = 0;
-		endgameScore = 0;
-		return internalCrudeEval();
+	public int getStaticEvaluation() {
+		// No point checking for draws, because we terminate search as soon as a likely draw is detected
+		// and return draw score, so we can't get here if the position is a likely draw, the check would
+		// be redundant
+		basicInit();
+		if (passedPawnPresent || isKingExposed()) {
+			return internalFullEval(); 
+		} else {
+			return internalCrudeEval();
+		}
 	}
 	
 	public int evaluateThreatsForSide(long[][][] attacks, boolean onMoveIsWhite) {
@@ -362,7 +298,24 @@ public class PositionEvaluator implements IEvaluate {
 		return score;
 	}
 	
-	public static final int FUTILITY_MARGIN_BY_PIECE[] = new int[8];
+	boolean isKingExposed() {
+		int kingBitOffset = bd.getKingPosition(onMoveIsWhite);
+		// Only meant to cater for quite extreme situations
+		long kingZone = SquareAttackEvaluator.KingZone_Lut[onMoveIsWhite ? 0 : 1][kingBitOffset];
+		kingZone =  onMoveIsWhite ? kingZone >>> 8 : kingZone << 8;
+		long defenders = onMoveIsWhite ? bd.getWhitePieces() : bd.getBlackPieces();
+		int defenderCount = Long.bitCount(kingZone&defenders);
+
+		int attackQueenOffset = bd.getQueenPosition(!onMoveIsWhite);
+		if (attackQueenOffset != BitBoard.INVALID) {
+			int attackingQueenDistance = BitBoard.ManhattanDistance[attackQueenOffset][kingBitOffset];
+			return (defenderCount < 3 || attackingQueenDistance < 3);
+		} else {
+			return defenderCount < 3;
+		}
+	}
+	
+	private static final int FUTILITY_MARGIN_BY_PIECE[] = new int[8];
     static {
     	FUTILITY_MARGIN_BY_PIECE[Piece.QUEEN] = 175;
     	FUTILITY_MARGIN_BY_PIECE[Piece.ROOK] = 150;
@@ -396,16 +349,33 @@ public class PositionEvaluator implements IEvaluate {
 		return futility;
 	}
 	
-	public int getStaticEvaluation() {
-		int evaluation = 0;
-		if (pm.getTheBoard().getPassedPawns() != 0L || isKingExposed()) {
-			// No point checking for draws, because we terminate search as soon as a likely draw is detected
-			// and return draw score, so we can't get here if the position is a likely draw, the check would
-			// be redundant
-			evaluation = getFullEvalNotCheckingForDraws(); 
-		} else {
-			evaluation = getCrudeEvalNotCheckingForDraws();
+	public void reportPawnStatistics() {
+		pawn_eval.reportPawnHashStatistics();
+	}
+	
+	public void reportLazyStatistics()
+	{
+		if (TUNE_LAZY_EVAL) {
+			lazyStat.report();
 		}
-		return evaluation;
+	}
+	
+	public boolean goForMate() {
+		return goForMate;
+	}
+	
+	public PositionEvaluator(IPositionAccessors pm, PawnEvalHashTable pawnHash) {	
+		this.pm = pm;
+		bd = pm.getTheBoard();
+		pawn_eval = new PawnEvaluator(pm, pawnHash);
+		ks_eval = new KingSafetyEvaluator(pm);
+		// If either side can't win (e.g. bare King) then do a mate search.
+		goForMate = ((Long.bitCount(bd.getBlackPieces()) == 1) || 
+				     (Long.bitCount(bd.getWhitePieces()) == 1)) ||
+				Math.abs(bd.me.getMiddleGameDelta()) > 4000;
+		initialise();
+		if (TUNE_LAZY_EVAL) {
+			lazyStat = new LazyEvalStatistics();
+		}
 	}
 }
