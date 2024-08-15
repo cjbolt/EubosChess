@@ -12,10 +12,7 @@ import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 
 public class PositionEvaluator implements IEvaluate {
-
-	IPositionAccessors pm;
 	
-	public static final boolean ENABLE_DYNAMIC_POSITIONAL_EVALUATION = true;
 	public static final boolean ENABLE_THREAT_EVALUATION = true;
 
 	/* The threshold for lazy evaluation was tuned by empirical evidence collected from
@@ -26,17 +23,31 @@ public class PositionEvaluator implements IEvaluate {
 	private static final boolean TUNE_LAZY_EVAL = false;
 	private static final int BISHOP_PAIR_BOOST = 25;
 	
-	boolean onMoveIsWhite;
+	private IPositionAccessors pm;
+	private boolean onMoveIsWhite;
 	private boolean goForMate;
-	int midgameScore = 0;
-	int endgameScore = 0;
-	public boolean isDraw;
-	public boolean passedPawnPresent;
-	public short score;
-	public Board bd;
+	private int midgameScore = 0;
+	private int endgameScore = 0;
+	private boolean isDraw;
+	private short score;
+	private Board bd;
+	private LazyEvalStatistics lazyStat = null;
+	
+	boolean passedPawnPresent;
 	PawnEvaluator pawn_eval;
 	KingSafetyEvaluator ks_eval;
-	LazyEvalStatistics lazyStat = null;
+	
+	private final int[] GO_FOR_MATE_KING_PROXIMITY_LUT = {0, 0, 40, 30, 20, 10, 0, -10, -20};
+	
+	private static final int FUTILITY_MARGIN_BY_PIECE[] = new int[8];
+    static {
+    	FUTILITY_MARGIN_BY_PIECE[Piece.QUEEN] = 175;
+    	FUTILITY_MARGIN_BY_PIECE[Piece.ROOK] = 150;
+    	FUTILITY_MARGIN_BY_PIECE[Piece.BISHOP] = 130;
+    	FUTILITY_MARGIN_BY_PIECE[Piece.KNIGHT] = 175;
+    	FUTILITY_MARGIN_BY_PIECE[Piece.KING] = 150;
+    	FUTILITY_MARGIN_BY_PIECE[Piece.PAWN] = 125;
+    }
 	
 	private class LazyEvalStatistics {
 		
@@ -117,6 +128,12 @@ public class PositionEvaluator implements IEvaluate {
 		endgameScore = 0;
 	}
 	
+	private void redoInit() {
+		score = 0;
+		midgameScore = 0;
+		endgameScore = 0;
+	}
+	
 	private void initialise() {
 		basicInit();
 		isDraw = pm.isThreefoldRepetitionPossible();
@@ -149,6 +166,37 @@ public class PositionEvaluator implements IEvaluate {
 		}
 	}
 	
+	private int evaluateThreatsForSide(long[][][] attacks, boolean onMoveIsWhite) {
+		int threatScore = 0;
+		long own = onMoveIsWhite ? bd.getWhitePieces() : bd.getBlackPieces();
+		own &= ~(onMoveIsWhite ? bd.getWhiteKing() : bd.getBlackKing()); // Don't include King in this evaluation
+		// if a piece is attacked and not defended, add a penalty
+		long enemyAttacks = attacks[onMoveIsWhite ? 1 : 0][3][0];
+		long ownAttacks = attacks[onMoveIsWhite ? 0 : 1][3][0];
+		long attackedOnlyByEnemy = enemyAttacks & ~ownAttacks;
+		long scratchBitBoard = own & attackedOnlyByEnemy;
+		int bit_offset;
+		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {		
+			// Add a penalty based on the value of the piece not defended, 50% of piece value
+			threatScore -= Math.abs((Piece.PIECE_TO_MATERIAL_LUT[0][bd.getPieceAtSquare(scratchBitBoard)] / 2));
+			scratchBitBoard ^= (1L << bit_offset);
+		}
+		return threatScore;
+	}
+	
+	private int evaluateBishopPair() {
+		int score = 0;
+		int onMoveBishopCount = onMoveIsWhite ? bd.me.numberOfPieces[Piece.WHITE_BISHOP] : bd.me.numberOfPieces[Piece.BLACK_BISHOP];
+		if (onMoveBishopCount >= 2) {
+			score += BISHOP_PAIR_BOOST;
+		}
+		int opponentBishopCount = onMoveIsWhite ? bd.me.numberOfPieces[Piece.BLACK_BISHOP] : bd.me.numberOfPieces[Piece.WHITE_BISHOP];
+		if (opponentBishopCount >= 2) {
+			score -= BISHOP_PAIR_BOOST;
+		}
+		return score;
+	}
+	
 	private int internalCrudeEval() {
 		// Initialised in lazyEvaluation function
 		if (!isDraw) {
@@ -161,12 +209,7 @@ public class PositionEvaluator implements IEvaluate {
 		return score;
 	}
 	
-	public final int[] GO_FOR_MATE_KING_PROXIMITY_LUT = {0, 0, 40, 30, 20, 10, 0, -10, -20};
 	private int internalFullEval() {
-		// Initialised in lazyEvaluation function
-		score = 0;
-		midgameScore = 0;
-		endgameScore = 0;
 		if (!isDraw) {
 			if (goForMate) {
 				score += onMoveIsWhite ? bd.me.getMiddleGameDelta() : -bd.me.getMiddleGameDelta();
@@ -207,9 +250,9 @@ public class PositionEvaluator implements IEvaluate {
 				// Phase 1 - crude evaluation
 				int crudeEval = internalCrudeEval();
 				int lazyThresh = lazy_eval_threshold_cp;
-				long pp = bd.getPassedPawns();
-				if (pp != 0L) {
+				if (passedPawnPresent) {
 					// increase threshold as a function of the passed pawn imbalance
+					long pp = bd.getPassedPawns();
 					int numWhitePassers = Long.bitCount(pp&bd.getWhitePieces());
 					int numBlackPassers = Long.bitCount(pp&bd.getBlackPieces());
 					int ppDelta = Math.abs(numBlackPassers-numWhitePassers);
@@ -231,12 +274,13 @@ public class PositionEvaluator implements IEvaluate {
 					return beta;
 				}
 			}
+			redoInit();
 		}
 		// Phase 2 full evaluation
 		return internalFullEval();
 	}
 	
-	public int getCrudeEvaluation() {
+	int getCrudeEvaluation() {
 		initialise();
 		return internalCrudeEval();
 	}
@@ -258,24 +302,6 @@ public class PositionEvaluator implements IEvaluate {
 		}
 	}
 	
-	public int evaluateThreatsForSide(long[][][] attacks, boolean onMoveIsWhite) {
-		int threatScore = 0;
-		long own = onMoveIsWhite ? bd.getWhitePieces() : bd.getBlackPieces();
-		own &= ~(onMoveIsWhite ? bd.getWhiteKing() : bd.getBlackKing()); // Don't include King in this evaluation
-		// if a piece is attacked and not defended, add a penalty
-		long enemyAttacks = attacks[onMoveIsWhite ? 1 : 0][3][0];
-		long ownAttacks = attacks[onMoveIsWhite ? 0 : 1][3][0];
-		long attackedOnlyByEnemy = enemyAttacks & ~ownAttacks;
-		long scratchBitBoard = own & attackedOnlyByEnemy;
-		int bit_offset;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {		
-			// Add a penalty based on the value of the piece not defended, 50% of piece value
-			threatScore -= Math.abs((Piece.PIECE_TO_MATERIAL_LUT[0][bd.getPieceAtSquare(scratchBitBoard)] / 2));
-			scratchBitBoard ^= (1L << bit_offset);
-		}
-		return threatScore;
-	}
-	
 	public int evaluateThreats(long[][][] attacks, boolean onMoveIsWhite) {
 		int threatScore = 0;
 		if (ENABLE_THREAT_EVALUATION) {
@@ -283,19 +309,6 @@ public class PositionEvaluator implements IEvaluate {
 			threatScore -= evaluateThreatsForSide(attacks, !onMoveIsWhite);
 		}
 		return threatScore;
-	}
-	
-	int evaluateBishopPair() {
-		int score = 0;
-		int onMoveBishopCount = onMoveIsWhite ? bd.me.numberOfPieces[Piece.WHITE_BISHOP] : bd.me.numberOfPieces[Piece.BLACK_BISHOP];
-		if (onMoveBishopCount >= 2) {
-			score += BISHOP_PAIR_BOOST;
-		}
-		int opponentBishopCount = onMoveIsWhite ? bd.me.numberOfPieces[Piece.BLACK_BISHOP] : bd.me.numberOfPieces[Piece.WHITE_BISHOP];
-		if (opponentBishopCount >= 2) {
-			score -= BISHOP_PAIR_BOOST;
-		}
-		return score;
 	}
 	
 	boolean isKingExposed() {
@@ -314,16 +327,6 @@ public class PositionEvaluator implements IEvaluate {
 			return defenderCount < 3;
 		}
 	}
-	
-	private static final int FUTILITY_MARGIN_BY_PIECE[] = new int[8];
-    static {
-    	FUTILITY_MARGIN_BY_PIECE[Piece.QUEEN] = 175;
-    	FUTILITY_MARGIN_BY_PIECE[Piece.ROOK] = 150;
-    	FUTILITY_MARGIN_BY_PIECE[Piece.BISHOP] = 130;
-    	FUTILITY_MARGIN_BY_PIECE[Piece.KNIGHT] = 175;
-    	FUTILITY_MARGIN_BY_PIECE[Piece.KING] = 150;
-    	FUTILITY_MARGIN_BY_PIECE[Piece.PAWN] = 125;
-    }
 	
 	public int estimateMovePositionalContribution(int move) {
 		int originPiece = Move.getOriginPiece(move);
