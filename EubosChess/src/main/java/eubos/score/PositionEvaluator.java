@@ -295,7 +295,7 @@ public class PositionEvaluator implements IEvaluate {
 		// and return draw score, so we can't get here if the position is a likely draw, the check would
 		// be redundant
 		basicInit();
-		if (passedPawnPresent || isKingExposed()) {
+		if (passedPawnPresent) {
 			return internalFullEval(); 
 		} else {
 			return internalCrudeEval();
