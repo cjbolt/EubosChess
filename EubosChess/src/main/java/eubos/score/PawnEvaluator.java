@@ -37,21 +37,46 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	public static final boolean ENABLE_PP_IMBALANCE_EVALUATION = false;	
 	
 	// Static for lifetime of object
-	IPositionAccessors pm;
-	Board bd;
+	private IPositionAccessors pm;
+	private Board bd;
 	private PawnEvalHashTable pawnHash;
+	private PawnHashStatistics pawnStat = null;
 	
 	// Variables updated whilst considering each pawn of side, i.e. valid for side to move
-	protected int queeningDistance; // initialised in setQueeningDistance()
-	protected int weighting; 		// initialised in setQueeningDistance()
-	public int piecewisePawnScoreAccumulator = 0; // initialised when starting evaluatePawnsForSide()
+	private int queeningDistance; // initialised in setQueeningDistance()
+	private int weighting; 		// initialised in setQueeningDistance()
+	private int piecewisePawnScoreAccumulator = 0; // initialised when starting evaluatePawnsForSide()
 	
 	// Scope is for each call to evaluatePawnStructure
 	private boolean onMoveIsWhite;
-	public long[][][] attacks;
+	private long[][][] attacks;
+	
+	/* 1-dimensional array:
+	 * 1st index is a position integer, this is the origin square
+	 * indexes a bit mask of the squares that the origin square can attack by a Black Pawn capture */
+	private static final long[] AdjacentPawnFromPosition_Lut = new long[64];
+	static {
+		int bitOffset = 0;
+		for (int square : Position.values) {
+			AdjacentPawnFromPosition_Lut[bitOffset++] = createAdjacentPawnsFromSq(square);
+		}
+	}
+	private static long createAdjacentPawnsFromSq(int atPos) {
+		long mask = 0;
+		if (Position.getRank(atPos) != 7 && Position.getRank(atPos) != 0) {
+			int sq = Direction.getDirectMoveSq(Direction.right, atPos);
+			if (sq != Position.NOPOSITION) {
+				mask |= BitBoard.positionToMask_Lut[sq];
+			}
+			sq = Direction.getDirectMoveSq(Direction.left, atPos);
+			if (sq != Position.NOPOSITION) {
+				mask |= BitBoard.positionToMask_Lut[sq];
+			}
+		}
+		return mask;
+	}
 	
 	private class PawnHashStatistics {
-		
 		long nodeCount;
 		long skippedCount;
 		
@@ -64,27 +89,11 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		}
 	}
 	
-	public void reportPawnHashStatistics() {
-		if (MEASURE_PAWN_HASH) {
-			pawnStat.report();
-		}
-	}
-	
-	PawnHashStatistics pawnStat = null;
-	
-	public PawnEvaluator(IPositionAccessors pm, PawnEvalHashTable pawnHash) {
-		bd = pm.getTheBoard();
-		this.pm = pm;
-		this.pawnHash = pawnHash;
-		this.onMoveIsWhite = pm.onMoveIsWhite();
-		pawnStat = new PawnHashStatistics();
-	}
-	
-	protected int getScaleFactorForGamePhase() {
+	private int getScaleFactorForGamePhase() {
 		return 1 + ((bd.me.phase+640) / 4096) + ((bd.me.phase+320) / 4096);
 	}
 	
-	protected void setQueeningDistance(int bitOffset, boolean pawnIsWhite) {
+	private void setQueeningDistance(int bitOffset, boolean pawnIsWhite) {
 		int rank = BitBoard.getRank(bitOffset);
 		if (pawnIsWhite) {
 			queeningDistance = 7-rank;
@@ -141,11 +150,11 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		return bd.isPassedPawn(BitBoard.positionToBit_Lut[atPos], BitBoard.positionToMask_Lut[atPos]);
 	}
 	
-	public int getDoubledPawnsHandicap(long pawns) {
+	protected int getDoubledPawnsHandicap(long pawns) {
 		return -bd.countDoubledPawns(pawns)*DOUBLED_PAWN_HANDICAP;
 	}
 		
-	int evaluatePawnsForSide(long pawns, boolean isBlack) {
+	private int evaluatePawnsForSide(long pawns, boolean isBlack) {
 		int pawnEvaluationScore = 0;
 		piecewisePawnScoreAccumulator = 0;
 		if (pawns != 0x0) {
@@ -159,7 +168,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		return pawnEvaluationScore;
 	}
 	
-	protected int evaluateKpkEndgame(int bitOffset, boolean pawnIsWhite, boolean isOwnPawn, long[][] ownAttacks) {
+	private int evaluateKpkEndgame(int bitOffset, boolean pawnIsWhite, boolean isOwnPawn, long[][] ownAttacks) {
 		// Special case, it is a KPK endgame
 		int score = 0;
 		int file = BitBoard.getFile(bitOffset);
@@ -191,7 +200,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	
 	//public final int[] KING_DIST_LUT = {0, 3, 2, 1, 0, -1, -2, -3, -4};
 	//public final int[] KING_DIST_LUT = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-	protected int evaluatePassedPawn(int bitOffset, boolean pawnIsWhite, long[][] own_attacks, long [][] enemy_attacks) {
+	private int evaluatePassedPawn(int bitOffset, boolean pawnIsWhite, long[][] own_attacks, long [][] enemy_attacks) {
 		int score = 0;
 		boolean heavySupport = false;
 		weighting *= getScaleFactorForGamePhase();
@@ -226,7 +235,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		return score;
 	}
 	
-	int computePassedPawnContribution() {
+	private int computePassedPawnContribution() {
 		int scoreForPassedPawns = 0;
 		long white = bd.getWhitePawns();
 		long scratchBitBoard = bd.getPassedPawns();
@@ -314,28 +323,17 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		return pawnEvaluationScore;
 	}
 	
-	/* 1-dimensional array:
-	 * 1st index is a position integer, this is the origin square
-	 * indexes a bit mask of the squares that the origin square can attack by a Black Pawn capture */
-	public static final long[] AdjacentPawnFromPosition_Lut = new long[64];
-	static {
-		int bitOffset = 0;
-		for (int square : Position.values) {
-			AdjacentPawnFromPosition_Lut[bitOffset++] = createAdjacentPawnsFromSq(square);
+	public void reportPawnHashStatistics() {
+		if (MEASURE_PAWN_HASH) {
+			pawnStat.report();
 		}
 	}
-	static long createAdjacentPawnsFromSq(int atPos) {
-		long mask = 0;
-		if (Position.getRank(atPos) != 7 && Position.getRank(atPos) != 0) {
-			int sq = Direction.getDirectMoveSq(Direction.right, atPos);
-			if (sq != Position.NOPOSITION) {
-				mask |= BitBoard.positionToMask_Lut[sq];
-			}
-			sq = Direction.getDirectMoveSq(Direction.left, atPos);
-			if (sq != Position.NOPOSITION) {
-				mask |= BitBoard.positionToMask_Lut[sq];
-			}
-		}
-		return mask;
+	
+	public PawnEvaluator(IPositionAccessors pm, PawnEvalHashTable pawnHash) {
+		bd = pm.getTheBoard();
+		this.pm = pm;
+		this.pawnHash = pawnHash;
+		this.onMoveIsWhite = pm.onMoveIsWhite();
+		pawnStat = new PawnHashStatistics();
 	}
 }

@@ -6,13 +6,13 @@ public class PawnEvalHashTable {
 	private long [] lower = null;
 	private long [] upper = null;
 	
-	public static final int WHITE_SCALING_FOR_UPPER = (4*8)-8; // most significant 4 bytes of white pawns in upper
-	public static final int WHITE_SCALING_FOR_LOWER = (6*8)-8; // least significant 2 bytes of white pawns in lower
-	public static final int BLACK_SCALING_FOR_LOWER = 8;       // all 6 bytes of black pawns in lower (shift out 1st rank)
+	private static final int WHITE_SCALING_FOR_UPPER = (4*8)-8; // most significant 4 bytes of white pawns in upper
+	private static final int WHITE_SCALING_FOR_LOWER = (6*8)-8; // least significant 2 bytes of white pawns in lower
+	private static final int BLACK_SCALING_FOR_LOWER = 8;       // all 6 bytes of black pawns in lower (shift out 1st rank)
 	
-	public static final int SIZE_OF_PAWN_HASH = 65536;
+	private static final int SIZE_OF_PAWN_HASH = 65536;
 	
-	public static final int PAWN_HASH_MASK = (int)(Long.highestOneBit(SIZE_OF_PAWN_HASH)-1);
+	private static final int PAWN_HASH_MASK = (int)(Long.highestOneBit(SIZE_OF_PAWN_HASH)-1);
 		
 	public PawnEvalHashTable() {
 		lower = new long[SIZE_OF_PAWN_HASH];
