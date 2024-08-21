@@ -130,7 +130,6 @@ public class PawnEvaluator implements IForEachPieceCallback {
 			
 			if (bd.isCandidatePassedPawn(bitOffset, pawnIsWhite, own_attacks[0], enemy_attacks[0])) {
 				setQueeningDistance(bitOffset, pawnIsWhite);
-				weighting *= getScaleFactorForGamePhase();
 				if (BitBoard.getFile(bitOffset) == IntFile.Fa || BitBoard.getFile(bitOffset) == IntFile.Fh) {
 					piecewisePawnScoreAccumulator += weighting*ROOK_FILE_CANDIDATE_PAWN;
 				} else {
@@ -284,7 +283,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		short hashEval = 0;
 		int passedPawnScoreAtPosition = 0;
 		if (ENABLE_PAWN_HASH_TABLE) {
-			hashEval = pawnHash.get(pm.getPawnHash(), getScaleFactorForGamePhase(), white, black, onMoveIsWhite);
+			hashEval = pawnHash.get(pm.getPawnHash(), 0, white, black, onMoveIsWhite);
 			if (hashEval != Short.MAX_VALUE) {
 				pawnStat.skippedCount++;
 				// Recompute value of passed pawns in this position
@@ -302,7 +301,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		pawnEvaluationScore -= evaluatePawnsForSide(enemyPawns, onMoveIsWhite);
 				
 		if (ENABLE_PAWN_HASH_TABLE) {
-			pawnHash.put(pm.getPawnHash(), getScaleFactorForGamePhase(), pawnEvaluationScore, white, black, onMoveIsWhite);
+			pawnHash.put(pm.getPawnHash(), 0, pawnEvaluationScore, white, black, onMoveIsWhite);
 		}
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {

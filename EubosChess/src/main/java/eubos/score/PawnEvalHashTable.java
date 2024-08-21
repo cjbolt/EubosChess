@@ -25,14 +25,12 @@ public class PawnEvalHashTable {
 		if (lower[index] == ((black_pawns >>> BLACK_SCALING_FOR_LOWER) | (white_pawns << WHITE_SCALING_FOR_LOWER))) {
 			long composite = upper[index];
 			if ((composite & 0xFFFF_FFFFL) == ((int)(white_pawns >>> WHITE_SCALING_FOR_UPPER))) {
-				if (((composite >>> 32) & 0xFFL) == phase_weighting) {
-					short score = (short) (composite >> 48);
-					// Score saved in table is from white point of view
-					if (!onMoveIsWhite) {
-						score = (short)-score;
-					}
-					return score;
+				short score = (short) (composite >> 48);
+				// Score saved in table is from white point of view
+				if (!onMoveIsWhite) {
+					score = (short)-score;
 				}
+				return score;
 			}
 		}
 		return Short.MAX_VALUE;
@@ -45,6 +43,6 @@ public class PawnEvalHashTable {
 			score = -score;
 		}
 		lower[index] = (black_pawns >>> BLACK_SCALING_FOR_LOWER) | (white_pawns << WHITE_SCALING_FOR_LOWER);
-		upper[index] = (white_pawns >>> WHITE_SCALING_FOR_UPPER) | (((long)phase_weighting) << 32) | (((long)score) << 48);
+		upper[index] = (white_pawns >>> WHITE_SCALING_FOR_UPPER) | (((long)score) << 48);
 	}
 }
