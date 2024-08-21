@@ -20,9 +20,13 @@ public class PawnEvalHashTable {
 		Arrays.fill(upper, Short.MAX_VALUE << 48);
 	}
 	
-	public synchronized short get(int hash, int phase_weighting, long white_pawns, long black_pawns, boolean onMoveIsWhite) {
+	private long createLower(long white_pawns, long black_pawns) {
+		return (black_pawns >>> BLACK_SCALING_FOR_LOWER) | (white_pawns << WHITE_SCALING_FOR_LOWER);
+	}
+	
+	public synchronized short get(int hash, long white_pawns, long black_pawns, boolean onMoveIsWhite) {
 		int index = hash & PAWN_HASH_MASK;
-		if (lower[index] == ((black_pawns >>> BLACK_SCALING_FOR_LOWER) | (white_pawns << WHITE_SCALING_FOR_LOWER))) {
+		if (lower[index] == createLower(white_pawns, black_pawns)) {
 			long composite = upper[index];
 			if ((composite & 0xFFFF_FFFFL) == ((int)(white_pawns >>> WHITE_SCALING_FOR_UPPER))) {
 				short score = (short) (composite >> 48);
@@ -36,13 +40,13 @@ public class PawnEvalHashTable {
 		return Short.MAX_VALUE;
 	}
 	
-	public synchronized void put(int hash, int phase_weighting, int score, long white_pawns, long black_pawns, boolean onMoveIsWhite) {
+	public synchronized void put(int hash, int score, long white_pawns, long black_pawns, boolean onMoveIsWhite) {
 		int index = hash & PAWN_HASH_MASK;
 		// Score saved in table is from white point of view
 		if (!onMoveIsWhite) {
 			score = -score;
 		}
-		lower[index] = (black_pawns >>> BLACK_SCALING_FOR_LOWER) | (white_pawns << WHITE_SCALING_FOR_LOWER);
+		lower[index] = createLower(white_pawns, black_pawns);
 		upper[index] = (white_pawns >>> WHITE_SCALING_FOR_UPPER) | (((long)score) << 48);
 	}
 }

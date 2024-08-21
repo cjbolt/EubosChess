@@ -279,11 +279,12 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		onMoveIsWhite = pm.onMoveIsWhite();
 		this.attacks = attacks;
 		pawnStat.nodeCount++;
+		int posPawnHash = pm.getPawnHash();
 		
 		short hashEval = 0;
 		int passedPawnScoreAtPosition = 0;
 		if (ENABLE_PAWN_HASH_TABLE) {
-			hashEval = pawnHash.get(pm.getPawnHash(), 0, white, black, onMoveIsWhite);
+			hashEval = pawnHash.get(posPawnHash, white, black, onMoveIsWhite);
 			if (hashEval != Short.MAX_VALUE) {
 				pawnStat.skippedCount++;
 				// Recompute value of passed pawns in this position
@@ -301,7 +302,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		pawnEvaluationScore -= evaluatePawnsForSide(enemyPawns, onMoveIsWhite);
 				
 		if (ENABLE_PAWN_HASH_TABLE) {
-			pawnHash.put(pm.getPawnHash(), 0, pawnEvaluationScore, white, black, onMoveIsWhite);
+			pawnHash.put(posPawnHash, pawnEvaluationScore, white, black, onMoveIsWhite);
 		}
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {
