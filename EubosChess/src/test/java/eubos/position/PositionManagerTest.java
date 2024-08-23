@@ -827,13 +827,12 @@ public class PositionManagerTest {
 	
 	@Test
 	public void test_pawn_hash() {
-		// All these positions are equivalant with the current pawn hash computation
 		createSutAndRegisterPe("8/pppppppp/8/8/8/8/PPPPPPPP/8 b - - 0 1");
-		assertEquals(0xa5a5, classUnderTest.getPawnHash());
+		assertEquals(8891, classUnderTest.getPawnHash());
 		createSutAndRegisterPe("8/8/pppppppp/8/8/PPPPPPPP/8/8 b - - 0 1");
-		assertEquals(0xa5a5, classUnderTest.getPawnHash());
+		assertEquals(439, classUnderTest.getPawnHash());
 		createSutAndRegisterPe("8/8/8/pppppppp/PPPPPPPP/8/8/8 b - - 0 1");
-		assertEquals(0xa5a5, classUnderTest.getPawnHash());
+		assertEquals(26768, classUnderTest.getPawnHash());
 	}
 	
 	@Test

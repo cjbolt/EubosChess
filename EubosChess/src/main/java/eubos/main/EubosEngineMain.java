@@ -152,7 +152,7 @@ public class EubosEngineMain extends AbstractEngine {
 				long heapFreeSize = Runtime.getRuntime().freeMemory()/1_000_000L;
 				logger.severe(String.format("Out of mem %s allocating hashMap=%d MB, trying %d free size",
 						oome.getMessage(), hashSize, heapFreeSize));
-				hashMap = new FixedSizeTranspositionTable(Math.max(heapFreeSize-1, 0), numberOfWorkerThreads);
+				hashMap = new FixedSizeTranspositionTable(Math.max(heapFreeSize/2, 0), numberOfWorkerThreads);
 	        } catch (Exception e) {
 	        	logger.severe(String.format("Exception occurred allocating hashMap=%d MB: %s",
 	        			hashSize, e.getMessage()));

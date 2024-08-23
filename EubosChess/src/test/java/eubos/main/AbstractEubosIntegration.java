@@ -71,9 +71,10 @@ public abstract class AbstractEubosIntegration {
 	}
 	
 	protected void shutdownEngine() throws IOException, InterruptedException {
-		inputToEngine.write(QUIT_CMD);
-		inputToEngine.flush();
-		//Thread.sleep(10);
+		if (eubosThread.isAlive()) {
+			inputToEngine.write(QUIT_CMD);
+			inputToEngine.flush();
+		}
 		classUnderTest = null;
 		eubosThread = null;
 	}
