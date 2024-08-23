@@ -25,6 +25,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		hash = new ZobristHashCode(this, castling);
 		theBoard.setHash(hash);
 		this.dc = dc;
+		this.pawnHash = pawnHash;
 		pe = new PositionEvaluator(this, pawnHash);
 	}
 	
@@ -41,6 +42,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", new DrawChecker(), new PawnEvalHashTable());
 	}
 
+	PawnEvalHashTable pawnHash;
 	public CastlingManager castling;
 	private Board theBoard;
 	public Board getTheBoard() {
@@ -356,11 +358,22 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return s.toString();
 	}
 
+//	private static final long MAGIC_CONSTANT = 0xa5a5L;
 	@Override
 	public int getPawnHash() {
-		long pawns = theBoard.getPawns();
-		long temp = (pawns >>> 32) ^ (pawns & 0xFFFF_FFFFL);
-		long pawnHash = (temp >>> 16) ^ (temp & 0xFFFFL);
-		return (int)pawnHash;
+//		// We are trying to build a 2 byte hash from a 6 byte integer here 
+//		long pawns = theBoard.getPawns();
+//		
+//		//long temp = (pawns >>> 32) ^ (pawns & 0xFFFF_FFFFL);
+//		//long pawnHash = (temp >>> 16) ^ (temp & 0xFFFFL);
+//		
+//		long six_byte = pawns >>> 8;
+//		long three_byte = (six_byte >>> 24) ^ (six_byte & 0xFF_FFFFL);
+//		long pawnHash = MAGIC_CONSTANT ^ ((three_byte >>> 16) ^ (three_byte & 0xFFFFL));
+//		
+//		//long six_byte = pawns >>> 8;
+//		
+//		return (int)pawnHash;
+		return pawnHash.getPawnHash(this);
 	}
 }

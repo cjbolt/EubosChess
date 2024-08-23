@@ -1,8 +1,55 @@
 package eubos.score;
 
 import java.util.Arrays;
+import java.util.Random;
 
-public class PawnEvalHashTable {	
+import eubos.board.IForEachPieceCallback;
+import eubos.board.Piece;
+import eubos.position.IPositionAccessors;
+
+public class PawnEvalHashTable implements IForEachPieceCallback {
+	
+	private static final int NUM_COLOURS = 2;
+	private static final int NUM_SQUARES = 64;
+	// One entry pawn at each square for each colour.
+	private static final int INDEX_BLACK = (NUM_SQUARES);
+	private static final int LENGTH_TABLE = (NUM_COLOURS*NUM_SQUARES);
+
+	static private final long prnLookupTable[] = new long[LENGTH_TABLE];
+	static {
+		// Set up the pseudo random number lookup table that shall be used
+		Random randGen = new Random(0xDEAD);
+		for (int index = 0; index < prnLookupTable.length; index++) {
+			prnLookupTable[index] = randGen.nextLong();
+		}
+	};
+	
+	int hashCode = 0;
+	public int getPawnHash(IPositionAccessors pos) {
+		hashCode = 0;
+		pos.getTheBoard().forEachPawnOfSide(this, false);
+		pos.getTheBoard().forEachPawnOfSide(this, true);
+		return hashCode & 0xFFFF;
+	}
+	
+	@Override
+	public void callback(int piece, int bitOffset) { 
+		hashCode ^= getPrnForPawn(bitOffset, piece);
+	}
+	
+	@Override
+	public boolean condition_callback(int piece, int atPos) {
+		return false;
+	}
+	
+	protected long getPrnForPawn(int bitOffset, int pawn) {
+		int lookupIndex = bitOffset;
+		if (Piece.isBlack(pawn)) {
+			lookupIndex += INDEX_BLACK;
+		}		
+		return prnLookupTable[lookupIndex];
+	}
+	
 	private long [] lower = null;
 	private long [] upper = null;
 	
