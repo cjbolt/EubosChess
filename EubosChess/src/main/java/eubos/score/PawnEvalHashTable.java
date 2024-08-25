@@ -16,25 +16,25 @@ public class PawnEvalHashTable implements IForEachPieceCallback, IPawnHash {
 	private static final int INDEX_BLACK = (NUM_SQUARES);
 	private static final int LENGTH_TABLE = (NUM_COLOURS*NUM_SQUARES);
 
-	static private final long prnLookupTable[] = new long[LENGTH_TABLE];
+	static private final short prnLookupTable[] = new short[LENGTH_TABLE];
 	static {
 		// Set up the pseudo random number lookup table that shall be used
 		Random randGen = new Random(0xDEAD);
 		for (int index = 0; index < prnLookupTable.length; index++) {
-			prnLookupTable[index] = randGen.nextLong();
+			prnLookupTable[index] = (short)randGen.nextLong();
 		}
 	};
 	
-	public long hashCode = 0;
-	public int getPawnHash() {
-		return (int)(hashCode & PAWN_HASH_MASK);
+	public short hashCode = 0;
+	public short getPawnHash() {
+		return hashCode;
 	}
 	
-	public int calculatePawnHash(IPositionAccessors pos) {
+	public short calculatePawnHash(IPositionAccessors pos) {
 		hashCode = 0;
 		pos.getTheBoard().forEachPawnOfSide(this, false);
 		pos.getTheBoard().forEachPawnOfSide(this, true);
-		return getPawnHash();
+		return hashCode;
 	}
 	
 	@Override
@@ -75,11 +75,10 @@ public class PawnEvalHashTable implements IForEachPieceCallback, IPawnHash {
 	private static final int WHITE_SCALING_FOR_UPPER = (4*8)-8; // most significant 4 bytes of white pawns in upper
 	private static final int WHITE_SCALING_FOR_LOWER = (6*8)-8; // least significant 2 bytes of white pawns in lower
 	private static final int BLACK_SCALING_FOR_LOWER = 8;       // all 6 bytes of black pawns in lower (shift out 1st rank)
-	
-	private static final int SIZE_OF_PAWN_HASH = 65536;
-	
-	private static final int PAWN_HASH_MASK = (int)(Long.highestOneBit(SIZE_OF_PAWN_HASH)-1);
 		
+	private static final int SIZE_OF_PAWN_HASH = 65536;
+	private static final int PAWN_HASH_MASK = (int)(Long.highestOneBit(SIZE_OF_PAWN_HASH)-1);
+	
 	public PawnEvalHashTable() {
 		lower = new long[SIZE_OF_PAWN_HASH];
 		upper = new long[SIZE_OF_PAWN_HASH];

@@ -112,7 +112,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		long pp = theBoard.getPassedPawns();
 		long old_hash = getHash();
 		int old_flags = castling.getFlags();
-		int old_pHash = getPawnHash();
+		short old_pHash = getPawnHash();
 		
 		theBoard.doMove(move);
 		// Legal move check
@@ -181,7 +181,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Preserve state
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		theBoard.setEnPassantTargetSq(BitBoard.INVALID);
-		moveTracker.push(0L, Move.NULL_MOVE, castling.getFlags(), prevEnPassantTargetSq, 0L, 0, 0);
+		moveTracker.push(0L, Move.NULL_MOVE, castling.getFlags(), prevEnPassantTargetSq, 0L, 0, (short)0);
 
 		hash.doEnPassant(prevEnPassantTargetSq, BitBoard.INVALID);
 		hash.doOnMove();
@@ -370,7 +370,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 
 	@Override
-	public int getPawnHash() {
+	public short getPawnHash() {
 		return pawnHash.getPawnHash();
 	}
 }
