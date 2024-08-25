@@ -11,6 +11,7 @@ import eubos.board.BitBoard;
 import eubos.board.Board;
 import eubos.board.Piece;
 import eubos.board.Piece.Colour;
+import eubos.main.EubosEngineMain;
 import eubos.position.MoveTracker.MoveStack;
 import eubos.score.IEvaluate;
 import eubos.score.PawnEvalHashTable;
@@ -19,17 +20,19 @@ import eubos.search.DrawChecker;
 
 public class PositionManager implements IChangePosition, IPositionAccessors {
 	
-	public PositionManager( String fenString, DrawChecker dc, PawnEvalHashTable pawnHash) {
+	public PositionManager(String fenString, DrawChecker dc, PawnEvalHashTable pawnHash) {
 		moveTracker = new MoveTracker();
 		new fenParser( this, fenString );
 		hash = new ZobristHashCode(this, castling);
 		theBoard.setHash(hash);
+		theBoard.setPawnHash(pawnHash);
 		this.dc = dc;
 		this.pawnHash = pawnHash;
+		pawnHash.calculatePawnHash(this);
 		pe = new PositionEvaluator(this, pawnHash);
 	}
 	
-	public PositionManager( String fenString, long hashCode, DrawChecker dc, PawnEvalHashTable pawnHash) {
+	public PositionManager(String fenString, long hashCode, DrawChecker dc, PawnEvalHashTable pawnHash) {
 		this(fenString, dc, pawnHash);
 		hash.hashCode = hashCode;
 	}
@@ -109,6 +112,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		long pp = theBoard.getPassedPawns();
 		long old_hash = getHash();
 		int old_flags = castling.getFlags();
+		int old_pHash = getPawnHash();
 		
 		theBoard.doMove(move);
 		// Legal move check
@@ -118,12 +122,18 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			castling.setFlags(old_flags);
 			theBoard.setPassedPawns(pp);
 			theBoard.setEnPassantTargetSq(prevEnPassantTargetSq);
-			hash.hashCode = old_hash;			
+			hash.hashCode = old_hash;
+			pawnHash.hashCode = old_pHash;
 			return false;
 		}	
+		
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			int iterative_p_hash = pawnHash.getPawnHash();
+			assert iterative_p_hash == pawnHash.calculatePawnHash(this);
+		}
 
 		// Store old state
-		moveTracker.push(pp, move, old_flags, prevEnPassantTargetSq, old_hash, dc.checkFromPly);
+		moveTracker.push(pp, move, old_flags, prevEnPassantTargetSq, old_hash, dc.checkFromPly, old_pHash);
 		
 		// Update state
 		castling.updateFlags(move);
@@ -156,6 +166,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		theBoard.setEnPassantTargetSq(stack.en_passant_square);
 		hash.hashCode = stack.hash;
 		dc.checkFromPly = stack.draw_check_ply;
+		pawnHash.hashCode = stack.pawnHash;
 			
 		// Clear draw indicator flag
 		repetitionPossible = false;
@@ -170,7 +181,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Preserve state
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		theBoard.setEnPassantTargetSq(BitBoard.INVALID);
-		moveTracker.push(0L, Move.NULL_MOVE, castling.getFlags(), prevEnPassantTargetSq, 0L, 0);
+		moveTracker.push(0L, Move.NULL_MOVE, castling.getFlags(), prevEnPassantTargetSq, 0L, 0, 0);
 
 		hash.doEnPassant(prevEnPassantTargetSq, BitBoard.INVALID);
 		hash.doOnMove();
@@ -358,22 +369,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return s.toString();
 	}
 
-//	private static final long MAGIC_CONSTANT = 0xa5a5L;
 	@Override
 	public int getPawnHash() {
-//		// We are trying to build a 2 byte hash from a 6 byte integer here 
-//		long pawns = theBoard.getPawns();
-//		
-//		//long temp = (pawns >>> 32) ^ (pawns & 0xFFFF_FFFFL);
-//		//long pawnHash = (temp >>> 16) ^ (temp & 0xFFFFL);
-//		
-//		long six_byte = pawns >>> 8;
-//		long three_byte = (six_byte >>> 24) ^ (six_byte & 0xFF_FFFFL);
-//		long pawnHash = MAGIC_CONSTANT ^ ((three_byte >>> 16) ^ (three_byte & 0xFFFFL));
-//		
-//		//long six_byte = pawns >>> 8;
-//		
-//		return (int)pawnHash;
-		return pawnHash.getPawnHash(this);
+		return pawnHash.getPawnHash();
 	}
 }

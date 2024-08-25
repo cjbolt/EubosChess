@@ -11,6 +11,7 @@ class MoveTracker {
 		byte castling;
 		int move;
 		int draw_check_ply;
+		int pawnHash;
 		
 		MoveStack() {
 			passed_pawn = 0L;
@@ -19,6 +20,7 @@ class MoveTracker {
 			castling = 0;
 			move = Move.NULL_MOVE;
 			draw_check_ply = 0;
+			pawnHash = 0;
 		}
 	}
 	private static final int CAPACITY = 400;
@@ -33,13 +35,14 @@ class MoveTracker {
 		index = 0;
 	}
 	
-	public void push(long pp, int move, int castling, int enPassant, long hash, int dc_index) {
+	public void push(long pp, int move, int castling, int enPassant, long hash, int dc_index, int pawnHash) {
 		stack[index].passed_pawn = pp;
 		stack[index].move = move;
 		stack[index].en_passant_square = (byte) enPassant;
 		stack[index].castling = (byte) castling;
 		stack[index].hash = hash;
 		stack[index].draw_check_ply = dc_index;
+		stack[index].pawnHash = pawnHash;
 		index += 1;
 	}
 	
@@ -73,6 +76,10 @@ class MoveTracker {
 	
 	public int getDrawCheckPly() {
 		return stack[index].draw_check_ply;
+	}
+	
+	public int getPawnHash() {
+		return stack[index].pawnHash;
 	}
 	
 	public boolean isEmpty() {

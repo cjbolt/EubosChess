@@ -5,9 +5,10 @@ import java.util.Random;
 
 import eubos.board.IForEachPieceCallback;
 import eubos.board.Piece;
+import eubos.position.IPawnHash;
 import eubos.position.IPositionAccessors;
 
-public class PawnEvalHashTable implements IForEachPieceCallback {
+public class PawnEvalHashTable implements IForEachPieceCallback, IPawnHash {
 	
 	private static final int NUM_COLOURS = 2;
 	private static final int NUM_SQUARES = 64;
@@ -24,12 +25,16 @@ public class PawnEvalHashTable implements IForEachPieceCallback {
 		}
 	};
 	
-	int hashCode = 0;
-	public int getPawnHash(IPositionAccessors pos) {
+	public long hashCode = 0;
+	public int getPawnHash() {
+		return (int)(hashCode & PAWN_HASH_MASK);
+	}
+	
+	public int calculatePawnHash(IPositionAccessors pos) {
 		hashCode = 0;
 		pos.getTheBoard().forEachPawnOfSide(this, false);
 		pos.getTheBoard().forEachPawnOfSide(this, true);
-		return hashCode & 0xFFFF;
+		return getPawnHash();
 	}
 	
 	@Override
@@ -48,6 +53,20 @@ public class PawnEvalHashTable implements IForEachPieceCallback {
 			lookupIndex += INDEX_BLACK;
 		}		
 		return prnLookupTable[lookupIndex];
+	}
+	
+	public void removePawn(boolean isWhite, int at) {
+		hashCode ^= getPrnForPawn(at, isWhite ? Piece.WHITE_PAWN: Piece.BLACK_PAWN);
+	}
+	
+	public void addPawn(boolean isWhite, int at) {
+		hashCode ^= getPrnForPawn(at, isWhite ? Piece.WHITE_PAWN: Piece.BLACK_PAWN);
+	}
+	
+	public void movePawn(boolean isWhite, int from, int to) {
+		int pawn = isWhite ? Piece.WHITE_PAWN: Piece.BLACK_PAWN;
+		hashCode ^= getPrnForPawn(from, pawn);
+		hashCode ^= getPrnForPawn(to, pawn);
 	}
 	
 	private long [] lower = null;
