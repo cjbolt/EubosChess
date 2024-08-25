@@ -55,16 +55,15 @@ public class PawnEvalHashTable implements IForEachPieceCallback, IPawnHash {
 		return prnLookupTable[lookupIndex];
 	}
 	
-	public void removePawn(boolean isWhite, int at) {
-		hashCode ^= getPrnForPawn(at, isWhite ? Piece.WHITE_PAWN: Piece.BLACK_PAWN);
+	public void removePawn(int pawn, int at) {
+		hashCode ^= getPrnForPawn(at, pawn);
 	}
 	
-	public void addPawn(boolean isWhite, int at) {
-		hashCode ^= getPrnForPawn(at, isWhite ? Piece.WHITE_PAWN: Piece.BLACK_PAWN);
+	public void addPawn(int pawn, int at) {
+		hashCode ^= getPrnForPawn(at, pawn);
 	}
 	
-	public void movePawn(boolean isWhite, int from, int to) {
-		int pawn = isWhite ? Piece.WHITE_PAWN: Piece.BLACK_PAWN;
+	public void movePawn(int pawn, int from, int to) {
 		hashCode ^= getPrnForPawn(from, pawn);
 		hashCode ^= getPrnForPawn(to, pawn);
 	}

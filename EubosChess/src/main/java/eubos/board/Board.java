@@ -318,7 +318,7 @@ public class Board {
 			me.updateWhenDoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
 			passedPawns &= ~initialSquareMask;
 			hashUpdater.doPromotionMove(targetBitOffset, originBitOffset, pieceToMove, fullPromotedPiece);
-			pawnHashUpdater.removePawn(isWhite, originBitOffset);
+			pawnHashUpdater.removePawn(pieceToMove, originBitOffset);
 		} else {
 			me.updateRegular(pieceType, pieceToMove, originBitOffset, targetBitOffset);
 			hashUpdater.doBasicMove(targetBitOffset, originBitOffset, pieceToMove);
@@ -331,12 +331,12 @@ public class Board {
 				int ownLutColourIndex = isWhite ? 0 : 1;
 				// Handle regular pawn pushes
 				file_masks |= BitBoard.IterativePassedPawnNonCapture[ownLutColourIndex][originBitOffset];
-				pawnHashUpdater.movePawn(isWhite, originBitOffset, targetBitOffset);
+				pawnHashUpdater.movePawn(pieceToMove, originBitOffset, targetBitOffset);
 				
 				// Handle pawn captures
 				if (targetPiece != Piece.NONE) {
 					if (Piece.isPawn(targetPiece)) {
-						pawnHashUpdater.removePawn(!isWhite, captureBitOffset);
+						pawnHashUpdater.removePawn(targetPiece, captureBitOffset);
 						// Pawn takes pawn, clears whole front-span of target pawn (note negation of colour)
 						int enemyLutColourIndex = isWhite ? 1 : 0;
 						file_masks |= BitBoard.PassedPawn_Lut[enemyLutColourIndex][targetBitOffset];
@@ -346,7 +346,7 @@ public class Board {
 					file_masks |= BitBoard.IterativePassedPawnUpdateCaptures_Lut[originBitOffset][ownLutColourIndex][isLeft ? 0 : 1];
 				}
 			} else if (Piece.isPawn(targetPiece)) {
-				pawnHashUpdater.removePawn(!isWhite, captureBitOffset);
+				pawnHashUpdater.removePawn(targetPiece, captureBitOffset);
 				// Piece takes pawn, potentially opens capture and adjacent files
 				int enemyLutColourIndex = isWhite ? 1 : 0;
 				file_masks |= targetSquareMask;
