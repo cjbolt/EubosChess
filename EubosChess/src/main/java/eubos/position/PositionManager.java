@@ -20,16 +20,16 @@ import eubos.search.DrawChecker;
 
 public class PositionManager implements IChangePosition, IPositionAccessors {
 	
-	public PositionManager(String fenString, DrawChecker dc, PawnEvalHashTable pawnHash) {
+	public PositionManager(String fenString, DrawChecker dc, PawnEvalHashTable pawnHashTable) {
 		moveTracker = new MoveTracker();
 		new fenParser( this, fenString );
 		hash = new ZobristHashCode(this, castling);
+		pawnHash = new PawnHashCode();
 		theBoard.setHash(hash);
 		theBoard.setPawnHash(pawnHash);
 		this.dc = dc;
-		this.pawnHash = pawnHash;
 		pawnHash.calculatePawnHash(this);
-		pe = new PositionEvaluator(this, pawnHash);
+		pe = new PositionEvaluator(this, pawnHashTable);
 	}
 	
 	public PositionManager(String fenString, long hashCode, DrawChecker dc, PawnEvalHashTable pawnHash) {
@@ -45,7 +45,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", new DrawChecker(), new PawnEvalHashTable());
 	}
 
-	PawnEvalHashTable pawnHash;
+	PawnHashCode pawnHash;
 	public CastlingManager castling;
 	private Board theBoard;
 	public Board getTheBoard() {
