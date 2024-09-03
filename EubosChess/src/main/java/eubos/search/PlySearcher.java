@@ -405,7 +405,7 @@ public class PlySearcher {
 		}
 		
 		if (depth <= 0) {
-			return extendedSearch(s.alpha, s.beta, depth-1);
+			return extendedSearch(s.alpha, s.beta, depth);
 		}
 		
 		long trans = tt.getTransposition(pos.getHash());

@@ -7,6 +7,8 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import eubos.score.PositionEvaluator;
+
 public abstract class AbstractEubosIntegration {
 	protected EubosEngineMain classUnderTest;
 	protected Thread eubosThread;
@@ -41,7 +43,7 @@ public abstract class AbstractEubosIntegration {
 	protected static final String ID_AUTHOR_CMD = "id author Chris Bolt"+CMD_TERMINATOR;
 	protected static final String OPTION_HASH = "option name Hash type spin default 256 min 4 max 4000"+CMD_TERMINATOR;
 	protected static final String OPTION_MOVE_OVERHEAD = "option name Move Overhead type spin default 10 min 0 max 5000"+CMD_TERMINATOR;
-	protected static final String OPTION_LAZY_THRESHOLD = "option name Lazy Threshold type spin default 275 min 0 max 1000"+CMD_TERMINATOR;
+	protected static final String OPTION_LAZY_THRESHOLD = String.format("option name Lazy Threshold type spin default %d min 0 max 1000"+CMD_TERMINATOR, PositionEvaluator.lazy_eval_threshold_cp);
 	protected static final String OPTION_THREADS = String.format(
 			"option name Threads type spin default 1 min 1 max %s%s",
 			Runtime.getRuntime().availableProcessors(), CMD_TERMINATOR);

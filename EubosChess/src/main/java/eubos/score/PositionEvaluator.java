@@ -212,7 +212,7 @@ public class PositionEvaluator implements IEvaluate {
 	private int internalFullEval() {
 		if (!isDraw) {
 			if (goForMate) {
-				score += onMoveIsWhite ? bd.me.getMiddleGameDelta() : -bd.me.getMiddleGameDelta();
+				score = (short)(onMoveIsWhite ? bd.me.getMiddleGameDelta() : -bd.me.getMiddleGameDelta());
 				doMateKingProximity();
 			} else {
 				// Only generate full attack mask if passed pawn present
@@ -246,7 +246,7 @@ public class PositionEvaluator implements IEvaluate {
 	public int lazyEvaluation(int alpha, int beta) {
 		initialise();
 		if (EubosEngineMain.ENABLE_LAZY_EVALUATION) {
-			if (bd.me.phase != 4096) {
+			if (!isDraw && bd.me.phase != 4096) {
 				// Phase 1 - crude evaluation
 				int crudeEval = internalCrudeEval();
 				int lazyThresh = lazy_eval_threshold_cp;
