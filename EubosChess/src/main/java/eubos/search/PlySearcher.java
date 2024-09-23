@@ -370,11 +370,11 @@ public class PlySearcher {
 	@SuppressWarnings("unused")
 	int negaScout(int depth, boolean nullCheckEnabled, int alpha, int beta, boolean lmrApplied)  {
 		
-		SearchState s = state[currPly];
-		s.initialise(currPly, alpha, beta);
-		
 		// Check for absolute draws
 		if (pos.isThreefoldRepetitionPossible() || pos.isInsufficientMaterial()) return 0;
+		
+		SearchState s = state[currPly];
+		s.initialise(currPly, alpha, beta);
 		
 		// Mate distance pruning
 		int mating_value = Score.PROVISIONAL_BETA - currPly;
@@ -555,31 +555,36 @@ public class PlySearcher {
 		if (currPly > extendedSearchDeepestPly) {
 			extendedSearchDeepestPly = currPly;
 		}
-		
-		SearchState s = state[currPly];
-		s.initialise(currPly, alpha, beta);
 		pc.initialise(currPly);
 		
 		// Check for absolute draws
 		if (pos.isThreefoldRepetitionPossible() || pos.isInsufficientMaterial()) return 0;
 		
 		long trans = tt.getTransposition(pos.getHash());
+		SearchState s = state[currPly];
+		s.initialise(currPly, alpha, beta);
 		int prevBestMove = Move.NULL_MOVE;
 		if (trans != 0L) {	
 			s.isCutOff = false;
 			s.hashScore = convertMateScoreForPositionInSearchTree(Transposition.getScore(trans));
-			int type = Transposition.getType(trans);
-			if (hasSearchedPv && type == (s.hashScore >= beta ? Score.lowerBound : Score.upperBound)) {
-				return s.hashScore;
-			}
-			s.bestScore = Transposition.getStaticEval(trans);
-			if (s.bestScore == Short.MAX_VALUE) {
-				s.bestScore = pe.lazyEvaluation(alpha, beta);
-			}
-			byte boundScope = (s.hashScore > s.bestScore) ? Score.lowerBound : Score.upperBound;
-			if (type == boundScope) {
+			
+			if (EubosEngineMain.ENABLE_TT_CUT_OFFS_IN_EXTENDED_SEARCH) {
+				int type = Transposition.getType(trans);
+				if (hasSearchedPv && type == (s.hashScore >= beta ? Score.lowerBound : Score.upperBound)) {
+					return s.hashScore;
+				}
+				s.bestScore = Transposition.getStaticEval(trans);
+				if (s.bestScore == Short.MAX_VALUE) {
+					s.bestScore = pe.lazyEvaluation(alpha, beta);
+				}
+				byte boundScope = (s.hashScore > s.bestScore) ? Score.lowerBound : Score.upperBound;
+				if (type == boundScope) {
+					s.bestScore = s.hashScore;
+				}
+			} else {
 				s.bestScore = s.hashScore;
 			}
+			
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
 		} else {
 			s.bestScore = pe.lazyEvaluation(alpha, beta);

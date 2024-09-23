@@ -244,7 +244,7 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	public int lazyEvaluation(int alpha, int beta) {
-		initialise();
+		basicInit();
 		if (EubosEngineMain.ENABLE_LAZY_EVALUATION) {
 			if (!isDraw && bd.me.phase != 4096) {
 				// Phase 1 - crude evaluation
