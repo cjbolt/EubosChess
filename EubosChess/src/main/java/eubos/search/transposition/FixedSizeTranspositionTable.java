@@ -66,64 +66,68 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	
 	public synchronized long getTransposition(long hashCode) {
 		int index = (int) (EubosEngineMain.ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO ? hashCode & mask : Long.remainderUnsigned(hashCode, maxTableSize));
-		if (USE_ALWAYS_REPLACE) {
-			if (hashes[index] == hashCode ) {
-				if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numHits++; }
-				return transposition_table[index];
-			}
-		} else {
-			for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
-				if (transposition_table[i] == 0L) break;
-				if (hashes[i] == hashCode) {
+		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
+			if (USE_ALWAYS_REPLACE) {
+				if (hashes[index] == hashCode ) {
 					if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numHits++; }
-					return transposition_table[i];
+					return transposition_table[index];
+				}
+			} else {
+				for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
+					if (transposition_table[i] == 0L) break;
+					if (hashes[i] == hashCode) {
+						if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numHits++; }
+						return transposition_table[i];
+					}
 				}
 			}
+			if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numMisses++; }
 		}
-		if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numMisses++; }
 		return 0L;
 	}
 	
 	public synchronized void putTransposition(long hashCode, long trans) {
-		int index = (int) (EubosEngineMain.ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO ? hashCode & mask : Long.remainderUnsigned(hashCode, maxTableSize));
-		if (EubosEngineMain.ENABLE_ASSERTS) assert (trans != 0L);
-		if (USE_ALWAYS_REPLACE) {
-			hashes[index] = hashCode;
-			transposition_table[index] = trans;
-			if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numOverwritten++; }
-		} else {
-			for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
-				// If exact hash match, overwrite entry in table
-				if (hashes[i] == hashCode) {
-					if (EubosEngineMain.ENABLE_ASSERTS) assert (transposition_table[i] != 0L);
-					transposition_table[i] = trans;
-					return;
+		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
+			int index = (int) (EubosEngineMain.ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO ? hashCode & mask : Long.remainderUnsigned(hashCode, maxTableSize));
+			if (EubosEngineMain.ENABLE_ASSERTS) assert (trans != 0L);
+			if (USE_ALWAYS_REPLACE) {
+				hashes[index] = hashCode;
+				transposition_table[index] = trans;
+				if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numOverwritten++; }
+			} else {
+				for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
+					// If exact hash match, overwrite entry in table
+					if (hashes[i] == hashCode) {
+						if (EubosEngineMain.ENABLE_ASSERTS) assert (transposition_table[i] != 0L);
+						transposition_table[i] = trans;
+						return;
+					}
+					// Try to find a free slot near the hash index
+					else if (transposition_table[i] == 0L) {
+						tableSize++;
+						hashes[i] = hashCode;
+						transposition_table[i] = trans;
+						return;
+					}
 				}
-				// Try to find a free slot near the hash index
-				else if (transposition_table[i] == 0L) {
-					tableSize++;
-					hashes[i] = hashCode;
-					transposition_table[i] = trans;
-					return;
+				// failing that, overwrite based on age
+				int oldest_age = Transposition.getAge(trans);
+				int threshold_age = Math.max(0, oldest_age - 6);
+				int oldest_index = index;
+				for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
+					int index_age = Transposition.getAge(transposition_table[i]);
+					if (index_age < oldest_age) {
+						oldest_age = index_age;
+						oldest_index = i;
+					}
+					if (oldest_age < threshold_age) {
+						break;
+					}
 				}
+				if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numOverwritten++; }
+				hashes[oldest_index] = hashCode;
+				transposition_table[oldest_index] = trans;
 			}
-			// failing that, overwrite based on age
-			int oldest_age = Transposition.getAge(trans);
-			int threshold_age = Math.max(0, oldest_age - 6);
-			int oldest_index = index;
-			for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
-				int index_age = Transposition.getAge(transposition_table[i]);
-				if (index_age < oldest_age) {
-					oldest_age = index_age;
-					oldest_index = i;
-				}
-				if (oldest_age < threshold_age) {
-					break;
-				}
-			}
-			if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numOverwritten++; }
-			hashes[oldest_index] = hashCode;
-			transposition_table[oldest_index] = trans;
 		}
 	}
 	

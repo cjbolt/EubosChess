@@ -89,6 +89,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	public static final boolean ENABLE_FUTILITY_PRUNING_OF_KILLER_MOVES = false;
 	public static final boolean ENABLE_OVERWRITE_TRANS_WITH_SEARCH = false;
+	public static final boolean ENABLE_TT_CUT_OFFS_IN_EXTENDED_SEARCH = true;
 	
 	public static final int MAXIMUM_PLIES_IN_GAME = 250;
 	
