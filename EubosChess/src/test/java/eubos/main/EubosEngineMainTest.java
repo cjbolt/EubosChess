@@ -300,7 +300,8 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 				+ "f5e4 d5d2 e7a7 d2d6 e4e5 d6c6 e5f5 c6b6 f5g5 b6c6 a7b7 c6c4 g5h5 c4b4 h5g6 b4g4 "
 				+ "g6h6 g4h4 h6g6 h4g4 g6h6 g4h4 h6g6"+CMD_TERMINATOR, null));
 		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"20"+CMD_TERMINATOR, BEST_PREFIX+"a6a5"+CMD_TERMINATOR));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR, BEST_PREFIX+"h4g4"+CMD_TERMINATOR));
+		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR, BEST_PREFIX+"h4g4"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR, BEST_PREFIX+"h4h7"+CMD_TERMINATOR));
 		
 		int hashMove = Move.valueOf(Position.h4, Piece.BLACK_ROOK, Position.g4, Piece.NONE);
 		long hashEntry = Transposition.valueOf((byte)3, (short)0, Score.upperBound, hashMove, 107 >> 2);
@@ -374,7 +375,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_WAC_086_position() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/p7/1ppk1n2/5ppp/P1PP4/2P1K1P1/5N1P/8 b - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"11"+CMD_TERMINATOR, BEST_PREFIX+"f6g4"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"13"+CMD_TERMINATOR, BEST_PREFIX+"f6g4"+CMD_TERMINATOR));
 		assertTrue(performTest(8000));
 	}
 	
