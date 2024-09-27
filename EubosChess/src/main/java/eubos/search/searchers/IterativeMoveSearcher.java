@@ -128,8 +128,10 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	}
 	
 	protected void stopSearch(SearchResult res) {
-		EubosEngineMain.logger.info(
-				String.format("IterativeMoveSearcher ended best=%s gameTimeRemaining=%d", res.pv[0], gameTimeRemaining));
+		if (EubosEngineMain.ENABLE_LOGGING) {
+			EubosEngineMain.logger.info(
+					String.format("IterativeMoveSearcher ended best=%s gameTimeRemaining=%d", res.pv[0], gameTimeRemaining));
+		}
 		stopper.end();
 		enableSearchMetricsReporter(false);
 		terminateSearchMetricsReporter();

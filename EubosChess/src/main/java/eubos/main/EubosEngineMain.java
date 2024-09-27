@@ -529,18 +529,25 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		
 		int trustedMove = Move.NULL_MOVE;
-		boolean trustedMoveWasFromTrans = false;
-		long rootTrans = repopulateRootTransFromCacheIfItWasOverwritten(result);
-		if (transpositionIsValid(rootTrans)) {
-			trustedMove = Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard());
-			trustedMoveWasFromTrans = true;
+		if (result != null) {
+			boolean trustedMoveWasFromTrans = false;
+			long rootTrans = repopulateRootTransFromCacheIfItWasOverwritten(result);
+			if (transpositionIsValid(rootTrans)) {
+				trustedMove = Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard());
+				trustedMoveWasFromTrans = true;
+			} else {
+				trustedMove = result.pv[0];
+			}
+			
+			if (EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH) {
+				if (lastOnMoveClock > 30000) {
+					trustedMove = new Validate(this).validate(trustedMoveWasFromTrans, rootTrans, result, trustedMove);
+				}
+			}
 		} else {
-			trustedMove = result.pv[0];
-		}
-	
-		if (EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH) {
-			if (lastOnMoveClock > 30000) {
-				trustedMove = new Validate(this).validate(trustedMoveWasFromTrans, rootTrans, result, trustedMove);
+			long rootTrans = hashMap.getTransposition(rootPosition.getHash());
+			if (transpositionIsValid(rootTrans)) {
+				trustedMove = Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard());
 			}
 		}
 		
