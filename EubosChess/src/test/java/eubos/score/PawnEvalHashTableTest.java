@@ -29,15 +29,15 @@ class PawnEvalHashTableTest {
 	@Test
 	void test_readback() {
 		setUpPosition("8/pppppppp/8/8/P7/P7/P3PPPP/8 w - - 0 1");
-		SUT.put(pm.getPawnHash(), -256, whitePawns, blackPawns, true);
-		assertEquals(-256 , SUT.get(pm.getPawnHash(), whitePawns, blackPawns, true));
+		SUT.put(pm.getPawnHash(), -256, pm.getTheBoard().getPawns(), true);
+		assertEquals(-256 , SUT.get(pm.getPawnHash(), pm.getTheBoard().getPawns(), true));
 	}
 	
 	@Test
 	void test_always_replace_previous_scores_are_overwritten() {
 		setUpPosition("8/pppppppp/8/8/P7/P7/P3PPPP/8 w - - 0 1");
-		SUT.put(pm.getPawnHash(), -256, whitePawns, blackPawns, true);
-		SUT.put(pm.getPawnHash(), -25, whitePawns, blackPawns, true);
-		assertEquals(-25 , SUT.get(pm.getPawnHash(), whitePawns, blackPawns, true));
+		SUT.put(pm.getPawnHash(), -256, pm.getTheBoard().getPawns(), true);
+		SUT.put(pm.getPawnHash(), -25, pm.getTheBoard().getPawns(), true);
+		assertEquals(-25 , SUT.get(pm.getPawnHash(), pm.getTheBoard().getPawns(), true));
 	}
 }

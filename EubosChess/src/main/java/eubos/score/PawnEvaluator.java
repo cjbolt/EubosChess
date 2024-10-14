@@ -271,9 +271,8 @@ public class PawnEvaluator implements IForEachPieceCallback {
 	
 	@SuppressWarnings("unused")
 	int evaluatePawnStructure(long[][][] attacks) {
-		long white = bd.getWhitePawns();
-		long black = bd.getBlackPawns();
-		if (white == 0L && black == 0L)
+		long pawns = bd.getPawns();
+		if (pawns == 0L)
 			return 0;
 		
 		onMoveIsWhite = pm.onMoveIsWhite();
@@ -284,7 +283,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		short hashEval = 0;
 		int passedPawnScoreAtPosition = 0;
 		if (ENABLE_PAWN_HASH_TABLE) {
-			hashEval = pawnHash.get(posPawnHash, white, black, onMoveIsWhite);
+			hashEval = pawnHash.get(posPawnHash, pawns, onMoveIsWhite);
 			if (hashEval != Short.MAX_VALUE) {
 				pawnStat.skippedCount++;
 				// Recompute value of passed pawns in this position
@@ -296,13 +295,15 @@ public class PawnEvaluator implements IForEachPieceCallback {
 		}
 		
 		// If no valid hash, recompute from scratch...
+		long white = bd.getWhitePawns();
+		long black = bd.getBlackPawns();
 		long ownPawns = onMoveIsWhite ? white : black;
 		long enemyPawns = onMoveIsWhite ? black : white;
 		int pawnEvaluationScore = evaluatePawnsForSide(ownPawns, !onMoveIsWhite);
 		pawnEvaluationScore -= evaluatePawnsForSide(enemyPawns, onMoveIsWhite);
 				
 		if (ENABLE_PAWN_HASH_TABLE) {
-			pawnHash.put(posPawnHash, pawnEvaluationScore, white, black, onMoveIsWhite);
+			pawnHash.put(posPawnHash, pawnEvaluationScore, pawns, onMoveIsWhite);
 		}
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {
