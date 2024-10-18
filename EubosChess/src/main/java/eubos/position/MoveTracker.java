@@ -11,7 +11,7 @@ class MoveTracker {
 		byte castling;
 		int move;
 		int draw_check_ply;
-		short pawnHash;
+		int pawnHash;
 		
 		MoveStack() {
 			passed_pawn = 0L;
@@ -35,7 +35,7 @@ class MoveTracker {
 		index = 0;
 	}
 	
-	public void push(long pp, int move, int castling, int enPassant, long hash, int dc_index, short pawnHash) {
+	public void push(long pp, int move, int castling, int enPassant, long hash, int dc_index, int pawnHash) {
 		stack[index].passed_pawn = pp;
 		stack[index].move = move;
 		stack[index].en_passant_square = (byte) enPassant;

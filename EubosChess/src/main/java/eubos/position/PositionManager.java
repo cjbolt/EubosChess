@@ -112,7 +112,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		long pp = theBoard.getPassedPawns();
 		long old_hash = getHash();
 		int old_flags = castling.getFlags();
-		short old_pHash = getPawnHash();
+		int old_pHash = getPawnHash();
 		
 		theBoard.doMove(move);
 		// Legal move check
@@ -370,7 +370,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 
 	@Override
-	public short getPawnHash() {
+	public int getPawnHash() {
 		return pawnHash.getPawnHash();
 	}
 }

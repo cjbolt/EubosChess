@@ -13,21 +13,21 @@ public class PawnHashCode implements IForEachPieceCallback, IPawnHash {
 	private static final int INDEX_BLACK = (NUM_SQUARES);
 	private static final int LENGTH_TABLE = (NUM_COLOURS*NUM_SQUARES);
 
-	static private final short prnLookupTable[] = new short[LENGTH_TABLE];
+	static private final int prnLookupTable[] = new int[LENGTH_TABLE];
 	static {
 		// Set up the pseudo random number lookup table that shall be used
 		Random randGen = new Random(0xDEAD);
 		for (int index = 0; index < prnLookupTable.length; index++) {
-			prnLookupTable[index] = (short)randGen.nextLong();
+			prnLookupTable[index] = randGen.nextInt();
 		}
 	};
 	
-	public short hashCode = 0;
-	public short getPawnHash() {
+	public int hashCode = 0;
+	public int getPawnHash() {
 		return hashCode;
 	}
 	
-	public short calculatePawnHash(IPositionAccessors pos) {
+	public int calculatePawnHash(IPositionAccessors pos) {
 		hashCode = 0;
 		pos.getTheBoard().forEachPawnOfSide(this, false);
 		pos.getTheBoard().forEachPawnOfSide(this, true);
