@@ -32,7 +32,7 @@ public class ZobristHashCode implements IForEachPieceCallback, IZobristUpdate {
 	private static final int INDEX_ENP_H = INDEX_ENP_G+1;
 	private static final int LENGTH_TABLE = INDEX_ENP_H+1;
 	
-	static private final long prnLookupTable[] = new long[LENGTH_TABLE];
+	static final long prnLookupTable[] = new long[LENGTH_TABLE];
 	static {
 		// Set up the pseudo random number lookup table that shall be used
 		Random randGen = new Random(0xDEAD);

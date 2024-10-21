@@ -828,11 +828,11 @@ public class PositionManagerTest {
 	@Test
 	public void test_pawn_hash() {
 		createSutAndRegisterPe("8/pppppppp/8/8/8/8/PPPPPPPP/8 b - - 0 1");
-		assertEquals(1634762412, classUnderTest.getPawnHash());
+		assertEquals(118956731, classUnderTest.getPawnHash());
 		createSutAndRegisterPe("8/8/pppppppp/8/8/PPPPPPPP/8/8 b - - 0 1");
-		assertEquals(-126561842, classUnderTest.getPawnHash());
+		assertEquals(-2102459977, classUnderTest.getPawnHash());
 		createSutAndRegisterPe("8/8/8/pppppppp/PPPPPPPP/8/8/8 b - - 0 1");
-		assertEquals(-824999344, classUnderTest.getPawnHash());
+		assertEquals(-325031792, classUnderTest.getPawnHash());
 	}
 	
 	@Test

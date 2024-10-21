@@ -125,6 +125,7 @@ public class PawnEvaluator implements IForEachPieceCallback {
 			// check for otherwise connected passed pawns, which could be supported
 			piecewisePawnScoreAccumulator += Long.bitCount(ownPassers & BitBoard.PasserSupport_Lut[pawnIsWhite ? 0 : 1][bitOffset]) * CONNECTED_PASSED_PAWN_BOOST/2;
 		} else if (ENABLE_CANDIDATE_PP_EVALUATION) {
+			// Fine to consider pawn attacks as they only depend on the pawn board...
 			long[][] enemy_attacks = attacks[pawnIsWhite ? 1:0];
 			long[][] own_attacks = attacks[pawnIsWhite ? 0:1];
 			

@@ -1,7 +1,5 @@
 package eubos.position;
 
-import java.util.Random;
-
 import eubos.board.IForEachPieceCallback;
 import eubos.board.Piece;
 
@@ -11,16 +9,9 @@ public class PawnHashCode implements IForEachPieceCallback, IPawnHash {
 	private static final int NUM_SQUARES = 64;
 	// One entry pawn at each square for each colour.
 	private static final int INDEX_BLACK = (NUM_SQUARES);
-	private static final int LENGTH_TABLE = (NUM_COLOURS*NUM_SQUARES);
-
-	static private final int prnLookupTable[] = new int[LENGTH_TABLE];
-	static {
-		// Set up the pseudo random number lookup table that shall be used
-		Random randGen = new Random(0xDEAD);
-		for (int index = 0; index < prnLookupTable.length; index++) {
-			prnLookupTable[index] = randGen.nextInt();
-		}
-	};
+	static final int LENGTH_TABLE = (NUM_COLOURS*NUM_SQUARES);
+	
+	// Re-uses the Zobrist hash PRN table
 	
 	public int hashCode = 0;
 	public int getPawnHash() {
@@ -49,7 +40,7 @@ public class PawnHashCode implements IForEachPieceCallback, IPawnHash {
 		if (Piece.isBlack(pawn)) {
 			lookupIndex += INDEX_BLACK;
 		}		
-		return prnLookupTable[lookupIndex];
+		return ZobristHashCode.prnLookupTable[lookupIndex];
 	}
 	
 	public void removePawn(int pawn, int at) {
@@ -61,7 +52,8 @@ public class PawnHashCode implements IForEachPieceCallback, IPawnHash {
 	}
 	
 	public void movePawn(int pawn, int from, int to) {
-		hashCode ^= getPrnForPawn(from, pawn);
-		hashCode ^= getPrnForPawn(to, pawn);
+		int side = Piece.isBlack(pawn) ? INDEX_BLACK : 0;
+		hashCode ^= ZobristHashCode.prnLookupTable[from + side]; //getPrnForPawn(from, pawn);
+		hashCode ^= ZobristHashCode.prnLookupTable[to + side];   //getPrnForPawn(to, pawn);
 	}
 }
