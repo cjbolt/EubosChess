@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
-import eubos.board.Piece;
 import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.MoveListIterator;
@@ -82,7 +81,7 @@ public class EpdTestSuiteTest extends AbstractEubosIntegration{
 			bestMoveCommands = new ArrayList<String>();
 			extractFen(epd);
 			pm = new PositionManager(fen+" 0 0");
-			isWhite = Piece.Colour.isWhite(pm.getOnMove());
+			isWhite = pm.onMoveIsWhite();
 			extractBestMoves(epd);
 			extractTestName(epd);
 		}

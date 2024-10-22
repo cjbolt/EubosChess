@@ -5,7 +5,6 @@ import java.util.Arrays;
 import com.fluxchess.jcpi.models.IntChessman;
 import com.fluxchess.jcpi.models.IntRank;
 
-import eubos.main.EubosEngineMain;
 import eubos.position.IAddMoves;
 import eubos.position.Move;
 import eubos.position.Position;
@@ -13,10 +12,6 @@ import eubos.position.Position;
 public abstract class Piece {
     public enum Colour { 
         white, black;
-        
-        public static Colour getOpposite( Colour arg ) { return (arg == white) ? black : white; }
-        public static boolean isWhite( Colour arg ) { return arg == white; }
-        public static boolean isBlack( Colour arg ) { return arg == black; }
     };
     
     // Note: Piece values below are not completely arbitrary, they must match Zobrist indexes
@@ -63,27 +58,12 @@ public abstract class Piece {
     public static boolean isBishop(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == BISHOP; }
     public static boolean isKnight(int arg) { return (arg & PIECE_NO_COLOUR_MASK) == KNIGHT; }
     
-    public static boolean isOppositeColour(Colour ownColour, int toCheck) {
-        if (EubosEngineMain.ENABLE_ASSERTS)
-            assert (toCheck & PIECE_NO_COLOUR_MASK) != NONE;
-        return Colour.isWhite(ownColour) ? isBlack(toCheck) : isWhite(toCheck);
-    }
-    public static boolean isOppositeColourOrNone(Colour ownColour, int toCheck) {
-        boolean retVal = true;
-        if (toCheck != Piece.NONE) {
-            retVal = Colour.isWhite(ownColour) ? isBlack(toCheck) : isWhite(toCheck);
-        }
-        return retVal;
-    }
     public static boolean isWhite(int arg) {
-        return (arg&BLACK) == 0;
+        return arg<BLACK;
     }
     public static boolean isBlack(int arg) {
-        return (arg&BLACK) == BLACK;
+        return arg>=BLACK;
     }
-    public static Colour getOpposite(int arg) {
-        return isWhite(arg) ? Colour.black : Colour.white;
-    } 
     
     public static final short MATERIAL_VALUE_KING = 4000;
     public static final short MATERIAL_VALUE_QUEEN = 1800;

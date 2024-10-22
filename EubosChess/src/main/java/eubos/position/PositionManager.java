@@ -10,7 +10,6 @@ import com.fluxchess.jcpi.models.IntRank;
 import eubos.board.BitBoard;
 import eubos.board.Board;
 import eubos.board.Piece;
-import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.MoveTracker.MoveStack;
 import eubos.score.IEvaluate;
@@ -62,12 +61,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	private MoveTracker moveTracker = new MoveTracker();
 	
 	// No public setter, because onMove is only changed by performing a move on the board.
-	private Colour onMove;
-	public Colour getOnMove() {
-		return onMove;
-	}
+	private boolean onMoveIsWhite;
 	public boolean onMoveIsWhite() {
-		return Colour.isWhite(onMove);
+		return onMoveIsWhite;
 	}
 	
 	private int plyNumber;
@@ -149,8 +145,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		}
 		repetitionPossible = dc.setPositionReached(getHash(), plyNumber);			
 		
-		// Update onMove
-		onMove = Colour.getOpposite(onMove);
+		onMoveIsWhite = !onMoveIsWhite;
 		plyNumber++;
 		
 		return true;
@@ -172,7 +167,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		repetitionPossible = false;
 		
 		// Update onMove flag
-		onMove = Piece.Colour.getOpposite(onMove);
+		onMoveIsWhite = !onMoveIsWhite;
 		plyNumber--;
 	}
 	
@@ -186,8 +181,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		hash.doEnPassant(prevEnPassantTargetSq, BitBoard.INVALID);
 		hash.doOnMove();
 		
-		// Update onMove
-		onMove = Colour.getOpposite(onMove);
+		onMoveIsWhite = !onMoveIsWhite;
 		plyNumber+=2;
 	}
 	
@@ -205,15 +199,14 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Clear draw indicator flag
 		repetitionPossible = false;
 		
-		// Update onMove flag
-		onMove = Piece.Colour.getOpposite(onMove);
+		onMoveIsWhite = !onMoveIsWhite;
 		plyNumber-=2;
 	}
 		
 	public String getFen() {
 		StringBuilder fen = new StringBuilder(theBoard.getAsFenString());
 		fen.append(' ');
-		fen.append(Colour.isWhite(getOnMove()) ? 'w' : 'b');
+		fen.append(onMoveIsWhite() ? 'w' : 'b');
 		fen.append(' ');
 		fen.append(castling.getFenFlags());
 		fen.append(' ');
@@ -249,9 +242,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		}
 		private void parseOnMove(String colourOnMove) {
 			if (colourOnMove.equals("w"))
-				onMove = Colour.white;
+				onMoveIsWhite = true;
 			else if (colourOnMove.equals("b"))
-				onMove = Colour.black;
+				onMoveIsWhite = false;
 		}
 		private void parseMoveNumber(PositionManager pm, String moveNumber) {
 			int moveNum = 1;
@@ -347,7 +340,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			return f;
 		}
 		private void create() {
-			theBoard =  new Board( pl, onMove );
+			theBoard =  new Board(pl);
 		}
 	}
 

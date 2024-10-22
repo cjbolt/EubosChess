@@ -30,7 +30,7 @@ public class BoardTest {
 	@Before
 	public void setUp() throws Exception {
 		pieceMap = new HashMap<Integer, Integer>();
-		classUnderTest = new Board(pieceMap, Piece.Colour.white);
+		classUnderTest = new Board(pieceMap);
 	}
 
 	@Test

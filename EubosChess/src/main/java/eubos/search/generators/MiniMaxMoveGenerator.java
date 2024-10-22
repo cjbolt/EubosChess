@@ -1,6 +1,5 @@
 package eubos.search.generators;
 
-import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
@@ -70,7 +69,7 @@ public class MiniMaxMoveGenerator implements
 		pe = pos.getPositionEvaluator();
 		sm = new SearchMetrics(pos);
 		killers = new KillerList();
-		sda = new SearchDebugAgent(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
+		sda = new SearchDebugAgent(pos.getMoveNumber(), pos.onMoveIsWhite());
 		pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
 		ml = new MoveList((PositionManager)pm, alternativeMoveListOrderingScheme);
 	}

@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.CastlingManager;
 import eubos.position.IAddMoves;
@@ -68,7 +67,7 @@ public class Board {
 	
 	public boolean insufficient = false;
 	
-	public Board(Map<Integer, Integer> pieceMap,  Piece.Colour initialOnMove) {
+	public Board(Map<Integer, Integer> pieceMap) {
 		cpkaa = new CountedPawnKnightAttackAggregator();
 		mae = new MobilityAttacksEvaluator(this);
 		
@@ -1400,7 +1399,7 @@ public class Board {
 	public boolean isOnHalfOpenFile(GenericPosition atPos, int type) {
 		boolean isHalfOpen = false;
 		long fileMask = BitBoard.FileMask_Lut[IntFile.valueOf(atPos.file)];
-		long otherSide = Piece.getOpposite(type) == Colour.white ? whitePieces : blackPieces;
+		long otherSide = Piece.isBlack(type) ? whitePieces : blackPieces;
 		long pawnMask = otherSide & (pieces[INDEX_PAWN]);
 		boolean opponentPawnOnFile = (pawnMask & fileMask) != 0;
 		if (opponentPawnOnFile) {

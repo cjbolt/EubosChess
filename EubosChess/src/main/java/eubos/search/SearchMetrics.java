@@ -6,7 +6,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import com.fluxchess.jcpi.models.GenericMove;
 
-import eubos.board.Piece.Colour;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import it.unimi.dsi.fastutil.ints.IntArrays;
@@ -106,7 +105,7 @@ public class SearchMetrics {
 	
 	public short getCpScore() { return cpScore; }
 	void setCpScore(short positionScore) { 
-		if (Colour.isBlack(pos.getOnMove())) {
+		if (!pos.onMoveIsWhite()) {
 			if (Score.isMate(positionScore)) {
 				positionScore += 1; // out by one error due to negation of mate scores?
 			}

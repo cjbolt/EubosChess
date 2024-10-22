@@ -32,7 +32,6 @@ import com.fluxchess.jcpi.protocols.NoProtocolException;
 import eubos.board.Board;
 
 import eubos.board.Piece;
-import eubos.board.Piece.Colour;
 import eubos.board.SquareAttackEvaluator;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
@@ -274,7 +273,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	private void moveSearcherFactory(EngineStartCalculatingCommand command) {
 		// Update the Reference Score, used by the Search process, for the new root position
-		ReferenceScore refScore = Colour.isWhite(rootPosition.getOnMove()) ? whiteRefScore : blackRefScore;
+		ReferenceScore refScore = rootPosition.onMoveIsWhite() ? whiteRefScore : blackRefScore;
 		// Parse clock time data
 		boolean clockTimeValid = true;
 		long clockTime = 0;

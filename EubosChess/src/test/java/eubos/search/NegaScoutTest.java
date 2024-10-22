@@ -43,7 +43,7 @@ public class NegaScoutTest {
 		pos = posMgr;
 		sm = new SearchMetrics(pos);
 		killers = new KillerList();
-		sda = new SearchDebugAgent(pos.getMoveNumber(), pos.getOnMove() == Piece.Colour.white);
+		sda = new SearchDebugAgent(pos.getMoveNumber(), pos.onMoveIsWhite());
 		pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
 		ml = new MoveList((PositionManager)pm, 1);
 		tt = new FixedSizeTranspositionTable();

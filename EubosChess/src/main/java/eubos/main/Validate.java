@@ -48,7 +48,7 @@ public class Validate {
 		
 		// Operate on a copy of the rootPosition to prevent reentrant issues at tight time controls
 		PositionManager pm = new PositionManager(rootFen, rootPosition.getHash(), new DrawChecker(), new PawnEvalHashTable());
-		SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.getOnMove() == Piece.Colour.white);
+		SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.onMoveIsWhite());
 		PrincipalContinuation pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
 		SearchResult validation_result = doValidationSearch(pm, pc, sda, trusted_score, researchDepth);
 		if (validation_result.foundMate) {
