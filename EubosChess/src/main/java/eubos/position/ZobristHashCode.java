@@ -2,8 +2,6 @@ package eubos.position;
 
 import java.util.Random;
 
-import com.fluxchess.jcpi.models.IntRank;
-
 import eubos.board.BitBoard;
 import eubos.board.IForEachPieceCallback;
 import eubos.board.Piece;
@@ -73,10 +71,8 @@ public class ZobristHashCode implements IForEachPieceCallback, IZobristUpdate {
 	
 	protected long getPrnForPiece(int bitOffset, int currPiece) {
 		/* Compute prnLookup index to use, based on piece type, colour and square.
-		 * Note: convert piece type to Zobrist index, which is 0 to 5. The max is not 
-		 * theoretically required, but I suspect hash collisions can cause very 
-		 * infrequent crashes in this code otherwise. */
-		int pieceType = Math.max(0, (currPiece & Piece.PIECE_NO_COLOUR_MASK) - 1);
+		 * Note: convert piece type to Zobrist index, which is 0 to 5. */
+		int pieceType = (currPiece & Piece.PIECE_NO_COLOUR_MASK) - 1;
 		int lookupIndex = pieceType * NUM_SQUARES + bitOffset;
 		if (Piece.isBlack(currPiece)) {
 			lookupIndex += INDEX_BLACK;
@@ -110,16 +106,8 @@ public class ZobristHashCode implements IForEachPieceCallback, IZobristUpdate {
 
 	@Override
 	public void doPromotionMove(int targetSquare, int originSquare, int piece, int promotedPiece) {
-		if ((BitBoard.getRank(targetSquare) == IntRank.R1) ||
-			(BitBoard.getRank(targetSquare) == IntRank.R8)) {
-			// is doing a promotion
-			hashCode ^= getPrnForPiece(targetSquare, promotedPiece);
-			hashCode ^= getPrnForPiece(originSquare, piece);
-		} else {
-			// is undoing promotion
-			hashCode ^= getPrnForPiece(targetSquare, piece);
-			hashCode ^= getPrnForPiece(originSquare, promotedPiece);
-		}
+		hashCode ^= getPrnForPiece(targetSquare, promotedPiece);
+		hashCode ^= getPrnForPiece(originSquare, piece);
 	}
 	
 	@Override
