@@ -67,7 +67,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	public static final boolean ENABLE_LOGGING = false;
 	public static final boolean ENABLE_ASSERTS = false;
-	public static final boolean ENABLE_PERFT = false;
+	public static final boolean ENABLE_PERFT = true;
 	public static final boolean ENABLE_TEST_SUITES = false;
 	public static final boolean ENABLE_DEBUG_VALIDATION_SEARCH = false;
 	public static final boolean ENABLE_TT_DIAGNOSTIC_LOGGING = false;

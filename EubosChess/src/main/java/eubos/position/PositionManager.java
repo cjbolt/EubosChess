@@ -110,9 +110,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int old_flags = castling.getFlags();
 		int old_pHash = getPawnHash();
 		
-		theBoard.doMove(move);
 		// Legal move check
-		if (theBoard.last_move_was_illegal) {
+		if (theBoard.doMove(move)) {
 			theBoard.undoIllegalMove(move);
 			
 			castling.setFlags(old_flags);

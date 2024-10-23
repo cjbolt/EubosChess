@@ -202,11 +202,8 @@ public class Board {
 		return fen.toString();
 	}
 	
-	public boolean last_move_was_illegal = false;
-	
-	public int doMove(int move) {
+	public boolean doMove(int move) {
 		isAttacksMaskValid = false;
-		last_move_was_illegal = false;
 		
 		int captureBitOffset = BitBoard.INVALID;
 		int pieceToMove = Move.getOriginPiece(move);
@@ -300,9 +297,8 @@ public class Board {
 			pieces[pieceType] ^= positionsMask;
 		}
 		
-		last_move_was_illegal = isKingInCheck(isWhite);
-		if (last_move_was_illegal) {
-			return captureBitOffset;
+		if (isKingInCheck(isWhite)) {
+			return true;
 		}
 		
 		if (isCapture) {
@@ -396,10 +392,10 @@ public class Board {
 			assert Long.bitCount(pieces[INDEX_KING]) == 2;
 		}
 		
-		return captureBitOffset;
+		return false;
 	}
 	
-	public int undoMove(int moveToUndo) {
+	public void undoMove(int moveToUndo) {
 		isAttacksMaskValid = false;
 		
 		int capturedPieceSquare = BitBoard.INVALID;
@@ -477,13 +473,9 @@ public class Board {
 						scratch_me.combinedPosition, me.combinedPosition, Move.toString(moveToUndo));
 			assert scratch_me.phase == me.phase;
 		}
-		
-		last_move_was_illegal = false;
-		
-		return capturedPieceSquare;
 	}
 	
-	public int undoIllegalMove(int moveToUndo) {
+	public void undoIllegalMove(int moveToUndo) {
 		isAttacksMaskValid = false;
 		
 		int capturedPieceSquare = BitBoard.INVALID;
@@ -555,10 +547,6 @@ public class Board {
 						scratch_me.combinedPosition, me.combinedPosition, Move.toString(moveToUndo));
 			assert scratch_me.phase == me.phase;
 		}
-		
-		last_move_was_illegal = false;
-		
-		return capturedPieceSquare;
 	}
 	
 	public int generateCaptureBitOffsetForEnPassant(int pieceToMove, int targetBitOffset) {
