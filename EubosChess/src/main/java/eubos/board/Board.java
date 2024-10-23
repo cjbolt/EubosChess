@@ -298,6 +298,39 @@ public class Board {
 		}
 		
 		if (isKingInCheck(isWhite)) {
+			// Handle reversal of any castling secondary rook moves on the board
+			if (Move.isCastling(move)) {
+				unperformSecondaryCastlingMove(targetBitOffset);
+			}
+			// Switch piece bitboard
+			if (promotedPiece != Piece.NONE) {
+				// Remove promoted piece and replace it with a pawn
+				pieces[promotedPiece] ^= targetSquareMask;	
+				pieces[INDEX_PAWN] |= initialSquareMask;
+			} else {
+				pieces[pieceType] ^= positionsMask;
+			}
+			// Switch colour bitboard
+			if (isWhite) {
+				whitePieces ^= positionsMask;
+			} else {
+				blackPieces ^= positionsMask;
+			}
+			// Switch all pieces bitboard
+			allPieces ^= positionsMask;
+			
+			// Undo any capture that had been previously performed.
+			if (isCapture) {
+				long mask = 1L << captureBitOffset;
+				pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] |= mask;
+				if (isWhite) {
+					blackPieces |= mask;
+				} else {
+					whitePieces |= mask;
+				}
+				allPieces |= mask;
+				insufficient = false;
+			}
 			return true;
 		}
 		
@@ -458,80 +491,6 @@ public class Board {
 			}
 			allPieces |= mask;
 			me.updateForReplacedCapture(targetPiece, capturedPieceSquare);
-			insufficient = false;
-		}
-		
-		if (EubosEngineMain.ENABLE_ASSERTS) {
-			// check material incrementally updated against from scratch
-			PiecewiseEvaluation scratch_me = new PiecewiseEvaluation();
-			evaluateMaterial(scratch_me);
-			assert scratch_me != me;
-			assert scratch_me.mg_material == me.mg_material;
-			assert scratch_me.eg_material == me.eg_material;
-			assert scratch_me.combinedPosition == me.combinedPosition : 
-				String.format("combined_scratch=%08x iterative=%08x %s",
-						scratch_me.combinedPosition, me.combinedPosition, Move.toString(moveToUndo));
-			assert scratch_me.phase == me.phase;
-		}
-	}
-	
-	public void undoIllegalMove(int moveToUndo) {
-		isAttacksMaskValid = false;
-		
-		int capturedPieceSquare = BitBoard.INVALID;
-		int originPiece = Move.getOriginPiece(moveToUndo);
-		boolean isWhite = Piece.isWhite(originPiece);
-		int originBitOffset = Move.getTargetPosition(moveToUndo);
-		int targetBitOffset = Move.getOriginPosition(moveToUndo);
-		int targetPiece = Move.getTargetPiece(moveToUndo);
-		int promotedPiece = Move.getPromotion(moveToUndo);
-		long initialSquareMask = 1L << originBitOffset;
-		long targetSquareMask = 1L << targetBitOffset;
-		long positionsMask = initialSquareMask | targetSquareMask;
-		boolean isCapture = targetPiece != Piece.NONE;
-		int pieceType = Piece.PIECE_NO_COLOUR_MASK & originPiece;
-		
-		// Check assertions, if enabled in build
-		if (EubosEngineMain.ENABLE_ASSERTS) {
-			long pieceMask = (promotedPiece != Piece.NONE) ? pieces[promotedPiece] : pieces[Piece.PIECE_NO_COLOUR_MASK & originPiece];
-			assert (pieceMask & initialSquareMask) != 0: String.format("Non-existant piece at %s, %s",
-					Position.toGenericPosition(BitBoard.bitToPosition_Lut[originBitOffset]), Move.toString(moveToUndo));
-		}
-		
-		// Handle reversal of any castling secondary rook moves on the board
-		if (Move.isCastling(moveToUndo)) {
-			unperformSecondaryCastlingMove(originBitOffset);
-		}
-		// Switch piece bitboard
-		if (promotedPiece != Piece.NONE) {
-			// Remove promoted piece and replace it with a pawn
-			pieces[promotedPiece] ^= initialSquareMask;	
-			pieces[INDEX_PAWN] |= targetSquareMask;
-		} else {
-			pieces[pieceType] ^= positionsMask;
-		}
-		// Switch colour bitboard
-		if (isWhite) {
-			whitePieces ^= positionsMask;
-		} else {
-			blackPieces ^= positionsMask;
-		}
-		// Switch all pieces bitboard
-		allPieces ^= positionsMask;
-		
-		// Undo any capture that had been previously performed.
-		if (isCapture) {
-			// Origin square because the move has been reversed and origin square is the original target square
-			capturedPieceSquare = Move.isEnPassantCapture(moveToUndo) ? 
-					generateCaptureBitOffsetForEnPassant(originPiece, originBitOffset) : originBitOffset;
-			long mask = 1L << capturedPieceSquare;
-			pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] |= mask;
-			if (isWhite) {
-				blackPieces |= mask;
-			} else {
-				whitePieces |= mask;
-			}
-			allPieces |= mask;
 			insufficient = false;
 		}
 		

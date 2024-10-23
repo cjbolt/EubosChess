@@ -111,9 +111,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int old_pHash = getPawnHash();
 		
 		// Legal move check
-		if (theBoard.doMove(move)) {
-			theBoard.undoIllegalMove(move);
-			
+		if (theBoard.doMove(move)) {			
 			castling.setFlags(old_flags);
 			theBoard.setPassedPawns(pp);
 			theBoard.setEnPassantTargetSq(prevEnPassantTargetSq);
