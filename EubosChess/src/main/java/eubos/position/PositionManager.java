@@ -129,11 +129,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		moveTracker.push(pp, move, old_flags, prevEnPassantTargetSq, old_hash, dc.checkFromPly, old_pHash);
 		
 		// Update state
-		castling.updateFlags(move);
-		
 		// Update Hash
 		hash.doEnPassant(prevEnPassantTargetSq, theBoard.getEnPassantTargetSq());
-		hash.doCastlingFlags(old_flags, castling.getFlags());
+		hash.doCastlingFlags(old_flags, castling.updateFlags(move));
 		hash.doOnMove();
 		
 		// Update the draw checker

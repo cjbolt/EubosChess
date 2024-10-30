@@ -150,7 +150,7 @@ public class CastlingManager {
 		return (castleMoveLegal(qscBlackCheckSqs, qscBlackEmptySqs)) ? bqsc : 0;
 	}
 
-	public void updateFlags(int lastMove) {
+	public int updateFlags(int lastMove) {
 		if (flags !=0) {
 			// This code can only clear flags, so don't execute if they are already cleared	
 			int movedPiece = Move.getOriginPiece(lastMove);
@@ -201,5 +201,6 @@ public class CastlingManager {
 				flags &= ~WHITE_KINGSIDE;
 			}
 		}
+		return flags;
 	}
 }
