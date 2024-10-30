@@ -233,9 +233,6 @@ public class Board {
 			assert (targetPiece & Piece.PIECE_NO_COLOUR_MASK) != Piece.DONT_CARE;
 		}
 		
-		// Initialise En Passant target square
-		setEnPassantTargetSq(BitBoard.INVALID);
-		
 		if (isCapture) {
 			// Handle captures
 			if (Move.isEnPassantCapture(move)) {
@@ -268,15 +265,6 @@ public class Board {
 			pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] ^= captureMask;
 			// Remove from all pieces bitboard
 			allPieces ^= captureMask;
-
-		} else {
-			// Check whether the move sets the En Passant target square
-			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
-				// Handle castling secondary rook moves...
-				if (Move.isCastling(move)) {
-					performSecondaryCastlingMove(targetBitOffset);
-				}
-			}
 		}
 		
 		// Switch colour bitboard
@@ -298,10 +286,6 @@ public class Board {
 		}
 		
 		if (isKingInCheck(isWhite)) {
-			// Handle reversal of any castling secondary rook moves on the board
-			if (Move.isCastling(move)) {
-				unperformSecondaryCastlingMove(targetBitOffset);
-			}
 			// Switch piece bitboard
 			if (promotedPiece != Piece.NONE) {
 				// Remove promoted piece and replace it with a pawn
@@ -334,11 +318,22 @@ public class Board {
 			return true;
 		}
 		
+		// Initialise En Passant target square
+		setEnPassantTargetSq(BitBoard.INVALID);
+		
 		if (isCapture) {
 			// Incrementally update opponent material after capture, at the correct capturePosition
 			me.updateForCapture(targetPiece, captureBitOffset);
 			hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
 			insufficient = isInsufficientMaterial();
+		} else {
+			// Check whether the move sets the En Passant target square
+			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
+				// Handle castling secondary rook moves...
+				if (Move.isCastling(move)) {
+					performSecondaryCastlingMove(targetBitOffset);
+				}
+			}
 		}
 		
 		if (promotedPiece != Piece.NONE) {
