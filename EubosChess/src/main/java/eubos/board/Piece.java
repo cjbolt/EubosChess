@@ -732,9 +732,9 @@ public abstract class Piece {
     	} else if (at_file == to_file) {
     		// rook
     		if (at_rank < to_rank) {
-	    		direction = 4;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.up);
+	    		direction = 5;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.up);
 	    	} else {
-	    		direction = 5;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.down);
+	    		direction = 4;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.down);
 	    	}
     	} else {
     		//bishop
@@ -752,7 +752,7 @@ public abstract class Piece {
     	    	}
         	}
     	}
-        multidirect_checkForMove_White(ml, theBoard, WhiteQueenMove_Lut[atSquare][direction]); 
+        multidirect_checkForMove_White(ml, theBoard, WhiteQueenMove_Lut[atSquare][direction]);
     }
     
     static void queen_checkMove_Black(IAddMoves ml, Board theBoard, int atSquare, int target) {
@@ -771,9 +771,9 @@ public abstract class Piece {
     	} else if (at_file == to_file) {
     		// rook
     		if (at_rank < to_rank) {
-	    		direction = 4;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.up);
+	    		direction = 5;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.up);
 	    	} else {
-	    		direction = 5;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.down);
+	    		direction = 4;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.down);
 	    	}
     	} else {
     		//bishop
@@ -791,7 +791,7 @@ public abstract class Piece {
     	    	}
         	}
     	}
-        multidirect_checkForMove_Black(ml, theBoard, BlackQueenMove_Lut[atSquare][direction]); 
+        multidirect_checkForMove_Black(ml, theBoard, BlackQueenMove_Lut[atSquare][direction]);
     }
 
     static void bishop_checkMove_White(IAddMoves ml, Board theBoard, int atSquare, int target) {
