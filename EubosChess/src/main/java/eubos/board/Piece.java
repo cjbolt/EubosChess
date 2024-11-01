@@ -674,7 +674,205 @@ public abstract class Piece {
                 break;
             }
         }
+    }    
+    
+    static void rook_checkMove_White(IAddMoves ml, Board theBoard, int atSquare, int target) {
+    	int at_file = BitBoard.getFile(atSquare);
+    	int to_file = BitBoard.getFile(target);
+    	int at_rank = BitBoard.getRank(atSquare);
+    	int to_rank = BitBoard.getRank(target);
+    	int direction = 0;
+    	if (at_rank == to_rank) {
+    		if (at_file < to_file) {
+    			direction = 3; // SquareAttackEvaluator.directionIndex_Lut.get(Direction.left);
+    		} else {
+    			direction = 2; // SquareAttackEvaluator.directionIndex_Lut.get(Direction.right);
+    		}
+    	} else if (at_rank > to_rank) {
+    		direction = 0; // SquareAttackEvaluator.directionIndex_Lut.get(Direction.up);
+    	} else {
+    		direction = 1; // SquareAttackEvaluator.directionIndex_Lut.get(Direction.down);
+    	}
+        multidirect_checkForMove_White(ml, theBoard, WhiteRookMove_Lut[atSquare][direction]); 
     }
+    
+    static void rook_checkMove_Black(IAddMoves ml, Board theBoard, int atSquare, int target) {
+    	int at_file = BitBoard.getFile(atSquare);
+    	int to_file = BitBoard.getFile(target);
+    	int at_rank = BitBoard.getRank(atSquare);
+    	int to_rank = BitBoard.getRank(target);
+    	int direction = 0;
+    	if (at_rank == to_rank) {
+    		if (at_file < to_file) {
+    			direction = 3;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.left);
+    		} else {
+    			direction = 2;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.right);
+    		}
+    	} else if (at_rank > to_rank) {
+    		direction = 0;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.up);
+    	} else {
+    		direction = 1;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.down);
+    	}
+        multidirect_checkForMove_Black(ml, theBoard, BlackRookMove_Lut[atSquare][direction]);
+    }
+
+    static void queen_checkMove_White(IAddMoves ml, Board theBoard, int atSquare, int target) {
+    	int at_file = BitBoard.getFile(atSquare);
+    	int to_file = BitBoard.getFile(target);
+    	int at_rank = BitBoard.getRank(atSquare);
+    	int to_rank = BitBoard.getRank(target);
+    	int direction = 0;
+    	if (at_rank == to_rank) {
+    		// rook
+    		if (at_file < to_file) {
+    			direction = 7;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.left);
+    		} else {
+    			direction = 6;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.right);
+    		}
+    	} else if (at_file == to_file) {
+    		// rook
+    		if (at_rank < to_rank) {
+	    		direction = 4;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.up);
+	    	} else {
+	    		direction = 5;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.down);
+	    	}
+    	} else {
+    		//bishop
+        	if (at_rank < to_rank) {
+        		if (at_file < to_file) {
+        			direction = 3;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.upLeft);
+        		} else {
+        			direction = 1;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.upRight);
+        		}
+        	} else {
+        		if (at_file < to_file) {
+    	    		direction = 2;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.downLeft);
+    	    	} else {
+    	    		direction = 0;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.downRight);
+    	    	}
+        	}
+    	}
+        multidirect_checkForMove_White(ml, theBoard, WhiteQueenMove_Lut[atSquare][direction]); 
+    }
+    
+    static void queen_checkMove_Black(IAddMoves ml, Board theBoard, int atSquare, int target) {
+    	int at_file = BitBoard.getFile(atSquare);
+    	int to_file = BitBoard.getFile(target);
+    	int at_rank = BitBoard.getRank(atSquare);
+    	int to_rank = BitBoard.getRank(target);
+    	int direction = 0;
+    	if (at_rank == to_rank) {
+    		// rook
+    		if (at_file < to_file) {
+    			direction = 7;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.left);
+    		} else {
+    			direction = 6;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.right);
+    		}
+    	} else if (at_file == to_file) {
+    		// rook
+    		if (at_rank < to_rank) {
+	    		direction = 4;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.up);
+	    	} else {
+	    		direction = 5;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.down);
+	    	}
+    	} else {
+    		//bishop
+        	if (at_rank < to_rank) {
+        		if (at_file < to_file) {
+        			direction = 3;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.upLeft);
+        		} else {
+        			direction = 1;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.upRight);
+        		}
+        	} else {
+        		if (at_file < to_file) {
+    	    		direction = 2;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.downLeft);
+    	    	} else {
+    	    		direction = 0;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.downRight);
+    	    	}
+        	}
+    	}
+        multidirect_checkForMove_Black(ml, theBoard, BlackQueenMove_Lut[atSquare][direction]); 
+    }
+
+    static void bishop_checkMove_White(IAddMoves ml, Board theBoard, int atSquare, int target) {
+    	int at_file = BitBoard.getFile(atSquare);
+    	int to_file = BitBoard.getFile(target);
+    	int at_rank = BitBoard.getRank(atSquare);
+    	int to_rank = BitBoard.getRank(target);
+    	int direction = 0;
+    	if (at_rank < to_rank) {
+    		if (at_file < to_file) {
+    			direction = 3; // SquareAttackEvaluator.directionIndex_Lut.get(Direction.upLeft);
+    		} else {
+    			direction = 1; // SquareAttackEvaluator.directionIndex_Lut.get(Direction.upRight);
+    		}
+    	} else {
+    		if (at_file < to_file) {
+	    		direction = 2; // SquareAttackEvaluator.directionIndex_Lut.get(Direction.downLeft);
+	    	} else {
+	    		direction = 0; // SquareAttackEvaluator.directionIndex_Lut.get(Direction.downRight);
+	    	}
+    	}
+        multidirect_checkForMove_White(ml, theBoard, WhiteBishopMove_Lut[atSquare][direction]);    
+    }
+    
+    static void bishop_checkMove_Black(IAddMoves ml, Board theBoard, int atSquare, int target) {
+    	int at_file = BitBoard.getFile(atSquare);
+    	int to_file = BitBoard.getFile(target);
+    	int at_rank = BitBoard.getRank(atSquare);
+    	int to_rank = BitBoard.getRank(target);
+    	int direction = 0;
+    	if (at_rank < to_rank) {
+    		if (at_file < to_file) {
+    			direction = 3; //SquareAttackEvaluator.directionIndex_Lut.get(Direction.upLeft);
+    		} else {
+    			direction = 1; //SquareAttackEvaluator.directionIndex_Lut.get(Direction.upRight);
+    		}
+    	} else {
+    		if (at_file < to_file) {
+	    		direction = 2; //SquareAttackEvaluator.directionIndex_Lut.get(Direction.downLeft);
+	    	} else {
+	    		direction = 0; //SquareAttackEvaluator.directionIndex_Lut.get(Direction.downRight);
+	    	}
+    	}
+        multidirect_checkForMove_Black(ml, theBoard, BlackBishopMove_Lut[atSquare][direction]);    
+    }
+
+    private static void multidirect_checkForMove_White(IAddMoves ml, Board theBoard, int[] moves) {
+        for (int new_move : moves) {
+            int targetPiece = theBoard.getPieceAtSquareEnemyBlack(1L << Move.getTargetPosition(new_move));
+            switch(targetPiece) {
+            case Piece.NONE:
+                ml.addNormal(new_move);
+                continue;
+            case Piece.DONT_CARE:
+                break; // i.e. blocked by own piece
+            default:
+                new_move = Move.setCapture(new_move, targetPiece);
+                ml.addPrio(new_move);
+                break;
+            }
+            break;
+        }   
+    }
+    
+    private static void multidirect_checkForMove_Black(IAddMoves ml, Board theBoard, int[] moves) {
+	    for (int new_move : moves) {
+	        int targetPiece = theBoard.getPieceAtSquareEnemyWhite(1L << Move.getTargetPosition(new_move));
+	        switch(targetPiece) {
+	        case Piece.NONE:
+	            ml.addNormal(new_move);
+	            continue;
+	        case Piece.DONT_CARE:
+	            break; // i.e. blocked by own piece
+	        default:
+	            new_move = Move.setCapture(new_move, targetPiece);
+	            ml.addPrio(new_move);
+	            break;
+	        }
+	        break;
+	    }   
+	}
     
     private static void single_addMoves_White(IAddMoves ml, Board theBoard, int[] moves) {
         for (int new_move : moves) {

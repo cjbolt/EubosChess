@@ -704,7 +704,7 @@ public class BoardTest {
 		assertFalse(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
 		// Move into check
 		move = Move.valueOf(Position.g7, Piece.WHITE_KING, Position.g6, Piece.NONE);
-		assertFalse(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+		assertTrue(classUnderTest.isPlayableMove(move, inCheck, pm.castling)); // doesn't check legality
 	}
 	
 	@Test
@@ -723,7 +723,7 @@ public class BoardTest {
 		setUpPosition("8/8/8/2bk4/8/8/8/R3K2R w K - 1 10");
 		int move = Move.valueOf(Position.e1, Piece.WHITE_KING, Position.g1, Piece.NONE);
 		boolean inCheck = false;
-		assertFalse(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+		assertTrue(classUnderTest.isPlayableMove(move, inCheck, pm.castling)); // doesn't check legality
 	}
 	
 	@Test
@@ -800,6 +800,94 @@ public class BoardTest {
 		int move = Move.valueOf(Position.a7, Piece.BLACK_PAWN, Position.a5, Piece.NONE);
 		boolean inCheck = false;
 		assertFalse(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+	}
+	
+	@Test 
+	public void test_is_playable_rook_lift_blocked() {
+		setUpPosition("k7/8/8/8/8/8/4p3/4R2K w - - 0 1 ");
+		int move = Move.valueOf(Position.e1, Piece.WHITE_ROOK, Position.e5, Piece.NONE);
+		boolean inCheck = false;
+		assertFalse(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+	}
+	
+	@Test 
+	public void test_is_playable_rook_lift() {
+		setUpPosition("k7/8/8/8/8/8/8/4R2K w - - 0 1 ");
+		int move = Move.valueOf(Position.e1, Piece.WHITE_ROOK, Position.e5, Piece.NONE);
+		boolean inCheck = false;
+		assertTrue(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+	}
+	
+	@Test 
+	public void test_is_playable_rook_left_blocked() {
+		setUpPosition("k7/8/8/8/8/8/8/3pR2K w - - 0 1 ");
+		int move = Move.valueOf(Position.e1, Piece.WHITE_ROOK, Position.a1, Piece.NONE);
+		boolean inCheck = false;
+		assertFalse(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+	}
+	
+	@Test 
+	public void test_is_playable_rook_left() {
+		setUpPosition("k7/8/8/8/8/8/8/4R2K w - - 0 1 ");
+		int move = Move.valueOf(Position.e1, Piece.WHITE_ROOK, Position.a1, Piece.NONE);
+		boolean inCheck = false;
+		assertTrue(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+	}
+	
+	@Test 
+	public void test_is_playable_bishop_up_left_blocked() {
+		setUpPosition("k7/8/8/8/8/8/3p4/4B2K w - - 0 1 ");
+		int move = Move.valueOf(Position.e1, Piece.WHITE_BISHOP, Position.c3, Piece.NONE);
+		boolean inCheck = false;
+		assertFalse(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+	}
+	
+	@Test 
+	public void test_is_playable_bishop_up_left() {
+		setUpPosition("k7/8/8/8/8/8/8/4B2K w - - 0 1 ");
+		int move = Move.valueOf(Position.e1, Piece.WHITE_BISHOP, Position.c3, Piece.NONE);
+		boolean inCheck = false;
+		assertTrue(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+	}
+	
+	@Test 
+	public void test_is_playable_bishop_up_right_blocked() {
+		setUpPosition("k7/8/8/8/8/8/5p2/4B2K w - - 0 1 ");
+		int move = Move.valueOf(Position.e1, Piece.WHITE_BISHOP, Position.g3, Piece.NONE);
+		boolean inCheck = false;
+		assertFalse(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+	}
+	
+	@Test 
+	public void test_is_playable_bishop_up_right() {
+		setUpPosition("k7/8/8/8/8/8/8/4B2K w - - 0 1 ");
+		int move = Move.valueOf(Position.e1, Piece.WHITE_BISHOP, Position.g3, Piece.NONE);
+		boolean inCheck = false;
+		assertTrue(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+	}
+	
+	@Test 
+	public void test_is_playable_bishop_down_right_blocked() {
+		setUpPosition("k3B3/5p2/8/8/8/8/8/7K w - - 0 1 ");
+		int move = Move.valueOf(Position.e8, Piece.WHITE_BISHOP, Position.g6, Piece.NONE);
+		boolean inCheck = false;
+		assertFalse(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+	}
+	
+	@Test 
+	public void test_is_playable_bishop_down_right() {
+		setUpPosition("k3B3/8/8/8/8/8/8/7K w - - 0 1 ");
+		int move = Move.valueOf(Position.e8, Piece.WHITE_BISHOP, Position.g6, Piece.NONE);
+		boolean inCheck = false;
+		assertTrue(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+	}
+	
+	@Test 
+	public void test_is_playable_bishop_mate_in_four() {
+		setUpPosition("r1r3k1/pb1p1p2/1p2p1p1/2pPP1B1/1nP4Q/1Pq2NP1/P4PBP/b2R2K1 w - - 0 1 ");
+		int move = Move.valueOf(Position.g5, Piece.WHITE_BISHOP, Position.f6, Piece.NONE);
+		boolean inCheck = false;
+		assertTrue(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
 	}
 	
 	@Test

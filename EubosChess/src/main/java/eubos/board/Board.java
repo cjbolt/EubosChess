@@ -844,13 +844,13 @@ public class Board {
 	
 	public boolean isPlayableMove(int move, boolean needToEscapeMate, CastlingManager castling) {
 		int pieceToMove = Move.getOriginPiece(move);
-		int originBitShift = Move.getOriginPosition(move);
-		int targetBitShift = Move.getTargetPosition(move);
-		int targetPiece = Move.getTargetPiece(move);
-		
+		int originBitShift = Move.getOriginPosition(move);		
 		if (getPieceAtSquare(1L << originBitShift) != pieceToMove) {
 			return false;
 		}
+		
+		int targetBitShift = Move.getTargetPosition(move);
+		int targetPiece = Move.getTargetPiece(move);
 		if (getPieceAtSquare(1L << targetBitShift) != targetPiece && !Move.isEnPassantCapture(move)) {
 			return false;
 		}
@@ -874,22 +874,22 @@ public class Board {
 			}
 			break;
 		case Piece.WHITE_QUEEN:
-			Piece.queen_generateMoves_White(pmc, this, originBitShift);
+			Piece.queen_checkMove_White(pmc, this, originBitShift, targetBitShift);
 			break;
 		case Piece.WHITE_ROOK:
-			Piece.rook_generateMoves_White(pmc, this, originBitShift);
+			Piece.rook_checkMove_White(pmc, this, originBitShift, targetBitShift);
 			break;
 		case Piece.WHITE_BISHOP:
-			Piece.bishop_generateMoves_White(pmc, this, originBitShift);
+			Piece.bishop_checkMove_White(pmc, this, originBitShift, targetBitShift);
 			break;
 		case Piece.BLACK_QUEEN:
-			Piece.queen_generateMoves_Black(pmc, this, originBitShift);
+			Piece.queen_checkMove_Black(pmc, this, originBitShift, targetBitShift);
 			break;
 		case Piece.BLACK_ROOK:
-			Piece.rook_generateMoves_Black(pmc, this, originBitShift);
+			Piece.rook_checkMove_Black(pmc, this, originBitShift, targetBitShift);
 			break;
 		case Piece.BLACK_BISHOP:
-			Piece.bishop_generateMoves_Black(pmc, this, originBitShift);
+			Piece.bishop_checkMove_Black(pmc, this, originBitShift, targetBitShift);
 			break;
 		case Piece.WHITE_KNIGHT:
 		case Piece.BLACK_KNIGHT:
@@ -911,8 +911,8 @@ public class Board {
 			return false;
 		}
 		
-		// It is valid, unless illegal
-		return !isIllegalCheckHelper(move, needToEscapeMate, pieceToMove, isWhite);
+		// It is valid, that is enough for now; if it is illegal this will be managed when move is tried
+		return true;
 	}
 	
 	private static final long wksc_mask = BitBoard.positionToMask_Lut[Position.h1] | BitBoard.positionToMask_Lut[Position.f1];
