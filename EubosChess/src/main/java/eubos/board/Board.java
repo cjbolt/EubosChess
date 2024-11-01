@@ -700,17 +700,7 @@ public class Board {
 		}
 		return false;
 	}
-	
-    /*
-    Don't need to update promotions or piece lists or to track material, as this change is only being done to determine if a move is illegal (i.e. would result in check).
-    Only do those operations that bear on this, and such that are needed to preserve state.
-    */
-	public boolean isIllegalMove(int move, boolean needToEscapeMate) {
-		int pieceToMove = Move.getOriginPiece(move);
-		boolean isWhite = Piece.isWhite(pieceToMove);
-		return isIllegalCheckHelper(move, needToEscapeMate, pieceToMove, isWhite);
-	}
-	
+		
 	private void switchBitBoards(int originPiece, long positionsMask, boolean isWhite) {
 		pieces[originPiece] ^= positionsMask;
 		// Switch colour bitboard
@@ -759,7 +749,7 @@ public class Board {
 		return 1L << captureBitOffset;
 	}
 	
-	private boolean isIllegalCheckHelper(int move, boolean needToEscapeMate, int pieceToMove, boolean isWhite) {
+	boolean isIllegal(int move, boolean needToEscapeMate, int pieceToMove, boolean isWhite) {
 		boolean isIllegal = false;
 		int kingBitOffset = getKingPosition(isWhite);
 		boolean isKingMoving = Piece.isKing(pieceToMove);
@@ -809,20 +799,21 @@ public class Board {
 		boolean moveIsPlayable = false;
 		boolean moveToCheckIsPromotion = false;
 				
-		private void testMove(int move) {
+		private boolean testMove(int move) {
 			if (Move.areEqual(move, moveToCheckIsPlayable)) {
-				moveIsPlayable = true;
+				return moveIsPlayable = true;
 			} else if (moveToCheckIsPromotion && Move.isQueenPromotion(move)) {
 				// An under promotion is always playable if the queen promotion is playable
-				moveIsPlayable = true;
+				return moveIsPlayable = true;
 			}
+			return false;
 		}
-		public void addPrio(int move) {
-			testMove(move);
+		public boolean addPrio(int move) {
+			return testMove(move);
 		}
 		
-		public void addNormal(int move) {
-			testMove(move);
+		public boolean addNormal(int move) {
+			return testMove(move);
 		}
 		
 		public boolean isPlayableMoveFound() {
@@ -844,13 +835,13 @@ public class Board {
 	
 	public boolean isPlayableMove(int move, boolean needToEscapeMate, CastlingManager castling) {
 		int pieceToMove = Move.getOriginPiece(move);
-		int originBitShift = Move.getOriginPosition(move);
-		int targetBitShift = Move.getTargetPosition(move);
-		int targetPiece = Move.getTargetPiece(move);
-		
+		int originBitShift = Move.getOriginPosition(move);		
 		if (getPieceAtSquare(1L << originBitShift) != pieceToMove) {
 			return false;
 		}
+		
+		int targetBitShift = Move.getTargetPosition(move);
+		int targetPiece = Move.getTargetPiece(move);
 		if (getPieceAtSquare(1L << targetBitShift) != targetPiece && !Move.isEnPassantCapture(move)) {
 			return false;
 		}
@@ -874,22 +865,22 @@ public class Board {
 			}
 			break;
 		case Piece.WHITE_QUEEN:
-			Piece.queen_generateMoves_White(pmc, this, originBitShift);
+			Piece.queen_checkMove_White(pmc, this, originBitShift);
 			break;
 		case Piece.WHITE_ROOK:
-			Piece.rook_generateMoves_White(pmc, this, originBitShift);
+			Piece.rook_checkMove_White(pmc, this, originBitShift);
 			break;
 		case Piece.WHITE_BISHOP:
-			Piece.bishop_generateMoves_White(pmc, this, originBitShift);
+			Piece.bishop_checkMove_White(pmc, this, originBitShift);
 			break;
 		case Piece.BLACK_QUEEN:
-			Piece.queen_generateMoves_Black(pmc, this, originBitShift);
+			Piece.queen_checkMove_Black(pmc, this, originBitShift);
 			break;
 		case Piece.BLACK_ROOK:
-			Piece.rook_generateMoves_Black(pmc, this, originBitShift);
+			Piece.rook_checkMove_Black(pmc, this, originBitShift);
 			break;
 		case Piece.BLACK_BISHOP:
-			Piece.bishop_generateMoves_Black(pmc, this, originBitShift);
+			Piece.bishop_checkMove_Black(pmc, this, originBitShift);
 			break;
 		case Piece.WHITE_KNIGHT:
 		case Piece.BLACK_KNIGHT:
@@ -911,8 +902,8 @@ public class Board {
 			return false;
 		}
 		
-		// It is valid, unless illegal
-		return !isIllegalCheckHelper(move, needToEscapeMate, pieceToMove, isWhite);
+		// It is valid, that is enough for now; if it is illegal this will be managed when move is tried
+		return true;
 	}
 	
 	private static final long wksc_mask = BitBoard.positionToMask_Lut[Position.h1] | BitBoard.positionToMask_Lut[Position.f1];

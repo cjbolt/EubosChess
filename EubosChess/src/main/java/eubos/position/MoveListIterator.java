@@ -315,7 +315,7 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 	}	
 	
 	public class MoveAdderPromotions implements IAddMoves {
-		public void addPrio(int move) {
+		public boolean addPrio(int move) {
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert !Piece.isKing(Move.getTargetPiece(move));
 			}
@@ -325,9 +325,11 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 				state.moves[state.moves_index++] = move;
 			}
 			handleUnderPromotions(move);
+			return false;
 		}
 
-		public void addNormal(int move) {
+		public boolean addNormal(int move) {
+			return false;
 		} // Doesn't deal with quiet moves by design
 
 		public boolean isLegalMoveFound() {
@@ -351,7 +353,7 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 
 	public class MoveAdderCaptures extends MoveAdderPromotions implements IAddMoves {
 		@Override
-		public void addPrio(int move) {
+		public boolean addPrio(int move) {
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert !Piece.isKing(Move.getTargetPiece(move));
 			}
@@ -360,6 +362,7 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 			} else {
 				state.moves[state.moves_index++] = move;
 			}
+			return false;
 		}
 	}
 
@@ -367,15 +370,17 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 		protected boolean legalQuietMoveAdded = false;
 		
 		@Override
-		public void addPrio(int move) {
+		public boolean addPrio(int move) {
+			return false;
 		} // Doesn't deal with tactical moves by design
 
 		@Override
-		public void addNormal(int move) {
+		public boolean addNormal(int move) {
 			if (Move.areEqual(move, state.bestMove))
-				return;
+				return false;
 			state.moves[state.moves_index++] = move;
 			legalQuietMoveAdded = true;
+			return false;
 		}
 		
 		public void reset() {
@@ -391,13 +396,14 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 
 	public class QuietMovesConsumingKillers extends QuietMovesWithNoKillers implements IAddMoves {
 		@Override
-		public void addNormal(int move) {
+		public boolean addNormal(int move) {
 			if (Move.areEqual(move, state.bestMove))
-				return;
+				return false;
 			if (KillerList.isMoveOnListAtPly(state.killers, move))
-				return;
+				return false;
 			state.moves[state.moves_index++] = move;
 			legalQuietMoveAdded = true;
+			return false;
 		}
 	}
 }

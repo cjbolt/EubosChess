@@ -704,7 +704,7 @@ public class BoardTest {
 		assertFalse(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
 		// Move into check
 		move = Move.valueOf(Position.g7, Piece.WHITE_KING, Position.g6, Piece.NONE);
-		assertFalse(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+		assertTrue(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
 	}
 	
 	@Test
@@ -723,7 +723,7 @@ public class BoardTest {
 		setUpPosition("8/8/8/2bk4/8/8/8/R3K2R w K - 1 10");
 		int move = Move.valueOf(Position.e1, Piece.WHITE_KING, Position.g1, Piece.NONE);
 		boolean inCheck = false;
-		assertFalse(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
+		assertTrue(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
 	}
 	
 	@Test

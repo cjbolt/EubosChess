@@ -556,6 +556,14 @@ public abstract class Piece {
     
     static void rook_generateMoves_Black(IAddMoves ml, Board theBoard, int atSquare) {
         multidirect_addMoves_Black(ml, theBoard, BlackRookMove_Lut[atSquare]);
+    } 
+    
+    static void rook_checkMove_White(IAddMoves ml, Board theBoard, int atSquare) {
+        multidirect_checkForMove_White(ml, theBoard, WhiteRookMove_Lut[atSquare]); 
+    }
+    
+    static void rook_checkMove_Black(IAddMoves ml, Board theBoard, int atSquare) {
+        multidirect_checkForMove_Black(ml, theBoard, BlackRookMove_Lut[atSquare]);
     }
     
     static void queen_generateMoves_White(IAddMoves ml, Board theBoard, int atSquare) {
@@ -566,12 +574,28 @@ public abstract class Piece {
         multidirect_addMoves_Black(ml, theBoard, BlackQueenMove_Lut[atSquare]); 
     }
     
+    static void queen_checkMove_White(IAddMoves ml, Board theBoard, int atSquare) {
+    	multidirect_checkForMove_White(ml, theBoard, WhiteQueenMove_Lut[atSquare]); 
+    }
+    
+    static void queen_checkMove_Black(IAddMoves ml, Board theBoard, int atSquare) {
+        multidirect_checkForMove_Black(ml, theBoard, BlackQueenMove_Lut[atSquare]); 
+    }
+    
     static void bishop_generateMoves_White(IAddMoves ml, Board theBoard, int atSquare) {
         multidirect_addMoves_White(ml, theBoard, WhiteBishopMove_Lut[atSquare]);    
     }
     
     static void bishop_generateMoves_Black(IAddMoves ml, Board theBoard, int atSquare) {
         multidirect_addMoves_Black(ml, theBoard, BlackBishopMove_Lut[atSquare]);    
+    }
+    
+    static void bishop_checkMove_White(IAddMoves ml, Board theBoard, int atSquare) {
+    	multidirect_checkForMove_White(ml, theBoard, WhiteBishopMove_Lut[atSquare]);    
+    }
+    
+    static void bishop_checkMove_Black(IAddMoves ml, Board theBoard, int atSquare) {
+        multidirect_checkForMove_Black(ml, theBoard, BlackBishopMove_Lut[atSquare]);    
     }
         
     static void rook_generateMovesExtSearch_Black(IAddMoves ml, Board theBoard, int atSquare) {
@@ -631,6 +655,54 @@ public abstract class Piece {
                 default:
                     new_move = Move.setCapture(new_move, targetPiece);
                     ml.addPrio(new_move);
+                    break;
+                }
+                break;
+            }   
+        }
+    }
+    
+    private static void multidirect_checkForMove_White(IAddMoves ml, Board theBoard, int[][] moves) {
+        for (int[] movesInDirection : moves) {
+            for (int new_move : movesInDirection) {
+                int targetPiece = theBoard.getPieceAtSquareEnemyBlack(1L << Move.getTargetPosition(new_move));
+                switch(targetPiece) {
+                case Piece.NONE:
+                    if (ml.addNormal(new_move)) {
+                    	return;
+                    }
+                    continue;
+                case Piece.DONT_CARE:
+                    break; // i.e. blocked by own piece
+                default:
+                    new_move = Move.setCapture(new_move, targetPiece);
+                    if (ml.addPrio(new_move)) {
+                    	return;
+                    }
+                    break;
+                }
+                break;
+            }   
+        }
+    }
+    
+    private static void multidirect_checkForMove_Black(IAddMoves ml, Board theBoard, int[][] moves) {
+        for (int[] movesInDirection : moves) {
+            for (int new_move : movesInDirection) {
+                int targetPiece = theBoard.getPieceAtSquareEnemyWhite(1L << Move.getTargetPosition(new_move));
+                switch(targetPiece) {
+                case Piece.NONE:
+                    if (ml.addNormal(new_move)) {
+                    	return;
+                    }
+                    continue;
+                case Piece.DONT_CARE:
+                    break; // i.e. blocked by own piece
+                default:
+                    new_move = Move.setCapture(new_move, targetPiece);
+                    if (ml.addPrio(new_move)) {
+                    	return;
+                    }
                     break;
                 }
                 break;
