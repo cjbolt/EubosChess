@@ -684,14 +684,14 @@ public abstract class Piece {
         	int at_file = BitBoard.getFile(atSquare);
         	int to_file = BitBoard.getFile(target);
     		if (at_file < to_file) {
-    			direction = 3; // SquareAttackEvaluator.directionIndex_Lut.get(Direction.left);
+    			direction = 3; // Direction.left
     		} else {
-    			direction = 2; // SquareAttackEvaluator.directionIndex_Lut.get(Direction.right);
+    			direction = 2; // Direction.right
     		}
-    	} else if (at_rank > to_rank) {
-    		direction = 0; // SquareAttackEvaluator.directionIndex_Lut.get(Direction.up);
+    	} else if (at_rank < to_rank) {
+    		direction = 1; // Direction.up
     	} else {
-    		direction = 1; // SquareAttackEvaluator.directionIndex_Lut.get(Direction.down);
+    		direction = 0; // Direction.down
     	}
     	return direction;
     }
@@ -715,30 +715,30 @@ public abstract class Piece {
     	if (at_rank == to_rank) {
     		// rook
     		if (at_file < to_file) {
-    			direction = 7;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.left);
+    			direction = SquareAttackEvaluator.directionIndex_Lut.get(Direction.right);
     		} else {
-    			direction = 6;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.right);
+    			direction = SquareAttackEvaluator.directionIndex_Lut.get(Direction.left);
     		}
     	} else if (at_file == to_file) {
     		// rook
     		if (at_rank < to_rank) {
-	    		direction = 5;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.up);
+	    		direction = SquareAttackEvaluator.directionIndex_Lut.get(Direction.up);
 	    	} else {
-	    		direction = 4;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.down);
+	    		direction = SquareAttackEvaluator.directionIndex_Lut.get(Direction.down);
 	    	}
     	} else {
     		//bishop
         	if (at_rank < to_rank) {
         		if (at_file < to_file) {
-        			direction = 3;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.upLeft);
+        			direction = SquareAttackEvaluator.directionIndex_Lut.get(Direction.upRight);
         		} else {
-        			direction = 1;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.upRight);
+        			direction = SquareAttackEvaluator.directionIndex_Lut.get(Direction.upLeft);
         		}
         	} else {
         		if (at_file < to_file) {
-    	    		direction = 2;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.downLeft);
+    	    		direction = SquareAttackEvaluator.directionIndex_Lut.get(Direction.downRight);
     	    	} else {
-    	    		direction = 0;//SquareAttackEvaluator.directionIndex_Lut.get(Direction.downRight);
+    	    		direction = SquareAttackEvaluator.directionIndex_Lut.get(Direction.downLeft);
     	    	}
         	}
     	}
@@ -763,15 +763,15 @@ public abstract class Piece {
     	int direction = 0;
     	if (at_rank < to_rank) {
     		if (at_file < to_file) {
-    			direction = 3; // SquareAttackEvaluator.directionIndex_Lut.get(Direction.upLeft);
+    			direction = SquareAttackEvaluator.directionIndex_Lut.get(Direction.upRight);
     		} else {
-    			direction = 1; // SquareAttackEvaluator.directionIndex_Lut.get(Direction.upRight);
+    			direction = SquareAttackEvaluator.directionIndex_Lut.get(Direction.upLeft);
     		}
     	} else {
     		if (at_file < to_file) {
-	    		direction = 2; // SquareAttackEvaluator.directionIndex_Lut.get(Direction.downLeft);
+	    		direction = SquareAttackEvaluator.directionIndex_Lut.get(Direction.downRight);
 	    	} else {
-	    		direction = 0; // SquareAttackEvaluator.directionIndex_Lut.get(Direction.downRight);
+	    		direction = SquareAttackEvaluator.directionIndex_Lut.get(Direction.downLeft);
 	    	}
     	}
     	return direction;
