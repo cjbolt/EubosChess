@@ -802,18 +802,12 @@ public class Board {
 	}
 	
 	public class PseudoPlayableMoveChecker implements IAddMoves {
-		
 		// Note test for legality is not performed by this class, that is a subsequent check
-		
 		int moveToCheckIsPlayable = Move.NULL_MOVE;
 		boolean moveIsPlayable = false;
-		boolean moveToCheckIsPromotion = false;
 				
 		private void testMove(int move) {
 			if (Move.areEqual(move, moveToCheckIsPlayable)) {
-				moveIsPlayable = true;
-			} else if (moveToCheckIsPromotion && Move.isQueenPromotion(move)) {
-				// An under promotion is always playable if the queen promotion is playable
 				moveIsPlayable = true;
 			}
 		}
@@ -832,7 +826,6 @@ public class Board {
 		public void setup(int move) {
 			moveIsPlayable = false;
 			moveToCheckIsPlayable = move;
-			moveToCheckIsPromotion = Move.isPromotion(move);
 		}
 
 		public boolean isLegalMoveFound() { return false; }
@@ -852,9 +845,6 @@ public class Board {
 		int targetBitShift = Move.getTargetPosition(move);
 		int targetPiece = Move.getTargetPiece(move);
 		if (getPieceAtSquare(1L << targetBitShift) != targetPiece && !Move.isEnPassantCapture(move)) {
-			return false;
-		}
-		if (Move.isEnPassantCapture(move) && (getEnPassantTargetSq() != targetBitShift)) {
 			return false;
 		}
 		
@@ -897,7 +887,9 @@ public class Board {
 			break;
 		case Piece.WHITE_PAWN:
 		case Piece.BLACK_PAWN:
-			if ((BitBoard.getRank(originBitShift) == (isWhite ? IntRank.R2 : IntRank.R7)) &&
+			if (Move.isEnPassantCapture(move) && (getEnPassantTargetSq() != targetBitShift)) {
+				pmc.moveIsPlayable = false;
+			} else if ((BitBoard.getRank(originBitShift) == (isWhite ? IntRank.R2 : IntRank.R7)) &&
 				(BitBoard.getRank(targetBitShift) == (isWhite ? IntRank.R4 : IntRank.R5))) {
 				// two square pawn moves need to be checked if intermediate square is empty
 				int checkAtOffset = isWhite ? originBitShift+8: originBitShift-8;
@@ -907,12 +899,10 @@ public class Board {
 			}
 			break;
 		}
-		if (!pmc.isPlayableMoveFound()) {
-			return false;
+		if (pmc.isPlayableMoveFound()) {
+			return true; // It is valid, that is enough for now; if it is illegal this will be managed when move is tried
 		}
-		
-		// It is valid, that is enough for now; if it is illegal this will be managed when move is tried
-		return true;
+		return false;
 	}
 	
 	private static final long wksc_mask = BitBoard.positionToMask_Lut[Position.h1] | BitBoard.positionToMask_Lut[Position.f1];
