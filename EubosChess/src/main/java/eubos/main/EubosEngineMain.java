@@ -216,6 +216,7 @@ public class EubosEngineMain extends AbstractEngine {
 
 	public void receive(EngineNewGameCommand command) {
 		logger.fine("New Game");
+		createdHashTable = false;
 		checkToCreateEnginePermanentDataStructures();
 	}
 
@@ -257,9 +258,7 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		int forcedMove = MoveList.getForcedMove(rootPosition);
 		if (forcedMove != Move.NULL_MOVE) {
-			if (ENABLE_LOGGING) {
-				logger.info("Forced move so instant reply");
-			}
+			sendInfoString(String.format("forced %s", Move.toString(forcedMove)));
 			int [] pv = new int[] { forcedMove };
 			SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, 0);
 			sendBestMoveCommand(result);
@@ -529,6 +528,7 @@ public class EubosEngineMain extends AbstractEngine {
 		
 		int trustedMove = Move.NULL_MOVE;
 		if (result != null) {
+			sendInfoString(String.format("sendBestMoveCommand %s", result.report(rootPosition.getTheBoard())));
 			boolean trustedMoveWasFromTrans = false;
 			long rootTrans = repopulateRootTransFromCacheIfItWasOverwritten(result);
 			if (transpositionIsValid(rootTrans)) {
@@ -545,11 +545,12 @@ public class EubosEngineMain extends AbstractEngine {
 			}
 		} else {
 			long rootTrans = hashMap.getTransposition(rootPosition.getHash());
+			sendInfoString("sendBestMoveCommand trans");
 			if (transpositionIsValid(rootTrans)) {
 				trustedMove = Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard());
 			}
 		}
-		
+		sendInfoString(String.format("trustedMove %s", Move.toString(trustedMove)));
 		rootPosition.performMove(trustedMove);
 		convertToGenericAndSendBestMove(trustedMove);
 	}
@@ -640,6 +641,12 @@ public class EubosEngineMain extends AbstractEngine {
 				errorFen, pos.unwindMoveStack(), buffer.toString());
 		System.err.println(error);
 		EubosEngineMain.logger.severe(error);
+	}
+	
+	public void sendInfoString(String debug_string) {
+		ProtocolInformationCommand info = new ProtocolInformationCommand();
+		info.setString(debug_string);
+		sendInfoCommand(info);
 	}
 	
 	public static void main(String[] args) {

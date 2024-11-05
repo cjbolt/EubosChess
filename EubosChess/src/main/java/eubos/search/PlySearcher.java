@@ -18,7 +18,7 @@ public class PlySearcher {
 		{ Piece.MATERIAL_VALUE_PAWN/4, 2*Piece.MATERIAL_VALUE_PAWN, Piece.MATERIAL_VALUE_ROOK };
 
 	private static final int [] ASPIRATION_WINDOW_MATE_FALLBACK = 
-		{ 1, 10 };
+		{ 1, 10, 25 };
 	
 	public static final int FUTILITY_THRESHOLD = 200;
 	
@@ -188,6 +188,7 @@ public class PlySearcher {
 				assert currPly == 0;
 				if (Score.isProvisional(score)) {
 					EubosEngineMain.logger.severe("Aspiration Window failed - no score, illegal position");
+					System.out.println("info string searchPly aspirated search failed - no score, illegal position");
 		            return score;
 	        	} else if (isTerminated() && score == 0) {
 	        		// Early termination, possibly didn't back up a score at the last ply
@@ -214,6 +215,7 @@ public class PlySearcher {
 		        }
 			}
 			if (lastAspirationFailed) {
+				System.out.println(String.format("info string searchPly aspirated search failed depth=%d", originalSearchDepthRequiredInPly));
 				doFullWidthSearch = true;
 			}
 		}
