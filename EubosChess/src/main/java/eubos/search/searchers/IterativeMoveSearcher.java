@@ -74,11 +74,14 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 	}
 	
 	protected boolean checkForImmediateHalt(SearchResult res) {
-		if (res.foundMate && !analyse) {
-			EubosEngineMain.logger.info("IterativeMoveSearcher found mate");
-			searchStopped = true;
-		} else if (res.pv[0] == Move.NULL_MOVE) {
+//		if (res.foundMate && !analyse) {
+//			EubosEngineMain.logger.info("IterativeMoveSearcher found mate");
+//			eubosEngine.sendInfoString(String.format("found mate %s", res.report(mg.pos.getTheBoard())));
+//			searchStopped = true;
+//		} else 
+		if (res.pv[0] == Move.NULL_MOVE) {
 			EubosEngineMain.logger.severe("IterativeMoveSearcher out of legal moves");
+			eubosEngine.sendInfoString("IterativeMoveSearcher out of legal moves");
 			searchStopped = true;
 		}
 		return searchStopped;
