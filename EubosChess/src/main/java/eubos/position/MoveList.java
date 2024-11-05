@@ -43,21 +43,24 @@ public class MoveList {
 	
 	static public int getForcedMove(PositionManager pm) {
 		MoveListIterator it = new MoveListIterator(new History(), pm, 0, 0);
-		int validMove = Move.NULL_MOVE;
 		int currMove = Move.NULL_MOVE;
+		int forcedMove = Move.NULL_MOVE;
+		
 		while (it.hasNext()) {
 			currMove = it.nextInt();
-			if (!pm.performMove(currMove)) {
-				continue;
-			} else {
+			if (pm.performMove(currMove)) {
 				pm.unperformMove();
-				// If we already have found a valid move, then it can't be a forced move,
-				// as at least one other valid move is present in the position
-				if (validMove != Move.NULL_MOVE) return Move.NULL_MOVE;
-				validMove = currMove;
+				if (forcedMove == Move.NULL_MOVE) {
+					forcedMove = currMove;
+				} else {
+					// If we already have found a valid move, then it can't be a forced move,
+					// as at least one other valid move is present in the position
+					forcedMove = Move.NULL_MOVE;
+					break;
+				}
 			}
 		}
-		return validMove;
+		return forcedMove;
 	}
 
 	// ---------------------------------------------------------------------------------------------
