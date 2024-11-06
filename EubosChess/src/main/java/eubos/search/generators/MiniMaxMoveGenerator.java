@@ -122,4 +122,8 @@ public class MiniMaxMoveGenerator implements
 	public boolean lastAspirationFailed() {
 		return ps.lastAspirationFailed();
 	}
+	
+	public void setEngineCallback(EubosEngineMain eubos) {
+		ps.setEubosEngine(eubos);
+	}
 }

@@ -43,6 +43,8 @@ public abstract class AbstractMoveSearcher extends Thread {
 		}
 		
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sr.start();
+		
+		mg.setEngineCallback(eng);
 	}
 
 	public AbstractMoveSearcher(Runnable target) {

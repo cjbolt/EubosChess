@@ -188,7 +188,7 @@ public class PlySearcher {
 				assert currPly == 0;
 				if (Score.isProvisional(score)) {
 					EubosEngineMain.logger.severe("Aspiration Window failed - no score, illegal position");
-					System.out.println("info string searchPly aspirated search failed - no score, illegal position");
+					eubos.sendInfoString("searchPly aspirated search failed - no score, illegal position");
 		            return score;
 	        	} else if (isTerminated() && score == 0) {
 	        		// Early termination, possibly didn't back up a score at the last ply
@@ -215,7 +215,7 @@ public class PlySearcher {
 		        }
 			}
 			if (lastAspirationFailed) {
-				System.out.println(String.format("info string searchPly aspirated search failed depth=%d", originalSearchDepthRequiredInPly));
+				eubos.sendInfoString(String.format("searchPly aspirated search failed depth=%d", originalSearchDepthRequiredInPly));
 				doFullWidthSearch = true;
 			}
 		}
@@ -844,5 +844,10 @@ public class PlySearcher {
 	
 	private boolean neitherAlphaBetaIsMate() {
 		return !Score.isMate((short)state[currPly].alpha) && !Score.isMate((short)state[currPly].beta);
+	}
+	
+	EubosEngineMain eubos;
+	public void setEubosEngine(EubosEngineMain eubos) {
+		this.eubos = eubos;
 	}
 }
