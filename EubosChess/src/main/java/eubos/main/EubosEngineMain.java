@@ -467,11 +467,13 @@ public class EubosEngineMain extends AbstractEngine {
 				// table root transposition, will overwrite with cache below
 				transToValidate = cacheRoot;
 				tableRoot = 0L;
+				sendInfoString(String.format("selectBestTranspositionData use cache ttable=%d cache=%d", tableDepth, cachedDepth));
 			} else {
 				transToValidate = tableRoot;
 			}
 		} else {
 			transToValidate = cacheRoot;
+			sendInfoString("selectBestTranspositionData use cache ttable invalid");
 		}
 		return transToValidate;
 	}
@@ -492,14 +494,19 @@ public class EubosEngineMain extends AbstractEngine {
 		
 		// Is the PV better than selected Transposition?
 		int transBestMove = Transposition.getBestMove(trans);
-		int transDepth = Transposition.getDepthSearchedInPly(trans);
+		//int transDepth = Transposition.getDepthSearchedInPly(trans);
 		//int transScore = Transposition.getScore(trans);
+		boolean discrepancy_in_moves = !Move.areEqualForTrans(transBestMove, result.pv[0]);
+		if (discrepancy_in_moves) {
+			sendInfoString(String.format("PV move %s NOT EQUAL to TT move %s", Move.toString(result.pv[0]), Move.toString(transBestMove)));
+		}
 		if (result.trusted && 
 		    //(result.depth > transDepth || (transScore != -25 && transScore != 25)) && // Concerned about false draws, in asp search, due to LMP affecting TT
 			result.depth > transDepth &&
 			result.pv != null &&
-			!Move.areEqualForTrans(transBestMove, result.pv[0])) {
+			discrepancy_in_moves) {
 			// Prefer the trusted PV to the transposition, in which case, invalidate the transposition
+			sendInfoString("sendBestMoveCommand based on pv");
 			if (ENABLE_LOGGING) {
 				logger.warning(String.format("rootTrans %s inconsistent with search PV %s, updating hash",
 						Transposition.report(trans, rootPosition.getTheBoard()),
@@ -516,6 +523,7 @@ public class EubosEngineMain extends AbstractEngine {
 		if (!transpositionIsValid(tableRoot) && transpositionIsValid(trans)) {
 			// Update the Transposition table if we needed to restore the cached version
 			hashMap.putTransposition(rootPosition.getHash(), trans);
+			sendInfoString("repopulateRootTransFromCacheIfItWasOverwritten doing that");
 		}
 		
 		return trans;
@@ -550,7 +558,7 @@ public class EubosEngineMain extends AbstractEngine {
 				trustedMove = Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard());
 			}
 		}
-		sendInfoString(String.format("trustedMove %s", Move.toString(trustedMove)));
+		//sendInfoString(String.format("trustedMove %s", Move.toString(trustedMove)));
 		rootPosition.performMove(trustedMove);
 		convertToGenericAndSendBestMove(trustedMove);
 	}
@@ -645,7 +653,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	public void sendInfoString(String debug_string) {
 		ProtocolInformationCommand info = new ProtocolInformationCommand();
-		info.setString(debug_string);
+		info.setString("Eubos "+debug_string);
 		sendInfoCommand(info);
 	}
 	
