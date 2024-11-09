@@ -493,29 +493,25 @@ public class EubosEngineMain extends AbstractEngine {
 		long trans = selectBestTranspositionData(tableRoot, cacheRoot);
 		
 		// Is the PV better than selected Transposition?
-		int transBestMove = Transposition.getBestMove(trans);
-		//int transDepth = Transposition.getDepthSearchedInPly(trans);
-		//int transScore = Transposition.getScore(trans);
-		boolean discrepancy_in_moves = !Move.areEqualForTrans(transBestMove, result.pv[0]);
-		if (discrepancy_in_moves) {
-			sendInfoString(String.format("PV move %s NOT EQUAL to TT move %s", Move.toString(result.pv[0]), Move.toString(transBestMove)));
-		}
-		if (result.trusted && 
-		    //(result.depth > transDepth || (transScore != -25 && transScore != 25)) && // Concerned about false draws, in asp search, due to LMP affecting TT
-			result.depth > transDepth &&
-			result.pv != null &&
-			discrepancy_in_moves) {
-			// Prefer the trusted PV to the transposition, in which case, invalidate the transposition
-			sendInfoString("sendBestMoveCommand based on pv");
-			if (ENABLE_LOGGING) {
-				logger.warning(String.format("rootTrans %s inconsistent with search PV %s, updating hash",
-						Transposition.report(trans, rootPosition.getTheBoard()),
-						result.report(rootPosition.getTheBoard())));
+		if (result.pv != null) {
+			int transBestMove = Transposition.getBestMove(trans);
+			boolean discrepancy_in_moves = !Move.areEqualForTrans(transBestMove, result.pv[0]);
+			if (discrepancy_in_moves) {
+				sendInfoString(String.format("PV move %s NOT EQUAL to TT move %s", Move.toString(result.pv[0]), Move.toString(transBestMove)));
 			}
-			if (ENABLE_OVERWRITE_TRANS_WITH_SEARCH) {
-				trans = Transposition.valueOf((byte)result.depth, (short)0, Score.lowerBound, result.pv[0], rootPosition.getMoveNumber());
-			} else {
-				trans = 0L;
+			if (result.trusted && discrepancy_in_moves) {
+				// Prefer the trusted PV to the transposition, in which case, invalidate the transposition
+				sendInfoString("sendBestMoveCommand based on pv");
+				if (ENABLE_LOGGING) {
+					logger.warning(String.format("rootTrans %s inconsistent with search PV %s, updating hash",
+							Transposition.report(trans, rootPosition.getTheBoard()),
+							result.report(rootPosition.getTheBoard())));
+				}
+				if (ENABLE_OVERWRITE_TRANS_WITH_SEARCH) {
+					trans = Transposition.valueOf((byte)result.depth, (short)0, Score.lowerBound, result.pv[0], rootPosition.getMoveNumber());
+				} else {
+					trans = 0L;
+				}
 			}
 		}
 		
@@ -558,7 +554,6 @@ public class EubosEngineMain extends AbstractEngine {
 				trustedMove = Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard());
 			}
 		}
-		//sendInfoString(String.format("trustedMove %s", Move.toString(trustedMove)));
 		rootPosition.performMove(trustedMove);
 		convertToGenericAndSendBestMove(trustedMove);
 	}
