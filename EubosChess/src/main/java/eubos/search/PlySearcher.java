@@ -193,7 +193,6 @@ public class PlySearcher {
 	        	} else if (isTerminated() && score == 0) {
 	        		// Early termination, possibly didn't back up a score at the last ply
 	        		lastAspirationFailed = false;
-	        		certain = false;
 	        		break;
 	        	} else if ((score > alpha && score < beta) || isTerminated()) {
 		        	// Exact score in window returned
@@ -302,7 +301,7 @@ public class PlySearcher {
 			
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
 			
-			if (isTerminated()) { pm.unperformMove(); return 0;	} // don't update PV if out of time for search, instead return last fully searched PV.
+			if (isTerminated()) { pm.unperformMove(); return s.bestScore;	} // don't update PV if out of time for search, instead return last fully searched PV.
 			
 			// Handle score backed up to this node
 			if (positionScore > s.bestScore) {
@@ -319,7 +318,7 @@ public class PlySearcher {
 				}
 				pm.unperformMove();
 				
-				if (isTerminated()) { return 0;	} // could have timed out during research of negascout!
+				if (isTerminated()) { return s.bestScore;	} // could have timed out during research of negascout!
 				
 				if (s.bestScore > s.alpha) {
 					s.alpha = s.bestScore;
