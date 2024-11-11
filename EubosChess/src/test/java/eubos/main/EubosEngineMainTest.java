@@ -91,6 +91,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 					"info depth 1 seldepth 3 score cp 647 pv c7c2 hashfull 0 nps 0 time 0 nodes 26"+CMD_TERMINATOR+
                     "info depth 2 seldepth 6 score cp -139 pv c7c2 d4c3 hashfull 0 nps 0 time 0 nodes 141"+CMD_TERMINATOR+
                     "info depth 2 seldepth 8 score cp 100 pv d7e5 f3e5 hashfull 0 nps 0 time 0 nodes 218"+CMD_TERMINATOR+
+                    "info string Eubos sendBestMoveCommand result: pv=d7e5:n:P f3e5:N:n:best , score=100 mate=false, depth=2, trusted=1 rootTrans=(trans best=d7e5:n:P:best, dep=2, sc=100, type=2 age=2)"+CMD_TERMINATOR+
                     BEST_PREFIX+"d7e5";
 			setupEngine();
 			// Setup Commands specific to this test

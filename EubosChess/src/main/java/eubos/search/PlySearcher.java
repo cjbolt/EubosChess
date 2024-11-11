@@ -186,11 +186,7 @@ public class PlySearcher {
 				
 				score = searchRoot(originalSearchDepthRequiredInPly, alpha, beta);
 				assert currPly == 0;
-				if (Score.isProvisional(score)) {
-					EubosEngineMain.logger.severe("Aspiration Window failed - no score, illegal position");
-					eubos.sendInfoString("searchPly aspirated search failed - no score, illegal position");
-		            return score;
-	        	} else if (isTerminated() && score == 0) {
+				if (isTerminated() && (score == 0 || Score.isProvisional(score))) {
 	        		// Early termination, possibly didn't back up a score at the last ply
 	        		lastAspirationFailed = false;
 	        		break;
@@ -214,7 +210,9 @@ public class PlySearcher {
 		        }
 			}
 			if (lastAspirationFailed) {
-				eubos.sendInfoString(String.format("searchPly aspirated search failed depth=%d", originalSearchDepthRequiredInPly));
+				if (eubos != null) {
+					eubos.sendInfoString(String.format("searchPly aspirated search failed depth=%d", originalSearchDepthRequiredInPly));
+				}
 				doFullWidthSearch = true;
 			}
 		}
