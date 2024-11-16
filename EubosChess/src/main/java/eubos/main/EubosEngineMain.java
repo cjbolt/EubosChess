@@ -41,7 +41,6 @@ import eubos.score.PawnEvalHashTable;
 import eubos.score.PositionEvaluator;
 import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
-import eubos.search.Score;
 import eubos.search.SearchResult;
 import eubos.search.searchers.AbstractMoveSearcher;
 import eubos.search.searchers.FixedDepthMoveSearcher;
@@ -458,88 +457,50 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	private long selectBestTranspositionData(long tableRoot, long cacheRoot) {
-		long transToValidate = 0L;
+		long transToValidate = cacheRoot;
 		if (transpositionIsValid(tableRoot)) {
 			int tableDepth = Transposition.getDepthSearchedInPly(tableRoot);
 			int cachedDepth = Transposition.getDepthSearchedInPly(cacheRoot);
-			if (cachedDepth != 0 && cachedDepth > tableDepth) {
-				// Suggests table transposition was overwritten, replace with cache and invalidate
-				// table root transposition, will overwrite with cache below
-				transToValidate = cacheRoot;
-				tableRoot = 0L;
-				sendInfoString(String.format("selectBestTranspositionData use cache ttable=%d cache=%d", tableDepth, cachedDepth));
-			} else {
+			if (cachedDepth <= tableDepth) {
 				transToValidate = tableRoot;
+			} else {
+				sendInfoString(String.format("selectBestTranspositionData using cache, table=%d cache=%d",
+						                     tableDepth, cachedDepth));
 			}
 		} else {
-			transToValidate = cacheRoot;
-			sendInfoString("selectBestTranspositionData use cache ttable invalid");
+			sendInfoString("selectBestTranspositionData using cache, ttable invalid");
 		}
 		return transToValidate;
 	}
 	
-	private long repopulateRootTransFromCacheIfItWasOverwritten(SearchResult result) {
-		/* Table root trans has problems: the table hash move can be overwritten by lower depth moves. 
-		   This can happen in deep searches if the root transposition is overwritten by aging
-		   replacement scheme and then added again at a lower depth as it appears again as a
-		   leaf in the search tree. */
-		long tableRoot = hashMap.getTransposition(rootPosition.getHash());
-		long cacheRoot = result.rootTrans;
-		// Select Transposition to validate, note: cache should always be present
-		if (ENABLE_ASSERTS) {
-			assert transpositionIsValid(cacheRoot) :
-				String.format("Root trans cache was null! %s", result.report(rootPosition.getTheBoard()));
-		}
-		long trans = selectBestTranspositionData(tableRoot, cacheRoot);
-		
-		// Is the PV better than selected Transposition?
-		if (result.pv != null) {
-			int transBestMove = Transposition.getBestMove(trans);
-			boolean discrepancy_in_moves = !Move.areEqualForTrans(transBestMove, result.pv[0]);
-			if (discrepancy_in_moves) {
-				sendInfoString(String.format("PV move %s NOT EQUAL to TT move %s", Move.toString(result.pv[0]), Move.toString(transBestMove)));
-			}
-			if (result.trusted && discrepancy_in_moves) {
-				// Prefer the trusted PV to the transposition, in which case, invalidate the transposition
-				sendInfoString("sendBestMoveCommand based on pv");
-				if (ENABLE_LOGGING) {
-					logger.warning(String.format("rootTrans %s inconsistent with search PV %s, updating hash",
-							Transposition.report(trans, rootPosition.getTheBoard()),
-							result.report(rootPosition.getTheBoard())));
-				}
-				if (ENABLE_OVERWRITE_TRANS_WITH_SEARCH) {
-					trans = Transposition.valueOf((byte)result.depth, (short)0, Score.lowerBound, result.pv[0], rootPosition.getMoveNumber());
-				} else {
-					trans = 0L;
-				}
-			}
-		}
-		
-		// Finally update the table with cached version, if required
-		if (!transpositionIsValid(tableRoot) && transpositionIsValid(trans)) {
-			// Update the Transposition table if we needed to restore the cached version
-			hashMap.putTransposition(rootPosition.getHash(), trans);
-			sendInfoString("repopulateRootTransFromCacheIfItWasOverwritten doing that");
-		}
-		
-		return trans;
-	}
-	
-	public void sendBestMoveCommand(SearchResult result) {
-		if (ENABLE_LOGGING) {
-			logger.info(String.format("Search %s", result.report(rootPosition.getTheBoard())));
-		}
-		
+	private int getTrustedMove(SearchResult result) {
 		int trustedMove = Move.NULL_MOVE;
+		long tableRoot = hashMap.getTransposition(rootPosition.getHash());
 		if (result != null) {
-			sendInfoString(String.format("sendBestMoveCommand %s", result.report(rootPosition.getTheBoard())));
+			sendInfoString(String.format("getTrustedMove %s", result.report(rootPosition.getTheBoard())));
 			boolean trustedMoveWasFromTrans = false;
-			long rootTrans = repopulateRootTransFromCacheIfItWasOverwritten(result);
+
+			/* Table root trans has problems: the table hash move can be overwritten by lower depth moves. 
+			   This can happen in deep searches if the root transposition is overwritten by aging
+			   replacement scheme and then added again at a lower depth as it appears again as a
+			   leaf in the search tree. */
+			long cacheRoot = result.rootTrans;
+			long rootTrans = selectBestTranspositionData(tableRoot, cacheRoot);
+			
+			// Is the PV better than selected Transposition?
+			if (result.pv != null) {
+				int transBestMove = Transposition.getBestMove(rootTrans);
+				if (result.trusted && !Move.areEqualForTrans(transBestMove, result.pv[0])) {
+					// Prefer the trusted PV to the transposition, in which case, invalidate the transposition
+					sendInfoString(String.format("getTrustedMove (PV) %s != %s (TT)",
+		                                         Move.toString(result.pv[0]), Move.toString(transBestMove)));
+					rootTrans = 0L;
+					trustedMove = result.pv[0];
+				}
+			}
 			if (transpositionIsValid(rootTrans)) {
 				trustedMove = Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard());
 				trustedMoveWasFromTrans = true;
-			} else {
-				trustedMove = result.pv[0];
 			}
 			
 			if (EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH) {
@@ -547,13 +508,15 @@ public class EubosEngineMain extends AbstractEngine {
 					trustedMove = new Validate(this).validate(trustedMoveWasFromTrans, rootTrans, result, trustedMove);
 				}
 			}
-		} else {
-			long rootTrans = hashMap.getTransposition(rootPosition.getHash());
+		} else if (transpositionIsValid(tableRoot)) {
 			sendInfoString("sendBestMoveCommand trans");
-			if (transpositionIsValid(rootTrans)) {
-				trustedMove = Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard());
-			}
+			trustedMove = Move.valueOfFromTransposition(tableRoot, rootPosition.getTheBoard());
 		}
+		return trustedMove;
+	}
+	
+	public void sendBestMoveCommand(SearchResult result) {
+		int trustedMove = getTrustedMove(result);
 		rootPosition.performMove(trustedMove);
 		convertToGenericAndSendBestMove(trustedMove);
 	}

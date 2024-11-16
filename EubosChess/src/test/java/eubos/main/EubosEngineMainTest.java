@@ -91,18 +91,12 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 					"info depth 1 seldepth 3 score cp 647 pv c7c2 hashfull 0 nps 0 time 0 nodes 26"+CMD_TERMINATOR+
                     "info depth 2 seldepth 6 score cp -139 pv c7c2 d4c3 hashfull 0 nps 0 time 0 nodes 141"+CMD_TERMINATOR+
                     "info depth 2 seldepth 8 score cp 100 pv d7e5 f3e5 hashfull 0 nps 0 time 0 nodes 218"+CMD_TERMINATOR+
-                    "info string Eubos sendBestMoveCommand result: pv=d7e5:n:P f3e5:N:n:best , score=100 mate=false, depth=2, trusted=1 rootTrans=(trans best=d7e5:n:P:best, dep=2, sc=100, type=2 age=2)"+CMD_TERMINATOR+
+                    "info string Eubos getTrustedMove result: pv=d7e5:n:P f3e5:N:n:best , score=100 mate=false, depth=2, trusted=1 rootTrans=(trans best=d7e5:n:P:best, dep=2, sc=100, type=2 age=2)"+CMD_TERMINATOR+
                     BEST_PREFIX+"d7e5";
 			setupEngine();
 			// Setup Commands specific to this test
 			commands.add(new CommandPair(POS_FEN_PREFIX+"r1b1kb1r/ppqnpppp/8/3pP3/3Q4/5N2/PPP2PPP/RNB1K2R b KQkq - 2 8"+CMD_TERMINATOR, null));
 			commands.add(new CommandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR, removeTimeFieldsFromUciInfoMessage(expectedOutput)+CMD_TERMINATOR));
-			
-			/* Historically, this position and search caused a bad UCI info message to be generated. 
-			 * The second info contains c7e5, which has not been cleared from the first PV of the ext search...
-			info depth 1 seldepth 4 score cp -149 pv d7e5 f3e5 c7e5 nps 200 time 35 nodes 7
-			info depth 1 seldepth 4 score cp 135 pv c7c2 e1g1 nps 73 time 122 nodes 9
-			info depth 2 seldepth 0 score cp 24 pv c7c2 d4d5 e8d8 nps 562 time 151 nodes 85 */
 			assertTrue(performTest(2000, true)); // check infos
 		}
 	}
