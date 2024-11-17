@@ -2,6 +2,7 @@ package eubos.position;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import com.fluxchess.jcpi.models.GenericFile;
 import com.fluxchess.jcpi.models.GenericPosition;
@@ -36,8 +37,24 @@ public class MoveList {
 		return ml[ply].initialise(bestMove, killers, inCheck, extended);
 	}
 
-	public int getRandomMove() {
+	static public int getRandomMove(PositionManager pm) {
+		MoveListIterator it = new MoveListIterator(new History(), pm, 0, 0);
 		int randomMove = Move.NULL_MOVE;
+		int moveCount = 0;
+		int moves[] = new int[110];
+		
+		while (it.hasNext()) {
+			randomMove = it.nextInt();
+			if (pm.performMove(randomMove)) {
+				pm.unperformMove();
+				moves[moveCount] = randomMove;
+			}
+		}
+		if (moveCount != 0) {
+			Random randomIndex = new Random();
+			Integer indexToGet = randomIndex.nextInt(moveCount);
+			randomMove = moves[indexToGet];			
+		}
 		return randomMove;
 	}
 	

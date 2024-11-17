@@ -517,6 +517,9 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	public void sendBestMoveCommand(SearchResult result) {
 		int trustedMove = getTrustedMove(result);
+		if (trustedMove == Move.NULL_MOVE) {
+			trustedMove = MoveList.getRandomMove(rootPosition);
+		}
 		rootPosition.performMove(trustedMove);
 		convertToGenericAndSendBestMove(trustedMove);
 	}
