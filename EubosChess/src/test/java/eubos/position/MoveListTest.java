@@ -393,5 +393,14 @@ public class MoveListTest {
 		
 		assertEquals(best, it.nextInt());
 	    assertNotEquals(best, it.nextInt());
-	}	
+	}
+	
+	@Test
+	public void test_moved_into_knight_check() {
+		PositionManager pm = new PositionManager("1r1qkb1r/5ppp/pN1pbn2/8/1p1QP3/4B3/PPP1NPPP/R3K2R b KQk - 4 15");
+		int illegal = Move.valueOf(Position.e8, Piece.BLACK_KING, Position.d7, Piece.NONE);
+		classUnderTest = new MoveList(pm, 1);
+		int move = MoveList.getRandomMove(pm);
+	    assertNotEquals(illegal, move);		
+	}
 }

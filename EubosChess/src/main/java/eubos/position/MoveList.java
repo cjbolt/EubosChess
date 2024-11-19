@@ -44,10 +44,10 @@ public class MoveList {
 		int moves[] = new int[110];
 		
 		while (it.hasNext()) {
-			randomMove = it.nextInt();
-			if (pm.performMove(randomMove)) {
+			int currentMove = it.nextInt();
+			if (pm.performMove(currentMove)) {
 				pm.unperformMove();
-				moves[moveCount] = randomMove;
+				moves[moveCount] = currentMove;
 			}
 		}
 		if (moveCount != 0) {
