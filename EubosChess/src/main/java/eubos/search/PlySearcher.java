@@ -129,7 +129,7 @@ public class PlySearcher {
 		
 		hasSearchedPv = false;
 		lastAspirationFailed = false;
-		certain = false;
+		//certain = false;
 		terminate = false;
 		
 		// Back up the root transposition, because it can be lost in the search
@@ -280,7 +280,7 @@ public class PlySearcher {
 			if (s.moveNumber == 1) {
 				// First legal move re-initialises the PV 
 				bestMove = currMove;
-				pc.initialise(0, bestMove);
+				//pc.initialise(0, bestMove);
 			}
 			if (Move.isRegular(currMove)) {
 				quietMoveNumber++;
