@@ -13,11 +13,11 @@ public class SearchResult {
 	public int score;
 	
 	public SearchResult() {
-		this(new int [] {Move.NULL_MOVE}, false, 0L, 0, true, 0);
+		this(new int [] {Move.NULL_MOVE}, false, 0L, 0, false, 0);
 	}
 	
 	public SearchResult(int bestMove, int score) {
-		this(new int [] {bestMove}, false, 0L, 0, true, score);
+		this(new int [] {bestMove}, false, 0L, 0, false, score);
 	}
 	
 	public SearchResult(int[] pv, boolean foundMate, long rootTransposition, int depth, boolean trusted, int score) {
