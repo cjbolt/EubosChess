@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import eubos.main.EubosEngineMain;
+import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.score.PawnEvalHashTable;
 import eubos.score.ReferenceScore;
@@ -118,16 +119,16 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			}
 		}
 
-		SearchResult res = getFavouredWorkerResult();
-		stopSearch(res);
-		try {
+		try {		
+			SearchResult res = getFavouredWorkerResult();
+			stopSearch(res);
 			eubosEngine.sendBestMoveCommand(res);
 		} catch (Exception e) {
 			EubosEngineMain.handleFatalError(e, "Exception during sendBestMoveCommand", moveGenerators.get(0).pos);
 		}
 	}
 	
-	private SearchResult getFavouredWorkerResult() {
+	private SearchResult getFavouredWorkerResult() throws Exception {
 		SearchResult result = null;
 		int ply = 1000; // set to large value so we back-up the best mate score
 		boolean anyFoundMate = false;
@@ -162,6 +163,16 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 					}
 				}
 			}
+		}
+		if (result == null || result.pv[0] == Move.NULL_MOVE) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Invalid worker exception: ");
+			int num = 0;
+			for (MultithreadedSearchWorkerThread worker : workers) {
+				++num;
+				sb.append(String.format("worker %d %s", num, worker.result.report(this.mg.pos.getTheBoard())));
+			}
+			throw new Exception(sb.toString());
 		}
 		return result;
 	}
