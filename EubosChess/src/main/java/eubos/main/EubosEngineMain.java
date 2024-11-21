@@ -475,41 +475,32 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	private int getTrustedMove(SearchResult result) {
 		int trustedMove = Move.NULL_MOVE;
+		
+		/* Table root trans has problems: the table hash move can be overwritten by lower depth moves. 
+		   This can happen in deep searches if the root transposition is overwritten by aging
+		   replacement scheme and then added again at a lower depth as it appears again as a
+		   leaf in the search tree. */
 		long tableRoot = hashMap.getTransposition(rootPosition.getHash());
 		if (result != null) {
 			sendInfoString(String.format("getTrustedMove %s", result.report(rootPosition.getTheBoard())));
-			boolean trustedMoveWasFromTrans = false;
 
-			/* Table root trans has problems: the table hash move can be overwritten by lower depth moves. 
-			   This can happen in deep searches if the root transposition is overwritten by aging
-			   replacement scheme and then added again at a lower depth as it appears again as a
-			   leaf in the search tree. */
 			long cacheRoot = result.rootTrans;
 			long rootTrans = selectBestTranspositionData(tableRoot, cacheRoot);
+			boolean trustedMoveWasFromTrans = false;
 			
-			// Is the PV better than selected Transposition?
-			if (result.pv != null) {
-				int transBestMove = Transposition.getBestMove(rootTrans);
-				if (result.trusted && !Move.areEqualForTrans(transBestMove, result.pv[0])) {
-					// Prefer the trusted PV to the transposition, in which case, invalidate the transposition
-					sendInfoString(String.format("getTrustedMove (PV) %s != %s (TT)",
-		                                         Move.toString(result.pv[0]), Move.toString(transBestMove)));
-					rootTrans = 0L;
-					trustedMove = result.pv[0];
-				}
-			}
-			if (transpositionIsValid(rootTrans)) {
+			if (result.pv != null && result.trusted) {
+				trustedMove = result.pv[0];
+			} else if (transpositionIsValid(rootTrans)) {
 				trustedMove = Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard());
 				trustedMoveWasFromTrans = true;
 			}
-			
 			if (EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH) {
 				if (lastOnMoveClock > 30000) {
 					trustedMove = new Validate(this).validate(trustedMoveWasFromTrans, rootTrans, result, trustedMove);
 				}
 			}
 		} else if (transpositionIsValid(tableRoot)) {
-			sendInfoString("sendBestMoveCommand trans");
+			sendInfoString("sendBestMoveCommand trans table");
 			trustedMove = Move.valueOfFromTransposition(tableRoot, rootPosition.getTheBoard());
 		}
 		return trustedMove;
@@ -517,9 +508,10 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	public void sendBestMoveCommand(SearchResult result) {
 		int trustedMove = getTrustedMove(result);
-		if (trustedMove == Move.NULL_MOVE) {
+		if (Move.areEqualForTrans(trustedMove, Move.NULL_MOVE)) {
 			trustedMove = MoveList.getRandomMove(rootPosition);
 		}
+		assert !Move.areEqualForTrans(trustedMove, Move.NULL_MOVE);
 		rootPosition.performMove(trustedMove);
 		convertToGenericAndSendBestMove(trustedMove);
 	}
