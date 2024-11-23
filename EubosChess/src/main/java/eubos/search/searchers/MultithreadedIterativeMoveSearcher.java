@@ -164,13 +164,13 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 				}
 			}
 		}
-		if (result == null || result.pv[0] == Move.NULL_MOVE) {
+		if (result == null) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("Invalid worker exception: ");
 			int num = 0;
 			for (MultithreadedSearchWorkerThread worker : workers) {
 				++num;
-				sb.append(String.format("worker %d %s", num, worker.result.report(this.mg.pos.getTheBoard())));
+				sb.append(String.format("worker %d %s\n", num, worker.result.report(this.mg.pos.getTheBoard())));
 			}
 			throw new Exception(sb.toString());
 		}
