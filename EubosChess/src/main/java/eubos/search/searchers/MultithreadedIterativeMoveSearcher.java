@@ -157,7 +157,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			if (ply == 0) {
 				// If no trusted PVs, find deepest
 				for (MultithreadedSearchWorkerThread worker : workers) {
-					if (worker.result.depth > ply) {
+					if (worker.result.depth >= ply) {
 						ply = worker.result.depth;
 						result = worker.result;
 					}
