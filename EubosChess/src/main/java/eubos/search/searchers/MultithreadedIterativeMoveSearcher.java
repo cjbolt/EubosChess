@@ -9,7 +9,7 @@ import eubos.position.PositionManager;
 import eubos.score.PawnEvalHashTable;
 import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
-
+import eubos.search.Score;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.FixedSizeTranspositionTable;
@@ -132,6 +132,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		int ply = 1000; // set to large value so we back-up the best mate score
 		boolean anyFoundMate = false;
 		for (MultithreadedSearchWorkerThread worker : workers) {
+			eubosEngine.sendInfoString(worker.result.report(worker.myMg.pos.getTheBoard()));
 			// If there is a mate, give shortest pv to mate
 			if (worker.result.foundMate) {
 				anyFoundMate = true;
@@ -144,11 +145,13 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		if (!anyFoundMate) {
 			// else favour deepest pv
 			ply = 0;
+			int best_score = Score.PROVISIONAL_ALPHA;
 			for (MultithreadedSearchWorkerThread worker : workers) {
 				// Find deepest trusted PV
 				if (worker.result.trusted) {
-					if (worker.result.depth > ply) {
+					if (worker.result.depth > ply || (worker.result.depth == ply && worker.result.score > best_score)) {
 						ply = worker.result.depth;
+						best_score = worker.result.score;
 						result = worker.result;
 					}
 				}
@@ -156,8 +159,9 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			if (ply == 0) {
 				// If no trusted PVs, find deepest
 				for (MultithreadedSearchWorkerThread worker : workers) {
-					if (worker.result.depth >= ply) {
+					if (worker.result.depth > ply || (worker.result.depth == ply && worker.result.score > best_score)) {
 						ply = worker.result.depth;
+						best_score = worker.result.score;
 						result = worker.result;
 					}
 				}
