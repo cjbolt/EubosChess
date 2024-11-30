@@ -48,6 +48,7 @@ public class MoveList {
 			if (pm.performMove(currentMove)) {
 				pm.unperformMove();
 				moves[moveCount] = currentMove;
+				moveCount += 1;
 			}
 		}
 		if (moveCount != 0) {
