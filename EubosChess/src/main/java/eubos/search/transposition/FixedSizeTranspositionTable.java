@@ -152,7 +152,8 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		}
 	}
 	
-	public synchronized long setTransposition(long hash, long trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove, int move_number, short static_eval) {
+	//public synchronized long setTransposition(long hash, long trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove, int move_number, short static_eval) {
+	public long setTransposition(long hash, long trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove, int move_number, short static_eval) {
 		boolean is_created = false;
 		boolean is_updated = false;
 		
@@ -176,8 +177,9 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		}
 		if (!is_created) {
 			int currentDepth = Transposition.getDepthSearchedInPly(trans);
-			int currentScore = Transposition.getScore(trans);
-			if (currentDepth < new_Depth || (currentDepth == new_Depth && currentScore < new_score)) {
+			//int currentScore = Transposition.getScore(trans);
+			//if (currentDepth < new_Depth || (currentDepth == new_Depth && currentScore < new_score)) {
+			if (currentDepth < new_Depth) {
 				is_updated = true;	
 			}
 			if (is_updated) {
