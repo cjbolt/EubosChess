@@ -74,7 +74,6 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 				}
 			} else {
 				for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
-					if (transposition_table[i] == 0L) break;
 					if (hashes[i] == hashCode) {
 						if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numHits++; }
 						return transposition_table[i];
@@ -130,7 +129,6 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 					if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numOverwritten++; }
 					hashes[oldest_index] = hashCode;
 					transposition_table[oldest_index] = trans;
-					return;
 				} else {
 					// failing that, overwrite based on depth
 					int shallowest_index = index;
@@ -178,8 +176,9 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		if (!is_created) {
 			int currentDepth = Transposition.getDepthSearchedInPly(trans);
 			//int currentScore = Transposition.getScore(trans);
-			//if (currentDepth < new_Depth || (currentDepth == new_Depth && currentScore < new_score)) {
-			if (currentDepth < new_Depth) {
+			//if (currentDepth < new_Depth || 
+			//	(currentDepth == new_Depth && currentScore < new_score)) {
+			if (currentDepth <= new_Depth) {
 				is_updated = true;	
 			}
 			if (is_updated) {
@@ -215,7 +214,6 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	
 	public synchronized void pruneTable(int moveNumber) {
 		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
-			//int age = moveNumber >> 2;
 			for (int i=0; i < maxTableSize; i++) {
 				if (hashes[i] == 0L || transposition_table[i] == 0L) continue;
 				int currentDepth = Transposition.getDepthSearchedInPly(transposition_table[i]);

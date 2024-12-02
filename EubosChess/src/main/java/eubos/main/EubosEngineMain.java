@@ -512,8 +512,9 @@ public class EubosEngineMain extends AbstractEngine {
 			trustedMove = MoveList.getRandomMove(rootPosition);
 		}
 		assert !Move.areEqualForTrans(trustedMove, Move.NULL_MOVE);
-		rootPosition.performMove(trustedMove);
 		convertToGenericAndSendBestMove(trustedMove);
+		hashMap.pruneTable(rootPosition.getMoveNumber());
+		rootPosition.performMove(trustedMove);
 	}
 	
 	@Override
