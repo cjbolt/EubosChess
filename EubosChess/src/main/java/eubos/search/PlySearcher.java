@@ -778,6 +778,7 @@ public class PlySearcher {
 			s.update();
 		}
 		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
+			lmrEnabled &&
 			moveNumber > 1 && /* Full search for at least one quiet move */
 			//!lmrApplied && /* Only apply LMR once per branch of tree */
 			//scout &&
@@ -846,5 +847,10 @@ public class PlySearcher {
 	EubosEngineMain eubos;
 	public void setEubosEngine(EubosEngineMain eubos) {
 		this.eubos = eubos;
+	}
+	
+	boolean lmrEnabled = true;
+	public void disableLmr() {
+		lmrEnabled = false;
 	}
 }

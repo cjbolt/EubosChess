@@ -110,8 +110,13 @@ public class MiniMaxMoveGenerator implements
 		ps.terminateFindMove();
 	}
 
-	public void alternativeMoveListOrdering(int schemeToUse) {
-		ml = new MoveList((PositionManager)pm, alternativeMoveListOrderingScheme);		
+	public void alternativeMoveListOrdering(int moveListOrdering) {
+		alternativeMoveListOrderingScheme = moveListOrdering;
+		ml = new MoveList((PositionManager)pm, alternativeMoveListOrderingScheme);
+		if (alternativeMoveListOrderingScheme != 1)
+		{
+			ps.disableLmr();
+		}
 	}
 	
 	public void reportStatistics() {
