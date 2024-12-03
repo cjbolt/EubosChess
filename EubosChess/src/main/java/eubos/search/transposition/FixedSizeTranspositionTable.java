@@ -65,6 +65,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	}
 	
 	public synchronized long getTransposition(long hashCode) {
+		if (hashCode == 0L) return 0L; // To prune entries we have to give up on entry 0
 		int index = (int) (EubosEngineMain.ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO ? hashCode & mask : Long.remainderUnsigned(hashCode, maxTableSize));
 		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
 			if (USE_ALWAYS_REPLACE) {
@@ -86,6 +87,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	}
 	
 	public synchronized void putTransposition(long hashCode, long trans) {
+		if (hashCode == 0) return; // can't do anything with 0l
 		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
 			int index = (int) (EubosEngineMain.ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO ? hashCode & mask : Long.remainderUnsigned(hashCode, maxTableSize));
 			if (EubosEngineMain.ENABLE_ASSERTS) assert (trans != 0L);
@@ -102,7 +104,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 						return;
 					}
 					// Try to find a free slot near the hash index
-					else if (transposition_table[i] == 0L) {
+					else if (hashes[i] == 0L) {
 						tableSize++;
 						hashes[i] = hashCode;
 						transposition_table[i] = trans;
@@ -112,39 +114,34 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 				
 				// failing that, overwrite based on adjusted age
 				boolean replacementFound = false;
+				int ind = 0;
 				int trans_depth = Transposition.getDepthSearchedInPly(trans);
 				int oldest_adjusted_age = Transposition.getAge(trans)+trans_depth/2;
-				int oldest_index = index;
 				for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
 					int index_age = Transposition.getAge(transposition_table[i]);
 					int index_depth = Transposition.getDepthSearchedInPly(transposition_table[i]);
 					int adjusted_age = index_age+index_depth/2;
 					if (adjusted_age < oldest_adjusted_age) {
 						oldest_adjusted_age = adjusted_age;
-						oldest_index = i;
+						ind = i;
 						replacementFound = true;
 					}
 				}
-				if (replacementFound) {
-					if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numOverwritten++; }
-					hashes[oldest_index] = hashCode;
-					transposition_table[oldest_index] = trans;
-				} else {
+				if (!replacementFound) {
 					// failing that, overwrite based on depth
-					int shallowest_index = index;
 					for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
 						int index_depth = Transposition.getDepthSearchedInPly(transposition_table[i]);
 						if (index_depth < trans_depth) {
 							trans_depth = index_depth;
-							shallowest_index = i;
 							replacementFound = true;
+							ind = i;
 						}
 					}
-					if (replacementFound) {
-						if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numOverwritten++; }
-						hashes[shallowest_index] = hashCode;
-						transposition_table[shallowest_index] = trans;
-					}
+				}
+				if (replacementFound) {
+					if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numOverwritten++; }
+					hashes[ind] = hashCode;
+					transposition_table[ind] = trans;
 				}
 			}
 		}

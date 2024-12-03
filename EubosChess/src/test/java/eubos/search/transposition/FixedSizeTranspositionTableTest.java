@@ -39,15 +39,15 @@ class FixedSizeTranspositionTableTest {
 
 	@Test
 	void test_put_and_get_back() {
-		SUT.putTransposition(0L, 12L);
-		assertEquals(12L, SUT.getTransposition(0));
+		SUT.putTransposition(1L, 12L);
+		assertEquals(12L, SUT.getTransposition(1));
 	}
 
 	@Test
 	void test_index_clash_low() {
-		SUT.putTransposition(0L, 12L);
+		SUT.putTransposition(1L, 12L);
 		SUT.putTransposition(SUT.maxTableSize, 14L); // Causes an indexing clash, but now we use full hash
-		assertEquals(12L, SUT.getTransposition(0L)); // First transposition was overwritten
+		assertEquals(12L, SUT.getTransposition(1L)); // First transposition was overwritten
 		assertEquals(14L, SUT.getTransposition(SUT.maxTableSize));
 	}
 	
