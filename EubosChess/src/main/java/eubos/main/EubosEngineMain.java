@@ -236,7 +236,8 @@ public class EubosEngineMain extends AbstractEngine {
 			for (GenericMove nextMove : command.moves) {
 				int move = Move.toMove(nextMove, rootPosition.getTheBoard());
 				boolean valid = rootPosition.performMove(move);
-				assert valid : String.format("Illegal move in position command: %s", nextMove.toString());
+				assert valid : String.format("Illegal move in position command: %s %s %s",
+						                     nextMove.toString(), lastFen, command.moves);
 				if (Move.isCapture(move) || Move.isPawnMove(move)) {
 					// Pawn moves and captures are irreversible so we can reset the draw checker
 					dc.reset(rootPosition.getPlyNumber());
@@ -512,9 +513,10 @@ public class EubosEngineMain extends AbstractEngine {
 			trustedMove = MoveList.getRandomMove(rootPosition);
 		}
 		assert !Move.areEqualForTrans(trustedMove, Move.NULL_MOVE);
-		convertToGenericAndSendBestMove(trustedMove);
-		//hashMap.pruneTable(rootPosition.getMoveNumber());
+		int moveNumber = rootPosition.getMoveNumber();
 		rootPosition.performMove(trustedMove);
+		convertToGenericAndSendBestMove(trustedMove);
+		hashMap.pruneTable(moveNumber);	
 	}
 	
 	@Override

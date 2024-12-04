@@ -116,11 +116,11 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 				boolean replacementFound = false;
 				int ind = 0;
 				int trans_depth = Transposition.getDepthSearchedInPly(trans);
-				int oldest_adjusted_age = Transposition.getAge(trans)+trans_depth/2;
+				int oldest_adjusted_age = Transposition.getAge(trans)+trans_depth/8;
 				for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
 					int index_age = Transposition.getAge(transposition_table[i]);
 					int index_depth = Transposition.getDepthSearchedInPly(transposition_table[i]);
-					int adjusted_age = index_age+index_depth/2;
+					int adjusted_age = index_age + 1 + index_depth/8;
 					if (adjusted_age < oldest_adjusted_age) {
 						oldest_adjusted_age = adjusted_age;
 						ind = i;
@@ -210,14 +210,15 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	}
 	
 	public synchronized void pruneTable(int moveNumber) {
+		int moveAge = moveNumber >> 2;
 		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
 			for (int i=0; i < maxTableSize; i++) {
 				if (hashes[i] == 0L || transposition_table[i] == 0L) continue;
 				int currentDepth = Transposition.getDepthSearchedInPly(transposition_table[i]);
 				int currentAge = Transposition.getAge(transposition_table[i]);
-				int currentAdjustedAge = ((currentAge+1) << 2) + currentDepth/2; //benefit of doubt wrt to quantisation, convert from ply
-				if (currentAdjustedAge < moveNumber) {
-					// Prune out entries that are older that have an adjusted age < current
+				int currentAdjustedAge = currentAge + 1 + currentDepth/8;
+				if (currentAdjustedAge < moveAge) {
+					// Prune out entries that that have an adjusted age < current
 					transposition_table[i] = 0L;
 					hashes[i] = 0L;
 					tableSize--;

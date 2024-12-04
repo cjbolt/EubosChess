@@ -22,7 +22,7 @@ class FixedSizeTranspositionTableTest {
 	private void fullyPopulateIndexRegionSameAge() {
 		// Cause a lot of index clashes such that the region is filled up
 		for (int i=0; i < FixedSizeTranspositionTable.RANGE_TO_SEARCH; i++) {
-			SUT.putTransposition((SUT.maxTableSize*i)+200L, i);
+			SUT.putTransposition((SUT.maxTableSize*i)+200L, i+1);
 		}
 	}
 	
