@@ -44,7 +44,7 @@ public class PawnHashCode implements IForEachPieceCallback, IPawnHash {
 	}
 	
 	public void removePawn(int pawn, int at) {
-		hashCode ^= ZobristHashCode.prnLookupTable[at*pawn];
+		hashCode ^= getPrnForPawn(at, pawn);
 	}
 	
 	public void addPawn(int pawn, int at) {
@@ -52,7 +52,8 @@ public class PawnHashCode implements IForEachPieceCallback, IPawnHash {
 	}
 	
 	public void movePawn(int pawn, int from, int to) {
-		hashCode ^= ZobristHashCode.prnLookupTable[from*pawn];
-		hashCode ^= ZobristHashCode.prnLookupTable[to*pawn];
+		pawn = Piece.isBlack(pawn) ? INDEX_BLACK : 0;	
+		hashCode ^= ZobristHashCode.prnLookupTable[from+pawn];
+		hashCode ^= ZobristHashCode.prnLookupTable[to+pawn];
 	}
 }
