@@ -34,7 +34,7 @@ public class SearchMetricsReporter extends Thread {
 		this.refScore = refScore;
 		sm_list = new ArrayList<SearchMetrics>(EubosEngineMain.DEFAULT_NUM_SEARCH_THREADS);
 		lastScore = refScore.getReference().score;
-		lastDepth = Math.max(0, refScore.getReference().depth-5);
+		lastDepth = 0; //Math.max(0, refScore.getReference().depth-5);
 		this.setName("SearchMetricsReporter");
 	}
 	
