@@ -41,6 +41,7 @@ import eubos.score.PawnEvalHashTable;
 import eubos.score.PositionEvaluator;
 import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
+import eubos.search.Score;
 import eubos.search.SearchResult;
 import eubos.search.searchers.AbstractMoveSearcher;
 import eubos.search.searchers.FixedDepthMoveSearcher;
@@ -69,6 +70,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_PERFT = false;
 	public static final boolean ENABLE_TEST_SUITES = false;
 	public static final boolean ENABLE_DEBUG_VALIDATION_SEARCH = false;
+	public static final boolean ENABLE_DEBUG_VALIDATION_DRAWS = false;
 	public static final boolean ENABLE_TT_DIAGNOSTIC_LOGGING = false;
 	public static final boolean ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO = false;
 	
@@ -238,6 +240,7 @@ public class EubosEngineMain extends AbstractEngine {
 				boolean valid = rootPosition.performMove(move);
 				assert valid : String.format("Illegal move in position command: %s %s %s",
 						                     nextMove.toString(), lastFen, command.moves);
+				// I think this can be deleted as it is done in the performMove call
 				if (Move.isCapture(move) || Move.isPawnMove(move)) {
 					// Pawn moves and captures are irreversible so we can reset the draw checker
 					dc.reset(rootPosition.getPlyNumber());
@@ -261,6 +264,7 @@ public class EubosEngineMain extends AbstractEngine {
 			sendInfoString(String.format("forced %s", Move.toString(forcedMove)));
 			int [] pv = new int[] { forcedMove };
 			SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, 0);
+			rootPosition.performMove(forcedMove);
 			sendBestMoveCommand(result);
 		} else {
 			// The move searcher will report the best move found via a callback to this object, 
@@ -514,7 +518,18 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		assert !Move.areEqualForTrans(trustedMove, Move.NULL_MOVE);
 		int moveNumber = rootPosition.getMoveNumber();
-		rootPosition.performMove(trustedMove);
+		
+		if (ENABLE_DEBUG_VALIDATION_DRAWS) {
+			String fen = rootPosition.getFen();
+			rootPosition.performMove(trustedMove);
+			// do a 1ply search and see if any moves allow a draw, if they do, throw exception, if we thought we were winning
+			if (result != null && result.score > 0 && result.score < Score.PROVISIONAL_BETA-1) {
+				new Validate(this).checkForDraws(dc, fen, trustedMove);
+			}
+		} else {
+			rootPosition.performMove(trustedMove);
+		}
+		
 		convertToGenericAndSendBestMove(trustedMove);
 		hashMap.pruneTable(moveNumber);	
 	}
