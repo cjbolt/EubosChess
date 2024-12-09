@@ -105,6 +105,45 @@ public class Validate {
 		return override_trusted_move ? our_valid_move : trusted_move;
 	}
 	
+	public void checkForDraws(DrawChecker dc, String fen, int trustedMove) {
+		String rootFen = rootPosition.getFen();
+		// Operate on a copy of the rootPosition to prevent reentrant issues at tight time controls
+		PositionManager pm = new PositionManager(rootFen, rootPosition.getHash(), dc, new PawnEvalHashTable());
+		SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.onMoveIsWhite());
+		PrincipalContinuation pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
+		byte search_depth = (byte)1;
+		PlySearcher ps = new PlySearcher(
+				eubos.hashMap,
+				pc, 
+				new SearchMetrics(pm), 
+				null, 
+				search_depth,
+				pm,
+				pm,
+				pm.getPositionEvaluator(),
+				new KillerList(),
+				sda,
+				new MoveList(pm, 0));
+		int score = ps.searchRoot(1,Score.PROVISIONAL_ALPHA,Score.PROVISIONAL_BETA);
+		SearchResult result =  new SearchResult(pc.toPvList(0), false, 0L, 1, true, score);
+		pm.performMove(pc.toPvList(0)[0]);
+		boolean confirmDrawn = pm.isThreefoldRepetitionPossible();
+		pm.unperformMove();
+		if (confirmDrawn && score == 0) {
+			eubos.sendInfoString(
+				String.format("from %s draw could be claimed after %s at %s because 1ply search %s",
+						fen, Move.toString(trustedMove), pm.getFen(), result.report(pm.getTheBoard())));
+			eubos.sendInfoString(
+					String.format("hash %d, %s",
+							pm.getHash(), dc.report(pm.getPlyNumber())));
+			System.err.println(
+					String.format("from %s draw could be claimed after %s at %s because 1ply search %s",
+					fen, Move.toString(trustedMove), pm.getFen(), result.report(pm.getTheBoard())));
+			System.err.println(String.format("hash %d, %s",
+					pm.getHash(), dc.report(pm.getPlyNumber())));
+		}
+	}
+	
 	private SearchResult doValidationSearch(PositionManager pm, PrincipalContinuation pc, SearchDebugAgent sda, int trusted_score, int depth)
 	{
 		byte search_depth = (byte)depth;
