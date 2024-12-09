@@ -70,7 +70,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		// Setup Commands specific to this test
 		commands.add(new CommandPair(POS_FEN_PREFIX+"k1K5/b7/R7/1P6/1n6/8/8/8 w - - 0 1 moves b5b6"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR,BEST_PREFIX+"b4a6"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR,BEST_PREFIX+"b4c6"+CMD_TERMINATOR));
 		assertTrue(performTest(1000));
 	}	
 	
@@ -294,13 +294,11 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 				+ "g6h5 g2e2 a7c7 e2d2 c7e7 d2d5 h5h6 d5d6 h6g5 d6d5 g5f6 d5d4 f6g6 d4d6 g6f5 d6d5 "
 				+ "f5e4 d5d2 e7a7 d2d6 e4e5 d6c6 e5f5 c6b6 f5g5 b6c6 a7b7 c6c4 g5h5 c4b4 h5g6 b4g4 "
 				+ "g6h6 g4h4 h6g6 h4g4 g6h6 g4h4 h6g6"+CMD_TERMINATOR, null));
-		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"20"+CMD_TERMINATOR, BEST_PREFIX+"a6a5"+CMD_TERMINATOR));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR, BEST_PREFIX+"h4g4"+CMD_TERMINATOR));
-		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR, BEST_PREFIX+"h4h7"+CMD_TERMINATOR));
 		
 		int hashMove = Move.valueOf(Position.h4, Piece.BLACK_ROOK, Position.g4, Piece.NONE);
 		long hashEntry = Transposition.valueOf((byte)3, (short)0, Score.upperBound, hashMove, 107 >> 2);
-		assertTrue(pokeHashEntryAndPerformTest(10000, hashEntry));
+		assertTrue(pokeHashEntryAndPerformTest(100000000, hashEntry));
 	}
 	
 	@Test

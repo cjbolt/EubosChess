@@ -47,4 +47,27 @@ public class DrawCheckerTest {
 		pm.performMove(Move.valueOf(Position.g1, Piece.WHITE_KING, Position.h1, Piece.NONE));
 		assertFalse(sut.setPositionReached(hashCode, pm.getPlyNumber()));
 	}
+	
+	@Test
+	public void test_WAC009() {
+		setupPosition("3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1");
+		pm.performMove(Move.valueOf(Position.d6, Piece.BLACK_BISHOP, Position.h2, Piece.NONE));
+		assertFalse(pm.isThreefoldRepetitionPossible());
+		pm.performMove(Move.valueOf(Position.g1, Piece.WHITE_KING, Position.h1, Piece.NONE));
+		assertFalse(pm.isThreefoldRepetitionPossible());
+		pm.performMove(Move.valueOf(Position.h2, Piece.BLACK_BISHOP, Position.g3, Piece.NONE));
+		assertFalse(pm.isThreefoldRepetitionPossible());
+		pm.performMove(Move.valueOf(Position.h1, Piece.WHITE_KING, Position.g1, Piece.NONE));
+		assertFalse(pm.isThreefoldRepetitionPossible());
+		pm.performMove(Move.valueOf(Position.h4, Piece.BLACK_ROOK, Position.h1, Piece.NONE));
+		assertFalse(pm.isThreefoldRepetitionPossible());
+		pm.performMove(Move.valueOf(Position.g1, Piece.WHITE_KING, Position.h1, Piece.BLACK_ROOK));
+		assertFalse(pm.isThreefoldRepetitionPossible());
+		pm.performMove(Move.valueOf(Position.d8, Piece.BLACK_QUEEN, Position.h4, Piece.NONE));
+		assertFalse(pm.isThreefoldRepetitionPossible());
+		pm.performMove(Move.valueOf(Position.h1, Piece.WHITE_KING, Position.g1, Piece.NONE));
+		assertFalse(pm.isThreefoldRepetitionPossible());
+		pm.performMove(Move.valueOf(Position.h4, Piece.BLACK_QUEEN, Position.h2, Piece.NONE));
+		assertFalse(pm.isThreefoldRepetitionPossible());
+	}
 }
