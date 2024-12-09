@@ -202,7 +202,7 @@ public abstract class AbstractEubosIntegration {
 								mateDetected = true;
 								accumulate = true;
 							} else {
-								if (parsedCmd.contains("bestmove")) {
+								if (parsedCmd.contains("bestmove") || parsedCmd.contains("string")) {
 									System.err.println(String.format("received '%s'", parsedCmd));
 								}
 								accumulate = false;
