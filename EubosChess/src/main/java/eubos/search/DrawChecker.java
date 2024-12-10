@@ -25,7 +25,8 @@ public class DrawChecker {
 		//for (int i=plyNumber; i<reachedPositions.length; i++) {
 		//	reachedPositions[i]=0;
 		//}
-		reachedPositions[plyNumber]=0;
+		if (plyNumber < reachedPositions.length)
+			reachedPositions[plyNumber]=0;
 	}
 		
 	public boolean setPositionReached(long posHash, int gamePly) {
