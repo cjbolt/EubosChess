@@ -80,7 +80,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_ASPIRATION_WINDOWS = true;
 	public static final boolean ENABLE_LAZY_EVALUATION = true;	
 	public static final boolean ENABLE_LATE_MOVE_REDUCTION = true;
-	public static final boolean ENABLE_NULL_MOVE_PRUNING = true;
+	public static final boolean ENABLE_NULL_MOVE_PRUNING = false;
 	public static final boolean ENABLE_STAGED_MOVE_GENERATION = true;
 	public static final boolean ENABLE_COUNTED_PASSED_PAWN_MASKS = true;
 	public static final boolean ENABLE_FUTILITY_PRUNING = true;
@@ -264,7 +264,6 @@ public class EubosEngineMain extends AbstractEngine {
 			sendInfoString(String.format("forced %s", Move.toString(forcedMove)));
 			int [] pv = new int[] { forcedMove };
 			SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, 0);
-			rootPosition.performMove(forcedMove);
 			sendBestMoveCommand(result);
 		} else {
 			// The move searcher will report the best move found via a callback to this object, 
