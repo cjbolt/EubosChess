@@ -80,7 +80,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_ASPIRATION_WINDOWS = true;
 	public static final boolean ENABLE_LAZY_EVALUATION = true;	
 	public static final boolean ENABLE_LATE_MOVE_REDUCTION = true;
-	public static final boolean ENABLE_NULL_MOVE_PRUNING = false;
+	public static final boolean ENABLE_NULL_MOVE_PRUNING = true;
 	public static final boolean ENABLE_STAGED_MOVE_GENERATION = true;
 	public static final boolean ENABLE_COUNTED_PASSED_PAWN_MASKS = true;
 	public static final boolean ENABLE_FUTILITY_PRUNING = true;
@@ -240,11 +240,11 @@ public class EubosEngineMain extends AbstractEngine {
 				boolean valid = rootPosition.performMove(move);
 				assert valid : String.format("Illegal move in position command: %s %s %s",
 						                     nextMove.toString(), lastFen, command.moves);
-				// I think this can be deleted as it is done in the performMove call
-				if (Move.isCapture(move) || Move.isPawnMove(move)) {
-					// Pawn moves and captures are irreversible so we can reset the draw checker
-					dc.reset(rootPosition.getPlyNumber());
-				}
+				// I think this can be deleted as it is done in the performMove call, but which ply does that pertain to?
+//				if (Move.isCapture(move) || Move.isPawnMove(move)) {
+//					// Pawn moves and captures are irreversible so we can reset the draw checker
+//					dc.reset(rootPosition.getPlyNumber());
+//				}
 			}
 		}
 		lastFen = rootPosition.getFen();
@@ -444,6 +444,7 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	private void convertToGenericAndSendBestMove(int nativeBestMove) {
+		sendInfoString(rootPosition.getFen());
 		GenericMove bestMove = Move.toGenericMove(nativeBestMove);
 		if (ENABLE_LOGGING) {
 			logger.info(String.format("Best Move %s", bestMove));

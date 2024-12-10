@@ -173,8 +173,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		hash.doOnMove();
 		
 		onMoveIsWhite = !onMoveIsWhite;
-		//plyNumber+=2;
-		//plyNumber+=1; // Not sure about this - should it be no increment actually
+		plyNumber++; // Not sure about this - should it be no increment actually
 	}
 	
 	public void unperformNullMove() {
@@ -192,8 +191,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		repetitionPossible = false;
 		
 		onMoveIsWhite = !onMoveIsWhite;
-		//plyNumber-=2;
-		//plyNumber-=1; // Not sure about this - should it be no increment actually
+		plyNumber--; // Not sure about this - should it be no increment actually
 	}
 		
 	public String getFen() {
