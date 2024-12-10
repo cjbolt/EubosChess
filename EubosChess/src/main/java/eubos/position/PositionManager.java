@@ -60,8 +60,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	private MoveTracker moveTracker = new MoveTracker();
 	
-	// No public setter, because onMove is only changed by performing a move on the board.
-	private boolean onMoveIsWhite;
+	// No public setter, set by parsing fen and only changed by performing a move on the board.
+	private boolean onMoveIsWhite = true;
 	public boolean onMoveIsWhite() {
 		return onMoveIsWhite;
 	}
@@ -227,9 +227,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			String enPassanttargetSq = tokens[3];
 			//String halfMoveClock = tokens[4];
 			String moveNumber = tokens[5];
+			parseOnMove(colourOnMove);
 			parseMoveNumber(pm, moveNumber);
 			parsePiecePlacement(piecePlacement);
-			parseOnMove(colourOnMove);
 			create();
 			parseEnPassant(enPassanttargetSq);
 		}
