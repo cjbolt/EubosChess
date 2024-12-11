@@ -155,7 +155,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			
 		// Clear draw indicator flag
 		repetitionPossible = false;
-		dc.clearAfter(plyNumber);
+		//dc.clearAfter(plyNumber);
 		
 		// Update onMove flag
 		onMoveIsWhite = !onMoveIsWhite;
@@ -173,7 +173,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		hash.doOnMove();
 		
 		onMoveIsWhite = !onMoveIsWhite;
-		plyNumber++; // Not sure about this - should it be no increment actually
+		plyNumber+=2;
 	}
 	
 	public void unperformNullMove() {
@@ -191,7 +191,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		repetitionPossible = false;
 		
 		onMoveIsWhite = !onMoveIsWhite;
-		plyNumber--; // Not sure about this - should it be no increment actually
+		plyNumber-=2;
 	}
 		
 	public String getFen() {

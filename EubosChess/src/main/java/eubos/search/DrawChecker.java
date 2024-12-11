@@ -21,13 +21,13 @@ public class DrawChecker {
 		checkFromPly = plyNumber;
 	}
 	
-	public void clearAfter(int plyNumber) {
-		//for (int i=plyNumber; i<reachedPositions.length; i++) {
-		//	reachedPositions[i]=0;
-		//}
-		if (plyNumber < reachedPositions.length)
-			reachedPositions[plyNumber]=0;
-	}
+//	public void clearAfter(int plyNumber) {
+//		//for (int i=plyNumber; i<reachedPositions.length; i++) {
+//		//	reachedPositions[i]=0;
+//		//}
+//		if (plyNumber < reachedPositions.length)
+//			reachedPositions[plyNumber]=0;
+//	}
 		
 	public boolean setPositionReached(long posHash, int gamePly) {
 		// Check for array overflow before reading/writing array
@@ -39,17 +39,17 @@ public class DrawChecker {
 	}
 	
 	private boolean isPositionReachedBefore(long posHash, int currentPly) {
-//		// Only search previous positions at odd/even ply depth, don't need to check if not same on move. 
-//		int offset = (checkFromPly & 0x1) != (currentPly & 0x1) ? 1 : 0;
-//		for (int i=checkFromPly+offset; i < currentPly; i+=2 ) {
-//			if (reachedPositions[i] == posHash)
-//				return true;
-//		}
-		// Check all positions because null moves mean that sometimes the same side can be on move for successive moves
-		for (int i=checkFromPly; i < currentPly; i+=1 ) {
+		// Only search previous positions at odd/even ply depth, don't need to check if not same on move. 
+		int offset = (checkFromPly & 0x1) != (currentPly & 0x1) ? 1 : 0;
+		for (int i=checkFromPly+offset; i < currentPly; i+=2 ) {
 			if (reachedPositions[i] == posHash)
 				return true;
 		}
+//		// Check all positions because null moves mean that sometimes the same side can be on move for successive moves
+//		for (int i=checkFromPly; i < currentPly; i+=1 ) {
+//			if (reachedPositions[i] == posHash)
+//				return true;
+//		}
 		return false;
 	}
 	
