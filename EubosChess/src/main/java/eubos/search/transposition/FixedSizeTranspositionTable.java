@@ -210,8 +210,9 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	}
 	
 	public synchronized void pruneTable(int moveNumber) {
-		int moveAge = moveNumber >> 2;
 		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
+			if (getHashUtilisation() < 800) return;
+			int moveAge = moveNumber >> 2;
 			for (int i=0; i < maxTableSize; i++) {
 				if (hashes[i] == 0L || transposition_table[i] == 0L) continue;
 				int currentDepth = Transposition.getDepthSearchedInPly(transposition_table[i]);

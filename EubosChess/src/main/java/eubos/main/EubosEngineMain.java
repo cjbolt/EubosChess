@@ -531,7 +531,9 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		
 		convertToGenericAndSendBestMove(trustedMove);
-		hashMap.pruneTable(moveNumber);	
+		if(!rootPosition.getTheBoard().me.isEndgame() ) {
+			hashMap.pruneTable(moveNumber);
+		}
 	}
 	
 	@Override
