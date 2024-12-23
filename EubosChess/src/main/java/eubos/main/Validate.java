@@ -128,7 +128,6 @@ public class Validate {
 		SearchResult result =  new SearchResult(pc.toPvList(0), false, 0L, 1, true, score);
 		pm.performMove(pc.toPvList(0)[0]);
 		boolean confirmDrawn = pm.isThreefoldRepetitionPossible();
-		pm.unperformMove();
 		if (confirmDrawn && score == 0) {
 			eubos.sendInfoString(
 				String.format("from %s draw could be claimed after %s at %s because 1ply search %s",
@@ -142,6 +141,7 @@ public class Validate {
 			System.err.println(String.format("hash %d, %s",
 					pm.getHash(), dc.report(pm.getPlyNumber())));
 		}
+		pm.unperformMove();
 	}
 	
 	private SearchResult doValidationSearch(PositionManager pm, PrincipalContinuation pc, SearchDebugAgent sda, int trusted_score, int depth)
