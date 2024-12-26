@@ -350,8 +350,10 @@ public class EubosEngineMain extends AbstractEngine {
 		if (ENABLE_UCI_INFO_SENDING) {
 			this.getProtocol().send(infoCommand);
 			if (ENABLE_LOGGING) {
-				logInfo(infoCommand);
-				validatePv(infoCommand);
+				if (infoCommand.getCurrentMoveNumber() == null) {
+					logInfo(infoCommand);
+					validatePv(infoCommand);
+				}
 			}
 		}
 	}
@@ -531,8 +533,9 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		
 		convertToGenericAndSendBestMove(trustedMove);
-		if(!rootPosition.getTheBoard().me.isEndgame() ) {
-			hashMap.pruneTable(moveNumber);
+		
+		if(!rootPosition.getTheBoard().me.isEndgame()) {
+			hashMap.clearUp(moveNumber);
 		}
 	}
 	

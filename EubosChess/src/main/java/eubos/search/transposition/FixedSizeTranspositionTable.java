@@ -1,5 +1,9 @@
 package eubos.search.transposition;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
+
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 
@@ -27,6 +31,8 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	long numOverwritten = 0;
 	
 	boolean isSinglethreaded = true;
+	
+	TranspositionTableCleaner currentCleaner = null;
 	
 	public FixedSizeTranspositionTable() {
 		this(MBYTES_DEFAULT_HASH_SIZE, 1);
@@ -209,22 +215,66 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		numOverwritten = numHits = numMisses = 0;
 	}
 	
-	public synchronized void pruneTable(int moveNumber) {
+	private synchronized void pruneTable(int moveNumber) {
 		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
-			if (getHashUtilisation() < 800) return;
-			int moveAge = moveNumber >> 2;
+			EubosEngineMain.logger.info(String.format("TranspositionTableCleaner move=%d starting %d", moveNumber, getHashUtilisation()));
+			//int moveAge = moveNumber >> 2;
+			long numEntries = tableSize;
 			for (int i=0; i < maxTableSize; i++) {
 				if (hashes[i] == 0L || transposition_table[i] == 0L) continue;
 				int currentDepth = Transposition.getDepthSearchedInPly(transposition_table[i]);
 				int currentAge = Transposition.getAge(transposition_table[i]);
-				int currentAdjustedAge = currentAge + 1 + currentDepth/8;
-				if (currentAdjustedAge < moveAge) {
+				//int currentAdjustedAge = currentAge + 1 + currentDepth/8;
+				if (currentAge < (moveNumber - (currentDepth/2) >> 2)) {
+				//if (currentAdjustedAge < moveAge) {
 					// Prune out entries that that have an adjusted age < current
 					transposition_table[i] = 0L;
 					hashes[i] = 0L;
 					tableSize--;
 				}
 			}
+			EubosEngineMain.logger.info(String.format("TranspositionTableCleaner move=%d finishing %d, removed %d", moveNumber, getHashUtilisation(), numEntries-tableSize));
+		}
+		currentCleaner = null;
+	}
+	
+	public void clearUp(int moveNumber) {
+		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
+			if (getHashUtilisation() < 800) return;
+			if (currentCleaner == null) {
+				EubosEngineMain.logger.info("clearUp TranspositionTable creating");
+				currentCleaner = new TranspositionTableCleaner(moveNumber);
+				currentCleaner.start();
+			}
+		}
+	}
+	
+	public class TranspositionTableCleaner extends Thread {
+		int moveNumber;
+		
+		public TranspositionTableCleaner(int moveNumber) {
+			this.moveNumber = moveNumber;
+			this.setName(String.format("TranspositionTableCleaner move=%d", moveNumber));
+			Thread.currentThread().setPriority(Thread.NORM_PRIORITY);
+		}
+		
+		public void run() {
+			try {
+				EubosEngineMain.logger.info("TranspositionTableCleaner running thread");
+				pruneTable(moveNumber);
+			} catch (Exception e) {
+				handleException(e);
+			}
+		}
+		
+		private void handleException(Exception e) {
+			Writer buffer = new StringWriter();
+			PrintWriter pw = new PrintWriter(buffer);
+			e.printStackTrace(pw);
+			String error = String.format("TranspositionTableCleaner crashed with: %s\n%s",
+					e.getMessage(), buffer.toString());
+			System.err.println(error);
+			EubosEngineMain.logger.severe(error);
 		}
 	}
 }
