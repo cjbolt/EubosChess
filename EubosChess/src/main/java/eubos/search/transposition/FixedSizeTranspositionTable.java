@@ -182,13 +182,8 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		}
 		if (!is_created) {
 			int currentDepth = Transposition.getDepthSearchedInPly(trans);
-			//int currentScore = Transposition.getScore(trans);
-			//if (currentDepth < new_Depth || 
-			//	(currentDepth == new_Depth && currentScore < new_score)) {
 			if (currentDepth <= new_Depth) {
-				is_updated = true;	
-			}
-			if (is_updated) {
+				is_updated = true;
 				trans = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, new_age);
 				if (static_eval != Short.MAX_VALUE) {
 					trans = Transposition.setStaticEval(trans, static_eval);
@@ -219,19 +214,20 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		numOverwritten = numHits = numMisses = 0;
 	}
 	
+	private int convertMoveNumberAndDepthToTransAge(int moveNumber, int depthInPly) {
+		return (moveNumber - (depthInPly/2)) >> 2;
+	}
+	
 	private synchronized void pruneTable(int moveNumber) {
 		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
 			EubosEngineMain.logger.info(String.format("TranspositionTableCleaner move=%d starting %d", moveNumber, getHashUtilisation()));
-			//int moveAge = moveNumber >> 2;
 			long numEntries = tableSize;
 			for (int i=0; i < maxTableSize; i++) {
 				if (hashes[i] == 0L || transposition_table[i] == 0L) continue;
 				int currentDepth = Transposition.getDepthSearchedInPly(transposition_table[i]);
 				int currentAge = Transposition.getAge(transposition_table[i]);
-				//int currentAdjustedAge = currentAge + 1 + currentDepth/8;
-				if (currentAge < (moveNumber - (currentDepth/2) >> 2)) {
-				//if (currentAdjustedAge < moveAge) {
-					// Prune out entries that that have an adjusted age < current
+				int transAge = convertMoveNumberAndDepthToTransAge(moveNumber, currentDepth);
+				if (currentAge < transAge) {
 					transposition_table[i] = 0L;
 					hashes[i] = 0L;
 					tableSize--;
