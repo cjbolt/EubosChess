@@ -21,14 +21,6 @@ public class DrawChecker {
 		checkFromPly = plyNumber;
 	}
 	
-//	public void clearAfter(int plyNumber) {
-//		//for (int i=plyNumber; i<reachedPositions.length; i++) {
-//		//	reachedPositions[i]=0;
-//		//}
-//		if (plyNumber < reachedPositions.length)
-//			reachedPositions[plyNumber]=0;
-//	}
-		
 	public boolean setPositionReached(long posHash, int gamePly) {
 		// Check for array overflow before reading/writing array
 		if (gamePly > reachedPositions.length - 1) {
@@ -45,11 +37,6 @@ public class DrawChecker {
 			if (reachedPositions[i] == posHash)
 				return true;
 		}
-//		// Check all positions because null moves mean that sometimes the same side can be on move for successive moves
-//		for (int i=checkFromPly; i < currentPly; i+=1 ) {
-//			if (reachedPositions[i] == posHash)
-//				return true;
-//		}
 		return false;
 	}
 	
