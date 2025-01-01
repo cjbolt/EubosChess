@@ -133,7 +133,6 @@ public class EubosEngineMain extends AbstractEngine {
 	private static FileHandler fh;
 	private static FileHandler efh;
 	
-	
     
 	public EubosEngineMain() {
 		// Attempt to use an auto-flushing output stream 
@@ -145,28 +144,26 @@ public class EubosEngineMain extends AbstractEngine {
 		logger.setLevel(Level.INFO);
 	}
 	
-	private void checkToCreateEnginePermanentDataStructures() {
-		if (!createdHashTable) {
-			try {
-				hashMap = new FixedSizeTranspositionTable(hashSize, numberOfWorkerThreads);	
-			} catch (OutOfMemoryError oome) {
-				long heapFreeSize = Runtime.getRuntime().freeMemory()/1_000_000L;
-				logger.severe(String.format("Out of mem %s allocating hashMap=%d MB, trying %d free size",
-						oome.getMessage(), hashSize, heapFreeSize));
-				hashMap = new FixedSizeTranspositionTable(Math.max(heapFreeSize/2, 0), numberOfWorkerThreads);
-	        } catch (Exception e) {
-	        	logger.severe(String.format("Exception occurred allocating hashMap=%d MB: %s",
-	        			hashSize, e.getMessage()));
-	        } finally {
-	        	if (hashMap != null) {
-	        		createdHashTable = true;
-	        	}
-	        }
+	private void createEnginePermanentDataStructures() {
+		try {
+			hashMap = new FixedSizeTranspositionTable(hashSize, numberOfWorkerThreads);
 			dc = new DrawChecker();
 			pawnHash = new PawnEvalHashTable();
 			whiteRefScore = new ReferenceScore(hashMap);
 			blackRefScore = new ReferenceScore(hashMap);
-		}
+		} catch (OutOfMemoryError oome) {
+			long heapFreeSize = Runtime.getRuntime().freeMemory()/1_000_000L;
+			logger.severe(String.format("Out of mem %s allocating hashMap=%d MB, trying %d free size",
+					oome.getMessage(), hashSize, heapFreeSize));
+			hashMap = new FixedSizeTranspositionTable(Math.max(heapFreeSize/2, 0), numberOfWorkerThreads);
+        } catch (Exception e) {
+        	logger.severe(String.format("Exception occurred allocating hashMap=%d MB: %s",
+        			hashSize, e.getMessage()));
+        } finally {
+        	if (hashMap != null) {
+        		createdHashTable = true;
+        	}
+        }
 	}
 
 	public void receive(EngineInitializeRequestCommand command) {
@@ -192,7 +189,7 @@ public class EubosEngineMain extends AbstractEngine {
 			 * so we need to rebuild the hash table if it was resized from the defaults, force this
 			 * by setting the created flag to false. */
 			createdHashTable = false;
-			checkToCreateEnginePermanentDataStructures();
+			createEnginePermanentDataStructures();
 		}
 		if (command.name.startsWith("Threads")) {
 			numberOfWorkerThreads = Integer.parseInt(command.value);
@@ -218,7 +215,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public void receive(EngineNewGameCommand command) {
 		logger.fine("New Game");
 		createdHashTable = false;
-		checkToCreateEnginePermanentDataStructures();
+		createEnginePermanentDataStructures();
 	}
 
 	public void receive(EngineAnalyzeCommand command) {
@@ -226,32 +223,24 @@ public class EubosEngineMain extends AbstractEngine {
 			logger.fine(String.format("Analysing position: %s with moves %s",
 					command.board.toString(), command.moves));
 		}
-		checkToCreateEnginePermanentDataStructures();
+		if (!createdHashTable) {
+			createEnginePermanentDataStructures();
+		}
 		createPositionFromAnalyseCommand(command);
 	}
 	
 	void createPositionFromAnalyseCommand(EngineAnalyzeCommand command) {
 		lastFen = command.board.toString();
 		rootPosition = new PositionManager(lastFen, dc, pawnHash);
-		// If there is a move history, apply those moves to ensure correct state in draw checker
-		if (!command.moves.isEmpty()) {
-			for (GenericMove nextMove : command.moves) {
-				int move = Move.toMove(nextMove, rootPosition.getTheBoard());
-				boolean valid = rootPosition.performMove(move);
-				assert valid : String.format("Illegal move in position command: %s %s %s",
-						                     nextMove.toString(), lastFen, command.moves);
-				// I think this can be deleted as it is done in the performMove call, but which ply does that pertain to?
-//				if (Move.isCapture(move) || Move.isPawnMove(move)) {
-//					// Pawn moves and captures are irreversible so we can reset the draw checker
-//					dc.reset(rootPosition.getPlyNumber());
-//				}
-			}
+		// Apply move history to ensure correct state in draw checker
+		for (GenericMove nextMove : command.moves) {
+			int eubosMove = Move.toMove(nextMove, rootPosition.getTheBoard());
+			assert rootPosition.performMove(eubosMove) : 
+				String.format("Illegal move in position command: %s %s %s", nextMove.toString(), lastFen, command.moves);
 		}
 		lastFen = rootPosition.getFen();
-		long hashCode = rootPosition.getHash();
 		if (ENABLE_LOGGING) {
-			logger.info(String.format("positionReceived fen=%s hashCode=%d",
-					lastFen, hashCode));
+			logger.info(String.format("positionReceived fen=%s hashCode=%d", lastFen, rootPosition.getHash()));
 		}
 	}
 
