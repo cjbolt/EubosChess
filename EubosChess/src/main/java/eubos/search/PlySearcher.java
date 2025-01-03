@@ -260,7 +260,6 @@ public class PlySearcher {
 		int currMove = Move.NULL_MOVE;
 		int positionScore = s.bestScore;
 		int quietMoveNumber = 0;
-		boolean refuted = false;
 		if (trans != 0L) {
 			s.prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
 		}
@@ -280,7 +279,6 @@ public class PlySearcher {
 			if (s.moveNumber == 1) {
 				// First legal move re-initialises the PV 
 				bestMove = currMove;
-				//pc.initialise(0, bestMove);
 			}
 			if (Move.isRegular(currMove)) {
 				quietMoveNumber++;
@@ -332,7 +330,8 @@ public class PlySearcher {
 							EubosEngineMain.logger.fine(String.format("BETA FAIL AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
 									s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
 						}
-						refuted = true;
+						trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.lowerBound);
+						rootTransposition = trans;
 						break;
 					}
 					trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.upperBound);
@@ -344,19 +343,6 @@ public class PlySearcher {
 				pm.unperformMove();
 			}
 			hasSearchedPv = true;
-		}
-		
-		if (!isTerminated()) {
-			if (s.moveNumber == 0) {
-				// No moves at this point means either a stalemate or checkmate has occurred
-				return s.inCheck ? Score.getMateScore(0) : 0;
-			}
-			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
-			rootTransposition = trans;
-			if (EubosEngineMain.ENABLE_LOGGING) {
-				EubosEngineMain.logger.info(String.format("TRANSPOSITION SAVED AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s (%s)",
-						s.bestScore, s.alpha, s.beta, depth, Move.toString(bestMove), Transposition.report(trans)));
-			}
 		}
 		
 		return s.bestScore;
