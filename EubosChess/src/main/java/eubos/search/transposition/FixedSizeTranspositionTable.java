@@ -128,7 +128,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 				int age_ind = 0;
 				int depth_ind = 0;
 				int trans_depth = Transposition.getDepthSearchedInPly(trans);
-				int oldest_adjusted_age = (moveNumber+(trans_depth/2)) >> 2;
+				int oldest_adjusted_age = convertMoveNumberAndDepthToTransAge(moveNumber, trans_depth);
 				for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
 					int index_age = Transposition.getAge(transposition_table[i]);
 					int index_depth = Transposition.getDepthSearchedInPly(transposition_table[i]);
@@ -218,9 +218,9 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		return (moveNumber - (depthInPly/2)) >> 2;
 	}
 	
-	private synchronized void pruneTable(int moveNumber) {
+	private synchronized void pruneTable(EubosEngineMain eubos, int moveNumber) {
 		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
-			EubosEngineMain.logger.info(String.format("TranspositionTableCleaner move=%d starting %d", moveNumber, getHashUtilisation()));
+			int start = getHashUtilisation();
 			long numEntries = tableSize;
 			for (int i=0; i < maxTableSize; i++) {
 				if (hashes[i] == 0L || transposition_table[i] == 0L) continue;
@@ -233,17 +233,18 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 					tableSize--;
 				}
 			}
-			EubosEngineMain.logger.info(String.format("TranspositionTableCleaner move=%d finishing %d, removed %d", moveNumber, getHashUtilisation(), numEntries-tableSize));
+			eubos.sendInfoString(String.format("TranspositionTableCleaner move %d removed %d (utilisation start %d end %d)",
+					             moveNumber, numEntries-tableSize, start, getHashUtilisation()));
 		}
 		currentCleaner = null;
 	}
 	
-	public void clearUp(int moveNumber) {
+	public void clearUp(EubosEngineMain eubos, int moveNumber) {
 		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
 			if (getHashUtilisation() < 800) return;
 			if (currentCleaner == null) {
 				EubosEngineMain.logger.info("clearUp TranspositionTable creating");
-				currentCleaner = new TranspositionTableCleaner(moveNumber);
+				currentCleaner = new TranspositionTableCleaner(eubos, moveNumber);
 				currentCleaner.start();
 			}
 		}
@@ -251,17 +252,18 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	
 	public class TranspositionTableCleaner extends Thread {
 		int moveNumber;
+		EubosEngineMain eubos;
 		
-		public TranspositionTableCleaner(int moveNumber) {
+		public TranspositionTableCleaner(EubosEngineMain eubos, int moveNumber) {
 			this.moveNumber = moveNumber;
+			this.eubos = eubos;
 			this.setName(String.format("TranspositionTableCleaner move=%d", moveNumber));
 			Thread.currentThread().setPriority(Thread.NORM_PRIORITY);
 		}
 		
 		public void run() {
 			try {
-				EubosEngineMain.logger.info("TranspositionTableCleaner running thread");
-				pruneTable(moveNumber);
+				pruneTable(eubos, moveNumber);
 			} catch (Exception e) {
 				handleException(e);
 			}

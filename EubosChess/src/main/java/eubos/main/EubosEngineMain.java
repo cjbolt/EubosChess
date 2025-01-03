@@ -239,9 +239,7 @@ public class EubosEngineMain extends AbstractEngine {
 				String.format("Illegal move in position command: %s %s %s", nextMove.toString(), lastFen, command.moves);
 		}
 		lastFen = rootPosition.getFen();
-		if (ENABLE_LOGGING) {
-			logger.info(String.format("positionReceived fen=%s hashCode=%d", lastFen, rootPosition.getHash()));
-		}
+		sendInfoString(String.format("positionReceived %s", lastFen));
 	}
 
 	public void receive(EngineStartCalculatingCommand command) {
@@ -478,7 +476,7 @@ public class EubosEngineMain extends AbstractEngine {
 		   leaf in the search tree. */
 		long tableRoot = hashMap.getTransposition(rootPosition.getHash());
 		if (result != null) {
-			sendInfoString(String.format("getTrustedMove %s", result.report(rootPosition.getTheBoard())));
+			//sendInfoString(String.format("getTrustedMove %s", result.report(rootPosition.getTheBoard())));
 
 			long cacheRoot = result.rootTrans;
 			long rootTrans = selectBestTranspositionData(tableRoot, cacheRoot);
@@ -496,7 +494,7 @@ public class EubosEngineMain extends AbstractEngine {
 				}
 			}
 		} else if (transpositionIsValid(tableRoot)) {
-			sendInfoString("sendBestMoveCommand trans table");
+			//sendInfoString("sendBestMoveCommand trans table");
 			trustedMove = Move.valueOfFromTransposition(tableRoot, rootPosition.getTheBoard());
 		}
 		return trustedMove;
@@ -524,7 +522,7 @@ public class EubosEngineMain extends AbstractEngine {
 		convertToGenericAndSendBestMove(trustedMove);
 		
 		if(!rootPosition.getTheBoard().me.isEndgame()) {
-			hashMap.clearUp(moveNumber);
+			hashMap.clearUp(this, moveNumber);
 		}
 	}
 	
