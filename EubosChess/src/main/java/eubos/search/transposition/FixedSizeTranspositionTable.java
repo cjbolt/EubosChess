@@ -157,6 +157,14 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		}
 	}
 	
+	private long createHelper(byte new_Depth, short new_score, byte new_bound, int new_bestMove, int new_age, short static_eval) {
+		long trans = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, new_age);
+		if (static_eval != Short.MAX_VALUE) {
+			trans = Transposition.setStaticEval(trans, static_eval);
+		}
+		return trans;
+	}
+	
 	//public synchronized long setTransposition(long hash, long trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove, int move_number, short static_eval) {
 	public long setTransposition(long hash, long trans, byte new_Depth, short new_score, byte new_bound, int new_bestMove, int move_number, short static_eval) {
 		boolean is_created = false;
@@ -176,18 +184,15 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 				trans = getTransposition(hash);
 			}
 			if (trans == 0L) {
-				trans = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, new_age);
+				trans = createHelper(new_Depth, new_score, new_bound, new_bestMove, new_age, static_eval);
 				is_created = true;
 			}
 		}
 		if (!is_created) {
 			int currentDepth = Transposition.getDepthSearchedInPly(trans);
 			if (currentDepth <= new_Depth) {
+				trans = createHelper(new_Depth, new_score, new_bound, new_bestMove, new_age, static_eval);
 				is_updated = true;
-				trans = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, new_age);
-				if (static_eval != Short.MAX_VALUE) {
-					trans = Transposition.setStaticEval(trans, static_eval);
-				}
 			}
 		}
 		if (is_created || is_updated) {

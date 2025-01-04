@@ -147,10 +147,6 @@ public class EubosEngineMain extends AbstractEngine {
 	private void createEnginePermanentDataStructures() {
 		try {
 			hashMap = new FixedSizeTranspositionTable(hashSize, numberOfWorkerThreads);
-			dc = new DrawChecker();
-			pawnHash = new PawnEvalHashTable();
-			whiteRefScore = new ReferenceScore(hashMap);
-			blackRefScore = new ReferenceScore(hashMap);
 		} catch (OutOfMemoryError oome) {
 			long heapFreeSize = Runtime.getRuntime().freeMemory()/1_000_000L;
 			logger.severe(String.format("Out of mem %s allocating hashMap=%d MB, trying %d free size",
@@ -162,6 +158,10 @@ public class EubosEngineMain extends AbstractEngine {
         } finally {
         	if (hashMap != null) {
         		createdHashTable = true;
+    			dc = new DrawChecker();
+    			pawnHash = new PawnEvalHashTable();
+    			whiteRefScore = new ReferenceScore(hashMap);
+    			blackRefScore = new ReferenceScore(hashMap);
         	}
         }
 	}

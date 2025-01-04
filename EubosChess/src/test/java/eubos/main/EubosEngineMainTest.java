@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 import com.fluxchess.jcpi.commands.EngineAnalyzeCommand;
-import com.fluxchess.jcpi.commands.EngineNewGameCommand;
 import com.fluxchess.jcpi.models.GenericBoard;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
@@ -87,11 +86,11 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	@Test
 	public void test_infoMessageSending_clearsPreviousPvMoves() throws InterruptedException, IOException {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && !SearchMetrics.ENABLE_SINGLE_MOVE_PV) {
-			String expectedOutput = "info depth 1 seldepth 5 score cp 100 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 20"+CMD_TERMINATOR+
+			String expectedOutput = "info string Eubos positionReceived r1b1kb1r/ppqnpppp/8/3pP3/3Q4/5N2/PPP2PPP/RNB1K2R b KQkq - - 8"+CMD_TERMINATOR+
+					"info depth 1 seldepth 5 score cp 100 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 20"+CMD_TERMINATOR+
 					"info depth 1 seldepth 3 score cp 647 pv c7c2 hashfull 0 nps 0 time 0 nodes 26"+CMD_TERMINATOR+
                     "info depth 2 seldepth 6 score cp -139 pv c7c2 d4c3 hashfull 0 nps 0 time 0 nodes 141"+CMD_TERMINATOR+
                     "info depth 2 seldepth 8 score cp 100 pv d7e5 f3e5 hashfull 0 nps 0 time 0 nodes 218"+CMD_TERMINATOR+
-                    "info string Eubos getTrustedMove result: pv=d7e5:n:P f3e5:N:n:best , score=100 mate=false, depth=2, trusted=1 rootTrans=(trans best=d7e5:n:P:best, dep=2, sc=100, type=2 age=2)"+CMD_TERMINATOR+
                     "info string Eubos r1b1kb1r/ppq1pppp/8/3pn3/3Q4/5N2/PPP2PPP/RNB1K2R w KQkq - - 9"+CMD_TERMINATOR+
                     BEST_PREFIX+"d7e5";
 			setupEngine();
@@ -247,9 +246,9 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_defect_en_passant_treated_as_playable_move_regardless_of_board_state() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"r3qrk1/pbpp1ppp/np1b1n2/8/2PPp3/P1N1P1PP/1P2NPB1/R1BQK2R w KQ - 1 10"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d1a4"+CMD_TERMINATOR));
+		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d1a4"+CMD_TERMINATOR));
 		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e1g1"+CMD_TERMINATOR));
-		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e2f4"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"e2f4"+CMD_TERMINATOR));
 		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"c3b5"+CMD_TERMINATOR));
 		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d1c2"+CMD_TERMINATOR));
 		assertTrue(performTest(5000));
@@ -322,8 +321,9 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	}
 	
     @Test
-    public void test_createPositionFromAnalyseCommand_enPassantMovesAreIdentifedCorrectly() throws IllegalNotationException {
-    	classUnderTest.receive(new EngineNewGameCommand());
+    public void test_createPositionFromAnalyseCommand_enPassantMovesAreIdentifedCorrectly() throws IllegalNotationException, InterruptedException, IOException {
+    	setupEngine();
+    	performTest(100);
     	// To catch a defect where En Passant moves were not properly identified when applied through the UCI received from lichess/Arena
     	ArrayList<GenericMove> applyMoveList = new ArrayList<GenericMove>();
     	applyMoveList.add(new GenericMove("c2c4"));
@@ -334,9 +334,9 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
     }
     
 	@Test
-	@Disabled
-	public void test_createPositionFromAnalyseCommand() throws IllegalNotationException {
-		classUnderTest.receive(new EngineNewGameCommand());
+	public void test_createPositionFromAnalyseCommand() throws IllegalNotationException, InterruptedException, IOException {
+    	setupEngine();
+    	performTest(100);
 		// Black move 62
 		ArrayList<GenericMove> applyMoveList = new ArrayList<GenericMove>();
 		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("8/8/8/8/8/pk6/8/K7 b - - 5 62"), applyMoveList));
