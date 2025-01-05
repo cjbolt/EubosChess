@@ -1,81 +1,94 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>c_j_bolt</groupId>
-  <artifactId>EubosChess</artifactId>
-  <version>3.8</version>
-  <name>Eubos</name>
-  <description>Eubos Chess Engine</description>
-  <dependencies>
-  	<dependency>
-		<groupId>org.junit.jupiter</groupId>
-		<artifactId>junit-jupiter</artifactId>
-		<scope>test</scope>
-	</dependency>
-	<dependency>
-	    <groupId>org.junit.platform</groupId>
-	    <artifactId>junit-platform-launcher</artifactId>
-	    <version>1.4.2</version>
-	    <scope>test</scope>
-	</dependency>
-	<dependency>
-   		<groupId>org.junit.vintage</groupId>
-   		<artifactId>junit-vintage-engine</artifactId>
-   		<scope>test</scope>
-	</dependency>
-	<dependency>
-		<groupId>com.github.jjYBdx4IL.chess</groupId>
-		<artifactId>jcpi</artifactId>
-	</dependency>
-	<dependency>
-		<groupId>org.mockito</groupId>
-		<artifactId>mockito-core</artifactId>
-	</dependency>
-	<dependency>
-    	<groupId>it.unimi.dsi</groupId>
-    	<artifactId>fastutil</artifactId>
-    	<version>8.5.6</version>
-	</dependency>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>c_j_bolt</groupId>
+    <artifactId>EubosChess</artifactId>
+    <version>3.8</version>
+    <name>Eubos</name>
+    <description>Eubos Chess Engine</description>
 
-  </dependencies>
-     <properties>
-     	<maven.compiler.target>1.8</maven.compiler.target>
-     	<maven.compiler.source>1.8</maven.compiler.source>
-     </properties>
-     <dependencyManagement>
-     	<dependencies>
-		<dependency>
-			<groupId>org.junit</groupId>
-			<artifactId>junit-bom</artifactId>
-			<version>5.8.2</version>
-			<type>pom</type>
-			<scope>import</scope>
-		</dependency>
-		<dependency>
-	        <groupId>org.junit.jupiter</groupId>
-	        <artifactId>junit-jupiter-engine</artifactId>
-	    </dependency>
+    <properties>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+
+        <!-- dependencies -->
+        <junit-platform-launcher.version>1.4.2</junit-platform-launcher.version>
+        <fastutil.version>8.5.6</fastutil.version>
+
+        <!-- dependencyManagement -->
+        <junit-bom.version>5.8.2</junit-bom.version>
+        <mockito-core.version>2.25.0</mockito-core.version>
+        <jcpi.version>1.4.1.1</jcpi.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <version>${junit-platform-launcher.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jjYBdx4IL.chess</groupId>
+            <artifactId>jcpi</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>2.25.0</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-            <exclusions>
-              <exclusion>
-                  <groupId>junit</groupId>
-                  <artifactId>junit</artifactId>
-              </exclusion>
-            </exclusions>
+            <groupId>it.unimi.dsi</groupId>
+            <artifactId>fastutil</artifactId>
+            <version>${fastutil.version}</version>
         </dependency>
-     		<dependency>
-     			<groupId>com.github.jjYBdx4IL.chess</groupId>
-     			<artifactId>jcpi</artifactId>
-     			<version>1.4.1.1</version>
-     		</dependency>
-     	</dependencies>
-     </dependencyManagement>
+
+    </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit-bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-engine</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito-core.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-test</artifactId>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>junit</groupId>
+                        <artifactId>junit</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.github.jjYBdx4IL.chess</groupId>
+                <artifactId>jcpi</artifactId>
+                <version>${jcpi.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>
