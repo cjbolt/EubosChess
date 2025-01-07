@@ -235,8 +235,9 @@ public class EubosEngineMain extends AbstractEngine {
 		// Apply move history to ensure correct state in draw checker
 		for (GenericMove nextMove : command.moves) {
 			int eubosMove = Move.toMove(nextMove, rootPosition.getTheBoard());
-			assert rootPosition.performMove(eubosMove) : 
-				String.format("Illegal move in position command: %s %s %s", nextMove.toString(), lastFen, command.moves);
+			boolean valid = rootPosition.performMove(eubosMove);
+			assert valid : String.format("Illegal move in position command: %s %s %s",
+					                     nextMove.toString(), lastFen, command.moves);
 		}
 		lastFen = rootPosition.getFen();
 		sendInfoString(String.format("positionReceived %s", lastFen));
