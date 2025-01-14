@@ -272,7 +272,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"b3d5"+CMD_TERMINATOR));
 
 		int hashMove = Move.valueOf(Position.b3, Piece.BLACK_QUEEN, Position.d1, Piece.WHITE_ROOK);
-		long hashEntry = Transposition.valueOf((byte)6, (short)0, Score.lowerBound, hashMove, 42 >> 2);
+		long hashEntry = Transposition.valueOf((byte)6, (short)0, Score.lowerBound, (short)hashMove, 42 >> 2);
 		assertTrue(pokeHashEntryAndPerformTest(12000, hashEntry));
 	}
 	
@@ -297,7 +297,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR, BEST_PREFIX+"h4g4"+CMD_TERMINATOR));
 		
 		int hashMove = Move.valueOf(Position.h4, Piece.BLACK_ROOK, Position.g4, Piece.NONE);
-		long hashEntry = Transposition.valueOf((byte)3, (short)0, Score.upperBound, hashMove, 107 >> 2);
+		long hashEntry = Transposition.valueOf((byte)3, (short)0, Score.upperBound, (short)hashMove, 107 >> 2);
 		assertTrue(pokeHashEntryAndPerformTest(100000000, hashEntry));
 	}
 	
@@ -316,7 +316,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"9"+CMD_TERMINATOR, BEST_PREFIX+"g7h6"+CMD_TERMINATOR));
 		
 		int hashMove = Move.valueOf(Position.g7, Piece.BLACK_BISHOP, Position.h6, Piece.NONE);
-		long hashEntry = Transposition.valueOf((byte)8, (short)-55, Score.lowerBound, hashMove, 66 >> 2);
+		long hashEntry = Transposition.valueOf((byte)8, (short)-55, Score.lowerBound, (short)hashMove, 66 >> 2);
 		assertTrue(pokeHashEntryAndPerformTest(10000, hashEntry));
 	}
 	
@@ -687,7 +687,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(GO_TIME_PREFIX+"100"+CMD_TERMINATOR, BEST_PREFIX+"d6f8"+CMD_TERMINATOR));
 		
 		int hashMove = Move.valueOf(Position.d6, Piece.WHITE_BISHOP, Position.f8, Piece.NONE);
-		long hashEntry = Transposition.valueOf((byte)127, (short)0, Score.upperBound, hashMove, 100 >> 2);
+		long hashEntry = Transposition.valueOf((byte)127, (short)0, Score.upperBound, (short)hashMove, 100 >> 2);
 		assertTrue(pokeHashEntryAndPerformTest(1000, hashEntry));
 	}
 	
@@ -699,7 +699,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR, BEST_PREFIX+"e2e1q"+CMD_TERMINATOR));
 		
 		int hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.WHITE_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
-		long hashEntry = Transposition.valueOf((byte)1, (short)1831, Score.lowerBound, hashMove, 88 >> 2);
+		long hashEntry = Transposition.valueOf((byte)1, (short)1831, Score.lowerBound, (short)hashMove, 88 >> 2);
 		assertTrue(pokeHashEntryAndPerformTest(8000000, hashEntry));
 	}
 	 
@@ -710,12 +710,12 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		
 		// Set up Engine instance and inject overwritten hash entry
 		int hashMove = Move.valueOf(Position.c2, Piece.WHITE_KING, Position.d3, Piece.NONE);
-		long hashEntry = Transposition.valueOf((byte)3, (short)300, Score.upperBound, hashMove, 93 >> 2);
+		long hashEntry = Transposition.valueOf((byte)3, (short)300, Score.upperBound, (short)hashMove, 93 >> 2);
 		assertTrue(pokeHashEntryAndPerformTest(1000, hashEntry));
 		
 		// Create search result object complete with cached version of the root hash
 		hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.WHITE_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
-		long cachedHash = Transposition.valueOf((byte)15, (short)1831, Score.lowerBound, hashMove, 88 >> 2);
+		long cachedHash = Transposition.valueOf((byte)15, (short)1831, Score.lowerBound, (short)hashMove, 88 >> 2);
 		SearchResult res = new SearchResult(new int[] {Move.NULL_MOVE}, false, cachedHash, 3, false, 0);
 		
 		// Expect cached best move to be sent, not overwritten
@@ -735,7 +735,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		
 		// Create search result object complete with cached version of the root hash
 		int hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.WHITE_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
-		long cachedHash = Transposition.valueOf((byte)15, (short)1831, Score.lowerBound, hashMove, 88 >> 2);
+		long cachedHash = Transposition.valueOf((byte)15, (short)1831, Score.lowerBound, (short)hashMove, 88 >> 2);
 		SearchResult res = new SearchResult(new int[] {Move.NULL_MOVE}, false, cachedHash, 3, false, 0);
 		
 		// Expect cached best move to be sent, not overwritten
@@ -772,12 +772,12 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		
 		// Set up Engine instance and inject overwritten hash entry
 		int hashMove = Move.valueOf(Position.c2, Piece.WHITE_KING, Position.d3, Piece.NONE);
-		long hashEntry = Transposition.valueOf((byte)10, (short)300, Score.upperBound, hashMove, 93 >> 2);
+		long hashEntry = Transposition.valueOf((byte)10, (short)300, Score.upperBound, (short)hashMove, 93 >> 2);
 		assertTrue(pokeHashEntryAndPerformTest(1000, hashEntry));
 		
 		// Create search result, untrusted with lower depth cached hash
 		hashMove = Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.QUEEN);
-		long cachedHash = Transposition.valueOf((byte)2, (short)500, Score.lowerBound, hashMove, 88 >> 2);
+		long cachedHash = Transposition.valueOf((byte)2, (short)500, Score.lowerBound, (short)hashMove, 88 >> 2);
 		SearchResult res = new SearchResult(new int[] {Move.NULL_MOVE}, false, cachedHash, 3, false, 0);
 		
 		commands.clear();
@@ -793,7 +793,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		
 		// Set up Engine instance and inject overwritten hash entry
 		int hashMove = Move.valueOf(Position.c2, Piece.WHITE_KING, Position.d3, Piece.NONE);
-		long hashEntry = Transposition.valueOf((byte)10, (short)300, Score.upperBound, hashMove, 93 >> 2);
+		long hashEntry = Transposition.valueOf((byte)10, (short)300, Score.upperBound, (short)hashMove, 93 >> 2);
 		assertTrue(pokeHashEntryAndPerformTest(1000, hashEntry));
 		
 		// Create search result, trusted with higher depth than root TRans tablecached hash

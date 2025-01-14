@@ -82,4 +82,13 @@ class TranspositionTest {
 		
 		assertEquals(move, Move.valueOfFromTransposition(trans, pm.getTheBoard()));
 	}
+	
+	@Test
+	void test_optimisedValueOf() {
+		long reference = Transposition.valueOf((byte)1, (short)15, (byte)0, (short)0, 5);
+		assertEquals(reference, Transposition.valueOf((byte)1, (short)15, (byte)0, (short)0, 5, Short.MAX_VALUE));
+		
+		long reference1 = Transposition.valueOf((byte)-1, (short)-15, (byte)0, (short)0, 5);
+		assertEquals(reference1, Transposition.valueOf((byte)-1, (short)-15, (byte)0, (short)0, 5, Short.MAX_VALUE));
+	}
 }

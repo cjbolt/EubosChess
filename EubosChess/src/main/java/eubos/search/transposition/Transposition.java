@@ -32,7 +32,7 @@ public final class Transposition {
 	private static final long AGE_GUARD_MASK = (1L << AGE_BITS) - 1;
 	private static final int AGE_SHIFT = 58;
 	
-	public static long valueOf(byte depth, short score, byte bound, int bestMove, int age) {
+	public static long valueOf(byte depth, short score, byte bound, short bestMove, int age) {
 		long trans = 0L;
 		trans = setDepthSearchedInPly(trans, depth);
 		trans = setScore(trans, score);
@@ -40,6 +40,21 @@ public final class Transposition {
 		trans = setBestMove(trans, bestMove);
 		trans = setAge(trans, age);
 		trans = setStaticEval(trans, Short.MAX_VALUE);
+		return trans;
+	}
+	
+	public static long valueOf(byte depth, short score, byte bound, short bestMove, int age, short static_eval) {
+		long trans = age;
+		trans <<= TYPE_BITS;
+		trans |= bound;
+		trans <<= DEPTH_BITS;
+		trans |= (depth&DEPTH_GUARD_MASK);
+		trans <<= SCORE_BITS;
+		trans |= (score&SCORE_GUARD_MASK);
+		trans <<= EVAL_BITS;
+		trans |= (static_eval&SCORE_GUARD_MASK);
+		trans <<= BESTMOVE_BITS;
+		trans |= (bestMove&SCORE_GUARD_MASK);
 		return trans;
 	}
 	
@@ -103,22 +118,24 @@ public final class Transposition {
 	}
 	
 	public static String report(long trans, Board theBoard) {
-		String output = String.format("trans best=%s, dep=%d, sc=%s, type=%s age=%d", 
+		String output = String.format("trans best=%s, dep=%d, sc=%s, type=%s age=%d static=%d", 
 				Move.toString(Move.valueOfFromTransposition(trans, theBoard)),
 				getDepthSearchedInPly(trans),
 				Score.toString((short)(trans >>> 32)),
 				getType(trans),
-				getAge(trans));
+				getAge(trans),
+				getStaticEval(trans));
 		return output;
 	}
 	
 	public static String report(long trans) {
-		String output = String.format("trans best=%s, dep=%d, sc=%s, type=%s age=%d",
+		String output = String.format("trans best=%s, dep=%d, sc=%s, type=%s age=%d static=%d",
 				Move.toString(Move.valueOfFromTransposition(trans)),
 				getDepthSearchedInPly(trans),
 				Score.toString((short)(trans >>> 32)),
 				getType(trans),
-				getAge(trans));
+				getAge(trans),
+				getStaticEval(trans));
 		return output;
 	}
 }
