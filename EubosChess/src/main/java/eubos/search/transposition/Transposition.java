@@ -59,7 +59,7 @@ public final class Transposition {
 	}
 	
 	public static byte getDepthSearchedInPly(long trans) {
-		return (byte)((trans >>> DEPTH_SHIFT) & DEPTH_GUARD_MASK);
+		return (byte)(trans >>> DEPTH_SHIFT);
 	}
 
 	public static long setDepthSearchedInPly(long trans, byte depthSearchedInPly) {
@@ -79,7 +79,7 @@ public final class Transposition {
 	}
 	
 	public static short getScore(long trans) {
-		return (short) ((trans >>> SCORE_SHIFT) & SCORE_GUARD_MASK);
+		return (short) (trans >>> SCORE_SHIFT);
 	}
 
 	protected static long setScore(long trans, short new_score) {
@@ -88,7 +88,7 @@ public final class Transposition {
 	}
 	
 	public static short getAge(long trans) {
-		return (short) ((trans >>> AGE_SHIFT) & AGE_GUARD_MASK);
+		return (short) (trans >>> AGE_SHIFT);
 	}
 
 	protected static long setAge(long trans, int new_age) {
@@ -108,7 +108,7 @@ public final class Transposition {
 	}
 	
 	public static short getStaticEval(long trans) {
-		return (short) ((trans >>> EVAL_SHIFT) & EVAL_GUARD_MASK);
+		return (short) (trans >>> EVAL_SHIFT);
 	}
 
 	public static long setStaticEval(long trans, int eval) {
