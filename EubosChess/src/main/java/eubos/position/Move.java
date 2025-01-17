@@ -599,11 +599,11 @@ public final class Move {
 	}
 	
 	public static boolean isQueenPromotion(int move) {
-		return (((move & (Move.TYPE_PROMOTION_MASK) << TYPE_SHIFT) != 0) && Piece.isQueen(Move.getPromotion(move)));
+		return Piece.isQueen(Move.getPromotion(move));
 	}
 	
 	public static boolean isPawnCapture(int move) {
-		return Piece.isPawn(getOriginPiece(move)) && Move.isCapture(move);
+		return Move.isCapture(move) && Piece.isPawn(getOriginPiece(move));
 	}
 
 	public static boolean invalidatesPawnCache(int move) {
