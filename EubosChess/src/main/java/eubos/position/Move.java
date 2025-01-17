@@ -603,7 +603,7 @@ public final class Move {
 	}
 	
 	public static boolean isPawnCapture(int move) {
-		return Move.isCapture(move) && Piece.isPawn(getOriginPiece(move));
+		return (move & ((Move.TYPE_CAPTURE_MASK << TYPE_SHIFT)|(Piece.PAWN << ORIGIN_PIECE_SHIFT))) == ((Move.TYPE_CAPTURE_MASK << TYPE_SHIFT)|(Piece.PAWN << ORIGIN_PIECE_SHIFT));
 	}
 
 	public static boolean invalidatesPawnCache(int move) {
