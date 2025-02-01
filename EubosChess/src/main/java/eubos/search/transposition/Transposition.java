@@ -32,29 +32,29 @@ public final class Transposition {
 	private static final long AGE_GUARD_MASK = (1L << AGE_BITS) - 1;
 	private static final int AGE_SHIFT = 58;
 	
-	public static long valueOf(byte depth, short score, byte bound, short bestMove, int age) {
+	public static long valueOf(byte depth, char score, byte bound, char bestMove, char age) {
 		long trans = 0L;
 		trans = setDepthSearchedInPly(trans, depth);
 		trans = setScore(trans, score);
 		trans = setType(trans, bound);
 		trans = setBestMove(trans, bestMove);
 		trans = setAge(trans, age);
-		trans = setStaticEval(trans, Short.MAX_VALUE);
+		trans = setStaticEval(trans, (char)Short.MAX_VALUE);
 		return trans;
 	}
 	
-	public static long valueOf(byte depth, short score, byte bound, short bestMove, int age, short static_eval) {
-		long trans = age;
-		trans <<= TYPE_BITS;
-		trans |= bound;
-		trans <<= DEPTH_BITS;
-		trans |= (depth&DEPTH_GUARD_MASK);
-		trans <<= SCORE_BITS;
-		trans |= (score&SCORE_GUARD_MASK);
-		trans <<= EVAL_BITS;
-		trans |= (static_eval&SCORE_GUARD_MASK);
-		trans <<= BESTMOVE_BITS;
-		trans |= (bestMove&SCORE_GUARD_MASK);
+	public static long valueOf(byte depth, short score, byte bound, short bestMove, int age)
+	{
+		return Transposition.valueOf(depth, (char) score, bound, (char) bestMove, (char) age);
+	}
+	
+	public static long valueOf(byte depth, char score, byte bound, char bestMove, char age, char static_eval) {
+		long trans = bestMove + 
+				(static_eval * (1L<<EVAL_SHIFT)) +                             
+				(score * (1L<<SCORE_SHIFT)) +
+				((depth & DEPTH_GUARD_MASK) * (1L<<DEPTH_SHIFT) ) +
+				(bound * (1L<<TYPE_SHIFT)) +
+				(age * (1L<<AGE_SHIFT));
 		return trans;
 	}
 	
@@ -82,26 +82,25 @@ public final class Transposition {
 		return (short) (trans >>> SCORE_SHIFT);
 	}
 
-	protected static long setScore(long trans, short new_score) {
-		trans |= (new_score & SCORE_GUARD_MASK) << SCORE_SHIFT;
+	protected static long setScore(long trans, char new_score) {
+		trans |= ((long)new_score) << SCORE_SHIFT;
 		return trans;
 	}
 	
-	public static short getAge(long trans) {
-		return (short) (trans >>> AGE_SHIFT);
+	public static char getAge(long trans) {
+		return (char) (trans >>> AGE_SHIFT);
 	}
 
-	protected static long setAge(long trans, int new_age) {
+	protected static long setAge(long trans, char new_age) {
 		trans |= (new_age & AGE_GUARD_MASK) << AGE_SHIFT;
 		return trans;
 	}
 
-	public static int getBestMove(long trans) {
-		return (int)(trans & BESTMOVE_MASK);
+	public static char getBestMove(long trans) {
+		return (char)trans;
 	}
 	
-	public static long setBestMove(long trans, int bestMove) {
-		bestMove &= BESTMOVE_MASK;
+	public static long setBestMove(long trans, char bestMove) {
 		trans &= ~BESTMOVE_MASK;
 		trans |= bestMove;
 		return trans;
@@ -123,7 +122,7 @@ public final class Transposition {
 				getDepthSearchedInPly(trans),
 				Score.toString((short)(trans >>> 32)),
 				getType(trans),
-				getAge(trans),
+				(int)getAge(trans),
 				getStaticEval(trans));
 		return output;
 	}
@@ -134,7 +133,7 @@ public final class Transposition {
 				getDepthSearchedInPly(trans),
 				Score.toString((short)(trans >>> 32)),
 				getType(trans),
-				getAge(trans),
+				(int)getAge(trans),
 				getStaticEval(trans));
 		return output;
 	}

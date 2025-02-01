@@ -779,7 +779,7 @@ public class BoardTest {
 	public void test_is_playable_move_refactor_issue() {
 		setUpPosition("8/8/3p3k/1P6/3p3K/8/8/8 w - - - 3");
 		int move = Move.valueOf(Position.h4, Piece.WHITE_KING, Position.g3, Piece.NONE);
-		long trans = Transposition.valueOf((byte)1, (short)0, (byte)1, (short)move, 1);
+		long trans = Transposition.valueOf((byte)1, (char)0, (byte)1, (char)move, (char)1);
 		int hash_move = Move.valueOfFromTransposition(trans, pm.getTheBoard());
 		boolean inCheck = false;
 		//assertEquals(move, hash_move);

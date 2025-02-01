@@ -31,7 +31,7 @@ class FixedSizeTranspositionTableTest {
 		for (int i=0; i < FixedSizeTranspositionTable.RANGE_TO_SEARCH; i++) {
 			long trans = i;
 			if (i != 10) {
-				trans = Transposition.setAge(trans, 10);
+				trans = Transposition.setAge(trans, (char)10);
 			}
 			SUT.putTransposition((SUT.maxTableSize*i)+200L, trans);
 		}
@@ -71,7 +71,7 @@ class FixedSizeTranspositionTableTest {
 	@Test
 	void test_index_clash_when_region_full_and_overwrite_oldest() {
 		fullyPopulateIndexRegionOneOld();
-		long test_trans = Transposition.setAge(0xFFFF, 10);
+		long test_trans = Transposition.setAge(0xFFFF, (char)10);
 		SUT.putTransposition(200L, test_trans);
 		// expect overwrite
 		assertEquals(test_trans, SUT.getTransposition(200L));

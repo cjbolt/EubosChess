@@ -23,7 +23,7 @@ class TranspositionTest {
 	@Test
 	void testReadbackDepthSearchedInPly_AdjacentValue() {
 		long trans = Transposition.setDepthSearchedInPly(0L, (byte)10);
-		trans = Transposition.setScore(trans, (short) 65535);
+		trans = Transposition.setScore(trans, (char) 65535);
 		assertEquals(10, Transposition.getDepthSearchedInPly(trans));
 		// This means an overflow occurred, i.e. a large positive number became -1 as a signed short
 		// but at least it is guarded and doesn't impinge on adjacent bit field.
@@ -32,13 +32,13 @@ class TranspositionTest {
 
 	@Test
 	void testReadbackScore() {
-		long trans = Transposition.setScore(0L, (short)100);
+		long trans = Transposition.setScore(0L, (char)100);
 		assertEquals(100, Transposition.getScore(trans));
 	}
 
 	@Test
 	void testModifyReadbackScore() {
-		long trans = Transposition.setScore(0xFFL, (short)100);
+		long trans = Transposition.setScore(0xFFL, (char)100);
 		assertEquals(100, Transposition.getScore(trans));
 		assertEquals((100L<<32)+0xFFL, trans);
 	}
@@ -61,7 +61,7 @@ class TranspositionTest {
 		}
 		move = Move.setBest(move);
 		long trans = 0L;
-		trans = Transposition.setBestMove(trans, move);
+		trans = Transposition.setBestMove(trans, (char)move);
 		
 		assertEquals(move, Move.valueOfFromTransposition(trans, pm.getTheBoard()));
 	}
@@ -78,17 +78,17 @@ class TranspositionTest {
 		}
 		move = Move.setBest(move);
 		long trans = 0L;
-		trans = Transposition.setBestMove(trans, move);
+		trans = Transposition.setBestMove(trans, (char)move);
 		
 		assertEquals(move, Move.valueOfFromTransposition(trans, pm.getTheBoard()));
 	}
 	
 	@Test
 	void test_optimisedValueOf() {
-		long reference = Transposition.valueOf((byte)1, (short)15, (byte)0, (short)0, 5);
-		assertEquals(reference, Transposition.valueOf((byte)1, (short)15, (byte)0, (short)0, 5, Short.MAX_VALUE));
+		long reference = Transposition.valueOf((byte)1, (char)15, (byte)0, (char)0, (char)5);
+		assertEquals(reference, Transposition.valueOf((byte)1, (char)15, (byte)0, (char)0, (char)5, (char)Short.MAX_VALUE));
 		
-		long reference1 = Transposition.valueOf((byte)-1, (short)-15, (byte)0, (short)0, 5);
-		assertEquals(reference1, Transposition.valueOf((byte)-1, (short)-15, (byte)0, (short)0, 5, Short.MAX_VALUE));
+		long reference1 = Transposition.valueOf((byte)-1, (char)-15, (byte)0, (char)0, (char)5);
+		assertEquals(reference1, Transposition.valueOf((byte)-1, (char)-15, (byte)0, (char)0, (char)5, (char)Short.MAX_VALUE));
 	}
 }

@@ -708,8 +708,8 @@ public class PlySearcher {
 		if (Score.isMate(plyScore)) {
 			scoreFromDownTree = (short) ((plyScore < 0) ? plyScore - currPly : plyScore + currPly);
 		}
-		trans = tt.setTransposition(pos.getHash(), trans, depth, scoreFromDownTree, plyBound, (short)currMove, pos.getMoveNumber(), 
-				s.isStaticValid ? s.staticEval : Short.MAX_VALUE);
+		trans = tt.setTransposition(pos.getHash(), trans, depth, (char)scoreFromDownTree, plyBound, (char)currMove, (char)pos.getMoveNumber(), 
+				(char)(s.isStaticValid ? s.staticEval : Short.MAX_VALUE));
 		return trans;
 	}
 	

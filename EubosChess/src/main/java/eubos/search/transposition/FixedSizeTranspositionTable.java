@@ -157,25 +157,25 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		}
 	}
 	
-	public long setTransposition(long hash, long trans, byte new_Depth, short new_score, byte new_bound, short new_bestMove, int move_number, short static_eval) {
+	public long setTransposition(long hash, long trans, byte new_Depth, char new_score, byte new_bound, char new_bestMove, char move_number, char static_eval) {
 		if (EubosEngineMain.ENABLE_ASSERTS) {		
 			assert new_bestMove != Move.NULL_MOVE : "setTransposition best move is null";
 		}
 		if (trans == 0L) {
-			trans = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, move_number >> 2, static_eval);
+			trans = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, (char)(move_number >> 2), static_eval);
 			if (EubosEngineMain.ENABLE_ASSERTS) {
-				long old = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, move_number >> 2);
+				long old = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, (char)(move_number >> 2));
 				old = Transposition.setStaticEval(old, static_eval);
-				assert trans == old;
+				assert trans == old : String.format("%s %s", Transposition.report(trans), Transposition.report(old));
 			}
 			putTransposition(hash, trans, move_number);
 		}
 		else {
 			int currentDepth = Transposition.getDepthSearchedInPly(trans);
 			if (currentDepth <= new_Depth) {
-				trans = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, move_number >> 2, static_eval);
+				trans = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, (char)(move_number >> 2), static_eval);
 				if (EubosEngineMain.ENABLE_ASSERTS) {
-					long old = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, move_number >> 2);
+					long old = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, (char)(move_number >> 2));
 					old = Transposition.setStaticEval(old, static_eval);
 					assert trans == old;
 				}
