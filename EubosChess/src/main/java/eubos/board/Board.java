@@ -206,12 +206,22 @@ public class Board {
 		isAttacksMaskValid = false;
 		
 		int captureBitOffset = BitBoard.INVALID;
-		int pieceToMove = Move.getOriginPiece(move);
+		
+		// unload move
+		int temp = move;
+		int targetBitOffset = temp & 0x3F;
+		temp >>>= 6;
+		int originBitOffset = temp & 0x3F;
+		temp >>>= 6;
+		int promotedPiece = temp & 0x7;
+		temp >>>= 3;
+		temp >>>= 1;
+		int targetPiece = temp & 0xF;
+		temp >>>= 4;
+		int pieceToMove = temp & 0xF;
+		temp >>>= 4;
+		
 		boolean isWhite = Piece.isWhite(pieceToMove);
-		int originBitOffset = Move.getOriginPosition(move);
-		int targetBitOffset = Move.getTargetPosition(move);
-		int targetPiece = Move.getTargetPiece(move);
-		int promotedPiece = Move.getPromotion(move);
 		long initialSquareMask = 1L << originBitOffset;
 		long targetSquareMask = 1L << targetBitOffset;
 		long positionsMask = initialSquareMask | targetSquareMask;
@@ -426,13 +436,20 @@ public class Board {
 	public void undoMove(int moveToUndo) {
 		isAttacksMaskValid = false;
 		
-		int capturedPieceSquare = BitBoard.INVALID;
-		int originPiece = Move.getOriginPiece(moveToUndo);
+		// unload move
+		int temp = moveToUndo;
+		int originBitOffset = temp & 0x3F;
+		temp >>>= 6;
+		int targetBitOffset = temp & 0x3F;
+		temp >>>= 6;
+		int promotedPiece = temp & 0x7;
+		temp >>>= 4; // Skip enP bit as well
+		int targetPiece = temp & 0xF;
+		temp >>>= 4;
+		int originPiece = temp & 0xF;
+		temp >>>= 4;
+		
 		boolean isWhite = Piece.isWhite(originPiece);
-		int originBitOffset = Move.getTargetPosition(moveToUndo);
-		int targetBitOffset = Move.getOriginPosition(moveToUndo);
-		int targetPiece = Move.getTargetPiece(moveToUndo);
-		int promotedPiece = Move.getPromotion(moveToUndo);
 		long initialSquareMask = 1L << originBitOffset;
 		long targetSquareMask = 1L << targetBitOffset;
 		long positionsMask = initialSquareMask | targetSquareMask;
@@ -475,7 +492,7 @@ public class Board {
 		// Undo any capture that had been previously performed.
 		if (isCapture) {
 			// Origin square because the move has been reversed and origin square is the original target square
-			capturedPieceSquare = Move.isEnPassantCapture(moveToUndo) ? 
+			int capturedPieceSquare = Move.isEnPassantCapture(moveToUndo) ? 
 					generateCaptureBitOffsetForEnPassant(originPiece, originBitOffset) : originBitOffset;
 			long mask = 1L << capturedPieceSquare;
 			pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] |= mask;
