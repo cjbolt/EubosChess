@@ -163,22 +163,22 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		}
 		if (trans == 0L) {
 			trans = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, (char)(move_number >> 2), static_eval);
-			if (EubosEngineMain.ENABLE_ASSERTS) {
-				long old = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, (char)(move_number >> 2));
-				old = Transposition.setStaticEval(old, static_eval);
-				assert trans == old : String.format("%s %s", Transposition.report(trans), Transposition.report(old));
-			}
+//			if (EubosEngineMain.ENABLE_ASSERTS) {
+//				long old = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, (char)(move_number >> 2));
+//				old = Transposition.setStaticEval(old, static_eval);
+//				assert trans == old : String.format("%s %s", Transposition.report(trans), Transposition.report(old));
+//			}
 			putTransposition(hash, trans, move_number);
 		}
 		else {
 			int currentDepth = Transposition.getDepthSearchedInPly(trans);
 			if (currentDepth <= new_Depth) {
 				trans = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, (char)(move_number >> 2), static_eval);
-				if (EubosEngineMain.ENABLE_ASSERTS) {
-					long old = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, (char)(move_number >> 2));
-					old = Transposition.setStaticEval(old, static_eval);
-					assert trans == old;
-				}
+//				if (EubosEngineMain.ENABLE_ASSERTS) {
+//					long old = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, (char)(move_number >> 2));
+//					old = Transposition.setStaticEval(old, static_eval);
+//					assert trans == old;
+//				}
 				putTransposition(hash, trans, move_number);
 			}
 		}

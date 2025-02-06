@@ -602,13 +602,13 @@ public final class Move {
 		return Piece.isQueen(Move.getPromotion(move));
 	}
 	
-	public static boolean isPawnCapture(int move) {
-		return (move & ((Move.TYPE_CAPTURE_MASK << TYPE_SHIFT)|(Piece.PAWN << ORIGIN_PIECE_SHIFT))) == ((Move.TYPE_CAPTURE_MASK << TYPE_SHIFT)|(Piece.PAWN << ORIGIN_PIECE_SHIFT));
-	}
-
-	public static boolean invalidatesPawnCache(int move) {
-		return (Move.isPromotion(move) || Move.isPawnCapture(move) || Piece.isPawn(Move.getTargetPiece(move)));
-	}
+//	public static boolean isPawnCapture(int move) {
+//		return Move.isCapture(move) && Piece.isPawn(getOriginPiece(move));
+//	}
+//
+//	public static boolean invalidatesPawnCache(int move) {
+//		return (Move.isPromotion(move) || Move.isPawnCapture(move) || Piece.isPawn(Move.getTargetPiece(move)));
+//	}
 	
 	public static int setKiller(int move) {
 		return (move |= (Move.TYPE_KILLER_MASK << TYPE_SHIFT));
