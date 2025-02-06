@@ -214,8 +214,7 @@ public class Board {
 		int originBitOffset = temp & 0x3F;
 		temp >>>= 6;
 		int promotedPiece = temp & 0x7;
-		temp >>>= 3;
-		temp >>>= 1;
+		temp >>>= 4; // Skip enPassant flag as well
 		int targetPiece = temp & 0xF;
 		temp >>>= 4;
 		int pieceToMove = temp & 0xF;
@@ -2094,15 +2093,15 @@ public class Board {
 		}
 	}
 	
-	private boolean blackHasEnPrisePiece(long blackAttacks) {
-		long blacks_pieces_except_king = blackPieces & ~pieces[Piece.KING];
-		return (blacks_pieces_except_king & ~blackAttacks) != 0L;
-	}
-	
-	private boolean whiteHasEnPrisePiece(long whiteAttacks) {
-		long whites_pieces_except_king = whitePieces & ~pieces[Piece.KING];
-		return (whites_pieces_except_king & ~whiteAttacks) != 0L;
-	}
+//	private boolean blackHasEnPrisePiece(long blackAttacks) {
+//		long blacks_pieces_except_king = blackPieces & ~pieces[Piece.KING];
+//		return (blacks_pieces_except_king & ~blackAttacks) != 0L;
+//	}
+//	
+//	private boolean whiteHasEnPrisePiece(long whiteAttacks) {
+//		long whites_pieces_except_king = whitePieces & ~pieces[Piece.KING];
+//		return (whites_pieces_except_king & ~whiteAttacks) != 0L;
+//	}
 	
 	public boolean potentialKnightForkOnEnemyKing(boolean onMoveIsWhite) {
 		int kingBitOffset = this.getKingPosition(!onMoveIsWhite);
@@ -2116,105 +2115,7 @@ public class Board {
 		return (enemyKnights & SquareAttackEvaluator.KnightForks_Lut[kingBitOffset]) != 0L;
 	}
 	
-	public boolean isLikelyDrawnEndgame(boolean onMoveIsWhite) {
-		// Possible promotions
-		if (pieces[Piece.PAWN] != 0)
-			return false;
-		
-//		if (me.phase < 2624)
-//			return false;
-		boolean possiblyDrawn = false;
-		
-		// Minor pieces
-		int numWhiteBishops = me.numberOfPieces[Piece.WHITE_BISHOP];
-		int numWhiteKnights = me.numberOfPieces[Piece.WHITE_KNIGHT];
-		int numBlackBishops = me.numberOfPieces[Piece.BLACK_BISHOP];
-		int numBlackKnights = me.numberOfPieces[Piece.BLACK_KNIGHT];
-		int numWhiteMinor = numWhiteBishops + numWhiteKnights;
-		int numBlackMinor = numBlackBishops + numBlackKnights;
-		
-		if (pieces[Piece.QUEEN] == 0) {
-			int numWhiteRooks = me.numberOfPieces[Piece.WHITE_ROOK];
-			int numBlackRooks = me.numberOfPieces[Piece.BLACK_ROOK];
-			// (R vs 2 minor) or (R Minor vs Minor)
-			if (numWhiteRooks == 1 && numWhiteMinor < 2) {
-				// "R vs 2 minor" or "R Minor vs 2 minor"
-				if (numBlackRooks == 0 && numBlackMinor == 2) {
-					possiblyDrawn = true;
-				}
-				// "R Minor vs r" or "R vs r"
-				if (numBlackRooks == 1 && numBlackMinor == 0) {
-					possiblyDrawn = true;
-				}
-			}
-			if (numBlackRooks == 1 && numBlackMinor < 2) {
-				// "R vs 2 minor"
-				if (numWhiteRooks == 0 && numWhiteMinor == 2) {
-					possiblyDrawn = true;
-				}				
-				// R vs R Minor
-				if (numWhiteRooks == 1 && numWhiteMinor == 0) {
-					possiblyDrawn = true;
-				}
-			}	
-			if (!possiblyDrawn && (numWhiteRooks != 0 || numBlackRooks != 0)) {
-				// at least one rook on the board
-				return false;
-			}
-		} else {
-			if (pieces[Piece.ROOK] == 0) {
-				
-				int numWhiteQueens = me.numberOfPieces[Piece.WHITE_QUEEN];		
-				int numBlackQueens = me.numberOfPieces[Piece.BLACK_QUEEN];
-				// Q vs 2 minor
-				if (numWhiteQueens == 1 && numBlackQueens == 0 && numBlackMinor >= 2) {
-					possiblyDrawn = true;
-				}
-				if (numBlackQueens == 1 && numWhiteQueens == 0 && numWhiteMinor >= 2) {
-					possiblyDrawn = true;
-				}
-				// Q minor vs Q
-				if (numWhiteQueens == 1 && numBlackQueens == 1 && numBlackMinor == 0 && numWhiteMinor == 1) {
-					possiblyDrawn = true;
-				}
-				if (numBlackQueens == 1 && numWhiteQueens == 1 && numWhiteMinor == 0 && numBlackMinor == 1) {
-					possiblyDrawn = true;
-				}
-			}
-			// At least one queen on the board
-			if (!possiblyDrawn)
-				return false;
-		}
-		if (possiblyDrawn) {
-			// Accounts for pieces that can be taken on the next move, but doesn't account for check forks of en prise pieces
-			long [][][] attacks = mae.calculateBasicAttacksAndMobility(me);
-			if(onMoveIsWhite) {
-				if ((attacks[0][3][0] & blackPieces) != 0L ||
-					blackHasEnPrisePiece(attacks[1][3][0]) ||
-					potentialKnightForkOnEnemyKing(onMoveIsWhite))
-					return false;
-			} else {
-				if ((attacks[1][3][0] & whitePieces) != 0L ||
-					whiteHasEnPrisePiece(attacks[0][3][0]) ||
-					potentialKnightForkOnEnemyKing(onMoveIsWhite))
-					return false;
-			}
-		}
-		
-		if (numWhiteBishops >= 2 || numBlackBishops >= 2) {
-			// One side has at least two bishops
-			return false;
-		}
-		if ((numWhiteBishops == 1 && numWhiteKnights >= 1) ||
-		    (numBlackBishops == 1 && numBlackKnights >= 1))
-			// One side has Knight and Bishop
-			return false;
-		
-		// else insufficient material
-		return true;
-	}
-	
-	public boolean isLikelyDrawnEndgame(boolean onMoveIsWhite, long [][][] attacks) {
+	public boolean isLikelyDrawnEndgame(boolean onMoveIsWhite/*, long [][][] attacks*/) {
 		// Possible promotions
 		if (pieces[Piece.PAWN] != 0)
 			return false;
@@ -2284,19 +2185,19 @@ public class Board {
 			if (!possiblyDrawn)
 				return false;
 		}
-		if (possiblyDrawn) {
-			if(onMoveIsWhite) {
-				if ((attacks[0][3][0] & blackPieces) != 0L ||
-					blackHasEnPrisePiece(attacks[1][3][0]) ||
-					potentialKnightForkOnEnemyKing(onMoveIsWhite))
-					return false;
-			} else {
-				if ((attacks[1][3][0] & whitePieces) != 0L ||
-					whiteHasEnPrisePiece(attacks[0][3][0]) ||
-					potentialKnightForkOnEnemyKing(onMoveIsWhite))
-					return false;
-			}
-		}
+//		if (possiblyDrawn) {
+//			if(onMoveIsWhite) {
+//				if ((attacks[0][3][0] & blackPieces) != 0L ||
+//					blackHasEnPrisePiece(attacks[1][3][0]) ||
+//					potentialKnightForkOnEnemyKing(onMoveIsWhite))
+//					return false;
+//			} else {
+//				if ((attacks[1][3][0] & whitePieces) != 0L ||
+//					whiteHasEnPrisePiece(attacks[0][3][0]) ||
+//					potentialKnightForkOnEnemyKing(onMoveIsWhite))
+//					return false;
+//			}
+//		}
 		return possiblyDrawn;
 	}
 	
