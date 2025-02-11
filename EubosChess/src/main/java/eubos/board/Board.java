@@ -214,8 +214,7 @@ public class Board {
 		int originBitOffset = temp & 0x3F;
 		temp >>>= 6;
 		int promotedPiece = temp & 0x7;
-		temp >>>= 3;
-		temp >>>= 1;
+		temp >>>= 4;
 		int targetPiece = temp & 0xF;
 		temp >>>= 4;
 		int pieceToMove = temp & 0xF;
