@@ -1310,8 +1310,9 @@ public abstract class Piece {
     static int [] createCombinedTable(byte [] mg_table, byte[] eg_table) {
     	int [] combined_table = new int [64];
     	for (int i=0; i < 64; i++) {
-    		int mg = mg_table[i];
-    		int eg = eg_table[i];
+    		float sf = 1.25f;
+    		int mg = Math.round(((float)mg_table[i])*sf);
+    		int eg = Math.round(((float)eg_table[i])*sf);
     		combined_table[i] = mg;
     		combined_table[i] &= 0x0000_FFFF;
     		combined_table[i] |= (eg << 16);
