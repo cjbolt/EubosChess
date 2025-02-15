@@ -1,7 +1,6 @@
 package eubos.score;
 
 import eubos.board.Piece;
-import eubos.main.EubosEngineMain;
 
 public class PiecewiseEvaluation {
 	
@@ -68,12 +67,9 @@ public class PiecewiseEvaluation {
 		combinedPosition = d + b;
 	}
 	
-	public void updateRegular(int pieceTypeWithoutColour, int originPiece, int originBitOffset, int targetBitOffset) {
-		if (EubosEngineMain.ENABLE_ASSERTS) assert (pieceTypeWithoutColour & Piece.BLACK) == 0;
-		if (pieceTypeWithoutColour >= Piece.KNIGHT) {
-			addPst(originPiece, targetBitOffset);
-			subtractPst(originPiece, originBitOffset);
-		}
+	public void updateRegular(int originPiece, int originBitOffset, int targetBitOffset) {
+		addPst(originPiece, targetBitOffset);
+		subtractPst(originPiece, originBitOffset);
 	}
 	
 	public void updateWhenUndoingPromotion(int promoPiece, int oldBitOffset, int newBitOffset) {
@@ -88,10 +84,7 @@ public class PiecewiseEvaluation {
 		phase += Piece.PIECE_PHASE[promoPiece];
 		
 		addPst(pawnToReplace, newBitOffset);
-		int pieceType = promoPiece & Piece.PIECE_NO_COLOUR_MASK;
-		if (pieceType >= Piece.KNIGHT) {
-			subtractPst(promoPiece, oldBitOffset);
-		}
+		subtractPst(promoPiece, oldBitOffset);
 	}
 	
 	public void updateWhenDoingPromotion(int promoPiece, int oldBitOffset, int newBitOffset) {
@@ -106,10 +99,7 @@ public class PiecewiseEvaluation {
 		phase -= Piece.PIECE_PHASE[promoPiece];
 		
 		subtractPst(pawnToRemove, oldBitOffset);
-		int pieceType = promoPiece & Piece.PIECE_NO_COLOUR_MASK;
-		if (pieceType >= Piece.KNIGHT) {
-			addPst(promoPiece, newBitOffset);
-		}
+		addPst(promoPiece, newBitOffset);
 	}
 	
 	public void updateForCapture(int currPiece, int bitOffset) {
@@ -117,10 +107,7 @@ public class PiecewiseEvaluation {
 		mg_material -= Piece.PIECE_TO_MATERIAL_LUT[0][currPiece];
 		eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
 		phase += Piece.PIECE_PHASE[currPiece];
-		int pieceType = currPiece & Piece.PIECE_NO_COLOUR_MASK;
-		if (pieceType >= Piece.KNIGHT) {
-			subtractPst(currPiece, bitOffset);
-		}
+		subtractPst(currPiece, bitOffset);
 	}
 	
 	public void updateForReplacedCapture(int currPiece, int bitOffset) {
@@ -128,9 +115,6 @@ public class PiecewiseEvaluation {
 		mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][currPiece];
 		eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
 		phase -= Piece.PIECE_PHASE[currPiece];
-		int pieceType = currPiece & Piece.PIECE_NO_COLOUR_MASK;
-		if (pieceType >= Piece.KNIGHT) {
-			addPst(currPiece, bitOffset);
-		}
+		addPst(currPiece, bitOffset);
 	}
 }

@@ -352,7 +352,7 @@ public class Board {
 			hashUpdater.doPromotionMove(targetBitOffset, originBitOffset, pieceToMove, fullPromotedPiece);
 			pawnHashUpdater.removePawn(pieceToMove, originBitOffset);
 		} else {
-			me.updateRegular(pieceType, pieceToMove, originBitOffset, targetBitOffset);
+			me.updateRegular(pieceToMove, originBitOffset, targetBitOffset);
 			hashUpdater.doBasicMove(targetBitOffset, originBitOffset, pieceToMove);
 			
 			// Iterative update of passed pawns bitboard
@@ -477,7 +477,7 @@ public class Board {
 		} else {
 			// Piece type doesn't change across boards, update piece-specific bitboard, pieceLists and PST score
 			pieces[pieceType] ^= positionsMask;
-			me.updateRegular(pieceType, originPiece, originBitOffset, targetBitOffset);
+			me.updateRegular(originPiece, originBitOffset, targetBitOffset);
 		}
 		// Switch colour bitboard
 		if (isWhite) {
@@ -931,25 +931,25 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (wksc_mask);
 			whitePieces ^= (wksc_mask);
 			allPieces ^= (wksc_mask);
-			me.updateRegular(Piece.ROOK, Piece.WHITE_ROOK, BitBoard.h1, BitBoard.f1);
+			me.updateRegular(Piece.WHITE_ROOK, BitBoard.h1, BitBoard.f1);
 			hashUpdater.doBasicMove(BitBoard.f1, BitBoard.h1, Piece.WHITE_ROOK);
 		} else if (target == BitBoard.c1) {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
-			me.updateRegular(Piece.ROOK, Piece.WHITE_ROOK, BitBoard.a1, BitBoard.d1);
+			me.updateRegular(Piece.WHITE_ROOK, BitBoard.a1, BitBoard.d1);
 			hashUpdater.doBasicMove(BitBoard.d1, BitBoard.a1, Piece.WHITE_ROOK);
 		} else if (target == BitBoard.g8) {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
-			me.updateRegular(Piece.ROOK, Piece.BLACK_ROOK, BitBoard.h8, BitBoard.f8);
+			me.updateRegular(Piece.BLACK_ROOK, BitBoard.h8, BitBoard.f8);
 			hashUpdater.doBasicMove(BitBoard.f8, BitBoard.h8, Piece.BLACK_ROOK);
 		} else {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
 			allPieces ^= (bqsc_mask);
-			me.updateRegular(Piece.ROOK, Piece.BLACK_ROOK, BitBoard.a8, BitBoard.d8);
+			me.updateRegular(Piece.BLACK_ROOK, BitBoard.a8, BitBoard.d8);
 			hashUpdater.doBasicMove(BitBoard.d8, BitBoard.a8, Piece.BLACK_ROOK);
 		}
 	}
@@ -959,25 +959,25 @@ public class Board {
 			pieces[INDEX_ROOK] ^= (wksc_mask);
 			whitePieces ^= (wksc_mask);
 			allPieces ^= (wksc_mask);
-			me.updateRegular(Piece.ROOK, Piece.WHITE_ROOK, BitBoard.f1, BitBoard.h1);
+			me.updateRegular(Piece.WHITE_ROOK, BitBoard.f1, BitBoard.h1);
 			hashUpdater.doBasicMove(BitBoard.h1, BitBoard.f1, Piece.WHITE_ROOK);
 		} else if (origin == BitBoard.c1) {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
-			me.updateRegular(Piece.ROOK, Piece.WHITE_ROOK, BitBoard.d1, BitBoard.a1);
+			me.updateRegular(Piece.WHITE_ROOK, BitBoard.d1, BitBoard.a1);
 			hashUpdater.doBasicMove(BitBoard.a1, BitBoard.d1, Piece.WHITE_ROOK);
 		} else if (origin == BitBoard.g8) {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
-			me.updateRegular(Piece.ROOK, Piece.BLACK_ROOK, BitBoard.f8, BitBoard.h8);
+			me.updateRegular(Piece.BLACK_ROOK, BitBoard.f8, BitBoard.h8);
 			hashUpdater.doBasicMove(BitBoard.h8, BitBoard.f8, Piece.BLACK_ROOK);
 		} else {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
 			allPieces ^= (bqsc_mask);
-			me.updateRegular(Piece.ROOK, Piece.BLACK_ROOK, BitBoard.d8, BitBoard.a8);
+			me.updateRegular(Piece.BLACK_ROOK, BitBoard.d8, BitBoard.a8);
 			hashUpdater.doBasicMove(BitBoard.a8, BitBoard.d8, Piece.BLACK_ROOK);
 		}
 	}
