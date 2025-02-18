@@ -109,7 +109,6 @@ public class Board {
 			me.mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][side+Piece.ROOK];
 			me.eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][side+Piece.ROOK];
 			me.numberOfPieces[side+Piece.ROOK]++;
-			me.addPst(side+Piece.ROOK, bitOffset);
 			scratchBitBoard ^= (1L << bitOffset);
 		}
 		scratchBitBoard = pieces[Piece.BISHOP] & ownPieces;

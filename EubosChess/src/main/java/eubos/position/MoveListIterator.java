@@ -337,7 +337,7 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 
 		@SuppressWarnings("unused")
 		protected void handleUnderPromotions(int move) {
-			if ((EubosEngineMain.ENABLE_PERFT || ply == 0) && Move.isQueenPromotion(move)) {
+			if (EubosEngineMain.ENABLE_PERFT) {
 				// Add them in the order they will be sorted into
 				int under1 = Move.setPromotion(move, Piece.BISHOP);
 				int under2 = Move.setPromotion(move, Piece.KNIGHT);
@@ -345,6 +345,9 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 				state.moves[state.moves_index++] = under1;
 				state.moves[state.moves_index++] = under2;
 				state.moves[state.moves_index++] = under3;
+			} else if (ply == 0 && Move.isQueenPromotion(move)) {
+				int under2 = Move.setPromotion(move, Piece.KNIGHT);
+				state.moves[state.moves_index++] = Move.setPromotion(move, Piece.KNIGHT);
 			}
 		}
 	}

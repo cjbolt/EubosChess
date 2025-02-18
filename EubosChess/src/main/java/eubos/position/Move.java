@@ -450,7 +450,7 @@ public final class Move {
 		int promo1 = move1 & Move.PROMOTION_MASK;
 		int promo2 = move2 & Move.PROMOTION_MASK;
 		
-    	if (promo1 > promo2) {
+    	if (promo1 < promo2) {
     		return 1;
     	} else if (promo1 == promo2) {
     		return 0;

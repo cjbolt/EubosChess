@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -380,6 +381,7 @@ public class PositionManagerTest {
 	}
 
 	@Test
+	@Ignore
 	public void test_BlackPawn_MoveGen_PromoteBishop()  {
 		createSutAndRegisterPe("8/8/8/8/8/8/4p3/8 b - - 0 1 ");
 		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.BISHOP );
@@ -387,6 +389,7 @@ public class PositionManagerTest {
 	}
 
 	@Test
+	@Ignore
 	public void test_BlackPawn_MoveGen_PromoteRook()  {
 		createSutAndRegisterPe("8/8/8/8/8/8/4p3/8 b - - 0 1 ");
 		expectedMove = Move.valueOf( Move.TYPE_PROMOTION_MASK, Position.e2, Piece.BLACK_PAWN, Position.e1, Piece.NONE, Piece.ROOK );
@@ -544,6 +547,7 @@ public class PositionManagerTest {
 	}
 
 	@Test
+	@Ignore
 	public void test_WhitePawn_MoveGen_PromoteBishop()  {
 		createSutAndRegisterPe("8/4P3/8/8/8/8/8/8 w - - 0 1 ");
 		ml = new MoveList(classUnderTest, 0);
@@ -553,6 +557,7 @@ public class PositionManagerTest {
 	}
 
 	@Test
+	@Ignore
 	public void test_WhitePawn_MoveGen_PromoteRook()  {
 		createSutAndRegisterPe("8/4P3/8/8/8/8/8/8 w - - 0 1 ");
 		ml = new MoveList(classUnderTest, 0);
@@ -606,7 +611,7 @@ public class PositionManagerTest {
 	public void test_Bishop_MoveGen_CornerBottomLeft_ObstructedOwnPieces() {
 		createSutAndRegisterPe("8/8/8/8/8/8/1p6/b7 b - - 0 1");
 		
-		expectedNumMoves = 4;
+		expectedNumMoves = 2;
 		checkExpectedMoves(ml.getList(it));
 	}
 
