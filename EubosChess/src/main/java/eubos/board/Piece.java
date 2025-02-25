@@ -19,10 +19,10 @@ public abstract class Piece {
     public static final int NONE = 0x0;
 	public static final int KING = 0x1;
     public static final int PAWN = 0x2;
-	public static final int KNIGHT = 0x3;
-	public static final int QUEEN = 0x4;
-	public static final int BISHOP = 0x5;	
-	public static final int ROOK = 0x6;
+    public static final int ROOK = 0x3;
+	public static final int KNIGHT = 0x4;
+	public static final int QUEEN = 0x5;
+	public static final int BISHOP = 0x6;	
     public static final int DONT_CARE = 0x7;
     
     public static final int BLACK = 0x8;
