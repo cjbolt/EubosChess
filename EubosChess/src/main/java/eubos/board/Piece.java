@@ -1359,10 +1359,9 @@ public abstract class Piece {
     	return black;
     }
     
-    static int [] createCombinedTable(byte [] mg_table, byte[] eg_table) {
+    static int [] createCombinedTable(byte [] mg_table, byte[] eg_table, float sf) {
     	int [] combined_table = new int [64];
     	for (int i=0; i < 64; i++) {
-    		float sf = 1.0f;
     		int mg = Math.round(((float)mg_table[i])*sf);
     		int eg = Math.round(((float)eg_table[i])*sf);
     		combined_table[i] = mg;
@@ -1375,19 +1374,19 @@ public abstract class Piece {
     public static final int [][] COMBINED_PIECE_SQUARE_TABLES;
     static {
     	COMBINED_PIECE_SQUARE_TABLES = new int[15][];
-    	COMBINED_PIECE_SQUARE_TABLES[Piece.WHITE_PAWN] = createCombinedTable(P_W_MG_PST, P_W_EG_PST);
-    	COMBINED_PIECE_SQUARE_TABLES[Piece.WHITE_KING] = createCombinedTable(K_W_MG_PST, K_W_EG_PST);
-    	COMBINED_PIECE_SQUARE_TABLES[Piece.WHITE_QUEEN] = createCombinedTable(Q_W_MG_PST, ZERO_WEIGHTING);
-    	COMBINED_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK] = createCombinedTable(R_W_MG_PST, ZERO_WEIGHTING);
-    	COMBINED_PIECE_SQUARE_TABLES[Piece.WHITE_BISHOP] = createCombinedTable(B_W_MG_PST, ZERO_WEIGHTING);
-    	COMBINED_PIECE_SQUARE_TABLES[Piece.WHITE_KNIGHT] = createCombinedTable(N_W_MG_PST, N_EG_PST);
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.WHITE_PAWN] = createCombinedTable(P_W_MG_PST, P_W_EG_PST, 1.5f);
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.WHITE_KING] = createCombinedTable(K_W_MG_PST, K_W_EG_PST, 1.0f);
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.WHITE_QUEEN] = createCombinedTable(Q_W_MG_PST, ZERO_WEIGHTING, 3.0f);
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.WHITE_ROOK] = createCombinedTable(R_W_MG_PST, ZERO_WEIGHTING, 2.5f);
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.WHITE_BISHOP] = createCombinedTable(B_W_MG_PST, ZERO_WEIGHTING, 3.0f);
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.WHITE_KNIGHT] = createCombinedTable(N_W_MG_PST, N_EG_PST, 1.5f);
         
-    	COMBINED_PIECE_SQUARE_TABLES[Piece.BLACK_PAWN] = createCombinedTable(makeBlackPstFromWhitePst(P_W_MG_PST), makeBlackPstFromWhitePst(P_W_EG_PST));
-    	COMBINED_PIECE_SQUARE_TABLES[Piece.BLACK_KING] = createCombinedTable(makeBlackPstFromWhitePst(K_W_MG_PST), makeBlackPstFromWhitePst(K_W_EG_PST));
-    	COMBINED_PIECE_SQUARE_TABLES[Piece.BLACK_QUEEN] = createCombinedTable(makeBlackPstFromWhitePst(Q_W_MG_PST), ZERO_WEIGHTING);
-    	COMBINED_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK] = createCombinedTable(makeBlackPstFromWhitePst(R_W_MG_PST), ZERO_WEIGHTING);
-    	COMBINED_PIECE_SQUARE_TABLES[Piece.BLACK_BISHOP] = createCombinedTable(makeBlackPstFromWhitePst(B_W_MG_PST), ZERO_WEIGHTING);
-    	COMBINED_PIECE_SQUARE_TABLES[Piece.BLACK_KNIGHT] = createCombinedTable(makeBlackPstFromWhitePst(N_W_MG_PST), makeBlackPstFromWhitePst(N_EG_PST));
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.BLACK_PAWN] = createCombinedTable(makeBlackPstFromWhitePst(P_W_MG_PST), makeBlackPstFromWhitePst(P_W_EG_PST), 1.5f);
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.BLACK_KING] = createCombinedTable(makeBlackPstFromWhitePst(K_W_MG_PST), makeBlackPstFromWhitePst(K_W_EG_PST), 1.0f);
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.BLACK_QUEEN] = createCombinedTable(makeBlackPstFromWhitePst(Q_W_MG_PST), ZERO_WEIGHTING, 3.0f);
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.BLACK_ROOK] = createCombinedTable(makeBlackPstFromWhitePst(R_W_MG_PST), ZERO_WEIGHTING, 2.5f);
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.BLACK_BISHOP] = createCombinedTable(makeBlackPstFromWhitePst(B_W_MG_PST), ZERO_WEIGHTING, 3.0f);
+    	COMBINED_PIECE_SQUARE_TABLES[Piece.BLACK_KNIGHT] = createCombinedTable(makeBlackPstFromWhitePst(N_W_MG_PST), makeBlackPstFromWhitePst(N_EG_PST), 1.5f);
     }
  
 }
