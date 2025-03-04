@@ -2392,4 +2392,154 @@ public class Board {
 	public int getPieces() {
 		return Long.bitCount(allPieces);
 	}
+	
+	public static class NetInput {
+		public int white_king_sq;
+		public int black_king_sq;
+		public int[] white_pieces = new int[17];
+		public int[] white_squares = new int[17];
+		public int[] black_pieces = new int[17];
+		public int[] black_squares = new int[17];
+	}
+	
+	int [] piece_to_net_lut = {};
+	
+    public static final int[] PIECE_TO_NET_PIECE;
+    static {
+    	PIECE_TO_NET_PIECE = new int [Piece.PIECE_LENGTH];
+        
+        PIECE_TO_NET_PIECE[Piece.WHITE_QUEEN] = 4;
+        PIECE_TO_NET_PIECE[Piece.WHITE_ROOK] = 3;
+        PIECE_TO_NET_PIECE[Piece.WHITE_BISHOP] = 2;
+        PIECE_TO_NET_PIECE[Piece.WHITE_KNIGHT] = 1;
+        PIECE_TO_NET_PIECE[Piece.WHITE_KING] = 5;
+        PIECE_TO_NET_PIECE[Piece.WHITE_PAWN] = 0;
+        
+        PIECE_TO_NET_PIECE[Piece.BLACK_QUEEN] = 4;
+        PIECE_TO_NET_PIECE[Piece.BLACK_ROOK] = 3;
+        PIECE_TO_NET_PIECE[Piece.BLACK_BISHOP] = 2;
+        PIECE_TO_NET_PIECE[Piece.BLACK_KNIGHT] = 1;
+        PIECE_TO_NET_PIECE[Piece.BLACK_KING] = 5;
+        PIECE_TO_NET_PIECE[Piece.BLACK_PAWN] = 0;
+    }
+	public static int convertPiece(int pieceType) {
+		return PIECE_TO_NET_PIECE[pieceType];
+	}
+	
+	public NetInput populateNetInput() {
+		NetInput input = new NetInput();
+		long bb_w_king 		= getWhiteKing();
+		long bb_b_king 		= getBlackKing();
+		long bb_w_queens 	= getWhiteQueens();
+		long bb_b_queens 	= getBlackQueens();
+		long bb_w_rooks 	= getWhiteRooks();
+		long bb_b_rooks 	= getBlackRooks();
+		long bb_w_bishops 	= getWhiteBishops();
+		long bb_b_bishops 	= getBlackBishops();
+		long bb_w_knights 	= getWhiteKnights();
+		long bb_b_knights 	= getBlackKnights();
+		long bb_w_pawns 	= getWhitePawns();
+		long bb_b_pawns 	= getBlackPawns();
+		
+		int index_white 	= 0;
+		int index_black 	= 0;
+		
+		//White king
+		input.white_king_sq = BitBoard.convertToBitOffset(bb_w_king);
+		input.white_pieces[index_white] = convertPiece(Piece.WHITE_KING);
+		input.white_squares[index_white] = input.white_king_sq;
+		index_white++;
+		
+		
+		//Black king
+		input.black_king_sq	= BitBoard.convertToBitOffset(bb_b_king);
+		input.black_pieces[index_black] = convertPiece(Piece.BLACK_KING);
+		input.black_squares[index_black] = input.black_king_sq;
+		index_black++;
+		
+		
+		//White queens
+		while (bb_w_queens != 0) {
+			input.white_pieces[index_white] 	= convertPiece(Piece.WHITE_QUEEN);
+			input.white_squares[index_white] 	= BitBoard.convertToBitOffset(bb_w_queens);
+			index_white++;
+			bb_w_queens &= bb_w_queens - 1;
+		}
+		
+		//Black queens
+		while (bb_b_queens != 0) {
+			input.black_pieces[index_black] 	= convertPiece(Piece.BLACK_QUEEN);
+			input.black_squares[index_black] 	= BitBoard.convertToBitOffset(bb_b_queens);
+			index_black++;
+			bb_b_queens &= bb_b_queens - 1;
+		}
+		
+		//White rooks
+		while (bb_w_rooks != 0) {
+			input.white_pieces[index_white] 	= convertPiece(Piece.WHITE_ROOK);
+			input.white_squares[index_white] 	= BitBoard.convertToBitOffset(bb_w_rooks);
+			index_white++;
+			bb_w_rooks &= bb_w_rooks - 1;
+		}
+		
+		//Black rooks
+		while (bb_b_rooks != 0) {
+			input.black_pieces[index_black] 	= convertPiece(Piece.BLACK_ROOK);
+			input.black_squares[index_black] 	= BitBoard.convertToBitOffset(bb_b_rooks);
+			index_black++;
+			bb_b_rooks &= bb_b_rooks - 1;
+		}
+		
+		//White bishops
+		while (bb_w_bishops != 0) {
+			input.white_pieces[index_white] 	= convertPiece(Piece.WHITE_BISHOP);
+			input.white_squares[index_white] 	= BitBoard.convertToBitOffset(bb_w_bishops);
+			index_white++;
+			bb_w_bishops &= bb_w_bishops - 1;
+		}
+		
+		//Black bishops
+		while (bb_b_bishops != 0) {
+			input.black_pieces[index_black] 	= convertPiece(Piece.BLACK_BISHOP);
+			input.black_squares[index_black] 	= BitBoard.convertToBitOffset(bb_b_bishops);
+			index_black++;
+			bb_b_bishops &= bb_b_bishops - 1;
+		}
+		
+		//White knights
+		while (bb_w_knights != 0) {
+			input.white_pieces[index_white] 	= convertPiece(Piece.WHITE_KNIGHT);
+			input.white_squares[index_white] 	= BitBoard.convertToBitOffset(bb_w_knights);
+			index_white++;
+			bb_w_knights &= bb_w_knights - 1;
+		}
+		
+		//Black knights
+		while (bb_b_knights != 0) {
+			input.black_pieces[index_black] 	= convertPiece(Piece.BLACK_KNIGHT);
+			input.black_squares[index_black] 	= BitBoard.convertToBitOffset(bb_b_knights);
+			index_black++;
+			bb_b_knights &= bb_b_knights - 1;
+		}
+		
+		//White pawns
+		while (bb_w_pawns != 0) {
+			input.white_pieces[index_white] 	= convertPiece(Piece.WHITE_PAWN);
+			input.white_squares[index_white] 	= BitBoard.convertToBitOffset(bb_w_pawns);
+			index_white++;
+			bb_w_pawns &= bb_w_pawns - 1;
+		}
+		
+		//Black pawns
+		while (bb_b_pawns != 0) {
+			input.black_pieces[index_black] 	= convertPiece(Piece.BLACK_PAWN);
+			input.black_squares[index_black] 	= BitBoard.convertToBitOffset(bb_b_pawns);
+			index_black++;
+			bb_b_pawns &= bb_b_pawns - 1;
+		}
+		
+		input.white_pieces[index_white] 	= -1;
+		input.black_pieces[index_black] 	= -1;
+		return input;
+	}
 }
