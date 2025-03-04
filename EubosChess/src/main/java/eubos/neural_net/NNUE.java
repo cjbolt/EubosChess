@@ -179,7 +179,7 @@ public class NNUE
     
 	public static int evaluate(NNUE network, NNUEAccumulator us, NNUEAccumulator them, int pieces_count) {
 		
-		short[] L2Weights = network.L2Weights[chooseOutputBucket(pieces_count)];
+		short[] L2Weights = NNUE.L2Weights[chooseOutputBucket(pieces_count)];
 		short[] UsValues = us.values;
 		short[] ThemValues = them.values;
 		
@@ -194,7 +194,7 @@ public class NNUE
 		//int eval = JNIUtils.evaluateVectorized(L2Weights, UsValues, ThemValues);
 		
 		eval /= QA;
-		eval += network.outputBiases[chooseOutputBucket(pieces_count)];
+		eval += NNUE.outputBiases[chooseOutputBucket(pieces_count)];
 		
 		eval *= SCALE;
 		eval /= QA * QB;
@@ -229,12 +229,12 @@ public class NNUE
 		public NNUEAccumulator(NNUE network, int bucketIndex) {
 			this.network = network;
 			this.bucketIndex = bucketIndex;
-			System.arraycopy(network.L1Biases, 0, values, 0, HIDDEN_SIZE);
+			System.arraycopy(NNUE.L1Biases, 0, values, 0, HIDDEN_SIZE);
 		}
 
 		public void reset()
 		{
-			System.arraycopy(network.L1Biases, 0, values, 0, HIDDEN_SIZE);
+			System.arraycopy(NNUE.L1Biases, 0, values, 0, HIDDEN_SIZE);
 		}
 
 		public void setBucketIndex(int bucketIndex) {
@@ -244,22 +244,22 @@ public class NNUE
 		public void add(int featureIndex) {
 			for (int i = 0; i < HIDDEN_SIZE; i++)
 			{
-				values[i] += network.L1Weights[featureIndex + bucketIndex * FEATURE_SIZE][i];
+				values[i] += NNUE.L1Weights[featureIndex + bucketIndex * FEATURE_SIZE][i];
 			}
 		}
 		
 		public void sub(int featureIndex) {
 			for (int i = 0; i < HIDDEN_SIZE; i++)
 			{
-				values[i] -= network.L1Weights[featureIndex + bucketIndex * FEATURE_SIZE][i];
+				values[i] -= NNUE.L1Weights[featureIndex + bucketIndex * FEATURE_SIZE][i];
 			}
 		}
 
 		public void addsub(int featureIndexToAdd, int featureIndexToSubtract) {
 			for (int i = 0; i < HIDDEN_SIZE; i++)
 			{
-				values[i] += network.L1Weights[featureIndexToAdd + bucketIndex * FEATURE_SIZE][i]
-						- network.L1Weights[featureIndexToSubtract + bucketIndex * FEATURE_SIZE][i];
+				values[i] += NNUE.L1Weights[featureIndexToAdd + bucketIndex * FEATURE_SIZE][i]
+						- NNUE.L1Weights[featureIndexToSubtract + bucketIndex * FEATURE_SIZE][i];
 			}
 		}
 	}
