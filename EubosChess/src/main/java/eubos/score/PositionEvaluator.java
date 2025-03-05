@@ -255,10 +255,12 @@ public class PositionEvaluator implements IEvaluate {
 	public int lazyEvaluation(int alpha, int beta) {
 		basicInit();
 		if (!isDraw) {
-			return neural_net_eval();
-		} else {
-			return 0;
+			score = neural_net_eval();
+			if (score >= beta) {
+				return beta;
+			}
 		}
+		return score;
 //		if (EubosEngineMain.ENABLE_LAZY_EVALUATION) {
 //			if (!isDraw && bd.me.phase != 4096) {
 //				// Phase 1 - crude evaluation
