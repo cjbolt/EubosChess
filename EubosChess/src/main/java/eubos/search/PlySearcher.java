@@ -237,6 +237,7 @@ public class PlySearcher {
 		}
 		
 		// Extend search for in-check scenarios, treated outside of quiescence search
+		int original_depth = depth;
 		if (s.inCheck) {
 			++depth;
 		}
@@ -330,11 +331,11 @@ public class PlySearcher {
 							EubosEngineMain.logger.fine(String.format("BETA FAIL AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
 									s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
 						}
-						trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.lowerBound);
+						trans = updateTranspositionTable(trans, (byte) original_depth, bestMove, (short) s.bestScore, Score.lowerBound);
 						rootTransposition = trans;
 						break;
 					}
-					trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.upperBound);
+					trans = updateTranspositionTable(trans, (byte) original_depth, bestMove, (short) s.bestScore, Score.upperBound);
 					rootTransposition = trans;
 					reportPv((short) s.alpha);
 				}
@@ -385,6 +386,7 @@ public class PlySearcher {
 		}
 		
 		// Extend search for in-check scenarios, treated outside of quiescence search
+		int original_depth = depth;
 		if (s.inCheck) {
 			++depth;
 		}
@@ -527,7 +529,7 @@ public class PlySearcher {
 				// No moves searched at this point means either a stalemate or checkmate has occurred
 				return s.inCheck ? Score.getMateScore(currPly) : 0;
 			}
-			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
+			trans = updateTranspositionTable(trans, (byte) original_depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
 		}
 		
 		return s.bestScore;
