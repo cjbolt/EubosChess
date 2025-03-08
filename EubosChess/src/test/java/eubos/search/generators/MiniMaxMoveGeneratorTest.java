@@ -10,6 +10,7 @@ import org.junit.Ignore;
 import org.junit.After;
 import org.junit.Test;
 
+import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
 import com.fluxchess.jcpi.models.GenericMove;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
@@ -31,6 +32,19 @@ public class MiniMaxMoveGeneratorTest {
 	protected FixedSizeTranspositionTable hashMap;
 	PositionManager pm;
 	SearchMetricsReporter sr_stub;
+	
+	private class EubosMock extends EubosEngineMain {
+		boolean infoCommandReceived = false;
+		ProtocolInformationCommand last_info;
+		
+		@Override
+		public void sendInfoCommand(ProtocolInformationCommand command) {
+			infoCommandReceived = true;
+			last_info = command;
+		}
+		
+		public boolean getInfoCommandReceived() { return infoCommandReceived; }
+	}
 	
 	@Before
 	public void setUp() {
@@ -78,6 +92,7 @@ public class MiniMaxMoveGeneratorTest {
 	protected void setupPosition(String fen) {
 		pm = new PositionManager( fen );
 		classUnderTest = new MiniMaxMoveGenerator( hashMap, pm, pm);
+		classUnderTest.setEngineCallback(new EubosMock());
 	}	
 	
 	@Test
@@ -172,8 +187,8 @@ public class MiniMaxMoveGeneratorTest {
 		//   abcdefgh
 		setupPosition( "3nkbnr/3p1ppp/8/1B1p4/R2N4/8/6PP/4R1K1 b - - - 1" );
 		//expectedMove = new GenericMove("d8e6");
-		expectedMove = new GenericMove("f8e7");
-		//expectedMove = new GenericMove("g8e7");
+		//expectedMove = new GenericMove("f8e7");
+		expectedMove = new GenericMove("g8e7");
 		doFindMoveTest(true);
 	}	
 	

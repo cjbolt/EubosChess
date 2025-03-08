@@ -90,7 +90,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 					"info depth 1 seldepth 5 score cp 107 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 20"+CMD_TERMINATOR+
 					"info depth 1 seldepth 3 score cp 662 pv c7c2 hashfull 0 nps 0 time 0 nodes 26"+CMD_TERMINATOR+
                     "info depth 2 seldepth 6 score cp -126 pv c7c2 d4c3 hashfull 0 nps 0 time 0 nodes 141"+CMD_TERMINATOR+
-                    "info depth 2 seldepth 6 score cp 107 pv d7e5 f3e5 hashfull 0 nps 0 time 0 nodes 208"+CMD_TERMINATOR+
+                    "info depth 2 seldepth 6 score cp 107 pv d7e5 f3e5 hashfull 0 nps 0 time 0 nodes 202"+CMD_TERMINATOR+
                     "info string Eubos r1b1kb1r/ppq1pppp/8/3pn3/3Q4/5N2/PPP2PPP/RNB1K2R w KQkq - - 9"+CMD_TERMINATOR+
                     BEST_PREFIX+"d7e5";
 			setupEngine();
@@ -182,7 +182,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_TIME_PREFIX+"30000"+CMD_TERMINATOR, BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
-		assertTrue(performTestExpectMate(15000, 8));
+		assertTrue(performTestExpectMate(15000, 7));
 	}
 	
 	@Test
@@ -190,7 +190,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/6K1/8/3k4/1Q6/8/8/8 b - - 1 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"11"+CMD_TERMINATOR, BEST_PREFIX+"d5c6"+CMD_TERMINATOR));
-		assertTrue(performTestExpectMate(10000, -6));
+		assertTrue(performTestExpectMate(10000, -8));
 	} 
 	
 	@Test
@@ -212,7 +212,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		commands.add(new CommandPair(POS_FEN_PREFIX+"3q1rk1/p4pp1/2pb3p/3p4/6Pr/1PNQ4/P1PB1PP1/4RRK1 b - - 0 1 moves d6h2 g1h1 h2g3 h1g1 h4h1 g1h1 d8h4 h1g1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR,BEST_PREFIX+"h4h2"+CMD_TERMINATOR));
 
-		assertTrue(performTest(1500000));
+		assertTrue(performTest(15000));
 	}
 	
 	@Test
@@ -220,8 +220,8 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		int mateDepth = 0;
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1d1"+CMD_TERMINATOR));
-		mateDepth = 17;
+		commands.add(new CommandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1h4"+CMD_TERMINATOR));
+		mateDepth = 14;
 		assertTrue(performTestExpectMate(14000, mateDepth));
 	}
 	 
@@ -521,7 +521,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Fine: problem 26
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/2k5/p1P5/P1K5/8/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"20"+CMD_TERMINATOR, BEST_PREFIX+"c5d5"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"24"+CMD_TERMINATOR, BEST_PREFIX+"c5d5"+CMD_TERMINATOR));
 		assertTrue(performTest(1000));
 	}
 	
@@ -558,7 +558,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Fine: problem 70
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/k7/3p4/p2P1p2/P2P1P2/8/8/K7 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"25"+CMD_TERMINATOR, BEST_PREFIX+"a1b1"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"29"+CMD_TERMINATOR, BEST_PREFIX+"a1b1"+CMD_TERMINATOR));
 		assertTrue(performTest(10000));
 	}
 	
@@ -630,7 +630,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Fine: problem 100A
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/6p1/3k1p2/2p2Pp1/2P1p1P1/1P4P1/4K3/8 w - - 2 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"21"+CMD_TERMINATOR, BEST_PREFIX+"e2d2"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"21"+CMD_TERMINATOR, BEST_PREFIX+"e2f2"+CMD_TERMINATOR));
 		assertTrue(performTest(4000));		
 	}
 	

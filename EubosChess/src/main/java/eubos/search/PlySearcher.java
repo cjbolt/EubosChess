@@ -12,6 +12,7 @@ import eubos.search.transposition.ITranspositionAccessor;
 import eubos.search.transposition.Transposition;
 
 public class PlySearcher {
+	private static final boolean ENABLE_ASPIRATION_LOGGING = false;
 	
 	private static final int [] ASPIRATION_WINDOW_FALLBACK = 
 		//{ Piece.MATERIAL_VALUE_PAWN/6, (3*Piece.MATERIAL_VALUE_PAWN)/2, Piece.MATERIAL_VALUE_KNIGHT };
@@ -179,9 +180,9 @@ public class PlySearcher {
 					beta = getCoefficientBeta(lastScore, aspiration_window);
 				initialised = true;
 				
-				if (EubosEngineMain.ENABLE_LOGGING) {
-					EubosEngineMain.logger.info(String.format("Aspiration Window window=%d score=%d alpha=%d beta=%d depth=%d",
-							aspiration_window, score, alpha, beta, originalSearchDepthRequiredInPly));
+				if (ENABLE_ASPIRATION_LOGGING) {
+					eubos.sendInfoString(String.format("Aspiration Window window=%d lastScore=%d alpha=%d beta=%d depth=%d",
+							aspiration_window, lastScore, alpha, beta, originalSearchDepthRequiredInPly));
 				}
 				
 				score = searchRoot(originalSearchDepthRequiredInPly, alpha, beta);
@@ -189,13 +190,17 @@ public class PlySearcher {
 				if (isTerminated() && (score == 0 || Score.isProvisional(score))) {
 	        		// Early termination, possibly didn't back up a score at the last ply
 	        		lastAspirationFailed = false;
+	        		if (ENABLE_ASPIRATION_LOGGING) {
+	        			eubos.sendInfoString(String.format("Aspiration terminated score=%d at depth=%d",
+	        					score, originalSearchDepthRequiredInPly));
+	        		}
 	        		break;
 	        	} else if ((score > alpha && score < beta) || isTerminated()) {
 		        	// Exact score in window returned
 		        	lastAspirationFailed = false;
-		        	if (EubosEngineMain.ENABLE_LOGGING) {
-						EubosEngineMain.logger.fine(String.format("Aspiration returned window=%d score=%d in alpha=%d beta=%d for depth=%d",
-								aspiration_window, score, alpha, beta, originalSearchDepthRequiredInPly));
+		        	if (ENABLE_ASPIRATION_LOGGING) {
+		        		eubos.sendInfoString(String.format("Aspiration score=%d within alpha=%d beta=%d for depth=%d",
+								score, alpha, beta, originalSearchDepthRequiredInPly));
 					}
 		        	reportPv((short) score);
 		            break;
@@ -205,6 +210,11 @@ public class PlySearcher {
 					certain = false;
 					alphaFail = score <= alpha;
 					betaFail = score >= beta;
+					if (ENABLE_ASPIRATION_LOGGING) {
+						String report = alphaFail ? "<= alpha" : ">= beta";
+		        		eubos.sendInfoString(String.format("Aspiration score=%d outside window=%s for depth=%d",
+								score, String.format("%d %s", score, report), originalSearchDepthRequiredInPly));
+					}
 					if (sr != null)
 						sr.resetAfterWindowingFail();
 		        }
@@ -437,6 +447,7 @@ public class PlySearcher {
 		int bestMove = Move.NULL_MOVE;
 		int currMove = Move.NULL_MOVE;
 		int positionScore = s.bestScore;
+		boolean increased_alpha = false;
 		boolean refuted = false;
 		int quietMoveNumber = 0;
 		if (trans != 0L) {
@@ -509,6 +520,7 @@ public class PlySearcher {
 				}
 				if (s.bestScore > s.alpha) {
 					s.alpha = s.bestScore;
+					increased_alpha = true;
 					pc.update(currPly, bestMove);
 				}
 				if (s.alpha >= s.beta) {
@@ -529,7 +541,9 @@ public class PlySearcher {
 				// No moves searched at this point means either a stalemate or checkmate has occurred
 				return s.inCheck ? Score.getMateScore(currPly) : 0;
 			}
-			trans = updateTranspositionTable(trans, (byte) original_depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
+			if (increased_alpha) {
+				trans = updateTranspositionTable(trans, (byte) original_depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
+			}
 		}
 		
 		return s.bestScore;
