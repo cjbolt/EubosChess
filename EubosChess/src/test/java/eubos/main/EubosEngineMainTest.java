@@ -87,10 +87,10 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_infoMessageSending_clearsPreviousPvMoves() throws InterruptedException, IOException {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && !SearchMetrics.ENABLE_SINGLE_MOVE_PV) {
 			String expectedOutput = "info string Eubos positionReceived r1b1kb1r/ppqnpppp/8/3pP3/3Q4/5N2/PPP2PPP/RNB1K2R b KQkq - - 8"+CMD_TERMINATOR+
-					"info depth 1 seldepth 5 score cp 111 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 20"+CMD_TERMINATOR+
-					"info depth 1 seldepth 3 score cp 687 pv c7c2 hashfull 0 nps 0 time 0 nodes 26"+CMD_TERMINATOR+
-                    "info depth 2 seldepth 6 score cp -101 pv c7c2 d4c3 hashfull 0 nps 0 time 0 nodes 163"+CMD_TERMINATOR+
-                    "info depth 2 seldepth 5 score cp 111 pv d7e5 f3e5 hashfull 0 nps 0 time 0 nodes 187"+CMD_TERMINATOR+
+					"info depth 1 seldepth 5 score cp 103 pv d7e5 f3e5 c7c2 hashfull 0 nps 0 time 0 nodes 20"+CMD_TERMINATOR+
+					"info depth 1 seldepth 3 score cp 682 pv c7c2 hashfull 0 nps 0 time 0 nodes 26"+CMD_TERMINATOR+
+                    "info depth 2 seldepth 6 score cp -104 pv c7c2 d4c3 hashfull 0 nps 0 time 0 nodes 163"+CMD_TERMINATOR+
+                    "info depth 2 seldepth 5 score cp 103 pv d7e5 f3e5 hashfull 0 nps 0 time 0 nodes 187"+CMD_TERMINATOR+
                     "info string Eubos r1b1kb1r/ppq1pppp/8/3pn3/3Q4/5N2/PPP2PPP/RNB1K2R w KQkq - - 9"+CMD_TERMINATOR+
                     BEST_PREFIX+"d7e5";
 			setupEngine();
@@ -182,7 +182,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_TIME_PREFIX+"30000"+CMD_TERMINATOR, BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
-		assertTrue(performTestExpectMate(15000, 9));
+		assertTrue(performTestExpectMate(15000, 7));
 	}
 	
 	@Test

@@ -6,6 +6,7 @@ import java.io.PipedWriter;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.stream.Stream;
 
 import eubos.score.PositionEvaluator;
 
@@ -128,6 +129,12 @@ public abstract class AbstractEubosIntegration {
 		return output;
 	}
 	
+	private void filterEngineOutput(String parsedCmd, String filter)
+	{
+		Stream<String> linesFromString = parsedCmd.lines();
+		linesFromString.forEach(l -> { if (l.contains(filter)) System.err.println(l); });
+	}
+	
 	protected boolean performTest(int timeout) throws IOException, InterruptedException {
 		return performTest(timeout, false);
 	}
@@ -198,13 +205,15 @@ public abstract class AbstractEubosIntegration {
 								if (parsedCmd.contains(mateExpectation)) {
 									mateDetected = true;
 								}
+								filterEngineOutput(parsedCmd, "mate");
 							} else if (parsedCmd.contains(mateExpectation)) {
 								mateDetected = true;
 								accumulate = true;
 							} else {
-								if (parsedCmd.contains("bestmove") || parsedCmd.contains("string")) {
-									System.err.println(String.format("received '%s'", parsedCmd));
-								}
+//								if (parsedCmd.contains("bestmove") /*|| parsedCmd.contains("string")*/) {
+//									System.err.println(String.format("received '%s'", parsedCmd));
+//								}
+								filterEngineOutput(parsedCmd, "bestmove");
 								accumulate = false;
 							}
 					    }
