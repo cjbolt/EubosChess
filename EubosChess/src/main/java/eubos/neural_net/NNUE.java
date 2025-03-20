@@ -27,24 +27,24 @@ public class NNUE
 	private static final int COLOR_STRIDE = 64 * 6;
 	private static final int PIECE_STRIDE = 64;
 
-	private static final int HIDDEN_SIZE = 1024;
+	private static final int HIDDEN_SIZE = 128;
 	private static final int FEATURE_SIZE = 768;
-	private static final int OUTPUT_BUCKETS = 8;
-	private static final int DIVISOR = (32 + OUTPUT_BUCKETS - 1) / OUTPUT_BUCKETS;
-	private static final int INPUT_BUCKET_SIZE = 7;
-	// @formatter:off
-	private static final int[] INPUT_BUCKETS = new int[]
-	{
-			0, 0, 1, 1, 2, 2, 3, 3,
-			4, 4, 4, 4, 5, 5, 5, 5,
-			6, 6, 6, 6, 6, 6, 6, 6,
-			6, 6, 6, 6, 6, 6, 6, 6,
-			6, 6, 6, 6, 6, 6, 6, 6,
-			6, 6, 6, 6, 6, 6, 6, 6,
-			6, 6, 6, 6, 6, 6, 6, 6,
-			6, 6, 6, 6, 6, 6, 6, 6,
-	};
-	// @formatter:on
+	private static final int OUTPUT_BUCKETS = 1;
+	//private static final int DIVISOR = (32 + OUTPUT_BUCKETS - 1) / OUTPUT_BUCKETS;
+	private static final int INPUT_BUCKET_SIZE = 1;
+//	// @formatter:off
+//	private static final int[] INPUT_BUCKETS = new int[]
+//	{
+//			0, 0, 1, 1, 2, 2, 3, 3,
+//			4, 4, 4, 4, 5, 5, 5, 5,
+//			6, 6, 6, 6, 6, 6, 6, 6,
+//			6, 6, 6, 6, 6, 6, 6, 6,
+//			6, 6, 6, 6, 6, 6, 6, 6,
+//			6, 6, 6, 6, 6, 6, 6, 6,
+//			6, 6, 6, 6, 6, 6, 6, 6,
+//			6, 6, 6, 6, 6, 6, 6, 6,
+//	};
+//	// @formatter:on
 
 	private static final int SCALE = 400;
 	private static final int QA = 255;
@@ -54,14 +54,14 @@ public class NNUE
 	private static short[] L1Biases;
 	private static short[][] L2Weights;
 	private static short outputBiases[];
-	
+	private static String network_file = "/quantised.bin";
 	static {
 		
 		try {
 			
 			InputStream is = null;
 			
-			File file = new File("./network_bagatur.nnue");
+			File file = new File("."+network_file);
 			
 			if (file.exists()) {
 				
@@ -69,7 +69,7 @@ public class NNUE
 				
 			} else {
 				
-				is = NNUE.class.getResourceAsStream("/network_bagatur.nnue");
+				is = NNUE.class.getResourceAsStream(network_file);
 			}
 			
 			DataInputStream networkData = new DataInputStream(
@@ -179,7 +179,7 @@ public class NNUE
     
 	public static int evaluate(NNUE network, NNUEAccumulator us, NNUEAccumulator them, int pieces_count) {
 		
-		short[] L2Weights = NNUE.L2Weights[chooseOutputBucket(pieces_count)];
+		short[] L2Weights = NNUE.L2Weights[0];
 		short[] UsValues = us.values;
 		short[] ThemValues = them.values;
 		
@@ -190,11 +190,9 @@ public class NNUE
 			eval += screlu[UsValues[i] - Short.MIN_VALUE] * L2Weights[i]
 					+ screlu[ThemValues[i] - Short.MIN_VALUE] * L2Weights[i + HIDDEN_SIZE];
 		}
-		
-		//int eval = JNIUtils.evaluateVectorized(L2Weights, UsValues, ThemValues);
-		
+				
 		eval /= QA;
-		eval += NNUE.outputBiases[chooseOutputBucket(pieces_count)];
+		eval += NNUE.outputBiases[0];
 		
 		eval *= SCALE;
 		eval /= QA * QB;
@@ -202,13 +200,10 @@ public class NNUE
 		return eval;
 	}
 	
-	public static int chooseOutputBucket(int pieces_count) {
-		return (pieces_count - 2) / DIVISOR;
-	}
-
 	public static int chooseInputBucket(int king_sq, int side) {
-		return side == WHITE ? INPUT_BUCKETS[king_sq]
-				: INPUT_BUCKETS[king_sq ^ 0b111000];
+		return 0;
+		//return side == WHITE ? INPUT_BUCKETS[king_sq]
+		//		: INPUT_BUCKETS[king_sq ^ 0b111000];
 	}
 
 	public static int getIndex(int square, int piece_side, int piece_type, int perspective) {
