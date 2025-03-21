@@ -1,6 +1,8 @@
 package eubos.main;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PipedReader;
@@ -451,6 +453,34 @@ public class EubosEngineMain extends AbstractEngine {
 		return trans != 0L;
 	}
 	
+	private void updateTrainingData(int score, int move) {
+		if (Move.isCapture(move)) return;
+		if (score == Score.PROVISIONAL_ALPHA) return;
+		if (rootPosition.isKingInCheck()) return;
+		if (!rootPosition.onMoveIsWhite()) { score = -score; } // always white relative scores in training data
+		
+		FileWriter fw = null;
+		String computerName = System.getenv("EUBOS_HOST_NAME");
+		String filenameBase = String.format("TrainingData_BagaturV2NN_Eval_SelfPlay_%s", ((computerName != null)?computerName:""));
+		int attempt = 0;
+		while (attempt < 10 && fw == null) {
+			try {
+				fw = new FileWriter(new File(String.format("%s_%d.txt", filenameBase, attempt)), true);
+			} catch (IOException e) {
+				attempt++;		
+			}
+		}
+		if (fw != null) {
+			String training_sample = String.format("%s|%d|0.5\n", rootPosition.getFen(), score);
+			try {
+				fw.write(training_sample);
+				fw.close();
+			} catch (IOException e) {
+				handleFatalError(e ,"IO error", rootPosition);
+			}
+		}
+	}
+	
 	private long selectBestTranspositionData(long tableRoot, long cacheRoot) {
 		long transToValidate = cacheRoot;
 		if (transpositionIsValid(tableRoot)) {
@@ -470,6 +500,8 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	private int getTrustedMove(SearchResult result) {
 		int trustedMove = Move.NULL_MOVE;
+		long trustedTrans = 0L;
+		int trustedScore;
 		
 		/* Table root trans has problems: the table hash move can be overwritten by lower depth moves. 
 		   This can happen in deep searches if the root transposition is overwritten by aging
@@ -480,23 +512,30 @@ public class EubosEngineMain extends AbstractEngine {
 			//sendInfoString(String.format("getTrustedMove %s", result.report(rootPosition.getTheBoard())));
 
 			long cacheRoot = result.rootTrans;
-			long rootTrans = selectBestTranspositionData(tableRoot, cacheRoot);
+			trustedTrans = selectBestTranspositionData(tableRoot, cacheRoot);
 			boolean trustedMoveWasFromTrans = false;
 			
 			if (result.pv != null && result.trusted) {
 				trustedMove = result.pv[0];
-			} else if (transpositionIsValid(rootTrans)) {
-				trustedMove = Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard());
+			} else if (transpositionIsValid(trustedTrans)) {
+				trustedMove = Move.valueOfFromTransposition(trustedTrans, rootPosition.getTheBoard());
 				trustedMoveWasFromTrans = true;
 			}
 			if (EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH) {
 				if (lastOnMoveClock > 30000) {
-					trustedMove = new Validate(this).validate(trustedMoveWasFromTrans, rootTrans, result, trustedMove);
+					trustedMove = new Validate(this).validate(trustedMoveWasFromTrans, trustedTrans, result, trustedMove);
 				}
 			}
 		} else if (transpositionIsValid(tableRoot)) {
 			//sendInfoString("sendBestMoveCommand trans table");
 			trustedMove = Move.valueOfFromTransposition(tableRoot, rootPosition.getTheBoard());
+			trustedTrans = tableRoot;
+		}
+		
+		if (transpositionIsValid(trustedTrans) || result != null) {
+			trustedScore = (result != null && result.score != Score.PROVISIONAL_ALPHA) ? result.score : 
+				transpositionIsValid(trustedTrans) ? Transposition.getScore(trustedTrans) : Score.PROVISIONAL_ALPHA;
+			updateTrainingData(trustedScore, trustedMove);
 		}
 		return trustedMove;
 	}
