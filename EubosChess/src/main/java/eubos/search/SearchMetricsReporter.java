@@ -173,4 +173,12 @@ public class SearchMetricsReporter extends Thread {
 			}
 		}
 	}
+	
+	public long getNodesSearched() {
+		if (sm_list.size() == 1) {
+			SearchMetrics sm = sm_list.get(0);
+			return sm.getNodesSearched();
+		}
+		return 0;
+	}
 }
