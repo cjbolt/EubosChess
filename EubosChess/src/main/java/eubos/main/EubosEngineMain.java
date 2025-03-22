@@ -289,7 +289,12 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		analysisMode = false;
 		// Create Move Searcher
-		if (clockTimeValid) {
+		if (command.getMoveTime() != null) {
+			logger.info("Search move, fixed time " + command.getMoveTime());
+			ms = new FixedTimeMoveSearcher(this, hashMap, pawnHash, lastFen, dc, command.getMoveTime(), refScore);
+		} else if (command.getNodes() != null) {
+			ms = new FixedNodesMoveSearcher(this, hashMap, lastFen, dc, command.getNodes(), refScore);
+		} else if (clockTimeValid) {
 			lastOnMoveClock = clockTime;
 			if (command.getDepth() != null) {
 				byte searchDepth = (byte)((int)command.getDepth());
@@ -301,12 +306,7 @@ public class EubosEngineMain extends AbstractEngine {
 						numberOfWorkerThreads, refScore, move_overhead);
 			}
 		}
-		else if (command.getMoveTime() != null) {
-			logger.info("Search move, fixed time " + command.getMoveTime());
-			ms = new FixedTimeMoveSearcher(this, hashMap, pawnHash, lastFen, dc, command.getMoveTime(), refScore);
-		} else if (command.getNodes() != null) {
-			ms = new FixedNodesMoveSearcher(this, hashMap, lastFen, dc, command.getNodes(), refScore);
-		} else {
+		else {
 			// Analyse mode
 			byte searchDepth = 0;
 			if (command.getInfinite()) {
