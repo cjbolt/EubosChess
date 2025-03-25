@@ -93,6 +93,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_FUTILITY_PRUNING_OF_KILLER_MOVES = false;
 	public static final boolean ENABLE_OVERWRITE_TRANS_WITH_SEARCH = false;
 	public static final boolean ENABLE_TT_CUT_OFFS_IN_EXTENDED_SEARCH = true;
+	public static final boolean ENABLE_RANDOM_MOVE_TRAINING_GENERATION = true;
 	
 	public static final int MAXIMUM_PLIES_IN_GAME = 250;
 	
@@ -250,17 +251,32 @@ public class EubosEngineMain extends AbstractEngine {
 		if (ENABLE_TT_DIAGNOSTIC_LOGGING) {
 			hashMap.resetDiagnostics();
 		}
-		int forcedMove = MoveList.getForcedMove(rootPosition);
-		if (forcedMove != Move.NULL_MOVE) {
-			sendInfoString(String.format("forced %s", Move.toString(forcedMove)));
-			int [] pv = new int[] { forcedMove };
-			SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, 0);
+		if (ENABLE_RANDOM_MOVE_TRAINING_GENERATION) {
+			int randomMove = MoveList.getRandomMove(rootPosition);
+			if (randomMove == Move.NULL_MOVE) {
+				return;
+			}
+			rootPosition.performMove(randomMove);
+			PositionEvaluator pe = new PositionEvaluator(rootPosition, pawnHash);
+			int score = -pe.getFullEvaluation();
+			rootPosition.unperformMove();
+			int [] pv = new int[] { randomMove };
+			SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, score);
 			sendBestMoveCommand(result);
+			
 		} else {
-			// The move searcher will report the best move found via a callback to this object, 
-			// this will occur when the tree search is concluded and the thread completes execution.
-			moveSearcherFactory(command);
-			ms.start();
+			int forcedMove = MoveList.getForcedMove(rootPosition);
+			if (forcedMove != Move.NULL_MOVE) {
+				sendInfoString(String.format("forced %s", Move.toString(forcedMove)));
+				int [] pv = new int[] { forcedMove };
+				SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, 0);
+				sendBestMoveCommand(result);
+			} else {
+				// The move searcher will report the best move found via a callback to this object, 
+				// this will occur when the tree search is concluded and the thread completes execution.
+				moveSearcherFactory(command);
+				ms.start();
+			}
 		}
 	}
 	
