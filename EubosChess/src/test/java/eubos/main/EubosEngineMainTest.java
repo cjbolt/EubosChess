@@ -118,7 +118,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 				+ " d8d5 f5f4 d5d6 f4e4 d6c6 e4d3 c6d5 g7d4 d5b3 d3e4 d1e2 e4e5 b3b8 d4d6 b8b2 e5f4 b2c1"
 				+ " f4f5 c1c2 f5f6 c2a4 d6h2 e2d3 h2h3 d3d2 h3h2 d2d3 h2h3 d3d2"+CMD_TERMINATOR, null));
 		// Need to insert a trans in the hash table for the root position with best score that is a draw at this new position!
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR,BEST_PREFIX+"h3g2"+CMD_TERMINATOR)); // i.e not h2h3
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"2"+CMD_TERMINATOR,BEST_PREFIX+"f6e7"+CMD_TERMINATOR)); // i.e not h2h3
 		assertTrue(performTest(5000));
 	}
 	
@@ -189,7 +189,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_KQk_mated_in_6_NEW() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/6K1/8/3k4/1Q6/8/8/8 b - - 1 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"11"+CMD_TERMINATOR, BEST_PREFIX+"d5c6"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"d5c6"+CMD_TERMINATOR));
 		assertTrue(performTestExpectMate(10000, -6));
 	} 
 	
@@ -221,7 +221,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1d1"+CMD_TERMINATOR));
-		mateDepth = 14;
+		mateDepth = 13;
 		assertTrue(performTestExpectMate(14000, mateDepth));
 	}
 	 
@@ -267,9 +267,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_hash_issue_losing_position() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"3r2k1/5p2/7p/3R2p1/p7/1q1Q1PP1/7P/3R2K1 b - - 1 42"+CMD_TERMINATOR, null));
-
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d8d5"+CMD_TERMINATOR));
-		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"b3d5"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"b3b6"+CMD_TERMINATOR));
 
 		int hashMove = Move.valueOf(Position.b3, Piece.BLACK_QUEEN, Position.d1, Piece.WHITE_ROOK);
 		long hashEntry = Transposition.valueOf((byte)6, (short)0, Score.lowerBound, (short)hashMove, 42 >> 2);
@@ -530,8 +528,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Fine: problem 29
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"4k3/4Pp2/5P2/4K3/8/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"18"+CMD_TERMINATOR, BEST_PREFIX+"e5f5"+CMD_TERMINATOR));
-		//commands.add(new CommandPair(GO_DEPTH_PREFIX+"18"+CMD_TERMINATOR, BEST_PREFIX+"e5e4"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"18"+CMD_TERMINATOR, BEST_PREFIX+"e5f4"+CMD_TERMINATOR));
 		assertTrue(performTest(1000));
 	}
 	
@@ -567,7 +564,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Fine: problem 80
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/1ppk4/p4pp1/P1PP2p1/2P1K1P1/7P/8 b - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"15"+CMD_TERMINATOR, BEST_PREFIX+"b6b5"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"16"+CMD_TERMINATOR, BEST_PREFIX+"b6b5"+CMD_TERMINATOR));
 		assertTrue(performTest(4000));
 	}
 	
@@ -630,7 +627,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Fine: problem 100A
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/6p1/3k1p2/2p2Pp1/2P1p1P1/1P4P1/4K3/8 w - - 2 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"21"+CMD_TERMINATOR, BEST_PREFIX+"e2d2"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"21"+CMD_TERMINATOR, BEST_PREFIX+"e2f2"+CMD_TERMINATOR));
 		assertTrue(performTest(4000));		
 	}
 	

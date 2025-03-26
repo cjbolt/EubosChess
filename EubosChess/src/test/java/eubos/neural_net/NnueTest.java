@@ -2,11 +2,14 @@ package eubos.neural_net;
 
 import java.io.IOException;
 
+import org.junit.jupiter.api.Test;
+
 import eubos.position.PositionManager;
 
-public class ProbeMain_V2 {    
+public class NnueTest {    
 		
-	public static void main(String[] args) {
+	@Test
+	public void ProbeTest() {
 		
 		String test_evalPosA = "rn2k1nr/1pp2p1p/p7/8/6b1/2P2N2/PPP2PP1/R1BB1RK1 b kq - 0 12"; 
 		String test_EvalPosB = "8/8/1B6/8/8/4Kpk1/8/b7 w - - - 85";
@@ -19,7 +22,6 @@ public class ProbeMain_V2 {
 		String fen8 = "4kr2/8/8/8/8/8/8/3K4 w - - 0 1";
         
 		try {
-			
 			evaluate(test_evalPosA);
 	        evaluate(test_EvalPosB);
 	        evaluate(fen2);
@@ -28,10 +30,8 @@ public class ProbeMain_V2 {
 	        evaluate(fen5);
 	        evaluate(fen6);
 	        evaluate(fen7);
-	        evaluate(fen8);
-	        
+	        evaluate(fen8); 
 		} catch (IOException e) {
-			
 			e.printStackTrace();
 		}
 	}

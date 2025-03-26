@@ -1,6 +1,5 @@
 package eubos.neural_net;
 
-
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -12,15 +11,8 @@ import eubos.board.Board;
 import eubos.board.Board.NetInput;
 import eubos.position.PositionManager;
 
-
-/**
- * Experiment by probing via Bullet NNUE with 1 layers
- */
 public class NNUE
-{
-	
-	public static final boolean DO_INCREMENTAL_UPDATES = false;
-	
+{	
 	public static final int WHITE = 0;
 	public static final int BLACK = 1;
 	
@@ -29,22 +21,6 @@ public class NNUE
 
 	private static final int HIDDEN_SIZE = 128;
 	private static final int FEATURE_SIZE = 768;
-	private static final int OUTPUT_BUCKETS = 1;
-	//private static final int DIVISOR = (32 + OUTPUT_BUCKETS - 1) / OUTPUT_BUCKETS;
-	private static final int INPUT_BUCKET_SIZE = 1;
-//	// @formatter:off
-//	private static final int[] INPUT_BUCKETS = new int[]
-//	{
-//			0, 0, 1, 1, 2, 2, 3, 3,
-//			4, 4, 4, 4, 5, 5, 5, 5,
-//			6, 6, 6, 6, 6, 6, 6, 6,
-//			6, 6, 6, 6, 6, 6, 6, 6,
-//			6, 6, 6, 6, 6, 6, 6, 6,
-//			6, 6, 6, 6, 6, 6, 6, 6,
-//			6, 6, 6, 6, 6, 6, 6, 6,
-//			6, 6, 6, 6, 6, 6, 6, 6,
-//	};
-//	// @formatter:on
 
 	private static final int SCALE = 400;
 	private static final int QA = 255;
@@ -52,49 +28,59 @@ public class NNUE
 
 	private static short[][] L1Weights;
 	private static short[] L1Biases;
-	private static short[][] L2Weights;
-	private static short outputBiases[];
+	private static short[] L2Weights;
+	private static short outputBias;
 	private static String network_file = "/quantised.bin";
 	static {
-		
 		try {
-			
 			InputStream is = null;
-			
 			File file = new File("."+network_file);
-			
 			if (file.exists()) {
-				
 				is = new FileInputStream(file);
-				
 			} else {
-				
 				is = NNUE.class.getResourceAsStream(network_file);
 			}
-			
 			DataInputStream networkData = new DataInputStream(
-					new BufferedInputStream(
-							is, 16 * 4096
-					)
+				new BufferedInputStream(
+					is, 16 * 4096
+				)
 			);
-			
 			loadNetwork(networkData);
-		
 			networkData.close();
-			
 		} catch (IOException e) {
-			
 			throw new RuntimeException(e);
 		}
 	}
 	
+	private static void loadNetwork(DataInputStream networkData) throws IOException {
+		L1Weights = new short[FEATURE_SIZE][HIDDEN_SIZE];
+		for (int i = 0; i < FEATURE_SIZE; i++) {
+			for (int j = 0; j < HIDDEN_SIZE; j++)
+				L1Weights[i][j] = toLittleEndian(networkData.readShort());
+		}
+
+		L1Biases = new short[HIDDEN_SIZE];
+		for (int i = 0; i < HIDDEN_SIZE; i++) {
+			L1Biases[i] = toLittleEndian(networkData.readShort());
+		}
+
+		L2Weights = new short[HIDDEN_SIZE * 2];
+		for (int i = 0; i < HIDDEN_SIZE * 2; i++) {
+			L2Weights[i] = toLittleEndian(networkData.readShort());
+		}
+
+		outputBias = toLittleEndian(networkData.readShort());
+	
+		networkData.close();
+	}
+
+	private static short toLittleEndian(short input) {
+		return (short) (((input & 0xFF) << 8) | ((input & 0xFF00) >> 8));
+	}
 	
 	private final static int screlu[] = new int[Short.MAX_VALUE - Short.MIN_VALUE + 1];
-	
-	static
-	{
-		for(int i = Short.MIN_VALUE; i <= Short.MAX_VALUE;i ++)
-		{
+	static {
+		for(int i = Short.MIN_VALUE; i <= Short.MAX_VALUE;i ++) {
 			screlu[i - (int) Short.MIN_VALUE] = screlu((short)(i));
 		}
 	}
@@ -106,108 +92,41 @@ public class NNUE
 	
 	private Accumulators accumulators;
 	private PositionManager pm;
-	
+
 	public NNUE(PositionManager eubos_pm) {
-		
 		pm = eubos_pm;
-		
 		accumulators = new Accumulators(this);
 	}
-
-	
-	private static void loadNetwork(DataInputStream networkData) throws IOException {
-		
-		L1Weights = new short[FEATURE_SIZE * INPUT_BUCKET_SIZE][HIDDEN_SIZE];
-
-		for (int i = 0; i < FEATURE_SIZE * INPUT_BUCKET_SIZE; i++)
-		{
-			for (int j = 0; j < HIDDEN_SIZE; j++)
-			{
-				L1Weights[i][j] = toLittleEndian(networkData.readShort());
-			}
-		}
-
-		L1Biases = new short[HIDDEN_SIZE];
-
-		for (int i = 0; i < HIDDEN_SIZE; i++)
-		{
-			L1Biases[i] = toLittleEndian(networkData.readShort());
-		}
-
-		L2Weights = new short[OUTPUT_BUCKETS][HIDDEN_SIZE * 2];
-
-		for (int i = 0; i < HIDDEN_SIZE * 2; i++)
-		{
-			for (int j = 0; j < OUTPUT_BUCKETS; j++)
-			{
-				L2Weights[j][i] = toLittleEndian(networkData.readShort());
-			}
-		}
-
-		outputBiases = new short[OUTPUT_BUCKETS];
-
-		for (int i = 0; i < OUTPUT_BUCKETS; i++)
-		{
-			outputBiases[i] = toLittleEndian(networkData.readShort());
-		}
-		
-		networkData.close();
-	}
-
-	
-	private static short toLittleEndian(short input) {
-		return (short) (((input & 0xFF) << 8) | ((input & 0xFF00) >> 8));
-	}
-	
 	
 	public int evaluate() {
-	
 		Board bd = pm.getTheBoard();
 		NetInput input = bd.populateNetInput();
-			
-		accumulators.fullAccumulatorUpdate(input.white_king_sq, input.black_king_sq, input.white_pieces, input.white_squares, input.black_pieces, input.black_squares);
-		
-		int pieces_count = bd.me.getNumPieces();
-		
-		int eval = pm.onMoveIsWhite() ?
-		        evaluate(this, accumulators.getWhiteAccumulator(), accumulators.getBlackAccumulator(), pieces_count)
-		        :
-		        evaluate(this, accumulators.getBlackAccumulator(), accumulators.getWhiteAccumulator(), pieces_count);
-		        
-		return eval;
+		accumulators.fullAccumulatorUpdate(input.white_pieces, input.white_squares, input.black_pieces, input.black_squares);
+		return pm.onMoveIsWhite() ?
+		        evaluate(this, accumulators.getWhiteAccumulator(), accumulators.getBlackAccumulator()) :
+		        evaluate(this, accumulators.getBlackAccumulator(), accumulators.getWhiteAccumulator());
 	}    
     
-	public static int evaluate(NNUE network, NNUEAccumulator us, NNUEAccumulator them, int pieces_count) {
-		
-		short[] L2Weights = NNUE.L2Weights[0];
+	public static int evaluate(NNUE network, NNUEAccumulator us, NNUEAccumulator them) {
 		short[] UsValues = us.values;
 		short[] ThemValues = them.values;
 		
 		int eval = 0;
-		
-		for (int i = 0; i < HIDDEN_SIZE; i++)
-		{
-			eval += screlu[UsValues[i] - Short.MIN_VALUE] * L2Weights[i]
-					+ screlu[ThemValues[i] - Short.MIN_VALUE] * L2Weights[i + HIDDEN_SIZE];
+		for (int i = 0; i < HIDDEN_SIZE; i++) {
+			eval += screlu[UsValues[i] - Short.MIN_VALUE] * NNUE.L2Weights[i]
+					+ screlu[ThemValues[i] - Short.MIN_VALUE] * NNUE.L2Weights[i + HIDDEN_SIZE];
 		}
 				
 		eval /= QA;
-		eval += NNUE.outputBiases[0];
+		eval += NNUE.outputBias;
 		
 		eval *= SCALE;
 		eval /= QA * QB;
 		
 		return eval;
 	}
-	
-	public static int chooseInputBucket(int king_sq, int side) {
-		return 0;
-		//return side == WHITE ? INPUT_BUCKETS[king_sq]
-		//		: INPUT_BUCKETS[king_sq ^ 0b111000];
-	}
 
 	public static int getIndex(int square, int piece_side, int piece_type, int perspective) {
-		//System.out.println("square=" + square + ", piece_side=" + piece_side + ", piece_type=" + piece_type + ", perspective=" + perspective);
 		return perspective == WHITE
 				? piece_side * COLOR_STRIDE + piece_type * PIECE_STRIDE
 						+ square
@@ -218,43 +137,32 @@ public class NNUE
 	public static class NNUEAccumulator
 	{
 		private short[] values = new short[HIDDEN_SIZE];
-		private int bucketIndex;
 		NNUE network;
 
-		public NNUEAccumulator(NNUE network, int bucketIndex) {
+		public NNUEAccumulator(NNUE network) {
 			this.network = network;
-			this.bucketIndex = bucketIndex;
 			System.arraycopy(NNUE.L1Biases, 0, values, 0, HIDDEN_SIZE);
 		}
 
-		public void reset()
-		{
+		public void reset() {
 			System.arraycopy(NNUE.L1Biases, 0, values, 0, HIDDEN_SIZE);
-		}
-
-		public void setBucketIndex(int bucketIndex) {
-			this.bucketIndex = bucketIndex;
 		}
 
 		public void add(int featureIndex) {
-			for (int i = 0; i < HIDDEN_SIZE; i++)
-			{
-				values[i] += NNUE.L1Weights[featureIndex + bucketIndex * FEATURE_SIZE][i];
+			for (int i = 0; i < HIDDEN_SIZE; i++) {
+				values[i] += NNUE.L1Weights[featureIndex][i];
 			}
 		}
 		
 		public void sub(int featureIndex) {
-			for (int i = 0; i < HIDDEN_SIZE; i++)
-			{
-				values[i] -= NNUE.L1Weights[featureIndex + bucketIndex * FEATURE_SIZE][i];
+			for (int i = 0; i < HIDDEN_SIZE; i++) {
+				values[i] -= NNUE.L1Weights[featureIndex][i];
 			}
 		}
 
 		public void addsub(int featureIndexToAdd, int featureIndexToSubtract) {
-			for (int i = 0; i < HIDDEN_SIZE; i++)
-			{
-				values[i] += NNUE.L1Weights[featureIndexToAdd + bucketIndex * FEATURE_SIZE][i]
-						- NNUE.L1Weights[featureIndexToSubtract + bucketIndex * FEATURE_SIZE][i];
+			for (int i = 0; i < HIDDEN_SIZE; i++) {
+				values[i] += NNUE.L1Weights[featureIndexToAdd][i] - NNUE.L1Weights[featureIndexToSubtract][i];
 			}
 		}
 	}

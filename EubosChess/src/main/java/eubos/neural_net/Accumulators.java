@@ -7,17 +7,14 @@ public class Accumulators
 	
 	public Accumulators(NNUE network)
 	{
-		whiteAccumulator = new NNUE.NNUEAccumulator(network, -1);
-		blackAccumulator = new NNUE.NNUEAccumulator(network, -1);
+		whiteAccumulator = new NNUE.NNUEAccumulator(network);
+		blackAccumulator = new NNUE.NNUEAccumulator(network);
 	}
 	
-	public void fullAccumulatorUpdate(int white_king_sq, int black_king_sq, int[] white_pieces, int[] white_squares, int[] black_pieces, int[] black_squares)
+	public void fullAccumulatorUpdate(int[] white_pieces, int[] white_squares, int[] black_pieces, int[] black_squares)
 	{
 		whiteAccumulator.reset();
 		blackAccumulator.reset();
-		
-		whiteAccumulator.setBucketIndex(NNUE.chooseInputBucket(white_king_sq, NNUE.WHITE));
-		blackAccumulator.setBucketIndex(NNUE.chooseInputBucket(black_king_sq, NNUE.BLACK));
 		
 		for (int i = 0; i < white_pieces.length; i++) {
 			if (white_pieces[i] == -1) {
