@@ -4,8 +4,10 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import eubos.board.Board;
 import eubos.board.Board.NetInput;
@@ -30,21 +32,11 @@ public class NNUE
 	private static short[] L1Biases;
 	private static short[] L2Weights;
 	private static short outputBias;
-	private static String network_file = "/quantised.bin";
+
 	static {
 		try {
-			InputStream is = null;
-			File file = new File("."+network_file);
-			if (file.exists()) {
-				is = new FileInputStream(file);
-			} else {
-				is = NNUE.class.getResourceAsStream(network_file);
-			}
-			DataInputStream networkData = new DataInputStream(
-				new BufferedInputStream(
-					is, 16 * 4096
-				)
-			);
+			InputStream is = NNUE.class.getResourceAsStream("/quantised.bin");
+			DataInputStream networkData = new DataInputStream(new BufferedInputStream(is, 16 * 4096));
 			loadNetwork(networkData);
 			networkData.close();
 		} catch (IOException e) {
