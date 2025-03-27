@@ -31,10 +31,10 @@ public class NNUE
 
 	static {
 		try {
-			InputStream is = NNUE.class.getResourceAsStream("/quantised.bin");
-			DataInputStream networkData = new DataInputStream(new BufferedInputStream(is, 16 * 4096));
+			InputStream is = NNUE.class.getResourceAsStream("/resources/quantised.bin");
+			BufferedInputStream in = new BufferedInputStream(is, 16*4096);
+			DataInputStream networkData = new DataInputStream(in);
 			loadNetwork(networkData);
-			networkData.close();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -58,7 +58,6 @@ public class NNUE
 		}
 
 		outputBias = toLittleEndian(networkData.readShort());
-	
 		networkData.close();
 	}
 
