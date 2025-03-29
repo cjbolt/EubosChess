@@ -1,6 +1,8 @@
 package eubos.main;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PipedReader;
@@ -56,8 +58,8 @@ import java.util.Set;
 
 public class EubosEngineMain extends AbstractEngine {
 	
-	static final int EUBOS_MAJOR_VERSION = 3;
-	static final int EUBOS_MINOR_VERSION = 9;
+	static final int EUBOS_MAJOR_VERSION = 4;
+	static final int EUBOS_MINOR_VERSION = 0;
 	
 	public static final byte SEARCH_DEPTH_IN_PLY = Byte.MAX_VALUE;
 	public static final int DEFAULT_NUM_SEARCH_THREADS = 1;
@@ -73,6 +75,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_DEBUG_VALIDATION_DRAWS = false;
 	public static final boolean ENABLE_TT_DIAGNOSTIC_LOGGING = false;
 	public static final boolean ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO = false;
+	public static final boolean ENABLE_GENERATE_TRAINING_DATA = false;
 	
 	public static final boolean ENABLE_REPETITION_DETECTION = true;
 	public static final boolean ENABLE_TRANSPOSITION_TABLE = true;
@@ -450,6 +453,38 @@ public class EubosEngineMain extends AbstractEngine {
 	private boolean transpositionIsValid(long trans) {
 		return trans != 0L;
 	}
+
+	private void updateTrainingData(int score, int move) {
+		if (Move.isCapture(move) ||
+			score == Score.PROVISIONAL_ALPHA ||
+			rootPosition.isKingInCheck()) { 
+			return; // Only generate training data for quiet positions
+		}
+		if (!rootPosition.onMoveIsWhite()) { 
+			score = -score; // Always use white relative scores in training data
+		}
+		
+		FileWriter fw = null;
+		String computerName = System.getenv("EUBOS_HOST_NAME");
+		String filenameBase = String.format("TrainingData_SelfPlay_%s", ((computerName != null)?computerName:""));
+		int attempt = 0;
+		while (attempt < 10 && fw == null) {
+			try {
+				fw = new FileWriter(new File(String.format("%s_%d.txt", filenameBase, attempt)), true);
+			} catch (IOException e) {
+				attempt++;		
+			}
+		}
+		if (fw != null) {
+			String training_sample = String.format("%s|%d|0.5\n", rootPosition.getFen(), score);
+			try {
+				fw.write(training_sample);
+				fw.close();
+			} catch (IOException e) {
+				handleFatalError(e ,"IO error", rootPosition);
+			}
+		}
+	}
 	
 	private long selectBestTranspositionData(long tableRoot, long cacheRoot) {
 		long transToValidate = cacheRoot;
@@ -470,6 +505,8 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	private int getTrustedMove(SearchResult result) {
 		int trustedMove = Move.NULL_MOVE;
+		long trustedTrans = 0L;
+		int trustedScore;
 		
 		/* Table root trans has problems: the table hash move can be overwritten by lower depth moves. 
 		   This can happen in deep searches if the root transposition is overwritten by aging
@@ -480,23 +517,32 @@ public class EubosEngineMain extends AbstractEngine {
 			//sendInfoString(String.format("getTrustedMove %s", result.report(rootPosition.getTheBoard())));
 
 			long cacheRoot = result.rootTrans;
-			long rootTrans = selectBestTranspositionData(tableRoot, cacheRoot);
+			trustedTrans = selectBestTranspositionData(tableRoot, cacheRoot);
 			boolean trustedMoveWasFromTrans = false;
 			
 			if (result.pv != null && result.trusted) {
 				trustedMove = result.pv[0];
-			} else if (transpositionIsValid(rootTrans)) {
-				trustedMove = Move.valueOfFromTransposition(rootTrans, rootPosition.getTheBoard());
+			} else if (transpositionIsValid(trustedTrans)) {
+				trustedMove = Move.valueOfFromTransposition(trustedTrans, rootPosition.getTheBoard());
 				trustedMoveWasFromTrans = true;
 			}
 			if (EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH) {
 				if (lastOnMoveClock > 30000) {
-					trustedMove = new Validate(this).validate(trustedMoveWasFromTrans, rootTrans, result, trustedMove);
+					trustedMove = new Validate(this).validate(trustedMoveWasFromTrans, trustedTrans, result, trustedMove);
 				}
 			}
 		} else if (transpositionIsValid(tableRoot)) {
 			//sendInfoString("sendBestMoveCommand trans table");
 			trustedMove = Move.valueOfFromTransposition(tableRoot, rootPosition.getTheBoard());
+			trustedTrans = tableRoot;
+		}
+		
+		if (ENABLE_GENERATE_TRAINING_DATA) {
+			if (transpositionIsValid(trustedTrans) || result != null) {
+				trustedScore = (result != null && result.score != Score.PROVISIONAL_ALPHA) ? result.score : 
+					transpositionIsValid(trustedTrans) ? Transposition.getScore(trustedTrans) : Score.PROVISIONAL_ALPHA;
+				updateTrainingData(trustedScore, trustedMove);
+			}
 		}
 		return trustedMove;
 	}

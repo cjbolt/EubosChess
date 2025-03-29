@@ -32,6 +32,9 @@ public class NNUE
 	static {
 		try {
 			InputStream is = NNUE.class.getResourceAsStream("/resources/quantised.bin");
+			if (is == null) {
+				is = NNUE.class.getResourceAsStream("/quantised.bin");
+			}
 			BufferedInputStream in = new BufferedInputStream(is, 16*4096);
 			DataInputStream networkData = new DataInputStream(in);
 			loadNetwork(networkData);
