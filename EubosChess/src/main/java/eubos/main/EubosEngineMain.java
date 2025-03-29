@@ -75,7 +75,9 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_DEBUG_VALIDATION_DRAWS = false;
 	public static final boolean ENABLE_TT_DIAGNOSTIC_LOGGING = false;
 	public static final boolean ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO = false;
+	
 	public static final boolean ENABLE_GENERATE_TRAINING_DATA = false;
+	public static final boolean ENABLE_RANDOM_MOVE_TRAINING_GENERATION = false;
 	
 	public static final boolean ENABLE_REPETITION_DETECTION = true;
 	public static final boolean ENABLE_TRANSPOSITION_TABLE = true;
@@ -250,17 +252,32 @@ public class EubosEngineMain extends AbstractEngine {
 		if (ENABLE_TT_DIAGNOSTIC_LOGGING) {
 			hashMap.resetDiagnostics();
 		}
-		int forcedMove = MoveList.getForcedMove(rootPosition);
-		if (forcedMove != Move.NULL_MOVE) {
-			sendInfoString(String.format("forced %s", Move.toString(forcedMove)));
-			int [] pv = new int[] { forcedMove };
-			SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, 0);
+		if (ENABLE_RANDOM_MOVE_TRAINING_GENERATION) {
+			int randomMove = MoveList.getRandomMove(rootPosition);
+			if (randomMove == Move.NULL_MOVE) {
+				return;
+			}
+			rootPosition.performMove(randomMove);
+			PositionEvaluator pe = new PositionEvaluator(rootPosition, pawnHash);
+			int score = -pe.getFullEvaluation();
+			rootPosition.unperformMove();
+			int [] pv = new int[] { randomMove };
+			SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, score);
 			sendBestMoveCommand(result);
+			
 		} else {
-			// The move searcher will report the best move found via a callback to this object, 
-			// this will occur when the tree search is concluded and the thread completes execution.
-			moveSearcherFactory(command);
-			ms.start();
+			int forcedMove = MoveList.getForcedMove(rootPosition);
+			if (forcedMove != Move.NULL_MOVE) {
+				sendInfoString(String.format("forced %s", Move.toString(forcedMove)));
+				int [] pv = new int[] { forcedMove };
+				SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, 0);
+				sendBestMoveCommand(result);
+			} else {
+				// The move searcher will report the best move found via a callback to this object, 
+				// this will occur when the tree search is concluded and the thread completes execution.
+				moveSearcherFactory(command);
+				ms.start();
+			}
 		}
 	}
 	

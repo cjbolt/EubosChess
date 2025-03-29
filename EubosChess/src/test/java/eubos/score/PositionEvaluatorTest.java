@@ -3,6 +3,7 @@ package eubos.score;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fluxchess.jcpi.models.IllegalNotationException;
@@ -28,12 +29,14 @@ public class PositionEvaluatorTest {
 	}
 	
 	@Test
+	@Ignore // With NN eval, absolute c.p, scores are too volatile between nets to be worth testing
 	public void test_evalPosA() {
 		setUpPosition("rn2k1nr/1pp2p1p/p7/8/6b1/2P2N2/PPP2PP1/R1BB1RK1 b kq - 0 12");
 		assertEquals(-426, SUT.getFullEvaluation()); // Knight good pos, pawn up, doubled pawns, isolated pawn, not endgame, some danger to black king (open file)
 	}
 	
 	@Test
+	@Ignore // With NN eval, absolute c.p, scores are too volatile between nets to be worth testing
 	public void test_EvalPosB() {
 		setUpPosition("8/8/1B6/8/8/4Kpk1/8/b7 w - - - 85");
 		int expectedScore = -377;
@@ -135,6 +138,7 @@ public class PositionEvaluatorTest {
 	}
 	
 	@Test
+	@Ignore // With NN eval, can't guarantee symmetry of evaluation function
 	public void test_evaluationSymmetry() {
 		checkSymmetryOfPosition("4q3/P4b2/2R3Bp/KPn5/2p3P1/2r2n2/kP6/5N2 w - - 0 1");
 		checkSymmetryOfPosition("4b3/1Q6/1B1K1n1k/2p5/5r2/Pp1P1N2/6q1/NR5B w - - 0 1");
