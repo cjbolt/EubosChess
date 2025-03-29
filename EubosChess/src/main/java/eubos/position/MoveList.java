@@ -39,6 +39,7 @@ public class MoveList {
 
 	static public int getRandomMove(PositionManager pm) {
 		MoveListIterator it = new MoveListIterator(new History(), pm, 0, 0);
+		it.initialise(Move.NULL_MOVE, null, pm.isKingInCheck(), false);
 		int randomMove = Move.NULL_MOVE;
 		int moveCount = 0;
 		int moves[] = new int[110];
