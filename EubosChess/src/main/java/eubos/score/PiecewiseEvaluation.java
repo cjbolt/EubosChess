@@ -50,6 +50,21 @@ public class PiecewiseEvaluation {
 		phase -= numberOfPieces[Piece.BLACK_QUEEN] * QUEEN_PHASE;
 		// Phase is now a 10 bit fixed point fraction of the total phase
 	}
+	
+	public int getNumPieces() {
+		int num = 2; // kings
+		num += numberOfPieces[Piece.WHITE_KNIGHT];
+		num += numberOfPieces[Piece.WHITE_BISHOP];
+		num += numberOfPieces[Piece.WHITE_ROOK];
+		num += numberOfPieces[Piece.WHITE_QUEEN];
+		num += numberOfPieces[Piece.WHITE_PAWN];
+		num += numberOfPieces[Piece.BLACK_KNIGHT];
+		num += numberOfPieces[Piece.BLACK_BISHOP];
+		num += numberOfPieces[Piece.BLACK_ROOK];
+		num += numberOfPieces[Piece.BLACK_QUEEN];
+		num += numberOfPieces[Piece.BLACK_PAWN];
+		return num;
+	}
 
 	public void addPst(int piece, int bitOffset) {
 		int x = combinedPosition;

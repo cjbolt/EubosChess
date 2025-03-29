@@ -8,8 +8,10 @@ import eubos.board.Board;
 import eubos.board.Piece;
 import eubos.board.SquareAttackEvaluator;
 import eubos.main.EubosEngineMain;
+import eubos.neural_net.NNUE;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
+import eubos.position.PositionManager;
 
 public class PositionEvaluator implements IEvaluate {
 	
@@ -29,7 +31,7 @@ public class PositionEvaluator implements IEvaluate {
 	private int midgameScore = 0;
 	private int endgameScore = 0;
 	private boolean isDraw;
-	private short score;
+	private int score;
 	private Board bd;
 	private LazyEvalStatistics lazyStat = null;
 	
@@ -200,84 +202,98 @@ public class PositionEvaluator implements IEvaluate {
 	private int internalCrudeEval() {
 		// Initialised in lazyEvaluation function
 		if (!isDraw) {
-			bd.me.dynamicPosition = 0;
-			// Add phase specific static mobility (PSTs)
-			doMaterialAndPst();
-			score = taperEvaluation(midgameScore, endgameScore);
-			score += evaluateBishopPair();
+//			bd.me.dynamicPosition = 0;
+//			// Add phase specific static mobility (PSTs)
+//			doMaterialAndPst();
+//			score = taperEvaluation(midgameScore, endgameScore);
+//			score += evaluateBishopPair();
+			score = neural_net_eval();
 		}
 		return score;
 	}
 	
 	private int internalFullEval() {
 		if (!isDraw) {
-			if (goForMate) {
-				score = (short)(onMoveIsWhite ? bd.me.getMiddleGameDelta() : -bd.me.getMiddleGameDelta());
-				doMateKingProximity();
-			} else {
-				// Only generate full attack mask if passed pawn present
-				bd.me.dynamicPosition = 0;
-				long [][][] attacks;
-				if (passedPawnPresent) {
-					attacks = bd.mae.calculateCountedAttacksAndMobility(bd.me);
-				} else {
-					attacks = bd.mae.calculateBasicAttacksAndMobility(bd.me);
-				}
-				
-				if (bd.isLikelyDrawnEndgame(onMoveIsWhite, attacks)) {
-					return score;
-				}
-				
-				// Add phase specific static mobility (PSTs)
-				doMaterialAndPst();
-
-				// Evaluate king safety, en prise threats in middle game
-				midgameScore += ks_eval.evaluateKingSafety(attacks, onMoveIsWhite);
-				midgameScore += evaluateThreats(attacks, onMoveIsWhite);
-				
-				score = taperEvaluation(midgameScore, endgameScore);
-				score += evaluateBishopPair();
-				score += pawn_eval.evaluatePawnStructure(attacks);
-			}
+//			if (goForMate) {
+//				score = (short)(onMoveIsWhite ? bd.me.getMiddleGameDelta() : -bd.me.getMiddleGameDelta());
+//				doMateKingProximity();
+//			} else {
+//				// Only generate full attack mask if passed pawn present
+//				bd.me.dynamicPosition = 0;
+//				long [][][] attacks;
+//				if (passedPawnPresent) {
+//					attacks = bd.mae.calculateCountedAttacksAndMobility(bd.me);
+//				} else {
+//					attacks = bd.mae.calculateBasicAttacksAndMobility(bd.me);
+//				}
+//				
+//				if (bd.isLikelyDrawnEndgame(onMoveIsWhite, attacks)) {
+//					return score;
+//				}
+//				
+//				// Add phase specific static mobility (PSTs)
+//				doMaterialAndPst();
+//
+//				// Evaluate king safety, en prise threats in middle game
+//				midgameScore += ks_eval.evaluateKingSafety(attacks, onMoveIsWhite);
+//				midgameScore += evaluateThreats(attacks, onMoveIsWhite);
+//				
+//				score = taperEvaluation(midgameScore, endgameScore);
+//				score += evaluateBishopPair();
+//				score += pawn_eval.evaluatePawnStructure(attacks);
+//			}
+			score = neural_net_eval();
 		}
 		return score;
 	}
 	
+	int neural_net_eval() {
+		NNUE network = new NNUE((PositionManager) this.pm);
+		return network.evaluate();
+	}
+	
 	public int lazyEvaluation(int alpha, int beta) {
 		basicInit();
-		if (EubosEngineMain.ENABLE_LAZY_EVALUATION) {
-			if (!isDraw && bd.me.phase != 4096) {
-				// Phase 1 - crude evaluation
-				int crudeEval = internalCrudeEval();
-				int lazyThresh = lazy_eval_threshold_cp;
-				if (passedPawnPresent) {
-					// increase threshold as a function of the passed pawn imbalance
-					long pp = bd.getPassedPawns();
-					int numWhitePassers = Long.bitCount(pp&bd.getWhitePieces());
-					int numBlackPassers = Long.bitCount(pp&bd.getBlackPieces());
-					int ppDelta = !onMoveIsWhite ? numWhitePassers-numBlackPassers : numBlackPassers-numWhitePassers;
-					lazyThresh += ppDelta * 250 * bd.me.getPhase() / 4096;
-				}
-				if (!bd.me.isEndgame() && isKingExposed()) {
-					lazyThresh += 300;
-				}
-				if (TUNE_LAZY_EVAL) {
-					lazyStat.nodeCount++;
-				}
-				if (crudeEval-lazyThresh >= beta) {
-					// There is no move to put in the killer table when we stand Pat
-					// According to lazy eval, we probably can't reach beta
-					if (TUNE_LAZY_EVAL) {
-						lazyStat.lazySavedCountBeta++;
-						updateLazyStatistics(crudeEval, lazyThresh);
-					}
-					return beta;
-				}
+		if (!isDraw) {
+			score = neural_net_eval();
+			if (score >= beta) {
+				return beta;
 			}
-			redoInit();
 		}
-		// Phase 2 full evaluation
-		return internalFullEval();
+		return score;
+//		if (EubosEngineMain.ENABLE_LAZY_EVALUATION) {
+//			if (!isDraw && bd.me.phase != 4096) {
+//				// Phase 1 - crude evaluation
+//				int crudeEval = internalCrudeEval();
+//				int lazyThresh = lazy_eval_threshold_cp;
+//				if (passedPawnPresent) {
+//					// increase threshold as a function of the passed pawn imbalance
+//					long pp = bd.getPassedPawns();
+//					int numWhitePassers = Long.bitCount(pp&bd.getWhitePieces());
+//					int numBlackPassers = Long.bitCount(pp&bd.getBlackPieces());
+//					int ppDelta = !onMoveIsWhite ? numWhitePassers-numBlackPassers : numBlackPassers-numWhitePassers;
+//					lazyThresh += ppDelta * 250 * bd.me.getPhase() / 4096;
+//				}
+//				if (!bd.me.isEndgame() && isKingExposed()) {
+//					lazyThresh += 300;
+//				}
+//				if (TUNE_LAZY_EVAL) {
+//					lazyStat.nodeCount++;
+//				}
+//				if (crudeEval-lazyThresh >= beta) {
+//					// There is no move to put in the killer table when we stand Pat
+//					// According to lazy eval, we probably can't reach beta
+//					if (TUNE_LAZY_EVAL) {
+//						lazyStat.lazySavedCountBeta++;
+//						updateLazyStatistics(crudeEval, lazyThresh);
+//					}
+//					return beta;
+//				}
+//			}
+//			redoInit();
+//		}
+//		// Phase 2 full evaluation
+//		return internalFullEval();
 	}
 	
 	int getCrudeEvaluation() {
@@ -295,11 +311,12 @@ public class PositionEvaluator implements IEvaluate {
 		// and return draw score, so we can't get here if the position is a likely draw, the check would
 		// be redundant
 		basicInit();
-		if (passedPawnPresent) {
-			return internalFullEval(); 
-		} else {
-			return internalCrudeEval();
-		}
+		return neural_net_eval();
+//		if (passedPawnPresent) {
+//			return internalFullEval(); 
+//		} else {
+//			return internalCrudeEval();
+//		}
 	}
 	
 	public int evaluateThreats(long[][][] attacks, boolean onMoveIsWhite) {
