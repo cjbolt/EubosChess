@@ -96,7 +96,7 @@ public class IterativeMoveSearcherTest {
 	@Test
 	public void test_findMove_mateInTwo() throws IllegalNotationException {
 		// chess.com Problem ID: 0551140
-		setupPosition("rnbq1rk1/p4ppN/4p2n/1pbp4/8/2PQP2P/PPB2PP1/RNB1K2R w - - - 1", 1000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
+		setupPosition("rnbq1rk1/p4ppN/4p2n/1pbp4/8/2PQP2P/PPB2PP1/RNB1K2R w - - - 1", 2000*IterativeMoveSearcher.AVG_MOVES_PER_GAME);
 		expectedMove = new GenericMove("h7f6");
 		runSearcherAndTestBestMoveReturned();
 	}

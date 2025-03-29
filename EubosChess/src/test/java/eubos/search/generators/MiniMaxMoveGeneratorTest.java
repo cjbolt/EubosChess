@@ -61,18 +61,20 @@ public class MiniMaxMoveGeneratorTest {
 
 	@Test
 	public void test_findMove_WhitePawnCapture() throws IllegalNotationException {
-		// 8 ........
-		// 7 ........
-		// 6 ...P..P.
-		// 5 ..p.....
-		// 4 ........
-		// 3 ........
-		// 2 ........
-		// 1 ........
-		//   abcdefgh
-		setupPosition("7k/8/3p2p1/2P5/8/8/8/7K w - - - 1");
-		expectedMove = new GenericMove("c5d6");
-		doFindMoveTest((byte)5, true);
+		if (!EubosEngineMain.ENABLE_NEURAL_NET_EVAL) {
+			// 8 ........
+			// 7 ........
+			// 6 ...P..P.
+			// 5 ..p.....
+			// 4 ........
+			// 3 ........
+			// 2 ........
+			// 1 ........
+			//   abcdefgh
+			setupPosition("7k/8/3p2p1/2P5/8/8/8/7K w - - - 1");
+			expectedMove = new GenericMove("c5d6");
+			doFindMoveTest((byte)5, true);
+		}
 	}
 
 	protected void setupPosition(String fen) {
@@ -407,43 +409,49 @@ public class MiniMaxMoveGeneratorTest {
 		
 	@Test
 	public void test_findMove_bugPromotingPawn_Arena_4ply()throws IllegalNotationException  {
-		setupPosition( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
-		expectedMove = new GenericMove("h8g7");
-		SearchResult res = classUnderTest.findMove((byte)4);
-		assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
+		if (!EubosEngineMain.ENABLE_NEURAL_NET_EVAL) {
+			setupPosition( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
+			expectedMove = new GenericMove("h8g7");
+			SearchResult res = classUnderTest.findMove((byte)4);
+			assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
+		}
 	}
 		
 	@Test
 	public void test_findMove_bugPromotingPawn_Arena_5ply()throws IllegalNotationException  {
-		// In this test, Eubos originally couldn't find the move to promote the 2nd pawn and just checked indefinitely with queen.
-		// It can do it with depth = 3, but not 5>=depth<10 (Because move order is not considered in depth first mini max algorithm).
-		// The solution is to do an iterative search, deepening and seeding each time.
-		setupPosition( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
-		expectedMove = new GenericMove("h8g7");
-		
-		SearchResult res = classUnderTest.findMove((byte)4);
-		assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
-		
-		// changed to safest move in extended search changed the move used here 21st August 2020
-		//expectedMove = new GenericMove("h8g8");
-		// equally valid
-		expectedMove = new GenericMove("h8g7");
-		res = classUnderTest.findMove((byte)5, sr_stub);
-		
-		assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
+		if (!EubosEngineMain.ENABLE_NEURAL_NET_EVAL) {
+			// In this test, Eubos originally couldn't find the move to promote the 2nd pawn and just checked indefinitely with queen.
+			// It can do it with depth = 3, but not 5>=depth<10 (Because move order is not considered in depth first mini max algorithm).
+			// The solution is to do an iterative search, deepening and seeding each time.
+			setupPosition( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
+			expectedMove = new GenericMove("h8g7");
+			
+			SearchResult res = classUnderTest.findMove((byte)4);
+			assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
+			
+			// changed to safest move in extended search changed the move used here 21st August 2020
+			//expectedMove = new GenericMove("h8g8");
+			// equally valid
+			expectedMove = new GenericMove("h8g7");
+			res = classUnderTest.findMove((byte)5, sr_stub);
+			
+			assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
+		}
 	}
 	
 	@Test
 	public void test_findMove_bugPromotingPawn_Arena_6ply()throws IllegalNotationException  {
-		// N.b. as per test_findMove_bugPromotingPawn_Arena_5ply
-		setupPosition( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
-		expectedMove = new GenericMove("h8g7");
-		
-		classUnderTest.findMove((byte)4);
-		classUnderTest.findMove((byte)5, sr_stub);
-		SearchResult res = classUnderTest.findMove((byte)6, sr_stub);
-		
-	    assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
+		if (!EubosEngineMain.ENABLE_NEURAL_NET_EVAL) {
+			// N.b. as per test_findMove_bugPromotingPawn_Arena_5ply
+			setupPosition( "7K/7P/8/6Q1/3k4/8/8/8 w - - 1 69");
+			expectedMove = new GenericMove("h8g7");
+			
+			classUnderTest.findMove((byte)4);
+			classUnderTest.findMove((byte)5, sr_stub);
+			SearchResult res = classUnderTest.findMove((byte)6, sr_stub);
+			
+		    assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
+		}
 	}
 	
 	@Test

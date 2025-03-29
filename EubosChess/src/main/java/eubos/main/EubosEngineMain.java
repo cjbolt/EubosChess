@@ -76,6 +76,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_TT_DIAGNOSTIC_LOGGING = false;
 	public static final boolean ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO = false;
 	
+	public static final boolean ENABLE_NEURAL_NET_EVAL = true;
 	public static final boolean ENABLE_GENERATE_TRAINING_DATA = false;
 	public static final boolean ENABLE_RANDOM_MOVE_TRAINING_GENERATION = false;
 	
