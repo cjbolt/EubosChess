@@ -256,6 +256,7 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		int forcedMove = MoveList.getForcedMove(rootPosition);
 		if (forcedMove != Move.NULL_MOVE) {
+			selectedRandomMove = Move.NULL_MOVE;
 			sendInfoString(String.format("forced %s", Move.toString(forcedMove)));
 			int [] pv = new int[] { forcedMove };
 			SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, 0);
@@ -299,10 +300,11 @@ public class EubosEngineMain extends AbstractEngine {
 				int randomMove = MoveList.getRandomMove(rootPosition);
 				if (randomMove != Move.NULL_MOVE) {
 					rootPosition.performMove(randomMove);
+					selectedRandomMove = randomMove;
+					ms = new FixedDepthMoveSearcher(this, new DummyTranspositionTable(), lastFen, dc, (byte)5, refScore);
+					return;
 				}
-				selectedRandomMove = randomMove;
-				ms = new FixedDepthMoveSearcher(this, new DummyTranspositionTable(), lastFen, dc, (byte)5, refScore);
-				return;
+				selectedRandomMove = Move.NULL_MOVE;
 			}
 		}
 		if (clockTimeValid) {
@@ -564,34 +566,39 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	public void sendBestMoveCommand(SearchResult result) {
-		int trustedMove = getTrustedMove(result);
-		if (Move.areEqualForTrans(trustedMove, Move.NULL_MOVE)) {
-			trustedMove = MoveList.getRandomMove(rootPosition);
-		}
-		assert !Move.areEqualForTrans(trustedMove, Move.NULL_MOVE);
-		int moveNumber = rootPosition.getMoveNumber();
-		
-		if (ENABLE_DEBUG_VALIDATION_DRAWS) {
-			String fen = rootPosition.getFen();
-			rootPosition.performMove(trustedMove);
-			// do a 1ply search and see if any moves allow a draw, if they do, throw exception, if we thought we were winning
-			if (result != null && result.score > 0 && result.score < Score.PROVISIONAL_BETA-1) {
-				new Validate(this).checkForDraws(dc, fen, trustedMove);
-			}
-		} else {
-			if (ENABLE_RANDOM_MOVE_TRAINING_GENERATION) {
-				if (selectedRandomMove != Move.NULL_MOVE) {
-					// Throw away the search move, it was just to get a good score. Restore the random move to send
-					trustedMove = selectedRandomMove;
-					if (result != null && result.score != Score.PROVISIONAL_ALPHA) {
-						updateTrainingData(-result.score, trustedMove);
-					}
+		int trustedMove = Move.NULL_MOVE;
+		int moveNumber = 0;
+		if (ENABLE_RANDOM_MOVE_TRAINING_GENERATION) {
+			if (selectedRandomMove != Move.NULL_MOVE) {
+				// Throw away the search move, it was just to get a good score. Restore the random move to send
+				trustedMove = selectedRandomMove;
+				rootPosition.unperformMove();
+				moveNumber = rootPosition.getMoveNumber();
+				if (result != null && result.score != Score.PROVISIONAL_ALPHA) {
+					updateTrainingData(-result.score, trustedMove);
 				}
 			} else {
+				// forced move
+				moveNumber = rootPosition.getMoveNumber();
+				trustedMove = result.pv[0];
+			}
+		} else {
+			trustedMove = getTrustedMove(result);
+			if (Move.areEqualForTrans(trustedMove, Move.NULL_MOVE)) {
+				trustedMove = MoveList.getRandomMove(rootPosition);
+			}
+			assert !Move.areEqualForTrans(trustedMove, Move.NULL_MOVE);
+			moveNumber = rootPosition.getMoveNumber();
+			
+			if (ENABLE_DEBUG_VALIDATION_DRAWS) {
+				String fen = rootPosition.getFen();
 				rootPosition.performMove(trustedMove);
+				// do a 1ply search and see if any moves allow a draw, if they do, throw exception, if we thought we were winning
+				if (result != null && result.score > 0 && result.score < Score.PROVISIONAL_BETA-1) {
+					new Validate(this).checkForDraws(dc, fen, trustedMove);
+				}
 			}
 		}
-		
 		convertToGenericAndSendBestMove(trustedMove);
 		
 		if(!rootPosition.getTheBoard().me.isEndgame()) {
