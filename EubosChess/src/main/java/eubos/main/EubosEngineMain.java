@@ -49,6 +49,7 @@ import eubos.search.searchers.AbstractMoveSearcher;
 import eubos.search.searchers.FixedDepthMoveSearcher;
 import eubos.search.searchers.FixedTimeMoveSearcher;
 import eubos.search.searchers.MultithreadedIterativeMoveSearcher;
+import eubos.search.transposition.DummyTranspositionTable;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 import eubos.search.transposition.Transposition;
 
@@ -78,7 +79,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	public static final boolean ENABLE_NEURAL_NET_EVAL = true;
 	public static final boolean ENABLE_GENERATE_TRAINING_DATA = false;
-	public static final boolean ENABLE_RANDOM_MOVE_TRAINING_GENERATION = false;
+	public static final boolean ENABLE_RANDOM_MOVE_TRAINING_GENERATION = true;
 	
 	public static final boolean ENABLE_REPETITION_DETECTION = true;
 	public static final boolean ENABLE_TRANSPOSITION_TABLE = true;
@@ -253,35 +254,21 @@ public class EubosEngineMain extends AbstractEngine {
 		if (ENABLE_TT_DIAGNOSTIC_LOGGING) {
 			hashMap.resetDiagnostics();
 		}
-		if (ENABLE_RANDOM_MOVE_TRAINING_GENERATION) {
-			int randomMove = MoveList.getRandomMove(rootPosition);
-			if (randomMove == Move.NULL_MOVE) {
-				return;
-			}
-			rootPosition.performMove(randomMove);
-			PositionEvaluator pe = new PositionEvaluator(rootPosition, pawnHash);
-			int score = -pe.getFullEvaluation();
-			rootPosition.unperformMove();
-			int [] pv = new int[] { randomMove };
-			SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, score);
+		int forcedMove = MoveList.getForcedMove(rootPosition);
+		if (forcedMove != Move.NULL_MOVE) {
+			sendInfoString(String.format("forced %s", Move.toString(forcedMove)));
+			int [] pv = new int[] { forcedMove };
+			SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, 0);
 			sendBestMoveCommand(result);
-			
 		} else {
-			int forcedMove = MoveList.getForcedMove(rootPosition);
-			if (forcedMove != Move.NULL_MOVE) {
-				sendInfoString(String.format("forced %s", Move.toString(forcedMove)));
-				int [] pv = new int[] { forcedMove };
-				SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, 0);
-				sendBestMoveCommand(result);
-			} else {
-				// The move searcher will report the best move found via a callback to this object, 
-				// this will occur when the tree search is concluded and the thread completes execution.
-				moveSearcherFactory(command);
-				ms.start();
-			}
+			// The move searcher will report the best move found via a callback to this object, 
+			// this will occur when the tree search is concluded and the thread completes execution.
+			moveSearcherFactory(command);
+			ms.start();
 		}
 	}
 	
+	int selectedRandomMove = Move.NULL_MOVE;
 	private void moveSearcherFactory(EngineStartCalculatingCommand command) {
 		// Update the Reference Score, used by the Search process, for the new root position
 		ReferenceScore refScore = rootPosition.onMoveIsWhite() ? whiteRefScore : blackRefScore;
@@ -307,6 +294,17 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		analysisMode = false;
 		// Create Move Searcher
+		if (command.getNodes() != 0L) {
+			if (ENABLE_RANDOM_MOVE_TRAINING_GENERATION) {
+				int randomMove = MoveList.getRandomMove(rootPosition);
+				if (randomMove != Move.NULL_MOVE) {
+					rootPosition.performMove(randomMove);
+				}
+				selectedRandomMove = randomMove;
+				ms = new FixedDepthMoveSearcher(this, new DummyTranspositionTable(), lastFen, dc, (byte)5, refScore);
+				return;
+			}
+		}
 		if (clockTimeValid) {
 			lastOnMoveClock = clockTime;
 			if (command.getDepth() != null) {
@@ -581,7 +579,17 @@ public class EubosEngineMain extends AbstractEngine {
 				new Validate(this).checkForDraws(dc, fen, trustedMove);
 			}
 		} else {
-			rootPosition.performMove(trustedMove);
+			if (ENABLE_RANDOM_MOVE_TRAINING_GENERATION) {
+				if (selectedRandomMove != Move.NULL_MOVE) {
+					// Throw away the search move, it was just to get a good score. Restore the random move to send
+					trustedMove = selectedRandomMove;
+					if (result != null && result.score != Score.PROVISIONAL_ALPHA) {
+						updateTrainingData(-result.score, trustedMove);
+					}
+				}
+			} else {
+				rootPosition.performMove(trustedMove);
+			}
 		}
 		
 		convertToGenericAndSendBestMove(trustedMove);

@@ -11,7 +11,7 @@ import eubos.search.Score;
 import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;
-import eubos.search.transposition.FixedSizeTranspositionTable;
+import eubos.search.transposition.ITranspositionAccessor;
 
 public abstract class AbstractMoveSearcher extends Thread {
 
@@ -22,7 +22,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 	protected SearchMetricsReporter sr;
 	protected ReferenceScore refScore;
 
-	public AbstractMoveSearcher(EubosEngineMain eng, String fen, DrawChecker dc, FixedSizeTranspositionTable hashMap, ReferenceScore refScore, PawnEvalHashTable pawnHash) {
+	public AbstractMoveSearcher(EubosEngineMain eng, String fen, DrawChecker dc, ITranspositionAccessor hashMap, ReferenceScore refScore, PawnEvalHashTable pawnHash) {
 		super();
 		PositionManager pm = new PositionManager(fen, eng.rootPosition.getHash(), dc, pawnHash);
 		refScore.setAtStartOfSearch(pm); // Setup the reference score that shall be used by any IterativeSearchStopper

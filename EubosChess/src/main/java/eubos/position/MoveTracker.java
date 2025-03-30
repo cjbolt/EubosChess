@@ -23,7 +23,7 @@ class MoveTracker {
 			pawnHash = 0;
 		}
 	}
-	private static final int CAPACITY = 400;
+	private static final int CAPACITY = 1200;
 	private MoveStack[] stack;
 	private int index = 0;
 	

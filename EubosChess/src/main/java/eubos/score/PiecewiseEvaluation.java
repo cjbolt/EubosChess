@@ -1,6 +1,7 @@
 package eubos.score;
 
 import eubos.board.Piece;
+import eubos.main.EubosEngineMain;
 
 public class PiecewiseEvaluation {
 	
@@ -83,8 +84,10 @@ public class PiecewiseEvaluation {
 	}
 	
 	public void updateRegular(int originPiece, int originBitOffset, int targetBitOffset) {
-		addPst(originPiece, targetBitOffset);
-		subtractPst(originPiece, originBitOffset);
+		if (!EubosEngineMain.ENABLE_NEURAL_NET_EVAL) {
+			addPst(originPiece, targetBitOffset);
+			subtractPst(originPiece, originBitOffset);
+		}
 	}
 	
 	public void updateWhenUndoingPromotion(int promoPiece, int oldBitOffset, int newBitOffset) {
@@ -98,8 +101,10 @@ public class PiecewiseEvaluation {
 		eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][promoPiece];
 		phase += Piece.PIECE_PHASE[promoPiece];
 		
-		addPst(pawnToReplace, newBitOffset);
-		subtractPst(promoPiece, oldBitOffset);
+		if (!EubosEngineMain.ENABLE_NEURAL_NET_EVAL) {
+			addPst(pawnToReplace, newBitOffset);
+			subtractPst(promoPiece, oldBitOffset);
+		}
 	}
 	
 	public void updateWhenDoingPromotion(int promoPiece, int oldBitOffset, int newBitOffset) {
@@ -113,8 +118,10 @@ public class PiecewiseEvaluation {
 		eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][promoPiece];
 		phase -= Piece.PIECE_PHASE[promoPiece];
 		
-		subtractPst(pawnToRemove, oldBitOffset);
-		addPst(promoPiece, newBitOffset);
+		if (!EubosEngineMain.ENABLE_NEURAL_NET_EVAL) {
+			subtractPst(pawnToRemove, oldBitOffset);
+			addPst(promoPiece, newBitOffset);
+		}
 	}
 	
 	public void updateForCapture(int currPiece, int bitOffset) {
@@ -122,7 +129,8 @@ public class PiecewiseEvaluation {
 		mg_material -= Piece.PIECE_TO_MATERIAL_LUT[0][currPiece];
 		eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
 		phase += Piece.PIECE_PHASE[currPiece];
-		subtractPst(currPiece, bitOffset);
+		if (!EubosEngineMain.ENABLE_NEURAL_NET_EVAL)
+			subtractPst(currPiece, bitOffset);
 	}
 	
 	public void updateForReplacedCapture(int currPiece, int bitOffset) {
@@ -130,6 +138,7 @@ public class PiecewiseEvaluation {
 		mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][currPiece];
 		eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
 		phase -= Piece.PIECE_PHASE[currPiece];
-		addPst(currPiece, bitOffset);
+		if (!EubosEngineMain.ENABLE_NEURAL_NET_EVAL)
+			addPst(currPiece, bitOffset);
 	}
 }

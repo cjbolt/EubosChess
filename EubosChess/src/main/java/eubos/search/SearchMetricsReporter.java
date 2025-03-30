@@ -7,7 +7,7 @@ import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
 
 import eubos.main.EubosEngineMain;
 import eubos.score.ReferenceScore;
-import eubos.search.transposition.FixedSizeTranspositionTable;
+import eubos.search.transposition.ITranspositionAccessor;
 
 public class SearchMetricsReporter extends Thread {
 	
@@ -15,7 +15,7 @@ public class SearchMetricsReporter extends Thread {
 	private volatile boolean reporterActive;
 	private List<SearchMetrics> sm_list;
 	private EubosEngineMain eubosEngine;
-	private FixedSizeTranspositionTable tt;
+	private ITranspositionAccessor tt;
 	private ReferenceScore refScore;
 	private static final int UPDATE_RATE_MS = 1000;
 	
@@ -27,7 +27,7 @@ public class SearchMetricsReporter extends Thread {
 		this.setName("DummySearchMetricsReporter");
 	}
 	
-	public SearchMetricsReporter(EubosEngineMain eubos, FixedSizeTranspositionTable tt, ReferenceScore refScore) {
+	public SearchMetricsReporter(EubosEngineMain eubos, ITranspositionAccessor tt, ReferenceScore refScore) {
 		reporterActive = true;
 		eubosEngine = eubos;
 		this.tt = tt;
@@ -119,9 +119,9 @@ public class SearchMetricsReporter extends Thread {
 		info.setNps(nps);
 		info.setTime(time);
 		info.setHash(tt.getHashUtilisation());
-		if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) {
-			info.setString(tt.getDiagnostics());
-		}
+		//if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) {
+		//	info.setString(tt.getDiagnostics());
+		//}
 	}
 	
 	private void generatePvInfoCommand(ProtocolInformationCommand info, SearchMetrics pv) {

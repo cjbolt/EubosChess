@@ -19,13 +19,36 @@ import eubos.search.SearchResult;
 import eubos.search.transposition.Transposition;
 
 public class Validate {
-	
+	public static final byte TRAINING_SEARCH_DEPTH = 8;
 	PositionManager rootPosition;
 	EubosEngineMain eubos;
 	
 	public Validate(EubosEngineMain eubos) {
 		this.rootPosition = eubos.rootPosition;
 		this.eubos = eubos;
+	}
+	
+	public int trainingSearch() {
+		// Operate on a copy of the rootPosition to prevent reentrant issues at tight time controls
+		String rootFen = rootPosition.getFen();
+		PositionManager pm = new PositionManager(rootFen, rootPosition.getHash(), new DrawChecker(eubos.dc), new PawnEvalHashTable());
+		SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.onMoveIsWhite());
+		PrincipalContinuation pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
+		byte search_depth = (byte)TRAINING_SEARCH_DEPTH;
+		PlySearcher ps = new PlySearcher(
+				eubos.hashMap, //new DummyTranspositionTable(),
+				pc, 
+				new SearchMetrics(pm), 
+				null, 
+				search_depth,
+				pm,
+				pm,
+				pm.getPositionEvaluator(),
+				new KillerList(),
+				sda,
+				new MoveList(pm, 0));
+		int score = ps.searchRoot(search_depth, Score.PROVISIONAL_ALPHA, Score.PROVISIONAL_BETA);
+		return score;
 	}
 	
 	public int validate(boolean trustedMoveWasFromTrans, long tableRootTrans, SearchResult result, int trusted_move) {

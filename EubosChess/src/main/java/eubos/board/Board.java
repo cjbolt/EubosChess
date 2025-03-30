@@ -418,9 +418,11 @@ public class Board {
 			assert scratch_me != me;
 			assert scratch_me.mg_material == me.mg_material;
 			assert scratch_me.eg_material == me.eg_material;
-			assert scratch_me.combinedPosition == me.combinedPosition : 
-				String.format("combined_scratch=%08x iterative=%08x %s", 
-						scratch_me.combinedPosition, me.combinedPosition, Move.toString(move));
+			if (!EubosEngineMain.ENABLE_NEURAL_NET_EVAL) {
+				assert scratch_me.combinedPosition == me.combinedPosition : 
+					String.format("combined_scratch=%08x iterative=%08x %s", 
+							scratch_me.combinedPosition, me.combinedPosition, Move.toString(move));
+			}
 			assert scratch_me.phase == me.phase;
 			// Check piece bit boards to me num pieces consistency
 			assert (me.numberOfPieces[Piece.WHITE_KNIGHT]+me.numberOfPieces[Piece.BLACK_KNIGHT]) == Long.bitCount(pieces[INDEX_KNIGHT]);
@@ -514,9 +516,11 @@ public class Board {
 			assert scratch_me != me;
 			assert scratch_me.mg_material == me.mg_material;
 			assert scratch_me.eg_material == me.eg_material;
-			assert scratch_me.combinedPosition == me.combinedPosition : 
-				String.format("combined_scratch=%08x iterative=%08x %s",
-						scratch_me.combinedPosition, me.combinedPosition, Move.toString(moveToUndo));
+			if (!EubosEngineMain.ENABLE_NEURAL_NET_EVAL) {
+				assert scratch_me.combinedPosition == me.combinedPosition : 
+					String.format("combined_scratch=%08x iterative=%08x %s",
+							scratch_me.combinedPosition, me.combinedPosition, Move.toString(moveToUndo));
+			}
 			assert scratch_me.phase == me.phase;
 		}
 	}
