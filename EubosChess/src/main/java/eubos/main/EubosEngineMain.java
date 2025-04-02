@@ -254,9 +254,9 @@ public class EubosEngineMain extends AbstractEngine {
 		if (ENABLE_TT_DIAGNOSTIC_LOGGING) {
 			hashMap.resetDiagnostics();
 		}
+		selectedRandomMove = Move.NULL_MOVE;
 		int forcedMove = MoveList.getForcedMove(rootPosition);
 		if (forcedMove != Move.NULL_MOVE) {
-			selectedRandomMove = Move.NULL_MOVE;
 			sendInfoString(String.format("forced %s", Move.toString(forcedMove)));
 			int [] pv = new int[] { forcedMove };
 			SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, 0);
@@ -295,13 +295,13 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		analysisMode = false;
 		// Create Move Searcher
-		if (command.getNodes() != 0L) {
+		if (command.getNodes() != null) {
 			if (ENABLE_RANDOM_MOVE_TRAINING_GENERATION) {
 				int randomMove = MoveList.getRandomMove(rootPosition);
 				if (randomMove != Move.NULL_MOVE) {
 					rootPosition.performMove(randomMove);
 					selectedRandomMove = randomMove;
-					ms = new FixedDepthMoveSearcher(this, new DummyTranspositionTable(), lastFen, dc, (byte)5, refScore);
+					ms = new FixedDepthMoveSearcher(this, hashMap, rootPosition.getFen(), dc, (byte)8, refScore);
 					return;
 				}
 				selectedRandomMove = Move.NULL_MOVE;
@@ -473,35 +473,36 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 
 	private void updateTrainingData(int score, int move) {
-		if (Move.isCapture(move) ||
-			score == Score.PROVISIONAL_ALPHA ||
-			rootPosition.isKingInCheck()) { 
-			return; // Only generate training data for quiet positions
-		}
-		if (!rootPosition.onMoveIsWhite()) { 
-			score = -score; // Always use white relative scores in training data
-		}
-		
-		FileWriter fw = null;
-		String computerName = System.getenv("EUBOS_HOST_NAME");
-		String filenameBase = String.format("TrainingData_SelfPlay_%s", ((computerName != null)?computerName:""));
-		int attempt = 0;
-		while (attempt < 10 && fw == null) {
-			try {
-				fw = new FileWriter(new File(String.format("%s_%d.txt", filenameBase, attempt)), true);
-			} catch (IOException e) {
-				attempt++;		
+		if (score == Score.PROVISIONAL_ALPHA || move == Move.NULL_MOVE) return;
+
+		rootPosition.performMove(move);
+		if (!rootPosition.isKingInCheck()) { 
+			if (!rootPosition.onMoveIsWhite()) { 
+				score = -score; // Always use white relative scores in training data
+			}
+			FileWriter fw = null;
+			String computerName = System.getenv("EUBOS_HOST_NAME");
+			String filenameBase = String.format("TrainingData_SelfPlay_%s", ((computerName != null)?computerName:""));
+			int attempt = 0;
+			while (attempt < 10 && fw == null) {
+				try {
+					fw = new FileWriter(new File(String.format("%s_%d.txt", filenameBase, attempt)), true);
+				} catch (IOException e) {
+					attempt++;		
+				}
+			}
+			if (fw != null) {
+				String training_sample = String.format("%s|%d|0.5\n", rootPosition.getFen(), score);
+				try {
+					fw.write(training_sample);
+					fw.close();
+				} catch (IOException e) {
+					handleFatalError(e ,"IO error", rootPosition);
+				}
+				sendInfoString(training_sample);
 			}
 		}
-		if (fw != null) {
-			String training_sample = String.format("%s|%d|0.5\n", rootPosition.getFen(), score);
-			try {
-				fw.write(training_sample);
-				fw.close();
-			} catch (IOException e) {
-				handleFatalError(e ,"IO error", rootPosition);
-			}
-		}
+		rootPosition.unperformMove();
 	}
 	
 	private long selectBestTranspositionData(long tableRoot, long cacheRoot) {
