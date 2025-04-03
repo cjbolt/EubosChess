@@ -62,3 +62,57 @@ class MoveTracker {
 		return index == 0;
 	}
 }
+
+class MoveTrackerNN {
+	class MoveStackNN {
+		long hash;
+		byte en_passant_square;
+		byte castling;
+		int move;
+		int draw_check_ply;
+		
+		MoveStackNN() {
+			hash = 0L;
+			en_passant_square = BitBoard.INVALID;
+			castling = 0;
+			move = Move.NULL_MOVE;
+			draw_check_ply = 0;
+		}
+	}
+	private static final int CAPACITY = 400;
+	private MoveStackNN[] stack;
+	private int index = 0;
+	
+	MoveTrackerNN() {
+		stack = new MoveStackNN[CAPACITY];
+		for (int i=0; i < stack.length; i++) {
+			stack[i] = new MoveStackNN();
+		}
+		index = 0;
+	}
+	
+	public void push(int move, int castling, int enPassant, long hash, int dc_index) {
+		stack[index].move = move;
+		stack[index].en_passant_square = (byte) enPassant;
+		stack[index].castling = (byte) castling;
+		stack[index].hash = hash;
+		stack[index].draw_check_ply = dc_index;
+		index += 1;
+	}
+	
+	public MoveStackNN pop() {
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			assert index > 0 : String.format("%s %s %s", Move.toString(stack[0].move), Move.toString(stack[1].move), Move.toString(stack[2].move));
+		}
+		index -= 1;
+		return stack[index];
+	}
+	
+	public int getMove() {
+		return stack[index].move;
+	}
+	
+	public boolean isEmpty() {
+		return index == 0;
+	}
+}

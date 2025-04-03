@@ -586,9 +586,7 @@ public class EubosEngineMain extends AbstractEngine {
 		
 		convertToGenericAndSendBestMove(trustedMove);
 		
-		if(!rootPosition.getTheBoard().me.isEndgame()) {
-			hashMap.clearUp(this, moveNumber);
-		}
+		hashMap.clearUp(this, moveNumber);
 	}
 	
 	@Override

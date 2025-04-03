@@ -417,8 +417,7 @@ public class PlySearcher {
 			if (EubosEngineMain.ENABLE_NULL_MOVE_PRUNING &&
 				!isTerminated() &&
 				depth > 2 &&
-				nullCheckEnabled && 
-				pos.getTheBoard().me.phase < 4000) {
+				nullCheckEnabled) {
 				
 				s.bestScore = doNullMoveSubTreeSearch(depth);
 				if (isTerminated()) { return 0; }
@@ -770,8 +769,7 @@ public class PlySearcher {
 			!pe.goForMate() && /* Ignore reductions in a mate search */
 			depth > 2 &&
 			!(Move.isPawnMove(currMove) &&  /* Not a passed pawn move or a pawn move in endgame */
-					(pos.getTheBoard().me.isEndgame() ||
-					(pos.getTheBoard().getPassedPawns() & (1L << Move.getTargetPosition(currMove))) != 0L))) {
+					(pos.getTheBoard().getPassedPawns() & (1L << Move.getTargetPosition(currMove))) != 0L)) {
 		
 			// Calculate reduction, 1 for the first few moves, then the closer to the root node, the more severe the reduction
 			int lmr = (moveNumber < depth/2) ? 1 : Math.max(1, depth/4);

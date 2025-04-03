@@ -197,7 +197,6 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		
 		private void stopWorker() {
 			halted = true;
-			myMg.reportStatistics();
 			myMg.sda.close();
 			if (EubosEngineMain.ENABLE_LOGGING) {
 				EubosEngineMain.logger.fine(String.format("Worker %s halted, notifying", getName()));
