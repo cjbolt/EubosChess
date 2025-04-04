@@ -10,6 +10,22 @@ public class PiecewiseEvaluation {
 		numberOfPieces = new int [16];
 	}
 
+	public boolean phaseLessThan4000() {
+		if (numberOfPieces[Piece.WHITE_KNIGHT] > 0)
+			return true;
+		if (numberOfPieces[Piece.WHITE_ROOK] > 0)
+			return true;
+		if (numberOfPieces[Piece.WHITE_QUEEN] > 0)
+			return true;
+		if (numberOfPieces[Piece.BLACK_KNIGHT] > 0)
+			return true;
+		if (numberOfPieces[Piece.BLACK_BISHOP] > 0)
+			return true;
+		if (numberOfPieces[Piece.BLACK_QUEEN] > 0)
+			return true;
+		return false;
+	}
+	
 	public int getNumPieces() {
 		int num = 2; // kings
 		num += numberOfPieces[Piece.WHITE_KNIGHT];
