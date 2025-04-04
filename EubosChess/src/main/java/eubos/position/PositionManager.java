@@ -12,37 +12,33 @@ import eubos.board.Board;
 import eubos.board.Piece;
 import eubos.position.MoveTrackerNN.MoveStackNN;
 import eubos.score.IEvaluate;
-import eubos.score.PawnEvalHashTable;
 import eubos.score.PositionEvaluator;
 import eubos.search.DrawChecker;
 
 public class PositionManager implements IChangePosition, IPositionAccessors {
 	
-	public PositionManager(String fenString, DrawChecker dc, PawnEvalHashTable pawnHashTable) {
+	public PositionManager(String fenString, DrawChecker dc) {
 		moveTracker = new MoveTrackerNN();
 		new fenParser( this, fenString );
 		hash = new ZobristHashCode(this, castling);
-		pawnHash = new PawnHashCode();
 		theBoard.setHash(hash);
 		this.dc = dc;
-		pawnHash.calculatePawnHash(this);
-		pe = new PositionEvaluator(this, pawnHashTable);
+		pe = new PositionEvaluator(this);
 	}
 	
-	public PositionManager(String fenString, long hashCode, DrawChecker dc, PawnEvalHashTable pawnHash) {
-		this(fenString, dc, pawnHash);
+	public PositionManager(String fenString, long hashCode, DrawChecker dc) {
+		this(fenString, dc);
 		hash.hashCode = hashCode;
 	}
 	
 	public PositionManager(String fenString) {
-		this(fenString, new DrawChecker(), new PawnEvalHashTable());
+		this(fenString, new DrawChecker());
 	}
 	
 	public PositionManager() {
-		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", new DrawChecker(), new PawnEvalHashTable());
+		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", new DrawChecker());
 	}
 
-	PawnHashCode pawnHash;
 	public CastlingManager castling;
 	private Board theBoard;
 	public Board getTheBoard() {
@@ -340,10 +336,5 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			s.insert(0, Move.toString(moveTracker.getMove()));
 		}
 		return s.toString();
-	}
-
-	@Override
-	public int getPawnHash() {
-		return pawnHash.getPawnHash();
 	}
 }

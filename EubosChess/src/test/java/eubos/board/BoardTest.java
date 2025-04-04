@@ -1,22 +1,18 @@
 package eubos.board;
 
 import static org.junit.Assert.*;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.position.Move;
 import eubos.position.Position;
 import eubos.position.PositionManager;
-import eubos.score.PawnEvalHashTable;
 import eubos.search.DrawChecker;
 import eubos.search.transposition.Transposition;
 
@@ -119,31 +115,7 @@ public class BoardTest {
 		classUnderTest.setPieceAtSquare(BitBoard.g8, Piece.BLACK_KING);
 		assertEquals("6kp/8/8/8/8/8/8/8",classUnderTest.getAsFenString());
 	}
-	
-	@Test
-	public void testisHalfOpenFile_isHalfOpen() {
-		classUnderTest.setPieceAtSquare(BitBoard.e7, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(BitBoard.e2, Piece.WHITE_ROOK);
-		assertTrue(classUnderTest.isOnHalfOpenFile(GenericPosition.e2, Piece.WHITE_ROOK));
-	}
-	
-	@Test
-	public void testisHalfOpenFile_isNotHalfOpen() {
-		classUnderTest.setPieceAtSquare(BitBoard.e7, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(BitBoard.e2, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(BitBoard.e1, Piece.WHITE_ROOK);
-		assertFalse(classUnderTest.isOnHalfOpenFile(GenericPosition.e1, Piece.WHITE_ROOK));
-	}
-	
-	@Test
-	@Ignore
-	public void testisHalfOpenFile_isNotHalfOpen1() {
-		classUnderTest.setPieceAtSquare(BitBoard.e7, Piece.WHITE_PAWN);
-		classUnderTest.setPieceAtSquare(BitBoard.e2, Piece.BLACK_PAWN);
-		classUnderTest.setPieceAtSquare(BitBoard.e1, Piece.WHITE_ROOK);
-		assertTrue(classUnderTest.isOnHalfOpenFile(GenericPosition.e1, Piece.WHITE_ROOK));
-	}
-	
+
 	@Test
 	public void testCouldLeadToCheck_Yes() {
 		classUnderTest.setPieceAtSquare(BitBoard.d8, Piece.BLACK_ROOK);
@@ -336,7 +308,7 @@ public class BoardTest {
 	
 	PositionManager pm;
 	protected void setUpPosition(String fen) {
-		pm = new PositionManager(fen, new DrawChecker(), new PawnEvalHashTable());
+		pm = new PositionManager(fen, new DrawChecker());
 		classUnderTest = pm.getTheBoard();
 	}
 	
@@ -398,36 +370,6 @@ public class BoardTest {
 	public void test_isInsufficientMaterial_PawnOnBoard()throws IllegalNotationException {
 		setUpPosition("8/P/8/8/8/8/k/7K w - - 0 1");
 		assertFalse(classUnderTest.isInsufficientMaterial());
-	}
-	
-	@Test
-	public void test_isInsufficientMaterial_RvsKK()throws IllegalNotationException {
-		setUpPosition("7K/8/8/5N2/8/r5N1/k7/8 w - - 0 1");
-		assertTrue(classUnderTest.isLikelyDrawnEndgame(true));
-		setUpPosition("7K/8/8/5N2/8/r5N1/8/k7 b - - 0 1");
-		assertFalse(classUnderTest.isLikelyDrawnEndgame(false));
-		
-		// white rook is en prise, could be knight forked with King, so return false
-		setUpPosition("K7/8/R5n1/8/5n2/8/8/7k b - - 0 1 ");
-		assertFalse(classUnderTest.isLikelyDrawnEndgame(false));
-		
-		// white queen can be picked up by Knight forked with King
-		setUpPosition("8/1K6/Q7/8/5q2/3n4/8/7k b - - 0 1 ");
-		assertFalse(classUnderTest.isLikelyDrawnEndgame(false));
-	}
-	
-	@Test
-	public void test_isInsufficientMaterial_RRvsKK()throws IllegalNotationException {
-		setUpPosition("K7/8/R5n1/8/R4n2/8/8/7k b - - 0 1 ");
-		assertFalse(classUnderTest.isLikelyDrawnEndgame(false));
-		setUpPosition("K7/8/Q7/8/5r2/8/8/7k b - - 0 1 ");
-		assertFalse(classUnderTest.isLikelyDrawnEndgame(false));
-		
-		// white queen is en prise, could be knight forked with King, so return false
-		setUpPosition("K7/8/Q7/8/5q2/3n4/8/7k b - - 0 1 ");
-		assertFalse(classUnderTest.isLikelyDrawnEndgame(false));
-		setUpPosition("k7/b7/8/5n2/8/8/3Q4/7K w - - 0 1 ");
-		assertFalse(classUnderTest.isLikelyDrawnEndgame(true));
 	}
 	
 	@Test
@@ -629,176 +571,12 @@ public class BoardTest {
 		boolean inCheck = false;
 		assertTrue(classUnderTest.isPlayableMove(move, inCheck, pm.castling));
 	}
-	
-	@Test
-	public void test_pawnIsBlockaded() {
-		setUpPosition("8/8/8/8/8/8/1p6/1N6 w - - 0 1");
-		assertTrue(classUnderTest.isPawnBlockaded(BitBoard.b2, false));
-	}
-	
-	@Test
-	public void test_pawnIsNotBlockaded() {
-		setUpPosition("8/8/8/8/8/8/1p6/8 w - - 0 1");
-		assertFalse(classUnderTest.isPawnBlockaded(BitBoard.b2, false));
-	}
-	
-	@Test
-	public void test_pawnIsBlockaded_white() {
-		setUpPosition("8/8/8/8/8/1n6/1P6/8 w - - 0 1");
-		assertTrue(classUnderTest.isPawnBlockaded(BitBoard.b2, true));
-	}
-	
-	@Test
-	public void test_pawnIsNotBlockaded_white() {
-		setUpPosition("8/8/8/8/8/8/1P6/8 w - - 0 1");
-		assertFalse(classUnderTest.isPawnBlockaded(Position.b2, true));
-	}
-	
-	@Test
-	public void test_pawnIsNotBlockaded_ownColour() {
-		setUpPosition("8/8/8/8/8/8/1p6/1n6 w - - 0 1");
-		assertFalse(classUnderTest.isPawnBlockaded(Position.b2, false));
-	}
-	
-	@Test
-	public void test_pawnIsNotBlockaded_ownColour_white() {
-		setUpPosition("8/8/8/8/8/1N6/1P6/8 w - - 0 1");
-		assertFalse(classUnderTest.isPawnBlockaded(BitBoard.b2, true));
-	}
-	
-	@Test
-	public void test_heavy_behind_pawn() {
-		setUpPosition("8/8/8/P7/8/8/8/Q7 w - - 0 1");
-		assertEquals(1, classUnderTest.checkForHeavyPieceBehindPassedPawn(BitBoard.a5, true));
-	}
-	
-	@Test
-	public void test_heavy_behind_pawn_but_blocked_by_enemy() {
-		setUpPosition("8/8/8/P7/8/n7/8/Q7 w - - 0 1");
-		assertEquals(0, classUnderTest.checkForHeavyPieceBehindPassedPawn(BitBoard.a5, true));
-	}
-	
-	@Test
-	public void test_enemy_heavy_behind_pawn_() {
-		setUpPosition("8/8/8/P7/r7/n7/8/R7 w - - 0 1");
-		assertEquals(-1, classUnderTest.checkForHeavyPieceBehindPassedPawn(BitBoard.a5, true));
-	}
-	
-	@Test
-	public void test_enemy_heavy_behind_pawn_simple() {
-		setUpPosition("8/8/8/P7/8/8/8/q7 w - - 0 1");
-		assertEquals(-1, classUnderTest.checkForHeavyPieceBehindPassedPawn(BitBoard.a5, true));
-	}
-	
-	@Test
-	public void pawn_double_move_creates_passed_pawns() {
-		setUpPosition("k7/8/8/8/4p3/8/3P4/K7 w - - 11 1");
-		classUnderTest.doMove(Move.valueOf(Position.d2, Piece.WHITE_PAWN, Position.d4, Piece.NONE));
-		assertEquals(BitBoard.valueOf(new int [] {Position.d4, Position.e4}), classUnderTest.getPassedPawns());
-	}
-	
-	@Test
-	public void pawn_single_move_creates_passed_pawn() {
-		setUpPosition("k7/8/8/8/4p3/3P4/8/K7 w - - 11 1");
-		classUnderTest.doMove(Move.valueOf(Position.d3, Piece.WHITE_PAWN, Position.d4, Piece.NONE));
-		assertEquals(BitBoard.valueOf(new int [] {Position.d4, Position.e4}), classUnderTest.getPassedPawns());
-	}
-	
-	@Test
-	public void pawn_capture_creates_passed_pawn() {
-		setUpPosition("k7/8/8/8/4p3/3P4/8/K7 w - - 11 1");
-		classUnderTest.doMove(Move.valueOf(Position.d3, Piece.WHITE_PAWN, Position.e4, Piece.BLACK_PAWN));
-		assertEquals(BitBoard.valueOf(new int [] {Position.e4}), classUnderTest.getPassedPawns());
-	}
-	
-	@Test
-	public void enpassant_capture_creates_passed_pawn_and_removes_passed_pawns() {
-		setUpPosition("k7/8/8/8/3Pp3/8/8/K7 b - d3 11 1");
-		classUnderTest.doMove(Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.e4, Piece.BLACK_PAWN, Position.d3, Piece.WHITE_PAWN, Piece.NONE));
-		assertEquals(BitBoard.valueOf(new int [] {Position.d3}), classUnderTest.getPassedPawns());
-	}
-	
-	@Test
-	public void capture_creates_enemy_passed_pawn_due_to_file_change() {
-		setUpPosition("k7/2p5/8/8/4p3/3P4/8/K7 w - - 11 1");
-		classUnderTest.doMove(Move.valueOf(Position.d3, Piece.WHITE_PAWN, Position.e4, Piece.BLACK_PAWN));
-		assertEquals(BitBoard.valueOf(new int [] {Position.e4, Position.c7}), classUnderTest.getPassedPawns());
-	}
-	
-	@Test
-	public void promotion_removes_passed_pawn() {
-		setUpPosition("k7/4P3/8/8/8/8/8/K7 w - - 1 1");
-		classUnderTest.doMove(Move.valueOf(Move.TYPE_PROMOTION_MASK, Position.e7, Piece.WHITE_PAWN, Position.e8, Piece.NONE, Piece.QUEEN));
-		assertEquals(0L, classUnderTest.getPassedPawns());
-	}
-	
-	@Test
-	public void createPassedPawns_1() {
-		setUpPosition("7k/ppp4p/8/8/1P6/8/2PP4/7K b - - 0 1");
-		classUnderTest.doMove(Move.valueOf(Position.h7, Piece.BLACK_PAWN, Position.h6, Piece.NONE));
-		assertEquals(BitBoard.valueOf(new int[] {Position.h6}), classUnderTest.getPassedPawns());
-	}
-	
-	@Test
-	public void advanced_passer_black() {
-		setUpPosition("8/8/8/8/p7/8/8/8 b - - 0 1");
-		assertTrue(classUnderTest.isAdvancedPassedPawnPresent());
-	}
-	
-	@Test
-	public void advanced_passer_white() {
-		setUpPosition("8/8/8/P7/8/8/8/8 b - - 0 1");
-		assertTrue(classUnderTest.isAdvancedPassedPawnPresent());
-	}
-	
-	@Test
-	public void advanced_passer_black1() {
-		setUpPosition("8/8/8/p7/8/8/8/8 b - - 0 1");
-		assertFalse(classUnderTest.isAdvancedPassedPawnPresent());
-	}
-	
-	@Test
-	public void advanced_passer_white1() {
-		setUpPosition("8/8/8/8/7P/8/8/8 b - - 0 1");
-		assertFalse(classUnderTest.isAdvancedPassedPawnPresent());
-	}
-	
+			
 	@Test
 	public void knightUnderPromotion() {
 		// Caused an error in assert builds as the combined position wasn't updated properly
 		setUpPosition("8/8/8/8/8/k7/4p1K1/8 b - - 1 1");
 		classUnderTest.doMove(Move.valueOfBit(Move.TYPE_PROMOTION_MASK, BitBoard.e2, Piece.BLACK_PAWN, BitBoard.e1, Piece.NONE, Piece.KNIGHT));
-	}
-	
-	private boolean attackerIsBlack = false;
-	private long[] attacksMask = {0L, 0L};
-	
-	@Test
-	public void test_counted_attacks_one_overlap() {
-		setUpPosition("8/8/8/8/8/8/P1P5/8 w - - 0 1");
-		classUnderTest.getCountedPawnAttacks(attacksMask, attackerIsBlack);
-		assertArrayEquals(new long[] {0xA0000L, 0x20000L}, attacksMask);
-	}
-	
-	@Test
-	public void test_counted_attacks_all_attacked_twice_apart_from_rook_pawns() {
-		setUpPosition("8/8/8/8/8/8/PPPPPPPP/8 w - - 0 1");
-		classUnderTest.getCountedPawnAttacks(attacksMask, attackerIsBlack);
-		assertArrayEquals(new long[] {0xFF0000L, 0x7E0000L}, attacksMask);
-	}
-	
-	@Test
-	public void test_counted_attacks_one_overlap_black() {
-		setUpPosition("8/8/8/8/8/8/p1p5/8 w - - 0 1");
-		classUnderTest.getCountedPawnAttacks(attacksMask, attackerIsBlack=true);
-		assertArrayEquals(new long[] {0xAL, 0x2L}, attacksMask);
-	}
-	
-	@Test
-	public void test_counted_attacks_all_attacked_twice_apart_from_rook_pawns_black() {
-		setUpPosition("8/8/8/8/8/8/pppppppp/8 w - - 0 1");
-		classUnderTest.getCountedPawnAttacks(attacksMask, attackerIsBlack=true);
-		assertArrayEquals(new long[] {0xFFL, 0x7EL}, attacksMask);
 	}
 	
 	@Test

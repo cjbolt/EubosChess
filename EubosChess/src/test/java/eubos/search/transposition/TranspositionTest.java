@@ -9,7 +9,6 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.position.Move;
 import eubos.position.PositionManager;
-import eubos.score.PawnEvalHashTable;
 import eubos.search.DrawChecker;
 
 class TranspositionTest {
@@ -46,7 +45,7 @@ class TranspositionTest {
 	PositionManager pm;
 	
 	protected void setUpPosition(String fen) {
-		pm = new PositionManager(fen, new DrawChecker(), new PawnEvalHashTable());
+		pm = new PositionManager(fen, new DrawChecker());
 	}
 	
 	@Test

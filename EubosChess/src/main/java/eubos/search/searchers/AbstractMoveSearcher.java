@@ -2,7 +2,6 @@ package eubos.search.searchers;
 
 import eubos.main.EubosEngineMain;
 import eubos.position.PositionManager;
-import eubos.score.PawnEvalHashTable;
 import eubos.score.ReferenceScore;
 import eubos.score.ReferenceScore.Reference;
 import eubos.search.DrawChecker;
@@ -22,9 +21,9 @@ public abstract class AbstractMoveSearcher extends Thread {
 	protected SearchMetricsReporter sr;
 	protected ReferenceScore refScore;
 
-	public AbstractMoveSearcher(EubosEngineMain eng, String fen, DrawChecker dc, FixedSizeTranspositionTable hashMap, ReferenceScore refScore, PawnEvalHashTable pawnHash) {
+	public AbstractMoveSearcher(EubosEngineMain eng, String fen, DrawChecker dc, FixedSizeTranspositionTable hashMap, ReferenceScore refScore) {
 		super();
-		PositionManager pm = new PositionManager(fen, eng.rootPosition.getHash(), dc, pawnHash);
+		PositionManager pm = new PositionManager(fen, eng.rootPosition.getHash(), dc);
 		refScore.setAtStartOfSearch(pm); // Setup the reference score that shall be used by any IterativeSearchStopper
 		this.refScore = refScore;				
 		this.eubosEngine = eng;

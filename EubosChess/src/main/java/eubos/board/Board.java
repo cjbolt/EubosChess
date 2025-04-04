@@ -1,6 +1,5 @@
 package eubos.board;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -12,8 +11,6 @@ import eubos.position.Move;
 import eubos.position.Position;
 import eubos.score.PiecewiseEvaluation;
 
-import com.fluxchess.jcpi.models.IntFile;
-import com.fluxchess.jcpi.models.GenericPosition;
 import com.fluxchess.jcpi.models.IntRank;
 
 public class Board {
@@ -40,7 +37,6 @@ public class Board {
 	//private static final int INDEX_NONE = Piece.NONE;
 	
 	public long[] pieces = new long[7]; // N.b. INDEX_NONE is an empty long at index 0.
-	private long passedPawns = 0L;
 	
 	static final int ENDGAME_MATERIAL_THRESHOLD = 
 			Piece.MATERIAL_VALUE_KING + 
@@ -77,7 +73,49 @@ public class Board {
 			setPieceAtSquare( nextPiece.getKey(), nextPiece.getValue());
 		}
 		me = new PiecewiseEvaluation();
+		evaluateMaterial(me);
 		insufficient = isInsufficientMaterial();
+	}
+	
+	private void evaluateMaterialBalanceAndStaticPieceMobility(boolean isWhite, PiecewiseEvaluation me) {
+		int side = isWhite ? 0 : Piece.BLACK;
+		long ownPieces = isWhite ? whitePieces : blackPieces; 
+		int bitOffset = BitBoard.INVALID;
+		long scratchBitBoard = pieces[Piece.QUEEN] & ownPieces;
+		bitOffset = BitBoard.convertToBitOffset(scratchBitBoard);
+		while (scratchBitBoard != 0L && (bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			me.numberOfPieces[side+Piece.QUEEN]++;
+			scratchBitBoard ^= (1L << bitOffset);
+		}
+		scratchBitBoard = pieces[Piece.ROOK] & ownPieces;
+		while (scratchBitBoard != 0L && (bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			me.numberOfPieces[side+Piece.ROOK]++;
+			scratchBitBoard ^= (1L << bitOffset);
+		}
+		scratchBitBoard = pieces[Piece.BISHOP] & ownPieces;
+		while (scratchBitBoard != 0L && (bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {			
+			me.numberOfPieces[side+Piece.BISHOP]++;
+			scratchBitBoard ^= (1L << bitOffset);
+		}
+		scratchBitBoard = pieces[Piece.KNIGHT] & ownPieces;
+		while (scratchBitBoard != 0L && (bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			me.numberOfPieces[side+Piece.KNIGHT]++;
+			scratchBitBoard ^= (1L << bitOffset);
+		}
+		scratchBitBoard = pieces[Piece.PAWN] & ownPieces;
+		while (scratchBitBoard != 0L && (bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert getPieceAtSquare(1L << bitOffset) != Piece.NONE :
+					String.format("Found a Pawn at %s that isn't on Board", Position.toGenericPosition(bitOffset));
+			}
+			me.numberOfPieces[side+Piece.PAWN]++;
+			scratchBitBoard ^= (1L << bitOffset);
+		}
+	}
+	
+	private void evaluateMaterial(PiecewiseEvaluation the_me) {
+		evaluateMaterialBalanceAndStaticPieceMobility(true, the_me);
+		evaluateMaterialBalanceAndStaticPieceMobility(false, the_me);
 	}
 	
 	public static String reportStaticDataSizes() {
@@ -944,161 +982,6 @@ public class Board {
 		// Remove from all pieces bitboard
 		allPieces &= ~pieceToPickUp;
 	}
-	
-	public int countDoubledPawns(long pawns) {
-		int doubledCount = 0;
-		for (int file : IntFile.values) {
-			long pawnsInFile = pawns & BitBoard.FileMask_Lut[file];
-			if (pawnsInFile != 0) {
-				int numPawnsInFile = Long.bitCount(pawnsInFile);
-				if (numPawnsInFile > 1) {
-					doubledCount += numPawnsInFile-1;
-				}
-			}
-		}
-		return doubledCount;
-	}
-	
-	public boolean isPassedPawn(int bitOffset, long bitMask) {
-		boolean isPassed = true;
-		boolean isWhite = (whitePieces & bitMask) != 0L;
-		long mask = BitBoard.PassedPawn_Lut[isWhite ? 0 : 1][bitOffset];
-		long otherSidePawns = isWhite ? getBlackPawns() : getWhitePawns();
-		if ((mask & otherSidePawns) != 0) {
-			isPassed  = false;
-		}
-		return isPassed;
-	}
-	
-	public boolean isFrontspanControlledInKpk(int bitOffset, boolean isWhite, long [] own_attacks) {
-		boolean isControlled = false;
-		long front_span_mask = BitBoard.PawnFrontSpan_Lut[isWhite ? 0 : 1][bitOffset];
-		if (((front_span_mask & own_attacks[0]) ^ front_span_mask) == 0L) {
-			// Don't need to check opponent attacks, because they can't attack the frontspan, ONLY VALID for KPK
-			isControlled = true;
-		}
-		return isControlled;
-	}
-	
-	private long generatePawnPushMask(int bitOffset, boolean isWhite) {
-		long pawnMask = 1L << bitOffset;
-		if (isWhite) {
-			 pawnMask <<= 8;
-		} else {
-			pawnMask >>= 8;
-		}
-		return pawnMask;
-	}
-	
-	public boolean isPawnBlockaded(int bitOffset, boolean isWhite) {
-		// Check for enemy pieces blockading
-		long pawnMask = generatePawnPushMask(bitOffset, isWhite);
-		long enemy_pieces = isWhite ? blackPieces : whitePieces;
-		return (pawnMask & enemy_pieces) != 0L;
-	}
-	
-	public boolean isPawnFrontspanSafe(int bitOffset, boolean isWhite, long[] own_attacks, long[] enemy_attacks, boolean heavySupport) {
-		boolean isClear = true;
-		// Check frontspan is controlled
-		long front_span_mask = BitBoard.PawnFrontSpan_Lut[isWhite ? 0 : 1][bitOffset];
-		if (heavySupport) {
-			// assume full x-ray control of the front span, simplification
-			long [] own_xray = Arrays.copyOf(own_attacks, own_attacks.length);
-			CountedBitBoard.setBits(own_xray, front_span_mask);
-			if (!CountedBitBoard.weControlContestedSquares(own_xray, enemy_attacks, front_span_mask)) {
-				isClear = false;
-			}
-		} else if (!CountedBitBoard.weControlContestedSquares(own_attacks, enemy_attacks, front_span_mask)) {
-			isClear = false;
-		}
-		return isClear;
-	}
-	
-	public boolean canPawnAdvance(int bitOffset, boolean isWhite, long[] own_attacks, long[] enemy_attacks) {
-		long pawnMask = generatePawnPushMask(bitOffset, isWhite);
-		return CountedBitBoard.weControlContestedSquares(own_attacks, enemy_attacks, pawnMask);
-	}
-	
-	private boolean eval(boolean isWhite, long attacksOnRearSpanMask, long pawnMask) {
-		// Evaluate the attacks for the rear span defender to see if it directly defends the pawn
-		long attackerMask = 0L;
-		if (isWhite) {
-			attackerMask = BitBoard.upAttacks(attacksOnRearSpanMask, getEmpty());
-		} else {
-			attackerMask = BitBoard.downAttacks(attacksOnRearSpanMask, getEmpty());
-		}
-		if ((attackerMask & pawnMask) != 0L) {
-			return true;
-		}
-		return false;
-	}
-	
-	public int checkForHeavyPieceBehindPassedPawn(int bitOffset, boolean isWhite) {
-		// The pawn may be attacked/defended by a rook or queen, directly along the rear span
-		boolean isDefended = false;
-		boolean isAttacked = false;
-		long ownPawnMask = 1L << bitOffset;
-		// Use the opposite colours' front span mask as a rear span mask
-	    long rearSpanMask = BitBoard.PawnFrontSpan_Lut[!isWhite ? 0 : 1][bitOffset];
-	    
-		long ownHeavyPiecesInRearSpanMask = rearSpanMask & (isWhite ? getWhiteRankFile() : getBlackRankFile());
-		if (ownHeavyPiecesInRearSpanMask != 0L) {
-			// Evaluate the attacks for the rear span defender to see if it directly defends the pawn
-			isDefended = eval(isWhite, ownHeavyPiecesInRearSpanMask, ownPawnMask);
-		}
-		if (!isDefended) {
-			long enemyHeavyPiecesInRearSpanMask = rearSpanMask & (!isWhite ? getWhiteRankFile() : getBlackRankFile());
-			if (enemyHeavyPiecesInRearSpanMask != 0L) {
-				// Evaluate the attacks for the rear span attacker to see if it directly attacks the pawn
-				isAttacked = eval(isWhite, enemyHeavyPiecesInRearSpanMask, ownPawnMask);
-			}
-		}
-		
-		if (EubosEngineMain.ENABLE_ASSERTS) {
-			assert !(isAttacked && isDefended) : "Passed pawn can't be simultaneously attacked and defended";
-		}
-		if (isAttacked) {
-			return -1;
-		} else if (isDefended) {
-			return +1;
-		} else {
-			return 0;
-		}
-	}
-	
-	public boolean isCandidatePassedPawn(int bitOffset, boolean isWhite, long[] own_pawn_attacks, long[] enemy_pawn_attacks) {
-		boolean isCandidate = true;
-		// Check frontspan is clear
-		long front_span_mask = BitBoard.PawnFrontSpan_Lut[isWhite ? 0 : 1][bitOffset];
-		long otherSidePawns = isWhite ? getBlackPawns() : getWhitePawns();
-		if ((front_span_mask & otherSidePawns) != 0) {
-			isCandidate  = false;
-		}
-		if (isCandidate) {
-			isCandidate = CountedBitBoard.weControlContestedSquares(own_pawn_attacks, enemy_pawn_attacks, front_span_mask);
-		}
-		return isCandidate;
-	}
-	
-	public boolean isBackwardsPawn(int bitOffset, boolean isWhite) {
-		boolean isBackwards = true;
-		long mask = BitBoard.BackwardsPawn_Lut[isWhite ? 0 : 1][bitOffset];
-		long ownSidePawns = isWhite ? getWhitePawns() : getBlackPawns();
-		if ((mask & ownSidePawns) != 0) {
-			isBackwards  = false;
-		}
-		return isBackwards;
-	}
-	
-	public boolean isIsolatedPawn(int bitOffset, boolean isWhite) {
-		boolean isIsolated = true;
-		long mask = BitBoard.IsolatedPawn_Lut[bitOffset];
-		long ownSidePawns = !isWhite ? getBlackPawns() : getWhitePawns();
-		if ((mask & ownSidePawns) != 0) {
-			isIsolated  = false;
-		}
-		return isIsolated;
-	}
 
 	public long getPawns() {
 		return pieces[INDEX_PAWN];
@@ -1166,52 +1049,6 @@ public class Board {
 	
 	public long getWhiteRankFile() {
 		return whitePieces & (pieces[INDEX_QUEEN] | pieces[INDEX_ROOK]);
-	}
-	
-	public boolean isOnHalfOpenFile(GenericPosition atPos, int type) {
-		boolean isHalfOpen = false;
-		long fileMask = BitBoard.FileMask_Lut[IntFile.valueOf(atPos.file)];
-		long otherSide = Piece.isBlack(type) ? whitePieces : blackPieces;
-		long pawnMask = otherSide & (pieces[INDEX_PAWN]);
-		boolean opponentPawnOnFile = (pawnMask & fileMask) != 0;
-		if (opponentPawnOnFile) {
-			long ownSide = Piece.isWhite(type) ? whitePieces : blackPieces;
-			pawnMask = ownSide & (pieces[INDEX_PAWN]);
-			// and no pawns of own side
-			isHalfOpen = !((pawnMask & fileMask) != 0);
-		}
-		return isHalfOpen;
-	}
-	
-	public long getBasicPawnAttacks(boolean attackerIsBlack) {
-		long attackMask = 0L;
-		long side = attackerIsBlack ? blackPieces : whitePieces;
-		long scratchBitBoard = pieces[Piece.PAWN] & side;
-		if (attackerIsBlack) {
-			attackMask |= BitBoard.downRightAttacks(scratchBitBoard);
-			attackMask |= BitBoard.downLeftAttacks(scratchBitBoard);
-		} else {
-			attackMask |= BitBoard.upRightAttacks(scratchBitBoard);
-			attackMask |= BitBoard.upLeftAttacks(scratchBitBoard);
-		}
-		return attackMask;
-	}
-	
-	public void getCountedPawnAttacks(long[] attacksMask, boolean attackerIsBlack) {
-		long side = attackerIsBlack ? blackPieces : whitePieces;
-		long scratchBitBoard = pieces[Piece.PAWN] & side;
-		long attacks = 0L;
-		if (attackerIsBlack) {
-			attacksMask[0] |= BitBoard.downRightAttacks(scratchBitBoard);
-			attacks = BitBoard.downLeftAttacks(scratchBitBoard);
-		} else {
-			attacksMask[0] |= BitBoard.upRightAttacks(scratchBitBoard);
-			attacks = BitBoard.upLeftAttacks(scratchBitBoard);
-		}
-		// Need to find which square(s) are attacked twice and set them in the second mask,
-		// optimised for pawns, where only two squares can be simultaneously attacked by a side
-		attacksMask[1] |= attacks & attacksMask[0];
-		attacksMask[0] |= attacks;
 	}
 	
 	public class CountedPawnKnightAttackAggregator implements IForEachPieceCallback {
@@ -1893,16 +1730,6 @@ public class Board {
 		}
 	}
 	
-	private boolean blackHasEnPrisePiece(long blackAttacks) {
-		long blacks_pieces_except_king = blackPieces & ~pieces[Piece.KING];
-		return (blacks_pieces_except_king & ~blackAttacks) != 0L;
-	}
-	
-	private boolean whiteHasEnPrisePiece(long whiteAttacks) {
-		long whites_pieces_except_king = whitePieces & ~pieces[Piece.KING];
-		return (whites_pieces_except_king & ~whiteAttacks) != 0L;
-	}
-	
 	public boolean potentialKnightForkOnEnemyKing(boolean onMoveIsWhite) {
 		int kingBitOffset = this.getKingPosition(!onMoveIsWhite);
 		long enemyKnights = pieces[Piece.KNIGHT] & (onMoveIsWhite ? whitePieces : blackPieces);
@@ -1913,172 +1740,6 @@ public class Board {
 		int kingBitOffset = this.getKingPosition(onMoveIsWhite);
 		long enemyKnights = pieces[Piece.KNIGHT] & (onMoveIsWhite ? blackPieces : whitePieces);
 		return (enemyKnights & SquareAttackEvaluator.KnightForks_Lut[kingBitOffset]) != 0L;
-	}
-	
-	public boolean isLikelyDrawnEndgame(boolean onMoveIsWhite) {
-		// Possible promotions
-		if (pieces[Piece.PAWN] != 0)
-			return false;
-		
-//		if (me.phase < 2624)
-//			return false;
-		boolean possiblyDrawn = false;
-		
-		// Minor pieces
-		int numWhiteBishops = me.numberOfPieces[Piece.WHITE_BISHOP];
-		int numWhiteKnights = me.numberOfPieces[Piece.WHITE_KNIGHT];
-		int numBlackBishops = me.numberOfPieces[Piece.BLACK_BISHOP];
-		int numBlackKnights = me.numberOfPieces[Piece.BLACK_KNIGHT];
-		int numWhiteMinor = numWhiteBishops + numWhiteKnights;
-		int numBlackMinor = numBlackBishops + numBlackKnights;
-		
-		if (pieces[Piece.QUEEN] == 0) {
-			int numWhiteRooks = me.numberOfPieces[Piece.WHITE_ROOK];
-			int numBlackRooks = me.numberOfPieces[Piece.BLACK_ROOK];
-			// (R vs 2 minor) or (R Minor vs Minor)
-			if (numWhiteRooks == 1 && numWhiteMinor < 2) {
-				// "R vs 2 minor" or "R Minor vs 2 minor"
-				if (numBlackRooks == 0 && numBlackMinor == 2) {
-					possiblyDrawn = true;
-				}
-				// "R Minor vs r" or "R vs r"
-				if (numBlackRooks == 1 && numBlackMinor == 0) {
-					possiblyDrawn = true;
-				}
-			}
-			if (numBlackRooks == 1 && numBlackMinor < 2) {
-				// "R vs 2 minor"
-				if (numWhiteRooks == 0 && numWhiteMinor == 2) {
-					possiblyDrawn = true;
-				}				
-				// R vs R Minor
-				if (numWhiteRooks == 1 && numWhiteMinor == 0) {
-					possiblyDrawn = true;
-				}
-			}	
-			if (!possiblyDrawn && (numWhiteRooks != 0 || numBlackRooks != 0)) {
-				// at least one rook on the board
-				return false;
-			}
-		} else {
-			if (pieces[Piece.ROOK] == 0) {
-				
-				int numWhiteQueens = me.numberOfPieces[Piece.WHITE_QUEEN];		
-				int numBlackQueens = me.numberOfPieces[Piece.BLACK_QUEEN];
-				// Q vs 2 minor
-				if (numWhiteQueens == 1 && numBlackQueens == 0 && numBlackMinor >= 2) {
-					possiblyDrawn = true;
-				}
-				if (numBlackQueens == 1 && numWhiteQueens == 0 && numWhiteMinor >= 2) {
-					possiblyDrawn = true;
-				}
-				// Q minor vs Q
-				if (numWhiteQueens == 1 && numBlackQueens == 1 && numBlackMinor == 0 && numWhiteMinor == 1) {
-					possiblyDrawn = true;
-				}
-				if (numBlackQueens == 1 && numWhiteQueens == 1 && numWhiteMinor == 0 && numBlackMinor == 1) {
-					possiblyDrawn = true;
-				}
-			}
-			// At least one queen on the board
-			if (!possiblyDrawn)
-				return false;
-		}
-		
-		if (numWhiteBishops >= 2 || numBlackBishops >= 2) {
-			// One side has at least two bishops
-			return false;
-		}
-		if ((numWhiteBishops == 1 && numWhiteKnights >= 1) ||
-		    (numBlackBishops == 1 && numBlackKnights >= 1))
-			// One side has Knight and Bishop
-			return false;
-		
-		// else insufficient material
-		return true;
-	}
-	
-	public boolean isLikelyDrawnEndgame(boolean onMoveIsWhite, long [][][] attacks) {
-		// Possible promotions
-		if (pieces[Piece.PAWN] != 0)
-			return false;
-		
-		boolean possiblyDrawn = false;
-		
-		// Minor pieces
-		int numWhiteBishops = me.numberOfPieces[Piece.WHITE_BISHOP];
-		int numWhiteKnights = me.numberOfPieces[Piece.WHITE_KNIGHT];
-		int numBlackBishops = me.numberOfPieces[Piece.BLACK_BISHOP];
-		int numBlackKnights = me.numberOfPieces[Piece.BLACK_KNIGHT];
-		int numWhiteMinor = numWhiteBishops + numWhiteKnights;
-		int numBlackMinor = numBlackBishops + numBlackKnights;
-		
-		if (pieces[Piece.QUEEN] == 0) {
-			int numWhiteRooks = me.numberOfPieces[Piece.WHITE_ROOK];
-			int numBlackRooks = me.numberOfPieces[Piece.BLACK_ROOK];
-			// (R vs 2 minor) or (R Minor vs Minor)
-			if (numWhiteRooks == 1 && numWhiteMinor < 2) {
-				// "R vs 2 minor" or "R Minor vs 2 minor"
-				if (numBlackRooks == 0 && numBlackMinor == 2) {
-					possiblyDrawn = true;
-				}
-				// "R Minor vs r" or "R vs r"
-				if (numBlackRooks == 1 && numBlackMinor == 0) {
-					possiblyDrawn = true;
-				}
-			}
-			if (numBlackRooks == 1 && numBlackMinor < 2) {
-				// "R vs 2 minor"
-				if (numWhiteRooks == 0 && numWhiteMinor == 2) {
-					possiblyDrawn = true;
-				}				
-				// R vs R Minor
-				if (numWhiteRooks == 1 && numWhiteMinor == 0) {
-					possiblyDrawn = true;
-				}
-			}	
-			if (!possiblyDrawn && (numWhiteRooks != 0 || numBlackRooks != 0)) {
-				// at least one rook on the board
-				return false;
-			}
-		} else {
-			if (pieces[Piece.ROOK] == 0) {
-				
-				int numWhiteQueens = me.numberOfPieces[Piece.WHITE_QUEEN];		
-				int numBlackQueens = me.numberOfPieces[Piece.BLACK_QUEEN];
-				// Q vs 2 minor
-				if (numWhiteQueens == 1 && numBlackQueens == 0 && numBlackMinor >= 2) {
-					possiblyDrawn = true;
-				}
-				if (numBlackQueens == 1 && numWhiteQueens == 0 && numWhiteMinor >= 2) {
-					possiblyDrawn = true;
-				}
-				// Q minor vs Q
-				if (numWhiteQueens == 1 && numBlackQueens == 1 && numBlackMinor == 0 && numWhiteMinor == 1) {
-					possiblyDrawn = true;
-				}
-				if (numBlackQueens == 1 && numWhiteQueens == 1 && numWhiteMinor == 0 && numBlackMinor == 1) {
-					possiblyDrawn = true;
-				}
-			}
-			// At least one queen on the board
-			if (!possiblyDrawn)
-				return false;
-		}
-		if (possiblyDrawn) {
-			if(onMoveIsWhite) {
-				if ((attacks[0][3][0] & blackPieces) != 0L ||
-					blackHasEnPrisePiece(attacks[1][3][0]) ||
-					potentialKnightForkOnEnemyKing(onMoveIsWhite))
-					return false;
-			} else {
-				if ((attacks[1][3][0] & whitePieces) != 0L ||
-					whiteHasEnPrisePiece(attacks[0][3][0]) ||
-					potentialKnightForkOnEnemyKing(onMoveIsWhite))
-					return false;
-			}
-		}
-		return possiblyDrawn;
 	}
 	
 	public boolean isInsufficientMaterial() {
@@ -2122,43 +1783,8 @@ public class Board {
 		}
 	}
 	
-	public void forEachPawnOfSide(IForEachPieceCallback caller, boolean isBlack) {
-		long side = isBlack ? blackPieces : whitePieces;
-		int piece = isBlack ? Piece.BLACK_PAWN : Piece.WHITE_PAWN;
-		long scratchBitBoard = pieces[Piece.PAWN] & side;
-		int bit_offset = BitBoard.INVALID;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-			caller.callback(piece, bit_offset);
-			scratchBitBoard ^= (1L << bit_offset);
-		}
-	}
-	
 	public long getEmpty() {
 		return ~allPieces;
-	}
-	
-	public boolean isPassedPawnPresent() {
-		return passedPawns != 0L;
-	}
-	
-	public long getPassedPawns() {
-		return passedPawns;
-	}
-	
-	public void setPassedPawns(long ppBitBoard) {
-		passedPawns = ppBitBoard;
-	}
-	
-	public boolean isAdvancedPassedPawnPresent() {
-		if (passedPawns == 0L)
-			return false;
-		long advanced_white = 0x00FF_FFFF_0000_0000L;
-		boolean advanced_passer = (passedPawns & whitePieces & advanced_white) != 0L;
-		if (!advanced_passer) {
-			long advanced_black = 0x0000_0000_FFFF_FF00L;
-			advanced_passer = (passedPawns & blackPieces & advanced_black) != 0L;
-		}
-		return advanced_passer;
 	}
 	
 	public void setHash(IZobristUpdate hash) {

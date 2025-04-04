@@ -7,7 +7,6 @@ import eubos.board.Piece;
 import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.PositionManager;
-import eubos.score.PawnEvalHashTable;
 import eubos.search.DrawChecker;
 import eubos.search.KillerList;
 import eubos.search.PlySearcher;
@@ -47,7 +46,7 @@ public class Validate {
 		}
 		
 		// Operate on a copy of the rootPosition to prevent reentrant issues at tight time controls
-		PositionManager pm = new PositionManager(rootFen, rootPosition.getHash(), new DrawChecker(), new PawnEvalHashTable());
+		PositionManager pm = new PositionManager(rootFen, rootPosition.getHash(), new DrawChecker());
 		SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.onMoveIsWhite());
 		PrincipalContinuation pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
 		SearchResult validation_result = doValidationSearch(pm, pc, sda, trusted_score, researchDepth);
@@ -108,7 +107,7 @@ public class Validate {
 	public void checkForDraws(DrawChecker dc, String fen, int trustedMove) {
 		String rootFen = rootPosition.getFen();
 		// Operate on a copy of the rootPosition to prevent reentrant issues at tight time controls
-		PositionManager pm = new PositionManager(rootFen, rootPosition.getHash(), dc, new PawnEvalHashTable());
+		PositionManager pm = new PositionManager(rootFen, rootPosition.getHash(), dc);
 		SearchDebugAgent sda = new SearchDebugAgent(rootPosition.getMoveNumber(), rootPosition.onMoveIsWhite());
 		PrincipalContinuation pc = new PrincipalContinuation(EubosEngineMain.SEARCH_DEPTH_IN_PLY, sda);
 		byte search_depth = (byte)1;

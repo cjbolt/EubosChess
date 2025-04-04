@@ -6,9 +6,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import eubos.board.BitBoard;
-import eubos.board.Piece;
-import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.search.DrawChecker;
 
@@ -22,7 +19,7 @@ public class PositionEvaluatorTest {
 	}
 
 	protected void setUpPosition(String fen) {
-		pm = new PositionManager(fen, new DrawChecker(), new PawnEvalHashTable());
+		pm = new PositionManager(fen, new DrawChecker());
 		SUT = (PositionEvaluator) pm.getPositionEvaluator();
 	}
 	
@@ -39,28 +36,6 @@ public class PositionEvaluatorTest {
 		setUpPosition("8/8/1B6/8/8/4Kpk1/8/b7 w - - - 85");
 		int expectedScore = -377;
 		assertEquals(expectedScore, SUT.getFullEvaluation());
-	}
-	
-	@Test
-	public void test_kingExposure() {
-		setUpPosition("r1nq1rkb/pp1npp2/4b2Q/3p4/3P1R2/P2BP1BP/1PPN2P1/R5K1 b - - - 17");
-		assertTrue(SUT.isKingExposed());
-	}
-		
-	@Test
-	public void test_movePositionalContribution_WhitePawn() {
-		setUpPosition("K7/8/1P6/3p4/2P5/8/8/7k w - - 0 1");
-		int move = Move.valueOfBit(BitBoard.c4, Piece.WHITE_PAWN, BitBoard.c5, Piece.NONE);
-		int pos = SUT.estimateMovePositionalContribution(move);
-		assertEquals(250, pos);
-	}
-	
-	@Test
-	public void test_movePositionalContribution_BlackPawn() {
-		setUpPosition("7K/8/8/2p5/3P4/1p6/8/k7 b - - 0 1 ");
-		int move = Move.valueOfBit(BitBoard.c5, Piece.BLACK_PAWN, BitBoard.c4, Piece.NONE);
-		int pos = SUT.estimateMovePositionalContribution(move);
-		assertEquals(250, pos);
 	}
 	
 	private void checkSymmetryOfPosition(String fen) {

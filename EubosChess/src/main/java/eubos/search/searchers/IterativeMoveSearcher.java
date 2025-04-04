@@ -6,7 +6,6 @@ import java.io.Writer;
 
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
-import eubos.score.PawnEvalHashTable;
 import eubos.score.ReferenceScore;
 import eubos.score.ReferenceScore.Reference;
 import eubos.search.DrawChecker;
@@ -32,14 +31,13 @@ public class IterativeMoveSearcher extends AbstractMoveSearcher {
 
 	public IterativeMoveSearcher(EubosEngineMain eubos, 
 			FixedSizeTranspositionTable hashMap,
-			PawnEvalHashTable pawnHash,
 			String fen,  
 			DrawChecker dc, 
 			long time,
 			long increment,
 			ReferenceScore refScore,
 			int moveOverhead) {
-		super(eubos, fen, dc, hashMap, refScore, pawnHash);
+		super(eubos, fen, dc, hashMap, refScore);
 		this.move_overhead = moveOverhead;
 		this.setName("IterativeMoveSearcher");
 		scoreHistory = new int [EubosEngineMain.SEARCH_DEPTH_IN_PLY+1];

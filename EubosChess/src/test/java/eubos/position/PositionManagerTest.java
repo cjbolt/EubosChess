@@ -831,16 +831,6 @@ public class PositionManagerTest {
 	}
 	
 	@Test
-	public void test_pawn_hash() {
-		createSutAndRegisterPe("8/pppppppp/8/8/8/8/PPPPPPPP/8 b - - 0 1");
-		assertEquals(118956731, classUnderTest.getPawnHash());
-		createSutAndRegisterPe("8/8/pppppppp/8/8/PPPPPPPP/8/8 b - - 0 1");
-		assertEquals(-2102459977, classUnderTest.getPawnHash());
-		createSutAndRegisterPe("8/8/8/pppppppp/PPPPPPPP/8/8/8 b - - 0 1");
-		assertEquals(-325031792, classUnderTest.getPawnHash());
-	}
-	
-	@Test
 	public void test_take_repetition() throws IllegalNotationException {
 		createSutAndRegisterPe("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 		String moves = "e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f3d4 g8f6 b1c3 a7a6 c1e3 e7e6 f2f3 b7b5 d1d3 b5b4 c3e2 e6e5 d4b3 "
