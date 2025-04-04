@@ -34,35 +34,12 @@ public class Board {
 	private static final int INDEX_ROOK = Piece.ROOK;
 	private static final int INDEX_QUEEN = Piece.QUEEN;
 	private static final int INDEX_KING = Piece.KING;
-	//private static final int INDEX_NONE = Piece.NONE;
 	
 	public long[] pieces = new long[7]; // N.b. INDEX_NONE is an empty long at index 0.
-	
-	static final int ENDGAME_MATERIAL_THRESHOLD = 
-			Piece.MATERIAL_VALUE_KING + 
-			Piece.MATERIAL_VALUE_ROOK + 
-			Piece.MATERIAL_VALUE_KNIGHT + 
-			(4 * Piece.MATERIAL_VALUE_PAWN);
-	
-	static final int ENDGAME_MATERIAL_THRESHOLD_WITHOUT_QUEENS =
-			Piece.MATERIAL_VALUE_KING + 
-			Piece.MATERIAL_VALUE_ROOK + 
-			Piece.MATERIAL_VALUE_KNIGHT +
-			Piece.MATERIAL_VALUE_BISHOP +
-			(4 * Piece.MATERIAL_VALUE_PAWN);
-	
 	public PiecewiseEvaluation me;
-		
-	// Only used for testing!
-	public CountedPawnKnightAttackAggregator cpkaa;
-	
-	boolean isAttacksMaskValid = false;
-	
 	public boolean insufficient = false;
 	
 	public Board(Map<Integer, Integer> pieceMap) {
-		cpkaa = new CountedPawnKnightAttackAggregator();
-		
 		allPieces = 0x0;
 		whitePieces = 0x0;
 		blackPieces = 0x0;
@@ -118,20 +95,6 @@ public class Board {
 		evaluateMaterialBalanceAndStaticPieceMobility(false, the_me);
 	}
 	
-	public static String reportStaticDataSizes() {
-		StringBuilder s = new StringBuilder();
-		int bytecountofstatics = 0; //Piece.PAWN_WHITE_WEIGHTINGS.length + Piece.PAWN_BLACK_WEIGHTINGS.length + Piece.KNIGHT_WEIGHTINGS.length + Piece.KING_ENDGAME_WEIGHTINGS.length + Piece.KING_MIDGAME_WEIGHTINGS.length;
-		s.append(String.format("PieceSquareTables %d bytes\n", bytecountofstatics));
-		int len = 0;
-		for(int i = 0; i < BitBoard.PassedPawn_Lut.length; i++)
-		{
-		    len += BitBoard.PassedPawn_Lut[i].length;
-		}
-		s.append(String.format("PassedPawn_Lut %d bytes\n", len*8));
-		s.append(String.format("FileMask_Lut %d bytes\n", BitBoard.FileMask_Lut.length*8));
-		return s.toString();
-	}
-	
 	public String getAsFenString() {
 		int currPiece = Piece.NONE;
 		int spaceCounter = 0;
@@ -157,9 +120,7 @@ public class Board {
 		return fen.toString();
 	}
 	
-	public boolean doMove(int move) {
-		isAttacksMaskValid = false;
-		
+	public boolean doMove(int move) {		
 		int captureBitOffset = BitBoard.INVALID;
 		
 		// unload move
@@ -322,8 +283,6 @@ public class Board {
 	}
 	
 	public void undoMove(int moveToUndo) {
-		isAttacksMaskValid = false;
-		
 		// unload move
 		int temp = moveToUndo;
 		int originBitOffset = temp & 0x3F;
@@ -982,10 +941,6 @@ public class Board {
 		// Remove from all pieces bitboard
 		allPieces &= ~pieceToPickUp;
 	}
-
-	public long getPawns() {
-		return pieces[INDEX_PAWN];
-	}
 		
 	public long getBlackPawns() {
 		return blackPieces & (pieces[INDEX_PAWN]);
@@ -1050,181 +1005,7 @@ public class Board {
 	public long getWhiteRankFile() {
 		return whitePieces & (pieces[INDEX_QUEEN] | pieces[INDEX_ROOK]);
 	}
-	
-	public class CountedPawnKnightAttackAggregator implements IForEachPieceCallback {
-		
-		public final int[] BLACK_ATTACKERS = {Piece.BLACK_PAWN, Piece.BLACK_KNIGHT};
-		public final int[] WHITE_ATTACKERS = {Piece.WHITE_PAWN, Piece.WHITE_KNIGHT};
-		
-		long [] attackMask;
-		
-		public void callback(int piece, int bitOffset) {
-			long mask = 0L;
-			switch(piece) {
-			case Piece.WHITE_PAWN:
-				mask = SquareAttackEvaluator.WhitePawnAttacksFromPosition_Lut[bitOffset];
-				break;
-			case Piece.BLACK_PAWN:
-				mask = SquareAttackEvaluator.BlackPawnAttacksFromPosition_Lut[bitOffset];
-				break;
-			case Piece.WHITE_KNIGHT:
-			case Piece.BLACK_KNIGHT:
-				mask = SquareAttackEvaluator.KnightMove_Lut[bitOffset];
-				break;
-			default:
-				break;
-			}
-			CountedBitBoard.setBits(attackMask, mask);
-		}
-		
-		@Override
-		public boolean condition_callback(int piece, int atPos) {
-			return false;
-		}
-		
-		public void getAttacks(long[] attacks, boolean attackerIsBlack) {
-			this.attackMask = attacks;
-			CountedBitBoard.clear(attackMask);
-			for (int piece : attackerIsBlack ? BLACK_ATTACKERS: WHITE_ATTACKERS) {
-				long side = attackerIsBlack ? blackPieces : whitePieces;
-				long scratchBitBoard = pieces[piece&Piece.PIECE_NO_COLOUR_MASK] & side;
-				
-				int bit_offset = BitBoard.INVALID;
-				while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-					this.callback(piece, bit_offset);
-					scratchBitBoard ^= (1L << bit_offset);
-				}
-			}
-		}
-	}
-	
-	public long getBasicKnightAttacks(boolean attackerIsBlack) {
-		long attackMask = 0L;
-		long scratchBitBoard = attackerIsBlack ? getBlackKnights() : getWhiteKnights();
-		int bit_offset = BitBoard.INVALID;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-			attackMask |= SquareAttackEvaluator.KnightMove_Lut[bit_offset];
-			scratchBitBoard ^= (1L << bit_offset);
-		}
-		return attackMask;
-	}
 
-	public void getCountedKnightAttacks(long[] attacks, boolean attackerIsBlack) {
-		long scratchBitBoard = attackerIsBlack ? getBlackKnights() : getWhiteKnights();
-		while (scratchBitBoard != 0x0L) {
-			int bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
-			long mask = SquareAttackEvaluator.KnightMove_Lut[bit_offset];
-			CountedBitBoard.setBits(attacks, mask);
-			scratchBitBoard ^= (1L << bit_offset);
-		}
-	}
-	
-	public boolean whiteSingleMoveEndgame(IAddMoves ml) {
-		long side = whitePieces;
-		long scratchBitBoard = pieces[Piece.KING] & side;
-		int bit_offset = BitBoard.INVALID;
-		if (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {			
-			Piece.king_generateMoves_White(ml, this, bit_offset);
-		}
-		if (ml.isLegalMoveFound()) {
-			return true;
-		}
-		scratchBitBoard = pieces[Piece.PAWN] & side & (~BitBoard.RankMask_Lut[IntRank.R7]);
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-			Piece.pawn_generateMoves_White(ml, this, bit_offset);
-			scratchBitBoard ^= (1L << bit_offset);
-			if (ml.isLegalMoveFound()) {
-				return true;
-			}
-		}
-		scratchBitBoard = pieces[Piece.QUEEN] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-			Piece.queen_generateMoves_White(ml, this, bit_offset);
-			scratchBitBoard ^= (1L << bit_offset);
-			if (ml.isLegalMoveFound()) {
-				return true;
-			}
-		}
-		scratchBitBoard = pieces[Piece.ROOK] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-			Piece.rook_generateMoves_White(ml, this, bit_offset);
-			scratchBitBoard ^= (1L << bit_offset);
-			if (ml.isLegalMoveFound()) {
-				return true;
-			}
-		}
-		scratchBitBoard = pieces[Piece.BISHOP] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-			Piece.bishop_generateMoves_White(ml, this, bit_offset);
-			scratchBitBoard ^= (1L << bit_offset);
-			if (ml.isLegalMoveFound()) {
-				return true;
-			}
-		}
-		scratchBitBoard = pieces[Piece.KNIGHT] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-			Piece.knight_generateMoves_White(ml, this, bit_offset);
-			scratchBitBoard ^= (1L << bit_offset);
-			if (ml.isLegalMoveFound()) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	public boolean blackSingleMoveEndgame(IAddMoves ml) {
-		long side = blackPieces;
-		long scratchBitBoard = pieces[Piece.KING] & side;
-		int bit_offset = BitBoard.INVALID;
-		if (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {			
-			Piece.king_generateMoves_Black(ml, this, bit_offset);
-		}
-		if (ml.isLegalMoveFound()) {
-			return true;
-		}
-		scratchBitBoard = pieces[Piece.PAWN] & side & (~BitBoard.RankMask_Lut[IntRank.R2]);;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-			Piece.pawn_generateMoves_Black(ml, this, bit_offset);
-			scratchBitBoard ^= (1L << bit_offset);
-			if (ml.isLegalMoveFound()) {
-				return true;
-			}
-		}
-		scratchBitBoard = pieces[Piece.QUEEN] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-			Piece.queen_generateMoves_Black(ml, this, bit_offset);
-			scratchBitBoard ^= (1L << bit_offset);
-			if (ml.isLegalMoveFound()) {
-				return true;
-			}
-		}
-		scratchBitBoard = pieces[Piece.ROOK] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-			Piece.rook_generateMoves_Black(ml, this, bit_offset);
-			scratchBitBoard ^= (1L << bit_offset);
-			if (ml.isLegalMoveFound()) {
-				return true;
-			}
-		}
-		scratchBitBoard = pieces[Piece.BISHOP] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-			Piece.bishop_generateMoves_Black(ml, this, bit_offset);
-			scratchBitBoard ^= (1L << bit_offset);
-			if (ml.isLegalMoveFound()) {
-				return true;
-			}
-		}
-		scratchBitBoard = pieces[Piece.KNIGHT] & side;
-		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-			Piece.knight_generateMoves_Black(ml, this, bit_offset);
-			scratchBitBoard ^= (1L << bit_offset);
-			if (ml.isLegalMoveFound()) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
 	public boolean whiteSingleMoveMidgame(IAddMoves ml) {
 		long side = whitePieces;
 		long scratchBitBoard = pieces[Piece.BISHOP] & side;
@@ -1729,19 +1510,7 @@ public class Board {
 			addMoves_CapturesExcludingPawnPromotions_Black(ml);
 		}
 	}
-	
-	public boolean potentialKnightForkOnEnemyKing(boolean onMoveIsWhite) {
-		int kingBitOffset = this.getKingPosition(!onMoveIsWhite);
-		long enemyKnights = pieces[Piece.KNIGHT] & (onMoveIsWhite ? whitePieces : blackPieces);
-		return (enemyKnights & SquareAttackEvaluator.KnightForks_Lut[kingBitOffset]) != 0L;
-	}
-	
-	public boolean potentialKnightCheck(boolean onMoveIsWhite) {
-		int kingBitOffset = this.getKingPosition(onMoveIsWhite);
-		long enemyKnights = pieces[Piece.KNIGHT] & (onMoveIsWhite ? blackPieces : whitePieces);
-		return (enemyKnights & SquareAttackEvaluator.KnightForks_Lut[kingBitOffset]) != 0L;
-	}
-	
+		
 	public boolean isInsufficientMaterial() {
 		// Possible promotions
 		if (pieces[Piece.PAWN] != 0)
@@ -1789,10 +1558,6 @@ public class Board {
 	
 	public void setHash(IZobristUpdate hash) {
 		this.hashUpdater = hash;
-	}
-		
-	public int getPieces() {
-		return Long.bitCount(allPieces);
 	}
 	
 	public static class NetInput {

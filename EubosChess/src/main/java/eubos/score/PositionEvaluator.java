@@ -1,7 +1,6 @@
 package eubos.score;
 
 import eubos.board.Board;
-import eubos.board.Piece;
 import eubos.neural_net.NNUE;
 import eubos.position.IPositionAccessors;
 import eubos.position.PositionManager;
@@ -13,16 +12,6 @@ public class PositionEvaluator implements IEvaluate {
 	private boolean isDraw;
 	private int score;
 	private Board bd;
-	
-	private static final int FUTILITY_MARGIN_BY_PIECE[] = new int[8];
-    static {
-    	FUTILITY_MARGIN_BY_PIECE[Piece.QUEEN] = 175;
-    	FUTILITY_MARGIN_BY_PIECE[Piece.ROOK] = 150;
-    	FUTILITY_MARGIN_BY_PIECE[Piece.BISHOP] = 130;
-    	FUTILITY_MARGIN_BY_PIECE[Piece.KNIGHT] = 175;
-    	FUTILITY_MARGIN_BY_PIECE[Piece.KING] = 150;
-    	FUTILITY_MARGIN_BY_PIECE[Piece.PAWN] = 125;
-    }
 	
 	private void basicInit() {
 		isDraw = false;
@@ -42,12 +31,6 @@ public class PositionEvaluator implements IEvaluate {
 		return network.evaluate();
 	}
 	
-	private int internalFullEval() {
-		if (!isDraw)
-			score = neural_net_eval();
-		return score;
-	}
-	
 	public int lazyEvaluation(int alpha, int beta) {
 		basicInit();
 		if (!isDraw) {
@@ -59,14 +42,11 @@ public class PositionEvaluator implements IEvaluate {
 		return score;
 	}
 	
-	int getCrudeEvaluation() {
-		initialise();
-		return internalFullEval();
-	}
-	
 	public int getFullEvaluation() {
 		initialise();
-		return internalFullEval();
+		if (!isDraw)
+			score = neural_net_eval();
+		return score;
 	}
 	
 	public int getStaticEvaluation() {

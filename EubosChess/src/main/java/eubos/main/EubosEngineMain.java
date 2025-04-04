@@ -31,10 +31,6 @@ import com.fluxchess.jcpi.options.Options;
 import com.fluxchess.jcpi.options.SpinnerOption;
 import com.fluxchess.jcpi.protocols.NoProtocolException;
 
-import eubos.board.Board;
-
-import eubos.board.Piece;
-import eubos.board.SquareAttackEvaluator;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.position.MoveList;
@@ -682,9 +678,6 @@ public class EubosEngineMain extends AbstractEngine {
 			logger.setLevel(Level.OFF);
 			logger.setUseParentHandlers(false);
 		}
-		logger.fine(String.format("Starting Eubos\n %s\n %s\n Total moves %d bytes\n %s Total masks %d\n",
-				Board.reportStaticDataSizes(), Piece.reportStaticDataSizes(), Piece.getStaticDataSize(),
-				SquareAttackEvaluator.reportStaticDataSizes(), SquareAttackEvaluator.getStaticDataSize()));
 		// start the Engine
 		Thread EubosThread = new Thread( new EubosEngineMain() );
 		EubosThread.setName("EubosMainThread");

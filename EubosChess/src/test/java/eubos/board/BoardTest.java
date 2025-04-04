@@ -578,27 +578,5 @@ public class BoardTest {
 		setUpPosition("8/8/8/8/8/k7/4p1K1/8 b - - 1 1");
 		classUnderTest.doMove(Move.valueOfBit(Move.TYPE_PROMOTION_MASK, BitBoard.e2, Piece.BLACK_PAWN, BitBoard.e1, Piece.NONE, Piece.KNIGHT));
 	}
-	
-	@Test
-	public void test_knight_check() {
-		setUpPosition("k7/8/8/8/2N1K3/8/8/8 w - - 0 1");
-		assertTrue(classUnderTest.potentialKnightCheck(false));
-		setUpPosition("k7/8/8/3N4/4K3/8/8/8 w - - 0 1 ");
-		assertTrue(classUnderTest.potentialKnightCheck(false));
-		setUpPosition("k7/8/4N3/8/4K3/8/8/8 w - - 0 1 ");
-		assertTrue(classUnderTest.potentialKnightCheck(false));
-		setUpPosition("k3N3/8/8/8/4K3/8/8/8 w - - 0 1 ");
-		assertTrue(classUnderTest.potentialKnightCheck(false));
-		setUpPosition("k7/8/8/8/N3K3/8/8/8 w - - 0 1 ");
-		assertTrue(classUnderTest.potentialKnightCheck(false));
-		setUpPosition("k7/8/8/8/1N2K3/8/8/8 w - - 0 1 ");
-		assertFalse(classUnderTest.potentialKnightCheck(false));
-		setUpPosition("k7/8/4n3/8/4K3/8/8/8 b - - 0 1 ");
-		assertTrue(classUnderTest.potentialKnightCheck(true));
-		setUpPosition("k7/8/8/8/4K3/7n/8/8 b - - 0 1 ");
-		assertTrue(classUnderTest.potentialKnightCheck(true));
-		setUpPosition("k7/8/4n3/8/3K4/8/8/8 b - - 0 1 ");
-		assertFalse(classUnderTest.potentialKnightCheck(true));
-	}
 }
 

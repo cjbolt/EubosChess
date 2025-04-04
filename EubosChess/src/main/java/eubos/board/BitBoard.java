@@ -1,7 +1,5 @@
 package eubos.board;
 
-import java.util.PrimitiveIterator;
-
 import eubos.board.Piece.Colour;
 import eubos.main.EubosEngineMain;
 import eubos.position.Position;
@@ -120,10 +118,6 @@ public final class BitBoard {
 			positionToMask_Lut[x88_square] = atPosMask;
 			bit_index++;
 		}
-	}
-	
-	public static PrimitiveIterator.OfLong maskIterator(Long bitBoard) {
-		return new MaskIterator(bitBoard);
 	}
 	
 	public static long upOccludedEmpty(long board, long empty) {
