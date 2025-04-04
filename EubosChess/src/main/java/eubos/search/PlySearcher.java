@@ -757,7 +757,7 @@ public class PlySearcher {
 			moveNumber > 1 && /* Full search for at least one quiet move */
 			!pe.goForMate() && /* Ignore reductions in a mate search */
 			depth > 2 &&
-			!(Move.isPawnMove(currMove) && !pos.getTheBoard().me.phaseLessThan4000())) {
+			!(Move.isPawnMove(currMove) && pos.getTheBoard().me.isEndgame())) {
 		
 			// Calculate reduction, 1 for the first few moves, then the closer to the root node, the more severe the reduction
 			int lmr = (moveNumber < depth/2) ? 1 : Math.max(1, depth/4);
