@@ -449,8 +449,18 @@ public class PlySearcher {
 						if (!s.isStaticValid) {
 							setStaticEvaluation(trans);
 						}
-						if (s.staticEval + ((depth == 1) ? 250 : 500) < s.alpha) {
-							break;
+						if (EubosEngineMain.ENABLE_PER_MOVE_FUTILITY_PRUNING) {
+							int threshold = pe.estimateMovePositionalContribution(currMove) + ((depth == 1) ? 0 : 250);
+							if (s.isImproving) {
+								threshold /= 2;
+							}
+							if (s.staticEval + threshold < s.alpha) {
+								continue;
+							}
+						} else {
+							if (s.staticEval + ((depth == 1) ? 250 : 500) < s.alpha) {
+								break;
+							}
 						}
 					}
 				}
@@ -757,7 +767,9 @@ public class PlySearcher {
 			moveNumber > 1 && /* Full search for at least one quiet move */
 			!pe.goForMate() && /* Ignore reductions in a mate search */
 			depth > 2 &&
-			!(Move.isPawnMove(currMove) && pos.getTheBoard().me.isEndgame())) {
+			!(Move.isPawnMove(currMove) &&  /* Not a passed pawn move or a pawn move in endgame */
+					(pos.getTheBoard().me.isEndgame() ||
+					(pos.getTheBoard().getPassedPawns() & (1L << Move.getTargetPosition(currMove))) != 0L))) {
 		
 			// Calculate reduction, 1 for the first few moves, then the closer to the root node, the more severe the reduction
 			int lmr = (moveNumber < depth/2) ? 1 : Math.max(1, depth/4);

@@ -65,6 +65,7 @@ class MoveTracker {
 
 class MoveTrackerNN {
 	class MoveStackNN {
+		long passed_pawn;
 		long hash;
 		byte en_passant_square;
 		byte castling;
@@ -72,6 +73,7 @@ class MoveTrackerNN {
 		int draw_check_ply;
 		
 		MoveStackNN() {
+			passed_pawn = 0L;
 			hash = 0L;
 			en_passant_square = BitBoard.INVALID;
 			castling = 0;
@@ -91,7 +93,8 @@ class MoveTrackerNN {
 		index = 0;
 	}
 	
-	public void push(int move, int castling, int enPassant, long hash, int dc_index) {
+	public void push(long pp, int move, int castling, int enPassant, long hash, int dc_index) {
+		stack[index].passed_pawn = pp;
 		stack[index].move = move;
 		stack[index].en_passant_square = (byte) enPassant;
 		stack[index].castling = (byte) castling;

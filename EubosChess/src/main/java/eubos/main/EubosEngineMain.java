@@ -86,7 +86,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_COUNTED_PASSED_PAWN_MASKS = true;
 	public static final boolean ENABLE_FUTILITY_PRUNING = true;
 	public static final boolean ENABLE_PINNED_TO_KING_CHECK_IN_ILLEGAL_DETECTION = true;
-	public static final boolean ENABLE_PER_MOVE_FUTILITY_PRUNING = false;
+	public static final boolean ENABLE_PER_MOVE_FUTILITY_PRUNING = true;
 	
 	public static final boolean ENABLE_FUTILITY_PRUNING_OF_KILLER_MOVES = false;
 	public static final boolean ENABLE_OVERWRITE_TRANS_WITH_SEARCH = false;
@@ -574,7 +574,9 @@ public class EubosEngineMain extends AbstractEngine {
 		
 		convertToGenericAndSendBestMove(trustedMove);
 		
-		hashMap.clearUp(this, moveNumber);
+		if(!rootPosition.getTheBoard().me.isEndgame()) {
+			hashMap.clearUp(this, moveNumber);
+		}
 	}
 	
 	@Override

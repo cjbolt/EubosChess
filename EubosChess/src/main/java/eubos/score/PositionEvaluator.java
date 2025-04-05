@@ -1,6 +1,9 @@
 package eubos.score;
 
 import eubos.board.Board;
+
+import eubos.board.Piece;
+import eubos.position.Move;
 import eubos.neural_net.NNUE;
 import eubos.position.IPositionAccessors;
 import eubos.position.PositionManager;
@@ -61,12 +64,47 @@ public class PositionEvaluator implements IEvaluate {
 		return goForMate;
 	}
 	
+	private static final int FUTILITY_MARGIN_BY_PIECE[] = new int[8];
+    static {
+    	FUTILITY_MARGIN_BY_PIECE[Piece.QUEEN] = 175;
+    	FUTILITY_MARGIN_BY_PIECE[Piece.ROOK] = 150;
+    	FUTILITY_MARGIN_BY_PIECE[Piece.BISHOP] = 130;
+    	FUTILITY_MARGIN_BY_PIECE[Piece.KNIGHT] = 175;
+    	FUTILITY_MARGIN_BY_PIECE[Piece.KING] = 150;
+    	FUTILITY_MARGIN_BY_PIECE[Piece.PAWN] = 125;
+    }
+	
+	public int estimateMovePositionalContribution(int move) {
+		int originPiece = Move.getOriginPiece(move);
+		int originNoColour = originPiece & Piece.PIECE_NO_COLOUR_MASK;
+		int futility = FUTILITY_MARGIN_BY_PIECE[originNoColour];
+		
+		if (originNoColour == Piece.PAWN) {
+			int pawnIsAt = Move.getOriginPosition(move);
+			long pawnMask = 1L << pawnIsAt;
+			long pp = pm.getTheBoard().getPassedPawns();
+			if ((pp & pawnMask) != 0L) {
+				/* If the moving pawn is already passed, inflate futility. */
+				futility += 100;
+			} else {
+				int pawnWillBeAt = Move.getTargetPosition(move);
+				if (bd.isPassedPawn(pawnWillBeAt, pawnMask)) {
+					/* If the moving pawn is becoming passed, inflate futility. */
+					futility += 125;
+				}
+			}
+			
+		} 
+		return futility;
+	}
+	
 	public PositionEvaluator(IPositionAccessors pm) {	
 		this.pm = pm;
 		bd = pm.getTheBoard();
 		// If either side can't win (e.g. bare King) then do a mate search.
 		goForMate = ((Long.bitCount(bd.getBlackPieces()) == 1) || 
-				     (Long.bitCount(bd.getWhitePieces()) == 1));
+				     (Long.bitCount(bd.getWhitePieces()) == 1)) ||
+				Math.abs(getStaticEvaluation()) > 2500;
 		initialise();
 	}
 }

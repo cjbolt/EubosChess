@@ -5,4 +5,5 @@ public interface IEvaluate {
 	int getStaticEvaluation();
 	int lazyEvaluation(int alpha, int beta);
 	boolean goForMate();
+	int estimateMovePositionalContribution(int move);
 }
