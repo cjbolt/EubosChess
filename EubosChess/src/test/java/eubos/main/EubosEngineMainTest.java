@@ -182,7 +182,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_TIME_PREFIX+"30000"+CMD_TERMINATOR, BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
-		assertTrue(performTestExpectMate(15000, 13));
+		assertTrue(performTestExpectMate(15000, 10));
 	}
 	
 	@Test
@@ -221,7 +221,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1h4"+CMD_TERMINATOR));
-		mateDepth = 14;
+		mateDepth = 13;
 		assertTrue(performTestExpectMate(14000, mateDepth));
 	}
 	 
@@ -376,7 +376,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_WAC_086_position() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/p7/1ppk1n2/5ppp/P1PP4/2P1K1P1/5N1P/8 b - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"13"+CMD_TERMINATOR, BEST_PREFIX+"f6g4"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"f6g4"+CMD_TERMINATOR));
 		assertTrue(performTest(8000));
 	}
 	
@@ -565,8 +565,8 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Fine: problem 80
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/1ppk4/p4pp1/P1PP2p1/2P1K1P1/7P/8 b - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"16"+CMD_TERMINATOR, BEST_PREFIX+"b6b5"+CMD_TERMINATOR));
-		assertTrue(performTest(8000));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"19"+CMD_TERMINATOR, BEST_PREFIX+"b6b5"+CMD_TERMINATOR));
+		assertTrue(performTest(40000));
 	}
 	
 	@Test

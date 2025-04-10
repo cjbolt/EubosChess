@@ -190,6 +190,7 @@ public abstract class AbstractEubosIntegration {
 						recievedCmd = testOutput.toString();
 					}
 					if (recievedCmd != null && !recievedCmd.isEmpty()) {
+						//System.err.println(recievedCmd);
 						if (!accumulate)
 							System.out.println(recievedCmd);
 						testOutput.reset();
@@ -207,9 +208,6 @@ public abstract class AbstractEubosIntegration {
 								mateDetected = true;
 								accumulate = true;
 							} else {
-//								if (parsedCmd.contains("bestmove") /*|| parsedCmd.contains("string")*/) {
-//									System.err.println(String.format("received '%s'", parsedCmd));
-//								}
 								filterEngineOutput(parsedCmd, "bestmove");
 								accumulate = false;
 							}

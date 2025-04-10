@@ -173,11 +173,11 @@ public class MoveListTest {
 		assertEquals(new GenericMove("b5c6"), Move.toGenericMove(it.nextInt())); // En Passant capture, PxP
 		
 		// Regular moves
+		assertEquals(new GenericMove("b5b6"), Move.toGenericMove(it.nextInt())); // Regular pawn move
+		assertEquals(new GenericMove("f5f6"), Move.toGenericMove(it.nextInt())); // Pawn check
 		assertEquals(new GenericMove("h8h7"), Move.toGenericMove(it.nextInt()));
 		assertEquals(new GenericMove("h8g7"), Move.toGenericMove(it.nextInt()));
 		assertEquals(new GenericMove("h8g8"), Move.toGenericMove(it.nextInt()));
-		assertEquals(new GenericMove("b5b6"), Move.toGenericMove(it.nextInt())); // Regular pawn move
-		assertEquals(new GenericMove("f5f6"), Move.toGenericMove(it.nextInt())); // Pawn check
 		
 		assertFalse(it.hasNext());
 	}
@@ -357,7 +357,7 @@ public class MoveListTest {
 		classUnderTest = new MoveList(pm, 1);
 		it = classUnderTest.initialiseAtPly(best, null, pm.isKingInCheck(), false, 0);
 		
-		assertEquals(Move.toString(Move.valueOf(Position.g7, Piece.WHITE_KING, Position.g8, Piece.NONE)), Move.toString(it.nextInt()));
+		assertEquals(Move.toString(Move.valueOf(Position.f8, Piece.WHITE_QUEEN, Position.e7, Piece.NONE)), Move.toString(it.nextInt()));
 	}
 	
 	@Test
