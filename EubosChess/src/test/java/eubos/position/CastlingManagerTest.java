@@ -42,7 +42,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		setupPosition("8/8/8/8/8/8/8/4K2R w K - - -");
+		setupPosition("k7/8/8/8/8/8/8/4K2R w K - - -");
 		expectWkscMove();
 	}
 	
@@ -107,7 +107,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k..r
 		//   abcdefgh
-		setupPosition("8/8/8/8/8/8/8/4K2R w k - - -");
+		setupPosition("k7/8/8/8/8/8/8/4K2R w k - - -");
 		classUnderTest = pm.castling;
 		classUnderTest.addCastlingMoves(pm.onMoveIsWhite(), it.ma_quietNoKillers);
 		List<Integer> moves = ml.getList(it);
@@ -184,7 +184,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....kb.r
 		//   abcdefgh
-		setupPosition("8/8/8/8/8/8/8/4KB1R w K - - -");
+		setupPosition("k7/8/8/8/8/8/8/4KB1R w K - - -");
 		classUnderTest = pm.castling;
 		classUnderTest.addCastlingMoves(pm.onMoveIsWhite(), it.ma_quietNoKillers);
 		List<Integer> moves = ml.getList(it);
@@ -203,7 +203,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ....k.br
 		//   abcdefgh
-		setupPosition("8/8/8/8/8/8/8/4K1BR w K - - -");
+		setupPosition("k7/8/8/8/8/8/8/4K1BR w K - - -");
 		classUnderTest = pm.castling;
 		classUnderTest.addCastlingMoves(pm.onMoveIsWhite(), it.ma_quietNoKillers);
 		List<Integer> moves = ml.getList(it);
@@ -237,7 +237,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		setupPosition("r3k3/8/8/8/8/8/8/8 b q - - -");
+		setupPosition("r3k3/8/8/8/8/8/8/7K b q - - -");
 		expectBqscMove();
 	}
 	
@@ -272,7 +272,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		setupPosition("r3k3/8/8/8/8/8/8/8 b Q - - -");
+		setupPosition("r3k3/8/8/8/8/8/8/7K b Q - - -");
 		classUnderTest = pm.castling;
 		classUnderTest.addCastlingMoves(pm.onMoveIsWhite(), it.ma_quietNoKillers);
 		List<Integer> moves = ml.getList(it);
@@ -291,7 +291,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		setupPosition("r3k3/8/8/8/8/8/8/8 b q - - -");
+		setupPosition("r3k3/8/8/8/8/8/8/7K b q - - -");
 		assertTrue(ml.getList(it).contains(CastlingManager.bqsc));
 		assertFalse(ml.getList(it).contains(CastlingManager.bksc));
 	}	
@@ -345,7 +345,7 @@ public class CastlingManagerTest {
 		// 2 ........
 		// 1 ........
 		//   abcdefgh
-		setupPosition("r2qk3/8/8/8/8/8/8/8 b q - - -");
+		setupPosition("r2qk3/8/8/8/8/8/8/7K b q - - -");
 		classUnderTest = pm.castling;
 		classUnderTest.addCastlingMoves(pm.onMoveIsWhite(), it.ma_quietNoKillers);
 		List<Integer> moves = ml.getList(it);

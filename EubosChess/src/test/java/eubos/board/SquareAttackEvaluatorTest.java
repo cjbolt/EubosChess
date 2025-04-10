@@ -68,7 +68,7 @@ public class SquareAttackEvaluatorTest {
 	// Bishop
 	@Test
 	public void testIsAttacked_NotAttackedOwnColourPawnE4() {
-		assertTestSqIsNotAttacked("8/8/8/3K4/4P3/8/8/8 w - - 0 1"); }
+		assertTestSqIsNotAttacked("7k/8/8/3K4/4P3/8/8/8 w - - 0 1"); }
 	@Test
 	public void testIsAttacked_AttackedWhiteBishopH1() {
 		assertTestSqIsAttacked("8/8/8/8/8/8/8/7B b - - 0 1"); }
@@ -142,10 +142,10 @@ public class SquareAttackEvaluatorTest {
 	// Compound Tests
 	@Test
 	public void testIsAttacked_NotAttacked_Complex1() {
-		assertTestSqIsNotAttacked("B1N5/3p1N2/2P3R1/Qp1k4/1PpP4/8/6q1/Q2R3B b - - 0 1"); }
+		assertTestSqIsNotAttacked("B1N4K/3p1N2/2P3R1/Qp1k4/1PpP4/8/6q1/Q2R3B b - - 0 1"); }
 	@Test
 	public void testIsAttacked_Attacked_Complex1_QueenA5() {
-		assertTestSqIsAttacked("B1N5/3p1N2/2P3R1/Q2k4/1PpP4/8/6q1/Q2R3B b - - 0 1"); }
+		assertTestSqIsAttacked("B1N4K/3p1N2/2P3R1/Q2k4/1PpP4/8/6q1/Q2R3B b - - 0 1"); }
 	@Test
 	public void testIsAttacked_Attacked_Illegal1_KingC5() {
 		assertTestSqIsAttacked("B1N5/3p1N2/2P3R1/Q1Kk4/1PpP4/8/6q1/Q2R3B b - - 0 1"); }

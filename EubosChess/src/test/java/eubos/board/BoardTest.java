@@ -285,14 +285,14 @@ public class BoardTest {
 	
 	@Test
 	public void testCouldLeadToCheck_EnPassantDiagonal() {
-		setUpPosition("8/B7/8/8/3pP3/8/8/6k1 b - e3 0 1");
+		setUpPosition("7K/B7/8/8/3pP3/8/8/6k1 b - e3 0 1");
 		int move = Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.d4, Piece.BLACK_PAWN, Position.e3, Piece.WHITE_PAWN, Piece.NONE);
 		assertFalse(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.g1, false));
 	}
 	
 	@Test
 	public void testCouldLeadToCheck_EnPassantDiagonalOtherSide() {
-		setUpPosition("8/B7/8/8/2Pp4/8/8/6k1 b - c3 0 1 ");
+		setUpPosition("7K/B7/8/8/2Pp4/8/8/6k1 b - c3 0 1 ");
 		int move = Move.valueOfEnPassant(Move.MISC_EN_PASSANT_CAPTURE_MASK, 0, Position.d4, Piece.BLACK_PAWN, Position.c3, Piece.WHITE_PAWN, Piece.NONE);
 		assertTrue(classUnderTest.moveCausesDiscoveredCheck(move, BitBoard.g1, false));
 	}

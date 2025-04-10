@@ -84,7 +84,7 @@ public class MoveListTest {
 	
 	@Test
 	public void test_mvv_lva_order()throws IllegalNotationException {
-		setup("7K/N2B4/Q3q3/1r3PN1/2P3B1/4Rp2/6P1/1R6 w - - 0 1");
+		setup("7K/N2B4/Q3q3/1r3PN1/2P3B1/4Rp2/6Pk/1R6 w - - 0 1");
 		
 		// gaining material
 		assertEquals(new GenericMove("f5e6"), Move.toGenericMove(it.nextInt())); // PxQ delta 4 gains 8

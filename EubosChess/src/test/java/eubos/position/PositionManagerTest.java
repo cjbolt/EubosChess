@@ -609,19 +609,19 @@ public class PositionManagerTest {
 	
 	@Test
 	public void test_Bishop_MoveGen_CornerBottomLeft_ObstructedOwnPieces() {
-		createSutAndRegisterPe("8/8/8/8/8/8/1p6/b7 b - - 0 1");
+		createSutAndRegisterPe("7k/8/8/8/8/8/1p6/b6K b - - 0 1");
 		
-		expectedNumMoves = 2;
+		expectedNumMoves = 5;
 		checkExpectedMoves(ml.getList(it));
 	}
 
 	@Test
 	public void test_Bishop_MoveGen_LeftEdge_PartiallyObstructedOwnPiece() {
-		createSutAndRegisterPe("8/8/8/8/b7/1p6/8/8 b - - 0 1");
+		createSutAndRegisterPe("7k/8/8/8/b7/1p6/8/7K b - - 0 1");
 		
 		expectedMoves.add( Move.valueOf( Position.a4, Piece.BLACK_BISHOP, Position.b5, Piece.NONE ));
 		expectedMoves.add( Move.valueOf( Position.a4, Piece.BLACK_BISHOP, Position.e8, Piece.NONE ));
-		expectedNumMoves = 5;
+		expectedNumMoves = 8;
 		checkExpectedMoves(ml.getList(it));		
 	}
 	
@@ -650,11 +650,11 @@ public class PositionManagerTest {
 	
 	@Test
 	public void test_Bishop_MoveGen_Middle_ObstructedMixturePieces() {
-		createSutAndRegisterPe("8/8/8/3P1p2/4b3/3P1p2/8/8 b - - 0 1");
+		createSutAndRegisterPe("k7/8/8/3P1p2/4b3/3P1p2/8/K7 b - - 0 1");
 		
 		expectedMoves.add( Move.valueOf( Position.e4, Piece.BLACK_BISHOP, Position.d3, Piece.WHITE_PAWN ));
 		expectedMoves.add( Move.valueOf( Position.e4, Piece.BLACK_BISHOP, Position.d5, Piece.WHITE_PAWN ));
-		expectedNumMoves = 4;
+		expectedNumMoves = 7;
 		checkExpectedMoves(ml.getList(it));
 	}
 	
@@ -763,7 +763,7 @@ public class PositionManagerTest {
 	
 	@Test
 	public void test_Rook_MoveGen_CornerBottomLeft_ObstructedOwnPieces() {
-		createSutAndRegisterPe("8/8/8/8/8/8/P7/RK6 w - - 0 1");
+		createSutAndRegisterPe("k7/8/8/8/8/8/P7/RK6 w - - 0 1");
 		
 		expectedNumMoves = 5;
 		checkExpectedMoves(ml.getList(it));
@@ -771,9 +771,9 @@ public class PositionManagerTest {
 
 	@Test
 	public void test_Rook_MoveGen_CornerBottomLeft_PartiallyObstructedOwnPiece() {
-		createSutAndRegisterPe("8/8/8/8/8/8/P7/R7 w - - 0 1");
+		createSutAndRegisterPe("7k/8/8/8/8/8/P7/R6K w - - 0 1");
 		
-		expectedNumMoves = 9;
+		expectedNumMoves = 11;
 		checkExpectedMoves(ml.getList(it));
 	}
 	
@@ -801,11 +801,11 @@ public class PositionManagerTest {
 	
 	@Test
 	public void test_Rook_MoveGen_Middle_ObstructedMixturePieces() {
-		createSutAndRegisterPe("8/8/8/4P3/3prp2/4P3/8/8 b - - 0 1");
+		createSutAndRegisterPe("k7/8/8/4P3/3prp2/4P3/8/K7 b - - 0 1");
 		
 		expectedMoves.add( Move.valueOf( Position.e4, Piece.BLACK_ROOK, Position.e5, Piece.WHITE_PAWN ));
 		expectedMoves.add( Move.valueOf( Position.e4, Piece.BLACK_ROOK, Position.e3, Piece.WHITE_PAWN ));
-		expectedNumMoves = 6;
+		expectedNumMoves = 9;
 		checkExpectedMoves(ml.getList(it));
 	}
 	
