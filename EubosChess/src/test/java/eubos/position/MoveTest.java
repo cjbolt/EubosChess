@@ -4,14 +4,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import eubos.score.PawnEvalHashTable;
 import eubos.search.DrawChecker;
 
 public class MoveTest {
 	MoveList ml;
 	
 	protected void setUpPosition(String fen) {
-		PositionManager pm = new PositionManager(fen, new DrawChecker(), new PawnEvalHashTable());
+		PositionManager pm = new PositionManager(fen, new DrawChecker());
 		ml = new MoveList(pm, 1);
 	}
 	

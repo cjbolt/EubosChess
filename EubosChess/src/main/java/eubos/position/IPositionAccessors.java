@@ -10,7 +10,6 @@ public interface IPositionAccessors {
 	public int getMoveNumber();
 	public int getPlyNumber();
 	public long getHash();
-	public int getPawnHash();
 	public String getFen();
 	public boolean isThreefoldRepetitionPossible();
 	public boolean isInsufficientMaterial();

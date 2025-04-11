@@ -4,42 +4,20 @@ import eubos.board.Piece;
 
 public class PiecewiseEvaluation {
 	
-	public static final int PIECE_PHASE = 192;
-	public static final int ROOK_PHASE = 320;
-	public static final int QUEEN_PHASE = 640;
-	public static final int TOTAL_PHASE = PIECE_PHASE * 8 + ROOK_PHASE * 4 + QUEEN_PHASE * 2;
-	
-	public short mg_material = 0;
-	public short eg_material = 0;
-	public short dynamicPosition = 0;
-	public int combinedPosition = 0;
-	
-	public int phase = 0;
 	public int [] numberOfPieces;
 	
 	public PiecewiseEvaluation() {
 		numberOfPieces = new int [16];
 	}
 	
+	public static final int PIECE_PHASE = 192;
+	public static final int ROOK_PHASE = 320;
+	public static final int QUEEN_PHASE = 640;
+	public static final int TOTAL_PHASE = PIECE_PHASE * 8 + ROOK_PHASE * 4 + QUEEN_PHASE * 2;
+	
 	public boolean isEndgame() {
-		return phase > 3000;
-	}
-	
-	public short getMiddleGameDelta() { return mg_material; }
-	
-	public short getEndGameDelta() { return eg_material; }
-	
-	public short getPosition() { return (short)((short)(combinedPosition & 0xFFFF) + dynamicPosition); }
-	
-	public short getEndgamePosition() { return (short)((short)(combinedPosition >> 16) + dynamicPosition); }
-
-	public int getPhase() {
-		return phase;
-	}
-	
-	public void setPhase() {
 		// Phase calculation; pawns are excluded, king is excluded
-		phase = TOTAL_PHASE;
+		int phase = TOTAL_PHASE;
 		phase -= numberOfPieces[Piece.WHITE_KNIGHT] * PIECE_PHASE;
 		phase -= numberOfPieces[Piece.WHITE_BISHOP] * PIECE_PHASE;
 		phase -= numberOfPieces[Piece.WHITE_ROOK] * ROOK_PHASE;
@@ -49,6 +27,55 @@ public class PiecewiseEvaluation {
 		phase -= numberOfPieces[Piece.BLACK_ROOK] * ROOK_PHASE;
 		phase -= numberOfPieces[Piece.BLACK_QUEEN] * QUEEN_PHASE;
 		// Phase is now a 10 bit fixed point fraction of the total phase
+		return phase > 3000;
+	}
+
+	
+//	public boolean phaseGreaterThan3000() {
+//
+//		int num_minor = numberOfPieces[Piece.WHITE_KNIGHT];
+//		num_minor += numberOfPieces[Piece.WHITE_BISHOP];
+//		num_minor += numberOfPieces[Piece.BLACK_KNIGHT];
+//		num_minor += numberOfPieces[Piece.BLACK_BISHOP];
+//		if (num_minor > 5)
+//			return false;
+//		
+//		int num_queens = numberOfPieces[Piece.WHITE_QUEEN];
+//		num_queens += numberOfPieces[Piece.BLACK_QUEEN];
+//		if (num_queens > 1)
+//			return false;
+//		
+//		int num_major = numberOfPieces[Piece.WHITE_ROOK];
+//		num_major += numberOfPieces[Piece.BLACK_ROOK];
+//		if (num_major > 2)
+//			return false;
+//		
+//		if (num_major >= 1 && num_queens >= 1)
+//			return false;
+//		
+//		if (num_minor >= 2 && num_major >= 2)
+//			return false;
+//		return true;
+//	}
+
+	public boolean phaseLessThan4000() {
+		if (numberOfPieces[Piece.WHITE_KNIGHT] > 0)
+			return true;
+		if (numberOfPieces[Piece.WHITE_ROOK] > 0)
+			return true;
+		if (numberOfPieces[Piece.WHITE_BISHOP] > 0)
+			return true;
+		if (numberOfPieces[Piece.WHITE_QUEEN] > 0)
+			return true;
+		if (numberOfPieces[Piece.BLACK_KNIGHT] > 0)
+			return true;
+		if (numberOfPieces[Piece.BLACK_ROOK] > 0)
+			return true;
+		if (numberOfPieces[Piece.BLACK_BISHOP] > 0)
+			return true;
+		if (numberOfPieces[Piece.BLACK_QUEEN] > 0)
+			return true;
+		return false;
 	}
 	
 	public int getNumPieces() {
@@ -65,71 +92,24 @@ public class PiecewiseEvaluation {
 		num += numberOfPieces[Piece.BLACK_PAWN];
 		return num;
 	}
-
-	public void addPst(int piece, int bitOffset) {
-		int x = combinedPosition;
-		int y = Piece.COMBINED_PIECE_SQUARE_TABLES[piece][bitOffset];
-		int s = x + y;
-		int c = (s ^ x ^ y) & 0x0001_0000;
-		combinedPosition = s - c;
-	}
-	
-	public void subtractPst(int piece, int bitOffset) {
-		int x = combinedPosition;
-		int y = Piece.COMBINED_PIECE_SQUARE_TABLES[piece][bitOffset];
-		int d = x - y;
-		int b = (d ^ x ^ y) & 0x0001_0000;
-		combinedPosition = d + b;
-	}
-	
-	public void updateRegular(int originPiece, int originBitOffset, int targetBitOffset) {
-		addPst(originPiece, targetBitOffset);
-		subtractPst(originPiece, originBitOffset);
-	}
 	
 	public void updateWhenUndoingPromotion(int promoPiece, int oldBitOffset, int newBitOffset) {
 		int pawnToReplace = (promoPiece & Piece.BLACK)+Piece.PAWN;
 		numberOfPieces[pawnToReplace]++;
 		numberOfPieces[promoPiece]--;
-		
-		mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][pawnToReplace];
-		mg_material -= Piece.PIECE_TO_MATERIAL_LUT[0][promoPiece];
-		eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][pawnToReplace];
-		eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][promoPiece];
-		phase += Piece.PIECE_PHASE[promoPiece];
-		
-		addPst(pawnToReplace, newBitOffset);
-		subtractPst(promoPiece, oldBitOffset);
 	}
 	
 	public void updateWhenDoingPromotion(int promoPiece, int oldBitOffset, int newBitOffset) {
 		int pawnToRemove = (promoPiece & Piece.BLACK)+Piece.PAWN;
 		numberOfPieces[pawnToRemove]--;
 		numberOfPieces[promoPiece]++;
-		
-		mg_material -= Piece.PIECE_TO_MATERIAL_LUT[0][pawnToRemove];
-		mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][promoPiece];
-		eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][pawnToRemove];
-		eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][promoPiece];
-		phase -= Piece.PIECE_PHASE[promoPiece];
-		
-		subtractPst(pawnToRemove, oldBitOffset);
-		addPst(promoPiece, newBitOffset);
 	}
 	
 	public void updateForCapture(int currPiece, int bitOffset) {
 		numberOfPieces[currPiece]--;
-		mg_material -= Piece.PIECE_TO_MATERIAL_LUT[0][currPiece];
-		eg_material -= Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
-		phase += Piece.PIECE_PHASE[currPiece];
-		subtractPst(currPiece, bitOffset);
 	}
 	
 	public void updateForReplacedCapture(int currPiece, int bitOffset) {
 		numberOfPieces[currPiece]++;
-		mg_material += Piece.PIECE_TO_MATERIAL_LUT[0][currPiece];
-		eg_material += Piece.PIECE_TO_MATERIAL_LUT[1][currPiece];
-		phase -= Piece.PIECE_PHASE[currPiece];
-		addPst(currPiece, bitOffset);
 	}
 }

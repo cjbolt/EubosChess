@@ -10,41 +10,35 @@ import com.fluxchess.jcpi.models.IntRank;
 import eubos.board.BitBoard;
 import eubos.board.Board;
 import eubos.board.Piece;
-import eubos.main.EubosEngineMain;
-import eubos.position.MoveTracker.MoveStack;
+import eubos.position.MoveTrackerNN.MoveStackNN;
 import eubos.score.IEvaluate;
-import eubos.score.PawnEvalHashTable;
 import eubos.score.PositionEvaluator;
 import eubos.search.DrawChecker;
 
 public class PositionManager implements IChangePosition, IPositionAccessors {
 	
-	public PositionManager(String fenString, DrawChecker dc, PawnEvalHashTable pawnHashTable) {
-		moveTracker = new MoveTracker();
+	public PositionManager(String fenString, DrawChecker dc) {
+		moveTracker = new MoveTrackerNN();
 		new fenParser( this, fenString );
 		hash = new ZobristHashCode(this, castling);
-		pawnHash = new PawnHashCode();
 		theBoard.setHash(hash);
-		theBoard.setPawnHash(pawnHash);
 		this.dc = dc;
-		pawnHash.calculatePawnHash(this);
-		pe = new PositionEvaluator(this, pawnHashTable);
+		pe = new PositionEvaluator(this);
 	}
 	
-	public PositionManager(String fenString, long hashCode, DrawChecker dc, PawnEvalHashTable pawnHash) {
-		this(fenString, dc, pawnHash);
+	public PositionManager(String fenString, long hashCode, DrawChecker dc) {
+		this(fenString, dc);
 		hash.hashCode = hashCode;
 	}
 	
 	public PositionManager(String fenString) {
-		this(fenString, new DrawChecker(), new PawnEvalHashTable());
+		this(fenString, new DrawChecker());
 	}
 	
 	public PositionManager() {
-		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", new DrawChecker(), new PawnEvalHashTable());
+		this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", new DrawChecker());
 	}
 
-	PawnHashCode pawnHash;
 	public CastlingManager castling;
 	private Board theBoard;
 	public Board getTheBoard() {
@@ -58,7 +52,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return this.theBoard.getAsFenString();
 	}
 	
-	private MoveTracker moveTracker = new MoveTracker();
+	private MoveTrackerNN moveTracker = new MoveTrackerNN();
 	
 	// No public setter, set by parsing fen and only changed by performing a move on the board.
 	private boolean onMoveIsWhite = true;
@@ -108,20 +102,14 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		long pp = theBoard.getPassedPawns();
 		long old_hash = getHash();
 		int old_flags = castling.getFlags();
-		int old_pHash = getPawnHash();
 		
 		// Legal move check
 		if (theBoard.doMove(move)) {			
 			return false;
 		}	
-		
-		if (EubosEngineMain.ENABLE_ASSERTS) {
-			int iterative_p_hash = pawnHash.getPawnHash();
-			assert iterative_p_hash == pawnHash.calculatePawnHash(this);
-		}
 
 		// Store old state
-		moveTracker.push(pp, move, old_flags, prevEnPassantTargetSq, old_hash, dc.checkFromPly, old_pHash);
+		moveTracker.push(pp, move, old_flags, prevEnPassantTargetSq, old_hash, dc.checkFromPly);
 		
 		// Update state
 		// Update Hash
@@ -142,7 +130,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 
 	public void unperformMove() {
-		MoveStack stack = moveTracker.pop();
+		MoveStackNN stack = moveTracker.pop();
 		theBoard.undoMove(stack.move);
 		
 		// Restore state from move stack
@@ -151,7 +139,6 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		theBoard.setEnPassantTargetSq(stack.en_passant_square);
 		hash.hashCode = stack.hash;
 		dc.checkFromPly = stack.draw_check_ply;
-		pawnHash.hashCode = stack.pawnHash;
 			
 		// Clear draw indicator flag
 		repetitionPossible = false;
@@ -167,7 +154,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Preserve state
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		theBoard.setEnPassantTargetSq(BitBoard.INVALID);
-		moveTracker.push(0L, Move.NULL_MOVE, castling.getFlags(), prevEnPassantTargetSq, 0L, 0, (short)0);
+		moveTracker.push(0L, Move.NULL_MOVE, castling.getFlags(), prevEnPassantTargetSq, 0L, 0);
 
 		hash.doEnPassant(prevEnPassantTargetSq, BitBoard.INVALID);
 		hash.doOnMove();
@@ -177,7 +164,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	public void unperformNullMove() {
-		MoveStack stack = moveTracker.pop();
+		MoveStackNN stack = moveTracker.pop();
 		
 		// Restore state
 		castling.setFlags(stack.castling);
@@ -351,10 +338,5 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 			s.insert(0, Move.toString(moveTracker.getMove()));
 		}
 		return s.toString();
-	}
-
-	@Override
-	public int getPawnHash() {
-		return pawnHash.getPawnHash();
 	}
 }

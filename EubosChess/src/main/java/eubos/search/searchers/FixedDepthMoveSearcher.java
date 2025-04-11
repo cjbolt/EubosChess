@@ -1,7 +1,6 @@
 package eubos.search.searchers;
 
 import eubos.main.EubosEngineMain;
-import eubos.score.PawnEvalHashTable;
 import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
 import eubos.search.SearchResult;
@@ -18,7 +17,7 @@ public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 			DrawChecker dc, 
 			byte searchDepth,
 			ReferenceScore refScore) {
-		super(eubos, fen, dc, hashMap, refScore, new PawnEvalHashTable());
+		super(eubos, fen, dc, hashMap, refScore);
 		this.searchDepth = searchDepth;
 		this.setName("FixedDepthMoveSearcher");
 	}

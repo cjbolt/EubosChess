@@ -31,15 +31,10 @@ import com.fluxchess.jcpi.options.Options;
 import com.fluxchess.jcpi.options.SpinnerOption;
 import com.fluxchess.jcpi.protocols.NoProtocolException;
 
-import eubos.board.Board;
-
-import eubos.board.Piece;
-import eubos.board.SquareAttackEvaluator;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.PositionManager;
-import eubos.score.PawnEvalHashTable;
 import eubos.score.PositionEvaluator;
 import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
@@ -101,7 +96,6 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	// Permanent data structures - static for the duration of a single game
 	FixedSizeTranspositionTable hashMap = null;
-	PawnEvalHashTable pawnHash = null;
 	DrawChecker dc;
 	ReferenceScore whiteRefScore;
 	ReferenceScore blackRefScore;
@@ -165,7 +159,6 @@ public class EubosEngineMain extends AbstractEngine {
         	if (hashMap != null) {
         		createdHashTable = true;
     			dc = new DrawChecker();
-    			pawnHash = new PawnEvalHashTable();
     			whiteRefScore = new ReferenceScore(hashMap);
     			blackRefScore = new ReferenceScore(hashMap);
         	}
@@ -180,7 +173,6 @@ public class EubosEngineMain extends AbstractEngine {
 		reply.addOption(Options.newHashOption((int)DEFAULT_HASH_SIZE, MIN_HASH_SIZE, MAX_HASH_SIZE));
 		reply.addOption(new SpinnerOption("Threads", defaultNumberOfWorkerThreads, 1, numCores));
 		reply.addOption(new SpinnerOption("Move Overhead", 10, 0, 5000));
-		reply.addOption(new SpinnerOption("Lazy Threshold", PositionEvaluator.lazy_eval_threshold_cp, 0, 1000));
 		logger.fine(String.format("Cores available=%d", numCores));
 		this.getProtocol().send( reply );
 	}
@@ -204,10 +196,6 @@ public class EubosEngineMain extends AbstractEngine {
 		if (command.name.startsWith("Move Overhead")) {
 			move_overhead = Integer.parseInt(command.value);
 			logger.fine(String.format("Move Overhead=%d", move_overhead));
-		}
-		if (command.name.startsWith("Lazy Threshold")) {
-			//PositionEvaluator.lazy_eval_threshold_cp = Integer.parseInt(command.value);
-			logger.fine(String.format("Lazy Threshold=%d", PositionEvaluator.lazy_eval_threshold_cp));
 		}
 	}
 
@@ -237,7 +225,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	void createPositionFromAnalyseCommand(EngineAnalyzeCommand command) {
 		lastFen = command.board.toString();
-		rootPosition = new PositionManager(lastFen, dc, pawnHash);
+		rootPosition = new PositionManager(lastFen, dc);
 		// Apply move history to ensure correct state in draw checker
 		for (GenericMove nextMove : command.moves) {
 			int eubosMove = Move.toMove(nextMove, rootPosition.getTheBoard());
@@ -259,7 +247,7 @@ public class EubosEngineMain extends AbstractEngine {
 				return;
 			}
 			rootPosition.performMove(randomMove);
-			PositionEvaluator pe = new PositionEvaluator(rootPosition, pawnHash);
+			PositionEvaluator pe = new PositionEvaluator(rootPosition);
 			int score = -pe.getFullEvaluation();
 			rootPosition.unperformMove();
 			int [] pv = new int[] { randomMove };
@@ -315,13 +303,13 @@ public class EubosEngineMain extends AbstractEngine {
 				ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth, refScore);
 			} else {
 				logger.info("Search move, clock time " + clockTime);
-				ms = new MultithreadedIterativeMoveSearcher(this, hashMap, pawnHash, lastFen, dc, clockTime, clockInc,
+				ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, clockTime, clockInc,
 						numberOfWorkerThreads, refScore, move_overhead);
 			}
 		}
 		else if (command.getMoveTime() != null) {
 			logger.info("Search move, fixed time " + command.getMoveTime());
-			ms = new FixedTimeMoveSearcher(this, hashMap, pawnHash, lastFen, dc, command.getMoveTime(), refScore);
+			ms = new FixedTimeMoveSearcher(this, hashMap, lastFen, dc, command.getMoveTime(), refScore);
 		} else {
 			// Analyse mode
 			byte searchDepth = 0;
@@ -336,7 +324,7 @@ public class EubosEngineMain extends AbstractEngine {
 				ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth, refScore);
 			} else if (analysisMode) {
 				logger.info(String.format("Search move, infinite search, threads %d", numberOfWorkerThreads));
-				ms = new MultithreadedIterativeMoveSearcher(this, hashMap, pawnHash, lastFen, dc, Long.MAX_VALUE, clockInc,
+				ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, Long.MAX_VALUE, clockInc,
 						numberOfWorkerThreads, refScore, move_overhead);
 			} else {
 				searchDepth = 8;
@@ -692,9 +680,6 @@ public class EubosEngineMain extends AbstractEngine {
 			logger.setLevel(Level.OFF);
 			logger.setUseParentHandlers(false);
 		}
-		logger.fine(String.format("Starting Eubos\n %s\n %s\n Total moves %d bytes\n %s Total masks %d\n",
-				Board.reportStaticDataSizes(), Piece.reportStaticDataSizes(), Piece.getStaticDataSize(),
-				SquareAttackEvaluator.reportStaticDataSizes(), SquareAttackEvaluator.getStaticDataSize()));
 		// start the Engine
 		Thread EubosThread = new Thread( new EubosEngineMain() );
 		EubosThread.setName("EubosMainThread");

@@ -6,7 +6,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import eubos.main.EubosEngineMain;
 import eubos.position.PositionManager;
-import eubos.score.PawnEvalHashTable;
 import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
 import eubos.search.Score;
@@ -25,7 +24,6 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 	
 	public MultithreadedIterativeMoveSearcher(EubosEngineMain eubos, 
 			FixedSizeTranspositionTable hashMap,
-			PawnEvalHashTable pawnHash,
 			String fen,  
 			DrawChecker dc, 
 			long time,
@@ -33,21 +31,21 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			int threads,
 			ReferenceScore refScore,
 			int move_overhead) {
-		super(eubos, hashMap, pawnHash, fen, dc, time, increment, refScore, move_overhead);
+		super(eubos, hashMap, fen, dc, time, increment, refScore, move_overhead);
 		this.setName("MultithreadedIterativeMoveSearcher");
 		this.threads = threads;
 		workers = new ArrayList<MultithreadedSearchWorkerThread>(threads);
-		createMoveGenerators(hashMap, pawnHash, fen, dc, threads);
+		createMoveGenerators(hashMap, fen, dc, threads);
 	}
 
-	private void createMoveGenerators(FixedSizeTranspositionTable hashMap, PawnEvalHashTable pawnHash, String fen, DrawChecker dc, int threads) {
+	private void createMoveGenerators(FixedSizeTranspositionTable hashMap, String fen, DrawChecker dc, int threads) {
 		moveGenerators = new ArrayList<MiniMaxMoveGenerator>(threads);
 		// The first move generator shall be that constructed by the abstract MoveSearcher, this one shall be accessed by the stopper thread
 		moveGenerators.add(mg);
 		// Create subsequent move generators using cloned DrawCheckers and distinct PositionManagers
 		for (int i=1; i < threads; i++) {
 			DrawChecker cloned_dc = new DrawChecker(dc);
-			PositionManager pm = new PositionManager(fen, cloned_dc, pawnHash);
+			PositionManager pm = new PositionManager(fen, cloned_dc);
 			MiniMaxMoveGenerator thisMg = new MiniMaxMoveGenerator(hashMap, pm, sr, refScore.getReference());
 			moveGenerators.add(thisMg);
 		}
@@ -197,7 +195,6 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		
 		private void stopWorker() {
 			halted = true;
-			myMg.reportStatistics();
 			myMg.sda.close();
 			if (EubosEngineMain.ENABLE_LOGGING) {
 				EubosEngineMain.logger.fine(String.format("Worker %s halted, notifying", getName()));

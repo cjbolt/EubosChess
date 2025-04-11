@@ -18,7 +18,6 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.PositionManager;
-import eubos.score.PawnEvalHashTable;
 import eubos.score.ReferenceScore;
 import eubos.search.searchers.IterativeMoveSearcher;
 import eubos.search.transposition.FixedSizeTranspositionTable;
@@ -61,7 +60,7 @@ public class IterativeMoveSearcherTest {
 	private EubosMock eubos;
 	
 	protected void setupPosition(String fen, long time) {
-		sut = new IterativeMoveSearcher(eubos, hashMap, new PawnEvalHashTable(), fen, new DrawChecker(), time, 0, new ReferenceScore(hashMap), 0);
+		sut = new IterativeMoveSearcher(eubos, hashMap, fen, new DrawChecker(), time, 0, new ReferenceScore(hashMap), 0);
 	}
 	
 	@Before

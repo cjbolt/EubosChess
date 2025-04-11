@@ -417,8 +417,8 @@ public class PlySearcher {
 			if (EubosEngineMain.ENABLE_NULL_MOVE_PRUNING &&
 				!isTerminated() &&
 				depth > 2 &&
-				nullCheckEnabled && 
-				pos.getTheBoard().me.phase < 4000) {
+				nullCheckEnabled &&
+				pos.getTheBoard().me.phaseLessThan4000()) {
 				
 				s.bestScore = doNullMoveSubTreeSearch(depth);
 				if (isTerminated()) { return 0; }
@@ -765,8 +765,6 @@ public class PlySearcher {
 		}
 		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
 			moveNumber > 1 && /* Full search for at least one quiet move */
-			//!lmrApplied && /* Only apply LMR once per branch of tree */
-			//scout &&
 			!pe.goForMate() && /* Ignore reductions in a mate search */
 			depth > 2 &&
 			!(Move.isPawnMove(currMove) &&  /* Not a passed pawn move or a pawn move in endgame */

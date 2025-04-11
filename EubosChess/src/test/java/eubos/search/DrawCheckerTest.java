@@ -18,7 +18,7 @@ public class DrawCheckerTest {
 	private PositionManager pm;
 
 	private void setupPosition(String fen) {
-		pm = new PositionManager(fen, sut, new eubos.score.PawnEvalHashTable());
+		pm = new PositionManager(fen, sut);
 	}
 	
 	@Before
