@@ -10,7 +10,7 @@ import com.fluxchess.jcpi.models.IntRank;
 import eubos.board.BitBoard;
 import eubos.board.Board;
 import eubos.board.Piece;
-import eubos.position.MoveTrackerNN.MoveStackNN;
+import eubos.position.MoveTracker.MoveStack;
 import eubos.score.IEvaluate;
 import eubos.score.PositionEvaluator;
 import eubos.search.DrawChecker;
@@ -18,7 +18,7 @@ import eubos.search.DrawChecker;
 public class PositionManager implements IChangePosition, IPositionAccessors {
 	
 	public PositionManager(String fenString, DrawChecker dc) {
-		moveTracker = new MoveTrackerNN();
+		moveTracker = new MoveTracker();
 		new fenParser( this, fenString );
 		hash = new ZobristHashCode(this, castling);
 		theBoard.setHash(hash);
@@ -52,7 +52,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return this.theBoard.getAsFenString();
 	}
 	
-	private MoveTrackerNN moveTracker = new MoveTrackerNN();
+	private MoveTracker moveTracker = new MoveTracker();
 	
 	// No public setter, set by parsing fen and only changed by performing a move on the board.
 	private boolean onMoveIsWhite = true;
@@ -130,7 +130,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 
 	public void unperformMove() {
-		MoveStackNN stack = moveTracker.pop();
+		MoveStack stack = moveTracker.pop();
 		theBoard.undoMove(stack.move);
 		
 		// Restore state from move stack
@@ -164,7 +164,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 	}
 	
 	public void unperformNullMove() {
-		MoveStackNN stack = moveTracker.pop();
+		MoveStack stack = moveTracker.pop();
 		
 		// Restore state
 		castling.setFlags(stack.castling);
