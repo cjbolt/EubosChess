@@ -206,9 +206,11 @@ public class PlySearcher {
 		        	// Score returned was outside aspiration window
 		        	lastAspirationFailed = true;
 					certain = false;
-					if (eubos != null) {
-						eubos.sendInfoString(String.format("aspirated search failed score=%d in alpha=%d beta=%d for depth=%d",
-								score, alpha, beta, originalSearchDepthRequiredInPly));
+					if (EubosEngineMain.ENABLE_LOGGING) {
+						if (eubos != null) {
+							eubos.sendInfoString(String.format("aspirated search failed score=%d in alpha=%d beta=%d for depth=%d",
+									score, alpha, beta, originalSearchDepthRequiredInPly));
+						}
 					}
 					alphaFail = score <= alpha;
 					betaFail = score >= beta;
