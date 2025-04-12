@@ -8,7 +8,6 @@ import eubos.position.CastlingManager;
 import eubos.position.IAddMoves;
 import eubos.position.IZobristUpdate;
 import eubos.position.Move;
-import eubos.position.MaterialPhase;
 import eubos.position.Position;
 
 import com.fluxchess.jcpi.models.IntRank;

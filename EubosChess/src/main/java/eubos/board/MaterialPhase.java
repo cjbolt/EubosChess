@@ -1,6 +1,4 @@
-package eubos.position;
-
-import eubos.board.Piece;
+package eubos.board;
 
 public class MaterialPhase {
 	
