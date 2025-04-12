@@ -75,16 +75,11 @@ public class SearchMetrics {
 	List<GenericMove> getPrincipalVariation() {
 		List<GenericMove> thePv = null;
 		if (pvValid) {
-			if (ENABLE_SINGLE_MOVE_PV) {
-				thePv = new ArrayList<GenericMove>(1);
-				thePv.add(Move.toGenericMove(pv[0]));
-			} else {
-				// Need to convert from internal move representation to a generic list of moves for the UCI package API
-				thePv = new ArrayList<GenericMove>(pv.length);
-				for (int move : pv) {
-					if (move != Move.NULL_MOVE) {
-						thePv.add(Move.toGenericMove(move));
-					}
+			// Need to convert from internal move representation to a generic list of moves for the UCI package API
+			thePv = new ArrayList<GenericMove>(pv.length);
+			for (int move : pv) {
+				if (move != Move.NULL_MOVE) {
+					thePv.add(Move.toGenericMove(move));
 				}
 			}
 		}
