@@ -8,7 +8,7 @@ import eubos.position.CastlingManager;
 import eubos.position.IAddMoves;
 import eubos.position.IZobristUpdate;
 import eubos.position.Move;
-import eubos.position.PiecewiseEvaluation;
+import eubos.position.MaterialPhase;
 import eubos.position.Position;
 
 import com.fluxchess.jcpi.models.IntRank;
@@ -36,7 +36,7 @@ public class Board {
 	private static final int INDEX_KING = Piece.KING;
 	
 	public long[] pieces = new long[7]; // N.b. INDEX_NONE is an empty long at index 0.
-	public PiecewiseEvaluation me;
+	public MaterialPhase me;
 	public boolean insufficient = false;
 	private long passedPawns = 0L;
 	
@@ -50,7 +50,7 @@ public class Board {
 		for (Entry<Integer, Integer> nextPiece : pieceMap.entrySet()) {
 			setPieceAtSquare( nextPiece.getKey(), nextPiece.getValue());
 		}
-		me = new PiecewiseEvaluation();
+		me = new MaterialPhase();
 		evaluateMaterial(me);
 		createPassedPawnsBoard();
 		insufficient = isInsufficientMaterial();
@@ -72,7 +72,7 @@ public class Board {
 		}
 	}
 	
-	private void evaluateMaterialBalanceAndStaticPieceMobility(boolean isWhite, PiecewiseEvaluation me) {
+	private void evaluateMaterialBalanceAndStaticPieceMobility(boolean isWhite, MaterialPhase me) {
 		int side = isWhite ? 0 : Piece.BLACK;
 		long ownPieces = isWhite ? whitePieces : blackPieces; 
 		int bitOffset = BitBoard.INVALID;
@@ -80,25 +80,25 @@ public class Board {
 		bitOffset = BitBoard.convertToBitOffset(scratchBitBoard);
 		while (scratchBitBoard != 0L && (bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			me.numberOfPieces[side+Piece.QUEEN]++;
-			me.phase -= PiecewiseEvaluation.QUEEN_PHASE;
+			me.phase -= MaterialPhase.QUEEN_PHASE;
 			scratchBitBoard ^= (1L << bitOffset);
 		}
 		scratchBitBoard = pieces[Piece.ROOK] & ownPieces;
 		while (scratchBitBoard != 0L && (bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			me.numberOfPieces[side+Piece.ROOK]++;
-			me.phase -= PiecewiseEvaluation.ROOK_PHASE;
+			me.phase -= MaterialPhase.ROOK_PHASE;
 			scratchBitBoard ^= (1L << bitOffset);
 		}
 		scratchBitBoard = pieces[Piece.BISHOP] & ownPieces;
 		while (scratchBitBoard != 0L && (bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {			
 			me.numberOfPieces[side+Piece.BISHOP]++;
-			me.phase -= PiecewiseEvaluation.PIECE_PHASE;
+			me.phase -= MaterialPhase.PIECE_PHASE;
 			scratchBitBoard ^= (1L << bitOffset);
 		}
 		scratchBitBoard = pieces[Piece.KNIGHT] & ownPieces;
 		while (scratchBitBoard != 0L && (bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			me.numberOfPieces[side+Piece.KNIGHT]++;
-			me.phase -= PiecewiseEvaluation.PIECE_PHASE;
+			me.phase -= MaterialPhase.PIECE_PHASE;
 			scratchBitBoard ^= (1L << bitOffset);
 		}
 		scratchBitBoard = pieces[Piece.PAWN] & ownPieces;
@@ -112,8 +112,8 @@ public class Board {
 		}
 	}
 	
-	private void evaluateMaterial(PiecewiseEvaluation the_me) {
-		me.phase = PiecewiseEvaluation.TOTAL_PHASE;
+	private void evaluateMaterial(MaterialPhase the_me) {
+		me.phase = MaterialPhase.TOTAL_PHASE;
 		evaluateMaterialBalanceAndStaticPieceMobility(true, the_me);
 		evaluateMaterialBalanceAndStaticPieceMobility(false, the_me);
 	}

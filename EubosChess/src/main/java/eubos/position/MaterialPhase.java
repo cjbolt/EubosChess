@@ -2,12 +2,12 @@ package eubos.position;
 
 import eubos.board.Piece;
 
-public class PiecewiseEvaluation {
+public class MaterialPhase {
 	
 	public int [] numberOfPieces;
 	public int phase;
 	
-	public PiecewiseEvaluation() {
+	public MaterialPhase() {
 		numberOfPieces = new int [16];
 	}
 	
