@@ -80,21 +80,25 @@ public class Board {
 		bitOffset = BitBoard.convertToBitOffset(scratchBitBoard);
 		while (scratchBitBoard != 0L && (bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			me.numberOfPieces[side+Piece.QUEEN]++;
+			me.phase -= PiecewiseEvaluation.QUEEN_PHASE;
 			scratchBitBoard ^= (1L << bitOffset);
 		}
 		scratchBitBoard = pieces[Piece.ROOK] & ownPieces;
 		while (scratchBitBoard != 0L && (bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			me.numberOfPieces[side+Piece.ROOK]++;
+			me.phase -= PiecewiseEvaluation.ROOK_PHASE;
 			scratchBitBoard ^= (1L << bitOffset);
 		}
 		scratchBitBoard = pieces[Piece.BISHOP] & ownPieces;
 		while (scratchBitBoard != 0L && (bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {			
 			me.numberOfPieces[side+Piece.BISHOP]++;
+			me.phase -= PiecewiseEvaluation.PIECE_PHASE;
 			scratchBitBoard ^= (1L << bitOffset);
 		}
 		scratchBitBoard = pieces[Piece.KNIGHT] & ownPieces;
 		while (scratchBitBoard != 0L && (bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
 			me.numberOfPieces[side+Piece.KNIGHT]++;
+			me.phase -= PiecewiseEvaluation.PIECE_PHASE;
 			scratchBitBoard ^= (1L << bitOffset);
 		}
 		scratchBitBoard = pieces[Piece.PAWN] & ownPieces;
@@ -109,6 +113,7 @@ public class Board {
 	}
 	
 	private void evaluateMaterial(PiecewiseEvaluation the_me) {
+		me.phase = PiecewiseEvaluation.TOTAL_PHASE;
 		evaluateMaterialBalanceAndStaticPieceMobility(true, the_me);
 		evaluateMaterialBalanceAndStaticPieceMobility(false, the_me);
 	}
