@@ -10,7 +10,7 @@ import eubos.search.Score;
 import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;
-import eubos.search.transposition.FixedSizeTranspositionTable;
+import eubos.search.transposition.ITranspositionAccessor;
 
 public abstract class AbstractMoveSearcher extends Thread {
 
@@ -21,7 +21,7 @@ public abstract class AbstractMoveSearcher extends Thread {
 	protected SearchMetricsReporter sr;
 	protected ReferenceScore refScore;
 
-	public AbstractMoveSearcher(EubosEngineMain eng, String fen, DrawChecker dc, FixedSizeTranspositionTable hashMap, ReferenceScore refScore) {
+	public AbstractMoveSearcher(EubosEngineMain eng, String fen, DrawChecker dc, ITranspositionAccessor hashMap, ReferenceScore refScore) {
 		super();
 		PositionManager pm = new PositionManager(fen, eng.rootPosition.getHash(), dc);
 		refScore.setAtStartOfSearch(pm); // Setup the reference score that shall be used by any IterativeSearchStopper
@@ -84,8 +84,10 @@ public abstract class AbstractMoveSearcher extends Thread {
 	}
 	
 	public void enableSearchMetricsReporter(boolean enable) {
-		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && sendInfo) {
-			sr.setSendInfo(enable);
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
+			if (sendInfo) {
+				sr.setSendInfo(enable);
+			}
 		}
 	}
 	

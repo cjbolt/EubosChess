@@ -4,7 +4,7 @@ import eubos.main.EubosEngineMain;
 import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
 import eubos.search.SearchResult;
-import eubos.search.transposition.FixedSizeTranspositionTable;
+import eubos.search.transposition.ITranspositionAccessor;
 
 public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 	
@@ -12,7 +12,7 @@ public class FixedDepthMoveSearcher extends AbstractMoveSearcher {
 	boolean searchStopped = false;
 	
 	public FixedDepthMoveSearcher( EubosEngineMain eubos, 
-			FixedSizeTranspositionTable hashMap, 
+			ITranspositionAccessor hashMap, 
 			String fen,  
 			DrawChecker dc, 
 			byte searchDepth,

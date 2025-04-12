@@ -35,7 +35,6 @@ import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.PositionManager;
-import eubos.score.PositionEvaluator;
 import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
 import eubos.search.Score;
@@ -236,35 +235,22 @@ public class EubosEngineMain extends AbstractEngine {
 		if (ENABLE_TT_DIAGNOSTIC_LOGGING) {
 			hashMap.resetDiagnostics();
 		}
-		if (ENABLE_RANDOM_MOVE_TRAINING_GENERATION) {
-			int randomMove = MoveList.getRandomMove(rootPosition);
-			if (randomMove == Move.NULL_MOVE) {
-				return;
-			}
-			rootPosition.performMove(randomMove);
-			PositionEvaluator pe = new PositionEvaluator(rootPosition);
-			int score = -pe.getFullEvaluation();
-			rootPosition.unperformMove();
-			int [] pv = new int[] { randomMove };
-			SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, score);
+		selectedRandomMove = Move.NULL_MOVE;
+		int forcedMove = MoveList.getForcedMove(rootPosition);
+		if (forcedMove != Move.NULL_MOVE) {
+			sendInfoString(String.format("forced %s", Move.toString(forcedMove)));
+			int [] pv = new int[] { forcedMove };
+			SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, 0);
 			sendBestMoveCommand(result);
-			
 		} else {
-			int forcedMove = MoveList.getForcedMove(rootPosition);
-			if (forcedMove != Move.NULL_MOVE) {
-				sendInfoString(String.format("forced %s", Move.toString(forcedMove)));
-				int [] pv = new int[] { forcedMove };
-				SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, 0);
-				sendBestMoveCommand(result);
-			} else {
-				// The move searcher will report the best move found via a callback to this object, 
-				// this will occur when the tree search is concluded and the thread completes execution.
-				moveSearcherFactory(command);
-				ms.start();
-			}
+			// The move searcher will report the best move found via a callback to this object, 
+			// this will occur when the tree search is concluded and the thread completes execution.
+			moveSearcherFactory(command);
+			ms.start();
 		}
 	}
 	
+	int selectedRandomMove = Move.NULL_MOVE;
 	private void moveSearcherFactory(EngineStartCalculatingCommand command) {
 		// Update the Reference Score, used by the Search process, for the new root position
 		ReferenceScore refScore = rootPosition.onMoveIsWhite() ? whiteRefScore : blackRefScore;
@@ -290,6 +276,18 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		analysisMode = false;
 		// Create Move Searcher
+		if (command.getNodes() != null) {
+			if (ENABLE_RANDOM_MOVE_TRAINING_GENERATION) {
+				int randomMove = MoveList.getRandomMove(rootPosition);
+				if (randomMove != Move.NULL_MOVE) {
+					rootPosition.performMove(randomMove);
+					selectedRandomMove = randomMove;
+					ms = new FixedDepthMoveSearcher(this, hashMap, rootPosition.getFen(), dc, (byte)8, refScore);
+					return;
+				}
+				selectedRandomMove = Move.NULL_MOVE;
+			}
+		}
 		if (clockTimeValid) {
 			lastOnMoveClock = clockTime;
 			if (command.getDepth() != null) {
@@ -456,35 +454,36 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 
 	private void updateTrainingData(int score, int move) {
-		if (Move.isCapture(move) ||
-			score == Score.PROVISIONAL_ALPHA ||
-			rootPosition.isKingInCheck()) { 
-			return; // Only generate training data for quiet positions
-		}
-		if (!rootPosition.onMoveIsWhite()) { 
-			score = -score; // Always use white relative scores in training data
-		}
-		
-		FileWriter fw = null;
-		String computerName = System.getenv("EUBOS_HOST_NAME");
-		String filenameBase = String.format("TrainingData_SelfPlay_%s", ((computerName != null)?computerName:""));
-		int attempt = 0;
-		while (attempt < 10 && fw == null) {
-			try {
-				fw = new FileWriter(new File(String.format("%s_%d.txt", filenameBase, attempt)), true);
-			} catch (IOException e) {
-				attempt++;		
+		if (score == Score.PROVISIONAL_ALPHA || move == Move.NULL_MOVE) return;
+
+		rootPosition.performMove(move);
+		if (!rootPosition.isKingInCheck()) { 
+			if (!rootPosition.onMoveIsWhite()) { 
+				score = -score; // Always use white relative scores in training data
+			}
+			FileWriter fw = null;
+			String computerName = System.getenv("EUBOS_HOST_NAME");
+			String filenameBase = String.format("TrainingData_SelfPlay_%s", ((computerName != null)?computerName:""));
+			int attempt = 0;
+			while (attempt < 10 && fw == null) {
+				try {
+					fw = new FileWriter(new File(String.format("%s_%d.txt", filenameBase, attempt)), true);
+				} catch (IOException e) {
+					attempt++;		
+				}
+			}
+			if (fw != null) {
+				String training_sample = String.format("%s|%d|0.5\n", rootPosition.getFen(), score);
+				try {
+					fw.write(training_sample);
+					fw.close();
+				} catch (IOException e) {
+					handleFatalError(e ,"IO error", rootPosition);
+				}
+				sendInfoString(training_sample);
 			}
 		}
-		if (fw != null) {
-			String training_sample = String.format("%s|%d|0.5\n", rootPosition.getFen(), score);
-			try {
-				fw.write(training_sample);
-				fw.close();
-			} catch (IOException e) {
-				handleFatalError(e ,"IO error", rootPosition);
-			}
-		}
+		rootPosition.unperformMove();
 	}
 	
 	private long selectBestTranspositionData(long tableRoot, long cacheRoot) {
@@ -549,24 +548,39 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	public void sendBestMoveCommand(SearchResult result) {
-		int trustedMove = getTrustedMove(result);
-		if (Move.areEqualForTrans(trustedMove, Move.NULL_MOVE)) {
-			trustedMove = MoveList.getRandomMove(rootPosition);
-		}
-		assert !Move.areEqualForTrans(trustedMove, Move.NULL_MOVE);
-		int moveNumber = rootPosition.getMoveNumber();
-		
-		if (ENABLE_DEBUG_VALIDATION_DRAWS) {
-			String fen = rootPosition.getFen();
-			rootPosition.performMove(trustedMove);
-			// do a 1ply search and see if any moves allow a draw, if they do, throw exception, if we thought we were winning
-			if (result != null && result.score > 0 && result.score < Score.PROVISIONAL_BETA-1) {
-				new Validate(this).checkForDraws(dc, fen, trustedMove);
+		int trustedMove = Move.NULL_MOVE;
+		int moveNumber = 0;
+		if (ENABLE_RANDOM_MOVE_TRAINING_GENERATION) {
+			if (selectedRandomMove != Move.NULL_MOVE) {
+				// Throw away the search move, it was just to get a good score. Restore the random move to send
+				trustedMove = selectedRandomMove;
+				rootPosition.unperformMove();
+				moveNumber = rootPosition.getMoveNumber();
+				if (result != null && result.score != Score.PROVISIONAL_ALPHA) {
+					updateTrainingData(result.score, trustedMove);
+				}
+			} else {
+				// forced move
+				moveNumber = rootPosition.getMoveNumber();
+				trustedMove = result.pv[0];
 			}
 		} else {
-			rootPosition.performMove(trustedMove);
+			trustedMove = getTrustedMove(result);
+			if (Move.areEqualForTrans(trustedMove, Move.NULL_MOVE)) {
+				trustedMove = MoveList.getRandomMove(rootPosition);
+			}
+			assert !Move.areEqualForTrans(trustedMove, Move.NULL_MOVE);
+			moveNumber = rootPosition.getMoveNumber();
+			
+			if (ENABLE_DEBUG_VALIDATION_DRAWS) {
+				String fen = rootPosition.getFen();
+				rootPosition.performMove(trustedMove);
+				// do a 1ply search and see if any moves allow a draw, if they do, throw exception, if we thought we were winning
+				if (result != null && result.score > 0 && result.score < Score.PROVISIONAL_BETA-1) {
+					new Validate(this).checkForDraws(dc, fen, trustedMove);
+				}
+			}
 		}
-		
 		convertToGenericAndSendBestMove(trustedMove);
 		
 		if(!rootPosition.getTheBoard().me.isEndgame()) {
