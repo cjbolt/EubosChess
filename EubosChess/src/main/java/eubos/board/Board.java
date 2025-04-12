@@ -1711,21 +1711,16 @@ public class Board {
 		int index_white 	= 0;
 		int index_black 	= 0;
 		
-		//White king
 		input.white_king_sq = BitBoard.convertToBitOffset(bb_w_king);
 		input.white_pieces[index_white] = convertPiece(Piece.WHITE_KING);
 		input.white_squares[index_white] = input.white_king_sq;
 		index_white++;
 		
-		
-		//Black king
 		input.black_king_sq	= BitBoard.convertToBitOffset(bb_b_king);
 		input.black_pieces[index_black] = convertPiece(Piece.BLACK_KING);
 		input.black_squares[index_black] = input.black_king_sq;
 		index_black++;
 		
-		
-		//White queens
 		while (bb_w_queens != 0) {
 			input.white_pieces[index_white] 	= convertPiece(Piece.WHITE_QUEEN);
 			input.white_squares[index_white] 	= BitBoard.convertToBitOffset(bb_w_queens);
@@ -1733,7 +1728,6 @@ public class Board {
 			bb_w_queens &= bb_w_queens - 1;
 		}
 		
-		//Black queens
 		while (bb_b_queens != 0) {
 			input.black_pieces[index_black] 	= convertPiece(Piece.BLACK_QUEEN);
 			input.black_squares[index_black] 	= BitBoard.convertToBitOffset(bb_b_queens);
@@ -1741,7 +1735,6 @@ public class Board {
 			bb_b_queens &= bb_b_queens - 1;
 		}
 		
-		//White rooks
 		while (bb_w_rooks != 0) {
 			input.white_pieces[index_white] 	= convertPiece(Piece.WHITE_ROOK);
 			input.white_squares[index_white] 	= BitBoard.convertToBitOffset(bb_w_rooks);
@@ -1749,7 +1742,6 @@ public class Board {
 			bb_w_rooks &= bb_w_rooks - 1;
 		}
 		
-		//Black rooks
 		while (bb_b_rooks != 0) {
 			input.black_pieces[index_black] 	= convertPiece(Piece.BLACK_ROOK);
 			input.black_squares[index_black] 	= BitBoard.convertToBitOffset(bb_b_rooks);
@@ -1757,7 +1749,6 @@ public class Board {
 			bb_b_rooks &= bb_b_rooks - 1;
 		}
 		
-		//White bishops
 		while (bb_w_bishops != 0) {
 			input.white_pieces[index_white] 	= convertPiece(Piece.WHITE_BISHOP);
 			input.white_squares[index_white] 	= BitBoard.convertToBitOffset(bb_w_bishops);
@@ -1765,7 +1756,6 @@ public class Board {
 			bb_w_bishops &= bb_w_bishops - 1;
 		}
 		
-		//Black bishops
 		while (bb_b_bishops != 0) {
 			input.black_pieces[index_black] 	= convertPiece(Piece.BLACK_BISHOP);
 			input.black_squares[index_black] 	= BitBoard.convertToBitOffset(bb_b_bishops);
@@ -1773,7 +1763,6 @@ public class Board {
 			bb_b_bishops &= bb_b_bishops - 1;
 		}
 		
-		//White knights
 		while (bb_w_knights != 0) {
 			input.white_pieces[index_white] 	= convertPiece(Piece.WHITE_KNIGHT);
 			input.white_squares[index_white] 	= BitBoard.convertToBitOffset(bb_w_knights);
@@ -1781,7 +1770,6 @@ public class Board {
 			bb_w_knights &= bb_w_knights - 1;
 		}
 		
-		//Black knights
 		while (bb_b_knights != 0) {
 			input.black_pieces[index_black] 	= convertPiece(Piece.BLACK_KNIGHT);
 			input.black_squares[index_black] 	= BitBoard.convertToBitOffset(bb_b_knights);
@@ -1789,7 +1777,6 @@ public class Board {
 			bb_b_knights &= bb_b_knights - 1;
 		}
 		
-		//White pawns
 		while (bb_w_pawns != 0) {
 			input.white_pieces[index_white] 	= convertPiece(Piece.WHITE_PAWN);
 			input.white_squares[index_white] 	= BitBoard.convertToBitOffset(bb_w_pawns);
@@ -1797,7 +1784,6 @@ public class Board {
 			bb_w_pawns &= bb_w_pawns - 1;
 		}
 		
-		//Black pawns
 		while (bb_b_pawns != 0) {
 			input.black_pieces[index_black] 	= convertPiece(Piece.BLACK_PAWN);
 			input.black_squares[index_black] 	= BitBoard.convertToBitOffset(bb_b_pawns);
@@ -1805,8 +1791,8 @@ public class Board {
 			bb_b_pawns &= bb_b_pawns - 1;
 		}
 		
-		input.white_pieces[index_white] 	= -1;
-		input.black_pieces[index_black] 	= -1;
+		input.white_pieces[index_white] = -1;
+		input.black_pieces[index_black] = -1;
 		return input;
 	}
 }

@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 
-import eubos.board.Board;
 import eubos.board.Board.NetInput;
 import eubos.position.PositionManager;
 
@@ -86,8 +85,7 @@ public class NNUE
 	}
 	
 	public static int evaluate(PositionManager pm) {
-		Board bd = pm.getTheBoard();
-		NetInput input = bd.populateNetInput();
+		NetInput input = pm.getTheBoard().populateNetInput();
 		accumulators.fullAccumulatorUpdate(input.white_pieces, input.white_squares, input.black_pieces, input.black_squares);
 		return pm.onMoveIsWhite() ?
 		        evaluate(accumulators.getWhiteAccumulator(), accumulators.getBlackAccumulator()) :
@@ -136,18 +134,6 @@ public class NNUE
 		public void add(int featureIndex) {
 			for (int i = 0; i < HIDDEN_SIZE; i++) {
 				values[i] += NNUE.L1Weights[featureIndex][i];
-			}
-		}
-		
-		public void sub(int featureIndex) {
-			for (int i = 0; i < HIDDEN_SIZE; i++) {
-				values[i] -= NNUE.L1Weights[featureIndex][i];
-			}
-		}
-
-		public void addsub(int featureIndexToAdd, int featureIndexToSubtract) {
-			for (int i = 0; i < HIDDEN_SIZE; i++) {
-				values[i] += NNUE.L1Weights[featureIndexToAdd][i] - NNUE.L1Weights[featureIndexToSubtract][i];
 			}
 		}
 	}
