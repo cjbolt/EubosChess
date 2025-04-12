@@ -1,7 +1,7 @@
 package eubos.position;
 
 import eubos.board.Board;
-import eubos.neural_net.IEvaluate;
+import eubos.evaluation.IEvaluate;
 
 public interface IPositionAccessors {
 	public Board getTheBoard();

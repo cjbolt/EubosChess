@@ -9,8 +9,8 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 
 import eubos.board.BitBoard;
 import eubos.board.Piece;
+import eubos.evaluation.IEvaluate;
 import eubos.main.EubosEngineMain;
-import eubos.neural_net.IEvaluate;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;

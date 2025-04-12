@@ -10,8 +10,8 @@ import com.fluxchess.jcpi.models.IntRank;
 import eubos.board.BitBoard;
 import eubos.board.Board;
 import eubos.board.Piece;
-import eubos.neural_net.IEvaluate;
-import eubos.neural_net.PositionEvaluator;
+import eubos.evaluation.IEvaluate;
+import eubos.evaluation.PositionEvaluator;
 import eubos.position.MoveTracker.MoveStack;
 import eubos.search.DrawChecker;
 

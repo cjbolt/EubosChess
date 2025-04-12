@@ -6,7 +6,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import eubos.neural_net.PositionEvaluator;
+import eubos.evaluation.PositionEvaluator;
 import eubos.position.PositionManager;
 import eubos.search.DrawChecker;
 

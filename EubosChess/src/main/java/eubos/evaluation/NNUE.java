@@ -1,4 +1,4 @@
-package eubos.neural_net;
+package eubos.evaluation;
 
 import java.io.DataInputStream;
 import java.io.IOException;

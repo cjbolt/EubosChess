@@ -1,7 +1,7 @@
 package eubos.search.generators;
 
+import eubos.evaluation.IEvaluate;
 import eubos.main.EubosEngineMain;
-import eubos.neural_net.IEvaluate;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.position.MoveList;
