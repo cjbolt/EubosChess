@@ -22,6 +22,9 @@ public class PlySearcher {
 	
 	public static final int FUTILITY_THRESHOLD = 200;
 	
+	int numAlphaFails = 0;
+	int numBetaFails = 0;
+	
 	class SearchState {
 		int bestScore;
 		int alpha;
@@ -146,11 +149,11 @@ public class PlySearcher {
 	private boolean isTerminated() { return terminate; }	
 	
 	private int getCoefficientAlpha(int lastScore, int windowSize) {
-		return Math.max(Score.PROVISIONAL_ALPHA, Math.min(Score.PROVISIONAL_BETA-1, lastScore - windowSize));
+		return Math.max(Score.PROVISIONAL_ALPHA, Math.min(Score.PROVISIONAL_BETA-1, lastScore - (windowSize*numAlphaFails)));
 	}
 	
 	private int getCoefficientBeta(int lastScore, int windowSize) {
-		return Math.min(Score.PROVISIONAL_BETA, Math.max(Score.PROVISIONAL_ALPHA+1, lastScore + windowSize));
+		return Math.min(Score.PROVISIONAL_BETA, Math.max(Score.PROVISIONAL_ALPHA+1, lastScore + (windowSize*numBetaFails)));
 	}
 	
 	public int searchPly(short lastScore)  {
@@ -203,8 +206,14 @@ public class PlySearcher {
 		        	// Score returned was outside aspiration window
 		        	lastAspirationFailed = true;
 					certain = false;
+					if (eubos != null) {
+						eubos.sendInfoString(String.format("aspirated search failed score=%d in alpha=%d beta=%d for depth=%d",
+								score, alpha, beta, originalSearchDepthRequiredInPly));
+					}
 					alphaFail = score <= alpha;
 					betaFail = score >= beta;
+					if (alphaFail) numAlphaFails++;
+					if (betaFail) numBetaFails++;
 					if (sr != null)
 						sr.resetAfterWindowingFail();
 		        }
@@ -418,7 +427,7 @@ public class PlySearcher {
 				!isTerminated() &&
 				depth > 2 &&
 				nullCheckEnabled &&
-				pos.getTheBoard().me.phaseLessThan4000()) {
+				pos.getTheBoard().me.phase < 4000) {
 				
 				s.bestScore = doNullMoveSubTreeSearch(depth);
 				if (isTerminated()) { return 0; }

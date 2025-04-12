@@ -281,12 +281,7 @@ public class MiniMaxMoveGeneratorTest {
 		// http://open-chess.org/viewtopic.php?f=7&t=997
 		setupPosition( "4N3/5P1P/5N1k/Q5p1/5PKP/B7/8/1B6 w - - 0 1" );
 		// various possible mates
-		if (!EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
-			expectedMove = new GenericMove("h7h8q");
-		} else {
-			expectedMove = new GenericMove("f7f8q");
-			//expectedMove = new GenericMove("f4g5");
-		}
+		expectedMove = new GenericMove("f7f8q");
 		doFindMoveTest((byte)1, true);
 	}
 	
@@ -477,14 +472,12 @@ public class MiniMaxMoveGeneratorTest {
 	@Test
 	@Ignore // Test seems very odd. I think this should be changed - it appears ill-conceived
 	public void test_extendedSearch_recaptureQueenLeadsToLossOfMaterial()throws IllegalNotationException  {
-		if (EubosEngineMain.ENABLE_QUIESCENCE_CHECK) {
-			setupPosition("8/6q1/5p2/8/8/2Q5/8/8 w - - 0 38 ");
-			expectedMove = new GenericMove("c3f6");
-			
-			SearchResult res = classUnderTest.findMove((byte)1);
-			// Leads to stalemate
-			assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
-		}
+		setupPosition("8/6q1/5p2/8/8/2Q5/8/8 w - - 0 38 ");
+		expectedMove = new GenericMove("c3f6");
+		
+		SearchResult res = classUnderTest.findMove((byte)1);
+		// Leads to stalemate
+		assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
 	}
 	
 	@Test
