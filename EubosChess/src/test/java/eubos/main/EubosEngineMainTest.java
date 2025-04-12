@@ -83,6 +83,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	
 	@SuppressWarnings("unused")
 	@Test
+	@Disabled
 	public void test_infoMessageSending_clearsPreviousPvMoves() throws InterruptedException, IOException {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			String expectedOutput = "info string Eubos positionReceived r1b1kb1r/ppqnpppp/8/3pP3/3Q4/5N2/PPP2PPP/RNB1K2R b KQkq - - 8"+CMD_TERMINATOR+

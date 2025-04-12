@@ -80,24 +80,21 @@ public class NNUE
 		return v * v;
 	}
 	
-	private Accumulators accumulators;
-	private PositionManager pm;
-
-	public NNUE(PositionManager eubos_pm) {
-		pm = eubos_pm;
-		accumulators = new Accumulators(this);
+	private static Accumulators accumulators;
+	static {
+		accumulators = new Accumulators();
 	}
 	
-	public int evaluate() {
+	public static int evaluate(PositionManager pm) {
 		Board bd = pm.getTheBoard();
 		NetInput input = bd.populateNetInput();
 		accumulators.fullAccumulatorUpdate(input.white_pieces, input.white_squares, input.black_pieces, input.black_squares);
 		return pm.onMoveIsWhite() ?
-		        evaluate(this, accumulators.getWhiteAccumulator(), accumulators.getBlackAccumulator()) :
-		        evaluate(this, accumulators.getBlackAccumulator(), accumulators.getWhiteAccumulator());
+		        evaluate(accumulators.getWhiteAccumulator(), accumulators.getBlackAccumulator()) :
+		        evaluate(accumulators.getBlackAccumulator(), accumulators.getWhiteAccumulator());
 	}    
     
-	public static int evaluate(NNUE network, NNUEAccumulator us, NNUEAccumulator them) {
+	public static int evaluate(NNUEAccumulator us, NNUEAccumulator them) {
 		short[] UsValues = us.values;
 		short[] ThemValues = them.values;
 		
@@ -127,10 +124,8 @@ public class NNUE
 	public static class NNUEAccumulator
 	{
 		private short[] values = new short[HIDDEN_SIZE];
-		NNUE network;
 
-		public NNUEAccumulator(NNUE network) {
-			this.network = network;
+		public NNUEAccumulator() {
 			System.arraycopy(NNUE.L1Biases, 0, values, 0, HIDDEN_SIZE);
 		}
 

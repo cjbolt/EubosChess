@@ -30,8 +30,7 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	int neural_net_eval() {
-		NNUE network = new NNUE((PositionManager) this.pm);
-		return network.evaluate();
+		return NNUE.evaluate((PositionManager) this.pm);
 	}
 	
 	public int lazyEvaluation(int alpha, int beta) {

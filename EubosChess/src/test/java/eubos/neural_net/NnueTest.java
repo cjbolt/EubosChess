@@ -38,10 +38,7 @@ public class NnueTest {
 
 	private static void evaluate(String fen) throws IOException {
 		PositionManager pm = new PositionManager(fen);
-		NNUE network = new NNUE(pm);
-		
-		int eval = network.evaluate();
-		
+		int eval = NNUE.evaluate(pm);
 		System.out.println("fen=" + fen + ", eval=" + eval);
 	}
 }

@@ -190,7 +190,7 @@ public abstract class AbstractEubosIntegration {
 						recievedCmd = testOutput.toString();
 					}
 					if (recievedCmd != null && !recievedCmd.isEmpty()) {
-						System.err.println(recievedCmd);
+						//System.err.println(recievedCmd);
 						if (!accumulate)
 							System.out.println(recievedCmd);
 						testOutput.reset();

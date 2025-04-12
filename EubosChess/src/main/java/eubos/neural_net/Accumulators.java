@@ -5,10 +5,10 @@ public class Accumulators
 	private final NNUE.NNUEAccumulator whiteAccumulator;
 	private final NNUE.NNUEAccumulator blackAccumulator;
 	
-	public Accumulators(NNUE network)
+	public Accumulators()
 	{
-		whiteAccumulator = new NNUE.NNUEAccumulator(network);
-		blackAccumulator = new NNUE.NNUEAccumulator(network);
+		whiteAccumulator = new NNUE.NNUEAccumulator();
+		blackAccumulator = new NNUE.NNUEAccumulator();
 	}
 	
 	public void fullAccumulatorUpdate(int[] white_pieces, int[] white_squares, int[] black_pieces, int[] black_squares)
