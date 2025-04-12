@@ -4,8 +4,8 @@ import java.sql.Timestamp;
 
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
-import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
+import eubos.search.ReferenceScore;
 import eubos.search.SearchResult;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 

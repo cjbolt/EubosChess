@@ -6,7 +6,6 @@ import java.util.List;
 import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
 
 import eubos.main.EubosEngineMain;
-import eubos.score.ReferenceScore;
 import eubos.search.transposition.ITranspositionAccessor;
 
 public class SearchMetricsReporter extends Thread {

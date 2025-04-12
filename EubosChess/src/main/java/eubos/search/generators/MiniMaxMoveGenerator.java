@@ -1,22 +1,22 @@
 package eubos.search.generators;
 
 import eubos.main.EubosEngineMain;
+import eubos.neural_net.IEvaluate;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.position.MoveList;
 import eubos.position.PositionManager;
-import eubos.score.IEvaluate;
-import eubos.score.ReferenceScore;
-import eubos.score.ReferenceScore.Reference;
 import eubos.search.KillerList;
 
 import eubos.search.PlySearcher;
 import eubos.search.PrincipalContinuation;
+import eubos.search.ReferenceScore;
 import eubos.search.Score;
 import eubos.search.SearchDebugAgent;
 import eubos.search.SearchMetrics;
 import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
+import eubos.search.ReferenceScore.Reference;
 import eubos.search.transposition.ITranspositionAccessor;
 
 public class MiniMaxMoveGenerator implements

@@ -1,10 +1,9 @@
-package eubos.score;
+package eubos.neural_net;
 
 import eubos.board.Board;
 
 import eubos.board.Piece;
 import eubos.position.Move;
-import eubos.neural_net.NNUE;
 import eubos.position.IPositionAccessors;
 import eubos.position.PositionManager;
 

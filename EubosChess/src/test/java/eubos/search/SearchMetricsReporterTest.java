@@ -15,7 +15,6 @@ import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.Position;
 import eubos.position.PositionManager;
-import eubos.score.ReferenceScore;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 
 public class SearchMetricsReporterTest {

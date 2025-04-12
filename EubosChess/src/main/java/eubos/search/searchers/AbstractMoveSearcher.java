@@ -2,13 +2,12 @@ package eubos.search.searchers;
 
 import eubos.main.EubosEngineMain;
 import eubos.position.PositionManager;
-import eubos.score.ReferenceScore;
-import eubos.score.ReferenceScore.Reference;
 import eubos.search.DrawChecker;
-
+import eubos.search.ReferenceScore;
 import eubos.search.Score;
 import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
+import eubos.search.ReferenceScore.Reference;
 import eubos.search.generators.MiniMaxMoveGenerator;
 import eubos.search.transposition.ITranspositionAccessor;
 

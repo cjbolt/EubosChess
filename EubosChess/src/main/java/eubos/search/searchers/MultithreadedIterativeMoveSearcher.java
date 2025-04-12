@@ -6,8 +6,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import eubos.main.EubosEngineMain;
 import eubos.position.PositionManager;
-import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
+import eubos.search.ReferenceScore;
 import eubos.search.Score;
 import eubos.search.SearchResult;
 import eubos.search.generators.MiniMaxMoveGenerator;

@@ -10,9 +10,9 @@ import com.fluxchess.jcpi.models.IntRank;
 import eubos.board.BitBoard;
 import eubos.board.Board;
 import eubos.board.Piece;
+import eubos.neural_net.IEvaluate;
+import eubos.neural_net.PositionEvaluator;
 import eubos.position.MoveTracker.MoveStack;
-import eubos.score.IEvaluate;
-import eubos.score.PositionEvaluator;
 import eubos.search.DrawChecker;
 
 public class PositionManager implements IChangePosition, IPositionAccessors {

@@ -1,4 +1,4 @@
-package eubos.score;
+package eubos.position;
 
 import eubos.board.Piece;
 
@@ -26,7 +26,6 @@ public class PiecewiseEvaluation {
 		PHASE_LUT[Piece.BLACK_QUEEN] = PIECE_PHASE;
 		PHASE_LUT[Piece.WHITE_QUEEN] = PIECE_PHASE;
 	}
-
 	
 	public boolean isEndgame() {
 		return phase > 3000;

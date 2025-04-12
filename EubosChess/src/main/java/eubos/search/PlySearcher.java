@@ -2,12 +2,12 @@ package eubos.search;
 
 import eubos.board.Piece;
 import eubos.main.EubosEngineMain;
+import eubos.neural_net.IEvaluate;
 import eubos.position.IChangePosition;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.position.MoveList;
 import eubos.position.MoveListIterator;
-import eubos.score.IEvaluate;
 import eubos.search.transposition.ITranspositionAccessor;
 import eubos.search.transposition.Transposition;
 

@@ -6,12 +6,11 @@ import java.io.Writer;
 
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
-import eubos.score.ReferenceScore;
-import eubos.score.ReferenceScore.Reference;
 import eubos.search.DrawChecker;
-
+import eubos.search.ReferenceScore;
 import eubos.search.Score;
 import eubos.search.SearchResult;
+import eubos.search.ReferenceScore.Reference;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 
 public class IterativeMoveSearcher extends AbstractMoveSearcher {

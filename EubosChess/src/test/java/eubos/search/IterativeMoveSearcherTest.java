@@ -18,7 +18,6 @@ import com.fluxchess.jcpi.models.IllegalNotationException;
 import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.PositionManager;
-import eubos.score.ReferenceScore;
 import eubos.search.searchers.IterativeMoveSearcher;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 

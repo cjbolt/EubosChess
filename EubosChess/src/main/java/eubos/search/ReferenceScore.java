@@ -1,7 +1,6 @@
-package eubos.score;
+package eubos.search;
 
 import eubos.position.IPositionAccessors;
-import eubos.search.Score;
 import eubos.search.transposition.FixedSizeTranspositionTable;
 import eubos.search.transposition.Transposition;
 

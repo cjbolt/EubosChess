@@ -1,4 +1,4 @@
-package eubos.score;
+package eubos.neural_net;
 
 public interface IEvaluate {
 	int getFullEvaluation();

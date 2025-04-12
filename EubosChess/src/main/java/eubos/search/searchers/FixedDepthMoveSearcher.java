@@ -1,8 +1,8 @@
 package eubos.search.searchers;
 
 import eubos.main.EubosEngineMain;
-import eubos.score.ReferenceScore;
 import eubos.search.DrawChecker;
+import eubos.search.ReferenceScore;
 import eubos.search.SearchResult;
 import eubos.search.transposition.ITranspositionAccessor;
 

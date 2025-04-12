@@ -8,8 +8,8 @@ import eubos.position.CastlingManager;
 import eubos.position.IAddMoves;
 import eubos.position.IZobristUpdate;
 import eubos.position.Move;
+import eubos.position.PiecewiseEvaluation;
 import eubos.position.Position;
-import eubos.score.PiecewiseEvaluation;
 
 import com.fluxchess.jcpi.models.IntRank;
 
