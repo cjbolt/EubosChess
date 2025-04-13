@@ -65,25 +65,27 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_ASSERTS = false;
 	public static final boolean ENABLE_PERFT = false;
 	public static final boolean ENABLE_TEST_SUITES = false;
+	
 	public static final boolean ENABLE_DEBUG_VALIDATION_SEARCH = false;
 	public static final boolean ENABLE_DEBUG_VALIDATION_DRAWS = false;
+	
 	public static final boolean ENABLE_TT_DIAGNOSTIC_LOGGING = false;
 	public static final boolean ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO = false;
+	public static final boolean ENABLE_TT_CUT_OFFS_IN_EXTENDED_SEARCH = true;
 	
 	public static final boolean ENABLE_GENERATE_TRAINING_DATA = false;
 	public static final boolean ENABLE_RANDOM_MOVE_TRAINING_GENERATION = false;
 	
 	public static final boolean ENABLE_TRANSPOSITION_TABLE = true;
 	public static final boolean ENABLE_ASPIRATION_WINDOWS = true;
-	public static final boolean ENABLE_LAZY_EVALUATION = true;	
 	public static final boolean ENABLE_LATE_MOVE_REDUCTION = true;
 	public static final boolean ENABLE_NULL_MOVE_PRUNING = true;
 	public static final boolean ENABLE_STAGED_MOVE_GENERATION = true;
-	public static final boolean ENABLE_FUTILITY_PRUNING = true;
 	public static final boolean ENABLE_PINNED_TO_KING_CHECK_IN_ILLEGAL_DETECTION = true;
+	
+	public static final boolean ENABLE_FUTILITY_PRUNING = true;
 	public static final boolean ENABLE_PER_MOVE_FUTILITY_PRUNING = true;
 	public static final boolean ENABLE_FUTILITY_PRUNING_OF_KILLER_MOVES = false;
-	public static final boolean ENABLE_TT_CUT_OFFS_IN_EXTENDED_SEARCH = true;
 	
 	public static final int MAXIMUM_PLIES_IN_GAME = 250;
 	
