@@ -28,7 +28,6 @@ public class PlySearcher {
 	class SearchState {
 		int bestScore;
 		int alpha;
-		int original_alpha;
 		int beta;
 		int adaptiveBeta;
 		int prevBestMove;
@@ -43,7 +42,7 @@ public class PlySearcher {
 		
 		void initialise(int ply, int alpha, int beta) {
 			hashScore = bestScore = Score.PROVISIONAL_ALPHA;
-			this.alpha = original_alpha = alpha;
+			this.alpha = alpha;
 			adaptiveBeta = this.beta = beta;
 			isCutOff = false;
 			moveNumber = 0;
@@ -56,7 +55,7 @@ public class PlySearcher {
 		
 		void reinitialise(int alpha, int beta) {
 			bestScore = Score.PROVISIONAL_ALPHA;
-			this.alpha = original_alpha = alpha;
+			this.alpha = alpha;
 			adaptiveBeta = this.beta = beta;
 			moveNumber = 0;
 		}
@@ -559,11 +558,7 @@ public class PlySearcher {
 				// No moves searched at this point means either a stalemate or checkmate has occurred
 				return s.inCheck ? Score.getMateScore(currPly) : 0;
 			}
-			//if (s.bestScore > s.original_alpha) {
-				trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
-//			} else {
-//				trans = tt.setTransBestMove(pos.getHash(), trans, (short)bestMove);
-//			}
+			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
 		}
 		
 		return s.bestScore;
@@ -701,7 +696,7 @@ public class PlySearcher {
 				}
 				check_for_refutation = true;
 			} else if (type == Score.lowerBound) {
-				s.alpha = s.original_alpha = Math.max(s.alpha, s.hashScore);
+				s.alpha = Math.max(s.alpha, s.hashScore);
 	        	if (EubosEngineMain.ENABLE_LOGGING) {
 	        		if (currPly == 0)
 						EubosEngineMain.logger.fine(String.format("Trans lowerBound increasing alpha=%d hashScore=%d",
