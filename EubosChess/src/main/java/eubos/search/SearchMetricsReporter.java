@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fluxchess.jcpi.commands.ProtocolInformationCommand;
+import com.fluxchess.jcpi.models.GenericScore;
 
 import eubos.main.EubosEngineMain;
 import eubos.search.transposition.ITranspositionAccessor;
@@ -68,7 +69,7 @@ public class SearchMetricsReporter extends Thread {
 		}
 	}
 	
-	void reportPrincipalVariation(SearchMetrics sm) {
+	void reportPrincipalVariation(SearchMetrics sm, boolean exact, boolean alpha_fail) {
 		if (sendInfo && sm != null) {
 			boolean sendPv = false;
 			// Doesn't need to be synchronised as only written by PlySearcher thread (i.e this thread)
@@ -84,7 +85,7 @@ public class SearchMetricsReporter extends Thread {
 			if (sendPv) {
 				ProtocolInformationCommand info = new ProtocolInformationCommand();
 				// Doesn't need to be synchronised as only written by PlySearcher thread (i.e this thread)
-				generatePvInfoCommand(info, sm);
+				generatePvInfoCommand(info, sm, exact, alpha_fail);
 				eubosEngine.sendInfoCommand(info);
 			}
 		}
@@ -123,7 +124,7 @@ public class SearchMetricsReporter extends Thread {
 		//}
 	}
 	
-	private void generatePvInfoCommand(ProtocolInformationCommand info, SearchMetrics pv) {
+	private void generatePvInfoCommand(ProtocolInformationCommand info, SearchMetrics pv, boolean exact, boolean alpha_fail) {
 		pv.incrementTime();
 
 		if (pv.pvValid) {
@@ -140,6 +141,7 @@ public class SearchMetricsReporter extends Thread {
 			info.setMate(mateMove);
 		} else {
 			info.setCentipawns(score);
+			info.setValue(exact ? GenericScore.EXACT : alpha_fail ? GenericScore.ALPHA : GenericScore.BETA);
 		}
 		
 		info.setDepth(pv.getDepth());

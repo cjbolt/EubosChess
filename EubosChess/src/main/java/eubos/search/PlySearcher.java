@@ -28,6 +28,7 @@ public class PlySearcher {
 	class SearchState {
 		int bestScore;
 		int alpha;
+		int original_alpha;
 		int beta;
 		int adaptiveBeta;
 		int prevBestMove;
@@ -42,7 +43,7 @@ public class PlySearcher {
 		
 		void initialise(int ply, int alpha, int beta) {
 			hashScore = bestScore = Score.PROVISIONAL_ALPHA;
-			this.alpha = alpha;
+			this.alpha = original_alpha = alpha;
 			adaptiveBeta = this.beta = beta;
 			isCutOff = false;
 			moveNumber = 0;
@@ -55,7 +56,7 @@ public class PlySearcher {
 		
 		void reinitialise(int alpha, int beta) {
 			bestScore = Score.PROVISIONAL_ALPHA;
-			this.alpha = alpha;
+			this.alpha = original_alpha = alpha;
 			adaptiveBeta = this.beta = beta;
 			moveNumber = 0;
 		}
@@ -183,8 +184,12 @@ public class PlySearcher {
 				initialised = true;
 				
 				if (EubosEngineMain.ENABLE_LOGGING) {
-					EubosEngineMain.logger.info(String.format("Aspiration Window window=%d score=%d alpha=%d beta=%d depth=%d",
-							aspiration_window, score, alpha, beta, originalSearchDepthRequiredInPly));
+					String debug = String.format("Aspiration Window window=%d score=%d alpha=%d afails=%d beta=%d bfails=%d depth=%d",
+							aspiration_window, score, alpha, numAlphaFails, beta, numBetaFails, originalSearchDepthRequiredInPly);
+					EubosEngineMain.logger.fine(debug);
+//					if (eubos != null) {
+//						eubos.sendInfoString(debug);
+//					}
 				}
 				
 				score = searchRoot(originalSearchDepthRequiredInPly, alpha, beta);
@@ -196,9 +201,13 @@ public class PlySearcher {
 	        	} else if ((score > alpha && score < beta) || isTerminated()) {
 		        	// Exact score in window returned
 		        	lastAspirationFailed = false;
-		        	if (EubosEngineMain.ENABLE_LOGGING) {
-						EubosEngineMain.logger.fine(String.format("Aspiration returned window=%d score=%d in alpha=%d beta=%d for depth=%d",
-								aspiration_window, score, alpha, beta, originalSearchDepthRequiredInPly));
+					if (EubosEngineMain.ENABLE_LOGGING) {
+						String debug = String.format("Aspiration returned window=%d score=%d in alpha=%d beta=%d for depth=%d",
+									aspiration_window, score, alpha, beta, originalSearchDepthRequiredInPly);
+						EubosEngineMain.logger.fine(debug);
+//						if (eubos != null) {
+//							eubos.sendInfoString(debug);
+//						}
 					}
 		        	reportPv((short) score);
 		            break;
@@ -207,22 +216,34 @@ public class PlySearcher {
 		        	lastAspirationFailed = true;
 					certain = false;
 					if (EubosEngineMain.ENABLE_LOGGING) {
-						if (eubos != null) {
-							eubos.sendInfoString(String.format("aspirated search failed score=%d in alpha=%d beta=%d for depth=%d",
-									score, alpha, beta, originalSearchDepthRequiredInPly));
-						}
+						String debug = String.format("aspirated search failed score=%d in alpha=%d beta=%d for depth=%d",
+									score, alpha, beta, originalSearchDepthRequiredInPly);
+						EubosEngineMain.logger.fine(debug);
+//						if (eubos != null) {
+//							eubos.sendInfoString(debug);
+//						}
 					}
 					alphaFail = score <= alpha;
 					betaFail = score >= beta;
-					if (alphaFail) numAlphaFails++;
-					if (betaFail) numBetaFails++;
+					if (alphaFail) {
+						numAlphaFails++;
+						reportPvFail((short)alpha, alphaFail);
+					}
+					if (betaFail) {
+						numBetaFails++;
+						reportPvFail((short)beta, alphaFail);
+					}
 					if (sr != null)
 						sr.resetAfterWindowingFail();
 		        }
 			}
 			if (lastAspirationFailed) {
-				if (eubos != null) {
-					eubos.sendInfoString(String.format("searchPly aspirated search failed depth=%d", originalSearchDepthRequiredInPly));
+				if (EubosEngineMain.ENABLE_LOGGING) {
+					String debug = String.format("searchPly aspirated search failed depth=%d", originalSearchDepthRequiredInPly);
+					EubosEngineMain.logger.fine(debug);
+					if (eubos != null) {
+						eubos.sendInfoString(debug);
+					}
 				}
 				doFullWidthSearch = true;
 			}
@@ -261,7 +282,7 @@ public class PlySearcher {
 			if (s.isCutOff) {
 				sm.setPrincipalVariationDataFromHash(0, (short)s.hashScore);
 				if (sr != null)
-					sr.reportPrincipalVariation(sm);
+					sr.reportPrincipalVariation(sm, false, false); /* need to set these booleans somehow */
 				return s.hashScore;
 			}
 		}
@@ -538,7 +559,11 @@ public class PlySearcher {
 				// No moves searched at this point means either a stalemate or checkmate has occurred
 				return s.inCheck ? Score.getMateScore(currPly) : 0;
 			}
-			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
+			//if (s.bestScore > s.original_alpha) {
+				trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
+//			} else {
+//				trans = tt.setTransBestMove(pos.getHash(), trans, (short)bestMove);
+//			}
 		}
 		
 		return s.bestScore;
@@ -676,7 +701,7 @@ public class PlySearcher {
 				}
 				check_for_refutation = true;
 			} else if (type == Score.lowerBound) {
-				s.alpha = Math.max(s.alpha, s.hashScore);
+				s.alpha = s.original_alpha = Math.max(s.alpha, s.hashScore);
 	        	if (EubosEngineMain.ENABLE_LOGGING) {
 	        		if (currPly == 0)
 						EubosEngineMain.logger.fine(String.format("Trans lowerBound increasing alpha=%d hashScore=%d",
@@ -738,10 +763,20 @@ public class PlySearcher {
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && !EubosEngineMain.ENABLE_RANDOM_MOVE_TRAINING_GENERATION) {
 			sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), pc.length[0], positionScore);
 			if (sr != null)
-				sr.reportPrincipalVariation(sm);
+				sr.reportPrincipalVariation(sm, true, false);
 			extendedSearchDeepestPly = 0;
 		}
 		certain = !(isTerminated() && positionScore == 0);
+	}
+	
+	private void reportPvFail(short positionScore, boolean alpha) {
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && !EubosEngineMain.ENABLE_RANDOM_MOVE_TRAINING_GENERATION) {
+			sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), pc.length[0], positionScore);
+			if (sr != null)
+				sr.reportPrincipalVariation(sm, false, alpha);
+			extendedSearchDeepestPly = 0;
+		}
+		certain = false;
 	}
 	
 	private int doNullMoveSubTreeSearch(int depth) {
