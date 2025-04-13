@@ -185,6 +185,33 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		return trans;
 	}
 	
+	public synchronized void updateBestMove(long hashCode, short bestMove) {
+		if (hashCode == 0) return; // can't do anything with 0l
+		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
+			int index = (int) (EubosEngineMain.ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO ? hashCode & mask : Long.remainderUnsigned(hashCode, maxTableSize));
+			for (int i=index; (i < index+RANGE_TO_SEARCH) && (i < maxTableSize); i++) {
+				// If exact hash match, update entry in table
+				if (hashes[i] == hashCode) {
+					if (EubosEngineMain.ENABLE_ASSERTS) assert (transposition_table[i] != 0L);
+					long trans = transposition_table[i];
+					trans = Transposition.setBestMove(trans, bestMove);
+					transposition_table[i] = trans;
+					return;
+				}
+			}
+		}
+	}
+	
+	public long setTransBestMove(long hash, long trans, short new_bestMove) {
+		if (EubosEngineMain.ENABLE_ASSERTS) {		
+			assert new_bestMove != Move.NULL_MOVE : "setTransposition best move is null";
+		}
+		if (trans != 0L) {
+			updateBestMove(hash, new_bestMove);
+		}
+		return trans;
+	}
+	
 	public short getHashUtilisation() {
 		return (short) ((tableSize*1000L)/maxTableSize);
 	}

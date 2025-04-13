@@ -559,11 +559,12 @@ public class PlySearcher {
 				// No moves searched at this point means either a stalemate or checkmate has occurred
 				return s.inCheck ? Score.getMateScore(currPly) : 0;
 			}
-			//if (s.bestScore > s.original_alpha) {
+			if (s.bestScore > s.original_alpha) {
 				trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
-//			} else {
-//				trans = tt.setTransBestMove(pos.getHash(), trans, (short)bestMove);
-//			}
+			} 
+			else {
+				trans = tt.setTransBestMove(pos.getHash(), trans, (short)bestMove);
+			}
 		}
 		
 		return s.bestScore;

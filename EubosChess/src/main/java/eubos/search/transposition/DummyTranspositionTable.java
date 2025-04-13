@@ -16,6 +16,10 @@ public class DummyTranspositionTable implements ITranspositionAccessor {
 	public synchronized void putTransposition(long hashCode, long trans) {
 	}
 	
+	public long setTransBestMove(long hash, long trans, short new_bestMove) {
+		return 0L;
+	}
+	
 	public long setTransposition(long hash, long trans, byte new_Depth, short new_score, byte new_bound, short new_bestMove, int move_number, short static_eval) {
 		return 0L;
 	}
