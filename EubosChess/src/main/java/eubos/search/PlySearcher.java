@@ -156,6 +156,13 @@ public class PlySearcher {
 		return Math.min(Score.PROVISIONAL_BETA, Math.max(Score.PROVISIONAL_ALPHA+1, lastScore + (windowSize*numBetaFails)));
 	}
 	
+	private void log(String debug) {
+		EubosEngineMain.logger.fine(debug);
+		if (eubos != null) {
+			eubos.sendInfoString(debug);
+		}
+	}
+	
 	public int searchPly(short lastScore)  {
 		currPly = 0;
 		extendedSearchDeepestPly = 0;
@@ -183,12 +190,8 @@ public class PlySearcher {
 				initialised = true;
 				
 				if (EubosEngineMain.ENABLE_LOGGING) {
-					String debug = String.format("Aspiration Window window=%d score=%d alpha=%d afails=%d beta=%d bfails=%d depth=%d",
-							aspiration_window, score, alpha, numAlphaFails, beta, numBetaFails, originalSearchDepthRequiredInPly);
-					EubosEngineMain.logger.fine(debug);
-//					if (eubos != null) {
-//						eubos.sendInfoString(debug);
-//					}
+					log(String.format("Aspiration Window window=%d score=%d alpha=%d afails=%d beta=%d bfails=%d depth=%d",
+							aspiration_window, score, alpha, numAlphaFails, beta, numBetaFails, originalSearchDepthRequiredInPly));
 				}
 				
 				score = searchRoot(originalSearchDepthRequiredInPly, alpha, beta);
@@ -201,12 +204,8 @@ public class PlySearcher {
 		        	// Exact score in window returned
 		        	lastAspirationFailed = false;
 					if (EubosEngineMain.ENABLE_LOGGING) {
-						String debug = String.format("Aspiration returned window=%d score=%d in alpha=%d beta=%d for depth=%d",
-									aspiration_window, score, alpha, beta, originalSearchDepthRequiredInPly);
-						EubosEngineMain.logger.fine(debug);
-//						if (eubos != null) {
-//							eubos.sendInfoString(debug);
-//						}
+						log(String.format("Aspiration returned window=%d score=%d in alpha=%d beta=%d for depth=%d",
+									aspiration_window, score, alpha, beta, originalSearchDepthRequiredInPly));
 					}
 		        	reportPv((short) score);
 		            break;
@@ -215,12 +214,8 @@ public class PlySearcher {
 		        	lastAspirationFailed = true;
 					certain = false;
 					if (EubosEngineMain.ENABLE_LOGGING) {
-						String debug = String.format("aspirated search failed score=%d in alpha=%d beta=%d for depth=%d",
-									score, alpha, beta, originalSearchDepthRequiredInPly);
-						EubosEngineMain.logger.fine(debug);
-//						if (eubos != null) {
-//							eubos.sendInfoString(debug);
-//						}
+						log(String.format("aspirated search failed score=%d in alpha=%d beta=%d for depth=%d",
+									score, alpha, beta, originalSearchDepthRequiredInPly));
 					}
 					alphaFail = score <= alpha;
 					betaFail = score >= beta;
@@ -238,11 +233,7 @@ public class PlySearcher {
 			}
 			if (lastAspirationFailed) {
 				if (EubosEngineMain.ENABLE_LOGGING) {
-					String debug = String.format("searchPly aspirated search failed depth=%d", originalSearchDepthRequiredInPly);
-					EubosEngineMain.logger.fine(debug);
-					if (eubos != null) {
-						eubos.sendInfoString(debug);
-					}
+					log(String.format("searchPly aspirated search failed depth=%d", originalSearchDepthRequiredInPly));
 				}
 				doFullWidthSearch = true;
 			}
@@ -333,7 +324,7 @@ public class PlySearcher {
 			// Handle score backed up to this node
 			if (positionScore > s.bestScore) {
 				if (EubosEngineMain.ENABLE_LOGGING) {
-					EubosEngineMain.logger.info(String.format("BEST_SCORE INCREASED AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
+					log(String.format("BEST_SCORE INCREASED AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
 							s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
 				}
 				bestMove = currMove;
@@ -350,7 +341,7 @@ public class PlySearcher {
 				if (s.bestScore > s.alpha) {
 					s.alpha = s.bestScore;
 					if (EubosEngineMain.ENABLE_LOGGING) {
-						EubosEngineMain.logger.fine(String.format("ALPHA INCREASED AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
+						log(String.format("ALPHA INCREASED AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
 								s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
 					}
 					if (s.alpha >= s.beta) {
@@ -358,7 +349,7 @@ public class PlySearcher {
 						ml.history.updateMove(depth, bestMove);
 						if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
 						if (EubosEngineMain.ENABLE_LOGGING) {
-							EubosEngineMain.logger.fine(String.format("BETA FAIL AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
+							log(String.format("BETA FAIL AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
 									s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
 						}
 						trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.lowerBound);
@@ -691,7 +682,7 @@ public class PlySearcher {
 				s.adaptiveBeta = s.beta = Math.min(s.beta, s.hashScore);
 	        	if (EubosEngineMain.ENABLE_LOGGING) {
 	        		if (currPly == 0)
-						EubosEngineMain.logger.fine(String.format("Trans upperBound reducing beta=%d hashScore=%d",
+	        			log(String.format("Trans upperBound reducing beta=%d hashScore=%d",
 								s.beta, s.hashScore));
 				}
 				check_for_refutation = true;
@@ -699,7 +690,7 @@ public class PlySearcher {
 				s.alpha = Math.max(s.alpha, s.hashScore);
 	        	if (EubosEngineMain.ENABLE_LOGGING) {
 	        		if (currPly == 0)
-						EubosEngineMain.logger.fine(String.format("Trans lowerBound increasing alpha=%d hashScore=%d",
+	        			log(String.format("Trans lowerBound increasing alpha=%d hashScore=%d",
 								s.alpha, s.hashScore));
 				}
 				check_for_refutation = true;
@@ -712,7 +703,7 @@ public class PlySearcher {
 				if (s.alpha >= s.beta) {
 		        	if (EubosEngineMain.ENABLE_LOGGING) {
 		        		if (currPly == 0)
-							EubosEngineMain.logger.fine(String.format("Trans cut-off as alpha=%d >= beta=%d",
+		        			log(String.format("Trans cut-off as alpha=%d >= beta=%d",
 									s.alpha, s.beta));
 					}
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsRefutation(pos.getHash(), trans);
