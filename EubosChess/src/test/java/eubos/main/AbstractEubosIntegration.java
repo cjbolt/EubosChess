@@ -42,6 +42,7 @@ public abstract class AbstractEubosIntegration {
 	protected static final String ID_AUTHOR_CMD = "id author Chris Bolt"+CMD_TERMINATOR;
 	protected static final String OPTION_HASH = "option name Hash type spin default 256 min 4 max 4000"+CMD_TERMINATOR;
 	protected static final String OPTION_MOVE_OVERHEAD = "option name Move Overhead type spin default 10 min 0 max 5000"+CMD_TERMINATOR;
+	protected static final String OPTION_GENERATE_TRAINING_DATA = "option name Generate Training Data type check default false"+CMD_TERMINATOR;
 	protected static final String OPTION_THREADS = String.format(
 			"option name Threads type spin default 1 min 1 max %s%s",
 			Runtime.getRuntime().availableProcessors(), CMD_TERMINATOR);
@@ -53,7 +54,7 @@ public abstract class AbstractEubosIntegration {
 
 	protected void setupEngine() {
 		failed = false;
-		commands.add(new CommandPair(UCI_CMD, ID_NAME_CMD+ID_AUTHOR_CMD+OPTION_HASH+OPTION_THREADS+OPTION_MOVE_OVERHEAD+UCI_OK_CMD));
+		commands.add(new CommandPair(UCI_CMD, ID_NAME_CMD+ID_AUTHOR_CMD+OPTION_HASH+OPTION_THREADS+OPTION_MOVE_OVERHEAD+OPTION_GENERATE_TRAINING_DATA+UCI_OK_CMD));
 		commands.add(new CommandPair("setoption name NumberOfWorkerThreads value 1"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair("setoption name Hash value 256"+CMD_TERMINATOR, null));
 		commands.add(new CommandPair(ISREADY_CMD,READY_OK_CMD));

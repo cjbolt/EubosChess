@@ -27,6 +27,7 @@ import com.fluxchess.jcpi.commands.ProtocolInitializeAnswerCommand;
 import com.fluxchess.jcpi.commands.ProtocolReadyAnswerCommand;
 import com.fluxchess.jcpi.commands.ProtocolBestMoveCommand;
 import com.fluxchess.jcpi.models.*;
+import com.fluxchess.jcpi.options.CheckboxOption;
 import com.fluxchess.jcpi.options.Options;
 import com.fluxchess.jcpi.options.SpinnerOption;
 import com.fluxchess.jcpi.protocols.NoProtocolException;
@@ -53,7 +54,7 @@ import java.util.Set;
 public class EubosEngineMain extends AbstractEngine {
 	
 	static final int EUBOS_MAJOR_VERSION = 4;
-	static final int EUBOS_MINOR_VERSION = 0;
+	static final int EUBOS_MINOR_VERSION = 1;
 	
 	public static final byte SEARCH_DEPTH_IN_PLY = Byte.MAX_VALUE;
 	public static final int DEFAULT_NUM_SEARCH_THREADS = 1;
@@ -72,9 +73,6 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_TT_DIAGNOSTIC_LOGGING = false;
 	public static final boolean ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO = false;
 	public static final boolean ENABLE_TT_CUT_OFFS_IN_EXTENDED_SEARCH = true;
-	
-	public static final boolean ENABLE_GENERATE_TRAINING_DATA = false;
-	public static final boolean ENABLE_RANDOM_MOVE_TRAINING_GENERATION = false;
 	
 	public static final boolean ENABLE_TRANSPOSITION_TABLE = true;
 	public static final boolean ENABLE_ASPIRATION_WINDOWS = true;
@@ -114,6 +112,7 @@ public class EubosEngineMain extends AbstractEngine {
 	}
 	
 	int move_overhead = 10;
+	public boolean generate_training_data = false;
 	
 	// Hash configuration
 	public static final int MIN_HASH_SIZE = 4;
@@ -168,6 +167,7 @@ public class EubosEngineMain extends AbstractEngine {
 		reply.addOption(Options.newHashOption((int)DEFAULT_HASH_SIZE, MIN_HASH_SIZE, MAX_HASH_SIZE));
 		reply.addOption(new SpinnerOption("Threads", defaultNumberOfWorkerThreads, 1, numCores));
 		reply.addOption(new SpinnerOption("Move Overhead", 10, 0, 5000));
+		reply.addOption(new CheckboxOption("Generate Training Data", false));
 		logger.fine(String.format("Cores available=%d", numCores));
 		this.getProtocol().send( reply );
 	}
@@ -191,6 +191,10 @@ public class EubosEngineMain extends AbstractEngine {
 		if (command.name.startsWith("Move Overhead")) {
 			move_overhead = Integer.parseInt(command.value);
 			logger.fine(String.format("Move Overhead=%d", move_overhead));
+		}
+		if (command.name.startsWith("Generate Training Data")) {
+			generate_training_data = Boolean.parseBoolean(command.value);
+			logger.fine(String.format("Generate Training Data=%s", generate_training_data));
 		}
 	}
 
@@ -277,18 +281,19 @@ public class EubosEngineMain extends AbstractEngine {
 		}
 		analysisMode = false;
 		// Create Move Searcher
-		if (command.getNodes() != null) {
-			if (ENABLE_RANDOM_MOVE_TRAINING_GENERATION) {
-				int randomMove = MoveList.getRandomMove(rootPosition);
-				if (randomMove != Move.NULL_MOVE) {
-					rootPosition.performMove(randomMove);
+		if (generate_training_data) {
+			int randomMove = MoveList.getRandomMove(rootPosition);
+			if (randomMove != Move.NULL_MOVE) {
+				if (rootPosition.performMove(randomMove)) {
 					selectedRandomMove = randomMove;
 					ms = new FixedDepthMoveSearcher(this, hashMap, rootPosition.getFen(), dc, (byte)8, refScore);
 					return;
 				}
-				selectedRandomMove = Move.NULL_MOVE;
 			}
-		}
+			selectedRandomMove = Move.NULL_MOVE;
+			ms = new FixedDepthMoveSearcher(this, hashMap, rootPosition.getFen(), dc, (byte)8, refScore);
+			return;
+		} 
 		if (clockTimeValid) {
 			lastOnMoveClock = clockTime;
 			if (command.getDepth() != null) {
@@ -339,6 +344,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	public void sendInfoCommand(ProtocolInformationCommand infoCommand) {
 		if (ENABLE_UCI_INFO_SENDING) {
+			if (!generate_training_data || (generate_training_data && infoCommand.getMoveList() == null))
 			this.getProtocol().send(infoCommand);
 			if (ENABLE_LOGGING) {
 				if (infoCommand.getCurrentMoveNumber() == null) {
@@ -507,7 +513,6 @@ public class EubosEngineMain extends AbstractEngine {
 	private int getTrustedMove(SearchResult result) {
 		int trustedMove = Move.NULL_MOVE;
 		long trustedTrans = 0L;
-		int trustedScore;
 		
 		/* Table root trans has problems: the table hash move can be overwritten by lower depth moves. 
 		   This can happen in deep searches if the root transposition is overwritten by aging
@@ -537,21 +542,13 @@ public class EubosEngineMain extends AbstractEngine {
 			trustedMove = Move.valueOfFromTransposition(tableRoot, rootPosition.getTheBoard());
 			trustedTrans = tableRoot;
 		}
-		
-		if (ENABLE_GENERATE_TRAINING_DATA) {
-			if (transpositionIsValid(trustedTrans) || result != null) {
-				trustedScore = (result != null && result.score != Score.PROVISIONAL_ALPHA) ? result.score : 
-					transpositionIsValid(trustedTrans) ? Transposition.getScore(trustedTrans) : Score.PROVISIONAL_ALPHA;
-				updateTrainingData(trustedScore, trustedMove);
-			}
-		}
 		return trustedMove;
 	}
 	
 	public void sendBestMoveCommand(SearchResult result) {
 		int trustedMove = Move.NULL_MOVE;
 		int moveNumber = 0;
-		if (ENABLE_RANDOM_MOVE_TRAINING_GENERATION) {
+		if (generate_training_data) {
 			if (selectedRandomMove != Move.NULL_MOVE) {
 				// Throw away the search move, it was just to get a good score. Restore the random move to send
 				trustedMove = selectedRandomMove;

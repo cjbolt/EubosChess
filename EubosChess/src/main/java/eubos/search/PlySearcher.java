@@ -746,7 +746,7 @@ public class PlySearcher {
 	}
 
 	private void reportPv(short positionScore) {
-		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && !EubosEngineMain.ENABLE_RANDOM_MOVE_TRAINING_GENERATION) {
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), pc.length[0], positionScore);
 			if (sr != null)
 				sr.reportPrincipalVariation(sm, true, false);
@@ -756,7 +756,7 @@ public class PlySearcher {
 	}
 	
 	private void reportPvFail(short positionScore, boolean alpha) {
-		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING && !EubosEngineMain.ENABLE_RANDOM_MOVE_TRAINING_GENERATION) {
+		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) {
 			sm.setPrincipalVariationData(extendedSearchDeepestPly, pc.toPvList(0), pc.length[0], positionScore);
 			if (sr != null)
 				sr.reportPrincipalVariation(sm, false, alpha);
