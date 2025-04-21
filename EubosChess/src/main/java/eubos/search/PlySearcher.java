@@ -170,7 +170,7 @@ public class PlySearcher {
 		lastAspirationFailed = false;
 		SearchState s = state[0];
 		s.update();
-		boolean doAspiratedSearch = !pe.goForMate() && originalSearchDepthRequiredInPly >= 5;
+		boolean doAspiratedSearch = !pe.goForMate() && originalSearchDepthRequiredInPly >= 5 && !eubos.generate_training_data;
 		boolean doFullWidthSearch = !doAspiratedSearch;
 
 		if (doAspiratedSearch) {
@@ -324,8 +324,8 @@ public class PlySearcher {
 			// Handle score backed up to this node
 			if (positionScore > s.bestScore) {
 				if (EubosEngineMain.ENABLE_LOGGING) {
-					log(String.format("BEST_SCORE INCREASED AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
-							s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
+					log(String.format("BEST_SCORE INCREASED AT ROOT positionScore=%d score=%d alpha=%d beta=%d depth=%d move=%s",
+							positionScore, s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
 				}
 				bestMove = currMove;
 				pc.update(0, bestMove);

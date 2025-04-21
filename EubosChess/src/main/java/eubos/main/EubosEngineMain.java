@@ -49,6 +49,7 @@ import eubos.search.transposition.Transposition;
 
 import java.text.SimpleDateFormat;
 import java.util.logging.*;
+import java.util.List;
 import java.util.Set;
 
 public class EubosEngineMain extends AbstractEngine {
@@ -285,6 +286,7 @@ public class EubosEngineMain extends AbstractEngine {
 			int randomMove = MoveList.getRandomMove(rootPosition);
 			if (randomMove != Move.NULL_MOVE) {
 				if (rootPosition.performMove(randomMove)) {
+					sendInfoString(String.format("training - random move selected is %s", Move.toString(randomMove)));
 					selectedRandomMove = randomMove;
 					ms = new FixedDepthMoveSearcher(this, hashMap, rootPosition.getFen(), dc, (byte)8, refScore);
 					return;
@@ -344,7 +346,14 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	public void sendInfoCommand(ProtocolInformationCommand infoCommand) {
 		if (ENABLE_UCI_INFO_SENDING) {
-			if (!generate_training_data || (generate_training_data && infoCommand.getMoveList() == null))
+			if (generate_training_data) {
+				// Insert the randomly selected move as the first entry in the pv when generating training data, for debug
+				List<GenericMove> ml = infoCommand.getMoveList();
+				if (ml != null && selectedRandomMove != Move.NULL_MOVE) {
+					ml.add(0, Move.toGenericMove(selectedRandomMove));
+					infoCommand.setMoveList(ml);
+				}
+			}
 			this.getProtocol().send(infoCommand);
 			if (ENABLE_LOGGING) {
 				if (infoCommand.getCurrentMoveNumber() == null) {
