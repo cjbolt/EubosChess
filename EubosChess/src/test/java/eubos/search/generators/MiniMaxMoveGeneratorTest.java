@@ -31,6 +31,7 @@ public class MiniMaxMoveGeneratorTest {
 	protected FixedSizeTranspositionTable hashMap;
 	PositionManager pm;
 	SearchMetricsReporter sr_stub;
+	EubosEngineMain eubos_stub;
 	
 	@Before
 	public void setUp() {
@@ -39,6 +40,7 @@ public class MiniMaxMoveGeneratorTest {
 		pl = new LinkedList<Piece>();
 		hashMap = new FixedSizeTranspositionTable();
 		pm = null;
+		eubos_stub = new EubosEngineMain();
 	}
 	
 	@After
@@ -62,6 +64,7 @@ public class MiniMaxMoveGeneratorTest {
 	protected void setupPosition(String fen) {
 		pm = new PositionManager( fen );
 		classUnderTest = new MiniMaxMoveGenerator( hashMap, pm, pm);
+		classUnderTest.setEngineCallback(eubos_stub);
 	}	
 	
 	@Test
