@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.stream.Stream;
 
+import eubos.search.Score;
+
 public abstract class AbstractEubosIntegration {
 	protected EubosEngineMain classUnderTest;
 	protected Thread eubosThread;
@@ -105,21 +107,29 @@ public abstract class AbstractEubosIntegration {
 		return parsedCmd;
 	}
 	
+	int lastScore = 0;
+	
 	protected String removeTimeFieldsFromUciInfoMessage(String info) {
 		String [] array = info.split(" ");
 		String output = "";
 		boolean delete_next_token = false;
+		boolean parse_next_token = false;
 		for (String token : array) {
 			if (delete_next_token) {
 				Integer.parseInt(token);
 				// skip this token
 				delete_next_token = false;
-			} else {
+			} else if (parse_next_token)
+				lastScore = Integer.parseInt(token);
+				parse_next_token = false;
+			{
 				// reconstruct
 				output = String.join(" ", output, token);
 			}
 			if (token.equals("nps") || token.equals("time")) {
 				delete_next_token = true;
+			} else if (token.equals("cp")) {
+				parse_next_token = true;
 			}
 		}
 		output = output.trim();
@@ -225,6 +235,81 @@ public abstract class AbstractEubosIntegration {
 			}
 		}
 		if (mateInX != 0 && !mateDetected) {
+			failed = true;
+		}
+		return !failed;
+	}
+	
+	public boolean trainingDataMonitor(int expectedScore) throws IOException, InterruptedException {
+		boolean checkInfoMsgs = true;
+		boolean mateDetected = false;
+		int mateInX = 0;
+		if (Score.isMate((short)expectedScore)) return true;
+		testOutput.flush();
+		inputToEngine.flush();
+		int commandNumber = 1;
+		for (CommandPair currCmdPair: commands) {
+			String inputCmd = currCmdPair.getIn();
+			String parsedCmd= "";
+			// Pass command to engine
+			if (inputCmd != null) {
+				inputToEngine.write(inputCmd);
+				inputToEngine.flush();
+				if (inputCmd.startsWith("position") || inputCmd.startsWith("go")) {
+					Thread.sleep(sleep_50ms);
+				}
+			}
+			// Test expected command was received
+			if (currCmdPair.expectOutput()) {
+				boolean received = false;
+				int timer = 0;
+				boolean accumulate = false;
+				String recievedCmd = "";
+				// Receive message or wait for timeout to expire.
+				while (!received && timer < 5000) {
+					// Give the engine thread some CPU time
+					Thread.sleep(sleep_50ms);
+					timer += sleep_50ms;
+					testOutput.flush();
+					if (accumulate) {
+						recievedCmd += testOutput.toString();
+					} else {
+						recievedCmd = testOutput.toString();
+					}
+					if (recievedCmd != null && !recievedCmd.isEmpty()) {
+						System.err.println(recievedCmd);
+						if (!accumulate)
+							System.out.println(recievedCmd);
+						testOutput.reset();
+					    parsedCmd = parseReceivedCommandString(recievedCmd, checkInfoMsgs);
+					    if (!parsedCmd.isEmpty()) { // want to use isBlank(), but that is Java 11 only.
+					    	if (currCmdPair.isExpectedOutput(parsedCmd)) {
+								received = true;
+								accumulate = false;
+							}
+					    	else if (parsedCmd.contains(BEST_PREFIX)) {
+								filterEngineOutput(parsedCmd, "info");
+								filterEngineOutput(parsedCmd, "bestmove");
+								accumulate = false;
+								received = true;
+							}
+					    }
+					}
+				}
+				if (!received) {
+					failed = true;
+					System.err.println(inputCmd + currCmdPair.getOut() + "command that failed " + (commandNumber-3));
+				}
+				commandNumber++;
+			} else {
+				Thread.sleep(sleep_50ms);
+			}
+		}
+		if (mateInX != 0 && !mateDetected) {
+			failed = true;
+		}
+		if (lastScore < (expectedScore - 25) || lastScore > (expectedScore + 25)) {
+			System.err.println(lastScore + " is not near " + expectedScore);
 			failed = true;
 		}
 		return !failed;
