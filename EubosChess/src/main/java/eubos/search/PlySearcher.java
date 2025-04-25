@@ -170,8 +170,8 @@ public class PlySearcher {
 		lastAspirationFailed = false;
 		SearchState s = state[0];
 		s.update();
-		boolean doAspiratedSearch = !pe.goForMate() && originalSearchDepthRequiredInPly >= 5 && !eubos.generate_training_data;
-		boolean doFullWidthSearch = !doAspiratedSearch;
+		boolean doAspiratedSearch = false; //!pe.goForMate() && originalSearchDepthRequiredInPly >= 5 && !eubos.generate_training_data;
+		boolean doFullWidthSearch = true; //!doAspiratedSearch;
 
 		if (doAspiratedSearch) {
 			int [] aspirations = Score.isMate(lastScore) ? ASPIRATION_WINDOW_MATE_FALLBACK : ASPIRATION_WINDOW_FALLBACK;
