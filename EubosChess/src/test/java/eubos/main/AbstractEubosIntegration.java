@@ -266,7 +266,7 @@ public abstract class AbstractEubosIntegration {
 				boolean accumulate = false;
 				String recievedCmd = "";
 				// Receive message or wait for timeout to expire.
-				while (!received && timer < 5000) {
+				while (!received && timer < 30000) {
 					// Give the engine thread some CPU time
 					Thread.sleep(sleep_50ms);
 					timer += sleep_50ms;
@@ -277,9 +277,9 @@ public abstract class AbstractEubosIntegration {
 						recievedCmd = testOutput.toString();
 					}
 					if (recievedCmd != null && !recievedCmd.isEmpty()) {
-						System.err.println(recievedCmd);
+						//System.err.println(recievedCmd);
 						if (!accumulate)
-							System.out.println(recievedCmd);
+							//System.out.println(recievedCmd);
 						testOutput.reset();
 					    parsedCmd = parseReceivedCommandString(recievedCmd, checkInfoMsgs);
 					    if (!parsedCmd.isEmpty()) { // want to use isBlank(), but that is Java 11 only.
@@ -288,8 +288,8 @@ public abstract class AbstractEubosIntegration {
 								accumulate = false;
 							}
 					    	else if (parsedCmd.contains(BEST_PREFIX)) {
-								filterEngineOutput(parsedCmd, "info");
-								filterEngineOutput(parsedCmd, "bestmove");
+								//filterEngineOutput(parsedCmd, "info");
+								//filterEngineOutput(parsedCmd, "bestmove");
 								accumulate = false;
 								received = true;
 							}
@@ -308,8 +308,8 @@ public abstract class AbstractEubosIntegration {
 		if (mateInX != 0 && !mateDetected) {
 			failed = true;
 		}
-		if (lastScore < (expectedScore - 25) || lastScore > (expectedScore + 25)) {
-			System.err.println(lastScore + " is not near " + expectedScore);
+		if (lastScore != expectedScore) {
+			System.err.println(lastScore + " is not " + expectedScore);
 			failed = true;
 		}
 		return !failed;
