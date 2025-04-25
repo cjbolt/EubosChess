@@ -670,9 +670,9 @@ public class PlySearcher {
 			isPositionImproving();
 		}
 		
+		s.isCutOff = false;
 		if (depth <= Transposition.getDepthSearchedInPly(trans)) {
 			int type = Transposition.getType(trans);
-			s.isCutOff = false;
 			boolean check_for_refutation = false;
 			
 			// If the hash move is drawing due to the position in the search tree, score accordingly, but still check
