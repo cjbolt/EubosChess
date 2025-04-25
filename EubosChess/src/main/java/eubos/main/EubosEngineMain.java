@@ -268,7 +268,7 @@ public class EubosEngineMain extends AbstractEngine {
 		try {
 			clockTime = command.getClock(side);
 		} catch (NullPointerException e) {
-			logger.warning(String.format("go clock time %d invalid for %c", clockTime, side.toChar()));
+			//logger.warning(String.format("go clock time %d invalid for %c", clockTime, side.toChar()));
 			clockTimeValid = false;
 		}
 		if (clockTimeValid) {
@@ -300,16 +300,16 @@ public class EubosEngineMain extends AbstractEngine {
 			lastOnMoveClock = clockTime;
 			if (command.getDepth() != null) {
 				byte searchDepth = (byte)((int)command.getDepth());
-				logger.info(String.format("Search move, fixed depth %d", searchDepth));
+				//logger.info(String.format("Search move, fixed depth %d", searchDepth));
 				ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth, refScore);
 			} else {
-				logger.info("Search move, clock time " + clockTime);
+				//logger.info("Search move, clock time " + clockTime);
 				ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, clockTime, clockInc,
 						numberOfWorkerThreads, refScore, move_overhead);
 			}
 		}
 		else if (command.getMoveTime() != null) {
-			logger.info("Search move, fixed time " + command.getMoveTime());
+			//logger.info("Search move, fixed time " + command.getMoveTime());
 			ms = new FixedTimeMoveSearcher(this, hashMap, lastFen, dc, command.getMoveTime(), refScore);
 		} else {
 			// Analyse mode
@@ -321,15 +321,15 @@ public class EubosEngineMain extends AbstractEngine {
 				searchDepth = (byte)((int)command.getDepth());
 			}	
 			if (searchDepth != 0) {
-				logger.info(String.format("Search move, fixed depth %d", searchDepth));
+				//logger.info(String.format("Search move, fixed depth %d", searchDepth));
 				ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth, refScore);
 			} else if (analysisMode) {
-				logger.info(String.format("Search move, infinite search, threads %d", numberOfWorkerThreads));
+				//logger.info(String.format("Search move, infinite search, threads %d", numberOfWorkerThreads));
 				ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, Long.MAX_VALUE, clockInc,
 						numberOfWorkerThreads, refScore, move_overhead);
 			} else {
 				searchDepth = 8;
-				logger.info(String.format("DEFAULT: Search move, fixed depth %d", searchDepth));
+				//logger.info(String.format("DEFAULT: Search move, fixed depth %d", searchDepth));
 				ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth, refScore);	
 			}
 		}
@@ -597,7 +597,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	@Override
 	protected void quit() {
-		logger.info("Quitting Eubos");
+		//logger.info("Quitting Eubos");
 		// Request an early terminate of the move searcher.
 		if (ms != null)
 			ms.halt();
