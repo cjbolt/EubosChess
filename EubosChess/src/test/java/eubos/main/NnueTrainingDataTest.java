@@ -69,13 +69,12 @@ public class NnueTrainingDataTest extends AbstractEubosIntegration{
 				while (scanner.hasNextLine()) {
 					try {
 						IndividualTrainingDataPosition entry = new IndividualTrainingDataPosition(scanner.nextLine());
-						//System.err.println(String.format("Starting %s", test.testName));
 						startupEngine(String.format("entry %d", total));
 						boolean passed = runTest(entry);
 						if (passed) numPassed++;
 						total++;
-						//System.err.println(String.format("%s %s --- overall pass rate is %2.1f%%",
-						//		test.testName, passed ? "Passed":"Failed", numPassed*100.0f/total));
+						System.err.println(String.format("passed %d of %d --- overall pass rate is %2.1f%%",
+								numPassed, total, numPassed*100.0f/total));
 						shutdownEngine();
 						commands.clear();
 					} catch (IllegalNotationException e) {
