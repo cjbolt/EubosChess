@@ -71,9 +71,10 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	}
 	
 	public synchronized long getTransposition(long hashCode) {
-		if (hashCode == 0L) return 0L; // To prune entries we have to give up on entry 0
-		int index = (int) (EubosEngineMain.ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO ? hashCode & mask : Long.remainderUnsigned(hashCode, maxTableSize));
 		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
+			if (hashCode == 0L) return 0L; // To prune entries we have to give up on entry 0
+			int index = (int) (EubosEngineMain.ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO ? 
+					hashCode & mask : Long.remainderUnsigned(hashCode, maxTableSize));
 			if (USE_ALWAYS_REPLACE) {
 				if (hashes[index] == hashCode ) {
 					if (EubosEngineMain.ENABLE_TT_DIAGNOSTIC_LOGGING) { numHits++; }
@@ -97,9 +98,10 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	}
 	
 	public synchronized void putTransposition(long hashCode, long trans, int moveNumber) {
-		if (hashCode == 0) return; // can't do anything with 0l
 		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
-			int index = (int) (EubosEngineMain.ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO ? hashCode & mask : Long.remainderUnsigned(hashCode, maxTableSize));
+			if (hashCode == 0) return; // can't do anything with 0l
+			int index = (int) (EubosEngineMain.ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO ? 
+					hashCode & mask : Long.remainderUnsigned(hashCode, maxTableSize));
 			if (EubosEngineMain.ENABLE_ASSERTS) assert (trans != 0L);
 			if (USE_ALWAYS_REPLACE) {
 				hashes[index] = hashCode;
@@ -161,7 +163,8 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		if (EubosEngineMain.ENABLE_ASSERTS) {		
 			assert new_bestMove != Move.NULL_MOVE : "setTransposition best move is null";
 		}
-		if (trans == 0L) {
+		int currentDepth = Transposition.getDepthSearchedInPly(trans);
+		if (trans == 0L || currentDepth <= new_Depth) {
 			trans = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, move_number >> 2, static_eval);
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				long old = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, move_number >> 2);
@@ -169,18 +172,6 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 				assert trans == old;
 			}
 			putTransposition(hash, trans, move_number);
-		}
-		else {
-			int currentDepth = Transposition.getDepthSearchedInPly(trans);
-			if (currentDepth <= new_Depth) {
-				trans = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, move_number >> 2, static_eval);
-				if (EubosEngineMain.ENABLE_ASSERTS) {
-					long old = Transposition.valueOf(new_Depth, new_score, new_bound, new_bestMove, move_number >> 2);
-					old = Transposition.setStaticEval(old, static_eval);
-					assert trans == old;
-				}
-				putTransposition(hash, trans, move_number);
-			}
 		}
 		return trans;
 	}
