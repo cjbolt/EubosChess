@@ -53,12 +53,12 @@ public class PlySearcher {
 			prevBestMove = Move.clearBest(pc.getBestMove((byte)ply));
 		}
 		
-		void reinitialise(int alpha, int beta) {
-			bestScore = Score.PROVISIONAL_ALPHA;
-			this.alpha = alpha;
-			adaptiveBeta = this.beta = beta;
-			moveNumber = 0;
-		}
+//		void reinitialise(int alpha, int beta) {
+//			bestScore = Score.PROVISIONAL_ALPHA;
+//			this.alpha = alpha;
+//			adaptiveBeta = this.beta = beta;
+//			moveNumber = 0;
+//		}
 		
 		void update() {
 			inCheck = pos.isKingInCheck();
@@ -123,7 +123,9 @@ public class PlySearcher {
 		this.killers = killers;
 		this.ml = ml;
 		
-		rootTransposition = tt.getTransposition(pos.getHash());
+		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
+			rootTransposition = tt.getTransposition(pos.getHash());
+		}
 	}
 	
 	public void reinitialise(byte searchDepthPly, SearchMetricsReporter sr) {
@@ -135,9 +137,11 @@ public class PlySearcher {
 		//certain = false;
 		terminate = false;
 		
-		// Back up the root transposition, because it can be lost in the search
-		// if it is overwritten and that is very costly for performance.
-		rootTransposition = tt.getTransposition(pos.getHash());
+		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
+			// Back up the root transposition, because it can be lost in the search
+			// if it is overwritten and that is very costly for performance.
+			rootTransposition = tt.getTransposition(pos.getHash());
+		}
 	}
 
 	public void terminateFindMove() {
@@ -168,8 +172,8 @@ public class PlySearcher {
 		extendedSearchDeepestPly = 0;
 		int score = lastScore;
 		lastAspirationFailed = false;
-		SearchState s = state[0];
-		s.update();
+//		SearchState s = state[0];
+//		s.update();
 		boolean doAspiratedSearch = false; //!pe.goForMate() && originalSearchDepthRequiredInPly >= 5 && !eubos.generate_training_data;
 		boolean doFullWidthSearch = true; //!doAspiratedSearch;
 
