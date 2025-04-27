@@ -75,7 +75,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO = false;
 	public static final boolean ENABLE_TT_CUT_OFFS_IN_EXTENDED_SEARCH = false;
 	
-	public static final boolean ENABLE_TRANSPOSITION_TABLE = false;
+	public static final boolean ENABLE_TRANSPOSITION_TABLE = true;
 	public static final boolean ENABLE_LATE_MOVE_REDUCTION = true;
 	public static final boolean ENABLE_NULL_MOVE_PRUNING = true;
 	public static final boolean ENABLE_STAGED_MOVE_GENERATION = true;

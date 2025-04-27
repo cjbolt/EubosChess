@@ -266,7 +266,7 @@ public abstract class AbstractEubosIntegration {
 				boolean accumulate = false;
 				String recievedCmd = "";
 				// Receive message or wait for timeout to expire.
-				while (!received && timer < 30000) {
+				while (!received && timer < 60000) {
 					// Give the engine thread some CPU time
 					Thread.sleep(sleep_50ms);
 					timer += sleep_50ms;

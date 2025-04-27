@@ -271,24 +271,24 @@ public class PlySearcher {
 		if (trans == 0L) {
 			trans = rootTransposition;
 		}
-		if (trans != 0L) {
-			evaluateTransposition(trans, depth);
-			if (s.isCutOff) {
-				sm.setPrincipalVariationDataFromHash(0, (short)s.hashScore);
-				if (sr != null)
-					sr.reportPrincipalVariation(sm, false, false); /* need to set these booleans somehow */
-				return s.hashScore;
-			}
-		}
+		//if (trans != 0L) {
+		//	evaluateTransposition(trans, depth);
+		//	if (s.isCutOff) {
+		//		sm.setPrincipalVariationDataFromHash(0, (short)s.hashScore);
+		//		if (sr != null)
+		//			sr.reportPrincipalVariation(sm, false, false); /* need to set these booleans somehow */
+		//		return s.hashScore;
+		//	}
+		//}
 			
 		// Main search loop for root ply
 		int bestMove = Move.NULL_MOVE;
 		int currMove = Move.NULL_MOVE;
 		int positionScore = s.bestScore;
 		int quietMoveNumber = 0;
-		if (trans != 0L) {
-			s.prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
-		}
+//		if (trans != 0L) {
+//			s.prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
+//		}
 		MoveListIterator move_iter = ml.initialiseAtPly(s.prevBestMove, killers.getMoves(0), s.inCheck, false, 0);
 		while ((currMove = move_iter.nextInt()) != Move.NULL_MOVE && !isTerminated()) {
 			// Legal move check	
@@ -356,12 +356,12 @@ public class PlySearcher {
 							log(String.format("BETA FAIL AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
 									s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
 						}
-						trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.lowerBound);
-						rootTransposition = trans;
+						//trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.lowerBound);
+						//rootTransposition = trans;
 						break;
 					}
-					trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.upperBound);
-					rootTransposition = trans;
+					//trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.upperBound);
+					//rootTransposition = trans;
 					reportPv((short) s.alpha);
 				}
 				s.adaptiveBeta = s.alpha + 1;
@@ -421,10 +421,10 @@ public class PlySearcher {
 		
 		long trans = tt.getTransposition(pos.getHash());
 		if (trans != 0L) {
-			evaluateTransposition(trans, depth);
-			if (s.isCutOff) {
-				return s.hashScore;
-			}
+//			evaluateTransposition(trans, depth);
+//			if (s.isCutOff) {
+//				return s.hashScore;
+//			}
 		}
 		
 		if (!s.inCheck && !pe.goForMate()) {
@@ -463,9 +463,9 @@ public class PlySearcher {
 		int positionScore = s.bestScore;
 		boolean refuted = false;
 		int quietMoveNumber = 0;
-		if (trans != 0L) {
-			s.prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
-		}
+//		if (trans != 0L) {
+//			s.prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
+//		}
 		MoveListIterator move_iter = ml.initialiseAtPly(s.prevBestMove, killers.getMoves(currPly), s.inCheck, false, currPly);
 		while ((currMove = move_iter.nextInt()) != Move.NULL_MOVE && !isTerminated()) {
 			
@@ -553,7 +553,7 @@ public class PlySearcher {
 				// No moves searched at this point means either a stalemate or checkmate has occurred
 				return s.inCheck ? Score.getMateScore(currPly) : 0;
 			}
-			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
+			//trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
 		}
 		
 		return s.bestScore;
@@ -575,31 +575,31 @@ public class PlySearcher {
 		SearchState s = state[currPly];
 		s.initialise(currPly, alpha, beta);
 		int prevBestMove = Move.NULL_MOVE;
-		if (trans != 0L) {	
-			s.isCutOff = false;
-			s.hashScore = convertMateScoreForPositionInSearchTree(Transposition.getScore(trans));
-			
-			if (EubosEngineMain.ENABLE_TT_CUT_OFFS_IN_EXTENDED_SEARCH) {
-				int type = Transposition.getType(trans);
-				if (hasSearchedPv && type == (s.hashScore >= beta ? Score.lowerBound : Score.upperBound)) {
-					return s.hashScore;
-				}
-				s.bestScore = Transposition.getStaticEval(trans);
-				if (s.bestScore == Short.MAX_VALUE) {
-					s.bestScore = pe.lazyEvaluation(alpha, beta);
-				}
-				byte boundScope = (s.hashScore > s.bestScore) ? Score.lowerBound : Score.upperBound;
-				if (type == boundScope) {
-					s.bestScore = s.hashScore;
-				}
-			} else {
-				s.bestScore = s.hashScore;
-			}
-			
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-		} else {
+		//if (trans != 0L) {	
+			//s.isCutOff = false;
+			//s.hashScore = convertMateScoreForPositionInSearchTree(Transposition.getScore(trans));
+//			
+//			if (EubosEngineMain.ENABLE_TT_CUT_OFFS_IN_EXTENDED_SEARCH) {
+//				int type = Transposition.getType(trans);
+//				if (hasSearchedPv && type == (s.hashScore >= beta ? Score.lowerBound : Score.upperBound)) {
+//					return s.hashScore;
+//				}
+//				s.bestScore = Transposition.getStaticEval(trans);
+//				if (s.bestScore == Short.MAX_VALUE) {
+//					s.bestScore = pe.lazyEvaluation(alpha, beta);
+//				}
+//				byte boundScope = (s.hashScore > s.bestScore) ? Score.lowerBound : Score.upperBound;
+//				if (type == boundScope) {
+//					s.bestScore = s.hashScore;
+//				}
+//			} else {
+//				s.bestScore = s.hashScore;
+//			}
+//			
+//			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
+		//} else {
 			s.bestScore = pe.lazyEvaluation(alpha, beta);
-		}
+		//}
 		
 		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY || s.bestScore >= beta) {
 			// Absolute depth limit, return full eval
@@ -659,7 +659,7 @@ public class PlySearcher {
 		}
 
 		if (!isTerminated() && bestMove != Move.NULL_MOVE) {
-			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
+			//trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
 		}
 
 		return s.bestScore;
