@@ -286,9 +286,14 @@ public class PlySearcher {
 		int currMove = Move.NULL_MOVE;
 		int positionScore = s.bestScore;
 		int quietMoveNumber = 0;
-//		if (trans != 0L) {
-//			s.prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
-//		}
+		if (trans != 0L) {
+			int hashMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
+			if (!eubos.generate_training_data && originalSearchDepthRequiredInPly > 1) {
+				assert Move.areEqual(hashMove, s.prevBestMove) : String.format("Uh oh. (hash) %s != %s (pc) %d plies, %s", 
+						Move.toString(hashMove), Move.toString(s.prevBestMove), originalSearchDepthRequiredInPly, Transposition.report(trans));
+			}
+			s.prevBestMove = hashMove;
+		}
 		MoveListIterator move_iter = ml.initialiseAtPly(s.prevBestMove, killers.getMoves(0), s.inCheck, false, 0);
 		while ((currMove = move_iter.nextInt()) != Move.NULL_MOVE && !isTerminated()) {
 			// Legal move check	
@@ -332,7 +337,6 @@ public class PlySearcher {
 							positionScore, s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
 				}
 				bestMove = currMove;
-				pc.update(0, bestMove);
 				if (s.adaptiveBeta == s.beta || depth < 2) {
 					s.bestScore = positionScore;
 				} else {
@@ -344,6 +348,7 @@ public class PlySearcher {
 				
 				if (s.bestScore > s.alpha) {
 					s.alpha = s.bestScore;
+					pc.update(0, bestMove);
 					if (EubosEngineMain.ENABLE_LOGGING) {
 						log(String.format("ALPHA INCREASED AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
 								s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
@@ -356,12 +361,12 @@ public class PlySearcher {
 							log(String.format("BETA FAIL AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
 									s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
 						}
-						//trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.lowerBound);
-						//rootTransposition = trans;
+						trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.lowerBound);
+						rootTransposition = trans;
 						break;
 					}
-					//trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.upperBound);
-					//rootTransposition = trans;
+					trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.upperBound);
+					rootTransposition = trans;
 					reportPv((short) s.alpha);
 				}
 				s.adaptiveBeta = s.alpha + 1;
@@ -531,21 +536,26 @@ public class PlySearcher {
 				} else {
 					s.bestScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, positionScore, s.beta, false);
 				}
+				pm.unperformMove();
 				if (s.bestScore > s.alpha) {
 					s.alpha = s.bestScore;
 					pc.update(currPly, bestMove);
+					if (s.alpha >= s.beta) {
+						killers.addMove(currPly, bestMove);
+						ml.history.updateMove(depth, bestMove);
+						if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
+						refuted = true;
+						//pm.unperformMove();
+						trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.lowerBound);
+						break;
+					}
+					trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.upperBound);
 				}
-				if (s.alpha >= s.beta) {
-					killers.addMove(currPly, bestMove);
-					ml.history.updateMove(depth, bestMove);
-					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
-					refuted = true;
-					pm.unperformMove();
-					break;
-				}
+
 				s.adaptiveBeta = s.alpha + 1;
+			} else {
+				pm.unperformMove();
 			}
-			pm.unperformMove();
 		}
 		
 		if (!isTerminated()) {
