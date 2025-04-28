@@ -282,6 +282,7 @@ public class EubosEngineMain extends AbstractEngine {
 		analysisMode = false;
 		// Create Move Searcher
 		if (generate_training_data) {
+			dc.reset(rootPosition.getPlyNumber());
 			int randomMove = MoveList.getRandomMove(rootPosition);
 			if (randomMove != Move.NULL_MOVE) {
 				if (rootPosition.performMove(randomMove)) {
