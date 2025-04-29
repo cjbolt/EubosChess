@@ -172,10 +172,9 @@ public class PlySearcher {
 		extendedSearchDeepestPly = 0;
 		int score = lastScore;
 		lastAspirationFailed = false;
-//		SearchState s = state[0];
-//		s.update();
-		boolean doAspiratedSearch = false; //!pe.goForMate() && originalSearchDepthRequiredInPly >= 5 && !eubos.generate_training_data;
-		boolean doFullWidthSearch = true; //!doAspiratedSearch;
+		
+		boolean doAspiratedSearch = !pe.goForMate() && originalSearchDepthRequiredInPly >= 5 && !eubos.generate_training_data;
+		boolean doFullWidthSearch = !doAspiratedSearch;
 
 		if (doAspiratedSearch) {
 			int [] aspirations = Score.isMate(lastScore) ? ASPIRATION_WINDOW_MATE_FALLBACK : ASPIRATION_WINDOW_FALLBACK;
@@ -271,15 +270,15 @@ public class PlySearcher {
 		if (trans == 0L) {
 			trans = rootTransposition;
 		}
-		//if (trans != 0L) {
-		//	evaluateTransposition(trans, depth);
-		//	if (s.isCutOff) {
-		//		sm.setPrincipalVariationDataFromHash(0, (short)s.hashScore);
-		//		if (sr != null)
-		//			sr.reportPrincipalVariation(sm, false, false); /* need to set these booleans somehow */
-		//		return s.hashScore;
-		//	}
-		//}
+		if (trans != 0L) {
+			evaluateTransposition(trans, depth);
+			if (s.isCutOff) {
+				sm.setPrincipalVariationDataFromHash(0, (short)s.hashScore);
+				if (sr != null)
+					sr.reportPrincipalVariation(sm, false, false); /* need to set these booleans somehow */
+				return s.hashScore;
+			}
+		}
 			
 		// Main search loop for root ply
 		int bestMove = Move.NULL_MOVE;
@@ -287,12 +286,7 @@ public class PlySearcher {
 		int positionScore = s.bestScore;
 		int quietMoveNumber = 0;
 		if (trans != 0L) {
-			int hashMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
-			if (!eubos.generate_training_data && originalSearchDepthRequiredInPly > 1) {
-				assert Move.areEqual(hashMove, s.prevBestMove) : String.format("Uh oh. (hash) %s != %s (pc) %d plies, %s", 
-						Move.toString(hashMove), Move.toString(s.prevBestMove), originalSearchDepthRequiredInPly, Transposition.report(trans));
-			}
-			s.prevBestMove = hashMove;
+			s.prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());;
 		}
 		MoveListIterator move_iter = ml.initialiseAtPly(s.prevBestMove, killers.getMoves(0), s.inCheck, false, 0);
 		while ((currMove = move_iter.nextInt()) != Move.NULL_MOVE && !isTerminated()) {
@@ -546,7 +540,6 @@ public class PlySearcher {
 						ml.history.updateMove(depth, bestMove);
 						if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
 						refuted = true;
-						//pm.unperformMove();
 						trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.lowerBound);
 						break;
 					}
@@ -586,31 +579,31 @@ public class PlySearcher {
 		SearchState s = state[currPly];
 		s.initialise(currPly, alpha, beta);
 		int prevBestMove = Move.NULL_MOVE;
-		//if (trans != 0L) {	
-			//s.isCutOff = false;
-			//s.hashScore = convertMateScoreForPositionInSearchTree(Transposition.getScore(trans));
-//			
-//			if (EubosEngineMain.ENABLE_TT_CUT_OFFS_IN_EXTENDED_SEARCH) {
-//				int type = Transposition.getType(trans);
-//				if (hasSearchedPv && type == (s.hashScore >= beta ? Score.lowerBound : Score.upperBound)) {
-//					return s.hashScore;
-//				}
-//				s.bestScore = Transposition.getStaticEval(trans);
-//				if (s.bestScore == Short.MAX_VALUE) {
-//					s.bestScore = pe.lazyEvaluation(alpha, beta);
-//				}
-//				byte boundScope = (s.hashScore > s.bestScore) ? Score.lowerBound : Score.upperBound;
-//				if (type == boundScope) {
-//					s.bestScore = s.hashScore;
-//				}
-//			} else {
-//				s.bestScore = s.hashScore;
-//			}
-//			
-//			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
-		//} else {
+		if (trans != 0L) {	
+			s.isCutOff = false;
+			s.hashScore = convertMateScoreForPositionInSearchTree(Transposition.getScore(trans));
+			
+			if (EubosEngineMain.ENABLE_TT_CUT_OFFS_IN_EXTENDED_SEARCH) {
+				int type = Transposition.getType(trans);
+				if (hasSearchedPv && type == (s.hashScore >= beta ? Score.lowerBound : Score.upperBound)) {
+					return s.hashScore;
+				}
+				s.bestScore = Transposition.getStaticEval(trans);
+				if (s.bestScore == Short.MAX_VALUE) {
+					s.bestScore = pe.lazyEvaluation(alpha, beta);
+				}
+				byte boundScope = (s.hashScore > s.bestScore) ? Score.lowerBound : Score.upperBound;
+				if (type == boundScope) {
+					s.bestScore = s.hashScore;
+				}
+			} else {
+				s.bestScore = s.hashScore;
+			}
+			
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
+		} else {
 			s.bestScore = pe.lazyEvaluation(alpha, beta);
-		//}
+		}
 		
 		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY || s.bestScore >= beta) {
 			// Absolute depth limit, return full eval

@@ -60,7 +60,7 @@ public class NnueTrainingDataTest extends AbstractEubosIntegration{
 	}
 	
 	public void runThroughDataFile(String filename) throws IllegalNotationException, IOException, InterruptedException {
-		//if (EubosEngineMain.ENABLE_TEST_SUITES) {
+		if (EubosEngineMain.ENABLE_TEST_SUITES) {
 			Path resourceDirectory = Paths.get("src","test","resources");
 			String absolutePath = resourceDirectory.toFile().getAbsolutePath();
 			int numPassed = 0, total = 0;
@@ -85,11 +85,11 @@ public class NnueTrainingDataTest extends AbstractEubosIntegration{
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
-		//}
+		}
 	}
 		
 	@Test
-	public void test_run_wac_test_suite() throws IOException, InterruptedException, IllegalNotationException {
+	public void test_verify_nn_training() throws IOException, InterruptedException, IllegalNotationException {
 		runThroughDataFile("random_moves_1.txt");		
 	}
 }
