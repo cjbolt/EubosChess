@@ -78,6 +78,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_TRANSPOSITION_TABLE = true;
 	public static final boolean ENABLE_LATE_MOVE_REDUCTION = true;
 	public static final boolean ENABLE_NULL_MOVE_PRUNING = true;
+	public static final boolean ENABLE_REVERSE_FUTILITY_PRUNING = true;
 	public static final boolean ENABLE_STAGED_MOVE_GENERATION = true;
 	public static final boolean ENABLE_PINNED_TO_KING_CHECK_IN_ILLEGAL_DETECTION = true;
 	
@@ -283,6 +284,7 @@ public class EubosEngineMain extends AbstractEngine {
 		// Create Move Searcher
 		if (generate_training_data) {
 			dc.reset(rootPosition.getPlyNumber());
+			hashMap.reset();
 			int randomMove = MoveList.getRandomMove(rootPosition);
 			if (randomMove != Move.NULL_MOVE) {
 				if (rootPosition.performMove(randomMove)) {

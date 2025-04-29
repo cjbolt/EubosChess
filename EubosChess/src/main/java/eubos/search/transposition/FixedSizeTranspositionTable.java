@@ -219,6 +219,13 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 		currentCleaner = null;
 	}
 	
+	public void reset() {
+		for (int i=0; i < maxTableSize; i++) {
+			hashes[i] = 0L;
+			transposition_table[i] = 0L;
+		}
+	}
+	
 	public void clearUp(EubosEngineMain eubos, int moveNumber) {
 		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
 			if (getHashUtilisation() < 800) return;
