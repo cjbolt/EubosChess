@@ -426,15 +426,16 @@ public class PlySearcher {
 		
 		long trans = tt.getTransposition(pos.getHash());
 		if (trans != 0L) {
-//			evaluateTransposition(trans, depth);
-//			if (s.isCutOff) {
-//				return s.hashScore;
-//			}
+			evaluateTransposition(trans, depth);
+			if (s.isCutOff) {
+				return s.hashScore;
+			}
 		}
 		
 		if (!s.inCheck && !pe.goForMate()) {
 			// Reverse futility pruning
-			if (depth < 8 &&
+			if (EubosEngineMain.ENABLE_REVERSE_FUTILITY_PRUNING &&
+				depth < 8 &&
 				hasSearchedPv) {
 				if (!s.isStaticValid) {
 					setStaticEvaluation(trans);
@@ -468,9 +469,9 @@ public class PlySearcher {
 		int positionScore = s.bestScore;
 		boolean refuted = false;
 		int quietMoveNumber = 0;
-//		if (trans != 0L) {
-//			s.prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
-//		}
+		if (trans != 0L) {
+			s.prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
+		}
 		MoveListIterator move_iter = ml.initialiseAtPly(s.prevBestMove, killers.getMoves(currPly), s.inCheck, false, currPly);
 		while ((currMove = move_iter.nextInt()) != Move.NULL_MOVE && !isTerminated()) {
 			
@@ -669,7 +670,7 @@ public class PlySearcher {
 		}
 
 		if (!isTerminated() && bestMove != Move.NULL_MOVE) {
-			//trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
+			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
 		}
 
 		return s.bestScore;
