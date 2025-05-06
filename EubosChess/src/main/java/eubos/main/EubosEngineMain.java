@@ -565,7 +565,7 @@ public class EubosEngineMain extends AbstractEngine {
 				trustedMove = selectedRandomMove;
 				rootPosition.unperformMove();
 				moveNumber = rootPosition.getMoveNumber();
-				if (result != null && result.score != Score.PROVISIONAL_ALPHA) {
+				if (result != null && result.score != Score.PROVISIONAL_ALPHA && moveNumber > 7) {
 					updateTrainingData(result.score, trustedMove);
 				}
 			} else {
