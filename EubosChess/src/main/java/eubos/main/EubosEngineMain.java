@@ -285,17 +285,21 @@ public class EubosEngineMain extends AbstractEngine {
 		if (generate_training_data) {
 			dc.reset(rootPosition.getPlyNumber());
 			hashMap.reset();
+			byte searchDepth = 8;
+			if (command.getDepth() != null) {
+				searchDepth = (byte)((int)command.getDepth());
+			}
 			int randomMove = MoveList.getRandomMove(rootPosition);
 			if (randomMove != Move.NULL_MOVE) {
 				if (rootPosition.performMove(randomMove)) {
 					sendInfoString(String.format("training - random move selected is %s", Move.toString(randomMove)));
 					selectedRandomMove = randomMove;
-					ms = new FixedDepthMoveSearcher(this, hashMap, rootPosition.getFen(), dc, (byte)8, refScore);
+					ms = new FixedDepthMoveSearcher(this, hashMap, rootPosition.getFen(), dc, searchDepth, refScore);
 					return;
 				}
 			}
 			selectedRandomMove = Move.NULL_MOVE;
-			ms = new FixedDepthMoveSearcher(this, hashMap, rootPosition.getFen(), dc, (byte)8, refScore);
+			ms = new FixedDepthMoveSearcher(this, hashMap, rootPosition.getFen(), dc, searchDepth, refScore);
 			return;
 		} 
 		if (clockTimeValid) {
