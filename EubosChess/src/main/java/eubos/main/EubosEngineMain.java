@@ -483,12 +483,12 @@ public class EubosEngineMain extends AbstractEngine {
 		return trans != 0L;
 	}
 
-	private void updateTrainingData(int score, int move) {
+	private void updateTrainingDataRandom(int score, int move) {
 		if (score == Score.PROVISIONAL_ALPHA || move == Move.NULL_MOVE) return;
 
 		rootPosition.performMove(move);
 		if (!rootPosition.isKingInCheck()) { 
-			if (random_move_training && !rootPosition.onMoveIsWhite()) { 
+			if (!rootPosition.onMoveIsWhite()) { 
 				score = -score; // Always use white relative scores in training data
 			}
 			FileWriter fw = null;
@@ -514,6 +514,36 @@ public class EubosEngineMain extends AbstractEngine {
 			}
 		}
 		rootPosition.unperformMove();
+	}
+	
+	private void updateTrainingData(int score, int move) {
+		if (score == Score.PROVISIONAL_ALPHA || move == Move.NULL_MOVE) return;
+		if (!rootPosition.isKingInCheck()) { 
+			if (!rootPosition.onMoveIsWhite()) { 
+				score = -score; // Always use white relative scores in training data
+			}
+			FileWriter fw = null;
+			String computerName = System.getenv("EUBOS_HOST_NAME");
+			String filenameBase = String.format("TrainingData_SelfPlay_%s", ((computerName != null)?computerName:""));
+			int attempt = 0;
+			while (attempt < 10 && fw == null) {
+				try {
+					fw = new FileWriter(new File(String.format("%s_%d.txt", filenameBase, attempt)), true);
+				} catch (IOException e) {
+					attempt++;		
+				}
+			}
+			if (fw != null) {
+				String training_sample = String.format("%s|%d|0.5\n", rootPosition.getFen(), score);
+				try {
+					fw.write(training_sample);
+					fw.close();
+				} catch (IOException e) {
+					handleFatalError(e ,"IO error", rootPosition);
+				}
+				sendInfoString(training_sample);
+			}
+		}
 	}
 	
 	private long selectBestTranspositionData(long tableRoot, long cacheRoot) {
@@ -579,7 +609,7 @@ public class EubosEngineMain extends AbstractEngine {
 					rootPosition.unperformMove();
 					moveNumber = rootPosition.getMoveNumber();
 					if (result != null && result.score != Score.PROVISIONAL_ALPHA && moveNumber > 7) {
-						updateTrainingData(result.score, trustedMove);
+						updateTrainingDataRandom(result.score, trustedMove);
 					}
 				} else {
 					// forced move
