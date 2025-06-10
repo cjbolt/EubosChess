@@ -254,6 +254,7 @@ public class PlySearcher {
 		hasSearchedPv = false;
 		SearchState s = state[0];
 		s.initialise(0, alpha, beta);
+		s.update();
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(0);
 		
 		if (SearchDebugAgent.DEBUG_ENABLED) {
