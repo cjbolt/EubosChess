@@ -79,6 +79,17 @@ public class NNUE
 		return v * v;
 	}
 	
+	private final static int crelu[] = new int[Short.MAX_VALUE - Short.MIN_VALUE + 1];
+	static {
+		for(int i = Short.MIN_VALUE; i <= Short.MAX_VALUE;i ++) {
+			crelu[i - (int) Short.MIN_VALUE] = crelu((short)(i));
+		}
+	}
+	
+	private static int crelu(short i) {
+		return Math.max(0, Math.min(i, QA));
+	}
+	
 	private static Accumulators accumulators;
 	static {
 		accumulators = new Accumulators();
