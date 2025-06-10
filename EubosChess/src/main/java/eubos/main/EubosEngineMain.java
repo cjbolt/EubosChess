@@ -114,6 +114,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	int move_overhead = 10;
 	public boolean generate_training_data = false;
+	public boolean random_move_training = false;
 	
 	// Hash configuration
 	public static final int MIN_HASH_SIZE = 4;
@@ -196,6 +197,10 @@ public class EubosEngineMain extends AbstractEngine {
 		if (command.name.startsWith("Generate Training Data")) {
 			generate_training_data = Boolean.parseBoolean(command.value);
 			logger.fine(String.format("Generate Training Data=%s", generate_training_data));
+		}
+		if (command.name.startsWith("Random Move")) {
+			random_move_training = Boolean.parseBoolean(command.value);
+			logger.fine(String.format("Random=%s", random_move_training));
 		}
 	}
 
@@ -289,18 +294,21 @@ public class EubosEngineMain extends AbstractEngine {
 			if (command.getDepth() != null) {
 				searchDepth = (byte)((int)command.getDepth());
 			}
-			int randomMove = MoveList.getRandomMove(rootPosition);
-			if (randomMove != Move.NULL_MOVE) {
-				if (rootPosition.performMove(randomMove)) {
-					sendInfoString(String.format("training - random move selected is %s", Move.toString(randomMove)));
-					selectedRandomMove = randomMove;
-					ms = new FixedDepthMoveSearcher(this, hashMap, rootPosition.getFen(), dc, searchDepth, refScore);
-					return;
+			if (random_move_training) {
+				int randomMove = MoveList.getRandomMove(rootPosition);
+				if (randomMove != Move.NULL_MOVE) {
+					if (rootPosition.performMove(randomMove)) {
+						sendInfoString(String.format("training - random move selected is %s", Move.toString(randomMove)));
+						selectedRandomMove = randomMove;
+						ms = new FixedDepthMoveSearcher(this, hashMap, rootPosition.getFen(), dc, searchDepth, refScore);
+						return;
+					}
 				}
+			} else {
+				selectedRandomMove = Move.NULL_MOVE;
+				ms = new FixedDepthMoveSearcher(this, hashMap, rootPosition.getFen(), dc, searchDepth, refScore);
+				return;
 			}
-			selectedRandomMove = Move.NULL_MOVE;
-			ms = new FixedDepthMoveSearcher(this, hashMap, rootPosition.getFen(), dc, searchDepth, refScore);
-			return;
 		} 
 		if (clockTimeValid) {
 			lastOnMoveClock = clockTime;
@@ -352,7 +360,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	public void sendInfoCommand(ProtocolInformationCommand infoCommand) {
 		if (ENABLE_UCI_INFO_SENDING) {
-			if (generate_training_data) {
+			if (generate_training_data && random_move_training) {
 				// Insert the randomly selected move as the first entry in the pv when generating training data, for debug
 				List<GenericMove> ml = infoCommand.getMoveList();
 				if (ml != null && selectedRandomMove != Move.NULL_MOVE) {
@@ -480,7 +488,7 @@ public class EubosEngineMain extends AbstractEngine {
 
 		rootPosition.performMove(move);
 		if (!rootPosition.isKingInCheck()) { 
-			if (!rootPosition.onMoveIsWhite()) { 
+			if (random_move_training && !rootPosition.onMoveIsWhite()) { 
 				score = -score; // Always use white relative scores in training data
 			}
 			FileWriter fw = null;
@@ -564,18 +572,27 @@ public class EubosEngineMain extends AbstractEngine {
 		int trustedMove = Move.NULL_MOVE;
 		int moveNumber = 0;
 		if (generate_training_data) {
-			if (selectedRandomMove != Move.NULL_MOVE) {
-				// Throw away the search move, it was just to get a good score. Restore the random move to send
-				trustedMove = selectedRandomMove;
-				rootPosition.unperformMove();
+			if (random_move_training) {
+				if (selectedRandomMove != Move.NULL_MOVE) {
+					// Throw away the search move, it was just to get a good score. Restore the random move to send
+					trustedMove = selectedRandomMove;
+					rootPosition.unperformMove();
+					moveNumber = rootPosition.getMoveNumber();
+					if (result != null && result.score != Score.PROVISIONAL_ALPHA && moveNumber > 7) {
+						updateTrainingData(result.score, trustedMove);
+					}
+				} else {
+					// forced move
+					moveNumber = rootPosition.getMoveNumber();
+					trustedMove = result.pv[0];
+				}
+			} else {
+				// Update the training data based on the fully searched move
+				trustedMove = getTrustedMove(result);
 				moveNumber = rootPosition.getMoveNumber();
 				if (result != null && result.score != Score.PROVISIONAL_ALPHA && moveNumber > 7) {
 					updateTrainingData(result.score, trustedMove);
 				}
-			} else {
-				// forced move
-				moveNumber = rootPosition.getMoveNumber();
-				trustedMove = result.pv[0];
 			}
 		} else {
 			trustedMove = getTrustedMove(result);
