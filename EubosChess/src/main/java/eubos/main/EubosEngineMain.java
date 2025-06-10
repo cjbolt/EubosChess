@@ -170,6 +170,7 @@ public class EubosEngineMain extends AbstractEngine {
 		reply.addOption(new SpinnerOption("Threads", defaultNumberOfWorkerThreads, 1, numCores));
 		reply.addOption(new SpinnerOption("Move Overhead", 10, 0, 5000));
 		reply.addOption(new CheckboxOption("Generate Training Data", false));
+		reply.addOption(new CheckboxOption("Random Move", false));
 		logger.fine(String.format("Cores available=%d", numCores));
 		this.getProtocol().send( reply );
 	}
@@ -250,9 +251,15 @@ public class EubosEngineMain extends AbstractEngine {
 		int forcedMove = MoveList.getForcedMove(rootPosition);
 		if (forcedMove != Move.NULL_MOVE) {
 			sendInfoString(String.format("forced %s", Move.toString(forcedMove)));
-			int [] pv = new int[] { forcedMove };
-			SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, 0);
-			sendBestMoveCommand(result);
+			// Ensures we don't try to update training data for a forced move, where score is invalid
+			convertToGenericAndSendBestMove(forcedMove);
+		} else if (generate_training_data && !random_move_training && rootPosition.getMoveNumber() < 7) {
+			// When generating training data, the first few moves should be random and unsearched...
+			int randomMove =MoveList.getRandomMove(rootPosition);
+			//int [] pv = new int[] { randomMove };
+			//SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, 0);
+			//sendBestMoveCommand(result);
+			convertToGenericAndSendBestMove(randomMove);
 		} else {
 			// The move searcher will report the best move found via a callback to this object, 
 			// this will occur when the tree search is concluded and the thread completes execution.
