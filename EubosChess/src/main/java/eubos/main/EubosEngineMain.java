@@ -255,10 +255,7 @@ public class EubosEngineMain extends AbstractEngine {
 			convertToGenericAndSendBestMove(forcedMove);
 		} else if (generate_training_data && !random_move_training && rootPosition.getMoveNumber() < 7) {
 			// When generating training data, the first few moves should be random and unsearched...
-			int randomMove =MoveList.getRandomMove(rootPosition);
-			//int [] pv = new int[] { randomMove };
-			//SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, 0);
-			//sendBestMoveCommand(result);
+			int randomMove = MoveList.getRandomMove(rootPosition);
 			convertToGenericAndSendBestMove(randomMove);
 		} else {
 			// The move searcher will report the best move found via a callback to this object, 
@@ -610,26 +607,16 @@ public class EubosEngineMain extends AbstractEngine {
 		int moveNumber = 0;
 		if (generate_training_data) {
 			if (random_move_training) {
-				if (selectedRandomMove != Move.NULL_MOVE) {
-					// Throw away the search move, it was just to get a good score. Restore the random move to send
-					trustedMove = selectedRandomMove;
-					rootPosition.unperformMove();
-					moveNumber = rootPosition.getMoveNumber();
-					if (result != null && result.score != Score.PROVISIONAL_ALPHA && moveNumber > 7) {
-						updateTrainingDataRandom(result.score, trustedMove);
-					}
-				} else {
-					// forced move
-					moveNumber = rootPosition.getMoveNumber();
-					trustedMove = result.pv[0];
-				}
+				// Throw away the search move, it was just to get a good score. Restore the random move to send
+				trustedMove = selectedRandomMove;
+				rootPosition.unperformMove();
 			} else {
 				// Update the training data based on the fully searched move
 				trustedMove = getTrustedMove(result);
-				moveNumber = rootPosition.getMoveNumber();
-				if (result != null && result.score != Score.PROVISIONAL_ALPHA && moveNumber > 7) {
-					updateTrainingData(result.score, trustedMove);
-				}
+			}
+			moveNumber = rootPosition.getMoveNumber();
+			if (result != null && result.score != Score.PROVISIONAL_ALPHA && moveNumber > 7) {
+				updateTrainingData(result.score, trustedMove);
 			}
 		} else {
 			trustedMove = getTrustedMove(result);
