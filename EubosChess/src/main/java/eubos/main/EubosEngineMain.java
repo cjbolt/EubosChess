@@ -73,12 +73,12 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	public static final boolean ENABLE_TT_DIAGNOSTIC_LOGGING = false;
 	public static final boolean ENABLE_TT_DIMENSIONED_TO_POWER_OF_TWO = false;
-	public static final boolean ENABLE_TT_CUT_OFFS_IN_EXTENDED_SEARCH = true;
+	public static final boolean ENABLE_TT_CUT_OFFS_IN_EXTENDED_SEARCH = false;
 	
 	public static final boolean ENABLE_TRANSPOSITION_TABLE = true;
-	public static final boolean ENABLE_ASPIRATION_WINDOWS = true;
 	public static final boolean ENABLE_LATE_MOVE_REDUCTION = true;
 	public static final boolean ENABLE_NULL_MOVE_PRUNING = true;
+	public static final boolean ENABLE_REVERSE_FUTILITY_PRUNING = true;
 	public static final boolean ENABLE_STAGED_MOVE_GENERATION = true;
 	public static final boolean ENABLE_PINNED_TO_KING_CHECK_IN_ILLEGAL_DETECTION = true;
 	
@@ -114,6 +114,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	int move_overhead = 10;
 	public boolean generate_training_data = false;
+	public boolean random_move_training = false;
 	
 	// Hash configuration
 	public static final int MIN_HASH_SIZE = 4;
@@ -169,6 +170,7 @@ public class EubosEngineMain extends AbstractEngine {
 		reply.addOption(new SpinnerOption("Threads", defaultNumberOfWorkerThreads, 1, numCores));
 		reply.addOption(new SpinnerOption("Move Overhead", 10, 0, 5000));
 		reply.addOption(new CheckboxOption("Generate Training Data", false));
+		reply.addOption(new CheckboxOption("Random Move", false));
 		logger.fine(String.format("Cores available=%d", numCores));
 		this.getProtocol().send( reply );
 	}
@@ -196,6 +198,10 @@ public class EubosEngineMain extends AbstractEngine {
 		if (command.name.startsWith("Generate Training Data")) {
 			generate_training_data = Boolean.parseBoolean(command.value);
 			logger.fine(String.format("Generate Training Data=%s", generate_training_data));
+		}
+		if (command.name.startsWith("Random Move")) {
+			random_move_training = Boolean.parseBoolean(command.value);
+			logger.fine(String.format("Random=%s", random_move_training));
 		}
 	}
 
@@ -245,9 +251,15 @@ public class EubosEngineMain extends AbstractEngine {
 		int forcedMove = MoveList.getForcedMove(rootPosition);
 		if (forcedMove != Move.NULL_MOVE) {
 			sendInfoString(String.format("forced %s", Move.toString(forcedMove)));
-			int [] pv = new int[] { forcedMove };
-			SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, 0);
-			sendBestMoveCommand(result);
+			// Ensures we don't try to update training data for a forced move, where score is invalid
+			convertToGenericAndSendBestMove(forcedMove);
+		} else if (generate_training_data && !random_move_training && rootPosition.getMoveNumber() < 7) {
+			// When generating training data, the first few moves should be random and unsearched...
+			int randomMove =MoveList.getRandomMove(rootPosition);
+			//int [] pv = new int[] { randomMove };
+			//SearchResult result = new SearchResult(pv, true, 0L, (byte) 1, true, 0);
+			//sendBestMoveCommand(result);
+			convertToGenericAndSendBestMove(randomMove);
 		} else {
 			// The move searcher will report the best move found via a callback to this object, 
 			// this will occur when the tree search is concluded and the thread completes execution.
@@ -268,7 +280,7 @@ public class EubosEngineMain extends AbstractEngine {
 		try {
 			clockTime = command.getClock(side);
 		} catch (NullPointerException e) {
-			logger.warning(String.format("go clock time %d invalid for %c", clockTime, side.toChar()));
+			//logger.warning(String.format("go clock time %d invalid for %c", clockTime, side.toChar()));
 			clockTimeValid = false;
 		}
 		if (clockTimeValid) {
@@ -283,33 +295,42 @@ public class EubosEngineMain extends AbstractEngine {
 		analysisMode = false;
 		// Create Move Searcher
 		if (generate_training_data) {
-			int randomMove = MoveList.getRandomMove(rootPosition);
-			if (randomMove != Move.NULL_MOVE) {
-				if (rootPosition.performMove(randomMove)) {
-					sendInfoString(String.format("training - random move selected is %s", Move.toString(randomMove)));
-					selectedRandomMove = randomMove;
-					ms = new FixedDepthMoveSearcher(this, hashMap, rootPosition.getFen(), dc, (byte)8, refScore);
-					return;
-				}
+			dc.reset(rootPosition.getPlyNumber());
+			hashMap.reset();
+			byte searchDepth = 8;
+			if (command.getDepth() != null) {
+				searchDepth = (byte)((int)command.getDepth());
 			}
-			selectedRandomMove = Move.NULL_MOVE;
-			ms = new FixedDepthMoveSearcher(this, hashMap, rootPosition.getFen(), dc, (byte)8, refScore);
-			return;
+			if (random_move_training) {
+				int randomMove = MoveList.getRandomMove(rootPosition);
+				if (randomMove != Move.NULL_MOVE) {
+					if (rootPosition.performMove(randomMove)) {
+						sendInfoString(String.format("training - random move selected is %s", Move.toString(randomMove)));
+						selectedRandomMove = randomMove;
+						ms = new FixedDepthMoveSearcher(this, hashMap, rootPosition.getFen(), dc, searchDepth, refScore);
+						return;
+					}
+				}
+			} else {
+				selectedRandomMove = Move.NULL_MOVE;
+				ms = new FixedDepthMoveSearcher(this, hashMap, rootPosition.getFen(), dc, searchDepth, refScore);
+				return;
+			}
 		} 
 		if (clockTimeValid) {
 			lastOnMoveClock = clockTime;
 			if (command.getDepth() != null) {
 				byte searchDepth = (byte)((int)command.getDepth());
-				logger.info(String.format("Search move, fixed depth %d", searchDepth));
+				//logger.info(String.format("Search move, fixed depth %d", searchDepth));
 				ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth, refScore);
 			} else {
-				logger.info("Search move, clock time " + clockTime);
+				//logger.info("Search move, clock time " + clockTime);
 				ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, clockTime, clockInc,
 						numberOfWorkerThreads, refScore, move_overhead);
 			}
 		}
 		else if (command.getMoveTime() != null) {
-			logger.info("Search move, fixed time " + command.getMoveTime());
+			//logger.info("Search move, fixed time " + command.getMoveTime());
 			ms = new FixedTimeMoveSearcher(this, hashMap, lastFen, dc, command.getMoveTime(), refScore);
 		} else {
 			// Analyse mode
@@ -321,15 +342,15 @@ public class EubosEngineMain extends AbstractEngine {
 				searchDepth = (byte)((int)command.getDepth());
 			}	
 			if (searchDepth != 0) {
-				logger.info(String.format("Search move, fixed depth %d", searchDepth));
+				//logger.info(String.format("Search move, fixed depth %d", searchDepth));
 				ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth, refScore);
 			} else if (analysisMode) {
-				logger.info(String.format("Search move, infinite search, threads %d", numberOfWorkerThreads));
+				//logger.info(String.format("Search move, infinite search, threads %d", numberOfWorkerThreads));
 				ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, Long.MAX_VALUE, clockInc,
 						numberOfWorkerThreads, refScore, move_overhead);
 			} else {
 				searchDepth = 8;
-				logger.info(String.format("DEFAULT: Search move, fixed depth %d", searchDepth));
+				//logger.info(String.format("DEFAULT: Search move, fixed depth %d", searchDepth));
 				ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth, refScore);	
 			}
 		}
@@ -346,7 +367,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	public void sendInfoCommand(ProtocolInformationCommand infoCommand) {
 		if (ENABLE_UCI_INFO_SENDING) {
-			if (generate_training_data) {
+			if (generate_training_data && random_move_training) {
 				// Insert the randomly selected move as the first entry in the pv when generating training data, for debug
 				List<GenericMove> ml = infoCommand.getMoveList();
 				if (ml != null && selectedRandomMove != Move.NULL_MOVE) {
@@ -469,7 +490,7 @@ public class EubosEngineMain extends AbstractEngine {
 		return trans != 0L;
 	}
 
-	private void updateTrainingData(int score, int move) {
+	private void updateTrainingDataRandom(int score, int move) {
 		if (score == Score.PROVISIONAL_ALPHA || move == Move.NULL_MOVE) return;
 
 		rootPosition.performMove(move);
@@ -500,6 +521,36 @@ public class EubosEngineMain extends AbstractEngine {
 			}
 		}
 		rootPosition.unperformMove();
+	}
+	
+	private void updateTrainingData(int score, int move) {
+		if (score == Score.PROVISIONAL_ALPHA || move == Move.NULL_MOVE) return;
+		if (!rootPosition.isKingInCheck()) { 
+			if (!rootPosition.onMoveIsWhite()) { 
+				score = -score; // Always use white relative scores in training data
+			}
+			FileWriter fw = null;
+			String computerName = System.getenv("EUBOS_HOST_NAME");
+			String filenameBase = String.format("TrainingData_SelfPlay_%s", ((computerName != null)?computerName:""));
+			int attempt = 0;
+			while (attempt < 10 && fw == null) {
+				try {
+					fw = new FileWriter(new File(String.format("%s_%d.txt", filenameBase, attempt)), true);
+				} catch (IOException e) {
+					attempt++;		
+				}
+			}
+			if (fw != null) {
+				String training_sample = String.format("%s|%d|0.5\n", rootPosition.getFen(), score);
+				try {
+					fw.write(training_sample);
+					fw.close();
+				} catch (IOException e) {
+					handleFatalError(e ,"IO error", rootPosition);
+				}
+				sendInfoString(training_sample);
+			}
+		}
 	}
 	
 	private long selectBestTranspositionData(long tableRoot, long cacheRoot) {
@@ -558,18 +609,27 @@ public class EubosEngineMain extends AbstractEngine {
 		int trustedMove = Move.NULL_MOVE;
 		int moveNumber = 0;
 		if (generate_training_data) {
-			if (selectedRandomMove != Move.NULL_MOVE) {
-				// Throw away the search move, it was just to get a good score. Restore the random move to send
-				trustedMove = selectedRandomMove;
-				rootPosition.unperformMove();
-				moveNumber = rootPosition.getMoveNumber();
-				if (result != null && result.score != Score.PROVISIONAL_ALPHA) {
-					updateTrainingData(result.score, trustedMove);
+			if (random_move_training) {
+				if (selectedRandomMove != Move.NULL_MOVE) {
+					// Throw away the search move, it was just to get a good score. Restore the random move to send
+					trustedMove = selectedRandomMove;
+					rootPosition.unperformMove();
+					moveNumber = rootPosition.getMoveNumber();
+					if (result != null && result.score != Score.PROVISIONAL_ALPHA && moveNumber > 7) {
+						updateTrainingDataRandom(result.score, trustedMove);
+					}
+				} else {
+					// forced move
+					moveNumber = rootPosition.getMoveNumber();
+					trustedMove = result.pv[0];
 				}
 			} else {
-				// forced move
+				// Update the training data based on the fully searched move
+				trustedMove = getTrustedMove(result);
 				moveNumber = rootPosition.getMoveNumber();
-				trustedMove = result.pv[0];
+				if (result != null && result.score != Score.PROVISIONAL_ALPHA && moveNumber > 7) {
+					updateTrainingData(result.score, trustedMove);
+				}
 			}
 		} else {
 			trustedMove = getTrustedMove(result);
@@ -597,7 +657,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	@Override
 	protected void quit() {
-		logger.info("Quitting Eubos");
+		//logger.info("Quitting Eubos");
 		// Request an early terminate of the move searcher.
 		if (ms != null)
 			ms.halt();
