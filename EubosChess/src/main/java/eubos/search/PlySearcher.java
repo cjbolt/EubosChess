@@ -123,9 +123,7 @@ public class PlySearcher {
 		this.killers = killers;
 		this.ml = ml;
 		
-		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
-			rootTransposition = tt.getTransposition(pos.getHash());
-		}
+		rootTransposition = tt.getTransposition(pos.getHash());
 	}
 	
 	public void reinitialise(byte searchDepthPly, SearchMetricsReporter sr) {
@@ -137,11 +135,9 @@ public class PlySearcher {
 		//certain = false;
 		terminate = false;
 		
-		if (EubosEngineMain.ENABLE_TRANSPOSITION_TABLE) {
-			// Back up the root transposition, because it can be lost in the search
-			// if it is overwritten and that is very costly for performance.
-			rootTransposition = tt.getTransposition(pos.getHash());
-		}
+		// Back up the root transposition, because it can be lost in the search
+		// if it is overwritten and that is very costly for performance.
+		rootTransposition = tt.getTransposition(pos.getHash());
 	}
 
 	public void terminateFindMove() {
@@ -172,7 +168,8 @@ public class PlySearcher {
 		extendedSearchDeepestPly = 0;
 		int score = lastScore;
 		lastAspirationFailed = false;
-		
+		SearchState s = state[0];
+		s.update();
 		boolean doAspiratedSearch = !pe.goForMate() && originalSearchDepthRequiredInPly >= 5 && !eubos.generate_training_data;
 		boolean doFullWidthSearch = !doAspiratedSearch;
 
@@ -332,6 +329,7 @@ public class PlySearcher {
 							positionScore, s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
 				}
 				bestMove = currMove;
+				pc.update(0, bestMove);
 				if (s.adaptiveBeta == s.beta || depth < 2) {
 					s.bestScore = positionScore;
 				} else {
@@ -343,7 +341,6 @@ public class PlySearcher {
 				
 				if (s.bestScore > s.alpha) {
 					s.alpha = s.bestScore;
-					pc.update(0, bestMove);
 					if (EubosEngineMain.ENABLE_LOGGING) {
 						log(String.format("ALPHA INCREASED AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
 								s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
@@ -532,25 +529,21 @@ public class PlySearcher {
 				} else {
 					s.bestScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, positionScore, s.beta, false);
 				}
-				pm.unperformMove();
 				if (s.bestScore > s.alpha) {
 					s.alpha = s.bestScore;
 					pc.update(currPly, bestMove);
-					if (s.alpha >= s.beta) {
-						killers.addMove(currPly, bestMove);
-						ml.history.updateMove(depth, bestMove);
-						if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
-						refuted = true;
-						trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.lowerBound);
-						break;
-					}
-					trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, Score.upperBound);
 				}
-
+				if (s.alpha >= s.beta) {
+					killers.addMove(currPly, bestMove);
+					ml.history.updateMove(depth, bestMove);
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
+					refuted = true;
+					pm.unperformMove();
+					break;
+				}
 				s.adaptiveBeta = s.alpha + 1;
-			} else {
-				pm.unperformMove();
 			}
+			pm.unperformMove();
 		}
 		
 		if (!isTerminated()) {
@@ -558,7 +551,7 @@ public class PlySearcher {
 				// No moves searched at this point means either a stalemate or checkmate has occurred
 				return s.inCheck ? Score.getMateScore(currPly) : 0;
 			}
-			//trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
+			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
 		}
 		
 		return s.bestScore;
