@@ -260,6 +260,8 @@ public class EubosEngineMain extends AbstractEngine {
 		} else {
 			// The move searcher will report the best move found via a callback to this object, 
 			// this will occur when the tree search is concluded and the thread completes execution.
+			
+			//Note: will come here if generating training and random move or after first 7 moves played randomly
 			moveSearcherFactory(command);
 			ms.start();
 		}
@@ -290,7 +292,10 @@ public class EubosEngineMain extends AbstractEngine {
 			}
 		}
 		analysisMode = false;
+		
 		// Create Move Searcher
+		
+		// first deal with training data generation scenarios
 		if (generate_training_data) {
 			dc.reset(rootPosition.getPlyNumber());
 			hashMap.reset();
@@ -304,51 +309,52 @@ public class EubosEngineMain extends AbstractEngine {
 					if (rootPosition.performMove(randomMove)) {
 						sendInfoString(String.format("training - random move selected is %s", Move.toString(randomMove)));
 						selectedRandomMove = randomMove;
+						//searchDepth-=1;
 						ms = new FixedDepthMoveSearcher(this, hashMap, rootPosition.getFen(), dc, searchDepth, refScore);
-						return;
 					}
 				}
 			} else {
 				selectedRandomMove = Move.NULL_MOVE;
 				ms = new FixedDepthMoveSearcher(this, hashMap, rootPosition.getFen(), dc, searchDepth, refScore);
-				return;
 			}
-		} 
-		if (clockTimeValid) {
-			lastOnMoveClock = clockTime;
-			if (command.getDepth() != null) {
-				byte searchDepth = (byte)((int)command.getDepth());
-				//logger.info(String.format("Search move, fixed depth %d", searchDepth));
-				ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth, refScore);
-			} else {
-				//logger.info("Search move, clock time " + clockTime);
-				ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, clockTime, clockInc,
-						numberOfWorkerThreads, refScore, move_overhead);
-			}
-		}
-		else if (command.getMoveTime() != null) {
-			//logger.info("Search move, fixed time " + command.getMoveTime());
-			ms = new FixedTimeMoveSearcher(this, hashMap, lastFen, dc, command.getMoveTime(), refScore);
 		} else {
-			// Analyse mode
-			byte searchDepth = 0;
-			if (command.getInfinite()) {
-				// We shall use a timed search which, for all intents and purposes, is infinite.
-				analysisMode = true;
-			} else if (command.getDepth() != null) {
-				searchDepth = (byte)((int)command.getDepth());
-			}	
-			if (searchDepth != 0) {
-				//logger.info(String.format("Search move, fixed depth %d", searchDepth));
-				ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth, refScore);
-			} else if (analysisMode) {
-				//logger.info(String.format("Search move, infinite search, threads %d", numberOfWorkerThreads));
-				ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, Long.MAX_VALUE, clockInc,
-						numberOfWorkerThreads, refScore, move_overhead);
+			// normal game scenarios
+			if (clockTimeValid) {
+				lastOnMoveClock = clockTime;
+				if (command.getDepth() != null) {
+					byte searchDepth = (byte)((int)command.getDepth());
+					//logger.info(String.format("Search move, fixed depth %d", searchDepth));
+					ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth, refScore);
+				} else {
+					//logger.info("Search move, clock time " + clockTime);
+					ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, clockTime, clockInc,
+							numberOfWorkerThreads, refScore, move_overhead);
+				}
+			}
+			else if (command.getMoveTime() != null) {
+				//logger.info("Search move, fixed time " + command.getMoveTime());
+				ms = new FixedTimeMoveSearcher(this, hashMap, lastFen, dc, command.getMoveTime(), refScore);
 			} else {
-				searchDepth = 8;
-				//logger.info(String.format("DEFAULT: Search move, fixed depth %d", searchDepth));
-				ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth, refScore);	
+				// Analyse mode
+				byte searchDepth = 0;
+				if (command.getInfinite()) {
+					// We shall use a timed search which, for all intents and purposes, is infinite.
+					analysisMode = true;
+				} else if (command.getDepth() != null) {
+					searchDepth = (byte)((int)command.getDepth());
+				}	
+				if (searchDepth != 0) {
+					//logger.info(String.format("Search move, fixed depth %d", searchDepth));
+					ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth, refScore);
+				} else if (analysisMode) {
+					//logger.info(String.format("Search move, infinite search, threads %d", numberOfWorkerThreads));
+					ms = new MultithreadedIterativeMoveSearcher(this, hashMap, lastFen, dc, Long.MAX_VALUE, clockInc,
+							numberOfWorkerThreads, refScore, move_overhead);
+				} else {
+					searchDepth = 8;
+					//logger.info(String.format("DEFAULT: Search move, fixed depth %d", searchDepth));
+					ms = new FixedDepthMoveSearcher(this, hashMap, lastFen, dc, searchDepth, refScore);	
+				}
 			}
 		}
 	}
@@ -606,17 +612,13 @@ public class EubosEngineMain extends AbstractEngine {
 		int trustedMove = Move.NULL_MOVE;
 		int moveNumber = 0;
 		if (generate_training_data) {
-			if (random_move_training) {
-				// Throw away the search move, it was just to get a good score. Restore the random move to send
-				trustedMove = selectedRandomMove;
-				rootPosition.unperformMove();
-			} else {
-				// Update the training data based on the fully searched move
-				trustedMove = getTrustedMove(result);
-			}
+			trustedMove = random_move_training ? selectedRandomMove : getTrustedMove(result);
 			moveNumber = rootPosition.getMoveNumber();
 			if (result != null && result.score != Score.PROVISIONAL_ALPHA && moveNumber > 7) {
 				updateTrainingData(result.score, trustedMove);
+			}
+			if (random_move_training) {
+				rootPosition.unperformMove();
 			}
 		} else {
 			trustedMove = getTrustedMove(result);
