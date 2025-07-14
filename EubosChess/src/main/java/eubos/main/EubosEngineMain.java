@@ -492,39 +492,6 @@ public class EubosEngineMain extends AbstractEngine {
 	private boolean transpositionIsValid(long trans) {
 		return trans != 0L;
 	}
-
-	private void updateTrainingDataRandom(int score, int move) {
-		if (score == Score.PROVISIONAL_ALPHA || move == Move.NULL_MOVE) return;
-
-		rootPosition.performMove(move);
-		if (!rootPosition.isKingInCheck()) { 
-			if (!rootPosition.onMoveIsWhite()) { 
-				score = -score; // Always use white relative scores in training data
-			}
-			FileWriter fw = null;
-			String computerName = System.getenv("EUBOS_HOST_NAME");
-			String filenameBase = String.format("TrainingData_SelfPlay_%s", ((computerName != null)?computerName:""));
-			int attempt = 0;
-			while (attempt < 10 && fw == null) {
-				try {
-					fw = new FileWriter(new File(String.format("%s_%d.txt", filenameBase, attempt)), true);
-				} catch (IOException e) {
-					attempt++;		
-				}
-			}
-			if (fw != null) {
-				String training_sample = String.format("%s|%d|0.5\n", rootPosition.getFen(), score);
-				try {
-					fw.write(training_sample);
-					fw.close();
-				} catch (IOException e) {
-					handleFatalError(e ,"IO error", rootPosition);
-				}
-				sendInfoString(training_sample);
-			}
-		}
-		rootPosition.unperformMove();
-	}
 	
 	private void updateTrainingData(int score, int move) {
 		if (score == Score.PROVISIONAL_ALPHA || move == Move.NULL_MOVE) return;
