@@ -45,6 +45,7 @@ public class TrainingDataUpdater {
 	}	
 
 	@Test
+	@Ignore
 	public void test_UpdateReferenceTrainingData()throws IllegalNotationException, IOException {
 		// Load each group of training data in turn (1M positions at a time)
 		File[] files = new File("D:\\tester\\out").listFiles();
