@@ -39,7 +39,7 @@ public class MiniMaxMoveGenerator implements
 	private Reference ref;
 
 	// Used for unit tests
-	MiniMaxMoveGenerator(ITranspositionAccessor hashMap,
+	public MiniMaxMoveGenerator(ITranspositionAccessor hashMap,
 			IChangePosition pm,
 			IPositionAccessors pos) {
 		score = 0;
