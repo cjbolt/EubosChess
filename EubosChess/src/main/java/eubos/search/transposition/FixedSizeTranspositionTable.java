@@ -222,7 +222,7 @@ public class FixedSizeTranspositionTable implements ITranspositionAccessor {
 	public void reset() {
 		for (int i=0; i < maxTableSize; i++) {
 			hashes[i] = 0L;
-			transposition_table[i] = 0L;
+			//transposition_table[i] = 0L;
 		}
 	}
 	
