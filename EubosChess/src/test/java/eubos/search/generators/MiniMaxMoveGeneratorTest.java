@@ -467,4 +467,18 @@ public class MiniMaxMoveGeneratorTest {
 		assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
 		assertEquals(157, classUnderTest.getScore());
 	}
+	
+	@Test
+	@Ignore
+	public void test_data_gen_validation_fail()throws IllegalNotationException  {
+		hashMap = new FixedSizeTranspositionTable(16, 1);
+		setupPosition("8/2r5/2b2p2/2k2P2/1pP5/p1R2pQ1/1B3P1p/5K2 w - - 0 70");
+		//setupPosition("8/2r5/2b2p2/2k2P2/1pP5/p3RpQ1/1B3P1p/5K2 b - - 0 70");
+		
+		SearchResult res = null;
+		for (byte depth=1; depth<=5; depth++) {
+			res = classUnderTest.findMove(depth);
+		}
+		assertEquals(216, res.score); // Wasn't doing iterative deepening :(
+	}
 }
