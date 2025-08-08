@@ -86,7 +86,7 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_PER_MOVE_FUTILITY_PRUNING = true;
 	public static final boolean ENABLE_FUTILITY_PRUNING_OF_KILLER_MOVES = false;
 	
-	public static final int MAXIMUM_PLIES_IN_GAME = 250;
+	public static final int MAXIMUM_PLIES_IN_GAME = 500;
 	
 	// Permanent data structures - static for the duration of a single game
 	FixedSizeTranspositionTable hashMap = null;
