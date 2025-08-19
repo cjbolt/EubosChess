@@ -424,9 +424,9 @@ public class PlySearcher {
 			}
 		}
 		
-		if (!s.inCheck && !pe.goForMate()) {
+		if (!s.inCheck && !pe.goForMate() && !eubos.generate_training_data) {
 			// Reverse futility pruning
-			if (EubosEngineMain.ENABLE_REVERSE_FUTILITY_PRUNING &&
+			if (EubosEngineMain.ENABLE_REVERSE_FUTILITY_PRUNING && 
 				depth < 8 &&
 				hasSearchedPv) {
 				if (!s.isStaticValid) {
@@ -438,7 +438,7 @@ public class PlySearcher {
 			}
 	
 			// Null move pruning
-			if (EubosEngineMain.ENABLE_NULL_MOVE_PRUNING &&
+			if (EubosEngineMain.ENABLE_NULL_MOVE_PRUNING && 
 				!isTerminated() &&
 				depth > 2 &&
 				nullCheckEnabled &&
@@ -468,7 +468,7 @@ public class PlySearcher {
 		while ((currMove = move_iter.nextInt()) != Move.NULL_MOVE && !isTerminated()) {
 			
 			if (EubosEngineMain.ENABLE_FUTILITY_PRUNING) {
-				if (quietMoveNumber >= 1) {
+				if (!eubos.generate_training_data && quietMoveNumber >= 1) {
 					if (neitherAlphaBetaIsMate() && !pe.goForMate() && depth <= 2) {
 						if (!s.isStaticValid) {
 							setStaticEvaluation(trans);
@@ -798,6 +798,7 @@ public class PlySearcher {
 			s.update();
 		}
 		if (EubosEngineMain.ENABLE_LATE_MOVE_REDUCTION &&
+			!eubos.generate_training_data &&
 			moveNumber > 1 && /* Full search for at least one quiet move */
 			!pe.goForMate() && /* Ignore reductions in a mate search */
 			depth > 2 &&
