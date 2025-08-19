@@ -46,7 +46,7 @@ public class SearchMetrics {
 	}
 	
 	void incrementNodesSearched() { nodesSearched.incrementAndGet(); }
-	long getNodesSearched() { return nodesSearched.get(); }
+	public long getNodesSearched() { return nodesSearched.get(); }
 	
 	void incrementTime() {
 		long currentTimestamp = System.currentTimeMillis();
