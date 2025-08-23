@@ -21,7 +21,7 @@ Version | Brief Notes
 1.x | Continued fixing bugs and optimising the v0.x codebase. Incremental improvements and basic engine programming algorithms were implemented following discovery of CPW.
 2.x | Added support for lazy SMP multi-threading, changed to a standard negamax search and started implementing reductions.
 3.x | Changed to negascout implementation for search, tweaks to evaluation and reductions
-4.0 | First neural net based evaluation function (1x128 hidden layer, trained on 37M positions of self-play supervised learning)
+4.x | Changed to neural net based evaluation function (1x128 hidden layer, trained using a datbase of self-generated supervised learning)
 
 ## Features
 Eubos uses a standard alpha-beta negascout algorithm with transposition hashing and quiescence search extension. It uses staged move generation with look-up tables pre-calculated. It knows about draws by 3-fold repetition and insufficient material.
@@ -36,6 +36,8 @@ UCI option | Eubos functionality
 Threads | Sets the number of worker threads that shall be used to perform the search. Configuring 1 means Eubos shall be single-threaded, greater than 1 and it will run multi-threaded.
 Hash | Sets the size of the hash table to use, in Megabytes. The hash table is shared by all the threads, it is not duplicated per worker thread.
 Move Overhead | Factor for this number of milliseconds on the clock each time a move must be made. This is useful for countering latency in internet games.
+Training Data Generation | A boolean enabling exporting a bullet format text file with the FEN and score at each ply search
+Random Move | A boolean used to generate random games to widen the training data coverage
 
 ## Installation
 You can get a binary from the bin folder, alongside a batch file for running the Eubos engine in a GUI such as Arena or Cutechess.
