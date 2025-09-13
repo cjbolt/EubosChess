@@ -3,6 +3,7 @@ package eubos.board;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import eubos.evaluation.NNUE;
 import eubos.main.EubosEngineMain;
 import eubos.position.CastlingManager;
 import eubos.position.IAddMoves;
@@ -51,6 +52,11 @@ public class Board {
 		}
 		me = new MaterialPhase();
 		evaluateMaterial(me);
+		
+		// Initialise the accumulators for the position
+		NetInput input = populateNetInput();
+		NNUE.accumulators.fullAccumulatorUpdate(input.white_pieces, input.white_squares, input.black_pieces, input.black_squares);
+		
 		createPassedPawnsBoard();
 		insufficient = isInsufficientMaterial();
 	}
@@ -272,6 +278,12 @@ public class Board {
 			// Incrementally update opponent material after capture, at the correct capturePosition
 			me.updateForCapture(targetPiece, captureBitOffset);
 			hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
+			
+			// Handle accumulators
+			int piece = !isWhite ? convertPiece(targetPiece) : -1;
+			int black_piece = !isWhite ? -1 : convertPiece(targetPiece);
+			NNUE.accumulators.iterativeAccumulatorSubtract(piece, captureBitOffset, black_piece, captureBitOffset);
+			
 			insufficient = isInsufficientMaterial();
 		} else {
 			// Check whether the move sets the En Passant target square
@@ -288,8 +300,24 @@ public class Board {
 			me.updateWhenDoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
 			passedPawns &= ~initialSquareMask;
 			hashUpdater.doPromotionMove(targetBitOffset, originBitOffset, pieceToMove, fullPromotedPiece);
+			
+			// Handle accumulators
+			int piece = isWhite ? convertPiece(pieceToMove) : -1;
+			int black_piece = isWhite ? -1 : convertPiece(pieceToMove);
+			NNUE.accumulators.iterativeAccumulatorSubtract(piece, originBitOffset, black_piece, originBitOffset);
+			int promo_piece = isWhite ? convertPiece(fullPromotedPiece) : -1;
+			int black_promo_piece = isWhite ? -1 : convertPiece(fullPromotedPiece);
+			NNUE.accumulators.iterativeAccumulatorAdd(promo_piece, targetBitOffset, black_promo_piece, targetBitOffset);
+			
 		} else {
 			hashUpdater.doBasicMove(targetBitOffset, originBitOffset, pieceToMove);
+			
+			// Handle accumulators
+			int white_piece = isWhite ? convertPiece(pieceToMove) : -1;
+			int black_piece = isWhite ? -1 : convertPiece(pieceToMove);
+			NNUE.accumulators.iterativeAccumulatorSubtract(white_piece, originBitOffset, black_piece, originBitOffset);
+			NNUE.accumulators.iterativeAccumulatorAdd(white_piece, targetBitOffset, black_piece, targetBitOffset);
+			
 			// Iterative update of passed pawns bitboard
 			// Note: this needs to be done after the piece bit boards are updated
 			// build up significant file masks, should be three or four consecutive files, re-evaluate passed pawns in those files
@@ -349,6 +377,9 @@ public class Board {
 			assert (me.numberOfPieces[Piece.WHITE_QUEEN]+me.numberOfPieces[Piece.BLACK_QUEEN]) == Long.bitCount(pieces[INDEX_QUEEN]);
 			assert (me.numberOfPieces[Piece.WHITE_PAWN]+me.numberOfPieces[Piece.BLACK_PAWN]) == Long.bitCount(pieces[INDEX_PAWN]);
 			assert Long.bitCount(pieces[INDEX_KING]) == 2;
+			int old_score = NNUE.old_evaluate(this, isWhite);
+			int new_score = NNUE.new_evaluate_for_assert(isWhite);
+			assert old_score == new_score : String.format("old %d new %d", old_score, new_score);
 		}
 		
 		return false;
@@ -394,9 +425,24 @@ public class Board {
 			// and update piece list
 			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
 			me.updateWhenUndoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
+			
+			// Handle accumulators
+			int promo_piece = isWhite ? convertPiece(fullPromotedPiece) : -1;
+			int black_promo_piece = isWhite ? -1 : convertPiece(fullPromotedPiece);
+			NNUE.accumulators.iterativeAccumulatorSubtract(promo_piece, originBitOffset, black_promo_piece, originBitOffset);
+			int piece = isWhite ? convertPiece(originPiece) : -1;
+			int black_piece = isWhite ? -1 : convertPiece(originPiece);
+			NNUE.accumulators.iterativeAccumulatorAdd(piece, targetBitOffset, black_piece, targetBitOffset);
+			
 		} else {
 			// Piece type doesn't change across boards, update piece-specific bitboard, pieceLists and PST score
 			pieces[pieceType] ^= positionsMask;
+			
+			// Handle accumulators
+			int white_piece = isWhite ? convertPiece(originPiece) : -1;
+			int black_piece = isWhite ? -1 : convertPiece(originPiece);
+			NNUE.accumulators.iterativeAccumulatorSubtract(white_piece, originBitOffset, black_piece, originBitOffset);
+			NNUE.accumulators.iterativeAccumulatorAdd(white_piece, targetBitOffset, black_piece, targetBitOffset);
 		}
 		// Switch colour bitboard
 		if (isWhite) {
@@ -421,7 +467,19 @@ public class Board {
 			}
 			allPieces |= mask;
 			me.updateForReplacedCapture(targetPiece, capturedPieceSquare);
+			
+			// Handle accumulators
+			int piece = !isWhite ? convertPiece(targetPiece) : -1;
+			int black_piece = !isWhite ? -1 : convertPiece(targetPiece);
+			NNUE.accumulators.iterativeAccumulatorAdd(piece, capturedPieceSquare, black_piece, capturedPieceSquare);
+			
 			insufficient = false;
+		}
+		
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			int old_score = NNUE.old_evaluate(this, isWhite);
+			int new_score = NNUE.new_evaluate_for_assert(isWhite);
+			assert old_score == new_score : String.format("old %d new %d", old_score, new_score);
 		}
 	}
 	
@@ -838,21 +896,29 @@ public class Board {
 			whitePieces ^= (wksc_mask);
 			allPieces ^= (wksc_mask);
 			hashUpdater.doBasicMove(BitBoard.f1, BitBoard.h1, Piece.WHITE_ROOK);
+			NNUE.accumulators.iterativeAccumulatorSubtract(convertPiece(Piece.WHITE_ROOK), BitBoard.h1, -1, BitBoard.h1);
+			NNUE.accumulators.iterativeAccumulatorAdd(convertPiece(Piece.WHITE_ROOK), BitBoard.f1, -1, BitBoard.f1);
 		} else if (target == BitBoard.c1) {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
 			hashUpdater.doBasicMove(BitBoard.d1, BitBoard.a1, Piece.WHITE_ROOK);
+			NNUE.accumulators.iterativeAccumulatorSubtract(convertPiece(Piece.WHITE_ROOK), BitBoard.a1, -1, BitBoard.a1);
+			NNUE.accumulators.iterativeAccumulatorAdd(convertPiece(Piece.WHITE_ROOK), BitBoard.d1, -1, BitBoard.d1);
 		} else if (target == BitBoard.g8) {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
 			hashUpdater.doBasicMove(BitBoard.f8, BitBoard.h8, Piece.BLACK_ROOK);
+			NNUE.accumulators.iterativeAccumulatorSubtract(-1, BitBoard.h8, convertPiece(Piece.BLACK_ROOK), BitBoard.h8);
+			NNUE.accumulators.iterativeAccumulatorAdd(-1, BitBoard.f8, convertPiece(Piece.BLACK_ROOK), BitBoard.f8);
 		} else {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
 			allPieces ^= (bqsc_mask);
 			hashUpdater.doBasicMove(BitBoard.d8, BitBoard.a8, Piece.BLACK_ROOK);
+			NNUE.accumulators.iterativeAccumulatorSubtract(-1, BitBoard.a8, convertPiece(Piece.BLACK_ROOK), BitBoard.a8);
+			NNUE.accumulators.iterativeAccumulatorAdd(-1, BitBoard.d8, convertPiece(Piece.BLACK_ROOK), BitBoard.d8);
 		}
 	}
 	
@@ -862,21 +928,29 @@ public class Board {
 			whitePieces ^= (wksc_mask);
 			allPieces ^= (wksc_mask);
 			hashUpdater.doBasicMove(BitBoard.h1, BitBoard.f1, Piece.WHITE_ROOK);
+			NNUE.accumulators.iterativeAccumulatorSubtract(convertPiece(Piece.WHITE_ROOK), BitBoard.f1, -1, BitBoard.f1);
+			NNUE.accumulators.iterativeAccumulatorAdd(convertPiece(Piece.WHITE_ROOK), BitBoard.h1, -1, BitBoard.h1);
 		} else if (origin == BitBoard.c1) {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
 			hashUpdater.doBasicMove(BitBoard.a1, BitBoard.d1, Piece.WHITE_ROOK);
+			NNUE.accumulators.iterativeAccumulatorSubtract(convertPiece(Piece.WHITE_ROOK), BitBoard.d1, -1, BitBoard.d1);
+			NNUE.accumulators.iterativeAccumulatorAdd(convertPiece(Piece.WHITE_ROOK), BitBoard.a1, -1, BitBoard.a1);
 		} else if (origin == BitBoard.g8) {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
 			hashUpdater.doBasicMove(BitBoard.h8, BitBoard.f8, Piece.BLACK_ROOK);
+			NNUE.accumulators.iterativeAccumulatorSubtract(-1, BitBoard.f8, convertPiece(Piece.BLACK_ROOK), BitBoard.f8);
+			NNUE.accumulators.iterativeAccumulatorAdd(-1, BitBoard.h8, convertPiece(Piece.BLACK_ROOK), BitBoard.h8);
 		} else {
 			pieces[INDEX_ROOK] ^= (bqsc_mask);
 			blackPieces ^= (bqsc_mask);
 			allPieces ^= (bqsc_mask);
 			hashUpdater.doBasicMove(BitBoard.a8, BitBoard.d8, Piece.BLACK_ROOK);
+			NNUE.accumulators.iterativeAccumulatorSubtract(-1, BitBoard.d8, convertPiece(Piece.BLACK_ROOK), BitBoard.d8);
+			NNUE.accumulators.iterativeAccumulatorAdd(-1, BitBoard.a8, convertPiece(Piece.BLACK_ROOK), BitBoard.a8);
 		}
 	}
 	

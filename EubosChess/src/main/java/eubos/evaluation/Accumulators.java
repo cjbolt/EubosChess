@@ -33,6 +33,30 @@ public class Accumulators
 		}
 	}
 	
+	public void iterativeAccumulatorAdd(int white_piece, int white_square, int black_piece, int black_square)
+	{
+		if (white_piece != -1) {
+			whiteAccumulator.add(NNUE.getIndex(white_square, NNUE.WHITE, white_piece, NNUE.WHITE));
+			blackAccumulator.add(NNUE.getIndex(white_square, NNUE.WHITE, white_piece, NNUE.BLACK));
+		}
+		if (black_piece != -1) {
+			whiteAccumulator.add(NNUE.getIndex(black_square, NNUE.BLACK, black_piece, NNUE.WHITE));
+			blackAccumulator.add(NNUE.getIndex(black_square, NNUE.BLACK, black_piece, NNUE.BLACK));
+		}
+	}
+	
+	public void iterativeAccumulatorSubtract(int white_piece, int white_square, int black_piece, int black_square)
+	{
+		if (white_piece != -1) {
+			whiteAccumulator.subtract(NNUE.getIndex(white_square, NNUE.WHITE, white_piece, NNUE.WHITE));
+			blackAccumulator.subtract(NNUE.getIndex(white_square, NNUE.WHITE, white_piece, NNUE.BLACK));
+		}
+		if (black_piece != -1) {
+			whiteAccumulator.subtract(NNUE.getIndex(black_square, NNUE.BLACK, black_piece, NNUE.WHITE));
+			blackAccumulator.subtract(NNUE.getIndex(black_square, NNUE.BLACK, black_piece, NNUE.BLACK));
+		}
+	}
+	
 	public NNUE.NNUEAccumulator getWhiteAccumulator()
 	{
 		return whiteAccumulator;

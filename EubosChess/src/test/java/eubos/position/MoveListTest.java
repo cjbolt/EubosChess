@@ -334,7 +334,7 @@ public class MoveListTest {
 	
 	@Test
 	public void test_extended_search_iterator_has_next_is_null() {
-		setup("8/8/8/8/8/1pp5/ppp5/Kp6 w - - - -"); // is_stalemate
+		setup("k7/8/8/8/8/1pp5/ppp5/Kp6 w - - - -"); // is_stalemate
 		it = classUnderTest.initialiseAtPly(Move.NULL_MOVE, null, false, true, 0);
 		assertTrue(it.hasNext()); // Now has pseudo legal capture
 	}

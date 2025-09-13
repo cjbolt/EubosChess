@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 
+import eubos.board.Board;
 import eubos.board.Board.NetInput;
 import eubos.position.PositionManager;
 
@@ -90,14 +91,31 @@ public class NNUE
 		return Math.max(0, Math.min(i, QA));
 	}
 	
-	private static Accumulators accumulators;
+	public static Accumulators accumulators;
 	static {
 		accumulators = new Accumulators();
 	}
 	
+	public static Accumulators old_accumulators;
+	static {
+		old_accumulators = new Accumulators();
+	}
+
+	public static int old_evaluate(Board bd, Boolean isWhite) {
+		NetInput input = bd.populateNetInput();
+		NNUE.old_accumulators.fullAccumulatorUpdate(input.white_pieces, input.white_squares, input.black_pieces, input.black_squares);
+		return isWhite ?
+		        evaluate(old_accumulators.getWhiteAccumulator(), old_accumulators.getBlackAccumulator()) :
+		        evaluate(old_accumulators.getBlackAccumulator(), old_accumulators.getWhiteAccumulator());
+	} 
+	
+	public static int new_evaluate_for_assert(Boolean isWhite) {
+		return isWhite ?
+		        evaluate(accumulators.getWhiteAccumulator(), accumulators.getBlackAccumulator()) :
+		        evaluate(accumulators.getBlackAccumulator(), accumulators.getWhiteAccumulator());
+	}  
+	
 	public static int evaluate(PositionManager pm) {
-		NetInput input = pm.getTheBoard().populateNetInput();
-		accumulators.fullAccumulatorUpdate(input.white_pieces, input.white_squares, input.black_pieces, input.black_squares);
 		return pm.onMoveIsWhite() ?
 		        evaluate(accumulators.getWhiteAccumulator(), accumulators.getBlackAccumulator()) :
 		        evaluate(accumulators.getBlackAccumulator(), accumulators.getWhiteAccumulator());
@@ -145,6 +163,12 @@ public class NNUE
 		public void add(int featureIndex) {
 			for (int i = 0; i < HIDDEN_SIZE; i++) {
 				values[i] += NNUE.L1Weights[featureIndex][i];
+			}
+		}
+		
+		public void subtract(int featureIndex) {
+			for (int i = 0; i < HIDDEN_SIZE; i++) {
+				values[i] -= NNUE.L1Weights[featureIndex][i];
 			}
 		}
 	}
