@@ -53,9 +53,11 @@ public class Board {
 		me = new MaterialPhase();
 		evaluateMaterial(me);
 		
-		// Initialise the accumulators for the position
-		NetInput input = populateNetInput();
-		NNUE.accumulators.fullAccumulatorUpdate(input.white_pieces, input.white_squares, input.black_pieces, input.black_squares);
+		if (getWhiteKing() != 0 && getBlackKing() != 0) {
+			// Initialise the accumulators for the position, if we aren't running a unit test
+			NetInput input = populateNetInput();
+			NNUE.accumulators.fullAccumulatorUpdate(input.white_pieces, input.white_squares, input.black_pieces, input.black_squares);
+		}
 		
 		createPassedPawnsBoard();
 		insufficient = isInsufficientMaterial();
@@ -275,15 +277,7 @@ public class Board {
 		setEnPassantTargetSq(BitBoard.INVALID);
 		
 		if (isCapture) {
-			// Incrementally update opponent material after capture, at the correct capturePosition
-			me.updateForCapture(targetPiece, captureBitOffset);
-			hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
-			
-			// Handle accumulators
-			int piece = !isWhite ? convertPiece(targetPiece) : -1;
-			int black_piece = !isWhite ? -1 : convertPiece(targetPiece);
-			NNUE.accumulators.iterativeAccumulatorSubtract(piece, captureBitOffset, black_piece, captureBitOffset);
-			
+			incrementallyUpdateStateForCapture(isWhite, targetPiece, captureBitOffset);
 			insufficient = isInsufficientMaterial();
 		} else {
 			// Check whether the move sets the En Passant target square
@@ -297,26 +291,11 @@ public class Board {
 		
 		if (promotedPiece != Piece.NONE) {
 			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
-			me.updateWhenDoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
 			passedPawns &= ~initialSquareMask;
-			hashUpdater.doPromotionMove(targetBitOffset, originBitOffset, pieceToMove, fullPromotedPiece);
-			
-			// Handle accumulators
-			int piece = isWhite ? convertPiece(pieceToMove) : -1;
-			int black_piece = isWhite ? -1 : convertPiece(pieceToMove);
-			NNUE.accumulators.iterativeAccumulatorSubtract(piece, originBitOffset, black_piece, originBitOffset);
-			int promo_piece = isWhite ? convertPiece(fullPromotedPiece) : -1;
-			int black_promo_piece = isWhite ? -1 : convertPiece(fullPromotedPiece);
-			NNUE.accumulators.iterativeAccumulatorAdd(promo_piece, targetBitOffset, black_promo_piece, targetBitOffset);
-			
+			incrementallyUpdateStateForPromotion(isWhite, pieceToMove, fullPromotedPiece, originBitOffset, targetBitOffset);
 		} else {
 			hashUpdater.doBasicMove(targetBitOffset, originBitOffset, pieceToMove);
-			
-			// Handle accumulators
-			int white_piece = isWhite ? convertPiece(pieceToMove) : -1;
-			int black_piece = isWhite ? -1 : convertPiece(pieceToMove);
-			NNUE.accumulators.iterativeAccumulatorSubtract(white_piece, originBitOffset, black_piece, originBitOffset);
-			NNUE.accumulators.iterativeAccumulatorAdd(white_piece, targetBitOffset, black_piece, targetBitOffset);
+			updateAccumulatorsForBasicMove(isWhite, pieceToMove, originBitOffset, targetBitOffset);
 			
 			// Iterative update of passed pawns bitboard
 			// Note: this needs to be done after the piece bit boards are updated
@@ -422,27 +401,14 @@ public class Board {
 			// Remove promoted piece and replace it with a pawn
 			pieces[promotedPiece] ^= initialSquareMask;	
 			pieces[INDEX_PAWN] |= targetSquareMask;
-			// and update piece list
 			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
-			me.updateWhenUndoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
-			
-			// Handle accumulators
-			int promo_piece = isWhite ? convertPiece(fullPromotedPiece) : -1;
-			int black_promo_piece = isWhite ? -1 : convertPiece(fullPromotedPiece);
-			NNUE.accumulators.iterativeAccumulatorSubtract(promo_piece, originBitOffset, black_promo_piece, originBitOffset);
-			int piece = isWhite ? convertPiece(originPiece) : -1;
-			int black_piece = isWhite ? -1 : convertPiece(originPiece);
-			NNUE.accumulators.iterativeAccumulatorAdd(piece, targetBitOffset, black_piece, targetBitOffset);
+			me.updateWhenUndoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);			
+			updateAccumulatorsForPromotion(isWhite, originPiece, fullPromotedPiece, originBitOffset, targetBitOffset);
 			
 		} else {
-			// Piece type doesn't change across boards, update piece-specific bitboard, pieceLists and PST score
-			pieces[pieceType] ^= positionsMask;
-			
-			// Handle accumulators
-			int white_piece = isWhite ? convertPiece(originPiece) : -1;
-			int black_piece = isWhite ? -1 : convertPiece(originPiece);
-			NNUE.accumulators.iterativeAccumulatorSubtract(white_piece, originBitOffset, black_piece, originBitOffset);
-			NNUE.accumulators.iterativeAccumulatorAdd(white_piece, targetBitOffset, black_piece, targetBitOffset);
+			// Piece type doesn't change across boards, update piece-specific bitboard and accumulators
+			pieces[pieceType] ^= positionsMask;			
+			updateAccumulatorsForBasicMove(isWhite, originPiece, originBitOffset, targetBitOffset);
 		}
 		// Switch colour bitboard
 		if (isWhite) {
@@ -466,13 +432,7 @@ public class Board {
 				whitePieces |= mask;
 			}
 			allPieces |= mask;
-			me.updateForReplacedCapture(targetPiece, capturedPieceSquare);
-			
-			// Handle accumulators
-			int piece = !isWhite ? convertPiece(targetPiece) : -1;
-			int black_piece = !isWhite ? -1 : convertPiece(targetPiece);
-			NNUE.accumulators.iterativeAccumulatorAdd(piece, capturedPieceSquare, black_piece, capturedPieceSquare);
-			
+			incrementallyUpdateStateForUndoCapture(isWhite, targetPiece, capturedPieceSquare);			
 			insufficient = false;
 		}
 		
@@ -1867,5 +1827,51 @@ public class Board {
 		input.white_pieces[index_white] = -1;
 		input.black_pieces[index_black] = -1;
 		return input;
+	}
+	
+	public void updateAccumulatorsForPromotion(boolean isWhite, int originPiece, int fullPromotedPiece, int originBitOffset, int targetBitOffset) {	
+		int promo_piece = isWhite ? convertPiece(fullPromotedPiece) : -1;
+		int black_promo_piece = isWhite ? -1 : convertPiece(fullPromotedPiece);
+		NNUE.accumulators.iterativeAccumulatorSubtract(promo_piece, originBitOffset, black_promo_piece, originBitOffset);
+		int piece = isWhite ? convertPiece(originPiece) : -1;
+		int black_piece = isWhite ? -1 : convertPiece(originPiece);
+		NNUE.accumulators.iterativeAccumulatorAdd(piece, targetBitOffset, black_piece, targetBitOffset);
+	}
+	
+	public void updateAccumulatorsForBasicMove(boolean isWhite, int pieceToMove, int originBitOffset, int targetBitOffset) {
+		int white_piece = isWhite ? convertPiece(pieceToMove) : -1;
+		int black_piece = isWhite ? -1 : convertPiece(pieceToMove);
+		NNUE.accumulators.iterativeAccumulatorSubtract(white_piece, originBitOffset, black_piece, originBitOffset);
+		NNUE.accumulators.iterativeAccumulatorAdd(white_piece, targetBitOffset, black_piece, targetBitOffset);
+	}
+	
+	public void updateAccumulatorsForReplaceCapture(boolean isWhite, int targetPiece, int capturedPieceSquare) {
+		int piece = !isWhite ? convertPiece(targetPiece) : -1;
+		int black_piece = !isWhite ? -1 : convertPiece(targetPiece);
+		NNUE.accumulators.iterativeAccumulatorAdd(piece, capturedPieceSquare, black_piece, capturedPieceSquare);
+	}
+	
+	public void updateAccumulatorsForCapture(boolean isWhite, int targetPiece, int capturedPieceSquare) {
+		int piece = !isWhite ? convertPiece(targetPiece) : -1;
+		int black_piece = !isWhite ? -1 : convertPiece(targetPiece);
+		NNUE.accumulators.iterativeAccumulatorSubtract(piece, capturedPieceSquare, black_piece, capturedPieceSquare);
+	}
+	
+	public void incrementallyUpdateStateForCapture(boolean isWhite, int targetPiece, int captureBitOffset) {
+		me.updateForCapture(targetPiece, captureBitOffset);
+		hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
+		updateAccumulatorsForCapture(isWhite, targetPiece, captureBitOffset);
+	}
+	
+	public void incrementallyUpdateStateForUndoCapture(boolean isWhite, int targetPiece, int capturedPieceSquare) {
+		me.updateForReplacedCapture(targetPiece, capturedPieceSquare);
+		// Hash update is restored by copy when move is undone
+		updateAccumulatorsForReplaceCapture(isWhite, targetPiece, capturedPieceSquare);			
+	}
+	
+	public void incrementallyUpdateStateForPromotion(boolean isWhite, int pieceToMove, int fullPromotedPiece, int originBitOffset, int targetBitOffset) {
+		me.updateWhenDoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
+		hashUpdater.doPromotionMove(targetBitOffset, originBitOffset, pieceToMove, fullPromotedPiece);
+		updateAccumulatorsForPromotion(isWhite, fullPromotedPiece, pieceToMove, originBitOffset, targetBitOffset);
 	}
 }

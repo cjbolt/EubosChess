@@ -37,7 +37,7 @@ public class MoveListTest {
 
 	@Test
 	public void testCreateMoveList()  {
-		setup("8/8/8/8/8/1pp5/ppp5/Kp6 w - - - -"); // is_stalemate
+		setup("k7/8/8/8/8/1pp5/ppp5/Kp6 w - - - -"); // is_stalemate
 		assertTrue(it.hasNext()); // Now we generate all moves, this returns three illegal pawn captures		
 	}
 	
@@ -49,7 +49,7 @@ public class MoveListTest {
 	
 	@Test
 	public void testCreateMoveList_typePromotionIsSet() throws IllegalNotationException {
-		setup("8/4P3/8/8/8/8/8/8 w - - - -");
+		setup("8/4P3/8/8/8/8/8/k7 w - - - -");
 		assertEquals(new GenericMove("e7e8q"), Move.toGenericMove(it.nextInt()));
 		assertEquals(new GenericMove("e7e8n"), Move.toGenericMove(it.nextInt()));
 	}

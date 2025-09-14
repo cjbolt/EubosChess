@@ -2,9 +2,6 @@ package eubos.board;
 
 import static org.junit.Assert.*;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,13 +16,12 @@ import eubos.search.transposition.Transposition;
 public class BoardTest {
 	
 	private Board classUnderTest;
-	private Map<Integer, Integer> pieceMap;
 	private static final int testSq = Position.a1;
 	
 	@Before
 	public void setUp() throws Exception {
-		pieceMap = new HashMap<Integer, Integer>();
-		classUnderTest = new Board(pieceMap);
+		// Use a valid position, i.e. that has both kings on board
+		setUpPosition("8/8/8/8/8/8/k7/7K w - - 0 1");
 	}
 
 	@Test
@@ -85,35 +81,35 @@ public class BoardTest {
 	@Test
 	public void testGetAsFenString() {
 		classUnderTest.setPieceAtSquare(testSq, Piece.WHITE_PAWN);
-		assertEquals("8/8/8/8/8/8/8/P7",classUnderTest.getAsFenString());
+		assertEquals("8/8/8/8/8/8/k7/P6K",classUnderTest.getAsFenString());
 	}
 	
 	@Test
 	public void testGetAsFenString1() {
 		classUnderTest.setPieceAtSquare(testSq, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(BitBoard.c1, Piece.WHITE_KING);
-		assertEquals("8/8/8/8/8/8/8/P1K5",classUnderTest.getAsFenString());
+		assertEquals("8/8/8/8/8/8/k7/P1K4K",classUnderTest.getAsFenString());
 	}
 	
 	@Test
 	public void testGetAsFenString2() {
 		classUnderTest.setPieceAtSquare(BitBoard.h1, Piece.WHITE_PAWN);
 		classUnderTest.setPieceAtSquare(BitBoard.g1, Piece.WHITE_KING);
-		assertEquals("8/8/8/8/8/8/8/6KP",classUnderTest.getAsFenString());
+		assertEquals("8/8/8/8/8/8/k7/6KP",classUnderTest.getAsFenString());
 	}
 	
 	@Test
 	public void testGetAsFenString3() {
 		classUnderTest.setPieceAtSquare(BitBoard.h1, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(BitBoard.g1, Piece.BLACK_KING);
-		assertEquals("8/8/8/8/8/8/8/6kp",classUnderTest.getAsFenString());
+		assertEquals("8/8/8/8/8/8/k7/6kp",classUnderTest.getAsFenString());
 	}
 	
 	@Test
 	public void testGetAsFenString4() {
 		classUnderTest.setPieceAtSquare(BitBoard.h8, Piece.BLACK_PAWN);
 		classUnderTest.setPieceAtSquare(BitBoard.g8, Piece.BLACK_KING);
-		assertEquals("6kp/8/8/8/8/8/8/8",classUnderTest.getAsFenString());
+		assertEquals("6kp/8/8/8/8/8/k7/7K",classUnderTest.getAsFenString());
 	}
 
 	@Test
@@ -314,61 +310,61 @@ public class BoardTest {
 	
 	@Test
 	public void test_isInsufficientMaterial_JustKings()throws IllegalNotationException {
-		setUpPosition("8/8/8/8/8/8/k/7K w - - 0 1");
+		setUpPosition("8/8/8/8/8/8/k7/7K w - - 0 1");
 		assertTrue(classUnderTest.isInsufficientMaterial());
 	}
 	
 	@Test
 	public void test_isInsufficientMaterial_RookOnBoard()throws IllegalNotationException {
-		setUpPosition("8/R7/8/8/8/8/k/7K w - - 0 1");
+		setUpPosition("8/R7/8/8/8/8/k7/7K w - - 0 1");
 		assertFalse(classUnderTest.isInsufficientMaterial());
 	}
 	
 	@Test
 	public void test_isInsufficientMaterial_QueenOnBoard()throws IllegalNotationException {
-		setUpPosition("8/Q7/8/8/8/8/k/7K w - - 0 1");
+		setUpPosition("8/Q7/8/8/8/8/k7/7K w - - 0 1");
 		assertFalse(classUnderTest.isInsufficientMaterial());
 	}
 	
 	@Test
 	public void test_isInsufficientMaterial_TwoKnights()throws IllegalNotationException {
-		setUpPosition("8/K7/8/K7/8/8/k/7K w - - 0 1");
+		setUpPosition("8/K7/8/K7/8/8/k7/7K w - - 0 1");
 		assertTrue(classUnderTest.isInsufficientMaterial());
 	}
 	
 	@Test
 	public void test_isInsufficientMaterial_BishopKnight()throws IllegalNotationException {
-		setUpPosition("8/B7/8/4N3/8/8/k/7K w - - 0 1");
+		setUpPosition("8/B7/8/4N3/8/8/k7/7K w - - 0 1");
 		assertFalse(classUnderTest.isInsufficientMaterial());
 	}
 	
 	@Test
 	public void test_isInsufficientMaterial_BishopKnightDifferentSides()throws IllegalNotationException {
-		setUpPosition("8/B7/8/4n3/8/8/k/7K w - - 0 1");
+		setUpPosition("8/B7/8/4n3/8/8/k7/7K w - - 0 1");
 		assertTrue(classUnderTest.isInsufficientMaterial());
 	}
 	
 	@Test
 	public void test_isInsufficientMaterial_TwoBishops()throws IllegalNotationException {
-		setUpPosition("BB6/8/8/8/8/8/k/7K w - - 0 1");
+		setUpPosition("BB6/8/8/8/8/8/k7/7K w - - 0 1");
 		assertFalse(classUnderTest.isInsufficientMaterial());
 	}
 	
 	@Test
 	public void test_isInsufficientMaterial_TwoBishopsDifferentSides()throws IllegalNotationException {
-		setUpPosition("Bb6/8/8/8/8/8/k/7K w - - 0 1");
+		setUpPosition("Bb6/8/8/8/8/8/k7/7K w - - 0 1");
 		assertTrue(classUnderTest.isInsufficientMaterial());
 	}
 	
 	@Test
 	public void test_isInsufficientMaterial_SingleBishop()throws IllegalNotationException {
-		setUpPosition("B7/8/8/8/8/8/k/7K w - - 0 1");
+		setUpPosition("B7/8/8/8/8/8/k7/7K w - - 0 1");
 		assertTrue(classUnderTest.isInsufficientMaterial());
 	}
 	
 	@Test
 	public void test_isInsufficientMaterial_PawnOnBoard()throws IllegalNotationException {
-		setUpPosition("8/P/8/8/8/8/k/7K w - - 0 1");
+		setUpPosition("8/P/8/8/8/8/k7/7K w - - 0 1");
 		assertFalse(classUnderTest.isInsufficientMaterial());
 	}
 	
