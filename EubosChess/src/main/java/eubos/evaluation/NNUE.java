@@ -7,6 +7,7 @@ import java.io.InputStream;
 
 import eubos.board.Board;
 import eubos.board.Board.NetInput;
+import eubos.main.EubosEngineMain;
 import eubos.position.PositionManager;
 
 public class NNUE
@@ -96,25 +97,6 @@ public class NNUE
 		accumulators = new Accumulators();
 	}
 	
-	public static Accumulators old_accumulators;
-	static {
-		old_accumulators = new Accumulators();
-	}
-
-	public static int old_evaluate(Board bd, Boolean isWhite) {
-		NetInput input = bd.populateNetInput();
-		NNUE.old_accumulators.fullAccumulatorUpdate(input.white_pieces, input.white_squares, input.black_pieces, input.black_squares);
-		return isWhite ?
-		        evaluate(old_accumulators.getWhiteAccumulator(), old_accumulators.getBlackAccumulator()) :
-		        evaluate(old_accumulators.getBlackAccumulator(), old_accumulators.getWhiteAccumulator());
-	} 
-	
-	public static int new_evaluate_for_assert(Boolean isWhite) {
-		return isWhite ?
-		        evaluate(accumulators.getWhiteAccumulator(), accumulators.getBlackAccumulator()) :
-		        evaluate(accumulators.getBlackAccumulator(), accumulators.getWhiteAccumulator());
-	}  
-	
 	public static int evaluate(PositionManager pm) {
 		return pm.onMoveIsWhite() ?
 		        evaluate(accumulators.getWhiteAccumulator(), accumulators.getBlackAccumulator()) :
@@ -171,5 +153,33 @@ public class NNUE
 				values[i] -= NNUE.L1Weights[featureIndex][i];
 			}
 		}
+	}
+	
+	/* Just for running incremental update assertions. */
+	public static Accumulators old_accumulators;
+	static {
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			old_accumulators = new Accumulators();
+		}
+	}
+	
+	public static int old_evaluate(Board bd, Boolean isWhite) {
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			NetInput input = bd.populateNetInput();
+			NNUE.old_accumulators.fullAccumulatorUpdate(input.white_pieces, input.white_squares, input.black_pieces, input.black_squares);
+			return isWhite ?
+			        evaluate(old_accumulators.getWhiteAccumulator(), old_accumulators.getBlackAccumulator()) :
+			        evaluate(old_accumulators.getBlackAccumulator(), old_accumulators.getWhiteAccumulator());
+		}
+		return 0;
+	} 
+		
+	public static int new_evaluate_for_assert(Boolean isWhite) {
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			return isWhite ?
+			        evaluate(accumulators.getWhiteAccumulator(), accumulators.getBlackAccumulator()) :
+			        evaluate(accumulators.getBlackAccumulator(), accumulators.getWhiteAccumulator());
+		}
+		return 0;
 	}
 }
