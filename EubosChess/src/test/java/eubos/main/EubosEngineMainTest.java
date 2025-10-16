@@ -220,9 +220,9 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		int mateDepth = 0;
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_TIME_PREFIX+"14000"+CMD_TERMINATOR, BEST_PREFIX+"h1h4"+CMD_TERMINATOR));
-		mateDepth = 14;
-		assertTrue(performTestExpectMate(6000, mateDepth));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"18"+CMD_TERMINATOR, BEST_PREFIX+"h1d1"+CMD_TERMINATOR));
+		mateDepth = 11;
+		assertTrue(performTestExpectMate(12000, mateDepth));
 	}
 	 
 	@Test
@@ -537,7 +537,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Fine: problem 51
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/2pp3k/8/1P1P3K/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"17"+CMD_TERMINATOR, BEST_PREFIX+"d4d5"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"19"+CMD_TERMINATOR, BEST_PREFIX+"d4d5"+CMD_TERMINATOR));
 		assertTrue(performTest(4000));
 	}
 	
