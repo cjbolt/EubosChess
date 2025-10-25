@@ -11,7 +11,6 @@ import eubos.board.BitBoard;
 import eubos.board.Board;
 import eubos.board.Piece;
 import eubos.evaluation.IEvaluate;
-import eubos.evaluation.NNUE;
 import eubos.evaluation.PositionEvaluator;
 import eubos.main.EubosEngineMain;
 import eubos.position.MoveTracker.MoveStack;
@@ -28,8 +27,8 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		pe = new PositionEvaluator(this);
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {
-			int old_score = NNUE.old_evaluate(theBoard, onMoveIsWhite);
-			int new_score = NNUE.new_evaluate_for_assert(onMoveIsWhite);
+			int old_score = theBoard.nnue.old_evaluate(theBoard, onMoveIsWhite);
+			int new_score = theBoard.nnue.new_evaluate_for_assert(theBoard, onMoveIsWhite);
 			assert old_score == new_score : String.format("old %d new %d", old_score, new_score);
 		}
 	}

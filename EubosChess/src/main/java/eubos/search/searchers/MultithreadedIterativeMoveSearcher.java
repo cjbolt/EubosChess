@@ -35,10 +35,10 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		this.setName("MultithreadedIterativeMoveSearcher");
 		this.threads = threads;
 		workers = new ArrayList<MultithreadedSearchWorkerThread>(threads);
-		createMoveGenerators(hashMap, fen, dc, threads);
+		createMoveGenerators(eubos, hashMap, fen, dc, threads);
 	}
 
-	private void createMoveGenerators(FixedSizeTranspositionTable hashMap, String fen, DrawChecker dc, int threads) {
+	private void createMoveGenerators(EubosEngineMain eubos, FixedSizeTranspositionTable hashMap, String fen, DrawChecker dc, int threads) {
 		moveGenerators = new ArrayList<MiniMaxMoveGenerator>(threads);
 		// The first move generator shall be that constructed by the abstract MoveSearcher, this one shall be accessed by the stopper thread
 		moveGenerators.add(mg);
@@ -47,6 +47,7 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			DrawChecker cloned_dc = new DrawChecker(dc);
 			PositionManager pm = new PositionManager(fen, cloned_dc);
 			MiniMaxMoveGenerator thisMg = new MiniMaxMoveGenerator(hashMap, pm, sr, refScore.getReference());
+			thisMg.setEngineCallback(eubos);
 			moveGenerators.add(thisMg);
 		}
 		// Set move ordering scheme to use, if in operation

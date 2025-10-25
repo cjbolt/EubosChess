@@ -91,19 +91,103 @@ public class NNUE
 	private static int crelu(short i) {
 		return Math.max(0, Math.min(i, QA));
 	}
-	
-	public static Accumulators accumulators;
-	static {
-		accumulators = new Accumulators();
+
+	private static int getIndex(int square, int piece_side, int piece_type, int perspective) {
+		return perspective == WHITE
+				? piece_side * COLOR_STRIDE + piece_type * PIECE_STRIDE
+						+ square
+				: (piece_side ^ 1) * COLOR_STRIDE + piece_type * PIECE_STRIDE
+						+ (square ^ 0b111000);
 	}
 	
-	public static int evaluate(PositionManager pm) {
+	/* Used to manage updates of the accumulator buffers based on the feature array. */
+	public class NNUEAccumulator
+	{
+		public short[] values = new short[NNUE.HIDDEN_SIZE];
+
+		public NNUEAccumulator() {
+			System.arraycopy(NNUE.L1Biases, 0, values, 0, NNUE.HIDDEN_SIZE);
+		}
+
+		public void reset() {
+			System.arraycopy(NNUE.L1Biases, 0, values, 0, NNUE.HIDDEN_SIZE);
+		}
+
+		public void add(int featureIndex) {
+			for (int i = 0; i < NNUE.HIDDEN_SIZE; i++) {
+				values[i] += NNUE.L1Weights[featureIndex][i];
+			}
+		}
+		
+		public void subtract(int featureIndex) {
+			for (int i = 0; i < NNUE.HIDDEN_SIZE; i++) {
+				values[i] -= NNUE.L1Weights[featureIndex][i];
+			}
+		}
+	}
+	
+	private final NNUEAccumulator whiteAccumulator;
+	private final NNUEAccumulator blackAccumulator;
+	
+	public NNUE()
+	{
+		whiteAccumulator = new NNUEAccumulator();
+		blackAccumulator = new NNUEAccumulator();
+	}
+	
+	public void fullAccumulatorUpdate(int[] white_pieces, int[] white_squares, int[] black_pieces, int[] black_squares)
+	{
+		whiteAccumulator.reset();
+		blackAccumulator.reset();
+		
+		for (int i = 0; i < white_pieces.length; i++) {
+			if (white_pieces[i] == -1) {
+				break;
+			}
+			whiteAccumulator.add(NNUE.getIndex(white_squares[i], NNUE.WHITE, white_pieces[i], NNUE.WHITE));
+			blackAccumulator.add(NNUE.getIndex(white_squares[i], NNUE.WHITE, white_pieces[i], NNUE.BLACK));
+		}
+		
+		for (int i = 0; i < black_pieces.length; i++) {
+			if (black_pieces[i] == -1) {
+				break;
+			}
+			whiteAccumulator.add(NNUE.getIndex(black_squares[i], NNUE.BLACK, black_pieces[i], NNUE.WHITE));
+			blackAccumulator.add(NNUE.getIndex(black_squares[i], NNUE.BLACK, black_pieces[i], NNUE.BLACK));
+		}
+	}
+	
+	public void iterativeAccumulatorAdd(int white_piece, int white_square, int black_piece, int black_square)
+	{
+		if (white_piece != -1) {
+			whiteAccumulator.add(NNUE.getIndex(white_square, NNUE.WHITE, white_piece, NNUE.WHITE));
+			blackAccumulator.add(NNUE.getIndex(white_square, NNUE.WHITE, white_piece, NNUE.BLACK));
+		}
+		if (black_piece != -1) {
+			whiteAccumulator.add(NNUE.getIndex(black_square, NNUE.BLACK, black_piece, NNUE.WHITE));
+			blackAccumulator.add(NNUE.getIndex(black_square, NNUE.BLACK, black_piece, NNUE.BLACK));
+		}
+	}
+	
+	public void iterativeAccumulatorSubtract(int white_piece, int white_square, int black_piece, int black_square)
+	{
+		if (white_piece != -1) {
+			whiteAccumulator.subtract(NNUE.getIndex(white_square, NNUE.WHITE, white_piece, NNUE.WHITE));
+			blackAccumulator.subtract(NNUE.getIndex(white_square, NNUE.WHITE, white_piece, NNUE.BLACK));
+		}
+		if (black_piece != -1) {
+			whiteAccumulator.subtract(NNUE.getIndex(black_square, NNUE.BLACK, black_piece, NNUE.WHITE));
+			blackAccumulator.subtract(NNUE.getIndex(black_square, NNUE.BLACK, black_piece, NNUE.BLACK));
+		}
+	}
+	
+	public int evaluate(PositionManager pm) {
 		return pm.onMoveIsWhite() ?
-		        evaluate(accumulators.getWhiteAccumulator(), accumulators.getBlackAccumulator()) :
-		        evaluate(accumulators.getBlackAccumulator(), accumulators.getWhiteAccumulator());
+		        evaluate(whiteAccumulator, blackAccumulator) :
+		        evaluate(blackAccumulator, whiteAccumulator);
 	}    
     
-	public static int evaluate(NNUEAccumulator us, NNUEAccumulator them) {
+	public int evaluate(NNUEAccumulator us, NNUEAccumulator them) {
 		short[] UsValues = us.values;
 		short[] ThemValues = them.values;
 		
@@ -120,65 +204,43 @@ public class NNUE
 		eval /= QA * QB;
 		
 		return eval;
-	}
-
-	public static int getIndex(int square, int piece_side, int piece_type, int perspective) {
-		return perspective == WHITE
-				? piece_side * COLOR_STRIDE + piece_type * PIECE_STRIDE
-						+ square
-				: (piece_side ^ 1) * COLOR_STRIDE + piece_type * PIECE_STRIDE
-						+ (square ^ 0b111000);
-	}
+	}	
 	
-	public static class NNUEAccumulator
-	{
-		private short[] values = new short[HIDDEN_SIZE];
-
-		public NNUEAccumulator() {
-			System.arraycopy(NNUE.L1Biases, 0, values, 0, HIDDEN_SIZE);
-		}
-
-		public void reset() {
-			System.arraycopy(NNUE.L1Biases, 0, values, 0, HIDDEN_SIZE);
-		}
-
-		public void add(int featureIndex) {
-			for (int i = 0; i < HIDDEN_SIZE; i++) {
-				values[i] += NNUE.L1Weights[featureIndex][i];
-			}
-		}
-		
-		public void subtract(int featureIndex) {
-			for (int i = 0; i < HIDDEN_SIZE; i++) {
-				values[i] -= NNUE.L1Weights[featureIndex][i];
-			}
-		}
-	}
-	
-	/* Just for running incremental update assertions. */
-	public static Accumulators old_accumulators;
-	static {
+	/* Just for running incremental update assertions. */	
+	public int old_evaluate(Board bd, Boolean isWhite) {
 		if (EubosEngineMain.ENABLE_ASSERTS) {
-			old_accumulators = new Accumulators();
-		}
-	}
-	
-	public static int old_evaluate(Board bd, Boolean isWhite) {
-		if (EubosEngineMain.ENABLE_ASSERTS) {
+			if (bd.getWhiteKing() == 0 || bd.getBlackKing() == 0) return 0;
 			NetInput input = bd.populateNetInput();
-			NNUE.old_accumulators.fullAccumulatorUpdate(input.white_pieces, input.white_squares, input.black_pieces, input.black_squares);
+			NNUEAccumulator old_whiteAccumulator = new NNUEAccumulator();
+			NNUEAccumulator old_blackAccumulator = new NNUEAccumulator();
+			for (int i = 0; i < input.white_pieces.length; i++) {
+				if (input.white_pieces[i] == -1) {
+					break;
+				}
+				old_whiteAccumulator.add(NNUE.getIndex(input.white_squares[i], NNUE.WHITE, input.white_pieces[i], NNUE.WHITE));
+				old_blackAccumulator.add(NNUE.getIndex(input.white_squares[i], NNUE.WHITE, input.white_pieces[i], NNUE.BLACK));
+			}
+			
+			for (int i = 0; i < input.black_pieces.length; i++) {
+				if (input.black_pieces[i] == -1) {
+					break;
+				}
+				old_whiteAccumulator.add(NNUE.getIndex(input.black_squares[i], NNUE.BLACK, input.black_pieces[i], NNUE.WHITE));
+				old_blackAccumulator.add(NNUE.getIndex(input.black_squares[i], NNUE.BLACK, input.black_pieces[i], NNUE.BLACK));
+			}
 			return isWhite ?
-			        evaluate(old_accumulators.getWhiteAccumulator(), old_accumulators.getBlackAccumulator()) :
-			        evaluate(old_accumulators.getBlackAccumulator(), old_accumulators.getWhiteAccumulator());
+			        evaluate(old_whiteAccumulator, old_blackAccumulator) :
+			        evaluate(old_blackAccumulator, old_whiteAccumulator);
 		}
 		return 0;
 	} 
 		
-	public static int new_evaluate_for_assert(Boolean isWhite) {
+	public int new_evaluate_for_assert(Board bd, Boolean isWhite) {
 		if (EubosEngineMain.ENABLE_ASSERTS) {
+			if (bd.getWhiteKing() == 0 || bd.getBlackKing() == 0) return 0;
 			return isWhite ?
-			        evaluate(accumulators.getWhiteAccumulator(), accumulators.getBlackAccumulator()) :
-			        evaluate(accumulators.getBlackAccumulator(), accumulators.getWhiteAccumulator());
+			        evaluate(whiteAccumulator, blackAccumulator) :
+			        evaluate(blackAccumulator, whiteAccumulator);
 		}
 		return 0;
 	}

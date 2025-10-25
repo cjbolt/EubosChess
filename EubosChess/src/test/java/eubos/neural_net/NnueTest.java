@@ -39,7 +39,8 @@ public class NnueTest {
 
 	private static void evaluate(String fen) throws IOException {
 		PositionManager pm = new PositionManager(fen);
-		int eval = NNUE.evaluate(pm);
+		NNUE nnue = new NNUE();
+		int eval = nnue.evaluate(pm);
 		System.out.println("fen=" + fen + ", eval=" + eval);
 	}
 }
