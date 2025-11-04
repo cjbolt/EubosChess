@@ -65,7 +65,7 @@ public class EubosEngineMain extends AbstractEngine {
 	
 	public static final boolean ENABLE_LOGGING = false;
 	public static final boolean ENABLE_ASSERTS = false;
-	public static final boolean ENABLE_PERFT = false;
+	public static final boolean ENABLE_PERFT = true;
 	public static final boolean ENABLE_TEST_SUITES = false;
 	
 	public static final boolean ENABLE_DEBUG_VALIDATION_SEARCH = false;
@@ -81,9 +81,10 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_REVERSE_FUTILITY_PRUNING = true;
 	public static final boolean ENABLE_STAGED_MOVE_GENERATION = true;
 	public static final boolean ENABLE_PINNED_TO_KING_CHECK_IN_ILLEGAL_DETECTION = true;
+	public static final boolean ENABLE_ITERATIVE_PASSED_PAWN_UPDATE = false;
 	
 	public static final boolean ENABLE_FUTILITY_PRUNING = true;
-	public static final boolean ENABLE_PER_MOVE_FUTILITY_PRUNING = true;
+	public static final boolean ENABLE_PER_MOVE_FUTILITY_PRUNING = false;
 	public static final boolean ENABLE_FUTILITY_PRUNING_OF_KILLER_MOVES = false;
 	
 	public static final int MAXIMUM_PLIES_IN_GAME = 500;

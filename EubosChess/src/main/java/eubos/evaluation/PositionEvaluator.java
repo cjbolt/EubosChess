@@ -3,6 +3,7 @@ package eubos.evaluation;
 import eubos.board.Board;
 
 import eubos.board.Piece;
+import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.IPositionAccessors;
 import eubos.position.PositionManager;
@@ -76,23 +77,24 @@ public class PositionEvaluator implements IEvaluate {
 		int originPiece = Move.getOriginPiece(move);
 		int originNoColour = originPiece & Piece.PIECE_NO_COLOUR_MASK;
 		int futility = FUTILITY_MARGIN_BY_PIECE[originNoColour];
-		
-		if (originNoColour == Piece.PAWN) {
-			int pawnIsAt = Move.getOriginPosition(move);
-			long pawnMask = 1L << pawnIsAt;
-			long pp = pm.getTheBoard().getPassedPawns();
-			if ((pp & pawnMask) != 0L) {
-				/* If the moving pawn is already passed, inflate futility. */
-				futility += 100;
-			} else {
-				int pawnWillBeAt = Move.getTargetPosition(move);
-				if (bd.isPassedPawn(pawnWillBeAt, pawnMask)) {
-					/* If the moving pawn is becoming passed, inflate futility. */
-					futility += 125;
+		if (EubosEngineMain.ENABLE_ITERATIVE_PASSED_PAWN_UPDATE) {
+			if (originNoColour == Piece.PAWN) {
+				int pawnIsAt = Move.getOriginPosition(move);
+				long pawnMask = 1L << pawnIsAt;
+				long pp = pm.getTheBoard().getPassedPawns();
+				if ((pp & pawnMask) != 0L) {
+					/* If the moving pawn is already passed, inflate futility. */
+					futility += 100;
+				} else {
+					int pawnWillBeAt = Move.getTargetPosition(move);
+					if (bd.isPassedPawn(pawnWillBeAt, pawnMask)) {
+						/* If the moving pawn is becoming passed, inflate futility. */
+						futility += 125;
+					}
 				}
+				
 			}
-			
-		} 
+		}
 		return futility;
 	}
 	

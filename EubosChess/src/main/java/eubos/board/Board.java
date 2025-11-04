@@ -65,18 +65,22 @@ public class Board {
 	}
 	
 	public void createPassedPawnsBoard() {
-		long pawns = getPawns(); 
-		long scratchBitBoard = pawns;
-		passedPawns = 0L;
-		while ( scratchBitBoard != 0x0L ) {
-			int bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
-			long bit_mask = 1L << bit_offset;
-			if (isPassedPawn(bit_offset, bit_mask)) {
-	    		// ...target square becomes pp for piece to move!
-	    		passedPawns |= bit_mask;
-	    	}
-			// clear the lssb
-			scratchBitBoard ^= bit_mask;
+		if (EubosEngineMain.ENABLE_ITERATIVE_PASSED_PAWN_UPDATE) {
+			long pawns = getPawns(); 
+			long scratchBitBoard = pawns;
+			passedPawns = 0L;
+			while ( scratchBitBoard != 0x0L ) {
+				int bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
+				long bit_mask = 1L << bit_offset;
+				if (isPassedPawn(bit_offset, bit_mask)) {
+		    		// ...target square becomes pp for piece to move!
+		    		passedPawns |= bit_mask;
+		    	}
+				// clear the lssb
+				scratchBitBoard ^= bit_mask;
+			}
+		} else {
+			passedPawns = 0L;
 		}
 	}
 	
@@ -301,55 +305,59 @@ public class Board {
 			// Iterative update of passed pawns bitboard
 			// Note: this needs to be done after the piece bit boards are updated
 			// build up significant file masks, should be three or four consecutive files, re-evaluate passed pawns in those files
-			long file_masks = 0L;
-			if (pieceType == Piece.PAWN) {
-				int ownLutColourIndex = isWhite ? 0 : 1;
-				// Handle regular pawn pushes
-				file_masks |= BitBoard.IterativePassedPawnNonCapture[ownLutColourIndex][originBitOffset];
-				
-				// Handle pawn captures
-				if (targetPiece != Piece.NONE) {
-					if (Piece.isPawn(targetPiece)) {
-						// Pawn takes pawn, clears whole front-span of target pawn (note negation of colour)
-						int enemyLutColourIndex = isWhite ? 1 : 0;
-						file_masks |= BitBoard.PassedPawn_Lut[enemyLutColourIndex][targetBitOffset];
+			if (EubosEngineMain.ENABLE_ITERATIVE_PASSED_PAWN_UPDATE) {
+				long file_masks = 0L;
+				if (pieceType == Piece.PAWN) {
+					int ownLutColourIndex = isWhite ? 0 : 1;
+					// Handle regular pawn pushes
+					file_masks |= BitBoard.IterativePassedPawnNonCapture[ownLutColourIndex][originBitOffset];
+					
+					// Handle pawn captures
+					if (targetPiece != Piece.NONE) {
+						if (Piece.isPawn(targetPiece)) {
+							// Pawn takes pawn, clears whole front-span of target pawn (note negation of colour)
+							int enemyLutColourIndex = isWhite ? 1 : 0;
+							file_masks |= BitBoard.PassedPawn_Lut[enemyLutColourIndex][targetBitOffset];
+						}
+						// manage file transition of capturing pawn moves
+						boolean isLeft = BitBoard.getFile(targetBitOffset) < BitBoard.getFile(originBitOffset);
+						file_masks |= BitBoard.IterativePassedPawnUpdateCaptures_Lut[originBitOffset][ownLutColourIndex][isLeft ? 0 : 1];
 					}
-					// manage file transition of capturing pawn moves
-					boolean isLeft = BitBoard.getFile(targetBitOffset) < BitBoard.getFile(originBitOffset);
-					file_masks |= BitBoard.IterativePassedPawnUpdateCaptures_Lut[originBitOffset][ownLutColourIndex][isLeft ? 0 : 1];
+				} else if (Piece.isPawn(targetPiece)) {
+					// Piece takes pawn, potentially opens capture and adjacent files
+					int enemyLutColourIndex = isWhite ? 1 : 0;
+					file_masks |= targetSquareMask;
+					file_masks |= BitBoard.PassedPawn_Lut[enemyLutColourIndex][targetBitOffset];
+				} else {
+					// doesn't need to be handled - can't change passed pawn bit board
 				}
-			} else if (Piece.isPawn(targetPiece)) {
-				// Piece takes pawn, potentially opens capture and adjacent files
-				int enemyLutColourIndex = isWhite ? 1 : 0;
-				file_masks |= targetSquareMask;
-				file_masks |= BitBoard.PassedPawn_Lut[enemyLutColourIndex][targetBitOffset];
-			} else {
-				// doesn't need to be handled - can't change passed pawn bit board
-			}
-			if (file_masks != 0L) {
-				// clear passed pawns in concerned files before re-evaluating
-				// Note: vacated initial square
-				passedPawns &= ~(initialSquareMask|file_masks);
-				// re-evaluate
-				long scratchBitBoard = getPawns() & file_masks;
-				while ( scratchBitBoard != 0x0L ) {
-					int bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
-					long pawn_mask = 1L << bit_offset;
-					if (isPassedPawn(bit_offset, pawn_mask)) {
-						passedPawns |= pawn_mask;
+				if (file_masks != 0L) {
+					// clear passed pawns in concerned files before re-evaluating
+					// Note: vacated initial square
+					passedPawns &= ~(initialSquareMask|file_masks);
+					// re-evaluate
+					long scratchBitBoard = getPawns() & file_masks;
+					while ( scratchBitBoard != 0x0L ) {
+						int bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
+						long pawn_mask = 1L << bit_offset;
+						if (isPassedPawn(bit_offset, pawn_mask)) {
+							passedPawns |= pawn_mask;
+						}
+						scratchBitBoard ^= pawn_mask;
 					}
-					scratchBitBoard ^= pawn_mask;
 				}
 			}
 		}
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {
-			long iterativeUpdatePassedPawns = passedPawns;
-			createPassedPawnsBoard();
-			assert iterativeUpdatePassedPawns == passedPawns :
-				String.format("Passed Pawns error iterative %s != scratch %s move = %s pawns = %s", 
-					BitBoard.toString(iterativeUpdatePassedPawns), BitBoard.toString(passedPawns), 
-					Move.toString(move), BitBoard.toString(this.getPawns()));
+			if (EubosEngineMain.ENABLE_ITERATIVE_PASSED_PAWN_UPDATE) {
+				long iterativeUpdatePassedPawns = passedPawns;
+				createPassedPawnsBoard();
+				assert iterativeUpdatePassedPawns == passedPawns :
+					String.format("Passed Pawns error iterative %s != scratch %s move = %s pawns = %s", 
+						BitBoard.toString(iterativeUpdatePassedPawns), BitBoard.toString(passedPawns), 
+						Move.toString(move), BitBoard.toString(this.getPawns()));
+			}
 			// Check piece bit boards to me num pieces consistency
 			assert (me.numberOfPieces[Piece.WHITE_KNIGHT]+me.numberOfPieces[Piece.BLACK_KNIGHT]) == Long.bitCount(pieces[INDEX_KNIGHT]);
 			assert (me.numberOfPieces[Piece.WHITE_BISHOP]+me.numberOfPieces[Piece.BLACK_BISHOP]) == Long.bitCount(pieces[INDEX_BISHOP]);

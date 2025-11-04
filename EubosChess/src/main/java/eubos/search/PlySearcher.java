@@ -803,8 +803,8 @@ public class PlySearcher {
 			!pe.goForMate() && /* Ignore reductions in a mate search */
 			depth > 2 &&
 			!(Move.isPawnMove(currMove) &&  /* Not a passed pawn move or a pawn move in endgame */
-					(pos.getTheBoard().me.isEndgame() ||
-					(pos.getTheBoard().getPassedPawns() & (1L << Move.getTargetPosition(currMove))) != 0L))) {
+					(pos.getTheBoard().me.isEndgame() /*||
+					(pos.getTheBoard().getPassedPawns() & (1L << Move.getTargetPosition(currMove))) != 0L*/))) {
 		
 			// Calculate reduction, 1 for the first few moves, then the closer to the root node, the more severe the reduction
 			int lmr = (moveNumber < depth/2) ? 1 : Math.max(1, depth/4);
