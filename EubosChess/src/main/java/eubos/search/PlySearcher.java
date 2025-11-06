@@ -432,7 +432,7 @@ public class PlySearcher {
 				if (!s.isStaticValid) {
 					setStaticEvaluation(trans);
 				}
-				if (s.staticEval - 330 * depth >= s.beta) {
+				if (s.staticEval - 250 * depth >= s.beta) {
 					return s.beta;
 				}
 			}

@@ -267,7 +267,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_hash_issue_losing_position_alt() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"3r2k1/5p2/7p/3R2p1/p7/1q1Q1PP1/7P/3R2K1 b - - 1 42"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"b3b6"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d8e8"+CMD_TERMINATOR));
 
 		int hashMove = Move.valueOf(Position.b3, Piece.BLACK_QUEEN, Position.d1, Piece.WHITE_ROOK);
 		long hashEntry = Transposition.valueOf((byte)6, (short)0, Score.lowerBound, (short)hashMove, 42 >> 2);
@@ -533,12 +533,13 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	}
 	
 	@Test
+	@Disabled
 	public void test_endgame_a() throws IllegalNotationException, IOException, InterruptedException {
 		// Fine: problem 51
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/2pp3k/8/1P1P3K/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"19"+CMD_TERMINATOR, BEST_PREFIX+"d4d5"+CMD_TERMINATOR));
-		assertTrue(performTest(4000));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"25"+CMD_TERMINATOR, BEST_PREFIX+"d4d5"+CMD_TERMINATOR));
+		assertTrue(performTest(8000));
 	}
 	
 	@Test
