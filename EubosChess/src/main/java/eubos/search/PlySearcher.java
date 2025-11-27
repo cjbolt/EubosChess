@@ -475,9 +475,9 @@ public class PlySearcher {
 						}
 						if (EubosEngineMain.ENABLE_PER_MOVE_FUTILITY_PRUNING) {
 							int threshold = pe.estimateMovePositionalContribution(currMove) + ((depth == 1) ? 0 : 250);
-							if (s.isImproving) {
-								threshold /= 2;
-							}
+//							if (s.isImproving) {
+//								threshold /= 2;
+//							}
 							if (s.staticEval + threshold < s.alpha) {
 								continue;
 							}
@@ -669,7 +669,7 @@ public class PlySearcher {
 		if (static_eval != Short.MAX_VALUE) {
 			s.staticEval = static_eval;
 			s.isStaticValid = true;
-			isPositionImproving();
+			//isPositionImproving();
 		}
 		
 		s.isCutOff = false;
@@ -801,7 +801,7 @@ public class PlySearcher {
 			!eubos.generate_training_data &&
 			moveNumber > 1 && /* Full search for at least one quiet move */
 			!pe.goForMate() && /* Ignore reductions in a mate search */
-			(depth > 2 /*&& depth < 24*/) &&
+			depth > 2 &&
 			!(Move.isPawnMove(currMove) &&  /* Not a passed pawn move or a pawn move in endgame */
 					(pos.getTheBoard().me.isEndgame() ||
 					(pos.getTheBoard().getPassedPawns() & (1L << Move.getTargetPosition(currMove))) != 0L))) {
@@ -825,22 +825,22 @@ public class PlySearcher {
 		return lastAspirationFailed;
 	}
 	
-	private void isPositionImproving() {
-		SearchState s = state[currPly];
-		if (currPly >= 2) {
-			SearchState prev_prev_s = state[currPly-2];
-			if (prev_prev_s.isStaticValid && s.isStaticValid) {
-				s.isImproving = s.staticEval > (prev_prev_s.staticEval + 100);
-			}
-		}
-	}
+//	private void isPositionImproving() {
+//		SearchState s = state[currPly];
+//		if (currPly >= 2) {
+//			SearchState prev_prev_s = state[currPly-2];
+//			if (prev_prev_s.isStaticValid && s.isStaticValid) {
+//				s.isImproving = s.staticEval > (prev_prev_s.staticEval + 50);
+//			}
+//		}
+//	}
 	
 	void setStaticEvaluation(long trans) {
 		SearchState s = state[currPly];
 		s.staticEval = (short) pe.getStaticEvaluation();
 		refineStaticEvalWithHashScore(trans);
 		s.isStaticValid = true;
-		isPositionImproving();
+		//isPositionImproving();
 	}
 	
 	private void refineStaticEvalWithHashScore(long trans) {

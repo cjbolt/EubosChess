@@ -267,7 +267,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_hash_issue_losing_position_alt() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"3r2k1/5p2/7p/3R2p1/p7/1q1Q1PP1/7P/3R2K1 b - - 1 42"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"d8e8"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"8"+CMD_TERMINATOR, BEST_PREFIX+"b3b6"+CMD_TERMINATOR));
 
 		int hashMove = Move.valueOf(Position.b3, Piece.BLACK_QUEEN, Position.d1, Piece.WHITE_ROOK);
 		long hashEntry = Transposition.valueOf((byte)6, (short)0, Score.lowerBound, (short)hashMove, 42 >> 2);
@@ -375,7 +375,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_WAC_086_position() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/p7/1ppk1n2/5ppp/P1PP4/2P1K1P1/5N1P/8 b - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"f6g4"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"15"+CMD_TERMINATOR, BEST_PREFIX+"f6g4"+CMD_TERMINATOR));
 		assertTrue(performTest(8000));
 	}
 	
@@ -566,7 +566,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Fine: problem 80
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/1ppk4/p4pp1/P1PP2p1/2P1K1P1/7P/8 b - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"20"+CMD_TERMINATOR, BEST_PREFIX+"b6b5"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"18"+CMD_TERMINATOR, BEST_PREFIX+"b6b5"+CMD_TERMINATOR));
 		assertTrue(performTest(80000));
 	}
 	
@@ -593,7 +593,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Fine: problem 67
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/2p5/3k4/1p1p1K2/8/1P1P4/2P5/8 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"14"+CMD_TERMINATOR, BEST_PREFIX+"b3b4"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"15"+CMD_TERMINATOR, BEST_PREFIX+"b3b4"+CMD_TERMINATOR));
 		assertTrue(performTest(2000));		
 	}
 	
