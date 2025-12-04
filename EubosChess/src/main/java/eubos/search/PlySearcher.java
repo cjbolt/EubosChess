@@ -38,7 +38,6 @@ public class PlySearcher {
 		boolean inCheck; // not initialised here for reasons of optimisation
 		short staticEval;
 		boolean isStaticValid;
-		boolean isImproving;
 		
 		void initialise(int ply, int alpha, int beta) {
 			hashScore = bestScore = Score.PROVISIONAL_ALPHA;
@@ -47,7 +46,7 @@ public class PlySearcher {
 			isCutOff = false;
 			moveNumber = 0;
 			staticEval = 0;
-			isHashScoreValid = isStaticValid = isImproving = false;
+			isHashScoreValid = isStaticValid = false;
 			// This move is only valid for the principal continuation, for the rest of the search, it is invalid. It can also be misleading in iterative deepening?
 			// It will deviate from the hash move when we start updating the hash during iterative deepening.
 			prevBestMove = Move.clearBest(pc.getBestMove((byte)ply));
@@ -475,9 +474,6 @@ public class PlySearcher {
 						}
 						if (EubosEngineMain.ENABLE_PER_MOVE_FUTILITY_PRUNING) {
 							int threshold = pe.estimateMovePositionalContribution(currMove) + ((depth == 1) ? 0 : 250);
-//							if (s.isImproving) {
-//								threshold /= 2;
-//							}
 							if (s.staticEval + threshold < s.alpha) {
 								continue;
 							}
@@ -669,7 +665,6 @@ public class PlySearcher {
 		if (static_eval != Short.MAX_VALUE) {
 			s.staticEval = static_eval;
 			s.isStaticValid = true;
-			//isPositionImproving();
 		}
 		
 		s.isCutOff = false;
@@ -825,22 +820,11 @@ public class PlySearcher {
 		return lastAspirationFailed;
 	}
 	
-//	private void isPositionImproving() {
-//		SearchState s = state[currPly];
-//		if (currPly >= 2) {
-//			SearchState prev_prev_s = state[currPly-2];
-//			if (prev_prev_s.isStaticValid && s.isStaticValid) {
-//				s.isImproving = s.staticEval > (prev_prev_s.staticEval + 50);
-//			}
-//		}
-//	}
-	
 	void setStaticEvaluation(long trans) {
 		SearchState s = state[currPly];
 		s.staticEval = (short) pe.getStaticEvaluation();
 		refineStaticEvalWithHashScore(trans);
 		s.isStaticValid = true;
-		//isPositionImproving();
 	}
 	
 	private void refineStaticEvalWithHashScore(long trans) {
