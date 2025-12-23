@@ -161,11 +161,12 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Preserve state
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		theBoard.setEnPassantTargetSq(BitBoard.INVALID);
-		moveTracker.push(0L, Move.NULL_MOVE, castling.getFlags(), prevEnPassantTargetSq, 0L, 0);
+		moveTracker.push(0L, Move.NULL_MOVE, castling.getFlags(), prevEnPassantTargetSq, getHash(), 0);
 
 		hash.doEnPassant(prevEnPassantTargetSq, BitBoard.INVALID);
-		hash.doOnMove();
 		
+		// This is needed because we need to go back to the side that just moved again
+		hash.doOnMove();
 		onMoveIsWhite = !onMoveIsWhite;
 		plyNumber+=2;
 	}
@@ -177,9 +178,9 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		castling.setFlags(stack.castling);
 		int enPasTargetSq = stack.en_passant_square;
 		theBoard.setEnPassantTargetSq(enPasTargetSq);
+		theBoard.insufficient = false;
 		
-		hash.doEnPassant(BitBoard.INVALID, enPasTargetSq);
-		hash.doOnMove();
+		hash.hashCode = stack.hash;
 		
 		// Clear draw indicator flag
 		repetitionPossible = false;
