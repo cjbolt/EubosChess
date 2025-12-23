@@ -151,7 +151,7 @@ public class Board {
 		return fen.toString();
 	}
 	
-	public boolean doMove(int move) {		
+	public boolean doMoveBlack(int move) {		
 		int captureBitOffset = BitBoard.INVALID;
 		boolean old_insufficient = insufficient;
 		
@@ -168,7 +168,6 @@ public class Board {
 		int pieceToMove = temp & 0xF;
 		temp >>>= 4;
 		
-		boolean isWhite = Piece.isWhite(pieceToMove);
 		long initialSquareMask = 1L << originBitOffset;
 		long targetSquareMask = 1L << targetBitOffset;
 		long positionsMask = initialSquareMask | targetSquareMask;
@@ -181,7 +180,7 @@ public class Board {
 			assert (pieces[pieceType] & initialSquareMask) != 0: 
 				String.format("Non-existant piece %s at %s for move %s", 
 						Piece.toFenChar(pieceToMove), Position.toGenericPosition(BitBoard.bitToPosition_Lut[originBitOffset]), Move.toString(move));
-			assert ((isWhite ? whitePieces : blackPieces) & initialSquareMask) != 0: 
+			assert (blackPieces & initialSquareMask) != 0: 
 				String.format("Piece %s not on colour board for move %s", 
 						Piece.toFenChar(pieceToMove), Move.toString(move));
 			assert (allPieces & initialSquareMask) != 0: 
@@ -203,7 +202,7 @@ public class Board {
 				assert (pieces[Piece.PIECE_NO_COLOUR_MASK & targetPiece] & captureMask) != 0: 
 					String.format("Non-existant target piece %s at %s for move %s", 
 							Piece.toFenChar(targetPiece), Position.toGenericPosition(captureBitOffset), Move.toString(move));
-				assert ((isWhite ? blackPieces : whitePieces) & captureMask) != 0: 
+				assert (whitePieces & captureMask) != 0: 
 					String.format("Piece %s not on colour board for move %s", 
 							Piece.toFenChar(targetPiece), Move.toString(move));
 				assert (allPieces & captureMask) != 0: 
@@ -213,11 +212,7 @@ public class Board {
 						Piece.toFenChar(targetPiece), Position.toGenericPosition(BitBoard.bitToPosition_Lut[captureBitOffset]));
 			}
 			// Remove from relevant colour bitboard
-			if (isWhite) {
-				blackPieces ^= captureMask;
-			} else {
-				whitePieces ^= captureMask;
-			}
+			whitePieces ^= captureMask;
 			// Remove from specific bitboard
 			pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] ^= captureMask;
 			// Remove from all pieces bitboard
@@ -225,11 +220,7 @@ public class Board {
 		}
 		
 		// Switch colour bitboard
-		if (isWhite) {
-			whitePieces ^= positionsMask;
-		} else {
-			blackPieces ^= positionsMask;
-		}
+		blackPieces ^= positionsMask;
 		// Switch all pieces bitboard
 		allPieces ^= positionsMask;
 		// Switch piece-specific bitboards and piece lists
@@ -242,7 +233,7 @@ public class Board {
 			pieces[pieceType] ^= positionsMask;
 		}
 		
-		if (isKingInCheck(isWhite)) {
+		if (isKingInCheck(false)) {
 			// Switch piece bitboard
 			if (promotedPiece != Piece.NONE) {
 				// Remove promoted piece and replace it with a pawn
@@ -252,11 +243,7 @@ public class Board {
 				pieces[pieceType] ^= positionsMask;
 			}
 			// Switch colour bitboard
-			if (isWhite) {
-				whitePieces ^= positionsMask;
-			} else {
-				blackPieces ^= positionsMask;
-			}
+			blackPieces ^= positionsMask;
 			// Switch all pieces bitboard
 			allPieces ^= positionsMask;
 			
@@ -264,11 +251,7 @@ public class Board {
 			if (isCapture) {
 				long mask = 1L << captureBitOffset;
 				pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] |= mask;
-				if (isWhite) {
-					blackPieces |= mask;
-				} else {
-					whitePieces |= mask;
-				}
+				whitePieces |= mask;
 				allPieces |= mask;
 				insufficient = old_insufficient;
 				//insufficient = false;
@@ -281,7 +264,7 @@ public class Board {
 		
 		if (isCapture) {
 			insufficient = isInsufficientMaterial();
-			incrementallyUpdateStateForCapture(isWhite, targetPiece, captureBitOffset);
+			incrementallyUpdateStateForCaptureForBlack(targetPiece, captureBitOffset);
 		} else {
 			// Check whether the move sets the En Passant target square
 			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
@@ -296,17 +279,17 @@ public class Board {
 		
 		if (promotedPiece != Piece.NONE) {
 			passedPawns &= ~initialSquareMask;
-			incrementallyUpdateStateForPromotion(isWhite, pieceToMove, promotedPiece, originBitOffset, targetBitOffset);
+			incrementallyUpdateStateForPromotionForBlack(pieceToMove, promotedPiece, originBitOffset, targetBitOffset);
 		} else {
 			hashUpdater.doBasicMove(targetBitOffset, originBitOffset, pieceToMove);
-			updateAccumulatorsForBasicMove(isWhite, pieceToMove, originBitOffset, targetBitOffset);
+			updateAccumulatorsForBasicMoveBlack(pieceToMove, originBitOffset, targetBitOffset);
 			
 			// Iterative update of passed pawns bitboard
 			// Note: this needs to be done after the piece bit boards are updated
 			// build up significant file masks, should be three or four consecutive files, re-evaluate passed pawns in those files
 			long file_masks = 0L;
 			if (pieceType == Piece.PAWN) {
-				int ownLutColourIndex = isWhite ? 0 : 1;
+				int ownLutColourIndex = 1;
 				// Handle regular pawn pushes
 				file_masks |= BitBoard.IterativePassedPawnNonCapture[ownLutColourIndex][originBitOffset];
 				
@@ -314,7 +297,7 @@ public class Board {
 				if (targetPiece != Piece.NONE) {
 					if (Piece.isPawn(targetPiece)) {
 						// Pawn takes pawn, clears whole front-span of target pawn (note negation of colour)
-						int enemyLutColourIndex = isWhite ? 1 : 0;
+						int enemyLutColourIndex = 0;
 						file_masks |= BitBoard.PassedPawn_Lut[enemyLutColourIndex][targetBitOffset];
 					}
 					// manage file transition of capturing pawn moves
@@ -323,7 +306,7 @@ public class Board {
 				}
 			} else if (Piece.isPawn(targetPiece)) {
 				// Piece takes pawn, potentially opens capture and adjacent files
-				int enemyLutColourIndex = isWhite ? 1 : 0;
+				int enemyLutColourIndex = 0;
 				file_masks |= targetSquareMask;
 				file_masks |= BitBoard.PassedPawn_Lut[enemyLutColourIndex][targetBitOffset];
 			} else {
@@ -361,8 +344,8 @@ public class Board {
 			assert (me.numberOfPieces[Piece.WHITE_PAWN]+me.numberOfPieces[Piece.BLACK_PAWN]) == Long.bitCount(pieces[INDEX_PAWN]);
 			assert Long.bitCount(pieces[INDEX_KING]) == 2;
 			if (!insufficient) {
-				int old_score = nnue.old_evaluate(this, isWhite);
-				int new_score = nnue.new_evaluate_for_assert(this, isWhite);
+				int old_score = nnue.old_evaluate(this, false);
+				int new_score = nnue.new_evaluate_for_assert(this, false);
 				assert old_score == new_score : String.format("old %d new %d insufficient=%b", old_score, new_score, insufficient);
 			}
 		}
@@ -370,7 +353,209 @@ public class Board {
 		return false;
 	}
 	
-	public void undoMove(int moveToUndo) {
+	public boolean doMoveWhite(int move) {		
+		int captureBitOffset = BitBoard.INVALID;
+		boolean old_insufficient = insufficient;
+		
+		// unload move
+		int temp = move;
+		int targetBitOffset = temp & 0x3F;
+		temp >>>= 6;
+		int originBitOffset = temp & 0x3F;
+		temp >>>= 6;
+		int promotedPiece = temp & 0x7;
+		temp >>>= 4;
+		int targetPiece = temp & 0xF;
+		temp >>>= 4;
+		int pieceToMove = temp & 0xF;
+		temp >>>= 4;
+		
+		long initialSquareMask = 1L << originBitOffset;
+		long targetSquareMask = 1L << targetBitOffset;
+		long positionsMask = initialSquareMask | targetSquareMask;
+		boolean isCapture = targetPiece != Piece.NONE;
+		int pieceType = Piece.PIECE_NO_COLOUR_MASK & pieceToMove;
+		
+		// Check assertions, if enabled in build
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			// Check piece to move is on the bitboard, and is correct side
+			assert (pieces[pieceType] & initialSquareMask) != 0: 
+				String.format("Non-existant piece %s at %s for move %s", 
+						Piece.toFenChar(pieceToMove), Position.toGenericPosition(BitBoard.bitToPosition_Lut[originBitOffset]), Move.toString(move));
+			assert (whitePieces & initialSquareMask) != 0: 
+				String.format("Piece %s not on colour board for move %s", 
+						Piece.toFenChar(pieceToMove), Move.toString(move));
+			assert (allPieces & initialSquareMask) != 0: 
+				String.format("Piece %s not on all pieces board for move %s", 
+						Piece.toFenChar(pieceToMove), Move.toString(move));
+			assert (targetPiece & Piece.PIECE_NO_COLOUR_MASK) != Piece.DONT_CARE;
+		}
+		
+		if (isCapture) {
+			// Handle captures
+			if (Move.isEnPassantCapture(move)) {
+				// Handle en passant captures, don't need to do other checks in this case
+				captureBitOffset = generateCaptureBitOffsetForEnPassant(pieceToMove, targetBitOffset);
+			} else {
+				captureBitOffset = targetBitOffset;
+			}
+			long captureMask = 1L << captureBitOffset;
+			if (EubosEngineMain.ENABLE_ASSERTS) {
+				assert (pieces[Piece.PIECE_NO_COLOUR_MASK & targetPiece] & captureMask) != 0: 
+					String.format("Non-existant target piece %s at %s for move %s", 
+							Piece.toFenChar(targetPiece), Position.toGenericPosition(captureBitOffset), Move.toString(move));
+				assert (blackPieces & captureMask) != 0: 
+					String.format("Piece %s not on colour board for move %s", 
+							Piece.toFenChar(targetPiece), Move.toString(move));
+				assert (allPieces & captureMask) != 0: 
+					String.format("Piece %s not on all pieces board for move %s", 
+							Piece.toFenChar(targetPiece), Move.toString(move));
+				assert ((allPieces & captureMask) != 0) : String.format("Non-existant target piece %c at %s",
+						Piece.toFenChar(targetPiece), Position.toGenericPosition(BitBoard.bitToPosition_Lut[captureBitOffset]));
+			}
+			// Remove from relevant colour bitboard
+			blackPieces ^= captureMask;
+			// Remove from specific bitboard
+			pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] ^= captureMask;
+			// Remove from all pieces bitboard
+			allPieces ^= captureMask;
+		}
+		
+		// Switch colour bitboard
+		whitePieces ^= positionsMask;
+		// Switch all pieces bitboard
+		allPieces ^= positionsMask;
+		// Switch piece-specific bitboards and piece lists
+		if (promotedPiece != Piece.NONE) {
+			// For a promotion, need to resolve piece-specific across multiple bitboards
+			pieces[INDEX_PAWN] ^= initialSquareMask;
+			pieces[promotedPiece] |= targetSquareMask;
+		} else {
+			// Piece type doesn't change across boards, update piece-specific bitboard, pieceList and PST score
+			pieces[pieceType] ^= positionsMask;
+		}
+		
+		if (isKingInCheck(true)) {
+			// Switch piece bitboard
+			if (promotedPiece != Piece.NONE) {
+				// Remove promoted piece and replace it with a pawn
+				pieces[promotedPiece] ^= targetSquareMask;	
+				pieces[INDEX_PAWN] |= initialSquareMask;
+			} else {
+				pieces[pieceType] ^= positionsMask;
+			}
+			// Switch colour bitboard
+			whitePieces ^= positionsMask;
+			// Switch all pieces bitboard
+			allPieces ^= positionsMask;
+			
+			// Undo any capture that had been previously performed.
+			if (isCapture) {
+				long mask = 1L << captureBitOffset;
+				pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] |= mask;
+				blackPieces |= mask;
+				allPieces |= mask;
+				insufficient = old_insufficient;
+				//insufficient = false;
+			}
+			return true;
+		}
+		
+		// Initialise En Passant target square
+		setEnPassantTargetSq(BitBoard.INVALID);
+		
+		if (isCapture) {
+			insufficient = isInsufficientMaterial();
+			incrementallyUpdateStateForCaptureForWhite(targetPiece, captureBitOffset);
+		} else {
+			// Check whether the move sets the En Passant target square
+			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
+				// Handle castling secondary rook moves...
+				if (Move.isCastling(move)) {
+					performSecondaryCastlingMove(targetBitOffset);
+				}
+			}
+		}
+		
+		if (insufficient) return false;
+		
+		if (promotedPiece != Piece.NONE) {
+			passedPawns &= ~initialSquareMask;
+			incrementallyUpdateStateForPromotionForWhite(pieceToMove, promotedPiece, originBitOffset, targetBitOffset);
+		} else {
+			hashUpdater.doBasicMove(targetBitOffset, originBitOffset, pieceToMove);
+			updateAccumulatorsForBasicMoveWhite(pieceToMove, originBitOffset, targetBitOffset);
+			
+			// Iterative update of passed pawns bitboard
+			// Note: this needs to be done after the piece bit boards are updated
+			// build up significant file masks, should be three or four consecutive files, re-evaluate passed pawns in those files
+			long file_masks = 0L;
+			if (pieceType == Piece.PAWN) {
+				int ownLutColourIndex = 0;
+				// Handle regular pawn pushes
+				file_masks |= BitBoard.IterativePassedPawnNonCapture[ownLutColourIndex][originBitOffset];
+				
+				// Handle pawn captures
+				if (targetPiece != Piece.NONE) {
+					if (Piece.isPawn(targetPiece)) {
+						// Pawn takes pawn, clears whole front-span of target pawn (note negation of colour)
+						int enemyLutColourIndex = 1;
+						file_masks |= BitBoard.PassedPawn_Lut[enemyLutColourIndex][targetBitOffset];
+					}
+					// manage file transition of capturing pawn moves
+					boolean isLeft = BitBoard.getFile(targetBitOffset) < BitBoard.getFile(originBitOffset);
+					file_masks |= BitBoard.IterativePassedPawnUpdateCaptures_Lut[originBitOffset][ownLutColourIndex][isLeft ? 0 : 1];
+				}
+			} else if (Piece.isPawn(targetPiece)) {
+				// Piece takes pawn, potentially opens capture and adjacent files
+				int enemyLutColourIndex = 1;
+				file_masks |= targetSquareMask;
+				file_masks |= BitBoard.PassedPawn_Lut[enemyLutColourIndex][targetBitOffset];
+			} else {
+				// doesn't need to be handled - can't change passed pawn bit board
+			}
+			if (file_masks != 0L) {
+				// clear passed pawns in concerned files before re-evaluating
+				// Note: vacated initial square
+				passedPawns &= ~(initialSquareMask|file_masks);
+				// re-evaluate
+				long scratchBitBoard = getPawns() & file_masks;
+				while ( scratchBitBoard != 0x0L ) {
+					int bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
+					long pawn_mask = 1L << bit_offset;
+					if (isPassedPawn(bit_offset, pawn_mask)) {
+						passedPawns |= pawn_mask;
+					}
+					scratchBitBoard ^= pawn_mask;
+				}
+			}
+		}
+		
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			long iterativeUpdatePassedPawns = passedPawns;
+			createPassedPawnsBoard();
+			assert iterativeUpdatePassedPawns == passedPawns :
+				String.format("Passed Pawns error iterative %s != scratch %s move = %s pawns = %s", 
+					BitBoard.toString(iterativeUpdatePassedPawns), BitBoard.toString(passedPawns), 
+					Move.toString(move), BitBoard.toString(this.getPawns()));
+			// Check piece bit boards to me num pieces consistency
+			assert (me.numberOfPieces[Piece.WHITE_KNIGHT]+me.numberOfPieces[Piece.BLACK_KNIGHT]) == Long.bitCount(pieces[INDEX_KNIGHT]);
+			assert (me.numberOfPieces[Piece.WHITE_BISHOP]+me.numberOfPieces[Piece.BLACK_BISHOP]) == Long.bitCount(pieces[INDEX_BISHOP]);
+			assert (me.numberOfPieces[Piece.WHITE_ROOK]+me.numberOfPieces[Piece.BLACK_ROOK]) == Long.bitCount(pieces[INDEX_ROOK]);
+			assert (me.numberOfPieces[Piece.WHITE_QUEEN]+me.numberOfPieces[Piece.BLACK_QUEEN]) == Long.bitCount(pieces[INDEX_QUEEN]);
+			assert (me.numberOfPieces[Piece.WHITE_PAWN]+me.numberOfPieces[Piece.BLACK_PAWN]) == Long.bitCount(pieces[INDEX_PAWN]);
+			assert Long.bitCount(pieces[INDEX_KING]) == 2;
+			if (!insufficient) {
+				int old_score = nnue.old_evaluate(this, true);
+				int new_score = nnue.new_evaluate_for_assert(this, true);
+				assert old_score == new_score : String.format("old %d new %d insufficient=%b", old_score, new_score, insufficient);
+			}
+		}
+		
+		return false;
+	}
+	
+	public void undoMoveWhite(int moveToUndo) {
 		// unload move
 		int temp = moveToUndo;
 		int originBitOffset = temp & 0x3F;
@@ -384,7 +569,6 @@ public class Board {
 		int originPiece = temp & 0xF;
 		temp >>>= 4;
 		
-		boolean isWhite = Piece.isWhite(originPiece);
 		long initialSquareMask = 1L << originBitOffset;
 		long targetSquareMask = 1L << targetBitOffset;
 		long positionsMask = initialSquareMask | targetSquareMask;
@@ -407,22 +591,18 @@ public class Board {
 			// Remove promoted piece and replace it with a pawn
 			pieces[promotedPiece] ^= initialSquareMask;	
 			pieces[INDEX_PAWN] |= targetSquareMask;
-			int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
-			me.updateWhenUndoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);			
-			updateAccumulatorsForPromotion(isWhite, originPiece, fullPromotedPiece, originBitOffset, targetBitOffset);
+			int fullPromotedPiece = promotedPiece;
+			me.updateWhenUndoingPromotion(promotedPiece, originBitOffset, targetBitOffset);			
+			updateAccumulatorsForPromotionWhite(originPiece, fullPromotedPiece, originBitOffset, targetBitOffset);
 			
 		} else {
 			// Piece type doesn't change across boards, update piece-specific bitboard and accumulators
 			pieces[pieceType] ^= positionsMask;
 			if (!insufficient)
-				updateAccumulatorsForBasicMove(isWhite, originPiece, originBitOffset, targetBitOffset);
+				updateAccumulatorsForBasicMoveWhite(originPiece, originBitOffset, targetBitOffset);
 		}
 		// Switch colour bitboard
-		if (isWhite) {
-			whitePieces ^= positionsMask;
-		} else {
-			blackPieces ^= positionsMask;
-		}
+		whitePieces ^= positionsMask;
 		// Switch all pieces bitboard
 		allPieces ^= positionsMask;
 		
@@ -433,18 +613,87 @@ public class Board {
 					generateCaptureBitOffsetForEnPassant(originPiece, originBitOffset) : originBitOffset;
 			long mask = 1L << capturedPieceSquare;
 			pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] |= mask;
-			if (isWhite) {
-				blackPieces |= mask;
-			} else {
-				whitePieces |= mask;
-			}
+			blackPieces |= mask;
 			allPieces |= mask;
-			incrementallyUpdateStateForUndoCapture(isWhite, targetPiece, capturedPieceSquare);			
+			incrementallyUpdateStateForUndoCaptureForWhite(targetPiece, capturedPieceSquare);			
 		}
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {
-			int old_score = nnue.old_evaluate(this, isWhite);
-			int new_score = nnue.new_evaluate_for_assert(this, isWhite);
+			int old_score = nnue.old_evaluate(this, true);
+			int new_score = nnue.new_evaluate_for_assert(this, true);
+			//if (!insufficient)
+				assert old_score == new_score : String.format("old %d new %d insufficient %b", old_score, new_score, insufficient);
+		}
+		
+		insufficient = false;
+	}
+	
+	public void undoMoveBlack(int moveToUndo) {
+		// unload move
+		int temp = moveToUndo;
+		int originBitOffset = temp & 0x3F;
+		temp >>>= 6;
+		int targetBitOffset = temp & 0x3F;
+		temp >>>= 6;
+		int promotedPiece = temp & 0x7;
+		temp >>>= 4; // Skip enP bit as well
+		int targetPiece = temp & 0xF;
+		temp >>>= 4;
+		int originPiece = temp & 0xF;
+		temp >>>= 4;
+		
+		long initialSquareMask = 1L << originBitOffset;
+		long targetSquareMask = 1L << targetBitOffset;
+		long positionsMask = initialSquareMask | targetSquareMask;
+		boolean isCapture = targetPiece != Piece.NONE;
+		int pieceType = Piece.PIECE_NO_COLOUR_MASK & originPiece;
+		
+		// Check assertions, if enabled in build
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			long pieceMask = (promotedPiece != Piece.NONE) ? pieces[promotedPiece] : pieces[pieceType];
+			assert (pieceMask & initialSquareMask) != 0: String.format("Non-existant piece at %s, %s",
+					Position.toGenericPosition(BitBoard.bitToPosition_Lut[originBitOffset]), Move.toString(moveToUndo));
+		}
+		
+		// Handle reversal of any castling secondary rook moves on the board
+		if (Move.isCastling(moveToUndo)) {
+			unperformSecondaryCastlingMove(originBitOffset);
+		}
+		// Switch piece bitboard
+		if (promotedPiece != Piece.NONE) {
+			// Remove promoted piece and replace it with a pawn
+			pieces[promotedPiece] ^= initialSquareMask;	
+			pieces[INDEX_PAWN] |= targetSquareMask;
+			int fullPromotedPiece = (promotedPiece|Piece.BLACK);
+			me.updateWhenUndoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);			
+			updateAccumulatorsForPromotionBlack(originPiece, fullPromotedPiece, originBitOffset, targetBitOffset);
+			
+		} else {
+			// Piece type doesn't change across boards, update piece-specific bitboard and accumulators
+			pieces[pieceType] ^= positionsMask;
+			if (!insufficient)
+				updateAccumulatorsForBasicMoveBlack(originPiece, originBitOffset, targetBitOffset);
+		}
+		// Switch colour bitboard
+		blackPieces ^= positionsMask;
+		// Switch all pieces bitboard
+		allPieces ^= positionsMask;
+		
+		// Undo any capture that had been previously performed.
+		if (isCapture) {
+			// Origin square because the move has been reversed and origin square is the original target square
+			int capturedPieceSquare = Move.isEnPassantCapture(moveToUndo) ? 
+					generateCaptureBitOffsetForEnPassant(originPiece, originBitOffset) : originBitOffset;
+			long mask = 1L << capturedPieceSquare;
+			pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] |= mask;
+			whitePieces |= mask;
+			allPieces |= mask;
+			incrementallyUpdateStateForUndoCaptureForBlack(targetPiece, capturedPieceSquare);			
+		}
+		
+		if (EubosEngineMain.ENABLE_ASSERTS) {
+			int old_score = nnue.old_evaluate(this, false);
+			int new_score = nnue.new_evaluate_for_assert(this, false);
 			//if (!insufficient)
 				assert old_score == new_score : String.format("old %d new %d insufficient %b", old_score, new_score, insufficient);
 		}
@@ -1381,67 +1630,94 @@ public class Board {
 		return input;
 	}
 	
-	public void updateAccumulatorsForPromotion(boolean isWhite, int originPiece, int fullPromotedPiece, int originBitOffset, int targetBitOffset) {	
+	public void updateAccumulatorsForPromotionWhite(int originPiece, int fullPromotedPiece, int originBitOffset, int targetBitOffset) {	
 		int promo_piece = convertPiece(fullPromotedPiece);
 		int piece = convertPiece(originPiece);
-		if (isWhite) {
-			nnue.iterativeAccumulatorSubtractWhite(promo_piece, originBitOffset);
-			nnue.iterativeAccumulatorAddWhite(piece, targetBitOffset);
-		} else {
-			nnue.iterativeAccumulatorSubtractBlack(promo_piece, originBitOffset);
-			nnue.iterativeAccumulatorAddBlack(piece, targetBitOffset);
-		}
+		nnue.iterativeAccumulatorSubtractWhite(promo_piece, originBitOffset);
+		nnue.iterativeAccumulatorAddWhite(piece, targetBitOffset);
 	}
 	
-	public void updateAccumulatorsForBasicMove(boolean isWhite, int pieceToMove, int originBitOffset, int targetBitOffset) {
+	public void updateAccumulatorsForBasicMoveWhite(int pieceToMove, int originBitOffset, int targetBitOffset) {
 		int piece = convertPiece(pieceToMove);
-		if (isWhite) {
-			nnue.iterativeAccumulatorSubtractWhite(piece, originBitOffset);
-			nnue.iterativeAccumulatorAddWhite(piece, targetBitOffset);
-		} else {
-			nnue.iterativeAccumulatorSubtractBlack(piece, originBitOffset);
-			nnue.iterativeAccumulatorAddBlack(piece, targetBitOffset);
-		}
+		nnue.iterativeAccumulatorSubtractWhite(piece, originBitOffset);
+		nnue.iterativeAccumulatorAddWhite(piece, targetBitOffset);
 	}
 	
-	public void updateAccumulatorsForReplaceCapture(boolean isWhite, int targetPiece, int capturedPieceSquare) {
+	public void updateAccumulatorsForReplaceCaptureForWhite(int targetPiece, int capturedPieceSquare) {
 		int piece = convertPiece(targetPiece);
-		if (isWhite) {
-			nnue.iterativeAccumulatorAddBlack(piece, capturedPieceSquare);
-		} else {
-			nnue.iterativeAccumulatorAddWhite(piece, capturedPieceSquare);
-		}
+		nnue.iterativeAccumulatorAddBlack(piece, capturedPieceSquare);
 	}
 	
-	public void updateAccumulatorsForCapture(boolean isWhite, int targetPiece, int capturedPieceSquare) {
+	public void updateAccumulatorsForCaptureForWhite(int targetPiece, int capturedPieceSquare) {
 		int piece = convertPiece(targetPiece);
-		if (isWhite) {
-			nnue.iterativeAccumulatorSubtractBlack(piece, capturedPieceSquare);
-		} else {
-			nnue.iterativeAccumulatorSubtractWhite(piece, capturedPieceSquare);
-		}
+		nnue.iterativeAccumulatorSubtractBlack(piece, capturedPieceSquare);
 	}
 	
-	public void incrementallyUpdateStateForCapture(boolean isWhite, int targetPiece, int captureBitOffset) {
+	public void incrementallyUpdateStateForCaptureForWhite(int targetPiece, int captureBitOffset) {
 		me.updateForCapture(targetPiece, captureBitOffset);
 		if (!insufficient) {
 			hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
-			updateAccumulatorsForCapture(isWhite, targetPiece, captureBitOffset);
+			updateAccumulatorsForCaptureForWhite(targetPiece, captureBitOffset);
 		}
 	}
 	
-	public void incrementallyUpdateStateForUndoCapture(boolean isWhite, int targetPiece, int capturedPieceSquare) {
+	public void incrementallyUpdateStateForUndoCaptureForWhite(int targetPiece, int capturedPieceSquare) {
 		me.updateForReplacedCapture(targetPiece, capturedPieceSquare);
 		// Hash update is restored by copy when move is undone
 		if (!insufficient) {
-			updateAccumulatorsForReplaceCapture(isWhite, targetPiece, capturedPieceSquare);
+			updateAccumulatorsForReplaceCaptureForWhite(targetPiece, capturedPieceSquare);
 		}
 	}
 	
-	public void incrementallyUpdateStateForPromotion(boolean isWhite, int pieceToMove, int promotedPiece, int originBitOffset, int targetBitOffset) {
-		int fullPromotedPiece = (isWhite ? promotedPiece : promotedPiece|Piece.BLACK);
+	public void incrementallyUpdateStateForPromotionForWhite(int pieceToMove, int promotedPiece, int originBitOffset, int targetBitOffset) {
+		me.updateWhenDoingPromotion(promotedPiece, originBitOffset, targetBitOffset);
+		hashUpdater.doPromotionMove(targetBitOffset, originBitOffset, pieceToMove, promotedPiece);
+		updateAccumulatorsForPromotionWhite(promotedPiece, pieceToMove, originBitOffset, targetBitOffset);
+	}
+	
+	public void updateAccumulatorsForPromotionBlack(int originPiece, int fullPromotedPiece, int originBitOffset, int targetBitOffset) {	
+		int promo_piece = convertPiece(fullPromotedPiece);
+		int piece = convertPiece(originPiece);
+		nnue.iterativeAccumulatorSubtractBlack(promo_piece, originBitOffset);
+		nnue.iterativeAccumulatorAddBlack(piece, targetBitOffset);
+	}
+	
+	public void updateAccumulatorsForBasicMoveBlack(int pieceToMove, int originBitOffset, int targetBitOffset) {
+		int piece = convertPiece(pieceToMove);
+		nnue.iterativeAccumulatorSubtractBlack(piece, originBitOffset);
+		nnue.iterativeAccumulatorAddBlack(piece, targetBitOffset);
+	}
+	
+	public void updateAccumulatorsForReplaceCaptureForBlack(int targetPiece, int capturedPieceSquare) {
+		int piece = convertPiece(targetPiece);
+		nnue.iterativeAccumulatorAddWhite(piece, capturedPieceSquare);
+	}
+	
+	public void updateAccumulatorsForCaptureForBlack(int targetPiece, int capturedPieceSquare) {
+		int piece = convertPiece(targetPiece);
+		nnue.iterativeAccumulatorSubtractWhite(piece, capturedPieceSquare);
+	}
+	
+	public void incrementallyUpdateStateForCaptureForBlack(int targetPiece, int captureBitOffset) {
+		me.updateForCapture(targetPiece, captureBitOffset);
+		if (!insufficient) {
+			hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
+			updateAccumulatorsForCaptureForBlack(targetPiece, captureBitOffset);
+		}
+	}
+	
+	public void incrementallyUpdateStateForUndoCaptureForBlack(int targetPiece, int capturedPieceSquare) {
+		me.updateForReplacedCapture(targetPiece, capturedPieceSquare);
+		// Hash update is restored by copy when move is undone
+		if (!insufficient) {
+			updateAccumulatorsForReplaceCaptureForBlack(targetPiece, capturedPieceSquare);
+		}
+	}
+	
+	public void incrementallyUpdateStateForPromotionForBlack(int pieceToMove, int promotedPiece, int originBitOffset, int targetBitOffset) {
+		int fullPromotedPiece = promotedPiece|Piece.BLACK;
 		me.updateWhenDoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
 		hashUpdater.doPromotionMove(targetBitOffset, originBitOffset, pieceToMove, fullPromotedPiece);
-		updateAccumulatorsForPromotion(isWhite, fullPromotedPiece, pieceToMove, originBitOffset, targetBitOffset);
+		updateAccumulatorsForPromotionBlack(fullPromotedPiece, pieceToMove, originBitOffset, targetBitOffset);
 	}
 }

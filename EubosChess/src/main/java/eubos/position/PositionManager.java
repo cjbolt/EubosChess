@@ -111,8 +111,14 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		int old_flags = castling.getFlags();
 		
 		// Legal move check
-		if (theBoard.doMove(move)) {			
-			return false;
+		if (onMoveIsWhite) {
+			if (theBoard.doMoveWhite(move)) {			
+				return false;
+			}
+		} else {
+			if (theBoard.doMoveBlack(move)) {			
+				return false;
+			}
 		}	
 
 		// Store old state
@@ -138,7 +144,11 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 
 	public void unperformMove() {
 		MoveStack stack = moveTracker.pop();
-		theBoard.undoMove(stack.move);
+		if (onMoveIsWhite) {
+			theBoard.undoMoveBlack(stack.move);
+		} else {
+			theBoard.undoMoveWhite(stack.move);
+		}
 		
 		// Restore state from move stack
 		castling.setFlags(stack.castling);
