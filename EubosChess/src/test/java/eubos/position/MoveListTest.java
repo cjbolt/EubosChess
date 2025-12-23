@@ -49,7 +49,7 @@ public class MoveListTest {
 	
 	@Test
 	public void testCreateMoveList_typePromotionIsSet() throws IllegalNotationException {
-		setup("8/4P3/8/8/8/8/8/k7 w - - - -");
+		setup("K7/4P3/8/8/8/8/8/k7 w - - - -");
 		assertEquals(new GenericMove("e7e8q"), Move.toGenericMove(it.nextInt()));
 		assertEquals(new GenericMove("e7e8n"), Move.toGenericMove(it.nextInt()));
 	}
