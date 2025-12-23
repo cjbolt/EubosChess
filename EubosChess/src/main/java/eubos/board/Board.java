@@ -153,6 +153,7 @@ public class Board {
 	
 	public boolean doMove(int move) {		
 		int captureBitOffset = BitBoard.INVALID;
+		boolean old_insufficient = insufficient;
 		
 		// unload move
 		int temp = move;
@@ -269,7 +270,8 @@ public class Board {
 					whitePieces |= mask;
 				}
 				allPieces |= mask;
-				insufficient = false;
+				insufficient = old_insufficient;
+				//insufficient = false;
 			}
 			return true;
 		}
@@ -278,8 +280,8 @@ public class Board {
 		setEnPassantTargetSq(BitBoard.INVALID);
 		
 		if (isCapture) {
-			incrementallyUpdateStateForCapture(isWhite, targetPiece, captureBitOffset);
 			insufficient = isInsufficientMaterial();
+			incrementallyUpdateStateForCapture(isWhite, targetPiece, captureBitOffset);
 		} else {
 			// Check whether the move sets the En Passant target square
 			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
@@ -289,6 +291,8 @@ public class Board {
 				}
 			}
 		}
+		
+		if (insufficient) return false;
 		
 		if (promotedPiece != Piece.NONE) {
 			passedPawns &= ~initialSquareMask;
@@ -356,9 +360,11 @@ public class Board {
 			assert (me.numberOfPieces[Piece.WHITE_QUEEN]+me.numberOfPieces[Piece.BLACK_QUEEN]) == Long.bitCount(pieces[INDEX_QUEEN]);
 			assert (me.numberOfPieces[Piece.WHITE_PAWN]+me.numberOfPieces[Piece.BLACK_PAWN]) == Long.bitCount(pieces[INDEX_PAWN]);
 			assert Long.bitCount(pieces[INDEX_KING]) == 2;
-			int old_score = nnue.old_evaluate(this, isWhite);
-			int new_score = nnue.new_evaluate_for_assert(this, isWhite);
-			assert old_score == new_score : String.format("old %d new %d", old_score, new_score);
+			if (!insufficient) {
+				int old_score = nnue.old_evaluate(this, isWhite);
+				int new_score = nnue.new_evaluate_for_assert(this, isWhite);
+				assert old_score == new_score : String.format("old %d new %d insufficient=%b", old_score, new_score, insufficient);
+			}
 		}
 		
 		return false;
@@ -407,8 +413,9 @@ public class Board {
 			
 		} else {
 			// Piece type doesn't change across boards, update piece-specific bitboard and accumulators
-			pieces[pieceType] ^= positionsMask;			
-			updateAccumulatorsForBasicMove(isWhite, originPiece, originBitOffset, targetBitOffset);
+			pieces[pieceType] ^= positionsMask;
+			if (!insufficient)
+				updateAccumulatorsForBasicMove(isWhite, originPiece, originBitOffset, targetBitOffset);
 		}
 		// Switch colour bitboard
 		if (isWhite) {
@@ -433,14 +440,16 @@ public class Board {
 			}
 			allPieces |= mask;
 			incrementallyUpdateStateForUndoCapture(isWhite, targetPiece, capturedPieceSquare);			
-			insufficient = false;
 		}
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {
 			int old_score = nnue.old_evaluate(this, isWhite);
 			int new_score = nnue.new_evaluate_for_assert(this, isWhite);
-			assert old_score == new_score : String.format("old %d new %d", old_score, new_score);
+			//if (!insufficient)
+				assert old_score == new_score : String.format("old %d new %d insufficient %b", old_score, new_score, insufficient);
 		}
+		
+		insufficient = false;
 	}
 	
 	public int generateCaptureBitOffsetForEnPassant(int pieceToMove, int targetBitOffset) {
@@ -762,12 +771,8 @@ public class Board {
 	}
 	
 	public boolean isKingInCheck(boolean isWhite) {
-		boolean inCheck = false;
-		int kingBitOffset = getKingPosition(isWhite);
-		if (kingBitOffset != BitBoard.INVALID) {
-			inCheck = squareIsAttacked(kingBitOffset, isWhite);
-		}
-		return inCheck;
+		if (EubosEngineMain.ENABLE_ASSERTS) assert getKingPosition(isWhite) != BitBoard.INVALID;
+		return squareIsAttacked(getKingPosition(isWhite), isWhite);
 	}
 	
 	public void pickUpPieceAtSquare(long pieceToPickUp, int bitOffset, int piece) {
@@ -895,9 +900,8 @@ public class Board {
 			scratchBitBoard ^= (1L << bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.KING] & side;
-		if (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-			Piece.king_generateMoves_White(ml, this, bit_offset);
-		}
+		bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
+		Piece.king_generateMoves_White(ml, this, bit_offset);
 	}
 	
 	public void blackMidgame(IAddMoves ml) {
@@ -929,9 +933,8 @@ public class Board {
 			scratchBitBoard ^= (1L << bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.KING] & side;
-		if (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {			
-			Piece.king_generateMoves_Black(ml, this, bit_offset);
-		}
+		bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);			
+		Piece.king_generateMoves_Black(ml, this, bit_offset);
 	}
 	
 	public void getRegularPieceMoves(IAddMoves ml, boolean ownSideIsWhite) {
@@ -975,11 +978,10 @@ public class Board {
 		long scratchBitBoard;
 		int bit_offset = BitBoard.INVALID;
 		scratchBitBoard = pieces[Piece.KING] & side;
-		if (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {			
-			long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[bit_offset];
-			if ((opponentPieces & kingAttacksMask) != 0) {
-				Piece.king_generateMovesExtSearch_White(ml, this, bit_offset);
-			}
+		bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);			
+		long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[bit_offset];
+		if ((opponentPieces & kingAttacksMask) != 0) {
+			Piece.king_generateMovesExtSearch_White(ml, this, bit_offset);
 		}
 		// Only search pawn moves that cannot be a promotion
 		scratchBitBoard = pieces[Piece.PAWN] & side & (~BitBoard.RankMask_Lut[IntRank.R7]);
@@ -1066,11 +1068,10 @@ public class Board {
 			scratchBitBoard ^= (1L << bit_offset);
 		}		
 		scratchBitBoard = pieces[Piece.KING] & side;
-		if (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-			long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[bit_offset];
-			if ((opponentPieces & kingAttacksMask) != 0) {
-				Piece.king_generateMovesExtSearch_White(ml, this, bit_offset);
-			}
+		bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);
+		long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[bit_offset];
+		if ((opponentPieces & kingAttacksMask) != 0) {
+			Piece.king_generateMovesExtSearch_White(ml, this, bit_offset);
 		}
 	}
 	
@@ -1081,12 +1082,10 @@ public class Board {
 		long scratchBitBoard;
 		int bit_offset = BitBoard.INVALID;
 		scratchBitBoard = pieces[Piece.KING] & side;
-		if (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {		
-			long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[bit_offset];
-			if ((opponentPieces & kingAttacksMask) != 0) {
-				Piece.king_generateMovesExtSearch_Black(ml, this, bit_offset);
-			}
-			scratchBitBoard ^= (1L << bit_offset);
+		bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);		
+		long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[bit_offset];
+		if ((opponentPieces & kingAttacksMask) != 0) {
+			Piece.king_generateMovesExtSearch_Black(ml, this, bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.PAWN] & side & (~BitBoard.RankMask_Lut[IntRank.R2]);
 		while (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
@@ -1170,11 +1169,10 @@ public class Board {
 			scratchBitBoard ^= (1L << bit_offset);
 		}
 		scratchBitBoard = pieces[Piece.KING] & side;
-		if (scratchBitBoard != 0L && (bit_offset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {			
-			long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[bit_offset];
-			if ((opponentPieces & kingAttacksMask) != 0) {
-				Piece.king_generateMovesExtSearch_Black(ml, this, bit_offset);
-			}
+		bit_offset = BitBoard.convertToBitOffset(scratchBitBoard);			
+		long kingAttacksMask = SquareAttackEvaluator.KingMove_Lut[bit_offset];
+		if ((opponentPieces & kingAttacksMask) != 0) {
+			Piece.king_generateMovesExtSearch_Black(ml, this, bit_offset);
 		}
 	}
 	
@@ -1426,14 +1424,18 @@ public class Board {
 	
 	public void incrementallyUpdateStateForCapture(boolean isWhite, int targetPiece, int captureBitOffset) {
 		me.updateForCapture(targetPiece, captureBitOffset);
-		hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
-		updateAccumulatorsForCapture(isWhite, targetPiece, captureBitOffset);
+		if (!insufficient) {
+			hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
+			updateAccumulatorsForCapture(isWhite, targetPiece, captureBitOffset);
+		}
 	}
 	
 	public void incrementallyUpdateStateForUndoCapture(boolean isWhite, int targetPiece, int capturedPieceSquare) {
 		me.updateForReplacedCapture(targetPiece, capturedPieceSquare);
 		// Hash update is restored by copy when move is undone
-		updateAccumulatorsForReplaceCapture(isWhite, targetPiece, capturedPieceSquare);			
+		if (!insufficient) {
+			updateAccumulatorsForReplaceCapture(isWhite, targetPiece, capturedPieceSquare);
+		}
 	}
 	
 	public void incrementallyUpdateStateForPromotion(boolean isWhite, int pieceToMove, int promotedPiece, int originBitOffset, int targetBitOffset) {
