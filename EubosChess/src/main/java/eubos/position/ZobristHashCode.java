@@ -5,6 +5,7 @@ import java.util.Random;
 import eubos.board.BitBoard;
 import eubos.board.IForEachPieceCallback;
 import eubos.board.Piece;
+import eubos.main.EubosEngineMain;
 
 public class ZobristHashCode implements IForEachPieceCallback, IZobristUpdate {
 	
@@ -73,6 +74,9 @@ public class ZobristHashCode implements IForEachPieceCallback, IZobristUpdate {
 		/* Compute prnLookup index to use, based on piece type, colour and square.
 		 * Note: convert piece type to Zobrist index, which is 0 to 5. */
 		int pieceType = (currPiece & Piece.PIECE_NO_COLOUR_MASK) - 1;
+		if(EubosEngineMain.ENABLE_ASSERTS) {
+			assert pieceType >= 0 : String.format("PRN issues - bitOffset %d currPiece %d", bitOffset, currPiece);
+		}
 		int lookupIndex = pieceType * NUM_SQUARES + bitOffset;
 		if (Piece.isBlack(currPiece)) {
 			lookupIndex += INDEX_BLACK;
