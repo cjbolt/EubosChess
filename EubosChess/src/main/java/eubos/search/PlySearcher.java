@@ -441,7 +441,8 @@ public class PlySearcher {
 				!isTerminated() &&
 				depth > 2 &&
 				nullCheckEnabled &&
-				pos.getTheBoard().me.phase < 4000) {
+				pos.getTheBoard().me.phase < 4000 /*&&
+				!pos.isInsufficientMaterial() it can't be insufficient, checked above*/) {
 				
 				s.bestScore = doNullMoveSubTreeSearch(depth);
 				if (isTerminated()) { return 0; }
