@@ -330,12 +330,6 @@ public class Board {
 		}
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {
-			long iterativeUpdatePassedPawns = passedPawns;
-			createPassedPawnsBoard();
-			assert iterativeUpdatePassedPawns == passedPawns :
-				String.format("Passed Pawns error iterative %s != scratch %s move = %s pawns = %s", 
-					BitBoard.toString(iterativeUpdatePassedPawns), BitBoard.toString(passedPawns), 
-					Move.toString(move), BitBoard.toString(this.getPawns()));
 			// Check piece bit boards to me num pieces consistency
 			assert (me.numberOfPieces[Piece.WHITE_KNIGHT]+me.numberOfPieces[Piece.BLACK_KNIGHT]) == Long.bitCount(pieces[INDEX_KNIGHT]);
 			assert (me.numberOfPieces[Piece.WHITE_BISHOP]+me.numberOfPieces[Piece.BLACK_BISHOP]) == Long.bitCount(pieces[INDEX_BISHOP]);
@@ -344,6 +338,14 @@ public class Board {
 			assert (me.numberOfPieces[Piece.WHITE_PAWN]+me.numberOfPieces[Piece.BLACK_PAWN]) == Long.bitCount(pieces[INDEX_PAWN]);
 			assert Long.bitCount(pieces[INDEX_KING]) == 2;
 			if (!insufficient) {
+				/* Both of these iterative updates are skipped if there is insufficient material, it seems forced can come here too */
+				long iterativeUpdatePassedPawns = passedPawns;
+				createPassedPawnsBoard();
+				assert iterativeUpdatePassedPawns == passedPawns :
+					String.format("Passed Pawns error iterative %s != scratch %s move = %s pawns = %s", 
+						BitBoard.toString(iterativeUpdatePassedPawns), BitBoard.toString(passedPawns), 
+						Move.toString(move), BitBoard.toString(this.getPawns()));
+				
 				int old_score = nnue.old_evaluate(this, false);
 				int new_score = nnue.new_evaluate_for_assert(this, false);
 				assert old_score == new_score : String.format("old %d new %d insufficient=%b", old_score, new_score, insufficient);
@@ -532,12 +534,6 @@ public class Board {
 		}
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {
-			long iterativeUpdatePassedPawns = passedPawns;
-			createPassedPawnsBoard();
-			assert iterativeUpdatePassedPawns == passedPawns :
-				String.format("Passed Pawns error iterative %s != scratch %s move = %s pawns = %s", 
-					BitBoard.toString(iterativeUpdatePassedPawns), BitBoard.toString(passedPawns), 
-					Move.toString(move), BitBoard.toString(this.getPawns()));
 			// Check piece bit boards to me num pieces consistency
 			assert (me.numberOfPieces[Piece.WHITE_KNIGHT]+me.numberOfPieces[Piece.BLACK_KNIGHT]) == Long.bitCount(pieces[INDEX_KNIGHT]);
 			assert (me.numberOfPieces[Piece.WHITE_BISHOP]+me.numberOfPieces[Piece.BLACK_BISHOP]) == Long.bitCount(pieces[INDEX_BISHOP]);
@@ -546,9 +542,17 @@ public class Board {
 			assert (me.numberOfPieces[Piece.WHITE_PAWN]+me.numberOfPieces[Piece.BLACK_PAWN]) == Long.bitCount(pieces[INDEX_PAWN]);
 			assert Long.bitCount(pieces[INDEX_KING]) == 2;
 			if (!insufficient) {
+				/* Both of these iterative updates are skipped if there is insufficient material, it seems forced can come here too */
 				int old_score = nnue.old_evaluate(this, true);
 				int new_score = nnue.new_evaluate_for_assert(this, true);
 				assert old_score == new_score : String.format("old %d new %d insufficient=%b", old_score, new_score, insufficient);
+				
+				long iterativeUpdatePassedPawns = passedPawns;
+				createPassedPawnsBoard();
+				assert iterativeUpdatePassedPawns == passedPawns :
+					String.format("Passed Pawns error iterative %s != scratch %s move = %s pawns = %s", 
+						BitBoard.toString(iterativeUpdatePassedPawns), BitBoard.toString(passedPawns), 
+						Move.toString(move), BitBoard.toString(this.getPawns()));
 			}
 		}
 		
@@ -621,8 +625,10 @@ public class Board {
 		if (EubosEngineMain.ENABLE_ASSERTS) {
 			int old_score = nnue.old_evaluate(this, true);
 			int new_score = nnue.new_evaluate_for_assert(this, true);
-			//if (!insufficient)
+			if (!insufficient) {
+				// Get forced move can lead to insufficient material, then we don't use stack to restore eval or hash
 				assert old_score == new_score : String.format("old %d new %d insufficient %b", old_score, new_score, insufficient);
+			}
 		}
 		
 		insufficient = false;
@@ -694,8 +700,9 @@ public class Board {
 		if (EubosEngineMain.ENABLE_ASSERTS) {
 			int old_score = nnue.old_evaluate(this, false);
 			int new_score = nnue.new_evaluate_for_assert(this, false);
-			//if (!insufficient)
+			if (!insufficient) {
 				assert old_score == new_score : String.format("old %d new %d insufficient %b", old_score, new_score, insufficient);
+			}
 		}
 		
 		insufficient = false;
