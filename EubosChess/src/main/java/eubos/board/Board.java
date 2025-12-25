@@ -152,7 +152,8 @@ public class Board {
 	}
 	
 	private void basicAsserts() {
-		if (getPawns() == 0L) assert passedPawns == 0L;
+		if (getPawns() == 0L) assert passedPawns == 0L :
+			String.format("pawns %x passed %x fen %s", getPawns(), passedPawns, getAsFenString());
 		assert Long.bitCount(pieces[INDEX_KING]) == 2;
 		assert insufficient == isInsufficientMaterial() :
 			String.format("Insufficient dsicrepancy flag=%b isInsufficientMaterial=%b %s", insufficient, isInsufficientMaterial(), getAsFenString());
@@ -163,7 +164,6 @@ public class Board {
 	
 	public boolean doMoveBlack(int move) {		
 		int captureBitOffset = BitBoard.INVALID;
-		boolean old_insufficient = insufficient;
 		
 		// unload move
 		int temp = move;
@@ -264,8 +264,6 @@ public class Board {
 				pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] |= mask;
 				whitePieces |= mask;
 				allPieces |= mask;
-				insufficient = old_insufficient;
-				//insufficient = false;
 			}
 			return true;
 		}
@@ -274,7 +272,6 @@ public class Board {
 		setEnPassantTargetSq(BitBoard.INVALID);
 		
 		if (isCapture) {
-			insufficient = isInsufficientMaterial();
 			incrementallyUpdateStateForCaptureForBlack(targetPiece, captureBitOffset);
 		} else {
 			if (promotedPiece != Piece.NONE && promotedPiece != Piece.QUEEN) {
@@ -374,7 +371,6 @@ public class Board {
 	
 	public boolean doMoveWhite(int move) {		
 		int captureBitOffset = BitBoard.INVALID;
-		boolean old_insufficient = insufficient;
 		
 		// unload move
 		int temp = move;
@@ -475,8 +471,6 @@ public class Board {
 				pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] |= mask;
 				blackPieces |= mask;
 				allPieces |= mask;
-				insufficient = old_insufficient;
-				//insufficient = false;
 			}
 			return true;
 		}
@@ -485,9 +479,12 @@ public class Board {
 		setEnPassantTargetSq(BitBoard.INVALID);
 		
 		if (isCapture) {
-			insufficient = isInsufficientMaterial();
 			incrementallyUpdateStateForCaptureForWhite(targetPiece, captureBitOffset);
 		} else {
+			if (promotedPiece != Piece.NONE && promotedPiece != Piece.QUEEN) {
+				// under promotion can result in insufficient if only one pawn, in rare conditions
+				insufficient = isInsufficientMaterial();
+			}
 			// Check whether the move sets the En Passant target square
 			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
 				// Handle castling secondary rook moves...
@@ -1683,6 +1680,7 @@ public class Board {
 	
 	public void incrementallyUpdateStateForCaptureForWhite(int targetPiece, int captureBitOffset) {
 		me.updateForCapture(targetPiece, captureBitOffset);
+		insufficient = isInsufficientMaterial();
 		if (!insufficient) {
 			hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
 			updateAccumulatorsForCaptureForWhite(targetPiece, captureBitOffset);
@@ -1728,6 +1726,7 @@ public class Board {
 	
 	public void incrementallyUpdateStateForCaptureForBlack(int targetPiece, int captureBitOffset) {
 		me.updateForCapture(targetPiece, captureBitOffset);
+		insufficient = isInsufficientMaterial();
 		if (!insufficient) {
 			hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
 			updateAccumulatorsForCaptureForBlack(targetPiece, captureBitOffset);
