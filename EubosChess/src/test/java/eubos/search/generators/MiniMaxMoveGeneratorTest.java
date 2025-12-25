@@ -126,7 +126,7 @@ public class MiniMaxMoveGeneratorTest {
 		// 2 PPP.....
 		// 1 kP......
 		//   abcdefgh
-		setupPosition( "8/8/8/8/8/1pp5/ppp5/Kp6 w - - - 1" );
+		setupPosition( "7k/8/8/8/8/1pp5/ppp5/Kp6 w - - - 1" );
 		assertEquals(Move.NULL_MOVE, classUnderTest.findMove(SEARCH_DEPTH_IN_PLY).pv[0]);
 	}
 	

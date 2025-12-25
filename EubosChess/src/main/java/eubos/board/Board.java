@@ -151,6 +151,16 @@ public class Board {
 		return fen.toString();
 	}
 	
+	private void basicAsserts() {
+		if (getPawns() == 0L) assert passedPawns == 0L;
+		assert Long.bitCount(pieces[INDEX_KING]) == 2;
+		assert insufficient == isInsufficientMaterial() :
+			String.format("Insufficient dsicrepancy flag=%b isInsufficientMaterial=%b %s", insufficient, isInsufficientMaterial(), getAsFenString());
+		long white_king = getWhiteKing(), black_king = getBlackKing();
+		assert white_king != 0L && black_king != 0L : 
+			String.format("Missing king W=%x B=%x %s", white_king, black_king, getAsFenString());
+	}
+	
 	public boolean doMoveBlack(int move) {		
 		int captureBitOffset = BitBoard.INVALID;
 		boolean old_insufficient = insufficient;
@@ -176,6 +186,7 @@ public class Board {
 		
 		// Check assertions, if enabled in build
 		if (EubosEngineMain.ENABLE_ASSERTS) {
+			basicAsserts();
 			// Check piece to move is on the bitboard, and is correct side
 			assert (pieces[pieceType] & initialSquareMask) != 0: 
 				String.format("Non-existant piece %s at %s for move %s", 
@@ -266,6 +277,10 @@ public class Board {
 			insufficient = isInsufficientMaterial();
 			incrementallyUpdateStateForCaptureForBlack(targetPiece, captureBitOffset);
 		} else {
+			if (promotedPiece != Piece.NONE && promotedPiece != Piece.QUEEN) {
+				// under promotion can result in insufficient if only one pawn, in rare conditions
+				insufficient = isInsufficientMaterial();
+			}
 			// Check whether the move sets the En Passant target square
 			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
 				// Handle castling secondary rook moves...
@@ -278,6 +293,7 @@ public class Board {
 		if (insufficient) return false;
 		
 		if (promotedPiece != Piece.NONE) {
+			
 			passedPawns &= ~initialSquareMask;
 			incrementallyUpdateStateForPromotionForBlack(pieceToMove, promotedPiece, originBitOffset, targetBitOffset);
 		} else {
@@ -350,6 +366,7 @@ public class Board {
 				int new_score = nnue.new_evaluate_for_assert(this, false);
 				assert old_score == new_score : String.format("old %d new %d insufficient=%b", old_score, new_score, insufficient);
 			}
+			basicAsserts();
 		}
 		
 		return false;
@@ -380,6 +397,7 @@ public class Board {
 		
 		// Check assertions, if enabled in build
 		if (EubosEngineMain.ENABLE_ASSERTS) {
+			basicAsserts();
 			// Check piece to move is on the bitboard, and is correct side
 			assert (pieces[pieceType] & initialSquareMask) != 0: 
 				String.format("Non-existant piece %s at %s for move %s", 
@@ -554,6 +572,7 @@ public class Board {
 						BitBoard.toString(iterativeUpdatePassedPawns), BitBoard.toString(passedPawns), 
 						Move.toString(move), BitBoard.toString(this.getPawns()));
 			}
+			basicAsserts();
 		}
 		
 		return false;
@@ -632,6 +651,7 @@ public class Board {
 		}
 		
 		insufficient = false;
+		basicAsserts();
 	}
 	
 	public void undoMoveBlack(int moveToUndo) {
@@ -706,6 +726,7 @@ public class Board {
 		}
 		
 		insufficient = false;
+		basicAsserts();
 	}
 	
 	public int generateCaptureBitOffsetForEnPassant(int pieceToMove, int targetBitOffset) {
