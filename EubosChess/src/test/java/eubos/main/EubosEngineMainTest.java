@@ -678,6 +678,22 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	}
 	
 	@Test
+	public void test_returns_move_when_insufficient_material_white() throws IllegalNotationException, IOException, InterruptedException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/6Nk/8/3n4/7K/8/8/8 w - - 1 63"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"1"+CMD_TERMINATOR, null)); // expect returns valid random move
+		assertTrue(performTest(500));
+	}
+	
+	@Test
+	public void test_returns_move_when_insufficient_material_black() throws IllegalNotationException, IOException, InterruptedException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/6Nk/8/3n4/7K/8/8/8 b - - 1 63"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"1"+CMD_TERMINATOR, null)); // expect returns valid random move
+		assertTrue(performTest(500));
+	}
+	
+	@Test
 	@Disabled
 	public void test_acceptInevitableDraw() throws IllegalNotationException, IOException, InterruptedException {
 		// Caused time forfeits because of excessive futility pruning and hash table?

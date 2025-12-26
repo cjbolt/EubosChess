@@ -646,9 +646,9 @@ public class Board {
 				assert old_score == new_score : String.format("old %d new %d insufficient %b", old_score, new_score, insufficient);
 			}
 		}
-		
-		insufficient = false;
-		basicAsserts();
+		insufficient = isInsufficientMaterial();
+		if (EubosEngineMain.ENABLE_ASSERTS) basicAsserts();
+		//insufficient = false;
 	}
 	
 	public void undoMoveBlack(int moveToUndo) {
@@ -722,8 +722,9 @@ public class Board {
 			}
 		}
 		
-		insufficient = false;
-		basicAsserts();
+		insufficient = isInsufficientMaterial();
+		if (EubosEngineMain.ENABLE_ASSERTS) basicAsserts();
+		//insufficient = false;
 	}
 	
 	public int generateCaptureBitOffsetForEnPassant(int pieceToMove, int targetBitOffset) {

@@ -68,6 +68,8 @@ public class EubosEngineMain extends AbstractEngine {
 	public static final boolean ENABLE_PERFT = false;
 	public static final boolean ENABLE_TEST_SUITES = false;
 	
+	public static final boolean ENABLE_FORCED_MOVE = false;
+	
 	public static final boolean ENABLE_DEBUG_VALIDATION_SEARCH = false;
 	public static final boolean ENABLE_DEBUG_VALIDATION_DRAWS = false;
 	
@@ -248,12 +250,13 @@ public class EubosEngineMain extends AbstractEngine {
 			hashMap.resetDiagnostics();
 		}
 		selectedRandomMove = Move.NULL_MOVE;
-		int forcedMove = MoveList.getForcedMove(rootPosition);
+		int forcedMove = ENABLE_FORCED_MOVE ? MoveList.getForcedMove(rootPosition) : Move.NULL_MOVE;
 		if (forcedMove != Move.NULL_MOVE) {
 			sendInfoString(String.format("forced %s", Move.toString(forcedMove)));
 			// Ensures we don't try to update training data for a forced move, where score is invalid
 			convertToGenericAndSendBestMove(forcedMove);
-		} else if (generate_training_data && !random_move_training && rootPosition.getMoveNumber() < 7) {
+		} else if ((generate_training_data && !random_move_training && rootPosition.getMoveNumber() < 7) ||
+				   rootPosition.isInsufficientMaterial()) {
 			// When generating training data, the first few moves should be random and unsearched...
 			int randomMove = MoveList.getRandomMove(rootPosition);
 			convertToGenericAndSendBestMove(randomMove);
