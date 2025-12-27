@@ -274,9 +274,13 @@ public class Board {
 		if (isCapture) {
 			incrementallyUpdateStateForCaptureForBlack(targetPiece, captureBitOffset);
 		} else {
-			if (promotedPiece != Piece.NONE && promotedPiece != Piece.QUEEN) {
+			if (promotedPiece == Piece.KNIGHT) {
 				// under promotion can result in insufficient if only one pawn, in rare conditions
 				insufficient = isInsufficientMaterial();
+				if (insufficient) {
+					me.updateWhenDoingPromotion(Piece.BLACK_KNIGHT, originBitOffset, targetBitOffset);
+					updateAccumulatorsForPromotionBlack(Piece.BLACK_KNIGHT, pieceToMove, originBitOffset, targetBitOffset);
+				}
 			}
 			// Check whether the move sets the En Passant target square
 			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
@@ -287,7 +291,10 @@ public class Board {
 			}
 		}
 		
-		if (insufficient) return false;
+		if (insufficient) {
+			passedPawns = 0L;
+			return false;
+		}
 		
 		if (promotedPiece != Piece.NONE) {
 			
@@ -481,9 +488,13 @@ public class Board {
 		if (isCapture) {
 			incrementallyUpdateStateForCaptureForWhite(targetPiece, captureBitOffset);
 		} else {
-			if (promotedPiece != Piece.NONE && promotedPiece != Piece.QUEEN) {
+			if (promotedPiece == Piece.KNIGHT) {
 				// under promotion can result in insufficient if only one pawn, in rare conditions
 				insufficient = isInsufficientMaterial();
+				if (insufficient) {
+					me.updateWhenDoingPromotion(Piece.WHITE_KNIGHT, originBitOffset, targetBitOffset);
+					updateAccumulatorsForPromotionBlack(Piece.WHITE_KNIGHT, pieceToMove, originBitOffset, targetBitOffset);
+				}
 			}
 			// Check whether the move sets the En Passant target square
 			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
@@ -494,7 +505,10 @@ public class Board {
 			}
 		}
 		
-		if (insufficient) return false;
+		if (insufficient) {
+			passedPawns = 0L;
+			return false;
+		}
 		
 		if (promotedPiece != Piece.NONE) {
 			passedPawns &= ~initialSquareMask;

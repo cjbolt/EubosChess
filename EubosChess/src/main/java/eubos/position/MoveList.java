@@ -43,7 +43,7 @@ public class MoveList {
 		int randomMove = Move.NULL_MOVE;
 		int moveCount = 0;
 		int moves[] = new int[110];
-		
+		pm.getTheBoard().createPassedPawnsBoard(); // needed because we don't update pp board when insufficient (when applying prev moves in game)
 		while (it.hasNext()) {
 			int currentMove = it.nextInt();
 			if (pm.performMove(currentMove)) {

@@ -419,10 +419,18 @@ public class MiniMaxMoveGeneratorTest {
 	}
 			
 	@Test
-	public void test_assymetric_eval_due_to_zugzwang() throws IllegalNotationException {
+	public void test_insufficient_issues() throws IllegalNotationException {
 		setupPosition("4R3/8/8/6P1/4p2B/2bb4/4kPP1/6K1 w - - 5 105 ");
 		SearchResult res = classUnderTest.findMove((byte)12);
 		expectedMove = new GenericMove("g5g6");
+		assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
+	}
+	
+	@Test
+	public void test_insufficient_issues_alt() throws IllegalNotationException {
+		setupPosition("8/8/8/8/3k4/5B1K/7p/8 b - - 1 73");
+		SearchResult res = classUnderTest.findMove((byte)3);
+		expectedMove = new GenericMove("h2h1Q");
 		assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
 	}
 	
