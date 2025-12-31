@@ -493,7 +493,7 @@ public class Board {
 				insufficient = isInsufficientMaterial();
 				if (insufficient) {
 					me.updateWhenDoingPromotion(Piece.WHITE_KNIGHT, originBitOffset, targetBitOffset);
-					updateAccumulatorsForPromotionBlack(Piece.WHITE_KNIGHT, pieceToMove, originBitOffset, targetBitOffset);
+					updateAccumulatorsForPromotionWhite(Piece.WHITE_KNIGHT, pieceToMove, originBitOffset, targetBitOffset);
 				}
 			}
 			// Check whether the move sets the En Passant target square
