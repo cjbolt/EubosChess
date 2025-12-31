@@ -435,6 +435,15 @@ public class MiniMaxMoveGeneratorTest {
 	}
 	
 	@Test
+	public void test_insufficient_issues_fail_to_undo_under_promotion() throws IllegalNotationException {
+		setupPosition("8/4nkPK/8/8/8/8/8/8 w - - 13 98");
+		SearchResult res = classUnderTest.findMove((byte)1);
+		expectedMove = new GenericMove("g7g8Q");
+		assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
+	}
+	 
+	
+	@Test
 	@Ignore
 	public void test_data_gen_validation_fail()throws IllegalNotationException  {
 		hashMap = new FixedSizeTranspositionTable(16, 1);
